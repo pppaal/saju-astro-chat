@@ -13,5 +13,4 @@ export * from './advancedSajuAnalysis';
 // 심화 점성학 분석 (Aspects, Synastry, Composite Chart)
 export * from './advancedAstrologyAnalysis';
 
-// 그룹 궁합 분석 (3-4명 이상)
-export * from './groupCompatibility';
+// 그룹 궁합 분석 — 미사용으로 삭제됨 (2025 정리)

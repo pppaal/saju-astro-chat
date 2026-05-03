@@ -4,6 +4,7 @@
 import { FiveElement } from './types';
 import { JIJANGGAN } from './constants';
 import { getStemElement } from './stemBranchUtils';
+import { iga, eulReul } from '../i18n/koParticle';
 
 // ============================================================
 // 타입 정의
@@ -286,13 +287,13 @@ export function analyzeSibsinInteractions(positions: SibsinPosition[]): SibsinIn
       if (targetCategory === generates) {
         interactions.push({
           type: '생', from: sibsin, to: targetSibsin,
-          description: `${sibsin}이(가) ${targetSibsin}을(를) 생함`, impact: 'positive'
+          description: `${sibsin}${iga(sibsin)} ${targetSibsin}${eulReul(targetSibsin)} 생함`, impact: 'positive'
         });
       }
       if (targetCategory === controls) {
         interactions.push({
           type: '극', from: sibsin, to: targetSibsin,
-          description: `${sibsin}이(가) ${targetSibsin}을(를) 극함`, impact: 'neutral'
+          description: `${sibsin}${iga(sibsin)} ${targetSibsin}${eulReul(targetSibsin)} 극함`, impact: 'neutral'
         });
       }
     }

@@ -41,7 +41,8 @@ const GOLDEN_CASES: GoldenCase[] = [
       day: ['庚', '寅'],
       time: ['丙', '子'],
       dayMaster: '庚',
-      daeunStartAge: 18,
+      // 직전 절기를 정확히 잡도록 saju.ts 버그 수정 후 (2026 정리). 이전: 18
+      daeunStartAge: 8,
       daeunForward: false,
     },
   },
@@ -55,7 +56,8 @@ const GOLDEN_CASES: GoldenCase[] = [
       day: ['丙', '戌'],
       time: ['庚', '寅'],
       dayMaster: '丙',
-      daeunStartAge: 15,
+      // 이전: 15
+      daeunStartAge: 5,
       daeunForward: false,
     },
   },
@@ -69,7 +71,8 @@ const GOLDEN_CASES: GoldenCase[] = [
       day: ['壬', '寅'],
       time: ['庚', '子'],
       dayMaster: '壬',
-      daeunStartAge: 20,
+      // 이전: 20
+      daeunStartAge: 10,
       daeunForward: false,
     },
   },
@@ -83,7 +86,8 @@ const GOLDEN_CASES: GoldenCase[] = [
       day: ['辛', '未'],
       time: ['辛', '卯'],
       dayMaster: '辛',
-      daeunStartAge: 11,
+      // 이전: 11
+      daeunStartAge: 2,
       daeunForward: false,
     },
   },

@@ -12,8 +12,9 @@ import { LIST_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits'
 import { logger } from '@/lib/logger'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
-import { generatePrecisionTimelineWithRag } from './routePrecisionTimeline'
 import { buildActionPlanPayload } from './routeTimelineAssembly'
+import { polishCalendarDayNarrationKo } from '@/lib/llm/calendarNarrativePolish'
+import { buildDayContinuity, buildDayOfWeekTone } from '@/lib/calendar/dayContext'
 import {
   analyzeConfidenceMeta,
   buildActionPlanInsights,
@@ -23,16 +24,10 @@ import {
   buildSlotGuardrail,
   buildSlotNarrative,
   buildSlotWhy,
-  clampPercent,
-  cleanGuidanceText,
-  extractHoursFromText,
   getEffectiveCalendarGrade,
   getEffectiveCalendarScore,
-  getMatrixPacket,
   inferSlotTypes,
   pickCategoryByHour,
-  summarizeMatrixPacketForPrompt,
-  summarizeMatrixVerdictForPrompt,
   trimList,
 } from './routeActionPlanSupport'
 
@@ -151,6 +146,23 @@ export type ActionPlanCalendarContext = {
   summary?: string
   canonicalCore?: Partial<CalendarCoreAdapterResult>
   evidence?: CalendarEvidence
+  natalSaju?: {
+    dayStem: string
+    dayBranch: string
+    yearBranch?: string
+    monthStem?: string
+    monthBranch?: string
+  }
+  gongmangBranches?: string[]
+  shinsalActive?: { name: string; type?: string; affectedArea?: string }[]
+  activityScores?: {
+    marriage?: number
+    career?: number
+    investment?: number
+    moving?: number
+    surgery?: number
+    study?: number
+  }
 } | null
 
 export type ActionPlanInsights = {
@@ -174,9 +186,6 @@ export type RagContextResponse = {
     insights?: string[]
   }
 }
-
-const CALENDAR_AI_PREMIUM_ONLY = false
-const CALENDAR_AI_CREDIT_COST = 0
 
 const matrixEvidencePacketSchema = z
   .object({
@@ -518,6 +527,36 @@ const actionPlanTimelineRequestSchema = z.object({
         .optional(),
       ganzhi: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
       transitSunSign: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
+      natalSaju: z
+        .object({
+          dayStem: z.string().max(8),
+          dayBranch: z.string().max(8),
+          yearBranch: z.string().max(8).optional(),
+          monthStem: z.string().max(8).optional(),
+          monthBranch: z.string().max(8).optional(),
+        })
+        .optional(),
+      gongmangBranches: z.array(z.string().max(8)).max(4).optional(),
+      shinsalActive: z
+        .array(
+          z.object({
+            name: z.string().max(20),
+            type: z.string().max(20).optional(),
+            affectedArea: z.string().max(40).optional(),
+          })
+        )
+        .max(8)
+        .optional(),
+      activityScores: z
+        .object({
+          marriage: z.number().min(0).max(100).optional(),
+          career: z.number().min(0).max(100).optional(),
+          investment: z.number().min(0).max(100).optional(),
+          moving: z.number().min(0).max(100).optional(),
+          surgery: z.number().min(0).max(100).optional(),
+          study: z.number().min(0).max(100).optional(),
+        })
+        .optional(),
       evidence: z
         .object({
           matrix: z
@@ -648,8 +687,6 @@ export const POST = withApiMiddleware(
         })
       }
     }
-    const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY)
-    const canUseAiPrecision = !CALENDAR_AI_PREMIUM_ONLY || isPremiumUser
 
     const baseTimeline = buildRuleBasedTimeline({
       date,
@@ -696,58 +733,6 @@ export const POST = withApiMiddleware(
         : null,
     })
 
-    const aiResult = canUseAiPrecision
-      ? await generatePrecisionTimelineWithRag(
-          {
-            date,
-            locale: lang,
-            intervalMinutes: safeInterval,
-            baseTimeline,
-            calendar: actionPlanCalendar
-              ? {
-                  grade: getEffectiveCalendarGrade(actionPlanCalendar),
-                  displayGrade: actionPlanCalendar.displayGrade,
-                  score: getEffectiveCalendarScore(actionPlanCalendar),
-                  displayScore: actionPlanCalendar.displayScore,
-                  categories: trimList(actionPlanCalendar.categories, 3),
-                  bestTimes: trimList(actionPlanCalendar.bestTimes, 3),
-                  warnings: trimList(actionPlanCalendar.warnings, 3),
-                  recommendations: trimList(actionPlanCalendar.recommendations, 3),
-                  sajuFactors: trimList(actionPlanCalendar.sajuFactors, 3),
-                  astroFactors: trimList(actionPlanCalendar.astroFactors, 3),
-                  summary: actionPlanCalendar.summary,
-                  canonicalCore: actionPlanCalendar.canonicalCore,
-                  evidence: actionPlanCalendar.evidence,
-                }
-              : null,
-          },
-          {
-            extractHoursFromText,
-            getEffectiveCalendarGrade,
-            getEffectiveCalendarScore,
-            getMatrixPacket,
-            summarizeMatrixPacketForPrompt: (packet, locale) =>
-              summarizeMatrixPacketForPrompt(packet as ReturnType<typeof getMatrixPacket>, locale),
-            summarizeMatrixVerdictForPrompt,
-            cleanGuidanceText,
-            clampPercent,
-          }
-        )
-      : { timeline: null, errorReason: 'premium_required' }
-    const aiRefined = aiResult.timeline
-      ? { timeline: aiResult.timeline, summary: aiResult.summary }
-      : null
-    const aiFailureReason = !canUseAiPrecision
-      ? 'premium_required'
-      : !hasOpenAiKey
-        ? 'missing_openai_api_key'
-        : !aiRefined
-          ? aiResult.errorReason || 'openai_request_failed_or_empty'
-          : null
-    const usingAiRefinement = Boolean(
-      canUseAiPrecision && aiRefined && aiRefined.timeline && aiRefined.timeline.length > 0
-    )
-    const sourceTimeline = usingAiRefinement ? aiRefined!.timeline : baseTimeline
     const baselineConfidence =
       typeof actionPlanCalendar?.evidence?.confidence === 'number'
         ? actionPlanCalendar.evidence.confidence
@@ -756,20 +741,13 @@ export const POST = withApiMiddleware(
     const responsePayload = buildActionPlanPayload(
       {
         locale: lang,
-        sourceTimeline,
+        sourceTimeline: baseTimeline,
         calendar: actionPlanCalendar,
         icp,
         persona,
         isPremiumUser,
         baselineConfidence,
-        usingAiRefinement,
-        canUseAiPrecision,
-        hasOpenAiKey,
-        aiFailureReason,
-        aiSummary: aiRefined?.summary,
         intervalMinutes: safeInterval,
-        premiumOnly: CALENDAR_AI_PREMIUM_ONLY,
-        creditCost: CALENDAR_AI_CREDIT_COST,
       },
       {
         buildPersonalizationHint,
@@ -789,15 +767,138 @@ export const POST = withApiMiddleware(
       timezone,
       hasIcp: Boolean(icp),
       hasPersona: Boolean(persona),
-      aiRefined: Boolean(aiRefined),
-      usingAiRefinement,
-      canUseAiPrecision,
       isPremiumUser,
-      aiCreditCost: CALENDAR_AI_CREDIT_COST,
-      aiFailureReason,
-      aiFailureDebug: aiResult.debug,
-      aiModel: 'gpt-4o-mini',
     })
+
+    // Day-level expert polish — Claude로 4-5단락 자연어 풀이.
+    // Skeleton: 결정론적 summary + best/caution slots + 사주·점성 raw.
+    // Claude 미설정 시 skeleton 그대로.
+    try {
+      type TimelineSlot = {
+        tone?: string
+        label?: string
+        hour?: string
+        note?: string
+        action?: string
+        evidenceSummary?: string[]
+        confidenceReason?: string[]
+        why?: { patterns?: string[]; summary?: string }
+      }
+      const payload = responsePayload as Record<string, unknown>
+      const calendar = actionPlanCalendar as Record<string, unknown> | undefined
+      const cycle =
+        ((calendar?.evidence as Record<string, unknown> | undefined)?.cycle as
+          | Record<string, unknown>
+          | undefined) || undefined
+      const cross =
+        ((calendar?.evidence as Record<string, unknown> | undefined)?.cross as
+          | Record<string, unknown>
+          | undefined) || undefined
+      const canonicalCore = calendar?.canonicalCore as Record<string, unknown> | undefined
+      const natalSaju = calendar?.natalSaju as Record<string, unknown> | undefined
+      const tl: TimelineSlot[] = (payload.timeline as TimelineSlot[]) || []
+      // Tier 4 anchor — slot evidence (사주·점성 신호 분리)
+      const SAJU_KW = ['일진', '대운', '세운', '월운', '식상', '재성', '관성', '인성', '비겁', '신살', '천을귀인', '도화', '역마', '백호', '양인', '괴강', '공망', '격국', '용신', '12운성', '천간', '지지', '오행', '갑자', '갑목', '을목', '병화', '정화', '무토', '기토', '경금', '신금', '임수', '계수']
+      const ASTRO_KW = ['하우스', '트랜짓', '어스펙트', 'aspect', 'transit', 'house', 'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'ASC', 'MC', 'Vertex', 'Juno', 'Vesta', 'Ceres', 'Pallas', '태양', '달', '수성', '금성', '화성', '목성', '토성', '천왕성', '해왕성', '명왕성', '상승궁', '천정']
+      const splitSignals = (lines: string[] = []): { saju: string[]; astro: string[] } => {
+        const saju: string[] = []
+        const astro: string[] = []
+        for (const ln of lines) {
+          const isSaju = SAJU_KW.some((k) => ln.includes(k))
+          const isAstro = ASTRO_KW.some((k) => ln.includes(k))
+          if (isSaju && !isAstro) saju.push(ln)
+          else if (isAstro && !isSaju) astro.push(ln)
+          else if (isSaju && isAstro) {
+            saju.push(ln)
+            astro.push(ln)
+          }
+        }
+        return { saju, astro }
+      }
+      const mapSlot = (s: TimelineSlot) => {
+        const rawSignals = [
+          ...(s.evidenceSummary || []),
+          ...(s.confidenceReason || []),
+          ...(s.why?.patterns || []),
+        ]
+        const { saju, astro } = splitSignals(rawSignals)
+        return {
+          hour: s.label || s.hour || '',
+          reason: s.note || s.action || '',
+          sajuSignals: saju.slice(0, 3),
+          astroSignals: astro.slice(0, 3),
+          summary: s.why?.summary,
+        }
+      }
+      const bestSlots = tl.filter((s) => s.tone === 'best').slice(0, 3).map(mapSlot)
+      const cautionSlots = tl.filter((s) => s.tone === 'caution').slice(0, 3).map(mapSlot)
+
+      const skeletonParts = [
+        payload.summary as string | undefined,
+        bestSlots.length ? `좋은 시간: ${bestSlots.map((s) => s.hour).join(', ')}` : '',
+        cautionSlots.length ? `조심: ${cautionSlots.map((s) => s.hour).join(', ')}` : '',
+      ].filter(Boolean)
+      const skeleton = skeletonParts.join(' · ')
+
+      const polishedNarrative = await polishCalendarDayNarrationKo(
+        {
+          date,
+          locale: lang,
+          natal: {
+            dayMaster: natalSaju?.dayStem as string | undefined,
+            dayMasterElement: calendar?.dayMasterElement as string | undefined,
+            geokguk: calendar?.geokguk as string | undefined,
+            fiveElements: calendar?.fiveElements as Record<string, number> | undefined,
+          },
+          timing: {
+            daeunGanji: cycle?.daeunGanji as string | undefined,
+            daeunElement: cycle?.daeunElement as string | undefined,
+            saeunYear: cycle?.saeunYear as number | undefined,
+            saeunElement: cycle?.saeunElement as string | undefined,
+            wolunElement: cycle?.wolunElement as string | undefined,
+            iljinElement: cycle?.iljinElement as string | undefined,
+          },
+          astro: {
+            transits: cross?.bridges as string[] | undefined,
+            saturnHouse: cross?.saturnHouse as number | undefined,
+            jupiterHouse: cross?.jupiterHouse as number | undefined,
+          },
+          bestSlots,
+          cautionSlots,
+          matrixCore: {
+            phase: canonicalCore?.phase as string | undefined,
+            focus: canonicalCore?.topDecisionLabel as string | undefined,
+            risk: canonicalCore?.riskAxisLabel as string | undefined,
+          },
+          continuity: (() => {
+            const c = buildDayContinuity(date, lang)
+            return {
+              yesterdayElement: c.yesterdayElement,
+              todayElement: c.todayElement,
+              tomorrowElement: c.tomorrowElement,
+              flowChange: c.flowChange,
+              narrative: lang === 'ko' ? c.flowNarrativeKo : c.flowNarrativeEn,
+            }
+          })(),
+          weekday: (() => {
+            const w = buildDayOfWeekTone(date)
+            if (!w) return undefined
+            return {
+              label: lang === 'ko' ? w.weekdayKo : w.weekdayEn,
+              tone: lang === 'ko' ? w.toneKo : w.toneEn,
+              weekPosition: w.weekPosition,
+            }
+          })(),
+        },
+        skeleton
+      )
+
+      payload.dayNarrative = polishedNarrative
+    } catch (polishErr) {
+      logger.warn('[ActionPlan] day narrative polish failed', {
+        error: polishErr instanceof Error ? polishErr.message : String(polishErr),
+      })
+    }
 
     return apiSuccess(responsePayload)
   },

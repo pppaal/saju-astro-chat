@@ -135,7 +135,7 @@ export function buildPersonalLifeTimelineNarrative(
     current.ganji,
     current.element,
     lang,
-    lang === 'ko' ? '?? ??' : 'current 10-year cycle'
+    lang === 'ko' ? '현재 대운' : 'current 10-year cycle'
   )
   if (lang !== 'ko') {
     const currentAgeLine =
@@ -158,13 +158,13 @@ export function buildPersonalLifeTimelineNarrative(
 
   const currentAgeLine =
     age !== null
-      ? `?? ${age}? ??? ?? ?? ??? ${current.startAge}-${current.endAge}? ??(${currentLabel})???. ? ??? ?? ??? ? ??? ???, ????????? ? ??? ?? ??? ??? ?? ??? ?????.`
-      : `${current.startAge}-${current.endAge}? ??(${currentLabel})? ?? ?? ??? ?????. ? ??? ?? ??? ? ??? ???, ????????? ? ??? ?? ??? ??? ?? ??? ?????.`
+      ? `현재 ${age}세 전후의 핵심 장기 흐름은 ${current.startAge}-${current.endAge}세 대운(${currentLabel})입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운·월운·일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다.`
+      : `${current.startAge}-${current.endAge}세 대운(${currentLabel})이 현재 장기 흐름의 중심입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운·월운·일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다.`
   const prevLine = prev
-    ? `${prev.startAge}-${prev.endAge}? ???? ??? ??? ?? ??? ?? ??? ???? ???. ??? ?? ??? ? ??? ?? ???, ?? ?? ? ??? ???? ??? ??? ?? ??? ????.`
+    ? `${prev.startAge}-${prev.endAge}세 구간에서 굳어진 습관과 판단 기준이 지금 흐름의 출발점이 됩니다. 그래서 현재 대운은 새 기회를 여는 동시에, 예전 방식 중 무엇을 유지하고 무엇을 버릴지 다시 고르게 만듭니다.`
     : ''
   const nextLine = next
-    ? `?? ${next.startAge}-${next.endAge}? ??(${next.ganji || next.element || '?? ?? ??'})?? ???? ????, ?? ???? ??? ?? ??? ?? ??? ??? ??? ??? ?? ?? ?????.`
+    ? `다음 ${next.startAge}-${next.endAge}세 대운(${next.ganji || next.element || '다음 장기 흐름'})으로 넘어가기 전까지는, 지금 구간에서 성과를 내는 방식과 다음 구간에 가져갈 기준을 구분해 두는 것이 중요합니다.`
     : ''
   return [currentAgeLine, prevLine, nextLine].filter(Boolean).join(' ')
 }
@@ -196,9 +196,9 @@ export function formatPlanetPlacement(
     const planetLabel = localizePlanetName(planet, lang)
     const signLabel = localizeSignName(String(sign || ''), lang)
     if (sign && house)
-      return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${signLabel} ${house}???? ?? ????`
-    if (sign) return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${signLabel}? ?? ????`
-    return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${house}???? ?? ????`
+      return `${planetLabel}${hasBatchim(planetLabel) ? '은' : '는'} ${signLabel} ${house}하우스에 놓여 있습니다`
+    if (sign) return `${planetLabel}${hasBatchim(planetLabel) ? '은' : '는'} ${signLabel}에 놓여 있습니다`
+    return `${planetLabel}${hasBatchim(planetLabel) ? '은' : '는'} ${house}하우스에 놓여 있습니다`
   }
   if (sign && house) return `${planet} in ${sign}, house ${house}`
   if (sign) return `${planet} in ${sign}`
@@ -217,34 +217,34 @@ export function buildPersonalCycleNarrative(
   const parts = [
     input.currentDaeunElement
       ? lang === 'ko'
-        ? `?? ${input.currentDaeunElement}`
+        ? `대운 ${input.currentDaeunElement}`
         : `Daeun ${getElementLabel(input.currentDaeunElement, lang)}`
       : '',
     input.currentSaeunElement
       ? lang === 'ko'
-        ? `?? ${input.currentSaeunElement}`
+        ? `세운 ${input.currentSaeunElement}`
         : `annual cycle ${getElementLabel(input.currentSaeunElement, lang)}`
       : '',
     input.currentWolunElement
       ? lang === 'ko'
-        ? `?? ${input.currentWolunElement}`
+        ? `월운 ${input.currentWolunElement}`
         : `monthly cycle ${getElementLabel(input.currentWolunElement, lang)}`
       : '',
     input.currentIljinElement
       ? lang === 'ko'
-        ? `?? ${input.currentIljinElement}`
+        ? `일운 ${input.currentIljinElement}`
         : `daily cycle ${getElementLabel(input.currentIljinElement, lang)}`
       : '',
   ].filter(Boolean)
   if (lang === 'ko') {
-    const agePart = age !== null ? `?? ${age}? ??` : '?? ??'
-    if (parts.length === 0) return `${agePart}? ??? ??? ??? ?? ?? ??? ??? ??? ?????.`
+    const agePart = age !== null ? `현재 ${age}세 전후` : '현재 구간'
+    if (parts.length === 0) return `${agePart}는 타이밍 입력은 있으나 겹친 운의 이름이 약하게 포착된 상태입니다.`
     const normalizedParts = parts.map((part) => {
       const [cycle, element] = part.split(' ')
       if (!cycle || !element) return part
       return `${withSubjectParticle(`${cycle} ${element}`)}`
     })
-    return `${agePart}? ${normalizedParts.join(', ')} ?? ???? ?????. ? ??? ??? ???, ??? ??? ?? ?? ??? ?????.`
+    return `${agePart}는 ${normalizedParts.join(', ')} 겹쳐 작동하는 구간입니다. 큰 기후는 대운이 만들고, 세운과 월운이 실제 체감 강도를 조절합니다.`
   }
   const agePart = age !== null ? `Around age ${age}` : 'At the current phase'
   if (parts.length === 0)
@@ -265,7 +265,7 @@ export function buildFocusedCycleLead(
     current && (current.ganji || current.element)
       ? `${current.ganji || ''}${current.element ? `(${current.element})` : ''}`
       : lang === 'ko'
-        ? '?? ??'
+        ? '현재 흐름'
         : 'current cycle'
 
   if (lang !== 'ko') {
@@ -286,22 +286,22 @@ export function buildFocusedCycleLead(
     }
   }
 
-  const agePrefix = age !== null ? `?? ${age}? ??? ` : '??? '
+  const agePrefix = age !== null ? `현재 ${age}세 전후는 ` : '지금은 '
   const cycleLabel =
-    current !== null ? `${current.startAge}-${current.endAge}? ??(${currentLabel})` : currentLabel
+    current !== null ? `${current.startAge}-${current.endAge}세 대운(${currentLabel})` : currentLabel
   switch (focus) {
     case 'career':
-      return `${agePrefix}${cycleLabel} ?? ?? ?? ??? ????? ? ???? ??????? ??? ?????.`
+      return `${agePrefix}${cycleLabel} 흐름 안에 있어 커리어 판단에서도 새 확장보다 역할·우선순위 정리가 먼저입니다.`
     case 'wealth':
-      return `${agePrefix}${cycleLabel} ?? ?? ?? ?? ????? ?? ???? ?? ??? ?? ?? ??? ?????.`
+      return `${agePrefix}${cycleLabel} 흐름 안에 있어 재정 판단에서는 수익 기대보다 조건 검토와 손실 상한 관리가 먼저입니다.`
     case 'health':
-      return `${agePrefix}${cycleLabel} ?? ?? ?? ?? ????? ?? ???? ?? ??? ?? ??? ?? ????.`
+      return `${agePrefix}${cycleLabel} 흐름 안에 있어 건강 관리에서는 강한 가속보다 회복 리듬을 먼저 세우는 편이 맞습니다.`
     case 'lifeMission':
-      return `${agePrefix}${cycleLabel} ??? ?? ?? ???? ??? ??? ???? ?? ??? ??? ??? ? ??? ???.`
+      return `${agePrefix}${cycleLabel} 흐름은 다음 장기 구간까지 가져갈 기준을 정리하고 반복 가능한 원칙을 남기는 데 의미가 큽니다.`
     case 'actionPlan':
-      return `${agePrefix}${cycleLabel} ????? ??? ??-???-???? ???? ?? ???? ?????.`
+      return `${agePrefix}${cycleLabel} 흐름에서는 실행을 착수-재확인-확정으로 나눌수록 결과 재현성이 올라갑니다.`
     case 'conclusion':
-      return `${agePrefix}${cycleLabel} ??? ??? ??? ???? ?? ??? ?? ??? ? ? ??? ???? ????.`
+      return `${agePrefix}${cycleLabel} 흐름의 결론은 성급한 확정보다 기준 정리와 순서 설계가 더 큰 차이를 만든다는 점입니다.`
   }
 }
 
@@ -316,13 +316,13 @@ export function buildPersonalBaseNarrative(input: MatrixCalculationInput, lang: 
 
   if (lang === 'ko') {
     const parts = [
-      dayMaster ? `?? ${dayMaster}` : '',
-      geokguk ? `?? ${geokguk}` : '',
-      yongsin ? `?? ${yongsin}` : '',
-      western ? `?? ?? ${western}` : '',
+      dayMaster ? `일간 ${dayMaster}` : '',
+      geokguk ? `격국 ${geokguk}` : '',
+      yongsin ? `용신 ${yongsin}` : '',
+      western ? `서양 원소 ${western}` : '',
     ].filter(Boolean)
-    if (parts.length === 0) return '????? ?? ???? ?? ?? ??? ?? ??? ?? ?? ?? ????.'
-    return `?? ????? ${parts.join(', ')} ??? ?? ??? ??? ????.`
+    if (parts.length === 0) return '원국에서는 기본 구조보다 현재 활성 흐름과 실행 순서를 함께 보는 편이 맞습니다.'
+    return `원국 기준으로는 ${parts.join(', ')} 흐름이 현재 판단의 바탕을 만듭니다.`
   }
 
   const parts = [
@@ -431,10 +431,12 @@ export function buildNarrativeSectionFromCore(
   const primaryLines = collectCleanNarrativeLines(primary, lang)
   const supportingLines = collectCleanNarrativeLines(supporting, lang)
   const baseLine = includeBase ? buildReportCoreLine(base, lang) : ''
-  let out = primaryLines.join(' ').trim()
+  // 단락 구분(\n\n)이 있는 entry가 있으면 entry끼리도 \n\n로 연결해서 의도 보존
+  const hasParagraphBreaks = primaryLines.some((l) => /\n\s*\n/.test(l))
+  let out = primaryLines.join(hasParagraphBreaks ? '\n\n' : ' ').trim()
 
   if (baseLine && !out.includes(baseLine)) {
-    out = out ? `${out} ${baseLine}` : baseLine
+    out = out ? (hasParagraphBreaks ? `${out}\n\n${baseLine}` : `${out} ${baseLine}`) : baseLine
   }
 
   out = ensureLongSectionNarrative(out, minChars, supportingLines)
@@ -445,14 +447,20 @@ export function buildNarrativeSectionFromCore(
 }
 
 function ensureLongSectionNarrative(base: string, minChars: number, extras: string[]): string {
-  let out = String(base || '')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
+  // base가 \n\n 단락 구분을 가지면 보존, 없으면 정규화
+  const hasParagraphBreaks = /\n\s*\n/.test(base)
+  let out = hasParagraphBreaks
+    ? String(base || '').trim()
+    : String(base || '').replace(/\s{2,}/g, ' ').trim()
   const uniqExtras = [...new Set(extras.map((v) => String(v || '').trim()).filter(Boolean))]
   for (const extra of uniqExtras) {
     if (out.length >= minChars) break
     if (out.includes(extra)) continue
-    out = `${out} ${extra}`.replace(/\s{2,}/g, ' ').trim()
+    if (hasParagraphBreaks) {
+      out = `${out}\n\n${extra}`.trim()
+    } else {
+      out = `${out} ${extra}`.replace(/\s{2,}/g, ' ').trim()
+    }
   }
   return out
 }
@@ -506,8 +514,8 @@ export function buildVerdictNarrative(
   if (lang === 'ko') {
     const parts = [
       item.rationale,
-      allowed ? `?? ???? ???? ${allowed} ????.` : '',
-      blocked ? `??? ${blocked}? ?? ???? ?? ?? ?? ????.` : '',
+      allowed ? `지금 허용되는 움직임은 ${allowed} 쪽입니다.` : '',
+      blocked ? `반대로 ${blocked}는 지금 무리하게 밀지 않는 편이 맞습니다.` : '',
     ]
     return parts.filter(Boolean).join(' ')
   }
@@ -527,7 +535,7 @@ export function buildPrimaryActionLead(
   const value = buildReportCoreLine(action, lang)
   if (!value) return fallback
   if (/[.!?]\s*$/.test(value)) return value
-  return lang === 'ko' ? `${value}? ?? ?? ?? ????.` : `Lean into ${value}.`
+  return lang === 'ko' ? `${value}에 힘을 두는 편이 맞습니다.` : `Lean into ${value}.`
 }
 
 export function buildPrimaryCautionLead(
@@ -538,7 +546,7 @@ export function buildPrimaryCautionLead(
   const value = buildReportCoreLine(caution, lang)
   if (!value) return fallback
   if (/[.!?]\s*$/.test(value)) return value
-  return lang === 'ko' ? `${value}? ?? ?? ?? ????.` : `Block ${value} first.`
+  return lang === 'ko' ? `${value}은 먼저 막는 편이 맞습니다.` : `Block ${value} first.`
 }
 
 export function findReportCoreDomainVerdict(reportCore: ReportCoreViewModel, domain: string) {
@@ -559,39 +567,39 @@ export function formatScenarioIdForNarrative(
   }
 
   const entries: Array<[RegExp, string, string]> = [
-    [/promotion_review/i, '?? ??', 'promotion or role review'],
-    [/contract_negotiation/i, '?? ??', 'contract negotiation'],
-    [/manager_track/i, '??? ??', 'management-track expansion'],
-    [/specialist_track/i, '??? ??', 'specialist-track deepening'],
-    [/entry/i, '? ?? ??', 'entry into a new role'],
-    [/distance_tuning/i, '거리 조절', 'distance tuning'],
-    [/boundary_reset/i, '?? ???', 'boundary reset'],
-    [/commitment_preparation/i, '?? ??', 'commitment preparation'],
-    [/clarify_expectations/i, '?? ??', 'expectation clarification'],
-    [/commitment_execution/i, '?? ??', 'commitment execution'],
-    [/cohabitation/i, '?? ??', 'cohabitation planning'],
-    [/family_acceptance/i, '?? ??', 'family acceptance'],
-    [/separation/i, '?? ??', 'relationship separation'],
-    [/capital_allocation/i, '?? ?? ??', 'capital allocation review'],
-    [/asset_exit/i, '?? ??', 'asset exit'],
-    [/debt_restructure/i, '?? ????', 'debt restructuring'],
-    [/income_growth/i, '?? ??', 'income growth'],
-    [/liquidity_defense/i, '??? ??', 'liquidity defense'],
-    [/recovery_reset/i, '?? ???', 'recovery reset'],
-    [/routine_lock/i, '?? ??', 'routine lock'],
-    [/burnout_trigger/i, '??? ??', 'burnout risk'],
-    [/sleep_disruption/i, '?? ??', 'sleep disruption'],
-    [/commute_restructure/i, '?? ?? ???', 'commute restructure'],
-    [/route_recheck/i, '?? ???', 'route recheck'],
-    [/basecamp_reset/i, '?? ?? ???', 'basecamp reset'],
-    [/lease_decision/i, '?? ?? ???', 'lease decision review'],
-    [/housing_search/i, '??? ??', 'housing search'],
-    [/relocation/i, '??', 'relocation'],
-    [/learning_acceleration/i, '?? ??', 'learning acceleration'],
-    [/deep_partnership_activation/i, '?? ?? ???', 'deep partnership activation'],
-    [/timing_upside/i, '??? ?? ???', 'timing upside cluster'],
-    [/timing_risk/i, '??? ?? ???', 'timing risk cluster'],
-    [/health_risk/i, '?? ?? ???', 'health risk cluster'],
+    [/promotion_review/i, '승진/역할 재검토', 'promotion or role review'],
+    [/contract_negotiation/i, '조건 협의', 'contract negotiation'],
+    [/manager_track/i, '관리 책임 확장', 'management-track expansion'],
+    [/specialist_track/i, '전문성 심화', 'specialist-track deepening'],
+    [/entry/i, '새 역할 진입', 'entry into a new role'],
+    [/distance_tuning/i, '관계 거리 조정', 'distance tuning'],
+    [/boundary_reset/i, '경계 재설정', 'boundary reset'],
+    [/commitment_preparation/i, '관계 정의 준비', 'commitment preparation'],
+    [/clarify_expectations/i, '기대치 명확화', 'expectation clarification'],
+    [/commitment_execution/i, '관계 확정 실행', 'commitment execution'],
+    [/cohabitation/i, '생활 결합 점검', 'cohabitation planning'],
+    [/family_acceptance/i, '가족 수용 절차', 'family acceptance'],
+    [/separation/i, '관계 분리 정리', 'relationship separation'],
+    [/capital_allocation/i, '자금 배분 재검토', 'capital allocation review'],
+    [/asset_exit/i, '자산 정리', 'asset exit'],
+    [/debt_restructure/i, '부채 구조 재정리', 'debt restructuring'],
+    [/income_growth/i, '수입 확장', 'income growth'],
+    [/liquidity_defense/i, '유동성 방어', 'liquidity defense'],
+    [/recovery_reset/i, '회복 리듬 재설정', 'recovery reset'],
+    [/routine_lock/i, '루틴 고정', 'routine lock'],
+    [/burnout_trigger/i, '번아웃 경고', 'burnout risk'],
+    [/sleep_disruption/i, '수면 리듬 흔들림', 'sleep disruption'],
+    [/commute_restructure/i, '동선 재설계', 'commute restructure'],
+    [/route_recheck/i, '경로 재확인', 'route recheck'],
+    [/basecamp_reset/i, '생활 거점 재정비', 'basecamp reset'],
+    [/lease_decision/i, '계약 조건 검토', 'lease decision review'],
+    [/housing_search/i, '거주 후보지 탐색', 'housing search'],
+    [/relocation/i, '이동 결정', 'relocation'],
+    [/learning_acceleration/i, '학습/역량 가속', 'learning acceleration'],
+    [/deep_partnership_activation/i, '관계 심화 국면', 'deep partnership activation'],
+    [/timing_upside/i, '상승 타이밍 집중', 'timing upside cluster'],
+    [/timing_risk/i, '타이밍 변동 경계', 'timing risk cluster'],
+    [/health_risk/i, '건강 경계 국면', 'health risk cluster'],
   ]
 
   for (const [pattern, ko, en] of entries) {
@@ -648,10 +656,10 @@ export function buildElementMetaphor(
     case 'metal':
       return lang === 'ko'
         ? {
-            archetype: '??? ???? ??',
-            environment: '??? ??? ????? ???? ??',
-            edge: '??? ???',
-            risk: '???? ?? ??? ?? ? ?? ???? ?',
+            archetype: '잡음을 잘라내는 칼날',
+            environment: '복잡한 판에서 군더더기를 걷어내는 장면',
+            edge: '정리와 절단력',
+            risk: '지나치게 빨리 결론을 내릴 때 날이 무뎌지는 것',
           }
         : {
             archetype: 'a blade that cuts noise away',
@@ -662,10 +670,10 @@ export function buildElementMetaphor(
     case 'wood':
       return lang === 'ko'
         ? {
-            archetype: '?? ??? ??? ? ??',
-            environment: '??? ??? ???? ??? ??',
-            edge: '??? ???',
-            risk: '?? ?? ?? ???? ??? ?',
+            archetype: '판을 넓히며 자라는 큰 나무',
+            environment: '가지가 퍼지듯 영향권을 넓히는 장면',
+            edge: '확장과 성장력',
+            risk: '뿌리 정리 없이 가지부터 늘리는 것',
           }
         : {
             archetype: 'a tree that expands by taking more ground',
@@ -676,10 +684,10 @@ export function buildElementMetaphor(
     case 'water':
       return lang === 'ko'
         ? {
-            archetype: '??? ?? ??? ??',
-            environment: '?? ? ??? ?? ????? ??',
-            edge: '??? ???',
-            risk: '?? ?? ?? ??? ??? ?',
+            archetype: '빈틈을 찾아 흐르는 물길',
+            environment: '막힌 곳 사이로 길을 만들어내는 장면',
+            edge: '유연한 침투력',
+            risk: '방향 없이 흘러 판단이 번지는 것',
           }
         : {
             archetype: 'a current that finds the opening',
@@ -690,10 +698,10 @@ export function buildElementMetaphor(
     case 'fire':
       return lang === 'ko'
         ? {
-            archetype: '??? ?? ??? ??',
-            environment: '??? ??? ? ??? ???? ???? ??',
-            edge: '???? ???',
-            risk: '?? ?? ?? ????? ??? ?',
+            archetype: '순간에 판을 밝히는 불빛',
+            environment: '모두가 망설일 때 장면을 선명하게 드러내는 순간',
+            edge: '가시성과 추진력',
+            risk: '열이 너무 빨라 번아웃으로 꺼지는 것',
           }
         : {
             archetype: 'a flame that lights the scene at once',
@@ -704,10 +712,10 @@ export function buildElementMetaphor(
     default:
       return lang === 'ko'
         ? {
-            archetype: '???? ?? ??? ??',
-            environment: '??? ??? ??? ??? ???',
-            edge: '???? ??',
-            risk: '??? ????? ???? ??? ?',
+            archetype: '흔들리는 판을 붙잡는 축대',
+            environment: '무너질 장면을 버티게 만드는 버팀목',
+            edge: '지속력과 구조',
+            risk: '움직일 타이밍까지 지나치게 늦추는 것',
           }
         : {
             archetype: 'a foundation that holds a shifting stage',

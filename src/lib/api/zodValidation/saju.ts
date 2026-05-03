@@ -245,7 +245,7 @@ export const destinyMatrixSaveRequestSchema = z
   .object({
     reportType: z.enum(['timing', 'themed']),
     period: z.enum(['daily', 'monthly', 'yearly', 'comprehensive']).optional(),
-    theme: z.enum(['love', 'career', 'wealth', 'health', 'family']).optional(),
+    theme: z.enum(['love', 'career', 'wealth', 'health', 'family', 'move']).optional(),
     reportData: destinyMatrixReportDataSchema,
     title: z.string().min(1).max(300).trim(),
     summary: z.string().max(2000).optional(),

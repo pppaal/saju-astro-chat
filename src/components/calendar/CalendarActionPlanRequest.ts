@@ -201,6 +201,10 @@ export function buildActionPlanAiPayload(input: {
         summary: trimText(baseInfo.summary, 240),
         ganzhi: trimText(baseInfo.ganzhi, 60),
         transitSunSign: trimText(baseInfo.transitSunSign, 60),
+        natalSaju: baseInfo.natalSaju,
+        gongmangBranches: baseInfo.gongmangBranches,
+        shinsalActive: baseInfo.shinsalActive,
+        activityScores: baseInfo.activityScores,
         canonicalCore: canonicalCore
           ? {
               focusDomain: trimText(canonicalCore.focusDomain, 24),

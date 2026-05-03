@@ -1,4 +1,5 @@
 import { getLocalizedArchetypes } from './archetypes'
+import { iga } from '@/lib/i18n/koParticle'
 import type {
   PersonaAnalysis,
   PersonaAxisKey,
@@ -167,7 +168,10 @@ function detailedStrength(entry: AxisScoreEntry, locale: PersonaLocale): string 
   const meta = AXIS_META[entry.key]
   return t(
     locale,
-    `${meta.titleKo} 축 ${entry.score}% 구간에서는 ${shortStrength(entry, locale)}이 강점으로 작동합니다.`,
+    (() => {
+      const s = shortStrength(entry, locale)
+      return `${meta.titleKo} 축 ${entry.score}% 구간에서는 ${s}${iga(s)} 강점으로 작동합니다.`
+    })(),
     `${meta.titleEn} at ${entry.score}% reliably reproduces ${shortStrength(entry, locale)}.`
   )
 }

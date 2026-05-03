@@ -5,8 +5,9 @@ import {
   extractLocale,
   type MiddlewareOptions,
 } from '@/lib/api/middleware'
-import { createTransformedSSEStream, createFallbackSSEStream } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
+import { createFallbackSSEStream } from '@/lib/streaming'
+import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
+import { counselorSystemPrompt } from '@/app/api/destiny-map/chat-stream/lib/helpers'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText } from '@/lib/destiny-map/sanitize'
 import { maskTextWithName } from '@/lib/security'
@@ -35,69 +36,37 @@ const GUEST_CHAT_RATE_LIMIT = {
   windowSeconds: 60,
 } as const
 
+// 게스트 카운슬러 무료 체험: 2턴까지 허용 후 로그인 유도
+const GUEST_COUNSELOR_TURN_LIMIT = 2
+const GUEST_COUNSELOR_TURN_COOKIE = 'guest_counselor_turns'
+const GUEST_COUNSELOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30일
+
+function readGuestCounselorTurns(req: NextRequest): number {
+  const raw = req.cookies.get(GUEST_COUNSELOR_TURN_COOKIE)?.value
+  if (!raw) return 0
+  const n = parseInt(raw, 10)
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
+function buildGuestTurnCookie(nextTurnCount: number): string {
+  const parts = [
+    `${GUEST_COUNSELOR_TURN_COOKIE}=${nextTurnCount}`,
+    'Path=/',
+    `Max-Age=${GUEST_COUNSELOR_COOKIE_MAX_AGE}`,
+    'SameSite=Lax',
+    'HttpOnly',
+  ]
+  if (process.env.NODE_ENV === 'production') {
+    parts.push('Secure')
+  }
+  return parts.join('; ')
+}
+
 function isCounselorStrictMatrixEnabled(): boolean {
   const raw = process.env.COUNSELOR_STRICT_MATRIX?.trim().toLowerCase()
   if (raw === 'true') return true
   if (raw === 'false') return false
   return process.env.NODE_ENV !== 'test'
-}
-
-function isCounselorCostOptimized(): boolean {
-  const explicit = process.env.COUNSELOR_COST_OPTIMIZED?.trim().toLowerCase()
-  if (explicit) return explicit === 'true' || explicit === '1' || explicit === 'yes'
-  const shared = process.env.AI_BACKEND_COST_OPTIMIZED?.trim().toLowerCase()
-  return shared === 'true' || shared === '1' || shared === 'yes'
-}
-
-function getCounselorBackendProviderHint(): string | undefined {
-  const forced = process.env.COUNSELOR_BACKEND_PROVIDER?.trim().toLowerCase()
-  if (forced) return forced
-  const shared = process.env.AI_BACKEND_PROVIDER?.trim().toLowerCase()
-  return shared || undefined
-}
-
-function getCounselorBackendModelHint(): string | undefined {
-  const forced = process.env.COUNSELOR_BACKEND_MODEL?.trim()
-  if (forced) return forced
-  if (isCounselorCostOptimized()) {
-    return process.env.CLAUDE_FAST_MODEL?.trim() || 'claude-3-haiku-20240307'
-  }
-  return process.env.CLAUDE_MODEL?.trim() || undefined
-}
-
-function extractCounselorTextFromSSEChunk(chunk: string): string {
-  const lines = String(chunk || '').split(/\r?\n/)
-  const parts: string[] = []
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim()
-    if (!line.startsWith('data:')) continue
-    const payload = line.slice(5).trim()
-    if (!payload || payload === '[DONE]') continue
-
-    try {
-      const parsed = JSON.parse(payload) as
-        | { content?: unknown; delta?: { content?: unknown }; message?: unknown }
-        | string
-      if (typeof parsed === 'string') {
-        parts.push(parsed)
-        continue
-      }
-      const value =
-        typeof parsed.content === 'string'
-          ? parsed.content
-          : typeof parsed.delta?.content === 'string'
-            ? parsed.delta.content
-            : typeof parsed.message === 'string'
-              ? parsed.message
-              : ''
-      if (value) parts.push(value)
-    } catch {
-      parts.push(payload)
-    }
-  }
-
-  return parts.join('')
 }
 
 type CounselorUiEvidencePayload = {
@@ -320,6 +289,21 @@ export async function POST(req: NextRequest) {
     }
     isGuestMode = !context.userId
 
+    // 게스트 무료 체험 한도 (2턴) 체크
+    let guestTurnsUsed = 0
+    if (isGuestMode) {
+      guestTurnsUsed = readGuestCounselorTurns(req)
+      if (guestTurnsUsed >= GUEST_COUNSELOR_TURN_LIMIT) {
+        return createErrorResponse({
+          code: ErrorCodes.UNAUTHORIZED,
+          message: '무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 2 크레딧으로 계속 이용할 수 있어요.',
+          locale: extractLocale(req),
+          route: 'destiny-map/chat-stream',
+          headers: { 'X-Guest-Limit-Reached': '1' },
+        })
+      }
+    }
+
     const userId = context.userId
     const body = await parseRequestBody<Record<string, unknown>>(req, {
       context: 'Destiny-map Chat-stream',
@@ -411,7 +395,7 @@ export async function POST(req: NextRequest) {
         code: ErrorCodes.INTERNAL_ERROR,
         message:
           validated.lang === 'ko'
-            ? '??? ?? ???? ???? ???? ?????. ?? ? ?? ??????.'
+            ? '공유된 매트릭스 스냅샷이 없어 상담을 중단합니다. 잠시 후 다시 시도해주세요.'
             : 'Counseling stopped because the shared matrix snapshot is unavailable. Please try again.',
         locale: extractLocale(req),
         route: 'destiny-map/chat-stream',
@@ -422,49 +406,60 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const streamResult = await apiClient.postSSEStream(
-      '/ask-stream',
-      {
-        theme: preparedExecution.promptTheme,
-        prompt: preparedExecution.chatPrompt,
-        locale: preparedInputs.lang,
-        saju: preparedExecution.backendSaju || preparedInputs.effectiveSaju || undefined,
-        astro: preparedExecution.backendAstro || preparedInputs.effectiveAstro || undefined,
-        birth: {
-          date: preparedInputs.effectiveBirthDate,
-          time: preparedInputs.effectiveBirthTime,
-          gender: preparedInputs.effectiveGender,
-          lat: preparedInputs.effectiveLatitude,
-          lon: preparedInputs.effectiveLongitude,
+    // Claude 직접 호출 (Python backend `/ask-stream` 대체)
+    try {
+      return await streamClaudeAsSSE({
+        systemPrompt: counselorSystemPrompt(preparedInputs.lang),
+        userPrompt: preparedExecution.chatPrompt,
+        maxTokens: 2500,
+        temperature: 0.7,
+        timeoutMs: 60000,
+        label: 'counselor-chat-stream',
+        transform: (chunk) =>
+          maskTextWithName(sanitizeLocaleText(chunk, preparedInputs.lang), preparedInputs.name),
+        finalize: (fullText) => {
+          const finalized = finalizeCounselorContent({
+            rawText: fullText,
+            lang: preparedInputs.lang,
+            uiEvidence: preparedExecution.counselorUiEvidence,
+            interpretedAnswerQuality: preparedExecution.interpretedAnswerQuality,
+          })
+          // finalize는 *전체 보강 문자열* 반환. 토큰으로 흘리고 끝에 한 번 더 송출.
+          return finalized && finalized !== fullText ? finalized.slice(fullText.length) : null
         },
-        history: preparedInputs.trimmedHistory.filter((m) => m.role !== 'system'),
-        session_id: req.headers.get('x-session-id') || undefined,
-        user_context: preparedInputs.userContext || undefined,
-        cv_text: preparedInputs.cvText || undefined,
-        provider_hint: getCounselorBackendProviderHint(),
-        model_hint: getCounselorBackendModelHint(),
-        quality_tier: isCounselorCostOptimized() ? 'fast' : 'quality',
-        cost_optimized: isCounselorCostOptimized(),
-      },
-      { timeout: 60000 }
-    )
-
-    if (!streamResult.ok) {
-      logger.error('[DestinyMapChatStream] Backend error:', {
-        status: streamResult.status,
-        error: streamResult.error,
+        additionalHeaders: {
+          'X-Fallback': '0',
+          ...(preparedExecution.counselorUiEvidence
+            ? { 'X-Counselor-Evidence': preparedExecution.counselorUiEvidence }
+            : {}),
+          ...(preparedExecution.predictionId
+            ? { 'X-Destiny-Prediction-Id': preparedExecution.predictionId }
+            : {}),
+          'X-Guest-Mode': isGuestMode ? '1' : '0',
+          ...(isGuestMode
+            ? {
+                'Set-Cookie': buildGuestTurnCookie(guestTurnsUsed + 1),
+                'X-Guest-Turns-Remaining': String(
+                  Math.max(0, GUEST_COUNSELOR_TURN_LIMIT - (guestTurnsUsed + 1))
+                ),
+              }
+            : {}),
+        },
+      })
+    } catch (claudeErr) {
+      logger.error('[DestinyMapChatStream] Claude error:', {
+        error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
 
       if (context.refundCreditsOnError) {
-        await context.refundCreditsOnError(`Backend stream error: ${streamResult.status}`, {
+        await context.refundCreditsOnError(`Claude error: ${claudeErr instanceof Error ? claudeErr.message : 'unknown'}`, {
           route: 'destiny-map-chat-stream',
-          status: streamResult.status,
         })
       }
 
       const fallback =
         preparedInputs.lang === 'ko'
-          ? 'AI ???? ???? ?????. ?? ? ?? ??????.'
+          ? 'AI 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.'
           : 'Could not connect to AI service. Please try again.'
 
       const fallbackContent = buildCounselorFallbackContent(
@@ -487,35 +482,6 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    return createTransformedSSEStream({
-      source: streamResult.response,
-      transform: (chunk) => {
-        return maskTextWithName(sanitizeLocaleText(chunk, preparedInputs.lang), preparedInputs.name)
-      },
-      extractText: (chunk) =>
-        maskTextWithName(
-          sanitizeLocaleText(extractCounselorTextFromSSEChunk(chunk), preparedInputs.lang),
-          preparedInputs.name
-        ),
-      finalizeText: (fullText) =>
-        finalizeCounselorContent({
-          rawText: fullText,
-          lang: preparedInputs.lang,
-          uiEvidence: preparedExecution.counselorUiEvidence,
-          interpretedAnswerQuality: preparedExecution.interpretedAnswerQuality,
-        }),
-      route: 'DestinyMapChatStream',
-      additionalHeaders: {
-        'X-Fallback': streamResult.response.headers.get('x-fallback') || '0',
-        ...(preparedExecution.counselorUiEvidence
-          ? { 'X-Counselor-Evidence': preparedExecution.counselorUiEvidence }
-          : {}),
-        ...(preparedExecution.predictionId
-          ? { 'X-Destiny-Prediction-Id': preparedExecution.predictionId }
-          : {}),
-        'X-Guest-Mode': isGuestMode ? '1' : '0',
-      },
-    })
   } catch (err: unknown) {
     logger.error('[Chat-Stream API error]', err)
 

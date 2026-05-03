@@ -124,7 +124,7 @@ export default function PersonModelOverview({
         <p className="mt-3 text-lg font-semibold text-white">
           {primaryWindow ? labelWindow(primaryWindow.window) : '현재'}
         </p>
-        <p className="mt-2 text-sm leading-6 text-slate-300">
+        <p className="mt-2 text-[15px] leading-[1.7] text-slate-200">
           {personModel.timeProfile.timingNarrative}
         </p>
         {primaryWindow && (
@@ -144,7 +144,7 @@ export default function PersonModelOverview({
         <p className="mt-3 text-lg font-semibold text-white">
           {primaryBranch?.label || '핵심 분기 추적'}
         </p>
-        <p className="mt-2 text-sm leading-6 text-slate-300">
+        <p className="mt-2 text-[15px] leading-[1.7] text-slate-200">
           {primaryBranch?.summary || '현재 구조와 타이밍을 기준으로 다음 열림 구간을 추적합니다.'}
         </p>
         {primaryBranch?.window && (

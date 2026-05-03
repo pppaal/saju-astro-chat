@@ -1,6 +1,6 @@
 //src/lib/destiny-map/prompt/fortune/index.ts
 
-import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import type { CombinedResult } from "@/lib/destiny-map/astrology";
 
 // ✅ 각 프롬프트 import
 import { buildLovePrompt } from "@/lib/destiny-map/prompt/fortune/theme/lovePrompt";

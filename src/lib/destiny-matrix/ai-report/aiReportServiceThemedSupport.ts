@@ -155,16 +155,16 @@ function buildKoSharedDeepAnalysis(
 ): string {
   const intro =
     actionDomain === 'career'
-      ? `${focusLabel}이 배경 구조라도 실제 결과는 ${actionLabel}에서 역할 범위와 평가 기준을 어떻게 세우느냐에 따라 갈립니다.`
+      ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 결과는 ${actionLabel}에서 역할 범위와 평가 기준을 어떻게 세우느냐에 따라 갈립니다.`
       : actionDomain === 'relationship'
-        ? `${focusLabel}이 배경 구조라도 실제 관계 흐름은 ${actionLabel}에서 답장 간격과 만나는 빈도를 어떻게 맞추느냐에 따라 갈립니다.`
+        ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 관계 흐름은 ${actionLabel}에서 답장 간격과 만나는 빈도를 어떻게 맞추느냐에 따라 갈립니다.`
         : actionDomain === 'wealth'
-          ? `${focusLabel}이 배경 구조라도 실제 재정 흐름은 ${actionLabel}에서 현금흐름과 손실 상한을 어떻게 잠그느냐에 따라 갈립니다.`
+          ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 재정 흐름은 ${actionLabel}에서 현금흐름과 손실 상한을 어떻게 잠그느냐에 따라 갈립니다.`
           : actionDomain === 'health'
-            ? `${focusLabel}이 배경 구조라도 실제 컨디션은 ${actionLabel}에서 회복 리듬과 과부하 한계를 어떻게 지키느냐에 따라 갈립니다.`
+            ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 컨디션은 ${actionLabel}에서 회복 리듬과 과부하 한계를 어떻게 지키느냐에 따라 갈립니다.`
             : actionDomain === 'move'
-              ? `${focusLabel}이 배경 구조라도 실제 생활 변화는 ${actionLabel}에서 거점, 동선, 계약 조건을 어떻게 비교하느냐에 따라 갈립니다.`
-              : `${focusLabel}이 배경 구조라도 실제 결과를 바꾸는 전면 축은 ${actionLabel}입니다.`
+              ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 생활 변화는 ${actionLabel}에서 거점, 동선, 계약 조건을 어떻게 비교하느냐에 따라 갈립니다.`
+              : `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 결과를 바꾸는 전면 축은 ${actionLabel}입니다.`
 
   const support =
     structureDrivers && actionDomain === 'career'
@@ -270,10 +270,10 @@ function buildKoDomainRecommendations(
 
   const third = branchRisk
     ? actionDomain === 'wealth'
-      ? `${branchRisk}가 커지지 않도록 큰 결정보다 되돌릴 수 있는 작은 조정부터 시험하세요.`
+      ? `${withSubjectParticle(branchRisk)} 커지지 않도록 큰 결정보다 되돌릴 수 있는 작은 조정부터 시험하세요.`
       : actionDomain === 'health'
-        ? `${branchRisk}가 커지지 않도록 무리한 버티기보다 회복 가능 범위 안에서만 움직이세요.`
-        : `${branchRisk}가 커지지 않도록 작은 단위의 가역적 행동으로 시험하세요.`
+        ? `${withSubjectParticle(branchRisk)} 커지지 않도록 무리한 버티기보다 회복 가능 범위 안에서만 움직이세요.`
+        : `${withSubjectParticle(branchRisk)} 커지지 않도록 작은 단위의 가역적 행동으로 시험하세요.`
     : actionDomain === 'move'
       ? '한 번에 주소를 바꾸기보다 출퇴근 동선과 생활비부터 작은 단위로 시험하세요.'
       : '한 번에 크게 움직이기보다 되돌릴 수 있는 작은 단계로 진행하세요.'
@@ -385,7 +385,7 @@ export function buildProjectionFirstThemedSections(
   const windowNarrative = focusTiming
     ? clean(buildTimingWindowNarrative(actionDomain, focusTiming, lang))
     : lang === 'ko'
-      ? '??? ?? ????? ????? ??? ?????.'
+      ? '확정을 잠시 미루고 방향을 다시 점검하기 좋은 구간입니다.'
       : 'This phase is better used to confirm direction before locking decisions.'
 
   const firstBranch = branchSet[0]
@@ -564,7 +564,7 @@ export function buildProjectionFirstThemedSections(
   const sharedConclusion =
     lang === 'ko'
       ? paragraph(
-          `${focusLabel}이 배경 압력축이고 ${actionLabel}이 현재 실행축입니다.`,
+          `${withSubjectParticle(focusLabel)} 배경 압력축이고 ${withSubjectParticle(actionLabel)} 현재 실행축입니다.`,
           `${reportCore.topDecisionLabel || reportCore.primaryAction} 쪽으로 순서를 잡는 사람이 이 구간을 더 안정적으로 통과합니다.`,
           reportCore.riskControl
         )
@@ -840,6 +840,55 @@ export function buildProjectionFirstThemedSections(
             ? '가족에 남는 건 한 번의 강한 장면보다 반복되는 패턴일 가능성이 큽니다.'
             : 'What remains in family life is shaped more by repeated patterns than one intense moment.',
           evidenceSummary
+        ),
+        recommendations,
+        actionPlan: themedActionPlan,
+        conclusion: themedConclusion,
+      } as ThemedReportSections
+    case 'move':
+      // 이동·이사 — 캘린더의 'move' 도메인 신호와 점성 4·9·10하우스 트랜짓을 결합
+      return {
+        deepAnalysis: paragraph(
+          sharedDeepAnalysis,
+          environmentProfile?.summary,
+          lang === 'ko'
+            ? '이동·이사 흐름은 목적지보다 순서·거점·준비 기간이 단단한지가 결정짓습니다.'
+            : 'Movement flow depends more on sequence, base and lead time than the destination itself.'
+        ),
+        patterns: paragraph(
+          conflictSummary,
+          moveDrainSignals
+            ? lang === 'ko'
+              ? `최근 ${moveDrainSignals} 같은 환경 마찰이 누적되고 있습니다.`
+              : `Recent friction such as ${moveDrainSignals} has been accumulating.`
+            : '',
+          lang === 'ko'
+            ? '이동 결정은 단발 결심보다 단계별 정렬이 맞아드는 시점에서 흔들림이 적습니다.'
+            : 'Move decisions stay stable when sequenced alignments lock in step by step.'
+        ),
+        timing: sharedTiming,
+        movementWindows: paragraph(
+          focusTiming?.whyNow || '',
+          lang === 'ko'
+            ? '이동 적기는 사주의 충/합/형/공망과 점성의 4·9·10하우스 트랜짓이 같은 방향을 가리키는 구간에서 가장 안정됩니다.'
+            : 'Move timing stabilizes when saju openings and 4/9/10 house transits align.'
+        ),
+        environmentFit: paragraph(
+          structureDetail,
+          environmentProfile?.summary,
+          lang === 'ko'
+            ? '환경 적합성은 단순 선호보다 본명 일주가 어떤 자극에서 가장 잘 회복되는지를 봐야 합니다.'
+            : 'Environment fit comes from where the natal day-master recovers best, not just preference.'
+        ),
+        baseStability: paragraph(
+          moveResetActions
+            ? lang === 'ko'
+              ? `현재 거점은 ${moveResetActions} 같은 작업으로 리셋이 들어와야 흔들림이 줄어듭니다.`
+              : `The current base needs resets such as ${moveResetActions} to settle.`
+            : '',
+          lang === 'ko'
+            ? '거점 안정성은 결정 직후의 추진력보다 6~12주의 적응 기간을 어떻게 설계하느냐에 달려 있습니다.'
+            : 'Base stability depends on how the next 6–12 weeks of adaptation are designed.'
         ),
         recommendations,
         actionPlan: themedActionPlan,

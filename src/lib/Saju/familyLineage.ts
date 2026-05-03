@@ -20,6 +20,7 @@
 
 import { FiveElement, SajuPillars, StemBranchInfo } from './types'
 import { STEMS, BRANCHES, JIJANGGAN } from './constants'
+import { iga, eulReul } from '../i18n/koParticle'
 
 // Re-export types from the dedicated types file
 export type {
@@ -102,15 +103,15 @@ export function analyzeElementHarmony(saju1: SajuResult, saju2: SajuResult): Ele
   } else if (SANGSEANG[dominant1] === dominant2) {
     relation = '상생'
     score = 90
-    description = `${dominant1}이 ${dominant2}을 생하는 상생관계로 자연스러운 조화`
+    description = `${dominant1}${iga(dominant1)} ${dominant2}${eulReul(dominant2)} 생하는 상생관계로 자연스러운 조화`
   } else if (SANGSEANG[dominant2] === dominant1) {
     relation = '상생'
     score = 85
-    description = `${dominant2}이 ${dominant1}을 생하는 상생관계`
+    description = `${dominant2}${iga(dominant2)} ${dominant1}${eulReul(dominant1)} 생하는 상생관계`
   } else if (SANGKEUK[dominant1] === dominant2) {
     relation = '상극'
     score = 40
-    description = `${dominant1}이 ${dominant2}을 극하여 갈등 가능성 있음`
+    description = `${dominant1}${iga(dominant1)} ${dominant2}${eulReul(dominant2)} 극하여 갈등 가능성 있음`
   } else {
     relation = '균형'
     score = 75

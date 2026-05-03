@@ -6,7 +6,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
+import { askClaude } from '@/lib/llm/askClaude'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
@@ -14,6 +14,16 @@ import {
   compatibilityChatRequestSchema,
   createValidationErrorResponse,
 } from '@/lib/api/zodValidation'
+import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
+import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
+import {
+  buildPersonSeed,
+  buildAutoSajuContext,
+  buildAutoAstroContext,
+  buildSajuProfile,
+  buildExtendedAstroProfile,
+  getAgeFromBirthDate,
+} from '@/app/api/compatibility/counselor/routeSupport'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -62,8 +72,6 @@ export const POST = withApiMiddleware(
     const {
       persons,
       compatibilityResult = '',
-      fullContext,
-      useRag = true,
       theme = 'general',
       lang = context.locale,
       messages,
@@ -97,11 +105,57 @@ export const POST = withApiMiddleware(
       )
       .join('\n')
 
+    // Compute extended saju/astro analyses for the pair so the LLM has
+    // the same depth of evidence the counselor route gets — best effort,
+    // never fails the chat (lighter completeness than counselor).
+    let extendedSajuBlock = ''
+    let extendedAstroBlock = ''
+    try {
+      const seed1 = buildPersonSeed((persons?.[0] as Record<string, unknown>) || null)
+      const seed2 = buildPersonSeed((persons?.[1] as Record<string, unknown>) || null)
+      const now = new Date()
+      const [auto1Saju, auto2Saju, auto1Astro, auto2Astro] = await Promise.all([
+        buildAutoSajuContext(seed1, now),
+        buildAutoSajuContext(seed2, now),
+        buildAutoAstroContext(seed1, now),
+        buildAutoAstroContext(seed2, now),
+      ])
+      const p1Saju = buildSajuProfile(auto1Saju)
+      const p2Saju = buildSajuProfile(auto2Saju)
+      const p1ExtAstro = buildExtendedAstroProfile(auto1Astro)
+      const p2ExtAstro = buildExtendedAstroProfile(auto2Astro)
+      const p1Age = getAgeFromBirthDate(persons?.[0]?.date)
+      const p2Age = getAgeFromBirthDate(persons?.[1]?.date)
+
+      if (p1Saju && p2Saju) {
+        const sajuAnalysis = performExtendedSajuAnalysis(
+          p1Saju,
+          p2Saju,
+          p1Age,
+          p2Age,
+          now.getFullYear()
+        )
+        extendedSajuBlock = `\n== 사주 심화 분석 ==\n${stringifyForPrompt(sajuAnalysis).slice(0, 3500)}`
+      }
+      if (p1ExtAstro && p2ExtAstro) {
+        const astroAnalysis = performExtendedAstrologyAnalysis(
+          p1ExtAstro,
+          p2ExtAstro,
+          Math.abs(p1Age - p2Age)
+        )
+        extendedAstroBlock = `\n== 점성 심화 분석 ==\n${stringifyForPrompt(astroAnalysis).slice(0, 3500)}`
+      }
+    } catch (enrichErr) {
+      logger.warn('[Compatibility chat] enrichment failed (non-fatal):', enrichErr)
+    }
+
     // Build prompt for compatibility chat
     const chatPrompt = [
       `== 궁합 상담 ==`,
       personsInfo,
       compatibilityResult ? `\n== 이전 분석 결과 ==\n${guardText(compatibilityResult, 2000)}` : '',
+      extendedSajuBlock,
+      extendedAstroBlock,
       historyText ? `\n== 대화 ==\n${historyText}` : '',
       `\n== 질문 ==\n${userQuestion}`,
     ]
@@ -110,32 +164,19 @@ export const POST = withApiMiddleware(
 
     // Call backend AI
     try {
-      const response = await apiClient.post(
-        '/api/compatibility/chat',
-        {
-          persons,
-          prompt: chatPrompt,
-          question: userQuestion,
-          history: trimmedHistory,
-          locale: lang,
-          compatibility_context: compatibilityResult,
-          full_context: fullContext || null,
-          full_context_text: fullContext ? stringifyForPrompt(fullContext) : '',
-          use_rag: useRag,
-          theme,
-        },
-        { timeout: 60000 }
-      )
+      const response = await askClaude(chatPrompt, {
+        theme: theme || 'compatibility',
+        maxTokens: 2000,
+        timeoutMs: 60000,
+        label: 'compatibility-chat',
+      })
 
       if (!response.ok) {
-        throw new Error(`Backend returned ${response.status}`)
+        throw new Error(`Claude returned error: ${response.error || response.status}`)
       }
 
-      const aiData = response.data as Record<string, unknown>
       const answer = String(
-        (aiData?.data as Record<string, unknown>)?.response ||
-          aiData?.response ||
-          aiData?.interpretation ||
+        response.data?.data?.report ||
           (lang === 'ko'
             ? '죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요.'
             : 'Sorry, unable to generate a response. Please try again.')

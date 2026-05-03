@@ -14,6 +14,7 @@
 
 import { FiveElement, SajuPillars, SibsinKind, PillarKind } from './types'
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS, BRANCHES } from './constants'
+import { iga, eulReul, euroRo } from '../i18n/koParticle'
 import {
   getStemElement,
   getBranchElement,
@@ -323,7 +324,7 @@ export function analyzeHwagyeok(pillars: SajuPillars): HwagyeokAnalysis {
   const type = getHwagyeokType(dayMaster, hapInfo.partner)
 
   const description = transformSuccess
-    ? `${type}이 성립하여 ${transformedElement}의 기운으로 변화합니다.`
+    ? `${type}${iga(type)} 성립하여 ${transformedElement}의 기운으로 변화합니다.`
     : `${type}의 조건이 있으나 완전한 화는 이루어지지 않습니다.`
 
   const implications = transformSuccess
@@ -799,7 +800,7 @@ function generateMasterySummary(
   parts.push(`일주 ${ilju.ilju}(${ilju.iljuCharacter})`)
 
   if (jonggeok.isJonggeok) {
-    parts.push(`${jonggeok.type}으로 ${jonggeok.dominantElement}을 따릅니다`)
+    parts.push(`${jonggeok.type}${euroRo(jonggeok.type)} ${jonggeok.dominantElement}${eulReul(jonggeok.dominantElement)} 따릅니다`)
   }
 
   if (hwagyeok.isHwagyeok) {

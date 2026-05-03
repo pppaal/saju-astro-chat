@@ -6,6 +6,170 @@ import type {
   SynergyBreakdown,
 } from '@/app/compatibility/lib'
 
+export interface PairDetails {
+  pair: [number, number]
+  pairLabel: string
+  relationLabel: string
+  weightedScore: number
+  sajuScore: number | null
+  astrologyScore: number | null
+  fusionScore: number | null
+  crossScore: number | null
+  strengths: string[]
+  challenges: string[]
+  advice: string[]
+  topAspects: string[]
+  topHouseOverlays: string[]
+  fusionInsights: {
+    deepAnalysis?: string
+    dayMasterHarmony?: number | null
+    sunMoonHarmony?: number | null
+    venusMarsSynergy?: number | null
+    emotionalIntensity?: number | null
+    intellectualAlignment?: number | null
+    spiritualConnection?: number | null
+    conflictResolutionStyle?: string | null
+    shortTerm?: string | null
+    mediumTerm?: string | null
+    longTerm?: string | null
+    recommendedActions?: string[]
+  } | null
+}
+
+export interface RelationshipDynamics {
+  emotionalIntensity?: number | null
+  intellectualAlignment?: number | null
+  spiritualConnection?: number | null
+  conflictResolutionStyle?: string | null
+}
+
+export interface FutureGuidance {
+  shortTerm?: string | null
+  mediumTerm?: string | null
+  longTerm?: string | null
+}
+
+export interface CoupleTimingMonth {
+  year: number
+  month: number
+  label: 'great' | 'good' | 'neutral' | 'caution'
+  reason: string
+}
+
+export interface CoupleTimingData {
+  bestMeetingMonth: CoupleTimingMonth | null
+  upcomingMonths: CoupleTimingMonth[]
+  activationPeriod: { when: string; reason: string } | null
+  cautionPeriod: { when: string; reason: string } | null
+  primeYearWindow: { startYear: number; endYear: number; reason: string } | null
+  monthlyOutlook: string
+}
+
+export interface AstroEraCard {
+  planet: 'Saturn' | 'Jupiter'
+  sign: string
+  signKo: string
+  themeKo: string
+  bothImpact: string
+}
+
+export interface LifeStageEvent {
+  person: 1 | 2
+  label: string
+  timing: string
+  description: string
+}
+
+export interface CoupleAstroTiming {
+  saturnEra: AstroEraCard | null
+  jupiterEra: AstroEraCard | null
+  lifeStages: LifeStageEvent[]
+  crossNarrative: string | null
+}
+
+export interface IdealTypeMatch {
+  personIndex: 1 | 2
+  partnerIndex: 1 | 2
+  seeks: string
+  partnerActually: string
+  matchLevel: 'strong' | 'partial' | 'weak'
+  note: string
+}
+
+export interface MarriageReadiness {
+  score: number
+  band: 'high' | 'medium' | 'low'
+  bestWindow: string | null
+  sajuSignal: string
+  astroSignal: string
+  summary: string
+}
+
+export interface LongevityAssessment {
+  score: number
+  band: 'strong' | 'medium' | 'fragile'
+  positive: string[]
+  cautionary: string[]
+  summary: string
+}
+
+export interface CoupleDeepInsights {
+  attractionReasons: string[]
+  whyItWorks: string[]
+  frictionPoints: string[]
+  idealMatch: IdealTypeMatch[]
+  marriage: MarriageReadiness
+  longevity: LongevityAssessment
+}
+
+export interface IdealAngleResult {
+  angle:
+    | 'sun_personality'
+    | 'moon_emotional'
+    | 'venus_romantic'
+    | 'mars_physical'
+    | 'mercury_communication'
+    | 'saturn_commitment'
+    | 'saju_signal'
+  label: string
+  seeks: string
+  partnerOffers: string
+  level: 'strong' | 'partial' | 'weak'
+  note: string
+}
+
+export interface PersonIdealProfile {
+  personIndex: 1 | 2
+  partnerIndex: 1 | 2
+  angles: IdealAngleResult[]
+  matchSummary: string
+}
+
+export type CompatibilityTier = 'free' | 'premium'
+
+export type FacetKey =
+  | 'dating'
+  | 'intimacy'
+  | 'communication'
+  | 'conflict'
+  | 'values'
+  | 'commitment'
+  | 'daily'
+  | 'growth'
+
+export interface FacetReport {
+  key: FacetKey
+  label: string
+  emoji: string
+  score: number
+  band: 'great' | 'good' | 'mixed' | 'caution'
+  headline: string
+  strengths: string[]
+  minds: string[]
+  tip: string
+  prose?: string
+}
+
 interface CompatibilityResult {
   interpretation?: string
   overall_score?: number
@@ -15,7 +179,31 @@ interface CompatibilityResult {
   is_group?: boolean
   group_analysis?: GroupAnalysisData
   synergy_breakdown?: SynergyBreakdown
-  error?: string
+  pair_details?: PairDetails[]
+  relationship_dynamics?: RelationshipDynamics | null
+  future_guidance?: FutureGuidance | null
+  couple_timing?: CoupleTimingData | null
+  astro_timing?: CoupleAstroTiming | null
+  deep_insights?: CoupleDeepInsights | null
+  person_elements?: Array<{
+    wood?: number
+    fire?: number
+    earth?: number
+    metal?: number
+    water?: number
+  } | null>
+  ideal_type_profiles?: PersonIdealProfile[] | null
+  multi_facet_report?: FacetReport[] | null
+  tier?: CompatibilityTier
+  person_charts?: Array<{
+    sun?: { sign?: string; element?: string }
+    moon?: { sign?: string; element?: string }
+    venus?: { sign?: string; element?: string }
+    mars?: { sign?: string; element?: string }
+    mercury?: { sign?: string; element?: string }
+    ascendant?: { sign?: string; element?: string }
+  } | null>
+  error?: string | { message?: string }
 }
 
 const QUICK_MODE_DEFAULTS = {
@@ -58,6 +246,36 @@ export function useCompatibilityAnalysis() {
   const [groupAnalysis, setGroupAnalysis] = useState<GroupAnalysisData | null>(null)
   const [synergyBreakdown, setSynergyBreakdown] = useState<SynergyBreakdown | null>(null)
   const [isGroupResult, setIsGroupResult] = useState(false)
+  const [pairDetails, setPairDetails] = useState<PairDetails[]>([])
+  const [relationshipDynamics, setRelationshipDynamics] = useState<RelationshipDynamics | null>(
+    null
+  )
+  const [futureGuidance, setFutureGuidance] = useState<FutureGuidance | null>(null)
+  const [coupleTiming, setCoupleTiming] = useState<CoupleTimingData | null>(null)
+  const [astroTiming, setAstroTiming] = useState<CoupleAstroTiming | null>(null)
+  const [deepInsights, setDeepInsights] = useState<CoupleDeepInsights | null>(null)
+  const [personElements, setPersonElements] = useState<
+    Array<{
+      wood?: number
+      fire?: number
+      earth?: number
+      metal?: number
+      water?: number
+    } | null>
+  >([])
+  const [idealTypeProfiles, setIdealTypeProfiles] = useState<PersonIdealProfile[] | null>(null)
+  const [multiFacetReport, setMultiFacetReport] = useState<FacetReport[] | null>(null)
+  const [tier, setTier] = useState<CompatibilityTier>('free')
+  const [personCharts, setPersonCharts] = useState<
+    Array<{
+      sun?: { sign?: string; element?: string }
+      moon?: { sign?: string; element?: string }
+      venus?: { sign?: string; element?: string }
+      mars?: { sign?: string; element?: string }
+      mercury?: { sign?: string; element?: string }
+      ascendant?: { sign?: string; element?: string }
+    } | null>
+  >([])
 
   const validate = useCallback(
     (persons: PersonForm[], count: number, t: (key: string, fallback: string) => string) => {
@@ -174,6 +392,19 @@ export function useCompatibilityAnalysis() {
         } else {
           setSynergyBreakdown(null)
         }
+
+        // Rich report data — pair details, relationship dynamics, future guidance
+        setPairDetails(Array.isArray(data.pair_details) ? data.pair_details : [])
+        setRelationshipDynamics(data.relationship_dynamics ?? null)
+        setFutureGuidance(data.future_guidance ?? null)
+        setCoupleTiming(data.couple_timing ?? null)
+        setAstroTiming(data.astro_timing ?? null)
+        setDeepInsights(data.deep_insights ?? null)
+        setPersonElements(Array.isArray(data.person_elements) ? data.person_elements : [])
+        setPersonCharts(Array.isArray(data.person_charts) ? data.person_charts : [])
+        setIdealTypeProfiles(data.ideal_type_profiles ?? null)
+        setMultiFacetReport(data.multi_facet_report ?? null)
+        setTier(data.tier ?? 'free')
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.'
         setError(errorMessage)
@@ -193,6 +424,17 @@ export function useCompatibilityAnalysis() {
     setGroupAnalysis(null)
     setSynergyBreakdown(null)
     setIsGroupResult(false)
+    setPairDetails([])
+    setRelationshipDynamics(null)
+    setFutureGuidance(null)
+    setCoupleTiming(null)
+    setAstroTiming(null)
+    setDeepInsights(null)
+    setPersonElements([])
+    setPersonCharts([])
+    setIdealTypeProfiles(null)
+    setMultiFacetReport(null)
+    setTier('free')
   }, [])
 
   return {
@@ -206,6 +448,17 @@ export function useCompatibilityAnalysis() {
     groupAnalysis,
     synergyBreakdown,
     isGroupResult,
+    pairDetails,
+    relationshipDynamics,
+    futureGuidance,
+    coupleTiming,
+    astroTiming,
+    deepInsights,
+    personElements,
+    personCharts,
+    idealTypeProfiles,
+    multiFacetReport,
+    tier,
     validate,
     analyzeCompatibility,
     resetResults,

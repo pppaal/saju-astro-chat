@@ -205,7 +205,10 @@ function getTimingPathDomains(path: string): string[] {
 }
 
 function getThemedPathDomains(theme: ReportTheme, path: string): string[] {
-  const profile = THEME_DOMAIN_ONTOLOGY[theme] || THEME_DOMAIN_ONTOLOGY.family
+  // ReportTheme이 'move'를 추가했지만 MatrixTheme(ontology)는 5종이라
+  // 'move'는 ontology에서 'career' 매핑으로 처리 (역마는 외부 활동 신호와 연결)
+  const ontologyKey = theme === 'move' ? 'career' : theme
+  const profile = THEME_DOMAIN_ONTOLOGY[ontologyKey] || THEME_DOMAIN_ONTOLOGY.family
   if (path === 'timing' || path === 'riskWindows') return [...profile.timing]
   return [...profile.primary, ...profile.support]
 }

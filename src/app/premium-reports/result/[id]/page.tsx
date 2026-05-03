@@ -33,6 +33,7 @@ import {
   ReportSummarySection,
   SingleSubjectViewSection,
 } from '@/app/premium-reports/_components'
+import ReportVisualSummary from '@/components/reports/ReportVisualSummary'
 import type {
   GraphRAGEvidenceBundle,
   PremiumReportData as ReportData,
@@ -65,6 +66,7 @@ const THEME_LABELS: Record<ReportThemeValue, string> = {
   wealth: '재물',
   health: '건강',
   family: '가족',
+  move: '이동·이사',
 }
 
 const REPORT_TYPE_LABELS: Record<ReportData['type'], string> = {
@@ -112,6 +114,11 @@ const THEME_SUMMARY_KEYS: Record<ReportThemeValue, Array<{ key: string; label: s
     { key: 'deepAnalysis', label: '핵심 흐름' },
     { key: 'dynamics', label: '가족 구조' },
     { key: 'communication', label: '대화 포인트' },
+  ],
+  move: [
+    { key: 'deepAnalysis', label: '핵심 흐름' },
+    { key: 'movementWindows', label: '이동 적기' },
+    { key: 'baseStability', label: '거점 안정성' },
   ],
 }
 
@@ -460,7 +467,7 @@ export default function ReportResultPage() {
 
         const apiError = (data as { error?: { code?: string; message?: string } }).error
         const errorCode = apiError?.code
-        if (apiError?.message) {
+        if (apiError?.message && /[가-힣]/.test(apiError.message)) {
           lastErrorMessage = apiError.message
         }
 
@@ -627,11 +634,12 @@ export default function ReportResultPage() {
 
   return (
     <PremiumPageScaffold accent="cyan">
+      <div data-print-area>
       <header className="px-4 pb-6 pt-8">
         <div className="mx-auto max-w-6xl">
           <Link
             href="/premium-reports"
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-slate-300 backdrop-blur-xl transition hover:border-cyan-300/45 hover:text-white"
+            className="no-print inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-slate-300 backdrop-blur-xl transition hover:border-cyan-300/45 hover:text-white"
           >
             <ArrowRight className="h-3.5 w-3.5 rotate-180" />
             리포트 목록으로
@@ -652,12 +660,21 @@ export default function ReportResultPage() {
                   )}
                   {report.period && (
                     <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-300">
-                      {report.period}
+                      {report.period === 'yearly'
+                        ? '한 해 분석'
+                        : report.period === 'monthly'
+                          ? '한 달 분석'
+                          : report.period === 'daily'
+                            ? '하루 분석'
+                            : report.period}
                     </span>
                   )}
                 </div>
 
-                <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl">
+                <h1
+                  className="mt-5 text-balance text-[2.25rem] font-semibold leading-[1.1] tracking-[-0.025em] text-white md:text-[3rem]"
+                  style={{ wordBreak: 'keep-all' }}
+                >
                   {report.title}
                 </h1>
                 <p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] leading-7 text-slate-300">
@@ -725,7 +742,7 @@ export default function ReportResultPage() {
                         <p className="pb-1 text-sm text-cyan-100/72">{report.grade}</p>
                       )}
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-slate-300">
+                    <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">
                       생성일 {new Date(report.createdAt).toLocaleDateString('ko-KR')}
                     </p>
                   </div>
@@ -738,7 +755,7 @@ export default function ReportResultPage() {
                       {personModel?.states[0]?.label ||
                         (primaryWindow ? labelWindow(primaryWindow.window) : '요약 모드')}
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                    <p className="mt-2 text-[15px] leading-[1.7] text-slate-200">
                       {singleSubjectView?.actionAxis.whyThisFirst ||
                         personModel?.timeProfile.timingNarrative ||
                         report.summary}
@@ -746,12 +763,21 @@ export default function ReportResultPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 no-print">
                   <button
                     onClick={handleDownloadPDF}
                     className="rounded-xl border border-cyan-300/28 bg-cyan-400/8 px-4 py-2.5 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/14"
                   >
                     PDF 다운로드
+                  </button>
+                  <button
+                    onClick={() => {
+                      analytics.matrixPdfDownload()
+                      window.print()
+                    }}
+                    className="rounded-xl border border-white/12 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white transition hover:border-cyan-300/35"
+                  >
+                    인쇄 / PDF 저장
                   </button>
                   <button
                     onClick={handleShare}
@@ -847,7 +873,7 @@ export default function ReportResultPage() {
                             .join(' / ')}
                         </span>
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-slate-300">{state.summary}</p>
+                      <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{state.summary}</p>
                       {state.drivers.length > 0 && (
                         <div className="mt-4">
                           <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
@@ -909,7 +935,7 @@ export default function ReportResultPage() {
                           구조 {formatRatioPercent(portrait.structuralScore)}
                         </span>
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-slate-300">{portrait.summary}</p>
+                      <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{portrait.summary}</p>
 
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
                         <div className="rounded-2xl border border-emerald-300/12 bg-emerald-400/[0.05] p-3">
@@ -1036,7 +1062,7 @@ export default function ReportResultPage() {
                         {branch.window ? labelWindow(branch.window) : '시기 미정'} · 가능성{' '}
                         {formatRatioPercent(branch.probability)}
                       </p>
-                      <p className="mt-3 text-sm leading-6 text-slate-300">{branch.summary}</p>
+                      <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{branch.summary}</p>
                       {branch.conditions.length > 0 && (
                         <div className="mt-4">
                           <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/70">
@@ -1143,6 +1169,48 @@ export default function ReportResultPage() {
         </div>
       )}
 
+      {/* Tier 1-4 시각 요약 — 5행 분포 / 합의 강도 / cross map */}
+      {(() => {
+        const saju = (report.calculationDetails?.inputSnapshot?.saju as Record<string, unknown> | undefined) || undefined
+        const fiveElementsRaw = (saju?.fiveElements as Record<string, number> | undefined) || undefined
+        const fiveElements = fiveElementsRaw && {
+          wood: fiveElementsRaw.wood,
+          fire: fiveElementsRaw.fire,
+          earth: fiveElementsRaw.earth,
+          metal: fiveElementsRaw.metal,
+          water: fiveElementsRaw.water,
+        }
+        const confidenceRaw = (report.fullData?.crossConfidence as
+          | { scorePercent?: number; band?: 'high' | 'medium' | 'low' | 'conflict'; description?: string }
+          | undefined) || undefined
+        const confidence =
+          confidenceRaw?.scorePercent != null && confidenceRaw.band
+            ? {
+                scorePercent: confidenceRaw.scorePercent,
+                band: confidenceRaw.band,
+                description: confidenceRaw.description,
+              }
+            : undefined
+        const crossSignalsRaw = report.fullData?.crossSignals as
+          | Array<{
+              axis: string
+              saju: string
+              astro: string
+              meaning?: string
+              strength?: 'strong' | 'medium' | 'weak'
+              direction?: 'flow' | 'caution' | 'neutral'
+            }>
+          | undefined
+        return (
+          <ReportVisualSummary
+            fiveElements={fiveElements}
+            confidence={confidence}
+            crossSignals={crossSignalsRaw}
+            className="mt-6"
+          />
+        )
+      })()}
+
       {report.sections.length > 0 && <ReportSectionReader sections={report.sections} />}
 
       {report.actionItems && report.actionItems.length > 0 && (
@@ -1150,6 +1218,7 @@ export default function ReportResultPage() {
           <ReportBulletListSection title="실천 가이드" items={report.actionItems} />
         </div>
       )}
+      </div>
     </PremiumPageScaffold>
   )
 }

@@ -16,29 +16,33 @@ type Particle = {
   draw: () => void;
 };
 
-// ✅ 테마 키 타입 (9개)
+// ✅ 테마 키 타입 — 시기 4 + 영역 6 = 10
 type ThemeKey =
   | 'fortune_new_year'
   | 'fortune_next_year'
   | 'fortune_monthly'
   | 'fortune_today'
-  | 'focus_career'
   | 'focus_love'
-  | 'focus_family'
+  | 'focus_career'
+  | 'focus_wealth'
   | 'focus_health'
-  | 'focus_overall';
+  | 'focus_family'
+  | 'focus_move';
 
-// ✅ 메뉴(테마) 구성
-const THEMES: { key: ThemeKey; title: string; desc: string; emoji: string }[] = [
-  { key: 'fortune_new_year', title: '신년 운세', desc: '다가올 한 해의 흐름과 기회·주의점', emoji: '🎊' },
-  { key: 'fortune_next_year', title: '내년 운세', desc: '다음 해의 주요 변화와 상승 포인트', emoji: '🌟' },
-  { key: 'fortune_monthly', title: '월운', desc: '한 달의 리듬과 전환점 캘린더', emoji: '🗓️' },
-  { key: 'fortune_today', title: '오늘의 운세', desc: '오늘의 컨디션·관계·주의 포인트', emoji: '☀️' },
-  { key: 'focus_career', title: '커리어', desc: '직업·승진·이직·역량 확장 방향', emoji: '💼' },
-  { key: 'focus_love', title: '연애', desc: '감정 리듬과 관계·매력 포인트', emoji: '💖' },
-  { key: 'focus_family', title: '가족', desc: '가족·팀 내 관계와 조화 포인트', emoji: '👪' },
-  { key: 'focus_health', title: '건강', desc: '리커버리 루틴과 에너지 관리 지침', emoji: '💊' },
-  { key: 'focus_overall', title: '인생 총운', desc: '전반적인 성향과 인생의 큰 흐름', emoji: '🌈' },
+// ✅ 메뉴(테마) — 시기 4 + 영역 6 (Premium 6 영역과 매칭)
+const THEMES: { key: ThemeKey; title: string; desc: string; emoji: string; group: '시기' | '영역' }[] = [
+  // 시기 운세 (4) — Premium에 없는 무료 차별 영역
+  { key: 'fortune_new_year', title: '신년 운세', desc: '다가올 한 해의 흐름과 기회·주의점', emoji: '🎊', group: '시기' },
+  { key: 'fortune_next_year', title: '내년 운세', desc: '다음 해의 주요 변화와 상승 포인트', emoji: '🌟', group: '시기' },
+  { key: 'fortune_monthly', title: '월운', desc: '한 달의 리듬과 전환점 캘린더', emoji: '🗓️', group: '시기' },
+  { key: 'fortune_today', title: '오늘의 운세', desc: '오늘의 컨디션·관계·주의 포인트', emoji: '☀️', group: '시기' },
+  // 영역 운세 (6) — Premium 테마 심층과 동일 키
+  { key: 'focus_love', title: '연애', desc: '감정 리듬과 관계·매력 포인트', emoji: '💖', group: '영역' },
+  { key: 'focus_career', title: '커리어', desc: '직업·승진·이직·역량 확장 방향', emoji: '💼', group: '영역' },
+  { key: 'focus_wealth', title: '재물', desc: '돈의 흐름·투자 리듬·지키는 원칙', emoji: '💰', group: '영역' },
+  { key: 'focus_health', title: '건강', desc: '리커버리 루틴과 에너지 관리 지침', emoji: '💊', group: '영역' },
+  { key: 'focus_family', title: '가족', desc: '가족·팀 내 관계와 조화 포인트', emoji: '👪', group: '영역' },
+  { key: 'focus_move', title: '이동', desc: '이주·여정·환경 변화 결', emoji: '🧭', group: '영역' },
 ];
 
 export default function ThemeSelectClient() {
@@ -223,20 +227,39 @@ export default function ThemeSelectClient() {
           </div>
         </header>
 
-        <div className={styles.grid}>
-          {THEMES.map((th, index) => (
-            <button
-              key={th.key}
-              onClick={() => onPick(th.key)}
-              className={styles.themeCard}
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <div className={styles.emoji}>{th.emoji}</div>
-              <div className={styles.themeTitle}>{th.title}</div>
-              <div className={styles.themeDesc}>{th.desc}</div>
-            </button>
-          ))}
-        </div>
+        {(['시기', '영역'] as const).map((groupName) => {
+          const groupThemes = THEMES.filter((t) => t.group === groupName)
+          return (
+            <div key={groupName} style={{ marginBottom: 24 }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.28em',
+                  color: 'rgba(148,163,184,0.85)',
+                  textTransform: 'uppercase',
+                  marginBottom: 12,
+                }}
+              >
+                {groupName === '시기' ? '시기 운세' : '영역 운세'}
+              </p>
+              <div className={styles.grid}>
+                {groupThemes.map((th, index) => (
+                  <button
+                    key={th.key}
+                    onClick={() => onPick(th.key)}
+                    className={styles.themeCard}
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <div className={styles.emoji}>{th.emoji}</div>
+                    <div className={styles.themeTitle}>{th.title}</div>
+                    <div className={styles.themeDesc}>{th.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })}
 
         <div className={styles.matrixSection}>
           <button

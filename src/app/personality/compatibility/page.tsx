@@ -110,13 +110,15 @@ export default function PersonalityCompatibilityPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to analyze compatibility');
+        throw new Error(isKo ? '궁합 분석에 실패했어요.' : 'Failed to analyze compatibility');
       }
 
       const data = await response.json();
       setCompatibilityData(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      const raw = err instanceof Error ? err.message : '';
+      const fallback = isKo ? '잠시 후 다시 시도해주세요.' : 'Something went wrong. Please try again.';
+      setError(raw || fallback);
     } finally {
       setLoading(false);
     }

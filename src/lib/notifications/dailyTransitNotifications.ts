@@ -388,7 +388,7 @@ export function generateDailyNotifications(
     notifications.push({
       type: "relationship_hint",
       title: `💕 연애운 활짝!`,
-      message: `오늘 연애운이 ${scores.love}점! ${luckyColor}을 착용하면 더 좋아요.`,
+      message: `오늘 연애운이 ${scores.love}점! ${luckyColor} 계열을 착용하면 더 좋아요.`,
       emoji: "💕",
       scheduledHour: 11,
       confidence: 4,

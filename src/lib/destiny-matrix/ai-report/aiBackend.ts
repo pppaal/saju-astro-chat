@@ -34,19 +34,20 @@ const TOGETHER_TIMEOUT_MS = parseTimeoutMs(
 )
 
 // 플랜별 AI 토큰 한도
-// 종합 리포트(10개 섹션 JSON)에는 최소 2500+ 토큰 필요
+// 종합 리포트(10개 섹션 JSON + 사주/점성 근거 명시)에는 충분한 토큰 필요
+// 입체 narration + 12개월 월별 + 분석 근거 raw 데이터를 모두 담으려면 budget ↑
 const TOKEN_LIMITS_BY_PLAN = {
-  free: 3000,
-  starter: 4000,
-  pro: 6000,
-  premium: 8000,
+  free: 5000,
+  starter: 8000,
+  pro: 14000,
+  premium: 22000,
 } as const
 
 const TOKEN_CEILING_BY_PLAN = {
-  free: 4000,
-  starter: 6000,
-  pro: 10000,
-  premium: 14000,
+  free: 7000,
+  starter: 12000,
+  pro: 20000,
+  premium: 32000,
 } as const
 
 interface AIBackendResponse<T> {
@@ -83,10 +84,10 @@ function getAnthropicModel(qualityTier: AIQualityTier = 'quality'): string {
     return (
       process.env.ANTHROPIC_FAST_MODEL ||
       process.env.CLAUDE_FAST_MODEL ||
-      'claude-3-haiku-20240307'
+      'claude-haiku-4-5-20251001'
     )
   }
-  return process.env.ANTHROPIC_MODEL || process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514'
+  return process.env.ANTHROPIC_MODEL || process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929'
 }
 
 function getReplicateApiKey(): string | undefined {
@@ -397,7 +398,14 @@ async function callAnthropicMessages<T>(
     },
     body: JSON.stringify({
       model,
-      system: systemMessage,
+      // system을 배열로 감싸 cache_control: ephemeral 마킹 — 90% 입력 토큰 할인
+      system: [
+        {
+          type: 'text',
+          text: systemMessage,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
       messages: [
         {
           role: 'user',
@@ -433,6 +441,17 @@ async function callAnthropicMessages<T>(
         .map((block: { text?: string }) => block.text || '')
         .join('\n')
     : ''
+
+  // 캐시 hit 모니터링 — usage.cache_read_input_tokens 가 클수록 할인 큼
+  if (data?.usage) {
+    logger.info('[AI Backend] anthropic usage', {
+      input: data.usage.input_tokens,
+      output: data.usage.output_tokens,
+      cacheRead: data.usage.cache_read_input_tokens,
+      cacheCreate: data.usage.cache_creation_input_tokens,
+      model: data.model || model,
+    })
+  }
 
   return {
     sections: extractJSONFromResponse<T>(responseText),

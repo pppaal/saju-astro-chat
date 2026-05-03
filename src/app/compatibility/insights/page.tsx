@@ -57,19 +57,19 @@ function CompatibilityInsightsContent() {
         // Fetch Saju and Astrology data for both persons
         fetchPersonData(parsed);
       } else {
-        setError('No person data provided');
+        setError('사람 정보가 없어요. 입력 화면으로 돌아가 다시 시작해주세요.');
         setIsLoading(false);
       }
     } catch (e) {
       logger.error('Failed to parse URL params:', { error: e });
-      setError('Failed to parse person data');
+      setError('정보를 불러오지 못했어요. 다시 시도해주세요.');
       setIsLoading(false);
     }
   }, [searchParams]);
 
   const fetchPersonData = async (personList: PersonData[]) => {
     if (personList.length < 2) {
-      setError('At least 2 persons required');
+      setError('두 명 이상의 정보가 필요해요.');
       setIsLoading(false);
       return;
     }

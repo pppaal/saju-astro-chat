@@ -1,6 +1,6 @@
 // src/lib/destiny-matrix/ai-report/aiReportService.ts
 // Destiny Fusion Matrix(TM) - AI Premium Report Generator
-// ?? ??: AI ?? ?? ???? ??? ??
+// 유료 기능: AI 기반 상세 내러티브 리포트 생성
 
 import type { FusionReport } from '../interpreter/types'
 import type { MatrixCalculationInput, MatrixSummary } from '../types'
@@ -812,7 +812,7 @@ function finalizeThemedSectionsForUser(
         timingLine,
         '지금은 컨디션이 잠깐 올라오는 순간을 성과로 착각하기보다, 회복이 실제로 안정되는지부터 확인하는 편이 맞습니다.',
         branchEntry
-          ? `특히 ${branchEntry}가 자연스럽게 맞아떨어질 때 회복 리듬도 함께 안정됩니다.`
+          ? `특히 ${withSubjectParticle(branchEntry)} 자연스럽게 맞아떨어질 때 회복 리듬도 함께 안정됩니다.`
           : ''
       ),
       prevention: p(
@@ -859,7 +859,7 @@ function finalizeThemedSectionsForUser(
       timing: p(
         timingLine,
         '지금은 한 번에 정답을 내리기보다, 누가 무엇을 맡고 어디까지 책임질지를 먼저 맞추는 편이 안정적입니다.',
-        branchEntry ? `특히 ${branchEntry}가 자연스럽게 맞아떨어질 때 갈등도 훨씬 덜 커집니다.` : ''
+        branchEntry ? `특히 ${withSubjectParticle(branchEntry)} 자연스럽게 맞아떨어질 때 갈등도 훨씬 덜 커집니다.` : ''
       ),
       dynamics: p(
         '가족 안에서는 감정보다 역할 구조가 먼저 정리돼야 합니다.',
@@ -925,14 +925,14 @@ function enforceThemedNarrativeQualityFallback(
     if (needsTimingDisclaimer) {
       additions.push(
         lang === 'ko'
-          ? '? ?? ???? ???? ?? ????.'
+          ? '큰 흐름 중심으로 참고하는 편이 맞습니다.'
           : 'Use this as a broad directional guide and confirm finer timing separately.'
       )
     }
     if (needsEvidenceNarrative) {
       additions.push(
         lang === 'ko'
-          ? '?? ?? ??? ?? ? ?????.'
+          ? '교차 근거 묶음을 함께 본 결과입니다.'
           : 'This read is grounded in a cross-evidence bundle and rule arbitration.'
       )
     }
@@ -1026,7 +1026,7 @@ function softenOverclaimPhrases(text: string): string {
     .replace(/always/gi, 'often')
     .replace(/never/gi, 'rarely')
     .replace(/guaranteed/gi, 'high-probability')
-    .replace(/100%/gi, '?? ???')
+    .replace(/100%/gi, '높은 확률로')
     .replace(/\bguaranteed\b/gi, 'high-probability')
     .replace(/\bcertainly\b/gi, 'likely')
     .replace(/\balways\b/gi, 'in most cases')
@@ -1596,6 +1596,8 @@ export async function generateThemedReport(
     userQuestion?: string
     deterministicProfile?: DeterministicProfile
     matrixSummary?: MatrixSummary
+    period?: 'lifetime' | 'yearly' | 'monthly'
+    targetDate?: string
   } = {}
 ): Promise<ThemedAIPremiumReport> {
   return generateThemedReportWithSupport(input, matrixReport, theme, timingData, options, {

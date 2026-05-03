@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 import { blogPosts } from '@/data/blog-posts'
 import { isBlockedBlogPost } from '@/data/blog/publicFilters'
-import { ENABLED_SERVICES, REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enabledServices'
+import { ENABLED_SERVICES } from '@/config/enabledServices'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -15,6 +15,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 1,
+      alternates: {
+        languages: {
+          ko: BASE_URL,
+          en: BASE_URL,
+        },
+      },
     },
     {
       url: `${BASE_URL}/about`,
@@ -72,16 +78,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  const servicePaths = [
-    ...ENABLED_SERVICES.map((service) => service.href),
-    ...REMOVED_PUBLIC_SERVICE_PREFIXES,
-  ]
-
-  const servicePages: MetadataRoute.Sitemap = Array.from(new Set(servicePaths)).map((path) => ({
-    url: `${BASE_URL}${path}`,
+  const servicePages: MetadataRoute.Sitemap = ENABLED_SERVICES.map((service) => ({
+    url: `${BASE_URL}${service.href}`,
     lastModified: currentDate,
     changeFrequency: 'weekly' as const,
-    priority: 0.8,
+    priority: 0.9,
+    alternates: {
+      languages: {
+        ko: `${BASE_URL}${service.href}`,
+        en: `${BASE_URL}${service.href}`,
+      },
+    },
   }))
 
   // Policy pages

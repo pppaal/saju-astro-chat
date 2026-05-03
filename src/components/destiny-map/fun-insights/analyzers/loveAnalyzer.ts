@@ -1,6 +1,7 @@
 // 사랑 스타일 분석 - 일간 + 오행 + 별자리 + 7하우스 + 애스펙트 + 십신 조합으로 개인화
 import type { SajuData, AstroData } from '../types';
 import type { ZodiacSign, SibsinCategory, HouseNumber } from '../types/core';
+import { eulReul } from '@/lib/i18n/koParticle';
 import {
   extractDayMaster,
   extractFiveElementsSorted,
@@ -270,7 +271,10 @@ export function getLoveAnalysis(
   if (moonSign && zodiacLoveTraits[moonSign]) {
     const moonTrait = zodiacLoveTraits[moonSign];
     emotionalNeeds = isKo
-      ? `내면에서는 ${selectLang(isKo, moonTrait.style).toLowerCase()}을 원해요.`
+      ? (() => {
+          const s = selectLang(isKo, moonTrait.style).toLowerCase()
+          return `내면에서는 ${s}${eulReul(s)} 원해요.`
+        })()
       : `Internally, you want ${selectLang(isKo, moonTrait.style).toLowerCase()}.`;
     style += " " + emotionalNeeds;
   }

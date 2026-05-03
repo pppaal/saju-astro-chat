@@ -147,7 +147,17 @@ export function analyzeGongmang(
 
   const score = isEmpty ? -20 : 0;
   const advice = isEmpty
-    ? `${targetBranch}가 공망입니다. ${affectedAreas.join(', ')} 관련 일은 신중히 진행하세요.`
+    ? (() => {
+        const BRANCH_KO_READING: Record<string, string> = {
+          子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사',
+          午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
+        }
+        const reading = BRANCH_KO_READING[targetBranch] || targetBranch
+        const last = reading.charCodeAt(reading.length - 1)
+        const inHangul = last >= 0xac00 && last <= 0xd7a3
+        const ig = inHangul && (last - 0xac00) % 28 !== 0 ? '이' : '가'
+        return `${targetBranch}(${reading})${ig} 공망입니다. ${affectedAreas.join(', ')} 관련 일은 신중히 진행하세요.`
+      })()
     : '공망 영향 없음';
 
   return {

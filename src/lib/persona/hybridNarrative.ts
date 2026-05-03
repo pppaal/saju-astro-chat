@@ -4,11 +4,11 @@
   HybridInsight,
   HybridNarrative,
   HybridNarrativeInput,
-} from './hybridNarrativeSupport'
+} from './hybridNarrativeBuildSupport'
 export {
   sanitizeHybridText,
   sanitizeHybridList,
   buildHybridNarrative,
   buildHybridSampleInput,
   buildHybridNarrativeSample,
-} from './hybridNarrativeSupport'
+} from './hybridNarrativeBuildSupport'

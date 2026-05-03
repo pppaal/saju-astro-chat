@@ -38,22 +38,6 @@ vi.mock('@/app/api/calendar/lib', () => ({
   getFactorTranslation: vi.fn(() => '시간대 가이드'),
 }))
 
-vi.mock('@/lib/api/ApiClient', () => ({
-  apiClient: {
-    post: vi.fn().mockResolvedValue({
-      ok: true,
-      data: {
-        rag_context: {
-          sipsin: '사주 근거',
-          timing: '타이밍 근거',
-          query_result: '검색 근거',
-          insights: ['인사이트1'],
-        },
-      },
-    }),
-  },
-}))
-
 vi.mock('@/lib/stripe/premiumCache', () => ({
   checkPremiumFromDatabase: vi.fn().mockResolvedValue({ isPremium: false }),
 }))
@@ -75,42 +59,9 @@ function createRequest(body: Record<string, unknown>) {
 describe('calendar action-plan route', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env.OPENAI_API_KEY = 'test-key'
-    global.fetch = vi.fn(async () => {
-      return {
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  timeline: [
-                    {
-                      hour: 9,
-                      minute: 0,
-                      note: '핵심 슬롯 보정',
-                      tone: 'best',
-                      evidenceSummary: ['matrix 근거', '교차 근거'],
-                    },
-                    {
-                      hour: 5,
-                      minute: 0,
-                      note: '비핵심 슬롯 보정',
-                      tone: 'best',
-                      evidenceSummary: ['무시'],
-                    },
-                  ],
-                  summary: '요약',
-                }),
-              },
-            },
-          ],
-        }),
-      } as any
-    }) as any
   })
 
-  it('applies AI only to selected core slots', async () => {
+  it('returns a rule-based hourly timeline (no AI)', async () => {
     mockContext = { locale: 'ko', isPremium: true, userId: null }
     const request = createRequest({
       date: '2025-03-15',
@@ -128,95 +79,19 @@ describe('calendar action-plan route', () => {
 
     const response = await POST(request as any)
     const json = await response.json()
-    const timeline = json.data.timeline as Array<{ hour: number; note: string }>
-
-    const h9 = timeline.find((slot) => slot.hour === 9)
-    const h5 = timeline.find((slot) => slot.hour === 5)
-    expect(h9?.note).toContain('핵심 슬롯 보정')
-    expect(h5?.note).not.toContain('비핵심 슬롯 보정')
-  })
-  it('strips control characters from AI timeline notes', async () => {
-    ;(global.fetch as any) = vi.fn(async () => ({
-      ok: true,
-      json: async () => ({
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                timeline: [
-                  {
-                    hour: 10,
-                    minute: 0,
-                    note: 'Check\u0001 your high-priority prep before the meeting',
-                    tone: 'best',
-                    evidenceSummary: ['Cross\u0001 evidence summary'],
-                  },
-                ],
-                summary: 'Summary',
-              }),
-            },
-          },
-        ],
-      }),
-    }))
-
-    const request = createRequest({
-      date: '2025-03-15',
-      locale: 'ko',
-      intervalMinutes: 60,
-      calendar: {
-        grade: 1,
-        bestTimes: ['10-11'],
-        recommendations: ['Review key documents'],
-        warnings: [],
-        sajuFactors: ['Saju baseline'],
-        astroFactors: ['Astro baseline'],
-      },
-    })
-
-    const response = await POST(request as any)
-    const json = await response.json()
-    const timeline = json.data.timeline as Array<{
-      hour: number
-      note: string
-      evidenceSummary?: string[]
-    }>
-    const target = timeline.find((slot) => slot.hour === 10)
-
-    expect(target).toBeDefined()
-    expect(target?.note.includes('\u0001')).toBe(false)
-    expect((target?.evidenceSummary || []).join(' ')).not.toContain('\u0001')
+    expect(json.success).toBe(true)
+    const timeline = json.data.timeline as Array<{ hour: number; minute: number; note: string }>
+    expect(timeline.length).toBeGreaterThan(0)
+    expect(timeline.every((slot) => slot.minute === 0)).toBe(true)
+    expect(json.data.precisionMode).toBe('rule')
   })
 
-  it('keeps AI slot when minute=30 in 60-minute mode by normalizing to :00', async () => {
-    ;(global.fetch as any) = vi.fn(async () => ({
-      ok: true,
-      json: async () => ({
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                timeline: [
-                  {
-                    hour: 10,
-                    minute: 30,
-                    note: 'Normalized minute slot should still apply',
-                    tone: 'best',
-                    evidenceSummary: ['Evidence line'],
-                  },
-                ],
-                summary: 'Summary',
-              }),
-            },
-          },
-        ],
-      }),
-    }))
-
+  it('produces 30-minute slots when intervalMinutes=30', async () => {
+    mockContext = { locale: 'ko', isPremium: true, userId: null }
     const request = createRequest({
       date: '2025-03-15',
       locale: 'en',
-      intervalMinutes: 60,
+      intervalMinutes: 30,
       calendar: {
         grade: 1,
         bestTimes: ['10-11'],
@@ -229,10 +104,36 @@ describe('calendar action-plan route', () => {
 
     const response = await POST(request as any)
     const json = await response.json()
-    const timeline = json.data.timeline as Array<{ hour: number; note: string }>
-    const target = timeline.find((slot) => slot.hour === 10)
+    const timeline = json.data.timeline as Array<{ hour: number; minute: number; note: string }>
+    const minutes = new Set(timeline.map((slot) => slot.minute))
+    expect(minutes.has(0)).toBe(true)
+    expect(minutes.has(30)).toBe(true)
+  })
 
-    expect(target).toBeDefined()
-    expect(target?.note).toContain('Normalized minute slot')
+  it('exposes a peak/best time on or near the calendar bestTimes window', async () => {
+    mockContext = { locale: 'ko', isPremium: true, userId: null }
+    const request = createRequest({
+      date: '2025-03-15',
+      locale: 'ko',
+      intervalMinutes: 60,
+      calendar: {
+        grade: 1,
+        bestTimes: ['09-10'],
+        recommendations: ['핵심 업무 1건 처리'],
+        warnings: [],
+        sajuFactors: ['사주 근거'],
+        astroFactors: ['점성 근거'],
+      },
+    })
+    const response = await POST(request as any)
+    const json = await response.json()
+    const timeline = json.data.timeline as Array<{
+      hour: number
+      tone?: string
+      note: string
+    }>
+    const slot9 = timeline.find((slot) => slot.hour === 9)
+    expect(slot9).toBeDefined()
+    expect(slot9?.tone).toBe('best')
   })
 })

@@ -121,7 +121,13 @@ export function describeTimingWindowTakeaways(input: {
 
     const entryLine =
       cleanedEntry.length > 0
-        ? `실제로 움직이려면 ${joinNaturalList(cleanedEntry.slice(0, 2), lang)}가 먼저 맞아야 합니다.`
+        ? (() => {
+            const list = joinNaturalList(cleanedEntry.slice(0, 2), lang)
+            const last = list.charCodeAt(list.length - 1)
+            const inHangul = last >= 0xac00 && last <= 0xd7a3
+            const ig = inHangul && (last - 0xac00) % 28 !== 0 ? '이' : '가'
+            return `실제로 움직이려면 ${list}${ig} 먼저 맞아야 합니다.`
+          })()
         : ''
     const abortLine =
       cleanedAbort.length > 0

@@ -763,12 +763,12 @@ export async function runPremiumDeterministicMode(ctx) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
     .map((d) =>
-      lang === 'ko' ? `${d.domain} ??(${d.score})` : `${d.domain} strength (${d.score})`
+      lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
     )
   const anchorFallback = (graphRagEvidence.anchors || [])
     .slice(0, 3)
     .map((a) =>
-      lang === 'ko' ? `${a.section} ?? ?? ??` : `${a.section} section evidence alignment`
+      lang === 'ko' ? `${a.section} 섹션 근거 정합` : `${a.section} section evidence alignment`
     )
   const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
   const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
@@ -776,7 +776,7 @@ export async function runPremiumDeterministicMode(ctx) {
     keyChallenges.length > 0
       ? keyChallenges
       : lang === 'ko'
-        ? ['?? ?? ?? ??', '?? ? ??? ??', '?????? ??? ??']
+        ? ['핵심 근거 추가 확인', '실행 전 체크리스트 점검', '모니터링 지표를 미리 정의']
         : [
             'Caution signals require review',
             'Recheck before final commitment',

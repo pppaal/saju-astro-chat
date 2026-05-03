@@ -4,6 +4,7 @@
 // TIER 5: 절기월 + Secondary Progressions + 강화된 동서양 통합
 
 import type { FiveElement } from './timingScore';
+import { eulReul } from '@/lib/i18n/koParticle';
 
 // TIER 5: 초정밀 분석 엔진 임포트
 import {
@@ -279,12 +280,12 @@ function generateAdvice(syncPoint: Omit<SyncPoint, 'advice'>): string {
         `에너지가 높으니 목표를 향해 적극적으로 나아가세요.`;
 
     case 'clash':
-      return `${daeun.element} 대운과 ${transitNames}이 긴장 관계입니다. ` +
+      return `${daeun.element} 대운과 ${transitNames} — 긴장 관계입니다. ` +
         `내면의 갈등이나 외부 도전이 있을 수 있습니다. ` +
         `무리하지 말고, 자기 성찰과 휴식에 집중하세요. 위기는 성장의 기회입니다.`;
 
     case 'balance':
-      return `${daeun.element} 대운과 ${transitNames}이 균형을 이룹니다. ` +
+      return `${daeun.element} 대운과 ${transitNames} — 균형을 이룹니다. ` +
         `안정적인 시기이나 정체될 수 있습니다. ` +
         `작은 변화를 시도하거나 기존 계획을 점검하기 좋은 때입니다.`;
 
@@ -662,7 +663,7 @@ function generateIntegrationAdvice(
     advice += '상황에 따라 적절히 활용하세요. ';
   }
 
-  advice += `지배적 오행 ${dominantElement}을 고려한 접근이 효과적입니다. `;
+  advice += `지배적 오행 ${dominantElement}${eulReul(dominantElement)} 고려한 접근이 효과적입니다. `;
 
   if (criticalYears.length > 0) {
     advice += `특히 ${criticalYears.slice(0, 2).join('년, ')}년이 중요한 해입니다.`;

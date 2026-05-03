@@ -19,6 +19,8 @@ interface ImportantDate {
   description: string
   warnings?: string[]
   timingSignals?: string[]
+  sajuFactors?: string[]
+  astroFactors?: string[]
 }
 
 interface DayCellProps {
@@ -84,16 +86,30 @@ const DayCell = React.memo(function DayCell({
     return tags.slice(0, 2)
   }, [dateInfo, effectiveGrade, labels])
 
-  const getGradeLabel = (grade: number) => {
-    if (grade === 0) return locale === 'ko' ? '실행 우선' : 'Execute-first'
-    if (grade === 1) return locale === 'ko' ? '활용 우선' : 'Leverage-first'
-    if (grade === 2) return locale === 'ko' ? '운영 우선' : 'Operate-first'
-    if (grade === 3) return locale === 'ko' ? '검토 우선' : 'Review-first'
-    return locale === 'ko' ? '조정 우선' : 'Adjust-first'
-  }
+  const getGradeLabel = React.useCallback((grade: number) => {
+    // 직관적 자연어 라벨 — 사주·점성 톤 반영
+    if (grade === 0) return locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day'
+    if (grade === 1) return locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent'
+    if (grade === 2) return locale === 'ko' ? '🌿 좋은 날' : '🌿 Good'
+    if (grade === 3) return locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution'
+    return locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady'
+  }, [locale])
+
+  // Tooltip — score + 핵심 사주·점성 신호 미리보기
+  const cellTooltip = React.useMemo(() => {
+    if (!dateInfo) return undefined
+    const parts: string[] = [
+      `${getGradeLabel(effectiveGrade)} (${dateInfo.score}점)`,
+    ]
+    const saju = (dateInfo.sajuFactors || [])[0]
+    const astro = (dateInfo.astroFactors || [])[0]
+    if (saju) parts.push(locale === 'ko' ? `사주: ${saju}` : `Saju: ${saju}`)
+    if (astro) parts.push(locale === 'ko' ? `점성: ${astro}` : `Astro: ${astro}`)
+    return parts.join('\n')
+  }, [dateInfo, effectiveGrade, locale, getGradeLabel])
 
   const ariaLabel = date
-    ? `${date.getDate()}${labels.daySuffix}, ${typeof effectiveGrade === 'number' ? getGradeLabel(effectiveGrade) : labels.noInfo}${isToday ? `, ${labels.today}` : ''}`
+    ? `${date.getDate()}${labels.daySuffix}, ${typeof effectiveGrade === 'number' ? getGradeLabel(effectiveGrade) : labels.noInfo}${dateInfo?.score != null ? `, ${dateInfo.score}점` : ''}${isToday ? `, ${labels.today}` : ''}`
     : undefined
 
   return (
@@ -111,6 +127,7 @@ const DayCell = React.memo(function DayCell({
       aria-label={ariaLabel}
       aria-selected={isSelected}
       aria-current={isToday ? 'date' : undefined}
+      title={cellTooltip}
     >
       {date && (
         <>

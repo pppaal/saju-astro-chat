@@ -1,6 +1,7 @@
 // 커리어 분석 - 일간 + 오행 + 별자리 + 10하우스 + 토성 + 대운 조합으로 개인화
 import type { SajuData, AstroData } from '../types'
 import type { ZodiacSign, SibsinCategory } from '../types/core'
+import { eulReul } from '@/lib/i18n/koParticle'
 import {
   extractDayMaster,
   extractFiveElementsSorted,
@@ -306,7 +307,7 @@ function getWealthStyle(
   if (planetsIn2.length > 0) {
     const pNames = planetsIn2.join(', ')
     wealthType += isKo
-      ? ` 2하우스에 ${pNames}이 있어 자기 힘으로 돈을 버는 능력이 있어요.`
+      ? ` 2하우스에 ${pNames} — 자기 힘으로 돈을 버는 능력이 있어요.`
       : ` With ${pNames} in 2nd house, you can earn money by yourself.`
   }
 
@@ -444,7 +445,10 @@ export function getCareerAnalysis(
       ? `사회에서 ${selectLang(isKo, mcTrait.style)}하는 모습으로 인식돼요.`
       : `Perceived socially as ${selectLang(isKo, mcTrait.style).toLowerCase()}.`
     idealEnvironment = isKo
-      ? `${selectLang(isKo, mcTrait.style)}을 할 수 있는 환경이 이상적이에요.`
+      ? (() => {
+          const s = selectLang(isKo, mcTrait.style)
+          return `${s}${eulReul(s)} 할 수 있는 환경이 이상적이에요.`
+        })()
       : `An environment where you can ${selectLang(isKo, mcTrait.style).toLowerCase()} is ideal.`
     strengths.push(selectLang(isKo, mcTrait.strength))
   }

@@ -6,6 +6,7 @@ import {
 } from '@/lib/destiny-map/destinyCalendar'
 import { elementTraits, elementKeyMap, elementRelations, monthElements } from '../data'
 import type { SajuData, AstroData } from '../types'
+import { iga } from '@/lib/i18n/koParticle'
 
 interface RecommendedDateItem {
   date: string
@@ -178,7 +179,10 @@ export function getSimpleRecommendedDates(
     if (elementRelations.supportedBy[dayElement] === monthEl) {
       score = 85
       reason = isKo
-        ? `${elementTraits[monthEl]?.ko}이 나를 생(生)해주는 달`
+        ? (() => {
+            const ko = elementTraits[monthEl]?.ko || ''
+            return `${ko}${iga(ko)} 나를 생(生)해주는 달`
+          })()
         : `${elementTraits[monthEl]?.en} generates your energy`
     } else if (monthEl === dayElement) {
       score = 75

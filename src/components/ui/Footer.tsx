@@ -33,6 +33,12 @@ export default function Footer() {
         <div className={styles.copyright} suppressHydrationWarning>
           © {new Date().getFullYear()} DestinyPal. All rights reserved.
         </div>
+        <div className={styles.disclaimer} suppressHydrationWarning>
+          {translate(
+            'footer.disclaimer',
+            '본 서비스의 모든 해석은 사주명리·점성술 전통에 기반한 *참고 자료*이며 미래를 단정·확정하지 않습니다. 중요한 의사결정은 본인의 판단과 전문가 상담을 함께 활용하세요.'
+          )}
+        </div>
       </div>
     </footer>
   );

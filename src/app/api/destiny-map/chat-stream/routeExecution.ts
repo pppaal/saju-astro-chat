@@ -1,4 +1,4 @@
-﻿import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+﻿import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import { ErrorCodes, type ErrorCode } from '@/lib/api/errorHandler'
 import { isValidDate, isValidLatitude, isValidLongitude, isValidTime } from '@/lib/validation'
 import { logger } from '@/lib/logger'
@@ -18,6 +18,8 @@ import type {
 } from '@/lib/destiny-matrix/core/logging'
 import { clampMessages, counselorSystemPrompt } from './lib/helpers'
 import { loadPersonaMemory, loadUserProfile, type ProfileLoadResult } from './lib/profileLoader'
+import { appendUserUtteranceToRecall } from '@/lib/ai/personaMemoryRecall'
+import { buildCVCounselorContextKo } from '@/lib/ai/cvSajuCross'
 import { calculateChartData } from './lib/chart-calculator'
 import {
   buildContextSections,
@@ -90,7 +92,7 @@ export async function resolveEffectiveCounselorInputs(params: {
     advancedAstro,
     predictionContext,
     userContext: _userContext,
-    cvText: _cvText,
+    cvText,
     counselingBrief,
   } = validated
 
@@ -171,7 +173,7 @@ export async function resolveEffectiveCounselorInputs(params: {
       lastUserContent: lastUser?.content,
       predictionContext,
       userContext: _userContext,
-      cvText: _cvText,
+      cvText,
       counselingBrief,
       questionAnalysis,
     },
@@ -240,7 +242,7 @@ export async function prepareCounselorExecution(params: {
     lastUserContent,
     predictionContext,
     userContext: _userContext,
-    cvText: _cvText,
+    cvText,
     counselingBrief,
     questionAnalysis,
   } = inputs
@@ -248,6 +250,11 @@ export async function prepareCounselorExecution(params: {
   let personaMemoryContext = ''
   let recentSessionSummaries = ''
   if (userId) {
+    // (Tier 2A) 이번 사용자 발화를 recall에 누적 (질문·결정 verbatim 추출)
+    if (lastUserContent) {
+      // fire-and-forget — recall append 실패가 메인 응답을 막지 않게
+      appendUserUtteranceToRecall(userId, lastUserContent).catch(() => {})
+    }
     const memoryResult = await loadPersonaMemory(userId, effectiveTheme, lang)
     personaMemoryContext = memoryResult.personaMemoryContext
     recentSessionSummaries = memoryResult.recentSessionSummaries
@@ -292,6 +299,25 @@ export async function prepareCounselorExecution(params: {
     trimmedHistory,
     lastUserMessage: lastUserContent,
   })
+
+  // CV × 사주 cross — counselor가 사용자 실제 경력 데이터를 사주와 묶어 reference
+  if (cvText && finalSaju) {
+    try {
+      const cvCross = buildCVCounselorContextKo(cvText, {
+        geokguk: (finalSaju as { geokguk?: string }).geokguk,
+        sibsinDistribution: (finalSaju as { sibsinDistribution?: Record<string, number> }).sibsinDistribution,
+        shinsalList: (finalSaju as { shinsalList?: string[] }).shinsalList,
+        dayMasterElement: (finalSaju as { dayMaster?: { element?: string } }).dayMaster?.element,
+      })
+      if (cvCross) {
+        personaMemoryContext = personaMemoryContext
+          ? `${personaMemoryContext}\n\n${cvCross}`
+          : cvCross
+      }
+    } catch {
+      // CV cross 실패가 메인 응답을 막지 않게
+    }
+  }
 
   const predictionSection = buildPredictionSection(predictionContext, lang)
   const longTermMemorySection = buildLongTermMemorySection(

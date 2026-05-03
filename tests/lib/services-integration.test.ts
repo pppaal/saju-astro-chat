@@ -366,22 +366,6 @@ describe('Services Integration', () => {
     })
   })
 
-  describe('Marketing Services', () => {
-    it('should export image generator helpers', async () => {
-      const module = await import('@/lib/marketing/imageGenerator')
-
-      expect(module.generateFortuneSVG).toBeDefined()
-      expect(typeof module.generateFortuneSVG).toBe('function')
-    })
-
-    it('should export social media poster helpers', async () => {
-      const module = await import('@/lib/marketing/socialMediaPoster')
-
-      expect(module.postToInstagram).toBeDefined()
-      expect(module.loadSocialMediaConfig).toBeDefined()
-    })
-  })
-
   describe('Metrics and Telemetry', () => {
     it('should export metrics helpers', async () => {
       const module = await import('@/lib/metrics')
@@ -672,8 +656,6 @@ describe('Services Integration', () => {
         import('@/lib/prediction/tier7To10Analysis'),
         import('@/lib/weeklyFortune'),
         import('@/lib/userProfile'),
-        import('@/lib/marketing/imageGenerator'),
-        import('@/lib/marketing/socialMediaPoster'),
         import('@/lib/metrics'),
         import('@/lib/telemetry'),
         import('@/lib/env'),

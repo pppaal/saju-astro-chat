@@ -324,8 +324,8 @@ export function buildCounselorEvidencePacket(params: {
     graphReason:
       graphRagEvidenceSummary.graphReason ||
       (topAnchorSummary
-        ? `"${topAnchorSummary}"? ?? ??? ?? ?????.`
-        : '?? ?? ??? ?? ??? ?? ????? ?????.'),
+        ? `"${topAnchorSummary}"를 핵심 근거로 삼습니다.`
+        : '근거 그래프 탐색을 거쳐 신호를 정리합니다.'),
     strategyLine: topDomainAdvisory?.strategyLine,
     answerThesis: counselorCore?.answerThesis,
   })
@@ -405,10 +405,10 @@ export function buildCounselorEvidencePacket(params: {
     : ''
   const latentNarrative = counselorCore?.latentTopAxes?.length
     ? params.lang === 'ko'
-      ? `?? ?? ??? ???? ?? ?? ${counselorCore.latentTopAxes
+      ? `현재 가장 강하게 작동하는 잠재 축은 ${counselorCore.latentTopAxes
           .slice(0, 3)
           .map((axis) => axis.label)
-          .join(', ')}???.`
+          .join(', ')}입니다.`
       : `The strongest latent drivers right now are ${counselorCore.latentTopAxes
           .slice(0, 3)
           .map((axis) => axis.label)

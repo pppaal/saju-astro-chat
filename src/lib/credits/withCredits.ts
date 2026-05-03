@@ -35,7 +35,7 @@ interface CreditCheckResult {
 
 const GUEST_TAROT_USED_COOKIE = 'tarot_guest_reading_used'
 const GUEST_TAROT_INTERPRET_COOKIE = 'tarot_guest_interpret_pass'
-const GUEST_TAROT_USED_MAX_AGE = 60 * 60 * 24 * 365
+const GUEST_TAROT_USED_MAX_AGE = 60 * 60 * 24 * 30
 const GUEST_TAROT_INTERPRET_MAX_AGE = 60 * 30
 
 function readCookie(request: CookieReadableRequest | undefined, name: string): string | null {

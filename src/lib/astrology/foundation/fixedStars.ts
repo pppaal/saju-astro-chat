@@ -562,7 +562,7 @@ export function findFixedStarConjunctions(
           star,
           planet: point.name,
           orb: diff,
-          description: `${point.name}이(가) ${star.name_ko}과(와) 합 (오브: ${diff.toFixed(2)}도)`,
+          description: `${point.name} ↔ ${star.name_ko} 합 (오브 ${diff.toFixed(2)}도)`,
         });
       }
     }

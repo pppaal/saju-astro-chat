@@ -31,7 +31,6 @@ const PAGES_WITHOUT_BACK_BUTTON = [
   '/auth', // Has custom header with back button
   '/destiny-counselor', // Counselor pages have their own header/back button
   '/blog', // Has custom back button
-  '/community', // Has custom back button
   '/success', // Has custom back button
   '/icp', // Has custom back button
   '/admin', // Admin pages - no back button needed

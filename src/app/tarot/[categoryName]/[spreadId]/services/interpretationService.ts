@@ -9,6 +9,15 @@ import { getStoredBirthDate } from '@/lib/userProfile';
 import { tarotLogger } from '@/lib/logger';
 import type { ReadingResponse, InterpretationResult } from '../constants/types';
 
+export interface QuestionMetaInput {
+  intent?: string
+  subject?: string
+  focus?: string
+  timeframe?: string
+  tone?: string
+  questionType?: string
+}
+
 export interface FetchInterpretationInput {
   categoryId: string | undefined;
   spreadId: string | undefined;
@@ -16,6 +25,7 @@ export interface FetchInterpretationInput {
   userQuestion: string;
   language: string;
   translate: (key: string, fallback: string) => string;
+  questionMeta?: QuestionMetaInput;
 }
 
 /**
@@ -24,7 +34,7 @@ export interface FetchInterpretationInput {
 export async function fetchInterpretation(
   input: FetchInterpretationInput
 ): Promise<InterpretationResult> {
-  const { categoryId, spreadId, result, userQuestion, language, translate } = input;
+  const { categoryId, spreadId, result, userQuestion, language, translate, questionMeta } = input;
 
   try {
     const response = await apiFetch('/api/tarot/interpret', {
@@ -50,6 +60,7 @@ export async function fetchInterpretation(
         userQuestion,
         language: language || 'ko',
         birthdate: getStoredBirthDate(),
+        ...(questionMeta ? { questionMeta } : {}),
       }),
     });
 

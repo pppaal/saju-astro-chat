@@ -330,6 +330,12 @@ export function calculateSajuData(
     if (!termUTC_current) {
       throw new Error(`Cannot determine Daeun: solar term data missing for ${year}/${sajuMonth}`)
     }
+    // 대운수 계산용 절기 결정.
+    // 양남/음녀 순행 → 다음 月의 시작 절기까지 일수
+    // 음남/양녀 역행 → 본인이 속한 月의 시작 절기까지(이미 지난) 일수
+    //
+    // 본인이 속한 月의 시작 절기 = termUTC_current (예: 寅월이면 입춘)
+    // 다음 月의 시작 절기 = sajuMonth+1의 termUTC (예: 寅월의 다음은 卯월 = 경칩)
     let nextTermUTC: Date, prevTermUTC: Date
     if (isForward) {
       const nextMonth = sajuMonth === 12 ? 1 : sajuMonth + 1
@@ -343,15 +349,10 @@ export function calculateSajuData(
       nextTermUTC = nextTerm
       prevTermUTC = termUTC_current
     } else {
-      const prevMonth = sajuMonth === 1 ? 12 : sajuMonth - 1
-      const prevYear = sajuMonth === 1 ? year - 1 : year
-      const prevTerm = getSolarTermKST(prevYear, prevMonth)
-      if (!prevTerm) {
-        throw new Error(
-          `Cannot determine Daeun: solar term data missing for ${prevYear}/${prevMonth}`
-        )
-      }
-      prevTermUTC = prevTerm
+      // 역행: 직전 절기 = 본인이 속한 月의 시작 절기 자체
+      // (이전 코드는 prev sajuMonth's term을 잡아 한 절기를 더 거슬러 가는 버그가 있었음 —
+      // 대운수가 약 30일/3 ≈ 10세씩 부풀어 나옴)
+      prevTermUTC = termUTC_current
       nextTermUTC = termUTC_current
     }
 

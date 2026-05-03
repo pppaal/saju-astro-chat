@@ -1,6 +1,6 @@
 // src/app/api/astrology/route.ts
 import { NextRequest } from 'next/server'
-import { apiClient } from '@/lib/api/ApiClient'
+import { askClaude } from '@/lib/llm/askClaude'
 import { prisma } from '@/lib/db/prisma'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -72,19 +72,30 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid date/time/timeZone combination.')
   }
 
-  // 4. Calculate natal chart
+  // 4. Calculate natal chart — ephemeris 실패 시 graceful fallback
   const opts = resolveOptions(options)
 
-  const natal = await calculateNatalChart({
-    year,
-    month,
-    date: day,
-    hour: h,
-    minute: m,
-    latitude,
-    longitude,
-    timeZone: String(timeZone),
-  })
+  let natal
+  try {
+    natal = await calculateNatalChart({
+      year,
+      month,
+      date: day,
+      hour: h,
+      minute: m,
+      latitude,
+      longitude,
+      timeZone: String(timeZone),
+    })
+  } catch (chartError) {
+    logger.error('[Astrology API] calculateNatalChart failed:', chartError)
+    return apiError(
+      ErrorCodes.INTERNAL_ERROR,
+      context.locale === 'ko'
+        ? '점성 차트 계산에 일시적 오류가 있어요. 잠시 후 다시 시도해 주세요.'
+        : 'Astrology chart calculation temporarily unavailable. Please try again shortly.'
+    )
+  }
 
   // 5. Build localized display strings
   const ascSplit = splitSignAndDegree(natal.ascendant.formatted)
@@ -161,22 +172,12 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     try {
       const astroPrompt = `Analyze this natal chart as an expert astrologer:\n\nAscendant: ${ascStr}\nMC: ${mcStr}\n\nPlanet Positions:\n${planetLines}\n\nProvide insights on personality, life path, strengths, and challenges.`
 
-      const response = await apiClient.post(
-        '/ask',
-        {
-          theme: 'astrology',
-          prompt: astroPrompt,
-          astro: {
-            ascendant: natal.ascendant,
-            mc: natal.mc,
-            planets: natal.planets,
-            houses,
-            aspects: aspectsPlus,
-          },
-          locale: locKey,
-        },
-        { timeout: 60000 }
-      )
+      const response = await askClaude(astroPrompt, {
+        theme: 'astrology',
+        maxTokens: 2500,
+        timeoutMs: 60000,
+        label: 'astrology-route',
+      })
 
       if (response.ok) {
         const resData = response.data as {

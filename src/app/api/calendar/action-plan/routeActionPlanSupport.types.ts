@@ -113,6 +113,29 @@ export type ActionPlanCalendarContext = {
   summary?: string
   canonicalCore?: Partial<CalendarCoreAdapterResult>
   evidence?: CalendarEvidence
+  /** 본명 사주 — 시간 십신 / 시지 충 정확 계산용 */
+  natalSaju?: {
+    dayStem: string
+    dayBranch: string
+    yearBranch?: string
+    monthStem?: string
+    monthBranch?: string
+  }
+  /** 그 날의 공망 지지 */
+  gongmangBranches?: string[]
+  /** 그 날 활성 신살 */
+  shinsalActive?: { name: string; type?: string; affectedArea?: string }[]
+  /** 그 날 카테고리별 활동 점수 (0-100) */
+  activityScores?: {
+    marriage?: number
+    career?: number
+    investment?: number
+    moving?: number
+    surgery?: number
+    study?: number
+  }
+  /** 사용자 인격 fingerprint — buildPersonalityProfile() 결과 (선택) */
+  personalityProfile?: import('@/lib/destiny-matrix/personality').PersonalityProfile
 } | null
 
 export type ActionPlanInsights = {

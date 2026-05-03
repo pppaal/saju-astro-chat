@@ -110,6 +110,9 @@ const DAYMASTER_BIRTH_BRANCH: Record<string, string> = {
   '己': '酉', '庚': '巳', '辛': '子', '壬': '申', '癸': '卯',
 };
 
+/* 음간 일간 — 12운성은 음간일 때 역행으로 계산 */
+const YIN_DAY_MASTERS = new Set(['乙', '丁', '己', '辛', '癸'])
+
 const BRANCH_ORDER = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'] as const;
 
 export function getTwelveStage(dayStemNameRaw: string, branchNameRaw: string): TwelveStage {
@@ -120,7 +123,11 @@ export function getTwelveStage(dayStemNameRaw: string, branchNameRaw: string): T
   const startIdx = (BRANCH_ORDER as readonly string[]).indexOf(start);
   const targetIdx = (BRANCH_ORDER as readonly string[]).indexOf(branchName);
   if (startIdx < 0 || targetIdx < 0) {return '묘';}
-  const diff = (targetIdx - startIdx + 12) % 12;
+  // 양간 순행 / 음간 역행
+  const isYin = YIN_DAY_MASTERS.has(dayStemName)
+  const diff = isYin
+    ? (startIdx - targetIdx + 12) % 12
+    : (targetIdx - startIdx + 12) % 12
   return TWELVE_STAGE_ORDER[diff];
 }
 export function getTwelveStagesForPillars(p: SajuPillarsLike, _basis: 'day' = 'day'): { [K in PillarKind]: TwelveStage } {
@@ -186,12 +193,14 @@ const YEARMONTH_SHINSAL_BY_MONTH_BRANCH: Record<string, Partial<Record<string, S
 const YANGIN_BY_DAY_STEM: Record<string, string> = {
   '甲':'卯','乙':'卯','丙':'午','丁':'午','戊':'午','己':'午','庚':'酉','辛':'酉','壬':'子','癸':'子',
 };
-const GWAEGANG_DAY_BRANCHES = new Set(['辰','戌','丑','未']);
-const GWAEGANG_DAY_STEMS = new Set(['庚','辛']);
+// 괴강(魁罡) — 정통 5종: 庚辰, 庚戌, 壬辰, 壬戌, 戊戌
+const GWAEGANG_DAY_PAIRS = new Set(['庚辰', '庚戌', '壬辰', '壬戌', '戊戌'])
 function checkGwaegang(dayStem: string, dayBranch: string, targetBranch: string): boolean {
-  return GWAEGANG_DAY_BRANCHES.has(dayBranch) && GWAEGANG_DAY_STEMS.has(dayStem) && targetBranch === dayBranch;
+  return GWAEGANG_DAY_PAIRS.has(dayStem + dayBranch) && targetBranch === dayBranch
 }
-const BAEKHO_DAY_PAIRS = new Set(['庚辰','庚戌','庚寅','庚申','戊申','戊寅','壬辰','壬戌','丙辰','丙戌']);
+
+// 백호(白虎) — 정통 7종: 戊辰, 丁丑, 丙戌, 乙未, 甲辰, 癸丑, 壬戌
+const BAEKHO_DAY_PAIRS = new Set(['戊辰', '丁丑', '丙戌', '乙未', '甲辰', '癸丑', '壬戌'])
 function checkBaekho(dayStem: string, dayBranch: string): boolean {
   return BAEKHO_DAY_PAIRS.has(dayStem + dayBranch);
 }
@@ -223,23 +232,56 @@ const HYEONCHIM_BY_STEM: Record<string, string> = {
   '甲':'酉','乙':'酉','丙':'子','丁':'子','戊':'卯','己':'卯','庚':'午','辛':'午','壬':'卯','癸':'卯'
 };
 function isHyeonchim(dayStem: string, branch: string): boolean { return HYEONCHIM_BY_STEM[dayStem] === branch; }
-function isGosin(monthBranch: string, target: string): boolean {
-  const idx = BRANCH_ORDER.indexOf(monthBranch as typeof BRANCH_ORDER[number]);
-  if (idx < 0) {return false;}
-  const prev = BRANCH_ORDER[(idx + 11) % 12];
-  const next = BRANCH_ORDER[(idx + 1) % 12];
-  return target === prev || target === next;
+// 고신(孤神): 월지 三合 그룹의 다음 지지
+//   寅卯辰 (春) → 巳    巳午未 (夏) → 申
+//   申酉戌 (秋) → 亥    亥子丑 (冬) → 寅
+const GOSIN_BY_MONTH: Record<string, string> = {
+  '寅': '巳', '卯': '巳', '辰': '巳',
+  '巳': '申', '午': '申', '未': '申',
+  '申': '亥', '酉': '亥', '戌': '亥',
+  '亥': '寅', '子': '寅', '丑': '寅',
 }
+function isGosin(monthBranch: string, target: string): boolean {
+  return GOSIN_BY_MONTH[monthBranch] === target
+}
+// 천을귀인: 일간별 두 지지 (전통 명리학 정통 표)
+//   甲戊庚 → 丑未
+//   乙己   → 子申
+//   丙丁   → 亥酉
+//   壬癸   → 巳卯
+//   辛     → 寅午  (六辛逢馬虎)
 const CHEONEUL_BY_DAY_STEM: Record<string, string[]> = {
-  '甲':['丑','未'],'乙':['丑','未'],'丙':['申','子'],'丁':['申','子'],'戊':['卯'],'己':['酉'],'庚':['巳','亥'],'辛':['巳','亥'],'壬':['寅','午'],'癸':['寅','午'],
+  '甲': ['丑', '未'], '戊': ['丑', '未'], '庚': ['丑', '未'],
+  '乙': ['子', '申'], '己': ['子', '申'],
+  '丙': ['亥', '酉'], '丁': ['亥', '酉'],
+  '壬': ['巳', '卯'], '癸': ['巳', '卯'],
+  '辛': ['寅', '午'],
 };
 const TAEGEUK_BY_DAY_STEM: Record<string, string[]> = {
   '甲':['子','午'],'乙':['子','午'],'丙':['卯','酉'],'丁':['卯','酉'],'戊':['辰','戌'],'己':['辰','戌'],'庚':['丑','未'],'辛':['丑','未'],'壬':['寅','申'],'癸':['寅','申'],
 };
 function isGeumYeoseong(branch: string): boolean { return branch === '酉' || branch === '辰'; }
 function isCheonMunSeong(branch: string): boolean { return branch === '子' || branch === '午'; }
-function isMunChang(branch: string): boolean { return branch === '巳' || branch === '酉'; }
-function isMunGok(branch: string): boolean { return branch === '亥' || branch === '卯'; }
+// 문창귀인: 일간이 만드는 식신 자리 (일간 dependent)
+//   甲→巳 乙→午 丙·戊→申 丁·己→酉 庚→亥 辛→子 壬→寅 癸→卯
+const MUNCHANG_BY_DAY_STEM: Record<string, string> = {
+  '甲': '巳', '乙': '午', '丙': '申', '丁': '酉',
+  '戊': '申', '己': '酉', '庚': '亥', '辛': '子',
+  '壬': '寅', '癸': '卯',
+}
+function isMunChang(dayStem: string, branch: string): boolean {
+  return MUNCHANG_BY_DAY_STEM[dayStem] === branch
+}
+
+// 문곡귀인: 문창의 충 자리 (식신 위치의 반대편)
+const MUNGOK_BY_DAY_STEM: Record<string, string> = {
+  '甲': '亥', '乙': '子', '丙': '寅', '丁': '卯',
+  '戊': '寅', '己': '卯', '庚': '巳', '辛': '午',
+  '壬': '申', '癸': '酉',
+}
+function isMunGok(dayStem: string, branch: string): boolean {
+  return MUNGOK_BY_DAY_STEM[dayStem] === branch
+}
 
 /* ===== 확장 신살 테이블 ===== */
 
@@ -401,18 +443,34 @@ function mapK(k: keyof TwelveMap): ShinsalHit['kind'] {
     k === '육해' ? '육해' : '화개');
 }
 
+// 12신살: 三合 將星 기준 offset으로 계산 (정통 표)
+//   寅午戌 火局 → 將星=午
+//   巳酉丑 金局 → 將星=酉
+//   申子辰 水局 → 將星=子
+//   亥卯未 木局 → 將星=卯
+//
+// 將星 위치를 0으로 잡고 12지지 순서대로 offset:
+//   0=將星 1=攀鞍 2=驛馬 3=六厄 4=華蓋 5=劫煞
+//   6=災煞 7=天煞 8=地煞 9=年煞 10=月煞 11=亡神
+const SAMHAP_LEADER: Record<string, string> = {
+  '寅': '午', '午': '午', '戌': '午',
+  '巳': '酉', '酉': '酉', '丑': '酉',
+  '申': '子', '子': '子', '辰': '子',
+  '亥': '卯', '卯': '卯', '未': '卯',
+}
+const TWELVE_BY_OFFSET_KO = [
+  '장성', '반안', '역마', '육해', '화개', '겁살',
+  '재살', '천살', '지살', '년살', '월살', '망신',
+] as const
+
 function pickTwelveSingle(dayBranch: string, targetBranch: string): ShinsalHit['kind'] | null {
-  const full = TWELVE_SHINSAL_BY_DAY_BRANCH[dayBranch];
-  if (!full) {return null;}
-  const candidates: ShinsalHit['kind'][] = [];
-  for (const [k, v] of Object.entries(full) as Array<[keyof TwelveMap, string]>) {
-    if (v === targetBranch) {candidates.push(mapK(k));}
-  }
-  if (candidates.length === 0) {return null;}
-  for (const pr of TWELVE_PRIORITY) {
-    if (candidates.includes(pr)) {return pr;}
-  }
-  return candidates[0];
+  const leader = SAMHAP_LEADER[dayBranch]
+  if (!leader) return null
+  const leaderIdx = (BRANCH_ORDER as readonly string[]).indexOf(leader)
+  const targetIdx = (BRANCH_ORDER as readonly string[]).indexOf(targetBranch)
+  if (leaderIdx < 0 || targetIdx < 0) return null
+  const offset = (targetIdx - leaderIdx + 12) % 12
+  return TWELVE_BY_OFFSET_KO[offset] as ShinsalHit['kind']
 }
 
 /* your 룰 오버라이드 */
@@ -497,8 +555,8 @@ export function getShinsalHits(p: SajuPillarsLike, options?: Partial<AnnotateOpt
         if (tg.includes(br)) {hits.push({ kind: '태극귀인', pillars: [kind], target: br });}
         if (isGeumYeoseong(br)) {hits.push({ kind: '금여성', pillars: [kind], target: br });}
         if (isCheonMunSeong(br)) {hits.push({ kind: '천문성', pillars: [kind], target: br });}
-        if (isMunChang(br)) {hits.push({ kind: '문창', pillars: [kind], target: br });}
-        if (isMunGok(br)) {hits.push({ kind: '문곡', pillars: [kind], target: br });}
+        if (isMunChang(dayStem, br)) {hits.push({ kind: '문창', pillars: [kind], target: br });}
+        if (isMunGok(dayStem, br)) {hits.push({ kind: '문곡', pillars: [kind], target: br });}
 
         // 확장 신살 (길성 계열)
         if (isCheonuiseong(monthBranch, br)) {hits.push({ kind: '천의성', pillars: [kind], target: br });}

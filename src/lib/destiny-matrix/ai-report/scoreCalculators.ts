@@ -149,6 +149,7 @@ const THEME_SIBSIN_WEIGHTS: Record<ReportTheme, string[]> = {
   wealth: ['정재', '편재', '식신', '상관'],
   health: ['비견', '겁재', '정인', '편인'],
   family: ['정인', '편인', '비견', '겁재'],
+  move: ['편재', '편관', '식신', '상관'], // 역마성 — 외부 활동·이동·도전적 변동
 }
 
 export interface ThemeScoreResult {
@@ -214,6 +215,10 @@ const DEFAULT_KEYWORDS: Record<ReportTheme, { ko: string[]; en: string[] }> = {
   family: {
     ko: ['화합', '소통', '이해', '지지', '감사'],
     en: ['Harmony', 'Communication', 'Understanding', 'Support', 'Gratitude'],
+  },
+  move: {
+    ko: ['이동', '환경', '거점', '준비', '여정'],
+    en: ['Movement', 'Environment', 'Base', 'Preparation', 'Journey'],
   },
 }
 

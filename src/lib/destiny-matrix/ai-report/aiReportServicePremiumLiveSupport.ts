@@ -1,5 +1,8 @@
 // @ts-nocheck
 
+import { sanitizeAstroJargon, hasJargonLeak } from '@/lib/text/sanitizeAstroJargon'
+import { logger } from '@/lib/logger'
+
 export async function runPremiumLiveMode(ctx) {
   const {
     input,
@@ -108,15 +111,15 @@ export async function runPremiumLiveMode(ctx) {
 
   const requestedChars =
     typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
-      ? Math.max(3500, Math.min(32000, Math.floor(options.targetChars)))
+      ? Math.max(3500, Math.min(40000, Math.floor(options.targetChars)))
       : detailLevel === 'comprehensive'
         ? lang === 'ko'
-          ? 18000
-          : 14000
+          ? 24000  // 인생총운 — 6 영역 통합 깊이 (was 18000)
+          : 18000
         : detailLevel === 'detailed'
           ? lang === 'ko'
-            ? 11000
-            : 8500
+            ? 14000  // detailed (was 11000)
+            : 11000
           : undefined
   const maxTokensOverride = requestedChars ? Math.ceil(requestedChars / 2) + 1200 : undefined
   const costOptimizedAiPath = isCostOptimizedAiPath()
@@ -216,7 +219,7 @@ export async function runPremiumLiveMode(ctx) {
         const repairPrompt = [
           buildSectionPrompt(sectionKey, factPack, lang, sectionText, sectionMinChars),
           lang === 'ko'
-            ? `?? ??: ? ???? ?? 3? ??, ?? ??? ?? 2? ??, ?? ?? ?? ??? ?? 2? ?? ???. ?? ?? ??? 40? ??? ??? ?? ??? ??? ???. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
+            ? `보강 규칙: 새 포인트를 최소 3개 넣고, 구체 명사를 최소 2개 넣고, 사실 묶음 반영 문장을 최소 2개 넣어 주세요. 평균 문장 길이는 40자 이하로 맞추고 금지 표현은 제거해 주세요. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
             : `Repair rules: add at least 3 new points, include at least 2 concrete nouns, and reflect at least 2 fact-pack points. Keep average sentence length under 40 chars and remove banned phrases. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`,
         ].join('\n')
         try {
@@ -545,6 +548,28 @@ export async function runPremiumLiveMode(ctx) {
     lang
   )
 
+  // Final pass — strip remaining astro/saju English jargon leaks
+  // (Venus → 금성, trine → 부드럽게 만나는 자리, etc.)
+  // Only applies to Korean output; idempotent.
+  if (lang === 'ko') {
+    let totalReplacements = 0
+    for (const key of COMPREHENSIVE_SECTION_KEYS) {
+      const current = String(sections[key] || '').trim()
+      if (!current) continue
+      const { cleaned, replacementsCount } = sanitizeAstroJargon(current)
+      if (replacementsCount > 0) {
+        sections[key] = cleaned
+        totalReplacements += replacementsCount
+      }
+    }
+    if (totalReplacements > 0 || COMPREHENSIVE_SECTION_KEYS.some((k) => hasJargonLeak(String(sections[k] || '')))) {
+      logger.info('[premium-report] astro jargon sanitizer applied', {
+        replacements: totalReplacements,
+        residualLeaks: COMPREHENSIVE_SECTION_KEYS.filter((k) => hasJargonLeak(String(sections[k] || ''))).length,
+      })
+    }
+  }
+
   const model = usedDeterministicFallback ? 'deterministic-fallback' : [...models].join(' -> ')
   const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
   const keyStrengths = (matrixReport.topInsights || [])
@@ -559,12 +584,12 @@ export async function runPremiumLiveMode(ctx) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
     .map((d) =>
-      lang === 'ko' ? `${d.domain} ??(${d.score})` : `${d.domain} strength (${d.score})`
+      lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
     )
   const anchorFallback = (graphRagEvidence.anchors || [])
     .slice(0, 3)
     .map((a) =>
-      lang === 'ko' ? `${a.section} ?? ?? ??` : `${a.section} section evidence alignment`
+      lang === 'ko' ? `${a.section} 섹션 근거 정렬` : `${a.section} section evidence alignment`
     )
   const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
   const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
@@ -572,7 +597,7 @@ export async function runPremiumLiveMode(ctx) {
     keyChallenges.length > 0
       ? keyChallenges
       : lang === 'ko'
-        ? ['?? ?? ?? ??', '?? ? ??? ??', '?????? ??? ??']
+        ? ['주의 신호 검토 필요', '확정 전 재확인 필요', '커뮤니케이션 리스크 점검']
         : [
             'Caution signals require review',
             'Recheck before final commitment',
@@ -707,7 +732,7 @@ export async function runPremiumLiveMode(ctx) {
     }
   )
 
-  // 3. ??? ??
+  // 3. 리포트 조립
   const report: AIPremiumReport = {
     id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     generatedAt,

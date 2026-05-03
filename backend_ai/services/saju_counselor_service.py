@@ -290,21 +290,47 @@ class SajuCounselorService:
         def generate():
             try:
                 max_tokens = _get_int_env("SAJU_ASK_MAX_TOKENS", 700, min_value=300, max_value=2000)
-                response = openai_client.chat.completions.create(
-                    model=model_name,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                    ],
-                    stream=True,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                )
 
+                # Try Claude first (with prompt caching) — fall back to OpenAI on failure
                 full_text = ""
-                for chunk in response:
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        full_text += chunk.choices[0].delta.content
+                claude_used = False
+                try:
+                    from backend_ai.services.anthropic_helper import (
+                        call_claude_completion,
+                        is_anthropic_available,
+                    )
+                    if is_anthropic_available():
+                        full_text = call_claude_completion(
+                            system_prompt=system_prompt,
+                            user_prompt=prompt,
+                            max_tokens=max_tokens,
+                            temperature=temperature,
+                            label="saju-ask-stream",
+                        )
+                        claude_used = True
+                except Exception as claude_err:
+                    logger.warning(
+                        "[SAJU-ASK-STREAM] Claude call failed, falling back to OpenAI: %s",
+                        claude_err,
+                    )
+                    full_text = ""
+                    claude_used = False
+
+                if not claude_used:
+                    response = openai_client.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": prompt}
+                        ],
+                        stream=True,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                    )
+
+                    for chunk in response:
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            full_text += chunk.choices[0].delta.content
 
                 if not full_text.strip():
                     yield "data: [DONE]\n\n"

@@ -1,4 +1,5 @@
 import { adaptCoreToCounselor } from '@/lib/destiny-matrix/core/adapters'
+import { eunNeun, waGwa } from '@/lib/i18n/koParticle'
 import type {
   CounselorEvidencePacket,
   CounselorProjectionBlock,
@@ -121,13 +122,18 @@ export function sanitizeCounselorFreeText(
         .replace(/관계 재검토 신호\s+이\s+/gi, '관계 재검토 신호가 ')
         .replace(
           /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
-          (_, left: string, right: string) =>
-            `${localizeCounselorDomain(left, 'ko')}와 ${localizeCounselorDomain(right, 'ko')} 사이의 행동 압력이 좁게 경쟁했습니다`
+          (_, left: string, right: string) => {
+            const l = localizeCounselorDomain(left, 'ko')
+            const r = localizeCounselorDomain(right, 'ko')
+            return `${l}${waGwa(l)} ${r} 사이의 행동 압력이 좁게 경쟁했습니다`
+          }
         )
         .replace(
           /(\w+)\s+stayed secondary because total support remained below the winner/gi,
-          (_, domain: string) =>
-            `${localizeCounselorDomain(domain, 'ko')}은 최종 지지가 승자축보다 약해 보조축에 머물렀습니다`
+          (_, domain: string) => {
+            const d = localizeCounselorDomain(domain, 'ko')
+            return `${d}${eunNeun(d)} 최종 지지가 승자축보다 약해 보조축에 머물렀습니다`
+          }
         )
         .replace(
           /\bstayed secondary because total support remained below the winner\b/gi,
@@ -135,8 +141,11 @@ export function sanitizeCounselorFreeText(
         )
         .replace(
           /\bA strong opportunity signal can hide ([^\s]+) and ([^\s]+) risk\./gi,
-          (_, left: string, right: string) =>
-            `강한 기회 신호가 ${sanitizeCounselorFreeText(left, 'ko')}과 ${sanitizeCounselorFreeText(right, 'ko')} 리스크를 가릴 수 있습니다`
+          (_, left: string, right: string) => {
+            const l = sanitizeCounselorFreeText(left, 'ko')
+            const r = sanitizeCounselorFreeText(right, 'ko')
+            return `강한 기회 신호가 ${l}${waGwa(l)} ${r} 리스크를 가릴 수 있습니다`
+          }
         )
         .replace(/\bweek\b/gi, '주 단위')
         .replace(/\bfortnight\b/gi, '2주 단위')

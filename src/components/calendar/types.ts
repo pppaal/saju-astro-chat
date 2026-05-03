@@ -68,6 +68,31 @@ export interface ImportantDate {
   ganzhi?: string // 일주 간지
   transitSunSign?: string // 트랜짓 태양 별자리
   crossVerified?: boolean // 사주+점성술 교차 검증
+  /** 본문에 등장한 사주·점성 용어 → 한 줄 풀이 */
+  glossary?: Record<string, string>
+  /** 사주 ↔ 점성 교차 확인 */
+  crossCheck?: { line: string; agreementPercent: number }
+  /** 본명 사주 (date-detail 통해 주입). 행동플래너 시간 십신 계산용 */
+  natalSaju?: {
+    dayStem: string
+    dayBranch: string
+    yearBranch: string
+    monthStem: string
+    monthBranch: string
+  }
+  /** 그 날의 공망 지지 — 시지가 여기 들어가면 공망 시간 */
+  gongmangBranches?: string[]
+  /** 활성 신살 (역마/도화/화개 등) */
+  shinsalActive?: { name: string; type: string; affectedArea: string }[]
+  /** 그 날 카테고리별 활동 점수 (0-100) */
+  activityScores?: {
+    marriage?: number
+    career?: number
+    investment?: number
+    moving?: number
+    surgery?: number
+    study?: number
+  }
 }
 
 export interface CalendarData {

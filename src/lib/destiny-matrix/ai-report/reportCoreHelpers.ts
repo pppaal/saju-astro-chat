@@ -118,6 +118,13 @@ export function buildThemedSectionHook(
           'What remains in family life is shaped less by intensity than by the patterns repeated over time.',
         actionPlan: 'Reduce friction by shortening the message and clarifying the context first.',
       },
+      move: {
+        deepAnalysis:
+          'The movement theme is shaped less by the destination and more by sequence, base, and preparation lead time.',
+        timing: 'Move windows favor sequenced steps over single decisive jumps.',
+        actionPlan:
+          'Sustainable moves come from locking the route, the base, and the buffer before committing.',
+      },
     }
     return en[theme]?.[section] || ''
   }
@@ -176,6 +183,14 @@ export function buildThemedSectionHook(
       legacy: '가족에게 남는 것은 한 번의 강한 장면보다 오랫동안 반복된 태도와 방식입니다.',
       actionPlan:
         '관계 마찰을 줄이는 가장 빠른 방법은 말을 늘리는 게 아니라 맥락을 먼저 맞추는 것입니다.',
+    },
+    move: {
+      deepAnalysis:
+        '이동·이사 테마의 핵심은 목적지가 아니라, 이동 순서·거점·준비 기간이 얼마나 단단히 잡혔는지에 있습니다.',
+      timing:
+        '이동 적기는 한 번에 결심해서 밀어붙이는 시점보다, 단계별로 정렬이 맞아드는 구간에서 더 안정됩니다.',
+      actionPlan:
+        '결심부터 굳히기보다 이동 순서, 거점, 예비안을 먼저 정리해야 흔들리지 않고 움직일 수 있습니다.',
     },
   }
   return ko[theme]?.[section] || ''

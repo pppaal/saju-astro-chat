@@ -54,7 +54,12 @@
       "calendar2years": "캘린더 (2년)",
       "personalityFree": "핵심 온보딩은 무료",
       "adFree": "광고 없는 경험",
-      "prioritySupport": "우선 지원"
+      "prioritySupport": "우선 지원",
+      "compatibility2": "궁합 분석 2회/월",
+      "compatibility5": "궁합 분석 5회/월",
+      "compatibility10": "궁합 분석 10회/월",
+      "tarotUnlimited": "타로 무제한",
+      "premiumReports": "프리미엄 리포트 (사주 + 궁합)"
     },
     "creditPackNames": {
       "mini": "미니 팩",

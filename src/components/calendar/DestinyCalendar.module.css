@@ -467,11 +467,11 @@
 }
 
 .subtitle {
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--cal-text-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
-  max-width: 320px;
+  max-width: 360px;
 }
 
 /* ========== Form Styles ========== */
@@ -791,7 +791,7 @@
 }
 
 .featureText {
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--cal-text-secondary);
   font-weight: 500;
 }
@@ -1120,7 +1120,7 @@
 }
 
 .summaryTotal {
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--cal-text-tertiary);
   white-space: nowrap;
@@ -1465,7 +1465,7 @@
 }
 
 .breakdownLabel {
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--cal-text-secondary);
   font-weight: 500;
 }
@@ -1621,7 +1621,7 @@
 }
 
 .filtersLabel {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--cal-text-secondary);
   white-space: nowrap;
@@ -1876,10 +1876,10 @@
 .dayMiniTag {
   display: inline-flex;
   align-items: center;
-  padding: 1px 5px;
+  padding: 2px 7px;
   border-radius: 999px;
-  font-size: 10px;
-  line-height: 1.2;
+  font-size: 11.5px;
+  line-height: 1.25;
   font-weight: 700;
   color: #e2e8f0;
   background: rgba(15, 23, 42, 0.62);
@@ -1893,7 +1893,7 @@
 }
 
 .dayEmoji {
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1;
 }
 
@@ -3860,7 +3860,7 @@
 }
 
 .formLabel {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 500;
   color: var(--cal-text-secondary);
 }
@@ -4004,7 +4004,8 @@
 }
 
 .cardDesc {
-  font-size: 13px;
+  font-size: 14.5px;
+  line-height: 1.6;
   color: var(--cal-text-secondary);
   margin-bottom: 10px;
   line-height: 1.4;
@@ -4627,7 +4628,8 @@
 }
 
 .actionPlanSubtitle {
-  font-size: 13px;
+  font-size: 14.5px;
+  line-height: 1.55;
   color: var(--cal-text-secondary);
   margin: 0;
 }
@@ -4639,7 +4641,7 @@
 }
 
 .actionPlanMetaItem {
-  font-size: 12px;
+  font-size: 13px;
   padding: 7px 11px;
   border-radius: 999px;
   background: var(--cal-bg-tertiary);
@@ -4796,8 +4798,8 @@
 }
 
 .actionPlanChip {
-  font-size: 12px;
-  padding: 6px 10px;
+  font-size: 13px;
+  padding: 6px 11px;
   border-radius: 999px;
   background: var(--cal-bg-tertiary);
   color: var(--cal-text-primary);
@@ -5456,7 +5458,7 @@
 }
 
 .actionPlanEvidenceBadge {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #dcfce7;
   background: rgba(22, 163, 74, 0.45);

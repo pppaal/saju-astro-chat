@@ -32,15 +32,17 @@ export function analyzeDaeunCompatibility(
   let currentSynergy = 50;
 
   // 오행 조화 검사
+  const p1ElKo = getElementKorean(p1El)
+  const p2ElKo = getElementKorean(p2El)
   if (p1El === p2El) {
     currentSynergy = 75;
-    harmonicPeriods.push(`현재: 두 사람 모두 ${p1El}의 시기로 공감대 형성`);
+    harmonicPeriods.push(`현재: 두 사람 모두 ${p1ElKo}의 시기로 공감대 형성`);
   } else if (areElementsHarmonious(p1El, p2El)) {
     currentSynergy = 85;
-    harmonicPeriods.push(`현재: ${p1El}와 ${p2El}가 상생하여 서로 도움`);
+    harmonicPeriods.push(`현재: ${p1ElKo}↔${p2ElKo} 상생하여 서로 도움`);
   } else if (areElementsClashing(p1El, p2El)) {
     currentSynergy = 35;
-    challengingPeriods.push(`현재: ${p1El}와 ${p2El}가 상극하여 마찰 가능`);
+    challengingPeriods.push(`현재: ${p1ElKo}↔${p2ElKo} 상극하여 마찰 가능`);
   }
 
   // 용신과 대운 비교

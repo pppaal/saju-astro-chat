@@ -1,4 +1,4 @@
-﻿import { fetchWithRetry } from '@/lib/http'
+﻿import { callClaudeJson, isClaudeAvailable } from '@/lib/llm/claude'
 import { prepareForMatching } from './utils/koreanTextNormalizer'
 
 export type {
@@ -37,45 +37,20 @@ import {
   repairIntentAnalysis,
   shouldPreferHeuristicSpread,
 } from './questionEngineV2Helpers'
-async function callOpenAI(messages: { role: string; content: string }[], maxTokens = 420) {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY_MISSING')
+// Question routing has a deterministic heuristic fallback — fail fast on Claude error.
+async function callQuestionLLM(systemPrompt: string, userPrompt: string): Promise<string> {
+  if (!isClaudeAvailable()) {
+    throw new Error('ANTHROPIC_API_KEY_MISSING')
   }
-
-  const response = await fetchWithRetry(
-    'https://api.openai.com/v1/chat/completions',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages,
-        max_tokens: maxTokens,
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-      }),
-    },
-    {
-      // Question routing already has a deterministic heuristic fallback.
-      // Fail fast here so the UI gets a stable answer instead of timing out locally.
-      maxRetries: 0,
-      initialDelayMs: 250,
-      maxDelayMs: 600,
-      timeoutMs: 4200,
-      retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
-    }
-  )
-
-  if (!response.ok) {
-    throw new Error(await response.text())
-  }
-
-  const data = await response.json()
-  return data.choices[0]?.message?.content || ''
+  const result = await callClaudeJson({
+    systemPrompt,
+    userPrompt,
+    maxTokens: 420,
+    temperature: 0.2,
+    timeoutMs: 4200,
+    label: 'question-engine-v2',
+  })
+  return result.raw
 }
 
 function buildAnalysisPrompt(spreadList: string) {
@@ -230,19 +205,13 @@ export async function analyzeTarotQuestionV2(input: {
     .join('\n')
 
   try {
-    const responseText = await callOpenAI(
+    const responseText = await callQuestionLLM(
+      buildAnalysisPrompt(spreadList),
       [
-        { role: 'system', content: buildAnalysisPrompt(spreadList) },
-        {
-          role: 'user',
-          content: [
-            `Raw question: ${trimmedQuestion}`,
-            `Normalized variants: ${questionVariants.join(' || ')}`,
-            `Heuristic intent hint: ${JSON.stringify(heuristicIntent)}`,
-          ].join('\n'),
-        },
-      ],
-      420
+        `Raw question: ${trimmedQuestion}`,
+        `Normalized variants: ${questionVariants.join(' || ')}`,
+        `Heuristic intent hint: ${JSON.stringify(heuristicIntent)}`,
+      ].join('\n')
     )
 
     const parsed = JSON.parse(responseText) as LLMAnalysisPayload

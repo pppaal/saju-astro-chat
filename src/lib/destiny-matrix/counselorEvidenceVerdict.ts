@@ -7,6 +7,7 @@ import {
   localizeCounselorDomain,
   sanitizeCounselorFreeText,
 } from '@/lib/destiny-matrix/counselorEvidenceSanitizer'
+import { eunNeun } from '@/lib/i18n/koParticle'
 
 export function normalizeCounselorSentence(value: string): string {
   return value
@@ -256,15 +257,15 @@ export function buildCounselorCrossSystemSummary(input: {
 
   if (input.lang === 'ko') {
     if (agreement !== null && agreement >= 0.74) {
-      return `${input.domainLabel}은 사주 구조와 점성 타이밍이 같은 방향으로 겹쳐${windowLabel ? ` ${windowLabel} 구간 설명이 비교적 또렷합니다` : ' 해석 축이 비교적 선명합니다'}.`
+      return `${input.domainLabel}${eunNeun(input.domainLabel)} 사주 구조와 점성 타이밍이 같은 방향으로 겹쳐${windowLabel ? ` ${windowLabel} 구간 설명이 비교적 또렷합니다` : ' 해석 축이 비교적 선명합니다'}.`
     }
     if (agreement !== null && agreement >= 0.52) {
-      return `${input.domainLabel}은 큰 흐름은 같지만 진입 속도는 갈릴 수 있어${windowLabel ? ` ${windowLabel} 구간에서도` : ''} 조건 확인이 먼저입니다.`
+      return `${input.domainLabel}${eunNeun(input.domainLabel)} 큰 흐름은 같지만 진입 속도는 갈릴 수 있어${windowLabel ? ` ${windowLabel} 구간에서도` : ''} 조건 확인이 먼저입니다.`
     }
     if (agreement !== null) {
-      return `${input.domainLabel}은 구조와 촉발 시점이 엇갈려${windowLabel ? ` ${windowLabel}이라도` : ''} 바로 확정하기보다 재확인이 필요합니다.`
+      return `${input.domainLabel}${eunNeun(input.domainLabel)} 구조와 촉발 시점이 엇갈려${windowLabel ? ` ${windowLabel}이라도` : ''} 바로 확정하기보다 재확인이 필요합니다.`
     }
-    return `${input.domainLabel}은 ${windowLabel} 구간을 기준으로 보되, 정밀 날짜보다 조건 일치 여부가 더 중요합니다.`
+    return `${input.domainLabel}${eunNeun(input.domainLabel)} ${windowLabel} 구간을 기준으로 보되, 정밀 날짜보다 조건 일치 여부가 더 중요합니다.`
   }
 
   if (agreement !== null && agreement >= 0.74) {
@@ -469,24 +470,24 @@ export function buildCounselorWhyStack(input: {
             : isCareer
               ? `\uCEE4\uB9AC\uC5B4 \uD574\uC11D \uC2E0\uB8B0\uB3C4\uB294 ${normalized}.`
               : isWealth
-                ? `?? ?? ???? ${normalized}.`
+                ? `재정 해석 신뢰도는 ${normalized}.`
                 : isHealth
-                  ? `?? ?? ???? ${normalized}.`
+                  ? `건강 해석 신뢰도는 ${normalized}.`
                   : isMove
-                    ? `?? ?? ???? ${normalized}.`
-                    : `???? ${normalized}.`
+                    ? `이동 해석 신뢰도는 ${normalized}.`
+                    : `신뢰도는 ${normalized}.`
         case 'provenance':
           return isRelationship
-            ? `?? ??? ${normalized}.`
+            ? `관계 출처는 ${normalized}.`
             : isCareer
-              ? `??? ??? ${normalized}.`
+              ? `커리어 출처는 ${normalized}.`
               : isWealth
-                ? `?? ??? ${normalized}.`
+                ? `재정 출처는 ${normalized}.`
                 : isHealth
-                  ? `?? ??? ${normalized}.`
+                  ? `건강 출처는 ${normalized}.`
                   : isMove
-                    ? `?? ??? ${normalized}.`
-                    : `?? ??? ${normalized}.`
+                    ? `이동 출처는 ${normalized}.`
+                    : `근거 출처는 ${normalized}.`
       }
     }
 

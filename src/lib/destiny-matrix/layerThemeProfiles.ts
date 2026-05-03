@@ -6,6 +6,7 @@ import type {
 } from './types'
 import { DOMAIN_KEYS, getDomainWeightForLayer } from './domainMap'
 import type { LayerId } from './layerSemantics'
+import { eunNeun, eulReul } from '@/lib/i18n/koParticle'
 import { LAYER_SEMANTICS } from './layerSemantics'
 
 export interface LayerThemeInsight {
@@ -191,9 +192,9 @@ function buildCoreInterpretationKo(input: {
 }): string {
   const strengths = input.topKeywordsKo.slice(0, 2).join(', ') || '중립 신호'
   const cautions = input.cautionKeywordsKo.slice(0, 2).join(', ') || '특이 경고 없음'
-  return `${domainKo(input.domain)} 기준에서 ${input.layerNameKo}는 "${input.layerMeaningKo}"를 통해 영향 ${input.impactScore.toFixed(
+  return `${domainKo(input.domain)} 기준에서 ${input.layerNameKo}${eunNeun(input.layerNameKo)} "${input.layerMeaningKo}"${eulReul(input.layerMeaningKo)} 통해 영향 ${input.impactScore.toFixed(
     1
-  )}점을 형성합니다. 강점 신호는 ${strengths}, 주의 신호는 ${cautions}이며 현재 운용 모드는 ${modeKo(
+  )}점을 형성합니다. 강점 신호는 ${strengths}, 주의 신호는 ${cautions} 형태로 작동하고, 현재 운용 모드는 ${modeKo(
     input.avgScore
   )}입니다.`
 }

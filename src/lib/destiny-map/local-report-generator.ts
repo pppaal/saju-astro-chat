@@ -1,7 +1,7 @@
 // src/lib/destiny-map/local-report-generator.ts
 // Local template-based report generation (AI 없이 사주/점성 데이터만으로)
 
-import type { CombinedResult } from './astrologyengine'
+import type { CombinedResult } from './astrology'
 import { logger } from '@/lib/logger'
 import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from './calendar/constants'
 import { normalizeElement } from './calendar/utils'
@@ -413,7 +413,7 @@ function buildCharacterBuilder(
 
   if (sunKey !== moonKey) {
     conflict += isKo
-      ? ` 태양 ${getSignName(astro.sunSign, true)}과 달 ${getSignName(astro.moonSign, true)}의 결이 달라 감정-행동 간 간극이 생길 수 있어요.`
+      ? ` 태양 ${getSignName(astro.sunSign, true)}와 달 ${getSignName(astro.moonSign, true)}의 결이 달라 감정-행동 간 간극이 생길 수 있어요.`
       : ` The Sun in ${getSignName(astro.sunSign, false)} and Moon in ${getSignName(astro.moonSign, false)} move differently, creating inner gaps.`
   }
 

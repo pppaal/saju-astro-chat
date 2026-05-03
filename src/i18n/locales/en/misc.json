@@ -54,7 +54,12 @@
       "calendar2years": "Calendar (2 years)",
       "personalityFree": "Core onboarding is free",
       "adFree": "Ad-free experience",
-      "prioritySupport": "Priority support"
+      "prioritySupport": "Priority support",
+      "compatibility2": "2 compatibility reports/month",
+      "compatibility5": "5 compatibility reports/month",
+      "compatibility10": "10 compatibility reports/month",
+      "tarotUnlimited": "Unlimited tarot",
+      "premiumReports": "Premium reports (Saju + Compatibility)"
     },
     "creditPackNames": {
       "mini": "Mini Pack",

@@ -72,7 +72,7 @@ export default function InterpretedAnswerSection({
             {interpretedAnswer.why.length > 0 && (
               <div className="mt-5">
                 <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Why</p>
-                <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
+                <ul className="mt-3 space-y-2 text-[15px] leading-[1.7] text-slate-200">
                   {interpretedAnswer.why.slice(0, 4).map((item) => (
                     <li key={item}>• {item}</li>
                   ))}
@@ -84,7 +84,7 @@ export default function InterpretedAnswerSection({
               {interpretedAnswer.timing.now && (
                 <div className="rounded-2xl border border-white/10 bg-[#090f1b]/88 p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Now</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">
+                  <p className="mt-2 text-[15px] leading-[1.7] text-slate-200">
                     {interpretedAnswer.timing.now}
                   </p>
                 </div>
@@ -92,7 +92,7 @@ export default function InterpretedAnswerSection({
               {interpretedAnswer.timing.next && (
                 <div className="rounded-2xl border border-white/10 bg-[#090f1b]/88 p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Next</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">
+                  <p className="mt-2 text-[15px] leading-[1.7] text-slate-200">
                     {interpretedAnswer.timing.next}
                   </p>
                 </div>
@@ -100,7 +100,7 @@ export default function InterpretedAnswerSection({
               {interpretedAnswer.timing.later && (
                 <div className="rounded-2xl border border-white/10 bg-[#090f1b]/88 p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Later</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">
+                  <p className="mt-2 text-[15px] leading-[1.7] text-slate-200">
                     {interpretedAnswer.timing.later}
                   </p>
                 </div>
@@ -148,7 +148,7 @@ export default function InterpretedAnswerSection({
                 <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
                   {branch.label}
                 </p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{branch.summary}</p>
+                <p className="mt-2 text-[15px] leading-[1.7] text-slate-200">{branch.summary}</p>
                 <p className="mt-4 text-sm font-medium text-white">{branch.nextMove}</p>
               </article>
             ))}

@@ -11,6 +11,17 @@ import {
   findReportCoreVerdict,
   type ReportCoreViewModel,
 } from './reportCoreHelpers'
+import {
+  buildDomainSajuLensKo,
+  buildSajuNarrationKo,
+  buildTimingNarrationKo,
+  synthesizeExpertNarrationKo,
+} from './sajuNarrationBridge'
+import {
+  buildPersonalityNarrationKo,
+  buildPersonalityProfile,
+  adaptAdviceTone,
+} from '@/lib/destiny-matrix/personality'
 
 type Lang = 'ko' | 'en'
 
@@ -208,11 +219,23 @@ export function enrichComprehensiveSectionsWithReportCore(
   const moveVerdict = findReportCoreVerdict(reportCore, 'move')
   const blockedCareerLines = [careerAdvisory?.thesis, careerAdvisory?.action, reportCore.thesis]
 
+  // Saju 라이브러리 본명 narration — 종합 리포트 introduction에 격국·12운성·십신·신살 결합
+  const comprehensiveSajuNarration = lang === 'ko' ? buildSajuNarrationKo(matrixInput) : ''
+  // 시기별 timing narration — 대운/세운/월운/일운 원소 기반 한 줄씩
+  const comprehensiveTimingNarration = lang === 'ko' ? buildTimingNarrationKo(matrixInput) : ''
+  // Expert synthesis — 위 두 layer를 weave한 3-4단락 자연어 (전문가 톤)
+  const expertSynthesis = lang === 'ko' ? synthesizeExpertNarrationKo(matrixInput) : ''
+  // 개인화 인격 fingerprint — MBTI / Big Five / 인지스타일 / 갈등 trigger / 학습 스타일
+  const personalityNarration = lang === 'ko' ? buildPersonalityNarrationKo(matrixInput) : ''
+
   return {
     introduction: deps.buildNarrativeSectionFromCore(
       [
         buildComprehensiveSectionHookLocal('introduction', lang),
         deps.buildSectionPersonalLead('introduction', matrixInput, lang, timingData),
+        personalityNarration,
+        // expertSynthesis가 있으면 본명+timing narration 대체 — 더 풍부하고 이미 weave돼 있음
+        expertSynthesis || `${comprehensiveSajuNarration} ${comprehensiveTimingNarration}`.trim(),
         lang === 'ko'
           ? `지금 실제로 먼저 대응해야 할 축은 ${focusDomainLabel}이고, 현재 국면은 ${focusNarrativeForIntro}`
           : `The strongest axis in your life right now is ${focusDomainLabel}, and the current movement is ${focusNarrativeForIntro}.`,
@@ -705,7 +728,25 @@ export function enrichThemedSectionsWithReportCore(
       communication: [relationship?.caution || '', relationshipTiming?.whyNow || ''],
       legacy: [deps.buildPersonalLifeTimelineNarrative(matrixInput, timingData, lang)],
     },
+    move: {
+      // 이동·이사 — 이동 신호는 캘린더 도메인의 'move'로 흘러옴 (역마, 환경 변동)
+      // 본 섹션은 careerTiming/Manifestation을 참조해 이동 톤으로 구성
+      timing: [
+        careerTiming?.whyNow || '',
+        careerTiming ? deps.buildTimingWindowNarrative('career', careerTiming, lang) : '',
+      ],
+    },
   }
+
+  // Expert synthesis — 본명+시기 weave된 3-4단락 자연어 (옵션 A 톤)
+  const themedExpertSynthesis = lang === 'ko' ? synthesizeExpertNarrationKo(matrixInput) : ''
+  // 도메인 lens — 격국이 그 테마에서 어떻게 발현되는지 한 줄
+  const domainLens = lang === 'ko' ? buildDomainSajuLensKo(matrixInput, theme) : ''
+  // Fallback (synthesis가 비어있을 때만): 분리된 본명·timing narration
+  const themedFallbackNarration =
+    lang === 'ko' && !themedExpertSynthesis
+      ? `${buildSajuNarrationKo(matrixInput)} ${buildTimingNarrationKo(matrixInput)}`.trim()
+      : ''
 
   return {
     ...sectionsWithThemeLead,
@@ -713,12 +754,14 @@ export function enrichThemedSectionsWithReportCore(
       sectionsWithThemeLead.deepAnalysis,
       [
         buildThemedSectionHook(theme, 'deepAnalysis', lang),
+        themedExpertSynthesis || themedFallbackNarration,
+        domainLens,
         reportCore.thesis,
         focusManifestation?.baselineThesis || '',
       ],
       [focusManifestation?.activationThesis || '', focusManifestation?.manifestation || ''],
       lang,
-      lang === 'ko' ? 420 : 280,
+      lang === 'ko' ? 600 : 280,
       deps
     ),
     patterns: reinforceNarrativeSection(
@@ -953,19 +996,40 @@ export function enrichThemedSectionsWithReportCore(
           deps
         )
       : sections.legacy,
-    recommendations: [
-      ...new Set(
-        [
-          safePrimaryAction,
-          focusAdvisory?.action,
-          focusAdvisory?.caution,
-          safeRiskControl,
-          ...sections.recommendations,
-        ]
-          .map((item) => deps.sanitizeUserFacingNarrative(String(item || '').trim()))
-          .filter(Boolean)
-      ),
-    ],
+    recommendations: (() => {
+      const baseList = Array.from(
+        new Set(
+          [
+            safePrimaryAction,
+            focusAdvisory?.action,
+            focusAdvisory?.caution,
+            safeRiskControl,
+            ...sections.recommendations,
+          ]
+            .map((item) => deps.sanitizeUserFacingNarrative(String(item || '').trim()))
+            .filter(Boolean)
+        )
+      )
+      // 사용자 인격에 맞춰 톤 변형 (한국어 + matrixInput 있을 때만)
+      if (lang === 'ko') {
+        try {
+          const profile = buildPersonalityProfile(matrixInput)
+          const xPct = typeof reportCore.crossAgreement === 'number'
+            ? Math.round(reportCore.crossAgreement * 100)
+            : undefined
+          const themedDomainLabel = deps.getReportDomainLabel(leadDomain, lang)
+          return baseList.map((item) =>
+            adaptAdviceTone(item, profile, {
+              crossAgreementPercent: xPct,
+              domainLabel: themedDomainLabel,
+            })
+          )
+        } catch {
+          return baseList
+        }
+      }
+      return baseList
+    })(),
     actionPlan: reinforceNarrativeSection(
       sectionsWithThemeLead.actionPlan,
       [

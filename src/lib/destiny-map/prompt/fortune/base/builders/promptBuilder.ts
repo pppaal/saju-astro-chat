@@ -3,7 +3,7 @@
  * 모든 섹션을 조합하여 최종 프롬프트 생성
  */
 
-import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import type { AstrologyData, SajuData } from '@/lib/destiny-map/astrology/types'
 import type { PlanetData } from '@/lib/astrology'
 import {

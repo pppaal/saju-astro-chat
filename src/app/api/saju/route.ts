@@ -5,7 +5,7 @@ import { toDate } from 'date-fns-tz'
 import { prisma } from '@/lib/db/prisma'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { getCreditBalance } from '@/lib/credits/creditService'
-import { apiClient } from '@/lib/api/ApiClient'
+import { askClaude } from '@/lib/llm/askClaude'
 import { getNowInTimezone } from '@/lib/datetime'
 import {
   getDaeunCycles,
@@ -277,25 +277,12 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     aiModelUsed = cachedAI.model
   } else {
     try {
-      const response = await apiClient.post(
-        '/ask',
-        {
-          theme: 'saju',
-          prompt: gptPrompt,
-          saju: {
-            dayMaster: sajuResult.dayMaster,
-            fiveElements: sajuResult.fiveElements,
-            pillars: simplePillars,
-            pillarsDetailed: sajuResult.pillars,
-            daeun: daeunInfo,
-            yeonun,
-            wolun,
-          },
-          locale: context.locale,
-          advancedSaju: isPremium ? fullAdvancedAnalysis : null,
-        },
-        { timeout: 90000 }
-      )
+      const response = await askClaude(gptPrompt, {
+        theme: 'saju',
+        maxTokens: 3500,
+        timeoutMs: 90000,
+        label: 'saju-route',
+      })
 
       if (response.ok && response.data) {
         // Type-safe extraction with runtime validation

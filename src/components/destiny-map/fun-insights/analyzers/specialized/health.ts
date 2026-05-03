@@ -4,6 +4,7 @@
  */
 
 import { logger } from '@/lib/logger';
+import { iga } from '@/lib/i18n/koParticle';
 import { getInteractionColor } from '@/lib/destiny-matrix/engine';
 import { TWELVE_STAGE_INFO } from '@/lib/destiny-matrix/data/layer6-stage-house';
 import { SHINSAL_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer8-shinsal-planet';
@@ -194,7 +195,7 @@ export function getHealthMatrixAnalysis(
           description: { ko: saturnData.keyword, en: saturnData.keywordEn },
         },
         healthWarning: {
-          ko: `${shinsal}이 건강에 영향을 줄 수 있어요. 주의가 필요합니다.`,
+          ko: `${shinsal}${iga(shinsal)} 건강에 영향을 줄 수 있어요. 주의가 필요해요.`,
           en: `${shinsal} may affect health. Caution needed.`,
         },
       });

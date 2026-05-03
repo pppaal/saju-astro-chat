@@ -1025,6 +1025,12 @@
   --card-glow: rgba(98, 164, 255, 0.18);
 }
 
+.heroServiceCardPink {
+  --card-accent: rgba(244, 114, 182, 0.38);
+  --card-border: rgba(251, 113, 191, 0.36);
+  --card-glow: rgba(244, 114, 182, 0.20);
+}
+
 .heroServiceGlow {
   position: absolute;
   inset: 0;
@@ -5975,4 +5981,109 @@
   .servicePageDot.active {
     width: 24px;
   }
+}
+
+/* ====================================
+   HOMEPAGE — brand hero + service tiles (clean v2)
+   ==================================== */
+.brandHero {
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 4rem 1rem 2.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.brandTitle {
+  margin: 0;
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  background: linear-gradient(135deg, #c8b6ff 0%, #a78bfa 50%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brandSub {
+  margin: 1.25rem 0 0;
+  font-size: clamp(1rem, 2.4vw, 1.25rem);
+  font-weight: 400;
+  color: rgba(229, 231, 240, 0.78);
+  letter-spacing: 0.01em;
+}
+
+.servicesGrid {
+  width: 100%;
+  max-width: 1080px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  padding: 0 1rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 900px) {
+  .servicesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .servicesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.serviceTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 1.75rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-color);
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.serviceTile:hover {
+  transform: translateY(-2px);
+  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(167, 139, 250, 0.4);
+  box-shadow: 0 12px 32px -16px rgba(139, 92, 246, 0.5);
+}
+
+.serviceTileIcon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.serviceTileLabel {
+  margin: 0.4rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.serviceTileDesc {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: rgba(229, 231, 240, 0.6);
+  line-height: 1.4;
 }

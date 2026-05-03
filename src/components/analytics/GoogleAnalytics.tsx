@@ -136,6 +136,16 @@ export const analytics = {
   viewPricing: () => trackEvent('view_pricing'),
   startTrial: () => trackEvent('begin_checkout'),
 
+  // Free → Premium conversion funnel
+  freeResultView: (source: string = 'destiny-map') =>
+    trackEvent('free_result_view', { source }),
+  premiumCtaClick: (location: string, target: 'comprehensive' | 'themed' | 'pricing') =>
+    trackEvent('premium_cta_click', { location, target }),
+  premiumThemeSelect: (theme: string, period?: string) =>
+    trackEvent('premium_theme_select', { theme, period: period || 'none' }),
+  premiumReportStart: (type: 'comprehensive' | 'themed', theme?: string) =>
+    trackEvent('premium_report_start', { type, theme: theme || 'none' }),
+
   // Purchase events (for GA4 conversion tracking)
   purchase: (params: { transaction_id: string; value: number; currency: string; plan: string }) =>
     trackEvent('purchase', {

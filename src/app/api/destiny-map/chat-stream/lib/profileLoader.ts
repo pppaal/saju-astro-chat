@@ -5,6 +5,15 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from './types'
 import type { Chart } from '@/lib/astrology'
+import {
+  formatRecallContextKo,
+  formatRecallContextEn,
+} from '@/lib/ai/personaMemoryRecall'
+import {
+  getDecisionHistory,
+  formatDecisionHistoryKo,
+  formatDecisionHistoryEn,
+} from '@/lib/ai/decisionTracker'
 
 export interface ProfileLoadResult {
   birthDate?: string
@@ -121,7 +130,7 @@ export async function loadPersonaMemory(
   let recentSessionSummaries = ''
 
   try {
-    // 1. PersonaMemory 로드 (핵심 인사이트, 반복 이슈, 감정 톤)
+    // 1. PersonaMemory 로드 (핵심 인사이트, 반복 이슈, 감정 톤, recall)
     const personaMemory = await prisma.personaMemory.findUnique({
       where: { userId },
       select: {
@@ -132,6 +141,8 @@ export async function loadPersonaMemory(
         growthAreas: true,
         lastTopics: true,
         recurringIssues: true,
+        recentQuestions: true,
+        decisionsMentioned: true,
       },
     })
 
@@ -198,6 +209,22 @@ export async function loadPersonaMemory(
         personaMemoryContext = parts.join(' | ')
         logger.debug(`[profileLoader] PersonaMemory loaded: ${personaMemory.sessionCount} sessions`)
       }
+
+      // (Tier 2A) recall — 이전 질문·결정 verbatim을 narrative로
+      const recallBlock =
+        lang === 'ko' ? formatRecallContextKo(personaMemory) : formatRecallContextEn(personaMemory)
+      if (recallBlock) {
+        personaMemoryContext = personaMemoryContext
+          ? `${personaMemoryContext}\n\n${recallBlock}`
+          : recallBlock
+      }
+    } else if (personaMemory) {
+      // sessionCount===0이라도 recall은 surface
+      const recallBlock =
+        lang === 'ko'
+          ? formatRecallContextKo(personaMemory)
+          : formatRecallContextEn(personaMemory)
+      if (recallBlock) personaMemoryContext = recallBlock
     }
 
     // 2. 최근 세션 요약 로드 (이전 대화 컨텍스트)
@@ -239,6 +266,23 @@ export async function loadPersonaMemory(
     if (sessionSummaries.length > 0) {
       recentSessionSummaries = sessionSummaries.join('\n')
       logger.debug(`[profileLoader] Loaded ${sessionSummaries.length} recent session summaries`)
+    }
+
+    // 3. (Tier 2B) Decision Tracker — 이전 결정·결과 narrative
+    try {
+      const history = await getDecisionHistory(userId, 5)
+      if (history.length > 0) {
+        const decisionBlock =
+          lang === 'ko' ? formatDecisionHistoryKo(history) : formatDecisionHistoryEn(history)
+        if (decisionBlock) {
+          recentSessionSummaries = recentSessionSummaries
+            ? `${recentSessionSummaries}\n\n${decisionBlock}`
+            : decisionBlock
+          logger.debug(`[profileLoader] Loaded ${history.length} decisions`)
+        }
+      }
+    } catch (e) {
+      logger.warn('[profileLoader] decision history load failed', e)
     }
   } catch (e) {
     logger.warn('[profileLoader] Failed to load persona memory:', e)

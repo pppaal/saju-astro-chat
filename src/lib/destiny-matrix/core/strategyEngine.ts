@@ -1,5 +1,6 @@
 import type { SignalDomain, SignalSynthesisResult } from './signalSynthesizer'
 import { STRATEGY_ENGINE_TUNING, type StrategyDomainWeightConfig } from './strategyEngineConfig'
+import { eunNeun } from '@/lib/i18n/koParticle'
 
 export type StrategyPhaseCode =
   | 'expansion'
@@ -423,15 +424,16 @@ function buildDomainThesis(
 ): string {
   const d = domainLabel(domain, lang)
   if (lang === 'ko') {
-    if (phase === 'expansion') return `${d}은 확장 신호가 우세해 주도적으로 밀어도 됩니다.`
+    const dE = `${d}${eunNeun(d)}`
+    if (phase === 'expansion') return `${dE} 확장 신호가 우세해 주도적으로 밀어도 됩니다.`
     if (phase === 'high_tension_expansion') {
-      return `${d}은 가속 확장이 가능하지만 긴장도가 높아 확정 전 위험 항목 점검이 필수입니다.`
+      return `${dE} 가속 확장이 가능하지만 긴장도가 높아 확정 전 위험 항목 점검이 필수입니다.`
     }
     if (phase === 'expansion_guarded') {
-      return `${d}은 기회와 리스크가 함께 있어 공격과 재확인을 동시에 운영해야 합니다.`
+      return `${dE} 기회와 리스크가 함께 있어 공격과 재확인을 동시에 운영해야 합니다.`
     }
-    if (phase === 'stabilize') return `${d}은 속도보다 구조 정렬이 성과를 지키는 구간입니다.`
-    return `${d}은 방어 우선으로 재정렬한 뒤 확장 타이밍을 다시 잡아야 합니다.`
+    if (phase === 'stabilize') return `${dE} 속도보다 구조 정렬이 성과를 지키는 구간입니다.`
+    return `${dE} 방어 우선으로 재정렬한 뒤 확장 타이밍을 다시 잡아야 합니다.`
   }
   if (phase === 'expansion') return `${d} has clear upside and supports proactive execution.`
   if (phase === 'high_tension_expansion') {

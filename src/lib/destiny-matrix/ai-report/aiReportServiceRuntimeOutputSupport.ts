@@ -3,6 +3,7 @@ import { buildUnifiedEnvelope } from './unifiedReport'
 import type { ReportCoreViewModel } from './reportCoreHelpers'
 import { sanitizeUserFacingNarrative } from './reportNarrativeSanitizer'
 import { applyReportBrandVoice } from './reportBrandVoice'
+import { iga, eunNeun, waGwa } from '@/lib/i18n/koParticle'
 import {
   getReportDomainLabel,
   localizeReportNarrativeText,
@@ -434,8 +435,11 @@ function buildReportOutputCoreFields(
     return localized
       .replace(
         /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
-        (_, left: string, right: string) =>
-          `${getReportDomainLabel(left, 'ko')}과 ${getReportDomainLabel(right, 'ko')} 사이에서 행동 압력이 좁게 유지됐습니다.`
+        (_, left: string, right: string) => {
+          const l = getReportDomainLabel(left, 'ko')
+          const r = getReportDomainLabel(right, 'ko')
+          return `${l}${waGwa(l)} ${r} 사이에서 행동 압력이 좁게 유지됐습니다.`
+        }
       )
       .replace(
         /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
@@ -535,7 +539,7 @@ function buildReportOutputCoreFields(
   const conflictSummary =
     lang === 'ko'
       ? localizeReportFreeText(reportCore.arbitrationBrief.conflictReasons[0]) ||
-        `${focusLabel}은 배경 구조축이고, ${actionLabel}은 실제로 움직일 실행축입니다.`
+        `${focusLabel}${eunNeun(focusLabel)} 배경 구조축이고, ${actionLabel}${eunNeun(actionLabel)} 실제로 움직일 실행축입니다.`
       : reportCore.arbitrationBrief.conflictReasons[0] ||
         `${focusLabel} and ${actionLabel} currently separate into identity and action axes.`
   const evidenceSummary =
@@ -1021,7 +1025,10 @@ function buildReportOutputCoreFields(
         headline: lang === 'ko' ? '행동 해석' : 'Action Projection',
         summary:
           lang === 'ko'
-            ? `${actionLabel} 축에서는 ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction}이 현재 우선 행동입니다.`
+            ? (() => {
+                const action = reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction
+                return `${actionLabel} 축에서는 ${action}${iga(action)} 현재 우선 행동입니다.`
+              })()
             : `On the ${actionLabel} axis, ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction} is the live move.`,
         detailLines: localizeProjectionList(reportCore.projections?.action?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.action?.drivers || []),

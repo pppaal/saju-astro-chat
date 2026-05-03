@@ -62,6 +62,13 @@ async function buildThemedRouteReport(
   context: RouteReportGenerationContext,
   deterministicOnly = false
 ): Promise<ThemedAIPremiumReport> {
+  // themed × period scope — period가 yearly/monthly이면 통과, 그 외엔 'lifetime'
+  const themedPeriod: 'lifetime' | 'yearly' | 'monthly' =
+    context.period === 'yearly'
+      ? 'yearly'
+      : context.period === 'monthly'
+        ? 'monthly'
+        : 'lifetime'
   const themedReport = await generateThemedReport(
     context.matrixInput,
     context.baseReport,
@@ -76,6 +83,8 @@ async function buildThemedRouteReport(
       deterministicProfile: context.deterministicProfile,
       deterministicOnly,
       matrixSummary: context.matrixSummaryForGeneration,
+      period: themedPeriod,
+      targetDate: context.targetDate,
     }
   )
   const qualityAudit = evaluateThemedReportQuality({

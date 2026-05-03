@@ -5,4 +5,4 @@
   CounselorTheme,
 } from '@/lib/destiny-matrix/counselorEvidenceTypes'
 export { formatCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidenceFormatter'
-export { buildCounselorEvidencePacket } from './counselorEvidenceBuildSupport'
+export { buildCounselorEvidencePacket } from './counselorEvidenceBuildCoreSupport'

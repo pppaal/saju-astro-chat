@@ -947,7 +947,7 @@ function buildNextAction(input: HybridNarrativeInput): HybridNarrative['nextActi
       [
         t(
           locale,
-          `자주 부딪히는 유형 1개: ${style?.ko ?? '상반된 의사결정 속도 유형'}와 충돌 지점을 먼저 정의하세요.`,
+          `자주 부딪히는 유형 1개: ${style?.ko ?? '상반된 의사결정 속도 유형'} — 충돌 지점을 먼저 정의하세요.`,
           `Frequent friction type: define clash points with ${style?.en ?? 'opposite decision-speed style'} first.`
         ),
         logic >= 60

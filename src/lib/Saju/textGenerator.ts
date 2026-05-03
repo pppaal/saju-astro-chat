@@ -4,6 +4,7 @@
 import { FiveElement, SajuPillars, SibsinKind } from './types';
 import { FIVE_ELEMENT_RELATIONS } from './constants';
 import { getStemElement, getBranchElement, getStemYinYang } from './stemBranchUtils';
+import { waGwa, iga } from '../i18n/koParticle';
 
 // ============================================================
 // 타입 정의
@@ -235,7 +236,7 @@ export function generateElementText(
   let details: string[];
 
   if (style === 'formal') {
-    main = `${element}(${getElementHanja(element)})의 기운이 작용하는 시기입니다. ${info.positive[0]}과 ${info.positive[1]}의 에너지가 강하게 나타납니다.`;
+    main = `${element}(${getElementHanja(element)})의 기운이 작용하는 시기입니다. ${info.positive[0]}${waGwa(info.positive[0])} ${info.positive[1]}의 에너지가 강하게 나타납니다.`;
     details = [
       `주요 특성: ${info.positive.slice(0, 3).join(', ')}`,
       `주의사항: ${info.negative.slice(0, 2).join(', ')}에 유의하세요.`,
@@ -473,7 +474,7 @@ export function generateChungText(
   context: TextContext = { style: 'formal' }
 ): GeneratedText {
   const main = context.style === 'formal'
-    ? `${branch1}과 ${branch2}의 충(衝)이 발생합니다. 변동과 충돌의 에너지가 강하게 작용하니, 중요한 결정은 신중하게 내리시기 바랍니다.`
+    ? `${branch1}↔${branch2} 충(衝)이 발생합니다. 변동과 충돌의 에너지가 강하게 작용하니, 중요한 결정은 신중하게 내리시기 바랍니다.`
     : `${branch1}${branch2} 충이에요! 변화가 많을 수 있어요. 중요한 건 천천히 결정하세요.`;
 
   return {
@@ -498,7 +499,7 @@ export function generateHapText(
   context: TextContext = { style: 'formal' }
 ): GeneratedText {
   const main = context.style === 'formal'
-    ? `${branch1}과 ${branch2}의 ${hapType}이 이루어집니다. 조화와 결합의 에너지가 긍정적으로 작용합니다.`
+    ? `${branch1}↔${branch2} ${hapType}이 이루어집니다. 조화와 결합의 에너지가 긍정적으로 작용합니다.`
     : `${branch1}${branch2} ${hapType}이에요! 좋은 에너지가 모여요.`;
 
   return {
@@ -629,7 +630,7 @@ function generatePersonalityText(
   const yinYangTrait = yinYang === '양' ? '적극적이고 외향적인' : '신중하고 내향적인';
 
   const main = context.style === 'formal'
-    ? `${yinYangTrait} 성격에 ${elementInfo.positive[0]}과 ${elementInfo.positive[1]}의 특성을 지니고 있습니다.`
+    ? `${yinYangTrait} 성격에 ${elementInfo.positive[0]}${waGwa(elementInfo.positive[0])} ${elementInfo.positive[1]}의 특성을 지니고 있습니다.`
     : `${yinYangTrait} 성격이에요. ${elementInfo.positive[0]}하고 ${elementInfo.positive[1]}해요!`;
 
   return {

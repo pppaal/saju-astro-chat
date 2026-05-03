@@ -37,11 +37,11 @@ const truncate = (text: string, len = 58) =>
 
 const getStrategicGradeTitle = (grade: number, locale: 'ko' | 'en') => {
   const titles = {
-    0: locale === 'ko' ? '실행 우선' : 'Execute-first',
-    1: locale === 'ko' ? '활용 우선' : 'Leverage-first',
-    2: locale === 'ko' ? '운영 우선' : 'Operate-first',
-    3: locale === 'ko' ? '검토 우선' : 'Review-first',
-    4: locale === 'ko' ? '조정 우선' : 'Adjust-first',
+    0: locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day',
+    1: locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent',
+    2: locale === 'ko' ? '🌿 좋은 날' : '🌿 Good',
+    3: locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution',
+    4: locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady',
   } as const
   return titles[Math.min(Math.max(grade, 0), 4) as keyof typeof titles]
 }

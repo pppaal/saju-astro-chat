@@ -19,7 +19,7 @@ const LOVE_SECTIONS = {
 - 모든 destiny-matrix 10개 레이어 데이터 자연스럽게 녹이기
 - **마음을 관통하는 깊이**: 연애 패턴의 본질, 상처, 갈망까지 파고들기
 - 문단 나눠서 읽기 편하게
-- **8000~10000자 분량** (연애의 모든 측면을 심층 분석)
+- **14000~18000자 분량 (절대 짧게 쓰지 말 것 — 짧으면 다시 작성)** (연애의 모든 측면을 심층 분석)
 
 ## 교차 분석 예시
 "네 연애 스타일을 보면, 사주로는 정관이 강해서 진지하고 안정적인 관계를 원해.
@@ -110,7 +110,7 @@ const CAREER_SECTIONS = {
 - 사주와 점성술을 50:50으로 융합 (번갈아가며)
 - 모든 destiny-matrix 10개 레이어 데이터 자연스럽게 녹이기
 - 문단 나눠서 읽기 편하게
-- 8000~10000자 분량 (테마의 모든 측면을 심층 분석)
+- 14000~18000자 분량 (절대 짧게 쓰지 말 것 — 짧으면 다시 작성) (테마의 모든 측면을 심층 분석)
 
 ## 교차 분석 예시
 "네 커리어 적성을 보면, 사주로는 정관이 강해서 조직 내에서 인정받고 싶은 욕구가 커.
@@ -202,7 +202,7 @@ const WEALTH_SECTIONS = {
 - 사주와 점성술을 50:50으로 융합 (번갈아가며)
 - 모든 destiny-matrix 10개 레이어 데이터 자연스럽게 녹이기
 - 문단 나눠서 읽기 편하게
-- 8000~10000자 분량 (테마의 모든 측면을 심층 분석)
+- 14000~18000자 분량 (절대 짧게 쓰지 말 것 — 짧으면 다시 작성) (테마의 모든 측면을 심층 분석)
 
 ## 교차 분석 예시
 "네 재물 성향을 보면, 사주로는 편재가 강해서 사업이나 투자로 돈 버는 스타일이야.
@@ -289,7 +289,7 @@ const HEALTH_SECTIONS = {
 - 사주와 점성술을 50:50으로 융합 (번갈아가며)
 - 모든 destiny-matrix 10개 레이어 데이터 자연스럽게 녹이기
 - 문단 나눠서 읽기 편하게
-- 8000~10000자 분량 (테마의 모든 측면을 심층 분석)
+- 14000~18000자 분량 (절대 짧게 쓰지 말 것 — 짧으면 다시 작성) (테마의 모든 측면을 심층 분석)
 
 ## 교차 분석 예시
 "네 건강을 보면, 사주로는 화 기운이 너무 강해서 열이 많고 불면증 올 수 있어.
@@ -382,7 +382,7 @@ const FAMILY_SECTIONS = {
 - 사주와 점성술을 50:50으로 융합 (번갈아가며)
 - 모든 destiny-matrix 10개 레이어 데이터 자연스럽게 녹이기
 - 문단 나눠서 읽기 편하게
-- 8000~10000자 분량 (테마의 모든 측면을 심층 분석)
+- 14000~18000자 분량 (절대 짧게 쓰지 말 것 — 짧으면 다시 작성) (테마의 모든 측면을 심층 분석)
 
 ## 교차 분석 예시
 "네 가족 관계를 보면, 사주로는 인성이 강해서 부모 기대를 많이 내면화하는 편이고,
@@ -466,6 +466,71 @@ const FAMILY_SECTIONS = {
 `,
 }
 
+// 이동·이사 테마 — 역마, 환경 변동, 거점 안정성
+const MOVE_SECTIONS = {
+  ko: `
+## 이동·이사 분석 (사주 + 점성)
+
+사주 측면: 역마성·재성·관성의 활성도, 일지의 출입 신호, 대운/세운에서 환경 변동이 강해지는 시기.
+점성 측면: 4하우스(거점)/10하우스(외부 활동)/9하우스(장거리 이동), 화성·목성·천왕성의 트랜짓 영향.
+
+## 필수 내용 (자연스럽게 풀어서)
+
+이동·환경 변동 흐름을 분석해볼게. 사주로 보면 역마가 어떻게 활성화돼있는지, 점성술로는 4·9·10하우스 트랜짓이 어떻게 움직이는지를 같이 봐야 해. **두 시스템이 공통으로 가리키는 이동 적기와 거점 흔들림 시기**를 분명히 설명.
+
+이사·이직·해외 이동 같은 큰 변동은 사주의 충/합/형/공망과 점성술의 트랜짓이 동시에 움직이는 구간에서 가장 안정적으로 풀려. **두 축이 같은 방향이면 추진, 어긋나면 한 단계씩 점검 후 진행**으로 분기해줘.
+
+거점 안정성과 준비 기간도 다뤄야 해. 한 번에 결정하기보다 단계별 정렬이 맞아드는지 확인하는 게 중요. **이동 순서, 거점 유지 비용, 예비안 3개**를 명확히 적어줘.
+
+마지막에 실천 가이드와 핵심 메시지로 마무리. 두 시스템이 공통으로 강조하는 이동 안정 포인트로.
+`,
+  en: `
+## Required Analysis Sections (8 sections)
+
+### 1. deepAnalysis (Movement & Relocation Deep Analysis)
+- Yeokma (movement star) activation in saju
+- 4th/9th/10th house dynamics in natal chart
+- Cross-validation of movement signals
+- 3+ East-West cross insights
+
+### 2. patterns (Movement Patterns)
+- Lifetime movement frequency and direction
+- Environment-change tolerance
+- Base stability vs. exploration drive
+
+### 3. timing (Movement Timing)
+- Current Daeun/Seun movement signals
+- Transit triggers (Mars/Jupiter/Uranus over 4/9/10 houses)
+- Favorable windows
+- Caution windows
+
+### 4. movementWindows (Move Windows)
+- Best months for relocation
+- Best months for travel
+- Months to defer movement
+
+### 5. environmentFit (Environment Fit)
+- Geographic direction preference
+- Urban vs. rural fit
+- Domestic vs. overseas fit
+
+### 6. baseStability (Base Stability)
+- How long to hold the current base
+- When to refresh the base
+- Risk signals for forced moves
+
+### 7. recommendations (Recommendations)
+- 5 movement-friendly actions
+- 3 actions to avoid
+- Preparation lead time
+
+### 8. actionPlan (Action Plan)
+- Step sequence for the next move
+- Buffer plan
+- Core message
+`,
+}
+
 // ===========================
 // 테마 섹션 매퍼
 // ===========================
@@ -476,6 +541,7 @@ const THEME_SECTIONS: Record<ReportTheme, { ko: string; en: string }> = {
   wealth: WEALTH_SECTIONS,
   health: HEALTH_SECTIONS,
   family: FAMILY_SECTIONS,
+  move: MOVE_SECTIONS,
 }
 
 // ===========================
@@ -488,6 +554,7 @@ const THEME_LABELS: Record<ReportTheme, { ko: string; en: string }> = {
   wealth: { ko: '재물 & 금전 심층 분석', en: 'Wealth & Money Deep Analysis' },
   health: { ko: '건강 & 웰빙 심층 분석', en: 'Health & Wellness Deep Analysis' },
   family: { ko: '가족 & 관계 심층 분석', en: 'Family & Relationships Deep Analysis' },
+  move: { ko: '이동·이사 심층 분석', en: 'Movement & Relocation Deep Analysis' },
 }
 function buildThemedResponseSchema(theme: ReportTheme): string {
   const keyToLine: Record<string, string> = {
@@ -537,7 +604,9 @@ export function buildThemedPrompt(
   astroSummary?: string,
   graphRagEvidencePrompt?: string,
   userQuestion?: string,
-  deterministicCorePrompt?: string
+  deterministicCorePrompt?: string,
+  period?: 'lifetime' | 'yearly' | 'monthly',
+  targetDate?: string
 ): string {
   const isKo = lang === 'ko'
   const questionIntentInstruction = buildQuestionIntentInstruction(userQuestion, lang)
@@ -545,6 +614,25 @@ export function buildThemedPrompt(
   const sections = THEME_SECTIONS[theme][lang]
   const themeLabel = THEME_LABELS[theme][lang]
   const responseSchema = buildThemedResponseSchema(theme)
+
+  // 분석 시점 scope — period + targetDate
+  const periodScopeBlock = (() => {
+    if (!period || period === 'lifetime') return ''
+    const dt = targetDate ? new Date(targetDate) : new Date()
+    const year = dt.getFullYear()
+    const month = dt.getMonth() + 1
+    if (period === 'yearly') {
+      return isKo
+        ? `\n## 분석 시점 — ${year}년 한 해 (Yearly Scope)\n*리포트 전체를 ${year}년 한 해 흐름에 맞춰* 풀어주세요. 인생 전반이 아닌 *${year}년 1월~12월* 사이에 일어날 일·만남·기회·주의 위주로. 분기별(상반기/하반기)·월별 핵심 변곡점도 자연스럽게 녹여 주세요.\n`
+        : `\n## Time Scope — Year ${year}\nFrame the entire report around the *${year} year flow*. Focus on what unfolds between Jan and Dec of ${year}, with quarterly and key monthly inflection points woven in.\n`
+    }
+    if (period === 'monthly') {
+      return isKo
+        ? `\n## 분석 시점 — ${year}년 ${month}월 한 달 (Monthly Scope)\n*리포트 전체를 ${year}년 ${month}월 한 달 흐름에 맞춰* 풀어주세요. 평생 흐름이 아닌 *이 한 달 안에서의* 핵심 일·기회·주의·관계 변동 위주로. 주차별(1주차~4주차) 또는 상순/중순/하순 단위 흐름도 자연스럽게.\n`
+        : `\n## Time Scope — ${year}-${String(month).padStart(2, '0')}\nFrame the entire report around *that single month's* flow — events, opportunities, cautions, relationship shifts within those weeks. Include weekly or thirds-of-month rhythm.\n`
+    }
+    return ''
+  })()
 
   // 십신 분포 포맷
   const sibsinText = profileData.sibsinDistribution

@@ -18,7 +18,7 @@ export type AiTimelineSlot = {
   confidenceReason?: string[]
 }
 
-export type ActionPlanPrecisionMode = 'ai-graphrag' | 'rule-fallback' | null
+export type ActionPlanPrecisionMode = 'rule' | null
 
 export type ActionPlanInsights = {
   ifThenRules: string[]
@@ -222,7 +222,7 @@ export function sanitizeActionPlanAiInsights(input: {
 }
 
 export function resolveActionPlanPrecisionMode(value: unknown): ActionPlanPrecisionMode {
-  return value === 'ai-graphrag' || value === 'rule-fallback' ? value : null
+  return value === 'rule' ? 'rule' : null
 }
 
 export function buildActionPlanAiStatusText(input: {
@@ -232,29 +232,24 @@ export function buildActionPlanAiStatusText(input: {
   aiPrecisionMode: ActionPlanPrecisionMode
   aiContextLabel: string
 }): string {
-  const { isKo, hasBaseInfo, aiStatus, aiPrecisionMode, aiContextLabel } = input
+  const { isKo, hasBaseInfo, aiStatus, aiContextLabel } = input
   if (!hasBaseInfo) {
     return isKo ? '날짜 정보 없음' : 'No date data'
   }
   if (aiStatus === 'loading') {
-    return isKo ? '정밀 타임라인 생성 중' : 'Generating precision timeline'
+    return isKo ? '타임라인 생성 중' : 'Generating timeline'
   }
   if (aiStatus === 'error') {
     return isKo
-      ? '정밀 생성 실패 · 사주+점성 규칙 플랜 표시'
-      : 'Precision failed · showing rule-based Saju+Astrology plan'
-  }
-  if (aiStatus === 'ready' && aiPrecisionMode === 'rule-fallback') {
-    return isKo
-      ? '규칙 기반 개인화 타임라인 · 사주+점성 근거 적용'
-      : 'Rule-based personalized timeline · Saju+Astrology grounded'
+      ? '타임라인 생성에 실패해 기본 플랜으로 표시합니다'
+      : 'Timeline generation failed; showing baseline plan'
   }
   if (aiStatus === 'ready') {
     return isKo
-      ? `근거 기반 타임라인 적용 · ${aiContextLabel}`
-      : `Evidence-based timeline applied · ${aiContextLabel}`
+      ? `사주+점성 규칙 타임라인 · ${aiContextLabel}`
+      : `Saju+Astrology rule timeline · ${aiContextLabel}`
   }
-  return isKo ? '정밀 준비됨' : 'Precision ready'
+  return isKo ? '준비됨' : 'Ready'
 }
 
 export function buildActionPlanAiButtonLabel(input: {
@@ -264,19 +259,19 @@ export function buildActionPlanAiButtonLabel(input: {
 }): string {
   const { isKo, aiStatus, hasAiTimeline } = input
   if (aiStatus === 'loading') {
-    return isKo ? '정밀 생성 중' : 'Generating'
+    return isKo ? '생성 중' : 'Generating'
   }
   return hasAiTimeline
     ? isKo
-      ? '정밀 새로고침'
-      : 'Refresh precision'
+      ? '새로고침'
+      : 'Refresh'
     : isKo
-      ? '정밀 생성'
-      : 'Generate precision'
+      ? '타임라인 생성'
+      : 'Generate timeline'
 }
 
 export function getActionPlanAiFallbackSummary(isKo: boolean): string {
   return isKo
-    ? '정밀 생성이 일시 실패해 규칙 기반 플랜으로 표시합니다.'
-    : 'Precision generation failed temporarily. Showing rule-based plan.'
+    ? '타임라인 생성이 일시 실패해 기본 플랜으로 표시합니다.'
+    : 'Timeline generation failed temporarily. Showing baseline plan.'
 }

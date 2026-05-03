@@ -141,7 +141,7 @@ export class FusionReportGenerator {
       .slice(0, 3)
       .map(([sibsin]) => sibsin as SibsinKind);
 
-    // ?? ??
+    // 격국 설명
     let geokgukDescription: string | undefined;
     if (input.geokguk) {
       const info = GEOKGUK_INFO[input.geokguk as GeokgukType];

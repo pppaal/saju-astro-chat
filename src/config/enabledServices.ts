@@ -4,8 +4,7 @@
   | 'report'
   | 'calendar'
   | 'compatibility'
-  | 'personality'
-  | 'icp'
+  | 'destinyMatch'
 
 export type EnabledService = {
   id: EnabledServiceId
@@ -70,22 +69,13 @@ const ALL_SERVICES: readonly EnabledService[] = [
     description: { en: 'Relationship Analysis', ko: '관계 궁합 분석' },
   },
   {
-    id: 'personality',
-    href: '/personality',
-    icon: '🧠',
-    menuKey: 'menu.personality',
-    descriptionKey: 'services.personalityDesc',
-    label: { en: 'Personality', ko: '성격분석' },
-    description: { en: 'Personality Insights', ko: '성격 인사이트' },
-  },
-  {
-    id: 'icp',
-    href: '/icp',
-    icon: '🎭',
-    menuKey: 'menu.icp',
-    descriptionKey: 'services.icpDesc',
-    label: { en: 'ICP', ko: '대인관계 스타일' },
-    description: { en: 'Interpersonal Circumplex Profile', ko: '대인관계 스타일 테스트' },
+    id: 'destinyMatch',
+    href: '/destiny-match',
+    icon: '🪐',
+    menuKey: 'menu.destinyMatch',
+    descriptionKey: 'services.destinyMatch.desc',
+    label: { en: 'Destiny Match', ko: '데스티니 매치' },
+    description: { en: 'Destiny-based matching', ko: '운명 기반 매칭' },
   },
 ] as const
 
@@ -94,6 +84,8 @@ export const ACTIVE_PUBLIC_SERVICE_IDS: readonly EnabledServiceId[] = [
   'tarot',
   'report',
   'calendar',
+  'compatibility',
+  'destinyMatch',
 ] as const
 
 const ACTIVE_SERVICE_SET = new Set<EnabledServiceId>(ACTIVE_PUBLIC_SERVICE_IDS)
@@ -109,4 +101,9 @@ export const REMOVED_PUBLIC_SERVICE_PREFIXES: readonly string[] = [
   '/iching',
   '/past-life',
   '/life-prediction',
+  '/personality',
+  '/icp',
+  '/numerology',
+  '/myjourney',
+  '/destiny-pal',
 ] as const

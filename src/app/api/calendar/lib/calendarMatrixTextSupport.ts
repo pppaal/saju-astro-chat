@@ -132,16 +132,10 @@ export function sanitizeCalendarCopy(value: string | undefined, lang: 'ko' | 'en
   if (!repaired) return ''
 
   if (lang === 'ko') {
+    // 과장 표현(레거시 카피)만 톤다운 — 자연스러운 카운슬러 어투 ("좋은 날" 등)는 보존
     return repaired
       .replace(/최고의 날|대길일/g, '강한 실행 구간')
-      .replace(/좋은 날/g, '활용 흐름이 좋은 구간')
-      .replace(/보통 날/g, '운영 중심 구간')
-      .replace(/안좋은 날|나쁜 날/g, '검토 우선 구간')
-      .replace(/최악의 날/g, '조정 우선 구간')
       .replace(/완벽한 타이밍/g, '검토 후 진행하기 좋은 타이밍')
-      .replace(/딱 좋아요/g, '잘 맞습니다')
-      .replace(/오늘 해도 괜찮아요/g, '오늘은 검토 후 진행할 수 있습니다')
-      .replace(/오늘 시작하면 일이 잘 풀려요/g, '오늘 시작한 일은 흐름을 타기 쉽습니다')
       .replace(/연애운 UP!/g, '관계 에너지가 올라옵니다.')
       .replace(/복권/g, '부수 수입 탐색')
       .replace(/프로포즈/g, '중요한 관계 결정')

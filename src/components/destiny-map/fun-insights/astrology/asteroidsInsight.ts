@@ -1,5 +1,6 @@
 import { junoSignTraits, asteroidMessages } from './data';
 import type { AstroData } from '../types';
+import { eulReul } from '@/lib/i18n/koParticle';
 
 export function getAsteroidsInsight(astro: AstroData | undefined, lang: string): { title: string; insights: { name: string; message: string }[]; emoji: string } | null {
   const isKo = lang === "ko";
@@ -15,7 +16,7 @@ export function getAsteroidsInsight(astro: AstroData | undefined, lang: string):
     insights.push({
       name: isKo ? "주노 (이상적 파트너)" : "Juno (Ideal Partner)",
       message: isKo
-        ? `${sign} 자리에서 파트너에게 ${trait.ko}을 원해요.`
+        ? `${sign} 자리에서 파트너에게 ${trait.ko}${eulReul(trait.ko)} 원해요.`
         : `In ${sign}, you seek ${trait.en} in partners.`
     });
   }

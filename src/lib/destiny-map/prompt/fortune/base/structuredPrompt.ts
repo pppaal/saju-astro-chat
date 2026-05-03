@@ -4,7 +4,7 @@
  *
  * 리팩토링: @ts-nocheck 제거, 타입 안전성 확보
  */
-import type { CombinedResult } from '@/lib/destiny-map/astrologyengine';
+import type { CombinedResult } from '@/lib/destiny-map/astrology';
 import type { AstrologyData, SajuData } from '@/lib/destiny-map/astrology/types';
 import { logger } from '@/lib/logger';
 import type {

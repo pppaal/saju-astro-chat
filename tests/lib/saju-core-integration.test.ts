@@ -75,7 +75,7 @@ describe('Saju Core Integration', () => {
       const sajuCache = await import('@/lib/Saju/cache')
       expect(sajuCache.getSajuFromCache).toBeDefined()
       expect(sajuCache.setSajuToCache).toBeDefined()
-      assertNamedExports('lib/Saju/visualizationData', ['generateElementDistribution'])
+      // visualizationData / fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
     })
 
     it('should expose geokguk analysis', () => {
@@ -98,9 +98,7 @@ describe('Saju Core Integration', () => {
       assertNamedExports('lib/Saju/patternMatcher', ['matchAllPatterns', 'analyzePatterns'])
     })
 
-    it('should expose AI prompt generator', () => {
-      assertNamedExports('lib/Saju/aiPromptGenerator', ['generateLLMPrompt', 'generateImagePrompt'])
-    })
+    // aiPromptGenerator — 미사용으로 삭제됨 (2025 정리)
   })
 
   describe('Saju Calculation', () => {
@@ -223,19 +221,17 @@ describe('Saju Core Integration', () => {
         'lib/Saju/textGenerator',
         'lib/Saju/compatibility',
         'lib/Saju/cache',
-        'lib/Saju/visualizationData',
         'lib/Saju/geokguk',
         'lib/Saju/tonggeun',
         'lib/Saju/healthCareer',
         'lib/Saju/familyLineage',
         'lib/Saju/patternMatcher',
-        'lib/Saju/aiPromptGenerator',
         'lib/Saju/advancedSajuCore',
         'lib/Saju/comprehensiveReport',
-        'lib/Saju/fortuneSimulator',
       ]
+      // visualizationData / fortuneSimulator / aiPromptGenerator — 미사용으로 삭제됨
 
-      expect(modules.length).toBe(20)
+      expect(modules.length).toBe(17)
       modules.forEach((modulePath) => {
         readModule(modulePath)
       })
@@ -268,23 +264,14 @@ describe('Saju Core Integration', () => {
     })
   })
 
-  describe('Visualization Data', () => {
-    it('should expose visualization data generator', () => {
-      assertNamedExports('lib/Saju/visualizationData', ['generateElementDistribution'])
-    })
-  })
+  // Visualization Data — 미사용으로 삭제됨 (2025 정리)
 
   describe('Advanced Analysis', () => {
     it('should expose comprehensive report generator', () => {
       assertNamedExports('lib/Saju/comprehensiveReport', ['generateComprehensiveReport'])
     })
 
-    it('should expose fortune simulator', () => {
-      assertNamedExports('lib/Saju/fortuneSimulator', [
-        'simulateFortuneFlow',
-        'generateFortuneSnapshot',
-      ])
-    })
+    // fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
 
     it('should expose advanced saju core', () => {
       assertNamedExports('lib/Saju/advancedSajuCore', [

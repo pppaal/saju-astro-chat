@@ -64,7 +64,7 @@ export default function PersonInterpretationStabilitySection({
                     {labelStatus(item.status)}
                   </span>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{item.summary}</p>
+                <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{item.summary}</p>
                 {item.coreDiff && (
                   <div className="mt-4 rounded-2xl border border-cyan-300/12 bg-cyan-400/[0.05] p-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
@@ -135,7 +135,7 @@ export default function PersonInterpretationStabilitySection({
                     {labelStatus(item.status)}
                   </span>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{item.summary}</p>
+                <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{item.summary}</p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl border border-cyan-300/12 bg-cyan-400/[0.05] p-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
@@ -164,7 +164,7 @@ export default function PersonInterpretationStabilitySection({
           tone="amber"
           className="h-full"
         >
-          <p className="text-sm leading-6 text-slate-300">
+          <p className="text-[15px] leading-[1.7] text-slate-200">
             {personModel.pastEventReconstruction.summary}
           </p>
           <div className="mt-4 space-y-3">
@@ -182,7 +182,7 @@ export default function PersonInterpretationStabilitySection({
                     {labelStatus(item.status)}
                   </span>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{item.summary}</p>
+                <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{item.summary}</p>
                 {item.evidence.length > 0 && (
                   <ul className="mt-3 space-y-1 text-sm text-slate-400">
                     {item.evidence.slice(0, 3).map((line) => (

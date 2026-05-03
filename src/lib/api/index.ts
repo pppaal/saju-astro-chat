@@ -8,29 +8,10 @@ export {
   createErrorResponse,
   createSuccessResponse,
   jsonErrorResponse,
-  /** @deprecated Use withApiMiddleware from @/lib/api/middleware instead */
-  withErrorHandler,
   ErrorCodes,
   type ErrorCode,
   type APIErrorOptions,
 } from './errorHandler'
-
-// Validation (legacy - prefer Zod schemas for new code)
-export {
-  /** @deprecated Use Zod schemas from @/lib/api/validator instead */
-  validateFields,
-  /** @deprecated Use DestinyMapSchema from @/lib/api/validator instead */
-  validateDestinyMapInput,
-  /** @deprecated Use TarotInterpretSchema from @/lib/api/validator instead */
-  validateTarotInput,
-  /** @deprecated Use DreamSchema from @/lib/api/validator instead */
-  validateDreamInput,
-  parseJsonBody,
-  Patterns,
-  CommonValidators,
-  type ValidationResult,
-  type FieldRule,
-} from './validation'
 
 // Zod schemas (preferred for new code)
 export {
@@ -94,8 +75,6 @@ export {
   sanitizeHtml,
   sanitizeEnum,
   type ChatRole,
-  /** @deprecated Use ChatMessage from @/lib/api/validator instead for better type safety */
-  type ChatMessage as ChatMessageLegacy,
 } from './sanitizers'
 
 // Validator exports (preferred for new code)

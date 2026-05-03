@@ -18,7 +18,7 @@
  * and maintainability.
  */
 
-import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import type { PlanetData } from '@/lib/astrology'
 import { logger } from '@/lib/logger'
 import type { AnnualItem, MonthlyItem, PillarSet } from './prompt-types'

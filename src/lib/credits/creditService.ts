@@ -15,9 +15,13 @@ function getNextPeriodEnd(): Date {
 }
 
 // 유저 크레딧 초기화 (신규 가입 시)
+// 무료 플랜: 가입 시 2 크레딧 일회성 보너스 (월간 무료 0)
+const FREE_PLAN_SIGNUP_BONUS = 2
+
 export async function initializeUserCredits(userId: string, plan: PlanType = 'free') {
   const config = PLAN_CONFIG[plan]
   const now = new Date()
+  const signupBonus = plan === 'free' ? FREE_PLAN_SIGNUP_BONUS : 0
 
   return prisma.userCredits.create({
     data: {
@@ -25,7 +29,7 @@ export async function initializeUserCredits(userId: string, plan: PlanType = 'fr
       plan,
       monthlyCredits: config.monthlyCredits,
       usedCredits: 0,
-      bonusCredits: 0,
+      bonusCredits: signupBonus,
       compatibilityUsed: 0,
       followUpUsed: 0,
       compatibilityLimit: config.compatibilityLimit,

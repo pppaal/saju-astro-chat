@@ -62,7 +62,7 @@ export default function SingleSubjectViewSection({
           <article className="rounded-[22px] border border-white/10 bg-[#090f1b]/88 p-5">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Structure Axis</p>
             <p className="mt-2 text-base font-semibold text-white">{view.structureAxis.label}</p>
-            <p className="mt-3 text-sm leading-6 text-slate-300">{view.structureAxis.thesis}</p>
+            <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{view.structureAxis.thesis}</p>
             {view.structureAxis.topAxes.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
                 {view.structureAxis.topAxes.slice(0, 4).map((axis) => (
@@ -80,7 +80,7 @@ export default function SingleSubjectViewSection({
           <article className="rounded-[22px] border border-white/10 bg-[#090f1b]/88 p-5">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Action Axis</p>
             <p className="mt-2 text-base font-semibold text-white">{view.actionAxis.label}</p>
-            <p className="mt-3 text-sm leading-6 text-slate-300">{view.actionAxis.whyThisFirst}</p>
+            <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{view.actionAxis.whyThisFirst}</p>
             <p className="mt-4 text-sm font-medium text-cyan-100">
               지금 먼저: {view.actionAxis.nowAction}
             </p>
@@ -89,7 +89,7 @@ export default function SingleSubjectViewSection({
           <article className="rounded-[22px] border border-white/10 bg-[#090f1b]/88 p-5">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Risk Axis</p>
             <p className="mt-2 text-base font-semibold text-white">{view.riskAxis.label}</p>
-            <p className="mt-3 text-sm leading-6 text-slate-300">{view.riskAxis.warning}</p>
+            <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{view.riskAxis.warning}</p>
             {view.riskAxis.hardStops.length > 0 && (
               <ul className="mt-4 space-y-1 text-sm text-rose-100/88">
                 {view.riskAxis.hardStops.slice(0, 3).map((item) => (
@@ -116,7 +116,7 @@ export default function SingleSubjectViewSection({
               )}
             </div>
             {view.timingState.whyNow && (
-              <p className="mt-3 text-sm leading-6 text-slate-300">{view.timingState.whyNow}</p>
+              <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{view.timingState.whyNow}</p>
             )}
             {view.timingState.whyNotYet && (
               <p className="mt-3 text-sm leading-6 text-amber-100/88">
@@ -140,7 +140,7 @@ export default function SingleSubjectViewSection({
                       {STATUS_LABELS[window.status]}
                     </span>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-300">{window.summary}</p>
+                  <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{window.summary}</p>
                 </div>
               ))}
             </div>
@@ -166,7 +166,7 @@ export default function SingleSubjectViewSection({
                       {STATUS_LABELS[pressure.status]}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{pressure.summary}</p>
+                  <p className="mt-2 text-[15px] leading-[1.7] text-slate-200">{pressure.summary}</p>
                   {pressure.nextWindow && (
                     <p className="mt-2 text-xs text-slate-400">
                       다음 창: {labelWindow(pressure.nextWindow)}
@@ -189,7 +189,7 @@ export default function SingleSubjectViewSection({
                   Branch {index + 1}
                 </p>
                 <p className="mt-2 text-base font-semibold text-white">{branch.label}</p>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{branch.summary}</p>
+                <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{branch.summary}</p>
                 {branch.entryConditions.length > 0 && (
                   <div className="mt-4">
                     <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/70">

@@ -8,6 +8,7 @@ import { logger } from '@/lib/logger'
 import { analyzeDestiny } from '@/components/destiny-map/Analyzer'
 import Display from '@/components/destiny-map/Display'
 import FunInsights from '@/components/destiny-map/FunInsights'
+import FreeCrossPreview from '@/components/destiny-map/FreeCrossPreview'
 import AnalyzingLoader, { LifePredictionSkeleton } from './AnalyzingLoader'
 import { useLifePrediction } from './useLifePrediction'
 const FortuneDashboard = lazy(() => import('@/components/life-prediction/FortuneDashboard'))
@@ -16,6 +17,7 @@ import { normalizeGender } from '@/lib/utils/gender'
 import BackButton from '@/components/ui/BackButton'
 import ShareButton from '@/components/ui/ShareButton'
 import PersonalityInsight from '@/components/personality/PersonalityInsight'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 type Lang = 'ko' | 'en'
 type DestinyResult = {
@@ -121,6 +123,7 @@ export default function DestinyResultPage({
           userTimezone: userTz || undefined,
         })
         setResult(res as DestinyResult)
+        analytics.freeResultView('destiny-map')
 
         // Store saju/astro for counselor chat (avoids re-computation)
         // Note: API returns "astrology" but we store as "astro" for consistency
@@ -302,8 +305,30 @@ export default function DestinyResultPage({
         <ShareButton variant="compact" />
       </div>
       <section className={styles.card}>
-        {/* 📅 분석 기준일 표시 */}
-        <div className={styles.analysisDateWrapper}>{analysisDateDisplay}</div>
+        {/* Apple-tier Hero */}
+        <header className="mb-7 space-y-3 text-center">
+          <div className="flex justify-center">
+            <span
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.32em]"
+              style={{
+                borderColor: 'rgba(148,163,184,0.4)',
+                color: '#cbd5e1',
+                background: 'rgba(148,163,184,0.1)',
+              }}
+            >
+              Free · 운명 지도 분석 결과
+            </span>
+          </div>
+          <h2
+            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-3xl font-semibold leading-[1.15] text-transparent sm:text-4xl"
+            style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
+          >
+            {lang === 'ko'
+              ? '본인 사주·점성으로 비춰본 결'
+              : 'Your Saju × Astrology Reading'}
+          </h2>
+          <div className={styles.analysisDateWrapper}>{analysisDateDisplay}</div>
+        </header>
 
         {/* 🗂️ 탭 네비게이션 */}
         <div
@@ -392,29 +417,84 @@ export default function DestinyResultPage({
             {/* ✨ 성격 유형 인사이트 (노바 페르소나 결과 연동) */}
             <PersonalityInsight lang={lang} />
 
-            {/* 🔮 상담사 연결 버튼 */}
-            <div className={styles.counselorSection}>
-              <div className={styles.counselorDivider}>
-                <div className={styles.counselorLine} />
-                <span className={styles.counselorLabel}>
-                  {lang === 'ko' ? '더 궁금한 점이 있으신가요?' : 'Want to know more?'}
-                </span>
-                <div className={styles.counselorLine} />
-              </div>
+            {/* 사주·점성 cross 맛보기 — Premium 깊이 preview */}
+            <div className="mt-6">
+              <FreeCrossPreview
+                saju={result?.saju}
+                astrology={(result?.astrology || result?.astro) as Record<string, unknown> | undefined}
+                lang={lang as 'ko' | 'en'}
+              />
+            </div>
+
+            {/* Premium 업그레이드 CTA — 본격 가치 제안 */}
+            <div className="mt-8 overflow-hidden rounded-3xl border border-amber-300/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(251,191,36,0.02))] p-6 backdrop-blur-md">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-amber-300/80">
+                Premium · 더 깊이
+              </p>
+              <h3
+                className="mt-2 text-balance text-[1.6rem] font-semibold leading-tight text-white sm:text-[1.85rem]"
+                style={{ letterSpacing: '-0.02em', wordBreak: 'keep-all' }}
+              >
+                {lang === 'ko' ? (
+                  <>
+                    여기서 끝내기엔
+                    <br />
+                    아쉬운 결이 너무 많아요
+                  </>
+                ) : (
+                  <>Your story has more depth waiting</>
+                )}
+              </h3>
+              <p
+                className="mt-3 text-[14px] leading-[1.7] text-slate-300"
+                style={{ wordBreak: 'keep-all' }}
+              >
+                {lang === 'ko'
+                  ? '맛보기로는 짚어내지 못한 정관격·신살 정통 풀이, 60갑자 specific 페어, 점성 advanced 신호(소행성·Vertex·POF)까지 Premium에서 24,000자 long-form으로 풀어드려요.'
+                  : 'The full report unfolds 24,000+ words — orthodox geokguk readings, 60갑자 pair specifics, and advanced astro signals woven together.'}
+              </p>
+
+              <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+                {(lang === 'ko'
+                  ? [
+                      '12+ 사주×점성 cross 신호',
+                      '격국·신살 정통 5필드 풀이',
+                      '60갑자 specific 페어 해석',
+                      '소행성·Vertex·POF advanced',
+                    ]
+                  : [
+                      '12+ Saju×Astro cross signals',
+                      'Orthodox geokguk·shinsal',
+                      '60-pair specific readings',
+                      'Asteroids·Vertex·POF',
+                    ]
+                ).map((f) => (
+                  <li
+                    key={f}
+                    className="flex items-start gap-2 text-[13px] leading-[1.5] text-amber-50/85"
+                  >
+                    <span
+                      className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-300"
+                      aria-hidden
+                    />
+                    <span style={{ wordBreak: 'keep-all' }}>{f}</span>
+                  </li>
+                ))}
+              </ul>
 
               <button
                 onClick={() => {
-                  const params = new URLSearchParams(window.location.search)
-                  params.set('lang', lang)
-                  window.location.href = `/destiny-map/counselor?${params.toString()}`
+                  analytics.premiumCtaClick('destiny-map-result', 'comprehensive')
+                  window.location.href = '/premium-reports'
                 }}
-                className={styles.counselorButton}
+                className="group mt-6 inline-flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#fbbf24_0%,#f59e0b_100%)] px-6 py-3 text-[14px] font-semibold text-slate-950 shadow-[0_18px_50px_rgba(251,191,36,0.35)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_22px_60px_rgba(251,191,36,0.5)]"
               >
-                <span className={styles.counselorButtonIcon}>🔮</span>
                 <span>
-                  {lang === 'ko' ? '상담사에게 직접 물어보기' : 'Ask the Counselor Directly'}
+                  {lang === 'ko' ? 'Premium으로 이어보기' : 'Continue with Premium'}
                 </span>
-                <span className={styles.counselorButtonArrow}>→</span>
+                <span className="text-[18px] transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
               </button>
             </div>
           </div>

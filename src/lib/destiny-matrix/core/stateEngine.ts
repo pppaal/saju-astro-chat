@@ -144,7 +144,7 @@ export function buildStateEngine(input: {
 
     const rationale =
       input.lang === 'ko'
-        ? `${activation.domain} ??? ?? ?? ${activation.activationScore}? ?? ?? ${mode} ???? ${state} ??? ?????.`
+        ? `${activation.domain} 도메인의 활성도 ${activation.activationScore}점 기준에 룰 모드 ${mode}이 적용되어 ${state} 상태로 정리됩니다.`
         : `${activation.domain} resolves to ${state} from activation ${activation.activationScore} and rule mode ${mode}.`
 
     return {

@@ -75,7 +75,7 @@ export default function PersonDomainStateSection({
                     </span>
                   </div>
 
-                  <p className="mt-3 text-sm leading-6 text-slate-300">{state.thesis}</p>
+                  <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{state.thesis}</p>
 
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-2xl border border-emerald-300/12 bg-emerald-400/[0.05] p-3">
@@ -167,7 +167,7 @@ export default function PersonDomainStateSection({
                       {STATUS_LABELS[event.status] || event.status}
                     </span>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-300">{event.summary}</p>
+                  <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{event.summary}</p>
                   {event.entryConditions.length > 0 && (
                     <div className="mt-4">
                       <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/70">

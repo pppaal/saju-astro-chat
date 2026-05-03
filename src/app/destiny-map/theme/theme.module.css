@@ -5,7 +5,7 @@
 .container {
   position: relative;
   min-height: 100svh;
-  background: linear-gradient(135deg, #050714 0%, #0a0e1f 50%, #1a1a2e 100%);
+  background: radial-gradient(ellipse at top, #1a1c2e 0%, #0a0a14 60%);
   display: grid;
   place-items: center;
   padding: 24px;

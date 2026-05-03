@@ -65,6 +65,7 @@ const CATEGORIES: EventCategory[] = ['wealth', 'career', 'love', 'health', 'trav
 
 const CalendarMainView = memo(function CalendarMainView({
   data,
+  birthInfo,
   currentDate,
   selectedDay,
   selectedDate,
@@ -246,12 +247,12 @@ const CalendarMainView = memo(function CalendarMainView({
 
   const getGradeLabel = (grade: number) => {
     const labels = {
-      0: locale === 'ko' ? '실행 우선' : 'Execute-first',
-      1: locale === 'ko' ? '활용 우선' : 'Leverage-first',
-      2: locale === 'ko' ? '운영 우선' : 'Operate-first',
-      3: locale === 'ko' ? '검토 우선' : 'Review-first',
-      4: locale === 'ko' ? '조정 우선' : 'Adjust-first',
-      5: locale === 'ko' ? '조정 우선' : 'Adjust-first',
+      0: locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day',
+      1: locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent',
+      2: locale === 'ko' ? '🌿 좋은 날' : '🌿 Good',
+      3: locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution',
+      4: locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady',
+      5: locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady',
     }
     return labels[grade as keyof typeof labels] || labels[3]
   }
@@ -298,50 +299,50 @@ const CalendarMainView = memo(function CalendarMainView({
               <span className={styles.badgeDivider} />
               <span
                 className={styles.summaryBadge}
-                title={locale === 'ko' ? '실행 우선' : 'Execute-first'}
+                title={locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day'}
               >
                 <span className={styles.badgeEmoji}>🌟</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '실행' : 'Execute'}</span>
+                <span className={styles.badgeLabel}>{locale === 'ko' ? '최고' : 'Peak'}</span>
                 <span className={styles.badgeCount}>
                   {locale === 'ko' ? `${yearSummary.grade0}일` : `${yearSummary.grade0}d`}
                 </span>
               </span>
               <span
                 className={styles.summaryBadge}
-                title={locale === 'ko' ? '활용 우선' : 'Leverage-first'}
+                title={locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent'}
               >
                 <span className={styles.badgeEmoji}>✨</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '활용' : 'Leverage'}</span>
+                <span className={styles.badgeLabel}>{locale === 'ko' ? '아주 좋음' : 'Excellent'}</span>
                 <span className={styles.badgeCount}>
                   {locale === 'ko' ? `${yearSummary.grade1}일` : `${yearSummary.grade1}d`}
                 </span>
               </span>
               <span
                 className={styles.summaryBadge}
-                title={locale === 'ko' ? '운영 우선' : 'Operate-first'}
+                title={locale === 'ko' ? '🌿 좋은 날' : '🌿 Good'}
               >
-                <span className={styles.badgeEmoji}>◆</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '운영' : 'Operate'}</span>
+                <span className={styles.badgeEmoji}>🌿</span>
+                <span className={styles.badgeLabel}>{locale === 'ko' ? '좋음' : 'Good'}</span>
                 <span className={styles.badgeCount}>
                   {locale === 'ko' ? `${yearSummary.grade2}일` : `${yearSummary.grade2}d`}
                 </span>
               </span>
               <span
                 className={`${styles.summaryBadge} ${styles.cautionBadge}`}
-                title={locale === 'ko' ? '검토 우선' : 'Review-first'}
+                title={locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution'}
               >
                 <span className={styles.badgeEmoji}>⚠️</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '검토' : 'Review'}</span>
+                <span className={styles.badgeLabel}>{locale === 'ko' ? '조심' : 'Caution'}</span>
                 <span className={styles.badgeCount}>
                   {locale === 'ko' ? `${yearSummary.grade3}일` : `${yearSummary.grade3}d`}
                 </span>
               </span>
               <span
                 className={`${styles.summaryBadge} ${styles.worstBadge}`}
-                title={locale === 'ko' ? '조정 우선' : 'Adjust-first'}
+                title={locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady'}
               >
-                <span className={styles.badgeEmoji}>☠️</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '조정' : 'Adjust'}</span>
+                <span className={styles.badgeEmoji}>🛡</span>
+                <span className={styles.badgeLabel}>{locale === 'ko' ? '지키기' : 'Hold'}</span>
                 <span className={styles.badgeCount}>
                   {locale === 'ko' ? `${yearSummary.grade4}일` : `${yearSummary.grade4}d`}
                 </span>
@@ -690,6 +691,7 @@ const CalendarMainView = memo(function CalendarMainView({
       ) : (
         <CalendarActionPlanView
           data={data}
+          birthInfo={birthInfo}
           selectedDay={selectedDay}
           selectedDate={selectedDate}
           onSelectDate={onDayClick}

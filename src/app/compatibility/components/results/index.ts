@@ -7,3 +7,8 @@ export { SynergyBreakdownCard } from './SynergyBreakdownCard';
 export { PairwiseMatrixCard } from './PairwiseMatrixCard';
 export { TimingGuideCard } from './TimingGuideCard';
 export { ActionButtons } from './ActionButtons';
+export { CompatibilityRichReport } from './CompatibilityRichReport';
+export { ScoreDashboard } from './ScoreDashboard';
+export { CoupleElementsDonut } from './CoupleElementsDonut';
+export { CouplePlanetStrip } from './CouplePlanetStrip';
+export { MultiFacetGrid } from './MultiFacetGrid';

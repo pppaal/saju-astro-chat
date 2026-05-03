@@ -161,30 +161,7 @@ describe('Compatibility Module Exports', () => {
     })
   })
 
-  describe('Group Compatibility exports', () => {
-    it('should export group compatibility functions', async () => {
-      const module = await import('@/lib/compatibility/groupCompatibility')
-      expect(module).toBeDefined()
-    })
-
-    it('should have group analysis function', async () => {
-      const module = await import('@/lib/compatibility/groupCompatibility')
-      expect(module.analyzeGroupCompatibility).toBeDefined()
-      expect(typeof module.analyzeGroupCompatibility).toBe('function')
-    })
-
-    it('should have group saju analysis function', async () => {
-      const module = await import('@/lib/compatibility/groupCompatibility')
-      expect(module.analyzeGroupSajuCompatibility).toBeDefined()
-      expect(typeof module.analyzeGroupSajuCompatibility).toBe('function')
-    })
-
-    it('should have group astrology analysis function', async () => {
-      const module = await import('@/lib/compatibility/groupCompatibility')
-      expect(module.analyzeGroupAstrologyCompatibility).toBeDefined()
-      expect(typeof module.analyzeGroupAstrologyCompatibility).toBe('function')
-    })
-  })
+  // Group Compatibility — 미사용으로 삭제됨 (2025 정리)
 
   describe('Module Type Exports', () => {
     it('should export CompatibilityResult type', async () => {

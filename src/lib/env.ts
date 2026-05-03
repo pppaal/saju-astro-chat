@@ -222,36 +222,3 @@ export const isDevelopment = env.NODE_ENV === 'development';
  */
 export const isTest = env.NODE_ENV === 'test';
 
-/**
- * Get required environment variable
- * Throws if variable is not set
- *
- * @param key - Environment variable name
- * @returns The environment variable value
- * @throws Error if variable is not set
- *
- * @deprecated Use `env` object directly instead
- */
-export function getRequiredEnv<K extends keyof Env>(key: K): NonNullable<Env[K]> {
-  const value = env[key];
-  if (value === undefined || value === null || value === '') {
-    throw new Error(`Missing required environment variable: ${String(key)}`);
-  }
-  return value as NonNullable<Env[K]>;
-}
-
-/**
- * Get optional environment variable with default
- *
- * @param key - Environment variable name
- * @param defaultValue - Default value if not set
- * @returns The environment variable value or default
- *
- * @deprecated Use `env.VAR ?? 'default'` instead
- */
-export function getOptionalEnv<K extends keyof Env>(
-  key: K,
-  defaultValue: string
-): string {
-  return (env[key] as string | undefined) ?? defaultValue;
-}

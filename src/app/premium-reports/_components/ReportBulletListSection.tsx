@@ -19,9 +19,13 @@ export default function ReportBulletListSection({
 
   return (
     <ReportSurfaceSection title={title} tone={tone} className={className}>
-      <ul className="space-y-2">
+      <ul className="space-y-2.5">
         {items.map((item, index) => (
-          <li key={`${item}-${index}`} className="text-sm leading-6 text-slate-300">
+          <li
+            key={`${item}-${index}`}
+            className="text-[15px] leading-[1.75] text-slate-200"
+            style={{ wordBreak: 'keep-all' }}
+          >
             • {item}
           </li>
         ))}

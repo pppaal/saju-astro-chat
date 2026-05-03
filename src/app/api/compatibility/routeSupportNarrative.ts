@@ -195,13 +195,13 @@ export function buildPairInsights(input: {
     if (input.sajuScore >= 75) {
       strengths.push(
         isKo
-          ? '사주 일간과 오행 흐름이 잘 맞아 장기 안정성에 유리합니다.'
+          ? '사주의 본성과 5행 흐름이 잘 맞아 시간이 지날수록 안정감이 깊어져요.'
           : 'Saju day-master and elemental flow support long-term stability.'
       )
     } else if (input.sajuScore < 55) {
       challenges.push(
         isKo
-          ? '사주 구조의 생활 리듬 차이가 커서 의식적인 조율이 필요합니다.'
+          ? '사주에서 보이는 생활 리듬이 서로 달라 의식적인 조율이 필요한 결이에요.'
           : 'Saju pattern shows different life rhythm and needs active adjustment.'
       )
     }
@@ -211,13 +211,13 @@ export function buildPairInsights(input: {
     if (input.astrologyScore >= 75) {
       strengths.push(
         isKo
-          ? '점성 시너스트리에서 감정 교감과 연애 케미 신호가 좋습니다.'
+          ? '점성 차트에서 감정 교감과 로맨틱한 케미가 잘 흐르는 결이 보여요.'
           : 'Astrology synastry supports emotional and romantic chemistry.'
       )
     } else if (input.astrologyScore < 55) {
       challenges.push(
         isKo
-          ? '점성 기준에서 소통 방식 또는 감정 표현 스타일 차이가 보입니다.'
+          ? '점성 차트에서 보면 소통이나 감정 표현 스타일이 다른 부분이 있어요.'
           : 'Astrology shows communication or emotional style mismatch.'
       )
     }
@@ -227,13 +227,13 @@ export function buildPairInsights(input: {
     if (input.crossScore >= 70) {
       strengths.push(
         isKo
-          ? '사주와 점성의 교차 신호가 같은 방향으로 정합적입니다.'
+          ? '사주와 점성이 같은 방향을 가리키는 일관된 결이에요.'
           : 'Cross-system signal (Saju x Astrology) is consistent and coherent.'
       )
     } else if (input.crossScore < 50) {
       challenges.push(
         isKo
-          ? '사주·점성 신호가 엇갈려 해석과 의사결정에 추가 확인이 필요합니다.'
+          ? '사주와 점성이 조금 다른 신호를 보내고 있어, 두 시각을 모두 살펴보면 좋아요.'
           : 'Cross-system signal diverges, so interpretation must be handled carefully.'
       )
     }
@@ -242,13 +242,13 @@ export function buildPairInsights(input: {
   if (input.harmonyAspectCount >= input.tensionAspectCount) {
     strengths.push(
       isKo
-        ? '긴장 어스펙트보다 조화 어스펙트가 더 많습니다.'
+        ? '긴장보다 조화의 별 만남이 더 많은 결이에요.'
         : 'More harmonious synastry aspects than tense aspects.'
     )
   } else {
     challenges.push(
       isKo
-        ? '현재 차트 비교에서 긴장 어스펙트 비중이 더 큽니다.'
+        ? '현재 두 차트에서 긴장의 별 만남이 조화보다 더 많아요.'
         : 'Tense synastry aspects are dominant in current chart comparison.'
     )
   }
@@ -256,34 +256,34 @@ export function buildPairInsights(input: {
   if (input.finalScore >= 80) {
     advice.push(
       isKo
-        ? '정기적으로 감정 상태를 체크해 현재 강점을 유지하세요.'
+        ? '주기적으로 서로의 감정 상태를 가볍게 점검하며 지금의 좋은 흐름을 지켜가세요.'
         : 'Protect the current strengths with regular emotional check-ins.'
     )
     advice.push(
       isKo
-        ? '상승 흐름일 때 중장기 공동 목표를 구체화하세요.'
+        ? '상승 흐름일 때 중장기 공동 목표를 구체적으로 그려보세요.'
         : 'Plan shared long-term goals while momentum is strong.'
     )
   } else if (input.finalScore >= 65) {
     advice.push(
       isKo
-        ? '주간 소통 루틴을 정해 오해를 누적시키지 마세요.'
+        ? '주 1회 정도의 짧은 대화 루틴을 만들어 오해가 쌓이지 않게 해주세요.'
         : 'Set a weekly communication ritual to reduce misunderstandings.'
     )
     advice.push(
       isKo
-        ? '실무 역할을 분담해 일상 마찰을 줄이세요.'
+        ? '집안일이나 실무적인 역할을 나눠 일상의 작은 마찰을 줄여보세요.'
         : 'Use role-sharing in practical matters to reduce friction.'
     )
   } else {
     advice.push(
       isKo
-        ? '큰 결정을 하기 전 경계와 기대치를 문장으로 명확히 합의하세요.'
+        ? '큰 결정을 하기 전, 서로의 경계와 기대치를 말로 또렷이 맞춰두세요.'
         : 'Define boundaries and expectations explicitly before major commitments.'
     )
     advice.push(
       isKo
-        ? '갈등 해결을 일회성이 아닌 반복 가능한 프로세스로 설계하세요.'
+        ? '갈등 해결을 그때그때가 아니라, 반복 가능한 작은 약속으로 만들어두세요.'
         : 'Treat conflict resolution as a repeatable process, not a one-time fix.'
     )
   }
@@ -291,7 +291,7 @@ export function buildPairInsights(input: {
   if (input.tensionAspectCount > input.harmonyAspectCount) {
     advice.push(
       isKo
-        ? '충돌이 커질수록 즉시 결론 내리기보다 멈춘 뒤 구조화된 대화로 재접근하세요.'
+        ? '충돌이 커질수록 바로 결론 내리지 말고, 한 번 멈춘 뒤 차분히 다시 풀어가세요.'
         : 'When conflict rises, pause first and revisit with structured dialogue.'
     )
   }

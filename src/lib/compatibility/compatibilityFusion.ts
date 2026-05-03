@@ -385,6 +385,21 @@ function generateRecommendedActions(
 // 관계 역학 분석
 // ============================================================
 
+import { signDistance, aspectStrengthScore } from './_shared/signMath'
+
+// Same-or-compatible elements (fusion semantic — includes self-pair).
+const ELEMENT_PAIR: Record<string, string[]> = {
+  fire: ['fire', 'air'],
+  earth: ['earth', 'water'],
+  air: ['air', 'fire'],
+  water: ['water', 'earth'],
+}
+
+function elementsCompatible(e1?: string, e2?: string): boolean {
+  if (!e1 || !e2) return false
+  return ELEMENT_PAIR[e1.toLowerCase()]?.includes(e2.toLowerCase()) ?? false
+}
+
 function analyzeRelationshipDynamics(
   p1Saju: SajuProfile,
   p1Astro: AstrologyProfile,
@@ -398,42 +413,60 @@ function analyzeRelationshipDynamics(
   const powerBalance =
     ((p2ElementStrength - p1ElementStrength) / Math.max(p1ElementStrength, p2ElementStrength)) * 100
 
-  // Emotional Intensity (Venus-Mars)
-  const p1VenusElement = p1Astro.venus.element
-  const p2MarsElement = p2Astro.mars.element
-  const p2VenusElement = p2Astro.venus.element
-  const p1MarsElement = p1Astro.mars.element
+  // Emotional Intensity — Venus-Mars sign aspect synastry (real)
+  //
+  // Score is the max of (p1.Venus ↔ p2.Mars) and (p2.Venus ↔ p1.Mars)
+  // sign-based aspect strength, plus a small bonus when Venus elements
+  // are compatible. This produces a continuous distribution (~30-95)
+  // instead of binary 50/75/100 from element-only matching.
+  const vm1 = aspectStrengthScore(signDistance(p1Astro.venus.sign, p2Astro.mars.sign))
+  const vm2 = aspectStrengthScore(signDistance(p2Astro.venus.sign, p1Astro.mars.sign))
+  const venusElementBonus = elementsCompatible(p1Astro.venus.element, p2Astro.venus.element)
+    ? 8
+    : 0
+  const emotionalIntensity = Math.min(100, Math.max(vm1, vm2) + venusElementBonus)
 
-  let emotionalIntensity = 50
-  if (p1VenusElement === p2MarsElement) {
-    emotionalIntensity += 25
-  }
-  if (p2VenusElement === p1MarsElement) {
-    emotionalIntensity += 25
-  }
-
-  // Intellectual Alignment (Sun-Moon)
-  const sunSignMatch = p1Astro.sun.sign === p2Astro.sun.sign
-  const moonSignMatch = p1Astro.moon.sign === p2Astro.moon.sign
-
+  // Intellectual Alignment — Mercury synastry + Sun-Mercury cross
+  //
+  // Real intellectual alignment is about how the two minds talk to each
+  // other (Mercury), not whether they share the same Sun sign. Use
+  // Mercury-Mercury aspect when both charts have Mercury data, plus
+  // Sun-Mercury cross-aspects, plus a small element-compat bonus.
+  // Falls back to Sun-Moon aspect when Mercury data is missing.
   let intellectualAlignment = 50
-  if (sunSignMatch) {
-    intellectualAlignment += 30
-  }
-  if (moonSignMatch) {
-    intellectualAlignment += 20
+  const mercury1 = (p1Astro as { mercury?: { sign: string; element: string } }).mercury
+  const mercury2 = (p2Astro as { mercury?: { sign: string; element: string } }).mercury
+
+  if (mercury1 && mercury2) {
+    const merc = aspectStrengthScore(signDistance(mercury1.sign, mercury2.sign))
+    const sunMerc1 = aspectStrengthScore(signDistance(p1Astro.sun.sign, mercury2.sign))
+    const sunMerc2 = aspectStrengthScore(signDistance(p2Astro.sun.sign, mercury1.sign))
+    const elBonus = elementsCompatible(mercury1.element, mercury2.element) ? 8 : 0
+    intellectualAlignment = Math.min(
+      100,
+      Math.round(merc * 0.5 + Math.max(sunMerc1, sunMerc2) * 0.4 + elBonus)
+    )
+  } else {
+    // No Mercury → use Sun-Moon cross aspect (closest proxy)
+    const sm1 = aspectStrengthScore(signDistance(p1Astro.sun.sign, p2Astro.moon.sign))
+    const sm2 = aspectStrengthScore(signDistance(p2Astro.sun.sign, p1Astro.moon.sign))
+    const elBonus = elementsCompatible(p1Astro.sun.element, p2Astro.sun.element) ? 8 : 0
+    intellectualAlignment = Math.min(100, Math.round(Math.max(sm1, sm2) + elBonus))
   }
 
   // Spiritual Connection (graph clustering)
   const spiritualConnection = Math.min(100, graphAnalysis.clusterScore * 150)
 
-  // Conflict Resolution Style
-  let conflictResolutionStyle = '균형잡힌 협상'
+  // Conflict Resolution Style — friendly Korean phrasing
+  let conflictResolutionStyle = '균형잡힌 협상으로 푸는 결'
   if (p1Saju.dayMaster.yin_yang === p2Saju.dayMaster.yin_yang) {
     conflictResolutionStyle =
-      p1Saju.dayMaster.yin_yang === 'yang' ? '직접적이고 솔직한 대화' : '조용하고 사려깊은 대화'
+      p1Saju.dayMaster.yin_yang === 'yang'
+        ? '둘 다 직접 부딪쳐 솔직하게 풀어가는 결 — 빠르지만 강도 조절이 중요해요'
+        : '둘 다 조용히 마음으로 다루는 결 — 깊지만 의식적으로 표현해야 해요'
   } else {
-    conflictResolutionStyle = '서로 다른 접근방식을 조율하는 협력적 해결'
+    conflictResolutionStyle =
+      '서로 다른 접근을 협력적으로 맞춰가는 결 — 자연스러운 균형이 만들어집니다'
   }
 
   return {
@@ -461,22 +494,22 @@ function generateFutureGuidance(
   let shortTerm = ''
   if (compatibility.overallScore >= 70) {
     shortTerm =
-      '초기 조화가 좋으므로 자연스럽게 서로를 알아가는 시기입니다. 신뢰를 쌓는데 집중하세요.'
+      '초기 흐름이 부드러워 서로를 자연스럽게 알아가는 시기예요. 빠른 결정보다 신뢰를 차곡히 쌓는 데 집중하세요.'
   } else {
     shortTerm =
-      '처음에는 차이점이 부각될 수 있습니다. 서두르지 말고 천천히 서로를 이해하는 시간을 가지세요.'
+      '처음 몇 달은 서로 다른 결이 부각될 수 있어요. 서두르지 말고 천천히 이해의 폭을 넓히는 시간이 필요합니다.'
     challenges.push({
       timeframe: 'short',
       description: '초기 적응기의 긴장감',
-      mitigation: '정기적인 대화와 작은 성공 경험 쌓기',
+      mitigation: '주 1회 정도의 솔직한 대화와 작은 성공 경험 쌓기',
     })
   }
 
   if (dynamics.emotionalIntensity > 75) {
     opportunities.push({
       timeframe: 'short',
-      description: '강한 감정적 끌림',
-      howToCapitalize: '이 에너지를 활용해 깊은 유대감을 빠르게 형성하세요',
+      description: '감정적 끌림이 강한 시기',
+      howToCapitalize: '이 에너지를 활용해 깊은 유대감을 빠르게 만들어가세요',
     })
   }
 
@@ -484,52 +517,54 @@ function generateFutureGuidance(
   let mediumTerm = ''
   if (graphAnalysis.harmonyIndex > 0.6) {
     mediumTerm =
-      '관계가 안정화되며 서로의 리듬을 찾아가는 시기입니다. 함께 하는 일상을 만들어가세요.'
+      '관계가 안정되며 두 분만의 리듬을 찾아가는 시기예요. 함께하는 일상의 결을 단단히 만들면 좋습니다.'
 
     opportunities.push({
       timeframe: 'medium',
-      description: '안정적인 패턴 형성',
-      howToCapitalize: '공동의 목표와 루틴을 만들어 관계를 공고히 하세요',
+      description: '안정적인 패턴이 자리 잡는 시기',
+      howToCapitalize: '공동의 목표와 작은 루틴을 만들어 관계를 단단히 다지세요',
     })
   } else {
-    mediumTerm = '조율이 필요한 시기입니다. 갈등을 피하지 말고 건설적으로 해결하는 법을 배우세요.'
+    mediumTerm =
+      '조율이 필요한 시기예요. 갈등을 회피하기보다 건설적으로 다루는 법을 함께 익혀가세요.'
 
     challenges.push({
       timeframe: 'medium',
       description: '가치관과 생활방식의 차이',
-      mitigation: '타협점을 찾고 서로의 경계를 존중하는 규칙 만들기',
+      mitigation: '타협점을 찾고 서로의 경계를 존중하는 작은 약속 만들기',
     })
   }
 
   // Long-term (2+ years)
   let longTerm = ''
   if (compatibility.overallScore >= 75) {
-    longTerm = '깊고 성숙한 관계로 발전할 가능성이 높습니다. 서로의 성장을 지속적으로 지원하세요.'
+    longTerm =
+      '깊고 성숙한 관계로 자라날 가능성이 높아요. 서로의 성장을 꾸준히 지지해주는 결입니다.'
 
     opportunities.push({
       timeframe: 'long',
-      description: '영적 동반자 관계로의 성장',
-      howToCapitalize: '함께 더 큰 목표를 향해 나아가며 서로를 고양시키세요',
+      description: '영적 동반자로 자라는 흐름',
+      howToCapitalize: '같은 큰 그림을 향해 나란히 걸으며 서로를 고양시키세요',
     })
   } else if (compatibility.overallScore >= 55) {
     longTerm =
-      '관계를 지속하려면 계속된 노력이 필요합니다. 성장 기회로 삼으면 의미있는 관계가 됩니다.'
+      '관계를 길게 가져가려면 꾸준한 노력이 필요해요. 그 노력 자체가 두 분을 더 단단하게 만들 수 있습니다.'
 
     challenges.push({
       timeframe: 'long',
-      description: '지속적인 조율의 필요성',
-      mitigation: '관계에 투자하는 시간과 상담/대화를 통한 지속적 개선',
+      description: '지속적인 조율의 필요',
+      mitigation: '관계에 의식적으로 시간을 투자하고 정기적인 솔직한 대화 갖기',
     })
   } else {
     longTerm =
-      '장기적으로는 각자의 길을 가는 것이 나을 수 있습니다. 하지만 배움은 언제나 가치있습니다.'
+      '장기적으로 보면 각자의 길이 더 자연스러울 수 있어요. 다만 만남에서 얻는 배움은 두 분 모두에게 의미가 있습니다.'
   }
 
   if (dynamics.spiritualConnection > 70) {
     opportunities.push({
       timeframe: 'long',
       description: '영혼 수준의 깊은 연결',
-      howToCapitalize: '명상, 영적 수행 등을 함께 하며 초월적 경험을 공유하세요',
+      howToCapitalize: '함께하는 명상이나 깊은 대화를 통해 초월적 경험을 공유하세요',
     })
   }
 

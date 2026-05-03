@@ -615,6 +615,27 @@ export function buildThemedFallbackSections(
           lang
         )
       }
+      case 'move': {
+        // 이동·이사 — 타이밍/커리어 advisory에서 환경 변동 신호를 끌어와 fallback 생성
+        const careerAdvisory = deps.findReportCoreAdvisory(reportCore, 'career')
+        const careerTiming = deps.findReportCoreTimingWindow(reportCore, 'career')
+        return normalizeThemedSections(
+          enforceThemedDepth(
+            {
+              ...common,
+              movementWindows:
+                `${careerTiming ? deps.buildTimingWindowNarrative('career', careerTiming, lang) : reportCore.thesis}`.trim(),
+              environmentFit:
+                `${careerAdvisory?.thesis || reportCore.thesis} ${reportCore.primaryAction}`.trim(),
+              baseStability:
+                `${careerAdvisory?.caution || reportCore.primaryCaution} ${reportCore.riskControl}`.trim(),
+            },
+            theme,
+            deps
+          ),
+          lang
+        )
+      }
     }
   }
 
@@ -763,6 +784,29 @@ export function buildThemedFallbackSections(
             legacy: merge(
               `${wealth?.thesis || ''} ${health?.thesis || ''}`.trim(),
               '세대 과제는 단기 성과보다 일관된 운영 원칙을 남기는 것입니다. 가족 안에서 반복되는 돈 문제, 돌봄 부담, 감정 노동의 패턴을 먼저 보이는 언어로 바꿔야 합니다. 기준 문서화를 습관화하면 역할/책임/기대치가 선명해지고, 남기는 것은 말이 아니라 반복 가능한 운영 규칙이 됩니다.'
+            ),
+          },
+          theme,
+          deps
+        ),
+        lang
+      )
+    case 'move':
+      return normalizeThemedSections(
+        enforceThemedDepth(
+          {
+            ...baseKo,
+            movementWindows: merge(
+              `${timing?.thesis || ''} ${career?.thesis || ''}`.trim(),
+              '이동 적기는 한 번에 결심하기보다 단계별 정렬이 맞아드는 구간에서 안정됩니다. 사주의 충/합/형/공망과 점성의 4·9·10하우스 트랜짓이 같은 방향을 가리킬 때 거점 변경이 가장 흔들림 없이 풀립니다. 사전 점검 기간을 6~12주 두고 거점 안정성을 먼저 확인하면 결정 후 후회 비용이 크게 줄어듭니다.'
+            ),
+            environmentFit: merge(
+              `${career?.thesis || ''} ${health?.thesis || ''}`.trim(),
+              '환경 적합성은 단순 선호가 아니라 본명 일주가 어떤 자극에서 회복이 가장 빠른지에 따라 결정됩니다. 도심·근교·해외, 정적·동적 환경 중에서 일주가 충분히 받쳐주는 쪽을 먼저 시험해 보는 편이 장기 정착에 유리합니다.'
+            ),
+            baseStability: merge(
+              `${career?.riskControl || ''} ${timing?.riskControl || ''}`.trim(),
+              '거점 안정성은 결정 직후의 추진력보다 6~12주의 적응 기간 설계에서 갈립니다. 이사·이직 직후 무리한 일정과 외부 약속을 줄이고, 동선·인프라·예비안 3개를 미리 정리해두면 거점이 빠르게 자리 잡습니다.'
             ),
           },
           theme,

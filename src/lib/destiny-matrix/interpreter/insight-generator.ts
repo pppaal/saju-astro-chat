@@ -3,6 +3,7 @@
 // 특허 핵심: 다층 매트릭스 데이터 → 사용자 친화적 인사이트 변환 알고리즘
 
 import type { FiveElement, SibsinKind } from '../../Saju/types';
+import { iga, eulReul, eunNeun, waGwa } from '../../i18n/koParticle';
 import type {
   MatrixCalculationInput,
   MatrixCell,
@@ -263,7 +264,7 @@ export class InsightGenerator {
    * 도메인 추론
    */
   private inferDomain(cellKey: string, sajuBasis?: string, astroBasis?: string): InsightDomain {
-    // ??? ?? ??
+    // 하우스 기반 추론
     const houseMatch = astroBasis?.match(/H(\d+)/);
     if (houseMatch) {
       const houseNum = parseInt(houseMatch[1], 10) as HouseNumber;
@@ -272,21 +273,21 @@ export class InsightGenerator {
       }
     }
 
-    // ?? ?? ??
+    // 십신 기반 추론
     for (const [sibsin, domains] of Object.entries(SIBSIN_DOMAIN_MAP)) {
       if (cellKey.includes(sibsin) || sajuBasis?.includes(sibsin)) {
         return domains[0];
       }
     }
 
-    // ?? ?? ??
+    // 행성 기반 추론
     for (const [planet, domains] of Object.entries(PLANET_DOMAIN_MAP)) {
       if (cellKey.includes(planet) || astroBasis?.includes(planet)) {
         return domains[0];
       }
     }
 
-    // ???
+    // 기본값
     return 'personality';
   }
 
@@ -388,32 +389,32 @@ export class InsightGenerator {
 
     switch (category) {
       case 'strength':
-        description = `${sajuPart}과 ${astroPart}이 극강의 시너지를 이룹니다. ${interaction.keyword}의 에너지가 폭발적으로 작용합니다.`;
+        description = `${sajuPart}${waGwa(sajuPart)} ${astroPart}${iga(astroPart)} 극강의 시너지를 이룹니다. ${interaction.keyword}의 에너지가 폭발적으로 작용합니다.`;
         descriptionEn = `${sajuBasis || 'Your chart'} and ${astroBasis || 'planetary influences'} create extreme synergy. The energy of ${interaction.keywordEn} works explosively.`;
         break;
 
       case 'opportunity':
-        description = `${sajuPart}과 ${astroPart}이 상호 증폭됩니다. ${interaction.keyword}을 통해 성장의 기회가 열립니다.`;
+        description = `${sajuPart}${waGwa(sajuPart)} ${astroPart}${iga(astroPart)} 상호 증폭됩니다. ${interaction.keyword}${eulReul(interaction.keyword)} 통해 성장의 기회가 열립니다.`;
         descriptionEn = `${sajuBasis || 'Your chart'} and ${astroBasis || 'planetary influences'} amplify each other. Opportunities for growth open through ${interaction.keywordEn}.`;
         break;
 
       case 'balance':
-        description = `${sajuPart}과 ${astroPart}이 안정적 균형을 이룹니다. ${interaction.keyword}의 조화로운 상태입니다.`;
+        description = `${sajuPart}${waGwa(sajuPart)} ${astroPart}${iga(astroPart)} 안정적 균형을 이룹니다. ${interaction.keyword}의 조화로운 상태입니다.`;
         descriptionEn = `${sajuBasis || 'Your chart'} and ${astroBasis || 'planetary influences'} form stable balance. A harmonious state of ${interaction.keywordEn}.`;
         break;
 
       case 'caution':
-        description = `${sajuPart}과 ${astroPart} 사이에 긴장이 있습니다. ${interaction.keyword} 관련하여 주의가 필요합니다.`;
+        description = `${sajuPart}${waGwa(sajuPart)} ${astroPart} 사이에 긴장이 있습니다. ${interaction.keyword} 관련하여 주의가 필요합니다.`;
         descriptionEn = `There is tension between ${sajuBasis || 'your chart'} and ${astroBasis || 'planetary influences'}. Caution needed regarding ${interaction.keywordEn}.`;
         break;
 
       case 'challenge':
-        description = `${sajuPart}과 ${astroPart}이 충돌합니다. ${interaction.keyword}은 현재 도전의 영역입니다. 내면 성찰의 기회로 삼으세요.`;
+        description = `${sajuPart}${waGwa(sajuPart)} ${astroPart}${iga(astroPart)} 충돌합니다. ${interaction.keyword}${eunNeun(interaction.keyword)} 현재 도전의 영역입니다. 내면 성찰의 기회로 삼으세요.`;
         descriptionEn = `${sajuBasis || 'Your chart'} and ${astroBasis || 'planetary influences'} clash. ${interaction.keywordEn} is currently a challenging area. Use it as an opportunity for inner reflection.`;
         break;
 
       default:
-        description = `${sajuPart}과 ${astroPart}의 상호작용: ${interaction.keyword}`;
+        description = `${sajuPart}${waGwa(sajuPart)} ${astroPart}의 상호작용: ${interaction.keyword}`;
         descriptionEn = `Interaction between ${sajuBasis || 'your chart'} and ${astroBasis || 'planetary influences'}: ${interaction.keywordEn}`;
     }
 

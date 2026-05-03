@@ -11,6 +11,15 @@ import { calculateFusionCompatibility } from '@/lib/compatibility/compatibilityF
 import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
+import { analyzeCoupleTiming } from '@/lib/compatibility/coupleTimingAnalysis'
+import { analyzeCoupleAstroTiming } from '@/lib/compatibility/coupleAstroTiming'
+import { analyzeCoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
+import { buildIdealTypeProfiles } from '@/lib/compatibility/coupleIdealTypeProfile'
+import { buildMultiFacetReport, filterFacetsByTier } from '@/lib/compatibility/coupleMultiFacetReport'
+import { isDbPremiumUser } from '@/lib/auth/premium'
+import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
+import { normalizeSajuGender } from './routeSupportCommon'
 import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
 import type { PersonInput } from './types'
 import { compatibilityRequestSchema } from '@/lib/api/zodValidation'
@@ -286,6 +295,182 @@ export const POST = withApiMiddleware(
       locale
     )
     const timing = buildTimingPayload(primaryPair, persons, personAnalyses, isGroup, locale)
+
+    // Couple timing analysis — concrete months/years using full unse data.
+    // Best-effort: re-runs calculateSajuData (cached internally) for both
+    // people in the primary pair to access annual + monthly cycles that
+    // the slim sajuProfile drops.
+    let coupleTiming: ReturnType<typeof analyzeCoupleTiming> = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const a = persons[aIdx]
+        const b = persons[bIdx]
+        if (a && b) {
+          const fullA = calculateSajuData(
+            a.date,
+            a.time,
+            normalizeSajuGender(a.gender),
+            'solar',
+            a.timeZone
+          )
+          const fullB = calculateSajuData(
+            b.date,
+            b.time,
+            normalizeSajuGender(b.gender),
+            'solar',
+            b.timeZone
+          )
+          coupleTiming = analyzeCoupleTiming(
+            fullA as unknown as Record<string, unknown>,
+            fullB as unknown as Record<string, unknown>
+          )
+        }
+      }
+    } catch (timingErr) {
+      logger.warn('[Compatibility] couple timing failed (non-fatal):', timingErr)
+    }
+
+    // Astro timing layer — current Saturn/Jupiter era + life-stage transits
+    // for both. Single transit chart call, then aspect math against natal Suns.
+    let astroTiming: ReturnType<typeof analyzeCoupleAstroTiming> | null = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const a = persons[aIdx]
+        const b = persons[bIdx]
+        const analysisA = personAnalyses[aIdx]
+        const analysisB = personAnalyses[bIdx]
+
+        if (a && b && analysisA?.natalChart && analysisB?.natalChart) {
+          const transitChart = await calculateTransitChart({
+            iso: new Date().toISOString().slice(0, 19),
+            latitude: a.latitude ?? 37.5665,
+            longitude: a.longitude ?? 126.978,
+            timeZone: a.timeZone || 'Asia/Seoul',
+          }).catch(() => null)
+
+          // NatalChartData/Chart shapes differ on the sign type alias
+          // (string vs ZodiacKo) but the runtime data is identical.
+          const natalA = analysisA.natalChart as unknown as Parameters<
+            typeof analyzeCoupleAstroTiming
+          >[0]
+          const natalB = analysisB.natalChart as unknown as Parameters<
+            typeof analyzeCoupleAstroTiming
+          >[1]
+          astroTiming = analyzeCoupleAstroTiming(
+            natalA,
+            natalB,
+            a.date,
+            b.date,
+            transitChart,
+            coupleTiming?.activationPeriod?.when ?? null
+          )
+        }
+      }
+    } catch (astroErr) {
+      logger.warn('[Compatibility] couple astro timing failed (non-fatal):', astroErr)
+    }
+
+    // Deep insights — translate the rich saju + astro + fusion data into
+    // plain-Korean answers (왜 끌리는지, 결혼 준비도, 지속력, 이상형 매칭).
+    let deepInsights: ReturnType<typeof analyzeCoupleDeepInsights> | null = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const analysisA = personAnalyses[aIdx]
+        const analysisB = personAnalyses[bIdx]
+        if (analysisA?.sajuProfile && analysisB?.sajuProfile && analysisA.astroProfile && analysisB.astroProfile) {
+          deepInsights = analyzeCoupleDeepInsights({
+            p1Saju: analysisA.sajuProfile,
+            p2Saju: analysisB.sajuProfile,
+            p1Astro: analysisA.extendedAstroProfile || analysisA.astroProfile,
+            p2Astro: analysisB.extendedAstroProfile || analysisB.astroProfile,
+            fusion: {
+              sajuScore: primaryPair.sajuScore,
+              astrologyScore: primaryPair.astrologyScore,
+              fusionScore: primaryPair.fusionScore,
+              crossScore: primaryPair.crossScore,
+              dayMasterHarmony: primaryPair.fusionInsights?.dayMasterHarmony,
+              sunMoonHarmony: primaryPair.fusionInsights?.sunMoonHarmony,
+              venusMarsSynergy: primaryPair.fusionInsights?.venusMarsSynergy,
+              emotionalIntensity: primaryPair.fusionInsights?.emotionalIntensity,
+              intellectualAlignment: primaryPair.fusionInsights?.intellectualAlignment,
+              spiritualConnection: primaryPair.fusionInsights?.spiritualConnection,
+            },
+            sajuActivationWhen: coupleTiming?.activationPeriod?.when ?? null,
+            primeYear: coupleTiming?.primeYearWindow?.startYear ?? null,
+          })
+        }
+      }
+    } catch (deepErr) {
+      logger.warn('[Compatibility] deep insights failed (non-fatal):', deepErr)
+    }
+
+    // Multi-angle ideal type profiles (premium tier — 7 angles per person)
+    let idealTypeProfiles: ReturnType<typeof buildIdealTypeProfiles> | null = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const analysisA = personAnalyses[aIdx]
+        const analysisB = personAnalyses[bIdx]
+        if (
+          analysisA?.sajuProfile &&
+          analysisB?.sajuProfile &&
+          analysisA.astroProfile &&
+          analysisB.astroProfile
+        ) {
+          idealTypeProfiles = buildIdealTypeProfiles(
+            analysisA.sajuProfile,
+            analysisB.sajuProfile,
+            analysisA.extendedAstroProfile || analysisA.astroProfile,
+            analysisB.extendedAstroProfile || analysisB.astroProfile
+          )
+        }
+      }
+    } catch (idealErr) {
+      logger.warn('[Compatibility] ideal type profile failed (non-fatal):', idealErr)
+    }
+
+    // Determine tier — premium content gates on this
+    const userId = (await getServerSession(authOptions))?.user?.id
+    const isPremium = await isDbPremiumUser(userId).catch(() => false)
+    const tier: 'free' | 'premium' = isPremium ? 'premium' : 'free'
+
+    // Multi-facet report — 8 dimensions of the relationship
+    let multiFacetReport: ReturnType<typeof buildMultiFacetReport> | null = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const analysisA = personAnalyses[aIdx]
+        const analysisB = personAnalyses[bIdx]
+        if (
+          analysisA?.sajuProfile &&
+          analysisB?.sajuProfile &&
+          analysisA.astroProfile &&
+          analysisB.astroProfile
+        ) {
+          const allFacets = buildMultiFacetReport({
+            p1Saju: analysisA.sajuProfile,
+            p2Saju: analysisB.sajuProfile,
+            p1Astro: analysisA.extendedAstroProfile || analysisA.astroProfile,
+            p2Astro: analysisB.extendedAstroProfile || analysisB.astroProfile,
+            fusion: {
+              dayMasterHarmony: primaryPair.fusionInsights?.dayMasterHarmony,
+              sunMoonHarmony: primaryPair.fusionInsights?.sunMoonHarmony,
+              venusMarsSynergy: primaryPair.fusionInsights?.venusMarsSynergy,
+              intellectualAlignment: primaryPair.fusionInsights?.intellectualAlignment,
+              spiritualConnection: primaryPair.fusionInsights?.spiritualConnection,
+              emotionalIntensity: primaryPair.fusionInsights?.emotionalIntensity,
+            },
+          })
+          multiFacetReport = filterFacetsByTier(allFacets, tier)
+        }
+      }
+    } catch (facetErr) {
+      logger.warn('[Compatibility] multi-facet report failed (non-fatal):', facetErr)
+    }
+
     const interpretation = buildInterpretationMarkdown({
       locale,
       names,
@@ -351,6 +536,25 @@ export const POST = withApiMiddleware(
           }
         : null,
       timing,
+      couple_timing: coupleTiming,
+      astro_timing: astroTiming,
+      deep_insights: deepInsights,
+      ideal_type_profiles: tier === 'premium' ? idealTypeProfiles : null,
+      multi_facet_report: multiFacetReport,
+      tier,
+      person_elements: personAnalyses.map((a) => a.sajuProfile?.elements || null),
+      person_charts: personAnalyses.map((a) =>
+        a.astroProfile
+          ? {
+              sun: a.astroProfile.sun,
+              moon: a.astroProfile.moon,
+              venus: a.astroProfile.venus,
+              mars: a.astroProfile.mars,
+              mercury: a.astroProfile.mercury,
+              ascendant: a.astroProfile.ascendant,
+            }
+          : null
+      ),
       action_items: actionItems,
       fusion_enabled: fusionEnabled,
       is_group: isGroup,

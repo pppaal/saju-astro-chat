@@ -1,4 +1,5 @@
 ﻿import { NextRequest } from 'next/server'
+import { eunNeun } from '@/lib/i18n/koParticle'
 import {
   withApiMiddleware,
   createAuthenticatedGuard,
@@ -121,7 +122,7 @@ const buildSavedDatePresentation = (savedDate: SavedCalendarDetail) => {
       label: '가능한 전개',
       summary:
         recommendations[0] && warnings[0]
-          ? `${focus.label}은 열려 있지만 조건을 놓치면 흐름이 쉽게 꺾입니다.`
+          ? `${focus.label}${eunNeun(focus.label)} 열려 있지만 조건을 놓치면 흐름이 쉽게 꺾입니다.`
           : `${focus.label} 흐름은 실행과 보류 조건을 같이 봐야 합니다.`,
       visual: {
         kind: 'branch',

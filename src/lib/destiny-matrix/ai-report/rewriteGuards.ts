@@ -8,13 +8,13 @@ type ReportLang = 'ko' | 'en'
 type RewriteValidationMode = 'default' | 'selective_polish'
 
 const HIGH_RISK_WEEKDAY_TOKENS = [
-  '???',
-  '???',
-  '???',
-  '???',
-  '???',
-  '???',
-  '???',
+  '월요일',
+  '화요일',
+  '수요일',
+  '목요일',
+  '금요일',
+  '토요일',
+  '일요일',
   'monday',
   'tuesday',
   'wednesday',
@@ -25,16 +25,16 @@ const HIGH_RISK_WEEKDAY_TOKENS = [
 ]
 
 const HIGH_RISK_PLANET_TOKENS = [
-  '??',
-  '?',
-  '??',
-  '??',
-  '??',
-  '??',
-  '??',
-  '???',
-  '???',
-  '???',
+  '태양',
+  '달',
+  '수성',
+  '금성',
+  '화성',
+  '목성',
+  '토성',
+  '천왕성',
+  '해왕성',
+  '명왕성',
   'sun',
   'moon',
   'mercury',
@@ -48,11 +48,11 @@ const HIGH_RISK_PLANET_TOKENS = [
 ]
 
 const HIGH_RISK_ASPECT_TOKENS = [
-  '?',
-  '?',
-  '?',
-  '?',
-  '?',
+  '합',
+  '충',
+  '형',
+  '파',
+  '해',
   'conjunction',
   'opposition',
   'square',
@@ -61,10 +61,10 @@ const HIGH_RISK_ASPECT_TOKENS = [
 ]
 
 const HIGH_RISK_TRANSIT_TOKENS = [
-  '???',
-  '??',
-  '??',
-  '??',
+  '트랜짓',
+  '진행',
+  '역행',
+  '회귀',
   'transit',
   'retrograde',
   'saturnreturn',
@@ -79,21 +79,21 @@ const HIGH_RISK_TRANSIT_TOKENS = [
 ]
 
 const HIGH_RISK_TOKEN_ALIASES: Record<string, string[]> = {
-  mercury: ['??'],
-  venus: ['??'],
-  mars: ['??'],
-  jupiter: ['??'],
-  saturn: ['??'],
-  uranus: ['???'],
-  neptune: ['???'],
-  pluto: ['???'],
-  conjunction: ['?'],
-  opposition: ['?'],
-  square: ['?'],
-  trine: ['??'],
-  sextile: ['??'],
-  transit: ['???'],
-  retrograde: ['??'],
+  mercury: ['수성'],
+  venus: ['금성'],
+  mars: ['화성'],
+  jupiter: ['목성'],
+  saturn: ['토성'],
+  uranus: ['천왕성'],
+  neptune: ['해왕성'],
+  pluto: ['명왕성'],
+  conjunction: ['합'],
+  opposition: ['충'],
+  square: ['형'],
+  trine: ['삼합'],
+  sextile: ['육합'],
+  transit: ['트랜짓'],
+  retrograde: ['역행'],
 }
 
 const REWRITE_STOP_WORDS = new Set([
@@ -117,25 +117,25 @@ const REWRITE_STOP_WORDS = new Set([
   'or',
   'an',
   'a',
-  '?',
-  '???',
-  '???',
-  '??',
-  '??',
-  '??',
-  '?',
-  '?',
-  '?',
-  '?',
-  '?',
-  '?',
-  '?',
-  '?',
-  '?',
-  '?',
-  '?',
-  '?',
-  '??',
+  '및',
+  '그리고',
+  '하지만',
+  '또한',
+  '에서',
+  '으로',
+  '를',
+  '을',
+  '이',
+  '가',
+  '은',
+  '는',
+  '에',
+  '의',
+  '과',
+  '와',
+  '도',
+  '로',
+  '으로',
 ])
 
 const ALLOWED_LONG_REWRITE_TOKENS = new Set([
@@ -378,13 +378,13 @@ export function buildEvidenceBindingRepairPrompt(
 
   if (lang === 'ko') {
     return [
-      '??: ?? sections JSON? ?? ?? ??? ?? ??????.',
-      '??:',
-      '- violation? ??? path? ???? ??? path? ?????.',
-      '- evidenceRefs? ?? ??? ??(??/??/?/???)? ?????.',
-      '- ? ?? path?? allowedEvidence ??? ?? ???? ?? 1? ?? ?????.',
-      '- JSON ??? ?? ?? ???? ????.',
-      '- JSON? ?????.',
+      '중요: 아래 sections JSON을 근거 고정 규칙에 맞게 리페어하세요.',
+      '규칙:',
+      '- violation에 표시된 path만 수정하고 나머지 path는 유지합니다.',
+      '- evidenceRefs에 없는 고위험 토큰(요일/행성/각/트랜짓)은 제거합니다.',
+      '- 각 수정 path에는 allowedEvidence 기준의 근거 키워드를 최소 1개 이상 반영합니다.',
+      '- JSON 구조와 키는 절대 변경하지 않습니다.',
+      '- JSON만 반환합니다.',
       'violations:',
       ...violationLines,
       'evidenceRefs:',
@@ -439,7 +439,7 @@ export function enforceEvidenceBindingFallback(
       if (hint) {
         const groundingLine =
           lang === 'ko'
-            ? `?? ??? ${hint}???.`
+            ? `핵심 근거는 ${hint}입니다.`
             : `Key grounding comes from ${hint}.`
         cleaned = `${cleaned} ${groundingLine}`.replace(/\s{2,}/g, ' ').trim()
       }
@@ -567,7 +567,7 @@ function buildSectionRoleInstructions(lang: ReportLang, sectionPaths: string[]):
       rules.set(
         'career',
         lang === 'ko'
-          ? '- career/strategy ??? ??, ??, ?? ??, ?? ??? ??? ?? ?? ?? ??? ?? ???.'
+          ? '- career/strategy 섹션은 역할, 책임, 평가 기준, 직무 방향만 다루고 관계 거리 조정 문장을 넣지 마세요.'
           : '- career/strategy sections must stay on role, ownership, evaluation criteria, and work direction only; do not drift into relationship boundary language.'
       )
     }
@@ -575,7 +575,7 @@ function buildSectionRoleInstructions(lang: ReportLang, sectionPaths: string[]):
       rules.set(
         'relationship',
         lang === 'ko'
-          ? '- relationship/love ??? ??, ??, ???, ?? ??? ??? ??/??/?? ??? ?? ???.'
+          ? '- relationship/love 섹션은 거리, 경계, 기대치, 합의 속도만 다루고 직무/성과/보상 문장을 넣지 마세요.'
           : '- relationship/love sections must stay on distance, boundaries, expectations, and agreement speed only; do not drift into job/performance/compensation language.'
       )
     }
@@ -583,7 +583,7 @@ function buildSectionRoleInstructions(lang: ReportLang, sectionPaths: string[]):
       rules.set(
         'wealth',
         lang === 'ko'
-          ? '- wealth/risk ??? ??, ??, ?? ??, ?? ??? ??? ?? ?? ?? ??? ?? ???.'
+          ? '- wealth/risk 섹션은 유입, 누수, 손실 상한, 조건 검토만 다루고 관계 거리 조정 문장을 넣지 마세요.'
           : '- wealth/risk sections must stay on inflow, leakage, downside caps, and condition review only; do not drift into relationship boundary language.'
       )
     }
@@ -591,7 +591,7 @@ function buildSectionRoleInstructions(lang: ReportLang, sectionPaths: string[]):
       rules.set(
         'health',
         lang === 'ko'
-          ? '- health/recovery ??? ???, ??, ??, ?? ??? ??? ??/?? ??? ?? ???.'
+          ? '- health/recovery 섹션은 과부하, 회복, 루틴, 휴식 리듬만 다루고 직무/평가 문장을 넣지 마세요.'
           : '- health/recovery sections must stay on overload, recovery, routine, and rest rhythm only; do not drift into job/evaluation language.'
       )
     }
@@ -599,7 +599,7 @@ function buildSectionRoleInstructions(lang: ReportLang, sectionPaths: string[]):
       rules.set(
         'life',
         lang === 'ko'
-          ? '- life/mission/overview ??? ?? ??? ?? ?? ???, ?? ?? ??? ??? ???? ???.'
+          ? '- life/mission/overview 섹션은 장기 흐름과 인생 축을 다루고, 다른 섹션 문장을 그대로 반복하지 마세요.'
           : '- life/mission/overview sections must focus on the long arc and life track; do not reuse sentences from other sections.'
       )
     }
@@ -717,8 +717,8 @@ function buildRewriteOnlyPrompt(
       '- Keep minimum section length',
       '- Avoid repetitive sentence templates and repetitive endings',
       '- Do not reuse the same sentence across multiple sections',
-      '- Do not fall back to generic advice such as ?? ??, ?? ??, ???? ???, ??? ??, ?? ?? unless that wording already exists in the draft and is directly grounded',
-      '- Avoid bureaucratic wording: ??, ??, ????, ??, ???',
+      '- Do not fall back to generic advice such as 기준 정리, 속도 조절, 확정보다 재확인, 단계적 합의, 조건 확인 unless that wording already exists in the draft and is directly grounded',
+      '- Avoid bureaucratic wording: 영역, 구간, 프로토콜, 운영, 핵심은',
       '- Use natural, vivid Korean prose with varied rhythm',
       '- Include practical micro-context without adding facts',
       ...sectionRoleInstructions,
@@ -764,24 +764,24 @@ function buildSectionLengthPad(path: string, lang: ReportLang): string {
   const key = path.toLowerCase()
   if (lang === 'ko') {
     if (key.includes('career') || key.includes('strategy')) {
-      return '??? ??? ?? ???? ???, ??·??·??? ?? ?? ? ???? ?????.'
+      return '핵심은 범위를 좁혀 완료율을 올리고, 역할·기한·책임을 먼저 맞춘 뒤 확정하는 운영입니다.'
     }
     if (key.includes('relationship') || key.includes('love') || key.includes('communication')) {
-      return '??? ??? ???? ??? ??? ?????, ?? ??? ?? ?? ??? ????? ?????.'
+      return '관계는 결론의 속도보다 해석의 일치가 중요하므로, 요약 확인을 먼저 하고 합의를 단계적으로 진행하세요.'
     }
     if (key.includes('wealth') || key.includes('money') || key.includes('risk')) {
-      return '??? ?? ???? ?? ??? ????, ??·??·?? ??? ?? ??? ? ???? ?? ?????.'
+      return '재정은 수익 기대보다 손실 통제가 우선이며, 금액·기한·취소 조건을 분리 점검한 뒤 확정하는 편이 안전합니다.'
     }
     if (key.includes('health') || key.includes('energy') || key.includes('recovery')) {
-      return '?? ??? ???? ?? ??? ??? ???? ??·??·?? ??? ?? ??? ?? ??? ????.'
+      return '건강 리듬은 과속보다 회복 루틴이 성과를 지키므로 수면·수분·휴식 블록을 먼저 고정해 피로 누적을 막으세요.'
     }
     if (key.includes('timing') || key.includes('overview') || key.includes('caution')) {
-      return '???? ??? ??? ??? ????? ???? ???, ?? ???? ??? ??? ?? ???? ?????.'
+      return '타이밍은 착수와 확정을 분리해 운영할수록 안정성이 높으며, 당일 확정보다 재확인 단계를 둬야 변동성이 줄어듭니다.'
     }
     if (key.includes('actionplan') || key.includes('action')) {
-      return '??? ?? 1?·?? 1?·??? 1?? ??? ????? ?? ?? ??? ???? ??? ?????.'
+      return '실행은 완료 1건·보류 1건·재확인 1건의 루프로 단순화하면 실제 행동 전환이 빨라지고 누락이 줄어듭니다.'
     }
-    return '??? ???? ??? ??? ??? ????, ??? ??? ??? ??? ?? ???? ??????.'
+    return '오늘은 속도보다 순서를 지키는 운영이 유리하며, 중요한 항목은 재확인 단계를 거쳐 확정해야 안정적입니다.'
   }
   if (key.includes('career') || key.includes('strategy')) {
     return 'Narrow scope to raise completion rate, and lock role, deadline, and ownership before commitment.'

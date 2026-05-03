@@ -102,13 +102,13 @@ export function useActionPlanAiTimeline(input: {
         if (error instanceof Error && error.name === 'AbortError') {
           return
         }
-        logger.warn('[ActionPlan] AI timeline failed', {
+        logger.warn('[ActionPlan] timeline fetch failed', {
           error: error instanceof Error ? error.message : String(error),
         })
         setAiTimeline(null)
         setAiSummary(getActionPlanAiFallbackSummary(isKo))
         setAiInsights(null)
-        setAiPrecisionMode('rule-fallback')
+        setAiPrecisionMode('rule')
         setAiStatus('ready')
       }
     },
