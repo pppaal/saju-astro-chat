@@ -7,7 +7,6 @@ import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { cacheGet, cacheSet, makeCacheKey } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
-import { fetchWithRetry } from '@/lib/http'
 
 // Import from centralized modules
 import { hashName, maskDisplayName, maskTextWithName } from '@/lib/security'
@@ -135,120 +134,14 @@ export async function generateReport({
   // extraPrompt가 있으면 상담사 모드로 AI 사용
   const useAI = Boolean(safeExtra)
 
-  // 3) Call fusion backend (optional - fallback to local template if unavailable)
-  const backendUrl = process.env.AI_BACKEND_URL || process.env.NEXT_PUBLIC_AI_BACKEND
-
-  let aiText = ''
-  let modelUsed = ''
-  let backendAvailable = true
-
-  // 백엔드 URL이 없거나 템플릿 모드일 경우 로컬 생성
-  logger.debug('[DestinyMap] Backend URL check:', {
-    AI_BACKEND_URL: process.env.AI_BACKEND_URL,
-    NEXT_PUBLIC_AI_BACKEND: process.env.NEXT_PUBLIC_AI_BACKEND,
-    resolved: backendUrl,
-  })
-  if (!backendUrl) {
-    logger.debug('[DestinyMap] No backend URL - using local template generation')
-    aiText = useAI
-      ? generateLocalReport(result, theme, lang, name)
-      : generateLocalStructuredReport(result, theme, lang, name)
-    modelUsed = 'local-template'
-  } else {
-    try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-
-      // Add API authentication if ADMIN_API_TOKEN is available
-      const apiToken = process.env.ADMIN_API_TOKEN
-      if (apiToken) {
-        headers['X-API-KEY'] = apiToken
-      }
-
-      // 템플릿 모드: 30초, AI 모드: 180초
-      const timeoutMs = useAI ? 180000 : 30000
-      const payload = {
-        theme,
-        prompt: effectivePrompt || '',
-        prompt_trimmed: promptWasTrimmed,
-        saju: result.saju,
-        astro: result.astrology,
-        locale: lang,
-        render_mode: useAI ? 'gpt' : 'template',
-        advancedSaju: result.saju?.advancedAnalysis,
-        extraPoints: result.extraPoints,
-        solarReturn: result.solarReturn,
-        lunarReturn: result.lunarReturn,
-        progressions: result.progressions,
-        draconic: result.draconic,
-        harmonics: result.harmonics,
-        asteroids: result.asteroids,
-        fixedStars: result.fixedStars,
-        eclipses: result.eclipses,
-        electional: result.electional,
-        midpoints: result.midpoints,
-      }
-
-      const response = await fetchWithRetry(
-        `${backendUrl}/ask`,
-        {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(payload),
-        },
-        {
-          maxRetries: 2,
-          initialDelayMs: 800,
-          maxDelayMs: 4000,
-          timeoutMs,
-          retryStatusCodes: [408, 425, 429, 500, 502, 503, 504],
-          onRetry: (attempt, error, delayMs) => {
-            logger.warn('[DestinyMap] backend retry scheduled', {
-              attempt,
-              delayMs,
-              reason: error.message,
-            })
-          },
-        }
-      )
-
-      if (!response.ok) {
-        throw new Error(`Flask server error: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      // Check for fusion_layer or report content
-      const fusionText = data?.data?.fusion_layer || data?.data?.report || ''
-      const contextText = data?.data?.context || ''
-
-      if (fusionText && fusionText.trim()) {
-        aiText = fusionText
-      } else if (contextText && contextText.trim()) {
-        // If fusion_layer is empty but we have context, use that
-        aiText =
-          lang === 'ko'
-            ? `사주 및 점성술 분석 결과:\n\n${contextText.substring(0, 2000)}`
-            : `Saju and Astrology Analysis:\n\n${contextText.substring(0, 2000)}`
-      } else {
-        // 백엔드 응답이 없으면 로컬 생성
-        aiText = useAI
-          ? generateLocalReport(result, theme, lang, name)
-          : generateLocalStructuredReport(result, theme, lang, name)
-      }
-
-      modelUsed = data?.data?.model || 'fusion-backend'
-    } catch (err) {
-      logger.error('[DestinyMap] Fusion backend call failed:', err)
-      backendAvailable = false
-      // 백엔드 실패 시 로컬 생성으로 fallback
-      aiText = useAI
-        ? generateLocalReport(result, theme, lang, name)
-        : generateLocalStructuredReport(result, theme, lang, name)
-      modelUsed = 'local-template'
-    }
-  }
+  // 3) Local fusion generation — Python AI backend was removed.
+  // Counselor / detailed AI flows now go through @anthropic-ai/sdk directly
+  // (see askClaude / callClaude / aiBackend.ts), not through this fallback.
+  let aiText = useAI
+    ? generateLocalReport(result, theme, lang, name)
+    : generateLocalStructuredReport(result, theme, lang, name)
+  let modelUsed = 'local-template'
+  const backendAvailable = false
 
   // Template mode must stay readable/structured. If backend output is broken, regenerate locally.
   if (!useAI) {

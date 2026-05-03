@@ -15,7 +15,6 @@ import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 export {
   __resetAIDatesCircuitStateForTests,
   fetchAIDates,
-  validateBackendUrl,
 } from './calendarAIDatesSupport'
 import {
   isAlignedAcrossSystems,

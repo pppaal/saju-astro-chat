@@ -9,11 +9,9 @@ import type {
   Lang,
   ChartData,
   UserContext,
-  CounselorInitResponse,
   CounselorContextResponse,
 } from '@/types/api'
 import { logger } from '@/lib/logger'
-import { getPublicBackendUrl } from '@/lib/backend-url'
 
 type SearchParams = Record<string, string | string[] | undefined>
 const DEFAULT_LATITUDE = 37.5665
@@ -33,7 +31,7 @@ export function useCounselorData(sp: SearchParams) {
     graphNodes?: number
     corpusQuotes?: number
   }>({ done: false })
-  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [sessionId] = useState<string | null>(null)
 
   // Premium: User context and chat session for returning users
   const [userContext, setUserContext] = useState<UserContext | undefined>(undefined)
@@ -296,57 +294,9 @@ export function useCounselorData(sp: SearchParams) {
       fetchAdvancedAstro()
     }
 
-    // Prefetch RAG data in background
-    // Always call prefetchRAG - backend will compute saju/astro from birth data if needed
-    const prefetchRAG = async () => {
-      try {
-        const backendUrl = getPublicBackendUrl()
-        if (typeof window !== 'undefined') {
-          const backendOrigin = new URL(backendUrl, window.location.origin).origin
-          if (backendOrigin !== window.location.origin) {
-            setPrefetchStatus({ done: true })
-            return
-          }
-        }
-        const res = await fetch(`${backendUrl}/counselor/init`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            saju,
-            astro,
-            advancedAstro, // Include advanced astrology data
-            theme: selectedTheme,
-            // Always send birth data so backend can compute if saju/astro missing
-            birth: {
-              date: birthDate,
-              time: birthTime,
-              gender: normalizedGender,
-              latitude: resolvedLatitude,
-              longitude: resolvedLongitude,
-            },
-          }),
-        })
-        if (res.ok) {
-          const data = (await res.json()) as CounselorInitResponse
-          if (data.status === 'success') {
-            if (data.session_id) {
-              setSessionId(data.session_id)
-            }
-            setPrefetchStatus({
-              done: true,
-              timeMs: data.prefetch_time_ms,
-              graphNodes: data.data_summary?.graph_nodes,
-              corpusQuotes: data.data_summary?.corpus_quotes,
-            })
-            logger.warn(`[Counselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`)
-          }
-        }
-      } catch (e: unknown) {
-        logger.warn('[CounselorPage] RAG prefetch failed:', e)
-        setPrefetchStatus({ done: true }) // Continue anyway
-      }
-    }
-    prefetchRAG()
+    // Python AI backend was removed — counselor RAG prefetch is now a no-op.
+    // The chat itself runs through @anthropic-ai/sdk directly, no init step needed.
+    setPrefetchStatus({ done: true })
   }, [selectedTheme, birthDate, birthTime, normalizedGender, resolvedLatitude, resolvedLongitude])
 
   // Premium: Load user context (persona + recent sessions) for returning users

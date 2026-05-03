@@ -22,15 +22,6 @@ const aiDatesCircuitState: AIDatesCircuitState = {
   openUntilMs: 0,
 }
 
-export function validateBackendUrl(url: string) {
-  if (!url.startsWith('https://') && process.env.NODE_ENV === 'production') {
-    logger.warn('[Calendar API] Using non-HTTPS AI backend in production')
-  }
-  if (process.env.NEXT_PUBLIC_AI_BACKEND && !process.env.AI_BACKEND_URL) {
-    logger.warn('[Calendar API] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL')
-  }
-}
-
 function parsePositiveInt(
   rawValue: string | undefined,
   fallback: number,

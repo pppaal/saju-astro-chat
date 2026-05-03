@@ -2,9 +2,9 @@
 // 대화 후 자동으로 요약 생성 및 PersonaMemory 업데이트
 // Semantic summary: 장기 기억을 위한 의미론적 요약
 
-import { getBackendUrl } from '@/lib/backend-url'
 import { logger } from '@/lib/logger'
 import { extractJsonFromText } from '@/utils/safeJsonParse'
+import { callClaude, isClaudeAvailable } from '@/lib/llm/claude'
 
 type ChatMessage = {
   role: 'user' | 'assistant'
@@ -314,14 +314,15 @@ function generateSummaryText(userMessages: string[], theme: string, locale: stri
  */
 export async function summarizeWithAI(
   messages: ChatMessage[],
-  theme: string,
+  _theme: string,
   locale: string = 'ko'
 ): Promise<ConversationSummary | null> {
+  if (!isClaudeAvailable()) {
+    logger.debug('[summarizeWithAI] Claude not configured — returning null')
+    return null
+  }
   try {
-    const backendUrl = getBackendUrl()
-    const apiKey = process.env.ADMIN_API_TOKEN || ''
-
-    const prompt =
+    const userPrompt =
       locale === 'ko'
         ? `다음 상담 대화를 분석해주세요:
 
@@ -352,29 +353,15 @@ export async function summarizeWithAI(
            "recurringIssues": ["issue1"]
          }`
 
-    const response = await fetch(`${backendUrl}/ask`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        prompt,
-        max_tokens: 500,
-      }),
+    const result = await callClaude({
+      systemPrompt:
+        'You return ONLY a single JSON object that matches the schema in the user message. No markdown, no prose.',
+      userPrompt,
+      maxTokens: 500,
+      temperature: 0.3,
+      label: 'summarize-conversation',
     })
-
-    if (!response.ok) {
-      logger.warn('[summarizeWithAI] Backend error:', response.status)
-      return null
-    }
-
-    const data = await response.json()
-    const content = data.response || data.content || ''
-
-    // JSON 파싱 시도 (안전하게)
-    const parsed = extractJsonFromText<ConversationSummary>(content)
-    return parsed
+    return extractJsonFromText<ConversationSummary>(result.text)
   } catch (error) {
     logger.error('[summarizeWithAI] Error:', error)
     return null

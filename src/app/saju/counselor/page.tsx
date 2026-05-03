@@ -13,7 +13,6 @@ import AuthGate from '@/components/auth/AuthGate'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import styles from './counselor.module.css'
 import { sajuLogger } from '@/lib/logger'
-import { getPublicBackendUrl } from '@/lib/backend-url'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -35,13 +34,6 @@ type UserContext = {
 
 type Lang = 'ko' | 'en'
 type SajuData = Record<string, unknown>
-
-type PrefetchResponse = {
-  status?: string
-  session_id?: string
-  prefetch_time_ms?: number
-  data_summary?: { graph_nodes?: number }
-}
 
 type CounselorSession = {
   id: string
@@ -86,7 +78,7 @@ export default function SajuCounselorPage({
     timeMs?: number
     graphNodes?: number
   }>({ done: false })
-  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [sessionId] = useState<string | null>(null)
 
   // Premium: User context and chat session for returning users
   const [userContext, setUserContext] = useState<UserContext | undefined>(undefined)
@@ -167,40 +159,10 @@ export default function SajuCounselorPage({
 
     setSajuData(saju)
 
-    // Prefetch RAG data in background (saju-only)
+    // Python AI backend was removed — RAG prefetch is now a no-op.
+    // The chat itself runs through @anthropic-ai/sdk directly.
     if (saju) {
-      const prefetchRAG = async () => {
-        try {
-          const backendUrl = getPublicBackendUrl()
-          const res = await fetch(`${backendUrl}/saju/counselor/init`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ saju, theme }),
-          })
-          if (res.ok) {
-            const data = (await res.json()) as PrefetchResponse
-            if (data.status === 'success') {
-              if (data.session_id) {
-                setSessionId(data.session_id)
-              }
-              setPrefetchStatus({
-                done: true,
-                timeMs:
-                  typeof data.prefetch_time_ms === 'number' ? data.prefetch_time_ms : undefined,
-                graphNodes: data.data_summary?.graph_nodes,
-              })
-              sajuLogger.warn(`[SajuCounselor] RAG prefetch done: ${data.prefetch_time_ms ?? 0}ms`)
-            }
-          }
-        } catch (e: unknown) {
-          sajuLogger.warn(
-            '[SajuCounselorPage] RAG prefetch failed:',
-            e instanceof Error ? e : { error: String(e) }
-          )
-          setPrefetchStatus({ done: true }) // Continue anyway
-        }
-      }
-      prefetchRAG()
+      setPrefetchStatus({ done: true })
     }
   }, [theme, isAuthed, birthDate, birthTime, gender])
 

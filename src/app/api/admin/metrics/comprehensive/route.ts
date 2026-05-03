@@ -525,30 +525,10 @@ async function fetchSystemData(start: Date, end: Date) {
   }
 }
 
-async function fetchPerformanceData(start: Date, end: Date) {
-  const backendUrl = process.env.BACKEND_AI_URL || 'http://localhost:5000'
-  try {
-    const response = await fetch(
-      `${backendUrl}/api/analytics/performance?start=${start.toISOString()}&end=${end.toISOString()}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': process.env.ADMIN_API_TOKEN || '',
-        },
-      }
-    )
-
-    if (!response.ok) {
-      logger.warn('[Comprehensive] Performance backend error', { status: response.status })
-      return getDefaultPerformanceData()
-    }
-
-    const result = await response.json()
-    return result.data || getDefaultPerformanceData()
-  } catch (_error) {
-    logger.warn('[Comprehensive] Performance fetch failed, using defaults')
-    return getDefaultPerformanceData()
-  }
+async function fetchPerformanceData(_start: Date, _end: Date) {
+  // Python AI backend was removed — performance analytics now return defaults.
+  // (Admin can wire up first-party telemetry/datadog/etc later.)
+  return getDefaultPerformanceData()
 }
 
 function getDefaultPerformanceData() {
@@ -590,23 +570,8 @@ async function fetchBehaviorData(start: Date, end: Date) {
     fetchUserActivitySummary(),
   ])
 
-  // Get churn prediction from backend
-  let churnData = { atRiskUsers: [], totalAtRisk: 0, predictedChurnNext30Days: 0 }
-  try {
-    const backendUrl = process.env.BACKEND_AI_URL || 'http://localhost:5000'
-    const response = await fetch(`${backendUrl}/api/analytics/behavior`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': process.env.ADMIN_API_TOKEN || '',
-      },
-    })
-    if (response.ok) {
-      const result = await response.json()
-      churnData = result.data?.churnPrediction || churnData
-    }
-  } catch {
-    // Use fallback
-  }
+  // Python AI backend was removed — churn prediction returns empty defaults.
+  const churnData = { atRiskUsers: [], totalAtRisk: 0, predictedChurnNext30Days: 0 }
 
   return {
     cohortAnalysis: cohortData.status === 'fulfilled' ? cohortData.value : { cohorts: [], avgRetentionRate: 0 },

@@ -1,7 +1,8 @@
 // src/lib/api/ApiClient.ts
-// Unified API client for backend calls with timeout and error handling
+// API client for internal Next.js routes (and any explicitly-provided baseUrl).
+// The Python AI backend was removed — the singleton no longer points anywhere
+// by default; callers must pass an explicit baseUrl or use root-relative paths.
 
-import { getBackendUrl } from '@/lib/backend-url'
 import { logger } from '@/lib/logger'
 
 // ==========================================
@@ -77,8 +78,10 @@ export class ApiClient {
   }
 
   private resolveBaseUrl(): string {
-    // If caller injected a base URL, keep it. Otherwise always resolve from env.
-    return this.explicitBaseUrl || getBackendUrl()
+    // If caller injected a base URL, keep it. Otherwise return empty string —
+    // root-relative paths (`/api/...`) hit the same Next.js host the request
+    // came from, which is what every internal API call wants.
+    return this.explicitBaseUrl || ''
   }
 
   /**

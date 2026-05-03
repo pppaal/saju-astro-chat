@@ -20,7 +20,6 @@ export {
 // Re-export helpers
 export {
   getTranslation,
-  validateBackendUrl,
   getPillarStemName,
   getPillarBranchName,
   parseBirthDate,
