@@ -93,6 +93,13 @@ export interface ImportantDate {
     surgery?: number
     study?: number
   }
+  /** 대운/세운/월운/일운 — 본명 일간 기준 십신까지 박은 풀 흐름 컨텍스트 */
+  longCycleContext?: {
+    daeun?: { ganji: string; ageStart: number; ageEnd: number; sibsinStem?: string }
+    sewoon?: { ganji: string; year: number; sibsinStem?: string }
+    wolwoon?: { ganji: string; sibsinStem?: string }
+    iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
+  }
 }
 
 export interface CalendarData {

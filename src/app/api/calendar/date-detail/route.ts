@@ -168,7 +168,7 @@ export const GET = withApiMiddleware(
             yearOfDate,
             sajuProfile,
             astroProfile,
-            { locale: 'ko' }
+            { locale: 'ko', birthDate }
           )
           lite = liteList.find((d) => d.date === detail.date)
         }

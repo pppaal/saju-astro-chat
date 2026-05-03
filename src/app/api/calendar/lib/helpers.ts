@@ -816,6 +816,8 @@ export function formatDateForResponse(
     astroFactors: orderedAstroFactors,
     glossary: (date as { glossary?: Record<string, string> }).glossary,
     crossCheck: (date as { crossCheck?: { line: string; agreementPercent: number } }).crossCheck,
+    longCycleContext: (date as { longCycleContext?: import('./liteYearlyDates').LiteImportantDate['longCycleContext'] })
+      .longCycleContext,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),

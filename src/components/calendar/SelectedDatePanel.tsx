@@ -88,6 +88,12 @@ interface ImportantDate {
   ganzhi?: string
   transitSunSign?: string
   crossVerified?: boolean
+  longCycleContext?: {
+    daeun?: { ganji: string; ageStart: number; ageEnd: number; sibsinStem?: string }
+    sewoon?: { ganji: string; year: number; sibsinStem?: string }
+    wolwoon?: { ganji: string; sibsinStem?: string }
+    iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
+  }
 }
 
 interface SelectedDatePanelProps {
@@ -1005,6 +1011,56 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               <p className={styles.quickScanThesis}>{headlineOneLine}</p>
             )}
           </div>
+
+          {/* ── Long-cycle context: 대운 / 세운 / 월운 / 일운 ──── */}
+          {selectedDate?.longCycleContext &&
+            (selectedDate.longCycleContext.daeun ||
+              selectedDate.longCycleContext.sewoon ||
+              selectedDate.longCycleContext.wolwoon ||
+              selectedDate.longCycleContext.iljin) && (
+              <div className={styles.quickSummaryBlock}>
+                <span className={styles.quickSummaryLabel}>
+                  🌀 {locale === 'ko' ? '운 흐름' : 'Cycle Flow'}
+                </span>
+                <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                  {selectedDate.longCycleContext.daeun && (
+                    <li style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                      대운 <strong>{selectedDate.longCycleContext.daeun.ganji}</strong>
+                      {' '}({selectedDate.longCycleContext.daeun.ageStart}–
+                      {selectedDate.longCycleContext.daeun.ageEnd}세)
+                      {selectedDate.longCycleContext.daeun.sibsinStem
+                        ? ` · ${selectedDate.longCycleContext.daeun.sibsinStem}`
+                        : ''}
+                    </li>
+                  )}
+                  {selectedDate.longCycleContext.sewoon && (
+                    <li style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                      세운 <strong>{selectedDate.longCycleContext.sewoon.ganji}</strong>
+                      {' '}({selectedDate.longCycleContext.sewoon.year})
+                      {selectedDate.longCycleContext.sewoon.sibsinStem
+                        ? ` · ${selectedDate.longCycleContext.sewoon.sibsinStem}`
+                        : ''}
+                    </li>
+                  )}
+                  {selectedDate.longCycleContext.wolwoon && (
+                    <li style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                      월운 <strong>{selectedDate.longCycleContext.wolwoon.ganji}</strong>
+                      {selectedDate.longCycleContext.wolwoon.sibsinStem
+                        ? ` · ${selectedDate.longCycleContext.wolwoon.sibsinStem}`
+                        : ''}
+                    </li>
+                  )}
+                  {selectedDate.longCycleContext.iljin && (
+                    <li style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                      일운 <strong>{selectedDate.longCycleContext.iljin.ganji}</strong>
+                      {selectedDate.longCycleContext.iljin.sibsinStem
+                        ? ` · ${selectedDate.longCycleContext.iljin.sibsinStem}`
+                        : ''}
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
 
           {/* ── Saju evidence ──────────────────────────────────── */}
           {safeSajuFactors.length > 0 && (

@@ -55,6 +55,13 @@ export interface LiteImportantDate {
   glossary?: Record<string, string>
   /** 사주 ↔ 점성 교차 확인 한 줄 + 신뢰도 % */
   crossCheck?: { line: string; agreementPercent: number }
+  /** 대운 / 세운 / 월운 / 일운 — 본명 일간 기준 십신까지 박은 풀 흐름 컨텍스트 */
+  longCycleContext?: {
+    daeun?: { ganji: string; ageStart: number; ageEnd: number; sibsinStem?: string }
+    sewoon?: { ganji: string; year: number; sibsinStem?: string }
+    wolwoon?: { ganji: string; sibsinStem?: string }
+    iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
+  }
 }
 
 type LiteOptions = {
@@ -63,6 +70,11 @@ type LiteOptions = {
   minGrade?: ImportanceGrade
   locale?: CalendarLocale
   matrixContext?: LiteMatrixCalendarContext | null
+  /** ISO date string ("1995-02-09") or birth year. Used to resolve which
+   *  10-year 대운 cycle the user is currently in when sajuProfile lacks a
+   *  birthYear field. */
+  birthDate?: string
+  birthYear?: number
 }
 
 const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
@@ -1563,6 +1575,59 @@ export function calculateYearlyImportantDatesLite(
   // with 巳月 (초여름) data the way the old monthly index did.
   const dailyPackCache = new Map<string, MonthlyCounselorPack>()
 
+  // ── Long-cycle context (대운/세운/월운) ──
+  // These layers come from the same engine the rest of the saju app
+  // uses. Cheap to compute up-front: 대운 is constant for the year (or
+  // flips once mid-year if the user crosses a 10-year boundary), 세운
+  // is constant for the saju year, 월운 we compute per saju month from
+  // the dailyPack the loop already builds. Iljin (일운) lives in the
+  // daily pillar and gets attached per date inside the loop.
+  const natalDayMaster = sajuProfile.dayMaster || sajuProfile.pillars?.day?.stem || ''
+  const resolvedBirthYear = (() => {
+    if (typeof sajuProfile.birthYear === 'number' && Number.isFinite(sajuProfile.birthYear))
+      return sajuProfile.birthYear
+    if (typeof options?.birthYear === 'number' && Number.isFinite(options.birthYear))
+      return options.birthYear
+    if (typeof options?.birthDate === 'string' && options.birthDate) {
+      const parsed = new Date(options.birthDate)
+      if (!Number.isNaN(parsed.getTime())) return parsed.getFullYear()
+    }
+    return null
+  })()
+  const findDaeunForDate = (d: Date) => {
+    const cycles = sajuProfile.daeunCycles
+    if (!cycles?.length || resolvedBirthYear == null) return null
+    // Approximate age at `d` using birth year. Daeun age ranges are
+    // [age, age+10) sorted ascending.
+    const ageAtDate = d.getFullYear() - resolvedBirthYear
+    let active = cycles[0]
+    for (const cycle of cycles) {
+      if (cycle.age <= ageAtDate) active = cycle
+      else break
+    }
+    if (!active) return null
+    const daeunStem = active.heavenlyStem || ''
+    const sibsinStem = natalDayMaster && daeunStem ? getSibsinKo(natalDayMaster, daeunStem) : ''
+    return {
+      ganji: `${daeunStem}${active.earthlyBranch}`,
+      ageStart: active.age,
+      ageEnd: active.age + 10,
+      sibsinStem,
+    }
+  }
+  const sewoonForYear = (yr: number) => {
+    const idx60 = (yr - 4 + 6000) % 60
+    const stem = STEMS[idx60 % 10]
+    const branch = BRANCHES_BY_INDEX[idx60 % 12]
+    const sibsinStem = natalDayMaster && stem ? getSibsinKo(natalDayMaster, stem) : ''
+    return { ganji: `${stem}${branch}`, year: yr, sibsinStem }
+  }
+  const wolwoonForPack = (pack: MonthlyCounselorPack) => {
+    const stem = pack.monthStem
+    const sibsinStem = natalDayMaster && stem ? getSibsinKo(natalDayMaster, stem) : ''
+    return { ganji: `${stem}${pack.monthBranch}`, sibsinStem }
+  }
+
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
     const month = date.getMonth() + 1
     const day = date.getDate()
@@ -1837,6 +1902,19 @@ export function calculateYearlyImportantDatesLite(
             ? buildCrossCheckLineKo(crossAgreementPercent)
             : buildCrossCheckLineEn(crossAgreementPercent),
         agreementPercent: crossAgreementPercent,
+      },
+      longCycleContext: {
+        daeun: findDaeunForDate(date) || undefined,
+        sewoon: sewoonForYear(date.getFullYear()),
+        wolwoon: wolwoonForPack(dailyPack),
+        iljin: {
+          ganji: `${dailyPillar.stem}${dailyPillar.branch}`,
+          sibsinStem: dailySibsin,
+          sibsinBranch:
+            natalDayMaster && dailyPillar.branch
+              ? getSibsinKo(natalDayMaster, dailyPillar.branch)
+              : undefined,
+        },
       },
     })
   }

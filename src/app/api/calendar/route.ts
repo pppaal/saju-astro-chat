@@ -807,6 +807,7 @@ export const GET = withApiMiddleware(
           minGrade: 4, // grade 4(최악의 날)까지 포함
           locale: locale === 'en' ? 'en' : 'ko',
           matrixContext: matrixCalendarContext || undefined,
+          birthDate: birthDateParam,
         }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )
