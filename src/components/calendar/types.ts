@@ -115,6 +115,18 @@ export interface ImportantDate {
     themeKo: string
     themeEn: string
   }
+  /** 점수 산출 5축 분해 (transparency) */
+  scoreBreakdown?: {
+    engine: number
+    matrix: number
+    cycle: number
+    cross: number
+    yongsin: number
+    dailyShift: number
+    weakPenalty: number
+    peakBoost: number
+    finalScore: number
+  }
   /** 트랜짓 점성 — 선택일 기준 행성 위치 + 본명 차트와의 aspect */
   transit?: {
     aspects: Array<{

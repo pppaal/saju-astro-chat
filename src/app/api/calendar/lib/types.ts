@@ -62,6 +62,18 @@ export interface FormattedDate {
     themeKo: string
     themeEn: string
   }
+  /** 점수 산출 5축 분해 */
+  scoreBreakdown?: {
+    engine: number
+    matrix: number
+    cycle: number
+    cross: number
+    yongsin: number
+    dailyShift: number
+    weakPenalty: number
+    peakBoost: number
+    finalScore: number
+  }
 }
 
 export interface CalendarDailyView {

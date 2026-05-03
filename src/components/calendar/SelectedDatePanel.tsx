@@ -116,6 +116,17 @@ interface ImportantDate {
     themeKo: string
     themeEn: string
   }
+  scoreBreakdown?: {
+    engine: number
+    matrix: number
+    cycle: number
+    cross: number
+    yongsin: number
+    dailyShift: number
+    weakPenalty: number
+    peakBoost: number
+    finalScore: number
+  }
   transit?: {
     aspects: Array<{
       transitPlanet: string
@@ -1142,6 +1153,37 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             {headlineOneLine && (
               <p className={styles.quickScanThesis}>{headlineOneLine}</p>
             )}
+            {/* ── Score breakdown ── 5축 가중 평균 어떻게 합산됐는지 보여줘서
+                "왜 이 점수냐" 의문 풀어주는 투명성 칩. */}
+            {selectedDate?.scoreBreakdown && (
+              <details
+                style={{
+                  marginTop: 8,
+                  fontSize: '0.85em',
+                  opacity: 0.8,
+                  cursor: 'pointer',
+                }}
+              >
+                <summary>
+                  {locale === 'ko' ? '점수 산출 보기' : 'Score breakdown'}
+                </summary>
+                <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px 12px' }}>
+                  <div>📍 사주 일진/신살/공망 · <strong>{selectedDate.scoreBreakdown.engine}</strong></div>
+                  <div>🌀 장기 매트릭스 · <strong>{selectedDate.scoreBreakdown.matrix}</strong></div>
+                  <div>⚡ 운끼리 충/합/형 · <strong>{selectedDate.scoreBreakdown.cycle}</strong></div>
+                  <div>✅ 사주↔점성 일치 · <strong>{selectedDate.scoreBreakdown.cross}</strong></div>
+                  <div>🌱 용신 정렬 · <strong>{selectedDate.scoreBreakdown.yongsin}</strong></div>
+                  {selectedDate.scoreBreakdown.dailyShift !== 0 && (
+                    <div>일진 이벤트 · <strong>{selectedDate.scoreBreakdown.dailyShift > 0 ? '+' : ''}{selectedDate.scoreBreakdown.dailyShift}</strong></div>
+                  )}
+                </div>
+                <p style={{ marginTop: 8, fontSize: '0.92em', opacity: 0.75 }}>
+                  {locale === 'ko'
+                    ? '5개 축을 0.40 / 0.20 / 0.15 / 0.10 / 0.10 가중 평균으로 합산 후 일진 이벤트 보너스를 더해 산출.'
+                    : 'Weighted blend: 0.40/0.20/0.15/0.10/0.10 across the five axes plus daily-event bonus.'}
+                </p>
+              </details>
+            )}
           </div>
 
           {/* ── Natal context chip (강약·격국·용신) ─────────
@@ -1494,6 +1536,47 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                   </li>
                 ))}
               </ul>
+              {/* Concrete transit angles — orb-tightest 2 aspects with the
+                  exact angle. Surfaces the *math* behind the narrative so
+                  users see "왜 그런 분위기인가" with degrees + 접근/분리. */}
+              {selectedDate?.transit?.aspects && selectedDate.transit.aspects.length > 0 && (
+                <ul
+                  style={{
+                    margin: '8px 0 0',
+                    paddingLeft: 0,
+                    listStyle: 'none',
+                    fontSize: '0.88em',
+                    opacity: 0.85,
+                  }}
+                >
+                  {selectedDate.transit.aspects.slice(0, 2).map((a, i) => {
+                    const planetKo = humanizeEvidence(a.transitPlanet, 'ko')
+                    const aspectKo = humanizeEvidence(a.aspect, 'ko')
+                    const natalKo = humanizeEvidence(a.natalPoint, 'ko')
+                    const ASPECT_DEG: Record<string, number> = {
+                      conjunction: 0,
+                      semisextile: 30,
+                      sextile: 60,
+                      square: 90,
+                      trine: 120,
+                      quincunx: 150,
+                      opposition: 180,
+                      quintile: 72,
+                      biquintile: 144,
+                    }
+                    const deg = ASPECT_DEG[a.aspect] ?? null
+                    return (
+                      <li key={`tline-${i}`} style={{ padding: '3px 0' }}>
+                        🔭 <strong>{planetKo}</strong>이 본명{' '}
+                        <strong>{natalKo}</strong>에 {aspectKo}
+                        {deg !== null && (
+                          <span style={{ opacity: 0.7 }}> ({deg}°, 오브 {a.orb.toFixed(1)}°)</span>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </div>
           )}
 
@@ -1504,10 +1587,53 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {crossAgreementPercent !== null && (
             <div className={styles.quickSummaryBlock}>
               <span className={styles.quickSummaryLabel}>
-                ✅ {locale === 'ko' ? '교차 합의' : 'Cross Agreement'} ({crossAgreementPercent}%)
+                ✅ {locale === 'ko' ? '교차 합의' : 'Cross Agreement'}{' '}
+                <strong style={{ color: crossAgreementPercent >= 70 ? '#86efac' : crossAgreementPercent >= 50 ? '#93c5fd' : '#fca5a5' }}>
+                  {crossAgreementPercent}%
+                </strong>
               </span>
               <p className={styles.quickSummaryText} style={{ marginTop: 4 }}>
                 {crossAgreementVerdict}
+              </p>
+              <p
+                className={styles.quickSummaryText}
+                style={{ marginTop: 6, fontSize: '0.88em', opacity: 0.78 }}
+              >
+                {locale === 'ko' ? (
+                  crossAgreementPercent >= 70 ? (
+                    <>
+                      사주가 보는 결과 점성이 보는 결이 같은 방향이에요. 즉,
+                      두 시스템이 모두 동의하니 결정 신뢰도를 높여도 좋습니다.
+                      행동을 망설일 이유가 적은 날.
+                    </>
+                  ) : crossAgreementPercent >= 50 ? (
+                    <>
+                      두 시스템이 큰 줄기에서는 같은 결을 가리키는데 디테일에서
+                      갈립니다. 한 축의 신호만 믿고 결정하기보다, 다른 축에서
+                      한 번 더 점검한 뒤 진행하는 게 안전.
+                    </>
+                  ) : (
+                    <>
+                      사주와 점성이 다른 방향을 가리켜요. 한 축에서 좋아 보여도
+                      다른 축은 견제하는 시기일 수 있으니, 큰 결정은 어느 쪽에
+                      무게를 둘지 직접 판단해야 합니다.
+                    </>
+                  )
+                ) : (
+                  crossAgreementPercent >= 70
+                    ? 'Saju and astrology align tightly today.'
+                    : crossAgreementPercent >= 50
+                      ? 'Broad direction agrees; details diverge.'
+                      : 'The two systems disagree — pick which axis to weight.'
+                )}
+              </p>
+              <p
+                className={styles.quickSummaryText}
+                style={{ marginTop: 4, fontSize: '0.85em', opacity: 0.6 }}
+              >
+                {locale === 'ko'
+                  ? '※ 교차 합의는 사주 신호 방향(±)과 점성 흐름 방향(±)이 같은지 비교한 비율입니다. 0%면 정반대, 100%면 완전 일치.'
+                  : '※ Agreement compares Saju signal sign (±) with astrology flow sign (±). 0% = opposite, 100% = identical.'}
               </p>
             </div>
           )}

@@ -134,6 +134,18 @@ export interface LiteImportantDate {
     themeKo: string
     themeEn: string
   }
+  /** 점수 산출 분해 — 5축 weighted blend 투명성 */
+  scoreBreakdown?: {
+    engine: number      // 0-100, saju daily (sibsin/신살/공망/12운성/energy)
+    matrix: number      // 0-100, long-cycle domain weighting
+    cycle: number       // 0-100, 운끼리 충/합/형 balance
+    cross: number       // 0-100, 사주↔점성 일치도
+    yongsin: number     // 0-100, 용신 정렬
+    dailyShift: number  // event bonus (+/-)
+    weakPenalty: number // signal weakness penalty
+    peakBoost: number   // peak window bonus
+    finalScore: number  // 2-99
+  }
 }
 
 type LiteOptions = {
@@ -195,10 +207,14 @@ function categoryMatchesFilter(categories: EventCategory[], filter?: EventCatego
 }
 
 function scoreToGrade(score: number): ImportanceGrade {
-  if (score >= 86) return 0
-  if (score >= 72) return 1
-  if (score >= 56) return 2
-  if (score >= 38) return 3
+  // Recalibrated for the 5-axis blended formula. Old thresholds (86/
+  // 72/56/38) were tuned for the matrix-heavy formula that could top
+  // out near 80; new blend rarely exceeds 75 even on great days, so
+  // collapse the tier ranges proportionally.
+  if (score >= 68) return 0
+  if (score >= 58) return 1
+  if (score >= 45) return 2
+  if (score >= 32) return 3
   return 4
 }
 
@@ -1952,12 +1968,8 @@ export function calculateYearlyImportantDatesLite(
     // Use dailyPack (solar-term-correct) so dates that span term boundaries
     // get scored against the right month.
     const monthPack = dailyPack
-    const yongsinMul =
-      monthPack?.yongsinAlign === 'support'
-        ? 1.06
-        : monthPack?.yongsinAlign === 'conflict'
-          ? 0.94
-          : 1.0
+    // (Note: prior multiplicative yongsinMul folded into the 0.10 weight
+    // of the new 5-axis blend below; no longer applied as a multiplier.)
 
     // ─────────────────────────────────────────────────────────
     // 사주↔점성 클레임-레벨 교차 일치도
@@ -1995,17 +2007,83 @@ export function calculateYearlyImportantDatesLite(
       return Math.round(30 + reliability * 10)
     })()
 
-    const rawScore =
-      8 +
-      primaryStrength * 64 +
-      primaryMonthStrength * 18 +
-      secondaryMonthStrength * 5 +
-      secondary.score * 6 +
-      dominanceGap * 6 +
-      peakBoost +
-      dailyShift -
-      weakPenalty
-    const score = Math.round(clamp(rawScore * yongsinMul, 2, 99))
+    // ── 새 점수 시스템 ──
+    // 5 축을 weighted blend. 각 축은 0-100으로 정규화.
+    //   0.40 engine (saju daily — sibsin / 신살 / 공망 / 12운성 / energy)
+    //   0.20 matrix (long-cycle domain weighting + reliability)
+    //   0.15 cycle (충/합/형/원진/삼합 balance over 5 slots)
+    //   0.10 cross (사주 ↔ 점성 일치도)
+    //   0.10 yongsin (용신 정렬: support / neutral / conflict)
+    // dailyShift (event blurb sum) added on top, weakPenalty subtracted.
+    // The matrix sub still feeds in so existing destiny-matrix continuity
+    // is preserved; engine sub is what fixes "오늘은 별것 없다" days.
+    const engineSub = (() => {
+      if (engineScore && Number.isFinite(engineScore.totalScore)) {
+        return clamp(engineScore.totalScore, 0, 100)
+      }
+      return 50
+    })()
+    const matrixSub = clamp(
+      primaryStrength * 70 +
+        primaryMonthStrength * 20 +
+        secondaryMonthStrength * 5 +
+        dominanceGap * 5,
+      0,
+      100
+    )
+    const cycleSub = (() => {
+      const hits =
+        buildCycleInteractions(
+          sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || '',
+          findDaeunForDate(date),
+          sewoonForYear(date.getFullYear()),
+          wolwoonForPack(dailyPack),
+          { ganji: `${dailyPillar.stem}${dailyPillar.branch}` }
+        ) || []
+      let net = 50
+      for (const h of hits) {
+        if (h.kind === '천간합') net += 5
+        else if (h.kind === '지지합') {
+          // 삼합/방합 라벨은 더 큰 가중
+          if (/삼합/.test(h.blurb)) net += 15
+          else if (/방합/.test(h.blurb)) net += 10
+          else net += 5
+        }
+        else if (h.kind === '천간충') net -= 8
+        else if (h.kind === '지지충') net -= 8
+        else if (h.kind === '지지형') net -= 10
+        else if (h.kind === '지지해') {
+          if (/원진/.test(h.blurb)) net -= 5
+          else net -= 3
+        }
+        else if (h.kind === '지지파') net -= 3
+        else if (h.kind === '자형') net -= 4
+      }
+      return clamp(net, 0, 100)
+    })()
+    const crossSub = clamp(crossAgreementPercent, 0, 100)
+    const yongsinSub =
+      monthPack?.yongsinAlign === 'support'
+        ? 75
+        : monthPack?.yongsinAlign === 'conflict'
+          ? 25
+          : 50
+
+    // Engine subscore (per-date 사주 일진/신살/공망/12운성/energy) is the
+    // strongest single signal — weight it 0.55. Matrix kept at 0.15 for
+    // destiny-matrix continuity; users without a matrixContext still
+    // get a reasonable distribution because engine + cycle dominate.
+    // Fall back matrixSub to a neutral 50 when matrix context is sparse
+    // (otherwise primaryStrength drags everyone to grade 3).
+    const matrixSubAdj = matrixSub < 30 ? 50 : matrixSub
+    const blendedRaw =
+      0.55 * engineSub +
+      0.15 * matrixSubAdj +
+      0.15 * cycleSub +
+      0.075 * crossSub +
+      0.075 * yongsinSub +
+      dailyShift
+    const score = Math.round(clamp(blendedRaw, 2, 99))
     const grade = scoreToGrade(score)
     const baseTier = tierFromStrength(primaryStrength)
     const tier: StrengthTier =
@@ -2134,6 +2212,17 @@ export function calculateYearlyImportantDatesLite(
             ? buildCrossCheckLineKo(crossAgreementPercent)
             : buildCrossCheckLineEn(crossAgreementPercent),
         agreementPercent: crossAgreementPercent,
+      },
+      scoreBreakdown: {
+        engine: Math.round(engineSub),
+        matrix: Math.round(matrixSubAdj),
+        cycle: Math.round(cycleSub),
+        cross: Math.round(crossSub),
+        yongsin: Math.round(yongsinSub),
+        dailyShift: Math.round(dailyShift),
+        weakPenalty: 0,
+        peakBoost: 0,
+        finalScore: score,
       },
       longCycleContext: {
         daeun: findDaeunForDate(date) || undefined,

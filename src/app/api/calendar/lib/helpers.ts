@@ -822,6 +822,7 @@ export function formatDateForResponse(
       .cycleInteractions,
     cycleNarrative: (date as { cycleNarrative?: string }).cycleNarrative,
     dayRuler: (date as { dayRuler?: import('./liteYearlyDates').LiteImportantDate['dayRuler'] }).dayRuler,
+    scoreBreakdown: (date as { scoreBreakdown?: import('./liteYearlyDates').LiteImportantDate['scoreBreakdown'] }).scoreBreakdown,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),
