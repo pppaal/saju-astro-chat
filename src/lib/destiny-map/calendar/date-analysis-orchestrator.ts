@@ -56,6 +56,7 @@ import {
   calculateGrade,
   getGradeKeys,
   getGradeRecommendations,
+  filterRecommendationsByGrade,
   filterWarningsByGrade,
 } from './grading'
 import { calculateActivityScore } from './activity-scoring'
@@ -457,11 +458,16 @@ export function analyzeDate(
   }
 
   // 등급별 추천 및 경고 필터링
+  // 1) factor 기반 push 추천을 grade로 약화 (Grade 3,4 에서 큰 결정류 제거)
+  // 2) grade-base 추천(getGradeRecommendations)은 항상 유지
+  // 3) Grade 0,1: grade-base 먼저 (강한 GO 신호 우선)
+  //    Grade 2+:  필터된 factor 먼저 (있는 그대로 + grade-base 보강)
   const gradeRecs = getGradeRecommendations(grade)
+  const filteredFactorRecs = filterRecommendationsByGrade(grade, factors.recommendationKeys)
   const recommendationKeys =
     grade <= 1
-      ? [...gradeRecs, ...factors.recommendationKeys]
-      : [...factors.recommendationKeys, ...gradeRecs]
+      ? [...gradeRecs, ...filteredFactorRecs]
+      : [...filteredFactorRecs, ...gradeRecs]
 
   const warningKeys = filterWarningsByGrade(grade, [
     ...factors.warningKeys,

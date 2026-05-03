@@ -323,6 +323,77 @@ export function filterWarningsByGrade(grade: ImportanceGrade, warningKeys: strin
 }
 
 // ═══════════════════════════════════════════════════════════
+// 등급에 따라 추천(긍정 신호) 필터링
+// — Grade 3·4 (조심/지키기) 날에 "큰 결정·계약·결혼" 같은 강한 push 추천이
+//   섞여 들어가는 모순 방지. UI 라벨·경고는 신중인데 추천만 들뜨는 부조화 차단.
+// ═══════════════════════════════════════════════════════════
+
+// 강한 추진형 추천 — Grade 3 이상에서 제거
+const STRONG_PUSH_RECS = new Set([
+  'bigDecision',
+  'majorDecision',
+  'contract',
+  'partnership',
+  'business',
+  'wedding',
+  'moving',
+  'promotion',
+  'interview',
+  'speculation',
+  'expansion',
+  'majorLuck',
+])
+
+// 일반 긍정형 추천 — Grade 4 (지키기) 에서만 제거 (그 외엔 유지)
+const MILD_POSITIVE_RECS = new Set([
+  'meeting',
+  'dating',
+  'socializing',
+  'networking',
+  'finance',
+  'investment',
+  'shopping',
+  'charm',
+  'harmony',
+  'growth',
+  'change',
+  'travel',
+  'movement',
+  'love',
+  'creative',
+  'expression',
+  'reconciliation',
+  'career',
+  'authority',
+  'study',
+  'mentor',
+  'documents',
+  'speculation',
+  'windfall',
+  'stableWealth',
+  'savings',
+  'collaboration',
+  'synergy',
+])
+
+export function filterRecommendationsByGrade(
+  grade: ImportanceGrade,
+  recommendationKeys: string[]
+): string[] {
+  if (grade <= 2) {
+    return recommendationKeys // Grade 0,1,2: 그대로 (push OK)
+  }
+  if (grade === 3) {
+    // 조심하는 날: 강한 push만 제거, 일상적 긍정은 유지
+    return recommendationKeys.filter((key) => !STRONG_PUSH_RECS.has(key))
+  }
+  // Grade 4 — 지키는 날: 강한 push + 일반 긍정 모두 제거. 방어/회복 추천만 남김.
+  return recommendationKeys.filter(
+    (key) => !STRONG_PUSH_RECS.has(key) && !MILD_POSITIVE_RECS.has(key)
+  )
+}
+
+// ═══════════════════════════════════════════════════════════
 // 등급별 색상 (Memoized)
 // ═══════════════════════════════════════════════════════════
 
