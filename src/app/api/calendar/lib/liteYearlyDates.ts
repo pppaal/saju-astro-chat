@@ -7,6 +7,7 @@ import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/calendar/
 import type { UserAstroProfile, UserSajuProfile } from '@/lib/destiny-map/calendar/types'
 import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/Saju/johuYongsin'
 import { calculateDailyPillar } from '@/lib/prediction/ultra-precision-daily'
+import { getSolarTermKST } from '@/lib/Saju/constants'
 
 type CalendarLocale = 'ko' | 'en'
 
@@ -168,6 +169,21 @@ function seasonElement(month: number): 'wood' | 'fire' | 'earth' | 'metal' | 'wa
   return 'water'
 }
 
+// Branch-based season element. Saju treats 寅卯=목, 巳午=화, 申酉=금,
+// 亥子=수 with 辰未戌丑 as earth-soft transitions. This avoids the
+// Gregorian-month aliasing where May 1 (still 辰月/봄/목) and May 31
+// (巳月/초여름/화) were both labelled as wood by month-based mapping.
+const BRANCH_TO_ELEMENT: Record<string, 'wood' | 'fire' | 'earth' | 'metal' | 'water'> = {
+  寅: 'wood', 卯: 'wood',
+  巳: 'fire', 午: 'fire',
+  申: 'metal', 酉: 'metal',
+  亥: 'water', 子: 'water',
+  辰: 'earth', 未: 'earth', 戌: 'earth', 丑: 'earth',
+}
+function seasonElementOfBranch(branch: string): 'wood' | 'fire' | 'earth' | 'metal' | 'water' {
+  return BRANCH_TO_ELEMENT[branch] || 'earth'
+}
+
 const ELEMENT_RELATIONS: Record<string, Record<string, 'same' | 'support' | 'drain' | 'control' | 'controlled'>> = {
   wood: { wood: 'same', fire: 'drain', earth: 'control', metal: 'controlled', water: 'support' },
   fire: { fire: 'same', earth: 'drain', metal: 'control', water: 'controlled', wood: 'support' },
@@ -195,11 +211,61 @@ const MONTH_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', 
 function monthBranchOf(month: number): string {
   return MONTH_BRANCHES[month % 12]
 }
+
+// Saju 月支/月干 are bound by 절기 (solar terms), not calendar months.
+// For example 5/3 is still 辰月 (늦봄) because 입하(May 5) hasn't passed.
+// KASI_SOLAR_TERMS provides the exact 節 boundaries from 1940–2050; we
+// look up the previous 節 for `date` and emit the branch index directly.
+// MONTH_BRANCHES_BY_TERM[k] is the branch of the period that *starts* on
+// solar-term k (1=소한, 2=입춘, 3=경칩, 4=청명, 5=입하, 6=망종, 7=소서,
+// 8=입추, 9=백로, 10=한로, 11=입동, 12=대설).
+const MONTH_BRANCHES_BY_TERM: Record<number, string> = {
+  1: '丑', 2: '寅', 3: '卯', 4: '辰', 5: '巳', 6: '午',
+  7: '未', 8: '申', 9: '酉', 10: '戌', 11: '亥', 12: '子',
+}
+
+function monthBranchOfDate(date: Date): { branch: string; sajuYear: number; sajuMonthIndex: number } {
+  // Walk solar terms from current year backwards. The branch for `date`
+  // is the branch of the term whose timestamp is the latest ≤ date.
+  const y = date.getFullYear()
+  for (const candidateYear of [y, y - 1]) {
+    for (let term = 12; term >= 1; term--) {
+      const t = getSolarTermKST(candidateYear, term)
+      if (t && t.getTime() <= date.getTime()) {
+        // Saju year flips at 입춘 (term 2) — anything before 입춘 still
+        // belongs to last year's 寅 cycle.
+        const sajuYear = term >= 2 ? candidateYear : candidateYear - 1
+        // sajuMonthIndex: 1=寅 (after 입춘) … 12=丑 (before 입춘 of next yr)
+        const sajuMonthIndex = term === 1 ? 12 : term - 1
+        return { branch: MONTH_BRANCHES_BY_TERM[term], sajuYear, sajuMonthIndex }
+      }
+    }
+  }
+  // Out of table range — fall back to naive Gregorian mapping.
+  return {
+    branch: MONTH_BRANCHES[(date.getMonth() + 1) % 12],
+    sajuYear: date.getFullYear(),
+    sajuMonthIndex: ((date.getMonth() + 12) % 12) + 1,
+  }
+}
+
 // 寅月 천간 = (year stem % 5) * 2 → 0=甲己→丙(2), 1=乙庚→戊(4), 2=丙辛→庚(6), 3=丁壬→壬(8), 4=戊癸→甲(0)
 function monthStemOf(year: number, month: number): string {
   const yIdx = ((year - 4) % 10 + 10) % 10
   const baseStemIdx = ((yIdx % 5) * 2 + 2) % 10
   const monthsFromYin = month >= 2 ? month - 2 : month + 10
+  return STEMS[(baseStemIdx + monthsFromYin) % 10]
+}
+
+// Solar-term-aware version: takes the date and returns the proper 月干 by
+// using the saju-year + saju-month derived from KASI 절기 lookup.
+function monthStemOfDate(date: Date): string {
+  const { sajuYear, sajuMonthIndex } = monthBranchOfDate(date)
+  // sajuMonthIndex: 1=寅 → use month=2 in monthStemOf which already maps
+  // monthsFromYin=0 → baseStem (寅月 stem). 12=丑 → monthsFromYin=11.
+  const yIdx = ((sajuYear - 4) % 10 + 10) % 10
+  const baseStemIdx = ((yIdx % 5) * 2 + 2) % 10
+  const monthsFromYin = sajuMonthIndex - 1
   return STEMS[(baseStemIdx + monthsFromYin) % 10]
 }
 
@@ -1014,46 +1080,77 @@ type MonthlyCounselorPack = {
   season?: string
 }
 
+function buildPackForBranchStem(
+  ms: string,
+  mb: string,
+  profile: UserSajuProfile
+): MonthlyCounselorPack {
+  const dayStem = profile.dayMaster || profile.pillars?.day?.stem || ''
+  const dayBranch = profile.dayBranch || profile.pillars?.day?.branch || ''
+  const yongsin = profile.yongsin?.primary
+  const sibsin = dayStem ? getSibsinKo(dayStem, ms) : ''
+  const sinsals = dayBranch ? activeSinsals(dayBranch, mb) : []
+  const johu = dayStem ? getJohuYongsin(dayStem, mb) : null
+  const climate = MONTH_CLIMATE[mb]?.climate
+  const season = MONTH_CLIMATE[mb]?.season
+  let yongsinAlign: MonthlyCounselorPack['yongsinAlign'] = 'neutral'
+  const yongsinPrimary: string | undefined = johu?.primaryYongsin
+  if (yongsin && yongsinPrimary) {
+    const userYongsinKo = ELEMENT_KO_TO_EN_MAP[yongsin]
+      ? yongsin
+      : Object.entries(ELEMENT_KO_TO_EN_MAP).find(([_, en]) => en === yongsin)?.[0]
+    yongsinAlign =
+      userYongsinKo === yongsinPrimary
+        ? 'support'
+        : userYongsinKo
+          ? 'conflict'
+          : 'neutral'
+  }
+  return {
+    monthStem: ms,
+    monthBranch: mb,
+    sibsin,
+    sibsinTheme: sibsin ? SIBSIN_THEME_KO[sibsin] || '' : '',
+    sinsals,
+    yongsinAlign,
+    yongsinPrimary,
+    climate,
+    season,
+  }
+}
+
+// Build a per-date pack using solar-term-aware month branch + stem so a
+// date like 2026-05-03 (still 辰月) doesn't get labelled with 巳月
+// (초여름) data the way the naive Gregorian-month mapping did.
+function getPackForDate(
+  date: Date,
+  profile: UserSajuProfile,
+  cache: Map<string, MonthlyCounselorPack>
+): MonthlyCounselorPack {
+  const ms = monthStemOfDate(date)
+  const { branch: mb } = monthBranchOfDate(date)
+  const key = `${ms}|${mb}`
+  const cached = cache.get(key)
+  if (cached) return cached
+  const pack = buildPackForBranchStem(ms, mb, profile)
+  cache.set(key, pack)
+  return pack
+}
+
 function buildMonthlyCounselorPacks(
   year: number,
   profile: UserSajuProfile
 ): Record<number, MonthlyCounselorPack> {
+  // Kept for any non-daily callers; per-day evidence goes through
+  // getPackForDate so it's solar-term-correct. This monthly index uses
+  // the 15th of each month (always past the 절입) which gives the
+  // dominant saju month for that calendar month.
   const out: Record<number, MonthlyCounselorPack> = {}
-  const dayStem = profile.dayMaster || profile.pillars?.day?.stem || ''
-  const dayBranch = profile.dayBranch || profile.pillars?.day?.branch || ''
-  const yongsin = profile.yongsin?.primary // 한글 오행 (목/화/토/금/수) 또는 영문 가능
   for (let m = 1; m <= 12; m++) {
-    const ms = monthStemOf(year, m)
-    const mb = monthBranchOf(m)
-    const sibsin = dayStem ? getSibsinKo(dayStem, ms) : ''
-    const sinsals = dayBranch ? activeSinsals(dayBranch, mb) : []
-    const johu = dayStem ? getJohuYongsin(dayStem, mb) : null
-    const climate = MONTH_CLIMATE[mb]?.climate
-    const season = MONTH_CLIMATE[mb]?.season
-    let yongsinAlign: MonthlyCounselorPack['yongsinAlign'] = 'neutral'
-    const yongsinPrimary: string | undefined = johu?.primaryYongsin
-    if (yongsin && yongsinPrimary) {
-      const userYongsinKo = ELEMENT_KO_TO_EN_MAP[yongsin]
-        ? yongsin
-        : Object.entries(ELEMENT_KO_TO_EN_MAP).find(([_, en]) => en === yongsin)?.[0]
-      yongsinAlign =
-        userYongsinKo === yongsinPrimary
-          ? 'support'
-          : userYongsinKo
-            ? 'conflict'
-            : 'neutral'
-    }
-    out[m] = {
-      monthStem: ms,
-      monthBranch: mb,
-      sibsin,
-      sibsinTheme: sibsin ? SIBSIN_THEME_KO[sibsin] || '' : '',
-      sinsals,
-      yongsinAlign,
-      yongsinPrimary,
-      climate,
-      season,
-    }
+    const mid = new Date(year, m - 1, 15, 12, 0, 0)
+    const ms = monthStemOfDate(mid)
+    const { branch: mb } = monthBranchOfDate(mid)
+    out[m] = buildPackForBranchStem(ms, mb, profile)
   }
   return out
 }
@@ -1123,7 +1220,12 @@ function buildSajuFactors(
   const label = DOMAIN_LABELS[locale][domain]
   const dayMaster = profile.dayMaster || profile.pillars?.day?.stem || ''
   const dayElement = (profile.dayMasterElement as string) || STEM_TO_ELEMENT[dayMaster] || 'earth'
-  const seasonEl = seasonElement(month)
+  // Use the saju month branch (solar-term correct) for the season →
+  // element mapping. Fall back to Gregorian-month mapping only when the
+  // pack didn't carry a branch (shouldn't happen with current callers).
+  const seasonEl = pack.monthBranch
+    ? seasonElementOfBranch(pack.monthBranch)
+    : seasonElement(month)
   const relation = ELEMENT_RELATIONS[dayElement]?.[seasonEl] || 'same'
 
   if (locale === 'ko') {
@@ -1383,10 +1485,17 @@ export function calculateYearlyImportantDatesLite(
     1
   )
   const counselorPacks = buildMonthlyCounselorPacks(year, sajuProfile)
+  // Solar-term-aware per-date pack lookup. The Gregorian-month index
+  // above is kept around for any caller that walks `counselorPacks` by
+  // calendar month, but every per-day factor builder should pull from
+  // `getPackForDate(date, …)` so May 3 (still 辰月) doesn't get tagged
+  // with 巳月 (초여름) data.
+  const dailyPackCache = new Map<string, MonthlyCounselorPack>()
 
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
     const month = date.getMonth() + 1
     const day = date.getDate()
+    const dailyPack = getPackForDate(date, sajuProfile, dailyPackCache)
     const currentMonthKey = monthKey(year, month)
     const domainRanking = pickTopDomains(options?.matrixContext, currentMonthKey)
     const primary = domainRanking[0] || { domain: 'career' as DomainKey, score: 0.52 }
@@ -1436,7 +1545,9 @@ export function calculateYearlyImportantDatesLite(
 
     // 용신 multiplier — 용신은 의미 해석엔 이미 반영되지만 점수에 곱셈으로 가중
     // support: 1.06배 (이번 달 용신이 본명 받쳐줌), conflict: 0.94배, neutral: 1.0
-    const monthPack = counselorPacks[month]
+    // Use dailyPack (solar-term-correct) so dates that span term boundaries
+    // get scored against the right month.
+    const monthPack = dailyPack
     const yongsinMul =
       monthPack?.yongsinAlign === 'support'
         ? 1.06
@@ -1529,7 +1640,7 @@ export function calculateYearlyImportantDatesLite(
         locale,
         primary.domain,
         tier,
-        counselorPacks[month]?.sibsin || '',
+        dailyPack?.sibsin || '',
         dailyEvents,
         `${seed}|t`
       ),
@@ -1539,7 +1650,7 @@ export function calculateYearlyImportantDatesLite(
         tier,
         dominanceGap,
         crossAgreementPercent,
-        counselorPacks[month],
+        dailyPack,
         `${seed}|d`,
         dailyEvents,
         score
@@ -1552,7 +1663,7 @@ export function calculateYearlyImportantDatesLite(
         sajuProfile,
         primary.domain,
         month,
-        counselorPacks[month],
+        dailyPack,
         dailyPillar,
         dailySibsin,
         dailyEvents,
@@ -1594,14 +1705,14 @@ export function calculateYearlyImportantDatesLite(
       glossary: (() => {
         // 본문에 등장한 한글 용어를 골라 풀이를 첨부 (KO/EN 둘 다 지원 — EN도 한글 용어가 본문에 박힐 수 있음)
         const surface = [
-          counselorPacks[month]?.sibsin || '',
-          ...(counselorPacks[month]?.sinsals || []),
+          dailyPack?.sibsin || '',
+          ...(dailyPack?.sinsals || []),
           ...buildSajuFactors(
             locale,
             sajuProfile,
             primary.domain,
             month,
-            counselorPacks[month],
+            dailyPack,
             `${seed}|s`
           ),
         ].join(' ')
