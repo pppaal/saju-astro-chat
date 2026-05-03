@@ -1070,24 +1070,46 @@ function buildSajuFactorsWithDaily(
   seed: string
 ): string[] {
   const monthly = buildSajuFactors(locale, profile, domain, month, pack, seed)
-  // 가장 강한 이벤트 한 개만 추가 (점수 절댓값 기준)
+  // monthly returns [sibsinLine, secondPoolPick, branchLine]:
+  //   - monthly[0] = "이번 달은 …" (월 십신 — same every day of month)
+  //   - monthly[1] = seed-picked from 신살/용신/격국 pool (varies)
+  //   - monthly[2] = branchLine "오늘 하루 분위기는 …" (mostly month-driven)
+  // The panel only renders 3 bullets, so we push the monthly[0] line
+  // (most repeating) to the bottom — when there's a daily event it gets
+  // sliced off, leaving 3 user-specific daily lines on the surface.
   const sorted = [...dailyEvents].sort((a, b) => Math.abs(b.scoreShift) - Math.abs(a.scoreShift))
   const top = sorted[0]
-  // 한자 일주·십신 라벨 빼고, 그 날의 자연어 풀이 한 줄로
+
   if (locale !== 'ko') {
     const dailyTheme = dailySibsin ? SIBSIN_THEME_EN[dailySibsin] : ''
     const dailyLine = dailyTheme
       ? `Today leans toward ${dailyTheme}.`
       : `Today carries a steady frame.`
     const eventLine = top ? `${top.blurbEn}.` : ''
-    return [dailyLine, ...(eventLine ? [eventLine] : []), ...monthly]
+    const [sibsinLine, secondLine, branchLine] = monthly
+    const ordered = [
+      dailyLine,
+      ...(eventLine ? [eventLine] : []),
+      secondLine,
+      branchLine,
+      sibsinLine,
+    ].filter(Boolean) as string[]
+    return ordered
   }
   const dailyTheme = dailySibsin ? SIBSIN_THEME_KO[dailySibsin] : ''
   const dailyLine = dailyTheme
     ? `오늘은 ${dailyTheme}${subjectMarkerKo(dailyTheme)} 자연스럽게 살아나는 분위기예요.`
     : `오늘은 큰 변동 없이 무난하게 흘러가는 날이에요.`
   const eventLine = top ? `${top.blurb}.` : ''
-  return [dailyLine, ...(eventLine ? [eventLine] : []), ...monthly]
+  const [sibsinLine, secondLine, branchLine] = monthly
+  const ordered = [
+    dailyLine,
+    ...(eventLine ? [eventLine] : []),
+    secondLine,
+    branchLine,
+    sibsinLine,
+  ].filter(Boolean) as string[]
+  return ordered
 }
 
 function buildSajuFactors(
@@ -1243,7 +1265,12 @@ function buildAstroFactors(
             `점성 흐름이 ${label} 쪽으로 작은 신호를 보탭니다.`,
             `흐름이 안정 구간에 있어 큰 변동 없이 진도 빼기 좋습니다.`,
           ]
-    return [sunLine, moonLine, pickBySeed(seed, closerPool)]
+    // Order: seed-varied closer first → moon (varies by tier/agreement) →
+    // sun (static for the month). The panel slices to 3, so on busy days
+    // the static sun line drops off and the user sees fresh daily-feel
+    // lines. Without this swap every day in May read as
+    // "본인 별자리는 물병자리라서 혁신·네트워크 분위기예요. …" first.
+    return [pickBySeed(seed, closerPool), moonLine, sunLine]
   }
   const grainEn = MOON_GRAIN_EN[domain]
   const seasonalEn = isWinter
@@ -1272,7 +1299,7 @@ function buildAstroFactors(
           `Planetary aspects add a small spark toward ${label}.`,
           `Transit sits in a stable band; carry the flow without forcing changes.`,
         ]
-  return [sunLine, moonLine, pickBySeed(seed, closerPool)]
+  return [pickBySeed(seed, closerPool), moonLine, sunLine]
 }
 
 function buildRecommendations(
