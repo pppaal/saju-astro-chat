@@ -773,8 +773,10 @@ export const POST = withApiMiddleware(
     })
 
     // Day-level expert polish — Claude로 4-5단락 자연어 풀이.
-    // Skeleton: 결정론적 summary + best/caution slots + 사주·점성 raw.
-    // Claude 미설정 시 skeleton 그대로.
+    // Premium gate: free users get the deterministic skeleton (with grade-aware
+    // openings + best/caution slots), premium users get the AI-rewritten version.
+    // The fallback is friendly and grade-aware on its own, so the experience
+    // degrades gracefully — but the cost-bearing Claude call only fires for paid.
     try {
       type TimelineSlot = {
         tone?: string
@@ -841,6 +843,18 @@ export const POST = withApiMiddleware(
         cautionSlots.length ? `조심: ${cautionSlots.map((s) => s.hour).join(', ')}` : '',
       ].filter(Boolean)
       const skeleton = skeletonParts.join(' · ')
+
+      // Free users see the deterministic skeleton + Premium upsell hint.
+      // Premium users get the Claude-polished 4-5 paragraph reading.
+      if (!isPremiumUser) {
+        payload.dayNarrative = skeleton
+        payload.dayNarrativeLocked = true
+        payload.dayNarrativeUpsell =
+          lang === 'ko'
+            ? 'AI 4-5단락 풀이는 Premium 전용이에요. 결제 후 같은 날짜 다시 클릭하면 즉시 AI 풀이로 바뀝니다.'
+            : 'The AI 4-5 paragraph reading is Premium only. After upgrading, click the date again to see the AI version.'
+        return apiSuccess(responsePayload)
+      }
 
       const polishedNarrative = await polishCalendarDayNarrationKo(
         {
