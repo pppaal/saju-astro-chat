@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useI18n } from '@/i18n/I18nProvider';
+import { UnifiedBirthForm, type BirthInfo } from '@/components/common/BirthForm';
 import styles from './theme.module.css';
 
 // ✅ 파티클 타입
@@ -48,12 +50,42 @@ const THEMES: { key: ThemeKey; title: string; desc: string; emoji: string; group
 export default function ThemeSelectClient() {
   const router = useRouter();
   const sp = useSearchParams();
+  const { locale } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   const baseParams = useMemo(
     () => new URLSearchParams(sp?.toString() ?? ""),
     [sp]
   );
+
+  // Free report needs birthDate / birthTime / city / lat / lon / gender to render
+  // a result. Pre-fill from URL if the user came from a flow that already has
+  // them; otherwise show UnifiedBirthForm first, then the theme picker.
+  const initialBirthInfo = useMemo<Partial<BirthInfo>>(() => {
+    const get = (k: string) => sp?.get(k) || ''
+    const lat = get('latitude') || get('lat')
+    const lon = get('longitude') || get('lon')
+    return {
+      birthDate: get('birthDate'),
+      birthTime: get('birthTime'),
+      birthCity: get('city'),
+      latitude: lat ? Number(lat) : undefined,
+      longitude: lon ? Number(lon) : undefined,
+      timezone: get('userTz') || get('timezone'),
+      gender: (get('gender') as 'M' | 'F' | 'Male' | 'Female') || undefined,
+    }
+  }, [sp])
+
+  const initiallyComplete = Boolean(
+    initialBirthInfo.birthDate &&
+      initialBirthInfo.birthCity &&
+      typeof initialBirthInfo.latitude === 'number' &&
+      typeof initialBirthInfo.longitude === 'number'
+  )
+
+  const [birthInfo, setBirthInfo] = useState<BirthInfo | null>(
+    initiallyComplete ? (initialBirthInfo as BirthInfo) : null
+  )
 
   // ------------------------------------------------------------ //
   // 🎨 Particle Animation
@@ -202,14 +234,16 @@ export default function ThemeSelectClient() {
   }, []);
 
   const onPick = (theme: ThemeKey) => {
+    if (!birthInfo) return
     const params = new URLSearchParams(baseParams.toString());
     params.set('theme', theme);
-
-    const lat = sp?.get('latitude') || sp?.get('lat');
-    const lon = sp?.get('longitude') || sp?.get('lon');
-    if (lat) {params.set('latitude', lat);}
-    if (lon) {params.set('longitude', lon);}
-
+    params.set('birthDate', birthInfo.birthDate);
+    if (birthInfo.birthTime) params.set('birthTime', birthInfo.birthTime);
+    if (birthInfo.birthCity) params.set('city', birthInfo.birthCity);
+    if (typeof birthInfo.latitude === 'number') params.set('latitude', String(birthInfo.latitude));
+    if (typeof birthInfo.longitude === 'number') params.set('longitude', String(birthInfo.longitude));
+    if (birthInfo.timezone) params.set('userTz', birthInfo.timezone);
+    if (birthInfo.gender) params.set('gender', birthInfo.gender);
     router.push(`/destiny-map/result?${params.toString()}`);
   };
 
@@ -220,14 +254,43 @@ export default function ThemeSelectClient() {
       <section className={styles.card}>
         <header className={styles.header}>
           <div className={styles.headerContent}>
-            <h1 className={styles.title}>분석 테마 선택</h1>
+            <h1 className={styles.title}>
+              {birthInfo
+                ? locale === 'ko' ? '분석 테마 선택' : 'Pick a Theme'
+                : locale === 'ko' ? '무료 리포트 시작' : 'Start Free Report'}
+            </h1>
             <p className={styles.subtitle}>
-              원하는 포커스를 선택하면, 리포트가 해당 주제에 맞춰 강조됩니다.
+              {birthInfo
+                ? locale === 'ko'
+                  ? '원하는 포커스를 선택하면, 리포트가 해당 주제에 맞춰 강조됩니다.'
+                  : 'Pick a focus and the report will emphasize that theme.'
+                : locale === 'ko'
+                  ? '생년월일·출생시간·도시·성별을 입력하면 무료 리포트를 만들어 드려요.'
+                  : 'Enter your birth info to generate a free report.'}
             </p>
           </div>
         </header>
 
-        {(['시기', '영역'] as const).map((groupName) => {
+        {!birthInfo && (
+          <div style={{ marginBottom: 24 }}>
+            <UnifiedBirthForm
+              locale={locale === 'ko' ? 'ko' : 'en'}
+              initialData={initialBirthInfo}
+              includeProfileLoader={true}
+              includeCity={true}
+              includeTime={true}
+              includeGender={true}
+              allowTimeUnknown={true}
+              genderFormat="short"
+              showHeader={false}
+              submitButtonText={locale === 'ko' ? '테마 선택으로 →' : 'Continue to Themes →'}
+              submitButtonIcon="✨"
+              onSubmit={(info) => setBirthInfo(info)}
+            />
+          </div>
+        )}
+
+        {birthInfo && (['시기', '영역'] as const).map((groupName) => {
           const groupThemes = THEMES.filter((t) => t.group === groupName)
           return (
             <div key={groupName} style={{ marginBottom: 24 }}>
@@ -261,11 +324,21 @@ export default function ThemeSelectClient() {
           )
         })}
 
-        <div className={styles.matrixSection}>
+        {birthInfo && <div className={styles.matrixSection}>
           <button
             type="button"
             className={styles.matrixButton}
-            onClick={() => router.push(`/destiny-map/matrix?${baseParams.toString()}`)}
+            onClick={() => {
+              const params = new URLSearchParams(baseParams.toString())
+              params.set('birthDate', birthInfo.birthDate)
+              if (birthInfo.birthTime) params.set('birthTime', birthInfo.birthTime)
+              if (birthInfo.birthCity) params.set('city', birthInfo.birthCity)
+              if (typeof birthInfo.latitude === 'number') params.set('latitude', String(birthInfo.latitude))
+              if (typeof birthInfo.longitude === 'number') params.set('longitude', String(birthInfo.longitude))
+              if (birthInfo.timezone) params.set('userTz', birthInfo.timezone)
+              if (birthInfo.gender) params.set('gender', birthInfo.gender)
+              router.push(`/destiny-map/matrix?${params.toString()}`)
+            }}
           >
             <span className={styles.matrixIcon}>🧬</span>
             <div className={styles.matrixContent}>
@@ -274,7 +347,7 @@ export default function ThemeSelectClient() {
             </div>
             <span className={styles.matrixArrow}>→</span>
           </button>
-        </div>
+        </div>}
       </section>
     </main>
   );
