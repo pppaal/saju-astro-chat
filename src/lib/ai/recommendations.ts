@@ -3,7 +3,6 @@
  * 사주 + 점성학 + 타로 기반 종합 라이프 추천
  */
 
-import { logger } from "@/lib/logger";
 
 export interface UserProfile {
   name: string;
@@ -195,31 +194,15 @@ export interface LifestyleRecommendation {
 
 /**
  * AI 기반 종합 라이프 추천 생성
+ *
+ * Python AI backend was removed — this function now always returns the local
+ * mock recommendations. Wire up Claude (callClaude) here when a recommendation
+ * surface actually needs AI; the function is currently exported but unused.
  */
 export async function generateLifeRecommendations(
   profile: UserProfile
 ): Promise<LifeRecommendation> {
-  const apiUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
-
-  try {
-    const response = await fetch(`${apiUrl}/api/recommendations`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ profile }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.recommendations;
-  } catch (error) {
-    logger.error("Error generating recommendations:", error);
-
-    // Fallback: Generate mock recommendations
-    return generateMockRecommendations(profile);
-  }
+  return generateMockRecommendations(profile)
 }
 
 /**
