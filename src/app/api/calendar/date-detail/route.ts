@@ -300,6 +300,22 @@ export const GET = withApiMiddleware(
       longCycleContext: lite?.longCycleContext,
       cycleInteractions: lite?.cycleInteractions,
       transit: transitData,
+      hourlyTimeSlots: await (async () => {
+        try {
+          const { analyzeDayTimeSlots } = await import('@/lib/prediction/ultra-precision-minute')
+          const slots = analyzeDayTimeSlots(
+            new Date(date + 'T00:00:00'),
+            dayMasterStem,
+            dayBranch
+          )
+          return {
+            best: slots.best.slice(0, 4),
+            worst: slots.worst.slice(0, 2),
+          }
+        } catch {
+          return undefined
+        }
+      })(),
       lunarMansion: await (async () => {
         try {
           const { getLunarMansion } = await import('@/lib/prediction/modules/lunarMansions')

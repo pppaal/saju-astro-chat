@@ -128,6 +128,11 @@ export interface ImportantDate {
     retrogrades?: string[]
     summary?: string
   }
+  /** 시간대별 행성시 + 점수 */
+  hourlyTimeSlots?: {
+    best: Array<{ hour: number; score: number; reason: string }>
+    worst: Array<{ hour: number; score: number; reason: string }>
+  }
   /** 28수 (Lunar Mansion) — 그날의 달 자리 */
   lunarMansion?: {
     name: string

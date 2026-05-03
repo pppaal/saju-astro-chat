@@ -1,6 +1,6 @@
 'use client'
 
-import React, { memo, useCallback, useMemo } from 'react'
+import React, { memo, useCallback, useMemo, useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import KoreanLunarCalendar from 'korean-lunar-calendar'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -135,6 +135,10 @@ interface ImportantDate {
     goodFor: string[]
     badFor: string[]
   }
+  hourlyTimeSlots?: {
+    best: Array<{ hour: number; score: number; reason: string }>
+    worst: Array<{ hour: number; score: number; reason: string }>
+  }
 }
 
 interface SelectedDatePanelProps {
@@ -256,7 +260,67 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   getScoreClass: _getScoreClass,
 }: SelectedDatePanelProps) {
   const { locale } = useI18n()
-  const { status } = useSession()
+  const { status, data: session } = useSession()
+
+  // AI narrative state — fetched on demand from /api/calendar/ai-narrative
+  // (premium-gated). Reset whenever the selected date changes so we don't
+  // show yesterday's reading on today's panel.
+  const [aiNarrative, setAiNarrative] = useState<string>('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string>('')
+  const userPlan = ((session?.user as { plan?: string } | undefined)?.plan || 'free').toLowerCase()
+  const isPremiumUser = userPlan !== 'free' && status === 'authenticated'
+  useEffect(() => {
+    setAiNarrative('')
+    setAiError('')
+    setAiLoading(false)
+  }, [selectedDate?.date])
+
+  const handleLoadAiNarrative = useCallback(async () => {
+    if (!selectedDate || !selectedDate.date) return
+    setAiLoading(true)
+    setAiError('')
+    try {
+      const payload = {
+        score: selectedDate.score,
+        grade: selectedDate.grade,
+        ganzhi: selectedDate.ganzhi,
+        sajuFactors: selectedDate.sajuFactors?.slice(0, 5),
+        astroFactors: selectedDate.astroFactors?.slice(0, 5),
+        recommendations: selectedDate.recommendations?.slice(0, 3),
+        warnings: selectedDate.warnings?.slice(0, 3),
+        bestTimes: selectedDate.bestTimes?.slice(0, 3),
+        longCycleContext: selectedDate.longCycleContext,
+        cycleInteractions: selectedDate.cycleInteractions?.slice(0, 6),
+        cycleNarrative: selectedDate.cycleNarrative,
+        dayRuler: selectedDate.dayRuler,
+        transit: selectedDate.transit,
+        lunarMansion: selectedDate.lunarMansion,
+      }
+      const res = await fetch('/api/calendar/ai-narrative', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: selectedDate.date, payload }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data?.data?.narrative) {
+        setAiError(
+          data?.error?.message ||
+            (locale === 'ko'
+              ? 'AI 풀이를 불러올 수 없어요.'
+              : 'AI narrative unavailable.')
+        )
+      } else {
+        setAiNarrative(String(data.data.narrative).trim())
+      }
+    } catch {
+      setAiError(
+        locale === 'ko' ? 'AI 풀이 요청 실패' : 'AI narrative request failed'
+      )
+    } finally {
+      setAiLoading(false)
+    }
+  }, [selectedDate, locale])
   const WEEKDAYS = locale === 'ko' ? WEEKDAYS_KO : WEEKDAYS_EN
 
   const categoryLabels = useMemo<Record<EventCategory, { ko: string; en: string }>>(
@@ -1053,6 +1117,72 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             )}
           </div>
 
+          {/* ── AI 풀이 (premium) ──────────────────────────────
+              "사용자가 이해할 수 있게" — 13개 엔진 출력 섹션을 자연어
+              한 단락으로 풀어주는 AI 요약. 프리미엄 게이트, 클릭 시
+              로드, 같은 날짜 두 번 호출 시 서버 캐시 사용. */}
+          <div
+            className={styles.quickSummaryBlock}
+            style={{
+              marginTop: 8,
+              border: '1px solid rgba(251,191,36,0.25)',
+              background: 'rgba(120,90,30,0.08)',
+            }}
+          >
+            <span className={styles.quickSummaryLabel}>
+              ✨ {locale === 'ko' ? 'AI 풀이' : 'AI Reading'}
+            </span>
+            {aiNarrative && (
+              <p
+                className={styles.quickSummaryText}
+                style={{ marginTop: 6, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}
+              >
+                {aiNarrative}
+              </p>
+            )}
+            {!aiNarrative && !aiLoading && !aiError && isPremiumUser && (
+              <button
+                onClick={handleLoadAiNarrative}
+                style={{
+                  marginTop: 8,
+                  padding: '8px 14px',
+                  border: '1px solid rgba(251,191,36,0.5)',
+                  borderRadius: 10,
+                  background: 'rgba(251,191,36,0.15)',
+                  color: '#fbbf24',
+                  cursor: 'pointer',
+                  fontSize: '0.92em',
+                  fontWeight: 600,
+                }}
+              >
+                {locale === 'ko' ? '오늘 풀어 보기' : 'Generate reading'}
+              </button>
+            )}
+            {aiLoading && (
+              <p className={styles.quickSummaryText} style={{ marginTop: 6, opacity: 0.7 }}>
+                {locale === 'ko' ? '엔진 13개 레이어를 풀어내는 중…' : 'Synthesizing…'}
+              </p>
+            )}
+            {aiError && (
+              <p
+                className={styles.quickSummaryText}
+                style={{ marginTop: 6, opacity: 0.85, color: '#fca5a5' }}
+              >
+                {aiError}
+              </p>
+            )}
+            {!isPremiumUser && (
+              <p
+                className={styles.quickSummaryText}
+                style={{ marginTop: 6, opacity: 0.75, fontSize: '0.9em' }}
+              >
+                {locale === 'ko'
+                  ? '프리미엄 플랜에서 13개 엔진 레이어를 한 단락 한국어로 풀어드립니다.'
+                  : 'Premium plan synthesizes all 13 engine layers into one Korean paragraph.'}
+              </p>
+            )}
+          </div>
+
           {/* ── Long-cycle context: 대운 / 세운 / 월운 / 일운 ──── */}
           {selectedDate?.longCycleContext &&
             (selectedDate.longCycleContext.daeun ||
@@ -1132,6 +1262,32 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
+          {/* ── Technical detail (collapsed by default) ─────────
+              Saju + astro internals live behind a disclosure so the user
+              sees hero + timing + advice up front and only opens the
+              jargon-heavy stack when they want depth. */}
+          <details
+            style={{
+              marginTop: 12,
+              border: '1px solid rgba(167,139,250,0.18)',
+              borderRadius: 12,
+              padding: '10px 12px',
+              background: 'rgba(20,20,40,0.4)',
+            }}
+          >
+            <summary
+              style={{
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.95em',
+                opacity: 0.85,
+              }}
+            >
+              🔍 {locale === 'ko'
+                ? '사주·점성 디테일 (전문가용)'
+                : 'Detailed reading (expert)'}
+            </summary>
+            <div style={{ marginTop: 10 }}>
           {/* ── Cycle interactions: 충 / 합 / 형 between cycles ── */}
           {selectedDate?.cycleInteractions && selectedDate.cycleInteractions.length > 0 && (
             <div className={styles.quickSummaryBlock}>
@@ -1260,6 +1416,9 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
+            </div>
+          </details>
+
           {/* ── Cross agreement ────────────────────────────────── */}
           {crossAgreementPercent !== null && (
             <div className={styles.quickSummaryBlock}>
@@ -1271,6 +1430,38 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               </p>
             </div>
           )}
+
+          {/* ── Hourly slots (행성시 + 점수) ─────────────────── */}
+          {selectedDate?.hourlyTimeSlots &&
+            (selectedDate.hourlyTimeSlots.best.length > 0 ||
+              selectedDate.hourlyTimeSlots.worst.length > 0) && (
+              <div className={styles.quickSummaryBlock}>
+                <span className={styles.quickSummaryLabel}>
+                  ⌚ {locale === 'ko' ? '시간대별 행성시' : 'Hourly Planetary'}
+                </span>
+                {selectedDate.hourlyTimeSlots.best.length > 0 && (
+                  <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                    {selectedDate.hourlyTimeSlots.best.slice(0, 4).map((s, i) => (
+                      <li key={`best-${i}`} style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                        ⭐ {String(s.hour).padStart(2, '0')}:00 — {s.reason}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {selectedDate.hourlyTimeSlots.worst.length > 0 && (
+                  <ul style={{ margin: '4px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                    {selectedDate.hourlyTimeSlots.worst.slice(0, 2).map((s, i) => (
+                      <li
+                        key={`worst-${i}`}
+                        style={{ padding: '4px 0', fontSize: '0.92em', opacity: 0.85 }}
+                      >
+                        ⚠ {String(s.hour).padStart(2, '0')}:00 — {s.reason}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
           {/* ── Best times ─────────────────────────────────────── */}
           {normalizedBestTimes.length > 0 && (
