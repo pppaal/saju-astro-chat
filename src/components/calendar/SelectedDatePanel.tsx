@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import KoreanLunarCalendar from 'korean-lunar-calendar'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
+import { humanizeEvidence } from './humanizeEvidence'
 import { resolvePeakLevel } from './peakUtils'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
@@ -628,9 +629,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   )
   const safeSajuFactors = (selectedDate?.sajuFactors || [])
     .map((line) => softenDecisionTone(line, locale, isLowReliability))
+    .map((line) => humanizeEvidence(line, locale === 'en' ? 'en' : 'ko'))
     .filter(Boolean)
   const safeAstroFactors = (selectedDate?.astroFactors || [])
     .map((line) => softenDecisionTone(line, locale, isLowReliability))
+    .map((line) => humanizeEvidence(line, locale === 'en' ? 'en' : 'ko'))
     .filter(Boolean)
 
   const evidenceBridges = (selectedDate?.evidence?.cross?.bridges || [])
@@ -1347,13 +1350,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                   className={styles.quickSummaryText}
                   style={{ marginTop: 4, fontSize: '0.92em', opacity: 0.85 }}
                 >
-                  {selectedDate.cycleNarrative}
+                  {humanizeEvidence(selectedDate.cycleNarrative, locale === 'en' ? 'en' : 'ko')}
                 </p>
               )}
               <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
                 {selectedDate.cycleInteractions.slice(0, 4).map((it, i) => (
                   <li key={i} style={{ padding: '4px 0', fontSize: '0.92em' }}>
-                    · {it.blurb}
+                    · {humanizeEvidence(it.blurb, locale === 'en' ? 'en' : 'ko')}
                   </li>
                 ))}
               </ul>
@@ -1364,8 +1367,16 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {safeSajuFactors.length > 0 && (
             <div className={styles.quickSummaryBlock}>
               <span className={styles.quickSummaryLabel}>
-                📍 {locale === 'ko' ? '사주 근거' : 'Saju Evidence'}
+                📍 {locale === 'ko' ? '사주가 본 오늘' : 'Saju says'}
               </span>
+              <p
+                className={styles.quickSummaryText}
+                style={{ marginTop: 4, fontSize: '0.92em', opacity: 0.78 }}
+              >
+                {locale === 'ko'
+                  ? '본인 사주(태어난 날의 천간·지지)가 오늘 일주를 만나 만드는 결입니다.'
+                  : 'How your natal day pillar interacts with today.'}
+              </p>
               <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
                 {safeSajuFactors.slice(0, 3).map((f, i) => (
                   <li key={i} style={{ padding: '4px 0', fontSize: '0.95em' }}>
@@ -1387,19 +1398,33 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                   className={styles.quickSummaryText}
                   style={{ marginTop: 4, fontSize: '0.92em', opacity: 0.85 }}
                 >
-                  {selectedDate.transit.summary}
+                  {humanizeEvidence(selectedDate.transit.summary, locale === 'en' ? 'en' : 'ko')}
                 </p>
               )}
               <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
-                {selectedDate.transit.aspects.slice(0, 4).map((a, i) => (
+                {selectedDate.transit.aspects.slice(0, 4).map((a, i) => {
+                  const planetKo = humanizeEvidence(a.transitPlanet, 'ko')
+                  const aspectKo = humanizeEvidence(a.aspect, 'ko')
+                  const natalKo = humanizeEvidence(a.natalPoint, 'ko')
+                  return (
                   <li key={i} style={{ padding: '4px 0', fontSize: '0.92em' }}>
-                    · <strong>{a.transitPlanet}</strong> {a.aspect}{' '}
-                    <strong>{a.natalPoint}</strong>
+                    {locale === 'ko' ? (
+                      <>
+                        · <strong>{planetKo}</strong>이 본명{' '}
+                        <strong>{natalKo}</strong>에 {aspectKo}
+                      </>
+                    ) : (
+                      <>
+                        · <strong>{a.transitPlanet}</strong> {a.aspect}{' '}
+                        <strong>{a.natalPoint}</strong>
+                      </>
+                    )}
                     {' '}<span style={{ opacity: 0.7 }}>
                       (오브 {a.orb.toFixed(1)}°{a.isApplying ? ', 접근' : ', 분리'})
                     </span>
                   </li>
-                ))}
+                  )
+                })}
               </ul>
             </div>
           )}
@@ -1452,8 +1477,16 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {safeAstroFactors.length > 0 && (
             <div className={styles.quickSummaryBlock}>
               <span className={styles.quickSummaryLabel}>
-                ⭐ {locale === 'ko' ? '점성 근거' : 'Astrology Evidence'}
+                ⭐ {locale === 'ko' ? '점성이 본 오늘' : 'Astrology says'}
               </span>
+              <p
+                className={styles.quickSummaryText}
+                style={{ marginTop: 4, fontSize: '0.92em', opacity: 0.78 }}
+              >
+                {locale === 'ko'
+                  ? '본인 별자리(태양·달·상승궁)와 오늘 행성 위치가 만나는 결입니다.'
+                  : 'How your natal chart meets today’s planetary positions.'}
+              </p>
               <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
                 {safeAstroFactors.slice(0, 3).map((f, i) => (
                   <li key={i} style={{ padding: '4px 0', fontSize: '0.95em' }}>
