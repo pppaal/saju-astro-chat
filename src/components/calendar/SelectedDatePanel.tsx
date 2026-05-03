@@ -89,7 +89,16 @@ interface ImportantDate {
   transitSunSign?: string
   crossVerified?: boolean
   longCycleContext?: {
-    daeun?: { ganji: string; ageStart: number; ageEnd: number; sibsinStem?: string }
+    daeun?: {
+      ganji: string
+      ageStart: number
+      ageEnd: number
+      sibsinStem?: string
+      yearsToNext?: number
+      transitionImminent?: boolean
+      nextGanji?: string
+      nextSibsinStem?: string
+    }
     sewoon?: { ganji: string; year: number; sibsinStem?: string }
     wolwoon?: { ganji: string; sibsinStem?: string }
     iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
@@ -107,7 +116,17 @@ interface ImportantDate {
       orb: number
       isApplying: boolean
     }>
+    retrogrades?: string[]
     summary?: string
+  }
+  lunarMansion?: {
+    name: string
+    nameKo: string
+    element: string
+    animal: string
+    isAuspicious: boolean
+    goodFor: string[]
+    badFor: string[]
   }
 }
 
@@ -1046,6 +1065,17 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                       {selectedDate.longCycleContext.daeun.sibsinStem
                         ? ` · ${selectedDate.longCycleContext.daeun.sibsinStem}`
                         : ''}
+                      {selectedDate.longCycleContext.daeun.transitionImminent && (
+                        <span style={{ marginLeft: 8, color: '#f59e0b', fontWeight: 600 }}>
+                          ⚠ {selectedDate.longCycleContext.daeun.yearsToNext?.toFixed(1)}년 후{' '}
+                          {selectedDate.longCycleContext.daeun.nextGanji
+                            ? `${selectedDate.longCycleContext.daeun.nextGanji} 대운으로 전환`
+                            : '대운 전환'}
+                          {selectedDate.longCycleContext.daeun.nextSibsinStem
+                            ? ` (${selectedDate.longCycleContext.daeun.nextSibsinStem})`
+                            : ''}
+                        </span>
+                      )}
                     </li>
                   )}
                   {selectedDate.longCycleContext.sewoon && (
@@ -1133,6 +1163,50 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                     </span>
                   </li>
                 ))}
+              </ul>
+            </div>
+          )}
+
+          {/* ── Retrograde alert ─────────────────────────────── */}
+          {selectedDate?.transit?.retrogrades && selectedDate.transit.retrogrades.length > 0 && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                ↩ {locale === 'ko' ? '역행 행성' : 'Retrograde'}
+              </span>
+              <p className={styles.quickSummaryText} style={{ marginTop: 4 }}>
+                {selectedDate.transit.retrogrades.join(', ')}
+                {selectedDate.transit.retrogrades.includes('Mercury') &&
+                  (locale === 'ko'
+                    ? ' — 수성역행 중. 계약·통신·여행 한 번 더 점검.'
+                    : ' — Mercury retrograde. Re-check contracts, comms, travel.')}
+              </p>
+            </div>
+          )}
+
+          {/* ── 28수 Lunar Mansion ───────────────────────────── */}
+          {selectedDate?.lunarMansion && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                🌙 {locale === 'ko' ? '28수' : 'Lunar Mansion'} ·{' '}
+                <strong>
+                  {selectedDate.lunarMansion.nameKo}수 ({selectedDate.lunarMansion.name})
+                </strong>{' '}
+                <span style={{ opacity: 0.7, fontWeight: 'normal' }}>
+                  {selectedDate.lunarMansion.element} · {selectedDate.lunarMansion.animal} ·{' '}
+                  {selectedDate.lunarMansion.isAuspicious ? '길수' : '흉수'}
+                </span>
+              </span>
+              <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                {selectedDate.lunarMansion.goodFor.length > 0 && (
+                  <li style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                    · 좋음: {selectedDate.lunarMansion.goodFor.join(', ')}
+                  </li>
+                )}
+                {selectedDate.lunarMansion.badFor.length > 0 && (
+                  <li style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                    · 주의: {selectedDate.lunarMansion.badFor.join(', ')}
+                  </li>
+                )}
               </ul>
             </div>
           )}

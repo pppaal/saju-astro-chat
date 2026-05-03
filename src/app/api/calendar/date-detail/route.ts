@@ -191,7 +191,11 @@ export const GET = withApiMiddleware(
     // longitudes are location-independent so Seoul defaults work fine —
     // we don't surface house cusps here.
     let transitData:
-      | { aspects: Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number; isApplying: boolean }>; summary?: string }
+      | {
+          aspects: Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number; isApplying: boolean }>
+          retrogrades?: string[]
+          summary?: string
+        }
       | undefined
     try {
       const [
@@ -232,12 +236,25 @@ export const GET = withApiMiddleware(
           orb: Math.abs(a.orb),
           isApplying: a.isApplying,
         }))
+      // 역행 행성 — Mercury / Venus / Mars retrograde flags users care about.
+      const retrogrades = (transitChart.planets || [])
+        .filter((p) => p.retrograde === true)
+        .map((p) => p.name)
+      const summaryParts: string[] = []
+      if (trimmed.length > 0) {
+        summaryParts.push(
+          `${trimmed.length}개 aspect — 가장 타이트: ${trimmed[0].transitPlanet} ${trimmed[0].aspect} ${trimmed[0].natalPoint} (오브 ${trimmed[0].orb.toFixed(1)}°)`
+        )
+      } else {
+        summaryParts.push('본명 차트와 타이트한 트랜짓 aspect 없음')
+      }
+      if (retrogrades.length > 0) {
+        summaryParts.push(`역행 중: ${retrogrades.join(', ')}`)
+      }
       transitData = {
         aspects: trimmed,
-        summary:
-          trimmed.length > 0
-            ? `${trimmed.length}개의 트랜짓 aspect — 가장 타이트: ${trimmed[0].transitPlanet} ${trimmed[0].aspect} ${trimmed[0].natalPoint} (오브 ${trimmed[0].orb.toFixed(1)}°)`
-            : '오늘은 본명 차트와 타이트한 트랜짓 aspect가 없습니다.',
+        retrogrades: retrogrades.length > 0 ? retrogrades : undefined,
+        summary: summaryParts.join(' · '),
       }
     } catch (err) {
       logger.warn('[calendar/date-detail] transit aspect calc failed', {
@@ -283,6 +300,24 @@ export const GET = withApiMiddleware(
       longCycleContext: lite?.longCycleContext,
       cycleInteractions: lite?.cycleInteractions,
       transit: transitData,
+      lunarMansion: await (async () => {
+        try {
+          const { getLunarMansion } = await import('@/lib/prediction/modules/lunarMansions')
+          const dateObj = new Date(date + 'T00:00:00')
+          const lm = getLunarMansion(dateObj)
+          return {
+            name: lm.name,
+            nameKo: lm.nameKo,
+            element: lm.element,
+            animal: lm.animal,
+            isAuspicious: lm.isAuspicious,
+            goodFor: lm.goodFor,
+            badFor: lm.badFor,
+          }
+        } catch {
+          return undefined
+        }
+      })(),
     })
   },
   createPublicStreamGuard({

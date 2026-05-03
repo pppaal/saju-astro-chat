@@ -57,7 +57,19 @@ export interface LiteImportantDate {
   crossCheck?: { line: string; agreementPercent: number }
   /** 대운 / 세운 / 월운 / 일운 — 본명 일간 기준 십신까지 박은 풀 흐름 컨텍스트 */
   longCycleContext?: {
-    daeun?: { ganji: string; ageStart: number; ageEnd: number; sibsinStem?: string }
+    daeun?: {
+      ganji: string
+      ageStart: number
+      ageEnd: number
+      sibsinStem?: string
+      /** Years remaining until next 대운 (fractional) */
+      yearsToNext?: number
+      /** True when within 1 year of next 대운 boundary */
+      transitionImminent?: boolean
+      /** 다음 대운 ganji + sibsin (전환 임박 시 같이 보여주려고) */
+      nextGanji?: string
+      nextSibsinStem?: string
+    }
     sewoon?: { ganji: string; year: number; sibsinStem?: string }
     wolwoon?: { ganji: string; sibsinStem?: string }
     iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
@@ -1604,21 +1616,35 @@ export function calculateYearlyImportantDatesLite(
     const cycles = sajuProfile.daeunCycles
     if (!cycles?.length || resolvedBirthYear == null) return null
     // Approximate age at `d` using birth year. Daeun age ranges are
-    // [age, age+10) sorted ascending.
-    const ageAtDate = d.getFullYear() - resolvedBirthYear
-    let active = cycles[0]
-    for (const cycle of cycles) {
-      if (cycle.age <= ageAtDate) active = cycle
+    // [age, age+10) sorted ascending. We compute fractional age using
+    // the date's day-of-year so transition-imminent detection (within 1
+    // year of next boundary) is meaningful, not just a Jan-1 step.
+    const yearStart = new Date(d.getFullYear(), 0, 1).getTime()
+    const yearEnd = new Date(d.getFullYear() + 1, 0, 1).getTime()
+    const fractionalYear = d.getFullYear() + (d.getTime() - yearStart) / (yearEnd - yearStart)
+    const ageAtDate = fractionalYear - resolvedBirthYear
+    let activeIdx = 0
+    for (let i = 0; i < cycles.length; i++) {
+      if (cycles[i].age <= Math.floor(ageAtDate)) activeIdx = i
       else break
     }
+    const active = cycles[activeIdx]
     if (!active) return null
+    const next = cycles[activeIdx + 1] || null
     const daeunStem = active.heavenlyStem || ''
     const sibsinStem = natalDayMaster && daeunStem ? getSibsinKo(natalDayMaster, daeunStem) : ''
+    const nextStem = next?.heavenlyStem || ''
+    const nextSibsinStem = natalDayMaster && nextStem ? getSibsinKo(natalDayMaster, nextStem) : ''
+    const yearsToNext = next ? Math.max(0, next.age - ageAtDate) : Infinity
     return {
       ganji: `${daeunStem}${active.earthlyBranch}`,
       ageStart: active.age,
       ageEnd: active.age + 10,
       sibsinStem,
+      yearsToNext: next ? Number(yearsToNext.toFixed(2)) : undefined,
+      transitionImminent: next ? yearsToNext <= 1 : false,
+      nextGanji: next ? `${next.heavenlyStem}${next.earthlyBranch}` : undefined,
+      nextSibsinStem: next ? nextSibsinStem : undefined,
     }
   }
   const sewoonForYear = (yr: number) => {

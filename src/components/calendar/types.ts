@@ -115,7 +115,19 @@ export interface ImportantDate {
       orb: number
       isApplying: boolean
     }>
+    /** 그날 역행 중인 행성 ('Mercury', 'Venus', 'Mars', …) */
+    retrogrades?: string[]
     summary?: string
+  }
+  /** 28수 (Lunar Mansion) — 그날의 달 자리 */
+  lunarMansion?: {
+    name: string
+    nameKo: string
+    element: string
+    animal: string
+    isAuspicious: boolean
+    goodFor: string[]
+    badFor: string[]
   }
 }
 
