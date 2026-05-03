@@ -2,6 +2,7 @@
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { useCallback } from 'react'
+import Link from 'next/link'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import {
@@ -10,8 +11,9 @@ import {
   toSafeFallbackText,
   type I18nMessages,
 } from '@/i18n/utils'
-import { MainHeader, ServiceSearchBox, ParticleCanvas } from './components'
+import { MainHeader, ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
+import { ENABLED_SERVICES } from '@/config/enabledServices'
 
 type Locale = 'en' | 'ko'
 
@@ -20,14 +22,11 @@ interface MainPageClientProps {
   initialMessages: I18nMessages
 }
 
+const HOMEPAGE_SERVICES = ENABLED_SERVICES.filter((s) => s.id !== 'destinyMatch')
+
 export default function MainPageClient({ initialLocale, initialMessages }: MainPageClientProps) {
   const { locale: activeLocale, hydrated, t } = useI18n()
-  const locale = activeLocale || initialLocale
-
-  const localizedFallback = useCallback(
-    (ko: string, en: string) => (locale === 'ko' ? ko : en),
-    [locale]
-  )
+  const locale = (activeLocale || initialLocale) as Locale
 
   const serverTranslate = useCallback(
     (key: string, fallback?: string) => {
@@ -45,7 +44,6 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
       if (!hydrated) {
         return serverTranslate(key, fallback)
       }
-
       const translated = t(key, fallback)
       if (isPlaceholderTranslation(translated, key)) {
         return serverTranslate(key, fallback)
@@ -58,36 +56,32 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
   return (
     <main className={styles.container}>
       <ParticleCanvas />
-      <MainHeader translate={translate} locale={locale as Locale} />
+      <MainHeader translate={translate} locale={locale} />
 
-      <section className={styles.fullscreenHero}>
-        <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>
-            <span className={styles.heroTitleLead}>
-              {translate(
-                'landing.heroTitleLead',
-                localizedFallback('결정이 필요한 순간,', 'When a decision matters,')
-              )}
-            </span>
-            <span className={styles.heroTitleAccent}>
-              {translate(
-                'landing.heroTitleAccent',
-                localizedFallback('흐름과 타이밍을 함께 봅니다', 'see the flow and timing together')
-              )}
-            </span>
-          </h1>
-          <p className={styles.heroSub}>
-            {translate(
-              'landing.heroSub',
-              localizedFallback(
-                '연애, 이직, 관계, 중요한 선택 앞에서 흐름을 읽고, 타이밍을 분석해 더 선명한 판단을 도와드립니다.',
-                'Read the situation, analyze the timing, and make clearer decisions across relationships, work, and major choices.'
-              )
-            )}
-          </p>
+      <section className={styles.brandHero}>
+        <h1 className={styles.brandTitle}>DestinyPal</h1>
+        <p className={styles.brandSub}>
+          {locale === 'ko' ? '당신의 운세를 보여드립니다' : 'See your fortune unfold'}
+        </p>
+      </section>
 
-          <ServiceSearchBox translate={translate} styles={styles} locale={locale as Locale} />
-        </div>
+      <section
+        className={styles.servicesGrid}
+        aria-label={locale === 'ko' ? '서비스' : 'Services'}
+      >
+        {HOMEPAGE_SERVICES.map((service) => (
+          <Link key={service.id} href={service.href} className={styles.serviceTile}>
+            <span className={styles.serviceTileIcon} aria-hidden="true">
+              {service.icon}
+            </span>
+            <h2 className={styles.serviceTileLabel}>
+              {locale === 'ko' ? service.label.ko : service.label.en}
+            </h2>
+            <p className={styles.serviceTileDesc}>
+              {locale === 'ko' ? service.description.ko : service.description.en}
+            </p>
+          </Link>
+        ))}
       </section>
 
       <PrefetchLinks />
