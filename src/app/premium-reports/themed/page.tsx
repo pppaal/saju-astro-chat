@@ -157,7 +157,7 @@ function ThemedBuilderContent() {
 
   const handleGenerate = async () => {
     if (reportTier !== 'premium') {
-      router.push('/destiny-map')
+      router.push('/destiny-map/theme')
       return
     }
     if (!theme) {
