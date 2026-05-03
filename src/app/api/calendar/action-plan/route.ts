@@ -774,7 +774,29 @@ export const POST = withApiMiddleware(
     // Skeleton: 결정론적 summary + best/caution slots + 사주·점성 raw.
     // Claude 미설정 시 skeleton 그대로.
     try {
-      const tl: any[] = (responsePayload as any).timeline || []
+      type TimelineSlot = {
+        tone?: string
+        label?: string
+        hour?: string
+        note?: string
+        action?: string
+        evidenceSummary?: string[]
+        confidenceReason?: string[]
+        why?: { patterns?: string[]; summary?: string }
+      }
+      const payload = responsePayload as Record<string, unknown>
+      const calendar = actionPlanCalendar as Record<string, unknown> | undefined
+      const cycle =
+        ((calendar?.evidence as Record<string, unknown> | undefined)?.cycle as
+          | Record<string, unknown>
+          | undefined) || undefined
+      const cross =
+        ((calendar?.evidence as Record<string, unknown> | undefined)?.cross as
+          | Record<string, unknown>
+          | undefined) || undefined
+      const canonicalCore = calendar?.canonicalCore as Record<string, unknown> | undefined
+      const natalSaju = calendar?.natalSaju as Record<string, unknown> | undefined
+      const tl: TimelineSlot[] = (payload.timeline as TimelineSlot[]) || []
       // Tier 4 anchor — slot evidence (사주·점성 신호 분리)
       const SAJU_KW = ['일진', '대운', '세운', '월운', '식상', '재성', '관성', '인성', '비겁', '신살', '천을귀인', '도화', '역마', '백호', '양인', '괴강', '공망', '격국', '용신', '12운성', '천간', '지지', '오행', '갑자', '갑목', '을목', '병화', '정화', '무토', '기토', '경금', '신금', '임수', '계수']
       const ASTRO_KW = ['하우스', '트랜짓', '어스펙트', 'aspect', 'transit', 'house', 'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'ASC', 'MC', 'Vertex', 'Juno', 'Vesta', 'Ceres', 'Pallas', '태양', '달', '수성', '금성', '화성', '목성', '토성', '천왕성', '해왕성', '명왕성', '상승궁', '천정']
@@ -793,11 +815,11 @@ export const POST = withApiMiddleware(
         }
         return { saju, astro }
       }
-      const mapSlot = (s: any) => {
+      const mapSlot = (s: TimelineSlot) => {
         const rawSignals = [
-          ...((s.evidenceSummary as string[] | undefined) || []),
-          ...((s.confidenceReason as string[] | undefined) || []),
-          ...(((s.why as { patterns?: string[] } | undefined)?.patterns) || []),
+          ...(s.evidenceSummary || []),
+          ...(s.confidenceReason || []),
+          ...(s.why?.patterns || []),
         ]
         const { saju, astro } = splitSignals(rawSignals)
         return {
@@ -805,14 +827,14 @@ export const POST = withApiMiddleware(
           reason: s.note || s.action || '',
           sajuSignals: saju.slice(0, 3),
           astroSignals: astro.slice(0, 3),
-          summary: (s.why as { summary?: string } | undefined)?.summary,
+          summary: s.why?.summary,
         }
       }
-      const bestSlots = tl.filter((s: any) => s.tone === 'best').slice(0, 3).map(mapSlot)
-      const cautionSlots = tl.filter((s: any) => s.tone === 'caution').slice(0, 3).map(mapSlot)
+      const bestSlots = tl.filter((s) => s.tone === 'best').slice(0, 3).map(mapSlot)
+      const cautionSlots = tl.filter((s) => s.tone === 'caution').slice(0, 3).map(mapSlot)
 
       const skeletonParts = [
-        (responsePayload as any).summary,
+        payload.summary as string | undefined,
         bestSlots.length ? `좋은 시간: ${bestSlots.map((s) => s.hour).join(', ')}` : '',
         cautionSlots.length ? `조심: ${cautionSlots.map((s) => s.hour).join(', ')}` : '',
       ].filter(Boolean)
@@ -823,30 +845,30 @@ export const POST = withApiMiddleware(
           date,
           locale: lang,
           natal: {
-            dayMaster: (actionPlanCalendar as any)?.natalSaju?.dayStem,
-            dayMasterElement: (actionPlanCalendar as any)?.dayMasterElement,
-            geokguk: (actionPlanCalendar as any)?.geokguk,
-            fiveElements: (actionPlanCalendar as any)?.fiveElements,
+            dayMaster: natalSaju?.dayStem as string | undefined,
+            dayMasterElement: calendar?.dayMasterElement as string | undefined,
+            geokguk: calendar?.geokguk as string | undefined,
+            fiveElements: calendar?.fiveElements as Record<string, number> | undefined,
           },
           timing: {
-            daeunGanji: (actionPlanCalendar as any)?.evidence?.cycle?.daeunGanji,
-            daeunElement: (actionPlanCalendar as any)?.evidence?.cycle?.daeunElement,
-            saeunYear: (actionPlanCalendar as any)?.evidence?.cycle?.saeunYear,
-            saeunElement: (actionPlanCalendar as any)?.evidence?.cycle?.saeunElement,
-            wolunElement: (actionPlanCalendar as any)?.evidence?.cycle?.wolunElement,
-            iljinElement: (actionPlanCalendar as any)?.evidence?.cycle?.iljinElement,
+            daeunGanji: cycle?.daeunGanji as string | undefined,
+            daeunElement: cycle?.daeunElement as string | undefined,
+            saeunYear: cycle?.saeunYear as number | undefined,
+            saeunElement: cycle?.saeunElement as string | undefined,
+            wolunElement: cycle?.wolunElement as string | undefined,
+            iljinElement: cycle?.iljinElement as string | undefined,
           },
           astro: {
-            transits: (actionPlanCalendar as any)?.evidence?.cross?.bridges,
-            saturnHouse: (actionPlanCalendar as any)?.evidence?.cross?.saturnHouse,
-            jupiterHouse: (actionPlanCalendar as any)?.evidence?.cross?.jupiterHouse,
+            transits: cross?.bridges as string[] | undefined,
+            saturnHouse: cross?.saturnHouse as number | undefined,
+            jupiterHouse: cross?.jupiterHouse as number | undefined,
           },
           bestSlots,
           cautionSlots,
           matrixCore: {
-            phase: (actionPlanCalendar as any)?.canonicalCore?.phase,
-            focus: (actionPlanCalendar as any)?.canonicalCore?.topDecisionLabel,
-            risk: (actionPlanCalendar as any)?.canonicalCore?.riskAxisLabel,
+            phase: canonicalCore?.phase as string | undefined,
+            focus: canonicalCore?.topDecisionLabel as string | undefined,
+            risk: canonicalCore?.riskAxisLabel as string | undefined,
           },
           continuity: (() => {
             const c = buildDayContinuity(date, lang)
@@ -871,7 +893,7 @@ export const POST = withApiMiddleware(
         skeleton
       )
 
-      ;(responsePayload as any).dayNarrative = polishedNarrative
+      payload.dayNarrative = polishedNarrative
     } catch (polishErr) {
       logger.warn('[ActionPlan] day narrative polish failed', {
         error: polishErr instanceof Error ? polishErr.message : String(polishErr),

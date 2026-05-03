@@ -156,7 +156,6 @@ export async function POST(req: NextRequest) {
       person1Astro = null,
       person2Astro = null,
       fullContext,
-      useRag = true,
       lang = context.locale,
       messages = [],
       theme = 'general',

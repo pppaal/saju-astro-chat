@@ -17,7 +17,6 @@ import {
   cleanGuidanceText,
   extractHoursFromText,
   getCategoryFocusHint,
-  getHourlyWindowLabel,
   getOfficeBucket,
   getOfficeBucketAction,
   getOfficeBucketTheme,
@@ -1068,8 +1067,6 @@ export const buildRuleBasedTimeline = (input: {
       const minute = slotIdx === 0 ? 0 : 30
       const label = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 
-      const energyText = getHourlyWindowLabel(hour, locale)
-
       const hourlyRec = getHourlyRecommendation(hour, weekdayIndex, dayMasterElement)
       const advice = hourlyAdvice[hour]
       let tone: TimelineTone =
@@ -1087,7 +1084,6 @@ export const buildRuleBasedTimeline = (input: {
       }
 
       const category = pickCategoryByHour(calendar?.categories, hour)
-      const focusHint = getCategoryFocusHint(category, hour, locale)
       const recHint = cleanGuidanceText(pickByHour(calendar?.recommendations, hour) || '', 78)
       const warningHint = cleanGuidanceText(pickByHour(calendar?.warnings, hour) || '', 78)
       const matrixPacketSummary = summarizeMatrixPacketForPrompt(getMatrixPacket(calendar), locale)
@@ -1123,14 +1119,9 @@ export const buildRuleBasedTimeline = (input: {
           .filter(Boolean)
           .join(' / ')
       const crossReason = buildCrossReasonText(calendar?.evidence?.cross, tone, locale)
-      const crossSummary =
-        primaryAstroLine ||
-        primaryBridgeLine ||
-        cleanGuidanceText(calendar?.evidence?.cross?.sajuDetails?.[0] || '', 112)
       const personalHint = buildPersonalizationHint({ locale, tone, icp, persona })
 
       const best = hourlyRec.bestActivities.slice(0, 2).join(', ')
-      const avoid = hourlyRec.avoidActivities.slice(0, 2).join(', ')
 
       // 시진(時辰) — 본명 일주가 있으면 그 기준으로 시간 십신·시간 충/합/공망 검사
       const natalDayStem = calendar?.natalSaju?.dayStem || daily.stem

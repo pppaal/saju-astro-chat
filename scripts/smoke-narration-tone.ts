@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 /**
  * Narration tone smoke test
  *

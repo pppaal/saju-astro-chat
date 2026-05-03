@@ -58,7 +58,6 @@ export default function FreeCrossPreview({ saju, astrology, lang = 'ko', classNa
   const isKo = lang === 'ko'
 
   // 사주 측 — 일간 element
-  const dayMaster = pickStr(saju, 'dayMaster')
   const dayMasterElementRaw =
     pickStr(saju, 'dayMasterElement') ||
     (saju as { dayMaster?: { element?: string } } | undefined)?.dayMaster?.element

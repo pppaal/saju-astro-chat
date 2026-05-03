@@ -642,7 +642,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             </ul>
             {actionItems.length > 3 && (
               <p className="mt-3 text-[11.5px] text-slate-500">
-                전체 {actionItems.length}개는 "다음 단계" 탭에서 볼 수 있어요
+                전체 {actionItems.length}개는 &ldquo;다음 단계&rdquo; 탭에서 볼 수 있어요
               </p>
             )}
           </section>

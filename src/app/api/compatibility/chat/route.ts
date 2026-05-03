@@ -72,8 +72,6 @@ export const POST = withApiMiddleware(
     const {
       persons,
       compatibilityResult = '',
-      fullContext,
-      useRag = true,
       theme = 'general',
       lang = context.locale,
       messages,

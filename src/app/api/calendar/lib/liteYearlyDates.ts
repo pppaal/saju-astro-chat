@@ -142,10 +142,6 @@ const STEM_TO_ELEMENT: Record<string, 'wood' | 'fire' | 'earth' | 'metal' | 'wat
   壬: 'water', 癸: 'water',
 }
 
-const ELEMENT_LABEL_KO: Record<string, string> = {
-  wood: '목', fire: '화', earth: '토', metal: '금', water: '수',
-}
-
 const ELEMENT_LABEL_EN: Record<string, string> = {
   wood: 'Wood', fire: 'Fire', earth: 'Earth', metal: 'Metal', water: 'Water',
 }
@@ -185,9 +181,6 @@ const MONTH_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', 
 function monthBranchOf(month: number): string {
   return MONTH_BRANCHES[month % 12]
 }
-function yearStemOf(year: number): string {
-  return STEMS[((year - 4) % 10 + 10) % 10]
-}
 // 寅月 천간 = (year stem % 5) * 2 → 0=甲己→丙(2), 1=乙庚→戊(4), 2=丙辛→庚(6), 3=丁壬→壬(8), 4=戊癸→甲(0)
 function monthStemOf(year: number, month: number): string {
   const yIdx = ((year - 4) % 10 + 10) % 10
@@ -216,14 +209,6 @@ function getSibsinKo(dayStem: string, targetStem: string): string {
     ['편인', '정인'], // 4
   ]
   return labels[diff][samePolarity ? 0 : 1]
-}
-
-const SIBSIN_DOMAIN: Record<string, DomainKey> = {
-  비견: 'career', 겁재: 'money',
-  식신: 'love', 상관: 'love',
-  편재: 'money', 정재: 'money',
-  편관: 'career', 정관: 'career',
-  편인: 'health', 정인: 'health',
 }
 
 const SIBSIN_THEME_KO: Record<string, string> = {
@@ -610,15 +595,6 @@ function subjectMarkerKo(label: string): string {
 
 function topicMarkerKo(label: string): string {
   return hasFinalConsonant(label) ? '은' : '는'
-}
-
-function instrumentalMarkerKo(label: string): string {
-  if (!label) return '으로'
-  const ch = label.charCodeAt(label.length - 1)
-  if (ch < 0xac00 || ch > 0xd7a3) return '으로'
-  const jong = (ch - 0xac00) % 28
-  // 받침 없음 또는 ㄹ(8) 받침 → '로', 그 외 → '으로'
-  return jong === 0 || jong === 8 ? '로' : '으로'
 }
 
 const MOON_GRAIN_KO: Record<DomainKey, string> = {
@@ -1041,7 +1017,7 @@ function buildMonthlyCounselorPacks(
     const climate = MONTH_CLIMATE[mb]?.climate
     const season = MONTH_CLIMATE[mb]?.season
     let yongsinAlign: MonthlyCounselorPack['yongsinAlign'] = 'neutral'
-    let yongsinPrimary: string | undefined = johu?.primaryYongsin
+    const yongsinPrimary: string | undefined = johu?.primaryYongsin
     if (yongsin && yongsinPrimary) {
       const userYongsinKo = ELEMENT_KO_TO_EN_MAP[yongsin]
         ? yongsin
@@ -1185,26 +1161,6 @@ function buildSajuFactors(
   return branchLine ? [sibsinLine, second, branchLine] : [sibsinLine, second]
 }
 
-function relationLabelKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
-  switch (rel) {
-    case 'same': return '동기'
-    case 'support': return '상생'
-    case 'drain': return '설기'
-    case 'control': return '극'
-    case 'controlled': return '제'
-  }
-}
-
-function relationActionKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
-  switch (rel) {
-    case 'same': return '기운이 같이 모입니다'
-    case 'support': return '받쳐주는 흐름이 들어옵니다'
-    case 'drain': return '에너지가 바깥으로 풀려나갑니다'
-    case 'control': return '진행에 제동이 걸리기 쉽습니다'
-    case 'controlled': return '한 박자 늦추는 분위기가 보입니다'
-  }
-}
-
 function relationCycleSignalKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
   switch (rel) {
     case 'same':
@@ -1215,16 +1171,6 @@ function relationCycleSignalKo(rel: 'same' | 'support' | 'drain' | 'control' | '
   }
 }
 
-function relationCyclePriorityKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
-  switch (rel) {
-    case 'same':
-    case 'support': return '올립니다'
-    case 'drain': return '바깥으로 분산시킵니다'
-    case 'control': return '눌러둡니다'
-    case 'controlled': return '잠시 미뤄둡니다'
-  }
-}
-
 function relationLabelEn(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
   switch (rel) {
     case 'same': return 'reinforcing'
@@ -1232,16 +1178,6 @@ function relationLabelEn(rel: 'same' | 'support' | 'drain' | 'control' | 'contro
     case 'drain': return 'draining'
     case 'control': return 'controlling'
     case 'controlled': return 'restrained'
-  }
-}
-
-function relationActionEn(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
-  switch (rel) {
-    case 'same': return 'thickening momentum on'
-    case 'support': return 'adding lift to'
-    case 'drain': return 'leaking energy from'
-    case 'control': return 'putting brakes on'
-    case 'controlled': return 'asking you to slow on'
   }
 }
 

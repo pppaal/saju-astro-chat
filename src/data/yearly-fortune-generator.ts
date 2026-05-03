@@ -1,5 +1,5 @@
 import { BlogPost } from "./blog-posts";
-import { iga, eulReul, waGwa } from "@/lib/i18n/koParticle";
+import { iga, waGwa } from "@/lib/i18n/koParticle";
 
 // 천간 (Heavenly Stems)
 const HEAVENLY_STEMS = [

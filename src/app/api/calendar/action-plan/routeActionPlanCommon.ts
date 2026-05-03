@@ -638,10 +638,6 @@ export function detectHourEvent(input: {
 // ─────────────────────────────────────────────────────────────
 import { getPlanetaryHourForDate } from '@/lib/destiny-map/calendar/planetary-hours'
 
-const PLANET_KO_LABEL: Record<string, string> = {
-  Sun: '태양', Moon: '달', Mars: '화성', Mercury: '수성',
-  Jupiter: '목성', Venus: '금성', Saturn: '토성',
-}
 const PLANET_KO_ACTION: Record<string, string> = {
   Sun: '리더십 발휘하거나 사람들 앞에 서기 좋은 분위기',
   Moon: '직관이 살고 가족·가까운 사람과 시간 보내기 좋은 분위기',

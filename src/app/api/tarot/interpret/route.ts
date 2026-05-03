@@ -41,9 +41,7 @@ const MAX_CARD_MEANING_LENGTH = 500
 const OPENAI_TIMEOUT_MS = 40000
 const OPENAI_MAX_RETRIES = 1
 const LARGE_SPREAD_THRESHOLD = 8
-const LARGE_SPREAD_BACKEND_TIMEOUT_MS = 12000
 const LARGE_SPREAD_GPT_TIMEOUT_MS = 16000
-const LARGE_SPREAD_GPT_MAX_TOKENS = 1600
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
@@ -110,8 +108,6 @@ export const POST = withApiMiddleware(
         cards: validatedCards,
         userQuestion,
         language = 'ko',
-        birthdate,
-        moonPhase,
         includeAstrology = true,
         includeSaju = true,
         sajuContext,

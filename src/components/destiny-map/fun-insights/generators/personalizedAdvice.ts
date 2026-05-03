@@ -1,6 +1,6 @@
 // 개인화된 어드바이스 생성기 - 사주 요소 조합 + 조건부 변형
 import type { SajuData, AstroData } from '../types'
-import { iga, eulReul } from '@/lib/i18n/koParticle'
+import { eulReul } from '@/lib/i18n/koParticle'
 
 interface PersonalizedAdvice {
   emoji: string

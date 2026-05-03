@@ -31,7 +31,6 @@ interface CardInput {
   keywordsKo?: string[]
 }
 
-const BACKEND_TIMEOUT_MS = 20000
 const OPENAI_TIMEOUT_MS = 30000
 
 function withCreditCookies(response: Response, creditResult: Awaited<

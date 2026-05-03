@@ -86,14 +86,14 @@ const DayCell = React.memo(function DayCell({
     return tags.slice(0, 2)
   }, [dateInfo, effectiveGrade, labels])
 
-  const getGradeLabel = (grade: number) => {
+  const getGradeLabel = React.useCallback((grade: number) => {
     // 직관적 자연어 라벨 — 사주·점성 톤 반영
     if (grade === 0) return locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day'
     if (grade === 1) return locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent'
     if (grade === 2) return locale === 'ko' ? '🌿 좋은 날' : '🌿 Good'
     if (grade === 3) return locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution'
     return locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady'
-  }
+  }, [locale])
 
   // Tooltip — score + 핵심 사주·점성 신호 미리보기
   const cellTooltip = React.useMemo(() => {
@@ -106,7 +106,7 @@ const DayCell = React.memo(function DayCell({
     if (saju) parts.push(locale === 'ko' ? `사주: ${saju}` : `Saju: ${saju}`)
     if (astro) parts.push(locale === 'ko' ? `점성: ${astro}` : `Astro: ${astro}`)
     return parts.join('\n')
-  }, [dateInfo, effectiveGrade, locale])
+  }, [dateInfo, effectiveGrade, locale, getGradeLabel])
 
   const ariaLabel = date
     ? `${date.getDate()}${labels.daySuffix}, ${typeof effectiveGrade === 'number' ? getGradeLabel(effectiveGrade) : labels.noInfo}${dateInfo?.score != null ? `, ${dateInfo.score}점` : ''}${isToday ? `, ${labels.today}` : ''}`

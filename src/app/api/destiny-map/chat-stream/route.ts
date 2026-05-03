@@ -69,64 +69,6 @@ function isCounselorStrictMatrixEnabled(): boolean {
   return process.env.NODE_ENV !== 'test'
 }
 
-function isCounselorCostOptimized(): boolean {
-  const explicit = process.env.COUNSELOR_COST_OPTIMIZED?.trim().toLowerCase()
-  if (explicit) return explicit === 'true' || explicit === '1' || explicit === 'yes'
-  const shared = process.env.AI_BACKEND_COST_OPTIMIZED?.trim().toLowerCase()
-  return shared === 'true' || shared === '1' || shared === 'yes'
-}
-
-function getCounselorBackendProviderHint(): string | undefined {
-  const forced = process.env.COUNSELOR_BACKEND_PROVIDER?.trim().toLowerCase()
-  if (forced) return forced
-  const shared = process.env.AI_BACKEND_PROVIDER?.trim().toLowerCase()
-  return shared || undefined
-}
-
-function getCounselorBackendModelHint(): string | undefined {
-  const forced = process.env.COUNSELOR_BACKEND_MODEL?.trim()
-  if (forced) return forced
-  if (isCounselorCostOptimized()) {
-    return process.env.CLAUDE_FAST_MODEL?.trim() || 'claude-3-haiku-20240307'
-  }
-  return process.env.CLAUDE_MODEL?.trim() || undefined
-}
-
-function extractCounselorTextFromSSEChunk(chunk: string): string {
-  const lines = String(chunk || '').split(/\r?\n/)
-  const parts: string[] = []
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim()
-    if (!line.startsWith('data:')) continue
-    const payload = line.slice(5).trim()
-    if (!payload || payload === '[DONE]') continue
-
-    try {
-      const parsed = JSON.parse(payload) as
-        | { content?: unknown; delta?: { content?: unknown }; message?: unknown }
-        | string
-      if (typeof parsed === 'string') {
-        parts.push(parsed)
-        continue
-      }
-      const value =
-        typeof parsed.content === 'string'
-          ? parsed.content
-          : typeof parsed.delta?.content === 'string'
-            ? parsed.delta.content
-            : typeof parsed.message === 'string'
-              ? parsed.message
-              : ''
-      if (value) parts.push(value)
-    } catch {
-      parts.push(payload)
-    }
-  }
-
-  return parts.join('')
-}
-
 type CounselorUiEvidencePayload = {
   title?: string
   summary?: string
