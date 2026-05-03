@@ -124,59 +124,40 @@ export default function CrossAugmentCard({
         </div>
       )}
 
-      {/* 도메인 그리드 */}
+      {/* 도메인 그리드 — 사용자 view: 도메인 이름 + tone + (선택) 1줄 자연어 요약.
+          기존엔 raw rule meaning 코드들이 list로 늘어났는데, 사용자가 무슨 말인지
+          모르는 기술 라벨이라 모두 제거. dualSignals에 narrative가 있는 경우에만
+          한 줄 자연어 보충. */}
       <div className={styles.domainsSection}>
         <h3 className={styles.sectionTitle}>{L.sectionDomains}</h3>
         <div className={styles.domainsGrid}>
-          {augment.domains.map((d) => (
-            <article
-              key={d.domain}
-              className={`${styles.domainCard} ${styles[`tone_${d.tone}`]}`}
-            >
-              <header className={styles.domainHeader}>
-                <span className={styles.domainName}>{L.domains[d.domain] ?? d.domain}</span>
-                <span className={`${styles.toneBadge} ${styles[`badge_${d.tone}`]}`}>
-                  {L.tones[d.tone] ?? d.tone}
-                </span>
-              </header>
+          {augment.domains.map((d) => {
+            // dualSignals에 narrative가 있으면 첫 줄만 보여주기 (이미 사용자 친화 문장).
+            // confirms는 narrative 없어서 생략.
+            const dualNote =
+              d.dualSignals.find((s) => s.narrative && s.narrative.length > 0)?.narrative?.trim() ||
+              ''
+            const hasAnySignal = d.topConfirms.length > 0 || d.dualSignals.length > 0
+            return (
+              <article
+                key={d.domain}
+                className={`${styles.domainCard} ${styles[`tone_${d.tone}`]}`}
+              >
+                <header className={styles.domainHeader}>
+                  <span className={styles.domainName}>{L.domains[d.domain] ?? d.domain}</span>
+                  <span className={`${styles.toneBadge} ${styles[`badge_${d.tone}`]}`}>
+                    {L.tones[d.tone] ?? d.tone}
+                  </span>
+                </header>
 
-              {d.topConfirms.length > 0 && (
-                <div className={styles.signalGroup}>
-                  <span className={styles.signalLabel}>{L.confirms}</span>
-                  <ul className={styles.signalList}>
-                    {d.topConfirms.map((c, i) => (
-                      <li key={i} className={styles.signalItem}>
-                        <span className={`${styles.intensityDot} ${styles[`intensity_${c.intensity}`]}`}>
-                          {L.intensities[c.intensity]}
-                        </span>
-                        <span>{sanitize(c.meaning)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                {dualNote && <p className={styles.themeNarrative}>{dualNote}</p>}
 
-              {d.dualSignals.length > 0 && (
-                <div className={styles.signalGroup}>
-                  <span className={`${styles.signalLabel} ${styles.dualLabel}`}>{L.duals}</span>
-                  <ul className={styles.signalList}>
-                    {d.dualSignals.map((c, i) => (
-                      <li key={i} className={`${styles.signalItem} ${styles.dualItem}`}>
-                        <span className={`${styles.intensityDot} ${styles[`intensity_${c.intensity}`]}`}>
-                          {L.intensities[c.intensity]}
-                        </span>
-                        <span>{sanitize(c.meaning)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {d.topConfirms.length === 0 && d.dualSignals.length === 0 && (
-                <p className={styles.emptyText}>{L.empty}</p>
-              )}
-            </article>
-          ))}
+                {!dualNote && !hasAnySignal && (
+                  <p className={styles.emptyText}>{L.empty}</p>
+                )}
+              </article>
+            )
+          })}
         </div>
       </div>
 
