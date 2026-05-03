@@ -1532,21 +1532,12 @@ export function calculateYearlyImportantDatesLite(
         `${seed}|s`
       ),
       astroFactorKeys: [
-        locale === 'ko'
-          ? `사주↔점성 교차 일치도 ${crossAgreementPercent}% — ${
-              crossAgreementPercent >= 70
-                ? '두 축이 같은 방향'
-                : crossAgreementPercent >= 50
-                  ? '큰 줄기는 같지만 세부는 갈림'
-                  : '신호가 엇갈림'
-            }`
-          : `Saju↔astrology cross-check ${crossAgreementPercent}% — ${
-              crossAgreementPercent >= 70
-                ? 'both axes align'
-                : crossAgreementPercent >= 50
-                  ? 'broad direction holds, details diverge'
-                  : 'signals diverge'
-            }`,
+        // The cross-agreement % has its own dedicated section in
+        // SelectedDatePanel (✅ 교차 합의), so dropping the meta line that
+        // used to lead the astro factors. It read as "사주↔점성 교차 일치도
+        // 68% — …" right next to the same number in another section,
+        // which felt redundant and meta rather than user-facing astro
+        // evidence.
         ...buildAstroFactors(
           locale,
           astroProfile,
