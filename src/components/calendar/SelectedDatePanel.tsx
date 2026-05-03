@@ -304,6 +304,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const [aiNarrative, setAiNarrative] = useState<string>('')
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState<string>('')
+  // Expert mode toggle. Default OFF — shows clean user-friendly tier
+  // (hero / 활동 점수 / 좋은 시간 / 조언). When ON, reveals the full
+  // saju+astro stack: 본명 컨텍스트, 운 흐름, 충합, 12신살, 트랜짓
+  // 각도, 28수, 용신 활성, 행성지배, 점수 5축 분해.
+  const [showExpert, setShowExpert] = useState(false)
   const userPlan = ((session?.user as { plan?: string } | undefined)?.plan || 'free').toLowerCase()
   const isPremiumUser = userPlan !== 'free' && status === 'authenticated'
   useEffect(() => {
@@ -1142,6 +1147,29 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
       {selectedDate ? (
         <div className={styles.selectedDayContent}>
+          {/* ── Expert mode toggle ───────────────────────────────
+              Top-right small toggle. Default OFF so general users see a
+              simplified panel; ON reveals the full saju + astro stack. */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            <button
+              onClick={() => setShowExpert((v) => !v)}
+              style={{
+                padding: '4px 10px',
+                fontSize: '0.8em',
+                border: '1px solid rgba(167,139,250,0.3)',
+                borderRadius: 999,
+                background: showExpert ? 'rgba(167,139,250,0.2)' : 'rgba(255,255,255,0.04)',
+                color: showExpert ? '#c4b5fd' : 'rgba(255,255,255,0.65)',
+                cursor: 'pointer',
+              }}
+              aria-pressed={showExpert}
+            >
+              {showExpert
+                ? locale === 'ko' ? '🙈 간단히 보기' : '🙈 Simple'
+                : locale === 'ko' ? '🔬 전문 분석 보기' : '🔬 Expert'}
+            </button>
+          </div>
+
           {/* ── Hero: grade label + score + one-liner ───────────── */}
           <div className={styles.quickScanCard}>
             <h3 className={styles.selectedTitle}>
@@ -1155,7 +1183,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             )}
             {/* ── Score breakdown ── 5축 가중 평균 어떻게 합산됐는지 보여줘서
                 "왜 이 점수냐" 의문 풀어주는 투명성 칩. */}
-            {selectedDate?.scoreBreakdown && (
+            {showExpert && selectedDate?.scoreBreakdown && (
               <details
                 style={{
                   marginTop: 8,
@@ -1189,7 +1217,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {/* ── Natal context chip (강약·격국·용신) ─────────
               본명 정체성을 패널 위에 한 줄로 박아두면, 매일 다른 운을
               볼 때 "이게 내 사주에 어떻게 작용하는가"의 기준점이 생김. */}
-          {selectedDate?.natalContext && (
+          {showExpert && selectedDate?.natalContext && (
             <div
               className={styles.quickSummaryBlock}
               style={{
@@ -1338,7 +1366,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             )}
 
           {/* ── Day ruler (행성시) ───────────────────────────── */}
-          {selectedDate?.dayRuler && (
+          {showExpert && selectedDate?.dayRuler && (
             <div className={styles.quickSummaryBlock}>
               <span className={styles.quickSummaryLabel}>
                 🪞 {locale === 'ko' ? '오늘의 행성 지배' : 'Day Ruler'} ·{' '}
@@ -1355,11 +1383,12 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          {/* ── Technical detail (collapsed by default) ─────────
-              Saju + astro internals live behind a disclosure so the user
-              sees hero + timing + advice up front and only opens the
-              jargon-heavy stack when they want depth. */}
+          {/* ── Technical detail (only when expert mode is ON) ─────
+              Saju + astro internals live here. Default-off because most
+              users can't read 한자/십신/12운성/aspect-각도 jargon. */}
+          {showExpert && (
           <details
+            open
             style={{
               marginTop: 12,
               border: '1px solid rgba(167,139,250,0.18)',
@@ -1582,6 +1611,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
             </div>
           </details>
+          )}
 
           {/* ── Cross agreement ────────────────────────────────── */}
           {crossAgreementPercent !== null && (
@@ -1595,46 +1625,50 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               <p className={styles.quickSummaryText} style={{ marginTop: 4 }}>
                 {crossAgreementVerdict}
               </p>
-              <p
-                className={styles.quickSummaryText}
-                style={{ marginTop: 6, fontSize: '0.88em', opacity: 0.78 }}
-              >
-                {locale === 'ko' ? (
-                  crossAgreementPercent >= 70 ? (
-                    <>
-                      사주가 보는 결과 점성이 보는 결이 같은 방향이에요. 즉,
-                      두 시스템이 모두 동의하니 결정 신뢰도를 높여도 좋습니다.
-                      행동을 망설일 이유가 적은 날.
-                    </>
-                  ) : crossAgreementPercent >= 50 ? (
-                    <>
-                      두 시스템이 큰 줄기에서는 같은 결을 가리키는데 디테일에서
-                      갈립니다. 한 축의 신호만 믿고 결정하기보다, 다른 축에서
-                      한 번 더 점검한 뒤 진행하는 게 안전.
-                    </>
-                  ) : (
-                    <>
-                      사주와 점성이 다른 방향을 가리켜요. 한 축에서 좋아 보여도
-                      다른 축은 견제하는 시기일 수 있으니, 큰 결정은 어느 쪽에
-                      무게를 둘지 직접 판단해야 합니다.
-                    </>
-                  )
-                ) : (
-                  crossAgreementPercent >= 70
-                    ? 'Saju and astrology align tightly today.'
-                    : crossAgreementPercent >= 50
-                      ? 'Broad direction agrees; details diverge.'
-                      : 'The two systems disagree — pick which axis to weight.'
-                )}
-              </p>
-              <p
-                className={styles.quickSummaryText}
-                style={{ marginTop: 4, fontSize: '0.85em', opacity: 0.6 }}
-              >
-                {locale === 'ko'
-                  ? '※ 교차 합의는 사주 신호 방향(±)과 점성 흐름 방향(±)이 같은지 비교한 비율입니다. 0%면 정반대, 100%면 완전 일치.'
-                  : '※ Agreement compares Saju signal sign (±) with astrology flow sign (±). 0% = opposite, 100% = identical.'}
-              </p>
+              {showExpert && (
+                <>
+                  <p
+                    className={styles.quickSummaryText}
+                    style={{ marginTop: 6, fontSize: '0.88em', opacity: 0.78 }}
+                  >
+                    {locale === 'ko' ? (
+                      crossAgreementPercent >= 70 ? (
+                        <>
+                          사주가 보는 결과 점성이 보는 결이 같은 방향이에요. 즉,
+                          두 시스템이 모두 동의하니 결정 신뢰도를 높여도 좋습니다.
+                          행동을 망설일 이유가 적은 날.
+                        </>
+                      ) : crossAgreementPercent >= 50 ? (
+                        <>
+                          두 시스템이 큰 줄기에서는 같은 결을 가리키는데 디테일에서
+                          갈립니다. 한 축의 신호만 믿고 결정하기보다, 다른 축에서
+                          한 번 더 점검한 뒤 진행하는 게 안전.
+                        </>
+                      ) : (
+                        <>
+                          사주와 점성이 다른 방향을 가리켜요. 한 축에서 좋아 보여도
+                          다른 축은 견제하는 시기일 수 있으니, 큰 결정은 어느 쪽에
+                          무게를 둘지 직접 판단해야 합니다.
+                        </>
+                      )
+                    ) : (
+                      crossAgreementPercent >= 70
+                        ? 'Saju and astrology align tightly today.'
+                        : crossAgreementPercent >= 50
+                          ? 'Broad direction agrees; details diverge.'
+                          : 'The two systems disagree — pick which axis to weight.'
+                    )}
+                  </p>
+                  <p
+                    className={styles.quickSummaryText}
+                    style={{ marginTop: 4, fontSize: '0.85em', opacity: 0.6 }}
+                  >
+                    {locale === 'ko'
+                      ? '※ 교차 합의는 사주 신호 방향(±)과 점성 흐름 방향(±)이 같은지 비교한 비율입니다. 0%면 정반대, 100%면 완전 일치.'
+                      : '※ Agreement compares Saju signal sign (±) with astrology flow sign (±). 0% = opposite, 100% = identical.'}
+                  </p>
+                </>
+              )}
             </div>
           )}
 
@@ -1700,7 +1734,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               "향후 60일 안에 너의 용신 X가 가장 강하게 살아나는 날"
               top 5 highlight — 사용자가 언제 추진하면 사주 흐름과 결이
               가장 잘 맞는지 직접 보여줌. */}
-          {selectedDate?.yongsinActivations &&
+          {showExpert && selectedDate?.yongsinActivations &&
             selectedDate.yongsinActivations.top.length > 0 && (
               <div className={styles.quickSummaryBlock}>
                 <span className={styles.quickSummaryLabel}>
@@ -1723,7 +1757,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             )}
 
           {/* ── Hourly slots (행성시 + 점수) ─────────────────── */}
-          {selectedDate?.hourlyTimeSlots &&
+          {showExpert && selectedDate?.hourlyTimeSlots &&
             (selectedDate.hourlyTimeSlots.best.length > 0 ||
               selectedDate.hourlyTimeSlots.worst.length > 0) && (
               <div className={styles.quickSummaryBlock}>
