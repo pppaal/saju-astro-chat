@@ -16,7 +16,8 @@
 
 .creditBadgeWrapper {
   position: fixed;
-  top: calc(env(safe-area-inset-top, 0px) + 96px);
+  /* Sits at the top now that GlobalHeader is hidden on this page. */
+  top: calc(env(safe-area-inset-top, 0px) + 16px);
   right: 20px;
   z-index: 900;
   display: flex;
@@ -418,7 +419,10 @@
 @media (max-width: 860px) {
   .card {
     max-width: 96%;
-    padding: 32px 24px;
+    /* Reserve right padding so floating ShareButton (top-right) doesn't
+       overlap body text on mobile widths. */
+    padding: 32px 24px 32px 24px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 72px);
     border-radius: 24px;
   }
 
@@ -451,6 +455,7 @@
 @media (max-width: 480px) {
   .card {
     padding: 24px 16px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 64px);
   }
 
   .title {
