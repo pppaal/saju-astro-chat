@@ -1,0 +1,484 @@
+/* CrossAugmentCard — cross-rules augment 표시 카드.
+   기존 DestinyCalendar 디자인 토큰(--cal-*) 사용 */
+
+.card {
+  background: var(--cal-bg-card, rgba(30, 30, 50, 0.95));
+  border: 1px solid var(--cal-border, rgba(255, 255, 255, 0.08));
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: var(--cal-shadow-card, 0 4px 24px rgba(0, 0, 0, 0.2));
+  color: var(--cal-text-primary, #f1f5f9);
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.scopeBadge {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.15);
+  color: rgb(167, 139, 250);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.imminentBadge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.12);
+  color: rgb(252, 211, 77);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+/* ─── Sections ─────────────────────────────────────────── */
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cal-text-tertiary, #94a3b8);
+  margin: 0 0 10px;
+}
+
+.themesSection,
+.domainsSection {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Themes ───────────────────────────────────────────── */
+.themesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.themeItem {
+  background: rgba(139, 92, 246, 0.06);
+  border-left: 3px solid rgb(167, 139, 250);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.themeMeaning {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgb(196, 181, 253);
+  margin-bottom: 4px;
+}
+
+.themeNarrative {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--cal-text-secondary, #cbd5e1);
+  line-height: 1.6;
+}
+
+/* ─── Domains Grid ─────────────────────────────────────── */
+.domainsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.domainCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--cal-border-light, rgba(255, 255, 255, 0.04));
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.domainCard.tone_positive {
+  border-color: rgba(74, 222, 128, 0.3);
+  background: rgba(34, 197, 94, 0.03);
+}
+
+.domainCard.tone_negative {
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.03);
+}
+
+.domainCard.tone_mixed {
+  border-color: rgba(167, 139, 250, 0.3);
+  background: rgba(139, 92, 246, 0.04);
+}
+
+.domainCard.tone_neutral {
+  border-color: var(--cal-border-light, rgba(255, 255, 255, 0.04));
+}
+
+.domainHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.domainName {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--cal-text-primary, #f1f5f9);
+}
+
+.toneBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.badge_positive {
+  background: rgba(74, 222, 128, 0.15);
+  color: rgb(134, 239, 172);
+}
+
+.badge_negative {
+  background: rgba(251, 191, 36, 0.15);
+  color: rgb(253, 224, 71);
+}
+
+.badge_mixed {
+  background: rgba(167, 139, 250, 0.15);
+  color: rgb(196, 181, 253);
+}
+
+.badge_neutral {
+  background: rgba(148, 163, 184, 0.15);
+  color: rgb(203, 213, 225);
+}
+
+/* ─── Signal lists ─────────────────────────────────────── */
+.signalGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.signalLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cal-text-tertiary, #94a3b8);
+}
+
+.dualLabel {
+  color: rgb(252, 211, 77);
+}
+
+.signalList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.signalItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--cal-text-secondary, #cbd5e1);
+  line-height: 1.5;
+}
+
+.dualItem {
+  font-style: italic;
+}
+
+.intensityDot {
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 22px;
+  text-align: center;
+  padding: 1px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.intensity_strong {
+  background: rgba(167, 139, 250, 0.2);
+  color: rgb(196, 181, 253);
+}
+
+.intensity_moderate {
+  background: rgba(148, 163, 184, 0.18);
+  color: rgb(203, 213, 225);
+}
+
+.intensity_weak {
+  background: rgba(148, 163, 184, 0.1);
+  color: rgb(148, 163, 184);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 12px;
+  color: var(--cal-text-tertiary, #94a3b8);
+  font-style: italic;
+}
+
+/* ─── Footer ───────────────────────────────────────────── */
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cal-border-light, rgba(255, 255, 255, 0.04));
+  font-size: 12px;
+  color: var(--cal-text-tertiary, #94a3b8);
+}
+
+.footerItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.footerItem:not(:last-child)::after {
+  content: '·';
+  margin-left: 10px;
+  color: var(--cal-text-tertiary, #94a3b8);
+}
+
+/* ─── Skeleton loading state ───────────────────────────── */
+.skeleton {
+  background: var(--cal-bg-card, rgba(30, 30, 50, 0.95));
+  border: 1px solid var(--cal-border, rgba(255, 255, 255, 0.08));
+  border-radius: 16px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.skelLine {
+  height: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.10) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.skelTitle { width: 35%; height: 16px; }
+.skelTheme { width: 80%; height: 32px; border-radius: 8px; }
+.skelGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.skelCard {
+  height: 96px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Error state ──────────────────────────────────────── */
+.errorCard {
+  background: rgba(251, 191, 36, 0.05);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: rgb(253, 224, 71);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.errorIcon { font-weight: 700; opacity: 0.8; }
+.errorBody { color: var(--cal-text-secondary, #cbd5e1); flex: 1; }
+
+/* ─── Compact variant (daily card) ─────────────────────── */
+.compact .card {
+  padding: 14px 16px;
+  gap: 12px;
+  border-radius: 12px;
+}
+.compact .scopeBadge {
+  font-size: 11.5px;
+  padding: 3px 8px;
+}
+.compact .imminentBadge {
+  font-size: 10.5px;
+  padding: 3px 8px;
+}
+.compact .sectionTitle {
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+.compact .themeItem { padding: 9px 11px; }
+.compact .themeMeaning {
+  font-size: 13.5px;
+  margin-bottom: 2px;
+}
+.compact .themeNarrative { font-size: 12.5px; line-height: 1.5; }
+.compact .domainsGrid {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+.compact .domainCard { padding: 9px 11px; gap: 6px; }
+.compact .domainName { font-size: 13px; }
+.compact .toneBadge { font-size: 10px; padding: 2px 6px; }
+.compact .signalLabel { font-size: 9.5px; }
+.compact .signalItem { font-size: 11.5px; gap: 6px; line-height: 1.4; }
+.compact .intensityDot { font-size: 9px; min-width: 18px; padding: 0 3px; }
+.compact .emptyText { font-size: 11px; }
+.compact .footer { padding-top: 10px; font-size: 11px; }
+
+/* Apply compact tweaks to the skeleton too so it matches sizing.
+   AugmentSection puts both .skeleton and .compact on the same element. */
+.skeleton.compact {
+  padding: 14px 16px;
+  gap: 10px;
+  border-radius: 12px;
+}
+.skeleton.compact .skelGrid {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+.skeleton.compact .skelCard { height: 78px; }
+
+/* ─── Light-theme overrides ────────────────────────────
+   Triggered by data-cal-theme='light' set on .container in CalendarMainView.
+   Saturated badge bg + light text fails on white; here we flip to deeper
+   text colors and slightly stronger backgrounds for readability. */
+:global([data-cal-theme='light']) .scopeBadge {
+  background: rgba(139, 92, 246, 0.12);
+  color: rgb(91, 33, 182);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+:global([data-cal-theme='light']) .imminentBadge {
+  background: rgba(202, 138, 4, 0.12);
+  color: rgb(146, 64, 14);
+  border-color: rgba(202, 138, 4, 0.4);
+}
+
+:global([data-cal-theme='light']) .themeItem {
+  background: rgba(139, 92, 246, 0.08);
+  border-left-color: rgb(124, 58, 237);
+}
+
+:global([data-cal-theme='light']) .themeMeaning {
+  color: rgb(91, 33, 182);
+}
+
+:global([data-cal-theme='light']) .domainCard.tone_positive {
+  border-color: rgba(22, 163, 74, 0.4);
+  background: rgba(34, 197, 94, 0.06);
+}
+
+:global([data-cal-theme='light']) .domainCard.tone_negative {
+  border-color: rgba(202, 138, 4, 0.4);
+  background: rgba(251, 191, 36, 0.06);
+}
+
+:global([data-cal-theme='light']) .domainCard.tone_mixed {
+  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.06);
+}
+
+:global([data-cal-theme='light']) .badge_positive {
+  background: rgba(34, 197, 94, 0.18);
+  color: rgb(21, 128, 61);
+}
+
+:global([data-cal-theme='light']) .badge_negative {
+  background: rgba(202, 138, 4, 0.18);
+  color: rgb(146, 64, 14);
+}
+
+:global([data-cal-theme='light']) .badge_mixed {
+  background: rgba(139, 92, 246, 0.18);
+  color: rgb(91, 33, 182);
+}
+
+:global([data-cal-theme='light']) .badge_neutral {
+  background: rgba(100, 116, 139, 0.18);
+  color: rgb(51, 65, 85);
+}
+
+:global([data-cal-theme='light']) .dualLabel {
+  color: rgb(146, 64, 14);
+}
+
+:global([data-cal-theme='light']) .intensity_strong {
+  background: rgba(124, 58, 237, 0.2);
+  color: rgb(91, 33, 182);
+}
+
+:global([data-cal-theme='light']) .intensity_moderate {
+  background: rgba(100, 116, 139, 0.2);
+  color: rgb(51, 65, 85);
+}
+
+:global([data-cal-theme='light']) .intensity_weak {
+  background: rgba(100, 116, 139, 0.12);
+  color: rgb(71, 85, 105);
+}
+
+:global([data-cal-theme='light']) .errorCard {
+  background: rgba(202, 138, 4, 0.08);
+  border-color: rgba(202, 138, 4, 0.35);
+  color: rgb(146, 64, 14);
+}
+
+:global([data-cal-theme='light']) .errorBody {
+  color: rgb(71, 85, 105);
+}
+
+/* Skeleton shimmer needs darker tones on white bg to be visible */
+:global([data-cal-theme='light']) .skelLine {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.04) 0%,
+    rgba(15, 23, 42, 0.10) 50%,
+    rgba(15, 23, 42, 0.04) 100%
+  );
+  background-size: 200% 100%;
+}
+
+:global([data-cal-theme='light']) .skelCard {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.03) 0%,
+    rgba(15, 23, 42, 0.08) 50%,
+    rgba(15, 23, 42, 0.03) 100%
+  );
+  background-size: 200% 100%;
+}

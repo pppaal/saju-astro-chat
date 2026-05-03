@@ -118,3 +118,28 @@ export {
   isYeokmaDay,
   approximateLunarDay,
 } from './calendar/utils';
+
+// ═══════════════════════════════════════════════════════════════
+// Cross-rules augment (사주×점성 교차 분석 보조 데이터)
+// 기존 analyzeDate 결과는 그대로 두고, cross-rules 엔진에서 산출한
+// 통합 테마·도메인 톤·컨텍스트를 한 번에 받아 캘린더 페이지의 헤더/사이드에
+// 표시. 페이지 로드당 한 번만 호출되므로 성능 영향 0.
+// ═══════════════════════════════════════════════════════════════
+export {
+  buildCalendarCrossAugment,
+  buildWeeklyCrossAugment,
+  buildMonthlyCrossAugment,
+  type CalendarCrossAugment,
+} from './calendar/cross-augment';
+
+// ═══════════════════════════════════════════════════════════════
+// 학파별 점수 preset (opt-in). 자평진전/적천수/강호/default
+// ═══════════════════════════════════════════════════════════════
+export {
+  setSchoolPreset,
+  getSchoolPreset,
+  SCHOOL_LABELS,
+  SCHOOL_SAJU_WEIGHTS,
+  SCHOOL_CROSS_BONUS,
+  type SchoolPreset,
+} from './calendar/school-presets';

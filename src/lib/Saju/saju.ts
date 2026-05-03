@@ -349,11 +349,13 @@ export function calculateSajuData(
       nextTermUTC = nextTerm
       prevTermUTC = termUTC_current
     } else {
-      // 역행: 직전 절기 = 본인이 속한 月의 시작 절기 자체
-      // (이전 코드는 prev sajuMonth's term을 잡아 한 절기를 더 거슬러 가는 버그가 있었음 —
-      // 대운수가 약 30일/3 ≈ 10세씩 부풀어 나옴)
+      // 역행(逆行) 대운수: 출생 시각에서 *직전* 절기까지의 시간으로 계산.
+      // sajuMonth 보정 후 termUTC_current는 항상 birth가 그 이후인 절기이므로
+      // (= 직전 절기), prevTermUTC = termUTC_current로 두면 된다.
+      // 이전엔 prev month's term을 prevTerm으로 사용해 30일 가량의 오차가
+      // 누적되어 대운수가 비정상적으로 컸음. (regression test 참조)
       prevTermUTC = termUTC_current
-      nextTermUTC = termUTC_current
+      nextTermUTC = termUTC_current // 역행에서는 사용되지 않음
     }
 
     const diffToTermMs = isForward
@@ -471,6 +473,9 @@ export function calculateSajuData(
       annualCycles.push({
         year: yr,
         ganji: `${stem.name}${branch.name}`,
+        // 별도 필드도 함께 채워 다운스트림(어댑터·UI)에서 어느 쪽을 읽어도 안전.
+        heavenlyStem: stem.name,
+        earthlyBranch: branch.name,
         element: stem.element,
         sibsin: {
           cheon: getSibseong(dayMaster, stem),
@@ -500,6 +505,8 @@ export function calculateSajuData(
         year: yr,
         month: mo,
         ganji: `${stem.name}${branch.name}`,
+        heavenlyStem: stem.name,
+        earthlyBranch: branch.name,
         element: stem.element,
         sibsin: {
           cheon: getSibseong(dayMaster, stem),
