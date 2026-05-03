@@ -72,6 +72,31 @@ export interface CalendarDayPolishInput {
     tone?: string // "한 주 시작 톤..."
     weekPosition?: 'start' | 'mid' | 'end' | 'weekend'
   }
+  /** Engine-assigned overall grade for this day. Drives narrative tone so that
+   * a Grade 4 (Hold) day cannot read as overly optimistic, and a Grade 0 (Peak)
+   * day cannot read as overly cautious. */
+  gradeContext?: {
+    grade: 0 | 1 | 2 | 3 | 4
+    gradeLabel?: string // localized "최고의 날" / "Hold steady"
+    score?: number // 0-100
+  }
+}
+
+// Per-grade tone guidance — keep aligned with the 5-tier grade scale.
+const GRADE_TONE_GUIDE_KO: Record<0 | 1 | 2 | 3 | 4, string> = {
+  0: '강한 추진 톤 — 결단·실행을 권장하되 과신 경고 한 줄만. "오늘은 미루지 마세요" 같은 직설 OK.',
+  1: '안정 추진 톤 — 한 단계 더 욕심내도 좋되 한 가지만 집중. 명확한 GO 시그널.',
+  2: '평이·유지 톤 — 큰 결정보다 흐름 유지. "특별할 건 없지만 결을 잃지 마세요"의 결.',
+  3: '신중·점검 톤 — 한 박자 늦추고 점검 권유. 비가역 결정은 미루기. 강한 추진 표현 금지.',
+  4: '보수·방어 톤 — 새 시작·확정·서명 자제. 회복·정비·관리에 무게. "오늘은 지키는 날"임을 명확히. 절대 들뜨거나 추진형 표현 금지.',
+}
+
+const GRADE_TONE_GUIDE_EN: Record<0 | 1 | 2 | 3 | 4, string> = {
+  0: 'Strong push tone — encourage decision/action with one line of "stay grounded". Direct phrasing OK.',
+  1: 'Steady push tone — go one step further on a single focus. Clear GO signal.',
+  2: 'Even/maintain tone — keep the flow rather than make big moves. "Nothing special, but stay present."',
+  3: 'Careful review tone — slow one beat, postpone irreversible commitments. No strong push language.',
+  4: 'Defensive tone — defer new starts/signings, focus on recovery & maintenance. "Today is a hold day." Never sound upbeat or push-oriented.',
 }
 
 const SYSTEM_PROMPT_KO = `당신은 15년차 한국 사주명리 + 서양 점성술 통합 상담사입니다.
@@ -98,6 +123,12 @@ const SYSTEM_PROMPT_KO = `당신은 15년차 한국 사주명리 + 서양 점성
 - 단순 "14시가 좋아요" 대신: "14시는 일진 화 기운이 정점에 도달하는 시간 + 점성 금성이 본명 MC에 닿는 자리라 표현·발표가 자연스러운 시점"
 - input의 sajuSignals/astroSignals 값을 직접 인용하면서 *왜 그게 그 시간을 좋게/위험하게 만드는지* 한 줄로 설명.
 - 시간 나열만 하는 mechanical 패턴 금지 — 각 시간대마다 *고유한 신호 anchor* 필수.
+
+# 등급 톤 (필수)
+- input에 "오늘 등급"이 주어지면 *글 전체의 결*을 그 등급에 맞추세요.
+- 등급별 톤 지시(input의 "톤 지시")를 어기지 마세요.
+- 특히 Grade 3·4 (조심/지키는 날)에는 "추진하세요/실행하세요" 같은 강한 GO 표현 금지.
+- Grade 0·1 (최고/아주 좋은 날)에는 지나치게 보수적인 어조 금지.
 
 # 규칙
 - 각 단락 4-6 문장
@@ -130,14 +161,26 @@ Each paragraph addresses a different thread:
 - Cite the input sajuSignals/astroSignals directly and explain *why each signal makes that hour favorable or risky*.
 - No mechanical lists — each slot needs its own unique signal anchor.
 
+# Grade tone (mandatory)
+- If input provides "Today's grade", shape the whole reading to fit that grade.
+- Follow the per-grade tone directive verbatim.
+- For Grade 3 / 4 (Caution / Hold) days, never use strong GO phrasing like "push now" / "execute".
+- For Grade 0 / 1 (Peak / Excellent) days, never sound overly cautious.
+
 # Rules
 - 4-6 sentences per paragraph
 - Use technical idioms naturally (sibsin types / transits / houses / aspects)
 - Vary sentence structures — no template repetition`
 
 function buildUserPrompt(input: CalendarDayPolishInput): string {
-  const { date, locale, natal, timing, astro, bestSlots, cautionSlots, matrixCore, continuity, weekday } = input
+  const { date, locale, natal, timing, astro, bestSlots, cautionSlots, matrixCore, continuity, weekday, gradeContext } = input
   const isKo = locale === 'ko'
+
+  const gradeLine = gradeContext
+    ? isKo
+      ? `오늘 등급: ${gradeContext.gradeLabel ?? '-'} (점수 ${gradeContext.score ?? '-'}/100, Grade ${gradeContext.grade}/4)\n# 톤 지시 (이 등급에 *반드시* 맞춰 글 전체 결을 잡으세요): ${GRADE_TONE_GUIDE_KO[gradeContext.grade]}`
+      : `Today's grade: ${gradeContext.gradeLabel ?? '-'} (score ${gradeContext.score ?? '-'}/100, Grade ${gradeContext.grade}/4)\n# Tone directive (you MUST shape the whole reading to fit this grade): ${GRADE_TONE_GUIDE_EN[gradeContext.grade]}`
+    : ''
 
   const natalLine = isKo
     ? `일간: ${natal.dayMaster ?? '-'}(${natal.dayMasterElement ?? '-'}) / 격국: ${natal.geokguk ?? '미정'} / 5행: ${natal.fiveElements ? Object.entries(natal.fiveElements).map(([k, v]) => `${k}${v}`).join(' ') : '-'}`
@@ -217,6 +260,7 @@ function buildUserPrompt(input: CalendarDayPolishInput): string {
 
   const lines = [
     isKo ? `# 오늘 (${date}) 데이터` : `# Today (${date}) data`,
+    gradeLine,
     natalLine,
     timingLine,
     astroLine,
@@ -240,23 +284,43 @@ function buildUserPrompt(input: CalendarDayPolishInput): string {
  */
 function buildFriendlyFallbackKo(input: CalendarDayPolishInput): string {
   const isKo = input.locale === 'ko'
-  const { date, natal, timing, bestSlots, cautionSlots } = input
+  const { date, bestSlots, cautionSlots, gradeContext } = input
   const dt = new Date(`${date}T12:00:00+09:00`)
   const month = dt.getMonth() + 1
   const day = dt.getDate()
+  const grade = gradeContext?.grade ?? 2
 
-  const opening = isKo
-    ? `${month}월 ${day}일 — ${natal.dayMasterElement || ''} 일간을 가진 분에게 ${
-        timing.iljinElement ? `${timing.iljinElement} 기운이 흐르는 하루` : '한 흐름이 들어오는 날'
-      }이에요. 큰 결정보다 *오늘의 결*에 맞춰 한 가지 핵심만 잡고 가는 편이 자연스러워요.`
-    : `${month}/${day} — for a ${natal.dayMasterElement || ''} day master, today carries ${
-        timing.iljinElement ? `${timing.iljinElement} energy` : 'a particular flow'
-      }. Pick one anchor and let the day unfold around it.`
+  // Grade-aware opening — Grade 4 must never sound like a "good day"
+  const openingByGrade: Record<0 | 1 | 2 | 3 | 4, { ko: string; en: string }> = {
+    0: {
+      ko: `${month}월 ${day}일 — 흐름이 강하게 받쳐주는 날이에요. 미뤄둔 결정 하나를 오늘 매듭짓는 편이 좋습니다.`,
+      en: `${month}/${day} — the day's flow gives strong support. Lock down one delayed decision today.`,
+    },
+    1: {
+      ko: `${month}월 ${day}일 — 안정적으로 추진하기 좋은 결입니다. 한 가지 핵심에 집중하면 한 단계 더 나아갈 수 있어요.`,
+      en: `${month}/${day} — a steady push day. Focus on one anchor and you'll move a step further.`,
+    },
+    2: {
+      ko: `${month}월 ${day}일 — 평이한 흐름이에요. 큰 결정보다 평소 결을 잘 유지하는 데 집중하세요.`,
+      en: `${month}/${day} — an even flow. Maintain rhythm rather than make big moves.`,
+    },
+    3: {
+      ko: `${month}월 ${day}일 — 한 박자 늦추고 점검할 결입니다. 비가역 결정은 다음 결로 넘기는 편이 안전해요.`,
+      en: `${month}/${day} — slow one beat and review. Push irreversible decisions to a later window.`,
+    },
+    4: {
+      ko: `${month}월 ${day}일 — 오늘은 새로 시작·확정하기보다 *지키는 날*이에요. 회복·정비·관리 쪽으로 결을 잡으세요.`,
+      en: `${month}/${day} — today is a *hold day*. Lean toward recovery, maintenance, and care over new starts.`,
+    },
+  }
+  const opening = isKo ? openingByGrade[grade].ko : openingByGrade[grade].en
 
-  const bestLine = bestSlots && bestSlots.length > 0
+  // Best/caution slots — only show "best" copy when the day actually warrants it
+  const showBest = grade <= 2 && bestSlots && bestSlots.length > 0
+  const bestLine = showBest
     ? isKo
-      ? `좋은 시간대는 ${bestSlots.slice(0, 2).map((s) => s.hour).join(', ')}예요. 미뤄둔 한 가지를 이 시간에 처리하면 가속이 잘 붙어요.`
-      : `Best windows: ${bestSlots.slice(0, 2).map((s) => s.hour).join(', ')}. Move one delayed item into these slots.`
+      ? `좋은 시간대는 ${bestSlots!.slice(0, 2).map((s) => s.hour).join(', ')}예요. 미뤄둔 한 가지를 이 시간에 처리하면 가속이 잘 붙어요.`
+      : `Best windows: ${bestSlots!.slice(0, 2).map((s) => s.hour).join(', ')}. Move one delayed item into these slots.`
     : ''
 
   const cautionLine = cautionSlots && cautionSlots.length > 0
@@ -265,17 +329,31 @@ function buildFriendlyFallbackKo(input: CalendarDayPolishInput): string {
       : `Around ${cautionSlots.slice(0, 2).map((s) => s.hour).join(', ')}, hold off on irreversible commitments.`
     : ''
 
-  const closing = isKo
-    ? `오늘 가장 중요한 한 가지: ${
-        bestSlots && bestSlots.length > 0
-          ? `${bestSlots[0].hour}에 미뤄둔 핵심 한 건 처리`
-          : '오늘의 핵심 한 줄을 정하고 시작'
-      }.`
-    : `One key action today: ${
-        bestSlots && bestSlots.length > 0
-          ? `wrap one delayed item at ${bestSlots[0].hour}`
-          : 'name today\'s anchor before starting'
-      }.`
+  // Closing — grade-appropriate one key action
+  const defaultBestHour = bestSlots && bestSlots.length > 0 ? bestSlots[0].hour : null
+  const closingByGrade: Record<0 | 1 | 2 | 3 | 4, { ko: string; en: string }> = {
+    0: {
+      ko: `오늘 가장 중요한 한 가지: ${defaultBestHour ? `${defaultBestHour}에 미뤄둔 핵심 한 건 처리` : '오늘의 핵심 한 줄을 정하고 즉시 실행'}.`,
+      en: `One key action today: ${defaultBestHour ? `wrap one delayed item at ${defaultBestHour}` : 'pick today\'s anchor and execute now'}.`,
+    },
+    1: {
+      ko: `오늘 가장 중요한 한 가지: ${defaultBestHour ? `${defaultBestHour}에 한 가지 핵심 진척` : '핵심 한 가지에 시간 투자'}.`,
+      en: `One key action today: ${defaultBestHour ? `make one core move at ${defaultBestHour}` : 'invest time in one anchor'}.`,
+    },
+    2: {
+      ko: `오늘 가장 중요한 한 가지: 평소 루틴 한 가지를 더 정성스럽게 챙기세요.`,
+      en: `One key action today: do one routine task with extra care.`,
+    },
+    3: {
+      ko: `오늘 가장 중요한 한 가지: 큰 결정 하나를 적어두고 다음 좋은 결까지 미뤄두세요.`,
+      en: `One key action today: write down one big decision and defer it to the next good window.`,
+    },
+    4: {
+      ko: `오늘 가장 중요한 한 가지: 새 시작·서명 자제, 충분한 휴식과 컨디션 점검에 시간을 쓰세요.`,
+      en: `One key action today: avoid new starts/signings — spend time on rest and a condition check.`,
+    },
+  }
+  const closing = isKo ? closingByGrade[grade].ko : closingByGrade[grade].en
 
   return [opening, bestLine, cautionLine, closing].filter(Boolean).join('\n\n')
 }

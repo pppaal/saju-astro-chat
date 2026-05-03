@@ -15,6 +15,8 @@ import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapte
 import { buildActionPlanPayload } from './routeTimelineAssembly'
 import { polishCalendarDayNarrationKo } from '@/lib/llm/calendarNarrativePolish'
 import { buildDayContinuity, buildDayOfWeekTone } from '@/lib/calendar/dayContext'
+import { getDisplayGradeFromScore } from '@/lib/destiny-map/calendar/scoring-config'
+import { getGradeLabel as getUnifiedGradeLabel } from '@/components/calendar/constants'
 import {
   analyzeConfidenceMeta,
   buildActionPlanInsights,
@@ -887,6 +889,23 @@ export const POST = withApiMiddleware(
               label: lang === 'ko' ? w.weekdayKo : w.weekdayEn,
               tone: lang === 'ko' ? w.toneKo : w.toneEn,
               weekPosition: w.weekPosition,
+            }
+          })(),
+          gradeContext: (() => {
+            // Use the engine's display grade so narrative tone matches the badge
+            // shown next to the date. Falls back to neutral Grade 2 if score absent.
+            const score =
+              typeof payload.score === 'number'
+                ? (payload.score as number)
+                : typeof (calendar?.score) === 'number'
+                  ? (calendar.score as number)
+                  : undefined
+            if (typeof score !== 'number') return undefined
+            const grade = getDisplayGradeFromScore(score)
+            return {
+              grade,
+              gradeLabel: getUnifiedGradeLabel(grade, lang === 'ko' ? 'ko' : 'en').full,
+              score,
             }
           })(),
         },
