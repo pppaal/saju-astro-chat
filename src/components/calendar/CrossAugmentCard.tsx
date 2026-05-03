@@ -12,6 +12,48 @@ interface CrossAugmentCardProps {
   scopeLabel?: string
 }
 
+/**
+ * Strip internal technical jargon out of rule "meaning" labels before they
+ * reach the user. The cross-rules engine emits short codes like
+ * "ZR L1 ruler × 세운 동조" or "점성 progression × 세운" that are useful
+ * for engineers but unreadable for end users — replace the recognizable
+ * jargon with plain Korean phrases, drop anything that's still pure code.
+ */
+function humanizeMeaning(raw: string | undefined | null, locale: 'ko' | 'en'): string {
+  if (!raw) return ''
+  let text = raw
+  if (locale === 'ko') {
+    text = text
+      // Zodiacal Releasing periods & Hellenistic terms
+      .replace(/\bZR\s*L1\s*ruler\b/gi, '인생 챕터의 통치 행성')
+      .replace(/\bZR\s*L2\b/gi, '월 단위 sub-period')
+      .replace(/\bZR\b/gi, '인생 챕터')
+      .replace(/\bL1 ruler\b/gi, '챕터 통치 행성')
+      .replace(/\bL2 ruler\b/gi, '서브 통치 행성')
+      .replace(/\bruler\b/gi, '통치 행성')
+      // Astrology jargon
+      .replace(/\bsecondary progressions?\b/gi, '장기 전개')
+      .replace(/\bprogressions?\b/gi, '장기 전개')
+      .replace(/\bnatal aspect\b/gi, '본명 각도')
+      .replace(/\bsynastry\b/gi, '관계 각도')
+      .replace(/\btransit\b/gi, '트랜짓')
+      .replace(/\bstellium\b/gi, '집중 행성')
+      .replace(/\bdignity\b/gi, '품위')
+      .replace(/\bbenefic\b/gi, '길성')
+      .replace(/\bmalefic\b/gi, '흉성')
+      .replace(/\bsect\b/gi, '주야 구분')
+      // Common conjunction symbol stays — it reads OK in Korean
+      .replace(/\s*×\s*/g, ' × ')
+  } else {
+    text = text
+      .replace(/통치자/gi, 'ruler')
+      .replace(/세운/gi, 'year cycle')
+      .replace(/대운/gi, 'major cycle')
+      .replace(/일진/gi, 'day stem')
+  }
+  return text.trim()
+}
+
 const LABELS = {
   ko: {
     domains: { self: '자아', love: '사랑', money: '재물', career: '직업', health: '건강', family: '가정' },
@@ -53,8 +95,10 @@ export default function CrossAugmentCard({
   scopeLabel,
 }: CrossAugmentCardProps) {
   const { locale } = useI18n()
-  const L = locale === 'en' ? LABELS.en : LABELS.ko
+  const activeLocale: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
+  const L = activeLocale === 'en' ? LABELS.en : LABELS.ko
   const label = scopeLabel ?? L.scope[scope]
+  const sanitize = (s: string | undefined | null) => humanizeMeaning(s, activeLocale)
 
   return (
     <section className={styles.card} aria-label={label}>
@@ -72,7 +116,7 @@ export default function CrossAugmentCard({
           <ul className={styles.themesList}>
             {augment.themes.map((t) => (
               <li key={t.id} className={styles.themeItem}>
-                <strong className={styles.themeMeaning}>{t.meaning}</strong>
+                <strong className={styles.themeMeaning}>{sanitize(t.meaning)}</strong>
                 <p className={styles.themeNarrative}>{t.narrative}</p>
               </li>
             ))}
@@ -105,7 +149,7 @@ export default function CrossAugmentCard({
                         <span className={`${styles.intensityDot} ${styles[`intensity_${c.intensity}`]}`}>
                           {L.intensities[c.intensity]}
                         </span>
-                        <span>{c.meaning}</span>
+                        <span>{sanitize(c.meaning)}</span>
                       </li>
                     ))}
                   </ul>
@@ -121,7 +165,7 @@ export default function CrossAugmentCard({
                         <span className={`${styles.intensityDot} ${styles[`intensity_${c.intensity}`]}`}>
                           {L.intensities[c.intensity]}
                         </span>
-                        <span>{c.meaning}</span>
+                        <span>{sanitize(c.meaning)}</span>
                       </li>
                     ))}
                   </ul>

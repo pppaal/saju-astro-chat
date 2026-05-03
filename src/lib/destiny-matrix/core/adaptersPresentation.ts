@@ -747,14 +747,18 @@ export function buildArbitrationBrief(
         : actionRunnerUpDomain
           ? `${actionWinnerDomain} moved ahead of ${actionRunnerUpDomain} as the live action axis.`
           : `${actionWinnerDomain} is carrying the live action pressure.`,
-    suppressionNarratives: suppressedDomains.map((item) =>
-      locale === 'ko'
-        ? (() => {
-            const dom = localizeDomain(item.domain, locale)
-            return `${dom}${eunNeun(dom)} ${item.scoreGap.toFixed(1)}점 차이로 보조축에 머물렀습니다. ${localizeAdapterFreeText(item.reason, locale)}`
-          })()
-        : `${item.domain} stayed secondary with a ${item.scoreGap.toFixed(1)} gap because ${item.reason}.`
-    ),
+    suppressionNarratives: suppressedDomains.map((item) => {
+      // Hide raw scoreGap numbers from end users — they're internal diagnostics.
+      // Use a qualitative gap descriptor instead (close / clear / wide).
+      const gap = item.scoreGap
+      const gapLabelKo = gap < 50 ? '근소한 차이' : gap < 200 ? '뚜렷한 차이' : '큰 차이'
+      const gapLabelEn = gap < 50 ? 'a small gap' : gap < 200 ? 'a clear gap' : 'a wide gap'
+      if (locale === 'ko') {
+        const dom = localizeDomain(item.domain, locale)
+        return `${dom}${eunNeun(dom)} ${gapLabelKo}로 보조축에 머물렀습니다. ${localizeAdapterFreeText(item.reason, locale)}`
+      }
+      return `${item.domain} stayed secondary by ${gapLabelEn} because ${item.reason}.`
+    }),
   }
 }
 

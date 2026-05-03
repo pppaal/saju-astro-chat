@@ -365,7 +365,11 @@ const CalendarMainView = memo(function CalendarMainView({
           </>
         )}
 
-        {data.degradedMode?.active && (
+        {/* Engine status banner — internal diagnostics only.
+            Surfaced in admin/dev mode (?debug=1) but hidden from end users:
+            seeing 'engine degraded' makes them distrust the result. */}
+        {data.degradedMode?.active && typeof window !== 'undefined' &&
+          new URLSearchParams(window.location.search).get('debug') === '1' && (
           <div className={styles.matrixStatusBanner} role="status">
             <strong>{locale === 'ko' ? '계산 모드' : 'Computation mode'}</strong>
             <span>

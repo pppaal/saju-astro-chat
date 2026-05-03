@@ -80,11 +80,29 @@ export function SelectedDateQuickScanSection({
   void relationshipWeatherSummary
   void workMoneyWeatherSummary
 
+  // Dedup so the same sentence doesn't show in highlight card + summary +
+  // thesis. Earlier UI showed "지금은 준비와 정보 수집에 집중하세요." 3-4 times
+  // because the same string flowed through three slots.
+  const seen = new Set<string>()
+  const norm = (s: string) => s.replace(/\s+/g, ' ').trim()
+  const dedupedHighlights = quickHighlightCards.filter((item) => {
+    const key = norm(item.text || '')
+    if (!key) return false
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+  const summaryKey = norm(summaryText)
+  const showSummary = Boolean(summaryText) && !seen.has(summaryKey)
+  if (showSummary) seen.add(summaryKey)
+  const thesisKey = norm(quickThesis)
+  const showThesis = Boolean(quickThesis) && !seen.has(thesisKey)
+
   return (
     <div className={styles.quickScanCard}>
-      {quickHighlightCards.length > 0 && (
+      {dedupedHighlights.length > 0 && (
         <div className={styles.quickHeroGrid}>
-          {quickHighlightCards.map((item) => (
+          {dedupedHighlights.map((item) => (
             <div key={`${item.label}-${item.text}`} className={styles.quickHeroBlock}>
               <span className={styles.quickHeroLabel}>
                 {item.label}
@@ -105,7 +123,7 @@ export function SelectedDateQuickScanSection({
         </div>
       )}
 
-      {summaryText && (
+      {showSummary && (
         <div className={styles.quickSummaryBlock}>
           <span className={styles.quickSummaryLabel}>
             {locale === 'ko' ? '지금 할 일' : 'Do now'}
@@ -114,7 +132,7 @@ export function SelectedDateQuickScanSection({
         </div>
       )}
 
-      <p className={styles.quickScanThesis}>{quickThesis}</p>
+      {showThesis && <p className={styles.quickScanThesis}>{quickThesis}</p>}
 
       <div className={styles.quickScanMeta}>
         <span className={styles.quickMetaChip}>
