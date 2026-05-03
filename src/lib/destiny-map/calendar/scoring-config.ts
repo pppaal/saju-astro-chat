@@ -362,32 +362,28 @@ export const PEAK_LEVEL_THRESHOLDS = {
   high: 70,
 } as const
 
-export type DisplayScoreGrade = 0 | 1 | 2 | 3
+export type DisplayScoreGrade = 0 | 1 | 2 | 3 | 4
 
 export function getDisplayGradeFromScore(score: number): DisplayScoreGrade {
-  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.best) {
-    return 0
-  }
-  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.good) {
-    return 1
-  }
-  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.neutral) {
-    return 2
-  }
-  return 3
+  if (score >= GRADE_THRESHOLDS.grade0) return 0
+  if (score >= GRADE_THRESHOLDS.grade1) return 1
+  if (score >= GRADE_THRESHOLDS.grade2) return 2
+  if (score >= GRADE_THRESHOLDS.grade3) return 3
+  return 4
 }
 
+/**
+ * @deprecated Use getGradeLabel(grade, locale) from
+ * '@/components/calendar/constants' for consistent UI labels across the app.
+ * This function survives only for legacy call sites.
+ */
 export function getDisplayLabelFromScore(score: number, locale: 'ko' | 'en'): string {
-  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.best) {
-    return locale === 'ko' ? '최고' : 'Excellent'
-  }
-  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.good) {
-    return locale === 'ko' ? '좋음' : 'Good'
-  }
-  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.neutral) {
-    return locale === 'ko' ? '무난' : 'Neutral'
-  }
-  return locale === 'ko' ? '주의' : 'Caution'
+  const grade = getDisplayGradeFromScore(score)
+  // Inline 5-tier labels to keep lib layer free of UI-component imports.
+  // Must stay in sync with GRADE_LABELS in src/components/calendar/constants.ts
+  const ko = ['최고', '아주 좋음', '평범', '조심', '지키기']
+  const en = ['Peak', 'Excellent', 'Normal', 'Caution', 'Hold']
+  return locale === 'ko' ? ko[grade] : en[grade]
 }
 
 // ============================================================

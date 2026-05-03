@@ -10,8 +10,8 @@ import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpreted
 import { formatDecisionActionLabel } from '@/lib/destiny-matrix/core/actionCopy'
 import {
   getDisplayGradeFromScore,
-  getDisplayLabelFromScore,
 } from '@/lib/destiny-map/calendar/scoring-config'
+import { getGradeLabel as getUnifiedGradeLabel } from './constants'
 import {
   CATEGORY_EMOJI,
   WEEKDAYS_EN,
@@ -501,7 +501,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     ? formatPolicyMode(canonicalCore.judgmentPolicy.mode, locale)
     : ''
   const unifiedDayLabel =
-    canonicalGradeLabel || (selectedDate ? getDisplayLabelFromScore(displayScore, locale) : '')
+    canonicalGradeLabel ||
+    (selectedDate
+      ? getUnifiedGradeLabel(getDisplayGradeFromScore(displayScore), locale === 'ko' ? 'ko' : 'en')
+          .full
+      : '')
   const isPresentationDayMatch =
     Boolean(selectedDate?.date) &&
     Boolean(presentation?.dailyView?.date || presentation?.daySummary?.date) &&
