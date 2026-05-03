@@ -12,6 +12,8 @@ import {
   getMonthPillarForDate,
 } from '@/lib/Saju/datePillars'
 import { getShinsalHitsForDailyTarget } from '@/lib/Saju/shinsal'
+import { calculateUltraPrecisionScore } from '@/lib/prediction/ultraPrecisionEngine'
+import type { UltraPrecisionScore } from '@/lib/prediction/ultra-precision-types'
 
 type CalendarLocale = 'ko' | 'en'
 
@@ -1196,7 +1198,8 @@ function buildSajuFactorsWithDaily(
   daily: { stem: string; branch: string },
   dailySibsin: string,
   dailyEvents: DailyEvent[],
-  seed: string
+  seed: string,
+  engineScore: UltraPrecisionScore | null = null
 ): string[] {
   const monthly = buildSajuFactors(locale, profile, domain, month, pack, seed)
   // monthly returns [sibsinLine, secondPoolPick, branchLine]:
@@ -1243,11 +1246,36 @@ function buildSajuFactorsWithDaily(
   const heavyLine = heavy ? `${heavy.blurb}.` : ''
   // Shinsal blurbs already end with full punctuation — don't double-dot.
   const shinsalLine = shinsal && shinsal !== heavy ? `${shinsal.blurb}` : ''
+  // Engine-grade additions: 12운성 (life phase) + gongmang status if active.
+  // These are pulled from the same ultraPrecisionEngine the rest of the
+  // app uses, so the calendar reading lines up with the precision daily
+  // analysis on saju surfaces.
+  const stageLine: string = (() => {
+    const stage = engineScore?.dailyPillar?.twelveStage
+    if (!stage) return ''
+    const phase =
+      typeof stage === 'object' && 'lifePhase' in stage
+        ? String(stage.lifePhase || '')
+        : String(stage || '')
+    const stageLabel =
+      typeof stage === 'object' && 'stage' in stage
+        ? String(stage.stage || '')
+        : ''
+    if (!phase && !stageLabel) return ''
+    if (phase && stageLabel) return `12운성 흐름은 ${stageLabel} — ${phase}.`
+    return `12운성 흐름은 ${stageLabel || phase}.`
+  })()
+  const gongmangLine: string =
+    engineScore?.gongmang?.isToday空
+      ? `오늘은 공망일 — ${(engineScore?.gongmang?.affectedAreas || []).slice(0, 2).join('·')} 영역의 무게가 비는 날이라 큰 결정은 내일로 미루는 게 안전.`
+      : ''
   const [sibsinLine, secondLine, branchLine] = monthly
   const ordered = [
     dailyLine,
     ...(heavyLine ? [heavyLine] : []),
     ...(shinsalLine ? [shinsalLine] : []),
+    ...(stageLine ? [stageLine] : []),
+    ...(gongmangLine ? [gongmangLine] : []),
     secondLine,
     branchLine,
     sibsinLine,
@@ -1586,6 +1614,42 @@ export function calculateYearlyImportantDatesLite(
     const dailyShift = dailyEvents.reduce((sum, e) => sum + e.scoreShift, 0)
     const dailySibsin = natalDayStem ? getSibsinDailyKo(natalDayStem, dailyPillar.stem) : ''
 
+    // ── Engine-grade per-date analysis ──
+    // Pull the full ultraPrecisionEngine output for this date so saju
+    // factors can show 12운성 (장생/관대/제왕/쇠/병/사…), the engine's
+    // shinsal hit list, gongmang status, and energy-flow themes.
+    // Score formula stays matrix-driven (preserves destiny-matrix
+    // weighting); the engine just enriches the *narrative* surface so
+    // the user actually sees their natal-chart-grounded reading.
+    const natalAllStems = [
+      sajuProfile.pillars?.year?.stem || '',
+      sajuProfile.pillars?.month?.stem || '',
+      sajuProfile.pillars?.day?.stem || '',
+      sajuProfile.pillars?.time?.stem || '',
+    ].filter(Boolean)
+    const natalAllBranches = [
+      sajuProfile.pillars?.year?.branch || '',
+      sajuProfile.pillars?.month?.branch || '',
+      sajuProfile.pillars?.day?.branch || '',
+      sajuProfile.pillars?.time?.branch || '',
+    ].filter(Boolean)
+    let engineScore: UltraPrecisionScore | null = null
+    if (natalDayStem && natalDayBranch) {
+      try {
+        engineScore = calculateUltraPrecisionScore({
+          date,
+          dayStem: natalDayStem,
+          dayBranch: natalDayBranch,
+          monthBranch: sajuProfile.pillars?.month?.branch || '',
+          yearBranch: sajuProfile.pillars?.year?.branch || '',
+          allStems: natalAllStems,
+          allBranches: natalAllBranches,
+        })
+      } catch {
+        engineScore = null
+      }
+    }
+
     // 용신 multiplier — 용신은 의미 해석엔 이미 반영되지만 점수에 곱셈으로 가중
     // support: 1.06배 (이번 달 용신이 본명 받쳐줌), conflict: 0.94배, neutral: 1.0
     // Use dailyPack (solar-term-correct) so dates that span term boundaries
@@ -1710,7 +1774,8 @@ export function calculateYearlyImportantDatesLite(
         dailyPillar,
         dailySibsin,
         dailyEvents,
-        `${seed}|s`
+        `${seed}|s`,
+        engineScore
       ),
       astroFactorKeys: [
         // The cross-agreement % has its own dedicated section in
