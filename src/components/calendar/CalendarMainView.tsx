@@ -249,7 +249,7 @@ const CalendarMainView = memo(function CalendarMainView({
     const labels = {
       0: locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day',
       1: locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent',
-      2: locale === 'ko' ? '🌿 좋은 날' : '🌿 Good',
+      2: locale === 'ko' ? '🌿 평범한 날' : '🌿 Normal',
       3: locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution',
       4: locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady',
       5: locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady',
@@ -319,7 +319,7 @@ const CalendarMainView = memo(function CalendarMainView({
               </span>
               <span
                 className={styles.summaryBadge}
-                title={locale === 'ko' ? '🌿 좋은 날' : '🌿 Good'}
+                title={locale === 'ko' ? '🌿 평범한 날' : '🌿 Normal'}
               >
                 <span className={styles.badgeEmoji}>🌿</span>
                 <span className={styles.badgeLabel}>{locale === 'ko' ? '좋음' : 'Good'}</span>

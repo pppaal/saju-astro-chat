@@ -226,7 +226,7 @@ function HeaderUserContent() {
           <button
             onClick={() => {
               setShowDropdown(false)
-              router.push('/myjourney')
+              router.push('/profile')
             }}
             style={{
               display: 'flex',

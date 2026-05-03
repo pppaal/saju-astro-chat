@@ -102,7 +102,7 @@ export const POST = withApiMiddleware(
           type: 'system',
           title: "Today's Fortune Ready!",
           message: `Overall: ${fortune.overall} | Love: ${fortune.love} | Career: ${fortune.career} | Wealth: ${fortune.wealth}`,
-          link: '/myjourney',
+          link: '/profile',
         }).catch((err: unknown) => {
           logger.warn('[Daily Fortune] Failed to send notification:', err)
         })

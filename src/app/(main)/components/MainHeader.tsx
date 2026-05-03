@@ -179,9 +179,6 @@ function MainHeader({ translate, locale }: MainHeaderProps) {
         <Link href="/blog" className={styles.navLink}>
           {translate('common.blog', locale === 'ko' ? '블로그' : 'Blog')}
         </Link>
-        <Link href="/myjourney" className={styles.navLink}>
-          {translate('app.myJourney', locale === 'ko' ? '나의 여정' : 'My Journey')}
-        </Link>
       </nav>
 
       <div className={styles.headerLinks}>
@@ -219,9 +216,6 @@ function MainHeader({ translate, locale }: MainHeaderProps) {
             </Link>
             <Link href="/blog" className={styles.mobileNavLink} onClick={closeMenus}>
               {translate('common.blog', locale === 'ko' ? '블로그' : 'Blog')}
-            </Link>
-            <Link href="/myjourney" className={styles.mobileNavLink} onClick={closeMenus}>
-              {translate('app.myJourney', locale === 'ko' ? '나의 여정' : 'My Journey')}
             </Link>
           </nav>
 

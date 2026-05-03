@@ -28,12 +28,19 @@ export const ICONS = {
   sparkle: '\u2726',
 } as const
 
+// Calendar 5-tier grade scale (0=best, 4=most cautious)
+//   0: \uD83C\uDF1F peak       \u2014 highest fortune day
+//   1: \u2728 excellent   \u2014 very favorable
+//   2: \uD83C\uDF3F normal      \u2014 neutral / average
+//   3: \u26A0\uFE0F caution     \u2014 be careful
+//   4: \uD83D\uDEE1\uFE0F hold steady \u2014 protective / restraint
+// Never use alarming symbols (\u2620\uFE0F/\uD83D\uDC80) for fortune content.
 export const GRADE_EMOJI: Record<number, string> = {
   0: '\u{1F31F}',
   1: '\u2728',
-  2: '\u2B50',
+  2: '\u{1F33F}',
   3: '\u26A0\uFE0F',
-  4: '\u2620\uFE0F',
+  4: '\u{1F6E1}\uFE0F',
 }
 
 export const CATEGORY_LABELS_KO: Record<EventCategory, string> = {

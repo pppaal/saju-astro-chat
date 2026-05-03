@@ -1,10 +1,9 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
-import { JourneyIcon, LogoutIcon } from './icons'
+import { LogoutIcon } from './icons'
 import type { MenuItem } from './types'
 
 /**
@@ -12,7 +11,6 @@ import type { MenuItem } from './types'
  */
 export function useDropdownMenu() {
   const { t } = useI18n()
-  const router = useRouter()
 
   const [showDropdown, setShowDropdown] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1)
@@ -24,16 +22,6 @@ export function useDropdownMenu() {
   const menuItems: MenuItem[] = useMemo(
     () => [
       {
-        id: 'myjourney',
-        label: t('nav.myJourney') || 'My Journey',
-        icon: <JourneyIcon />,
-        variant: 'blue',
-        onClick: () => {
-          setShowDropdown(false)
-          router.push('/myjourney')
-        },
-      },
-      {
         id: 'logout',
         label: t('community.logout') || 'Logout',
         icon: <LogoutIcon />,
@@ -41,7 +29,7 @@ export function useDropdownMenu() {
         onClick: () => signOut({ callbackUrl: '/' }),
       },
     ],
-    [t, router]
+    [t]
   )
 
   const menuItemCount = menuItems.length

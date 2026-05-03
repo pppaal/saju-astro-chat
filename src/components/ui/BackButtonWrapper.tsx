@@ -22,7 +22,6 @@ const PAGES_WITHOUT_BACK_BUTTON = [
   '/about', // Has custom back button in page
   '/contact', // Has custom back button in page
   '/faq', // Has custom back button in page
-  '/myjourney', // Has custom header with back button
   '/pricing', // Has custom navigation
   '/policy', // Has custom back button in page
   '/calendar', // Uses ServicePageLayout

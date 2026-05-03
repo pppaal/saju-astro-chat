@@ -39,7 +39,7 @@ const getStrategicGradeTitle = (grade: number, locale: 'ko' | 'en') => {
   const titles = {
     0: locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day',
     1: locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent',
-    2: locale === 'ko' ? '🌿 좋은 날' : '🌿 Good',
+    2: locale === 'ko' ? '🌿 평범한 날' : '🌿 Normal',
     3: locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution',
     4: locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady',
   } as const

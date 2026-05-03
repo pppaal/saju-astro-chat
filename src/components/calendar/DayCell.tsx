@@ -87,12 +87,12 @@ const DayCell = React.memo(function DayCell({
   }, [dateInfo, effectiveGrade, labels])
 
   const getGradeLabel = React.useCallback((grade: number) => {
-    // 직관적 자연어 라벨 — 사주·점성 톤 반영
+    // 5단계 등급 (0=최상, 4=신중) — 점수 분포에 맞춘 자연어 라벨
     if (grade === 0) return locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day'
-    if (grade === 1) return locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent'
-    if (grade === 2) return locale === 'ko' ? '🌿 좋은 날' : '🌿 Good'
+    if (grade === 1) return locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent day'
+    if (grade === 2) return locale === 'ko' ? '🌿 평범한 날' : '🌿 Normal day'
     if (grade === 3) return locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution'
-    return locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady'
+    return locale === 'ko' ? '🛡 신중하게 지키는 날' : '🛡 Hold steady'
   }, [locale])
 
   // Tooltip — score + 핵심 사주·점성 신호 미리보기

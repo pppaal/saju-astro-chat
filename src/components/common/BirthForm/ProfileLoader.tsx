@@ -41,16 +41,16 @@ export function ProfileLoader({
           <br />
           {locale === 'ko' ? (
             <>
-              <a href="/myjourney" className={styles.link}>
-                My Journey 프로필
+              <a href="/profile" className={styles.link}>
+                프로필
               </a>
               에서 생년월일을 먼저 저장하면 다음부터 자동으로 입력됩니다.
             </>
           ) : (
             <>
               Save your birth info in{' '}
-              <a href="/myjourney" className={styles.link}>
-                My Journey Profile
+              <a href="/profile" className={styles.link}>
+                Profile
               </a>{' '}
               to auto-fill next time.
             </>
@@ -89,16 +89,16 @@ export function ProfileLoader({
               {locale === 'ko' ? (
                 <>
                   프로필이 불러와지지 않으면{' '}
-                  <a href="/myjourney" className={styles.link}>
-                    My Journey
+                  <a href="/profile" className={styles.link}>
+                    프로필
                   </a>
-                  에서 프로필 작성을 먼저 해주세요.
+                  에서 작성을 먼저 해주세요.
                 </>
               ) : (
                 <>
                   If your profile doesn&apos;t load, please create it in{' '}
-                  <a href="/myjourney" className={styles.link}>
-                    My Journey
+                  <a href="/profile" className={styles.link}>
+                    Profile
                   </a>{' '}
                   first.
                 </>
