@@ -139,6 +139,14 @@ interface ImportantDate {
     best: Array<{ hour: number; score: number; reason: string }>
     worst: Array<{ hour: number; score: number; reason: string }>
   }
+  activityScores?: {
+    marriage?: number
+    career?: number
+    investment?: number
+    moving?: number
+    surgery?: number
+    study?: number
+  }
 }
 
 interface SelectedDatePanelProps {
@@ -1430,6 +1438,64 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               </p>
             </div>
           )}
+
+          {/* ── Activity scores: 결혼·이사·계약·투자·수술·학업 ──
+              "오늘 결혼해도 돼?" "오늘 이사 좋을까?" 같은 사용자 질문에
+              즉답이 되는 0–100 점 그리드. 엔진이 이미 만들어놓은 값
+              (date-analysis-orchestrator.activityScores) 그대로 노출. */}
+          {selectedDate?.activityScores &&
+            Object.values(selectedDate.activityScores).some(
+              (v) => typeof v === 'number'
+            ) && (
+              <div className={styles.quickSummaryBlock}>
+                <span className={styles.quickSummaryLabel}>
+                  🎯 {locale === 'ko' ? '활동별 점수' : 'Activity Scores'}
+                </span>
+                <div
+                  style={{
+                    marginTop: 8,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: 8,
+                  }}
+                >
+                  {[
+                    { key: 'marriage', emoji: '💍', label: locale === 'ko' ? '결혼' : 'Marriage' },
+                    { key: 'career', emoji: '💼', label: locale === 'ko' ? '커리어' : 'Career' },
+                    { key: 'investment', emoji: '📈', label: locale === 'ko' ? '투자' : 'Invest' },
+                    { key: 'moving', emoji: '🚚', label: locale === 'ko' ? '이사' : 'Move' },
+                    { key: 'surgery', emoji: '🏥', label: locale === 'ko' ? '수술' : 'Surgery' },
+                    { key: 'study', emoji: '📚', label: locale === 'ko' ? '학업' : 'Study' },
+                  ].map((cat) => {
+                    const v = (selectedDate.activityScores as Record<string, number | undefined>)?.[cat.key]
+                    if (typeof v !== 'number') return null
+                    const tone =
+                      v >= 70 ? { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.4)', color: '#86efac' } :
+                      v >= 50 ? { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', color: '#93c5fd' } :
+                      v >= 35 ? { bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.3)', color: '#cbd5e1' } :
+                      v >= 25 ? { bg: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.35)', color: '#fdba74' } :
+                                { bg: 'rgba(220,38,38,0.12)', border: 'rgba(220,38,38,0.35)', color: '#fca5a5' }
+                    return (
+                      <div
+                        key={cat.key}
+                        style={{
+                          padding: '8px 6px',
+                          border: `1px solid ${tone.border}`,
+                          borderRadius: 10,
+                          background: tone.bg,
+                          textAlign: 'center',
+                          fontSize: '0.85em',
+                        }}
+                      >
+                        <div style={{ fontSize: '1.2em' }}>{cat.emoji}</div>
+                        <div style={{ marginTop: 2, opacity: 0.8 }}>{cat.label}</div>
+                        <div style={{ marginTop: 2, fontWeight: 700, color: tone.color }}>{v}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
           {/* ── Hourly slots (행성시 + 점수) ─────────────────── */}
           {selectedDate?.hourlyTimeSlots &&

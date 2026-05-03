@@ -206,6 +206,9 @@ export const CacheKeys = {
   calendarAINarrative: (userId: string, date: string, payloadKey: string) =>
     `cal-ai:v1:${userId}:${date}:${safeBase64Encode(payloadKey).slice(0, 32)}`,
 
+  calendarAIMonthly: (userId: string, yearMonth: string, payloadKey: string) =>
+    `cal-ai-month:v1:${userId}:${yearMonth}:${safeBase64Encode(payloadKey).slice(0, 32)}`,
+
   yearlyCalendar: (
     birthDate: string,
     birthTime: string,
