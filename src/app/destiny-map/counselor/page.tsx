@@ -163,11 +163,11 @@ export default function CounselorPage() {
           <p className={styles.guestBannerText}>
             {t(
               'destinyMap.counselor.guestBanner',
-              '게스트 모드로 바로 상담할 수 있어요. 로그인하면 대화 기록 저장과 연속 상담이 활성화됩니다.'
+              '로그인하면 대화 기록이 저장돼요.'
             )}
           </p>
           <button type="button" className={styles.guestLoginButton} onClick={handleLogin}>
-            {t('destinyMap.counselor.loginCta', 'Sign in and continue')}
+            {t('destinyMap.counselor.loginCtaShort', 'Sign in')}
           </button>
         </div>
       )}

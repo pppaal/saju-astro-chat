@@ -43,7 +43,9 @@
       "loginRequiredTitle": "Sign in to chat with the counselor",
       "loginRequiredDesc": "Sign in to access personalized consultations and load your previous conversation history.",
       "loginCta": "Sign in to start",
-      "loginHint": "No account? You can sign up during the login process."
+      "loginCtaShort": "Sign in",
+      "loginHint": "No account? You can sign up during the login process.",
+      "guestBanner": "Sign in to save your chat history."
     },
     "visualizer": {
       "dominantElement": "Dominant element",

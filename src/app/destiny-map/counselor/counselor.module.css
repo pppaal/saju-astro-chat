@@ -650,14 +650,31 @@
     display: none;
   }
 
+  /* Compact one-line banner on phones — was full-stacked card eating ~25%
+     of the viewport, pushing the actual chat below the fold. */
   .guestBanner {
-    margin: 0.6rem 1rem 0.2rem;
-    flex-direction: column;
-    align-items: flex-start;
+    margin: 0.4rem 0.75rem 0.15rem;
+    padding: 0.45rem 0.7rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-radius: 10px;
+  }
+
+  .guestBannerText {
+    font-size: 0.74rem;
+    line-height: 1.3;
+    flex: 1;
+    min-width: 0;
   }
 
   .guestLoginButton {
-    width: 100%;
+    width: auto;
+    flex-shrink: 0;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.74rem;
+    border-radius: 8px;
     text-align: center;
   }
 

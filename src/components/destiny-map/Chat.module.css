@@ -1208,9 +1208,9 @@
 
   .assistantMessage,
   .userMessage {
-    padding: 14px 16px;
-    font-size: 0.95rem;
-    line-height: 1.7;
+    padding: 16px 18px;
+    font-size: 1.06rem;
+    line-height: 1.82;
   }
 
   .inputRow {
@@ -1257,9 +1257,9 @@
 
   .assistantMessage,
   .userMessage {
-    padding: 12px 14px;
-    font-size: 0.9rem;
-    line-height: 1.65;
+    padding: 14px 16px;
+    font-size: 1.02rem;
+    line-height: 1.78;
   }
 
   .textarea {
@@ -2072,9 +2072,9 @@
   /* Messages */
   .assistantMessage,
   .userMessage {
-    padding: 10px 12px;
-    font-size: 0.85rem;
-    line-height: 1.6;
+    padding: 12px 14px;
+    font-size: 1rem;
+    line-height: 1.75;
     border-radius: 14px;
   }
 

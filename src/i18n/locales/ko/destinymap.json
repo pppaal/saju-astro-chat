@@ -43,7 +43,9 @@
       "loginRequiredTitle": "상담사 채팅은 로그인 후 이용할 수 있어요",
       "loginRequiredDesc": "맞춤형 상담과 이전 대화 기록을 불러오려면 로그인해주세요.",
       "loginCta": "로그인하고 시작하기",
-      "loginHint": "계정이 없으면 로그인 과정에서 바로 회원가입할 수 있습니다."
+      "loginCtaShort": "로그인",
+      "loginHint": "계정이 없으면 로그인 과정에서 바로 회원가입할 수 있습니다.",
+      "guestBanner": "로그인하면 대화 기록이 저장돼요."
     },
     "visualizer": {
       "dominantElement": "지배적 요소",
