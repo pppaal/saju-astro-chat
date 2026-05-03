@@ -39,6 +39,7 @@ import { STEMS, BRANCHES, STEM_TO_ELEMENT, BRANCH_TO_ELEMENT, ZODIAC_TO_ELEMENT 
 
 import { normalizeElement } from './utils'
 import { getPlanetPosition } from './transit-analysis'
+import { calculateSajuData as calculateSajuDataFull } from '@/lib/Saju/saju'
 
 /**
  * 월별 캘린더 데이터
@@ -458,13 +459,22 @@ export function getDailyFortuneScore(
   const birth = typeof birthDate === 'string' ? new Date(birthDate) : birthDate
   const today = targetDate || new Date()
 
-  // 사주 프로필 계산
-  const sajuProfile = calculateSajuProfileFromBirthDate(birth)
+  // FULL 사주 계산 (대운·세운 포함) — simplified path는 daeunCycles 누락으로
+  // 점수가 비정상적으로 짜게 나오는 문제가 있어 전면 사용 중단.
+  const birthDateStr = birth.toISOString().slice(0, 10)
+  const birthTimeStr = birthTime || '12:00'
+  const fullSaju = calculateSajuDataFull(birthDateStr, birthTimeStr, 'male', 'solar', 'Asia/Seoul')
 
-  // 연지(年支) 추가 - 삼재/역마/도화 계산용
-  const birthYearGanzhi = getYearGanzhi(birth.getFullYear())
-  sajuProfile.yearBranch = birthYearGanzhi.branch
-  sajuProfile.birthYear = birth.getFullYear()
+  const sajuProfile = extractSajuProfile({
+    dayMaster: fullSaju.dayMaster,
+    pillars: {
+      year: { earthlyBranch: fullSaju.yearPillar.earthlyBranch.name },
+      month: { earthlyBranch: fullSaju.monthPillar.earthlyBranch.name },
+      day: { earthlyBranch: fullSaju.dayPillar.earthlyBranch.name },
+    },
+    unse: fullSaju.unse,
+    facts: { birthDate: birthDateStr },
+  })
 
   // 점성술 프로필 계산
   const astroProfile = calculateAstroProfileFromBirthDate(birth)
