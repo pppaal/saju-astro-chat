@@ -133,6 +133,24 @@ export interface ImportantDate {
     best: Array<{ hour: number; score: number; reason: string }>
     worst: Array<{ hour: number; score: number; reason: string }>
   }
+  /** 본명 사주 강약·격국·용신 컨텍스트 */
+  natalContext?: {
+    strength: string
+    geokguk: string
+    yongsin: { primary: string; secondary?: string; type: string; kibsin?: string }
+    summary: string
+  }
+  /** 향후 60일 용신 활성 일자 top 5 */
+  yongsinActivations?: {
+    yongsin: string
+    top: Array<{
+      date: string
+      score: number
+      level: string
+      sources: string[]
+      advice: string
+    }>
+  }
   /** 28수 (Lunar Mansion) — 그날의 달 자리 */
   lunarMansion?: {
     name: string

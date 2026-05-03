@@ -139,6 +139,22 @@ interface ImportantDate {
     best: Array<{ hour: number; score: number; reason: string }>
     worst: Array<{ hour: number; score: number; reason: string }>
   }
+  natalContext?: {
+    strength: string
+    geokguk: string
+    yongsin: { primary: string; secondary?: string; type: string; kibsin?: string }
+    summary: string
+  }
+  yongsinActivations?: {
+    yongsin: string
+    top: Array<{
+      date: string
+      score: number
+      level: string
+      sources: string[]
+      advice: string
+    }>
+  }
   activityScores?: {
     marriage?: number
     career?: number
@@ -1125,6 +1141,30 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             )}
           </div>
 
+          {/* ── Natal context chip (강약·격국·용신) ─────────
+              본명 정체성을 패널 위에 한 줄로 박아두면, 매일 다른 운을
+              볼 때 "이게 내 사주에 어떻게 작용하는가"의 기준점이 생김. */}
+          {selectedDate?.natalContext && (
+            <div
+              className={styles.quickSummaryBlock}
+              style={{
+                marginTop: 8,
+                border: '1px solid rgba(94,234,212,0.25)',
+                background: 'rgba(15,118,110,0.08)',
+              }}
+            >
+              <span className={styles.quickSummaryLabel}>
+                🌱 {locale === 'ko' ? '본명 컨텍스트' : 'Natal Context'}
+              </span>
+              <p
+                className={styles.quickSummaryText}
+                style={{ marginTop: 4, fontSize: '0.92em' }}
+              >
+                {selectedDate.natalContext.summary}
+              </p>
+            </div>
+          )}
+
           {/* ── AI 풀이 (premium) ──────────────────────────────
               "사용자가 이해할 수 있게" — 13개 엔진 출력 섹션을 자연어
               한 단락으로 풀어주는 AI 요약. 프리미엄 게이트, 클릭 시
@@ -1494,6 +1534,32 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                     )
                   })}
                 </div>
+              </div>
+            )}
+
+          {/* ── Yongsin activation upcoming days ─────────────
+              "향후 60일 안에 너의 용신 X가 가장 강하게 살아나는 날"
+              top 5 highlight — 사용자가 언제 추진하면 사주 흐름과 결이
+              가장 잘 맞는지 직접 보여줌. */}
+          {selectedDate?.yongsinActivations &&
+            selectedDate.yongsinActivations.top.length > 0 && (
+              <div className={styles.quickSummaryBlock}>
+                <span className={styles.quickSummaryLabel}>
+                  🔥 {locale === 'ko'
+                    ? `용신 ${selectedDate.yongsinActivations.yongsin} 활성 시기`
+                    : `Yongsin ${selectedDate.yongsinActivations.yongsin} active windows`}
+                </span>
+                <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                  {selectedDate.yongsinActivations.top.slice(0, 4).map((p) => (
+                    <li
+                      key={p.date}
+                      style={{ padding: '4px 0', fontSize: '0.92em' }}
+                    >
+                      ⭐ <strong>{p.date}</strong> ({p.level}, {p.score}점)
+                      {p.advice ? <> — {p.advice}</> : null}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 

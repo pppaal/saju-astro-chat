@@ -132,6 +132,66 @@ export const GET = withApiMiddleware(
       },
     } as UserSajuProfile
 
+    // Advanced natal analysis — strength, geokguk, yongsin. The lite
+    // generator's score ladder already uses yongsin alignment if the
+    // profile carries it; calling analyzeAdvancedSaju here populates
+    // those fields so per-date scoring is yongsin-aware AND we can
+    // surface the natal identity ("신강 정관격, 용신 화") on the panel.
+    let natalContext:
+      | {
+          strength: string
+          geokguk: string
+          yongsin: { primary: string; secondary?: string; type: string; kibsin?: string }
+          summary: string
+        }
+      | undefined
+    try {
+      const { analyzeAdvancedSaju } = await import('@/lib/Saju/astrologyengine')
+      const advanced = analyzeAdvancedSaju(
+        {
+          name: dayMasterStem,
+          element: dayMasterElement,
+          yin_yang: ['甲', '丙', '戊', '庚', '壬'].includes(dayMasterStem) ? '양' : '음',
+        } as Parameters<typeof analyzeAdvancedSaju>[0],
+        {
+          yearPillar: sajuResult.yearPillar,
+          monthPillar: sajuResult.monthPillar,
+          dayPillar: sajuResult.dayPillar,
+          timePillar: sajuResult.timePillar,
+        } as Parameters<typeof analyzeAdvancedSaju>[1]
+      )
+      const kibsin = (advanced.yongsin.unfavorable || []).join('·')
+      natalContext = {
+        strength: String(advanced.strength.level || ''),
+        geokguk: String(advanced.geokguk.type || ''),
+        yongsin: {
+          primary: String(advanced.yongsin.primary || ''),
+          secondary: advanced.yongsin.secondary
+            ? String(advanced.yongsin.secondary)
+            : undefined,
+          type: String(advanced.yongsin.basis || ''),
+          kibsin: kibsin || undefined,
+        },
+        summary: `${advanced.strength.level} ${advanced.geokguk.type}, 용신 ${advanced.yongsin.primary}${kibsin ? ` · 기신 ${kibsin}` : ''}`,
+      }
+      // Inject yongsin into sajuProfile so the lite generator's yongsin
+      // alignment kicks in for this date too.
+      ;(sajuProfile as UserSajuProfile & { yongsin?: unknown; geokguk?: unknown }).yongsin = {
+        primary: advanced.yongsin.primary,
+        secondary: advanced.yongsin.secondary,
+        type: advanced.yongsin.basis,
+        kibsin: kibsin || undefined,
+      }
+      ;(sajuProfile as UserSajuProfile & { yongsin?: unknown; geokguk?: unknown }).geokguk = {
+        type: advanced.geokguk.type,
+        strength: advanced.strength.level,
+      }
+    } catch (err) {
+      logger.warn('[calendar/date-detail] advanced saju analysis failed', {
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+
     const sunSign = deriveSunSign(birthDateObj)
     const astroProfile: UserAstroProfile = {
       sunSign,
@@ -313,6 +373,38 @@ export const GET = withApiMiddleware(
             worst: slots.worst.slice(0, 2),
           }
         } catch {
+          return undefined
+        }
+      })(),
+      natalContext,
+      yongsinActivations: await (async () => {
+        if (!natalContext?.yongsin?.primary) return undefined
+        try {
+          const { findYongsinActivationPeriods } = await import(
+            '@/lib/prediction/specificDateEngine'
+          )
+          // Look forward 60 days from the selected date and return the
+          // top 5 strongest 용신 activation days. "이번 60일 안에 너의
+          // 용신 화가 가장 살아나는 날" reading.
+          const periods = findYongsinActivationPeriods(
+            natalContext.yongsin.primary,
+            dayMasterStem,
+            new Date(date + 'T00:00:00'),
+            60
+          )
+          const top = periods.slice(0, 5).map((p) => ({
+            date:
+              `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}-${String(p.date.getDate()).padStart(2, '0')}`,
+            score: p.score,
+            level: p.activationLevel,
+            sources: p.sources,
+            advice: p.advice,
+          }))
+          return top.length > 0 ? { yongsin: natalContext.yongsin.primary, top } : undefined
+        } catch (err) {
+          logger.warn('[calendar/date-detail] yongsin activation calc failed', {
+            error: err instanceof Error ? err.message : String(err),
+          })
           return undefined
         }
       })(),

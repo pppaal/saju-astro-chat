@@ -426,6 +426,28 @@ const BRANCH_HYUNG_TRIO = ['寅', '巳', '申']
 const BRANCH_HYUNG_TRIO2 = ['丑', '戌', '未']
 const BRANCH_HYUNG_PAIR = new Set(['子-卯', '卯-子'])
 
+// 삼합 — 3-branch combination. When all three are present across the
+// natal+cycle slots, the saju framework treats it as a strong unified
+// flow producing the leader element.
+const BRANCH_TRIPLES_SAMHAP: Array<{ members: string[]; result: string; label: string }> = [
+  { members: ['亥', '卯', '未'], result: '목', label: '亥卯未 목 삼합' },
+  { members: ['寅', '午', '戌'], result: '화', label: '寅午戌 화 삼합' },
+  { members: ['巳', '酉', '丑'], result: '금', label: '巳酉丑 금 삼합' },
+  { members: ['申', '子', '辰'], result: '수', label: '申子辰 수 삼합' },
+]
+// 방합 — 3-branch seasonal alignment. Same idea as 삼합 but quarter-of-year.
+const BRANCH_TRIPLES_BANGHAP: Array<{ members: string[]; result: string; label: string }> = [
+  { members: ['寅', '卯', '辰'], result: '목', label: '寅卯辰 봄 방합' },
+  { members: ['巳', '午', '未'], result: '화', label: '巳午未 여름 방합' },
+  { members: ['申', '酉', '戌'], result: '금', label: '申酉戌 가을 방합' },
+  { members: ['亥', '子', '丑'], result: '수', label: '亥子丑 겨울 방합' },
+]
+// 원진 — 6 paired branches that don't get along (relational friction).
+const BRANCH_WONJIN_PAIRS = new Set([
+  '子-未', '未-子', '丑-午', '午-丑', '寅-酉', '酉-寅',
+  '卯-申', '申-卯', '辰-亥', '亥-辰', '巳-戌', '戌-巳',
+])
+
 type DailyEvent = {
   kind:
     | '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형' | '공망' | '평이'
@@ -1805,6 +1827,34 @@ export function calculateYearlyImportantDatesLite(
       for (let j = i + 1; j < slots.length; j++) {
         const hits = interactionFor(slots[i], slots[j]) || []
         out.push(...hits)
+      }
+      // 원진 (6 pairs of 6년 차이 branches that grate). Same loop.
+      for (let j = i + 1; j < slots.length; j++) {
+        const a = slots[i], b = slots[j]
+        if (a.branch && b.branch && BRANCH_WONJIN_PAIRS.has(`${a.branch}-${b.branch}`)) {
+          out.push({
+            pair: `${a.label}↔${b.label}`,
+            kind: '지지해', // 원진은 의미상 해와 비슷한 마찰 — UI는 같은 카드로
+            blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 원진 — 감정적 거리·미묘한 신경전.`,
+          })
+        }
+      }
+    }
+    // 三合 / 방합 — needs all three branches present across the slots.
+    const allBranches = slots.map((s) => s.branch).filter(Boolean)
+    for (const trio of [...BRANCH_TRIPLES_SAMHAP, ...BRANCH_TRIPLES_BANGHAP]) {
+      const present = trio.members.filter((m) => allBranches.includes(m))
+      if (present.length === 3) {
+        const involved = slots
+          .filter((s) => trio.members.includes(s.branch))
+          .map((s) => s.label)
+          .join(', ')
+        const isSamhap = BRANCH_TRIPLES_SAMHAP.includes(trio)
+        out.push({
+          pair: involved,
+          kind: '지지합',
+          blurb: `${trio.label} 완성 (${involved}) — ${trio.result} 기운으로 강하게 묶이는 ${isSamhap ? '삼합' : '방합'} 흐름.`,
+        })
       }
     }
     return out.length > 0 ? out : undefined
