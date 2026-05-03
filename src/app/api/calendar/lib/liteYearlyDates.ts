@@ -146,6 +146,20 @@ const ELEMENT_LABEL_EN: Record<string, string> = {
   wood: 'Wood', fire: 'Fire', earth: 'Earth', metal: 'Metal', water: 'Water',
 }
 
+const ELEMENT_LABEL_KO: Record<string, string> = {
+  wood: '목', fire: '화', earth: '토', metal: '금', water: '수',
+}
+
+function relationLabelKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
+  switch (rel) {
+    case 'same': return '같은 결'
+    case 'support': return '받쳐주는'
+    case 'drain': return '에너지를 빼가는'
+    case 'control': return '제동을 거는'
+    case 'controlled': return '점검을 요구하는'
+  }
+}
+
 function seasonElement(month: number): 'wood' | 'fire' | 'earth' | 'metal' | 'water' {
   if (month >= 3 && month <= 5) return 'wood'
   if (month >= 6 && month <= 8) return 'fire'
@@ -1106,15 +1120,16 @@ function buildSajuFactors(
       )
     }
     if (pack.yongsinPrimary) {
+      const dmEl = ELEMENT_LABEL_KO[dayElement] || ''
+      const seasonElKo = ELEMENT_LABEL_KO[seasonEl] || ''
+      const dmTag = dayMaster ? `${dayMaster}일주(${dmEl}) ` : ''
       const yongsinAction =
         pack.yongsinAlign === 'support'
-          ? '본명을 잘 받쳐주고 있어 결정이 가벼워지는 시기'
+          ? `용신 ${pack.yongsinPrimary}이(가) ${dmTag}흐름을 받쳐주는 시기라 결정이 가벼워집니다.`
           : pack.yongsinAlign === 'conflict'
-            ? '본명 흐름과 어긋나서 한 박자 늦추는 편이 안전한 시기'
-            : '본명과 큰 충돌 없이 무난하게 가는 시기'
-      secondPool.push(
-        `${seasonKo ? `${seasonKo} 계절 흐름이 ` : '계절 흐름이 '}${yongsinAction}입니다.`
-      )
+            ? `용신 ${pack.yongsinPrimary}이(가) ${dmTag}흐름과 어긋나는 구간이라 한 박자 늦추는 편이 안전합니다.`
+            : `${dmTag ? `${dmTag}` : ''}본명과 ${seasonKo} 계절(${seasonElKo}) 사이가 ${relationLabelKo(relation)} 결이라 큰 충돌 없이 흘러갑니다.`
+      secondPool.push(yongsinAction)
     }
     if (profile.geokguk?.type) {
       const strengthHint = profile.geokguk.strength === '신강' ? '본명이 강한 편이라' : profile.geokguk.strength === '신약' ? '본명이 약한 편이라' : ''
@@ -1260,16 +1275,69 @@ function buildAstroFactors(
   return [sunLine, moonLine, pickBySeed(seed, closerPool)]
 }
 
-function buildRecommendations(grade: ImportanceGrade): string[] {
-  if (grade <= 1) return ['confidence']
-  if (grade === 2) return ['planning']
-  return []
+function buildRecommendations(
+  grade: ImportanceGrade,
+  domain: DomainKey,
+  seed: string
+): string[] {
+  // Pick 2 i18n recommendation keys per day from a domain-flavoured pool,
+  // varied by seed so consecutive days don't surface the same canned line.
+  // Keys must exist in src/i18n/locales/{ko,en}/calendar.json under
+  // calendar.recommendations.
+  const generalAnchorTier1 = ['confidence', 'achievement', 'creative', 'newBeginning', 'celebration', 'luck']
+  if (grade <= 1) {
+    const anchorPool: Record<DomainKey, string[]> = {
+      career: ['business', 'bigDecision', 'majorDecision', 'expression', 'authority', 'promotion'],
+      love: ['love', 'meeting', 'dating', 'reconciliation', 'charm', 'selfExpression'],
+      money: ['investment', 'finance', 'shopping', 'speculation', 'stableWealth', 'windfall'],
+      health: ['discipline', 'achievement', 'newBeginning', 'meditation', 'beauty', 'rest'],
+      move: ['moving', 'travel', 'change', 'expansion', 'newBeginning', 'celebration'],
+    }
+    const support = ['confidence', 'expression', 'collaboration', 'synergy', 'growth', 'harmony']
+    return [
+      pickBySeed(`${seed}|rec0`, anchorPool[domain] || generalAnchorTier1),
+      pickBySeed(`${seed}|rec1`, support),
+    ]
+  }
+  if (grade === 2) {
+    const anchorPool = ['planning', 'completion', 'reflection', 'release', 'discipline', 'learning']
+    const support = ['careful', 'meditation', 'mentor', 'documents', 'study']
+    return [
+      pickBySeed(`${seed}|rec0`, anchorPool),
+      pickBySeed(`${seed}|rec1`, support),
+    ]
+  }
+  // Caution / Hold tier — slow down, protect.
+  const anchorPool = ['careful', 'rest', 'lowProfile', 'postpone', 'meditation']
+  const support = ['reflection', 'mentor', 'release']
+  return [
+    pickBySeed(`${seed}|rec0`, anchorPool),
+    pickBySeed(`${seed}|rec1`, support),
+  ]
 }
 
-function buildWarnings(grade: ImportanceGrade, crossAgreementPercent: number): string[] {
-  if (grade >= 3) return ['confusion']
-  if (grade === 2 && crossAgreementPercent < 50) return ['confusion']
-  return []
+function buildWarnings(
+  grade: ImportanceGrade,
+  crossAgreementPercent: number,
+  domain: DomainKey,
+  seed: string
+): string[] {
+  if (grade < 2 && crossAgreementPercent >= 60) return []
+  const domainWarnings: Record<DomainKey, string[]> = {
+    career: ['authority', 'competition', 'opposition', 'rivalry', 'tension'],
+    love: ['conflict', 'misunderstanding', 'betrayal', 'tension'],
+    money: ['finance', 'loss', 'riskManagement', 'speculation'],
+    health: ['health', 'accident', 'injury', 'stress'],
+    move: ['travel', 'change', 'avoidTravel', 'instability'],
+  }
+  const general = ['confusion', 'caution', 'stress', 'tension', 'misunderstanding']
+  if (grade >= 3) {
+    return [
+      pickBySeed(`${seed}|warn0`, domainWarnings[domain] || general),
+      pickBySeed(`${seed}|warn1`, general),
+    ]
+  }
+  return [pickBySeed(`${seed}|warn0`, general)]
 }
 
 export function calculateYearlyImportantDatesLite(
@@ -1489,9 +1557,14 @@ export function calculateYearlyImportantDatesLite(
           `${seed}|a`
         ),
       ],
-      recommendationKeys: buildRecommendations(grade),
+      recommendationKeys: buildRecommendations(grade, primary.domain, `${seed}|rec`),
       warningKeys: (() => {
-        const base = buildWarnings(grade, crossAgreementPercent)
+        const base = buildWarnings(
+          grade,
+          crossAgreementPercent,
+          primary.domain,
+          `${seed}|warn`
+        )
         const heavyEvent = dailyEvents.find((e) => (e.warningWeight || 0) >= 1)
         if (heavyEvent && !base.includes('confusion')) base.push('confusion')
         return base
