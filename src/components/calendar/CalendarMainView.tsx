@@ -4,7 +4,13 @@
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
-import { CATEGORY_EMOJI, WEEKDAYS_KO, WEEKDAYS_EN } from './constants'
+import {
+  CATEGORY_EMOJI,
+  WEEKDAYS_KO,
+  WEEKDAYS_EN,
+  getGradeLabel as getGradeLabelFromConst,
+  type CalendarLocale,
+} from './constants'
 import { getGradeEmoji, getCategoryLabel, getScoreClass } from './utils'
 import SelectedDatePanel from './SelectedDatePanel'
 import MonthHighlights from './MonthHighlights'
@@ -245,17 +251,8 @@ const CalendarMainView = memo(function CalendarMainView({
 
   const days = getMonthDays()
 
-  const getGradeLabel = (grade: number) => {
-    const labels = {
-      0: locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day',
-      1: locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent',
-      2: locale === 'ko' ? '🌿 평범한 날' : '🌿 Normal',
-      3: locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution',
-      4: locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady',
-      5: locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady',
-    }
-    return labels[grade as keyof typeof labels] || labels[3]
-  }
+  const activeLocale: CalendarLocale = locale === 'ko' ? 'ko' : 'en'
+  const getGradeLabel = (grade: number) => getGradeLabelFromConst(grade, activeLocale).full
 
   return (
     <div
@@ -279,8 +276,8 @@ const CalendarMainView = memo(function CalendarMainView({
               </h1>
               <p className={styles.calendarSubtitle}>
                 {locale === 'ko'
-                  ? `${year}년 당신만의 특별한 날들`
-                  : `Your special days in ${year}`}
+                  ? `${year}년 365일의 운세 흐름`
+                  : `Your year ${year} — 365 days of timing`}
               </p>
             </div>
           </div>
@@ -297,61 +294,30 @@ const CalendarMainView = memo(function CalendarMainView({
                   : `Engine-calculated ${yearSummary.total}d`}
               </span>
               <span className={styles.badgeDivider} />
-              <span
-                className={styles.summaryBadge}
-                title={locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day'}
-              >
-                <span className={styles.badgeEmoji}>🌟</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '최고' : 'Peak'}</span>
-                <span className={styles.badgeCount}>
-                  {locale === 'ko' ? `${yearSummary.grade0}일` : `${yearSummary.grade0}d`}
-                </span>
-              </span>
-              <span
-                className={styles.summaryBadge}
-                title={locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent'}
-              >
-                <span className={styles.badgeEmoji}>✨</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '아주 좋음' : 'Excellent'}</span>
-                <span className={styles.badgeCount}>
-                  {locale === 'ko' ? `${yearSummary.grade1}일` : `${yearSummary.grade1}d`}
-                </span>
-              </span>
-              <span
-                className={styles.summaryBadge}
-                title={locale === 'ko' ? '🌿 평범한 날' : '🌿 Normal'}
-              >
-                <span className={styles.badgeEmoji}>🌿</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '평범' : 'Normal'}</span>
-                <span className={styles.badgeCount}>
-                  {locale === 'ko' ? `${yearSummary.grade2}일` : `${yearSummary.grade2}d`}
-                </span>
-              </span>
-              <span
-                className={`${styles.summaryBadge} ${styles.cautionBadge}`}
-                title={locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution'}
-              >
-                <span className={styles.badgeEmoji}>⚠️</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '조심' : 'Caution'}</span>
-                <span className={styles.badgeCount}>
-                  {locale === 'ko' ? `${yearSummary.grade3}일` : `${yearSummary.grade3}d`}
-                </span>
-              </span>
-              <span
-                className={`${styles.summaryBadge} ${styles.worstBadge}`}
-                title={locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady'}
-              >
-                <span className={styles.badgeEmoji}>🛡</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '지키기' : 'Hold'}</span>
-                <span className={styles.badgeCount}>
-                  {locale === 'ko' ? `${yearSummary.grade4}일` : `${yearSummary.grade4}d`}
-                </span>
-              </span>
+              {([0, 1, 2, 3, 4] as const).map((grade) => {
+                const label = getGradeLabelFromConst(grade, activeLocale)
+                const count = yearSummary[`grade${grade}` as 'grade0'] as number
+                const extraClass =
+                  grade === 3 ? styles.cautionBadge : grade === 4 ? styles.worstBadge : ''
+                return (
+                  <span
+                    key={grade}
+                    className={`${styles.summaryBadge} ${extraClass}`}
+                    title={label.full}
+                  >
+                    <span className={styles.badgeEmoji}>{label.emoji}</span>
+                    <span className={styles.badgeLabel}>{label.short}</span>
+                    <span className={styles.badgeCount}>
+                      {locale === 'ko' ? `${count}일` : `${count}d`}
+                    </span>
+                  </span>
+                )
+              })}
             </div>
             <p className={styles.summaryEngineNote}>
               {locale === 'ko'
-                ? '사주·점성 100점 스코어와 교차 근거를 합쳐 좋은 날부터 조정일까지 자동 분류합니다.'
-                : 'Days are auto-ranked from execute-first to adjust-first using the combined Saju/Astrology score and cross-evidence.'}
+                ? '사주·점성을 100점 스코어로 평가하고 교차 근거를 합쳐 5단계(최고 · 아주 좋음 · 평범 · 조심 · 지키기)로 자동 분류합니다.'
+                : 'Each day is scored 0–100 from combined Saju + Astrology evidence and auto-classified into 5 tiers: Peak, Excellent, Normal, Caution, Hold.'}
             </p>
           </>
         )}

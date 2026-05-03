@@ -140,18 +140,23 @@ const BirthInfoForm = memo(function BirthInfoForm({
           <ul>
             <li>
               {locale === 'ko'
-                ? '초록·파랑 계열 날짜: 실행과 집중을 앞세우기 좋은 구간입니다'
-                : 'Blue/green days: better for execution, meetings, launches'}
+                ? '🌟 최고 · ✨ 아주 좋음 — 실행·결정·발표를 앞세우기 좋은 날'
+                : '🌟 Peak · ✨ Excellent — best days for execution, meetings, launches'}
             </li>
             <li>
               {locale === 'ko'
-                ? '주황·빨강 계열 날짜: 과로·충돌 가능성을 먼저 점검하고 일정을 조정하세요'
-                : 'Orange/red days: check risk and reduce overload or conflict'}
+                ? '🌿 평범 — 평소 흐름 유지, 무리하지 않는 일상에 적합'
+                : '🌿 Normal — steady flow days, good for routine work'}
             </li>
             <li>
               {locale === 'ko'
-                ? '날짜를 클릭하면 근거 요약과 추천 행동을 바로 확인할 수 있습니다'
-                : 'Click a date to view detailed reasons and action guidance'}
+                ? '⚠ 조심 · 🛡 지키기 — 과로·충돌 점검, 큰 결정은 미루기 권장'
+                : '⚠ Caution · 🛡 Hold — review risk, postpone major decisions'}
+            </li>
+            <li>
+              {locale === 'ko'
+                ? '날짜를 클릭하면 사주·점성 근거와 추천 행동을 바로 확인할 수 있어요'
+                : 'Click any date to view Saju + Astrology evidence and action guidance'}
             </li>
           </ul>
         </div>

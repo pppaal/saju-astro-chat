@@ -4,6 +4,7 @@ import React from 'react'
 
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
+import { getGradeLabel as getGradeLabelFromConst, type CalendarLocale } from './constants'
 
 type EventCategory = 'wealth' | 'career' | 'love' | 'health' | 'travel' | 'study' | 'general'
 type ImportanceGrade = 0 | 1 | 2 | 3 | 4
@@ -86,14 +87,10 @@ const DayCell = React.memo(function DayCell({
     return tags.slice(0, 2)
   }, [dateInfo, effectiveGrade, labels])
 
-  const getGradeLabel = React.useCallback((grade: number) => {
-    // 5단계 등급 (0=최상, 4=신중) — 점수 분포에 맞춘 자연어 라벨
-    if (grade === 0) return locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day'
-    if (grade === 1) return locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent day'
-    if (grade === 2) return locale === 'ko' ? '🌿 평범한 날' : '🌿 Normal day'
-    if (grade === 3) return locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution'
-    return locale === 'ko' ? '🛡 신중하게 지키는 날' : '🛡 Hold steady'
-  }, [locale])
+  const getGradeLabel = React.useCallback(
+    (grade: number) => getGradeLabelFromConst(grade, locale as CalendarLocale).full,
+    [locale]
+  )
 
   // Tooltip — score + 핵심 사주·점성 신호 미리보기
   const cellTooltip = React.useMemo(() => {

@@ -3,7 +3,7 @@
 import React from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
-import { CATEGORY_EMOJI } from './constants'
+import { CATEGORY_EMOJI, getGradeLabel as getGradeLabelFromConst, type CalendarLocale } from './constants'
 import { parseLocalDate } from './utils'
 import type { ImportantDate } from './types'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
@@ -35,16 +35,8 @@ const MONTHS_EN = [
 const truncate = (text: string, len = 58) =>
   !text ? '' : text.length > len ? `${text.slice(0, len)}...` : text
 
-const getStrategicGradeTitle = (grade: number, locale: 'ko' | 'en') => {
-  const titles = {
-    0: locale === 'ko' ? '🌟 최고의 날' : '🌟 Peak day',
-    1: locale === 'ko' ? '✨ 아주 좋은 날' : '✨ Excellent',
-    2: locale === 'ko' ? '🌿 평범한 날' : '🌿 Normal',
-    3: locale === 'ko' ? '⚠ 조심하는 날' : '⚠ Caution',
-    4: locale === 'ko' ? '🛡 지키는 날' : '🛡 Hold steady',
-  } as const
-  return titles[Math.min(Math.max(grade, 0), 4) as keyof typeof titles]
-}
+const getStrategicGradeTitle = (grade: number, locale: CalendarLocale) =>
+  getGradeLabelFromConst(grade, locale).full
 
 export default function MonthHighlights({
   allDates,
