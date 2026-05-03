@@ -11,6 +11,7 @@ import {
   elementOfBranch,
   getMonthPillarForDate,
 } from '@/lib/Saju/datePillars'
+import { getShinsalHitsForDailyTarget } from '@/lib/Saju/shinsal'
 
 type CalendarLocale = 'ko' | 'en'
 
@@ -340,13 +341,54 @@ const BRANCH_HYUNG_TRIO2 = ['丑', '戌', '未']
 const BRANCH_HYUNG_PAIR = new Set(['子-卯', '卯-子'])
 
 type DailyEvent = {
-  kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형' | '공망' | '평이'
+  kind:
+    | '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형' | '공망' | '평이'
+    | '12신살' | '도화' | '천을귀인' | '양인' | '현침'
   label: string
   labelEn: string
   blurb: string
   blurbEn: string
   scoreShift: number
   warningWeight?: number
+}
+
+// Per-date shinsal blurbs. Speaks to "today is your X day" energy in
+// plain Korean — no hanja jargon on the user-facing surface.
+const TWELVE_SHINSAL_BLURB_KO: Record<string, string> = {
+  장성: '오늘은 추진력·결단력이 살아나는 장성일 — 핵심 의사결정 한 번에 묶어 처리하기 좋아요.',
+  반안: '안정감·체면이 받쳐주는 반안일 — 자리를 정리하거나 공식적인 자리에 좋아요.',
+  역마: '환경 이동·출장·전직 신호가 강한 역마일 — 멀리 움직이거나 외부 미팅 잡기 좋아요.',
+  육해: '자질구레한 마찰·소모 신호가 잦은 육해일 — 결정보다 정리·점검 우선.',
+  화개: '내적 정리·예술·고독한 시간이 깊어지는 화개일 — 글쓰기·복기에 좋아요.',
+  겁살: '뺏기거나 휘둘리기 쉬운 겁살일 — 큰 약속·서명은 한 박자 늦추세요.',
+  재살: '관재·다툼 신호가 짙은 재살일 — 갈등 라인은 오늘 피하세요.',
+  천살: '예상 밖 변수가 들어오는 천살일 — 플랜B 챙기고 무리한 일정 피하세요.',
+  지살: '활동·이동·외부 자극이 늘어나는 지살일 — 짧은 외출이나 답사에 좋아요.',
+  년살: '관계 끌림·매력이 살아나는 년살일(도화) — 새로운 만남·발표에 좋아요.',
+  월살: '자원·체력 소모가 큰 월살일 — 무리하지 말고 회복 시간 확보.',
+  망신: '체면 흔들림·실수 노출 가능성이 있는 망신일 — 큰 자리·SNS는 조용히.',
+}
+const TWELVE_SHINSAL_BLURB_EN: Record<string, string> = {
+  장성: 'Strong drive and decisive energy — bundle key decisions today.',
+  반안: 'Stability and reputation back you up — good for formal/admin moves.',
+  역마: 'Movement / travel / role-change signal — schedule away-meetings or trips.',
+  육해: 'Petty friction and drain — favor cleanup over commitments.',
+  화개: 'Inner-work / art / solitude deepens — write, reflect, revisit.',
+  겁살: 'Easy to get pulled or robbed — defer big signatures one beat.',
+  재살: 'Dispute / friction signal — avoid conflict-prone lanes today.',
+  천살: 'Unexpected variables — keep a plan B, don’t overschedule.',
+  지살: 'External stimulation rises — short trips and field visits work well.',
+  년살: 'Attraction / charm runs high — favorable for meetings and reveals.',
+  월살: 'Resource / energy drain — protect recovery time.',
+  망신: 'Reputation can wobble — keep a low profile on public stages.',
+}
+const TWELVE_SHINSAL_SCORE: Record<string, number> = {
+  장성: 1.6, 반안: 1.0, 역마: 0.6, 육해: -0.8, 화개: 0.4,
+  겁살: -1.4, 재살: -1.6, 천살: -1.2, 지살: 0.6,
+  년살: 0.8, 월살: -1.0, 망신: -1.3,
+}
+const TWELVE_SHINSAL_WARN: Record<string, number> = {
+  겁살: 1, 재살: 2, 천살: 1, 월살: 1, 망신: 1,
 }
 
 function gongmangBranches(natalStem: string, natalBranch: string): [string, string] | null {
@@ -481,6 +523,67 @@ function analyzeDailyPillarEvents(
       warningWeight: 1,
     })
   }
+
+  // Engine-grade shinsal scan: which natal-driven sinsals fire when
+  // today's day branch lands on the target. This is what users actually
+  // expect from a saju calendar — "오늘은 너의 도화일/역마일/…".
+  for (const hit of getShinsalHitsForDailyTarget(natalStem, natalBranch, dailyBranch)) {
+    const k = hit.kind as string
+    // 12신살 — anchor blurb pool above. Treat anything matching as a
+    // 12신살 event with the original kind name kept in label.
+    const twelveBlurb = TWELVE_SHINSAL_BLURB_KO[k]
+    if (twelveBlurb) {
+      events.push({
+        kind: '12신살',
+        label: `${k}일`,
+        labelEn: `${k} day`,
+        blurb: twelveBlurb,
+        blurbEn: TWELVE_SHINSAL_BLURB_EN[k] || twelveBlurb,
+        scoreShift: TWELVE_SHINSAL_SCORE[k] ?? 0,
+        warningWeight: TWELVE_SHINSAL_WARN[k],
+      })
+      continue
+    }
+    if (k === '도화') {
+      events.push({
+        kind: '도화',
+        label: '도화일',
+        labelEn: '도화 day',
+        blurb: '관계 끌림·매력·노출이 살아나는 도화일 — 미팅·소개·발표에 유리.',
+        blurbEn: 'Charm and attraction surface — meetings, intros, reveals favored.',
+        scoreShift: 1.0,
+      })
+    } else if (k === '천을귀인') {
+      events.push({
+        kind: '천을귀인',
+        label: '천을귀인일',
+        labelEn: '천을귀인 day',
+        blurb: '결정적인 순간에 도움 주는 사람이 가까이 있는 날 — 자문·부탁 던져 보세요.',
+        blurbEn: 'A helpful figure is near — ask for advice or favors today.',
+        scoreShift: 1.8,
+      })
+    } else if (k === '양인') {
+      events.push({
+        kind: '양인',
+        label: '양인일',
+        labelEn: '양인 day',
+        blurb: '추진력은 강하지만 과격해질 수 있는 양인일 — 결단은 좋되 말투·태도 한 번 더 점검.',
+        blurbEn: 'Strong drive but sharp edges — decisive yet check tone & posture.',
+        scoreShift: 0.6,
+        warningWeight: 1,
+      })
+    } else if (k === '현침') {
+      events.push({
+        kind: '현침',
+        label: '현침일',
+        labelEn: '현침 day',
+        blurb: '말·문서·인쇄 영역에서 날카로운 표현이 살아나는 현침일 — 정밀한 글/계약에 유리.',
+        blurbEn: 'Sharp phrasing and precision land well — good for writing/contracts.',
+        scoreShift: 0.5,
+      })
+    }
+  }
+
   return events
 }
 
@@ -776,6 +879,11 @@ const DAILY_EVENT_BADGE_KO: Record<DailyEvent['kind'], string> = {
   자형: '내적 마찰',
   공망: '결정 비는 날',
   평이: '',
+  '12신살': '신살 발동',
+  도화: '도화 발동',
+  천을귀인: '귀인일',
+  양인: '양인일',
+  현침: '현침일',
 }
 
 const DAILY_EVENT_BADGE_EN: Record<DailyEvent['kind'], string> = {
@@ -789,6 +897,11 @@ const DAILY_EVENT_BADGE_EN: Record<DailyEvent['kind'], string> = {
   자형: 'Inner friction',
   공망: 'Hollow day',
   평이: '',
+  '12신살': 'Sinsal active',
+  도화: 'Charm active',
+  천을귀인: 'Helper day',
+  양인: 'Yangin day',
+  현침: 'Sharp-edge day',
 }
 
 function buildTitle(
@@ -1093,19 +1206,30 @@ function buildSajuFactorsWithDaily(
   // The panel only renders 3 bullets, so we push the monthly[0] line
   // (most repeating) to the bottom — when there's a daily event it gets
   // sliced off, leaving 3 user-specific daily lines on the surface.
+  // Sort events by importance (abs scoreShift). To make sure the user
+  // actually sees the *shinsal* line on every day — not just 충/형/합 —
+  // pick the top heavy event AND the top shinsal-class event when they
+  // differ. Saju calendars are about "오늘 발동되는 신살" so this should
+  // be visible in the 3 main bullets.
   const sorted = [...dailyEvents].sort((a, b) => Math.abs(b.scoreShift) - Math.abs(a.scoreShift))
-  const top = sorted[0]
+  const SHINSAL_KIND: ReadonlySet<DailyEvent['kind']> = new Set([
+    '12신살', '도화', '천을귀인', '양인', '현침',
+  ])
+  const heavy = sorted.find((e) => !SHINSAL_KIND.has(e.kind))
+  const shinsal = sorted.find((e) => SHINSAL_KIND.has(e.kind))
 
   if (locale !== 'ko') {
     const dailyTheme = dailySibsin ? SIBSIN_THEME_EN[dailySibsin] : ''
     const dailyLine = dailyTheme
       ? `Today leans toward ${dailyTheme}.`
       : `Today carries a steady frame.`
-    const eventLine = top ? `${top.blurbEn}.` : ''
+    const heavyLine = heavy ? `${heavy.blurbEn}.` : ''
+    const shinsalLine = shinsal && shinsal !== heavy ? `${shinsal.blurbEn}` : ''
     const [sibsinLine, secondLine, branchLine] = monthly
     const ordered = [
       dailyLine,
-      ...(eventLine ? [eventLine] : []),
+      ...(heavyLine ? [heavyLine] : []),
+      ...(shinsalLine ? [shinsalLine] : []),
       secondLine,
       branchLine,
       sibsinLine,
@@ -1116,11 +1240,14 @@ function buildSajuFactorsWithDaily(
   const dailyLine = dailyTheme
     ? `오늘은 ${dailyTheme}${subjectMarkerKo(dailyTheme)} 자연스럽게 살아나는 분위기예요.`
     : `오늘은 큰 변동 없이 무난하게 흘러가는 날이에요.`
-  const eventLine = top ? `${top.blurb}.` : ''
+  const heavyLine = heavy ? `${heavy.blurb}.` : ''
+  // Shinsal blurbs already end with full punctuation — don't double-dot.
+  const shinsalLine = shinsal && shinsal !== heavy ? `${shinsal.blurb}` : ''
   const [sibsinLine, secondLine, branchLine] = monthly
   const ordered = [
     dailyLine,
-    ...(eventLine ? [eventLine] : []),
+    ...(heavyLine ? [heavyLine] : []),
+    ...(shinsalLine ? [shinsalLine] : []),
     secondLine,
     branchLine,
     sibsinLine,

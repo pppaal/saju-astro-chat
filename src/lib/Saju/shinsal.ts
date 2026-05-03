@@ -463,7 +463,7 @@ const TWELVE_BY_OFFSET_KO = [
   '재살', '천살', '지살', '년살', '월살', '망신',
 ] as const
 
-function pickTwelveSingle(dayBranch: string, targetBranch: string): ShinsalHit['kind'] | null {
+export function pickTwelveSingle(dayBranch: string, targetBranch: string): ShinsalHit['kind'] | null {
   const leader = SAMHAP_LEADER[dayBranch]
   if (!leader) return null
   const leaderIdx = (BRANCH_ORDER as readonly string[]).indexOf(leader)
@@ -471,6 +471,48 @@ function pickTwelveSingle(dayBranch: string, targetBranch: string): ShinsalHit['
   if (leaderIdx < 0 || targetIdx < 0) return null
   const offset = (targetIdx - leaderIdx + 12) % 12
   return TWELVE_BY_OFFSET_KO[offset] as ShinsalHit['kind']
+}
+
+/**
+ * Daily shinsal scan — given the user's natal day pillar, return the
+ * shinsals that "fire" on a target date's branch (e.g. today is your
+ * 도화일 / 역마일 / 천을귀인 등). Used by the calendar to surface
+ * "오늘 발동되는 신살" without rebuilding the full 4-pillar engine.
+ */
+export function getShinsalHitsForDailyTarget(
+  natalDayStem: string,
+  natalDayBranch: string,
+  targetBranch: string
+): Array<{ kind: ShinsalHit['kind']; basis: string }> {
+  const hits: Array<{ kind: ShinsalHit['kind']; basis: string }> = []
+  // 12신살 (일지 기준)
+  const twelve = pickTwelveSingle(natalDayBranch, targetBranch)
+  if (twelve) {
+    hits.push({ kind: twelve, basis: `일지(${natalDayBranch})` })
+  }
+  // 도화 (자오묘유 중 본인 일지의 三合 도화 자리에 target 들어옴)
+  if (DOHWA_SET.has(targetBranch)) {
+    hits.push({ kind: '도화', basis: `target=${targetBranch}` })
+  }
+  // 천을귀인
+  if (isCheonjuGwiin(natalDayStem, targetBranch)) {
+    hits.push({ kind: '천을귀인', basis: `일간(${natalDayStem})` })
+  }
+  // 양인
+  if (YANGIN_BY_DAY_STEM[natalDayStem] === targetBranch) {
+    hits.push({ kind: '양인', basis: `일간(${natalDayStem})` })
+  }
+  // 백호 (일주가 백호 갑자에 들어가는 경우는 birth-only — skip for daily)
+  // 현침
+  if (isHyeonchim(natalDayStem, targetBranch)) {
+    hits.push({ kind: '현침', basis: `일간(${natalDayStem})` })
+  }
+  // 공망
+  const gongmangList = getGongmang(natalDayStem, natalDayBranch)
+  if (gongmangList.includes(targetBranch)) {
+    hits.push({ kind: '공망', basis: `일주(${natalDayStem}${natalDayBranch})` })
+  }
+  return hits
 }
 
 /* your 룰 오버라이드 */
