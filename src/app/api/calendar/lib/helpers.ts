@@ -820,6 +820,8 @@ export function formatDateForResponse(
       .longCycleContext,
     cycleInteractions: (date as { cycleInteractions?: import('./liteYearlyDates').LiteImportantDate['cycleInteractions'] })
       .cycleInteractions,
+    cycleNarrative: (date as { cycleNarrative?: string }).cycleNarrative,
+    dayRuler: (date as { dayRuler?: import('./liteYearlyDates').LiteImportantDate['dayRuler'] }).dayRuler,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),

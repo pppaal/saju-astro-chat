@@ -53,6 +53,15 @@ export interface FormattedDate {
     kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
     blurb: string
   }>
+  /** 운 충합 narrative summary */
+  cycleNarrative?: string
+  /** 행성시 (요일 룰러) */
+  dayRuler?: {
+    planet: string
+    planetKo: string
+    themeKo: string
+    themeEn: string
+  }
 }
 
 export interface CalendarDailyView {

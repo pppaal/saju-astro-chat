@@ -106,6 +106,15 @@ export interface ImportantDate {
     kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
     blurb: string
   }>
+  /** 운 충합 흐름을 한 줄로 종합한 narrative */
+  cycleNarrative?: string
+  /** 그날의 행성 지배 (요일 기반) */
+  dayRuler?: {
+    planet: string
+    planetKo: string
+    themeKo: string
+    themeEn: string
+  }
   /** 트랜짓 점성 — 선택일 기준 행성 위치 + 본명 차트와의 aspect */
   transit?: {
     aspects: Array<{

@@ -14,6 +14,51 @@ import {
 import { getShinsalHitsForDailyTarget } from '@/lib/Saju/shinsal'
 import { calculateUltraPrecisionScore } from '@/lib/prediction/ultraPrecisionEngine'
 import type { UltraPrecisionScore } from '@/lib/prediction/ultra-precision-types'
+import { getPlanetaryHourPlanet } from '@/lib/prediction/ultra-precision-helpers'
+
+// Day-of-week planetary ruler theme. Cheap to compute (one lookup) and
+// gives the user one-glance sense of the day's character before reading
+// the full saju + astro stack.
+const DAY_RULER_THEMES: Record<string, { planetKo: string; themeKo: string; themeEn: string }> = {
+  Sun: { planetKo: '태양', themeKo: '결정·리더십·드러남에 힘이 실리는 날', themeEn: 'leadership / decisions / visibility' },
+  Moon: { planetKo: '달', themeKo: '감정·관계·돌봄이 짙어지는 날', themeEn: 'emotion / relationships / care' },
+  Mars: { planetKo: '화성', themeKo: '실행·추진·경쟁의 에너지가 강한 날', themeEn: 'execution / push / competition' },
+  Mercury: { planetKo: '수성', themeKo: '소통·계약·이동·정보의 흐름이 빠른 날', themeEn: 'comms / contracts / travel / info' },
+  Jupiter: { planetKo: '목성', themeKo: '확장·학습·기회의 호흡이 큰 날', themeEn: 'expansion / learning / opportunity' },
+  Venus: { planetKo: '금성', themeKo: '재물·관계·미적 감각이 살아나는 날', themeEn: 'wealth / relationships / aesthetics' },
+  Saturn: { planetKo: '토성', themeKo: '점검·책임·구조 다지기 좋은 날', themeEn: 'review / responsibility / structure' },
+}
+
+// Compose a single human-readable narrative line from the cycle
+// interaction list. The cycleInteractions array can balloon to 7-9 hits
+// per day; the panel shows only the top 4. The narrative folds the same
+// information into one sentence so the user reads "오늘은 본명-세운이
+// 합·합으로 묶이지만 본명-대운은 충" instead of parsing a bullet list.
+function summarizeCycleInteractions(
+  hits: Array<{ pair: string; kind: string; blurb: string }>
+): string {
+  if (!hits.length) return ''
+  const uniquePairs = (
+    list: Array<{ pair: string; kind: string }>
+  ): string[] => Array.from(new Set(list.map((h) => h.pair))).slice(0, 3)
+  const supportive = hits.filter((h) => h.kind === '천간합' || h.kind === '지지합')
+  const challenging = hits.filter((h) =>
+    h.kind === '천간충' || h.kind === '지지충' || h.kind === '지지형'
+  )
+  const minor = hits.filter((h) => h.kind === '지지해' || h.kind === '지지파' || h.kind === '자형')
+  const parts: string[] = []
+  if (supportive.length > 0) {
+    parts.push(`${uniquePairs(supportive).join(', ')} 묶임`)
+  }
+  if (challenging.length > 0) {
+    parts.push(`${uniquePairs(challenging).join(', ')} 충돌`)
+  }
+  if (parts.length === 0 && minor.length > 0) {
+    parts.push(`${uniquePairs(minor).join(', ')} 작은 어긋남`)
+  }
+  if (parts.length === 0) return ''
+  return parts.join(' / ') + ' 흐름이 동시에 작동하는 날.'
+}
 
 type CalendarLocale = 'ko' | 'en'
 
@@ -80,6 +125,15 @@ export interface LiteImportantDate {
     kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
     blurb: string
   }>
+  /** 운끼리 충/합 흐름을 한 줄로 종합한 자연어 요약 */
+  cycleNarrative?: string
+  /** 그날의 행성 지배 (요일 기반) */
+  dayRuler?: {
+    planet: string // 'Sun', 'Moon', ...
+    planetKo: string
+    themeKo: string
+    themeEn: string
+  }
 }
 
 type LiteOptions = {
@@ -2051,6 +2105,26 @@ export function calculateYearlyImportantDatesLite(
         wolwoonForPack(dailyPack),
         { ganji: `${dailyPillar.stem}${dailyPillar.branch}` }
       ),
+      cycleNarrative: summarizeCycleInteractions(
+        buildCycleInteractions(
+          sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || '',
+          findDaeunForDate(date),
+          sewoonForYear(date.getFullYear()),
+          wolwoonForPack(dailyPack),
+          { ganji: `${dailyPillar.stem}${dailyPillar.branch}` }
+        ) || []
+      ),
+      dayRuler: (() => {
+        const planet = getPlanetaryHourPlanet(date)
+        const theme = DAY_RULER_THEMES[planet]
+        if (!theme) return undefined
+        return {
+          planet,
+          planetKo: theme.planetKo,
+          themeKo: theme.themeKo,
+          themeEn: theme.themeEn,
+        }
+      })(),
     })
   }
 

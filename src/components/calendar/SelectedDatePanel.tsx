@@ -108,6 +108,13 @@ interface ImportantDate {
     kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
     blurb: string
   }>
+  cycleNarrative?: string
+  dayRuler?: {
+    planet: string
+    planetKo: string
+    themeKo: string
+    themeEn: string
+  }
   transit?: {
     aspects: Array<{
       transitPlanet: string
@@ -1107,12 +1114,38 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               </div>
             )}
 
+          {/* ── Day ruler (행성시) ───────────────────────────── */}
+          {selectedDate?.dayRuler && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                🪞 {locale === 'ko' ? '오늘의 행성 지배' : 'Day Ruler'} ·{' '}
+                <strong>{selectedDate.dayRuler.planetKo}</strong>{' '}
+                <span style={{ opacity: 0.7, fontWeight: 'normal' }}>
+                  ({selectedDate.dayRuler.planet})
+                </span>
+              </span>
+              <p className={styles.quickSummaryText} style={{ marginTop: 4 }}>
+                {locale === 'ko'
+                  ? selectedDate.dayRuler.themeKo
+                  : selectedDate.dayRuler.themeEn}
+              </p>
+            </div>
+          )}
+
           {/* ── Cycle interactions: 충 / 합 / 형 between cycles ── */}
           {selectedDate?.cycleInteractions && selectedDate.cycleInteractions.length > 0 && (
             <div className={styles.quickSummaryBlock}>
               <span className={styles.quickSummaryLabel}>
                 ⚡ {locale === 'ko' ? '운끼리의 충·합·형' : 'Cycle Clashes'}
               </span>
+              {selectedDate.cycleNarrative && (
+                <p
+                  className={styles.quickSummaryText}
+                  style={{ marginTop: 4, fontSize: '0.92em', opacity: 0.85 }}
+                >
+                  {selectedDate.cycleNarrative}
+                </p>
+              )}
               <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
                 {selectedDate.cycleInteractions.slice(0, 4).map((it, i) => (
                   <li key={i} style={{ padding: '4px 0', fontSize: '0.92em' }}>
