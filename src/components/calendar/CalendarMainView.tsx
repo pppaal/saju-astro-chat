@@ -322,7 +322,7 @@ const CalendarMainView = memo(function CalendarMainView({
                 title={locale === 'ko' ? '🌿 평범한 날' : '🌿 Normal'}
               >
                 <span className={styles.badgeEmoji}>🌿</span>
-                <span className={styles.badgeLabel}>{locale === 'ko' ? '좋음' : 'Good'}</span>
+                <span className={styles.badgeLabel}>{locale === 'ko' ? '평범' : 'Normal'}</span>
                 <span className={styles.badgeCount}>
                   {locale === 'ko' ? `${yearSummary.grade2}일` : `${yearSummary.grade2}d`}
                 </span>
