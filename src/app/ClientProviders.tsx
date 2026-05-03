@@ -7,9 +7,15 @@ import { CreditModalProvider } from '@/contexts/CreditModalContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import ServiceWorkerStabilityGuard from '@/components/pwa/ServiceWorkerStabilityGuard'
 
-export function ClientProviders({ children }: { children: ReactNode }) {
+export function ClientProviders({
+  children,
+  initialLocale,
+}: {
+  children: ReactNode
+  initialLocale?: 'en' | 'ko'
+}) {
   return (
-    <I18nProvider>
+    <I18nProvider initialLocale={initialLocale}>
       <ServiceWorkerStabilityGuard />
       <ToastProvider>
         <CreditModalProvider>

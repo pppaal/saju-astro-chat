@@ -186,9 +186,10 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  // Get nonce from middleware
+  // Get nonce + server-resolved locale from middleware
   const headersList = await headers()
   const nonce = headersList.get('x-nonce') || ''
+  const serverLocale = (headersList.get('x-locale') as 'ko' | 'en' | null) || 'en'
 
   const websiteJsonLd = generateJsonLd({
     type: 'WebSite',
@@ -203,7 +204,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html
-      lang="ko"
+      lang={serverLocale}
       data-theme="dark"
       data-scroll-behavior="smooth"
       style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}
@@ -248,7 +249,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <AuthProvider>
               <WebVitalsReporter />
               <ScrollRestoration />
-              <ClientProviders>
+              <ClientProviders initialLocale={serverLocale}>
                 <StarrySky />
                 <BackButtonWrapper />
                 <GlobalHeader />

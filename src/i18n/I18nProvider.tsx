@@ -145,54 +145,70 @@ const normalizeTranslationText = (value: string) => {
   return repairMojibakeText(value).trim()
 }
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocale] = useState<Locale>('en')
-  const [hydrated, setHydrated] = useState(false)
-  const [dictsLoaded, setDictsLoaded] = useState(false)
+// Read locale from cookie on first render so SSR + client agree
+function readCookieLocale(): Locale | null {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.match(/(?:^|;\s*)locale=([^;]+)/)
+  if (!match) return null
+  const value = decodeURIComponent(match[1]) as Locale
+  return SUPPORTED_LOCALES.includes(value) ? value : null
+}
 
-  // Initialize dictionaries on mount
+function writeCookieLocale(locale: Locale) {
+  if (typeof document === 'undefined') return
+  // 1 year, lax — matches middleware
+  document.cookie = `locale=${locale}; max-age=${60 * 60 * 24 * 365}; path=/; samesite=lax`
+}
+
+export function I18nProvider({
+  children,
+  initialLocale,
+}: {
+  children: React.ReactNode
+  initialLocale?: Locale
+}) {
+  // Lazy init: prefer SSR-provided locale, fall back to cookie, then English.
+  // Avoids hydration mismatch — first client render matches what server rendered.
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (initialLocale && SUPPORTED_LOCALES.includes(initialLocale)) return initialLocale
+    return readCookieLocale() ?? 'en'
+  })
+  const [hydrated, setHydrated] = useState(false)
+  // dictVersion bumps every time a dict finishes loading, forcing `t` re-memo
+  // so consumers re-render with newly-available translations.
+  const [dictVersion, setDictVersion] = useState(0)
+
+  // Initialize English (default/fallback) on mount
   useEffect(() => {
-    initializeDicts().then(() => setDictsLoaded(true))
+    initializeDicts().then(() => setDictVersion((v) => v + 1))
   }, [])
 
   useEffect(() => {
     setHydrated(true)
-    try {
-      const stored = localStorage.getItem('locale') as Locale | null
-      if (stored && SUPPORTED_LOCALES.includes(stored)) {
-        setLocale(stored)
-        // Preload the stored locale
-        loadLocaleDict(stored)
-        return
-      }
-    } catch {}
-    try {
-      const nav2 = navigator.language?.slice(0, 2) as Locale | undefined
-      if (nav2 && SUPPORTED_LOCALES.includes(nav2)) {
-        setLocale(nav2)
-        loadLocaleDict(nav2)
-      }
-    } catch {}
   }, [])
 
-  // Load locale dictionary when locale changes (only loads the needed locale)
+  // Load dict for current locale; bump version when ready so consumers re-render
   useEffect(() => {
-    if (!dictsLoaded) return
-    // Skip if already cached
-    if (dictsCache[locale]) return
-
+    if (dictsCache[locale]) {
+      // Already cached — no-op (already triggered re-render via dictVersion bump on load)
+      return
+    }
+    let cancelled = false
     loadLocaleDict(locale).then((dict) => {
-      // Fill missing translations with English fallback
+      if (cancelled) return
       if (locale !== 'en' && dictsCache.en) {
         fillMissing(dictsCache.en, dict)
       }
-      // Force re-render after loading new locale
-      setDictsLoaded((prev) => !prev)
-      setDictsLoaded(true)
+      setDictVersion((v) => v + 1)
     })
-  }, [locale, dictsLoaded])
+    return () => {
+      cancelled = true
+    }
+  }, [locale])
 
+  // Sync locale to cookie + html lang
   useEffect(() => {
+    writeCookieLocale(locale)
     try {
       localStorage.setItem('locale', locale)
     } catch {}
@@ -201,6 +217,10 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.dir = isRtl(locale) ? 'rtl' : 'ltr'
     }
   }, [locale])
+
+  const setLocale = (next: Locale) => {
+    setLocaleState(next)
+  }
 
   const t = useMemo(() => {
     const getter = (obj: unknown, path: string) => {
@@ -284,7 +304,10 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
       return toSafeFallbackText(path)
     }
-  }, [locale])
+    // dictVersion in deps: when a newly-loaded dict arrives, t() re-creates
+    // and downstream consumers (via context value) re-render with fresh strings.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale, dictVersion])
 
   const value = useMemo<I18nContextType>(
     () => ({

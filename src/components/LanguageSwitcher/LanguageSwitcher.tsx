@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { SUPPORTED_LOCALES, useI18n } from '@/i18n/I18nProvider'
 
 const LANGUAGE_LABELS: Record<string, { label: string; flag: string }> = {
@@ -10,6 +11,7 @@ const LANGUAGE_LABELS: Record<string, { label: string; flag: string }> = {
 
 export default function LanguageSwitcher() {
   const { locale, setLocale, dir, t } = useI18n()
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -17,6 +19,19 @@ export default function LanguageSwitcher() {
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([])
 
   const localeCount = SUPPORTED_LOCALES.length
+
+  // Pick a new locale: update client state, persist cookie via I18nProvider effect,
+  // then refresh the route so server components re-render with the new locale.
+  const pickLocale = useCallback(
+    (next: (typeof SUPPORTED_LOCALES)[number]) => {
+      if (next === locale) return
+      setLocale(next)
+      // Cookie write happens in I18nProvider's effect on next tick — refresh after
+      // that so server reads the updated cookie.
+      setTimeout(() => router.refresh(), 0)
+    },
+    [locale, setLocale, router]
+  )
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -81,7 +96,7 @@ export default function LanguageSwitcher() {
         case ' ':
           if (focusedIndex >= 0) {
             e.preventDefault()
-            setLocale(SUPPORTED_LOCALES[focusedIndex])
+            pickLocale(SUPPORTED_LOCALES[focusedIndex])
             setIsOpen(false)
             setFocusedIndex(-1)
             triggerRef.current?.focus()
@@ -93,7 +108,7 @@ export default function LanguageSwitcher() {
           break
       }
     },
-    [isOpen, focusedIndex, localeCount, setLocale]
+    [isOpen, focusedIndex, localeCount, pickLocale]
   )
 
   const currentLang = LANGUAGE_LABELS[locale] || { label: locale.toUpperCase(), flag: '\u{1F310}' }
@@ -169,7 +184,7 @@ export default function LanguageSwitcher() {
                 aria-selected={isSelected}
                 tabIndex={isFocused ? 0 : -1}
                 onClick={() => {
-                  setLocale(loc)
+                  pickLocale(loc)
                   setIsOpen(false)
                   setFocusedIndex(-1)
                   triggerRef.current?.focus()

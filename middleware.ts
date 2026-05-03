@@ -232,6 +232,34 @@ function isBlockedServicePath(pathname: string): boolean {
   )
 }
 
+// ── Locale detection ──
+const SUPPORTED_LOCALES = new Set(['ko', 'en'])
+const DEFAULT_LOCALE = 'en'
+const LOCALE_COOKIE = 'locale'
+const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
+
+function pickLocaleFromAcceptLanguage(header: string | null): string {
+  if (!header) return DEFAULT_LOCALE
+  // Parse "ko-KR,ko;q=0.9,en;q=0.8" — take first supported lang in order
+  const parts = header.split(',').map((p) => p.trim().split(';')[0].toLowerCase())
+  for (const part of parts) {
+    const lang = part.split('-')[0]
+    if (SUPPORTED_LOCALES.has(lang)) return lang
+  }
+  return DEFAULT_LOCALE
+}
+
+function resolveLocale(request: NextRequest): { locale: string; fromCookie: boolean } {
+  const cookieLocale = request.cookies.get(LOCALE_COOKIE)?.value
+  if (cookieLocale && SUPPORTED_LOCALES.has(cookieLocale)) {
+    return { locale: cookieLocale, fromCookie: true }
+  }
+  return {
+    locale: pickLocaleFromAcceptLanguage(request.headers.get('accept-language')),
+    fromCookie: false,
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -274,13 +302,28 @@ export function middleware(request: NextRequest) {
   }
 
   const nonce = crypto.randomUUID()
+  const { locale, fromCookie } = resolveLocale(request)
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('x-locale', locale)
 
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   })
   response.headers.set('Content-Security-Policy', buildCsp(nonce))
+  response.headers.set('Content-Language', locale)
+  // Tell crawlers/CDNs the same URL serves different content per cookie
+  response.headers.set('Vary', 'Cookie, Accept-Language')
+
+  // Persist detected locale on first visit so SSR + client agree from now on
+  if (!fromCookie) {
+    response.cookies.set(LOCALE_COOKIE, locale, {
+      maxAge: LOCALE_COOKIE_MAX_AGE,
+      path: '/',
+      sameSite: 'lax',
+    })
+  }
+
   return response
 }
 
