@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useMemo, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/i18n/I18nProvider';
 import { UnifiedBirthForm, type BirthInfo } from '@/components/common/BirthForm';
 import styles from './theme.module.css';
 
-// ✅ 파티클 타입
+// Particle background type
 type Particle = {
   x: number;
   y: number;
@@ -18,50 +18,13 @@ type Particle = {
   draw: () => void;
 };
 
-// ✅ 테마 키 타입 — 시기 4 + 영역 6 = 10
-type ThemeKey =
-  | 'fortune_new_year'
-  | 'fortune_next_year'
-  | 'fortune_monthly'
-  | 'fortune_today'
-  | 'focus_love'
-  | 'focus_career'
-  | 'focus_wealth'
-  | 'focus_health'
-  | 'focus_family'
-  | 'focus_move';
-
-// ✅ 메뉴(테마) — 시기 4 + 영역 6 (Premium 6 영역과 매칭)
-const THEMES: { key: ThemeKey; title: string; desc: string; emoji: string; group: '시기' | '영역' }[] = [
-  // 시기 운세 (4) — Premium에 없는 무료 차별 영역
-  { key: 'fortune_new_year', title: '신년 운세', desc: '다가올 한 해의 흐름과 기회·주의점', emoji: '🎊', group: '시기' },
-  { key: 'fortune_next_year', title: '내년 운세', desc: '다음 해의 주요 변화와 상승 포인트', emoji: '🌟', group: '시기' },
-  { key: 'fortune_monthly', title: '월운', desc: '한 달의 리듬과 전환점 캘린더', emoji: '🗓️', group: '시기' },
-  { key: 'fortune_today', title: '오늘의 운세', desc: '오늘의 컨디션·관계·주의 포인트', emoji: '☀️', group: '시기' },
-  // 영역 운세 (6) — Premium 테마 심층과 동일 키
-  { key: 'focus_love', title: '연애', desc: '감정 리듬과 관계·매력 포인트', emoji: '💖', group: '영역' },
-  { key: 'focus_career', title: '커리어', desc: '직업·승진·이직·역량 확장 방향', emoji: '💼', group: '영역' },
-  { key: 'focus_wealth', title: '재물', desc: '돈의 흐름·투자 리듬·지키는 원칙', emoji: '💰', group: '영역' },
-  { key: 'focus_health', title: '건강', desc: '리커버리 루틴과 에너지 관리 지침', emoji: '💊', group: '영역' },
-  { key: 'focus_family', title: '가족', desc: '가족·팀 내 관계와 조화 포인트', emoji: '👪', group: '영역' },
-  { key: 'focus_move', title: '이동', desc: '이주·여정·환경 변화 결', emoji: '🧭', group: '영역' },
-];
-
 export default function ThemeSelectClient() {
   const router = useRouter();
   const sp = useSearchParams();
   const { locale } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
-  const baseParams = useMemo(
-    () => new URLSearchParams(sp?.toString() ?? ""),
-    [sp]
-  );
-
-  // Free report needs birthDate / birthTime / city / lat / lon / gender to render
-  // a result. Pre-fill from URL if the user came from a flow that already has
-  // them; otherwise show UnifiedBirthForm first, then the theme picker.
-  const initialBirthInfo = useMemo<Partial<BirthInfo>>(() => {
+  const initialBirthInfo = (() => {
     const get = (k: string) => sp?.get(k) || ''
     const lat = get('latitude') || get('lat')
     const lon = get('longitude') || get('lon')
@@ -73,28 +36,31 @@ export default function ThemeSelectClient() {
       longitude: lon ? Number(lon) : undefined,
       timezone: get('userTz') || get('timezone'),
       gender: (get('gender') as 'M' | 'F' | 'Male' | 'Female') || undefined,
-    }
-  }, [sp])
+    } as Partial<BirthInfo>
+  })()
 
-  const initiallyComplete = Boolean(
-    initialBirthInfo.birthDate &&
-      initialBirthInfo.birthCity &&
-      typeof initialBirthInfo.latitude === 'number' &&
-      typeof initialBirthInfo.longitude === 'number'
+  const handleSubmit = useCallback(
+    (info: BirthInfo) => {
+      const params = new URLSearchParams()
+      params.set('birthDate', info.birthDate)
+      if (info.birthTime) params.set('birthTime', info.birthTime)
+      if (info.birthCity) params.set('city', info.birthCity)
+      if (typeof info.latitude === 'number') params.set('latitude', String(info.latitude))
+      if (typeof info.longitude === 'number') params.set('longitude', String(info.longitude))
+      if (info.timezone) params.set('userTz', info.timezone)
+      if (info.gender) params.set('gender', info.gender)
+      router.push(`/destiny-map/result?${params.toString()}`)
+    },
+    [router]
   )
 
-  const [birthInfo, setBirthInfo] = useState<BirthInfo | null>(
-    initiallyComplete ? (initialBirthInfo as BirthInfo) : null
-  )
-
-  // ------------------------------------------------------------ //
-  // 🎨 Particle Animation
-  // ------------------------------------------------------------ //
+  // Particle background animation
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) {return;}
-
-    const ctx = canvas.getContext('2d')!;
+    if (!canvas) return;
+    const ctx2d = canvas.getContext('2d');
+    if (!ctx2d) return;
+    const ctx = ctx2d;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
@@ -151,12 +117,10 @@ export default function ThemeSelectClient() {
       }
 
       update() {
-        if (this.x > canvas.width || this.x < 0) {this.speedX = -this.speedX;}
-        if (this.y > canvas.height || this.y < 0) {this.speedY = -this.speedY;}
-
+        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
         this.x += this.speedX;
         this.y += this.speedY;
-
         if (mouse.x !== undefined && mouse.y !== undefined) {
           const dx = mouse.x - this.x;
           const dy = mouse.y - this.y;
@@ -165,40 +129,33 @@ export default function ThemeSelectClient() {
             const forceDirectionX = dx / distance;
             const forceDirectionY = dy / distance;
             const force = (mouse.radius - distance) / mouse.radius;
-            const directionX = forceDirectionX * force * 2;
-            const directionY = forceDirectionY * force * 2;
-            this.x -= directionX;
-            this.y -= directionY;
+            this.x -= forceDirectionX * force * 2;
+            this.y -= forceDirectionY * force * 2;
           }
         }
       }
 
       draw() {
-        ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
         ctx.fill();
       }
     }
 
     function init() {
       particlesArray = [];
-      let numberOfParticles = (canvas.height * canvas.width) / 12000;
-      numberOfParticles = Math.min(numberOfParticles, PARTICLE_COUNT);
-      for (let i = 0; i < numberOfParticles; i++) {
-        particlesArray.push(new ParticleImpl());
-      }
+      for (let i = 0; i < PARTICLE_COUNT; i++) particlesArray.push(new ParticleImpl());
     }
 
-    function connectParticles() {
+    function connect() {
       for (let a = 0; a < particlesArray.length; a++) {
-        for (let b = a; b < particlesArray.length; b++) {
+        for (let b = a + 1; b < particlesArray.length; b++) {
           const dx = particlesArray[a].x - particlesArray[b].x;
           const dy = particlesArray[a].y - particlesArray[b].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           if (distance < MAX_LINK_DISTANCE) {
-            const opacity = (1 - distance / MAX_LINK_DISTANCE) * 0.5;
-            ctx.strokeStyle = `rgba(139, 92, 246, ${opacity})`;
+            ctx.strokeStyle = `rgba(167, 139, 250, ${1 - distance / MAX_LINK_DISTANCE})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
@@ -209,21 +166,20 @@ export default function ThemeSelectClient() {
       }
     }
 
-    function animate(timestamp = 0) {
-      if (timestamp - lastFrame >= frameInterval) {
-        lastFrame = timestamp;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particlesArray.forEach((p) => {
-          p.update();
-          p.draw();
-        });
-        connectParticles();
-      }
+    function animate(currentTime: number) {
       raf = requestAnimationFrame(animate);
+      if (currentTime - lastFrame < frameInterval) return;
+      lastFrame = currentTime;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const p of particlesArray) {
+        p.update();
+        p.draw();
+      }
+      connect();
     }
 
     init();
-    animate();
+    animate(0);
 
     return () => {
       cancelAnimationFrame(raf);
@@ -233,20 +189,6 @@ export default function ThemeSelectClient() {
     };
   }, []);
 
-  const onPick = (theme: ThemeKey) => {
-    if (!birthInfo) return
-    const params = new URLSearchParams(baseParams.toString());
-    params.set('theme', theme);
-    params.set('birthDate', birthInfo.birthDate);
-    if (birthInfo.birthTime) params.set('birthTime', birthInfo.birthTime);
-    if (birthInfo.birthCity) params.set('city', birthInfo.birthCity);
-    if (typeof birthInfo.latitude === 'number') params.set('latitude', String(birthInfo.latitude));
-    if (typeof birthInfo.longitude === 'number') params.set('longitude', String(birthInfo.longitude));
-    if (birthInfo.timezone) params.set('userTz', birthInfo.timezone);
-    if (birthInfo.gender) params.set('gender', birthInfo.gender);
-    router.push(`/destiny-map/result?${params.toString()}`);
-  };
-
   return (
     <main className={styles.container}>
       <canvas ref={canvasRef} className={styles.particleCanvas} />
@@ -255,99 +197,30 @@ export default function ThemeSelectClient() {
         <header className={styles.header}>
           <div className={styles.headerContent}>
             <h1 className={styles.title}>
-              {birthInfo
-                ? locale === 'ko' ? '분석 테마 선택' : 'Pick a Theme'
-                : locale === 'ko' ? '무료 리포트 시작' : 'Start Free Report'}
+              {locale === 'ko' ? '무료 리포트 시작' : 'Start Free Report'}
             </h1>
             <p className={styles.subtitle}>
-              {birthInfo
-                ? locale === 'ko'
-                  ? '원하는 포커스를 선택하면, 리포트가 해당 주제에 맞춰 강조됩니다.'
-                  : 'Pick a focus and the report will emphasize that theme.'
-                : locale === 'ko'
-                  ? '생년월일·출생시간·도시·성별을 입력하면 무료 리포트를 만들어 드려요.'
-                  : 'Enter your birth info to generate a free report.'}
+              {locale === 'ko'
+                ? '생년월일·출생시간·도시·성별을 입력하면 사주·점성 기반 무료 인사이트를 만들어 드려요.'
+                : 'Enter your birth info — we generate Saju + Astrology insights instantly.'}
             </p>
           </div>
         </header>
 
-        {!birthInfo && (
-          <div style={{ marginBottom: 24 }}>
-            <UnifiedBirthForm
-              locale={locale === 'ko' ? 'ko' : 'en'}
-              initialData={initialBirthInfo}
-              includeProfileLoader={true}
-              includeCity={true}
-              includeTime={true}
-              includeGender={true}
-              allowTimeUnknown={true}
-              genderFormat="short"
-              showHeader={false}
-              submitButtonText={locale === 'ko' ? '테마 선택으로 →' : 'Continue to Themes →'}
-              submitButtonIcon="✨"
-              onSubmit={(info) => setBirthInfo(info)}
-            />
-          </div>
-        )}
-
-        {birthInfo && (['시기', '영역'] as const).map((groupName) => {
-          const groupThemes = THEMES.filter((t) => t.group === groupName)
-          return (
-            <div key={groupName} style={{ marginBottom: 24 }}>
-              <p
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: '0.28em',
-                  color: 'rgba(148,163,184,0.85)',
-                  textTransform: 'uppercase',
-                  marginBottom: 12,
-                }}
-              >
-                {groupName === '시기' ? '시기 운세' : '영역 운세'}
-              </p>
-              <div className={styles.grid}>
-                {groupThemes.map((th, index) => (
-                  <button
-                    key={th.key}
-                    onClick={() => onPick(th.key)}
-                    className={styles.themeCard}
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <div className={styles.emoji}>{th.emoji}</div>
-                    <div className={styles.themeTitle}>{th.title}</div>
-                    <div className={styles.themeDesc}>{th.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )
-        })}
-
-        {birthInfo && <div className={styles.matrixSection}>
-          <button
-            type="button"
-            className={styles.matrixButton}
-            onClick={() => {
-              const params = new URLSearchParams(baseParams.toString())
-              params.set('birthDate', birthInfo.birthDate)
-              if (birthInfo.birthTime) params.set('birthTime', birthInfo.birthTime)
-              if (birthInfo.birthCity) params.set('city', birthInfo.birthCity)
-              if (typeof birthInfo.latitude === 'number') params.set('latitude', String(birthInfo.latitude))
-              if (typeof birthInfo.longitude === 'number') params.set('longitude', String(birthInfo.longitude))
-              if (birthInfo.timezone) params.set('userTz', birthInfo.timezone)
-              if (birthInfo.gender) params.set('gender', birthInfo.gender)
-              router.push(`/destiny-map/matrix?${params.toString()}`)
-            }}
-          >
-            <span className={styles.matrixIcon}>🧬</span>
-            <div className={styles.matrixContent}>
-              <span className={styles.matrixTitle}>Destiny Fusion Matrix™</span>
-              <span className={styles.matrixDesc}>사주 × 점성 10레이어 융합 분석 (1,206 셀)</span>
-            </div>
-            <span className={styles.matrixArrow}>→</span>
-          </button>
-        </div>}
+        <UnifiedBirthForm
+          locale={locale === 'ko' ? 'ko' : 'en'}
+          initialData={initialBirthInfo}
+          includeProfileLoader={true}
+          includeCity={true}
+          includeTime={true}
+          includeGender={true}
+          allowTimeUnknown={true}
+          genderFormat="short"
+          showHeader={false}
+          submitButtonText={locale === 'ko' ? '무료 인사이트 보기 →' : 'View Free Insights →'}
+          submitButtonIcon="✨"
+          onSubmit={handleSubmit}
+        />
       </section>
     </main>
   );

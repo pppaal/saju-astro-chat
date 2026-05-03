@@ -6,9 +6,7 @@ import { useState, useEffect, useCallback, useMemo, Suspense, use, lazy } from '
 import styles from './result.module.css'
 import { logger } from '@/lib/logger'
 import { analyzeDestiny } from '@/components/destiny-map/Analyzer'
-import Display from '@/components/destiny-map/Display'
 import FunInsights from '@/components/destiny-map/FunInsights'
-import FreeCrossPreview from '@/components/destiny-map/FreeCrossPreview'
 import AnalyzingLoader, { LifePredictionSkeleton } from './AnalyzingLoader'
 import { useLifePrediction } from './useLifePrediction'
 const FortuneDashboard = lazy(() => import('@/components/life-prediction/FortuneDashboard'))
@@ -16,7 +14,6 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { normalizeGender } from '@/lib/utils/gender'
 import BackButton from '@/components/ui/BackButton'
 import ShareButton from '@/components/ui/ShareButton'
-import PersonalityInsight from '@/components/personality/PersonalityInsight'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 type Lang = 'ko' | 'en'
@@ -278,7 +275,6 @@ export default function DestinyResultPage({
   // ------------------------------------------------------------ //
   // ✅ 결과 렌더링
   // ------------------------------------------------------------ //
-  const themeKeys = Object.keys(result?.themes || {})
   const lang: Lang = result?.lang === 'en' ? 'en' : 'ko'
 
   // 분석 기준일 포맷팅 - 사용자 위치(도시) 기준으로 표시
@@ -367,64 +363,8 @@ export default function DestinyResultPage({
         {/* ===== DESTINY TAB ===== */}
         {activeTab === 'destiny' && (
           <div id="panel-destiny" role="tabpanel" aria-labelledby="tab-destiny">
-            {/* 🌗 테마 전환 버튼 */}
-            {themeKeys.length > 1 && (
-              <div className={styles.themeButtonsContainer}>
-                {themeKeys.map((key) => {
-                  const normalizedKey = key.toLowerCase()
-                  const presetLabels: Record<string, string> = {
-                    focus_love: t('destinyMap.result.themeLove', 'Love'),
-                    focus_career: t('destinyMap.result.themeCareer', 'Career'),
-                    focus_energy: t('destinyMap.result.themeEnergy', 'Energy'),
-                    focus_overall: t('destinyMap.result.themeOverall', 'Overall'),
-                    focus_health: t('destinyMap.result.themeHealth', 'Health'),
-                    focus_family: t('destinyMap.result.themeFamily', 'Family'),
-                    fortune_new_year: t('destinyMap.result.themeNewYear', 'New Year'),
-                    fortune_next_year: t('destinyMap.result.themeNextYear', 'Next Year'),
-                    fortune_monthly: t('destinyMap.result.themeMonthly', 'Monthly'),
-                    fortune_today: t('destinyMap.result.themeToday', 'Today'),
-                  }
-                  const label = presetLabels[normalizedKey] ?? key
-                  const isActive = activeTheme.toLowerCase() === normalizedKey
-
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setActiveTheme(key)}
-                      aria-pressed={isActive}
-                      className={styles.badge}
-                    >
-                      {label}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-
-            {/* 🧮 리포트 본문 렌더 */}
-            <Display
-              result={result as Record<string, unknown>}
-              lang={lang}
-              theme={activeTheme}
-              reportType="core"
-            />
-
-            {/* ✨ 재미있는 운세 인사이트 (AI 없이 데이터 기반) */}
+            {/* ✨ 무료 인사이트 — 사주·점성 룰 기반 8 탭 (성격/연애/커리어/재물/건강/카르마/타이밍/숨은자아) */}
             <FunInsights saju={result?.saju} astro={mergedAstro} lang={lang} theme={activeTheme} />
-
-            {/* DestinyMatrixStory AI 섹션 제거됨 - FunInsights에서 스토리텔링 형식으로 통합 */}
-
-            {/* ✨ 성격 유형 인사이트 (노바 페르소나 결과 연동) */}
-            <PersonalityInsight lang={lang} />
-
-            {/* 사주·점성 cross 맛보기 — Premium 깊이 preview */}
-            <div className="mt-6">
-              <FreeCrossPreview
-                saju={result?.saju}
-                astrology={(result?.astrology || result?.astro) as Record<string, unknown> | undefined}
-                lang={lang as 'ko' | 'en'}
-              />
-            </div>
 
             {/* Premium 업그레이드 CTA — 본격 가치 제안 */}
             <div className="mt-8 overflow-hidden rounded-3xl border border-amber-300/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(251,191,36,0.02))] p-6 backdrop-blur-md">
