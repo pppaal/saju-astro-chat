@@ -1933,29 +1933,37 @@
   display: none;
 }
 
-/* Grade Box Colors - 5등급 시스템 */
+/* Grade Box Colors — 5등급 시스템.
+   Recalibrated for the new 5/15/50/25/5 distribution after the
+   full-engine score rework. Goals:
+   - 5% peak should *pop* (gold glow) — user wants to see "오늘은 추진"
+   - 15% good distinct without competing with the today/selected rings
+   - 50% normal must be neutral and quiet (it's the majority — can't dominate)
+   - 25% caution muted amber, NOT loud orange (it'll be 7-8 cells/month)
+   - 5% hold deep wine, NOT bright red (clear stop without aggression) */
 
-/* Grade 0: 최고의 날 (~5%) - Gold/Purple gradient */
+/* Grade 0: 최고 (~5%) — gold + violet glow */
 .day.dayGrade0 {
-  background: linear-gradient(135deg, rgba(91, 33, 182, 0.9), rgba(124, 58, 237, 0.9)) !important;
-  border-color: rgba(251, 191, 36, 0.7) !important;
-  box-shadow: 0 6px 14px rgba(124, 58, 237, 0.28);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.85), rgba(168, 85, 247, 0.85)) !important;
+  border-color: rgba(251, 191, 36, 0.85) !important;
+  box-shadow:
+    0 0 16px rgba(251, 191, 36, 0.3),
+    0 6px 14px rgba(168, 85, 247, 0.32);
 }
 
 .day.dayGrade0 .dayNumber {
   color: #fff9e6 !important;
   font-weight: 800;
   text-shadow:
-    0 0 10px rgba(251, 191, 36, 0.8),
+    0 0 10px rgba(251, 191, 36, 0.85),
     0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Grade 1: 좋은 날 (~15%) - Bright Cyan-Green so it reads distinctly from
-   the deep blues used for "today" / "selected" rings. */
+/* Grade 1: 좋음 (~15%) — emerald, distinct from the blue today/selected rings */
 .day.dayGrade1 {
-  background: linear-gradient(135deg, rgba(15, 118, 110, 0.92), rgba(20, 184, 166, 0.88)) !important;
-  border-color: rgba(94, 234, 212, 0.72) !important;
-  box-shadow: 0 6px 12px rgba(20, 184, 166, 0.22);
+  background: linear-gradient(135deg, rgba(16, 122, 113, 0.78), rgba(20, 184, 166, 0.78)) !important;
+  border-color: rgba(94, 234, 212, 0.6) !important;
+  box-shadow: 0 4px 10px rgba(20, 184, 166, 0.18);
 }
 
 .day.dayGrade1 .dayNumber {
@@ -1964,55 +1972,58 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Grade 2: 보통 날 (~50%) - Soft Gray/Purple */
+/* Grade 2: 평범 (~50%) — quiet slate. This is the majority of cells, must
+   stay subtle so peaks/cautions actually pop against it. */
 .day.dayGrade2 {
-  background: rgba(75, 85, 120, 0.6) !important;
-  border-color: rgba(148, 163, 184, 0.3) !important;
+  background: rgba(51, 65, 85, 0.42) !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
 }
 
 .day.dayGrade2 .dayNumber {
   color: #e2e8f0;
 }
 
-/* Grade 3: 안좋은 날 (~25%) - Orange Warning */
+/* Grade 3: 조심 (~25%) — muted amber, not loud orange. ~7-8 cells per
+   month so saturation must be lower than peak/hold or the calendar
+   reads as a wall of warnings. */
 .day.dayGrade3 {
-  background: linear-gradient(135deg, rgba(154, 52, 18, 0.92), rgba(249, 115, 22, 0.86)) !important;
-  border-color: rgba(251, 146, 60, 0.72) !important;
-  box-shadow: 0 6px 12px rgba(249, 115, 22, 0.2);
+  background: linear-gradient(135deg, rgba(120, 53, 15, 0.62), rgba(217, 119, 6, 0.62)) !important;
+  border-color: rgba(251, 191, 36, 0.45) !important;
+  box-shadow: 0 3px 8px rgba(217, 119, 6, 0.14);
 }
 
 .day.dayGrade3 .dayNumber {
-  color: #ffedd5 !important;
+  color: #fef3c7 !important;
   font-weight: 600;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Grade 4: 나쁜 날 (~15%) - Deep Red */
+/* Grade 4: 지키기 (~5%) — deep wine. Clear "protect / defer" without
+   the aggression of bright red. */
 .day.dayGrade4 {
-  background: linear-gradient(135deg, rgba(127, 29, 29, 0.9), rgba(220, 38, 38, 0.84)) !important;
-  border-color: rgba(239, 68, 68, 0.72) !important;
-  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.2);
+  background: linear-gradient(135deg, rgba(76, 5, 25, 0.88), rgba(136, 19, 55, 0.84)) !important;
+  border-color: rgba(225, 29, 72, 0.55) !important;
+  box-shadow: 0 4px 10px rgba(136, 19, 55, 0.24);
 }
 
 .day.dayGrade4 .dayNumber {
-  color: #fecaca !important;
-  font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  color: #fecdd3 !important;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-/* Grade 5: 최악의 날 (~5%) - Dark Red with skull glow */
+/* Grade 5 — kept as alias of grade 4 for any legacy 6-tier callers.
+   The current 5-tier system never emits grade 5 directly. */
 .day.dayGrade5 {
-  background: linear-gradient(135deg, rgba(69, 10, 10, 0.94), rgba(127, 29, 29, 0.9)) !important;
-  border-color: rgba(220, 38, 38, 0.74) !important;
-  box-shadow: 0 6px 14px rgba(127, 29, 29, 0.26);
+  background: linear-gradient(135deg, rgba(76, 5, 25, 0.88), rgba(136, 19, 55, 0.84)) !important;
+  border-color: rgba(225, 29, 72, 0.55) !important;
+  box-shadow: 0 4px 10px rgba(136, 19, 55, 0.24);
 }
 
 .day.dayGrade5 .dayNumber {
-  color: #fca5a5 !important;
-  font-weight: 800;
-  text-shadow:
-    0 0 8px rgba(220, 38, 38, 0.6),
-    0 2px 4px rgba(0, 0, 0, 0.4);
+  color: #fecdd3 !important;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* Selected - keep grade colors but add blue glow */
@@ -2067,25 +2078,26 @@
   line-height: 1;
 }
 
-/* 5등급 시스템 Legend 색상 */
+/* 5등급 시스템 Legend 색상 — matches the cell palette above (gold-violet
+   peak, emerald good, slate normal, muted amber caution, deep wine hold). */
 .grade0Dot {
-  background: linear-gradient(135deg, #a855f7, #fbbf24); /* 최고 - 금/보라 */
+  background: linear-gradient(135deg, #a855f7, #fbbf24);
 }
 
 .grade1Dot {
-  background: #14b8a6; /* 좋음 - 청록 (matches dayGrade1 cell color) */
+  background: #14b8a6;
 }
 
 .grade2Dot {
-  background: #64748b; /* 보통 - 회색 */
+  background: #64748b;
 }
 
 .grade3Dot {
-  background: #f97316; /* 안좋음 - 주황 */
+  background: #d97706;
 }
 
 .grade4Dot {
-  background: #dc2626; /* 최악 - 빨강 */
+  background: #be123c;
 }
 
 /* ========== Fortune Graph (SparkLine) ========== */
@@ -6618,23 +6630,29 @@
 }
 
 .gradeIndicator0 {
-  background: #22c55e;
+  background: linear-gradient(135deg, #a855f7, #fbbf24);
 }
 
 .gradeIndicator1 {
-  background: #4ade80;
+  background: #14b8a6;
 }
 
 .gradeIndicator2 {
   background: #94a3b8;
 }
 
-.gradeIndicator3,
-.gradeIndicator4,
-.gradeIndicator5 {
-  background: #ff6b6b;
+.gradeIndicator3 {
+  background: #d97706;
 }
 
+.gradeIndicator4,
+.gradeIndicator5 {
+  background: #be123c;
+}
+
+/* ── Minimal cleanup palette ── 5-tier distinct with low saturation so
+   25% caution + 50% normal don't overwhelm the grid. Peak (5%) keeps
+   its glow for visibility, hold (5%) stays distinct from caution. */
 .day.dayGrade0,
 .day.dayGrade1,
 .day.dayGrade2,
@@ -6645,36 +6663,55 @@
 }
 
 .day.dayGrade0 {
-  background: rgba(34, 197, 94, 0.12) !important;
-  border-color: rgba(34, 197, 94, 0.22) !important;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.32), rgba(168, 85, 247, 0.32)) !important;
+  border-color: rgba(251, 191, 36, 0.55) !important;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.18) !important;
 }
 
 .day.dayGrade1 {
-  background: rgba(74, 222, 128, 0.09) !important;
-  border-color: rgba(74, 222, 128, 0.18) !important;
+  background: rgba(20, 184, 166, 0.16) !important;
+  border-color: rgba(94, 234, 212, 0.32) !important;
 }
 
 .day.dayGrade2 {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-color: rgba(148, 163, 184, 0.1) !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  border-color: rgba(148, 163, 184, 0.10) !important;
 }
 
-.day.dayGrade3,
+.day.dayGrade3 {
+  background: rgba(217, 119, 6, 0.14) !important;
+  border-color: rgba(217, 119, 6, 0.28) !important;
+}
+
 .day.dayGrade4,
 .day.dayGrade5 {
-  background: rgba(255, 107, 107, 0.08) !important;
-  border-color: rgba(255, 107, 107, 0.18) !important;
+  background: rgba(190, 18, 60, 0.16) !important;
+  border-color: rgba(190, 18, 60, 0.36) !important;
 }
 
-.day.dayGrade0 .dayNumber,
-.day.dayGrade1 .dayNumber,
-.day.dayGrade2 .dayNumber,
-.day.dayGrade3 .dayNumber,
-.day.dayGrade4 .dayNumber,
-.day.dayGrade5 .dayNumber {
+/* Minimal palette day-number tints — peak/hold get colored glyphs so
+   the 5% extremes pop even at low background saturation. */
+.day.dayGrade0 .dayNumber {
+  color: #fde68a !important;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.35);
+}
+.day.dayGrade1 .dayNumber {
+  color: #99f6e4 !important;
+  font-weight: 700;
+}
+.day.dayGrade2 .dayNumber {
   color: #edf2ff !important;
   font-weight: 600;
-  text-shadow: none;
+}
+.day.dayGrade3 .dayNumber {
+  color: #fde68a !important;
+  font-weight: 600;
+}
+.day.dayGrade4 .dayNumber,
+.day.dayGrade5 .dayNumber {
+  color: #fda4af !important;
+  font-weight: 700;
 }
 
 .day.selected.dayGrade0,
@@ -6705,21 +6742,26 @@
   display: none;
 }
 
+/* Minimal palette legend dots — match the cell colors so legend reads
+   like a key, not a different system. */
 .grade0Dot {
-  background: #22c55e;
+  background: linear-gradient(135deg, #a855f7, #fbbf24);
 }
 
 .grade1Dot {
-  background: #4ade80;
+  background: #14b8a6;
 }
 
 .grade2Dot {
   background: #94a3b8;
 }
 
-.grade3Dot,
+.grade3Dot {
+  background: #d97706;
+}
+
 .grade4Dot {
-  background: #ff6b6b;
+  background: #be123c;
 }
 
 .fortuneGraph {
