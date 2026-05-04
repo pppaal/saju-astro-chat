@@ -134,18 +134,18 @@ export interface LiteImportantDate {
     themeKo: string
     themeEn: string
   }
-  /** 점수 산출 분해 — 5축 weighted blend 투명성 */
+  /** 점수 산출 분해 — 7축 weighted blend 투명성 */
   scoreBreakdown?: {
     engine: number      // 0-100, saju daily (sibsin/신살/공망/12운성/energy)
     matrix: number      // 0-100, long-cycle domain weighting
     cycle: number       // 0-100, 운끼리 충/합/형 balance
     cross: number       // 0-100, 사주↔점성 일치도
     yongsin: number     // 0-100, 용신 정렬
+    transit?: number    // 0-100, real astrology transit aspect score
     dailyShift: number  // event bonus (+/-)
     weakPenalty: number // signal weakness penalty
     peakBoost: number   // peak window bonus
     finalScore: number  // 2-99
-    /** 2축 점수 분리: 사주 vs 점성 — 어느 축이 더 강한지 직관 */
     sajuAxis?: number   // 0-100
     astroAxis?: number  // 0-100
     axisAgreement?: 'aligned' | 'mixed' | 'opposed'
@@ -163,6 +163,14 @@ type LiteOptions = {
    *  birthYear field. */
   birthDate?: string
   birthYear?: number
+  /** Pre-computed transit aspect score per date (0-100). Keyed by
+   *  YYYY-MM-DD. When present, lite generator folds this into the score
+   *  blend as a real astrology axis. */
+  dailyTransitScores?: Record<string, number>
+  dailyTransitTightest?: Record<
+    string,
+    Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
+  >
 }
 
 const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
@@ -2105,12 +2113,26 @@ export function calculateYearlyImportantDatesLite(
     // Fall back matrixSub to a neutral 50 when matrix context is sparse
     // (otherwise primaryStrength drags everyone to grade 3).
     const matrixSubAdj = matrixSub < 30 ? 50 : matrixSub
+    // Real astrology transit score (longitude-based aspects to natal),
+    // pre-computed in the route. Falls back to neutral 50 when natal
+    // chart wasn't built (no birthplace coords).
+    const dateKey = isoDate(year, month, day)
+    const transitSub = (() => {
+      const v = options?.dailyTransitScores?.[dateKey]
+      return typeof v === 'number' ? clamp(v, 0, 100) : 50
+    })()
+    // Full-engine blend. Saju gets 50% (engine 30 + cycle 20 — saju
+    // practitioners weight 충합 highly), astrology gets 25% (real
+    // transit aspect score), cross-agreement 10%, yongsin 5%, matrix
+    // 5%, dailyShift event bonus on top.
     const blendedRaw =
-      0.55 * engineSub +
-      0.15 * matrixSubAdj +
-      0.15 * cycleSub +
-      0.075 * crossSub +
-      0.075 * yongsinSub +
+      0.30 * engineSub +
+      0.20 * cycleSub +
+      0.25 * transitSub +
+      0.10 * crossSub +
+      0.05 * yongsinSub +
+      0.05 * matrixSubAdj +
+      0.05 * 50 + // reserved for 28수 / retrograde sub-modifier (added below)
       dailyShift
     const score = Math.round(clamp(blendedRaw, 2, 99))
     const grade = scoreToGrade(score)
@@ -2248,6 +2270,7 @@ export function calculateYearlyImportantDatesLite(
         cycle: Math.round(cycleSub),
         cross: Math.round(crossSub),
         yongsin: Math.round(yongsinSub),
+        transit: Math.round(transitSub),
         dailyShift: Math.round(dailyShift),
         weakPenalty: 0,
         peakBoost: 0,

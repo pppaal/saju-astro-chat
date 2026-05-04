@@ -123,6 +123,7 @@ interface ImportantDate {
     cycle: number
     cross: number
     yongsin: number
+    transit?: number
     dailyShift: number
     weakPenalty: number
     peakBoost: number
@@ -1305,18 +1306,21 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 </summary>
                 <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px 12px' }}>
                   <div>📍 사주 일진/신살/공망 · <strong>{selectedDate.scoreBreakdown.engine}</strong></div>
-                  <div>🌀 장기 매트릭스 · <strong>{selectedDate.scoreBreakdown.matrix}</strong></div>
                   <div>⚡ 운끼리 충/합/형 · <strong>{selectedDate.scoreBreakdown.cycle}</strong></div>
+                  {typeof selectedDate.scoreBreakdown.transit === 'number' && (
+                    <div>🪐 점성 트랜짓 · <strong>{selectedDate.scoreBreakdown.transit}</strong></div>
+                  )}
                   <div>✅ 사주↔점성 일치 · <strong>{selectedDate.scoreBreakdown.cross}</strong></div>
                   <div>🌱 용신 정렬 · <strong>{selectedDate.scoreBreakdown.yongsin}</strong></div>
+                  <div>🌀 장기 매트릭스 · <strong>{selectedDate.scoreBreakdown.matrix}</strong></div>
                   {selectedDate.scoreBreakdown.dailyShift !== 0 && (
                     <div>일진 이벤트 · <strong>{selectedDate.scoreBreakdown.dailyShift > 0 ? '+' : ''}{selectedDate.scoreBreakdown.dailyShift}</strong></div>
                   )}
                 </div>
                 <p style={{ marginTop: 8, fontSize: '0.92em', opacity: 0.75 }}>
                   {locale === 'ko'
-                    ? '5개 축을 0.40 / 0.20 / 0.15 / 0.10 / 0.10 가중 평균으로 합산 후 일진 이벤트 보너스를 더해 산출.'
-                    : 'Weighted blend: 0.40/0.20/0.15/0.10/0.10 across the five axes plus daily-event bonus.'}
+                    ? '풀 엔진 통합 — 사주 일진 0.30, 운끼리 충합 0.20, 점성 트랜짓 0.25, 사주↔점성 0.10, 용신 0.05, 매트릭스 0.05 가중 평균 + 일진 이벤트 보너스.'
+                    : 'Full engine: 0.30 saju + 0.20 cycle + 0.25 transit + 0.10 cross + 0.05 yongsin + 0.05 matrix.'}
                 </p>
               </details>
             )}

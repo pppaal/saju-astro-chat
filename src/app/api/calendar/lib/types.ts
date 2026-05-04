@@ -62,13 +62,14 @@ export interface FormattedDate {
     themeKo: string
     themeEn: string
   }
-  /** 점수 산출 5축 분해 + 2축 분리 (사주/점성) */
+  /** 점수 산출 7축 분해 + 2축 분리 (사주/점성) */
   scoreBreakdown?: {
     engine: number
     matrix: number
     cycle: number
     cross: number
     yongsin: number
+    transit?: number
     dailyShift: number
     weakPenalty: number
     peakBoost: number

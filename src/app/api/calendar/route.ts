@@ -640,6 +640,55 @@ export const GET = withApiMiddleware(
       astroProfile.natalAspects = natalAspects
       astroProfile.transitAspects = transitAspects
       astroProfile.majorTransits = majorTransits
+
+      // ── Full-year transit scores ──
+      // Compute longitude-only transit aspects for all 365 days against
+      // the user's natal chart. ~350ms total (Swiss ephemeris is fast
+      // enough for batch). Results threaded into lite generator as a new
+      // dailyTransitScores axis.
+      try {
+        const { calculateTransitPlanetsBatch, scoreTransitDay } = await import(
+          '@/lib/astrology/foundation/transitBatch'
+        )
+        const isoList: string[] = []
+        const dateKeys: string[] = []
+        const yearStart = new Date(year, 0, 1)
+        const yearEnd = new Date(year, 11, 31)
+        for (let d = new Date(yearStart); d <= yearEnd; d.setDate(d.getDate() + 1)) {
+          const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+          dateKeys.push(ymd)
+          isoList.push(`${ymd}T12:00:00`)
+        }
+        const batch = calculateTransitPlanetsBatch(isoList, timezone)
+        const natalLongs: Record<string, number> = {}
+        for (const p of natalChartData.planets || []) natalLongs[p.name] = p.longitude
+        if (natalChartData.ascendant) natalLongs['Ascendant'] = natalChartData.ascendant.longitude
+        if (natalChartData.mc) natalLongs['MC'] = natalChartData.mc.longitude
+        const dailyTransitScores: Record<string, number> = {}
+        const dailyTransitTightest: Record<
+          string,
+          Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
+        > = {}
+        for (let i = 0; i < batch.length; i++) {
+          const result = scoreTransitDay(natalLongs, batch[i])
+          dailyTransitScores[dateKeys[i]] = result.score
+          dailyTransitTightest[dateKeys[i]] = result.tightest
+        }
+        ;(astroProfile as { dailyTransitScores?: Record<string, number> }).dailyTransitScores =
+          dailyTransitScores
+        ;(
+          astroProfile as {
+            dailyTransitTightest?: Record<
+              string,
+              Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
+            >
+          }
+        ).dailyTransitTightest = dailyTransitTightest
+      } catch (batchError) {
+        logger.warn('[calendar] full-year transit batch failed', {
+          error: batchError instanceof Error ? batchError.message : String(batchError),
+        })
+      }
     } catch (astroError) {
       degradationReasons.push('astrology_input_lite')
       matrixDegradationReasons.push('astrology_input_lite')
@@ -808,6 +857,16 @@ export const GET = withApiMiddleware(
           locale: locale === 'en' ? 'en' : 'ko',
           matrixContext: matrixCalendarContext || undefined,
           birthDate: birthDateParam,
+          dailyTransitScores: (astroProfile as { dailyTransitScores?: Record<string, number> })
+            .dailyTransitScores,
+          dailyTransitTightest: (
+            astroProfile as {
+              dailyTransitTightest?: Record<
+                string,
+                Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
+              >
+            }
+          ).dailyTransitTightest,
         }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )
