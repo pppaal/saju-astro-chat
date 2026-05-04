@@ -6,6 +6,7 @@ import KoreanLunarCalendar from 'korean-lunar-calendar'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { humanizeEvidence } from './humanizeEvidence'
+import { buildPlainReading, pickTopActivities } from './plainReading'
 import { resolvePeakLevel } from './peakUtils'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
@@ -1088,6 +1089,29 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     safeSummary ||
     ''
 
+  // Plain-Korean reading paragraph generated from the deterministic data
+  // — gives free users the same shape as the premium AI 풀이 without a
+  // Claude call. Inline (no useMemo) because hooks-after-conditionals
+  // would trip rules-of-hooks here, and the work is cheap.
+  const plainReading: string = (() => {
+    if (!selectedDate) return ''
+    const { top, bottom } = pickTopActivities(
+      selectedDate.activityScores as Record<string, number | undefined> | undefined
+    )
+    return buildPlainReading({
+      grade: displayGrade,
+      score: displayScore,
+      ganzhi: selectedDate.ganzhi,
+      cycleNarrative: selectedDate.cycleNarrative,
+      topGoodActivity: top,
+      topBadActivity: bottom,
+      bestTime: normalizedBestTimes[0],
+      topAdvice: safeRecommendations[0],
+      topWarning: safeWarnings[0],
+      retrogradePlanets: selectedDate.transit?.retrogrades,
+    })
+  })()
+
   // Suppress lint for computed values retained from the legacy panel layout.
   // The simplified fortune-calendar UI no longer renders them, but the data
   // pipelines that produce them are shared with other surfaces — keeping the
@@ -1170,7 +1194,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </button>
           </div>
 
-          {/* ── Hero: grade label + score + one-liner ───────────── */}
+          {/* ── Hero: grade label + score + plain-Korean reading ─── */}
           <div className={styles.quickScanCard}>
             <h3 className={styles.selectedTitle}>
               {unifiedDayLabel || displayTitle}
@@ -1178,7 +1202,19 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {displayScore}/100
               </span>
             </h3>
-            {headlineOneLine && (
+            {plainReading && (
+              <p
+                style={{
+                  marginTop: 10,
+                  fontSize: '1.04em',
+                  lineHeight: 1.7,
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {plainReading}
+              </p>
+            )}
+            {!plainReading && headlineOneLine && (
               <p className={styles.quickScanThesis}>{headlineOneLine}</p>
             )}
             {/* ── Score breakdown ── 5축 가중 평균 어떻게 합산됐는지 보여줘서
