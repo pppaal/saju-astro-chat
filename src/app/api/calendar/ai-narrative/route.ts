@@ -24,6 +24,7 @@ import { callClaude, isClaudeAvailable, DEFAULT_CLAUDE_MODEL } from '@/lib/llm/c
 import { logger } from '@/lib/logger'
 import { getCreditBalance } from '@/lib/credits/creditService'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { rateLimit } from '@/lib/rateLimit'
 
 const bodySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -48,16 +49,24 @@ export const POST = withApiMiddleware(
     if (!isClaudeAvailable()) {
       return apiError(ErrorCodes.SERVICE_UNAVAILABLE, 'AI service not configured')
     }
-    // Premium gate
     if (!context.userId) {
       return apiError(ErrorCodes.UNAUTHORIZED, 'Login required for AI narrative')
     }
+    // Tier check — premium = unlimited; free = 1/day quota.
     const balance = await getCreditBalance(context.userId)
-    if (!balance || balance.plan === 'free') {
-      return apiError(
-        ErrorCodes.FORBIDDEN,
-        '프리미엄 플랜에서만 AI 요약을 제공합니다.'
-      )
+    const isPremium = !!balance && balance.plan !== 'free'
+    if (!isPremium) {
+      const today = new Date().toISOString().slice(0, 10)
+      const result = await rateLimit(`ai-narrative-free:${context.userId}:${today}`, {
+        limit: 1,
+        windowSeconds: 24 * 60 * 60,
+      })
+      if (!result.allowed) {
+        return apiError(
+          ErrorCodes.FORBIDDEN,
+          '오늘의 무료 AI 풀이를 이미 사용했어요. 내일 다시 받거나 프리미엄으로 무제한 받으세요.'
+        )
+      }
     }
     let body: unknown
     try {

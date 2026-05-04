@@ -1387,7 +1387,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {aiNarrative}
               </p>
             )}
-            {!aiNarrative && !aiLoading && !aiError && isPremiumUser && (
+            {!aiNarrative && !aiLoading && !aiError && status === 'authenticated' && (
               <button
                 onClick={handleLoadAiNarrative}
                 style={{
@@ -1402,7 +1402,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                   fontWeight: 600,
                 }}
               >
-                {locale === 'ko' ? '오늘 풀어 보기' : 'Generate reading'}
+                {locale === 'ko'
+                  ? isPremiumUser
+                    ? '오늘 풀어 보기'
+                    : '오늘 풀어 보기 (무료 1회)'
+                  : isPremiumUser
+                    ? 'Generate reading'
+                    : 'Generate reading (1 free/day)'}
               </button>
             )}
             {aiLoading && (
@@ -1418,14 +1424,24 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {aiError}
               </p>
             )}
-            {!isPremiumUser && (
+            {!isPremiumUser && status === 'authenticated' && !aiNarrative && (
+              <p
+                className={styles.quickSummaryText}
+                style={{ marginTop: 6, opacity: 0.7, fontSize: '0.85em' }}
+              >
+                {locale === 'ko'
+                  ? '무료는 하루 1회 — 프리미엄으로 무제한 풀이 가능.'
+                  : 'Free: 1/day. Premium: unlimited.'}
+              </p>
+            )}
+            {status !== 'authenticated' && (
               <p
                 className={styles.quickSummaryText}
                 style={{ marginTop: 6, opacity: 0.75, fontSize: '0.9em' }}
               >
                 {locale === 'ko'
-                  ? '프리미엄 플랜에서 13개 엔진 레이어를 한 단락 한국어로 풀어드립니다.'
-                  : 'Premium plan synthesizes all 13 engine layers into one Korean paragraph.'}
+                  ? '로그인하면 오늘의 운세를 한 단락 한국어로 풀어드립니다 (무료 1회/일).'
+                  : 'Sign in to unlock 1 free AI reading per day.'}
               </p>
             )}
           </div>

@@ -547,6 +547,95 @@ const CalendarMainView = memo(function CalendarMainView({
                     {date && (
                       <>
                         <span className={styles.dayNumber}>{date.getDate()}</span>
+
+                        {/* Activity icon (top-right, grade ≤ 1 only) —
+                            "이 날이 너의 결혼 best day" 같은 직관 신호.
+                            Cell 자체로 활동 검색기 역할. */}
+                        {dateInfo && dateInfo.grade <= 1 && (() => {
+                          const cats = dateInfo.categories || []
+                          const ICON_BY_CAT: Record<string, string> = {
+                            love: '💍',
+                            career: '💼',
+                            wealth: '📈',
+                            travel: '🚚',
+                            study: '📚',
+                            health: '💪',
+                          }
+                          const emoji = cats
+                            .map((c) => ICON_BY_CAT[c as string])
+                            .find(Boolean)
+                          if (!emoji) return null
+                          return (
+                            <span
+                              aria-hidden="true"
+                              style={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                fontSize: '0.65em',
+                                opacity: 0.85,
+                              }}
+                            >
+                              {emoji}
+                            </span>
+                          )
+                        })()}
+
+                        {/* 2-axis split bar (사주 vs 점성) — bottom strip,
+                            top half = sajuAxis tone, bottom half = astroAxis
+                            tone. 한쪽만 좋은 날이면 split 직관적으로 보임. */}
+                        {dateInfo?.scoreBreakdown?.sajuAxis !== undefined &&
+                          dateInfo?.scoreBreakdown?.astroAxis !== undefined && (() => {
+                            const tone = (v: number) =>
+                              v >= 65
+                                ? '#86efac'
+                                : v >= 50
+                                  ? '#93c5fd'
+                                  : v >= 35
+                                    ? '#cbd5e1'
+                                    : v >= 25
+                                      ? '#fdba74'
+                                      : '#fca5a5'
+                            const sj = dateInfo.scoreBreakdown!.sajuAxis!
+                            const at = dateInfo.scoreBreakdown!.astroAxis!
+                            return (
+                              <div
+                                aria-hidden="true"
+                                style={{
+                                  position: 'absolute',
+                                  bottom: 4,
+                                  left: '50%',
+                                  transform: 'translateX(-50%)',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 1,
+                                  width: '60%',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    height: 2,
+                                    width: '100%',
+                                    background: tone(sj),
+                                    borderRadius: 1,
+                                    opacity: 0.85,
+                                  }}
+                                  title={`사주 ${sj}`}
+                                />
+                                <div
+                                  style={{
+                                    height: 2,
+                                    width: '100%',
+                                    background: tone(at),
+                                    borderRadius: 1,
+                                    opacity: 0.85,
+                                  }}
+                                  title={`점성 ${at}`}
+                                />
+                              </div>
+                            )
+                          })()}
+
                         {dateInfo && (
                           <div className={styles.dayIndicators} aria-hidden="true">
                             <span
