@@ -15,6 +15,7 @@ import { getShinsalHitsForDailyTarget } from '@/lib/Saju/shinsal'
 import { calculateUltraPrecisionScore } from '@/lib/prediction/ultraPrecisionEngine'
 import type { UltraPrecisionScore } from '@/lib/prediction/ultra-precision-types'
 import { getPlanetaryHourPlanet } from '@/lib/prediction/ultra-precision-helpers'
+import { getLunarMansion } from '@/lib/prediction/modules/lunarMansions'
 
 // Day-of-week planetary ruler theme. Cheap to compute (one lookup) and
 // gives the user one-glance sense of the day's character before reading
@@ -142,6 +143,7 @@ export interface LiteImportantDate {
     cross: number       // 0-100, 사주↔점성 일치도
     yongsin: number     // 0-100, 용신 정렬
     transit?: number    // 0-100, real astrology transit aspect score
+    lunarRetro?: number // 0-100, 28수 길흉 + retrograde penalties combined
     dailyShift: number  // event bonus (+/-)
     weakPenalty: number // signal weakness penalty
     peakBoost: number   // peak window bonus
@@ -171,6 +173,8 @@ type LiteOptions = {
     string,
     Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
   >
+  /** Per-date list of currently-retrograde planet names (Mercury, Venus, …). */
+  dailyRetrograde?: Record<string, string[]>
 }
 
 const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
@@ -2121,6 +2125,27 @@ export function calculateYearlyImportantDatesLite(
       const v = options?.dailyTransitScores?.[dateKey]
       return typeof v === 'number' ? clamp(v, 0, 100) : 50
     })()
+    // 28수 길흉 + 역행 행성 페널티 → 0-100 axis. Replaces the previous
+    // reserved 0.05 slot with real engine data.
+    //   28수 길수 +12, 흉수 -12, 중립 0
+    //   역행: 수성/금성/화성 -6 each (사용자 일정에 직접 영향),
+    //        Jupiter/Saturn -3 each, outer planets -1 each.
+    const lunarRetroSub = (() => {
+      let v = 50
+      try {
+        const lm = getLunarMansion(date)
+        v += lm.isAuspicious ? 12 : -12
+      } catch {
+        // 28수 lookup failed — keep neutral 50.
+      }
+      const rxs = options?.dailyRetrograde?.[dateKey] || []
+      for (const planet of rxs) {
+        if (planet === 'Mercury' || planet === 'Venus' || planet === 'Mars') v -= 6
+        else if (planet === 'Jupiter' || planet === 'Saturn') v -= 3
+        else v -= 1 // outer planets (Uranus/Neptune/Pluto/Chiron) — almost always retrograde, mild penalty
+      }
+      return clamp(v, 0, 100)
+    })()
     // Full-engine blend. Saju gets 50% (engine 30 + cycle 20 — saju
     // practitioners weight 충합 highly), astrology gets 25% (real
     // transit aspect score), cross-agreement 10%, yongsin 5%, matrix
@@ -2132,7 +2157,7 @@ export function calculateYearlyImportantDatesLite(
       0.10 * crossSub +
       0.05 * yongsinSub +
       0.05 * matrixSubAdj +
-      0.05 * 50 + // reserved for 28수 / retrograde sub-modifier (added below)
+      0.05 * lunarRetroSub +
       dailyShift
     const score = Math.round(clamp(blendedRaw, 2, 99))
     const grade = scoreToGrade(score)
@@ -2271,6 +2296,7 @@ export function calculateYearlyImportantDatesLite(
         cross: Math.round(crossSub),
         yongsin: Math.round(yongsinSub),
         transit: Math.round(transitSub),
+        lunarRetro: Math.round(lunarRetroSub),
         dailyShift: Math.round(dailyShift),
         weakPenalty: 0,
         peakBoost: 0,

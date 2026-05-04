@@ -21,6 +21,25 @@ interface PlainReadingInput {
   topAdvice?: string         // first item from recommendations[]
   topWarning?: string        // first item from warnings[]
   retrogradePlanets?: string[]
+  /** Tightest transit aspect (≤1° orb) for narrative weaving. */
+  topTransit?: {
+    transitPlanet: string
+    natalPoint: string
+    aspect: string
+    orb: number
+  } | null
+}
+
+const PLANET_KO_PLAIN: Record<string, string> = {
+  Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
+  Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성',
+}
+const ASPECT_PHRASE_KO: Record<string, string> = {
+  conjunction: '합쳐지는 각도',
+  trine: '받쳐주는 각도',
+  sextile: '도와주는 각도',
+  square: '견제하는 각도',
+  opposition: '맞서는 각도',
 }
 
 const GRADE_OPENERS: Record<number, string> = {
@@ -32,7 +51,7 @@ const GRADE_OPENERS: Record<number, string> = {
 }
 
 export function buildPlainReading(input: PlainReadingInput): string {
-  const { grade, score, topGoodActivity, topBadActivity, bestTime, topAdvice, topWarning, retrogradePlanets, cycleNarrative } = input
+  const { grade, score, topGoodActivity, topBadActivity, bestTime, topAdvice, topWarning, retrogradePlanets, cycleNarrative, topTransit } = input
   const opener = GRADE_OPENERS[grade] || '오늘은 평이한 흐름이에요'
   const sentences: string[] = []
 
@@ -56,7 +75,25 @@ export function buildPlainReading(input: PlainReadingInput): string {
     sentences.push(cleaned)
   }
 
-  // 3) Warning / retrograde / cycle as a closing nudge
+  // 3) Strong transit aspect — tightest aspect under 1.5° orb gets woven
+  // into the prose because that's a distinctive cosmic signature for
+  // the day, not just generic transit noise.
+  if (topTransit && topTransit.orb <= 1.5) {
+    const planetKo = PLANET_KO_PLAIN[topTransit.transitPlanet] || topTransit.transitPlanet
+    const natalKo = PLANET_KO_PLAIN[topTransit.natalPoint] || topTransit.natalPoint
+    const aspectKo = ASPECT_PHRASE_KO[topTransit.aspect] || topTransit.aspect
+    const flavor =
+      topTransit.aspect === 'trine' || topTransit.aspect === 'sextile'
+        ? '결이 부드러워지는 신호예요'
+        : topTransit.aspect === 'square' || topTransit.aspect === 'opposition'
+          ? '긴장과 압박이 들어오는 신호예요'
+          : '큰 흐름이 합쳐지는 시점이에요'
+    sentences.push(
+      `점성으로는 ${planetKo}이 본명 ${natalKo}에 ${aspectKo} (오브 ${topTransit.orb.toFixed(1)}°) — ${flavor}.`
+    )
+  }
+
+  // 4) Warning / retrograde / cycle as a closing nudge
   const closing: string[] = []
   if (grade >= 3 && topWarning) {
     closing.push(topWarning.replace(/\.$/, ''))

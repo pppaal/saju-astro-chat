@@ -669,10 +669,13 @@ export const GET = withApiMiddleware(
           string,
           Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
         > = {}
+        const dailyRetrograde: Record<string, string[]> = {}
         for (let i = 0; i < batch.length; i++) {
           const result = scoreTransitDay(natalLongs, batch[i])
           dailyTransitScores[dateKeys[i]] = result.score
           dailyTransitTightest[dateKeys[i]] = result.tightest
+          const rxs = batch[i].planets.filter((p) => p.retrograde).map((p) => p.name)
+          if (rxs.length > 0) dailyRetrograde[dateKeys[i]] = rxs
         }
         ;(astroProfile as { dailyTransitScores?: Record<string, number> }).dailyTransitScores =
           dailyTransitScores
@@ -684,6 +687,8 @@ export const GET = withApiMiddleware(
             >
           }
         ).dailyTransitTightest = dailyTransitTightest
+        ;(astroProfile as { dailyRetrograde?: Record<string, string[]> }).dailyRetrograde =
+          dailyRetrograde
       } catch (batchError) {
         logger.warn('[calendar] full-year transit batch failed', {
           error: batchError instanceof Error ? batchError.message : String(batchError),
@@ -867,6 +872,8 @@ export const GET = withApiMiddleware(
               >
             }
           ).dailyTransitTightest,
+          dailyRetrograde: (astroProfile as { dailyRetrograde?: Record<string, string[]> })
+            .dailyRetrograde,
         }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )

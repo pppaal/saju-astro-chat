@@ -123,6 +123,7 @@ export interface ImportantDate {
     cross: number
     yongsin: number
     transit?: number
+    lunarRetro?: number
     dailyShift: number
     weakPenalty: number
     peakBoost: number

@@ -7,6 +7,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { humanizeEvidence } from './humanizeEvidence'
 import { buildPlainReading, pickTopActivities } from './plainReading'
+import { adjustActivityForTransit } from './activityTransit'
 import { resolvePeakLevel } from './peakUtils'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
@@ -124,6 +125,7 @@ interface ImportantDate {
     cross: number
     yongsin: number
     transit?: number
+    lunarRetro?: number
     dailyShift: number
     weakPenalty: number
     peakBoost: number
@@ -1102,6 +1104,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     const { top, bottom } = pickTopActivities(
       selectedDate.activityScores as Record<string, number | undefined> | undefined
     )
+    const tightest = selectedDate.transit?.aspects?.[0]
     return buildPlainReading({
       grade: displayGrade,
       score: displayScore,
@@ -1113,6 +1116,14 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       topAdvice: safeRecommendations[0],
       topWarning: safeWarnings[0],
       retrogradePlanets: selectedDate.transit?.retrogrades,
+      topTransit: tightest
+        ? {
+            transitPlanet: tightest.transitPlanet,
+            natalPoint: tightest.natalPoint,
+            aspect: tightest.aspect,
+            orb: tightest.orb,
+          }
+        : null,
     })
   })()
 
@@ -1313,6 +1324,9 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                   <div>✅ 사주↔점성 일치 · <strong>{selectedDate.scoreBreakdown.cross}</strong></div>
                   <div>🌱 용신 정렬 · <strong>{selectedDate.scoreBreakdown.yongsin}</strong></div>
                   <div>🌀 장기 매트릭스 · <strong>{selectedDate.scoreBreakdown.matrix}</strong></div>
+                  {typeof selectedDate.scoreBreakdown.lunarRetro === 'number' && (
+                    <div>🌙 28수·역행 · <strong>{selectedDate.scoreBreakdown.lunarRetro}</strong></div>
+                  )}
                   {selectedDate.scoreBreakdown.dailyShift !== 0 && (
                     <div>일진 이벤트 · <strong>{selectedDate.scoreBreakdown.dailyShift > 0 ? '+' : ''}{selectedDate.scoreBreakdown.dailyShift}</strong></div>
                   )}
@@ -1812,8 +1826,17 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                     { key: 'surgery', emoji: '🏥', label: locale === 'ko' ? '수술' : 'Surgery' },
                     { key: 'study', emoji: '📚', label: locale === 'ko' ? '학업' : 'Study' },
                   ].map((cat) => {
-                    const v = (selectedDate.activityScores as Record<string, number | undefined>)?.[cat.key]
-                    if (typeof v !== 'number') return null
+                    const baseV = (selectedDate.activityScores as Record<string, number | undefined>)?.[cat.key]
+                    if (typeof baseV !== 'number') return null
+                    // Layer transit awareness on top of the rule-based score:
+                    // each activity weights different planets/aspects.
+                    const adjustment = adjustActivityForTransit(
+                      cat.key,
+                      baseV,
+                      selectedDate.transit?.aspects,
+                      selectedDate.transit?.retrogrades
+                    )
+                    const v = adjustment.adjusted
                     const tone =
                       v >= 70 ? { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.4)', color: '#86efac' } :
                       v >= 50 ? { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', color: '#93c5fd' } :
@@ -1831,10 +1854,18 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                           textAlign: 'center',
                           fontSize: '0.85em',
                         }}
+                        title={adjustment.note}
                       >
                         <div style={{ fontSize: '1.2em' }}>{cat.emoji}</div>
                         <div style={{ marginTop: 2, opacity: 0.8 }}>{cat.label}</div>
-                        <div style={{ marginTop: 2, fontWeight: 700, color: tone.color }}>{v}</div>
+                        <div style={{ marginTop: 2, fontWeight: 700, color: tone.color }}>
+                          {v}
+                          {adjustment.delta !== 0 && (
+                            <span style={{ fontSize: '0.7em', marginLeft: 3, opacity: 0.85 }}>
+                              {adjustment.delta > 0 ? `↑${adjustment.delta}` : `↓${Math.abs(adjustment.delta)}`}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
