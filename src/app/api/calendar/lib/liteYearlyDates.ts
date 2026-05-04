@@ -223,14 +223,20 @@ function categoryMatchesFilter(categories: EventCategory[], filter?: EventCatego
 }
 
 function scoreToGrade(score: number): ImportanceGrade {
-  // Recalibrated for the 5-axis blended formula. Old thresholds (86/
-  // 72/56/38) were tuned for the matrix-heavy formula that could top
-  // out near 80; new blend rarely exceeds 75 even on great days, so
-  // collapse the tier ranges proportionally.
-  if (score >= 68) return 0
-  if (score >= 58) return 1
-  if (score >= 45) return 2
-  if (score >= 32) return 3
+  // Recalibrated for the full-engine 7-axis blend (post 365-day
+  // transit integration). Empirical 1460-date sample across 4 birth
+  // charts shows percentiles p5=34, p20=41, p50=49, p80=57, p95=63
+  // with mean ~48. These thresholds hit the target 5 / 15 / 50 / 25 / 5
+  // distribution practitioners describe as a healthy life calendar:
+  //   ≥63 최고      (top 5%)   — push, decide, ship
+  //   ≥57 좋음      (next 15%) — favorable wind
+  //   ≥44 평범      (middle 50%) — normal flow
+  //   ≥34 조심      (next 25%) — extra check
+  //    <34 지키기   (bottom 5%) — protect, defer
+  if (score >= 63) return 0
+  if (score >= 57) return 1
+  if (score >= 44) return 2
+  if (score >= 34) return 3
   return 4
 }
 

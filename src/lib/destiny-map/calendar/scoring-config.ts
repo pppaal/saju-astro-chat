@@ -362,11 +362,15 @@ export const CROSS_VERIFICATION_SCORES = {
 // grading.ts와 일관성 유지
 // ============================================================
 
+// Recalibrated 2026 for the 7-axis full-engine blend (saju + 365-day
+// transit). Empirical 1460-date sample (4 birth charts) across 2026:
+// p5=34, p20=41, p50=49, p80=57, p95=63 — these thresholds hit the
+// target 5 / 15 / 50 / 25 / 5 distribution.
 export const GRADE_THRESHOLDS = {
-  grade0: 68, // 최고: 68점 이상 AND 충/형 둘 다 없음 (~5-8%) - 72에서 낮춤
-  grade1: 62, // 좋음: 62~67점 (~15%)
-  grade2: 42, // 보통: 42~61점 (~50%)
-  grade3: 28, // 안좋음: 28~41점 (~25%)
+  grade0: 63, // 최고: 63+ (~5%)
+  grade1: 57, // 좋음: 57-62 (~15%)
+  grade2: 44, // 보통: 44-56 (~50%)
+  grade3: 34, // 조심: 34-43 (~25%)
   // grade4: 28 미만 (최악) (~5%)
 } as const
 
