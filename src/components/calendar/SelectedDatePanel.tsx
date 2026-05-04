@@ -127,6 +127,9 @@ interface ImportantDate {
     weakPenalty: number
     peakBoost: number
     finalScore: number
+    sajuAxis?: number
+    astroAxis?: number
+    axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
   transit?: {
     aspects: Array<{
@@ -1202,6 +1205,75 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {displayScore}/100
               </span>
             </h3>
+
+            {/* ── 2-axis score bars (사주 vs 점성) ──
+                "이 날은 사주는 좋은데 점성은 약함" 같은 미묘한 신호를
+                직관적으로 보여주는 게 우리 차별점. 두 막대를 위아래로
+                나란히 두면 사용자가 "한쪽만 좋은 날"인지 "둘 다 좋은
+                날"인지 한눈에 판단. */}
+            {selectedDate?.scoreBreakdown?.sajuAxis !== undefined &&
+              selectedDate?.scoreBreakdown?.astroAxis !== undefined && (
+                <div style={{ marginTop: 10, fontSize: '0.86em' }}>
+                  {(['saju', 'astro'] as const).map((axis) => {
+                    const v =
+                      axis === 'saju'
+                        ? selectedDate!.scoreBreakdown!.sajuAxis!
+                        : selectedDate!.scoreBreakdown!.astroAxis!
+                    const label = axis === 'saju' ? '📍 사주' : '⭐ 점성'
+                    const tone =
+                      v >= 65
+                        ? '#86efac'
+                        : v >= 50
+                          ? '#93c5fd'
+                          : v >= 35
+                            ? '#cbd5e1'
+                            : '#fca5a5'
+                    return (
+                      <div
+                        key={axis}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}
+                      >
+                        <span style={{ minWidth: 56, opacity: 0.85 }}>{label}</span>
+                        <div
+                          style={{
+                            flex: 1,
+                            height: 8,
+                            background: 'rgba(148,163,184,0.15)',
+                            borderRadius: 999,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${v}%`,
+                              height: '100%',
+                              background: tone,
+                              transition: 'width 0.3s ease',
+                            }}
+                          />
+                        </div>
+                        <strong style={{ minWidth: 28, textAlign: 'right', color: tone }}>{v}</strong>
+                      </div>
+                    )
+                  })}
+                  {selectedDate.scoreBreakdown.axisAgreement && (
+                    <p
+                      style={{
+                        marginTop: 6,
+                        fontSize: '0.92em',
+                        opacity: 0.78,
+                      }}
+                    >
+                      {selectedDate.scoreBreakdown.axisAgreement === 'aligned'
+                        ? '✅ 두 축이 같은 방향 — 신호가 단단합니다.'
+                        : selectedDate.scoreBreakdown.axisAgreement === 'mixed'
+                          ? '⚖️ 두 축이 갈리는 날 — 어느 쪽 무게 둘지 본인이 선택.'
+                          : '⚠ 두 축이 반대 — 한쪽만 보고 결정하면 위험.'}
+                    </p>
+                  )}
+                </div>
+              )}
+
             {plainReading && (
               <p
                 style={{

@@ -145,6 +145,10 @@ export interface LiteImportantDate {
     weakPenalty: number // signal weakness penalty
     peakBoost: number   // peak window bonus
     finalScore: number  // 2-99
+    /** 2축 점수 분리: 사주 vs 점성 — 어느 축이 더 강한지 직관 */
+    sajuAxis?: number   // 0-100
+    astroAxis?: number  // 0-100
+    axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
 }
 
@@ -1909,11 +1913,9 @@ export function calculateYearlyImportantDatesLite(
       0,
       1
     )
-    const weakPenalty =
-      primaryStrength < 0.5
-        ? clamp((0.4 - primaryMonthStrength) * 32 + (0.6 - reliability) * 14, 0, 28)
-        : 0
-    const peakBoost = primaryStrength >= 0.8 && primaryMonthStrength >= 0.7 ? 4 : 0
+    // (Legacy weakPenalty / peakBoost computations removed — both were
+    // tied to primaryStrength scalar in the old matrix-heavy formula
+    // and are no longer used by the 5-axis blend.)
     // 일진(오늘의 일주) × 본명 일주 이벤트
     const natalDayStem = sajuProfile.dayMaster || sajuProfile.pillars?.day?.stem || ''
     const natalDayBranch = sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || ''
@@ -2069,6 +2071,33 @@ export function calculateYearlyImportantDatesLite(
           ? 25
           : 50
 
+    // 2-axis score split: 사주 측 vs 점성 측. Users want to see "사주만
+    // 좋은 날" / "점성만 좋은 날" separately to choose which axis to
+    // trust. Compute proxies from the same subscores at hand:
+    //   사주 측 = 0.55 engine + 0.30 cycle + 0.15 yongsin
+    //   점성 측 = 50 ± astroClaim sign + cross-agreement weight + matrix month
+    const sajuAxisScore = clamp(
+      Math.round(0.55 * engineSub + 0.30 * cycleSub + 0.15 * yongsinSub),
+      0,
+      100
+    )
+    const astroAxisScore = clamp(
+      Math.round(
+        50 +
+          (astroClaim === 1 ? 18 : astroClaim === -1 ? -18 : 0) +
+          (crossSub - 50) * 0.4 +
+          (primaryMonthStrength - 0.5) * 30
+      ),
+      0,
+      100
+    )
+    const axisAgreement: 'aligned' | 'mixed' | 'opposed' =
+      Math.abs(sajuAxisScore - astroAxisScore) <= 12
+        ? 'aligned'
+        : Math.abs(sajuAxisScore - astroAxisScore) <= 28
+          ? 'mixed'
+          : 'opposed'
+
     // Engine subscore (per-date 사주 일진/신살/공망/12운성/energy) is the
     // strongest single signal — weight it 0.55. Matrix kept at 0.15 for
     // destiny-matrix continuity; users without a matrixContext still
@@ -2223,6 +2252,9 @@ export function calculateYearlyImportantDatesLite(
         weakPenalty: 0,
         peakBoost: 0,
         finalScore: score,
+        sajuAxis: sajuAxisScore,
+        astroAxis: astroAxisScore,
+        axisAgreement,
       },
       longCycleContext: {
         daeun: findDaeunForDate(date) || undefined,

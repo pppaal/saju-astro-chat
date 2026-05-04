@@ -14,6 +14,7 @@ import {
 import { getGradeEmoji, getCategoryLabel, getScoreClass } from './utils'
 import SelectedDatePanel from './SelectedDatePanel'
 import MonthHighlights from './MonthHighlights'
+import ActivityFinder from './ActivityFinder'
 import CalendarActionPlanView from './CalendarActionPlanView'
 import type { CalendarData, ImportantDate, EventCategory, BirthInfo } from './types'
 
@@ -671,6 +672,14 @@ const CalendarMainView = memo(function CalendarMainView({
             getGradeEmoji={getGradeEmoji}
             getScoreClass={getScoreClass}
           />
+
+          {/* Activity Finder — "X 하고 싶은데 언제가 좋아?" */}
+          {data?.allDates && data.allDates.length > 0 && (
+            <ActivityFinder
+              allDates={data.allDates}
+              onDateSelect={handleDateSelect}
+            />
+          )}
 
           {/* Month Highlights */}
           {data?.allDates && data.allDates.length > 0 && (

@@ -62,7 +62,7 @@ export interface FormattedDate {
     themeKo: string
     themeEn: string
   }
-  /** 점수 산출 5축 분해 */
+  /** 점수 산출 5축 분해 + 2축 분리 (사주/점성) */
   scoreBreakdown?: {
     engine: number
     matrix: number
@@ -73,6 +73,9 @@ export interface FormattedDate {
     weakPenalty: number
     peakBoost: number
     finalScore: number
+    sajuAxis?: number
+    astroAxis?: number
+    axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
 }
 

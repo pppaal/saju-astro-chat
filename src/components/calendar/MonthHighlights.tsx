@@ -97,6 +97,27 @@ export default function MonthHighlights({
     }
   }
 
+  // ── Auto-categorize the month into activity-specific top dates ──
+  // "이번 달에 결혼 좋은 날 / 이사 좋은 날 / 면접 좋은 날" — so users
+  // don't need to click through 30 cells. Pull from activityScores when
+  // present (date-detail enriches selected day; for the month grid we
+  // approximate from grade + categories).
+  const ACTIVITY_KEYS = [
+    { key: 'marriage', emoji: '💍', label: activeLocale === 'ko' ? '결혼' : 'Marriage', cat: 'love' as const },
+    { key: 'career', emoji: '💼', label: activeLocale === 'ko' ? '면접·계약' : 'Interview', cat: 'career' as const },
+    { key: 'investment', emoji: '📈', label: activeLocale === 'ko' ? '투자' : 'Invest', cat: 'wealth' as const },
+    { key: 'moving', emoji: '🚚', label: activeLocale === 'ko' ? '이사' : 'Move', cat: 'travel' as const },
+    { key: 'study', emoji: '📚', label: activeLocale === 'ko' ? '학업' : 'Study', cat: 'study' as const },
+  ] as const
+  const activityRecs: Array<{ key: string; emoji: string; label: string; days: typeof allDates }> = []
+  for (const a of ACTIVITY_KEYS) {
+    const matches = monthDates
+      .filter((d) => d.grade <= 1 && d.categories?.includes(a.cat))
+      .sort((x, y) => x.grade - y.grade || y.score - x.score)
+      .slice(0, 3)
+    if (matches.length > 0) activityRecs.push({ ...a, days: matches })
+  }
+
   // Track text we've already shown so each card carries a distinct sentence.
   // Without this every card collapses onto the same template phrase
   // ("커리어 쪽은 변동성이 있어 …") because the upstream signal generator
@@ -244,6 +265,38 @@ export default function MonthHighlights({
           </p>
         )}
       </div>
+
+      {/* ── Activity-categorized recommended dates ──
+          "결혼하기 좋은 날 / 이사 좋은 날 / 면접 좋은 날" 한눈에. 사용자가
+          셀 30개 클릭 안 해도 한 줄로 답이 나옴. */}
+      {activityRecs.length > 0 && (
+        <div
+          style={{
+            margin: '0 0 14px',
+            padding: '12px 14px',
+            border: '1px solid rgba(94,234,212,0.25)',
+            borderRadius: 12,
+            background: 'rgba(15,118,110,0.08)',
+          }}
+        >
+          <div style={{ fontSize: '0.92em', fontWeight: 600, opacity: 0.9, marginBottom: 8 }}>
+            🎯 {activeLocale === 'ko' ? '이 달 활동별 추천일' : 'Activity windows this month'}
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
+            {activityRecs.map((a) => (
+              <li key={a.key} style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                {a.emoji} <strong>{a.label}</strong> ·{' '}
+                {a.days
+                  .map((d) => {
+                    const dt = parseLocalDate(d.date)
+                    return `${dt.getMonth() + 1}/${dt.getDate()}일`
+                  })
+                  .join(', ')}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className={styles.highlightsList}>
         {highlightDates.map((dateInfo, index) => {

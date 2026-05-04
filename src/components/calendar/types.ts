@@ -115,7 +115,7 @@ export interface ImportantDate {
     themeKo: string
     themeEn: string
   }
-  /** 점수 산출 5축 분해 (transparency) */
+  /** 점수 산출 5축 분해 + 2축 분리 */
   scoreBreakdown?: {
     engine: number
     matrix: number
@@ -126,6 +126,9 @@ export interface ImportantDate {
     weakPenalty: number
     peakBoost: number
     finalScore: number
+    sajuAxis?: number
+    astroAxis?: number
+    axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
   /** 트랜짓 점성 — 선택일 기준 행성 위치 + 본명 차트와의 aspect */
   transit?: {
