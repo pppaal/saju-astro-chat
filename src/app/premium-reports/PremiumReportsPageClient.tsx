@@ -105,27 +105,23 @@ export default function PremiumReportsPageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,#1a1c2e_0%,#0a0a14_60%)] text-slate-100">
-      <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
-        {/* Hero */}
-        <header className="space-y-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-cyan-300">
+    <div className="min-h-[100svh] bg-[radial-gradient(ellipse_at_top,#1a1c2e_0%,#0a0a14_60%)] text-slate-100 flex flex-col">
+      <div className="mx-auto w-full max-w-3xl flex-1 flex flex-col px-5 pt-16 pb-6 sm:pt-20">
+        {/* Hero — compact so the 3 cards fit on one screen without scroll */}
+        <header className="text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-cyan-300">
             Destiny Reports
           </p>
           <h1
-            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent md:text-5xl lg:text-6xl"
-            style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
+            className="mt-2 text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-2xl font-semibold leading-[1.2] text-transparent sm:text-3xl"
+            style={{ letterSpacing: '-0.02em', wordBreak: 'keep-all' }}
           >
-            사주와 점성으로 읽는<br />
-            지금 가장 알고 싶은 결
+            원하는 시간 폭으로 받아보세요
           </h1>
-          <p className="mx-auto max-w-md pt-2 text-[15px] leading-relaxed text-slate-400">
-            이번달·올해·인생총운 — 원하는 시간 폭으로 받아보세요.
-          </p>
         </header>
 
-        {/* 3 cards */}
-        <section className="mt-16 grid gap-5 lg:grid-cols-3">
+        {/* 3 cards — compact rows on mobile, 3-column grid on lg+ */}
+        <section className="mt-5 grid flex-1 gap-2.5 lg:grid-cols-3 lg:gap-4">
           {CARDS.map((card) => {
             const Icon = card.Icon
             return (
@@ -133,81 +129,53 @@ export default function PremiumReportsPageClient() {
                 key={card.key}
                 type="button"
                 onClick={() => handleClick(card)}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 text-left transition-all duration-500 hover:border-white/25 hover:bg-white/[0.06] hover:scale-[1.01]"
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition-all duration-300 hover:border-white/25 hover:bg-white/[0.06] lg:p-5"
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 30px 80px ${card.glow}`
+                  e.currentTarget.style.boxShadow = `0 18px 50px ${card.glow}`
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = `0 0 0 transparent`
                 }}
               >
-                {/* Glow background */}
                 <div
-                  className="absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+                  className="absolute -right-12 -top-12 h-28 w-28 rounded-full opacity-0 blur-3xl transition-opacity duration-300 group-hover:opacity-100"
                   style={{ background: card.glow }}
                   aria-hidden
                 />
 
-                {/* Badge */}
-                <div className="flex items-center justify-between">
-                  <span
-                    className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]"
+                <div className="flex items-center gap-3 lg:flex-col lg:items-start lg:gap-2">
+                  {/* Icon + badge column */}
+                  <div className="flex flex-shrink-0 items-center justify-center rounded-xl border lg:order-1"
                     style={{
-                      borderColor: card.accent + '50',
-                      color: card.accent,
+                      width: 40,
+                      height: 40,
+                      borderColor: card.accent + '40',
                       background: card.accent + '14',
+                      color: card.accent,
                     }}
                   >
-                    {card.badge}
-                  </span>
-                  <Icon
-                    className="h-6 w-6 transition-colors duration-300"
-                    style={{ color: card.accent }}
-                    strokeWidth={1.5}
-                  />
-                </div>
+                    <Icon className="h-5 w-5" strokeWidth={1.6} />
+                  </div>
 
-                {/* Title */}
-                <h2
-                  className="mt-6 text-[1.75rem] font-semibold leading-tight tracking-tight text-white"
-                  style={{ wordBreak: 'keep-all', letterSpacing: '-0.015em' }}
-                >
-                  {card.title}
-                </h2>
-                <p className="mt-1 text-[14px] text-slate-400" style={{ wordBreak: 'keep-all' }}>
-                  {card.subtitle}
-                </p>
-
-                {/* Description */}
-                <p
-                  className="mt-5 text-[14px] leading-[1.7] text-slate-300"
-                  style={{ wordBreak: 'keep-all' }}
-                >
-                  {card.description}
-                </p>
-
-                {/* Features */}
-                <ul className="mt-5 space-y-1.5">
-                  {card.features.map((f) => (
-                    <li
-                      key={f}
-                      className="flex items-start gap-2 text-[13px] leading-[1.5] text-slate-300"
+                  {/* Title + subtitle */}
+                  <div className="min-w-0 flex-1 lg:order-3">
+                    <h2
+                      className="text-[15px] font-semibold leading-tight tracking-tight text-white sm:text-base lg:text-lg"
+                      style={{ wordBreak: 'keep-all', letterSpacing: '-0.01em' }}
                     >
-                      <span
-                        className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full"
-                        style={{ background: card.accent }}
-                        aria-hidden
-                      />
-                      <span style={{ wordBreak: 'keep-all' }}>{f}</span>
-                    </li>
-                  ))}
-                </ul>
+                      {card.title}
+                    </h2>
+                    <p
+                      className="mt-0.5 text-[11.5px] leading-snug text-slate-400 lg:text-[12.5px]"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      {card.subtitle}
+                    </p>
+                  </div>
 
-                {/* CTA */}
-                <div className="mt-7 flex items-center justify-between border-t border-white/[0.07] pt-5">
-                  <span className="text-[14px] font-medium text-white">{card.cta}</span>
+                  {/* CTA arrow */}
                   <span
-                    className="text-[18px] transition-transform duration-300 group-hover:translate-x-1"
+                    className="flex-shrink-0 text-[16px] transition-transform duration-300 group-hover:translate-x-1 lg:order-4 lg:self-end"
                     style={{ color: card.accent }}
                     aria-hidden
                   >
@@ -220,24 +188,24 @@ export default function PremiumReportsPageClient() {
         </section>
 
         {/* Free entry */}
-        <div className="mt-12 flex justify-center">
+        <div className="mt-4 flex justify-center">
           <Link
             href="/destiny-map/theme"
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-[13px] text-slate-300 transition hover:border-white/25 hover:bg-white/[0.06]"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-[12px] text-slate-300 transition hover:border-white/25 hover:bg-white/[0.06]"
           >
             <span className="text-slate-500">처음이신가요?</span>
-            <span className="font-medium text-cyan-300">무료 운명 지도로 맛보기 →</span>
+            <span className="font-medium text-cyan-300">무료 운명 지도 →</span>
           </Link>
         </div>
 
         {/* Footer hint */}
-        <p className="mt-8 text-center text-[12px] text-slate-500">
-          모든 분석은 사주명리·점성술 전통에 기반한 <em className="not-italic text-slate-400">참고 자료</em>이며 미래를 단정하지 않습니다.{' '}
+        <p className="mt-3 text-center text-[10.5px] leading-snug text-slate-500">
+          사주명리·점성술 전통에 기반한 <em className="not-italic text-slate-400">참고 자료</em>입니다.{' '}
           <Link
             href="/premium-reports/preview"
             className="text-cyan-300 underline-offset-2 hover:underline"
           >
-            샘플 미리보기
+            샘플
           </Link>
         </p>
       </div>
