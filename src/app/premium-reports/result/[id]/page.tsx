@@ -824,6 +824,14 @@ export default function ReportResultPage() {
         const activeTransits = Array.isArray(activeTransitsRaw)
           ? (activeTransitsRaw as Parameters<typeof ThemeAnglesSection>[0]['activeTransits'])
           : undefined
+        const crossSnapshotRaw = fd?.crossSnapshot as
+          | { crossAgreementMatrix?: unknown[] }
+          | undefined
+        const crossAgreementMatrix = Array.isArray(crossSnapshotRaw?.crossAgreementMatrix)
+          ? (crossSnapshotRaw!.crossAgreementMatrix as Parameters<
+              typeof ThemeAnglesSection
+            >[0]['crossAgreementMatrix'])
+          : undefined
         const themeKey = (
           ['career', 'love', 'wealth', 'health', 'family', 'move'] as const
         ).find((k) => k === report.theme)
@@ -833,6 +841,7 @@ export default function ReportResultPage() {
             timing={timing as Parameters<typeof ThemeAnglesSection>[0]['timing']}
             activeTransits={activeTransits}
             birthYear={Number.isFinite(birthYear) ? birthYear : undefined}
+            crossAgreementMatrix={crossAgreementMatrix}
             theme={themeKey}
           />
         )

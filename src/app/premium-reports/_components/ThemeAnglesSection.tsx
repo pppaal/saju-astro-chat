@@ -70,6 +70,12 @@ interface ThemeAnglesSectionProps {
   targetDate?: string
   /** Theme key — selects which angle pack to render. */
   theme?: ThemeKey
+  /** Per-domain × per-timeframe saju↔astro agreement matrix. */
+  crossAgreementMatrix?: Array<{
+    domain: string
+    leadLag?: number
+    timescales?: Record<string, { agreement?: number; contradiction?: number; leadLag?: number }>
+  }>
 }
 
 interface FetchState {
@@ -87,6 +93,7 @@ export function ThemeAnglesSection({
   birthYear,
   targetDate,
   theme = 'career',
+  crossAgreementMatrix,
 }: ThemeAnglesSectionProps) {
   const [period, setPeriod] = useState<ReportPeriodScope>('lifetime')
   const [retryToken, setRetryToken] = useState(0)
@@ -116,6 +123,7 @@ export function ThemeAnglesSection({
         activeTransits,
         birthYear,
         targetDate: date,
+        crossAgreementMatrix,
       }),
       signal: controller.signal,
     })
@@ -173,7 +181,17 @@ export function ThemeAnglesSection({
         })
       })
     return () => controller.abort()
-  }, [signals, period, date, timing, activeTransits, birthYear, theme, retryToken])
+  }, [
+    signals,
+    period,
+    date,
+    timing,
+    activeTransits,
+    birthYear,
+    theme,
+    crossAgreementMatrix,
+    retryToken,
+  ])
 
   const angles = state.angles
   if (!state.loading && angles.length === 0 && !state.unavailable) {
@@ -326,6 +344,79 @@ export function ThemeAnglesSection({
             )
           })}
         </div>
+
+        {state.source === 'ai' && angles.length > 0 && (() => {
+          // Parse layer info out of signal IDs ("L5:samhap:trine" → 5,
+          // "COV:L3:planet-house..." → 3) and aggregate across all rendered
+          // angles. This is a transparency / trust signal — shows the user
+          // *how many* engine layers actually got cited, not just one.
+          const layerSet = new Set<number>()
+          let citedSignals = 0
+          for (const angle of angles) {
+            for (const ev of angle.evidence) {
+              citedSignals++
+              const match = ev.id.match(/L(\d+):/)
+              if (match) layerSet.add(Number(match[1]))
+            }
+          }
+          if (citedSignals === 0 || layerSet.size === 0) return null
+          const sortedLayers = Array.from(layerSet).sort((a, b) => a - b)
+          const FUSION_LAYERS = new Set([4, 5, 8])
+          const fusionCount = sortedLayers.filter((l) => FUSION_LAYERS.has(l)).length
+          return (
+            <div className="mt-6 rounded-2xl border border-cyan-300/15 bg-slate-950/50 px-5 py-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-200/70">
+                    Engine transparency
+                  </p>
+                  <p className="mt-1 text-[14px] leading-relaxed text-slate-200">
+                    이 본문은 사주·점성 엔진의{' '}
+                    <span className="font-semibold text-white">{layerSet.size}개 layer</span>
+                    에서 추출한{' '}
+                    <span className="font-semibold text-white">{citedSignals}개 신호</span>를
+                    교차해 짰어요.
+                    {fusionCount > 0 && (
+                      <>
+                        {' '}그 중{' '}
+                        <span className="font-semibold text-violet-200">
+                          {fusionCount}개는 fusion 신호
+                        </span>
+                        {' '}— 사주와 점성이 같은 의미를 가리키는 자리예요.
+                      </>
+                    )}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {sortedLayers.map((layer) => {
+                    const isFusion = FUSION_LAYERS.has(layer)
+                    return (
+                      <span
+                        key={layer}
+                        className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${
+                          isFusion
+                            ? 'border-violet-300/40 bg-violet-500/15 text-violet-100'
+                            : 'border-white/15 bg-white/5 text-slate-300'
+                        }`}
+                        title={
+                          layer === 4
+                            ? 'Layer 4 — 사주 시기 × 점성 cycle 융합'
+                            : layer === 5
+                              ? 'Layer 5 — 형충회합 × 각도 융합'
+                              : layer === 8
+                                ? 'Layer 8 — 신살 × 행성 융합'
+                                : `Layer ${layer}`
+                        }
+                      >
+                        L{layer}
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
       </div>
     </section>
   )

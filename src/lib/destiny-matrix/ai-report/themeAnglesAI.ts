@@ -45,6 +45,17 @@ export interface AIGenerationInput {
   ctx: ActivationContext
   /** Optional: user's display name for personalization. */
   name?: string
+  /**
+   * Optional: per-domain × per-timeframe agreement matrix between saju
+   * and astrology. When present, the prompt explicitly tells Claude
+   * "this is how strongly the two engines agree per domain" — so the
+   * model can differentiate confident calls from contested ones.
+   */
+  crossAgreementMatrix?: Array<{
+    domain: string
+    leadLag?: number
+    timescales?: Record<string, { agreement?: number; contradiction?: number; leadLag?: number }>
+  }>
 }
 
 export interface AIGenerationResult {
@@ -158,6 +169,21 @@ function buildSystemPrompt(): string {
     '너는 사주명리와 서양 점성술을 모두 능통하게 다루는 전문 상담가야.',
     '사용자가 결제한 프리미엄 리포트의 한 테마를 8개 각도로 풀어내는 게 너의 일이야.',
     '',
+    '## Fusion Engine 이해 (다른 앱과의 차별점)',
+    '신호 풀의 각 신호에는 **layer** 번호가 붙어 있어. 이건 사주와 점성이 어떻게 교차되는지 알려줘:',
+    '- L1 (오행 × 점성 원소) — 본명 코어. "일간 금 × 점성 air 우세".',
+    '- L2 (십신 × 행성) — 본명. "정재 × Venus", "편재 × Jupiter".',
+    '- L3 (십신 × 하우스) — 본명. "정재 × 11하우스".',
+    '- **L4 (사주 시기 × 점성 cycle) — 타이밍 fusion.** "대운 전환 × Saturn Return = 대전환".',
+    '- **L5 (형충회합 × 각도) — 관계×각도 fusion.** "지지삼합 × trine = 극강시너지".',
+    '- L6 (12운성 × 하우스) — 단계×자리.',
+    '- L7 (격국·용신 고급 분석).',
+    '- **L8 (신살 × 행성) — 특수 별자리 fusion.** "천을귀인 × Jupiter".',
+    '- L9 (소행성 × 하우스) — 점성 단독 (사주 대응 없음).',
+    '- L10 (엑스트라포인트 × 원소) — 점성 단독.',
+    '',
+    '**L4/L5/L8 신호는 진짜 fusion 신호** — 사주와 점성이 같은 의미로 묶여서 미리 해석된 것. 이런 신호 인용 시 "사주 X와 점성 Y가 같은 방향으로 가리키고 있어" 같이 fusion임을 명시.',
+    '',
     '## 글쓰기 원칙',
     '- 평어체 (반말 OK), 친근하지만 전문가 톤. "너", "본인" 호칭 사용.',
     '- 추상적 자기계발 문구 금지 ("균형이 중요해요", "자신을 믿으세요" 같은).',
@@ -166,6 +192,7 @@ function buildSystemPrompt(): string {
     '         "신살 천을귀인 두 자리", "지지삼합 亥卯未"',
     '- 사주 용어는 한자+풀이 병기 ("천간충 乙-辛 충(원칙·결정 충돌)").',
     '- 점성 용어는 영문+각도+오브 병기 ("Mercury-Node square 90° orb 0.29°").',
+    '- 가능하면 L4/L5/L8 fusion 신호를 우선 인용 — 단순 saju-only 또는 astro-only 묘사보다 fusion이 차별점.',
     '- 시기에 맞게 변형:',
     '  - lifetime: "평생", "본인의 결" 톤. 시기 디테일 최소.',
     '  - yearly: "올해", 세운 pillar 명시. 분기별 흐름 언급.',
@@ -209,11 +236,47 @@ function buildSignalPoolSection(signals: NormalizedSignal[], ctx: ActivationCont
     const astro = humanizeAstroBasis(signal.astroBasis)
     const basis = [saju, astro].filter(Boolean).join(' × ') || '본명 자리'
     const advice = signal.advice ? ` | advice: ${signal.advice}` : ''
+    // Mark L4/L5/L8 explicitly as fusion signals so the model knows to
+    // prioritize them — the human-friendly label makes it harder for the
+    // model to ignore than a raw layer integer.
+    const fusionTag =
+      signal.layer === 4
+        ? ' ⚡FUSION-타이밍'
+        : signal.layer === 5
+          ? ' ⚡FUSION-관계각도'
+          : signal.layer === 8
+            ? ' ⚡FUSION-신살'
+            : ''
     lines.push(
-      `- **${signal.id}** [활성도 ${level}/100, ${signal.polarity}] ${kw} — ${basis}${advice}`
+      `- **${signal.id}** [L${signal.layer}${fusionTag}, 활성도 ${level}/100, ${signal.polarity}] ${kw} — ${basis}${advice}`
     )
   }
   return lines.join('\n')
+}
+
+function buildCrossAgreementSection(
+  matrix: AIGenerationInput['crossAgreementMatrix']
+): string {
+  if (!matrix || matrix.length === 0) return ''
+  const lines: string[] = ['## 사주↔점성 도메인 합의 매트릭스', '', '도메인별로 사주와 점성이 얼마나 같은 말을 하는지 (1.0 = 완전 일치, 0 = 정반대):']
+  for (const row of matrix) {
+    const ts = row.timescales || {}
+    const cells: string[] = []
+    for (const window of ['now', '1-3m', '3-6m', '6-12m'] as const) {
+      const cell = ts[window]
+      if (!cell || typeof cell.agreement !== 'number') continue
+      cells.push(
+        `${window}: 합의 ${(cell.agreement * 100).toFixed(0)}%${
+          typeof cell.contradiction === 'number'
+            ? ` / 모순 ${(cell.contradiction * 100).toFixed(0)}%`
+            : ''
+        }`
+      )
+    }
+    if (cells.length === 0) continue
+    lines.push(`- **${row.domain}**: ${cells.join(' | ')}`)
+  }
+  return lines.length > 3 ? lines.join('\n') : ''
 }
 
 function buildPeriodSection(ctx: ActivationContext, period: ReportPeriodScope): string {
@@ -241,7 +304,8 @@ function buildAngleStructureSection(theme: ThemeKey): string {
 }
 
 function buildUserPrompt(input: AIGenerationInput): string {
-  const { theme, period, signals, ctx, name } = input
+  const { theme, period, signals, ctx, name, crossAgreementMatrix } = input
+  const crossSection = buildCrossAgreementSection(crossAgreementMatrix)
   return [
     name ? `대상: ${name}` : '',
     '',
@@ -250,9 +314,10 @@ function buildUserPrompt(input: AIGenerationInput): string {
     buildAngleStructureSection(theme),
     '',
     buildSignalPoolSection(signals, ctx),
+    crossSection ? '\n' + crossSection : '',
     '',
     `## 작업`,
-    `위 신호 풀 + 시기 컨텍스트로 **${THEME_LABEL_KO[theme]}** 테마를 8개 각도로 풀어줘. 각 angle 본문은 신호 풀에서 가장 적합한 1-3개 신호를 골라 명시 인용. 시스템 프롬프트의 JSON 형식 그대로 출력.`,
+    `위 신호 풀 + 시기 컨텍스트로 **${THEME_LABEL_KO[theme]}** 테마를 8개 각도로 풀어줘. 각 angle 본문은 신호 풀에서 가장 적합한 1-3개 신호를 골라 명시 인용. ⚡FUSION 태그가 붙은 L4/L5/L8 신호는 가능하면 우선 인용 — 사주와 점성이 같은 의미로 묶여 있다는 점을 본문에서 드러내. 시스템 프롬프트의 JSON 형식 그대로 출력.`,
   ]
     .filter(Boolean)
     .join('\n')

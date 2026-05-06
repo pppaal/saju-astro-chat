@@ -27,6 +27,12 @@ interface RequestBody {
   birthYear?: number
   targetDate?: string
   name?: string
+  /** Pass-through: per-domain × per-timeframe saju-astro agreement. */
+  crossAgreementMatrix?: Array<{
+    domain: string
+    leadLag?: number
+    timescales?: Record<string, { agreement?: number; contradiction?: number; leadLag?: number }>
+  }>
 }
 
 const VALID_THEMES = new Set<ThemeKey>(['career', 'love', 'wealth', 'health', 'family', 'move'])
@@ -91,6 +97,7 @@ export async function POST(req: NextRequest) {
         signals: body.signals,
         ctx,
         name: body.name,
+        crossAgreementMatrix: body.crossAgreementMatrix,
       })
       logger.info('[theme-angles] AI generation succeeded', {
         theme: body.theme,
