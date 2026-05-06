@@ -137,6 +137,18 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
   const phaseLabel =
     data?.matrixContract?.overallPhaseLabel ?? data?.matrixContract?.overallPhase ?? null
 
+  // Selected day's ImportantDate (engine payload row for currentDay)
+  const selectedDateStr = useMemo(
+    () =>
+      `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`,
+    [viewYear, viewMonth, currentDay],
+  )
+
+  const selectedImportantDate = useMemo(() => {
+    if (!data?.allDates) return null
+    return data.allDates.find((d) => d.date === selectedDateStr) ?? null
+  }, [data, selectedDateStr])
+
   const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
   const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
 
@@ -218,7 +230,35 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
     }
   }
 
-  const dailyEval = getDailyEvaluation(currentDay)
+  const dailyEval = useMemo(() => {
+    if (selectedImportantDate) {
+      const grade = selectedImportantDate.grade
+      const rankByGrade = ['S', 'A', 'B', 'C', 'D'] as const
+      const colorByGrade = [
+        { color: 'text-amber-400', bg: 'bg-amber-400/10' },
+        { color: 'text-purple-400', bg: 'bg-purple-400/10' },
+        { color: 'text-blue-400', bg: 'bg-blue-400/10' },
+        { color: 'text-orange-400', bg: 'bg-orange-400/10' },
+        { color: 'text-rose-400', bg: 'bg-rose-400/10' },
+      ] as const
+      return {
+        rank: rankByGrade[grade] ?? '?',
+        score: Math.round(
+          selectedImportantDate.displayScore ?? selectedImportantDate.score,
+        ),
+        title: selectedImportantDate.title,
+        text:
+          selectedImportantDate.description ||
+          selectedImportantDate.summary ||
+          data?.daySummary?.summary ||
+          data?.calendarDailyView?.oneLineSummary ||
+          '',
+        color: colorByGrade[grade]?.color ?? 'text-zinc-300',
+        bg: colorByGrade[grade]?.bg ?? 'bg-zinc-400/10',
+      }
+    }
+    return getDailyEvaluation(currentDay)
+  }, [selectedImportantDate, currentDay, data])
 
   return (
     <div className="w-full max-w-md mx-auto h-screen bg-zinc-950 text-zinc-200 font-sans flex flex-col shadow-2xl overflow-hidden relative border-x border-zinc-900">
