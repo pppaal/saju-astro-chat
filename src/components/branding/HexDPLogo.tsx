@@ -108,15 +108,17 @@ export default function HexDPLogo({ size = 64, pulse = false, epic = false }: He
       <polygon points="32,5 59,21 59,51 32,67 5,51 5,21" fill={`url(#${gid})`} />
       {/* Inner dark plate */}
       <polygon points="32,9 56,23 56,49 32,63 8,49 8,23" fill="#0a0d1f" />
-      {/* "dp" text in matching gradient — moderate size, optically centered */}
+      {/* "dp" text in matching gradient — geometric center of the hex
+          is (32, 36); a slight upward nudge compensates for the "p"
+          descender so the wordmark looks optically centered. */}
       <text
         x="32"
-        y="46"
+        y="33"
         textAnchor="middle"
-        dominantBaseline="middle"
+        dominantBaseline="central"
         fontFamily="ui-sans-serif, system-ui, -apple-system, sans-serif"
         fontWeight={800}
-        fontSize="30"
+        fontSize="26"
         letterSpacing="-0.03em"
         fill={`url(#${gid})`}
       >
