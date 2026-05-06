@@ -23,12 +23,25 @@ import type {
 import type { ThreeLayerCompatibility } from '@/lib/destiny-matrix/compatibility'
 import type { FusionCompatibilityResult } from '@/lib/compatibility/compatibilityFusion'
 import type { CoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
+import type { CoupleTimingAnalysis } from '@/lib/compatibility/coupleTimingAnalysis'
+import type { CoupleAstroTimingResult } from '@/lib/compatibility/coupleAstroTiming'
+import type { PersonIdealProfile } from '@/lib/compatibility/coupleIdealTypeProfile'
+import type { FacetReport } from '@/lib/compatibility/coupleMultiFacetReport'
+import type { CoupleExtraPointsResult } from '@/lib/compatibility/coupleExtraPoints'
+import type { CrossAnalysisResult } from '@/lib/compatibility/crossSystemAnalysis'
 
 type Result = ThreeLayerCompatibility & {
   fusion?: FusionCompatibilityResult | null
   extendedSaju?: Record<string, unknown> | null
   extendedAstro?: Record<string, unknown> | null
   deepInsights?: CoupleDeepInsights | null
+  coupleTiming?: CoupleTimingAnalysis | null
+  coupleAstroTiming?: CoupleAstroTimingResult | null
+  idealTypes?: PersonIdealProfile[] | null
+  multiFacets?: FacetReport[] | null
+  extraPoints?: CoupleExtraPointsResult | null
+  tagline?: { headline: string; subline: string } | null
+  crossSystem?: CrossAnalysisResult | null
   ages?: { a: number; b: number } | null
   narrative?: CompatibilityNarrative | null
   narrativeMeta?: {
@@ -115,14 +128,14 @@ export default function CompatibilityReportView({
               className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 via-rose-200 to-pink-500 leading-tight"
               style={{ wordBreak: 'keep-all' }}
             >
-              {narrative?.theme || `종합 ${integrated.score}점 — ${integrated.level}`}
+              {narrative?.theme || result.tagline?.headline || `종합 ${integrated.score}점 — ${integrated.level}`}
             </h1>
-            {narrative?.subTheme && (
+            {(narrative?.subTheme || result.tagline?.subline) && (
               <p
                 className="text-lg md:text-xl font-medium text-rose-300/80 leading-relaxed"
                 style={{ wordBreak: 'keep-all' }}
               >
-                {narrative.subTheme}
+                {narrative?.subTheme || result.tagline?.subline}
               </p>
             )}
           </div>
@@ -206,6 +219,22 @@ export default function CompatibilityReportView({
         {result.deepInsights && (
           <DeepInsightsSection insights={result.deepInsights} labelA={labelA} labelB={labelB} />
         )}
+        {result.idealTypes && result.idealTypes.length > 0 && (
+          <IdealTypesSection profiles={result.idealTypes} labelA={labelA} labelB={labelB} />
+        )}
+        {result.multiFacets && result.multiFacets.length > 0 && (
+          <MultiFacetsSection facets={result.multiFacets} />
+        )}
+        {(result.coupleTiming || result.coupleAstroTiming) && (
+          <TimingSection
+            saju={result.coupleTiming ?? null}
+            astro={result.coupleAstroTiming ?? null}
+            labelA={labelA}
+            labelB={labelB}
+          />
+        )}
+        {result.crossSystem && <CrossSystemSection cross={result.crossSystem} />}
+        {result.extraPoints && <ExtraPointsSection extra={result.extraPoints} />}
 
         {narrative && (
           <>
@@ -671,6 +700,382 @@ function MatchBadge({ level }: { level: 'strong' | 'partial' | 'weak' }) {
     >
       {config.label}
     </span>
+  )
+}
+
+function IdealTypesSection({
+  profiles,
+  labelA,
+  labelB,
+}: {
+  profiles: PersonIdealProfile[]
+  labelA: string
+  labelB: string
+}) {
+  return (
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
+      variants={fadeInUp}
+      className="space-y-5"
+    >
+      <div>
+        <h2 className="text-xl font-extrabold text-white">이상형 매칭 프로파일</h2>
+        <p className="text-xs text-zinc-500 mt-1">
+          Sun · Moon · Venus · Mars · Mercury · Saturn · 사주 7각도로 본 매칭
+        </p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {profiles.map((profile) => (
+          <div
+            key={profile.personIndex}
+            className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 space-y-4"
+          >
+            <div>
+              <h3 className="text-sm font-extrabold text-white">
+                {profile.personIndex === 1 ? labelA : labelB} 시점
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1 break-keep">{profile.matchSummary}</p>
+            </div>
+            <div className="space-y-2">
+              {profile.angles.map((a, i) => (
+                <div
+                  key={`${a.angle}-${i}`}
+                  className="rounded-xl border bg-black/40 border-zinc-800 p-3 text-xs space-y-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-zinc-200">{a.label}</span>
+                    <MatchBadge level={a.level} />
+                  </div>
+                  <div className="text-zinc-400 break-keep">
+                    찾는 모습: <span className="text-zinc-200">{a.seeks}</span>
+                  </div>
+                  <div className="text-zinc-400 break-keep">
+                    실제 모습: <span className="text-zinc-200">{a.partnerOffers}</span>
+                  </div>
+                  {a.note && (
+                    <p className="text-zinc-400 leading-relaxed border-t border-zinc-800 pt-1.5 break-keep">
+                      {a.note}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.section>
+  )
+}
+
+function MultiFacetsSection({ facets }: { facets: FacetReport[] }) {
+  const bandColor = (band: FacetReport['band']) =>
+    band === 'great'
+      ? 'border-rose-500/40 bg-rose-500/10 text-rose-200'
+      : band === 'good'
+        ? 'border-pink-500/40 bg-pink-500/10 text-pink-200'
+        : band === 'mixed'
+          ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
+          : 'border-zinc-700 bg-zinc-800 text-zinc-400'
+  return (
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
+      variants={fadeInUp}
+      className="space-y-5"
+    >
+      <div>
+        <h2 className="text-xl font-extrabold text-white">8 영역 다각도 분석</h2>
+        <p className="text-xs text-zinc-500 mt-1">
+          연애·친밀감·소통·갈등·가치관·헌신·일상·성장
+        </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {facets.map((f) => (
+          <div
+            key={f.key}
+            className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 space-y-3"
+          >
+            <div className="flex justify-between items-baseline">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{f.emoji}</span>
+                <h3 className="text-sm font-extrabold text-white">{f.label}</h3>
+              </div>
+              <span
+                className={`inline-block px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest rounded border ${bandColor(f.band)}`}
+              >
+                {f.band} {f.score}
+              </span>
+            </div>
+            {f.prose ? (
+              <p className="text-sm leading-relaxed text-zinc-300 break-keep font-light">
+                {f.prose}
+              </p>
+            ) : (
+              <p className="text-sm leading-relaxed text-zinc-300 break-keep font-light">
+                {f.headline}
+              </p>
+            )}
+            {(f.strengths?.length || f.minds?.length) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                {f.strengths?.length ? (
+                  <div>
+                    <div className="text-rose-300 font-bold mb-1">강점</div>
+                    <ul className="space-y-1 text-zinc-400">
+                      {f.strengths.slice(0, 3).map((s, i) => (
+                        <li key={i} className="break-keep">
+                          • {s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {f.minds?.length ? (
+                  <div>
+                    <div className="text-zinc-400 font-bold mb-1">유의</div>
+                    <ul className="space-y-1 text-zinc-400">
+                      {f.minds.slice(0, 3).map((m, i) => (
+                        <li key={i} className="break-keep">
+                          • {m}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            )}
+            {f.tip && (
+              <p className="text-xs text-rose-200 break-keep border-t border-zinc-800 pt-2">
+                💡 {f.tip}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </motion.section>
+  )
+}
+
+function TimingSection({
+  saju,
+  astro,
+  labelA,
+  labelB,
+}: {
+  saju: CoupleTimingAnalysis | null
+  astro: CoupleAstroTimingResult | null
+  labelA: string
+  labelB: string
+}) {
+  return (
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
+      variants={fadeInUp}
+      className="space-y-5"
+    >
+      <div>
+        <h2 className="text-xl font-extrabold text-white">두 사람 동행 타이밍</h2>
+        <p className="text-xs text-zinc-500 mt-1">
+          사주 대운·세운 + 점성 토성·목성 흐름이 함께 풀리는 시기
+        </p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {saju && (
+          <div className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 space-y-3">
+            <h3 className="text-sm font-extrabold text-white">사주 동행 (다가올 12개월)</h3>
+            {saju.bestMeetingMonth && (
+              <p className="text-xs text-zinc-300">
+                <span className="text-rose-300 font-bold">최적 시기:</span>{' '}
+                {formatMonthLabel(saju.bestMeetingMonth)}
+              </p>
+            )}
+            {saju.activationPeriod && (
+              <p className="text-xs text-zinc-400 break-keep">
+                <span className="text-rose-300 font-bold">활성기:</span> {saju.activationPeriod.when}{' '}
+                — {saju.activationPeriod.reason}
+              </p>
+            )}
+            {saju.cautionPeriod && (
+              <p className="text-xs text-zinc-400 break-keep">
+                <span className="text-amber-300 font-bold">주의기:</span> {saju.cautionPeriod.when}{' '}
+                — {saju.cautionPeriod.reason}
+              </p>
+            )}
+            {saju.primeYearWindow && (
+              <p className="text-xs text-zinc-400 break-keep">
+                <span className="text-rose-300 font-bold">핵심 연도:</span>{' '}
+                {saju.primeYearWindow.startYear}~{saju.primeYearWindow.endYear} —{' '}
+                {saju.primeYearWindow.reason}
+              </p>
+            )}
+            {saju.monthlyOutlook && (
+              <p className="text-xs leading-relaxed text-zinc-300 break-keep border-t border-zinc-800 pt-2">
+                {saju.monthlyOutlook}
+              </p>
+            )}
+          </div>
+        )}
+        {astro && (
+          <div className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 space-y-3">
+            <h3 className="text-sm font-extrabold text-white">점성 트랜짓 시기</h3>
+            {astro.saturnEra && (
+              <div className="rounded-2xl border bg-black/40 border-zinc-800 p-3 space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-zinc-200">
+                    🪐 토성 in {astro.saturnEra.signKo}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 break-keep">{astro.saturnEra.themeKo}</p>
+                <p className="text-xs text-zinc-300 break-keep border-t border-zinc-800 pt-1.5">
+                  {astro.saturnEra.bothImpact}
+                </p>
+              </div>
+            )}
+            {astro.jupiterEra && (
+              <div className="rounded-2xl border bg-black/40 border-zinc-800 p-3 space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-zinc-200">
+                    🌞 목성 in {astro.jupiterEra.signKo}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 break-keep">{astro.jupiterEra.themeKo}</p>
+                <p className="text-xs text-zinc-300 break-keep border-t border-zinc-800 pt-1.5">
+                  {astro.jupiterEra.bothImpact}
+                </p>
+              </div>
+            )}
+            {astro.lifeStages?.length > 0 && (
+              <div className="space-y-1">
+                <div className="text-xs font-bold text-zinc-400">인생 단계 이벤트</div>
+                {astro.lifeStages.slice(0, 4).map((s, i) => (
+                  <p key={i} className="text-xs text-zinc-400 break-keep">
+                    <span className="text-zinc-300">
+                      {s.label} ({s.person === 1 ? labelA : labelB}, {s.timing})
+                    </span>{' '}
+                    — {s.description}
+                  </p>
+                ))}
+              </div>
+            )}
+            {astro.crossNarrative && (
+              <p className="text-xs leading-relaxed text-zinc-300 break-keep border-t border-zinc-800 pt-2">
+                {astro.crossNarrative}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </motion.section>
+  )
+}
+
+function formatMonthLabel(m: unknown): string {
+  if (!m || typeof m !== 'object') return '시기 미정'
+  const obj = m as { year?: number; month?: number; tone?: string }
+  const year = typeof obj.year === 'number' ? obj.year : ''
+  const month = typeof obj.month === 'number' ? obj.month : ''
+  return `${year}${year && month ? '년 ' : ''}${month ? `${month}월` : ''}${obj.tone ? ` (${obj.tone})` : ''}`.trim()
+}
+
+function CrossSystemSection({ cross }: { cross: CrossAnalysisResult }) {
+  return (
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
+      variants={fadeInUp}
+      className="space-y-5"
+    >
+      <div>
+        <h2 className="text-xl font-extrabold text-white">사주 ↔ 점성 교차 그래프</h2>
+        <p className="text-xs text-zinc-500 mt-1">
+          일간×Sun, 월지×Moon, 오행 융합, 기둥×행성 대응 — 동·서양 교차 신호
+        </p>
+      </div>
+      <div className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 space-y-4">
+        <div className="flex items-baseline justify-between">
+          <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+            교차 점수
+          </span>
+          <span className="text-3xl font-black text-rose-300">{cross.crossSystemScore}</span>
+        </div>
+        {cross.dayMasterSunAnalysis?.crossHarmony?.interpretation && (
+          <p className="text-sm leading-relaxed text-zinc-300 break-keep">
+            <span className="text-rose-300 font-bold">일간 × Sun:</span>{' '}
+            {cross.dayMasterSunAnalysis.crossHarmony.interpretation}
+          </p>
+        )}
+        {Array.isArray(cross.monthBranchMoonAnalysis?.interpretation) &&
+          cross.monthBranchMoonAnalysis.interpretation[0] && (
+            <p className="text-sm leading-relaxed text-zinc-300 break-keep">
+              <span className="text-rose-300 font-bold">월지 × Moon:</span>{' '}
+              {cross.monthBranchMoonAnalysis.interpretation[0]}
+            </p>
+          )}
+        {Array.isArray(cross.elementFusionAnalysis?.interpretation) &&
+          cross.elementFusionAnalysis.interpretation[0] && (
+            <p className="text-sm leading-relaxed text-zinc-300 break-keep">
+              <span className="text-rose-300 font-bold">오행 융합:</span>{' '}
+              {cross.elementFusionAnalysis.interpretation[0]}
+            </p>
+          )}
+        {cross.pillarPlanetCorrespondence?.fusionReading && (
+          <p className="text-sm leading-relaxed text-zinc-300 break-keep">
+            <span className="text-rose-300 font-bold">기둥 × 행성:</span>{' '}
+            {cross.pillarPlanetCorrespondence.fusionReading}
+          </p>
+        )}
+      </div>
+    </motion.section>
+  )
+}
+
+function ExtraPointsSection({ extra }: { extra: CoupleExtraPointsResult }) {
+  const e = extra as unknown as Record<string, unknown>
+  const flatList: Array<{ key: string; text: string }> = []
+  for (const [key, value] of Object.entries(e)) {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      flatList.push({ key, text: value.trim() })
+    } else if (Array.isArray(value)) {
+      for (const v of value) {
+        if (typeof v === 'string' && v.trim().length > 0) {
+          flatList.push({ key, text: v.trim() })
+        }
+      }
+    }
+  }
+  if (flatList.length === 0) return null
+  return (
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
+      variants={fadeInUp}
+      className="space-y-5"
+    >
+      <div>
+        <h2 className="text-xl font-extrabold text-white">가산점 신호</h2>
+        <p className="text-xs text-zinc-500 mt-1">Lilith · Chiron · Vertex 등 보조 포인트</p>
+      </div>
+      <div className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 space-y-2">
+        {flatList.slice(0, 8).map((entry, i) => (
+          <div
+            key={i}
+            className="text-xs text-zinc-300 leading-relaxed flex items-start"
+          >
+            <span className="text-rose-400 mr-2 mt-0.5">•</span>
+            <span style={{ wordBreak: 'keep-all' }}>
+              <span className="text-zinc-500 font-mono mr-2">{entry.key}</span>
+              {entry.text}
+            </span>
+          </div>
+        ))}
+      </div>
+    </motion.section>
   )
 }
 

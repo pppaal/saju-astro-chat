@@ -247,6 +247,152 @@ function formatDeepInsights(ctx: PremiumCompatibilityContext): string | null {
   return lines.length > 1 ? lines.join('\n') : null
 }
 
+function formatCoupleTiming(ctx: PremiumCompatibilityContext): string | null {
+  const t = ctx.coupleTiming
+  if (!t) return null
+  const lines = ['### 두 사람 동행 타이밍 (대운·세운 12개월)']
+  if (t.bestMeetingMonth) {
+    lines.push(`- 최적 시기: ${JSON.stringify(t.bestMeetingMonth)}`)
+  }
+  if (Array.isArray(t.upcomingMonths) && t.upcomingMonths.length > 0) {
+    lines.push(
+      `- 향후 12개월 주요 흐름: ${t.upcomingMonths
+        .slice(0, 6)
+        .map((m) => JSON.stringify(m))
+        .join(' / ')}`
+    )
+  }
+  if (t.activationPeriod) {
+    lines.push(`- 활성기: ${t.activationPeriod.when} — ${t.activationPeriod.reason}`)
+  }
+  if (t.cautionPeriod) {
+    lines.push(`- 주의기: ${t.cautionPeriod.when} — ${t.cautionPeriod.reason}`)
+  }
+  if (t.primeYearWindow) {
+    lines.push(
+      `- 핵심 연도: ${t.primeYearWindow.startYear}~${t.primeYearWindow.endYear} — ${t.primeYearWindow.reason}`
+    )
+  }
+  if (t.monthlyOutlook) {
+    lines.push(`- 월별 전망 요약: ${t.monthlyOutlook.slice(0, 280)}`)
+  }
+  return lines.length > 1 ? lines.join('\n') : null
+}
+
+function formatCoupleAstroTiming(ctx: PremiumCompatibilityContext): string | null {
+  const t = ctx.coupleAstroTiming
+  if (!t) return null
+  const lines = ['### 점성 트랜짓 타이밍 (Saturn / Jupiter 시기)']
+  if (t.saturnEra) {
+    lines.push(
+      `- 토성기 (${t.saturnEra.signKo}): ${t.saturnEra.themeKo} — ${t.saturnEra.bothImpact}`
+    )
+  }
+  if (t.jupiterEra) {
+    lines.push(
+      `- 목성기 (${t.jupiterEra.signKo}): ${t.jupiterEra.themeKo} — ${t.jupiterEra.bothImpact}`
+    )
+  }
+  if (Array.isArray(t.lifeStages) && t.lifeStages.length > 0) {
+    for (const s of t.lifeStages.slice(0, 6)) {
+      lines.push(`- ${s.label} (P${s.person}, ${s.timing}): ${s.description}`)
+    }
+  }
+  if (t.crossNarrative) {
+    lines.push(`- 교차 흐름: ${t.crossNarrative.slice(0, 280)}`)
+  }
+  return lines.length > 1 ? lines.join('\n') : null
+}
+
+function formatIdealTypes(ctx: PremiumCompatibilityContext): string | null {
+  if (!ctx.idealTypes || ctx.idealTypes.length === 0) return null
+  const lines = ['### 이상형 매칭 프로파일 (6각도)']
+  for (const profile of ctx.idealTypes.slice(0, 2)) {
+    lines.push(`- Person ${profile.personIndex}: ${profile.matchSummary}`)
+    for (const angle of profile.angles.slice(0, 6)) {
+      lines.push(
+        `  · ${angle.label} [${angle.level}] — 찾는 모습: ${angle.seeks} / 실제: ${angle.partnerOffers}`
+      )
+    }
+  }
+  return lines.join('\n')
+}
+
+function formatMultiFacets(ctx: PremiumCompatibilityContext): string | null {
+  if (!ctx.multiFacets || ctx.multiFacets.length === 0) return null
+  const lines = ['### 8 영역 다각도 분석']
+  for (const f of ctx.multiFacets) {
+    lines.push(`- ${f.emoji} ${f.label} [${f.band} ${f.score}]: ${f.headline}`)
+    if (f.strengths?.length) {
+      lines.push(`  · 강점: ${f.strengths.slice(0, 2).join(' / ')}`)
+    }
+    if (f.minds?.length) {
+      lines.push(`  · 유의: ${f.minds.slice(0, 2).join(' / ')}`)
+    }
+    if (f.tip) {
+      lines.push(`  · 팁: ${f.tip}`)
+    }
+  }
+  return lines.join('\n')
+}
+
+function formatExtraPoints(ctx: PremiumCompatibilityContext): string | null {
+  const ex = ctx.extraPoints as Record<string, unknown> | null
+  if (!ex || typeof ex !== 'object') return null
+  const lines = ['### 가산점 신호 (Lilith·Chiron·Vertex 등)']
+  for (const [key, value] of Object.entries(ex)) {
+    if (typeof value === 'string' && value.trim().length > 0 && value.length < 400) {
+      lines.push(`- ${key}: ${value.trim()}`)
+    } else if (typeof value === 'number') {
+      lines.push(`- ${key}: ${value}`)
+    } else if (Array.isArray(value)) {
+      const list = value
+        .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+        .slice(0, 5)
+      if (list.length > 0) {
+        lines.push(`- ${key}: ${list.join(' / ')}`)
+      }
+    }
+  }
+  return lines.length > 1 ? lines.join('\n') : null
+}
+
+function formatCrossSystem(ctx: PremiumCompatibilityContext): string | null {
+  const cs = ctx.crossSystem
+  if (!cs) return null
+  const lines = ['### 사주 ↔ 점성 교차 그래프']
+  lines.push(`- 교차 점수: ${cs.crossSystemScore}/100`)
+  if (cs.dayMasterSunAnalysis?.crossHarmony?.interpretation) {
+    lines.push(`- 일간 × 태양: ${cs.dayMasterSunAnalysis.crossHarmony.interpretation}`)
+  }
+  if (Array.isArray(cs.monthBranchMoonAnalysis?.interpretation)) {
+    const pick = cs.monthBranchMoonAnalysis.interpretation[0]
+    if (pick) lines.push(`- 월지 × 달: ${pick}`)
+  }
+  if (Array.isArray(cs.elementFusionAnalysis?.interpretation)) {
+    const pick = cs.elementFusionAnalysis.interpretation[0]
+    if (pick) lines.push(`- 오행 융합: ${pick}`)
+  }
+  if (cs.pillarPlanetCorrespondence?.fusionReading) {
+    lines.push(`- 기둥 × 행성 대응: ${cs.pillarPlanetCorrespondence.fusionReading}`)
+  }
+  if (Array.isArray(cs.fusionInsights) && cs.fusionInsights.length > 0) {
+    for (const ins of cs.fusionInsights.slice(0, 3)) {
+      if (typeof ins === 'string' && ins.trim().length > 0) {
+        lines.push(`- 종합: ${ins}`)
+      }
+    }
+  }
+  return lines.length > 1 ? lines.join('\n') : null
+}
+
+function formatTagline(ctx: PremiumCompatibilityContext): string | null {
+  if (!ctx.tagline) return null
+  const { headline, subline } = ctx.tagline
+  if (!headline && !subline) return null
+  return `### 엔진 도출 한 줄 태그라인\n- ${headline}\n- ${subline}`
+}
+
 export function buildCompatibilityNarrativeUserPrompt(input: CompatibilityNarrativePromptInput): string {
   const labelA = input.labelA || 'A'
   const labelB = input.labelB || 'B'
@@ -272,21 +418,23 @@ export function buildCompatibilityNarrativeUserPrompt(input: CompatibilityNarrat
   ]
 
   if (input.context) {
-    const fusionBlock = formatFusionBlock(input.context)
-    if (fusionBlock) {
-      sections.push(fusionBlock, '')
-    }
-    const exSaju = formatExtendedSaju(input.context)
-    if (exSaju) {
-      sections.push(exSaju, '')
-    }
-    const exAstro = formatExtendedAstro(input.context)
-    if (exAstro) {
-      sections.push(exAstro, '')
-    }
-    const deep = formatDeepInsights(input.context)
-    if (deep) {
-      sections.push(deep, '')
+    const blocks = [
+      formatTagline(input.context),
+      formatFusionBlock(input.context),
+      formatExtendedSaju(input.context),
+      formatExtendedAstro(input.context),
+      formatDeepInsights(input.context),
+      formatCoupleTiming(input.context),
+      formatCoupleAstroTiming(input.context),
+      formatIdealTypes(input.context),
+      formatMultiFacets(input.context),
+      formatExtraPoints(input.context),
+      formatCrossSystem(input.context),
+    ]
+    for (const block of blocks) {
+      if (block) {
+        sections.push(block, '')
+      }
     }
     sections.push(
       `[보조 정보]`,

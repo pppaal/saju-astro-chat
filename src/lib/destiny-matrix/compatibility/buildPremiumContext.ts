@@ -1,21 +1,52 @@
 // src/lib/destiny-matrix/compatibility/buildPremiumContext.ts
 //
-// Server-side orchestrator that runs the FULL compatibility engine (every
-// module the existing /api/compatibility/counselor uses) for two birth
-// profiles, plus the 3-layer summary used by the result page cards. The
-// LLM narrative generator consumes the structured output of this builder
-// so the magazine prose can quote격국·신살·대운·어스펙트 by name.
+// Server-side orchestrator that runs the FULL compatibility engine — every
+// public module under src/lib/compatibility — for two birth profiles.
+//
+// Modules included (all 12):
+//   1. analyzeThreeLayerCompatibility   (UI score-cards row)
+//   2. calculateFusionCompatibility     (fusion engine)
+//   3. performExtendedSajuAnalysis      (격국·신살·60갑자·용신·대운 동행)
+//   4. performExtendedAstrologyAnalysis (어스펙트·하우스·트랜짓)
+//   5. analyzeCoupleDeepInsights        (이상형·결혼·지속력)
+//   6. analyzeCoupleTiming              (대운·세운 12개월 동행 타이밍)
+//   7. analyzeCoupleAstroTiming         (점성 트랜짓 타이밍)
+//   8. buildIdealTypeProfiles           (이상형 프로파일 — 6각도)
+//   9. buildMultiFacetReport            (8 영역 다각도 리포트)
+//  10. analyzeCoupleExtraPoints         (Lilith·Chiron·Vertex 등 가산점)
+//  11. buildCoupleTagline               (한 줄 태그라인)
+//  12. performCrossSystemAnalysis       (사주 ↔ 점성 교차 그래프)
 
 import { calculateFusionCompatibility } from '@/lib/compatibility/compatibilityFusion'
 import type { FusionCompatibilityResult } from '@/lib/compatibility/compatibilityFusion'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
 import { analyzeCoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
+import type { CoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
+import { analyzeCoupleTiming } from '@/lib/compatibility/coupleTimingAnalysis'
+import type { CoupleTimingAnalysis } from '@/lib/compatibility/coupleTimingAnalysis'
+import { analyzeCoupleAstroTiming } from '@/lib/compatibility/coupleAstroTiming'
+import type { CoupleAstroTimingResult } from '@/lib/compatibility/coupleAstroTiming'
+import { buildIdealTypeProfiles } from '@/lib/compatibility/coupleIdealTypeProfile'
+import type { PersonIdealProfile } from '@/lib/compatibility/coupleIdealTypeProfile'
+import { buildMultiFacetReport } from '@/lib/compatibility/coupleMultiFacetReport'
+import type { FacetReport } from '@/lib/compatibility/coupleMultiFacetReport'
+import { analyzeCoupleExtraPoints } from '@/lib/compatibility/coupleExtraPoints'
+import type { CoupleExtraPointsResult } from '@/lib/compatibility/coupleExtraPoints'
+import { buildCoupleTagline } from '@/lib/compatibility/coupleTagline'
+import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
+import type {
+  CrossAnalysisResult,
+  SajuProfile as CrossSajuProfile,
+  AstroProfile as CrossAstroProfile,
+} from '@/lib/compatibility/crossSystemAnalysis'
 import { analyzeThreeLayerCompatibility } from '@/lib/destiny-matrix/compatibility/threeLayerSynastry'
 import type {
   CompatibilityPerson,
   ThreeLayerCompatibility,
 } from '@/lib/destiny-matrix/compatibility/threeLayerSynastry'
+import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
+import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
 import {
   buildAutoSajuContext,
   buildAutoAstroContext,
@@ -35,36 +66,47 @@ export interface PremiumCompatibilityInput {
 }
 
 export interface PremiumCompatibilityContext {
-  /** Lightweight 3-layer summary, drives the score-cards row on the result page. */
   threeLayer: ThreeLayerCompatibility
-  /** Fusion engine — overall saju × astro fusion score with category breakdown. */
   fusion: FusionCompatibilityResult | null
-  /** Extended saju (격국·신살·60갑자·용신 비교 + 대운·세운 동행). */
   extendedSaju: ReturnType<typeof performExtendedSajuAnalysis> | null
-  /** Extended astrology (어스펙트·하우스·트랜짓 매트릭스). */
   extendedAstro: ReturnType<typeof performExtendedAstrologyAnalysis> | null
-  /** Couple deep insights (성격·소통·갈등 패턴). */
-  deepInsights: ReturnType<typeof analyzeCoupleDeepInsights> | null
-  /** Per-person ages used to drive timing analysis. */
+  deepInsights: CoupleDeepInsights | null
+  coupleTiming: CoupleTimingAnalysis | null
+  coupleAstroTiming: CoupleAstroTimingResult | null
+  idealTypes: PersonIdealProfile[] | null
+  multiFacets: FacetReport[] | null
+  extraPoints: CoupleExtraPointsResult | null
+  tagline: { headline: string; subline: string } | null
+  crossSystem: CrossAnalysisResult | null
   ages: { a: number; b: number }
-  /** True when one or more profile inputs fell back to defaults. */
   usedDefaults: { locationA: boolean; locationB: boolean; timezoneA: boolean; timezoneB: boolean }
 }
 
 const FALLBACK_AGE = 30
 
-/**
- * Runs every compatibility engine module the counselor uses (and a couple
- * extras) for two birth profiles. Designed to be called from a Next API
- * route — uses the existing routeSupport helpers verbatim so the inputs to
- * each module are byte-identical to the counselor pipeline.
- */
+function tryRun<T>(label: string, fn: () => T): T | null {
+  try {
+    return fn()
+  } catch (err) {
+    logger.warn(`[premium-compat] ${label} failed`, { err: String(err) })
+    return null
+  }
+}
+
+async function tryRunAsync<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
+  try {
+    return await fn()
+  } catch (err) {
+    logger.warn(`[premium-compat] ${label} failed`, { err: String(err) })
+    return null
+  }
+}
+
 export async function buildPremiumCompatibilityContext(
   input: PremiumCompatibilityInput
 ): Promise<PremiumCompatibilityContext> {
   const now = new Date()
 
-  // 1. Seeds + auto saju/astro context (Asia/Seoul fallback handled inside).
   const seedA = buildPersonSeed({
     birthDate: input.personA.birthDate,
     birthTime: input.personA.birthTime,
@@ -86,7 +128,6 @@ export async function buildPremiumCompatibilityContext(
     buildAutoAstroContext(seedB, now),
   ])
 
-  // 2. Engine module inputs.
   const ageA = getAgeFromBirthDate(input.personA.birthDate) ?? FALLBACK_AGE
   const ageB = getAgeFromBirthDate(input.personB.birthDate) ?? FALLBACK_AGE
   const currentYear = now.getFullYear()
@@ -98,63 +139,194 @@ export async function buildPremiumCompatibilityContext(
   const extendedAstroA = buildExtendedAstroProfile(autoAstroA as Record<string, unknown>)
   const extendedAstroB = buildExtendedAstroProfile(autoAstroB as Record<string, unknown>)
 
-  // 3. 3-layer summary (used for the score-card row UI).
+  // Real Chart instances for couple-astro-timing + extra-points (the auto
+  // astro context flattens to plain objects, so we recompute the Chart
+  // here). Skipped in tests where node_env disables ephemeris work.
+  const chartPair = await tryRunAsync('chart-pair', async () => {
+    const [yA, mA, dA] = seedA.date.split('-').map(Number)
+    const [hA, miA] = seedA.time.split(':').map(Number)
+    const [yB, mB, dB] = seedB.date.split('-').map(Number)
+    const [hB, miB] = seedB.time.split(':').map(Number)
+    const [natalA, natalB, transit] = await Promise.all([
+      calculateNatalChart({
+        year: yA, month: mA, date: dA, hour: hA, minute: miA,
+        latitude: seedA.latitude, longitude: seedA.longitude, timeZone: seedA.timeZone,
+      }),
+      calculateNatalChart({
+        year: yB, month: mB, date: dB, hour: hB, minute: miB,
+        latitude: seedB.latitude, longitude: seedB.longitude, timeZone: seedB.timeZone,
+      }),
+      calculateTransitChart({
+        iso: now.toISOString(),
+        latitude: seedA.latitude,
+        longitude: seedA.longitude,
+        timeZone: seedA.timeZone,
+      }),
+    ])
+    return {
+      natalChartA: toChart(natalA),
+      natalChartB: toChart(natalB),
+      transitChart: transit,
+      natalRawA: natalA,
+      natalRawB: natalB,
+    }
+  })
+
+  // 1. Three-layer summary (always runs).
   const threeLayer = analyzeThreeLayerCompatibility(input.personA, input.personB)
 
-  // 4. Full engine modules — each call wrapped so a single failure doesn't
-  //    sink the whole report.
+  // 2. Fusion + 3. ExtendedSaju
   let fusion: FusionCompatibilityResult | null = null
   let extendedSaju: ReturnType<typeof performExtendedSajuAnalysis> | null = null
+  if (sajuProfileA && sajuProfileB && astroProfileA && astroProfileB) {
+    fusion = tryRun('fusion', () =>
+      calculateFusionCompatibility(sajuProfileA, astroProfileA, sajuProfileB, astroProfileB)
+    )
+    extendedSaju = tryRun('extendedSaju', () =>
+      performExtendedSajuAnalysis(sajuProfileA, sajuProfileB, ageA, ageB, currentYear)
+    )
+  }
+
+  // 4. ExtendedAstro
   let extendedAstro: ReturnType<typeof performExtendedAstrologyAnalysis> | null = null
-  let deepInsights: ReturnType<typeof analyzeCoupleDeepInsights> | null = null
-
-  if (sajuProfileA && sajuProfileB && astroProfileA && astroProfileB) {
-    try {
-      fusion = calculateFusionCompatibility(sajuProfileA, astroProfileA, sajuProfileB, astroProfileB)
-    } catch (err) {
-      logger.warn('[premium-compat] fusion failed', { err: String(err) })
-    }
-    try {
-      extendedSaju = performExtendedSajuAnalysis(sajuProfileA, sajuProfileB, ageA, ageB, currentYear)
-    } catch (err) {
-      logger.warn('[premium-compat] extendedSaju failed', { err: String(err) })
-    }
-  }
-
   if (extendedAstroA && extendedAstroB) {
-    try {
-      extendedAstro = performExtendedAstrologyAnalysis(
-        extendedAstroA,
-        extendedAstroB,
-        Math.abs(ageA - ageB)
-      )
-    } catch (err) {
-      logger.warn('[premium-compat] extendedAstro failed', { err: String(err) })
-    }
+    extendedAstro = tryRun('extendedAstro', () =>
+      performExtendedAstrologyAnalysis(extendedAstroA, extendedAstroB, Math.abs(ageA - ageB))
+    )
   }
 
+  // 5. CoupleDeepInsights
+  let deepInsights: CoupleDeepInsights | null = null
   if (sajuProfileA && sajuProfileB && astroProfileA && astroProfileB) {
-    try {
-      const fusionScores = fusion?.breakdown ?? null
-      const dynamics = fusion?.relationshipDynamics
-      deepInsights = analyzeCoupleDeepInsights({
+    const dyn = fusion?.relationshipDynamics
+    const breakdown = fusion?.breakdown
+    deepInsights = tryRun('deepInsights', () =>
+      analyzeCoupleDeepInsights({
         p1Saju: sajuProfileA,
         p2Saju: sajuProfileB,
         p1Astro: extendedAstroA ?? astroProfileA,
         p2Astro: extendedAstroB ?? astroProfileB,
         fusion: {
-          sajuScore: fusionScores?.saju ?? null,
-          astrologyScore: fusionScores?.astrology ?? null,
+          sajuScore: breakdown?.saju ?? null,
+          astrologyScore: breakdown?.astrology ?? null,
           fusionScore: fusion?.overallScore ?? null,
-          crossScore: fusionScores?.elementalHarmony ?? null,
-          emotionalIntensity: dynamics?.emotionalIntensity ?? null,
-          intellectualAlignment: dynamics?.intellectualAlignment ?? null,
-          spiritualConnection: dynamics?.spiritualConnection ?? null,
+          crossScore: breakdown?.elementalHarmony ?? null,
+          emotionalIntensity: dyn?.emotionalIntensity ?? null,
+          intellectualAlignment: dyn?.intellectualAlignment ?? null,
+          spiritualConnection: dyn?.spiritualConnection ?? null,
         },
       })
-    } catch (err) {
-      logger.warn('[premium-compat] deepInsights failed', { err: String(err) })
-    }
+    )
+  }
+
+  // 6. CoupleTiming (대운·세운 12개월)
+  const coupleTiming = tryRun('coupleTiming', () =>
+    analyzeCoupleTiming(
+      autoSajuA as Record<string, unknown> | null,
+      autoSajuB as Record<string, unknown> | null
+    )
+  )
+
+  // 7. CoupleAstroTiming (점성 트랜짓 — needs Chart instances)
+  let coupleAstroTiming: CoupleAstroTimingResult | null = null
+  if (chartPair) {
+    coupleAstroTiming = tryRun('coupleAstroTiming', () =>
+      analyzeCoupleAstroTiming(
+        chartPair.natalChartA,
+        chartPair.natalChartB,
+        seedA.date,
+        seedB.date,
+        chartPair.transitChart,
+        null
+      )
+    )
+  }
+
+  // 8. IdealTypeProfiles
+  let idealTypes: PersonIdealProfile[] | null = null
+  if (sajuProfileA && sajuProfileB && astroProfileA && astroProfileB) {
+    idealTypes = tryRun('idealTypes', () =>
+      buildIdealTypeProfiles(
+        sajuProfileA,
+        sajuProfileB,
+        extendedAstroA ?? astroProfileA,
+        extendedAstroB ?? astroProfileB
+      )
+    )
+  }
+
+  // 9. MultiFacetReport
+  let multiFacets: FacetReport[] | null = null
+  if (sajuProfileA && sajuProfileB && astroProfileA && astroProfileB) {
+    const dyn = fusion?.relationshipDynamics
+    const breakdown = fusion?.breakdown
+    multiFacets = tryRun('multiFacets', () =>
+      buildMultiFacetReport({
+        p1Saju: sajuProfileA,
+        p2Saju: sajuProfileB,
+        p1Astro: extendedAstroA ?? astroProfileA,
+        p2Astro: extendedAstroB ?? astroProfileB,
+        fusion: {
+          sajuScore: breakdown?.saju ?? null,
+          astrologyScore: breakdown?.astrology ?? null,
+          fusionScore: fusion?.overallScore ?? null,
+          crossScore: breakdown?.elementalHarmony ?? null,
+          dayMasterHarmony: null,
+          sunMoonHarmony: null,
+          venusMarsSynergy: null,
+          intellectualAlignment: dyn?.intellectualAlignment ?? null,
+          spiritualConnection: dyn?.spiritualConnection ?? null,
+          emotionalIntensity: dyn?.emotionalIntensity ?? null,
+        },
+      } as Parameters<typeof buildMultiFacetReport>[0])
+    )
+  }
+
+  // 10. ExtraPoints (Lilith·Chiron·Vertex 등 — needs natal chart + lat/lon)
+  let extraPoints: CoupleExtraPointsResult | null = null
+  if (chartPair) {
+    extraPoints = tryRun('extraPoints', () =>
+      analyzeCoupleExtraPoints(
+        chartPair.natalChartA,
+        chartPair.natalChartB,
+        seedA.latitude,
+        seedA.longitude,
+        seedB.latitude,
+        seedB.longitude
+      )
+    )
+  }
+
+  // 11. CoupleTagline
+  const tagline = tryRun('tagline', () =>
+    buildCoupleTagline({
+      overallScore: fusion?.overallScore ?? threeLayer.integrated.score,
+      sajuScore: fusion?.breakdown?.saju ?? threeLayer.layer1_saju.score,
+      astrologyScore: fusion?.breakdown?.astrology ?? threeLayer.layer2_synastry.score,
+      crossScore: fusion?.breakdown?.elementalHarmony ?? threeLayer.layer3_composite.score,
+      fusion: fusion
+        ? {
+            dayMasterHarmony: null,
+            sunMoonHarmony: null,
+            venusMarsSynergy: null,
+            intellectualAlignment: fusion.relationshipDynamics?.intellectualAlignment ?? null,
+            spiritualConnection: fusion.relationshipDynamics?.spiritualConnection ?? null,
+          }
+        : null,
+    })
+  )
+
+  // 12. CrossSystem (사주 ↔ 점성 교차 그래프)
+  let crossSystem: CrossAnalysisResult | null = null
+  if (sajuProfileA && sajuProfileB && astroProfileA && astroProfileB) {
+    crossSystem = tryRun('crossSystem', () =>
+      performCrossSystemAnalysis(
+        sajuProfileA as unknown as CrossSajuProfile,
+        sajuProfileB as unknown as CrossSajuProfile,
+        astroProfileA as unknown as CrossAstroProfile,
+        astroProfileB as unknown as CrossAstroProfile
+      )
+    )
   }
 
   return {
@@ -163,6 +335,13 @@ export async function buildPremiumCompatibilityContext(
     extendedSaju,
     extendedAstro,
     deepInsights,
+    coupleTiming,
+    coupleAstroTiming,
+    idealTypes,
+    multiFacets,
+    extraPoints,
+    tagline,
+    crossSystem,
     ages: { a: ageA, b: ageB },
     usedDefaults: {
       locationA: seedA.source.usedDefaultLocation,

@@ -21,6 +21,12 @@ import type { ThreeLayerCompatibility } from '@/lib/destiny-matrix/compatibility
 import type { CompatibilityNarrative } from '@/lib/destiny-matrix/compatibility/narrativeTypes'
 import type { FusionCompatibilityResult } from '@/lib/compatibility/compatibilityFusion'
 import type { CoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
+import type { CoupleTimingAnalysis } from '@/lib/compatibility/coupleTimingAnalysis'
+import type { CoupleAstroTimingResult } from '@/lib/compatibility/coupleAstroTiming'
+import type { PersonIdealProfile } from '@/lib/compatibility/coupleIdealTypeProfile'
+import type { FacetReport } from '@/lib/compatibility/coupleMultiFacetReport'
+import type { CoupleExtraPointsResult } from '@/lib/compatibility/coupleExtraPoints'
+import type { CrossAnalysisResult } from '@/lib/compatibility/crossSystemAnalysis'
 
 interface PersonForm {
   label: string
@@ -41,6 +47,13 @@ interface ApiResult extends ThreeLayerCompatibility {
   extendedSaju?: Record<string, unknown> | null
   extendedAstro?: Record<string, unknown> | null
   deepInsights?: CoupleDeepInsights | null
+  coupleTiming?: CoupleTimingAnalysis | null
+  coupleAstroTiming?: CoupleAstroTimingResult | null
+  idealTypes?: PersonIdealProfile[] | null
+  multiFacets?: FacetReport[] | null
+  extraPoints?: CoupleExtraPointsResult | null
+  tagline?: { headline: string; subline: string } | null
+  crossSystem?: CrossAnalysisResult | null
   ages?: { a: number; b: number } | null
   narrative?: CompatibilityNarrative | null
   narrativeMeta?: {
