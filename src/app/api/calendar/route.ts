@@ -38,6 +38,8 @@ import { buildCalendarPresentationView } from './lib/presentationAdapter'
 import type { DomainKey, MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { CalendarMatrixEvidencePacketMap } from './lib/matrixEvidencePacket'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
+import { calculateAllAsteroids } from '@/lib/astrology/foundation/asteroids'
+import { calculateExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import {
   buildDerivedCrossSnapshot,
   deriveAdvancedSajuMatrixFields,
@@ -281,7 +283,7 @@ function buildActiveTransitCycles(
   return [...cycles]
 }
 
-function buildCalendarMatrixInput(params: {
+async function buildCalendarMatrixInput(params: {
   birthDate: string
   birthTime?: string
   birthPlace: string
@@ -304,7 +306,7 @@ function buildCalendarMatrixInput(params: {
     }
   }
   astroProfile: CalendarAstroProfile
-}): MatrixCalculationInput {
+}): Promise<MatrixCalculationInput> {
   const { sajuProfile, astroProfile } = params
   const pillarElements = [
     STEM_TO_ELEMENT[sajuProfile.pillars.year.stem],
@@ -377,6 +379,65 @@ function buildCalendarMatrixInput(params: {
 
   const asteroidHouses: MatrixCalculationInput['asteroidHouses'] = {}
   const extraPointSigns: MatrixCalculationInput['extraPointSigns'] = {}
+
+  // L9 / L10 inputs: when the full natal chart is available, compute the
+  // four major asteroids and the four extra points so layers 9 (asteroid
+  // × house) and 10 (extra-point × element) populate per-user.
+  const fullNatal = astroProfile.natalChart as NatalChartData | undefined
+  if (fullNatal && fullNatal.meta?.jdUT && Array.isArray(fullNatal.houses)) {
+    try {
+      const houseCusps = fullNatal.houses.map((h) => h.cusp).filter((c): c is number => typeof c === 'number')
+      if (houseCusps.length === 12) {
+        const asteroids = calculateAllAsteroids(fullNatal.meta.jdUT, houseCusps)
+        const setH = (name: string, h: number | undefined) => {
+          if (typeof h === 'number' && h >= 1 && h <= 12) {
+            ;(asteroidHouses as Record<string, number>)[name] = h
+          }
+        }
+        setH('Ceres', asteroids.Ceres?.house)
+        setH('Pallas', asteroids.Pallas?.house)
+        setH('Juno', asteroids.Juno?.house)
+        setH('Vesta', asteroids.Vesta?.house)
+
+        const sunPlanet = fullNatal.planets.find((p) => p.name === 'Sun')
+        const moonPlanet = fullNatal.planets.find((p) => p.name === 'Moon')
+        const ascLon = fullNatal.ascendant?.longitude
+        if (
+          sunPlanet &&
+          moonPlanet &&
+          typeof ascLon === 'number' &&
+          typeof sunPlanet.longitude === 'number' &&
+          typeof moonPlanet.longitude === 'number' &&
+          typeof sunPlanet.house === 'number'
+        ) {
+          const ep = await calculateExtraPoints(
+            fullNatal.meta.jdUT,
+            params.latitude,
+            params.longitude,
+            ascLon,
+            sunPlanet.longitude,
+            moonPlanet.longitude,
+            sunPlanet.house,
+            houseCusps,
+          )
+          const setSign = (
+            name: 'Vertex' | 'PartOfFortune' | 'Chiron' | 'Lilith',
+            sign: string | undefined,
+          ) => {
+            if (sign) {
+              ;(extraPointSigns as Record<string, string>)[name] = sign
+            }
+          }
+          setSign('Vertex', ep.vertex?.sign)
+          setSign('PartOfFortune', ep.partOfFortune?.sign)
+          setSign('Chiron', ep.chiron?.sign)
+          setSign('Lilith', ep.lilith?.sign)
+        }
+      }
+    } catch {
+      // Asteroid / extra-point derivation is non-fatal.
+    }
+  }
   const advancedAstroSignals: NonNullable<MatrixCalculationInput['advancedAstroSignals']> = {
     progressions: false,
     solarReturn: false,
@@ -794,7 +855,7 @@ export const GET = withApiMiddleware(
         import('@/lib/destiny-matrix/counselorEvidence'),
       ])
 
-      const matrixInput = buildCalendarMatrixInput({
+      const matrixInput = await buildCalendarMatrixInput({
         birthDate: birthDateParam,
         birthTime: birthTimeParam,
         birthPlace,
