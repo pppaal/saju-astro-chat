@@ -299,18 +299,40 @@ export function buildOrthodoxInterpretation(
     }
   }
 
+  // The five analyze* helpers accept slightly different input shapes than
+  // CalculateSajuDataResult exposes directly, so we coerce through their own
+  // Parameters type instead of `any` — keeps the lint rule happy and at least
+  // anchors the assertion to the function signature.
   const advanced = safe(() =>
-    analyzeAdvancedSaju(dayMaster as any, sajuPillarsForAdvanced as any)
+    analyzeAdvancedSaju(
+      dayMaster as Parameters<typeof analyzeAdvancedSaju>[0],
+      sajuPillarsForAdvanced as Parameters<typeof analyzeAdvancedSaju>[1]
+    )
   )
-  const root = safe(() => analyzeRoot(dayMaster as any, sajuPillarsForAdvanced as any))
-  const jonggeok = safe(() => analyzeJonggeok(sajuPillarsCanonical as any))
-  const hwagyeok = safe(() => analyzeHwagyeok(sajuPillarsCanonical as any))
-  const iljuDeep = safe(() => analyzeIljuDeep(sajuPillarsCanonical as any))
+  const root = safe(() =>
+    analyzeRoot(
+      dayMaster as Parameters<typeof analyzeRoot>[0],
+      sajuPillarsForAdvanced as Parameters<typeof analyzeRoot>[1]
+    )
+  )
+  const jonggeok = safe(() =>
+    analyzeJonggeok(sajuPillarsCanonical as Parameters<typeof analyzeJonggeok>[0])
+  )
+  const hwagyeok = safe(() =>
+    analyzeHwagyeok(sajuPillarsCanonical as Parameters<typeof analyzeHwagyeok>[0])
+  )
+  const iljuDeep = safe(() =>
+    analyzeIljuDeep(sajuPillarsCanonical as Parameters<typeof analyzeIljuDeep>[0])
+  )
   const iljuArchetype = safe(() =>
     getIljuArchetype(saju.dayPillar.heavenlyStem.name, saju.dayPillar.earthlyBranch.name)
   )
-  const samgi = safe(() => analyzeSamgi(sajuPillarsCanonical as any))
-  const gongmangDeep = safe(() => analyzeGongmangDeep(sajuPillarsCanonical as any))
+  const samgi = safe(() =>
+    analyzeSamgi(sajuPillarsCanonical as Parameters<typeof analyzeSamgi>[0])
+  )
+  const gongmangDeep = safe(() =>
+    analyzeGongmangDeep(sajuPillarsCanonical as Parameters<typeof analyzeGongmangDeep>[0])
+  )
 
   const koreanAge =
     options.koreanAge && Number.isFinite(options.koreanAge)

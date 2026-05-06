@@ -438,9 +438,18 @@ export default function ReportResultPage() {
     const snapshot = readPremiumReportSnapshot(reportId)
 
     if (snapshot?.report) {
+      // The legacy result page only renders comprehensive/themed/timing.
+      // Monthly + yearly snapshots reach their own dedicated pages, so when
+      // those types still flow through here we fall back to 'comprehensive'.
+      const narrowedType: ReportData['type'] =
+        snapshot.reportType === 'comprehensive' ||
+        snapshot.reportType === 'themed' ||
+        snapshot.reportType === 'timing'
+          ? snapshot.reportType
+          : 'comprehensive'
       setReport(
         buildReportData(snapshot.report, reportId, {
-          type: snapshot.reportType,
+          type: narrowedType,
           createdAt: snapshot.createdAt,
           period: snapshot.period,
           theme: snapshot.theme,
