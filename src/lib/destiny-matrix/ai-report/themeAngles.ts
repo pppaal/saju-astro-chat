@@ -19,6 +19,7 @@ import type { ActivationContext } from './signalActivation'
 import { activationFor } from './signalActivation'
 import type { NormalizedSignal } from './signalSynthesizer'
 import type { ReportPeriodScope } from './periodSignalContext'
+import { humanizeAstroBasis, humanizeKeyword, humanizeSajuBasis } from './signalLanguage'
 
 // ============================================
 // Public types
@@ -81,9 +82,9 @@ function pillarOf(ref?: { pillar?: string }): string {
 
 function shortBasis(signal: NormalizedSignal | undefined): string {
   if (!signal) return ''
-  const saju = (signal.sajuBasis || '').trim()
-  const astro = (signal.astroBasis || '').trim()
-  if (saju && astro) return `${saju} × ${astro.split(' ').slice(0, 4).join(' ')}`
+  const saju = humanizeSajuBasis(signal.sajuBasis)
+  const astro = humanizeAstroBasis(signal.astroBasis)
+  if (saju && astro) return `${saju} × ${astro}`
   return saju || astro
 }
 
@@ -91,7 +92,7 @@ function keywordsOf(signals: NormalizedSignal[], n = 2): string {
   return joinList(
     signals
       .slice(0, n)
-      .map((s) => s.keyword)
+      .map((s) => humanizeKeyword(s.keyword))
       .filter(Boolean)
   )
 }
@@ -117,20 +118,21 @@ const careerEssence: Angle = {
     lifetime: ({ signals }) => {
       const top = signals[0]
       const support = signals[1]
-      const elements = top ? top.keyword : '판을 정리하는 능력'
+      const elements = humanizeKeyword(top?.keyword) || '판을 정리하는 능력'
       const detail = shortBasis(top) || '본명 사주 깊은 자리'
-      return `너는 커리어에서 ${elements} 기반의 사람이야 (${detail}). 일을 늘리는 것보다 ${support?.keyword || '기준선'}을 먼저 잡는 데서 강점이 나오고, 평생 이 패턴은 잘 안 바뀌어.`
+      const supportKw = humanizeKeyword(support?.keyword) || '기준선'
+      return `너는 커리어에서 ${elements} 기반의 사람이야. 근거: ${detail}. 일을 늘리는 것보다 ${supportKw} 먼저 잡는 데서 강점이 나오고, 평생 이 패턴은 잘 안 바뀌어.`
     },
     yearly: ({ signals, ctx }) => {
       const top = signals[0]
       const seun = pillarOf(ctx.seun)
-      const elements = top ? top.keyword : '구조 짜는 본능'
+      const elements = humanizeKeyword(top?.keyword) || '구조 짜는 본능'
       return `올해 너의 커리어 본질은 평소 ${elements} 위에 세운 ${seun || '丙午'}의 압력이 얹혀. ${seun ? `${seun} 영향으로 결정 속도가 평소보다 빨라지는 해` : '결정 속도가 빨라지는 해'} — 본질은 그대로지만 표현이 더 적극적으로 바뀜.`
     },
     monthly: ({ signals, ctx }) => {
       const top = signals[0]
       const wolun = pillarOf(ctx.wolun)
-      const elements = top ? top.keyword : '구조 본능'
+      const elements = humanizeKeyword(top?.keyword) || '구조 본능'
       return `이번 달 너의 커리어 본질은 ${elements} — 월운 ${wolun || '甲午'} 기운이 얹혀서 ${wolun?.includes('午') ? '발표·기획·표현 쪽' : '실행·정리 쪽'}으로 좁혀짐. 짧은 구간이라 본질을 살짝 ${wolun ? '비틀어 쓰는 달' : '집중적으로 쓰는 달'}.`
     },
   },
@@ -149,19 +151,19 @@ const careerStrength: Angle = {
     lifetime: ({ signals }) => {
       const kws = keywordsOf(signals, 2)
       const basis = shortBasis(signals[0])
-      return `너의 평생 커리어 강점은 ${kws || '구조와 지속력'}. 사주에서 ${basis || '본명 자리'}가 받쳐줘서, 결정적인 순간 흔들림이 적어.`
+      return `너의 평생 커리어 강점은 ${kws || '구조와 지속력'}이야. ${basis ? `근거: ${basis}.` : ''} 결정적인 순간 흔들림이 적어 — 큰 판일수록 너가 더 또렷해져.`
     },
     yearly: ({ signals, ctx }) => {
       const kws = keywordsOf(signals, 2)
       const seun = pillarOf(ctx.seun)
       const basis = shortBasis(signals[0])
-      return `올해는 평소 강점(${kws || '구조'})에 세운 ${seun || '丙午'}이 추가 부스터. ${basis ? `${basis} 자리가 특히 활성화돼서` : '평소 약했던 표현력까지 같이 살아나서'}, 외부에 너 이름이 더 잘 알려질 해야.`
+      return `올해는 평소 강점(${kws || '구조'})에 세운 ${seun || '丙午'}이 추가 부스터. ${basis ? `핵심 자리는 ${basis} — 여기가 특히 활성화돼서,` : '평소 약했던 표현력까지 같이 살아나서,'} 외부에 너 이름이 더 잘 알려질 해야.`
     },
     monthly: ({ signals, ctx }) => {
       const kws = keywordsOf(signals, 2)
       const wolun = pillarOf(ctx.wolun)
-      const top = signals[0]
-      return `이번 달은 강점이 ${kws || '발표력·기획력'}으로 좁혀짐. 월운 ${wolun || '甲午'}이 ${top?.keyword || '핵심 강점'} 자리를 자극해서, 발표·제안·협상 쪽이 평소보다 잘 통하는 구간.`
+      const topKw = humanizeKeyword(signals[0]?.keyword) || '핵심 강점'
+      return `이번 달은 강점이 ${kws || '발표력·기획력'}으로 좁혀짐. 월운 ${wolun || '甲午'}이 ${topKw} 쪽을 자극해서, 발표·제안·협상 쪽이 평소보다 잘 통하는 구간.`
     },
   },
 }
@@ -179,7 +181,7 @@ const careerWeakness: Angle = {
     lifetime: ({ signals }) => {
       const kws = keywordsOf(signals, 2)
       const basis = shortBasis(signals[0])
-      return `같은 강점이 너를 다치게 하는 순간은 ${kws || '결정 직후 인간관계 갈라짐'}. ${basis || '사주 깊은 곳'}이 작동하면, 결정 한 번에 사람 한 줄이 끊어지는 패턴이 평생 반복돼. 결정 후 24시간 안에 한 번은 사람한테 confirm 들어가야 균형.`
+      return `같은 강점이 너를 다치게 하는 순간은 ${kws || '결정 직후 인간관계 갈라짐'}이야. ${basis ? `(근거: ${basis})` : ''} 결정 한 번에 사람 한 줄이 끊어지는 패턴이 평생 반복돼. 결정 후 24시간 안에 한 번은 사람한테 confirm 들어가야 균형.`
     },
     yearly: ({ signals, ctx }) => {
       const kws = keywordsOf(signals, 2)
@@ -232,12 +234,12 @@ const careerPeople: Angle = {
   render: {
     lifetime: ({ signals }) => {
       const kws = keywordsOf(signals, 2) || '귀인 자리'
-      return `평생 너 옆엔 5-10살 위 외부 멘토 자리가 비어 있으면 안 돼. ${kws} 자리가 사주에 박혀 있어서, 결정 순간 도와줄 사람이 자동으로 등장하는 운. 활용 안 하면 손해.`
+      return `평생 너 옆엔 5-10살 위 외부 멘토 자리가 비어 있으면 안 돼. 사주에 ${kws} 신호가 박혀 있어서, 결정 순간 도와줄 사람이 자동으로 등장하는 운. 활용 안 하면 손해.`
     },
     yearly: ({ signals, ctx }) => {
       const seun = pillarOf(ctx.seun)
       const kws = keywordsOf(signals, 2)
-      return `올해 너를 미는 사람은 평소보다 적극적으로 등장. 세운 ${seun || '丙午'}이 ${kws || '귀인'} 자리를 자극해서, 외부 미팅·소개·연락이 자연스럽게 들어옴. 1년에 2-3명은 새 인연으로 남을 가능성.`
+      return `올해 너를 미는 사람은 평소보다 적극적으로 등장. 세운 ${seun || '丙午'}이 ${kws || '귀인'} 쪽을 자극해서, 외부 미팅·소개·연락이 자연스럽게 들어옴. 1년에 2-3명은 새 인연으로 남을 가능성.`
     },
     monthly: ({ signals, ctx }) => {
       const wolun = pillarOf(ctx.wolun)
@@ -258,15 +260,17 @@ const careerMoneyVsMeaning: Angle = {
   render: {
     lifetime: ({ signals }) => {
       const basis = shortBasis(signals[0]) || '격국 분석'
-      return `${basis}으로 보면 너는 의미·권위 우선형. 돈만 좇는 결정에 자기 명분이 안 서면 1년 안에 무너지는 패턴. 의미 있는 일 + 60-70% 보상이면 평균보다 오래 버팀.`
+      return `근거(${basis})로 보면 너는 의미·권위 우선형. 돈만 좇는 결정에 자기 명분이 안 서면 1년 안에 무너지는 패턴. 의미 있는 일 + 60-70% 보상이면 평균보다 오래 버팀.`
     },
     yearly: ({ signals, ctx }) => {
       const seun = pillarOf(ctx.seun)
-      return `올해는 돈 vs 의미의 균형이 의미 쪽으로 살짝 더 기울어. 세운 ${seun || '丙午'}이 ${signals[0]?.keyword || '명분'} 자리를 자극해서, 보상보다 "이걸 하면 5년 뒤 이력서에 한 줄로 박을 수 있나" 가 결정 기준선이 되는 해.`
+      const topKw = humanizeKeyword(signals[0]?.keyword) || '명분'
+      return `올해는 돈 vs 의미의 균형이 의미 쪽으로 살짝 더 기울어. 세운 ${seun || '丙午'}이 ${topKw} 쪽을 자극해서, 보상보다 "이걸 하면 5년 뒤 이력서에 한 줄로 박을 수 있나"가 결정 기준선이 되는 해.`
     },
     monthly: ({ signals, ctx }) => {
       const wolun = pillarOf(ctx.wolun)
-      return `이번 달 들어오는 제안은 돈 액수보다 ${signals[0]?.keyword || '역할 범위'} 먼저 봐. 월운 ${wolun || '甲午'} 영향으로 ${wolun?.includes('午') ? '명분이 흐릿한 제안은 단기 만족만 주고 끝남' : '실리 우선 결정이 더 잘 풀림'}.`
+      const topKw = humanizeKeyword(signals[0]?.keyword) || '역할 범위'
+      return `이번 달 들어오는 제안은 돈 액수보다 ${topKw}를 먼저 봐. 월운 ${wolun || '甲午'} 영향으로 ${wolun?.includes('午') ? '명분이 흐릿한 제안은 단기 만족만 주고 끝남' : '실리 우선 결정이 더 잘 풀림'}.`
     },
   },
 }
@@ -305,7 +309,7 @@ const careerNextAction: Angle = {
   render: {
     lifetime: ({ signals }) => {
       const kws = keywordsOf(signals, 2)
-      return `평생 차원에서 너의 next move는 단순함: (1) 기준선을 먼저 적기, (2) 사람한테 confirm, (3) 한 박자 늦게 확정. ${kws ? `${kws} 자리가 흔들릴 때마다 이 3단계 돌리면 회복 빠름.` : ''}`
+      return `평생 차원에서 너의 next move는 단순함: (1) 기준선을 먼저 적기, (2) 사람한테 confirm, (3) 한 박자 늦게 확정. ${kws ? `${kws} 신호가 흔들릴 때마다 이 3단계 돌리면 회복 빠름.` : ''}`
     },
     yearly: ({ signals, ctx }) => {
       const seun = pillarOf(ctx.seun)
@@ -314,8 +318,8 @@ const careerNextAction: Angle = {
     },
     monthly: ({ signals, ctx }) => {
       const wolun = pillarOf(ctx.wolun)
-      const top = signals[0]
-      return `이번 주 안에: (1) ${top?.keyword || '핵심 결정'} 자리 점검, (2) 외부 멘토 1명에 연락 들어가기, (3) 큰 결정은 한 박자 미루기. 월운 ${wolun || '甲午'} 정점이 지나면 같은 결정의 색이 달라질 수 있어.`
+      const topKw = humanizeKeyword(signals[0]?.keyword) || '핵심 결정'
+      return `이번 주 안에: (1) ${topKw} 점검, (2) 외부 멘토 1명에 연락 들어가기, (3) 큰 결정은 한 박자 미루기. 월운 ${wolun || '甲午'} 정점이 지나면 같은 결정의 색이 달라질 수 있어.`
     },
   },
 }
