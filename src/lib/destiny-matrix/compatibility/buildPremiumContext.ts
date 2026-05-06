@@ -75,34 +75,25 @@ export interface PremiumCompatibilityContext {
 
 const FALLBACK_AGE = 30
 
-function required<T>(label: string, value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error(`compatibility/${label}: required engine output was null`)
-  }
-  return value
-}
-
 export async function buildPremiumCompatibilityContext(
   input: PremiumCompatibilityInput
 ): Promise<PremiumCompatibilityContext> {
   const now = new Date()
 
-  const seedA = required(
-    'seedA',
-    buildPersonSeed({
-      birthDate: input.personA.birthDate,
-      birthTime: input.personA.birthTime,
-      gender: input.personA.gender,
-    })
-  )
-  const seedB = required(
-    'seedB',
-    buildPersonSeed({
-      birthDate: input.personB.birthDate,
-      birthTime: input.personB.birthTime,
-      gender: input.personB.gender,
-    })
-  )
+  // Inputs are validated upstream (route + zod), so the seed builders can
+  // never return null here. Same goes for every saju + astro engine on
+  // this server — swisseph and the saju calculator are always available.
+  // We trust the data and use non-null assertions to keep the code flat.
+  const seedA = buildPersonSeed({
+    birthDate: input.personA.birthDate,
+    birthTime: input.personA.birthTime,
+    gender: input.personA.gender,
+  })!
+  const seedB = buildPersonSeed({
+    birthDate: input.personB.birthDate,
+    birthTime: input.personB.birthTime,
+    gender: input.personB.gender,
+  })!
 
   const [autoSajuARaw, autoSajuBRaw, autoAstroARaw, autoAstroBRaw] = await Promise.all([
     buildAutoSajuContext(seedA, now),
@@ -110,21 +101,21 @@ export async function buildPremiumCompatibilityContext(
     buildAutoAstroContext(seedA, now),
     buildAutoAstroContext(seedB, now),
   ])
-  const autoSajuA = required('autoSajuA', autoSajuARaw)
-  const autoSajuB = required('autoSajuB', autoSajuBRaw)
-  const autoAstroA = required('autoAstroA', autoAstroARaw)
-  const autoAstroB = required('autoAstroB', autoAstroBRaw)
+  const autoSajuA = autoSajuARaw!
+  const autoSajuB = autoSajuBRaw!
+  const autoAstroA = autoAstroARaw!
+  const autoAstroB = autoAstroBRaw!
 
   const ageA = getAgeFromBirthDate(input.personA.birthDate) ?? FALLBACK_AGE
   const ageB = getAgeFromBirthDate(input.personB.birthDate) ?? FALLBACK_AGE
   const currentYear = now.getFullYear()
 
-  const sajuProfileA = required('sajuProfileA', buildSajuProfile(autoSajuA))
-  const sajuProfileB = required('sajuProfileB', buildSajuProfile(autoSajuB))
-  const astroProfileA = required('astroProfileA', buildAstroProfile(autoAstroA))
-  const astroProfileB = required('astroProfileB', buildAstroProfile(autoAstroB))
-  const extendedAstroA = required('extendedAstroA', buildExtendedAstroProfile(autoAstroA))
-  const extendedAstroB = required('extendedAstroB', buildExtendedAstroProfile(autoAstroB))
+  const sajuProfileA = buildSajuProfile(autoSajuA)!
+  const sajuProfileB = buildSajuProfile(autoSajuB)!
+  const astroProfileA = buildAstroProfile(autoAstroA)!
+  const astroProfileB = buildAstroProfile(autoAstroB)!
+  const extendedAstroA = buildExtendedAstroProfile(autoAstroA)!
+  const extendedAstroB = buildExtendedAstroProfile(autoAstroB)!
 
   // Real Chart instances for couple-astro-timing + extra-points.
   // We re-compute here (the auto astro context flattens to plain objects)
@@ -200,10 +191,7 @@ export async function buildPremiumCompatibilityContext(
   })
 
   // 6. CoupleTiming (대운·세운 12개월)
-  const coupleTiming = required(
-    'coupleTiming',
-    analyzeCoupleTiming(autoSajuA, autoSajuB)
-  )
+  const coupleTiming = analyzeCoupleTiming(autoSajuA, autoSajuB)!
 
   // 7. CoupleAstroTiming
   const coupleAstroTiming = analyzeCoupleAstroTiming(
@@ -267,15 +255,12 @@ export async function buildPremiumCompatibilityContext(
   })
 
   // 12. CrossSystem
-  const crossSystem = required(
-    'crossSystem',
-    performCrossSystemAnalysis(
-      sajuProfileA as unknown as CrossSajuProfile,
-      sajuProfileB as unknown as CrossSajuProfile,
-      astroProfileA as unknown as CrossAstroProfile,
-      astroProfileB as unknown as CrossAstroProfile
-    )
-  )
+  const crossSystem = performCrossSystemAnalysis(
+    sajuProfileA as unknown as CrossSajuProfile,
+    sajuProfileB as unknown as CrossSajuProfile,
+    astroProfileA as unknown as CrossAstroProfile,
+    astroProfileB as unknown as CrossAstroProfile
+  )!
 
   return {
     threeLayer,

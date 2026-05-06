@@ -75,55 +75,44 @@ export const POST = withApiMiddleware(
       return NextResponse.json(layers)
     }
 
-    // Premium path: full engine + LLM narrative. Both MUST succeed.
-    try {
-      const premiumContext = await buildPremiumCompatibilityContext({
-        personA,
-        personB,
-        labelA: body.labelA,
-        labelB: body.labelB,
-      })
+    // Premium path: full engine + LLM narrative.
+    const premiumContext = await buildPremiumCompatibilityContext({
+      personA,
+      personB,
+      labelA: body.labelA,
+      labelB: body.labelB,
+    })
 
-      const narrative = await generateCompatibilityNarrative({
-        personA,
-        personB,
-        labelA: body.labelA,
-        labelB: body.labelB,
-        layers,
-        context: premiumContext,
-      })
+    const narrative = await generateCompatibilityNarrative({
+      personA,
+      personB,
+      labelA: body.labelA,
+      labelB: body.labelB,
+      layers,
+      context: premiumContext,
+    })
 
-      return NextResponse.json({
-        ...layers,
-        fusion: premiumContext.fusion,
-        extendedSaju: premiumContext.extendedSaju,
-        extendedAstro: premiumContext.extendedAstro,
-        deepInsights: premiumContext.deepInsights,
-        coupleTiming: premiumContext.coupleTiming,
-        coupleAstroTiming: premiumContext.coupleAstroTiming,
-        idealTypes: premiumContext.idealTypes,
-        multiFacets: premiumContext.multiFacets,
-        extraPoints: premiumContext.extraPoints,
-        tagline: premiumContext.tagline,
-        crossSystem: premiumContext.crossSystem,
-        ages: premiumContext.ages,
-        narrative: narrative.narrative,
-        narrativeMeta: {
-          modelUsed: narrative.modelUsed,
-          tokensUsed: narrative.tokensUsed,
-          warnings: narrative.warnings,
-        },
-      })
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e)
-      logger.error('[Compat3Layer] premium pipeline failed', { error: message })
-      return createErrorResponse({
-        code: ErrorCodes.INTERNAL_ERROR,
-        message: `궁합 분석 실패: ${message}`,
-        locale: extractLocale(req),
-        route: 'destiny-matrix/compatibility-3layer',
-      })
-    }
+    return NextResponse.json({
+      ...layers,
+      fusion: premiumContext.fusion,
+      extendedSaju: premiumContext.extendedSaju,
+      extendedAstro: premiumContext.extendedAstro,
+      deepInsights: premiumContext.deepInsights,
+      coupleTiming: premiumContext.coupleTiming,
+      coupleAstroTiming: premiumContext.coupleAstroTiming,
+      idealTypes: premiumContext.idealTypes,
+      multiFacets: premiumContext.multiFacets,
+      extraPoints: premiumContext.extraPoints,
+      tagline: premiumContext.tagline,
+      crossSystem: premiumContext.crossSystem,
+      ages: premiumContext.ages,
+      narrative: narrative.narrative,
+      narrativeMeta: {
+        modelUsed: narrative.modelUsed,
+        tokensUsed: narrative.tokensUsed,
+        warnings: narrative.warnings,
+      },
+    })
   },
   createPublicStreamGuard({
     route: '/api/destiny-matrix/compatibility-3layer',
