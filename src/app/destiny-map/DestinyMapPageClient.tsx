@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useCallback, useReducer } from 'react'
+import React, { useEffect, useCallback, useReducer, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -15,8 +15,6 @@ import { formatCityForDropdown } from '@/lib/cities/formatter'
 import styles from './destiny-map.module.css'
 import { logger } from '@/lib/logger'
 import DateTimePicker from '@/components/ui/DateTimePicker'
-import CreditBadge from '@/components/ui/CreditBadge'
-import BackButton from '@/components/ui/BackButton'
 import {
   type CityHit,
   formReducer,
@@ -71,6 +69,41 @@ function DestinyMapContent({
   )
 
   const [form, dispatch] = useReducer(formReducer, initialFormState)
+  const autoRedirectRef = useRef(false)
+
+  // If we landed here from the home chip with birth info already in the
+  // URL, skip the form entirely and jump straight into the counselor
+  // chat. Defaults from quick mode fill in city/time when missing.
+  useEffect(() => {
+    if (autoRedirectRef.current) return
+    if (typeof window === 'undefined') return
+    const sp = new URLSearchParams(window.location.search)
+    const birthDate = sp.get('birthDate')
+    if (!birthDate) return
+
+    autoRedirectRef.current = true
+    const birthTime = sp.get('birthTime') || '12:00'
+    const gParam = (sp.get('gender') || '').toUpperCase()
+    const apiGender = gParam === 'F' || gParam === 'FEMALE' ? 'female' : 'male'
+    const cityName = sp.get('birthCity') || QUICK_MODE_DEFAULT_CITY.displayKr || 'Seoul, KR'
+    const initialQuestion = sp.get('initialQuestion') || ''
+    const name = sp.get('name') || ''
+
+    const params = new URLSearchParams()
+    params.set('name', name)
+    params.set('birthDate', birthDate)
+    params.set('birthTime', birthTime)
+    params.set('city', cityName)
+    params.set('gender', apiGender)
+    params.set('lang', locale || 'ko')
+    params.set('latitude', QUICK_MODE_DEFAULT_CITY.lat.toString())
+    params.set('longitude', QUICK_MODE_DEFAULT_CITY.lon.toString())
+    params.set('tz', QUICK_MODE_DEFAULT_CITY.timezone || 'Asia/Seoul')
+    params.set('userTz', QUICK_MODE_DEFAULT_CITY.timezone || 'Asia/Seoul')
+    params.set('theme', 'life')
+    if (initialQuestion) params.set('initialQuestion', initialQuestion)
+    router.replace(`/destiny-counselor/chat?${params.toString()}`)
+  }, [router, locale])
 
   useEffect(() => {
     let active = true
@@ -331,13 +364,8 @@ function DestinyMapContent({
 
   return (
     <div className={styles.container}>
-      <BackButton />
-
       <main className={styles.main}>
         <div className={styles.card}>
-          <div className={styles.creditBadgeWrapper}>
-            <CreditBadge variant="compact" />
-          </div>
           <div className={styles.header}>
             <div className={styles.iconWrapper}>
               <span className={styles.icon}>🔮</span>
