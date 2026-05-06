@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -198,7 +199,6 @@ export default function TarotHomePage() {
 
   const recommendedSpreads = analysisResult?.recommended_spreads ?? []
   const secondarySpreads = recommendedSpreads.slice(1)
-  const questionProfile = analysisResult?.question_profile
   const primaryEntryDisplay = useMemo(() => {
     if (!analysisResult) {
       return null
@@ -360,13 +360,13 @@ export default function TarotHomePage() {
                                 aria-hidden="true"
                               >
                                 {info.backImage && (
-                                  // Image is decorative; alt is empty.
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img
+                                  <Image
                                     src={info.backImage}
                                     alt=""
+                                    fill
+                                    sizes="(max-width: 540px) 45vw, 200px"
                                     className={styles.deckCardImage}
-                                    loading="lazy"
+                                    priority={false}
                                   />
                                 )}
                                 {active && (
@@ -496,25 +496,37 @@ export default function TarotHomePage() {
 
             {analysisResult && !dangerWarning && (
               <section className={styles.analysisPanel}>
-                <div className={styles.analysisHeader}>
-                  <div className={styles.analysisHeaderCopy}>
-                    <span className={styles.previewBadge}>
-                      {isKo ? '질문 이해 완료' : 'Question understood'}
-                    </span>
-                    <h2 className={styles.analysisTitle}>
+                <div className={styles.primaryActionBox}>
+                  <div className={styles.primaryActionCopy}>
+                    <strong className={styles.primaryActionTitle}>
                       {isKo
-                        ? 'AI가 질문을 이렇게 읽고 있어요'
-                        : 'Here is how AI is reading your question'}
-                    </h2>
+                        ? `${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount}장)`
+                        : `${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount} cards)`}
+                    </strong>
+                    {analysisResult.question_summary && (
+                      <p className={styles.primaryActionText}>
+                        {analysisResult.question_summary}
+                      </p>
+                    )}
                   </div>
-                  {analysisResult.intent_label && (
-                    <span className={styles.intentPill}>{analysisResult.intent_label}</span>
-                  )}
+                  <button
+                    type="button"
+                    className={styles.primaryActionButton}
+                    onClick={handleStartPrimaryReading}
+                  >
+                    {isKo ? '시작' : 'Start'}
+                  </button>
                 </div>
 
-                {analysisResult.question_summary && (
-                  <p className={styles.analysisSummary}>{analysisResult.question_summary}</p>
+                {analysisResult.direct_answer && (
+                  <div className={styles.directAnswerBox}>
+                    <span className={styles.directAnswerLabel}>
+                      {isKo ? '한 줄 답' : 'Quick answer'}
+                    </span>
+                    <p className={styles.directAnswerText}>{analysisResult.direct_answer}</p>
+                  </div>
                 )}
+
                 {analysisResult.requires_confirmation && (
                   <div className={styles.confirmStrip} role="status">
                     <span className={styles.confirmBadge}>
@@ -528,68 +540,6 @@ export default function TarotHomePage() {
                     </p>
                   </div>
                 )}
-                {questionProfile && (
-                  <div className={styles.profileGrid}>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>
-                        {isKo ? '질문 종류' : 'Question type'}
-                      </span>
-                      <strong className={styles.profileValue}>{questionProfile.type.label}</strong>
-                    </div>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>{isKo ? '주체' : 'Subject'}</span>
-                      <strong className={styles.profileValue}>
-                        {questionProfile.subject.label}
-                      </strong>
-                    </div>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>
-                        {isKo ? '무엇을 묻는지' : 'What it asks'}
-                      </span>
-                      <strong className={styles.profileValue}>{questionProfile.focus.label}</strong>
-                    </div>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>{isKo ? '시간축' : 'Timeframe'}</span>
-                      <strong className={styles.profileValue}>
-                        {questionProfile.timeframe.label}
-                      </strong>
-                    </div>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>{isKo ? '질문 톤' : 'Tone'}</span>
-                      <strong className={styles.profileValue}>{questionProfile.tone.label}</strong>
-                    </div>
-                  </div>
-                )}
-                {analysisResult.direct_answer && (
-                  <div className={styles.directAnswerBox}>
-                    <span className={styles.directAnswerLabel}>
-                      {isKo ? '스프레드 전 직접답' : 'Direct answer before spread'}
-                    </span>
-                    <p className={styles.directAnswerText}>{analysisResult.direct_answer}</p>
-                  </div>
-                )}
-                <div className={styles.primaryActionBox}>
-                  <div className={styles.primaryActionCopy}>
-                    <strong className={styles.primaryActionTitle}>
-                      {isKo
-                        ? `권장 진입: ${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount}장)`
-                        : `Recommended entry: ${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount} cards)`}
-                    </strong>
-                    <p className={styles.primaryActionText}>
-                      {isKo
-                        ? '지금 질문에는 이 스프레드가 가장 자연스럽고, 카드 뽑기와 해석도 이 경로에 맞춰 이어집니다.'
-                        : 'This spread is the closest match for the current question, and the draw plus interpretation stay aligned to it.'}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.primaryActionButton}
-                    onClick={handleStartPrimaryReading}
-                  >
-                    {isKo ? '이 추천으로 시작' : 'Start With This'}
-                  </button>
-                </div>
-                <p className={styles.analysisLead}>{analysisResult.userFriendlyExplanation}</p>
                 {secondarySpreads.length > 0 && (
                   <div className={styles.secondaryRecommendationSection}>
                     <p className={styles.analysisHint}>
