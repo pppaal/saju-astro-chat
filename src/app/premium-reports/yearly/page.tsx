@@ -5,7 +5,7 @@
  * 사용자는 별도로 연도를 고르지 않고, 항상 "올해"를 받습니다.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
@@ -18,10 +18,20 @@ import {
 } from '@/app/premium-reports/_components'
 import {
   buildQueryReportProfileInput,
-  saveStoredReportProfile,
+  extractMatrixHints,
+  fetchPremiumSajuData,
+  fetchUltimateComputed,
+  fetchUltimateCore,
+  flattenLegacySections,
+  type PremiumSajuData,
 } from '@/app/premium-reports/_lib/shared'
+import type {
+  UltimateComputed,
+  UltimateCore,
+} from '@/lib/premium-reports/ultimateReport'
 import { usePremiumReportProfile } from '@/app/premium-reports/_lib/usePremiumReportProfile'
-import { getPremiumReportDisplayKrw } from '@/lib/payments/prices'
+import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
+import { REPORT_CREDIT_COSTS } from '@/lib/destiny-matrix/ai-report'
 
 const FEATURES = [
   '현재 연도 자동 분석 (선택 불필요)',
@@ -39,6 +49,11 @@ export default function YearlyReportPage() {
   const redirectedRef = useRef(false)
   const { profile, isLoading: profileLoading } = useUserProfile()
 
+  // 올해 1월 1일을 targetDate로 — period='yearly'와 함께 보내면 그 해의 리포트가 생성됨
+  const todayIso = useMemo(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-01-01`
+  }, [])
   const yearLabel = useMemo(() => `${new Date().getFullYear()}년`, [])
 
   useEffect(() => {
@@ -53,6 +68,8 @@ export default function YearlyReportPage() {
   )
   const { profileInput, setProfileInput } = usePremiumReportProfile(profile, queryProfileInput)
 
+  const [sajuData, setSajuData] = useState<PremiumSajuData | null>(null)
+  const [sajuLoading, setSajuLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -65,6 +82,20 @@ export default function YearlyReportPage() {
       redirectedRef.current = false
     }
   }, [router, status])
+
+  const loadSajuData = useCallback(async () => {
+    if (status !== 'authenticated') return
+    setSajuLoading(true)
+    try {
+      setSajuData(await fetchPremiumSajuData())
+    } finally {
+      setSajuLoading(false)
+    }
+  }, [status])
+
+  useEffect(() => {
+    void loadSajuData()
+  }, [loadSajuData])
 
   const canGenerate = useMemo(
     () => Boolean((profileInput?.birthDate || profile.birthDate) && !isGenerating),
@@ -83,47 +114,85 @@ export default function YearlyReportPage() {
     analytics.premiumReportStart('yearly')
 
     try {
-      saveStoredReportProfile({
-        name: profileInput?.name || profile.name || '',
-        birthDate: finalBirthDate,
-        birthTime: profileInput?.birthTime || profile.birthTime || '',
-        timezone: profileInput?.timezone || profile.timezone || undefined,
-        birthCity: profileInput?.birthCity || profile.birthCity || undefined,
-        gender: profileInput?.gender,
-        latitude: profileInput?.latitude ?? profile.latitude ?? undefined,
-        longitude: profileInput?.longitude ?? profile.longitude ?? undefined,
-      })
-    } catch {
-      // sessionStorage may be unavailable — redeem page falls back.
-    }
-
-    try {
-      const response = await fetch('/api/checkout', {
+      const response = await fetch('/api/destiny-matrix/ai-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reportSku: 'yearly' }),
+        body: JSON.stringify({
+          reportTier: 'premium',
+          period: 'yearly',
+          targetDate: todayIso,
+          ...(sajuData?.dayMasterElement ? { dayMasterElement: sajuData.dayMasterElement } : {}),
+          name: profileInput?.name || profile.name || '사용자',
+          birthDate: finalBirthDate,
+          birthTime: profileInput?.birthTime || profile.birthTime || undefined,
+          timezone: profileInput?.timezone || profile.timezone || undefined,
+          birthCity: profileInput?.birthCity || profile.birthCity || undefined,
+          gender: profileInput?.gender || undefined,
+          latitude: profileInput?.latitude ?? profile.latitude ?? undefined,
+          longitude: profileInput?.longitude ?? profile.longitude ?? undefined,
+          lang: 'ko',
+        }),
       })
+
       const data = await response.json()
-      const url = data?.data?.url || data?.url
-      if (!url || typeof url !== 'string') {
-        throw new Error(
-          data?.error?.message || data?.message || '결제 페이지로 이동하지 못했습니다.'
-        )
+
+      if (!data.success) {
+        if (data.error?.code === 'INSUFFICIENT_CREDITS') {
+          router.push('/pricing?reason=credits')
+          return
+        }
+        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
       }
-      window.location.href = url
+
+      if (data.report?.id) {
+        const computed = (await fetchUltimateComputed({
+          birthDate: finalBirthDate,
+          birthTime: profileInput?.birthTime || profile.birthTime,
+          gender: profileInput?.gender,
+          timezone: profileInput?.timezone || profile.timezone,
+          latitude: profileInput?.latitude ?? profile.latitude,
+          longitude: profileInput?.longitude ?? profile.longitude,
+        })) as UltimateComputed | null
+
+        let ultimateCore: UltimateCore | null = null
+        if (computed) {
+          ultimateCore = (await fetchUltimateCore({
+            period: 'yearly',
+            periodLabel: yearLabel,
+            targetDate: todayIso,
+            computed,
+            legacySections: flattenLegacySections(data.report),
+            matrixHints: extractMatrixHints(data.report),
+          })) as UltimateCore | null
+        }
+
+        savePremiumReportSnapshot({
+          reportId: data.report.id,
+          reportType: 'yearly',
+          period: 'yearly',
+          createdAt: new Date().toISOString(),
+          report: data.report,
+          ...(computed ? { ultimateComputed: computed } : {}),
+          ...(ultimateCore ? { ultimateCore } : {}),
+        })
+      }
+
+      analytics.matrixGenerate('premium-reports/yearly')
+      router.push(`/premium-reports/result/${data.report.id}?type=yearly`)
     } catch (err) {
       const raw = err instanceof Error ? err.message : ''
       const looksKorean = /[가-힣]/.test(raw)
       setError(
         looksKorean
           ? raw
-          : '결제 페이지 호출 중 일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.'
+          : 'AI 리포트 생성 중 일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.'
       )
+    } finally {
       setIsGenerating(false)
     }
   }
 
-  if (status === 'loading' || profileLoading) {
+  if (status === 'loading' || profileLoading || sajuLoading) {
     return <UnifiedServiceLoading kind="aiReport" locale="ko" />
   }
 
@@ -195,7 +264,7 @@ export default function YearlyReportPage() {
               actionLabel={
                 isGenerating
                   ? '리포트 생성 중...'
-                  : `${yearLabel} 운세 받기 · ₩${getPremiumReportDisplayKrw('yearly').toLocaleString('ko-KR')}`
+                  : `${yearLabel} 운세 생성 (${REPORT_CREDIT_COSTS.yearly} credits)`
               }
               onAction={handleGenerate}
               disabled={!canGenerate}

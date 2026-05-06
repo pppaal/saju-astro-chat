@@ -15,14 +15,11 @@ import { logger } from '@/lib/logger'
 import {
   getPriceId,
   getCreditPackPriceId,
-  getPremiumReportPriceId,
   allowedPriceIds,
   allowedCreditPackIds,
-  allowedPremiumReportPriceIds,
   type PlanKey,
   type BillingCycle,
   type CreditPackKey,
-  type PremiumReportSku,
 } from '@/lib/payments/prices'
 import { checkoutRequestSchema } from '@/lib/api/zodValidation'
 
@@ -78,7 +75,6 @@ export const POST = withApiMiddleware(
       const plan = body.plan
       const billingCycle = body.billingCycle
       const creditPack = body.creditPack
-      const reportSku = body.reportSku as PremiumReportSku | undefined
 
       const stripe = getStripe()
       if (!stripe) {
@@ -98,39 +94,6 @@ export const POST = withApiMiddleware(
       const clientIdemKey = req.headers.get('x-idempotency-key')
       const idempotencyKey =
         clientIdemKey && clientIdemKey.length < 128 ? clientIdemKey : randomUUID()
-
-      // Handle premium report purchase (one-time payment, one report unlock).
-      if (reportSku) {
-        const reportPrice = getPremiumReportPriceId(reportSku)
-        if (!reportPrice || !allowedPremiumReportPriceIds().includes(reportPrice)) {
-          logger.error('[checkout] premium report price not allowed', { reportSku })
-          recordCounter('stripe_checkout_price_error', 1, { type: 'premium_report' })
-          return apiError(ErrorCodes.BAD_REQUEST, 'invalid_report_sku')
-        }
-
-        const checkout = await stripe.checkout.sessions.create(
-          {
-            mode: 'payment',
-            line_items: [{ price: reportPrice, quantity: 1 }],
-            success_url: `${base}/premium-reports/redeem?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${base}/premium-reports`,
-            customer_email: email,
-            metadata: {
-              type: 'premium_report',
-              reportSku,
-              userId: context.userId || '',
-              source: 'web',
-            },
-          },
-          { idempotencyKey }
-        )
-
-        if (!checkout.url) {
-          return apiError(ErrorCodes.INTERNAL_ERROR, 'no_checkout_url')
-        }
-
-        return apiSuccess({ url: checkout.url })
-      }
 
       // Handle credit pack purchase (one-time payment)
       if (creditPack) {

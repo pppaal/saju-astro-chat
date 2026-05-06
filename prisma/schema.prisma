@@ -89,7 +89,6 @@ model User {
   reportsReceived       UserReport[]   @relation("ReportsReceived")
   savedPersons          SavedPerson[]
   decisions             UserDecision[]
-  premiumReportPurchases PremiumReportPurchase[]
 
   @@index([referrerId])
 }
@@ -798,47 +797,6 @@ model CompatibilityResult {
 }
 
 // Destiny Matrix AI 프리미엄 리포트
-// One-time premium report purchases (Stripe Checkout, mode=payment).
-// Each row is a single purchase that unlocks exactly one report generation.
-// Lifecycle: pending → paid → consumed (or paid → expired).
-//   pending   : Stripe session created, payment not yet confirmed
-//   paid      : Stripe webhook (or success-redirect) confirmed payment;
-//               purchase is ready to be redeemed for a report generation
-//   consumed  : Report generation succeeded; consumedReportId points at it.
-//               No further generations can use this purchase.
-//   expired   : Paid but not redeemed within the redemption window.
-model PremiumReportPurchase {
-  id        String   @id @default(cuid())
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // SKU: "monthly" | "yearly" | "lifetime"
-  sku    String
-  status String @default("pending") // pending | paid | consumed | expired
-
-  // Stripe references
-  stripeSessionId String  @unique // checkout.session.id (cs_xxx)
-  stripePriceId   String?
-  stripePaymentId String? // payment_intent / charge id when known
-  amountPaid      Int? // amount_total from Stripe (smallest currency unit)
-  currency        String? // e.g. "krw"
-
-  // Redemption window. Null for "no expiry" (lifetime SKU).
-  expiresAt DateTime?
-  paidAt    DateTime?
-
-  // Once redeemed, points at the generated DestinyMatrixReport.
-  consumedAt        DateTime?
-  consumedReportId  String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, status])
-  @@index([userId, sku, status])
-  @@index([status, expiresAt])
-}
-
 model DestinyMatrixReport {
   id        String   @id @default(cuid())
   userId    String
