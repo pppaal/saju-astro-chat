@@ -1,6 +1,6 @@
 # Docs Index
 
-Last audited: 2026-04-01 (Asia/Hong_Kong)
+Last audited: 2026-05-06 (Asia/Hong_Kong)
 
 ## Core Docs
 
@@ -27,7 +27,6 @@ Last audited: 2026-04-01 (Asia/Hong_Kong)
 | `docs/DESTINY_LOGGING.md`                   | Runtime event schema and UserInteraction-based logging plan       | Backend/product engineers       | 2026-04-01   |
 | `docs/TESTING_AND_GUARDRAILS.md`            | Required checks, destiny QA scripts, release gates                | All engineers                   | 2026-04-01   |
 | `docs/PDF_REPORTING.md`                     | Report generation flow                                            | Backend/reporting engineers     | 2026-04-01   |
-| `docs/PROJECT_QUALITY_REVIEW_2026-03-16.md` | Product quality review plus current destiny addendum              | Product and engineering leads   | 2026-04-01   |
 | `docs/RUNBOOK.md`                           | Operational runbook                                               | On-call, platform engineers     | 2026-04-01   |
 
 ## Generated And Audit Docs
@@ -35,8 +34,6 @@ Last audited: 2026-04-01 (Asia/Hong_Kong)
 | Document                               | Covers                                       | Audience                   | Last audited |
 | -------------------------------------- | -------------------------------------------- | -------------------------- | ------------ |
 | `docs/API_AUDIT_REPORT.md`             | Generated API inventory and security signals | Backend/security engineers | 2026-04-01   |
-| `docs/DOCS_AUDIT_REPORT_2026-04-01.md` | Documentation re-audit execution report      | Maintainers                | 2026-04-01   |
-| `docs/DOCS_AUDIT_REPORT_2026-02-15.md` | Documentation re-audit execution report      | Maintainers                | 2026-02-15   |
 | `docs/MATRIX_DATA_CROSS_MAP.md`        | Matrix data cross-map reference              | Destiny-engine maintainers | 2026-02-15   |
 | `docs/MATRIX_DATA_CROSS_MAP.json`      | Machine-readable matrix data cross map       | Destiny-engine maintainers | 2026-02-15   |
 

@@ -79,7 +79,7 @@ Source artifacts:
 
 - `npm run -s typecheck` -> pass
 - `npm run -s lint` -> pass
-- `npm test` -> fail in existing suites not limited to security concerns (see `docs/DOCS_AUDIT_REPORT_2026-02-15.md`)
+- `npm test` -> fail in existing suites not limited to security concerns (see `docs/archive/DOCS_AUDIT_REPORT_2026-02-15.md`)
 
 ## Recommendations
 
