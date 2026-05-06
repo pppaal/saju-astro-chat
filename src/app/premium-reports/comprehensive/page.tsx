@@ -19,8 +19,10 @@ import {
 import {
   buildQueryReportProfileInput,
   fetchPremiumSajuData,
+  fetchUltimateComputed,
   type PremiumSajuData,
 } from '@/app/premium-reports/_lib/shared'
+import type { UltimateComputed } from '@/lib/premium-reports/ultimateReport'
 import { usePremiumReportProfile } from '@/app/premium-reports/_lib/usePremiumReportProfile'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 import { REPORT_CREDIT_COSTS } from '@/lib/destiny-matrix/ai-report'
@@ -133,12 +135,22 @@ export default function ComprehensiveReportPage() {
       }
 
       if (data.report?.id) {
+        const computed = (await fetchUltimateComputed({
+          birthDate: finalBirthDate,
+          birthTime: profileInput?.birthTime || profile.birthTime,
+          gender: profileInput?.gender,
+          timezone: profileInput?.timezone || profile.timezone,
+          latitude: profileInput?.latitude ?? profile.latitude,
+          longitude: profileInput?.longitude ?? profile.longitude,
+        })) as UltimateComputed | null
+
         savePremiumReportSnapshot({
           reportId: data.report.id,
           reportType: 'comprehensive',
           period: 'comprehensive',
           createdAt: new Date().toISOString(),
           report: data.report,
+          ...(computed ? { ultimateComputed: computed } : {}),
         })
       }
 

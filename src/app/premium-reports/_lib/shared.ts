@@ -118,6 +118,71 @@ export async function fetchPremiumSajuData(): Promise<PremiumSajuData | null> {
   return null
 }
 
+export interface UltimateContextRequestProfile {
+  birthDate: string
+  birthTime?: string | null
+  /**
+   * Accepts both the API canonical form (`male` / `female`) and the legacy
+   * short form used by the report profile form (`M` / `F`). Mapped to the
+   * canonical form before the request is sent.
+   */
+  gender?: 'male' | 'female' | 'M' | 'F' | null
+  calendarType?: 'solar' | 'lunar' | null
+  lunarLeap?: boolean | null
+  timezone?: string | null
+  latitude?: number | null
+  longitude?: number | null
+}
+
+function normaliseGender(
+  gender: UltimateContextRequestProfile['gender']
+): 'male' | 'female' {
+  if (gender === 'female' || gender === 'F') return 'female'
+  return 'male'
+}
+
+/**
+ * Calls /api/premium-reports/ultimate-context to compute the deterministic
+ * saju + astrology slice that the UltimateReport visual needs. Returns the
+ * raw `computed` payload, or null if any required input is missing or the
+ * request fails. The result page will fall back to the legacy layout when
+ * this returns null.
+ */
+export async function fetchUltimateComputed(
+  profile: UltimateContextRequestProfile
+): Promise<unknown> {
+  if (!profile.birthDate || !profile.timezone) return null
+  if (typeof profile.latitude !== 'number' || typeof profile.longitude !== 'number') {
+    return null
+  }
+  try {
+    const response = await fetch('/api/premium-reports/ultimate-context', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        birthDate: profile.birthDate,
+        birthTime: profile.birthTime || '00:00',
+        gender: normaliseGender(profile.gender),
+        calendarType: profile.calendarType || 'solar',
+        lunarLeap: !!profile.lunarLeap,
+        timezone: profile.timezone,
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+      }),
+    })
+    const data = await response.json()
+    if (data?.success && data?.data?.computed) {
+      return data.data.computed
+    }
+    if (data?.computed) {
+      return data.computed
+    }
+  } catch {
+    // ignore — result page will fall back to legacy layout
+  }
+  return null
+}
+
 export function saveStoredReportProfile(profile: ReportProfileInput): void {
   if (typeof window === 'undefined') return
   try {

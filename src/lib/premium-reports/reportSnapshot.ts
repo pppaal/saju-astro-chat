@@ -1,6 +1,8 @@
 const REPORT_SNAPSHOT_PREFIX = 'premium_report_snapshot:'
 const REPORT_SNAPSHOT_TTL_MS = 15 * 60 * 1000
 
+import type { UltimateComputed } from './ultimateReport'
+
 export type PremiumReportType =
   | 'timing'
   | 'themed'
@@ -15,6 +17,12 @@ export interface PremiumReportSnapshot {
   theme?: string
   createdAt: string
   report: Record<string, unknown>
+  /**
+   * Optional deterministic saju + astrology context. When present the
+   * result page renders the UltimateReport visual; when absent it falls
+   * back to the legacy section-based layout.
+   */
+  ultimateComputed?: UltimateComputed
 }
 
 function getSnapshotKey(reportId: string): string {

@@ -55,6 +55,13 @@ import type {
   AdapterSingleSubjectView,
 } from '@/lib/destiny-matrix/core/adaptersTypes'
 import { readPremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
+import { mapAiReportToUltimate } from '@/lib/premium-reports/mapAiReportToUltimate'
+import type {
+  UltimateComputed,
+  UltimatePeriod,
+  UltimateReport,
+} from '@/lib/premium-reports/ultimateReport'
+import UltimateReportView from './_components/UltimateReportView'
 
 const REPORT_FETCH_MAX_RETRIES = 8
 const REPORT_FETCH_RETRY_MS = 1200
@@ -428,6 +435,7 @@ export default function ReportResultPage() {
   const reportId = params?.id as string
 
   const [report, setReport] = useState<ReportData | null>(null)
+  const [ultimateComputed, setUltimateComputed] = useState<UltimateComputed | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -448,6 +456,9 @@ export default function ReportResultPage() {
           theme: snapshot.theme,
         })
       )
+      if (snapshot.ultimateComputed) {
+        setUltimateComputed(snapshot.ultimateComputed)
+      }
       setIsLoading(false)
     } else {
       setIsLoading(true)
@@ -620,6 +631,30 @@ export default function ReportResultPage() {
     )
   }
 
+  const ultimateReport: UltimateReport | null = (() => {
+    if (!ultimateComputed) return null
+    const ultimatePeriod: UltimatePeriod | null =
+      report.type === 'monthly'
+        ? 'monthly'
+        : report.type === 'yearly'
+          ? 'yearly'
+          : report.type === 'comprehensive'
+            ? 'comprehensive'
+            : null
+    if (!ultimatePeriod) return null
+    const legacySource =
+      (report.fullData && typeof report.fullData === 'object'
+        ? (report.fullData as Record<string, unknown>)
+        : null) || {}
+    return mapAiReportToUltimate({
+      reportId: report.id,
+      period: ultimatePeriod,
+      targetDate: typeof legacySource.targetDate === 'string' ? legacySource.targetDate : undefined,
+      legacy: legacySource,
+      computed: ultimateComputed,
+    })
+  })()
+
   const showThemedDiagnostics = report.type === 'themed' && !!report.calculationDetails
   const normalizedTheme = normalizeReportTheme(report.theme)
   const themedHeadlineLines = report.type === 'themed' ? buildThemedHeadlineLines(report) : []
@@ -635,7 +670,7 @@ export default function ReportResultPage() {
   const contradictionFlags = personModel?.evidenceLedger.contradictionFlags.slice(0, 3) || []
   const axisSplitNarrative = buildAxisSplitNarrative(personModel, 'ko')
 
-  return (
+  const legacyView = (
     <PremiumPageScaffold accent="cyan">
       <div data-print-area>
       <header className="px-4 pb-6 pt-8">
@@ -1262,4 +1297,10 @@ export default function ReportResultPage() {
       </div>
     </PremiumPageScaffold>
   )
+
+  if (ultimateReport) {
+    return <UltimateReportView report={ultimateReport} deepDataSlot={legacyView} />
+  }
+
+  return legacyView
 }
