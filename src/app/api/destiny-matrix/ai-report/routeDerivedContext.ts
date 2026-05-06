@@ -614,6 +614,17 @@ export function enrichRequestWithDerivedSaju(
     logger.warn('[destiny-matrix/ai-report] Failed to derive saju from birth profile', {
       error: error instanceof Error ? error.message : String(error),
       birthDate,
+      birthTime,
+      timezone,
+    })
+  }
+
+  if (!toOptionalString(requestBody.dayMasterElement)) {
+    logger.error('[destiny-matrix/ai-report] dayMasterElement missing after derivation', {
+      birthDate,
+      birthTime,
+      timezone,
+      hasGender: !!requestBody.gender,
     })
   }
 

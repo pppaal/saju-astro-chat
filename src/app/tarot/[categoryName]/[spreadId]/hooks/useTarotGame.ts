@@ -30,6 +30,7 @@ import { CARD_COLORS, CardColor } from '../constants'
 import { classifyTarotDrawError, type TarotDrawError } from '../../../utils/errorHandling'
 
 const TAROT_PERSONALIZATION_KEY = 'tarot_personalization_options'
+const TAROT_DECK_PREF_KEY = 'tarot_preferred_deck'
 
 export interface TarotPersonalizationOptions {
   includeSaju: boolean
@@ -199,7 +200,26 @@ export function useTarotGame(): UseTarotGameReturn {
 
     if (spread) {
       setSpreadInfo(spread)
-      setGameState('color-select')
+      let preferred: DeckStyle | null = null
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem(TAROT_DECK_PREF_KEY) as DeckStyle | null
+          if (saved && CARD_COLORS.some((c) => c.id === saved)) {
+            preferred = saved
+          }
+        } catch {
+          // ignore
+        }
+      }
+      if (preferred) {
+        const matched = CARD_COLORS.find((c) => c.id === preferred) || CARD_COLORS[0]
+        setSelectedColor(matched)
+        setSelectedDeckStyle(preferred)
+        setIsSpreading(true)
+        setGameState('picking')
+      } else {
+        setGameState('color-select')
+      }
     } else {
       setGameState('error')
     }

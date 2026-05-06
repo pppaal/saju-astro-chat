@@ -6,7 +6,9 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 
-const HEADER_USER_SLOT_WIDTH = 'clamp(88px, 14vw, 220px)'
+// On phones we collapse the slot to the avatar pill (~64px). On ≥sm we
+// expand back to the labelled width so the user's name is visible.
+const HEADER_USER_SLOT_WIDTH = 'clamp(64px, 14vw, 220px)'
 
 export default function HeaderUser() {
   return <HeaderUserContent />
@@ -113,6 +115,7 @@ function HeaderUserContent() {
       style={{ position: 'relative', marginLeft: 8, width: HEADER_USER_SLOT_WIDTH }}
     >
       <button
+        className="header-user-pill"
         onClick={() => setShowDropdown(!showDropdown)}
         style={{
           width: '100%',
@@ -164,8 +167,9 @@ function HeaderUserContent() {
         >
           {name?.charAt(0) || 'U'}
         </div>
-        {/* Name */}
+        {/* Name (hidden on phones — avatar+dot is enough at narrow widths) */}
         <span
+          className="header-user-name"
           style={{
             color: '#fff',
             fontSize: 14,
@@ -199,6 +203,14 @@ function HeaderUserContent() {
           @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.7; transform: scale(0.9); }
+          }
+          @media (max-width: 640px) {
+            .header-user-name { display: none; }
+            .header-user-pill {
+              justify-content: center;
+              padding: 6px 10px !important;
+              gap: 6px !important;
+            }
           }
         `}</style>
       </button>

@@ -1,7 +1,8 @@
 'use client'
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -11,9 +12,13 @@ import {
   toSafeFallbackText,
   type I18nMessages,
 } from '@/i18n/utils'
-import { MainHeader, ParticleCanvas } from './components'
+import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
-import { ENABLED_SERVICES } from '@/config/enabledServices'
+import SideDrawer from './components/SideDrawer'
+import HomeChatInput from './components/HomeChatInput'
+import RecommendationChips from './components/RecommendationChips'
+import BirthInfoModal from './components/BirthInfoModal'
+import { getStoredBirthInfo, saveBirthInfo, type StoredBirthInfo } from './birthInfoStorage'
 
 type Locale = 'en' | 'ko'
 
@@ -22,11 +27,83 @@ interface MainPageClientProps {
   initialMessages: I18nMessages
 }
 
-const HOMEPAGE_SERVICES = ENABLED_SERVICES.filter((s) => s.id !== 'destinyMatch')
-
 export default function MainPageClient({ initialLocale, initialMessages }: MainPageClientProps) {
   const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = (activeLocale || initialLocale) as Locale
+  const { status } = useSession()
+  const isAuthed = status === 'authenticated'
+
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [birthModalOpen, setBirthModalOpen] = useState(false)
+  const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
+
+  // Hydrate birth info from localStorage after mount.
+  useEffect(() => {
+    setBirthInfo(getStoredBirthInfo())
+  }, [])
+
+  // Sync birth info between server profile and localStorage once the
+  // session is authenticated. Server wins if it already has full info;
+  // otherwise we push the local values up so the next device can read
+  // them on login.
+  useEffect(() => {
+    if (!isAuthed) return
+    let cancelled = false
+
+    const sync = async () => {
+      try {
+        const res = await fetch('/api/me/profile', { credentials: 'include' })
+        if (!res.ok || cancelled) return
+        const data = (await res.json()) as {
+          user?: {
+            birthDate?: string | null
+            birthTime?: string | null
+            gender?: 'male' | 'female' | 'other' | 'prefer_not' | null
+            birthCity?: string | null
+          }
+        }
+        const remote = data.user
+        const remoteHasFull =
+          !!remote?.birthDate &&
+          !!remote?.birthTime &&
+          (remote?.gender === 'male' || remote?.gender === 'female')
+
+        if (remoteHasFull) {
+          const next: StoredBirthInfo = {
+            birthDate: remote!.birthDate!,
+            birthTime: remote!.birthTime!,
+            gender: remote!.gender as 'male' | 'female',
+            city: remote!.birthCity || undefined,
+            savedAt: new Date().toISOString(),
+          }
+          saveBirthInfo(next)
+          if (!cancelled) setBirthInfo(next)
+          return
+        }
+
+        const local = getStoredBirthInfo()
+        if (!local) return
+        await fetch('/api/me/profile', {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            birthDate: local.birthDate,
+            birthTime: local.birthTime,
+            gender: local.gender,
+            birthCity: local.city || null,
+          }),
+        })
+      } catch {
+        // Network/parse failures shouldn't block the home page.
+      }
+    }
+
+    void sync()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthed])
 
   const serverTranslate = useCallback(
     (key: string, fallback?: string) => {
@@ -53,36 +130,75 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
     [hydrated, serverTranslate, t]
   )
 
+  const handleSaved = (info: StoredBirthInfo) => {
+    setBirthInfo(info)
+    setBirthModalOpen(false)
+  }
+
   return (
-    <main className={styles.container}>
+    <main className={`${styles.container} ${styles.homeContainer}`}>
       <ParticleCanvas />
-      <MainHeader translate={translate} locale={locale} />
 
-      <section className={styles.brandHero}>
-        <h1 className={styles.brandTitle}>DestinyPal</h1>
-        <p className={styles.brandSub}>
-          {locale === 'ko' ? '당신의 운세를 보여드립니다' : 'See your fortune unfold'}
-        </p>
-      </section>
-
-      <section
-        className={styles.servicesGrid}
-        aria-label={locale === 'ko' ? '서비스' : 'Services'}
-      >
-        {HOMEPAGE_SERVICES.map((service) => (
-          <Link key={service.id} href={service.href} className={styles.serviceTile}>
-            <span className={styles.serviceTileIcon} aria-hidden="true">
-              {service.icon}
-            </span>
-            <h2 className={styles.serviceTileLabel}>
-              {locale === 'ko' ? service.label.ko : service.label.en}
-            </h2>
-            <p className={styles.serviceTileDesc}>
-              {locale === 'ko' ? service.description.ko : service.description.en}
-            </p>
+      <div className={styles.homeTopBar}>
+        <button
+          type="button"
+          className={styles.homeTopBarHamburger}
+          onClick={() => setDrawerOpen(true)}
+          aria-label={locale === 'ko' ? '메뉴 열기' : 'Open menu'}
+        >
+          <span className={styles.homeTopBarHamburgerBar} />
+          <span className={styles.homeTopBarHamburgerBar} />
+          <span className={styles.homeTopBarHamburgerBar} />
+        </button>
+        <span className={styles.homeTopBarLogo}>DestinyPal</span>
+        {isAuthed ? (
+          <span style={{ width: 38 }} aria-hidden="true" />
+        ) : (
+          <Link href="/auth/signin?callbackUrl=/" className={styles.homeTopBarLogin}>
+            {translate('community.login', locale === 'ko' ? '로그인' : 'Login')}
           </Link>
-        ))}
-      </section>
+        )}
+      </div>
+
+      <div className={styles.homeBody}>
+        <section className={styles.homeHero} aria-labelledby="home-headline">
+          <div className={styles.homeOrnament} aria-hidden="true">
+            ✦
+          </div>
+          <h1 id="home-headline" className={styles.homeHeadline}>
+            {locale === 'ko' ? 'AI와 사주·점성을 함께 풀어드려요' : 'Saju × Astrology, fused by AI'}
+          </h1>
+          <p className={styles.homeSubline}>
+            {locale === 'ko'
+              ? '사주 · 점성 · 캘린더 · 타로 · 궁합'
+              : 'Saju · Astrology · Calendar · Tarot · Compatibility'}
+          </p>
+        </section>
+
+        <RecommendationChips
+          birthInfo={birthInfo}
+          locale={locale}
+        />
+
+        <HomeChatInput
+          birthInfo={birthInfo}
+          onOpenBirthModal={() => setBirthModalOpen(true)}
+          locale={locale}
+        />
+      </div>
+
+      <SideDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        locale={locale}
+      />
+
+      <BirthInfoModal
+        open={birthModalOpen}
+        initial={birthInfo}
+        onClose={() => setBirthModalOpen(false)}
+        onSaved={handleSaved}
+      />
 
       <PrefetchLinks />
       <SpeedInsights />

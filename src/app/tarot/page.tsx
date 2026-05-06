@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -13,10 +13,23 @@ import {
 } from '@/lib/Tarot/questionFlow'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { tarotThemeExamples } from '@/lib/Tarot/tarot-question-examples'
+import { DECK_STYLES, DECK_STYLE_INFO, type DeckStyle } from '@/lib/Tarot/tarot.types'
 import styles from './tarot-home.module.css'
 import { useCanvasAnimation, useRecentQuestions, useQuestionAnalysis } from './hooks'
 import { getQuickRecommendation } from './utils/recommendations'
 import { useTapFeedback, useHapticFeedback } from '@/hooks/useMobileEnhancements'
+
+const TONE_OPTIONS = [
+  { id: 'gentle', icon: '🌙', ko: '다정', en: 'Gentle' },
+  { id: 'direct', icon: '⚡', ko: '직설', en: 'Direct' },
+  { id: 'mystic', icon: '🔮', ko: '신비', en: 'Mystic' },
+] as const
+
+type ToneId = (typeof TONE_OPTIONS)[number]['id']
+type SpreadMode = 'auto' | 'manual'
+
+const TAROT_DECK_PREF_KEY = 'tarot_preferred_deck'
+const TAROT_TONE_PREF_KEY = 'tarot_tone_preference'
 
 const pageTransitionVariants = {
   initial: { opacity: 0, y: 20 },
@@ -28,12 +41,71 @@ export default function TarotHomePage() {
   const { language } = useI18n()
   const router = useRouter()
   const isKo = language === 'ko'
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const themeLookup = useMemo(() => new Map(tarotThemes.map((theme) => [theme.id, theme])), [])
 
   const [question, setQuestion] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [showAllThemes, setShowAllThemes] = useState(false)
+  const [preferredDeck, setPreferredDeck] = useState<DeckStyle | null>(null)
+  const [showDeckPicker, setShowDeckPicker] = useState(false)
+  const [toneIndex, setToneIndex] = useState(0)
+  const [spreadMode, setSpreadMode] = useState<SpreadMode>('auto')
+  const themeSectionRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const savedDeck = localStorage.getItem(TAROT_DECK_PREF_KEY) as DeckStyle | null
+      if (savedDeck && DECK_STYLES.includes(savedDeck)) {
+        setPreferredDeck(savedDeck)
+      }
+      const savedTone = localStorage.getItem(TAROT_TONE_PREF_KEY) as ToneId | null
+      const idx = TONE_OPTIONS.findIndex((t) => t.id === savedTone)
+      if (idx >= 0) setToneIndex(idx)
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  const tone = TONE_OPTIONS[toneIndex]
+
+  const handleSelectDeck = useCallback((deck: DeckStyle) => {
+    setPreferredDeck(deck)
+    setShowDeckPicker(false)
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(TAROT_DECK_PREF_KEY, deck)
+      } catch {
+        // ignore
+      }
+    }
+  }, [])
+
+  const handleCycleTone = useCallback(() => {
+    setToneIndex((prev) => {
+      const next = (prev + 1) % TONE_OPTIONS.length
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(TAROT_TONE_PREF_KEY, TONE_OPTIONS[next].id)
+        } catch {
+          // ignore
+        }
+      }
+      return next
+    })
+  }, [])
+
+  const handleToggleSpreadMode = useCallback(() => {
+    setSpreadMode((prev) => (prev === 'auto' ? 'manual' : 'auto'))
+  }, [])
+
+  const handleScrollToExamples = useCallback(() => {
+    setShowAllThemes(true)
+    requestAnimationFrame(() => {
+      themeSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [])
 
   const canvasRef = useCanvasAnimation()
   const { recentQuestions, addRecentQuestion, removeRecentQuestion } = useRecentQuestions()
@@ -193,59 +265,147 @@ export default function TarotHomePage() {
             </header>
 
             <div className={`${styles.searchContainer} ${isFocused ? styles.focused : ''}`}>
-              <div className={styles.searchBox}>
-                <span className={styles.searchIcon} aria-hidden="true">
-                  ✨
-                </span>
-                <input
+              <div className={styles.composer}>
+                <div className={styles.composerTopRow}>
+                  <button
+                    type="button"
+                    className={`${styles.composerPill} ${preferredDeck ? styles.composerPillActive : ''}`}
+                    onClick={() => setShowDeckPicker((v) => !v)}
+                    aria-expanded={showDeckPicker}
+                  >
+                    <span aria-hidden="true">🎴</span>
+                    <span>
+                      {preferredDeck
+                        ? isKo
+                          ? DECK_STYLE_INFO[preferredDeck].nameKo
+                          : DECK_STYLE_INFO[preferredDeck].name
+                        : isKo
+                          ? '덱 선택'
+                          : 'Pick deck'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.composerPill}
+                    onClick={handleScrollToExamples}
+                  >
+                    <span aria-hidden="true">💡</span>
+                    <span>{isKo ? '예시 질문' : 'Examples'}</span>
+                  </button>
+                </div>
+
+                {showDeckPicker && (
+                  <div className={styles.composerDeckPicker} role="listbox">
+                    {DECK_STYLES.map((deck) => {
+                      const info = DECK_STYLE_INFO[deck]
+                      const active = preferredDeck === deck
+                      return (
+                        <button
+                          key={deck}
+                          type="button"
+                          className={`${styles.composerDeckOption} ${active ? styles.composerDeckOptionActive : ''}`}
+                          onClick={() => handleSelectDeck(deck)}
+                          role="option"
+                          aria-selected={active}
+                        >
+                          <span
+                            className={styles.composerDeckSwatch}
+                            style={{ background: info.gradient }}
+                            aria-hidden="true"
+                          />
+                          <span className={styles.composerDeckName}>
+                            {isKo ? info.nameKo : info.name}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                <textarea
                   ref={inputRef}
-                  type="text"
-                  className={styles.searchInput}
+                  className={styles.composerInput}
+                  rows={2}
                   placeholder={
                     isKo
-                      ? '지금 가장 궁금한 질문을 먼저 적어보세요'
-                      : 'Write the question you most want answered first'
+                      ? '고민을 한 줄로 적어주세요. AI가 어울리는 스프레드를 골라드려요.'
+                      : 'Write your question. AI will pick a fitting spread for you.'
                   }
                   value={question}
                   onChange={(event) => setQuestion(event.target.value)}
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
                   onKeyDown={(event) => {
-                    if (event.key === 'Enter' && question.trim() && !isAnalyzing) {
+                    if (
+                      event.key === 'Enter' &&
+                      !event.shiftKey &&
+                      question.trim() &&
+                      !isAnalyzing
+                    ) {
+                      event.preventDefault()
                       handleAnalyzeQuestion()
                     }
                   }}
                   disabled={isAnalyzing}
                   aria-label={isKo ? '타로 질문 입력' : 'Enter your tarot question'}
-                  aria-describedby="question-hint"
                 />
-                {question && !isAnalyzing && (
+
+                <div className={styles.composerBottomRow}>
+                  <div className={styles.composerToolGroup}>
+                    <button
+                      type="button"
+                      className={styles.composerTool}
+                      onClick={handleToggleSpreadMode}
+                      aria-pressed={spreadMode === 'manual'}
+                    >
+                      <span aria-hidden="true">✨</span>
+                      <span>
+                        {spreadMode === 'auto'
+                          ? isKo
+                            ? '스프레드 자동'
+                            : 'Auto spread'
+                          : isKo
+                            ? '스프레드 직접'
+                            : 'Manual spread'}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.composerTool}
+                      onClick={handleCycleTone}
+                    >
+                      <span aria-hidden="true">{tone.icon}</span>
+                      <span>{isKo ? tone.ko : tone.en}</span>
+                    </button>
+                    {question && !isAnalyzing && (
+                      <button
+                        type="button"
+                        className={styles.composerClear}
+                        onClick={() => setQuestion('')}
+                        aria-label={isKo ? '질문 지우기' : 'Clear question'}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                   <button
-                    className={styles.clearButton}
-                    onClick={() => setQuestion('')}
-                    aria-label={isKo ? '질문 지우기' : 'Clear question'}
+                    className={styles.composerSend}
+                    onClick={() => {
+                      triggerHaptic('medium')
+                      handleAnalyzeQuestion()
+                    }}
+                    onTouchStart={handleTouchStart}
+                    disabled={!question.trim() || isAnalyzing || !!dangerWarning}
                     type="button"
+                    aria-label={isKo ? '질문 분석하기' : 'Analyze question'}
                   >
-                    ✕
+                    {isAnalyzing ? (
+                      <span className={styles.loadingSpinner}>⏳</span>
+                    ) : (
+                      <span aria-hidden="true">↑</span>
+                    )}
                   </button>
-                )}
-                <button
-                  className={styles.submitButton}
-                  onClick={() => {
-                    triggerHaptic('medium')
-                    handleAnalyzeQuestion()
-                  }}
-                  onTouchStart={handleTouchStart}
-                  disabled={!question.trim() || isAnalyzing || !!dangerWarning}
-                  type="button"
-                  aria-label={isKo ? '질문 분석하기' : 'Analyze question'}
-                >
-                  {isAnalyzing ? (
-                    <span className={styles.loadingSpinner}>⏳</span>
-                  ) : (
-                    <span aria-hidden="true">➤</span>
-                  )}
-                </button>
+                </div>
               </div>
 
               {isLoadingPreview && question.trim().length > 3 && (
@@ -441,7 +601,7 @@ export default function TarotHomePage() {
               </button>
             </section>
 
-            <section className={styles.themeSection}>
+            <section className={styles.themeSection} ref={themeSectionRef}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
                   {isKo ? '테마별 질문 예시' : 'Examples by Theme'}

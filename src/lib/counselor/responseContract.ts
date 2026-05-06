@@ -8,17 +8,42 @@ interface SectionDefinition {
 }
 
 const KO_SECTIONS: readonly SectionDefinition[] = [
-  { heading: '한 줄 결론', aliases: ['한 줄 결론', '한줄결론', '핵심 결론'] },
-  { heading: '근거', aliases: ['근거', '근거/상세'] },
-  { heading: '실행 계획', aliases: ['실행 계획', '실행계획', '행동 계획'] },
-  { heading: '주의/재확인', aliases: ['주의/재확인', '주의 / 재확인', '주의·재확인', '주의사항'] },
+  { heading: '한 줄 결론', aliases: ['한 줄 결론', '한줄결론', '핵심 결론', '직접 답', '직접답'] },
+  { heading: '근거', aliases: ['근거', '근거/상세', '구조와 상황', '구조 상황', '타이밍과 충돌', '타이밍 충돌'] },
+  { heading: '실행 계획', aliases: ['실행 계획', '실행계획', '행동 계획', '실행', '실행 방안'] },
+  {
+    heading: '주의/재확인',
+    aliases: [
+      '주의/재확인',
+      '주의 / 재확인',
+      '주의·재확인',
+      '주의사항',
+      '리스크와 재확인',
+      '리스크 재확인',
+      '리스크와 주의',
+    ],
+  },
 ] as const
 
 const EN_SECTIONS: readonly SectionDefinition[] = [
-  { heading: 'Direct Answer', aliases: ['Direct Answer', 'Answer'] },
-  { heading: 'Evidence', aliases: ['Evidence', 'Reasoning', 'Why'] },
-  { heading: 'Action Plan', aliases: ['Action Plan', 'Plan'] },
-  { heading: 'Avoid / Recheck', aliases: ['Avoid / Recheck', 'Avoid/Recheck', 'Caution'] },
+  { heading: 'Direct Answer', aliases: ['Direct Answer', 'Answer', 'Direct'] },
+  {
+    heading: 'Evidence',
+    aliases: [
+      'Evidence',
+      'Reasoning',
+      'Why',
+      'Structure and Situation',
+      'Structure & Situation',
+      'Timing and Tension',
+      'Timing & Tension',
+    ],
+  },
+  { heading: 'Action Plan', aliases: ['Action Plan', 'Plan', 'Action'] },
+  {
+    heading: 'Avoid / Recheck',
+    aliases: ['Avoid / Recheck', 'Avoid/Recheck', 'Caution', 'Risk and Recheck', 'Risk & Recheck'],
+  },
 ] as const
 
 const CONTROL_CHAR_REGEX = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g
@@ -52,6 +77,26 @@ function normalizeHeadingSpacing(text: string): string {
     .trim()
 }
 
+function mergeRepeatedHeadings(text: string, sections: readonly SectionDefinition[]): string {
+  // After alias rewriting, two distinct source headings can collapse onto the
+  // same canonical heading (e.g. both "구조와 상황" and "타이밍과 충돌" map to
+  // "근거"). Merge consecutive duplicate H2s so the bodies join into one
+  // section instead of the second one truncating the first.
+  for (const section of sections) {
+    const heading = escapeRegExp(section.heading)
+    const re = new RegExp(
+      `(^|\\n)##\\s*${heading}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|$)\\n##\\s*${heading}\\s*\\n`,
+      'gu'
+    )
+    let prev: string
+    do {
+      prev = text
+      text = text.replace(re, '$1## ' + section.heading + '\n$2\n')
+    } while (text !== prev)
+  }
+  return text
+}
+
 function canonicalizeHeadings(raw: string, sections: readonly SectionDefinition[]): string {
   let text = normalizeHeadingSpacing(raw)
 
@@ -64,6 +109,7 @@ function canonicalizeHeadings(raw: string, sections: readonly SectionDefinition[
     }
   }
 
+  text = mergeRepeatedHeadings(text, sections)
   return text.replace(/\n{3,}/g, '\n\n').trim()
 }
 

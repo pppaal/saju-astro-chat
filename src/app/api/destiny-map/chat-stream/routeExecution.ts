@@ -448,24 +448,27 @@ export async function prepareCounselorExecution(params: {
 
   const fortuneIcpSection = buildFortuneWithIcpSection(counselingBrief, lang)
 
+  // Headings MUST match the canonical 4-section contract enforced by
+  // `normalizeCounselorResponse` and `applyCounselorBrandVoice`. Any other
+  // heading set causes the validator to discard the model output and fall
+  // back to a generic template — i.e. the user sees a non-answer.
   const responseDensityContract =
     lang === 'ko'
       ? [
           '[Response Contract: Projection-first]',
-          '- 첫 1~2문장에서 직접 답부터 말하세요.',
+          '- 첫 1~2문장에서 사용자 질문에 직접 답부터 말하세요.',
           '- 첫 1~2문장 안에 Opening Rationale의 핵심 두 줄을 흡수해서, 왜 이런 결론인지 바로 드러내세요.',
-          '- 아래 순서를 유지하세요: "## 직접 답", "## 구조와 상황", "## 타이밍과 충돌", "## 실행", "## 리스크와 재확인".',
-          '- 불릿 남발보다 짧은 문단을 우선하세요.',
-          '- 각 문단은 2~4문장으로 유지하고, 문단 역할을 섞지 마세요.',
-          '- "구조와 상황"에서는 structure_detail과 structure_driver를 먼저 쓰고, summary는 보조로만 사용하세요.',
-          '- "타이밍과 충돌"에서는 timing_detail, timing_driver, timing_counterweight, timing_next를 먼저 쓰고 readiness/trigger/convergence를 자연어로 풀어 쓰세요.',
-          '- "실행"에서는 action_detail과 action_next를 먼저 쓰고, 실제 다음 행동을 2~3문장으로 단정하게 정리하세요.',
-          '- "리스크와 재확인"에서는 risk_detail과 risk_counterweight를 먼저 쓰고, 과속·지속성·검증 리스크를 분명히 적으세요.',
+          '- 헤딩은 정확히 이 네 개만, 이 순서대로 사용하세요: "## 한 줄 결론", "## 근거", "## 실행 계획", "## 주의/재확인".',
+          '- 다른 헤딩(직접 답, 구조와 상황, 타이밍과 충돌, 리스크와 재확인 등)은 절대 쓰지 마세요. 정확히 위 네 헤딩만 사용해야 합니다.',
+          '- "## 한 줄 결론"은 1~2문장으로, 사용자 질문에 직접 답하세요.',
+          '- "## 근거"에서는 구조(structure_detail/driver)와 타이밍(timing_detail/driver/counterweight/next)을 자연어로 묶어 2~4문장 또는 불릿 2~3개로 풀어쓰세요. readiness/trigger/convergence는 자연어로 번역하세요.',
+          '- "## 실행 계획"에서는 action_detail과 action_next를 바탕으로 다음 행동을 2~3개 단정하게 정리하세요.',
+          '- "## 주의/재확인"에서는 risk_detail과 risk_counterweight를 바탕으로 과속·지속성·검증 리스크와 재확인 항목을 1~2개 적으세요.',
           '- 기술적 신호 이름은 그대로 던지지 말고 자연어로 번역하세요.',
           '- "중심축/행동축/리스크축" 같은 엔진 용어를 그대로 쓰지 말고, "삶의 배경 흐름", "지금 먼저 움직여야 할 영역", "가장 조심해야 할 변수"처럼 사람말로 바꾸세요.',
           '- 답변 마지막에 "사주에서는", "점성에서는", "타이밍은" 같은 메타 요약 꼬리를 따로 덧붙이지 마세요.',
           '- 최종 답변은 상담문으로 끝내고, 내부 근거 요약이나 엔진 설명 꼬리를 붙이지 마세요.',
-          '- 문단끼리 문장을 반복하지 마세요. 각 문단은 새로운 정보를 추가해야 합니다.',
+          '- 문단끼리 문장을 반복하지 마세요. 각 섹션은 새로운 정보를 추가해야 합니다.',
           '- projection summary는 fallback 용도로만 쓰고, detail/driver/counterweight/next lines를 우선 사용하세요.',
           '- 일반론, 자기계발체, 추상 격려 문장을 피하세요.',
           '- 최종 결론은 core phase / top claims / cautions와 맞아야 합니다.',
@@ -473,18 +476,17 @@ export async function prepareCounselorExecution(params: {
         ].join('\n')
       : [
           '[Response Contract: Projection-first]',
-          '- Answer the user question directly within the first two sentences.',
+          "- Answer the user's question directly within the first two sentences.",
           '- In those first two sentences, absorb the two Opening Rationale lines so the user immediately sees why this conclusion is being made.',
-          '- Use headings in this exact order: "## Direct Answer", "## Structure and Situation", "## Timing and Tension", "## Action Plan", "## Risk and Recheck".',
-          '- Prefer short paragraphs over bullet dumping.',
-          '- Keep each section to 2-4 sentences and do not mix section roles.',
-          '- In "Structure and Situation", use structure_detail and structure_driver first; use summary only as backup.',
-          '- In "Timing and Tension", use timing_detail, timing_driver, timing_counterweight, and timing_next first; translate readiness, trigger, convergence, and timing conflict into natural language.',
-          '- In "Action Plan", use action_detail and action_next first, then state the next move in 2-3 assertive sentences.',
-          '- In "Risk and Recheck", use risk_detail and risk_counterweight first, then state overreach, persistence, and verification risk clearly.',
+          '- Use exactly these four headings, in this order: "## Direct Answer", "## Evidence", "## Action Plan", "## Avoid / Recheck".',
+          '- Do not use any other headings (Structure and Situation, Timing and Tension, Risk and Recheck, etc.). Only the four headings above are allowed.',
+          '- In "## Direct Answer", give 1-2 sentences answering the question directly.',
+          '- In "## Evidence", weave structure (structure_detail/driver) and timing (timing_detail/driver/counterweight/next) into 2-4 sentences or 2-3 bullets, and translate readiness/trigger/convergence into natural language.',
+          '- In "## Action Plan", use action_detail and action_next to state the next 2-3 moves assertively.',
+          '- In "## Avoid / Recheck", use risk_detail and risk_counterweight to call out 1-2 overreach/persistence/verification risks and recheck items.',
           '- Translate technical signals into natural language instead of dumping jargon.',
           '- Do not expose engine terms like focus/action/risk axis directly; rewrite them as background flow, live priority, and main risk in plain language.',
-          '- Do not repeat sentences across sections; each paragraph must add a new piece of information.',
+          '- Do not repeat sentences across sections; each section must add a new piece of information.',
           '- Treat projection summaries as fallback only; prefer detail/driver/counterweight/next lines.',
           '- Avoid generic encouragement and abstract self-help phrasing.',
           '- Final verdict must align with core phase / top claims / cautions.',
