@@ -86,12 +86,59 @@ type ViewMode = 'monthly' | 'daily' | 'stats'
 
 export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixPlannerProps = {}) {
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
-  const [currentDay, setCurrentDay] = useState(9)
+  const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
 
-  const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : 31))
-  const handleNextDay = () => setCurrentDay((prev) => (prev < 31 ? prev + 1 : 1))
+  // --- View date (current real month) ---------------------------------
+  const today = useMemo(() => new Date(), [])
+  const viewYear = today.getFullYear()
+  const viewMonth = today.getMonth() // 0-indexed
+
+  const monthLabel = useMemo(() => {
+    const labels = [
+      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+    ]
+    return `${labels[viewMonth]} ${viewYear}`
+  }, [viewMonth, viewYear])
+
+  const daysInMonth = useMemo(
+    () => new Date(viewYear, viewMonth + 1, 0).getDate(),
+    [viewYear, viewMonth],
+  )
+  const leadingBlanks = useMemo(
+    () => new Date(viewYear, viewMonth, 1).getDay(),
+    [viewYear, viewMonth],
+  )
+
+  // --- Engine-derived values (Step 2b) --------------------------------
+  const natalDayPillar = useMemo(() => {
+    const ns = data?.allDates?.find((d) => d.natalSaju)?.natalSaju
+    if (!ns) return null
+    return `${ns.dayStem}${ns.dayBranch}`
+  }, [data])
+
+  const monthEventSet = useMemo(() => {
+    const out = new Set<number>()
+    if (!data?.allDates) return out
+    const prefix = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-`
+    for (const d of data.allDates) {
+      if (!d.date.startsWith(prefix)) continue
+      if (d.grade > 1) continue
+      out.add(parseInt(d.date.slice(8, 10), 10))
+    }
+    return out
+  }, [data, viewYear, viewMonth])
+
+  const monthlySummaryText =
+    data?.monthSummary?.summary ?? data?.calendarMonthView?.oneLineSummary ?? null
+
+  const phaseLabel =
+    data?.matrixContract?.overallPhaseLabel ?? data?.matrixContract?.overallPhase ?? null
+
+  const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
+  const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
 
   const handleDayClick = (day: number) => {
     setCurrentDay(day)
@@ -138,7 +185,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
 
   const getDayOfWeek = (day: number) => {
     const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-    return days[(day + 4) % 7]
+    return days[new Date(viewYear, viewMonth, day).getDay()]
   }
 
   // 사주/점성술 데이터를 반영한 일일 평가 로직
@@ -184,11 +231,13 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
           <div className="flex flex-col">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-bold text-zinc-900 bg-amber-500 px-2 py-0.5 rounded-sm tracking-widest uppercase flex items-center gap-1">
-                <Sun className="w-3 h-3" /> 辛未 일주
+                <Sun className="w-3 h-3" /> {natalDayPillar ?? '辛未'} 일주
               </span>
-              <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2 py-0.5 rounded-sm tracking-widest uppercase flex items-center gap-1">
-                <Moon className="w-3 h-3" /> 물병자리 ASC
-              </span>
+              {!data && (
+                <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2 py-0.5 rounded-sm tracking-widest uppercase flex items-center gap-1">
+                  <Moon className="w-3 h-3" /> 물병자리 ASC
+                </span>
+              )}
             </div>
             <h1 className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent tracking-wide flex items-center gap-2">
               운명의 수레바퀴
@@ -260,9 +309,9 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
             >
               <div className="bg-zinc-900/60 p-6 rounded-3xl border border-white/5 shadow-2xl">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-black text-zinc-100 tracking-widest">MAY 2026</h2>
+                  <h2 className="text-xl font-black text-zinc-100 tracking-widest">{monthLabel}</h2>
                   <span className="text-xs font-medium text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                    甲戌 대운 (32세~)
+                    {phaseLabel ? `Phase: ${phaseLabel}` : '甲戌 대운 (32세~)'}
                   </span>
                 </div>
 
@@ -280,13 +329,13 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                 </div>
 
                 <div className="grid grid-cols-7 gap-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
+                  {Array.from({ length: leadingBlanks }).map((_, i) => (
                     <div key={`empty-${i}`} className="aspect-square" />
                   ))}
-                  {Array.from({ length: 31 }).map((_, i) => {
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1
                     const isSelected = day === currentDay
-                    const hasEvent = [3, 9, 12, 15, 22, 28].includes(day)
+                    const hasEvent = data ? monthEventSet.has(day) : [3, 9, 12, 15, 22, 28].includes(day)
 
                     return (
                       <motion.button
@@ -313,18 +362,34 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                 </div>
               </div>
 
-              {/* 월간 요약 섹션 (사주/점성술 반영) */}
+              {/* 월간 요약 섹션 (엔진 monthSummary 매핑) */}
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5 backdrop-blur-sm">
                 <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2 mb-3">
                   <Sparkles className="w-4 h-4 text-amber-400" /> 월간 운명 요약 (Cross Matrix)
                 </h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  현재 <span className="text-indigo-400 font-bold">甲戌(갑술) 대운</span>을 지나고
-                  있으며, 사주와 점성술의 교차 시스템 합의도(Confidence 71.8%)가 매우 높습니다. 이번
-                  달은 <span className="text-cyan-400 font-bold">Air(공기) 원소 3/3 압도</span>로
-                  지적 호기심이 폭발하지만, 乙-辛 천간충과 태양-화성 오포지션의 영향으로 돌발적인
-                  전투(갈등)가 발생할 수 있으니 템포 조절이 필수적입니다.
-                </p>
+                {monthlySummaryText ? (
+                  <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
+                    {monthlySummaryText}
+                  </p>
+                ) : (
+                  <p className="text-sm text-zinc-400 leading-relaxed">
+                    현재 <span className="text-indigo-400 font-bold">甲戌(갑술) 대운</span>을 지나고
+                    있으며, 사주와 점성술의 교차 시스템 합의도(Confidence 71.8%)가 매우 높습니다.
+                    이번 달은 <span className="text-cyan-400 font-bold">Air(공기) 원소 3/3 압도</span>로
+                    지적 호기심이 폭발하지만, 乙-辛 천간충과 태양-화성 오포지션의 영향으로 돌발적인
+                    전투(갈등)가 발생할 수 있으니 템포 조절이 필수적입니다.
+                  </p>
+                )}
+                {data?.calendarMonthView?.strongestWindow && (
+                  <p className="text-xs text-amber-400/80 mt-3 pt-3 border-t border-white/10">
+                    ⏵ 강세 구간: {data.calendarMonthView.strongestWindow}
+                  </p>
+                )}
+                {data?.calendarMonthView?.cautionWindow && (
+                  <p className="text-xs text-rose-400/80 mt-1">
+                    ⚠ 주의 구간: {data.calendarMonthView.cautionWindow}
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
@@ -352,7 +417,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                   onClick={() => setViewMode('monthly')}
                 >
                   <span className="text-xs font-bold text-indigo-500/80 mb-1 tracking-widest">
-                    MAY 2026
+                    {monthLabel}
                   </span>
                   <h2 className="text-3xl font-black text-zinc-100 tracking-tighter flex items-baseline gap-1">
                     {currentDay}
