@@ -4,60 +4,39 @@ import { useRouter } from 'next/navigation'
 import styles from '../main-page.module.css'
 import type { StoredBirthInfo } from '../birthInfoStorage'
 import { buildBirthQuery } from '../birthInfoStorage'
+import { ENABLED_SERVICES } from '@/config/enabledServices'
 
 interface RecommendationChipsProps {
   birthInfo: StoredBirthInfo | null
   locale: 'en' | 'ko'
 }
 
-interface Chip {
-  icon: string
-  label: { ko: string; en: string }
-  href: (query: string) => string
-}
-
-const CHIPS: Chip[] = [
-  {
-    icon: '📅',
-    label: { ko: '인생 흐름 보기', en: 'Lifetime flow' },
-    href: (q) => `/premium-reports/themed?theme=career&period=lifetime&tier=premium${q ? `&${q}` : ''}`,
-  },
-  {
-    icon: '💕',
-    label: { ko: '올해 연애운', en: 'This year — love' },
-    href: (q) => `/premium-reports/themed?theme=love&period=yearly&tier=premium${q ? `&${q}` : ''}`,
-  },
-  {
-    icon: '💰',
-    label: { ko: '이번 달 재물운', en: 'This month — wealth' },
-    href: (q) => `/premium-reports/themed?theme=wealth&period=monthly&tier=premium${q ? `&${q}` : ''}`,
-  },
-]
-
-export default function RecommendationChips({
-  birthInfo,
-  locale,
-}: RecommendationChipsProps) {
+export default function RecommendationChips({ birthInfo, locale }: RecommendationChipsProps) {
   const router = useRouter()
 
-  const onChip = (chip: Chip) => {
+  const onChip = (href: string) => {
     const query = buildBirthQuery(birthInfo)
-    router.push(chip.href(query))
+    const sep = href.includes('?') ? '&' : '?'
+    router.push(query ? `${href}${sep}${query}` : href)
   }
 
   return (
-    <div className={styles.homeChips} role="group" aria-label={locale === 'ko' ? '추천' : 'Suggestions'}>
-      {CHIPS.map((chip, idx) => (
+    <div
+      className={styles.homeChips}
+      role="group"
+      aria-label={locale === 'ko' ? '서비스' : 'Services'}
+    >
+      {ENABLED_SERVICES.map((service) => (
         <button
-          key={idx}
+          key={service.id}
           type="button"
           className={styles.homeChip}
-          onClick={() => onChip(chip)}
+          onClick={() => onChip(service.href)}
         >
           <span className={styles.homeChipIcon} aria-hidden="true">
-            {chip.icon}
+            {service.icon}
           </span>
-          {locale === 'ko' ? chip.label.ko : chip.label.en}
+          {locale === 'ko' ? service.label.ko : service.label.en}
         </button>
       ))}
     </div>
