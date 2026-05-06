@@ -48,6 +48,21 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     if (sp.get('openBirth') === '1') setBirthModalOpen(true)
   }, [])
 
+  // Lock the page to the viewport — the home is a single-screen UI and
+  // any scroll on body/html (URL bar collapse, overscroll bounce, etc.)
+  // clips the bottom controls. Restore on unmount so other routes scroll.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const prevBody = document.body.style.overflow
+    const prevHtml = document.documentElement.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prevBody
+      document.documentElement.style.overflow = prevHtml
+    }
+  }, [])
+
   // Sync birth info between server profile and localStorage once the
   // session is authenticated. Server wins if it already has full info;
   // otherwise we push the local values up so the next device can read

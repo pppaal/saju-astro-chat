@@ -6101,18 +6101,23 @@
 /* Override the legacy .container padding/gap for the home route so the
    page fits in one mobile viewport (100dvh) without scrolling. */
 .homeContainer {
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100dvh;
-  min-height: 100dvh;
+  max-height: 100dvh;
   padding: 0;
   gap: 0;
   overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: pan-x;
 }
 
 .homeBody {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -6123,6 +6128,7 @@
   padding: 4.5rem 1.25rem 0;
   gap: 1rem;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .homeHero {
