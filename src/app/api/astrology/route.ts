@@ -194,9 +194,11 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
         )
       }
     } catch (aiErr) {
-      logger.warn('[Astrology API] AI backend call failed:', aiErr)
-      aiInterpretation = ''
-      aiModelUsed = 'error-fallback'
+      // No silent string fallback — every astrology response should carry
+      // a real interpretation. Re-throw so the route returns a 500 with a
+      // real error code instead of a half-empty success.
+      logger.error('[Astrology API] AI backend call failed:', aiErr)
+      throw aiErr
     }
   }
 
