@@ -2,10 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { useI18n } from '@/i18n/I18nProvider'
 import Link from 'next/link'
 import styles from './CreditBadge.module.css'
-import { buildSignInUrl } from '@/lib/auth/signInUrl'
 
 interface CreditData {
   isLoggedIn: boolean
@@ -31,8 +29,6 @@ export default function CreditBadge({
   className = '',
 }: CreditBadgeProps) {
   const { data: session, status } = useSession()
-  const { t } = useI18n()
-  const signInUrl = buildSignInUrl()
   const [creditData, setCreditData] = useState<CreditData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -92,17 +88,12 @@ export default function CreditBadge({
     )
   }
 
-  // Not logged in - show login prompt
+  // Not logged in - render nothing. The global hamburger drawer (top-left
+  // on every service page) already provides the login entry inline; a
+  // second redundant pill in the corner just clutters the layout. Logged-in
+  // users still see their credit count below.
   if (!session?.user) {
-    if (variant === 'minimal') {
-      return null
-    }
-    return (
-      <Link href={signInUrl} className={`${styles.badge} ${styles.login} ${className}`}>
-        <span className={styles.icon}>🔑</span>
-        <span className={styles.loginText}>{t('common.login') || 'Login'}</span>
-      </Link>
-    )
+    return null
   }
 
   // Loading state
