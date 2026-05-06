@@ -171,11 +171,30 @@ export function hasMojibake(value: string): boolean {
   return MOJIBAKE_REGEX.test(value) || SUSPICIOUS_CHAR_REGEX.test(value)
 }
 
+// Strips lone surrogates (e.g. \uD800 without a low half) that leak in when
+// SSE chunks are split mid-multi-byte. Browsers render these as tofu boxes
+// even when the surrounding text is otherwise valid.
+function stripLoneSurrogates(value: string): string {
+  return value.replace(/[\uD800-\uDFFF]/g, (match, offset, full) => {
+    const code = match.charCodeAt(0)
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = full.charCodeAt(offset + 1)
+      if (next >= 0xdc00 && next <= 0xdfff) return match
+      return '�'
+    }
+    const prev = full.charCodeAt(offset - 1)
+    if (prev >= 0xd800 && prev <= 0xdbff) return match
+    return '�'
+  })
+}
+
 export function repairMojibakeText(value: string, maxPasses = 2): string {
   if (!value) return value
-  if (!hasMojibake(value)) return value
 
-  let current = normalizeSplitMojibake(value)
+  const sanitized = stripLoneSurrogates(value)
+  if (!hasMojibake(sanitized)) return sanitized
+
+  let current = normalizeSplitMojibake(sanitized)
 
   for (let pass = 0; pass < maxPasses; pass++) {
     const fullDecoded = decodeLegacyUtf8(current)

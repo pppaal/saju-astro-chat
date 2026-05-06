@@ -1,11 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./Footer.module.css";
 
+const FULL_VIEWPORT_CHAT_ROUTES = [
+  "/destiny-counselor/chat",
+  "/destiny-map/counselor",
+  "/astrology/counselor",
+];
+
 export default function Footer() {
   const { translate } = useI18n();
+  const pathname = usePathname();
+
+  // Hide on full-viewport chat pages (Claude-style locked layout) so the
+  // disclaimer/links don't appear under the chat input when the page scrolls.
+  if (pathname && FULL_VIEWPORT_CHAT_ROUTES.some((route) => pathname.startsWith(route))) {
+    return null;
+  }
 
   return (
     <footer className={styles.footer}>

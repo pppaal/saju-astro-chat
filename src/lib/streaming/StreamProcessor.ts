@@ -26,7 +26,6 @@ export interface StreamProcessorOptions {
  * Handles Server-Sent Events streams with follow-up question parsing
  */
 export class StreamProcessor {
-  private decoder = new TextDecoder()
   private sseBuffer = ''
 
   /**
@@ -46,6 +45,10 @@ export class StreamProcessor {
       }
     }
 
+    // Create a fresh decoder per stream — sharing one across calls leaks
+    // partial multi-byte state between streams, producing replacement chars
+    // and lone surrogates at the head of subsequent decodes.
+    const decoder = new TextDecoder('utf-8', { fatal: false, ignoreBOM: true })
     const reader = response.body.getReader()
     let accumulated = ''
     this.sseBuffer = ''
@@ -54,6 +57,24 @@ export class StreamProcessor {
       while (true) {
         const { done, value } = await reader.read()
         if (done) {
+          // Flush any remaining bytes held inside the decoder so a final
+          // multi-byte char isn't dropped or surfaced as a lone surrogate.
+          const flushed = decoder.decode()
+          if (flushed) {
+            const parsedFlushed = this.parseSSEChunk(flushed)
+            for (const data of parsedFlushed) {
+              if (data === '[DONE]') {
+                break
+              } else if (data.startsWith('[ERROR]')) {
+                const errorMsg = data.slice(7).trim() || 'Stream error'
+                throw new Error(errorMsg)
+              } else {
+                accumulated += data
+                const cleaned = this.cleanFollowupMarkers(accumulated)
+                onChunk?.(accumulated, cleaned)
+              }
+            }
+          }
           const tail = this.flushSSEBuffer()
           for (const data of tail) {
             if (data === '[DONE]') {
@@ -70,7 +91,7 @@ export class StreamProcessor {
           break
         }
 
-        const chunk = this.decoder.decode(value, { stream: true })
+        const chunk = decoder.decode(value, { stream: true })
         const parsed = this.parseSSEChunk(chunk)
 
         for (const data of parsed) {
