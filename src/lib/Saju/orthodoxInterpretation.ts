@@ -15,7 +15,7 @@
  */
 
 import type { CalculateSajuDataResult, PillarData, FiveElement } from './types'
-import { analyzeAdvancedSaju } from './astrologyengine'
+import { analyzeAdvancedSaju, analyzeRoot } from './astrologyengine'
 import {
   analyzeJonggeok,
   analyzeHwagyeok,
@@ -23,6 +23,7 @@ import {
   analyzeSamgi,
   analyzeGongmangDeep,
 } from './advancedSajuCore'
+import { getIljuArchetype, type IljuArchetype } from './iljuDictionary'
 
 // ──────────────────────────────────────────────────────────────────────
 // 궁위론: per-pillar life area + age period
@@ -243,11 +244,14 @@ export interface OrthodoxSajuInterpretation {
   sameElementPillars: SameElementPillarHit[]
   /** From astrologyengine.analyzeAdvancedSaju */
   advanced: ReturnType<typeof analyzeAdvancedSaju> | null
+  /** Dedicated 통근/근 (root) analysis — 득령/득지/득세 */
+  root: ReturnType<typeof analyzeRoot> | null
   /** Special-format checks (specific to extreme charts) */
   jonggeok: ReturnType<typeof analyzeJonggeok> | null
   hwagyeok: ReturnType<typeof analyzeHwagyeok> | null
-  /** Day pillar deep dive */
+  /** Day pillar deep dive (engine output + 60갑자 archetype dictionary) */
   iljuDeep: ReturnType<typeof analyzeIljuDeep> | null
+  iljuArchetype: IljuArchetype | null
   /** 삼기 (rare auspicious 3-stem combinations) */
   samgi: ReturnType<typeof analyzeSamgi> | null
   /** Deep gongmang analysis (which pillar carries the void) */
@@ -288,9 +292,13 @@ export function buildOrthodoxInterpretation(
   const advanced = safe(() =>
     analyzeAdvancedSaju(dayMaster as any, sajuPillarsForAdvanced as any)
   )
+  const root = safe(() => analyzeRoot(dayMaster as any, sajuPillarsForAdvanced as any))
   const jonggeok = safe(() => analyzeJonggeok(sajuPillarsForAdvanced as any))
   const hwagyeok = safe(() => analyzeHwagyeok(sajuPillarsForAdvanced as any))
   const iljuDeep = safe(() => analyzeIljuDeep(sajuPillarsForAdvanced as any))
+  const iljuArchetype = safe(() =>
+    getIljuArchetype(saju.dayPillar.heavenlyStem.name, saju.dayPillar.earthlyBranch.name)
+  )
   const samgi = safe(() => analyzeSamgi(sajuPillarsForAdvanced as any))
   const gongmangDeep = safe(() => analyzeGongmangDeep(sajuPillarsForAdvanced as any))
 
@@ -305,9 +313,11 @@ export function buildOrthodoxInterpretation(
     stemCombinations: analyzeStemCombinations(saju),
     sameElementPillars: analyzeSameElementPillars(saju),
     advanced,
+    root,
     jonggeok,
     hwagyeok,
     iljuDeep,
+    iljuArchetype,
     samgi,
     gongmangDeep,
   }
