@@ -39,8 +39,6 @@ Last audited: 2026-05-06 (Asia/Hong_Kong)
 | `docs/AUDIT_FUSION.md`                  | Saju × Astro fusion verification + maturity scorecard             | Backend/AI engineers       | 2026-03-11   |
 | `docs/AUDIT_SAJU.md`                    | Saju calculation audit                                            | Backend engineers          | 2026-03-11   |
 | `docs/AUDIT_ASTRO.md`                   | Astrology calculation audit                                       | Backend engineers          | 2026-03-11   |
-| `docs/AUDIT_TAROT_GRAPHRAG.md`          | Tarot GraphRAG audit                                              | AI engineers               | 2026-03-11   |
-| `docs/AUDIT_REPO_MAP.md`                | Repo-wide audit map                                               | Maintainers                | 2026-03-11   |
 | `docs/SOLAR_TIME_CONVENTION.md`         | True solar time policy and boundary handling                      | Backend engineers          | 2026-03-11   |
 
 ## Generated And Audit Docs
@@ -86,9 +84,8 @@ Last audited: 2026-05-06 (Asia/Hong_Kong)
   - `npm run lint` -> **PASS** (0 errors after fixing 2 unused-import errors in `MainPageClient.tsx`)
   - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both` -> **PASS=42 WARN=0 FAIL=0** (was WARN=13 FAIL=8 in 2026-04-01 snapshot)
   - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both` -> **PASS=10 WARN=0 FAIL=0** (was blocked by parse error in 2026-04-01 snapshot — now resolved)
-  - `python scripts/self_check.py` -> blocked by missing `chromadb` Python package in current sandbox; re-run on a host with backend_ai venv installed
   - `npm test` not run in this snapshot (long-running suite)
-- 2026-05-06 maintenance: `CROSS_RULES_SPEC.md` regenerated (205 rules + 10 meta); `npx knip` triage in `DEAD_CODE_TRIAGE.md`; 3 dead files removed from `src/lib/fortune/cross-rules/`.
+- 2026-05-06 maintenance: `CROSS_RULES_SPEC.md` regenerated (205 rules + 10 meta); `npx knip` triage in `DEAD_CODE_TRIAGE.md`; 3 dead files removed from `src/lib/fortune/cross-rules/`; **Python `backend_ai` substrate fully retired** — folder, CI workflows, package.json scripts, tests, docker-compose service, and env vars all removed; `AUDIT_TAROT_GRAPHRAG.md`, `AUDIT_REPO_MAP.md`, `audit_tarot_quality.md` archived.
 
 ## Archive Guidance
 

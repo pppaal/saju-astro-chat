@@ -157,34 +157,6 @@ Preview environment deployment:
 
 ---
 
-#### 8. [deploy-backend.yml](./deploy-backend.yml) - Backend AI Deployment
-
-**Triggers:** Push to `main` (backend_ai changes), Manual dispatch
-
-Backend AI service deployment:
-
-- Python unit tests
-- Fly.io deployment
-- Health checks
-- Deployment notifications
-
-**Features:**
-
-- Only triggers on backend_ai changes
-- Fly.io remote Docker build
-- Environment-specific deployments (staging/production)
-- Automatic health verification
-
-**Required Secrets:**
-
-- `FLY_API_TOKEN` - Fly.io API token
-- `BACKEND_AI_URL` - Backend URL for health checks (optional)
-
-**When it runs:** Backend changes to main branch
-**Duration:** ~8-12 minutes
-
----
-
 ## Workflow Dependencies
 
 ```

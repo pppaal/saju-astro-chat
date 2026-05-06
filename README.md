@@ -1,8 +1,8 @@
 # DestinyPal
 
-Last audited: 2026-04-08 (Asia/Hong_Kong)
+Last audited: 2026-05-06 (Asia/Hong_Kong)
 
-DestinyPal is a Next.js App Router application for saju, astrology, tarot, counseling, calendar guidance, and premium reporting, with a Python backend for GraphRAG and cross-domain reasoning.
+DestinyPal is a Next.js App Router application for saju, astrology, tarot, counseling, calendar guidance, and premium reporting. AI calls go through `@anthropic-ai/sdk` directly from Next.js routes.
 
 ## Quick Start
 
@@ -30,19 +30,6 @@ npm run db:migrate
 npm run dev
 ```
 
-5. Start Python backend.
-
-```bash
-cd backend_ai
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS/Linux
-source .venv/bin/activate
-pip install -r requirements.txt -r requirements-dev.txt
-python main.py
-```
-
 ## Required Environment Variables
 
 Minimum local setup:
@@ -55,7 +42,7 @@ Minimum local setup:
 - `PUBLIC_API_TOKEN`
 - `ADMIN_API_TOKEN`
 - `CRON_SECRET`
-- `AI_BACKEND_URL`
+- `ANTHROPIC_API_KEY`
 
 Production also needs Stripe, Redis, and webhook configuration. See `BUILD_INSTRUCTIONS.md` and `.env.example`.
 
@@ -103,19 +90,13 @@ Honest technical assessment:
 
 ## Current QA Snapshot
 
-Verified in the current workspace on 2026-04-08:
+Verified in the current workspace on 2026-05-06:
 
-- `python scripts/self_check.py`
-  - overall `PASS`
-- `npx tsc -p tsconfig.json --noEmit`
-  - passed
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=ko`
-  - `PASS=5 WARN=0 FAIL=0`
-- targeted regression bundle
-  - `226 passed, 1 skipped`
-  - includes report, counselor chat-stream, calendar, action-plan, tarot interpret, life-prediction explain-results, premium-reports result page, and engine contract coverage
-- `tests/lib/destiny-matrix/ai-report/aiReportService.test.ts`
-  - `24 passed, 1 skipped`
+- `npx tsc -p tsconfig.json --noEmit`: passed (0 errors)
+- `npm run lint`: passed (0 errors)
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`: `PASS=10 WARN=0 FAIL=0`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`: `PASS=42 WARN=0 FAIL=0`
+- `npm run docs:check-links`: passed (8 files)
 
 Practical release command:
 

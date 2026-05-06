@@ -10,7 +10,6 @@
     "src/data/**",
     "tests/**",
     "scripts/**",
-    "backend_ai/**",
     "tmp/**",
     "artifacts/**",
     "reports/**",

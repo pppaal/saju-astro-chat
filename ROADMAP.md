@@ -1,27 +1,28 @@
 # Development Roadmap
 
-Last audited: 2026-04-01 (Asia/Hong_Kong)
+Last audited: 2026-05-06 (Asia/Hong_Kong)
 
 This roadmap is a planning document. It is not a source of truth for current implementation status.
 
 ## Current Baseline (verified)
 
-- Core app stack: Next.js + Prisma + Python AI backend
+- Core app stack: Next.js + Prisma + `@anthropic-ai/sdk` (Python backend retired 2026-05-06)
 - Deterministic matrix engine: `src/lib/destiny-matrix`
-- Graph retrieval stack: `backend_ai/app/rag`
+- Cross-rules engine: `src/lib/fortune/cross-rules` (205 rules + 10 meta)
 - API routes (current): 140 (`npm run audit:api`)
-- Retrieval health: `python scripts/self_check.py` -> `PASS`
 - Docs links: `npm run docs:check-links` -> pass
-- Current destiny QA blocker: `qa-destiny-three-services` is blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-- Current counselor regression state: `PASS=21 WARN=13 FAIL=8` overall, with `ko` still at `FAIL=8`
+- Typecheck: `tsc --noEmit` -> 0 errors
+- Lint: `npm run lint` -> 0 errors
+- `qa-destiny-three-services --lang=both`: `PASS=10 WARN=0 FAIL=0`
+- `qa-counselor-questions --lang=both`: `PASS=42 WARN=0 FAIL=0`
 
 ## 2026 Priorities
 
 1. Reliability and quality gates
 
 - Keep `lint`, `typecheck`, `build`, and public smoke tests green
-- Restore `qa-destiny-three-services` execution by clearing the current report-stack parse blocker
-- Recover counselor Korean regression failures back to zero-fail status
+- Hold `qa-destiny-three-services` and `qa-counselor-questions` at zero-fail
+- Enforce file-size caps on orchestration files (see `docs/CROSS_RULES_ROADMAP.md` release hygiene section)
 
 2. Security standardization
 

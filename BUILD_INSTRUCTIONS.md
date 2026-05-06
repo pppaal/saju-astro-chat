@@ -1,6 +1,6 @@
 # Build Instructions
 
-Last audited: 2026-04-01 (Asia/Hong_Kong)
+Last audited: 2026-05-06 (Asia/Hong_Kong)
 
 This document is the canonical setup and build guide for the current repository state.
 
@@ -8,7 +8,6 @@ This document is the canonical setup and build guide for the current repository 
 
 - Node.js 20+
 - npm 10+
-- Python 3.10+
 - PostgreSQL (or Supabase Postgres)
 - Optional: Redis/Upstash, Stripe CLI, Playwright browsers, k6
 
@@ -31,7 +30,7 @@ npm ci
 - `ADMIN_API_TOKEN`
 - `PUBLIC_API_TOKEN`
 - `CRON_SECRET`
-- `AI_BACKEND_URL`
+- `ANTHROPIC_API_KEY`
 
 3. Validate configuration:
 
@@ -73,19 +72,6 @@ Start Next.js app:
 npm run dev
 ```
 
-Start backend AI service:
-
-```bash
-cd backend_ai
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS/Linux
-source .venv/bin/activate
-pip install -r requirements.txt -r requirements-dev.txt
-python main.py
-```
-
 ## Build And Quality Checks
 
 ```bash
@@ -99,14 +85,12 @@ Tests:
 ```bash
 npm test
 npm run test:e2e:smoke:public
-npm run test:backend
 ```
 
-## Deployment Notes (Vercel + Backend)
+## Deployment Notes (Vercel)
 
 - Vercel deploys Next.js app (`npm run vercel-build`).
-- Python backend (`backend_ai`) is deployed separately (Docker/Fly/VPS).
-- Set `AI_BACKEND_URL` to backend service URL.
+- AI calls go through `@anthropic-ai/sdk` directly — no separate backend service.
 - Ensure Stripe webhook endpoint points to `/api/webhook/stripe` with `STRIPE_WEBHOOK_SECRET` configured.
 - Demo routes require `DEMO_TOKEN`.
 
@@ -162,8 +146,8 @@ Symptoms:
 
 Fix:
 
-- confirm `AI_BACKEND_URL` is reachable
-- check backend logs in `backend_ai`
+- confirm `ANTHROPIC_API_KEY` is set and valid
+- check Next.js server logs for Claude API errors
 - verify auth/token headers for protected routes
 
 ### Demo routes return 404
@@ -175,15 +159,12 @@ Fix:
 - set `DEMO_TOKEN`
 - pass `?token=...` or header `x-demo-token`
 
-## Verification Snapshot (2026-04-01)
+## Verification Snapshot (2026-05-06)
 
 Commands executed during the current documentation audit:
 
-- `npm run docs:stats` -> pass
-- `npm run audit:api` -> pass, regenerated `docs/API_AUDIT_REPORT.md`
-- `python scripts/self_check.py` -> pass
-- `npm run docs:check-links` -> pass
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both` -> blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both` -> overall `PASS=21 WARN=13 FAIL=8`
-
-Treat the current workspace as below the prior 2026-03-17 destiny QA baseline until the parse blocker and the Korean counselor regressions are resolved.
+- `npm run docs:check-links` -> pass (8 files)
+- `npx tsc -p tsconfig.json --noEmit` -> 0 errors
+- `npm run lint` -> 0 errors
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both` -> `PASS=10 WARN=0 FAIL=0`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both` -> `PASS=42 WARN=0 FAIL=0`
