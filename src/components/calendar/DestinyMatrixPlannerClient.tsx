@@ -1,12 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import BirthInfoForm from '@/components/calendar/BirthInfoForm'
+import { useRouter } from 'next/navigation'
 import DestinyMatrixPlanner from '@/components/calendar/DestinyMatrixPlanner'
-import {
-  loadSharedBirthInfo,
-  saveSharedBirthInfo,
-} from '@/components/calendar/sharedBirthInfo'
+import { loadSharedBirthInfo } from '@/components/calendar/sharedBirthInfo'
 import type { BirthInfo, CalendarData } from '@/components/calendar/types'
 import { getUserProfile } from '@/lib/userProfile'
 import { localizeStoredCity } from '@/lib/cities/formatter'
@@ -20,6 +17,7 @@ import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
  * /calendar and /calendar/preview routes.
  */
 export default function DestinyMatrixPlannerClient() {
+  const router = useRouter()
   const [birthInfo, setBirthInfo] = useState<BirthInfo>({
     birthDate: '',
     birthTime: '',
@@ -27,6 +25,7 @@ export default function DestinyMatrixPlannerClient() {
     gender: 'Male',
   })
   const [hasBirthInfo, setHasBirthInfo] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
   const [data, setData] = useState<CalendarData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -175,37 +174,30 @@ export default function DestinyMatrixPlannerClient() {
       setHasBirthInfo(true)
       void fetchCalendar(normalized)
     }
+    setHydrated(true)
   }, [fetchCalendar])
 
-  const handleSubmit = useCallback(
-    async (submitted: BirthInfo) => {
-      const hasCoords =
-        typeof submitted.latitude === 'number' && typeof submitted.longitude === 'number'
-      const normalized: BirthInfo = {
-        ...submitted,
-        birthTime: submitted.birthTime || '12:00',
-        birthPlace: submitted.birthPlace || 'Seoul',
-        latitude: hasCoords ? submitted.latitude : 37.5665,
-        longitude: hasCoords ? submitted.longitude : 126.978,
-        timezone: submitted.timezone || 'Asia/Seoul',
-      }
-
-      setBirthInfo(normalized)
-      saveSharedBirthInfo(normalized)
-      setHasBirthInfo(true)
-      await fetchCalendar(normalized)
-    },
-    [fetchCalendar],
-  )
+  // No birth info available anywhere — redirect to home so the user
+  // fills it in the modal there (single source of truth).
+  useEffect(() => {
+    if (!hydrated || hasBirthInfo) return
+    if (typeof window === 'undefined') return
+    const back = encodeURIComponent('/calendar')
+    router.replace(`/?openBirth=1&next=${back}`)
+  }, [hydrated, hasBirthInfo, router])
 
   const handleRetry = useCallback(() => {
-    setHasBirthInfo(false)
     setError(null)
     setData(null)
-  }, [])
+    if (birthInfo.birthDate) void fetchCalendar(birthInfo)
+  }, [birthInfo, fetchCalendar])
 
   if (!hasBirthInfo) {
-    return <BirthInfoForm birthInfo={birthInfo} onSubmit={handleSubmit} />
+    return (
+      <div className="w-full max-w-md mx-auto h-screen bg-zinc-950 text-zinc-400 flex items-center justify-center">
+        홈으로 이동 중…
+      </div>
+    )
   }
 
   if (loading) {
