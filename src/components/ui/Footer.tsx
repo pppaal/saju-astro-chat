@@ -5,9 +5,20 @@ import { usePathname } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./Footer.module.css";
 
-const FULL_VIEWPORT_CHAT_ROUTES = [
-  "/destiny-counselor/chat",
-  "/destiny-map/counselor",
+// Footer is hidden on the home page and on the 6 active service routes
+// (and their subpaths). The disclaimer/links appearing below the fold makes
+// every page feel "scrollable" on mobile even when the main content fits in
+// the viewport. Policy pages, /about, /faq, /contact, /pricing, /profile,
+// /auth, /admin, /blog still show the footer.
+const HIDE_FOOTER_PREFIXES = [
+  "/destiny-counselor",
+  "/destiny-map",
+  "/destiny-match",
+  "/tarot",
+  "/calendar",
+  "/compatibility",
+  "/report",
+  "/premium-reports",
   "/astrology/counselor",
 ];
 
@@ -15,9 +26,9 @@ export default function Footer() {
   const { translate } = useI18n();
   const pathname = usePathname();
 
-  // Hide on full-viewport chat pages (Claude-style locked layout) so the
-  // disclaimer/links don't appear under the chat input when the page scrolls.
-  if (pathname && FULL_VIEWPORT_CHAT_ROUTES.some((route) => pathname.startsWith(route))) {
+  // Hide on home page (exact) and on service routes (prefix match).
+  if (pathname === "/" || pathname === "") return null;
+  if (pathname && HIDE_FOOTER_PREFIXES.some((route) => pathname.startsWith(route))) {
     return null;
   }
 

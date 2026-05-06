@@ -121,6 +121,7 @@ export default function CounselorPage() {
 
   return (
     <main className={`${styles.page} ${showChat ? styles.fadeIn : ''}`}>
+      <BodyScrollLock />
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <button
@@ -210,5 +211,27 @@ function InitialQuestionSender({ question }: { question: string }) {
     return () => clearTimeout(timer)
   }, [question])
 
+  return null
+}
+
+// While the counselor chat is mounted, lock html/body so the whole page can't
+// rubber-band, pull-to-refresh, or shift when the mobile URL bar collapses.
+// The inner messages panel still scrolls; only the page chrome is pinned.
+function BodyScrollLock() {
+  useEffect(() => {
+    const html = document.documentElement
+    const body = document.body
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+    const prevBodyOverscroll = body.style.overscrollBehavior
+    html.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+    body.style.overscrollBehavior = 'contain'
+    return () => {
+      html.style.overflow = prevHtmlOverflow
+      body.style.overflow = prevBodyOverflow
+      body.style.overscrollBehavior = prevBodyOverscroll
+    }
+  }, [])
   return null
 }
