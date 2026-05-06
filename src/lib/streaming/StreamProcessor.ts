@@ -26,7 +26,11 @@ export interface StreamProcessorOptions {
  * Handles Server-Sent Events streams with follow-up question parsing
  */
 export class StreamProcessor {
-  private decoder = new TextDecoder()
+  // Per-process() state, set fresh on each call. The previous singleton
+  // pattern shared a stateful TextDecoder across calls — if a stream ended
+  // mid-multibyte UTF-8 sequence (Korean glyphs are 3 bytes), leftover
+  // bytes leaked into the next response and produced mojibake.
+  private decoder = new TextDecoder('utf-8')
   private sseBuffer = ''
 
   /**
@@ -48,12 +52,31 @@ export class StreamProcessor {
 
     const reader = response.body.getReader()
     let accumulated = ''
+    this.decoder = new TextDecoder('utf-8')
     this.sseBuffer = ''
 
     try {
       while (true) {
         const { done, value } = await reader.read()
         if (done) {
+          // Flush any pending bytes in the decoder so trailing multibyte
+          // sequences are not silently dropped.
+          const flushed = this.decoder.decode()
+          if (flushed) {
+            const tailParsed = this.parseSSEChunk(flushed)
+            for (const data of tailParsed) {
+              if (data === '[DONE]') {
+                break
+              } else if (data.startsWith('[ERROR]')) {
+                const errorMsg = data.slice(7).trim() || 'Stream error'
+                throw new Error(errorMsg)
+              } else {
+                accumulated += data
+                const cleaned = this.cleanFollowupMarkers(accumulated)
+                onChunk?.(accumulated, cleaned)
+              }
+            }
+          }
           const tail = this.flushSSEBuffer()
           for (const data of tail) {
             if (data === '[DONE]') {
