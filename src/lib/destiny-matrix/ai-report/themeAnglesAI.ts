@@ -303,24 +303,43 @@ function buildAngleStructureSection(theme: ThemeKey): string {
   return lines.join('\n')
 }
 
-function buildUserPrompt(input: AIGenerationInput): string {
+/**
+ * User prompt를 두 블록으로 분할:
+ *  - cached: name + period section + signal pool + cross matrix
+ *    → 같은 유저의 6개 테마 호출에 걸쳐 재사용. cache_control: ephemeral 적용.
+ *  - dynamic: angle structure + task (테마마다 달라짐)
+ *
+ * Anthropic 캐시 최소 단위는 1024 토큰. signalPool + crossMatrix가 보통
+ * 그 이상이라 5번의 cache_read = 90% 입력토큰 할인.
+ */
+function buildUserPromptBlocks(input: AIGenerationInput): {
+  cachedContext: string
+  dynamicTail: string
+} {
   const { theme, period, signals, ctx, name, crossAgreementMatrix } = input
   const crossSection = buildCrossAgreementSection(crossAgreementMatrix)
-  return [
+
+  const cachedContext = [
     name ? `대상: ${name}` : '',
     '',
     buildPeriodSection(ctx, period),
     '',
-    buildAngleStructureSection(theme),
-    '',
     buildSignalPoolSection(signals, ctx),
     crossSection ? '\n' + crossSection : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
+
+  const dynamicTail = [
+    buildAngleStructureSection(theme),
     '',
     `## 작업`,
     `위 신호 풀 + 시기 컨텍스트로 **${THEME_LABEL_KO[theme]}** 테마를 8개 각도로 풀어줘. 각 angle 본문은 신호 풀에서 가장 적합한 1-3개 신호를 골라 명시 인용. ⚡FUSION 태그가 붙은 L4/L5/L8 신호는 가능하면 우선 인용 — 사주와 점성이 같은 의미로 묶여 있다는 점을 본문에서 드러내. 시스템 프롬프트의 JSON 형식 그대로 출력.`,
   ]
     .filter(Boolean)
     .join('\n')
+
+  return { cachedContext, dynamicTail }
 }
 
 // ============================================
@@ -442,10 +461,12 @@ export async function generateThemeAnglesAI(
   }
 
   const systemPrompt = buildSystemPrompt()
-  const userPrompt = buildUserPrompt(input)
+  const { cachedContext, dynamicTail } = buildUserPromptBlocks(input)
   const signalIds = new Set(input.signals.map((s) => s.id))
 
   // Opus 4.7: no temperature/top_p (returns 400). Use adaptive thinking.
+  // user content를 [cached chart context, dynamic theme-specific tail] 두 블록으로
+  // 분할 — 같은 유저의 6개 테마 호출이 cached block을 cache_read 단가($1.50/1M)로 받게.
   const body = {
     model: MODEL,
     max_tokens: 16000,
@@ -456,7 +477,19 @@ export async function generateThemeAnglesAI(
         cache_control: { type: 'ephemeral' },
       },
     ],
-    messages: [{ role: 'user', content: userPrompt }],
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: cachedContext,
+            cache_control: { type: 'ephemeral' },
+          },
+          { type: 'text', text: dynamicTail },
+        ],
+      },
+    ],
     thinking: { type: 'adaptive' },
   }
 
