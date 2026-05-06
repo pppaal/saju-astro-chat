@@ -181,6 +181,85 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
     }
   }, [selectedImportantDate])
 
+  // Active Aura — Buff (positive interaction) + Debuff (negative interaction)
+  const auraPair = useMemo(() => {
+    if (!selectedImportantDate) return null
+
+    const positiveKinds = new Set(['천간합', '지지합'])
+    const negativeKinds = new Set(['천간충', '지지충', '지지형', '지지해', '지지파', '자형'])
+
+    const positivePairs = selectedImportantDate.cycleInteractions?.filter((i) =>
+      positiveKinds.has(i.kind),
+    )
+    const negativePairs = selectedImportantDate.cycleInteractions?.filter((i) =>
+      negativeKinds.has(i.kind),
+    )
+
+    let buff: { title: string; subtitle: string; source: '사주' | '점성' } | null = null
+    let debuff: { title: string; subtitle: string; source: '사주' | '점성' } | null = null
+
+    if (positivePairs && positivePairs.length > 0) {
+      const p = positivePairs[0]
+      buff = { title: `${p.pair} (${p.kind})`, subtitle: p.blurb, source: '사주' }
+    }
+    if (negativePairs && negativePairs.length > 0) {
+      const n = negativePairs[0]
+      debuff = { title: `${n.pair} (${n.kind})`, subtitle: n.blurb, source: '사주' }
+    }
+
+    // Astro fallback via transit aspects when saju side is silent
+    const aspects = selectedImportantDate.transit?.aspects ?? []
+    if (!buff) {
+      const soft = aspects.find((a) =>
+        ['Trine', 'Sextile', 'Conjunction'].includes(a.aspect),
+      )
+      if (soft) {
+        buff = {
+          title: `${soft.transitPlanet}-${soft.natalPoint} ${soft.aspect}`,
+          subtitle: `Orb ${soft.orb.toFixed(1)}°${soft.isApplying ? ' · applying' : ''}`,
+          source: '점성',
+        }
+      }
+    }
+    if (!debuff) {
+      const hard = aspects.find((a) =>
+        ['Square', 'Opposition'].includes(a.aspect),
+      )
+      if (hard) {
+        debuff = {
+          title: `${hard.transitPlanet}-${hard.natalPoint} ${hard.aspect}`,
+          subtitle: `Orb ${hard.orb.toFixed(1)}°${hard.isApplying ? ' · applying' : ''}`,
+          source: '점성',
+        }
+      }
+    }
+
+    if (!buff && !debuff) return null
+    return { buff, debuff }
+  }, [selectedImportantDate])
+
+  // Today's quests — derive from engine signals
+  const engineQuests = useMemo(() => {
+    if (!data) return null
+    const list: Array<{ id: string; type: 'Daily' | 'Main' | 'Watch'; text: string }> = []
+
+    const doNow = data.calendarDailyView?.doNow
+    if (doNow) list.push({ id: 'q-do', type: 'Daily', text: doNow })
+
+    const mainAction =
+      selectedImportantDate?.recommendations?.[0] ?? selectedImportantDate?.actionSummary
+    if (mainAction) list.push({ id: 'q-main', type: 'Main', text: mainAction })
+
+    const watchOut = data.calendarDailyView?.watchOut ?? selectedImportantDate?.warnings?.[0]
+    if (watchOut) list.push({ id: 'q-watch', type: 'Watch', text: watchOut })
+
+    return list.length > 0 ? list : null
+  }, [data, selectedImportantDate])
+
+  const [questDone, setQuestDone] = useState<Record<string, boolean>>({})
+  const toggleQuest = (id: string) =>
+    setQuestDone((prev) => ({ ...prev, [id]: !prev[id] }))
+
   const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
   const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
 
@@ -600,87 +679,120 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
               </div>
 
               {/* Active Aura */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-bold text-zinc-400 tracking-widest uppercase flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-amber-500" /> Active Aura
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
-                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block mb-1">
-                      Buff
-                    </span>
-                    <p className="text-xs text-zinc-200 font-medium">수성-목성 섹스타일</p>
-                    <p className="text-[10px] text-zinc-400 mt-1">학습 속도 +30%</p>
-                  </div>
-                  <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl">
-                    <span className="text-[10px] text-rose-400 font-bold uppercase tracking-wider block mb-1">
-                      Debuff
-                    </span>
-                    <p className="text-xs text-zinc-200 font-medium">乙-辛 천간충</p>
-                    <p className="text-[10px] text-zinc-400 mt-1">대인관계 피로도 +50%</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quests */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 px-1">
-                  <Swords className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-base font-extrabold text-zinc-100 tracking-wide">
-                    오늘의 퀘스트
-                  </h3>
-                </div>
+              {(data ? auraPair : true) && (
                 <div className="space-y-3">
-                  {[
-                    {
-                      id: 1,
-                      text: '일일 퀘스트: 12H 스텔리움 명상 (30분)',
-                      type: 'Daily',
-                      done: currentDay % 2 === 0,
-                    },
-                    {
-                      id: 2,
-                      text: '메인 퀘스트: 10H 목성 커리어 확장 기획',
-                      type: 'Main',
-                      done: false,
-                    },
-                  ].map((quest) => (
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      key={quest.id}
-                      className={`flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${
-                        quest.done
-                          ? 'bg-indigo-900/10 border-indigo-500/30'
-                          : 'bg-zinc-900/40 border-white/5 hover:border-indigo-500/50'
-                      }`}
-                    >
-                      {quest.done ? (
-                        <CheckCircle2 className="w-6 h-6 text-indigo-500 shrink-0" />
-                      ) : (
-                        <Circle className="w-6 h-6 text-zinc-600 shrink-0" />
-                      )}
-                      <div>
-                        <span
-                          className={`text-xs font-bold px-2 py-0.5 rounded-md mb-1 inline-block ${
-                            quest.type === 'Main'
-                              ? 'bg-amber-500/20 text-amber-400'
-                              : 'bg-zinc-800 text-zinc-400'
-                          }`}
-                        >
-                          {quest.type}
+                  <h3 className="text-sm font-bold text-zinc-400 tracking-widest uppercase flex items-center gap-2">
+                    <Flame className="w-4 h-4 text-amber-500" /> Active Aura
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Buff card */}
+                    {(data ? auraPair?.buff : true) && (
+                      <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
+                        <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                          <span>Buff</span>
+                          {data && auraPair?.buff && (
+                            <span className="text-[9px] text-emerald-300/60 font-normal">
+                              {auraPair.buff.source}
+                            </span>
+                          )}
                         </span>
-                        <p
-                          className={`text-sm font-medium ${
-                            quest.done ? 'text-zinc-500 line-through' : 'text-zinc-200'
-                          }`}
-                        >
-                          {quest.text}
+                        <p className="text-xs text-zinc-200 font-medium">
+                          {data ? auraPair?.buff?.title : '수성-목성 섹스타일'}
+                        </p>
+                        <p className="text-[10px] text-zinc-400 mt-1">
+                          {data ? auraPair?.buff?.subtitle : '학습 속도 +30%'}
                         </p>
                       </div>
-                    </motion.div>
-                  ))}
+                    )}
+                    {/* Debuff card */}
+                    {(data ? auraPair?.debuff : true) && (
+                      <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl">
+                        <span className="text-[10px] text-rose-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                          <span>Debuff</span>
+                          {data && auraPair?.debuff && (
+                            <span className="text-[9px] text-rose-300/60 font-normal">
+                              {auraPair.debuff.source}
+                            </span>
+                          )}
+                        </span>
+                        <p className="text-xs text-zinc-200 font-medium">
+                          {data ? auraPair?.debuff?.title : '乙-辛 천간충'}
+                        </p>
+                        <p className="text-[10px] text-zinc-400 mt-1">
+                          {data ? auraPair?.debuff?.subtitle : '대인관계 피로도 +50%'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Quests */}
+              {(() => {
+                const quests = data
+                  ? engineQuests
+                  : ([
+                      { id: 'mock-1', type: 'Daily', text: '일일 퀘스트: 12H 스텔리움 명상 (30분)' },
+                      { id: 'mock-2', type: 'Main', text: '메인 퀘스트: 10H 목성 커리어 확장 기획' },
+                    ] as const)
+
+                if (!quests || quests.length === 0) return null
+
+                return (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                      <Swords className="w-5 h-5 text-amber-400" />
+                      <h3 className="text-base font-extrabold text-zinc-100 tracking-wide">
+                        오늘의 퀘스트
+                      </h3>
+                    </div>
+                    <div className="space-y-3">
+                      {quests.map((quest) => {
+                        const done =
+                          quest.id === 'mock-1' ? currentDay % 2 === 0 : !!questDone[quest.id]
+                        const typeStyle =
+                          quest.type === 'Main'
+                            ? 'bg-amber-500/20 text-amber-400'
+                            : quest.type === 'Watch'
+                              ? 'bg-rose-500/20 text-rose-400'
+                              : 'bg-zinc-800 text-zinc-400'
+                        return (
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            key={quest.id}
+                            onClick={() => quest.id.startsWith('q-') && toggleQuest(quest.id)}
+                            className={`flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${
+                              done
+                                ? 'bg-indigo-900/10 border-indigo-500/30'
+                                : 'bg-zinc-900/40 border-white/5 hover:border-indigo-500/50'
+                            }`}
+                          >
+                            {done ? (
+                              <CheckCircle2 className="w-6 h-6 text-indigo-500 shrink-0" />
+                            ) : (
+                              <Circle className="w-6 h-6 text-zinc-600 shrink-0" />
+                            )}
+                            <div>
+                              <span
+                                className={`text-xs font-bold px-2 py-0.5 rounded-md mb-1 inline-block ${typeStyle}`}
+                              >
+                                {quest.type}
+                              </span>
+                              <p
+                                className={`text-sm font-medium ${
+                                  done ? 'text-zinc-500 line-through' : 'text-zinc-200'
+                                }`}
+                              >
+                                {quest.text}
+                              </p>
+                            </div>
+                          </motion.div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()}
             </motion.div>
           )}
 
