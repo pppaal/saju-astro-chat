@@ -78,14 +78,42 @@ function DestinyMapContent({
     if (autoRedirectRef.current) return
     if (typeof window === 'undefined') return
     const sp = new URLSearchParams(window.location.search)
-    const birthDate = sp.get('birthDate')
+
+    // URL params take priority; fall back to home page localStorage
+    // (destinypal:birthInfo:v1) so the counselor entry never re-asks
+    // when the user already typed birth info on the home chat.
+    let birthDate = sp.get('birthDate')
+    let birthTime = sp.get('birthTime')
+    let gParam = sp.get('gender') || ''
+    let cityName = sp.get('birthCity') || ''
+    if (!birthDate) {
+      try {
+        const raw = window.localStorage.getItem('destinypal:birthInfo:v1')
+        if (raw) {
+          const parsed = JSON.parse(raw) as {
+            birthDate?: string
+            birthTime?: string
+            gender?: 'male' | 'female'
+            city?: string
+          }
+          if (parsed?.birthDate) {
+            birthDate = parsed.birthDate
+            birthTime = birthTime || parsed.birthTime || ''
+            gParam = gParam || parsed.gender || ''
+            cityName = cityName || parsed.city || ''
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
     if (!birthDate) return
 
     autoRedirectRef.current = true
-    const birthTime = sp.get('birthTime') || '12:00'
-    const gParam = (sp.get('gender') || '').toUpperCase()
-    const apiGender = gParam === 'F' || gParam === 'FEMALE' ? 'female' : 'male'
-    const cityName = sp.get('birthCity') || QUICK_MODE_DEFAULT_CITY.displayKr || 'Seoul, KR'
+    if (!birthTime) birthTime = '12:00'
+    const gUpper = gParam.toUpperCase()
+    const apiGender = gUpper === 'F' || gUpper === 'FEMALE' ? 'female' : 'male'
+    if (!cityName) cityName = QUICK_MODE_DEFAULT_CITY.displayKr || 'Seoul, KR'
     const initialQuestion = sp.get('initialQuestion') || ''
     const name = sp.get('name') || ''
 
