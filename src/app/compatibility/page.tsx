@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import { useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import ServicePageLayout from '@/components/ui/ServicePageLayout'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -11,11 +10,6 @@ import styles from './Compatibility.module.css'
 
 import { ShareButton } from '@/components/share/ShareButton'
 import ScrollToTop from '@/components/ui/ScrollToTop'
-
-// Lazy load heavy components
-const CompatibilityTabs = dynamic(() => import('@/components/compatibility/CompatibilityTabs'), {
-  loading: () => <div style={{ minHeight: '300px' }} />,
-})
 
 // Dynamic import for share card generation (only needed when sharing)
 const loadShareCardModule = () => import('@/components/share/cards/CompatibilityCard')
@@ -102,15 +96,14 @@ export default function CompatPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
 
-  // Show tabs initially
-  const [showTabs, setShowTabs] = useState(true)
+  // The marketing tabs intro was retired — the form is the entry point now.
 
   // Profile loading
   const { profile, loadProfile, loadingProfileBtn, profileLoadedMsg, profileLoadError } =
     useUserProfile({ skipAutoLoad: false })
 
   // Use extracted hooks
-  const { count, setCount, persons, setPersons, updatePerson, fillFromCircle, onPickCity } =
+  const { count, persons, setPersons, updatePerson, fillFromCircle, onPickCity } =
     useCompatibilityForm(2, normalizedLocale)
 
   useCityAutocomplete(persons, setPersons)
@@ -157,16 +150,12 @@ export default function CompatPage() {
   const handleBack = useCallback(() => {
     if (resultText) {
       resetResults()
-    } else if (!showTabs) {
-      setShowTabs(true)
     } else {
+      // Form is the entry point now (tabs intro was retired) — back from
+      // form goes home directly.
       router.push('/')
     }
-  }, [resultText, showTabs, resetResults, router])
-
-  const handleStartAnalysis = useCallback(() => {
-    setShowTabs(false)
-  }, [])
+  }, [resultText, resetResults, router])
 
   const handleLoadProfile = useCallback(async () => {
     const success = await loadProfile(locale)
@@ -222,44 +211,16 @@ export default function CompatPage() {
       backLabel={compatT('compatibilityPage.backToForm', 'Back')}
     >
       <main className={`${styles.page} ${!resultText ? styles.entryOnly : ''}`}>
-        {/* Background Hearts - deterministic positions to avoid hydration mismatch */}
-        <div className={styles.hearts}>
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className={styles.heart}
-              style={{
-                left: `${(i * 37 + 13) % 100}%`,
-                top: `${(i * 53 + 7) % 100}%`,
-                animationDelay: `${(i * 0.4) % 8}s`,
-                animationDuration: `${6 + (i % 4)}s`,
-              }}
-            >
-              {'\u{1F496}'}
-            </div>
-          ))}
-        </div>
+        {/* Decorative floating hearts + tabs marketing intro were removed —
+            users open this page to enter birth info, not to see another
+            landing screen. */}
 
-        {/* Tabs View */}
-        {showTabs && !resultText && (
-          <div className={styles.tabsWrapper}>
-            <CompatibilityTabs
-              onStartAnalysis={handleStartAnalysis}
-              t={compatT}
-              locale={normalizedLocale}
-            />
-          </div>
-        )}
-
-        {!showTabs && !resultText && (
+        {!resultText && (
           <div className={`${styles.formContainer} ${styles.fadeIn}`}>
-            <div className={styles.formHeader}>
-              <div className={styles.formIcon}>{'\u{1F495}'}</div>
-              <h1 className={styles.formTitle}>
-                {compatT('compatibilityPage.title', 'Relationship Compatibility')}
-              </h1>
-            </div>
-
+            {/* The ServicePageLayout already shows the page title + subtitle
+                up top, so the form's own duplicate header was retired. This
+                also tightens the form vertically so the entry fits on one
+                screen on common mobile heights. */}
             <form
               onSubmit={(e) => {
                 e.preventDefault()
