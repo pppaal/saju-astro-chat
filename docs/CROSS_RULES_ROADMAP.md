@@ -1,6 +1,8 @@
 # Cross-Rules Engine — 개선 체크리스트
 
-> 현재 상태: 룰 143 / 테스트 75 / 명세 자동 생성 / 2개 큰 버그 수정 완료
+> 현재 상태: 룰 205 / 메타룰 10 / 테스트 75 / 명세 자동 생성
+> 도메인 분포: self 62 · career 49 · money 29 · love 26 · family 25 · health 14
+> 레이어 분포: state 121 · relation 11 · timing 73
 > 등급: 엔진 A−, 제품 완성도 C+ (UI·LLM 실측 미흡)
 
 ---
@@ -91,7 +93,9 @@
 
 ## 📚 P2 — 도메인 딥다이브 (룰 보강)
 
-### P2-1. love 딥다이브 (현 9개 → 목표 25+)
+> ⚠️ 이전 로드맵은 love 9 / money 11 / family 11로 적혀 있었으나, 자동 명세 재생성 결과 실제 카운트는 love 26 / money 29 / family 25입니다. 따라서 **숫자 늘리기보다 깊이·축 다양화**에 초점.
+
+### P2-1. love 깊이 보강 (현 26개)
 - **대상 파일**: `src/lib/fortune/cross-rules/rules/love-deep.ts`
 - **추가 축**:
   - 7궁 dignity (essential + accidental) × 일간 강약
@@ -104,7 +108,7 @@
   - 일지 합화 결과 vs 일지 충 — 관계 안정성 polarity
 - **검증**: 신규 룰별 단위 테스트 + 메타룰 발화 빈도 영향 측정 (P0-1 임계값 재보정 트리거 가능)
 
-### P2-2. money 딥다이브 (현 11개 → 목표 25+)
+### P2-2. money 깊이 보강 (현 29개)
 - **대상 파일**: `src/lib/fortune/cross-rules/rules/money-deep.ts`
 - **추가 축**:
   - 2궁/8궁 dignity 세분화 (ruler 강약 × 수성/목성 aspect)
@@ -116,7 +120,7 @@
   - 재성 충·합화 → 변동성 polarity
   - 운로별 재성 활성화 (대운 식상/재성 vs 비겁/인성 비교)
 
-### P2-3. family 딥다이브 (현 11개 → 목표 22+)
+### P2-3. family 깊이 보강 (현 25개)
 - **대상 파일**: `src/lib/fortune/cross-rules/rules/family-deep.ts`
 - **추가 축**:
   - 4궁/IC × 인성 강약 (모친 관계)
@@ -134,13 +138,13 @@
 - **종격 운로 분석**: 종왕격이 비겁/인성 운에 형통 vs 식상/재성/관성 운에 손해 — 운별 룰
 - **삼합 vs 방합 차이**: 현재 통합 처리 중
 
-### P2-5. 도메인 현황 (참고)
-- ✅ career: 22 → 38 (deep)
-- love: 9 → 목표 25+ (P2-1)
-- money: 11 → 목표 25+ (P2-2)
-- family: 11 → 목표 22+ (P2-3)
+### P2-5. 도메인 현황 (자동 명세 기준)
+- self: 62 (충분)
+- career: 49 (deep)
+- money: 29 → 깊이 보강 (P2-2)
+- love: 26 → 깊이 보강 (P2-1)
+- family: 25 → 깊이 보강 (P2-3)
 - health: 14 (좋음). 임상 사례 부재로 더 늘리는 것은 한계
-- self: 57 (충분)
 
 ---
 

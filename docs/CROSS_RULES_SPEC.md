@@ -1178,6 +1178,10 @@
 **서술 (confirm)**
 > 사주 인성 강 + 점성 Neptune 7궁 또는 Venus-Neptune aspect — 상대를 이상화하는 결. 깊은 사랑 가능하나 현실 인식이 늦게 옴.
 
+**서술 (conflict / 양면)**
+
+> 이상과 현실의 간극 — 환상이 깊을수록 실망도 큼. 영감과 자기기만의 양면.
+
 ### `love.state.power-dynamics`
 - **레이어**: 정적 (state)
 - **도메인**: love
@@ -1355,6 +1359,10 @@
 **서술 (confirm)**
 > 사주 시지 공망 또는 식상 약 + 점성 Saturn 5궁 또는 5궁 ruler가 12궁 — 자녀를 갖는 시기가 늦거나 의식적 선택. 양육 깊이는 깊음.
 
+**서술 (conflict / 양면)**
+
+> 자녀에 대한 갈망과 망설임이 공존 — 시기·환경 압박과 본인 준비도가 어긋날 수 있음.
+
 ### `family.state.sibling-rivalry`
 - **레이어**: 정적 (state)
 - **도메인**: family
@@ -1377,6 +1385,10 @@
 **서술 (confirm)**
 > 사주 인성 + 식상 동시 강 + 점성 4궁 ruler가 6궁 또는 Saturn 4궁 — 부모·연장자 돌봄이 인생 한 축으로 들어옴. 보람과 부담이 같이.
 
+**서술 (conflict / 양면)**
+
+> 돌봄의 보람과 자기 삶의 압박이 양립 — 책임이 깊어질수록 자기 시간 확보가 핵심 과제.
+
 ### `family.state.adopted-or-step`
 - **레이어**: 정적 (state)
 - **도메인**: family
@@ -1387,6 +1399,10 @@
 - 점성 측: `astro.relation.aspect.Moon.conjunction.Uranus` / `astro.relation.aspect.Moon.opposition.Uranus` / `astro.relation.aspect.Moon.square.Uranus` / `astro.state.planet.Uranus.house.4`
 **서술 (confirm)**
 > 사주 편인 강 또는 시주 천간충 + 점성 Uranus 4궁 또는 Moon-Uranus aspect — 입양·재혼·동거·이산 등 비전형 가족 구조 가능성. 다양한 결합 형태.
+
+**서술 (conflict / 양면)**
+
+> 비전형 결합의 자유로움과 정서적 흔들림이 공존 — 정의를 스스로 만들수록 안정이 깊어짐.
 
 ### `family.state.home-builder`
 - **레이어**: 정적 (state)
@@ -1989,6 +2005,10 @@
 **서술 (confirm)**
 > 세운 인성·편인 + 점성 Neptune이 Venus 또는 7궁 자극 — 영적·이상적 결합 또는 환상에서 깨어나는 시기. 분별이 중요.
 
+**서술 (conflict / 양면)**
+
+> 영적 끌림과 현실 검증의 충돌 — 신비함이 깊어질수록 실체 확인이 늦어질 수 있음.
+
 ### `money.timing.year.peak-income`
 - **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
 - **도메인**: money
@@ -2074,6 +2094,10 @@
 **서술 (confirm)**
 > 세운에서 인성 또는 관성 충 발화 + 점성 Saturn·Pluto가 4궁/Moon 자극 — 부모 건강·관계·사건이 표면화되는 시기. 의식적 시간 마련 권장.
 
+**서술 (conflict / 양면)**
+
+> 연결 회복과 거리 조정이 동시에 요구 — 일·자기 일정과 가족 시간의 균형이 핵심.
+
 ### `family.timing.year.children-cycle`
 - **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
 - **도메인**: family
@@ -2096,6 +2120,10 @@
 **서술 (confirm)**
 > 세운에서 역마살 또는 월지 충 + 점성 4궁 ruler가 transit으로 자극 — 이사·이주·집 이동이 자연스러운 해. 새 정착지 결정.
 
+**서술 (conflict / 양면)**
+
+> 새로운 가능성과 뿌리 단절감의 양면 — 옮긴 후의 적응 단계에 의식적 안착이 필요.
+
 ### `family.timing.year.return-to-roots`
 - **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
 - **도메인**: family
@@ -2106,6 +2134,10 @@
 - 점성 측: `astro.timing.transit.Jupiter.conjunction.natal.IC` / `astro.timing.transit.Saturn.conjunction.natal.IC`
 **서술 (confirm)**
 > 세운 정인 + 점성 IC/4궁 transit + 사주 월지 활성 — 원가족·고향·뿌리로 돌아가거나 재인식하는 시기.
+
+**서술 (conflict / 양면)**
+
+> 회귀의 안정과 정체성 후퇴 사이의 긴장 — 과거 정리와 미래 좌표 잡기를 함께 해야 함.
 
 ### `self.timing.year.jongwang-favorable`
 - **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
