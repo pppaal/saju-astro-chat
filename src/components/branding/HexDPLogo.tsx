@@ -107,15 +107,15 @@ export default function HexDPLogo({ size = 64, pulse = false, epic = false }: He
       <polygon points="32,0 64,18 64,54 32,72 0,54 0,18" fill={`url(#${gid})`} />
       {/* Inner dark plate */}
       <polygon points="32,4 60,20 60,52 32,68 4,52 4,20" fill="#0a0d1f" />
-      {/* "dp" text in matching gradient */}
+      {/* "dp" text in matching gradient — sized to dominate the badge */}
       <text
         x="32"
-        y="46"
+        y="52"
         textAnchor="middle"
         fontFamily="ui-sans-serif, system-ui, -apple-system, sans-serif"
-        fontWeight={800}
-        fontSize="22"
-        letterSpacing="-0.02em"
+        fontWeight={900}
+        fontSize="42"
+        letterSpacing="-0.05em"
         fill={`url(#${gid})`}
       >
         dp
