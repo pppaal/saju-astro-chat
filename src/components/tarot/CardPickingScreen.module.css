@@ -2424,21 +2424,21 @@
   }
 
   .cardWrapper {
-    width: 58px;
-    height: 92px;
-    margin-left: -29px;
-    bottom: 60px;
+    width: 84px;
+    height: 132px;
+    margin-left: -42px;
+    bottom: 90px;
     transform-origin: center bottom;
-    --angle: calc((var(--i) - 38.5) * 1.3deg);
-    transform: rotate(var(--angle)) translateY(-228px);
+    --angle: calc((var(--i) - 38.5) * 1.05deg);
+    transform: rotate(var(--angle)) translateY(-360px);
   }
 
   .cardWrapper:hover {
-    transform: rotate(var(--angle)) translateY(-252px) scale(1.05);
+    transform: rotate(var(--angle)) translateY(-388px) scale(1.05);
   }
 
   .cardWrapper.selected {
-    transform: rotate(0deg) translateY(-208px) scale(1.12);
+    transform: rotate(0deg) translateY(-336px) scale(1.12);
     transition: all 0.5s cubic-bezier(0.34, 1.05, 0.64, 1);
   }
 
@@ -2521,21 +2521,21 @@
   }
 
   .cardWrapper {
-    width: 54px;
-    height: 86px;
-    margin-left: -27px;
-    bottom: 72px;
+    width: 72px;
+    height: 116px;
+    margin-left: -36px;
+    bottom: 86px;
     transform-origin: center bottom;
-    --angle: calc((var(--i) - 38.5) * 1.06deg);
-    transform: rotate(var(--angle)) translateY(-182px);
+    --angle: calc((var(--i) - 38.5) * 0.92deg);
+    transform: rotate(var(--angle)) translateY(-310px);
   }
 
   .cardWrapper:hover {
-    transform: rotate(var(--angle)) translateY(-194px) scale(1.04);
+    transform: rotate(var(--angle)) translateY(-336px) scale(1.04);
   }
 
   .cardWrapper.selected {
-    transform: rotate(0deg) translateY(-160px) scale(1.08);
+    transform: rotate(0deg) translateY(-292px) scale(1.1);
     transition: all 0.5s cubic-bezier(0.34, 1.05, 0.64, 1);
   }
 
