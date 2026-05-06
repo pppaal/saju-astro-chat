@@ -1,4 +1,4 @@
-import DestinyMatrixPlanner from '@/components/calendar/DestinyMatrixPlanner'
+import PreviewClient from './PreviewClient'
 
 export const metadata = {
   title: 'Destiny Matrix Planner (Preview)',
@@ -6,5 +6,5 @@ export const metadata = {
 }
 
 export default function CalendarPreviewPage() {
-  return <DestinyMatrixPlanner />
+  return <PreviewClient />
 }

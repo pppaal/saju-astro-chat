@@ -44,6 +44,15 @@ import {
   type ColumnDef,
 } from '@tanstack/react-table'
 
+import type { BirthInfo, CalendarData } from './types'
+
+interface DestinyMatrixPlannerProps {
+  /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
+  data?: CalendarData | null
+  /** Birth info used to fetch `data`. Reserved for future real wiring. */
+  birthInfo?: BirthInfo | null
+}
+
 // --- Mock Data (Saju & Astro Themed) ---
 const chartData = [
   { name: '월', vitality: 65, exp: 120 },
@@ -75,7 +84,7 @@ const elementData = [
 
 type ViewMode = 'monthly' | 'daily' | 'stats'
 
-export default function DestinyMatrixPlanner() {
+export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixPlannerProps = {}) {
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
   const [currentDay, setCurrentDay] = useState(9)
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
@@ -222,6 +231,19 @@ export default function DestinyMatrixPlanner() {
           ))}
         </div>
       </div>
+
+      {/* --- Engine connection probe (Step 2a — to be replaced with real wiring) --- */}
+      {data && (
+        <div className="px-6 py-2 shrink-0 relative z-20 bg-emerald-500/10 border-b border-emerald-500/20 text-[11px] text-emerald-300 flex items-center justify-between">
+          <span>
+            ✓ 엔진 연결됨 · year {data.year} · grades {data.summary?.total ?? '?'} · phase{' '}
+            {data.matrixContract?.overallPhaseLabel ?? data.matrixContract?.overallPhase ?? '—'}
+          </span>
+          <span className="text-emerald-400/70">
+            {birthInfo?.birthDate ?? ''}
+          </span>
+        </div>
+      )}
 
       {/* --- Main Content Area --- */}
       <div className="flex-1 overflow-y-auto relative z-10 pb-10">
