@@ -149,6 +149,38 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
     return data.allDates.find((d) => d.date === selectedDateStr) ?? null
   }, [data, selectedDateStr])
 
+  // Sync (합치도) and Friction (마찰력) — engine cross-system metrics
+  const syncFriction = useMemo(() => {
+    if (!selectedImportantDate) return null
+
+    const ev = selectedImportantDate.evidence
+    const breakdown = selectedImportantDate.scoreBreakdown
+
+    const syncRaw =
+      typeof ev?.crossAgreementPercent === 'number'
+        ? ev.crossAgreementPercent
+        : typeof ev?.confidence === 'number'
+          ? ev.confidence
+          : null
+
+    let frictionRaw: number | null = null
+    if (typeof breakdown?.sajuAxis === 'number' && typeof breakdown?.astroAxis === 'number') {
+      frictionRaw = Math.abs(breakdown.sajuAxis - breakdown.astroAxis)
+    } else if (syncRaw !== null) {
+      frictionRaw = 100 - syncRaw
+    }
+
+    if (syncRaw === null && frictionRaw === null) return null
+
+    return {
+      sync: syncRaw === null ? null : Math.max(0, Math.min(100, Math.round(syncRaw))),
+      friction:
+        frictionRaw === null ? null : Math.max(0, Math.min(100, Math.round(frictionRaw))),
+      sajuAxis: breakdown?.sajuAxis,
+      astroAxis: breakdown?.astroAxis,
+    }
+  }, [selectedImportantDate])
+
   const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
   const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
 
@@ -497,49 +529,72 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                 </p>
               </div>
 
-              {/* Status Bars (Vitality & Mana) */}
+              {/* Status Bars — HP (Sync) / Mana (Friction) */}
               <div className="space-y-4">
+                {/* HP = Sync (사주-점성 합치도) */}
                 <div className="bg-zinc-900/60 p-5 rounded-2xl border border-white/5 shadow-inner">
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2">
                       <Heart className="w-4 h-4 text-rose-500 fill-rose-500/20" />
-                      <h3 className="text-sm font-bold text-zinc-300">Vitality (HP)</h3>
+                      <h3 className="text-sm font-bold text-zinc-300">
+                        Vitality (HP){' '}
+                        <span className="text-[10px] font-normal text-zinc-500">· Sync</span>
+                      </h3>
                     </div>
-                    <span className="text-sm font-bold text-rose-400">45 / 100</span>
+                    <span className="text-sm font-bold text-rose-400">
+                      {syncFriction?.sync ?? (data ? '—' : 45)} / 100
+                    </span>
                   </div>
                   <div className="w-full h-3 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
                     <motion.div
-                      key={`hp-${currentDay}`}
+                      key={`hp-${currentDay}-${syncFriction?.sync ?? 'mock'}`}
                       initial={{ width: 0 }}
-                      animate={{ width: '45%' }}
+                      animate={{ width: `${syncFriction?.sync ?? (data ? 0 : 45)}%` }}
                       transition={{ duration: 1, ease: 'easeOut' }}
                       className="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full shadow-md shadow-rose-500/50"
                     />
                   </div>
                   <p className="text-xs text-rose-400/70 mt-2 text-right">
-                    ※ 火 원소 부재로 인한 체력 회복력 저하 상태
+                    {data
+                      ? syncFriction?.sync == null
+                        ? '※ 오늘은 합치도 신호가 약함'
+                        : '※ 사주-점성 합치도 (두 시스템이 같은 방향을 보는 정도)'
+                      : '※ 火 원소 부재로 인한 체력 회복력 저하 상태'}
                   </p>
                 </div>
 
+                {/* Mana = Friction (사주-점성 점수 격차) */}
                 <div className="bg-zinc-900/60 p-5 rounded-2xl border border-white/5 shadow-inner">
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-cyan-500 fill-cyan-500/20" />
-                      <h3 className="text-sm font-bold text-zinc-300">Mana (Focus)</h3>
+                      <h3 className="text-sm font-bold text-zinc-300">
+                        Mana (Focus){' '}
+                        <span className="text-[10px] font-normal text-zinc-500">· Friction</span>
+                      </h3>
                     </div>
-                    <span className="text-sm font-bold text-cyan-400">85 / 100</span>
+                    <span className="text-sm font-bold text-cyan-400">
+                      {syncFriction?.friction ?? (data ? '—' : 85)} / 100
+                    </span>
                   </div>
                   <div className="w-full h-3 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
                     <motion.div
-                      key={`mp-${currentDay}`}
+                      key={`mp-${currentDay}-${syncFriction?.friction ?? 'mock'}`}
                       initial={{ width: 0 }}
-                      animate={{ width: '85%' }}
+                      animate={{ width: `${syncFriction?.friction ?? (data ? 0 : 85)}%` }}
                       transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
                       className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full shadow-md shadow-cyan-500/50"
                     />
                   </div>
                   <p className="text-xs text-cyan-400/70 mt-2 text-right">
-                    ※ Air 원소 압도로 인한 높은 지적 회전율 유지 중
+                    {data
+                      ? syncFriction?.friction == null
+                        ? '※ 오늘은 두 축 점수가 산출되지 않음'
+                        : typeof syncFriction?.sajuAxis === 'number' &&
+                            typeof syncFriction?.astroAxis === 'number'
+                          ? `※ 사주축 ${Math.round(syncFriction.sajuAxis)} vs 점성축 ${Math.round(syncFriction.astroAxis)} 격차`
+                          : '※ 사주-점성 점수 격차'
+                      : '※ Air 원소 압도로 인한 높은 지적 회전율 유지 중'}
                   </p>
                 </div>
               </div>
