@@ -164,7 +164,7 @@ function formatFusionBlock(ctx: PremiumCompatibilityContext): string | null {
 }
 
 function formatExtendedSaju(ctx: PremiumCompatibilityContext): string | null {
-  const ex = ctx.extendedSaju as Record<string, unknown> | null
+  const ex = ctx.extendedSaju as unknown as Record<string, unknown> | null
   if (!ex || typeof ex !== 'object') return null
   const lines: string[] = ['### 확장 사주 분석 (격국·신살·60갑자·용신·대운 동행)']
   for (const [key, value] of Object.entries(ex)) {
@@ -194,7 +194,7 @@ function formatExtendedSaju(ctx: PremiumCompatibilityContext): string | null {
 }
 
 function formatExtendedAstro(ctx: PremiumCompatibilityContext): string | null {
-  const ex = ctx.extendedAstro as Record<string, unknown> | null
+  const ex = ctx.extendedAstro as unknown as Record<string, unknown> | null
   if (!ex || typeof ex !== 'object') return null
   const lines: string[] = ['### 확장 점성 분석 (어스펙트·하우스·트랜짓)']
   for (const [key, value] of Object.entries(ex)) {
@@ -229,7 +229,7 @@ function formatExtendedAstro(ctx: PremiumCompatibilityContext): string | null {
 }
 
 function formatDeepInsights(ctx: PremiumCompatibilityContext): string | null {
-  const di = ctx.deepInsights as Record<string, unknown> | null
+  const di = ctx.deepInsights as unknown as Record<string, unknown> | null
   if (!di || typeof di !== 'object') return null
   const lines: string[] = ['### 커플 심층 인사이트 (성격·소통·갈등 패턴)']
   for (const [key, value] of Object.entries(di)) {
@@ -337,7 +337,7 @@ function formatMultiFacets(ctx: PremiumCompatibilityContext): string | null {
 }
 
 function formatExtraPoints(ctx: PremiumCompatibilityContext): string | null {
-  const ex = ctx.extraPoints as Record<string, unknown> | null
+  const ex = ctx.extraPoints as unknown as Record<string, unknown> | null
   if (!ex || typeof ex !== 'object') return null
   const lines = ['### 가산점 신호 (Lilith·Chiron·Vertex 등)']
   for (const [key, value] of Object.entries(ex)) {

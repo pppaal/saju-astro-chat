@@ -43,19 +43,19 @@ const DEFAULT_PERSON: PersonForm = {
 }
 
 interface ApiResult extends ThreeLayerCompatibility {
-  fusion?: FusionCompatibilityResult | null
-  extendedSaju?: Record<string, unknown> | null
-  extendedAstro?: Record<string, unknown> | null
-  deepInsights?: CoupleDeepInsights | null
-  coupleTiming?: CoupleTimingAnalysis | null
-  coupleAstroTiming?: CoupleAstroTimingResult | null
-  idealTypes?: PersonIdealProfile[] | null
-  multiFacets?: FacetReport[] | null
-  extraPoints?: CoupleExtraPointsResult | null
-  tagline?: { headline: string; subline: string } | null
-  crossSystem?: CrossAnalysisResult | null
-  ages?: { a: number; b: number } | null
-  narrative?: CompatibilityNarrative | null
+  fusion: FusionCompatibilityResult
+  extendedSaju: Record<string, unknown>
+  extendedAstro: Record<string, unknown>
+  deepInsights: CoupleDeepInsights
+  coupleTiming: CoupleTimingAnalysis
+  coupleAstroTiming: CoupleAstroTimingResult
+  idealTypes: PersonIdealProfile[]
+  multiFacets: FacetReport[]
+  extraPoints: CoupleExtraPointsResult | null
+  tagline: { headline: string; subline: string }
+  crossSystem: CrossAnalysisResult
+  ages: { a: number; b: number }
+  narrative: CompatibilityNarrative
   narrativeMeta?: {
     modelUsed?: string
     tokensUsed?: number

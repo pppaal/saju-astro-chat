@@ -11,15 +11,16 @@ type Person = { birthDate?: string; birthTime?: string; gender?: string }
 type ReqBody = {
   personA?: Person
   personB?: Person
-  /** Display name for person A (rendered in the LLM narrative). */
   labelA?: string
-  /** Display name for person B. */
   labelB?: string
   /**
-   * When true, runs the full premium pipeline:
-   *   3-layer + Fusion + Extended Saju + Extended Astrology + Deep Insights
-   *   then attaches an LLM magazine narrative grounded in all of the above.
-   * When false (default), only the lightweight 3-layer engine runs.
+   * When true, runs the full premium pipeline (3-layer + Fusion +
+   * ExtendedSaju + ExtendedAstrology + DeepInsights + CoupleTiming +
+   * AstroTiming + IdealTypes + MultiFacets + ExtraPoints + Tagline +
+   * CrossSystem) and attaches an LLM magazine narrative.
+   *
+   * No silent fallback — if any required module fails the request
+   * returns 500 with a real error code.
    */
   withNarrative?: boolean
 }
@@ -52,96 +53,76 @@ const errBody = (
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
+    let body: ReqBody | null = null
     try {
-      const body = await parseRequestBody<ReqBody>(req, { context: 'Compat3Layer' })
-      if (!body || typeof body !== 'object') return errBody(req, 'Body required')
-      const errA = validatePerson(body.personA, 'personA')
-      if (errA) return errBody(req, errA)
-      const errB = validatePerson(body.personB, 'personB')
-      if (errB) return errBody(req, errB)
+      body = await parseRequestBody<ReqBody>(req, { context: 'Compat3Layer' })
+    } catch {
+      return errBody(req, 'Body required')
+    }
+    if (!body || typeof body !== 'object') return errBody(req, 'Body required')
+    const errA = validatePerson(body.personA, 'personA')
+    if (errA) return errBody(req, errA)
+    const errB = validatePerson(body.personB, 'personB')
+    if (errB) return errBody(req, errB)
 
-      const personA = body.personA as Required<Person> & { gender: 'male' | 'female' }
-      const personB = body.personB as Required<Person> & { gender: 'male' | 'female' }
+    const personA = body.personA as Required<Person> & { gender: 'male' | 'female' }
+    const personB = body.personB as Required<Person> & { gender: 'male' | 'female' }
 
-      // Lightweight 3-layer is always computed — drives the score-cards row.
-      const layers = analyzeThreeLayerCompatibility(personA, personB)
+    // Lightweight 3-layer is always computed.
+    const layers = analyzeThreeLayerCompatibility(personA, personB)
 
-      if (!body.withNarrative) {
-        return NextResponse.json(layers)
-      }
+    if (!body.withNarrative) {
+      return NextResponse.json(layers)
+    }
 
-      // Premium path: full engine + LLM magazine narrative.
-      let premiumContext = null
-      try {
-        premiumContext = await buildPremiumCompatibilityContext({
-          personA,
-          personB,
-          labelA: body.labelA,
-          labelB: body.labelB,
-        })
-      } catch (engErr) {
-        logger.warn('[Compat3Layer] full engine pipeline failed, falling back to 3-layer only', {
-          message: engErr instanceof Error ? engErr.message : String(engErr),
-        })
-      }
+    // Premium path: full engine + LLM narrative. Both MUST succeed.
+    try {
+      const premiumContext = await buildPremiumCompatibilityContext({
+        personA,
+        personB,
+        labelA: body.labelA,
+        labelB: body.labelB,
+      })
 
-      try {
-        const narrative = await generateCompatibilityNarrative({
-          personA,
-          personB,
-          labelA: body.labelA,
-          labelB: body.labelB,
-          layers,
-          context: premiumContext,
-        })
-        return NextResponse.json({
-          ...layers,
-          fusion: premiumContext?.fusion ?? null,
-          extendedSaju: premiumContext?.extendedSaju ?? null,
-          extendedAstro: premiumContext?.extendedAstro ?? null,
-          deepInsights: premiumContext?.deepInsights ?? null,
-          coupleTiming: premiumContext?.coupleTiming ?? null,
-          coupleAstroTiming: premiumContext?.coupleAstroTiming ?? null,
-          idealTypes: premiumContext?.idealTypes ?? null,
-          multiFacets: premiumContext?.multiFacets ?? null,
-          extraPoints: premiumContext?.extraPoints ?? null,
-          tagline: premiumContext?.tagline ?? null,
-          crossSystem: premiumContext?.crossSystem ?? null,
-          ages: premiumContext?.ages ?? null,
-          narrative: narrative.narrative,
-          narrativeMeta: {
-            modelUsed: narrative.modelUsed,
-            tokensUsed: narrative.tokensUsed,
-            warnings: narrative.warnings,
-          },
-        })
-      } catch (narrErr) {
-        logger.warn('[Compat3Layer] narrative generation failed, returning engine-only result', {
-          message: narrErr instanceof Error ? narrErr.message : String(narrErr),
-        })
-        return NextResponse.json({
-          ...layers,
-          fusion: premiumContext?.fusion ?? null,
-          extendedSaju: premiumContext?.extendedSaju ?? null,
-          extendedAstro: premiumContext?.extendedAstro ?? null,
-          deepInsights: premiumContext?.deepInsights ?? null,
-          coupleTiming: premiumContext?.coupleTiming ?? null,
-          coupleAstroTiming: premiumContext?.coupleAstroTiming ?? null,
-          idealTypes: premiumContext?.idealTypes ?? null,
-          multiFacets: premiumContext?.multiFacets ?? null,
-          extraPoints: premiumContext?.extraPoints ?? null,
-          tagline: premiumContext?.tagline ?? null,
-          crossSystem: premiumContext?.crossSystem ?? null,
-          ages: premiumContext?.ages ?? null,
-          narrative: null,
-          narrativeMeta: {
-            error: narrErr instanceof Error ? narrErr.message : 'narrative_failed',
-          },
-        })
-      }
+      const narrative = await generateCompatibilityNarrative({
+        personA,
+        personB,
+        labelA: body.labelA,
+        labelB: body.labelB,
+        layers,
+        context: premiumContext,
+      })
+
+      return NextResponse.json({
+        ...layers,
+        fusion: premiumContext.fusion,
+        extendedSaju: premiumContext.extendedSaju,
+        extendedAstro: premiumContext.extendedAstro,
+        deepInsights: premiumContext.deepInsights,
+        coupleTiming: premiumContext.coupleTiming,
+        coupleAstroTiming: premiumContext.coupleAstroTiming,
+        idealTypes: premiumContext.idealTypes,
+        multiFacets: premiumContext.multiFacets,
+        extraPoints: premiumContext.extraPoints,
+        tagline: premiumContext.tagline,
+        crossSystem: premiumContext.crossSystem,
+        ages: premiumContext.ages,
+        narrative: narrative.narrative,
+        narrativeMeta: {
+          modelUsed: narrative.modelUsed,
+          tokensUsed: narrative.tokensUsed,
+          warnings: narrative.warnings,
+        },
+      })
     } catch (e) {
-      logger.error('[Compat3Layer] failed', { error: e instanceof Error ? e.message : String(e) })
-      return errBody(req, '궁합 분석 실패', 'INTERNAL_ERROR')
+      const message = e instanceof Error ? e.message : String(e)
+      logger.error('[Compat3Layer] premium pipeline failed', { error: message })
+      return createErrorResponse({
+        code: ErrorCodes.INTERNAL_ERROR,
+        message: `궁합 분석 실패: ${message}`,
+        locale: extractLocale(req),
+        route: 'destiny-matrix/compatibility-3layer',
+      })
     }
   },
   createPublicStreamGuard({
