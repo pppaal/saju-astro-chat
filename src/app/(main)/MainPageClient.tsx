@@ -13,6 +13,7 @@ import HomeChatInput from './components/HomeChatInput'
 import RecommendationChips from './components/RecommendationChips'
 import BirthInfoModal from './components/BirthInfoModal'
 import { getStoredBirthInfo, saveBirthInfo, type StoredBirthInfo } from './birthInfoStorage'
+import HexDPLogo from '@/components/branding/HexDPLogo'
 
 type Locale = 'en' | 'ko'
 
@@ -140,7 +141,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
       <div className={styles.homeBody}>
         <section className={styles.homeHero} aria-labelledby="home-headline">
           <div className={styles.homeOrnament} aria-hidden="true">
-            ✦
+            <HexDPLogo size={64} />
           </div>
           <h1 id="home-headline" className={styles.homeHeadline}>
             {locale === 'ko' ? 'AI와 사주·점성을 함께 풀어드려요' : 'Saju × Astrology, fused by AI'}
