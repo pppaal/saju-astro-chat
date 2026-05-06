@@ -258,12 +258,6 @@ export default function CompatPage() {
               <h1 className={styles.formTitle}>
                 {compatT('compatibilityPage.title', 'Relationship Compatibility')}
               </h1>
-              <p className={styles.formSubtitle}>
-                {compatT(
-                  'compatibilityPage.subtitle',
-                  'Explore the cosmic connections between hearts'
-                )}
-              </p>
             </div>
 
             <form
