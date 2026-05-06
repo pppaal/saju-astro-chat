@@ -113,11 +113,15 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
   )
 
   // --- Engine-derived values (Step 2b) --------------------------------
+  const natalSaju = useMemo(
+    () => data?.allDates?.find((d) => d.natalSaju)?.natalSaju ?? null,
+    [data],
+  )
+
   const natalDayPillar = useMemo(() => {
-    const ns = data?.allDates?.find((d) => d.natalSaju)?.natalSaju
-    if (!ns) return null
-    return `${ns.dayStem}${ns.dayBranch}`
-  }, [data])
+    if (!natalSaju) return null
+    return `${natalSaju.dayStem}${natalSaju.dayBranch}`
+  }, [natalSaju])
 
   const monthEventSet = useMemo(() => {
     const out = new Set<number>()
@@ -1262,56 +1266,104 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                         사주 원국 (Four Pillars)
                       </h4>
                       <div className="grid grid-cols-4 gap-2 text-center text-sm font-bold text-zinc-200">
-                        <div className="bg-zinc-900 p-2 rounded">
+                        {/* 時柱 — natalSaju 페이로드에 시간 정보 없음 */}
+                        <div className="bg-zinc-900 p-2 rounded border border-dashed border-zinc-700">
                           時
                           <br />
-                          <span className="text-zinc-400 font-normal text-xs">丁酉</span>
+                          <span className="text-zinc-600 font-normal text-xs">
+                            {natalSaju ? '—' : '丁酉'}
+                          </span>
                         </div>
+                        {/* 日柱 — 본인 일주 (강조) */}
                         <div className="bg-zinc-800 border border-amber-500/30 p-2 rounded">
                           日
                           <br />
-                          <span className="text-amber-400 text-xs">辛未</span>
+                          <span className="text-amber-400 text-xs">
+                            {natalSaju ? `${natalSaju.dayStem}${natalSaju.dayBranch}` : '辛未'}
+                          </span>
                         </div>
+                        {/* 月柱 */}
                         <div className="bg-zinc-900 p-2 rounded">
                           月
                           <br />
-                          <span className="text-zinc-400 font-normal text-xs">乙卯</span>
+                          <span className="text-zinc-400 font-normal text-xs">
+                            {natalSaju ? `${natalSaju.monthStem}${natalSaju.monthBranch}` : '乙卯'}
+                          </span>
                         </div>
-                        <div className="bg-zinc-900 p-2 rounded">
+                        {/* 年柱 — natalSaju에 yearStem 없음, 지지만 표시 */}
+                        <div className="bg-zinc-900 p-2 rounded border border-dashed border-zinc-700">
                           年
                           <br />
-                          <span className="text-zinc-400 font-normal text-xs">癸亥</span>
+                          <span className="text-zinc-400 font-normal text-xs">
+                            {natalSaju
+                              ? `?${natalSaju.yearBranch}`
+                              : '癸亥'}
+                          </span>
                         </div>
                       </div>
                       <p className="text-[10px] text-zinc-500 mt-2 text-center">
-                        ※ 해묘미(亥卯未) 목국 형성, 재성(재물/결과) 발달
+                        {natalSaju
+                          ? '※ 캘린더 페이로드에는 일/월주 + 연지만 들어옴. 시주·연간은 본명 차트 endpoint 연결 시 채워짐.'
+                          : '※ 해묘미(亥卯未) 목국 형성, 재성(재물/결과) 발달'}
                       </p>
                     </div>
 
-                    {/* 점성술 네이탈 요약 */}
-                    <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
-                      <h4 className="text-xs font-bold text-indigo-400 mb-2 uppercase tracking-widest">
-                        네이탈 차트 (Natal Chart)
-                      </h4>
-                      <ul className="space-y-2 text-xs text-zinc-300">
-                        <li className="flex justify-between">
-                          <span className="text-zinc-500">Sun (자아)</span>{' '}
-                          <span>쌍둥이자리 (Gemini) ♊</span>
-                        </li>
-                        <li className="flex justify-between">
-                          <span className="text-zinc-500">Moon (내면)</span>{' '}
-                          <span>전갈자리 (Scorpio) ♏</span>
-                        </li>
-                        <li className="flex justify-between">
-                          <span className="text-zinc-500">ASC (외형)</span>{' '}
-                          <span>물병자리 (Aquarius) ♒</span>
-                        </li>
-                        <li className="flex justify-between">
-                          <span className="text-zinc-500">Dominant</span>{' '}
-                          <span>Air (공기) 원소 압도</span>
-                        </li>
-                      </ul>
-                    </div>
+                    {/* 점성술 네이탈 요약 — 엔진 모드에서는 데이터 없어 hide */}
+                    {!data && (
+                      <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
+                        <h4 className="text-xs font-bold text-indigo-400 mb-2 uppercase tracking-widest">
+                          네이탈 차트 (Natal Chart)
+                        </h4>
+                        <ul className="space-y-2 text-xs text-zinc-300">
+                          <li className="flex justify-between">
+                            <span className="text-zinc-500">Sun (자아)</span>{' '}
+                            <span>쌍둥이자리 (Gemini) ♊</span>
+                          </li>
+                          <li className="flex justify-between">
+                            <span className="text-zinc-500">Moon (내면)</span>{' '}
+                            <span>전갈자리 (Scorpio) ♏</span>
+                          </li>
+                          <li className="flex justify-between">
+                            <span className="text-zinc-500">ASC (외형)</span>{' '}
+                            <span>물병자리 (Aquarius) ♒</span>
+                          </li>
+                          <li className="flex justify-between">
+                            <span className="text-zinc-500">Dominant</span>{' '}
+                            <span>Air (공기) 원소 압도</span>
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* 본명 정보 요약 (엔진 모드에서 birthInfo 표시) */}
+                    {data && birthInfo && (
+                      <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
+                        <h4 className="text-xs font-bold text-indigo-400 mb-2 uppercase tracking-widest">
+                          입력 정보 (Birth Info)
+                        </h4>
+                        <ul className="space-y-2 text-xs text-zinc-300">
+                          <li className="flex justify-between">
+                            <span className="text-zinc-500">생년월일</span>{' '}
+                            <span>{birthInfo.birthDate || '—'}</span>
+                          </li>
+                          <li className="flex justify-between">
+                            <span className="text-zinc-500">출생 시간</span>{' '}
+                            <span>{birthInfo.birthTime || '—'}</span>
+                          </li>
+                          <li className="flex justify-between">
+                            <span className="text-zinc-500">출생지</span>{' '}
+                            <span>{birthInfo.birthPlace || '—'}</span>
+                          </li>
+                          <li className="flex justify-between">
+                            <span className="text-zinc-500">성별</span>{' '}
+                            <span>{birthInfo.gender}</span>
+                          </li>
+                        </ul>
+                        <p className="text-[10px] text-zinc-500 mt-2">
+                          ※ 점성 네이탈 차트(Sun/Moon/ASC)는 본명 차트 endpoint 연결 후 표시됩니다.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <button
