@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
-import { HomeButton } from './GlobalHeader/HomeButton'
+import { HamburgerDrawer } from './GlobalHeader/HamburgerDrawer'
 import { CreditDisplay } from './GlobalHeader/CreditDisplay'
 import { DropdownMenu } from './GlobalHeader/DropdownMenu'
 import { useDropdownMenu } from './GlobalHeader/hooks'
@@ -88,12 +88,28 @@ function GlobalHeaderContent() {
     return null
   }
 
+  const localeButton = (
+    <button
+      type="button"
+      onClick={toggleLocale}
+      className={`text-[#EAE6FF] text-sm font-semibold tracking-wide whitespace-nowrap
+        px-3.5 py-1.5 rounded-[20px] backdrop-blur-md cursor-pointer border-blue-400/40
+        ${styles.buttonBase} ${styles.blueButton}`}
+      aria-label={localeAriaLabel}
+      title={localeAriaLabel}
+    >
+      {nextLocaleLabel}
+    </button>
+  )
+
   // Loading state
   if (loading) {
     return (
       <HeaderWrapper ariaLabel={headerAriaLabel}>
-        <div className="flex items-center gap-3">
-          <HomeButton />
+        <div className={styles.headerSlotLeft}>
+          <HamburgerDrawer locale={locale} />
+        </div>
+        <div className={styles.headerSlotRight}>
           <div
             className="min-w-[80px] h-[34px] rounded-[20px] bg-blue-400/10 border border-transparent px-3.5 py-1.5"
             aria-hidden="true"
@@ -107,19 +123,11 @@ function GlobalHeaderContent() {
   if (!isAuthenticated) {
     return (
       <HeaderWrapper ariaLabel={headerAriaLabel}>
-        <nav className="flex items-center gap-3" aria-label={t('nav.main') || 'Main navigation'}>
-          <HomeButton />
-          <button
-            type="button"
-            onClick={toggleLocale}
-            className={`text-[#EAE6FF] text-sm font-semibold tracking-wide whitespace-nowrap
-              px-3.5 py-1.5 rounded-[20px] backdrop-blur-md cursor-pointer border-blue-400/40
-              ${styles.buttonBase} ${styles.blueButton}`}
-            aria-label={localeAriaLabel}
-            title={localeAriaLabel}
-          >
-            {nextLocaleLabel}
-          </button>
+        <div className={styles.headerSlotLeft}>
+          <HamburgerDrawer locale={locale} />
+        </div>
+        <nav className={styles.headerSlotRight} aria-label={t('nav.main') || 'Main navigation'}>
+          {localeButton}
         </nav>
       </HeaderWrapper>
     )
@@ -128,8 +136,10 @@ function GlobalHeaderContent() {
   // Logged in
   return (
     <HeaderWrapper headerRef={dropdownRef} onKeyDown={handleKeyDown} ariaLabel={headerAriaLabel}>
-      <nav className="flex items-center gap-3" aria-label={t('nav.main') || 'Main navigation'}>
-        <HomeButton />
+      <div className={styles.headerSlotLeft}>
+        <HamburgerDrawer locale={locale} />
+      </div>
+      <nav className={styles.headerSlotRight} aria-label={t('nav.main') || 'Main navigation'}>
         <button
           ref={triggerRef}
           onClick={() => setShowDropdown(!showDropdown)}
@@ -169,13 +179,12 @@ function GlobalHeaderContent() {
             role="status"
           />
         </button>
+        {!isTarotReadingPage && <CreditDisplay />}
+        {localeButton}
+        {showDropdown && (
+          <DropdownMenu items={menuItems} focusedIndex={focusedIndex} menuItemsRef={menuItemsRef} />
+        )}
       </nav>
-
-      {!isTarotReadingPage && <CreditDisplay />}
-
-      {showDropdown && (
-        <DropdownMenu items={menuItems} focusedIndex={focusedIndex} menuItemsRef={menuItemsRef} />
-      )}
     </HeaderWrapper>
   )
 }

@@ -28,10 +28,16 @@ interface MainPageClientProps {
 }
 
 export default function MainPageClient({ initialLocale, initialMessages }: MainPageClientProps) {
-  const { locale: activeLocale, hydrated, t } = useI18n()
+  const { locale: activeLocale, hydrated, t, setLocale } = useI18n()
   const locale = (activeLocale || initialLocale) as Locale
   const { status } = useSession()
   const isAuthed = status === 'authenticated'
+
+  const toggleLocale = () => {
+    setLocale(locale === 'ko' ? 'en' : 'ko')
+  }
+  const nextLocaleLabel = locale === 'ko' ? 'EN' : 'KO'
+  const localeAriaLabel = locale === 'ko' ? 'Switch to English' : '한국어로 전환'
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [birthModalOpen, setBirthModalOpen] = useState(false)
@@ -151,13 +157,15 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
           <span className={styles.homeTopBarHamburgerBar} />
         </button>
         <span className={styles.homeTopBarLogo}>DestinyPal</span>
-        {isAuthed ? (
-          <span style={{ width: 38 }} aria-hidden="true" />
-        ) : (
-          <Link href="/auth/signin?callbackUrl=/" className={styles.homeTopBarLogin}>
-            {translate('community.login', locale === 'ko' ? '로그인' : 'Login')}
-          </Link>
-        )}
+        <button
+          type="button"
+          onClick={toggleLocale}
+          className={styles.homeTopBarLogin}
+          aria-label={localeAriaLabel}
+          title={localeAriaLabel}
+        >
+          {nextLocaleLabel}
+        </button>
       </div>
 
       <div className={styles.homeBody}>
@@ -174,6 +182,58 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
               : 'Saju · Astrology · Calendar · Tarot · Compatibility'}
           </p>
         </section>
+
+        <button
+          type="button"
+          className={styles.homeBirthCta}
+          onClick={() => setBirthModalOpen(true)}
+          aria-label={
+            birthInfo
+              ? locale === 'ko'
+                ? '사주 정보 수정'
+                : 'Edit birth info'
+              : locale === 'ko'
+                ? '사주 정보 입력하기'
+                : 'Enter birth info'
+          }
+        >
+          <span className={styles.homeBirthCtaIcon} aria-hidden="true">
+            {birthInfo ? '✓' : '✦'}
+          </span>
+          <span className={styles.homeBirthCtaText}>
+            {birthInfo ? (
+              <>
+                <strong>
+                  {birthInfo.birthDate} · {birthInfo.birthTime} ·{' '}
+                  {birthInfo.gender === 'male'
+                    ? locale === 'ko'
+                      ? '남성'
+                      : 'Male'
+                    : locale === 'ko'
+                      ? '여성'
+                      : 'Female'}
+                </strong>
+                <span className={styles.homeBirthCtaHint}>
+                  {locale === 'ko' ? '수정하기' : 'Edit'}
+                </span>
+              </>
+            ) : (
+              <>
+                <strong>
+                  {locale === 'ko'
+                    ? '사주 정보 입력하고 시작하기'
+                    : 'Add your birth info to start'}
+                </strong>
+                <span className={styles.homeBirthCtaHint}>
+                  {locale === 'ko'
+                    ? '로그인 없이 저장돼요. 로그인하면 기기 간 동기화'
+                    : 'Saved without login. Synced after sign-in'}
+                </span>
+              </>
+            )}
+          </span>
+          <span aria-hidden="true">→</span>
+        </button>
 
         <RecommendationChips
           birthInfo={birthInfo}
