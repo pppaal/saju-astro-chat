@@ -73,7 +73,6 @@ const serviceModules = [
 ]
 
 const componentModules = [
-  'components/calendar/DestinyCalendar',
   'components/calendar/BirthInfoForm',
   'components/calendar/ParticleBackground',
   'components/calendar/CalendarHeader',
