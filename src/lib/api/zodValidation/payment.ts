@@ -12,20 +12,25 @@ export const billingCycleSchema = z.enum(['monthly', 'yearly'])
 
 export const creditPackKeySchema = z.enum(['mini', 'standard', 'plus', 'mega', 'ultimate'])
 
+export const premiumReportSkuSchema = z.enum(['monthly', 'yearly', 'lifetime'])
+
 export const checkoutRequestSchema = z
   .object({
     plan: planKeySchema.optional(),
     billingCycle: billingCycleSchema.optional(),
     creditPack: creditPackKeySchema.optional(),
+    /** One-time premium report purchase: 'monthly' | 'yearly' | 'lifetime'. */
+    reportSku: premiumReportSkuSchema.optional(),
   })
   .refine(
     (data) => {
-      const hasPlan = !!data.plan
-      const hasCreditPack = !!data.creditPack
-      return (hasPlan && !hasCreditPack) || (!hasPlan && hasCreditPack)
+      const flags = [!!data.plan, !!data.creditPack, !!data.reportSku]
+      const truthy = flags.filter(Boolean).length
+      return truthy === 1
     },
     {
-      message: 'Must specify either plan (with optional billingCycle) or creditPack, but not both',
+      message:
+        'Must specify exactly one of: plan (with billingCycle), creditPack, or reportSku',
     }
   )
   .refine(

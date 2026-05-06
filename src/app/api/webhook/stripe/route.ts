@@ -6,6 +6,8 @@ import { getPlanFromPriceId } from '@/lib/payments/prices'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { upgradePlan, addBonusCredits, type PlanType } from '@/lib/credits/creditService'
+import { markPurchasePaid } from '@/lib/payments/premiumReportPurchase'
+import type { PremiumReportSku } from '@/lib/payments/prices'
 import {
   sendPaymentReceiptEmail,
   sendSubscriptionConfirmEmail,
@@ -254,10 +256,87 @@ export const POST = withApiMiddleware(
   { route: 'webhook/stripe', skipCsrf: true }
 )
 
-// 크레딧팩 구매 완료 처리 (일회성 결제)
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  // 크레딧팩 구매인지 확인
+// 프리미엄 리포트 1회용 구매 완료 처리
+async function handlePremiumReportCheckoutCompleted(session: Stripe.Checkout.Session) {
   const metadata = session.metadata
+  const userId = metadata?.userId
+  const reportSku = metadata?.reportSku as PremiumReportSku | undefined
+
+  if (!userId || !reportSku) {
+    logger.error('[Stripe Webhook] premium_report missing userId or reportSku', {
+      sessionId: session.id,
+    })
+    return
+  }
+  if (reportSku !== 'monthly' && reportSku !== 'yearly' && reportSku !== 'lifetime') {
+    logger.error('[Stripe Webhook] premium_report unknown reportSku', {
+      sessionId: session.id,
+      reportSku,
+    })
+    return
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user) {
+    logger.error('[Stripe Webhook] premium_report user not found', {
+      sessionId: session.id,
+      userId,
+    })
+    return
+  }
+
+  const stripePriceId =
+    typeof session.line_items === 'object' && session.line_items?.data?.[0]?.price?.id
+      ? session.line_items.data[0].price?.id ?? undefined
+      : undefined
+  const stripePaymentId =
+    typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : (session.payment_intent as { id?: string } | null | undefined)?.id
+
+  await markPurchasePaid({
+    userId,
+    sku: reportSku,
+    stripeSessionId: session.id,
+    stripePriceId,
+    stripePaymentId: stripePaymentId ?? undefined,
+    amountPaid: session.amount_total ?? undefined,
+    currency: session.currency ?? undefined,
+  })
+
+  if (user.email) {
+    const productNames: Record<PremiumReportSku, string> = {
+      monthly: '이번달 운명선 리포트',
+      yearly: '올해 운명선 리포트',
+      lifetime: '인생 총운 리포트',
+    }
+    sendPaymentReceiptEmail(userId, user.email, {
+      userName: user.name || undefined,
+      amount: session.amount_total || 0,
+      currency: session.currency || 'krw',
+      productName: productNames[reportSku],
+      transactionId: session.id,
+    }).catch((err) => {
+      logger.error('[Stripe Webhook] premium_report receipt email failed', err)
+    })
+  }
+
+  logger.info(
+    `[Stripe Webhook] Premium report purchase paid: user=${userId} sku=${reportSku} session=${session.id}`
+  )
+}
+
+// 일회성 결제 완료 처리 (크레딧팩 + 프리미엄 리포트)
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const metadata = session.metadata
+
+  // Premium report one-time purchase
+  if (metadata?.type === 'premium_report') {
+    await handlePremiumReportCheckoutCompleted(session)
+    return
+  }
+
+  // 크레딧팩 구매인지 확인
   if (metadata?.type !== 'credit_pack') {
     logger.debug('[Stripe Webhook] Not a credit pack purchase, skipping')
     return

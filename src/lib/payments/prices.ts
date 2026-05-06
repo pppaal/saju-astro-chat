@@ -1,6 +1,7 @@
 export type PlanKey = 'starter' | 'pro' | 'premium'
 export type BillingCycle = 'monthly' | 'yearly'
 export type CreditPackKey = 'mini' | 'standard' | 'plus' | 'mega' | 'ultimate'
+export type PremiumReportSku = 'monthly' | 'yearly' | 'lifetime'
 
 type PriceEntry = {
   id: string
@@ -11,6 +12,13 @@ type PriceEntry = {
 type CreditPackEntry = {
   id: string
   pack: CreditPackKey
+}
+
+type PremiumReportEntry = {
+  id: string
+  sku: PremiumReportSku
+  /** Display amount (KRW). For UI rendering only — Stripe is the source of truth. */
+  displayKrw: number
 }
 
 // Subscription price entries
@@ -72,6 +80,34 @@ const creditPackEntries = ([
   },
 ].filter((p) => p.id)) as CreditPackEntry[]
 
+// Premium report SKUs (one-time purchases — one purchase = one report generation)
+//   monthly  : ₩4,900 — 이번달 운명선
+//   yearly   : ₩7,900 — 올해 운명선
+//   lifetime : ₩14,900 — 인생 총운 (Comprehensive)
+const PREMIUM_REPORT_DISPLAY_KRW: Record<PremiumReportSku, number> = {
+  monthly: 4900,
+  yearly: 7900,
+  lifetime: 14900,
+}
+
+const premiumReportEntries = ([
+  {
+    id: process.env.STRIPE_PRICE_REPORT_MONTHLY || '',
+    sku: 'monthly',
+    displayKrw: PREMIUM_REPORT_DISPLAY_KRW.monthly,
+  },
+  {
+    id: process.env.STRIPE_PRICE_REPORT_YEARLY || '',
+    sku: 'yearly',
+    displayKrw: PREMIUM_REPORT_DISPLAY_KRW.yearly,
+  },
+  {
+    id: process.env.STRIPE_PRICE_REPORT_LIFETIME || '',
+    sku: 'lifetime',
+    displayKrw: PREMIUM_REPORT_DISPLAY_KRW.lifetime,
+  },
+].filter((p) => p.id)) as PremiumReportEntry[]
+
 export function getPriceId(plan: PlanKey, billingCycle: BillingCycle): string | null {
   const found = priceEntries.find((p) => p.plan === plan && p.billingCycle === billingCycle);
   return found?.id ?? null
@@ -80,6 +116,20 @@ export function getPriceId(plan: PlanKey, billingCycle: BillingCycle): string | 
 export function getCreditPackPriceId(pack: CreditPackKey): string | null {
   const found = creditPackEntries.find((p) => p.pack === pack);
   return found?.id ?? null
+}
+
+export function getPremiumReportPriceId(sku: PremiumReportSku): string | null {
+  const found = premiumReportEntries.find((p) => p.sku === sku)
+  return found?.id ?? null
+}
+
+export function getPremiumReportSkuFromPriceId(priceId: string): PremiumReportSku | null {
+  const found = premiumReportEntries.find((p) => p.id === priceId)
+  return found?.sku ?? null
+}
+
+export function getPremiumReportDisplayKrw(sku: PremiumReportSku): number {
+  return PREMIUM_REPORT_DISPLAY_KRW[sku]
 }
 
 export function getPlanFromPriceId(priceId: string): { plan: PlanKey; billingCycle: BillingCycle } | null {
@@ -98,4 +148,8 @@ export function allowedPriceIds(): string[] {
 
 export function allowedCreditPackIds(): string[] {
   return creditPackEntries.map((p) => p.id)
+}
+
+export function allowedPremiumReportPriceIds(): string[] {
+  return premiumReportEntries.map((p) => p.id)
 }

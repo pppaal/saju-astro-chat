@@ -27,6 +27,12 @@ import {
 import { auditMatrixInputReadiness } from '@/lib/destiny-matrix/ai-report/qualityAudit'
 import { auditCrossConsistency } from '@/lib/destiny-matrix/ai-report/crossConsistencyAudit'
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
+import {
+  findPurchaseBySessionId,
+  isExpired as isPurchaseExpired,
+  mapSkuToPeriod,
+  markPurchaseConsumed,
+} from '@/lib/payments/premiumReportPurchase'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import {
@@ -278,12 +284,102 @@ export const POST = withApiMiddleware(
       const reportTier = normalizeReportTier(requestBody.reportTier)
       const isFreeTier = reportTier === 'free'
 
-      // 4. 크레딧 비용 계산 및 잔액 확인
-      const creditCost = isFreeTier ? 0 : calculateCreditCost(period, theme)
+      // Premium monthly/yearly/comprehensive reports are paywalled by a
+      // one-time Stripe Checkout purchase, NOT by credits. Credits remain
+      // for chat / themed-timing reports only.
+      const rawPurchaseSessionId = (body as { purchaseSessionId?: unknown })
+        ?.purchaseSessionId
+      const purchaseSessionId =
+        typeof rawPurchaseSessionId === 'string' && rawPurchaseSessionId.length > 0
+          ? rawPurchaseSessionId
+          : null
+      const isPremiumPaywalledPeriod =
+        !isFreeTier &&
+        !theme &&
+        (period === 'monthly' || period === 'yearly' || period === 'comprehensive')
+
+      let consumedPurchaseId: string | null = null
+
+      if (isPremiumPaywalledPeriod) {
+        if (!purchaseSessionId) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'PURCHASE_REQUIRED',
+                message:
+                  '프리미엄 리포트는 결제가 필요합니다. 결제 후 발급된 세션 정보를 함께 보내주세요.',
+              },
+            },
+            { status: HTTP_STATUS.PAYMENT_REQUIRED }
+          )
+        }
+        const purchase = await findPurchaseBySessionId(purchaseSessionId)
+        if (!purchase || purchase.userId !== userId) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'PURCHASE_NOT_FOUND',
+                message: '해당 결제 정보를 찾을 수 없습니다.',
+              },
+            },
+            { status: HTTP_STATUS.UNAUTHORIZED }
+          )
+        }
+        if (purchase.status === 'consumed') {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'PURCHASE_ALREADY_CONSUMED',
+                message: '이 결제로 이미 리포트가 생성되었습니다.',
+                consumedReportId: purchase.consumedReportId,
+              },
+            },
+            { status: HTTP_STATUS.CONFLICT }
+          )
+        }
+        if (purchase.status !== 'paid' || isPurchaseExpired(purchase)) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'PURCHASE_NOT_REDEEMABLE',
+                message: '결제 상태가 유효하지 않거나 만료되었습니다.',
+                status: purchase.status,
+              },
+            },
+            { status: HTTP_STATUS.PAYMENT_REQUIRED }
+          )
+        }
+        const expectedPeriod = mapSkuToPeriod(
+          purchase.sku as 'monthly' | 'yearly' | 'lifetime'
+        )
+        if (expectedPeriod !== period) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'PURCHASE_SKU_MISMATCH',
+                message: '결제한 리포트 종류와 요청한 기간이 일치하지 않습니다.',
+                purchasedSku: purchase.sku,
+                requestedPeriod: period,
+              },
+            },
+            { status: HTTP_STATUS.BAD_REQUEST }
+          )
+        }
+        consumedPurchaseId = purchase.id
+      }
+
+      // 4. 크레딧 비용 계산 및 잔액 확인 (premium 결제 경로는 크레딧 차감 X)
+      const creditCost =
+        isFreeTier || consumedPurchaseId ? 0 : calculateCreditCost(period, theme)
       const balance = await getCreditBalance(userId)
       const userPlan = isFreeTier ? 'free' : normalizeAIUserPlan(balance.plan)
 
-      if (!isFreeTier && balance.remainingCredits < creditCost) {
+      if (!isFreeTier && !consumedPurchaseId && balance.remainingCredits < creditCost) {
         return NextResponse.json(
           {
             success: false,
@@ -692,19 +788,21 @@ export const POST = withApiMiddleware(
         },
       }
 
-      // 11. 크레딧 차감 (성공한 경우에만)
-      const consumeResult = await consumeCredits(userId, 'reading', creditCost)
-      if (!consumeResult.success) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: {
-              code: 'CREDIT_DEDUCTION_FAILED',
-              message: '크레딧 차감에 실패했습니다.',
+      // 11. 크레딧 차감 (premium 결제 경로는 건너뜀)
+      if (!consumedPurchaseId && !isFreeTier && creditCost > 0) {
+        const consumeResult = await consumeCredits(userId, 'reading', creditCost)
+        if (!consumeResult.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'CREDIT_DEDUCTION_FAILED',
+                message: '크레딧 차감에 실패했습니다.',
+              },
             },
-          },
-          { status: HTTP_STATUS.SERVER_ERROR }
-        )
+            { status: HTTP_STATUS.SERVER_ERROR }
+          )
+        }
       }
 
       // 12. DB에 리포트 저장
@@ -754,6 +852,20 @@ export const POST = withApiMiddleware(
         reportMode,
         reportType,
       })
+
+      // Mark the one-time premium-report purchase as consumed (idempotent —
+      // the row's `paid` status guards against double-spend).
+      if (consumedPurchaseId) {
+        try {
+          await markPurchaseConsumed(consumedPurchaseId, savedReport.id)
+        } catch (err) {
+          logger.error('[destiny-matrix/ai-report] markPurchaseConsumed failed', {
+            purchaseId: consumedPurchaseId,
+            reportId: savedReport.id,
+            message: err instanceof Error ? err.message : String(err),
+          })
+        }
+      }
 
       // 13. PDF 형식 요청인 경우 (종합 리포트만 지원, Pro 이상)
       if (format === 'pdf') {
