@@ -7,6 +7,7 @@ import {
   getCityNameFromKorean,
   getCityNameInKorean,
   getCountryNameInKorean,
+  COUNTRY_FULL_NAME,
 } from '@/lib/cities/formatter'
 import { citiesSearchQuerySchema } from '@/lib/api/zodValidation'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -113,9 +114,20 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
     const countryKrCompact = countryKr ? compact(countryKr) : undefined
     const pairKrCompact = pairKrNorm ? compact(pairKrNorm) : undefined
 
+    // Display rules:
+    //   KO Korean city → just city name (e.g. 서울)
+    //   KO foreign city → "{nameKr}, {countryKr}" (e.g. 도쿄, 일본)
+    //   EN every city  → "{name}, {countryFull}" (e.g. Seoul, Korea)
     const displayKr =
-      nameKr && countryKr ? `${nameKr}, ${countryKr}` : nameKr ? `${nameKr}, ${c.country}` : undefined
-    const displayEn = `${c.name}, ${c.country}`
+      c.country === 'KR'
+        ? nameKr || c.name
+        : nameKr && countryKr
+          ? `${nameKr}, ${countryKr}`
+          : nameKr
+            ? `${nameKr}, ${c.country}`
+            : undefined
+    const countryFullEn = COUNTRY_FULL_NAME[c.country] || c.country
+    const displayEn = `${c.name}, ${countryFullEn}`
 
     return {
       city: c,
