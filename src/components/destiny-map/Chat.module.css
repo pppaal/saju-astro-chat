@@ -409,11 +409,11 @@
 
 .assistantMessage,
 .userMessage {
-  padding: 18px 22px;
-  border-radius: 18px;
-  font-size: 1.08rem;
-  line-height: 1.75;
-  letter-spacing: 0.01em;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  letter-spacing: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
   position: relative;
@@ -441,9 +441,9 @@
   white-space: pre-wrap;
   word-break: keep-all;
   overflow-wrap: anywhere;
-  line-height: 1.9;
+  line-height: 1.6;
   color: rgba(255, 255, 255, 0.92);
-  font-size: 1.02rem;
+  font-size: 0.95rem;
 }
 
 .counselorSections {
@@ -842,25 +842,12 @@
 }
 
 /* ========== Counselor Avatar Animation ========== */
+/* Message-side counselor avatar (the floating 🔮 orb next to assistant
+   bubbles) is hidden — the user wants a clean Claude-style chat without
+   the avatar/orb decoration. The DOM node stays so loading state still
+   has a layout slot, but the orb visual + animation are off. */
 .counselorAvatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #c4b5fd 100%);
-  border: 3px solid rgba(167, 139, 250, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow:
-    0 0 20px rgba(139, 92, 246, 0.5),
-    0 0 40px rgba(139, 92, 246, 0.3),
-    inset 0 0 20px rgba(255, 255, 255, 0.1);
-  animation:
-    counselorGlow 3s ease-in-out infinite,
-    counselorFloat 4s ease-in-out infinite;
-  position: relative;
-  overflow: hidden;
+  display: none;
 }
 
 .counselorAvatar::before {

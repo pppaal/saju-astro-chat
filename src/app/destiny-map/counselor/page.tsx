@@ -133,20 +133,9 @@ export default function CounselorPage() {
             <span className={styles.backIcon}>{'\u2190'}</span>
           </button>
 
-          <div className={styles.headerInfo}>
-            <div className={styles.counselorBadge}>
-              <span className={styles.counselorAvatar}>{'\uD83D\uDD2E'}</span>
-              <div>
-                <h1 className={styles.headerTitle}>
-                  {t('destinyMap.counselor.title', 'Destiny Counselor')}
-                </h1>
-                <span className={styles.onlineStatus}>
-                  <span className={styles.onlineDot} />
-                  {t('destinyMap.counselor.online', 'Online')}
-                </span>
-              </div>
-            </div>
-          </div>
+          <h1 className={styles.headerTitle}>
+            {t('destinyMap.counselor.title', 'Destiny Counselor')}
+          </h1>
         </div>
 
         <div className={styles.headerActions}>
@@ -155,7 +144,6 @@ export default function CounselorPage() {
           </div>
           <Link href="/" className={styles.homeButton} aria-label="Home">
             <span className={styles.homeIcon}>{'\uD83C\uDFE0'}</span>
-            <span className={styles.homeLabel}>{t('common.home', 'Home')}</span>
           </Link>
         </div>
       </header>
