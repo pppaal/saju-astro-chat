@@ -176,6 +176,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         initial={birthInfo}
         onClose={() => setBirthModalOpen(false)}
         onSaved={handleSaved}
+        locale={locale}
       />
 
       <PrefetchLinks />

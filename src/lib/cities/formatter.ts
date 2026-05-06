@@ -114,6 +114,7 @@ function resolveCountryCode(raw: string | undefined): string | undefined {
 
 /**
  * Localize a stored city string (e.g. "Seoul, KR") for UI display.
+ * Mirrors formatCityForDropdown rules so saved cities render consistently.
  */
 export function localizeStoredCity(
   cityRaw: string | null | undefined,
@@ -121,19 +122,21 @@ export function localizeStoredCity(
 ): string {
   const value = String(cityRaw || '').trim();
   if (!value) return '';
-  if (locale !== 'ko') return value;
-  if (hasHangul(value)) return value;
 
   const parts = value.split(',').map((part) => part.trim()).filter(Boolean);
   const cityPart = parts[0] || value;
   const countryCode = resolveCountryCode(parts[1]);
 
   if (countryCode) {
-    return formatCityName(cityPart, countryCode, { locale: 'ko', style: 'short' });
+    return formatCityForDropdown(cityPart, countryCode, locale);
   }
 
-  const cityKr = getCityNameInKorean(cityPart);
-  return cityKr || cityPart;
+  if (locale === 'ko') {
+    if (hasHangul(value)) return value;
+    const cityKr = getCityNameInKorean(cityPart);
+    return cityKr || cityPart;
+  }
+  return value;
 }
 
 /**
