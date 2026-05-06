@@ -14,26 +14,6 @@ interface MessageRowProps {
   styles: Record<string, string>
 }
 
-type CounselorSection = {
-  title: string
-  body: string
-}
-
-function parseCounselorSections(content: string): CounselorSection[] {
-  const matches = Array.from(content.matchAll(/^##\s+(.+)$/gm))
-  if (matches.length === 0) return []
-
-  return matches
-    .map((match, index) => {
-      const title = match[1].trim()
-      const start = (match.index ?? 0) + match[0].length
-      const end = index + 1 < matches.length ? (matches[index + 1].index ?? content.length) : content.length
-      const body = content.slice(start, end).trim()
-      return { title, body }
-    })
-    .filter((section) => section.title && section.body)
-}
-
 const MessageRow = React.memo(function MessageRow({
   message,
   index,
@@ -45,7 +25,6 @@ const MessageRow = React.memo(function MessageRow({
   const isAssistant = message.role === 'assistant'
   const isStreaming = Boolean(message.streaming)
   const normalizedContent = repairMojibakeText(message.content || '')
-  const structuredSections = isAssistant && !isStreaming ? parseCounselorSections(normalizedContent) : []
   const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`
   const messageClass = isAssistant ? s.assistantMessage : s.userMessage
   const hasFeedback = isAssistant && !isStreaming && message.content && message.id
@@ -65,26 +44,7 @@ const MessageRow = React.memo(function MessageRow({
       <div className={s.messageBubble}>
         <div className={messageClass}>
           {isAssistant ? (
-            isStreaming ? (
-              <div className={s.streamingMessage}>{normalizedContent}</div>
-            ) : structuredSections.length > 0 ? (
-              <div className={s.counselorSections}>
-                {structuredSections.map((section, sectionIndex) => {
-                  const isLead = sectionIndex === 0
-                  return (
-                    <section
-                      key={`${section.title}-${sectionIndex}`}
-                      className={`${s.counselorSectionCard} ${isLead ? s.counselorLeadCard : ''}`}
-                    >
-                      <div className={s.counselorSectionTitle}>{section.title}</div>
-                      <MarkdownMessage content={section.body} />
-                    </section>
-                  )
-                })}
-              </div>
-            ) : (
-              <MarkdownMessage content={normalizedContent} />
-            )
+            <MarkdownMessage content={normalizedContent} />
           ) : (
             normalizedContent
           )}
