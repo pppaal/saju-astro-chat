@@ -8,19 +8,19 @@ import { describe, it, expect } from 'vitest';
 describe('Types Smoke Tests', () => {
   describe('Component Types (4)', () => {
     it('should import compatibility types', async () => {
-      const types = await import('@/components/compatibility/fun-insights/types');
+      const types = await import('@/components/compatibility/free-report/types');
 
       expect(types).toBeDefined();
     });
 
     it('should import destiny map fun insights types', async () => {
-      const types = await import('@/components/destiny-map/fun-insights/types');
+      const types = await import('@/components/destiny-map/free-report/types');
 
       expect(types).toBeDefined();
     });
 
     it('should import destiny map tabs types', async () => {
-      const types = await import('@/components/destiny-map/fun-insights/tabs/types');
+      const types = await import('@/components/destiny-map/free-report/tabs/types');
 
       expect(types).toBeDefined();
     });
@@ -110,9 +110,9 @@ describe('Types Smoke Tests', () => {
     it('should import all type modules without errors', async () => {
       const types = await Promise.all([
         // Component types (4)
-        import('@/components/compatibility/fun-insights/types'),
-        import('@/components/destiny-map/fun-insights/types'),
-        import('@/components/destiny-map/fun-insights/tabs/types'),
+        import('@/components/compatibility/free-report/types'),
+        import('@/components/destiny-map/free-report/types'),
+        import('@/components/destiny-map/free-report/tabs/types'),
         import('@/components/iching/types'),
 
         // Library types (12)

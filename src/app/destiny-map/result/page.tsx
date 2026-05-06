@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useMemo, Suspense, use, lazy } from '
 import styles from './result.module.css'
 import { logger } from '@/lib/logger'
 import { analyzeDestiny } from '@/components/destiny-map/Analyzer'
-import FunInsights from '@/components/destiny-map/FunInsights'
+import FreeReport from '@/components/destiny-map/FreeReport'
 import AnalyzingLoader, { LifePredictionSkeleton } from './AnalyzingLoader'
 import { useLifePrediction } from './useLifePrediction'
 const FortuneDashboard = lazy(() => import('@/components/life-prediction/FortuneDashboard'))
@@ -208,7 +208,7 @@ export default function DestinyResultPage({
   // Hooks must be called before any conditional returns
   const handleReload = useCallback(() => window.location.reload(), [])
 
-  // Memoize merged astrology data for FunInsights
+  // Memoize merged astrology data for FreeReport
   const mergedAstro = useMemo(() => {
     const advAstro = result?.advancedAstrology || {}
     return {
@@ -364,7 +364,7 @@ export default function DestinyResultPage({
         {activeTab === 'destiny' && (
           <div id="panel-destiny" role="tabpanel" aria-labelledby="tab-destiny">
             {/* ✨ 무료 인사이트 — 사주·점성 룰 기반 8 탭 (성격/연애/커리어/재물/건강/카르마/타이밍/숨은자아) */}
-            <FunInsights saju={result?.saju} astro={mergedAstro} lang={lang} theme={activeTheme} />
+            <FreeReport saju={result?.saju} astro={mergedAstro} lang={lang} theme={activeTheme} />
 
             {/* Premium 업그레이드 CTA — 본격 가치 제안 */}
             <div className="mt-8 overflow-hidden rounded-3xl border border-amber-300/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(251,191,36,0.02))] p-6 backdrop-blur-md">

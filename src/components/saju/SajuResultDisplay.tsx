@@ -11,7 +11,7 @@ import {
   type WolunData,
   type IljinData,
 } from '../../lib/Saju'
-import FunInsights from '../destiny-map/FunInsights'
+import FreeReport from '../destiny-map/FreeReport'
 import { SajuApiResponse } from './types/analysis.types'
 import { Section, OhaengDistribution, RelationsPanel } from './result-display/components'
 import {
@@ -111,8 +111,8 @@ export default function SajuResultDisplay({ result }: Props) {
     return { name: stemName, element: stemElement }
   }, [result])
 
-  // Memoized FunInsights saju prop (FunInsights expects flexible SajuData type)
-  const funInsightsSaju = useMemo(
+  // Memoized FreeReport saju prop (FreeReport expects flexible SajuData type)
+  const freeReportSaju = useMemo(
     () => ({
       dayMaster: result.dayMaster,
       pillars: {
@@ -219,7 +219,7 @@ export default function SajuResultDisplay({ result }: Props) {
 
       {/* 재미있는 사주 인사이트 - 이해하기 쉬운 해석 */}
       <Section title="✨ 쉽게 이해하는 나의 사주">
-        <FunInsights saju={funInsightsSaju} astro={undefined} theme="life" />
+        <FreeReport saju={freeReportSaju} astro={undefined} theme="life" />
       </Section>
     </article>
   )

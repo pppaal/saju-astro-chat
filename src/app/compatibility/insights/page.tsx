@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
-import { CompatibilityFunInsights } from '@/components/compatibility/fun-insights';
+import { CompatibilityFreeReport } from '@/components/compatibility/free-report';
 import { ShareButton } from '@/components/share/ShareButton';
 import { generateCompatibilityCard } from '@/components/share/cards/CompatibilityCard';
 import { logger } from '@/lib/logger';
@@ -239,7 +239,7 @@ function CompatibilityInsightsContent() {
         <InsightsLoading />
       ) : (
         <>
-          <CompatibilityFunInsights
+          <CompatibilityFreeReport
             persons={persons}
             person1Saju={person1Saju ?? undefined}
             person2Saju={person2Saju ?? undefined}
