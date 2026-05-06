@@ -1,9 +1,7 @@
 'use client'
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { useCallback, useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import {
@@ -14,9 +12,11 @@ import {
 } from '@/i18n/utils'
 import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
+import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher'
 import SideDrawer from './components/SideDrawer'
 import HomeChatInput from './components/HomeChatInput'
 import RecommendationChips from './components/RecommendationChips'
+import ServicesRail from './components/ServicesRail'
 import BirthInfoModal from './components/BirthInfoModal'
 import { getStoredBirthInfo, type StoredBirthInfo } from './birthInfoStorage'
 
@@ -30,8 +30,7 @@ interface MainPageClientProps {
 export default function MainPageClient({ initialLocale, initialMessages }: MainPageClientProps) {
   const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = (activeLocale || initialLocale) as Locale
-  const { status } = useSession()
-  const isAuthed = status === 'authenticated'
+  void t
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [birthModalOpen, setBirthModalOpen] = useState(false)
@@ -42,30 +41,15 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
     setBirthInfo(getStoredBirthInfo())
   }, [])
 
-  const serverTranslate = useCallback(
-    (key: string, fallback?: string) => {
-      const value = getPathValue(initialMessages, key)
-      if (typeof value === 'string' && !isPlaceholderTranslation(value, key)) {
-        return value
-      }
-      return fallback || toSafeFallbackText(key)
-    },
-    [initialMessages]
-  )
-
-  const translate = useCallback(
-    (key: string, fallback: string) => {
-      if (!hydrated) {
-        return serverTranslate(key, fallback)
-      }
-      const translated = t(key, fallback)
-      if (isPlaceholderTranslation(translated, key)) {
-        return serverTranslate(key, fallback)
-      }
-      return translated
-    },
-    [hydrated, serverTranslate, t]
-  )
+  // Initial-server-message helpers retained for parity with other pages,
+  // but the home screen now leans on the LanguageSwitcher / inline locale
+  // checks instead of a translate() helper. Keep for future copy needs.
+  void getPathValue
+  void isPlaceholderTranslation
+  void toSafeFallbackText
+  void initialMessages
+  void hydrated
+  void t
 
   const handleSaved = (info: StoredBirthInfo) => {
     setBirthInfo(info)
@@ -88,13 +72,9 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
           <span className={styles.homeTopBarHamburgerBar} />
         </button>
         <span className={styles.homeTopBarLogo}>DestinyPal</span>
-        {isAuthed ? (
-          <span style={{ width: 38 }} aria-hidden="true" />
-        ) : (
-          <Link href="/auth/signin?callbackUrl=/" className={styles.homeTopBarLogin}>
-            {translate('community.login', locale === 'ko' ? '로그인' : 'Login')}
-          </Link>
-        )}
+        <div className={styles.homeTopBarRight}>
+          <LanguageSwitcher />
+        </div>
       </div>
 
       <div className={styles.homeBody}>
@@ -111,6 +91,12 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
               : 'Saju · Astrology · Calendar · Tarot · Compatibility'}
           </p>
         </section>
+
+        <ServicesRail
+          birthInfo={birthInfo}
+          onOpenBirthModal={() => setBirthModalOpen(true)}
+          locale={locale}
+        />
 
         <RecommendationChips
           birthInfo={birthInfo}
@@ -129,6 +115,7 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         locale={locale}
+        birthInfo={birthInfo}
       />
 
       <BirthInfoModal

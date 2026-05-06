@@ -6109,6 +6109,13 @@
   padding: 0;
   gap: 0;
   overflow: hidden;
+  /* Flatter background — the parent `.container` stacks four radial
+     gradients which read as "hazy/blurry" on the home screen. Replace
+     with a single subtle radial + dark base so the foreground (orb,
+     headline, chips, input) renders crisp. */
+  background:
+    radial-gradient(900px 600px at 50% 22%, rgba(139, 92, 246, 0.18), transparent 60%),
+    linear-gradient(180deg, #06091a 0%, #060916 60%, #050811 100%);
 }
 
 .homeBody {
@@ -6627,4 +6634,65 @@
   font-size: 0.74rem;
   font-weight: 500;
   margin-bottom: 0.35rem;
+}
+
+/* Top bar right slot (LanguageSwitcher lives here). Constrains the
+   switcher to a compact width so it doesn't fight the logo + hamburger. */
+.homeTopBarRight {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* All-services compact rail — sits below recommendation chips so users
+   can jump to Counselor / Tarot / Calendar / Compatibility / Report from
+   the home page without opening the drawer. */
+.homeServicesRail {
+  display: flex;
+  width: 100%;
+  gap: 0.5rem;
+  padding: 0 0.25rem;
+  flex: 0 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.homeServicesRail::-webkit-scrollbar {
+  display: none;
+}
+
+.homeServiceItem {
+  flex: 1 0 auto;
+  min-width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.65rem 0.4rem;
+  border-radius: 16px;
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  background: rgba(15, 17, 35, 0.5);
+  color: rgba(229, 231, 240, 0.9);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-decoration: none;
+}
+
+.homeServiceItem:hover,
+.homeServiceItem:focus-visible {
+  border-color: rgba(167, 139, 250, 0.5);
+  background: rgba(139, 92, 246, 0.14);
+  outline: none;
+}
+
+.homeServiceItemIcon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.homeServiceItemLabel {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-align: center;
+  white-space: nowrap;
 }

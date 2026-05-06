@@ -5,17 +5,24 @@ import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
 import styles from '../main-page.module.css'
 import { ENABLED_SERVICES } from '@/config/enabledServices'
+import { buildBirthQuery, type StoredBirthInfo } from '../birthInfoStorage'
 
 interface SideDrawerProps {
   open: boolean
   onClose: () => void
   locale: 'en' | 'ko'
+  birthInfo?: StoredBirthInfo | null
 }
 
-export default function SideDrawer({ open, onClose, locale }: SideDrawerProps) {
+export default function SideDrawer({ open, onClose, locale, birthInfo = null }: SideDrawerProps) {
   const { data: session, status } = useSession()
   const isAuthed = status === 'authenticated'
   const userName = session?.user?.name || session?.user?.email || (isAuthed ? 'Account' : null)
+  const birthQuery = buildBirthQuery(birthInfo)
+  const withBirth = (href: string) => {
+    if (!birthQuery) return href
+    return `${href}${href.includes('?') ? '&' : '?'}${birthQuery}`
+  }
 
   useEffect(() => {
     if (!open) return
@@ -79,7 +86,7 @@ export default function SideDrawer({ open, onClose, locale }: SideDrawerProps) {
           {ENABLED_SERVICES.map((service) => (
             <Link
               key={service.id}
-              href={service.href}
+              href={withBirth(service.href)}
               className={styles.drawerLink}
               onClick={onClose}
             >
