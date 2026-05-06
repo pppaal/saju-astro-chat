@@ -824,12 +824,16 @@ export default function ReportResultPage() {
         const activeTransits = Array.isArray(activeTransitsRaw)
           ? (activeTransitsRaw as Parameters<typeof ThemeAnglesSection>[0]['activeTransits'])
           : undefined
+        const themeKey = (
+          ['career', 'love', 'wealth', 'health', 'family', 'move'] as const
+        ).find((k) => k === report.theme)
         return (
           <ThemeAnglesSection
             signals={rawSignals as Parameters<typeof ThemeAnglesSection>[0]['signals']}
             timing={timing as Parameters<typeof ThemeAnglesSection>[0]['timing']}
             activeTransits={activeTransits}
             birthYear={Number.isFinite(birthYear) ? birthYear : undefined}
+            theme={themeKey}
           />
         )
       })()}

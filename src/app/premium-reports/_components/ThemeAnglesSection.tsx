@@ -15,10 +15,22 @@
 import { useMemo, useState } from 'react'
 import { Clock, Sparkles, AlertTriangle, TrendingUp, Users, Coins, Heart, Target } from 'lucide-react'
 import { CAREER_ANGLES, renderTheme, type RenderedAngle } from '@/lib/destiny-matrix/ai-report/themeAngles'
+import { THEME_ANGLES_MAP } from '@/lib/destiny-matrix/ai-report/themeAnglesExtra'
 import { buildPeriodActivationContext, type ReportPeriodScope } from '@/lib/destiny-matrix/ai-report/periodSignalContext'
 import type { NormalizedSignal } from '@/lib/destiny-matrix/ai-report/signalSynthesizer'
 import type { TimingData } from '@/lib/destiny-matrix/ai-report/types'
 import type { ActiveTransit } from '@/lib/destiny-matrix/interpreter/types'
+
+type ThemeKey = 'career' | 'love' | 'wealth' | 'health' | 'family' | 'move'
+
+const THEME_LABEL: Record<ThemeKey, string> = {
+  career: '커리어',
+  love: '연애',
+  wealth: '재정',
+  health: '건강',
+  family: '가족',
+  move: '이동',
+}
 
 const ANGLE_ICONS: Record<string, typeof Sparkles> = {
   essence: Sparkles,
@@ -54,8 +66,8 @@ interface ThemeAnglesSectionProps {
   birthYear?: number
   /** Date the report is rendered against (defaults to today). */
   targetDate?: string
-  /** Theme key — only 'career' is wired in this MVP; others fall back to career. */
-  theme?: 'career' | 'love' | 'wealth' | 'health' | 'family' | 'move'
+  /** Theme key — selects which angle pack to render. */
+  theme?: ThemeKey
 }
 
 export function ThemeAnglesSection({
@@ -75,10 +87,11 @@ export function ThemeAnglesSection({
       { period, targetDate: date, timingData: timing, activeTransits },
       { birthYear }
     )
-    // MVP: Career angles only. Other themes fall back to career until
-    // their angle definitions land (Step 3.6).
-    void theme
-    return renderTheme(CAREER_ANGLES, signals, ctx, period)
+    const angleSet =
+      theme === 'career' || !theme
+        ? CAREER_ANGLES
+        : THEME_ANGLES_MAP[theme] || CAREER_ANGLES
+    return renderTheme(angleSet, signals, ctx, period)
   }, [signals, period, date, timing, activeTransits, birthYear, theme])
 
   if (angles.length === 0) {
@@ -93,7 +106,9 @@ export function ThemeAnglesSection({
             <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-200/80">
               Multi-period reading
             </p>
-            <h2 className="mt-1 text-2xl font-semibold text-white">8가지 각도로 다시 읽기</h2>
+            <h2 className="mt-1 text-2xl font-semibold text-white">
+              {THEME_LABEL[theme || 'career']} — 8가지 각도로 다시 읽기
+            </h2>
             <p className="mt-1 text-sm text-slate-400">
               같은 사주를 시기별로 다른 렌즈로 다시 봄. 시점만 바꿔도 본문이 바뀜.
             </p>
