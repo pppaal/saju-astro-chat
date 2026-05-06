@@ -21,12 +21,8 @@ import { useSeedEvent, useWelcomeBack } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
-const CrisisModal = dynamic(() => import('./modals').then((m) => ({ default: m.CrisisModal })), {
-  ssr: false,
-})
-const HistoryModal = dynamic(() => import('./modals').then((m) => ({ default: m.HistoryModal })), {
-  ssr: false,
-})
+const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
+const HistoryModal = dynamic(() => import('./modals/HistoryModal'), { ssr: false })
 
 const Chat = memo(function Chat({
   profile,

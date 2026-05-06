@@ -47,7 +47,7 @@
     "qa:tarot:full": "npm run qa:tarot:engine && npx tsx scripts/eval-tarot-question-sample.ts --count 80 --seed 20260324 --concurrency 12",
     "eval:tarot:export": "tsx scripts/export-tarot-user-eval.ts --limit 500 --days 120 --out reports/quality/tarot_user_eval_seed.jsonl",
     "test:destiny-map": "vitest run tests/destiny-map-api-smoke.test.ts tests/destiny-map-sanitize.test.ts tests/destinyCalendar.test.ts tests/lib/destiny-map/destinyCalendar.test.ts",
-    "test:performance": "vitest run tests/performance/api-endpoints.test.ts --reporter=verbose",
+    "test:performance": "vitest run tests/performance/web-vitals.test.ts --reporter=verbose",
     "test:performance:check": "node tests/performance/check-server.js",
     "test:load:basic": "k6 run tests/performance/k6/basic-load.js",
     "test:load:stress": "k6 run tests/performance/k6/stress-test.js",
