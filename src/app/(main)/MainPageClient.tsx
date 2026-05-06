@@ -48,6 +48,21 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     if (sp.get('openBirth') === '1') setBirthModalOpen(true)
   }, [])
 
+  // Lock the page to the viewport — the home is a single-screen UI and
+  // any scroll on body/html (URL bar collapse, overscroll bounce, etc.)
+  // clips the bottom controls. Restore on unmount so other routes scroll.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const prevBody = document.body.style.overflow
+    const prevHtml = document.documentElement.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prevBody
+      document.documentElement.style.overflow = prevHtml
+    }
+  }, [])
+
   // Sync birth info between server profile and localStorage once the
   // session is authenticated. Server wins if it already has full info;
   // otherwise we push the local values up so the next device can read
@@ -150,7 +165,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
       <div className={styles.homeBody}>
         <section className={styles.homeHero} aria-labelledby="home-headline">
           <div className={styles.homeOrnament} aria-hidden="true">
-            <HexDPLogo size={140} />
+            <HexDPLogo size={72} />
           </div>
           <h1 id="home-headline" className={styles.homeHeadline}>
             {locale === 'ko' ? 'AI와 사주·점성을 함께 풀어드려요' : 'Saju × Astrology, fused by AI'}

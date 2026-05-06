@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useEffect, useCallback, useReducer, useRef } from 'react'
+import React, { useEffect, useCallback, useReducer, useRef, useState } from 'react'
+import BrandSplash from '@/components/branding/BrandSplash'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -70,6 +71,10 @@ function DestinyMapContent({
 
   const [form, dispatch] = useReducer(formReducer, initialFormState)
   const autoRedirectRef = useRef(false)
+  // Counselor never shows its own birth form anymore — we either jump
+  // straight into the chat (birth info exists) or bounce to the home
+  // modal. Render a splash until that decision is made.
+  const [bootSplash] = useState(true)
 
   // If we landed here from the home chip with birth info already in the
   // URL, skip the form entirely and jump straight into the counselor
@@ -107,7 +112,13 @@ function DestinyMapContent({
         // ignore
       }
     }
-    if (!birthDate) return
+    if (!birthDate) {
+      // No birth info anywhere — send the user back to the home modal,
+      // and bounce back to the counselor after they save it.
+      autoRedirectRef.current = true
+      router.replace('/?openBirth=1&next=/destiny-counselor')
+      return
+    }
 
     autoRedirectRef.current = true
     if (!birthTime) birthTime = '12:00'
@@ -389,6 +400,14 @@ function DestinyMapContent({
       },
     })
   }, [])
+
+  if (bootSplash) {
+    return (
+      <BrandSplash
+        message={locale === 'ko' ? '운명 상담사 준비 중…' : 'Preparing your counselor…'}
+      />
+    )
+  }
 
   return (
     <div className={styles.container}>
