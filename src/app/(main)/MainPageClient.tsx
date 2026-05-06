@@ -18,7 +18,7 @@ import SideDrawer from './components/SideDrawer'
 import HomeChatInput from './components/HomeChatInput'
 import RecommendationChips from './components/RecommendationChips'
 import BirthInfoModal from './components/BirthInfoModal'
-import { getStoredBirthInfo, type StoredBirthInfo } from './birthInfoStorage'
+import { getStoredBirthInfo, saveBirthInfo, type StoredBirthInfo } from './birthInfoStorage'
 
 type Locale = 'en' | 'ko'
 
@@ -41,6 +41,69 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
   useEffect(() => {
     setBirthInfo(getStoredBirthInfo())
   }, [])
+
+  // Sync birth info between server profile and localStorage once the
+  // session is authenticated. Server wins if it already has full info;
+  // otherwise we push the local values up so the next device can read
+  // them on login.
+  useEffect(() => {
+    if (!isAuthed) return
+    let cancelled = false
+
+    const sync = async () => {
+      try {
+        const res = await fetch('/api/me/profile', { credentials: 'include' })
+        if (!res.ok || cancelled) return
+        const data = (await res.json()) as {
+          user?: {
+            birthDate?: string | null
+            birthTime?: string | null
+            gender?: 'male' | 'female' | 'other' | 'prefer_not' | null
+            birthCity?: string | null
+          }
+        }
+        const remote = data.user
+        const remoteHasFull =
+          !!remote?.birthDate &&
+          !!remote?.birthTime &&
+          (remote?.gender === 'male' || remote?.gender === 'female')
+
+        if (remoteHasFull) {
+          const next: StoredBirthInfo = {
+            birthDate: remote!.birthDate!,
+            birthTime: remote!.birthTime!,
+            gender: remote!.gender as 'male' | 'female',
+            city: remote!.birthCity || undefined,
+            savedAt: new Date().toISOString(),
+          }
+          saveBirthInfo(next)
+          if (!cancelled) setBirthInfo(next)
+          return
+        }
+
+        const local = getStoredBirthInfo()
+        if (!local) return
+        await fetch('/api/me/profile', {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            birthDate: local.birthDate,
+            birthTime: local.birthTime,
+            gender: local.gender,
+            birthCity: local.city || null,
+          }),
+        })
+      } catch {
+        // Network/parse failures shouldn't block the home page.
+      }
+    }
+
+    void sync()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthed])
 
   const serverTranslate = useCallback(
     (key: string, fallback?: string) => {
@@ -114,7 +177,6 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
 
         <RecommendationChips
           birthInfo={birthInfo}
-          onOpenBirthModal={() => setBirthModalOpen(true)}
           locale={locale}
         />
 

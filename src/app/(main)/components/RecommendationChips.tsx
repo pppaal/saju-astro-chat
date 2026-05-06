@@ -7,7 +7,6 @@ import { buildBirthQuery } from '../birthInfoStorage'
 
 interface RecommendationChipsProps {
   birthInfo: StoredBirthInfo | null
-  onOpenBirthModal: () => void
   locale: 'en' | 'ko'
 }
 
@@ -37,16 +36,11 @@ const CHIPS: Chip[] = [
 
 export default function RecommendationChips({
   birthInfo,
-  onOpenBirthModal,
   locale,
 }: RecommendationChipsProps) {
   const router = useRouter()
 
   const onChip = (chip: Chip) => {
-    if (!birthInfo) {
-      onOpenBirthModal()
-      return
-    }
     const query = buildBirthQuery(birthInfo)
     router.push(chip.href(query))
   }
