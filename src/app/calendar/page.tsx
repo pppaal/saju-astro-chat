@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import DestinyCalendar from '@/components/calendar/DestinyCalendar'
+import CalendarV2PageClient from './CalendarV2PageClient'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -43,6 +43,9 @@ export const metadata: Metadata = {
 }
 
 export default function CalendarPage() {
-  // Force single unified calendar view only.
-  return <DestinyCalendar />
+  // CalendarV2 — layer-first single-screen calendar (replaces the
+  // score-grade DestinyCalendar). The legacy component remains in
+  // src/components/calendar/DestinyCalendar.tsx for reference but is
+  // no longer mounted.
+  return <CalendarV2PageClient />
 }
