@@ -56,7 +56,16 @@ export function formatCityName(
 }
 
 /**
- * Format city for dropdown display
+ * Format city for dropdown display.
+ *
+ * Display rules:
+ *   KO locale, Korean city (country code KR) → just the city name
+ *     (e.g. "서울", "부산", "대전") — country is redundant for the
+ *     Korean reader
+ *   KO locale, foreign city → "{cityKr}, {countryKr}"
+ *     (e.g. "도쿄, 일본", "파리, 프랑스")
+ *   EN locale → "{City}, {Country full}" for every city
+ *     (e.g. "Seoul, Korea", "Tokyo, Japan", "Paris, France")
  */
 export function formatCityForDropdown(
   cityName: string,
@@ -69,6 +78,11 @@ export function formatCityForDropdown(
   if (locale === 'ko') {
     const cityKr = CITY_NAME_KR[city];
     const countryKr = COUNTRY_NAME_KR[country];
+
+    // Korean city for a Korean reader — show city only.
+    if (country === 'KR') {
+      return cityKr || city;
+    }
 
     if (cityKr && countryKr) {
       return `${cityKr}, ${countryKr}`;
