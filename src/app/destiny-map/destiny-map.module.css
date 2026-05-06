@@ -963,8 +963,8 @@ select.input option {
 /* ========== Responsive Design ========== */
 @media (max-width: 768px) {
   .card {
-    padding: 32px 24px;
-    border-radius: 24px;
+    padding: 20px 18px;
+    border-radius: 20px;
     backdrop-filter: none;
     background: rgba(15, 18, 33, 0.88);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
@@ -980,16 +980,27 @@ select.input option {
     animation: none;
   }
 
+  .form {
+    gap: 14px;
+  }
+
   .grid2 {
     grid-template-columns: 1fr;
   }
 
   .title {
-    font-size: 2rem;
+    font-size: 1.5rem;
+    margin-bottom: 4px;
   }
 
   .subtitle {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .supportTags {
+    margin-top: 6px;
+    font-size: 0.72rem;
   }
 
   .features {
@@ -998,41 +1009,41 @@ select.input option {
   }
 
   .backButton {
-    width: 44px;
-    height: 44px;
-    top: 16px;
-    left: 16px;
+    width: 40px;
+    height: 40px;
+    top: 12px;
+    left: 12px;
     backdrop-filter: none;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
   }
 
   .main {
-    padding: 80px 16px 32px;
+    padding: 56px 12px 16px;
   }
 
   .iconWrapper {
-    width: 70px;
-    height: 70px;
+    width: 56px;
+    height: 56px;
     animation: none;
     box-shadow: 0 6px 18px rgba(14, 165, 233, 0.25);
   }
 
   .icon {
-    font-size: 36px;
+    font-size: 28px;
   }
 }
 
 @media (max-width: 480px) {
   .card {
-    padding: 24px 16px;
+    padding: 16px 12px;
   }
 
   .title {
-    font-size: 1.75rem;
+    font-size: 1.35rem;
   }
 
   .main {
-    padding: 70px 12px 24px;
+    padding: 48px 10px 12px;
   }
 }
 

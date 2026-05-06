@@ -354,7 +354,7 @@ function DestinyMapContent({
               )}
             </p>
             <p className={styles.supportTags}>
-              {isKo ? '사주 · 점성술 · 타로 · I Ching' : 'Saju · Astrology · Tarot · I Ching'}
+              {isKo ? '사주 · 점성술 · 타로' : 'Saju · Astrology · Tarot'}
             </p>
           </div>
 

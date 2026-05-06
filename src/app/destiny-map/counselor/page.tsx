@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useCallback, useMemo } from 'react'
+import { useEffect, useCallback, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ErrorBoundary, ChatErrorFallback } from '@/components/ErrorBoundary'
 import CreditBadge from '@/components/ui/CreditBadge'
+import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 // buildSignInUrl import removed alongside the guest banner — restore
 // when reintroducing inline login CTA.
 import styles from './counselor.module.css'
@@ -46,8 +47,9 @@ export default function CounselorPage() {
 
   const router = useRouter()
   const { status: authStatus } = useSession()
-  void router // routerless after guest banner removal — keep for future re-enable
   void authStatus
+
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const {
     chartData,
@@ -122,15 +124,20 @@ export default function CounselorPage() {
   return (
     <main className={`${styles.page} ${showChat ? styles.fadeIn : ''}`}>
       <BodyScrollLock />
+      <CounselorSidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onNewChat={handleChatReset}
+      />
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <button
             type="button"
             className={styles.backButton}
-            onClick={handleBack}
-            aria-label={t('common.back', 'Back')}
+            onClick={() => setSidebarOpen(true)}
+            aria-label={t('destinyMap.counselor.menu', 'Menu')}
           >
-            <span className={styles.backIcon}>{'\u2190'}</span>
+            <span className={styles.backIcon}>{'\u2630'}</span>
           </button>
 
           <h1 className={styles.headerTitle}>
@@ -142,9 +149,6 @@ export default function CounselorPage() {
           <div className={styles.creditBadgeWrap}>
             <CreditBadge variant="compact" />
           </div>
-          <Link href="/" className={styles.homeButton} aria-label="Home">
-            <span className={styles.homeIcon}>{'\uD83C\uDFE0'}</span>
-          </Link>
         </div>
       </header>
 
