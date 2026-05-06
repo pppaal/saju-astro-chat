@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
 
 describe('normalizeCounselorResponse', () => {
-  it('keeps required headings and reflows ko sections into readable bullets', () => {
+  it('preserves the 4-section structure when the model writes it', () => {
     const input = [
       '## 한 줄 결론',
       '지금은 검토 후 확정하는 흐름이 좋습니다.',
@@ -19,10 +19,10 @@ describe('normalizeCounselorResponse', () => {
     expect(output).toContain('## 근거')
     expect(output).toContain('## 실행 계획')
     expect(output).toContain('## 주의/재확인')
-    expect(output).toContain('- ')
+    expect(output).toContain('지금은 검토 후 확정하는 흐름이 좋습니다.')
   })
 
-  it('normalizes compact ko headings without space/newline', () => {
+  it('canonicalizes compact ko headings without space/newline', () => {
     const input = [
       '##한줄결론지금은 검토 후 확정하는 흐름이 좋습니다.',
       '##근거- 근거 A',
@@ -38,13 +38,26 @@ describe('normalizeCounselorResponse', () => {
     expect(output).toContain('지금은 검토 후 확정하는 흐름이 좋습니다.')
   })
 
-  it('converts plain en text into required heading format', () => {
-    const input = 'Take one small action now and verify conditions before final decisions.'
+  it('passes short conversational replies through without forcing sections', () => {
+    const input = '그게 무거우시겠어요. 어느 쪽이 더 마음에 걸리세요?'
+    const output = normalizeCounselorResponse(input, 'ko')
+
+    expect(output).toBe(input)
+    expect(output).not.toContain('## 한 줄 결론')
+    expect(output).not.toContain('입력 요약')
+  })
+
+  it('passes plain en text through without injecting headings', () => {
+    const input = 'Take one small action now and verify before final decisions.'
     const output = normalizeCounselorResponse(input, 'en')
 
-    expect(output).toContain('## Direct Answer')
-    expect(output).toContain('## Evidence')
-    expect(output).toContain('## Action Plan')
-    expect(output).toContain('## Avoid / Recheck')
+    expect(output).toBe(input)
+    expect(output).not.toContain('## Direct Answer')
+    expect(output).not.toContain('Input summary')
+  })
+
+  it('returns empty string when input is empty', () => {
+    expect(normalizeCounselorResponse('', 'ko')).toBe('')
+    expect(normalizeCounselorResponse('   ', 'en')).toBe('')
   })
 })

@@ -182,23 +182,11 @@ function buildCounselorFallbackContent(
 const COUNSELOR_INTERNAL_LEAK_REGEX =
   /(action axis|risk axis|structure axis|questionframe=|primary_domain=|why_\d+=|next_move=|frame=|timing_best=|timing_now=|_window\b|scenario id)/i
 
-function hasRequiredCounselorSections(text: string, lang: 'ko' | 'en'): boolean {
-  if (lang === 'ko') {
-    return (
-      text.includes('## 한 줄 결론') &&
-      text.includes('## 근거') &&
-      text.includes('## 실행 계획') &&
-      text.includes('## 주의/재확인')
-    )
-  }
-  return (
-    text.includes('## Direct Answer') &&
-    text.includes('## Evidence') &&
-    text.includes('## Action Plan') &&
-    text.includes('## Avoid / Recheck')
-  )
-}
-
+// Style gate runs only on real failures: empty model output, internal-prompt
+// leak, or interpreted-answer-quality contract violation. The previous gate
+// also fired on "missing required sections" which clobbered legitimate
+// short / conversational replies — those are explicitly allowed by the
+// system prompt (it labels the 4-section format as "참고용 — 강제 형식 아님").
 function finalizeCounselorContent(params: {
   rawText: string
   lang: 'ko' | 'en'
@@ -222,9 +210,6 @@ function finalizeCounselorContent(params: {
   }
   if (COUNSELOR_INTERNAL_LEAK_REGEX.test(normalized)) {
     warnings.push('text:internal_leak')
-  }
-  if (!hasRequiredCounselorSections(normalized, lang)) {
-    warnings.push('text:missing_required_sections')
   }
 
   if (warnings.length > 0) {
