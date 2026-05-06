@@ -76,7 +76,8 @@ interface FetchState {
   angles: RenderedAngle[]
   source: 'ai' | 'deterministic'
   loading: boolean
-  error: string | null
+  /** Set when generation is temporarily unavailable. Null on success / initial. */
+  unavailable: { message: string } | null
 }
 
 export function ThemeAnglesSection({
@@ -88,21 +89,22 @@ export function ThemeAnglesSection({
   theme = 'career',
 }: ThemeAnglesSectionProps) {
   const [period, setPeriod] = useState<ReportPeriodScope>('lifetime')
+  const [retryToken, setRetryToken] = useState(0)
   const [state, setState] = useState<FetchState>({
     angles: [],
-    source: 'deterministic',
+    source: 'ai',
     loading: false,
-    error: null,
+    unavailable: null,
   })
   const date = targetDate || new Date().toISOString().slice(0, 10)
 
   useEffect(() => {
     if (!signals || signals.length === 0) {
-      setState({ angles: [], source: 'deterministic', loading: false, error: null })
+      setState({ angles: [], source: 'ai', loading: false, unavailable: null })
       return
     }
     const controller = new AbortController()
-    setState((prev) => ({ ...prev, loading: true, error: null }))
+    setState((prev) => ({ ...prev, loading: true, unavailable: null }))
     fetch('/api/destiny-matrix/theme-angles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -118,32 +120,63 @@ export function ThemeAnglesSection({
       signal: controller.signal,
     })
       .then(async (res) => {
+        if (res.status === 503) {
+          // Generation is temporarily unavailable — show graceful retry,
+          // never expose deterministic fallback prose to the user.
+          setState({
+            angles: [],
+            source: 'ai',
+            loading: false,
+            unavailable: {
+              message:
+                '본문 생성이 잠시 지연되고 있어요. 보통 30초 안에 풀려요 — 다시 시도해주세요.',
+            },
+          })
+          return
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = (await res.json()) as {
           source: 'ai' | 'deterministic'
           angles: RenderedAngle[]
         }
+        // Defensive: if the server ever returns deterministic source to
+        // the public client (it shouldn't), treat it as unavailable —
+        // never render template prose as if it were the paid product.
+        if (data.source !== 'ai') {
+          setState({
+            angles: [],
+            source: 'ai',
+            loading: false,
+            unavailable: {
+              message:
+                '본문 생성이 잠시 지연되고 있어요. 보통 30초 안에 풀려요 — 다시 시도해주세요.',
+            },
+          })
+          return
+        }
         setState({
           angles: data.angles || [],
-          source: data.source || 'deterministic',
+          source: 'ai',
           loading: false,
-          error: null,
+          unavailable: null,
         })
       })
       .catch((err: unknown) => {
         if ((err as { name?: string })?.name === 'AbortError') return
         setState({
           angles: [],
-          source: 'deterministic',
+          source: 'ai',
           loading: false,
-          error: err instanceof Error ? err.message : '본문을 불러오지 못했어요.',
+          unavailable: {
+            message: '본문을 불러오지 못했어요. 잠시 후 다시 시도해주세요.',
+          },
         })
       })
     return () => controller.abort()
-  }, [signals, period, date, timing, activeTransits, birthYear, theme])
+  }, [signals, period, date, timing, activeTransits, birthYear, theme, retryToken])
 
   const angles = state.angles
-  if (!state.loading && angles.length === 0 && !state.error) {
+  if (!state.loading && angles.length === 0 && !state.unavailable) {
     return null
   }
 
@@ -200,9 +233,24 @@ export function ThemeAnglesSection({
 
         <p className="mb-5 text-[13px] text-cyan-100/70">{PERIOD_LABELS[period].sub}</p>
 
-        {state.error && (
-          <div className="mb-4 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-[13px] text-rose-200">
-            본문을 불러오지 못했어요: {state.error}
+        {state.unavailable && !state.loading && (
+          <div className="rounded-[22px] border border-amber-300/25 bg-gradient-to-br from-amber-500/[0.07] to-slate-900/60 p-6 text-center">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/30 bg-amber-400/10">
+              <Clock className="h-4 w-4 text-amber-200" strokeWidth={1.6} aria-hidden="true" />
+            </div>
+            <p className="text-[15px] font-medium text-slate-100">
+              {state.unavailable.message}
+            </p>
+            <p className="mt-1 text-[13px] text-slate-400">
+              결제는 그대로 유효해요. 본문은 다시 받아볼 수 있어요.
+            </p>
+            <button
+              type="button"
+              onClick={() => setRetryToken((n) => n + 1)}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-amber-400/15 px-5 py-2 text-[13px] font-medium text-amber-100 transition-colors hover:bg-amber-400/25"
+            >
+              다시 시도
+            </button>
           </div>
         )}
 
