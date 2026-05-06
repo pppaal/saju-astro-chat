@@ -260,6 +260,112 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
   const toggleQuest = (id: string) =>
     setQuestDone((prev) => ({ ...prev, [id]: !prev[id] }))
 
+  // --- Stats tab: Cross Matrix scoreboard ---
+  const crossMatrix = useMemo(() => {
+    if (!selectedImportantDate || !data) return null
+    const d = selectedImportantDate
+    const finalScore = d.displayScore ?? d.score
+    const confidence = d.evidence?.confidence ?? null
+    const topClaim =
+      d.evidence?.matrixVerdict?.topClaim ?? data.matrixContract?.topClaim ?? null
+    const axisAgreement = d.scoreBreakdown?.axisAgreement ?? null
+    const axisAgreementLabel: Record<string, string> = {
+      aligned: '두 축 정렬됨',
+      mixed: '두 축 부분 일치',
+      opposed: '두 축 충돌 중',
+    }
+    return {
+      finalOver10: (finalScore / 10).toFixed(1),
+      confidencePercent:
+        confidence == null ? null : (Math.round(confidence * 10) / 10).toFixed(1),
+      topClaim,
+      axisAgreement: axisAgreement ? axisAgreementLabel[axisAgreement] : null,
+      axisAgreementColor:
+        axisAgreement === 'aligned'
+          ? 'text-emerald-400'
+          : axisAgreement === 'mixed'
+            ? 'text-amber-400'
+            : axisAgreement === 'opposed'
+              ? 'text-rose-400'
+              : 'text-zinc-400',
+    }
+  }, [selectedImportantDate, data])
+
+  // --- Stats tab: Domain radar (replaces 5원소 since elements aren't in CalendarData) ---
+  const domainRadar = useMemo(() => {
+    if (!data?.topDomains || data.topDomains.length === 0) return null
+    return data.topDomains.map((d) => ({
+      subject: d.label,
+      A: d.score,
+      fullMark: 100,
+    }))
+  }, [data])
+
+  // --- Stats tab: Theme cards (top 3 domains) ---
+  const themeCards = useMemo(() => {
+    if (!data?.topDomains) return null
+    return data.topDomains.slice(0, 3).map((d, idx) => {
+      const weather =
+        d.domain === 'love'
+          ? data.relationshipWeather
+          : d.domain === 'career' || d.domain === 'money'
+            ? data.workMoneyWeather
+            : null
+      const tier =
+        d.score >= 80 ? '최상' : d.score >= 65 ? '양호' : d.score >= 50 ? '보통' : '주의 요망'
+      const tierColor =
+        d.score >= 80
+          ? 'text-emerald-400'
+          : d.score >= 65
+            ? 'text-blue-400'
+            : d.score >= 50
+              ? 'text-amber-400'
+              : 'text-rose-400'
+      const accentBorder = d.score < 50 ? 'border-rose-500/30' : 'border-white/5'
+      return {
+        idx,
+        label: d.label,
+        score: d.score,
+        domain: d.domain,
+        tier,
+        tierColor,
+        accentBorder,
+        summary:
+          weather?.summary ??
+          (d.domain === 'health'
+            ? '건강 도메인 신호 — 자세한 해석은 본문 참조'
+            : `${d.label} 도메인의 그날 점수`),
+      }
+    })
+  }, [data])
+
+  // --- Stats tab: Weekly EXP — 7 days centered on currentDay ---
+  const weeklyExpData = useMemo(() => {
+    if (!data?.allDates) return null
+    const idx = data.allDates.findIndex((d) => d.date === selectedDateStr)
+    if (idx < 0) return null
+    const start = Math.max(0, idx - 3)
+    const end = Math.min(data.allDates.length, start + 7)
+    const slice = data.allDates.slice(start, end)
+    return slice.map((d) => {
+      const day = parseInt(d.date.slice(8, 10), 10)
+      const exp = Math.round((d.displayScore ?? d.score) * 3)
+      return { name: String(day), exp }
+    })
+  }, [data, selectedDateStr])
+
+  // --- Stats tab: Quest History (top dates of the year) ---
+  const questHistoryRows = useMemo<QuestRow[] | null>(() => {
+    if (!data?.topDates || data.topDates.length === 0) return null
+    const rankByGrade: ('S' | 'A' | 'B')[] = ['S', 'S', 'A', 'B', 'B']
+    return data.topDates.slice(0, 10).map((d, i) => ({
+      id: `T${String(i + 1).padStart(3, '0')}`,
+      title: d.title,
+      rank: rankByGrade[d.grade] ?? 'B',
+      reward: `${Math.round(d.displayScore ?? d.score)}점 · ${d.date.slice(5)}`,
+    }))
+  }, [data])
+
   const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
   const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
 
@@ -300,8 +406,13 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
     [],
   )
 
+  const tableData = useMemo<QuestRow[]>(
+    () => questHistoryRows ?? questHistory,
+    [questHistoryRows],
+  )
+
   const table = useReactTable({
-    data: questHistory,
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
@@ -815,104 +926,152 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                   <div>
                     <p className="text-xs text-zinc-400 mb-1">Final Adjusted Score</p>
                     <p className="text-3xl font-black text-white">
-                      6.6 <span className="text-sm font-medium text-zinc-500">/ 10</span>
+                      {crossMatrix?.finalOver10 ?? '6.6'}{' '}
+                      <span className="text-sm font-medium text-zinc-500">/ 10</span>
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-zinc-400 mb-1">Confidence</p>
-                    <p className="text-lg font-bold text-cyan-400">71.8%</p>
+                    <p className="text-lg font-bold text-cyan-400">
+                      {crossMatrix?.confidencePercent ?? '71.8'}%
+                    </p>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between bg-black/20 p-2 rounded-lg text-xs">
-                    <span className="text-zinc-400">Layer 5 Synergy</span>
-                    <span className="text-amber-400 font-bold">7개 극강 시너지 발동</span>
-                  </div>
-                  <div className="flex items-center justify-between bg-black/20 p-2 rounded-lg text-xs">
-                    <span className="text-zinc-400">원소 불협 (土 vs 風)</span>
-                    <span className="text-rose-400 font-bold">안정 vs 변화 충돌 중</span>
-                  </div>
+                  {(data ? crossMatrix?.topClaim : true) && (
+                    <div className="flex items-center justify-between bg-black/20 p-2 rounded-lg text-xs gap-3">
+                      <span className="text-zinc-400 shrink-0">Top Synergy</span>
+                      <span className="text-amber-400 font-bold text-right line-clamp-2">
+                        {data ? crossMatrix?.topClaim : '7개 극강 시너지 발동'}
+                      </span>
+                    </div>
+                  )}
+                  {(data ? crossMatrix?.axisAgreement : true) && (
+                    <div className="flex items-center justify-between bg-black/20 p-2 rounded-lg text-xs">
+                      <span className="text-zinc-400">사주 ↔ 점성 정렬</span>
+                      <span
+                        className={`font-bold ${data ? crossMatrix?.axisAgreementColor : 'text-rose-400'}`}
+                      >
+                        {data ? crossMatrix?.axisAgreement : '안정 vs 변화 충돌 중'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* 오행(Five Elements) 레이더 차트 */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-zinc-400 tracking-widest uppercase flex items-center gap-2">
-                  <Shield className="w-4 h-4" /> Elements Balance (오행 스탯)
-                </h3>
-                <div className="h-64 w-full bg-zinc-900/40 p-4 rounded-2xl border border-white/5 flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={elementData}>
-                      <PolarGrid stroke="#3f3f46" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#a1a1aa', fontSize: 10 }} />
-                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                      <Radar
-                        name="My Stats"
-                        dataKey="A"
-                        stroke="#06b6d4"
-                        fill="#06b6d4"
-                        fillOpacity={0.4}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
+              {/* Domain Balance 레이더 (엔진 topDomains) */}
+              {(data ? domainRadar : true) && (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-zinc-400 tracking-widest uppercase flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> {data ? 'Domain Balance (도메인 스탯)' : 'Elements Balance (오행 스탯)'}
+                  </h3>
+                  <div className="h-64 w-full bg-zinc-900/40 p-4 rounded-2xl border border-white/5 flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data ? domainRadar! : elementData}>
+                        <PolarGrid stroke="#3f3f46" />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#a1a1aa', fontSize: 10 }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                        <Radar
+                          name="My Stats"
+                          dataKey="A"
+                          stroke="#06b6d4"
+                          fill="#06b6d4"
+                          fillOpacity={0.4}
+                        />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <p className="text-xs text-zinc-500 text-center">
+                    {data
+                      ? '※ 사주-점성 매트릭스의 도메인별 점수. 5원소 분포는 별도 본명 차트에서 산출됩니다.'
+                      : '※ 金(결단력)과 木(기획력)이 극대화된 반면, 火(열정/체력)가 부족한 상태입니다.'}
+                  </p>
                 </div>
-                <p className="text-xs text-zinc-500 text-center">
-                  ※ 金(결단력)과 木(기획력)이 극대화된 반면, 火(열정/체력)가 부족한 상태입니다.
-                </p>
-              </div>
+              )}
 
               {/* 테마별 상태 평가 */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-zinc-400 tracking-widest uppercase flex items-center gap-2">
-                  <Activity className="w-4 h-4" /> Theme Evaluation
-                </h3>
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="bg-zinc-900/40 p-4 rounded-xl border border-white/5 flex items-start gap-4">
-                    <div className="p-2 bg-emerald-500/10 rounded-lg shrink-0">
-                      <TrendingUp className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-zinc-200 mb-1">
-                        전투력 (커리어) <span className="text-emerald-400 ml-1">최상</span>
-                      </h4>
-                      <p className="text-xs text-zinc-400 leading-relaxed">
-                        목성 10H(사수자리)와 MC 전갈자리 배치의 시너지로 커리어 확장의 강력한 버프가
-                        발동 중입니다.
-                      </p>
-                    </div>
-                  </div>
+              {(data ? themeCards && themeCards.length > 0 : true) && (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-zinc-400 tracking-widest uppercase flex items-center gap-2">
+                    <Activity className="w-4 h-4" /> Theme Evaluation
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {data && themeCards
+                      ? themeCards.map((c) => {
+                          const Icon =
+                            c.score >= 65 ? TrendingUp : c.score >= 50 ? Zap : AlertTriangle
+                          return (
+                            <div
+                              key={c.idx}
+                              className={`bg-zinc-900/40 p-4 rounded-xl border ${c.accentBorder} flex items-start gap-4`}
+                            >
+                              <div className="p-2 bg-zinc-800/40 rounded-lg shrink-0">
+                                <Icon className={`w-5 h-5 ${c.tierColor}`} />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-zinc-200 mb-1">
+                                  {c.label}{' '}
+                                  <span className={`${c.tierColor} ml-1`}>
+                                    {c.tier} ({c.score}점)
+                                  </span>
+                                </h4>
+                                <p className="text-xs text-zinc-400 leading-relaxed">{c.summary}</p>
+                              </div>
+                            </div>
+                          )
+                        })
+                      : (
+                        <>
+                          <div className="bg-zinc-900/40 p-4 rounded-xl border border-white/5 flex items-start gap-4">
+                            <div className="p-2 bg-emerald-500/10 rounded-lg shrink-0">
+                              <TrendingUp className="w-5 h-5 text-emerald-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-zinc-200 mb-1">
+                                전투력 (커리어) <span className="text-emerald-400 ml-1">최상</span>
+                              </h4>
+                              <p className="text-xs text-zinc-400 leading-relaxed">
+                                목성 10H(사수자리)와 MC 전갈자리 배치의 시너지로 커리어 확장의 강력한
+                                버프가 발동 중입니다.
+                              </p>
+                            </div>
+                          </div>
 
-                  <div className="bg-zinc-900/40 p-4 rounded-xl border border-rose-500/30 flex items-start gap-4">
-                    <div className="p-2 bg-rose-500/10 rounded-lg shrink-0">
-                      <AlertTriangle className="w-5 h-5 text-rose-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-zinc-200 mb-1">
-                        생명력 (건강/체력) <span className="text-rose-400 ml-1">주의 요망</span>
-                      </h4>
-                      <p className="text-xs text-zinc-400 leading-relaxed">
-                        사주 내 火(불) 원소 부재 및 태양-화성 오포지션(충돌)으로 인해 급격한 체력
-                        저하 및 번아웃 디버프가 우려됩니다.
-                      </p>
-                    </div>
-                  </div>
+                          <div className="bg-zinc-900/40 p-4 rounded-xl border border-rose-500/30 flex items-start gap-4">
+                            <div className="p-2 bg-rose-500/10 rounded-lg shrink-0">
+                              <AlertTriangle className="w-5 h-5 text-rose-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-zinc-200 mb-1">
+                                생명력 (건강/체력)
+                                <span className="text-rose-400 ml-1">주의 요망</span>
+                              </h4>
+                              <p className="text-xs text-zinc-400 leading-relaxed">
+                                사주 내 火(불) 원소 부재 및 태양-화성 오포지션(충돌)으로 인해 급격한
+                                체력 저하 및 번아웃 디버프가 우려됩니다.
+                              </p>
+                            </div>
+                          </div>
 
-                  <div className="bg-zinc-900/40 p-4 rounded-xl border border-white/5 flex items-start gap-4">
-                    <div className="p-2 bg-blue-500/10 rounded-lg shrink-0">
-                      <Zap className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-zinc-200 mb-1">
-                        마력 (멘탈/지력) <span className="text-blue-400 ml-1">양호 (불안정)</span>
-                      </h4>
-                      <p className="text-xs text-zinc-400 leading-relaxed">
-                        Air(공기) 원소 압도로 지적 회전율은 최상이나, 천왕성-해왕성 12H 결합으로 현실
-                        감각(Earth) 보완이 필요합니다.
-                      </p>
-                    </div>
+                          <div className="bg-zinc-900/40 p-4 rounded-xl border border-white/5 flex items-start gap-4">
+                            <div className="p-2 bg-blue-500/10 rounded-lg shrink-0">
+                              <Zap className="w-5 h-5 text-blue-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-zinc-200 mb-1">
+                                마력 (멘탈/지력) <span className="text-blue-400 ml-1">양호 (불안정)</span>
+                              </h4>
+                              <p className="text-xs text-zinc-400 leading-relaxed">
+                                Air(공기) 원소 압도로 지적 회전율은 최상이나, 천왕성-해왕성 12H 결합으로
+                                현실 감각(Earth) 보완이 필요합니다.
+                              </p>
+                            </div>
+                          </div>
+                        </>
+                      )}
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Recharts: Weekly Performance */}
               <div className="space-y-4">
@@ -921,7 +1080,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                 </h3>
                 <div className="h-48 w-full bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
+                    <AreaChart data={data && weeklyExpData ? weeklyExpData : chartData}>
                       <defs>
                         <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
