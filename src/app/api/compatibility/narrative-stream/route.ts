@@ -306,6 +306,7 @@ function buildUserPrompt(
     extendedSaju?: unknown
     extendedAstro?: unknown
     crossSystem?: unknown
+    coupleMatrix?: unknown
     fusionDeepAnalysis?: string
     extraPoints?: ReturnType<typeof analyzeCoupleExtraPoints>
   }
@@ -353,6 +354,32 @@ function buildUserPrompt(
   if (blocks.crossSystem) {
     const block = JSON.stringify(blocks.crossSystem, null, 1).slice(0, 3000)
     lines.push(`\n== 사주·점성 교차 분석 (일간↔Sun, 월지↔Moon, 5행 fusion, pillar↔planet 대응) ==\n${block}`)
+  }
+
+  // Couple Matrix — cell-level cross between A and B (saju × saju, saju × astro, astro × astro)
+  if (blocks.coupleMatrix) {
+    const cm = blocks.coupleMatrix as {
+      summary?: {
+        totalScore?: number
+        polarityBalance?: { positive?: number; negative?: number; neutral?: number }
+        domainScores?: Record<string, number>
+        topPositiveCells?: Array<{ description: string; sajuBasis: string; astroBasis: string; score: number }>
+        topCautionCells?: Array<{ description: string; sajuBasis: string; astroBasis: string; score: number }>
+      }
+    }
+    const s = cm.summary
+    if (s) {
+      const ds = s.domainScores || {}
+      const topPos = (s.topPositiveCells || []).slice(0, 3).map((c) => `+ ${c.description} [${c.sajuBasis} × ${c.astroBasis}] (score ${c.score})`).join('\n')
+      const topNeg = (s.topCautionCells || []).slice(0, 3).map((c) => `- ${c.description} [${c.sajuBasis} × ${c.astroBasis}] (score ${c.score})`).join('\n')
+      lines.push(
+        `\n== 커플 매트릭스 (셀-단위 교차: 6 레이어) ==\n` +
+          `종합점수: ${s.totalScore} / overlap=${s.polarityBalance?.positive || 0}+ / ${s.polarityBalance?.negative || 0}-\n` +
+          `도메인: 매력=${ds.attraction} 안정=${ds.stability} 성장=${ds.growth} 갈등견딤=${ds.conflict} 시기동기=${ds.timing}\n` +
+          (topPos ? `\n[상위 결속 셀]\n${topPos}\n` : '') +
+          (topNeg ? `\n[주의 셀]\n${topNeg}` : '')
+      )
+    }
   }
 
   // Fusion deep analysis
@@ -460,6 +487,7 @@ async function buildExtendedBlocks(
   extendedSaju?: unknown
   extendedAstro?: unknown
   crossSystem?: unknown
+  coupleMatrix?: unknown
   fusionDeepAnalysis?: string
   extraPoints?: ReturnType<typeof analyzeCoupleExtraPoints>
 }> {
@@ -520,6 +548,30 @@ async function buildExtendedBlocks(
     buildAstrologyProfileFromBirth(personInputBase(p1)),
     buildAstrologyProfileFromBirth(personInputBase(p2)),
   ])
+
+  // Couple Matrix — cell-level cross between A's saju+astro and B's saju+astro.
+  // Sits alongside extendedSaju / extendedAstro / crossSystem so the prompt
+  // can quote specific cells (천간합 일주끼리 / 어스펙트 / 대운 시너지 등).
+  let coupleMatrix: unknown = undefined
+  try {
+    const { buildCoupleMatrix } = await import('@/lib/compatibility/coupleMatrix')
+    const koreanAge = (iso: string) => new Date().getFullYear() - new Date(iso).getFullYear() + 1
+    const pickNatal = (astro: unknown): any => {
+      const a = astro as Record<string, unknown> | null
+      const profile = a?.astroProfile as Record<string, unknown> | undefined
+      return (
+        (a?.natalChart as unknown) ||
+        (profile?.natalChart as unknown) ||
+        (a as any)
+      )
+    }
+    coupleMatrix = buildCoupleMatrix(
+      { saju: p1Full, natal: pickNatal(p1Astro), koreanAge: koreanAge(p1.date) },
+      { saju: p2Full, natal: pickNatal(p2Astro), koreanAge: koreanAge(p2.date) }
+    )
+  } catch {
+    // ignore — additive
+  }
 
   let extendedSaju: unknown = undefined
   let extendedAstro: unknown = undefined
@@ -622,6 +674,7 @@ async function buildExtendedBlocks(
     extendedSaju,
     extendedAstro,
     crossSystem,
+    coupleMatrix,
     fusionDeepAnalysis,
     extraPoints,
   }
