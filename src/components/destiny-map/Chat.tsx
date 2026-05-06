@@ -386,10 +386,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
 
   return (
     <div className={styles.chatContainer}>
-      {connectionStatus !== 'online' && (
+      {connectionStatus === 'offline' && (
         <div className={`${styles.connectionStatus} ${styles[connectionStatus]}`}>
-          {connectionStatus === 'slow' && '\uD83D\uDC0C Slow connection detected'}
-          {connectionStatus === 'offline' && '\uD83D\uDCE1 Connection lost - Check your internet'}
+          {'\uD83D\uDCE1 Connection lost - Check your internet'}
         </div>
       )}
 

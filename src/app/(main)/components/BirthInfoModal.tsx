@@ -45,7 +45,7 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
     >
       <div className={styles.modalCard}>
         <h2 id="birth-info-title" className={styles.modalTitle}>
-          사주 정보 입력
+          생년월일 정보 입력
         </h2>
         <p className={styles.modalSubtitle}>
           한 번 입력하면 모든 서비스에서 자동으로 사용돼요. 나중에 언제든 다시 바꿀 수 있어요.

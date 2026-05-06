@@ -152,58 +152,6 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           </p>
         </section>
 
-        <button
-          type="button"
-          className={styles.homeBirthCta}
-          onClick={() => setBirthModalOpen(true)}
-          aria-label={
-            birthInfo
-              ? locale === 'ko'
-                ? '사주 정보 수정'
-                : 'Edit birth info'
-              : locale === 'ko'
-                ? '사주 정보 입력하기'
-                : 'Enter birth info'
-          }
-        >
-          <span className={styles.homeBirthCtaIcon} aria-hidden="true">
-            {birthInfo ? '✓' : '✦'}
-          </span>
-          <span className={styles.homeBirthCtaText}>
-            {birthInfo ? (
-              <>
-                <strong>
-                  {birthInfo.birthDate} · {birthInfo.birthTime} ·{' '}
-                  {birthInfo.gender === 'male'
-                    ? locale === 'ko'
-                      ? '남성'
-                      : 'Male'
-                    : locale === 'ko'
-                      ? '여성'
-                      : 'Female'}
-                </strong>
-                <span className={styles.homeBirthCtaHint}>
-                  {locale === 'ko' ? '수정하기' : 'Edit'}
-                </span>
-              </>
-            ) : (
-              <>
-                <strong>
-                  {locale === 'ko'
-                    ? '사주 정보 입력하고 시작하기'
-                    : 'Add your birth info to start'}
-                </strong>
-                <span className={styles.homeBirthCtaHint}>
-                  {locale === 'ko'
-                    ? '로그인 없이 저장돼요. 로그인하면 기기 간 동기화'
-                    : 'Saved without login. Synced after sign-in'}
-                </span>
-              </>
-            )}
-          </span>
-          <span aria-hidden="true">→</span>
-        </button>
-
         <RecommendationChips
           birthInfo={birthInfo}
           locale={locale}

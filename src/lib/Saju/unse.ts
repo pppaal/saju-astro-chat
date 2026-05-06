@@ -87,7 +87,9 @@ function daysToDaeunAge(days: number): number {
   } else {
     age = Math.round(v)
   }
-  return Math.max(1, age)
+  // Display in Korean age (한국나이): everyone counts age 1 at birth and
+  // gains a year on Jan 1, so the "days/3" man-nai value is bumped by 1.
+  return Math.max(1, age) + 1
 }
 
 export function getDaeunCycles(

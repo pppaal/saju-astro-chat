@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -46,12 +47,11 @@ export default function TarotHomePage() {
 
   const [question, setQuestion] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [showAllThemes, setShowAllThemes] = useState(false)
   const [preferredDeck, setPreferredDeck] = useState<DeckStyle | null>(null)
   const [showDeckPicker, setShowDeckPicker] = useState(false)
+  const [showExamples, setShowExamples] = useState(false)
   const [toneIndex, setToneIndex] = useState(0)
   const [spreadMode, setSpreadMode] = useState<SpreadMode>('auto')
-  const themeSectionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -100,12 +100,20 @@ export default function TarotHomePage() {
     setSpreadMode((prev) => (prev === 'auto' ? 'manual' : 'auto'))
   }, [])
 
-  const handleScrollToExamples = useCallback(() => {
-    setShowAllThemes(true)
-    requestAnimationFrame(() => {
-      themeSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  }, [])
+  const inlineExampleQuestions = useMemo(() => {
+    const collected: string[] = []
+    for (const group of tarotThemeExamples) {
+      for (const q of group.questions) {
+        const text = isKo ? q.ko : q.en
+        if (text && !collected.includes(text)) {
+          collected.push(text)
+          if (collected.length >= 8) break
+        }
+      }
+      if (collected.length >= 8) break
+    }
+    return collected
+  }, [isKo])
 
   const canvasRef = useCanvasAnimation()
   const { recentQuestions, addRecentQuestion, removeRecentQuestion } = useRecentQuestions()
@@ -114,8 +122,6 @@ export default function TarotHomePage() {
     dangerWarning,
     isAnalyzing,
     isLoadingPreview,
-    fallbackReason,
-    fallbackNotice,
     handleStartReading: analyzeQuestion,
   } = useQuestionAnalysis({ question, language, isKo, getQuickRecommendation })
 
@@ -123,11 +129,21 @@ export default function TarotHomePage() {
   const triggerHaptic = useHapticFeedback()
 
   const handleAnalyzeQuestion = useCallback(() => {
-    if (question.trim()) {
-      addRecentQuestion(question.trim())
-    }
-    analyzeQuestion()
-  }, [question, addRecentQuestion, analyzeQuestion])
+    const trimmedQuestion = question.trim()
+    if (!trimmedQuestion) return
+    addRecentQuestion(trimmedQuestion)
+
+    // Kick off AI analysis in the background so the snapshot is warm
+    // when the reading page mounts; do not block navigation on it.
+    void analyzeQuestion()
+
+    const analysisKey = storeQuestionAnalysisSnapshot(trimmedQuestion, analysisResult)
+    const primaryPath =
+      analysisResult?.path && analysisResult.source !== 'fallback'
+        ? appendQuestionContextToPath(analysisResult.path, trimmedQuestion, analysisKey)
+        : buildStableEntryPath(trimmedQuestion, analysisResult, analysisKey)
+    router.push(primaryPath)
+  }, [question, addRecentQuestion, analyzeQuestion, analysisResult, router])
 
   const handleChooseSpread = useCallback(
     (path: string) => {
@@ -155,17 +171,6 @@ export default function TarotHomePage() {
     router.push(primaryPath)
   }, [question, analysisResult, addRecentQuestion, router])
 
-  const handleQuickStart = useCallback(() => {
-    triggerHaptic('light')
-    const defaultQuestion = isKo
-      ? '오늘 나에게 필요한 조언은?'
-      : 'What guidance do I need right now?'
-    const seedQuestion = question.trim() || defaultQuestion
-    addRecentQuestion(seedQuestion)
-    const quick = getQuickRecommendation(seedQuestion, isKo)
-    router.push(appendQuestionContextToPath(quick.path, seedQuestion))
-  }, [question, isKo, addRecentQuestion, router, triggerHaptic])
-
   const handleThemeQuestion = useCallback(
     (questionText: string) => {
       triggerHaptic('light')
@@ -182,11 +187,6 @@ export default function TarotHomePage() {
     inputRef.current?.focus()
   }, [])
 
-  const visibleThemeExamples = useMemo(
-    () => (showAllThemes ? tarotThemeExamples : tarotThemeExamples.slice(0, 1)),
-    [showAllThemes]
-  )
-
   const handleDeleteRecent = useCallback(
     (q: string, e: React.MouseEvent) => {
       e.stopPropagation()
@@ -197,7 +197,6 @@ export default function TarotHomePage() {
 
   const recommendedSpreads = analysisResult?.recommended_spreads ?? []
   const secondarySpreads = recommendedSpreads.slice(1)
-  const questionProfile = analysisResult?.question_profile
   const primaryEntryDisplay = useMemo(() => {
     if (!analysisResult) {
       return null
@@ -286,39 +285,102 @@ export default function TarotHomePage() {
                   </button>
                   <button
                     type="button"
-                    className={styles.composerPill}
-                    onClick={handleScrollToExamples}
+                    className={`${styles.composerPill} ${showExamples ? styles.composerPillActive : ''}`}
+                    onClick={() => setShowExamples((v) => !v)}
+                    aria-expanded={showExamples}
                   >
                     <span aria-hidden="true">💡</span>
                     <span>{isKo ? '예시 질문' : 'Examples'}</span>
                   </button>
                 </div>
 
-                {showDeckPicker && (
+                {showExamples && (
                   <div className={styles.composerDeckPicker} role="listbox">
-                    {DECK_STYLES.map((deck) => {
-                      const info = DECK_STYLE_INFO[deck]
-                      const active = preferredDeck === deck
-                      return (
+                    {inlineExampleQuestions.map((q, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className={styles.composerDeckOption}
+                        onClick={() => {
+                          handleThemeQuestion(q)
+                          setShowExamples(false)
+                        }}
+                        role="option"
+                      >
+                        <span className={styles.composerDeckName}>{q}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {showDeckPicker && (
+                  <div
+                    className={styles.deckModalOverlay}
+                    onClick={(e) => {
+                      if (e.target === e.currentTarget) setShowDeckPicker(false)
+                    }}
+                  >
+                    <div
+                      className={styles.deckModal}
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label={isKo ? '덱 선택' : 'Pick deck'}
+                    >
+                      <div className={styles.deckModalHeader}>
+                        <h2 className={styles.deckModalTitle}>
+                          {isKo ? '덱 선택' : 'Pick a deck'}
+                        </h2>
                         <button
-                          key={deck}
                           type="button"
-                          className={`${styles.composerDeckOption} ${active ? styles.composerDeckOptionActive : ''}`}
-                          onClick={() => handleSelectDeck(deck)}
-                          role="option"
-                          aria-selected={active}
+                          className={styles.deckModalClose}
+                          onClick={() => setShowDeckPicker(false)}
+                          aria-label={isKo ? '닫기' : 'Close'}
                         >
-                          <span
-                            className={styles.composerDeckSwatch}
-                            style={{ background: info.gradient }}
-                            aria-hidden="true"
-                          />
-                          <span className={styles.composerDeckName}>
-                            {isKo ? info.nameKo : info.name}
-                          </span>
+                          ×
                         </button>
-                      )
-                    })}
+                      </div>
+                      <div className={styles.deckModalGrid} role="listbox">
+                        {DECK_STYLES.map((deck) => {
+                          const info = DECK_STYLE_INFO[deck]
+                          const active = preferredDeck === deck
+                          return (
+                            <button
+                              key={deck}
+                              type="button"
+                              className={`${styles.deckCard} ${active ? styles.deckCardActive : ''}`}
+                              onClick={() => handleSelectDeck(deck)}
+                              role="option"
+                              aria-selected={active}
+                            >
+                              <span
+                                className={styles.deckCardThumb}
+                                style={{ background: info.gradient }}
+                                aria-hidden="true"
+                              >
+                                {info.backImage && (
+                                  <Image
+                                    src={info.backImage}
+                                    alt=""
+                                    fill
+                                    sizes="(max-width: 540px) 45vw, 200px"
+                                    className={styles.deckCardImage}
+                                    priority={false}
+                                  />
+                                )}
+                                {active && (
+                                  <span className={styles.deckCardCheck} aria-hidden="true">
+                                    ✓
+                                  </span>
+                                )}
+                              </span>
+                              <span className={styles.deckCardName}>
+                                {isKo ? info.nameKo : info.name}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -425,42 +487,44 @@ export default function TarotHomePage() {
                 </div>
               )}
 
-              {fallbackReason && fallbackNotice && !dangerWarning && (
-                <div className={styles.fallbackNotice} role="status" aria-live="polite">
-                  <p>{fallbackNotice}</p>
-                  <button
-                    type="button"
-                    className={styles.fallbackRetryButton}
-                    onClick={handleAnalyzeQuestion}
-                    disabled={!question.trim() || isAnalyzing}
-                  >
-                    {isKo ? '다시 분석하기' : 'Retry analysis'}
-                  </button>
-                </div>
-              )}
+              {/* Fallback notice intentionally suppressed: when AI takes a
+                  while, the page still navigates to a sensible spread. We
+                  do not want to scare the user with a yellow warning. */}
             </div>
 
             {analysisResult && !dangerWarning && (
               <section className={styles.analysisPanel}>
-                <div className={styles.analysisHeader}>
-                  <div className={styles.analysisHeaderCopy}>
-                    <span className={styles.previewBadge}>
-                      {isKo ? '질문 이해 완료' : 'Question understood'}
-                    </span>
-                    <h2 className={styles.analysisTitle}>
+                <div className={styles.primaryActionBox}>
+                  <div className={styles.primaryActionCopy}>
+                    <strong className={styles.primaryActionTitle}>
                       {isKo
-                        ? 'AI가 질문을 이렇게 읽고 있어요'
-                        : 'Here is how AI is reading your question'}
-                    </h2>
+                        ? `${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount}장)`
+                        : `${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount} cards)`}
+                    </strong>
+                    {analysisResult.question_summary && (
+                      <p className={styles.primaryActionText}>
+                        {analysisResult.question_summary}
+                      </p>
+                    )}
                   </div>
-                  {analysisResult.intent_label && (
-                    <span className={styles.intentPill}>{analysisResult.intent_label}</span>
-                  )}
+                  <button
+                    type="button"
+                    className={styles.primaryActionButton}
+                    onClick={handleStartPrimaryReading}
+                  >
+                    {isKo ? '시작' : 'Start'}
+                  </button>
                 </div>
 
-                {analysisResult.question_summary && (
-                  <p className={styles.analysisSummary}>{analysisResult.question_summary}</p>
+                {analysisResult.direct_answer && (
+                  <div className={styles.directAnswerBox}>
+                    <span className={styles.directAnswerLabel}>
+                      {isKo ? '한 줄 답' : 'Quick answer'}
+                    </span>
+                    <p className={styles.directAnswerText}>{analysisResult.direct_answer}</p>
+                  </div>
                 )}
+
                 {analysisResult.requires_confirmation && (
                   <div className={styles.confirmStrip} role="status">
                     <span className={styles.confirmBadge}>
@@ -474,72 +538,6 @@ export default function TarotHomePage() {
                     </p>
                   </div>
                 )}
-                {questionProfile && (
-                  <div className={styles.profileGrid}>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>
-                        {isKo ? '질문 종류' : 'Question type'}
-                      </span>
-                      <strong className={styles.profileValue}>{questionProfile.type.label}</strong>
-                    </div>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>{isKo ? '주체' : 'Subject'}</span>
-                      <strong className={styles.profileValue}>
-                        {questionProfile.subject.label}
-                      </strong>
-                    </div>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>
-                        {isKo ? '무엇을 묻는지' : 'What it asks'}
-                      </span>
-                      <strong className={styles.profileValue}>{questionProfile.focus.label}</strong>
-                    </div>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>{isKo ? '시간축' : 'Timeframe'}</span>
-                      <strong className={styles.profileValue}>
-                        {questionProfile.timeframe.label}
-                      </strong>
-                    </div>
-                    <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>{isKo ? '질문 톤' : 'Tone'}</span>
-                      <strong className={styles.profileValue}>{questionProfile.tone.label}</strong>
-                    </div>
-                  </div>
-                )}
-                {analysisResult.direct_answer && (
-                  <div className={styles.directAnswerBox}>
-                    <span className={styles.directAnswerLabel}>
-                      {isKo ? '스프레드 전 직접답' : 'Direct answer before spread'}
-                    </span>
-                    <p className={styles.directAnswerText}>{analysisResult.direct_answer}</p>
-                  </div>
-                )}
-                <div className={styles.primaryActionBox}>
-                  <div className={styles.primaryActionCopy}>
-                    <strong className={styles.primaryActionTitle}>
-                      {isKo
-                        ? `권장 진입: ${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount}장)`
-                        : `Recommended entry: ${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount} cards)`}
-                    </strong>
-                    <p className={styles.primaryActionText}>
-                      {isKo
-                        ? analysisResult.source === 'fallback'
-                          ? 'AI 분석이 불안정할 때는 가장 가까운 안정 경로로 먼저 연결합니다.'
-                          : '지금 질문에는 이 스프레드가 가장 자연스럽고, 카드 뽑기와 해석도 이 경로에 맞춰 이어집니다.'
-                        : analysisResult.source === 'fallback'
-                          ? 'When AI analysis is unstable, the flow falls back to the nearest safe route first.'
-                          : 'This spread is the closest match for the current question, and the draw plus interpretation stay aligned to it.'}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.primaryActionButton}
-                    onClick={handleStartPrimaryReading}
-                  >
-                    {isKo ? '이 추천으로 시작' : 'Start With This'}
-                  </button>
-                </div>
-                <p className={styles.analysisLead}>{analysisResult.userFriendlyExplanation}</p>
                 {secondarySpreads.length > 0 && (
                   <div className={styles.secondaryRecommendationSection}>
                     <p className={styles.analysisHint}>
@@ -583,92 +581,6 @@ export default function TarotHomePage() {
                 )}
               </section>
             )}
-
-            <section className={styles.quickStartCard}>
-              <p className={styles.quickStartHint}>
-                {isKo
-                  ? '질문이 아직 흐릿하다면, 먼저 짧은 리딩으로 흐름부터 볼 수 있습니다.'
-                  : 'If the question is still blurry, start with a short reading and read the flow first.'}
-              </p>
-              <button
-                type="button"
-                className={styles.quickStartButton}
-                onClick={handleQuickStart}
-                onTouchStart={handleTouchStart}
-                disabled={isAnalyzing || !!dangerWarning}
-              >
-                {isKo ? '빠르게 시작하기' : 'Quick Start'}
-              </button>
-            </section>
-
-            <section className={styles.themeSection} ref={themeSectionRef}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>
-                  {isKo ? '테마별 질문 예시' : 'Examples by Theme'}
-                </h2>
-                <p className={styles.sectionSubtitle}>
-                  {isKo
-                    ? '예시 질문으로 바로 시작해도 됩니다. 누르면 입력창에 바로 들어갑니다.'
-                    : 'You can start with any example below. Tapping it fills the input instantly.'}
-                </p>
-              </div>
-              <div className={styles.themeGrid}>
-                {visibleThemeExamples.map((group) => {
-                  const theme = themeLookup.get(group.themeId)
-                  if (!theme) return null
-
-                  return (
-                    <div key={group.themeId} className={styles.themeCard}>
-                      <div className={styles.themeTitleRow}>
-                        <span className={styles.themeIcon} aria-hidden="true">
-                          {group.icon}
-                        </span>
-                        <div>
-                          <p className={styles.themeTitle}>
-                            {isKo ? theme.categoryKo : theme.category}
-                          </p>
-                          <p className={styles.themeDesc}>
-                            {isKo ? theme.descriptionKo : theme.description}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={styles.themeQuestions}>
-                        {group.questions.map((themeQuestion, index) => (
-                          <button
-                            key={`${group.themeId}-${index}`}
-                            className={styles.themeQuestion}
-                            onClick={() =>
-                              handleThemeQuestion(isKo ? themeQuestion.ko : themeQuestion.en)
-                            }
-                            onTouchStart={handleTouchStart}
-                            disabled={isAnalyzing}
-                            type="button"
-                          >
-                            {isKo ? themeQuestion.ko : themeQuestion.en}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              {tarotThemeExamples.length > 2 && (
-                <button
-                  type="button"
-                  className={styles.moreThemesButton}
-                  onClick={() => setShowAllThemes((prev) => !prev)}
-                  onTouchStart={handleTouchStart}
-                >
-                  {showAllThemes
-                    ? isKo
-                      ? '테마 접기'
-                      : 'Show less themes'
-                    : isKo
-                      ? '테마 더보기'
-                      : 'Show more themes'}
-                </button>
-              )}
-            </section>
 
             {recentQuestions.length > 0 && (
               <div className={styles.recentSection}>

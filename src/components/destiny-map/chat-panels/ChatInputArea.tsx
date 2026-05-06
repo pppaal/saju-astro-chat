@@ -32,7 +32,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
 }: ChatInputAreaProps) {
   return (
     <div className={styles.inputArea}>
-      <div className={styles.inputRow}>
+      <div className={styles.inputBox}>
         <textarea
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
@@ -44,41 +44,42 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           disabled={loading}
           maxLength={2000}
         />
-        <button
-          type="button"
-          onClick={onSend}
-          disabled={loading || !input.trim()}
-          className={styles.sendButton}
-        >
-          <span className={styles.sendIcon}>&#x2728;</span>
-          <span className={styles.sendText}>{tr.send}</span>
-        </button>
-      </div>
-
-      {/* File Upload */}
-      <div className={styles.fileUploadArea}>
-        <label className={styles.fileLabel}>
-          <span className={styles.fileLabelIcon}>&#x1F4CE;</span>
-          <span>{tr.uploadCv}</span>
-          <input
-            type="file"
-            accept=".txt,.md,.csv,.pdf"
-            className={styles.fileInput}
-            onChange={onFileUpload}
-          />
-        </label>
-        {parsingPdf && (
-          <span className={styles.fileName}>
-            <span className={styles.loadingSpinner} />
-            {tr.parsingPdf}
-          </span>
-        )}
-        {cvName && !parsingPdf && (
-          <span className={styles.fileName}>
-            <span className={styles.fileIcon}>&#x2713;</span>
-            {tr.attached} {cvName}
-          </span>
-        )}
+        <div className={styles.inputBoxActions}>
+          <label
+            className={styles.attachButton}
+            aria-label={tr.uploadCv}
+            title={tr.uploadCv}
+          >
+            <span aria-hidden="true">&#x1F4CE;</span>
+            <input
+              type="file"
+              accept=".txt,.md,.csv,.pdf"
+              className={styles.fileInput}
+              onChange={onFileUpload}
+            />
+          </label>
+          {parsingPdf && (
+            <span className={styles.fileName}>
+              <span className={styles.loadingSpinner} />
+              {tr.parsingPdf}
+            </span>
+          )}
+          {cvName && !parsingPdf && (
+            <span className={styles.fileName}>
+              <span className={styles.fileIcon}>&#x2713;</span>
+              {cvName}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onSend}
+            disabled={loading || !input.trim()}
+            className={styles.sendButton}
+          >
+            <span className={styles.sendIcon}>&#x2728;</span>
+            <span className={styles.sendText}>{tr.send}</span>
+          </button>
+        </div>
       </div>
 
       {usedFallback && (

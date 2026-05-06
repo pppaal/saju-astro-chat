@@ -38,18 +38,20 @@ function GlobalHeaderContent() {
   const localeAriaLabel = locale === 'ko' ? 'Switch to English' : '한국어로 전환'
 
   const isMainPage = !pathname || pathname === '/' || pathname === ''
+  // Pages with their own full-screen layouts (chat, calendar grid,
+  // streaming reports) hide the global header to avoid clashing with
+  // their own toolbars. Entry pages of those services now render the
+  // global header instead so the hamburger and locale toggle stay
+  // consistent.
   const hasCustomPageHeader = Boolean(
     pathname &&
     (
       [
-        '/destiny-counselor',
         '/destiny-counselor/chat',
         '/destiny-map/counselor',
         '/destiny-map/result',
         '/astrology/counselor',
-        '/calendar',
       ].includes(pathname) ||
-      pathname.startsWith('/calendar/') ||
       pathname.startsWith('/premium-reports/result') ||
       pathname.startsWith('/premium-reports/comprehensive') ||
       pathname.startsWith('/premium-reports/themed') ||

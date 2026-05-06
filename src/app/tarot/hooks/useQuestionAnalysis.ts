@@ -27,8 +27,8 @@ interface UseQuestionAnalysisProps {
   }
 }
 
-const PREVIEW_ANALYZE_TIMEOUT_MS = 6500
-const START_ANALYZE_TIMEOUT_MS = 9000
+const PREVIEW_ANALYZE_TIMEOUT_MS = 15000
+const START_ANALYZE_TIMEOUT_MS = 25000
 const QUESTION_ENGINE_ENDPOINT = '/api/tarot/question-engine-v2'
 
 function createTimeoutController(timeoutMs: number, externalSignal?: AbortSignal) {
@@ -132,19 +132,11 @@ export function useQuestionAnalysis({
         spreadTitle: quickResult.spreadTitle,
         cardCount: quickResult.cardCount,
         userFriendlyExplanation: isKo
-          ? isDegraded
-            ? 'AI 분석이 잠시 불안정해 질문과 가장 가까운 리딩 경로로 먼저 연결합니다.'
-            : '질문의 핵심 의도를 먼저 고정하고, 그에 맞는 스프레드로 바로 연결합니다.'
-          : isDegraded
-            ? 'AI analysis is temporarily unstable, so the flow uses the nearest reading route first.'
-            : 'The core intent is fixed first, then routed directly to the closest spread.',
+          ? '질문의 핵심 의도를 먼저 고정하고, 그에 맞는 스프레드로 바로 연결합니다.'
+          : 'The core intent is fixed first, then routed directly to the closest spread.',
         question_summary: isKo
-          ? isDegraded
-            ? '세부 의도 분석 대신 가장 가까운 리딩 경로로 우선 정렬했습니다.'
-            : '질문을 가장 가까운 의도와 스프레드로 바로 정렬했습니다.'
-          : isDegraded
-            ? 'Instead of a full intent read, the question was aligned to the nearest stable route first.'
-            : 'The question was aligned directly to the nearest intent and spread.',
+          ? '질문을 가장 가까운 의도와 스프레드로 바로 정렬했습니다.'
+          : 'The question was aligned directly to the nearest intent and spread.',
         question_profile: isDegraded
           ? undefined
           : {
@@ -170,19 +162,9 @@ export function useQuestionAnalysis({
               },
             },
         direct_answer: isKo
-          ? isDegraded
-            ? '세부 AI 분석은 잠시 지연되고 있어, 가장 가까운 스프레드로 먼저 이어집니다.'
-            : '지금 질문은 가장 가까운 해석 경로로 바로 연결해도 충분합니다.'
-          : isDegraded
-            ? 'Detailed AI analysis is delayed, so the flow moves through the nearest spread first.'
-            : 'This question is stable enough to route directly through the closest reading path.',
-        intent_label: isKo
-          ? isDegraded
-            ? '임시 경로 추천'
-            : '기본 질문 해석'
-          : isDegraded
-            ? 'Temporary route recommendation'
-            : 'Default question analysis',
+          ? '지금 질문은 가장 가까운 해석 경로로 바로 연결해도 충분합니다.'
+          : 'This question is stable enough to route directly through the closest reading path.',
+        intent_label: isKo ? '기본 질문 해석' : 'Default question analysis',
         recommended_spreads: [
           {
             themeId,
@@ -271,19 +253,37 @@ export function useQuestionAnalysis({
           }
         }
       } catch (error) {
-        const isAbortError = error instanceof Error && error.name === 'AbortError'
+        // DOMException with name 'AbortError' or anything that has aborted
+        // signals — treat as silent cancellation, do not log an error.
+        const errName = (error as { name?: string } | null)?.name
+        const isAbortError =
+          errName === 'AbortError' ||
+          (typeof DOMException !== 'undefined' && error instanceof DOMException && errName === 'AbortError')
         const isTimeout = timeoutControl.didTimeout()
         if (isAbortError && !isTimeout) {
           return { result: null, fallbackReason: null }
+        }
+
+        // Timeouts are recoverable — log at warn, not error, and do not
+        // include a stack since it adds nothing actionable.
+        if (isTimeout) {
+          tarotLogger.warn('[tarot/question-engine-v2] Analysis timed out', {
+            timeoutMs: PREVIEW_ANALYZE_TIMEOUT_MS,
+          })
+          return {
+            result: buildLocalFallbackAnalysis(q, 'server_error'),
+            fallbackReason: 'server_error',
+          }
         }
 
         tarotLogger.error(
           '[tarot/question-engine-v2] Analysis request failed',
           error instanceof Error ? error : new Error(String(error))
         )
-
-        const reason: AnalyzeFallbackReason = isTimeout ? 'server_error' : 'network_error'
-        return { result: buildLocalFallbackAnalysis(q, reason), fallbackReason: reason }
+        return {
+          result: buildLocalFallbackAnalysis(q, 'network_error'),
+          fallbackReason: 'network_error',
+        }
       } finally {
         timeoutControl.cleanup()
       }

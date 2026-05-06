@@ -229,6 +229,33 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         birthPlace: localizeStoredCity(profile.birthCity, locale === 'ko' ? 'ko' : 'en'),
       }))
     }
+
+    // Also hydrate from URL query params (the home chip passes them).
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search)
+      const qBirthDate = sp.get('birthDate')
+      const qBirthTime = sp.get('birthTime')
+      const qGender = sp.get('gender')
+      const qBirthCity = sp.get('birthCity') || sp.get('city')
+      if (qBirthDate) {
+        setBirthInfo((prev) => ({ ...prev, birthDate: qBirthDate }))
+      }
+      if (qBirthTime) {
+        setBirthInfo((prev) => ({ ...prev, birthTime: qBirthTime }))
+      }
+      if (qGender) {
+        const long = toLongGender(qGender)
+        if (long) {
+          setBirthInfo((prev) => ({ ...prev, gender: long }))
+        }
+      }
+      if (qBirthCity) {
+        setBirthInfo((prev) => ({
+          ...prev,
+          birthPlace: localizeStoredCity(qBirthCity, locale === 'ko' ? 'ko' : 'en'),
+        }))
+      }
+    }
   }, [locale])
 
   // Load saved dates for authenticated users
@@ -365,6 +392,32 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     },
     [year, activeCategory, locale]
   )
+
+  // Auto-submit when birth info arrived from URL params (home chip
+  // navigation). Skip the form, jump straight into the calendar.
+  const autoSubmittedFromUrlRef = useRef(false)
+  useEffect(() => {
+    if (autoSubmittedFromUrlRef.current) return
+    if (typeof window === 'undefined') return
+    if (!birthInfo.birthDate) return
+    const sp = new URLSearchParams(window.location.search)
+    if (!sp.get('birthDate')) return
+    autoSubmittedFromUrlRef.current = true
+
+    const hasCoords =
+      typeof birthInfo.latitude === 'number' && typeof birthInfo.longitude === 'number'
+    const normalized: BirthInfo = {
+      ...birthInfo,
+      birthTime: birthInfo.birthTime || '12:00',
+      birthPlace: birthInfo.birthPlace || 'Seoul',
+      latitude: hasCoords ? birthInfo.latitude : 37.5665,
+      longitude: hasCoords ? birthInfo.longitude : 126.978,
+      timezone: birthInfo.timezone || 'Asia/Seoul',
+    }
+    setBirthInfo(normalized)
+    saveSharedBirthInfo(normalized)
+    void fetchCalendar(normalized)
+  }, [birthInfo, fetchCalendar])
 
   // Refetch when year/category changes
   useEffect(() => {
