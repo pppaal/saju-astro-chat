@@ -141,7 +141,13 @@ export const analytics = {
     trackEvent('free_result_view', { source }),
   premiumCtaClick: (
     location: string,
-    target: 'comprehensive' | 'themed' | 'pricing' | 'monthly' | 'yearly'
+    target:
+      | 'comprehensive'
+      | 'themed'
+      | 'pricing'
+      | 'monthly'
+      | 'yearly'
+      | 'compatibility'
   ) => trackEvent('premium_cta_click', { location, target }),
   premiumThemeSelect: (theme: string, period?: string) =>
     trackEvent('premium_theme_select', { theme, period: period || 'none' }),

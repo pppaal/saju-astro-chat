@@ -4,9 +4,19 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { logger } from '@/lib/logger'
 import { analyzeThreeLayerCompatibility } from '@/lib/destiny-matrix/compatibility'
+import { generateCompatibilityNarrative } from '@/lib/destiny-matrix/compatibility/narrativeGenerator'
 
 type Person = { birthDate?: string; birthTime?: string; gender?: string }
-type ReqBody = { personA?: Person; personB?: Person }
+type ReqBody = {
+  personA?: Person
+  personB?: Person
+  /** Display name for person A (rendered in the LLM narrative). */
+  labelA?: string
+  /** Display name for person B. */
+  labelB?: string
+  /** When true, attaches an LLM-authored magazine narrative on top of the engine output. */
+  withNarrative?: boolean
+}
 
 function validIsoDate(s: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(new Date(s).getTime())
@@ -47,8 +57,43 @@ export const POST = withApiMiddleware(
       const personA = body.personA as Required<Person> & { gender: 'male' | 'female' }
       const personB = body.personB as Required<Person> & { gender: 'male' | 'female' }
 
-      const result = analyzeThreeLayerCompatibility(personA, personB)
-      return NextResponse.json(result)
+      const layers = analyzeThreeLayerCompatibility(personA, personB)
+
+      if (!body.withNarrative) {
+        return NextResponse.json(layers)
+      }
+
+      // Best-effort LLM polish — never fail the request when narrative
+      // generation hiccups; the engine output is still useful on its own.
+      try {
+        const narrative = await generateCompatibilityNarrative({
+          personA,
+          personB,
+          labelA: body.labelA,
+          labelB: body.labelB,
+          layers,
+        })
+        return NextResponse.json({
+          ...layers,
+          narrative: narrative.narrative,
+          narrativeMeta: {
+            modelUsed: narrative.modelUsed,
+            tokensUsed: narrative.tokensUsed,
+            warnings: narrative.warnings,
+          },
+        })
+      } catch (narrErr) {
+        logger.warn('[Compat3Layer] narrative generation failed, returning engine-only result', {
+          message: narrErr instanceof Error ? narrErr.message : String(narrErr),
+        })
+        return NextResponse.json({
+          ...layers,
+          narrative: null,
+          narrativeMeta: {
+            error: narrErr instanceof Error ? narrErr.message : 'narrative_failed',
+          },
+        })
+      }
     } catch (e) {
       logger.error('[Compat3Layer] failed', { error: e instanceof Error ? e.message : String(e) })
       return errBody(req, '궁합 분석 실패', 'INTERNAL_ERROR')

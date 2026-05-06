@@ -10,13 +10,14 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Calendar, CalendarDays, Crown } from 'lucide-react'
+import { Calendar, CalendarDays, Crown, HeartHandshake } from 'lucide-react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 const ROUTES = {
   monthly: '/premium-reports/monthly?tier=premium',
   yearly: '/premium-reports/yearly?tier=premium',
   comprehensive: '/premium-reports/comprehensive?tier=premium',
+  compatibility: '/premium-reports/compatibility',
 } as const
 
 type CardKey = keyof typeof ROUTES
@@ -89,6 +90,24 @@ const CARDS: ReportCard[] = [
     glow: 'rgba(251,191,36,0.22)',
     cta: '인생총운 시작',
   },
+  {
+    key: 'compatibility',
+    badge: 'Premium · Compatibility',
+    title: '두 사람 궁합',
+    subtitle: '사주 정합도 + 점성 시너스트리 + 컴포지트',
+    description:
+      '두 사람의 사주·점성을 3-layer로 분석하고, 매거진 톤으로 풀어드립니다. 끌림과 갈등 지점을 함께.',
+    features: [
+      '3-layer 깊이 분석',
+      '영역별 4개 인사이트',
+      '결정적 시점 타임라인',
+      '관계 행동 처방전',
+    ],
+    Icon: HeartHandshake,
+    accent: '#f472b6',
+    glow: 'rgba(244,114,182,0.22)',
+    cta: '궁합 분석 시작',
+  },
 ]
 
 export default function PremiumReportsPageClient() {
@@ -125,7 +144,7 @@ export default function PremiumReportsPageClient() {
         </header>
 
         {/* 3 cards */}
-        <section className="mt-16 grid gap-5 lg:grid-cols-3">
+        <section className="mt-16 grid gap-5 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
           {CARDS.map((card) => {
             const Icon = card.Icon
             return (
