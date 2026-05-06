@@ -39,6 +39,7 @@ import {
   ActionButtons,
   CompatibilityRichReport,
 } from './components'
+import CompatibilityPaywall from '@/components/compatibility/CompatibilityPaywall'
 
 const KO_COMPAT_FALLBACKS: Record<string, string> = {
   'compatibilityPage.analysisTitle': '궁합 분석',
@@ -347,8 +348,22 @@ export default function CompatPage() {
         {/* Results */}
         {resultText && (
           <div className={`${styles.resultsContainer} ${styles.fadeIn}`}>
-            {/* Apple-tier rich report — preferred when pair details are available */}
-            {pairDetails.length > 0 && !isGroupResult ? (
+            <CompatibilityPaywall
+              overallScore={overallScore}
+              pairLabels={[
+                persons[0]?.name || 'Person 1',
+                persons[1]?.name || 'Person 2',
+              ]}
+              persons={persons.slice(0, 2).map((p) => ({
+                name: p.name,
+                date: p.date,
+                time: p.time || undefined,
+                gender: p.gender,
+                cityQuery: p.cityQuery || undefined,
+                relation: p.relation,
+              }))}
+            >
+              {pairDetails.length > 0 && !isGroupResult ? (
               <CompatibilityRichReport
                 pairDetails={pairDetails}
                 overallScore={overallScore}
@@ -442,6 +457,8 @@ export default function CompatPage() {
                 </div>
               </div>
             )}
+
+            </CompatibilityPaywall>
 
             {/* Action Buttons: Insights, Chat, Counselor, Tarot */}
             <ActionButtons persons={persons} resultText={resultText} t={compatT} />
