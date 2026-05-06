@@ -80,12 +80,15 @@ Last audited: 2026-05-06 (Asia/Hong_Kong)
 - Current destiny release gate is not just type/build health. It also includes:
   - `scripts/ops/qa-destiny-three-services.ts`
   - `scripts/ops/qa-counselor-questions.ts`
-- Last full verification snapshot dates from 2026-04-01 — **stale**, re-run before next release:
-  - `python scripts/self_check.py` -> `PASS` (as of 2026-04-01)
-  - `npm run docs:check-links` -> pass (as of 2026-04-01)
-  - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both` -> blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts` (as of 2026-04-01)
-  - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both` -> overall `PASS=21 WARN=13 FAIL=8` (as of 2026-04-01)
-- 2026-05-06 partial audit: `CROSS_RULES_SPEC.md` regenerated (205 rules + 10 meta); `npx knip` triage in `DEAD_CODE_TRIAGE.md`; 3 dead files removed from `src/lib/fortune/cross-rules/`.
+- 2026-05-06 verification snapshot:
+  - `npm run docs:check-links` -> **PASS** (8 markdown files)
+  - `npx tsc -p tsconfig.json --noEmit` -> **PASS** (0 errors, after `prisma generate`)
+  - `npm run lint` -> **PASS** (0 errors after fixing 2 unused-import errors in `MainPageClient.tsx`)
+  - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both` -> **PASS=42 WARN=0 FAIL=0** (was WARN=13 FAIL=8 in 2026-04-01 snapshot)
+  - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both` -> **PASS=10 WARN=0 FAIL=0** (was blocked by parse error in 2026-04-01 snapshot — now resolved)
+  - `python scripts/self_check.py` -> blocked by missing `chromadb` Python package in current sandbox; re-run on a host with backend_ai venv installed
+  - `npm test` not run in this snapshot (long-running suite)
+- 2026-05-06 maintenance: `CROSS_RULES_SPEC.md` regenerated (205 rules + 10 meta); `npx knip` triage in `DEAD_CODE_TRIAGE.md`; 3 dead files removed from `src/lib/fortune/cross-rules/`.
 
 ## Archive Guidance
 
