@@ -427,6 +427,26 @@ export async function fetchMatrixSnapshot(input: {
         'Asia/Seoul'
       ) as unknown as Record<string, unknown>
     }
+
+    // Attach orthodox interpretation (궁위론, 천간 합화, 간여지동, 신강/약,
+    // 격국, 용신, 근/통근, 조후, 종격, 화격, 일주 60갑자, 삼기, 공망 심층)
+    // so the counselor prompt sees the same per-pillar context that
+    // calendar / matrix-report routes get.
+    if (!rawSaju.orthodoxInterpretation) {
+      try {
+        const { buildOrthodoxInterpretation } = await import(
+          '@/lib/Saju/orthodoxInterpretation'
+        )
+        const koreanAge =
+          new Date().getFullYear() - new Date(input.birthDate).getFullYear() + 1
+        rawSaju.orthodoxInterpretation = buildOrthodoxInterpretation(
+          rawSaju as unknown as ReturnType<typeof calculateSajuData>,
+          { koreanAge }
+        ) as unknown as Record<string, unknown>
+      } catch {
+        // Non-fatal — counselor still has the raw saju below.
+      }
+    }
     const { yearPillar, monthPillar, dayPillar, timePillar } = pickSajuPillars(rawSaju)
 
     const dayMasterElement =

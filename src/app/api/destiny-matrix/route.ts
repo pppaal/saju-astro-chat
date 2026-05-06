@@ -182,6 +182,24 @@ export const POST = withApiMiddleware(
         )
       }
 
+      // Run the same saju derivation pipeline that ai-report uses so that
+      // sibsin / 12stages / relations / shinsal / 세운/월운/일진 / orthodox
+      // interpretation all populate even when the caller only sends the
+      // birth profile. This keeps every entry point producing the same
+      // matrix layer set.
+      try {
+        const { enrichRequestWithDerivedSaju } = await import(
+          '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
+        )
+        const enriched = enrichRequestWithDerivedSaju(
+          validationResult.data as unknown as Record<string, unknown>
+        )
+        ;(validationResult as { data: Record<string, unknown> }).data =
+          enriched as Record<string, unknown>
+      } catch {
+        // Non-fatal — falls back to whatever the caller sent.
+      }
+
       const {
         birthDate,
         birthTime = '12:00',
