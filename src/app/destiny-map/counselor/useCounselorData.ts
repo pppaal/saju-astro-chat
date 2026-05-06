@@ -145,7 +145,18 @@ export function useCounselorData(sp: SearchParams) {
       hasMidpoints: advancedAstro ? 'midpoints' in advancedAstro : false,
     })
 
-    const hasAllFields = true
+    // Determine whether the cached advancedAstro covers everything we need
+    // for the saju⊗astro cross-reference. The previous `hasAllFields = true`
+    // hard-code disabled this fetch entirely, so users without a fully
+    // primed cache reached the counselor with astro = null and the model
+    // could only answer from saju — which is exactly the "사주만 보고
+    // 점성은 못 본다" symptom we were seeing.
+    const hasAllFields = Boolean(
+      advancedAstro &&
+        'fixedStars' in advancedAstro &&
+        'eclipses' in advancedAstro &&
+        'midpoints' in advancedAstro
+    )
 
     if (!hasAllFields) {
       logger.warn('[CounselorPage] Fetching advanced astrology data...', {
