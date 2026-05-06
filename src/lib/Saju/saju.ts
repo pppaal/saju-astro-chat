@@ -135,7 +135,9 @@ function daysToDaeunAge(days: number): number {
   } else {
     age = Math.round(v)
   }
-  return Math.max(1, age)
+  // Display in Korean age (한국나이): everyone counts age 1 at birth and
+  // gains a year on Jan 1, so the "days/3" man-nai value is bumped by 1.
+  return Math.max(1, age) + 1
 }
 
 /* ========== 메모이제이션 캐시 ========== */
@@ -455,7 +457,9 @@ export function calculateSajuData(
       new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'numeric' }).format(new Date())
     )
     const birthYearLocal = Y
-    const currentAge = yNowLocal - birthYearLocal
+    // Korean age: current_year - birth_year + 1 (everyone is 1 at birth
+    // and gains a year on Jan 1).
+    const currentAge = yNowLocal - birthYearLocal + 1
     const currentLuckPillar =
       daeWoonList
         .slice()
