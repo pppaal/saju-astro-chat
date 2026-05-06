@@ -323,6 +323,65 @@ export async function POST(req: NextRequest) {
 
     const userQuestion = lastUser ? guardText(lastUser.content, 600) : ''
 
+    // Couple Matrix context — cell-level cross between A's and B's
+    // saju+astro. Provides the AI with concrete cited cells (천간합 일주합,
+    // 해묘미 목국 완성, Venus trine Sun, 寅-申 충 등) instead of just
+    // aggregate scores.
+    let coupleMatrixContext = ''
+    try {
+      const p1 = (persons as any[])[0]
+      const p2 = (persons as any[])[1]
+      if (p1?.date && p2?.date) {
+        const [{ buildCoupleMatrix }, { calculateSajuData }, { calculateNatalChart }, { buildOrthodoxInterpretation }] =
+          await Promise.all([
+            import('@/lib/compatibility/coupleMatrix'),
+            import('@/lib/Saju/saju'),
+            import('@/lib/astrology/foundation/astrologyService'),
+            import('@/lib/Saju/orthodoxInterpretation'),
+          ])
+        const buildPerson = async (p: any) => {
+          const tz = p.timeZone || 'Asia/Seoul'
+          const gender = (p.gender === 'female' || p.gender === 'F') ? 'female' : 'male'
+          const koreanAge = new Date().getFullYear() - parseInt(String(p.date).split('-')[0], 10) + 1
+          const saju = calculateSajuData(p.date, p.time || '12:00', gender, 'solar', tz)
+          ;(saju as unknown as Record<string, unknown>).orthodoxInterpretation =
+            buildOrthodoxInterpretation(saju, { koreanAge })
+          const [Y, M, D] = String(p.date).split('-').map(Number)
+          const [h, mi] = String(p.time || '12:00').split(':').map(Number)
+          const lat = typeof p.latitude === 'number' ? p.latitude : 37.5665
+          const lon = typeof p.longitude === 'number' ? p.longitude : 126.978
+          const natal = await calculateNatalChart({
+            year: Y, month: M, date: D, hour: h, minute: mi,
+            latitude: lat, longitude: lon, timeZone: tz,
+          })
+          return {
+            saju,
+            natal: { planets: natal.planets, ascendant: natal.ascendant },
+            koreanAge,
+          }
+        }
+        const [A, B] = await Promise.all([buildPerson(p1), buildPerson(p2)])
+        const matrix = buildCoupleMatrix(
+          { saju: A.saju, natal: A.natal as any, koreanAge: A.koreanAge },
+          { saju: B.saju, natal: B.natal as any, koreanAge: B.koreanAge }
+        )
+        const s = matrix.summary
+        const top = s.topPositiveCells.slice(0, 5).map((c) => `+ ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`).join('\n')
+        const bot = s.topCautionCells.slice(0, 5).map((c) => `- ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`).join('\n')
+        coupleMatrixContext = [
+          '== 커플 매트릭스 (9 레이어 셀-단위 사주×점성 교차) ==',
+          `종합 ${s.totalScore} / overlap ${s.overlapStrength} / polarity +${s.polarityBalance.positive}/-${s.polarityBalance.negative}`,
+          `도메인: 매력 ${s.domainScores.attraction} · 안정 ${s.domainScores.stability} · 성장 ${s.domainScores.growth} · 갈등견딤 ${s.domainScores.conflict} · 시기동기 ${s.domainScores.timing}`,
+          `Drivers: ${s.drivers.join(' / ') || '없음'}`,
+          `Cautions: ${s.cautions.join(' / ') || '없음'}`,
+          `\n[Top positive cells]\n${top}`,
+          `\n[Top caution cells]\n${bot}`,
+        ].join('\n')
+      }
+    } catch (err) {
+      logger.warn('[Compatibility Counselor] couple-matrix context build failed', { err })
+    }
+
     // Format persons info
     const personsInfo = persons
       .map(
@@ -370,6 +429,7 @@ Provide friendly but professional guidance:
       ``,
       `== 참여자 정보 ==`,
       personsInfo,
+      coupleMatrixContext ? `\n${coupleMatrixContext}` : '',
       fusionContext ? `\n${fusionContext}` : '',
       extendedSajuCompatibility
         ? `\n== 사주 심화 분석 ==\n${stringifyForPrompt(extendedSajuCompatibility)}`
