@@ -316,30 +316,63 @@ export default function TarotHomePage() {
                 )}
 
                 {showDeckPicker && (
-                  <div className={styles.composerDeckPicker} role="listbox">
-                    {DECK_STYLES.map((deck) => {
-                      const info = DECK_STYLE_INFO[deck]
-                      const active = preferredDeck === deck
-                      return (
+                  <div
+                    className={styles.deckModalOverlay}
+                    onClick={(e) => {
+                      if (e.target === e.currentTarget) setShowDeckPicker(false)
+                    }}
+                  >
+                    <div
+                      className={styles.deckModal}
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label={isKo ? '덱 선택' : 'Pick deck'}
+                    >
+                      <div className={styles.deckModalHeader}>
+                        <h2 className={styles.deckModalTitle}>
+                          {isKo ? '덱 선택' : 'Pick a deck'}
+                        </h2>
                         <button
-                          key={deck}
                           type="button"
-                          className={`${styles.composerDeckOption} ${active ? styles.composerDeckOptionActive : ''}`}
-                          onClick={() => handleSelectDeck(deck)}
-                          role="option"
-                          aria-selected={active}
+                          className={styles.deckModalClose}
+                          onClick={() => setShowDeckPicker(false)}
+                          aria-label={isKo ? '닫기' : 'Close'}
                         >
-                          <span
-                            className={styles.composerDeckSwatch}
-                            style={{ background: info.gradient }}
-                            aria-hidden="true"
-                          />
-                          <span className={styles.composerDeckName}>
-                            {isKo ? info.nameKo : info.name}
-                          </span>
+                          ×
                         </button>
-                      )
-                    })}
+                      </div>
+                      <div className={styles.deckModalGrid} role="listbox">
+                        {DECK_STYLES.map((deck) => {
+                          const info = DECK_STYLE_INFO[deck]
+                          const active = preferredDeck === deck
+                          return (
+                            <button
+                              key={deck}
+                              type="button"
+                              className={`${styles.deckCard} ${active ? styles.deckCardActive : ''}`}
+                              onClick={() => handleSelectDeck(deck)}
+                              role="option"
+                              aria-selected={active}
+                            >
+                              <span
+                                className={styles.deckCardThumb}
+                                style={{ background: info.gradient }}
+                                aria-hidden="true"
+                              >
+                                {active && (
+                                  <span className={styles.deckCardCheck} aria-hidden="true">
+                                    ✓
+                                  </span>
+                                )}
+                              </span>
+                              <span className={styles.deckCardName}>
+                                {isKo ? info.nameKo : info.name}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -446,19 +479,9 @@ export default function TarotHomePage() {
                 </div>
               )}
 
-              {fallbackReason && fallbackNotice && !dangerWarning && (
-                <div className={styles.fallbackNotice} role="status" aria-live="polite">
-                  <p>{fallbackNotice}</p>
-                  <button
-                    type="button"
-                    className={styles.fallbackRetryButton}
-                    onClick={handleAnalyzeQuestion}
-                    disabled={!question.trim() || isAnalyzing}
-                  >
-                    {isKo ? '다시 분석하기' : 'Retry analysis'}
-                  </button>
-                </div>
-              )}
+              {/* Fallback notice intentionally suppressed: when AI takes a
+                  while, the page still navigates to a sensible spread. We
+                  do not want to scare the user with a yellow warning. */}
             </div>
 
             {analysisResult && !dangerWarning && (
@@ -544,12 +567,8 @@ export default function TarotHomePage() {
                     </strong>
                     <p className={styles.primaryActionText}>
                       {isKo
-                        ? analysisResult.source === 'fallback'
-                          ? 'AI 분석이 불안정할 때는 가장 가까운 안정 경로로 먼저 연결합니다.'
-                          : '지금 질문에는 이 스프레드가 가장 자연스럽고, 카드 뽑기와 해석도 이 경로에 맞춰 이어집니다.'
-                        : analysisResult.source === 'fallback'
-                          ? 'When AI analysis is unstable, the flow falls back to the nearest safe route first.'
-                          : 'This spread is the closest match for the current question, and the draw plus interpretation stay aligned to it.'}
+                        ? '지금 질문에는 이 스프레드가 가장 자연스럽고, 카드 뽑기와 해석도 이 경로에 맞춰 이어집니다.'
+                        : 'This spread is the closest match for the current question, and the draw plus interpretation stay aligned to it.'}
                     </p>
                   </div>
                   <button
