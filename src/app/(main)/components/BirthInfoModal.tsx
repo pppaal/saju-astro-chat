@@ -9,6 +9,7 @@ interface BirthInfoModalProps {
   initial: StoredBirthInfo | null
   onClose: () => void
   onSaved: (info: StoredBirthInfo) => void
+  locale?: 'ko' | 'en'
 }
 
 interface CitySuggestion {
@@ -18,7 +19,10 @@ interface CitySuggestion {
   displayEn?: string
 }
 
-export default function BirthInfoModal({ open, initial, onClose, onSaved }: BirthInfoModalProps) {
+export default function BirthInfoModal({ open, initial, onClose, onSaved, locale = 'ko' }: BirthInfoModalProps) {
+  const isKo = locale === 'ko'
+  const cityLabel = (s: CitySuggestion) =>
+    (isKo ? s.displayKr || s.displayEn : s.displayEn || s.displayKr) || `${s.name}, ${s.country}`
   const [birthDate, setBirthDate] = useState(initial?.birthDate || '')
   const [birthTime, setBirthTime] = useState(
     initial?.birthTime && initial.birthTime !== '00:00' ? initial.birthTime : ''
@@ -77,7 +81,7 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
   }
 
   const pickCity = (s: CitySuggestion) => {
-    setCity(s.displayKr || s.displayEn || `${s.name}, ${s.country}`)
+    setCity(cityLabel(s))
     setSuggestions([])
     setCityFocused(false)
   }
@@ -94,15 +98,17 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
     >
       <div className={styles.modalCard}>
         <h2 id="birth-info-title" className={styles.modalTitle}>
-          생년월일 정보 입력
+          {isKo ? '생년월일 정보 입력' : 'Enter birth info'}
         </h2>
         <p className={styles.modalSubtitle}>
-          한 번 입력하면 모든 서비스에서 자동으로 사용돼요. 시간 모르면 00:00으로 처리합니다.
+          {isKo
+            ? '한 번 입력하면 모든 서비스에서 자동으로 사용돼요. 시간 모르면 00:00으로 처리합니다.'
+            : 'Saved once, reused across every service. Unknown time defaults to 00:00.'}
         </p>
 
         <div className={styles.modalField}>
           <label htmlFor="birth-date" className={styles.modalLabel}>
-            생년월일
+            {isKo ? '생년월일' : 'Birth date'}
           </label>
           <input
             id="birth-date"
@@ -118,7 +124,7 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
         <div className={styles.modalRow}>
           <div className={styles.modalField}>
             <label htmlFor="birth-time" className={styles.modalLabel}>
-              출생 시간
+              {isKo ? '출생 시간' : 'Birth time'}
             </label>
             <input
               id="birth-time"
@@ -148,13 +154,13 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
                 }}
                 style={{ accentColor: '#a78bfa' }}
               />
-              시간 모름 (00:00 처리)
+              {isKo ? '시간 모름 (00:00 처리)' : 'Unknown time (use 00:00)'}
             </label>
           </div>
 
           <div className={styles.modalField}>
             <label htmlFor="birth-gender" className={styles.modalLabel}>
-              성별
+              {isKo ? '성별' : 'Gender'}
             </label>
             <select
               id="birth-gender"
@@ -162,16 +168,16 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
               value={gender}
               onChange={(e) => setGender(e.target.value as 'male' | 'female' | '')}
             >
-              <option value="">선택</option>
-              <option value="male">남성</option>
-              <option value="female">여성</option>
+              <option value="">{isKo ? '선택' : 'Select'}</option>
+              <option value="male">{isKo ? '남성' : 'Male'}</option>
+              <option value="female">{isKo ? '여성' : 'Female'}</option>
             </select>
           </div>
         </div>
 
         <div className={styles.modalField} style={{ position: 'relative' }}>
           <label htmlFor="birth-city" className={styles.modalLabel}>
-            출생 도시 (선택)
+            {isKo ? '출생 도시 (선택)' : 'Birth city (optional)'}
           </label>
           <input
             id="birth-city"
@@ -184,7 +190,7 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
             }}
             onFocus={() => setCityFocused(true)}
             onBlur={() => setTimeout(() => setCityFocused(false), 150)}
-            placeholder="예: 서울"
+            placeholder={isKo ? '예: 서울' : 'e.g. Seoul'}
             autoComplete="off"
           />
           {cityFocused && suggestions.length > 0 && (
@@ -232,7 +238,7 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
                       e.currentTarget.style.background = 'transparent'
                     }}
                   >
-                    {s.displayKr || s.displayEn || `${s.name}, ${s.country}`}
+                    {cityLabel(s)}
                   </button>
                 </li>
               ))}
@@ -240,14 +246,14 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
           )}
           {searching && cityFocused && suggestions.length === 0 && city.trim().length > 0 && (
             <p style={{ fontSize: '0.72rem', color: 'rgba(196, 181, 253, 0.7)', marginTop: 4 }}>
-              검색 중…
+              {isKo ? '검색 중…' : 'Searching…'}
             </p>
           )}
         </div>
 
         <div className={styles.modalActions}>
           <button type="button" className={styles.modalCancel} onClick={onClose}>
-            취소
+            {isKo ? '취소' : 'Cancel'}
           </button>
           <button
             type="button"
@@ -255,7 +261,7 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved }: Birt
             onClick={handleSave}
             disabled={!isValid}
           >
-            저장하고 시작
+            {isKo ? '저장하고 시작' : 'Save & start'}
           </button>
         </div>
       </div>
