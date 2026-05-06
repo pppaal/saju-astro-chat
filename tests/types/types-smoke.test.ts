@@ -24,12 +24,6 @@ describe('Types Smoke Tests', () => {
 
       expect(types).toBeDefined();
     });
-
-    it('should import iching types', async () => {
-      const types = await import('@/components/iching/types');
-
-      expect(types).toBeDefined();
-    });
   });
 
   describe('Library Types (12)', () => {
@@ -109,11 +103,10 @@ describe('Types Smoke Tests', () => {
   describe('Types Summary', () => {
     it('should import all type modules without errors', async () => {
       const types = await Promise.all([
-        // Component types (4)
+        // Component types (3)
         import('@/components/compatibility/free-report/types'),
         import('@/components/destiny-map/free-report/types'),
         import('@/components/destiny-map/free-report/tabs/types'),
-        import('@/components/iching/types'),
 
         // Library types (12)
         import('@/lib/astrology/foundation/types'),

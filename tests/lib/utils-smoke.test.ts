@@ -103,15 +103,6 @@ describe('Utils & Helpers Smoke Tests', () => {
     });
   });
 
-  describe('Numerology Utils (1)', () => {
-    it('should import numerology utils', async () => {
-      const utils = await import('@/lib/numerology/utils');
-
-      expect(utils).toBeDefined();
-      expect(Object.keys(utils).length).toBeGreaterThan(0);
-    });
-  });
-
   describe('Life Prediction Constants (1)', () => {
     it('should import life prediction constants', async () => {
       const constants = await import('@/lib/prediction/life-prediction/constants');
@@ -143,14 +134,11 @@ describe('Utils & Helpers Smoke Tests', () => {
         import('@/lib/destiny-map/helpers/text-sanitization'),
         import('@/lib/destiny-map/prompt/fortune/base/formatter-utils'),
 
-        // Numerology (1)
-        import('@/lib/numerology/utils'),
-
         // Life Prediction (1)
         import('@/lib/prediction/life-prediction/constants'),
       ]);
 
-      expect(utils.length).toBe(15);
+      expect(utils.length).toBe(14);
       utils.forEach((utilModule) => {
         expect(utilModule).toBeDefined();
         expect(Object.keys(utilModule).length).toBeGreaterThan(0);
