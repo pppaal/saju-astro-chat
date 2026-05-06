@@ -14,13 +14,11 @@ import { normalizeGender, toLongGender } from '@/lib/utils/gender'
 import { logger } from '@/lib/logger'
 
 /**
- * Preview-only orchestrator for the new DestinyMatrixPlanner UI.
- *
- * Mirrors the auto-hydration logic of the legacy DestinyCalendar so a
- * user who has already submitted birth info elsewhere in the app does
- * not see the form again.
+ * Orchestrator for the DestinyMatrixPlanner UI: handles birth info gating,
+ * shared-info hydration, and /api/calendar fetching. Used by both
+ * /calendar and /calendar/preview routes.
  */
-export default function PreviewClient() {
+export default function DestinyMatrixPlannerClient() {
   const [birthInfo, setBirthInfo] = useState<BirthInfo>({
     birthDate: '',
     birthTime: '',
@@ -50,16 +48,42 @@ export default function PreviewClient() {
       const res = await fetch(`/api/calendar?${params}`, {
         headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
       })
-      if (!res.ok) {
-        setError(`API ${res.status}`)
+
+      type ApiResponse = Partial<CalendarData> & {
+        error?: { message?: string } | string
+      }
+      let json: ApiResponse | null = null
+      try {
+        json = (await res.json()) as ApiResponse
+      } catch {
+        json = null
+      }
+
+      const looksUsable =
+        !!json &&
+        json.success !== false &&
+        Array.isArray(json.allDates) &&
+        json.allDates.length > 0
+
+      if (!res.ok || !looksUsable) {
+        let serverMessage: string | null = null
+        const errField: unknown = json?.error
+        if (typeof errField === 'string') {
+          serverMessage = errField
+        } else if (errField && typeof errField === 'object' && 'message' in errField) {
+          const msg = (errField as { message?: unknown }).message
+          if (typeof msg === 'string') serverMessage = msg
+        }
+        setError(serverMessage || `엔진 응답 비어있음 (status ${res.status})`)
         return
       }
-      const json = (await res.json()) as CalendarData
-      setData(json)
-      logger.debug('[CalendarPreview] payload received', {
-        year: json.year,
-        total: json.summary?.total,
-        phase: json.matrixContract?.overallPhaseLabel,
+
+      const payload = json as CalendarData
+      setData(payload)
+      logger.debug('[CalendarPlanner] payload received', {
+        year: payload.year,
+        total: payload.summary?.total,
+        phase: payload.matrixContract?.overallPhaseLabel,
       })
     } catch (err) {
       logger.error('[CalendarPreview] fetch failed', err)
