@@ -267,6 +267,34 @@ function compactSajuOverview(saju: unknown): string {
     lines.push(`용신: ${JSON.stringify(yongsin).slice(0, 200)}`)
   }
 
+  // Orthodox interpretation snippet — pillar positions / 격국 / 신강·약 /
+  // 용신 / 일주 60갑자 archetype. Compatibility prompt benefits from
+  // per-person 정통 명리 context.
+  const orthodox = s.orthodoxInterpretation as Record<string, unknown> | undefined
+  if (orthodox) {
+    const advanced = orthodox.advanced as Record<string, unknown> | undefined
+    const strength = advanced?.strength as Record<string, unknown> | undefined
+    if (strength?.level) lines.push(`신강/신약: ${strength.level} (${strength.score ?? '-'})`)
+    const geokguk = advanced?.geokguk as Record<string, unknown> | undefined
+    if (geokguk?.type) lines.push(`격국: ${geokguk.type}`)
+    const ortYongsin = advanced?.yongsin as Record<string, unknown> | undefined
+    if (ortYongsin?.primary) lines.push(`정통 용신: ${ortYongsin.primary}`)
+    const ilju = orthodox.iljuArchetype as Record<string, unknown> | undefined
+    if (ilju?.character) lines.push(`일주 archetype: ${ilju.character}`)
+    const root = orthodox.root as Record<string, unknown> | undefined
+    if (root && typeof root.hasRoot === 'boolean') {
+      const branches = Array.isArray(root.rootBranches) ? (root.rootBranches as string[]).join(',') : ''
+      lines.push(`근/통근: ${root.hasRoot ? '있음' : '없음'} (${branches}) 득령=${root.deukryeong} 득지=${root.deukji} 득세=${root.deukse}`)
+    }
+    const positions = orthodox.pillarPositions as Array<Record<string, unknown>> | undefined
+    if (Array.isArray(positions) && positions[0]) {
+      const tagline = positions
+        .map((p) => `${p.position}=${(p.stem as Record<string, unknown>)?.sibsin || '-'}/${(p.branch as Record<string, unknown>)?.sibsin || '-'}`)
+        .join(' ')
+      lines.push(`궁위(천간/지지 십성): ${tagline}`)
+    }
+  }
+
   return lines.join('\n')
 }
 
@@ -438,20 +466,25 @@ async function buildExtendedBlocks(
   const [p1, p2] = persons
   if (!p1 || !p2) return { p1SajuOverview: '', p2SajuOverview: '' }
 
-  // Full saju (cached internally)
-  const p1Full = calculateSajuData(
-    p1.date,
-    p1.time,
-    normalizeSajuGender(p1.gender),
-    'solar',
-    p1.timeZone || 'Asia/Seoul'
+  // Full saju (cached internally) + orthodox interpretation per person
+  const { buildOrthodoxInterpretation } = await import('@/lib/Saju/orthodoxInterpretation')
+  const attachOrthodox = (s: ReturnType<typeof calculateSajuData>, isoBirth: string) => {
+    try {
+      const koreanAge = new Date().getFullYear() - new Date(isoBirth).getFullYear() + 1
+      ;(s as unknown as Record<string, unknown>).orthodoxInterpretation =
+        buildOrthodoxInterpretation(s, { koreanAge })
+    } catch {
+      // ignore — orthodox is additive
+    }
+    return s
+  }
+  const p1Full = attachOrthodox(
+    calculateSajuData(p1.date, p1.time, normalizeSajuGender(p1.gender), 'solar', p1.timeZone || 'Asia/Seoul'),
+    p1.date
   )
-  const p2Full = calculateSajuData(
-    p2.date,
-    p2.time,
-    normalizeSajuGender(p2.gender),
-    'solar',
-    p2.timeZone || 'Asia/Seoul'
+  const p2Full = attachOrthodox(
+    calculateSajuData(p2.date, p2.time, normalizeSajuGender(p2.gender), 'solar', p2.timeZone || 'Asia/Seoul'),
+    p2.date
   )
 
   // Slim saju profiles for extended analysis
