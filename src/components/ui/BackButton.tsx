@@ -11,7 +11,6 @@ type BackButtonProps = {
   className?: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function BackButton(_props: BackButtonProps) {
   return null
 }

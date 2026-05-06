@@ -473,12 +473,12 @@ async function buildCalendarMatrixInput(params: {
       목: '목', 화: '화', 토: '토', 금: '금', 수: '수',
     }
     const annualNow = (sajuFull.unse?.annual || []).find((row) => row.year === params.year)
-    const annualEl = (annualNow as any)?.element as string | undefined
+    const annualEl = (annualNow as { element?: string } | undefined)?.element
     if (annualEl && ELEMENT_MAP[annualEl]) derivedSaeunElement = ELEMENT_MAP[annualEl]
     const monthlyNow = (sajuFull.unse?.monthly || []).find(
       (row) => row.year === params.year && row.month === new Date().getMonth() + 1
     )
-    const monthlyEl = (monthlyNow as any)?.element as string | undefined
+    const monthlyEl = (monthlyNow as { element?: string } | undefined)?.element
     if (monthlyEl && ELEMENT_MAP[monthlyEl]) derivedWolunElement = ELEMENT_MAP[monthlyEl]
     derivedIljinElement = currentDaeunElement || dayMasterElement
   } catch {

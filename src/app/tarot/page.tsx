@@ -306,6 +306,7 @@ export default function TarotHomePage() {
                           setShowExamples(false)
                         }}
                         role="option"
+                        aria-selected={false}
                       >
                         <span className={styles.composerDeckName}>{q}</span>
                       </button>
