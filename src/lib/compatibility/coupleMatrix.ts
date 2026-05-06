@@ -24,7 +24,7 @@ import type { CalculateSajuDataResult, FiveElement } from '@/lib/Saju/types'
 // ──────────────────────────────────────────────────────────────────────
 
 export interface CoupleMatrixCell {
-  layer: 1 | 2 | 3 | 4 | 5 | 6
+  layer: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
   rowKey: string
   colKey: string
   score: number // 0-10, deterministic
@@ -52,6 +52,9 @@ export interface CoupleMatrixResult {
     L4_branch_interaction: CoupleMatrixCell[]
     L5_aspect_bridge: CoupleMatrixCell[]
     L6_daewoon_sync: CoupleMatrixCell[]
+    L7_daeun_natal: CoupleMatrixCell[]
+    L8_shinsal_planet: CoupleMatrixCell[]
+    L9_geokguk_dominant: CoupleMatrixCell[]
   }
   summary: {
     totalScore: number
@@ -546,6 +549,214 @@ function analyzeL6DaewoonSync(
 }
 
 // ──────────────────────────────────────────────────────────────────────
+// L7 daeun × natal  (한 사람의 현재 대운 element가 상대방 natal Sun/Moon/ASC 원소를 자극)
+// 사주 시간축이 점성 정체성에 가하는 압력
+// ──────────────────────────────────────────────────────────────────────
+
+const SIGN_TO_FIVE: Record<string, FiveElement> = {
+  Aries: '화', Leo: '화', Sagittarius: '화',
+  Taurus: '토', Virgo: '토', Capricorn: '토',
+  Gemini: '목', Libra: '금', Aquarius: '금',
+  Cancer: '수', Scorpio: '수', Pisces: '수',
+}
+
+function analyzeL7DaeunNatal(
+  a: CoupleSajuInput,
+  b: CoupleSajuInput
+): CoupleMatrixCell[] {
+  const cells: CoupleMatrixCell[] = []
+  for (const dir of ['A→B', 'B→A'] as const) {
+    const self = dir === 'A→B' ? a : b
+    const other = dir === 'A→B' ? b : a
+    const otherLabel = dir.split('→')[1]
+    const selfLabel = dir.split('→')[0]
+    const daeunList = ((self.saju as any).unse?.daeun || []) as Array<{ age: number; heavenlyStem: string }>
+    const cur = [...daeunList].reverse().find((d) => self.koreanAge >= d.age)
+    if (!cur || !other.natal) continue
+    const daeunElem = STEM_TO_ELEM[cur.heavenlyStem]
+    if (!daeunElem) continue
+
+    const targets: Array<[string, string | undefined]> = [
+      ['Sun', other.natal.planets.find((p) => p.name === 'Sun')?.sign],
+      ['Moon', other.natal.planets.find((p) => p.name === 'Moon')?.sign],
+      ['ASC', other.natal.ascendant?.sign],
+    ]
+    for (const [pointName, sign] of targets) {
+      if (!sign) continue
+      const pointElem = SIGN_TO_FIVE[sign]
+      if (!pointElem) continue
+      let score = 5
+      let polarity: CoupleMatrixCell['polarity'] = 'neutral'
+      let note = ''
+      if (daeunElem === pointElem) {
+        score = 8
+        polarity = 'positive'
+        note = '동일 결 — 시기적 자극이 정체성 강화'
+      } else if (FIVE_ELEMENT_GENERATING[daeunElem] === pointElem) {
+        score = 9
+        polarity = 'positive'
+        note = '대운이 상대 정체성을 받쳐줌'
+      } else if (FIVE_ELEMENT_GENERATING[pointElem] === daeunElem) {
+        score = 7
+        polarity = 'positive'
+        note = '대운이 상대를 풀어주는 흐름'
+      } else if (FIVE_ELEMENT_OVERCOMING[daeunElem] === pointElem) {
+        score = 3
+        polarity = 'negative'
+        note = '대운이 상대 정체성을 누름 — 시기적 마찰'
+      } else if (FIVE_ELEMENT_OVERCOMING[pointElem] === daeunElem) {
+        score = 4
+        polarity = 'negative'
+        note = '상대 정체성이 대운을 통제'
+      }
+      cells.push({
+        layer: 7,
+        rowKey: `${selfLabel}.daeun`,
+        colKey: `${otherLabel}.${pointName}`,
+        score,
+        sajuBasis: `${selfLabel} 현재 대운 ${cur.heavenlyStem} (${daeunElem})`,
+        astroBasis: `${otherLabel} ${pointName} ${sign} (${pointElem})`,
+        description: `${dir} 대운 → ${pointName} — ${note}`,
+        polarity,
+      })
+    }
+  }
+  return cells
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// L8 shinsal × planet  (한 사람의 신살 위치 지지가 상대방 행성 sign과 만나는지)
+// ──────────────────────────────────────────────────────────────────────
+
+/** 천을귀인이 관할하는 두 지지 (일간 기준). */
+const CHEONUL_GUIIN_BY_DAYSTEM: Record<string, [string, string]> = {
+  甲: ['丑', '未'], 戊: ['丑', '未'], 庚: ['丑', '未'],
+  乙: ['子', '申'], 己: ['子', '申'],
+  丙: ['亥', '酉'], 丁: ['亥', '酉'],
+  壬: ['卯', '巳'], 癸: ['卯', '巳'],
+  辛: ['寅', '午'],
+}
+
+const BRANCH_TO_FIVE: Record<string, FiveElement> = {
+  子: '수', 丑: '토', 寅: '목', 卯: '목', 辰: '토', 巳: '화',
+  午: '화', 未: '토', 申: '금', 酉: '금', 戌: '토', 亥: '수',
+}
+
+function analyzeL8ShinsalPlanet(
+  a: CoupleSajuInput,
+  b: CoupleSajuInput
+): CoupleMatrixCell[] {
+  const cells: CoupleMatrixCell[] = []
+  const targets = ['Sun', 'Moon', 'Venus', 'Mars', 'Jupiter']
+  for (const dir of ['A→B', 'B→A'] as const) {
+    const self = dir === 'A→B' ? a : b
+    const other = dir === 'A→B' ? b : a
+    const selfLabel = dir.split('→')[0]
+    const otherLabel = dir.split('→')[1]
+    if (!other.natal) continue
+    const dayStem = self.saju.dayPillar.heavenlyStem.name
+    const guiinBranches = CHEONUL_GUIIN_BY_DAYSTEM[dayStem]
+    if (!guiinBranches) continue
+    const guiinElems = guiinBranches.map((b) => BRANCH_TO_FIVE[b]).filter(Boolean)
+    for (const planetName of targets) {
+      const planet = other.natal.planets.find((p) => p.name === planetName)
+      if (!planet) continue
+      const planetElem = SIGN_TO_FIVE[planet.sign]
+      if (!planetElem) continue
+      const matched = guiinElems.includes(planetElem)
+      if (!matched) continue
+      cells.push({
+        layer: 8,
+        rowKey: `${selfLabel}.천을귀인`,
+        colKey: `${otherLabel}.${planetName}`,
+        score: 9,
+        sajuBasis: `${selfLabel} 천을귀인 ${guiinBranches.join('·')} (일간 ${dayStem} 기준, ${guiinElems.join('/')})`,
+        astroBasis: `${otherLabel} ${planetName} in ${planet.sign} (${planetElem})`,
+        description: `${dir} 천을귀인 발화 — 상대 ${planetName} 지원·귀인 작용`,
+        polarity: 'positive',
+      })
+    }
+  }
+  return cells
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// L9 geokguk × dominant western element
+// 한 사람의 격국이 지향하는 오행 vs 상대방 우세 4원소
+// ──────────────────────────────────────────────────────────────────────
+
+/** 격국 라벨이 지향(用)하는 오행 — 자평진전 통설 단순화. */
+const GEOKGUK_FAVOR_ELEMENT: Record<string, FiveElement> = {
+  정관격: '금', // 정관은 관(금) 또는 인(생관)
+  편관격: '금',
+  정인격: '수',
+  편인격: '수',
+  정재격: '토',
+  편재격: '토',
+  식신격: '화',
+  상관격: '화',
+  비견격: '목',
+  겁재격: '목',
+}
+
+function analyzeL9GeokgukDominant(
+  a: CoupleSajuInput,
+  b: CoupleSajuInput
+): CoupleMatrixCell[] {
+  const cells: CoupleMatrixCell[] = []
+  const aGeokguk = (((a.saju as any).orthodoxInterpretation?.advanced || {}) as any).geokguk?.type
+  const bGeokguk = (((b.saju as any).orthodoxInterpretation?.advanced || {}) as any).geokguk?.type
+  const aDominant = dominantWesternElement(a.natal)
+  const bDominant = dominantWesternElement(b.natal)
+  const WESTERN_TO_FIVE: Record<string, FiveElement> = {
+    fire: '화', earth: '토', air: '목', water: '수',
+  }
+  const evaluate = (label: string, geokguk: string | undefined, otherDominant: 'fire'|'earth'|'air'|'water'|null, selfFor: string, otherFor: string) => {
+    if (!geokguk || !otherDominant) return
+    const geokElem = GEOKGUK_FAVOR_ELEMENT[geokguk]
+    if (!geokElem) return
+    const otherElem = WESTERN_TO_FIVE[otherDominant]
+    let score = 5
+    let polarity: CoupleMatrixCell['polarity'] = 'neutral'
+    let note = ''
+    if (geokElem === otherElem) {
+      score = 9
+      polarity = 'positive'
+      note = `격국이 상대 우세 원소와 정합 — 지향이 같은 길`
+    } else if (FIVE_ELEMENT_GENERATING[geokElem] === otherElem) {
+      score = 8
+      polarity = 'positive'
+      note = `격국이 상대 우세 원소를 키움`
+    } else if (FIVE_ELEMENT_GENERATING[otherElem] === geokElem) {
+      score = 7
+      polarity = 'positive'
+      note = `상대 원소가 격국을 받쳐줌`
+    } else if (FIVE_ELEMENT_OVERCOMING[geokElem] === otherElem) {
+      score = 4
+      polarity = 'negative'
+      note = `격국이 상대 원소를 누름 — 지향 충돌`
+    } else if (FIVE_ELEMENT_OVERCOMING[otherElem] === geokElem) {
+      score = 3
+      polarity = 'negative'
+      note = `상대 원소가 격국을 누름 — 격국 위축`
+    }
+    cells.push({
+      layer: 9,
+      rowKey: `${selfFor}.격국`,
+      colKey: `${otherFor}.dominant`,
+      score,
+      sajuBasis: `${selfFor} 격국 ${geokguk} (선호 ${geokElem})`,
+      astroBasis: `${otherFor} dominant ${otherDominant} (${otherElem})`,
+      description: `${selfFor}→${otherFor} 격국×우세 — ${note}`,
+      polarity,
+    })
+  }
+  evaluate('A', aGeokguk, bDominant, 'A', 'B')
+  evaluate('B', bGeokguk, aDominant, 'B', 'A')
+  return cells
+}
+
+// ──────────────────────────────────────────────────────────────────────
 // Aggregator
 // ──────────────────────────────────────────────────────────────────────
 
@@ -559,7 +770,10 @@ export function buildCoupleMatrix(
   const L4 = analyzeL4BranchInteraction(a, b)
   const L5 = analyzeL5AspectBridge(a, b)
   const L6 = analyzeL6DaewoonSync(a, b)
-  const all = [...L1, ...L2, ...L3, ...L4, ...L5, ...L6]
+  const L7 = analyzeL7DaeunNatal(a, b)
+  const L8 = analyzeL8ShinsalPlanet(a, b)
+  const L9 = analyzeL9GeokgukDominant(a, b)
+  const all = [...L1, ...L2, ...L3, ...L4, ...L5, ...L6, ...L7, ...L8, ...L9]
 
   const polCount = { positive: 0, negative: 0, neutral: 0 }
   let scoreSum = 0
@@ -612,6 +826,9 @@ export function buildCoupleMatrix(
       L4_branch_interaction: L4,
       L5_aspect_bridge: L5,
       L6_daewoon_sync: L6,
+      L7_daeun_natal: L7,
+      L8_shinsal_planet: L8,
+      L9_geokguk_dominant: L9,
     },
     summary: {
       totalScore: Math.round(avgScore * 10),
