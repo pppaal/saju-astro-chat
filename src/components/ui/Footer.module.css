@@ -9,6 +9,41 @@
   z-index: 10;
 }
 
+/* On phones the full footer (about/faq/contact/disclaimer/copyright)
+   eats half the viewport on service pages and breaks the app-like feel.
+   Collapse to a single hairline row of legal links only — keeps
+   /policy/* reachable without dominating the screen. */
+.mobileLegalOnly {
+  display: none;
+}
+@media (max-width: 768px) {
+  .footer {
+    background: transparent;
+    border-top: none;
+    backdrop-filter: none;
+  }
+  .container > .links,
+  .copyright,
+  .disclaimer {
+    display: none;
+  }
+  .mobileLegalOnly {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 8px 12px 14px;
+  }
+  .mobileLegalOnly a {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 11px;
+    text-decoration: none;
+  }
+  .mobileLegalOnly a:hover {
+    color: rgba(255, 255, 255, 0.55);
+  }
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
