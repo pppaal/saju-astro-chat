@@ -271,19 +271,37 @@ export function useQuestionAnalysis({
           }
         }
       } catch (error) {
-        const isAbortError = error instanceof Error && error.name === 'AbortError'
+        // DOMException with name 'AbortError' or anything that has aborted
+        // signals — treat as silent cancellation, do not log an error.
+        const errName = (error as { name?: string } | null)?.name
+        const isAbortError =
+          errName === 'AbortError' ||
+          (typeof DOMException !== 'undefined' && error instanceof DOMException && errName === 'AbortError')
         const isTimeout = timeoutControl.didTimeout()
         if (isAbortError && !isTimeout) {
           return { result: null, fallbackReason: null }
+        }
+
+        // Timeouts are recoverable — log at warn, not error, and do not
+        // include a stack since it adds nothing actionable.
+        if (isTimeout) {
+          tarotLogger.warn('[tarot/question-engine-v2] Analysis timed out', {
+            timeoutMs: PREVIEW_ANALYZE_TIMEOUT_MS,
+          })
+          return {
+            result: buildLocalFallbackAnalysis(q, 'server_error'),
+            fallbackReason: 'server_error',
+          }
         }
 
         tarotLogger.error(
           '[tarot/question-engine-v2] Analysis request failed',
           error instanceof Error ? error : new Error(String(error))
         )
-
-        const reason: AnalyzeFallbackReason = isTimeout ? 'server_error' : 'network_error'
-        return { result: buildLocalFallbackAnalysis(q, reason), fallbackReason: reason }
+        return {
+          result: buildLocalFallbackAnalysis(q, 'network_error'),
+          fallbackReason: 'network_error',
+        }
       } finally {
         timeoutControl.cleanup()
       }
