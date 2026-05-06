@@ -19,6 +19,8 @@ import {
   type CompatibilityNarrativePromptInput,
 } from './narrativePrompt'
 
+export type { CompatibilityNarrativePromptInput }
+
 const ALLOWED_ICONS: ReadonlyArray<CompatibilityNarrativeIcon> = [
   'sparkles',
   'flame',

@@ -21,8 +21,15 @@ import type {
   CompatibilityNarrativeIcon,
 } from '@/lib/destiny-matrix/compatibility/narrativeTypes'
 import type { ThreeLayerCompatibility } from '@/lib/destiny-matrix/compatibility'
+import type { FusionCompatibilityResult } from '@/lib/compatibility/compatibilityFusion'
+import type { CoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
 
 type Result = ThreeLayerCompatibility & {
+  fusion?: FusionCompatibilityResult | null
+  extendedSaju?: Record<string, unknown> | null
+  extendedAstro?: Record<string, unknown> | null
+  deepInsights?: CoupleDeepInsights | null
+  ages?: { a: number; b: number } | null
   narrative?: CompatibilityNarrative | null
   narrativeMeta?: {
     error?: string
@@ -194,6 +201,11 @@ export default function CompatibilityReportView({
             ))}
           </div>
         </motion.section>
+
+        {result.fusion && <FusionSection fusion={result.fusion} />}
+        {result.deepInsights && (
+          <DeepInsightsSection insights={result.deepInsights} labelA={labelA} labelB={labelB} />
+        )}
 
         {narrative && (
           <>
@@ -384,5 +396,297 @@ function ScorePill({ label, score, highlight }: ScorePillProps) {
       </div>
       <div className={`text-xl font-black ${highlight ? 'text-rose-300' : ''}`}>{score}</div>
     </div>
+  )
+}
+
+function FusionSection({ fusion }: { fusion: FusionCompatibilityResult }) {
+  const breakdown = fusion.breakdown
+  const dyn = fusion.relationshipDynamics
+  return (
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
+      variants={fadeInUp}
+      className="space-y-5"
+    >
+      <div>
+        <h2 className="text-xl font-extrabold text-white">사주 × 점성 융합 분석</h2>
+        <p className="text-xs text-zinc-500 mt-1">
+          Fusion engine — 4축 세부 점수 + 관계 역학 메터
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <BreakdownCard label="사주" value={breakdown?.saju} />
+        <BreakdownCard label="점성" value={breakdown?.astrology} />
+        <BreakdownCard label="오행 조화" value={breakdown?.elementalHarmony} />
+        <BreakdownCard label="음양 균형" value={breakdown?.yinYangBalance} />
+      </div>
+
+      {dyn && (
+        <div className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 backdrop-blur-xl space-y-4">
+          <h3 className="text-sm font-extrabold text-white">관계 역학</h3>
+          <div className="space-y-3">
+            <DynamicsBar label="정서 강도" value={dyn.emotionalIntensity} />
+            <DynamicsBar label="지적 정합" value={dyn.intellectualAlignment} />
+            <DynamicsBar label="영적 연결" value={dyn.spiritualConnection} />
+          </div>
+          {dyn.conflictResolutionStyle && (
+            <p className="text-xs text-zinc-400 break-keep border-t border-zinc-800 pt-3">
+              갈등 해결 스타일: <span className="text-zinc-200">{dyn.conflictResolutionStyle}</span>
+            </p>
+          )}
+        </div>
+      )}
+
+      {(fusion.strengths?.length || fusion.challenges?.length) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {fusion.strengths?.length ? (
+            <div className="rounded-2xl border bg-zinc-900/60 border-zinc-800 p-5">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-rose-300 mb-3">
+                융합 강점
+              </h4>
+              <ul className="space-y-2 text-sm text-zinc-300 font-light leading-relaxed">
+                {fusion.strengths.slice(0, 5).map((s, i) => (
+                  <li key={i} className="flex items-start" style={{ wordBreak: 'keep-all' }}>
+                    <span className="text-rose-400 mr-2 mt-0.5">•</span>
+                    <span>{s}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {fusion.challenges?.length ? (
+            <div className="rounded-2xl border bg-zinc-900/60 border-zinc-800 p-5">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">
+                융합 도전
+              </h4>
+              <ul className="space-y-2 text-sm text-zinc-300 font-light leading-relaxed">
+                {fusion.challenges.slice(0, 5).map((c, i) => (
+                  <li key={i} className="flex items-start" style={{ wordBreak: 'keep-all' }}>
+                    <span className="text-zinc-500 mr-2 mt-0.5">•</span>
+                    <span>{c}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      )}
+    </motion.section>
+  )
+}
+
+function BreakdownCard({ label, value }: { label: string; value?: number }) {
+  return (
+    <div className="rounded-2xl border bg-zinc-900/60 border-zinc-800 p-4 text-center">
+      <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">{label}</div>
+      <div className="text-2xl font-black text-white mt-1">
+        {typeof value === 'number' ? Math.round(value) : '—'}
+      </div>
+    </div>
+  )
+}
+
+function DynamicsBar({ label, value }: { label: string; value: number }) {
+  const v = Math.max(0, Math.min(100, Math.round(value)))
+  return (
+    <div>
+      <div className="flex justify-between text-xs mb-1">
+        <span className="text-zinc-400">{label}</span>
+        <span className="text-zinc-200 font-mono">{v}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-rose-500 to-pink-400"
+          style={{ width: `${v}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function DeepInsightsSection({
+  insights,
+  labelA,
+  labelB,
+}: {
+  insights: CoupleDeepInsights
+  labelA: string
+  labelB: string
+}) {
+  return (
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
+      variants={fadeInUp}
+      className="space-y-5"
+    >
+      <div>
+        <h2 className="text-xl font-extrabold text-white">커플 심층 인사이트</h2>
+        <p className="text-xs text-zinc-500 mt-1">
+          서로 끌리는 이유 / 잘 풀리는 지점 / 부딪히는 지점 / 결혼·장기 신호
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <BulletCard
+          title="서로 끌리는 이유"
+          items={insights.attractionReasons}
+          tone="rose"
+        />
+        <BulletCard title="잘 풀리는 지점" items={insights.whyItWorks} tone="rose" />
+        <BulletCard title="부딪히는 지점" items={insights.frictionPoints} tone="muted" />
+      </div>
+
+      {insights.idealMatch?.length > 0 && (
+        <div className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 space-y-4">
+          <h3 className="text-sm font-extrabold text-white">이상형 매칭</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {insights.idealMatch.map((m, i) => (
+              <div
+                key={i}
+                className="rounded-2xl border bg-black/40 border-zinc-800 p-4 space-y-2"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-zinc-300">
+                    {m.personIndex === 1 ? labelA : labelB} → {m.partnerIndex === 1 ? labelA : labelB}
+                  </span>
+                  <MatchBadge level={m.matchLevel} />
+                </div>
+                <div className="text-xs text-zinc-400 break-keep">
+                  찾는 모습: <span className="text-zinc-200">{m.seeks}</span>
+                </div>
+                <div className="text-xs text-zinc-400 break-keep">
+                  실제 모습: <span className="text-zinc-200">{m.partnerActually}</span>
+                </div>
+                {m.note && (
+                  <p className="text-xs text-zinc-400 leading-relaxed border-t border-zinc-800 pt-2 break-keep">
+                    {m.note}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {insights.marriage && (
+          <div className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 space-y-3">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-sm font-extrabold text-white">결혼 준비도</h3>
+              <BandBadge band={insights.marriage.band} />
+            </div>
+            <div className="text-3xl font-black text-rose-300">{insights.marriage.score}</div>
+            <p className="text-sm text-zinc-300 leading-relaxed break-keep">
+              {insights.marriage.summary}
+            </p>
+            {insights.marriage.bestWindow && (
+              <p className="text-xs text-zinc-500">
+                최적 시기 신호: <span className="text-zinc-300">{insights.marriage.bestWindow}</span>
+              </p>
+            )}
+            {insights.marriage.sajuSignal && (
+              <p className="text-xs text-zinc-400 break-keep">사주: {insights.marriage.sajuSignal}</p>
+            )}
+            {insights.marriage.astroSignal && (
+              <p className="text-xs text-zinc-400 break-keep">점성: {insights.marriage.astroSignal}</p>
+            )}
+          </div>
+        )}
+        {insights.longevity && (
+          <div className="rounded-3xl border bg-zinc-900/60 border-zinc-800 p-6 space-y-3">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-sm font-extrabold text-white">관계 지속력</h3>
+              <BandBadge band={insights.longevity.band} />
+            </div>
+            <div className="text-3xl font-black text-rose-300">{insights.longevity.score}</div>
+            <p className="text-sm text-zinc-300 leading-relaxed break-keep">
+              {insights.longevity.summary}
+            </p>
+            {insights.longevity.positive?.length > 0 && (
+              <div className="text-xs text-zinc-400 break-keep">
+                ↑ {insights.longevity.positive.slice(0, 3).join(' / ')}
+              </div>
+            )}
+            {insights.longevity.cautionary?.length > 0 && (
+              <div className="text-xs text-zinc-400 break-keep">
+                ↓ {insights.longevity.cautionary.slice(0, 3).join(' / ')}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </motion.section>
+  )
+}
+
+function BulletCard({
+  title,
+  items,
+  tone,
+}: {
+  title: string
+  items: string[]
+  tone: 'rose' | 'muted'
+}) {
+  if (!items || items.length === 0) return null
+  return (
+    <div className="rounded-2xl border bg-zinc-900/60 border-zinc-800 p-5">
+      <h4
+        className={`text-xs font-bold uppercase tracking-widest mb-3 ${
+          tone === 'rose' ? 'text-rose-300' : 'text-zinc-400'
+        }`}
+      >
+        {title}
+      </h4>
+      <ul className="space-y-2 text-sm text-zinc-300 font-light leading-relaxed">
+        {items.slice(0, 4).map((item, i) => (
+          <li key={i} className="flex items-start" style={{ wordBreak: 'keep-all' }}>
+            <span
+              className={`mr-2 mt-0.5 ${tone === 'rose' ? 'text-rose-400' : 'text-zinc-500'}`}
+            >
+              •
+            </span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function MatchBadge({ level }: { level: 'strong' | 'partial' | 'weak' }) {
+  const config = {
+    strong: { label: 'Strong', className: 'bg-rose-500/15 text-rose-200 border-rose-500/40' },
+    partial: { label: 'Partial', className: 'bg-amber-500/15 text-amber-200 border-amber-500/40' },
+    weak: { label: 'Weak', className: 'bg-zinc-800 text-zinc-400 border-zinc-700' },
+  }[level]
+  return (
+    <span
+      className={`inline-block px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest rounded border ${config.className}`}
+    >
+      {config.label}
+    </span>
+  )
+}
+
+function BandBadge({ band }: { band: 'high' | 'medium' | 'low' | 'strong' | 'fragile' }) {
+  const high = band === 'high' || band === 'strong'
+  const low = band === 'low' || band === 'fragile'
+  const className = high
+    ? 'bg-rose-500/15 text-rose-200 border-rose-500/40'
+    : low
+      ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+      : 'bg-amber-500/15 text-amber-200 border-amber-500/40'
+  return (
+    <span
+      className={`inline-block px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest rounded border ${className}`}
+    >
+      {band}
+    </span>
   )
 }

@@ -4,6 +4,7 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { logger } from '@/lib/logger'
 import { analyzeThreeLayerCompatibility } from '@/lib/destiny-matrix/compatibility'
+import { buildPremiumCompatibilityContext } from '@/lib/destiny-matrix/compatibility/buildPremiumContext'
 import { generateCompatibilityNarrative } from '@/lib/destiny-matrix/compatibility/narrativeGenerator'
 
 type Person = { birthDate?: string; birthTime?: string; gender?: string }
@@ -14,7 +15,12 @@ type ReqBody = {
   labelA?: string
   /** Display name for person B. */
   labelB?: string
-  /** When true, attaches an LLM-authored magazine narrative on top of the engine output. */
+  /**
+   * When true, runs the full premium pipeline:
+   *   3-layer + Fusion + Extended Saju + Extended Astrology + Deep Insights
+   *   then attaches an LLM magazine narrative grounded in all of the above.
+   * When false (default), only the lightweight 3-layer engine runs.
+   */
   withNarrative?: boolean
 }
 
@@ -57,14 +63,28 @@ export const POST = withApiMiddleware(
       const personA = body.personA as Required<Person> & { gender: 'male' | 'female' }
       const personB = body.personB as Required<Person> & { gender: 'male' | 'female' }
 
+      // Lightweight 3-layer is always computed — drives the score-cards row.
       const layers = analyzeThreeLayerCompatibility(personA, personB)
 
       if (!body.withNarrative) {
         return NextResponse.json(layers)
       }
 
-      // Best-effort LLM polish — never fail the request when narrative
-      // generation hiccups; the engine output is still useful on its own.
+      // Premium path: full engine + LLM magazine narrative.
+      let premiumContext = null
+      try {
+        premiumContext = await buildPremiumCompatibilityContext({
+          personA,
+          personB,
+          labelA: body.labelA,
+          labelB: body.labelB,
+        })
+      } catch (engErr) {
+        logger.warn('[Compat3Layer] full engine pipeline failed, falling back to 3-layer only', {
+          message: engErr instanceof Error ? engErr.message : String(engErr),
+        })
+      }
+
       try {
         const narrative = await generateCompatibilityNarrative({
           personA,
@@ -72,9 +92,15 @@ export const POST = withApiMiddleware(
           labelA: body.labelA,
           labelB: body.labelB,
           layers,
+          context: premiumContext,
         })
         return NextResponse.json({
           ...layers,
+          fusion: premiumContext?.fusion ?? null,
+          extendedSaju: premiumContext?.extendedSaju ?? null,
+          extendedAstro: premiumContext?.extendedAstro ?? null,
+          deepInsights: premiumContext?.deepInsights ?? null,
+          ages: premiumContext?.ages ?? null,
           narrative: narrative.narrative,
           narrativeMeta: {
             modelUsed: narrative.modelUsed,
@@ -88,6 +114,11 @@ export const POST = withApiMiddleware(
         })
         return NextResponse.json({
           ...layers,
+          fusion: premiumContext?.fusion ?? null,
+          extendedSaju: premiumContext?.extendedSaju ?? null,
+          extendedAstro: premiumContext?.extendedAstro ?? null,
+          deepInsights: premiumContext?.deepInsights ?? null,
+          ages: premiumContext?.ages ?? null,
           narrative: null,
           narrativeMeta: {
             error: narrErr instanceof Error ? narrErr.message : 'narrative_failed',

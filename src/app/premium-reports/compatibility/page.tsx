@@ -19,6 +19,8 @@ import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import CompatibilityReportView from './_components/CompatibilityReportView'
 import type { ThreeLayerCompatibility } from '@/lib/destiny-matrix/compatibility'
 import type { CompatibilityNarrative } from '@/lib/destiny-matrix/compatibility/narrativeTypes'
+import type { FusionCompatibilityResult } from '@/lib/compatibility/compatibilityFusion'
+import type { CoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
 
 interface PersonForm {
   label: string
@@ -35,6 +37,11 @@ const DEFAULT_PERSON: PersonForm = {
 }
 
 interface ApiResult extends ThreeLayerCompatibility {
+  fusion?: FusionCompatibilityResult | null
+  extendedSaju?: Record<string, unknown> | null
+  extendedAstro?: Record<string, unknown> | null
+  deepInsights?: CoupleDeepInsights | null
+  ages?: { a: number; b: number } | null
   narrative?: CompatibilityNarrative | null
   narrativeMeta?: {
     modelUsed?: string
