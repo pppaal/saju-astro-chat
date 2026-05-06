@@ -122,13 +122,9 @@ function ThemedBuilderContent() {
     if (t) setTheme(t)
   }, [searchParams])
 
-  useEffect(() => {
-    if (status === 'unauthenticated' && !redirectedRef.current) {
-      redirectedRef.current = true
-      router.push('/auth/signin?callbackUrl=/premium-reports/themed')
-    }
-    if (status === 'authenticated') redirectedRef.current = false
-  }, [status, router])
+  // Guests can browse the theme picker and configure a report — auth is
+  // only enforced at generate time (the API route returns 401 if the
+  // user is not signed in or out of credits).
 
   const loadSajuData = useCallback(async () => {
     if (status !== 'authenticated') return
@@ -269,32 +265,30 @@ function ThemedBuilderContent() {
         </div>
       )}
 
-      <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
-        {/* Hero */}
-        <header className="space-y-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-cyan-300">
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
+        {/* Hero — compact so the theme + period grid fits one screen. */}
+        <header className="space-y-1 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-cyan-300">
             Themed Report
           </p>
           <h1
-            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.15] text-transparent transition-all duration-500 md:text-5xl lg:text-6xl"
-            style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
+            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-2xl font-semibold leading-tight text-transparent md:text-3xl"
+            style={{ letterSpacing: '-0.02em', wordBreak: 'keep-all' }}
           >
             {heroTitle}
           </h1>
-          <p className="mx-auto max-w-md text-[15px] leading-relaxed text-slate-400">
-            6 테마 × 3 시기 조합으로 지금 가장 알고 싶은 결을 깊이 풀어드려요.
-          </p>
         </header>
 
-        {/* Theme grid */}
-        <section className="mt-16">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-[12px] font-semibold uppercase tracking-[0.28em] text-slate-400">
+        {/* Theme grid — compact 3-col grid that fits one screen alongside
+            the period selector. */}
+        <section className="mt-6">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
               1. 테마 선택
             </h2>
-            <span className="text-[11px] text-slate-500">{theme ? '✓' : `${THEMES.length}개`}</span>
+            <span className="text-[10px] text-slate-500">{theme ? '✓' : `${THEMES.length}개`}</span>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {THEMES.map((t) => {
               const selected = theme === t.key
               const Icon = t.Icon
@@ -306,55 +300,38 @@ function ThemedBuilderContent() {
                     setTheme(t.key)
                     analytics.premiumThemeSelect(t.key, period)
                   }}
-                  className={`group relative overflow-hidden rounded-3xl border p-5 text-left transition-all duration-300 ${
+                  className={`group relative flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-all duration-200 ${
                     selected
-                      ? 'border-white/30 bg-white/[0.06]'
+                      ? 'border-white/30 bg-white/[0.08]'
                       : 'border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
                   }`}
                   style={{
-                    boxShadow: selected ? `0 0 40px ${t.glow}` : undefined,
+                    boxShadow: selected ? `0 0 24px ${t.glow}` : undefined,
                   }}
                 >
-                  <div
-                    className="absolute right-4 top-4 h-2.5 w-2.5 rounded-full transition-all"
-                    style={{
-                      background: selected ? t.accent : 'transparent',
-                      boxShadow: selected ? `0 0 12px ${t.accent}` : undefined,
-                      border: selected ? 'none' : '1px solid rgba(255,255,255,0.2)',
-                    }}
-                  />
                   <Icon
-                    className="h-7 w-7 transition-all duration-300"
-                    style={{ color: selected ? t.accent : 'rgba(255,255,255,0.5)' }}
-                    strokeWidth={1.5}
+                    className="h-5 w-5 transition-all duration-200"
+                    style={{ color: selected ? t.accent : 'rgba(255,255,255,0.55)' }}
+                    strokeWidth={1.6}
                   />
-                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    {t.english}
-                  </p>
-                  <h3 className="mt-1 text-[1.4rem] font-semibold tracking-tight text-white">
+                  <h3 className="mt-1.5 text-[12px] font-semibold tracking-tight text-white">
                     {t.label}
                   </h3>
-                  <p
-                    className="mt-2 text-[13px] leading-relaxed text-slate-400"
-                    style={{ wordBreak: 'keep-all' }}
-                  >
-                    {t.blurb}
-                  </p>
                 </button>
               )
             })}
           </div>
         </section>
 
-        {/* Period selector */}
-        <section className="mt-16">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-[12px] font-semibold uppercase tracking-[0.28em] text-slate-400">
+        {/* Period selector — three pills, single row on mobile too. */}
+        <section className="mt-4">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
               2. 분석 시기
             </h2>
-            <span className="text-[11px] text-slate-500">{periodLabel}</span>
+            <span className="text-[10px] text-slate-500">{periodLabel}</span>
           </div>
-          <div className="grid gap-2.5 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2">
             {(Object.keys(PERIOD_META) as Period[]).map((p) => {
               const meta = PERIOD_META[p]
               const selected = period === p
@@ -363,17 +340,13 @@ function ThemedBuilderContent() {
                   key={p}
                   type="button"
                   onClick={() => setPeriod(p)}
-                  className={`rounded-2xl border px-5 py-4 text-left transition-all duration-300 ${
+                  className={`rounded-xl border px-3 py-2.5 text-center transition-all duration-200 ${
                     selected
-                      ? 'border-white/25 bg-white/[0.06]'
+                      ? 'border-white/25 bg-white/[0.08]'
                       : 'border-white/10 bg-white/[0.02] hover:border-white/20'
                   }`}
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    {meta.en}
-                  </p>
-                  <p className="mt-1 text-[1.05rem] font-semibold text-white">{meta.label}</p>
-                  <p className="mt-1 text-[12px] leading-relaxed text-slate-400">{meta.sub}</p>
+                  <p className="text-[14px] font-semibold text-white">{meta.label}</p>
                 </button>
               )
             })}
