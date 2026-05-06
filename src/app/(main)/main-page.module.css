@@ -6139,12 +6139,13 @@
    component so the gradient renders consistently on every browser.
    The wrapper just provides sizing + a soft drop shadow halo. */
 .homeOrnament {
-  width: 64px;
-  height: 72px;
+  width: 140px;
+  height: 158px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 8px 24px rgba(139, 92, 246, 0.45));
+  filter: drop-shadow(0 12px 32px rgba(139, 92, 246, 0.55));
 }
 
 .homeOrnament svg {
