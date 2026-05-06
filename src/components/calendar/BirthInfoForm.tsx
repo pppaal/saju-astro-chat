@@ -111,14 +111,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
             submitButtonText={locale === 'ko' ? '월간 흐름 보기' : 'View Monthly Flow'}
             submitButtonIcon="✨"
             loadingButtonText={locale === 'ko' ? '분석 중...' : 'Analyzing...'}
-            showHeader={true}
-            headerIcon="🎂"
-            headerTitle={locale === 'ko' ? '생년월일을 입력해 주세요' : 'Enter Your Birth Info'}
-            headerSubtitle={
-              locale === 'ko'
-                ? '생년월일만으로 시작 가능하며, 상세 입력 시 타이밍 해석이 더 정교해집니다'
-                : 'Required for accurate analysis'
-            }
+            showHeader={false}
           />
 
           {status === 'unauthenticated' && (
