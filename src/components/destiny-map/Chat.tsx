@@ -80,7 +80,7 @@ const Chat = memo(function Chat({
     retryCount,
     connectionStatus,
     usedFallback,
-    guestMode,
+    guestMode: _guestMode, // banner removed; flag still used by hook internals
     followUpQuestions,
     setFollowUpQuestions,
     handleSend: apiHandleSend,
@@ -493,50 +493,15 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         </aside>
 
         <section className={styles.chatMain}>
-          {guestMode && (
-            <div className={styles.guestModeBar}>
-              {effectiveLang === 'ko'
-                ? '\uAC8C\uC2A4\uD2B8 \uBAA8\uB4DC\uC785\uB2C8\uB2E4. \uB85C\uADF8\uC778\uD558\uBA74 \uAE30\uB85D \uC800\uC7A5\uACFC \uC774\uC5B4\uC11C \uC0C1\uB2F4\uC774 \uD65C\uC131\uD654\uB429\uB2C8\uB2E4.'
-                : 'Guest mode is active. Sign in to save history and continue conversations.'}
-            </div>
-          )}
-
-          <div className={styles.sessionButtons}>
-            <button
-              type="button"
-              className={styles.sessionBtn}
-              onClick={startNewChat}
-              title={tr.newChat}
-            >
-              {'\u2728'} {tr.newChat}
-            </button>
-            <button
-              type="button"
-              className={styles.sessionBtn}
-              onClick={openHistoryModal}
-              title={tr.previousChats}
-            >
-              {'\uD83D\uDCDC'} {tr.previousChats}
-            </button>
-          </div>
+          {/* Removed: guestModeBar (page already shows its own login banner),
+              sessionButtons row (\u2728\uC0C8 \uB300\uD654 / \uD83D\uDCDC\uC774\uC804 \uB300\uD654 \u2014 chrome that
+              competed with the empty-state hero), conversationHeader
+              (\uD604\uC7AC \uC0C1\uB2F4 / \uCE74\uC6B4\uC2AC\uB9C1 \uCC44\uD305 / N\uAC1C \uBA54\uC2DC\uC9C0). The Claude.ai
+              mobile shape uses a single big hero + bottom-fixed input.
+              History entry point lives in the rail (desktop) or via
+              keyboard "/" shortcut. */}
 
           <div className={styles.conversationShell}>
-            <div className={styles.conversationHeader}>
-              <div className={styles.conversationHeaderText}>
-                <span className={styles.conversationEyebrow}>
-                  {effectiveLang === 'ko' ? '\uD604\uC7AC \uC0C1\uB2F4' : 'Current conversation'}
-                </span>
-                <h2 className={styles.conversationTitle}>
-                  {effectiveLang === 'ko'
-                    ? '\uCE74\uC6B4\uC2AC\uB9C1 \uCC44\uD305'
-                    : 'Counseling chat'}
-                </h2>
-              </div>
-              <span className={styles.conversationMeta}>
-                {visibleMessages.length} {tr.messages}
-              </span>
-            </div>
-
             <MessagesPanel
               visibleMessages={visibleMessages}
               loading={loading}

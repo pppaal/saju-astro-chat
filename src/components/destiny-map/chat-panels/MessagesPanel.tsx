@@ -56,7 +56,13 @@ export const MessagesPanel = React.memo(function MessagesPanel({
 
       {visibleMessages.length === 0 && !loading && (
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>&#x1F52E;</div>
+          {/* Small spark glyph — Claude.ai uses an orange asterisk-burst.
+              We use ✦ in the same accent color for the same role: a
+              minimal hero ornament without the kitschy crystal-ball that
+              made the empty state read as a fortune-app placeholder. */}
+          <div className={styles.emptyIcon} aria-hidden="true">
+            &#x2734;
+          </div>
           <p className={styles.emptyText}>{tr.empty}</p>
 
           {showSuggestions && (

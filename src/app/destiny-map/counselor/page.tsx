@@ -7,7 +7,8 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ErrorBoundary, ChatErrorFallback } from '@/components/ErrorBoundary'
 import CreditBadge from '@/components/ui/CreditBadge'
-import { buildSignInUrl } from '@/lib/auth/signInUrl'
+// buildSignInUrl import removed alongside the guest banner — restore
+// when reintroducing inline login CTA.
 import styles from './counselor.module.css'
 import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
@@ -45,7 +46,8 @@ export default function CounselorPage() {
 
   const router = useRouter()
   const { status: authStatus } = useSession()
-  const isAuthed = authStatus === 'authenticated'
+  void router // routerless after guest banner removal — keep for future re-enable
+  void authStatus
 
   const {
     chartData,
@@ -73,10 +75,9 @@ export default function CounselorPage() {
     selectedTheme,
   } = parsedParams
 
-  const handleLogin = useCallback(() => {
-    const search = typeof window !== 'undefined' ? window.location.search : ''
-    router.push(buildSignInUrl(`/destiny-counselor/chat${search}`))
-  }, [router])
+  // handleLogin removed alongside the guest banner. If we reintroduce
+  // an inline sign-in CTA, restore via:
+  //   const handleLogin = () => router.push(buildSignInUrl(`/destiny-counselor/chat${search}`))
 
   const handleBack = useCallback(() => router.back(), [router])
   const handleChatReset = useCallback(() => window.location.reload(), [])
@@ -158,19 +159,9 @@ export default function CounselorPage() {
         </div>
       </header>
 
-      {!isAuthed && authStatus !== 'loading' && (
-        <div className={styles.guestBanner}>
-          <p className={styles.guestBannerText}>
-            {t(
-              'destinyMap.counselor.guestBanner',
-              '로그인하면 대화 기록이 저장돼요.'
-            )}
-          </p>
-          <button type="button" className={styles.guestLoginButton} onClick={handleLogin}>
-            {t('destinyMap.counselor.loginCtaShort', 'Sign in')}
-          </button>
-        </div>
-      )}
+      {/* Guest banner removed — fights the Claude-style centered hero
+          empty state. Login CTA lives in the page header (top-right)
+          and via /api save attempts when guests try to persist. */}
 
       <div className={styles.chatWrapper}>
         <ErrorBoundary
