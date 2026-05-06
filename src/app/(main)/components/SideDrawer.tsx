@@ -96,7 +96,7 @@ export default function SideDrawer({ open, onClose, locale }: SideDrawerProps) {
           </p>
           <Link href="/profile" className={styles.drawerLink} onClick={onClose}>
             <span className={styles.drawerLinkIcon}>📅</span>
-            <span>{locale === 'ko' ? '내 사주 정보' : 'My Birth Info'}</span>
+            <span>{locale === 'ko' ? '내 생년월일 정보' : 'My Birth Info'}</span>
           </Link>
           <Link href="/pricing" className={styles.drawerLink} onClick={onClose}>
             <span className={styles.drawerLinkIcon}>💳</span>

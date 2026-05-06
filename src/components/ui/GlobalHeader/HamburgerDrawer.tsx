@@ -162,7 +162,7 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/[0.06]"
               >
                 <span aria-hidden="true">📅</span>
-                <span className="text-sm">{isKo ? '내 사주 정보' : 'My Birth Info'}</span>
+                <span className="text-sm">{isKo ? '내 생년월일 정보' : 'My Birth Info'}</span>
               </Link>
               <Link
                 href="/pricing"
