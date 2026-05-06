@@ -21,6 +21,7 @@ import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
+import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -404,22 +405,34 @@ export async function POST(req: NextRequest) {
     const themeDepthGuide = buildThemeDepthGuide(String(theme || 'general'), normalizedLang)
     const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
-    // System prompt — counselor role
+    // System prompt — counselor role.
+    // 공통 voice (counselorVoiceBase) + 궁합 카운슬러에만 해당하는 도메인 규칙.
+    const counselorLang: CounselorLang = lang === 'ko' ? 'ko' : 'en'
+    const voice = counselorVoiceBase(counselorLang)
     const systemPrompt =
-      lang === 'ko'
-        ? `당신은 사주명리학과 점성학을 결합한 전문 궁합 상담사입니다. 친근하지만 전문적인 어조로 답변하세요.
-- 제공된 사주·점성·교차 데이터에 근거해 구체적이고 실천 가능한 조언 제공
-- 숨겨진 패턴과 시너지를 쉽게 설명
-- 시기별 미래 가이던스 안내
-- 긍정적이지만 현실적인 조언, 추측·과장 금지
-- 마크다운 헤더(## 등) 쓰지 말고 평문 단락으로`
-        : `You are an expert compatibility counselor combining Saju and Astrology.
-Provide friendly but professional guidance:
-- Specific, actionable advice grounded in the provided saju/astro/cross data
-- Explain hidden patterns simply
-- Time-based future guidance
-- Positive yet realistic, no speculation
-- Plain prose paragraphs, no markdown headers`
+      counselorLang === 'ko'
+        ? [
+            voice,
+            '',
+            '[궁합 카운슬러 도메인 규칙]',
+            '- *두 사람의 결*을 본다. 한 사람만 칭찬하거나 한 사람만 꼬집지 말 것.',
+            '- 시너지 1개 + 마찰 1개를 최소 한 답변에 같이 보여준다 — 한쪽으로 치우치면 진단이 아니라 응원/저주가 됨.',
+            '- 사주·점성 cross 데이터가 들어오면 두 시스템이 *같은 방향을 가리키는지 다른 방향인지* 짚어준다.',
+            '- 시기 데이터(대운·세운·트랜짓)가 있을 땐 "지금 어느 시기에 있는가"가 진단을 바꾸는 축이다.',
+            '- 두 사람이 함께 결정해야 하는 일(이사·결혼·창업)에 caution 신호가 잡히면 *비가역 행동을 미루는 결*로 마무리.',
+            '- 궁합은 *고정 점수*가 아니라 *시기와 자세에 따라 바뀌는 결*이라는 톤을 유지.',
+          ].join('\n')
+        : [
+            voice,
+            '',
+            '[Compatibility counselor domain rules]',
+            '- Read *both people\'s edges*. Never praise only one or critique only one.',
+            '- Show one synergy + one friction in every answer. A one-sided read is cheerleading or a curse, not diagnosis.',
+            '- When saju×astro cross data is provided, name whether the two systems point the *same direction* or pull apart.',
+            '- When timing data (daeun / seun / transits) is present, *which season they are in* is the axis that changes the read.',
+            '- For joint irreversible decisions (move-in, marriage, business) with caution flags, end on *deferring the irreversible*.',
+            '- Hold the line that compatibility is not a *fixed score* — it is a flow that shifts with timing and posture.',
+          ].join('\n')
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:
     //  - cachedUserContext: 두 사람의 차트 + 사주/점성/시기 분석 + 가이드 (안정)

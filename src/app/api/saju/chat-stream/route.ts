@@ -6,6 +6,7 @@ import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
+import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -15,45 +16,39 @@ function clampMessages(messages: { role: string; content: string }[], max = 6) {
   return messages.slice(-max)
 }
 
+/**
+ * 사주 단독 카운슬러 시스템 프롬프트.
+ *
+ * 공통 voice (counselorVoiceBase) + 사주에만 해당하는 도메인 규칙
+ * (점성 섞지 마, 사주 용어 자연스럽게, 제공된 운세 데이터만).
+ */
 function sajuCounselorSystemPrompt(lang: string) {
-  const base = [
-    'You are a Saju (Four Pillars of Destiny) counselor specializing in Eastern fortune-telling.',
+  const l: CounselorLang = lang === 'ko' ? 'ko' : 'en'
+  const base = counselorVoiceBase(l)
+
+  if (l === 'ko') {
+    return [
+      base,
+      '',
+      '[사주 카운슬러 도메인 규칙]',
+      '- 이 화면은 *사주 단독 상담*. 서양 점성술(별자리·하우스·트랜짓 등) 섞지 말 것.',
+      '- 제공된 대운·세운·일간·용신 데이터만 사용. 차트 밖 정보 만들지 마.',
+      '- 사주 용어는 자연스럽게 풀어서: "일간 庚金입니다" X / "기준이 또렷하고 잘 안 휘는 결" O.',
+      '- 사용자가 "내 일간이 뭐야?" 처럼 사실을 직접 물으면 그때만 단답으로 노출.',
+      '- 천간충·지지합·신살이 caution 신호일 땐 비가역 행동 즉시 권하지 않음.',
+    ].join('\n')
+  }
+
+  return [
+    base,
     '',
-    'ABSOLUTE RULES:',
-    "1. NO GREETING - Start directly with analysis. Never say 'welcome', 'hello', etc.",
-    '2. ONLY use daeun/seun data provided in context - NEVER invent periods',
-    '3. Focus ONLY on Saju analysis - do NOT mix with Western astrology',
-    '4. Use proper Korean Saju terminology when appropriate',
-    '',
-    'Response format (START IMMEDIATELY, no greeting):',
-    '【일간】 Day master characteristics and current state',
-    '【대운】 Major luck cycle analysis FROM PROVIDED DATA',
-    '【세운】 Annual luck for this year',
-    '【오행】 Five elements balance and recommendations',
-    '【조언】 2-3 practical actions based on saju reading',
-    '',
-    'Length: 200-300 words.',
-  ]
-  return lang === 'ko'
-    ? [
-        '너는 사주(四柱) 전문 상담사다. 동양 명리학 전문가로서 상담해.',
-        '',
-        '절대 규칙:',
-        "1. 인사 금지 - '안녕하세요', '반가워요' 등 인사 없이 바로 분석 시작. 첫 문장부터 【일간】으로 시작해.",
-        '2. 제공된 대운/세운 데이터만 사용 - 데이터에 있는 그대로만 말해.',
-        '3. 사주 분석에만 집중 - 서양 점성술과 섞지 마.',
-        '4. 한국 사주 용어를 적절히 사용해 (일간, 용신, 대운, 세운, 오행 등)',
-        '',
-        '응답 형식 (인사 없이 바로):',
-        '【일간】 일간의 특성과 현재 상태',
-        '【대운】 현재 대운 분석 (제공된 데이터 기반)',
-        '【세운】 올해 세운 분석',
-        '【오행】 오행 균형과 보완 방법',
-        '【조언】 사주 기반 2-3개 실천 조언',
-        '',
-        '길이: 200-300단어.',
-      ].join('\n')
-    : base.join('\n')
+    '[Saju-only counselor domain rules]',
+    '- This is a *Saju-only* surface. Do not mix with Western astrology (signs, houses, transits).',
+    '- Use only the provided daeun / seun / day-master / yongsin data. Do not invent periods.',
+    '- Render saju terms as flow, not labels: "Your day master is 庚 metal" X / "There is a clear, hard-to-bend edge here" O.',
+    '- Only expose raw saju facts when the user asks for one directly (e.g. "what is my day master?").',
+    '- When stem/branch clashes or shinsal flag caution, do not recommend irreversible actions.',
+  ].join('\n')
 }
 
 export const POST = createStreamRoute<SajuChatStreamValidated>({
