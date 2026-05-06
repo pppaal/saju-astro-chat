@@ -38,7 +38,12 @@ import { buildCalendarPresentationView } from './lib/presentationAdapter'
 import type { DomainKey, MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { CalendarMatrixEvidencePacketMap } from './lib/matrixEvidencePacket'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
-import { buildDerivedCrossSnapshot } from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
+import {
+  buildDerivedCrossSnapshot,
+  deriveAdvancedSajuMatrixFields,
+  deriveSibsinDistributionFromSaju,
+} from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
+import type { CalculateSajuDataResult } from '@/lib/Saju/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -385,16 +390,51 @@ function buildCalendarMatrixInput(params: {
     extraPoints: Boolean(Object.keys(extraPointSigns).length),
   }
 
+  // Derive sibsin / 12-stages / relations / shinsal / saeun / wolun / iljin
+  // from the full saju calculation result so layers 2/3/4/5/6/8 fire for
+  // every user instead of being silently empty.
+  const sajuFull = params.sajuResult as unknown as CalculateSajuDataResult
+  let derivedSibsin: Record<string, number> = {}
+  let derivedTwelveStages: Record<string, number> = {}
+  let derivedRelations: MatrixCalculationInput['relations'] = []
+  let derivedShinsal: NonNullable<MatrixCalculationInput['shinsalList']> = []
+  let derivedSaeunElement: MatrixCalculationInput['currentSaeunElement']
+  let derivedWolunElement: MatrixCalculationInput['currentWolunElement']
+  let derivedIljinElement: MatrixCalculationInput['currentIljinElement']
+  try {
+    derivedSibsin = deriveSibsinDistributionFromSaju(sajuFull)
+    const adv = deriveAdvancedSajuMatrixFields(sajuFull)
+    derivedTwelveStages = (adv.twelveStages || {}) as Record<string, number>
+    derivedRelations = (adv.relations || []) as MatrixCalculationInput['relations']
+    derivedShinsal = (adv.shinsalList || []) as NonNullable<MatrixCalculationInput['shinsalList']>
+    const ELEMENT_MAP: Record<string, MatrixCalculationInput['dayMasterElement']> = {
+      목: '목', 화: '화', 토: '토', 금: '금', 수: '수',
+    }
+    const annualNow = (sajuFull.unse?.annual || []).find((row) => row.year === params.year)
+    const annualEl = (annualNow as any)?.element as string | undefined
+    if (annualEl && ELEMENT_MAP[annualEl]) derivedSaeunElement = ELEMENT_MAP[annualEl]
+    const monthlyNow = (sajuFull.unse?.monthly || []).find(
+      (row) => row.year === params.year && row.month === new Date().getMonth() + 1
+    )
+    const monthlyEl = (monthlyNow as any)?.element as string | undefined
+    if (monthlyEl && ELEMENT_MAP[monthlyEl]) derivedWolunElement = ELEMENT_MAP[monthlyEl]
+    derivedIljinElement = currentDaeunElement || dayMasterElement
+  } catch {
+    // Derivation failures are non-fatal; matrix runs with whatever we have.
+  }
+
   const baseMatrixInput: MatrixCalculationInput = {
     dayMasterElement,
     pillarElements,
-    sibsinDistribution: {},
-    twelveStages: {},
-    relations: [],
+    sibsinDistribution: derivedSibsin as MatrixCalculationInput['sibsinDistribution'],
+    twelveStages: derivedTwelveStages as MatrixCalculationInput['twelveStages'],
+    relations: derivedRelations,
     currentDaeunElement,
-    currentIljinElement: currentDaeunElement || dayMasterElement,
+    currentSaeunElement: derivedSaeunElement,
+    currentWolunElement: derivedWolunElement,
+    currentIljinElement: derivedIljinElement || currentDaeunElement || dayMasterElement,
     currentIljinDate: currentDateIso,
-    shinsalList: [],
+    shinsalList: derivedShinsal,
     dominantWesternElement,
     planetHouses,
     planetSigns,

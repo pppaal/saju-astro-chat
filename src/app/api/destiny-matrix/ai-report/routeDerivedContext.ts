@@ -214,7 +214,7 @@ function normalizeTwelveStageKey(stage: string): string {
   return stage
 }
 
-function deriveAdvancedSajuMatrixFields(
+export function deriveAdvancedSajuMatrixFields(
   sajuData: ReturnType<typeof calculateSajuData>
 ): Pick<MatrixCalculationInput, 'twelveStages' | 'relations' | 'shinsalList'> {
   const stagesByPillar = getTwelveStagesForPillars(sajuData.pillars)
@@ -244,7 +244,7 @@ function deriveAdvancedSajuMatrixFields(
   }
 }
 
-function deriveSibsinDistributionFromSaju(sajuData: ReturnType<typeof calculateSajuData>) {
+export function deriveSibsinDistributionFromSaju(sajuData: ReturnType<typeof calculateSajuData>) {
   const distribution: Record<string, number> = {}
   const pillars = [
     sajuData.yearPillar,
