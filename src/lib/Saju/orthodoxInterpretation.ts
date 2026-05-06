@@ -272,11 +272,21 @@ export function buildOrthodoxInterpretation(
     element: dayStem.element as FiveElement,
     yin_yang: (dayStem.yin_yang as 'yang' | 'yin' | '양' | '음') || '양',
   }
+  // analyzeAdvancedSaju needs the legacy shape (yearPillar/...).
+  // analyzeIljuDeep / analyzeJonggeok / analyzeHwagyeok / analyzeSamgi /
+  // analyzeGongmangDeep all use the canonical year/month/day/time shape.
+  // Provide both so downstream callers don't crash on either spelling.
   const sajuPillarsForAdvanced = {
     yearPillar: saju.yearPillar,
     monthPillar: saju.monthPillar,
     dayPillar: saju.dayPillar,
     timePillar: saju.timePillar,
+  }
+  const sajuPillarsCanonical = {
+    year: saju.yearPillar,
+    month: saju.monthPillar,
+    day: saju.dayPillar,
+    time: saju.timePillar,
   }
 
   // Each existing analyzer is wrapped in try/catch so a single failure
@@ -293,14 +303,14 @@ export function buildOrthodoxInterpretation(
     analyzeAdvancedSaju(dayMaster as any, sajuPillarsForAdvanced as any)
   )
   const root = safe(() => analyzeRoot(dayMaster as any, sajuPillarsForAdvanced as any))
-  const jonggeok = safe(() => analyzeJonggeok(sajuPillarsForAdvanced as any))
-  const hwagyeok = safe(() => analyzeHwagyeok(sajuPillarsForAdvanced as any))
-  const iljuDeep = safe(() => analyzeIljuDeep(sajuPillarsForAdvanced as any))
+  const jonggeok = safe(() => analyzeJonggeok(sajuPillarsCanonical as any))
+  const hwagyeok = safe(() => analyzeHwagyeok(sajuPillarsCanonical as any))
+  const iljuDeep = safe(() => analyzeIljuDeep(sajuPillarsCanonical as any))
   const iljuArchetype = safe(() =>
     getIljuArchetype(saju.dayPillar.heavenlyStem.name, saju.dayPillar.earthlyBranch.name)
   )
-  const samgi = safe(() => analyzeSamgi(sajuPillarsForAdvanced as any))
-  const gongmangDeep = safe(() => analyzeGongmangDeep(sajuPillarsForAdvanced as any))
+  const samgi = safe(() => analyzeSamgi(sajuPillarsCanonical as any))
+  const gongmangDeep = safe(() => analyzeGongmangDeep(sajuPillarsCanonical as any))
 
   const koreanAge =
     options.koreanAge && Number.isFinite(options.koreanAge)
