@@ -46,7 +46,7 @@ export interface GraphRAGEvidenceBundle {
 
 export interface PremiumReportData {
   id: string
-  type: 'timing' | 'themed' | 'comprehensive'
+  type: 'timing' | 'themed' | 'comprehensive' | 'monthly' | 'yearly'
   title: string
   summary: string
   createdAt: string

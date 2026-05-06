@@ -74,6 +74,8 @@ const REPORT_TYPE_LABELS: Record<ReportData['type'], string> = {
   comprehensive: '종합 인물 리포트',
   themed: '테마 심화 리포트',
   timing: '타이밍 리포트',
+  monthly: '이번 달 리포트',
+  yearly: '올해 리포트',
 }
 
 const MODE_LABELS: Record<'execute' | 'verify' | 'prepare', string> = {
