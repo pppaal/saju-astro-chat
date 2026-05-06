@@ -89,20 +89,24 @@
   }
 }
 
-/* Mobile — small rectangle pinned to bottom-right corner. Tiny cookie
-   icon + Reject/Accept text-link buttons. Barely visible. */
+/* Mobile — single horizontal row, bottom-right, content-width only. */
 @media (max-width: 640px) {
   .banner {
+    position: fixed;
     bottom: 0.4rem;
     right: 0.4rem;
     left: auto;
-    max-width: none;
+    top: auto;
     width: auto;
+    max-width: calc(100vw - 0.8rem);
     margin: 0;
-    padding: 0.28rem 0.45rem;
-    border-radius: 6px;
-    gap: 0.35rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
     align-items: center;
+    justify-content: flex-start;
+    gap: 0.4rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 8px;
     background: rgba(20, 20, 24, 0.78);
     border: 1px solid rgba(255, 255, 255, 0.06);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
@@ -110,45 +114,25 @@
     min-height: 0;
   }
 
+  /* Hide the entire .text block (title + description). The cookie
+     emoji moves onto the banner itself via ::before so we keep the
+     row to: 🍪 [Reject] [Accept]. */
   .text {
-    flex: 0 0 auto;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-  }
-
-  .text strong {
-    font-size: 0.6rem;
-    margin: 0;
-    font-weight: 500;
-    white-space: nowrap;
-    color: rgba(255, 255, 255, 0.55);
-  }
-
-  /* Show only the cookie emoji as the label so the strip stays tiny. */
-  .text strong {
-    display: inline-flex;
-    align-items: center;
-    overflow: hidden;
-    text-indent: -9999px;
-    width: 14px;
-  }
-
-  .text strong::before {
-    content: '🍪';
-    text-indent: 0;
-    float: left;
-    margin: 0;
-    font-size: 0.78rem;
-  }
-
-  .text p {
     display: none;
   }
 
+  .banner::before {
+    content: '🍪';
+    font-size: 0.85rem;
+    line-height: 1;
+    margin-right: 0.05rem;
+  }
+
   .actions {
-    gap: 0.2rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
   }
 
   .actions button {
@@ -158,13 +142,14 @@
     line-height: 1.1;
     min-height: 0;
     font-weight: 500;
+    white-space: nowrap;
   }
 
   .secondary {
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.45);
-    padding: 0.18rem 0.3rem;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 0.18rem 0.35rem;
   }
 
   .primary {
@@ -177,7 +162,7 @@
 /* Very small phones */
 @media (max-width: 360px) {
   .banner {
-    padding: 0.22rem 0.4rem;
+    padding: 0.24rem 0.4rem;
   }
 
   .actions button {
