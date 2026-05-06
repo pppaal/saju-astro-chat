@@ -1,7 +1,12 @@
 const REPORT_SNAPSHOT_PREFIX = 'premium_report_snapshot:'
 const REPORT_SNAPSHOT_TTL_MS = 15 * 60 * 1000
 
-export type PremiumReportType = 'timing' | 'themed' | 'comprehensive'
+export type PremiumReportType =
+  | 'timing'
+  | 'themed'
+  | 'comprehensive'
+  | 'monthly'
+  | 'yearly'
 
 export interface PremiumReportSnapshot {
   reportId: string
