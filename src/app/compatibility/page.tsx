@@ -220,7 +220,7 @@ export default function CompatPage() {
       onBack={handleBack}
       backLabel={compatT('compatibilityPage.backToForm', 'Back')}
     >
-      <main className={styles.page}>
+      <main className={`${styles.page} ${!resultText ? styles.entryOnly : ''}`}>
         {/* Background Hearts - deterministic positions to avoid hydration mismatch */}
         <div className={styles.hearts}>
           {[...Array(20)].map((_, i) => (
@@ -310,25 +310,12 @@ export default function CompatPage() {
                 </div>
               )}
 
-              {/* Count Selector */}
-              <div className={styles.countSelector}>
-                <label htmlFor="count" className={styles.countLabel}>
-                  {compatT('compatibilityPage.numberOfPeople', 'Number of People (2-4)')}
-                </label>
-                <input
-                  id="count"
-                  type="number"
-                  min={2}
-                  max={4}
-                  value={count}
-                  onChange={(e) => setCount(Number(e.target.value))}
-                  className={styles.countInput}
-                />
-              </div>
-
-              {/* Person Cards - 2x2 Grid */}
+              {/* Person Cards - 2-person side-by-side. Compatibility is a
+                  pair-only flow now; group mode (3-4 people) was retired
+                  to keep the entry single-screen and to focus the
+                  Couple Matrix output. */}
               <div className={styles.personCardsGrid}>
-                {persons.map((p, idx) => (
+                {persons.slice(0, 2).map((p, idx) => (
                   <PersonCard
                     key={idx}
                     person={p}
