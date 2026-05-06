@@ -6135,28 +6135,22 @@
   margin-top: 0.5rem;
 }
 
+/* Hex DP badge wrapper — actual shape + text live inside an SVG
+   component so the gradient renders consistently on every browser.
+   The wrapper just provides sizing + a soft drop shadow halo. */
 .homeOrnament {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #63d2ff 0%, #a78bfa 50%, #8b5cf6 100%);
-  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.35);
-  position: relative;
+  width: 64px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
-  color: #ffffff;
-  letter-spacing: 0;
+  filter: drop-shadow(0 8px 24px rgba(139, 92, 246, 0.45));
 }
 
-.homeOrnament::before {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.25) 0%, transparent 70%);
-  z-index: -1;
+.homeOrnament svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .homeHeadline {
