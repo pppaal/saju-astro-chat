@@ -142,6 +142,100 @@ function normaliseGender(
 }
 
 /**
+ * Flattens a legacy AIPremiumReport / TimingAIPremiumReport sections object
+ * into a flat string map of [sectionKey] => narrativeText. The
+ * ultimate-narrative endpoint feeds this into the LLM prompt as
+ * "이전 단계 분석 텍스트" for grounding.
+ */
+export function flattenLegacySections(report: unknown): Record<string, string> {
+  if (!report || typeof report !== 'object') return {}
+  const root = report as Record<string, unknown>
+  const sections = root.sections
+  if (!sections || typeof sections !== 'object') return {}
+  const out: Record<string, string> = {}
+  for (const [key, value] of Object.entries(sections as Record<string, unknown>)) {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      out[key] = value
+      continue
+    }
+    if (key === 'domains' && value && typeof value === 'object') {
+      for (const [domainKey, domainValue] of Object.entries(value as Record<string, unknown>)) {
+        if (typeof domainValue === 'string' && domainValue.trim().length > 0) {
+          out[domainKey] = domainValue
+        }
+      }
+    }
+  }
+  return out
+}
+
+export function extractMatrixHints(
+  report: unknown
+): UltimateNarrativeRequest['matrixHints'] {
+  if (!report || typeof report !== 'object') return undefined
+  const root = report as Record<string, unknown>
+  const ms = root.matrixSummary
+  if (!ms || typeof ms !== 'object') return undefined
+  const obj = ms as Record<string, unknown>
+  return {
+    overallScore:
+      typeof obj.overallScore === 'number' ? obj.overallScore : undefined,
+    grade: typeof obj.grade === 'string' ? obj.grade : undefined,
+    topInsights: Array.isArray(obj.topInsights)
+      ? (obj.topInsights as unknown[]).filter((s): s is string => typeof s === 'string')
+      : undefined,
+    keyStrengths: Array.isArray(obj.keyStrengths)
+      ? (obj.keyStrengths as unknown[]).filter((s): s is string => typeof s === 'string')
+      : undefined,
+    keyChallenges: Array.isArray(obj.keyChallenges)
+      ? (obj.keyChallenges as unknown[]).filter((s): s is string => typeof s === 'string')
+      : undefined,
+  }
+}
+
+export interface UltimateNarrativeRequest {
+  period: 'monthly' | 'yearly' | 'comprehensive'
+  periodLabel?: string
+  targetDate?: string
+  computed: unknown
+  legacySections?: Record<string, string>
+  matrixHints?: {
+    overallScore?: number
+    grade?: string
+    topInsights?: string[]
+    keyStrengths?: string[]
+    keyChallenges?: string[]
+  }
+}
+
+/**
+ * Calls /api/premium-reports/ultimate-narrative to get the LLM-authored
+ * UltimateCore. Returns null on failure so the result page falls back to
+ * the heuristic adapter built from the legacy sections.
+ */
+export async function fetchUltimateCore(
+  request: UltimateNarrativeRequest
+): Promise<unknown> {
+  try {
+    const response = await fetch('/api/premium-reports/ultimate-narrative', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    })
+    const data = await response.json()
+    if (data?.success && data?.data?.core) {
+      return data.data.core
+    }
+    if (data?.core) {
+      return data.core
+    }
+  } catch {
+    // ignore — fallback adapter will run on the result page
+  }
+  return null
+}
+
+/**
  * Calls /api/premium-reports/ultimate-context to compute the deterministic
  * saju + astrology slice that the UltimateReport visual needs. Returns the
  * raw `computed` payload, or null if any required input is missing or the

@@ -18,11 +18,17 @@ import {
 } from '@/app/premium-reports/_components'
 import {
   buildQueryReportProfileInput,
+  extractMatrixHints,
   fetchPremiumSajuData,
   fetchUltimateComputed,
+  fetchUltimateCore,
+  flattenLegacySections,
   type PremiumSajuData,
 } from '@/app/premium-reports/_lib/shared'
-import type { UltimateComputed } from '@/lib/premium-reports/ultimateReport'
+import type {
+  UltimateComputed,
+  UltimateCore,
+} from '@/lib/premium-reports/ultimateReport'
 import { usePremiumReportProfile } from '@/app/premium-reports/_lib/usePremiumReportProfile'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 import { REPORT_CREDIT_COSTS } from '@/lib/destiny-matrix/ai-report'
@@ -148,6 +154,18 @@ export default function YearlyReportPage() {
           longitude: profileInput?.longitude ?? profile.longitude,
         })) as UltimateComputed | null
 
+        let ultimateCore: UltimateCore | null = null
+        if (computed) {
+          ultimateCore = (await fetchUltimateCore({
+            period: 'yearly',
+            periodLabel: yearLabel,
+            targetDate: todayIso,
+            computed,
+            legacySections: flattenLegacySections(data.report),
+            matrixHints: extractMatrixHints(data.report),
+          })) as UltimateCore | null
+        }
+
         savePremiumReportSnapshot({
           reportId: data.report.id,
           reportType: 'yearly',
@@ -155,6 +173,7 @@ export default function YearlyReportPage() {
           createdAt: new Date().toISOString(),
           report: data.report,
           ...(computed ? { ultimateComputed: computed } : {}),
+          ...(ultimateCore ? { ultimateCore } : {}),
         })
       }
 

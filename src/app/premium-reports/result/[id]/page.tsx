@@ -56,10 +56,12 @@ import type {
 } from '@/lib/destiny-matrix/core/adaptersTypes'
 import { readPremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 import { mapAiReportToUltimate } from '@/lib/premium-reports/mapAiReportToUltimate'
-import type {
-  UltimateComputed,
-  UltimatePeriod,
-  UltimateReport,
+import {
+  ULTIMATE_REPORT_VERSION,
+  type UltimateComputed,
+  type UltimateCore,
+  type UltimatePeriod,
+  type UltimateReport,
 } from '@/lib/premium-reports/ultimateReport'
 import UltimateReportView from './_components/UltimateReportView'
 
@@ -436,6 +438,7 @@ export default function ReportResultPage() {
 
   const [report, setReport] = useState<ReportData | null>(null)
   const [ultimateComputed, setUltimateComputed] = useState<UltimateComputed | null>(null)
+  const [ultimateCoreOverride, setUltimateCoreOverride] = useState<UltimateCore | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -458,6 +461,9 @@ export default function ReportResultPage() {
       )
       if (snapshot.ultimateComputed) {
         setUltimateComputed(snapshot.ultimateComputed)
+      }
+      if (snapshot.ultimateCore) {
+        setUltimateCoreOverride(snapshot.ultimateCore)
       }
       setIsLoading(false)
     } else {
@@ -646,13 +652,26 @@ export default function ReportResultPage() {
       (report.fullData && typeof report.fullData === 'object'
         ? (report.fullData as Record<string, unknown>)
         : null) || {}
-    return mapAiReportToUltimate({
+    const adapterReport = mapAiReportToUltimate({
       reportId: report.id,
       period: ultimatePeriod,
       targetDate: typeof legacySource.targetDate === 'string' ? legacySource.targetDate : undefined,
       legacy: legacySource,
       computed: ultimateComputed,
     })
+
+    // When the LLM-authored core is available, swap it in. The adapter
+    // still supplies meta + narrative + computed slots, so the result
+    // page renders LLM prose for the user-facing copy and engine values
+    // for the deterministic visualisations.
+    if (ultimateCoreOverride) {
+      return {
+        ...adapterReport,
+        meta: { ...adapterReport.meta, reportVersion: ULTIMATE_REPORT_VERSION },
+        core: ultimateCoreOverride,
+      }
+    }
+    return adapterReport
   })()
 
   const showThemedDiagnostics = report.type === 'themed' && !!report.calculationDetails

@@ -1,7 +1,7 @@
 const REPORT_SNAPSHOT_PREFIX = 'premium_report_snapshot:'
 const REPORT_SNAPSHOT_TTL_MS = 15 * 60 * 1000
 
-import type { UltimateComputed } from './ultimateReport'
+import type { UltimateComputed, UltimateCore } from './ultimateReport'
 
 export type PremiumReportType =
   | 'timing'
@@ -23,6 +23,12 @@ export interface PremiumReportSnapshot {
    * back to the legacy section-based layout.
    */
   ultimateComputed?: UltimateComputed
+  /**
+   * LLM-authored UltimateCore (theme / summary / insights / keyDates /
+   * dosAndDonts / radar). When present the result page binds it directly
+   * into UltimateReportView, skipping the heuristic adapter mapping.
+   */
+  ultimateCore?: UltimateCore
 }
 
 function getSnapshotKey(reportId: string): string {
