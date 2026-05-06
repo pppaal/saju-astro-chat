@@ -29,6 +29,18 @@ Last audited: 2026-05-06 (Asia/Hong_Kong)
 | `docs/PDF_REPORTING.md`                     | Report generation flow                                            | Backend/reporting engineers     | 2026-04-01   |
 | `docs/RUNBOOK.md`                           | Operational runbook                                               | On-call, platform engineers     | 2026-04-01   |
 
+## Cross-Layer / Fortune Engine Docs
+
+| Document                                | Covers                                                            | Audience                   | Last audited |
+| --------------------------------------- | ----------------------------------------------------------------- | -------------------------- | ------------ |
+| `docs/DESTINY_ENGINE_ARCHITECTURE.md`   | End-to-end pipeline (input → saju → astro → matrix → service)     | Backend/AI engineers       | 2026-04-01   |
+| `docs/CROSS_RULES_SPEC.md`              | Auto-generated rule spec (205 rules + 10 meta) — source of truth  | Backend/AI engineers       | 2026-05-06   |
+| `docs/CROSS_RULES_ROADMAP.md`           | Cross-rules priorities (P0~P4) + release hygiene discipline       | Backend/AI engineers       | 2026-05-06   |
+| `docs/AUDIT_FUSION.md`                  | Saju × Astro fusion verification + maturity scorecard             | Backend/AI engineers       | 2026-03-11   |
+| `docs/AUDIT_SAJU.md`                    | Saju calculation audit                                            | Backend engineers          | 2026-03-11   |
+| `docs/AUDIT_ASTRO.md`                   | Astrology calculation audit                                       | Backend engineers          | 2026-03-11   |
+| `docs/SOLAR_TIME_CONVENTION.md`         | True solar time policy and boundary handling                      | Backend engineers          | 2026-03-11   |
+
 ## Generated And Audit Docs
 
 | Document                               | Covers                                       | Audience                   | Last audited |
@@ -36,6 +48,21 @@ Last audited: 2026-05-06 (Asia/Hong_Kong)
 | `docs/API_AUDIT_REPORT.md`             | Generated API inventory and security signals | Backend/security engineers | 2026-04-01   |
 | `docs/MATRIX_DATA_CROSS_MAP.md`        | Matrix data cross-map reference              | Destiny-engine maintainers | 2026-02-15   |
 | `docs/MATRIX_DATA_CROSS_MAP.json`      | Machine-readable matrix data cross map       | Destiny-engine maintainers | 2026-02-15   |
+| `docs/DEAD_CODE_TRIAGE.md`             | knip output triage — clusters of dead files/exports requiring decision | Maintainers       | 2026-05-06   |
+
+## Operations / Cost / UX Docs
+
+| Document                                            | Covers                                            | Audience                  | Last audited |
+| --------------------------------------------------- | ------------------------------------------------- | ------------------------- | ------------ |
+| `docs/AI_COST_MONITORING.md`                        | LLM cost tracking and budget gates                | Backend/SRE               | 2026-03-11   |
+| `docs/COUNSELOR_SESSION_SAVE_RACE_RUNBOOK.md`       | Counselor session save race condition runbook     | On-call/backend           | 2026-03-11   |
+| `docs/CREDIT_ERROR_MESSAGES.md`                     | Credit-related error copy contract                | Frontend/product          | 2026-03-11   |
+| `docs/CALENDAR_GRADE_STRUCTURE_FOR_GPT.md`          | Calendar grade structure prompt reference         | AI engineers              | 2026-03-11   |
+| `docs/A_GRADE_CHECKLIST.md`                         | "A-grade" release readiness checklist             | Engineering leadership    | 2026-03-11   |
+| `docs/UNICORN_SCORECARD.md`                         | Strategy scorecard (paired with UNICORN_STRATEGY) | Product leadership        | 2026-03-11   |
+| `docs/TYPECHECK_OPS.md`                             | Typecheck hotspots and zero-error plan            | All engineers             | 2026-03-11   |
+| `docs/DEPLOYMENT.md`                                | Deployment notes                                  | DevOps                    | 2026-03-11   |
+| `docs/CEO_TECH_GLOSSARY.md`                         | Non-technical glossary for product reviews        | Product/leadership        | 2026-03-11   |
 
 ## Library Docs
 
@@ -51,11 +78,14 @@ Last audited: 2026-05-06 (Asia/Hong_Kong)
 - Current destiny release gate is not just type/build health. It also includes:
   - `scripts/ops/qa-destiny-three-services.ts`
   - `scripts/ops/qa-counselor-questions.ts`
-- Current verification snapshot on 2026-04-01:
-  - `python scripts/self_check.py` -> `PASS`
-  - `npm run docs:check-links` -> pass
-  - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both` -> blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-  - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both` -> overall `PASS=21 WARN=13 FAIL=8`
+- 2026-05-06 verification snapshot:
+  - `npm run docs:check-links` -> **PASS** (8 markdown files)
+  - `npx tsc -p tsconfig.json --noEmit` -> **PASS** (0 errors, after `prisma generate`)
+  - `npm run lint` -> **PASS** (0 errors after fixing 2 unused-import errors in `MainPageClient.tsx`)
+  - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both` -> **PASS=42 WARN=0 FAIL=0** (was WARN=13 FAIL=8 in 2026-04-01 snapshot)
+  - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both` -> **PASS=10 WARN=0 FAIL=0** (was blocked by parse error in 2026-04-01 snapshot — now resolved)
+  - `npm test` not run in this snapshot (long-running suite)
+- 2026-05-06 maintenance: `CROSS_RULES_SPEC.md` regenerated (205 rules + 10 meta); `npx knip` triage in `DEAD_CODE_TRIAGE.md`; 3 dead files removed from `src/lib/fortune/cross-rules/`; **Python `backend_ai` substrate fully retired** — folder, CI workflows, package.json scripts, tests, docker-compose service, and env vars all removed; `AUDIT_TAROT_GRAPHRAG.md`, `AUDIT_REPO_MAP.md`, `audit_tarot_quality.md` archived.
 
 ## Archive Guidance
 

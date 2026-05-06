@@ -362,8 +362,10 @@ Provide friendly but professional guidance:
 - Positive yet realistic, no speculation
 - Plain prose paragraphs, no markdown headers`
 
-    // User prompt — context + question
-    const userPrompt = [
+    // User prompt를 두 블록으로 분할 — multi-turn caching:
+    //  - cachedUserContext: 두 사람의 차트 + 사주/점성/시기 분석 + 가이드 (안정)
+    //  - userPrompt: 이번 턴의 history + 새 질문 (변동)
+    const cachedUserContext = [
       `테마: ${themeContext}`,
       ``,
       `== 참여자 정보 ==`,
@@ -378,9 +380,14 @@ Provide friendly but professional guidance:
       `\n== 시기 흐름 (대운/세운/월운/일운) ==\n${stringifyForPrompt(timingDetails)}`,
       `\n== 결정적 컨텍스트 ==\n${stringifyForPrompt(contextTrace)}`,
       fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
-      historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
       `\n== 품질 기준 ==\n${themeDepthGuide}`,
       `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
+    ]
+      .filter(Boolean)
+      .join('\n')
+
+    const userPrompt = [
+      historyText ? `== 이전 대화 ==\n${historyText}` : '',
       `\n== 사용자 질문 ==\n${userQuestion}`,
     ]
       .filter(Boolean)
@@ -389,6 +396,7 @@ Provide friendly but professional guidance:
     try {
       return await streamClaudeAsSSE({
         systemPrompt,
+        cachedUserContext,
         userPrompt,
         maxTokens: 3500,
         temperature: 0.7,

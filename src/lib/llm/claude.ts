@@ -45,6 +45,13 @@ export interface CallClaudeOptions {
   systemPrompt: string
   /** 동적 사용자 프롬프트. */
   userPrompt: string
+  /**
+   * 큰 + 거의 정적인 user-side 컨텍스트 (예: 차트 데이터, signals, 대화 히스토리).
+   * 별도 user content 블록으로 들어가며 cache_control: ephemeral 마킹.
+   * Anthropic은 1024+ 토큰 블록만 캐싱하므로 큰 컨텍스트에만 사용.
+   * 같은 유저의 여러 호출에 걸쳐 재사용되면 cache_read 단가 (90% 할인) 적용.
+   */
+  cachedUserContext?: string
   /** 기본 1500. 큰 출력은 명시적으로 설정. */
   maxTokens?: number
   /** 기본 0.7. 분류 작업은 0.2-0.3, 창작은 0.7-0.8. */
@@ -72,6 +79,34 @@ export function isClaudeAvailable(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY)
 }
 
+type UserMessageContent =
+  | string
+  | Array<
+      | { type: 'text'; text: string }
+      | { type: 'text'; text: string; cache_control: { type: 'ephemeral' } }
+    >
+
+/**
+ * userPrompt + 선택적인 cachedUserContext를 Anthropic messages content 형식으로 변환.
+ * cachedUserContext가 있으면 두 블록 (cached + dynamic), 없으면 단순 string.
+ */
+function buildUserMessageContent(
+  userPrompt: string,
+  cachedUserContext?: string
+): UserMessageContent {
+  if (!cachedUserContext || !cachedUserContext.trim()) {
+    return userPrompt
+  }
+  return [
+    {
+      type: 'text',
+      text: cachedUserContext,
+      cache_control: { type: 'ephemeral' },
+    },
+    { type: 'text', text: userPrompt },
+  ]
+}
+
 export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
@@ -81,6 +116,7 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
   const {
     systemPrompt,
     userPrompt,
+    cachedUserContext,
     maxTokens = 1500,
     temperature = 0.7,
     timeoutMs = 40000,
@@ -108,7 +144,9 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
             cache_control: { type: 'ephemeral' },
           },
         ],
-        messages: [{ role: 'user', content: userPrompt }],
+        messages: [
+          { role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) },
+        ],
       }),
     },
     {
@@ -219,6 +257,7 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
   const {
     systemPrompt,
     userPrompt,
+    cachedUserContext,
     maxTokens = 2000,
     temperature = 0.7,
     timeoutMs = 60000,
@@ -242,7 +281,9 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
       temperature,
       stream: true,
       system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
-      messages: [{ role: 'user', content: userPrompt }],
+      messages: [
+        { role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) },
+      ],
     }),
     signal: controller.signal,
   })

@@ -119,16 +119,6 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Setup Python
-        if: matrix.test-suite == 'integration'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: pip
-          cache-dependency-path: |
-            backend_ai/requirements.txt
-            backend_ai/requirements-dev.txt
-
       - name: Install dependencies
         run: npm ci
         env:
@@ -140,15 +130,9 @@ jobs:
 
       - name: Run integration tests
         if: matrix.test-suite == 'integration'
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend_ai/requirements.txt -r backend_ai/requirements-dev.txt
-          python backend_ai/tools/validate_graph_data.py
-          npm run test:integration
-          npm run test:backend
+        run: npm run test:integration
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://user:pass@host/db' }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-test-ci-placeholder' }}
 
   # Build verification
   build-check:

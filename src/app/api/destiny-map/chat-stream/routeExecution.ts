@@ -32,7 +32,7 @@ import {
   describeQuestionAnalysis,
   mapFocusDomainToTheme,
 } from './lib/focusDomain'
-import { assembleFinalPrompt } from './builders/promptAssembly'
+import { assembleFinalPromptSplit } from './builders/promptAssembly'
 import type { AstroDataStructure, SajuDataStructure } from './lib/types'
 import {
   buildCompactPromptSections,
@@ -210,7 +210,12 @@ type PredictionPacket = {
 export interface PreparedCounselorExecution {
   lang: 'ko' | 'en'
   promptTheme: string
+  /** 합쳐진 단일 문자열 (호환용). */
   chatPrompt: string
+  /** prompt-caching용 — 멀티턴에 안정적인 system + 차트 컨텍스트 + sections. */
+  chatPromptCachedContext: string
+  /** prompt-caching용 — 매 턴 바뀌는 history + 새 질문. */
+  chatPromptDynamicTail: string
   counselorUiEvidence: string
   predictionId: string | null
   isStrictMatrixFailure: boolean
@@ -348,6 +353,8 @@ export async function prepareCounselorExecution(params: {
       lang,
       promptTheme: effectiveTheme,
       chatPrompt: '',
+      chatPromptCachedContext: '',
+      chatPromptDynamicTail: '',
       counselorUiEvidence: '',
       predictionId: null,
       isStrictMatrixFailure: true,
@@ -513,7 +520,7 @@ export async function prepareCounselorExecution(params: {
     .filter(Boolean)
     .join('\n\n')
 
-  const chatPrompt = assembleFinalPrompt({
+  const split = assembleFinalPromptSplit({
     systemPrompt: counselorSystemPrompt(lang),
     baseContext,
     memoryContext: '',
@@ -521,11 +528,14 @@ export async function prepareCounselorExecution(params: {
     messages: trimmedHistory.filter((m) => m.role !== 'system'),
     userQuestion: contextSections.userQuestion,
   })
+  const chatPrompt = [split.cachedContext, split.dynamicTail].filter(Boolean).join('\n\n')
 
   return {
     lang,
     promptTheme,
     chatPrompt,
+    chatPromptCachedContext: split.cachedContext,
+    chatPromptDynamicTail: split.dynamicTail,
     counselorUiEvidence,
     predictionId,
     isStrictMatrixFailure: false,

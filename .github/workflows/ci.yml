@@ -19,15 +19,6 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          cache: pip
-          cache-dependency-path: |
-            backend_ai/requirements.txt
-            backend_ai/requirements-dev.txt
-
       - name: Install deps
         run: npm ci
         env:
@@ -204,19 +195,6 @@ jobs:
             ).trim();
             const thresholds = JSON.parse(raw);
 
-            // Check for backend coverage
-            let backendSection = '';
-            if (fs.existsSync('backend_ai/coverage/coverage.json')) {
-              const backendCov = JSON.parse(fs.readFileSync('backend_ai/coverage/coverage.json', 'utf8'));
-              const backendPct = backendCov.totals.percent_covered;
-              backendSection = `
-            ### Backend (Python)
-            | Metric | Coverage | Threshold | Status |
-            |--------|----------|-----------|--------|
-            | Total | ${backendPct.toFixed(2)}% | 80% | ${getIcon(backendPct, 80)} |
-            `;
-            }
-
             const body = `## 📊 Coverage Report
 
             ### Frontend (TypeScript)
@@ -226,7 +204,7 @@ jobs:
             | Branches | ${total.branches.pct.toFixed(2)}% | ${thresholds.branches}% | ${getIcon(total.branches.pct, thresholds.branches)} |
             | Functions | ${total.functions.pct.toFixed(2)}% | ${thresholds.functions}% | ${getIcon(total.functions.pct, thresholds.functions)} |
             | Statements | ${total.statements.pct.toFixed(2)}% | ${thresholds.statements}% | ${getIcon(total.statements.pct, thresholds.statements)} |
-            ${backendSection}
+
             <details>
             <summary>Frontend Coverage Details</summary>
 
@@ -263,58 +241,6 @@ jobs:
                 body: body
               });
             }
-
-      - name: Install backend deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend_ai/requirements.txt -r backend_ai/requirements-dev.txt
-
-      - name: Backend AI tests (best-effort)
-        id: backend_tests
-        continue-on-error: true
-        run: |
-          cd backend_ai
-          python -m pytest
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-test-ci-placeholder' }}
-          ADMIN_API_TOKEN: ${{ secrets.ADMIN_API_TOKEN || 'ci-placeholder' }}
-          PUBLIC_API_TOKEN: ${{ secrets.PUBLIC_API_TOKEN || 'ci-placeholder' }}
-          PUBLIC_METRICS_TOKEN: ${{ secrets.PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
-
-      - name: Upload backend coverage to Codecov
-        if: hashFiles('backend_ai/coverage/coverage.json') != ''
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./backend_ai/coverage/coverage.json
-          flags: backend
-          fail_ci_if_error: false
-
-      - name: Upload backend coverage artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: backend-coverage-report
-          path: backend_ai/coverage/
-          retention-days: 30
-
-      - name: Backend coverage threshold check
-        if: steps.backend_tests.outcome == 'success' && hashFiles('backend_ai/coverage/coverage.json') != ''
-        run: |
-          if [ -f backend_ai/coverage/coverage.json ]; then
-            TOTAL=$(python3 -c "import json; d=json.load(open('backend_ai/coverage/coverage.json')); print(d['totals']['percent_covered'])")
-            echo "📊 Backend Coverage: ${TOTAL}%"
-
-            MIN_COVERAGE=80
-            if (( $(echo "$TOTAL < $MIN_COVERAGE" | bc -l) )); then
-              echo "❌ Backend coverage ${TOTAL}% is below threshold ${MIN_COVERAGE}%"
-              exit 1
-            else
-              echo "✅ Backend coverage threshold met!"
-            fi
-          else
-            echo "⚠️ Backend coverage report not found"
-          fi
 
       - name: Build
         run: npm run build

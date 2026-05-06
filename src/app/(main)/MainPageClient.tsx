@@ -1,17 +1,11 @@
 'use client'
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import Link from 'next/link'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
-import {
-  getPathValue,
-  isPlaceholderTranslation,
-  toSafeFallbackText,
-  type I18nMessages,
-} from '@/i18n/utils'
+import type { I18nMessages } from '@/i18n/utils'
 import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 import SideDrawer from './components/SideDrawer'
@@ -27,8 +21,8 @@ interface MainPageClientProps {
   initialMessages: I18nMessages
 }
 
-export default function MainPageClient({ initialLocale, initialMessages }: MainPageClientProps) {
-  const { locale: activeLocale, hydrated, t, setLocale } = useI18n()
+export default function MainPageClient({ initialLocale }: MainPageClientProps) {
+  const { locale: activeLocale, setLocale } = useI18n()
   const locale = (activeLocale || initialLocale) as Locale
   const { status } = useSession()
   const isAuthed = status === 'authenticated'
@@ -110,31 +104,6 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
       cancelled = true
     }
   }, [isAuthed])
-
-  const serverTranslate = useCallback(
-    (key: string, fallback?: string) => {
-      const value = getPathValue(initialMessages, key)
-      if (typeof value === 'string' && !isPlaceholderTranslation(value, key)) {
-        return value
-      }
-      return fallback || toSafeFallbackText(key)
-    },
-    [initialMessages]
-  )
-
-  const translate = useCallback(
-    (key: string, fallback: string) => {
-      if (!hydrated) {
-        return serverTranslate(key, fallback)
-      }
-      const translated = t(key, fallback)
-      if (isPlaceholderTranslation(translated, key)) {
-        return serverTranslate(key, fallback)
-      }
-      return translated
-    },
-    [hydrated, serverTranslate, t]
-  )
 
   const handleSaved = (info: StoredBirthInfo) => {
     setBirthInfo(info)

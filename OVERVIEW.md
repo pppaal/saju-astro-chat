@@ -1,13 +1,12 @@
 # System Overview
 
-Last audited: 2026-04-08 (Asia/Hong_Kong)
+Last audited: 2026-05-06 (Asia/Hong_Kong)
 
 ## Current Stack
 
 - Web and API: Next.js App Router + TypeScript (`src/app`, `src/lib`)
 - Database: Prisma + PostgreSQL (`prisma/schema.prisma`)
-- AI backend: Python service (`backend_ai/main.py` -> `backend_ai/app/app.py`)
-- Retrieval substrate: Chroma-backed GraphRAG and cross-reasoning pipelines (`backend_ai/app/rag`)
+- AI: `@anthropic-ai/sdk` called directly from Next.js API routes (no separate Python backend)
 
 ## Runtime Topology
 
@@ -16,10 +15,7 @@ Browser
   -> Next.js UI
   -> Next.js API routes
       -> Prisma/PostgreSQL
-      -> Python backend_ai
-          -> Chroma collections
-              - saju_astro_graph_nodes_v1
-              - saju_astro_cross_v1
+      -> @anthropic-ai/sdk (Claude)
       -> Product outputs
           - SSE chat and counselor responses
           - deterministic destiny-core outputs
@@ -89,21 +85,16 @@ Premium report generation now uses `reportCore` first and GraphRAG as evidence s
 
 Canonical diagnostics:
 
-- `python scripts/self_check.py`
-- `python scripts/self_check.py --runtime-evidence`
 - `npx tsx scripts/ops/trace-destinypal-pipeline.ts`
 - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
 - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
 
-Current verification snapshot on 2026-04-08:
+Current verification snapshot on 2026-05-06:
 
-- `python scripts/self_check.py`: overall `PASS`
-- `npx tsc -p tsconfig.json --noEmit`: passed
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=ko`:
-  - `PASS=5 WARN=0 FAIL=0`
-- targeted regression bundle:
-  - `226 passed, 1 skipped`
-  - includes the report, counselor, calendar, action-plan, tarot interpret, life-prediction explain-results, premium result page, and engine contract paths
+- `npx tsc -p tsconfig.json --noEmit`: passed (0 errors)
+- `npm run lint`: passed (0 errors)
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`: `PASS=10 WARN=0 FAIL=0`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`: `PASS=42 WARN=0 FAIL=0`
 
 Scope note:
 
@@ -112,10 +103,7 @@ Scope note:
 
 ## Key Runtime Flags
 
-- `USE_CHROMADB`
-- `EXCLUDE_NON_SAJU_ASTRO`
-- `RAG_TRACE`
-- `AI_BACKEND_URL`
+- `ANTHROPIC_API_KEY`
 - `DEMO_TOKEN`
 - `SUPPORT_EMAIL`
 - `NEXT_PUBLIC_SUPPORT_EMAIL`

@@ -31,8 +31,6 @@ const config = [
       // Python environments
       '.venv/**',
       'venv/**',
-      'backend_ai/venv/**',
-      'backend_ai/coverage/**',
       '**/__pycache__/**',
       '*.pyc',
       // Cache directories

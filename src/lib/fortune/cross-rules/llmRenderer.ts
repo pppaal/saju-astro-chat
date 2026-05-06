@@ -134,7 +134,7 @@ export interface LlmRenderOptions {
   mode?: RenderMode // default 'counselor'
 }
 
-const DEFAULT_MODEL = 'claude-sonnet-4-6'
+const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929'
 const DEFAULT_TIMEOUT_MS = 60_000
 const DEFAULT_MAX_TOKENS_COUNSELOR = 1200
 const DEFAULT_MAX_TOKENS_REPORT = 4000

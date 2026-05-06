@@ -17,7 +17,6 @@ import {
   Clock,
   ScrollText,
 } from 'lucide-react'
-import BackButton from '@/components/ui/BackButton'
 import AuthGate from '@/components/auth/AuthGate'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
@@ -154,9 +153,6 @@ export default function ProfilePage() {
       callbackUrl="/profile"
       fallback={
         <div className="relative min-h-[100svh] overflow-hidden bg-[#03060d] text-slate-100">
-          <div className="fixed left-4 top-4 z-30">
-            <BackButton />
-          </div>
           <div className="mx-auto flex min-h-[100svh] max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
             <h1 className="text-balance text-3xl font-semibold leading-[1.15] tracking-[-0.025em] text-white">
               {t('profile.loginRequired', '로그인하면 나의 여정이 시작돼요')}
@@ -185,16 +181,12 @@ export default function ProfilePage() {
         </div>
 
         <div className="relative z-10">
-          <div className="fixed left-4 top-4 z-30">
-            <BackButton />
-          </div>
+          {/* Hamburger + locale toggle live in the GlobalHeader; the page's
+              own back button + redundant pill were removed for a cleaner top. */}
 
-          <div className="mx-auto max-w-4xl px-5 pb-20 pt-12 sm:px-6 sm:pt-16">
+          <div className="mx-auto max-w-4xl px-5 pb-20 pt-20 sm:px-6 sm:pt-24">
             {/* Hero */}
-            <header className="space-y-5 text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">
-                나의 여정
-              </p>
+            <header className="flex flex-col items-center gap-4 text-center">
               <div className="flex flex-col items-center gap-4">
                 {profile?.image ? (
                   <Image
@@ -206,7 +198,7 @@ export default function ProfilePage() {
                   />
                 ) : (
                   <div className="flex h-[88px] w-[88px] items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-2xl font-semibold text-white">
-                    {profile?.name?.[0] || '·'}
+                    {profile?.name?.[0]?.toUpperCase() || '·'}
                   </div>
                 )}
                 <div>

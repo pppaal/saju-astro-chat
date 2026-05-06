@@ -1,6 +1,6 @@
 # Repo Structure
 
-Last updated: 2026-04-01 (Asia/Hong_Kong)
+Last updated: 2026-05-06 (Asia/Hong_Kong)
 
 ## Intent
 
@@ -15,7 +15,6 @@ Keep the repository readable by separating long-lived source from disposable exe
 - `reports/`: curated report outputs worth keeping
 - `tests/fixtures/`, `scripts/ops/fixtures/`: checked-in non-product inputs for evaluation and ops examples
 - `artifacts/`, `qa-dumps/`, `tmp/`: disposable generated output, ignored by default
-- `backend_ai/data/chromadb/`: local runtime data store, ignored by default
 
 ## Root Policy
 

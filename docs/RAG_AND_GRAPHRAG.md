@@ -1,6 +1,6 @@
 # RAG And GraphRAG
 
-Last audited: 2026-04-01 (Asia/Hong_Kong)
+Last audited: 2026-05-06 (Asia/Hong_Kong)
 
 ## Current Position In The System
 
@@ -16,21 +16,12 @@ This separation is intentional. Core decides `focusDomain`, `phase`, `topDecisio
 
 ## Main Code Paths
 
-### Destiny-side GraphRAG
+GraphRAG now lives entirely inside the TypeScript destiny stack — the previous Python `backend_ai/app/rag/*` substrate was retired on 2026-05-06.
 
 - `src/lib/destiny-matrix/ai-report/graphRagEvidence.ts`
   - `buildGraphRAGEvidence(...)`
   - `formatGraphRAGEvidenceForPrompt(...)`
   - `summarizeGraphRAGEvidence(...)`
-
-### Python backend GraphRAG and vector infrastructure
-
-- `backend_ai/app/rag/vector_store.py`
-- `backend_ai/app/rag/cross_store.py`
-- `backend_ai/services/streaming_service.py`
-- `scripts/self_check.py`
-
-The Python side remains the retrieval/runtime substrate. The TypeScript destiny layer uses its own GraphRAG evidence bundle to align matrix, aspect, transit, and cross evidence around the core verdict.
 
 ## Supported GraphRAG Domains
 
@@ -134,30 +125,12 @@ This produces end-to-end outputs under `reports/ops/` including:
 - GraphRAG evidence bundle summary
 - service consistency checks
 
-### Python-side retrieval checks
-
-Use:
-
-```bash
-python scripts/self_check.py
-python scripts/self_check.py --runtime-evidence
-```
-
-These remain the canonical retrieval and evidence health checks for the Python GraphRAG substrate.
-
 ## Current Quality Snapshot
 
-Verified on 2026-04-01:
+Verified on 2026-05-06:
 
-- `python scripts/self_check.py`: overall `PASS`
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`:
-  - blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`:
-  - overall `PASS=21 WARN=13 FAIL=8`
-  - `ko`: `PASS=5 WARN=8 FAIL=8`
-  - `en`: `PASS=16 WARN=5 FAIL=0`
-
-This does not change GraphRAG's role. It means the retrieval substrate is healthy, but the current workspace is not at the previous zero-fail service baseline.
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`: `PASS=10 WARN=0 FAIL=0`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`: `PASS=42 WARN=0 FAIL=0`
 
 ## Current Gaps
 

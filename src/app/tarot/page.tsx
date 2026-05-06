@@ -122,8 +122,6 @@ export default function TarotHomePage() {
     dangerWarning,
     isAnalyzing,
     isLoadingPreview,
-    fallbackReason,
-    fallbackNotice,
     handleStartReading: analyzeQuestion,
   } = useQuestionAnalysis({ question, language, isKo, getQuickRecommendation })
 

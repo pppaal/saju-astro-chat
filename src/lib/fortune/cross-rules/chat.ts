@@ -93,7 +93,7 @@ const SYSTEM_PROMPT = `당신은 사주와 점성을 함께 보는 운세 상담
 이렇게만 지키면, 사용자는 자기 사주 + 점성 데이터에 근거한 답을
 대화체로 받게 됩니다.`.trim()
 
-const DEFAULT_MODEL = 'claude-sonnet-4-6'
+const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929'
 const DEFAULT_MAX_TOKENS = 1200
 const DEFAULT_TIMEOUT_MS = 60_000
 
