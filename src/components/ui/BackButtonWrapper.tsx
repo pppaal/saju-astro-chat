@@ -8,16 +8,9 @@ import BackButton from './BackButton'
 const PAGES_WITHOUT_BACK_BUTTON = [
   '/', // Home page - no back button needed
   '/tarot', // Tarot pages - have their own navigation
-  '/dream', // Uses ServicePageLayout with built-in back button
   '/compatibility', // Uses ServicePageLayout with built-in back button
-  '/saju', // Uses ServicePageLayout with built-in back button
-  '/astrology', // Uses ServicePageLayout with built-in back button
-  '/iching', // Uses ServicePageLayout with built-in back button
-  '/numerology', // Uses ServicePageLayout with built-in back button
   '/personality', // Uses ServicePageLayout with built-in back button
   '/destiny-map', // Uses ServicePageLayout with built-in back button
-  '/destiny-matrix', // Uses ServicePageLayout with built-in back button
-  '/destiny-pal', // Has custom back button
   '/destiny-match', // Has custom back button
   '/about', // Has custom back button in page
   '/contact', // Has custom back button in page
@@ -49,12 +42,8 @@ export default function BackButtonWrapper() {
     if (prefix === pathname) {
       return true
     }
-    // Match child routes, but exclude specific exceptions
+    // Match child routes
     if (pathname.startsWith(prefix + '/')) {
-      // Show back button on counselor subpages that don't have their own
-      if (pathname === '/saju/counselor') {
-        return false
-      }
       return true
     }
     return false
