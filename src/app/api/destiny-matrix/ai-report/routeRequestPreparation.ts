@@ -151,7 +151,9 @@ export async function prepareAiReportRequest(
   if (!validation.success) {
     return {
       success: false,
-      validationErrors: (validation.errors || []).map((error) => error.message),
+      validationErrors: (validation.errors || []).map((error) =>
+        error.field ? `${error.field}: ${error.message}` : error.message
+      ),
     }
   }
 

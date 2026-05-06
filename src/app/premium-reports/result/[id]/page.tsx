@@ -32,6 +32,7 @@ import {
   ReportSectionReader,
   ReportSummarySection,
   SingleSubjectViewSection,
+  ThemeAnglesSection,
 } from '@/app/premium-reports/_components'
 import ReportVisualSummary from '@/components/reports/ReportVisualSummary'
 import type {
@@ -807,6 +808,44 @@ export default function ReportResultPage() {
           </div>
         </div>
       </header>
+
+      {(() => {
+        const fd = report.fullData as Record<string, unknown> | undefined
+        const synthRaw = fd?.signalSynthesis as { normalizedSignals?: unknown[] } | undefined
+        const rawSignals = Array.isArray(synthRaw?.normalizedSignals)
+          ? (synthRaw!.normalizedSignals as unknown[])
+          : []
+        if (rawSignals.length === 0) return null
+        const timing = fd?.timing as Record<string, unknown> | undefined
+        const profile = fd?.profile as Record<string, unknown> | undefined
+        const birthDate = typeof profile?.birthDate === 'string' ? profile.birthDate : undefined
+        const birthYear = birthDate ? Number(birthDate.slice(0, 4)) : undefined
+        const activeTransitsRaw = fd?.activeTransits
+        const activeTransits = Array.isArray(activeTransitsRaw)
+          ? (activeTransitsRaw as Parameters<typeof ThemeAnglesSection>[0]['activeTransits'])
+          : undefined
+        const crossSnapshotRaw = fd?.crossSnapshot as
+          | { crossAgreementMatrix?: unknown[] }
+          | undefined
+        const crossAgreementMatrix = Array.isArray(crossSnapshotRaw?.crossAgreementMatrix)
+          ? (crossSnapshotRaw!.crossAgreementMatrix as Parameters<
+              typeof ThemeAnglesSection
+            >[0]['crossAgreementMatrix'])
+          : undefined
+        const themeKey = (
+          ['career', 'love', 'wealth', 'health', 'family', 'move'] as const
+        ).find((k) => k === report.theme)
+        return (
+          <ThemeAnglesSection
+            signals={rawSignals as Parameters<typeof ThemeAnglesSection>[0]['signals']}
+            timing={timing as Parameters<typeof ThemeAnglesSection>[0]['timing']}
+            activeTransits={activeTransits}
+            birthYear={Number.isFinite(birthYear) ? birthYear : undefined}
+            crossAgreementMatrix={crossAgreementMatrix}
+            theme={themeKey}
+          />
+        )
+      })()}
 
       {report.type === 'themed' && themedHeadlineLines.length > 0 && (
         <div className="mx-auto mt-6 max-w-6xl px-4">

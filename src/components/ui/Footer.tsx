@@ -64,6 +64,11 @@ export default function Footer() {
             '본 서비스의 모든 해석은 사주명리·점성술 전통에 기반한 *참고 자료*이며 미래를 단정·확정하지 않습니다. 중요한 의사결정은 본인의 판단과 전문가 상담을 함께 활용하세요.'
           )}
         </div>
+        <div className={styles.mobileLegalOnly} aria-label="Legal links">
+          <Link href="/policy/terms">{translate('footer.terms', 'Terms')}</Link>
+          <Link href="/policy/privacy">{translate('footer.privacy', 'Privacy')}</Link>
+          <Link href="/policy/refund">{translate('footer.refund', 'Refund')}</Link>
+        </div>
       </div>
     </footer>
   );

@@ -24,21 +24,25 @@ export type ReportTheme = 'love' | 'career' | 'wealth' | 'health' | 'family' | '
 // 크레딧 비용 설정
 // ===========================
 
+// Pricing strategy: Monthly is the recurring revenue driver, so it keeps
+// its weight. Lifetime (comprehensive) and Yearly are lead-in / one-time
+// purchases — kept cheap to lower the trial bar. Themed reports drop one
+// notch since they cover a narrower scope than comprehensive.
 export const REPORT_CREDIT_COSTS: Record<ReportPeriod | ReportTheme | 'themed', number> = {
   // 타이밍 리포트
-  daily: 2, // 1 → 2
-  monthly: 3, // 2 → 3
-  yearly: 5, // 3 → 5
-  comprehensive: 7, // 3 → 7
+  daily: 1, // was 2 — quick teaser
+  monthly: 3, // unchanged — recurring sweet spot
+  yearly: 3, // was 5 — lead-in pricing
+  comprehensive: 4, // was 7 — Lifetime lead-in (one-time deep dive)
 
-  // 테마별 리포트
-  themed: 3, // 2 → 3 (기본)
-  love: 3,
-  career: 3,
-  wealth: 3,
-  health: 3,
-  family: 3,
-  move: 3,
+  // 테마별 리포트 (한 테마 깊이 분석)
+  themed: 2, // was 3 — narrower scope
+  love: 2,
+  career: 2,
+  wealth: 2,
+  health: 2,
+  family: 2,
+  move: 2,
 }
 
 // ===========================

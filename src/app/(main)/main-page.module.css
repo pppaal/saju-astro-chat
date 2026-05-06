@@ -4321,17 +4321,18 @@
   }
   .topBar {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     position: fixed;
-    padding: 10px 16px;
+    padding: 10px 12px;
     align-items: center;
     overflow-y: visible;
   }
   .brand {
-    min-width: max-content;
+    min-width: 0;
+    flex-shrink: 1;
   }
   .brandText {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
   .desktopNav {
     display: none;
@@ -4341,12 +4342,16 @@
     margin-left: auto;
     min-width: max-content;
     flex-wrap: nowrap;
+    flex-shrink: 0;
   }
   .headerBell {
     display: none;
   }
   .mobileMenuToggle {
     display: inline-flex;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
   }
   .mobileMenuPanel {
     position: absolute;
@@ -6086,4 +6091,540 @@
   font-weight: 400;
   color: rgba(229, 231, 240, 0.6);
   line-height: 1.4;
+}
+
+/* ====================================
+   HOMEPAGE v3 — Claude/Gemini-style single-screen
+   (skeleton change only — colors stay the same)
+   ==================================== */
+
+/* Override the legacy .container padding/gap for the home route so the
+   page fits in one mobile viewport (100dvh) without scrolling. */
+.homeContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.homeBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 4.5rem 1.25rem 0;
+  gap: 1rem;
+  box-sizing: border-box;
+}
+
+.homeHero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.85rem;
+  flex: 0 0 auto;
+  margin-top: 0.5rem;
+}
+
+.homeOrnament {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #63d2ff 0%, #a78bfa 50%, #8b5cf6 100%);
+  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.35);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #ffffff;
+  letter-spacing: 0;
+}
+
+.homeOrnament::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.25) 0%, transparent 70%);
+  z-index: -1;
+}
+
+.homeHeadline {
+  margin: 0;
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: #ffffff;
+  word-break: keep-all;
+}
+
+.homeSubline {
+  margin: 0;
+  font-size: 0.92rem;
+  color: rgba(229, 231, 240, 0.58);
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+}
+
+.homeChips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  flex: 0 0 auto;
+  padding: 0 0.25rem;
+}
+
+.homeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  background: rgba(139, 92, 246, 0.08);
+  color: rgba(229, 231, 240, 0.92);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.homeChip:hover,
+.homeChip:focus-visible {
+  border-color: rgba(167, 139, 250, 0.55);
+  background: rgba(139, 92, 246, 0.16);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.homeChipIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.homeChatBar {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 0.25rem 1.25rem;
+  flex: 0 0 auto;
+}
+
+.homeChatBarInner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 22px;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  background: linear-gradient(180deg, rgba(15, 17, 35, 0.92), rgba(10, 12, 26, 0.94));
+  box-shadow: 0 12px 36px rgba(8, 8, 24, 0.45);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.homeChatTextarea {
+  width: 100%;
+  min-height: 48px;
+  max-height: 120px;
+  resize: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-family: inherit;
+  padding: 0.35rem 0.25rem;
+}
+
+.homeChatTextarea::placeholder {
+  color: rgba(229, 231, 240, 0.4);
+}
+
+.homeChatRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.homeChatTools {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.homeChatToolBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.22);
+  background: rgba(139, 92, 246, 0.06);
+  color: rgba(229, 231, 240, 0.78);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.homeChatToolBtn:hover,
+.homeChatToolBtn:focus-visible {
+  border-color: rgba(167, 139, 250, 0.5);
+  background: rgba(139, 92, 246, 0.14);
+  outline: none;
+}
+
+.homeChatToolBtnActive {
+  border-color: rgba(167, 139, 250, 0.6);
+  background: rgba(139, 92, 246, 0.22);
+  color: #ffffff;
+}
+
+.homeChatSubmit {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.homeChatSubmit:hover {
+  transform: translateY(-1px);
+}
+
+.homeChatSubmit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Side drawer — left slide-in from hamburger */
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 5, 12, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.drawerOverlayOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(86vw, 320px);
+  background: linear-gradient(180deg, #0b0f22, #060a18);
+  border-right: 1px solid rgba(167, 139, 250, 0.18);
+  z-index: 70;
+  transform: translateX(-100%);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.drawerOpen {
+  transform: translateX(0);
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.25rem 1rem;
+}
+
+.drawerLogo {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+
+.drawerCloseBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(229, 231, 240, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.drawerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.drawerSectionTitle {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: rgba(167, 139, 250, 0.65);
+  text-transform: uppercase;
+}
+
+.drawerLink {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: 12px;
+  color: rgba(239, 247, 255, 0.92);
+  text-decoration: none;
+  font-size: 0.92rem;
+  transition: background 0.15s ease;
+}
+
+.drawerLink:hover,
+.drawerLink:focus-visible {
+  background: rgba(167, 139, 250, 0.1);
+  outline: none;
+}
+
+.drawerLinkIcon {
+  font-size: 1.05rem;
+  width: 22px;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.drawerFooter {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  font-size: 0.78rem;
+  color: rgba(229, 231, 240, 0.5);
+}
+
+.drawerFooterLink {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.drawerFooterLink:hover {
+  color: #ffffff;
+}
+
+/* Birth info modal (lightweight) */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 5, 12, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modalCard {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 22px;
+  border: 1px solid rgba(167, 139, 250, 0.26);
+  background: linear-gradient(180deg, #0c1024, #07091a);
+  padding: 1.5rem;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalTitle {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.modalSubtitle {
+  margin: -0.5rem 0 0;
+  color: rgba(229, 231, 240, 0.6);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.modalField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.modalLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(229, 231, 240, 0.78);
+  letter-spacing: 0.02em;
+}
+
+.modalInput {
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid rgba(167, 139, 250, 0.22);
+  background: rgba(15, 17, 35, 0.7);
+  color: #ffffff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+
+.modalInput:focus-visible {
+  border-color: rgba(167, 139, 250, 0.65);
+}
+
+.modalRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.modalCancel {
+  flex: 1;
+  padding: 0.85rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(229, 231, 240, 0.78);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.modalSave {
+  flex: 1.3;
+  padding: 0.85rem;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modalSave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Hide the legacy MainHeader on the new home — we use our own minimal
+   bar inside the drawer/home layout instead. */
+.homeTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0.85rem 1rem;
+  position: relative;
+  z-index: 5;
+}
+
+.homeTopBarHamburger {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(167, 139, 250, 0.22);
+  background: rgba(15, 17, 35, 0.6);
+  color: rgba(229, 231, 240, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.homeTopBarHamburgerBar {
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(229, 231, 240, 0.92);
+}
+
+.homeTopBarLogo {
+  font-weight: 800;
+  font-size: 1rem;
+  color: #ffffff;
+  letter-spacing: 0.01em;
+}
+
+.homeTopBarLogin {
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.32);
+  background: rgba(139, 92, 246, 0.12);
+  color: #e9deff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.homeBirthChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.32);
+  color: rgba(187, 247, 208, 0.95);
+  font-size: 0.74rem;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
 }

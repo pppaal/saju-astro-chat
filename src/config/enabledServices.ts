@@ -79,13 +79,15 @@ const ALL_SERVICES: readonly EnabledService[] = [
   },
 ] as const
 
+// destinyMatch is intentionally omitted — the page still exists at
+// /destiny-match for direct deep-links, but it's not surfaced on the
+// main page, services dropdown, or side drawer.
 export const ACTIVE_PUBLIC_SERVICE_IDS: readonly EnabledServiceId[] = [
   'destinyMap',
   'tarot',
   'report',
   'calendar',
   'compatibility',
-  'destinyMatch',
 ] as const
 
 const ACTIVE_SERVICE_SET = new Set<EnabledServiceId>(ACTIVE_PUBLIC_SERVICE_IDS)
