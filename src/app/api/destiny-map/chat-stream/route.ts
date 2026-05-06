@@ -393,9 +393,13 @@ export async function POST(req: NextRequest) {
 
     // Claude 직접 호출 (Python backend `/ask-stream` 대체)
     try {
+      // Multi-turn caching: cachedUserContext = system + 차트/sections (안정),
+      // userPrompt = 이번 턴의 history + 새 질문 (변동). 같은 유저의 다음 턴이
+      // 5분 안에 들어오면 cached block은 cache_read 단가($0.10/1M, 90% 할인).
       return await streamClaudeAsSSE({
         systemPrompt: counselorSystemPrompt(preparedInputs.lang),
-        userPrompt: preparedExecution.chatPrompt,
+        cachedUserContext: preparedExecution.chatPromptCachedContext,
+        userPrompt: preparedExecution.chatPromptDynamicTail,
         maxTokens: 2500,
         temperature: 0.7,
         timeoutMs: 60000,
