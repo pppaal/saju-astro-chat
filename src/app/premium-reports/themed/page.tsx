@@ -149,10 +149,18 @@ function ThemedBuilderContent() {
       Boolean(
         theme &&
           (profileInput?.birthDate || profile.birthDate) &&
+          sajuData?.dayMasterElement &&
           !isGenerating &&
           reportTier === 'premium'
       ),
-    [theme, profileInput?.birthDate, profile.birthDate, isGenerating, reportTier]
+    [
+      theme,
+      profileInput?.birthDate,
+      profile.birthDate,
+      sajuData?.dayMasterElement,
+      isGenerating,
+      reportTier,
+    ]
   )
 
   const handleGenerate = async () => {
@@ -200,7 +208,21 @@ function ThemedBuilderContent() {
           router.push('/pricing?reason=credits')
           return
         }
-        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
+        const details: string[] = Array.isArray(data.error?.details) ? data.error.details : []
+        const detailText = details.join(' / ')
+        if (
+          data.error?.code === 'VALIDATION_ERROR' &&
+          (detailText.includes('dayMasterElement') || !sajuData?.dayMasterElement)
+        ) {
+          throw new Error(
+            '프로필이 아직 완성되지 않았어요. 생년월일·시간·성별을 모두 입력한 뒤 다시 시도해주세요.'
+          )
+        }
+        throw new Error(
+          detailText
+            ? `${data.error?.message || '리포트 생성에 실패했습니다.'} (${detailText})`
+            : data.error?.message || '리포트 생성에 실패했습니다.'
+        )
       }
       if (data.report?.id) {
         savePremiumReportSnapshot({
@@ -395,6 +417,26 @@ function ThemedBuilderContent() {
 
         {/* CTA */}
         <section className="mt-16 flex flex-col items-center gap-4">
+          {/* Profile not complete enough for AI report — surface BEFORE the user hits Generate.
+              Either no birthDate at all, or birthDate exists but saju calculation could not
+              produce dayMasterElement (e.g. missing birthTime/gender, or out-of-range year). */}
+          {status === 'authenticated' &&
+            !sajuLoading &&
+            !sajuData?.dayMasterElement && (
+              <div className="w-full rounded-2xl border border-amber-400/30 bg-amber-500/10 px-5 py-4 text-center text-[14px] text-amber-100">
+                <p className="font-medium">프로필을 먼저 완성해주세요</p>
+                <p className="mt-1 text-[13px] text-amber-200/80">
+                  생년월일·시간·성별이 모두 있어야 사주가 계산되고 리포트가 만들어져요.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => router.push('/profile')}
+                  className="mt-3 rounded-full border border-amber-300/40 bg-amber-400/10 px-4 py-1.5 text-[13px] font-medium text-amber-100 hover:bg-amber-400/20"
+                >
+                  프로필 작성하러 가기 →
+                </button>
+              </div>
+            )}
           {error && (
             <div className="w-full rounded-2xl border border-rose-400/30 bg-rose-500/10 px-5 py-3 text-center text-[14px] text-rose-200">
               {error}
@@ -411,7 +453,9 @@ function ThemedBuilderContent() {
                 ? '테마를 선택하세요'
                 : reportTier !== 'premium'
                   ? '무료 운명 지도로 가기'
-                  : `${heroTitle} 만들기 →`}
+                  : !sajuData?.dayMasterElement
+                    ? '프로필을 먼저 완성해주세요'
+                    : `${heroTitle} 만들기 →`}
             </span>
           </button>
           <p className="text-[11px] text-slate-500">
