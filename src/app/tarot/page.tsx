@@ -359,6 +359,16 @@ export default function TarotHomePage() {
                                 style={{ background: info.gradient }}
                                 aria-hidden="true"
                               >
+                                {info.backImage && (
+                                  // Image is decorative; alt is empty.
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={info.backImage}
+                                    alt=""
+                                    className={styles.deckCardImage}
+                                    loading="lazy"
+                                  />
+                                )}
                                 {active && (
                                   <span className={styles.deckCardCheck} aria-hidden="true">
                                     ✓
