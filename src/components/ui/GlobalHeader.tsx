@@ -1,10 +1,9 @@
 'use client'
 
-import { useMemo, Suspense } from 'react'
+import { Suspense } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
-import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { HomeButton } from './GlobalHeader/HomeButton'
 import { CreditDisplay } from './GlobalHeader/CreditDisplay'
 import { DropdownMenu } from './GlobalHeader/DropdownMenu'
@@ -33,10 +32,15 @@ function HeaderWrapper({ children, headerRef, onKeyDown, ariaLabel }: HeaderWrap
 // Main GlobalHeaderContent Component
 // ============================================
 function GlobalHeaderContent() {
-  const { t } = useI18n()
-  const router = useRouter()
+  const { t, locale, setLocale } = useI18n()
   const pathname = usePathname()
   const { data: session, status } = useSession()
+
+  const toggleLocale = () => {
+    setLocale(locale === 'ko' ? 'en' : 'ko')
+  }
+  const nextLocaleLabel = locale === 'ko' ? 'EN' : 'KO'
+  const localeAriaLabel = locale === 'ko' ? 'Switch to English' : '한국어로 전환'
 
   const isMainPage = !pathname || pathname === '/' || pathname === ''
   const isTarotReadingPage = Boolean(pathname && /^\/tarot\/[^/]+\/[^/]+/.test(pathname))
@@ -59,8 +63,6 @@ function GlobalHeaderContent() {
       pathname.startsWith('/premium-reports/preview')
     )
   )
-  const signInUrl = useMemo(() => buildSignInUrl(pathname || '/'), [pathname])
-
   const {
     showDropdown,
     setShowDropdown,
@@ -101,20 +103,22 @@ function GlobalHeaderContent() {
     )
   }
 
-  // Not logged in
+  // Not logged in — show language toggle (login lives in the side drawer)
   if (!isAuthenticated) {
     return (
       <HeaderWrapper ariaLabel={headerAriaLabel}>
         <nav className="flex items-center gap-3" aria-label={t('nav.main') || 'Main navigation'}>
           <HomeButton />
           <button
-            onClick={() => router.push(signInUrl)}
-            className={`text-[#EAE6FF] text-sm whitespace-nowrap px-3.5 py-1.5 rounded-[20px]
-              backdrop-blur-md cursor-pointer border-blue-400/40
+            type="button"
+            onClick={toggleLocale}
+            className={`text-[#EAE6FF] text-sm font-semibold tracking-wide whitespace-nowrap
+              px-3.5 py-1.5 rounded-[20px] backdrop-blur-md cursor-pointer border-blue-400/40
               ${styles.buttonBase} ${styles.blueButton}`}
-            aria-label={t('community.login') || 'Login to your account'}
+            aria-label={localeAriaLabel}
+            title={localeAriaLabel}
           >
-            {t('community.login') || 'Login'}
+            {nextLocaleLabel}
           </button>
         </nav>
       </HeaderWrapper>
