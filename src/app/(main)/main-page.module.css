@@ -4321,17 +4321,18 @@
   }
   .topBar {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     position: fixed;
-    padding: 10px 16px;
+    padding: 10px 12px;
     align-items: center;
     overflow-y: visible;
   }
   .brand {
-    min-width: max-content;
+    min-width: 0;
+    flex-shrink: 1;
   }
   .brandText {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
   .desktopNav {
     display: none;
@@ -4341,12 +4342,16 @@
     margin-left: auto;
     min-width: max-content;
     flex-wrap: nowrap;
+    flex-shrink: 0;
   }
   .headerBell {
     display: none;
   }
   .mobileMenuToggle {
     display: inline-flex;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
   }
   .mobileMenuPanel {
     position: absolute;

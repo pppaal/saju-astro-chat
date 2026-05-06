@@ -122,9 +122,9 @@ export default function LanguageSwitcher() {
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         title={t('common.selectLanguage')}
-        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl backdrop-blur-md
+        className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-3.5 rounded-xl backdrop-blur-md
           text-sm font-medium text-blue-50 cursor-pointer outline-none
-          transition-all duration-200 ease-out min-w-[104px] sm:min-w-[140px] justify-center whitespace-nowrap
+          transition-all duration-200 ease-out sm:min-w-[140px] justify-center whitespace-nowrap
           ${
             isOpen
               ? 'bg-gradient-to-br from-cyan-400/20 to-blue-400/20 border border-cyan-400/40 shadow-[0_4px_20px_rgba(99,210,255,0.15)]'
@@ -135,7 +135,7 @@ export default function LanguageSwitcher() {
         <span className="text-base" aria-hidden="true">
           {currentLang.flag}
         </span>
-        <span>{currentLang.label}</span>
+        <span className="hidden sm:inline">{currentLang.label}</span>
         <svg
           width="12"
           height="12"
