@@ -38,9 +38,14 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const [birthModalOpen, setBirthModalOpen] = useState(false)
   const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
 
-  // Hydrate birth info from localStorage after mount.
+  // Hydrate birth info from localStorage after mount. Also auto-open
+  // the modal when a service redirected here with `?openBirth=1` so the
+  // user can fill in once and return.
   useEffect(() => {
     setBirthInfo(getStoredBirthInfo())
+    if (typeof window === 'undefined') return
+    const sp = new URLSearchParams(window.location.search)
+    if (sp.get('openBirth') === '1') setBirthModalOpen(true)
   }, [])
 
   // Sync birth info between server profile and localStorage once the
@@ -109,6 +114,10 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const handleSaved = (info: StoredBirthInfo) => {
     setBirthInfo(info)
     setBirthModalOpen(false)
+    if (typeof window === 'undefined') return
+    const sp = new URLSearchParams(window.location.search)
+    const next = sp.get('next')
+    if (next && next.startsWith('/')) window.location.assign(next)
   }
 
   return (
