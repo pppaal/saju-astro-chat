@@ -92,53 +92,58 @@
 /* Mobile — compact horizontal pill, single-line description */
 @media (max-width: 640px) {
   .banner {
-    bottom: 0.5rem;
-    left: 0.5rem;
-    right: 0.5rem;
+    bottom: 0.4rem;
+    left: 0.4rem;
+    right: 0.4rem;
     max-width: none;
-    padding: 0.625rem 0.75rem;
-    border-radius: 12px;
-    gap: 0.625rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 10px;
+    gap: 0.45rem;
     align-items: center;
   }
 
   .text strong {
-    font-size: 0.8rem;
-    margin-bottom: 0.1rem;
+    font-size: 0.72rem;
+    margin-bottom: 0;
   }
 
   .text p {
-    font-size: 0.72rem;
-    line-height: 1.3;
+    font-size: 0.66rem;
+    line-height: 1.25;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
   .actions {
-    gap: 0.35rem;
+    gap: 0.3rem;
   }
 
   .actions button {
-    padding: 0.45rem 0.7rem;
-    font-size: 0.75rem;
-    border-radius: 8px;
+    padding: 0.32rem 0.55rem;
+    font-size: 0.7rem;
+    border-radius: 7px;
   }
 }
 
 /* Very small phones */
 @media (max-width: 360px) {
   .banner {
-    padding: 0.5rem 0.625rem;
+    padding: 0.38rem 0.5rem;
+  }
+
+  .text strong {
+    font-size: 0.68rem;
   }
 
   .text p {
+    font-size: 0.62rem;
     -webkit-line-clamp: 1;
   }
 
   .actions button {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.72rem;
+    padding: 0.28rem 0.45rem;
+    font-size: 0.66rem;
   }
 }

@@ -130,11 +130,21 @@ export default function TarotHomePage() {
   const triggerHaptic = useHapticFeedback()
 
   const handleAnalyzeQuestion = useCallback(() => {
-    if (question.trim()) {
-      addRecentQuestion(question.trim())
-    }
-    analyzeQuestion()
-  }, [question, addRecentQuestion, analyzeQuestion])
+    const trimmedQuestion = question.trim()
+    if (!trimmedQuestion) return
+    addRecentQuestion(trimmedQuestion)
+
+    // Kick off AI analysis in the background so the snapshot is warm
+    // when the reading page mounts; do not block navigation on it.
+    void analyzeQuestion()
+
+    const analysisKey = storeQuestionAnalysisSnapshot(trimmedQuestion, analysisResult)
+    const primaryPath =
+      analysisResult?.path && analysisResult.source !== 'fallback'
+        ? appendQuestionContextToPath(analysisResult.path, trimmedQuestion, analysisKey)
+        : buildStableEntryPath(trimmedQuestion, analysisResult, analysisKey)
+    router.push(primaryPath)
+  }, [question, addRecentQuestion, analyzeQuestion, analysisResult, router])
 
   const handleChooseSpread = useCallback(
     (path: string) => {

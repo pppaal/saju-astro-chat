@@ -64,15 +64,54 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
               shadow-[0_0_60px_rgba(0,0,0,0.6)] flex flex-col"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
-              <span className="text-white font-bold tracking-wide">DestinyPal</span>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/"
+                  onClick={close}
+                  aria-label={isKo ? '홈으로' : 'Home'}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full
+                    border border-white/15 bg-white/5 text-white/85
+                    hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 11.5 12 4l9 7.5" />
+                    <path d="M5 10v10h14V10" />
+                  </svg>
+                </Link>
+                <span className="text-white font-bold tracking-wide">DestinyPal</span>
+              </div>
               <button
                 type="button"
                 onClick={close}
                 aria-label={isKo ? '닫기' : 'Close'}
-                className="w-8 h-8 rounded-full border border-white/15 bg-white/5
-                  text-white/80 hover:text-white hover:bg-white/10 cursor-pointer"
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full
+                  border border-white/15 bg-white/5 text-white/85
+                  hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
-                ×
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M6 6l12 12" />
+                  <path d="M18 6l-12 12" />
+                </svg>
               </button>
             </div>
 
@@ -123,7 +162,7 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/[0.06]"
               >
                 <span aria-hidden="true">📅</span>
-                <span className="text-sm">{isKo ? '내 사주 정보' : 'My Birth Info'}</span>
+                <span className="text-sm">{isKo ? '내 생년월일 정보' : 'My Birth Info'}</span>
               </Link>
               <Link
                 href="/pricing"

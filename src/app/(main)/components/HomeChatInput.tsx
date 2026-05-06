@@ -32,7 +32,7 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
       ? '무엇이든 물어보세요'
       : 'Ask anything'
     : locale === 'ko'
-      ? '먼저 사주 정보부터 — @사주 추가를 눌러주세요'
+      ? '먼저 생년월일 정보부터 — @생일 추가를 눌러주세요'
       : 'Add birth info first — tap @birth'
 
   return (
@@ -63,15 +63,15 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
               type="button"
               className={`${styles.homeChatToolBtn} ${birthInfo ? styles.homeChatToolBtnActive : ''}`}
               onClick={onOpenBirthModal}
-              aria-label={locale === 'ko' ? '사주 정보 추가/변경' : 'Add or edit birth info'}
+              aria-label={locale === 'ko' ? '생년월일 정보 추가/변경' : 'Add or edit birth info'}
             >
               <span aria-hidden="true">📅</span>
               {birthInfo
                 ? locale === 'ko'
-                  ? '사주 ✓'
+                  ? '생일 ✓'
                   : 'Birth ✓'
                 : locale === 'ko'
-                  ? '@사주 추가'
+                  ? '@생일 추가'
                   : '@birth'}
             </button>
           </div>

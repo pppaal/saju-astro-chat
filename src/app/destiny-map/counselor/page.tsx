@@ -19,7 +19,12 @@ import Chat from '@/components/destiny-map/Chat'
 type SearchParams = Record<string, string | string[] | undefined>
 
 export default function CounselorPage() {
-  const { t } = useI18n()
+  const { t, locale, setLocale } = useI18n()
+  const isKo = locale === 'ko'
+  const toggleLocale = useCallback(() => {
+    setLocale(locale === 'ko' ? 'en' : 'ko')
+  }, [locale, setLocale])
+  const [chatResetKey, setChatResetKey] = useState(0)
   const rawSearchParams = useSearchParams()
   const sp = useMemo<SearchParams>(() => {
     const result: SearchParams = {}
@@ -82,7 +87,12 @@ export default function CounselorPage() {
   //   const handleLogin = () => router.push(buildSignInUrl(`/destiny-counselor/chat${search}`))
 
   const handleBack = useCallback(() => router.back(), [router])
-  const handleChatReset = useCallback(() => window.location.reload(), [])
+  // Claude-style new chat: drop the chat instance in place by bumping a
+  // remount key. No page reload, no loading screen — the Chat tree just
+  // remounts with empty state.
+  const handleChatReset = useCallback(() => {
+    setChatResetKey((k) => k + 1)
+  }, [])
 
   if (!birthDate || !birthTime) {
     return (
@@ -146,6 +156,15 @@ export default function CounselorPage() {
         </div>
 
         <div className={styles.headerActions}>
+          <button
+            type="button"
+            onClick={toggleLocale}
+            className={styles.localeToggle}
+            aria-label={isKo ? 'Switch to English' : '한국어로 전환'}
+            title={isKo ? 'Switch to English' : '한국어로 전환'}
+          >
+            {isKo ? 'EN' : 'KO'}
+          </button>
           <div className={styles.creditBadgeWrap}>
             <CreditBadge variant="compact" />
           </div>
@@ -164,6 +183,7 @@ export default function CounselorPage() {
           }}
         >
           <Chat
+            key={chatResetKey}
             profile={{
               name,
               birthDate,
