@@ -109,60 +109,22 @@ describe('Calendar System Integration', () => {
       expect(['function', 'object'].includes(typeof BirthInfoForm)).toBe(true)
     }, 30000) // Increased timeout for complex component
 
-    it('should export ParticleBackground', async () => {
-      const ParticleBackground = (await import('@/components/calendar/ParticleBackground')).default
+    it('should export DestinyMatrixPlanner', async () => {
+      const DestinyMatrixPlanner = (
+        await import('@/components/calendar/DestinyMatrixPlanner')
+      ).default
 
-      expect(ParticleBackground).toBeDefined()
-      expect(typeof ParticleBackground).toBe('function')
+      expect(DestinyMatrixPlanner).toBeDefined()
+      expect(['function', 'object'].includes(typeof DestinyMatrixPlanner)).toBe(true)
     })
 
-    it('should export CalendarHeader', async () => {
-      const CalendarHeader = (await import('@/components/calendar/CalendarHeader')).default
+    it('should export DestinyMatrixPlannerClient', async () => {
+      const DestinyMatrixPlannerClient = (
+        await import('@/components/calendar/DestinyMatrixPlannerClient')
+      ).default
 
-      expect(CalendarHeader).toBeDefined()
-      expect(typeof CalendarHeader).toBe('function')
-    })
-
-    it('should export DayCell', async () => {
-      const module = await import('@/components/calendar/DayCell')
-
-      expect(module).toBeDefined()
-      expect(module.default).toBeDefined()
-    })
-
-    it('should export CalendarGrid', async () => {
-      const CalendarGrid = (await import('@/components/calendar/CalendarGrid')).default
-
-      expect(CalendarGrid).toBeDefined()
-      expect(typeof CalendarGrid).toBe('function')
-    })
-
-    it('should export FortuneGraph', async () => {
-      const FortuneGraph = (await import('@/components/calendar/FortuneGraph')).default
-
-      expect(FortuneGraph).toBeDefined()
-      expect(typeof FortuneGraph).toBe('function')
-    })
-
-    it('should export SelectedDatePanel', async () => {
-      const SelectedDatePanel = (await import('@/components/calendar/SelectedDatePanel')).default
-
-      expect(SelectedDatePanel).toBeDefined()
-      expect(typeof SelectedDatePanel).toMatch(/function|object/)
-    })
-
-    it('should export MonthNavigation', async () => {
-      const MonthNavigation = (await import('@/components/calendar/MonthNavigation')).default
-
-      expect(MonthNavigation).toBeDefined()
-      expect(typeof MonthNavigation).toBe('function')
-    })
-
-    it('should export CategoryFilter', async () => {
-      const CategoryFilter = (await import('@/components/calendar/CategoryFilter')).default
-
-      expect(CategoryFilter).toBeDefined()
-      expect(typeof CategoryFilter).toBe('function')
+      expect(DestinyMatrixPlannerClient).toBeDefined()
+      expect(['function', 'object'].includes(typeof DestinyMatrixPlannerClient)).toBe(true)
     })
   })
 
@@ -179,17 +141,11 @@ describe('Calendar System Integration', () => {
         import('@/hooks/calendar/useMonthNavigation'),
         import('@/hooks/calendar/useParticleAnimation'),
         import('@/components/calendar/BirthInfoForm'),
-        import('@/components/calendar/ParticleBackground'),
-        import('@/components/calendar/CalendarHeader'),
-        import('@/components/calendar/DayCell'),
-        import('@/components/calendar/CalendarGrid'),
-        import('@/components/calendar/FortuneGraph'),
-        import('@/components/calendar/SelectedDatePanel'),
-        import('@/components/calendar/MonthNavigation'),
-        import('@/components/calendar/CategoryFilter'),
+        import('@/components/calendar/DestinyMatrixPlanner'),
+        import('@/components/calendar/DestinyMatrixPlannerClient'),
       ])
 
-      expect(modules.length).toBe(17)
+      expect(modules.length).toBe(11)
       modules.forEach((module) => {
         expect(module).toBeDefined()
       })

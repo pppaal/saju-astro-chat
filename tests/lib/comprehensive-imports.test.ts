@@ -74,14 +74,8 @@ const serviceModules = [
 
 const componentModules = [
   'components/calendar/BirthInfoForm',
-  'components/calendar/ParticleBackground',
-  'components/calendar/CalendarHeader',
-  'components/calendar/DayCell',
-  'components/calendar/CalendarGrid',
-  'components/calendar/FortuneGraph',
-  'components/calendar/SelectedDatePanel',
-  'components/calendar/MonthNavigation',
-  'components/calendar/CategoryFilter',
+  'components/calendar/DestinyMatrixPlanner',
+  'components/calendar/DestinyMatrixPlannerClient',
   'components/astrology/AstrologyChat',
   'components/astrology/ResultDisplay',
   'components/saju/SajuChat',
