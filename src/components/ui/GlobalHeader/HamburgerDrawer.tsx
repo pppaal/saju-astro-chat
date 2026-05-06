@@ -12,10 +12,17 @@ interface HamburgerDrawerProps {
 export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
   const [open, setOpen] = useState(false)
   const [agreed, setAgreed] = useState(false)
+  const [loginPanelOpen, setLoginPanelOpen] = useState(false)
   const { data: session, status } = useSession()
   const isAuthed = status === 'authenticated'
   const userName = session?.user?.name || session?.user?.email || (isAuthed ? 'Account' : null)
   const isKo = locale === 'ko'
+
+  // Reset the login panel collapsed state every time the drawer closes so
+  // a returning user always sees the compact "로그인" row first.
+  useEffect(() => {
+    if (!open) setLoginPanelOpen(false)
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -123,8 +130,24 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                     <span aria-hidden="true">👤</span>
                     <span className="text-sm truncate">{userName}</span>
                   </div>
+                ) : !loginPanelOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => setLoginPanelOpen(true)}
+                    aria-expanded={false}
+                    aria-controls="drawer-login-panel"
+                    className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl
+                      bg-white/[0.04] text-white/90 hover:bg-white/[0.08] cursor-pointer
+                      transition-colors text-left"
+                  >
+                    <span aria-hidden="true">🔑</span>
+                    <span className="text-sm">{isKo ? '로그인' : 'Login'}</span>
+                  </button>
                 ) : (
-                  <div className="flex flex-col gap-2 px-3 py-3 rounded-xl bg-white/[0.04]">
+                  <div
+                    id="drawer-login-panel"
+                    className="flex flex-col gap-2 px-3 py-3 rounded-xl bg-white/[0.04]"
+                  >
                     <p className="text-[13px] font-medium text-white/90">
                       {isKo ? '로그인하고 계속하기' : 'Sign in to continue'}
                     </p>
