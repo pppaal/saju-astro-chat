@@ -12,6 +12,7 @@ import { getUserProfile } from '@/lib/userProfile'
 import { localizeStoredCity } from '@/lib/cities/formatter'
 import { normalizeGender, toLongGender } from '@/lib/utils/gender'
 import { logger } from '@/lib/logger'
+import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 
 /**
  * Orchestrator for the DestinyMatrixPlanner UI: handles birth info gating,
@@ -106,6 +107,9 @@ export default function DestinyMatrixPlannerClient() {
       gender: 'Male',
     }
 
+    // Calendar's own shared store first, then user profile, then home
+    // page localStorage. Whichever has birthDate first wins; URL params
+    // override at the end.
     const shared = loadSharedBirthInfo()
     if (shared) next = { ...next, ...shared }
 
@@ -118,6 +122,24 @@ export default function DestinyMatrixPlannerClient() {
     }
     if (profile.birthCity) {
       next.birthPlace = localizeStoredCity(profile.birthCity, 'ko')
+    }
+
+    // Home page localStorage fills in any field the previous sources
+    // left blank (the home chat is the canonical entry surface for
+    // birth info now).
+    if (!next.birthDate) {
+      const homeBirth = getStoredBirthInfo()
+      if (homeBirth?.birthDate) {
+        next.birthDate = homeBirth.birthDate
+        if (!next.birthTime && homeBirth.birthTime) next.birthTime = homeBirth.birthTime
+        if (!next.gender || next.gender === 'Male') {
+          const long = toLongGender(homeBirth.gender)
+          if (long) next.gender = long
+        }
+        if (!next.birthPlace && homeBirth.city) {
+          next.birthPlace = localizeStoredCity(homeBirth.city, 'ko')
+        }
+      }
     }
 
     if (typeof window !== 'undefined') {
