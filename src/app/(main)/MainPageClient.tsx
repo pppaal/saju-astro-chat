@@ -150,7 +150,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
       <div className={styles.homeBody}>
         <section className={styles.homeHero} aria-labelledby="home-headline">
           <div className={styles.homeOrnament} aria-hidden="true">
-            <HexDPLogo size={64} />
+            <HexDPLogo size={140} />
           </div>
           <h1 id="home-headline" className={styles.homeHeadline}>
             {locale === 'ko' ? 'AI와 사주·점성을 함께 풀어드려요' : 'Saju × Astrology, fused by AI'}
