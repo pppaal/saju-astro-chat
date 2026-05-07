@@ -96,14 +96,3 @@ export {
   type ValidationResult as ZodValidationResult,
   type ValidationFailure,
 } from './validation-wrapper'
-
-// Backend API Wrapper
-export {
-  callBackendWithFallback,
-  callBackendGet,
-  transformBackendResponse,
-  type BackendCallOptions,
-  type BackendResponse,
-  type BackendCallResult,
-  type BackendCallFailure,
-} from './backend-wrapper'
