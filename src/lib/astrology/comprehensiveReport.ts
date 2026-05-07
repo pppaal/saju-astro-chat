@@ -1,18 +1,27 @@
 // src/lib/astrology/comprehensiveReport.ts
 //
-// Deterministic comprehensive astrology report — mirrors the role of
-// src/lib/Saju/comprehensiveReport.ts on the saju side.
+// Traditional-style comprehensive report — mirrors src/lib/Saju/comprehensiveReport.ts.
 //
-// Takes the unified `AstrologyData` result from `calculateAstrologyData()`
-// and produces a structured, scored report:
-//   - 5 life-domain scores (성격·관계·커리어·재물·건강) on a 0–100 scale
-//   - top placements list (key planet × sign × house signals)
-//   - top aspects list (most informative natal aspects)
-//   - timing snapshot (current daily transits, this lunar return, this solar return,
-//     current progressed Sun/Moon)
-//   - per-domain interpretive snippets pulled from interpretations.ts
+// Inputs: full AstrologyData (natal + daily + monthly + yearly + daewoon +
+// advanced layers from astrology.ts).
 //
-// No LLM, no network. Pure computation over the engine output.
+// Pipeline:
+//   1. Per-planet essential-dignity score (rulership / exaltation / triplicity /
+//      detriment / fall / peregrine).
+//   2. Per-aspect scoring with orb scaling, planet-pair tone, retrograde modifier.
+//   3. Element + Modality + Polarity + Hemisphere balance over the 7 traditional
+//      planets + Asc + MC.
+//   4. House ruler chasing — for each angular house (1, 4, 7, 10) we trace the
+//      sign on the cusp back to its traditional ruler and look up where that
+//      ruler sits, surfacing a one-line signal.
+//   5. Domain scoring (성격·관계·커리어·재물·건강) combines:
+//        planet-domain weight × dignity bonus
+//      + house-domain hits
+//      + element/modality balance bonus
+//      + aggregated aspect score
+//   6. Timing scores per layer:
+//        oneliner + score for daily / monthly / yearly / daewoon, each derived
+//        from the relevant return / progression / transit data.
 
 import type { AstrologyData } from './astrology'
 import { findNatalAspects } from './foundation/aspects'
@@ -27,6 +36,14 @@ import {
   getPlanetSignInterpretation,
   getSignLabelKo,
 } from './interpretations'
+import {
+  getEssentialDignity,
+  getRulerOfSign,
+  type DignityKind,
+  type DignityResult,
+} from './dignities'
+import { aggregateAspectScore, scoreAspect, type ScoredAspect } from './aspectScoring'
+import { calculateChartBalance, type ChartBalance, type Element } from './balance'
 
 export type AstrologyDomain =
   | 'personality'
@@ -46,9 +63,8 @@ export const ASTROLOGY_DOMAIN_LABEL_KO: Record<AstrologyDomain, string> = {
 export interface AstrologyDomainScore {
   domain: AstrologyDomain
   label: string
-  score: number // 0–100
+  score: number
   band: 'great' | 'good' | 'mixed' | 'caution'
-  /** Reasons that drove the score (placement signals + aspect signals). */
   signals: string[]
 }
 
@@ -57,58 +73,61 @@ export interface AstrologyPlacementHighlight {
   sign: ZodiacName
   house: number
   retrograde?: boolean
+  dignity: DignityResult
   signal: string
 }
 
-export interface AstrologyAspectHighlight {
-  fromPlanet: string
-  toPlanet: string
-  kind: AspectKind
-  orb: number
+export interface AstrologyAspectHighlight extends ScoredAspect {
   signal: string
 }
 
-export interface AstrologyTimingSnapshot {
-  /** "오늘은 …" / 트랜짓 핵심 요약 (최대 3개). */
-  todayTransits: Array<{ planet: string; toNatal: string; kind: AspectKind; orb: number }>
-  /** 이번 달 (lunar return) 흐름 한 줄. */
-  monthlyHeadline: string
-  /** 올해 (solar return) 흐름 한 줄. */
-  yearlyHeadline: string
-  /** 현재 대운 (progressed Sun / Moon) 한 줄. */
-  daewoonHeadline: string
+export interface AstrologyTimingScore {
+  label: string
+  score: number
+  band: 'great' | 'good' | 'mixed' | 'caution'
+  headline: string
+}
+
+export interface AstrologyTiming {
+  daily: AstrologyTimingScore
+  monthly: AstrologyTimingScore
+  yearly: AstrologyTimingScore
+  daewoon: AstrologyTimingScore
+}
+
+export interface AstrologyHouseRulerSignal {
+  house: number
+  cuspSign: ZodiacName
+  ruler: AstroPlanetName | null
+  rulerSign: ZodiacName | null
+  rulerHouse: number | null
+  signal: string
 }
 
 export interface AstrologyComprehensiveReport {
-  overallScore: number // 0–100, weighted across domains
+  overallScore: number
   band: 'great' | 'good' | 'mixed' | 'caution'
   domains: AstrologyDomainScore[]
   topPlacements: AstrologyPlacementHighlight[]
   topAspects: AstrologyAspectHighlight[]
-  timing: AstrologyTimingSnapshot
+  balance: ChartBalance
+  houseRulers: AstrologyHouseRulerSignal[]
+  timing: AstrologyTiming
+  /** Headline counts for advanced layers — surface in UI tooltips. */
+  advancedSummary: {
+    asteroids: number
+    fixedStarConjunctions: number
+    midpointActivations: number
+    eclipseImpacts: number
+    draconicTensions: number
+    draconicAlignments: number
+  }
 }
 
 // ============================================================
-// Sign element + modality lookups (for domain scoring heuristics)
+// Domain weights — planet × domain (per traditional astrology)
 // ============================================================
 
-const SIGN_ELEMENT: Record<ZodiacName, 'fire' | 'earth' | 'air' | 'water'> = {
-  Aries: 'fire',
-  Leo: 'fire',
-  Sagittarius: 'fire',
-  Taurus: 'earth',
-  Virgo: 'earth',
-  Capricorn: 'earth',
-  Gemini: 'air',
-  Libra: 'air',
-  Aquarius: 'air',
-  Cancer: 'water',
-  Scorpio: 'water',
-  Pisces: 'water',
-}
-
-// Each planet's primary domain weight contribution (0–10 per signal).
-// Mirrors saju's domain mapping table.
 const PLANET_DOMAIN_WEIGHT: Record<AstroPlanetName, Partial<Record<AstrologyDomain, number>>> = {
   Sun: { personality: 8, career: 4 },
   Moon: { personality: 5, relationship: 5, health: 4 },
@@ -123,7 +142,6 @@ const PLANET_DOMAIN_WEIGHT: Record<AstroPlanetName, Partial<Record<AstrologyDoma
   Ascendant: { personality: 6 },
 }
 
-// House × domain lookup — what life area each house naturally seeds.
 const HOUSE_DOMAIN_BOOST: Record<number, AstrologyDomain[]> = {
   1: ['personality'],
   2: ['wealth'],
@@ -139,12 +157,11 @@ const HOUSE_DOMAIN_BOOST: Record<number, AstrologyDomain[]> = {
   12: ['health', 'personality'],
 }
 
-const ASPECT_FAVOR: Record<AspectKind, number> = {
-  conjunction: 4, // could be either way; default neutral-positive
-  sextile: 5,
-  trine: 6,
-  square: -3,
-  opposition: -2,
+const ELEMENT_DOMAIN_HINT: Record<Element, AstrologyDomain[]> = {
+  fire: ['personality', 'career'],
+  earth: ['wealth', 'health', 'career'],
+  air: ['personality', 'relationship'],
+  water: ['relationship', 'health'],
 }
 
 function bandFor(score: number): AstrologyDomainScore['band'] {
@@ -157,92 +174,6 @@ function bandFor(score: number): AstrologyDomainScore['band'] {
 function clampScore(value: number): number {
   if (!Number.isFinite(value)) return 50
   return Math.max(0, Math.min(100, Math.round(value)))
-}
-
-// ============================================================
-// Public — buildAstrologyComprehensiveReport
-// ============================================================
-
-export function buildAstrologyComprehensiveReport(
-  data: AstrologyData
-): AstrologyComprehensiveReport {
-  const placements = collectPlacements(data)
-  const aspects = collectTopAspects(data)
-  const domains = scoreDomains(placements, aspects)
-  const overallScore = clampScore(
-    domains.reduce((sum, d) => sum + d.score, 0) / domains.length
-  )
-
-  return {
-    overallScore,
-    band: bandFor(overallScore),
-    domains,
-    topPlacements: placements.slice(0, 8),
-    topAspects: aspects.slice(0, 6),
-    timing: buildTimingSnapshot(data),
-  }
-}
-
-interface CollectedPlacement {
-  planet: AstroPlanetName
-  sign: ZodiacName
-  house: number
-  retrograde?: boolean
-  signal: string
-}
-
-function collectPlacements(data: AstrologyData): CollectedPlacement[] {
-  const out: CollectedPlacement[] = []
-  for (const planet of data.natal.planets) {
-    if (!planet.name || !planet.sign) continue
-    const planetName = planet.name as AstroPlanetName
-    const signName = planet.sign as ZodiacName
-    const house = typeof planet.house === 'number' ? planet.house : 1
-    out.push({
-      planet: planetName,
-      sign: signName,
-      house,
-      retrograde: planet.retrograde,
-      signal: `${getPlanetLabelKo(planetName)} ${getSignLabelKo(signName)} (${house}하우스 · ${getHouseDomainKo(house)}) — ${getPlanetSignInterpretation(planetName, signName, 'ko')}`,
-    })
-  }
-  if (data.natal.ascendant?.sign) {
-    out.unshift({
-      planet: 'Ascendant',
-      sign: data.natal.ascendant.sign as ZodiacName,
-      house: 1,
-      signal: `${getPlanetLabelKo('Ascendant')} ${getSignLabelKo(data.natal.ascendant.sign as ZodiacName)} — 외부에 비치는 첫인상의 결.`,
-    })
-  }
-  return out
-}
-
-interface CollectedAspect {
-  fromPlanet: string
-  toPlanet: string
-  kind: AspectKind
-  orb: number
-  signal: string
-}
-
-function collectTopAspects(data: AstrologyData): CollectedAspect[] {
-  // The aspects helper expects the trimmed `Chart` shape from
-  // foundation/types. NatalChartData is structurally compatible (same
-  // planet/house fields), so we cast through `unknown`.
-  const natalAspects = findNatalAspects(
-    data.natal as unknown as Parameters<typeof findNatalAspects>[0],
-    { includeMinor: false, maxResults: 30 }
-  )
-  return natalAspects.slice(0, 12).map((hit) => {
-    const kind = hit.type as AspectKind
-    return {
-      fromPlanet: hit.from.name,
-      toPlanet: hit.to.name,
-      kind,
-      orb: Number(hit.orb.toFixed(2)),
-      signal: `${hit.from.name} ${getAspectKoLabel(kind)} ${hit.to.name} (orb ${hit.orb.toFixed(1)}°) — ${getAspectInterpretation(kind, 'ko')}`,
-    }
-  })
 }
 
 function getAspectKoLabel(kind: AspectKind): string {
@@ -260,9 +191,177 @@ function getAspectKoLabel(kind: AspectKind): string {
   }
 }
 
+// ============================================================
+// Public — buildAstrologyComprehensiveReport
+// ============================================================
+
+export function buildAstrologyComprehensiveReport(
+  data: AstrologyData
+): AstrologyComprehensiveReport {
+  const placements = collectPlacements(data)
+  const aspects = collectScoredAspects(data)
+  const balance = calculateChartBalance(
+    placements
+      .filter((p) => p.planet !== 'Ascendant')
+      .map((p) => ({ name: p.planet, sign: p.sign, house: p.house }))
+  )
+  const houseRulers = collectHouseRulers(data, placements)
+  const domains = scoreDomains(placements, aspects, balance)
+  const overallScore = clampScore(
+    domains.reduce((sum, d) => sum + d.score, 0) / domains.length
+  )
+
+  return {
+    overallScore,
+    band: bandFor(overallScore),
+    domains,
+    topPlacements: placements
+      .slice()
+      .sort((a, b) => Math.abs(b.dignity.score) - Math.abs(a.dignity.score))
+      .slice(0, 8),
+    topAspects: aspects.slice(0, 8),
+    balance,
+    houseRulers,
+    timing: scoreTiming(data, aspects),
+    advancedSummary: {
+      asteroids: data.advanced.asteroids.length,
+      fixedStarConjunctions: data.advanced.fixedStarConjunctions.length,
+      midpointActivations: data.advanced.midpointActivations.length,
+      eclipseImpacts: data.advanced.eclipseImpacts.length,
+      draconicTensions: data.advanced.draconic.tensions.length,
+      draconicAlignments: data.advanced.draconic.alignments.length,
+    },
+  }
+}
+
+// ============================================================
+// Internals
+// ============================================================
+
+function collectPlacements(data: AstrologyData): AstrologyPlacementHighlight[] {
+  const out: AstrologyPlacementHighlight[] = []
+  for (const planet of data.natal.planets) {
+    if (!planet.name || !planet.sign) continue
+    const planetName = planet.name as AstroPlanetName
+    const signName = planet.sign as ZodiacName
+    const house = typeof planet.house === 'number' ? planet.house : 1
+    const dignity = getEssentialDignity(planetName, signName)
+    out.push({
+      planet: planetName,
+      sign: signName,
+      house,
+      retrograde: planet.retrograde,
+      dignity,
+      signal: `${getPlanetLabelKo(planetName)} ${getSignLabelKo(signName)} (${house}하우스 · ${getHouseDomainKo(house)}, ${dignity.label}) — ${getPlanetSignInterpretation(planetName, signName, 'ko')}`,
+    })
+  }
+  if (data.natal.ascendant?.sign) {
+    const ascSign = data.natal.ascendant.sign as ZodiacName
+    out.unshift({
+      planet: 'Ascendant',
+      sign: ascSign,
+      house: 1,
+      dignity: { kind: 'peregrine', score: 0, label: '상승궁' },
+      signal: `${getPlanetLabelKo('Ascendant')} ${getSignLabelKo(ascSign)} — 외부에 비치는 첫인상의 결.`,
+    })
+  }
+  return out
+}
+
+function collectScoredAspects(data: AstrologyData): AstrologyAspectHighlight[] {
+  const natalAspects = findNatalAspects(
+    data.natal as unknown as Parameters<typeof findNatalAspects>[0],
+    { includeMinor: false, maxResults: 30 }
+  )
+  const planetByName = new Map<string, { retrograde?: boolean }>()
+  for (const p of data.natal.planets) planetByName.set(p.name, { retrograde: p.retrograde })
+
+  return natalAspects
+    .map((hit) => {
+      const fromPlanet = hit.from.name as AstroPlanetName
+      const toPlanet = hit.to.name as AstroPlanetName
+      const kind = hit.type as AspectKind
+      const scored = scoreAspect({
+        fromPlanet,
+        toPlanet,
+        kind,
+        orb: hit.orb,
+        fromRetrograde: planetByName.get(hit.from.name)?.retrograde,
+        toRetrograde: planetByName.get(hit.to.name)?.retrograde,
+      })
+      return {
+        ...scored,
+        signal: `${hit.from.name} ${getAspectKoLabel(kind)} ${hit.to.name} (orb ${hit.orb.toFixed(1)}°, score ${scored.score}) — ${getAspectInterpretation(kind, 'ko')}`,
+      }
+    })
+    .sort((a, b) => Math.abs(b.score) - Math.abs(a.score))
+}
+
+function collectHouseRulers(
+  data: AstrologyData,
+  placements: AstrologyPlacementHighlight[]
+): AstrologyHouseRulerSignal[] {
+  const angular = [1, 4, 7, 10]
+  return angular
+    .map((houseNumber) => {
+      const cusp = data.natal.houses[houseNumber - 1]
+      if (!cusp || typeof cusp.cusp !== 'number') {
+        return null
+      }
+      const cuspSign = signFromLongitude(cusp.cusp)
+      const ruler = getRulerOfSign(cuspSign)
+      let rulerSign: ZodiacName | null = null
+      let rulerHouse: number | null = null
+      let signal: string
+      if (!ruler) {
+        signal = `${houseNumber}하우스 cusp ${getSignLabelKo(cuspSign)} — 룰러 미정`
+      } else {
+        const placement = placements.find((p) => p.planet === ruler)
+        rulerSign = placement?.sign ?? null
+        rulerHouse = placement?.house ?? null
+        signal = `${houseNumber}하우스(${getHouseDomainKo(houseNumber)}) cusp ${getSignLabelKo(cuspSign)} → 룰러 ${getPlanetLabelKo(ruler)}${
+          placement
+            ? ` (${getSignLabelKo(placement.sign)} · ${placement.house}하우스 · ${placement.dignity.label})`
+            : ''
+        }`
+      }
+      return {
+        house: houseNumber,
+        cuspSign,
+        ruler,
+        rulerSign,
+        rulerHouse,
+        signal,
+      }
+    })
+    .filter((entry): entry is AstrologyHouseRulerSignal => entry !== null)
+}
+
+const ZODIAC_ORDER: ZodiacName[] = [
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
+]
+
+function signFromLongitude(longitudeDeg: number): ZodiacName {
+  const normalised = ((longitudeDeg % 360) + 360) % 360
+  const idx = Math.floor(normalised / 30)
+  return ZODIAC_ORDER[idx] || 'Aries'
+}
+
 function scoreDomains(
-  placements: CollectedPlacement[],
-  aspects: CollectedAspect[]
+  placements: AstrologyPlacementHighlight[],
+  aspects: AstrologyAspectHighlight[],
+  balance: ChartBalance
 ): AstrologyDomainScore[] {
   const tally: Record<AstrologyDomain, { raw: number; max: number; signals: string[] }> = {
     personality: { raw: 0, max: 0, signals: [] },
@@ -275,14 +374,15 @@ function scoreDomains(
   for (const p of placements) {
     const planetWeights = PLANET_DOMAIN_WEIGHT[p.planet] || {}
     const houseDomains = HOUSE_DOMAIN_BOOST[p.house] || []
-    const sign = p.sign
-    const elementBonus = SIGN_ELEMENT[sign]
     for (const dom of Object.keys(tally) as AstrologyDomain[]) {
       const planetWeight = planetWeights[dom] ?? 0
       const houseHits = houseDomains.includes(dom) ? 4 : 0
-      const elementBonusValue = matchElementBonus(dom, elementBonus)
-      const contribution = planetWeight + houseHits + elementBonusValue
-      tally[dom].max += planetWeight + 4 + elementBonusValue
+      // Dignity scales the planet's contribution: rulership +5 → ~1.5x
+      // multiplier; fall -4 → ~0.6x.
+      const dignityMultiplier = 1 + p.dignity.score / 10
+      const contribution = planetWeight * dignityMultiplier + houseHits
+      const ceil = planetWeight * 1.5 + 4
+      tally[dom].max += ceil
       tally[dom].raw += contribution
       if (planetWeight > 0 && tally[dom].signals.length < 3) {
         tally[dom].signals.push(p.signal)
@@ -290,21 +390,35 @@ function scoreDomains(
     }
   }
 
-  for (const a of aspects.slice(0, 8)) {
-    const favor = ASPECT_FAVOR[a.kind] ?? 0
-    const aspectAffectsAllDomains = 2
-    for (const dom of Object.keys(tally) as AstrologyDomain[]) {
-      tally[dom].raw += favor
-      tally[dom].max += aspectAffectsAllDomains
-      if (favor > 0 && tally[dom].signals.length < 5) {
-        tally[dom].signals.push(a.signal)
-      }
+  // Aspect environment — aggregated and shared lightly across all domains.
+  const aspectAggregate = aggregateAspectScore(aspects.slice(0, 10))
+  const aspectShare = aspectAggregate / 5
+  for (const dom of Object.keys(tally) as AstrologyDomain[]) {
+    tally[dom].raw += aspectShare
+    tally[dom].max += 8
+    if (aspects[0] && tally[dom].signals.length < 4) {
+      tally[dom].signals.push(aspects[0].signal)
+    }
+  }
+
+  // Element / modality balance bonus.
+  if (balance.dominantElement) {
+    const hints = ELEMENT_DOMAIN_HINT[balance.dominantElement]
+    for (const dom of hints) {
+      tally[dom].raw += 2
+      tally[dom].max += 2
+    }
+  }
+  if (balance.weakestElement) {
+    const hints = ELEMENT_DOMAIN_HINT[balance.weakestElement]
+    for (const dom of hints) {
+      tally[dom].raw -= 1
+      tally[dom].max += 1
     }
   }
 
   return (Object.keys(tally) as AstrologyDomain[]).map((dom) => {
     const { raw, max, signals } = tally[dom]
-    // Normalise to 0–100. Allow some headroom so 100 is unusual.
     const normalised = max > 0 ? clampScore(50 + (raw / max) * 50) : 50
     return {
       domain: dom,
@@ -316,41 +430,80 @@ function scoreDomains(
   })
 }
 
-function matchElementBonus(
-  domain: AstrologyDomain,
-  element: 'fire' | 'earth' | 'air' | 'water' | undefined
-): number {
-  if (!element) return 0
-  if (domain === 'personality' && (element === 'fire' || element === 'air')) return 1
-  if (domain === 'relationship' && (element === 'air' || element === 'water')) return 1
-  if (domain === 'career' && (element === 'fire' || element === 'earth')) return 1
-  if (domain === 'wealth' && element === 'earth') return 2
-  if (domain === 'health' && (element === 'earth' || element === 'water')) return 1
-  return 0
-}
+function scoreTiming(
+  data: AstrologyData,
+  natalAspects: AstrologyAspectHighlight[]
+): AstrologyTiming {
+  const dailyScored = data.daily.aspects.slice(0, 10).map((hit) => {
+    const fromPlanet = hit.from.name as AstroPlanetName
+    const toPlanet = hit.to.name as AstroPlanetName
+    return scoreAspect({
+      fromPlanet,
+      toPlanet,
+      kind: hit.type as AspectKind,
+      orb: hit.orb,
+    })
+  })
+  const dailyAggregate = aggregateAspectScore(dailyScored)
+  const dailyScore = clampScore(60 + dailyAggregate * 2)
+  const topDailyAspect = data.daily.aspects[0]
 
-function buildTimingSnapshot(data: AstrologyData): AstrologyTimingSnapshot {
-  const top = data.daily.aspects.slice(0, 3).map((a) => ({
-    planet: a.from.name,
-    toNatal: a.to.name,
-    kind: a.type as AspectKind,
-    orb: Number(a.orb.toFixed(2)),
-  }))
-  const monthlyMoon = data.monthly.planets.find((p) => p.name === 'Moon')
-  const yearlySun = data.yearly.planets.find((p) => p.name === 'Sun')
+  // Monthly = lunar return chart's Moon position dignity.
+  const lunarMoon = data.monthly.planets.find((p) => p.name === 'Moon')
+  const lunarSign = (lunarMoon?.sign as ZodiacName) || null
+  const lunarDignity = lunarSign ? getEssentialDignity('Moon', lunarSign) : null
+  const monthlyScore = clampScore(60 + (lunarDignity?.score ?? 0) * 4)
+
+  // Yearly = solar return Sun dignity + benefic transits to Sun.
+  const solarSun = data.yearly.planets.find((p) => p.name === 'Sun')
+  const solarSign = (solarSun?.sign as ZodiacName) || null
+  const solarDignity = solarSign ? getEssentialDignity('Sun', solarSign) : null
+  const yearlyScore = clampScore(60 + (solarDignity?.score ?? 0) * 4)
+
+  // Daewoon = progressed Sun house + cumulative natal-aspect quality.
   const progSun = data.daewoon.planets.find((p) => p.name === 'Sun')
-  const progMoon = data.daewoon.planets.find((p) => p.name === 'Moon')
+  const progSign = (progSun?.sign as ZodiacName) || null
+  const progDignity = progSign ? getEssentialDignity('Sun', progSign) : null
+  const natalAspectAggregate = aggregateAspectScore(natalAspects.slice(0, 8))
+  const daewoonScore = clampScore(60 + (progDignity?.score ?? 0) * 3 + natalAspectAggregate)
 
   return {
-    todayTransits: top,
-    monthlyHeadline: monthlyMoon
-      ? `이번 달 달이 ${getSignLabelKo(monthlyMoon.sign as ZodiacName)} 자리에서 운영됩니다 — ${getPlanetSignInterpretation('Moon', monthlyMoon.sign as ZodiacName, 'ko')}.`
-      : '이번 달 흐름 데이터가 부족합니다.',
-    yearlyHeadline: yearlySun
-      ? `올해 태양이 ${getSignLabelKo(yearlySun.sign as ZodiacName)}로 회귀 — ${getPlanetSignInterpretation('Sun', yearlySun.sign as ZodiacName, 'ko')}.`
-      : '올해 회귀 데이터가 부족합니다.',
-    daewoonHeadline: progSun
-      ? `현재 대운(진행 차트)에서 태양은 ${getSignLabelKo(progSun.sign as ZodiacName)}, 달은 ${getSignLabelKo((progMoon?.sign as ZodiacName) || (progSun.sign as ZodiacName))} — ${getPlanetSignInterpretation('Sun', progSun.sign as ZodiacName, 'ko')}.`
-      : '진행 차트 데이터가 부족합니다.',
+    daily: {
+      label: '오늘 (Daily Transit)',
+      score: dailyScore,
+      band: bandFor(dailyScore),
+      headline: topDailyAspect
+        ? `${topDailyAspect.from.name} ${getAspectKoLabel(topDailyAspect.type as AspectKind)} natal ${topDailyAspect.to.name} (orb ${topDailyAspect.orb.toFixed(1)}°)`
+        : '오늘 트랜짓 데이터가 부족합니다.',
+    },
+    monthly: {
+      label: '이번 달 (Lunar Return)',
+      score: monthlyScore,
+      band: bandFor(monthlyScore),
+      headline: lunarSign
+        ? `달이 ${getSignLabelKo(lunarSign)} (${lunarDignity?.label}) — ${getPlanetSignInterpretation('Moon', lunarSign, 'ko')}`
+        : '월간 회귀 데이터가 부족합니다.',
+    },
+    yearly: {
+      label: '올해 (Solar Return)',
+      score: yearlyScore,
+      band: bandFor(yearlyScore),
+      headline: solarSign
+        ? `태양이 ${getSignLabelKo(solarSign)} (${solarDignity?.label}) — ${getPlanetSignInterpretation('Sun', solarSign, 'ko')}`
+        : '연간 회귀 데이터가 부족합니다.',
+    },
+    daewoon: {
+      label: '대운 (Progressed)',
+      score: daewoonScore,
+      band: bandFor(daewoonScore),
+      headline: progSign
+        ? `진행 태양 ${getSignLabelKo(progSign)} (${progDignity?.label}) — ${getPlanetSignInterpretation('Sun', progSign, 'ko')}`
+        : '진행 차트 데이터가 부족합니다.',
+    },
   }
 }
+
+// Re-export dignity types for convenience.
+export type { DignityKind, DignityResult }
+// Helper for the result page when surfacing the planet+house signal directly.
+export const buildPlanetHouseSnippet = getPlanetHouseInterpretation

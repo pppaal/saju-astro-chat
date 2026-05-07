@@ -320,7 +320,9 @@ export type {
   AstrologyDomainScore,
   AstrologyPlacementHighlight,
   AstrologyAspectHighlight,
-  AstrologyTimingSnapshot,
+  AstrologyTimingScore,
+  AstrologyTiming,
+  AstrologyHouseRulerSignal,
   AstrologyComprehensiveReport,
 } from "./comprehensiveReport";
 
@@ -337,3 +339,25 @@ export type {
   ZodiacName,
   AspectKind,
 } from "./interpretations";
+
+// ======================================================
+// 🎯 Traditional rules — dignities · aspect scoring · balance
+// ======================================================
+export {
+  getEssentialDignity,
+  getRulerOfSign,
+  getPlanetTone,
+  getPairTone,
+} from "./dignities";
+export type { DignityKind, DignityResult, PlanetTone } from "./dignities";
+
+export { scoreAspect, aggregateAspectScore } from "./aspectScoring";
+export type { ScoredAspect } from "./aspectScoring";
+
+export { calculateChartBalance } from "./balance";
+export type {
+  ChartBalance,
+  Element as ChartElement,
+  Modality as ChartModality,
+  Polarity as ChartPolarity,
+} from "./balance";
