@@ -49,6 +49,11 @@ import {
   type CycleNarrative,
 } from './Saju/cycle-analysis/narrative'
 import {
+  analyzeHiddenStemHap,
+  type HiddenStemHapAnalysis,
+} from './Saju/cycle-analysis/hiddenStemHap'
+import { getTwelveStagesForPillars } from './Saju/shinsal'
+import {
   STEM_TO_ELEMENT,
   YUKHAP,
   CHUNG,
@@ -408,6 +413,7 @@ export interface CycleEntry {
   johuShift: JohuShiftAnalysis
   hwaTransform: HwaTransformAnalysis
   samgi: SamgiCycleAnalysis
+  hiddenStemHap: HiddenStemHapAnalysis
 }
 
 /**
@@ -689,6 +695,12 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
             p.time.heavenlyStem.name,
           ],
         }),
+        hiddenStemHap: analyzeHiddenStemHap(branch, {
+          year: { branch: p.year.earthlyBranch.name },
+          month: { branch: p.month.earthlyBranch.name },
+          day: { branch: p.day.earthlyBranch.name },
+          time: { branch: p.time.earthlyBranch.name },
+        }),
       }
     } catch {
       return undefined
@@ -777,7 +789,65 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
   const narratives: MainSajuOutput['narratives'] = {}
   const buildGanji = (stem?: string, branch?: string) =>
     stem && branch ? `${stem}${branch}` : '?'
-  // 본명 보조 정보 (이중 격국 / 희신 / 보조 조후) — 모든 cycle 에 공통
+  // 본명 12운성 분포 (일간 기준 4기둥 단계)
+  const natalTwelveStages = (() => {
+    try {
+      return getTwelveStagesForPillars(p)
+    } catch {
+      return undefined
+    }
+  })()
+
+  // 본명 천간 충극 검출 — 천간 4쌍 비교
+  const STEM_CHUNG: Record<string, string> = {
+    甲: '庚', 庚: '甲', 乙: '辛', 辛: '乙',
+    丙: '壬', 壬: '丙', 丁: '癸', 癸: '丁',
+  }
+  const natalStems = [
+    { pillar: 'year', stem: p.year.heavenlyStem.name },
+    { pillar: 'month', stem: p.month.heavenlyStem.name },
+    { pillar: 'day', stem: dayMaster },
+    { pillar: 'time', stem: p.time.heavenlyStem.name },
+  ]
+  const natalStemConflicts: string[] = []
+  for (let i = 0; i < natalStems.length; i++) {
+    for (let j = i + 1; j < natalStems.length; j++) {
+      if (STEM_CHUNG[natalStems[i].stem] === natalStems[j].stem) {
+        natalStemConflicts.push(`${natalStems[i].stem}${natalStems[j].stem}충 (${natalStems[i].pillar}↔${natalStems[j].pillar})`)
+      }
+    }
+  }
+
+  // 본명 자체 신살 — ultra.iljuDeep 와 ultra.gongmang 에 일부 있음
+  const iljuDeep = ultra.iljuDeep as
+    | { iljuCharacter?: string; characteristics?: string[]; strengths?: string[]; weaknesses?: string[] }
+    | undefined
+  const natalShinsalKinds: string[] = []
+  // 양인 / 백호 / 괴강 검사 (간단)
+  const dayGanzhi = `${dayMaster}${p.day.earthlyBranch.name}`
+  const BAEKHO = new Set(['戊辰', '丁丑', '丙戌', '乙未', '甲辰', '癸丑', '壬戌'])
+  const GOEGANG = new Set(['庚辰', '庚戌', '壬辰', '壬戌', '戊戌'])
+  if (BAEKHO.has(dayGanzhi)) natalShinsalKinds.push('백호')
+  if (GOEGANG.has(dayGanzhi)) natalShinsalKinds.push('괴강')
+  // 본명 천을귀인 보유 (일간 기준 본명 4기둥 지지에 천을귀인이 있는지)
+  const cheoneulMap: Record<string, string[]> = {
+    甲: ['丑', '未'], 戊: ['丑', '未'], 庚: ['丑', '未'],
+    乙: ['子', '申'], 己: ['子', '申'],
+    丙: ['亥', '酉'], 丁: ['亥', '酉'],
+    壬: ['卯', '巳'], 癸: ['卯', '巳'],
+    辛: ['寅', '午'],
+  }
+  const allBranches = [
+    p.year.earthlyBranch.name,
+    p.month.earthlyBranch.name,
+    p.day.earthlyBranch.name,
+    p.time.earthlyBranch.name,
+  ]
+  if ((cheoneulMap[dayMaster] || []).some((b) => allBranches.includes(b))) {
+    natalShinsalKinds.push('천을귀인')
+  }
+
+  // 본명 보조 정보 (이중 격국 / 희신 / 보조 조후 + 본명 enrichment)
   const natalContext = {
     geokgukSecondary: (advanced.geokguk as { secondary?: string }).secondary,
     yongsinPrimary: yongsinPrimary,
@@ -786,6 +856,12 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     johuYongsinSecondary: johuYongsin?.secondary
       ? normalizeElement(johuYongsin.secondary)
       : undefined,
+    iljuCharacter: iljuDeep?.iljuCharacter,
+    iljuStrengths: iljuDeep?.strengths,
+    iljuWeaknesses: iljuDeep?.weaknesses,
+    natalShinsalKinds: natalShinsalKinds.length > 0 ? natalShinsalKinds : undefined,
+    natalTwelveStages: natalTwelveStages,
+    natalStemConflicts: natalStemConflicts.length > 0 ? natalStemConflicts : undefined,
   }
   if (cycleAnalysis.daeun && cur) {
     narratives.daeun = narrateCycle(cycleAnalysis.daeun, {

@@ -45,13 +45,23 @@ interface NarrateContext {
   scoreMax?: number
   daeunPhase?: { phase: 'stem' | 'branch'; progress: number; phaseStartAge: number }
   samjaePhase?: 'enter' | 'middle' | 'exit'
-  /** 본명 보조 정보 — 이중 격국 / 희신 / 기신 */
+  /** 본명 보조 정보 — 이중 격국 / 희신 / 기신 + 본명 보강 (iljuDeep, 신살, 천간충극) */
   natalContext?: {
     geokgukSecondary?: string
     yongsinPrimary?: string
     yongsinSecondary?: string
     kibsinElements?: string[]
     johuYongsinSecondary?: string
+    /** 일주 60갑자 톤 */
+    iljuCharacter?: string
+    iljuStrengths?: string[]
+    iljuWeaknesses?: string[]
+    /** 본명 자체에 보유한 신살 (귀인 보유자 vs 비보유자 등) */
+    natalShinsalKinds?: string[]
+    /** 본명 4기둥 일간 12운성 분포 — ['장생','임관','묘','왕지'] 형태 */
+    natalTwelveStages?: { year: string; month: string; day: string; time: string }
+    /** 본명 천간 충극 — '甲庚충' 같은 라벨 배열 */
+    natalStemConflicts?: string[]
   }
 }
 
@@ -366,6 +376,33 @@ function buildShortSummary(entry: CycleEntry, ctx: NarrateContext): string[] {
 // 섹션 빌더 (의미 변환 추가)
 // ─────────────────────────────────────────────────────────────────
 
+function buildNatalToneSection(ctx: NarrateContext): NarrativeSection | null {
+  const nc = ctx.natalContext
+  if (!nc) return null
+  const lines: string[] = []
+  if (nc.iljuCharacter) {
+    lines.push(`일주 톤: ${nc.iljuCharacter}.`)
+  }
+  if (nc.iljuStrengths?.length) {
+    lines.push(`강점: ${nc.iljuStrengths.slice(0, 3).join('·')}.`)
+  }
+  if (nc.iljuWeaknesses?.length) {
+    lines.push(`약점: ${nc.iljuWeaknesses.slice(0, 3).join('·')}.`)
+  }
+  if (nc.natalTwelveStages) {
+    const t = nc.natalTwelveStages
+    lines.push(`본명 12운성 (일간 기준): 사회 ${t.year} / 직업 ${t.month} / 자기 ${t.day} / 자녀 ${t.time}.`)
+  }
+  if (nc.natalShinsalKinds?.length) {
+    lines.push(`본명 보유 신살: ${nc.natalShinsalKinds.slice(0, 5).join('·')}.`)
+  }
+  if (nc.natalStemConflicts?.length) {
+    lines.push(`천간충극: ${nc.natalStemConflicts.join(', ')} — 명조 자체 불안정 요소.`)
+  }
+  if (lines.length === 0) return null
+  return { title: '본명 톤', body: lines.join('\n     ') }
+}
+
 function buildFlowSection(entry: CycleEntry): NarrativeSection {
   const ts = entry.twelveStages
   const cycleMean = STAGE_MEANING[ts.cycleStage] || ''
@@ -513,6 +550,15 @@ function buildSamgiSection(entry: CycleEntry): NarrativeSection | null {
   return null
 }
 
+function buildHiddenHapSection(entry: CycleEntry): NarrativeSection | null {
+  const h = entry.hiddenStemHap
+  if (h.hits.length === 0) return null
+  return {
+    title: '지장간 잠재 합',
+    body: `${h.summary} 무의식·잠재 영역에서 일어나는 변화 신호.`,
+  }
+}
+
 function buildJohuSection(entry: CycleEntry, ctx: NarrateContext): NarrativeSection | null {
   const j = entry.johuShift
   if (j.shift === 'neutral') return null
@@ -563,6 +609,10 @@ function buildSamjaePhaseSection(phase: 'enter' | 'middle' | 'exit'): NarrativeS
 export function narrateCycle(entry: CycleEntry, ctx: NarrateContext): CycleNarrative {
   const sections: NarrativeSection[] = []
 
+  // 본명 톤 (일주 60갑자 + 본명 신살 + 12운성 분포 + 천간충극)
+  const natalTone = buildNatalToneSection(ctx)
+  if (natalTone) sections.push(natalTone)
+
   sections.push(buildFlowSection(entry))
   sections.push(buildDomainSection(entry))
   sections.push(buildRootednessSection(entry))
@@ -573,6 +623,9 @@ export function narrateCycle(entry: CycleEntry, ctx: NarrateContext): CycleNarra
 
   const hwa = buildHwaSection(entry)
   if (hwa) sections.push(hwa)
+
+  const hiddenHap = buildHiddenHapSection(entry)
+  if (hiddenHap) sections.push(hiddenHap)
 
   const samgi = buildSamgiSection(entry)
   if (samgi) sections.push(samgi)
