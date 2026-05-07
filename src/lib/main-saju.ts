@@ -25,6 +25,10 @@ import {
   type RootednessAnalysis,
 } from './Saju/cycle-analysis/rootedness'
 import {
+  analyzeShinsalActivation,
+  type ShinsalActivationAnalysis,
+} from './Saju/cycle-analysis/shinsalActivation'
+import {
   STEM_TO_ELEMENT,
   YUKHAP,
   CHUNG,
@@ -278,10 +282,10 @@ export interface MainSajuOutput {
   }
   /** cycle별 정통 분석 — Phase 1 narrative 기초 데이터 */
   cycleAnalysis: {
-    daeun?: { twelveStages: TwelveStageAnalysis; pillarInteractions: PillarInteractionsAnalysis; rootedness: RootednessAnalysis }
-    seun?: { twelveStages: TwelveStageAnalysis; pillarInteractions: PillarInteractionsAnalysis; rootedness: RootednessAnalysis }
-    wolun?: { twelveStages: TwelveStageAnalysis; pillarInteractions: PillarInteractionsAnalysis; rootedness: RootednessAnalysis }
-    iljin?: { twelveStages: TwelveStageAnalysis; pillarInteractions: PillarInteractionsAnalysis; rootedness: RootednessAnalysis }
+    daeun?: CycleEntry
+    seun?: CycleEntry
+    wolun?: CycleEntry
+    iljin?: CycleEntry
   }
   /** 점수 입력 transformer 결과 (근거 표시용) */
   scoreInputs: {
@@ -294,6 +298,13 @@ export interface MainSajuOutput {
   extended: ReturnType<typeof analyzeExtendedSaju> | null
   /** 입력 정보 */
   input: MainSajuInput
+}
+
+export interface CycleEntry {
+  twelveStages: TwelveStageAnalysis
+  pillarInteractions: PillarInteractionsAnalysis
+  rootedness: RootednessAnalysis
+  shinsalActivation: ShinsalActivationAnalysis
 }
 
 /**
@@ -515,22 +526,19 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     day: { stem: dayMaster, branch: p.day.earthlyBranch.name },
     time: { stem: p.time.heavenlyStem.name, branch: p.time.earthlyBranch.name },
   }
-  const buildCycleEntry = (
-    stem?: string,
-    branch?: string,
-  ):
-    | {
-        twelveStages: TwelveStageAnalysis
-        pillarInteractions: PillarInteractionsAnalysis
-        rootedness: RootednessAnalysis
-      }
-    | undefined => {
+  const natalCore = {
+    dayStem: dayMaster,
+    dayBranch: p.day.earthlyBranch.name,
+    monthBranch: p.month.earthlyBranch.name,
+  }
+  const buildCycleEntry = (stem?: string, branch?: string): CycleEntry | undefined => {
     if (!stem || !branch) return undefined
     try {
       return {
         twelveStages: analyzeTwelveStages(stem, branch, dayMaster),
         pillarInteractions: analyzePillarInteractions(stem, branch, natalForInteractions),
         rootedness: analyzeRootedness(stem, branch, natalForInteractions),
+        shinsalActivation: analyzeShinsalActivation(stem, branch, natalCore),
       }
     } catch {
       return undefined

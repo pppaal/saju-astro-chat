@@ -121,7 +121,14 @@ type RootednessBlock = {
   cycleBranchTuggan: Array<{ cycleLayer: string; stem: string; pillar: string; strength: number }>
   summary: string
 }
-const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteractions: InteractionBlock; rootedness: RootednessBlock }) => {
+type ShinsalBlock = {
+  hits: Array<{ kind: string; tone: string; basis: string; on: string }>
+  luckyCount: number
+  unluckyCount: number
+  neutralCount: number
+  summary: string
+}
+const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteractions: InteractionBlock; rootedness: RootednessBlock; shinsalActivation: ShinsalBlock }) => {
   if (!c) {
     console.log(`  ${label}: —`)
     return
@@ -141,6 +148,11 @@ const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteract
   }
   const r = c.rootedness
   console.log(`    통근/투간: ${r.summary}`)
+  const s = c.shinsalActivation
+  console.log(`    신살:    ${s.summary}`)
+  for (const h of s.hits) {
+    console.log(`            · ${h.kind} [${h.tone}] — ${h.basis} (${h.on})`)
+  }
 }
 showCycle('대운', out.cycleAnalysis.daeun)
 showCycle('세운', out.cycleAnalysis.seun)
