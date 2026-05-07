@@ -1,4 +1,4 @@
-import DestinyMapPageClient from '@/app/destiny-map/DestinyMapPageClient'
+import DestinyCounselorClient from './DestinyCounselorClient'
 import { getServerI18n } from '@/i18n/server'
 import { generateMetadata } from '@/components/seo/SEO'
 
@@ -21,5 +21,5 @@ export const metadata = generateMetadata({
 
 export default async function DestinyCounselorPage() {
   const { locale, messages } = await getServerI18n()
-  return <DestinyMapPageClient initialLocale={locale} initialMessages={messages} />
+  return <DestinyCounselorClient initialLocale={locale} initialMessages={messages} />
 }
