@@ -270,6 +270,18 @@ export default function DestinyMatrixPlanner({
     return found?.natalContext ?? null
   }, [data])
 
+  // --- Stats: yongsin activation top 5 (next 60 days) ------------------
+  const yongsinTop = useMemo(() => {
+    return data?.yongsinActivations ?? null
+  }, [data])
+
+  const formatDateKo = (dateStr: string): string => {
+    // 'YYYY-MM-DD' → 'M월 D일'
+    const m = parseInt(dateStr.slice(5, 7), 10)
+    const d = parseInt(dateStr.slice(8, 10), 10)
+    return `${m}월 ${d}일`
+  }
+
   // --- Stats: domain sync radar ---------------------------------------
   // sajuAxis / astroAxis는 엔진의 모든 일자에 항상 들어옴 (yearlyDates.ts).
   const domainSyncData = useMemo(() => {
@@ -814,6 +826,63 @@ export default function DestinyMatrixPlanner({
                   </p>
                 )}
               </div>
+
+              {/* 용신 활성 top 5 (향후 60일) */}
+              {yongsinTop && yongsinTop.top.length > 0 && (
+                <div className="bg-gradient-to-br from-amber-900/15 to-zinc-900/40 border border-amber-500/20 p-5 rounded-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+                    <Sparkles className="w-16 h-16 text-amber-400" />
+                  </div>
+                  <div className="flex items-center gap-2 mb-2 relative z-10">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <h3 className="text-sm font-bold text-amber-200">
+                      용신 {yongsinTop.yongsin} 활성 — 향후 60일 슈퍼 데이 top {yongsinTop.top.length}
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 mb-4 relative z-10 leading-relaxed">
+                    본명 용신({yongsinTop.yongsin})이 가장 강하게 받쳐주는 날 — 큰 결정·계약·시작에 추천.
+                  </p>
+                  <div className="space-y-2 relative z-10">
+                    {yongsinTop.top.map((d, i) => (
+                      <div
+                        key={d.date}
+                        className="flex items-start gap-3 bg-zinc-950/70 p-3 rounded-xl border border-amber-500/10"
+                      >
+                        <div className="flex flex-col items-center justify-center w-14 shrink-0 border-r border-amber-500/10 pr-2">
+                          <span className="text-[9px] text-amber-400/80 font-bold uppercase tracking-wider">
+                            #{i + 1}
+                          </span>
+                          <span className="text-xl font-black text-amber-300 leading-none mt-0.5">
+                            {Math.round(d.score)}
+                          </span>
+                          <span className="text-[9px] text-zinc-500 mt-0.5">{d.level}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-white mb-1">
+                            {formatDateKo(d.date)}{' '}
+                            <span className="text-zinc-500 text-[10px] font-normal">
+                              ({d.date})
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 leading-relaxed">{d.advice}</p>
+                          {d.sources && d.sources.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {d.sources.slice(0, 4).map((src, si) => (
+                                <span
+                                  key={si}
+                                  className="px-1.5 py-0.5 text-[9px] bg-zinc-900 border border-zinc-700 rounded text-zinc-400"
+                                >
+                                  {src}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* 운세 영역별 동기화 분석 */}
               <div className="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 shadow-xl">

@@ -702,6 +702,65 @@ export const GET = withApiMiddleware(
       pillars,
     }
 
+    // ── Yongsin activations: top-5 days when the user's primary 용신 is
+    // strongest in the next 60 days. Computed once per yearly request so
+    // the planner can surface "다음 좋은 날 top 5" without an extra fetch.
+    let yongsinActivations:
+      | {
+          yongsin: string
+          top: Array<{
+            date: string
+            score: number
+            level: string
+            sources: string[]
+            advice: string
+          }>
+        }
+      | undefined
+    try {
+      const { analyzeAdvancedSaju } = await import('@/lib/Saju/astrologyengine')
+      const advanced = analyzeAdvancedSaju(
+        {
+          name: pillars.day.stem,
+          element:
+            STEM_TO_ELEMENT[pillars.day.stem as keyof typeof STEM_TO_ELEMENT] || 'earth',
+          yin_yang: ['甲', '丙', '戊', '庚', '壬'].includes(pillars.day.stem) ? '양' : '음',
+        } as Parameters<typeof analyzeAdvancedSaju>[0],
+        {
+          yearPillar: sajuResult.yearPillar,
+          monthPillar: sajuResult.monthPillar,
+          dayPillar: sajuResult.dayPillar,
+          timePillar: sajuResult.timePillar,
+        } as Parameters<typeof analyzeAdvancedSaju>[1]
+      )
+      const yongsinPrimary = advanced.yongsin?.primary
+      if (yongsinPrimary) {
+        const { findYongsinActivationPeriods } = await import(
+          '@/lib/prediction/specificDateEngine'
+        )
+        const periods = findYongsinActivationPeriods(
+          yongsinPrimary,
+          pillars.day.stem,
+          new Date(),
+          60
+        )
+        const top = periods.slice(0, 5).map((p) => ({
+          date: `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}-${String(p.date.getDate()).padStart(2, '0')}`,
+          score: p.score,
+          level: p.activationLevel,
+          sources: p.sources,
+          advice: p.advice,
+        }))
+        if (top.length > 0) {
+          yongsinActivations = { yongsin: yongsinPrimary, top }
+        }
+      }
+    } catch (err) {
+      logger.warn('[calendar] yongsin activation calc skipped', {
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+
     const sunSign = deriveFallbackSunSign(birthDate)
     const astroProfile: CalendarAstroProfile = {
       sunSign,
@@ -1250,6 +1309,7 @@ export const GET = withApiMiddleware(
       degradedMode,
       matrixContract: calendarMatrixContract,
       canonicalCore: calendarCoreCanonical,
+      yongsinActivations,
       birthInfo: {
         date: birthDateParam,
         time: birthTimeParam,
