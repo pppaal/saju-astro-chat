@@ -139,33 +139,26 @@ export const POST = withApiMiddleware(
           (typeof resolvedQuestionContext === 'object' &&
             Object.keys(resolvedQuestionContext as Record<string, unknown>).length === 0))
       ) {
-        try {
-          const analyzeLanguage: 'ko' | 'en' = language === 'en' ? 'en' : 'ko'
-          const v2 = await analyzeTarotQuestionV2({
-            question: trimmedRawQuestion,
-            language: analyzeLanguage,
-          })
-          if (v2 && !v2.isDangerous) {
-            resolvedQuestionContext = {
-              question_summary: v2.question_summary,
-              direct_answer: v2.direct_answer,
-              question_profile: v2.question_profile,
-              intent: v2.intent,
-            } as unknown as typeof resolvedQuestionContext
-            resolvedQuestionMeta = {
-              intent: v2.intent || undefined,
-              subject: v2.question_profile?.subject?.label || undefined,
-              focus: v2.question_profile?.focus?.label || undefined,
-              timeframe: v2.question_profile?.timeframe?.label || undefined,
-              tone: v2.question_profile?.tone?.label || undefined,
-              questionType: v2.question_profile?.type?.label || undefined,
-            } as unknown as typeof resolvedQuestionMeta
-          }
-        } catch (analyseErr) {
-          logger.warn(
-            '[Tarot interpret] server-side question analysis fell through; proceeding with bare question',
-            { message: analyseErr instanceof Error ? analyseErr.message : String(analyseErr) }
-          )
+        const analyzeLanguage: 'ko' | 'en' = language === 'en' ? 'en' : 'ko'
+        const v2 = await analyzeTarotQuestionV2({
+          question: trimmedRawQuestion,
+          language: analyzeLanguage,
+        })
+        if (!v2.isDangerous) {
+          resolvedQuestionContext = {
+            question_summary: v2.question_summary,
+            direct_answer: v2.direct_answer,
+            question_profile: v2.question_profile,
+            intent: v2.intent,
+          } as unknown as typeof resolvedQuestionContext
+          resolvedQuestionMeta = {
+            intent: v2.intent || undefined,
+            subject: v2.question_profile?.subject?.label || undefined,
+            focus: v2.question_profile?.focus?.label || undefined,
+            timeframe: v2.question_profile?.timeframe?.label || undefined,
+            tone: v2.question_profile?.tone?.label || undefined,
+            questionType: v2.question_profile?.type?.label || undefined,
+          } as unknown as typeof resolvedQuestionMeta
         }
       }
 
