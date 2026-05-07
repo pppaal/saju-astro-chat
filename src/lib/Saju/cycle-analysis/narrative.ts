@@ -603,46 +603,238 @@ function buildSamjaePhaseSection(phase: 'enter' | 'middle' | 'exit'): NarrativeS
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Tier별 framing — 대운(인생 챕터) / 세운(해의 이벤트) / 월운(달 집중) / 일진(오늘 액션)
+// ─────────────────────────────────────────────────────────────────
+
+const TIME_HORIZON: Record<CycleKind, string> = {
+  daeun: '이 10년 흐름',
+  seun: '이 한 해',
+  wolun: '이번 달',
+  iljin: '오늘',
+}
+
+/** 대운: 인생 챕터 테마 + big picture */
+function buildDaeunChapterTheme(entry: CycleEntry, ctx: NarrateContext): NarrativeSection {
+  const ageRange = ctx.daeunPhase
+    ? `${ctx.daeunPhase.phaseStartAge - (ctx.daeunPhase.phase === 'branch' ? 5 : 0)}~${ctx.daeunPhase.phaseStartAge - (ctx.daeunPhase.phase === 'branch' ? 5 : 0) + 9}세`
+    : '이 10년'
+  const sibsin = entry.geokgukShift.geokguk
+  const shift = entry.geokgukShift.shift
+
+  let theme: string
+  if (shift === 'strengthen') {
+    theme = `${ageRange} = ${sibsin} 흐름이 단단해지는 안정·정착 챕터`
+  } else if (shift === 'break') {
+    theme = `${ageRange} = ${sibsin} 흐름이 흔들리는 전환·재정립 챕터`
+  } else if (shift === 'protect') {
+    theme = `${ageRange} = 흔들림 있으나 견제받아 유지되는 챕터`
+  } else if (entry.geokgukShift.transformedTo) {
+    theme = `${ageRange} = ${sibsin}이 ${entry.geokgukShift.transformedTo.geokguk}으로 일시 변신, 새 역할 챕터`
+  } else {
+    theme = `${ageRange} = 큰 변동 없는 평탄 챕터`
+  }
+
+  // 통근/무근 → 실제 발현 강도
+  const realization = entry.rootedness.isRootless
+    ? '단, cycle 천간 무근으로 표면적 변화만 보이고 실제 결과는 약함'
+    : entry.rootedness.rootStrengthTotal >= 2
+    ? '통근 깊어 흐름이 실제로 자리잡고 결과를 만든다'
+    : '통근 얕아 변화는 있되 깊이는 제한적'
+
+  return { title: '인생 챕터 테마', body: `${theme}. ${realization}.` }
+}
+
+/** 세운: 그 해의 주요 이벤트 3-5개 */
+function buildSeunYearEvents(entry: CycleEntry, ctx: NarrateContext): NarrativeSection {
+  const events: string[] = []
+
+  // 격국 변동
+  if (entry.geokgukShift.shift === 'strengthen' && entry.geokgukShift.intensity >= 2) {
+    events.push(`본업 정점기 — 그동안 키운 ${entry.geokgukShift.geokguk} 자리에서 결과 발현`)
+  } else if (entry.geokgukShift.shift === 'break' && entry.geokgukShift.intensity >= 2) {
+    events.push('본업 흔들림 — 직업·역할 전환 가능')
+  }
+
+  // 천간합 化
+  const hwa = entry.hwaTransform.primaryEvent
+  if (hwa?.quality === 'true' && hwa.natalPillar === 'day') {
+    events.push(`일간 변신 (化${hwa.hwaElement}) — 결혼·직업 큰 전환`)
+  } else if (hwa?.significance === 3 && hwa.quality === 'simple') {
+    events.push(`일간 묶임 (단순 합) — 관계 인연 강하게 묶이나 변신은 미성립`)
+  }
+
+  // 삼합 활성화
+  const samhap = entry.pillarInteractions.pillars.filter((p) => p.branchRelation === '삼합')
+  if (samhap.length > 0) {
+    const domains = samhap.map((p) => p.domain).join(', ')
+    events.push(`${domains} 영역 큰 협업·연합 형성`)
+  }
+
+  // 충
+  const chung = entry.pillarInteractions.pillars.filter((p) => p.branchRelation === '충')
+  if (chung.length > 0) {
+    const domains = chung.map((p) => p.domain).join(', ')
+    events.push(`${domains} 영역 충돌·이동 사건`)
+  }
+
+  // 길성 신살
+  const lucky = entry.shinsalActivation.hits.filter((h) => h.tone === 'lucky')
+  if (lucky.length >= 2) {
+    events.push(`귀인·길성 다발 (${lucky.map((h) => h.kind).slice(0, 3).join('·')}) — 적극 행동`)
+  }
+
+  // 흉성 신살
+  const unlucky = entry.shinsalActivation.hits.filter((h) => h.tone === 'unlucky')
+  if (unlucky.length > 0) {
+    events.push(`주의: ${unlucky.map((h) => h.kind).slice(0, 2).join('·')} 활성`)
+  }
+
+  // 삼재
+  if (ctx.samjaePhase) {
+    events.push(SAMJAE_MEANING[ctx.samjaePhase])
+  }
+
+  if (events.length === 0) {
+    return { title: '이 해의 주요 이벤트', body: '큰 사건 신호 없이 평탄한 흐름.' }
+  }
+
+  return {
+    title: '이 해의 주요 이벤트',
+    body: events.slice(0, 5).map((e) => `· ${e}`).join('\n     '),
+  }
+}
+
+/** 월운: 이번 달 집중 영역 + 행동 advice */
+function buildWolunMonthFocus(entry: CycleEntry): NarrativeSection {
+  const dom = entry.pillarInteractions.dominantSignal
+  const lucky = entry.shinsalActivation.hits.find((h) => h.tone === 'lucky')
+  const unlucky = entry.shinsalActivation.hits.find((h) => h.tone === 'unlucky')
+
+  const lines: string[] = []
+  if (dom) {
+    const focus = DOMAIN_MEANING_BY_RELATION[dom.pillar]?.[dom.relation] || dom.domain
+    lines.push(`집중 영역: ${focus}`)
+  }
+  if (lucky) {
+    lines.push(`적극 활용: ${lucky.kind} (${SHINSAL_MEANING[lucky.kind] || ''})`)
+  }
+  if (unlucky) {
+    lines.push(`조심: ${unlucky.kind} (${SHINSAL_MEANING[unlucky.kind] || ''})`)
+  }
+  if (entry.geokgukShift.shift === 'strengthen') {
+    lines.push('본업 활성 — 진척 좋은 시기')
+  } else if (entry.geokgukShift.shift === 'break') {
+    lines.push('본업 일시 동요 — 큰 결정 보류')
+  }
+  if (lines.length === 0) {
+    return { title: '이번 달 집중', body: '특별한 집중 영역 없이 평소대로 진행.' }
+  }
+  return {
+    title: '이번 달 집중',
+    body: lines.map((l) => `· ${l}`).join('\n     '),
+  }
+}
+
+/** 일진: 오늘 핵심 액션 1-2개 */
+function buildIljinTodayAction(entry: CycleEntry): NarrativeSection {
+  const luckyTop = entry.shinsalActivation.hits.find((h) => h.tone === 'lucky')
+  const unluckyTop = entry.shinsalActivation.hits.find((h) => h.tone === 'unlucky')
+  const dom = entry.pillarInteractions.dominantSignal
+
+  const actions: string[] = []
+  if (luckyTop) {
+    actions.push(`✓ ${luckyTop.kind} 활용 — ${SHINSAL_MEANING[luckyTop.kind] || ''}`)
+  }
+  if (unluckyTop) {
+    actions.push(`✗ ${unluckyTop.kind} 조심 — ${SHINSAL_MEANING[unluckyTop.kind] || ''}`)
+  }
+  if (dom && dom.tone === 'positive') {
+    const focus = DOMAIN_MEANING_BY_RELATION[dom.pillar]?.[dom.relation]
+    if (focus) actions.push(`✓ 집중: ${focus}`)
+  } else if (dom && dom.tone === 'negative') {
+    const focus = DOMAIN_MEANING_BY_RELATION[dom.pillar]?.[dom.relation]
+    if (focus) actions.push(`✗ 주의: ${focus}`)
+  }
+  if (entry.geokgukShift.shift === 'break' && entry.geokgukShift.intensity >= 2) {
+    actions.push('✗ 본업·격국 동요 — 큰 결정·계약 미루기')
+  }
+  if (actions.length === 0) {
+    return { title: '오늘 액션', body: '특별한 신호 없음. 평소대로 진행.' }
+  }
+  return {
+    title: '오늘 액션',
+    body: actions.slice(0, 4).map((a) => `${a}`).join('\n     '),
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // 메인 진입점
 // ─────────────────────────────────────────────────────────────────
 
 export function narrateCycle(entry: CycleEntry, ctx: NarrateContext): CycleNarrative {
   const sections: NarrativeSection[] = []
+  const horizon = TIME_HORIZON[ctx.cycleKind]
 
-  // 본명 톤 (일주 60갑자 + 본명 신살 + 12운성 분포 + 천간충극)
-  const natalTone = buildNatalToneSection(ctx)
-  if (natalTone) sections.push(natalTone)
-
-  sections.push(buildFlowSection(entry))
-  sections.push(buildDomainSection(entry))
-  sections.push(buildRootednessSection(entry))
-  sections.push(buildGeokgukSection(entry, ctx))
-
-  const shinsal = buildShinsalSection(entry)
-  if (shinsal) sections.push(shinsal)
-
-  const hwa = buildHwaSection(entry)
-  if (hwa) sections.push(hwa)
-
-  const hiddenHap = buildHiddenHapSection(entry)
-  if (hiddenHap) sections.push(hiddenHap)
-
-  const samgi = buildSamgiSection(entry)
-  if (samgi) sections.push(samgi)
-
-  const johu = buildJohuSection(entry, ctx)
-  if (johu) sections.push(johu)
-
-  if (ctx.daeunPhase) sections.push(buildDaeunPhaseSection(ctx))
-  if (ctx.cycleKind === 'seun' && ctx.samjaePhase) {
-    sections.push(buildSamjaePhaseSection(ctx.samjaePhase))
+  // ─── Tier별 섹션 구성 ───
+  if (ctx.cycleKind === 'daeun') {
+    // 대운: 본명톤 + 인생 챕터 테마 + 깊은 분석 (모든 섹션)
+    const natal = buildNatalToneSection(ctx)
+    if (natal) sections.push(natal)
+    sections.push(buildDaeunChapterTheme(entry, ctx))
+    sections.push(buildFlowSection(entry))
+    sections.push(buildDomainSection(entry))
+    sections.push(buildRootednessSection(entry))
+    sections.push(buildGeokgukSection(entry, ctx))
+    const shinsal = buildShinsalSection(entry)
+    if (shinsal) sections.push(shinsal)
+    const hwa = buildHwaSection(entry)
+    if (hwa) sections.push(hwa)
+    const hiddenHap = buildHiddenHapSection(entry)
+    if (hiddenHap) sections.push(hiddenHap)
+    const samgi = buildSamgiSection(entry)
+    if (samgi) sections.push(samgi)
+    const johu = buildJohuSection(entry, ctx)
+    if (johu) sections.push(johu)
+    if (ctx.daeunPhase) sections.push(buildDaeunPhaseSection(ctx))
+  } else if (ctx.cycleKind === 'seun') {
+    // 세운: 본명톤 + 해의 이벤트 + 핵심 분석 (8개)
+    const natal = buildNatalToneSection(ctx)
+    if (natal) sections.push(natal)
+    sections.push(buildSeunYearEvents(entry, ctx))
+    sections.push(buildFlowSection(entry))
+    sections.push(buildDomainSection(entry))
+    sections.push(buildGeokgukSection(entry, ctx))
+    const shinsal = buildShinsalSection(entry)
+    if (shinsal) sections.push(shinsal)
+    const hwa = buildHwaSection(entry)
+    if (hwa) sections.push(hwa)
+    const samgi = buildSamgiSection(entry)
+    if (samgi) sections.push(samgi)
+    if (ctx.samjaePhase) sections.push(buildSamjaePhaseSection(ctx.samjaePhase))
+  } else if (ctx.cycleKind === 'wolun') {
+    // 월운: 집중 + 핵심 (5-6개)
+    sections.push(buildWolunMonthFocus(entry))
+    sections.push(buildFlowSection(entry))
+    sections.push(buildDomainSection(entry))
+    sections.push(buildGeokgukSection(entry, ctx))
+    const shinsal = buildShinsalSection(entry)
+    if (shinsal) sections.push(shinsal)
+    const hwa = buildHwaSection(entry)
+    if (hwa) sections.push(hwa)
+  } else {
+    // 일진: 오늘 액션 + 짧은 핵심 (4-5개)
+    sections.push(buildIljinTodayAction(entry))
+    sections.push(buildDomainSection(entry))
+    sections.push(buildGeokgukSection(entry, ctx))
+    const shinsal = buildShinsalSection(entry)
+    if (shinsal) sections.push(shinsal)
   }
 
   return {
     oneLineKey: buildOneLineKey(entry, ctx),
     shortSummary: buildShortSummary(entry, ctx),
     fullNarrative: {
-      headline: buildHeadline(entry, ctx),
+      headline: `[${horizon}] ${buildHeadline(entry, ctx)}`,
       overallVerdict: buildOverallVerdict(entry, ctx),
       sections,
     },
