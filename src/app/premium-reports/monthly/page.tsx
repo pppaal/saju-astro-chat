@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
+import GeneratingPreview from '@/app/premium-reports/_components/GeneratingPreview'
 import {
   ReportBuilderActionPanel,
   ReportSurfaceSection,
@@ -169,13 +170,18 @@ export default function MonthlyReportPage() {
     return <UnifiedServiceLoading kind="aiReport" locale="ko" />
   }
 
+  if (isGenerating) {
+    const previewBirth = {
+      birthDate: profileInput?.birthDate || profile.birthDate || '',
+      birthTime: profileInput?.birthTime || profile.birthTime || '',
+      gender: profileInput?.gender,
+      timezone: profileInput?.timezone || profile.timezone,
+    }
+    return <GeneratingPreview birth={previewBirth} />
+  }
+
   return (
     <>
-      {isGenerating && (
-        <div className="fixed inset-0 z-[120]">
-          <UnifiedServiceLoading kind="aiReport" locale="ko" />
-        </div>
-      )}
       <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,#1a1c2e_0%,#0a0a14_60%)] text-slate-100">
         <div className="mx-auto max-w-5xl px-6 pb-20 pt-16 sm:pt-24">
           <header className="space-y-5 text-center">
