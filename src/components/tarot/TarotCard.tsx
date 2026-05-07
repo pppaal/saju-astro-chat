@@ -9,33 +9,6 @@ import styles from "./TarotCard.module.css";
 // - Destiny Map (saju + astrology + tarot + Jung psychology)
 // - Any other feature that needs tarot card display
 
-export interface CardInsight {
-  interpretation?: string;
-  spiritAnimal?: {
-    name: string;
-    meaning: string;
-    message: string;
-  };
-  chakra?: {
-    name: string;
-    color: string;
-    guidance: string;
-  };
-  element?: "Fire" | "Water" | "Air" | "Earth";
-  shadow?: {
-    prompt: string;
-    affirmation: string;
-  };
-  numerology?: {
-    number: number;
-    meaning: string;
-  };
-  astrology?: {
-    sign: string;
-    planet?: string;
-  };
-}
-
 export interface TarotCardProps {
   // Basic card info
   name: string;
@@ -47,12 +20,8 @@ export interface TarotCardProps {
   keywords?: string[];
   meaning?: string;
 
-  // Premium insights
-  insights?: CardInsight;
-
   // Display options
   size?: "small" | "medium" | "large";
-  showInsights?: boolean;
   expandable?: boolean;
   interactive?: boolean;
 
@@ -61,13 +30,6 @@ export interface TarotCardProps {
   onExpand?: (expanded: boolean) => void;
 }
 
-const elementIcons: Record<string, string> = {
-  Fire: "🔥",
-  Water: "💧",
-  Air: "🌬️",
-  Earth: "🌍"
-};
-
 const TarotCard = memo(function TarotCard({
   name,
   image,
@@ -75,9 +37,7 @@ const TarotCard = memo(function TarotCard({
   position,
   keywords = [],
   meaning,
-  insights,
   size = "medium",
-  showInsights = true,
   expandable = true,
   interactive = true,
   onClick,
@@ -146,72 +106,6 @@ const TarotCard = memo(function TarotCard({
         {/* Meaning */}
         {meaning && (
           <p className={styles.meaning}>{meaning}</p>
-        )}
-
-        {/* Premium Insights */}
-        {showInsights && isExpanded && insights && (
-          <div className={styles.insightsContainer}>
-            {/* AI Interpretation */}
-            {insights.interpretation && (
-              <div className={styles.insightBlock}>
-                <h4 className={styles.insightTitle}>🔮 Deep Insight</h4>
-                <p className={styles.insightText}>{insights.interpretation}</p>
-              </div>
-            )}
-
-            {/* Spirit Animal */}
-            {insights.spiritAnimal && (
-              <div className={styles.insightBlock}>
-                <h4 className={styles.insightTitle}>🦋 Spirit Animal</h4>
-                <div className={styles.spiritAnimal}>
-                  <span className={styles.animalName}>{insights.spiritAnimal.name}</span>
-                  <p className={styles.animalMeaning}>{insights.spiritAnimal.meaning}</p>
-                  <p className={styles.animalMessage}>&quot;{insights.spiritAnimal.message}&quot;</p>
-                </div>
-              </div>
-            )}
-
-            {/* Chakra */}
-            {insights.chakra && (
-              <div className={styles.insightBlock}>
-                <h4 className={styles.insightTitle}>🧘 Chakra</h4>
-                <div className={styles.chakraInfo}>
-                  <span
-                    className={styles.chakraDot}
-                    style={{ backgroundColor: insights.chakra.color }}
-                  />
-                  <span className={styles.chakraName}>{insights.chakra.name}</span>
-                  <p className={styles.chakraGuidance}>{insights.chakra.guidance}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Shadow Work */}
-            {insights.shadow && (
-              <div className={styles.insightBlock}>
-                <h4 className={styles.insightTitle}>🌙 Shadow Work</h4>
-                <p className={styles.shadowPrompt}>{insights.shadow.prompt}</p>
-                <p className={styles.shadowAffirmation}>💫 {insights.shadow.affirmation}</p>
-              </div>
-            )}
-
-            {/* Element */}
-            {insights.element && (
-              <div className={styles.elementTag}>
-                {elementIcons[insights.element]} {insights.element}
-              </div>
-            )}
-
-            {/* Astrology */}
-            {insights.astrology && (
-              <div className={styles.astrologyInfo}>
-                <span className={styles.astrologySign}>{insights.astrology.sign}</span>
-                {insights.astrology.planet && (
-                  <span className={styles.astrologyPlanet}>{insights.astrology.planet}</span>
-                )}
-              </div>
-            )}
-          </div>
         )}
 
         {/* Expand Hint */}
