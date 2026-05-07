@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, Fragment } from 'react'
+import React, { useState, useMemo, useCallback, Fragment } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Dialog, Transition } from '@headlessui/react'
 import {
@@ -174,6 +174,12 @@ export default function DestinyMatrixPlanner({
   }, [data, selectedDateStr])
 
   // --- Daily indices: 총점 / 연애 / 재물 / 건강 ------------------------
+  // yearly /api/calendar 페이로드에는 activityScores가 들어오지 않는다
+  // (date-detail 엔드포인트에서만 계산). 그래서 도메인별 지수는
+  //  1) evidence.matrix.domain이 매칭되면 finalScoreAdjusted로 직접
+  //  2) 카테고리에 해당 도메인이 들어있으면 그 날의 최종 점수
+  //  3) 그 외엔 중립값 50 (없는 신호를 60%로 위장하지 않음)
+  // 의 정직한 우선순위로 도출한다.
   const dailyIndices = useMemo(() => {
     if (!selectedImportantDate) {
       return { score: 88, love: 65, wealth: 78, health: 60 }
@@ -181,13 +187,20 @@ export default function DestinyMatrixPlanner({
     const d = selectedImportantDate
     const finalScore = Math.round(pickFinalScore(d))
     const cats = new Set(d.categories)
-    const fallbackByCategory = (key: EventCategory) =>
-      cats.has(key) ? finalScore : Math.max(35, Math.round(finalScore * 0.6))
+    const matrixDomain = d.evidence?.matrix?.domain
+    const matrixScore = d.evidence?.matrix?.finalScoreAdjusted
+    const domainScore = (categoryKey: EventCategory, matrixKey: string): number => {
+      if (matrixDomain === matrixKey && typeof matrixScore === 'number') {
+        return Math.max(0, Math.min(100, Math.round(matrixScore)))
+      }
+      if (cats.has(categoryKey)) return finalScore
+      return 50
+    }
     return {
       score: finalScore,
-      love: Math.round(d.activityScores?.marriage ?? fallbackByCategory('love')),
-      wealth: Math.round(d.activityScores?.investment ?? fallbackByCategory('wealth')),
-      health: Math.round(fallbackByCategory('health')),
+      love: domainScore('love', 'love'),
+      wealth: domainScore('wealth', 'money'),
+      health: domainScore('health', 'health'),
     }
   }, [selectedImportantDate])
 
@@ -334,15 +347,19 @@ export default function DestinyMatrixPlanner({
   }, [domainSyncData])
 
   // --- Stats: weekly cross timing -------------------------------------
+  // 캘린더 주차 (일요일 시작) 기준으로 버킷팅. 옛 단순 7일 그룹팅
+  // (1-7 / 8-14 / 15-21 / 22-28 / 29+) 은 실제 주와 어긋나서 1주차에
+  // 화·수·목·금·토만 들어가는 식이었다. 이제 그 달의 1일이 무슨 요일인지
+  // 보고 leadingBlanks를 더해 진짜 주차로 정렬.
   const weeklyTimingData = useMemo(() => {
     if (monthDates.length === 0) return null
-    const buckets: Array<{ saju: number[]; astro: number[] }> = Array.from(
-      { length: 5 },
-      () => ({ saju: [], astro: [] }),
-    )
+    const buckets: Array<{ saju: number[]; astro: number[] }> = []
     for (const d of monthDates) {
       const day = parseInt(d.date.slice(8, 10), 10)
-      const weekIdx = Math.min(Math.floor((day - 1) / 7), 4)
+      // leadingBlanks = 그 달 1일 직전 빈 칸 수 (= 1일의 요일 인덱스, 일=0).
+      // 같은 식을 적용하면 day가 그 달 캘린더 표에서 몇 번째 주에 들어가는지 나옴.
+      const weekIdx = Math.floor((day - 1 + leadingBlanks) / 7)
+      if (!buckets[weekIdx]) buckets[weekIdx] = { saju: [], astro: [] }
       buckets[weekIdx].saju.push(d.scoreBreakdown?.sajuAxis ?? 50)
       buckets[weekIdx].astro.push(d.scoreBreakdown?.astroAxis ?? 50)
     }
@@ -351,9 +368,21 @@ export default function DestinyMatrixPlanner({
       saju: b.saju.length > 0 ? Math.round(avg(b.saju)) : 50,
       astro: b.astro.length > 0 ? Math.round(avg(b.astro)) : 50,
     }))
-  }, [monthDates])
+  }, [monthDates, leadingBlanks])
 
   // --- Stats: super-timing (week with strongest cross signal) ---------
+  // 캘린더 주차 (일~토) 기준이라 1주차는 그 달 1일이 시작하는 요일에서
+  // 그 주의 토요일까지. 즉 dayStart = 1, dayEnd = 7 - leadingBlanks.
+  // 그 다음부터는 7일씩 흘러간다.
+  const weekRange = useCallback(
+    (weekIdx: number) => {
+      const dayStart = weekIdx === 0 ? 1 : weekIdx * 7 - leadingBlanks + 1
+      const dayEnd = Math.min(weekIdx * 7 - leadingBlanks + 7, daysInMonth)
+      return { dayStart, dayEnd }
+    },
+    [leadingBlanks, daysInMonth],
+  )
+
   const superTiming = useMemo(() => {
     const weeks = weeklyTimingData
     if (!weeks || weeks.length === 0) return null
@@ -366,10 +395,9 @@ export default function DestinyMatrixPlanner({
       }
     }
     const weekIdx = parseInt(best.week, 10) - 1
-    const dayStart = weekIdx * 7 + 1
-    const dayEnd = Math.min(dayStart + 6, daysInMonth)
+    const { dayStart, dayEnd } = weekRange(weekIdx)
     return { week: best.week, dayStart, dayEnd, sajuScore: best.saju, astroScore: best.astro }
-  }, [weeklyTimingData, daysInMonth])
+  }, [weeklyTimingData, weekRange])
 
   // --- Engine reasons for the super-timing card -----------------------
   const superTimingReasons = useMemo(() => {
@@ -380,11 +408,10 @@ export default function DestinyMatrixPlanner({
       }
     }
     const weekIdx = parseInt(superTiming.week, 10) - 1
-    const dayStart = weekIdx * 7 + 1
-    const dayEnd = Math.min(dayStart + 7, daysInMonth + 1)
+    const { dayStart, dayEnd } = weekRange(weekIdx)
     const weekDates = monthDates.filter((d) => {
       const day = parseInt(d.date.slice(8, 10), 10)
-      return day >= dayStart && day < dayEnd
+      return day >= dayStart && day <= dayEnd
     })
     if (weekDates.length === 0) {
       return {
@@ -396,7 +423,7 @@ export default function DestinyMatrixPlanner({
     const sajuFactor = topDay.sajuFactors?.[0] ?? topDay.title
     const astroFactor = topDay.astroFactors?.[0] ?? topDay.evidence?.cross?.astroEvidence ?? '점성 트랜짓이 동시에 받쳐주는 구간입니다.'
     return { saju: sajuFactor, astro: astroFactor }
-  }, [data, superTiming, monthDates, daysInMonth])
+  }, [data, superTiming, monthDates, weekRange])
 
   const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
   const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
