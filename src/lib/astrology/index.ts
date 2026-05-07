@@ -324,6 +324,10 @@ export type {
   AstrologyTiming,
   AstrologyHouseRulerSignal,
   AstrologySoulSignal,
+  AstrologyThemeKey,
+  AstrologyThemedSection,
+  AstrologyTimingLayer,
+  AstrologyTimingSection,
   AstrologyComprehensiveReport,
 } from "./comprehensiveReport";
 
@@ -334,6 +338,28 @@ export {
   getLilithHouseInterpretation,
 } from "./extraPointInterpretations";
 export type { ExtraPointName } from "./extraPointInterpretations";
+
+export {
+  getAsteroidSignInterpretation,
+  getAsteroidThemeKo,
+} from "./asteroidInterpretations";
+export type { AsteroidName as AstroAsteroidName } from "./asteroidInterpretations";
+
+export {
+  getPartOfFortuneSignInterpretation,
+  getPartOfFortuneHouseInterpretation,
+  getVertexSignInterpretation,
+} from "./pofVertexInterpretations";
+
+export {
+  getEclipseInterpretation,
+  getMidpointActivationInterpretation,
+  getDraconicAlignmentTone,
+  getDraconicTensionTone,
+  getFixedStarPlanetTone,
+} from "./advancedInterpretations";
+
+export { getAspectPairInterpretation } from "./aspectPairInterpretations";
 
 export {
   getPlanetSignInterpretation,

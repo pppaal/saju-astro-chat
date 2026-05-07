@@ -168,4 +168,32 @@ describe('buildAstrologyComprehensiveReport', () => {
     expect(lilith?.sign).toBe('Aries')
     expect(lilith?.signal).toMatch(/릴리스/)
   })
+
+  it('emits 7 themed sections with saju-style structure', () => {
+    const report = buildAstrologyComprehensiveReport(fakeAstrologyData())
+    expect(report.themedSections).toHaveLength(7)
+    const themeKeys = report.themedSections.map((s) => s.theme).sort()
+    expect(themeKeys).toEqual(
+      ['career', 'health', 'personality', 'relationship', 'soul', 'structure', 'wealth'].sort()
+    )
+    const personality = report.themedSections.find((s) => s.theme === 'personality')
+    expect(personality?.paragraphs.length).toBeGreaterThan(0)
+    expect(personality?.title).toMatch(/성격/)
+  })
+
+  it('emits 4 timing sections each with paragraphs', () => {
+    const report = buildAstrologyComprehensiveReport(fakeAstrologyData())
+    expect(report.timingSections).toHaveLength(4)
+    for (const layer of ['daily', 'monthly', 'yearly', 'daewoon'] as const) {
+      const t = report.timingSections.find((s) => s.layer === layer)
+      expect(t).toBeDefined()
+      expect(t?.paragraphs.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('emits advancedReadings for asteroids / PoF / vertex', () => {
+    const report = buildAstrologyComprehensiveReport(fakeAstrologyData())
+    expect(report.advancedReadings.partOfFortune.length).toBeGreaterThan(0)
+    expect(report.advancedReadings.vertex.length).toBeGreaterThan(0)
+  })
 })

@@ -45,6 +45,25 @@ import {
   getLilithSignInterpretation,
 } from './extraPointInterpretations'
 import {
+  getAsteroidSignInterpretation,
+  getAsteroidThemeKo,
+  type AsteroidName,
+} from './asteroidInterpretations'
+import {
+  getPartOfFortuneHouseInterpretation,
+  getPartOfFortuneSignInterpretation,
+  getVertexSignInterpretation,
+} from './pofVertexInterpretations'
+import {
+  getEclipseInterpretation,
+  getMidpointActivationInterpretation,
+  getDraconicAlignmentTone,
+  getDraconicTensionTone,
+  getFixedStarPlanetTone,
+  type AspectKindLike,
+} from './advancedInterpretations'
+import { getAspectPairInterpretation } from './aspectPairInterpretations'
+import {
   getEssentialDignity,
   getRulerOfSign,
   type DignityKind,
@@ -120,6 +139,36 @@ export interface AstrologySoulSignal {
   signal: string
 }
 
+export type AstrologyThemeKey =
+  | 'personality'
+  | 'relationship'
+  | 'career'
+  | 'wealth'
+  | 'health'
+  | 'soul'
+  | 'structure'
+
+export interface AstrologyThemedSection {
+  theme: AstrologyThemeKey
+  title: string
+  score: number | null
+  band: 'great' | 'good' | 'mixed' | 'caution' | null
+  paragraphs: string[]
+  bullets: string[]
+}
+
+export type AstrologyTimingLayer = 'daily' | 'monthly' | 'yearly' | 'daewoon'
+
+export interface AstrologyTimingSection {
+  layer: AstrologyTimingLayer
+  title: string
+  score: number
+  band: 'great' | 'good' | 'mixed' | 'caution'
+  headline: string
+  paragraphs: string[]
+  bullets: string[]
+}
+
 export interface AstrologyComprehensiveReport {
   overallScore: number
   band: 'great' | 'good' | 'mixed' | 'caution'
@@ -131,6 +180,20 @@ export interface AstrologyComprehensiveReport {
   timing: AstrologyTiming
   /** True Node + Chiron + Lilith readings. */
   soulSignals: AstrologySoulSignal[]
+  /** Asteroids, PoF, Vertex, fixed-star, midpoint, eclipse, draconic — interpreted lines. */
+  advancedReadings: {
+    asteroids: string[]
+    partOfFortune: string
+    vertex: string
+    fixedStars: string[]
+    midpoints: string[]
+    eclipses: string[]
+    draconic: string[]
+  }
+  /** Saju-style themed full sections with score + narrative paragraphs. */
+  themedSections: AstrologyThemedSection[]
+  /** Saju-style per-period rich text sections. */
+  timingSections: AstrologyTimingSection[]
   /** Headline counts for advanced layers — surface in UI tooltips. */
   advancedSummary: {
     asteroids: number
@@ -224,24 +287,45 @@ export function buildAstrologyComprehensiveReport(
       .map((p) => ({ name: p.planet, sign: p.sign, house: p.house }))
   )
   const houseRulers = collectHouseRulers(data, placements)
-  const domains = scoreDomains(placements, aspects, balance)
+  const earlySoulSignals = collectSoulSignals(data)
+  const domains = scoreDomainsV2(data, placements, aspects, balance, earlySoulSignals)
   const overallScore = clampScore(
     domains.reduce((sum, d) => sum + d.score, 0) / domains.length
   )
+
+  const topPlacements = placements
+    .slice()
+    .sort((a, b) => Math.abs(b.dignity.score) - Math.abs(a.dignity.score))
+    .slice(0, 8)
+  const topAspects = aspects.slice(0, 8)
+  const soulSignals = collectSoulSignals(data)
+  const timing = scoreTiming(data, aspects)
+  const advancedReadings = collectAdvancedReadings(data)
+  const themedSections = buildThemedSections(
+    data,
+    placements,
+    aspects,
+    domains,
+    houseRulers,
+    soulSignals,
+    advancedReadings,
+    balance,
+  )
+  const timingSections = buildTimingSections(data, timing, aspects)
 
   return {
     overallScore,
     band: bandFor(overallScore),
     domains,
-    topPlacements: placements
-      .slice()
-      .sort((a, b) => Math.abs(b.dignity.score) - Math.abs(a.dignity.score))
-      .slice(0, 8),
-    topAspects: aspects.slice(0, 8),
+    topPlacements,
+    topAspects,
     balance,
     houseRulers,
-    timing: scoreTiming(data, aspects),
-    soulSignals: collectSoulSignals(data),
+    timing,
+    soulSignals,
+    advancedReadings,
+    themedSections,
+    timingSections,
     advancedSummary: {
       asteroids: data.advanced.asteroids.length,
       fixedStarConjunctions: data.advanced.fixedStarConjunctions.length,
@@ -308,9 +392,15 @@ function collectScoredAspects(data: AstrologyData): AstrologyAspectHighlight[] {
         fromRetrograde: planetByName.get(hit.from.name)?.retrograde,
         toRetrograde: planetByName.get(hit.to.name)?.retrograde,
       })
+      const pairLine = getAspectPairInterpretation({
+        fromPlanet,
+        toPlanet,
+        kind,
+        language: 'ko',
+      })
       return {
         ...scored,
-        signal: `${hit.from.name} ${getAspectKoLabel(kind)} ${hit.to.name} (orb ${hit.orb.toFixed(1)}°, score ${scored.score}) — ${getAspectInterpretation(kind, 'ko')}`,
+        signal: `${hit.from.name} ${getAspectKoLabel(kind)} ${hit.to.name} (orb ${hit.orb.toFixed(1)}°, score ${scored.score}) — ${pairLine}`,
       }
     })
     .sort((a, b) => Math.abs(b.score) - Math.abs(a.score))
@@ -449,6 +539,91 @@ function scoreDomains(
   })
 }
 
+// scoreDomains is the original v1 — kept for backwards compatibility.
+// scoreDomainsV2 layers in advanced engines (fixed-star benefic/malefic
+// nature, eclipse activation, midpoint count, soul signals).
+function scoreDomainsV2(
+  data: AstrologyData,
+  placements: AstrologyPlacementHighlight[],
+  aspects: AstrologyAspectHighlight[],
+  balance: ChartBalance,
+  soulSignals: AstrologySoulSignal[],
+): AstrologyDomainScore[] {
+  const base = scoreDomains(placements, aspects, balance)
+  const tally: Partial<Record<AstrologyDomain, number>> = {}
+
+  // Fixed stars — apply tone by their nature string.
+  for (const fs of data.advanced.fixedStarConjunctions) {
+    const nature = fs.star.nature || ''
+    const tone = fixedStarNatureTone(nature)
+    const planet = fs.planet as AstroPlanetName
+    const doms = planetDomains(planet)
+    for (const d of doms) tally[d] = (tally[d] ?? 0) + tone
+  }
+
+  // Eclipses — each impact within ±2 years adds tension to the affected
+  // axis's domains. Hard aspects penalise; conjunctions are neutral.
+  const refMs = new Date(data.meta.nowIso).getTime()
+  for (const ec of data.advanced.eclipseImpacts) {
+    const ecMs = new Date(ec.eclipse.date).getTime()
+    if (!Number.isFinite(ecMs)) continue
+    const yearsAway = Math.abs(refMs - ecMs) / (365 * 86400000)
+    if (yearsAway > 2) continue
+    const planet = ec.affectedPoint as AstroPlanetName
+    const doms = planetDomains(planet)
+    const sign = ec.aspectType === 'square' || ec.aspectType === 'opposition' ? -1 : 0
+    for (const d of doms) tally[d] = (tally[d] ?? 0) + sign
+  }
+
+  // Midpoint activations — count.
+  const midpointBoost = Math.min(data.advanced.midpointActivations.length / 5, 3)
+  for (const k of ['career', 'personality', 'relationship'] as const) {
+    tally[k] = (tally[k] ?? 0) + midpointBoost
+  }
+
+  // Soul signals tilt: north node toward career/personality, chiron toward health/relationship.
+  for (const s of soulSignals) {
+    if (s.kind === 'north-node') {
+      tally.career = (tally.career ?? 0) + 1
+      tally.personality = (tally.personality ?? 0) + 1
+    }
+    if (s.kind === 'chiron') {
+      tally.health = (tally.health ?? 0) - 1
+      tally.relationship = (tally.relationship ?? 0) - 0.5
+    }
+  }
+
+  return base.map((row) => {
+    const adjust = tally[row.domain] ?? 0
+    const score = clampScore(row.score + adjust)
+    return {
+      ...row,
+      score,
+      band: bandFor(score),
+    }
+  })
+}
+
+function fixedStarNatureTone(nature: string): number {
+  // Mars/Saturn = malefic; Jupiter/Venus = benefic; mixed shifts neutral.
+  let tone = 0
+  if (/Mars/.test(nature)) tone -= 1
+  if (/Saturn/.test(nature)) tone -= 1
+  if (/Jupiter/.test(nature)) tone += 1.5
+  if (/Venus/.test(nature)) tone += 1
+  if (/Mercury/.test(nature)) tone += 0.5
+  if (/Sun/.test(nature)) tone += 0.5
+  if (/Moon/.test(nature)) tone += 0.5
+  if (/Uranus/.test(nature)) tone -= 0.5
+  if (/Pluto/.test(nature)) tone -= 0.5
+  return tone
+}
+
+function planetDomains(planet: AstroPlanetName): AstrologyDomain[] {
+  const w = PLANET_DOMAIN_WEIGHT[planet] || {}
+  return (Object.keys(w) as AstrologyDomain[]).filter((d) => (w[d] ?? 0) > 0)
+}
+
 function scoreTiming(
   data: AstrologyData,
   natalAspects: AstrologyAspectHighlight[]
@@ -467,24 +642,40 @@ function scoreTiming(
   const dailyScore = clampScore(60 + dailyAggregate * 2)
   const topDailyAspect = data.daily.aspects[0]
 
-  // Monthly = lunar return chart's Moon position dignity.
+  // Eclipse + midpoint pressure within rolling windows.
+  const refMs = new Date(data.meta.nowIso).getTime()
+  const eclipsePressure = (windowDays: number): number => {
+    let acc = 0
+    for (const ec of data.advanced.eclipseImpacts) {
+      const ms = new Date(ec.eclipse.date).getTime()
+      if (!Number.isFinite(ms)) continue
+      if (Math.abs(refMs - ms) > windowDays * 86400000) continue
+      const sign = ec.aspectType === 'square' || ec.aspectType === 'opposition' ? -1.5 : -0.5
+      const orbWeight = Math.max(0, 1 - ec.orb / 3)
+      acc += sign * orbWeight
+    }
+    return acc
+  }
+  const midpointBonus = Math.min(data.advanced.midpointActivations.length / 4, 3)
+
+  // Monthly = lunar return chart's Moon position dignity + eclipse ±60d.
   const lunarMoon = data.monthly.planets.find((p) => p.name === 'Moon')
   const lunarSign = (lunarMoon?.sign as ZodiacName) || null
   const lunarDignity = lunarSign ? getEssentialDignity('Moon', lunarSign) : null
-  const monthlyScore = clampScore(60 + (lunarDignity?.score ?? 0) * 4)
+  const monthlyScore = clampScore(60 + (lunarDignity?.score ?? 0) * 4 + eclipsePressure(60) * 2)
 
-  // Yearly = solar return Sun dignity + benefic transits to Sun.
+  // Yearly = solar return Sun dignity + eclipse ±180d + midpoint bonus.
   const solarSun = data.yearly.planets.find((p) => p.name === 'Sun')
   const solarSign = (solarSun?.sign as ZodiacName) || null
   const solarDignity = solarSign ? getEssentialDignity('Sun', solarSign) : null
-  const yearlyScore = clampScore(60 + (solarDignity?.score ?? 0) * 4)
+  const yearlyScore = clampScore(60 + (solarDignity?.score ?? 0) * 4 + eclipsePressure(180) + midpointBonus)
 
-  // Daewoon = progressed Sun house + cumulative natal-aspect quality.
+  // Daewoon = progressed Sun + cumulative natal-aspect quality.
   const progSun = data.daewoon.planets.find((p) => p.name === 'Sun')
   const progSign = (progSun?.sign as ZodiacName) || null
   const progDignity = progSign ? getEssentialDignity('Sun', progSign) : null
   const natalAspectAggregate = aggregateAspectScore(natalAspects.slice(0, 8))
-  const daewoonScore = clampScore(60 + (progDignity?.score ?? 0) * 3 + natalAspectAggregate)
+  const daewoonScore = clampScore(60 + (progDignity?.score ?? 0) * 3 + natalAspectAggregate + midpointBonus * 0.5)
 
   return {
     daily: {
@@ -577,6 +768,404 @@ function collectSoulSignals(data: AstrologyData): AstrologySoulSignal[] {
   }
 
   return out
+}
+
+// ============================================================
+// Advanced readings — interpreted lines for every advanced engine.
+// ============================================================
+
+function collectAdvancedReadings(data: AstrologyData): {
+  asteroids: string[]
+  partOfFortune: string
+  vertex: string
+  fixedStars: string[]
+  midpoints: string[]
+  eclipses: string[]
+  draconic: string[]
+} {
+  const asteroids: string[] = []
+  for (const a of data.advanced.asteroids) {
+    if (!a.sign) continue
+    const sign = a.sign as ZodiacName
+    const name = a.name as AsteroidName
+    const theme = getAsteroidThemeKo(name)
+    const line = getAsteroidSignInterpretation(name, sign, 'ko')
+    asteroids.push(`${name} ${getSignLabelKo(sign)} (${a.house}하우스 · ${theme}) — ${line}`)
+  }
+
+  const pof = data.advanced.extraPoints.partOfFortune
+  const partOfFortune = pof?.sign
+    ? `Part of Fortune ${getSignLabelKo(pof.sign as ZodiacName)} · ${pof.house}하우스 — ${getPartOfFortuneSignInterpretation(pof.sign as ZodiacName, 'ko')}; ${getPartOfFortuneHouseInterpretation(pof.house, 'ko')}.`
+    : ''
+
+  const vertex = data.advanced.extraPoints.vertex
+  const vertexLine = vertex?.sign
+    ? `Vertex ${getSignLabelKo(vertex.sign as ZodiacName)} · ${vertex.house}하우스 — ${getVertexSignInterpretation(vertex.sign as ZodiacName, 'ko')}.`
+    : ''
+
+  const fixedStars: string[] = []
+  for (const fs of data.advanced.fixedStarConjunctions.slice(0, 6)) {
+    const planet = fs.planet as AstroPlanetName
+    const tone = getFixedStarPlanetTone(planet, 'ko')
+    fixedStars.push(`${getPlanetLabelKo(planet)} ☌ ${fs.star.name_ko} (orb ${fs.orb.toFixed(2)}°) — ${tone}. ${fs.star.interpretation}`)
+  }
+
+  const midpoints: string[] = []
+  for (const m of data.advanced.midpointActivations.slice(0, 8)) {
+    const activator = m.activator as AstroPlanetName
+    const aspect = m.aspectType as AspectKindLike
+    midpoints.push(
+      getMidpointActivationInterpretation({
+        midpointNameKo: m.midpoint.name_ko,
+        midpointKeywords: m.midpoint.keywords,
+        activator,
+        aspect,
+        language: 'ko',
+      }) + ` (orb ${m.orb.toFixed(2)}°)`
+    )
+  }
+
+  const eclipses: string[] = []
+  for (const ec of data.advanced.eclipseImpacts.slice(0, 8)) {
+    const aspect = ec.aspectType as AspectKindLike
+    const line = getEclipseInterpretation({
+      aspect,
+      axis: ec.affectedPoint,
+      house: ec.house,
+      language: 'ko',
+    })
+    eclipses.push(`${ec.eclipse.date} ${ec.eclipse.type === 'solar' ? '일식' : '월식'} → ${ec.affectedPoint} (orb ${ec.orb.toFixed(2)}°): ${line}`)
+  }
+
+  const draconic: string[] = []
+  for (const al of data.advanced.draconic.alignments.slice(0, 4)) {
+    draconic.push(`정렬 · ${al.draconicPlanet} ↔ natal ${al.natalPlanet} (orb ${al.orb.toFixed(2)}°) — ${al.meaning}`)
+  }
+  for (const t of data.advanced.draconic.tensions.slice(0, 4)) {
+    draconic.push(`긴장 · ${t.draconicPlanet} ${t.aspectType} natal ${t.natalPlanet} (orb ${t.orb.toFixed(2)}°) — ${t.meaning}`)
+  }
+  const draconicSummary = data.advanced.draconic.summary
+  if (draconicSummary?.soulPurpose) {
+    draconic.unshift(`영혼 사명 · ${draconicSummary.soulPurpose}`)
+  }
+  if (draconicSummary?.soulIdentity) {
+    draconic.unshift(`영혼 정체성 · ${draconicSummary.soulIdentity}`)
+  }
+
+  return { asteroids, partOfFortune, vertex: vertexLine, fixedStars, midpoints, eclipses, draconic }
+}
+
+// ============================================================
+// Themed sections — saju-style narrative per theme.
+// ============================================================
+
+const THEME_TITLE_KO: Record<AstrologyThemeKey, string> = {
+  personality: '🧬 성격·자아',
+  relationship: '💞 관계·사랑',
+  career: '🎯 커리어·사명',
+  wealth: '💰 재물·가치',
+  health: '🌱 건강·생명력',
+  soul: '🔮 영혼·카르마',
+  structure: '🏛 구조·운명의 뼈대',
+}
+
+function findPlacement(
+  placements: AstrologyPlacementHighlight[],
+  planet: AstroPlanetName
+): AstrologyPlacementHighlight | undefined {
+  return placements.find((p) => p.planet === planet)
+}
+
+function findHouseRuler(
+  houseRulers: AstrologyHouseRulerSignal[],
+  house: number
+): AstrologyHouseRulerSignal | undefined {
+  return houseRulers.find((h) => h.house === house)
+}
+
+function buildThemedSections(
+  data: AstrologyData,
+  placements: AstrologyPlacementHighlight[],
+  aspects: AstrologyAspectHighlight[],
+  domains: AstrologyDomainScore[],
+  houseRulers: AstrologyHouseRulerSignal[],
+  soulSignals: AstrologySoulSignal[],
+  advanced: ReturnType<typeof collectAdvancedReadings>,
+  balance: ChartBalance,
+): AstrologyThemedSection[] {
+  const sections: AstrologyThemedSection[] = []
+  const domainByKey = new Map(domains.map((d) => [d.domain, d]))
+
+  // ----- Personality -----
+  const sun = findPlacement(placements, 'Sun')
+  const moon = findPlacement(placements, 'Moon')
+  const merc = findPlacement(placements, 'Mercury')
+  const asc = findPlacement(placements, 'Ascendant')
+  const persParas: string[] = []
+  if (sun) persParas.push(`태양 — ${sun.signal}`)
+  if (moon) persParas.push(`달 — ${moon.signal}`)
+  if (merc) persParas.push(`수성 — ${merc.signal}`)
+  if (asc) persParas.push(`상승궁 — ${asc.signal}`)
+  if (balance.dominantElement) {
+    persParas.push(`원소 균형: ${balance.dominantElement} 우세${balance.weakestElement ? ` / ${balance.weakestElement} 부족` : ''}.`)
+  }
+  const persDom = domainByKey.get('personality')
+  sections.push({
+    theme: 'personality',
+    title: THEME_TITLE_KO.personality,
+    score: persDom?.score ?? null,
+    band: persDom?.band ?? null,
+    paragraphs: persParas,
+    bullets: [],
+  })
+
+  // ----- Relationship -----
+  const venus = findPlacement(placements, 'Venus')
+  const mars = findPlacement(placements, 'Mars')
+  const seventhRuler = findHouseRuler(houseRulers, 7)
+  const relParas: string[] = []
+  if (venus) relParas.push(`금성 — ${venus.signal}`)
+  if (mars) relParas.push(`화성 — ${mars.signal}`)
+  if (seventhRuler) relParas.push(seventhRuler.signal)
+  const juno = data.advanced.asteroids.find((a) => a.name === 'Juno')
+  if (juno?.sign) {
+    relParas.push(`Juno ${getSignLabelKo(juno.sign as ZodiacName)} — ${getAsteroidSignInterpretation('Juno', juno.sign as ZodiacName, 'ko')}`)
+  }
+  const venusMarsAspect = aspects.find((a) =>
+    (a.fromPlanet === 'Venus' && a.toPlanet === 'Mars') ||
+    (a.fromPlanet === 'Mars' && a.toPlanet === 'Venus')
+  )
+  if (venusMarsAspect) relParas.push(`Venus·Mars 어스펙트 — ${venusMarsAspect.signal}`)
+  const relDom = domainByKey.get('relationship')
+  sections.push({
+    theme: 'relationship',
+    title: THEME_TITLE_KO.relationship,
+    score: relDom?.score ?? null,
+    band: relDom?.band ?? null,
+    paragraphs: relParas,
+    bullets: [],
+  })
+
+  // ----- Career -----
+  const tenthRuler = findHouseRuler(houseRulers, 10)
+  const saturn = findPlacement(placements, 'Saturn')
+  const jupiter = findPlacement(placements, 'Jupiter')
+  const careerParas: string[] = []
+  if (tenthRuler) careerParas.push(tenthRuler.signal)
+  if (data.natal.mc?.sign) {
+    careerParas.push(`MC ${getSignLabelKo(data.natal.mc.sign as ZodiacName)} — 사회상의 결.`)
+  }
+  if (jupiter) careerParas.push(`목성(확장) — ${jupiter.signal}`)
+  if (saturn) careerParas.push(`토성(구조) — ${saturn.signal}`)
+  const careerDom = domainByKey.get('career')
+  sections.push({
+    theme: 'career',
+    title: THEME_TITLE_KO.career,
+    score: careerDom?.score ?? null,
+    band: careerDom?.band ?? null,
+    paragraphs: careerParas,
+    bullets: [],
+  })
+
+  // ----- Wealth -----
+  const wealthParas: string[] = []
+  const secondRuler = findHouseRuler(houseRulers, 2)
+  const eighthRuler = findHouseRuler(houseRulers, 8)
+  if (secondRuler) wealthParas.push(secondRuler.signal)
+  if (eighthRuler) wealthParas.push(eighthRuler.signal)
+  if (jupiter) wealthParas.push(`목성(풍요) — ${jupiter.signal}`)
+  if (venus) wealthParas.push(`금성(가치) — ${venus.signal}`)
+  if (advanced.partOfFortune) wealthParas.push(advanced.partOfFortune)
+  const wealthDom = domainByKey.get('wealth')
+  sections.push({
+    theme: 'wealth',
+    title: THEME_TITLE_KO.wealth,
+    score: wealthDom?.score ?? null,
+    band: wealthDom?.band ?? null,
+    paragraphs: wealthParas,
+    bullets: [],
+  })
+
+  // ----- Health -----
+  const healthParas: string[] = []
+  const sixthRuler = findHouseRuler(houseRulers, 6)
+  if (sixthRuler) healthParas.push(sixthRuler.signal)
+  if (mars) healthParas.push(`화성(에너지) — ${mars.signal}`)
+  if (saturn) healthParas.push(`토성(취약점) — ${saturn.signal}`)
+  if (moon) healthParas.push(`달(생활 리듬) — ${moon.signal}`)
+  const healthDom = domainByKey.get('health')
+  sections.push({
+    theme: 'health',
+    title: THEME_TITLE_KO.health,
+    score: healthDom?.score ?? null,
+    band: healthDom?.band ?? null,
+    paragraphs: healthParas,
+    bullets: [],
+  })
+
+  // ----- Soul -----
+  const soulParas: string[] = []
+  for (const s of soulSignals) soulParas.push(s.signal)
+  if (advanced.vertex) soulParas.push(advanced.vertex)
+  for (const d of advanced.draconic) soulParas.push(d)
+  sections.push({
+    theme: 'soul',
+    title: THEME_TITLE_KO.soul,
+    score: null,
+    band: null,
+    paragraphs: soulParas,
+    bullets: [],
+  })
+
+  // ----- Structure -----
+  const structParas: string[] = []
+  for (const hr of houseRulers) structParas.push(hr.signal)
+  for (const fs of advanced.fixedStars) structParas.push(fs)
+  const topMidpoints = advanced.midpoints.slice(0, 4)
+  for (const m of topMidpoints) structParas.push(m)
+  sections.push({
+    theme: 'structure',
+    title: THEME_TITLE_KO.structure,
+    score: null,
+    band: null,
+    paragraphs: structParas,
+    bullets: [],
+  })
+
+  return sections
+}
+
+// ============================================================
+// Timing sections — saju-style per-period rich text.
+// ============================================================
+
+const TIMING_TITLE_KO: Record<AstrologyTimingLayer, string> = {
+  daily: '🌅 일운 (Daily Transit)',
+  monthly: '🌙 월운 (Lunar Return)',
+  yearly: '☀️ 세운 (Solar Return)',
+  daewoon: '🪐 대운 (Progressed)',
+}
+
+function isWithinDays(iso: string, refIso: string, days: number): boolean {
+  const a = new Date(iso).getTime()
+  const b = new Date(refIso).getTime()
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return false
+  return Math.abs(a - b) <= days * 86400000
+}
+
+function buildTimingSections(
+  data: AstrologyData,
+  timing: AstrologyTiming,
+  natalAspects: AstrologyAspectHighlight[],
+): AstrologyTimingSection[] {
+  const sections: AstrologyTimingSection[] = []
+  const refIso = data.meta.nowIso
+
+  // ----- Daily -----
+  {
+    const aspectLines: string[] = []
+    for (const a of data.daily.aspects.slice(0, 5)) {
+      const fromP = a.from.name as AstroPlanetName
+      const toP = a.to.name as AstroPlanetName
+      const kind = a.type as AspectKind
+      aspectLines.push(`transit ${a.from.name} ${getAspectKoLabel(kind)} natal ${a.to.name} (orb ${a.orb.toFixed(1)}°) — ${getAspectPairInterpretation({ fromPlanet: fromP, toPlanet: toP, kind, language: 'ko' })}`)
+    }
+    const t = timing.daily
+    sections.push({
+      layer: 'daily',
+      title: TIMING_TITLE_KO.daily,
+      score: t.score,
+      band: t.band,
+      headline: t.headline,
+      paragraphs: aspectLines.length ? aspectLines : ['오늘의 트랜짓 데이터가 충분하지 않습니다.'],
+      bullets: [],
+    })
+  }
+
+  // ----- Monthly (lunar return + active eclipses ±60d) -----
+  {
+    const lines: string[] = []
+    const lunarMoon = data.monthly.planets.find((p) => p.name === 'Moon')
+    if (lunarMoon?.sign) {
+      const sign = lunarMoon.sign as ZodiacName
+      lines.push(`이번 달 달이 ${getSignLabelKo(sign)} (${lunarMoon.house}하우스) — ${getPlanetSignInterpretation('Moon', sign, 'ko')}`)
+    }
+    const recentEclipses = data.advanced.eclipseImpacts.filter((ec) =>
+      isWithinDays(ec.eclipse.date, refIso, 60)
+    ).slice(0, 3)
+    for (const ec of recentEclipses) {
+      const aspect = ec.aspectType as AspectKindLike
+      lines.push(`${ec.eclipse.date} ${ec.eclipse.type === 'solar' ? '일식' : '월식'} → ${ec.affectedPoint}: ${getEclipseInterpretation({ aspect, axis: ec.affectedPoint, house: ec.house, language: 'ko' })}`)
+    }
+    const t = timing.monthly
+    sections.push({
+      layer: 'monthly',
+      title: TIMING_TITLE_KO.monthly,
+      score: t.score,
+      band: t.band,
+      headline: t.headline,
+      paragraphs: lines.length ? lines : ['월간 데이터 부족.'],
+      bullets: [],
+    })
+  }
+
+  // ----- Yearly (solar return + eclipses ±180d) -----
+  {
+    const lines: string[] = []
+    const solarSun = data.yearly.planets.find((p) => p.name === 'Sun')
+    if (solarSun?.sign) {
+      const sign = solarSun.sign as ZodiacName
+      lines.push(`올해 태양이 ${getSignLabelKo(sign)} (${solarSun.house}하우스) — ${getPlanetSignInterpretation('Sun', sign, 'ko')}`)
+    }
+    const yearlyEclipses = data.advanced.eclipseImpacts.filter((ec) =>
+      isWithinDays(ec.eclipse.date, refIso, 180)
+    ).slice(0, 5)
+    for (const ec of yearlyEclipses) {
+      const aspect = ec.aspectType as AspectKindLike
+      lines.push(`${ec.eclipse.date} ${ec.eclipse.type === 'solar' ? '일식' : '월식'} → ${ec.affectedPoint}: ${getEclipseInterpretation({ aspect, axis: ec.affectedPoint, house: ec.house, language: 'ko' })}`)
+    }
+    const t = timing.yearly
+    sections.push({
+      layer: 'yearly',
+      title: TIMING_TITLE_KO.yearly,
+      score: t.score,
+      band: t.band,
+      headline: t.headline,
+      paragraphs: lines.length ? lines : ['연간 데이터 부족.'],
+      bullets: [],
+    })
+  }
+
+  // ----- Daewoon (progressed) -----
+  {
+    const lines: string[] = []
+    const progSun = data.daewoon.planets.find((p) => p.name === 'Sun')
+    if (progSun?.sign) {
+      const sign = progSun.sign as ZodiacName
+      lines.push(`진행 태양 ${getSignLabelKo(sign)} (${progSun.house}하우스) — ${getPlanetSignInterpretation('Sun', sign, 'ko')}`)
+    }
+    const progMoon = data.daewoon.planets.find((p) => p.name === 'Moon')
+    if (progMoon?.sign) {
+      const sign = progMoon.sign as ZodiacName
+      lines.push(`진행 달 ${getSignLabelKo(sign)} (${progMoon.house}하우스) — ${getPlanetSignInterpretation('Moon', sign, 'ko')}`)
+    }
+    // Top 3 most-charged natal aspects (long-term life themes).
+    for (const a of natalAspects.slice(0, 3)) {
+      lines.push(`평생 테마 · ${a.signal}`)
+    }
+    const t = timing.daewoon
+    sections.push({
+      layer: 'daewoon',
+      title: TIMING_TITLE_KO.daewoon,
+      score: t.score,
+      band: t.band,
+      headline: t.headline,
+      paragraphs: lines.length ? lines : ['진행 데이터 부족.'],
+      bullets: [],
+    })
+  }
+
+  return sections
 }
 
 // Re-export dignity types for convenience.
