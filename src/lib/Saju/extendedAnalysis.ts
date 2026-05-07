@@ -360,9 +360,12 @@ function buildRelationships(saju: CalculateSajuDataResult): RelationshipEntry[] 
 function buildPracticalInfo(
   saju: CalculateSajuDataResult,
   geokguk?: string,
+  yongsinOverride?: string,
 ): PracticalInfo {
   const dayMaster = getDayMasterElement(saju)
-  const yongsin = dayMaster // fallback — real yongsin may live elsewhere
+  // Prefer the actual yongsin from MainSajuOutput.advanced.yongsin.primary
+  // when caller passes it — otherwise fall back to dayMaster element.
+  const yongsin = yongsinOverride || dayMaster
 
   const baseCareers = CAREER_BY_ELEMENT[dayMaster] || []
   const geokgukCareers = geokguk ? GEOKGUK_BIAS[geokguk] || [] : []
@@ -455,17 +458,65 @@ function buildKarmicInsight(
 // Main
 // ============================================================
 
+export interface ExtendedAnalysisOptions {
+  koreanAge?: number
+  /** 격국 — runMainSaju.advanced.geokguk.type to use the real value. */
+  geokguk?: string
+  /** 용신 (오행 한글) — runMainSaju.advanced.yongsin.primary; drives lucky direction/color/number. */
+  yongsin?: string
+}
+
 export function buildExtendedAnalysis(
   saju: CalculateSajuDataResult,
-  options: { koreanAge?: number; geokguk?: string } = {},
+  options: ExtendedAnalysisOptions = {},
 ): ExtendedAnalysis {
   const koreanAge = options.koreanAge ?? 30
   const geokguk = options.geokguk
+  const yongsin = options.yongsin
   return {
     lifeStages: buildLifeStages(saju),
     decisiveTimings: buildDecisiveTimings(saju, koreanAge),
     relationships: buildRelationships(saju),
-    practical: buildPracticalInfo(saju, geokguk),
+    practical: buildPracticalInfo(saju, geokguk, yongsin),
     karmic: buildKarmicInsight(saju, geokguk),
   }
+}
+
+/**
+ * Convenience: pass a MainSajuOutput from `runMainSaju()` and we extract
+ * geokguk + yongsin automatically. Lets every consumer skip the manual
+ * threading.
+ */
+export function buildExtendedAnalysisFromMain(
+  main: import('@/lib/main-saju').MainSajuOutput,
+  options: { koreanAge?: number } = {},
+): ExtendedAnalysis {
+  const koreanAge = options.koreanAge
+  return buildExtendedAnalysis(extractCalcSajuFromMain(main), {
+    koreanAge,
+    geokguk: main.advanced?.geokguk?.type,
+    yongsin: main.advanced?.yongsin?.primary,
+  })
+}
+
+// MainSajuOutput is a slim view; extendedAnalysis still wants the full
+// CalculateSajuDataResult for pillar element / fiveElements / daeWoon.
+// runMainSaju internally builds it — re-derive by calling calculateSajuData
+// once, but keep the call cheap (memoized callers / route already has it).
+function extractCalcSajuFromMain(
+  main: import('@/lib/main-saju').MainSajuOutput,
+): CalculateSajuDataResult {
+  // The MainSajuOutput drops the original CalculateSajuDataResult. The
+  // simplest, cheapest path is to recompute it here from the input.
+  // Saves us from threading the full saju object through every caller.
+  // calculateSajuData is pure and ~1ms — negligible.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { calculateSajuData } = require('./saju') as typeof import('./saju')
+  return calculateSajuData(
+    main.input.birthDate,
+    main.input.birthTime,
+    main.input.gender,
+    'solar',
+    main.input.timezone || 'Asia/Seoul',
+  )
 }
