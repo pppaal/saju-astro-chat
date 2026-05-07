@@ -234,6 +234,7 @@ export default function DestinyMatrixPlanner({
   }, [selectedImportantDate])
 
   // --- Stats: domain sync radar ---------------------------------------
+  // sajuAxis / astroAxis는 엔진의 모든 일자에 항상 들어옴 (liteYearlyDates.ts).
   const domainSyncData = useMemo(() => {
     if (!data?.allDates || data.allDates.length === 0) return null
     return DOMAIN_RADAR_TARGETS.map(({ key, label }) => {
@@ -241,17 +242,12 @@ export default function DestinyMatrixPlanner({
       if (matched.length === 0) {
         return { subject: label, saju: 50, astro: 50 }
       }
-      const sajuVals = matched
-        .map((d) => d.scoreBreakdown?.sajuAxis)
-        .filter((v): v is number => typeof v === 'number')
-      const astroVals = matched
-        .map((d) => d.scoreBreakdown?.astroAxis)
-        .filter((v): v is number => typeof v === 'number')
-      const fallbackScore = Math.round(avg(matched.map(pickFinalScore)))
+      const sajuAvg = avg(matched.map((d) => d.scoreBreakdown?.sajuAxis ?? 50))
+      const astroAvg = avg(matched.map((d) => d.scoreBreakdown?.astroAxis ?? 50))
       return {
         subject: label,
-        saju: sajuVals.length > 0 ? Math.round(avg(sajuVals)) : fallbackScore,
-        astro: astroVals.length > 0 ? Math.round(avg(astroVals)) : fallbackScore,
+        saju: Math.round(sajuAvg),
+        astro: Math.round(astroAvg),
       }
     })
   }, [data])
@@ -273,11 +269,8 @@ export default function DestinyMatrixPlanner({
     for (const d of monthDates) {
       const day = parseInt(d.date.slice(8, 10), 10)
       const weekIdx = Math.min(Math.floor((day - 1) / 7), 4)
-      const sajuVal = d.scoreBreakdown?.sajuAxis
-      const astroVal = d.scoreBreakdown?.astroAxis
-      const fallbackVal = pickFinalScore(d)
-      buckets[weekIdx].saju.push(typeof sajuVal === 'number' ? sajuVal : fallbackVal)
-      buckets[weekIdx].astro.push(typeof astroVal === 'number' ? astroVal : fallbackVal)
+      buckets[weekIdx].saju.push(d.scoreBreakdown?.sajuAxis ?? 50)
+      buckets[weekIdx].astro.push(d.scoreBreakdown?.astroAxis ?? 50)
     }
     return buckets.map((b, i) => ({
       week: `${i + 1}주차`,
