@@ -233,6 +233,43 @@ export default function DestinyMatrixPlanner({
     return MOCK_DONTS
   }, [selectedImportantDate])
 
+  // --- Daily one-line summary (engine pre-formatted, when available) ---
+  const dailyOneLineSummary = useMemo(() => {
+    if (
+      data?.calendarDailyView &&
+      data.calendarDailyView.date === selectedDateStr &&
+      data.calendarDailyView.oneLineSummary
+    ) {
+      return data.calendarDailyView.oneLineSummary
+    }
+    return selectedImportantDate?.summary ?? null
+  }, [data, selectedDateStr, selectedImportantDate])
+
+  // --- Daily engine self-diagnostic: confidence + cross agreement ------
+  const dailyEngineSignal = useMemo(() => {
+    if (!selectedImportantDate) return null
+    const conf = selectedImportantDate.evidence?.confidence
+    const sync = selectedImportantDate.evidence?.crossAgreementPercent
+    if (conf == null && sync == null) return null
+    return {
+      confidence: typeof conf === 'number' ? Math.round(conf) : null,
+      sync: typeof sync === 'number' ? Math.round(sync) : null,
+    }
+  }, [selectedImportantDate])
+
+  // --- Daily active 신살 (역마, 도화, 화개 등) -------------------------
+  const dailyShinsal = useMemo(() => {
+    const list = selectedImportantDate?.shinsalActive ?? []
+    return list.slice(0, 6)
+  }, [selectedImportantDate])
+
+  // --- Stats: natal context (강약 / 격국 / 용신) -----------------------
+  const natalContextSummary = useMemo(() => {
+    if (!data?.allDates) return null
+    const found = data.allDates.find((d) => d.natalContext?.summary)
+    return found?.natalContext ?? null
+  }, [data])
+
   // --- Stats: domain sync radar ---------------------------------------
   // sajuAxis / astroAxis는 엔진의 모든 일자에 항상 들어옴 (yearlyDates.ts).
   const domainSyncData = useMemo(() => {
@@ -530,6 +567,13 @@ export default function DestinyMatrixPlanner({
                 </button>
               </div>
 
+              {/* One-line summary (engine pre-formatted) */}
+              {dailyOneLineSummary && (
+                <div className="bg-indigo-900/10 border border-indigo-500/20 px-4 py-3 rounded-xl">
+                  <p className="text-xs text-zinc-300 leading-relaxed">{dailyOneLineSummary}</p>
+                </div>
+              )}
+
               <div className="grid grid-cols-5 gap-4">
                 <div className="col-span-2 bg-gradient-to-br from-indigo-900/40 to-cyan-900/20 p-4 rounded-2xl border border-indigo-500/30 flex flex-col items-center justify-center text-center shadow-lg">
                   <span className="text-xs font-bold text-indigo-300 mb-1">오늘의 총점</span>
@@ -590,6 +634,68 @@ export default function DestinyMatrixPlanner({
                   </div>
                 </div>
               </div>
+
+              {/* Engine self-diagnostic */}
+              {dailyEngineSignal && (
+                <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Cpu className="w-3.5 h-3.5 text-indigo-400" />
+                    <h3 className="text-xs font-bold text-zinc-300 tracking-wider uppercase">
+                      엔진 자기 진단
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-zinc-950/60 p-3 rounded-xl border border-indigo-500/10">
+                      <div className="text-[10px] text-zinc-500 mb-1">신뢰도 (Confidence)</div>
+                      <div className="text-2xl font-black text-indigo-300">
+                        {dailyEngineSignal.confidence != null
+                          ? `${dailyEngineSignal.confidence}%`
+                          : '—'}
+                      </div>
+                      <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">
+                        엔진이 이 예측에 부여한 자체 신뢰도
+                      </p>
+                    </div>
+                    <div className="bg-zinc-950/60 p-3 rounded-xl border border-cyan-500/10">
+                      <div className="text-[10px] text-zinc-500 mb-1">사주↔점성 합치</div>
+                      <div className="text-2xl font-black text-cyan-300">
+                        {dailyEngineSignal.sync != null ? `${dailyEngineSignal.sync}%` : '—'}
+                      </div>
+                      <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">
+                        두 시스템이 같은 방향을 가리키는 정도
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Active 신살 chips */}
+              {dailyShinsal.length > 0 && (
+                <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
+                  <h3 className="text-xs font-bold text-zinc-300 tracking-wider uppercase mb-3 flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> 발동 중인 신살
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {dailyShinsal.map((s, i) => {
+                      const tone =
+                        s.type === 'lucky'
+                          ? 'border-emerald-500/30 text-emerald-300 bg-emerald-900/20'
+                          : s.type === 'unlucky'
+                            ? 'border-rose-500/30 text-rose-300 bg-rose-900/20'
+                            : 'border-amber-500/30 text-amber-300 bg-amber-900/20'
+                      return (
+                        <span
+                          key={`${s.name}-${i}`}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border ${tone}`}
+                          title={`${s.affectedArea ?? ''} 영역`}
+                        >
+                          {s.name}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2 mb-4">
@@ -666,23 +772,47 @@ export default function DestinyMatrixPlanner({
               className="p-6 space-y-6"
             >
               {/* 분석 대상자 프로필 */}
-              <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5 flex items-center gap-5">
-                <div className="w-14 h-14 rounded-full bg-zinc-950 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-                  <Cpu className="w-6 h-6 text-indigo-400" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white tracking-wide">분석 대상자 프로필</h2>
-                  <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
-                    {!data && (
-                      <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-indigo-300">
-                        ASC 물병자리
+              <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 rounded-full bg-zinc-950 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                    <Cpu className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-bold text-white tracking-wide">
+                      분석 대상자 프로필
+                    </h2>
+                    <p className="text-sm text-zinc-400 flex flex-wrap items-center gap-2 mt-1">
+                      {!data && (
+                        <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-indigo-300">
+                          ASC 물병자리
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-amber-300">
+                        {natalDayPillar ?? '辛未(신미)'} 일주
                       </span>
-                    )}
-                    <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-amber-300">
-                      {natalDayPillar ?? '辛未(신미)'} 일주
-                    </span>
-                  </p>
+                      {natalContextSummary?.strength && (
+                        <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-zinc-300">
+                          {natalContextSummary.strength}
+                        </span>
+                      )}
+                      {natalContextSummary?.geokguk && (
+                        <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-zinc-300">
+                          {natalContextSummary.geokguk}
+                        </span>
+                      )}
+                      {natalContextSummary?.yongsin?.primary && (
+                        <span className="px-2 py-0.5 bg-amber-900/30 border border-amber-500/30 rounded text-[11px] text-amber-200">
+                          용신 {natalContextSummary.yongsin.primary}
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
+                {natalContextSummary?.summary && (
+                  <p className="text-[11px] text-zinc-500 mt-3 pt-3 border-t border-white/5 leading-relaxed">
+                    {natalContextSummary.summary}
+                  </p>
+                )}
               </div>
 
               {/* 운세 영역별 동기화 분석 */}
