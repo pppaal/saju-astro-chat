@@ -13,6 +13,14 @@ interface ServicePageLayoutProps {
   particleColor?: string;
   onBack?: () => void;
   backLabel?: string;
+  /**
+   * Compact layout for entry forms — drops the floating icon, hides
+   * title/subtitle, and tightens content padding so the form anchors
+   * near the top of the viewport instead of leaving ~200px of empty
+   * chrome above it. The page still gets the back button + particle
+   * canvas + credit badge, just without the marketing header.
+   */
+  compact?: boolean;
 }
 
 type Particle = {
@@ -34,6 +42,7 @@ export default function ServicePageLayout({
   particleColor = "#88b3f7",
   onBack,
   backLabel,
+  compact = false,
 }: ServicePageLayoutProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
@@ -185,16 +194,19 @@ export default function ServicePageLayout({
       <div className={styles.creditBadgeWrapper}>
         <CreditBadge variant="compact" />
       </div>
-      <div className={styles.content}>
-        <header className={styles.header}>
-          {icon && (
-            <div className={styles.iconWrapper}>
-              <div className={styles.icon}>{icon}</div>
-            </div>
-          )}
-          <h1 className={styles.title}>{title}</h1>
-          {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
-        </header>
+      <div className={`${styles.content} ${compact ? styles.contentCompact : ''}`}>
+        {!compact && (
+          <header className={styles.header}>
+            {icon && (
+              <div className={styles.iconWrapper}>
+                <div className={styles.icon}>{icon}</div>
+              </div>
+            )}
+            <h1 className={styles.title}>{title}</h1>
+            {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+          </header>
+        )}
+        {compact && <h1 className={styles.titleSr}>{title}</h1>}
         <main className={styles.main}>{children}</main>
       </div>
     </div>
