@@ -299,17 +299,6 @@ export interface CardInsight {
   card_name: string
   is_reversed: boolean
   interpretation: string
-  spirit_animal?: string | null
-  chakra?: string | null
-  element?: string | null
-  shadow?: string | null
-  multi_layer?: {
-    surface: string
-    psychological: string
-    shadow: string
-    spiritual: string
-    action: string
-  }
 }
 
 export interface TarotInterpretationResult {

@@ -152,53 +152,6 @@ export function DetailedCardItem({
               </InsightCard>
             </div>
 
-            {!isSummaryMode && cardInsight?.spirit_animal && (
-              <InsightCard
-                icon="🦋"
-                title={translate('tarot.insights.spiritAnimal', 'Spirit Animal')}
-              >
-                <div className={styles.spiritAnimal}>
-                  <span className={styles.animalName}>{cardInsight.spirit_animal.name}</span>
-                  <p className={styles.animalMeaning}>{cardInsight.spirit_animal.meaning}</p>
-                  <p className={styles.animalMessage}>
-                    &quot;{cardInsight.spirit_animal.message}&quot;
-                  </p>
-                </div>
-              </InsightCard>
-            )}
-
-            {!isSummaryMode && cardInsight?.chakra && (
-              <InsightCard
-                icon="🧘"
-                title={translate('tarot.insights.chakra', 'Chakra Connection')}
-              >
-                <div className={styles.chakraInfo}>
-                  <span
-                    className={styles.chakraDot}
-                    style={{ backgroundColor: cardInsight.chakra.color }}
-                  ></span>
-                  <span className={styles.chakraName}>{cardInsight.chakra.name}</span>
-                  <p className={styles.chakraGuidance}>{cardInsight.chakra.guidance}</p>
-                </div>
-              </InsightCard>
-            )}
-
-            {!isSummaryMode && cardInsight?.shadow && (
-              <InsightCard icon="🌙" title={translate('tarot.insights.shadowWork', 'Shadow Work')}>
-                <p className={styles.shadowPrompt}>{cardInsight.shadow.prompt}</p>
-                <p className={styles.shadowAffirmation}>💫 {cardInsight.shadow.affirmation}</p>
-              </InsightCard>
-            )}
-
-            {!isSummaryMode && cardInsight?.element && (
-              <div className={styles.elementTag}>
-                {cardInsight.element === 'Fire' && '🔥'}
-                {cardInsight.element === 'Water' && '💧'}
-                {cardInsight.element === 'Air' && '🌬️'}
-                {cardInsight.element === 'Earth' && '🌍'}
-                {cardInsight.element}
-              </div>
-            )}
           </div>
         )}
 

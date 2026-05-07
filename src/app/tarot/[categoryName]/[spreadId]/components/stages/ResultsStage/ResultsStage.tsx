@@ -607,24 +607,6 @@ function PerCardBlock({
           <p className="text-sm leading-relaxed text-slate-200 font-light break-keep">
             {aiInterpretation}
           </p>
-          {cardInsight?.spirit_animal && (
-            <p className="text-xs text-slate-400 leading-relaxed border-t border-white/5 pt-2 break-keep">
-              <span className="text-indigo-300 font-medium">
-                {language === 'ko' ? '동물령' : 'Spirit animal'} ·{' '}
-              </span>
-              <span className="text-slate-300">{cardInsight.spirit_animal.name}</span> —{' '}
-              {cardInsight.spirit_animal.message || cardInsight.spirit_animal.meaning}
-            </p>
-          )}
-          {cardInsight?.chakra && (
-            <p className="text-xs text-slate-400 leading-relaxed border-t border-white/5 pt-2 break-keep">
-              <span className="text-indigo-300 font-medium">
-                {language === 'ko' ? '차크라' : 'Chakra'} ·{' '}
-              </span>
-              <span className="text-slate-300">{cardInsight.chakra.name}</span> —{' '}
-              {cardInsight.chakra.guidance}
-            </p>
-          )}
         </div>
       )}
     </article>

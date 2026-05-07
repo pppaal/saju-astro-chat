@@ -29,10 +29,6 @@ export type TarotInsight = {
   card_name: string
   is_reversed: boolean
   interpretation: string
-  spirit_animal: null
-  chakra: null
-  element: null
-  shadow: null
 }
 
 export type TarotInterpretResult = {
@@ -694,10 +690,6 @@ export function enforceInterpretationQuality(input: {
       is_reversed:
         typeof rawInsight.is_reversed === 'boolean' ? rawInsight.is_reversed : card.isReversed,
       interpretation,
-      spirit_animal: null,
-      chakra: null,
-      element: null,
-      shadow: null,
     }
   })
 

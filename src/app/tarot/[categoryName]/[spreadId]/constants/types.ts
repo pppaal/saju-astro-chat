@@ -19,11 +19,6 @@ export interface CardInsight {
   card_name: string
   is_reversed: boolean
   interpretation: string
-  spirit_animal?: { name: string; meaning: string; message: string } | null
-  chakra?: { name: string; color: string; guidance: string } | null
-  element?: string | null
-  numerology?: { number: number; meaning: string } | null
-  shadow?: { prompt: string; affirmation: string } | null
 }
 
 export interface AdviceItem {
