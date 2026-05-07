@@ -2812,3 +2812,354 @@
   position: relative;
   z-index: 1;
 }
+
+/* ─────────────── Match Celebration + Oracle ─────────────── */
+
+.celebrationContent {
+  max-width: 720px;
+  width: 92vw;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.celebrationHeader {
+  text-align: center;
+  padding: 1.5rem 1rem 0.5rem;
+}
+
+.celebrationTitle {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6, #f59e0b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.celebrationSubtitle {
+  margin: 0.25rem 0 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+.celebrationActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0.75rem 1rem 1.25rem;
+  justify-content: center;
+}
+
+/* Oracle view */
+
+.oracle {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.oracleActivities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.oracleActivity {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.oracleActivity:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.95);
+}
+.oracleActivityActive {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.6), rgba(139, 92, 246, 0.6));
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+
+.oracleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.oracleSectionTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.oracleSectionSub {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.oracleSkeleton,
+.oracleEmpty,
+.oracleError {
+  padding: 1.25rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  font-size: 13px;
+}
+.oracleError {
+  color: #fda4af;
+  border-color: rgba(244, 114, 182, 0.4);
+  background: rgba(244, 114, 182, 0.08);
+}
+
+/* Tarot cards */
+
+.oracleCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.oracleCardWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.oracleCardPosition {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.oracleCard {
+  position: relative;
+  width: 120px;
+  height: 200px;
+  transform-style: preserve-3d;
+}
+
+.oracleCardFace {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.oracleCardFaceBack {
+  transform: rotateY(180deg);
+}
+
+.oracleCardReversed {
+  transform: rotateY(180deg) rotate(180deg);
+}
+
+.oracleCardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.oracleCardName {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  min-height: 1.2em;
+}
+
+.oracleCardReversedTag {
+  font-size: 11px;
+  color: #fda4af;
+  font-weight: 600;
+}
+
+.oracleCardMeaning {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.oracleCardMeaningHeader {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.oracleCardMeaningText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.oracleCardAdvice {
+  margin: 0;
+  font-size: 12px;
+  font-style: italic;
+  color: rgba(245, 158, 11, 0.92);
+}
+
+/* Auspicious dates */
+
+.oracleDates {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.oracleDate {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.oracleDateMain {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.oracleDateText {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex: 1;
+  color: #fff;
+  font-size: 14px;
+}
+
+.oracleDateDow {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+.oracleDateScore {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.oracleGrade {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 13px;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.7);
+}
+.oracleGrade_S {
+  background: linear-gradient(135deg, #fde68a, #f59e0b);
+  color: #4a2c00;
+}
+.oracleGrade_A {
+  background: linear-gradient(135deg, #6ee7b7, #10b981);
+  color: #053024;
+}
+.oracleGrade_B {
+  background: linear-gradient(135deg, #93c5fd, #3b82f6);
+  color: #082047;
+}
+.oracleGrade_C {
+  background: linear-gradient(135deg, #ddd6fe, #8b5cf6);
+  color: #2a1565;
+}
+.oracleGrade_D {
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.oracleDateHour {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.oracleHourQuality {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.oracleHourQuality_excellent {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fde68a;
+}
+.oracleHourQuality_good {
+  background: rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+}
+.oracleHourQuality_neutral {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.oracleHourReason {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+}
+
+.oracleReasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+@media (max-width: 480px) {
+  .oracleCard {
+    width: 96px;
+    height: 160px;
+  }
+  .oracleCards {
+    gap: 6px;
+  }
+}
