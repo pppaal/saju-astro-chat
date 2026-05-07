@@ -228,7 +228,34 @@ showCycle('세운', out.cycleAnalysis.seun)
 showCycle('월운', out.cycleAnalysis.wolun)
 showCycle('일진', out.cycleAnalysis.iljin)
 
-console.log('\n## 8. Extended (격국 narrative 일부)')
+console.log('\n## 8. Phase 2 Narrative (정통, deterministic)')
+type NarrativeBlock = {
+  oneLineKey: string
+  shortSummary: string[]
+  fullNarrative: { headline: string; sections: Array<{ title: string; body: string }> }
+}
+const showNarrative = (label: string, n?: NarrativeBlock) => {
+  if (!n) {
+    console.log(`  [${label}] —`)
+    return
+  }
+  console.log(`\n  ━━━ ${label} ━━━`)
+  console.log(`  📌 ${n.fullNarrative.headline}`)
+  console.log(`  💡 (한 줄) ${n.oneLineKey}`)
+  console.log(`  📋 (요약):`)
+  for (const line of n.shortSummary) console.log(`     · ${line}`)
+  console.log(`  📖 (풀):`)
+  for (const sec of n.fullNarrative.sections) {
+    console.log(`     [${sec.title}]`)
+    console.log(`       ${sec.body}`)
+  }
+}
+showNarrative('대운', out.narratives.daeun as NarrativeBlock | undefined)
+showNarrative('세운', out.narratives.seun as NarrativeBlock | undefined)
+showNarrative('월운', out.narratives.wolun as NarrativeBlock | undefined)
+showNarrative('일진', out.narratives.iljin as NarrativeBlock | undefined)
+
+console.log('\n## 9. Extended (격국 narrative 일부)')
 if (out.extended) {
   const e = out.extended as Record<string, unknown>
   for (const k of ['johuYongsin', 'rootAnalysis', 'extendedYongsin', 'narrative', 'overall']) {

@@ -45,6 +45,10 @@ import {
   type SamgiCycleAnalysis,
 } from './Saju/cycle-analysis/cycleSamgi'
 import {
+  narrateCycle,
+  type CycleNarrative,
+} from './Saju/cycle-analysis/narrative'
+import {
   STEM_TO_ELEMENT,
   YUKHAP,
   CHUNG,
@@ -374,6 +378,13 @@ export interface MainSajuOutput {
     seun?: CycleEntry
     wolun?: CycleEntry
     iljin?: CycleEntry
+  }
+  /** Phase 2 narrative — cycleAnalysis 데이터 기반 deterministic 정통 narrative */
+  narratives: {
+    daeun?: CycleNarrative
+    seun?: CycleNarrative
+    wolun?: CycleNarrative
+    iljin?: CycleNarrative
   }
   /** 점수 입력 transformer 결과 (근거 표시용) */
   scoreInputs: {
@@ -747,6 +758,74 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     iljin: iljinInput,
   }
 
+  // 대운 5/5 phase 미리 계산 — narrative 에서 사용
+  const userAge = target.getFullYear() - new Date(input.birthDate).getFullYear()
+  const curRaw = dw?.current as
+    | { age: number; heavenlyStem: string; earthlyBranch: string; sibsin?: unknown }
+    | undefined
+  let daeunPhase: { phase: 'stem' | 'branch'; progress: number; phaseStartAge: number } | undefined
+  if (curRaw) {
+    const yearsIntoDaeun = userAge - curRaw.age
+    const phase: 'stem' | 'branch' = yearsIntoDaeun < 5 ? 'stem' : 'branch'
+    const phaseStartAge = phase === 'stem' ? curRaw.age : curRaw.age + 5
+    const yearsIntoPhase = userAge - phaseStartAge
+    const progress = Math.max(0, Math.min(1, yearsIntoPhase / 5))
+    daeunPhase = { phase, progress: Math.round(progress * 100) / 100, phaseStartAge }
+  }
+
+  // Phase 2 narrative — cycleAnalysis + score 받아서 정통 narrative 생성
+  const narratives: MainSajuOutput['narratives'] = {}
+  const buildGanji = (stem?: string, branch?: string) =>
+    stem && branch ? `${stem}${branch}` : '?'
+  if (cycleAnalysis.daeun && cur) {
+    narratives.daeun = narrateCycle(cycleAnalysis.daeun, {
+      cycleKind: 'daeun',
+      cycleGanji: buildGanji(cur.heavenlyStem, cur.earthlyBranch),
+      score: scores.daeunScore,
+      scoreMax: 8,
+      daeunPhase,
+    })
+  }
+  if (cycleAnalysis.seun && seunRaw) {
+    narratives.seun = narrateCycle(cycleAnalysis.seun, {
+      cycleKind: 'seun',
+      cycleGanji: buildGanji(seunRaw.heavenlyStem, seunRaw.earthlyBranch),
+      score: scores.seunScore,
+      scoreMax: 10,
+      samjaePhase: seunInput.samjaePhase,
+    })
+  }
+  if (cycleAnalysis.wolun && wolunRaw) {
+    narratives.wolun = narrateCycle(cycleAnalysis.wolun, {
+      cycleKind: 'wolun',
+      cycleGanji: buildGanji(wolunRaw.heavenlyStem, wolunRaw.earthlyBranch),
+      score: scores.wolunScore,
+      scoreMax: 7,
+    })
+  }
+  if (cycleAnalysis.iljin) {
+    // iljin ganji 다시 추출
+    let iljinGanji = '?'
+    try {
+      const t = calculateSajuData(
+        target.toISOString().slice(0, 10),
+        '12:00',
+        input.gender,
+        'solar',
+        tz,
+      )
+      iljinGanji = `${t.pillars.day.heavenlyStem.name}${t.pillars.day.earthlyBranch.name}`
+    } catch {
+      // ignore
+    }
+    narratives.iljin = narrateCycle(cycleAnalysis.iljin, {
+      cycleKind: 'iljin',
+      cycleGanji: iljinGanji,
+      score: scores.iljinScore,
+      scoreMax: 12,
+    })
+  }
+
   // 대운 cycles
   const daeunCycles =
     (dw?.list as Array<{
@@ -756,28 +835,14 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       earthlyBranch?: string
     }>) || []
   const daeunsu = dw?.startAge ?? 0
-  const currentDaeunRaw = dw?.current as
-    | { age: number; heavenlyStem: string; earthlyBranch: string; sibsin?: unknown }
-    | undefined
-
-  // 대운 5/5 분리: 현재 사용자 나이 vs 대운 시작 나이
-  const userAge =
-    target.getFullYear() - new Date(input.birthDate).getFullYear()
-  let currentDaeun: MainSajuOutput['cycles']['currentDaeun'] = currentDaeunRaw
-  if (currentDaeunRaw) {
-    const yearsIntoDaeun = userAge - currentDaeunRaw.age
-    const phase: 'stem' | 'branch' = yearsIntoDaeun < 5 ? 'stem' : 'branch'
-    const phaseStartAge =
-      phase === 'stem' ? currentDaeunRaw.age : currentDaeunRaw.age + 5
-    const yearsIntoPhase = userAge - phaseStartAge
-    const phaseProgress = Math.max(0, Math.min(1, yearsIntoPhase / 5))
-    currentDaeun = {
-      ...currentDaeunRaw,
-      phase,
-      phaseStartAge,
-      phaseProgress: Math.round(phaseProgress * 100) / 100,
-    }
-  }
+  const currentDaeun: MainSajuOutput['cycles']['currentDaeun'] = curRaw
+    ? {
+        ...curRaw,
+        phase: daeunPhase?.phase,
+        phaseStartAge: daeunPhase?.phaseStartAge,
+        phaseProgress: daeunPhase?.progress,
+      }
+    : undefined
 
   return {
     pillars: {
@@ -835,6 +900,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     scores,
     scoreInputs,
     cycleAnalysis,
+    narratives,
     extended,
     input: { ...input, timezone: tz, targetDate: target },
   }
