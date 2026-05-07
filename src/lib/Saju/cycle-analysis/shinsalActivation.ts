@@ -16,6 +16,7 @@ export type ShinsalKind =
   | '역마' | '도화' | '화개'
   | '양인' | '공망' | '귀문관' | '원진'
   | '문창' | '문곡' | '학당귀인'
+  | '공망풀림'
 
 export type ShinsalTone = 'lucky' | 'neutral' | 'unlucky'
 
@@ -23,8 +24,15 @@ const SHINSAL_TONE: Record<ShinsalKind, ShinsalTone> = {
   천을귀인: 'lucky', 천덕귀인: 'lucky', 월덕귀인: 'lucky',
   건록: 'lucky', 암록: 'lucky',
   학당귀인: 'lucky', 문창: 'lucky', 문곡: 'lucky',
+  공망풀림: 'lucky',
   역마: 'neutral', 도화: 'neutral', 화개: 'neutral',
   양인: 'unlucky', 공망: 'unlucky', 귀문관: 'unlucky', 원진: 'unlucky',
+}
+
+const CHUNG_PAIR: Record<string, string> = {
+  子: '午', 午: '子', 丑: '未', 未: '丑',
+  寅: '申', 申: '寅', 卯: '酉', 酉: '卯',
+  辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳',
 }
 
 // 일지 삼합 그룹별 — 역마(첫칸 충), 도화(두번째 충), 화개(마지막 충)
@@ -34,12 +42,6 @@ const SAMHAP_GROUP_BY_BRANCH: Record<string, [string, string, string]> = {
   巳: ['巳', '酉', '丑'], 酉: ['巳', '酉', '丑'], 丑: ['巳', '酉', '丑'],
   申: ['申', '子', '辰'], 子: ['申', '子', '辰'], 辰: ['申', '子', '辰'],
   亥: ['亥', '卯', '未'], 卯: ['亥', '卯', '未'], 未: ['亥', '卯', '未'],
-}
-
-const CHUNG_PAIR: Record<string, string> = {
-  子: '午', 午: '子', 丑: '未', 未: '丑',
-  寅: '申', 申: '寅', 卯: '酉', 酉: '卯',
-  辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳',
 }
 
 /** 일지 → 역마 (삼합 첫칸의 충) */
@@ -175,6 +177,8 @@ interface NatalCore {
   dayStem: string
   dayBranch: string
   monthBranch: string
+  /** 본명 4기둥 지지 (옵션) — 공망풀림 검사용 */
+  pillarBranches?: { year: string; month: string; day: string; time: string }
 }
 
 export function analyzeShinsalActivation(
@@ -246,6 +250,17 @@ export function analyzeShinsalActivation(
   // ── 원진 (일지 기준)
   if (WONJIN_PAIRS[natal.dayBranch] === cycleBranch) {
     push('원진', `일지(${natal.dayBranch})`, 'branch')
+  }
+
+  // ── 공망풀림 (沖空) — 본명 4기둥에 공망 지지가 있고, cycle이 그 공망지를 충하면
+  //   공망이 활성화/해방되어 잠재 에너지가 발현. 정통: 沖空은 길로 본다.
+  if (natal.pillarBranches && gongmangList.length > 0) {
+    for (const [pkind, branch] of Object.entries(natal.pillarBranches)) {
+      if (gongmangList.includes(branch) && CHUNG_PAIR[branch] === cycleBranch) {
+        push('공망풀림', `본명 ${pkind}(${branch} 공망) 충`, 'branch')
+        break // 같은 cycle 안에서 한 번만
+      }
+    }
   }
 
   const luckyCount = hits.filter((h) => h.tone === 'lucky').length

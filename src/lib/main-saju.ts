@@ -41,6 +41,10 @@ import {
   type HwaTransformAnalysis,
 } from './Saju/cycle-analysis/hwaTransform'
 import {
+  analyzeCycleSamgi,
+  type SamgiCycleAnalysis,
+} from './Saju/cycle-analysis/cycleSamgi'
+import {
   STEM_TO_ELEMENT,
   YUKHAP,
   CHUNG,
@@ -156,6 +160,12 @@ function injectShinsalFlags(
     }
   }
   return flags
+}
+
+// 양인 자리 검사 — 일간별 양인 지지 (양인격 특수 룰용)
+const YANGIN_BY_DAY_STEM: Record<string, string> = {
+  甲: '卯', 乙: '辰', 丙: '午', 丁: '未', 戊: '午',
+  己: '未', 庚: '酉', 辛: '戌', 壬: '子', 癸: '丑',
 }
 
 // 삼재: 본명 년지 → 12년 주기 3년 흉년
@@ -361,6 +371,7 @@ export interface CycleEntry {
   geokgukShift: GeokgukShiftAnalysis
   johuShift: JohuShiftAnalysis
   hwaTransform: HwaTransformAnalysis
+  samgi: SamgiCycleAnalysis
 }
 
 /**
@@ -568,6 +579,12 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     dayStem: dayMaster,
     dayBranch: natalDayBranch,
     monthBranch: p.month.earthlyBranch.name,
+    pillarBranches: {
+      year: p.year.earthlyBranch.name,
+      month: p.month.earthlyBranch.name,
+      day: p.day.earthlyBranch.name,
+      time: p.time.earthlyBranch.name,
+    },
   }
   if (seunRaw?.heavenlyStem && seunRaw?.earthlyBranch) {
     const seunShinsal = analyzeShinsalActivation(
@@ -623,6 +640,12 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     dayStem: dayMaster,
     dayBranch: p.day.earthlyBranch.name,
     monthBranch: p.month.earthlyBranch.name,
+    pillarBranches: {
+      year: p.year.earthlyBranch.name,
+      month: p.month.earthlyBranch.name,
+      day: p.day.earthlyBranch.name,
+      time: p.time.earthlyBranch.name,
+    },
   }
   const buildCycleEntry = (stem?: string, branch?: string): CycleEntry | undefined => {
     if (!stem || !branch) return undefined
@@ -655,6 +678,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
           geokgukType: String(advanced.geokguk.type || ''),
           monthBranch: p.month.earthlyBranch.name,
           branchInteractionWithMonth: branchInterWithMonth,
+          cycleBranchIsYangin: YANGIN_BY_DAY_STEM[dayMaster] === branch,
         }),
         johuShift: analyzeJohuShift({
           cycleStem: stem,
@@ -672,6 +696,15 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
             time: p.time.heavenlyStem.name,
           },
           monthBranch: p.month.earthlyBranch.name,
+        }),
+        samgi: analyzeCycleSamgi({
+          cycleStem: stem,
+          natalStems: [
+            p.year.heavenlyStem.name,
+            p.month.heavenlyStem.name,
+            dayMaster,
+            p.time.heavenlyStem.name,
+          ],
         }),
       }
     } catch {

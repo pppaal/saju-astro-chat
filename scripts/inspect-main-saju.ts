@@ -145,13 +145,19 @@ type GeokgukShiftBlock = {
   reasons: string[]
   summary: string
 }
+type SamgiBlock = { state: string; type?: string; completingStem?: string; natalStems?: string[]; summary: string }
+type HwaBlock = {
+  events: Array<{ natalPillar: string; natalStem: string; hwaElement: string; quality: string; significance: number; description: string }>
+  primaryEvent?: { natalPillar: string; natalStem: string; hwaElement: string; quality: string; significance: number }
+  summary: string
+}
 type JohuShiftBlock = {
   yongsin: string
   shift: string
   intensity: number
   summary: string
 }
-const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteractions: InteractionBlock; rootedness: RootednessBlock; shinsalActivation: ShinsalBlock; geokgukShift: GeokgukShiftBlock; johuShift: JohuShiftBlock }) => {
+const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteractions: InteractionBlock; rootedness: RootednessBlock; shinsalActivation: ShinsalBlock; geokgukShift: GeokgukShiftBlock; johuShift: JohuShiftBlock; hwaTransform: HwaBlock; samgi: SamgiBlock }) => {
   if (!c) {
     console.log(`  ${label}: —`)
     return
@@ -190,6 +196,10 @@ const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteract
   }
   const j = c.johuShift
   console.log(`    조후변화: ${j.summary}`)
+  const h = c.hwaTransform
+  console.log(`    천간합化: ${h.summary}`)
+  const sm = c.samgi
+  console.log(`    삼기:    ${sm.summary}`)
 }
 showCycle('대운', out.cycleAnalysis.daeun)
 showCycle('세운', out.cycleAnalysis.seun)

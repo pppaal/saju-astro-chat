@@ -28,7 +28,9 @@ const FAVORABLE: Record<string, Set<string>> = {
   상관격: new Set(['상관', '정재', '편재', '정인', '편인']),
   정인격: new Set(['정인', '정관', '편관', '비견', '겁재']),
   편인격: new Set(['편인', '정관', '편관']),
-  양인격: new Set(['정관', '편관']),
+  // 양인격: 정통은 편관(칠살)이 制刃 핵심. 정관은 양인과 충돌(刃旺逢官)이라 빼고
+  //         식상으로 양인을 빼는 게 차선책.
+  양인격: new Set(['편관', '식신', '상관']),
   건록격: new Set(['식신', '상관', '정재', '편재', '정관', '편관']),
   월겁격: new Set(['식신', '상관', '정재', '편재', '정관', '편관']),
 }
@@ -42,7 +44,8 @@ const UNFAVORABLE: Record<string, Set<string>> = {
   상관격: new Set(['정관']),
   정인격: new Set(['정재', '편재']),
   편인격: new Set(['식신', '정재', '편재']),
-  양인격: new Set(['정인', '편인', '정재', '편재']),
+  // 양인격: 비겁이 들어오면 양인 강화로 군겁쟁재. 정관은 刃旺逢官 충돌.
+  양인격: new Set(['정인', '편인', '정재', '편재', '비견', '겁재', '정관']),
   건록격: new Set(['정인', '편인', '비견', '겁재']),
   월겁격: new Set(['정인', '편인', '비견', '겁재']),
 }
@@ -123,6 +126,8 @@ interface GeokgukShiftInput {
   geokgukType: string // 정재격, 편관격, ...
   monthBranch: string // 격국 본거지
   branchInteractionWithMonth?: '충' | '육합' | '삼합' | '형' | '해' | '파' | '원진' | null
+  /** cycle 지지가 본명 일간 기준 양인 자리인가 (양인격 특수 룰용) */
+  cycleBranchIsYangin?: boolean
 }
 
 export function analyzeGeokgukShift(input: GeokgukShiftInput): GeokgukShiftAnalysis {
@@ -189,6 +194,12 @@ export function analyzeGeokgukShift(input: GeokgukShiftInput): GeokgukShiftAnaly
   if (cheon && ji && fav?.has(cheon) && unfav?.has(ji)) {
     protectSignals += 1
     reasons.push(`천간 喜神(${cheon})이 지지 忌神(${ji}) 견제 → 호격`)
+  }
+
+  // ── 양인격 특수: cycle 지지가 양인 자리면 또 다른 양인 = 군겁쟁재 가중 흉
+  if (geok === '양인격' && input.cycleBranchIsYangin) {
+    breakSignals += 2
+    reasons.push(`cycle 지지 ${input.cycleBranch} 양인 자리 — 양인쌍지 (군겁쟁재 가중)`)
   }
 
   // ── 월지(격국 본거지) 동요
