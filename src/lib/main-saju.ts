@@ -777,6 +777,16 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
   const narratives: MainSajuOutput['narratives'] = {}
   const buildGanji = (stem?: string, branch?: string) =>
     stem && branch ? `${stem}${branch}` : '?'
+  // 본명 보조 정보 (이중 격국 / 희신 / 보조 조후) — 모든 cycle 에 공통
+  const natalContext = {
+    geokgukSecondary: (advanced.geokguk as { secondary?: string }).secondary,
+    yongsinPrimary: yongsinPrimary,
+    yongsinSecondary: yongsinSecondary,
+    kibsinElements: kibsinElements,
+    johuYongsinSecondary: johuYongsin?.secondary
+      ? normalizeElement(johuYongsin.secondary)
+      : undefined,
+  }
   if (cycleAnalysis.daeun && cur) {
     narratives.daeun = narrateCycle(cycleAnalysis.daeun, {
       cycleKind: 'daeun',
@@ -784,6 +794,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       score: scores.daeunScore,
       scoreMax: 8,
       daeunPhase,
+      natalContext,
     })
   }
   if (cycleAnalysis.seun && seunRaw) {
@@ -793,6 +804,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       score: scores.seunScore,
       scoreMax: 10,
       samjaePhase: seunInput.samjaePhase,
+      natalContext,
     })
   }
   if (cycleAnalysis.wolun && wolunRaw) {
@@ -801,6 +813,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       cycleGanji: buildGanji(wolunRaw.heavenlyStem, wolunRaw.earthlyBranch),
       score: scores.wolunScore,
       scoreMax: 7,
+      natalContext,
     })
   }
   if (cycleAnalysis.iljin) {
@@ -823,6 +836,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       cycleGanji: iljinGanji,
       score: scores.iljinScore,
       scoreMax: 12,
+      natalContext,
     })
   }
 

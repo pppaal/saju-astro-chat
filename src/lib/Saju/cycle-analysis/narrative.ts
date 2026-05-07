@@ -45,6 +45,14 @@ interface NarrateContext {
   scoreMax?: number
   daeunPhase?: { phase: 'stem' | 'branch'; progress: number; phaseStartAge: number }
   samjaePhase?: 'enter' | 'middle' | 'exit'
+  /** 본명 보조 정보 — 이중 격국 / 희신 / 기신 */
+  natalContext?: {
+    geokgukSecondary?: string
+    yongsinPrimary?: string
+    yongsinSecondary?: string
+    kibsinElements?: string[]
+    johuYongsinSecondary?: string
+  }
 }
 
 const CYCLE_LABEL: Record<CycleKind, string> = {
@@ -119,6 +127,36 @@ const SHIFT_MEANING: Record<string, string> = {
   protect: '위협 있으나 다른 신이 견제 — 보호받는 흐름',
   shake: '약한 동요, 큰 변화는 아님',
   neutral: '격국엔 큰 영향 없음',
+}
+
+const SHIFT_MEANING_JONGGEOK: Record<string, string> = {
+  strengthen: '종격 본명 흐름 따라가는 시기 — 일행 강화로 결과 명확',
+  break: '종격 거스름 — 본명 흐름 자체 흔들림 (매우 큰 충격, 신중)',
+  protect: '거스름 위협 있으나 다른 신이 견제 — 흐름 유지',
+  shake: '약한 동요, 종격 본질엔 영향 적음',
+  neutral: '종격엔 큰 영향 없음',
+}
+
+const SHIFT_MEANING_HWAGYEOK: Record<string, string> = {
+  strengthen: '化氣 보호 — 변신한 오행 흐름 강화, 새 정체성 단단',
+  break: '化氣 깨짐 위험 — 일간 변신 실패, 정체성 혼란 가능',
+  protect: '化氣 위협 있으나 견제됨 — 변신 유지',
+  shake: '化氣 약한 동요',
+  neutral: '化氣엔 큰 영향 없음',
+}
+
+function getShiftMeaning(geokguk: string, shift: string): string {
+  // 종격 5종
+  if (geokguk.startsWith('종')) {
+    return SHIFT_MEANING_JONGGEOK[shift] || SHIFT_MEANING[shift]
+  }
+  // 화격 (갑기화토격 등)
+  if (geokguk.includes('화') && (geokguk.includes('격') || geokguk.endsWith('화격'))) {
+    if (geokguk === '화격' || /^[갑을병정무]/.test(geokguk)) {
+      return SHIFT_MEANING_HWAGYEOK[shift] || SHIFT_MEANING[shift]
+    }
+  }
+  return SHIFT_MEANING[shift]
 }
 
 const SHINSAL_MEANING: Record<string, string> = {
@@ -304,7 +342,7 @@ function buildShortSummary(entry: CycleEntry, ctx: NarrateContext): string[] {
 
   // 3. 격국 변동 (강화/파격일 때만)
   if (entry.geokgukShift.shift !== 'neutral') {
-    lines.push(`${SHIFT_MEANING[entry.geokgukShift.shift]}.`)
+    lines.push(`${getShiftMeaning(entry.geokgukShift.geokguk, entry.geokgukShift.shift)}.`)
   }
 
   // 4. 신살
@@ -333,12 +371,21 @@ function buildFlowSection(entry: CycleEntry): NarrativeSection {
   const cycleMean = STAGE_MEANING[ts.cycleStage] || ''
   const dayMean = STAGE_MEANING[ts.dayMasterStage] || ''
   let body = `cycle 천간 ${ts.cycleStage} 자리(${cycleMean}), 일간 ${ts.dayMasterStage} 자리(${dayMean}).`
+
   if (ts.natalPeak && ts.natalPeak.strength >= 0.5) {
     const domain =
       ts.natalPeak.pillar === 'year' ? '조상·사회' :
       ts.natalPeak.pillar === 'month' ? '직업·형제' :
       ts.natalPeak.pillar === 'day' ? '배우자·자기' : '자녀·말년'
-    body += ` 본명 ${domain} 영역에서 ${ts.natalPeak.stage}에 가장 두드러짐 — 이 영역에서 변화 집중.`
+    body += ` 본명 ${domain} 영역이 ${ts.natalPeak.stage} 단계로 가장 두드러짐.`
+  }
+  // 4기둥 전체 분포 (입체 묘사)
+  if (ts.natalPillarStages && ts.natalPillarStages.length === 4) {
+    const dist = ts.natalPillarStages.map((s) => {
+      const dom = s.pillar === 'year' ? '사회' : s.pillar === 'month' ? '직업' : s.pillar === 'day' ? '관계' : '자녀'
+      return `${dom} ${s.stage}`
+    }).join(' / ')
+    body += `\n     본명 4기둥 분포: ${dist}.`
   }
   return { title: '운기 흐름', body }
 }
@@ -374,13 +421,17 @@ function buildRootednessSection(entry: CycleEntry): NarrativeSection {
       body: 'cycle 천간 무근 — 표면 흐름만 보이고 실제 결과는 약함. 큰 결심·투자는 신중.',
     }
   }
-  const top = r.cycleStemRoots[0]
   const strength = r.rootStrengthTotal
   const strengthDesc = strength >= 2 ? '매우 깊게' : strength >= 1 ? '단단히' : '얕게'
-  let body = `cycle 천간이 ${top.pillar}(${top.branch}) ${top.layer}에 ${strengthDesc} 통근 (강도 ${strength}). 운이 실제로 자리잡고 결과를 만든다.`
+  // 모든 통근 위치 (최대 4개)
+  const rootList = r.cycleStemRoots
+    .slice(0, 4)
+    .map((rt) => `${rt.pillar}(${rt.branch}) ${rt.layer}`)
+    .join(', ')
+  let body = `cycle 천간이 ${rootList}에 ${strengthDesc} 통근 (총 강도 ${strength}). 운이 실제로 자리잡고 결과를 만든다.`
   if (r.cycleBranchTuggan.length > 0) {
     const tug = r.cycleBranchTuggan
-      .slice(0, 2)
+      .slice(0, 4)
       .map((t) => `${t.stem}(${t.pillar})`)
       .join(', ')
     body += ` 잠재 에너지 표면화: ${tug}.`
@@ -388,13 +439,17 @@ function buildRootednessSection(entry: CycleEntry): NarrativeSection {
   return { title: '영향력 실재', body }
 }
 
-function buildGeokgukSection(entry: CycleEntry): NarrativeSection {
+function buildGeokgukSection(entry: CycleEntry, ctx: NarrateContext): NarrativeSection {
   const g = entry.geokgukShift
   if (g.shift === 'neutral') {
     return { title: '격국 변동', body: `${g.geokguk}: 별다른 변동 없음.` }
   }
-  const meaning = SHIFT_MEANING[g.shift]
-  let body = `${g.geokguk}: ${meaning} (강도 ${g.intensity}).`
+  const meaning = getShiftMeaning(g.geokguk, g.shift)
+  let body = `${g.geokguk}`
+  if (ctx.natalContext?.geokgukSecondary && ctx.natalContext.geokgukSecondary !== g.geokguk) {
+    body += ` (이중격: ${ctx.natalContext.geokgukSecondary})`
+  }
+  body += `: ${meaning} (강도 ${g.intensity}).`
   if (g.transformedTo) {
     body += ` 일시 ${g.transformedTo.geokguk}으로 변질 — 새 역할 임시 부여.`
   }
@@ -442,10 +497,23 @@ function buildSamgiSection(entry: CycleEntry): NarrativeSection | null {
       body: `본명에 이미 ${s.type} 갖춤. cycle 추가 영향은 없으나 잠재 길운 유지.`,
     }
   }
+  if (s.state === 'partial' && s.type && s.natalStems) {
+    // 완성 위해 필요한 글자 추출
+    const allByType: Record<string, string[]> = {
+      천상삼기: ['甲', '戊', '庚'],
+      지하삼기: ['乙', '丙', '丁'],
+      인중삼기: ['壬', '癸', '辛'],
+    }
+    const needed = (allByType[s.type] || []).filter((stem) => !s.natalStems!.includes(stem))
+    return {
+      title: '삼기 잠재',
+      body: `${s.type} 부분 갖춤 (${s.natalStems.join('·')}). ${needed.length > 0 ? `${needed.join('·')} cycle 들어오면 완성 가능 — 잠재 길운 대기.` : ''}`,
+    }
+  }
   return null
 }
 
-function buildJohuSection(entry: CycleEntry): NarrativeSection | null {
+function buildJohuSection(entry: CycleEntry, ctx: NarrateContext): NarrativeSection | null {
   const j = entry.johuShift
   if (j.shift === 'neutral') return null
   const meaning =
@@ -454,7 +522,11 @@ function buildJohuSection(entry: CycleEntry): NarrativeSection | null {
       : j.shift === 'worsening'
       ? '한난조습 불균형 심화 — 건강·기분 영향'
       : '한난조습 혼재'
-  return { title: '조후 변화', body: `${meaning} (강도 ${j.intensity}).` }
+  let body = `${meaning} (강도 ${j.intensity}).`
+  if (ctx.natalContext?.johuYongsinSecondary) {
+    body += ` 보조 조후용신: ${ctx.natalContext.johuYongsinSecondary} 도 함께 작용.`
+  }
+  return { title: '조후 변화', body }
 }
 
 function buildDaeunPhaseSection(ctx: NarrateContext): NarrativeSection {
@@ -494,7 +566,7 @@ export function narrateCycle(entry: CycleEntry, ctx: NarrateContext): CycleNarra
   sections.push(buildFlowSection(entry))
   sections.push(buildDomainSection(entry))
   sections.push(buildRootednessSection(entry))
-  sections.push(buildGeokgukSection(entry))
+  sections.push(buildGeokgukSection(entry, ctx))
 
   const shinsal = buildShinsalSection(entry)
   if (shinsal) sections.push(shinsal)
@@ -505,7 +577,7 @@ export function narrateCycle(entry: CycleEntry, ctx: NarrateContext): CycleNarra
   const samgi = buildSamgiSection(entry)
   if (samgi) sections.push(samgi)
 
-  const johu = buildJohuSection(entry)
+  const johu = buildJohuSection(entry, ctx)
   if (johu) sections.push(johu)
 
   if (ctx.daeunPhase) sections.push(buildDaeunPhaseSection(ctx))
