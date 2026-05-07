@@ -573,7 +573,7 @@ export default function CompatibilityReportClient({
 
       {/* Header */}
       <header className="relative z-10 border-b border-white/10 bg-slate-950/50 backdrop-blur-2xl sticky top-0">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)]">
               <InfinityIcon className="w-6 h-6 text-white" />
@@ -596,7 +596,7 @@ export default function CompatibilityReportClient({
       </header>
 
       {/* Share / save bar */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-6 flex justify-end">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-6 flex justify-end">
         <CompatibilityShareBar
           title={`${report.meta.a.name} × ${report.meta.b.name} 궁합 리포트`}
           summary={`종합 ${report.overall.matrix.summary.totalScore}점 — 매력 ${report.overall.matrix.summary.domainScores.attraction} · 안정 ${report.overall.matrix.summary.domainScores.stability} · 성장 ${report.overall.matrix.summary.domainScores.growth}`}
@@ -604,7 +604,7 @@ export default function CompatibilityReportClient({
       </section>
 
       {/* Couple meta */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-6">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[report.meta.a, report.meta.b].map((p, i) => (
             <div
@@ -627,7 +627,7 @@ export default function CompatibilityReportClient({
       </section>
 
       {/* Tabs */}
-      <nav className="relative z-10 max-w-7xl mx-auto px-6 pt-10">
+      <nav className="relative z-10 max-w-5xl mx-auto px-6 pt-10">
         <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">
           {TABS.map((t) => {
             const active = tab === t.key
@@ -651,7 +651,7 @@ export default function CompatibilityReportClient({
         </div>
       </nav>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-10">
+      <main className="relative z-10 max-w-5xl mx-auto px-6 py-10">
         <motion.div
           key={tab}
           initial={{ opacity: 0, y: 8 }}

@@ -48,7 +48,7 @@ export default function InterpretedAnswerSection({
   interpretedAnswer,
 }: InterpretedAnswerSectionProps) {
   return (
-    <section className="mx-auto mt-6 max-w-6xl px-4">
+    <section className="mx-auto mt-6 max-w-4xl px-4">
       <ReportSurfaceSection
         eyebrow={FRAME_LABELS[interpretedAnswer.questionFrame]}
         title="질문 해석 계약"

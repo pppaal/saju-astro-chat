@@ -216,6 +216,15 @@ function normalizeAIUserPlan(plan: unknown): 'free' | 'starter' | 'pro' | 'premi
 // POST - AI 리포트 생성 (JSON 응답)
 // ===========================
 
+// AI report generation runs many sequential LLM calls (matrix + themed
+// section + quality re-runs + audits). Default Vercel timeout cuts the
+// route off mid-stream → client sees a hung request that never returns
+// a report. Force the longest serverless ceiling we have access to and
+// pin to nodejs for the heavy lib imports.
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 300
+
 export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
     try {
@@ -507,6 +516,29 @@ export const POST = withApiMiddleware(
         layerResults,
         matrixSummaryForGeneration,
       }))
+
+      // Attach the deterministic extended-analysis bundle (life stages,
+      // decisive timings, relationships, practical info, karmic insight).
+      // Computed from the derived saju snapshot so it adds no LLM cost
+      // and renders instantly in the result page.
+      try {
+        const derivedSaju = (matrixInput as Record<string, unknown>).__derivedSajuData as
+          | import('@/lib/Saju/types').CalculateSajuDataResult
+          | undefined
+        if (derivedSaju) {
+          const { buildExtendedAnalysis } = await import('@/lib/Saju/extendedAnalysis')
+          const koreanAge = birthDate
+            ? new Date().getFullYear() - parseInt(String(birthDate).slice(0, 4), 10) + 1
+            : 30
+          const geokguk = (matrixInput as Record<string, unknown>).geokguk as string | undefined
+          ;(aiReport as Record<string, unknown>).extendedAnalysis = buildExtendedAnalysis(
+            derivedSaju,
+            { koreanAge, geokguk },
+          )
+        }
+      } catch (extErr) {
+        logger.warn('[ai-report] extendedAnalysis build failed', { err: String(extErr) })
+      }
 
       if (theme) {
         const themedQualityAudit = (
