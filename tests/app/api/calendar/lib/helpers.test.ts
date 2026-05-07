@@ -744,7 +744,7 @@ describe('Calendar Helpers', () => {
       expect(result.description).not.toContain('profile=')
     })
 
-    it('falls back to the lite counselor description when matrix verdict is unavailable', () => {
+    it('falls back to the engine counselor description when matrix verdict is unavailable', () => {
       const result = formatDateForResponse(
         baseDateData as any,
         'en',
@@ -752,7 +752,7 @@ describe('Calendar Helpers', () => {
         enTranslations as any
       )
 
-      // 매트릭스 verdict가 비어 있으면 strict 일반 문구 대신 lite descKey(상담사 톤)를 노출
+      // 매트릭스 verdict가 비어 있으면 strict 일반 문구 대신 엔진 descKey(상담사 톤)를 노출
       expect(result.description.length).toBeGreaterThan(0)
       expect(result.description).toContain('Good description')
     })

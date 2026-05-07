@@ -20,7 +20,7 @@ import type { TranslationData } from '@/types/calendar-api'
 import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
-import { calculateYearlyImportantDatesLite } from './lib/liteYearlyDates'
+import { calculateYearlyImportantDates } from './lib/yearlyDates'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 
@@ -157,7 +157,6 @@ type CalendarAstroProfile = {
   sunElement: string
   birthMonth?: number
   birthDay?: number
-  inputMode?: 'full-chart' | 'lite'
   natalChart?:
     | {
         planets?: Array<{
@@ -530,7 +529,7 @@ async function buildCalendarMatrixInput(params: {
       },
       transits: astroProfile.transitAspects || undefined,
       advancedCoverage: {
-        inputMode: astroProfile.inputMode || 'lite',
+        inputMode: 'full-chart',
         hasNatalChart: Boolean(astroProfile.natalChart),
         hasTransitChart: Boolean(astroProfile.transitChart),
         natalAspectCount: astroProfile.natalAspects?.length || 0,
@@ -703,13 +702,71 @@ export const GET = withApiMiddleware(
       pillars,
     }
 
+    // ── Yongsin activations: top-5 days when the user's primary 용신 is
+    // strongest in the next 60 days. Computed once per yearly request so
+    // the planner can surface "다음 좋은 날 top 5" without an extra fetch.
+    let yongsinActivations:
+      | {
+          yongsin: string
+          top: Array<{
+            date: string
+            score: number
+            level: string
+            sources: string[]
+            advice: string
+          }>
+        }
+      | undefined
+    try {
+      const { analyzeAdvancedSaju } = await import('@/lib/Saju/astrologyengine')
+      const advanced = analyzeAdvancedSaju(
+        {
+          name: pillars.day.stem,
+          element:
+            STEM_TO_ELEMENT[pillars.day.stem as keyof typeof STEM_TO_ELEMENT] || 'earth',
+          yin_yang: ['甲', '丙', '戊', '庚', '壬'].includes(pillars.day.stem) ? '양' : '음',
+        } as Parameters<typeof analyzeAdvancedSaju>[0],
+        {
+          yearPillar: sajuResult.yearPillar,
+          monthPillar: sajuResult.monthPillar,
+          dayPillar: sajuResult.dayPillar,
+          timePillar: sajuResult.timePillar,
+        } as Parameters<typeof analyzeAdvancedSaju>[1]
+      )
+      const yongsinPrimary = advanced.yongsin?.primary
+      if (yongsinPrimary) {
+        const { findYongsinActivationPeriods } = await import(
+          '@/lib/prediction/specificDateEngine'
+        )
+        const periods = findYongsinActivationPeriods(
+          yongsinPrimary,
+          pillars.day.stem,
+          new Date(),
+          60
+        )
+        const top = periods.slice(0, 5).map((p) => ({
+          date: `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}-${String(p.date.getDate()).padStart(2, '0')}`,
+          score: p.score,
+          level: p.activationLevel,
+          sources: p.sources,
+          advice: p.advice,
+        }))
+        if (top.length > 0) {
+          yongsinActivations = { yongsin: yongsinPrimary, top }
+        }
+      }
+    } catch (err) {
+      logger.warn('[calendar] yongsin activation calc skipped', {
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+
     const sunSign = deriveFallbackSunSign(birthDate)
     const astroProfile: CalendarAstroProfile = {
       sunSign,
       sunElement: ZODIAC_TO_ELEMENT[sunSign] || 'fire',
       birthMonth: birthDate.getMonth() + 1,
       birthDay: birthDate.getDate(),
-      inputMode: 'lite',
     }
     const degradationReasons: string[] = []
     const matrixDegradationReasons: string[] = []
@@ -751,7 +808,6 @@ export const GET = withApiMiddleware(
       astroProfile.sunSign =
         natalChart.planets.find((planet) => planet.name === 'Sun')?.sign || sunSign
       astroProfile.sunElement = ZODIAC_TO_ELEMENT[astroProfile.sunSign] || astroProfile.sunElement
-      astroProfile.inputMode = 'full-chart'
       astroProfile.natalChart = natalChartData
       astroProfile.transitChart = transitChart
       astroProfile.natalAspects = natalAspects
@@ -761,7 +817,7 @@ export const GET = withApiMiddleware(
       // ── Full-year transit scores ──
       // Compute longitude-only transit aspects for all 365 days against
       // the user's natal chart. ~350ms total (Swiss ephemeris is fast
-      // enough for batch). Results threaded into lite generator as a new
+      // enough for batch). Results threaded into engine as a new
       // dailyTransitScores axis.
       try {
         const { calculateTransitPlanetsBatch, scoreTransitDay } = await import(
@@ -812,11 +868,10 @@ export const GET = withApiMiddleware(
         })
       }
     } catch (astroError) {
-      degradationReasons.push('astrology_input_lite')
-      matrixDegradationReasons.push('astrology_input_lite')
-      logger.warn('[Calendar] full astrology input unavailable; using lite astrology profile', {
+      logger.error('[Calendar] full astrology input failed', {
         error: astroError instanceof Error ? astroError.message : String(astroError),
       })
+      throw astroError
     }
 
     let matrixCalendarContext: MatrixCalendarContext = null
@@ -974,7 +1029,7 @@ export const GET = withApiMiddleware(
     const localDates = await cacheOrCalculate(
       cacheKey,
       async () =>
-        calculateYearlyImportantDatesLite(year, sajuProfile, astroProfile, {
+        calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
           minGrade: 4, // grade 4(최악의 날)까지 포함
           locale: locale === 'en' ? 'en' : 'ko',
           matrixContext: matrixCalendarContext || undefined,
@@ -1152,23 +1207,19 @@ export const GET = withApiMiddleware(
     }
     const degradationReasonSet = [...new Set(degradationReasons)]
     const matrixDegradationReasonSet = [...new Set(matrixDegradationReasons)]
-    const matrixInputMode = astroProfile.inputMode === 'full-chart' ? 'full-chart' : 'lite'
+    const matrixInputMode = 'full-chart' as const
     const degradedMode = {
       active: degradationReasonSet.length > 0,
-      level: !matrixEngineAvailable
-        ? ('fallback-lite' as const)
-        : degradationReasonSet.length > 0
-          ? ('engine-degraded' as const)
-          : ('full-engine' as const),
+      level: degradationReasonSet.length > 0
+        ? ('engine-degraded' as const)
+        : ('full-engine' as const),
       reasons: degradationReasonSet,
       labels:
         locale === 'en'
           ? degradationReasonSet.map((reason) => {
               switch (reason) {
-                case 'astrology_input_lite':
-                  return 'Using lite astrology input instead of full natal/transit chart data.'
                 case 'matrix_core_unavailable':
-                  return 'Destiny matrix core is unavailable; lightweight calendar fallback is active.'
+                  return 'Destiny matrix core is unavailable.'
                 case 'ai_enrichment_unavailable':
                   return 'AI date enrichment is unavailable; local rules are being used.'
                 default:
@@ -1177,10 +1228,8 @@ export const GET = withApiMiddleware(
             })
           : degradationReasonSet.map((reason) => {
               switch (reason) {
-                case 'astrology_input_lite':
-                  return '풀 natal/transit 차트 대신 lite 점성 입력으로 계산했습니다.'
                 case 'matrix_core_unavailable':
-                  return 'destiny-matrix core를 사용할 수 없어 경량 캘린더 fallback으로 동작했습니다.'
+                  return 'destiny-matrix core를 사용할 수 없습니다.'
                 case 'ai_enrichment_unavailable':
                   return 'AI 날짜 보강을 사용할 수 없어 로컬 규칙으로 계산했습니다.'
                 default:
@@ -1260,6 +1309,22 @@ export const GET = withApiMiddleware(
       degradedMode,
       matrixContract: calendarMatrixContract,
       canonicalCore: calendarCoreCanonical,
+      yongsinActivations,
+      // 헤더 뱃지 / 프로필 카드용 본명 정체성
+      astroIdentity: (() => {
+        const sunSign = astroProfile.sunSign
+        const natal = astroProfile.natalChart as
+          | { ascendant?: { sign?: string }; planets?: Array<{ name?: string; sign?: string }> }
+          | null
+          | undefined
+        const ascendantSign = natal?.ascendant?.sign
+        const moonSign = natal?.planets?.find((p) => p?.name === 'Moon')?.sign
+        return {
+          sunSign,
+          ascendantSign: ascendantSign || undefined,
+          moonSign: moonSign || undefined,
+        }
+      })(),
       birthInfo: {
         date: birthDateParam,
         time: birthTimeParam,

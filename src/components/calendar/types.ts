@@ -184,10 +184,10 @@ export interface CalendarData {
   success: boolean
   year: number
   matrixStrictMode?: boolean
-  matrixInputMode?: 'full-chart' | 'lite'
+  matrixInputMode?: 'full-chart'
   degradedMode?: {
     active: boolean
-    level: 'full-engine' | 'engine-degraded' | 'fallback-lite'
+    level: 'full-engine' | 'engine-degraded'
     reasons: string[]
     labels: string[]
   }
@@ -212,6 +212,29 @@ export interface CalendarData {
   goodDates?: ImportantDate[]
   cautionDates?: ImportantDate[]
   allDates?: ImportantDate[]
+  /**
+   * 향후 60일 중 사용자의 본명 용신이 가장 강하게 활성화되는 top 5 날짜.
+   * 큰 결정·계약·시작에 추천하는 슈퍼 데이.
+   */
+  yongsinActivations?: {
+    yongsin: string
+    top: Array<{
+      date: string
+      score: number
+      level: string
+      sources: string[]
+      advice: string
+    }>
+  }
+  /**
+   * 본명 점성 정체성 — 헤더 뱃지 / 프로필 카드용.
+   * sunSign은 항상 있음. ascendant/moon은 풀 차트 입력 시에만.
+   */
+  astroIdentity?: {
+    sunSign: string
+    ascendantSign?: string
+    moonSign?: string
+  }
   calendarDailyView?: {
     date: string
     grade: number

@@ -1,5 +1,5 @@
 // 풀 파이프(라이트 → helpers → 응답) 끝까지 상담사 톤이 살아남는지 확인
-import { calculateYearlyImportantDatesLite } from '@/app/api/calendar/lib/liteYearlyDates'
+import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
 import { applyMatrixPreformatRegrade, formatDateForResponse } from '@/app/api/calendar/lib/helpers'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
@@ -44,7 +44,7 @@ const matrixContext = {
   timingCalibration: { reliabilityScore: 0.65 },
 }
 
-const dates = calculateYearlyImportantDatesLite(2026, sajuProfile, astroProfile, {
+const dates = calculateYearlyImportantDates(2026, sajuProfile, astroProfile, {
   locale: 'ko',
   matrixContext: matrixContext as never,
 })
@@ -72,7 +72,7 @@ const grade3 = formatted.filter((d) => d.grade === 3)[0]
 const grade4 = formatted.filter((d) => d.grade === 4)[0]
 const samples = [grade0, grade1Career, grade1Love, grade2, grade3, grade4].filter(Boolean)
 
-console.log('=== 풀 파이프 응답 (lite → helpers → format) ===\n')
+console.log('=== 풀 파이프 응답 (engine → helpers → format) ===\n')
 for (const item of samples) {
   console.log(`📅 ${item.date} | grade=${item.grade} | score=${item.score} | confidence=${item.evidence?.confidence}`)
   console.log(`  title:        ${item.title}`)
