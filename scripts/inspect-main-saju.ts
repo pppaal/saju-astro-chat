@@ -88,13 +88,14 @@ const showInput = (input: Record<string, unknown>) => {
   ].filter(Boolean).join(', ')
   return [cheon, ji, flags].filter(Boolean).join(' | ')
 }
-console.log(`  대운 점수: ${out.scores.daeunScore.toFixed(2)} / 8`)
+const pct = (v: number, max: number) => `${((v / max) * 100).toFixed(0)}%`
+console.log(`  대운 점수: ${out.scores.daeunScore.toFixed(2)} / 8   (${pct(out.scores.daeunScore, 8)})`)
 console.log(`         근거: ${showInput(out.scoreInputs.daeun as Record<string, unknown>)}`)
-console.log(`  세운 점수: ${out.scores.seunScore.toFixed(2)} / 10`)
+console.log(`  세운 점수: ${out.scores.seunScore.toFixed(2)} / 10  (${pct(out.scores.seunScore, 10)})`)
 console.log(`         근거: ${showInput(out.scoreInputs.seun as Record<string, unknown>)}`)
-console.log(`  월운 점수: ${out.scores.wolunScore.toFixed(2)} / 7`)
+console.log(`  월운 점수: ${out.scores.wolunScore.toFixed(2)} / 7   (${pct(out.scores.wolunScore, 7)})`)
 console.log(`         근거: ${showInput(out.scoreInputs.wolun as Record<string, unknown>)}`)
-console.log(`  일진 점수: ${out.scores.iljinScore.toFixed(2)} / 12`)
+console.log(`  일진 점수: ${out.scores.iljinScore.toFixed(2)} / 12  (${pct(out.scores.iljinScore, 12)})`)
 console.log(`         근거: ${showInput(out.scoreInputs.iljin as Record<string, unknown>)}`)
 
 console.log('\n## 7. Extended (격국 narrative 일부)')
