@@ -1,6 +1,6 @@
 import type { FusionInsight, FusionReport } from '../interpreter/types'
 import type { MatrixCalculationInput } from '../types'
-import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
+import type { EvidenceBundle } from './structuredEvidence'
 import { detectQuestionIntent } from './questionIntent'
 import { getDeterministicCoreWeights, type DeterministicProfile } from './deterministicCoreConfig'
 
@@ -118,7 +118,7 @@ function countInsightsByCategory(
 function buildCoverage(
   input: MatrixCalculationInput,
   report: FusionReport,
-  graph?: GraphRAGEvidenceBundle
+  graph?: EvidenceBundle
 ): DeterministicCoverage {
   const aspects = Array.isArray(input.aspects) ? input.aspects : []
   const anchors = graph?.anchors || []
@@ -314,7 +314,7 @@ function formatPromptBlock(core: DeterministicCoreOutput, lang: 'ko' | 'en'): st
 export function buildDeterministicCore(input: {
   matrixInput: MatrixCalculationInput
   matrixReport: FusionReport
-  graphEvidence?: GraphRAGEvidenceBundle
+  graphEvidence?: EvidenceBundle
   userQuestion?: string
   lang: 'ko' | 'en'
   profile?: DeterministicProfile

@@ -26,7 +26,7 @@ import {
   persistGeneratedReport,
 } from './routeExecutionPersistence'
 import type { PreparedAiReportRequest } from './routeRequestPreparation'
-import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import {
   calculateCreditCost,

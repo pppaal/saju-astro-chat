@@ -38,13 +38,13 @@ export async function generateTimingReportWithSupport(
     FORCE_REWRITE_ONLY_MODE,
     logger,
     buildNormalizedMatrixInput,
-    buildGraphRAGEvidence,
-    formatGraphRAGEvidenceForPrompt,
+    buildStructuredEvidence,
+    formatStructuredEvidenceForPrompt,
     buildDeterministicCore,
     runDestinyCore,
     adaptCoreToReport,
     buildTopMatchedPatterns,
-    buildGraphRagSummaryPayload,
+    buildEvidenceSummaryPayload,
     shouldUseDeterministicOnly,
     buildTimingFallbackSectionsExternal,
     buildTimingEvidenceRefs,
@@ -107,15 +107,15 @@ export async function generateTimingReportWithSupport(
   const lang = options.lang || 'ko'
   const targetDate = options.targetDate || new Date().toISOString().split('T')[0]
   const normalizedInput = buildNormalizedMatrixInput(input)
-  const graphRagEvidence = buildGraphRAGEvidence(normalizedInput, matrixReport, {
+  const structuredEvidence = buildStructuredEvidence(normalizedInput, matrixReport, {
     mode: 'timing',
     period,
   })
-  const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
+  const structuredEvidencePrompt = formatStructuredEvidenceForPrompt(structuredEvidence, lang)
   const deterministicCore = buildDeterministicCore({
     matrixInput: normalizedInput,
     matrixReport,
-    graphEvidence: graphRagEvidence,
+    graphEvidence: structuredEvidence,
     userQuestion: options.userQuestion,
     lang,
     profile: options.deterministicProfile,
@@ -131,10 +131,10 @@ export async function generateTimingReportWithSupport(
   const signalSynthesis = coreSeed.signalSynthesis
   const strategyEngine = coreSeed.strategyEngine
   const topMatchedPatterns = buildTopMatchedPatterns(coreSeed.patterns)
-  const graphRagSummary = buildGraphRagSummaryPayload(
+  const evidenceSummary = buildEvidenceSummaryPayload(
     lang,
     matrixReport,
-    graphRagEvidence,
+    structuredEvidence,
     signalSynthesis,
     strategyEngine,
     reportCore
@@ -171,7 +171,7 @@ export async function generateTimingReportWithSupport(
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
-      graphRagEvidence,
+      structuredEvidence,
       period,
       targetDate,
       timingData,
@@ -273,8 +273,8 @@ export async function generateTimingReportWithSupport(
       periodLabel,
       timingData,
       sections: sections as unknown as TimingReportSections,
-      graphRagEvidence,
-      graphRagSummary,
+      structuredEvidence,
+      evidenceSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
       deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
@@ -333,7 +333,7 @@ export async function generateTimingReportWithSupport(
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
-      graphRagEvidence,
+      structuredEvidence,
       period,
       targetDate,
       timingData,
@@ -401,8 +401,8 @@ export async function generateTimingReportWithSupport(
       periodLabel,
       timingData,
       sections: sections as unknown as TimingReportSections,
-      graphRagEvidence,
-      graphRagSummary,
+      structuredEvidence,
+      evidenceSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
       deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
@@ -445,7 +445,7 @@ export async function generateTimingReportWithSupport(
     timingData,
     targetDate,
     matrixSummary,
-    graphRagEvidencePrompt,
+    structuredEvidencePrompt,
     options.userQuestion,
     deterministicCore.promptBlock
   )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
@@ -694,7 +694,7 @@ export async function generateTimingReportWithSupport(
     matrixReport,
     matrixSummary: options.matrixSummary,
     signalSynthesis,
-    graphRagEvidence,
+    structuredEvidence,
     period,
     targetDate,
     timingData,
@@ -762,8 +762,8 @@ export async function generateTimingReportWithSupport(
 
     timingData,
     sections: sections as unknown as TimingReportSections,
-    graphRagEvidence,
-    graphRagSummary,
+    structuredEvidence,
+    evidenceSummary,
     evidenceRefs: timingEvidenceRefs,
     evidenceRefsByPara: unified.evidenceRefsByPara,
     deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),

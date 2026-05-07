@@ -88,7 +88,7 @@ export async function finalizeReportQuality(input: {
     mode: input.reportMode,
     matrixInput: input.matrixInput,
     report: aiReport,
-    graphEvidence: aiReport.graphRagEvidence || null,
+    graphEvidence: aiReport.structuredEvidence || null,
   })
 
   if (crossConsistencyAudit.score < 70) {
@@ -142,7 +142,7 @@ export async function finalizeReportQuality(input: {
       mode: input.reportMode,
       matrixInput: input.matrixInput,
       report: aiReport,
-      graphEvidence: aiReport.graphRagEvidence || null,
+      graphEvidence: aiReport.structuredEvidence || null,
     })
 
     patternQualityGate = evaluatePatternQualityGate({

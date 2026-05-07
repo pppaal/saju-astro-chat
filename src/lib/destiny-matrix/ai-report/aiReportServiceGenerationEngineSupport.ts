@@ -23,10 +23,10 @@ import { logger } from '@/lib/logger'
 import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
 import {
-  buildGraphRAGEvidence,
-  formatGraphRAGEvidenceForPrompt,
-  summarizeGraphRAGEvidence,
-} from './graphRagEvidence'
+  buildStructuredEvidence,
+  formatStructuredEvidenceForPrompt,
+  summarizeEvidenceEvidence,
+} from './structuredEvidence'
 import {
   renderProjectionBlocksAsMarkdown,
   renderProjectionBlocksAsText,
@@ -209,7 +209,7 @@ import {
   calculateThemeScore,
   extractKeywords,
 } from './scoreCalculators'
-import type { GraphRAGEvidenceAnchor, GraphRAGCrossEvidenceSet } from './graphRagEvidence'
+import type { EvidenceAnchor, CrossEvidenceSet } from './structuredEvidence'
 import {
   buildNormalizedMatrixInput,
   runDestinyCore,
@@ -269,7 +269,7 @@ import {
   collectProjectionDriverLabels,
 } from './aiReportServiceThemedSupport'
 import {
-  buildGraphRagSummaryPayload as buildGraphRagSummaryPayloadSupport,
+  buildEvidenceSummaryPayload as buildEvidenceSummaryPayloadSupport,
   buildSectionFactPack as buildSectionFactPackSupport,
   buildSectionPrompt as buildSectionPromptSupport,
   buildStrategyFactsForSection as buildStrategyFactsForSectionSupport,
@@ -282,7 +282,7 @@ import {
   postProcessSectionNarrative as postProcessSectionNarrativeSupport,
   summarizeTopInsightsByCategory as summarizeTopInsightsByCategorySupport,
   toKoreanDomainLabel as toKoreanDomainLabelSupport,
-  type GraphRagSummaryPayload,
+  type EvidenceSummaryPayload,
 } from './aiReportServicePromptSupport'
 import {
   getPremiumPolishPaths as getPremiumPolishPathsSupport,
@@ -1280,25 +1280,25 @@ function toKoreanDomainLabel(domain: SignalDomain): string {
   return toKoreanDomainLabelSupport(domain)
 }
 
-function buildGraphRagSummaryPayload(
+function buildEvidenceSummaryPayload(
   lang: 'ko' | 'en',
   matrixReport: FusionReport,
-  graphRagEvidence: NonNullable<AIPremiumReport['graphRagEvidence']>,
+  structuredEvidence: NonNullable<AIPremiumReport['structuredEvidence']>,
   signalSynthesis: SignalSynthesisResult | undefined,
   strategyEngine: StrategyEngineResult | undefined,
   reportCore?: ReportCoreViewModel
-): GraphRagSummaryPayload {
-  return buildGraphRagSummaryPayloadSupport(
+): EvidenceSummaryPayload {
+  return buildEvidenceSummaryPayloadSupport(
     lang,
     matrixReport,
-    graphRagEvidence,
+    structuredEvidence,
     signalSynthesis,
     strategyEngine,
     reportCore
   )
 }
 
-function humanizeCrossSetFact(set: GraphRAGCrossEvidenceSet): string {
+function humanizeCrossSetFact(set: CrossEvidenceSet): string {
   return humanizeCrossSetFactSupport(set)
 }
 
@@ -1316,7 +1316,7 @@ function buildStrategyFactsForSection(
 
 function buildSectionFactPack(
   sectionKey: keyof AIPremiumReport['sections'],
-  anchor: GraphRAGEvidenceAnchor | undefined,
+  anchor: EvidenceAnchor | undefined,
   matrixReport: FusionReport,
   input: MatrixCalculationInput,
   reportCore: ReportCoreViewModel | undefined,
@@ -1389,12 +1389,12 @@ export async function generateAIPremiumReport(
     FORCE_REWRITE_ONLY_MODE,
     logger,
     buildNormalizedMatrixInput,
-    buildGraphRAGEvidence,
+    buildStructuredEvidence,
     buildDeterministicCore,
     runDestinyCore,
     adaptCoreToReport,
     buildTopMatchedPatterns,
-    buildGraphRagSummaryPayload,
+    buildEvidenceSummaryPayload,
     shouldUseDeterministicOnly,
     buildComprehensiveEvidenceRefs,
     COMPREHENSIVE_SECTION_KEYS,
@@ -1442,7 +1442,7 @@ export async function generateAIPremiumReport(
     inferAgeFromBirthDate,
     buildLifeCyclePromptBlock,
     buildMatrixSummary,
-    summarizeGraphRAGEvidence,
+    summarizeEvidenceEvidence,
     buildDirectToneOverride,
     sanitizeSectionNarrative,
     sanitizeTimingContradictionsExternal,
@@ -1510,13 +1510,13 @@ export async function generateTimingReport(
     FORCE_REWRITE_ONLY_MODE,
     logger,
     buildNormalizedMatrixInput,
-    buildGraphRAGEvidence,
-    formatGraphRAGEvidenceForPrompt,
+    buildStructuredEvidence,
+    formatStructuredEvidenceForPrompt,
     buildDeterministicCore,
     runDestinyCore,
     adaptCoreToReport,
     buildTopMatchedPatterns,
-    buildGraphRagSummaryPayload,
+    buildEvidenceSummaryPayload,
     shouldUseDeterministicOnly,
     buildTimingFallbackSectionsExternal,
     buildTimingEvidenceRefs,
@@ -1604,13 +1604,13 @@ export async function generateThemedReport(
     FORCE_REWRITE_ONLY_MODE,
     logger,
     buildNormalizedMatrixInput,
-    buildGraphRAGEvidence,
-    formatGraphRAGEvidenceForPrompt,
+    buildStructuredEvidence,
+    formatStructuredEvidenceForPrompt,
     buildDeterministicCore,
     runDestinyCore,
     adaptCoreToReport,
     buildTopMatchedPatterns,
-    buildGraphRagSummaryPayload,
+    buildEvidenceSummaryPayload,
     shouldUseDeterministicOnly,
     getThemedSectionKeys,
     buildProjectionFirstThemedSections,

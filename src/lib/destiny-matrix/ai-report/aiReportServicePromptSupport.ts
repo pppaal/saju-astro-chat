@@ -6,8 +6,8 @@ import type { SignalDomain, SignalSynthesisResult } from './signalSynthesizer'
 import { eunNeun } from '@/lib/i18n/koParticle'
 import type { StrategyEngineResult } from './strategyEngine'
 import type { ReportCoreViewModel } from './reportCoreHelpers'
-import type { GraphRAGEvidenceAnchor, GraphRAGCrossEvidenceSet } from './graphRagEvidence'
-import { summarizeGraphRAGEvidence } from './graphRagEvidence'
+import type { EvidenceAnchor, CrossEvidenceSet } from './structuredEvidence'
+import { summarizeEvidenceEvidence } from './structuredEvidence'
 import {
   findReportCoreAdvisory,
   findReportCoreManifestation,
@@ -69,7 +69,7 @@ const SECTION_OPENERS_KO: Record<keyof AIPremiumReport['sections'], string> = {
   conclusion: '마지막으로 지금 승부처를 한 줄로 정리하겠습니다.',
 }
 
-export interface GraphRagSummaryPayload {
+export interface EvidenceSummaryPayload {
   topInsights: string[]
   drivers: string[]
   cautions: string[]
@@ -154,15 +154,15 @@ function uniqueStrings(values: Array<string | undefined | null>, limit = 6): str
   return out
 }
 
-export function buildGraphRagSummaryPayload(
+export function buildEvidenceSummaryPayload(
   lang: 'ko' | 'en',
   matrixReport: FusionReport,
-  graphRagEvidence: NonNullable<AIPremiumReport['graphRagEvidence']>,
+  structuredEvidence: NonNullable<AIPremiumReport['structuredEvidence']>,
   signalSynthesis: SignalSynthesisResult | undefined,
   strategyEngine: StrategyEngineResult | undefined,
   reportCore?: ReportCoreViewModel
-): GraphRagSummaryPayload {
-  const graphSummary = summarizeGraphRAGEvidence(graphRagEvidence)
+): EvidenceSummaryPayload {
+  const graphSummary = summarizeEvidenceEvidence(structuredEvidence)
   const preferredDomains: Set<SignalDomain> | null = reportCore
     ? new Set([
         reportCore.focusDomain as SignalDomain,
@@ -183,7 +183,7 @@ export function buildGraphRagSummaryPayload(
     5
   )
   const anchorFallback = uniqueStrings(
-    (graphRagEvidence.anchors || []).map((anchor) =>
+    (structuredEvidence.anchors || []).map((anchor) =>
       lang === 'ko' ? `${anchor.section} 교차 근거` : `${anchor.section} cross evidence`
     ),
     5
@@ -307,7 +307,7 @@ export function buildGraphRagSummaryPayload(
   }
 }
 
-export function humanizeCrossSetFact(set: GraphRAGCrossEvidenceSet): string {
+export function humanizeCrossSetFact(set: CrossEvidenceSet): string {
   const pairMatch = set.astrologyEvidence.match(/^([A-Za-z]+)-([a-z]+)-([A-Za-z]+)/i)
   const p1 = pairMatch?.[1] || '행성A'
   const aspectRaw = (pairMatch?.[2] || '').toLowerCase()
@@ -422,7 +422,7 @@ export function buildStrategyFactsForSection(
 
 export function buildSectionFactPack(
   sectionKey: keyof AIPremiumReport['sections'],
-  anchor: GraphRAGEvidenceAnchor | undefined,
+  anchor: EvidenceAnchor | undefined,
   matrixReport: FusionReport,
   input: MatrixCalculationInput,
   reportCore: ReportCoreViewModel | undefined,

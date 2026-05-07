@@ -2,7 +2,7 @@
 
 import ReportSurfaceSection from './ReportSurfaceSection'
 
-type GraphRagEvidenceAnchor = {
+type EvidenceEvidenceAnchor = {
   id: string
   section: string
   sajuEvidence: string
@@ -18,26 +18,26 @@ type GraphRagEvidenceAnchor = {
   }>
 }
 
-type GraphRagEvidenceBundle = {
+type EvidenceEvidenceBundle = {
   mode: 'comprehensive' | 'timing' | 'themed'
   theme?: string
   period?: string
-  anchors: GraphRagEvidenceAnchor[]
+  anchors: EvidenceEvidenceAnchor[]
 }
 
-type GraphRagEvidenceSectionProps = {
-  evidence: GraphRagEvidenceBundle
+type EvidenceSectionProps = {
+  evidence: EvidenceEvidenceBundle
   className?: string
 }
 
-export default function GraphRagEvidenceSection({
+export default function EvidenceSection({
   evidence,
   className = '',
-}: GraphRagEvidenceSectionProps) {
+}: EvidenceSectionProps) {
   if (!evidence.anchors?.length) return null
 
   return (
-    <ReportSurfaceSection title="GraphRAG 교차 근거" className={className}>
+    <ReportSurfaceSection title="Evidence 교차 근거" className={className}>
       <p className="mb-4 text-xs text-slate-400">
         mode: {evidence.mode}
         {evidence.theme ? ` / theme: ${evidence.theme}` : ''}

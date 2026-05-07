@@ -1,6 +1,6 @@
 import type { FusionReport, InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import type { ReportEvidenceRef } from '@/lib/destiny-matrix/ai-report/evidenceRefs'
-import type { GraphRAGDomain } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+import type { EvidenceDomain } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 import type {
   NormalizedSignal,
   SignalDomain,
@@ -389,7 +389,7 @@ export function isInsightDomain(domain: string): domain is InsightDomain {
   )
 }
 
-export function getGraphRagFocusDomain(domain: SignalDomain): GraphRAGDomain {
+export function getEvidenceFocusDomain(domain: SignalDomain): EvidenceDomain {
   if (domain === 'move') return 'move'
   return isInsightDomain(domain) ? domain : 'personality'
 }

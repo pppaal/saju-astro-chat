@@ -579,7 +579,7 @@ export interface MatrixCalculationInput {
     planet1: PlanetName
     planet2: PlanetName
     type: AspectType
-    // Optional precision fields used by GraphRAG evidence pairing.
+    // Optional precision fields used by Evidence evidence pairing.
     angle?: number
     orb?: number
   }>

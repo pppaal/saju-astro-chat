@@ -198,7 +198,7 @@ export async function prepareAiReportRequest(
     toOptionalRecord(requestBody.astrologySnapshot) || toOptionalRecord(requestBody.astrology)
   const crossSnapshot =
     toOptionalRecord(requestBody.crossSnapshot) ||
-    toOptionalRecord(requestBody.graphRagEvidence) ||
+    toOptionalRecord(requestBody.structuredEvidence) ||
     toOptionalRecord(requestBody.matrixSummary)
   const currentDateIso =
     toOptionalString(requestBody.currentDateIso) ||

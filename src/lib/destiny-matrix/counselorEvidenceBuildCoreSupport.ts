@@ -1,10 +1,10 @@
 import type { FusionReport, InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixCalculationInput, MatrixSummary } from '@/lib/destiny-matrix/types'
 import {
-  buildGraphRAGEvidence,
-  summarizeGraphRAGEvidence,
-  type GraphRAGDomain,
-} from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+  buildStructuredEvidence,
+  summarizeEvidenceEvidence,
+  type EvidenceDomain,
+} from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 import type { ReportEvidenceRef } from '@/lib/destiny-matrix/ai-report/evidenceRefs'
 import type {
   NormalizedSignal,
@@ -54,7 +54,7 @@ import {
   compactCounselorNarrative,
   domainHintsForSection,
   getCounselorDomainPriority,
-  getGraphRagFocusDomain,
+  getEvidenceFocusDomain,
   inferScenarioSectionHints,
   isInsightDomain,
   mergeUniqueSignals,
@@ -143,9 +143,9 @@ export function buildCounselorEvidencePacket(params: {
     themedQuestionDomain ||
     fallbackFocusDomain
 
-  const graphRagEvidence = buildGraphRAGEvidence(params.matrixInput, params.matrixReport, {
+  const structuredEvidence = buildStructuredEvidence(params.matrixInput, params.matrixReport, {
     mode: 'comprehensive',
-    focusDomain: getGraphRagFocusDomain(preferredDomain),
+    focusDomain: getEvidenceFocusDomain(preferredDomain),
   })
   const evidenceRefs = Object.fromEntries(
     COUNSELOR_SECTION_PATHS.map((sectionPath) => [
@@ -162,13 +162,13 @@ export function buildCounselorEvidencePacket(params: {
     matrixReport: params.matrixReport,
     matrixSummary: params.matrixSummary,
     signalSynthesis: params.signalSynthesis,
-    graphRagEvidence,
+    structuredEvidence,
     birthDate: params.birthDate,
     sectionPaths: COUNSELOR_SECTION_PATHS as unknown as string[],
     evidenceRefs,
   })
 
-  const graphRagEvidenceSummary = summarizeGraphRAGEvidence(graphRagEvidence) || {
+  const structuredEvidenceSummary = summarizeEvidenceEvidence(structuredEvidence) || {
     mode: 'comprehensive',
     totalAnchors: 0,
     totalSets: 0,
@@ -292,7 +292,7 @@ export function buildCounselorEvidencePacket(params: {
     .sort((a, b) => {
       const scenarioSectionHints = inferScenarioSectionHints(counselorCore?.topScenarioIds || [])
       const anchorSectionDomains = (anchor: UnifiedAnchor) =>
-        domainHintsForSection(anchor.section, getGraphRagFocusDomain(preferredDomain))
+        domainHintsForSection(anchor.section, getEvidenceFocusDomain(preferredDomain))
       const aScenarioFocus = scenarioSectionHints.includes(a.section) ? 1 : 0
       const bScenarioFocus = scenarioSectionHints.includes(b.section) ? 1 : 0
       if (aScenarioFocus !== bScenarioFocus) return bScenarioFocus - aScenarioFocus
@@ -320,9 +320,9 @@ export function buildCounselorEvidencePacket(params: {
     geokguk: params.matrixInput.geokguk,
     activeTransits: params.matrixInput.activeTransits,
     aspectsCount: params.matrixInput.aspects?.length,
-    graphFocusReason: graphRagEvidenceSummary.focusReason,
+    graphFocusReason: structuredEvidenceSummary.focusReason,
     graphReason:
-      graphRagEvidenceSummary.graphReason ||
+      structuredEvidenceSummary.graphReason ||
       (topAnchorSummary
         ? `"${topAnchorSummary}"를 핵심 근거로 삼습니다.`
         : '근거 그래프 탐색을 거쳐 신호를 정리합니다.'),
@@ -980,7 +980,7 @@ export function buildCounselorEvidencePacket(params: {
       params.lang
     ),
     topAnchorSummary,
-    graphRagEvidenceSummary,
+    structuredEvidenceSummary,
     topAnchors: prioritizedAnchors.map((anchor) => ({
       id: anchor.id,
       section: anchor.section,

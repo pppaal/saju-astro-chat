@@ -235,6 +235,14 @@ export interface CalendarData {
     ascendantSign?: string
     moonSign?: string
   }
+  /**
+   * 오늘 하루의 시간대별 best/worst (24시간 정밀 분석).
+   * 다른 날짜의 시간 분석은 /api/calendar/date-detail 엔드포인트에서 별도 계산.
+   */
+  todayHourlyTimeSlots?: {
+    best: Array<{ hour: number; score: number; reason: string }>
+    worst: Array<{ hour: number; score: number; reason: string }>
+  }
   calendarDailyView?: {
     date: string
     grade: number

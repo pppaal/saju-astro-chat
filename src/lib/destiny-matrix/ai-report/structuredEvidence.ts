@@ -4,7 +4,7 @@ import type { ReportPeriod, ReportTheme } from './types'
 import { getThemedSectionKeys } from './themeSchema'
 import { describeGraphEvidenceWhy } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 
-export type GraphRAGDomain = InsightDomain | 'move'
+export type EvidenceDomain = InsightDomain | 'move'
 
 const ASPECT_ANGLE_MAP: Record<string, number> = {
   conjunction: 0,
@@ -30,7 +30,7 @@ const ASPECT_BASE_ORB_BY_TYPE: Record<string, number> = {
   biquintile: 2,
 }
 
-const DOMAIN_ORB_MULTIPLIER: Record<GraphRAGDomain, number> = {
+const DOMAIN_ORB_MULTIPLIER: Record<EvidenceDomain, number> = {
   personality: 1.05,
   career: 0.9,
   relationship: 1.0,
@@ -91,7 +91,7 @@ const PAIR_ASPECT_ORB_MULTIPLIER: Partial<Record<string, number>> = {
   'Sun-Pluto|square': 0.75,
 }
 
-const SECTION_DOMAIN_MAP: Record<string, GraphRAGDomain[]> = {
+const SECTION_DOMAIN_MAP: Record<string, EvidenceDomain[]> = {
   introduction: ['personality'],
   personalityDeep: ['personality'],
   careerPath: ['career', 'wealth'],
@@ -131,54 +131,54 @@ type BuildOptions = {
   mode: 'comprehensive' | 'timing' | 'themed'
   theme?: ReportTheme
   period?: ReportPeriod
-  focusDomain?: GraphRAGDomain
+  focusDomain?: EvidenceDomain
 }
 
 type ReportLang = 'ko' | 'en'
 
 type AspectInput = MatrixCalculationInput['aspects'][number]
 
-export interface GraphRAGCrossEvidenceSet {
+export interface CrossEvidenceSet {
   id: string
   matrixEvidence: string
   astrologyEvidence: string
   sajuEvidence: string
-  overlapDomains: GraphRAGDomain[]
+  overlapDomains: EvidenceDomain[]
   overlapScore: number
   orbFitScore: number
   combinedConclusion: string
 }
 
-export interface GraphRAGEvidenceAnchor {
+export interface EvidenceAnchor {
   id: string
   section: string
   sajuEvidence: string
   astrologyEvidence: string
   crossConclusion: string
-  crossEvidenceSets: GraphRAGCrossEvidenceSet[]
+  crossEvidenceSets: CrossEvidenceSet[]
 }
 
-export interface GraphRAGEvidenceBundle {
+export interface EvidenceBundle {
   mode: 'comprehensive' | 'timing' | 'themed'
   theme?: ReportTheme
   period?: ReportPeriod
-  focusDomain?: GraphRAGDomain
+  focusDomain?: EvidenceDomain
   lang?: 'ko' | 'en'
-  anchors: GraphRAGEvidenceAnchor[]
+  anchors: EvidenceAnchor[]
 }
 
-export interface GraphRAGAnchorSummary {
+export interface EvidenceAnchorSummary {
   id: string
   section: string
   setCount: number
-  sets: GraphRAGCrossEvidenceSet[]
+  sets: CrossEvidenceSet[]
   avgOverlapScore: number
   avgOrbFitScore: number
   lowTrustSetCount: number
 }
 
-export interface GraphRAGEvidenceSummary {
-  mode: GraphRAGEvidenceBundle['mode']
+export interface EvidenceSummary {
+  mode: EvidenceBundle['mode']
   theme?: ReportTheme
   period?: ReportPeriod
   totalAnchors: number
@@ -190,7 +190,7 @@ export interface GraphRAGEvidenceSummary {
   cautionSections: string[]
   focusReason: string
   graphReason: string
-  anchors: GraphRAGAnchorSummary[]
+  anchors: EvidenceAnchorSummary[]
 }
 
 export interface DestinyMatrixEvidenceSummaryItem {
@@ -316,7 +316,7 @@ function getPairOrbMultiplier(aspect: AspectInput): number {
   return PLANET_PAIR_ORB_MULTIPLIER[getPairKey(aspect)] || 1
 }
 
-function getDomainAspectOrbMultiplier(domain: GraphRAGDomain, aspectType: string): number {
+function getDomainAspectOrbMultiplier(domain: EvidenceDomain, aspectType: string): number {
   return DOMAIN_ASPECT_ORB_MULTIPLIER[`${domain}|${normalizeAspectType(aspectType)}`] || 1
 }
 
@@ -326,7 +326,7 @@ function getPairAspectOrbMultiplier(aspect: AspectInput): number {
   return PAIR_ASPECT_ORB_MULTIPLIER[key] || 1
 }
 
-function getAllowedOrb(aspect: AspectInput, domain: GraphRAGDomain): number {
+function getAllowedOrb(aspect: AspectInput, domain: EvidenceDomain): number {
   const base = getBaseAllowedOrb(aspect.type)
   const domainBase = DOMAIN_ORB_MULTIPLIER[domain]
   const domainAspect = getDomainAspectOrbMultiplier(domain, aspect.type)
@@ -336,10 +336,10 @@ function getAllowedOrb(aspect: AspectInput, domain: GraphRAGDomain): number {
   return Math.max(0.8, raw)
 }
 
-function getOrbFitScore(aspect: AspectInput, domains: GraphRAGDomain[]): number {
+function getOrbFitScore(aspect: AspectInput, domains: EvidenceDomain[]): number {
   if (typeof aspect.orb !== 'number') return 0.55
   const orb = aspect.orb
-  const scoped: GraphRAGDomain[] = domains.length > 0 ? domains : ['personality']
+  const scoped: EvidenceDomain[] = domains.length > 0 ? domains : ['personality']
   const scores = scoped.map((domain) => {
     const allowed = getAllowedOrb(aspect, domain)
     return Math.max(0, 1 - orb / Math.max(allowed, 0.1))
@@ -347,7 +347,7 @@ function getOrbFitScore(aspect: AspectInput, domains: GraphRAGDomain[]): number 
   return scores.reduce((a, b) => a + b, 0) / scores.length
 }
 
-function getAspectSortScore(aspect: AspectInput, domains: GraphRAGDomain[]): number {
+function getAspectSortScore(aspect: AspectInput, domains: EvidenceDomain[]): number {
   const orbFit = getOrbFitScore(aspect, domains)
   const orbScore = orbFit * 10
   const type = normalizeAspectType(aspect.type)
@@ -362,8 +362,8 @@ function getAspectSortScore(aspect: AspectInput, domains: GraphRAGDomain[]): num
   return orbScore + typeWeight
 }
 
-function inferAspectDomains(aspect: AspectInput): GraphRAGDomain[] {
-  const domains = new Set<GraphRAGDomain>()
+function inferAspectDomains(aspect: AspectInput): EvidenceDomain[] {
+  const domains = new Set<EvidenceDomain>()
   const pair = [aspect.planet1, aspect.planet2]
 
   if (pair.includes('Venus') || pair.includes('Moon')) domains.add('relationship')
@@ -389,8 +389,8 @@ function inferAspectDomains(aspect: AspectInput): GraphRAGDomain[] {
   return [...domains]
 }
 
-function inferSajuDomains(input: MatrixCalculationInput): GraphRAGDomain[] {
-  const domains = new Set<GraphRAGDomain>()
+function inferSajuDomains(input: MatrixCalculationInput): EvidenceDomain[] {
+  const domains = new Set<EvidenceDomain>()
   const geokguk = (input.geokguk || '').toString()
 
   if (geokguk.includes('gwan') || geokguk.includes('관')) domains.add('career')
@@ -436,11 +436,11 @@ function buildTimingCycleSummary(input: MatrixCalculationInput, lang: ReportLang
   return input.currentIljinDate ? `${base}@${input.currentIljinDate}` : base
 }
 
-function formatAspectEvidence(aspect: AspectInput, domains: GraphRAGDomain[]): string {
+function formatAspectEvidence(aspect: AspectInput, domains: EvidenceDomain[]): string {
   const angle = getAspectAngle(aspect)
   const angleText = typeof angle === 'number' ? `${toFixed1(angle)}deg` : 'n/a'
   const orbText = typeof aspect.orb === 'number' ? `${toFixed1(aspect.orb)}deg` : 'n/a'
-  const scoped: GraphRAGDomain[] = domains.length > 0 ? domains : ['personality']
+  const scoped: EvidenceDomain[] = domains.length > 0 ? domains : ['personality']
   const policy = scoped
     .slice(0, 2)
     .map((d) => `${d}<=${toFixed1(getAllowedOrb(aspect, d))}deg`)
@@ -451,7 +451,7 @@ function formatAspectEvidence(aspect: AspectInput, domains: GraphRAGDomain[]): s
 function buildCrossEvidenceSets(
   input: MatrixCalculationInput,
   report: FusionReport
-): GraphRAGCrossEvidenceSet[] {
+): CrossEvidenceSet[] {
   const lang = resolveLang(input, report)
   const profileContext = buildProfileContextSnippet(input)
   const sajuEvidence = [
@@ -508,10 +508,10 @@ function buildCrossEvidenceSets(
     }
   })
 
-  const transitSets: GraphRAGCrossEvidenceSet[] = (input.activeTransits || [])
+  const transitSets: CrossEvidenceSet[] = (input.activeTransits || [])
     .slice(0, 4)
     .map((transit, idx) => {
-      const transitDomains: GraphRAGDomain[] =
+      const transitDomains: EvidenceDomain[] =
         transit.includes('Return') || transit.includes('Retrograde')
           ? ['timing', 'personality', 'move']
           : /uranus|node|eclipse/i.test(transit)
@@ -531,7 +531,7 @@ function buildCrossEvidenceSets(
       }
     })
 
-  const matrixSets: GraphRAGCrossEvidenceSet[] = report.topInsights
+  const matrixSets: CrossEvidenceSet[] = report.topInsights
     .slice(0, 6)
     .map((insight, idx) => {
       const source = insight.sources?.[0]
@@ -554,10 +554,10 @@ function buildCrossEvidenceSets(
 
 function selectEvidenceSetsForSection(
   section: string,
-  sets: GraphRAGCrossEvidenceSet[],
+  sets: CrossEvidenceSet[],
   mode: BuildOptions['mode'],
-  focusDomain?: GraphRAGDomain
-): GraphRAGCrossEvidenceSet[] {
+  focusDomain?: EvidenceDomain
+): CrossEvidenceSet[] {
   const sectionDomains = SECTION_DOMAIN_MAP[section] || ['personality']
   const targetSetCount = mode === 'comprehensive' ? 2 : 4
   const rankedByOverlap = [...sets].sort((a, b) => b.overlapScore - a.overlapScore)
@@ -635,11 +635,11 @@ function themedSections(theme: ReportTheme): string[] {
   return [...getThemedSectionKeys(theme)]
 }
 
-export function buildGraphRAGEvidence(
+export function buildStructuredEvidence(
   input: MatrixCalculationInput,
   report: FusionReport,
   options: BuildOptions
-): GraphRAGEvidenceBundle {
+): EvidenceBundle {
   const lang = resolveLang(input, report)
   const sections =
     options.mode === 'comprehensive'
@@ -699,13 +699,13 @@ export function buildGraphRAGEvidence(
   }
 }
 
-export function formatGraphRAGEvidenceForPrompt(
-  evidence: GraphRAGEvidenceBundle,
+export function formatStructuredEvidenceForPrompt(
+  evidence: EvidenceBundle,
   lang: 'ko' | 'en'
 ): string {
   const lines: string[] = []
   if (lang === 'ko') {
-    lines.push('GraphRAG 앵커를 섹션별 근거 정렬용으로 사용하세요.')
+    lines.push('Evidence 앵커를 섹션별 근거 정렬용으로 사용하세요.')
     lines.push('각 섹션은 사주 근거 1문장, 점성 근거 1문장, 두 근거를 묶는 교차 결론 1문장을 먼저 세우세요.')
     lines.push('각 섹션마다 최소 1개 이상의 paired evidence set([Xn]/[Tn]/[Mn])를 붙여 근거 흐름을 추적 가능하게 유지하세요.')
     lines.push('angle/orb/allowed 수치가 있으면 유지하되, 문장은 사용자 언어로 풀어쓰세요.')
@@ -716,7 +716,7 @@ export function formatGraphRAGEvidenceForPrompt(
       '교차 근거가 낮으면 "같은 방향" 단정 문장을 금지하고, 검증 중심 행동으로 전환하세요.'
     )
   } else {
-    lines.push('Use the GraphRAG anchors to organize evidence section by section.')
+    lines.push('Use the Evidence anchors to organize evidence section by section.')
     lines.push(
       'For each section, start with one Saju basis sentence, one Astrology basis sentence, and one cross conclusion sentence.'
     )
@@ -747,15 +747,15 @@ export function formatGraphRAGEvidenceForPrompt(
   return lines.join('\n')
 }
 
-export function summarizeGraphRAGEvidence(
-  evidence?: GraphRAGEvidenceBundle | null,
-  options?: { focusDomain?: GraphRAGDomain; lang?: ReportLang }
-): GraphRAGEvidenceSummary | null {
+export function summarizeEvidenceEvidence(
+  evidence?: EvidenceBundle | null,
+  options?: { focusDomain?: EvidenceDomain; lang?: ReportLang }
+): EvidenceSummary | null {
   if (!evidence || !Array.isArray(evidence.anchors) || evidence.anchors.length === 0) {
     return null
   }
 
-  const anchors: GraphRAGAnchorSummary[] = evidence.anchors.map((anchor) => {
+  const anchors: EvidenceAnchorSummary[] = evidence.anchors.map((anchor) => {
     const sets = anchor.crossEvidenceSets || []
     const avgOverlapScore =
       sets.length > 0

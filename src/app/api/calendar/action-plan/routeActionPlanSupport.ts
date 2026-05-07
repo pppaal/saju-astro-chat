@@ -534,8 +534,8 @@ export function analyzeConfidenceMeta(input: {
   const toneDelta = slot.tone === 'best' ? 14 : slot.tone === 'caution' ? -18 : 0
   const sourceDelta = slot.source === 'hybrid' ? 8 : slot.source === 'rag' ? 4 : 0
   const evidenceDelta = Math.min(8, (slot.evidenceSummary?.length || 0) * 3)
-  const packetAnchorCount = packet?.graphRagEvidenceSummary?.totalAnchors ?? 0
-  const packetSetCount = packet?.graphRagEvidenceSummary?.totalSets ?? 0
+  const packetAnchorCount = packet?.structuredEvidenceSummary?.totalAnchors ?? 0
+  const packetSetCount = packet?.structuredEvidenceSummary?.totalSets ?? 0
   const packetSignalCount = packet?.selectedSignals?.length ?? 0
   const packetClaimCount = packet?.topClaims?.length ?? 0
   const bestHit = (calendar?.bestTimes || []).some((time) =>

@@ -26,8 +26,8 @@ function isCalendarCacheCompatible(data: CalendarData): boolean {
 
     const hasPacketLevelGraphEvidence = !!data.matrixEvidencePackets
       ? Object.values(data.matrixEvidencePackets).some((packet) => {
-          const totalAnchors = packet?.graphRagEvidenceSummary?.totalAnchors
-          const totalSets = packet?.graphRagEvidenceSummary?.totalSets
+          const totalAnchors = packet?.structuredEvidenceSummary?.totalAnchors
+          const totalSets = packet?.structuredEvidenceSummary?.totalSets
           return typeof totalAnchors === 'number' || typeof totalSets === 'number'
         })
       : false

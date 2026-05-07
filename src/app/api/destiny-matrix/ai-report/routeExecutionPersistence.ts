@@ -1,6 +1,6 @@
 ﻿import { prisma } from '@/lib/db/prisma'
 import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
-import type { DestinyMatrixEvidenceSummary } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+import type { DestinyMatrixEvidenceSummary } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types'
 import { canUseFeature } from '@/lib/credits/creditService'
 import { HTTP_STATUS } from '@/lib/constants/http'

@@ -761,6 +761,30 @@ export const GET = withApiMiddleware(
       })
     }
 
+    // ── Today's hourly precision time slots (for the daily view's
+    // time-of-day card). Cheap (~24 hour-level evaluations against the
+    // user's day master); computed once per yearly request.
+    let todayHourlyTimeSlots:
+      | {
+          best: Array<{ hour: number; score: number; reason: string }>
+          worst: Array<{ hour: number; score: number; reason: string }>
+        }
+      | undefined
+    try {
+      const { analyzeDayTimeSlots } = await import('@/lib/prediction/ultra-precision-minute')
+      const slots = analyzeDayTimeSlots(new Date(), pillars.day.stem, pillars.day.branch)
+      if (slots.best.length > 0 || slots.worst.length > 0) {
+        todayHourlyTimeSlots = {
+          best: slots.best.slice(0, 4),
+          worst: slots.worst.slice(0, 2),
+        }
+      }
+    } catch (err) {
+      logger.warn('[calendar] today hourly time slots skipped', {
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+
     const sunSign = deriveFallbackSunSign(birthDate)
     const astroProfile: CalendarAstroProfile = {
       sunSign,
@@ -1310,6 +1334,7 @@ export const GET = withApiMiddleware(
       matrixContract: calendarMatrixContract,
       canonicalCore: calendarCoreCanonical,
       yongsinActivations,
+      todayHourlyTimeSlots,
       // 헤더 뱃지 / 프로필 카드용 본명 정체성
       astroIdentity: (() => {
         const sunSign = astroProfile.sunSign

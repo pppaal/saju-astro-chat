@@ -1,6 +1,6 @@
 /**
  * Compatibility Fusion Engine
- * GraphRAG + AI를 결합한 종합 궁합 분석
+ * Evidence + AI를 결합한 종합 궁합 분석
  */
 
 import {

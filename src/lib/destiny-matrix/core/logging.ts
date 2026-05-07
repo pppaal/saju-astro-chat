@@ -49,9 +49,9 @@ export interface DestinyInteractionMetadata {
   riskControl?: string | null
   confidence?: number | null
   crossAgreement?: number | null
-  graphRagAnchorCount?: number | null
-  graphRagTopAnchorId?: string | null
-  graphRagTopAnchorSection?: string | null
+  evidenceAnchorCount?: number | null
+  evidenceTopAnchorId?: string | null
+  evidenceTopAnchorSection?: string | null
   regressionSuite?: string | null
   qaVersion?: string | null
   userRating?: number | null
@@ -130,9 +130,9 @@ export interface BuildDestinyInteractionMetadataInput {
   riskControl?: string | null
   confidence?: number | null
   crossAgreement?: number | null
-  graphRagAnchorCount?: number | null
-  graphRagTopAnchorId?: string | null
-  graphRagTopAnchorSection?: string | null
+  evidenceAnchorCount?: number | null
+  evidenceTopAnchorId?: string | null
+  evidenceTopAnchorSection?: string | null
   regressionSuite?: string | null
   qaVersion?: string | null
   userRating?: number | null
@@ -231,9 +231,9 @@ export function buildDestinyInteractionMetadata(
     riskControl: compactString(input.riskControl) ?? null,
     confidence: clampUnit(input.confidence),
     crossAgreement: clampUnit(input.crossAgreement),
-    graphRagAnchorCount: input.graphRagAnchorCount ?? null,
-    graphRagTopAnchorId: compactString(input.graphRagTopAnchorId) ?? null,
-    graphRagTopAnchorSection: compactString(input.graphRagTopAnchorSection) ?? null,
+    evidenceAnchorCount: input.evidenceAnchorCount ?? null,
+    evidenceTopAnchorId: compactString(input.evidenceTopAnchorId) ?? null,
+    evidenceTopAnchorSection: compactString(input.evidenceTopAnchorSection) ?? null,
     regressionSuite: compactString(input.regressionSuite) ?? null,
     qaVersion: compactString(input.qaVersion) ?? null,
     userRating: input.userRating ?? null,

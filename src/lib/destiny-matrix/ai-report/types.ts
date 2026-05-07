@@ -2,7 +2,7 @@
 // Destiny Fusion Matrix - AI Premium Report Types
 
 import type { InsightDomain } from '../interpreter/types'
-import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
+import type { EvidenceBundle } from './structuredEvidence'
 import type { CrossConsistencyAudit } from './crossConsistencyAudit'
 import type { DeterministicCoreOutput } from './deterministicCore'
 import type { SectionEvidenceRefs } from './evidenceRefs'
@@ -310,9 +310,9 @@ export interface TimingAIPremiumReport {
   // AI 생성 섹션
   sections: TimingReportSections
 
-  // GraphRAG evidence anchors used to ground generated sections
-  graphRagEvidence?: GraphRAGEvidenceBundle
-  graphRagSummary?: {
+  // Evidence evidence anchors used to ground generated sections
+  structuredEvidence?: EvidenceBundle
+  evidenceSummary?: {
     topInsights: string[]
     drivers: string[]
     cautions: string[]
@@ -425,9 +425,9 @@ export interface ThemedAIPremiumReport {
   // AI 생성 섹션
   sections: ThemedReportSections
 
-  // GraphRAG evidence anchors used to ground generated sections
-  graphRagEvidence?: GraphRAGEvidenceBundle
-  graphRagSummary?: {
+  // Evidence evidence anchors used to ground generated sections
+  structuredEvidence?: EvidenceBundle
+  evidenceSummary?: {
     topInsights: string[]
     drivers: string[]
     cautions: string[]

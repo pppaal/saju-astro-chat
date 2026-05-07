@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildGraphRAGEvidence, summarizeGraphRAGEvidence } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+import { buildStructuredEvidence, summarizeEvidenceEvidence } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 
 type TestCity = {
   city: string
@@ -16,7 +16,7 @@ const cities: TestCity[] = [
   { city: 'Sydney', latitude: -33.8688, longitude: 151.2093, timezone: 'Australia/Sydney' },
 ]
 
-describe('graphRagEvidence 20-case regression', () => {
+describe('structuredEvidence 20-case regression', () => {
   it('keeps angle/orb + saju cross evidence deterministic across 20 birth profiles', () => {
     const report = {
       overallScore: { total: 83, grade: 'A' },
@@ -74,7 +74,7 @@ describe('graphRagEvidence 20-case regression', () => {
       } as any
 
       const mode = i % 3 === 0 ? 'timing' : i % 3 === 1 ? 'themed' : 'comprehensive'
-      const evidence = buildGraphRAGEvidence(input, report, {
+      const evidence = buildStructuredEvidence(input, report, {
         mode,
         period: 'monthly',
         theme: 'career',
@@ -95,7 +95,7 @@ describe('graphRagEvidence 20-case regression', () => {
       ).toBe(true)
       expect(allSets.some((set) => set.id.startsWith('T')), `case-${i + 1}`).toBe(true)
 
-      const summary = summarizeGraphRAGEvidence(evidence)
+      const summary = summarizeEvidenceEvidence(evidence)
       expect(summary, `case-${i + 1}`).not.toBeNull()
       expect(summary?.totalAnchors, `case-${i + 1}`).toBe(evidence.anchors.length)
       expect(summary?.totalSets, `case-${i + 1}`).toBeGreaterThan(0)

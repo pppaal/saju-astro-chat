@@ -166,7 +166,7 @@ describe('buildUnifiedEnvelope', () => {
         ],
       } as any,
       signalSynthesis: createMockSynthesis(),
-      graphRagEvidence: {
+      structuredEvidence: {
         anchors: [
           {
             id: 'E1',
@@ -229,7 +229,7 @@ describe('buildUnifiedEnvelope', () => {
         domainAnalysis: [{ domain: 'career', score: 81 }],
       } as any,
       signalSynthesis: createMockSynthesis(),
-      graphRagEvidence: { anchors: [] } as any,
+      structuredEvidence: { anchors: [] } as any,
       birthDate: '1995-02-09',
       sectionPaths: ['overview', 'energy', 'opportunities', 'cautions', 'actionPlan'],
       evidenceRefs: {
@@ -277,7 +277,7 @@ describe('buildUnifiedEnvelope', () => {
         },
       } as any,
       signalSynthesis: createMockSynthesis(),
-      graphRagEvidence: { anchors: [] } as any,
+      structuredEvidence: { anchors: [] } as any,
       birthDate: '1995-02-09',
       sectionPaths: ['introduction', 'careerPath', 'timingAdvice', 'actionPlan'],
       evidenceRefs: createEvidenceRefs(),
