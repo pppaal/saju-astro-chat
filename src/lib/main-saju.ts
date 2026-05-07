@@ -13,6 +13,10 @@ import {
 } from './Saju/astrologyengine'
 import { performUltraAdvancedAnalysis } from './Saju/advancedSajuCore'
 import {
+  analyzeTwelveStages,
+  type TwelveStageAnalysis,
+} from './Saju/cycle-analysis/twelveStages'
+import {
   STEM_TO_ELEMENT,
   YUKHAP,
   CHUNG,
@@ -264,6 +268,13 @@ export interface MainSajuOutput {
     wolunScore: number
     iljinScore: number
   }
+  /** cycle별 정통 분석 — Phase 1 narrative 기초 데이터 */
+  cycleAnalysis: {
+    daeun?: { twelveStages: TwelveStageAnalysis }
+    seun?: { twelveStages: TwelveStageAnalysis }
+    wolun?: { twelveStages: TwelveStageAnalysis }
+    iljin?: { twelveStages: TwelveStageAnalysis }
+  }
   /** 점수 입력 transformer 결과 (근거 표시용) */
   scoreInputs: {
     daeun: SajuScoreInput['daeun']
@@ -488,6 +499,45 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     iljin: iljinInput,
   }
 
+  // Phase 1 정통 cycle 분석 — 12운성
+  const cycleAnalysis: MainSajuOutput['cycleAnalysis'] = {}
+  const safeStages = (
+    stem?: string,
+    branch?: string,
+  ): TwelveStageAnalysis | undefined => {
+    if (!stem || !branch) return undefined
+    try {
+      return analyzeTwelveStages(stem, branch, dayMaster)
+    } catch {
+      return undefined
+    }
+  }
+  const daeunStages = safeStages(cur?.heavenlyStem, cur?.earthlyBranch)
+  if (daeunStages) cycleAnalysis.daeun = { twelveStages: daeunStages }
+  const seunStages = safeStages(seunRaw?.heavenlyStem, seunRaw?.earthlyBranch)
+  if (seunStages) cycleAnalysis.seun = { twelveStages: seunStages }
+  const wolunStages = safeStages(wolunRaw?.heavenlyStem, wolunRaw?.earthlyBranch)
+  if (wolunStages) cycleAnalysis.wolun = { twelveStages: wolunStages }
+  // 일진은 try block 안에서 만들어진 ganji가 필요. 다시 계산하지 말고 inputs에서 추출.
+  // iljinInput에는 stem/branch가 직접 없으니 today 다시 호출 안 하고 sibsin 라벨만 있음.
+  // → 일진 stages는 별도 small recompute (오늘 ganji 다시).
+  try {
+    const todayResult = calculateSajuData(
+      target.toISOString().slice(0, 10),
+      '12:00',
+      input.gender,
+      'solar',
+      tz,
+    )
+    const stages = safeStages(
+      todayResult.pillars.day.heavenlyStem.name,
+      todayResult.pillars.day.earthlyBranch.name,
+    )
+    if (stages) cycleAnalysis.iljin = { twelveStages: stages }
+  } catch {
+    // ignore
+  }
+
   // 대운 cycles
   const daeunCycles =
     (dw?.list as Array<{
@@ -556,6 +606,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     },
     scores,
     scoreInputs,
+    cycleAnalysis,
     extended,
     input: { ...input, timezone: tz, targetDate: target },
   }
