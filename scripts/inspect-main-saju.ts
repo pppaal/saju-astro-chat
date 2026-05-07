@@ -86,7 +86,16 @@ const showInput = (input: Record<string, unknown>) => {
     input.hasXing && 'xing-',
     input.hasHai && 'hai-',
   ].filter(Boolean).join(', ')
-  return [cheon, ji, flags].filter(Boolean).join(' | ')
+  const ctx = [
+    input.strength && `[${input.strength}]`,
+    input.cycleStemElement && input.yongsinPrimary === input.cycleStemElement && '용신✓',
+    input.cycleStemElement && input.yongsinSecondary === input.cycleStemElement && '희신✓',
+    input.cycleStemElement &&
+      Array.isArray(input.kibsinElements) &&
+      (input.kibsinElements as string[]).includes(input.cycleStemElement as string) &&
+      '기신✗',
+  ].filter(Boolean).join(' ')
+  return [cheon, ji, flags, ctx].filter(Boolean).join(' | ')
 }
 const pct = (v: number, max: number) => `${((v / max) * 100).toFixed(0)}%`
 console.log(`  대운 점수: ${out.scores.daeunScore.toFixed(2)} / 8   (${pct(out.scores.daeunScore, 8)})`)

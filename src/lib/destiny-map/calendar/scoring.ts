@@ -34,9 +34,22 @@ import { DAEUN_CONFIG, SEUN_CONFIG, WOLUN_CONFIG, ILJIN_CONFIG } from './scoring
 // 입력 타입 정의
 // ============================================================
 
+/**
+ * 정통 강약/용신 컨텍스트 — 모든 cycle 입력에 선택적으로 첨부.
+ * 신강일 때 식상·재성·관살은 길성, 인성·비견은 흉성 (자평진전 분기).
+ * cycleStemElement 가 yongsinPrimary 와 일치하면 보너스, kibsin 이면 페널티.
+ */
+export interface CycleStrengthContext {
+  strength?: 'very_strong' | 'strong' | 'balanced' | 'weak' | 'very_weak'
+  cycleStemElement?: string
+  yongsinPrimary?: string
+  yongsinSecondary?: string
+  kibsinElements?: string[]
+}
+
 export interface SajuScoreInput {
   // 대운 요소
-  daeun: {
+  daeun: CycleStrengthContext & {
     sibsin?: string // 십신 (inseong, jaeseong, etc.)
     hasYukhap?: boolean
     hasSamhapPositive?: boolean
@@ -45,7 +58,7 @@ export interface SajuScoreInput {
     hasSamhapNegative?: boolean
   }
   // 세운 요소
-  seun: {
+  seun: CycleStrengthContext & {
     sibsin?: string
     hasYukhap?: boolean
     hasSamhapPositive?: boolean
@@ -57,7 +70,7 @@ export interface SajuScoreInput {
     hasGwiin?: boolean // 귀인이 있으면 삼재 상쇄
   }
   // 월운 요소
-  wolun: {
+  wolun: CycleStrengthContext & {
     sibsin?: string
     hasYukhap?: boolean
     hasSamhapPositive?: boolean
@@ -66,7 +79,7 @@ export interface SajuScoreInput {
     hasSamhapNegative?: boolean
   }
   // 일진 요소
-  iljin: {
+  iljin: CycleStrengthContext & {
     sibsin?: string // 일간과 일진 천간의 십신
     branchSibsin?: string // 일간과 일진 지지의 십신
     hasYukhap?: boolean

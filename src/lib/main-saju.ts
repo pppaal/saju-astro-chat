@@ -27,6 +27,7 @@ import {
   calculateWolunScore,
   calculateIljinScore,
   type SajuScoreInput,
+  type CycleStrengthContext,
 } from './destiny-map/calendar/scoring'
 
 // ─────────────────────────────────────────────────────────────────
@@ -76,6 +77,31 @@ function branchMainStem(branch: string): string | undefined {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// 정통 강약/용신 컨텍스트 추출 — analyzer 결과를 scorer 형식으로 정규화
+// ─────────────────────────────────────────────────────────────────
+const ELEMENT_KO_MAP: Record<string, string> = {
+  wood: '목', fire: '화', earth: '토', metal: '금', water: '수',
+  Wood: '목', Fire: '화', Earth: '토', Metal: '금', Water: '수',
+  목: '목', 화: '화', 토: '토', 금: '금', 수: '수',
+}
+function normalizeElement(el?: string): string | undefined {
+  if (!el) return undefined
+  return ELEMENT_KO_MAP[el] || el
+}
+function normalizeStrength(level?: string): CycleStrengthContext['strength'] {
+  if (!level) return 'balanced'
+  if (level.includes('극강') || level.includes('태강')) return 'very_strong'
+  if (level.includes('극약') || level.includes('태약')) return 'very_weak'
+  if (level.includes('신강') || level.includes('강')) return 'strong'
+  if (level.includes('신약') || level.includes('약')) return 'weak'
+  return 'balanced'
+}
+function stemToElementKo(stem: string): string | undefined {
+  const el = STEM_TO_ELEMENT[stem as keyof typeof STEM_TO_ELEMENT]
+  return el ? normalizeElement(String(el)) : undefined
+}
+
+// ─────────────────────────────────────────────────────────────────
 // 십신 한글 ↔ scorer 라벨 매핑
 // ─────────────────────────────────────────────────────────────────
 const SIBSIN_KO_TO_LABEL: Record<string, string> = {
@@ -104,6 +130,7 @@ function buildCycleInput(
   cycleBranch: string,
   cycleSibsinCheon: string | undefined,
   natalDayBranch: string,
+  context: CycleStrengthContext,
 ): SajuScoreInput['daeun'] {
   const sibsin = mapSibsin(cycleSibsinCheon)
 
@@ -133,6 +160,8 @@ function buildCycleInput(
     hasChung,
     hasGwansal,
     hasSamhapNegative,
+    ...context,
+    cycleStemElement: stemToElementKo(cycleStem) ?? context.cycleStemElement,
   }
 }
 
@@ -145,6 +174,7 @@ function buildIljinInput(
   iljinSibsinCheon: string | undefined,
   iljinSibsinJi: string | undefined,
   natalDayBranch: string,
+  context: CycleStrengthContext,
 ): SajuScoreInput['iljin'] {
   const sibsin = mapSibsin(iljinSibsinCheon)
   const branchSibsin = mapSibsin(iljinSibsinJi)
@@ -172,6 +202,8 @@ function buildIljinInput(
     hasChung,
     hasXing,
     hasHai,
+    ...context,
+    cycleStemElement: stemToElementKo(iljinStem) ?? context.cycleStemElement,
   }
 }
 
@@ -341,6 +373,21 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
   // 본명 일지 (기준점)
   const natalDayBranch = p.day.earthlyBranch.name
 
+  // 정통 강약/용신 컨텍스트 — 모든 cycle 점수에 주입
+  const yongsinPrimary = normalizeElement(String(advanced.yongsin.primary || ''))
+  const yongsinSecondary = advanced.yongsin.secondary
+    ? normalizeElement(String(advanced.yongsin.secondary))
+    : undefined
+  const kibsinElements = (advanced.yongsin.unfavorable as string[] | undefined)
+    ?.map(normalizeElement)
+    .filter((x): x is string => Boolean(x))
+  const cycleContext: CycleStrengthContext = {
+    strength: normalizeStrength(String(advanced.strength.level || '')),
+    yongsinPrimary,
+    yongsinSecondary,
+    kibsinElements,
+  }
+
   // 대운 input — sajuResult.daeWoon.current에서 ganji + 십신 추출
   const cur = dw?.current as
     | {
@@ -355,8 +402,9 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
         cur.earthlyBranch || '',
         cur.sibsin?.cheon,
         natalDayBranch,
+        cycleContext,
       )
-    : ({} as SajuScoreInput['daeun'])
+    : ({ ...cycleContext } as SajuScoreInput['daeun'])
 
   // 세운 input — unse.annual[0]에서 추출 (이번해 운)
   const seunRaw = unse.annual?.[0] as
@@ -372,8 +420,9 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
         seunRaw.earthlyBranch || '',
         seunRaw.sibsin?.cheon,
         natalDayBranch,
+        cycleContext,
       )
-    : ({} as SajuScoreInput['seun'])
+    : ({ ...cycleContext } as SajuScoreInput['seun'])
 
   // 월운 input — unse.monthly[0]
   const wolunRaw = unse.monthly?.[0] as
@@ -389,8 +438,9 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
         wolunRaw.earthlyBranch || '',
         wolunRaw.sibsin?.cheon,
         natalDayBranch,
+        cycleContext,
       )
-    : ({} as SajuScoreInput['wolun'])
+    : ({ ...cycleContext } as SajuScoreInput['wolun'])
 
   // 일진 input — 오늘 ganji vs 본명 일간 십신 계산
   const iljinInput: SajuScoreInput['iljin'] = (() => {
@@ -416,9 +466,10 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
         sibsinKoCheon,
         sibsinKoJi,
         natalDayBranch,
+        cycleContext,
       )
     } catch {
-      return {} as SajuScoreInput['iljin']
+      return { ...cycleContext } as SajuScoreInput['iljin']
     }
   })()
 
