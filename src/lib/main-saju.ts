@@ -29,6 +29,10 @@ import {
   type ShinsalActivationAnalysis,
 } from './Saju/cycle-analysis/shinsalActivation'
 import {
+  analyzeGeokgukShift,
+  type GeokgukShiftAnalysis,
+} from './Saju/cycle-analysis/geokgukShift'
+import {
   STEM_TO_ELEMENT,
   YUKHAP,
   CHUNG,
@@ -305,6 +309,7 @@ export interface CycleEntry {
   pillarInteractions: PillarInteractionsAnalysis
   rootedness: RootednessAnalysis
   shinsalActivation: ShinsalActivationAnalysis
+  geokgukShift: GeokgukShiftAnalysis
 }
 
 /**
@@ -534,11 +539,30 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
   const buildCycleEntry = (stem?: string, branch?: string): CycleEntry | undefined => {
     if (!stem || !branch) return undefined
     try {
+      const pi = analyzePillarInteractions(stem, branch, natalForInteractions)
+      const monthEntry = pi.pillars.find((p) => p.pillar === 'month')
+      const branchInterWithMonth = monthEntry?.branchRelation ?? null
+
+      const cycleStemSibsinKo = computeSibsinKo(dayMaster, stem)
+      const cycleBranchMainStem = branchMainStem(branch)
+      const cycleBranchSibsinKo = cycleBranchMainStem
+        ? computeSibsinKo(dayMaster, cycleBranchMainStem)
+        : undefined
+
       return {
         twelveStages: analyzeTwelveStages(stem, branch, dayMaster),
-        pillarInteractions: analyzePillarInteractions(stem, branch, natalForInteractions),
+        pillarInteractions: pi,
         rootedness: analyzeRootedness(stem, branch, natalForInteractions),
         shinsalActivation: analyzeShinsalActivation(stem, branch, natalCore),
+        geokgukShift: analyzeGeokgukShift({
+          cycleStem: stem,
+          cycleBranch: branch,
+          cycleStemSibsin: cycleStemSibsinKo,
+          cycleBranchSibsin: cycleBranchSibsinKo,
+          geokgukType: String(advanced.geokguk.type || ''),
+          monthBranch: p.month.earthlyBranch.name,
+          branchInteractionWithMonth: branchInterWithMonth,
+        }),
       }
     } catch {
       return undefined
