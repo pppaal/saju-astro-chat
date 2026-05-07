@@ -304,3 +304,36 @@ export type {
   RectificationResult,
   PhysicalAppearanceProfile,
 } from "./foundation/rectification";
+
+// ======================================================
+// 🌌 Main Astrology Entry — mirrors src/lib/Saju/saju.ts
+// ======================================================
+export { calculateAstrologyData } from "./astrology";
+export type { CalculateAstrologyInput, AstrologyData } from "./astrology";
+
+export {
+  buildAstrologyComprehensiveReport,
+  ASTROLOGY_DOMAIN_LABEL_KO,
+} from "./comprehensiveReport";
+export type {
+  AstrologyDomain,
+  AstrologyDomainScore,
+  AstrologyPlacementHighlight,
+  AstrologyAspectHighlight,
+  AstrologyTimingSnapshot,
+  AstrologyComprehensiveReport,
+} from "./comprehensiveReport";
+
+export {
+  getPlanetSignInterpretation,
+  getPlanetHouseInterpretation,
+  getAspectInterpretation,
+  getPlanetLabelKo,
+  getSignLabelKo,
+  getHouseDomainKo,
+} from "./interpretations";
+export type {
+  AstroPlanetName,
+  ZodiacName,
+  AspectKind,
+} from "./interpretations";
