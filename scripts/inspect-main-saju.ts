@@ -76,7 +76,8 @@ for (const c of out.cycles.daeunCycles) {
 
 console.log('\n## 6. 운 점수 (오늘 기준) — 근거 포함')
 const showInput = (input: Record<string, unknown>) => {
-  const sib = input.sibsin ? `sibsin=${input.sibsin}` : ''
+  const cheon = input.sibsin ? `천간=${input.sibsin}` : ''
+  const ji = input.branchSibsin ? `지지=${input.branchSibsin}` : ''
   const flags = [
     input.hasYukhap && 'yukhap+',
     input.hasSamhapPositive && 'samhap+',
@@ -85,7 +86,7 @@ const showInput = (input: Record<string, unknown>) => {
     input.hasXing && 'xing-',
     input.hasHai && 'hai-',
   ].filter(Boolean).join(', ')
-  return [sib, flags].filter(Boolean).join(' | ')
+  return [cheon, ji, flags].filter(Boolean).join(' | ')
 }
 console.log(`  대운 점수: ${out.scores.daeunScore.toFixed(2)} / 8`)
 console.log(`         근거: ${showInput(out.scoreInputs.daeun as Record<string, unknown>)}`)

@@ -19,6 +19,7 @@ import {
   SAMHAP,
   XING,
   HAI,
+  JIJANGGAN,
 } from './Saju/constants'
 import {
   calculateDaeunScore,
@@ -27,6 +28,52 @@ import {
   calculateIljinScore,
   type SajuScoreInput,
 } from './destiny-map/calendar/scoring'
+
+// ─────────────────────────────────────────────────────────────────
+// 십신 계산 — 일간(dayMaster) 기준으로 target 천간의 십신 라벨
+//   element diff 0 → 비견(same yy) / 겁재(diff)
+//   element diff 1 → 식신       / 상관
+//   element diff 2 → 편재       / 정재
+//   element diff 3 → 편관       / 정관
+//   element diff 4 → 편인       / 정인
+// ─────────────────────────────────────────────────────────────────
+const STEM_YIN_YANG: Record<string, '양' | '음'> = {
+  甲: '양', 丙: '양', 戊: '양', 庚: '양', 壬: '양',
+  乙: '음', 丁: '음', 己: '음', 辛: '음', 癸: '음',
+}
+const ELEMENT_ORDER: Record<string, number> = { 목: 0, 화: 1, 토: 2, 금: 3, 수: 4 }
+const SIBSIN_TABLE_KO = [
+  ['비견', '겁재'], // diff 0
+  ['식신', '상관'], // diff 1
+  ['편재', '정재'], // diff 2
+  ['편관', '정관'], // diff 3
+  ['편인', '정인'], // diff 4
+] as const
+
+function computeSibsinKo(dayMaster: string, targetStem: string): string | undefined {
+  const dayEl = STEM_TO_ELEMENT[dayMaster as keyof typeof STEM_TO_ELEMENT]
+  const targetEl = STEM_TO_ELEMENT[targetStem as keyof typeof STEM_TO_ELEMENT]
+  if (!dayEl || !targetEl) return undefined
+  const dayElement = String(dayEl) // 'wood'/'fire'/...
+  const targetElement = String(targetEl)
+  const elementMap: Record<string, string> = {
+    wood: '목', fire: '화', earth: '토', metal: '금', water: '수',
+    목: '목', 화: '화', 토: '토', 금: '금', 수: '수',
+  }
+  const dayKo = elementMap[dayElement] || dayElement
+  const targetKo = elementMap[targetElement] || targetElement
+  const dayIdx = ELEMENT_ORDER[dayKo]
+  const targetIdx = ELEMENT_ORDER[targetKo]
+  if (dayIdx === undefined || targetIdx === undefined) return undefined
+  const diff = (targetIdx - dayIdx + 5) % 5
+  const samePolarity = STEM_YIN_YANG[dayMaster] === STEM_YIN_YANG[targetStem]
+  return SIBSIN_TABLE_KO[diff][samePolarity ? 0 : 1]
+}
+
+// 지지의 정기 천간 → 십신 계산용
+function branchMainStem(branch: string): string | undefined {
+  return JIJANGGAN[branch]?.['정기']
+}
 
 // ─────────────────────────────────────────────────────────────────
 // 십신 한글 ↔ scorer 라벨 매핑
@@ -345,8 +392,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       )
     : ({} as SajuScoreInput['wolun'])
 
-  // 일진 input — 오늘 날짜의 ganji 계산 후 본명 일주 vs 매칭
-  // calculateSajuData의 unse에 iljin 없을 수 있어, 별도 계산
+  // 일진 input — 오늘 ganji vs 본명 일간 십신 계산
   const iljinInput: SajuScoreInput['iljin'] = (() => {
     try {
       const todayResult = calculateSajuData(
@@ -357,14 +403,18 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
         tz,
       )
       const ip = todayResult.pillars.day
-      // 일진의 십신: 오늘 일주 vs 본명 일간 기준
-      // todayResult가 본명을 그대로 가져오는 게 아니라 오늘 ganji.
-      // 해당 ganji vs 본명 일간 십신 계산 필요. 일단 raw stem/branch만 사용.
+      const iljinStem = ip.heavenlyStem.name
+      const iljinBranch = ip.earthlyBranch.name
+      // 본명 일간(辛) vs 오늘 일주 천간 → 천간 십신
+      const sibsinKoCheon = computeSibsinKo(dayMaster, iljinStem)
+      // 본명 일간(辛) vs 오늘 일주 지지 정기 천간 → 지지 십신
+      const branchStem = branchMainStem(iljinBranch)
+      const sibsinKoJi = branchStem ? computeSibsinKo(dayMaster, branchStem) : undefined
       return buildIljinInput(
-        ip.heavenlyStem.name,
-        ip.earthlyBranch.name,
-        undefined,
-        undefined,
+        iljinStem,
+        iljinBranch,
+        sibsinKoCheon,
+        sibsinKoJi,
         natalDayBranch,
       )
     } catch {
