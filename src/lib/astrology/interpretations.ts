@@ -148,6 +148,96 @@ const PLANET_SIGN_LINES: Partial<Record<AstroPlanetName, Partial<Record<ZodiacNa
     Aquarius: { ko: '혁신·집단 위한 추진', en: 'Innovative, group-oriented drive' },
     Pisces: { ko: '직관·예술적 추진', en: 'Intuitive, artistic drive' },
   },
+  Jupiter: {
+    Aries: { ko: '용기와 개척으로 확장', en: 'Expansion through courage and pioneering' },
+    Taurus: { ko: '꾸준한 자원 축적으로 확장', en: 'Expansion through steady resource-building' },
+    Gemini: { ko: '학습·소통·다양한 시도로 확장', en: 'Expansion through learning, communication, variety' },
+    Cancer: { ko: '가정·정서·뿌리에서 확장 (고양)', en: 'Expansion through home and emotional roots (exalted)' },
+    Leo: { ko: '창조·표현·존재감으로 확장', en: 'Expansion through creativity, self-expression' },
+    Virgo: { ko: '실무·헌신을 다듬어 확장', en: 'Expansion via refinement of service and detail' },
+    Libra: { ko: '관계·균형·아름다움으로 확장', en: 'Expansion through relationships and balance' },
+    Scorpio: { ko: '깊이·변용·공유 자원으로 확장', en: 'Expansion through depth, transformation, shared power' },
+    Sagittarius: { ko: '신념·여행·철학으로 확장 (지배)', en: 'Expansion through belief, travel, philosophy (rulership)' },
+    Capricorn: { ko: '구조·책임·장기 빌드로 확장 (폴)', en: 'Expansion through structure and discipline (in fall)' },
+    Aquarius: { ko: '비전·공동체·미래로 확장', en: 'Expansion through vision, community, the future' },
+    Pisces: { ko: '직관·연민·영성으로 확장 (전통 지배)', en: 'Expansion through intuition and compassion (traditional rulership)' },
+  },
+  Saturn: {
+    Aries: { ko: '자기 책임의 시험 (폴)', en: 'Testing self-responsibility (in fall)' },
+    Taurus: { ko: '안정과 자원의 책임', en: 'Discipline around security and resources' },
+    Gemini: { ko: '말과 사고의 정밀화', en: 'Disciplining the mind and communication' },
+    Cancer: { ko: '가정·정서 안전의 책임 (디트리먼트)', en: 'Burdened by home and emotional security (detriment)' },
+    Leo: { ko: '인정 욕구의 시험 (디트리먼트)', en: 'Tested ego and recognition (detriment)' },
+    Virgo: { ko: '루틴·실용·완성의 책임', en: 'Discipline of routine and practical mastery' },
+    Libra: { ko: '관계와 공정의 성숙 (고양)', en: 'Maturing in relationship and fairness (exalted)' },
+    Scorpio: { ko: '깊이·신뢰·통제의 시험', en: 'Disciplined transformation and trust' },
+    Sagittarius: { ko: '신념·확장의 책임 있는 빌드', en: 'Disciplined belief and expansion' },
+    Capricorn: { ko: '커리어·구조의 빌드 (지배)', en: 'Building career and structure (rulership)' },
+    Aquarius: { ko: '집단·시스템의 책임 (전통 지배)', en: 'Disciplining vision and community (traditional rulership)' },
+    Pisces: { ko: '경계·놓아주기의 시험', en: 'Disciplining boundaries and surrender' },
+  },
+  Uranus: {
+    Aries: { ko: '독립 의지의 갑작스러운 분출', en: 'Sudden bursts of independent will' },
+    Taurus: { ko: '가치·안정의 흔들림과 재정의', en: 'Disruption and redefinition of value and security' },
+    Gemini: { ko: '사고·소통의 혁신 (편안한 자리)', en: 'Innovation in thought and communication' },
+    Cancer: { ko: '가정·정서의 비전통적 패턴', en: 'Unconventional patterns in home and feeling' },
+    Leo: { ko: '자기표현·창조의 혁명 (디트리먼트)', en: 'Rebellion in self-expression and creativity (detriment)' },
+    Virgo: { ko: '루틴·실무에서의 혁신', en: 'Innovation injected into routine and craft' },
+    Libra: { ko: '관계 모델의 비전통적 재구성', en: 'Unconventional reshaping of relationships' },
+    Scorpio: { ko: '심층 변용의 갑작스러운 폭발', en: 'Sudden eruptions of deep transformation' },
+    Sagittarius: { ko: '신념 체계의 급진적 재편', en: 'Radical reshaping of belief systems' },
+    Capricorn: { ko: '구조·권위의 해체와 재건', en: 'Dismantling and rebuilding structures of authority' },
+    Aquarius: { ko: '비전·공동체·과학의 도약 (현대 지배)', en: 'Quantum leaps in vision and community (modern rulership)' },
+    Pisces: { ko: '영성·예술의 비전통 침투', en: 'Unconventional currents in spirituality and art' },
+  },
+  Neptune: {
+    Aries: { ko: '개척의 환상과 영감', en: 'Pioneering visions and inspirations' },
+    Taurus: { ko: '감각·물질의 영적 의미화', en: 'Spiritual meaning woven into the senses and matter' },
+    Gemini: { ko: '말·정보 속 안개와 시', en: 'Mist and poetry in language and information' },
+    Cancer: { ko: '가정·정서의 깊은 합일', en: 'Deep merging in home and emotion' },
+    Leo: { ko: '창조 표현의 신성화', en: 'Self-expression made sacred' },
+    Virgo: { ko: '실무 헌신 속 영적 갈증 (디트리먼트)', en: 'Spiritual longing inside daily service (detriment)' },
+    Libra: { ko: '관계의 이상화·구원 환상', en: 'Idealisation and rescue fantasies in love' },
+    Scorpio: { ko: '심층 변용의 신비주의', en: 'Mysticism of deep transformation' },
+    Sagittarius: { ko: '신념·여행 속 신성한 갈망', en: 'Sacred yearning in belief and travel' },
+    Capricorn: { ko: '구조·권위의 해체 환상', en: 'Dissolving structures and authority' },
+    Aquarius: { ko: '집단 비전의 영적 차원', en: 'Spiritual dimension of collective vision' },
+    Pisces: { ko: '연민·합일·영성의 본향 (현대 지배)', en: 'Compassion and union, returning home (modern rulership)' },
+  },
+  Pluto: {
+    Aries: { ko: '자아 자체를 변용시키는 강제력', en: 'Compulsion to transform the self at the root' },
+    Taurus: { ko: '자원·가치관의 근본 재편 (디트리먼트)', en: 'Root upheaval of values and resources (detriment)' },
+    Gemini: { ko: '사고·언어의 심층 변용', en: 'Deep transformation of thought and language' },
+    Cancer: { ko: '가정·정서의 어두운 발굴', en: 'Excavating shadow in family and feeling' },
+    Leo: { ko: '자기표현의 강박과 권력', en: 'Compulsive intensity in self-expression and power' },
+    Virgo: { ko: '루틴 깊은 곳의 권력 패턴', en: 'Power patterns hidden inside routine and detail' },
+    Libra: { ko: '관계 권력 역학의 재편', en: 'Reshaping power dynamics in relationships' },
+    Scorpio: { ko: '죽음과 재생 (현대 지배)', en: 'Death and rebirth as core engine (modern rulership)' },
+    Sagittarius: { ko: '신념 체계의 강제적 변용', en: 'Compulsive overhaul of belief systems' },
+    Capricorn: { ko: '권위·구조의 무자비한 재구성', en: 'Ruthless reshaping of authority and structure' },
+    Aquarius: { ko: '집단 시스템의 근본 재편', en: 'Root-level transformation of collective systems' },
+    Pisces: { ko: '무의식·영성의 깊은 변용', en: 'Deep transformation of the unconscious and the sacred' },
+  },
+}
+
+// ============================================================
+// True Node × Sign — soul-direction reading (the lesson the chart
+// pulls toward; the *opposite* sign is the comfort/karma).
+// ============================================================
+
+const NORTH_NODE_LINES: Record<ZodiacName, SignLine> = {
+  Aries: { ko: '의존을 내려놓고 자기 의지를 일으키는 길', en: 'Path: develop independent will, release co-dependency' },
+  Taurus: { ko: '극단을 내려놓고 안정·소박함을 짓는 길', en: 'Path: build stability and simplicity, release intensity' },
+  Gemini: { ko: '독단을 내려놓고 다양한 관점을 받아들이는 길', en: 'Path: embrace many viewpoints, release singular truth-grasping' },
+  Cancer: { ko: '커리어 강박을 내려놓고 정서·뿌리로 돌아가는 길', en: 'Path: return to emotional roots, release career obsession' },
+  Leo: { ko: '익명을 내려놓고 자기 빛을 드러내는 길', en: 'Path: shine personally, release hiding in the collective' },
+  Virgo: { ko: '몽상을 내려놓고 일상에 헌신하는 길', en: 'Path: ground daily service, release escapism' },
+  Libra: { ko: '자기중심을 내려놓고 관계 안에서 균형 잡는 길', en: 'Path: find balance in partnership, release self-centred drive' },
+  Scorpio: { ko: '소유 집착을 내려놓고 깊은 변용을 받아들이는 길', en: 'Path: accept deep transformation, release attachment to comfort' },
+  Sagittarius: { ko: '디테일 강박을 내려놓고 큰 신념을 향해 가는 길', en: 'Path: aim toward larger meaning, release detail anxiety' },
+  Capricorn: { ko: '돌봄에 갇힘을 내려놓고 권위·책임을 입는 길', en: 'Path: claim authority and structure, release caretaking patterns' },
+  Aquarius: { ko: '주목 욕구를 내려놓고 공동체·비전에 봉사하는 길', en: 'Path: serve collective vision, release approval-seeking' },
+  Pisces: { ko: '분석 집착을 내려놓고 직관·연민에 항복하는 길', en: 'Path: surrender to intuition and compassion, release over-analysis' },
 }
 
 // ============================================================
@@ -252,4 +342,30 @@ export function getSignLabelKo(sign: ZodiacName): string {
 
 export function getHouseDomainKo(house: number): string {
   return HOUSE_DOMAIN_KO[house] || `${house}하우스`
+}
+
+export function getNorthNodeInterpretation(
+  sign: ZodiacName,
+  language: 'ko' | 'en' = 'ko'
+): string {
+  const entry = NORTH_NODE_LINES[sign]
+  return language === 'ko' ? entry.ko : entry.en
+}
+
+export function getSouthNodeOppositeSign(north: ZodiacName): ZodiacName {
+  const opposite: Record<ZodiacName, ZodiacName> = {
+    Aries: 'Libra',
+    Taurus: 'Scorpio',
+    Gemini: 'Sagittarius',
+    Cancer: 'Capricorn',
+    Leo: 'Aquarius',
+    Virgo: 'Pisces',
+    Libra: 'Aries',
+    Scorpio: 'Taurus',
+    Sagittarius: 'Gemini',
+    Capricorn: 'Cancer',
+    Aquarius: 'Leo',
+    Pisces: 'Virgo',
+  }
+  return opposite[north]
 }

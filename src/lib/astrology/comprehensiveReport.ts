@@ -31,11 +31,19 @@ import {
   type ZodiacName,
   getAspectInterpretation,
   getHouseDomainKo,
+  getNorthNodeInterpretation,
   getPlanetHouseInterpretation,
   getPlanetLabelKo,
   getPlanetSignInterpretation,
   getSignLabelKo,
+  getSouthNodeOppositeSign,
 } from './interpretations'
+import {
+  getChironHouseInterpretation,
+  getChironSignInterpretation,
+  getLilithHouseInterpretation,
+  getLilithSignInterpretation,
+} from './extraPointInterpretations'
 import {
   getEssentialDignity,
   getRulerOfSign,
@@ -104,6 +112,14 @@ export interface AstrologyHouseRulerSignal {
   signal: string
 }
 
+export interface AstrologySoulSignal {
+  kind: 'north-node' | 'chiron' | 'lilith'
+  label: string
+  sign: ZodiacName | null
+  house: number | null
+  signal: string
+}
+
 export interface AstrologyComprehensiveReport {
   overallScore: number
   band: 'great' | 'good' | 'mixed' | 'caution'
@@ -113,6 +129,8 @@ export interface AstrologyComprehensiveReport {
   balance: ChartBalance
   houseRulers: AstrologyHouseRulerSignal[]
   timing: AstrologyTiming
+  /** True Node + Chiron + Lilith readings. */
+  soulSignals: AstrologySoulSignal[]
   /** Headline counts for advanced layers — surface in UI tooltips. */
   advancedSummary: {
     asteroids: number
@@ -223,6 +241,7 @@ export function buildAstrologyComprehensiveReport(
     balance,
     houseRulers,
     timing: scoreTiming(data, aspects),
+    soulSignals: collectSoulSignals(data),
     advancedSummary: {
       asteroids: data.advanced.asteroids.length,
       fixedStarConjunctions: data.advanced.fixedStarConjunctions.length,
@@ -501,6 +520,63 @@ function scoreTiming(
         : '진행 차트 데이터가 부족합니다.',
     },
   }
+}
+
+function collectSoulSignals(data: AstrologyData): AstrologySoulSignal[] {
+  const out: AstrologySoulSignal[] = []
+
+  // North Node — surfaces in natal.planets as 'True Node' / 'Mean Node' / 'North Node'.
+  const node = data.natal.planets.find((p) =>
+    p.name === 'True Node' || p.name === 'Mean Node' || p.name === 'North Node'
+  )
+  if (node?.sign) {
+    const nodeSign = node.sign as ZodiacName
+    const opposite = getSouthNodeOppositeSign(nodeSign)
+    const houseNum = typeof node.house === 'number' ? node.house : null
+    out.push({
+      kind: 'north-node',
+      label: 'North Node',
+      sign: nodeSign,
+      house: houseNum,
+      signal: `노스 노드 ${getSignLabelKo(nodeSign)}${
+        houseNum ? ` · ${houseNum}하우스(${getHouseDomainKo(houseNum)})` : ''
+      } — ${getNorthNodeInterpretation(nodeSign, 'ko')} (반대 ${getSignLabelKo(opposite)} = 익숙한 자리).`,
+    })
+  }
+
+  const chiron = data.advanced.extraPoints.chiron
+  if (chiron?.sign) {
+    const chironSign = chiron.sign as ZodiacName
+    const houseNum = typeof chiron.house === 'number' ? chiron.house : null
+    const houseLine = houseNum
+      ? ` · ${houseNum}하우스(${getHouseDomainKo(houseNum)}) — ${getChironHouseInterpretation(houseNum, 'ko')}`
+      : ''
+    out.push({
+      kind: 'chiron',
+      label: 'Chiron',
+      sign: chironSign,
+      house: houseNum,
+      signal: `카이론 ${getSignLabelKo(chironSign)} — ${getChironSignInterpretation(chironSign, 'ko')}${houseLine}`,
+    })
+  }
+
+  const lilith = data.advanced.extraPoints.lilith
+  if (lilith?.sign) {
+    const lilithSign = lilith.sign as ZodiacName
+    const houseNum = typeof lilith.house === 'number' ? lilith.house : null
+    const houseLine = houseNum
+      ? ` · ${houseNum}하우스(${getHouseDomainKo(houseNum)}) — ${getLilithHouseInterpretation(houseNum, 'ko')}`
+      : ''
+    out.push({
+      kind: 'lilith',
+      label: 'Lilith',
+      sign: lilithSign,
+      house: houseNum,
+      signal: `릴리스 ${getSignLabelKo(lilithSign)} — ${getLilithSignInterpretation(lilithSign, 'ko')}${houseLine}`,
+    })
+  }
+
+  return out
 }
 
 // Re-export dignity types for convenience.

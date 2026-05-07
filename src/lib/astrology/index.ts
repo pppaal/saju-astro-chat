@@ -323,8 +323,17 @@ export type {
   AstrologyTimingScore,
   AstrologyTiming,
   AstrologyHouseRulerSignal,
+  AstrologySoulSignal,
   AstrologyComprehensiveReport,
 } from "./comprehensiveReport";
+
+export {
+  getChironSignInterpretation,
+  getChironHouseInterpretation,
+  getLilithSignInterpretation,
+  getLilithHouseInterpretation,
+} from "./extraPointInterpretations";
+export type { ExtraPointName } from "./extraPointInterpretations";
 
 export {
   getPlanetSignInterpretation,
@@ -333,6 +342,8 @@ export {
   getPlanetLabelKo,
   getSignLabelKo,
   getHouseDomainKo,
+  getNorthNodeInterpretation,
+  getSouthNodeOppositeSign,
 } from "./interpretations";
 export type {
   AstroPlanetName,

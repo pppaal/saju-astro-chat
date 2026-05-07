@@ -157,4 +157,15 @@ describe('buildAstrologyComprehensiveReport', () => {
       expect(t.headline.length).toBeGreaterThan(0)
     }
   })
+
+  it('emits soulSignals for chiron + lilith from advanced extra points', () => {
+    const report = buildAstrologyComprehensiveReport(fakeAstrologyData())
+    expect(report.soulSignals.length).toBeGreaterThanOrEqual(2)
+    const chiron = report.soulSignals.find((s) => s.kind === 'chiron')
+    expect(chiron?.sign).toBe('Aries')
+    expect(chiron?.signal).toMatch(/카이론/)
+    const lilith = report.soulSignals.find((s) => s.kind === 'lilith')
+    expect(lilith?.sign).toBe('Aries')
+    expect(lilith?.signal).toMatch(/릴리스/)
+  })
 })
