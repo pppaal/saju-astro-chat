@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import type { UserProfile } from '@/lib/userProfile'
 import type { ReportProfileInput } from './types'
 import { buildReportProfileInputFromUserProfile } from './shared'
@@ -28,9 +29,18 @@ export function usePremiumReportProfile(
     | 'latitude'
     | 'longitude'
   >,
-  initialProfileInput: ReportProfileInput | null = null
+  initialProfileInput: ReportProfileInput | null = null,
+  /**
+   * Pass `true` while the upstream server profile is still loading.
+   * Prevents the redirect from firing on first render before
+   * `useUserProfile` has had a chance to populate the profile.
+   */
+  profileLoading: boolean = false,
 ) {
   const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(initialProfileInput)
+  const router = useRouter()
+  const pathname = usePathname()
+  const redirectedRef = useRef(false)
 
   useEffect(() => {
     if (initialProfileInput && !profileInput) {
@@ -57,12 +67,17 @@ export function usePremiumReportProfile(
         gender: local.gender === 'female' ? 'F' : 'M',
         timezone: 'Asia/Seoul',
       })
+      return
     }
-    // If neither source has data, leave profileInput null. Pages show
-    // the embedded form (or their own redirect logic) — pulling the
-    // redirect into this hook ran before profile loading finished and
-    // bounced authenticated users away from their own report.
-  }, [initialProfileInput, profile, profileInput])
+    // No source has data. Wait for profileLoading to settle before
+    // bouncing to the home modal — otherwise we redirect during the
+    // first paint while useUserProfile is still mid-fetch.
+    if (profileLoading) return
+    if (redirectedRef.current) return
+    if (!pathname) return
+    redirectedRef.current = true
+    router.replace(`/?openBirth=1&next=${encodeURIComponent(pathname)}`)
+  }, [initialProfileInput, profile, profileInput, profileLoading, router, pathname])
 
   return { profileInput, setProfileInput }
 }

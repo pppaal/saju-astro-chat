@@ -111,7 +111,7 @@ function ThemedBuilderContent() {
   const [theme, setTheme] = useState<ThemeType | null>(null)
   const [period, setPeriod] = useState<Period>('lifetime')
   const [targetDate, setTargetDate] = useState(() => new Date().toISOString().slice(0, 10))
-  const { profileInput, setProfileInput: _setProfileInput } = usePremiumReportProfile(profile)
+  const { profileInput, setProfileInput: _setProfileInput } = usePremiumReportProfile(profile, null, profileLoading)
   const [sajuData, setSajuData] = useState<PremiumSajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
