@@ -36,13 +36,175 @@ import type { AstroEngineOutput } from './astro-engine'
 export const CROSS_ENGINE_META = {
   name: '운명력',
   nameEn: 'UnMyeong-ryeok',
-  version: '1.0',
+  version: '1.1',
   tradition: '자평·서양 점성 교차',
   axes: 5,
   themes: 6,
   horizons: 5,
   tagline: '동·서 통합 운명 엔진',
 } as const
+
+// ─────────────────────────────────────────────────────────────────
+// 사용자 세그먼트 — 같은 데이터를 4가지 톤으로 차별 narrate
+// ─────────────────────────────────────────────────────────────────
+
+export interface UserSegment {
+  /** 직장인 / 자영업 / 학생 / 무직 */
+  employment?: 'employed' | 'self_employed' | 'student' | 'unemployed'
+  /** 미혼 / 기혼 / 이혼·사별 */
+  maritalStatus?: 'single' | 'married' | 'divorced'
+  /** 자녀 유무 */
+  hasChildren?: boolean
+  /** 성별 (이미 사주에 있지만 narrate에도 영향) */
+  gender?: 'male' | 'female'
+}
+
+/** 세그먼트별 테마 톤 매핑 */
+function getSegmentTone(theme: ThemeKind, segment?: UserSegment): {
+  themeFocus: string
+  audience: string
+} {
+  if (!segment) return { themeFocus: THEME_LABEL[theme], audience: '일반' }
+
+  const emp = segment.employment
+  const mar = segment.maritalStatus
+  const kid = segment.hasChildren
+
+  if (theme === 'career') {
+    if (emp === 'self_employed') return { themeFocus: '사업·확장', audience: '자영업' }
+    if (emp === 'employed') return { themeFocus: '직장·승진', audience: '직장인' }
+    if (emp === 'student') return { themeFocus: '진로·취업', audience: '학생' }
+    if (emp === 'unemployed') return { themeFocus: '취업·복귀', audience: '구직자' }
+  }
+  if (theme === 'wealth') {
+    if (emp === 'self_employed') return { themeFocus: '매출·이재', audience: '자영업' }
+    return { themeFocus: '재물·축적·투자', audience: '일반' }
+  }
+  if (theme === 'love') {
+    if (mar === 'single') return { themeFocus: '연애·만남', audience: '미혼' }
+    if (mar === 'married') return { themeFocus: '부부 관계', audience: '기혼' }
+    if (mar === 'divorced') return { themeFocus: '재출발 인연', audience: '이혼·사별' }
+  }
+  if (theme === 'family') {
+    if (kid) return { themeFocus: '자녀·가정', audience: '부모' }
+    if (mar === 'married') return { themeFocus: '배우자·가족', audience: '기혼' }
+    return { themeFocus: '부모·형제', audience: '일반' }
+  }
+  if (theme === 'growth') {
+    if (emp === 'student') return { themeFocus: '학업·시험', audience: '학생' }
+    return { themeFocus: '자기계발', audience: '일반' }
+  }
+  if (theme === 'health') return { themeFocus: '건강·기운', audience: '일반' }
+
+  return { themeFocus: THEME_LABEL[theme], audience: '일반' }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 액셔너블 advice — 테마 + grade + 시그널 조합으로 구체 행동 추출
+// ─────────────────────────────────────────────────────────────────
+
+const ACTIONS_BY_THEME_GRADE: Record<ThemeKind, Record<string, string[]>> = {
+  career: {
+    천운: ['이직·승진 적극', '큰 결정·계약 적기', '리더 역할 도전'],
+    길: ['미팅·면접 활성화', '제안서 적극 제출', '확장 시도'],
+    평: ['현 자리 안정 유지', '큰 변화 보류', '내실 다지기'],
+    주의: ['관계 갈등 조심', '계약 신중', '본업 우선'],
+    흉: ['기존 자리 지키기', '새 시도 자제', '조용히 대기'],
+  },
+  wealth: {
+    천운: ['적극 투자', '큰 거래 가능', '확장·창업'],
+    길: ['투자 검토', '신규 거래 OK', '재물 축적'],
+    평: ['보수적 운용', '큰 지출 자제'],
+    주의: ['대출·투자 신중', '지출 통제'],
+    흉: ['투자 자제', '손실 방어 우선', '현금 보유'],
+  },
+  love: {
+    천운: ['적극 만남', '결혼 결단 가능', '인연 깊이 넣기'],
+    길: ['소개팅·데이트 활발', '관계 진전 시도'],
+    평: ['관계 안정 유지'],
+    주의: ['갈등·오해 주의', '큰 약속 보류'],
+    흉: ['관계 진전 자제', '거리 두기'],
+  },
+  health: {
+    천운: ['활발한 활동 가능', '운동 새 시작'],
+    길: ['컨디션 양호'],
+    평: ['평소 관리'],
+    주의: ['수면·스트레스 관리', '소화기 주의'],
+    흉: ['종합 검진', '무리한 활동 자제'],
+  },
+  growth: {
+    천운: ['시험·자격증 도전', '강의·집필 가능'],
+    길: ['학습 적극', '발표 기회 잡기'],
+    평: ['꾸준한 학습'],
+    주의: ['집중력 약함', '암기 어려움'],
+    흉: ['시험·발표 보류'],
+  },
+  family: {
+    천운: ['가족 행사·여행', '관계 깊이 넣기'],
+    길: ['연락·만남 활발'],
+    평: ['평소 관리'],
+    주의: ['가족 갈등 조심', '말 신중'],
+    흉: ['거리 두기', '의절·소외 주의'],
+  },
+}
+
+/** 시그널 기반 구체 액션 추출 — saju/astro points 를 보고 추가 advice */
+function deriveSpecificActions(
+  theme: ThemeKind,
+  signal: ThemeSignal,
+  saju: MainSajuOutput,
+): string[] {
+  const out: string[] = []
+  const sajuJoined = signal.sajuPoints.join(' ')
+  const astroJoined = signal.astroPoints.join(' ')
+
+  // 격국 파격 → 행동 advice
+  if (sajuJoined.includes('파격')) {
+    if (theme === 'career') out.push('큰 결정·계약 미루기')
+    if (theme === 'wealth') out.push('투자 결정 보류')
+    if (theme === 'love') out.push('약속·결단 미루기')
+  }
+  // 격국 강화 → 적극
+  if (sajuJoined.includes('격국 강화')) {
+    if (theme === 'career') out.push('본업 자리잡기 적극')
+    if (theme === 'wealth') out.push('재성 흐름 활용 — 거래 진행')
+  }
+  // 통근 깊음 → 결과 발현
+  if (sajuJoined.includes('통근 깊음')) {
+    out.push('흐름이 실제로 자리잡는 시기 — 결과로 이어짐')
+  }
+  // 점성 trine = 호조
+  if (astroJoined.includes('trine')) {
+    out.push('우주 흐름이 도와주는 시기')
+  }
+  // 점성 square = 도전
+  if (astroJoined.includes('square')) {
+    out.push('긴장·도전 시기 — 정면 돌파')
+  }
+  // 점성 conjunction = 강조
+  if (astroJoined.includes('conjunction')) {
+    out.push('해당 영역 에너지 강하게 부각')
+  }
+  // 귀인 시그널
+  if (sajuJoined.includes('귀인')) {
+    out.push('귀인·도움 받음 — 만남 적극 응함')
+  }
+  // 일지 충돌
+  if (sajuJoined.includes('충돌')) {
+    out.push('가까운 관계 갈등 — 소통 신중')
+  }
+  // 인생 정점 위치 (lifetime peak/valley)
+  const userAge = (() => {
+    const inputDate = saju.input?.birthDate
+    if (!inputDate) return undefined
+    return new Date().getFullYear() - new Date(inputDate).getFullYear()
+  })()
+  if (userAge && saju.lifeNarrative) {
+    const cur = saju.lifeNarrative.chapters.find((c) => c.isCurrent)
+    if (cur) out.push(`현재 ${cur.ageRange} ${cur.ganji} 챕터`)
+  }
+  return out.slice(0, 4)
+}
 
 // ─────────────────────────────────────────────────────────────────
 // Axis (5축) — 정체성/감정/직업/관계/성장
@@ -101,6 +263,21 @@ export interface ThemeSignal {
   astroPoints: string[]
   /** 종합 한 줄 */
   verdict: string
+  /** 세그먼트 톤 적용된 테마 라벨 (예: 자영업 → "사업·확장") */
+  themeFocus: string
+  /** 대상 사용자 (예: "직장인", "기혼") */
+  audience: string
+  /** 구체 액션 (✓ 적극 / ✗ 자제) */
+  actions: string[]
+}
+
+export interface ThemeTiming {
+  /** 인생에서 이 테마의 정점 시기 */
+  peakChapter?: { age: number; ageRange: string; ganji: string; score: number }
+  /** 인생에서 이 테마의 저점 시기 */
+  valleyChapter?: { age: number; ageRange: string; ganji: string; score: number }
+  /** 한 줄 추천 (예: "직업 정점은 32~41세 甲戌, 주의기는 52~61세 壬申") */
+  recommendation: string
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -129,9 +306,13 @@ export interface ThemeMatrixCell {
 
 export interface CrossEngineOutput {
   engine: typeof CROSS_ENGINE_META
+  /** 사용자 세그먼트 (입력) */
+  segment?: UserSegment
   axes: CrossAxes
   /** 6 테마 × 5 시간축 = 30 cells */
   matrix: ThemeMatrixCell[]
+  /** 테마별 시기 매칭 (인생 peak/valley) */
+  themeTimings: Record<ThemeKind, ThemeTiming>
   /** 가장 강한 cross 신호 */
   highlights: {
     strongestAlignedAxis?: keyof CrossAxes
@@ -240,6 +421,7 @@ interface SignalContext {
   saju: MainSajuOutput
   astro: AstroEngineOutput
   horizon: Horizon
+  segment?: UserSegment
 }
 
 function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
@@ -422,14 +604,25 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
   const pct = (combined / 10) * 100
   const grade = gradeFromPercent(pct)
 
-  // verdict
+  // 세그먼트 톤
+  const { themeFocus, audience } = getSegmentTone(theme, ctx.segment)
+
+  // verdict — 세그먼트 톤 반영
   const verdict = (() => {
-    if (pct >= 85) return `${THEME_LABEL[theme]} 매우 길운 — 적극 행동`
-    if (pct >= 70) return `${THEME_LABEL[theme]} 호운 — 흐름 활용`
-    if (pct >= 50) return `${THEME_LABEL[theme]} 평운 — 안정 유지`
-    if (pct >= 30) return `${THEME_LABEL[theme]} 주의기 — 보수적 자세`
-    return `${THEME_LABEL[theme]} 흉운 — 새 시도 자제`
+    if (pct >= 85) return `${themeFocus} 매우 길운 — 적극 행동`
+    if (pct >= 70) return `${themeFocus} 호운 — 흐름 활용`
+    if (pct >= 50) return `${themeFocus} 평운 — 안정 유지`
+    if (pct >= 30) return `${themeFocus} 주의기 — 보수적 자세`
+    return `${themeFocus} 흉운 — 새 시도 자제`
   })()
+
+  // 액션 — 등급별 기본 액션 + 시그널 기반 구체 advice
+  const baseActions = ACTIONS_BY_THEME_GRADE[theme]?.[grade] || []
+  const specificActions = deriveSpecificActions(theme, {
+    score: combined, grade, sajuPoints, astroPoints, verdict,
+    themeFocus, audience, actions: [],
+  }, ctx.saju)
+  const actions = [...baseActions.slice(0, 2), ...specificActions].slice(0, 5)
 
   return {
     score: Math.round(combined * 10) / 10,
@@ -437,7 +630,88 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     sajuPoints,
     astroPoints,
     verdict,
+    themeFocus,
+    audience,
+    actions,
   }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 테마별 시기 매칭 (lifetime peak/valley)
+// ─────────────────────────────────────────────────────────────────
+
+// 천간 → 십신 그룹 (테마 친화도 매핑용, 일간 기준)
+function stemToSibsinGroup(stem: string, dayMaster: string): 'inseong' | 'jaeseong' | 'siksang' | 'gwansal' | 'bijeon' {
+  const elementMap: Record<string, string> = {
+    甲: 'wood', 乙: 'wood', 丙: 'fire', 丁: 'fire', 戊: 'earth',
+    己: 'earth', 庚: 'metal', 辛: 'metal', 壬: 'water', 癸: 'water',
+  }
+  const dayEl = elementMap[dayMaster]
+  const stemEl = elementMap[stem]
+  if (!dayEl || !stemEl) return 'bijeon'
+  if (stemEl === dayEl) return 'bijeon'
+  // 생하는 관계
+  const sheng: Record<string, string> = { wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood' }
+  const ke: Record<string, string> = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' }
+  if (sheng[stemEl] === dayEl) return 'inseong'   // stem이 일간 생함
+  if (sheng[dayEl] === stemEl) return 'siksang'   // 일간이 stem 생함
+  if (ke[dayEl] === stemEl) return 'jaeseong'     // 일간이 stem 극 (재성)
+  if (ke[stemEl] === dayEl) return 'gwansal'      // stem이 일간 극 (관살)
+  return 'bijeon'
+}
+
+/** 테마별 챕터 친화도 가중치 — 십신 그룹별 */
+const THEME_AFFINITY: Record<ThemeKind, Record<string, number>> = {
+  career:  { gwansal: 1.5, inseong: 1.2, jaeseong: 1.0, siksang: 0.8, bijeon: 0.6 },
+  wealth:  { jaeseong: 1.5, siksang: 1.3, bijeon: 0.6, inseong: 0.9, gwansal: 1.0 },
+  love:    { jaeseong: 1.4, gwansal: 1.2, siksang: 1.0, inseong: 0.9, bijeon: 0.7 }, // 남자 기준
+  health:  { inseong: 1.2, bijeon: 1.1, siksang: 1.0, jaeseong: 1.0, gwansal: 0.8 },
+  growth:  { inseong: 1.5, siksang: 1.3, bijeon: 1.0, jaeseong: 0.9, gwansal: 0.9 },
+  family:  { inseong: 1.3, bijeon: 1.2, siksang: 1.0, jaeseong: 1.0, gwansal: 0.9 },
+}
+
+function buildThemeTimings(saju: MainSajuOutput, _astro: AstroEngineOutput): Record<ThemeKind, ThemeTiming> {
+  const result = {} as Record<ThemeKind, ThemeTiming>
+  const chapters = saju.lifeNarrative?.chapters || []
+  const dayMaster = saju.pillars.day.stem
+
+  for (const theme of ALL_THEMES) {
+    if (chapters.length === 0) {
+      result[theme] = { recommendation: '인생 데이터 부족' }
+      continue
+    }
+
+    // 각 챕터의 테마별 점수 = base score × 테마 친화도
+    const themeScored = chapters.map((c) => {
+      const stem = c.ganji.charAt(0)
+      const group = stemToSibsinGroup(stem, dayMaster)
+      const affinity = THEME_AFFINITY[theme][group] || 1.0
+      const themeScore = Math.min(8, c.score * affinity)
+      return { ...c, themeScore, group }
+    })
+
+    themeScored.sort((a, b) => b.themeScore - a.themeScore)
+    const peak = themeScored[0]
+    const valley = themeScored[themeScored.length - 1]
+
+    const themeFocusLabel = THEME_LABEL[theme]
+    const recommendation =
+      peak && valley
+        ? `${themeFocusLabel} 정점: ${peak.ageRange} ${peak.ganji}(${peak.group}, ${peak.themeScore.toFixed(1)}). 주의기: ${valley.ageRange} ${valley.ganji}(${valley.group}, ${valley.themeScore.toFixed(1)}).`
+        : '시기 매칭 데이터 부족'
+
+    result[theme] = {
+      peakChapter: peak
+        ? { age: peak.age, ageRange: peak.ageRange, ganji: peak.ganji, score: Math.round(peak.themeScore * 10) / 10 }
+        : undefined,
+      valleyChapter: valley
+        ? { age: valley.age, ageRange: valley.ageRange, ganji: valley.ganji, score: Math.round(valley.themeScore * 10) / 10 }
+        : undefined,
+      recommendation,
+    }
+  }
+
+  return result
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -447,7 +721,11 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
 const ALL_THEMES: ThemeKind[] = ['career', 'wealth', 'love', 'health', 'growth', 'family']
 const ALL_HORIZONS: Horizon[] = ['life', 'daeun', 'seun', 'wolun', 'iljin']
 
-export function runCrossEngine(saju: MainSajuOutput, astro: AstroEngineOutput): CrossEngineOutput {
+export function runCrossEngine(
+  saju: MainSajuOutput,
+  astro: AstroEngineOutput,
+  segment?: UserSegment,
+): CrossEngineOutput {
   // 5축
   const axes: CrossAxes = {
     identity: buildIdentityAxis(saju, astro),
@@ -461,14 +739,13 @@ export function runCrossEngine(saju: MainSajuOutput, astro: AstroEngineOutput): 
   const matrix: ThemeMatrixCell[] = []
   for (const theme of ALL_THEMES) {
     for (const horizon of ALL_HORIZONS) {
-      // 일진은 무거운 분석 생략 — 직업/사랑/건강/성장/가족 대신 career만
-      if (horizon === 'iljin' && (theme === 'wealth' || theme === 'family' || theme === 'love' || theme === 'growth' || theme === 'health')) {
-        // 일진은 모든 테마 다 만들지만 narrative 짧게
-      }
-      const signal = buildThemeSignal(theme, { saju, astro, horizon })
+      const signal = buildThemeSignal(theme, { saju, astro, horizon, segment })
       matrix.push({ theme, horizon, signal })
     }
   }
+
+  // 테마별 시기 매칭
+  const themeTimings = buildThemeTimings(saju, astro)
 
   // highlights
   const sortedByScore = [...matrix].sort((a, b) => b.signal.score - a.signal.score)
@@ -481,8 +758,10 @@ export function runCrossEngine(saju: MainSajuOutput, astro: AstroEngineOutput): 
 
   return {
     engine: CROSS_ENGINE_META,
+    segment,
     axes,
     matrix,
+    themeTimings,
     highlights: {
       strongestAlignedAxis: aligned?.[0],
       strongestOpposedAxis: opposed?.[0],

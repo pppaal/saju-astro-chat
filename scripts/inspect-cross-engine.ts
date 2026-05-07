@@ -21,7 +21,13 @@ async function main() {
     longitude: 126.978,
     timezone: 'Asia/Seoul',
   })
-  const cross = runCrossEngine(saju, astro)
+  // 사용자 세그먼트 예시: 직장인 + 미혼
+  const cross = runCrossEngine(saju, astro, {
+    employment: 'employed',
+    maritalStatus: 'single',
+    hasChildren: false,
+    gender: 'male',
+  })
 
   console.log('='.repeat(72))
   console.log(`  ${cross.engine.name} 엔진 v${cross.engine.version} — ${cross.engine.tagline}`)
@@ -56,9 +62,11 @@ async function main() {
     console.log(`  ${THEME_LABEL[theme].padEnd(16)} ${row}`)
   }
 
-  console.log('\n## 3. 매트릭스 상세 (각 셀별 verdict)')
+  console.log(`\n## 3. 사용자 세그먼트: ${JSON.stringify(cross.segment)}`)
+
+  console.log('\n## 4. 매트릭스 상세 (각 셀별 verdict + 액션)')
   for (const theme of themes) {
-    console.log(`\n  ━━━ ${THEME_LABEL[theme]} ━━━`)
+    console.log(`\n  ━━━ ${THEME_LABEL[theme]} (대상: ${cross.matrix.find((c) => c.theme === theme)?.signal.audience}) ━━━`)
     for (const h of horizons) {
       const cell = cross.matrix.find((c) => c.theme === theme && c.horizon === h)
       if (!cell) continue
@@ -66,10 +74,17 @@ async function main() {
       console.log(`    [${HORIZON_LABEL[h]}] ${s.score}/10 (${s.grade}) — ${s.verdict}`)
       if (s.sajuPoints.length) console.log(`       사주: ${s.sajuPoints.join(' · ')}`)
       if (s.astroPoints.length) console.log(`       점성: ${s.astroPoints.join(' · ')}`)
+      if (s.actions.length) console.log(`       💡 ${s.actions.join(' / ')}`)
     }
   }
 
-  console.log('\n## 4. 하이라이트')
+  console.log('\n## 5. 테마별 시기 매칭 (인생 정점·저점)')
+  for (const theme of themes) {
+    const t = cross.themeTimings[theme]
+    console.log(`  ${THEME_LABEL[theme]}: ${t.recommendation}`)
+  }
+
+  console.log('\n## 6. 하이라이트')
   console.log(`  최강 일치 축: ${cross.highlights.strongestAlignedAxis || '(없음)'}`)
   console.log(`  최강 갈등 축: ${cross.highlights.strongestOpposedAxis || '(없음)'}`)
   console.log(`  지금 최고: ${THEME_LABEL[cross.highlights.bestThemeNow.theme]} (${HORIZON_LABEL[cross.highlights.bestThemeNow.horizon]}, ${cross.highlights.bestThemeNow.score}/10)`)
