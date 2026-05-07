@@ -234,6 +234,20 @@ export default function ComprehensiveReportPage() {
               disabled={!canGenerate}
               error={error}
               helperText="생성 후 프로필에서 다시 확인할 수 있습니다."
+              hasProfile={Boolean(profileInput?.birthDate || profile.birthDate)}
+              profileSummary={
+                (profileInput?.birthDate || profile.birthDate)
+                  ? `${profileInput?.birthDate || profile.birthDate}${
+                      (profileInput?.birthTime || profile.birthTime)
+                        ? ` · ${profileInput?.birthTime || profile.birthTime}`
+                        : ''
+                    }${
+                      (profileInput?.birthCity || profile.birthCity)
+                        ? ` · ${profileInput?.birthCity || profile.birthCity}`
+                        : ''
+                    }`
+                  : undefined
+              }
             >
               <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-200">
                 <p className="font-medium text-white">심화 해석 모드</p>

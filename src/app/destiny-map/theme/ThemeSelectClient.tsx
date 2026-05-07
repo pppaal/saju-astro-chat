@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/i18n/I18nProvider';
 import { UnifiedBirthForm, type BirthInfo } from '@/components/common/BirthForm';
+import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage';
+import { localizeStoredCity } from '@/lib/cities/formatter';
+import BrandSplash from '@/components/branding/BrandSplash';
 import styles from './theme.module.css';
 
 // Particle background type
@@ -38,6 +41,28 @@ export default function ThemeSelectClient() {
       gender: (get('gender') as 'M' | 'F' | 'Male' | 'Female') || undefined,
     } as Partial<BirthInfo>
   })()
+
+  // No birth form on this page — read URL params first, fall back to
+  // home localStorage. If both are empty, bounce to / so the home modal
+  // is the single entry point for birth info (matches calendar / counselor).
+  const [bootSplash, setBootSplash] = useState(true)
+  useEffect(() => {
+    if (initialBirthInfo.birthDate) {
+      setBootSplash(false)
+      return
+    }
+    const home = getStoredBirthInfo()
+    if (home?.birthDate) {
+      const params = new URLSearchParams()
+      params.set('birthDate', home.birthDate)
+      if (home.birthTime) params.set('birthTime', home.birthTime)
+      params.set('gender', home.gender === 'female' ? 'F' : 'M')
+      if (home.city) params.set('city', localizeStoredCity(home.city, locale === 'ko' ? 'ko' : 'en'))
+      router.replace(`/destiny-map/theme?${params.toString()}`)
+      return
+    }
+    router.replace('/?openBirth=1&next=/destiny-map/theme')
+  }, [initialBirthInfo.birthDate, locale, router])
 
   const handleSubmit = useCallback(
     (info: BirthInfo) => {
@@ -188,6 +213,10 @@ export default function ThemeSelectClient() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  if (bootSplash) {
+    return <BrandSplash message={locale === 'ko' ? '무료 리포트 준비 중…' : 'Preparing your free report…'} />
+  }
 
   return (
     <main className={styles.container}>

@@ -243,6 +243,20 @@ export default function MonthlyReportPage() {
               disabled={!canGenerate}
               error={error}
               helperText={`${monthLabel} 기준으로 자동 분석됩니다.`}
+              hasProfile={Boolean(profileInput?.birthDate || profile.birthDate)}
+              profileSummary={
+                (profileInput?.birthDate || profile.birthDate)
+                  ? `${profileInput?.birthDate || profile.birthDate}${
+                      (profileInput?.birthTime || profile.birthTime)
+                        ? ` · ${profileInput?.birthTime || profile.birthTime}`
+                        : ''
+                    }${
+                      (profileInput?.birthCity || profile.birthCity)
+                        ? ` · ${profileInput?.birthCity || profile.birthCity}`
+                        : ''
+                    }`
+                  : undefined
+              }
             >
               <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-200">
                 <p className="font-medium text-white">이번 달 자동 적용</p>
