@@ -114,7 +114,14 @@ type InteractionBlock = {
   dominantSignal?: { pillar: string; domain: string; relation: string; tone: string }
   summary: string
 }
-const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteractions: InteractionBlock }) => {
+type RootednessBlock = {
+  cycleStemRoots: Array<{ pillar: string; branch: string; layer: string; strength: number }>
+  rootStrengthTotal: number
+  isRootless: boolean
+  cycleBranchTuggan: Array<{ cycleLayer: string; stem: string; pillar: string; strength: number }>
+  summary: string
+}
+const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteractions: InteractionBlock; rootedness: RootednessBlock }) => {
   if (!c) {
     console.log(`  ${label}: —`)
     return
@@ -132,6 +139,8 @@ const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteract
     const rel = [stem, br].filter(Boolean).join(' + ')
     console.log(`            · ${p.pillar} (${p.domain}): ${rel}  [${p.tone}]`)
   }
+  const r = c.rootedness
+  console.log(`    통근/투간: ${r.summary}`)
 }
 showCycle('대운', out.cycleAnalysis.daeun)
 showCycle('세운', out.cycleAnalysis.seun)
