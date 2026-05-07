@@ -1052,19 +1052,17 @@ describe('Calendar API Route - /api/calendar', () => {
       )
     })
 
-    it('should mark degraded mode when full astrology input fails', async () => {
+    it('should propagate as a 500 when full astrology input fails (lite fallback removed)', async () => {
       vi.mocked(calculateNatalChart).mockRejectedValueOnce(new Error('swisseph unavailable'))
 
       const request = createRequest({ birthDate: '1990-01-05' })
 
       const response = await GET(request)
-      const data = await response.json()
 
-      expect(response.status).toBe(200)
-      expect(data.matrixInputMode).toBe('lite')
-      expect(data.matrixStrictMode).toBe(false)
-      expect(data.degradedMode.active).toBe(true)
-      expect(data.degradedMode.reasons).toContain('astrology_input_lite')
+      // Lite mode is gone — astrology failures are now hard failures rather
+      // than silent quality downgrades. The route's outer error handler
+      // returns 500 (or another non-200 status) instead of a 'lite' payload.
+      expect(response.status).not.toBe(200)
     })
   })
 

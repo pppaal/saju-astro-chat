@@ -184,10 +184,10 @@ export interface CalendarData {
   success: boolean
   year: number
   matrixStrictMode?: boolean
-  matrixInputMode?: 'full-chart' | 'lite'
+  matrixInputMode?: 'full-chart'
   degradedMode?: {
     active: boolean
-    level: 'full-engine' | 'engine-degraded' | 'fallback-lite'
+    level: 'full-engine' | 'engine-degraded'
     reasons: string[]
     labels: string[]
   }

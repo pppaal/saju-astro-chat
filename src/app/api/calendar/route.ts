@@ -157,7 +157,6 @@ type CalendarAstroProfile = {
   sunElement: string
   birthMonth?: number
   birthDay?: number
-  inputMode?: 'full-chart' | 'lite'
   natalChart?:
     | {
         planets?: Array<{
@@ -530,7 +529,7 @@ async function buildCalendarMatrixInput(params: {
       },
       transits: astroProfile.transitAspects || undefined,
       advancedCoverage: {
-        inputMode: astroProfile.inputMode || 'lite',
+        inputMode: 'full-chart',
         hasNatalChart: Boolean(astroProfile.natalChart),
         hasTransitChart: Boolean(astroProfile.transitChart),
         natalAspectCount: astroProfile.natalAspects?.length || 0,
@@ -709,7 +708,6 @@ export const GET = withApiMiddleware(
       sunElement: ZODIAC_TO_ELEMENT[sunSign] || 'fire',
       birthMonth: birthDate.getMonth() + 1,
       birthDay: birthDate.getDate(),
-      inputMode: 'lite',
     }
     const degradationReasons: string[] = []
     const matrixDegradationReasons: string[] = []
@@ -751,7 +749,6 @@ export const GET = withApiMiddleware(
       astroProfile.sunSign =
         natalChart.planets.find((planet) => planet.name === 'Sun')?.sign || sunSign
       astroProfile.sunElement = ZODIAC_TO_ELEMENT[astroProfile.sunSign] || astroProfile.sunElement
-      astroProfile.inputMode = 'full-chart'
       astroProfile.natalChart = natalChartData
       astroProfile.transitChart = transitChart
       astroProfile.natalAspects = natalAspects
@@ -812,11 +809,10 @@ export const GET = withApiMiddleware(
         })
       }
     } catch (astroError) {
-      degradationReasons.push('astrology_input_lite')
-      matrixDegradationReasons.push('astrology_input_lite')
-      logger.warn('[Calendar] full astrology input unavailable; using lite astrology profile', {
+      logger.error('[Calendar] full astrology input failed', {
         error: astroError instanceof Error ? astroError.message : String(astroError),
       })
+      throw astroError
     }
 
     let matrixCalendarContext: MatrixCalendarContext = null
@@ -1152,23 +1148,19 @@ export const GET = withApiMiddleware(
     }
     const degradationReasonSet = [...new Set(degradationReasons)]
     const matrixDegradationReasonSet = [...new Set(matrixDegradationReasons)]
-    const matrixInputMode = astroProfile.inputMode === 'full-chart' ? 'full-chart' : 'lite'
+    const matrixInputMode = 'full-chart' as const
     const degradedMode = {
       active: degradationReasonSet.length > 0,
-      level: !matrixEngineAvailable
-        ? ('fallback-lite' as const)
-        : degradationReasonSet.length > 0
-          ? ('engine-degraded' as const)
-          : ('full-engine' as const),
+      level: degradationReasonSet.length > 0
+        ? ('engine-degraded' as const)
+        : ('full-engine' as const),
       reasons: degradationReasonSet,
       labels:
         locale === 'en'
           ? degradationReasonSet.map((reason) => {
               switch (reason) {
-                case 'astrology_input_lite':
-                  return 'Using lite astrology input instead of full natal/transit chart data.'
                 case 'matrix_core_unavailable':
-                  return 'Destiny matrix core is unavailable; lightweight calendar fallback is active.'
+                  return 'Destiny matrix core is unavailable.'
                 case 'ai_enrichment_unavailable':
                   return 'AI date enrichment is unavailable; local rules are being used.'
                 default:
@@ -1177,10 +1169,8 @@ export const GET = withApiMiddleware(
             })
           : degradationReasonSet.map((reason) => {
               switch (reason) {
-                case 'astrology_input_lite':
-                  return '풀 natal/transit 차트 대신 lite 점성 입력으로 계산했습니다.'
                 case 'matrix_core_unavailable':
-                  return 'destiny-matrix core를 사용할 수 없어 경량 캘린더 fallback으로 동작했습니다.'
+                  return 'destiny-matrix core를 사용할 수 없습니다.'
                 case 'ai_enrichment_unavailable':
                   return 'AI 날짜 보강을 사용할 수 없어 로컬 규칙으로 계산했습니다.'
                 default:
