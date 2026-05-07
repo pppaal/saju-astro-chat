@@ -74,11 +74,27 @@ for (const c of out.cycles.daeunCycles) {
   console.log(`    ${c.age}세~ : ${ganji}${sibStr}`)
 }
 
-console.log('\n## 6. 운 점수 (오늘 기준)')
-console.log(`  대운 점수: ${out.scores.daeunScore}`)
-console.log(`  세운 점수: ${out.scores.seunScore}`)
-console.log(`  월운 점수: ${out.scores.wolunScore}`)
-console.log(`  일진 점수: ${out.scores.iljinScore}`)
+console.log('\n## 6. 운 점수 (오늘 기준) — 근거 포함')
+const showInput = (input: Record<string, unknown>) => {
+  const sib = input.sibsin ? `sibsin=${input.sibsin}` : ''
+  const flags = [
+    input.hasYukhap && 'yukhap+',
+    input.hasSamhapPositive && 'samhap+',
+    input.hasChung && 'chung-',
+    input.hasGwansal && 'gwansal-',
+    input.hasXing && 'xing-',
+    input.hasHai && 'hai-',
+  ].filter(Boolean).join(', ')
+  return [sib, flags].filter(Boolean).join(' | ')
+}
+console.log(`  대운 점수: ${out.scores.daeunScore.toFixed(2)} / 8`)
+console.log(`         근거: ${showInput(out.scoreInputs.daeun as Record<string, unknown>)}`)
+console.log(`  세운 점수: ${out.scores.seunScore.toFixed(2)} / 10`)
+console.log(`         근거: ${showInput(out.scoreInputs.seun as Record<string, unknown>)}`)
+console.log(`  월운 점수: ${out.scores.wolunScore.toFixed(2)} / 7`)
+console.log(`         근거: ${showInput(out.scoreInputs.wolun as Record<string, unknown>)}`)
+console.log(`  일진 점수: ${out.scores.iljinScore.toFixed(2)} / 12`)
+console.log(`         근거: ${showInput(out.scoreInputs.iljin as Record<string, unknown>)}`)
 
 console.log('\n## 7. Extended (격국 narrative 일부)')
 if (out.extended) {

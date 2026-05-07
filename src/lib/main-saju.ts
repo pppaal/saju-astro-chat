@@ -12,13 +12,121 @@ import {
   analyzeExtendedSaju,
 } from './Saju/astrologyengine'
 import { performUltraAdvancedAnalysis } from './Saju/advancedSajuCore'
-import { STEM_TO_ELEMENT } from './Saju/constants'
+import {
+  STEM_TO_ELEMENT,
+  YUKHAP,
+  CHUNG,
+  SAMHAP,
+  XING,
+  HAI,
+} from './Saju/constants'
 import {
   calculateDaeunScore,
   calculateSeunScore,
   calculateWolunScore,
   calculateIljinScore,
+  type SajuScoreInput,
 } from './destiny-map/calendar/scoring'
+
+// ─────────────────────────────────────────────────────────────────
+// 십신 한글 ↔ scorer 라벨 매핑
+// ─────────────────────────────────────────────────────────────────
+const SIBSIN_KO_TO_LABEL: Record<string, string> = {
+  정인: 'inseong',
+  편인: 'inseong',
+  정재: 'jaeseong',
+  편재: 'jaeseong',
+  비견: 'bijeon',
+  겁재: 'bijeon',
+  식신: 'siksang',
+  상관: 'siksang',
+  정관: 'gwansal',
+  편관: 'gwansal',
+}
+function mapSibsin(ko?: string): string | undefined {
+  if (!ko) return undefined
+  return SIBSIN_KO_TO_LABEL[ko]
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 운(cycle) 입력 transformer
+//   대운/세운/월운 ganji + 본명 일주에서 보이는 boolean flags 추출
+// ─────────────────────────────────────────────────────────────────
+function buildCycleInput(
+  cycleStem: string,
+  cycleBranch: string,
+  cycleSibsinCheon: string | undefined,
+  natalDayBranch: string,
+): SajuScoreInput['daeun'] {
+  const sibsin = mapSibsin(cycleSibsinCheon)
+
+  // 지지합 (육합): 대운 지지 - 본명 일지
+  const hasYukhap = YUKHAP[cycleBranch] === natalDayBranch
+
+  // 지지충: 대운 지지 - 본명 일지
+  const hasChung = CHUNG[cycleBranch] === natalDayBranch
+
+  // 삼합: 대운 지지 + 본명 일지가 같은 삼합국에 속하는지
+  let hasSamhapPositive = false
+  let hasSamhapNegative = false
+  for (const [, branches] of Object.entries(SAMHAP)) {
+    if (branches.includes(cycleBranch) && branches.includes(natalDayBranch)) {
+      hasSamhapPositive = true
+      break
+    }
+  }
+
+  // 관살은 sibsin이 gwansal이면 자동 표시
+  const hasGwansal = sibsin === 'gwansal'
+
+  return {
+    sibsin,
+    hasYukhap,
+    hasSamhapPositive,
+    hasChung,
+    hasGwansal,
+    hasSamhapNegative,
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 일진 transformer (천간 + 지지 십신 + 신살 boolean들)
+// ─────────────────────────────────────────────────────────────────
+function buildIljinInput(
+  iljinStem: string,
+  iljinBranch: string,
+  iljinSibsinCheon: string | undefined,
+  iljinSibsinJi: string | undefined,
+  natalDayBranch: string,
+): SajuScoreInput['iljin'] {
+  const sibsin = mapSibsin(iljinSibsinCheon)
+  const branchSibsin = mapSibsin(iljinSibsinJi)
+
+  const hasYukhap = YUKHAP[iljinBranch] === natalDayBranch
+  const hasChung = CHUNG[iljinBranch] === natalDayBranch
+  const hasXing = (XING[iljinBranch] || []).includes(natalDayBranch)
+  const hasHai = HAI[iljinBranch] === natalDayBranch
+
+  let hasSamhapPositive = false
+  let hasSamhapNegative = false
+  for (const [, branches] of Object.entries(SAMHAP)) {
+    if (branches.includes(iljinBranch) && branches.includes(natalDayBranch)) {
+      hasSamhapPositive = true
+      break
+    }
+  }
+
+  return {
+    sibsin,
+    branchSibsin,
+    hasYukhap,
+    hasSamhapPositive,
+    hasSamhapNegative,
+    hasChung,
+    hasXing,
+    hasHai,
+  }
+}
 
 export interface MainSajuInput {
   birthDate: string // YYYY-MM-DD
@@ -76,6 +184,13 @@ export interface MainSajuOutput {
     seunScore: number
     wolunScore: number
     iljinScore: number
+  }
+  /** 점수 입력 transformer 결과 (근거 표시용) */
+  scoreInputs: {
+    daeun: SajuScoreInput['daeun']
+    seun: SajuScoreInput['seun']
+    wolun: SajuScoreInput['wolun']
+    iljin: SajuScoreInput['iljin']
   }
   /** 본명 자체의 텍스트 출력 (확장 분석 narrative) */
   extended: ReturnType<typeof analyzeExtendedSaju> | null
@@ -176,21 +291,100 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     (sajuResult as { unse?: { daeun?: unknown[]; annual?: unknown[]; monthly?: unknown[] } })
       .unse || {}
 
-  const daeunInput = (dw?.current || {}) as Parameters<typeof calculateDaeunScore>[0]
-  const seunInput = ((unse.annual?.[0] as object) || {}) as Parameters<
-    typeof calculateSeunScore
-  >[0]
-  const wolunInput = ((unse.monthly?.[0] as object) || {}) as Parameters<
-    typeof calculateWolunScore
-  >[0]
-  // 일진은 따로 계산 필요. unse에 iljin 없으면 빈 입력.
-  const iljinInput = {} as Parameters<typeof calculateIljinScore>[0]
+  // 본명 일지 (기준점)
+  const natalDayBranch = p.day.earthlyBranch.name
+
+  // 대운 input — sajuResult.daeWoon.current에서 ganji + 십신 추출
+  const cur = dw?.current as
+    | {
+        heavenlyStem?: string
+        earthlyBranch?: string
+        sibsin?: { cheon?: string; ji?: string }
+      }
+    | undefined
+  const daeunInput: SajuScoreInput['daeun'] = cur
+    ? buildCycleInput(
+        cur.heavenlyStem || '',
+        cur.earthlyBranch || '',
+        cur.sibsin?.cheon,
+        natalDayBranch,
+      )
+    : ({} as SajuScoreInput['daeun'])
+
+  // 세운 input — unse.annual[0]에서 추출 (이번해 운)
+  const seunRaw = unse.annual?.[0] as
+    | {
+        heavenlyStem?: string
+        earthlyBranch?: string
+        sibsin?: { cheon?: string; ji?: string }
+      }
+    | undefined
+  const seunInput: SajuScoreInput['seun'] = seunRaw
+    ? buildCycleInput(
+        seunRaw.heavenlyStem || '',
+        seunRaw.earthlyBranch || '',
+        seunRaw.sibsin?.cheon,
+        natalDayBranch,
+      )
+    : ({} as SajuScoreInput['seun'])
+
+  // 월운 input — unse.monthly[0]
+  const wolunRaw = unse.monthly?.[0] as
+    | {
+        heavenlyStem?: string
+        earthlyBranch?: string
+        sibsin?: { cheon?: string; ji?: string }
+      }
+    | undefined
+  const wolunInput: SajuScoreInput['wolun'] = wolunRaw
+    ? buildCycleInput(
+        wolunRaw.heavenlyStem || '',
+        wolunRaw.earthlyBranch || '',
+        wolunRaw.sibsin?.cheon,
+        natalDayBranch,
+      )
+    : ({} as SajuScoreInput['wolun'])
+
+  // 일진 input — 오늘 날짜의 ganji 계산 후 본명 일주 vs 매칭
+  // calculateSajuData의 unse에 iljin 없을 수 있어, 별도 계산
+  const iljinInput: SajuScoreInput['iljin'] = (() => {
+    try {
+      const todayResult = calculateSajuData(
+        target.toISOString().slice(0, 10),
+        '12:00',
+        input.gender,
+        'solar',
+        tz,
+      )
+      const ip = todayResult.pillars.day
+      // 일진의 십신: 오늘 일주 vs 본명 일간 기준
+      // todayResult가 본명을 그대로 가져오는 게 아니라 오늘 ganji.
+      // 해당 ganji vs 본명 일간 십신 계산 필요. 일단 raw stem/branch만 사용.
+      return buildIljinInput(
+        ip.heavenlyStem.name,
+        ip.earthlyBranch.name,
+        undefined,
+        undefined,
+        natalDayBranch,
+      )
+    } catch {
+      return {} as SajuScoreInput['iljin']
+    }
+  })()
 
   const scores = {
     daeunScore: safeScore(() => calculateDaeunScore(daeunInput)),
     seunScore: safeScore(() => calculateSeunScore(seunInput)),
     wolunScore: safeScore(() => calculateWolunScore(wolunInput)),
     iljinScore: safeScore(() => calculateIljinScore(iljinInput)),
+  }
+
+  // Score breakdown (디버그용 — 입력 자체도 노출)
+  const scoreInputs = {
+    daeun: daeunInput,
+    seun: seunInput,
+    wolun: wolunInput,
+    iljin: iljinInput,
   }
 
   // 대운 cycles
@@ -260,6 +454,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       currentDaeun,
     },
     scores,
+    scoreInputs,
     extended,
     input: { ...input, timezone: tz, targetDate: target },
   }
