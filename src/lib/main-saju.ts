@@ -391,6 +391,23 @@ export interface MainSajuOutput {
     wolun?: CycleNarrative
     iljin?: CycleNarrative
   }
+  /** 인생 전체 — 대운 10개 모두에 대한 챕터 narrative + 종합 테마 */
+  lifeNarrative?: {
+    chapters: Array<{
+      age: number // 대운 시작 나이
+      ageRange: string // "32~41세"
+      ganji: string // 甲戌
+      isCurrent: boolean
+      score: number // /8
+      narrative: CycleNarrative
+    }>
+    summary: {
+      peakChapters: Array<{ age: number; ageRange: string; ganji: string; score: number }>
+      valleyChapters: Array<{ age: number; ageRange: string; ganji: string; score: number }>
+      overallTheme: string
+      stageThemes: Array<{ stage: string; ages: string; theme: string }>
+    }
+  }
   /** 점수 입력 transformer 결과 (근거 표시용) */
   scoreInputs: {
     daeun: SajuScoreInput['daeun']
@@ -916,6 +933,125 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     })
   }
 
+  // ── 인생 전체 narrative — 대운 10개 모두 분석 ──
+  const daeunListRaw = (dw?.list as Array<{
+    age: number
+    ganji?: string
+    heavenlyStem?: string
+    earthlyBranch?: string
+  }>) || []
+  const lifeChapters: NonNullable<MainSajuOutput['lifeNarrative']>['chapters'] = []
+  for (const c of daeunListRaw) {
+    if (!c.heavenlyStem || !c.earthlyBranch) continue
+    const stem = c.heavenlyStem
+    const branch = c.earthlyBranch
+    const ageStart = c.age
+    const ageEnd = ageStart + 9
+    const ganji = `${stem}${branch}`
+    const isCurrent = !!curRaw && curRaw.age === ageStart
+
+    const entry = buildCycleEntry(stem, branch)
+    if (!entry) continue
+
+    // 점수 입력 빌드
+    const sibsinKo = computeSibsinKo(dayMaster, stem)
+    const chapterInput = buildCycleInput(stem, branch, sibsinKo, natalDayBranch, cycleContext)
+    // 분석 결과 주입
+    chapterInput.geokgukShift = entry.geokgukShift.shift
+    chapterInput.geokgukShiftIntensity = entry.geokgukShift.intensity
+    const kinds = new Set(entry.shinsalActivation.hits.map((h) => h.kind))
+    if (kinds.has('공망풀림')) chapterInput.hasGongmangResolution = true
+    if (kinds.has('공망묶임')) chapterInput.hasGongmangLock = true
+    const hwa = entry.hwaTransform.primaryEvent
+    if (hwa && hwa.quality === 'true') chapterInput.hasHwaCompletion = true
+    if (entry.samgi.state === 'cycle_completes') chapterInput.hasSamgiCompletion = true
+    Object.assign(chapterInput, injectShinsalFlags(entry.shinsalActivation.hits, 'iljin'))
+
+    const chapterScore = safeScore(() => calculateDaeunScore(chapterInput))
+
+    // 챕터 narrative — daeunPhase 는 현재 챕터에만 의미 있음
+    const chapterNarrative = narrateCycle(entry, {
+      cycleKind: 'daeun',
+      cycleGanji: ganji,
+      score: chapterScore,
+      scoreMax: 8,
+      daeunPhase: isCurrent ? daeunPhase : undefined,
+      natalContext,
+    })
+
+    lifeChapters.push({
+      age: ageStart,
+      ageRange: `${ageStart}~${ageEnd}세`,
+      ganji,
+      isCurrent,
+      score: chapterScore,
+      narrative: chapterNarrative,
+    })
+  }
+
+  let lifeNarrative: MainSajuOutput['lifeNarrative']
+  if (lifeChapters.length > 0) {
+    const sortedByScore = [...lifeChapters].sort((a, b) => b.score - a.score)
+    const peakChapters = sortedByScore.slice(0, 2).map((c) => ({
+      age: c.age, ageRange: c.ageRange, ganji: c.ganji, score: c.score,
+    }))
+    const valleyChapters = sortedByScore.slice(-2).reverse().map((c) => ({
+      age: c.age, ageRange: c.ageRange, ganji: c.ganji, score: c.score,
+    }))
+
+    // 인생 단계별 테마: 초년(0-21) / 청년(22-31) / 중년(32-41) / 장년(42-61) / 말년(62+)
+    const stages: Array<{ stage: string; minAge: number; maxAge: number }> = [
+      { stage: '초년', minAge: 0, maxAge: 21 },
+      { stage: '청년', minAge: 22, maxAge: 31 },
+      { stage: '중년', minAge: 32, maxAge: 41 },
+      { stage: '장년', minAge: 42, maxAge: 61 },
+      { stage: '말년', minAge: 62, maxAge: 120 },
+    ]
+    const stageThemes = stages.map((s) => {
+      const inStage = lifeChapters.filter(
+        (c) => c.age + 9 >= s.minAge && c.age <= s.maxAge,
+      )
+      if (inStage.length === 0) return { stage: s.stage, ages: '', theme: '데이터 없음' }
+      // 십신 분포 → 우세 십신
+      const sibsinCount: Record<string, number> = {}
+      for (const c of inStage) {
+        const sibsin = computeSibsinKo(dayMaster, c.ganji.charAt(0))
+        if (!sibsin) continue
+        sibsinCount[sibsin] = (sibsinCount[sibsin] || 0) + 1
+      }
+      const dominant = Object.entries(sibsinCount).sort((a, b) => b[1] - a[1])[0]?.[0]
+      const stageThemeMap: Record<string, string> = {
+        정관: '규율·학업·체계 시기',
+        편관: '도전·시련·돌파 시기',
+        정재: '본업 안정·재물 축적 시기',
+        편재: '외향 활동·이재 시기',
+        정인: '학문·도움 받음·내면 다지기',
+        편인: '자기 탐구·전문 영역 시기',
+        식신: '표현·창작·여유 시기',
+        상관: '자기 표현·반항·비판 시기',
+        비견: '독립·동료 활동 시기',
+        겁재: '경쟁·손실 주의 시기',
+      }
+      const avgScore = inStage.reduce((s, c) => s + c.score, 0) / inStage.length
+      const trendDesc = avgScore >= 6 ? '호운' : avgScore >= 4 ? '평운' : '주의기'
+      const ages = `${inStage[0].age}~${inStage[inStage.length - 1].age + 9}세`
+      const theme = dominant
+        ? `${stageThemeMap[dominant] || dominant + ' 흐름'} (${trendDesc}, 평균 ${avgScore.toFixed(1)}/8)`
+        : `${trendDesc} 흐름`
+      return { stage: s.stage, ages, theme }
+    }).filter((s) => s.theme !== '데이터 없음')
+
+    // 종합 1줄
+    const overallTheme = stageThemes
+      .map((s) => `${s.stage}(${s.ages}) — ${s.theme}`)
+      .join(' / ')
+
+    lifeNarrative = {
+      chapters: lifeChapters,
+      summary: { peakChapters, valleyChapters, overallTheme, stageThemes },
+    }
+  }
+
   // 대운 cycles
   const daeunCycles =
     (dw?.list as Array<{
@@ -991,6 +1127,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     scoreInputs,
     cycleAnalysis,
     narratives,
+    lifeNarrative,
     extended,
     input: { ...input, timezone: tz, targetDate: target },
   }

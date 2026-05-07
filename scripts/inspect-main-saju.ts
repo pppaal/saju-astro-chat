@@ -261,7 +261,40 @@ showNarrative('세운', out.narratives.seun as NarrativeBlock | undefined)
 showNarrative('월운', out.narratives.wolun as NarrativeBlock | undefined)
 showNarrative('일진', out.narratives.iljin as NarrativeBlock | undefined)
 
-console.log('\n## 9. Extended (격국 narrative 일부)')
+console.log('\n## 9. 인생 전체 (대운 10개 챕터)')
+const ln = (out as { lifeNarrative?: {
+  chapters: Array<{ age: number; ageRange: string; ganji: string; isCurrent: boolean; score: number; narrative: { fullNarrative: { headline: string; overallVerdict: string } } }>
+  summary: {
+    peakChapters: Array<{ age: number; ageRange: string; ganji: string; score: number }>
+    valleyChapters: Array<{ age: number; ageRange: string; ganji: string; score: number }>
+    overallTheme: string
+    stageThemes: Array<{ stage: string; ages: string; theme: string }>
+  }
+} }).lifeNarrative
+if (ln) {
+  console.log(`\n  📅 챕터별 점수 + 한 줄:`)
+  for (const c of ln.chapters) {
+    const mark = c.isCurrent ? ' ← 지금' : ''
+    const pct = ((c.score / 8) * 100).toFixed(0)
+    console.log(`     ${c.ageRange.padEnd(10)} ${c.ganji}  ${c.score.toFixed(1)}/8 (${pct}%)${mark}`)
+    console.log(`               ⚖ ${c.narrative.fullNarrative.overallVerdict}`)
+  }
+  console.log(`\n  🌟 인생 정점:`)
+  for (const p of ln.summary.peakChapters) {
+    console.log(`     ${p.ageRange} ${p.ganji} — ${p.score.toFixed(1)}/8`)
+  }
+  console.log(`\n  💀 인생 저점:`)
+  for (const v of ln.summary.valleyChapters) {
+    console.log(`     ${v.ageRange} ${v.ganji} — ${v.score.toFixed(1)}/8`)
+  }
+  console.log(`\n  🎬 인생 단계별 테마:`)
+  for (const s of ln.summary.stageThemes) {
+    console.log(`     ${s.stage} (${s.ages}): ${s.theme}`)
+  }
+  console.log(`\n  📜 인생 전체 한 줄: ${ln.summary.overallTheme}`)
+}
+
+console.log('\n## 10. Extended (격국 narrative 일부)')
 if (out.extended) {
   const e = out.extended as Record<string, unknown>
   for (const k of ['johuYongsin', 'rootAnalysis', 'extendedYongsin', 'narrative', 'overall']) {
