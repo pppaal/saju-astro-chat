@@ -12,10 +12,11 @@ import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
  *   1. explicit initialProfileInput (caller-provided)
  *   2. authenticated server profile (UserProfile)
  *   3. home page localStorage birth info (destinypal:birthInfo:v1)
+ *   4. nothing → bounce to /?openBirth=1&next=<path> so the home modal
+ *      collects birth info once and the user returns to the report.
  *
- * Step 3 covers the "guest filled birth on home → opened a report"
- * flow where the report page can't see the server profile yet but the
- * birth info is already on the device.
+ * Step 4 only fires after `profileLoading` settles to false; otherwise
+ * we'd redirect authenticated users away from their own report mid-fetch.
  */
 export function usePremiumReportProfile(
   profile: Pick<
