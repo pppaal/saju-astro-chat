@@ -519,22 +519,29 @@ export const POST = withApiMiddleware(
 
       // Attach the deterministic extended-analysis bundle (life stages,
       // decisive timings, relationships, practical info, karmic insight).
-      // Computed from the derived saju snapshot so it adds no LLM cost
-      // and renders instantly in the result page.
+      //
+      // Routed through runMainSaju so we pull the *real* geokguk + yongsin
+      // (previously we passed an empty geokguk and used dayMaster as the
+      // yongsin fallback, which gave generic lucky directions/colors).
       try {
-        const derivedSaju = (matrixInput as Record<string, unknown>).__derivedSajuData as
-          | import('@/lib/Saju/types').CalculateSajuDataResult
-          | undefined
-        if (derivedSaju) {
-          const { buildExtendedAnalysis } = await import('@/lib/Saju/extendedAnalysis')
-          const koreanAge = birthDate
-            ? new Date().getFullYear() - parseInt(String(birthDate).slice(0, 4), 10) + 1
-            : 30
-          const geokguk = (matrixInput as Record<string, unknown>).geokguk as string | undefined
-          ;(aiReport as Record<string, unknown>).extendedAnalysis = buildExtendedAnalysis(
-            derivedSaju,
-            { koreanAge, geokguk },
-          )
+        if (birthDate) {
+          const [{ runMainSaju }, { buildExtendedAnalysisFromMain }] = await Promise.all([
+            import('@/lib/main-saju'),
+            import('@/lib/Saju/extendedAnalysis'),
+          ])
+          const rawGender = String(
+            (matrixInput as unknown as Record<string, unknown>).gender ?? '',
+          ).toLowerCase()
+          const main = runMainSaju({
+            birthDate,
+            birthTime: profileContext.birthTime || '12:00',
+            gender: rawGender === 'female' || rawGender === 'f' ? 'female' : 'male',
+            timezone: profileContext.timezone || 'Asia/Seoul',
+          })
+          const koreanAge =
+            new Date().getFullYear() - parseInt(String(birthDate).slice(0, 4), 10) + 1
+          ;(aiReport as unknown as Record<string, unknown>).extendedAnalysis =
+            buildExtendedAnalysisFromMain(main, { koreanAge })
         }
       } catch (extErr) {
         logger.warn('[ai-report] extendedAnalysis build failed', { err: String(extErr) })

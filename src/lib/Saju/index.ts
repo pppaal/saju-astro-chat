@@ -183,25 +183,6 @@ export {
 // 200% 급 고급 모듈들
 // ============================================================
 
-// 대운/세운 종합 분석 모듈
-export {
-  analyzeUnseComprehensive,
-  analyzeDaeunPeriod,
-  analyzeLifeCycle,
-  analyzeSpecificYear,
-  analyzeMultiYearTrend,
-  type UnseType,
-  type UnseInfo,
-  type UnseInteractionDetail,
-  type UnseYongsinMatch,
-  type UnseTwelveStage,
-  type UnseSibsinRelation,
-  type UnseComprehensiveAnalysis,
-  type DaeunPeriodAnalysis,
-  type LifeCycleAnalysis,
-  type YearDetailAnalysis,
-  type MultiYearTrend,
-} from './unseAnalysis';
 
 // 십신(십성) 심층 분석 모듈
 export {
@@ -372,27 +353,6 @@ export {
   type ParentChildAnalysis,
   type SpouseAnalysis,
 } from './familyLineage';
-
-// 사건 상관관계 분석 엔진
-export {
-  calculatePeriodPillars,
-  analyzeEventCorrelation,
-  recognizePatterns,
-  generatePredictiveInsight,
-  analyzeTriggers,
-  buildEventTimeline,
-  performComprehensiveEventAnalysis,
-  type EventCategory,
-  type EventNature,
-  type LifeEvent,
-  type EventSajuCorrelation,
-  type DaeunSeunInfo,
-  type CorrelationFactor,
-  type PatternRecognition,
-  type PredictiveInsight,
-  type EventTimeline,
-  type TriggerAnalysis,
-} from './eventCorrelation';
 
 // 성능 최적화/캐싱 시스템
 export {
