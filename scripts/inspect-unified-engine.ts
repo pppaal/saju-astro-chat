@@ -62,6 +62,21 @@ async function main() {
     }
   }
 
+  console.log('\n## 5. 통합 점수 (Matrix ↔ 운명력 정렬)')
+  if (out.unified) {
+    console.log(`  ${out.unified.scores.summary}\n`)
+    console.log(`  도메인         Matrix   Cross    Blended  Grade   Alignment   Verdict`)
+    console.log(`  ${'─'.repeat(110)}`)
+    for (const [key, d] of Object.entries(out.unified.scores.domains)) {
+      const m = d.matrixScore !== undefined ? d.matrixScore.toFixed(1).padEnd(8) : '-'.padEnd(8)
+      const c = d.crossScore !== undefined ? d.crossScore.toFixed(1).padEnd(8) : '-'.padEnd(8)
+      const b = d.blendedScore.toFixed(1).padEnd(8)
+      const g = d.grade.padEnd(7)
+      const a = d.alignment.padEnd(11)
+      console.log(`  ${key.padEnd(14)} ${m} ${c} ${b} ${g} ${a} ${d.verdict}`)
+    }
+  }
+
   console.log('\n' + '='.repeat(72))
 }
 

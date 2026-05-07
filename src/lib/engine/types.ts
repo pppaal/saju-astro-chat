@@ -5,6 +5,7 @@ import type { MainSajuOutput } from '../saju-engine'
 import type { AstroEngineOutput } from '../astro-engine'
 import type { CrossEngineOutput, UserSegment } from '../cross-engine'
 import type { DestinyFusionMatrixComputed } from '../destiny-matrix/types'
+import type { UnifiedScoresOutput } from './enrichers/scoreReconciler'
 
 /** 입력 — 6 페이지에서 공통으로 받는 정보 */
 export interface UnifiedInput {
@@ -45,4 +46,8 @@ export interface UnifiedOutput {
   cross?: CrossEngineOutput
   /** Destiny Matrix (1206 셀) */
   matrix?: DestinyFusionMatrixComputed
+  /** 통합 점수 — Matrix ↔ 운명력 정렬 + blended */
+  unified?: {
+    scores: UnifiedScoresOutput
+  }
 }

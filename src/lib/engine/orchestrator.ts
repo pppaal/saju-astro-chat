@@ -14,6 +14,7 @@ import { runAstroEngine } from '../astro-engine'
 import { runCrossEngine } from '../cross-engine'
 import { calculateDestinyMatrix } from '../destiny-matrix/engine'
 import { buildMatrixInput } from './adapters/matrixAdapter'
+import { reconcileScores } from './enrichers/scoreReconciler'
 import type { UnifiedInput, UnifiedOptions, UnifiedOutput } from './types'
 
 const DEFAULT_LATITUDE = 37.5665
@@ -82,6 +83,14 @@ export async function runUnifiedEngine(
     } catch {
       // matrix 실패 시 무시 (다른 데이터는 살림)
     }
+  }
+
+  // 5. Unified score reconciliation (Matrix ↔ 운명력)
+  if (out.cross || out.matrix) {
+    out.unified = {
+      scores: reconcileScores(out.matrix, out.cross),
+    }
+    components.push('unified')
   }
 
   return out
