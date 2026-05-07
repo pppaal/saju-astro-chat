@@ -16,6 +16,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
 import { buildQuestionContextPrompt } from '@/lib/Tarot/questionFlow'
+import { analyzeTarotQuestionV2 } from '@/lib/Tarot/questionEngineV2'
 import { recordCounter, recordTiming } from '@/lib/metrics'
 import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
 import {
@@ -118,11 +119,61 @@ export const POST = withApiMiddleware(
 
       fallbackCards = validatedCards
       fallbackLanguage = language
-      const normalizedQuestionContext = normalizeQuestionContext(questionContext)
+
+      // Server-side question analysis fallback.
+      // The frontend usually runs questionEngineV2 on the entry page and
+      // passes the result down as questionContext + questionMeta. But many
+      // flows reach the spread page directly (deep links, retries, etc.)
+      // and the LLM ends up with a bare question — that's why the AI was
+      // not picking up subject / focus / intent the way the chat counselors
+      // do. We close the gap here: if the question is non-empty AND the
+      // structured meta wasn't supplied, analyse it server-side before
+      // building the prompt.
+      let resolvedQuestionContext: typeof questionContext = questionContext
+      let resolvedQuestionMeta: typeof questionMeta = questionMeta
+      const trimmedRawQuestion = (userQuestion || '').trim()
+      if (
+        trimmedRawQuestion.length > 0 &&
+        !resolvedQuestionMeta &&
+        (!resolvedQuestionContext ||
+          (typeof resolvedQuestionContext === 'object' &&
+            Object.keys(resolvedQuestionContext as Record<string, unknown>).length === 0))
+      ) {
+        try {
+          const analyzeLanguage: 'ko' | 'en' = language === 'en' ? 'en' : 'ko'
+          const v2 = await analyzeTarotQuestionV2({
+            question: trimmedRawQuestion,
+            language: analyzeLanguage,
+          })
+          if (v2 && !v2.isDangerous) {
+            resolvedQuestionContext = {
+              question_summary: v2.question_summary,
+              direct_answer: v2.direct_answer,
+              question_profile: v2.question_profile,
+              intent: v2.intent,
+            } as unknown as typeof resolvedQuestionContext
+            resolvedQuestionMeta = {
+              intent: v2.intent || undefined,
+              subject: v2.question_profile?.subject?.label || undefined,
+              focus: v2.question_profile?.focus?.label || undefined,
+              timeframe: v2.question_profile?.timeframe?.label || undefined,
+              tone: v2.question_profile?.tone?.label || undefined,
+              questionType: v2.question_profile?.type?.label || undefined,
+            } as unknown as typeof resolvedQuestionMeta
+          }
+        } catch (analyseErr) {
+          logger.warn(
+            '[Tarot interpret] server-side question analysis fell through; proceeding with bare question',
+            { message: analyseErr instanceof Error ? analyseErr.message : String(analyseErr) }
+          )
+        }
+      }
+
+      const normalizedQuestionContext = normalizeQuestionContext(resolvedQuestionContext)
       // questionMeta가 있으면 profile 필드(type/subject/focus/timeframe/tone)는
       // 프롬프트의 "사전 분석" 블록에서 이미 다루므로 중복 제거 — summary/direct_answer만 남김.
       const contextForEnrichment =
-        questionMeta && normalizedQuestionContext
+        resolvedQuestionMeta && normalizedQuestionContext
           ? {
               question_summary: normalizedQuestionContext.question_summary,
               direct_answer: normalizedQuestionContext.direct_answer,
@@ -175,7 +226,7 @@ export const POST = withApiMiddleware(
             enrichedUserQuestion,
             promptSajuContext,
             promptAstroContext,
-            questionMeta
+            resolvedQuestionMeta
           )
           interpretationSource = 'gpt_fallback'
         } catch (gptErr) {
