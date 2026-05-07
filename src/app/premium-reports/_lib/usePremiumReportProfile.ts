@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
 import type { UserProfile } from '@/lib/userProfile'
 import type { ReportProfileInput } from './types'
 import { buildReportProfileInputFromUserProfile } from './shared'
@@ -32,8 +31,6 @@ export function usePremiumReportProfile(
   initialProfileInput: ReportProfileInput | null = null
 ) {
   const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(initialProfileInput)
-  const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
     if (initialProfileInput && !profileInput) {
@@ -60,14 +57,12 @@ export function usePremiumReportProfile(
         gender: local.gender === 'female' ? 'F' : 'M',
         timezone: 'Asia/Seoul',
       })
-      return
     }
-    // No birth info anywhere — bounce to the home modal so the user
-    // fills it once and gets returned here. Matches calendar/counselor.
-    if (pathname) {
-      router.replace(`/?openBirth=1&next=${encodeURIComponent(pathname)}`)
-    }
-  }, [initialProfileInput, profile, profileInput, router, pathname])
+    // If neither source has data, leave profileInput null. Pages show
+    // the embedded form (or their own redirect logic) — pulling the
+    // redirect into this hook ran before profile loading finished and
+    // bounced authenticated users away from their own report.
+  }, [initialProfileInput, profile, profileInput])
 
   return { profileInput, setProfileInput }
 }
