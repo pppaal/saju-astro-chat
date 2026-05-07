@@ -24,8 +24,6 @@ import {
   Layers,
 } from 'lucide-react'
 import {
-  AreaChart,
-  Area,
   XAxis,
   Tooltip,
   ResponsiveContainer,
@@ -193,32 +191,29 @@ export default function DestinyMatrixPlanner({
     }
   }, [selectedImportantDate])
 
-  // --- Daily time flow: 06 / 12 / 18 / 24 시 ---------------------------
-  const dailyTimeFlow = useMemo(() => {
-    const slots = selectedImportantDate?.hourlyTimeSlots
-    if (!slots || (slots.best.length === 0 && slots.worst.length === 0)) {
-      return [
-        { time: '06시', luck: 70 },
-        { time: '12시', luck: 88 },
-        { time: '18시', luck: 75 },
-        { time: '24시', luck: 60 },
-      ]
+  // --- Daily best/worst hours (engine-precise, 24-hour analysis) -------
+  // 엔진은 selectedDate가 *오늘*일 때만 시간대 분석을 yearly 응답에 끼워
+  // 보낸다 (`todayHourlyTimeSlots`). 다른 날짜는 자체 hourlyTimeSlots
+  // 필드가 차 있을 때만 노출 — 그 외엔 placeholder로 정직하게 비운다.
+  const dailyHourlySlots = useMemo(() => {
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    const isToday = selectedDateStr === todayStr
+    const perDay = selectedImportantDate?.hourlyTimeSlots
+    if (perDay && (perDay.best.length > 0 || perDay.worst.length > 0)) {
+      return perDay
     }
-    const all = [...slots.best, ...slots.worst]
-    const closest = (target: number) => {
-      const adjusted = target === 24 ? 0 : target
-      const best = all.reduce((best, cur) =>
-        Math.abs(cur.hour - adjusted) < Math.abs(best.hour - adjusted) ? cur : best,
-      )
-      return Math.round(best.score)
+    if (isToday && data?.todayHourlyTimeSlots) {
+      return data.todayHourlyTimeSlots
     }
-    return [
-      { time: '06시', luck: closest(6) },
-      { time: '12시', luck: closest(12) },
-      { time: '18시', luck: closest(18) },
-      { time: '24시', luck: closest(24) },
-    ]
-  }, [selectedImportantDate])
+    return null
+  }, [today, selectedDateStr, selectedImportantDate, data])
+
+  const formatHour = (h: number): string => {
+    if (h === 0) return '자정 12시'
+    if (h === 12) return '정오 12시'
+    if (h < 12) return `오전 ${h}시`
+    return `오후 ${h - 12}시`
+  }
 
   // --- Daily Dos / Donts ----------------------------------------------
   const dailyDos = useMemo(() => {
@@ -548,7 +543,7 @@ export default function DestinyMatrixPlanner({
                 </h3>
                 <div className="flex items-center gap-4">
                   <div className="flex flex-col items-center justify-center bg-zinc-950/80 p-4 rounded-xl border border-indigo-500/20 min-w-[80px]">
-                    <span className="text-[10px] text-zinc-500 font-bold mb-1">월간 총점</span>
+                    <span className="text-[10px] text-zinc-500 font-bold mb-1">월 평균</span>
                     <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
                       {monthScore}
                     </span>
@@ -742,32 +737,80 @@ export default function DestinyMatrixPlanner({
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2 mb-4">
-                  <Clock className="w-4 h-4 text-cyan-400" /> 시간대별 에너지 흐름
+                  <Clock className="w-4 h-4 text-cyan-400" /> 좋은 시간 · 주의 시간
                 </h3>
-                <div className="h-32 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={dailyTimeFlow} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorTimeLuck" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="time" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#18181b',
-                          border: '1px solid #27272a',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                        }}
-                        itemStyle={{ color: '#22d3ee' }}
-                        formatter={((value: number) => [`${value}점`, '운세 지수']) as never}
-                      />
-                      <Area type="monotone" dataKey="luck" stroke="#22d3ee" strokeWidth={2} fillOpacity={1} fill="url(#colorTimeLuck)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                {dailyHourlySlots ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-[10px] font-bold text-emerald-400 mb-2 tracking-wider">
+                        ↑ BEST
+                      </div>
+                      <ul className="space-y-1.5">
+                        {dailyHourlySlots.best.length > 0 ? (
+                          dailyHourlySlots.best.slice(0, 4).map((s, i) => (
+                            <li
+                              key={`best-${i}`}
+                              className="bg-emerald-900/10 border border-emerald-500/15 px-2.5 py-1.5 rounded-md"
+                            >
+                              <div className="flex items-baseline justify-between gap-2">
+                                <span className="text-xs font-bold text-emerald-200">
+                                  {formatHour(s.hour)}
+                                </span>
+                                <span className="text-[10px] font-bold text-emerald-400">
+                                  {Math.round(s.score)}점
+                                </span>
+                              </div>
+                              {s.reason && (
+                                <p className="text-[10px] text-zinc-400 mt-0.5 leading-snug">
+                                  {s.reason}
+                                </p>
+                              )}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-[11px] text-zinc-500">신호 없음</li>
+                        )}
+                      </ul>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-rose-400 mb-2 tracking-wider">
+                        ↓ WORST
+                      </div>
+                      <ul className="space-y-1.5">
+                        {dailyHourlySlots.worst.length > 0 ? (
+                          dailyHourlySlots.worst.slice(0, 2).map((s, i) => (
+                            <li
+                              key={`worst-${i}`}
+                              className="bg-rose-900/10 border border-rose-500/15 px-2.5 py-1.5 rounded-md"
+                            >
+                              <div className="flex items-baseline justify-between gap-2">
+                                <span className="text-xs font-bold text-rose-200">
+                                  {formatHour(s.hour)}
+                                </span>
+                                <span className="text-[10px] font-bold text-rose-400">
+                                  {Math.round(s.score)}점
+                                </span>
+                              </div>
+                              {s.reason && (
+                                <p className="text-[10px] text-zinc-400 mt-0.5 leading-snug">
+                                  {s.reason}
+                                </p>
+                              )}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-[11px] text-zinc-500">신호 없음</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-zinc-500 leading-relaxed">
+                    이 날의 시간대별 정밀 분석은{' '}
+                    <span className="text-zinc-400 font-medium">달력에서 날짜를 탭</span>하면
+                    상세보기에 표시됩니다.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
