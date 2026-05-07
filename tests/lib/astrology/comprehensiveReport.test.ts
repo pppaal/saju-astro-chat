@@ -196,4 +196,35 @@ describe('buildAstrologyComprehensiveReport', () => {
     expect(report.advancedReadings.partOfFortune.length).toBeGreaterThan(0)
     expect(report.advancedReadings.vertex.length).toBeGreaterThan(0)
   })
+
+  it('every themed section emits advice', () => {
+    const report = buildAstrologyComprehensiveReport(fakeAstrologyData())
+    for (const s of report.themedSections) {
+      expect(Array.isArray(s.advice)).toBe(true)
+    }
+    // At least 3 themed sections should have actionable advice in this fixture.
+    const withAdvice = report.themedSections.filter((s) => s.advice.length > 0).length
+    expect(withAdvice).toBeGreaterThanOrEqual(3)
+  })
+
+  it('every timing section emits advice', () => {
+    const report = buildAstrologyComprehensiveReport(fakeAstrologyData())
+    for (const t of report.timingSections) {
+      expect(t.advice.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('extendedPlacements covers asteroids + Chiron + Lilith + PoF + Vertex', () => {
+    const report = buildAstrologyComprehensiveReport(fakeAstrologyData())
+    const joined = report.extendedPlacements.join('|')
+    expect(joined).toMatch(/Chiron/)
+    expect(joined).toMatch(/Lilith/)
+    expect(joined).toMatch(/Part of Fortune/)
+    expect(joined).toMatch(/Vertex/)
+  })
+
+  it('houseRulers covers all 12 houses (or limits only by missing cusps)', () => {
+    const report = buildAstrologyComprehensiveReport(fakeAstrologyData())
+    expect(report.houseRulers.length).toBe(12)
+  })
 })

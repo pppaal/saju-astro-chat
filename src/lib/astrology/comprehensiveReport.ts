@@ -155,6 +155,7 @@ export interface AstrologyThemedSection {
   band: 'great' | 'good' | 'mixed' | 'caution' | null
   paragraphs: string[]
   bullets: string[]
+  advice: string[]
 }
 
 export type AstrologyTimingLayer = 'daily' | 'monthly' | 'yearly' | 'daewoon'
@@ -167,6 +168,7 @@ export interface AstrologyTimingSection {
   headline: string
   paragraphs: string[]
   bullets: string[]
+  advice: string[]
 }
 
 export interface AstrologyComprehensiveReport {
@@ -174,6 +176,8 @@ export interface AstrologyComprehensiveReport {
   band: 'great' | 'good' | 'mixed' | 'caution'
   domains: AstrologyDomainScore[]
   topPlacements: AstrologyPlacementHighlight[]
+  /** Asteroids / Chiron / Lilith / PoF / Vertex / Node placement lines. */
+  extendedPlacements: string[]
   topAspects: AstrologyAspectHighlight[]
   balance: ChartBalance
   houseRulers: AstrologyHouseRulerSignal[]
@@ -296,8 +300,7 @@ export function buildAstrologyComprehensiveReport(
   const topPlacements = placements
     .slice()
     .sort((a, b) => Math.abs(b.dignity.score) - Math.abs(a.dignity.score))
-    .slice(0, 8)
-  const topAspects = aspects.slice(0, 8)
+  const topAspects = aspects.slice()
   const soulSignals = collectSoulSignals(data)
   const timing = scoreTiming(data, aspects)
   const advancedReadings = collectAdvancedReadings(data)
@@ -313,11 +316,13 @@ export function buildAstrologyComprehensiveReport(
   )
   const timingSections = buildTimingSections(data, timing, aspects)
 
+  const extendedPlacements = collectExtendedPlacements(data)
   return {
     overallScore,
     band: bandFor(overallScore),
     domains,
     topPlacements,
+    extendedPlacements,
     topAspects,
     balance,
     houseRulers,
@@ -371,10 +376,41 @@ function collectPlacements(data: AstrologyData): AstrologyPlacementHighlight[] {
   return out
 }
 
+function collectExtendedPlacements(data: AstrologyData): string[] {
+  // Asteroids + Chiron + Lilith + PoF + Vertex placements as plain readable
+  // signal strings (separate from the AstroPlanetName-typed core list).
+  const out: string[] = []
+  for (const ast of data.advanced.asteroids) {
+    if (!ast.sign) continue
+    const sign = ast.sign as ZodiacName
+    out.push(`${ast.name} ${getSignLabelKo(sign)} (${ast.house}H · ${getAsteroidThemeKo(ast.name as AsteroidName)}) — ${getAsteroidSignInterpretation(ast.name as AsteroidName, sign, 'ko')}`)
+  }
+  const ep = data.advanced.extraPoints
+  if (ep.chiron?.sign) {
+    out.push(`Chiron ${getSignLabelKo(ep.chiron.sign as ZodiacName)} (${ep.chiron.house}H) — ${getChironSignInterpretation(ep.chiron.sign as ZodiacName, 'ko')}; ${getChironHouseInterpretation(ep.chiron.house, 'ko')}.`)
+  }
+  if (ep.lilith?.sign) {
+    out.push(`Lilith ${getSignLabelKo(ep.lilith.sign as ZodiacName)} (${ep.lilith.house}H) — ${getLilithSignInterpretation(ep.lilith.sign as ZodiacName, 'ko')}; ${getLilithHouseInterpretation(ep.lilith.house, 'ko')}.`)
+  }
+  if (ep.partOfFortune?.sign) {
+    out.push(`Part of Fortune ${getSignLabelKo(ep.partOfFortune.sign as ZodiacName)} (${ep.partOfFortune.house}H) — ${getPartOfFortuneSignInterpretation(ep.partOfFortune.sign as ZodiacName, 'ko')}; ${getPartOfFortuneHouseInterpretation(ep.partOfFortune.house, 'ko')}.`)
+  }
+  if (ep.vertex?.sign) {
+    out.push(`Vertex ${getSignLabelKo(ep.vertex.sign as ZodiacName)} (${ep.vertex.house}H) — ${getVertexSignInterpretation(ep.vertex.sign as ZodiacName, 'ko')}.`)
+  }
+  // North Node — already in soulSignals, but include here for unified placement view.
+  const node = data.natal.planets.find((p) => p.name === 'True Node' || p.name === 'Mean Node' || p.name === 'North Node')
+  if (node?.sign) {
+    const ns = node.sign as ZodiacName
+    out.push(`North Node ${getSignLabelKo(ns)} (${node.house}H) — 영혼 방향성.`)
+  }
+  return out
+}
+
 function collectScoredAspects(data: AstrologyData): AstrologyAspectHighlight[] {
   const natalAspects = findNatalAspects(
     data.natal as unknown as Parameters<typeof findNatalAspects>[0],
-    { includeMinor: false, maxResults: 30 }
+    { includeMinor: false, maxResults: 200 }
   )
   const planetByName = new Map<string, { retrograde?: boolean }>()
   for (const p of data.natal.planets) planetByName.set(p.name, { retrograde: p.retrograde })
@@ -410,8 +446,8 @@ function collectHouseRulers(
   data: AstrologyData,
   placements: AstrologyPlacementHighlight[]
 ): AstrologyHouseRulerSignal[] {
-  const angular = [1, 4, 7, 10]
-  return angular
+  const all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  return all
     .map((houseNumber) => {
       const cusp = data.natal.houses[houseNumber - 1]
       if (!cusp || typeof cusp.cusp !== 'number') {
@@ -804,14 +840,14 @@ function collectAdvancedReadings(data: AstrologyData): {
     : ''
 
   const fixedStars: string[] = []
-  for (const fs of data.advanced.fixedStarConjunctions.slice(0, 6)) {
+  for (const fs of data.advanced.fixedStarConjunctions) {
     const planet = fs.planet as AstroPlanetName
     const tone = getFixedStarPlanetTone(planet, 'ko')
     fixedStars.push(`${getPlanetLabelKo(planet)} ☌ ${fs.star.name_ko} (orb ${fs.orb.toFixed(2)}°) — ${tone}. ${fs.star.interpretation}`)
   }
 
   const midpoints: string[] = []
-  for (const m of data.advanced.midpointActivations.slice(0, 8)) {
+  for (const m of data.advanced.midpointActivations) {
     const activator = m.activator as AstroPlanetName
     const aspect = m.aspectType as AspectKindLike
     midpoints.push(
@@ -826,7 +862,7 @@ function collectAdvancedReadings(data: AstrologyData): {
   }
 
   const eclipses: string[] = []
-  for (const ec of data.advanced.eclipseImpacts.slice(0, 8)) {
+  for (const ec of data.advanced.eclipseImpacts) {
     const aspect = ec.aspectType as AspectKindLike
     const line = getEclipseInterpretation({
       aspect,
@@ -838,10 +874,10 @@ function collectAdvancedReadings(data: AstrologyData): {
   }
 
   const draconic: string[] = []
-  for (const al of data.advanced.draconic.alignments.slice(0, 4)) {
+  for (const al of data.advanced.draconic.alignments) {
     draconic.push(`정렬 · ${al.draconicPlanet} ↔ natal ${al.natalPlanet} (orb ${al.orb.toFixed(2)}°) — ${al.meaning}`)
   }
-  for (const t of data.advanced.draconic.tensions.slice(0, 4)) {
+  for (const t of data.advanced.draconic.tensions) {
     draconic.push(`긴장 · ${t.draconicPlanet} ${t.aspectType} natal ${t.natalPlanet} (orb ${t.orb.toFixed(2)}°) — ${t.meaning}`)
   }
   const draconicSummary = data.advanced.draconic.summary
@@ -901,13 +937,25 @@ function buildThemedSections(
   const moon = findPlacement(placements, 'Moon')
   const merc = findPlacement(placements, 'Mercury')
   const asc = findPlacement(placements, 'Ascendant')
+  const uranus = findPlacement(placements, 'Uranus')
+  const pluto = findPlacement(placements, 'Pluto')
   const persParas: string[] = []
-  if (sun) persParas.push(`태양 — ${sun.signal}`)
-  if (moon) persParas.push(`달 — ${moon.signal}`)
-  if (merc) persParas.push(`수성 — ${merc.signal}`)
-  if (asc) persParas.push(`상승궁 — ${asc.signal}`)
+  if (sun) persParas.push(`태양(자아) — ${sun.signal}`)
+  if (moon) persParas.push(`달(정서) — ${moon.signal}`)
+  if (merc) persParas.push(`수성(사고) — ${merc.signal}`)
+  if (asc) persParas.push(`상승궁(외모) — ${asc.signal}`)
+  if (uranus) persParas.push(`천왕성(독립성) — ${uranus.signal}`)
+  if (pluto) persParas.push(`명왕성(권력 코어) — ${pluto.signal}`)
   if (balance.dominantElement) {
-    persParas.push(`원소 균형: ${balance.dominantElement} 우세${balance.weakestElement ? ` / ${balance.weakestElement} 부족` : ''}.`)
+    persParas.push(
+      `원소 균형: 불 ${balance.elements.fire} / 흙 ${balance.elements.earth} / 공기 ${balance.elements.air} / 물 ${balance.elements.water} — ${balance.dominantElement} 우세${balance.weakestElement ? ` / ${balance.weakestElement} 부족` : ''}.`,
+    )
+    persParas.push(
+      `모달리티: 활동 ${balance.modalities.cardinal} / 고정 ${balance.modalities.fixed} / 변동 ${balance.modalities.mutable}.`,
+    )
+    persParas.push(
+      `극성: 양 ${balance.polarity.masculine} / 음 ${balance.polarity.feminine}.`,
+    )
   }
   const persDom = domainByKey.get('personality')
   sections.push({
@@ -917,25 +965,32 @@ function buildThemedSections(
     band: persDom?.band ?? null,
     paragraphs: persParas,
     bullets: [],
+    advice: advicePersonality(sun, moon, asc, balance, persDom),
   })
 
   // ----- Relationship -----
   const venus = findPlacement(placements, 'Venus')
   const mars = findPlacement(placements, 'Mars')
   const seventhRuler = findHouseRuler(houseRulers, 7)
+  const fifthRuler = findHouseRuler(houseRulers, 5)
   const relParas: string[] = []
-  if (venus) relParas.push(`금성 — ${venus.signal}`)
-  if (mars) relParas.push(`화성 — ${mars.signal}`)
-  if (seventhRuler) relParas.push(seventhRuler.signal)
+  if (venus) relParas.push(`금성(애정 방식) — ${venus.signal}`)
+  if (mars) relParas.push(`화성(욕망 방식) — ${mars.signal}`)
+  if (seventhRuler) relParas.push(`7H ${seventhRuler.signal}`)
+  if (fifthRuler) relParas.push(`5H(연애·재미) ${fifthRuler.signal}`)
   const juno = data.advanced.asteroids.find((a) => a.name === 'Juno')
   if (juno?.sign) {
-    relParas.push(`Juno ${getSignLabelKo(juno.sign as ZodiacName)} — ${getAsteroidSignInterpretation('Juno', juno.sign as ZodiacName, 'ko')}`)
+    relParas.push(`Juno ${getSignLabelKo(juno.sign as ZodiacName)} (${juno.house}H) — ${getAsteroidSignInterpretation('Juno', juno.sign as ZodiacName, 'ko')}`)
   }
-  const venusMarsAspect = aspects.find((a) =>
-    (a.fromPlanet === 'Venus' && a.toPlanet === 'Mars') ||
-    (a.fromPlanet === 'Mars' && a.toPlanet === 'Venus')
-  )
-  if (venusMarsAspect) relParas.push(`Venus·Mars 어스펙트 — ${venusMarsAspect.signal}`)
+  // Venus-Mars / Venus-Saturn / Venus-Pluto aspects matter for relationships.
+  for (const a of aspects) {
+    const pair = [a.fromPlanet, a.toPlanet].sort().join('-')
+    if (pair === 'Mars-Venus' || pair === 'Saturn-Venus' || pair === 'Pluto-Venus' || pair === 'Mars-Moon' || pair === 'Pluto-Moon') {
+      relParas.push(`주요 어스펙트 — ${a.signal}`)
+    }
+  }
+  const lilithSig = soulSignals.find((s) => s.kind === 'lilith')
+  if (lilithSig) relParas.push(`친밀의 그림자 — ${lilithSig.signal}`)
   const relDom = domainByKey.get('relationship')
   sections.push({
     theme: 'relationship',
@@ -944,19 +999,41 @@ function buildThemedSections(
     band: relDom?.band ?? null,
     paragraphs: relParas,
     bullets: [],
+    advice: adviceRelationship(venus, mars, lilithSig ?? null, relDom),
   })
 
   // ----- Career -----
   const tenthRuler = findHouseRuler(houseRulers, 10)
+  const sixthRulerForCareer = findHouseRuler(houseRulers, 6)
   const saturn = findPlacement(placements, 'Saturn')
   const jupiter = findPlacement(placements, 'Jupiter')
+  const sunForCareer = findPlacement(placements, 'Sun')
+  const marsForCareer = findPlacement(placements, 'Mars')
   const careerParas: string[] = []
-  if (tenthRuler) careerParas.push(tenthRuler.signal)
+  if (tenthRuler) careerParas.push(`10H ${tenthRuler.signal}`)
   if (data.natal.mc?.sign) {
-    careerParas.push(`MC ${getSignLabelKo(data.natal.mc.sign as ZodiacName)} — 사회상의 결.`)
+    careerParas.push(`MC ${getSignLabelKo(data.natal.mc.sign as ZodiacName)} — 공적 정체성·사회상.`)
   }
-  if (jupiter) careerParas.push(`목성(확장) — ${jupiter.signal}`)
-  if (saturn) careerParas.push(`토성(구조) — ${saturn.signal}`)
+  if (sunForCareer) careerParas.push(`태양(사명 방향) — ${sunForCareer.signal}`)
+  if (jupiter) careerParas.push(`목성(확장 영역) — ${jupiter.signal}`)
+  if (saturn) careerParas.push(`토성(책임·구조) — ${saturn.signal}`)
+  if (marsForCareer) careerParas.push(`화성(에너지 운용) — ${marsForCareer.signal}`)
+  if (sixthRulerForCareer) careerParas.push(`6H(일상 노동) ${sixthRulerForCareer.signal}`)
+  const pallas = data.advanced.asteroids.find((a) => a.name === 'Pallas')
+  if (pallas?.sign) {
+    careerParas.push(`Pallas(전략 지능) ${getSignLabelKo(pallas.sign as ZodiacName)} (${pallas.house}H) — ${getAsteroidSignInterpretation('Pallas', pallas.sign as ZodiacName, 'ko')}`)
+  }
+  const vesta = data.advanced.asteroids.find((a) => a.name === 'Vesta')
+  if (vesta?.sign) {
+    careerParas.push(`Vesta(헌신 영역) ${getSignLabelKo(vesta.sign as ZodiacName)} (${vesta.house}H) — ${getAsteroidSignInterpretation('Vesta', vesta.sign as ZodiacName, 'ko')}`)
+  }
+  // Sun-Saturn / Sun-Jupiter / Saturn-Jupiter / MC aspects for career.
+  for (const a of aspects) {
+    const pair = [a.fromPlanet, a.toPlanet].sort().join('-')
+    if (pair === 'Saturn-Sun' || pair === 'Jupiter-Sun' || pair === 'Jupiter-Saturn' || pair === 'Mars-Saturn') {
+      careerParas.push(`주요 어스펙트 — ${a.signal}`)
+    }
+  }
   const careerDom = domainByKey.get('career')
   sections.push({
     theme: 'career',
@@ -965,17 +1042,28 @@ function buildThemedSections(
     band: careerDom?.band ?? null,
     paragraphs: careerParas,
     bullets: [],
+    advice: adviceCareer(sunForCareer, jupiter, saturn, tenthRuler ?? null, careerDom),
   })
 
   // ----- Wealth -----
   const wealthParas: string[] = []
   const secondRuler = findHouseRuler(houseRulers, 2)
   const eighthRuler = findHouseRuler(houseRulers, 8)
-  if (secondRuler) wealthParas.push(secondRuler.signal)
-  if (eighthRuler) wealthParas.push(eighthRuler.signal)
-  if (jupiter) wealthParas.push(`목성(풍요) — ${jupiter.signal}`)
-  if (venus) wealthParas.push(`금성(가치) — ${venus.signal}`)
+  const eleventhRuler = findHouseRuler(houseRulers, 11)
+  if (secondRuler) wealthParas.push(`2H(자기 자원) ${secondRuler.signal}`)
+  if (eighthRuler) wealthParas.push(`8H(공유 자원·상속) ${eighthRuler.signal}`)
+  if (eleventhRuler) wealthParas.push(`11H(소득·미래 보상) ${eleventhRuler.signal}`)
+  if (jupiter) wealthParas.push(`목성(풍요·확장) — ${jupiter.signal}`)
+  if (venus) wealthParas.push(`금성(가치 평가) — ${venus.signal}`)
+  if (saturn) wealthParas.push(`토성(자원 통제) — ${saturn.signal}`)
   if (advanced.partOfFortune) wealthParas.push(advanced.partOfFortune)
+  // Venus-Jupiter / Venus-Saturn / Sun-Jupiter aspects for wealth.
+  for (const a of aspects) {
+    const pair = [a.fromPlanet, a.toPlanet].sort().join('-')
+    if (pair === 'Jupiter-Venus' || pair === 'Saturn-Venus' || pair === 'Jupiter-Sun') {
+      wealthParas.push(`주요 어스펙트 — ${a.signal}`)
+    }
+  }
   const wealthDom = domainByKey.get('wealth')
   sections.push({
     theme: 'wealth',
@@ -984,15 +1072,31 @@ function buildThemedSections(
     band: wealthDom?.band ?? null,
     paragraphs: wealthParas,
     bullets: [],
+    advice: adviceWealth(jupiter, venus, saturn, advanced.partOfFortune, wealthDom),
   })
 
   // ----- Health -----
   const healthParas: string[] = []
   const sixthRuler = findHouseRuler(houseRulers, 6)
-  if (sixthRuler) healthParas.push(sixthRuler.signal)
-  if (mars) healthParas.push(`화성(에너지) — ${mars.signal}`)
-  if (saturn) healthParas.push(`토성(취약점) — ${saturn.signal}`)
-  if (moon) healthParas.push(`달(생활 리듬) — ${moon.signal}`)
+  const twelfthRuler = findHouseRuler(houseRulers, 12)
+  if (sixthRuler) healthParas.push(`6H(일상·면역) ${sixthRuler.signal}`)
+  if (twelfthRuler) healthParas.push(`12H(만성·무의식) ${twelfthRuler.signal}`)
+  if (mars) healthParas.push(`화성(에너지·염증) — ${mars.signal}`)
+  if (saturn) healthParas.push(`토성(취약점·만성) — ${saturn.signal}`)
+  if (moon) healthParas.push(`달(생활 리듬·정서 면역) — ${moon.signal}`)
+  const ceres = data.advanced.asteroids.find((a) => a.name === 'Ceres')
+  if (ceres?.sign) {
+    healthParas.push(`Ceres(몸·돌봄) ${getSignLabelKo(ceres.sign as ZodiacName)} (${ceres.house}H) — ${getAsteroidSignInterpretation('Ceres', ceres.sign as ZodiacName, 'ko')}`)
+  }
+  const chironSig = soulSignals.find((s) => s.kind === 'chiron')
+  if (chironSig) healthParas.push(`만성 상처 — ${chironSig.signal}`)
+  // Mars-Saturn (energy block), Moon-Saturn (depression risk), Mars-Pluto (over-drive).
+  for (const a of aspects) {
+    const pair = [a.fromPlanet, a.toPlanet].sort().join('-')
+    if (pair === 'Mars-Saturn' || pair === 'Moon-Saturn' || pair === 'Mars-Pluto') {
+      healthParas.push(`주요 어스펙트 — ${a.signal}`)
+    }
+  }
   const healthDom = domainByKey.get('health')
   sections.push({
     theme: 'health',
@@ -1001,6 +1105,7 @@ function buildThemedSections(
     band: healthDom?.band ?? null,
     paragraphs: healthParas,
     bullets: [],
+    advice: adviceHealth(mars, saturn, moon, chironSig ?? null, healthDom),
   })
 
   // ----- Soul -----
@@ -1015,14 +1120,17 @@ function buildThemedSections(
     band: null,
     paragraphs: soulParas,
     bullets: [],
+    advice: adviceSoul(soulSignals, advanced.draconic),
   })
 
   // ----- Structure -----
   const structParas: string[] = []
   for (const hr of houseRulers) structParas.push(hr.signal)
   for (const fs of advanced.fixedStars) structParas.push(fs)
-  const topMidpoints = advanced.midpoints.slice(0, 4)
-  for (const m of topMidpoints) structParas.push(m)
+  for (const m of advanced.midpoints) structParas.push(m)
+  // Dignity overview row.
+  const dignityCounts = countDignities(placements)
+  if (dignityCounts.summary) structParas.push(dignityCounts.summary)
   sections.push({
     theme: 'structure',
     title: THEME_TITLE_KO.structure,
@@ -1030,9 +1138,167 @@ function buildThemedSections(
     band: null,
     paragraphs: structParas,
     bullets: [],
+    advice: adviceStructure(placements, balance),
   })
 
   return sections
+}
+
+// ============================================================
+// Themed advice generators (saju luckyElements style).
+// ============================================================
+
+function advicePersonality(
+  sun: AstrologyPlacementHighlight | undefined,
+  moon: AstrologyPlacementHighlight | undefined,
+  asc: AstrologyPlacementHighlight | undefined,
+  balance: ChartBalance,
+  dom: AstrologyDomainScore | undefined,
+): string[] {
+  const out: string[] = []
+  if (sun?.dignity.kind === 'detriment' || sun?.dignity.kind === 'fall') {
+    out.push(`태양이 ${sun.dignity.label}이라 "남들과 다른 방식"의 자기 증명이 평생 과제. 외부 인정에 휘둘리지 말고 자기 기준을 단단히 잡으세요.`)
+  } else if (sun?.dignity.kind === 'rulership' || sun?.dignity.kind === 'exaltation') {
+    out.push(`태양이 ${sun.dignity.label}로 강함. 자기 정체성을 숨기지 말고 무대로 끌어올리세요.`)
+  }
+  if (moon) {
+    out.push(`정서 회복 루틴: ${getSignLabelKo(moon.sign)}의 결대로 — 그 사인이 편안해하는 환경을 일상에 심으세요.`)
+  }
+  if (asc) {
+    out.push(`외부에 보이는 첫 인상: ${getSignLabelKo(asc.sign)}. 이 결을 의식적으로 활용하면 첫만남 임팩트가 커집니다.`)
+  }
+  if (balance.weakestElement) {
+    out.push(`부족한 ${balance.weakestElement} 원소를 채우세요 — ${ELEMENT_DOMAIN_HINT[balance.weakestElement].join('·')} 영역의 활동.`)
+  }
+  if (dom?.band === 'caution') {
+    out.push('자아 점수 caution — 정체성 흔들림기. 외부 평가보다 자기 의식의 일관성에 집중.')
+  }
+  return out
+}
+
+function adviceRelationship(
+  venus: AstrologyPlacementHighlight | undefined,
+  mars: AstrologyPlacementHighlight | undefined,
+  lilith: AstrologySoulSignal | null,
+  dom: AstrologyDomainScore | undefined,
+): string[] {
+  const out: string[] = []
+  if (venus) out.push(`애정 표현 방식: ${getSignLabelKo(venus.sign)} 결 — 사랑한다고 받아들여지는 언어가 다릅니다.`)
+  if (mars) out.push(`욕망/추진 방식: ${getSignLabelKo(mars.sign)} 결 — 욕구 표현이 자연스러운 채널을 막지 마세요.`)
+  if (venus && mars && getEssentialDignity('Venus', venus.sign).score < 0) {
+    out.push('금성이 약한 자리 — "사랑받기 위한 타협"이 자기 가치를 깎는 패턴 주의.')
+  }
+  if (lilith) out.push('억압된 욕망(릴리스)을 부정하지 말고 의식의 빛 아래 통합하세요. 검열될수록 그림자에서 폭발.')
+  if (dom?.band === 'caution') out.push('관계 점수 caution — 누구를·왜 사랑하는지 다시 정의할 시기.')
+  return out
+}
+
+function adviceCareer(
+  sun: AstrologyPlacementHighlight | undefined,
+  jupiter: AstrologyPlacementHighlight | undefined,
+  saturn: AstrologyPlacementHighlight | undefined,
+  tenthRuler: AstrologyHouseRulerSignal | null,
+  dom: AstrologyDomainScore | undefined,
+): string[] {
+  const out: string[] = []
+  if (jupiter && jupiter.dignity.score >= 4) {
+    out.push(`목성이 ${jupiter.dignity.label} — ${getHouseDomainKo(jupiter.house)} 영역이 평생 확장 자리. 망설이지 말고 그 방향으로 베팅.`)
+  }
+  if (saturn) {
+    out.push(`토성 자리(${getHouseDomainKo(saturn.house)})에서는 빨리 결과 내려고 하지 말고 ${getSignLabelKo(saturn.sign)} 결로 장기 빌드. 7~10년 단위 호흡.`)
+  }
+  if (sun?.dignity.kind === 'detriment' || sun?.dignity.kind === 'fall') {
+    out.push('태양 약함 — "인정받는 방식"이 표준 코스가 아님. 자기 트랙을 따로 만드세요.')
+  }
+  if (tenthRuler?.rulerHouse) {
+    out.push(`커리어 룰러가 ${tenthRuler.rulerHouse}하우스(${getHouseDomainKo(tenthRuler.rulerHouse)})에 있음 — 그 영역의 활동이 곧 커리어의 무게중심.`)
+  }
+  if (dom?.band === 'caution') out.push('커리어 점수 caution — 방향 점검기. 빠른 액션보다 토대 점검.')
+  return out
+}
+
+function adviceWealth(
+  jupiter: AstrologyPlacementHighlight | undefined,
+  venus: AstrologyPlacementHighlight | undefined,
+  saturn: AstrologyPlacementHighlight | undefined,
+  pofLine: string,
+  dom: AstrologyDomainScore | undefined,
+): string[] {
+  const out: string[] = []
+  if (pofLine) out.push('Part of Fortune 자리 — 그 영역에서 자연스러운 행운/이득의 흐름을 의식적으로 활용.')
+  if (jupiter) out.push(`목성 ${getSignLabelKo(jupiter.sign)} ${jupiter.house}H — 이 사인의 결을 자원 확장에 적용.`)
+  if (venus) out.push(`금성 ${getSignLabelKo(venus.sign)} ${venus.house}H — 가치 평가가 이 사인의 결을 따름. 그 결과 무관한 거래는 손해 패턴.`)
+  if (saturn?.dignity.score && saturn.dignity.score > 0) {
+    out.push('토성 단단함 — 자원 통제·저축에 자연스러운 강점.')
+  } else if (saturn) {
+    out.push(`토성 자리(${getHouseDomainKo(saturn.house)})의 시험을 통과해야 자원 안정. 단기 자금에 무리하지 말 것.`)
+  }
+  if (dom?.band === 'caution') out.push('재물 점수 caution — 큰 베팅·과소비 자제. 자원 흐름 점검.')
+  return out
+}
+
+function adviceHealth(
+  mars: AstrologyPlacementHighlight | undefined,
+  saturn: AstrologyPlacementHighlight | undefined,
+  moon: AstrologyPlacementHighlight | undefined,
+  chiron: AstrologySoulSignal | null,
+  dom: AstrologyDomainScore | undefined,
+): string[] {
+  const out: string[] = []
+  if (mars) out.push(`에너지 운용: ${getSignLabelKo(mars.sign)} 결 — 무리하면 ${getSignLabelKo(mars.sign)} 영역의 신체 부위가 신호.`)
+  if (saturn) out.push(`토성 자리(${getHouseDomainKo(saturn.house)}) — 만성 취약점일 수 있음. 정기 점검 영역.`)
+  if (moon) out.push(`달(생활 리듬): ${getSignLabelKo(moon.sign)} — 이 결의 환경이 파괴되면 면역·정서가 무너짐.`)
+  if (chiron) out.push('카이론 — 만성적 상처. 거기를 회피하지 말고 천천히 통합.')
+  if (dom?.band === 'caution') out.push('건강 점수 caution — 수면·식사·운동 기본기 재설정 시기.')
+  return out
+}
+
+function adviceSoul(
+  soulSignals: AstrologySoulSignal[],
+  draconic: string[],
+): string[] {
+  const out: string[] = []
+  const node = soulSignals.find((s) => s.kind === 'north-node')
+  if (node && node.sign) {
+    out.push(`노스 노드 방향(${getSignLabelKo(node.sign)})으로 의식적으로 한 걸음 더. 익숙한 사우스 노드 자리는 편하지만 영혼 과제가 안 풀림.`)
+  }
+  const chiron = soulSignals.find((s) => s.kind === 'chiron')
+  if (chiron) out.push('카이론은 "자기 상처를 통해 타인을 치유" 패턴 — 회피 말고 그 자체를 직업/사명으로 통합 가능.')
+  const lilith = soulSignals.find((s) => s.kind === 'lilith')
+  if (lilith) out.push('릴리스 — 사회가 "여성스럽지 않다/예의 없다"고 검열한 부분이 진짜 힘. 의식의 빛 아래로.')
+  if (draconic.length > 0) out.push('드라코닉 영혼 차트 — 이번 생 자아와 영혼 정체성 사이 간격이 클수록 "이게 나야?"라는 질문이 잦음. 둘을 분리해서 보세요.')
+  return out
+}
+
+function adviceStructure(
+  placements: AstrologyPlacementHighlight[],
+  balance: ChartBalance,
+): string[] {
+  const out: string[] = []
+  const dignified = placements.filter((p) => p.dignity.score >= 4)
+  if (dignified.length > 0) {
+    out.push(`강한 자리(${dignified.map((p) => `${getPlanetLabelKo(p.planet)}-${getSignLabelKo(p.sign)}`).join(', ')}) — 차트의 무게중심. 이 행성들이 곧 본인의 정통적 강점.`)
+  }
+  const weakened = placements.filter((p) => p.dignity.score <= -3)
+  if (weakened.length > 0) {
+    out.push(`약한 자리(${weakened.map((p) => `${getPlanetLabelKo(p.planet)}-${getSignLabelKo(p.sign)}`).join(', ')}) — 평생 과제. 약점이 아니라 의식적 작업 영역.`)
+  }
+  if (balance.dominantElement && balance.weakestElement) {
+    out.push(`${balance.dominantElement} 우세 / ${balance.weakestElement} 부족 — 부족한 원소 영역의 활동·사람을 가까이.`)
+  }
+  return out
+}
+
+function countDignities(placements: AstrologyPlacementHighlight[]): { summary: string } {
+  const counts: Record<string, number> = {}
+  for (const p of placements) {
+    if (p.planet === 'Ascendant') continue
+    counts[p.dignity.label] = (counts[p.dignity.label] ?? 0) + 1
+  }
+  const parts = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, n]) => `${label} ${n}`)
+  return { summary: parts.length ? `Dignity 분포 — ${parts.join(' / ')}` : '' }
 }
 
 // ============================================================
@@ -1064,7 +1330,7 @@ function buildTimingSections(
   // ----- Daily -----
   {
     const aspectLines: string[] = []
-    for (const a of data.daily.aspects.slice(0, 5)) {
+    for (const a of data.daily.aspects) {
       const fromP = a.from.name as AstroPlanetName
       const toP = a.to.name as AstroPlanetName
       const kind = a.type as AspectKind
@@ -1079,20 +1345,23 @@ function buildTimingSections(
       headline: t.headline,
       paragraphs: aspectLines.length ? aspectLines : ['오늘의 트랜짓 데이터가 충분하지 않습니다.'],
       bullets: [],
+      advice: adviceForBand(t.band, 'daily'),
     })
   }
 
-  // ----- Monthly (lunar return + active eclipses ±60d) -----
+  // ----- Monthly (lunar return) -----
   {
     const lines: string[] = []
-    const lunarMoon = data.monthly.planets.find((p) => p.name === 'Moon')
-    if (lunarMoon?.sign) {
-      const sign = lunarMoon.sign as ZodiacName
-      lines.push(`이번 달 달이 ${getSignLabelKo(sign)} (${lunarMoon.house}하우스) — ${getPlanetSignInterpretation('Moon', sign, 'ko')}`)
+    for (const p of data.monthly.planets) {
+      if (!p.sign) continue
+      const sign = p.sign as ZodiacName
+      lines.push(`이번 달 ${p.name} ${getSignLabelKo(sign)} (${p.house}H) — ${getPlanetSignInterpretation(p.name as AstroPlanetName, sign, 'ko')}`)
     }
+    const monthlyAspects = findChartAspects(data.monthly)
+    for (const a of monthlyAspects) lines.push(`이번 달 차트 어스펙트 · ${a}`)
     const recentEclipses = data.advanced.eclipseImpacts.filter((ec) =>
       isWithinDays(ec.eclipse.date, refIso, 60)
-    ).slice(0, 3)
+    )
     for (const ec of recentEclipses) {
       const aspect = ec.aspectType as AspectKindLike
       lines.push(`${ec.eclipse.date} ${ec.eclipse.type === 'solar' ? '일식' : '월식'} → ${ec.affectedPoint}: ${getEclipseInterpretation({ aspect, axis: ec.affectedPoint, house: ec.house, language: 'ko' })}`)
@@ -1106,20 +1375,23 @@ function buildTimingSections(
       headline: t.headline,
       paragraphs: lines.length ? lines : ['월간 데이터 부족.'],
       bullets: [],
+      advice: adviceForBand(t.band, 'monthly', recentEclipses.length),
     })
   }
 
-  // ----- Yearly (solar return + eclipses ±180d) -----
+  // ----- Yearly (solar return) -----
   {
     const lines: string[] = []
-    const solarSun = data.yearly.planets.find((p) => p.name === 'Sun')
-    if (solarSun?.sign) {
-      const sign = solarSun.sign as ZodiacName
-      lines.push(`올해 태양이 ${getSignLabelKo(sign)} (${solarSun.house}하우스) — ${getPlanetSignInterpretation('Sun', sign, 'ko')}`)
+    for (const p of data.yearly.planets) {
+      if (!p.sign) continue
+      const sign = p.sign as ZodiacName
+      lines.push(`올해 ${p.name} ${getSignLabelKo(sign)} (${p.house}H) — ${getPlanetSignInterpretation(p.name as AstroPlanetName, sign, 'ko')}`)
     }
+    const yearlyAspects = findChartAspects(data.yearly)
+    for (const a of yearlyAspects) lines.push(`올해 차트 어스펙트 · ${a}`)
     const yearlyEclipses = data.advanced.eclipseImpacts.filter((ec) =>
       isWithinDays(ec.eclipse.date, refIso, 180)
-    ).slice(0, 5)
+    )
     for (const ec of yearlyEclipses) {
       const aspect = ec.aspectType as AspectKindLike
       lines.push(`${ec.eclipse.date} ${ec.eclipse.type === 'solar' ? '일식' : '월식'} → ${ec.affectedPoint}: ${getEclipseInterpretation({ aspect, axis: ec.affectedPoint, house: ec.house, language: 'ko' })}`)
@@ -1133,24 +1405,22 @@ function buildTimingSections(
       headline: t.headline,
       paragraphs: lines.length ? lines : ['연간 데이터 부족.'],
       bullets: [],
+      advice: adviceForBand(t.band, 'yearly', yearlyEclipses.length),
     })
   }
 
   // ----- Daewoon (progressed) -----
   {
     const lines: string[] = []
-    const progSun = data.daewoon.planets.find((p) => p.name === 'Sun')
-    if (progSun?.sign) {
-      const sign = progSun.sign as ZodiacName
-      lines.push(`진행 태양 ${getSignLabelKo(sign)} (${progSun.house}하우스) — ${getPlanetSignInterpretation('Sun', sign, 'ko')}`)
+    for (const p of data.daewoon.planets) {
+      if (!p.sign) continue
+      const sign = p.sign as ZodiacName
+      lines.push(`진행 ${p.name} ${getSignLabelKo(sign)} (${p.house}H) — ${getPlanetSignInterpretation(p.name as AstroPlanetName, sign, 'ko')}`)
     }
-    const progMoon = data.daewoon.planets.find((p) => p.name === 'Moon')
-    if (progMoon?.sign) {
-      const sign = progMoon.sign as ZodiacName
-      lines.push(`진행 달 ${getSignLabelKo(sign)} (${progMoon.house}하우스) — ${getPlanetSignInterpretation('Moon', sign, 'ko')}`)
-    }
-    // Top 3 most-charged natal aspects (long-term life themes).
-    for (const a of natalAspects.slice(0, 3)) {
+    const progAspects = findChartAspects(data.daewoon)
+    for (const a of progAspects) lines.push(`진행 차트 내부 어스펙트 · ${a}`)
+    // Long-term natal life themes.
+    for (const a of natalAspects.slice(0, 6)) {
       lines.push(`평생 테마 · ${a.signal}`)
     }
     const t = timing.daewoon
@@ -1162,10 +1432,80 @@ function buildTimingSections(
       headline: t.headline,
       paragraphs: lines.length ? lines : ['진행 데이터 부족.'],
       bullets: [],
+      advice: adviceForBand(t.band, 'daewoon'),
     })
   }
 
   return sections
+}
+
+function findChartAspects(chart: { planets: { name: string; longitude: number; sign?: string }[] }): string[] {
+  const planets = chart.planets.filter((p) => Number.isFinite(p.longitude))
+  const out: string[] = []
+  const ASPECTS: { kind: AspectKind; angle: number; orb: number }[] = [
+    { kind: 'conjunction', angle: 0, orb: 8 },
+    { kind: 'sextile', angle: 60, orb: 4 },
+    { kind: 'square', angle: 90, orb: 6 },
+    { kind: 'trine', angle: 120, orb: 6 },
+    { kind: 'opposition', angle: 180, orb: 8 },
+  ]
+  for (let i = 0; i < planets.length; i += 1) {
+    for (let j = i + 1; j < planets.length; j += 1) {
+      const a = planets[i]
+      const b = planets[j]
+      let diff = Math.abs(a.longitude - b.longitude) % 360
+      if (diff > 180) diff = 360 - diff
+      for (const asp of ASPECTS) {
+        const off = Math.abs(diff - asp.angle)
+        if (off <= asp.orb) {
+          const pairLine = getAspectPairInterpretation({
+            fromPlanet: a.name,
+            toPlanet: b.name,
+            kind: asp.kind,
+            language: 'ko',
+          })
+          out.push(`${a.name} ${getAspectKoLabel(asp.kind)} ${b.name} (orb ${off.toFixed(1)}°) — ${pairLine}`)
+        }
+      }
+    }
+  }
+  return out.slice(0, 12)
+}
+
+function adviceForBand(
+  band: 'great' | 'good' | 'mixed' | 'caution',
+  layer: AstrologyTimingLayer,
+  eclipseCount = 0,
+): string[] {
+  const out: string[] = []
+  const horizon: Record<AstrologyTimingLayer, string> = {
+    daily: '오늘',
+    monthly: '이번 달',
+    yearly: '올해',
+    daewoon: '이 대운기',
+  }
+  const window = horizon[layer]
+  switch (band) {
+    case 'great':
+      out.push(`${window} 흐름이 매우 좋음 — 미루던 일을 시작·확장하기 좋은 시기.`)
+      break
+    case 'good':
+      out.push(`${window} 흐름이 양호 — 큰 전환보다는 꾸준한 빌드에 적합.`)
+      break
+    case 'mixed':
+      out.push(`${window} 흐름 혼재 — 명확한 우선순위 한두 개만 잡고 나머지는 보류.`)
+      break
+    case 'caution':
+      out.push(`${window} 마찰이 큼 — 주요 결정·이동·계약은 다음 시기로 미루는 게 안전.`)
+      break
+  }
+  if (eclipseCount > 0) {
+    out.push(`${window} 활성 이클립스 ${eclipseCount}개 — 정체성·관계·구조 중 하나가 의도와 무관하게 재편될 수 있음. 저항보다 흐름을 읽고 따라가세요.`)
+  }
+  if (layer === 'daewoon') {
+    out.push('대운기 advice: 이 시기는 단년 사이클이 아니라 7~30년 호흡. 진행 행성이 가리키는 사인의 결로 인생 무게중심을 옮기세요.')
+  }
+  return out
 }
 
 // Re-export dignity types for convenience.
