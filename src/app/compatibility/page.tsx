@@ -201,12 +201,7 @@ export default function CompatPage() {
 
   return (
     <ServicePageLayout
-      icon={'\u{1F495}'}
       title={compatT('compatibilityPage.analysisTitle', 'Compatibility Analysis')}
-      subtitle={compatT(
-        'compatibilityPage.analysisSubtitle',
-        'Discover relationship compatibility through astrological birth data'
-      )}
       onBack={handleBack}
       backLabel={compatT('compatibilityPage.backToForm', 'Back')}
       compact={!resultText}
@@ -228,14 +223,15 @@ export default function CompatPage() {
                 handleSubmit()
               }}
             >
-              {/* Load Profile Button */}
+              {/* Load Profile \u2014 compact pill so it doesn't dominate the
+                  top of the form on phones. The same action also exists
+                  per-card via PersonCardHeader's circle import button. */}
               {!profileLoadedMsg && (
                 <button
                   type="button"
                   onClick={handleLoadProfile}
                   disabled={loadingProfileBtn}
-                  className="w-full mb-5 p-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700
-                    text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-indigo-400/40 bg-indigo-500/15 px-3 py-1 text-[12px] text-indigo-100 transition-colors hover:border-indigo-300/60 hover:bg-indigo-500/25 disabled:opacity-50"
                 >
                   <span>{loadingProfileBtn ? '\u23F3' : '\u{1F464}'}</span>
                   <span>
@@ -248,14 +244,14 @@ export default function CompatPage() {
 
               {/* Profile loaded success message */}
               {profileLoadedMsg && (
-                <div className="mb-5 p-3 bg-green-600/20 border border-green-600 rounded-lg text-green-400 text-center">
+                <div className="mb-3 px-3 py-1.5 bg-green-600/20 border border-green-600/40 rounded-md text-green-400 text-[12px] text-center">
                   {'\u2713'} {compatT('compatibilityPage.profileLoaded', 'Profile loaded!')}
                 </div>
               )}
 
               {/* Profile load error */}
               {profileLoadError && (
-                <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
+                <div className="mb-3 px-3 py-1.5 bg-red-600/20 border border-red-600/40 rounded-md text-red-400 text-[12px]">
                   {'\u26A0\uFE0F'} {profileLoadError}
                 </div>
               )}

@@ -158,7 +158,9 @@ export const PersonCard = React.memo<PersonCardProps>(
           circleImportButton={headerButton}
         />
 
-        {/* Quick / detailed mode toggle */}
+        {/* Quick / detailed mode toggle. Hint paragraph hidden on phones to
+            keep both person cards visible without scrolling \u2014 the toggle
+            label itself communicates the mode. */}
         <div className={styles.modeToggle}>
           <button
             type="button"
@@ -177,14 +179,6 @@ export const PersonCard = React.memo<PersonCardProps>(
                 : t('compatibilityPage.quickMode', 'Quick Mode')}
             </span>
           </button>
-          <p className={styles.modeHint}>
-            {isDetailedMode
-              ? t(
-                  'compatibilityPage.detailedModeHint',
-                  'Includes birth time and location for precise analysis'
-                )
-              : t('compatibilityPage.quickModeHint', 'Name and birth date only - fast and simple')}
-          </p>
         </div>
         <div className={styles.grid}>
           {/* Required fields: name, date of birth (always shown) */}
