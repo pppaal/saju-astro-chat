@@ -65,6 +65,10 @@ if (out.cycles.currentDaeun) {
   const cd = out.cycles.currentDaeun
   const sib = cd.sibsin as { cheon?: string; ji?: string } | undefined
   console.log(`  현재 대운: ${cd.age}세~ ${cd.heavenlyStem}${cd.earthlyBranch} (천간 ${sib?.cheon}, 지지 ${sib?.ji})  ← 지금`)
+  if (cd.phase) {
+    const phaseLabel = cd.phase === 'stem' ? '천간기 (전반 5년)' : '지지기 (후반 5년)'
+    console.log(`         ${phaseLabel} — 단계 진행 ${Math.round((cd.phaseProgress ?? 0) * 100)}% (시작 ${cd.phaseStartAge}세)`)
+  }
 }
 console.log(`  전체 cycles (${out.cycles.daeunCycles.length}개):`)
 for (const c of out.cycles.daeunCycles) {
@@ -95,7 +99,21 @@ const showInput = (input: Record<string, unknown>) => {
       (input.kibsinElements as string[]).includes(input.cycleStemElement as string) &&
       '기신✗',
   ].filter(Boolean).join(' ')
-  return [cheon, ji, flags, ctx].filter(Boolean).join(' | ')
+  // Phase 1.15~1.19 신규 boolean 표시
+  const newFlags = [
+    input.geokgukShift && input.geokgukShift !== 'neutral' &&
+      `격국:${input.geokgukShift}(강도${input.geokgukShiftIntensity ?? 0})`,
+    input.hasGongmangResolution && '沖空+',
+    input.hasGongmangLock && '合空-',
+    input.hasHwaCompletion && '진짜化+',
+    input.hasSamgiCompletion && '삼기✓',
+    input.isSamjaeYear && `삼재(${input.samjaePhase ?? '?'})-`,
+    input.hasGwiin && '귀인+',
+    input.hasYeokma && '역마',
+    input.hasYangin && '양인-',
+    input.hasGongmang && '공망-',
+  ].filter(Boolean).join(' ')
+  return [cheon, ji, flags, ctx, newFlags].filter(Boolean).join(' | ')
 }
 const pct = (v: number, max: number) => `${((v / max) * 100).toFixed(0)}%`
 console.log(`  대운 점수: ${out.scores.daeunScore.toFixed(2)} / 8   (${pct(out.scores.daeunScore, 8)})`)
@@ -144,6 +162,7 @@ type GeokgukShiftBlock = {
   intensity: number
   reasons: string[]
   summary: string
+  transformedTo?: { geokguk: string; by: string; sibsin: string }
 }
 type SamgiBlock = { state: string; type?: string; completingStem?: string; natalStems?: string[]; summary: string }
 type HwaBlock = {
@@ -193,6 +212,9 @@ const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteract
   console.log(`    격국변동: ${g.summary}`)
   for (const r of g.reasons) {
     console.log(`            · ${r}`)
+  }
+  if (g.transformedTo) {
+    console.log(`            ⤳ 일시 변질: ${g.transformedTo.geokguk} (${g.transformedTo.by} ${g.transformedTo.sibsin})`)
   }
   const j = c.johuShift
   console.log(`    조후변화: ${j.summary}`)

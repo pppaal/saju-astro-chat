@@ -719,9 +719,9 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     const kinds = new Set(entry.shinsalActivation.hits.map((h) => h.kind))
     if (kinds.has('공망풀림')) target.hasGongmangResolution = true
     if (kinds.has('공망묶임')) target.hasGongmangLock = true
-    // hwaTransform 진짜 化 일 때만 (일간 합 = significance 3 또는 quality=true)
+    // 진짜 化 만 hasHwaCompletion=true (단순 합·假合은 제외)
     const hwa = entry.hwaTransform.primaryEvent
-    if (hwa && (hwa.quality === 'true' || hwa.significance >= 3)) {
+    if (hwa && hwa.quality === 'true') {
       target.hasHwaCompletion = true
     }
     if (entry.samgi.state === 'cycle_completes') target.hasSamgiCompletion = true
