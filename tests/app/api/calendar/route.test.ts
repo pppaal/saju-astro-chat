@@ -83,8 +83,8 @@ vi.mock('@/lib/astrology/foundation/aspects', () => ({
   ]),
 }))
 
-vi.mock('@/app/api/calendar/lib/liteYearlyDates', () => ({
-  calculateYearlyImportantDatesLite: vi.fn(),
+vi.mock('@/app/api/calendar/lib/yearlyDates', () => ({
+  calculateYearlyImportantDates: vi.fn(),
 }))
 
 vi.mock('@/lib/cache/redis-cache', () => ({
@@ -371,7 +371,7 @@ vi.mock('@/i18n/locales/en', () => ({
 import { GET } from '@/app/api/calendar/route'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
-import { calculateYearlyImportantDatesLite } from '@/app/api/calendar/lib/liteYearlyDates'
+import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
 import { cacheOrCalculate } from '@/lib/cache/redis-cache'
 import { apiClient } from '@/lib/api/ApiClient'
 import { logger } from '@/lib/logger'
@@ -496,7 +496,7 @@ describe('Calendar API Route - /api/calendar', () => {
       mc: { name: 'MC', sign: 'Capricorn', house: 10, longitude: 0, degree: 0, minute: 0, formatted: 'Capricorn 0°' },
       houses: Array.from({ length: 12 }, (_, i) => ({ index: i + 1, cusp: i * 30, formatted: `H${i + 1}`, sign: 'Aries' })),
     } as any)
-    vi.mocked(calculateYearlyImportantDatesLite).mockReturnValue(mockImportantDates as any)
+    vi.mocked(calculateYearlyImportantDates).mockReturnValue(mockImportantDates as any)
   })
 
   afterEach(() => {
@@ -738,7 +738,7 @@ describe('Calendar API Route - /api/calendar', () => {
 
       expect(response.status).toBe(200)
       expect(data.year).toBe(2025)
-      expect(vi.mocked(calculateYearlyImportantDatesLite)).toHaveBeenCalledWith(
+      expect(vi.mocked(calculateYearlyImportantDates)).toHaveBeenCalledWith(
         2025,
         expect.any(Object),
         expect.any(Object),
@@ -1328,7 +1328,7 @@ describe('Calendar API Route - /api/calendar', () => {
         recommendationKeys: [],
         warningKeys: [],
       }))
-      vi.mocked(calculateYearlyImportantDatesLite).mockReturnValue(manyDates as any)
+      vi.mocked(calculateYearlyImportantDates).mockReturnValue(manyDates as any)
 
       const request = createRequest({ birthDate: '1990-01-15' })
 
@@ -1352,7 +1352,7 @@ describe('Calendar API Route - /api/calendar', () => {
         recommendationKeys: [],
         warningKeys: [],
       }))
-      vi.mocked(calculateYearlyImportantDatesLite).mockReturnValue(manyDates as any)
+      vi.mocked(calculateYearlyImportantDates).mockReturnValue(manyDates as any)
 
       const request = createRequest({ birthDate: '1990-01-15' })
 
@@ -1365,7 +1365,7 @@ describe('Calendar API Route - /api/calendar', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty date results', async () => {
-      vi.mocked(calculateYearlyImportantDatesLite).mockReturnValue([])
+      vi.mocked(calculateYearlyImportantDates).mockReturnValue([])
 
       const request = createRequest({ birthDate: '1990-01-15' })
 

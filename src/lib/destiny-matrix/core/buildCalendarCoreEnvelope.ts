@@ -71,7 +71,7 @@ function buildCalendarFusionReport(
   return {
     id: `calendar-core-${currentPeriodName}`,
     generatedAt: new Date(),
-    version: 'calendar-lite-v1',
+    version: 'calendar-engine-v1',
     lang,
     profile: {
       dayMasterElement: input.dayMasterElement,

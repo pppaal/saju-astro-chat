@@ -63,7 +63,7 @@ function summarizeCycleInteractions(
 
 type CalendarLocale = 'ko' | 'en'
 
-type LiteMatrixCalendarContext = {
+type YearlyMatrixCalendarContext = {
   overlapTimeline?: MonthlyOverlapPoint[]
   overlapTimelineByDomain?: Partial<Record<DomainKey, MonthlyOverlapPoint[]>>
   timingCalibration?: TimingCalibrationSummary
@@ -77,7 +77,7 @@ type LiteMatrixCalendarContext = {
   >
 }
 
-export interface LiteImportantDate {
+export interface YearlyImportantDate {
   date: string
   grade: ImportanceGrade
   score: number
@@ -154,19 +154,19 @@ export interface LiteImportantDate {
   }
 }
 
-type LiteOptions = {
+type YearlyOptions = {
   category?: EventCategory
   limit?: number
   minGrade?: ImportanceGrade
   locale?: CalendarLocale
-  matrixContext?: LiteMatrixCalendarContext | null
+  matrixContext?: YearlyMatrixCalendarContext | null
   /** ISO date string ("1995-02-09") or birth year. Used to resolve which
    *  10-year 대운 cycle the user is currently in when sajuProfile lacks a
    *  birthYear field. */
   birthDate?: string
   birthYear?: number
   /** Pre-computed transit aspect score per date (0-100). Keyed by
-   *  YYYY-MM-DD. When present, lite generator folds this into the score
+   *  YYYY-MM-DD. When present, engine folds this into the score
    *  blend as a real astrology axis. */
   dailyTransitScores?: Record<string, number>
   dailyTransitTightest?: Record<
@@ -298,7 +298,7 @@ function seasonElement(month: number): 'wood' | 'fire' | 'earth' | 'metal' | 'wa
 }
 
 // seasonElementOfBranch lives in @/lib/Saju/datePillars (elementOfBranch)
-// so saju engine + lite calendar share one mapping.
+// so saju engine + calendar engine share one mapping.
 
 const ELEMENT_RELATIONS: Record<string, Record<string, 'same' | 'support' | 'drain' | 'control' | 'controlled'>> = {
   wood: { wood: 'same', fire: 'drain', earth: 'control', metal: 'controlled', water: 'support' },
@@ -916,7 +916,7 @@ function getMonthStrength(rows: MonthlyOverlapPoint[] | undefined, month: string
 }
 
 function getDomainBase(
-  matrixContext: LiteMatrixCalendarContext | null | undefined,
+  matrixContext: YearlyMatrixCalendarContext | null | undefined,
   domain: DomainKey
 ): number {
   const raw = matrixContext?.domainScores?.[domain]?.finalScoreAdjusted
@@ -925,7 +925,7 @@ function getDomainBase(
 }
 
 function pickTopDomains(
-  matrixContext: LiteMatrixCalendarContext | null | undefined,
+  matrixContext: YearlyMatrixCalendarContext | null | undefined,
   currentMonthKey: string
 ): Array<{ domain: DomainKey; score: number }> {
   const domains: DomainKey[] = ['career', 'love', 'money', 'health', 'move']
@@ -1687,14 +1687,14 @@ function buildWarnings(
   return [pickBySeed(`${seed}|warn0`, general)]
 }
 
-export function calculateYearlyImportantDatesLite(
+export function calculateYearlyImportantDates(
   year: number,
   sajuProfile: UserSajuProfile,
   astroProfile: UserAstroProfile,
-  options?: LiteOptions
-): LiteImportantDate[] {
+  options?: YearlyOptions
+): YearlyImportantDate[] {
   const locale = options?.locale || 'ko'
-  const results: LiteImportantDate[] = []
+  const results: YearlyImportantDate[] = []
   const start = new Date(year, 0, 1)
   const end = new Date(year, 11, 31)
   const reliability = clamp(
@@ -1780,8 +1780,8 @@ export function calculateYearlyImportantDatesLite(
   // these are the moments practitioners flag. We surface them so the user
   // doesn't have to read the ganji and run the comparison themselves.
   type CycleSlot = { id: string; label: string; stem: string; branch: string }
-  const interactionFor = (a: CycleSlot, b: CycleSlot): LiteImportantDate['cycleInteractions'] => {
-    const out: NonNullable<LiteImportantDate['cycleInteractions']> = []
+  const interactionFor = (a: CycleSlot, b: CycleSlot): YearlyImportantDate['cycleInteractions'] => {
+    const out: NonNullable<YearlyImportantDate['cycleInteractions']> = []
     const pair = `${a.label}↔${b.label}`
     if (a.stem && b.stem && STEM_HAP_PARTNER[a.stem]?.partner === b.stem) {
       out.push({
@@ -1848,7 +1848,7 @@ export function calculateYearlyImportantDatesLite(
     sewoon: { ganji: string },
     wolwoon: { ganji: string },
     iljin: { ganji: string }
-  ): LiteImportantDate['cycleInteractions'] => {
+  ): YearlyImportantDate['cycleInteractions'] => {
     const split = (g: string): { stem: string; branch: string } => ({
       stem: g.charAt(0) || '',
       branch: g.charAt(1) || '',
@@ -1860,7 +1860,7 @@ export function calculateYearlyImportantDatesLite(
       { id: 'wolwoon', label: '월운', ...split(wolwoon.ganji) },
       { id: 'iljin', label: '일운', ...split(iljin.ganji) },
     ]
-    const out: NonNullable<LiteImportantDate['cycleInteractions']> = []
+    const out: NonNullable<YearlyImportantDate['cycleInteractions']> = []
     for (let i = 0; i < slots.length; i++) {
       for (let j = i + 1; j < slots.length; j++) {
         const hits = interactionFor(slots[i], slots[j]) || []
@@ -2265,7 +2265,7 @@ export function calculateYearlyImportantDatesLite(
       })(),
       confidence: Math.round(clamp(primaryStrength * 100, 0, 100)),
       confidenceNote:
-        locale === 'ko' ? '캘린더 경량 스코어링 기준' : 'Calendar lite scoring baseline',
+        locale === 'ko' ? '캘린더 스코어링 기준' : 'Calendar scoring baseline',
       crossAgreementPercent,
       glossary: (() => {
         // 본문에 등장한 한글 용어를 골라 풀이를 첨부 (KO/EN 둘 다 지원 — EN도 한글 용어가 본문에 박힐 수 있음)

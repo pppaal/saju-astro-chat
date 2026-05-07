@@ -1,4 +1,4 @@
-import { calculateYearlyImportantDatesLite } from '@/app/api/calendar/lib/liteYearlyDates'
+import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
 import type { UserSajuProfile, UserAstroProfile } from '@/lib/destiny-map/calendar/types'
 
 const sajuProfile: UserSajuProfile = {
@@ -64,7 +64,7 @@ const matrixContext = {
   timingCalibration: { reliabilityScore: 0.65 },
 }
 
-const dates = calculateYearlyImportantDatesLite(2026, sajuProfile, astroProfile, {
+const dates = calculateYearlyImportantDates(2026, sajuProfile, astroProfile, {
   locale: 'ko',
   matrixContext: matrixContext as never,
 })
@@ -73,7 +73,7 @@ const total = dates.length
 const byGrade: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 }
 for (const d of dates) byGrade[d.grade] = (byGrade[d.grade] || 0) + 1
 
-console.log('=== 2026년 캘린더 해석 출력 (lite 베이스) ===\n')
+console.log('=== 2026년 캘린더 해석 출력 (엔진 베이스) ===\n')
 console.log(`총 일수: ${total}`)
 console.log(`등급 분포: 0(대길)=${byGrade[0]} 1(길)=${byGrade[1]} 2(보통)=${byGrade[2]} 3(흉)=${byGrade[3]} 4(대흉)=${byGrade[4]}\n`)
 

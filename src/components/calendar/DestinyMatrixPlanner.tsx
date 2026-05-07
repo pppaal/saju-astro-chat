@@ -234,7 +234,7 @@ export default function DestinyMatrixPlanner({
   }, [selectedImportantDate])
 
   // --- Stats: domain sync radar ---------------------------------------
-  // sajuAxis / astroAxis는 엔진의 모든 일자에 항상 들어옴 (liteYearlyDates.ts).
+  // sajuAxis / astroAxis는 엔진의 모든 일자에 항상 들어옴 (yearlyDates.ts).
   const domainSyncData = useMemo(() => {
     if (!data?.allDates || data.allDates.length === 0) return null
     return DOMAIN_RADAR_TARGETS.map(({ key, label }) => {

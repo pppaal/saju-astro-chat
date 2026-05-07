@@ -5,7 +5,7 @@
  * Query: birthDate, birthTime?, gender?, date (YYYY-MM-DD), timezone?
  *
  * Runs the full per-date analyzer (사주/점성/다층/고급/일진) for ONE date.
- * The 365-day list still comes from /api/calendar (lite + matrix);
+ * The 365-day list still comes from /api/calendar (engine + matrix);
  * this endpoint is what the UI hits when the user opens a single day or
  * when the action planner needs deep evidence.
  */
@@ -24,10 +24,10 @@ import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { STEM_TO_ELEMENT } from '@/lib/Saju/constants'
 import { analyzeDate } from '@/lib/destiny-map/calendar/date-analysis-orchestrator'
-import { calculateYearlyImportantDatesLite } from '@/app/api/calendar/lib/liteYearlyDates'
+import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
 import { getPillarStemName, getPillarBranchName } from '@/app/api/calendar/lib/helpers'
 import { cacheOrCalculate, cacheGet, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
-import type { LiteImportantDate } from '@/app/api/calendar/lib/liteYearlyDates'
+import type { YearlyImportantDate } from '@/app/api/calendar/lib/yearlyDates'
 import type {
   UserSajuProfile,
   UserAstroProfile,
@@ -132,7 +132,7 @@ export const GET = withApiMiddleware(
       },
     } as UserSajuProfile
 
-    // Advanced natal analysis — strength, geokguk, yongsin. The lite
+    // Advanced natal analysis — strength, geokguk, yongsin. The engine
     // generator's score ladder already uses yongsin alignment if the
     // profile carries it; calling analyzeAdvancedSaju here populates
     // those fields so per-date scoring is yongsin-aware AND we can
@@ -174,7 +174,7 @@ export const GET = withApiMiddleware(
         },
         summary: `${advanced.strength.level} ${advanced.geokguk.type}, 용신 ${advanced.yongsin.primary}${kibsin ? ` · 기신 ${kibsin}` : ''}`,
       }
-      // Inject yongsin into sajuProfile so the lite generator's yongsin
+      // Inject yongsin into sajuProfile so the engine's yongsin
       // alignment kicks in for this date too.
       ;(sajuProfile as UserSajuProfile & { yongsin?: unknown; geokguk?: unknown }).yongsin = {
         primary: advanced.yongsin.primary,
@@ -204,46 +204,46 @@ export const GET = withApiMiddleware(
     const yearOfDate = targetDate.getFullYear()
 
     // 1) 365 캘린더 뷰가 캐시에 있으면 그걸 권위 있는 답으로 사용 (사용자가 캘린더 페이지 들어왔으면 항상 채워져 있음)
-    let liteForDay: LiteImportantDate | undefined
+    let yearlyForDay: YearlyImportantDate | undefined
     for (const cat of ['', 'general', 'career', 'love', 'wealth', 'health', 'travel', 'study'] as const) {
       const yk = CacheKeys.yearlyCalendar(birthDate, birthTime || '', sajuGender, yearOfDate, cat || undefined)
-      const cached = await cacheGet<LiteImportantDate[]>(yk)
+      const cached = await cacheGet<YearlyImportantDate[]>(yk)
       const hit = cached?.find((d) => d.date === date)
       if (hit) {
-        liteForDay = hit
+        yearlyForDay = hit
         break
       }
     }
 
-    // 2) 캐시 없으면 같은 lite 점수식으로 그 해 한 번 돌려서 사용 (point-of-truth는 lite)
+    // 2) 캐시 없으면 같은 엔진 점수식으로 그 해 한 번 돌려서 사용 (point-of-truth는 엔진)
     const cacheKey = `cal-detail:v3:${birthDate}:${birthTime || ''}:${sajuGender}:${date}`
     const merged = await cacheOrCalculate(
       cacheKey,
       async () => {
         const detail = analyzeDate(targetDate, sajuProfile, astroProfile)
         if (!detail) return null
-        let lite = liteForDay
-        if (!lite) {
-          const liteList = calculateYearlyImportantDatesLite(
+        let yearly = yearlyForDay
+        if (!yearly) {
+          const yearlyList = calculateYearlyImportantDates(
             yearOfDate,
             sajuProfile,
             astroProfile,
             { locale: 'ko', birthDate }
           )
-          lite = liteList.find((d) => d.date === detail.date)
+          yearly = yearlyList.find((d) => d.date === detail.date)
         }
-        return { detail, lite }
+        return { detail, yearly }
       },
       CACHE_TTL.CALENDAR_DATA
     )
     if (!merged?.detail) {
       return apiError(ErrorCodes.SERVICE_UNAVAILABLE, 'Date analysis unavailable')
     }
-    const { detail, lite } = merged
-    // 365 lite를 정답으로 — 365 뷰 grade와 detail grade가 어긋나지 않게
-    const canonicalGrade = lite?.grade ?? detail.grade
-    const canonicalScore = lite?.score ?? detail.score
-    const canonicalDisplayScore = lite?.displayScore ?? detail.displayScore ?? canonicalScore
+    const { detail, yearly } = merged
+    // 365 엔진 결과를 정답으로 — 365 뷰 grade와 detail grade가 어긋나지 않게
+    const canonicalGrade = yearly?.grade ?? detail.grade
+    const canonicalScore = yearly?.score ?? detail.score
+    const canonicalDisplayScore = yearly?.displayScore ?? detail.displayScore ?? canonicalScore
 
     // ── Transit aspects on the selected date ──
     // Engine has the same transit module the rest of the app uses; cheap
@@ -357,8 +357,8 @@ export const GET = withApiMiddleware(
         monthStem,
         monthBranch,
       },
-      longCycleContext: lite?.longCycleContext,
-      cycleInteractions: lite?.cycleInteractions,
+      longCycleContext: yearly?.longCycleContext,
+      cycleInteractions: yearly?.cycleInteractions,
       transit: transitData,
       hourlyTimeSlots: await (async () => {
         try {

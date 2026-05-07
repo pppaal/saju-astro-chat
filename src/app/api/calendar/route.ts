@@ -20,7 +20,7 @@ import type { TranslationData } from '@/types/calendar-api'
 import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
-import { calculateYearlyImportantDatesLite } from './lib/liteYearlyDates'
+import { calculateYearlyImportantDates } from './lib/yearlyDates'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 
@@ -758,7 +758,7 @@ export const GET = withApiMiddleware(
       // ── Full-year transit scores ──
       // Compute longitude-only transit aspects for all 365 days against
       // the user's natal chart. ~350ms total (Swiss ephemeris is fast
-      // enough for batch). Results threaded into lite generator as a new
+      // enough for batch). Results threaded into engine as a new
       // dailyTransitScores axis.
       try {
         const { calculateTransitPlanetsBatch, scoreTransitDay } = await import(
@@ -970,7 +970,7 @@ export const GET = withApiMiddleware(
     const localDates = await cacheOrCalculate(
       cacheKey,
       async () =>
-        calculateYearlyImportantDatesLite(year, sajuProfile, astroProfile, {
+        calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
           minGrade: 4, // grade 4(최악의 날)까지 포함
           locale: locale === 'en' ? 'en' : 'ko',
           matrixContext: matrixCalendarContext || undefined,

@@ -1,8 +1,8 @@
 // Shared "what 4-pillar values does this date sit on?" helpers backed by
 // the same KASI 절기 table the main saju engine (saju.ts) uses. Pulled
-// out of `liteYearlyDates.ts` so the calendar generator and the saju
+// out of `yearlyDates.ts` so the calendar generator and the saju
 // engine stop carrying parallel implementations of solar-term boundary
-// logic — the user kept seeing wrong month branches whenever the lite
+// logic — the user kept seeing wrong month branches whenever the
 // version diverged.
 //
 // All functions are pure: no side effects, no profile/birth dependency,

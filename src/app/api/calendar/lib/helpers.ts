@@ -645,17 +645,17 @@ export function formatDateForResponse(
     date.date,
     date.crossAgreementPercent
   )
-  const liteDescription = sanitizeCalendarCopy(getTranslation(date.descKey, translations), lang)
+  const engineDescription = sanitizeCalendarCopy(getTranslation(date.descKey, translations), lang)
   const matrixHasNarrative = Boolean(
     matrixVerdict?.topAnchorSummary || matrixVerdict?.topClaim || matrixVerdict?.verdict
   )
-  // 매트릭스가 풍부한 서사를 주면 그걸 쓰고, 없을 땐 lite 베이스(상담사 톤)를 우선
+  // 매트릭스가 풍부한 서사를 주면 그걸 쓰고, 없을 땐 엔진 베이스(상담사 톤)를 우선
   const matrixFallbackSummary = matrixHasNarrative && CALENDAR_MATRIX_STRICT_MODE
     ? buildMatrixStrictSummaryFallback({
         lang,
         evidence: evidenceWithVerdict,
       })
-    : liteDescription || baseSummary
+    : engineDescription || baseSummary
   const finalSummary = buildMatrixFirstSummary({
     verdict: matrixVerdict?.verdict,
     topClaim: matrixVerdict?.topClaim,
@@ -741,7 +741,7 @@ export function formatDateForResponse(
             verdict: matrixVerdict?.verdict,
             topClaim: matrixVerdict?.topClaim,
             overlaySummary: matrixOverlay.summary,
-            // 매트릭스 서사가 비어 있을 땐 strict 일반문구 대신 lite의 상담사 톤 description을 사용
+            // 매트릭스 서사가 비어 있을 땐 strict 일반문구 대신 엔진의 상담사 톤 description을 사용
             fallbackDescription:
               matrixHasNarrative && CALENDAR_MATRIX_STRICT_MODE
                 ? buildMatrixStrictDescriptionFallback({
@@ -750,7 +750,7 @@ export function formatDateForResponse(
                     summary: finalSummary,
                     guardrail: matrixVerdict?.guardrail,
                   })
-                : liteDescription || getTranslation(date.descKey, translations),
+                : engineDescription || getTranslation(date.descKey, translations),
           }),
       lang
     ),
@@ -816,13 +816,13 @@ export function formatDateForResponse(
     astroFactors: orderedAstroFactors,
     glossary: (date as { glossary?: Record<string, string> }).glossary,
     crossCheck: (date as { crossCheck?: { line: string; agreementPercent: number } }).crossCheck,
-    longCycleContext: (date as { longCycleContext?: import('./liteYearlyDates').LiteImportantDate['longCycleContext'] })
+    longCycleContext: (date as { longCycleContext?: import('./yearlyDates').YearlyImportantDate['longCycleContext'] })
       .longCycleContext,
-    cycleInteractions: (date as { cycleInteractions?: import('./liteYearlyDates').LiteImportantDate['cycleInteractions'] })
+    cycleInteractions: (date as { cycleInteractions?: import('./yearlyDates').YearlyImportantDate['cycleInteractions'] })
       .cycleInteractions,
     cycleNarrative: (date as { cycleNarrative?: string }).cycleNarrative,
-    dayRuler: (date as { dayRuler?: import('./liteYearlyDates').LiteImportantDate['dayRuler'] }).dayRuler,
-    scoreBreakdown: (date as { scoreBreakdown?: import('./liteYearlyDates').LiteImportantDate['scoreBreakdown'] }).scoreBreakdown,
+    dayRuler: (date as { dayRuler?: import('./yearlyDates').YearlyImportantDate['dayRuler'] }).dayRuler,
+    scoreBreakdown: (date as { scoreBreakdown?: import('./yearlyDates').YearlyImportantDate['scoreBreakdown'] }).scoreBreakdown,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),
