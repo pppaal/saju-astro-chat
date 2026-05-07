@@ -1310,6 +1310,21 @@ export const GET = withApiMiddleware(
       matrixContract: calendarMatrixContract,
       canonicalCore: calendarCoreCanonical,
       yongsinActivations,
+      // 헤더 뱃지 / 프로필 카드용 본명 정체성
+      astroIdentity: (() => {
+        const sunSign = astroProfile.sunSign
+        const natal = astroProfile.natalChart as
+          | { ascendant?: { sign?: string }; planets?: Array<{ name?: string; sign?: string }> }
+          | null
+          | undefined
+        const ascendantSign = natal?.ascendant?.sign
+        const moonSign = natal?.planets?.find((p) => p?.name === 'Moon')?.sign
+        return {
+          sunSign,
+          ascendantSign: ascendantSign || undefined,
+          moonSign: moonSign || undefined,
+        }
+      })(),
       birthInfo: {
         date: birthDateParam,
         time: birthTimeParam,

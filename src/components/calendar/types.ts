@@ -226,6 +226,15 @@ export interface CalendarData {
       advice: string
     }>
   }
+  /**
+   * 본명 점성 정체성 — 헤더 뱃지 / 프로필 카드용.
+   * sunSign은 항상 있음. ascendant/moon은 풀 차트 입력 시에만.
+   */
+  astroIdentity?: {
+    sunSign: string
+    ascendantSign?: string
+    moonSign?: string
+  }
   calendarDailyView?: {
     date: string
     grade: number

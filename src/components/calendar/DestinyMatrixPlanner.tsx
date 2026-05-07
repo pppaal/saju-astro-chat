@@ -282,6 +282,36 @@ export default function DestinyMatrixPlanner({
     return `${m}월 ${d}일`
   }
 
+  // --- Astro identity badge for the header ---------------------------
+  // 풀 차트가 들어오면 ASC, 없으면 태양 별자리.
+  const astroBadge = useMemo(() => {
+    const id = data?.astroIdentity
+    if (!id) return null
+    const ZODIAC_KO: Record<string, string> = {
+      Aries: '양자리',
+      Taurus: '황소자리',
+      Gemini: '쌍둥이자리',
+      Cancer: '게자리',
+      Leo: '사자자리',
+      Virgo: '처녀자리',
+      Libra: '천칭자리',
+      Scorpio: '전갈자리',
+      Sagittarius: '사수자리',
+      Capricorn: '염소자리',
+      Aquarius: '물병자리',
+      Pisces: '물고기자리',
+    }
+    if (id.ascendantSign) {
+      const ko = ZODIAC_KO[id.ascendantSign]
+      return { label: ko ? `${ko} ASC` : `${id.ascendantSign} ASC`, kind: 'asc' as const }
+    }
+    if (id.sunSign) {
+      const ko = ZODIAC_KO[id.sunSign]
+      return { label: ko ? `${ko} ☉` : `${id.sunSign} Sun`, kind: 'sun' as const }
+    }
+    return null
+  }, [data])
+
   // --- Stats: domain sync radar ---------------------------------------
   // sajuAxis / astroAxis는 엔진의 모든 일자에 항상 들어옴 (yearlyDates.ts).
   const domainSyncData = useMemo(() => {
@@ -397,20 +427,21 @@ export default function DestinyMatrixPlanner({
       {/* --- Header --- */}
       <div className="px-6 pt-12 pb-4 shrink-0 relative z-20 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
         <div className="flex justify-between items-center mb-4">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-bold text-zinc-900 bg-amber-500 px-2 py-0.5 rounded-sm tracking-widest uppercase flex items-center gap-1">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-zinc-900 bg-amber-500 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
                 <Sun className="w-3 h-3" /> {natalDayPillar ?? '辛未'} 일주
               </span>
-              {!data && (
-                <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2 py-0.5 rounded-sm tracking-widest uppercase flex items-center gap-1">
+              {astroBadge ? (
+                <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
+                  <Moon className="w-3 h-3" /> {astroBadge.label}
+                </span>
+              ) : !data ? (
+                <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
                   <Moon className="w-3 h-3" /> 물병자리 ASC
                 </span>
-              )}
+              ) : null}
             </div>
-            <h1 className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent tracking-wide flex items-center gap-2">
-              운명의 수레바퀴
-            </h1>
           </div>
 
           <button
