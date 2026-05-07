@@ -156,6 +156,39 @@ export function SwipeCard({
             </span>
           </div>
 
+          {(profile.synergy?.saju || profile.synergy?.astro) && (
+            <div className={styles.synergyBox} aria-label="Compatibility synergy">
+              {profile.synergy.saju && (
+                <div className={styles.synergyRow} title="사주 합">
+                  <span className={styles.synergyChars} aria-hidden="true">
+                    {profile.synergy.saju.chars.join(' ')}
+                  </span>
+                  <span className={styles.synergyLabel}>{profile.synergy.saju.label}</span>
+                  {profile.synergy.saju.result && (
+                    <span className={styles.synergyDetail}>
+                      {profile.synergy.saju.result} 五行
+                    </span>
+                  )}
+                </div>
+              )}
+              {profile.synergy.astro && (
+                <div
+                  className={`${styles.synergyRow} ${
+                    styles[`synergyAstro_${profile.synergy.astro.harmony}`] ?? ''
+                  }`}
+                  title="Sun-sign aspect"
+                >
+                  <span className={styles.synergyIcon} aria-hidden="true">✶</span>
+                  <span className={styles.synergyLabel}>{profile.synergy.astro.label}</span>
+                  <span className={styles.synergyDetail}>
+                    {profile.synergy.astro.signs[0]} × {profile.synergy.astro.signs[1]} ·{' '}
+                    {profile.synergy.astro.angle}°
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           {profile.bio && <p className={styles.cardBio}>{profile.bio}</p>}
 
           {profile.interests.length > 0 && (

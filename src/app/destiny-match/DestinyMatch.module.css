@@ -2075,6 +2075,66 @@
   font-weight: 600;
 }
 
+.synergyBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 0.75rem;
+  padding: 10px 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.12),
+    rgba(139, 92, 246, 0.12)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+}
+
+.synergyRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.synergyIcon,
+.synergyChars {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.synergyLabel {
+  font-weight: 700;
+  color: #fff;
+}
+
+.synergyDetail {
+  margin-left: auto;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.synergyAstro_harmonious {
+  color: #a7f3d0;
+}
+.synergyAstro_challenging {
+  color: #fda4af;
+}
+.synergyAstro_neutral {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .infoButton {
   width: 100%;
   padding: 12px;
