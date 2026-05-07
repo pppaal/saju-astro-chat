@@ -6121,14 +6121,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  /* Cluster hero + chips together near the top; chat bar drops to the
+     bottom via margin-top: auto. Avoids the "floating in the middle"
+     look on desktop where space-between spread three short blocks
+     across a tall viewport. */
+  justify-content: flex-start;
   width: 100%;
-  max-width: 720px;
+  max-width: 560px;
   margin: 0 auto;
   padding: 4.5rem 1.25rem 0;
-  gap: 1rem;
+  gap: 1.25rem;
   box-sizing: border-box;
   overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .homeBody {
+    max-width: 600px;
+    padding-top: 5rem;
+    gap: 1.75rem;
+  }
 }
 
 .homeHero {
@@ -6259,6 +6271,11 @@
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
+  /* Keep the chip cluster compact even when the body breathes wider on
+     desktop — otherwise the 5 short pills float spread thin across the
+     row and look disconnected from the hero above. */
+  max-width: 480px;
+  margin: 0 auto;
   flex: 0 0 auto;
   padding: 0 0.25rem;
 }
@@ -6295,7 +6312,10 @@
 
 .homeChatBar {
   width: 100%;
-  margin: 0 auto;
+  /* margin-top: auto pins the chat bar to the bottom of the viewport
+     while hero + chips stay clustered at the top — one clean whitespace
+     gap between them instead of three evenly-spread blocks. */
+  margin: auto auto 0;
   padding: 0 0.25rem 1.25rem;
   flex: 0 0 auto;
 }
