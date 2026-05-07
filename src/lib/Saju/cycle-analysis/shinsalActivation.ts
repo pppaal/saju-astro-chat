@@ -16,7 +16,7 @@ export type ShinsalKind =
   | '역마' | '도화' | '화개'
   | '양인' | '공망' | '귀문관' | '원진'
   | '문창' | '문곡' | '학당귀인'
-  | '공망풀림'
+  | '공망풀림' | '공망묶임'
 
 export type ShinsalTone = 'lucky' | 'neutral' | 'unlucky'
 
@@ -24,7 +24,7 @@ const SHINSAL_TONE: Record<ShinsalKind, ShinsalTone> = {
   천을귀인: 'lucky', 천덕귀인: 'lucky', 월덕귀인: 'lucky',
   건록: 'lucky', 암록: 'lucky',
   학당귀인: 'lucky', 문창: 'lucky', 문곡: 'lucky',
-  공망풀림: 'lucky',
+  공망풀림: 'lucky', 공망묶임: 'unlucky',
   역마: 'neutral', 도화: 'neutral', 화개: 'neutral',
   양인: 'unlucky', 공망: 'unlucky', 귀문관: 'unlucky', 원진: 'unlucky',
 }
@@ -252,13 +252,33 @@ export function analyzeShinsalActivation(
     push('원진', `일지(${natal.dayBranch})`, 'branch')
   }
 
-  // ── 공망풀림 (沖空) — 본명 4기둥에 공망 지지가 있고, cycle이 그 공망지를 충하면
-  //   공망이 활성화/해방되어 잠재 에너지가 발현. 정통: 沖空은 길로 본다.
+  // ── 공망풀림 (沖空) — 본명 공망지를 cycle 이 충 → 활성화/해방. 길.
+  // ── 공망묶임 (合空) — 본명 공망지를 cycle 이 합(육합/삼합) → 묶임. 흉.
   if (natal.pillarBranches && gongmangList.length > 0) {
+    const yukhapPair: Record<string, string> = {
+      子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯',
+      辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午',
+    }
+    const samhapGroup: Record<string, [string, string, string]> = {
+      寅: ['寅', '午', '戌'], 午: ['寅', '午', '戌'], 戌: ['寅', '午', '戌'],
+      巳: ['巳', '酉', '丑'], 酉: ['巳', '酉', '丑'], 丑: ['巳', '酉', '丑'],
+      申: ['申', '子', '辰'], 子: ['申', '子', '辰'], 辰: ['申', '子', '辰'],
+      亥: ['亥', '卯', '未'], 卯: ['亥', '卯', '未'], 未: ['亥', '卯', '未'],
+    }
+    let resolutionPushed = false
+    let lockPushed = false
     for (const [pkind, branch] of Object.entries(natal.pillarBranches)) {
-      if (gongmangList.includes(branch) && CHUNG_PAIR[branch] === cycleBranch) {
+      if (!gongmangList.includes(branch)) continue
+      if (CHUNG_PAIR[branch] === cycleBranch && !resolutionPushed) {
         push('공망풀림', `본명 ${pkind}(${branch} 공망) 충`, 'branch')
-        break // 같은 cycle 안에서 한 번만
+        resolutionPushed = true
+      } else if (
+        !lockPushed &&
+        (yukhapPair[branch] === cycleBranch ||
+          (samhapGroup[branch] && samhapGroup[branch].includes(cycleBranch)))
+      ) {
+        push('공망묶임', `본명 ${pkind}(${branch} 공망) 합`, 'branch')
+        lockPushed = true
       }
     }
   }

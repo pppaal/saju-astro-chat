@@ -116,6 +116,12 @@ export interface GeokgukShiftAnalysis {
   reasons: string[]
   /** 한 줄 요약 */
   summary: string
+  /** 격국 변질 — cycle 인해 다른 격으로 일시 변신 (대운/세운 단위에서) */
+  transformedTo?: {
+    geokguk: string // 새 격국 이름
+    by: 'stem' | 'branch' // 어디서 변질됐는지
+    sibsin: string // 변질을 일으킨 십신
+  }
 }
 
 interface GeokgukShiftInput {
@@ -202,6 +208,27 @@ export function analyzeGeokgukShift(input: GeokgukShiftInput): GeokgukShiftAnaly
     reasons.push(`cycle 지지 ${input.cycleBranch} 양인 자리 — 양인쌍지 (군겁쟁재 가중)`)
   }
 
+  // ── 격국 변질: cycle 천간 또는 지지가 본명 격국과 다른 명확한 격을 만들면 일시 변질
+  let transformedTo: GeokgukShiftAnalysis['transformedTo']
+  const transformMap: Record<string, string> = {
+    정관: '정관격', 편관: '편관격', 정재: '정재격', 편재: '편재격',
+    식신: '식신격', 상관: '상관격', 정인: '정인격', 편인: '편인격',
+  }
+  // 우선순위: 본명 격국과 같은 변질은 무시. 다른 격으로 변할 때만 표시.
+  // 천간 변질이 지지 변질보다 우선 (천간이 더 표면 변화).
+  const cheonTransform = input.cycleStemSibsin && transformMap[input.cycleStemSibsin]
+  const jiTransform = input.cycleBranchSibsin && transformMap[input.cycleBranchSibsin]
+  if (cheonTransform && cheonTransform !== geok && (UNFAVORABLE[geok]?.has(input.cycleStemSibsin!) || strengthenSignals === 0)) {
+    transformedTo = { geokguk: cheonTransform, by: 'stem', sibsin: input.cycleStemSibsin! }
+  } else if (jiTransform && jiTransform !== geok && (UNFAVORABLE[geok]?.has(input.cycleBranchSibsin!) || strengthenSignals === 0)) {
+    transformedTo = { geokguk: jiTransform, by: 'branch', sibsin: input.cycleBranchSibsin! }
+  }
+  if (transformedTo) {
+    reasons.push(
+      `cycle ${transformedTo.by === 'stem' ? '천간' : '지지'} ${transformedTo.sibsin} → 일시 ${transformedTo.geokguk} 으로 변질`,
+    )
+  }
+
   // ── 월지(격국 본거지) 동요
   const monthInter = input.branchInteractionWithMonth
   if (monthInter) {
@@ -244,6 +271,7 @@ export function analyzeGeokgukShift(input: GeokgukShiftInput): GeokgukShiftAnaly
     intensity,
     reasons,
     summary: buildSummary(geok, shift, intensity, reasons.length),
+    transformedTo,
   }
 }
 

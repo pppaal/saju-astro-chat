@@ -180,6 +180,25 @@ function isSamjaeYear(natalYearBranch: string, seunBranch: string): boolean {
   return samjae?.includes(seunBranch) ?? false
 }
 
+/**
+ * 삼재 단계 판정 — 정통: 3년 중 어느 해인지로 강도 다름.
+ *   1년차 = 들어삼재 (입삼재): 조심 단계, 변화 시작
+ *   2년차 = 누운삼재 (눌삼재): 정점 흉, 가장 무거움
+ *   3년차 = 나는삼재 (출삼재): 풀려가는 단계
+ */
+function getSamjaePhase(
+  natalYearBranch: string,
+  seunBranch: string,
+): 'enter' | 'middle' | 'exit' | undefined {
+  const samjae = SAMJAE_BY_YEAR_BRANCH[natalYearBranch]
+  if (!samjae) return undefined
+  const idx = samjae.indexOf(seunBranch)
+  if (idx === 0) return 'enter'
+  if (idx === 1) return 'middle'
+  if (idx === 2) return 'exit'
+  return undefined
+}
+
 // ─────────────────────────────────────────────────────────────────
 // 십신 한글 ↔ scorer 라벨 매핑
 // ─────────────────────────────────────────────────────────────────
@@ -334,6 +353,12 @@ export interface MainSajuOutput {
       heavenlyStem: string
       earthlyBranch: string
       sibsin?: unknown
+      /** 대운 5/5 단계 — 정통: 大運 10년 = 천간 5년 + 지지 5년 */
+      phase?: 'stem' | 'branch'
+      /** 현재 단계 진입 나이 */
+      phaseStartAge?: number
+      /** 단계 안에서의 진행도 (0-1) */
+      phaseProgress?: number
     }
   }
   /** 점수 (대운/세운/월운/일진/용신) — 운 단위 점수 */
@@ -520,9 +545,10 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
         cycleContext,
       )
     : ({ ...cycleContext } as SajuScoreInput['seun'])
-  // 삼재 자동 검출 — 본명 년지 vs 세운 지지
+  // 삼재 자동 검출 — 본명 년지 vs 세운 지지 (단계 포함)
   if (seunRaw?.earthlyBranch) {
     seunInput.isSamjaeYear = isSamjaeYear(p.year.earthlyBranch.name, seunRaw.earthlyBranch)
+    seunInput.samjaePhase = getSamjaePhase(p.year.earthlyBranch.name, seunRaw.earthlyBranch)
   }
 
   // 월운 input — unse.monthly[0]
@@ -574,61 +600,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     }
   })()
 
-  // 신살 활성화 결과를 scoreInputs 에 주입 (귀인/공망/역마 등이 점수에 반영)
-  const natalCoreForShinsal = {
-    dayStem: dayMaster,
-    dayBranch: natalDayBranch,
-    monthBranch: p.month.earthlyBranch.name,
-    pillarBranches: {
-      year: p.year.earthlyBranch.name,
-      month: p.month.earthlyBranch.name,
-      day: p.day.earthlyBranch.name,
-      time: p.time.earthlyBranch.name,
-    },
-  }
-  if (seunRaw?.heavenlyStem && seunRaw?.earthlyBranch) {
-    const seunShinsal = analyzeShinsalActivation(
-      seunRaw.heavenlyStem,
-      seunRaw.earthlyBranch,
-      natalCoreForShinsal,
-    )
-    Object.assign(seunInput, injectShinsalFlags(seunShinsal.hits, 'seun'))
-  }
-  // 일진은 try block 안에서 만들어진 ganji가 필요 — recompute
-  try {
-    const t = calculateSajuData(
-      target.toISOString().slice(0, 10),
-      '12:00',
-      input.gender,
-      'solar',
-      tz,
-    )
-    const iljinShinsal = analyzeShinsalActivation(
-      t.pillars.day.heavenlyStem.name,
-      t.pillars.day.earthlyBranch.name,
-      natalCoreForShinsal,
-    )
-    Object.assign(iljinInput, injectShinsalFlags(iljinShinsal.hits, 'iljin'))
-  } catch {
-    // ignore
-  }
-
-  const scores = {
-    daeunScore: safeScore(() => calculateDaeunScore(daeunInput)),
-    seunScore: safeScore(() => calculateSeunScore(seunInput)),
-    wolunScore: safeScore(() => calculateWolunScore(wolunInput)),
-    iljinScore: safeScore(() => calculateIljinScore(iljinInput)),
-  }
-
-  // Score breakdown (디버그용 — 입력 자체도 노출)
-  const scoreInputs = {
-    daeun: daeunInput,
-    seun: seunInput,
-    wolun: wolunInput,
-    iljin: iljinInput,
-  }
-
-  // Phase 1 정통 cycle 분석 — 12운성 + 4기둥 상호작용
+  // Phase 1 정통 cycle 분석 — 점수 계산 전에 미리 빌드해서 결과를 scoreInputs 에 주입
   const cycleAnalysis: MainSajuOutput['cycleAnalysis'] = {}
   const natalForInteractions = {
     year: { stem: p.year.heavenlyStem.name, branch: p.year.earthlyBranch.name },
@@ -735,6 +707,46 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     // ignore
   }
 
+  // ── cycleAnalysis 결과 → scoreInputs 주입 (점수↔분석 일관성)
+  const injectAnalysis = (
+    target: SajuScoreInput['daeun'] | SajuScoreInput['seun'] | SajuScoreInput['wolun'] | SajuScoreInput['iljin'],
+    entry: CycleEntry | undefined,
+    cycleKind: 'iljin' | 'seun' | 'daeun' | 'wolun',
+  ) => {
+    if (!entry) return
+    target.geokgukShift = entry.geokgukShift.shift
+    target.geokgukShiftIntensity = entry.geokgukShift.intensity
+    const kinds = new Set(entry.shinsalActivation.hits.map((h) => h.kind))
+    if (kinds.has('공망풀림')) target.hasGongmangResolution = true
+    if (kinds.has('공망묶임')) target.hasGongmangLock = true
+    // hwaTransform 진짜 化 일 때만 (일간 합 = significance 3 또는 quality=true)
+    const hwa = entry.hwaTransform.primaryEvent
+    if (hwa && (hwa.quality === 'true' || hwa.significance >= 3)) {
+      target.hasHwaCompletion = true
+    }
+    if (entry.samgi.state === 'cycle_completes') target.hasSamgiCompletion = true
+    // 추가: 신살을 scoreInputs flags 로 한번 더 주입 (이전 injectShinsalFlags 대체)
+    Object.assign(target, injectShinsalFlags(entry.shinsalActivation.hits, cycleKind === 'seun' ? 'seun' : 'iljin'))
+  }
+  injectAnalysis(daeunInput, cycleAnalysis.daeun, 'daeun')
+  injectAnalysis(seunInput, cycleAnalysis.seun, 'seun')
+  injectAnalysis(wolunInput, cycleAnalysis.wolun, 'wolun')
+  injectAnalysis(iljinInput, cycleAnalysis.iljin, 'iljin')
+
+  // 점수 계산 (cycleAnalysis 결과 반영된 후)
+  const scores = {
+    daeunScore: safeScore(() => calculateDaeunScore(daeunInput)),
+    seunScore: safeScore(() => calculateSeunScore(seunInput)),
+    wolunScore: safeScore(() => calculateWolunScore(wolunInput)),
+    iljinScore: safeScore(() => calculateIljinScore(iljinInput)),
+  }
+  const scoreInputs = {
+    daeun: daeunInput,
+    seun: seunInput,
+    wolun: wolunInput,
+    iljin: iljinInput,
+  }
+
   // 대운 cycles
   const daeunCycles =
     (dw?.list as Array<{
@@ -744,9 +756,28 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       earthlyBranch?: string
     }>) || []
   const daeunsu = dw?.startAge ?? 0
-  const currentDaeun = dw?.current as
+  const currentDaeunRaw = dw?.current as
     | { age: number; heavenlyStem: string; earthlyBranch: string; sibsin?: unknown }
     | undefined
+
+  // 대운 5/5 분리: 현재 사용자 나이 vs 대운 시작 나이
+  const userAge =
+    target.getFullYear() - new Date(input.birthDate).getFullYear()
+  let currentDaeun: MainSajuOutput['cycles']['currentDaeun'] = currentDaeunRaw
+  if (currentDaeunRaw) {
+    const yearsIntoDaeun = userAge - currentDaeunRaw.age
+    const phase: 'stem' | 'branch' = yearsIntoDaeun < 5 ? 'stem' : 'branch'
+    const phaseStartAge =
+      phase === 'stem' ? currentDaeunRaw.age : currentDaeunRaw.age + 5
+    const yearsIntoPhase = userAge - phaseStartAge
+    const phaseProgress = Math.max(0, Math.min(1, yearsIntoPhase / 5))
+    currentDaeun = {
+      ...currentDaeunRaw,
+      phase,
+      phaseStartAge,
+      phaseProgress: Math.round(phaseProgress * 100) / 100,
+    }
+  }
 
   return {
     pillars: {

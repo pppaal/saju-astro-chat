@@ -45,6 +45,13 @@ export interface CycleStrengthContext {
   yongsinPrimary?: string
   yongsinSecondary?: string
   kibsinElements?: string[]
+  /** Phase 1 cycleAnalysis 결과를 점수에 반영 (정통 보강) */
+  geokgukShift?: 'strengthen' | 'break' | 'protect' | 'shake' | 'neutral'
+  geokgukShiftIntensity?: number // 0-3
+  hasGongmangResolution?: boolean // 공망풀림 (沖空) +길
+  hasGongmangLock?: boolean // 공망묶임 (合空) -흉
+  hasHwaCompletion?: boolean // 천간합 진짜 化 (큰 변동)
+  hasSamgiCompletion?: boolean // 삼기 cycle 완성
 }
 
 export interface SajuScoreInput {
@@ -66,6 +73,8 @@ export interface SajuScoreInput {
     hasGwansal?: boolean
     hasSamhapNegative?: boolean
     isSamjaeYear?: boolean
+    // 삼재 단계: 1년차=enter, 2년차=middle (정점 흉), 3년차=exit
+    samjaePhase?: 'enter' | 'middle' | 'exit'
     // 삼재 조건부 처리를 위한 추가 필드
     hasGwiin?: boolean // 귀인이 있으면 삼재 상쇄
   }

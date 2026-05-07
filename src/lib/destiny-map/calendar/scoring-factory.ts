@@ -13,10 +13,18 @@ export interface ScorerInput {
   hasChung?: boolean;
   // 정통 강약/용신 분기를 위한 컨텍스트 (선택)
   strength?: 'very_strong' | 'strong' | 'balanced' | 'weak' | 'very_weak';
-  cycleStemElement?: string; // 목/화/토/금/수
+  cycleStemElement?: string;
   yongsinPrimary?: string;
   yongsinSecondary?: string;
   kibsinElements?: string[];
+  // Phase 1 cycleAnalysis 결과 (점수 보강)
+  geokgukShift?: 'strengthen' | 'break' | 'protect' | 'shake' | 'neutral';
+  geokgukShiftIntensity?: number;
+  hasGongmangResolution?: boolean;
+  hasGongmangLock?: boolean;
+  hasHwaCompletion?: boolean;
+  hasSamgiCompletion?: boolean;
+  samjaePhase?: 'enter' | 'middle' | 'exit';
 }
 
 /**
@@ -211,15 +219,38 @@ export function createScoreCalculator<T extends ScorerInput>(
     }
 
     // Step 6: Handle samjae special case (only for Seun)
+    //   정통: 1년차(enter) = 약, 2년차(middle) = 정점 흉, 3년차(exit) = 약함
     if (config.samjaeConfig && input.isSamjaeYear) {
+      const phaseMultiplier = ((input as ScorerInput).samjaePhase === 'middle')
+        ? 1.5
+        : ((input as ScorerInput).samjaePhase === 'exit')
+          ? 0.5
+          : 1.0
+      let base: number
       if (input.hasGwiin) {
-        adjustments.push(config.samjaeConfig.withGwiin);
+        base = config.samjaeConfig.withGwiin
       } else if (input.hasChung) {
-        adjustments.push(config.samjaeConfig.withChung);
+        base = config.samjaeConfig.withChung
       } else {
-        adjustments.push(config.samjaeConfig.base);
+        base = config.samjaeConfig.base
       }
+      adjustments.push(base * phaseMultiplier)
     }
+
+    // Step 6b: Phase 1 cycleAnalysis 결과 반영
+    //   격국 강화/파격, 공망풀림/묶임, 천간합 化, 삼기 완성
+    if (input.geokgukShift) {
+      const intensity = Math.min(3, input.geokgukShiftIntensity ?? 1)
+      const ratio = intensity * 0.06 // intensity 1=0.06, 3=0.18
+      if (input.geokgukShift === 'strengthen') adjustments.push(ratio)
+      else if (input.geokgukShift === 'break') adjustments.push(-ratio)
+      else if (input.geokgukShift === 'protect') adjustments.push(ratio * 0.5)
+      else if (input.geokgukShift === 'shake') adjustments.push(-ratio * 0.5)
+    }
+    if (input.hasGongmangResolution) adjustments.push(0.10) // 沖空 = 길
+    if (input.hasGongmangLock) adjustments.push(-0.08)       // 合空 = 흉
+    if (input.hasHwaCompletion) adjustments.push(0.08)       // 진짜 化 = 변동기 (보통 길)
+    if (input.hasSamgiCompletion) adjustments.push(0.15)     // 삼기 완성 = 큰 길
 
     // Step 7: Calculate final score
     return calculateAdjustedScore(config.maxScore, adjustments, config.maxRaw);
