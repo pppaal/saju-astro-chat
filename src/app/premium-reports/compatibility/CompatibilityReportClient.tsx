@@ -8,6 +8,8 @@ import {
   MessageSquare, ChevronRight, TrendingUp, AlertCircle, CheckCircle,
 } from 'lucide-react'
 import type { CompatibilityPremiumReport } from '@/lib/compatibility/premiumReport'
+import NineLayerGrid from '@/components/compatibility/NineLayerGrid'
+import CompatibilityShareBar from '@/components/compatibility/CompatibilityShareBar'
 
 type TabKey = 'overall' | 'yearly' | 'monthly' | 'counselor'
 
@@ -159,6 +161,11 @@ function OverallTab({ report }: { report: CompatibilityPremiumReport }) {
         <Panel title="⚠ 주의 셀 (top 5)" tone="negative" cells={matrix.summary.topCautionCells} />
       </div>
 
+      {/* 9-레이어 격자 (셀 클릭 가능) */}
+      <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/10">
+        <NineLayerGrid matrix={matrix} />
+      </div>
+
       {/* 마스터 서사 (간소화 버전) */}
       <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl p-8 md:p-16 border border-purple-500/20 shadow-[0_0_50px_rgba(168,85,247,0.1)] space-y-12">
         <ChapterCard
@@ -278,6 +285,41 @@ function ChapterCard({
   )
 }
 
+// Deterministic interpretation strings — derive a short narrative from
+// the highest/lowest year/month so each tab carries a "why" line per
+// data point instead of just numbers + a global recommendation.
+function yearNarrative(y: CompatibilityPremiumReport['yearly'][number]): string {
+  const ds = y.domainScores
+  const peak = (Object.entries(ds) as Array<[keyof typeof ds, number]>).reduce(
+    (a, b) => (b[1] > a[1] ? b : a),
+  )
+  const dip = (Object.entries(ds) as Array<[keyof typeof ds, number]>).reduce(
+    (a, b) => (b[1] < a[1] ? b : a),
+  )
+  const peakLabel: Record<keyof typeof ds, string> = {
+    attraction: '서로 끌리는 힘',
+    stability: '안정적 결',
+    growth: '함께 자라는 흐름',
+    conflict: '갈등 견딤력',
+    timing: '시기 동기화',
+  }
+  const dipLabel: Record<keyof typeof ds, string> = {
+    attraction: '매력',
+    stability: '안정',
+    growth: '성장',
+    conflict: '갈등',
+    timing: '시기',
+  }
+  return `${peakLabel[peak[0]]}이 가장 두드러지는 해 — 다만 ${dipLabel[dip[0]]} 영역(${dip[1]})은 의식해서 채워야 합니다.`
+}
+
+function monthNarrative(m: CompatibilityPremiumReport['monthly'][number]): string {
+  if (m.conflict <= 35) return '갈등견딤이 약해 마찰이 잦은 시기 — 큰 결정·이사·동거 시작을 미루는 게 좋습니다.'
+  if (m.attraction >= 75) return '서로 가까워지는 자기장이 가장 강한 시기 — 데이트 빈도/스킨십 회복에 좋은 창입니다.'
+  if (m.stability >= 75) return '루틴이 안정되는 시기 — 함께 사는 결정·공간 정비를 묶기에 적기.'
+  return '균형 구간 — 큰 변동 없이 일상 합을 다질 수 있는 시기.'
+}
+
 // ── Tab content: Yearly ────────────────────────────────────────────────
 function YearlyTab({ report }: { report: CompatibilityPremiumReport }) {
   return (
@@ -292,15 +334,18 @@ function YearlyTab({ report }: { report: CompatibilityPremiumReport }) {
             className="bg-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-fuchsia-400/40 transition-colors"
           >
             <div className="text-xs text-fuchsia-400 font-mono mb-2">YEAR</div>
-            <div className="text-3xl font-bold text-white mb-4">{y.year}</div>
-            <div className="text-5xl font-light text-white tracking-tight mb-4">{y.totalScore}</div>
-            <div className="space-y-1.5 text-xs font-mono">
+            <div className="text-3xl font-bold text-white mb-3">{y.year}</div>
+            <div className="text-5xl font-light text-white tracking-tight mb-3">{y.totalScore}</div>
+            <div className="space-y-1.5 text-xs font-mono mb-3">
               <Bar label="매력" v={y.domainScores.attraction} color="bg-pink-400" />
               <Bar label="안정" v={y.domainScores.stability} color="bg-emerald-400" />
               <Bar label="성장" v={y.domainScores.growth} color="bg-cyan-400" />
               <Bar label="갈등" v={y.domainScores.conflict} color="bg-amber-400" />
               <Bar label="시기" v={y.domainScores.timing} color="bg-violet-400" />
             </div>
+            <p className="text-[11px] text-slate-300 leading-snug border-t border-white/5 pt-3">
+              {yearNarrative(y)}
+            </p>
           </div>
         ))}
       </div>
@@ -360,6 +405,9 @@ function MonthlyTab({ report }: { report: CompatibilityPremiumReport }) {
               {m.drivers[0] && <div className="text-emerald-400 truncate">+ {m.drivers[0]}</div>}
               {m.cautions[0] && <div className="text-rose-400 truncate">- {m.cautions[0]}</div>}
             </div>
+            <p className="text-[11px] text-slate-300/90 leading-snug mt-2 pt-2 border-t border-white/5">
+              {monthNarrative(m)}
+            </p>
           </div>
         ))}
       </div>
@@ -547,8 +595,16 @@ export default function CompatibilityReportClient({
         </div>
       </header>
 
+      {/* Share / save bar */}
+      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-6 flex justify-end">
+        <CompatibilityShareBar
+          title={`${report.meta.a.name} × ${report.meta.b.name} 궁합 리포트`}
+          summary={`종합 ${report.overall.matrix.summary.totalScore}점 — 매력 ${report.overall.matrix.summary.domainScores.attraction} · 안정 ${report.overall.matrix.summary.domainScores.stability} · 성장 ${report.overall.matrix.summary.domainScores.growth}`}
+        />
+      </section>
+
       {/* Couple meta */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-10">
+      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[report.meta.a, report.meta.b].map((p, i) => (
             <div

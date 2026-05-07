@@ -5,9 +5,22 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Sparkles, Lock, MessageSquare, Star } from 'lucide-react'
 
+export interface PaywallDomainScores {
+  attraction: number
+  stability: number
+  growth: number
+  conflict: number
+  timing: number
+}
+
 interface CompatibilityPaywallProps {
   /** Overall compatibility score (0-100). Always shown free as the teaser. */
   overallScore: number | null
+  /** Optional 5-domain breakdown — `attraction` shown free, others locked. */
+  domainScores?: PaywallDomainScores | null
+  /** Number of positive drivers / caution flags surfaced by the matrix. */
+  driverCount?: number
+  cautionCount?: number
   /** Couple labels for the counselor link. */
   pairLabels: [string, string]
   /** Birth profiles to thread into the counselor URL. */
@@ -32,6 +45,9 @@ interface CompatibilityPaywallProps {
  */
 export default function CompatibilityPaywall({
   overallScore,
+  domainScores,
+  driverCount,
+  cautionCount,
   pairLabels,
   persons,
   children,
@@ -87,19 +103,73 @@ export default function CompatibilityPaywall({
 
   return (
     <div className="space-y-6">
-      {/* Score teaser */}
-      <div className="rounded-3xl border border-amber-300/30 bg-gradient-to-br from-rose-500/10 via-amber-500/10 to-fuchsia-500/10 p-8 md:p-10 text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-amber-200/80 font-mono mb-3">
+      {/* Score teaser + 5-domain strip with one revealed, four locked */}
+      <div className="rounded-3xl border border-amber-300/30 bg-gradient-to-br from-rose-500/10 via-amber-500/10 to-fuchsia-500/10 p-7 md:p-9 text-center">
+        <div className="text-xs uppercase tracking-[0.3em] text-amber-200/80 font-mono mb-2">
           Free Preview
         </div>
-        <div className="text-6xl md:text-7xl font-extrabold text-white tracking-tight mb-2">
+        <div className="text-6xl md:text-7xl font-extrabold text-white tracking-tight mb-1">
           {overallScore ?? '?'}
           <span className="text-2xl md:text-3xl text-slate-400 ml-1">/100</span>
         </div>
-        <p className="text-slate-200 max-w-xl mx-auto leading-relaxed">
-          {pairLabels[0]} × {pairLabels[1]} 종합 점수만 무료로 공개합니다. 9-레이어 셀-단위 분석,
-          이상형 일치도, 5년 흐름, 결혼 적기, 대운 동기화 같은 풀 리포트는 잠금 상태입니다.
+        <p className="text-slate-300 text-sm max-w-md mx-auto leading-relaxed mb-5">
+          {pairLabels[0]} × {pairLabels[1]} — 종합 점수와 매력 한 도메인만 공개합니다.
         </p>
+
+        {domainScores && (
+          <div className="grid grid-cols-5 gap-2 max-w-xl mx-auto">
+            {([
+              { key: 'attraction', label: '매력', value: domainScores.attraction, free: true },
+              { key: 'stability', label: '안정', value: domainScores.stability, free: false },
+              { key: 'growth', label: '성장', value: domainScores.growth, free: false },
+              { key: 'conflict', label: '갈등', value: domainScores.conflict, free: false },
+              { key: 'timing', label: '시기', value: domainScores.timing, free: false },
+            ] as const).map((d) => (
+              <div
+                key={d.key}
+                className={`relative rounded-xl border px-2 py-3 text-center ${
+                  d.free
+                    ? 'border-fuchsia-400/50 bg-fuchsia-500/15'
+                    : 'border-white/10 bg-white/5'
+                }`}
+              >
+                {d.free ? (
+                  <>
+                    <div className="text-xl font-bold text-white">{d.value}</div>
+                    <div className="text-[10px] uppercase tracking-wide text-fuchsia-200/80 mt-0.5">
+                      {d.label}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-xl font-bold text-slate-500/60 blur-[4px] select-none">
+                      {d.value}
+                    </div>
+                    <div className="text-[10px] uppercase tracking-wide text-slate-400 mt-0.5 flex items-center justify-center gap-1">
+                      <Lock className="w-2.5 h-2.5" /> {d.label}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {(driverCount !== undefined || cautionCount !== undefined) && (
+          <div className="flex justify-center gap-4 mt-5 text-xs text-slate-300">
+            {driverCount !== undefined && (
+              <span>
+                <span className="text-emerald-300 font-bold">{driverCount}</span> 시너지 셀
+              </span>
+            )}
+            {cautionCount !== undefined && (
+              <span>
+                <span className="text-rose-300 font-bold">{cautionCount}</span> 주의 셀
+              </span>
+            )}
+            <span className="text-slate-500">— 내용 잠금</span>
+          </div>
+        )}
       </div>
 
       {/* Locked preview — blurred children */}

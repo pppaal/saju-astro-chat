@@ -250,6 +250,10 @@
   margin-bottom: 0.5rem;
   flex-wrap: wrap;
   gap: 0.4rem;
+  /* Reserve room for the optional "내 프로필" button so P2's title row
+     doesn't sit higher than P1's — keeps the two cards' fields aligned
+     row-by-row even when only one card has the import action. */
+  min-height: 38px;
 }
 
 @media (min-width: 768px) {

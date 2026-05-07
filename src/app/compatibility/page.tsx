@@ -302,6 +302,8 @@ export default function CompatPage() {
           <div className={`${styles.resultsContainer} ${styles.fadeIn}`}>
             <CompatibilityPaywall
               overallScore={overallScore}
+              driverCount={pairDetails[0]?.strengths.length}
+              cautionCount={pairDetails[0]?.challenges.length}
               pairLabels={[
                 persons[0]?.name || 'Person 1',
                 persons[1]?.name || 'Person 2',
