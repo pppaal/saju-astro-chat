@@ -108,7 +108,17 @@ console.log(`  일진 점수: ${out.scores.iljinScore.toFixed(2)} / 12  (${pct(o
 console.log(`         근거: ${showInput(out.scoreInputs.iljin as Record<string, unknown>)}`)
 
 console.log('\n## 7. cycle별 정통 분석 (Phase 1)')
-type StageBlock = { cycleStage: string; dayMasterStage: string; cycleStrength: number; dayMasterStrength: number; keywords: string[]; tone: string; summary: string }
+type StageBlock = {
+  cycleStage: string
+  dayMasterStage: string
+  cycleStrength: number
+  dayMasterStrength: number
+  keywords: string[]
+  tone: string
+  summary: string
+  natalPillarStages?: Array<{ pillar: string; branch: string; stage: string; strength: number }>
+  natalPeak?: { pillar: string; branch: string; stage: string; strength: number }
+}
 type InteractionBlock = {
   pillars: Array<{ pillar: string; domain: string; stemRelation: string | null; branchRelation: string | null; tone: string; summary: string }>
   dominantSignal?: { pillar: string; domain: string; relation: string; tone: string }
@@ -150,6 +160,13 @@ const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteract
   console.log(`  ${label}:`)
   console.log(`    12운성: ${t.summary}`)
   console.log(`            tone=${t.tone}, keywords=${t.keywords.join('·')}`)
+  if (t.natalPillarStages) {
+    const stages = t.natalPillarStages.map((s) => `${s.pillar}(${s.branch}):${s.stage}`).join(' / ')
+    console.log(`            본명별: ${stages}`)
+    if (t.natalPeak) {
+      console.log(`            절정: ${t.natalPeak.pillar}(${t.natalPeak.branch}) ${t.natalPeak.stage}`)
+    }
+  }
   const pi = c.pillarInteractions
   console.log(`    4기둥:  ${pi.summary}`)
   for (const p of pi.pillars) {

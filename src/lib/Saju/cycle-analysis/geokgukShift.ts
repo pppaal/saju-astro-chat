@@ -47,6 +47,60 @@ const UNFAVORABLE: Record<string, Set<string>> = {
   월겁격: new Set(['정인', '편인', '비견', '겁재']),
 }
 
+// ── 종격 (從格) cycle 룰 — 정통 자평진전
+//   종강격: 인성다, 일간 약. 인성·비겁 喜 / 재성·식상·관살 忌
+//   종왕격: 비겁다, 일간 강. 비겁·인성 喜 / 식상·재성·관살 忌
+//   종재격: 재성다 종재. 재성·식상 喜 / 비겁·인성 忌
+//   종살격: 관살다 종살. 관살·재성 喜 / 식상·비겁·인성 忌 (制·化 둘 다 거부)
+//   종아격: 식상다 종아. 식상·재성 喜 / 인성·관살·비겁 忌 (단 비겁 약간 OK)
+const JONGGEOK_FAVORABLE: Record<string, Set<string>> = {
+  종강격: new Set(['정인', '편인', '비견', '겁재']),
+  종왕격: new Set(['비견', '겁재', '정인', '편인']),
+  종재격: new Set(['정재', '편재', '식신', '상관']),
+  종살격: new Set(['정관', '편관', '정재', '편재']),
+  종아격: new Set(['식신', '상관', '정재', '편재']),
+}
+
+const JONGGEOK_UNFAVORABLE: Record<string, Set<string>> = {
+  종강격: new Set(['정재', '편재', '식신', '상관', '정관', '편관']),
+  종왕격: new Set(['식신', '상관', '정재', '편재', '정관', '편관']),
+  종재격: new Set(['비견', '겁재', '정인', '편인']),
+  종살격: new Set(['식신', '상관', '비견', '겁재', '정인', '편인']),
+  종아격: new Set(['정인', '편인', '정관', '편관']),
+}
+
+// ── 화격 (化格) cycle 룰 — 천간합으로 化한 오행을 보호/극이 핵심
+//   갑기화토격 → 화한 오행 토. 토 + 토를 생하는 화 喜 / 토를 극하는 목 忌 / 화기를 깨는 합 忌
+//   을경화금격 → 금. 금·토 喜 / 화 忌
+//   병신화수격 → 수. 수·금 喜 / 토 忌
+//   정임화목격 → 목. 목·수 喜 / 금 忌
+//   무계화화격 → 화. 화·목 喜 / 수 忌
+const HWAGYEOK_HUASHENG: Record<string, { sheng: string; ke: string }> = {
+  갑기화토격: { sheng: '화', ke: '목' },
+  을경화금격: { sheng: '토', ke: '화' },
+  병신화수격: { sheng: '금', ke: '토' },
+  정임화목격: { sheng: '수', ke: '금' },
+  무계화화격: { sheng: '목', ke: '수' },
+}
+const HWAGYEOK_TARGET_ELEMENT: Record<string, string> = {
+  갑기화토격: '토',
+  을경화금격: '금',
+  병신화수격: '수',
+  정임화목격: '목',
+  무계화화격: '화',
+}
+
+const STEM_TO_ELEMENT_LOCAL: Record<string, string> = {
+  甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토',
+  己: '토', 庚: '금', 辛: '금', 壬: '수', 癸: '수',
+}
+const BRANCH_MAIN_ELEMENT: Record<string, string> = {
+  寅: '목', 卯: '목', 辰: '토',
+  巳: '화', 午: '화', 未: '토',
+  申: '금', 酉: '금', 戌: '토',
+  亥: '수', 子: '수', 丑: '토',
+}
+
 export type ShiftType = 'strengthen' | 'break' | 'protect' | 'shake' | 'neutral'
 
 export interface GeokgukShiftAnalysis {
@@ -74,16 +128,26 @@ interface GeokgukShiftInput {
 export function analyzeGeokgukShift(input: GeokgukShiftInput): GeokgukShiftAnalysis {
   const reasons: string[] = []
   const geok = input.geokgukType
+
+  // 종격 분기
+  if (JONGGEOK_FAVORABLE[geok]) {
+    return analyzeJonggeokShift(input, geok, reasons)
+  }
+  // 화격 분기
+  if (HWAGYEOK_TARGET_ELEMENT[geok]) {
+    return analyzeHwagyeokShift(input, geok, reasons)
+  }
+
   const fav = FAVORABLE[geok]
   const unfav = UNFAVORABLE[geok]
 
-  // 종격/화격/특수격은 룰 다름 — 일단 neutral 처리하고 추후 확장
+  // 특수격(곡직격/염상격 등)은 룰 다름 — 일단 neutral 처리
   if (!fav && !unfav) {
     return {
       geokguk: geok,
       shift: 'neutral',
       intensity: 0,
-      reasons: [`${geok} — 종격/특수격 변동 룰 미적용`],
+      reasons: [`${geok} — 특수격 변동 룰 미적용`],
       summary: `${geok}: 변동 룰 미적용`,
     }
   }
@@ -163,6 +227,100 @@ export function analyzeGeokgukShift(input: GeokgukShiftInput): GeokgukShiftAnaly
     intensity = 0
   }
 
+  return {
+    geokguk: geok,
+    shift,
+    intensity,
+    reasons,
+    summary: buildSummary(geok, shift, intensity, reasons.length),
+  }
+}
+
+// ── 종격 cycle 분석
+function analyzeJonggeokShift(
+  input: GeokgukShiftInput,
+  geok: string,
+  reasons: string[],
+): GeokgukShiftAnalysis {
+  const fav = JONGGEOK_FAVORABLE[geok]!
+  const unfav = JONGGEOK_UNFAVORABLE[geok]!
+  let strengthen = 0
+  let breakSignal = 0
+
+  if (input.cycleStemSibsin) {
+    if (fav.has(input.cycleStemSibsin)) {
+      strengthen += 1
+      reasons.push(`천간 ${input.cycleStemSibsin} → ${geok} 順 (종격 따라감)`)
+    } else if (unfav.has(input.cycleStemSibsin)) {
+      breakSignal += 2 // 종격은 거스르면 큰 충격
+      reasons.push(`천간 ${input.cycleStemSibsin} → ${geok} 逆 (종격 깨짐 위협)`)
+    }
+  }
+  if (input.cycleBranchSibsin) {
+    if (fav.has(input.cycleBranchSibsin)) {
+      strengthen += 1
+      reasons.push(`지지 ${input.cycleBranchSibsin} → ${geok} 順`)
+    } else if (unfav.has(input.cycleBranchSibsin)) {
+      breakSignal += 2
+      reasons.push(`지지 ${input.cycleBranchSibsin} → ${geok} 逆 (종격 깨짐 위협)`)
+    }
+  }
+  if (input.branchInteractionWithMonth === '충') {
+    breakSignal += 2
+    reasons.push(`월지(${input.monthBranch}) 충 → 종격 본거지 동요`)
+  }
+
+  const shift: ShiftType = breakSignal >= strengthen + 1
+    ? 'break'
+    : strengthen > 0 ? 'strengthen' : 'neutral'
+  const intensity = Math.min(3, shift === 'break' ? breakSignal : strengthen)
+  return {
+    geokguk: geok,
+    shift,
+    intensity,
+    reasons,
+    summary: buildSummary(geok, shift, intensity, reasons.length),
+  }
+}
+
+// ── 화격 cycle 분석 — 化한 오행 보강/극으로 판단
+function analyzeHwagyeokShift(
+  input: GeokgukShiftInput,
+  geok: string,
+  reasons: string[],
+): GeokgukShiftAnalysis {
+  const target = HWAGYEOK_TARGET_ELEMENT[geok]!
+  const supports = HWAGYEOK_HUASHENG[geok]!
+  const stemEl = STEM_TO_ELEMENT_LOCAL[input.cycleStem]
+  const branchEl = BRANCH_MAIN_ELEMENT[input.cycleBranch]
+  let strengthen = 0
+  let breakSignal = 0
+
+  const evaluateElement = (label: string, el?: string) => {
+    if (!el) return
+    if (el === target) {
+      strengthen += 1
+      reasons.push(`${label} ${el} → ${geok} 化한 오행 동조 (강화)`)
+    } else if (el === supports.sheng) {
+      strengthen += 1
+      reasons.push(`${label} ${el} → ${geok} 化한 오행 생부 (도움)`)
+    } else if (el === supports.ke) {
+      breakSignal += 2 // 화격은 化氣를 극하면 깨짐
+      reasons.push(`${label} ${el} → ${geok} 化한 오행 극 (화격 깨짐 위협)`)
+    }
+  }
+  evaluateElement('천간', stemEl)
+  evaluateElement('지지', branchEl)
+
+  if (input.branchInteractionWithMonth === '충') {
+    breakSignal += 2
+    reasons.push(`월지(${input.monthBranch}) 충 → 化氣 본거지 동요`)
+  }
+
+  const shift: ShiftType = breakSignal >= strengthen + 1
+    ? 'break'
+    : strengthen > 0 ? 'strengthen' : 'neutral'
+  const intensity = Math.min(3, shift === 'break' ? breakSignal : strengthen)
   return {
     geokguk: geok,
     shift,

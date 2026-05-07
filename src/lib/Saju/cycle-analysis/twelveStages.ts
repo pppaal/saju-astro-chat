@@ -46,6 +46,15 @@ export const STAGE_KEYWORDS: Record<TwelveStage, { ko: string[]; tone: 'rise' | 
   양: { ko: ['양육', '서서히 형성', '미숙'], tone: 'transition' },
 }
 
+export interface NatalPillarStage {
+  pillar: 'year' | 'month' | 'day' | 'time'
+  branch: string
+  /** cycle 천간이 이 본명 지지에서 가지는 12운성 */
+  stage: TwelveStage
+  /** 강도 */
+  strength: number
+}
+
 export interface TwelveStageAnalysis {
   /** cycle 천간이 cycle 지지에서 가지는 12운성 */
   cycleStage: TwelveStage
@@ -61,19 +70,31 @@ export interface TwelveStageAnalysis {
   tone: 'rise' | 'peak' | 'decline' | 'rest' | 'transition'
   /** 한 줄 요약 */
   summary: string
+  /** 본명 4기둥 각 지지에서 cycle 천간이 가지는 단계 (활동 영역 영향) */
+  natalPillarStages?: NatalPillarStage[]
+  /** 가장 강한 본명 단계 (절정·임관 등) */
+  natalPeak?: NatalPillarStage
+}
+
+interface NatalPillarsForStages {
+  year: { branch: string }
+  month: { branch: string }
+  day: { branch: string }
+  time: { branch: string }
 }
 
 /**
- * cycle 천간 + cycle 지지 + 본명 일간 → 12운성 분석
+ * cycle 천간 + cycle 지지 + 본명 일간 (+ 옵션: 본명 4기둥 지지) → 12운성 분석
  *
- * @param cycleStem cycle 천간 (예: 甲)
- * @param cycleBranch cycle 지지 (예: 戌)
- * @param dayMaster 본명 일간 (예: 辛)
+ * 본명 4기둥 지지를 같이 주면 cycle 천간이 각 영역(年조상/月직업/日자기/時자녀)에서
+ * 어느 단계에 도달하는지도 함께 산출 — narrative 에서 "직장에서 임관, 가정에서 사" 같은
+ * 입체적 묘사 가능.
  */
 export function analyzeTwelveStages(
   cycleStem: string,
   cycleBranch: string,
   dayMaster: string,
+  natal?: NatalPillarsForStages,
 ): TwelveStageAnalysis {
   // cycle 천간 자신의 12운성 (cycle 지지 기준)
   const cycleStage = getTwelveStage(cycleStem, cycleBranch) as TwelveStage
@@ -87,6 +108,23 @@ export function analyzeTwelveStages(
 
   const summary = buildSummary(cycleStage, dayMasterStage, cycleStrength, dayMasterStrength)
 
+  // 본명 4기둥 각 지지에서 cycle 천간이 가지는 단계
+  let natalPillarStages: NatalPillarStage[] | undefined
+  let natalPeak: NatalPillarStage | undefined
+  if (natal) {
+    natalPillarStages = (['year', 'month', 'day', 'time'] as const).map((pillar) => {
+      const branch = natal[pillar].branch
+      const stage = getTwelveStage(cycleStem, branch) as TwelveStage
+      return {
+        pillar,
+        branch,
+        stage,
+        strength: STAGE_STRENGTH[stage] ?? 0,
+      }
+    })
+    natalPeak = [...natalPillarStages].sort((a, b) => b.strength - a.strength)[0]
+  }
+
   return {
     cycleStage,
     dayMasterStage,
@@ -95,6 +133,8 @@ export function analyzeTwelveStages(
     keywords: meta.ko,
     tone: meta.tone,
     summary,
+    natalPillarStages,
+    natalPeak,
   }
 }
 

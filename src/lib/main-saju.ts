@@ -37,6 +37,10 @@ import {
   type JohuShiftAnalysis,
 } from './Saju/cycle-analysis/johuShift'
 import {
+  analyzeHwaTransform,
+  type HwaTransformAnalysis,
+} from './Saju/cycle-analysis/hwaTransform'
+import {
   STEM_TO_ELEMENT,
   YUKHAP,
   CHUNG,
@@ -123,6 +127,47 @@ function normalizeStrength(level?: string): CycleStrengthContext['strength'] {
 function stemToElementKo(stem: string): string | undefined {
   const el = STEM_TO_ELEMENT[stem as keyof typeof STEM_TO_ELEMENT]
   return el ? normalizeElement(String(el)) : undefined
+}
+
+// shinsalActivation hits → scoreInput boolean flags (iljin/seun)
+function injectShinsalFlags(
+  hits: Array<{ kind: string }>,
+  target: 'iljin' | 'seun',
+): Record<string, boolean> {
+  const flags: Record<string, boolean> = {}
+  const kinds = new Set(hits.map((h) => h.kind))
+  if (target === 'iljin') {
+    if (kinds.has('천을귀인')) flags.hasCheoneulGwiin = true
+    if (kinds.has('건록')) flags.hasGeonrok = true
+    if (kinds.has('역마')) flags.hasYeokma = true
+    if (kinds.has('도화')) flags.hasDohwa = true
+    if (kinds.has('화개')) flags.hasHwagae = true
+    if (kinds.has('공망')) flags.hasGongmang = true
+    if (kinds.has('원진')) flags.hasWonjin = true
+    if (kinds.has('양인')) flags.hasYangin = true
+    if (kinds.has('귀문관')) flags.hasGuimungwan = true
+    if (kinds.has('천덕귀인')) flags.hasCheondeokGwiin = true
+    if (kinds.has('월덕귀인')) flags.hasWoldeokGwiin = true
+  }
+  if (target === 'seun') {
+    // 삼재 상쇄용 — 천을/천덕/월덕 어느 하나라도 있으면 귀인
+    if (kinds.has('천을귀인') || kinds.has('천덕귀인') || kinds.has('월덕귀인')) {
+      flags.hasGwiin = true
+    }
+  }
+  return flags
+}
+
+// 삼재: 본명 년지 → 12년 주기 3년 흉년
+const SAMJAE_BY_YEAR_BRANCH: Record<string, string[]> = {
+  寅: ['申', '酉', '戌'], 午: ['申', '酉', '戌'], 戌: ['申', '酉', '戌'],
+  巳: ['寅', '卯', '辰'], 酉: ['寅', '卯', '辰'], 丑: ['寅', '卯', '辰'],
+  申: ['巳', '午', '未'], 子: ['巳', '午', '未'], 辰: ['巳', '午', '未'],
+  亥: ['亥', '子', '丑'], 卯: ['亥', '子', '丑'], 未: ['亥', '子', '丑'],
+}
+function isSamjaeYear(natalYearBranch: string, seunBranch: string): boolean {
+  const samjae = SAMJAE_BY_YEAR_BRANCH[natalYearBranch]
+  return samjae?.includes(seunBranch) ?? false
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -315,6 +360,7 @@ export interface CycleEntry {
   shinsalActivation: ShinsalActivationAnalysis
   geokgukShift: GeokgukShiftAnalysis
   johuShift: JohuShiftAnalysis
+  hwaTransform: HwaTransformAnalysis
 }
 
 /**
@@ -463,6 +509,10 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
         cycleContext,
       )
     : ({ ...cycleContext } as SajuScoreInput['seun'])
+  // 삼재 자동 검출 — 본명 년지 vs 세운 지지
+  if (seunRaw?.earthlyBranch) {
+    seunInput.isSamjaeYear = isSamjaeYear(p.year.earthlyBranch.name, seunRaw.earthlyBranch)
+  }
 
   // 월운 input — unse.monthly[0]
   const wolunRaw = unse.monthly?.[0] as
@@ -513,6 +563,39 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     }
   })()
 
+  // 신살 활성화 결과를 scoreInputs 에 주입 (귀인/공망/역마 등이 점수에 반영)
+  const natalCoreForShinsal = {
+    dayStem: dayMaster,
+    dayBranch: natalDayBranch,
+    monthBranch: p.month.earthlyBranch.name,
+  }
+  if (seunRaw?.heavenlyStem && seunRaw?.earthlyBranch) {
+    const seunShinsal = analyzeShinsalActivation(
+      seunRaw.heavenlyStem,
+      seunRaw.earthlyBranch,
+      natalCoreForShinsal,
+    )
+    Object.assign(seunInput, injectShinsalFlags(seunShinsal.hits, 'seun'))
+  }
+  // 일진은 try block 안에서 만들어진 ganji가 필요 — recompute
+  try {
+    const t = calculateSajuData(
+      target.toISOString().slice(0, 10),
+      '12:00',
+      input.gender,
+      'solar',
+      tz,
+    )
+    const iljinShinsal = analyzeShinsalActivation(
+      t.pillars.day.heavenlyStem.name,
+      t.pillars.day.earthlyBranch.name,
+      natalCoreForShinsal,
+    )
+    Object.assign(iljinInput, injectShinsalFlags(iljinShinsal.hits, 'iljin'))
+  } catch {
+    // ignore
+  }
+
   const scores = {
     daeunScore: safeScore(() => calculateDaeunScore(daeunInput)),
     seunScore: safeScore(() => calculateSeunScore(seunInput)),
@@ -555,7 +638,12 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
         : undefined
 
       return {
-        twelveStages: analyzeTwelveStages(stem, branch, dayMaster),
+        twelveStages: analyzeTwelveStages(stem, branch, dayMaster, {
+          year: { branch: p.year.earthlyBranch.name },
+          month: { branch: p.month.earthlyBranch.name },
+          day: { branch: p.day.earthlyBranch.name },
+          time: { branch: p.time.earthlyBranch.name },
+        }),
         pillarInteractions: pi,
         rootedness: analyzeRootedness(stem, branch, natalForInteractions),
         shinsalActivation: analyzeShinsalActivation(stem, branch, natalCore),
@@ -574,6 +662,16 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
           johuYongsin: johuYongsin?.primary
             ? normalizeElement(johuYongsin.primary)
             : undefined,
+        }),
+        hwaTransform: analyzeHwaTransform({
+          cycleStem: stem,
+          natalStems: {
+            year: p.year.heavenlyStem.name,
+            month: p.month.heavenlyStem.name,
+            day: dayMaster,
+            time: p.time.heavenlyStem.name,
+          },
+          monthBranch: p.month.earthlyBranch.name,
         }),
       }
     } catch {
