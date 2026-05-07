@@ -63,6 +63,20 @@ async function main() {
   }
 
   console.log(`\n## 3. 사용자 세그먼트: ${JSON.stringify(cross.segment)}`)
+  console.log(`\n## 3-1. 헤더 컨텍스트 (반복 제거)`)
+  console.log(`  현재 챕터: ${cross.headerContext.currentChapter}`)
+  console.log(`  현재 대운: ${cross.headerContext.currentDaeun} (${cross.headerContext.daeunPhase})`)
+
+  console.log(`\n## 3-2. 시간축별 cross-section 종합`)
+  for (const h of horizons) {
+    const hs = cross.horizonSynthesis[h]
+    console.log(`  [${HORIZON_LABEL[h]}]`)
+    console.log(`    💡 ${hs.synthesis}`)
+    console.log(`    ⭐ 최강: ${THEME_LABEL[hs.strongest.theme]} ${hs.strongest.score}/10`)
+    console.log(`    💀 최약: ${THEME_LABEL[hs.weakest.theme]} ${hs.weakest.score}/10`)
+    if (hs.positives.length) console.log(`    ➕ 호조: ${hs.positives.map((t) => THEME_LABEL[t]).join(', ')}`)
+    if (hs.negatives.length) console.log(`    ➖ 주의: ${hs.negatives.map((t) => THEME_LABEL[t]).join(', ')}`)
+  }
 
   console.log('\n## 4. 매트릭스 상세 (각 셀별 verdict + 액션)')
   for (const theme of themes) {

@@ -148,62 +148,188 @@ const ACTIONS_BY_THEME_GRADE: Record<ThemeKind, Record<string, string[]>> = {
   },
 }
 
-/** 시그널 기반 구체 액션 추출 — saju/astro points 를 보고 추가 advice */
-function deriveSpecificActions(
-  theme: ThemeKind,
-  signal: ThemeSignal,
-  saju: MainSajuOutput,
-): string[] {
-  const out: string[] = []
-  const sajuJoined = signal.sajuPoints.join(' ')
-  const astroJoined = signal.astroPoints.join(' ')
+// ─────────────────────────────────────────────────────────────────
+// 신살별 specific advice (정통 의미 → 행동)
+// 17 신살 × 6 테마 매핑 — generic 액션 위에 specific 추가
+// ─────────────────────────────────────────────────────────────────
 
-  // 격국 파격 → 행동 advice
-  if (sajuJoined.includes('파격')) {
-    if (theme === 'career') out.push('큰 결정·계약 미루기')
-    if (theme === 'wealth') out.push('투자 결정 보류')
-    if (theme === 'love') out.push('약속·결단 미루기')
+const SHINSAL_ADVICE: Record<string, Record<ThemeKind, string | undefined>> = {
+  천을귀인: {
+    career: '귀인 만나는 자리·미팅 적극',
+    wealth: '귀인 추천 거래 OK',
+    love: '소개팅·중매 자리 적극',
+    health: '권위 있는 의사 상담 받기',
+    growth: '멘토 만남·강의 참석',
+    family: '가족 모임 적극 참여',
+  },
+  천덕귀인: {
+    career: '책임감 있는 결정',
+    wealth: undefined,
+    love: '진중한 만남 적기',
+    health: '몸이 알아서 보호함',
+    growth: '진리·도덕 공부',
+    family: '윗사람께 인사',
+  },
+  월덕귀인: {
+    career: '온화한 협업 적기',
+    wealth: '안정적 거래',
+    love: '편안한 인연',
+    health: undefined,
+    growth: undefined,
+    family: '화합 자리 적극',
+  },
+  건록: {
+    career: '지위 안정·정착',
+    wealth: '월급·고정 수입 확실',
+    love: undefined,
+    health: undefined,
+    growth: undefined,
+    family: undefined,
+  },
+  암록: {
+    career: '숨은 도움 받음',
+    wealth: '의외 수입 가능',
+    love: undefined,
+    health: undefined,
+    growth: undefined,
+    family: '먼 친척 도움',
+  },
+  학당귀인: {
+    career: '실력 인정 받음',
+    wealth: undefined,
+    love: undefined,
+    health: undefined,
+    growth: '시험·자격증 도전',
+    family: undefined,
+  },
+  문창: {
+    career: '글·발표·계약서 명확',
+    wealth: undefined,
+    love: undefined,
+    health: undefined,
+    growth: '독서·집필·시험 적기',
+    family: undefined,
+  },
+  공망풀림: {
+    career: '비어있던 자리에 기회 — 적극',
+    wealth: '잠재 수익 발현',
+    love: '오래 비었던 인연 활성',
+    health: '회복기',
+    growth: '잠재 능력 발현',
+    family: '소원했던 가족 연락',
+  },
+  역마: {
+    career: '이직·출장·이동 적기',
+    wealth: '해외 거래·투자 가능',
+    love: '먼 거리 인연',
+    health: '운동 새로 시작',
+    growth: '연수·해외 학습',
+    family: '여행·이사 검토',
+  },
+  도화: {
+    career: '대중 노출·홍보 좋음',
+    wealth: '엔터테인먼트·미용 사업',
+    love: '인연 다발 — 진지한 선택',
+    health: undefined,
+    growth: '예술·표현 공부',
+    family: '인기 있는 자녀 응원',
+  },
+  화개: {
+    career: '연구·종교·예술 분야 활성',
+    wealth: undefined,
+    love: '깊이 있는 인연',
+    health: '명상·영적 활동',
+    growth: '철학·종교·심리 공부',
+    family: '고요한 가족 시간',
+  },
+  양인: {
+    career: '✗ 다툼·강압 조심',
+    wealth: '✗ 무리한 거래 자제',
+    love: '✗ 격한 갈등 조심',
+    health: '✗ 운전·사고·수술 주의',
+    growth: undefined,
+    family: '✗ 가족 다툼 자제',
+  },
+  공망: {
+    career: '✗ 결과 더디게 — 인내',
+    wealth: '✗ 헛된 지출 주의',
+    love: '✗ 약속 흐려짐',
+    health: '✗ 기력 떨어짐',
+    growth: '✗ 학습 효율 낮음',
+    family: '✗ 가족 무관심',
+  },
+  공망묶임: {
+    career: '✗ 진전 없는 묶임 — 다른 길',
+    wealth: '✗ 자금 묶임',
+    love: '✗ 관계 진전 안 됨',
+    health: '✗ 만성 피로',
+    growth: '✗ 정체기',
+    family: '✗ 소통 막힘',
+  },
+  귀문관: {
+    career: '✗ 과한 신경 — 결정 흐림',
+    wealth: '✗ 과민 반응 거래',
+    love: '✗ 의심·집착 주의',
+    health: '✗ 정신 피로·우울 주의',
+    growth: '✗ 집중 어려움',
+    family: '✗ 가족 갈등 — 정신 안정',
+  },
+  원진: {
+    career: '✗ 동료 원망 — 거리 두기',
+    wealth: '✗ 손실 잊지 못함',
+    love: '✗ 묵은 갈등',
+    health: '✗ 스트레스성 질환',
+    growth: undefined,
+    family: '✗ 부모·형제 원망',
+  },
+}
+
+/** 사주 매트릭스 cell 안의 활성 신살 → 테마 별 advice 추출 */
+function deriveShinsalAdvice(theme: ThemeKind, signal: ThemeSignal, saju: MainSajuOutput, horizon: Horizon): string[] {
+  const cycleEntry =
+    horizon === 'daeun' ? saju.cycleAnalysis.daeun :
+    horizon === 'seun' ? saju.cycleAnalysis.seun :
+    horizon === 'wolun' ? saju.cycleAnalysis.wolun :
+    horizon === 'iljin' ? saju.cycleAnalysis.iljin :
+    saju.cycleAnalysis.daeun
+  if (!cycleEntry) return []
+  const out: string[] = []
+  for (const hit of cycleEntry.shinsalActivation.hits) {
+    const advice = SHINSAL_ADVICE[hit.kind]?.[theme]
+    if (advice) out.push(advice)
   }
-  // 격국 강화 → 적극
-  if (sajuJoined.includes('격국 강화')) {
-    if (theme === 'career') out.push('본업 자리잡기 적극')
-    if (theme === 'wealth') out.push('재성 흐름 활용 — 거래 진행')
-  }
-  // 통근 깊음 → 결과 발현
-  if (sajuJoined.includes('통근 깊음')) {
-    out.push('흐름이 실제로 자리잡는 시기 — 결과로 이어짐')
-  }
-  // 점성 trine = 호조
-  if (astroJoined.includes('trine')) {
-    out.push('우주 흐름이 도와주는 시기')
-  }
-  // 점성 square = 도전
-  if (astroJoined.includes('square')) {
-    out.push('긴장·도전 시기 — 정면 돌파')
-  }
-  // 점성 conjunction = 강조
-  if (astroJoined.includes('conjunction')) {
-    out.push('해당 영역 에너지 강하게 부각')
-  }
-  // 귀인 시그널
-  if (sajuJoined.includes('귀인')) {
-    out.push('귀인·도움 받음 — 만남 적극 응함')
-  }
-  // 일지 충돌
-  if (sajuJoined.includes('충돌')) {
-    out.push('가까운 관계 갈등 — 소통 신중')
-  }
-  // 인생 정점 위치 (lifetime peak/valley)
-  const userAge = (() => {
-    const inputDate = saju.input?.birthDate
-    if (!inputDate) return undefined
-    return new Date().getFullYear() - new Date(inputDate).getFullYear()
-  })()
-  if (userAge && saju.lifeNarrative) {
-    const cur = saju.lifeNarrative.chapters.find((c) => c.isCurrent)
-    if (cur) out.push(`현재 ${cur.ageRange} ${cur.ganji} 챕터`)
-  }
-  return out.slice(0, 4)
+  return out
+}
+
+/** NEVER 룰 — 격국 파격 + 양인/공망 같은 강한 흉 조합 → 강한 반대 advice */
+function deriveNeverRules(signal: ThemeSignal, saju: MainSajuOutput, horizon: Horizon): string[] {
+  const cycleEntry =
+    horizon === 'daeun' ? saju.cycleAnalysis.daeun :
+    horizon === 'seun' ? saju.cycleAnalysis.seun :
+    horizon === 'wolun' ? saju.cycleAnalysis.wolun :
+    horizon === 'iljin' ? saju.cycleAnalysis.iljin :
+    null
+  if (!cycleEntry) return []
+  const never: string[] = []
+  const isBreak = cycleEntry.geokgukShift.shift === 'break' && cycleEntry.geokgukShift.intensity >= 2
+  const hasYangin = cycleEntry.shinsalActivation.hits.some((h) => h.kind === '양인')
+  const hasGongmangLock = cycleEntry.shinsalActivation.hits.some((h) => h.kind === '공망묶임')
+  const hasGwimun = cycleEntry.shinsalActivation.hits.some((h) => h.kind === '귀문관')
+  if (isBreak && hasYangin) never.push('🚫 절대 큰 결정·계약 안 됨 (격국 파격 + 양인)')
+  if (isBreak && hasGongmangLock) never.push('🚫 새 시도 자제 (격국 파격 + 공망묶임)')
+  if (hasGwimun) never.push('🚫 충동·과민 결정 자제 (귀문관)')
+  return never
+}
+
+/** 7단계 nuance tone — 점수에 따른 행동 단계 */
+function nuanceTone(score: number): string {
+  if (score >= 9) return '저돌 (모든 자원 투입)'
+  if (score >= 8) return '모험 (큰 도전 가능)'
+  if (score >= 7) return '적극 (활발한 행동)'
+  if (score >= 6) return '시작 (조용한 진입)'
+  if (score >= 5) return '탐색 (정찰·소규모)'
+  if (score >= 3.5) return '관망 (대기·관찰)'
+  return '기다림 (방어·휴식)'
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -304,6 +430,19 @@ export interface ThemeMatrixCell {
 // 메인 출력
 // ─────────────────────────────────────────────────────────────────
 
+export interface HorizonSynthesis {
+  /** 같은 시간축에서 가장 강한 테마 */
+  strongest: { theme: ThemeKind; score: number; verdict: string }
+  /** 같은 시간축에서 가장 약한 테마 */
+  weakest: { theme: ThemeKind; score: number; verdict: string }
+  /** 호운 테마 (>=70%) */
+  positives: ThemeKind[]
+  /** 주의 테마 (<50%) */
+  negatives: ThemeKind[]
+  /** 종합 한 줄 (예: "이번 달은 직업·재물 호조 / 사랑·건강 주의 — 직업 우선") */
+  synthesis: string
+}
+
 export interface CrossEngineOutput {
   engine: typeof CROSS_ENGINE_META
   /** 사용자 세그먼트 (입력) */
@@ -311,8 +450,16 @@ export interface CrossEngineOutput {
   axes: CrossAxes
   /** 6 테마 × 5 시간축 = 30 cells */
   matrix: ThemeMatrixCell[]
+  /** 시간축별 cross-section 종합 */
+  horizonSynthesis: Record<Horizon, HorizonSynthesis>
   /** 테마별 시기 매칭 (인생 peak/valley) */
   themeTimings: Record<ThemeKind, ThemeTiming>
+  /** 헤드라인 컨텍스트 — 셀 반복 대신 한 번만 노출 */
+  headerContext: {
+    currentChapter?: string
+    currentDaeun?: string
+    daeunPhase?: string
+  }
   /** 가장 강한 cross 신호 */
   highlights: {
     strongestAlignedAxis?: keyof CrossAxes
@@ -616,13 +763,17 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     return `${themeFocus} 흉운 — 새 시도 자제`
   })()
 
-  // 액션 — 등급별 기본 액션 + 시그널 기반 구체 advice
-  const baseActions = ACTIONS_BY_THEME_GRADE[theme]?.[grade] || []
-  const specificActions = deriveSpecificActions(theme, {
+  // 액션 — 등급별 기본 + 신살 specific + NEVER 룰 + nuance 톤
+  const baseActions = (ACTIONS_BY_THEME_GRADE[theme]?.[grade] || []).slice(0, 2)
+  const partialSignal = {
     score: combined, grade, sajuPoints, astroPoints, verdict,
     themeFocus, audience, actions: [],
-  }, ctx.saju)
-  const actions = [...baseActions.slice(0, 2), ...specificActions].slice(0, 5)
+  }
+  const shinsalActions = deriveShinsalAdvice(theme, partialSignal, ctx.saju, ctx.horizon)
+  const neverActions = deriveNeverRules(partialSignal, ctx.saju, ctx.horizon)
+  const tone = nuanceTone(combined)
+  // 우선순위: NEVER (강한 반대) > 신살 specific > base
+  const actions = [...neverActions, ...shinsalActions.slice(0, 2), ...baseActions, `톤: ${tone}`].slice(0, 5)
 
   return {
     score: Math.round(combined * 10) / 10,
@@ -747,6 +898,52 @@ export function runCrossEngine(
   // 테마별 시기 매칭
   const themeTimings = buildThemeTimings(saju, astro)
 
+  // 시간축별 cross-section 종합
+  const horizonSynthesis = {} as Record<Horizon, HorizonSynthesis>
+  for (const h of ALL_HORIZONS) {
+    const cellsInHorizon = matrix.filter((c) => c.horizon === h)
+    const sorted = [...cellsInHorizon].sort((a, b) => b.signal.score - a.signal.score)
+    const strongest = sorted[0]
+    const weakest = sorted[sorted.length - 1]
+    const positives = cellsInHorizon
+      .filter((c) => (c.signal.score / 10) * 100 >= 70)
+      .map((c) => c.theme)
+    const negatives = cellsInHorizon
+      .filter((c) => (c.signal.score / 10) * 100 < 50)
+      .map((c) => c.theme)
+    const horizonName = HORIZON_LABEL[h]
+    const synthesis = (() => {
+      if (positives.length >= 4) return `${horizonName} 다영역 호조 — 적극 행동 시기`
+      if (positives.length >= 2 && negatives.length === 0) {
+        const posLabels = positives.map((t) => THEME_LABEL[t]).join('·')
+        return `${horizonName} ${posLabels} 호조 — 이쪽에 집중`
+      }
+      if (positives.length >= 1 && negatives.length >= 1) {
+        return `${horizonName} ${THEME_LABEL[positives[0]]} 호조 / ${THEME_LABEL[negatives[0]]} 주의 — ${THEME_LABEL[positives[0]]} 우선`
+      }
+      if (negatives.length >= 3) return `${horizonName} 다영역 주의 — 보수 자세`
+      return `${horizonName} 평운 — 안정 유지`
+    })()
+    horizonSynthesis[h] = {
+      strongest: { theme: strongest.theme, score: strongest.signal.score, verdict: strongest.signal.verdict },
+      weakest: { theme: weakest.theme, score: weakest.signal.score, verdict: weakest.signal.verdict },
+      positives,
+      negatives,
+      synthesis,
+    }
+  }
+
+  // 헤더 컨텍스트 — 모든 셀에 반복 안 하고 한 번만
+  const curChapter = saju.lifeNarrative?.chapters.find((c) => c.isCurrent)
+  const curDaeun = saju.cycles.currentDaeun
+  const headerContext = {
+    currentChapter: curChapter ? `${curChapter.ageRange} ${curChapter.ganji} 챕터` : undefined,
+    currentDaeun: curDaeun ? `${curDaeun.heavenlyStem}${curDaeun.earthlyBranch}` : undefined,
+    daeunPhase: curDaeun?.phase
+      ? `${curDaeun.phase === 'stem' ? '천간기' : '지지기'} ${Math.round((curDaeun.phaseProgress ?? 0) * 100)}%`
+      : undefined,
+  }
+
   // highlights
   const sortedByScore = [...matrix].sort((a, b) => b.signal.score - a.signal.score)
   const bestThemeNow = sortedByScore[0]
@@ -761,7 +958,9 @@ export function runCrossEngine(
     segment,
     axes,
     matrix,
+    horizonSynthesis,
     themeTimings,
+    headerContext,
     highlights: {
       strongestAlignedAxis: aligned?.[0],
       strongestOpposedAxis: opposed?.[0],
