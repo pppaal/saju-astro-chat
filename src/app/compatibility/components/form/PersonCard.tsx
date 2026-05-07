@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { type PersonForm, type Relation } from '../../lib/types'
 import { PersonCardHeader } from './PersonCardHeader'
 import { CircleDropdown } from './CircleDropdown'
@@ -40,12 +40,18 @@ export const PersonCard = React.memo<PersonCardProps>(
     onFillFromCircle,
   }) => {
     const idx = index
-    const isDetailedMode = person.isDetailedMode ?? false
     const [profileLoading, setProfileLoading] = useState(false)
-
-    const toggleMode = useCallback(() => {
-      onUpdatePerson(idx, 'isDetailedMode', !isDetailedMode)
-    }, [idx, onUpdatePerson, isDetailedMode])
+    // "Time unknown" — when checked we force time to 00:00 and disable
+    // the picker. Pre-check it whenever the stored time is missing or
+    // already set to 00:00 so the form reflects what's actually saved.
+    const [timeUnknown, setTimeUnknown] = useState(
+      !person.time || person.time === '00:00'
+    )
+    useEffect(() => {
+      if (timeUnknown && person.time !== '00:00') {
+        onUpdatePerson(idx, 'time', '00:00')
+      }
+    }, [timeUnknown, person.time, idx, onUpdatePerson])
 
     const loadMyProfile = useCallback(async () => {
       setProfileLoading(true)
@@ -158,28 +164,6 @@ export const PersonCard = React.memo<PersonCardProps>(
           circleImportButton={headerButton}
         />
 
-        {/* Quick / detailed mode toggle. Hint paragraph hidden on phones to
-            keep both person cards visible without scrolling \u2014 the toggle
-            label itself communicates the mode. */}
-        <div className={styles.modeToggle}>
-          <button
-            type="button"
-            className={styles.modeToggleButton}
-            onClick={toggleMode}
-            aria-label={
-              isDetailedMode
-                ? t('compatibilityPage.switchToQuickMode', 'Switch to Quick Mode')
-                : t('compatibilityPage.switchToDetailedMode', 'Switch to Detailed Mode')
-            }
-          >
-            <span className={styles.modeToggleIcon}>{isDetailedMode ? '\u26A1' : '\u{1F4CB}'}</span>
-            <span className={styles.modeToggleText}>
-              {isDetailedMode
-                ? t('compatibilityPage.detailedMode', 'Detailed Mode')
-                : t('compatibilityPage.quickMode', 'Quick Mode')}
-            </span>
-          </button>
-        </div>
         <div className={styles.grid}>
           {/* Required fields: name, date of birth (always shown) */}
           <div>
@@ -206,55 +190,59 @@ export const PersonCard = React.memo<PersonCardProps>(
             />
           </div>
 
-          {/* Detailed fields: time, city, timezone (only in detailed mode) */}
-          {isDetailedMode && (
-            <>
-              <div>
-                <TimePicker
-                  value={person.time}
-                  onChange={(time) => onUpdatePerson(idx, 'time', time)}
-                  label={t('compatibilityPage.timeOfBirth', 'Time of Birth')}
-                  locale={locale}
-                />
-              </div>
-              <CityAutocompleteField
-                id={`city-${idx}`}
-                value={person.cityQuery}
-                suggestions={person.suggestions}
-                showDropdown={person.showDropdown}
+          {/* Time of birth + "unknown" toggle — checked = 00:00. */}
+          <div>
+            <div style={{ opacity: timeUnknown ? 0.55 : 1, pointerEvents: timeUnknown ? 'none' : 'auto' }}>
+              <TimePicker
+                value={timeUnknown ? '00:00' : person.time}
+                onChange={(time) => onUpdatePerson(idx, 'time', time)}
+                label={t('compatibilityPage.timeOfBirth', 'Time of Birth')}
                 locale={locale}
-                onChange={(val) => {
-                  onSetPersons((prev) => {
-                    const next = [...prev]
-                    next[idx] = { ...next[idx], cityQuery: val, lat: null, lon: null }
-                    return next
-                  })
-                }}
-                onFocus={() => {
-                  if (person.lat === null) {
-                    onUpdatePerson(idx, 'showDropdown', true)
-                  }
-                }}
-                onBlur={() => setTimeout(() => onUpdatePerson(idx, 'showDropdown', false), 200)}
-                onSelect={(city) => onPickCity(idx, city)}
-                t={t}
               />
-              <div>
-                <label htmlFor={`tz-${idx}`} className={styles.label}>
-                  {t('compatibilityPage.timeZone', 'Time Zone')}
-                </label>
-                <input
-                  id={`tz-${idx}`}
-                  type="text"
-                  value={person.timeZone}
-                  readOnly
-                  className={`${styles.input} ${styles.inputReadonly}`}
-                  title={t('compatibilityPage.timezoneAutoSet', 'Automatically set based on city')}
-                />
-              </div>
-            </>
-          )}
-          {idx > 0 && isDetailedMode && (
+            </div>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                marginTop: 6,
+                fontSize: '0.78rem',
+                color: 'rgba(220, 215, 255, 0.78)',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={timeUnknown}
+                onChange={(e) => setTimeUnknown(e.target.checked)}
+                style={{ accentColor: '#fcb69f' }}
+              />
+              {t('compatibilityPage.timeUnknown', '시간 모름 (00:00 처리)')}
+            </label>
+          </div>
+          <CityAutocompleteField
+            id={`city-${idx}`}
+            value={person.cityQuery}
+            suggestions={person.suggestions}
+            showDropdown={person.showDropdown}
+            locale={locale}
+            onChange={(val) => {
+              onSetPersons((prev) => {
+                const next = [...prev]
+                next[idx] = { ...next[idx], cityQuery: val, lat: null, lon: null }
+                return next
+              })
+            }}
+            onFocus={() => {
+              if (person.lat === null) {
+                onUpdatePerson(idx, 'showDropdown', true)
+              }
+            }}
+            onBlur={() => setTimeout(() => onUpdatePerson(idx, 'showDropdown', false), 200)}
+            onSelect={(city) => onPickCity(idx, city)}
+            t={t}
+          />
+          {idx > 0 && (
             <div className={`${styles.grid} ${styles.gridTwo}`}>
               <div>
                 <label htmlFor={`rel-${idx}`} className={styles.label}>
