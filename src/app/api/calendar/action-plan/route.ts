@@ -95,7 +95,7 @@ type CalendarEvidence = {
   }
   matrixPacket?: {
     focusDomain?: string
-    graphRagEvidenceSummary?: {
+    structuredEvidenceSummary?: {
       totalAnchors?: number
       totalSets?: number
     }
@@ -192,7 +192,7 @@ export type RagContextResponse = {
 const matrixEvidencePacketSchema = z
   .object({
     focusDomain: z.string().max(32).optional(),
-    graphRagEvidenceSummary: z
+    structuredEvidenceSummary: z
       .object({
         totalAnchors: z.number().min(0).max(1000).optional(),
         totalSets: z.number().min(0).max(1000).optional(),

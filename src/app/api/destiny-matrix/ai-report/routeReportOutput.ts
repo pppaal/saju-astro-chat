@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import {
-  summarizeGraphRAGEvidence,
+  summarizeEvidenceEvidence,
   type DestinyMatrixEvidenceSummary,
-} from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+} from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
 import type {
   TimingAIPremiumReport,
@@ -121,9 +121,9 @@ export function buildGeneratedReportJsonResponse(input: {
       ...input.report,
       id: input.savedReportId,
       destinyMatrixEvidenceSummary: input.destinyMatrixEvidenceSummary,
-      graphRagEvidenceSummary: summarizeGraphRAGEvidence(
+      structuredEvidenceSummary: summarizeEvidenceEvidence(
         (input.report as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
-          .graphRagEvidence
+          .structuredEvidence
       ),
     },
   })

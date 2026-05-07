@@ -1,5 +1,5 @@
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
-import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
+import type { EvidenceBundle } from './structuredEvidence'
 
 type Mode = 'comprehensive' | 'timing' | 'themed'
 
@@ -69,7 +69,7 @@ export function auditCrossConsistency(input: {
   mode: Mode
   matrixInput: MatrixCalculationInput
   report?: unknown
-  graphEvidence?: GraphRAGEvidenceBundle | null
+  graphEvidence?: EvidenceBundle | null
 }): CrossConsistencyAudit {
   const { mode, matrixInput, report, graphEvidence } = input
   const checks: CrossConsistencyCheck[] = []
@@ -202,7 +202,7 @@ export function auditCrossConsistency(input: {
   const anchorTarget = mode === 'comprehensive' ? 10 : 6
   add(
     'C19',
-    'GraphRAG anchor coverage is sufficient',
+    'Evidence anchor coverage is sufficient',
     anchors.length >= anchorTarget,
     `anchors=${anchors.length}, target=${anchorTarget}`
   )
@@ -211,7 +211,7 @@ export function auditCrossConsistency(input: {
   const anchorsWithSet = anchors.filter((a) => (a.crossEvidenceSets || []).length > 0).length
   add(
     'C20',
-    'GraphRAG cross-set density is sufficient',
+    'Evidence cross-set density is sufficient',
     totalSets >= anchors.length && anchorsWithSet === anchors.length,
     `totalSets=${totalSets}, anchorsWithSet=${anchorsWithSet}/${anchors.length}`
   )

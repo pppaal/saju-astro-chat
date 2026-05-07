@@ -14,7 +14,7 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { createErrorResponse } from '@/lib/api/errorHandler'
 import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
-import { summarizeGraphRAGEvidence } from '@/lib/destiny-matrix/ai-report'
+import { summarizeEvidenceEvidence } from '@/lib/destiny-matrix/ai-report'
 import {
   getThemedSectionKeys,
   normalizeReportTheme,
@@ -272,9 +272,9 @@ export async function GET(request: Request, routeContext: RouteContext) {
           report.locale || (reportData?.lang as string) || 'ko',
           report.theme
         )
-        const graphRagEvidence =
-          reportData && isRecord(reportData) && 'graphRagEvidence' in reportData
-            ? reportData.graphRagEvidence
+        const structuredEvidence =
+          reportData && isRecord(reportData) && 'structuredEvidence' in reportData
+            ? reportData.structuredEvidence
             : undefined
 
         return apiSuccess({
@@ -301,9 +301,9 @@ export async function GET(request: Request, routeContext: RouteContext) {
               reportData && isRecord(reportData) && 'calculationDetails' in reportData
                 ? reportData.calculationDetails
                 : undefined,
-            graphRagEvidence,
-            graphRagEvidenceSummary: summarizeGraphRAGEvidence(
-              graphRagEvidence as Parameters<typeof summarizeGraphRAGEvidence>[0]
+            structuredEvidence,
+            structuredEvidenceSummary: summarizeEvidenceEvidence(
+              structuredEvidence as Parameters<typeof summarizeEvidenceEvidence>[0]
             ),
             fullData: reportData,
           },

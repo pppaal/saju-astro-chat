@@ -344,7 +344,7 @@ export function buildTimingPrompt(
   timingData: TimingData,
   targetDate: string,
   matrixSummary: string,
-  graphRagEvidencePrompt?: string,
+  structuredEvidencePrompt?: string,
   userQuestion?: string,
   deterministicCorePrompt?: string
 ): string {
@@ -387,7 +387,7 @@ ${formatTimingData(timingData, lang)}
 ## 매트릭스 분석 요약
 ${matrixSummary}
 
-${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
+${structuredEvidencePrompt ? `## Evidence 근거 앵커\n${structuredEvidencePrompt}\n` : ''}
 ${deterministicBlock ? `${deterministicBlock}\n` : ''}
 ${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 
@@ -440,7 +440,7 @@ ${formatTimingData(timingData, lang)}
 ## Matrix Analysis Summary
 ${matrixSummary}
 
-${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
+${structuredEvidencePrompt ? `## Evidence Evidence Anchors\n${structuredEvidencePrompt}\n` : ''}
 ${deterministicBlock ? `${deterministicBlock}\n` : ''}
 ${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 

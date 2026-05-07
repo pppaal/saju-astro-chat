@@ -21,7 +21,7 @@ export interface ReportSection {
   content: string
 }
 
-export interface GraphRAGEvidenceAnchor {
+export interface EvidenceAnchor {
   id: string
   section: string
   sajuEvidence: string
@@ -37,11 +37,11 @@ export interface GraphRAGEvidenceAnchor {
   }>
 }
 
-export interface GraphRAGEvidenceBundle {
+export interface EvidenceBundle {
   mode: 'comprehensive' | 'timing' | 'themed'
   theme?: string
   period?: string
-  anchors: GraphRAGEvidenceAnchor[]
+  anchors: EvidenceAnchor[]
 }
 
 export interface PremiumReportData {
@@ -60,7 +60,7 @@ export interface PremiumReportData {
   actionItems?: string[]
   qualityAudit?: QualityAudit
   calculationDetails?: CalculationDetails
-  graphRagEvidence?: GraphRAGEvidenceBundle
+  structuredEvidence?: EvidenceBundle
   singleSubjectView?: AdapterSingleSubjectView
   personModel?: AdapterPersonModel
   interpretedAnswer?: InterpretedAnswerContract

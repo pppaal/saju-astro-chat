@@ -1,7 +1,7 @@
 ﻿import type { MatrixCalculationInput } from '../types'
 import type { TimingData, UnifiedClaim, UnifiedParaEvidenceRef, UnifiedReportScope, UnifiedScenarioBundle, UnifiedScores, UnifiedSelectedSignal, UnifiedTimelineEvent, UnifiedTimeWindow } from './types'
 import type { SectionEvidenceRefs } from './evidenceRefs'
-import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
+import type { EvidenceBundle } from './structuredEvidence'
 import type { DeterministicSectionBlock } from './deterministicCore'
 import { clamp, extractMustKeepTokens, sectionToDomain } from './unifiedReportSupport'
 import type { MappingCountryFit, MappingIncomeBand, MappingRulebook } from './unifiedReportSupport'
@@ -42,7 +42,7 @@ export function buildUnifiedTimelineEventsFromClaims(params: {
   mode: 'comprehensive' | 'timing' | 'themed'
   lang: 'ko' | 'en'
   claims: UnifiedClaim[]
-  graphRagEvidence: GraphRAGEvidenceBundle | undefined
+  structuredEvidence: EvidenceBundle | undefined
   timingData?: TimingData
   scope: UnifiedReportScope
   birthDate?: string
@@ -88,7 +88,7 @@ export function buildUnifiedTimelineEventsFromClaims(params: {
       })
     }
 
-    for (const anchor of params.graphRagEvidence?.anchors || []) {
+    for (const anchor of params.structuredEvidence?.anchors || []) {
       events.push({
         id: `EVT_LIFE_SUPPORT_${events.length + 1}`,
         type: 'timing',
@@ -124,7 +124,7 @@ export function buildUnifiedTimelineEventsFromClaims(params: {
     })
   }
 
-  for (const anchor of params.graphRagEvidence?.anchors || []) {
+  for (const anchor of params.structuredEvidence?.anchors || []) {
     events.push({
       id: `EVT_ANCHOR_${events.length + 1}`,
       type: 'timing',

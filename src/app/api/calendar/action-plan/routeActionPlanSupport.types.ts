@@ -60,7 +60,7 @@ type CalendarEvidence = {
   }
   matrixPacket?: {
     focusDomain?: string
-    graphRagEvidenceSummary?: {
+    structuredEvidenceSummary?: {
       totalAnchors?: number
       totalSets?: number
     }

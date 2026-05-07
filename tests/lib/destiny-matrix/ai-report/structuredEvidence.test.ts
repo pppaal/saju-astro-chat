@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
-  buildGraphRAGEvidence,
-  formatGraphRAGEvidenceForPrompt,
-  summarizeGraphRAGEvidence,
-} from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+  buildStructuredEvidence,
+  formatStructuredEvidenceForPrompt,
+  summarizeEvidenceEvidence,
+} from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 import { evaluateThemedReportQuality } from '@/lib/destiny-matrix/ai-report/qualityAudit'
 
-describe('graphRagEvidence quality guardrail', () => {
+describe('structuredEvidence quality guardrail', () => {
   it('builds anchors with deterministic saju+astrology+cross fields', () => {
     const input = {
       dayMasterElement: 'Wood',
@@ -28,7 +28,7 @@ describe('graphRagEvidence quality guardrail', () => {
       ],
     } as any
 
-    const evidence = buildGraphRAGEvidence(input, report, { mode: 'comprehensive' })
+    const evidence = buildStructuredEvidence(input, report, { mode: 'comprehensive' })
     expect(evidence.anchors.length).toBe(10)
     for (const anchor of evidence.anchors) {
       expect(anchor.sajuEvidence.length).toBeGreaterThan(20)
@@ -41,7 +41,7 @@ describe('graphRagEvidence quality guardrail', () => {
       expect(anchor.crossEvidenceSets[0].orbFitScore).toBeGreaterThanOrEqual(0)
     }
 
-    const prompt = formatGraphRAGEvidenceForPrompt(evidence, 'en')
+    const prompt = formatStructuredEvidenceForPrompt(evidence, 'en')
     expect(prompt).toContain('Each section must include')
     expect(prompt).toContain('set X')
     expect(prompt).toContain('angle=')
@@ -77,7 +77,7 @@ describe('graphRagEvidence quality guardrail', () => {
   })
 
   it('creates compact summary for API response reuse', () => {
-    const evidence = buildGraphRAGEvidence(
+    const evidence = buildStructuredEvidence(
       {
         dayMasterElement: 'Wood',
         geokguk: '정관격',
@@ -94,7 +94,7 @@ describe('graphRagEvidence quality guardrail', () => {
       { mode: 'comprehensive' }
     )
 
-    const summary = summarizeGraphRAGEvidence(evidence)
+    const summary = summarizeEvidenceEvidence(evidence)
     expect(summary).not.toBeNull()
     expect(summary?.totalAnchors).toBeGreaterThan(0)
     expect(summary?.totalSets).toBeGreaterThan(0)
@@ -103,7 +103,7 @@ describe('graphRagEvidence quality guardrail', () => {
   })
 
   it('keeps birth context and transit evidence in cross sets', () => {
-    const evidence = buildGraphRAGEvidence(
+    const evidence = buildStructuredEvidence(
       {
         dayMasterElement: 'Wood',
         geokguk: 'ì •ê´€ê²©',
@@ -135,7 +135,7 @@ describe('graphRagEvidence quality guardrail', () => {
     expect(firstAnchor.sajuEvidence).toContain('birthTime=14:30')
     expect(firstAnchor.crossEvidenceSets.some((set) => set.id.startsWith('T'))).toBe(true)
 
-    const prompt = formatGraphRAGEvidenceForPrompt(evidence, 'en')
+    const prompt = formatStructuredEvidenceForPrompt(evidence, 'en')
     expect(prompt).toContain('[T1]')
   })
 
@@ -159,8 +159,8 @@ describe('graphRagEvidence quality guardrail', () => {
       ],
     } as any
 
-    const defaultEvidence = buildGraphRAGEvidence(input, report, { mode: 'comprehensive' })
-    const focusedEvidence = buildGraphRAGEvidence(input, report, {
+    const defaultEvidence = buildStructuredEvidence(input, report, { mode: 'comprehensive' })
+    const focusedEvidence = buildStructuredEvidence(input, report, {
       mode: 'comprehensive',
       focusDomain: 'relationship',
     })

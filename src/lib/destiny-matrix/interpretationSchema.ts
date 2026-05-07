@@ -54,7 +54,7 @@ export const THEME_INTERPRETATION_RULES: Record<MatrixThemeKey, ThemeInterpretat
       'currentIljinElement',
       'currentIljinDate',
       'activeTransits',
-      'graphRagEvidence.anchors',
+      'structuredEvidence.anchors',
       'domainAnalysis',
     ],
     antiPatterns: {

@@ -15,7 +15,7 @@ import { DestinyMatrixError, ErrorCodes } from '@/lib/destiny-matrix/errors'
 import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
 import { buildSharedSurface } from '@/lib/destiny-matrix/core/adaptersPayload'
 import { generateFivePagePDF, generatePremiumPDF } from '@/lib/destiny-matrix/ai-report/pdfGenerator'
-import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
 import {
   REPORT_CREDIT_COSTS,
@@ -170,8 +170,8 @@ function evaluatePatternQualityGate(input: {
     typeof coreQualityRaw === 'number' && Number.isFinite(coreQualityRaw)
       ? clampNumber(coreQualityRaw, 0, 100)
       : null
-  const graphAnchorCount = Array.isArray(input.report?.graphRagEvidence?.anchors)
-    ? input.report.graphRagEvidence.anchors.length
+  const graphAnchorCount = Array.isArray(input.report?.structuredEvidence?.anchors)
+    ? input.report.structuredEvidence.anchors.length
     : 0
   const patternCount = Array.isArray(input.report?.patterns) ? input.report.patterns.length : 0
   const blockers: string[] = []
@@ -596,7 +596,7 @@ export const POST = withApiMiddleware(
         report: aiReport,
         graphEvidence:
           (aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
-            .graphRagEvidence || null,
+            .structuredEvidence || null,
       })
 
       if (crossConsistencyAudit.score < 70) {
@@ -674,7 +674,7 @@ export const POST = withApiMiddleware(
           report: aiReport,
           graphEvidence:
             (aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
-              .graphRagEvidence || null,
+              .structuredEvidence || null,
         })
 
         patternQualityGate = evaluatePatternQualityGate({

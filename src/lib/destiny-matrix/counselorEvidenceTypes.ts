@@ -5,7 +5,7 @@ import type {
   AdapterSingleSubjectView,
   AdapterSingleUserModel,
 } from '@/lib/destiny-matrix/core/adaptersTypes'
-import type { GraphRAGEvidenceSummary } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+import type { EvidenceSummary } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 
 export type CounselorTheme =
   | 'love'
@@ -40,7 +40,7 @@ export interface CounselorEvidencePacket {
   verdict: string
   guardrail: string
   topAnchorSummary: string
-  graphRagEvidenceSummary: GraphRAGEvidenceSummary
+  structuredEvidenceSummary: EvidenceSummary
   topAnchors: Array<{
     id: string
     section: string
@@ -164,7 +164,7 @@ export type CounselorEvidencePacketLike = {
   verdict?: string
   guardrail?: string
   topAnchorSummary?: string
-  graphRagEvidenceSummary?: Partial<GraphRAGEvidenceSummary>
+  structuredEvidenceSummary?: Partial<EvidenceSummary>
   topAnchors?: Array<{
     id?: string
     section?: string

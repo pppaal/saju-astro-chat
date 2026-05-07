@@ -426,7 +426,7 @@ export function ensureDerivedSnapshots(
     !!toOptionalRecord(requestBody.sajuSnapshot) || !!toOptionalRecord(requestBody.saju)
   const hasCrossSnapshot =
     !!toOptionalRecord(requestBody.crossSnapshot) ||
-    !!toOptionalRecord(requestBody.graphRagEvidence) ||
+    !!toOptionalRecord(requestBody.structuredEvidence) ||
     !!toOptionalRecord(requestBody.matrixSummary)
 
   const derivedSaju = getDerivedSajuData(requestBody)

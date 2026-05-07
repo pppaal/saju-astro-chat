@@ -11,18 +11,18 @@ export type { AIPremiumReport, AIReportGenerationOptions } from './reportTypes'
 
 export { generateFivePagePDF, generatePremiumPDF, type PDFGenerationOptions } from './pdfGenerator'
 export {
-  buildGraphRAGEvidence,
-  formatGraphRAGEvidenceForPrompt,
-  summarizeGraphRAGEvidence,
+  buildStructuredEvidence,
+  formatStructuredEvidenceForPrompt,
+  summarizeEvidenceEvidence,
   summarizeDestinyMatrixEvidence,
-  type GraphRAGEvidenceAnchor,
-  type GraphRAGEvidenceBundle,
-  type GraphRAGEvidenceSummary,
-  type GraphRAGAnchorSummary,
-  type GraphRAGCrossEvidenceSet,
+  type EvidenceAnchor,
+  type EvidenceBundle,
+  type EvidenceSummary,
+  type EvidenceAnchorSummary,
+  type CrossEvidenceSet,
   type DestinyMatrixEvidenceSummary,
   type DestinyMatrixEvidenceSummaryItem,
-} from './graphRagEvidence'
+} from './structuredEvidence'
 
 export {
   type ReportPeriod,

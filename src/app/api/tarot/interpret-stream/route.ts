@@ -400,7 +400,7 @@ export async function POST(req: NextRequest) {
       previousReadings: previousReadings.length,
     })
 
-    // Always prefer backend Hybrid RAG (GraphRAG + tarot rules) first.
+    // Always prefer backend Hybrid RAG (Evidence + tarot rules) first.
     // This ensures question-aware interpretation quality for all questions.
     const backendPrimaryBase = buildFallbackPayload(rawCards, language)
     const backendPrimary = await fetchBackendFallback({

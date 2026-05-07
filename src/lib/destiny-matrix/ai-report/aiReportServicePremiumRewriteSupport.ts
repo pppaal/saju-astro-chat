@@ -9,14 +9,14 @@ export async function runPremiumRewriteMode(ctx) {
     lang,
     detailLevel,
     normalizedInput,
-    graphRagEvidence,
+    structuredEvidence,
     deterministicCore,
     coreSeed,
     reportCore,
     signalSynthesis,
     strategyEngine,
     topMatchedPatterns,
-    graphRagSummary,
+    evidenceSummary,
     COMPREHENSIVE_SECTION_KEYS,
     comprehensiveFallbackDeps,
     buildComprehensiveEvidenceRefs,
@@ -63,7 +63,7 @@ export async function runPremiumRewriteMode(ctx) {
     inferAgeFromBirthDate,
     buildLifeCyclePromptBlock,
     buildMatrixSummary,
-    summarizeGraphRAGEvidence,
+    summarizeEvidenceEvidence,
     buildDirectToneOverride,
     sanitizeSectionNarrative,
     sanitizeTimingContradictionsExternal,
@@ -126,7 +126,7 @@ export async function runPremiumRewriteMode(ctx) {
     matrixReport,
     matrixSummary: options.matrixSummary,
     signalSynthesis,
-    graphRagEvidence,
+    structuredEvidence,
     birthDate: options.birthDate,
     timingData: options.timingData,
     sectionPaths,
@@ -220,7 +220,7 @@ export async function runPremiumRewriteMode(ctx) {
     .map((d) =>
       lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
     )
-  const anchorFallback = (graphRagEvidence.anchors || [])
+  const anchorFallback = (structuredEvidence.anchors || [])
     .slice(0, 3)
     .map((a) =>
       lang === 'ko' ? `${a.section} 섹션 근거 정합` : `${a.section} section evidence alignment`
@@ -315,8 +315,8 @@ export async function runPremiumRewriteMode(ctx) {
       geokguk: input.geokguk,
     },
     sections: outputSections,
-    graphRagEvidence,
-    graphRagSummary,
+    structuredEvidence,
+    evidenceSummary,
     evidenceRefs,
     evidenceRefsByPara: unified.evidenceRefsByPara,
     deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),

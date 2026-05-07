@@ -17,12 +17,12 @@ export async function generateAIPremiumReportWithSupport(
 ): Promise<AIPremiumReport> {
   const {
     buildNormalizedMatrixInput,
-    buildGraphRAGEvidence,
+    buildStructuredEvidence,
     buildDeterministicCore,
     runDestinyCore,
     adaptCoreToReport,
     buildTopMatchedPatterns,
-    buildGraphRagSummaryPayload,
+    buildEvidenceSummaryPayload,
     shouldUseDeterministicOnly,
     FORCE_REWRITE_ONLY_MODE,
   } = deps
@@ -31,14 +31,14 @@ export async function generateAIPremiumReportWithSupport(
   const lang = options.lang || 'ko'
   const detailLevel = options.detailLevel || 'detailed'
   const normalizedInput = buildNormalizedMatrixInput(input)
-  const graphRagEvidence = buildGraphRAGEvidence(normalizedInput, matrixReport, {
+  const structuredEvidence = buildStructuredEvidence(normalizedInput, matrixReport, {
     mode: 'comprehensive',
     focusDomain: options.focusDomain,
   })
   const deterministicCore = buildDeterministicCore({
     matrixInput: normalizedInput,
     matrixReport,
-    graphEvidence: graphRagEvidence,
+    graphEvidence: structuredEvidence,
     userQuestion: options.userQuestion,
     lang,
     profile: options.deterministicProfile,
@@ -54,10 +54,10 @@ export async function generateAIPremiumReportWithSupport(
   const signalSynthesis = coreSeed.signalSynthesis
   const strategyEngine = coreSeed.strategyEngine
   const topMatchedPatterns = buildTopMatchedPatterns(coreSeed.patterns)
-  const graphRagSummary = buildGraphRagSummaryPayload(
+  const evidenceSummary = buildEvidenceSummaryPayload(
     lang,
     matrixReport,
-    graphRagEvidence,
+    structuredEvidence,
     signalSynthesis,
     strategyEngine,
     reportCore
@@ -73,14 +73,14 @@ export async function generateAIPremiumReportWithSupport(
     lang,
     detailLevel,
     normalizedInput,
-    graphRagEvidence,
+    structuredEvidence,
     deterministicCore,
     coreSeed,
     reportCore,
     signalSynthesis,
     strategyEngine,
     topMatchedPatterns,
-    graphRagSummary,
+    evidenceSummary,
   }
 
   if (deterministicOnly) {

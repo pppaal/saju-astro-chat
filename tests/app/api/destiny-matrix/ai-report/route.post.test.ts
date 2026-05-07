@@ -59,7 +59,7 @@ vi.mock('@/lib/destiny-matrix/core/adaptersPayload', () => ({
   buildSharedSurface: vi.fn(),
 }))
 
-vi.mock('@/lib/destiny-matrix/ai-report/graphRagEvidence', () => ({
+vi.mock('@/lib/destiny-matrix/ai-report/structuredEvidence', () => ({
   summarizeDestinyMatrixEvidence: vi.fn(() => ({ totalInsights: 0, items: [] })),
 }))
 
@@ -155,7 +155,7 @@ const MOCK_AI_REPORT = {
   overallScore: 88,
   sections: [{ title: 'Overview', content: 'content' }],
   patterns: [{ id: 'pattern-1' }],
-  graphRagEvidence: { anchors: [{ id: 'A1' }] },
+  structuredEvidence: { anchors: [{ id: 'A1' }] },
   meta: { qualityMetrics: { coreQualityScore: 90 }, modelUsed: 'claude-haiku' },
 }
 
@@ -366,7 +366,7 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       aiReport: {
         ...MOCK_AI_REPORT,
         patterns: [],
-        graphRagEvidence: { anchors: [] },
+        structuredEvidence: { anchors: [] },
         meta: { qualityMetrics: { coreQualityScore: 40 } },
       } as any,
       premiumReport: null,
@@ -375,7 +375,7 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       aiReport: {
         ...MOCK_AI_REPORT,
         patterns: [],
-        graphRagEvidence: { anchors: [] },
+        structuredEvidence: { anchors: [] },
         meta: { qualityMetrics: { coreQualityScore: 40 } },
       } as any,
       premiumReport: null,
