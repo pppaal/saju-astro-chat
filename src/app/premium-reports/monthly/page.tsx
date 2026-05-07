@@ -62,7 +62,7 @@ export default function MonthlyReportPage() {
     () => buildQueryReportProfileInput(searchParams, profile),
     [profile, searchParams]
   )
-  const { profileInput, setProfileInput } = usePremiumReportProfile(profile, queryProfileInput)
+  const { profileInput, setProfileInput } = usePremiumReportProfile(profile, queryProfileInput, profileLoading)
 
   const [sajuData, setSajuData] = useState<PremiumSajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)

@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import type { UserProfile } from '@/lib/userProfile'
 import type { ReportProfileInput } from './types'
 import { buildReportProfileInputFromUserProfile } from './shared'
@@ -11,10 +12,11 @@ import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
  *   1. explicit initialProfileInput (caller-provided)
  *   2. authenticated server profile (UserProfile)
  *   3. home page localStorage birth info (destinypal:birthInfo:v1)
+ *   4. nothing → bounce to /?openBirth=1&next=<path> so the home modal
+ *      collects birth info once and the user returns to the report.
  *
- * Step 3 covers the "guest filled birth on home → opened a report"
- * flow where the report page can't see the server profile yet but the
- * birth info is already on the device.
+ * Step 4 only fires after `profileLoading` settles to false; otherwise
+ * we'd redirect authenticated users away from their own report mid-fetch.
  */
 export function usePremiumReportProfile(
   profile: Pick<
@@ -28,9 +30,18 @@ export function usePremiumReportProfile(
     | 'latitude'
     | 'longitude'
   >,
-  initialProfileInput: ReportProfileInput | null = null
+  initialProfileInput: ReportProfileInput | null = null,
+  /**
+   * Pass `true` while the upstream server profile is still loading.
+   * Prevents the redirect from firing on first render before
+   * `useUserProfile` has had a chance to populate the profile.
+   */
+  profileLoading: boolean = false,
 ) {
   const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(initialProfileInput)
+  const router = useRouter()
+  const pathname = usePathname()
+  const redirectedRef = useRef(false)
 
   useEffect(() => {
     if (initialProfileInput && !profileInput) {
@@ -57,12 +68,17 @@ export function usePremiumReportProfile(
         gender: local.gender === 'female' ? 'F' : 'M',
         timezone: 'Asia/Seoul',
       })
+      return
     }
-    // If neither source has data, leave profileInput null. Pages show
-    // the embedded form (or their own redirect logic) — pulling the
-    // redirect into this hook ran before profile loading finished and
-    // bounced authenticated users away from their own report.
-  }, [initialProfileInput, profile, profileInput])
+    // No source has data. Wait for profileLoading to settle before
+    // bouncing to the home modal — otherwise we redirect during the
+    // first paint while useUserProfile is still mid-fetch.
+    if (profileLoading) return
+    if (redirectedRef.current) return
+    if (!pathname) return
+    redirectedRef.current = true
+    router.replace(`/?openBirth=1&next=${encodeURIComponent(pathname)}`)
+  }, [initialProfileInput, profile, profileInput, profileLoading, router, pathname])
 
   return { profileInput, setProfileInput }
 }

@@ -1,14 +1,16 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { ReportProfileForm, type ReportProfileInput } from '@/app/premium-reports/_components'
+import type { ReportProfileInput } from '@/app/premium-reports/_components'
 
 type Accent = 'violet' | 'cyan' | 'amber' | 'emerald'
 
 type ReportBuilderActionPanelProps = {
   accent?: Accent
+  /** Kept for API compatibility with callers — no longer rendered. */
   initialName?: string
-  onProfileSubmit: (profile: ReportProfileInput) => void
+  /** Kept for API compatibility — the panel never collects birth info now. */
+  onProfileSubmit?: (profile: ReportProfileInput) => void
   actionLabel: string
   onAction: () => void
   disabled?: boolean
@@ -16,13 +18,12 @@ type ReportBuilderActionPanelProps = {
   helperText?: string
   children?: ReactNode
   /**
-   * When true, the birth-info form is hidden and only the action button
-   * is shown — used when the page already has birth info from the home
-   * modal / user profile / URL params and the form would just nag the
-   * user. Defaults to false to preserve guest-flow behavior.
+   * Required: panel only renders the action button + summary now. When
+   * birth info isn't available, the page itself redirects to the home
+   * modal — see usePremiumReportProfile.
    */
   hasProfile?: boolean
-  /** Optional summary line rendered in place of the form when hasProfile. */
+  /** Optional summary line shown above the action button. */
   profileSummary?: string
 }
 
@@ -35,8 +36,6 @@ const BUTTON_CLASSES: Record<Accent, string> = {
 
 export default function ReportBuilderActionPanel({
   accent = 'violet',
-  initialName,
-  onProfileSubmit,
   actionLabel,
   onAction,
   disabled = false,
@@ -68,7 +67,13 @@ export default function ReportBuilderActionPanel({
           </a>
         </div>
       ) : (
-        <ReportProfileForm locale="ko" initialName={initialName} onSubmit={onProfileSubmit} />
+        // Birth info isn't on the device yet. The page-level redirect
+        // (usePremiumReportProfile) is on its way to /?openBirth=1 —
+        // show a tiny placeholder so the panel doesn't pop empty in
+        // the meantime instead of dropping in an inline form.
+        <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-xs text-slate-400 text-center">
+          홈에서 생년월일을 먼저 입력해 주세요…
+        </div>
       )}
 
       {error ? (
