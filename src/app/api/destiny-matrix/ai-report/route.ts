@@ -517,6 +517,29 @@ export const POST = withApiMiddleware(
         matrixSummaryForGeneration,
       }))
 
+      // Attach the deterministic extended-analysis bundle (life stages,
+      // decisive timings, relationships, practical info, karmic insight).
+      // Computed from the derived saju snapshot so it adds no LLM cost
+      // and renders instantly in the result page.
+      try {
+        const derivedSaju = (matrixInput as Record<string, unknown>).__derivedSajuData as
+          | import('@/lib/Saju/types').CalculateSajuDataResult
+          | undefined
+        if (derivedSaju) {
+          const { buildExtendedAnalysis } = await import('@/lib/Saju/extendedAnalysis')
+          const koreanAge = birthDate
+            ? new Date().getFullYear() - parseInt(String(birthDate).slice(0, 4), 10) + 1
+            : 30
+          const geokguk = (matrixInput as Record<string, unknown>).geokguk as string | undefined
+          ;(aiReport as Record<string, unknown>).extendedAnalysis = buildExtendedAnalysis(
+            derivedSaju,
+            { koreanAge, geokguk },
+          )
+        }
+      } catch (extErr) {
+        logger.warn('[ai-report] extendedAnalysis build failed', { err: String(extErr) })
+      }
+
       if (theme) {
         const themedQualityAudit = (
           aiReport as ThemedAIPremiumReport & {

@@ -199,6 +199,14 @@ export interface AIPremiumReport {
   signalSynthesis?: SignalSynthesisResult
   strategyEngine?: StrategyEngineResult
 
+  /**
+   * Deterministic add-on bundle (life stages × 5, decisive timings × 7,
+   * relationships × 5, practical info, karmic insight). Computed from
+   * the saju snapshot without any LLM call so it renders instantly
+   * alongside the streamed prose.
+   */
+  extendedAnalysis?: import('@/lib/Saju/extendedAnalysis').ExtendedAnalysis
+
   // 메타데이터
   meta: {
     modelUsed: string

@@ -32,6 +32,7 @@ import {
   ReportSectionReader,
   ReportSummarySection,
   SingleSubjectViewSection,
+  ExtendedAnalysisSection,
   ThemeAnglesSection,
 } from '@/app/premium-reports/_components'
 import ReportVisualSummary from '@/components/reports/ReportVisualSummary'
@@ -413,6 +414,9 @@ function buildReportData(
       : isInterpretedAnswer(fullData.interpretedAnswer)
         ? fullData.interpretedAnswer
         : undefined,
+    extendedAnalysis:
+      (payload.extendedAnalysis as ReportData['extendedAnalysis']) ||
+      (fullData.extendedAnalysis as ReportData['extendedAnalysis']),
     fullData,
   }
 }
@@ -1258,6 +1262,10 @@ export default function ReportResultPage() {
           />
         )
       })()}
+
+      {report.extendedAnalysis && (
+        <ExtendedAnalysisSection analysis={report.extendedAnalysis} className="mt-8" />
+      )}
 
       {report.sections.length > 0 && <ReportSectionReader sections={report.sections} />}
 

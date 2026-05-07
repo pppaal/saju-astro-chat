@@ -64,5 +64,10 @@ export interface PremiumReportData {
   singleSubjectView?: AdapterSingleSubjectView
   personModel?: AdapterPersonModel
   interpretedAnswer?: InterpretedAnswerContract
+  /**
+   * Deterministic add-on bundle (A~E sections). Surfaces immediately
+   * alongside the streamed prose since it requires no LLM calls.
+   */
+  extendedAnalysis?: import('@/lib/Saju/extendedAnalysis').ExtendedAnalysis
   fullData?: Record<string, unknown>
 }
