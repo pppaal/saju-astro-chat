@@ -17,6 +17,10 @@ import {
   type TwelveStageAnalysis,
 } from './Saju/cycle-analysis/twelveStages'
 import {
+  analyzePillarInteractions,
+  type PillarInteractionsAnalysis,
+} from './Saju/cycle-analysis/pillarInteractions'
+import {
   STEM_TO_ELEMENT,
   YUKHAP,
   CHUNG,
@@ -270,10 +274,10 @@ export interface MainSajuOutput {
   }
   /** cycle별 정통 분석 — Phase 1 narrative 기초 데이터 */
   cycleAnalysis: {
-    daeun?: { twelveStages: TwelveStageAnalysis }
-    seun?: { twelveStages: TwelveStageAnalysis }
-    wolun?: { twelveStages: TwelveStageAnalysis }
-    iljin?: { twelveStages: TwelveStageAnalysis }
+    daeun?: { twelveStages: TwelveStageAnalysis; pillarInteractions: PillarInteractionsAnalysis }
+    seun?: { twelveStages: TwelveStageAnalysis; pillarInteractions: PillarInteractionsAnalysis }
+    wolun?: { twelveStages: TwelveStageAnalysis; pillarInteractions: PillarInteractionsAnalysis }
+    iljin?: { twelveStages: TwelveStageAnalysis; pillarInteractions: PillarInteractionsAnalysis }
   }
   /** 점수 입력 transformer 결과 (근거 표시용) */
   scoreInputs: {
@@ -499,28 +503,35 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     iljin: iljinInput,
   }
 
-  // Phase 1 정통 cycle 분석 — 12운성
+  // Phase 1 정통 cycle 분석 — 12운성 + 4기둥 상호작용
   const cycleAnalysis: MainSajuOutput['cycleAnalysis'] = {}
-  const safeStages = (
+  const natalForInteractions = {
+    year: { stem: p.year.heavenlyStem.name, branch: p.year.earthlyBranch.name },
+    month: { stem: p.month.heavenlyStem.name, branch: p.month.earthlyBranch.name },
+    day: { stem: dayMaster, branch: p.day.earthlyBranch.name },
+    time: { stem: p.time.heavenlyStem.name, branch: p.time.earthlyBranch.name },
+  }
+  const buildCycleEntry = (
     stem?: string,
     branch?: string,
-  ): TwelveStageAnalysis | undefined => {
+  ): { twelveStages: TwelveStageAnalysis; pillarInteractions: PillarInteractionsAnalysis } | undefined => {
     if (!stem || !branch) return undefined
     try {
-      return analyzeTwelveStages(stem, branch, dayMaster)
+      return {
+        twelveStages: analyzeTwelveStages(stem, branch, dayMaster),
+        pillarInteractions: analyzePillarInteractions(stem, branch, natalForInteractions),
+      }
     } catch {
       return undefined
     }
   }
-  const daeunStages = safeStages(cur?.heavenlyStem, cur?.earthlyBranch)
-  if (daeunStages) cycleAnalysis.daeun = { twelveStages: daeunStages }
-  const seunStages = safeStages(seunRaw?.heavenlyStem, seunRaw?.earthlyBranch)
-  if (seunStages) cycleAnalysis.seun = { twelveStages: seunStages }
-  const wolunStages = safeStages(wolunRaw?.heavenlyStem, wolunRaw?.earthlyBranch)
-  if (wolunStages) cycleAnalysis.wolun = { twelveStages: wolunStages }
-  // 일진은 try block 안에서 만들어진 ganji가 필요. 다시 계산하지 말고 inputs에서 추출.
-  // iljinInput에는 stem/branch가 직접 없으니 today 다시 호출 안 하고 sibsin 라벨만 있음.
-  // → 일진 stages는 별도 small recompute (오늘 ganji 다시).
+  const daeunEntry = buildCycleEntry(cur?.heavenlyStem, cur?.earthlyBranch)
+  if (daeunEntry) cycleAnalysis.daeun = daeunEntry
+  const seunEntry = buildCycleEntry(seunRaw?.heavenlyStem, seunRaw?.earthlyBranch)
+  if (seunEntry) cycleAnalysis.seun = seunEntry
+  const wolunEntry = buildCycleEntry(wolunRaw?.heavenlyStem, wolunRaw?.earthlyBranch)
+  if (wolunEntry) cycleAnalysis.wolun = wolunEntry
+  // 일진은 오늘 ganji 다시 계산
   try {
     const todayResult = calculateSajuData(
       target.toISOString().slice(0, 10),
@@ -529,11 +540,11 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       'solar',
       tz,
     )
-    const stages = safeStages(
+    const entry = buildCycleEntry(
       todayResult.pillars.day.heavenlyStem.name,
       todayResult.pillars.day.earthlyBranch.name,
     )
-    if (stages) cycleAnalysis.iljin = { twelveStages: stages }
+    if (entry) cycleAnalysis.iljin = entry
   } catch {
     // ignore
   }

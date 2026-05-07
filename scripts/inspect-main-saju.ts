@@ -107,20 +107,36 @@ console.log(`         근거: ${showInput(out.scoreInputs.wolun as Record<string
 console.log(`  일진 점수: ${out.scores.iljinScore.toFixed(2)} / 12  (${pct(out.scores.iljinScore, 12)})`)
 console.log(`         근거: ${showInput(out.scoreInputs.iljin as Record<string, unknown>)}`)
 
-console.log('\n## 7. cycle별 12운성 (Phase 1 정통 분석)')
-const showStages = (label: string, ts?: { twelveStages: { cycleStage: string; dayMasterStage: string; cycleStrength: number; dayMasterStrength: number; keywords: string[]; tone: string; summary: string } }) => {
-  if (!ts) {
+console.log('\n## 7. cycle별 정통 분석 (Phase 1)')
+type StageBlock = { cycleStage: string; dayMasterStage: string; cycleStrength: number; dayMasterStrength: number; keywords: string[]; tone: string; summary: string }
+type InteractionBlock = {
+  pillars: Array<{ pillar: string; domain: string; stemRelation: string | null; branchRelation: string | null; tone: string; summary: string }>
+  dominantSignal?: { pillar: string; domain: string; relation: string; tone: string }
+  summary: string
+}
+const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteractions: InteractionBlock }) => {
+  if (!c) {
     console.log(`  ${label}: —`)
     return
   }
-  const t = ts.twelveStages
-  console.log(`  ${label}: ${t.summary}`)
-  console.log(`         tone=${t.tone}, keywords=${t.keywords.join('·')}`)
+  const t = c.twelveStages
+  console.log(`  ${label}:`)
+  console.log(`    12운성: ${t.summary}`)
+  console.log(`            tone=${t.tone}, keywords=${t.keywords.join('·')}`)
+  const pi = c.pillarInteractions
+  console.log(`    4기둥:  ${pi.summary}`)
+  for (const p of pi.pillars) {
+    if (p.tone === 'neutral') continue
+    const stem = p.stemRelation ? `천간 ${p.stemRelation}` : ''
+    const br = p.branchRelation ? `지지 ${p.branchRelation}` : ''
+    const rel = [stem, br].filter(Boolean).join(' + ')
+    console.log(`            · ${p.pillar} (${p.domain}): ${rel}  [${p.tone}]`)
+  }
 }
-showStages('대운', out.cycleAnalysis.daeun)
-showStages('세운', out.cycleAnalysis.seun)
-showStages('월운', out.cycleAnalysis.wolun)
-showStages('일진', out.cycleAnalysis.iljin)
+showCycle('대운', out.cycleAnalysis.daeun)
+showCycle('세운', out.cycleAnalysis.seun)
+showCycle('월운', out.cycleAnalysis.wolun)
+showCycle('일진', out.cycleAnalysis.iljin)
 
 console.log('\n## 8. Extended (격국 narrative 일부)')
 if (out.extended) {
