@@ -22,7 +22,7 @@ export default function ReportSectionReader({
 
   return (
     <div className={className}>
-      <div className="mx-auto mt-6 max-w-6xl px-4">
+      <div className="mx-auto mt-6 max-w-4xl px-4">
         <div className="flex gap-2 overflow-x-auto pb-2">
           {sections.map((section, index) => (
             <button
@@ -40,7 +40,7 @@ export default function ReportSectionReader({
         </div>
       </div>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 pb-12">
+      <main className="mx-auto max-w-4xl px-4 py-6 pb-12">
         <PremiumNarrativeCard
           title={active.title}
           content={active.content}

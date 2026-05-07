@@ -82,7 +82,7 @@ export default function PersonModelOverview({
   }
 
   return (
-    <section className={`mx-auto grid max-w-6xl gap-4 px-4 lg:grid-cols-4 ${className}`.trim()}>
+    <section className={`mx-auto grid max-w-4xl gap-4 px-4 lg:grid-cols-4 ${className}`.trim()}>
       <article className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl lg:col-span-2">
         <div className="flex items-center gap-2 text-cyan-100">
           <Layers3 className="h-4 w-4" />

@@ -646,7 +646,7 @@ export default function ReportResultPage() {
     <PremiumPageScaffold accent="cyan">
       <div data-print-area>
       <header className="px-4 pb-6 pt-8">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-4xl">
           <Link
             href="/premium-reports"
             className="no-print inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-slate-300 backdrop-blur-xl transition hover:border-cyan-300/45 hover:text-white"
@@ -857,7 +857,7 @@ export default function ReportResultPage() {
       })()}
 
       {report.type === 'themed' && themedHeadlineLines.length > 0 && (
-        <div className="mx-auto mt-6 max-w-6xl px-4">
+        <div className="mx-auto mt-6 max-w-4xl px-4">
           <div className="rounded-2xl border border-cyan-300/20 bg-gradient-to-br from-slate-900/90 via-slate-900/75 to-cyan-950/55 p-6 shadow-[0_18px_50px_rgba(8,145,178,0.18)] backdrop-blur-xl">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -901,7 +901,7 @@ export default function ReportResultPage() {
           <PersonModelOverview personModel={personModel} className="mt-6" />
 
           {leadStates.length > 0 && (
-            <section className="mx-auto mt-6 max-w-6xl px-4">
+            <section className="mx-auto mt-6 max-w-4xl px-4">
               <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
                 <div className="flex items-center gap-2 text-cyan-100">
                   <Target className="h-4 w-4" />
@@ -959,7 +959,7 @@ export default function ReportResultPage() {
           )}
 
           {leadPortraits.length > 0 && (
-            <section className="mx-auto mt-6 max-w-6xl px-4">
+            <section className="mx-auto mt-6 max-w-4xl px-4">
               <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
                 <div className="flex items-center gap-2 text-cyan-100">
                   <BadgeCheck className="h-4 w-4" />
@@ -1016,7 +1016,7 @@ export default function ReportResultPage() {
 
           <PersonDomainStateSection personModel={personModel} />
 
-          <section className="mx-auto mt-6 grid max-w-6xl gap-4 px-4 lg:grid-cols-[1.15fr_0.85fr]">
+          <section className="mx-auto mt-6 grid max-w-4xl gap-4 px-4 lg:grid-cols-[1.15fr_0.85fr]">
             <article className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
               <div className="flex items-center gap-2 text-cyan-100">
                 <Briefcase className="h-4 w-4" />
@@ -1093,7 +1093,7 @@ export default function ReportResultPage() {
           <PersonInterpretationStabilitySection personModel={personModel} />
 
           {leadBranches.length > 0 && (
-            <section className="mx-auto mt-6 max-w-6xl px-4">
+            <section className="mx-auto mt-6 max-w-4xl px-4">
               <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
                 <div className="flex items-center gap-2 text-cyan-100">
                   <Compass className="h-4 w-4" />
@@ -1145,7 +1145,7 @@ export default function ReportResultPage() {
           {(leadInsights.length > 0 ||
             coherenceNotes.length > 0 ||
             contradictionFlags.length > 0) && (
-            <section className="mx-auto mt-6 grid max-w-6xl gap-4 px-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <section className="mx-auto mt-6 grid max-w-4xl gap-4 px-4 lg:grid-cols-[1.2fr_0.8fr]">
               {leadInsights.length > 0 && (
                 <ReportInsightCards
                   title="핵심 인사이트"
@@ -1195,24 +1195,24 @@ export default function ReportResultPage() {
         </>
       )}
 
-      <div className="mx-auto mt-6 max-w-6xl px-4">
+      <div className="mx-auto mt-6 max-w-4xl px-4">
         <ReportSummarySection summary={report.summary} keywords={report.keywords} />
       </div>
 
       {showThemedDiagnostics && report.qualityAudit && (
-        <div className="mx-auto mt-6 max-w-6xl px-4">
+        <div className="mx-auto mt-6 max-w-4xl px-4">
           <QualityAuditSection qualityAudit={report.qualityAudit} />
         </div>
       )}
 
       {showThemedDiagnostics && report.calculationDetails && (
-        <div className="mx-auto mt-6 max-w-6xl px-4">
+        <div className="mx-auto mt-6 max-w-4xl px-4">
           <CalculationDetailsSection calculationDetails={report.calculationDetails} />
         </div>
       )}
 
       {report.graphRagEvidence && report.graphRagEvidence.anchors?.length > 0 && (
-        <div className="mx-auto mt-6 max-w-6xl px-4">
+        <div className="mx-auto mt-6 max-w-4xl px-4">
           <GraphRagEvidenceSection evidence={report.graphRagEvidence} />
         </div>
       )}
@@ -1262,7 +1262,7 @@ export default function ReportResultPage() {
       {report.sections.length > 0 && <ReportSectionReader sections={report.sections} />}
 
       {report.actionItems && report.actionItems.length > 0 && (
-        <div className="mx-auto max-w-6xl px-4 pb-20">
+        <div className="mx-auto max-w-4xl px-4 pb-20">
           <ReportBulletListSection title="실천 가이드" items={report.actionItems} />
         </div>
       )}

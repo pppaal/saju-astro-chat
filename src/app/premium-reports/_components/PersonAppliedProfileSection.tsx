@@ -80,7 +80,7 @@ export default function PersonAppliedProfileSection({
   const uncertainty = personModel.uncertaintyEnvelope
 
   return (
-    <section className={`mx-auto mt-6 max-w-6xl px-4 ${className}`.trim()}>
+    <section className={`mx-auto mt-6 max-w-4xl px-4 ${className}`.trim()}>
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <ReportSurfaceSection title="생활 적용 프로필" eyebrow="Applied Profile" tone="cyan">
           <div className="grid gap-4 xl:grid-cols-2">

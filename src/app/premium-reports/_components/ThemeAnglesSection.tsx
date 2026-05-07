@@ -199,7 +199,7 @@ export function ThemeAnglesSection({
   }
 
   return (
-    <section className="mx-auto mt-6 max-w-6xl px-4">
+    <section className="mx-auto mt-6 max-w-4xl px-4">
       <div className="rounded-[28px] border border-cyan-300/15 bg-gradient-to-br from-slate-900/85 to-slate-950/70 p-6 shadow-[0_20px_60px_rgba(8,145,178,0.12)] backdrop-blur-xl">
         <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
