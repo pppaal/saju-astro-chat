@@ -101,14 +101,6 @@ describe('Calendar System Integration', () => {
   })
 
   describe('Components', () => {
-    it('should export BirthInfoForm', async () => {
-      const BirthInfoForm = (await import('@/components/calendar/BirthInfoForm')).default
-
-      expect(BirthInfoForm).toBeDefined()
-      // React.memo() returns an object, not a function
-      expect(['function', 'object'].includes(typeof BirthInfoForm)).toBe(true)
-    }, 30000) // Increased timeout for complex component
-
     it('should export DestinyMatrixPlanner', async () => {
       const DestinyMatrixPlanner = (
         await import('@/components/calendar/DestinyMatrixPlanner')
@@ -140,12 +132,11 @@ describe('Calendar System Integration', () => {
         import('@/hooks/calendar/useProfileLoader'),
         import('@/hooks/calendar/useMonthNavigation'),
         import('@/hooks/calendar/useParticleAnimation'),
-        import('@/components/calendar/BirthInfoForm'),
         import('@/components/calendar/DestinyMatrixPlanner'),
         import('@/components/calendar/DestinyMatrixPlannerClient'),
       ])
 
-      expect(modules.length).toBe(11)
+      expect(modules.length).toBe(10)
       modules.forEach((module) => {
         expect(module).toBeDefined()
       })
