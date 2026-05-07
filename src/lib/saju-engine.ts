@@ -1,10 +1,40 @@
 /**
- * 메인 사주 엔진 — 한 곳에 모은 사주 계산 통합 진입점.
+ * 자평력 엔진 (JaPyeong-ryeok Engine) v1.0
+ * ────────────────────────────────────────
+ * 자평진전 정통 + 만세력 톤 + 9차원 컴퓨터 분석
  *
- * 흩어져 있던 사주 모듈들을 하나의 함수 `runMainSaju(birth)` 로 묶어
- * 본명 + 강약/격국/용신 + 충합형해 + 12운성 + 신살 + 공망 + 운(대운/세운/
- * 월운/일진) 점수까지 한 번에 뽑아낸다. 점성·교차는 별도 진입점.
+ * 한 본명에 대해 가능한 모든 사주 계산을 하나의 함수 `runMainSaju()` 로 묶음.
+ * 점성·교차는 별도 진입점 (main-astrology, main-cross).
+ *
+ * ── 9차원 cycle 분석 ──
+ *   1. twelveStages       — 12운성 (cycle 천간 + 일간 + 본명 4기둥 분포)
+ *   2. pillarInteractions — 4기둥 충/합/형/해/파/원진/천간합
+ *   3. rootedness         — 통근/투간 (실제 발현 강도)
+ *   4. shinsalActivation  — 신살 17종 (천을·역마·공망·공망풀림·공망묶임 등)
+ *   5. geokgukShift       — 격국 강화/파격/호격/변질 (정격·종격·화격 모두)
+ *   6. johuShift          — 한난조습 변화
+ *   7. hwaTransform       — 천간합 化 (진짜/假/단순)
+ *   8. samgi              — 삼기 cycle 발현 (천상/지하/인중)
+ *   9. hiddenStemHap      — 지장간 잠재 합 (무의식 영역)
+ *
+ * ── narrative tier (시간 차별) ──
+ *   인생 전체 (10 chapters) / 대운 (10 sections) / 세운 (8) /
+ *   월운 (5) / 일진 (4) — 각 tier별 advice 차별화.
+ *
+ * ── 점수 일관성 ──
+ *   분석 결과(격국변동·공망풀림·진짜化·삼기완성·삼재단계 등)를 자동으로
+ *   scoreInputs 에 주입 → 점수와 narrative 가 같은 데이터를 보고 동작.
  */
+
+/** 엔진 메타 — 모든 출력에 포함. */
+export const SAJU_ENGINE_META = {
+  name: '자평력',
+  nameEn: 'JaPyeong-ryeok',
+  version: '1.0',
+  tradition: '자평진전 정통',
+  dimensions: 9,
+  tagline: '9차원 정통 사주 분석 엔진',
+} as const
 import { calculateSajuData } from './Saju/saju'
 import {
   analyzeAdvancedSaju,
@@ -323,6 +353,8 @@ export interface MainSajuInput {
 }
 
 export interface MainSajuOutput {
+  /** 엔진 메타 (브랜드·버전·차원) */
+  engine: typeof SAJU_ENGINE_META
   /** 4기둥 명식 (年/月/日/時 + 일주 정체성) */
   pillars: {
     year: { stem: string; branch: string; sibsin?: string }
@@ -1071,6 +1103,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     : undefined
 
   return {
+    engine: SAJU_ENGINE_META,
     pillars: {
       year: {
         stem: p.year.heavenlyStem.name,

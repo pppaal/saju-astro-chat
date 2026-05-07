@@ -16,7 +16,7 @@
  *   (D) 시기 조언 — 대운 phase / 삼재 단계별
  *   (E) 한국어 매끄럼 — 조사·어미 통일
  */
-import type { CycleEntry } from '../../main-saju'
+import type { CycleEntry } from '../../saju-engine'
 import type { TwelveStage } from './twelveStages'
 
 export type CycleKind = 'daeun' | 'seun' | 'wolun' | 'iljin'

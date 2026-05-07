@@ -1,9 +1,9 @@
 /**
  * 메인 사주 엔진 raw output — 1995-02-09 06:40 Seoul (남자) 기본.
  *
- * Run: npx tsx scripts/inspect-main-saju.ts
+ * Run: npx tsx scripts/inspect-saju-engine.ts
  */
-import { runMainSaju } from '../src/lib/main-saju'
+import { runMainSaju } from '../src/lib/saju-engine'
 
 const out = runMainSaju({
   birthDate: '1995-02-09',
@@ -13,7 +13,9 @@ const out = runMainSaju({
 })
 
 console.log('='.repeat(72))
-console.log('  메인 사주 엔진 — 1995-02-09 06:40 서울 (남)')
+console.log(`  ${out.engine.name} 엔진 v${out.engine.version} — ${out.engine.tagline}`)
+console.log(`  (${out.engine.tradition} · ${out.engine.dimensions}차원)`)
+console.log('  대상: 1995-02-09 06:40 서울 (남)')
 console.log('='.repeat(72))
 
 console.log('\n## 1. 명식 (4기둥)')
