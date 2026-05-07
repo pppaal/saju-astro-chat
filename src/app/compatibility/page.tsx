@@ -204,6 +204,7 @@ export default function CompatPage() {
       title={compatT('compatibilityPage.analysisTitle', 'Compatibility Analysis')}
       onBack={handleBack}
       backLabel={compatT('compatibilityPage.backToForm', 'Back')}
+      compact={!resultText}
     >
       <main className={`${styles.page} ${!resultText ? styles.entryOnly : ''}`}>
         {/* Decorative floating hearts + tabs marketing intro were removed —

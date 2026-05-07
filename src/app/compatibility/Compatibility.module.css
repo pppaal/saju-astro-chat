@@ -14,9 +14,14 @@
 /* When no result yet, fit the entry form to a single viewport so users
    don't have to scroll just to see the submit button. */
 .page.entryOnly {
-  min-height: 100svh;
-  justify-content: center;
-  padding: 0.75rem 1rem;
+  min-height: auto;
+  padding: 0;
+  justify-content: flex-start;
+}
+
+.page.entryOnly .formContainer {
+  padding: 1rem;
+  border-radius: 18px;
 }
 
 /* Animated Background Hearts */
@@ -90,20 +95,25 @@
   }
 }
 
-/* Person Cards Container — 2-column even on phones so both people are
-   visible without scrolling. Width drops to ~140px per column on a
-   360px viewport, which is the practical lower bound for the inline
-   date input + name field. */
+/* Person Cards Container — keep two columns only on real desktops so
+   the year/month/day pickers never overflow on tablets or split
+   landscape. Each grid item gets min-width:0 to stop the dropdowns
+   from forcing horizontal overflow inside the form card. */
 .personCardsGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
+  gap: 1rem;
   margin-bottom: 0.75rem;
 }
 
-@media (min-width: 768px) {
+.personCardsGrid > * {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
   .personCardsGrid {
-    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
   }
 }
 
