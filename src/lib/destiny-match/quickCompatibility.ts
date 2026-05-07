@@ -8,8 +8,14 @@ import { logger } from '@/lib/logger';
 import {
   analyzeComprehensiveCompatibility,
   CompatibilitySubject,
+  ComprehensiveCompatibility,
 } from '@/lib/Saju/compatibility';
 import { COMPATIBILITY_CACHE, CACHE_KEY } from '@/lib/constants/cache';
+import {
+  extractSajuSynergy,
+  extractAstroSynergy,
+  type SynergyHighlight,
+} from './synergyHighlight';
 
 interface BirthInfo {
   birthDate: string;
@@ -18,8 +24,13 @@ interface BirthInfo {
   timezone?: string;
 }
 
-// 간단한 메모리 캐시
-const compatibilityCache = new Map<string, { score: number; timestamp: number }>();
+// 간단한 메모리 캐시 — synergy 포함
+type CachedAnalysis = {
+  score: number;
+  synergy: { saju: SynergyHighlight['saju'] } | null;
+  timestamp: number;
+};
+const compatibilityCache = new Map<string, CachedAnalysis>();
 
 /**
  * 안전한 캐시 키 생성
@@ -45,78 +56,88 @@ function cleanExpiredCache() {
 }
 
 /**
+ * Internal: run the saju compatibility analysis once and pull out
+ * both the overall score and the headline saju synergy.
+ *
+ * Cached together so callers (`calculateQuickCompatibility` for score,
+ * `getCompatibilitySummary` for score + synergy) don't double-compute.
+ */
+async function analyzeSajuPair(
+  person1: BirthInfo,
+  person2: BirthInfo,
+): Promise<{ score: number; sajuSynergy: SynergyHighlight['saju'] }> {
+  // 캐시 정리 (10% 확률로)
+  if (Math.random() < 0.1) {
+    cleanExpiredCache();
+  }
+
+  const cacheKey = getCacheKey(person1, person2);
+  const cached = compatibilityCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < COMPATIBILITY_CACHE.QUICK_TTL_MS) {
+    return { score: cached.score, sajuSynergy: cached.synergy?.saju ?? null };
+  }
+
+  const date1 = new Date(person1.birthDate);
+  const date2 = new Date(person2.birthDate);
+  const time1 = person1.birthTime || '12:00';
+  const time2 = person2.birthTime || '12:00';
+  const timezone1 = person1.timezone || 'Asia/Seoul';
+  const timezone2 = person2.timezone || 'Asia/Seoul';
+
+  const saju1 = calculateSajuData(
+    person1.birthDate,
+    time1,
+    person1.gender === 'F' ? 'female' : 'male',
+    'solar',
+    timezone1,
+  );
+  const saju2 = calculateSajuData(
+    person2.birthDate,
+    time2,
+    person2.gender === 'F' ? 'female' : 'male',
+    'solar',
+    timezone2,
+  );
+
+  const subject1: CompatibilitySubject = {
+    id: 'person1',
+    pillars: saju1.pillars,
+    gender: person1.gender === 'F' ? 'female' : 'male',
+    birthYear: date1.getFullYear(),
+  };
+  const subject2: CompatibilitySubject = {
+    id: 'person2',
+    pillars: saju2.pillars,
+    gender: person2.gender === 'F' ? 'female' : 'male',
+    birthYear: date2.getFullYear(),
+  };
+
+  const result: ComprehensiveCompatibility = analyzeComprehensiveCompatibility(subject1, subject2, {
+    categories: ['love'],
+  });
+
+  const score = result.overallScore;
+  const sajuSynergy = extractSajuSynergy(result);
+
+  compatibilityCache.set(cacheKey, {
+    score,
+    synergy: { saju: sajuSynergy },
+    timestamp: Date.now(),
+  });
+
+  return { score, sajuSynergy };
+}
+
+/**
  * 빠른 궁합 점수 계산
  * 기존 사주 궁합 엔진을 활용 (캐싱 적용)
  */
 export async function calculateQuickCompatibility(
   person1: BirthInfo,
-  person2: BirthInfo
+  person2: BirthInfo,
 ): Promise<number> {
   try {
-    // 캐시 정리 (10% 확률로)
-    if (Math.random() < 0.1) {
-      cleanExpiredCache();
-    }
-
-    // 캐시 확인
-    const cacheKey = getCacheKey(person1, person2);
-    const cached = compatibilityCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < COMPATIBILITY_CACHE.QUICK_TTL_MS) {
-      return cached.score;
-    }
-
-    // 생년월일 파싱
-    const date1 = new Date(person1.birthDate);
-    const date2 = new Date(person2.birthDate);
-
-    // 시간 형식 변환
-    const time1 = person1.birthTime || '12:00';
-    const time2 = person2.birthTime || '12:00';
-    const timezone1 = person1.timezone || 'Asia/Seoul';
-    const timezone2 = person2.timezone || 'Asia/Seoul';
-
-    // 사주 데이터 계산 (새로운 시그니처: birthDate, birthTime, gender, calendarType, timezone)
-    const saju1 = calculateSajuData(
-      person1.birthDate,
-      time1,
-      person1.gender === 'F' ? 'female' : 'male',
-      'solar',
-      timezone1
-    );
-
-    const saju2 = calculateSajuData(
-      person2.birthDate,
-      time2,
-      person2.gender === 'F' ? 'female' : 'male',
-      'solar',
-      timezone2
-    );
-
-    // CompatibilitySubject 형식으로 변환
-    const subject1: CompatibilitySubject = {
-      id: 'person1',
-      pillars: saju1.pillars,
-      gender: person1.gender === 'F' ? 'female' : 'male',
-      birthYear: date1.getFullYear(),
-    };
-
-    const subject2: CompatibilitySubject = {
-      id: 'person2',
-      pillars: saju2.pillars,
-      gender: person2.gender === 'F' ? 'female' : 'male',
-      birthYear: date2.getFullYear(),
-    };
-
-    // 종합 궁합 분석
-    const result = analyzeComprehensiveCompatibility(subject1, subject2, {
-      categories: ['love'],
-    });
-
-    const score = result.overallScore;
-
-    // 캐시에 저장
-    compatibilityCache.set(cacheKey, { score, timestamp: Date.now() });
-
+    const { score } = await analyzeSajuPair(person1, person2);
     return score;
   } catch (error) {
     logger.error('[calculateQuickCompatibility] Error:', { error: error });
@@ -215,17 +236,31 @@ export async function calculateDetailedCompatibility(
 
 /**
  * 간단한 궁합 정보 (프로필 카드 표시용)
+ *
+ * @param options.zodiac1 / zodiac2 — sun-sign names. When supplied, the result
+ * includes an `astro` synergy aspect (Trine/Sextile/etc.). Pass them when the
+ * caller already computes zodiac to avoid recomputing here.
  */
 export async function getCompatibilitySummary(
   person1: BirthInfo,
-  person2: BirthInfo
+  person2: BirthInfo,
+  options?: { zodiac1?: string | null; zodiac2?: string | null },
 ): Promise<{
   score: number;
   grade: string;
   emoji: string;
   tagline: string;
+  synergy: SynergyHighlight;
 }> {
-  const score = await calculateQuickCompatibility(person1, person2);
+  let score = 75;
+  let sajuSynergy: SynergyHighlight['saju'] = null;
+  try {
+    const analysis = await analyzeSajuPair(person1, person2);
+    score = analysis.score;
+    sajuSynergy = analysis.sajuSynergy;
+  } catch (error) {
+    logger.error('[getCompatibilitySummary] Error:', { error });
+  }
 
   let grade: string;
   let emoji: string;
@@ -257,7 +292,15 @@ export async function getCompatibilitySummary(
     tagline = '서로 다른 매력';
   }
 
-  return { score, grade, emoji, tagline };
+  const astroSynergy = extractAstroSynergy(options?.zodiac1, options?.zodiac2);
+
+  return {
+    score,
+    grade,
+    emoji,
+    tagline,
+    synergy: { saju: sajuSynergy, astro: astroSynergy },
+  };
 }
 
 function generateAdvice(score: number, grade: string): string {

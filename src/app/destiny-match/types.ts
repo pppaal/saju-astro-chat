@@ -1,3 +1,5 @@
+import type { SynergyHighlight } from '@/lib/destiny-match/synergyHighlight';
+
 // API에서 반환하는 프로필 타입
 export type DiscoverProfile = {
   id: string;
@@ -19,6 +21,7 @@ export type DiscoverProfile = {
   compatibilityGrade: string;
   compatibilityEmoji: string;
   compatibilityTagline: string;
+  synergy?: SynergyHighlight;
   lastActiveAt: string;
 };
 
@@ -37,6 +40,7 @@ export type UserProfile = {
   compatibilityGrade?: string;
   compatibilityEmoji?: string;
   compatibilityTagline?: string;
+  synergy?: SynergyHighlight;
   bio: string;
   distance: number;
   verified: boolean;
