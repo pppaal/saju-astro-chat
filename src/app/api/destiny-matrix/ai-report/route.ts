@@ -216,6 +216,15 @@ function normalizeAIUserPlan(plan: unknown): 'free' | 'starter' | 'pro' | 'premi
 // POST - AI 리포트 생성 (JSON 응답)
 // ===========================
 
+// AI report generation runs many sequential LLM calls (matrix + themed
+// section + quality re-runs + audits). Default Vercel timeout cuts the
+// route off mid-stream → client sees a hung request that never returns
+// a report. Force the longest serverless ceiling we have access to and
+// pin to nodejs for the heavy lib imports.
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 300
+
 export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
     try {
