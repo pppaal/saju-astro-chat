@@ -33,6 +33,10 @@ import {
   type GeokgukShiftAnalysis,
 } from './Saju/cycle-analysis/geokgukShift'
 import {
+  analyzeJohuShift,
+  type JohuShiftAnalysis,
+} from './Saju/cycle-analysis/johuShift'
+import {
   STEM_TO_ELEMENT,
   YUKHAP,
   CHUNG,
@@ -310,6 +314,7 @@ export interface CycleEntry {
   rootedness: RootednessAnalysis
   shinsalActivation: ShinsalActivationAnalysis
   geokgukShift: GeokgukShiftAnalysis
+  johuShift: JohuShiftAnalysis
 }
 
 /**
@@ -562,6 +567,13 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
           geokgukType: String(advanced.geokguk.type || ''),
           monthBranch: p.month.earthlyBranch.name,
           branchInteractionWithMonth: branchInterWithMonth,
+        }),
+        johuShift: analyzeJohuShift({
+          cycleStem: stem,
+          cycleBranch: branch,
+          johuYongsin: johuYongsin?.primary
+            ? normalizeElement(johuYongsin.primary)
+            : undefined,
         }),
       }
     } catch {

@@ -135,7 +135,13 @@ type GeokgukShiftBlock = {
   reasons: string[]
   summary: string
 }
-const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteractions: InteractionBlock; rootedness: RootednessBlock; shinsalActivation: ShinsalBlock; geokgukShift: GeokgukShiftBlock }) => {
+type JohuShiftBlock = {
+  yongsin: string
+  shift: string
+  intensity: number
+  summary: string
+}
+const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteractions: InteractionBlock; rootedness: RootednessBlock; shinsalActivation: ShinsalBlock; geokgukShift: GeokgukShiftBlock; johuShift: JohuShiftBlock }) => {
   if (!c) {
     console.log(`  ${label}: —`)
     return
@@ -165,6 +171,8 @@ const showCycle = (label: string, c?: { twelveStages: StageBlock; pillarInteract
   for (const r of g.reasons) {
     console.log(`            · ${r}`)
   }
+  const j = c.johuShift
+  console.log(`    조후변화: ${j.summary}`)
 }
 showCycle('대운', out.cycleAnalysis.daeun)
 showCycle('세운', out.cycleAnalysis.seun)
