@@ -232,7 +232,11 @@ console.log('\n## 8. Phase 2 Narrative (정통, deterministic)')
 type NarrativeBlock = {
   oneLineKey: string
   shortSummary: string[]
-  fullNarrative: { headline: string; sections: Array<{ title: string; body: string }> }
+  fullNarrative: {
+    headline: string
+    overallVerdict: string
+    sections: Array<{ title: string; body: string }>
+  }
 }
 const showNarrative = (label: string, n?: NarrativeBlock) => {
   if (!n) {
@@ -241,13 +245,15 @@ const showNarrative = (label: string, n?: NarrativeBlock) => {
   }
   console.log(`\n  ━━━ ${label} ━━━`)
   console.log(`  📌 ${n.fullNarrative.headline}`)
+  console.log(`  ⚖  ${n.fullNarrative.overallVerdict}`)
   console.log(`  💡 (한 줄) ${n.oneLineKey}`)
   console.log(`  📋 (요약):`)
   for (const line of n.shortSummary) console.log(`     · ${line}`)
   console.log(`  📖 (풀):`)
   for (const sec of n.fullNarrative.sections) {
     console.log(`     [${sec.title}]`)
-    console.log(`       ${sec.body}`)
+    const lines = sec.body.split('\n')
+    for (const ln of lines) console.log(`       ${ln}`)
   }
 }
 showNarrative('대운', out.narratives.daeun as NarrativeBlock | undefined)
