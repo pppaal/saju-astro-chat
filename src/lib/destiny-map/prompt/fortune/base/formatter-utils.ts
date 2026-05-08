@@ -171,17 +171,26 @@ export function findCurrentDaeun(unse: UnseDataForFormat | undefined, currentAge
  * @param currentAge - Current age
  * @returns Formatted daeun text
  */
+function formatSibsin(sibsin: { cheon?: string; ji?: string } | undefined): string {
+  if (!sibsin) return "";
+  const c = sibsin.cheon || "";
+  const j = sibsin.ji || "";
+  if (!c && !j) return "";
+  if (c && j) return ` [십신: 천간 ${c} / 지지 ${j}]`;
+  return ` [십신: ${c || j}]`;
+}
+
 export function formatDaeunText(unse: UnseDataForFormat | undefined, currentAge: number): string {
   const currentDaeun = findCurrentDaeun(unse, currentAge);
 
   if (currentDaeun) {
-    return `${currentDaeun.age}-${currentDaeun.age + 9}세: ${formatGanjiEasy(currentDaeun.heavenlyStem, currentDaeun.earthlyBranch)}`;
+    return `${currentDaeun.age}-${currentDaeun.age + 9}세: ${formatGanjiEasy(currentDaeun.heavenlyStem, currentDaeun.earthlyBranch)}${formatSibsin(currentDaeun.sibsin)}`;
   }
 
   // Fallback: show first 3 daeun
   return (unse?.daeun ?? [])
     .slice(0, 3)
-    .map((u) => `${u.age}-${u.age + 9}세: ${formatGanjiEasy(u.heavenlyStem, u.earthlyBranch)}`)
+    .map((u) => `${u.age}-${u.age + 9}세: ${formatGanjiEasy(u.heavenlyStem, u.earthlyBranch)}${formatSibsin(u.sibsin)}`)
     .join("; ");
 }
 
@@ -200,7 +209,7 @@ export function formatAllDaeunText(unse: UnseDataForFormat | undefined, currentA
       const isCurrent = currentAge >= startAge && currentAge <= endAge;
       const marker = isCurrent ? "★현재★" : "";
       const easyGanji = formatGanjiEasy(d.heavenlyStem, d.earthlyBranch);
-      return `${startAge}-${endAge}세: ${easyGanji} ${marker}`;
+      return `${startAge}-${endAge}세: ${easyGanji}${formatSibsin(d.sibsin)} ${marker}`.trimEnd();
     })
     .join("\n  ");
 }
@@ -220,7 +229,7 @@ export function formatFutureAnnualList(unse: UnseDataForFormat | undefined, curr
       const isCurrent = a.year === currentYear;
       const marker = isCurrent ? "★현재★" : "";
       const easyGanji = parseGanjiEasy(a.ganji ?? a.name);
-      return `${a.year}년: ${easyGanji} ${marker}`;
+      return `${a.year}년: ${easyGanji}${formatSibsin(a.sibsin)} ${marker}`.trimEnd();
     })
     .join("\n  ");
 }
@@ -246,7 +255,7 @@ export function formatFutureMonthlyList(
       const isCurrent = m.year === currentYear && m.month === currentMonth;
       const marker = isCurrent ? "★현재★" : "";
       const easyGanji = parseGanjiEasy(m.ganji ?? m.name);
-      return `${m.year}년 ${m.month}월: ${easyGanji} ${marker}`;
+      return `${m.year}년 ${m.month}월: ${easyGanji}${formatSibsin(m.sibsin)} ${marker}`.trimEnd();
     })
     .join("\n  ");
 }

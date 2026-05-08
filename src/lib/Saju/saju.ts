@@ -520,12 +520,15 @@ export function calculateSajuData(
     }
 
     // unse 구조 (baseAllDataPrompt.ts가 기대하는 형식)
+    // sibsin은 LLM이 일간↔운기 관계 (식상/관성/재성/인성/비겁)를 추측하지
+    // 않게 미리 박아둔다. daeWoonList는 saju.ts:445~ 에서 cheon/ji 둘 다 채워짐.
     const unse = {
       daeun: daeWoonList.map((d) => ({
         age: d.age,
         heavenlyStem: d.heavenlyStem,
         earthlyBranch: d.earthlyBranch,
         ganji: `${d.heavenlyStem}${d.earthlyBranch}`,
+        sibsin: d.sibsin,
       })),
       annual: annualCycles,
       monthly: monthlyCycles,

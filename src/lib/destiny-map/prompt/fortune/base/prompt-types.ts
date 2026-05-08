@@ -48,6 +48,11 @@ export interface DayMasterInfo {
 // Luck Cycle Types (Unse)
 // ============================================
 
+export interface SibsinPair {
+  cheon?: string
+  ji?: string
+}
+
 export interface DaeunItem {
   age: number
   year?: number
@@ -58,6 +63,7 @@ export interface DaeunItem {
   endAge?: number
   heavenlyStem?: string
   earthlyBranch?: string
+  sibsin?: SibsinPair
 }
 
 export interface AnnualItem {
@@ -68,6 +74,9 @@ export interface AnnualItem {
   startAge?: number
   endAge?: number
   name?: string
+  heavenlyStem?: string
+  earthlyBranch?: string
+  sibsin?: SibsinPair
 }
 
 export interface MonthlyItem {
@@ -78,6 +87,9 @@ export interface MonthlyItem {
   startAge?: number
   endAge?: number
   name?: string
+  heavenlyStem?: string
+  earthlyBranch?: string
+  sibsin?: SibsinPair
 }
 
 export interface UnseData {

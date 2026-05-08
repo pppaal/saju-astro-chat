@@ -6,6 +6,9 @@ import { toSajuDataStructure } from '@/lib/destiny-map/type-guards'
 import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
+import { performAdvancedAnalysis } from '@/app/api/saju/services/advancedAnalysis'
+import { getTwelveStagesForPillars } from '@/lib/Saju/shinsal'
+import type { SajuPillars, FiveElement } from '@/lib/Saju/types'
 import type { SajuDataStructure, AstroDataStructure } from './index'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 
@@ -216,10 +219,92 @@ export async function calculateChartData(
     currentTransits = await computeCurrentTransits(natalChartData, latitude, longitude, timeZone)
   }
 
+  // Attach advanced analysis (geokguk / yongsin / hyeongchung / tonggeun /
+  // deukryeong / johuYongsin / sibsin / health / career / score / report) so
+  // the counselor prompt builder can surface them instead of "-" placeholders.
+  if (saju && !(saju as { advancedAnalysis?: unknown }).advancedAnalysis) {
+    try {
+      attachAdvancedAnalysis(saju as unknown as Record<string, unknown>)
+    } catch (error) {
+      logger.warn('[chart-calculator] Failed to attach advancedAnalysis:', error)
+    }
+  }
+
   return {
     saju,
     astro,
     natalChartData,
     currentTransits,
   }
+}
+
+/**
+ * Run the same `performAdvancedAnalysis` pipeline that `/api/saju/route` runs
+ * and attach the result to the saju object as `advancedAnalysis`. Idempotent.
+ */
+function attachAdvancedAnalysis(saju: Record<string, unknown>): void {
+  const yearPillar = saju.yearPillar as
+    | { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
+    | undefined
+  const monthPillar = saju.monthPillar as
+    | { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
+    | undefined
+  const dayPillar = saju.dayPillar as
+    | { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
+    | undefined
+  const timePillar = saju.timePillar as
+    | { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
+    | undefined
+
+  const yStem = yearPillar?.heavenlyStem?.name
+  const yBranch = yearPillar?.earthlyBranch?.name
+  const mStem = monthPillar?.heavenlyStem?.name
+  const mBranch = monthPillar?.earthlyBranch?.name
+  const dStem = dayPillar?.heavenlyStem?.name
+  const dBranch = dayPillar?.earthlyBranch?.name
+  const tStem = timePillar?.heavenlyStem?.name
+  const tBranch = timePillar?.earthlyBranch?.name
+  if (!yStem || !yBranch || !mStem || !mBranch || !dStem || !dBranch || !tStem || !tBranch) {
+    return
+  }
+
+  const simplePillars = {
+    year: { stem: yStem, branch: yBranch },
+    month: { stem: mStem, branch: mBranch },
+    day: { stem: dStem, branch: dBranch },
+    time: { stem: tStem, branch: tBranch },
+    hour: { stem: tStem, branch: tBranch },
+  }
+  const pillarsWithHour = {
+    year: simplePillars.year,
+    month: simplePillars.month,
+    day: simplePillars.day,
+    hour: simplePillars.time,
+  }
+
+  const sajuPillars = saju.pillars as SajuPillars | undefined
+  if (!sajuPillars) return
+
+  const twelveStages = getTwelveStagesForPillars(
+    sajuPillars as unknown as Parameters<typeof getTwelveStagesForPillars>[0]
+  )
+  const fiveElements = (saju.fiveElements as Record<FiveElement, number>) || {
+    목: 0,
+    화: 0,
+    토: 0,
+    금: 0,
+    수: 0,
+  }
+
+  const advancedAnalysis = performAdvancedAnalysis(
+    simplePillars,
+    pillarsWithHour,
+    sajuPillars,
+    dStem,
+    mBranch,
+    twelveStages as unknown as Record<string, string>,
+    fiveElements as unknown as Record<string, number>
+  )
+
+  saju.advancedAnalysis = advancedAnalysis
 }
