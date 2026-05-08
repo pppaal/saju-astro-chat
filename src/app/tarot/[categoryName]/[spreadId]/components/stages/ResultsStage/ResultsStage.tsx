@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import {
   getQuestionIntent,
   type TarotQuestionAnalysisSnapshot,
@@ -18,10 +16,6 @@ import {
 import { ResultsHeader } from './ResultsHeader'
 import { CombinationsSection } from './CombinationsSection'
 import { FollowupSection } from './FollowupSection'
-
-const PersonalityInsight = dynamic(() => import('@/components/personality/PersonalityInsight'), {
-  ssr: false,
-})
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -483,10 +477,6 @@ export function ResultsStage(props: ResultsStageProps) {
       {insight?.followup_questions && insight.followup_questions.length > 0 && (
         <FollowupSection questions={insight.followup_questions} translate={translate} />
       )}
-
-      <ErrorBoundary>
-        <PersonalityInsight lang={language} compact className={styles.personalityInsight} />
-      </ErrorBoundary>
 
       {saveMessage && (
         <div className={styles.saveMessage} role="status" aria-live="polite">
