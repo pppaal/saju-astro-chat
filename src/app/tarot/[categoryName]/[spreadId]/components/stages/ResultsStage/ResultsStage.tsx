@@ -336,14 +336,14 @@ export function ResultsStage(props: ResultsStageProps) {
         translate={translate}
       />
 
-      {/* ③ 답 — 한 줄 */}
-      {quickSummary && (
+      {/* ③ 답변 — LLM 전체 응답 */}
+      {insight?.overall_message && (
         <section className={styles.quickAnswerPanel}>
           <div className={styles.quickAnswerTopRow}>
             <div className={styles.quickAnswerHeader}>
-              {language === 'ko' ? '답' : 'Answer'}
+              {language === 'ko' ? '답변' : 'Answer'}
             </div>
-            {quickSummary.showLikelihood && (
+            {quickSummary?.showLikelihood && (
               <span
                 className={`${styles.likelihoodBadge} ${
                   quickSummary.likelihoodLevel === 'high'
@@ -357,9 +357,22 @@ export function ResultsStage(props: ResultsStageProps) {
               </span>
             )}
           </div>
-          <p className={styles.quickAnswerConclusion}>{quickSummary.directAnswer}</p>
+          <p className={styles.quickAnswerConclusion}>{insight.overall_message}</p>
         </section>
       )}
+
+      {/* ④ 카드별 간단 설명 — 토글 없이 바로 표시 */}
+      <DetailedCardsSection
+        readingResult={readingResult}
+        interpretation={interpretation}
+        language={language}
+        selectedDeckStyle={selectedDeckStyle}
+        revealedCards={revealedCards}
+        expandedCard={expandedCard}
+        onToggleExpand={toggleCardExpand}
+        translate={translate}
+        mode="summary"
+      />
 
       {insight?.fallback && (
         <div className={styles.interpretationFallbackNotice} role="status" aria-live="polite">
@@ -376,7 +389,7 @@ export function ResultsStage(props: ResultsStageProps) {
         </div>
       )}
 
-      {/* ④ 더 자세히 보기 — 전체 설명 + 카드별 + foundation + AI 보조 다 통합 */}
+      {/* ⑤ 더 자세히 보기 — 카드 풀텍스트 + 행동가이드 + foundation + AI 보조 */}
       <details
         className={styles.layer2Details}
         open={showLayer2Cards}
@@ -387,16 +400,6 @@ export function ResultsStage(props: ResultsStageProps) {
         <summary className={styles.layer2Summary}>
           {language === 'ko' ? '더 자세히 보기' : 'See Detailed Analysis'}
         </summary>
-
-        {/* 전체 흐름 설명 */}
-        {insight?.overall_message && (
-          <section className={styles.quickReasonPanel}>
-            <h3 className={styles.quickReasonTitle}>
-              {language === 'ko' ? '전체 흐름 설명' : 'Overall Reading'}
-            </h3>
-            <p className={styles.quickAnswerReason}>{insight.overall_message}</p>
-          </section>
-        )}
 
         {/* 행동 가이드 */}
         {quickSummary && (
@@ -416,7 +419,7 @@ export function ResultsStage(props: ResultsStageProps) {
           </section>
         )}
 
-        {/* 카드별 설명 */}
+        {/* 카드별 풀텍스트 */}
         <DetailedCardsSection
           readingResult={readingResult}
           interpretation={interpretation}
