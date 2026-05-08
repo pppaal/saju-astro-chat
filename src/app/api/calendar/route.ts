@@ -299,6 +299,17 @@ function buildCalendarMatrixInput(params: {
     }
   }
   astroProfile: CalendarAstroProfile
+  enrichedSlots?: {
+    sibsinDistribution: MatrixCalculationInput['sibsinDistribution']
+    twelveStages: MatrixCalculationInput['twelveStages']
+    relations: MatrixCalculationInput['relations']
+    shinsalList: MatrixCalculationInput['shinsalList']
+    geokguk: MatrixCalculationInput['geokguk']
+    yongsin: MatrixCalculationInput['yongsin']
+    asteroidHouses: MatrixCalculationInput['asteroidHouses']
+    extraPointSigns: MatrixCalculationInput['extraPointSigns']
+    advancedAstroSignals: NonNullable<MatrixCalculationInput['advancedAstroSignals']>
+  }
 }): MatrixCalculationInput {
   const { sajuProfile, astroProfile } = params
   const pillarElements = [
@@ -370,31 +381,35 @@ function buildCalendarMatrixInput(params: {
 
   const activeTransits = buildActiveTransitCycles(astroProfile)
 
-  const asteroidHouses: MatrixCalculationInput['asteroidHouses'] = {}
-  const extraPointSigns: MatrixCalculationInput['extraPointSigns'] = {}
-  const advancedAstroSignals: NonNullable<MatrixCalculationInput['advancedAstroSignals']> = {
-    progressions: false,
-    solarReturn: false,
-    lunarReturn: false,
-    draconic: false,
-    harmonics: false,
-    fixedStars: false,
-    eclipses: false,
-    midpoints: false,
-    asteroids: Boolean(Object.keys(asteroidHouses).length),
-    extraPoints: Boolean(Object.keys(extraPointSigns).length),
-  }
+  const enriched = params.enrichedSlots
+  const asteroidHouses: MatrixCalculationInput['asteroidHouses'] = enriched?.asteroidHouses ?? {}
+  const extraPointSigns: MatrixCalculationInput['extraPointSigns'] = enriched?.extraPointSigns ?? {}
+  const advancedAstroSignals: NonNullable<MatrixCalculationInput['advancedAstroSignals']> =
+    enriched?.advancedAstroSignals ?? {
+      progressions: false,
+      solarReturn: false,
+      lunarReturn: false,
+      draconic: false,
+      harmonics: false,
+      fixedStars: false,
+      eclipses: false,
+      midpoints: false,
+      asteroids: Boolean(Object.keys(asteroidHouses).length),
+      extraPoints: Boolean(Object.keys(extraPointSigns).length),
+    }
 
   const baseMatrixInput: MatrixCalculationInput = {
     dayMasterElement,
     pillarElements,
-    sibsinDistribution: {},
-    twelveStages: {},
-    relations: [],
+    sibsinDistribution: enriched?.sibsinDistribution ?? {},
+    twelveStages: enriched?.twelveStages ?? {},
+    relations: enriched?.relations ?? [],
     currentDaeunElement,
     currentIljinElement: currentDaeunElement || dayMasterElement,
     currentIljinDate: currentDateIso,
-    shinsalList: [],
+    shinsalList: enriched?.shinsalList ?? [],
+    geokguk: enriched?.geokguk,
+    yongsin: enriched?.yongsin,
     dominantWesternElement,
     planetHouses,
     planetSigns,
@@ -754,6 +769,29 @@ export const GET = withApiMiddleware(
         import('@/lib/destiny-matrix/counselorEvidence'),
       ])
 
+      // Compute the saju + astro advanced slots (sibsin / 12운성 / 신살 /
+      // 격국 / 용신 + asteroids / extra points / advanced engine flags) so
+      // the matrix isn't fed empty arrays. This mirrors what the saju route
+      // and chat-stream counselor already do.
+      const { enrichSajuMatrixSlots, enrichAstroMatrixSlots } = await import(
+        '@/lib/destiny-matrix/matrixInputEnricher'
+      )
+      let enrichedSlots: Parameters<typeof buildCalendarMatrixInput>[0]['enrichedSlots']
+      try {
+        const sajuSlots = enrichSajuMatrixSlots(
+          sajuResult as unknown as Parameters<typeof enrichSajuMatrixSlots>[0],
+        )
+        const astroSlots = await enrichAstroMatrixSlots({
+          natalChartData: (astroProfile.natalChart as Parameters<typeof enrichAstroMatrixSlots>[0]['natalChartData']) || null,
+          birthYear: sajuProfile.birthYear,
+        })
+        enrichedSlots = { ...sajuSlots, ...astroSlots }
+      } catch (enrichErr) {
+        logger.warn('[calendar] matrix enrichment failed', {
+          error: enrichErr instanceof Error ? enrichErr.message : String(enrichErr),
+        })
+      }
+
       const matrixInput = buildCalendarMatrixInput({
         birthDate: birthDateParam,
         birthTime: birthTimeParam,
@@ -767,6 +805,7 @@ export const GET = withApiMiddleware(
         sajuResult: sajuResult as unknown as Record<string, unknown>,
         sajuProfile,
         astroProfile,
+        enrichedSlots,
       })
       const crossCompleteInput = ensureMatrixInputCrossCompleteness(matrixInput)
       const engineEnvelope = buildCalendarCoreEnvelope({

@@ -258,8 +258,52 @@ async function buildAutoSajuContext(
     const currentSaeun =
       annual.find((a) => Number(a.year) === now.getFullYear()) || asRecord(annual[0]) || null
 
+    // Run the same advanced analysis (geokguk·yongsin·tonggeun·sibsin·12운성·
+    // 신살·healthCareer·strengthScore·hyeongchung·report) the realtime
+    // counselor + saju route attach. Compat counselor was missing this so
+    // its prompt only had raw 4기둥 + 시기.
+    let advancedAnalysis: unknown = undefined
+    try {
+      const { performAdvancedAnalysis } = await import(
+        '@/app/api/saju/services/advancedAnalysis'
+      )
+      const stem = (k: 'year' | 'month' | 'day' | 'time') => ({
+        stem: saju[`${k}Pillar`].heavenlyStem.name,
+        branch: saju[`${k}Pillar`].earthlyBranch.name,
+      })
+      const simple = {
+        year: stem('year'),
+        month: stem('month'),
+        day: stem('day'),
+        time: stem('time'),
+        hour: stem('time'),
+      }
+      const sajuLike = {
+        year: saju.yearPillar,
+        month: saju.monthPillar,
+        day: saju.dayPillar,
+        time: saju.timePillar,
+      } as unknown as Parameters<typeof performAdvancedAnalysis>[2]
+      const { getTwelveStagesForPillars } = await import('@/lib/Saju/shinsal')
+      const stages = getTwelveStagesForPillars(
+        sajuLike as Parameters<typeof getTwelveStagesForPillars>[0],
+      )
+      advancedAnalysis = performAdvancedAnalysis(
+        simple,
+        { year: simple.year, month: simple.month, day: simple.day, hour: simple.time },
+        sajuLike,
+        simple.day.stem,
+        simple.month.branch,
+        stages as unknown as Record<string, string>,
+        saju.fiveElements as unknown as Record<string, number>,
+      )
+    } catch (advErr) {
+      logger.warn('[compatibility/counselor] advanced saju analysis failed', { error: advErr })
+    }
+
     return {
       ...saju,
+      advancedAnalysis,
       yeonun: annual,
       wolun: monthly,
       iljin,
