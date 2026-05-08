@@ -1,5 +1,5 @@
-import { TarotPageSkeleton } from "@/components/ui/TarotPageSkeleton";
+import BrandSplash from '@/components/branding/BrandSplash'
 
 export default function Loading() {
-  return <TarotPageSkeleton />;
+  return <BrandSplash />
 }

@@ -1,5 +1,5 @@
-import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
+import BrandSplash from '@/components/branding/BrandSplash'
 
 export default function Loading() {
-  return <UnifiedServiceLoading kind="aiReport" locale="ko" />
+  return <BrandSplash />
 }

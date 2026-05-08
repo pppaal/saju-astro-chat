@@ -1,5 +1,5 @@
-import PageLoading from "@/components/ui/PageLoading";
+import BrandSplash from '@/components/branding/BrandSplash'
 
 export default function Loading() {
-  return <PageLoading variant="chat" />;
+  return <BrandSplash />
 }
