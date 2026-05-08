@@ -3,7 +3,7 @@
 
 import { calculateSajuData } from '@/lib/saju/saju'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
-import { calculateStrengthScore } from '@/lib/saju/strengthScore'
+import { calculateStrengthScore } from '@/lib/saju/strength'
 import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
 import {
@@ -22,7 +22,7 @@ import type {
 } from '@/lib/saju/types'
 import type { GeokgukResult } from '@/lib/saju/geokguk'
 import type { YongsinResult } from '@/lib/saju/yongsin'
-import type { StrengthScore } from '@/lib/saju/strengthScore'
+import type { StrengthScore } from '@/lib/saju/strength'
 import type { SajuNormalizerInput } from '../normalizer/saju'
 import { correctSolarTime, type SolarTimeMode } from './solar-time'
 

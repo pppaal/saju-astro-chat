@@ -13,10 +13,10 @@ import {
 import { analyzeHyeongchung } from '@/lib/saju/hyeongchung';
 import { calculateTonggeun, calculateDeukryeong } from '@/lib/saju/tonggeun';
 import { getJohuYongsin } from '@/lib/saju/johuYongsin';
-import { analyzeSibsinComprehensive } from '@/lib/saju/sibsinAnalysis';
+import { analyzeSibsinComprehensive } from '@/lib/saju/sibsin';
 import { analyzeHealth, analyzeCareer } from '@/lib/saju/healthCareer';
-import { generateComprehensiveReport } from '@/lib/saju/comprehensiveReport';
-import { calculateComprehensiveScore } from '@/lib/saju/strengthScore';
+import { generateComprehensiveReport } from '@/lib/saju/report';
+import { calculateComprehensiveScore } from '@/lib/saju/strength';
 import {
   getTwelveStageInterpretation,
   getElementInterpretation,

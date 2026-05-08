@@ -3,7 +3,7 @@
 
 import { FiveElement, SajuPillars } from '../types';
 import { FIVE_ELEMENT_RELATIONS } from '../constants';
-import { getStemElement, getBranchElement } from '../stemBranchUtils';
+import { getStemElement, getBranchElement } from '../stemBranch';
 import type { ElementCompatibility } from './types';
 
 const ALL_ELEMENTS: FiveElement[] = ['목', '화', '토', '금', '수'];

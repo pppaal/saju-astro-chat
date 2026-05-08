@@ -1,4 +1,4 @@
-// src/lib/saju/typeGuards.ts
+// src/lib/saju/guards.ts
 // Runtime type guards for Saju domain objects
 
 import type {

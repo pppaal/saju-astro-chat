@@ -29,7 +29,7 @@ export {
   type JohuYongsinAnalysis,
   type ExtendedAdvancedAnalysis,
   type Season,
-} from './astrologyengine';
+} from './core';
 
 // 운세/캘린더
 export { getDaeunCycles, getAnnualCycles, getMonthlyCycles, getIljinCalendar } from './unse';
@@ -177,7 +177,7 @@ export {
   generateQuickSummary,
   type ComprehensiveReport,
   type ComprehensiveReportSection,
-} from './comprehensiveReport';
+} from './report';
 
 // ============================================================
 // 200% 급 고급 모듈들
@@ -225,7 +225,7 @@ export {
   type CareerAptitude,
   type RelationshipPattern,
   type SibsinComprehensiveAnalysis,
-} from './sibsinAnalysis';
+} from './sibsin';
 
 // 건강 및 직업 적성 심층 분석 모듈
 export {
@@ -256,7 +256,7 @@ export {
   type YongsinFitScore,
   type UnseHarmonyScore,
   type ComprehensiveScore,
-} from './strengthScore';
+} from './strength';
 
 // 운세 해석 문장 생성기
 export {
@@ -272,7 +272,7 @@ export {
   type TextContext,
   type GeneratedText,
   type FortuneInput,
-} from './textGenerator';
+} from './narrative';
 
 // ============================================================
 // 500% 급 고급 모듈들
@@ -317,7 +317,7 @@ export {
   type PatternDefinition,
   type PatternAnalysis,
   type CelebrityProfile,
-} from './patternMatcher';
+} from './patterns';
 
 // ============================================================
 // 1000% 급 초고급 모듈들
@@ -339,7 +339,7 @@ export {
   type GongmangDeepAnalysis,
   type SamgiAnalysis,
   type UltraAdvancedAnalysis,
-} from './advancedSajuCore';
+} from './advanced';
 
 // 세대간/가족 분석 엔진
 export {

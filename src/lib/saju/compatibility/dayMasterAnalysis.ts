@@ -3,7 +3,7 @@
 
 import { SajuPillars, SibsinKind } from '../types';
 import { FIVE_ELEMENT_RELATIONS } from '../constants';
-import { getStemElement, getStemYinYang } from '../stemBranchUtils';
+import { getStemElement, getStemYinYang } from '../stemBranch';
 import { DAY_MASTER_RELATION_SCORES } from './constants';
 import type { DayMasterRelation } from './types';
 

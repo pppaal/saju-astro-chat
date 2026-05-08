@@ -1,9 +1,9 @@
-// src/lib/saju/textGenerator.ts
+// src/lib/saju/narrative.ts
 // 운세 해석 문장 생성기 (200% 급 모듈)
 
 import { FiveElement, SajuPillars, SibsinKind } from './types';
 import { FIVE_ELEMENT_RELATIONS } from './constants';
-import { getStemElement, getBranchElement, getStemYinYang } from './stemBranchUtils';
+import { getStemElement, getBranchElement, getStemYinYang } from './stemBranch';
 import { waGwa, iga } from '../i18n/koParticle';
 
 // ============================================================

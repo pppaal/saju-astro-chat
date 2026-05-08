@@ -2,7 +2,7 @@
 // 건강 및 직업 적성 심층 분석 모듈 - 200% 급
 
 import { FiveElement } from './types';
-import { getStemElement, getBranchElement } from './stemBranchUtils';
+import { getStemElement, getBranchElement } from './stemBranch';
 
 // ============================================================
 // 타입 정의

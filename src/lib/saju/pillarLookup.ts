@@ -22,7 +22,7 @@ import {
   getBranchElement,
   getStemYinYang,
   getBranchYinYang,
-} from './stemBranchUtils'
+} from './stemBranch'
 
 // Re-export all types and constants from modules
 export type { SixtyPillarInfo, IljuInfo } from './pillar-lookup'

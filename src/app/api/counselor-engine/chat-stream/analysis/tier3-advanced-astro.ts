@@ -10,7 +10,7 @@ import {
 import {
   analyzePatterns,
   getPatternStatistics,
-} from "@/lib/saju/patternMatcher";
+} from "@/lib/saju/patterns";
 import type { Chart, PlanetBase } from "@/lib/astro";
 import type { SajuDataStructure, AstroDataStructure } from "../lib/types";
 import { logger } from "@/lib/logger";

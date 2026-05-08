@@ -382,7 +382,7 @@ export async function POST(req: NextRequest) {
               import('@/lib/compatibility/coupleMatrix'),
               import('@/lib/saju/saju'),
               import('@/lib/astro/astrologyService'),
-              import('@/lib/saju/orthodoxInterpretation'),
+              import('@/lib/saju/orthodox'),
             ])
           const buildPerson = async (p: any) => {
             const tz = p.timeZone || 'Asia/Seoul'

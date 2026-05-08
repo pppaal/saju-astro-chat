@@ -4,7 +4,7 @@
 
 import { FiveElement, YinYang, SajuPillarsInput } from './types';
 import { JIJANGGAN } from './constants';
-import { getStemElement, getStemYinYang, getBranchElement } from './stemBranchUtils';
+import { getStemElement, getStemYinYang, getBranchElement } from './stemBranch';
 
 // Re-export for backward compatibility
 export type { SajuPillarsInput };

@@ -1,9 +1,9 @@
-// src/lib/saju/sibsinAnalysis.ts
+// src/lib/saju/sibsin.ts
 // 십신(십성) 심층 분석 모듈 - 200% 급 상호작용 패턴 분석
 
 import { FiveElement } from './types';
 import { JIJANGGAN } from './constants';
-import { getStemElement } from './stemBranchUtils';
+import { getStemElement } from './stemBranch';
 import { iga, eulReul } from '../i18n/koParticle';
 
 // ============================================================

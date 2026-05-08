@@ -1,4 +1,4 @@
-// src/lib/saju/stemBranchUtils.ts
+// src/lib/saju/stemBranch.ts
 // 중복된 천간/지지 헬퍼 함수들을 통합한 유틸리티 모듈
 
 import { STEMS, BRANCHES, STEM_TO_ELEMENT_EN, BRANCH_TO_ELEMENT_EN } from './constants';

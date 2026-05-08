@@ -25,10 +25,10 @@ import {
   type DerivedDomainScore,
 } from './derivedContext.support'
 import { calculateSajuData } from '@/lib/saju/saju'
-import { analyzeAdvancedSaju } from '@/lib/saju/astrologyengine'
+import { analyzeAdvancedSaju } from '@/lib/saju/core'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { getShinsalHits, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
-import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
+import { buildOrthodoxInterpretation } from '@/lib/saju/orthodox'
 import { STEMS as SAJU_STEMS } from '@/lib/saju/constants'
 import type { FiveElement } from '@/lib/saju/types'
 import {

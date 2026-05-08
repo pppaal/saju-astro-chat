@@ -1,4 +1,4 @@
-// src/lib/saju/advancedSajuCore.ts
+// src/lib/saju/advanced.ts
 // 사주 고급 핵심 엔진 (1000% 급 모듈)
 // 종격, 화격, 일주론 심화, 공망 심화 분석
 //
@@ -21,7 +21,7 @@ import {
   getStemYinYang,
   getStemIndex,
   getBranchIndex,
-} from './stemBranchUtils'
+} from './stemBranch'
 
 // Re-export all types from modules
 export * from './advanced-saju-core'

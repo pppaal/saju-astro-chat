@@ -495,7 +495,7 @@ async function buildExtendedBlocks(
   if (!p1 || !p2) return { p1SajuOverview: '', p2SajuOverview: '' }
 
   // Full saju (cached internally) + orthodox interpretation per person
-  const { buildOrthodoxInterpretation } = await import('@/lib/saju/orthodoxInterpretation')
+  const { buildOrthodoxInterpretation } = await import('@/lib/saju/orthodox')
   const attachOrthodox = (s: ReturnType<typeof calculateSajuData>, isoBirth: string) => {
     try {
       const koreanAge = new Date().getFullYear() - new Date(isoBirth).getFullYear() + 1

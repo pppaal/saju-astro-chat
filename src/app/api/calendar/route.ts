@@ -46,7 +46,7 @@ import {
   deriveSibsinDistributionFromSaju,
 } from '@/lib/matrix/derivedContext'
 import type { CalculateSajuDataResult } from '@/lib/saju/types'
-import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
+import { buildOrthodoxInterpretation } from '@/lib/saju/orthodox'
 
 export const dynamic = 'force-dynamic'
 
@@ -718,7 +718,7 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeAdvancedSaju } = await import('@/lib/saju/astrologyengine')
+      const { analyzeAdvancedSaju } = await import('@/lib/saju/core')
       const advanced = analyzeAdvancedSaju(
         {
           name: pillars.day.stem,

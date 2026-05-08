@@ -2,7 +2,7 @@
 // 대운/세운 종합 분석 모듈 - 200% 급 심화 분석
 
 import { FiveElement } from './types';
-import { getStemElement, getBranchElement, getStemByIndex, getBranchByIndex } from './stemBranchUtils';
+import { getStemElement, getBranchElement, getStemByIndex, getBranchByIndex } from './stemBranch';
 
 // 인덱스로 이름 가져오기 (로컬 래퍼)
 function getStemName(index: number): string {

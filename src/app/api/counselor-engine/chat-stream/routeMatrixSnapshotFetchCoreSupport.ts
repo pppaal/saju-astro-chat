@@ -28,7 +28,7 @@ import { calculateSajuData } from '@/lib/saju/saju'
 import type { FiveElement } from '@/lib/saju/types'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
-import { analyzeAdvancedSaju } from '@/lib/saju/astrologyengine'
+import { analyzeAdvancedSaju } from '@/lib/saju/core'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from './lib/types'
 import type { CombinedResult } from '@/lib/counselor/astrology'
@@ -435,7 +435,7 @@ export async function fetchMatrixSnapshot(input: {
     if (!rawSaju.orthodoxInterpretation) {
       try {
         const { buildOrthodoxInterpretation } = await import(
-          '@/lib/saju/orthodoxInterpretation'
+          '@/lib/saju/orthodox'
         )
         const koreanAge =
           new Date().getFullYear() - new Date(input.birthDate).getFullYear() + 1

@@ -1,9 +1,9 @@
-// src/lib/saju/patternMatcher.ts
+// src/lib/saju/patterns.ts
 // 사주 패턴 매칭 엔진 (500% 급 모듈)
 
 import { FiveElement, SajuPillars, SibsinKind, PillarKind } from './types';
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
-import { getStemElement, getBranchElement, getStemYinYang } from './stemBranchUtils';
+import { getStemElement, getBranchElement, getStemYinYang } from './stemBranch';
 
 // ============================================================
 // 타입 정의

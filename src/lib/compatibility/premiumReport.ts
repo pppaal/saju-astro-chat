@@ -5,7 +5,7 @@ import {
   type CoupleMatrixResult,
   type CoupleMatrixCell,
 } from '@/lib/compatibility/coupleMatrix'
-import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
+import { buildOrthodoxInterpretation } from '@/lib/saju/orthodox'
 import type { CalculateSajuDataResult } from '@/lib/saju/types'
 
 export interface CompatibilityPremiumInput {

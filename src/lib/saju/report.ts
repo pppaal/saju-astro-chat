@@ -1,4 +1,4 @@
-// src/lib/saju/comprehensiveReport.ts
+// src/lib/saju/report.ts
 // 사주 종합 해석 리포트 생성 모듈
 
 import type { FiveElement, SibsinKind } from './types'
@@ -13,7 +13,7 @@ import {
   analyzeElementBalance,
   type TwelveStageType,
 } from './interpretations'
-import { getStemElement, getBranchElement } from './stemBranchUtils'
+import { getStemElement, getBranchElement } from './stemBranch'
 
 // ============ 타입 정의 ============
 

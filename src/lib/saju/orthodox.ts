@@ -15,14 +15,14 @@
  */
 
 import type { CalculateSajuDataResult, PillarData, FiveElement } from './types'
-import { analyzeAdvancedSaju, analyzeRoot } from './astrologyengine'
+import { analyzeAdvancedSaju, analyzeRoot } from './core'
 import {
   analyzeJonggeok,
   analyzeHwagyeok,
   analyzeIljuDeep,
   analyzeSamgi,
   analyzeGongmangDeep,
-} from './advancedSajuCore'
+} from './advanced'
 import { getIljuArchetype, type IljuArchetype } from './iljuDictionary'
 
 // ──────────────────────────────────────────────────────────────────────

@@ -1,9 +1,9 @@
-// src/lib/saju/strengthScore.ts
+// src/lib/saju/strength.ts
 // 사주 강약 종합 점수화 시스템 (200% 급 모듈)
 
 import { FiveElement, SajuPillars, PillarData, SibsinKind } from './types';
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
-import { getStemElement, getBranchElement, getStemYinYang } from './stemBranchUtils';
+import { getStemElement, getBranchElement, getStemYinYang } from './stemBranch';
 
 // ============================================================
 // 타입 정의

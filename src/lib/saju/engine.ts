@@ -40,8 +40,8 @@ import {
   analyzeAdvancedSaju,
   analyzeJohuYongsin,
   analyzeExtendedSaju,
-} from './astrologyengine'
-import { performUltraAdvancedAnalysis } from './advancedSajuCore'
+} from './core'
+import { performUltraAdvancedAnalysis } from './advanced'
 import {
   analyzeTwelveStages,
   type TwelveStageAnalysis,

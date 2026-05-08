@@ -9,7 +9,7 @@ import {
   getStemYinYang,
   normalizeStem,
   normalizeBranch
-} from './stemBranchUtils';
+} from './stemBranch';
 
 export type GeokgukType =
   | '식신격' | '상관격' | '편재격' | '정재격'
