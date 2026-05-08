@@ -43,6 +43,12 @@ import {
 } from './core'
 import { performUltraAdvancedAnalysis } from './advanced'
 import { analyzeElementBalance } from './interpretations'
+// ⭐ 흩어진 advice 모듈들 — engine 에 plumbing
+import { buildOrthodoxInterpretation } from './orthodox'
+import { analyzeSibsinComprehensive } from './sibsin'
+import { analyzeHealthCareer } from './healthCareer'
+import { analyzeUnseComprehensive } from './unseAnalysis'
+import { generateComprehensiveReport } from './report'
 import {
   analyzeTwelveStages,
   type TwelveStageAnalysis,
@@ -447,6 +453,19 @@ export interface MainSajuOutput {
         interpretation: string
       }
     }
+  }
+  /** ⭐ 흩어진 advice 모듈 통합 — 정통 해석·십신·건강·직업·운세 깊이·리포트 */
+  fullInsights?: {
+    /** 정통 해석 7섹션 (advanced/root/jonggeok/hwagyeok/ilju/samgi/gongmang) */
+    orthodox: ReturnType<typeof buildOrthodoxInterpretation> | null
+    /** 십신 종합 (성격·직업·관계 패턴) */
+    sibsin: ReturnType<typeof analyzeSibsinComprehensive> | null
+    /** 건강 + 직업 적성 */
+    healthCareer: ReturnType<typeof analyzeHealthCareer> | null
+    /** 현재 세운 기준 운세 깊이 분석 */
+    unseDeep: ReturnType<typeof analyzeUnseComprehensive> | null
+    /** 종합 리포트 (자연어) */
+    comprehensiveReport: ReturnType<typeof generateComprehensiveReport> | null
   }
   /** 점수 입력 transformer 결과 (근거 표시용) */
   scoreInputs: {
@@ -1124,6 +1143,61 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       }
     : undefined
 
+  // ⭐ 흩어진 advice 모듈 5개 호출 (각 try/catch 로 안전)
+  // sibsin.ts/healthCareer.ts/report.ts 는 simple SajuPillars 형태 기대:
+  //   { year: { stem, branch }, month: ..., day: ..., time: ... }
+  // sajuResult.pillars 는 PillarData (heavenlyStem.name 형태) — 변환 필요.
+  // sibsin.ts 는 .hour 키 기대, healthCareer.ts 동일
+  // 둘 다 alias 로 부여 — time/hour 동시
+  const _simpleTime = { stem: sajuResult.timePillar.heavenlyStem.name, branch: sajuResult.timePillar.earthlyBranch.name }
+  const simplePillarsForInsights = {
+    year: { stem: sajuResult.yearPillar.heavenlyStem.name, branch: sajuResult.yearPillar.earthlyBranch.name },
+    month: { stem: sajuResult.monthPillar.heavenlyStem.name, branch: sajuResult.monthPillar.earthlyBranch.name },
+    day: { stem: sajuResult.dayPillar.heavenlyStem.name, branch: sajuResult.dayPillar.earthlyBranch.name },
+    time: _simpleTime,
+    hour: _simpleTime,
+  } as unknown as Parameters<typeof analyzeSibsinComprehensive>[0]
+  let _orthodox: ReturnType<typeof buildOrthodoxInterpretation> | null = null
+  let _sibsin: ReturnType<typeof analyzeSibsinComprehensive> | null = null
+  let _healthCareer: ReturnType<typeof analyzeHealthCareer> | null = null
+  let _unseDeep: ReturnType<typeof analyzeUnseComprehensive> | null = null
+  let _comprehensiveReport: ReturnType<typeof generateComprehensiveReport> | null = null
+  try {
+    _orthodox = buildOrthodoxInterpretation(sajuResult)
+  } catch {}
+  try {
+    _sibsin = analyzeSibsinComprehensive(simplePillarsForInsights)
+  } catch {}
+  try {
+    _healthCareer = analyzeHealthCareer(simplePillarsForInsights)
+  } catch {}
+  try {
+    // 현재 세운 기준 unse deep — sajuResult.unse 또는 cur 에서 추출
+    if (cur?.heavenlyStem && cur?.earthlyBranch) {
+      const yongsinElements = (advanced.yongsin.primary ? [advanced.yongsin.primary] : []) as Parameters<typeof analyzeUnseComprehensive>[2]
+      const kisinElements = (advanced.yongsin.unfavorable || []) as Parameters<typeof analyzeUnseComprehensive>[3]
+      _unseDeep = analyzeUnseComprehensive(
+        { stem: cur.heavenlyStem, branch: cur.earthlyBranch, period: 'daeun' } as unknown as Parameters<typeof analyzeUnseComprehensive>[0],
+        simplePillarsForInsights,
+        yongsinElements,
+        kisinElements,
+      )
+    }
+  } catch {}
+  try {
+    _comprehensiveReport = generateComprehensiveReport(simplePillarsForInsights as Parameters<typeof generateComprehensiveReport>[0], {
+      includeGeokguk: { type: String(advanced.geokguk.type || ''), description: advanced.geokguk.basis || '' },
+      includeYongsin: { type: String(advanced.yongsin.primary || ''), description: advanced.yongsin.basis || '' },
+    })
+  } catch {}
+  const fullInsights: NonNullable<MainSajuOutput['fullInsights']> = {
+    orthodox: _orthodox,
+    sibsin: _sibsin,
+    healthCareer: _healthCareer,
+    unseDeep: _unseDeep,
+    comprehensiveReport: _comprehensiveReport,
+  }
+
   return {
     engine: SAJU_ENGINE_META,
     pillars: {
@@ -1184,6 +1258,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     narratives,
     lifeNarrative,
     extended,
+    fullInsights,
     input: { ...input, timezone: tz, targetDate: target },
   }
 }

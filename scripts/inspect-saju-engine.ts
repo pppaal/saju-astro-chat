@@ -313,4 +313,83 @@ if (out.extended) {
   console.log('  (extended null — input 형식 미스매치 가능)')
 }
 
+console.log('\n## 11. Full Insights (흩어졌던 advice 모듈 통합 출력)')
+const fi = (out as { fullInsights?: {
+  orthodox?: { advanced?: unknown; root?: unknown; jonggeok?: unknown; hwagyeok?: unknown; ilju?: unknown; samgi?: unknown; gongmang?: unknown }
+  sibsin?: { dominantSibsin?: string[]; missingSibsin?: string[]; personality?: string[]; careerAptitude?: Array<{ category: string; description: string }>; relationshipPatterns?: Array<{ category: string; description: string }> }
+  healthCareer?: { health?: { overall?: string; warnings?: string[] }; career?: { aptitudes?: string[]; suitable?: string[] }; synergy?: string[]; warnings?: string[] }
+  unseDeep?: { period?: string; sibsinRelation?: string; yongsinHarmony?: string; advice?: string[]; cautions?: string[] }
+  comprehensiveReport?: { sections?: Array<{ title: string; body: string }>; summary?: string }
+} }).fullInsights
+if (fi) {
+  if (fi.sibsin) {
+    console.log(`\n  ━━━ 십신 종합 ━━━`)
+    if (fi.sibsin.dominantSibsin?.length) console.log(`  과다: ${fi.sibsin.dominantSibsin.join(', ')}`)
+    if (fi.sibsin.missingSibsin?.length) console.log(`  결핍: ${fi.sibsin.missingSibsin.join(', ')}`)
+    if (fi.sibsin.personality?.length) {
+      console.log(`  성격:`)
+      for (const p of fi.sibsin.personality.slice(0, 3)) console.log(`    · ${p}`)
+    }
+    if (fi.sibsin.careerAptitude?.length) {
+      console.log(`  직업 적성:`)
+      for (const c of fi.sibsin.careerAptitude.slice(0, 3)) console.log(`    · ${c.category}: ${c.description}`)
+    }
+    if (fi.sibsin.relationshipPatterns?.length) {
+      console.log(`  관계 패턴:`)
+      for (const r of fi.sibsin.relationshipPatterns.slice(0, 3)) console.log(`    · ${r.category}: ${r.description}`)
+    }
+  }
+  if (fi.healthCareer) {
+    console.log(`\n  ━━━ 건강·직업 ━━━`)
+    if (fi.healthCareer.health?.overall) console.log(`  건강 종합: ${fi.healthCareer.health.overall}`)
+    if (fi.healthCareer.health?.warnings?.length) {
+      console.log(`  건강 주의:`)
+      for (const w of fi.healthCareer.health.warnings.slice(0, 3)) console.log(`    · ${w}`)
+    }
+    if (fi.healthCareer.career?.aptitudes?.length) {
+      console.log(`  적성: ${fi.healthCareer.career.aptitudes.slice(0, 5).join(', ')}`)
+    }
+    if (fi.healthCareer.career?.suitable?.length) {
+      console.log(`  추천 직업: ${fi.healthCareer.career.suitable.slice(0, 5).join(', ')}`)
+    }
+    if (fi.healthCareer.synergy?.length) {
+      for (const s of fi.healthCareer.synergy.slice(0, 2)) console.log(`  ✨ ${s}`)
+    }
+    if (fi.healthCareer.warnings?.length) {
+      for (const w of fi.healthCareer.warnings.slice(0, 2)) console.log(`  ⚠ ${w}`)
+    }
+  }
+  if (fi.unseDeep) {
+    console.log(`\n  ━━━ 운세 깊이 분석 (현재 대운 기준) ━━━`)
+    if (fi.unseDeep.period) console.log(`  시기: ${fi.unseDeep.period}`)
+    if (fi.unseDeep.sibsinRelation) console.log(`  십신 관계: ${fi.unseDeep.sibsinRelation}`)
+    if (fi.unseDeep.yongsinHarmony) console.log(`  용신 조화: ${fi.unseDeep.yongsinHarmony}`)
+    if (fi.unseDeep.advice?.length) {
+      console.log(`  조언:`)
+      for (const a of fi.unseDeep.advice.slice(0, 3)) console.log(`    · ${a}`)
+    }
+    if (fi.unseDeep.cautions?.length) {
+      console.log(`  주의:`)
+      for (const c of fi.unseDeep.cautions.slice(0, 3)) console.log(`    · ${c}`)
+    }
+  }
+  if (fi.comprehensiveReport) {
+    console.log(`\n  ━━━ 종합 리포트 ━━━`)
+    if (fi.comprehensiveReport.summary) console.log(`  요약: ${fi.comprehensiveReport.summary.slice(0, 200)}`)
+    if (fi.comprehensiveReport.sections?.length) {
+      console.log(`  섹션 ${fi.comprehensiveReport.sections.length}개:`)
+      for (const s of fi.comprehensiveReport.sections.slice(0, 3)) {
+        console.log(`    📖 ${s.title}: ${String(s.body).slice(0, 120)}`)
+      }
+    }
+  }
+  if (fi.orthodox) {
+    console.log(`\n  ━━━ 정통 해석 (orthodox aggregator) ━━━`)
+    const o = fi.orthodox as Record<string, unknown>
+    for (const k of ['advanced', 'root', 'jonggeok', 'hwagyeok', 'ilju', 'samgi', 'gongmang']) {
+      if (o[k]) console.log(`    ✓ ${k} 분석 포함`)
+    }
+  }
+}
+
 console.log('\n' + '='.repeat(72))
