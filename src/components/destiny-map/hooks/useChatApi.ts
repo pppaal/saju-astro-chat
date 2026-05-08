@@ -82,7 +82,15 @@ function decodeCounselorEvidenceHeader(value: string | null): Message['evidence'
   try {
     const normalized = value.replace(/-/g, '+').replace(/_/g, '/')
     const padded = normalized + '='.repeat((4 - (normalized.length % 4 || 4)) % 4)
-    const decoded = atob(padded)
+    // atob returns a binary string (one char per byte). Korean text is
+    // multi-byte UTF-8, so we must reassemble the bytes via TextDecoder
+    // before JSON.parse — otherwise multi-byte chars come back as mojibake.
+    const binary = atob(padded)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i)
+    }
+    const decoded = new TextDecoder('utf-8').decode(bytes)
     const json = JSON.parse(decoded) as {
       title?: unknown
       summary?: unknown

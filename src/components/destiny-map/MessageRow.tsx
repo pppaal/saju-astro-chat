@@ -53,7 +53,9 @@ const MessageRow = React.memo(function MessageRow({
         {hasEvidence && (
           <details className={s.messageEvidencePanel}>
             <summary className={s.messageEvidenceSummary}>
-              {message.evidence?.title || (lang === 'ko' ? '왜 이런 답변이 나왔는지' : 'Why this answer')}
+              {message.evidence?.title
+                ? repairMojibakeText(message.evidence.title)
+                : (lang === 'ko' ? '왜 이런 답변이 나왔는지' : 'Why this answer')}
             </summary>
             {message.evidence?.summary && (
               <p className={s.messageEvidenceLead}>
