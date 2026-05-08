@@ -3,6 +3,7 @@
 
 import { FiveElement, YinYang, SajuPillars, PillarData, SajuPillarsInput } from './types';
 import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
+import { JOHU_YONGSIN_DB } from './johuYongsin';
 
 /**
  * 용신 유형
@@ -217,25 +218,33 @@ function selectEokbuYongsin(
 function selectJohuYongsin(
   monthBranch: string,
   daymaster: string
-): { yongsin: FiveElement; reasoning: string } | null {
-  const climate = getSeasonFromMonthBranch(monthBranch);
-  const daymasterElement = getElement(daymaster);
-
-  if (climate === '한습') {
-    // 한습: 화(火)로 따뜻하게, 목(木)으로 보조
+): { yongsin: FiveElement; secondary?: FiveElement; reasoning: string } | null {
+  // 정통 궁통보감 120 케이스 DB가 우선. 일간×월령 매트릭스 풀 정확도.
+  const dbHit = JOHU_YONGSIN_DB.find(
+    (j) => j.daymaster === daymaster && j.month === monthBranch,
+  );
+  if (dbHit) {
     return {
-      yongsin: '화',
-      reasoning: `${monthBranch}월 출생으로 한습하여 화(火)가 조후용신`
-    };
-  } else if (climate === '조열') {
-    // 조열: 수(水)로 식히고, 금(金)으로 보조
-    return {
-      yongsin: '수',
-      reasoning: `${monthBranch}월 출생으로 조열하여 수(水)가 조후용신`
+      yongsin: dbHit.primaryYongsin,
+      secondary: dbHit.secondaryYongsin,
+      reasoning: dbHit.reasoning,
     };
   }
 
-  return null; // 온화한 계절은 조후용신 불필요
+  // Fallback: DB에 없으면 한습/조열 단순 룰.
+  const climate = getSeasonFromMonthBranch(monthBranch);
+  if (climate === '한습') {
+    return {
+      yongsin: '화',
+      reasoning: `${monthBranch}월 출생으로 한습하여 화(火)가 조후용신`,
+    };
+  } else if (climate === '조열') {
+    return {
+      yongsin: '수',
+      reasoning: `${monthBranch}월 출생으로 조열하여 수(水)가 조후용신`,
+    };
+  }
+  return null;
 }
 
 /**
@@ -342,13 +351,20 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   const daymasterElement = getElement(daymaster);
   const strength = assessDaymasterStrength(daymaster, pillars);
 
-  // 1. 조후용신 체크 (한습/조열 계절)
+  // 1. 조후용신 체크 (정통 궁통보감 DB 우선, 한습/조열 fallback)
   const johuResult = selectJohuYongsin(pillars.month.branch, daymaster);
   if (johuResult) {
     const eokbuResult = selectEokbuYongsin(daymaster, strength);
+    // 궁통보감 DB의 secondary 우선, 없으면 억부 secondary로 보강.
+    const secondary =
+      johuResult.secondary && johuResult.secondary !== johuResult.yongsin
+        ? johuResult.secondary
+        : eokbuResult.yongsin !== johuResult.yongsin
+          ? eokbuResult.yongsin
+          : undefined;
     return {
       primaryYongsin: johuResult.yongsin,
-      secondaryYongsin: eokbuResult.yongsin !== johuResult.yongsin ? eokbuResult.yongsin : undefined,
+      secondaryYongsin: secondary,
       yongsinType: '조후용신',
       daymasterStrength: strength,
       reasoning: johuResult.reasoning,
