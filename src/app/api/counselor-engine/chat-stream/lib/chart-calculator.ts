@@ -23,6 +23,8 @@ export interface ChartCalculationResult {
   astro?: AstroDataStructure
   natalChartData?: NatalChartData
   currentTransits: unknown[]
+  /** ⭐ 통합엔진 결과 — saju.fullInsights / astro.advanced / cross / matrix */
+  unified?: import('@/lib/engine/types').UnifiedOutput | null
 }
 
 function isSwissephUnavailableError(error: unknown): boolean {
@@ -216,10 +218,27 @@ export async function calculateChartData(
     currentTransits = await computeCurrentTransits(natalChartData, latitude, longitude, timeZone)
   }
 
+  // ⭐ 통합엔진 (saju+astro+cross+matrix 통째) — fullInsights 13 + astro 5 + cross 30
+  let unified: import('@/lib/engine/types').UnifiedOutput | null = null
+  try {
+    const { runUnifiedEngine } = await import('@/lib/engine')
+    unified = await runUnifiedEngine({
+      birthDate,
+      birthTime,
+      gender,
+      latitude,
+      longitude,
+      timezone: timeZone,
+    })
+  } catch (e) {
+    logger.warn('[chart-calculator] Unified engine failed:', e)
+  }
+
   return {
     saju,
     astro,
     natalChartData,
     currentTransits,
+    unified,
   }
 }

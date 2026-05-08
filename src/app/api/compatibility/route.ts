@@ -102,12 +102,26 @@ export const POST = withApiMiddleware(
           person.gender
         )
         const astroBundle = await buildAstrologyProfileFromBirth(person)
+        // ⭐ 통합엔진 — 각 사람별 saju.fullInsights / astro.advanced / cross / matrix
+        let unified: import('@/lib/engine/types').UnifiedOutput | null = null
+        try {
+          const { runUnifiedEngine } = await import('@/lib/engine')
+          unified = await runUnifiedEngine({
+            birthDate: person.date,
+            birthTime: person.time,
+            gender: normalizeSajuGender(person.gender),
+            timezone: person.timeZone,
+          })
+        } catch (e) {
+          logger.warn('[Compatibility] Unified engine failed for person:', e)
+        }
         return {
           sajuProfile,
           astroProfile: astroBundle.astroProfile,
           extendedAstroProfile: astroBundle.extendedAstroProfile,
           natalChart: astroBundle.natalChart,
           synastryChart: astroBundle.synastryChart,
+          unified,
           errors: [
             ...(sajuProfile ? [] : ['Saju calculation failed']),
             ...(astroBundle.errors || []),
@@ -552,6 +566,18 @@ export const POST = withApiMiddleware(
               mars: a.astroProfile.mars,
               mercury: a.astroProfile.mercury,
               ascendant: a.astroProfile.ascendant,
+            }
+          : null
+      ),
+      // ⭐ 각 사람별 통합엔진 결과 — saju 13 advice + astro 5 advance + cross + matrix
+      person_unified: personAnalyses.map((a) =>
+        a.unified
+          ? {
+              saju: a.unified.saju,
+              astro: a.unified.astro,
+              cross: a.unified.cross,
+              matrix: a.unified.matrix,
+              unified: a.unified.unified,
             }
           : null
       ),

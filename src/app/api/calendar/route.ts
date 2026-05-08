@@ -640,11 +640,27 @@ export const GET = withApiMiddleware(
     const timezone = coords.tz
 
     // 정확한 사주 계산 (saju.ts 사용 - 절기 기반 월주, 자시 교차 처리)
+    // ⭐ 통합 엔진도 함께 호출 — saju.fullInsights / astro.advanced / cross / matrix
     let sajuResult
+    let unifiedResult: import('@/lib/engine/types').UnifiedOutput | null = null
     try {
       const sajuGender = gender.toLowerCase() === 'female' ? ('female' as const) : ('male' as const)
       const { calculateSajuData } = await import('@/lib/saju/saju')
       sajuResult = calculateSajuData(birthDateParam, birthTimeParam, sajuGender, 'solar', timezone)
+      // 통합엔진 (saju+astro+cross+matrix) — 풍부한 advice 13 모듈 + astro 5 advance + cross 30셀
+      try {
+        const { runUnifiedEngine } = await import('@/lib/engine')
+        unifiedResult = await runUnifiedEngine({
+          birthDate: birthDateParam,
+          birthTime: birthTimeParam,
+          gender: sajuGender,
+          latitude: coords.lat,
+          longitude: coords.lng,
+          timezone,
+        })
+      } catch (unifiedError) {
+        logger.warn('[Calendar] Unified engine failed (fallback to legacy):', unifiedError)
+      }
     } catch (sajuError) {
       logger.error('[Calendar] Saju calculation error:', sajuError)
       return createErrorResponse({
@@ -1392,6 +1408,16 @@ export const GET = withApiMiddleware(
       matrixInputCoverage,
       matrixEvidencePackets: responseMatrixEvidencePackets,
       topMatchedPatterns,
+      // ⭐ 통합엔진 결과 — saju 13 advice + astro 5 advance + cross 30 cells + matrix
+      ...(unifiedResult && {
+        unifiedEngine: {
+          saju: unifiedResult.saju,
+          astro: unifiedResult.astro,
+          cross: unifiedResult.cross,
+          matrix: unifiedResult.matrix,
+          unified: unifiedResult.unified,
+        },
+      }),
       ...(aiDates && {
         aiInsights: {
           auspicious: aiDates.auspicious,

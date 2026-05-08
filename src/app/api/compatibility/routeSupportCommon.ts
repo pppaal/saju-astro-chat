@@ -123,6 +123,8 @@ export type PersonAnalysis = {
   extendedAstroProfile: ExtendedAstrologyProfile | null
   natalChart: NatalChartData | null
   synastryChart: Chart | null
+  /** ⭐ 통합엔진 — saju.fullInsights / astro.advanced / cross / matrix */
+  unified?: import('@/lib/engine/types').UnifiedOutput | null
   errors: string[]
 }
 
