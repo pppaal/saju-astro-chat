@@ -8,6 +8,8 @@
  */
 
 import Link from 'next/link'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import UnifiedSummaryCard from '@/components/unified/UnifiedSummaryCard'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Calendar, CalendarDays, Crown } from 'lucide-react'
@@ -94,6 +96,7 @@ const CARDS: ReportCard[] = [
 export default function PremiumReportsPageClient() {
   const router = useRouter()
   const { status } = useSession()
+  const { profile } = useUserProfile({ skipAutoLoad: false })
 
   const handleClick = (card: ReportCard) => {
     analytics.premiumCtaClick('premium-hub', card.key)
@@ -107,6 +110,15 @@ export default function PremiumReportsPageClient() {
   return (
     <div className="min-h-[100svh] bg-[radial-gradient(ellipse_at_top,#1a1c2e_0%,#0a0a14_60%)] text-slate-100 flex flex-col">
       <div className="mx-auto w-full max-w-3xl flex-1 flex flex-col px-5 pt-16 pb-6 sm:pt-20">
+        {profile?.birthDate && profile?.birthTime && (
+          <UnifiedSummaryCard
+            birthDate={profile.birthDate}
+            birthTime={profile.birthTime}
+            gender={profile.gender?.toLowerCase().startsWith('f') ? 'female' : 'male'}
+            variant="full"
+            className="mb-6"
+          />
+        )}
         {/* Hero — compact so the 3 cards fit on one screen without scroll */}
         <header className="text-center">
           <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-cyan-300">

@@ -15,6 +15,7 @@ import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
 import { CounselorLoadingScreen } from './CounselorLoadingScreen'
 import Chat from '@/components/counselor/Chat'
+import UnifiedSummaryCard from '@/components/unified/UnifiedSummaryCard'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -176,6 +177,17 @@ export default function CounselorPage() {
           and via /api save attempts when guests try to persist. */}
 
       <div className={styles.chatWrapper}>
+        {birthDate && birthTime && (
+          <UnifiedSummaryCard
+            birthDate={birthDate}
+            birthTime={birthTime}
+            gender={(gender === 'male' || gender === 'female') ? gender : 'male'}
+            latitude={latitude ?? undefined}
+            longitude={longitude ?? undefined}
+            variant="compact"
+            className="mb-4"
+          />
+        )}
         <ErrorBoundary
           fallback={<ChatErrorFallback error={new Error('Chat error')} reset={handleChatReset} />}
           onError={(error) => {

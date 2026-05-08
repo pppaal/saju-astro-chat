@@ -10,6 +10,7 @@ import { localizeStoredCity } from '@/lib/cities/formatter'
 import { normalizeGender, toLongGender } from '@/lib/utils/gender'
 import { logger } from '@/lib/logger'
 import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
+import UnifiedSummaryCard from '@/components/unified/UnifiedSummaryCard'
 
 /**
  * Orchestrator for the DestinyMatrixPlanner UI: handles birth info gating,
@@ -222,5 +223,18 @@ export default function DestinyMatrixPlannerClient() {
     )
   }
 
-  return <DestinyMatrixPlanner data={data} birthInfo={birthInfo} />
+  return (
+    <>
+      {birthInfo.birthDate && birthInfo.birthTime && (
+        <UnifiedSummaryCard
+          birthDate={birthInfo.birthDate}
+          birthTime={birthInfo.birthTime}
+          gender={birthInfo.gender === 'Female' ? 'female' : 'male'}
+          variant="compact"
+          className="mb-4"
+        />
+      )}
+      <DestinyMatrixPlanner data={data} birthInfo={birthInfo} />
+    </>
+  )
 }

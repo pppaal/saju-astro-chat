@@ -19,6 +19,8 @@ import styles from './tarot-home.module.css'
 import { useCanvasAnimation, useRecentQuestions, useQuestionAnalysis } from './hooks'
 import { getQuickRecommendation } from './utils/recommendations'
 import { useTapFeedback, useHapticFeedback } from '@/hooks/useMobileEnhancements'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import UnifiedSummaryCard from '@/components/unified/UnifiedSummaryCard'
 
 const TONE_OPTIONS = [
   { id: 'gentle', icon: '🌙', ko: '다정', en: 'Gentle' },
@@ -43,6 +45,7 @@ export default function TarotHomePage() {
   const router = useRouter()
   const isKo = language === 'ko'
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const { profile } = useUserProfile({ skipAutoLoad: false })
   const themeLookup = useMemo(() => new Map(tarotThemes.map((theme) => [theme.id, theme])), [])
 
   const [question, setQuestion] = useState('')
@@ -239,6 +242,15 @@ export default function TarotHomePage() {
       <BackButton />
 
       <main className={styles.main}>
+        {profile?.birthDate && profile?.birthTime && (
+          <UnifiedSummaryCard
+            birthDate={profile.birthDate}
+            birthTime={profile.birthTime}
+            gender={profile.gender?.toLowerCase().startsWith('f') ? 'female' : 'male'}
+            variant="mini"
+            isKo={isKo}
+          />
+        )}
         <AnimatePresence mode="wait">
           <motion.div
             key="tarot-input"

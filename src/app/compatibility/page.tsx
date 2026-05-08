@@ -1,5 +1,7 @@
 'use client'
 
+import UnifiedSummaryCard from '@/components/unified/UnifiedSummaryCard'
+
 import { useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import ServicePageLayout from '@/components/ui/ServicePageLayout'
@@ -207,6 +209,23 @@ export default function CompatPage() {
       compact={!resultText}
     >
       <main className={`${styles.page} ${!resultText ? styles.entryOnly : ''}`}>
+        {/* 운명력 종합 — 결과 있을 때 두 사람 나란히 */}
+        {resultText && persons[0]?.date && persons[0]?.time && persons[1]?.date && persons[1]?.time && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <UnifiedSummaryCard
+              birthDate={persons[0].date}
+              birthTime={persons[0].time}
+              gender={persons[0].gender === 'F' ? 'female' : 'male'}
+              variant="compact"
+            />
+            <UnifiedSummaryCard
+              birthDate={persons[1].date}
+              birthTime={persons[1].time}
+              gender={persons[1].gender === 'F' ? 'female' : 'male'}
+              variant="compact"
+            />
+          </div>
+        )}
         {/* Decorative floating hearts + tabs marketing intro were removed —
             users open this page to enter birth info, not to see another
             landing screen. */}

@@ -8,6 +8,8 @@ import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import CreditBadge from '@/components/ui/CreditBadge'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import UnifiedSummaryCard from '@/components/unified/UnifiedSummaryCard'
 import { useDiscovery } from './useDiscovery'
 import {
   FilterPanel,
@@ -24,6 +26,7 @@ export default function DestinyMatchPage() {
   const router = useRouter()
   const signInUrl = buildSignInUrl('/destiny-match')
   const { t } = useI18n()
+  const { profile: userProfile } = useUserProfile({ skipAutoLoad: false })
 
   const {
     viewMode,
@@ -63,6 +66,15 @@ export default function DestinyMatchPage() {
 
   return (
     <div className={styles.page}>
+      {userProfile?.birthDate && userProfile?.birthTime && (
+        <UnifiedSummaryCard
+          birthDate={userProfile.birthDate}
+          birthTime={userProfile.birthTime}
+          gender={userProfile.gender?.toLowerCase().startsWith('f') ? 'female' : 'male'}
+          variant="mini"
+          className="px-4 py-2"
+        />
+      )}
       {/* Shared Navigation Components */}
       <BackButton onClick={() => router.push('/')} label={t('destinyMatch.back', 'Back')} />
       <div className={styles.creditBadgeWrapper}>
