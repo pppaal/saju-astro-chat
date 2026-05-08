@@ -64,7 +64,11 @@ import { generateReport } from './free-report/generators/reportGenerator'
 import HeroSection from './free-report/HeroSection'
 import AdvancedAstroInsights from './free-report/AdvancedAstroInsights'
 import ChartSynthesisCard from './free-report/ChartSynthesisCard'
+import AstroThemedCards from './free-report/AstroThemedCards'
+import AstroLifecycleTimeline from './free-report/AstroLifecycleTimeline'
 import { synthesizeChart } from '@/lib/astrology/foundation/synthesis'
+import { buildThemedAstroReading } from '@/lib/astrology/foundation/themedReading'
+import { buildLifecycleTiming } from '@/lib/astrology/foundation/lifecycleTiming'
 
 // Saju data type definition
 interface SajuData {
@@ -165,14 +169,35 @@ const FreeReport = memo(function FreeReport({
   const chartSynthesis = useMemo(() => {
     if (!normalizedAstro?.planets || normalizedAstro.planets.length === 0) return null
     try {
-      // The Chart type from synthesis.ts wants planets[] + ascendant —
-      // both shapes are present on the snapshot. Cast through unknown
-      // to bypass the strict shape check (snapshot has extra fields).
       return synthesizeChart(normalizedAstro as unknown as Parameters<typeof synthesizeChart>[0])
     } catch {
       return null
     }
   }, [normalizedAstro])
+
+  // Themed astro reading (love/career/wealth/health/family/spirituality).
+  const astroThemed = useMemo(() => {
+    if (!normalizedAstro?.planets || normalizedAstro.planets.length === 0) return null
+    try {
+      return buildThemedAstroReading(
+        normalizedAstro as unknown as Parameters<typeof buildThemedAstroReading>[0],
+      )
+    } catch {
+      return null
+    }
+  }, [normalizedAstro])
+
+  // Lifecycle timing — Saturn return / Jupiter cycle / Uranus opposition / etc.
+  const astroLifecycle = useMemo(() => {
+    if (!birthInfo?.birthDate) return null
+    try {
+      const birthYear = parseInt(birthInfo.birthDate.slice(0, 4), 10)
+      if (!Number.isFinite(birthYear)) return null
+      return buildLifecycleTiming(birthYear)
+    } catch {
+      return null
+    }
+  }, [birthInfo?.birthDate])
 
   const hasFiveElements = Boolean(
     normalizedSaju?.fiveElements && Object.keys(normalizedSaju.fiveElements).length > 0
@@ -384,10 +409,13 @@ const FreeReport = memo(function FreeReport({
               western counterpart so the astro depth matches. */}
           {chartSynthesis && <ChartSynthesisCard synth={chartSynthesis} />}
 
-          {/* 9 advanced astro insights — Chiron / Asteroids / Fixed Stars
-              / Lilith / Vertex / POF / Eclipses / Harmonics / Draconic.
-              All were already implemented but only Chiron rendered;
-              the other 8 were orphaned. Now all surfaced as cards. */}
+          {/* 점성 테마별 해석 (사주 extendedAnalysis.relationships에 대응) */}
+          {astroThemed && <AstroThemedCards data={astroThemed} />}
+
+          {/* 점성 생애 사이클 타이밍 (사주 extendedAnalysis.decisiveTimings에 대응) */}
+          {astroLifecycle && <AstroLifecycleTimeline data={astroLifecycle} />}
+
+          {/* 9 advanced astro insights */}
           <AdvancedAstroInsights astro={normalizedAstro} lang={lang} className="-mx-4 sm:-mx-0" />
 
           {/* 프리미엄 업그레이드 후크 — ExtendedAnalysis 다 본 직후 */}
