@@ -3,6 +3,11 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["icn1"],
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
   "env": {
     "NODE_ENV": "production",
     "NODE_OPTIONS": "--max-old-space-size=7168"
