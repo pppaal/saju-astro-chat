@@ -4,6 +4,11 @@
 import { FiveElement, YinYang, StemBranchInfo } from './types';
 import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
 
+// ⭐ 정통 모듈 — analyzeAdvancedSaju wrapper 가 호출
+import { calculateComprehensiveScore } from './strength';
+import { determineGeokguk } from './geokguk';
+import { determineYongsin } from './yongsin';
+
 /* ========== 타입 정의 ========== */
 
 export type StrengthLevel = '극신강' | '신강' | '중화' | '신약' | '극신약';
@@ -522,9 +527,97 @@ export function analyzeYongsin(
   };
 }
 
-/* ========== 통합 분석 함수 ========== */
+/* ========== 통합 분석 함수 (정통 모듈 wrapper) ========== */
 
+/**
+ * 신강/격국/용신 통합 분석.
+ *
+ * 내부적으로 정통 3 모듈 호출:
+ *   - strength.ts:calculateComprehensiveScore (7카테고리 정통 점수)
+ *   - geokguk.ts:determineGeokguk            (격국별 성격/파격)
+ *   - yongsin.ts:determineYongsin            (4용신 통합)
+ *
+ * 결과는 기존 AdvancedSajuAnalysis 모양으로 어댑팅 — 모든 호출처
+ * (engine.ts, orthodox.ts, derivedContext.ts, calendar/route, chat-stream)
+ * 가 정통 결과를 받음.
+ */
 export function analyzeAdvancedSaju(
+  dayMaster: { name: string; element: FiveElement; yin_yang: YinYang },
+  pillars: {
+    yearPillar: PillarInput;
+    monthPillar: PillarInput;
+    dayPillar: PillarInput;
+    timePillar: PillarInput;
+  }
+): AdvancedSajuAnalysis {
+  // 정통 모듈용 simple pillar 형태
+  const simplePillars = {
+    year: { stem: pillars.yearPillar.heavenlyStem.name, branch: pillars.yearPillar.earthlyBranch.name },
+    month: { stem: pillars.monthPillar.heavenlyStem.name, branch: pillars.monthPillar.earthlyBranch.name },
+    day: { stem: pillars.dayPillar.heavenlyStem.name, branch: pillars.dayPillar.earthlyBranch.name },
+    time: { stem: pillars.timePillar.heavenlyStem.name, branch: pillars.timePillar.earthlyBranch.name },
+  };
+
+  // 정통 격국 + 정통 용신
+  const geokgukResult = determineGeokguk(simplePillars);
+  const yongsinResult = determineYongsin(simplePillars);
+
+  // 정통 종합 점수 (격국 + 용신 컨텍스트 주입)
+  const fullPillars = {
+    yearPillar: pillars.yearPillar,
+    monthPillar: pillars.monthPillar,
+    dayPillar: pillars.dayPillar,
+    timePillar: pillars.timePillar,
+  } as Parameters<typeof calculateComprehensiveScore>[0];
+  const score = calculateComprehensiveScore(fullPillars, {
+    geokgukType: String(geokgukResult.primary || ''),
+    yongsin: yongsinResult.primaryYongsin,
+  });
+
+  // 기존 AdvancedSajuAnalysis 모양으로 어댑팅
+  // 사용처 4곳 (engine.ts, orthodox.ts, derivedContext.ts, calendar/route,
+  // chat-stream) 모두 advanced.{strength,geokguk,yongsin}.{level,score,type,
+  // primary,secondary,unfavorable,basis,...} 사용.
+  const strength: DaymasterStrengthAnalysis = {
+    level: score.strength.level as unknown as StrengthLevel,
+    score: score.strength.balance,
+    helpingScore: score.strength.supportScore,
+    drainingScore: score.strength.resistScore,
+    monthBranchHelps: false, // 정통 점수에는 직접 노출 안 됨 — 어댑터 보수적
+    seasonHelps: false,
+    details: {
+      비겁: 0,
+      인성: 0,
+      식상: 0,
+      재성: 0,
+      관성: 0,
+    },
+  };
+  const geokguk: GeokgukAnalysis = {
+    type: geokgukResult.primary as unknown as GeokgukType,
+    basis: geokgukResult.description,
+    transparentStem: undefined,
+  };
+  const yongsin: YongsinAnalysis = {
+    primary: yongsinResult.primaryYongsin,
+    secondary: yongsinResult.secondaryYongsin,
+    basis: yongsinResult.reasoning,
+    favorable: [yongsinResult.primaryYongsin, yongsinResult.secondaryYongsin].filter(Boolean) as FiveElement[],
+    unfavorable: yongsinResult.kibsin ? [yongsinResult.kibsin] : [],
+  };
+
+  return {
+    strength,
+    geokguk,
+    yongsin,
+  };
+}
+
+/**
+ * @deprecated 옛 간단판 — 호출처 0. analyzeAdvancedSaju (정통 wrapper) 사용.
+ * 보존: advanced.ts 내부에서 import 가능성 + 옛 호환.
+ */
+export function analyzeAdvancedSajuLegacy(
   dayMaster: { name: string; element: FiveElement; yin_yang: YinYang },
   pillars: {
     yearPillar: PillarInput;
