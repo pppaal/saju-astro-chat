@@ -5,13 +5,13 @@
  * 본명 + 강약/격국/용신 + 충합형해 + 12운성 + 신살 + 공망 + 운(대운/세운/
  * 월운/일진) 점수까지 한 번에 뽑아낸다. 점성·교차는 별도 진입점.
  */
-import { calculateSajuData } from './Saju/saju'
+import { calculateSajuData } from './saju'
 import {
   analyzeAdvancedSaju,
   analyzeJohuYongsin,
   analyzeExtendedSaju,
-} from './Saju/astrologyengine'
-import { performUltraAdvancedAnalysis } from './Saju/advancedSajuCore'
+} from './advancedAnalysis'
+import { performUltraAdvancedAnalysis } from './advancedSajuCore'
 import {
   STEM_TO_ELEMENT,
   YUKHAP,
@@ -19,14 +19,14 @@ import {
   SAMHAP,
   XING,
   HAI,
-} from './Saju/constants'
+} from './constants'
 import {
   calculateDaeunScore,
   calculateSeunScore,
   calculateWolunScore,
   calculateIljinScore,
   type SajuScoreInput,
-} from './destiny-map/calendar/scoring'
+} from '../destiny-map/calendar/scoring'
 
 // ─────────────────────────────────────────────────────────────────
 // 십신 한글 ↔ scorer 라벨 매핑

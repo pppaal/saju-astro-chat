@@ -526,7 +526,7 @@ export const POST = withApiMiddleware(
       try {
         if (birthDate) {
           const [{ runMainSaju }, { buildExtendedAnalysisFromMain }] = await Promise.all([
-            import('@/lib/main-saju'),
+            import('@/lib/Saju/main'),
             import('@/lib/Saju/extendedAnalysis'),
           ])
           const rawGender = String(

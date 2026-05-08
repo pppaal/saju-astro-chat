@@ -1,4 +1,4 @@
-// src/lib/Saju/astrologyengine.ts
+// src/lib/Saju/advancedAnalysis.ts
 // 신강/신약, 격국, 용신 고급 분석 로직
 
 import { FiveElement, YinYang, StemBranchInfo } from './types';

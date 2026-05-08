@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Sparkles, Clock } from 'lucide-react'
-import { runMainSaju } from '@/lib/main-saju'
+import { runMainSaju } from '@/lib/Saju/main'
 import { buildExtendedAnalysisFromMain } from '@/lib/Saju/extendedAnalysis'
 import type { ExtendedAnalysis } from '@/lib/Saju/extendedAnalysis'
 import ExtendedAnalysisSection from './ExtendedAnalysisSection'
