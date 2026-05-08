@@ -590,7 +590,23 @@ export const GET = withApiMiddleware(
         }))
         .filter((d) => d.heavenlyStem && d.earthlyBranch) || []
 
-    const sajuProfile = {
+    const sajuProfile: {
+      dayMaster: string
+      dayMasterElement: string
+      dayBranch: string
+      birthYear: number
+      yearBranch: string
+      daeunCycles: typeof daeunCycles
+      daeunsu: number
+      pillars: typeof pillars
+      yongsin?: {
+        primary: string
+        secondary?: string
+        type: string
+        kibsin?: string
+      }
+      geokguk?: { type: string; strength: string }
+    } = {
       dayMaster: dayMasterStem,
       dayMasterElement,
       dayBranch: pillars.day.branch,
@@ -599,6 +615,52 @@ export const GET = withApiMiddleware(
       daeunCycles,
       daeunsu: sajuResult.daeWoon?.startAge ?? 0,
       pillars,
+    }
+
+    // Canonical 사주 정통 격국·용신 분석. date-detail 엔드포인트는 이미
+    // 동일한 호출을 하지만 main calendar route는 sajuProfile에
+    // yongsin/geokguk을 안 넣어서 365일 score ladder의 용신 정렬 가중치가
+    // 죽어 있었음. 이제 main에서도 채워줌.
+    try {
+      const { analyzeAdvancedSaju } = await import('@/lib/Saju/astrologyengine')
+      const advanced = analyzeAdvancedSaju(
+        {
+          name: dayMasterStem,
+          element: dayMasterElement,
+          yin_yang: ['甲', '丙', '戊', '庚', '壬'].includes(dayMasterStem) ? '양' : '음',
+        } as Parameters<typeof analyzeAdvancedSaju>[0],
+        {
+          yearPillar: sajuResult.yearPillar,
+          monthPillar: sajuResult.monthPillar,
+          dayPillar: sajuResult.dayPillar,
+          timePillar: sajuResult.timePillar,
+        } as Parameters<typeof analyzeAdvancedSaju>[1],
+      )
+      const primaryYongsin = String(advanced.yongsin.primary || '')
+      const yongsinType = String(advanced.yongsin.basis || '')
+      if (primaryYongsin && yongsinType) {
+        const kibsin = (advanced.yongsin.unfavorable || []).join('·')
+        sajuProfile.yongsin = {
+          primary: primaryYongsin,
+          secondary: advanced.yongsin.secondary
+            ? String(advanced.yongsin.secondary)
+            : undefined,
+          type: yongsinType,
+          kibsin: kibsin || undefined,
+        }
+      }
+      const geokgukType = String(advanced.geokguk.type || '')
+      const strengthLevel = String(advanced.strength.level || '')
+      if (geokgukType && strengthLevel) {
+        sajuProfile.geokguk = {
+          type: geokgukType,
+          strength: strengthLevel,
+        }
+      }
+    } catch (err) {
+      logger.warn('[calendar] canonical advanced saju analysis failed', {
+        error: err instanceof Error ? err.message : String(err),
+      })
     }
 
     const sunSign = deriveFallbackSunSign(birthDate)
