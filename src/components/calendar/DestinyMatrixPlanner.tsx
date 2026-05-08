@@ -147,9 +147,18 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
 
   // --- View date (current real month) ---------------------------------
+  // 엔진은 selected.date를 사용자 birth timezone 기준으로 잡는다. UI도
+  // 그 기준에 맞춰야 월 평균이 빈 배열에 떨어지는 TZ 엣지케이스가 안 난다.
+  // 데이터가 들어왔으면 calendarDailyView.date를 권위로 쓰고, 아니면
+  // 로컬 today로 폴백.
   const today = useMemo(() => new Date(), [])
-  const viewYear = today.getFullYear()
-  const viewMonth = today.getMonth() // 0-indexed
+  const enginedSelectedDate = data?.calendarDailyView?.date
+  const viewYear = enginedSelectedDate
+    ? parseInt(enginedSelectedDate.slice(0, 4), 10)
+    : today.getFullYear()
+  const viewMonth = enginedSelectedDate
+    ? parseInt(enginedSelectedDate.slice(5, 7), 10) - 1
+    : today.getMonth() // 0-indexed
 
   const monthLabel = useMemo(() => {
     const labels = [
@@ -253,12 +262,14 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
 
   useEffect(() => {
     if (!birthInfo?.birthDate) return
-    const haveHourly =
-      !!selectedImportantDate?.hourlyTimeSlots ||
-      (selectedDateStr === todayStr && !!data?.todayHourlyTimeSlots) ||
-      !!fetchedHourly[selectedDateStr]
+    // date-detail은 사주↔점성 진짜 cross-validated hourly slots를 돌려준다.
+    // yearly 응답의 todayHourlyTimeSlots는 사주만 본 saju-only fallback이라
+    // 오늘이라 해도 cross 버전을 따로 받아 온다 — Redis 캐시되어 비싸지 않다.
+    const haveCrossOrFetched =
+      !!fetchedHourly[selectedDateStr] ||
+      selectedImportantDate?.hourlyTimeSlots?.crossValidated === true
     const haveTransit = !!selectedImportantDate?.transit || !!fetchedTransit[selectedDateStr]
-    if (haveHourly && haveTransit) return
+    if (haveCrossOrFetched && haveTransit) return
 
     let cancelled = false
     const params = new URLSearchParams({
@@ -270,7 +281,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
     if (g === 'male' || g === 'female') params.set('gender', g)
     if (birthInfo.timezone) params.set('timezone', birthInfo.timezone)
 
-    if (!haveHourly) setHourlyLoading(true)
+    if (!haveCrossOrFetched) setHourlyLoading(true)
     fetch(`/api/calendar/date-detail?${params}`, {
       headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
     })
@@ -308,17 +319,21 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
   ])
 
   const dailyHourlySlots = useMemo(() => {
+    // 우선순위:
+    //  1) lazy-fetched cross-validated (사주 시지 + 행성시 + 트랜짓 aspect)
+    //  2) selectedImportantDate에 박혀 있는 hourlyTimeSlots
+    //  3) yearly 응답의 todayHourlyTimeSlots (오늘일 때만, saju-only fallback)
     const isToday = selectedDateStr === todayStr
+    const lazy = fetchedHourly[selectedDateStr]
+    if (lazy && (lazy.best.length > 0 || lazy.worst.length > 0)) {
+      return lazy
+    }
     const perDay = selectedImportantDate?.hourlyTimeSlots
     if (perDay && (perDay.best.length > 0 || perDay.worst.length > 0)) {
       return perDay
     }
     if (isToday && data?.todayHourlyTimeSlots) {
       return data.todayHourlyTimeSlots
-    }
-    const lazy = fetchedHourly[selectedDateStr]
-    if (lazy && (lazy.best.length > 0 || lazy.worst.length > 0)) {
-      return lazy
     }
     return null
   }, [todayStr, selectedDateStr, selectedImportantDate, data, fetchedHourly])
@@ -1297,12 +1312,29 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                 )}
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-cyan-400" /> 좋은 시간 · 주의 시간
                   </h3>
-                  <span className="text-[9px] text-zinc-500 font-medium">사주 시간대 분석</span>
+                  {dailyHourlySlots?.crossValidated ? (
+                    <span className="text-[9px] font-bold text-emerald-300 bg-emerald-900/30 border border-emerald-500/30 px-2 py-0.5 rounded-full tracking-wider">
+                      사주↔점성 교차
+                    </span>
+                  ) : dailyHourlySlots ? (
+                    <span className="text-[9px] text-zinc-500 font-medium">사주 시지 분석</span>
+                  ) : null}
                 </div>
+                {dailyHourlySlots?.crossValidated &&
+                  dailyHourlySlots.crossSources &&
+                  dailyHourlySlots.crossSources.length > 0 && (
+                    <div className="mb-3 space-y-0.5">
+                      {dailyHourlySlots.crossSources.map((src, i) => (
+                        <div key={i} className="text-[10px] text-zinc-400 leading-relaxed">
+                          · {src}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 {dailyHourlySlots ? (
                   <div className="grid grid-cols-2 gap-3">
                     <div>

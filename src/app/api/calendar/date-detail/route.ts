@@ -28,10 +28,7 @@ import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDate
 import { getPillarStemName, getPillarBranchName } from '@/app/api/calendar/lib/helpers'
 import { cacheOrCalculate, cacheGet, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import type { YearlyImportantDate } from '@/app/api/calendar/lib/yearlyDates'
-import type {
-  UserSajuProfile,
-  UserAstroProfile,
-} from '@/lib/destiny-map/calendar/types'
+import type { UserSajuProfile, UserAstroProfile } from '@/lib/destiny-map/calendar/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,10 +61,18 @@ function deriveSunSign(birthDate: Date): string {
 }
 
 const ZODIAC_ELEMENT: Record<string, string> = {
-  Aries: 'fire', Leo: 'fire', Sagittarius: 'fire',
-  Taurus: 'earth', Virgo: 'earth', Capricorn: 'earth',
-  Gemini: 'air', Libra: 'air', Aquarius: 'air',
-  Cancer: 'water', Scorpio: 'water', Pisces: 'water',
+  Aries: 'fire',
+  Leo: 'fire',
+  Sagittarius: 'fire',
+  Taurus: 'earth',
+  Virgo: 'earth',
+  Capricorn: 'earth',
+  Gemini: 'air',
+  Libra: 'air',
+  Aquarius: 'air',
+  Cancer: 'water',
+  Scorpio: 'water',
+  Pisces: 'water',
 }
 
 export const GET = withApiMiddleware(
@@ -166,9 +171,7 @@ export const GET = withApiMiddleware(
         geokguk: String(advanced.geokguk.type || ''),
         yongsin: {
           primary: String(advanced.yongsin.primary || ''),
-          secondary: advanced.yongsin.secondary
-            ? String(advanced.yongsin.secondary)
-            : undefined,
+          secondary: advanced.yongsin.secondary ? String(advanced.yongsin.secondary) : undefined,
           type: String(advanced.yongsin.basis || ''),
           kibsin: kibsin || undefined,
         },
@@ -205,8 +208,23 @@ export const GET = withApiMiddleware(
 
     // 1) 365 캘린더 뷰가 캐시에 있으면 그걸 권위 있는 답으로 사용 (사용자가 캘린더 페이지 들어왔으면 항상 채워져 있음)
     let yearlyForDay: YearlyImportantDate | undefined
-    for (const cat of ['', 'general', 'career', 'love', 'wealth', 'health', 'travel', 'study'] as const) {
-      const yk = CacheKeys.yearlyCalendar(birthDate, birthTime || '', sajuGender, yearOfDate, cat || undefined)
+    for (const cat of [
+      '',
+      'general',
+      'career',
+      'love',
+      'wealth',
+      'health',
+      'travel',
+      'study',
+    ] as const) {
+      const yk = CacheKeys.yearlyCalendar(
+        birthDate,
+        birthTime || '',
+        sajuGender,
+        yearOfDate,
+        cat || undefined
+      )
       const cached = await cacheGet<YearlyImportantDate[]>(yk)
       const hit = cached?.find((d) => d.date === date)
       if (hit) {
@@ -224,12 +242,10 @@ export const GET = withApiMiddleware(
         if (!detail) return null
         let yearly = yearlyForDay
         if (!yearly) {
-          const yearlyList = calculateYearlyImportantDates(
-            yearOfDate,
-            sajuProfile,
-            astroProfile,
-            { locale: 'ko', birthDate }
-          )
+          const yearlyList = calculateYearlyImportantDates(yearOfDate, sajuProfile, astroProfile, {
+            locale: 'ko',
+            birthDate,
+          })
           yearly = yearlyList.find((d) => d.date === detail.date)
         }
         return { detail, yearly }
@@ -252,19 +268,23 @@ export const GET = withApiMiddleware(
     // we don't surface house cusps here.
     let transitData:
       | {
-          aspects: Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number; isApplying: boolean }>
+          aspects: Array<{
+            transitPlanet: string
+            natalPoint: string
+            aspect: string
+            orb: number
+            isApplying: boolean
+          }>
           retrogrades?: string[]
           summary?: string
         }
       | undefined
     try {
-      const [
-        { calculateNatalChart, toChart },
-        { calculateTransitChart, findTransitAspects },
-      ] = await Promise.all([
-        import('@/lib/astrology/foundation/astrologyService'),
-        import('@/lib/astrology/foundation/transit'),
-      ])
+      const [{ calculateNatalChart, toChart }, { calculateTransitChart, findTransitAspects }] =
+        await Promise.all([
+          import('@/lib/astrology/foundation/astrologyService'),
+          import('@/lib/astrology/foundation/transit'),
+        ])
       const birthDateObjForAstro = new Date(birthDate + 'T00:00:00')
       const [bH, bM] = (birthTime || '12:00').split(':').map((v) => Number.parseInt(v, 10))
       const natalChartData = await calculateNatalChart({
@@ -362,15 +382,105 @@ export const GET = withApiMiddleware(
       transit: transitData,
       hourlyTimeSlots: await (async () => {
         try {
-          const { analyzeDayTimeSlots } = await import('@/lib/prediction/ultra-precision-minute')
-          const slots = analyzeDayTimeSlots(
-            new Date(date + 'T00:00:00'),
-            dayMasterStem,
-            dayBranch
-          )
+          const { analyzeMinutePrecision } = await import('@/lib/prediction/ultra-precision-minute')
+
+          // 그 날 트랜짓 aspect 중 가장 강한 우호/긴장 행성을 추출.
+          // - 우호: trine·sextile·conjunction 중 오브가 가장 작은 것
+          // - 긴장: square·opposition 중 오브가 가장 작은 것
+          // 두 행성을 그 시간의 행성시 지배 행성과 매칭해서 시간대마다
+          // bonus/penalty를 더한다 — 사주 시지(時支)·행성시·점성 트랜짓
+          // 세 축이 모두 합의하는 시간대를 찾는 진짜 cross-validation.
+          const aspects = transitData?.aspects ?? []
+          const HARMONIOUS = new Set(['trine', 'sextile', 'conjunction'])
+          const TENSE = new Set(['square', 'opposition'])
+          const benevolent = aspects.find((a) => HARMONIOUS.has(a.aspect))
+          const malevolent = aspects.find((a) => TENSE.has(a.aspect))
+
+          const targetDateObj = new Date(date + 'T00:00:00')
+          const allHours: Array<{
+            hour: number
+            sajuScore: number
+            astroModifier: number
+            finalScore: number
+            ruler: string
+            reason: string
+            crossSources: string[]
+          }> = []
+
+          for (let h = 0; h < 24; h++) {
+            const dt = new Date(targetDateObj)
+            dt.setHours(h, 30, 0, 0)
+            const sajuAnalysis = analyzeMinutePrecision(dt, dayMasterStem, dayBranch)
+            const ruler = String(sajuAnalysis.planetaryHour?.planet || 'Unknown')
+            let astroModifier = 0
+            const sources: string[] = []
+            if (benevolent && ruler === benevolent.transitPlanet) {
+              const tightness = Math.max(0, 6 - benevolent.orb)
+              astroModifier += Math.round(8 + tightness * 1.5)
+              sources.push(
+                `트랜짓 ${benevolent.transitPlanet} ${benevolent.aspect} ${benevolent.natalPoint}`
+              )
+            }
+            if (malevolent && ruler === malevolent.transitPlanet) {
+              const tightness = Math.max(0, 6 - malevolent.orb)
+              astroModifier -= Math.round(7 + tightness * 1.3)
+              sources.push(
+                `트랜짓 ${malevolent.transitPlanet} ${malevolent.aspect} ${malevolent.natalPoint}`
+              )
+            }
+            const finalScore = Math.max(0, Math.min(100, sajuAnalysis.score + astroModifier))
+            const sajuTag = `${ruler}시 · ${sajuAnalysis.grade}등급`
+            const reason =
+              astroModifier > 0
+                ? `${sajuTag} + 점성 우호 (+${astroModifier})`
+                : astroModifier < 0
+                  ? `${sajuTag} + 점성 긴장 (${astroModifier})`
+                  : sajuTag
+            allHours.push({
+              hour: h,
+              sajuScore: sajuAnalysis.score,
+              astroModifier,
+              finalScore,
+              ruler,
+              reason,
+              crossSources: sources,
+            })
+          }
+
+          const sorted = [...allHours].sort((a, b) => b.finalScore - a.finalScore)
+          const best = sorted.slice(0, 4).map((h) => ({
+            hour: h.hour,
+            score: h.finalScore,
+            reason: h.reason,
+          }))
+          const worst = sorted
+            .slice(-2)
+            .reverse()
+            .map((h) => ({
+              hour: h.hour,
+              score: h.finalScore,
+              reason: h.reason,
+            }))
+
+          // 시간대 차원에서 점성이 실제로 시간대 간 차이를 만들었는지
+          // (같은 행성이 룰러인 시간대만 modifier 받음). UI는 이 플래그
+          // 보고 "사주↔점성 교차" 라벨을 정직하게 띄우거나 숨길 수 있다.
+          const crossActive = allHours.some((h) => h.astroModifier !== 0)
+
           return {
-            best: slots.best.slice(0, 4),
-            worst: slots.worst.slice(0, 2),
+            best,
+            worst,
+            crossValidated: crossActive,
+            crossSources: crossActive
+              ? [
+                  benevolent
+                    ? `우호: ${benevolent.transitPlanet} ${benevolent.aspect} ${benevolent.natalPoint} (오브 ${benevolent.orb.toFixed(1)}°)`
+                    : null,
+                  malevolent
+                    ? `긴장: ${malevolent.transitPlanet} ${malevolent.aspect} ${malevolent.natalPoint} (오브 ${malevolent.orb.toFixed(1)}°)`
+                    : null,
+                ].filter((x): x is string => x !== null)
+              : undefined,
           }
         } catch {
           return undefined
@@ -380,9 +490,8 @@ export const GET = withApiMiddleware(
       yongsinActivations: await (async () => {
         if (!natalContext?.yongsin?.primary) return undefined
         try {
-          const { findYongsinActivationPeriods } = await import(
-            '@/lib/prediction/specificDateEngine'
-          )
+          const { findYongsinActivationPeriods } =
+            await import('@/lib/prediction/specificDateEngine')
           // Look forward 60 days from the selected date and return the
           // top 5 strongest 용신 activation days. "이번 60일 안에 너의
           // 용신 화가 가장 살아나는 날" reading.
@@ -393,8 +502,7 @@ export const GET = withApiMiddleware(
             60
           )
           const top = periods.slice(0, 5).map((p) => ({
-            date:
-              `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}-${String(p.date.getDate()).padStart(2, '0')}`,
+            date: `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}-${String(p.date.getDate()).padStart(2, '0')}`,
             score: p.score,
             level: p.activationLevel,
             sources: p.sources,

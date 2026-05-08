@@ -149,6 +149,10 @@ export interface ImportantDate {
   hourlyTimeSlots?: {
     best: Array<{ hour: number; score: number; reason: string }>
     worst: Array<{ hour: number; score: number; reason: string }>
+    /** 사주 시지·행성시·트랜짓 aspect 세 축이 합의해서 modifier 받은 시간대가 있는지 */
+    crossValidated?: boolean
+    /** 그 cross의 출처 (예: "우호: Mars trine Sun (오브 1.2°)") */
+    crossSources?: string[]
   }
   /** 본명 사주 강약·격국·용신 컨텍스트 */
   natalContext?: {
@@ -242,6 +246,8 @@ export interface CalendarData {
   todayHourlyTimeSlots?: {
     best: Array<{ hour: number; score: number; reason: string }>
     worst: Array<{ hour: number; score: number; reason: string }>
+    crossValidated?: boolean
+    crossSources?: string[]
   }
   calendarDailyView?: {
     date: string
