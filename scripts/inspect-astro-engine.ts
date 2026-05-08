@@ -79,6 +79,64 @@ async function main() {
     console.log('  (Solar Return 계산 실패)')
   }
 
+  // ⭐ 흩어진 advance 모듈 5개
+  const adv = (out as { advanced?: {
+    asteroids: Record<string, { sign: string; degree: number; house: number }> | null
+    upcomingEclipses: Array<{ date: string; type: string; sign: string; degree?: number }> | null
+    fixedStars: Array<{ star: { name_ko?: string; name: string; nature: string; keywords: string[]; interpretation: string }; planet: string; orb: number }> | null
+    harmonics: { strongestHarmonics: Array<{ harmonic: number; strength: number; description?: string; theme?: string }>; ageHarmonic?: { harmonic: number; description?: string }; overallInterpretation?: string } | null
+    midpointActivations: Array<{ midpoint: { planet1: string; planet2: string; name_ko?: string; sign?: string; degree?: number; keywords?: string[] }; activator: string; aspectType: string; orb: number; description?: string }> | null
+  } }).advanced
+  if (adv) {
+    console.log('\n## 10. 소행성 6 (asteroids)')
+    if (adv.asteroids) {
+      // 숫자 키 (0/1/2/3) 는 배열 alias — 한글 이름 키만 출력
+      for (const [name, ast] of Object.entries(adv.asteroids)) {
+        if (/^\d+$/.test(name)) continue // 숫자 alias 스킵
+        console.log(`  ${name.padEnd(10)}: ${ast.sign} ${Math.round(ast.degree)}° (${ast.house}H)`)
+      }
+    } else console.log('  (계산 실패)')
+
+    console.log('\n## 11. 다가올 일/월식')
+    if (adv.upcomingEclipses?.length) {
+      for (const e of adv.upcomingEclipses) {
+        console.log(`  ${e.date}: ${e.type} ${e.sign}${e.degree !== undefined ? ` ${Math.round(e.degree)}°` : ''}`)
+      }
+    } else console.log('  없음')
+
+    console.log('\n## 12. 본명 행성에 닿는 고정성')
+    if (adv.fixedStars?.length) {
+      for (const f of adv.fixedStars) {
+        console.log(`  ★ ${f.star.name_ko || f.star.name} (${f.star.nature}) ↔ ${f.planet} (orb ${f.orb.toFixed(2)}°)`)
+        console.log(`    키워드: ${f.star.keywords.slice(0, 3).join(', ')}`)
+        console.log(`    ${String(f.star.interpretation).slice(0, 120)}`)
+      }
+    } else console.log('  없음')
+
+    console.log('\n## 13. 하모닉 프로필')
+    if (adv.harmonics) {
+      const h = adv.harmonics
+      if (h.strongestHarmonics?.length) {
+        console.log(`  강한 하모닉:`)
+        for (const s of h.strongestHarmonics.slice(0, 3)) {
+          console.log(`    · ${s.harmonic}H (강도 ${s.strength.toFixed(1)})${s.theme ? ` — ${s.theme}` : ''}`)
+        }
+      }
+      if (h.ageHarmonic) console.log(`  현재 나이 하모닉: ${h.ageHarmonic.harmonic}H`)
+      if (h.overallInterpretation) console.log(`  📜 ${h.overallInterpretation.slice(0, 200)}`)
+    } else console.log('  계산 실패')
+
+    console.log('\n## 14. 미드포인트 활성화 (top 5)')
+    if (adv.midpointActivations?.length) {
+      for (const m of adv.midpointActivations.slice(0, 5)) {
+        const ko = m.midpoint.name_ko ? ` (${m.midpoint.name_ko})` : ''
+        console.log(`  ${m.midpoint.planet1}/${m.midpoint.planet2}${ko} ← ${m.activator} ${m.aspectType} (orb ${m.orb.toFixed(2)}°)`)
+        if (m.description) console.log(`    ${m.description}`)
+        if (m.midpoint.keywords?.length) console.log(`    키워드: ${m.midpoint.keywords.slice(0, 3).join(', ')}`)
+      }
+    } else console.log('  없음')
+  }
+
   console.log('\n' + '='.repeat(72))
 }
 

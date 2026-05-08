@@ -40,6 +40,12 @@ import {
 } from './returns'
 import { findNatalAspects } from './aspects'
 import type { Chart, NatalInput, ProgressedChart } from './types'
+// ⭐ 흩어진 advance 모듈 plumbing
+import { calculateAllAsteroids } from './asteroids'
+import { getUpcomingEclipses } from './eclipses'
+import { findFixedStarConjunctions } from './fixedStars'
+import { generateHarmonicProfile } from './harmonics'
+import { findMidpointActivations } from './midpoints'
 
 export const ASTRO_ENGINE_META = {
   name: '천기력',
@@ -149,6 +155,19 @@ export interface AstroEngineOutput {
     chart: unknown
     summary: ReturnType<typeof getSolarReturnSummary>
   }
+  /** ⭐ 흩어진 advance 모듈 통합 출력 */
+  advanced?: {
+    /** 6 asteroids — Ceres / Pallas / Juno / Vesta / Chiron / Lilith */
+    asteroids: ReturnType<typeof calculateAllAsteroids> | null
+    /** 다가올 일/월식 */
+    upcomingEclipses: ReturnType<typeof getUpcomingEclipses> | null
+    /** 본명 행성에 닿는 고정성 */
+    fixedStars: ReturnType<typeof findFixedStarConjunctions> | null
+    /** 하모닉 프로필 (강한 하모닉 패턴) */
+    harmonics: ReturnType<typeof generateHarmonicProfile> | null
+    /** 본명 미드포인트 활성화 */
+    midpointActivations: ReturnType<typeof findMidpointActivations> | null
+  }
   /** 입력 정보 */
   input: AstroEngineInput
 }
@@ -249,6 +268,45 @@ export async function runAstroEngine(input: AstroEngineInput): Promise<AstroEngi
     // ignore
   }
 
+  // ⭐ 흩어진 advance 모듈 5개 호출 (각 try/catch)
+  let _asteroids: ReturnType<typeof calculateAllAsteroids> | null = null
+  let _eclipses: ReturnType<typeof getUpcomingEclipses> | null = null
+  let _fixedStars: ReturnType<typeof findFixedStarConjunctions> | null = null
+  let _harmonics: ReturnType<typeof generateHarmonicProfile> | null = null
+  let _midpointActivations: ReturnType<typeof findMidpointActivations> | null = null
+
+  // natal chart 의 jdUT 추출 — natal.meta.jdUT 또는 직접 계산
+  const natalForAdv = natal as unknown as Chart & { meta?: { jdUT?: number }; houses?: Array<{ cusp?: number }> }
+  const jdUT = natalForAdv.meta?.jdUT
+  const houseCusps = natalForAdv.houses?.map((h) => Number(h.cusp ?? 0)) ?? []
+
+  try {
+    if (typeof jdUT === 'number') {
+      _asteroids = calculateAllAsteroids(jdUT, houseCusps.length === 12 ? houseCusps : undefined)
+    }
+  } catch {}
+  try {
+    _eclipses = getUpcomingEclipses(target, 4)
+  } catch {}
+  try {
+    _fixedStars = findFixedStarConjunctions(natalForAdv, target.getFullYear(), 1.0)
+  } catch {}
+  try {
+    const currentAge = target.getFullYear() - new Date(input.birthDate).getFullYear()
+    _harmonics = generateHarmonicProfile(natalForAdv, currentAge)
+  } catch {}
+  try {
+    _midpointActivations = findMidpointActivations(natalForAdv, 1.5)
+  } catch {}
+
+  const advanced = {
+    asteroids: _asteroids,
+    upcomingEclipses: _eclipses,
+    fixedStars: _fixedStars,
+    harmonics: _harmonics,
+    midpointActivations: _midpointActivations,
+  }
+
   return {
     engine: ASTRO_ENGINE_META,
     natal,
@@ -263,6 +321,7 @@ export async function runAstroEngine(input: AstroEngineInput): Promise<AstroEngi
     },
     progressions,
     solarReturn,
+    advanced,
     input: { ...input, timezone: tz, targetDate: target },
   }
 }
