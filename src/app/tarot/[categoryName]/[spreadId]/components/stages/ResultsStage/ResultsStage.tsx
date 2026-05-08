@@ -300,6 +300,7 @@ export function ResultsStage(props: ResultsStageProps) {
 
   return (
     <div className={styles.resultsContainer}>
+      {/* ① 질문 */}
       <ResultsHeader
         readingResult={readingResult}
         userTopic={userTopic}
@@ -321,40 +322,7 @@ export function ResultsStage(props: ResultsStageProps) {
         </section>
       )}
 
-      {quickSummary && (
-        <section className={styles.quickAnswerPanel}>
-          <div className={styles.quickAnswerTopRow}>
-            <div className={styles.quickAnswerHeader}>
-              {quickSummary.answerHeader}
-            </div>
-            {quickSummary.showLikelihood && (
-            <span
-              className={`${styles.likelihoodBadge} ${
-                quickSummary.likelihoodLevel === 'high'
-                  ? styles.likelihoodHigh
-                  : quickSummary.likelihoodLevel === 'low'
-                    ? styles.likelihoodLow
-                    : styles.likelihoodMedium
-              }`}
-            >
-              {quickSummary.likelihoodBadge}
-            </span>
-            )}
-          </div>
-          <p className={styles.quickAnswerConclusion}>
-            <strong>{language === 'ko' ? '답변:' : 'Answer:'}</strong> {quickSummary.directAnswer}
-          </p>
-          <p className={styles.quickAnswerReason}>
-            <strong>{language === 'ko' ? '한 줄 이유:' : 'One-line reason:'}</strong>{' '}
-            {quickSummary.reasonOneLine}
-          </p>
-          <p className={styles.quickAnswerAction}>
-            <strong>{language === 'ko' ? '행동 한 줄:' : 'One-line action:'}</strong>{' '}
-            {quickSummary.actionOneLine}
-          </p>
-        </section>
-      )}
-
+      {/* ② 카드 펼치기 */}
       <HorizontalCardsGrid
         readingResult={readingResult}
         selectedColor={selectedColor}
@@ -368,53 +336,43 @@ export function ResultsStage(props: ResultsStageProps) {
         translate={translate}
       />
 
-      {revealedCards.length === readingResult.drawnCards.length && (
-        <button
-          className={styles.scrollToDetailsButton}
-          onClick={() => {
-            setShowLayer2Cards(true)
-            scrollToDetails()
-          }}
-        >
-          {translate('tarot.results.viewDetails', '원문 해석 보기')} ↓
-        </button>
-      )}
-
-      <div className={styles.resultSectionTag}>
-        {language === 'ko' ? '전체 결과' : 'Overall Result'}
-      </div>
-
-
+      {/* ③ 어떻게 해야 해 — 답 1줄 + 행동 3개 */}
       {quickSummary && (
-        <section className={styles.quickReasonPanel}>
-          <h3 className={styles.quickReasonTitle}>
-            {language === 'ko' ? '왜 그렇게 보이는지 (근거 2~3줄)' : 'Why This Reading (2-3 lines)'}
-          </h3>
-          <div className={styles.quickAnswerReasons}>
-            {quickSummary.reasons.map((reason, idx) => (
-              <p key={`reason-${idx}`} className={styles.quickAnswerReason}>
-                {language === 'ko' ? `이유 ${idx + 1}.` : `Reason ${idx + 1}.`} {reason}
-              </p>
-            ))}
+        <section className={styles.quickAnswerPanel}>
+          <div className={styles.quickAnswerTopRow}>
+            <div className={styles.quickAnswerHeader}>
+              {language === 'ko' ? '어떻게 해야 해' : 'What To Do'}
+            </div>
+            {quickSummary.showLikelihood && (
+              <span
+                className={`${styles.likelihoodBadge} ${
+                  quickSummary.likelihoodLevel === 'high'
+                    ? styles.likelihoodHigh
+                    : quickSummary.likelihoodLevel === 'low'
+                      ? styles.likelihoodLow
+                      : styles.likelihoodMedium
+                }`}
+              >
+                {quickSummary.likelihoodBadge}
+              </span>
+            )}
           </div>
+          <p className={styles.quickAnswerConclusion}>
+            <strong>{language === 'ko' ? '답:' : 'Answer:'}</strong> {quickSummary.directAnswer}
+          </p>
+          <p className={styles.quickAnswerAction}>
+            <strong>{language === 'ko' ? '오늘 할 것:' : 'Do today:'}</strong> {quickSummary.todayDo}
+          </p>
+          <p className={styles.quickAnswerAction}>
+            <strong>{language === 'ko' ? '피할 것:' : 'Avoid:'}</strong> {quickSummary.avoidLine}
+          </p>
+          <p className={styles.quickAnswerAction}>
+            <strong>{language === 'ko' ? '태도:' : 'Attitude:'}</strong> {quickSummary.attitudeLine}
+          </p>
         </section>
       )}
 
-      <div className={styles.resultSectionTag}>
-        {language === 'ko' ? '카드별 해석' : 'Card-by-Card Reading'}
-      </div>
-      <DetailedCardsSection
-        readingResult={readingResult}
-        interpretation={interpretation}
-        language={language}
-        selectedDeckStyle={selectedDeckStyle}
-        revealedCards={revealedCards}
-        expandedCard={expandedCard}
-        onToggleExpand={toggleCardExpand}
-        translate={translate}
-        mode="summary"
-      />
-      {insight?.fallback ? (
+      {insight?.fallback && (
         <div className={styles.interpretationFallbackNotice} role="status" aria-live="polite">
           <div className={styles.interpretationNoticeHeader}>
             <strong>{language === 'ko' ? '임시 해석 모드' : 'Fallback interpretation mode'}</strong>
@@ -426,42 +384,10 @@ export function ResultsStage(props: ResultsStageProps) {
               {language === 'ko' ? 'AI 해석 다시 시도' : 'Retry AI interpretation'}
             </button>
           </div>
-          <p>
-            {language === 'ko'
-              ? '현재 결과는 안정 모드 해석입니다. 잠시 후 다시 시도하면 질문 맞춤 AI 해석으로 확장됩니다.'
-              : 'You are seeing a safe fallback interpretation. Retry shortly for a richer AI reading.'}
-          </p>
         </div>
-      ) : (
-        <div className={styles.interpretationSuccessNotice}>
-          {language === 'ko'
-            ? '✅ 질문 맞춤 AI 해석이 정상 생성되었습니다.'
-            : '✅ AI interpretation generated successfully.'}
-        </div>
-      )}
-      <div className={styles.resultSectionTag}>
-        {language === 'ko' ? '마지막 조언' : 'Final Advice'}
-      </div>
-      {quickSummary && (
-        <section className={styles.actionGuidePanel}>
-          <h3 className={styles.actionGuideTitle}>
-            {language === 'ko' ? '실천 조언' : 'Practical Guidance'}
-          </h3>
-          <p className={styles.actionGuideItem}>
-            <strong>{language === 'ko' ? '오늘 하면 좋은 것:' : 'Do today:'}</strong>{' '}
-            {quickSummary.todayDo}
-          </p>
-          <p className={styles.actionGuideItem}>
-            <strong>{language === 'ko' ? '피해야 할 것:' : 'Avoid:'}</strong>{' '}
-            {quickSummary.avoidLine}
-          </p>
-          <p className={styles.actionGuideItem}>
-            <strong>{language === 'ko' ? '지금 맞는 태도:' : 'Best attitude now:'}</strong>{' '}
-            {quickSummary.attitudeLine}
-          </p>
-        </section>
       )}
 
+      {/* ④ 더 보기 — 모든 상세 분석 숨김 */}
       <details
         className={styles.layer2Details}
         open={showLayer2Cards}
@@ -470,13 +396,10 @@ export function ResultsStage(props: ResultsStageProps) {
         }}
       >
         <summary className={styles.layer2Summary}>
-          {language === 'ko'
-            ? '원문 해석 펼치기 (카드/정역방향/상세)'
-            : 'Expand Raw Interpretation (Cards / Upright-Reversed / Details)'}
+          {language === 'ko' ? '더 자세히 보기' : 'See Detailed Analysis'}
         </summary>
-        <div className={styles.resultSectionTag}>
-          {language === 'ko' ? '카드 원문 해석 (기본/상세)' : 'Raw Card Meanings (Base / Detailed)'}
-        </div>
+
+        {/* 카드별 해석 */}
         <DetailedCardsSection
           readingResult={readingResult}
           interpretation={interpretation}
@@ -488,26 +411,24 @@ export function ResultsStage(props: ResultsStageProps) {
           detailedSectionRef={detailedSectionRef}
           translate={translate}
         />
-      </details>
 
-      {tarotSynthesis && <SpreadSynthesisCard data={tarotSynthesis} />}
+        {/* 카드 흐름 진단 (foundation) */}
+        {tarotSynthesis && <SpreadSynthesisCard data={tarotSynthesis} />}
+        {comboHits.length > 0 && <ComboPatternsCard hits={comboHits} />}
+        {tarotTiming && <TarotTimingCard data={tarotTiming} />}
 
-      {comboHits.length > 0 && <ComboPatternsCard hits={comboHits} />}
-
-      {tarotTiming && <TarotTimingCard data={tarotTiming} />}
-
-      {insight?.combinations && insight.combinations.length > 0 && (
-        <CombinationsSection combinations={insight.combinations} translate={translate} />
-      )}
-
-      {insight?.guidance &&
-        (Array.isArray(insight.guidance) ? insight.guidance.length > 0 : insight.guidance.trim().length > 0) && (
-          <GuidanceSection guidance={insight.guidance} language={language} />
+        {/* AI 해석 보조 */}
+        {insight?.combinations && insight.combinations.length > 0 && (
+          <CombinationsSection combinations={insight.combinations} translate={translate} />
         )}
-
-      {insight?.followup_questions && insight.followup_questions.length > 0 && (
-        <FollowupSection questions={insight.followup_questions} translate={translate} />
-      )}
+        {insight?.guidance &&
+          (Array.isArray(insight.guidance) ? insight.guidance.length > 0 : insight.guidance.trim().length > 0) && (
+            <GuidanceSection guidance={insight.guidance} language={language} />
+          )}
+        {insight?.followup_questions && insight.followup_questions.length > 0 && (
+          <FollowupSection questions={insight.followup_questions} translate={translate} />
+        )}
+      </details>
 
       {saveMessage && (
         <div className={styles.saveMessage} role="status" aria-live="polite">
