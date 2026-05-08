@@ -8,6 +8,9 @@ import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 import { performAdvancedAnalysis } from '@/app/api/saju/services/advancedAnalysis'
 import { getTwelveStagesForPillars } from '@/lib/Saju/shinsal'
+import { getJohuPrescription } from '@/lib/Saju/johuPrescription'
+import { detectGeokgukVariation } from '@/lib/Saju/geokgukVariation'
+import { getIrreversibleActionGuards } from '@/lib/Saju/irreversibleActionGuards'
 import type { SajuPillars, FiveElement } from '@/lib/Saju/types'
 import type { SajuDataStructure, AstroDataStructure } from './index'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
@@ -307,4 +310,60 @@ function attachAdvancedAnalysis(saju: Record<string, unknown>): void {
   )
 
   saju.advancedAnalysis = advancedAnalysis
+
+  // Traditional deep prescription layer — 정통 궁통보감 천간 처방,
+  // 격국 변격/파격 detection, 비가역 행동 가드.
+  try {
+    const yongsinResult = advancedAnalysis?.yongsin
+    const geokgukResult = advancedAnalysis?.geokguk
+    const geokgukLabel = geokgukResult?.primary
+    const daymasterStrength = yongsinResult?.daymasterStrength
+    const strengthBucket =
+      /신강|중강|강함/i.test(daymasterStrength || '')
+        ? 'strong'
+        : /신약|중약|약함/i.test(daymasterStrength || '')
+          ? 'weak'
+          : 'mid'
+
+    const johu = getJohuPrescription({
+      dayStem: dStem,
+      monthBranch: mBranch,
+      geokguk: geokgukLabel,
+      strength: strengthBucket,
+    })
+
+    const variation = detectGeokgukVariation(
+      String(geokgukLabel || 'unknown'),
+      saju as unknown as Parameters<typeof detectGeokgukVariation>[1],
+    )
+
+    const kibsinList: FiveElement[] = []
+    if (yongsinResult?.kibsin) kibsinList.push(yongsinResult.kibsin as FiveElement)
+    if (yongsinResult?.gusin) kibsinList.push(yongsinResult.gusin as FiveElement)
+
+    const annualList = (saju.unse as { annual?: Array<{ year?: number; heavenlyStem?: string; earthlyBranch?: string }> })?.annual || []
+    const currentAnnual = annualList.find((a) => a.year === new Date().getFullYear())
+
+    const guards = getIrreversibleActionGuards({
+      daymaster: dStem,
+      geokguk: geokgukLabel,
+      strength: strengthBucket as 'strong' | 'mid' | 'weak',
+      primaryYongsin: yongsinResult?.primaryYongsin as FiveElement | undefined,
+      kibsin: kibsinList.length ? kibsinList : undefined,
+      currentDaeunStem: (saju.daeWoon as { current?: { heavenlyStem?: string } } | undefined)
+        ?.current?.heavenlyStem,
+      currentDaeunBranch: (saju.daeWoon as { current?: { earthlyBranch?: string } } | undefined)
+        ?.current?.earthlyBranch,
+      currentSaeunStem: currentAnnual?.heavenlyStem,
+      currentSaeunBranch: currentAnnual?.earthlyBranch,
+    })
+
+    ;(saju as { traditionalDeep?: unknown }).traditionalDeep = {
+      johu,
+      variation,
+      guards,
+    }
+  } catch (deepErr) {
+    logger.warn('[chart-calculator] traditionalDeep enrichment failed:', deepErr)
+  }
 }

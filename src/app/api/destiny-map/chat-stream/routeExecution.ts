@@ -35,6 +35,7 @@ import {
 import { assembleFinalPrompt } from './builders/promptAssembly'
 import { buildPillarTableSection } from './builders/pillarTableBuilder'
 import { buildCrossRulesSection } from './builders/crossRulesBuilder'
+import { buildTraditionalDeepSection } from './builders/traditionalDeepBuilder'
 import type { AstroDataStructure, SajuDataStructure } from './lib/types'
 import {
   buildCompactPromptSections,
@@ -307,6 +308,16 @@ export async function prepareCounselorExecution(params: {
   // 같은 정통적 디테일이 prompt에 살아있게 함.
   const pillarTableSection = buildPillarTableSection(finalSaju, lang === 'ko' ? 'ko' : 'en')
 
+  // 정통 깊이 — 궁통보감 천간 처방 + 격국 정합성 + 비가역 행동 가드.
+  // 일간×월령에 정통 처방 (예: 辛 寅月 → 己·庚·壬), 격국 진종/가종/
+  // 파격/변격 검증, 6 비가역 행동 (계약·결혼·이주·송금·매수·매도)에
+  // 대한 go/caution/wait/block 매트릭스를 LLM이 그대로 인용 가능한
+  // 형태로 prompt에 끼움.
+  const traditionalDeepSection = buildTraditionalDeepSection(
+    finalSaju,
+    lang === 'ko' ? 'ko' : 'en',
+  )
+
   // 교차 룰 엔진 (5106 라인 정통 패턴) — 종왕격/종강격/격국·관성·재성/stellium/
   // mutual reception/sect/lots/zodiacal releasing 등 사주×점성 cross-confirmed
   // 신호. runFortune 한 번 호출해서 narrative 한 덩어리로 prompt에 추가.
@@ -512,6 +523,7 @@ export async function prepareCounselorExecution(params: {
     fortuneIcpSection,
     matrixProfileSection,
     pillarTableSection,
+    traditionalDeepSection,
     crossRulesSection,
   ]
     .filter(Boolean)
