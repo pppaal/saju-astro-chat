@@ -3,11 +3,12 @@
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Sparkles, Shield, ScrollText, Heart, Activity, Clock, Target,
-  Zap, Flame, Users, Anchor, Globe, Infinity as InfinityIcon, Star,
-  MessageSquare, ChevronRight, TrendingUp, AlertCircle, CheckCircle,
+  Sparkles, Shield, ScrollText, Heart, Activity, Clock, 
+  Zap, Globe, Infinity as InfinityIcon,
+  MessageSquare, TrendingUp, AlertCircle, CheckCircle,
 } from 'lucide-react'
 import type { CompatibilityPremiumReport } from '@/lib/compatibility/premiumReport'
+import type { CoupleMatrixCell } from '@/lib/compatibility/coupleMatrix'
 import NineLayerGrid from '@/components/compatibility/NineLayerGrid'
 import CompatibilityShareBar from '@/components/compatibility/CompatibilityShareBar'
 
@@ -100,7 +101,7 @@ function AnimatedCounter({ value }: { value: number }) {
 // ── Tab content: Overall ───────────────────────────────────────────────
 function OverallTab({ report }: { report: CompatibilityPremiumReport }) {
   const { matrix, radar, summaryNarrative } = report.overall
-  const layers: Array<[string, any[]]> = [
+  const layers: Array<[string, CoupleMatrixCell[]]> = [
     ['L1 element resonance', matrix.layers.L1_element],
     ['L2 sibsin × planet', matrix.layers.L2_sibsin_planet],
     ['L3 천간합', matrix.layers.L3_stem_combination],
@@ -234,7 +235,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   )
 }
 
-function Panel({ title, tone, cells }: { title: string; tone: 'positive' | 'negative'; cells: any[] }) {
+function Panel({ title, tone, cells }: { title: string; tone: 'positive' | 'negative'; cells: CoupleMatrixCell[] }) {
   const ringColor = tone === 'positive' ? 'border-emerald-400/30 shadow-emerald-500/10' : 'border-rose-400/30 shadow-rose-500/10'
   return (
     <div className={`bg-slate-900/40 backdrop-blur-md rounded-2xl p-6 border ${ringColor} shadow-[0_0_30px]`}>

@@ -7,7 +7,7 @@
  * 큰 헤드라인 / 절제된 카드 / smooth transition / 의미 있는 시각.
  */
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Briefcase, Coins, Heart, HeartPulse, Users, MapPin } from 'lucide-react'
@@ -103,7 +103,6 @@ function ThemedBuilderContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { status } = useSession()
-  const redirectedRef = useRef(false)
   const { profile, isLoading: profileLoading } = useUserProfile()
 
   const reportTier = toReportTier(searchParams?.get('tier') ?? null)

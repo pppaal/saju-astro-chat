@@ -556,18 +556,15 @@ async function buildExtendedBlocks(
   try {
     const { buildCoupleMatrix } = await import('@/lib/compatibility/coupleMatrix')
     const koreanAge = (iso: string) => new Date().getFullYear() - new Date(iso).getFullYear() + 1
-    const pickNatal = (astro: unknown): any => {
+    const pickNatal = (astro: unknown): unknown => {
       const a = astro as Record<string, unknown> | null
       const profile = a?.astroProfile as Record<string, unknown> | undefined
-      return (
-        (a?.natalChart as unknown) ||
-        (profile?.natalChart as unknown) ||
-        (a as any)
-      )
+      return (a?.natalChart as unknown) || (profile?.natalChart as unknown) || a
     }
+    type NatalArg = Parameters<typeof buildCoupleMatrix>[0]['natal']
     coupleMatrix = buildCoupleMatrix(
-      { saju: p1Full, natal: pickNatal(p1Astro), koreanAge: koreanAge(p1.date) },
-      { saju: p2Full, natal: pickNatal(p2Astro), koreanAge: koreanAge(p2.date) }
+      { saju: p1Full, natal: pickNatal(p1Astro) as NatalArg, koreanAge: koreanAge(p1.date) },
+      { saju: p2Full, natal: pickNatal(p2Astro) as NatalArg, koreanAge: koreanAge(p2.date) }
     )
   } catch {
     // ignore — additive
