@@ -95,6 +95,8 @@ interface Props {
   lang?: string
   theme?: string
   className?: string
+  /** 통합 엔진 슬라이스 (unifiedAdapter.getUnifiedSlice() 결과) — 옵션 */
+  unified?: import('./free-report/analyzers/unifiedAdapter').UnifiedSlice | null
 }
 
 // ============================================================
@@ -107,7 +109,9 @@ const FreeReport = memo(function FreeReport({
   lang = 'ko',
   theme = '',
   className = '',
+  unified,
 }: Props) {
+  // unified is now available for tabs that opt-in to use it
   const isKo = lang === 'ko'
 
   const normalizedSaju = useMemo(
@@ -267,6 +271,8 @@ const FreeReport = memo(function FreeReport({
         chironInsight: data.chironInsight,
         luckyItems: data.luckyItems,
         normalizedElements, // 오행 균형 차트용
+        // 통합 엔진 슬라이스 — 탭이 opt-in 으로 사용 가능
+        unified,
       }),
       { isKo, topic: 'general', minSentences: 4 }
     ) as unknown as TabData
