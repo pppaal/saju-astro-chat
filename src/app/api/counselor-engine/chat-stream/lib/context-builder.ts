@@ -4,7 +4,7 @@
 import { logger } from '@/lib/logger'
 import { guardText } from '@/lib/textGuards'
 import { buildAllDataPrompt } from '@/lib/counselor/prompt/fortune/base'
-import { extractBirthYear } from '@/lib/prediction/utils'
+import { extractBirthYear } from '@/lib/matrix/prediction/utils'
 import type { CombinedResult } from '@/lib/counselor/astrology'
 import type { SajuDataStructure, AstroDataStructure, ChatMessage } from './types'
 import type { NatalChartData } from '@/lib/astro/astrologyService'

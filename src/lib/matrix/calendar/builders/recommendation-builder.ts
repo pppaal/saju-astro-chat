@@ -4,7 +4,7 @@
  * 분석 결과를 바탕으로 추천 및 경고 키를 생성합니다.
  */
 
-import type { BranchInteraction } from '@/lib/prediction/advancedTimingEngine';
+import type { BranchInteraction } from '@/lib/matrix/prediction/advancedTimingEngine';
 import { YUKHAP, CHUNG, XING } from '../constants';
 import { getSipsin } from '../utils';
 

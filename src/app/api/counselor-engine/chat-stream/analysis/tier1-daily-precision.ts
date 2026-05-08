@@ -7,7 +7,7 @@ import {
   analyzeEnergyFlow,
   generateHourlyAdvice,
   calculateDailyPillar,
-} from "@/lib/prediction/ultraPrecisionEngine";
+} from "@/lib/matrix/prediction/ultraPrecisionEngine";
 import type { SajuDataStructure } from "../lib/types";
 
 export interface Tier1AnalysisInput {

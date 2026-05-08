@@ -12,7 +12,7 @@ import {
   toChart,
 } from '@/lib/astro'
 import { toSajuDataStructure } from '@/lib/counselor/type-guards'
-import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
+import { parseDateComponents, parseTimeComponents } from '@/lib/matrix/prediction/utils'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from '../lib/types'
 import { loadUserProfile } from '../lib/profileLoader'

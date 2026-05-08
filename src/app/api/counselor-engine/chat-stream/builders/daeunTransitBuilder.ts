@@ -9,8 +9,8 @@ import {
   convertSajuDaeunToInfo,
   analyzeDaeunTransitSync,
   type DaeunInfo,
-} from '@/lib/prediction/daeunTransitSync';
-import { extractBirthYear } from '@/lib/prediction/utils';
+} from '@/lib/matrix/prediction/daeunTransitSync';
+import { extractBirthYear } from '@/lib/matrix/prediction/utils';
 import { logger } from '@/lib/logger';
 import type { SajuDataStructure } from '../lib/types';
 

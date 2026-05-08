@@ -11,12 +11,12 @@ import {
   analyzeEnergyFlow,
   generateHourlyAdvice,
   calculateDailyPillar,
-} from '@/lib/prediction/ultraPrecisionEngine';
+} from '@/lib/matrix/prediction/ultraPrecisionEngine';
 import type {
   ShinsalAnalysis,
   EnergyFlowAnalysis,
   ShinsalHit,
-} from '@/lib/prediction/ultra-precision-types';
+} from '@/lib/matrix/prediction/ultra-precision-types';
 import { extractFilteredStemsAndBranches } from '../helpers/pillarExtractors';
 import type { SajuDataStructure } from '../lib/types';
 import { logger } from '@/lib/logger';

@@ -40,9 +40,9 @@ export type {
   ImportantDate,
   UserSajuProfile,
   UserAstroProfile,
-} from './calendar/date-analysis-orchestrator';
+} from '@/lib/matrix/calendar/date-analysis-orchestrator';
 
-export type { CalendarMonth, DailyFortuneResult } from './calendar/public-api';
+export type { CalendarMonth, DailyFortuneResult } from '@/lib/matrix/calendar/public-api';
 
 // ═══════════════════════════════════════════════════════════════
 // Public API Functions (공개 API)
@@ -57,7 +57,7 @@ export {
   calculateAstroProfileFromBirthDate,
   getDailyFortuneScore,
   getGanzhiForDate,
-} from './calendar/public-api';
+} from '@/lib/matrix/calendar/public-api';
 
 // ═══════════════════════════════════════════════════════════════
 // Temporal Scoring Functions (시간 운세 점수)
@@ -65,14 +65,14 @@ export {
 export {
   getYearGanzhi,
   getMonthGanzhi,
-} from './calendar/saju-temporal-scoring';
+} from '@/lib/matrix/calendar/saju-temporal-scoring';
 
 // ═══════════════════════════════════════════════════════════════
 // Internal exports (내부 사용 - 다른 모듈에서 필요시)
 // ═══════════════════════════════════════════════════════════════
 
 // 날짜 분석 핵심 함수
-export { analyzeDate } from './calendar/date-analysis-orchestrator';
+export { analyzeDate } from '@/lib/matrix/calendar/date-analysis-orchestrator';
 
 // 그레이딩 함수
 export {
@@ -80,7 +80,7 @@ export {
   getGradeKeys,
   getGradeRecommendations,
   filterWarningsByGrade,
-} from './calendar/grading';
+} from '@/lib/matrix/calendar/grading';
 
 // 점수 계산 시스템
 export {
@@ -88,7 +88,7 @@ export {
   type SajuScoreInput,
   type AstroScoreInput,
   type ScoreResult,
-} from './calendar/scoring';
+} from '@/lib/matrix/calendar/scoring';
 
 // 상수
 export {
@@ -104,7 +104,7 @@ export {
   XING,
   HAI,
   JIJANGGAN,
-} from './calendar/constants';
+} from '@/lib/matrix/calendar/constants';
 
 // 유틸리티 함수
 export {
@@ -117,7 +117,7 @@ export {
   isSonEomneunDay,
   isYeokmaDay,
   approximateLunarDay,
-} from './calendar/utils';
+} from '@/lib/matrix/calendar/utils';
 
 // ═══════════════════════════════════════════════════════════════
 // Cross-rules augment (사주×점성 교차 분석 보조 데이터)
@@ -130,7 +130,7 @@ export {
   buildWeeklyCrossAugment,
   buildMonthlyCrossAugment,
   type CalendarCrossAugment,
-} from './calendar/cross-augment';
+} from '@/lib/matrix/calendar/cross-augment';
 
 // ═══════════════════════════════════════════════════════════════
 // 학파별 점수 preset (opt-in). 자평진전/적천수/강호/default
@@ -142,4 +142,4 @@ export {
   SCHOOL_SAJU_WEIGHTS,
   SCHOOL_CROSS_BONUS,
   type SchoolPreset,
-} from './calendar/school-presets';
+} from '@/lib/matrix/calendar/school-presets';

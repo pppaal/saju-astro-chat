@@ -168,4 +168,4 @@ export {
   type LunarAnalysis,
   type ElementMappingDetail,
   type YongsinRecommendation,
-} from '../calendar/specialDays-analysis';
+} from '@/lib/matrix/calendar/specialDays-analysis';

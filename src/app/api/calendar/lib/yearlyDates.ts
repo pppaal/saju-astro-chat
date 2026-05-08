@@ -3,19 +3,19 @@ import type {
   MonthlyOverlapPoint,
   TimingCalibrationSummary,
 } from '@/lib/matrix/types'
-import type { EventCategory, ImportanceGrade } from '@/lib/counselor/calendar/types'
-import type { UserAstroProfile, UserSajuProfile } from '@/lib/counselor/calendar/types'
+import type { EventCategory, ImportanceGrade } from '@/lib/matrix/calendar/types'
+import type { UserAstroProfile, UserSajuProfile } from '@/lib/matrix/calendar/types'
 import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/saju/johuYongsin'
-import { calculateDailyPillar } from '@/lib/prediction/ultra-precision-daily'
+import { calculateDailyPillar } from '@/lib/matrix/prediction/ultra-precision-daily'
 import {
   elementOfBranch,
   getMonthPillarForDate,
 } from '@/lib/saju/datePillars'
 import { getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
-import { calculateUltraPrecisionScore } from '@/lib/prediction/ultraPrecisionEngine'
-import type { UltraPrecisionScore } from '@/lib/prediction/ultra-precision-types'
-import { getPlanetaryHourPlanet } from '@/lib/prediction/ultra-precision-helpers'
-import { getLunarMansion } from '@/lib/prediction/modules/lunarMansions'
+import { calculateUltraPrecisionScore } from '@/lib/matrix/prediction/ultraPrecisionEngine'
+import type { UltraPrecisionScore } from '@/lib/matrix/prediction/ultra-precision-types'
+import { getPlanetaryHourPlanet } from '@/lib/matrix/prediction/ultra-precision-helpers'
+import { getLunarMansion } from '@/lib/matrix/prediction/modules/lunarMansions'
 
 // Day-of-week planetary ruler theme. Cheap to compute (one lookup) and
 // gives the user one-glance sense of the day's character before reading

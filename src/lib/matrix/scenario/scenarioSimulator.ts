@@ -11,7 +11,7 @@
  */
 
 import { calculateSajuData } from '@/lib/saju/saju'
-import { calculateDailyPillar } from '@/lib/prediction/ultra-precision-daily'
+import { calculateDailyPillar } from '@/lib/matrix/prediction/ultra-precision-daily'
 
 // ─────────────────────────────────────────────────────────
 // 타입

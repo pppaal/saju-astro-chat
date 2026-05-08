@@ -13,7 +13,7 @@ import type {
 import {
   GRADE_THRESHOLDS,
   EVIDENCE_CONFIDENCE_THRESHOLDS,
-} from '@/lib/counselor/calendar/scoring-config'
+} from '@/lib/matrix/calendar/scoring-config'
 import { getFactorTranslation } from './translations'
 import {
   describeCrossAgreement,

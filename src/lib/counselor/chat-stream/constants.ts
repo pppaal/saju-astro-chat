@@ -3,7 +3,7 @@
  * Centralized constants for destiny-map chat-stream API
  */
 
-import type { ActivityType } from '@/lib/prediction/specificDateEngine';
+import type { ActivityType } from '@/lib/matrix/prediction/specificDateEngine';
 
 /**
  * Activity keyword mappings for detecting user intent

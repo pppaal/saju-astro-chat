@@ -7,14 +7,14 @@ import {
   STEM_ELEMENTS,
   BRANCH_ELEMENTS,
   ELEMENT_RELATIONS_LOCAL as ELEMENT_RELATIONS,
-} from '../config/specialDays.data';
+} from '@/lib/counselor/config/specialDays.data';
 
 import {
   getGongmang,
   isChunganHap,
   isAmhap,
   isWonjinDay,
-} from '../config/specialDays.utils';
+} from '@/lib/counselor/config/specialDays.utils';
 
 // ========================================
 // 12운성(十二運星) 분석

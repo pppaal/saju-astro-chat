@@ -736,7 +736,7 @@ export const GET = withApiMiddleware(
       const yongsinPrimary = advanced.yongsin?.primary
       if (yongsinPrimary) {
         const { findYongsinActivationPeriods } = await import(
-          '@/lib/prediction/specificDateEngine'
+          '@/lib/matrix/prediction/specificDateEngine'
         )
         const periods = findYongsinActivationPeriods(
           yongsinPrimary,
@@ -771,7 +771,7 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeDayTimeSlots } = await import('@/lib/prediction/ultra-precision-minute')
+      const { analyzeDayTimeSlots } = await import('@/lib/matrix/prediction/ultra-precision-minute')
       const slots = analyzeDayTimeSlots(new Date(), pillars.day.stem, pillars.day.branch)
       if (slots.best.length > 0 || slots.worst.length > 0) {
         todayHourlyTimeSlots = {

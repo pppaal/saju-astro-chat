@@ -1,6 +1,6 @@
 import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/matrix/types'
 import type { TimingCalibrationSummary } from '@/lib/matrix/types'
-import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/counselor/calendar/scoring-config'
+import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/matrix/calendar/scoring-config'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 
 type MatrixSignal = {

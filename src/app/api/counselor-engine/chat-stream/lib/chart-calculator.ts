@@ -3,7 +3,7 @@
 
 import { calculateSajuData } from '@/lib/saju/saju'
 import { toSajuDataStructure } from '@/lib/counselor/type-guards'
-import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
+import { parseDateComponents, parseTimeComponents } from '@/lib/matrix/prediction/utils'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from './index'

@@ -3,8 +3,8 @@
 
 import type { CombinedResult } from './astrology'
 import { logger } from '@/lib/logger'
-import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from './calendar/constants'
-import { normalizeElement } from './calendar/utils'
+import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from '@/lib/matrix/calendar/constants'
+import { normalizeElement } from '@/lib/matrix/calendar/utils'
 
 // ============================================================
 // Translation Maps

@@ -1,7 +1,7 @@
 // src/app/api/counselor-engine/chat-stream/lib/constants.ts
 // Constants and configurations for chat-stream API
 
-import type { FiveElement } from "@/lib/prediction/timingScore";
+import type { FiveElement } from "@/lib/matrix/prediction/timingScore";
 
 export const ALLOWED_LANG = new Set(["ko", "en"]);
 export const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);

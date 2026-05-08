@@ -3,7 +3,7 @@
  * 코드 가독성과 유지보수성을 위해 분리
  */
 
-import type { BranchInteraction } from '@/lib/prediction/advancedTimingEngine';
+import type { BranchInteraction } from '@/lib/matrix/prediction/advancedTimingEngine';
 import type { LegacyBranchInteraction } from './scoring-adapter';
 import type { EventCategory } from './types';
 import {

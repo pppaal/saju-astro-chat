@@ -4,7 +4,7 @@
  * 사주 분석 결과를 factorKeys로 변환합니다.
  */
 
-import type { BranchInteraction } from '@/lib/prediction/advancedTimingEngine';
+import type { BranchInteraction } from '@/lib/matrix/prediction/advancedTimingEngine';
 import { JIJANGGAN, STEM_TO_ELEMENT, SAMHAP, YUKHAP, CHUNG, XING } from '../constants';
 import { getSipsin } from '../utils';
 

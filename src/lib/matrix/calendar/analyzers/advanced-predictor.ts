@@ -11,11 +11,11 @@ import {
   analyzeShinsal,
   analyzeEnergyFlow,
   generateHourlyAdvice,
-} from '@/lib/prediction/ultraPrecisionEngine';
+} from '@/lib/matrix/prediction/ultraPrecisionEngine';
 import {
   analyzeDaeunTransitSync,
   convertSajuDaeunToInfo,
-} from '@/lib/prediction/daeunTransitSync';
+} from '@/lib/matrix/prediction/daeunTransitSync';
 
 export interface AdvancedPredictionResult {
   dailyPillar: ReturnType<typeof calculateDailyPillar>;

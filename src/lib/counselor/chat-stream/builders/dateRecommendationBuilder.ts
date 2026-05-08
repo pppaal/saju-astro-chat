@@ -3,13 +3,13 @@
  * Builds specific date recommendation sections for chat responses
  */
 
-import type { ActivityType } from '@/lib/prediction/specificDateEngine';
+import type { ActivityType } from '@/lib/matrix/prediction/specificDateEngine';
 import {
   findBestDates,
   findYongsinActivationPeriods,
   generateSpecificDatePromptContext,
   generateYongsinPromptContext,
-} from '@/lib/prediction/specificDateEngine';
+} from '@/lib/matrix/prediction/specificDateEngine';
 import { logger } from '@/lib/logger';
 
 interface SajuData {

@@ -4,13 +4,13 @@
  */
 
 import type { UserSajuProfile } from './types';
-import type { BranchInteraction } from '@/lib/prediction/advancedTimingEngine';
+import type { BranchInteraction } from '@/lib/matrix/prediction/advancedTimingEngine';
 import {
   analyzeMultiLayer,
   calculatePreciseTwelveStage,
   calculateYearlyGanji,
   calculateMonthlyGanji as advancedMonthlyGanji,
-} from '@/lib/prediction/advancedTimingEngine';
+} from '@/lib/matrix/prediction/advancedTimingEngine';
 import {
   calculateDaeunScore,
   calculateSeunScore,

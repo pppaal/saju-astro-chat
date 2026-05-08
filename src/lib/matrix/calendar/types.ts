@@ -3,7 +3,7 @@
  * 운명 캘린더 관련 타입 정의
  */
 
-import type { FortuneArea } from '../config/area.config';
+import type { FortuneArea } from '@/lib/counselor/config/area.config';
 
 // Re-export for convenience
 export type { FortuneArea };
