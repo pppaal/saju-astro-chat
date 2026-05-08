@@ -365,11 +365,19 @@ export async function POST(req: NextRequest) {
     // don't rebuild calculateSajuData + calculateNatalChart + 9-layer
     // couple matrix on every message — first turn pays the cost, rest
     // are O(1) lookups.
+    type CompatPerson = {
+      date?: string
+      time?: string
+      gender?: string
+      timeZone?: string
+      latitude?: number
+      longitude?: number
+    }
     let coupleMatrixContext = ''
-    const p1ForMatrix = (persons as any[])[0]
-    const p2ForMatrix = (persons as any[])[1]
+    const p1ForMatrix = (persons as CompatPerson[])[0]
+    const p2ForMatrix = (persons as CompatPerson[])[1]
     if (p1ForMatrix?.date && p2ForMatrix?.date) {
-      const personKey = (p: any) =>
+      const personKey = (p: CompatPerson) =>
         [p.date, p.time || '', p.gender || '', p.latitude ?? '', p.longitude ?? ''].join('|')
       const cacheKey = `${personKey(p1ForMatrix)}__${personKey(p2ForMatrix)}`
       const cached = getCachedCoupleMatrixContext(cacheKey)
@@ -384,11 +392,11 @@ export async function POST(req: NextRequest) {
               import('@/lib/astrology/foundation/astrologyService'),
               import('@/lib/Saju/orthodoxInterpretation'),
             ])
-          const buildPerson = async (p: any) => {
+          const buildPerson = async (p: CompatPerson) => {
             const tz = p.timeZone || 'Asia/Seoul'
             const gender = (p.gender === 'female' || p.gender === 'F') ? 'female' : 'male'
             const koreanAge = new Date().getFullYear() - parseInt(String(p.date).split('-')[0], 10) + 1
-            const saju = calculateSajuData(p.date, p.time || '12:00', gender, 'solar', tz)
+            const saju = calculateSajuData(p.date!, p.time || '12:00', gender, 'solar', tz)
             ;(saju as unknown as Record<string, unknown>).orthodoxInterpretation =
               buildOrthodoxInterpretation(saju, { koreanAge })
             const [Y, M, D] = String(p.date).split('-').map(Number)
@@ -407,8 +415,8 @@ export async function POST(req: NextRequest) {
           }
           const [A, B] = await Promise.all([buildPerson(p1ForMatrix), buildPerson(p2ForMatrix)])
           const matrix = buildCoupleMatrix(
-            { saju: A.saju, natal: A.natal as any, koreanAge: A.koreanAge },
-            { saju: B.saju, natal: B.natal as any, koreanAge: B.koreanAge }
+            { saju: A.saju, natal: A.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'], koreanAge: A.koreanAge },
+            { saju: B.saju, natal: B.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'], koreanAge: B.koreanAge }
           )
           const s = matrix.summary
           const top = s.topPositiveCells.slice(0, 5).map((c) => `+ ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`).join('\n')

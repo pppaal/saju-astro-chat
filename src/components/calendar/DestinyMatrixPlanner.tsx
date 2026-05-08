@@ -1110,7 +1110,7 @@ export default function DestinyMatrixPlanner({
                       <Target className="w-4 h-4 text-cyan-400" /> 주차별 크로스 타이밍
                     </h3>
                     <p className="text-[10px] text-zinc-500 mt-1">
-                      두 학문이 공통으로 가리키는 '슈퍼 타이밍'을 찾습니다.
+                      두 학문이 공통으로 가리키는 &lsquo;슈퍼 타이밍&rsquo;을 찾습니다.
                     </p>
                   </div>
                 </div>
