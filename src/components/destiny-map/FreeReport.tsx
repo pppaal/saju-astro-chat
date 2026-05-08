@@ -63,6 +63,8 @@ import { generateReport } from './free-report/generators/reportGenerator'
 // Import HeroSection component
 import HeroSection from './free-report/HeroSection'
 import AdvancedAstroInsights from './free-report/AdvancedAstroInsights'
+import ChartSynthesisCard from './free-report/ChartSynthesisCard'
+import { synthesizeChart } from '@/lib/astrology/foundation/synthesis'
 
 // Saju data type definition
 interface SajuData {
@@ -155,6 +157,22 @@ const FreeReport = memo(function FreeReport({
     () => (astro ? (repairMojibakeDeep(astro) as AstroData) : astro),
     [astro]
   )
+
+  // Western chart synthesis (element/modality balance, chart shape,
+  // aspect patterns, dominant planet) — derived directly from the
+  // already-loaded astro snapshot. Western counterpart to saju's
+  // comprehensiveReport.
+  const chartSynthesis = useMemo(() => {
+    if (!normalizedAstro?.planets || normalizedAstro.planets.length === 0) return null
+    try {
+      // The Chart type from synthesis.ts wants planets[] + ascendant —
+      // both shapes are present on the snapshot. Cast through unknown
+      // to bypass the strict shape check (snapshot has extra fields).
+      return synthesizeChart(normalizedAstro as unknown as Parameters<typeof synthesizeChart>[0])
+    } catch {
+      return null
+    }
+  }, [normalizedAstro])
 
   const hasFiveElements = Boolean(
     normalizedSaju?.fiveElements && Object.keys(normalizedSaju.fiveElements).length > 0
@@ -359,6 +377,12 @@ const FreeReport = memo(function FreeReport({
           <div className="-mx-4 sm:-mx-0">
             <ExtendedAnalysisSection analysis={extendedAnalysis} />
           </div>
+
+          {/* Chart synthesis — Sun×Moon×ASC + element/modality/hemisphere
+              balance + chart shape + aspect patterns. Saju side has
+              comprehensiveReport / advancedAnalysis; this is the
+              western counterpart so the astro depth matches. */}
+          {chartSynthesis && <ChartSynthesisCard synth={chartSynthesis} />}
 
           {/* 9 advanced astro insights — Chiron / Asteroids / Fixed Stars
               / Lilith / Vertex / POF / Eclipses / Harmonics / Draconic.
