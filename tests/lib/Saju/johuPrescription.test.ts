@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getJohuPrescription } from '@/lib/Saju/johuPrescription'
+import { getJohuPrescription } from '@/lib/Saju/johuYongsin'
 
 describe('getJohuPrescription — 1995-02-09 사용자 케이스', () => {
   it('辛金 寅月 → 정통 처방 己·庚·壬 우선순위', () => {

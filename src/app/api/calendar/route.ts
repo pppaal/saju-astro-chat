@@ -622,7 +622,7 @@ export const GET = withApiMiddleware(
     // yongsin/geokguk을 안 넣어서 365일 score ladder의 용신 정렬 가중치가
     // 죽어 있었음. 이제 main에서도 채워줌.
     try {
-      const { analyzeAdvancedSaju } = await import('@/lib/Saju/astrologyengine')
+      const { analyzeAdvancedSaju } = await import('@/lib/Saju/advancedSajuAnalysis')
       const advanced = analyzeAdvancedSaju(
         {
           name: dayMasterStem,

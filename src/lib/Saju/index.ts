@@ -29,7 +29,7 @@ export {
   type JohuYongsinAnalysis,
   type ExtendedAdvancedAnalysis,
   type Season,
-} from './astrologyengine';
+} from './advancedSajuAnalysis';
 
 // 운세/캘린더
 export { getDaeunCycles, getAnnualCycles, getMonthlyCycles, getIljinCalendar } from './unse';

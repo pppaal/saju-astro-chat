@@ -25,7 +25,7 @@ import {
   type DerivedDomainScore,
 } from './routeDerivedContext.support'
 import { calculateSajuData } from '@/lib/Saju/saju'
-import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import { analyzeAdvancedSaju } from '@/lib/Saju/advancedSajuAnalysis'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
 import { getShinsalHits, getTwelveStagesForPillars } from '@/lib/Saju/shinsal'
 import { STEMS as SAJU_STEMS } from '@/lib/Saju/constants'

@@ -19,7 +19,7 @@ import {
   RootAnalysis,
   JohuYongsinAnalysis,
   Season,
-} from '@/lib/Saju/astrologyengine';
+} from '@/lib/Saju/advancedSajuAnalysis';
 import { FiveElement, YinYang } from '@/lib/Saju/types';
 
 // 테스트용 헬퍼 함수

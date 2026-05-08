@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { detectGeokgukVariation } from '@/lib/Saju/geokgukVariation'
+import { detectGeokgukVariation } from '@/lib/Saju/geokguk'
 import type { CalculateSajuDataResult } from '@/lib/Saju/types'
 
 function makeSaju(opts: {

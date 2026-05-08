@@ -12,7 +12,7 @@
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { getTwelveStagesForPillars, getShinsalHits } from '@/lib/Saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import { analyzeAdvancedSaju } from '@/lib/Saju/advancedSajuAnalysis'
 import { calculateAllAsteroids } from '@/lib/astrology/foundation/asteroids'
 import { calculateExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import { findFixedStarConjunctions } from '@/lib/astrology/foundation/fixedStars'
