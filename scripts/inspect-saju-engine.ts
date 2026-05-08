@@ -341,36 +341,72 @@ if (fi) {
   }
   if (fi.healthCareer) {
     console.log(`\n  ━━━ 건강·직업 ━━━`)
-    if (fi.healthCareer.health?.overall) console.log(`  건강 종합: ${fi.healthCareer.health.overall}`)
-    if (fi.healthCareer.health?.warnings?.length) {
-      console.log(`  건강 주의:`)
-      for (const w of fi.healthCareer.health.warnings.slice(0, 3)) console.log(`    · ${w}`)
+    const hc = fi.healthCareer as unknown as {
+      health: { overallScore: number; constitution: string; dominantElement: string; weakElement: string; organHealth: Array<{ organ?: string; element: string; status: string }>; preventionAdvice: string[]; lifestyleRecommendations: string[] }
+      career: { primaryFields: Array<{ category: string; jobs: string[]; description: string; fitScore: number }>; secondaryFields: Array<{ category: string; jobs: string[] }>; workStyle: { type: string }; entrepreneurialScore: number; leadershipScore: number; creativityScore: number; stabilityPreference: number; careerPath: string[]; peakCareerAges: number[]; careerAdvice: string[] }
+      synergy: string[]
+      warnings: string[]
     }
-    if (fi.healthCareer.career?.aptitudes?.length) {
-      console.log(`  적성: ${fi.healthCareer.career.aptitudes.slice(0, 5).join(', ')}`)
+    console.log(`  건강 점수: ${hc.health.overallScore}/100  체질: ${hc.health.constitution}`)
+    console.log(`  강한 오행: ${hc.health.dominantElement} / 약한 오행: ${hc.health.weakElement}`)
+    if (hc.health.organHealth?.length) {
+      const vulnerable = hc.health.organHealth.filter((o) => o.status === 'vulnerable')
+      if (vulnerable.length) console.log(`  취약 장기: ${vulnerable.map((o) => `${o.organ ?? o.element}`).join(', ')}`)
     }
-    if (fi.healthCareer.career?.suitable?.length) {
-      console.log(`  추천 직업: ${fi.healthCareer.career.suitable.slice(0, 5).join(', ')}`)
+    if (hc.health.preventionAdvice?.length) {
+      console.log(`  건강 advice:`)
+      for (const a of hc.health.preventionAdvice.slice(0, 3)) console.log(`    · ${a}`)
     }
-    if (fi.healthCareer.synergy?.length) {
-      for (const s of fi.healthCareer.synergy.slice(0, 2)) console.log(`  ✨ ${s}`)
+    console.log(`  직업 점수: 창업 ${hc.career.entrepreneurialScore} / 리더십 ${hc.career.leadershipScore} / 창의 ${hc.career.creativityScore} / 안정 ${hc.career.stabilityPreference}`)
+    console.log(`  업무 스타일: ${hc.career.workStyle?.type || '-'}`)
+    if (hc.career.primaryFields?.length) {
+      console.log(`  주 직업 분야:`)
+      for (const f of hc.career.primaryFields.slice(0, 3)) {
+        console.log(`    · ${f.category} (${f.fitScore}점) — ${f.description}`)
+        if (f.jobs?.length) console.log(`        예: ${f.jobs.slice(0, 4).join(', ')}`)
+      }
     }
-    if (fi.healthCareer.warnings?.length) {
-      for (const w of fi.healthCareer.warnings.slice(0, 2)) console.log(`  ⚠ ${w}`)
+    if (hc.career.peakCareerAges?.length) {
+      console.log(`  커리어 정점기: ${hc.career.peakCareerAges.join('세, ')}세`)
     }
+    if (hc.career.careerAdvice?.length) {
+      console.log(`  커리어 advice:`)
+      for (const a of hc.career.careerAdvice.slice(0, 3)) console.log(`    · ${a}`)
+    }
+    if (hc.synergy?.length) for (const s of hc.synergy.slice(0, 2)) console.log(`  ✨ ${s}`)
+    if (hc.warnings?.length) for (const w of hc.warnings.slice(0, 2)) console.log(`  ⚠ ${w}`)
   }
   if (fi.unseDeep) {
     console.log(`\n  ━━━ 운세 깊이 분석 (현재 대운 기준) ━━━`)
-    if (fi.unseDeep.period) console.log(`  시기: ${fi.unseDeep.period}`)
-    if (fi.unseDeep.sibsinRelation) console.log(`  십신 관계: ${fi.unseDeep.sibsinRelation}`)
-    if (fi.unseDeep.yongsinHarmony) console.log(`  용신 조화: ${fi.unseDeep.yongsinHarmony}`)
-    if (fi.unseDeep.advice?.length) {
-      console.log(`  조언:`)
-      for (const a of fi.unseDeep.advice.slice(0, 3)) console.log(`    · ${a}`)
+    const ud = fi.unseDeep as unknown as {
+      unseInfo: { stem: string; branch: string; period: string }
+      overallScore: number
+      grade: string
+      summary: string
+      yongsinMatch: { matched: boolean; score: number; reason?: string }
+      twelveStage: { stage: string; energy: string; score: number }
+      sibsinRelations: Array<{ sibsin: string; impact: string }>
+      themes: string[]
+      opportunities: string[]
+      challenges: string[]
+      advice: string[]
     }
-    if (fi.unseDeep.cautions?.length) {
-      console.log(`  주의:`)
-      for (const c of fi.unseDeep.cautions.slice(0, 3)) console.log(`    · ${c}`)
+    const periodKo = ud.unseInfo.period === 'daeun' ? '대운' : ud.unseInfo.period === 'seun' ? '세운' : ud.unseInfo.period === 'wolun' ? '월운' : ud.unseInfo.period === 'iljin' ? '일진' : ud.unseInfo.period
+    console.log(`  ${ud.unseInfo.stem}${ud.unseInfo.branch} (${periodKo})  ${ud.overallScore}/100 [${ud.grade}]`)
+    if (ud.summary) console.log(`  📜 ${ud.summary.replace(/^undefined\s/, '')}`)
+    console.log(`  용신 일치: ${ud.yongsinMatch?.matched ? '✓' : '✗'} (${ud.yongsinMatch?.score})  12운성: ${ud.twelveStage?.stage} (${ud.twelveStage?.energy})`)
+    if (ud.themes?.length) console.log(`  🎯 테마: ${ud.themes.slice(0, 3).join(' / ')}`)
+    if (ud.opportunities?.length) {
+      console.log(`  🌱 기회:`)
+      for (const o of ud.opportunities.slice(0, 3)) console.log(`    · ${o}`)
+    }
+    if (ud.challenges?.length) {
+      console.log(`  ⚠ 도전:`)
+      for (const c of ud.challenges.slice(0, 3)) console.log(`    · ${c}`)
+    }
+    if (ud.advice?.length) {
+      console.log(`  💡 조언:`)
+      for (const a of ud.advice.slice(0, 3)) console.log(`    · ${a}`)
     }
   }
   if (fi.comprehensiveReport) {
@@ -423,21 +459,65 @@ if (fi) {
       console.log(`  주의: ${fix.patterns.cautions.slice(0, 3).join(' / ')}`)
     }
   }
+  // ⭐ 진짜 종합 예측 (matrix/prediction:generateComprehensivePrediction)
+  const cp = (fi as unknown as {
+    comprehensivePrediction?: {
+      multiYearTrend?: {
+        startYear: number; endYear: number;
+        yearlyScores: Array<{ year: number; score: number; grade?: string; theme?: string }>;
+        overallTrend?: string;
+        peakYears?: number[]; lowYears?: number[];
+        summary?: string;
+      }
+      upcomingHighlights?: Array<{ date?: Date | string; description: string; type?: string; grade?: string }>
+      lifeSync?: { syncStrength?: number; alignmentLevel?: string; recommendations?: string[] }
+      confidence?: number
+    }
+  }).comprehensivePrediction
+  if (cp) {
+    console.log(`\n  ━━━ 종합 예측 (matrix/prediction — 다년 트렌드 + 대운트랜짓) ━━━`)
+    if (cp.confidence !== undefined) console.log(`  신뢰도: ${cp.confidence > 1 ? cp.confidence.toFixed(0) : (cp.confidence * 100).toFixed(0)}점`)
+    if (cp.multiYearTrend) {
+      const my = cp.multiYearTrend
+      console.log(`  다년 트렌드 (${my.startYear}~${my.endYear}, 전반: ${my.overallTrend || '—'}):`)
+      for (const y of (my.yearlyScores || []).slice(0, 8)) {
+        console.log(`    ${y.year}: ${y.score?.toFixed(0)}점${y.grade ? ` [${y.grade}]` : ''}${y.theme ? ` — ${y.theme}` : ''}`)
+      }
+      if (my.peakYears?.length) console.log(`    🌟 정점: ${my.peakYears.join(', ')}년`)
+      if (my.lowYears?.length) console.log(`    💀 저점: ${my.lowYears.join(', ')}년`)
+      if (my.summary) console.log(`    📜 ${my.summary}`)
+    }
+    if (cp.upcomingHighlights?.length) {
+      console.log(`  🎯 다가올 핵심 시기:`)
+      for (const h of cp.upcomingHighlights.slice(0, 5)) {
+        const dateStr = h.date instanceof Date ? h.date.toISOString().slice(0, 10) : (h.date || '')
+        console.log(`    · ${dateStr ? `[${dateStr}] ` : ''}${h.description}${h.grade ? ` [${h.grade}]` : ''}`)
+      }
+    }
+    if (cp.lifeSync) {
+      if (cp.lifeSync.alignmentLevel) console.log(`  대운트랜짓 동기화: ${cp.lifeSync.alignmentLevel}${cp.lifeSync.syncStrength !== undefined ? ` (강도 ${cp.lifeSync.syncStrength})` : ''}`)
+      if (cp.lifeSync.recommendations?.length) {
+        console.log(`  💡 동기화 권장:`)
+        for (const r of cp.lifeSync.recommendations.slice(0, 3)) console.log(`    · ${r}`)
+      }
+    }
+  }
+
   if (fix.predictive) {
-    console.log(`\n  ━━━ 예측 통찰 (현재 대운 10년) ━━━`)
-    if (fix.predictive.favorableAreas?.length) {
-      console.log(`  ✨ 길지: ${fix.predictive.favorableAreas.slice(0, 5).join(', ')}`)
-    }
-    if (fix.predictive.warningAreas?.length) {
-      console.log(`  ⚠ 주의: ${fix.predictive.warningAreas.slice(0, 5).join(', ')}`)
-    }
-    if (fix.predictive.keyEvents?.length) {
-      console.log(`  🎯 핵심 이벤트:`)
-      for (const e of fix.predictive.keyEvents.slice(0, 3)) console.log(`    · ${e.description}${e.date ? ` (${e.date})` : ''}`)
-    }
-    if (fix.predictive.recommendations?.length) {
-      console.log(`  📌 권장:`)
-      for (const r of fix.predictive.recommendations.slice(0, 3)) console.log(`    · ${r}`)
+    // 옛 stub 만 남은 경우 — 빈 출력 안 보이도록 skip
+    const hasContent = (fix.predictive.favorableAreas?.length ?? 0) + (fix.predictive.warningAreas?.length ?? 0) + (fix.predictive.keyEvents?.length ?? 0) + (fix.predictive.recommendations?.length ?? 0)
+    if (hasContent > 0) {
+      console.log(`\n  ━━━ 예측 통찰 (eventCorrelation — simple) ━━━`)
+      if (fix.predictive.favorableAreas?.length) console.log(`  ✨ 길지: ${fix.predictive.favorableAreas.slice(0, 5).join(', ')}`)
+      if (fix.predictive.warningAreas?.length) console.log(`  ⚠ 주의: ${fix.predictive.warningAreas.slice(0, 5).join(', ')}`)
+      if (fix.predictive.keyEvents?.length) {
+        console.log(`  🎯 핵심 이벤트:`)
+        for (const e of fix.predictive.keyEvents.slice(0, 3)) console.log(`    · ${e.description}${e.date ? ` (${e.date})` : ''}`)
+      }
+      if (fix.predictive.recommendations?.length) {
+        console.log(`  📌 권장:`)
+        for (const r of fix.predictive.recommendations.slice(0, 3)) console.log(`    · ${r}`)
+      }
     }
   }
 }

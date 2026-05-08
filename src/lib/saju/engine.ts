@@ -52,6 +52,8 @@ import { generateComprehensiveReport } from './report'
 import { generateComprehensiveText } from './narrative'
 import { analyzePatterns } from './patterns'
 import { generatePredictiveInsight } from './eventCorrelation'
+// ⭐ 진짜 종합 예측 엔진 (matrix/prediction 안에 구현됨, saju engine 이 미사용)
+import { generateComprehensivePrediction } from '@/lib/matrix/prediction/life-prediction/comprehensive'
 import {
   analyzeTwelveStages,
   type TwelveStageAnalysis,
@@ -473,8 +475,10 @@ export interface MainSajuOutput {
     narrative: ReturnType<typeof generateComprehensiveText> | null
     /** 명리 패턴 매칭 (특수 격국·길흉 패턴) */
     patterns: ReturnType<typeof analyzePatterns> | null
-    /** 예측 통찰 (현재 대운 기준 — 길지·흉지 영역) */
+    /** 예측 통찰 (eventCorrelation — simple stub, 길지·흉지) */
     predictive: ReturnType<typeof generatePredictiveInsight> | null
+    /** ⭐ 종합 예측 (matrix/prediction — 다년 트렌드·대운트랜짓·핵심 시기) */
+    comprehensivePrediction: ReturnType<typeof generateComprehensivePrediction> | null
   }
   /** 점수 입력 transformer 결과 (근거 표시용) */
   scoreInputs: {
@@ -1245,6 +1249,43 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     }
   } catch {}
 
+  // matrix/prediction 의 진짜 종합 예측 — saju engine 데이터로 LifePredictionInput 구성
+  let _comprehensivePrediction: ReturnType<typeof generateComprehensivePrediction> | null = null
+  try {
+    const birthDateStr = String(input.birthDate)
+    const [yyyy, mm, dd] = birthDateStr.split('-').map((s) => parseInt(s, 10))
+    const [hh] = (input.birthTime || '12:00').split(':').map((s) => parseInt(s, 10))
+    const allStems = [
+      sajuResult.yearPillar.heavenlyStem.name,
+      sajuResult.monthPillar.heavenlyStem.name,
+      sajuResult.dayPillar.heavenlyStem.name,
+      sajuResult.timePillar.heavenlyStem.name,
+    ]
+    const allBranches = [
+      sajuResult.yearPillar.earthlyBranch.name,
+      sajuResult.monthPillar.earthlyBranch.name,
+      sajuResult.dayPillar.earthlyBranch.name,
+      sajuResult.timePillar.earthlyBranch.name,
+    ]
+    const lifePredictionInput = {
+      birthYear: yyyy,
+      birthMonth: mm,
+      birthDay: dd,
+      birthHour: hh,
+      gender: input.gender || 'male',
+      dayStem: dayMaster,
+      dayBranch: sajuResult.dayPillar.earthlyBranch.name,
+      monthBranch: sajuResult.monthPillar.earthlyBranch.name,
+      yearBranch: sajuResult.yearPillar.earthlyBranch.name,
+      allStems,
+      allBranches,
+      daeunList: dw?.list as Parameters<typeof generateComprehensivePrediction>[0]['daeunList'],
+      yongsin: advanced.yongsin.primary ? [advanced.yongsin.primary] : [],
+      kisin: advanced.yongsin.unfavorable || [],
+    } as unknown as Parameters<typeof generateComprehensivePrediction>[0]
+    _comprehensivePrediction = generateComprehensivePrediction(lifePredictionInput, 10)
+  } catch {}
+
   const fullInsights: NonNullable<MainSajuOutput['fullInsights']> = {
     orthodox: _orthodox,
     sibsin: _sibsin,
@@ -1254,6 +1295,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     narrative: _narrative,
     patterns: _patterns,
     predictive: _predictive,
+    comprehensivePrediction: _comprehensivePrediction,
   }
 
   return {
