@@ -1,11 +1,11 @@
-﻿import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+﻿import type { CalendarCoreAdapterResult } from '@/lib/matrix/core/adapters'
 import type {
   CrossAgreementMatrixCell,
   CrossAgreementMatrixRow,
   DomainKey,
   DomainScore,
-} from '@/lib/destiny-matrix/types'
-import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
+} from '@/lib/matrix/types'
+import type { InterpretedAnswerContract } from '@/lib/matrix/interpretedAnswer'
 import type { CalendarDailyView, CalendarMonthView, CalendarWeekView, FormattedDate } from './types'
 
 export type Locale = 'ko' | 'en'

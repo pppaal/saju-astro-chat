@@ -14,7 +14,7 @@
  * - life (인생 종합)
  */
 
-import type { PlanetData } from '@/lib/astrology';
+import type { PlanetData } from '@/lib/astro';
 import { formatPillar } from './data-extractors';
 
 // Local type definitions for theme section data

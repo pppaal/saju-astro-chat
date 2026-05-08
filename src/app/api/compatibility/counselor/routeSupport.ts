@@ -4,7 +4,7 @@ import {
   getAnnualCycles,
   getMonthlyCycles,
   getIljinCalendar,
-} from '@/lib/Saju/saju'
+} from '@/lib/saju/saju'
 import {
   calculateNatalChart,
   toChart,
@@ -15,8 +15,8 @@ import {
   calculateSecondaryProgressions,
   calculateSolarReturn,
   calculateLunarReturn,
-} from '@/lib/astrology'
-import type { FiveElement } from '@/lib/Saju/types'
+} from '@/lib/astro'
+import type { FiveElement } from '@/lib/saju/types'
 import {
   interpretCompatibilityScore,
   type FusionCompatibilityResult,

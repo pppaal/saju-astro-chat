@@ -2,7 +2,7 @@
  * timing/types.ts - 고급 타이밍 엔진 타입 정의
  */
 
-import type { FiveElement, YinYang } from '@/lib/Saju/types';
+import type { FiveElement, YinYang } from '@/lib/saju/types';
 import type { PredictionGrade } from '../index';
 
 export type { FiveElement, YinYang };

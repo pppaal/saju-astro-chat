@@ -4,35 +4,35 @@ import {
   calculateExtraPoints,
   calculateAllAsteroids,
   type NatalChartData,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import {
   computeDestinyMap,
   type CombinedResult as DestinyMapCombinedResult,
 } from '@/lib/counselor/astrology'
-import { buildCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
-import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
-import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
-import { buildPreciseTimelineSummary } from '@/lib/destiny-matrix/monthlyTimelinePrecise'
-import { applyRuntimeCalibration } from '@/lib/destiny-matrix/calibrationRuntime'
-import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
-import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
-import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
+import { buildCounselorEvidencePacket } from '@/lib/matrix/counselorEvidence'
+import { calculateDestinyMatrix } from '@/lib/matrix/engine'
+import { buildAstroTimingIndex } from '@/lib/matrix/astroTimingIndex'
+import { buildPreciseTimelineSummary } from '@/lib/matrix/monthlyTimelinePrecise'
+import { applyRuntimeCalibration } from '@/lib/matrix/calibrationRuntime'
+import { buildCoreEnvelope } from '@/lib/matrix/core/buildCoreEnvelope'
+import { buildMatrixSemanticContract } from '@/lib/matrix/layerSemantics'
+import { buildLayerThemeProfiles } from '@/lib/matrix/layerThemeProfiles'
 import {
   buildServiceInputCrossAudit,
   ensureMatrixInputCrossCompleteness,
   listMissingCrossKeysForService,
-} from '@/lib/destiny-matrix/inputCross'
-import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
+} from '@/lib/matrix/inputCross'
+import type { MatrixCalculationInput } from '@/lib/matrix/types'
 import { buildDerivedCrossSnapshot } from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import type { FiveElement } from '@/lib/Saju/types'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/Saju/shinsal'
-import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import { calculateSajuData } from '@/lib/saju/saju'
+import type { FiveElement } from '@/lib/saju/types'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
+import { analyzeAdvancedSaju } from '@/lib/saju/astrologyengine'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from './lib/types'
 import type { CombinedResult } from '@/lib/counselor/astrology'
-import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
+import type { InsightDomain } from '@/lib/matrix/interpreter/types'
 import type { MatrixSnapshot } from './routePromptSupport'
 import { buildBirthTimeRectificationCandidates } from './lib/birthTimeRectification'
 import { computeAstroData, computeSajuData } from './lib/chart-calculator'
@@ -435,7 +435,7 @@ export async function fetchMatrixSnapshot(input: {
     if (!rawSaju.orthodoxInterpretation) {
       try {
         const { buildOrthodoxInterpretation } = await import(
-          '@/lib/Saju/orthodoxInterpretation'
+          '@/lib/saju/orthodoxInterpretation'
         )
         const koreanAge =
           new Date().getFullYear() - new Date(input.birthDate).getFullYear() + 1

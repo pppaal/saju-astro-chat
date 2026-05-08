@@ -3,7 +3,7 @@
  * Shared helper functions for element-based calculations
  */
 
-import { FiveElement } from '../../Saju/types';
+import { FiveElement } from '../../saju/types';
 
 /**
  * Normalize FiveElement to English keys

@@ -78,7 +78,7 @@ export const POST = withApiMiddleware(
     }
   },
   createAuthenticatedGuard({
-    route: '/api/destiny-matrix/save',
+    route: '/api/matrix/save',
     limit: 20,
     windowSeconds: 60,
   })
@@ -121,7 +121,7 @@ export const GET = withApiMiddleware(
     }
   },
   createAuthenticatedGuard({
-    route: '/api/destiny-matrix/save',
+    route: '/api/matrix/save',
     limit: 60,
     windowSeconds: 60,
   })

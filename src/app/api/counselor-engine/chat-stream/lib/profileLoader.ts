@@ -4,7 +4,7 @@
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from './types'
-import type { Chart } from '@/lib/astrology'
+import type { Chart } from '@/lib/astro'
 import {
   formatRecallContextKo,
   formatRecallContextEn,

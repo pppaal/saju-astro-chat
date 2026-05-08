@@ -130,7 +130,7 @@ function createMockReport() {
 }
 
 async function main() {
-  const mod = await import('../src/lib/destiny-matrix/ai-report/aiReportService')
+  const mod = await import('../src/lib/matrix/ai-report/aiReportService')
   const { generateAIPremiumReport } = mod
 
   const result = await generateAIPremiumReport(

@@ -1,9 +1,9 @@
-import type { CalculationDetails, QualityAudit } from '@/lib/destiny-matrix/ai-report/qualityAudit'
+import type { CalculationDetails, QualityAudit } from '@/lib/matrix/ai-report/qualityAudit'
 import type {
   AdapterPersonModel,
   AdapterSingleSubjectView,
-} from '@/lib/destiny-matrix/core/adaptersTypes'
-import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
+} from '@/lib/matrix/core/adaptersTypes'
+import type { InterpretedAnswerContract } from '@/lib/matrix/interpretedAnswer'
 
 export interface ReportProfileInput {
   name: string
@@ -68,6 +68,6 @@ export interface PremiumReportData {
    * Deterministic add-on bundle (A~E sections). Surfaces immediately
    * alongside the streamed prose since it requires no LLM calls.
    */
-  extendedAnalysis?: import('@/lib/Saju/extendedAnalysis').ExtendedAnalysis
+  extendedAnalysis?: import('@/lib/saju/extendedAnalysis').ExtendedAnalysis
   fullData?: Record<string, unknown>
 }

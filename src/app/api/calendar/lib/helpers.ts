@@ -9,7 +9,7 @@ import type {
   ImportantDate,
 } from '@/lib/counselor/destinyCalendar'
 import type { TranslationData } from '@/types/calendar-api'
-import type { PillarData } from '@/lib/Saju/types'
+import type { PillarData } from '@/lib/saju/types'
 import type { CalendarMatrixEvidencePacketMap } from './matrixEvidencePacket'
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 export {
@@ -36,7 +36,7 @@ import {
   GRADE_THRESHOLDS,
   EVIDENCE_CONFIDENCE_THRESHOLDS,
 } from '@/lib/counselor/calendar/scoring-config'
-import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLanguage'
+import { normalizeUserFacingGuidance } from '@/lib/matrix/guidanceLanguage'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 export { generateBestTimes, generateSummary } from './calendarSummarySupport'
 import {

@@ -9,10 +9,10 @@
  *
  * 의존성: cross 또는 matrix 호출 시 saju + astro 자동 호출.
  */
-import { runMainSaju } from '../saju-engine'
-import { runAstroEngine } from '../astro-engine'
-import { runCrossEngine } from '../cross-engine'
-import { calculateDestinyMatrix } from '../destiny-matrix/engine'
+import { runMainSaju } from '../saju/engine'
+import { runAstroEngine } from '../astro/engine'
+import { runCrossEngine } from '../matrix/cross'
+import { calculateDestinyMatrix } from '../matrix/engine'
 import { buildMatrixInput } from './adapters/matrixAdapter'
 import { reconcileScores } from './enrichers/scoreReconciler'
 import type { UnifiedInput, UnifiedOptions, UnifiedOutput } from './types'

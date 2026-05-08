@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/solar-return/route.ts
+// src/app/api/astro/advanced/solar-return/route.ts
 // Solar Return (태양 회귀) API 엔드포인트
 
 import { NextResponse } from 'next/server'
@@ -8,7 +8,7 @@ import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { logger } from '@/lib/logger'
 import { SolarReturnRequestSchema } from '@/lib/api/astrology-validation'
-import { calculateSolarReturn, getSolarReturnSummary } from '@/lib/astrology'
+import { calculateSolarReturn, getSolarReturnSummary } from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    captureServerError(error, { route: '/api/astrology/advanced/solar-return' })
+    captureServerError(error, { route: '/api/astro/advanced/solar-return' })
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       route: 'astrology/advanced/solar-return',

@@ -3,7 +3,7 @@
 import { NextRequest } from 'next/server'
 import { toDate } from 'date-fns-tz'
 import { prisma } from '@/lib/db/prisma'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { getCreditBalance } from '@/lib/credits/creditService'
 import { askClaude } from '@/lib/llm/askClaude'
 import { getNowInTimezone } from '@/lib/datetime'
@@ -12,14 +12,14 @@ import {
   getAnnualCycles,
   getMonthlyCycles,
   getIljinCalendar,
-} from '@/lib/Saju/unse'
-import type { SajuPillars } from '@/lib/Saju/types'
+} from '@/lib/saju/unse'
+import type { SajuPillars } from '@/lib/saju/types'
 import {
   getShinsalHits,
   getTwelveStagesForPillars,
   getTwelveShinsalSingleByPillar,
-} from '@/lib/Saju/shinsal'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
+} from '@/lib/saju/shinsal'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { logger } from '@/lib/logger'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 

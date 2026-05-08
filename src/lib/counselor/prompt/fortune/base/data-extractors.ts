@@ -7,7 +7,7 @@
  */
 
 import type { CombinedResult, AstrologyData, SajuPillar } from "@/lib/counselor/astrology/types";
-import type { PlanetData, AspectHit, ExtraPoint, Asteroid } from "@/lib/astrology";
+import type { PlanetData, AspectHit, ExtraPoint, Asteroid } from "@/lib/astro";
 import type { UnseData } from "./prompt-types";
 
 /**

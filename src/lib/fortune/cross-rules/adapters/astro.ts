@@ -7,23 +7,23 @@ import {
   calculateNatalChart,
   toChart,
   type NatalChartInput,
-} from '@/lib/astrology/foundation/astrologyService'
-import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
+} from '@/lib/astro/astrologyService'
+import { findNatalAspects } from '@/lib/astro/aspects'
 import {
   calculateTransitChart,
   findTransitAspects,
   type TransitAspect,
-} from '@/lib/astrology/foundation/transit'
+} from '@/lib/astro/transit'
 import {
   calculateSolarReturn,
   calculateLunarReturn,
-} from '@/lib/astrology/foundation/returns'
+} from '@/lib/astro/returns'
 import {
   calculateSecondaryProgressions,
   findProgressedToNatalAspects,
-} from '@/lib/astrology/foundation/progressions'
-import { findFixedStarConjunctions, type FixedStarConjunction } from '@/lib/astrology/foundation/fixedStars'
-import type { AspectHit, Chart } from '@/lib/astrology/foundation/types'
+} from '@/lib/astro/progressions'
+import { findFixedStarConjunctions, type FixedStarConjunction } from '@/lib/astro/fixedStars'
+import type { AspectHit, Chart } from '@/lib/astro/types'
 import type { AstroNormalizerInput } from '../normalizer/astro'
 
 export interface AstroAdapterInput {

@@ -1,4 +1,4 @@
-import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
+import type { MatrixCalculationInput } from '@/lib/matrix/types'
 
 export function shouldBuildPreciseTiming(theme: string, needsPreciseTiming = false): boolean {
   if (needsPreciseTiming) return true

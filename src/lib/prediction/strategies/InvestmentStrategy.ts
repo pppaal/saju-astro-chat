@@ -5,7 +5,7 @@
 
 import { BaseEventStrategy, type ScoringContext, type ScoreResult } from './types';
 import { EVENT_SCORING } from '../constants/scoring';
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/saju/types';
 
 export class InvestmentStrategy extends BaseEventStrategy {
   readonly eventType = 'investment';

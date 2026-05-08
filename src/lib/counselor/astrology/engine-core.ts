@@ -29,7 +29,7 @@ import {
   getNowInTimezone,
 } from './helpers';
 
-import { isNightChart, type Chart } from '@/lib/astrology';
+import { isNightChart, type Chart } from '@/lib/astro';
 import { logger } from '@/lib/logger';
 
 import type { CombinedInput, CombinedResult, DateComponents } from './types';

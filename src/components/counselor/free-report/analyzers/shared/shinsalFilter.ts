@@ -3,7 +3,7 @@
  * 신살 필터링을 위한 공통 유틸리티
  */
 
-import type { ShinsalKind } from '@/lib/destiny-matrix/types';
+import type { ShinsalKind } from '@/lib/matrix/types';
 
 /**
  * ExtendedSajuData의 일부분 - Shinsal 관련

@@ -11,7 +11,7 @@ import { createValidationErrorResponse, dateSchema } from '@/lib/api/zodValidati
 import { LIST_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits'
 import { logger } from '@/lib/logger'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+import type { CalendarCoreAdapterResult } from '@/lib/matrix/core/adapters'
 import { buildActionPlanPayload } from './routeTimelineAssembly'
 import { polishCalendarDayNarrationKo } from '@/lib/llm/calendarNarrativePolish'
 import { buildDayContinuity, buildDayOfWeekTone } from '@/lib/calendar/dayContext'

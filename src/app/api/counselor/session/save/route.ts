@@ -14,7 +14,7 @@ import {
 } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
+import { normalizeReportTheme } from '@/lib/matrix/ai-report/themeSchema'
 import { deriveCounselorStorageSignals } from '@/app/api/counselor-engine/chat-stream/lib/focusDomain'
 
 export const dynamic = 'force-dynamic'

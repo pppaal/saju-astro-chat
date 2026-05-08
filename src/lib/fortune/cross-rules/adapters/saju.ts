@@ -1,17 +1,17 @@
 // Saju adapter: birth + queryDate → SajuNormalizerInput.
 // Calls the existing saju engine; does NOT recompute facts here.
 
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { calculateStrengthScore } from '@/lib/Saju/strengthScore'
-import { determineYongsin } from '@/lib/Saju/yongsin'
-import { determineGeokguk } from '@/lib/Saju/geokguk'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { calculateStrengthScore } from '@/lib/saju/strengthScore'
+import { determineYongsin } from '@/lib/saju/yongsin'
+import { determineGeokguk } from '@/lib/saju/geokguk'
 import {
   getShinsalHits,
   getTwelveStagesForPillars,
   toSajuPillarsLike,
-} from '@/lib/Saju/shinsal'
-import { getIljinCalendar } from '@/lib/Saju/unse'
+} from '@/lib/saju/shinsal'
+import { getIljinCalendar } from '@/lib/saju/unse'
 import type {
   CalculateSajuDataResult,
   RelationHit,
@@ -19,10 +19,10 @@ import type {
   TwelveStage,
   UnseData,
   PillarKind,
-} from '@/lib/Saju/types'
-import type { GeokgukResult } from '@/lib/Saju/geokguk'
-import type { YongsinResult } from '@/lib/Saju/yongsin'
-import type { StrengthScore } from '@/lib/Saju/strengthScore'
+} from '@/lib/saju/types'
+import type { GeokgukResult } from '@/lib/saju/geokguk'
+import type { YongsinResult } from '@/lib/saju/yongsin'
+import type { StrengthScore } from '@/lib/saju/strengthScore'
 import type { SajuNormalizerInput } from '../normalizer/saju'
 import { correctSolarTime, type SolarTimeMode } from './solar-time'
 
@@ -154,7 +154,7 @@ function pickCurrentIljin(saju: CalculateSajuDataResult, queryDate: Date): UnseD
 }
 
 export interface SajuExtras {
-  shinsal: import('@/lib/Saju/types').ShinsalHit[]
+  shinsal: import('@/lib/saju/types').ShinsalHit[]
   twelveStages: { [K in PillarKind]: TwelveStage }
   geokguk: GeokgukResult | null
   yongsin: YongsinResult | null

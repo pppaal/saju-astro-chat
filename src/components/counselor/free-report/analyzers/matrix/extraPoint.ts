@@ -3,10 +3,10 @@
  * 엑스트라 포인트 분석
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { EXTRAPOINT_ELEMENT_MATRIX, EXTRAPOINT_SIBSIN_MATRIX, EXTRAPOINT_INFO } from '@/lib/destiny-matrix/data/layer10-extrapoint-element';
-import type { ExtraPointName } from '@/lib/destiny-matrix/types';
-import type { FiveElement, SibsinKind } from '@/lib/Saju/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { EXTRAPOINT_ELEMENT_MATRIX, EXTRAPOINT_SIBSIN_MATRIX, EXTRAPOINT_INFO } from '@/lib/matrix/data/layer10-extrapoint-element';
+import type { ExtraPointName } from '@/lib/matrix/types';
+import type { FiveElement, SibsinKind } from '@/lib/saju/types';
 import type { SajuData, AstroData } from '../../types';
 import type { ExtraPointResult } from './types';
 

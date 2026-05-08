@@ -29,13 +29,13 @@ import {
   analyzeHealthCareer,
   calculateComprehensiveScore,
   performUltraAdvancedAnalysis,
-} from '@/lib/Saju';
+} from '@/lib/saju';
 
-import { annotateShinsal, toSajuPillarsLike } from '@/lib/Saju/shinsal';
+import { annotateShinsal, toSajuPillarsLike } from '@/lib/saju/shinsal';
 import { logger } from '@/lib/logger';
 import { getYinYangFromName, formatBirthTime } from './helpers';
 import type { SajuPillars, SajuData, AdvancedSajuAnalysis } from './types';
-import type { DayMaster } from '@/lib/Saju/types';
+import type { DayMaster } from '@/lib/saju/types';
 
 // ======================================================
 // Types
@@ -349,7 +349,7 @@ export async function calculateSajuOrchestrated(
   const hasValidPillars = Boolean(pillars.year && pillars.month && pillars.day);
   if (hasValidPillars) {
     try {
-      // Cast pillars to the format expected by getDaeunCycles (SajuPillars from @/lib/Saju/types)
+      // Cast pillars to the format expected by getDaeunCycles (SajuPillars from @/lib/saju/types)
       const pillarsForDaeun = {
         year: pillars.year!,
         month: pillars.month!,

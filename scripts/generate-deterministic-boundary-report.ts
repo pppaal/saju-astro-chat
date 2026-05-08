@@ -1,7 +1,7 @@
 // @ts-nocheck
 import fs from 'node:fs'
 import path from 'node:path'
-import { buildDeterministicCore } from '../src/lib/destiny-matrix/ai-report/deterministicCore'
+import { buildDeterministicCore } from '../src/lib/matrix/ai-report/deterministicCore'
 
 type Profile = 'strict' | 'balanced' | 'aggressive'
 

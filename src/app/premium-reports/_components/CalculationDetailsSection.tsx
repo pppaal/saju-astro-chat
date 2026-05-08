@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { CalculationDetails } from '@/lib/destiny-matrix/ai-report/qualityAudit'
+import type { CalculationDetails } from '@/lib/matrix/ai-report/qualityAudit'
 import ReportSurfaceSection from './ReportSurfaceSection'
 
 type CalculationDetailsSectionProps = {

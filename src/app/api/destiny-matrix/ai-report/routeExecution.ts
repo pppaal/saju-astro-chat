@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
-import { FusionReportGenerator } from '@/lib/destiny-matrix/interpreter/report-generator'
-import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
-import { buildSharedSurface } from '@/lib/destiny-matrix/core/adaptersPayload'
-import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
-import { type TimingAIPremiumReport, type ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types'
-import { auditMatrixInputReadiness } from '@/lib/destiny-matrix/ai-report/qualityAudit'
+import { calculateDestinyMatrix } from '@/lib/matrix/engine'
+import { FusionReportGenerator } from '@/lib/matrix/interpreter/report-generator'
+import { buildCoreEnvelope } from '@/lib/matrix/core/buildCoreEnvelope'
+import { buildSharedSurface } from '@/lib/matrix/core/adaptersPayload'
+import type { AIPremiumReport } from '@/lib/matrix/ai-report/reportTypes'
+import { type TimingAIPremiumReport, type ThemedAIPremiumReport } from '@/lib/matrix/ai-report/types'
+import { auditMatrixInputReadiness } from '@/lib/matrix/ai-report/qualityAudit'
 import { consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -26,8 +26,8 @@ import {
   persistGeneratedReport,
 } from './routeExecutionPersistence'
 import type { PreparedAiReportRequest } from './routeRequestPreparation'
-import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
-import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
+import { summarizeDestinyMatrixEvidence } from '@/lib/matrix/ai-report/structuredEvidence'
+import type { InsightDomain } from '@/lib/matrix/interpreter/types'
 import {
   calculateCreditCost,
   isStrictGateEnabled,

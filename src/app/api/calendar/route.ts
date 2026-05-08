@@ -12,8 +12,8 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { BRANCH_TO_ELEMENT, STEM_TO_ELEMENT, STEM_TO_ELEMENT_EN } from '@/lib/Saju/constants'
-import type { FiveElement } from '@/lib/Saju/types'
+import { BRANCH_TO_ELEMENT, STEM_TO_ELEMENT, STEM_TO_ELEMENT_EN } from '@/lib/saju/constants'
+import type { FiveElement } from '@/lib/saju/types'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
@@ -21,8 +21,8 @@ import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { calculateYearlyImportantDates } from './lib/yearlyDates'
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
-import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+import type { CalendarCoreAdapterResult } from '@/lib/matrix/core/adapters'
+import type { CounselorEvidencePacket } from '@/lib/matrix/counselorEvidence'
 
 import {
   getPillarStemName,
@@ -35,18 +35,18 @@ import {
   type MatrixCalendarContext,
 } from './lib/helpers'
 import { buildCalendarPresentationView } from './lib/presentationAdapter'
-import type { DomainKey, MatrixCalculationInput } from '@/lib/destiny-matrix/types'
+import type { DomainKey, MatrixCalculationInput } from '@/lib/matrix/types'
 import type { CalendarMatrixEvidencePacketMap } from './lib/matrixEvidencePacket'
-import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
-import { calculateAllAsteroids } from '@/lib/astrology/foundation/asteroids'
-import { calculateExtraPoints } from '@/lib/astrology/foundation/extraPoints'
+import type { NatalChartData } from '@/lib/astro/astrologyService'
+import { calculateAllAsteroids } from '@/lib/astro/asteroids'
+import { calculateExtraPoints } from '@/lib/astro/extraPoints'
 import {
   buildDerivedCrossSnapshot,
   deriveAdvancedSajuMatrixFields,
   deriveSibsinDistributionFromSaju,
 } from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
-import type { CalculateSajuDataResult } from '@/lib/Saju/types'
-import { buildOrthodoxInterpretation } from '@/lib/Saju/orthodoxInterpretation'
+import type { CalculateSajuDataResult } from '@/lib/saju/types'
+import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
 
 export const dynamic = 'force-dynamic'
 
@@ -643,7 +643,7 @@ export const GET = withApiMiddleware(
     let sajuResult
     try {
       const sajuGender = gender.toLowerCase() === 'female' ? ('female' as const) : ('male' as const)
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
       sajuResult = calculateSajuData(birthDateParam, birthTimeParam, sajuGender, 'solar', timezone)
     } catch (sajuError) {
       logger.error('[Calendar] Saju calculation error:', sajuError)
@@ -718,7 +718,7 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeAdvancedSaju } = await import('@/lib/Saju/astrologyengine')
+      const { analyzeAdvancedSaju } = await import('@/lib/saju/astrologyengine')
       const advanced = analyzeAdvancedSaju(
         {
           name: pillars.day.stem,
@@ -803,9 +803,9 @@ export const GET = withApiMiddleware(
         { calculateTransitChart, findMajorTransits, findTransitAspects },
         { findNatalAspects },
       ] = await Promise.all([
-        import('@/lib/astrology/foundation/astrologyService'),
-        import('@/lib/astrology/foundation/transit'),
-        import('@/lib/astrology/foundation/aspects'),
+        import('@/lib/astro/astrologyService'),
+        import('@/lib/astro/transit'),
+        import('@/lib/astro/aspects'),
       ])
 
       const natalChartData = await calculateNatalChart({
@@ -845,7 +845,7 @@ export const GET = withApiMiddleware(
       // dailyTransitScores axis.
       try {
         const { calculateTransitPlanetsBatch, scoreTransitDay } = await import(
-          '@/lib/astrology/foundation/transitBatch'
+          '@/lib/astro/transitBatch'
         )
         const isoList: string[] = []
         const dateKeys: string[] = []
@@ -943,11 +943,11 @@ export const GET = withApiMiddleware(
         { deriveCalendarSignals },
         { buildCounselorEvidencePacket },
       ] = await Promise.all([
-        import('@/lib/destiny-matrix/core/buildCalendarCoreEnvelope'),
-        import('@/lib/destiny-matrix/core/adapters'),
-        import('@/lib/destiny-matrix/inputCross'),
-        import('@/lib/destiny-matrix/calendarSignals'),
-        import('@/lib/destiny-matrix/counselorEvidence'),
+        import('@/lib/matrix/core/buildCalendarCoreEnvelope'),
+        import('@/lib/matrix/core/adapters'),
+        import('@/lib/matrix/inputCross'),
+        import('@/lib/matrix/calendarSignals'),
+        import('@/lib/matrix/counselorEvidence'),
       ])
 
       const matrixInput = await buildCalendarMatrixInput({
@@ -1290,7 +1290,7 @@ export const GET = withApiMiddleware(
     })
 
     const { persistDestinyPredictionSnapshot } =
-      await import('@/lib/destiny-matrix/predictionSnapshot')
+      await import('@/lib/matrix/predictionSnapshot')
     const predictionId = await persistDestinyPredictionSnapshot({
       userId: context.userId,
       service: 'calendar',

@@ -3,23 +3,23 @@
  * 1995-02-09 06:40 male Seoul — 풀 narration 캡처.
  */
 
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { determineGeokguk } from '../src/lib/Saju/geokguk'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { determineGeokguk } from '../src/lib/saju/geokguk'
 import {
   getShinsalHits,
   getTwelveStagesForPillars,
   toSajuPillarsLike,
   getTwelveStage,
-} from '../src/lib/Saju/shinsal'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '../src/lib/Saju/relations'
+} from '../src/lib/saju/shinsal'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '../src/lib/saju/relations'
 import {
   synthesizeExpertNarrationKo,
   buildSajuNarrationKo,
   buildTimingNarrationKo,
   buildStoryArcKo,
   buildNatalRelationKo,
-} from '../src/lib/destiny-matrix/ai-report/sajuNarrationBridge'
-import { buildPersonalityNarrationKo } from '../src/lib/destiny-matrix/personality'
+} from '../src/lib/matrix/ai-report/sajuNarrationBridge'
+import { buildPersonalityNarrationKo } from '../src/lib/matrix/personality'
 
 const PROFILE = {
   birthDate: '1995-02-09',

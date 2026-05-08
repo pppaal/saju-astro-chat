@@ -17,11 +17,11 @@
 
 import { useEffect, useState } from 'react'
 import { Clock, Sparkles, AlertTriangle, TrendingUp, Users, Coins, Heart, Target } from 'lucide-react'
-import type { RenderedAngle } from '@/lib/destiny-matrix/ai-report/themeAngles'
-import type { ReportPeriodScope } from '@/lib/destiny-matrix/ai-report/periodSignalContext'
-import type { NormalizedSignal } from '@/lib/destiny-matrix/ai-report/signalSynthesizer'
-import type { TimingData } from '@/lib/destiny-matrix/ai-report/types'
-import type { ActiveTransit } from '@/lib/destiny-matrix/interpreter/types'
+import type { RenderedAngle } from '@/lib/matrix/ai-report/themeAngles'
+import type { ReportPeriodScope } from '@/lib/matrix/ai-report/periodSignalContext'
+import type { NormalizedSignal } from '@/lib/matrix/ai-report/signalSynthesizer'
+import type { TimingData } from '@/lib/matrix/ai-report/types'
+import type { ActiveTransit } from '@/lib/matrix/interpreter/types'
 
 type ThemeKey = 'career' | 'love' | 'wealth' | 'health' | 'family' | 'move'
 
@@ -112,7 +112,7 @@ export function ThemeAnglesSection({
     }
     const controller = new AbortController()
     setState((prev) => ({ ...prev, loading: true, unavailable: null }))
-    fetch('/api/destiny-matrix/theme-angles', {
+    fetch('/api/matrix/theme-angles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

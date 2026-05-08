@@ -5,7 +5,7 @@
  * *요일 톤*을 prompt input에 포함시키는 헬퍼.
  */
 
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 
 const STEM_ELEMENT_KO: Record<string, string> = {
   甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토',

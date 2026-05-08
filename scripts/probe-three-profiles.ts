@@ -2,8 +2,8 @@
 /**
  * 3명의 narration을 동시에 출력해 변동성 검증.
  */
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { synthesizeExpertNarrationKo } from '../src/lib/destiny-matrix/ai-report/sajuNarrationBridge'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { synthesizeExpertNarrationKo } from '../src/lib/matrix/ai-report/sajuNarrationBridge'
 
 interface Profile {
   label: string

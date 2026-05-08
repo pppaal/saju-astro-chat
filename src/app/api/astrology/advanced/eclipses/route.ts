@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/eclipses/route.ts
+// src/app/api/astro/advanced/eclipses/route.ts
 // 이클립스 (Eclipse) 영향 분석 API 엔드포인트
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -11,7 +11,7 @@ import {
   findEclipseImpact,
   getUpcomingEclipses,
   checkEclipseSensitivity,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { EclipsesRequestSchema } from '@/lib/api/astrology-validation'
 
@@ -97,7 +97,7 @@ export const POST = withApiMiddleware(
       res.headers.set('Cache-Control', 'no-store')
       return res
     } catch (error: unknown) {
-      captureServerError(error, { route: '/api/astrology/advanced/eclipses' })
+      captureServerError(error, { route: '/api/astro/advanced/eclipses' })
       return NextResponse.json(
         { error: 'Internal Server Error' },
         { status: HTTP_STATUS.SERVER_ERROR }

@@ -17,7 +17,7 @@ import {
   type SolarTerm,
 } from '../ultraPrecisionEngine';
 
-import type { Ganji, SibsinKind } from '@/lib/Saju/types';
+import type { Ganji, SibsinKind } from '@/lib/saju/types';
 
 /**
  * 월별 기본 데이터

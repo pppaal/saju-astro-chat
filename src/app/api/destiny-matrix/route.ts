@@ -1,29 +1,29 @@
-﻿// src/app/api/destiny-matrix/route.ts
+﻿// src/app/api/matrix/route.ts
 // Destiny Fusion Matrix™ API Endpoint
 // © 2024 All Rights Reserved. Proprietary Technology.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
-import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
-import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
-import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
+import { calculateDestinyMatrix } from '@/lib/matrix'
+import type { MatrixCalculationInput } from '@/lib/matrix'
+import { buildAstroTimingIndex } from '@/lib/matrix/astroTimingIndex'
 import {
   buildServiceInputCrossAudit,
   ensureMatrixInputCrossCompleteness,
   listMissingCrossKeysForService,
-} from '@/lib/destiny-matrix/inputCross'
-import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
-import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
-import { buildPremiumActionChecklist } from '@/lib/destiny-matrix/actionChecklist'
-import { buildCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
-import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
-import { runDestinyCore } from '@/lib/destiny-matrix/core/runDestinyCore'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import type { FiveElement } from '@/lib/Saju/types'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/Saju/shinsal'
-import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
-import type { GeokgukType, WesternElement, TransitCycle } from '@/lib/destiny-matrix/types'
+} from '@/lib/matrix/inputCross'
+import { buildMatrixSemanticContract } from '@/lib/matrix/layerSemantics'
+import { buildLayerThemeProfiles } from '@/lib/matrix/layerThemeProfiles'
+import { buildPremiumActionChecklist } from '@/lib/matrix/actionChecklist'
+import { buildCounselorEvidencePacket } from '@/lib/matrix/counselorEvidence'
+import { reportGenerator } from '@/lib/matrix/interpreter'
+import { runDestinyCore } from '@/lib/matrix/core/runDestinyCore'
+import { calculateSajuData } from '@/lib/saju/saju'
+import type { FiveElement } from '@/lib/saju/types'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
+import { analyzeAdvancedSaju } from '@/lib/saju/astrologyengine'
+import type { GeokgukType, WesternElement, TransitCycle } from '@/lib/matrix/types'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { destinyMatrixCalculationSchema, destinyMatrixQuerySchema } from '@/lib/api/zodValidation'
@@ -149,7 +149,7 @@ export const GET = withApiMiddleware(
     }
   },
   createPublicStreamGuard({
-    route: '/api/destiny-matrix',
+    route: '/api/matrix',
     limit: 60,
     windowSeconds: 60,
   })
@@ -727,7 +727,7 @@ export const POST = withApiMiddleware(
     }
   },
   createPublicStreamGuard({
-    route: '/api/destiny-matrix',
+    route: '/api/matrix',
     limit: 20,
     windowSeconds: 60,
   })

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
-import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types'
-import { auditCrossConsistency } from '@/lib/destiny-matrix/ai-report/crossConsistencyAudit'
+import type { MatrixCalculationInput } from '@/lib/matrix/types'
+import type { AIPremiumReport } from '@/lib/matrix/ai-report/reportTypes'
+import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/matrix/ai-report/types'
+import { auditCrossConsistency } from '@/lib/matrix/ai-report/crossConsistencyAudit'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import {

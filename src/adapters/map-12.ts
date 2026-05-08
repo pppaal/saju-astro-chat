@@ -1,10 +1,10 @@
-import type { FiveElement, PillarData } from '@/lib/Saju/types';
+import type { FiveElement, PillarData } from '@/lib/saju/types';
 import {
   annotateShinsal,
   toSajuPillarsLike,
   getJijangganText,
   type SajuPillarsAdapterInput,
-} from '@/lib/Saju/shinsal';
+} from '@/lib/saju/shinsal';
 
 export interface PillarSide {
   jijanggan?: string;

@@ -1,5 +1,5 @@
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { getShinsalHits, toSajuPillarsLike } from '../src/lib/Saju/shinsal'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { getShinsalHits, toSajuPillarsLike } from '../src/lib/saju/shinsal'
 
 const saju: any = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
 

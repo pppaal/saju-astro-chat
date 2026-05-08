@@ -27,7 +27,7 @@ import type {
   Midpoint,
   MidpointActivation,
   Asteroid,
-} from '@/lib/astrology';
+} from '@/lib/astro';
 
 import type {
   SajuFacts,
@@ -43,9 +43,9 @@ import type {
   HealthCareerComprehensive,
   ComprehensiveScore,
   UltraAdvancedAnalysis,
-} from '@/lib/Saju';
+} from '@/lib/saju';
 
-import type { SajuPillarsAdapterInput } from '@/lib/Saju/shinsal';
+import type { SajuPillarsAdapterInput } from '@/lib/saju/shinsal';
 
 // ======================================================
 // House & Chart Types
@@ -172,23 +172,23 @@ export interface CombinedResult {
 
   solarReturn?: {
     chart: ReturnChart;
-    summary: ReturnType<typeof import('@/lib/astrology').getSolarReturnSummary>;
+    summary: ReturnType<typeof import('@/lib/astro').getSolarReturnSummary>;
   };
 
   lunarReturn?: {
     chart: ReturnChart;
-    summary: ReturnType<typeof import('@/lib/astrology').getLunarReturnSummary>;
+    summary: ReturnType<typeof import('@/lib/astro').getLunarReturnSummary>;
   };
 
   progressions?: {
     secondary: {
       chart: ProgressedChart;
       moonPhase: unknown;
-      summary: ReturnType<typeof import('@/lib/astrology').getProgressionSummary>;
+      summary: ReturnType<typeof import('@/lib/astro').getProgressionSummary>;
     };
     solarArc?: {
       chart: ProgressedChart;
-      summary: ReturnType<typeof import('@/lib/astrology').getProgressionSummary>;
+      summary: ReturnType<typeof import('@/lib/astro').getProgressionSummary>;
     };
   };
 
@@ -209,7 +209,7 @@ export interface CombinedResult {
     pallas?: Asteroid;
     juno?: Asteroid;
     vesta?: Asteroid;
-    aspects?: ReturnType<typeof import('@/lib/astrology').findAllAsteroidAspects>;
+    aspects?: ReturnType<typeof import('@/lib/astro').findAllAsteroidAspects>;
   };
 
   fixedStars?: FixedStarConjunction[];

@@ -1,6 +1,6 @@
 'use client'
 
-import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
+import type { InterpretedAnswerContract } from '@/lib/matrix/interpretedAnswer'
 import ReportSurfaceSection from './ReportSurfaceSection'
 
 const FRAME_LABELS: Record<InterpretedAnswerContract['questionFrame'], string> = {

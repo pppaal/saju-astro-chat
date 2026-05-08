@@ -178,7 +178,7 @@ function ThemedBuilderContent() {
     setIsGenerating(true)
     analytics.premiumReportStart('themed', theme)
     try {
-      const response = await fetch('/api/destiny-matrix/ai-report', {
+      const response = await fetch('/api/matrix/ai-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

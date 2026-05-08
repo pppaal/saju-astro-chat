@@ -3,9 +3,9 @@
  * 고급분석 (격국 × 프로그레션)
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { ADVANCED_ANALYSIS_MATRIX } from '@/lib/destiny-matrix/data/layer7-advanced-analysis';
-import type { AdvancedAnalysisRow, ProgressionType, InteractionCode } from '@/lib/destiny-matrix/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { ADVANCED_ANALYSIS_MATRIX } from '@/lib/matrix/data/layer7-advanced-analysis';
+import type { AdvancedAnalysisRow, ProgressionType, InteractionCode } from '@/lib/matrix/types';
 import type { SajuData, AstroData } from '../../types';
 import type { AdvancedAnalysisResult } from './types';
 

@@ -1,4 +1,4 @@
-import { describeTimingWindowBrief } from '@/lib/destiny-matrix/interpretation/humanSemantics'
+import { describeTimingWindowBrief } from '@/lib/matrix/interpretation/humanSemantics'
 import {
   cleanGuidanceText,
   normalizeActionCategory,

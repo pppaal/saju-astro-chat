@@ -2,14 +2,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { analyzeAdvancedSaju } from '../src/lib/Saju/astrologyengine'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '../src/lib/Saju/relations'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { analyzeAdvancedSaju } from '../src/lib/saju/astrologyengine'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '../src/lib/saju/relations'
 import {
   getShinsalHits,
   getTwelveStagesForPillars,
   toSajuPillarsLike,
-} from '../src/lib/Saju/shinsal'
+} from '../src/lib/saju/shinsal'
 
 import {
   calculateNatalChart,

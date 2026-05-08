@@ -1,13 +1,13 @@
-﻿import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import { validateReportRequest } from '@/lib/destiny-matrix/validation'
-import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
+﻿import type { MatrixCalculationInput } from '@/lib/matrix/types'
+import { validateReportRequest } from '@/lib/matrix/validation'
+import type { InsightDomain } from '@/lib/matrix/interpreter/types'
 import {
   type ReportPeriod,
   type ReportTheme,
   type TimingData,
-} from '@/lib/destiny-matrix/ai-report/types'
-import { mapMajorTransitsToActiveTransits } from '@/lib/destiny-matrix/ai-report/transitMapping'
-import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
+} from '@/lib/matrix/ai-report/types'
+import { mapMajorTransitsToActiveTransits } from '@/lib/matrix/ai-report/transitMapping'
+import { buildAstroTimingIndex } from '@/lib/matrix/astroTimingIndex'
 import {
   buildAutoDaeunTiming,
   buildTimingData,

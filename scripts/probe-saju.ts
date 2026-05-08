@@ -1,4 +1,4 @@
-import { calculateSajuData } from '../src/lib/Saju/saju'
+import { calculateSajuData } from '../src/lib/saju/saju'
 
 const saju = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
 console.log(JSON.stringify(saju.pillars, null, 2))

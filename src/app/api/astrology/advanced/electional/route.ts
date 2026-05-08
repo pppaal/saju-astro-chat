@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/electional/route.ts
+// src/app/api/astro/advanced/electional/route.ts
 // 택일 점성학 API 엔드포인트
 
 import { NextResponse } from 'next/server'
@@ -19,7 +19,7 @@ import {
   getMoonPhaseName,
   getElectionalGuidelines,
   type ElectionalEventType,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 
 const validEventTypes: ElectionalEventType[] = [
   'business_start',
@@ -175,7 +175,7 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    captureServerError(error, { route: '/api/astrology/advanced/electional' })
+    captureServerError(error, { route: '/api/astro/advanced/electional' })
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       route: 'astrology/advanced/electional',

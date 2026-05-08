@@ -1,4 +1,4 @@
-// src/app/api/destiny-matrix/ai-report/route.ts
+// src/app/api/matrix/ai-report/route.ts
 // Destiny Fusion Matrix™ - AI Premium Report API (유료)
 // 크레딧 차감 후 AI 리포트 생성 + PDF 다운로드
 
@@ -7,25 +7,25 @@ import { withApiMiddleware, createAuthenticatedGuard } from '@/lib/api/middlewar
 import { prisma } from '@/lib/db/prisma'
 import type {
   MatrixCell,
-} from '@/lib/destiny-matrix/types'
-import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
-import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
-import { FusionReportGenerator } from '@/lib/destiny-matrix/interpreter/report-generator'
-import { DestinyMatrixError, ErrorCodes } from '@/lib/destiny-matrix/errors'
-import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
-import { buildSharedSurface } from '@/lib/destiny-matrix/core/adaptersPayload'
-import { generateFivePagePDF, generatePremiumPDF } from '@/lib/destiny-matrix/ai-report/pdfGenerator'
-import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
-import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
+} from '@/lib/matrix/types'
+import type { InsightDomain } from '@/lib/matrix/interpreter/types'
+import { calculateDestinyMatrix } from '@/lib/matrix/engine'
+import { FusionReportGenerator } from '@/lib/matrix/interpreter/report-generator'
+import { DestinyMatrixError, ErrorCodes } from '@/lib/matrix/errors'
+import { buildCoreEnvelope } from '@/lib/matrix/core/buildCoreEnvelope'
+import { buildSharedSurface } from '@/lib/matrix/core/adaptersPayload'
+import { generateFivePagePDF, generatePremiumPDF } from '@/lib/matrix/ai-report/pdfGenerator'
+import { summarizeDestinyMatrixEvidence } from '@/lib/matrix/ai-report/structuredEvidence'
+import type { AIPremiumReport } from '@/lib/matrix/ai-report/reportTypes'
 import {
   REPORT_CREDIT_COSTS,
   type ReportPeriod,
   type ReportTheme,
   type TimingAIPremiumReport,
   type ThemedAIPremiumReport,
-} from '@/lib/destiny-matrix/ai-report/types'
-import { auditMatrixInputReadiness } from '@/lib/destiny-matrix/ai-report/qualityAudit'
-import { auditCrossConsistency } from '@/lib/destiny-matrix/ai-report/crossConsistencyAudit'
+} from '@/lib/matrix/ai-report/types'
+import { auditMatrixInputReadiness } from '@/lib/matrix/ai-report/qualityAudit'
+import { auditCrossConsistency } from '@/lib/matrix/ai-report/crossConsistencyAudit'
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -523,10 +523,10 @@ export const POST = withApiMiddleware(
       // and renders instantly in the result page.
       try {
         const derivedSaju = (matrixInput as Record<string, unknown>).__derivedSajuData as
-          | import('@/lib/Saju/types').CalculateSajuDataResult
+          | import('@/lib/saju/types').CalculateSajuDataResult
           | undefined
         if (derivedSaju) {
-          const { buildExtendedAnalysis } = await import('@/lib/Saju/extendedAnalysis')
+          const { buildExtendedAnalysis } = await import('@/lib/saju/extendedAnalysis')
           const koreanAge = birthDate
             ? new Date().getFullYear() - parseInt(String(birthDate).slice(0, 4), 10) + 1
             : 30
@@ -952,7 +952,7 @@ export const POST = withApiMiddleware(
     }
   },
   createAuthenticatedGuard({
-    route: '/api/destiny-matrix/ai-report',
+    route: '/api/matrix/ai-report',
     limit: 10,
     windowSeconds: 60,
   })
@@ -985,7 +985,7 @@ export async function GET(req: NextRequest) {
       description: 'AI 기반 프리미엄 운명 분석 리포트 생성 (유료)',
     },
     paths: {
-      '/api/destiny-matrix/ai-report': {
+      '/api/matrix/ai-report': {
         post: {
           summary: 'AI 프리미엄 리포트 생성',
           description: '크레딧을 사용하여 AI 기반 상세 리포트를 생성합니다.',

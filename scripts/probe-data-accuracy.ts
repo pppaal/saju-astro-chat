@@ -19,9 +19,9 @@
  *  - 입춘 전후 (사주는 입춘 기준)
  */
 
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { determineGeokguk } from '../src/lib/Saju/geokguk'
-import { getShinsalHits, toSajuPillarsLike } from '../src/lib/Saju/shinsal'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { determineGeokguk } from '../src/lib/saju/geokguk'
+import { getShinsalHits, toSajuPillarsLike } from '../src/lib/saju/shinsal'
 
 type Profile = {
   label: string

@@ -1,5 +1,5 @@
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { getSolarTermKST } from '@/lib/Saju/constants'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { getSolarTermKST } from '@/lib/saju/constants'
 import { toDate } from 'date-fns-tz'
 
 const r = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')

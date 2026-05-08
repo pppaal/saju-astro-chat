@@ -1,10 +1,10 @@
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+import type { CalendarCoreAdapterResult } from '@/lib/matrix/core/adapters'
 import type {
   DomainKey,
   DomainScore,
   MonthlyOverlapPoint,
   TimingCalibrationSummary,
-} from '@/lib/destiny-matrix/types'
+} from '@/lib/matrix/types'
 import {
   describeDataTrustSummary,
   describeIntraMonthPeakWindow,
@@ -12,8 +12,8 @@ import {
   describeSajuAstroConflictByDomain,
   describeTimingCalibrationSummary,
   describeTimingWindowBrief,
-} from '@/lib/destiny-matrix/interpretation/humanSemantics'
-import { buildInterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
+} from '@/lib/matrix/interpretation/humanSemantics'
+import { buildInterpretedAnswerContract } from '@/lib/matrix/interpretedAnswer'
 import type { FormattedDate } from './types'
 
 import {

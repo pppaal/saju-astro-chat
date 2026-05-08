@@ -3,10 +3,10 @@
  * Specialized timing analysis combining Saju and Astrology data
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
-import type { WesternElement } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/matrix/data/layer1-element-core';
+import type { WesternElement } from '@/lib/matrix/types';
+import type { FiveElement } from '@/lib/saju/types';
 import { findPlanetSign } from '../../utils/helpers';
 import type { SajuData, AstroData } from '../../types';
 import type { TimingMatrixResult, ExtendedSajuData } from '../types/specialized.types';

@@ -1,4 +1,4 @@
-﻿import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
+﻿import { normalizeReportTheme } from '@/lib/matrix/ai-report/themeSchema'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 
 export type TimelineTone = 'best' | 'caution' | 'neutral'

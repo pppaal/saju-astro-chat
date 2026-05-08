@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/lunar-return/route.ts
+// src/app/api/astro/advanced/lunar-return/route.ts
 // Lunar Return (달 회귀) API 엔드포인트
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -7,7 +7,7 @@ import { captureServerError } from '@/lib/telemetry'
 import { sanitizeError } from '@/lib/security/errorSanitizer'
 import { logger } from '@/lib/logger'
 import { LunarReturnRequestSchema } from '@/lib/api/astrology-validation'
-import { calculateLunarReturn, getLunarReturnSummary } from '@/lib/astrology'
+import { calculateLunarReturn, getLunarReturnSummary } from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 export const POST = withApiMiddleware(
@@ -72,7 +72,7 @@ export const POST = withApiMiddleware(
       res.headers.set('Cache-Control', 'no-store')
       return res
     } catch (error: unknown) {
-      captureServerError(error, { route: '/api/astrology/advanced/lunar-return' })
+      captureServerError(error, { route: '/api/astro/advanced/lunar-return' })
       const sanitized = sanitizeError(error, 'internal')
       return NextResponse.json(sanitized, { status: HTTP_STATUS.SERVER_ERROR })
     }

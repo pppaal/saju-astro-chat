@@ -1,6 +1,6 @@
 'use client'
 
-import type { QualityAudit } from '@/lib/destiny-matrix/ai-report/qualityAudit'
+import type { QualityAudit } from '@/lib/matrix/ai-report/qualityAudit'
 import ReportSurfaceSection from './ReportSurfaceSection'
 
 type QualityAuditSectionProps = {

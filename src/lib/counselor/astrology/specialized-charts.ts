@@ -13,7 +13,7 @@ import {
   type DraconicComparison,
   type HarmonicChart,
   type HarmonicProfile,
-} from "@/lib/astrology";
+} from "@/lib/astro";
 import { logger } from "@/lib/logger";
 
 export interface DraconicResult {

@@ -1,5 +1,5 @@
-import type { DomainKey } from '@/lib/destiny-matrix/types'
-import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
+import type { DomainKey } from '@/lib/matrix/types'
+import type { InsightDomain } from '@/lib/matrix/interpreter/types'
 
 export type CounselorEmotionalTone =
   | 'steady'

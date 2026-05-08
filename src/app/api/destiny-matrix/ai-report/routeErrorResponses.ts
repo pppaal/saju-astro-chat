@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { wrapError } from '@/lib/destiny-matrix/errors'
+import { wrapError } from '@/lib/matrix/errors'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 export function buildAiReportErrorResponse(error: unknown) {

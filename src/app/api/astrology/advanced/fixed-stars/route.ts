@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/fixed-stars/route.ts
+// src/app/api/astro/advanced/fixed-stars/route.ts
 // 항성 (Fixed Stars) 분석 API 엔드포인트
 
 import { NextRequest } from 'next/server'
@@ -18,7 +18,7 @@ import {
   toChart,
   findFixedStarConjunctions,
   getAllFixedStars,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 type FixedStarsResponse = {
@@ -99,7 +99,7 @@ export const POST = withApiMiddleware<FixedStarsResponse>(
         headers: { 'Cache-Control': 'no-store' },
       }
     } catch (error: unknown) {
-      captureServerError(error, { route: '/api/astrology/advanced/fixed-stars' })
+      captureServerError(error, { route: '/api/astro/advanced/fixed-stars' })
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
   },

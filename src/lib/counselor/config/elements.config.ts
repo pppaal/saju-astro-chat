@@ -4,8 +4,8 @@
  */
 
 // Re-export from centralized locations
-export { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/constants';
-export { STEM_NAMES as STEMS, BRANCH_NAMES as BRANCHES } from '@/lib/Saju/constants';
+export { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/saju/constants';
+export { STEM_NAMES as STEMS, BRANCH_NAMES as BRANCHES } from '@/lib/saju/constants';
 
 // Re-export 한글 키 버전 (constants.ts에 정의된 것)
 export {
@@ -15,7 +15,7 @@ export {
   XING as XING_KO,
   HAI as HAI_KO,
   PA as PA_KO,
-} from '@/lib/Saju/constants';
+} from '@/lib/saju/constants';
 
 // 오행 관계 (상생/상극) - 영어 키
 export const ELEMENT_RELATIONS: Record<string, { generates: string; controls: string; generatedBy: string; controlledBy: string }> = {
@@ -42,7 +42,7 @@ export const SAMHAP: Record<string, string[]> = {
 };
 
 // 육합/충/형/해 - 지지 간 관계는 동일하므로 constants.ts 재사용
-export { YUKHAP, CHUNG, XING, HAI } from '@/lib/Saju/constants';
+export { YUKHAP, CHUNG, XING, HAI } from '@/lib/saju/constants';
 
 // 점성술 원소 → 사주 원소 변환
 export const ZODIAC_TO_ELEMENT: Record<string, string> = {

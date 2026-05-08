@@ -3,11 +3,11 @@
  * 십신-하우스 융합 분석
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { SIBSIN_HOUSE_MATRIX, HOUSE_KEYWORDS } from '@/lib/destiny-matrix/data/layer3-sibsin-house';
-import { SIBSIN_KEYWORDS } from '@/lib/destiny-matrix/data/layer2-sibsin-planet';
-import type { HouseNumber } from '@/lib/destiny-matrix/types';
-import type { SibsinKind } from '@/lib/Saju/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { SIBSIN_HOUSE_MATRIX, HOUSE_KEYWORDS } from '@/lib/matrix/data/layer3-sibsin-house';
+import { SIBSIN_KEYWORDS } from '@/lib/matrix/data/layer2-sibsin-planet';
+import type { HouseNumber } from '@/lib/matrix/types';
+import type { SibsinKind } from '@/lib/saju/types';
 import type { SajuData } from '../../types';
 import type { SibsinHouseResult } from './types';
 

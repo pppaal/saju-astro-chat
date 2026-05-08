@@ -1,6 +1,6 @@
 'use client'
 
-import type { ExtendedAnalysis } from '@/lib/Saju/extendedAnalysis'
+import type { ExtendedAnalysis } from '@/lib/saju/extendedAnalysis'
 
 const DOMAIN_ICON: Record<string, string> = {
   marriage: '💍',

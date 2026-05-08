@@ -1,9 +1,9 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import { generateAIPremiumReport } from '../src/lib/destiny-matrix/ai-report/aiReportService'
-import type { MatrixCalculationInput, MatrixSummary } from '../src/lib/destiny-matrix/types'
-import type { FusionReport } from '../src/lib/destiny-matrix/interpreter/types'
-import type { FiveElement } from '../src/lib/Saju/types'
+import { generateAIPremiumReport } from '../src/lib/matrix/ai-report/aiReportService'
+import type { MatrixCalculationInput, MatrixSummary } from '../src/lib/matrix/types'
+import type { FusionReport } from '../src/lib/matrix/interpreter/types'
+import type { FiveElement } from '../src/lib/saju/types'
 
 function argValue(flag: string): string | undefined {
   const idx = process.argv.indexOf(flag)

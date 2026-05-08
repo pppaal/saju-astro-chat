@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/progressions/route.ts
+// src/app/api/astro/advanced/progressions/route.ts
 // Secondary Progressions & Solar Arc API 엔드포인트
 
 import { NextResponse } from 'next/server'
@@ -13,7 +13,7 @@ import {
   calculateSolarArcDirections,
   getProgressedMoonPhase,
   getProgressionSummary,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    captureServerError(error, { route: '/api/astrology/advanced/progressions' })
+    captureServerError(error, { route: '/api/astro/advanced/progressions' })
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       route: 'astrology/advanced/progressions',

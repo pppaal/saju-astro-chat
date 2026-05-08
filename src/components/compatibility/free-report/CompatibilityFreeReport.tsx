@@ -117,7 +117,7 @@ const CompatibilityFreeReport = memo(function CompatibilityFreeReport({
       return {
         dayMaster: {
           name: dayMasterName,
-          element: dayMasterElement as import('@/lib/Saju/types').FiveElement,
+          element: dayMasterElement as import('@/lib/saju/types').FiveElement,
           yin_yang: dayMasterYinYang as 'yin' | 'yang',
         },
         pillars: {

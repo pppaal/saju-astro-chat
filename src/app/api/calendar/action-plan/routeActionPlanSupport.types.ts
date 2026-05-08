@@ -1,4 +1,4 @@
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+import type { CalendarCoreAdapterResult } from '@/lib/matrix/core/adapters'
 import type { TimelineTone } from './routeActionPlanCommon'
 
 export type SlotType =
@@ -135,7 +135,7 @@ export type ActionPlanCalendarContext = {
     study?: number
   }
   /** 사용자 인격 fingerprint — buildPersonalityProfile() 결과 (선택) */
-  personalityProfile?: import('@/lib/destiny-matrix/personality').PersonalityProfile
+  personalityProfile?: import('@/lib/matrix/personality').PersonalityProfile
 } | null
 
 export type ActionPlanInsights = {

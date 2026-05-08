@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/rectification/route.ts
+// src/app/api/astro/advanced/rectification/route.ts
 // 출생 시간 교정(Rectification) API 엔드포인트
 
 import { NextResponse } from 'next/server'
@@ -16,7 +16,7 @@ import {
   type LifeEvent,
   type LifeEventType,
   type ZodiacKo,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { RectificationRequestSchema } from '@/lib/api/astrology-validation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
@@ -200,7 +200,7 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    captureServerError(error, { route: '/api/astrology/advanced/rectification' })
+    captureServerError(error, { route: '/api/astro/advanced/rectification' })
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       route: 'astrology/advanced/rectification',
@@ -280,7 +280,7 @@ export async function GET(request: Request) {
     limit.headers.forEach((value, key) => res.headers.set(key, value))
     return res
   } catch (error: unknown) {
-    captureServerError(error, { route: '/api/astrology/advanced/rectification GET' })
+    captureServerError(error, { route: '/api/astro/advanced/rectification GET' })
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       route: 'astrology/advanced/rectification',

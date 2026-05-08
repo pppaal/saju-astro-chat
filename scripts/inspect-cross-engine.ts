@@ -3,9 +3,9 @@
  *
  * Run: npx tsx scripts/inspect-cross-engine.ts
  */
-import { runMainSaju } from '../src/lib/saju-engine'
-import { runAstroEngine } from '../src/lib/astro-engine'
-import { runCrossEngine, THEME_LABEL, HORIZON_LABEL, type ThemeKind, type Horizon } from '../src/lib/cross-engine'
+import { runMainSaju } from '../src/lib/saju/engine'
+import { runAstroEngine } from '../src/lib/astro/engine'
+import { runCrossEngine, THEME_LABEL, HORIZON_LABEL, type ThemeKind, type Horizon } from '../src/lib/matrix/cross'
 
 async function main() {
   const saju = runMainSaju({

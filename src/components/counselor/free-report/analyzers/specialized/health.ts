@@ -5,12 +5,12 @@
 
 import { logger } from '@/lib/logger';
 import { iga } from '@/lib/i18n/koParticle';
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { TWELVE_STAGE_INFO } from '@/lib/destiny-matrix/data/layer6-stage-house';
-import { SHINSAL_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer8-shinsal-planet';
-import { EXTRAPOINT_INFO } from '@/lib/destiny-matrix/data/layer10-extrapoint-element';
-import type { HouseNumber, ShinsalKind } from '@/lib/destiny-matrix/types';
-import type { FiveElement, TwelveStage, TwelveStageStandard } from '@/lib/Saju/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { TWELVE_STAGE_INFO } from '@/lib/matrix/data/layer6-stage-house';
+import { SHINSAL_PLANET_MATRIX } from '@/lib/matrix/data/layer8-shinsal-planet';
+import { EXTRAPOINT_INFO } from '@/lib/matrix/data/layer10-extrapoint-element';
+import type { HouseNumber, ShinsalKind } from '@/lib/matrix/types';
+import type { FiveElement, TwelveStage, TwelveStageStandard } from '@/lib/saju/types';
 import type { SajuData, AstroData } from '../../types';
 import type { HealthMatrixResult, ExtendedSajuData } from '../types/specialized.types';
 import { ElementRelations } from '../shared/elementRelations';

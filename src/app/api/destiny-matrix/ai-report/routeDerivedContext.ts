@@ -1,11 +1,11 @@
-import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
+import { buildAstroTimingIndex } from '@/lib/matrix/astroTimingIndex'
 import type {
   AstrologySnapshot,
   CrossSnapshot,
   MatrixCalculationInput,
   SajuSnapshot,
-} from '@/lib/destiny-matrix/types'
-import type { TimingData } from '@/lib/destiny-matrix/ai-report/types'
+} from '@/lib/matrix/types'
+import type { TimingData } from '@/lib/matrix/ai-report/types'
 import { logger } from '@/lib/logger'
 import {
   buildCrossEvidence,
@@ -24,13 +24,13 @@ import {
   type DerivedCrossDomain,
   type DerivedDomainScore,
 } from './routeDerivedContext.support'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { getShinsalHits, getTwelveStagesForPillars } from '@/lib/Saju/shinsal'
-import { buildOrthodoxInterpretation } from '@/lib/Saju/orthodoxInterpretation'
-import { STEMS as SAJU_STEMS } from '@/lib/Saju/constants'
-import type { FiveElement } from '@/lib/Saju/types'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { analyzeAdvancedSaju } from '@/lib/saju/astrologyengine'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
+import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
+import { STEMS as SAJU_STEMS } from '@/lib/saju/constants'
+import type { FiveElement } from '@/lib/saju/types'
 import {
   calculateAllAsteroids,
   calculateExtraPoints,
@@ -49,7 +49,7 @@ import {
   generateHarmonicProfile,
   getUpcomingEclipses,
   toChart,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 
 const ELEMENT_MAP: Record<string, FiveElement> = {
   목: '목',

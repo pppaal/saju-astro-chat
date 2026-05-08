@@ -3,8 +3,8 @@ import type {
   ReportTheme,
   ThemedAIPremiumReport,
   TimingAIPremiumReport,
-} from '@/lib/destiny-matrix/ai-report/types'
-import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
+} from '@/lib/matrix/ai-report/types'
+import type { AIPremiumReport } from '@/lib/matrix/ai-report/reportTypes'
 
 export type ReportTier = 'free' | 'premium'
 

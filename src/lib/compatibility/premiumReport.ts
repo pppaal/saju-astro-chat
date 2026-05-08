@@ -1,12 +1,12 @@
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { calculateNatalChart } from '@/lib/astro/astrologyService'
 import {
   buildCoupleMatrix,
   type CoupleMatrixResult,
   type CoupleMatrixCell,
 } from '@/lib/compatibility/coupleMatrix'
-import { buildOrthodoxInterpretation } from '@/lib/Saju/orthodoxInterpretation'
-import type { CalculateSajuDataResult } from '@/lib/Saju/types'
+import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
+import type { CalculateSajuDataResult } from '@/lib/saju/types'
 
 export interface CompatibilityPremiumInput {
   a: { name?: string; date: string; time: string; gender: 'male' | 'female' }

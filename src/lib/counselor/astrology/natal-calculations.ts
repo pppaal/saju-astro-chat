@@ -11,7 +11,7 @@ import {
   type Chart,
   type AstrologyChartFacts,
   type PlanetData,
-} from "@/lib/astrology";
+} from "@/lib/astro";
 
 import { logger } from "@/lib/logger";
 

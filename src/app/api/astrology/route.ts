@@ -13,7 +13,7 @@ import {
   resolveOptions,
   findNatalAspectsPlus,
   buildEngineMeta,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import {
   pickLabels,
   normalizeLocale,
@@ -21,7 +21,7 @@ import {
   localizeSignLabel,
   localizePlanetLabel,
   parseHM,
-} from '@/lib/astrology/localization'
+} from '@/lib/astro/localization'
 import { logger } from '@/lib/logger'
 import { validateRequestBody, astrologyRequestSchema } from '@/lib/api/zodValidation'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'

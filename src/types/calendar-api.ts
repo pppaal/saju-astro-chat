@@ -8,7 +8,7 @@ import type {
   ImportanceGrade,
   ImportantDate,
 } from '@/lib/counselor/destinyCalendar'
-import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+import type { CounselorEvidencePacket } from '@/lib/matrix/counselorEvidence'
 
 // ============ Request Types ============
 

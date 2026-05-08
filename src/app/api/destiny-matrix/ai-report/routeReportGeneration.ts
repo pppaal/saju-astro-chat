@@ -3,30 +3,30 @@ import {
   generateAIPremiumReport,
   generateTimingReport,
   generateThemedReport,
-} from '@/lib/destiny-matrix/ai-report/aiReportService'
-import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
+} from '@/lib/matrix/ai-report/aiReportService'
+import type { AIPremiumReport } from '@/lib/matrix/ai-report/reportTypes'
 import type {
   ReportPeriod,
   ReportTheme,
   TimingAIPremiumReport,
   TimingData,
   ThemedAIPremiumReport,
-} from '@/lib/destiny-matrix/ai-report/types'
+} from '@/lib/matrix/ai-report/types'
 import {
   evaluateThemedReportQuality,
   buildCalculationDetails,
-} from '@/lib/destiny-matrix/ai-report/qualityAudit'
-import { buildPreciseTimelineSummary } from '@/lib/destiny-matrix/monthlyTimelinePrecise'
-import { applyRuntimeCalibration } from '@/lib/destiny-matrix/calibrationRuntime'
-import type { MatrixCalculationInput, MatrixCell, MatrixSummary } from '@/lib/destiny-matrix/types'
-import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
-import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
-import type { AIUserPlan } from '@/lib/destiny-matrix/ai-report/reportTypes'
-import type { DeterministicProfile } from '@/lib/destiny-matrix/ai-report/deterministicCoreConfig'
+} from '@/lib/matrix/ai-report/qualityAudit'
+import { buildPreciseTimelineSummary } from '@/lib/matrix/monthlyTimelinePrecise'
+import { applyRuntimeCalibration } from '@/lib/matrix/calibrationRuntime'
+import type { MatrixCalculationInput, MatrixCell, MatrixSummary } from '@/lib/matrix/types'
+import type { FusionReport } from '@/lib/matrix/interpreter/types'
+import type { InsightDomain } from '@/lib/matrix/interpreter/types'
+import type { AIUserPlan } from '@/lib/matrix/ai-report/reportTypes'
+import type { DeterministicProfile } from '@/lib/matrix/ai-report/deterministicCoreConfig'
 import type {
   DestinyTimingGranularity,
   DestinyTimingWindow,
-} from '@/lib/destiny-matrix/core/logging'
+} from '@/lib/matrix/core/logging'
 
 
 type RouteAiReport = AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport

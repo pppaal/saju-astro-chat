@@ -5,16 +5,16 @@ import {
   generateHarmonicProfile,
   analyzeAgeHarmonic,
   getHarmonicMeaning,
-} from "@/lib/astrology/foundation/harmonics";
+} from "@/lib/astro/harmonics";
 import {
   findEclipseImpact,
   getUpcomingEclipses,
   checkEclipseSensitivity,
-} from "@/lib/astrology/foundation/eclipses";
+} from "@/lib/astro/eclipses";
 import {
   findFixedStarConjunctions,
-} from "@/lib/astrology/foundation/fixedStars";
-import { toChart, type NatalChartData } from "@/lib/astrology";
+} from "@/lib/astro/fixedStars";
+import { toChart, type NatalChartData } from "@/lib/astro";
 import { logger } from "@/lib/logger";
 
 export interface Tier4AnalysisInput {

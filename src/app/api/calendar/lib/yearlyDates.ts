@@ -2,16 +2,16 @@ import type {
   DomainKey,
   MonthlyOverlapPoint,
   TimingCalibrationSummary,
-} from '@/lib/destiny-matrix/types'
+} from '@/lib/matrix/types'
 import type { EventCategory, ImportanceGrade } from '@/lib/counselor/calendar/types'
 import type { UserAstroProfile, UserSajuProfile } from '@/lib/counselor/calendar/types'
-import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/Saju/johuYongsin'
+import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/saju/johuYongsin'
 import { calculateDailyPillar } from '@/lib/prediction/ultra-precision-daily'
 import {
   elementOfBranch,
   getMonthPillarForDate,
-} from '@/lib/Saju/datePillars'
-import { getShinsalHitsForDailyTarget } from '@/lib/Saju/shinsal'
+} from '@/lib/saju/datePillars'
+import { getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
 import { calculateUltraPrecisionScore } from '@/lib/prediction/ultraPrecisionEngine'
 import type { UltraPrecisionScore } from '@/lib/prediction/ultra-precision-types'
 import { getPlanetaryHourPlanet } from '@/lib/prediction/ultra-precision-helpers'
@@ -297,7 +297,7 @@ function seasonElement(month: number): 'wood' | 'fire' | 'earth' | 'metal' | 'wa
   return 'water'
 }
 
-// seasonElementOfBranch lives in @/lib/Saju/datePillars (elementOfBranch)
+// seasonElementOfBranch lives in @/lib/saju/datePillars (elementOfBranch)
 // so saju engine + calendar engine share one mapping.
 
 const ELEMENT_RELATIONS: Record<string, Record<string, 'same' | 'support' | 'drain' | 'control' | 'controlled'>> = {
@@ -324,11 +324,11 @@ const ELEMENT_KO_TO_EN_MAP: Record<string, 'wood' | 'fire' | 'earth' | 'metal' |
 }
 // Branches in standard 60갑자 order (子=0 … 亥=11). Used for index math
 // in 60갑자 / 공망 lookups only — solar-term-correct month branch for
-// a given DATE comes from @/lib/Saju/datePillars.getMonthPillarForDate.
+// a given DATE comes from @/lib/saju/datePillars.getMonthPillarForDate.
 const BRANCHES_BY_INDEX = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
 
 // Saju 月支/月干 are bound by 절기 (solar terms), not calendar months.
-// The shared helper at @/lib/Saju/datePillars handles the boundary
+// The shared helper at @/lib/saju/datePillars handles the boundary
 // lookup against the same KASI 절기 table the main saju engine uses —
 // callers go through getMonthPillarForDate(date).
 

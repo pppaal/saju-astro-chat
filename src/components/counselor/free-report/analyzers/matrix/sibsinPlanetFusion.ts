@@ -3,10 +3,10 @@
  * 십신-행성 융합 분석
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { SIBSIN_PLANET_MATRIX, PLANET_KEYWORDS, SIBSIN_KEYWORDS } from '@/lib/destiny-matrix/data/layer2-sibsin-planet';
-import type { PlanetName } from '@/lib/destiny-matrix/types';
-import type { SibsinKind } from '@/lib/Saju/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { SIBSIN_PLANET_MATRIX, PLANET_KEYWORDS, SIBSIN_KEYWORDS } from '@/lib/matrix/data/layer2-sibsin-planet';
+import type { PlanetName } from '@/lib/matrix/types';
+import type { SibsinKind } from '@/lib/saju/types';
 import type { SajuData } from '../../types';
 import type { SibsinPlanetResult } from './types';
 

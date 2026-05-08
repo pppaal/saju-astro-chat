@@ -3,8 +3,8 @@ import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiCont
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { logger } from '@/lib/logger'
-import { simulateScenario, compareScenarios } from '@/lib/destiny-matrix/scenario'
-import type { ScenarioAction } from '@/lib/destiny-matrix/scenario'
+import { simulateScenario, compareScenarios } from '@/lib/matrix/scenario'
+import type { ScenarioAction } from '@/lib/matrix/scenario'
 
 const VALID_ACTIONS: readonly ScenarioAction[] = [
   'careerChange', 'startBusiness', 'marriage', 'meetSomeone',
@@ -80,7 +80,7 @@ export const POST = withApiMiddleware(
     }
   },
   createPublicStreamGuard({
-    route: '/api/destiny-matrix/scenario',
+    route: '/api/matrix/scenario',
     limit: 30,
     windowSeconds: 60,
   })

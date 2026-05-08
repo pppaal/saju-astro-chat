@@ -9,7 +9,7 @@
  *   with a major astro transit
  */
 
-import type { Chart, PlanetBase } from '@/lib/astrology/foundation/types'
+import type { Chart, PlanetBase } from '@/lib/astro/types'
 
 export interface AstroEraCard {
   planet: 'Saturn' | 'Jupiter'

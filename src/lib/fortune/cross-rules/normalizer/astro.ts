@@ -5,7 +5,7 @@
 // that itself participates in a tight natal hard aspect, we emit an
 // activation signal. That's how "잠재 패턴이 지금 발화" is surfaced.
 
-import type { AspectHit, Chart, PlanetBase } from '@/lib/astrology/foundation/types'
+import type { AspectHit, Chart, PlanetBase } from '@/lib/astro/types'
 import { SIGN_TO_ASTRO_ELEMENT } from '../bridges/element'
 import type { AstroSignal } from '../types'
 import type { AstroExtrasInput } from '../adapters/astro'

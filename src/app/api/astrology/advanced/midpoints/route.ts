@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/midpoints/route.ts
+// src/app/api/astro/advanced/midpoints/route.ts
 // 미드포인트 (Midpoints) 분석 API 엔드포인트
 
 import { NextRequest } from 'next/server'
@@ -18,7 +18,7 @@ import {
   toChart,
   calculateMidpoints,
   findMidpointActivations,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 type MidpointsResponse = {
@@ -117,7 +117,7 @@ export const POST = withApiMiddleware<MidpointsResponse>(
         headers: { 'Cache-Control': 'no-store' },
       }
     } catch (error: unknown) {
-      captureServerError(error, { route: '/api/astrology/advanced/midpoints' })
+      captureServerError(error, { route: '/api/astro/advanced/midpoints' })
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
   },

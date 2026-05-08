@@ -1,6 +1,6 @@
 // 종합 진단: 1995-02-09 06:40 서울 男 / query 2026-04-28
 // 사주 + 점성 모든 계산 단계 검증
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { buildSajuNormalizerInput } from '@/lib/fortune/cross-rules/adapters/saju'
 import { buildAstroNormalizerInput, dignityOf } from '@/lib/fortune/cross-rules/adapters/astro'
 

@@ -41,20 +41,20 @@ import type {
   PremiumReportData as ReportData,
   ReportSection,
 } from '@/app/premium-reports/_lib/types'
-import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
+import type { InterpretedAnswerContract } from '@/lib/matrix/interpretedAnswer'
 import {
   toQualityMarkdown,
   type QualityAudit,
   type CalculationDetails,
-} from '@/lib/destiny-matrix/ai-report/qualityAudit'
+} from '@/lib/matrix/ai-report/qualityAudit'
 import {
   normalizeReportTheme,
   type ReportThemeValue,
-} from '@/lib/destiny-matrix/ai-report/themeSchema'
+} from '@/lib/matrix/ai-report/themeSchema'
 import type {
   AdapterPersonModel,
   AdapterSingleSubjectView,
-} from '@/lib/destiny-matrix/core/adaptersTypes'
+} from '@/lib/matrix/core/adaptersTypes'
 import { readPremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 
 const REPORT_FETCH_MAX_RETRIES = 8
@@ -550,7 +550,7 @@ export default function ReportResultPage() {
 
   const handleDownloadPDF = async () => {
     try {
-      const response = await fetch(`/api/destiny-matrix/ai-report?reportId=${reportId}&format=pdf`)
+      const response = await fetch(`/api/matrix/ai-report?reportId=${reportId}&format=pdf`)
       if (!response.ok) {
         alert('PDF 다운로드에 실패했습니다.')
         return

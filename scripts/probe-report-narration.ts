@@ -3,10 +3,10 @@
  * 1995-02-09 06:40 Seoul male — 진짜 ephemeris 기반 점성 + 사주 narration.
  * 격국·신살은 destiny-matrix 엔진 호출 필요 — 일부는 try/catch로 graceful.
  */
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { calculateNatalChart } from '../src/lib/astrology/foundation/astrologyService'
-import { findNatalAspects } from '../src/lib/astrology/foundation/aspects'
-import { synthesizeExpertNarrationKo } from '../src/lib/destiny-matrix/ai-report/sajuNarrationBridge'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { calculateNatalChart } from '../src/lib/astro/astrologyService'
+import { findNatalAspects } from '../src/lib/astro/aspects'
+import { synthesizeExpertNarrationKo } from '../src/lib/matrix/ai-report/sajuNarrationBridge'
 
 const SIGN_EL: Record<string, string> = {
   Aries: 'fire', Leo: 'fire', Sagittarius: 'fire',

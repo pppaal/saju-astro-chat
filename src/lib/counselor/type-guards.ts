@@ -4,7 +4,7 @@
  * Eliminates need for 'as unknown as' casts
  */
 
-import type { Chart } from '@/lib/astrology/foundation/types';
+import type { Chart } from '@/lib/astro/types';
 
 /**
  * Type guard for Chart objects

@@ -23,7 +23,7 @@ import {
   type Midpoint,
   type MidpointActivation,
   type PlanetData,
-} from '@/lib/astrology';
+} from '@/lib/astro';
 
 import { logger } from '@/lib/logger';
 import type { ElectionalResult, MidpointsResult } from './types';

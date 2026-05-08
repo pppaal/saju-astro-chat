@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server'
 import {
   summarizeEvidenceEvidence,
   type DestinyMatrixEvidenceSummary,
-} from '@/lib/destiny-matrix/ai-report/structuredEvidence'
-import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
+} from '@/lib/matrix/ai-report/structuredEvidence'
+import type { AIPremiumReport } from '@/lib/matrix/ai-report/reportTypes'
 import type {
   TimingAIPremiumReport,
   ThemedAIPremiumReport,
-} from '@/lib/destiny-matrix/ai-report/types'
-import { persistDestinyPredictionSnapshot } from '@/lib/destiny-matrix/predictionSnapshot'
-import type { MatrixSummary } from '@/lib/destiny-matrix/types'
+} from '@/lib/matrix/ai-report/types'
+import { persistDestinyPredictionSnapshot } from '@/lib/matrix/predictionSnapshot'
+import type { MatrixSummary } from '@/lib/matrix/types'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 type GeneratedAiReport =

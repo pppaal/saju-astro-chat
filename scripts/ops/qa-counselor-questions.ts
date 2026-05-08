@@ -1,12 +1,12 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { runDestinyCore } from '../../src/lib/destiny-matrix/core/runDestinyCore'
-import { adaptCoreToCounselor } from '../../src/lib/destiny-matrix/core/adapters'
+import { runDestinyCore } from '../../src/lib/matrix/core/runDestinyCore'
+import { adaptCoreToCounselor } from '../../src/lib/matrix/core/adapters'
 import {
   buildCounselorEvidencePacket,
   formatCounselorEvidencePacket,
-} from '../../src/lib/destiny-matrix/counselorEvidence'
+} from '../../src/lib/matrix/counselorEvidence'
 import {
   createCaseFixture,
   createCounselorRegressionCases,

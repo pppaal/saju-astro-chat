@@ -1,7 +1,7 @@
 ﻿import { prisma } from '@/lib/db/prisma'
-import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
-import type { DestinyMatrixEvidenceSummary } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
-import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types'
+import type { AIPremiumReport } from '@/lib/matrix/ai-report/reportTypes'
+import type { DestinyMatrixEvidenceSummary } from '@/lib/matrix/ai-report/structuredEvidence'
+import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/matrix/ai-report/types'
 import { canUseFeature } from '@/lib/credits/creditService'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { NextResponse } from 'next/server'
@@ -98,7 +98,7 @@ export async function buildGeneratedReportResponse(input: {
   reportSummary: string
   report: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
   premiumReport: AIPremiumReport | null
-  matrixSummaryForGeneration?: import('@/lib/destiny-matrix/types').MatrixSummary
+  matrixSummaryForGeneration?: import('@/lib/matrix/types').MatrixSummary
   destinyMatrixEvidenceSummary: DestinyMatrixEvidenceSummary
 }) {
   if (input.format === 'pdf') {
@@ -117,7 +117,7 @@ export async function buildGeneratedReportResponse(input: {
       )
     }
 
-    const { generateFivePagePDF, generatePremiumPDF } = await import('@/lib/destiny-matrix/ai-report/pdfGenerator')
+    const { generateFivePagePDF, generatePremiumPDF } = await import('@/lib/matrix/ai-report/pdfGenerator')
     const pdfBytes = input.premiumReport
       ? await generatePremiumPDF(input.premiumReport)
       : await generateFivePagePDF(input.report)

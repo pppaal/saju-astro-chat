@@ -17,7 +17,7 @@
  *  L6 daewoon sync        — A current 대운 × B current 대운 element flow
  */
 
-import type { CalculateSajuDataResult, FiveElement } from '@/lib/Saju/types'
+import type { CalculateSajuDataResult, FiveElement } from '@/lib/saju/types'
 
 // ──────────────────────────────────────────────────────────────────────
 // Shared types

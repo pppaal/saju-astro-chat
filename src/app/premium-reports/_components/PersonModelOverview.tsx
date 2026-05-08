@@ -1,7 +1,7 @@
 'use client'
 
 import { Clock3, Compass, Layers3 } from 'lucide-react'
-import type { AdapterPersonModel } from '@/lib/destiny-matrix/core/adaptersTypes'
+import type { AdapterPersonModel } from '@/lib/matrix/core/adaptersTypes'
 
 type PersonModelOverviewProps = {
   personModel: AdapterPersonModel

@@ -1,6 +1,6 @@
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '../src/lib/Saju/constants'
-import { calculateNatalChart } from '../src/lib/astrology/foundation/astrologyService'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '../src/lib/saju/constants'
+import { calculateNatalChart } from '../src/lib/astro/astrologyService'
 import { calculateYearlyImportantDates } from '../src/lib/destiny-map/destinyCalendar'
 
 type CalendarDate = {

@@ -20,7 +20,7 @@ import type {
   TransitAspect,
   LightPoint,
 } from './types';
-import type { PlanetData } from '@/lib/astrology';
+import type { PlanetData } from '@/lib/astro';
 
 // ======================================================
 // Input Masking (Privacy)

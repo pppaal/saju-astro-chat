@@ -3,7 +3,7 @@
  * 매트릭스 분석에서 공통으로 사용되는 상수들
  */
 
-import type { ShinsalKind } from '@/lib/destiny-matrix/types';
+import type { ShinsalKind } from '@/lib/matrix/types';
 
 /**
  * 건강 관련 오행별 장기 매핑

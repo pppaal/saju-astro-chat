@@ -3,10 +3,10 @@
  * 생애주기-하우스 분석
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { TWELVE_STAGE_HOUSE_MATRIX, TWELVE_STAGE_INFO } from '@/lib/destiny-matrix/data/layer6-stage-house';
-import type { HouseNumber, PlanetName } from '@/lib/destiny-matrix/types';
-import type { TwelveStage, TwelveStageStandard } from '@/lib/Saju/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { TWELVE_STAGE_HOUSE_MATRIX, TWELVE_STAGE_INFO } from '@/lib/matrix/data/layer6-stage-house';
+import type { HouseNumber, PlanetName } from '@/lib/matrix/types';
+import type { TwelveStage, TwelveStageStandard } from '@/lib/saju/types';
 import type { SajuData, AstroData } from '../../types';
 import type { LifeCycleResult } from './types';
 

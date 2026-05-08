@@ -13,8 +13,8 @@
  *
  * 가중치: Matrix 0.55 (calibration 튜닝됨) / Cross 0.45 (시그널 풍부)
  */
-import type { CrossEngineOutput, ThemeKind } from '../../cross-engine'
-import type { DestinyFusionMatrixComputed } from '../../destiny-matrix/types'
+import type { CrossEngineOutput, ThemeKind } from '../../matrix/cross'
+import type { DestinyFusionMatrixComputed } from '../../matrix/types'
 
 export interface UnifiedDomainScore {
   domain: ThemeKind | 'move'

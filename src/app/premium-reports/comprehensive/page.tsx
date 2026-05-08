@@ -23,7 +23,7 @@ import {
 } from '@/app/premium-reports/_lib/shared'
 import { usePremiumReportProfile } from '@/app/premium-reports/_lib/usePremiumReportProfile'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
-import { REPORT_CREDIT_COSTS } from '@/lib/destiny-matrix/ai-report'
+import { REPORT_CREDIT_COSTS } from '@/lib/matrix/ai-report'
 
 const FEATURES = [
   '연애·커리어·재물·건강·가족·이동 6 영역 통합',
@@ -102,7 +102,7 @@ export default function ComprehensiveReportPage() {
     analytics.premiumReportStart('comprehensive')
 
     try {
-      const response = await fetch('/api/destiny-matrix/ai-report', {
+      const response = await fetch('/api/matrix/ai-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

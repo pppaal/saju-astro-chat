@@ -3,7 +3,7 @@
 import type {
   AdapterPersonModel,
   AdapterSingleSubjectView,
-} from '@/lib/destiny-matrix/core/adaptersTypes'
+} from '@/lib/matrix/core/adaptersTypes'
 import ReportSurfaceSection from '@/app/premium-reports/_components/ReportSurfaceSection'
 
 type SingleSubjectViewSectionProps = {

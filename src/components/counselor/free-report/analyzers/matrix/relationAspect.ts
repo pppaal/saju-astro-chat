@@ -3,9 +3,9 @@
  * 관계-애스펙트 분석
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { RELATION_ASPECT_MATRIX } from '@/lib/destiny-matrix/data/layer5-relation-aspect';
-import type { BranchRelation, InteractionCode } from '@/lib/destiny-matrix/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { RELATION_ASPECT_MATRIX } from '@/lib/matrix/data/layer5-relation-aspect';
+import type { BranchRelation, InteractionCode } from '@/lib/matrix/types';
 import type { SajuData, AstroData } from '../../types';
 import type { RelationAspectResult } from './types';
 

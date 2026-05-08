@@ -6,12 +6,12 @@ import {
   getMoonPhaseName,
   checkVoidOfCourse,
   getRetrogradePlanets,
-} from "@/lib/astrology/foundation/electional";
+} from "@/lib/astro/electional";
 import {
   analyzePatterns,
   getPatternStatistics,
-} from "@/lib/Saju/patternMatcher";
-import type { Chart, PlanetBase } from "@/lib/astrology";
+} from "@/lib/saju/patternMatcher";
+import type { Chart, PlanetBase } from "@/lib/astro";
 import type { SajuDataStructure, AstroDataStructure } from "../lib/types";
 import { logger } from "@/lib/logger";
 
@@ -127,7 +127,7 @@ export function generateTier3Analysis(input: Tier3AnalysisInput): Tier3AnalysisR
 
     // 4. 사주 패턴 분석 (희귀도)
     if (saju?.pillars) {
-      const patternAnalysis = analyzePatterns(saju.pillars as unknown as import("@/lib/Saju/types").SajuPillars);
+      const patternAnalysis = analyzePatterns(saju.pillars as unknown as import("@/lib/saju/types").SajuPillars);
       if (patternAnalysis.matchedPatterns.length > 0) {
         parts.push("");
         parts.push(lang === "ko" ? "--- 사주 패턴 분석 ---" : "--- Saju Pattern Analysis ---");

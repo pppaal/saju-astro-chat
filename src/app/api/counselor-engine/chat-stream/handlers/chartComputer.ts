@@ -4,8 +4,8 @@
  * 사주/점성술 차트 계산
  */
 
-import { calculateSajuData } from '@/lib/Saju/saju';
-import { calculateNatalChart, calculateTransitChart, findMajorTransits, toChart } from '@/lib/astrology';
+import { calculateSajuData } from '@/lib/saju/saju';
+import { calculateNatalChart, calculateTransitChart, findMajorTransits, toChart } from '@/lib/astro';
 import { toSajuDataStructure } from '@/lib/counselor/type-guards';
 import { logger } from '@/lib/logger';
 import type { SajuDataStructure, AstroDataStructure } from '../lib';

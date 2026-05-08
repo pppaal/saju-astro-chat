@@ -1,31 +1,31 @@
-import { calculateSajuData } from '../../src/lib/Saju/saju'
-import { analyzeAdvancedSaju } from '../../src/lib/Saju/astrologyengine'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '../../src/lib/Saju/relations'
-import { getShinsalHits, getTwelveStagesForPillars } from '../../src/lib/Saju/shinsal'
+import { calculateSajuData } from '../../src/lib/saju/saju'
+import { analyzeAdvancedSaju } from '../../src/lib/saju/astrologyengine'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '../../src/lib/saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars } from '../../src/lib/saju/shinsal'
 import { computeDestinyMap } from '../../src/lib/destiny-map/astrology'
 import { getRetrogradePlanetsForDate } from '../../src/lib/destiny-map/calendar/astrology/retrograde'
-import { calculateDestinyMatrix } from '../../src/lib/destiny-matrix/engine'
+import { calculateDestinyMatrix } from '../../src/lib/matrix/engine'
 import type {
   MatrixCalculationInput,
   PlanetName,
   TransitCycle,
   GeokgukType,
   MatrixHighlight,
-} from '../../src/lib/destiny-matrix/types'
-import { reportGenerator } from '../../src/lib/destiny-matrix/interpreter'
-import { runDestinyCore } from '../../src/lib/destiny-matrix/core/runDestinyCore'
-import { buildNextGenCorePipeline } from '../../src/lib/destiny-matrix/core/nextGenPipeline'
+} from '../../src/lib/matrix/types'
+import { reportGenerator } from '../../src/lib/matrix/interpreter'
+import { runDestinyCore } from '../../src/lib/matrix/core/runDestinyCore'
+import { buildNextGenCorePipeline } from '../../src/lib/matrix/core/nextGenPipeline'
 import {
   buildGraphRAGEvidence,
   summarizeGraphRAGEvidence,
-} from '../../src/lib/destiny-matrix/ai-report/graphRagEvidence'
-import { buildUnifiedEnvelope } from '../../src/lib/destiny-matrix/ai-report/unifiedReport'
+} from '../../src/lib/matrix/ai-report/graphRagEvidence'
+import { buildUnifiedEnvelope } from '../../src/lib/matrix/ai-report/unifiedReport'
 import type {
   ReportEvidenceRef,
   SectionEvidenceRefs,
-} from '../../src/lib/destiny-matrix/ai-report/evidenceRefs'
-import { buildCounselorEvidencePacket } from '../../src/lib/destiny-matrix/counselorEvidence'
-import { validateEvidenceBinding } from '../../src/lib/destiny-matrix/ai-report/rewriteGuards'
+} from '../../src/lib/matrix/ai-report/evidenceRefs'
+import { buildCounselorEvidencePacket } from '../../src/lib/matrix/counselorEvidence'
+import { validateEvidenceBinding } from '../../src/lib/matrix/ai-report/rewriteGuards'
 
 type Lang = 'ko' | 'en'
 type Mode = 'comprehensive' | 'calendar' | 'themed'
@@ -930,7 +930,7 @@ async function main() {
     step2_cosmic_engine_output: {
       saju: {
         functionPath:
-          'src/lib/Saju/saju.ts -> calculateSajuData + src/lib/Saju/astrologyengine.ts -> analyzeAdvancedSaju',
+          'src/lib/saju/saju.ts -> calculateSajuData + src/lib/saju/astrologyengine.ts -> analyzeAdvancedSaju',
         dayMaster: saju.dayMaster,
         geokguk: advancedSaju.geokguk,
         yongsin: advancedSaju.yongsin,
@@ -950,28 +950,28 @@ async function main() {
       },
     },
     step3_destiny_matrix_output: {
-      functionPath: 'src/lib/destiny-matrix/engine.ts -> calculateDestinyMatrix',
+      functionPath: 'src/lib/matrix/engine.ts -> calculateDestinyMatrix',
       topImpactCells: impactCells,
     },
     step4_signal_synthesis: {
       functionPath:
-        'src/lib/destiny-matrix/ai-report/signalSynthesizer.ts -> synthesizeMatrixSignals',
+        'src/lib/matrix/ai-report/signalSynthesizer.ts -> synthesizeMatrixSignals',
       strength: selectedTop.filter((s) => s.polarity === 'strength'),
       balance: selectedTop.filter((s) => s.polarity === 'balance'),
       caution: selectedTop.filter((s) => s.polarity === 'caution'),
     },
     step5_pattern_engine: {
-      functionPath: 'src/lib/destiny-matrix/core/patternEngine.ts -> buildPatternEngine',
+      functionPath: 'src/lib/matrix/core/patternEngine.ts -> buildPatternEngine',
       activatedPatterns,
       fallbackPattern: activatedPatterns.length === 0 ? 'phase_stabilize' : null,
     },
     step6_scenario_engine: {
-      functionPath: 'src/lib/destiny-matrix/core/scenarioEngine.ts -> buildScenarioEngine',
+      functionPath: 'src/lib/matrix/core/scenarioEngine.ts -> buildScenarioEngine',
       scenarios: topScenarios,
     },
     step7_strategy_engine: {
       functionPath:
-        'src/lib/destiny-matrix/ai-report/strategyEngine.ts -> buildPhaseStrategyEngine',
+        'src/lib/matrix/ai-report/strategyEngine.ts -> buildPhaseStrategyEngine',
       overallPhase: coreComprehensive.strategyEngine.overallPhase,
       overallPhaseLabel: coreComprehensive.strategyEngine.overallPhaseLabel,
       attack: coreComprehensive.strategyEngine.attackPercent,
@@ -986,7 +986,7 @@ async function main() {
       },
     },
     step8_decision_engine: {
-      functionPath: 'src/lib/destiny-matrix/core/decisionEngine.ts -> buildDecisionEngine',
+      functionPath: 'src/lib/matrix/core/decisionEngine.ts -> buildDecisionEngine',
       mode: coreComprehensive.decisionEngine.mode,
       topOptionId: coreComprehensive.decisionEngine.topOptionId,
       topOptionScore: coreComprehensive.decisionEngine.topOptionScore,
@@ -995,7 +995,7 @@ async function main() {
     },
     step9_core_envelope: {
       functionPath:
-        'src/lib/destiny-matrix/core/runDestinyCore.ts -> runDestinyCore + src/lib/destiny-matrix/ai-report/unifiedReport.ts -> buildUnifiedEnvelope',
+        'src/lib/matrix/core/runDestinyCore.ts -> runDestinyCore + src/lib/matrix/ai-report/unifiedReport.ts -> buildUnifiedEnvelope',
       coreHash: coreComprehensive.coreHash,
       claimIds: unified.claims.map((c) => c.id),
       evidenceRefs: unified.evidenceRefsByPara,
@@ -1018,7 +1018,7 @@ async function main() {
     },
     step9b_input_verdict_audit: {
       functionPath:
-        'src/lib/destiny-matrix/core/nextGenPipeline.ts -> buildNextGenCorePipeline + src/lib/destiny-matrix/core/inputVerdictAudit.ts -> buildInputVerdictAudit',
+        'src/lib/matrix/core/nextGenPipeline.ts -> buildNextGenCorePipeline + src/lib/matrix/core/inputVerdictAudit.ts -> buildInputVerdictAudit',
       summary: nextGen.inputAudit.summary,
       evaluationSummary: {
         confidenceBand: nextGen.evaluation.calibration.confidenceBand,

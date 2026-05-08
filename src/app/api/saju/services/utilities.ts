@@ -1,9 +1,9 @@
 // src/app/api/saju/services/utilities.ts
 // Saju API utility functions
 
-import { STEMS } from '@/lib/Saju/constants';
-import { TWELVE_STAGE_INTERPRETATIONS, type TwelveStageType } from '@/lib/Saju/interpretations';
-import type { FiveElement, YinYang } from '@/lib/Saju/types';
+import { STEMS } from '@/lib/saju/constants';
+import { TWELVE_STAGE_INTERPRETATIONS, type TwelveStageType } from '@/lib/saju/interpretations';
+import type { FiveElement, YinYang } from '@/lib/saju/types';
 import type { SajuPromptData, DaeunCycle } from '@/types/saju-api';
 
 // Five Element conversion

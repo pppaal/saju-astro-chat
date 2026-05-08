@@ -2,9 +2,9 @@
  * Destiny Matrix 어댑터 — saju + astro 결과를 받아서
  * destiny-matrix 엔진의 MatrixCalculationInput 형태로 변환.
  */
-import type { MainSajuOutput } from '../../saju-engine'
-import type { AstroEngineOutput } from '../../astro-engine'
-import type { MatrixCalculationInput } from '../../destiny-matrix/types'
+import type { MainSajuOutput } from '../../saju/engine'
+import type { AstroEngineOutput } from '../../astro/engine'
+import type { MatrixCalculationInput } from '../../matrix/types'
 
 const STEM_TO_ELEMENT_KO: Record<string, '목' | '화' | '토' | '금' | '수'> = {
   甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토',

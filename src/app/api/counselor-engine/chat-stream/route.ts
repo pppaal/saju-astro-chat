@@ -20,7 +20,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
 import { applyCounselorBrandVoice } from '@/lib/counselor/brandVoice'
-import type { InterpretedAnswerQualityResult } from '@/lib/destiny-matrix/interpretedAnswer'
+import type { InterpretedAnswerQualityResult } from '@/lib/matrix/interpretedAnswer'
 
 import { clampMessages } from './lib/helpers'
 import { validateDestinyMapRequest } from './lib/validation'

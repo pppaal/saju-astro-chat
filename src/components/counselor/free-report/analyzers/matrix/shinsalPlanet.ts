@@ -3,9 +3,9 @@
  * 신살-행성 분석
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { SHINSAL_PLANET_MATRIX, SHINSAL_INFO } from '@/lib/destiny-matrix/data/layer8-shinsal-planet';
-import type { ShinsalKind, PlanetName } from '@/lib/destiny-matrix/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { SHINSAL_PLANET_MATRIX, SHINSAL_INFO } from '@/lib/matrix/data/layer8-shinsal-planet';
+import type { ShinsalKind, PlanetName } from '@/lib/matrix/types';
 import type { SajuData } from '../../types';
 import type { ShinsalPlanetResult } from './types';
 

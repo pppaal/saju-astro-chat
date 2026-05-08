@@ -3,7 +3,7 @@
  * 사랑 매트릭스 특화 분석
  */
 
-import type { ShinsalKind, PlanetName, AsteroidName } from '@/lib/destiny-matrix/types';
+import type { ShinsalKind, PlanetName, AsteroidName } from '@/lib/matrix/types';
 import type { SajuData, AstroData } from '../../types';
 import type { LoveMatrixResult } from './types';
 import { analyzeShinsalPlanet } from './shinsalPlanet';

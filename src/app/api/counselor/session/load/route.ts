@@ -3,7 +3,7 @@ import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/
 import { prisma } from '@/lib/db/prisma'
 import { counselorSessionLoadQuerySchema } from '@/lib/api/zodValidation'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
+import { normalizeReportTheme } from '@/lib/matrix/ai-report/themeSchema'
 
 export const dynamic = 'force-dynamic'
 

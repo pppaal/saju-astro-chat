@@ -16,10 +16,10 @@ import type {
   TwelveStage,
   UnseData,
   PillarKind,
-} from '@/lib/Saju/types'
-import type { StrengthScore } from '@/lib/Saju/strengthScore'
-import type { GeokgukResult } from '@/lib/Saju/geokguk'
-import type { YongsinResult } from '@/lib/Saju/yongsin'
+} from '@/lib/saju/types'
+import type { StrengthScore } from '@/lib/saju/strengthScore'
+import type { GeokgukResult } from '@/lib/saju/geokguk'
+import type { YongsinResult } from '@/lib/saju/yongsin'
 import { KO_TO_SAJU_ELEMENT } from '../bridges/element'
 import type { SajuSignal } from '../types'
 

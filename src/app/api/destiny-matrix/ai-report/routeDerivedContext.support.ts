@@ -1,4 +1,4 @@
-import type { CrossAgreementMatrixRow, CrossSnapshot } from '@/lib/destiny-matrix/types'
+import type { CrossAgreementMatrixRow, CrossSnapshot } from '@/lib/matrix/types'
 
 export const toOptionalString = (value: unknown): string | undefined => {
   if (typeof value !== 'string') return undefined

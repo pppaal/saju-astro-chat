@@ -12,7 +12,7 @@ import {
   counselorSessionDeleteQuerySchema,
   createValidationErrorResponse,
 } from '@/lib/api/zodValidation'
-import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
+import { normalizeReportTheme } from '@/lib/matrix/ai-report/themeSchema'
 
 export const dynamic = 'force-dynamic'
 

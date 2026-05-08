@@ -16,11 +16,11 @@
  * 같은 입력으로 함수 여러 개 호출해서 카테고리별 카운트 출력.
  */
 
-import { synthesizeExpertNarrationKo, buildSajuNarrationKo, buildTimingNarrationKo, buildStoryArcKo } from '@/lib/destiny-matrix/ai-report/sajuNarrationBridge'
-import { buildPersonalityNarrationKo } from '@/lib/destiny-matrix/personality'
-import { simulateScenario } from '@/lib/destiny-matrix/scenario'
-import { analyzeThreeLayerCompatibility } from '@/lib/destiny-matrix/compatibility'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { synthesizeExpertNarrationKo, buildSajuNarrationKo, buildTimingNarrationKo, buildStoryArcKo } from '@/lib/matrix/ai-report/sajuNarrationBridge'
+import { buildPersonalityNarrationKo } from '@/lib/matrix/personality'
+import { simulateScenario } from '@/lib/matrix/scenario'
+import { analyzeThreeLayerCompatibility } from '@/lib/matrix/compatibility'
+import { calculateSajuData } from '@/lib/saju/saju'
 
 type Issue = { kind: string; sample: string; ctx?: string }
 

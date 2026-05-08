@@ -19,7 +19,7 @@
  */
 
 import type { CombinedResult } from '@/lib/counselor/astrology'
-import type { PlanetData } from '@/lib/astrology'
+import type { PlanetData } from '@/lib/astro'
 import { logger } from '@/lib/logger'
 import type { AnnualItem, MonthlyItem, PillarSet } from './prompt-types'
 import type { UnseDataForFormat } from './formatter-utils'

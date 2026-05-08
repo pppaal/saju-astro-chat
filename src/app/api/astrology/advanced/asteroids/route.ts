@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/asteroids/route.ts
+// src/app/api/astro/advanced/asteroids/route.ts
 // 4대 소행성 (Ceres, Pallas, Juno, Vesta) API 엔드포인트
 
 import { NextResponse } from 'next/server'
@@ -16,7 +16,7 @@ import {
   interpretAsteroid,
   findAllAsteroidAspects,
   getAsteroidInfo,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { logger } from '@/lib/logger'
 import { AsteroidsRequestSchema } from '@/lib/api/astrology-validation'
@@ -171,7 +171,7 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    captureServerError(error, { route: '/api/astrology/advanced/asteroids' })
+    captureServerError(error, { route: '/api/astro/advanced/asteroids' })
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       route: 'astrology/advanced/asteroids',

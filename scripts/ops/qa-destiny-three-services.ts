@@ -1,18 +1,18 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { runDestinyCore } from '../../src/lib/destiny-matrix/core/runDestinyCore'
+import { runDestinyCore } from '../../src/lib/matrix/core/runDestinyCore'
 import {
   adaptCoreToCalendar,
   adaptCoreToCounselor,
   adaptCoreToReport,
-} from '../../src/lib/destiny-matrix/core/adapters'
-import { buildCounselorEvidencePacket } from '../../src/lib/destiny-matrix/counselorEvidence'
+} from '../../src/lib/matrix/core/adapters'
+import { buildCounselorEvidencePacket } from '../../src/lib/matrix/counselorEvidence'
 import {
   generateAIPremiumReport,
   generateThemedReport,
-} from '../../src/lib/destiny-matrix/ai-report/aiReportService'
-import type { TimingData } from '../../src/lib/destiny-matrix/ai-report/types'
+} from '../../src/lib/matrix/ai-report/aiReportService'
+import type { TimingData } from '../../src/lib/matrix/ai-report/types'
 import {
   createCaseFixture,
   createServiceQaCases,

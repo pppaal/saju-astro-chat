@@ -8,7 +8,7 @@ import type {
   EventType,
   OptimalPeriod,
 } from '../life-prediction-types';
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/saju/types';
 
 import {
   calculateYearlyGanji,

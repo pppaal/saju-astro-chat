@@ -3,19 +3,19 @@ import { ErrorCodes, type ErrorCode } from '@/lib/api/errorHandler'
 import { isValidDate, isValidLatitude, isValidLongitude, isValidTime } from '@/lib/validation'
 import { logger } from '@/lib/logger'
 import { buildFortuneWithIcpSection } from '@/lib/prompts/fortuneWithIcp'
-import { formatCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+import { formatCounselorEvidencePacket } from '@/lib/matrix/counselorEvidence'
 import {
   buildInterpretedAnswerContract,
   evaluateInterpretedAnswerQuality,
   type InterpretedAnswerQualityResult,
-} from '@/lib/destiny-matrix/interpretedAnswer'
-import { persistDestinyPredictionSnapshot } from '@/lib/destiny-matrix/predictionSnapshot'
+} from '@/lib/matrix/interpretedAnswer'
+import { persistDestinyPredictionSnapshot } from '@/lib/matrix/predictionSnapshot'
 import type {
   DestinyReliabilityBand,
   DestinyTimingConflictMode,
   DestinyTimingGranularity,
   DestinyTimingWindow,
-} from '@/lib/destiny-matrix/core/logging'
+} from '@/lib/matrix/core/logging'
 import { clampMessages, counselorSystemPrompt } from './lib/helpers'
 import { loadPersonaMemory, loadUserProfile, type ProfileLoadResult } from './lib/profileLoader'
 import { appendUserUtteranceToRecall } from '@/lib/ai/personaMemoryRecall'

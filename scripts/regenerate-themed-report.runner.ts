@@ -1,9 +1,9 @@
 import { writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { analyzeAdvancedSaju } from '../src/lib/Saju/astrologyengine'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '../src/lib/Saju/relations'
-import { getShinsalHits, getTwelveStagesForPillars } from '../src/lib/Saju/shinsal'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { analyzeAdvancedSaju } from '../src/lib/saju/astrologyengine'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '../src/lib/saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars } from '../src/lib/saju/shinsal'
 import {
   calculateNatalChart,
   toChart,
@@ -14,14 +14,14 @@ import {
   calculateSolarReturn,
   calculateLunarReturn,
 } from '../src/lib/astrology'
-import { calculateDestinyMatrix, FusionReportGenerator } from '../src/lib/destiny-matrix'
+import { calculateDestinyMatrix, FusionReportGenerator } from '../src/lib/matrix'
 import {
   generateAIPremiumReport,
   generateThemedReport,
   generateTimingReport,
   synthesizeMatrixSignals,
-} from '../src/lib/destiny-matrix/ai-report'
-import { mapMajorTransitsToActiveTransits } from '../src/lib/destiny-matrix/ai-report/transitMapping'
+} from '../src/lib/matrix/ai-report'
+import { mapMajorTransitsToActiveTransits } from '../src/lib/matrix/ai-report/transitMapping'
 
 type WesternElement = 'fire' | 'earth' | 'air' | 'water'
 

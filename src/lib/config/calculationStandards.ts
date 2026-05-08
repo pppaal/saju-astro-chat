@@ -1,4 +1,4 @@
-import type { HouseSystem } from '@/lib/astrology/foundation/types'
+import type { HouseSystem } from '@/lib/astro/types'
 
 export type AstrologyNodeType = 'true' | 'mean'
 export type DaeunRoundingPolicy = 'round' | 'ceil' | 'floor'

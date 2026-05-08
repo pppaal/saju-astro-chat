@@ -16,7 +16,7 @@ import {
   resolveOptions,
   findNatalAspectsPlus,
   buildEngineMeta,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import {
   pickLabels,
   normalizeLocale,
@@ -24,7 +24,7 @@ import {
   localizeSignLabel,
   localizePlanetLabel,
   parseHM,
-} from '@/lib/astrology/localization'
+} from '@/lib/astro/localization'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { astrologyDetailsSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'

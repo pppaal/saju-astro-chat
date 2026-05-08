@@ -15,7 +15,7 @@ import {
   type Eclipse,
   type EclipseImpact,
   type PlanetData,
-} from "@/lib/astrology";
+} from "@/lib/astro";
 import { logger } from "@/lib/logger";
 
 export interface AsteroidsResult {
@@ -150,7 +150,7 @@ export async function calculateAsteroidsAnalysis(
 
     // Find aspects between asteroids and natal planets
     // Cast to PlanetBase[] since PlanetData extends with compatible sign type
-    const asteroidAspects = findAllAsteroidAspects(allAsteroids, natalPlanets as unknown as import('@/lib/astrology').PlanetBase[]);
+    const asteroidAspects = findAllAsteroidAspects(allAsteroids, natalPlanets as unknown as import('@/lib/astro').PlanetBase[]);
 
     if (enableDebugLogs) {
       const totalAspects = Object.values(asteroidAspects || {}).reduce((sum, arr) => sum + arr.length, 0);

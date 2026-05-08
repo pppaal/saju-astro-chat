@@ -1,5 +1,5 @@
-import { formatCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
-import { buildInterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
+import { formatCounselorEvidencePacket } from '@/lib/matrix/counselorEvidence'
+import { buildInterpretedAnswerContract } from '@/lib/matrix/interpretedAnswer'
 import { buildContextSections } from './lib/context-builder'
 import { SECTION_PRIORITIES, type PromptSection } from './builders/promptAssembly'
 import type { CounselorQuestionAnalysis } from './lib/focusDomain'

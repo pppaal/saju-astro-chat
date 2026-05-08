@@ -21,8 +21,8 @@ import {
 } from '@/lib/api/middleware'
 import { dateSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { STEM_TO_ELEMENT } from '@/lib/Saju/constants'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { STEM_TO_ELEMENT } from '@/lib/saju/constants'
 import { analyzeDate } from '@/lib/counselor/calendar/date-analysis-orchestrator'
 import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
 import { getPillarStemName, getPillarBranchName } from '@/app/api/calendar/lib/helpers'
@@ -146,7 +146,7 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeAdvancedSaju } = await import('@/lib/Saju/astrologyengine')
+      const { analyzeAdvancedSaju } = await import('@/lib/saju/astrologyengine')
       const advanced = analyzeAdvancedSaju(
         {
           name: dayMasterStem,
@@ -262,8 +262,8 @@ export const GET = withApiMiddleware(
         { calculateNatalChart, toChart },
         { calculateTransitChart, findTransitAspects },
       ] = await Promise.all([
-        import('@/lib/astrology/foundation/astrologyService'),
-        import('@/lib/astrology/foundation/transit'),
+        import('@/lib/astro/astrologyService'),
+        import('@/lib/astro/transit'),
       ])
       const birthDateObjForAstro = new Date(birthDate + 'T00:00:00')
       const [bH, bM] = (birthTime || '12:00').split(':').map((v) => Number.parseInt(v, 10))

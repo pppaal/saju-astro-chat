@@ -5,7 +5,7 @@
 
 import { ConfigurableEventStrategy, type StrategyConfig } from './types';
 import { EVENT_SCORING } from '../constants/scoring';
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/saju/types';
 
 /**
  * 전략 설정 정의

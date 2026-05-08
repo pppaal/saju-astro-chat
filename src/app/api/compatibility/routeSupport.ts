@@ -1,5 +1,5 @@
 import { logger } from '@/lib/logger'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import {
   type SajuProfile,
 } from '@/lib/compatibility/cosmicCompatibility'
@@ -10,8 +10,8 @@ import {
 import {
   calculateNatalChart,
   toChart,
-} from '@/lib/astrology/foundation/astrologyService'
-import type { AspectType } from '@/lib/astrology/foundation/types'
+} from '@/lib/astro/astrologyService'
+import type { AspectType } from '@/lib/astro/types'
 import type { PersonInput } from './types'
 import {
   MAX_NOTE,

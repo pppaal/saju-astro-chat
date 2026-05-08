@@ -4,13 +4,13 @@
  * 사주/점성 데이터 로딩 및 계산
  */
 
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import {
   calculateNatalChart,
   calculateTransitChart,
   findMajorTransits,
   toChart,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import { toSajuDataStructure } from '@/lib/counselor/type-guards'
 import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
 import { logger } from '@/lib/logger'

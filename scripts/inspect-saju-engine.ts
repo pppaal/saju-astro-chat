@@ -3,7 +3,7 @@
  *
  * Run: npx tsx scripts/inspect-saju-engine.ts
  */
-import { runMainSaju } from '../src/lib/saju-engine'
+import { runMainSaju } from '../src/lib/saju/engine'
 
 const out = runMainSaju({
   birthDate: '1995-02-09',

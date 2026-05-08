@@ -5,7 +5,7 @@
 
 import type { CombinedResult } from '@/lib/counselor/astrology'
 import type { AstrologyData, SajuData } from '@/lib/counselor/astrology/types'
-import type { PlanetData } from '@/lib/astrology'
+import type { PlanetData } from '@/lib/astro'
 import {
   formatPlanetLines,
   formatHouseLines,

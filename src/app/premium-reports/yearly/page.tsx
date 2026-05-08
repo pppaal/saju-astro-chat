@@ -23,7 +23,7 @@ import {
 } from '@/app/premium-reports/_lib/shared'
 import { usePremiumReportProfile } from '@/app/premium-reports/_lib/usePremiumReportProfile'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
-import { REPORT_CREDIT_COSTS } from '@/lib/destiny-matrix/ai-report'
+import { REPORT_CREDIT_COSTS } from '@/lib/matrix/ai-report'
 
 const FEATURES = [
   '현재 연도 자동 분석 (선택 불필요)',
@@ -106,7 +106,7 @@ export default function YearlyReportPage() {
     analytics.premiumReportStart('yearly')
 
     try {
-      const response = await fetch('/api/destiny-matrix/ai-report', {
+      const response = await fetch('/api/matrix/ai-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

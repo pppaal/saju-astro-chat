@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/draconic/route.ts
+// src/app/api/astro/advanced/draconic/route.ts
 // 드라코닉 차트 API 엔드포인트
 
 import { NextResponse } from 'next/server'
@@ -13,7 +13,7 @@ import {
   calculateDraconicChart,
   compareDraconicToNatal,
   getDraconicPlanetMeaning,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { DraconicRequestSchema } from '@/lib/api/astrology-validation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    captureServerError(error, { route: '/api/astrology/advanced/draconic' })
+    captureServerError(error, { route: '/api/astro/advanced/draconic' })
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       route: 'astrology/advanced/draconic',

@@ -380,9 +380,9 @@ export async function POST(req: NextRequest) {
           const [{ buildCoupleMatrix }, { calculateSajuData }, { calculateNatalChart }, { buildOrthodoxInterpretation }] =
             await Promise.all([
               import('@/lib/compatibility/coupleMatrix'),
-              import('@/lib/Saju/saju'),
-              import('@/lib/astrology/foundation/astrologyService'),
-              import('@/lib/Saju/orthodoxInterpretation'),
+              import('@/lib/saju/saju'),
+              import('@/lib/astro/astrologyService'),
+              import('@/lib/saju/orthodoxInterpretation'),
             ])
           const buildPerson = async (p: any) => {
             const tz = p.timeZone || 'Asia/Seoul'

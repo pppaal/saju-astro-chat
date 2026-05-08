@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type {
   Lang,
@@ -190,53 +190,53 @@ export function useCounselorData(sp: SearchParams) {
             eclipsesRes,
             midpointsRes,
           ] = await Promise.all([
-            fetch(`/api/astrology/advanced/asteroids`, {
+            fetch(`/api/astro/advanced/asteroids`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            fetch(`/api/astrology/advanced/draconic`, {
+            fetch(`/api/astro/advanced/draconic`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            fetch(`/api/astrology/advanced/harmonics`, {
+            fetch(`/api/astro/advanced/harmonics`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
             // Solar Return (현재 연도)
-            fetch(`/api/astrology/advanced/solar-return`, {
+            fetch(`/api/astro/advanced/solar-return`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
             // Lunar Return (현재 월)
-            fetch(`/api/astrology/advanced/lunar-return`, {
+            fetch(`/api/astro/advanced/lunar-return`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
             // Progressions (현재 날짜)
-            fetch(`/api/astrology/advanced/progressions`, {
+            fetch(`/api/astro/advanced/progressions`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
             // Fixed Stars (항성)
-            fetch(`/api/astrology/advanced/fixed-stars`, {
+            fetch(`/api/astro/advanced/fixed-stars`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
             // Eclipses (이클립스)
-            fetch(`/api/astrology/advanced/eclipses`, {
+            fetch(`/api/astro/advanced/eclipses`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
             // Midpoints (미드포인트)
-            fetch(`/api/astrology/advanced/midpoints`, {
+            fetch(`/api/astro/advanced/midpoints`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),

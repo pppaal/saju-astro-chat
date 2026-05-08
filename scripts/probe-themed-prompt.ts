@@ -3,11 +3,11 @@
  * themed report prompt가 LLM에 어떻게 전달되는지 확인.
  * synthesizeExpertNarrationKo가 잘 inject되는지 검증.
  */
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { calculateNatalChart } from '../src/lib/astrology/foundation/astrologyService'
-import { findNatalAspects } from '../src/lib/astrology/foundation/aspects'
-import { synthesizeExpertNarrationKo } from '../src/lib/destiny-matrix/ai-report/sajuNarrationBridge'
-import { buildThemedPrompt } from '../src/lib/destiny-matrix/ai-report/prompts/themedPrompts'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { calculateNatalChart } from '../src/lib/astro/astrologyService'
+import { findNatalAspects } from '../src/lib/astro/aspects'
+import { synthesizeExpertNarrationKo } from '../src/lib/matrix/ai-report/sajuNarrationBridge'
+import { buildThemedPrompt } from '../src/lib/matrix/ai-report/prompts/themedPrompts'
 
 const SIGN_EL: Record<string, string> = {
   Aries: 'fire', Leo: 'fire', Sagittarius: 'fire',

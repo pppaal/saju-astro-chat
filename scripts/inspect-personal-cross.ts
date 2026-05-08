@@ -5,9 +5,9 @@
  *
  * Run: npx tsx scripts/inspect-personal-cross.ts
  */
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { STEM_TO_ELEMENT } from '../src/lib/Saju/constants'
-import { calculateNatalChart } from '../src/lib/astrology/foundation/astrologyService'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { STEM_TO_ELEMENT } from '../src/lib/saju/constants'
+import { calculateNatalChart } from '../src/lib/astro/astrologyService'
 
 function divider(title: string) {
   console.log('\n' + '='.repeat(64))
@@ -50,9 +50,9 @@ async function main() {
 
   // ---------------------- 2. Advanced saju ----------------------
   section('2. 고급 사주 (analyzeAdvancedSaju)')
-  let advanced: ReturnType<typeof import('../src/lib/Saju/astrologyengine').analyzeAdvancedSaju> | null = null
+  let advanced: ReturnType<typeof import('../src/lib/saju/astrologyengine').analyzeAdvancedSaju> | null = null
   try {
-    const { analyzeAdvancedSaju } = await import('../src/lib/Saju/astrologyengine')
+    const { analyzeAdvancedSaju } = await import('../src/lib/saju/astrologyengine')
     advanced = analyzeAdvancedSaju(
       {
         name: dayMaster,

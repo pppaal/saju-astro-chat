@@ -4,7 +4,7 @@ import type {
   ImportantDate,
 } from '@/lib/counselor/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
-import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
+import type { DomainKey, MonthlyOverlapPoint } from '@/lib/matrix/types'
 import type { MatrixCalendarContext } from './calendarMatrixTextSupport'
 import type {
   CalendarMatrixEvidencePacket,
@@ -21,7 +21,7 @@ import {
   describeEvidenceConfidence,
   describeExecutionStance,
   describePhaseFlow,
-} from '@/lib/destiny-matrix/interpretation/humanSemantics'
+} from '@/lib/matrix/interpretation/humanSemantics'
 import { sanitizeMatrixNarrativeLine } from './calendarMatrixTextSupport'
 
 type CrossEvidenceBundle = {

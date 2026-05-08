@@ -1,7 +1,7 @@
 import { calculateNatalChart, toChart, calculateTransitChart,
 findNatalAspects, findAspects,
 findAspectsPlus, resolveOptions, buildEngineMeta
-} from "@/lib/astrology";
+} from "@/lib/astro";
 
 async function main() {
   const natalInput = {

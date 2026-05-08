@@ -2,10 +2,10 @@
  * 3 서비스 출력 시각화 — Report / Calendar / Counselor 한 profile에서 한 번씩.
  * 실제 사주·점성 데이터 기반.
  */
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { analyzeRelations } from '../src/lib/Saju/relations'
-import { synthesizeExpertNarrationKo } from '../src/lib/destiny-matrix/ai-report/sajuNarrationBridge'
-import { calculateCrossConfidence, estimateSajuSignalStrength, estimateAstroSignalStrength } from '../src/lib/destiny-matrix/ai-report/crossConfidence'
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { analyzeRelations } from '../src/lib/saju/relations'
+import { synthesizeExpertNarrationKo } from '../src/lib/matrix/ai-report/sajuNarrationBridge'
+import { calculateCrossConfidence, estimateSajuSignalStrength, estimateAstroSignalStrength } from '../src/lib/matrix/ai-report/crossConfidence'
 import { formatRecallContextKo } from '../src/lib/ai/personaMemoryRecall'
 import { formatDecisionHistoryKo } from '../src/lib/ai/decisionTracker'
 

@@ -2,9 +2,9 @@
  * 기존 destiny-matrix 엔진 실제 출력 검증.
  * 사주+점성을 받아서 1206 셀 매트릭스 계산해서 보여줌.
  */
-import { runMainSaju } from '../src/lib/saju-engine'
-import { runAstroEngine } from '../src/lib/astro-engine'
-import { calculateDestinyMatrix } from '../src/lib/destiny-matrix/engine'
+import { runMainSaju } from '../src/lib/saju/engine'
+import { runAstroEngine } from '../src/lib/astro/engine'
+import { calculateDestinyMatrix } from '../src/lib/matrix/engine'
 
 async function main() {
   const saju = runMainSaju({

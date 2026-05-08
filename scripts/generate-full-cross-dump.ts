@@ -7,8 +7,8 @@ import {
   FusionReportGenerator,
   buildGraphRAGEvidence,
   summarizeGraphRAGEvidence,
-} from '@/lib/destiny-matrix'
-import { mapMajorTransitsToActiveTransits } from '@/lib/destiny-matrix/ai-report/transitMapping'
+} from '@/lib/matrix'
+import { mapMajorTransitsToActiveTransits } from '@/lib/matrix/ai-report/transitMapping'
 
 const INPUT_JSON = path.join(process.cwd(), 'reports', '1995-02-09_0640_seoul_gpt_input.json')
 const OUT_MD = path.join(process.cwd(), 'reports', '1995-02-09_0640_seoul_FULL_CROSS_DUMP.md')

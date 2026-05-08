@@ -9,7 +9,7 @@ import {
   calculatePartOfFortune,
   calculateVertex,
   type ExtraPoint,
-} from "@/lib/astrology";
+} from "@/lib/astro";
 import { logger } from "@/lib/logger";
 
 export interface AdvancedPointsInput {

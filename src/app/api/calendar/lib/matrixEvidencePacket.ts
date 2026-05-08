@@ -1,4 +1,4 @@
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+import type { CalendarCoreAdapterResult } from '@/lib/matrix/core/adapters'
 
 export interface CalendarMatrixEvidencePacket {
   focusDomain: string

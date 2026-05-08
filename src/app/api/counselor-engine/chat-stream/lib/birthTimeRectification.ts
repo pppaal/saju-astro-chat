@@ -1,4 +1,4 @@
-import type { NatalChartData } from '@/lib/astrology'
+import type { NatalChartData } from '@/lib/astro'
 import type { SajuDataStructure } from './types'
 import { computeAstroData, computeSajuData } from './chart-calculator'
 

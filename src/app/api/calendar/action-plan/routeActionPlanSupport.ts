@@ -1,12 +1,12 @@
 import { repairMojibakeText } from '@/lib/text/mojibake'
-import { adaptAdviceTone } from '@/lib/destiny-matrix/personality'
+import { adaptAdviceTone } from '@/lib/matrix/personality'
 import { calculateDailyPillar, generateHourlyAdvice } from '@/lib/prediction/ultra-precision-daily'
 import { STEM_ELEMENTS } from '@/lib/counselor/config/specialDays.data'
 import { getHourlyRecommendation } from '@/lib/counselor/calendar/specialDays-analysis'
 import {
   formatDecisionActionLabels,
   formatPolicyCheckLabels,
-} from '@/lib/destiny-matrix/core/actionCopy'
+} from '@/lib/matrix/core/actionCopy'
 
 import {
   buildActivityMatchLine,

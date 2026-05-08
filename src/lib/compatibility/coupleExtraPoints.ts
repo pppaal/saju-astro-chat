@@ -9,10 +9,10 @@
  * - Part of Fortune: 행복·기쁨의 자리 (어디서 함께 기쁨을 찾나)
  */
 
-import type { Chart, ExtraPoint } from '@/lib/astrology/foundation/types'
-import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
-import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
-import { calculateAllAsteroids, type Asteroid } from '@/lib/astrology/foundation/asteroids'
+import type { Chart, ExtraPoint } from '@/lib/astro/types'
+import type { NatalChartData } from '@/lib/astro/astrologyService'
+import { extendChartWithExtraPoints } from '@/lib/astro/extraPoints'
+import { calculateAllAsteroids, type Asteroid } from '@/lib/astro/asteroids'
 
 const SIGN_KO: Record<string, string> = {
   Aries: '양자리',

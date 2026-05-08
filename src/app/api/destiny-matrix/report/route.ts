@@ -1,4 +1,4 @@
-﻿// src/app/api/destiny-matrix/report/route.ts
+﻿// src/app/api/matrix/report/route.ts
 // Destiny Fusion Matrix™ - User-Friendly Report API v2.0
 // 완전한 검증, 에러 처리, 캐싱 적용
 
@@ -14,8 +14,8 @@ import {
   matrixCache,
   generateInputHash,
   performanceMonitor,
-} from '@/lib/destiny-matrix'
-import type { InsightDomain, MatrixCalculationInput, MatrixCell } from '@/lib/destiny-matrix'
+} from '@/lib/matrix'
+import type { InsightDomain, MatrixCalculationInput, MatrixCell } from '@/lib/matrix'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
@@ -147,7 +147,7 @@ export const POST = withApiMiddleware(
     }
   },
   createPublicStreamGuard({
-    route: '/api/destiny-matrix/report',
+    route: '/api/matrix/report',
     limit: 20,
     windowSeconds: 60,
   })
@@ -181,7 +181,7 @@ export const GET = withApiMiddleware(
           name: 'Destiny Fusion Matrix Support',
         },
       },
-      servers: [{ url: '/api/destiny-matrix/report', description: 'Report API' }],
+      servers: [{ url: '/api/matrix/report', description: 'Report API' }],
       paths: {
         '/': {
           post: {
@@ -360,7 +360,7 @@ export const GET = withApiMiddleware(
     })
   },
   createPublicStreamGuard({
-    route: '/api/destiny-matrix/report',
+    route: '/api/matrix/report',
     limit: 60,
     windowSeconds: 60,
   })

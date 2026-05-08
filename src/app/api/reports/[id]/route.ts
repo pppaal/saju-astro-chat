@@ -14,11 +14,11 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { createErrorResponse } from '@/lib/api/errorHandler'
 import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
-import { summarizeEvidenceEvidence } from '@/lib/destiny-matrix/ai-report'
+import { summarizeEvidenceEvidence } from '@/lib/matrix/ai-report'
 import {
   getThemedSectionKeys,
   normalizeReportTheme,
-} from '@/lib/destiny-matrix/ai-report/themeSchema'
+} from '@/lib/matrix/ai-report/themeSchema'
 
 type RouteContext = {
   params: Promise<{ id: string }>

@@ -9,8 +9,8 @@ export const runtime = 'nodejs'
 export const GET = withApiMiddleware(
   async (_req: NextRequest) => {
     // 동적 import: 빌드 시 평가 안전
-    const SajuLib = await import('@/lib/Saju/saju').catch(() => ({}) as Record<string, unknown>)
-    const AstroLib = await import('@/lib/astrology/foundation/astrologyService').catch(
+    const SajuLib = await import('@/lib/saju/saju').catch(() => ({}) as Record<string, unknown>)
+    const AstroLib = await import('@/lib/astro/astrologyService').catch(
       () => ({}) as Record<string, unknown>
     )
 

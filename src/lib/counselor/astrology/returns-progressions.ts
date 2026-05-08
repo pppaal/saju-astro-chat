@@ -14,7 +14,7 @@ import {
   getProgressionSummary,
   type ReturnChart,
   type ProgressedChart,
-} from "@/lib/astrology";
+} from "@/lib/astro";
 import { logger } from "@/lib/logger";
 
 export interface NatalInput {

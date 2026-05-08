@@ -6,16 +6,16 @@ import {
   generateThemeAnglesAI,
   ThemeAnglesAIError,
   type ThemeKey,
-} from '@/lib/destiny-matrix/ai-report/themeAnglesAI'
-import { CAREER_ANGLES, renderTheme } from '@/lib/destiny-matrix/ai-report/themeAngles'
-import { THEME_ANGLES_MAP } from '@/lib/destiny-matrix/ai-report/themeAnglesExtra'
+} from '@/lib/matrix/ai-report/themeAnglesAI'
+import { CAREER_ANGLES, renderTheme } from '@/lib/matrix/ai-report/themeAngles'
+import { THEME_ANGLES_MAP } from '@/lib/matrix/ai-report/themeAnglesExtra'
 import {
   buildPeriodActivationContext,
   type ReportPeriodScope,
-} from '@/lib/destiny-matrix/ai-report/periodSignalContext'
-import type { NormalizedSignal } from '@/lib/destiny-matrix/ai-report/signalSynthesizer'
-import type { TimingData } from '@/lib/destiny-matrix/ai-report/types'
-import type { ActiveTransit } from '@/lib/destiny-matrix/interpreter/types'
+} from '@/lib/matrix/ai-report/periodSignalContext'
+import type { NormalizedSignal } from '@/lib/matrix/ai-report/signalSynthesizer'
+import type { TimingData } from '@/lib/matrix/ai-report/types'
+import type { ActiveTransit } from '@/lib/matrix/interpreter/types'
 
 export const runtime = 'nodejs'
 export const maxDuration = 120
@@ -166,7 +166,7 @@ export const POST = withApiMiddleware(
     )
   },
   createAuthenticatedGuard({
-    route: '/api/destiny-matrix/theme-angles',
+    route: '/api/matrix/theme-angles',
     limit: 6,
     windowSeconds: 60,
   })

@@ -1,0 +1,68 @@
+// src/lib/matrix/ai-report/index.ts
+// Destiny Fusion Matrix™ - AI Report Module Export
+
+export {
+  generateAIPremiumReport,
+  generateTimingReport,
+  generateThemedReport,
+} from './aiReportService'
+
+export type { AIPremiumReport, AIReportGenerationOptions } from './reportTypes'
+
+export { generateFivePagePDF, generatePremiumPDF, type PDFGenerationOptions } from './pdfGenerator'
+export {
+  buildStructuredEvidence,
+  formatStructuredEvidenceForPrompt,
+  summarizeEvidenceEvidence,
+  summarizeDestinyMatrixEvidence,
+  type EvidenceAnchor,
+  type EvidenceBundle,
+  type EvidenceSummary,
+  type EvidenceAnchorSummary,
+  type CrossEvidenceSet,
+  type DestinyMatrixEvidenceSummary,
+  type DestinyMatrixEvidenceSummaryItem,
+} from './structuredEvidence'
+
+export {
+  type ReportPeriod,
+  type ReportTheme,
+  type TimingData,
+  type TimingAIPremiumReport,
+  type ThemedAIPremiumReport,
+  type TimingReportSections,
+  type ThemedReportSections,
+  type ExtendedReportOptions,
+  REPORT_CREDIT_COSTS,
+  PERIOD_META,
+  THEME_META,
+} from './types'
+
+export { buildTimingPrompt, buildThemedPrompt } from './prompts'
+export {
+  synthesizeMatrixSignals,
+  buildSynthesisFactsForSection,
+  getDomainsForSection,
+  type SignalPolarity,
+  type SignalDomain,
+  type NormalizedSignal,
+  type SynthesizedClaim,
+  type SignalSynthesisResult,
+} from './signalSynthesizer'
+export { generateNarrativeSectionsFromSynthesis } from './narrativeGenerator'
+export type { ReportEvidenceRef, SectionEvidenceRefs } from './evidenceRefs'
+export {
+  buildPhaseStrategyEngine,
+  type StrategyTimingContext,
+  type StrategyDomainWeights,
+  type Strategy3DVector,
+  type DomainSignalContribution,
+  type StrategyPhaseCode,
+  type StrategyEngineResult,
+  type DomainStrategy,
+} from './strategyEngine'
+export {
+  STRATEGY_ENGINE_TUNING,
+  type StrategyEngineTuning,
+  type StrategyDomainWeightConfig,
+} from './strategyEngineConfig'

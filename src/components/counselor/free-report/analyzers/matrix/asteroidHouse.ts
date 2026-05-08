@@ -3,9 +3,9 @@
  * 소행성-하우스 분석
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { ASTEROID_HOUSE_MATRIX, ASTEROID_INFO } from '@/lib/destiny-matrix/data/layer9-asteroid-house';
-import type { AsteroidName, HouseNumber } from '@/lib/destiny-matrix/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { ASTEROID_HOUSE_MATRIX, ASTEROID_INFO } from '@/lib/matrix/data/layer9-asteroid-house';
+import type { AsteroidName, HouseNumber } from '@/lib/matrix/types';
 import type { AstroData } from '../../types';
 import type { AsteroidHouseResult } from './types';
 

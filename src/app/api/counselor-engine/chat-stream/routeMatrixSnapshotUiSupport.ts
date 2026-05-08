@@ -4,7 +4,7 @@ import {
   describePhaseFlow,
   describeTimingWindowTakeaways,
   describeTimingWindowNarrative,
-} from '@/lib/destiny-matrix/interpretation/humanSemantics'
+} from '@/lib/matrix/interpretation/humanSemantics'
 import type { MatrixSnapshot } from './routePromptSupport'
 import { eulReul } from '@/lib/i18n/koParticle'
 

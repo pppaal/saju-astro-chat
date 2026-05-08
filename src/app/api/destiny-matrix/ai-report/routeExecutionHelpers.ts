@@ -1,11 +1,11 @@
-import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
+import type { AIPremiumReport } from '@/lib/matrix/ai-report/reportTypes'
 import {
   REPORT_CREDIT_COSTS,
   type ReportPeriod,
   type ReportTheme,
   type TimingAIPremiumReport,
   type ThemedAIPremiumReport,
-} from '@/lib/destiny-matrix/ai-report/types'
+} from '@/lib/matrix/ai-report/types'
 import type { ReportTier } from './routeReportPersistence'
 
 export type GeneratedReportMode = 'themed' | 'timing' | 'comprehensive'

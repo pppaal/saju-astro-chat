@@ -3,7 +3,7 @@ import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiCont
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { logger } from '@/lib/logger'
-import { analyzeThreeLayerCompatibility } from '@/lib/destiny-matrix/compatibility'
+import { analyzeThreeLayerCompatibility } from '@/lib/matrix/compatibility'
 
 type Person = { birthDate?: string; birthTime?: string; gender?: string }
 type ReqBody = { personA?: Person; personB?: Person }
@@ -55,7 +55,7 @@ export const POST = withApiMiddleware(
     }
   },
   createPublicStreamGuard({
-    route: '/api/destiny-matrix/compatibility-3layer',
+    route: '/api/matrix/compatibility-3layer',
     limit: 20,
     windowSeconds: 60,
   })

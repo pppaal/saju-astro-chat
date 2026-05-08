@@ -1,10 +1,10 @@
 /**
  * 통합 엔진 타입 — 자평력 + 천기력 + 운명력 + Destiny Matrix 한 객체로
  */
-import type { MainSajuOutput } from '../saju-engine'
-import type { AstroEngineOutput } from '../astro-engine'
-import type { CrossEngineOutput, UserSegment } from '../cross-engine'
-import type { DestinyFusionMatrixComputed } from '../destiny-matrix/types'
+import type { MainSajuOutput } from '../saju/engine'
+import type { AstroEngineOutput } from '../astro/engine'
+import type { CrossEngineOutput, UserSegment } from '../matrix/cross'
+import type { DestinyFusionMatrixComputed } from '../matrix/types'
 import type { UnifiedScoresOutput } from './enrichers/scoreReconciler'
 
 /** 입력 — 6 페이지에서 공통으로 받는 정보 */

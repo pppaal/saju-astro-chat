@@ -1,13 +1,13 @@
 // chart-calculator.ts
 // Handles computation of Saju and Astrology charts with caching
 
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { toSajuDataStructure } from '@/lib/counselor/type-guards'
 import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from './index'
-import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
+import type { NatalChartData } from '@/lib/astro/astrologyService'
 
 export interface ChartCalculationInput {
   birthDate: string
@@ -78,7 +78,7 @@ export async function computeAstroData(
   natalChartData?: NatalChartData
 }> {
   try {
-    const { calculateNatalChart } = await import('@/lib/astrology')
+    const { calculateNatalChart } = await import('@/lib/astro')
     const { year, month, day } = parseDateComponents(birthDate)
     const { hour, minute } = parseTimeComponents(birthTime)
 
@@ -136,7 +136,7 @@ export async function computeCurrentTransits(
   timeZone = 'Asia/Seoul'
 ): Promise<unknown[]> {
   try {
-    const { calculateTransitChart, findMajorTransits, toChart } = await import('@/lib/astrology')
+    const { calculateTransitChart, findMajorTransits, toChart } = await import('@/lib/astro')
     const now = new Date()
     const isoNow = now.toISOString().slice(0, 19) // "YYYY-MM-DDTHH:mm:ss"
 

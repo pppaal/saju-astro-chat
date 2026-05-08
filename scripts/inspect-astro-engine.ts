@@ -3,7 +3,7 @@
  *
  * Run: npx tsx scripts/inspect-astro-engine.ts
  */
-import { runAstroEngine } from '../src/lib/astro-engine'
+import { runAstroEngine } from '../src/lib/astro/engine'
 
 async function main() {
   const out = await runAstroEngine({

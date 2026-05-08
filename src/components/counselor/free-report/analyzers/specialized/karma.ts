@@ -3,14 +3,14 @@
  * Specialized karma and soul pattern analysis combining Saju and Astrology data
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
+import { getInteractionColor } from '@/lib/matrix/engine';
 import { iga } from '@/lib/i18n/koParticle';
-import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
-import { RELATION_ASPECT_MATRIX } from '@/lib/destiny-matrix/data/layer5-relation-aspect';
-import { ADVANCED_ANALYSIS_MATRIX } from '@/lib/destiny-matrix/data/layer7-advanced-analysis';
-import { SHINSAL_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer8-shinsal-planet';
-import type { WesternElement, ProgressionType, ShinsalKind } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/matrix/data/layer1-element-core';
+import { RELATION_ASPECT_MATRIX } from '@/lib/matrix/data/layer5-relation-aspect';
+import { ADVANCED_ANALYSIS_MATRIX } from '@/lib/matrix/data/layer7-advanced-analysis';
+import { SHINSAL_PLANET_MATRIX } from '@/lib/matrix/data/layer8-shinsal-planet';
+import type { WesternElement, ProgressionType, ShinsalKind } from '@/lib/matrix/types';
+import type { FiveElement } from '@/lib/saju/types';
 import type { SajuData, AstroData } from '../../types';
 import type { KarmaMatrixResult, ExtendedSajuData } from '../types/specialized.types';
 import { KARMA_SHINSALS } from '../shared/constants';

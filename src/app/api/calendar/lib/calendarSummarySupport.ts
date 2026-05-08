@@ -11,7 +11,7 @@ import {
   describePhaseFlow,
   describeSajuAstroRole,
   describeTimingWindowBrief,
-} from '@/lib/destiny-matrix/interpretation/humanSemantics'
+} from '@/lib/matrix/interpretation/humanSemantics'
 import { isAlignedAcrossSystems } from './calendarMatrixTextSupport'
 
 type MessageGroup = string | Record<string, string>

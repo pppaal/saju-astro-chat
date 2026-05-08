@@ -5,9 +5,9 @@
  * 거치고도 \n\n이 보존되는지 확인.
  */
 
-import { synthesizeExpertNarrationKo } from '../src/lib/destiny-matrix/ai-report/sajuNarrationBridge'
-import { formatNarrativeParagraphs } from '../src/lib/destiny-matrix/ai-report/reportNarrativeFormatting'
-import { sanitizeUserFacingNarrative } from '../src/lib/destiny-matrix/ai-report/reportNarrativeSanitizer'
+import { synthesizeExpertNarrationKo } from '../src/lib/matrix/ai-report/sajuNarrationBridge'
+import { formatNarrativeParagraphs } from '../src/lib/matrix/ai-report/reportNarrativeFormatting'
+import { sanitizeUserFacingNarrative } from '../src/lib/matrix/ai-report/reportNarrativeSanitizer'
 
 const SAMPLE_INPUT: any = {
   geokguk: '정인격',

@@ -8,7 +8,7 @@
 
 import { formatGanjiEasy, parseGanjiEasy } from './translation-maps';
 import { formatPillar, type PlanetaryData, type ExtractedSajuData } from './data-extractors';
-import type { PlanetData, AspectHit } from '@/lib/astrology';
+import type { PlanetData, AspectHit } from '@/lib/astro';
 import type {
   HouseData,
   PillarSet,

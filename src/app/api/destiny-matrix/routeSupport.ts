@@ -1,6 +1,6 @@
-﻿import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
-import type { FiveElement, RelationHit } from '@/lib/Saju/types'
-import { STEMS } from '@/lib/Saju/constants'
+﻿import type { MatrixCalculationInput } from '@/lib/matrix'
+import type { FiveElement, RelationHit } from '@/lib/saju/types'
+import { STEMS } from '@/lib/saju/constants'
 import { getRetrogradePlanetsForDate } from '@/lib/counselor/calendar/astrology/retrograde'
 import type {
   GeokgukType,
@@ -12,7 +12,7 @@ import type {
   TransitCycle,
   AsteroidName,
   ExtraPointName,
-} from '@/lib/destiny-matrix/types'
+} from '@/lib/matrix/types'
 const ELEMENT_MAP: Record<string, FiveElement> = {
   목: '목',
   화: '화',

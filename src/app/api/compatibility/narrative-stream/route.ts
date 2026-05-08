@@ -27,8 +27,8 @@ import { logger } from '@/lib/logger'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { isDbPremiumUser } from '@/lib/auth/premium'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { LRUCache } from '@/lib/Saju/cache/LRUCache'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { LRUCache } from '@/lib/saju/cache/LRUCache'
 import { sanitizeAstroJargon, hasJargonLeak } from '@/lib/text/sanitizeAstroJargon'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
@@ -495,7 +495,7 @@ async function buildExtendedBlocks(
   if (!p1 || !p2) return { p1SajuOverview: '', p2SajuOverview: '' }
 
   // Full saju (cached internally) + orthodox interpretation per person
-  const { buildOrthodoxInterpretation } = await import('@/lib/Saju/orthodoxInterpretation')
+  const { buildOrthodoxInterpretation } = await import('@/lib/saju/orthodoxInterpretation')
   const attachOrthodox = (s: ReturnType<typeof calculateSajuData>, isoBirth: string) => {
     try {
       const koreanAge = new Date().getFullYear() - new Date(isoBirth).getFullYear() + 1

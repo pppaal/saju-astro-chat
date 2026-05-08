@@ -3,12 +3,12 @@
  * 기존 궁합 엔진을 활용한 매칭 궁합 계산
  */
 
-import { calculateSajuData } from '@/lib/Saju/saju';
+import { calculateSajuData } from '@/lib/saju/saju';
 import { logger } from '@/lib/logger';
 import {
   analyzeComprehensiveCompatibility,
   CompatibilitySubject,
-} from '@/lib/Saju/compatibility';
+} from '@/lib/saju/compatibility';
 import { COMPATIBILITY_CACHE, CACHE_KEY } from '@/lib/constants/cache';
 
 interface BirthInfo {

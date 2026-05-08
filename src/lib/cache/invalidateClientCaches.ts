@@ -8,7 +8,7 @@
 
 import { clearChartCache } from '@/lib/cache/chartDataCache';
 import { clearChartCache as clearChartCacheClient } from '@/lib/cache/chart-cache-client';
-import { clearAllCaches as clearSajuCaches } from '@/lib/Saju/cache';
+import { clearAllCaches as clearSajuCaches } from '@/lib/saju/cache';
 import { clearAllCalendarCache } from '@/components/calendar/cache-utils';
 import { logger } from '@/lib/logger';
 

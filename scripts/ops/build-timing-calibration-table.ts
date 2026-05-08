@@ -5,7 +5,7 @@ import { prisma } from '../../src/lib/db/prisma'
 import {
   aggregateDestinyCalibration,
   type DestinyCalibrationSourceRow,
-} from '../../src/lib/destiny-matrix/calibration'
+} from '../../src/lib/matrix/calibration'
 
 interface CliOptions {
   out?: string

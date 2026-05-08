@@ -1,9 +1,9 @@
 // Element Mapping Utilities
 // Converts between Saju (Five Elements) and Western (Four Elements) systems
 
-import { SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
-import type { WesternElement } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import { SIGN_TO_ELEMENT } from '@/lib/matrix/data/layer1-element-core';
+import type { WesternElement } from '@/lib/matrix/types';
+import type { FiveElement } from '@/lib/saju/types';
 
 /**
  * Maps Saju Five Element to Western Four Element system

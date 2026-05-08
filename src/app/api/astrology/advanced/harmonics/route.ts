@@ -1,4 +1,4 @@
-// src/app/api/astrology/advanced/harmonics/route.ts
+// src/app/api/astro/advanced/harmonics/route.ts
 // 하모닉 분석 API 엔드포인트
 
 import { NextResponse } from 'next/server'
@@ -15,7 +15,7 @@ import {
   analyzeHarmonic,
   generateHarmonicProfile,
   getHarmonicMeaning,
-} from '@/lib/astrology'
+} from '@/lib/astro'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    captureServerError(error, { route: '/api/astrology/advanced/harmonics' })
+    captureServerError(error, { route: '/api/astro/advanced/harmonics' })
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       route: 'astrology/advanced/harmonics',

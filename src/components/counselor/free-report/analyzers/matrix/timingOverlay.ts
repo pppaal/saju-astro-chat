@@ -3,10 +3,10 @@
  * 타이밍 오버레이 분석
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { TIMING_OVERLAY_MATRIX } from '@/lib/destiny-matrix/data/layer4-timing-overlay';
-import type { TimingCycleRow, TransitCycle, InteractionCode } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import { getInteractionColor } from '@/lib/matrix/engine';
+import { TIMING_OVERLAY_MATRIX } from '@/lib/matrix/data/layer4-timing-overlay';
+import type { TimingCycleRow, TransitCycle, InteractionCode } from '@/lib/matrix/types';
+import type { FiveElement } from '@/lib/saju/types';
 import type { SajuData } from '../../types';
 import type { TimingOverlayResult } from './types';
 

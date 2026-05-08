@@ -11,7 +11,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { calculateSajuData } from '@/lib/Saju'
+import { calculateSajuData } from '@/lib/saju'
 import { logger } from '@/lib/logger'
 
 // 오행 한글 매핑

@@ -3,7 +3,7 @@
  * 커리어 매트릭스 특화 분석
  */
 
-import type { HouseNumber } from '@/lib/destiny-matrix/types';
+import type { HouseNumber } from '@/lib/matrix/types';
 import type { SajuData, AstroData } from '../../types';
 import type { CareerMatrixResult } from './types';
 import { analyzeSibsinHouseFusion } from './sibsinHouseFusion';

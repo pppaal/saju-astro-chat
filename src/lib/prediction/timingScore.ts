@@ -1,7 +1,7 @@
 // src/lib/prediction/timingScore.ts
 // 월별 타이밍 스코어 매트릭스 및 신뢰도 점수 시스템
 
-import { TIMING_OVERLAY_MATRIX, TRANSIT_CYCLE_INFO, RETROGRADE_SCHEDULE } from '@/lib/destiny-matrix/data/layer4-timing-overlay';
+import { TIMING_OVERLAY_MATRIX, TRANSIT_CYCLE_INFO, RETROGRADE_SCHEDULE } from '@/lib/matrix/data/layer4-timing-overlay';
 import { scoreToGrade, type PredictionGrade } from './index';
 
 // ============================================================

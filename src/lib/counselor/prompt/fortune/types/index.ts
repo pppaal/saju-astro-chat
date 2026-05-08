@@ -1,7 +1,7 @@
 // src/lib/counselor/prompt/fortune/types/index.ts
 // 운세 프롬프트 관련 타입 정의
 
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/saju/types';
 
 // ============================================================
 // 기본 데이터 타입

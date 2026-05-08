@@ -1,6 +1,6 @@
 'use client'
 
-import type { AdapterPersonModel } from '@/lib/destiny-matrix/core/adaptersTypes'
+import type { AdapterPersonModel } from '@/lib/matrix/core/adaptersTypes'
 import ReportSurfaceSection from '@/app/premium-reports/_components/ReportSurfaceSection'
 
 type PersonInterpretationStabilitySectionProps = {

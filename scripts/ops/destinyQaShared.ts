@@ -2,10 +2,10 @@ import type {
   MatrixCalculationInput,
   MatrixHighlight,
   MatrixSummary,
-} from '../../src/lib/destiny-matrix/types'
-import type { FusionReport, InsightDomain } from '../../src/lib/destiny-matrix/interpreter/types'
-import type { TimingData } from '../../src/lib/destiny-matrix/ai-report/types'
-import type { FiveElement } from '../../src/lib/Saju/types'
+} from '../../src/lib/matrix/types'
+import type { FusionReport, InsightDomain } from '../../src/lib/matrix/interpreter/types'
+import type { TimingData } from '../../src/lib/matrix/ai-report/types'
+import type { FiveElement } from '../../src/lib/saju/types'
 
 export type QALang = 'ko' | 'en'
 export type CaseTheme = 'love' | 'career' | 'wealth' | 'health' | 'life'
