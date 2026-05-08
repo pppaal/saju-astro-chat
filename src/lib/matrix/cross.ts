@@ -1599,6 +1599,14 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
   // ⭐ verdict 풍부 — sajuPoints + astroPoints 핵심 결합 자연어
   // buildOverallVerdict (cycle-analysis) 가 cycle 풍부 verdict 만들지만 horizon × theme 컨텍스트 필요
   // → cross 에서 직접 cell-specific verdict 생성
+  // ⭐⭐ saju.narratives[horizon].fullNarrative.overallVerdict — 이미 만들어진 정통 cycle verdict 활용
+  const cycleVerdict =
+    horizon === 'daeun' ? saju.narratives?.daeun?.fullNarrative?.overallVerdict :
+    horizon === 'seun' ? saju.narratives?.seun?.fullNarrative?.overallVerdict :
+    horizon === 'wolun' ? saju.narratives?.wolun?.fullNarrative?.overallVerdict :
+    horizon === 'iljin' ? saju.narratives?.iljin?.fullNarrative?.overallVerdict :
+    saju.lifeNarrative?.summary?.overallTheme
+
   const verdict = (() => {
     // 핵심 시그널 (top 3 사주 + top 2 점성)
     const topSaju = sajuPoints.slice(0, 3)
@@ -1612,6 +1620,11 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       verdictText += ` — ${keyPositive.slice(0, 2).map((p) => p.replace(/^🔗\s*/, '').replace(/\s*\([^)]+\)$/, '').trim()).join(' + ')}`
     } else if (keyNegative.length >= 1) {
       verdictText += ` — ${keyNegative[0].replace(/^🔗\s*/, '').trim()} 주의`
+    }
+    // ⭐ cycle narrative 의 정통 verdict 결합 (이미 만들어진 풍부 텍스트)
+    if (cycleVerdict && cycleVerdict.length > 20) {
+      const trimmed = cycleVerdict.replace(/^\[[^\]]+\]\s*/, '').slice(0, 120)
+      verdictText += ` · 사주: ${trimmed}`
     }
     return verdictText
   })()

@@ -15,7 +15,11 @@ import { runCrossEngine } from '../matrix/cross'
 import { calculateDestinyMatrix } from '../matrix/engine'
 import { buildMatrixInput } from './adapters/matrixAdapter'
 import { reconcileScores } from './enrichers/scoreReconciler'
+import { buildPremiumActionChecklist } from '../matrix/actionChecklist'
+import { recognizePatterns, analyzeTriggers } from '../saju/eventCorrelation'
+import { analyzeDaeunTransitSync } from '../matrix/prediction/daeunTransitSync'
 import type { UnifiedInput, UnifiedOptions, UnifiedOutput } from './types'
+import type { TransitCycle } from '../matrix/types'
 
 const DEFAULT_LATITUDE = 37.5665
 const DEFAULT_LONGITUDE = 126.978
@@ -91,6 +95,53 @@ export async function runUnifiedEngine(
       scores: reconcileScores(out.matrix, out.cross),
     }
     components.push('unified')
+  }
+
+  // ⭐ 6. 추가 풍부 (이전 미사용 모듈 plumbing)
+  out.extras = {}
+
+  // actionChecklist — 오늘/내일 액션 체크리스트 (603줄 모듈, 이전 0 호출)
+  if (out.matrix?.summary) {
+    try {
+      const today = new Date()
+      const tomorrow = new Date(today)
+      tomorrow.setDate(today.getDate() + 1)
+      const fmt = (d: Date) => d.toISOString().slice(0, 10)
+      const transits: TransitCycle[] = ((out.matrix as unknown as { input?: { activeTransits?: TransitCycle[] } }).input?.activeTransits) || []
+      out.extras.actionChecklist = buildPremiumActionChecklist({
+        summary: out.matrix.summary,
+        locale: 'ko',
+        todayDate: fmt(today),
+        todayTransits: transits,
+        tomorrowDate: fmt(tomorrow),
+        tomorrowTransits: transits,
+      })
+      components.push('actionChecklist')
+    } catch {}
+  }
+
+  // eventCorrelation patterns + triggers — 사건 반복 패턴 + 운 trigger
+  if (out.saju) {
+    try {
+      out.extras.patterns = recognizePatterns([])
+      out.extras.triggers = analyzeTriggers([])
+      components.push('eventCorrelation')
+    } catch {}
+  }
+
+  // ⭐ daeunTransitSync (762줄, 내부만 호출) — 4기둥 운 동기화 분석
+  if (out.saju && out.saju.cycles?.daeunCycles) {
+    try {
+      const birthYear = parseInt(input.birthDate.slice(0, 4), 10)
+      const currentAge = new Date().getFullYear() - birthYear + 1
+      out.extras.daeunSync = analyzeDaeunTransitSync(
+        out.saju.cycles.daeunCycles as unknown as Parameters<typeof analyzeDaeunTransitSync>[0],
+        birthYear,
+        currentAge,
+        { enableTier5: true, birthDate: new Date(input.birthDate) },
+      )
+      components.push('daeunSync')
+    } catch {}
   }
 
   return out

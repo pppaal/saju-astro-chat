@@ -50,4 +50,17 @@ export interface UnifiedOutput {
   unified?: {
     scores: UnifiedScoresOutput
   }
+  /** ⭐ 추가 풍부 — 이전 미연결 모듈 통합 */
+  extras?: {
+    /** 오늘/내일 액션 체크리스트 (matrix/actionChecklist.ts) */
+    actionChecklist?: unknown
+    /** 사건 반복 패턴 (eventCorrelation.recognizePatterns) */
+    patterns?: unknown
+    /** 운 trigger point (eventCorrelation.analyzeTriggers) */
+    triggers?: unknown
+    /** 결혼/이사/투자 최적일 (astro/electional.findBestDates) */
+    bestDates?: unknown
+    /** 4기둥 운 동기화 분석 (matrix/prediction/daeunTransitSync — 762줄) */
+    daeunSync?: unknown
+  }
 }
