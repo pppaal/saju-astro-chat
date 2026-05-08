@@ -616,14 +616,20 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
   const sajuPoints: string[] = []
   let sajuModifier = 0
 
+  // ⭐ horizon 별 cycleEntry — 모든 테마에서 horizon-specific 9차원 사용
+  const cycleEntry =
+    horizon === 'daeun' ? saju.cycleAnalysis.daeun :
+    horizon === 'seun' ? saju.cycleAnalysis.seun :
+    horizon === 'wolun' ? saju.cycleAnalysis.wolun :
+    horizon === 'iljin' ? saju.cycleAnalysis.iljin :
+    null // life
+
+  // ⭐ horizon-별 점성 데이터
+  const isShortTerm = horizon === 'wolun' || horizon === 'iljin'
+  const isMidTerm = horizon === 'seun' || horizon === 'daeun'
+
   if (theme === 'career') {
-    // 격국 관성·강화·통근
-    const cycleEntry =
-      horizon === 'daeun' ? saju.cycleAnalysis.daeun :
-      horizon === 'seun' ? saju.cycleAnalysis.seun :
-      horizon === 'wolun' ? saju.cycleAnalysis.wolun :
-      horizon === 'iljin' ? saju.cycleAnalysis.iljin :
-      saju.cycleAnalysis.daeun
+    // 격국 관성·강화·통근 (horizon별 cycleEntry)
     if (cycleEntry?.geokgukShift.shift === 'strengthen') {
       sajuModifier += cycleEntry.geokgukShift.intensity * 0.5
       sajuPoints.push(`격국 강화 (강도 ${cycleEntry.geokgukShift.intensity})`)
@@ -664,8 +670,7 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
   }
   if (theme === 'wealth') {
-    // 재성, 식상
-    const cycleEntry = saju.cycleAnalysis.daeun
+    // 재성, 식상 (horizon별 cycleEntry)
     if (cycleEntry?.geokgukShift.geokguk?.includes('재')) {
       sajuModifier += 1
       sajuPoints.push('재성 격국')
@@ -694,10 +699,7 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
   }
   if (theme === 'love') {
-    // 일지 충/합 + 배우자성
-    const cycleEntry =
-      horizon === 'daeun' ? saju.cycleAnalysis.daeun :
-      horizon === 'seun' ? saju.cycleAnalysis.seun : null
+    // 일지 충/합 + 배우자성 (horizon별 cycleEntry)
     const dayInter = cycleEntry?.pillarInteractions.pillars.find((p) => p.pillar === 'day')
     if (dayInter?.tone === 'positive') {
       sajuModifier += 1.5
@@ -744,8 +746,8 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
   }
   if (theme === 'growth') {
-    // 인성 + 식상 + 문창
-    const natalShinsal = saju.cycleAnalysis.daeun?.shinsalActivation.hits.map((h) => h.kind) || []
+    // 인성 + 식상 + 문창 (horizon별 cycleEntry)
+    const natalShinsal = cycleEntry?.shinsalActivation.hits.map((h) => h.kind) || []
     if (natalShinsal.includes('문창') || natalShinsal.includes('학당귀인')) {
       sajuModifier += 1
       sajuPoints.push('문창·학당')
@@ -766,8 +768,7 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
   }
   if (theme === 'family') {
-    // 년월주 + 비견 + 천을귀인
-    const cycleEntry = saju.cycleAnalysis.daeun
+    // 년월주 + 비견 + 천을귀인 (horizon별 cycleEntry)
     const lucky = cycleEntry?.shinsalActivation.hits.filter((h) => h.tone === 'lucky') || []
     if (lucky.length >= 1) {
       sajuModifier += 1
@@ -912,6 +913,95 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       (m) => m.midpoint.planet1 === 'Moon' || m.midpoint.planet2 === 'Moon',
     )
     if (moonMid) astroPoints.push(`Moon midpoint 활성`)
+  }
+
+  // ⭐ horizon × theme 결합 — cycleAnalysis 9차원 + horizon 별 점성 데이터
+  if (cycleEntry) {
+    // 12운성 단계 (horizon 단계 — career/health/family 에 영향)
+    const stage = cycleEntry.twelveStages.dayMasterStage
+    const stageTone = cycleEntry.twelveStages.tone
+    if (theme === 'career' || theme === 'family') {
+      if (stage === '왕지' || stage === '임관') {
+        sajuModifier += 1
+        sajuPoints.push(`12운성 ${stage} (${horizon} 단계 — 정점·권위)`)
+      } else if (stage === '병' || stage === '사' || stage === '쇠') {
+        sajuModifier -= 0.5
+        sajuPoints.push(`12운성 ${stage} (${horizon} 단계 — 침체)`)
+      }
+    }
+    if (theme === 'health' && (stage === '병' || stage === '사' || stage === '절')) {
+      sajuModifier -= 1
+      sajuPoints.push(`12운성 ${stage} (${horizon} — 건강 약세)`)
+    }
+    // 천간합 化 (love/career)
+    const hwa = cycleEntry.hwaTransform.primaryEvent
+    if (hwa) {
+      if (hwa.quality === 'true' && (theme === 'love' || theme === 'career')) {
+        sajuModifier += 1
+        sajuPoints.push(`천간합 化 ${hwa.hwaElement || ''} 진정 (${horizon})`)
+      } else if (hwa.quality === 'simple' && theme === 'love') {
+        sajuModifier -= 0.3
+        sajuPoints.push(`假합 (${horizon}) — 인연 묶임 미성립`)
+      }
+    }
+    // 삼기 cycle (모든 horizon 길성)
+    const samgi = cycleEntry.samgi
+    if (samgi.state === 'cycle_completes') {
+      sajuModifier += 1
+      sajuPoints.push(`🌟 삼기 ${samgi.type} 완성 (${horizon}) — 평생 길운기`)
+    }
+    // 조후 변화 (health 영향)
+    if (theme === 'health' && cycleEntry.johuShift.shift !== 'neutral') {
+      const shift = cycleEntry.johuShift.shift
+      if (shift === 'improving') {
+        sajuModifier += 0.5
+        sajuPoints.push(`조후 보완 (${horizon})`)
+      } else if (shift === 'worsening') {
+        sajuModifier -= 0.5
+        sajuPoints.push(`조후 손상 (${horizon})`)
+      }
+    }
+    void stageTone
+  }
+
+  // ⭐ horizon-별 점성 — 단기/중기/장기 정밀 매칭
+  if (isShortTerm) {
+    // wolun/iljin: 일별·월별 트랜짓 정밀
+    const fastTransits = astro.current.transitToNatal.filter((t) => t.orb < 1.5).slice(0, 3)
+    if (fastTransits.length && (theme === 'career' || theme === 'love')) {
+      const interesting = fastTransits.find((t) => ['Mercury', 'Venus', 'Mars', 'Moon'].includes(t.transitPlanet))
+      if (interesting) {
+        astroModifier += interesting.type === 'trine' || interesting.type === 'sextile' ? 0.5 : -0.3
+        astroPoints.push(`${horizon} T.${interesting.transitPlanet} ${interesting.type} N.${interesting.natalPoint} (정밀)`)
+      }
+    }
+  }
+  if (isMidTerm) {
+    // seun: 다년 yearlyScore 매칭 — 현재/내년 연도 점수
+    const cy = new Date().getFullYear()
+    const trend = (saju.fullInsights as { comprehensivePrediction?: { multiYearTrend?: { yearlyScores?: Array<{ year: number; score?: number; grade?: string }> } } } | undefined)?.comprehensivePrediction?.multiYearTrend
+    const yearScore = trend?.yearlyScores?.find((y) => y.year === cy)
+    if (horizon === 'seun' && yearScore && yearScore.score !== undefined) {
+      const yScore = yearScore.score
+      if (yScore >= 90) astroModifier += 1
+      else if (yScore <= 30) astroModifier -= 1
+      astroPoints.push(`${cy}년 종합점수 ${yScore.toFixed(0)} [${yearScore.grade}]`)
+    }
+    // 다가올 일/월식 — seun/wolun 단위 매칭
+    const advAny = (astro as unknown as { advanced?: { upcomingEclipses?: Array<{ date: string; type: string; sign: string }> } }).advanced
+    const eclipses = advAny?.upcomingEclipses || []
+    const monthsAhead: number = horizon === 'seun' ? 12 : 0
+    if (monthsAhead > 0 && eclipses.length) {
+      const now = Date.now()
+      const future = now + monthsAhead * 30 * 24 * 60 * 60 * 1000
+      const nearEclipse = eclipses.find((e) => {
+        const d = new Date(e.date).getTime()
+        return d > now && d < future
+      })
+      if (nearEclipse) {
+        astroPoints.push(`${horizon} 내 ${nearEclipse.type} 식 ${nearEclipse.date} ${nearEclipse.sign}`)
+      }
+    }
   }
 
   // ⭐ 진짜 교차 — 사주 ↔ 점성 결합 시 보너스
