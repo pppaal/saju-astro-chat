@@ -2,13 +2,10 @@
  * Realtime Counselor — minimal endpoint.
  *
  * Pipeline (the only one we want):
- *   1. Compute saju + astrology
- *   2. Compute cross (runFortune)  — saju ↔ astro signal agreement
+ *   1. Auth + rate-limit + credit check
+ *   2. Compute saju + astrology + cross — cached daily per user
  *   3. Hand the cross summary + chat history + question to the LLM
  *   4. Stream the answer back via SSE
- *
- * No Interpreted Answer Contract, no evidence packets, no pre-decided
- * direct answers, no theme-applied contexts. Just cross signals + question.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -18,6 +15,9 @@ import { runFortune, renderToText } from '@/lib/fortune/cross-rules'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
+import { rateLimit } from '@/lib/rateLimit'
+import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
+import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -39,6 +39,10 @@ interface RealtimeBody {
   timezone?: string
 }
 
+const RATE_LIMIT_PER_MIN = 12
+const HISTORY_KEEP_TURNS = 4 // last N turns sent verbatim
+const CREDIT_PER_TURN = 1
+
 const SYSTEM_PROMPT_KO = `당신은 동양 사주명리와 서양 점성술을 함께 보는 운명 상담사입니다.
 
 규칙:
@@ -59,21 +63,64 @@ Rules:
 - Say "I don't know" when uncertain. No absolute claims.
 - Focus on one question at a time.`
 
+function utcDateKey(d: Date): string {
+  const y = d.getUTCFullYear()
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function birthFingerprint(b: RealtimeBody): string {
+  return [
+    b.birthDate ?? '',
+    b.birthTime ?? '12:00',
+    b.gender ?? 'male',
+    b.timezone ?? 'Asia/Seoul',
+    b.latitude ?? '',
+    b.longitude ?? '',
+  ].join('|')
+}
+
+/** Keep last N turns verbatim; collapse older ones into a single tag line. */
+function compactHistory(messages: ChatMessage[]): string {
+  if (messages.length === 0) return ''
+  const recent = messages.slice(-HISTORY_KEEP_TURNS)
+  const olderCount = Math.max(0, messages.length - recent.length)
+  const olderLine =
+    olderCount > 0 ? `(earlier ${olderCount} turn${olderCount > 1 ? 's' : ''} omitted)\n` : ''
+  return (
+    olderLine +
+    recent.map((m) => `${m.role === 'user' ? 'User' : 'Counselor'}: ${m.content}`).join('\n')
+  )
+}
+
 export async function POST(req: NextRequest) {
   // 1) Auth
   const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
+  const userId = session?.user?.id
+  if (!userId) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 
-  // 2) Parse body
+  // 2) Rate limit (per user)
+  const rl = await rateLimit(`counselor:realtime:${userId}`, {
+    limit: RATE_LIMIT_PER_MIN,
+    windowSeconds: 60,
+  })
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'rate_limited', retryAfter: rl.retryAfter },
+      { status: 429, headers: rl.headers },
+    )
+  }
+
+  // 3) Parse body
   let body: RealtimeBody
   try {
     body = (await req.json()) as RealtimeBody
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 })
   }
-
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
     return NextResponse.json({ error: 'messages_required' }, { status: 400 })
   }
@@ -90,48 +137,70 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: safetyMessage(lang) }, { status: 200 })
   }
 
-  // 3) Compute cross signals (saju + astro + agreement)
-  let crossText = ''
-  try {
-    const report = await runFortune({
-      birth: {
-        birthDate: body.birthDate,
-        birthTime: body.birthTime ?? '12:00',
-        gender: body.gender === 'female' ? 'female' : 'male',
-        timezone: body.timezone ?? 'Asia/Seoul',
-        latitude: body.latitude ?? 37.5665,
-        longitude: body.longitude ?? 126.978,
-        astroTimezone: body.timezone ?? 'Asia/Seoul',
-      },
-      queryDate: new Date(),
-    })
-    crossText = renderToText(report)
-  } catch (err) {
-    logger.error('[counselor/realtime] cross compute failed', { err })
-    return NextResponse.json({ error: 'cross_failed' }, { status: 500 })
+  // 4) Credit pre-check
+  const credit = await canUseCredits(userId, 'reading', CREDIT_PER_TURN)
+  if (!credit.allowed) {
+    return NextResponse.json(
+      { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
+      { status: 402 },
+    )
   }
 
-  // 4) Build prompt (small system + cached cross context + chat history)
+  // 5) Compute (or fetch cached) cross signals
+  const crossKey = `cross:v1:${userId}:${birthFingerprint(body)}:${utcDateKey(new Date())}`
+  let crossText: string | null = await cacheGet<string>(crossKey)
+  if (!crossText) {
+    try {
+      const report = await runFortune({
+        birth: {
+          birthDate: body.birthDate,
+          birthTime: body.birthTime ?? '12:00',
+          gender: body.gender === 'female' ? 'female' : 'male',
+          timezone: body.timezone ?? 'Asia/Seoul',
+          latitude: body.latitude ?? 37.5665,
+          longitude: body.longitude ?? 126.978,
+          astroTimezone: body.timezone ?? 'Asia/Seoul',
+        },
+        queryDate: new Date(),
+      })
+      crossText = renderToText(report)
+      // Cache for 1 day — transits change daily
+      await cacheSet(crossKey, crossText, CACHE_TTL.CALENDAR_DATA)
+    } catch (err) {
+      logger.error('[counselor/realtime] cross compute failed', { err })
+      return NextResponse.json({ error: 'cross_failed' }, { status: 500 })
+    }
+  }
+
+  // 6) Deduct credits AFTER all validation passed but BEFORE the stream starts.
+  // If the stream itself errors mid-way, we still consider the turn paid for —
+  // mirrors how every other LLM endpoint in the codebase bills.
+  try {
+    await consumeCredits(userId, 'reading', CREDIT_PER_TURN)
+  } catch (err) {
+    logger.warn('[counselor/realtime] credit deduction failed', { err })
+    // Don't block the user — observability over enforcement here.
+  }
+
+  // 7) Build prompt and stream
   const systemPrompt = lang === 'en' ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_KO
-
-  const history = body.messages
-    .slice(-8) // keep last 8 turns for short context
-    .map((m) => `${m.role === 'user' ? 'User' : 'Counselor'}: ${m.content}`)
-    .join('\n')
-
+  const history = compactHistory(body.messages)
   const cachedUserContext = `[Cross Signals]\n${crossText}`
   const userPrompt =
     lang === 'en'
       ? `Conversation so far:\n${history}\n\nAnswer the latest user question using the cross signals.`
       : `이전 대화:\n${history}\n\n위 cross signals를 근거로 마지막 질문에 답하세요.`
 
-  // 5) Stream
   return streamClaudeAsSSE({
     systemPrompt,
     userPrompt,
     cachedUserContext,
     maxTokens: 1500,
-    temperature: 0.7,
+    temperature: 0.5,
     label: 'counselor.realtime',
+    additionalHeaders: {
+      'X-RateLimit-Limit': rl.headers.get('X-RateLimit-Limit') ?? '',
+      'X-RateLimit-Remaining': rl.headers.get('X-RateLimit-Remaining') ?? '',
+    },
   })
 }
