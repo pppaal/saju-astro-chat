@@ -366,18 +366,6 @@ test.describe('Policy Pages', () => {
   })
 })
 
-test.describe('Destiny Matrix Pages', () => {
-  test('should load destiny-matrix viewer page', async ({ page }) => {
-    await page.goto('/destiny-matrix/viewer', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load destiny-matrix themed-reports page', async ({ page }) => {
-    await page.goto('/destiny-matrix/themed-reports', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-})
-
 test.describe('Premium Reports Pages', () => {
   test('should load premium-reports page', async ({ page }) => {
     await page.goto('/premium-reports', { waitUntil: 'domcontentloaded' })

@@ -5,17 +5,17 @@ const ROOTS = ['src/app', 'src/components', 'src/i18n', 'src/lib']
 const VALID_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mdx', '.json', '.css'])
 
 const SKIP_FILES = new Set([
-  path.normalize('src/lib/destiny-matrix/ai-report/narrativeGeneratorCoreSupport.ts'),
+  path.normalize('src/lib/matrix/ai-report/narrativeGeneratorCoreSupport.ts'),
   // TODO: remove after legacy mojibake cleanup in counselor + ai-report modules
   path.normalize('src/app/destiny-map/counselor/useCounselorData.ts'),
-  path.normalize('src/lib/destiny-matrix/ai-report/aiReportService.ts'),
-  path.normalize('src/lib/destiny-matrix/textRepair.ts'),
+  path.normalize('src/lib/matrix/ai-report/aiReportService.ts'),
+  path.normalize('src/lib/matrix/textRepair.ts'),
   // Repair tables / legacy fallback banks intentionally contain mojibake tokens as match targets.
-  path.normalize('src/lib/destiny-matrix/ai-report/aiReportServiceRuntimeOutputSupport.ts'),
-  path.normalize('src/lib/destiny-matrix/ai-report/narrativeGeneratorBuildSupport.ts'),
-  path.normalize('src/lib/destiny-matrix/ai-report/signalSynthesizerClaimsSupport.ts'),
-  path.normalize('src/lib/destiny-matrix/core/adaptersPersonModelEventSupport.ts'),
-  path.normalize('src/lib/destiny-matrix/core/adaptersPersonModelProfileSupport.ts'),
+  path.normalize('src/lib/matrix/ai-report/aiReportServiceRuntimeOutputSupport.ts'),
+  path.normalize('src/lib/matrix/ai-report/narrativeGeneratorBuildSupport.ts'),
+  path.normalize('src/lib/matrix/ai-report/signalSynthesizerClaimsSupport.ts'),
+  path.normalize('src/lib/matrix/core/adaptersPersonModelEventSupport.ts'),
+  path.normalize('src/lib/matrix/core/adaptersPersonModelProfileSupport.ts'),
 ])
 
 const SUSPICIOUS_PATTERNS = [

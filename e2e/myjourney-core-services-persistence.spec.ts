@@ -222,30 +222,6 @@ test.describe('My Journey Core Services Persistence', () => {
     )
 
     await saveAndCollect(
-      'premium-reports',
-      'premium-reports',
-      'destiny-matrix-report',
-      (id) => `/api/destiny-matrix/save?id=${id}`,
-      page.request.post('/api/destiny-matrix/save', {
-        data: {
-          reportType: 'timing',
-          period: 'monthly',
-          reportData: {
-            categories: [{ name: 'focus', score: 78, description: `${marker} focus` }],
-            highlights: [`${marker} highlight`],
-            recommendations: ['protect deep-work window'],
-          },
-          title: `${marker} matrix title`,
-          summary: `${marker} matrix summary`,
-          overallScore: 78,
-          grade: 'A',
-          locale: 'en',
-        },
-        timeout: 30000,
-      })
-    )
-
-    await saveAndCollect(
       'iching',
       'iching',
       'reading',

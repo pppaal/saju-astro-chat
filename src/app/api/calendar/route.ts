@@ -44,7 +44,7 @@ import {
   buildDerivedCrossSnapshot,
   deriveAdvancedSajuMatrixFields,
   deriveSibsinDistributionFromSaju,
-} from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
+} from '@/lib/matrix/derivedContext'
 import type { CalculateSajuDataResult } from '@/lib/saju/types'
 import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
 

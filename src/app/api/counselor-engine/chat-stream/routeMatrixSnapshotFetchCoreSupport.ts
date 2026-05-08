@@ -23,7 +23,7 @@ import {
   listMissingCrossKeysForService,
 } from '@/lib/matrix/inputCross'
 import type { MatrixCalculationInput } from '@/lib/matrix/types'
-import { buildDerivedCrossSnapshot } from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
+import { buildDerivedCrossSnapshot } from '@/lib/matrix/derivedContext'
 import { calculateSajuData } from '@/lib/saju/saju'
 import type { FiveElement } from '@/lib/saju/types'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'

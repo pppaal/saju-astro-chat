@@ -23,7 +23,7 @@ import {
   toOptionalString,
   type DerivedCrossDomain,
   type DerivedDomainScore,
-} from './routeDerivedContext.support'
+} from './derivedContext.support'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { analyzeAdvancedSaju } from '@/lib/saju/astrologyengine'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'

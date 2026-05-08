@@ -19,33 +19,12 @@ curl -sS -X POST "$BASE/api/saju" \
   -d '{"birthDate":"1995-02-09","birthTime":"06:40","gender":"male","calendarType":"solar","timezone":"Asia/Seoul"}' \
   > "$TMP/saju.json"
 
-echo "▶ /api/destiny-matrix"
-curl -sS -X POST "$BASE/api/destiny-matrix" \
-  -H "Content-Type: application/json" \
-  -d '{"birthDate":"1995-02-09","birthTime":"06:40","gender":"male","timezone":"Asia/Seoul","latitude":37.5665,"longitude":126.978,"lang":"ko"}' \
-  > "$TMP/matrix.json"
-
-echo "▶ /api/destiny-matrix/scenario"
-curl -sS -X POST "$BASE/api/destiny-matrix/scenario" \
-  -H "Content-Type: application/json" \
-  -d '{"birthDate":"1995-02-09","birthTime":"06:40","gender":"male","action":"careerChange","targetDate":"2026-08-15"}' \
-  > "$TMP/scenario.json"
-
-echo "▶ /api/destiny-matrix/compatibility-3layer"
-curl -sS -X POST "$BASE/api/destiny-matrix/compatibility-3layer" \
-  -H "Content-Type: application/json" \
-  -d '{"personA":{"birthDate":"1995-02-09","birthTime":"06:40","gender":"male"},"personB":{"birthDate":"1996-03-15","birthTime":"14:20","gender":"female"}}' \
-  > "$TMP/compat3.json"
-
 echo
 python3 << PY
 import json, re, glob
 
 ENDPOINTS = [
     ('/api/saju', '$TMP/saju.json'),
-    ('/api/destiny-matrix', '$TMP/matrix.json'),
-    ('/api/destiny-matrix/scenario', '$TMP/scenario.json'),
-    ('/api/destiny-matrix/compatibility-3layer', '$TMP/compat3.json'),
 ]
 
 PATTERNS = [
