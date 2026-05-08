@@ -15,6 +15,7 @@ import {
 } from '../../index'
 import { ResultsHeader } from './ResultsHeader'
 import { CombinationsSection } from './CombinationsSection'
+import { GuidanceSection } from './GuidanceSection'
 import { FollowupSection } from './FollowupSection'
 
 export interface ResultsStageProps {
@@ -473,6 +474,11 @@ export function ResultsStage(props: ResultsStageProps) {
       {insight?.combinations && insight.combinations.length > 0 && (
         <CombinationsSection combinations={insight.combinations} translate={translate} />
       )}
+
+      {insight?.guidance &&
+        (Array.isArray(insight.guidance) ? insight.guidance.length > 0 : insight.guidance.trim().length > 0) && (
+          <GuidanceSection guidance={insight.guidance} language={language} />
+        )}
 
       {insight?.followup_questions && insight.followup_questions.length > 0 && (
         <FollowupSection questions={insight.followup_questions} translate={translate} />
