@@ -16,7 +16,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import type { UnifiedSlice, UnifiedBirthInput } from '@/components/counselor/free-report/analyzers/unifiedAdapter'
+import type { UnifiedSlice, UnifiedBirthInput } from '@/lib/engine/unifiedAdapter'
 
 interface State {
   slice: UnifiedSlice | null

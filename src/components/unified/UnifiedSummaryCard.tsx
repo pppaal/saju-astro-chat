@@ -15,7 +15,7 @@
 'use client'
 
 import { useUnifiedSlice } from '@/hooks/useUnifiedSlice'
-import type { UnifiedBirthInput } from '@/components/counselor/free-report/analyzers/unifiedAdapter'
+import type { UnifiedBirthInput } from '@/lib/engine/unifiedAdapter'
 import type { ThemeKind } from '@/lib/matrix/cross'
 
 interface Props extends UnifiedBirthInput {

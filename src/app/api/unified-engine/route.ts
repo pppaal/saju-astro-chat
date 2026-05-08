@@ -8,7 +8,7 @@
  * 클라이언트는 useUnifiedSlice 훅으로 호출. 캐시 가능.
  */
 import { NextResponse } from 'next/server'
-import { getUnifiedSlice } from '@/components/counselor/free-report/analyzers/unifiedAdapter'
+import { getUnifiedSlice } from '@/lib/engine/unifiedAdapter'
 
 export const runtime = 'nodejs'
 
