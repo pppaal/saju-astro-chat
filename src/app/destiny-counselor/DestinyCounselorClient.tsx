@@ -13,7 +13,7 @@ import {
 } from '@/i18n/utils'
 import { normalizeGender } from '@/lib/utils/gender'
 import { formatCityForDropdown } from '@/lib/cities/formatter'
-import styles from './destiny-map.module.css'
+import styles from './destiny-counselor.module.css'
 import { logger } from '@/lib/logger'
 import DateTimePicker from '@/components/ui/DateTimePicker'
 import {
