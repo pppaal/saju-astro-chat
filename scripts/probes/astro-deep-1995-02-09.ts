@@ -55,7 +55,7 @@ async function main() {
   for (const s of stars) console.log(`  ${s.star.name_ko?.padEnd(28)} conj ${s.planet?.padEnd(11)} ${s.orb?.toFixed(2)}°`)
 
   console.log('\n=== SECONDARY PROGRESSIONS (2025-11-15) ===')
-  const prog = await calculateSecondaryProgressions(input, new Date('2025-11-15'))
+  const prog = await calculateSecondaryProgressions({ natal: input, targetDate: '2025-11-15' })
   console.log(getProgressionSummary(prog))
 }
 main().catch(e => { console.error(e); process.exit(1) })
