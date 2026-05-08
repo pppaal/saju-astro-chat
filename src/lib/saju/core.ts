@@ -6,7 +6,7 @@ import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
 
 // ⭐ 정통 모듈 — analyzeAdvancedSaju wrapper 가 호출
 import { calculateComprehensiveScore } from './strength';
-import { determineGeokguk } from './geokguk';
+import { determineGeokgukAdvanced } from './geokguk'; // 잡기격 포함 advanced 판정
 import { determineYongsin } from './yongsin';
 
 /* ========== 타입 정의 ========== */
@@ -197,7 +197,7 @@ export function analyzeAdvancedSaju(
   };
 
   // 정통 격국 + 정통 용신
-  const geokgukResult = determineGeokguk(simplePillars);
+  const geokgukResult = determineGeokgukAdvanced(simplePillars);
   const yongsinResult = determineYongsin(simplePillars);
 
   // 정통 종합 점수 (격국 + 용신 컨텍스트 주입)

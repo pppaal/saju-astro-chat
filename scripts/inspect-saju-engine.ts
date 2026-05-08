@@ -504,7 +504,6 @@ if (fi) {
   }
 
   if (fix.predictive) {
-    // 옛 stub 만 남은 경우 — 빈 출력 안 보이도록 skip
     const hasContent = (fix.predictive.favorableAreas?.length ?? 0) + (fix.predictive.warningAreas?.length ?? 0) + (fix.predictive.keyEvents?.length ?? 0) + (fix.predictive.recommendations?.length ?? 0)
     if (hasContent > 0) {
       console.log(`\n  ━━━ 예측 통찰 (eventCorrelation — simple) ━━━`)
@@ -518,6 +517,89 @@ if (fi) {
         console.log(`  📌 권장:`)
         for (const r of fix.predictive.recommendations.slice(0, 3)) console.log(`    · ${r}`)
       }
+    }
+  }
+
+  // ⭐ 4 추가 모듈
+  const ex = (fi as unknown as {
+    extendedAnalysis?: {
+      lifeStages?: Array<{ stage?: string; ageRange?: string; theme?: string; description?: string }>
+      decisiveTimings?: Array<{ age?: number | string; year?: number; event?: string; description?: string }>
+      relationships?: { spouse?: { description?: string }; children?: { description?: string }; parents?: { description?: string } }
+      practical?: { wealth?: string; career?: string; health?: string }
+      karmic?: { mission?: string; lessons?: string[] }
+    }
+    pillarPositions?: Array<{ position: string; meaning: { area?: string; ageRange?: number[]; family?: string; socialDomain?: string }; stem: { name: string; sibsin?: string }; branch: { name: string; element?: string }; analysis?: string }>
+    stemCombinations?: Array<{ type: string; stems: string[]; description?: string; effect?: string }>
+    sameElementPillars?: Array<{ element: string; positions: string[]; description?: string }>
+  }).extendedAnalysis ? fi as never : undefined
+  const exData = (fi as unknown as { extendedAnalysis?: unknown }).extendedAnalysis as null | {
+    lifeStages?: Array<{ stage?: string; ageRange?: string; theme?: string; description?: string }>
+    decisiveTimings?: Array<{ age?: number | string; year?: number; event?: string; description?: string }>
+    relationships?: { spouse?: { description?: string }; children?: { description?: string }; parents?: { description?: string } }
+    practical?: { wealth?: string; career?: string; health?: string }
+    karmic?: { mission?: string; lessons?: string[] }
+  }
+  if (exData) {
+    console.log(`\n  ━━━ 확장 분석 (라이프스테이지·타이밍·관계·실용·카르마) ━━━`)
+    if (exData.lifeStages?.length) {
+      console.log(`  📅 라이프스테이지:`)
+      for (const s of exData.lifeStages.slice(0, 4)) {
+        console.log(`    · ${s.stage || s.ageRange || ''} — ${s.theme || s.description || ''}`)
+      }
+    }
+    if (exData.decisiveTimings?.length) {
+      console.log(`  🎯 결정적 타이밍:`)
+      for (const t of exData.decisiveTimings.slice(0, 3)) {
+        const when = t.year || t.age || ''
+        console.log(`    · ${when ? `[${when}] ` : ''}${t.event || t.description || ''}`)
+      }
+    }
+    if (exData.relationships) {
+      const r = exData.relationships
+      if (r.spouse?.description) console.log(`  💕 배우자: ${r.spouse.description}`)
+      if (r.children?.description) console.log(`  👶 자녀: ${r.children.description}`)
+      if (r.parents?.description) console.log(`  👨‍👩 부모: ${r.parents.description}`)
+    }
+    if (exData.practical) {
+      const p = exData.practical
+      if (p.wealth) console.log(`  💰 재물: ${String(p.wealth).slice(0, 100)}`)
+      if (p.career) console.log(`  💼 직업: ${String(p.career).slice(0, 100)}`)
+      if (p.health) console.log(`  💪 건강: ${String(p.health).slice(0, 100)}`)
+    }
+    if (exData.karmic) {
+      if (exData.karmic.mission) console.log(`  🌟 카르마 미션: ${exData.karmic.mission}`)
+      if (exData.karmic.lessons?.length) {
+        console.log(`  📚 카르마 레슨:`)
+        for (const l of exData.karmic.lessons.slice(0, 2)) console.log(`    · ${l}`)
+      }
+    }
+  }
+  void ex
+
+  const pp = (fi as unknown as { pillarPositions?: Array<{ position: string; meaning: { area?: string; ageRange?: number[]; family?: string }; stem: { name: string; sibsin?: string }; branch: { name: string }; analysis?: string }> }).pillarPositions
+  if (pp?.length) {
+    console.log(`\n  ━━━ 4기둥 위치별 의미 ━━━`)
+    for (const p of pp) {
+      const range = p.meaning.ageRange ? `[${p.meaning.ageRange[0]}~${p.meaning.ageRange[1]}세] ` : ''
+      console.log(`  ${p.position}: ${p.stem.name}${p.branch.name} — ${range}${p.meaning.area || ''} (${p.meaning.family || ''})`)
+      if (p.analysis) console.log(`    ${String(p.analysis).slice(0, 120)}`)
+    }
+  }
+
+  const sc = (fi as unknown as { stemCombinations?: Array<{ type: string; stems: string[]; description?: string }> }).stemCombinations
+  if (sc?.length) {
+    console.log(`\n  ━━━ 천간 조합 ━━━`)
+    for (const c of sc) {
+      console.log(`  · ${c.type} (${c.stems.join('+')})${c.description ? ` — ${c.description}` : ''}`)
+    }
+  }
+
+  const sep = (fi as unknown as { sameElementPillars?: Array<{ element: string; positions: string[]; description?: string }> }).sameElementPillars
+  if (sep?.length) {
+    console.log(`\n  ━━━ 동일 오행 기둥 ━━━`)
+    for (const s of sep) {
+      console.log(`  · ${s.element} 기둥 ${s.positions.length}개 (${s.positions.join(', ')})${s.description ? ` — ${s.description}` : ''}`)
     }
   }
 }

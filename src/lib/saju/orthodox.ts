@@ -132,10 +132,10 @@ export function analyzePillarPositions(
 }
 
 /**
- * Resolve which pillar's age range covers the given Korean age. Used by
- * the LLM/matrix to decide which pillar's energy is currently active.
+ * Resolve which pillar's age range covers the given Korean age.
+ * Internal helper used by buildOrthodoxInterpretation.
  */
-export function pillarForAge(koreanAge: number): PillarPosition {
+function pillarForAge(koreanAge: number): PillarPosition {
   for (const pos of ['year', 'month', 'day', 'time'] as PillarPosition[]) {
     const [lo, hi] = PILLAR_POSITION_MEANINGS[pos].ageRange
     if (koreanAge >= lo && koreanAge <= hi) return pos

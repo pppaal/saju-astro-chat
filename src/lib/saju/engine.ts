@@ -54,6 +54,9 @@ import { analyzePatterns } from './patterns'
 import { generatePredictiveInsight } from './eventCorrelation'
 // ⭐ 진짜 종합 예측 엔진 (matrix/prediction 안에 구현됨, saju engine 이 미사용)
 import { generateComprehensivePrediction } from '@/lib/matrix/prediction/life-prediction/comprehensive'
+// ⭐ 추가 발견된 dead 모듈 4개 — 살릴 가치 있음
+import { buildExtendedAnalysis } from './extended'
+import { analyzePillarPositions, analyzeStemCombinations, analyzeSameElementPillars } from './orthodox'
 import {
   analyzeTwelveStages,
   type TwelveStageAnalysis,
@@ -479,6 +482,14 @@ export interface MainSajuOutput {
     predictive: ReturnType<typeof generatePredictiveInsight> | null
     /** ⭐ 종합 예측 (matrix/prediction — 다년 트렌드·대운트랜짓·핵심 시기) */
     comprehensivePrediction: ReturnType<typeof generateComprehensivePrediction> | null
+    /** ⭐ 확장 분석 (라이프스테이지·결정적 타이밍·관계·실용·카르마) */
+    extendedAnalysis: ReturnType<typeof buildExtendedAnalysis> | null
+    /** ⭐ 4기둥 위치별 의미 (년주/월주/일주/시주) */
+    pillarPositions: ReturnType<typeof analyzePillarPositions> | null
+    /** ⭐ 천간 조합 (合·沖) */
+    stemCombinations: ReturnType<typeof analyzeStemCombinations> | null
+    /** ⭐ 동일 오행 기둥 분석 */
+    sameElementPillars: ReturnType<typeof analyzeSameElementPillars> | null
   }
   /** 점수 입력 transformer 결과 (근거 표시용) */
   scoreInputs: {
@@ -1286,6 +1297,31 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     _comprehensivePrediction = generateComprehensivePrediction(lifePredictionInput, 10)
   } catch {}
 
+  // ⭐ 4 추가 모듈 호출 (이전엔 dead)
+  let _extendedAnalysis: ReturnType<typeof buildExtendedAnalysis> | null = null
+  let _pillarPositions: ReturnType<typeof analyzePillarPositions> | null = null
+  let _stemCombinations: ReturnType<typeof analyzeStemCombinations> | null = null
+  let _sameElementPillars: ReturnType<typeof analyzeSameElementPillars> | null = null
+  try {
+    const koreanAge = (() => {
+      const birthYear = parseInt(String(input.birthDate).slice(0, 4), 10)
+      return new Date().getFullYear() - birthYear + 1
+    })()
+    _extendedAnalysis = buildExtendedAnalysis(sajuResult, {
+      koreanAge,
+      geokguk: String(advanced.geokguk.type || ''),
+    })
+  } catch {}
+  try {
+    _pillarPositions = analyzePillarPositions(sajuResult)
+  } catch {}
+  try {
+    _stemCombinations = analyzeStemCombinations(sajuResult)
+  } catch {}
+  try {
+    _sameElementPillars = analyzeSameElementPillars(sajuResult)
+  } catch {}
+
   const fullInsights: NonNullable<MainSajuOutput['fullInsights']> = {
     orthodox: _orthodox,
     sibsin: _sibsin,
@@ -1296,6 +1332,10 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
     patterns: _patterns,
     predictive: _predictive,
     comprehensivePrediction: _comprehensivePrediction,
+    extendedAnalysis: _extendedAnalysis,
+    pillarPositions: _pillarPositions,
+    stemCombinations: _stemCombinations,
+    sameElementPillars: _sameElementPillars,
   }
 
   return {
