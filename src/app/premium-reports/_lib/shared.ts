@@ -108,9 +108,12 @@ export function buildQueryReportProfileInput(
 export async function fetchPremiumSajuData(): Promise<PremiumSajuData | null> {
   try {
     const response = await fetch('/api/me/saju')
-    const data = await response.json()
-    if (data.success && data.hasSaju && data.saju?.dayMasterElement) {
-      return data.saju as PremiumSajuData
+    const json = await response.json()
+    // /api/me/saju goes through apiSuccess() which wraps the body as
+    // { success: true, data: { hasSaju, saju } } — unwrap before reading.
+    const payload = json?.data ?? json
+    if (json?.success && payload?.hasSaju && payload?.saju?.dayMasterElement) {
+      return payload.saju as PremiumSajuData
     }
   } catch {
     // ignore and use fallback
