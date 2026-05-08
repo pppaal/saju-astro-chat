@@ -22,28 +22,6 @@ export function isChart(obj: unknown): obj is Chart {
 }
 
 /**
- * Type guard for AstrologyChartFacts
- */
-export interface AstrologyChartFacts {
-  sunSign: string;
-  moonSign: string;
-  ascendant: string;
-  [key: string]: unknown;
-}
-
-export function isAstrologyChartFacts(obj: unknown): obj is AstrologyChartFacts {
-  if (typeof obj !== 'object' || obj === null) {return false;}
-
-  const candidate = obj as Record<string, unknown>;
-
-  return (
-    typeof candidate.sunSign === 'string' &&
-    typeof candidate.moonSign === 'string' &&
-    typeof candidate.ascendant === 'string'
-  );
-}
-
-/**
  * Type guard for Pillar objects
  */
 export interface SajuPillar {
