@@ -415,7 +415,10 @@ const FreeReport = memo(function FreeReport({
           {/* 점성 생애 사이클 타이밍 (사주 extendedAnalysis.decisiveTimings에 대응) */}
           {astroLifecycle && <AstroLifecycleTimeline data={astroLifecycle} />}
 
-          {/* 9 advanced astro insights */}
+          {/* 9 advanced astro insights — Chiron / Asteroids / Fixed Stars
+              / Lilith / Vertex / POF / Eclipses / Harmonics / Draconic.
+              All were already implemented but only Chiron rendered;
+              the other 8 were orphaned. Now all surfaced as cards. */}
           <AdvancedAstroInsights astro={normalizedAstro} lang={lang} className="-mx-4 sm:-mx-0" />
 
           {/* 프리미엄 업그레이드 후크 — ExtendedAnalysis 다 본 직후 */}
