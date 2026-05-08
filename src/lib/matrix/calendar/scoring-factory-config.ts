@@ -117,7 +117,7 @@ export const WOLUN_CONFIG: ScorerConfig<SajuScoreInput['wolun']> = {
  */
 export const ILJIN_CONFIG: ScorerConfig<SajuScoreInput['iljin']> = {
   categoryName: 'iljin',
-  maxScore: CATEGORY_MAX_SCORES.saju.iljin, // 13
+  maxScore: CATEGORY_MAX_SCORES.saju.iljin, // 15
   maxRaw: ILJIN_SCORES.maxRaw,
 
   // Iljin uses sipsin (not sibsin)

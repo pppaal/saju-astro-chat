@@ -42,6 +42,7 @@ import {
   analyzeExtendedSaju,
 } from './core'
 import { performUltraAdvancedAnalysis } from './advanced'
+import { analyzeElementBalance } from './interpretations'
 import {
   analyzeTwelveStages,
   type TwelveStageAnalysis,
@@ -438,6 +439,13 @@ export interface MainSajuOutput {
       valleyChapters: Array<{ age: number; ageRange: string; ganji: string; score: number }>
       overallTheme: string
       stageThemes: Array<{ stage: string; ages: string; theme: string }>
+      /** 오행 균형 — 결핍 / 편중 / 균형 + 평생 보강 가이드 */
+      elementBalance: {
+        dominant: string | null
+        deficient: string | null
+        balance: '균형' | '편중' | '결핍'
+        interpretation: string
+      }
     }
   }
   /** 점수 입력 transformer 결과 (근거 표시용) */
@@ -963,7 +971,7 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       cycleKind: 'iljin',
       cycleGanji: iljinGanji,
       score: scores.iljinScore,
-      scoreMax: 12,
+      scoreMax: 15, // ILJIN_CONFIG.maxScore (실제 산출 cap 정합)
       natalContext,
     })
   }
@@ -1081,9 +1089,20 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       .map((s) => `${s.stage}(${s.ages}) — ${s.theme}`)
       .join(' / ')
 
+    // 오행 균형 (결핍/편중/균형) — 평생 영향 핵심
+    const fiveElementsRaw = (sajuResult as { fiveElements?: Record<string, number> }).fiveElements || {}
+    const koElementsCount = {
+      목: Number(fiveElementsRaw['wood'] ?? fiveElementsRaw['목'] ?? 0),
+      화: Number(fiveElementsRaw['fire'] ?? fiveElementsRaw['화'] ?? 0),
+      토: Number(fiveElementsRaw['earth'] ?? fiveElementsRaw['토'] ?? 0),
+      금: Number(fiveElementsRaw['metal'] ?? fiveElementsRaw['금'] ?? 0),
+      수: Number(fiveElementsRaw['water'] ?? fiveElementsRaw['수'] ?? 0),
+    } as Parameters<typeof analyzeElementBalance>[0]
+    const elementBalance = analyzeElementBalance(koElementsCount)
+
     lifeNarrative = {
       chapters: lifeChapters,
-      summary: { peakChapters, valleyChapters, overallTheme, stageThemes },
+      summary: { peakChapters, valleyChapters, overallTheme, stageThemes, elementBalance },
     }
   }
 

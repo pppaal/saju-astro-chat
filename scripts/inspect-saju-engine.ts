@@ -29,6 +29,11 @@ console.log('\n## 2. 오행 분포')
 for (const [el, count] of Object.entries(out.fiveElements)) {
   console.log(`  ${el}: ${count}`)
 }
+const eb = out.lifeNarrative?.summary.elementBalance
+if (eb) {
+  console.log(`  ─ 균형: ${eb.balance}${eb.dominant ? ` (강: ${eb.dominant})` : ''}${eb.deficient ? ` (결핍: ${eb.deficient})` : ''}`)
+  console.log(`  ─ ${eb.interpretation}`)
+}
 
 console.log('\n## 3. 강약 / 격국 / 용신 / 기신')
 console.log(`  강약:  ${out.advanced.strength.level}  (점수 ${out.advanced.strength.score})`)
@@ -124,7 +129,7 @@ console.log(`  세운 점수: ${out.scores.seunScore.toFixed(2)} / 10  (${pct(ou
 console.log(`         근거: ${showInput(out.scoreInputs.seun as Record<string, unknown>)}`)
 console.log(`  월운 점수: ${out.scores.wolunScore.toFixed(2)} / 7   (${pct(out.scores.wolunScore, 7)})`)
 console.log(`         근거: ${showInput(out.scoreInputs.wolun as Record<string, unknown>)}`)
-console.log(`  일진 점수: ${out.scores.iljinScore.toFixed(2)} / 12  (${pct(out.scores.iljinScore, 12)})`)
+console.log(`  일진 점수: ${out.scores.iljinScore.toFixed(2)} / 15  (${pct(out.scores.iljinScore, 15)})`)
 console.log(`         근거: ${showInput(out.scoreInputs.iljin as Record<string, unknown>)}`)
 
 console.log('\n## 7. cycle별 정통 분석 (Phase 1)')
