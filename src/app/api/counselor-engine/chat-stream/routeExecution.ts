@@ -303,6 +303,8 @@ export async function prepareCounselorExecution(params: {
     lang,
     trimmedHistory,
     lastUserMessage: lastUserContent,
+    // ⭐ 통합엔진 풍부 advice — LLM 이 fullInsights 받음
+    unified: chartResult.unified,
   })
 
   // CV × 사주 cross — counselor가 사용자 실제 경력 데이터를 사주와 묶어 reference

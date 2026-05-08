@@ -615,6 +615,18 @@ export function buildCompactPromptSections(params: {
     )
   )
 
+  // ⭐ 통합엔진 풍부 advice 섹션 (LLM 받음)
+  if (contextSections.fullInsightsSection) {
+    sections.push(
+      createPromptBlock(
+        'fullInsights',
+        contextSections.fullInsightsSection,
+        SECTION_PRIORITIES.BASE_DATA,
+        costOptimized ? 800 : 1500
+      )
+    )
+  }
+
   const timingBlock = firstNonEmptyBlock(
     contextSections.timingScoreSection,
     contextSections.daeunTransitSection,

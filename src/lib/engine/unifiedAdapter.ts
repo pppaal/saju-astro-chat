@@ -14,6 +14,7 @@ import type { ThemeKind, Horizon, ThemeSignal, ThemeTiming, CrossAxes, HorizonSy
 import type { UnifiedDomainScore } from '@/lib/engine/enrichers/scoreReconciler'
 import type { MainSajuOutput, CycleEntry } from '@/lib/saju/engine'
 import type { CycleNarrative } from '@/lib/saju/cycle-analysis/narrative'
+import type { AstroEngineOutput } from '@/lib/astro/engine'
 
 export interface UnifiedBirthInput {
   birthDate: string
@@ -40,6 +41,18 @@ export interface UnifiedSlice {
   header?: { currentChapter?: string; currentDaeun?: string; daeunPhase?: string }
   horizonSynthesis?: Record<Horizon, HorizonSynthesis>
   axes?: CrossAxes
+  /** ⭐ 사주 fullInsights — 13 advice 모듈 전체 */
+  fullInsights?: MainSajuOutput['fullInsights']
+  /** ⭐ 점성 advanced — 5 advance 모듈 (asteroids/eclipses/fixedStars/harmonics/midpoints) */
+  astroAdvanced?: AstroEngineOutput['advanced']
+  /** ⭐ 사주 명조 핵심 — 일주/오행/강약/격국/용신 (UI 빠른 표시용) */
+  pillars?: MainSajuOutput['pillars']
+  fiveElements?: MainSajuOutput['fiveElements']
+  advanced?: MainSajuOutput['advanced']
+  /** ⭐ 점성 빅3 + 원소·양태 분포 */
+  astroBigThree?: AstroEngineOutput['bigThree']
+  astroElementBalance?: AstroEngineOutput['elementBalance']
+  astroModalityBalance?: AstroEngineOutput['modalityBalance']
 }
 
 /**
@@ -81,6 +94,15 @@ export async function getUnifiedSlice(
       header: out.cross?.headerContext,
       horizonSynthesis: out.cross?.horizonSynthesis,
       axes: out.cross?.axes,
+      // ⭐ 풍부 데이터 노출
+      fullInsights: out.saju?.fullInsights,
+      astroAdvanced: out.astro?.advanced,
+      pillars: out.saju?.pillars,
+      fiveElements: out.saju?.fiveElements,
+      advanced: out.saju?.advanced,
+      astroBigThree: out.astro?.bigThree,
+      astroElementBalance: out.astro?.elementBalance,
+      astroModalityBalance: out.astro?.modalityBalance,
     }
   } catch (e) {
     // 통합 엔진 실패 시 null 반환 — 분석기는 옛 로직만 사용
@@ -132,4 +154,33 @@ export const sliceFor = {
   axes: (u: UnifiedSlice) => u.axes,
   /** 헤더 (모든 분석기에서 사용 가능) */
   header: (u: UnifiedSlice) => u.header,
+  /** ⭐ 명조 핵심 (일주·오행·격국·용신·신강) */
+  natal: (u: UnifiedSlice) => ({
+    pillars: u.pillars,
+    fiveElements: u.fiveElements,
+    advanced: u.advanced,
+    bigThree: u.astroBigThree,
+    elementBalance: u.astroElementBalance,
+    modalityBalance: u.astroModalityBalance,
+  }),
+  /** ⭐ 사주 13 advice 모듈 */
+  fullInsights: (u: UnifiedSlice) => u.fullInsights,
+  /** ⭐ 점성 5 advance 모듈 */
+  astroAdvanced: (u: UnifiedSlice) => u.astroAdvanced,
+  /** ⭐ 결핍 advice (사용자에게 강조) */
+  elementDeficiency: (u: UnifiedSlice) => u.life?.summary.elementBalance,
+  /** ⭐ 종합 자연어 (한 단락 advice) */
+  narrative: (u: UnifiedSlice) => u.fullInsights?.narrative,
+  /** ⭐ 다년 예측 (현재 대운 트렌드) */
+  prediction: (u: UnifiedSlice) => u.fullInsights?.comprehensivePrediction,
+  /** ⭐ 라이프스테이지 (4기둥 시기별) */
+  lifeStages: (u: UnifiedSlice) => u.fullInsights?.extendedAnalysis?.lifeStages,
+  /** ⭐ 건강·직업 풍부 분석 */
+  healthCareer: (u: UnifiedSlice) => u.fullInsights?.healthCareer,
+  /** ⭐ 십신 종합 */
+  sibsin: (u: UnifiedSlice) => u.fullInsights?.sibsin,
+  /** ⭐ 점성 일/월식 (다가올) */
+  eclipses: (u: UnifiedSlice) => u.astroAdvanced?.upcomingEclipses,
+  /** ⭐ 점성 고정성 (강한 별빛) */
+  fixedStars: (u: UnifiedSlice) => u.astroAdvanced?.fixedStars,
 }

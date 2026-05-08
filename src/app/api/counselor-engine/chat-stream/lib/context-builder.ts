@@ -29,6 +29,8 @@ export interface ContextBuilderInput {
   lang: string
   trimmedHistory: ChatMessage[]
   lastUserMessage?: string
+  /** ⭐ 통합엔진 결과 — saju.fullInsights / astro.advanced 풍부 데이터 */
+  unified?: import('@/lib/engine/types').UnifiedOutput | null
 }
 
 export interface ContextSections {
@@ -40,6 +42,8 @@ export interface ContextSections {
   tier4AdvancedSection: string
   pastAnalysisSection: string
   lifePredictionSection: string
+  /** ⭐ 통합엔진 풍부 advice 섹션 (LLM 이 받음) */
+  fullInsightsSection?: string
   historyText: string
   userQuestion: string
 }
@@ -385,6 +389,9 @@ export function buildContextSections(input: ContextBuilderInput): ContextSection
   const historyText = buildHistoryText(trimmedHistory)
   const userQuestion = guardText(lastUserMessage, 500)
 
+  // ⭐ 통합엔진 풍부 advice 섹션 — LLM 이 fullInsights 받음
+  const fullInsightsSection = input.unified ? buildFullInsightsSection(input.unified, lang) : ''
+
   const advancedSections = buildAdvancedSections(
     saju,
     astro,
@@ -399,7 +406,98 @@ export function buildContextSections(input: ContextBuilderInput): ContextSection
   return {
     v3Snapshot,
     ...advancedSections,
+    fullInsightsSection,
     historyText,
     userQuestion,
   }
+}
+
+/**
+ * ⭐ 통합엔진 풍부 advice 섹션 빌더 — LLM 이 받을 수 있게 텍스트화.
+ * 사주 fullInsights (13 모듈) + 점성 advanced (5 모듈) 핵심 추출.
+ */
+function buildFullInsightsSection(
+  unified: NonNullable<ContextBuilderInput['unified']>,
+  lang: string,
+): string {
+  const isKo = lang.startsWith('ko')
+  const lines: string[] = []
+  const fi = unified.saju?.fullInsights
+  const aa = unified.astro?.advanced
+
+  if (fi || aa) {
+    lines.push(isKo ? '\n## 통합엔진 정통 분석 (사주 + 점성 + 교차)' : '\n## Unified Engine Core Analysis')
+  }
+
+  // 사주: 결핍·종합·예측·라이프스테이지·건강직업·십신
+  const eb = unified.saju?.lifeNarrative?.summary?.elementBalance
+  if (eb && eb.balance === '결핍') {
+    lines.push(`\n[${isKo ? '오행 결핍' : 'Element Deficiency'}] ${eb.interpretation}`)
+  }
+  if (fi?.narrative?.advice) {
+    lines.push(`\n[${isKo ? '종합 advice' : 'Comprehensive Advice'}] ${fi.narrative.advice}`)
+  }
+  const cp = fi?.comprehensivePrediction?.multiYearTrend
+  if (cp?.summary) {
+    lines.push(`\n[${isKo ? '다년 트렌드' : 'Multi-year Trend'}] ${cp.summary}`)
+    if (cp.peakYears?.length) lines.push(`  정점 연도: ${cp.peakYears.join(', ')}`)
+    if (cp.lowYears?.length) lines.push(`  저점 연도: ${cp.lowYears.join(', ')}`)
+  }
+  const stages = fi?.extendedAnalysis?.lifeStages
+  if (stages && stages.length > 0) {
+    lines.push(`\n[${isKo ? '인생 단계' : 'Life Stages'}]`)
+    for (const s of stages.slice(0, 4)) {
+      const sa = s as { ageRange?: string; stage?: string; theme?: string; description?: string }
+      lines.push(`  - ${sa.ageRange || sa.stage || ''}: ${sa.theme || sa.description || ''}`)
+    }
+  }
+  const hc = fi?.healthCareer
+  if (hc) {
+    const careerType = (hc.career as { workStyle?: { type?: string } })?.workStyle?.type
+    const fields = (hc.career as { primaryFields?: Array<{ category?: string }> })?.primaryFields
+      ?.slice(0, 3)
+      .map((f) => f.category)
+      .filter(Boolean)
+    if (careerType || fields?.length) {
+      lines.push(`\n[${isKo ? '건강·직업' : 'Health & Career'}] 업무 스타일: ${careerType || '-'}, 적성: ${fields?.join(', ') || '-'}`)
+    }
+  }
+  const sb = fi?.sibsin
+  if (sb) {
+    const dom = (sb as { dominantSibsin?: string[] }).dominantSibsin
+    const miss = (sb as { missingSibsin?: string[] }).missingSibsin
+    if (dom?.length || miss?.length) {
+      lines.push(`\n[${isKo ? '십신 종합' : 'Sibsin'}] 과다: ${dom?.join(',') || '-'} / 결핍: ${miss?.join(',') || '-'}`)
+    }
+  }
+
+  // 점성: 일/월식·고정성·하모닉
+  const eclipses = aa?.upcomingEclipses
+  if (eclipses && eclipses.length > 0) {
+    lines.push(`\n[${isKo ? '다가올 일/월식' : 'Upcoming Eclipses'}]`)
+    for (const e of eclipses.slice(0, 3)) {
+      lines.push(`  - ${e.date}: ${e.type} ${e.sign}`)
+    }
+  }
+  const fixedStars = aa?.fixedStars
+  if (fixedStars && fixedStars.length > 0) {
+    lines.push(`\n[${isKo ? '본명 고정성' : 'Fixed Stars'}]`)
+    for (const f of fixedStars.slice(0, 2)) {
+      const fs = f as { star: { name_ko?: string; name: string; nature: string }; planet?: string; orb: number }
+      lines.push(`  - ${fs.star.name_ko || fs.star.name} (${fs.star.nature}) ↔ ${fs.planet || '-'}`)
+    }
+  }
+
+  // 교차: cross 5축 + best/worst now
+  const cross = unified.cross
+  if (cross?.highlights) {
+    const h = cross.highlights
+    lines.push(`\n[${isKo ? '교차 하이라이트' : 'Cross Highlights'}]`)
+    if (h.bestThemeNow) lines.push(`  현재 최고: ${h.bestThemeNow.theme} (${h.bestThemeNow.horizon}, ${h.bestThemeNow.score})`)
+    if (h.worstThemeNow) lines.push(`  현재 최저: ${h.worstThemeNow.theme} (${h.worstThemeNow.horizon}, ${h.worstThemeNow.score})`)
+    if (h.strongestAlignedAxis) lines.push(`  가장 정렬된 축: ${h.strongestAlignedAxis}`)
+    if (h.strongestOpposedAxis) lines.push(`  가장 반대된 축: ${h.strongestOpposedAxis}`)
+  }
+
+  return lines.join('\n')
 }

@@ -160,6 +160,62 @@ export default function UnifiedSummaryCard({
           ))}
         </div>
       )}
+
+      {/* ⭐ 명조 핵심 (일주·격국·용신) */}
+      {slice.pillars?.day && slice.advanced && (
+        <div className="text-[10px] text-slate-300 pt-2 border-t border-slate-700/30 space-y-0.5">
+          <div className="font-semibold text-violet-300 mb-1">{isKo ? '명조 핵심' : 'Natal Core'}</div>
+          <div>일주 <span className="text-amber-300">{slice.pillars.day.ganzhi}</span> ({slice.pillars.day.element})</div>
+          <div>격국 <span className="text-cyan-300">{slice.advanced.geokguk?.type}</span> · 용신 <span className="text-emerald-300">{slice.advanced.yongsin?.primary}</span> · 강약 <span className="text-rose-300">{slice.advanced.strength?.level}</span></div>
+        </div>
+      )}
+
+      {/* ⭐ 오행 결핍 advice (이번에 plumbing) */}
+      {slice.life?.summary.elementBalance?.balance === '결핍' && (
+        <div className="text-[10px] text-amber-200 pt-2 border-t border-amber-500/30 bg-amber-900/10 -mx-1 px-3 py-2 rounded">
+          <div className="font-semibold text-amber-300 mb-0.5">⚠ {isKo ? '오행 결핍' : 'Element Deficiency'}</div>
+          <div>{slice.life.summary.elementBalance.interpretation}</div>
+        </div>
+      )}
+
+      {/* ⭐ 종합 자연어 advice (generateComprehensiveText) */}
+      {slice.fullInsights?.narrative?.advice && (
+        <div className="text-[10px] text-slate-200 pt-2 border-t border-slate-700/30">
+          <div className="font-semibold text-violet-300 mb-1">💡 {isKo ? '종합 advice' : 'Insight'}</div>
+          <div className="leading-relaxed">{slice.fullInsights.narrative.advice}</div>
+        </div>
+      )}
+
+      {/* ⭐ 다년 예측 (현재 대운 트렌드) */}
+      {slice.fullInsights?.comprehensivePrediction?.multiYearTrend && (
+        <div className="text-[10px] text-slate-300 pt-2 border-t border-slate-700/30">
+          <div className="font-semibold text-emerald-300 mb-1">📈 {isKo ? '다년 트렌드' : 'Multi-year Trend'}</div>
+          <div>{slice.fullInsights.comprehensivePrediction.multiYearTrend.summary || ''}</div>
+          {(slice.fullInsights.comprehensivePrediction.multiYearTrend.peakYears?.length ?? 0) > 0 && (
+            <div className="text-emerald-400">🌟 정점: {slice.fullInsights.comprehensivePrediction.multiYearTrend.peakYears!.join(', ')}년</div>
+          )}
+        </div>
+      )}
+
+      {/* ⭐ 다가올 일/월식 (점성 plumbing) */}
+      {(slice.astroAdvanced?.upcomingEclipses?.length ?? 0) > 0 && (
+        <div className="text-[10px] text-slate-300 pt-2 border-t border-slate-700/30">
+          <div className="font-semibold text-indigo-300 mb-1">🌒 {isKo ? '다가올 일/월식' : 'Upcoming Eclipses'}</div>
+          {slice.astroAdvanced!.upcomingEclipses!.slice(0, 2).map((e, i) => (
+            <div key={i}>· {e.date}: {e.type} {e.sign}</div>
+          ))}
+        </div>
+      )}
+
+      {/* ⭐ 라이프스테이지 (현재) */}
+      {(slice.fullInsights?.extendedAnalysis?.lifeStages?.length ?? 0) > 0 && (
+        <div className="text-[10px] text-slate-300 pt-2 border-t border-slate-700/30">
+          <div className="font-semibold text-cyan-300 mb-1">📅 {isKo ? '인생 단계' : 'Life Stages'}</div>
+          {slice.fullInsights!.extendedAnalysis!.lifeStages!.slice(0, 2).map((s, i) => (
+            <div key={i} className="leading-snug">· <span className="text-cyan-400">{(s as { ageRange?: string }).ageRange || (s as { stage?: string }).stage}</span> — {(s as { theme?: string; description?: string }).theme || (s as { theme?: string; description?: string }).description}</div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
