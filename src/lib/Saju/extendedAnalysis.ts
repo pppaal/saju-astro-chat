@@ -488,7 +488,7 @@ export function buildExtendedAnalysis(
  * threading.
  */
 export function buildExtendedAnalysisFromMain(
-  main: import('@/lib/main-saju').MainSajuOutput,
+  main: import('@/lib/Saju/main').MainSajuOutput,
   options: { koreanAge?: number } = {},
 ): ExtendedAnalysis {
   const koreanAge = options.koreanAge
@@ -504,7 +504,7 @@ export function buildExtendedAnalysisFromMain(
 // runMainSaju internally builds it — re-derive by calling calculateSajuData
 // once, but keep the call cheap (memoized callers / route already has it).
 function extractCalcSajuFromMain(
-  main: import('@/lib/main-saju').MainSajuOutput,
+  main: import('@/lib/Saju/main').MainSajuOutput,
 ): CalculateSajuDataResult {
   // The MainSajuOutput drops the original CalculateSajuDataResult. The
   // simplest, cheapest path is to recompute it here from the input.

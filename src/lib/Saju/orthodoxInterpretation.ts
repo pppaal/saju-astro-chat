@@ -15,7 +15,7 @@
  */
 
 import type { CalculateSajuDataResult, PillarData, FiveElement } from './types'
-import { analyzeAdvancedSaju, analyzeRoot } from './astrologyengine'
+import { analyzeAdvancedSaju, analyzeRoot } from './advancedAnalysis'
 import {
   analyzeJonggeok,
   analyzeHwagyeok,
@@ -242,7 +242,7 @@ export interface OrthodoxSajuInterpretation {
   currentLifePillar: PillarPosition // which pillar's age range covers today
   stemCombinations: StemCombinationHit[]
   sameElementPillars: SameElementPillarHit[]
-  /** From astrologyengine.analyzeAdvancedSaju */
+  /** From advancedAnalysis.analyzeAdvancedSaju */
   advanced: ReturnType<typeof analyzeAdvancedSaju> | null
   /** Dedicated 통근/근 (root) analysis — 득령/득지/득세 */
   root: ReturnType<typeof analyzeRoot> | null

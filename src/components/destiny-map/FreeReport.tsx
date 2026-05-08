@@ -6,7 +6,7 @@ import { Sparkles, Lock } from 'lucide-react'
 import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import { expandNarrativeDeep } from './free-report/tabs/shared/longForm'
 import PremiumNarrativeCard from '@/components/reports/PremiumNarrativeCard'
-import { runMainSaju } from '@/lib/main-saju'
+import { runMainSaju } from '@/lib/Saju/main'
 import { buildExtendedAnalysisFromMain } from '@/lib/Saju/extendedAnalysis'
 import ExtendedAnalysisSection from '@/app/premium-reports/_components/ExtendedAnalysisSection'
 

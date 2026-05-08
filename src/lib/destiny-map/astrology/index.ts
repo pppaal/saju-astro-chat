@@ -3,7 +3,7 @@
  * 운명 지도 점성술 모듈 인덱스
  *
  * Central export hub for all destiny map astrology modules.
- * Provides backward compatibility with the original astrologyengine.ts
+ * Provides backward compatibility with the original advancedAnalysis.ts
  */
 
 // ======================================================
