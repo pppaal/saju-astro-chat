@@ -68,7 +68,7 @@ function buildCycleInput(
 
   // 삼합: 대운 지지 + 본명 일지가 같은 삼합국에 속하는지
   let hasSamhapPositive = false
-  let hasSamhapNegative = false
+  const hasSamhapNegative = false
   for (const [, branches] of Object.entries(SAMHAP)) {
     if (branches.includes(cycleBranch) && branches.includes(natalDayBranch)) {
       hasSamhapPositive = true
@@ -108,7 +108,7 @@ function buildIljinInput(
   const hasHai = HAI[iljinBranch] === natalDayBranch
 
   let hasSamhapPositive = false
-  let hasSamhapNegative = false
+  const hasSamhapNegative = false
   for (const [, branches] of Object.entries(SAMHAP)) {
     if (branches.includes(iljinBranch) && branches.includes(natalDayBranch)) {
       hasSamhapPositive = true

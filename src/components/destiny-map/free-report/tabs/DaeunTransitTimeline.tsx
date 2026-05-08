@@ -31,8 +31,11 @@ interface DaeunTransitTimelineProps {
  */
 export default function DaeunTransitTimeline({ timing, isKo }: DaeunTransitTimelineProps) {
   const [selectedDaeun, setSelectedDaeun] = useState<number | null>(null)
-  const daeunList = timing?.daeunTimeline || []
-  const transits = timing?.majorTransits || []
+  // Memoize the daeun list so dependent useMemos / useEffects don't
+  // re-run on every render just because timing.daeunTimeline is a fresh
+  // array reference each time the parent re-renders.
+  const daeunList = useMemo(() => timing?.daeunTimeline || [], [timing?.daeunTimeline])
+  const transits = useMemo(() => timing?.majorTransits || [], [timing?.majorTransits])
   const currentYear = new Date().getFullYear()
 
   // Anchor the timeline: from earliest daeun start to latest daeun end.
@@ -87,7 +90,7 @@ export default function DaeunTransitTimeline({ timing, isKo }: DaeunTransitTimel
       isUpcoming: boolean
       description: string | undefined
     }>
-  }, [transits, currentAge, currentYear, minAge, maxAge, isKo])
+  }, [transits, current, currentAge, currentYear, minAge, maxAge, isKo])
 
   if (daeunList.length === 0) return null
 
