@@ -17,6 +17,12 @@ import { ResultsHeader } from './ResultsHeader'
 import { CombinationsSection } from './CombinationsSection'
 import { GuidanceSection } from './GuidanceSection'
 import { FollowupSection } from './FollowupSection'
+import SpreadSynthesisCard from '../../foundation/SpreadSynthesisCard'
+import ComboPatternsCard from '../../foundation/ComboPatternsCard'
+import TarotTimingCard from '../../foundation/TarotTimingCard'
+import { synthesizeTarotSpread } from '@/lib/Tarot/foundation/synthesis'
+import { detectComboPatterns } from '@/lib/Tarot/foundation/combinations'
+import { buildTarotTiming } from '@/lib/Tarot/foundation/timing'
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -195,6 +201,19 @@ export function ResultsStage(props: ResultsStageProps) {
   const questionIntent = useMemo<QuestionIntent>(
     () => getQuestionIntent(userTopic, questionAnalysis),
     [userTopic, questionAnalysis]
+  )
+
+  const tarotSynthesis = useMemo(
+    () => (readingResult.drawnCards.length > 0 ? synthesizeTarotSpread(readingResult.drawnCards) : null),
+    [readingResult.drawnCards]
+  )
+  const comboHits = useMemo(
+    () => (readingResult.drawnCards.length > 0 ? detectComboPatterns(readingResult.drawnCards) : []),
+    [readingResult.drawnCards]
+  )
+  const tarotTiming = useMemo(
+    () => buildTarotTiming(readingResult.drawnCards),
+    [readingResult.drawnCards]
   )
 
   const quickSummary = useMemo(() => {
@@ -470,6 +489,12 @@ export function ResultsStage(props: ResultsStageProps) {
           translate={translate}
         />
       </details>
+
+      {tarotSynthesis && <SpreadSynthesisCard data={tarotSynthesis} />}
+
+      {comboHits.length > 0 && <ComboPatternsCard hits={comboHits} />}
+
+      {tarotTiming && <TarotTimingCard data={tarotTiming} />}
 
       {insight?.combinations && insight.combinations.length > 0 && (
         <CombinationsSection combinations={insight.combinations} translate={translate} />
