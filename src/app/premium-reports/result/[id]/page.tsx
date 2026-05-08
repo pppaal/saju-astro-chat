@@ -19,7 +19,6 @@ import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import {
   CalculationDetailsSection,
-  GraphRagEvidenceSection,
   InterpretedAnswerSection,
   PersonAppliedProfileSection,
   PersonDomainStateSection,
@@ -1211,11 +1210,8 @@ export default function ReportResultPage() {
         </div>
       )}
 
-      {report.graphRagEvidence && report.graphRagEvidence.anchors?.length > 0 && (
-        <div className="mx-auto mt-6 max-w-6xl px-4">
-          <GraphRagEvidenceSection evidence={report.graphRagEvidence} />
-        </div>
-      )}
+      {/* GraphRAG evidence section retired — kept the field on saved
+          payloads for backward compatibility but no longer rendered. */}
 
       {/* Tier 1-4 시각 요약 — 5행 분포 / 합의 강도 / cross map */}
       {(() => {

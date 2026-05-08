@@ -602,7 +602,6 @@ export function buildThemedPrompt(
   timingData: TimingData,
   matrixSummary: string,
   astroSummary?: string,
-  graphRagEvidencePrompt?: string,
   userQuestion?: string,
   deterministicCorePrompt?: string,
   period?: 'lifetime' | 'yearly' | 'monthly',
@@ -665,7 +664,6 @@ ${timingData.seun ? `- 세운: ${timingData.seun.year}년 ${timingData.seun.heav
 ${matrixSummary}
 
 ${astroSummary ? `## 점성술 분석 요약\n${astroSummary}` : ''}
-${graphRagEvidencePrompt ? `\n## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}` : ''}
 ${deterministicBlock ? `\n${deterministicBlock}` : ''}
 ${questionIntentInstruction ? `\n${questionIntentInstruction}` : ''}
 
@@ -711,7 +709,6 @@ ${timingData.seun ? `- Seun: ${timingData.seun.year} ${timingData.seun.heavenlyS
 ${matrixSummary}
 
 ${astroSummary ? `## Astrology Analysis Summary\n${astroSummary}` : ''}
-${graphRagEvidencePrompt ? `\n## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}` : ''}
 ${deterministicBlock ? `\n${deterministicBlock}` : ''}
 ${questionIntentInstruction ? `\n${questionIntentInstruction}` : ''}
 

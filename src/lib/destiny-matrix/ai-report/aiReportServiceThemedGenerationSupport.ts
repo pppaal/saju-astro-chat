@@ -587,7 +587,6 @@ export async function generateThemedReportWithSupport(
     timingData,
     matrixSummary,
     undefined,
-    graphRagEvidencePrompt,
     options.userQuestion,
     `${deterministicCore.promptBlock}${skeletonBlock}`,
     periodForPrompt,

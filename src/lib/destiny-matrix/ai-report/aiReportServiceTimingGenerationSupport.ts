@@ -445,7 +445,6 @@ export async function generateTimingReportWithSupport(
     timingData,
     targetDate,
     matrixSummary,
-    graphRagEvidencePrompt,
     options.userQuestion,
     deterministicCore.promptBlock
   )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
