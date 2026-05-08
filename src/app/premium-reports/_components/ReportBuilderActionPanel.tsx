@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import type { ReportProfileInput } from '@/app/premium-reports/_components'
 
 type Accent = 'violet' | 'cyan' | 'amber' | 'emerald'
@@ -59,12 +60,12 @@ export default function ReportBuilderActionPanel({
               <p className="text-xs text-slate-400 mt-1">홈에서 입력한 정보로 자동 적용됩니다.</p>
             )}
           </div>
-          <a
+          <Link
             href="/?openBirth=1"
             className="text-xs text-cyan-300 hover:text-cyan-200 underline-offset-2 hover:underline"
           >
             수정
-          </a>
+          </Link>
         </div>
       ) : (
         // Birth info isn't on the device yet. The page-level redirect

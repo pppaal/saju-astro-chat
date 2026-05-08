@@ -510,7 +510,7 @@ function extractCalcSajuFromMain(
   // simplest, cheapest path is to recompute it here from the input.
   // Saves us from threading the full saju object through every caller.
   // calculateSajuData is pure and ~1ms — negligible.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+   
   const { calculateSajuData } = require('./saju') as typeof import('./saju')
   return calculateSajuData(
     main.input.birthDate,
