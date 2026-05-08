@@ -135,7 +135,7 @@ vi.mock('@/lib/destiny-matrix/ai-report', () => ({
     layerCoverage: [],
     items: [],
   }),
-  summarizeGraphRAGEvidence: vi.fn().mockReturnValue(null),
+  summarizeEvidenceEvidence: vi.fn().mockReturnValue(null),
   REPORT_CREDIT_COSTS: {
     daily: 2,
     monthly: 3,
@@ -249,7 +249,7 @@ const MOCK_AI_REPORT = {
 const MOCK_STRICT_FAIL_REPORT = {
   ...MOCK_AI_REPORT,
   patterns: [],
-  graphRagEvidence: { anchors: [] },
+  structuredEvidence: { anchors: [] },
   meta: {
     ...MOCK_AI_REPORT.meta,
     qualityMetrics: { coreQualityScore: 92 },
@@ -259,7 +259,7 @@ const MOCK_STRICT_FAIL_REPORT = {
 const MOCK_STRICT_PASS_REPORT = {
   ...MOCK_AI_REPORT,
   patterns: [{ id: 'pattern-1' }],
-  graphRagEvidence: {
+  structuredEvidence: {
     anchors: [{ section: 'overview', crossEvidenceSets: [{}] }],
   },
   meta: {

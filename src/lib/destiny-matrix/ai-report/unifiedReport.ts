@@ -17,7 +17,7 @@ import type {
 } from './types'
 import type { SignalSynthesisResult } from './signalSynthesizer'
 import type { SectionEvidenceRefs } from './evidenceRefs'
-import type { GraphRAGEvidenceBundle, GraphRAGCrossEvidenceSet } from './graphRagEvidence'
+import type { EvidenceBundle, CrossEvidenceSet } from './structuredEvidence'
 import type { DeterministicSectionBlock } from './deterministicCore'
 
 const UNIFIED_REPORT_SCHEMA_VERSION = '1.1'
@@ -46,9 +46,9 @@ import {
 } from './unifiedReportEnvelopeSupport'
 
 function buildUnifiedAnchorsFromGraph(
-  graphRagEvidence: GraphRAGEvidenceBundle | undefined
+  structuredEvidence: EvidenceBundle | undefined
 ): UnifiedAnchor[] {
-  return (graphRagEvidence?.anchors || []).map((anchor) => {
+  return (structuredEvidence?.anchors || []).map((anchor) => {
     const sets = anchor.crossEvidenceSets || []
     const setCount = sets.length
     const avgOverlapScore =
@@ -143,7 +143,7 @@ function tokenizeForLink(...sources: Array<string | undefined>): string[] {
 function scoreSetLink(params: {
   signalDomains: string[]
   signalTokens: string[]
-  set: GraphRAGCrossEvidenceSet
+  set: CrossEvidenceSet
   sectionMatch: boolean
 }): {
   linkScore: number
@@ -190,9 +190,9 @@ function scoreSetLink(params: {
 function buildUnifiedEvidenceLinks(params: {
   synthesis: SignalSynthesisResult | undefined
   claims: UnifiedClaim[]
-  graphRagEvidence: GraphRAGEvidenceBundle | undefined
+  structuredEvidence: EvidenceBundle | undefined
 }): UnifiedEvidenceLink[] {
-  const anchors = params.graphRagEvidence?.anchors || []
+  const anchors = params.structuredEvidence?.anchors || []
   if (!params.synthesis || anchors.length === 0) return []
 
   const signalById = params.synthesis.signalsById || {}
@@ -654,7 +654,7 @@ export function buildUnifiedEnvelope(params: {
   matrixReport: FusionReport
   matrixSummary?: MatrixSummary
   signalSynthesis?: SignalSynthesisResult
-  graphRagEvidence: GraphRAGEvidenceBundle | undefined
+  structuredEvidence: EvidenceBundle | undefined
   period?: ReportPeriod
   targetDate?: string
   timingData?: TimingData
@@ -686,13 +686,13 @@ export function buildUnifiedEnvelope(params: {
     period: params.period,
     targetDate: params.targetDate,
   })
-  const anchors = buildUnifiedAnchorsFromGraph(params.graphRagEvidence)
+  const anchors = buildUnifiedAnchorsFromGraph(params.structuredEvidence)
   const selectedSignals = buildUnifiedSelectedSignalsFromSynthesis(params.signalSynthesis)
   const claims = buildUnifiedClaimsFromSynthesis(params.signalSynthesis, anchors)
   const evidenceLinks = buildUnifiedEvidenceLinks({
     synthesis: params.signalSynthesis,
     claims,
-    graphRagEvidence: params.graphRagEvidence,
+    structuredEvidence: params.structuredEvidence,
   })
   const scores = buildUnifiedScoresFromData({
     matrixReport: params.matrixReport,
@@ -710,7 +710,7 @@ export function buildUnifiedEnvelope(params: {
     mode: params.mode,
     lang: params.lang,
     claims,
-    graphRagEvidence: params.graphRagEvidence,
+    structuredEvidence: params.structuredEvidence,
     timingData: params.timingData,
     scope: timeWindow.scope,
     birthDate: params.birthDate,

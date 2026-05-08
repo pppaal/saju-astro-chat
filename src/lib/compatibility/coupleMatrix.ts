@@ -511,8 +511,9 @@ function analyzeL6DaewoonSync(
   b: CoupleSajuInput
 ): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
-  const aDaeun = ((a.saju as any).unse?.daeun || []) as Array<{ age: number; heavenlyStem: string }>
-  const bDaeun = ((b.saju as any).unse?.daeun || []) as Array<{ age: number; heavenlyStem: string }>
+  type SajuWithUnse = { unse?: { daeun?: Array<{ age: number; heavenlyStem: string }> } }
+  const aDaeun = (a.saju as unknown as SajuWithUnse).unse?.daeun || []
+  const bDaeun = (b.saju as unknown as SajuWithUnse).unse?.daeun || []
   const aCur = [...aDaeun].reverse().find((d) => a.koreanAge >= d.age)
   const bCur = [...bDaeun].reverse().find((d) => b.koreanAge >= d.age)
   if (!aCur || !bCur) return cells
@@ -570,7 +571,10 @@ function analyzeL7DaeunNatal(
     const other = dir === 'A→B' ? b : a
     const otherLabel = dir.split('→')[1]
     const selfLabel = dir.split('→')[0]
-    const daeunList = ((self.saju as any).unse?.daeun || []) as Array<{ age: number; heavenlyStem: string }>
+    const daeunList =
+      (self.saju as unknown as {
+        unse?: { daeun?: Array<{ age: number; heavenlyStem: string }> }
+      }).unse?.daeun || []
     const cur = [...daeunList].reverse().find((d) => self.koreanAge >= d.age)
     if (!cur || !other.natal) continue
     const daeunElem = STEM_TO_ELEM[cur.heavenlyStem]
@@ -704,8 +708,11 @@ function analyzeL9GeokgukDominant(
   b: CoupleSajuInput
 ): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
-  const aGeokguk = (((a.saju as any).orthodoxInterpretation?.advanced || {}) as any).geokguk?.type
-  const bGeokguk = (((b.saju as any).orthodoxInterpretation?.advanced || {}) as any).geokguk?.type
+  type SajuWithOrthodox = {
+    orthodoxInterpretation?: { advanced?: { geokguk?: { type?: string } } }
+  }
+  const aGeokguk = (a.saju as unknown as SajuWithOrthodox).orthodoxInterpretation?.advanced?.geokguk?.type
+  const bGeokguk = (b.saju as unknown as SajuWithOrthodox).orthodoxInterpretation?.advanced?.geokguk?.type
   const aDominant = dominantWesternElement(a.natal)
   const bDominant = dominantWesternElement(b.natal)
   const WESTERN_TO_FIVE: Record<string, FiveElement> = {

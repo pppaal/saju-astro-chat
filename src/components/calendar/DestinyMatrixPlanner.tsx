@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, Fragment } from 'react'
+import React, { useState, useMemo, useCallback, Fragment } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Dialog, Transition } from '@headlessui/react'
 import {
@@ -24,8 +24,6 @@ import {
   Layers,
 } from 'lucide-react'
 import {
-  AreaChart,
-  Area,
   XAxis,
   Tooltip,
   ResponsiveContainer,
@@ -176,6 +174,12 @@ export default function DestinyMatrixPlanner({
   }, [data, selectedDateStr])
 
   // --- Daily indices: 총점 / 연애 / 재물 / 건강 ------------------------
+  // yearly /api/calendar 페이로드에는 activityScores가 들어오지 않는다
+  // (date-detail 엔드포인트에서만 계산). 그래서 도메인별 지수는
+  //  1) evidence.matrix.domain이 매칭되면 finalScoreAdjusted로 직접
+  //  2) 카테고리에 해당 도메인이 들어있으면 그 날의 최종 점수
+  //  3) 그 외엔 중립값 50 (없는 신호를 60%로 위장하지 않음)
+  // 의 정직한 우선순위로 도출한다.
   const dailyIndices = useMemo(() => {
     if (!selectedImportantDate) {
       return { score: 88, love: 65, wealth: 78, health: 60 }
@@ -183,42 +187,46 @@ export default function DestinyMatrixPlanner({
     const d = selectedImportantDate
     const finalScore = Math.round(pickFinalScore(d))
     const cats = new Set(d.categories)
-    const fallbackByCategory = (key: EventCategory) =>
-      cats.has(key) ? finalScore : Math.max(35, Math.round(finalScore * 0.6))
+    const matrixDomain = d.evidence?.matrix?.domain
+    const matrixScore = d.evidence?.matrix?.finalScoreAdjusted
+    const domainScore = (categoryKey: EventCategory, matrixKey: string): number => {
+      if (matrixDomain === matrixKey && typeof matrixScore === 'number') {
+        return Math.max(0, Math.min(100, Math.round(matrixScore)))
+      }
+      if (cats.has(categoryKey)) return finalScore
+      return 50
+    }
     return {
       score: finalScore,
-      love: Math.round(d.activityScores?.marriage ?? fallbackByCategory('love')),
-      wealth: Math.round(d.activityScores?.investment ?? fallbackByCategory('wealth')),
-      health: Math.round(fallbackByCategory('health')),
+      love: domainScore('love', 'love'),
+      wealth: domainScore('wealth', 'money'),
+      health: domainScore('health', 'health'),
     }
   }, [selectedImportantDate])
 
-  // --- Daily time flow: 06 / 12 / 18 / 24 시 ---------------------------
-  const dailyTimeFlow = useMemo(() => {
-    const slots = selectedImportantDate?.hourlyTimeSlots
-    if (!slots || (slots.best.length === 0 && slots.worst.length === 0)) {
-      return [
-        { time: '06시', luck: 70 },
-        { time: '12시', luck: 88 },
-        { time: '18시', luck: 75 },
-        { time: '24시', luck: 60 },
-      ]
+  // --- Daily best/worst hours (engine-precise, 24-hour analysis) -------
+  // 엔진은 selectedDate가 *오늘*일 때만 시간대 분석을 yearly 응답에 끼워
+  // 보낸다 (`todayHourlyTimeSlots`). 다른 날짜는 자체 hourlyTimeSlots
+  // 필드가 차 있을 때만 노출 — 그 외엔 placeholder로 정직하게 비운다.
+  const dailyHourlySlots = useMemo(() => {
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    const isToday = selectedDateStr === todayStr
+    const perDay = selectedImportantDate?.hourlyTimeSlots
+    if (perDay && (perDay.best.length > 0 || perDay.worst.length > 0)) {
+      return perDay
     }
-    const all = [...slots.best, ...slots.worst]
-    const closest = (target: number) => {
-      const adjusted = target === 24 ? 0 : target
-      const best = all.reduce((best, cur) =>
-        Math.abs(cur.hour - adjusted) < Math.abs(best.hour - adjusted) ? cur : best,
-      )
-      return Math.round(best.score)
+    if (isToday && data?.todayHourlyTimeSlots) {
+      return data.todayHourlyTimeSlots
     }
-    return [
-      { time: '06시', luck: closest(6) },
-      { time: '12시', luck: closest(12) },
-      { time: '18시', luck: closest(18) },
-      { time: '24시', luck: closest(24) },
-    ]
-  }, [selectedImportantDate])
+    return null
+  }, [today, selectedDateStr, selectedImportantDate, data])
+
+  const formatHour = (h: number): string => {
+    if (h === 0) return '자정 12시'
+    if (h === 12) return '정오 12시'
+    if (h < 12) return `오전 ${h}시`
+    return `오후 ${h - 12}시`
+  }
 
   // --- Daily Dos / Donts ----------------------------------------------
   const dailyDos = useMemo(() => {
@@ -232,6 +240,85 @@ export default function DestinyMatrixPlanner({
     if (warns && warns.length > 0) return warns.slice(0, 2)
     return MOCK_DONTS
   }, [selectedImportantDate])
+
+  // --- Daily one-line summary (engine pre-formatted, when available) ---
+  const dailyOneLineSummary = useMemo(() => {
+    if (
+      data?.calendarDailyView &&
+      data.calendarDailyView.date === selectedDateStr &&
+      data.calendarDailyView.oneLineSummary
+    ) {
+      return data.calendarDailyView.oneLineSummary
+    }
+    return selectedImportantDate?.summary ?? null
+  }, [data, selectedDateStr, selectedImportantDate])
+
+  // --- Daily engine self-diagnostic: confidence + cross agreement ------
+  const dailyEngineSignal = useMemo(() => {
+    if (!selectedImportantDate) return null
+    const conf = selectedImportantDate.evidence?.confidence
+    const sync = selectedImportantDate.evidence?.crossAgreementPercent
+    if (conf == null && sync == null) return null
+    return {
+      confidence: typeof conf === 'number' ? Math.round(conf) : null,
+      sync: typeof sync === 'number' ? Math.round(sync) : null,
+    }
+  }, [selectedImportantDate])
+
+  // --- Daily active 신살 (역마, 도화, 화개 등) -------------------------
+  const dailyShinsal = useMemo(() => {
+    const list = selectedImportantDate?.shinsalActive ?? []
+    return list.slice(0, 6)
+  }, [selectedImportantDate])
+
+  // --- Stats: natal context (강약 / 격국 / 용신) -----------------------
+  const natalContextSummary = useMemo(() => {
+    if (!data?.allDates) return null
+    const found = data.allDates.find((d) => d.natalContext?.summary)
+    return found?.natalContext ?? null
+  }, [data])
+
+  // --- Stats: yongsin activation top 5 (next 60 days) ------------------
+  const yongsinTop = useMemo(() => {
+    return data?.yongsinActivations ?? null
+  }, [data])
+
+  const formatDateKo = (dateStr: string): string => {
+    // 'YYYY-MM-DD' → 'M월 D일'
+    const m = parseInt(dateStr.slice(5, 7), 10)
+    const d = parseInt(dateStr.slice(8, 10), 10)
+    return `${m}월 ${d}일`
+  }
+
+  // --- Astro identity badge for the header ---------------------------
+  // 풀 차트가 들어오면 ASC, 없으면 태양 별자리.
+  const astroBadge = useMemo(() => {
+    const id = data?.astroIdentity
+    if (!id) return null
+    const ZODIAC_KO: Record<string, string> = {
+      Aries: '양자리',
+      Taurus: '황소자리',
+      Gemini: '쌍둥이자리',
+      Cancer: '게자리',
+      Leo: '사자자리',
+      Virgo: '처녀자리',
+      Libra: '천칭자리',
+      Scorpio: '전갈자리',
+      Sagittarius: '사수자리',
+      Capricorn: '염소자리',
+      Aquarius: '물병자리',
+      Pisces: '물고기자리',
+    }
+    if (id.ascendantSign) {
+      const ko = ZODIAC_KO[id.ascendantSign]
+      return { label: ko ? `${ko} ASC` : `${id.ascendantSign} ASC`, kind: 'asc' as const }
+    }
+    if (id.sunSign) {
+      const ko = ZODIAC_KO[id.sunSign]
+      return { label: ko ? `${ko} ☉` : `${id.sunSign} Sun`, kind: 'sun' as const }
+    }
+    return null
+  }, [data])
 
   // --- Stats: domain sync radar ---------------------------------------
   // sajuAxis / astroAxis는 엔진의 모든 일자에 항상 들어옴 (yearlyDates.ts).
@@ -260,15 +347,19 @@ export default function DestinyMatrixPlanner({
   }, [domainSyncData])
 
   // --- Stats: weekly cross timing -------------------------------------
+  // 캘린더 주차 (일요일 시작) 기준으로 버킷팅. 옛 단순 7일 그룹팅
+  // (1-7 / 8-14 / 15-21 / 22-28 / 29+) 은 실제 주와 어긋나서 1주차에
+  // 화·수·목·금·토만 들어가는 식이었다. 이제 그 달의 1일이 무슨 요일인지
+  // 보고 leadingBlanks를 더해 진짜 주차로 정렬.
   const weeklyTimingData = useMemo(() => {
     if (monthDates.length === 0) return null
-    const buckets: Array<{ saju: number[]; astro: number[] }> = Array.from(
-      { length: 5 },
-      () => ({ saju: [], astro: [] }),
-    )
+    const buckets: Array<{ saju: number[]; astro: number[] }> = []
     for (const d of monthDates) {
       const day = parseInt(d.date.slice(8, 10), 10)
-      const weekIdx = Math.min(Math.floor((day - 1) / 7), 4)
+      // leadingBlanks = 그 달 1일 직전 빈 칸 수 (= 1일의 요일 인덱스, 일=0).
+      // 같은 식을 적용하면 day가 그 달 캘린더 표에서 몇 번째 주에 들어가는지 나옴.
+      const weekIdx = Math.floor((day - 1 + leadingBlanks) / 7)
+      if (!buckets[weekIdx]) buckets[weekIdx] = { saju: [], astro: [] }
       buckets[weekIdx].saju.push(d.scoreBreakdown?.sajuAxis ?? 50)
       buckets[weekIdx].astro.push(d.scoreBreakdown?.astroAxis ?? 50)
     }
@@ -277,9 +368,21 @@ export default function DestinyMatrixPlanner({
       saju: b.saju.length > 0 ? Math.round(avg(b.saju)) : 50,
       astro: b.astro.length > 0 ? Math.round(avg(b.astro)) : 50,
     }))
-  }, [monthDates])
+  }, [monthDates, leadingBlanks])
 
   // --- Stats: super-timing (week with strongest cross signal) ---------
+  // 캘린더 주차 (일~토) 기준이라 1주차는 그 달 1일이 시작하는 요일에서
+  // 그 주의 토요일까지. 즉 dayStart = 1, dayEnd = 7 - leadingBlanks.
+  // 그 다음부터는 7일씩 흘러간다.
+  const weekRange = useCallback(
+    (weekIdx: number) => {
+      const dayStart = weekIdx === 0 ? 1 : weekIdx * 7 - leadingBlanks + 1
+      const dayEnd = Math.min(weekIdx * 7 - leadingBlanks + 7, daysInMonth)
+      return { dayStart, dayEnd }
+    },
+    [leadingBlanks, daysInMonth],
+  )
+
   const superTiming = useMemo(() => {
     const weeks = weeklyTimingData
     if (!weeks || weeks.length === 0) return null
@@ -292,10 +395,9 @@ export default function DestinyMatrixPlanner({
       }
     }
     const weekIdx = parseInt(best.week, 10) - 1
-    const dayStart = weekIdx * 7 + 1
-    const dayEnd = Math.min(dayStart + 6, daysInMonth)
+    const { dayStart, dayEnd } = weekRange(weekIdx)
     return { week: best.week, dayStart, dayEnd, sajuScore: best.saju, astroScore: best.astro }
-  }, [weeklyTimingData, daysInMonth])
+  }, [weeklyTimingData, weekRange])
 
   // --- Engine reasons for the super-timing card -----------------------
   const superTimingReasons = useMemo(() => {
@@ -306,11 +408,10 @@ export default function DestinyMatrixPlanner({
       }
     }
     const weekIdx = parseInt(superTiming.week, 10) - 1
-    const dayStart = weekIdx * 7 + 1
-    const dayEnd = Math.min(dayStart + 7, daysInMonth + 1)
+    const { dayStart, dayEnd } = weekRange(weekIdx)
     const weekDates = monthDates.filter((d) => {
       const day = parseInt(d.date.slice(8, 10), 10)
-      return day >= dayStart && day < dayEnd
+      return day >= dayStart && day <= dayEnd
     })
     if (weekDates.length === 0) {
       return {
@@ -322,7 +423,7 @@ export default function DestinyMatrixPlanner({
     const sajuFactor = topDay.sajuFactors?.[0] ?? topDay.title
     const astroFactor = topDay.astroFactors?.[0] ?? topDay.evidence?.cross?.astroEvidence ?? '점성 트랜짓이 동시에 받쳐주는 구간입니다.'
     return { saju: sajuFactor, astro: astroFactor }
-  }, [data, superTiming, monthDates, daysInMonth])
+  }, [data, superTiming, monthDates, weekRange])
 
   const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
   const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
@@ -348,20 +449,21 @@ export default function DestinyMatrixPlanner({
       {/* --- Header --- */}
       <div className="px-6 pt-12 pb-4 shrink-0 relative z-20 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
         <div className="flex justify-between items-center mb-4">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-bold text-zinc-900 bg-amber-500 px-2 py-0.5 rounded-sm tracking-widest uppercase flex items-center gap-1">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-zinc-900 bg-amber-500 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
                 <Sun className="w-3 h-3" /> {natalDayPillar ?? '辛未'} 일주
               </span>
-              {!data && (
-                <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2 py-0.5 rounded-sm tracking-widest uppercase flex items-center gap-1">
+              {astroBadge ? (
+                <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
+                  <Moon className="w-3 h-3" /> {astroBadge.label}
+                </span>
+              ) : !data ? (
+                <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
                   <Moon className="w-3 h-3" /> 물병자리 ASC
                 </span>
-              )}
+              ) : null}
             </div>
-            <h1 className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent tracking-wide flex items-center gap-2">
-              운명의 수레바퀴
-            </h1>
           </div>
 
           <button
@@ -468,7 +570,7 @@ export default function DestinyMatrixPlanner({
                 </h3>
                 <div className="flex items-center gap-4">
                   <div className="flex flex-col items-center justify-center bg-zinc-950/80 p-4 rounded-xl border border-indigo-500/20 min-w-[80px]">
-                    <span className="text-[10px] text-zinc-500 font-bold mb-1">월간 총점</span>
+                    <span className="text-[10px] text-zinc-500 font-bold mb-1">월 평균</span>
                     <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
                       {monthScore}
                     </span>
@@ -529,6 +631,13 @@ export default function DestinyMatrixPlanner({
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
+
+              {/* One-line summary (engine pre-formatted) */}
+              {dailyOneLineSummary && (
+                <div className="bg-indigo-900/10 border border-indigo-500/20 px-4 py-3 rounded-xl">
+                  <p className="text-xs text-zinc-300 leading-relaxed">{dailyOneLineSummary}</p>
+                </div>
+              )}
 
               <div className="grid grid-cols-5 gap-4">
                 <div className="col-span-2 bg-gradient-to-br from-indigo-900/40 to-cyan-900/20 p-4 rounded-2xl border border-indigo-500/30 flex flex-col items-center justify-center text-center shadow-lg">
@@ -591,34 +700,144 @@ export default function DestinyMatrixPlanner({
                 </div>
               </div>
 
+              {/* Engine self-diagnostic */}
+              {dailyEngineSignal && (
+                <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Cpu className="w-3.5 h-3.5 text-indigo-400" />
+                    <h3 className="text-xs font-bold text-zinc-300 tracking-wider uppercase">
+                      엔진 자기 진단
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-zinc-950/60 p-3 rounded-xl border border-indigo-500/10">
+                      <div className="text-[10px] text-zinc-500 mb-1">신뢰도 (Confidence)</div>
+                      <div className="text-2xl font-black text-indigo-300">
+                        {dailyEngineSignal.confidence != null
+                          ? `${dailyEngineSignal.confidence}%`
+                          : '—'}
+                      </div>
+                      <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">
+                        엔진이 이 예측에 부여한 자체 신뢰도
+                      </p>
+                    </div>
+                    <div className="bg-zinc-950/60 p-3 rounded-xl border border-cyan-500/10">
+                      <div className="text-[10px] text-zinc-500 mb-1">사주↔점성 합치</div>
+                      <div className="text-2xl font-black text-cyan-300">
+                        {dailyEngineSignal.sync != null ? `${dailyEngineSignal.sync}%` : '—'}
+                      </div>
+                      <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">
+                        두 시스템이 같은 방향을 가리키는 정도
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Active 신살 chips */}
+              {dailyShinsal.length > 0 && (
+                <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
+                  <h3 className="text-xs font-bold text-zinc-300 tracking-wider uppercase mb-3 flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> 발동 중인 신살
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {dailyShinsal.map((s, i) => {
+                      const tone =
+                        s.type === 'lucky'
+                          ? 'border-emerald-500/30 text-emerald-300 bg-emerald-900/20'
+                          : s.type === 'unlucky'
+                            ? 'border-rose-500/30 text-rose-300 bg-rose-900/20'
+                            : 'border-amber-500/30 text-amber-300 bg-amber-900/20'
+                      return (
+                        <span
+                          key={`${s.name}-${i}`}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border ${tone}`}
+                          title={`${s.affectedArea ?? ''} 영역`}
+                        >
+                          {s.name}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2 mb-4">
-                  <Clock className="w-4 h-4 text-cyan-400" /> 시간대별 에너지 흐름
+                  <Clock className="w-4 h-4 text-cyan-400" /> 좋은 시간 · 주의 시간
                 </h3>
-                <div className="h-32 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={dailyTimeFlow} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorTimeLuck" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="time" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#18181b',
-                          border: '1px solid #27272a',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                        }}
-                        itemStyle={{ color: '#22d3ee' }}
-                        formatter={((value: number) => [`${value}점`, '운세 지수']) as never}
-                      />
-                      <Area type="monotone" dataKey="luck" stroke="#22d3ee" strokeWidth={2} fillOpacity={1} fill="url(#colorTimeLuck)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                {dailyHourlySlots ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-[10px] font-bold text-emerald-400 mb-2 tracking-wider">
+                        ↑ BEST
+                      </div>
+                      <ul className="space-y-1.5">
+                        {dailyHourlySlots.best.length > 0 ? (
+                          dailyHourlySlots.best.slice(0, 4).map((s, i) => (
+                            <li
+                              key={`best-${i}`}
+                              className="bg-emerald-900/10 border border-emerald-500/15 px-2.5 py-1.5 rounded-md"
+                            >
+                              <div className="flex items-baseline justify-between gap-2">
+                                <span className="text-xs font-bold text-emerald-200">
+                                  {formatHour(s.hour)}
+                                </span>
+                                <span className="text-[10px] font-bold text-emerald-400">
+                                  {Math.round(s.score)}점
+                                </span>
+                              </div>
+                              {s.reason && (
+                                <p className="text-[10px] text-zinc-400 mt-0.5 leading-snug">
+                                  {s.reason}
+                                </p>
+                              )}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-[11px] text-zinc-500">신호 없음</li>
+                        )}
+                      </ul>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-rose-400 mb-2 tracking-wider">
+                        ↓ WORST
+                      </div>
+                      <ul className="space-y-1.5">
+                        {dailyHourlySlots.worst.length > 0 ? (
+                          dailyHourlySlots.worst.slice(0, 2).map((s, i) => (
+                            <li
+                              key={`worst-${i}`}
+                              className="bg-rose-900/10 border border-rose-500/15 px-2.5 py-1.5 rounded-md"
+                            >
+                              <div className="flex items-baseline justify-between gap-2">
+                                <span className="text-xs font-bold text-rose-200">
+                                  {formatHour(s.hour)}
+                                </span>
+                                <span className="text-[10px] font-bold text-rose-400">
+                                  {Math.round(s.score)}점
+                                </span>
+                              </div>
+                              {s.reason && (
+                                <p className="text-[10px] text-zinc-400 mt-0.5 leading-snug">
+                                  {s.reason}
+                                </p>
+                              )}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-[11px] text-zinc-500">신호 없음</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-zinc-500 leading-relaxed">
+                    이 날의 시간대별 정밀 분석은{' '}
+                    <span className="text-zinc-400 font-medium">달력에서 날짜를 탭</span>하면
+                    상세보기에 표시됩니다.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -666,24 +885,105 @@ export default function DestinyMatrixPlanner({
               className="p-6 space-y-6"
             >
               {/* 분석 대상자 프로필 */}
-              <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5 flex items-center gap-5">
-                <div className="w-14 h-14 rounded-full bg-zinc-950 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-                  <Cpu className="w-6 h-6 text-indigo-400" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white tracking-wide">분석 대상자 프로필</h2>
-                  <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
-                    {!data && (
-                      <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-indigo-300">
-                        ASC 물병자리
+              <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 rounded-full bg-zinc-950 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                    <Cpu className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-bold text-white tracking-wide">
+                      분석 대상자 프로필
+                    </h2>
+                    <p className="text-sm text-zinc-400 flex flex-wrap items-center gap-2 mt-1">
+                      {!data && (
+                        <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-indigo-300">
+                          ASC 물병자리
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-amber-300">
+                        {natalDayPillar ?? '辛未(신미)'} 일주
                       </span>
-                    )}
-                    <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-amber-300">
-                      {natalDayPillar ?? '辛未(신미)'} 일주
-                    </span>
-                  </p>
+                      {natalContextSummary?.strength && (
+                        <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-zinc-300">
+                          {natalContextSummary.strength}
+                        </span>
+                      )}
+                      {natalContextSummary?.geokguk && (
+                        <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-zinc-300">
+                          {natalContextSummary.geokguk}
+                        </span>
+                      )}
+                      {natalContextSummary?.yongsin?.primary && (
+                        <span className="px-2 py-0.5 bg-amber-900/30 border border-amber-500/30 rounded text-[11px] text-amber-200">
+                          용신 {natalContextSummary.yongsin.primary}
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
+                {natalContextSummary?.summary && (
+                  <p className="text-[11px] text-zinc-500 mt-3 pt-3 border-t border-white/5 leading-relaxed">
+                    {natalContextSummary.summary}
+                  </p>
+                )}
               </div>
+
+              {/* 용신 활성 top 5 (향후 60일) */}
+              {yongsinTop && yongsinTop.top.length > 0 && (
+                <div className="bg-gradient-to-br from-amber-900/15 to-zinc-900/40 border border-amber-500/20 p-5 rounded-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+                    <Sparkles className="w-16 h-16 text-amber-400" />
+                  </div>
+                  <div className="flex items-center gap-2 mb-2 relative z-10">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <h3 className="text-sm font-bold text-amber-200">
+                      용신 {yongsinTop.yongsin} 활성 — 향후 60일 슈퍼 데이 top {yongsinTop.top.length}
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 mb-4 relative z-10 leading-relaxed">
+                    본명 용신({yongsinTop.yongsin})이 가장 강하게 받쳐주는 날 — 큰 결정·계약·시작에 추천.
+                  </p>
+                  <div className="space-y-2 relative z-10">
+                    {yongsinTop.top.map((d, i) => (
+                      <div
+                        key={d.date}
+                        className="flex items-start gap-3 bg-zinc-950/70 p-3 rounded-xl border border-amber-500/10"
+                      >
+                        <div className="flex flex-col items-center justify-center w-14 shrink-0 border-r border-amber-500/10 pr-2">
+                          <span className="text-[9px] text-amber-400/80 font-bold uppercase tracking-wider">
+                            #{i + 1}
+                          </span>
+                          <span className="text-xl font-black text-amber-300 leading-none mt-0.5">
+                            {Math.round(d.score)}
+                          </span>
+                          <span className="text-[9px] text-zinc-500 mt-0.5">{d.level}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-white mb-1">
+                            {formatDateKo(d.date)}{' '}
+                            <span className="text-zinc-500 text-[10px] font-normal">
+                              ({d.date})
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 leading-relaxed">{d.advice}</p>
+                          {d.sources && d.sources.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {d.sources.slice(0, 4).map((src, si) => (
+                                <span
+                                  key={si}
+                                  className="px-1.5 py-0.5 text-[9px] bg-zinc-900 border border-zinc-700 rounded text-zinc-400"
+                                >
+                                  {src}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* 운세 영역별 동기화 분석 */}
               <div className="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 shadow-xl">
@@ -810,7 +1110,7 @@ export default function DestinyMatrixPlanner({
                       <Target className="w-4 h-4 text-cyan-400" /> 주차별 크로스 타이밍
                     </h3>
                     <p className="text-[10px] text-zinc-500 mt-1">
-                      두 학문이 공통으로 가리키는 '슈퍼 타이밍'을 찾습니다.
+                      두 학문이 공통으로 가리키는 &lsquo;슈퍼 타이밍&rsquo;을 찾습니다.
                     </p>
                   </div>
                 </div>

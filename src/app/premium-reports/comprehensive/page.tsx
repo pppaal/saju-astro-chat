@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
+import GeneratingPreview from '@/app/premium-reports/_components/GeneratingPreview'
 import {
   ReportBuilderActionPanel,
   ReportSurfaceSection,
@@ -52,7 +53,7 @@ export default function ComprehensiveReportPage() {
     () => buildQueryReportProfileInput(searchParams, profile),
     [profile, searchParams]
   )
-  const { profileInput, setProfileInput } = usePremiumReportProfile(profile, queryProfileInput)
+  const { profileInput, setProfileInput } = usePremiumReportProfile(profile, queryProfileInput, profileLoading)
 
   const [sajuData, setSajuData] = useState<PremiumSajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
@@ -157,13 +158,23 @@ export default function ComprehensiveReportPage() {
     return <UnifiedServiceLoading kind="aiReport" locale="ko" />
   }
 
+  // While the AI is generating, render the progressive preview instead
+  // of a fullscreen black spinner — the deterministic ExtendedAnalysis
+  // (life stages × 5, decisive timings × 7, relationships, practical,
+  // karmic) shows immediately, AI section skeletons fill behind a
+  // progress bar.
+  if (isGenerating) {
+    const previewBirth = {
+      birthDate: profileInput?.birthDate || profile.birthDate || '',
+      birthTime: profileInput?.birthTime || profile.birthTime || '',
+      gender: profileInput?.gender,
+      timezone: profileInput?.timezone || profile.timezone,
+    }
+    return <GeneratingPreview birth={previewBirth} />
+  }
+
   return (
     <>
-      {isGenerating && (
-        <div className="fixed inset-0 z-[120]">
-          <UnifiedServiceLoading kind="aiReport" locale="ko" />
-        </div>
-      )}
       <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,#1a1c2e_0%,#0a0a14_60%)] text-slate-100">
         <div className="mx-auto max-w-5xl px-6 pb-20 pt-16 sm:pt-24">
           {/* Apple-tier Hero */}
@@ -234,6 +245,20 @@ export default function ComprehensiveReportPage() {
               disabled={!canGenerate}
               error={error}
               helperText="생성 후 프로필에서 다시 확인할 수 있습니다."
+              hasProfile={Boolean(profileInput?.birthDate || profile.birthDate)}
+              profileSummary={
+                (profileInput?.birthDate || profile.birthDate)
+                  ? `${profileInput?.birthDate || profile.birthDate}${
+                      (profileInput?.birthTime || profile.birthTime)
+                        ? ` · ${profileInput?.birthTime || profile.birthTime}`
+                        : ''
+                    }${
+                      (profileInput?.birthCity || profile.birthCity)
+                        ? ` · ${profileInput?.birthCity || profile.birthCity}`
+                        : ''
+                    }`
+                  : undefined
+              }
             >
               <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-200">
                 <p className="font-medium text-white">심화 해석 모드</p>

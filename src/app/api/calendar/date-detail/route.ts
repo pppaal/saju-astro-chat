@@ -146,7 +146,7 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeAdvancedSaju } = await import('@/lib/Saju/astrologyengine')
+      const { analyzeAdvancedSaju } = await import('@/lib/Saju/advancedAnalysis')
       const advanced = analyzeAdvancedSaju(
         {
           name: dayMasterStem,

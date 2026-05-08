@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
+import GeneratingPreview from '@/app/premium-reports/_components/GeneratingPreview'
 import {
   ReportBuilderActionPanel,
   ReportSurfaceSection,
@@ -62,7 +63,7 @@ export default function MonthlyReportPage() {
     () => buildQueryReportProfileInput(searchParams, profile),
     [profile, searchParams]
   )
-  const { profileInput, setProfileInput } = usePremiumReportProfile(profile, queryProfileInput)
+  const { profileInput, setProfileInput } = usePremiumReportProfile(profile, queryProfileInput, profileLoading)
 
   const [sajuData, setSajuData] = useState<PremiumSajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
@@ -169,13 +170,18 @@ export default function MonthlyReportPage() {
     return <UnifiedServiceLoading kind="aiReport" locale="ko" />
   }
 
+  if (isGenerating) {
+    const previewBirth = {
+      birthDate: profileInput?.birthDate || profile.birthDate || '',
+      birthTime: profileInput?.birthTime || profile.birthTime || '',
+      gender: profileInput?.gender,
+      timezone: profileInput?.timezone || profile.timezone,
+    }
+    return <GeneratingPreview birth={previewBirth} />
+  }
+
   return (
     <>
-      {isGenerating && (
-        <div className="fixed inset-0 z-[120]">
-          <UnifiedServiceLoading kind="aiReport" locale="ko" />
-        </div>
-      )}
       <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,#1a1c2e_0%,#0a0a14_60%)] text-slate-100">
         <div className="mx-auto max-w-5xl px-6 pb-20 pt-16 sm:pt-24">
           <header className="space-y-5 text-center">
@@ -243,6 +249,20 @@ export default function MonthlyReportPage() {
               disabled={!canGenerate}
               error={error}
               helperText={`${monthLabel} 기준으로 자동 분석됩니다.`}
+              hasProfile={Boolean(profileInput?.birthDate || profile.birthDate)}
+              profileSummary={
+                (profileInput?.birthDate || profile.birthDate)
+                  ? `${profileInput?.birthDate || profile.birthDate}${
+                      (profileInput?.birthTime || profile.birthTime)
+                        ? ` · ${profileInput?.birthTime || profile.birthTime}`
+                        : ''
+                    }${
+                      (profileInput?.birthCity || profile.birthCity)
+                        ? ` · ${profileInput?.birthCity || profile.birthCity}`
+                        : ''
+                    }`
+                  : undefined
+              }
             >
               <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-200">
                 <p className="font-medium text-white">이번 달 자동 적용</p>

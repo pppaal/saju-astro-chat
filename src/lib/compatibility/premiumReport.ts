@@ -71,7 +71,7 @@ async function loadPerson(input: CompatibilityPremiumInput['a'], lat: number, lo
 }
 
 function renderProfile(saju: CalculateSajuDataResult): string {
-  const fe = (saju as any).fiveElements as Record<string, number>
+  const fe = (saju as unknown as { fiveElements?: Record<string, number> }).fiveElements || {}
   return `木${fe?.wood || 0} 火${fe?.fire || 0} 土${fe?.earth || 0} 金${fe?.metal || 0} 水${fe?.water || 0}`
 }
 
@@ -145,8 +145,8 @@ export async function buildCompatibilityPremiumReport(
   const [A, B] = await Promise.all([loadPerson(input.a, lat, lon, tz), loadPerson(input.b, lat, lon, tz)])
 
   const matrix = buildCoupleMatrix(
-    { saju: A.saju, natal: A.natal as any, koreanAge: A.koreanAge },
-    { saju: B.saju, natal: B.natal as any, koreanAge: B.koreanAge }
+    { saju: A.saju, natal: A.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'], koreanAge: A.koreanAge },
+    { saju: B.saju, natal: B.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'], koreanAge: B.koreanAge }
   )
 
   const radar = DOMAIN_LABELS.map(([k, label]) => ({

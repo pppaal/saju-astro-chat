@@ -15,7 +15,7 @@ import { DestinyMatrixError, ErrorCodes } from '@/lib/destiny-matrix/errors'
 import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
 import { buildSharedSurface } from '@/lib/destiny-matrix/core/adaptersPayload'
 import { generateFivePagePDF, generatePremiumPDF } from '@/lib/destiny-matrix/ai-report/pdfGenerator'
-import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
 import {
   REPORT_CREDIT_COSTS,
@@ -170,8 +170,8 @@ function evaluatePatternQualityGate(input: {
     typeof coreQualityRaw === 'number' && Number.isFinite(coreQualityRaw)
       ? clampNumber(coreQualityRaw, 0, 100)
       : null
-  const graphAnchorCount = Array.isArray(input.report?.graphRagEvidence?.anchors)
-    ? input.report.graphRagEvidence.anchors.length
+  const graphAnchorCount = Array.isArray(input.report?.structuredEvidence?.anchors)
+    ? input.report.structuredEvidence.anchors.length
     : 0
   const patternCount = Array.isArray(input.report?.patterns) ? input.report.patterns.length : 0
   const blockers: string[] = []
@@ -215,6 +215,15 @@ function normalizeAIUserPlan(plan: unknown): 'free' | 'starter' | 'pro' | 'premi
 // ===========================
 // POST - AI 리포트 생성 (JSON 응답)
 // ===========================
+
+// AI report generation runs many sequential LLM calls (matrix + themed
+// section + quality re-runs + audits). Default Vercel timeout cuts the
+// route off mid-stream → client sees a hung request that never returns
+// a report. Force the longest serverless ceiling we have access to and
+// pin to nodejs for the heavy lib imports.
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 300
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
@@ -508,6 +517,36 @@ export const POST = withApiMiddleware(
         matrixSummaryForGeneration,
       }))
 
+      // Attach the deterministic extended-analysis bundle (life stages,
+      // decisive timings, relationships, practical info, karmic insight).
+      //
+      // Routed through runMainSaju so we pull the *real* geokguk + yongsin
+      // (previously we passed an empty geokguk and used dayMaster as the
+      // yongsin fallback, which gave generic lucky directions/colors).
+      try {
+        if (birthDate) {
+          const [{ runMainSaju }, { buildExtendedAnalysisFromMain }] = await Promise.all([
+            import('@/lib/Saju/main'),
+            import('@/lib/Saju/extendedAnalysis'),
+          ])
+          const rawGender = String(
+            (matrixInput as unknown as Record<string, unknown>).gender ?? '',
+          ).toLowerCase()
+          const main = runMainSaju({
+            birthDate,
+            birthTime: profileContext.birthTime || '12:00',
+            gender: rawGender === 'female' || rawGender === 'f' ? 'female' : 'male',
+            timezone: profileContext.timezone || 'Asia/Seoul',
+          })
+          const koreanAge =
+            new Date().getFullYear() - parseInt(String(birthDate).slice(0, 4), 10) + 1
+          ;(aiReport as unknown as Record<string, unknown>).extendedAnalysis =
+            buildExtendedAnalysisFromMain(main, { koreanAge })
+        }
+      } catch (extErr) {
+        logger.warn('[ai-report] extendedAnalysis build failed', { err: String(extErr) })
+      }
+
       if (theme) {
         const themedQualityAudit = (
           aiReport as ThemedAIPremiumReport & {
@@ -564,7 +603,7 @@ export const POST = withApiMiddleware(
         report: aiReport,
         graphEvidence:
           (aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
-            .graphRagEvidence || null,
+            .structuredEvidence || null,
       })
 
       if (crossConsistencyAudit.score < 70) {
@@ -642,7 +681,7 @@ export const POST = withApiMiddleware(
           report: aiReport,
           graphEvidence:
             (aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
-              .graphRagEvidence || null,
+              .structuredEvidence || null,
         })
 
         patternQualityGate = evaluatePatternQualityGate({

@@ -36,7 +36,7 @@ export default function PersonInterpretationStabilitySection({
   if (birthHypotheses.length === 0 && conflicts.length === 0 && markers.length === 0) return null
 
   return (
-    <section className={`mx-auto mt-6 max-w-6xl px-4 ${className}`.trim()}>
+    <section className={`mx-auto mt-6 max-w-4xl px-4 ${className}`.trim()}>
       <div className="grid gap-4 lg:grid-cols-[1fr_1fr_0.9fr]">
         <ReportSurfaceSection
           title="생시 민감도"

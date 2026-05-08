@@ -46,7 +46,7 @@ export default function SingleSubjectViewSection({
   className = '',
 }: SingleSubjectViewSectionProps) {
   return (
-    <section className={`mx-auto mt-6 max-w-6xl px-4 ${className}`.trim()}>
+    <section className={`mx-auto mt-6 max-w-4xl px-4 ${className}`.trim()}>
       <ReportSurfaceSection title="단일 해석 뷰" eyebrow="Single Subject View" tone="cyan">
         <div className="rounded-[24px] border border-cyan-300/18 bg-[linear-gradient(135deg,rgba(10,41,61,0.9),rgba(8,12,22,0.92))] p-5">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-100/75">

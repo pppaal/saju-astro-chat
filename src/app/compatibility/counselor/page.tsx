@@ -325,8 +325,8 @@ function CompatibilityCounselorContent() {
             </p>
             <p className="text-gray-400 text-xs">
               {isKo
-                ? 'GraphRAG + 사주 + 점성학 심화 분석 기반'
-                : 'Based on GraphRAG + Saju + Astrology deep analysis'}
+                ? 'Evidence + 사주 + 점성학 심화 분석 기반'
+                : 'Based on Evidence + Saju + Astrology deep analysis'}
             </p>
           </div>
         </div>

@@ -364,7 +364,18 @@ export default function DestinyResultPage({
         {activeTab === 'destiny' && (
           <div id="panel-destiny" role="tabpanel" aria-labelledby="tab-destiny">
             {/* ✨ 무료 인사이트 — 사주·점성 룰 기반 8 탭 (성격/연애/커리어/재물/건강/카르마/타이밍/숨은자아) */}
-            <FreeReport saju={result?.saju} astro={mergedAstro} lang={lang} theme={activeTheme} />
+            <FreeReport
+              saju={result?.saju}
+              astro={mergedAstro}
+              lang={lang}
+              theme={activeTheme}
+              birthInfo={{
+                birthDate: (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? '',
+                birthTime: (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? '',
+                gender: (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? '',
+                timezone: (Array.isArray(sp.userTz) ? sp.userTz[0] : sp.userTz) ?? '',
+              }}
+            />
 
             {/* Premium 업그레이드 CTA — 본격 가치 제안 */}
             <div className="mt-8 overflow-hidden rounded-3xl border border-amber-300/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(251,191,36,0.02))] p-6 backdrop-blur-md">

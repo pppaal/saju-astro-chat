@@ -3,7 +3,7 @@
 
 import type { InsightDomain } from '../interpreter/types'
 import type { MatrixSummary } from '../types'
-import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
+import type { EvidenceBundle } from './structuredEvidence'
 import type { CrossConsistencyAudit } from './crossConsistencyAudit'
 import type { DeterministicCoreOutput } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
@@ -162,9 +162,9 @@ export interface AIPremiumReport {
     conclusion: string // 마무리 메시지
   }
 
-  // GraphRAG evidence anchors used to ground generated sections
-  graphRagEvidence?: GraphRAGEvidenceBundle
-  graphRagSummary?: {
+  // Evidence evidence anchors used to ground generated sections
+  structuredEvidence?: EvidenceBundle
+  evidenceSummary?: {
     topInsights: string[]
     drivers: string[]
     cautions: string[]
@@ -198,6 +198,14 @@ export interface AIPremiumReport {
   }
   signalSynthesis?: SignalSynthesisResult
   strategyEngine?: StrategyEngineResult
+
+  /**
+   * Deterministic add-on bundle (life stages × 5, decisive timings × 7,
+   * relationships × 5, practical info, karmic insight). Computed from
+   * the saju snapshot without any LLM call so it renders instantly
+   * alongside the streamed prose.
+   */
+  extendedAnalysis?: import('@/lib/Saju/extendedAnalysis').ExtendedAnalysis
 
   // 메타데이터
   meta: {
@@ -248,7 +256,7 @@ export interface AIReportGenerationOptions {
   targetChars?: number
   tone?: 'friendly' | 'realistic'
   theme?: string
-  graphRagEvidencePrompt?: string
+  structuredEvidencePrompt?: string
   userQuestion?: string
   deterministicCorePrompt?: string
   deterministicProfile?: DeterministicProfile

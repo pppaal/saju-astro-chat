@@ -4,7 +4,7 @@ export * from './cosmicCompatibility';
 // 그래프 RAG 분석
 export * from './compatibilityGraph';
 
-// Fusion AI 엔진 (GraphRAG + AI Insights)
+// Fusion AI 엔진 (Evidence + AI Insights)
 export * from './compatibilityFusion';
 
 // 심화 사주 분석 (십성, 신살, 육합/삼합, 충형파해)

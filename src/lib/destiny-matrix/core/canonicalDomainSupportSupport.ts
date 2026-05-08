@@ -48,13 +48,13 @@ export function localizeCanonicalDomain(domain: SignalDomain): string {
 export function localizeCanonicalPhase(phase: string | null | undefined): string {
   switch (phase) {
     case 'expansion':
-      return '확장 국면'
+      return '확장기'
     case 'stabilize':
-      return '안정화 국면'
+      return '다지기'
     case 'expansion_guarded':
-      return '확장 관리 국면'
+      return '신중 확장기'
     case 'defensive_reset':
-      return '방어적 재정비 국면'
+      return '정비기'
     default:
       return phase || '현재 국면'
   }

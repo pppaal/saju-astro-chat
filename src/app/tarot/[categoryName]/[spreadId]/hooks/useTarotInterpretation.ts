@@ -474,7 +474,7 @@ export function useTarotInterpretation({
       }
 
       // Always prefer backend Hybrid RAG first so every question is interpreted
-      // with question-aware tarot context (GraphRAG + domain rules).
+      // with question-aware tarot context (Evidence + domain rules).
       const shouldPreferBackendRag = true
       if (shouldPreferBackendRag) {
         try {

@@ -8,6 +8,7 @@ import type { TabProps } from './types';
 import { getTimingMatrixAnalysis } from '../analyzers/matrixAnalyzer';
 import type { TimingMatrixResult } from '../analyzers/types/domain.types';
 import { PremiumReportCTA } from '../components';
+import DaeunTransitTimeline from './DaeunTransitTimeline';
 
 const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
   const timingMatrix = expandNarrativeDeep(
@@ -25,9 +26,6 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
   const currentYear = new Date().getFullYear();
   const enrich = (text: string | undefined, topic: 'timing' | 'warning' = 'timing', min = 4) =>
     ensureMinSentenceText(text || '', isKo, topic, min);
-
-  // Find current period from daeunTimeline array
-  const currentPeriod = timingMatrix?.daeunTimeline?.find(item => item.isCurrent);
 
   return (
     <div className="space-y-6">
@@ -61,83 +59,21 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
         </div>
       )}
 
-      {/* 대운 타임라인 (L4) */}
-      {timingMatrix?.daeunTimeline && (
-        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-indigo-900/20 border border-indigo-500/30 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl">🌊</span>
-            <div>
-              <h3 className="text-lg font-bold text-indigo-300">{isKo ? '대운 타임라인' : 'Major Luck Timeline'}</h3>
-              <p className="text-gray-500 text-xs">{isKo ? '10년 주기 운세 흐름' : '10-year fortune cycle'}</p>
-            </div>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 ml-auto">L4</span>
+      {/* 대운 × 트랜짓 교차 타임라인 — 사주 10년 주기와 점성 회귀가 같은
+          가로축에 같이 깔려서 "지금 이 대운에 어떤 트랜짓이 겹치는지"
+          한눈에 보임. 클릭하면 대운 디테일 + 겹치는 트랜짓 표시. */}
+      <DaeunTransitTimeline timing={timingMatrix} isKo={isKo} />
+
+      {/* 대운 전환기 알림 */}
+      {timingMatrix?.overallMessage && (
+        <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">⚡</span>
+            <span className="text-amber-300 font-bold text-sm">{isKo ? '대운 전환기' : 'Luck Transition'}</span>
           </div>
-
-          {/* 현재 대운 */}
-          {currentPeriod && (
-            <div className="p-4 rounded-xl bg-indigo-500/15 border border-indigo-500/30 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{currentPeriod.icon}</span>
-                <span className="text-indigo-300 font-bold text-sm">{isKo ? '현재 대운' : 'Current Major Luck'}</span>
-                <span className="text-white font-bold ml-auto">{currentPeriod.period}</span>
-              </div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{currentPeriod.element}</span>
-                <span className="text-gray-300">{currentPeriod.heavenlyStem}{currentPeriod.earthlyBranch}</span>
-              </div>
-              <p className="text-gray-300 text-sm leading-relaxed mb-2">
-                {currentPeriod.description
-                  ? enrich(isKo ? currentPeriod.description.ko : currentPeriod.description.en, 'timing', 4)
-                  : ''}
-              </p>
-              {currentPeriod.advice && (
-                <p className="text-indigo-400 text-xs">
-                  {enrich(isKo ? currentPeriod.advice.ko : currentPeriod.advice.en, 'timing', 4)}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* 대운 흐름 시각화 */}
-          {timingMatrix.daeunTimeline && timingMatrix.daeunTimeline.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-gray-400 text-xs mb-2">{isKo ? '대운 흐름' : 'Luck Flow'}</p>
-              <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                {timingMatrix.daeunTimeline.map((daeun, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex-shrink-0 p-3 rounded-lg text-center ${
-                      daeun.isCurrent
-                        ? 'bg-indigo-500/20 border-2 border-indigo-500'
-                        : daeun.isPast
-                        ? 'bg-gray-800/50 border border-gray-700 opacity-60'
-                        : 'bg-gray-800/30 border border-gray-700'
-                    }`}
-                  >
-                    <p className="text-lg mb-1">{daeun.element}</p>
-                    <p className="text-white font-bold text-sm">{daeun.stem}{daeun.branch}</p>
-                    <p className="text-gray-400 text-xs">{daeun.ageRange}</p>
-                    {daeun.isCurrent && (
-                      <span className="text-xs text-indigo-400">{isKo ? '현재' : 'Now'}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 대운 전환기 알림 */}
-          {timingMatrix.overallMessage && (
-            <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">⚡</span>
-                <span className="text-amber-300 font-bold text-sm">{isKo ? '대운 전환기' : 'Luck Transition'}</span>
-              </div>
-              <p className="text-gray-300 text-xs mt-1">
-                {enrich(isKo ? timingMatrix.overallMessage.ko : timingMatrix.overallMessage.en, 'timing', 4)}
-              </p>
-            </div>
-          )}
+          <p className="text-gray-300 text-xs leading-relaxed">
+            {enrich(isKo ? timingMatrix.overallMessage.ko : timingMatrix.overallMessage.en, 'timing', 4)}
+          </p>
         </div>
       )}
 

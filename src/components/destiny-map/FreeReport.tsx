@@ -1,9 +1,14 @@
 'use client'
 
 import { useMemo, useState, memo } from 'react'
+import Link from 'next/link'
+import { Sparkles, Lock } from 'lucide-react'
 import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import { expandNarrativeDeep } from './free-report/tabs/shared/longForm'
 import PremiumNarrativeCard from '@/components/reports/PremiumNarrativeCard'
+import { runMainSaju } from '@/lib/Saju/main'
+import { buildExtendedAnalysisFromMain } from '@/lib/Saju/extendedAnalysis'
+import ExtendedAnalysisSection from '@/app/premium-reports/_components/ExtendedAnalysisSection'
 
 // Import Tab Components
 import {
@@ -57,6 +62,13 @@ import { generateReport } from './free-report/generators/reportGenerator'
 
 // Import HeroSection component
 import HeroSection from './free-report/HeroSection'
+import AdvancedAstroInsights from './free-report/AdvancedAstroInsights'
+import ChartSynthesisCard from './free-report/ChartSynthesisCard'
+import AstroThemedCards from './free-report/AstroThemedCards'
+import AstroLifecycleTimeline from './free-report/AstroLifecycleTimeline'
+import { synthesizeChart } from '@/lib/astrology/foundation/synthesis'
+import { buildThemedAstroReading } from '@/lib/astrology/foundation/themedReading'
+import { buildLifecycleTiming } from '@/lib/astrology/foundation/lifecycleTiming'
 
 // Saju data type definition
 interface SajuData {
@@ -95,6 +107,13 @@ interface Props {
   lang?: string
   theme?: string
   className?: string
+  /** Birth info threaded through for client-side ExtendedAnalysis. */
+  birthInfo?: {
+    birthDate?: string
+    birthTime?: string
+    gender?: string
+    timezone?: string
+  }
 }
 
 // ============================================================
@@ -107,8 +126,32 @@ const FreeReport = memo(function FreeReport({
   lang = 'ko',
   theme = '',
   className = '',
+  birthInfo,
 }: Props) {
   const isKo = lang === 'ko'
+
+  // Compute the deterministic ExtendedAnalysis bundle (life stages × 5,
+  // decisive timings × 7, relationships, practical info, karmic) on the
+  // client. Same engine as the premium report — only the AI-written
+  // sections are gated.
+  const extendedAnalysis = useMemo(() => {
+    if (!birthInfo?.birthDate) return null
+    try {
+      const gender =
+        String(birthInfo.gender || '').toLowerCase().startsWith('f') ? 'female' : 'male'
+      const main = runMainSaju({
+        birthDate: birthInfo.birthDate,
+        birthTime: birthInfo.birthTime || '12:00',
+        gender,
+        timezone: birthInfo.timezone || 'Asia/Seoul',
+      })
+      const koreanAge =
+        new Date().getFullYear() - parseInt(birthInfo.birthDate.slice(0, 4), 10) + 1
+      return buildExtendedAnalysisFromMain(main, { koreanAge })
+    } catch {
+      return null
+    }
+  }, [birthInfo?.birthDate, birthInfo?.birthTime, birthInfo?.gender, birthInfo?.timezone])
 
   const normalizedSaju = useMemo(
     () => (saju ? (repairMojibakeDeep(saju) as SajuData) : saju),
@@ -118,6 +161,43 @@ const FreeReport = memo(function FreeReport({
     () => (astro ? (repairMojibakeDeep(astro) as AstroData) : astro),
     [astro]
   )
+
+  // Western chart synthesis (element/modality balance, chart shape,
+  // aspect patterns, dominant planet) — derived directly from the
+  // already-loaded astro snapshot. Western counterpart to saju's
+  // comprehensiveReport.
+  const chartSynthesis = useMemo(() => {
+    if (!normalizedAstro?.planets || normalizedAstro.planets.length === 0) return null
+    try {
+      return synthesizeChart(normalizedAstro as unknown as Parameters<typeof synthesizeChart>[0])
+    } catch {
+      return null
+    }
+  }, [normalizedAstro])
+
+  // Themed astro reading (love/career/wealth/health/family/spirituality).
+  const astroThemed = useMemo(() => {
+    if (!normalizedAstro?.planets || normalizedAstro.planets.length === 0) return null
+    try {
+      return buildThemedAstroReading(
+        normalizedAstro as unknown as Parameters<typeof buildThemedAstroReading>[0],
+      )
+    } catch {
+      return null
+    }
+  }, [normalizedAstro])
+
+  // Lifecycle timing — Saturn return / Jupiter cycle / Uranus opposition / etc.
+  const astroLifecycle = useMemo(() => {
+    if (!birthInfo?.birthDate) return null
+    try {
+      const birthYear = parseInt(birthInfo.birthDate.slice(0, 4), 10)
+      if (!Number.isFinite(birthYear)) return null
+      return buildLifecycleTiming(birthYear)
+    } catch {
+      return null
+    }
+  }, [birthInfo?.birthDate])
 
   const hasFiveElements = Boolean(
     normalizedSaju?.fiveElements && Object.keys(normalizedSaju.fiveElements).length > 0
@@ -302,6 +382,71 @@ const FreeReport = memo(function FreeReport({
       {/* 운명의 한 줄 요약 - 히어로 */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       <HeroSection isKo={isKo} data={data} destinyNarrative={destinyNarrative} />
+
+      {/* 🎁 무료 ExtendedAnalysis — 30+ deterministic 섹션 (인생 시기 5
+          단계 / 결정적 시기 7개 / 관계운 5영역 / 실용 정보 / 카르마)
+          프리미엄 리포트와 동일한 결정론 엔진을 무료에도 풀어줌. AI가
+          작성하는 14 섹션만 프리미엄에서 잠금. */}
+      {extendedAnalysis && (
+        <>
+          <div className="rounded-2xl border border-fuchsia-400/25 bg-gradient-to-br from-fuchsia-500/10 via-purple-500/5 to-transparent p-4 sm:p-5 mb-4">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Sparkles className="w-4 h-4 text-fuchsia-300" />
+              <h3 className="text-sm font-bold text-white">결정론 사주 분석</h3>
+            </div>
+            <p className="text-xs text-slate-300/80 leading-snug">
+              사주 8자에서 직접 도출한 30+ 섹션입니다 — 인생 시기, 결정적
+              타이밍, 관계운, 카르마 유형까지 무료로 풀어드립니다.
+            </p>
+          </div>
+          <div className="-mx-4 sm:-mx-0">
+            <ExtendedAnalysisSection analysis={extendedAnalysis} />
+          </div>
+
+          {/* Chart synthesis — Sun×Moon×ASC + element/modality/hemisphere
+              balance + chart shape + aspect patterns. Saju side has
+              comprehensiveReport / advancedAnalysis; this is the
+              western counterpart so the astro depth matches. */}
+          {chartSynthesis && <ChartSynthesisCard synth={chartSynthesis} />}
+
+          {/* 점성 테마별 해석 (사주 extendedAnalysis.relationships에 대응) */}
+          {astroThemed && <AstroThemedCards data={astroThemed} />}
+
+          {/* 점성 생애 사이클 타이밍 (사주 extendedAnalysis.decisiveTimings에 대응) */}
+          {astroLifecycle && <AstroLifecycleTimeline data={astroLifecycle} />}
+
+          {/* 9 advanced astro insights — Chiron / Asteroids / Fixed Stars
+              / Lilith / Vertex / POF / Eclipses / Harmonics / Draconic.
+              All were already implemented but only Chiron rendered;
+              the other 8 were orphaned. Now all surfaced as cards. */}
+          <AdvancedAstroInsights astro={normalizedAstro} lang={lang} className="-mx-4 sm:-mx-0" />
+
+          {/* 프리미엄 업그레이드 후크 — ExtendedAnalysis 다 본 직후 */}
+          <Link
+            href="/premium-reports/comprehensive"
+            className="block rounded-3xl border border-amber-300/30 bg-gradient-to-br from-amber-500/10 via-fuchsia-500/5 to-purple-500/10 p-6 hover:border-amber-300/60 transition-colors"
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-fuchsia-500 flex items-center justify-center text-white shadow-lg">
+                <Lock className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-mono uppercase tracking-[0.28em] text-amber-300 mb-1">
+                  Premium · AI 14 섹션
+                </p>
+                <h4 className="text-base font-bold text-white mb-1.5">
+                  AI가 풀어쓰는 24,000자 인생 총운
+                </h4>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  성격 심층 / 커리어 경로 / 관계 역학 / 배우자상 / 재물 흐름 /
+                  건강 / 사명 / 변곡점 / 향후 5년 / 타이밍 / 실천 가이드까지
+                  AI가 너만을 위해 작성합니다 →
+                </p>
+              </div>
+            </div>
+          </Link>
+        </>
+      )}
 
       {premiumStyleReport && (
         <PremiumNarrativeCard

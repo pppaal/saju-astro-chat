@@ -109,8 +109,8 @@ export function evaluatePatternQualityGate(input: {
     typeof coreQualityRaw === 'number' && Number.isFinite(coreQualityRaw)
       ? clampNumber(coreQualityRaw, 0, 100)
       : null
-  const graphAnchorCount = Array.isArray(input.report?.graphRagEvidence?.anchors)
-    ? input.report.graphRagEvidence.anchors.length
+  const graphAnchorCount = Array.isArray(input.report?.structuredEvidence?.anchors)
+    ? input.report.structuredEvidence.anchors.length
     : 0
   const patternCount = Array.isArray(input.report?.patterns) ? input.report.patterns.length : 0
   const blockers: string[] = []

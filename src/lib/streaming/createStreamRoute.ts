@@ -73,12 +73,12 @@ export interface StreamRouteConfig<TValidated> {
  * @example
  * ```ts
  * export const POST = createStreamRoute({
- *   route: 'IChingStream',
- *   guard: createPublicStreamGuard({ route: 'iching-stream', limit: 30, windowSeconds: 60 }),
- *   schema: iChingStreamRequestSchema,
+ *   route: 'CounselorStream',
+ *   guard: createPublicStreamGuard({ route: 'counselor-stream', limit: 30, windowSeconds: 60 }),
+ *   schema: counselorStreamRequestSchema,
  *   fallbackMessage: { ko: '...', en: '...' },
  *   async buildPayload(validated, context) {
- *     return { endpoint: '/iching/reading-stream', body: { ...validated } }
+ *     return { endpoint: '/counselor/stream', body: { ...validated } }
  *   },
  * })
  * ```

@@ -35,7 +35,6 @@ import {
 } from '@/app/premium-reports/_components'
 import ReportVisualSummary from '@/components/reports/ReportVisualSummary'
 import type {
-  GraphRAGEvidenceBundle,
   PremiumReportData as ReportData,
   ReportSection,
 } from '@/app/premium-reports/_lib/types'
@@ -394,9 +393,6 @@ function buildReportData(
     calculationDetails:
       (payload.calculationDetails as CalculationDetails | undefined) ||
       (fullData.calculationDetails as CalculationDetails | undefined),
-    graphRagEvidence:
-      (payload.graphRagEvidence as GraphRAGEvidenceBundle | undefined) ||
-      (fullData.graphRagEvidence as GraphRAGEvidenceBundle | undefined),
     singleSubjectView: isSingleSubjectView(payload.singleSubjectView)
       ? payload.singleSubjectView
       : isSingleSubjectView(fullData.singleSubjectView)

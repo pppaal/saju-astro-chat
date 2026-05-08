@@ -29,7 +29,7 @@ export interface MatrixSnapshot {
     topCautionSignalIds: string[]
     counselorEvidence?: {
       focusDomain?: string
-      graphRagEvidenceSummary?: {
+      structuredEvidenceSummary?: {
         totalAnchors?: number
         totalSets?: number
       }

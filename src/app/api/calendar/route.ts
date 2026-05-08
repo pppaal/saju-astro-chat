@@ -702,6 +702,89 @@ export const GET = withApiMiddleware(
       pillars,
     }
 
+    // ── Yongsin activations: top-5 days when the user's primary 용신 is
+    // strongest in the next 60 days. Computed once per yearly request so
+    // the planner can surface "다음 좋은 날 top 5" without an extra fetch.
+    let yongsinActivations:
+      | {
+          yongsin: string
+          top: Array<{
+            date: string
+            score: number
+            level: string
+            sources: string[]
+            advice: string
+          }>
+        }
+      | undefined
+    try {
+      const { analyzeAdvancedSaju } = await import('@/lib/Saju/advancedAnalysis')
+      const advanced = analyzeAdvancedSaju(
+        {
+          name: pillars.day.stem,
+          element:
+            STEM_TO_ELEMENT[pillars.day.stem as keyof typeof STEM_TO_ELEMENT] || 'earth',
+          yin_yang: ['甲', '丙', '戊', '庚', '壬'].includes(pillars.day.stem) ? '양' : '음',
+        } as Parameters<typeof analyzeAdvancedSaju>[0],
+        {
+          yearPillar: sajuResult.yearPillar,
+          monthPillar: sajuResult.monthPillar,
+          dayPillar: sajuResult.dayPillar,
+          timePillar: sajuResult.timePillar,
+        } as Parameters<typeof analyzeAdvancedSaju>[1]
+      )
+      const yongsinPrimary = advanced.yongsin?.primary
+      if (yongsinPrimary) {
+        const { findYongsinActivationPeriods } = await import(
+          '@/lib/prediction/specificDateEngine'
+        )
+        const periods = findYongsinActivationPeriods(
+          yongsinPrimary,
+          pillars.day.stem,
+          new Date(),
+          60
+        )
+        const top = periods.slice(0, 5).map((p) => ({
+          date: `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}-${String(p.date.getDate()).padStart(2, '0')}`,
+          score: p.score,
+          level: p.activationLevel,
+          sources: p.sources,
+          advice: p.advice,
+        }))
+        if (top.length > 0) {
+          yongsinActivations = { yongsin: yongsinPrimary, top }
+        }
+      }
+    } catch (err) {
+      logger.warn('[calendar] yongsin activation calc skipped', {
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+
+    // ── Today's hourly precision time slots (for the daily view's
+    // time-of-day card). Cheap (~24 hour-level evaluations against the
+    // user's day master); computed once per yearly request.
+    let todayHourlyTimeSlots:
+      | {
+          best: Array<{ hour: number; score: number; reason: string }>
+          worst: Array<{ hour: number; score: number; reason: string }>
+        }
+      | undefined
+    try {
+      const { analyzeDayTimeSlots } = await import('@/lib/prediction/ultra-precision-minute')
+      const slots = analyzeDayTimeSlots(new Date(), pillars.day.stem, pillars.day.branch)
+      if (slots.best.length > 0 || slots.worst.length > 0) {
+        todayHourlyTimeSlots = {
+          best: slots.best.slice(0, 4),
+          worst: slots.worst.slice(0, 2),
+        }
+      }
+    } catch (err) {
+      logger.warn('[calendar] today hourly time slots skipped', {
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+
     const sunSign = deriveFallbackSunSign(birthDate)
     const astroProfile: CalendarAstroProfile = {
       sunSign,
@@ -1250,6 +1333,23 @@ export const GET = withApiMiddleware(
       degradedMode,
       matrixContract: calendarMatrixContract,
       canonicalCore: calendarCoreCanonical,
+      yongsinActivations,
+      todayHourlyTimeSlots,
+      // 헤더 뱃지 / 프로필 카드용 본명 정체성
+      astroIdentity: (() => {
+        const sunSign = astroProfile.sunSign
+        const natal = astroProfile.natalChart as
+          | { ascendant?: { sign?: string }; planets?: Array<{ name?: string; sign?: string }> }
+          | null
+          | undefined
+        const ascendantSign = natal?.ascendant?.sign
+        const moonSign = natal?.planets?.find((p) => p?.name === 'Moon')?.sign
+        return {
+          sunSign,
+          ascendantSign: ascendantSign || undefined,
+          moonSign: moonSign || undefined,
+        }
+      })(),
       birthInfo: {
         date: birthDateParam,
         time: birthTimeParam,

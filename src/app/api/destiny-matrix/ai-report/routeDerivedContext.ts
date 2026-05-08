@@ -25,7 +25,7 @@ import {
   type DerivedDomainScore,
 } from './routeDerivedContext.support'
 import { calculateSajuData } from '@/lib/Saju/saju'
-import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import { analyzeAdvancedSaju } from '@/lib/Saju/advancedAnalysis'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
 import { getShinsalHits, getTwelveStagesForPillars } from '@/lib/Saju/shinsal'
 import { buildOrthodoxInterpretation } from '@/lib/Saju/orthodoxInterpretation'
@@ -426,7 +426,7 @@ export function ensureDerivedSnapshots(
     !!toOptionalRecord(requestBody.sajuSnapshot) || !!toOptionalRecord(requestBody.saju)
   const hasCrossSnapshot =
     !!toOptionalRecord(requestBody.crossSnapshot) ||
-    !!toOptionalRecord(requestBody.graphRagEvidence) ||
+    !!toOptionalRecord(requestBody.structuredEvidence) ||
     !!toOptionalRecord(requestBody.matrixSummary)
 
   const derivedSaju = getDerivedSajuData(requestBody)

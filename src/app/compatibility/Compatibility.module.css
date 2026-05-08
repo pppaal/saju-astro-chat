@@ -69,7 +69,7 @@
 
 /* Form Container */
 .formContainer {
-  max-width: 1100px;
+  max-width: 720px;
   width: 100%;
   background: linear-gradient(145deg, rgba(45, 27, 78, 0.95), rgba(26, 10, 46, 0.95));
   padding: 0.6rem;
@@ -250,6 +250,10 @@
   margin-bottom: 0.5rem;
   flex-wrap: wrap;
   gap: 0.4rem;
+  /* Reserve room for the optional "내 프로필" button so P2's title row
+     doesn't sit higher than P1's — keeps the two cards' fields aligned
+     row-by-row even when only one card has the import action. */
+  min-height: 38px;
 }
 
 @media (min-width: 768px) {
@@ -679,7 +683,7 @@
 
 /* Results Container */
 .resultsContainer {
-  max-width: 1200px;
+  max-width: 960px;
   width: 100%;
   position: relative;
   z-index: 1;

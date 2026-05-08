@@ -48,7 +48,7 @@ export default function PersonDomainStateSection({
   if (leadStates.length === 0 && eventOutlook.length === 0) return null
 
   return (
-    <section className={`mx-auto mt-6 max-w-6xl px-4 ${className}`.trim()}>
+    <section className={`mx-auto mt-6 max-w-4xl px-4 ${className}`.trim()}>
       <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         {leadStates.length > 0 && (
           <ReportSurfaceSection title="도메인 상태 그래프" eyebrow="Domain State Graph" tone="cyan">

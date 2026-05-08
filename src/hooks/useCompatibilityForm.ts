@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getUserTimezone } from '@/lib/Saju/timezone'
-import { formatCityForDropdown } from '@/lib/cities/formatter'
+import { formatCityForDropdown, localizeStoredCity } from '@/lib/cities/formatter'
 import type { PersonForm, CityItem, Relation } from '@/app/compatibility/lib'
 import { makeEmptyPerson } from '@/app/compatibility/lib'
+import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 
 export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'en' = 'ko') {
   const [count, setCount] = useState<number>(initialCount)
@@ -10,6 +11,27 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
     makeEmptyPerson({ name: '' }),
     makeEmptyPerson({ name: '', relation: 'lover' }),
   ])
+
+  // Auto-fill Person 1 from the home birth-info storage so the user
+  // doesn't have to retype info they already entered. Only fills empty
+  // fields — never overwrites manual edits.
+  useEffect(() => {
+    const home = getStoredBirthInfo()
+    if (!home?.birthDate) return
+    setPersons((prev) => {
+      const p1 = prev[0]
+      if (p1.date) return prev // already set, don't clobber
+      const next = [...prev]
+      next[0] = {
+        ...p1,
+        date: home.birthDate,
+        time: home.birthTime || '',
+        gender: home.gender === 'female' ? 'F' : 'M',
+        cityQuery: home.city ? localizeStoredCity(home.city, locale) : p1.cityQuery,
+      }
+      return next
+    })
+  }, [locale])
 
   // Adjust persons array when count changes
   useEffect(() => {

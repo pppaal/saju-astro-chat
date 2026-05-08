@@ -364,7 +364,7 @@ describe('destiny shared contract smoke', () => {
     expect(relationshipPacket.topTimingWindow?.domain).toBe('relationship')
     expect(relationshipPacket.topManifestation?.domain).toBe('relationship')
     expect(focusedRelationshipSignals).toBeGreaterThanOrEqual(defaultRelationshipSignals)
-    expect(relationshipPacket.graphRagEvidenceSummary.totalAnchors).toBeGreaterThan(0)
+    expect(relationshipPacket.structuredEvidenceSummary.totalAnchors).toBeGreaterThan(0)
     expect(relationshipPacket.topClaims.length).toBeGreaterThan(0)
   })
 })
