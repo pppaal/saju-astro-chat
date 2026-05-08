@@ -4,6 +4,8 @@ import { memo } from 'react';
 import { repairMojibakeDeep } from '@/lib/text/mojibake';
 import { expandNarrativeDeep } from './shared/longForm';
 import type { TabProps } from './types';
+import UnifiedSection from './shared/UnifiedSection';
+import type { UnifiedSlice } from '../analyzers/unifiedAdapter';
 import { getStrengthsAndWeaknesses, getMatrixAnalysis } from '../analyzers';
 import { getShadowPersonalityAnalysis } from '../analyzers/matrixAnalyzer';
 import type { ShadowPersonalityResult } from '../analyzers/matrixAnalyzer';
@@ -23,6 +25,7 @@ import {
 } from './personality';
 
 function PersonalityTab({ saju, astro, lang, isKo, data, destinyNarrative, combinedLifeTheme }: TabProps) {
+  const unified = (data as { unified?: UnifiedSlice | null } | null)?.unified ?? null;
   // Early return if data is null
   if (!data) {
     return <div className="text-gray-400 text-center p-6">Loading...</div>;
@@ -65,6 +68,7 @@ function PersonalityTab({ saju, astro, lang, isKo, data, destinyNarrative, combi
 
   return (
     <div className="space-y-6">
+      <UnifiedSection unified={unified} variant="axes" isKo={isKo} />
       {combinedLifeTheme && <LifeThemeCard combinedLifeTheme={combinedLifeTheme} isKo={isKo} />}
 
       {strengthsWeaknesses && <StrengthsWeaknessesSection strengthsWeaknesses={strengthsWeaknesses} isKo={isKo} />}

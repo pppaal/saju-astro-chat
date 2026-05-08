@@ -4,6 +4,8 @@ import { memo } from 'react';
 import { repairMojibakeDeep } from '@/lib/text/mojibake';
 import { expandNarrativeDeep } from './shared/longForm';
 import type { TabProps } from './types';
+import UnifiedSection from './shared/UnifiedSection';
+import type { UnifiedSlice } from '../analyzers/unifiedAdapter';
 import { getLoveMatrixAnalysis, type LoveMatrixResult } from '../analyzers';
 import { getLoveTimingAnalysis } from '../analyzers/matrixAnalyzer';
 import type { LoveTimingResult } from '../analyzers/matrixAnalyzer';
@@ -20,6 +22,7 @@ import {
 } from './love';
 
 function LoveTab({ isKo, data, destinyNarrative, saju, astro, lang }: TabProps) {
+  const unified = (data as { unified?: UnifiedSlice | null } | null)?.unified ?? null;
   // Early return if data is null
   if (!data) {
     return <div className="text-gray-400 text-center p-6">Loading...</div>;
@@ -52,6 +55,7 @@ function LoveTab({ isKo, data, destinyNarrative, saju, astro, lang }: TabProps) 
 
   return (
     <div className="space-y-6">
+      <UnifiedSection unified={unified} variant="love" isKo={isKo} />
       {/* 관계 스타일 */}
       {expandedDestinyNarrative && (
         <RelationshipStyleCard destinyNarrative={expandedDestinyNarrative} isKo={isKo} />

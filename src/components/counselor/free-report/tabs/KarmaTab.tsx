@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import { expandNarrativeDeep } from './shared/longForm'
 import type { TabProps } from './types'
+import UnifiedSection from './shared/UnifiedSection';
+import type { UnifiedSlice } from '../analyzers/unifiedAdapter';
 import type { KarmaAnalysisResult } from '../analyzers/karmaAnalyzer'
 import type { SajuDataExtended, PlanetData } from './data'
 import { getKarmaMatrixAnalysis } from '../analyzers/matrixAnalyzer'
@@ -36,6 +38,7 @@ const TABS: TabConfig[] = [
 ]
 
 export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
+  const unified = (data as { unified?: UnifiedSlice | null } | null)?.unified ?? null;
   const [activeTab, setActiveTab] = useState<TabId>('soul')
 
   const karmaAnalysis = expandNarrativeDeep(
@@ -96,6 +99,7 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
   if (!hasAnyData) {
     return (
       <div className="p-6 text-center text-gray-400">
+      <UnifiedSection unified={unified} variant="life" isKo={isKo} />
         <span className="text-4xl mb-4 block">🔮</span>
         {isKo
           ? '카르마 분석을 위한 데이터가 충분하지 않습니다.'

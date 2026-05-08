@@ -5,6 +5,8 @@ import { repairMojibakeDeep } from '@/lib/text/mojibake';
 import { ensureMinSentenceText } from './shared/textDepth';
 import { expandNarrativeDeep } from './shared/longForm';
 import type { TabProps } from './types';
+import UnifiedSection from './shared/UnifiedSection';
+import type { UnifiedSlice } from '../analyzers/unifiedAdapter';
 import { getCareerMatrixAnalysis, type CareerMatrixResult } from '../analyzers';
 import { getCareerAdvancedAnalysis } from '../analyzers/matrixAnalyzer';
 import type { CareerAdvancedResult } from '../analyzers/matrixAnalyzer';
@@ -22,6 +24,7 @@ import {
 } from './career';
 
 function CareerTab({ saju, astro, lang, isKo, data, destinyNarrative }: TabProps) {
+  const unified = (data as { unified?: UnifiedSlice | null } | null)?.unified ?? null;
   // Early return if data is null
   if (!data) {
     return <div className="text-gray-400 text-center p-6">Loading...</div>;
@@ -64,6 +67,7 @@ function CareerTab({ saju, astro, lang, isKo, data, destinyNarrative }: TabProps
 
   return (
     <div className="space-y-6">
+      <UnifiedSection unified={unified} variant="career" isKo={isKo} />
       {/* 커리어 운명 */}
       <CareerDestinyCard destinyNarrative={expandedDestinyNarrative} isKo={isKo} />
 

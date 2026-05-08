@@ -2,6 +2,8 @@
 
 import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import type { TabProps } from './types'
+import UnifiedSection from './shared/UnifiedSection';
+import type { UnifiedSlice } from '../analyzers/unifiedAdapter';
 import { expandNarrativeDeep } from './shared/longForm'
 import { getHealthMatrixAnalysis } from '../analyzers/matrixAnalyzer'
 import { PremiumReportCTA } from '../components'
@@ -21,6 +23,7 @@ import {
 import { ensureMinSentenceText } from './shared/textDepth'
 
 export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
+  const unified = (data as { unified?: UnifiedSlice | null } | null)?.unified ?? null;
   // Early return if data is null
   if (!data) {
     return <div className="text-gray-400 text-center p-6">Loading...</div>
@@ -63,6 +66,7 @@ export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
 
   return (
     <div className="space-y-6">
+      <UnifiedSection unified={unified} variant="health" isKo={isKo} />
       {/* 1. 종합 생명력 점수 */}
       {matrixHealth && <VitalityScoreCard matrixHealth={matrixHealth} isKo={isKo} />}
 

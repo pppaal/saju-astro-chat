@@ -4,6 +4,8 @@ import { memo, useMemo } from 'react'
 import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import { expandNarrativeDeep } from './shared/longForm'
 import type { TabProps } from './types'
+import UnifiedSection from './shared/UnifiedSection';
+import type { UnifiedSlice } from '../analyzers/unifiedAdapter';
 import { getFullMatrixAnalysis } from '../analyzers'
 import { PremiumReportCTA } from '../components'
 
@@ -30,6 +32,7 @@ import {
 } from './fortune/components'
 
 function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
+  const unified = (data as { unified?: UnifiedSlice | null } | null)?.unified ?? null;
   // Compute full matrix once and reuse by section.
   const fullMatrix = useMemo(
     () => repairMojibakeDeep(getFullMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang)),
@@ -133,6 +136,7 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
 
   return (
     <div className="space-y-6">
+      <UnifiedSection unified={unified} variant="wealth" isKo={isKo} />
       {/* Energy Status Summary */}
       <EnergyStatusSection
         dayMaster={dayMaster}

@@ -8,8 +8,11 @@ import type { TabProps } from './types';
 import { getTimingMatrixAnalysis } from '../analyzers/matrixAnalyzer';
 import type { TimingMatrixResult } from '../analyzers/types/domain.types';
 import { PremiumReportCTA } from '../components';
+import UnifiedSection from './shared/UnifiedSection';
+import type { UnifiedSlice } from '../analyzers/unifiedAdapter';
 
-const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
+const TimingTab = memo(function TimingTab({ isKo, saju, astro, data }: TabProps) {
+  const unified = (data as { unified?: UnifiedSlice | null } | null)?.unified ?? null;
   const timingMatrix = expandNarrativeDeep(
     repairMojibakeDeep(
       getTimingMatrixAnalysis(
@@ -31,6 +34,7 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
 
   return (
     <div className="space-y-6">
+      <UnifiedSection unified={unified} variant="life" isKo={isKo} />
       {/* 타이밍 종합 점수 */}
       {timingMatrix && (
         <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-amber-900/20 border border-amber-500/30 p-6">

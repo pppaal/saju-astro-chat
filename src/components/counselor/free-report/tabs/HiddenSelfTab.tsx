@@ -4,6 +4,8 @@ import { repairMojibakeDeep } from '@/lib/text/mojibake';
 import { ensureMinSentenceText } from './shared/textDepth';
 import { expandNarrativeDeep } from './shared/longForm';
 import type { TabProps } from './types';
+import UnifiedSection from './shared/UnifiedSection';
+import type { UnifiedSlice } from '../analyzers/unifiedAdapter';
 import { PremiumReportCTA } from '../components';
 import {
   getHiddenSelfAnalysis,
@@ -16,7 +18,8 @@ import {
   UnconsciousPatternCard,
 } from './hidden-self';
 
-export default function HiddenSelfTab({ isKo, saju, astro }: TabProps) {
+export default function HiddenSelfTab({ isKo, saju, astro, data }: TabProps) {
+  const unified = (data as { unified?: UnifiedSlice | null } | null)?.unified ?? null;
   const hiddenSelf = expandNarrativeDeep(
     repairMojibakeDeep(getHiddenSelfAnalysis(saju, astro, isKo)),
     { isKo, topic: 'hidden', minSentences: 4 }
@@ -26,6 +29,7 @@ export default function HiddenSelfTab({ isKo, saju, astro }: TabProps) {
 
   return (
     <div className="space-y-6">
+      <UnifiedSection unified={unified} variant="cycle" isKo={isKo} />
       {/* 숨겨진 자아 소개 */}
       <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-gray-900/50 border border-gray-600/30 p-6">
         <div className="flex items-center gap-3 mb-4">
