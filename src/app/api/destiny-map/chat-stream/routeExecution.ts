@@ -33,6 +33,8 @@ import {
   mapFocusDomainToTheme,
 } from './lib/focusDomain'
 import { assembleFinalPrompt } from './builders/promptAssembly'
+import { buildPillarTableSection } from './builders/pillarTableBuilder'
+import { buildCrossRulesSection } from './builders/crossRulesBuilder'
 import type { AstroDataStructure, SajuDataStructure } from './lib/types'
 import {
   buildCompactPromptSections,
@@ -300,6 +302,23 @@ export async function prepareCounselorExecution(params: {
     lastUserMessage: lastUserContent,
   })
 
+  // 사주 4기둥 테이블 (지장간 + 십신 + 12운성 + 신살) — 사주 결과 페이지가 보여주는
+  // 그 테이블을 그대로 LLM에 넣어 "辛/未 일주의 지장간 丁(편관)·乙(편재)·己(편인)"
+  // 같은 정통적 디테일이 prompt에 살아있게 함.
+  const pillarTableSection = buildPillarTableSection(finalSaju, lang === 'ko' ? 'ko' : 'en')
+
+  // 교차 룰 엔진 (5106 라인 정통 패턴) — 종왕격/종강격/격국·관성·재성/stellium/
+  // mutual reception/sect/lots/zodiacal releasing 등 사주×점성 cross-confirmed
+  // 신호. runFortune 한 번 호출해서 narrative 한 덩어리로 prompt에 추가.
+  const crossRulesSection = await buildCrossRulesSection({
+    birthDate: effectiveBirthDate,
+    birthTime: effectiveBirthTime,
+    gender: effectiveGender,
+    latitude: effectiveLatitude,
+    longitude: effectiveLongitude,
+    lang: lang === 'ko' ? 'ko' : 'en',
+  })
+
   // CV × 사주 cross — counselor가 사용자 실제 경력 데이터를 사주와 묶어 reference
   if (cvText && finalSaju) {
     try {
@@ -509,6 +528,8 @@ export async function prepareCounselorExecution(params: {
     themeContext,
     fortuneIcpSection,
     matrixProfileSection,
+    pillarTableSection,
+    crossRulesSection,
   ]
     .filter(Boolean)
     .join('\n\n')
