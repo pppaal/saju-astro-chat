@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
 
 describe('normalizeCounselorResponse', () => {
-  it('preserves the 4-section structure when the model writes it', () => {
+  it('strips heading scaffolding so the reply renders as flowing prose', () => {
     const input = [
       '## 한 줄 결론',
       '지금은 검토 후 확정하는 흐름이 좋습니다.',
@@ -15,26 +15,24 @@ describe('normalizeCounselorResponse', () => {
     ].join('\n')
 
     const output = normalizeCounselorResponse(input, 'ko')
-    expect(output).toContain('## 한 줄 결론')
-    expect(output).toContain('## 근거')
-    expect(output).toContain('## 실행 계획')
-    expect(output).toContain('## 주의/재확인')
+    expect(output).not.toContain('## ')
     expect(output).toContain('지금은 검토 후 확정하는 흐름이 좋습니다.')
+    expect(output).toContain('리듬이 빠르지만 확정 전에 한 번 더 확인할 필요가 있습니다.')
+    expect(output).toContain('금액과 기한을 먼저 정리하고 최종 결정을 내리세요.')
+    expect(output).toContain('서명 전에 조건을 다시 확인하세요.')
   })
 
-  it('canonicalizes compact ko headings without space/newline', () => {
+  it('strips compact ko headings without space/newline', () => {
     const input = [
       '##한줄결론지금은 검토 후 확정하는 흐름이 좋습니다.',
-      '##근거- 근거 A',
-      '##실행계획- 실행 A',
-      '##주의/재확인- 주의 A',
+      '##근거리듬이 빠릅니다.',
+      '##실행계획계약 전에 점검하세요.',
+      '##주의/재확인서명 전에 다시 확인하세요.',
     ].join('\n')
 
     const output = normalizeCounselorResponse(input, 'ko')
-    expect(output).toContain('## 한 줄 결론')
-    expect(output).toContain('## 근거')
-    expect(output).toContain('## 실행 계획')
-    expect(output).toContain('## 주의/재확인')
+    expect(output).not.toContain('## ')
+    expect(output).not.toContain('##한')
     expect(output).toContain('지금은 검토 후 확정하는 흐름이 좋습니다.')
   })
 

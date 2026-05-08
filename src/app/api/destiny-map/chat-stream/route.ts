@@ -107,72 +107,56 @@ function buildCounselorFallbackContent(
     : []
 
   if (lang === 'ko') {
-    const evidence = bullets
+    // Single flowing fallback — no headings.
+    const lead =
+      summary || '지금은 성급한 확정보다 조건을 다시 확인한 뒤 움직이는 편이 맞아요.'
+    const why =
+      bullets.slice(0, 2).join(' 또 ') ||
+      '구조와 타이밍을 함께 보면, 지금은 확정보다 검토가 더 유리한 구간으로 읽혀요.'
+    const moves = bullets
+      .filter((line) => /행동|타이밍|들어갈 조건|실행 감각/.test(line))
       .slice(0, 2)
-      .map((line) => `- ${line}`)
-      .join('\n')
-    const action = bullets
-      .filter((line) => /행동|타이밍|들어갈 조건|실행 감각|Action read|Timing read/i.test(line))
-      .slice(0, 3)
-      .map(
-        (line) => `- ${line.replace(/^(행동 해석:|타이밍 해석:|들어갈 조건:|실행 감각:)\s*/u, '')}`
-      )
-      .join('\n')
-    const caution = bullets
-      .filter((line) => /리스크|주의|느출|Slow-down|Caution/i.test(line))
-      .slice(0, 2)
-      .map((line) => `- ${line.replace(/^(리스크 해석:|주의 신호:|느출 신호:)\s*/u, '')}`)
-      .join('\n')
+      .map((line) => line.replace(/^(행동 해석:|타이밍 해석:|들어갈 조건:|실행 감각:)\s*/u, ''))
+      .join(', ')
+    const cautions = bullets
+      .filter((line) => /리스크|주의|느출/.test(line))
+      .slice(0, 1)
+      .map((line) => line.replace(/^(리스크 해석:|주의 신호:|느출 신호:)\s*/u, ''))
+      .join('')
+
+    const flowing = [
+      lead,
+      why,
+      moves
+        ? `오늘 먼저 잡을 결은 ${moves}, 그리고 들어가기 전 조건과 책임 범위는 한 번 더 확인하고 가세요.`
+        : '오늘 가장 중요한 한 가지부터 정하시고, 들어가기 전 조건과 책임 범위는 먼저 확인하세요.',
+      cautions
+        ? `다만 ${cautions} — 서명·결제·확정처럼 되돌리기 어려운 행동은 한 박자 늦춰서요.`
+        : '서명·결제·확정처럼 되돌리기 어려운 행동은 한 번 더 확인한 뒤 진행하세요.',
+    ].join(' ')
 
     return applyCounselorBrandVoice(
-      normalizeCounselorResponse(
-        [
-          '## 한 줄 결론',
-          summary || '지금은 성급한 확정보다 조건을 다시 확인한 뒤 움직이는 편이 맞습니다.',
-          '',
-          '## 근거',
-          evidence ||
-            '- 현재 구조와 타이밍을 함께 보면, 지금은 확정보다 검토가 더 유리한 구간으로 읽힙니다.',
-          '',
-          '## 실행 계획',
-          action ||
-            '- 오늘 가장 중요한 한 가지를 먼저 정하세요.\n- 들어가기 전 조건과 책임 범위를 먼저 확인하세요.\n- 최종 확정은 한 박자 늦게 가져가세요.',
-          '',
-          '## 주의/재확인',
-          caution ||
-            '- 서명, 결제, 확정처럼 되돌리기 어려운 행동은 한 번 더 확인한 뒤 진행하세요.\n- 상대와 핵심 조건을 한 문장으로 다시 맞춰보세요.',
-        ].join('\n'),
-        lang
-      ),
+      normalizeCounselorResponse(flowing, lang),
       lang
     )
   }
 
+  const enLead =
+    summary || 'Move with verification first and delay irreversible commitments.'
+  const enWhy =
+    bullets.slice(0, 2).join(' Also ') ||
+    'Current structure and timing both favor review before commitment.'
+  const enMoves = bullets.slice(2, 4).join(', ')
   return applyCounselorBrandVoice(
     normalizeCounselorResponse(
       [
-        '## Direct Answer',
-        summary || 'Move with verification first and delay irreversible commitments.',
-        '',
-        '## Evidence',
-        bullets
-          .slice(0, 2)
-          .map((line) => `- ${line}`)
-          .join('\n') || '- Current structure and timing both favor review before commitment.',
-        '',
-        '## Action Plan',
-        bullets
-          .slice(2, 5)
-          .map((line) => `- ${line}`)
-          .join('\n') ||
-          '- Lock one priority.\n- Confirm conditions before entry.\n- Delay final commitment until the checklist is complete.',
-        '',
-        '## Avoid / Recheck',
-        bullets
-          .slice(5, 7)
-          .map((line) => `- ${line}`)
-          .join('\n') || '- Recheck any irreversible action before signing, sending, or paying.',
-      ].join('\n'),
+        enLead,
+        enWhy,
+        enMoves
+          ? `Today, first lock ${enMoves}, and confirm conditions before entry.`
+          : 'Lock one priority and confirm conditions before entry.',
+        'Hold off on irreversible commitments (signing, wiring, finalizing) until the checklist is complete.',
+      ].join(' '),
       lang
     ),
     lang

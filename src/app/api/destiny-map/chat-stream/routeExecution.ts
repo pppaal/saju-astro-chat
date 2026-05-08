@@ -467,49 +467,32 @@ export async function prepareCounselorExecution(params: {
 
   const fortuneIcpSection = buildFortuneWithIcpSection(counselingBrief, lang)
 
-  // Headings MUST match the canonical 4-section contract enforced by
-  // `normalizeCounselorResponse` and `applyCounselorBrandVoice`. Any other
-  // heading set causes the validator to discard the model output and fall
-  // back to a generic template — i.e. the user sees a non-answer.
+  // Single-block flowing response — no markdown headings, no bullets.
+  // The counselor speaks like a person, not a structured report.
   const responseDensityContract =
     lang === 'ko'
       ? [
-          '[Response Contract: Projection-first]',
-          '- 첫 1~2문장에서 사용자 질문에 직접 답부터 말하세요.',
-          '- 첫 1~2문장 안에 Opening Rationale의 핵심 두 줄을 흡수해서, 왜 이런 결론인지 바로 드러내세요.',
-          '- 헤딩은 정확히 이 네 개만, 이 순서대로 사용하세요: "## 한 줄 결론", "## 근거", "## 실행 계획", "## 주의/재확인".',
-          '- 다른 헤딩(직접 답, 구조와 상황, 타이밍과 충돌, 리스크와 재확인 등)은 절대 쓰지 마세요. 정확히 위 네 헤딩만 사용해야 합니다.',
-          '- "## 한 줄 결론"은 1~2문장으로, 사용자 질문에 직접 답하세요.',
-          '- "## 근거"에서는 구조(structure_detail/driver)와 타이밍(timing_detail/driver/counterweight/next)을 자연어로 묶어 2~4문장 또는 불릿 2~3개로 풀어쓰세요. readiness/trigger/convergence는 자연어로 번역하세요.',
-          '- "## 실행 계획"에서는 action_detail과 action_next를 바탕으로 다음 행동을 2~3개 단정하게 정리하세요.',
-          '- "## 주의/재확인"에서는 risk_detail과 risk_counterweight를 바탕으로 과속·지속성·검증 리스크와 재확인 항목을 1~2개 적으세요.',
-          '- 기술적 신호 이름은 그대로 던지지 말고 자연어로 번역하세요.',
-          '- "중심축/행동축/리스크축" 같은 엔진 용어를 그대로 쓰지 말고, "삶의 배경 흐름", "지금 먼저 움직여야 할 영역", "가장 조심해야 할 변수"처럼 사람말로 바꾸세요.',
-          '- 답변 마지막에 "사주에서는", "점성에서는", "타이밍은" 같은 메타 요약 꼬리를 따로 덧붙이지 마세요.',
-          '- 최종 답변은 상담문으로 끝내고, 내부 근거 요약이나 엔진 설명 꼬리를 붙이지 마세요.',
-          '- 문단끼리 문장을 반복하지 마세요. 각 섹션은 새로운 정보를 추가해야 합니다.',
-          '- projection summary는 fallback 용도로만 쓰고, detail/driver/counterweight/next lines를 우선 사용하세요.',
-          '- 일반론, 자기계발체, 추상 격려 문장을 피하세요.',
-          '- 최종 결론은 core phase / top claims / cautions와 맞아야 합니다.',
-          '- 총 분량은 650~1100자 정도로 유지하세요.',
+          '[Response Contract: 한 덩어리 자연어]',
+          '- 헤딩(##), 섹션 라벨, 불릿 리스트 모두 쓰지 마세요. 한 호흡으로 흐르는 산문(prose)으로만 답하세요.',
+          '- 첫 1~2문장에서 사용자 질문에 직접 답하고, 그 안에서 왜 그런 결론인지 핵심 근거 하나를 자연스럽게 흡수하세요.',
+          '- 이어지는 2~4문단으로 구조·타이밍·다음 행동·리스크를 *문장 안에 녹여서* 풀어쓰세요. "근거는", "실행 계획은", "주의할 점은" 같은 메타 라벨을 절대 쓰지 마세요.',
+          '- 정통 라벨(격국·용신·십신·12운성·신살·dignity·stellium·lots 등)은 자연어로 풀어 쓰세요. "정인격" 같은 단어를 한 번 정도 그대로 노출해도 좋지만, 의미를 바로 옆 평어로 녹여주세요.',
+          '- 기술적 신호 이름·엔진 용어(structure_detail / driver / readiness / trigger / convergence / 중심축 / 행동축)를 그대로 던지지 마세요.',
+          '- 비가역 행동(서명·확정·계약·송금·결혼·이주)을 권할 때는 caution 신호와 충돌하지 않게 한 박자 늦추는 결로 표현하세요.',
+          '- "사주에서는", "점성에서는", "타이밍은" 같은 메타 요약 꼬리를 마지막에 따로 붙이지 마세요.',
+          '- 일반론·자기계발체·추상 격려 문장(예: "당신은 충분히 잘하고 있어요")을 피하세요.',
+          '- 분량은 질문 무게에 맞춰 — 짧은 안부 150~300자, 일반 의사결정 400~700자, 인생 전반·복합 600~900자. 한 줄 단답으로 끝내지 마세요.',
         ].join('\n')
       : [
-          '[Response Contract: Projection-first]',
-          "- Answer the user's question directly within the first two sentences.",
-          '- In those first two sentences, absorb the two Opening Rationale lines so the user immediately sees why this conclusion is being made.',
-          '- Use exactly these four headings, in this order: "## Direct Answer", "## Evidence", "## Action Plan", "## Avoid / Recheck".',
-          '- Do not use any other headings (Structure and Situation, Timing and Tension, Risk and Recheck, etc.). Only the four headings above are allowed.',
-          '- In "## Direct Answer", give 1-2 sentences answering the question directly.',
-          '- In "## Evidence", weave structure (structure_detail/driver) and timing (timing_detail/driver/counterweight/next) into 2-4 sentences or 2-3 bullets, and translate readiness/trigger/convergence into natural language.',
-          '- In "## Action Plan", use action_detail and action_next to state the next 2-3 moves assertively.',
-          '- In "## Avoid / Recheck", use risk_detail and risk_counterweight to call out 1-2 overreach/persistence/verification risks and recheck items.',
-          '- Translate technical signals into natural language instead of dumping jargon.',
-          '- Do not expose engine terms like focus/action/risk axis directly; rewrite them as background flow, live priority, and main risk in plain language.',
-          '- Do not repeat sentences across sections; each section must add a new piece of information.',
-          '- Treat projection summaries as fallback only; prefer detail/driver/counterweight/next lines.',
+          '[Response Contract: single flowing prose]',
+          '- Do not use markdown headings, section labels, or bullet lists. Speak in flowing prose only.',
+          '- Open with a direct answer in the first 1-2 sentences, absorbing one core piece of evidence inline.',
+          '- Continue in 2-4 paragraphs that weave structure, timing, next action, and risk inline — never label them.',
+          '- Translate technical signals (geokguk, sibsin, dignity, stellium, lots, readiness/trigger) into plain English; mention a classical term once at most and explain it conversationally.',
+          '- If caution signals exist, do not push irreversible actions (sign / commit / wire / marry / move) immediately.',
+          '- Do not append meta-summary tails like "in saju this means..." or "from astrology...".',
           '- Avoid generic encouragement and abstract self-help phrasing.',
-          '- Final verdict must align with core phase / top claims / cautions.',
-          '- Keep total length around 170-280 words.',
+          '- Length: light check-ins 80-150 words, decision questions 200-350 words, life-overview 300-500 words.',
         ].join('\n')
 
   const compactSections = buildCompactPromptSections({

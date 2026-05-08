@@ -120,10 +120,30 @@ function canonicalizeHeadings(raw: string, sections: readonly SectionDefinition[
 // "입력 요약 / 실행 계획 / 주의" wrapper, which is what users were seeing
 // as awkward / robotic answers. We now pass the model's reply through after
 // safety cleanup and only canonicalize headings when the model wrote them.
+//
+// The counselor now answers in flowing prose by contract — no headings.
+// We strip any markdown H2/H3 the model leaks (e.g. "## 한 줄 결론") so the
+// reply renders as one continuous block; bullet markers are preserved since
+// the writer may use them sparingly inline.
+function stripMarkdownHeadings(text: string): string {
+  return text
+    .replace(/^\s*#{1,6}\s*[^\n]*\n?/gm, '')
+    .replace(/\*\*([^*\n]+)\*\*\s*[:：]\s*/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 export function normalizeCounselorResponse(raw: string, lang: CounselorLang): string {
   const normalized = normalizeText(raw)
   if (!normalized) return ''
 
+  // Even with the contract telling the model to answer in prose, GPT/Claude
+  // sometimes leak the old "## 한 줄 결론 / ## 근거 / ..." scaffolding —
+  // sometimes with the body glued onto the heading line. We first canonicalize
+  // so headings sit on their own line with body below, *then* strip headings
+  // so only the body survives as flowing prose.
   const sections = getSections(lang)
-  return canonicalizeHeadings(normalized, sections)
+  const canonicalized = canonicalizeHeadings(normalized, sections)
+  const stripped = stripMarkdownHeadings(canonicalized)
+  return stripped || canonicalized
 }
