@@ -138,7 +138,7 @@ export function generateCalendarPremiumNotification(
     confidence: 4,
     category: "positive",
     data: {
-      url: "/destiny-map",
+      url: "/destiny-counselor",
     },
   };
 }

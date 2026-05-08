@@ -1,7 +1,7 @@
 ﻿import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
 import type { FiveElement, RelationHit } from '@/lib/Saju/types'
 import { STEMS } from '@/lib/Saju/constants'
-import { getRetrogradePlanetsForDate } from '@/lib/destiny-map/calendar/astrology/retrograde'
+import { getRetrogradePlanetsForDate } from '@/lib/counselor/calendar/astrology/retrograde'
 import type {
   GeokgukType,
   ShinsalKind,

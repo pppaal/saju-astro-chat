@@ -123,7 +123,7 @@ export const TAROT_DECK: TarotCard[] = [
 ];
 
 export const SERVICE_LINKS: ServiceLink[] = [
-  { key: "destinyMap", href: "/destiny-map", icon: "🗺️" },
+  { key: "destinyMap", href: "/destiny-counselor", icon: "🗺️" },
   { key: "aiReports", href: "/premium-reports", icon: "🤖" },
   { key: "lifePrediction", href: "/life-prediction", icon: "📈" },
   { key: "tarot", href: "/tarot", icon: "🔮" },

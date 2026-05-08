@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger'
 import {
   generateSessionId,
   generateMessageId as generateMessageIdFromUtils,
-} from '@/components/destiny-map/chat-utils'
+} from '@/components/counselor/chat-utils'
 import type { ChatMessage } from '@/lib/api/validator'
 import { useSessionPersistence } from '@/hooks/useSessionPersistence'
 import { useSessionHistory } from '@/hooks/useSessionHistory'

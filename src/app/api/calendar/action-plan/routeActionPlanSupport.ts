@@ -1,8 +1,8 @@
 import { repairMojibakeText } from '@/lib/text/mojibake'
 import { adaptAdviceTone } from '@/lib/destiny-matrix/personality'
 import { calculateDailyPillar, generateHourlyAdvice } from '@/lib/prediction/ultra-precision-daily'
-import { STEM_ELEMENTS } from '@/lib/destiny-map/config/specialDays.data'
-import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-analysis'
+import { STEM_ELEMENTS } from '@/lib/counselor/config/specialDays.data'
+import { getHourlyRecommendation } from '@/lib/counselor/calendar/specialDays-analysis'
 import {
   formatDecisionActionLabels,
   formatPolicyCheckLabels,

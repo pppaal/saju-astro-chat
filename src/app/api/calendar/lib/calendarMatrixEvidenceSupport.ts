@@ -2,7 +2,7 @@ import type {
   EventCategory,
   ImportanceGrade,
   ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar'
+} from '@/lib/counselor/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
 import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { MatrixCalendarContext } from './calendarMatrixTextSupport'
@@ -13,7 +13,7 @@ import type {
 import {
   GRADE_THRESHOLDS,
   EVIDENCE_CONFIDENCE_THRESHOLDS,
-} from '@/lib/destiny-map/calendar/scoring-config'
+} from '@/lib/counselor/calendar/scoring-config'
 import { getFactorTranslation } from './translations'
 import {
   describeCrossAgreement,

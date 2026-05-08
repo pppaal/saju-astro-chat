@@ -15,7 +15,7 @@ import {
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
-import { deriveCounselorStorageSignals } from '@/app/api/destiny-map/chat-stream/lib/focusDomain'
+import { deriveCounselorStorageSignals } from '@/app/api/counselor-engine/chat-stream/lib/focusDomain'
 
 export const dynamic = 'force-dynamic'
 

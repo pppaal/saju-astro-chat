@@ -1,6 +1,6 @@
 import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { TimingCalibrationSummary } from '@/lib/destiny-matrix/types'
-import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
+import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/counselor/calendar/scoring-config'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 
 type MatrixSignal = {

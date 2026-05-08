@@ -10,7 +10,7 @@ const PAGES_WITHOUT_BACK_BUTTON = [
   '/tarot', // Tarot pages - have their own navigation
   '/compatibility', // Uses ServicePageLayout with built-in back button
   '/personality', // Uses ServicePageLayout with built-in back button
-  '/destiny-map', // Uses ServicePageLayout with built-in back button
+  '/destiny-counselor', // Uses ServicePageLayout with built-in back button
   '/destiny-match', // Has custom back button
   '/about', // Has custom back button in page
   '/contact', // Has custom back button in page

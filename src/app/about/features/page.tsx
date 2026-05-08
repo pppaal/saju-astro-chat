@@ -213,7 +213,7 @@ export default function AboutFeaturesPage() {
           )}
         </p>
         <div className="pp-ctaRow">
-          <Link href="/destiny-map" className="btn-primary">
+          <Link href="/destiny-counselor" className="btn-primary">
             {tt('about.tryDestinyMap', 'Destiny Map 체험')}
           </Link>
           <Link href="/about" className="btn-ghost">

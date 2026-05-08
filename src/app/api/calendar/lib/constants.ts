@@ -2,7 +2,7 @@
  * Calendar message constants
  */
 
-import type { EventCategory } from '@/lib/destiny-map/destinyCalendar'
+import type { EventCategory } from '@/lib/counselor/destinyCalendar'
 
 type CategoryMessages = Record<EventCategory | 'general', string>
 

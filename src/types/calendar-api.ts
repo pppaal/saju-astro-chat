@@ -7,7 +7,7 @@ import type {
   EventCategory,
   ImportanceGrade,
   ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar'
+} from '@/lib/counselor/destinyCalendar'
 import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 
 // ============ Request Types ============

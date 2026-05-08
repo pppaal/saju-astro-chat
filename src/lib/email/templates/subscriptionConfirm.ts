@@ -45,7 +45,7 @@ export function subscriptionConfirmTemplate(data: SubscriptionTemplateData): {
     </ul>
 
     <div class="button-wrapper">
-      <a href="https://destinypal.me/destiny-map/counselor" class="button">상담사와 대화하기</a>
+      <a href="https://destinypal.me/destiny-counselor/chat" class="button">상담사와 대화하기</a>
     </div>
 
     <p style="font-size: 14px; color: #6B7280; margin-top: 24px;">
@@ -73,7 +73,7 @@ export function subscriptionConfirmTemplate(data: SubscriptionTemplateData): {
     </ul>
 
     <div class="button-wrapper">
-      <a href="https://destinypal.me/destiny-map/counselor" class="button">Chat with Counselor</a>
+      <a href="https://destinypal.me/destiny-counselor/chat" class="button">Chat with Counselor</a>
     </div>
 
     <p style="font-size: 14px; color: #6B7280; margin-top: 24px;">

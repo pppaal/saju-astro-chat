@@ -23,7 +23,7 @@ import { dateSchema, createValidationErrorResponse } from '@/lib/api/zodValidati
 import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { STEM_TO_ELEMENT } from '@/lib/Saju/constants'
-import { analyzeDate } from '@/lib/destiny-map/calendar/date-analysis-orchestrator'
+import { analyzeDate } from '@/lib/counselor/calendar/date-analysis-orchestrator'
 import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
 import { getPillarStemName, getPillarBranchName } from '@/app/api/calendar/lib/helpers'
 import { cacheOrCalculate, cacheGet, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
@@ -31,7 +31,7 @@ import type { YearlyImportantDate } from '@/app/api/calendar/lib/yearlyDates'
 import type {
   UserSajuProfile,
   UserAstroProfile,
-} from '@/lib/destiny-map/calendar/types'
+} from '@/lib/counselor/calendar/types'
 
 export const dynamic = 'force-dynamic'
 

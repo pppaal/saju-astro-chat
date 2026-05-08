@@ -1,0 +1,296 @@
+// src/app/api/counselor-engine/chat-stream/lib/profileLoader.ts
+// User profile and persona memory loading
+
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
+import type { SajuDataStructure, AstroDataStructure } from './types'
+import type { Chart } from '@/lib/astrology'
+import {
+  formatRecallContextKo,
+  formatRecallContextEn,
+} from '@/lib/ai/personaMemoryRecall'
+import {
+  getDecisionHistory,
+  formatDecisionHistoryKo,
+  formatDecisionHistoryEn,
+} from '@/lib/ai/decisionTracker'
+
+export interface ProfileLoadResult {
+  birthDate?: string
+  birthTime?: string
+  gender?: string
+  latitude?: number
+  longitude?: number
+  saju?: SajuDataStructure
+  astro?: AstroDataStructure
+}
+
+export interface MemoryLoadResult {
+  personaMemoryContext: string
+  recentSessionSummaries: string
+}
+
+function buildSessionThemeWhere(theme: string): { theme?: string } | undefined {
+  const normalizedTheme = (theme || '').trim().toLowerCase()
+  if (!normalizedTheme || normalizedTheme === 'chat') {
+    return undefined
+  }
+  return { theme: theme || undefined }
+}
+
+/**
+ * Load user birth profile from database if not provided
+ */
+export async function loadUserProfile(
+  userId: string,
+  currentBirthDate?: string,
+  currentBirthTime?: string,
+  currentLatitude?: number,
+  currentLongitude?: number,
+  currentSaju?: SajuDataStructure,
+  currentAstro?: AstroDataStructure
+): Promise<ProfileLoadResult> {
+  const result: ProfileLoadResult = {}
+
+  try {
+    const userProfile = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        profile: {
+          select: {
+            birthDate: true,
+            birthTime: true,
+            gender: true,
+            birthCity: true,
+          },
+        },
+        personaMemory: {
+          select: {
+            sajuProfile: true,
+            birthChart: true,
+          },
+        },
+      },
+    })
+
+    if (userProfile) {
+      // Use cached saju/astro from PersonaMemory if available
+      const cachedSaju = userProfile.personaMemory?.sajuProfile
+      const cachedAstro = userProfile.personaMemory?.birthChart
+
+      if (cachedSaju && !currentSaju) {
+        result.saju = cachedSaju as SajuDataStructure
+        logger.debug('[profileLoader] Using cached saju from PersonaMemory')
+      }
+      if (cachedAstro && !currentAstro) {
+        result.astro = cachedAstro as Chart
+        logger.debug('[profileLoader] Using cached astro from PersonaMemory')
+      }
+
+      const profile = userProfile.profile
+
+      // Fill in missing birth info from user profile
+      if (!currentBirthDate && profile?.birthDate) {
+        result.birthDate = profile.birthDate
+        logger.debug('[profileLoader] Auto-loaded birthDate from profile')
+      }
+      if (!currentBirthTime && profile?.birthTime) {
+        result.birthTime = profile.birthTime
+        logger.debug('[profileLoader] Auto-loaded birthTime from profile')
+      }
+      if (profile?.gender) {
+        const normalized = String(profile.gender).toLowerCase()
+        if (normalized === 'm' || normalized === 'male') {
+          result.gender = 'male'
+        } else if (normalized === 'f' || normalized === 'female') {
+          result.gender = 'female'
+        } else if (normalized === 'other' || normalized === 'prefer_not') {
+          result.gender = normalized
+        } else {
+          result.gender = undefined
+        }
+      }
+    }
+  } catch (e) {
+    logger.warn('[profileLoader] Failed to auto-load birth profile:', e)
+  }
+
+  return result
+}
+
+/**
+ * Load persona memory and recent session summaries
+ */
+export async function loadPersonaMemory(
+  userId: string,
+  theme: string,
+  lang: string
+): Promise<MemoryLoadResult> {
+  let personaMemoryContext = ''
+  let recentSessionSummaries = ''
+
+  try {
+    // 1. PersonaMemory 로드 (핵심 인사이트, 반복 이슈, 감정 톤, recall)
+    const personaMemory = await prisma.personaMemory.findUnique({
+      where: { userId },
+      select: {
+        sessionCount: true,
+        dominantThemes: true,
+        keyInsights: true,
+        emotionalTone: true,
+        growthAreas: true,
+        lastTopics: true,
+        recurringIssues: true,
+        recentQuestions: true,
+        decisionsMentioned: true,
+      },
+    })
+
+    if (personaMemory && personaMemory.sessionCount > 0) {
+      const parts: string[] = []
+
+      // 세션 카운트
+      parts.push(
+        lang === 'ko'
+          ? `상담 횟수: ${personaMemory.sessionCount}회`
+          : `Session count: ${personaMemory.sessionCount}`
+      )
+
+      // 최근 주제
+      const lastTopics = personaMemory.lastTopics as string[] | null
+      if (lastTopics?.length) {
+        parts.push(
+          lang === 'ko'
+            ? `최근 관심사: ${lastTopics.slice(0, 3).join(', ')}`
+            : `Recent interests: ${lastTopics.slice(0, 3).join(', ')}`
+        )
+      }
+
+      // 감정 톤
+      if (personaMemory.emotionalTone) {
+        parts.push(
+          lang === 'ko'
+            ? `감정 상태: ${personaMemory.emotionalTone}`
+            : `Emotional state: ${personaMemory.emotionalTone}`
+        )
+      }
+
+      // 핵심 인사이트
+      const insights = personaMemory.keyInsights as string[] | null
+      if (insights?.length) {
+        parts.push(
+          lang === 'ko'
+            ? `핵심 인사이트: ${insights.slice(0, 2).join('; ')}`
+            : `Key insights: ${insights.slice(0, 2).join('; ')}`
+        )
+      }
+
+      // 반복 이슈
+      const issues = personaMemory.recurringIssues as string[] | null
+      if (issues?.length) {
+        parts.push(
+          lang === 'ko'
+            ? `반복 이슈: ${issues.slice(0, 2).join(', ')}`
+            : `Recurring issues: ${issues.slice(0, 2).join(', ')}`
+        )
+      }
+
+      // 성장 영역
+      const growth = personaMemory.growthAreas as string[] | null
+      if (growth?.length) {
+        parts.push(
+          lang === 'ko'
+            ? `성장 영역: ${growth.slice(0, 2).join(', ')}`
+            : `Growth areas: ${growth.slice(0, 2).join(', ')}`
+        )
+      }
+
+      if (parts.length > 0) {
+        personaMemoryContext = parts.join(' | ')
+        logger.debug(`[profileLoader] PersonaMemory loaded: ${personaMemory.sessionCount} sessions`)
+      }
+
+      // (Tier 2A) recall — 이전 질문·결정 verbatim을 narrative로
+      const recallBlock =
+        lang === 'ko' ? formatRecallContextKo(personaMemory) : formatRecallContextEn(personaMemory)
+      if (recallBlock) {
+        personaMemoryContext = personaMemoryContext
+          ? `${personaMemoryContext}\n\n${recallBlock}`
+          : recallBlock
+      }
+    } else if (personaMemory) {
+      // sessionCount===0이라도 recall은 surface
+      const recallBlock =
+        lang === 'ko'
+          ? formatRecallContextKo(personaMemory)
+          : formatRecallContextEn(personaMemory)
+      if (recallBlock) personaMemoryContext = recallBlock
+    }
+
+    // 2. 최근 세션 요약 로드 (이전 대화 컨텍스트)
+    const sessionThemeWhere = buildSessionThemeWhere(theme)
+    const recentSessions = await prisma.counselorChatSession.findMany({
+      where: {
+        userId,
+        ...sessionThemeWhere,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 3,
+      select: {
+        summary: true,
+        keyTopics: true,
+        updatedAt: true,
+      },
+    })
+
+    const sessionSummaries = recentSessions
+      .filter((s) => s.summary)
+      .map((s) => {
+        const date = new Date(s.updatedAt)
+        const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
+        const timeLabel =
+          daysAgo === 0
+            ? lang === 'ko'
+              ? '오늘'
+              : 'today'
+            : daysAgo === 1
+              ? lang === 'ko'
+                ? '어제'
+                : 'yesterday'
+              : lang === 'ko'
+                ? `${daysAgo}일 전`
+                : `${daysAgo} days ago`
+        return `[${timeLabel}] ${s.summary}`
+      })
+
+    if (sessionSummaries.length > 0) {
+      recentSessionSummaries = sessionSummaries.join('\n')
+      logger.debug(`[profileLoader] Loaded ${sessionSummaries.length} recent session summaries`)
+    }
+
+    // 3. (Tier 2B) Decision Tracker — 이전 결정·결과 narrative
+    try {
+      const history = await getDecisionHistory(userId, 5)
+      if (history.length > 0) {
+        const decisionBlock =
+          lang === 'ko' ? formatDecisionHistoryKo(history) : formatDecisionHistoryEn(history)
+        if (decisionBlock) {
+          recentSessionSummaries = recentSessionSummaries
+            ? `${recentSessionSummaries}\n\n${decisionBlock}`
+            : decisionBlock
+          logger.debug(`[profileLoader] Loaded ${history.length} decisions`)
+        }
+      }
+    } catch (e) {
+      logger.warn('[profileLoader] decision history load failed', e)
+    }
+  } catch (e) {
+    logger.warn('[profileLoader] Failed to load persona memory:', e)
+  }
+
+  return { personaMemoryContext, recentSessionSummaries }
+}
+
+export const __testUtils = {
+  buildSessionThemeWhere,
+}

@@ -3,7 +3,7 @@
  * Extracted from route.ts for modularity
  */
 
-import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/destinyCalendar'
+import type { EventCategory, ImportanceGrade } from '@/lib/counselor/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
 
 // Helper type for accessing pillar data with various formats

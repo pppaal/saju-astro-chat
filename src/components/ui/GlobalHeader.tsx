@@ -48,8 +48,8 @@ function GlobalHeaderContent() {
     (
       [
         '/destiny-counselor/chat',
-        '/destiny-map/counselor',
-        '/destiny-map/result',
+        '/destiny-counselor/chat',
+        '/destiny-counselor',
         '/astrology/counselor',
       ].includes(pathname) ||
       pathname.startsWith('/premium-reports/result') ||

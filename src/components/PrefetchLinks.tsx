@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation'
  * This component should be placed in high-traffic pages like the homepage.
  */
 
-const CRITICAL_ROUTES = ['/destiny-map', '/pricing']
+const CRITICAL_ROUTES = ['/destiny-counselor', '/pricing']
 
 export default function PrefetchLinks() {
   const router = useRouter()

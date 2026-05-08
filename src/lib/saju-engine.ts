@@ -99,7 +99,7 @@ import {
   calculateIljinScore,
   type SajuScoreInput,
   type CycleStrengthContext,
-} from './destiny-map/calendar/scoring'
+} from './counselor/calendar/scoring'
 
 // ─────────────────────────────────────────────────────────────────
 // 십신 계산 — 일간(dayMaster) 기준으로 target 천간의 십신 라벨

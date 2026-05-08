@@ -15,7 +15,7 @@ import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapte
 import { buildActionPlanPayload } from './routeTimelineAssembly'
 import { polishCalendarDayNarrationKo } from '@/lib/llm/calendarNarrativePolish'
 import { buildDayContinuity, buildDayOfWeekTone } from '@/lib/calendar/dayContext'
-import { getDisplayGradeFromScore } from '@/lib/destiny-map/calendar/scoring-config'
+import { getDisplayGradeFromScore } from '@/lib/counselor/calendar/scoring-config'
 import { getGradeLabel as getUnifiedGradeLabel } from '@/components/calendar/constants'
 import {
   analyzeConfidenceMeta,

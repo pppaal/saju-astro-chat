@@ -106,7 +106,7 @@ export function NoSavedProfiles() {
     title="No saved profiles"
     description="Save your birth information for quick access to readings"
     actionLabel="Create your first profile"
-    actionHref="/destiny-map"
+    actionHref="/destiny-counselor"
   />
   );
 }

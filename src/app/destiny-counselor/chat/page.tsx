@@ -7,14 +7,14 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ErrorBoundary, ChatErrorFallback } from '@/components/ErrorBoundary'
 import CreditBadge from '@/components/ui/CreditBadge'
-import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
+import CounselorSidebar from '@/components/counselor/CounselorSidebar'
 // buildSignInUrl import removed alongside the guest banner — restore
 // when reintroducing inline login CTA.
 import styles from './chat.module.css'
 import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
 import { CounselorLoadingScreen } from './CounselorLoadingScreen'
-import Chat from '@/components/destiny-map/Chat'
+import Chat from '@/components/counselor/Chat'
 
 type SearchParams = Record<string, string | string[] | undefined>
 

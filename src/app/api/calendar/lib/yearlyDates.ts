@@ -3,8 +3,8 @@ import type {
   MonthlyOverlapPoint,
   TimingCalibrationSummary,
 } from '@/lib/destiny-matrix/types'
-import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/calendar/types'
-import type { UserAstroProfile, UserSajuProfile } from '@/lib/destiny-map/calendar/types'
+import type { EventCategory, ImportanceGrade } from '@/lib/counselor/calendar/types'
+import type { UserAstroProfile, UserSajuProfile } from '@/lib/counselor/calendar/types'
 import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/Saju/johuYongsin'
 import { calculateDailyPillar } from '@/lib/prediction/ultra-precision-daily'
 import {

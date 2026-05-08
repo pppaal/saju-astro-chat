@@ -4,7 +4,7 @@
  */
 
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/constants';
-import { ELEMENT_RELATIONS } from '@/lib/destiny-map/config/elements.config';
+import { ELEMENT_RELATIONS } from '@/lib/counselor/config/elements.config';
 
 // 별자리-오행 매핑
 const ZODIAC_TO_ELEMENT: Record<string, string> = {
@@ -324,7 +324,7 @@ export function generateDailyNotifications(
       luckyNumber,
       luckyDirection,
       element: dayMasterElement,
-      url: "/destiny-map",
+      url: "/destiny-counselor",
     },
   });
 
@@ -346,7 +346,7 @@ export function generateDailyNotifications(
       data: {
         luckyColor,
         luckyNumber,
-        url: "/destiny-map",
+        url: "/destiny-counselor",
       },
     });
   }

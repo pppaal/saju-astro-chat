@@ -309,7 +309,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
 
   async function handleSelectPlan(planId: string) {
     if (planId === 'free') {
-      window.location.href = '/destiny-map'
+      window.location.href = '/destiny-counselor'
       return
     }
 
@@ -614,7 +614,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           <h2 className={styles.ctaTitle}>{pt('ctaTitle')}</h2>
           <p className={styles.ctaSub}>{pt('ctaSub')}</p>
           <div className={styles.ctaButtons}>
-            <Link href="/destiny-map" className={styles.ctaPrimary}>
+            <Link href="/destiny-counselor" className={styles.ctaPrimary}>
               {pt('startFree')}
             </Link>
             <Link href="/about" className={styles.ctaSecondary}>

@@ -19,7 +19,7 @@ import {
   buildCalendarCrossAugment,
   buildWeeklyCrossAugment,
   buildMonthlyCrossAugment,
-} from '@/lib/destiny-map/destinyCalendar'
+} from '@/lib/counselor/destinyCalendar'
 
 const bodySchema = z.object({
   birth: z.object({

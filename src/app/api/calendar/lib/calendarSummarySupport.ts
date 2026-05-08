@@ -2,10 +2,10 @@ import type {
   EventCategory,
   ImportanceGrade,
   ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar'
+} from '@/lib/counselor/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
 import { KO_MESSAGES, EN_MESSAGES } from './constants'
-import { DISPLAY_SCORE_LABEL_THRESHOLDS, EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
+import { DISPLAY_SCORE_LABEL_THRESHOLDS, EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/counselor/calendar/scoring-config'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 import {
   describePhaseFlow,

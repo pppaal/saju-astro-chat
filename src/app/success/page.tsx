@@ -47,7 +47,7 @@ function SuccessContent() {
     }
   }, [sessionId]);
 
-  const goToReadingUrl = returnUrl || "/destiny-map";
+  const goToReadingUrl = returnUrl || "/destiny-counselor";
 
   return (
     <div className={styles.page}>

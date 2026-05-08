@@ -6,7 +6,7 @@ import {
   type AstrologyChatStreamValidated,
 } from '@/lib/api/zodValidation'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
-import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
+import { sanitizeLocaleText, maskTextWithName } from '@/lib/counselor/sanitize'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { DATE_RE, TIME_RE } from '@/lib/validation/patterns'
 import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'

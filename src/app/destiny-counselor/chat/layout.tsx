@@ -14,7 +14,7 @@ export const metadata = generateMetadata({
     'astrology counseling',
     'fortune counseling',
   ],
-  canonicalUrl: `${baseUrl}/destiny-map/counselor`,
+  canonicalUrl: `${baseUrl}/destiny-counselor/chat`,
   ogImage: '/og-image.png',
 })
 

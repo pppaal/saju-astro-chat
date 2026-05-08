@@ -636,7 +636,7 @@ export function detectHourEvent(input: {
 // ─────────────────────────────────────────────────────────────
 // 점성 행성시간 (Planetary Hours) — 시진과 별개로 그 시간을 지배하는 행성
 // ─────────────────────────────────────────────────────────────
-import { getPlanetaryHourForDate } from '@/lib/destiny-map/calendar/planetary-hours'
+import { getPlanetaryHourForDate } from '@/lib/counselor/calendar/planetary-hours'
 
 const PLANET_KO_ACTION: Record<string, string> = {
   Sun: '리더십 발휘하거나 사람들 앞에 서기 좋은 분위기',

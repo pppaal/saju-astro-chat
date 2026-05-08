@@ -7,7 +7,7 @@ import type {
   EventCategory,
   ImportanceGrade,
   ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar'
+} from '@/lib/counselor/destinyCalendar'
 import type { TranslationData } from '@/types/calendar-api'
 import type { PillarData } from '@/lib/Saju/types'
 import type { CalendarMatrixEvidencePacketMap } from './matrixEvidencePacket'
@@ -35,7 +35,7 @@ import {
 import {
   GRADE_THRESHOLDS,
   EVIDENCE_CONFIDENCE_THRESHOLDS,
-} from '@/lib/destiny-map/calendar/scoring-config'
+} from '@/lib/counselor/calendar/scoring-config'
 import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLanguage'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 export { generateBestTimes, generateSummary } from './calendarSummarySupport'

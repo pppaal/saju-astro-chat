@@ -1,4 +1,4 @@
-import type { DailyFortuneResult, ImportantDate } from '@/lib/destiny-map/destinyCalendar'
+import type { DailyFortuneResult, ImportantDate } from '@/lib/counselor/destinyCalendar'
 import DateTimePicker from '@/components/ui/DateTimePicker'
 
 interface DestinyAdviceSectionProps {

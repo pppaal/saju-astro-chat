@@ -8,7 +8,7 @@ import {
   calculateAstroProfileFromBirthDate,
   type DailyFortuneResult,
   type ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar';
+} from '@/lib/counselor/destinyCalendar';
 
 interface DestinyAdviceState {
   fortune: DailyFortuneResult | null;

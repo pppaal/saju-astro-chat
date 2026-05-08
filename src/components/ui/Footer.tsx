@@ -12,7 +12,7 @@ import styles from "./Footer.module.css";
 // /auth, /admin, /blog still show the footer.
 const HIDE_FOOTER_PREFIXES = [
   "/destiny-counselor",
-  "/destiny-map",
+  "/destiny-counselor",
   "/destiny-match",
   "/tarot",
   "/calendar",
