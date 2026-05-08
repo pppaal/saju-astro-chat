@@ -37,11 +37,14 @@ export const SAJU_ENGINE_META = {
 } as const
 import { calculateSajuData } from './saju'
 import {
-  analyzeAdvancedSaju,
   analyzeJohuYongsin,
   analyzeExtendedSaju,
 } from './core'
 import { performUltraAdvancedAnalysis } from './advanced'
+// ⭐ 정통 모듈 직접 호출 (이전: core.ts:analyzeAdvancedSaju 간단판)
+import { calculateComprehensiveScore } from './strength'
+import { determineGeokguk } from './geokguk'
+import { determineYongsin } from './yongsin'
 import {
   analyzeTwelveStages,
   type TwelveStageAnalysis,
@@ -486,20 +489,41 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
   const dayElement = STEM_TO_ELEMENT[dayMaster as keyof typeof STEM_TO_ELEMENT] || 'earth'
   const dayYinYang = p.day.heavenlyStem.yin_yang
 
-  // -- 2) 강약 + 격국 + 용신
-  const advanced = analyzeAdvancedSaju(
-    {
-      name: dayMaster,
-      element: dayElement,
-      yin_yang: dayYinYang,
-    } as Parameters<typeof analyzeAdvancedSaju>[0],
-    {
-      yearPillar: sajuResult.yearPillar,
-      monthPillar: sajuResult.monthPillar,
-      dayPillar: sajuResult.dayPillar,
-      timePillar: sajuResult.timePillar,
-    } as Parameters<typeof analyzeAdvancedSaju>[1],
-  )
+  // -- 2) 강약 + 격국 + 용신 (정통 3 모듈 직접 호출)
+  // strength.ts: 7카테고리 정통 점수 (득령30/통근25/인성20/비겁15/식상15/재성15/관성20)
+  // geokguk.ts:  격국별 성격/파격 판정
+  // yongsin.ts:  4용신 통합 (억부 + 조후 + 통관 + 병약)
+  const simplePillarsForAnalysis = {
+    year: { stem: sajuResult.yearPillar.heavenlyStem.name, branch: sajuResult.yearPillar.earthlyBranch.name },
+    month: { stem: sajuResult.monthPillar.heavenlyStem.name, branch: sajuResult.monthPillar.earthlyBranch.name },
+    day: { stem: sajuResult.dayPillar.heavenlyStem.name, branch: sajuResult.dayPillar.earthlyBranch.name },
+    time: { stem: sajuResult.timePillar.heavenlyStem.name, branch: sajuResult.timePillar.earthlyBranch.name },
+  }
+  const _geokgukRaw = determineGeokguk(simplePillarsForAnalysis)
+  const _yongsinRaw = determineYongsin(simplePillarsForAnalysis)
+  const _comprehensiveScore = calculateComprehensiveScore(sajuResult.pillars, {
+    geokgukType: String(_geokgukRaw.primary || ''),
+    yongsin: _yongsinRaw.primaryYongsin,
+  })
+
+  // 기존 engine 코드 호환: advanced.{strength, geokguk, yongsin} 모양으로 어댑팅
+  const advanced = {
+    strength: {
+      level: _comprehensiveScore.strength.level,
+      score: _comprehensiveScore.strength.total,
+    },
+    geokguk: {
+      type: _geokgukRaw.primary,
+      secondary: _geokgukRaw.secondary,
+      basis: _geokgukRaw.description,
+    },
+    yongsin: {
+      primary: _yongsinRaw.primaryYongsin,
+      secondary: _yongsinRaw.secondaryYongsin,
+      unfavorable: _yongsinRaw.kibsin ? [_yongsinRaw.kibsin] : [],
+      basis: _yongsinRaw.reasoning,
+    },
+  }
 
   // -- 3) 조후 용신 (계절 기반)
   let johuYongsin: { primary: string; secondary?: string; description: string; season: string } | undefined
