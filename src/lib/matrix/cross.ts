@@ -586,9 +586,31 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     if (horizon === 'daeun') return saju.scores.daeunScore / 8 * 10
     if (horizon === 'seun') return saju.scores.seunScore
     if (horizon === 'wolun') return saju.scores.wolunScore / 7 * 10
-    if (horizon === 'iljin') return saju.scores.iljinScore / 12 * 10
+    if (horizon === 'iljin') return saju.scores.iljinScore / 15 * 10
     return 5
   })()
+
+  // ⭐ 풍부 데이터 추출 (사주 fullInsights + 점성 advanced + matrix 결합)
+  const fi = saju.fullInsights as
+    | undefined
+    | {
+        sibsin?: { dominantSibsin?: string[]; missingSibsin?: string[] }
+        healthCareer?: {
+          health?: { overallScore?: number; weakElement?: string; organHealth?: Array<{ element?: string; status?: string }> }
+          career?: { workStyle?: { type?: string }; entrepreneurialScore?: number; leadershipScore?: number; primaryFields?: Array<{ category?: string }>; peakCareerAges?: number[] }
+        }
+        comprehensivePrediction?: { multiYearTrend?: { peakYears?: number[]; lowYears?: number[]; overallTrend?: string } }
+        extendedAnalysis?: { lifeStages?: Array<{ ageRange?: string; theme?: string }> }
+      }
+  const aAdv = (astro as unknown as {
+    advanced?: {
+      asteroids?: Record<string, { sign: string; house: number }>
+      upcomingEclipses?: Array<{ date: string; type: string; sign: string }>
+      fixedStars?: Array<{ planet?: string; orb: number; star: { name_ko?: string; name: string } }>
+      harmonics?: { strongestHarmonics?: Array<{ harmonic: number; strength: number }> }
+      midpointActivations?: Array<{ midpoint: { planet1: string; planet2: string }; activator: string; aspectType: string; orb: number }>
+    }
+  }).advanced
 
   // 테마별 사주 가중치
   const sajuPoints: string[] = []
@@ -614,6 +636,32 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       sajuPoints.push(`통근 깊음 (${cycleEntry.rootedness.rootStrengthTotal})`)
     }
     if (saju.advanced.geokguk.type) sajuPoints.push(`본명 ${saju.advanced.geokguk.type}`)
+    // ⭐ fullInsights.sibsin — 십신 분포 (관성/식상)
+    if (fi?.sibsin?.dominantSibsin?.includes('정관') || fi?.sibsin?.dominantSibsin?.includes('편관')) {
+      sajuModifier += 1.5
+      sajuPoints.push('관성 강 (조직·권위)')
+    }
+    if (fi?.sibsin?.missingSibsin?.includes('정관') && fi?.sibsin?.missingSibsin?.includes('편관')) {
+      sajuModifier -= 1
+      sajuPoints.push('관성 결핍 (자유업 적합)')
+    }
+    // ⭐ fullInsights.healthCareer.career — 적성·정점기
+    if (fi?.healthCareer?.career?.peakCareerAges?.length) {
+      sajuPoints.push(`커리어 정점 ${fi.healthCareer.career.peakCareerAges[0]}세`)
+    }
+    if (fi?.healthCareer?.career?.workStyle?.type) {
+      sajuPoints.push(`업무: ${fi.healthCareer.career.workStyle.type}`)
+    }
+    // ⭐ comprehensivePrediction — 다년 트렌드
+    const cy = new Date().getFullYear()
+    if (fi?.comprehensivePrediction?.multiYearTrend?.peakYears?.includes(cy)) {
+      sajuModifier += 1
+      sajuPoints.push(`${cy}년 정점 연도`)
+    }
+    if (fi?.comprehensivePrediction?.multiYearTrend?.lowYears?.includes(cy)) {
+      sajuModifier -= 1
+      sajuPoints.push(`${cy}년 저점 주의`)
+    }
   }
   if (theme === 'wealth') {
     // 재성, 식상
@@ -624,6 +672,25 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
     if (saju.advanced.geokguk.type.includes('재')) {
       sajuPoints.push(`본명 ${saju.advanced.geokguk.type}`)
+    }
+    // ⭐ 십신: 재성 분포
+    if (fi?.sibsin?.dominantSibsin?.includes('정재') || fi?.sibsin?.dominantSibsin?.includes('편재')) {
+      sajuModifier += 1.5
+      sajuPoints.push('재성 강 (재물 활성)')
+    }
+    if (fi?.sibsin?.missingSibsin?.includes('정재') && fi?.sibsin?.missingSibsin?.includes('편재')) {
+      sajuModifier -= 1
+      sajuPoints.push('재성 결핍 (재물 의식 약)')
+    }
+    // 식상 → 재물 흐름
+    if (fi?.sibsin?.dominantSibsin?.includes('식신') || fi?.sibsin?.dominantSibsin?.includes('상관')) {
+      sajuModifier += 0.5
+      sajuPoints.push('식상→재성 흐름')
+    }
+    // 창업 점수
+    if (fi?.healthCareer?.career?.entrepreneurialScore && fi.healthCareer.career.entrepreneurialScore >= 70) {
+      sajuModifier += 1
+      sajuPoints.push(`창업력 ${fi.healthCareer.career.entrepreneurialScore}`)
     }
   }
   if (theme === 'love') {
@@ -640,6 +707,16 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       sajuPoints.push(`일지 ${dayInter.branchRelation || dayInter.stemRelation} (충돌)`)
     }
     sajuPoints.push(`일주 ${saju.pillars.day.ganzhi}`)
+    // ⭐ 십신: 배우자성 (남=정재, 여=정관)
+    const isMale = saju.input?.gender === 'male'
+    const spouseSibsin = isMale ? '정재' : '정관'
+    if (fi?.sibsin?.dominantSibsin?.includes(spouseSibsin)) {
+      sajuModifier += 1
+      sajuPoints.push(`${spouseSibsin} 강 (배우자 인연 활성)`)
+    } else if (fi?.sibsin?.missingSibsin?.includes(spouseSibsin)) {
+      sajuModifier -= 0.5
+      sajuPoints.push(`${spouseSibsin} 결핍 (인연 시기 차이)`)
+    }
   }
   if (theme === 'health') {
     // 오행 균형 + 형/충
@@ -655,6 +732,16 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       sajuModifier -= 0.5
       sajuPoints.push('오행 불균형')
     }
+    // ⭐ healthCareer 종합 점수
+    if (fi?.healthCareer?.health?.overallScore !== undefined) {
+      const hs = fi.healthCareer.health.overallScore
+      sajuModifier += (hs - 50) / 25 // -2 ~ +2 범위
+      sajuPoints.push(`건강 ${hs}/100`)
+      const vulnerable = fi.healthCareer.health.organHealth?.filter((o) => o.status === 'vulnerable') || []
+      if (vulnerable.length > 0) {
+        sajuPoints.push(`취약 ${vulnerable.map((o) => o.element).join(',')}`)
+      }
+    }
   }
   if (theme === 'growth') {
     // 인성 + 식상 + 문창
@@ -666,6 +753,16 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     if (saju.advanced.geokguk.type.includes('인')) {
       sajuModifier += 0.5
       sajuPoints.push('인성 격국')
+    }
+    // ⭐ 십신: 인성 (학습·지혜)
+    if (fi?.sibsin?.dominantSibsin?.includes('정인') || fi?.sibsin?.dominantSibsin?.includes('편인')) {
+      sajuModifier += 1
+      sajuPoints.push('인성 강 (학습·지혜)')
+    }
+    // 식상 (표현·창의)
+    if (fi?.sibsin?.dominantSibsin?.includes('식신')) {
+      sajuModifier += 0.5
+      sajuPoints.push('식신 (창의 표현)')
     }
   }
   if (theme === 'family') {
@@ -681,6 +778,11 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       sajuModifier -= 1
       sajuPoints.push('년주 동요 (가족 영역)')
     }
+    // ⭐ 십신: 비겁 (형제·동료)
+    if (fi?.sibsin?.dominantSibsin?.includes('비견') || fi?.sibsin?.dominantSibsin?.includes('겁재')) {
+      sajuModifier += 0.5
+      sajuPoints.push('비겁 (형제·동료 인연)')
+    }
   }
 
   // 점성 측 시그널
@@ -695,6 +797,22 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       astroPoints.push(`T.Saturn ${saturnTransit.type} N.${saturnTransit.natalPoint}`)
     }
     astroPoints.push(`MC ${astro.bigThree.mc.sign} (직업 정체성)`)
+    // ⭐ midpoint Sun/MC, Mars/Saturn (커리어 추진)
+    const careerMidpoint = aAdv?.midpointActivations?.find(
+      (m) =>
+        (m.midpoint.planet1 === 'Sun' && m.midpoint.planet2 === 'MC') ||
+        (m.midpoint.planet1 === 'Mars' && m.midpoint.planet2 === 'Saturn'),
+    )
+    if (careerMidpoint) {
+      astroModifier += 1
+      astroPoints.push(`midpoint ${careerMidpoint.midpoint.planet1}/${careerMidpoint.midpoint.planet2} 활성`)
+    }
+    // ⭐ asteroid Pallas (전략·지혜)
+    const pallas = aAdv?.asteroids?.Pallas
+    if (pallas && pallas.house === 10) {
+      astroModifier += 0.5
+      astroPoints.push('Pallas 10H (전략 직업)')
+    }
   }
   if (theme === 'wealth') {
     const jupiterTransit = astro.current.majorTransits.find((t) => t.transitPlanet === 'Jupiter')
@@ -705,6 +823,11 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
     const venusInChart = astro.natal.planets.find((p) => p.name === 'Venus')
     if (venusInChart) astroPoints.push(`Venus ${venusInChart.sign} (${venusInChart.house}H)`)
+    // ⭐ Venus 가 2H/8H 이면 재물 활성
+    if (venusInChart && (venusInChart.house === 2 || venusInChart.house === 8)) {
+      astroModifier += 1
+      astroPoints.push(`Venus ${venusInChart.house}H (재물궁)`)
+    }
   }
   if (theme === 'love') {
     const venusTransit = astro.current.transitToNatal.find((t) => t.transitPlanet === 'Venus')
@@ -714,6 +837,19 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
     const venusInChart = astro.natal.planets.find((p) => p.name === 'Venus')
     if (venusInChart) astroPoints.push(`Venus ${venusInChart.sign}`)
+    // ⭐ Juno (결혼 소행성)
+    const juno = aAdv?.asteroids?.Juno
+    if (juno) astroPoints.push(`Juno ${juno.sign} ${juno.house}H (결혼)`)
+    // ⭐ Venus/Mars midpoint (사랑·열정)
+    const loveMid = aAdv?.midpointActivations?.find(
+      (m) =>
+        (m.midpoint.planet1 === 'Venus' && m.midpoint.planet2 === 'Mars') ||
+        (m.midpoint.planet1 === 'Mars' && m.midpoint.planet2 === 'Venus'),
+    )
+    if (loveMid) {
+      astroModifier += 0.5
+      astroPoints.push(`Venus/Mars midpoint 활성 ← ${loveMid.activator}`)
+    }
   }
   if (theme === 'health') {
     // 6H + Saturn 균형
@@ -724,6 +860,16 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       astroModifier += 0.5
       astroPoints.push('원소 균형')
     }
+    // ⭐ Chiron (치유 소행성)
+    const chiron = aAdv?.asteroids?.Chiron
+    if (chiron && chiron.house === 6) {
+      astroPoints.push(`Chiron 6H (건강 치유 테마)`)
+    }
+    // ⭐ Eclipse Leo (심장)
+    const upcomingLeoEclipse = aAdv?.upcomingEclipses?.find((e) => e.sign === 'Leo')
+    if (upcomingLeoEclipse) {
+      astroPoints.push(`다가올 Leo 식 ${upcomingLeoEclipse.date} (심장계 주의)`)
+    }
   }
   if (theme === 'growth') {
     const jupiterTransit = astro.current.majorTransits.find((t) => t.transitPlanet === 'Jupiter')
@@ -733,6 +879,22 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
     const mercuryInChart = astro.natal.planets.find((p) => p.name === 'Mercury')
     if (mercuryInChart) astroPoints.push(`Mercury ${mercuryInChart.sign}`)
+    // ⭐ Pallas (지혜) + Vesta (헌신)
+    const pallas = aAdv?.asteroids?.Pallas
+    if (pallas) astroPoints.push(`Pallas ${pallas.sign} (전략·지혜)`)
+    const vesta = aAdv?.asteroids?.Vesta
+    if (vesta) astroPoints.push(`Vesta ${vesta.sign} (집중·헌신)`)
+    // ⭐ Mercury midpoint
+    const mercMid = aAdv?.midpointActivations?.find(
+      (m) => m.midpoint.planet1 === 'Mercury' || m.midpoint.planet2 === 'Mercury',
+    )
+    if (mercMid) astroPoints.push(`Mercury midpoint 활성`)
+    // ⭐ 하모닉 (학습·집중)
+    const h7 = aAdv?.harmonics?.strongestHarmonics?.find((h) => h.harmonic === 7)
+    if (h7 && h7.strength >= 70) {
+      astroModifier += 0.5
+      astroPoints.push(`H7 강 (영감·신비)`)
+    }
   }
   if (theme === 'family') {
     // 4H 강조
@@ -742,6 +904,45 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       astroPoints.push(`Moon aspects ${moonAspects.length}`)
     }
     astroPoints.push(`Moon ${astro.bigThree.moon.sign}`)
+    // ⭐ Ceres (양육·돌봄)
+    const ceres = aAdv?.asteroids?.Ceres
+    if (ceres) astroPoints.push(`Ceres ${ceres.sign} ${ceres.house}H (양육·돌봄)`)
+    // ⭐ Moon midpoint (가족 정서)
+    const moonMid = aAdv?.midpointActivations?.find(
+      (m) => m.midpoint.planet1 === 'Moon' || m.midpoint.planet2 === 'Moon',
+    )
+    if (moonMid) astroPoints.push(`Moon midpoint 활성`)
+  }
+
+  // ⭐ 진짜 교차 — 사주 ↔ 점성 결합 시 보너스
+  if (theme === 'career') {
+    const sajuOfficial = saju.advanced.geokguk.type.includes('관')
+    const astroSaturnStrong = astro.current.majorTransits.some((t) => t.transitPlanet === 'Saturn' && (t.type === 'trine' || t.type === 'sextile'))
+    if (sajuOfficial && astroSaturnStrong) {
+      sajuModifier += 1
+      sajuPoints.push('🔗 격국 관성 + Saturn 길조 = 권위·관료 강화')
+    }
+  }
+  if (theme === 'love') {
+    const isMale = saju.input?.gender === 'male'
+    const spouseSibsin = isMale ? '정재' : '정관'
+    const sajuSpouseStrong = fi?.sibsin?.dominantSibsin?.includes(spouseSibsin)
+    const astroVenusActive = astro.current.transitToNatal.some((t) => t.transitPlanet === 'Venus')
+    if (sajuSpouseStrong && astroVenusActive) {
+      sajuModifier += 1
+      sajuPoints.push(`🔗 ${spouseSibsin} 강 + Venus 트랜짓 = 인연 시기`)
+    }
+  }
+  if (theme === 'health') {
+    const sajuFireDeficient = (saju.fiveElements as Record<string, number>)['fire'] === 0 || (saju.fiveElements as Record<string, number>)['화'] === 0
+    const astroFireRich = astro.elementBalance.fire >= 30
+    if (sajuFireDeficient && astroFireRich) {
+      sajuModifier += 0.5
+      sajuPoints.push('🔗 사주 火 결핍 ↔ 점성 火 풍부 = 보완')
+    } else if (sajuFireDeficient && !astroFireRich) {
+      sajuModifier -= 0.5
+      sajuPoints.push('🔗 사주 火 결핍 + 점성 火 약 = 가중 (심장 주의)')
+    }
   }
 
   // 종합 점수
