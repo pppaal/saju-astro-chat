@@ -207,7 +207,8 @@ export interface PastRetrospective {
 }
 
 // Event timing analysis
-export type EventType = 'marriage' | 'career' | 'investment' | 'move' | 'study' | 'health' | 'relationship';
+import type { EventType } from '../life-prediction-types';
+export type { EventType };
 
 export interface EventTimingResult {
   eventType: EventType;

@@ -52,16 +52,8 @@ interface EclipseData {
   degree: number;
 }
 
-/**
- * 일/월식 영향 정보
- */
-export interface EclipseImpact {
-  hasImpact: boolean;
-  type: "solar" | "lunar" | null;
-  intensity: "strong" | "medium" | "weak" | null;
-  sign: string | null;
-  daysFromEclipse: number | null;
-}
+import type { EclipseImpact } from './astrology/types';
+export type { EclipseImpact };
 
 /**
  * 역행 행성 타입

@@ -16,7 +16,8 @@ import { analyzeBranchRelation } from './life-prediction/relation-analysis';
 // 타입 정의
 // ============================================================
 
-export type EventType = 'marriage' | 'career' | 'investment' | 'move' | 'study' | 'health' | 'relationship';
+import type { EventType } from './life-prediction-types';
+export type { EventType };
 
 // Advanced Astro data structures
 interface ReturnChartData {

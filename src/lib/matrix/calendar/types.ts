@@ -41,12 +41,8 @@ export interface CalendarMonth {
 // User Profile Types
 // ============================================================
 
-export interface DaeunCycle {
-  age: number;
-  heavenlyStem: string;
-  earthlyBranch: string;
-  sibsin?: { cheon: string; ji: string };
-}
+import type { DaeunCycle } from './profile-factory';
+export type { DaeunCycle };
 
 export interface UserSajuProfile {
   dayMaster: string;

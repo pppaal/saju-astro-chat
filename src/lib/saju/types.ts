@@ -139,8 +139,8 @@ export interface CalculateSajuDataResult {
       earthlyBranch: string
       ganji: string
     }>
-    annual: AnnualCycleData[]
-    monthly: MonthlyCycleData[]
+    annual: CycleData[]
+    monthly: CycleData[]
   }
 
   fiveElements: {
@@ -237,27 +237,6 @@ export interface DaeunPillar {
   sibsin: { cheon: string; ji: string }
 }
 
-// 연운 사이클 데이터
-export interface AnnualCycleData {
-  year: number
-  ganji?: string
-  heavenlyStem?: string
-  earthlyBranch?: string
-  element?: FiveElement
-  sibsin?: { cheon: string; ji: string }
-}
-
-// 월운 사이클 데이터
-export interface MonthlyCycleData {
-  year: number
-  month: number
-  ganji?: string
-  heavenlyStem?: string
-  earthlyBranch?: string
-  element?: FiveElement
-  sibsin?: { cheon: string; ji: string }
-}
-
 // 일반 사이클 데이터 (유틸 함수용)
 export interface CycleData {
   year?: number
@@ -269,20 +248,9 @@ export interface CycleData {
   sibsin?: { cheon: string; ji: string }
 }
 
-export interface YeonunData extends UnseData {
-  year: number // 해당 연도(서기)
-}
-
 export interface WolunData extends UnseData {
   year: number
   month: number // 1~12
-}
-
-export interface IljinData extends UnseData {
-  year: number
-  month: number
-  day: number
-  isCheoneulGwiin: boolean // 천을귀인 여부
 }
 
 // --- 요약 분석 결과 타입 (AI Narrative / 분석용) ---
