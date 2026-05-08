@@ -1567,8 +1567,27 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
   }
 
-  // 종합 점수
-  let combined = sajuScoreBase * 0.5 + (5 + astroModifier) * 0.5 + sajuModifier
+  // ⭐ 종합 점수 — 정통 horizon 별 가중치 + modifier 정규화
+  // 정통: life 사주65% / daeun 60% / seun 50% / wolun 40% / iljin 35% (점성↑)
+  const horizonWeights: Record<Horizon, { saju: number; astro: number }> = {
+    life: { saju: 0.65, astro: 0.35 },
+    daeun: { saju: 0.60, astro: 0.40 },
+    seun: { saju: 0.50, astro: 0.50 },
+    wolun: { saju: 0.40, astro: 0.60 },
+    iljin: { saju: 0.35, astro: 0.65 },
+  }
+  const w = horizonWeights[horizon]
+  // modifier 정규화 — point 수의 sqrt 로 나눠 깊이↑ 점수 평준화 방지
+  const sajuPointN = Math.max(1, sajuPoints.length)
+  const astroPointN = Math.max(1, astroPoints.length)
+  const sajuModNormalized = sajuModifier / Math.sqrt(sajuPointN) * 1.5
+  const astroModNormalized = astroModifier / Math.sqrt(astroPointN) * 1.5
+  // 사주측 base + 정규화 modifier
+  const sajuFinal = Math.max(0, Math.min(10, sajuScoreBase + sajuModNormalized))
+  // 점성측 base + 정규화 modifier (5 = neutral)
+  const astroFinal = Math.max(0, Math.min(10, 5 + astroModNormalized))
+  // horizon 가중 평균
+  let combined = sajuFinal * w.saju + astroFinal * w.astro
   combined = Math.max(0, Math.min(10, combined))
 
   const pct = (combined / 10) * 100
@@ -1577,13 +1596,24 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
   // 세그먼트 톤
   const { themeFocus, audience } = getSegmentTone(theme, ctx.segment)
 
-  // verdict — 세그먼트 톤 반영
+  // ⭐ verdict 풍부 — sajuPoints + astroPoints 핵심 결합 자연어
+  // buildOverallVerdict (cycle-analysis) 가 cycle 풍부 verdict 만들지만 horizon × theme 컨텍스트 필요
+  // → cross 에서 직접 cell-specific verdict 생성
   const verdict = (() => {
-    if (pct >= 85) return `${themeFocus} 매우 길운 — 적극 행동`
-    if (pct >= 70) return `${themeFocus} 호운 — 흐름 활용`
-    if (pct >= 50) return `${themeFocus} 평운 — 안정 유지`
-    if (pct >= 30) return `${themeFocus} 주의기 — 보수적 자세`
-    return `${themeFocus} 흉운 — 새 시도 자제`
+    // 핵심 시그널 (top 3 사주 + top 2 점성)
+    const topSaju = sajuPoints.slice(0, 3)
+    const topAstro = astroPoints.slice(0, 2)
+    const keyPositive = topSaju.concat(topAstro).filter((p) => !p.includes('결핍') && !p.includes('충돌') && !p.includes('파격'))
+    const keyNegative = topSaju.concat(topAstro).filter((p) => p.includes('결핍') || p.includes('충돌') || p.includes('파격'))
+    const horizonLabel = horizon === 'life' ? '평생' : horizon === 'daeun' ? '대운' : horizon === 'seun' ? '올해' : horizon === 'wolun' ? '이번 달' : '오늘'
+    const trend = pct >= 85 ? '천운' : pct >= 70 ? '길운' : pct >= 50 ? '평운' : pct >= 30 ? '주의' : '흉운'
+    let verdictText = `${horizonLabel} ${themeFocus} ${trend} (${combined.toFixed(1)}/10)`
+    if (keyPositive.length >= 2) {
+      verdictText += ` — ${keyPositive.slice(0, 2).map((p) => p.replace(/^🔗\s*/, '').replace(/\s*\([^)]+\)$/, '').trim()).join(' + ')}`
+    } else if (keyNegative.length >= 1) {
+      verdictText += ` — ${keyNegative[0].replace(/^🔗\s*/, '').trim()} 주의`
+    }
+    return verdictText
   })()
 
   // 액션 — 등급별 기본 + 신살 specific + NEVER 룰 + nuance 톤
