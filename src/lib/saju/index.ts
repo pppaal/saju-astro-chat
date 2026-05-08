@@ -8,10 +8,8 @@ export * from './constants';
 export { calculateSajuData } from './saju';
 
 // 고급 분석 (신강/신약, 격국, 용신, 통근/득령, 조후용신)
+// 단일 entry: analyzeAdvancedSaju (정통 strength/geokguk/yongsin wrapper)
 export {
-  analyzeStrength,
-  analyzeGeokguk,
-  analyzeYongsin,
   analyzeAdvancedSaju,
   analyzeRoot,
   analyzeJohuYongsin,
