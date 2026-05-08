@@ -606,7 +606,7 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     advanced?: {
       asteroids?: Record<string, { sign: string; house: number }>
       upcomingEclipses?: Array<{ date: string; type: string; sign: string }>
-      fixedStars?: Array<{ planet?: string; orb: number; star: { name_ko?: string; name: string } }>
+      fixedStars?: Array<{ planet?: string; orb: number; star: { name_ko?: string; name: string; nature?: string } }>
       harmonics?: { strongestHarmonics?: Array<{ harmonic: number; strength: number }> }
       midpointActivations?: Array<{ midpoint: { planet1: string; planet2: string }; activator: string; aspectType: string; orb: number }>
     }
@@ -915,6 +915,66 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     if (moonMid) astroPoints.push(`Moon midpoint 활성`)
   }
 
+  // ⭐ extendedAnalysis horizon 매칭 — 라이프스테이지 (4기둥별 시기)
+  const fiAny = saju.fullInsights as
+    | undefined
+    | {
+        extendedAnalysis?: { lifeStages?: Array<{ ageRange?: string; theme?: string; description?: string }> }
+        pillarPositions?: Array<{ position: string; meaning: { ageRange?: number[]; area?: string } }>
+        orthodox?: {
+          jonggeok?: { isJonggeok?: boolean; type?: string }
+          hwagyeok?: { isHwagyeok?: boolean; type?: string }
+          gongmang?: { branches?: string[] }
+        }
+        unseDeep?: { overallScore?: number; grade?: string; opportunities?: string[]; challenges?: string[] }
+      }
+  // 현재 한국 나이 추정 → 어느 4기둥 영역
+  const ko = (() => {
+    const by = parseInt(String(saju.input?.birthDate || '0').slice(0, 4), 10)
+    return by ? new Date().getFullYear() - by + 1 : 31
+  })()
+  // year(1-15)/month(16-30)/day(31-45)/time(46+) — life/daeun horizon 에 매칭
+  const currentPosition = ko < 16 ? 'year' : ko < 31 ? 'month' : ko < 46 ? 'day' : 'time'
+  if (horizon === 'life' || horizon === 'daeun') {
+    const pp = fiAny?.pillarPositions?.find((p) => p.position === currentPosition)
+    if (pp) {
+      sajuPoints.push(`현 ${currentPosition} ${pp.meaning.area} (${ko}세)`)
+    }
+    // 라이프스테이지 매칭 — 현재 나이 포함하는 stage
+    const stage = fiAny?.extendedAnalysis?.lifeStages?.find((s) => {
+      if (!s.ageRange) return false
+      const m = s.ageRange.match(/(\d+)~(\d+)/)
+      if (!m) return false
+      const lo = parseInt(m[1], 10)
+      const hi = parseInt(m[2], 10)
+      return ko >= lo && ko <= hi
+    })
+    if (stage) {
+      sajuPoints.push(`라이프 ${stage.ageRange}: ${(stage.theme || stage.description || '').slice(0, 40)}`)
+    }
+  }
+  // orthodox 정통 (종격·화격·공망)
+  if (fiAny?.orthodox?.jonggeok?.isJonggeok && (theme === 'career' || theme === 'wealth')) {
+    sajuModifier += 1
+    sajuPoints.push(`종격 ${fiAny.orthodox.jonggeok.type} — 따라야 할 오행 우선`)
+  }
+  if (fiAny?.orthodox?.hwagyeok?.isHwagyeok && theme === 'career') {
+    sajuModifier += 1
+    sajuPoints.push(`화격 ${fiAny.orthodox.hwagyeok.type} — 化氣 직업 적성`)
+  }
+  // unseDeep 운세 깊이 — daeun horizon 매칭
+  if (horizon === 'daeun' && fiAny?.unseDeep) {
+    const ud = fiAny.unseDeep
+    if (ud.overallScore !== undefined) {
+      const score = ud.overallScore
+      sajuPoints.push(`unse 깊이 ${score}/100 [${ud.grade || '-'}]`)
+      if ((theme === 'wealth' && (ud.opportunities || []).some((o) => o.includes('재물')))) {
+        sajuModifier += 0.5
+        sajuPoints.push('재물 기회 (unse)')
+      }
+    }
+  }
+
   // ⭐ horizon × theme 결합 — cycleAnalysis 9차원 + horizon 별 점성 데이터
   if (cycleEntry) {
     // 12운성 단계 (horizon 단계 — career/health/family 에 영향)
@@ -1001,6 +1061,116 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       if (nearEclipse) {
         astroPoints.push(`${horizon} 내 ${nearEclipse.type} 식 ${nearEclipse.date} ${nearEclipse.sign}`)
       }
+    }
+  }
+
+  // ⭐ 점성 미사용 영역 — fixedStars + progressions + solarReturn + harmonics
+  // fixedStars (모든 theme 에 의미)
+  const fixedStars = aAdv?.fixedStars
+  if (fixedStars && fixedStars.length > 0) {
+    const career = fixedStars.find((f) => /Mars\/Jupiter|Sun\/Mars/i.test(f.star.nature || ''))
+    const benefic = fixedStars.find((f) => /Jupiter\/Venus|Venus\/Jupiter/i.test(f.star.nature || ''))
+    if (theme === 'career' && career) {
+      astroModifier += 0.5
+      astroPoints.push(`★ ${career.star.name_ko || career.star.name} (대담함·야망)`)
+    }
+    if (theme === 'love' && benefic) {
+      astroModifier += 0.5
+      astroPoints.push(`★ ${benefic.star.name_ko || benefic.star.name} (행운·관계)`)
+    }
+  }
+  // progressions (daeun horizon 매칭)
+  if (horizon === 'daeun' && astro.progressions) {
+    const pSun = astro.progressions.progressedChart.planets.find((p) => p.name === 'Sun')
+    const pMoon = astro.progressions.progressedChart.planets.find((p) => p.name === 'Moon')
+    if (pSun && (theme === 'career' || theme === 'growth')) {
+      astroPoints.push(`Progressed Sun ${pSun.sign} (대운 정체성 진행)`)
+    }
+    if (pMoon && (theme === 'love' || theme === 'family' || theme === 'health')) {
+      astroPoints.push(`Progressed Moon ${pMoon.sign} (정서 진행)`)
+    }
+    const moonPhase = astro.progressions.progressedMoonPhase
+    if (moonPhase && theme === 'growth') {
+      astroPoints.push(`P.Moon phase: ${(moonPhase as { phase?: string })?.phase || ''}`)
+    }
+  }
+  // solarReturn (seun horizon)
+  if (horizon === 'seun' && astro.solarReturn) {
+    const summary = astro.solarReturn.summary as { theme?: string; majorTransits?: string[] } | undefined
+    if (summary?.theme && (theme === 'career' || theme === 'growth')) {
+      astroPoints.push(`Solar Return ${summary.theme.slice(0, 40)}`)
+    }
+  }
+  // harmonics 풍부 (theme 별)
+  const harmonics = aAdv?.harmonics?.strongestHarmonics
+  if (harmonics) {
+    const h8 = harmonics.find((h) => h.harmonic === 8)
+    const h5 = harmonics.find((h) => h.harmonic === 5)
+    const h9 = harmonics.find((h) => h.harmonic === 9)
+    if (h8 && h8.strength >= 70 && (theme === 'health' || theme === 'family')) {
+      astroPoints.push(`H8 강 (변형·재생)`)
+    }
+    if (h5 && h5.strength >= 70 && (theme === 'wealth' || theme === 'career')) {
+      astroModifier += 0.5
+      astroPoints.push(`H5 강 (창의·기예)`)
+    }
+    if (h9 && h9.strength >= 70 && theme === 'growth') {
+      astroModifier += 0.5
+      astroPoints.push(`H9 강 (지혜·완성)`)
+    }
+  }
+
+  // ⭐ 진짜 교차 5개 추가 — 사주 ↔ 점성 깊은 결합
+  // (1) 일주 + ASC sign — 정체성 통합 (모든 theme 에 영향)
+  const dayGanzhi = saju.pillars.day.ganzhi
+  const ascSign = astro.bigThree.ascendant.sign
+  if (theme === 'career' || theme === 'health') {
+    // 일주 火 (丙午/丁巳 등) + ASC Fire sign → 강한 활력
+    const sajuFireDay = ['丙午', '丁巳', '丙寅', '丁未'].includes(dayGanzhi)
+    const astroFireAsc = ['Aries', 'Leo', 'Sagittarius'].includes(ascSign)
+    if (sajuFireDay && astroFireAsc) {
+      sajuModifier += 0.5
+      sajuPoints.push(`🔗 일주 ${dayGanzhi} 火 + ASC ${ascSign} = 강한 활력`)
+    }
+  }
+  // (2) 격국 + MC ruler — 직업 운영 통합
+  if (theme === 'career') {
+    const mcSign = astro.bigThree.mc.sign
+    const sajuOfficial = saju.advanced.geokguk.type.includes('관')
+    const sajuArt = saju.advanced.geokguk.type.includes('식상') || saju.advanced.geokguk.type.includes('상관')
+    if (sajuOfficial && (mcSign === 'Capricorn' || mcSign === 'Scorpio')) {
+      sajuModifier += 0.5
+      sajuPoints.push(`🔗 격국 관성 + MC ${mcSign} = 권력·관료 정렬`)
+    }
+    if (sajuArt && (mcSign === 'Gemini' || mcSign === 'Pisces' || mcSign === 'Aquarius')) {
+      sajuModifier += 0.5
+      sajuPoints.push(`🔗 격국 식상 + MC ${mcSign} = 표현·창의 정렬`)
+    }
+  }
+  // (3) 용신 元素 + 점성 우세 원소 보완
+  const yongsinEl = saju.advanced.yongsin?.primary
+  const astroDominant = astro.elementBalance.dominant
+  const elementMap: Record<string, string> = { 화: '불', 토: '흙', 금: '바람', 수: '물', 목: '바람' }
+  if (yongsinEl && elementMap[yongsinEl] === astroDominant) {
+    sajuModifier += 0.5
+    sajuPoints.push(`🔗 용신 ${yongsinEl} ↔ 점성 우세 ${astroDominant} = 보완 정렬`)
+  }
+  // (4) 신살 + fixedStar — 한국 신살 + 서양 별 (양인 + Mars 별 등)
+  if (cycleEntry) {
+    const yangin = cycleEntry.shinsalActivation.hits.find((h) => h.kind === '양인')
+    const marsStars = aAdv?.fixedStars?.filter((f) => /Mars/i.test(f.star.nature || '')) || []
+    if (yangin && marsStars.length > 0 && (theme === 'career' || theme === 'health')) {
+      sajuPoints.push(`🔗 양인 + Mars 고정성 ${marsStars[0].star.name_ko || ''} (강성 결합)`)
+    }
+  }
+  // (5) 12운성 + progressed Moon phase — 개인 cycle 통합
+  if (cycleEntry && astro.progressions?.progressedMoonPhase && (theme === 'love' || theme === 'family' || theme === 'health')) {
+    const stage = cycleEntry.twelveStages.dayMasterStage
+    const phase = (astro.progressions.progressedMoonPhase as { phase?: string })?.phase
+    if ((stage === '왕지' || stage === '임관') && (phase === 'Full' || phase === 'Gibbous')) {
+      sajuPoints.push(`🔗 12운성 ${stage} + P.Moon ${phase} = 개인 cycle 절정`)
+    } else if ((stage === '병' || stage === '사') && (phase === 'Balsamic' || phase === 'Disseminating')) {
+      sajuPoints.push(`🔗 12운성 ${stage} + P.Moon ${phase} = 개인 cycle 정리기`)
     }
   }
 
