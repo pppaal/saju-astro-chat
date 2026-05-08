@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, useCallback, Fragment } from 'react'
+import React, { useState, useMemo, useCallback, useEffect, Fragment } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Dialog, Transition } from '@headlessui/react'
 import {
@@ -22,6 +22,11 @@ import {
   TrendingUp,
   X,
   Layers,
+  Briefcase,
+  Zap,
+  AlertTriangle,
+  GitBranch,
+  Compass,
 } from 'lucide-react'
 import {
   XAxis,
@@ -75,14 +80,8 @@ const DOMAIN_RADAR_TARGETS: Array<{ key: EventCategory; label: string }> = [
   { key: 'love', label: '연애' },
 ]
 
-const MOCK_DOS = [
-  '새로운 인연이나 모임에 참석하기',
-  '밀린 업무나 서류 작업 마무리하기',
-]
-const MOCK_DONTS = [
-  '가까운 사람과의 말다툼 피하기',
-  '충동적인 대규모 지출 금지',
-]
+const MOCK_DOS = ['새로운 인연이나 모임에 참석하기', '밀린 업무나 서류 작업 마무리하기']
+const MOCK_DONTS = ['가까운 사람과의 말다툼 피하기', '충동적인 대규모 지출 금지']
 
 // --- Helpers ---
 function avg(xs: number[]): number {
@@ -94,10 +93,7 @@ function pickFinalScore(d: ImportantDate): number {
   return d.displayScore ?? d.score
 }
 
-export default function DestinyMatrixPlanner({
-  data,
-  birthInfo,
-}: DestinyMatrixPlannerProps = {}) {
+export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixPlannerProps = {}) {
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
@@ -109,25 +105,35 @@ export default function DestinyMatrixPlanner({
 
   const monthLabel = useMemo(() => {
     const labels = [
-      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
     ]
     return `${labels[viewMonth]} ${viewYear}`
   }, [viewMonth, viewYear])
 
   const daysInMonth = useMemo(
     () => new Date(viewYear, viewMonth + 1, 0).getDate(),
-    [viewYear, viewMonth],
+    [viewYear, viewMonth]
   )
   const leadingBlanks = useMemo(
     () => new Date(viewYear, viewMonth, 1).getDay(),
-    [viewYear, viewMonth],
+    [viewYear, viewMonth]
   )
 
   // --- Engine-derived: natal day pillar (header badge) ----------------
   const natalSaju = useMemo(
     () => data?.allDates?.find((d) => d.natalSaju)?.natalSaju ?? null,
-    [data],
+    [data]
   )
   const natalDayPillar = useMemo(() => {
     if (!natalSaju) return null
@@ -165,7 +171,7 @@ export default function DestinyMatrixPlanner({
   const selectedDateStr = useMemo(
     () =>
       `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`,
-    [viewYear, viewMonth, currentDay],
+    [viewYear, viewMonth, currentDay]
   )
 
   const selectedImportantDate = useMemo(() => {
@@ -182,34 +188,100 @@ export default function DestinyMatrixPlanner({
   // 의 정직한 우선순위로 도출한다.
   const dailyIndices = useMemo(() => {
     if (!selectedImportantDate) {
-      return { score: 88, love: 65, wealth: 78, health: 60 }
+      return { score: 88, love: 65, wealth: 78, health: 60, career: 72 }
     }
     const d = selectedImportantDate
     const finalScore = Math.round(pickFinalScore(d))
     const cats = new Set(d.categories)
     const matrixDomain = d.evidence?.matrix?.domain
     const matrixScore = d.evidence?.matrix?.finalScoreAdjusted
-    const domainScore = (categoryKey: EventCategory, matrixKey: string): number => {
+    // 우선순위:
+    //  1) evidence.matrix.domain이 매칭되면 finalScoreAdjusted
+    //  2) categories에 도메인 키가 있으면 그 날 최종 점수
+    //  3) activityScores의 해당 키가 있으면 그 값 (date-detail이 채워줌)
+    //  4) 그 외엔 중립값 50 (없는 신호를 가짜로 만들지 않는다)
+    const domainScore = (
+      categoryKey: EventCategory,
+      matrixKey: string,
+      activityKey?: keyof NonNullable<ImportantDate['activityScores']>
+    ): number => {
       if (matrixDomain === matrixKey && typeof matrixScore === 'number') {
         return Math.max(0, Math.min(100, Math.round(matrixScore)))
       }
       if (cats.has(categoryKey)) return finalScore
+      if (activityKey) {
+        const a = d.activityScores?.[activityKey]
+        if (typeof a === 'number') return Math.max(0, Math.min(100, Math.round(a)))
+      }
       return 50
     }
     return {
       score: finalScore,
-      love: domainScore('love', 'love'),
-      wealth: domainScore('wealth', 'money'),
-      health: domainScore('health', 'health'),
+      love: domainScore('love', 'love', 'marriage'),
+      wealth: domainScore('wealth', 'money', 'investment'),
+      health: domainScore('health', 'health', 'surgery'),
+      career: domainScore('career', 'career', 'career'),
     }
   }, [selectedImportantDate])
 
   // --- Daily best/worst hours (engine-precise, 24-hour analysis) -------
   // 엔진은 selectedDate가 *오늘*일 때만 시간대 분석을 yearly 응답에 끼워
-  // 보낸다 (`todayHourlyTimeSlots`). 다른 날짜는 자체 hourlyTimeSlots
-  // 필드가 차 있을 때만 노출 — 그 외엔 placeholder로 정직하게 비운다.
+  // 보낸다 (`todayHourlyTimeSlots`). 다른 날짜는 클릭 시 lazy로
+  // `/api/calendar/date-detail`을 한 번 호출해서 그 응답의
+  // hourlyTimeSlots를 client-side에 캐시한다.
+  type HourlySlots = NonNullable<ImportantDate['hourlyTimeSlots']>
+  const [fetchedHourly, setFetchedHourly] = useState<Record<string, HourlySlots>>({})
+  const [hourlyLoading, setHourlyLoading] = useState(false)
+
+  const todayStr = useMemo(
+    () =>
+      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
+    [today]
+  )
+
+  useEffect(() => {
+    if (!birthInfo?.birthDate) return
+    if (selectedDateStr === todayStr) return
+    if (selectedImportantDate?.hourlyTimeSlots) return
+    if (fetchedHourly[selectedDateStr]) return
+
+    let cancelled = false
+    const params = new URLSearchParams({
+      birthDate: birthInfo.birthDate,
+      date: selectedDateStr,
+    })
+    if (birthInfo.birthTime) params.set('birthTime', birthInfo.birthTime)
+    const g = birthInfo.gender?.toLowerCase()
+    if (g === 'male' || g === 'female') params.set('gender', g)
+    if (birthInfo.timezone) params.set('timezone', birthInfo.timezone)
+
+    setHourlyLoading(true)
+    fetch(`/api/calendar/date-detail?${params}`, {
+      headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (cancelled) return
+        const slots = (json?.data?.hourlyTimeSlots ?? json?.hourlyTimeSlots) as
+          | HourlySlots
+          | undefined
+        if (slots && (slots.best?.length > 0 || slots.worst?.length > 0)) {
+          setFetchedHourly((prev) => ({ ...prev, [selectedDateStr]: slots }))
+        }
+      })
+      .catch(() => {
+        // silent — UI gracefully shows placeholder text
+      })
+      .finally(() => {
+        if (!cancelled) setHourlyLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [birthInfo, selectedDateStr, todayStr, selectedImportantDate, fetchedHourly])
+
   const dailyHourlySlots = useMemo(() => {
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
     const isToday = selectedDateStr === todayStr
     const perDay = selectedImportantDate?.hourlyTimeSlots
     if (perDay && (perDay.best.length > 0 || perDay.worst.length > 0)) {
@@ -218,8 +290,12 @@ export default function DestinyMatrixPlanner({
     if (isToday && data?.todayHourlyTimeSlots) {
       return data.todayHourlyTimeSlots
     }
+    const lazy = fetchedHourly[selectedDateStr]
+    if (lazy && (lazy.best.length > 0 || lazy.worst.length > 0)) {
+      return lazy
+    }
     return null
-  }, [today, selectedDateStr, selectedImportantDate, data])
+  }, [todayStr, selectedDateStr, selectedImportantDate, data, fetchedHourly])
 
   const formatHour = (h: number): string => {
     if (h === 0) return '자정 12시'
@@ -277,6 +353,19 @@ export default function DestinyMatrixPlanner({
     const found = data.allDates.find((d) => d.natalContext?.summary)
     return found?.natalContext ?? null
   }, [data])
+
+  // --- Surface cards (action / risk / window / agreement / branch) ----
+  // 엔진의 presentationAdapter가 매 응답마다 5장 만들어 준다 — 일별 뷰 핵심
+  // 의사결정 카드. 비어 있는 카드는 자동으로 걸러낸다.
+  const surfaceCards = useMemo(() => {
+    const cards = data?.surfaceCards
+    if (!cards || cards.length === 0) return null
+    return cards.filter((c) => c.summary && c.summary.trim().length > 0)
+  }, [data])
+
+  // --- Engine-derived weekly/monthly views ----------------------------
+  const weekView = data?.calendarWeekView ?? null
+  const monthView = data?.calendarMonthView ?? null
 
   // --- Stats: yongsin activation top 5 (next 60 days) ------------------
   const yongsinTop = useMemo(() => {
@@ -380,7 +469,7 @@ export default function DestinyMatrixPlanner({
       const dayEnd = Math.min(weekIdx * 7 - leadingBlanks + 7, daysInMonth)
       return { dayStart, dayEnd }
     },
-    [leadingBlanks, daysInMonth],
+    [leadingBlanks, daysInMonth]
   )
 
   const superTiming = useMemo(() => {
@@ -404,7 +493,8 @@ export default function DestinyMatrixPlanner({
     if (!data || !superTiming || monthDates.length === 0) {
       return {
         saju: '재물을 뜻하는 기운이 들어와 결실을 맺기 좋은 시기로 분석했습니다.',
-        astro: '금성(Venus)이 커리어를 상징하는 위치에 자리하여 성과가 두드러지는 시기로 분석했습니다.',
+        astro:
+          '금성(Venus)이 커리어를 상징하는 위치에 자리하여 성과가 두드러지는 시기로 분석했습니다.',
       }
     }
     const weekIdx = parseInt(superTiming.week, 10) - 1
@@ -415,13 +505,19 @@ export default function DestinyMatrixPlanner({
     })
     if (weekDates.length === 0) {
       return {
-        saju: data.matrixContract?.topClaim ?? '사주 흐름이 강하게 받쳐주는 구간으로 분석되었습니다.',
+        saju:
+          data.matrixContract?.topClaim ?? '사주 흐름이 강하게 받쳐주는 구간으로 분석되었습니다.',
         astro: '점성 트랜짓이 동시에 우호적으로 정렬되어 신호가 증폭됩니다.',
       }
     }
-    const topDay = weekDates.reduce((best, d) => (pickFinalScore(d) > pickFinalScore(best) ? d : best))
+    const topDay = weekDates.reduce((best, d) =>
+      pickFinalScore(d) > pickFinalScore(best) ? d : best
+    )
     const sajuFactor = topDay.sajuFactors?.[0] ?? topDay.title
-    const astroFactor = topDay.astroFactors?.[0] ?? topDay.evidence?.cross?.astroEvidence ?? '점성 트랜짓이 동시에 받쳐주는 구간입니다.'
+    const astroFactor =
+      topDay.astroFactors?.[0] ??
+      topDay.evidence?.cross?.astroEvidence ??
+      '점성 트랜짓이 동시에 받쳐주는 구간입니다.'
     return { saju: sajuFactor, astro: astroFactor }
   }, [data, superTiming, monthDates, weekRange])
 
@@ -581,14 +677,48 @@ export default function DestinyMatrixPlanner({
                     ) : (
                       <>
                         사주 명리의{' '}
-                        <span className="text-indigo-300 font-bold">목(木) 기운 발현</span>과 점성학의{' '}
-                        <span className="text-cyan-300 font-bold">수성(Mercury) 순행</span>이 강한
-                        동기화를 이루는 시기입니다. 두 엔진의 교차 검증 결과, 지적 활동과 커뮤니케이션
-                        영역에서 높은 성과 지표가 예측됩니다.
+                        <span className="text-indigo-300 font-bold">목(木) 기운 발현</span>과
+                        점성학의 <span className="text-cyan-300 font-bold">수성(Mercury) 순행</span>
+                        이 강한 동기화를 이루는 시기입니다. 두 엔진의 교차 검증 결과, 지적 활동과
+                        커뮤니케이션 영역에서 높은 성과 지표가 예측됩니다.
                       </>
                     )}
                   </p>
                 </div>
+                {monthView && (
+                  <div className="mt-4 pt-4 border-t border-white/5 space-y-2">
+                    <div className="bg-zinc-950/60 border border-indigo-500/15 rounded-lg px-3 py-2">
+                      <div className="text-[10px] font-bold text-indigo-400 mb-0.5 tracking-wider uppercase">
+                        운영 규칙
+                      </div>
+                      <div className="text-[11px] text-zinc-300 leading-relaxed">
+                        {monthView.operatingRule}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {monthView.strongestWindow && (
+                        <div className="bg-emerald-900/10 border border-emerald-500/15 rounded-lg px-2.5 py-1.5">
+                          <div className="text-[9px] font-bold text-emerald-400 tracking-wider">
+                            가장 강한 창
+                          </div>
+                          <div className="text-xs font-bold text-emerald-200">
+                            {formatDateKo(monthView.strongestWindow)}
+                          </div>
+                        </div>
+                      )}
+                      {monthView.cautionWindow && (
+                        <div className="bg-rose-900/10 border border-rose-500/15 rounded-lg px-2.5 py-1.5">
+                          <div className="text-[9px] font-bold text-rose-400 tracking-wider">
+                            주의 창
+                          </div>
+                          <div className="text-xs font-bold text-rose-200">
+                            {formatDateKo(monthView.cautionWindow)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -697,6 +827,22 @@ export default function DestinyMatrixPlanner({
                       />
                     </div>
                   </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
+                        <Briefcase className="w-3 h-3 text-indigo-400" /> 직업 지수
+                      </span>
+                      <span className="text-xs text-indigo-400">{dailyIndices.career}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
+                      <motion.div
+                        key={`career-${currentDay}-${dailyIndices.career}`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${dailyIndices.career}%` }}
+                        className="h-full bg-indigo-500 rounded-full"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -730,6 +876,163 @@ export default function DestinyMatrixPlanner({
                         두 시스템이 같은 방향을 가리키는 정도
                       </p>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Engine surface cards — action / risk / window / agreement / branch */}
+              {surfaceCards && surfaceCards.length > 0 && (
+                <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5 space-y-2.5">
+                  <h3 className="text-xs font-bold text-zinc-300 tracking-wider uppercase mb-1 flex items-center gap-2">
+                    <Layers className="w-3.5 h-3.5 text-indigo-400" /> 의사결정 카드
+                  </h3>
+                  {surfaceCards.map((card) => {
+                    const tone =
+                      card.key === 'action'
+                        ? {
+                            border: 'border-indigo-500/20',
+                            bg: 'bg-indigo-900/10',
+                            text: 'text-indigo-300',
+                            icon: <Zap className="w-3.5 h-3.5" />,
+                          }
+                        : card.key === 'risk'
+                          ? {
+                              border: 'border-rose-500/20',
+                              bg: 'bg-rose-900/10',
+                              text: 'text-rose-300',
+                              icon: <AlertTriangle className="w-3.5 h-3.5" />,
+                            }
+                          : card.key === 'window'
+                            ? {
+                                border: 'border-cyan-500/20',
+                                bg: 'bg-cyan-900/10',
+                                text: 'text-cyan-300',
+                                icon: <Clock className="w-3.5 h-3.5" />,
+                              }
+                            : card.key === 'agreement'
+                              ? {
+                                  border: 'border-emerald-500/20',
+                                  bg: 'bg-emerald-900/10',
+                                  text: 'text-emerald-300',
+                                  icon: <Compass className="w-3.5 h-3.5" />,
+                                }
+                              : {
+                                  border: 'border-amber-500/20',
+                                  bg: 'bg-amber-900/10',
+                                  text: 'text-amber-300',
+                                  icon: <GitBranch className="w-3.5 h-3.5" />,
+                                }
+                    const visual = card.visual
+                    return (
+                      <div
+                        key={card.key}
+                        className={`${tone.bg} border ${tone.border} px-3 py-2.5 rounded-xl`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div
+                            className={`text-[11px] font-bold ${tone.text} flex items-center gap-1.5 tracking-wider uppercase`}
+                          >
+                            {tone.icon} {card.label}
+                          </div>
+                          {card.tag && (
+                            <span className="text-[10px] font-medium text-zinc-400 bg-zinc-950/60 px-2 py-0.5 rounded-full border border-white/5">
+                              {card.tag}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[12px] text-zinc-200 leading-relaxed">{card.summary}</p>
+                        {visual?.kind === 'agreement' && (
+                          <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                            <div className="bg-zinc-950/60 px-1.5 py-1 rounded">
+                              <div className="text-[9px] text-zinc-500">합의</div>
+                              <div className="text-xs font-black text-emerald-300">
+                                {Math.round(visual.agreementPercent)}%
+                              </div>
+                            </div>
+                            <div className="bg-zinc-950/60 px-1.5 py-1 rounded">
+                              <div className="text-[9px] text-zinc-500">상충</div>
+                              <div className="text-xs font-black text-rose-300">
+                                {Math.round(visual.contradictionPercent)}%
+                              </div>
+                            </div>
+                            <div className="bg-zinc-950/60 px-1.5 py-1 rounded">
+                              <div className="text-[9px] text-zinc-500">선후</div>
+                              <div className="text-[10px] font-bold text-zinc-300 leading-tight pt-0.5">
+                                {visual.leadLagState === 'structure-ahead'
+                                  ? '구조선행'
+                                  : visual.leadLagState === 'trigger-ahead'
+                                    ? '트리거선행'
+                                    : '균형'}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {visual?.kind === 'branch' && visual.rows.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {visual.rows.slice(0, 3).map((row, i) => (
+                              <div key={i} className="text-[11px] text-zinc-300">
+                                <span className="font-bold text-amber-300">{row.label}</span>
+                                <span className="text-zinc-400"> · {row.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {!visual && card.details && card.details.length > 0 && (
+                          <ul className="mt-1.5 space-y-0.5">
+                            {card.details.slice(0, 3).map((line, i) => (
+                              <li key={i} className="text-[11px] text-zinc-400 leading-relaxed">
+                                · {line}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Engine weekly view — operating rule + bright/cautious window */}
+              {weekView && (
+                <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-bold text-zinc-300 tracking-wider uppercase flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5 text-cyan-400" /> 이번 주 운영
+                    </h3>
+                    <span className="text-[10px] text-zinc-500 font-medium">
+                      {weekView.rangeStart.slice(5)} ~ {weekView.rangeEnd.slice(5)}
+                    </span>
+                  </div>
+                  <p className="text-[12px] text-zinc-300 leading-relaxed mb-3">
+                    {weekView.oneLineSummary}
+                  </p>
+                  <div className="bg-zinc-950/60 border border-cyan-500/15 rounded-lg px-3 py-2 mb-2">
+                    <div className="text-[10px] font-bold text-cyan-400 mb-0.5">운영 규칙</div>
+                    <div className="text-[11px] text-zinc-300 leading-relaxed">
+                      {weekView.operatingRule}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {weekView.brightWindow && (
+                      <div className="bg-emerald-900/10 border border-emerald-500/15 rounded-lg px-2.5 py-1.5">
+                        <div className="text-[9px] font-bold text-emerald-400 tracking-wider">
+                          유리한 창
+                        </div>
+                        <div className="text-xs font-bold text-emerald-200">
+                          {formatDateKo(weekView.brightWindow)}
+                        </div>
+                      </div>
+                    )}
+                    {weekView.cautiousWindow && (
+                      <div className="bg-rose-900/10 border border-rose-500/15 rounded-lg px-2.5 py-1.5">
+                        <div className="text-[9px] font-bold text-rose-400 tracking-wider">
+                          보수적 창
+                        </div>
+                        <div className="text-xs font-bold text-rose-200">
+                          {formatDateKo(weekView.cautiousWindow)}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -831,11 +1134,13 @@ export default function DestinyMatrixPlanner({
                       </ul>
                     </div>
                   </div>
+                ) : hourlyLoading ? (
+                  <p className="text-[11px] text-zinc-500 leading-relaxed">
+                    이 날의 시간대별 정밀 분석을 엔진에서 가져오는 중…
+                  </p>
                 ) : (
                   <p className="text-[11px] text-zinc-500 leading-relaxed">
-                    이 날의 시간대별 정밀 분석은{' '}
-                    <span className="text-zinc-400 font-medium">달력에서 날짜를 탭</span>하면
-                    상세보기에 표시됩니다.
+                    시간대별 신호가 충분히 잡히지 않은 날짜입니다.
                   </p>
                 )}
               </div>
@@ -937,11 +1242,13 @@ export default function DestinyMatrixPlanner({
                   <div className="flex items-center gap-2 mb-2 relative z-10">
                     <Sparkles className="w-4 h-4 text-amber-400" />
                     <h3 className="text-sm font-bold text-amber-200">
-                      용신 {yongsinTop.yongsin} 활성 — 향후 60일 슈퍼 데이 top {yongsinTop.top.length}
+                      용신 {yongsinTop.yongsin} 활성 — 향후 60일 슈퍼 데이 top{' '}
+                      {yongsinTop.top.length}
                     </h3>
                   </div>
                   <p className="text-[11px] text-zinc-500 mb-4 relative z-10 leading-relaxed">
-                    본명 용신({yongsinTop.yongsin})이 가장 강하게 받쳐주는 날 — 큰 결정·계약·시작에 추천.
+                    본명 용신({yongsinTop.yongsin})이 가장 강하게 받쳐주는 날 — 큰 결정·계약·시작에
+                    추천.
                   </p>
                   <div className="space-y-2 relative z-10">
                     {yongsinTop.top.map((d, i) => (
@@ -1005,7 +1312,12 @@ export default function DestinyMatrixPlanner({
                           dataKey="subject"
                           tick={{ fill: '#d4d4d8', fontSize: 11, fontWeight: 600 }}
                         />
-                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                        <PolarRadiusAxis
+                          angle={30}
+                          domain={[0, 100]}
+                          tick={false}
+                          axisLine={false}
+                        />
                         <Radar
                           name="사주 예측"
                           dataKey="saju"
@@ -1073,7 +1385,9 @@ export default function DestinyMatrixPlanner({
                       </span>
                       <div className="text-sm font-black text-white mb-1.5 flex items-center gap-1">
                         <Heart className="w-3.5 h-3.5" />{' '}
-                        {data && domainExtremes ? domainExtremes.conflict.subject : '연애 & 대인관계'}
+                        {data && domainExtremes
+                          ? domainExtremes.conflict.subject
+                          : '연애 & 대인관계'}
                       </div>
                       <p className="text-[11px] text-zinc-400 leading-relaxed">
                         {data && domainExtremes ? (
@@ -1090,10 +1404,10 @@ export default function DestinyMatrixPlanner({
                           </>
                         ) : (
                           <>
-                            사주의{' '}
-                            <strong className="text-rose-300 font-medium">원진살</strong>과 금성(Venus)의{' '}
-                            <strong className="text-rose-300 font-medium">흉각</strong>이 겹치는 시기로,
-                            오해나 갈등이 발생하기 쉽습니다.
+                            사주의 <strong className="text-rose-300 font-medium">원진살</strong>과
+                            금성(Venus)의{' '}
+                            <strong className="text-rose-300 font-medium">흉각</strong>이 겹치는
+                            시기로, 오해나 갈등이 발생하기 쉽습니다.
                           </>
                         )}
                       </p>
@@ -1117,10 +1431,25 @@ export default function DestinyMatrixPlanner({
 
                 <div className="h-48 w-full -ml-4 mt-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <LineChart
+                      data={lineData}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                      <XAxis dataKey="week" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
+                      <XAxis
+                        dataKey="week"
+                        stroke="#52525b"
+                        fontSize={11}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="#52525b"
+                        fontSize={11}
+                        tickLine={false}
+                        axisLine={false}
+                        domain={[0, 100]}
+                      />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: '#18181b',
@@ -1183,7 +1512,8 @@ export default function DestinyMatrixPlanner({
                   <TrendingUp className="w-16 h-16 text-indigo-400" />
                 </div>
                 <h4 className="text-sm font-bold text-indigo-300 flex items-center gap-2 mb-3 relative z-10">
-                  <Sparkles className="w-4 h-4 text-amber-300" /> 엔진이 발견한 이번 달의 슈퍼 타이밍
+                  <Sparkles className="w-4 h-4 text-amber-300" /> 엔진이 발견한 이번 달의 슈퍼
+                  타이밍
                 </h4>
                 <p className="text-sm text-zinc-300 leading-relaxed relative z-10">
                   이번 달은{' '}
