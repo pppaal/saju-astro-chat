@@ -390,6 +390,56 @@ if (fi) {
       if (o[k]) console.log(`    ✓ ${k} 분석 포함`)
     }
   }
+  // ⭐ 새 3 — narrative / patterns / predictive
+  const fix = fi as unknown as {
+    narrative?: { main?: string; details?: string[]; keywords?: string[]; advice?: string }
+    patterns?: { matched?: Array<{ name: string; rarity?: string; description?: string }>; recommendations?: string[]; cautions?: string[] }
+    predictive?: { favorableAreas?: string[]; warningAreas?: string[]; keyEvents?: Array<{ description: string; date?: string }>; recommendations?: string[] }
+  }
+  if (fix.narrative) {
+    console.log(`\n  ━━━ 종합 자연어 (generateComprehensiveText) ━━━`)
+    if (fix.narrative.main) console.log(`  📖 ${fix.narrative.main}`)
+    if (fix.narrative.advice) console.log(`  💡 ${fix.narrative.advice}`)
+    if (fix.narrative.keywords?.length) console.log(`  🏷  키워드: ${fix.narrative.keywords.slice(0, 6).join(', ')}`)
+    if (fix.narrative.details?.length) {
+      console.log(`  📋 상세:`)
+      for (const d of fix.narrative.details.slice(0, 4)) console.log(`    · ${d}`)
+    }
+  }
+  if (fix.patterns) {
+    console.log(`\n  ━━━ 명리 패턴 (analyzePatterns) ━━━`)
+    if (fix.patterns.matched?.length) {
+      console.log(`  매칭 ${fix.patterns.matched.length}개:`)
+      for (const p of fix.patterns.matched.slice(0, 5)) {
+        console.log(`    · ${p.name}${p.rarity ? ` [${p.rarity}]` : ''}: ${p.description || ''}`)
+      }
+    } else {
+      console.log(`  매칭 패턴 없음`)
+    }
+    if (fix.patterns.recommendations?.length) {
+      console.log(`  권장: ${fix.patterns.recommendations.slice(0, 3).join(' / ')}`)
+    }
+    if (fix.patterns.cautions?.length) {
+      console.log(`  주의: ${fix.patterns.cautions.slice(0, 3).join(' / ')}`)
+    }
+  }
+  if (fix.predictive) {
+    console.log(`\n  ━━━ 예측 통찰 (현재 대운 10년) ━━━`)
+    if (fix.predictive.favorableAreas?.length) {
+      console.log(`  ✨ 길지: ${fix.predictive.favorableAreas.slice(0, 5).join(', ')}`)
+    }
+    if (fix.predictive.warningAreas?.length) {
+      console.log(`  ⚠ 주의: ${fix.predictive.warningAreas.slice(0, 5).join(', ')}`)
+    }
+    if (fix.predictive.keyEvents?.length) {
+      console.log(`  🎯 핵심 이벤트:`)
+      for (const e of fix.predictive.keyEvents.slice(0, 3)) console.log(`    · ${e.description}${e.date ? ` (${e.date})` : ''}`)
+    }
+    if (fix.predictive.recommendations?.length) {
+      console.log(`  📌 권장:`)
+      for (const r of fix.predictive.recommendations.slice(0, 3)) console.log(`    · ${r}`)
+    }
+  }
 }
 
 console.log('\n' + '='.repeat(72))

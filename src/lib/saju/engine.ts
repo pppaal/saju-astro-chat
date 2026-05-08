@@ -49,6 +49,9 @@ import { analyzeSibsinComprehensive } from './sibsin'
 import { analyzeHealthCareer } from './healthCareer'
 import { analyzeUnseComprehensive } from './unseAnalysis'
 import { generateComprehensiveReport } from './report'
+import { generateComprehensiveText } from './narrative'
+import { analyzePatterns } from './patterns'
+import { generatePredictiveInsight } from './eventCorrelation'
 import {
   analyzeTwelveStages,
   type TwelveStageAnalysis,
@@ -466,6 +469,12 @@ export interface MainSajuOutput {
     unseDeep: ReturnType<typeof analyzeUnseComprehensive> | null
     /** 종합 리포트 (자연어) */
     comprehensiveReport: ReturnType<typeof generateComprehensiveReport> | null
+    /** 종합 자연어 (일간 + 격국 + 용신 + 신강 + 운기 통합 단락) */
+    narrative: ReturnType<typeof generateComprehensiveText> | null
+    /** 명리 패턴 매칭 (특수 격국·길흉 패턴) */
+    patterns: ReturnType<typeof analyzePatterns> | null
+    /** 예측 통찰 (현재 대운 기준 — 길지·흉지 영역) */
+    predictive: ReturnType<typeof generatePredictiveInsight> | null
   }
   /** 점수 입력 transformer 결과 (근거 표시용) */
   scoreInputs: {
@@ -1190,12 +1199,61 @@ export function runMainSaju(input: MainSajuInput): MainSajuOutput {
       includeYongsin: { type: String(advanced.yongsin.primary || ''), description: advanced.yongsin.basis || '' },
     })
   } catch {}
+
+  // narrative.ts:generateComprehensiveText — pillars (PillarData 모양) 기대
+  let _narrative: ReturnType<typeof generateComprehensiveText> | null = null
+  try {
+    _narrative = generateComprehensiveText(
+      sajuResult.pillars as unknown as Parameters<typeof generateComprehensiveText>[0],
+      {
+        strengthLevel: String(advanced.strength.level || ''),
+        geokguk: String(advanced.geokguk.type || ''),
+        yongsin: advanced.yongsin.primary as Parameters<typeof generateComprehensiveText>[1]['yongsin'],
+        unseInfo: cur?.heavenlyStem
+          ? ({
+              stem: cur.heavenlyStem,
+              branch: cur.earthlyBranch || '',
+              dayMaster,
+              period: 'daeun',
+            } as unknown as Parameters<typeof generateComprehensiveText>[1]['unseInfo'])
+          : undefined,
+      },
+    )
+  } catch {}
+
+  // patterns.ts:analyzePatterns — pillars (PillarData) 기대
+  let _patterns: ReturnType<typeof analyzePatterns> | null = null
+  try {
+    _patterns = analyzePatterns(sajuResult.pillars as unknown as Parameters<typeof analyzePatterns>[0])
+  } catch {}
+
+  // eventCorrelation.ts:generatePredictiveInsight — 현재 대운 기간
+  let _predictive: ReturnType<typeof generatePredictiveInsight> | null = null
+  try {
+    if (cur && dw?.startAge !== undefined) {
+      const curIdx = (dw.list as Array<{ age: number }> | undefined)?.findIndex((c) => c.age === (cur as unknown as { age: number }).age) ?? -1
+      const periodStart = new Date()
+      const periodEnd = new Date()
+      periodEnd.setFullYear(periodEnd.getFullYear() + 10)
+      _predictive = generatePredictiveInsight(
+        sajuResult as unknown as Parameters<typeof generatePredictiveInsight>[0],
+        periodStart,
+        periodEnd,
+      )
+      // suppress unused
+      void curIdx
+    }
+  } catch {}
+
   const fullInsights: NonNullable<MainSajuOutput['fullInsights']> = {
     orthodox: _orthodox,
     sibsin: _sibsin,
     healthCareer: _healthCareer,
     unseDeep: _unseDeep,
     comprehensiveReport: _comprehensiveReport,
+    narrative: _narrative,
+    patterns: _patterns,
+    predictive: _predictive,
   }
 
   return {
