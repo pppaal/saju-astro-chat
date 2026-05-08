@@ -697,6 +697,41 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       sajuModifier += 1
       sajuPoints.push(`창업력 ${fi.healthCareer.career.entrepreneurialScore}`)
     }
+    // ⭐ 재고 (戌/丑/未/辰 — 4고지 = 재물 창고)
+    const branches = [
+      saju.pillars.year.branch, saju.pillars.month.branch,
+      saju.pillars.day.branch, saju.pillars.time.branch,
+    ]
+    const jaego = branches.filter((b) => ['戌', '丑', '未', '辰'].includes(b))
+    if (jaego.length >= 2) {
+      sajuModifier += 0.5
+      sajuPoints.push(`재고 ${jaego.join(',')} (재물 창고)`)
+    }
+    // ⭐ 천을귀인 신살 (cycle)
+    if (cycleEntry) {
+      const lucky = cycleEntry.shinsalActivation.hits.filter((h) => h.tone === 'lucky') || []
+      const wealthLucky = lucky.filter((h) => ['천을귀인', '월덕귀인', '천덕귀인', '암록', '금여성'].includes(h.kind))
+      if (wealthLucky.length > 0) {
+        sajuModifier += 0.5
+        sajuPoints.push(`재물 길성: ${wealthLucky.map((h) => h.kind).join(',')}`)
+      }
+      // 12운성 — 일간 장생/제왕 (재물 활성)
+      const stage = cycleEntry.twelveStages.dayMasterStage
+      if (stage === '장생' || stage === '왕지' || stage === '관대') {
+        sajuPoints.push(`12운성 ${stage} (재물 추진)`)
+      }
+      // 4기둥 day branch (재고 운용)
+      const dayInter = cycleEntry.pillarInteractions.pillars.find((p) => p.pillar === 'day')
+      if (dayInter && dayInter.tone === 'positive') {
+        sajuModifier += 0.5
+        sajuPoints.push(`day ${dayInter.branchRelation || dayInter.stemRelation} (재물 흐름)`)
+      }
+      // 격국 변질 → 재격
+      if (cycleEntry.geokgukShift.transformedTo?.geokguk?.includes('재')) {
+        sajuModifier += 0.5
+        sajuPoints.push(`격국 변질 → ${cycleEntry.geokgukShift.transformedTo.geokguk} (${horizon})`)
+      }
+    }
   }
   if (theme === 'love') {
     // 일지 충/합 + 배우자성 (horizon별 cycleEntry)
@@ -719,6 +754,34 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       sajuModifier -= 0.5
       sajuPoints.push(`${spouseSibsin} 결핍 (인연 시기 차이)`)
     }
+    // ⭐ 도화 신살 (cycle 마다)
+    if (cycleEntry) {
+      const dohwa = cycleEntry.shinsalActivation.hits.find((h) => h.kind === '도화')
+      if (dohwa) {
+        sajuModifier += 0.5
+        sajuPoints.push(`도화 (${horizon}) — 매력·연애 활성`)
+      }
+      // 천을귀인 (인연 길성)
+      const cheoneul = cycleEntry.shinsalActivation.hits.find((h) => h.kind === '천을귀인')
+      if (cheoneul) {
+        sajuModifier += 0.3
+        sajuPoints.push(`천을귀인 (${horizon}) — 인연 길성`)
+      }
+      // 4기둥 time pillar (자녀 영역도 love 에 영향)
+      const timeInter = cycleEntry.pillarInteractions.pillars.find((p) => p.pillar === 'time')
+      if (timeInter && timeInter.tone === 'positive') {
+        sajuPoints.push(`time ${timeInter.branchRelation || timeInter.stemRelation} (관계·자녀 화합)`)
+      }
+      // 12운성 일간 단계 (관계 활성도)
+      const stage = cycleEntry.twelveStages.dayMasterStage
+      if (stage === '장생' || stage === '관대' || stage === '왕지') {
+        sajuPoints.push(`12운성 ${stage} (관계 활성기)`)
+      } else if (stage === '병' || stage === '사' || stage === '절') {
+        sajuPoints.push(`12운성 ${stage} (관계 침체기)`)
+      }
+    }
+    // ⭐ 일주 (60갑자) 자체 — 배우자상
+    sajuPoints.push(`일주 ${saju.pillars.day.ganzhi} 본성`)
   }
   if (theme === 'health') {
     // 오행 균형 + 형/충
@@ -766,6 +829,37 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       sajuModifier += 0.5
       sajuPoints.push('식신 (창의 표현)')
     }
+    // ⭐ 학습 신살 (cycle 별)
+    if (cycleEntry) {
+      const learnLucky = cycleEntry.shinsalActivation.hits.filter((h) =>
+        ['문창', '학당귀인', '천을귀인', '문곡', '천주귀인'].includes(h.kind),
+      )
+      for (const l of learnLucky) {
+        if (!sajuPoints.some((p) => p.includes(l.kind))) {
+          sajuModifier += 0.3
+          sajuPoints.push(`${l.kind} (${horizon} 학습 길성)`)
+        }
+      }
+      // 12운성 임관/관대 (학습 자리)
+      const stage = cycleEntry.twelveStages.dayMasterStage
+      if (stage === '관대' || stage === '임관' || stage === '왕지') {
+        sajuPoints.push(`12운성 ${stage} (${horizon} 학습 활성)`)
+      }
+      // 4기둥 month (청소년기·학습)
+      const monthInter = cycleEntry.pillarInteractions.pillars.find((p) => p.pillar === 'month')
+      if (monthInter && monthInter.tone === 'positive') {
+        sajuPoints.push(`month ${monthInter.branchRelation || monthInter.stemRelation} (학습·진로)`)
+      }
+      // 천간합 化 (변화·진로 전환)
+      const hwa = cycleEntry.hwaTransform.primaryEvent
+      if (hwa && hwa.quality === 'true') {
+        sajuPoints.push(`천간합 化 ${hwa.hwaElement} (${horizon} 진로 전환)`)
+      }
+    }
+    // ⭐ 식상격 (표현·연구 직업) — 본명
+    if (saju.advanced.geokguk.type.includes('식') || saju.advanced.geokguk.type.includes('상관')) {
+      sajuPoints.push(`본명 ${saju.advanced.geokguk.type} (창의·표현)`)
+    }
   }
   if (theme === 'family') {
     // 년월주 + 비견 + 천을귀인 (horizon별 cycleEntry)
@@ -783,6 +877,43 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     if (fi?.sibsin?.dominantSibsin?.includes('비견') || fi?.sibsin?.dominantSibsin?.includes('겁재')) {
       sajuModifier += 0.5
       sajuPoints.push('비겁 (형제·동료 인연)')
+    }
+    // ⭐ 가족 길성 신살 (cycle 별)
+    if (cycleEntry) {
+      const familyLucky = cycleEntry.shinsalActivation.hits.filter((h) =>
+        ['천을귀인', '천덕귀인', '월덕귀인'].includes(h.kind),
+      )
+      for (const l of familyLucky) {
+        if (!sajuPoints.some((p) => p.includes(l.kind))) {
+          sajuPoints.push(`${l.kind} (${horizon} 가족 길성)`)
+        }
+      }
+      // 4기둥 month (부모·형제)
+      const monthInter = cycleEntry.pillarInteractions.pillars.find((p) => p.pillar === 'month')
+      if (monthInter && monthInter.tone === 'positive') {
+        sajuPoints.push(`month ${monthInter.branchRelation} (부모·형제 화합)`)
+      } else if (monthInter && monthInter.tone === 'negative') {
+        sajuPoints.push(`month ${monthInter.branchRelation} (부모·형제 마찰)`)
+      }
+      // 12운성 본명 4기둥 단계 (가족 자리 분석)
+      const natalStages = cycleEntry.twelveStages.natalPillarStages || []
+      const yearStage = natalStages.find((s) => s.pillar === 'year')?.stage
+      const monthStage = natalStages.find((s) => s.pillar === 'month')?.stage
+      if (yearStage && (yearStage === '병' || yearStage === '사' || yearStage === '절')) {
+        sajuPoints.push(`12운성 year ${yearStage} (조상·부모 침체)`)
+      }
+      if (monthStage && (monthStage === '왕지' || monthStage === '관대' || monthStage === '임관')) {
+        sajuPoints.push(`12운성 month ${monthStage} (부모·형제 활성)`)
+      }
+    }
+    // ⭐ 격국 변동 → 가족 영향
+    if (cycleEntry?.geokgukShift.shift === 'break' && cycleEntry.geokgukShift.intensity >= 2) {
+      sajuModifier -= 0.5
+      sajuPoints.push(`격국 파격 (${horizon}) — 가족 변화`)
+    }
+    // ⭐ 본명 격국이 비견/겁재면 동료 강
+    if (saju.advanced.geokguk.type.includes('비견') || saju.advanced.geokguk.type.includes('겁재')) {
+      sajuPoints.push(`본명 ${saju.advanced.geokguk.type} (형제·동료 격국)`)
     }
   }
 
