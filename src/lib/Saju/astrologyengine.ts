@@ -3,6 +3,7 @@
 
 import { FiveElement, YinYang, StemBranchInfo } from './types';
 import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants';
+import { determineGeokguk } from './geokguk';
 
 /* ========== 타입 정의 ========== */
 
@@ -286,6 +287,26 @@ export function analyzeGeokguk(
   },
   strength: DaymasterStrengthAnalysis
 ): GeokgukAnalysis {
+  // Delegate to canonical `determineGeokguk` (17-type 자평진전 정통).
+  // Previous parallel impl was ~120 lines and missed several edge cases.
+  try {
+    const sajuPillarsInput = {
+      year: { stem: pillars.yearPillar.heavenlyStem.name, branch: pillars.yearPillar.earthlyBranch.name },
+      month: { stem: pillars.monthPillar.heavenlyStem.name, branch: pillars.monthPillar.earthlyBranch.name },
+      day: { stem: pillars.dayPillar.heavenlyStem.name, branch: pillars.dayPillar.earthlyBranch.name },
+      time: { stem: pillars.timePillar.heavenlyStem.name, branch: pillars.timePillar.earthlyBranch.name },
+    }
+    const canonical = determineGeokguk(sajuPillarsInput as Parameters<typeof determineGeokguk>[0])
+    if (canonical?.primary && canonical.primary !== '미정') {
+      return {
+        type: canonical.primary as GeokgukType,
+        basis: canonical.description || `정통 격국 판단: ${canonical.primary}`,
+      }
+    }
+  } catch {
+    // fall through to legacy logic
+  }
+
   const monthBranchName = pillars.monthPillar.earthlyBranch.name;
   const dayElement = dayMaster.element;
 

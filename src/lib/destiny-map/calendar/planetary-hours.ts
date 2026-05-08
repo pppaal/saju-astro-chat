@@ -111,10 +111,14 @@ const PLANETARY_HOUR_USES: Record<PlanetaryHourPlanet, string[]> = {
  * 2. 밤 시간: 일몰부터 다음날 일출까지 12등분
  * 3. 각 시간은 요일의 지배 행성부터 시작하여 칼데아 순서로 순환
  *
- * 간단화를 위해 6:00-18:00을 낮으로 가정
+ * 간단화를 위해 6:00-18:00을 낮으로 가정 (location별 sunrise/sunset 미반영).
+ *
+ * @deprecated 정확한 variable-arc Chaldean은
+ * `astrology/foundation/electional.ts:calculatePlanetaryHour` 사용. 이 함수는
+ * 캘린더 365일 batch score 같은 lightweight 용도 approximation 유지.
  *
  * @param date - 계산할 날짜 및 시간
- * @returns 행성 시간 정보
+ * @returns 행성 시간 정보 (approximation)
  */
 export function getPlanetaryHourForDate(date: Date): PlanetaryHourInfo {
   const dayOfWeek = date.getDay();

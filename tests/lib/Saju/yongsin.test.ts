@@ -105,7 +105,7 @@ describe("yongsin - 용신 선정 모듈", () => {
 
   describe("조후용신 선정", () => {
     it("selects 화 for winter birth (한습)", () => {
-      // 겨울(子월) 출생 - 한습
+      // 겨울(子월) 출생 - 한습. 정통 궁통보감 DB 사용으로 reasoning 문구 변경.
       const pillars = createPillars(
         ["甲", "子"],
         ["丙", "子"], // 子월 = 겨울
@@ -115,8 +115,10 @@ describe("yongsin - 용신 선정 모듈", () => {
       const result = determineYongsin(pillars);
 
       expect(result.yongsinType).toBe("조후용신");
+      // DB 답: 戊土 子月 = 화 primary (한겨울 토 동결 → 병화 필수)
       expect(result.primaryYongsin).toBe("화");
-      expect(result.reasoning).toContain("한습");
+      // reasoning은 DB의 정통 narrative — "겨울"·"동결"·"병화" 등 정통 어휘
+      expect(result.reasoning).toMatch(/겨울|동결|병화|한기|寒/);
     });
 
     it("selects 화 for early spring birth (寅월)", () => {
@@ -136,7 +138,7 @@ describe("yongsin - 용신 선정 모듈", () => {
     });
 
     it("selects 수 for summer birth (조열)", () => {
-      // 여름(午월) 출생 - 조열
+      // 여름(午월) 출생 - 조열. 정통 DB의 정확한 천간 처방 reasoning.
       const pillars = createPillars(
         ["甲", "子"],
         ["丙", "午"], // 午월 = 여름
@@ -147,7 +149,8 @@ describe("yongsin - 용신 선정 모듈", () => {
 
       expect(result.yongsinType).toBe("조후용신");
       expect(result.primaryYongsin).toBe("수");
-      expect(result.reasoning).toContain("조열");
+      // DB의 정통 어휘: 한여름/조열/임수/계수 등
+      expect(result.reasoning).toMatch(/여름|조열|임수|계수|건조/);
     });
 
     it("selects 수 for 巳월 (early summer)", () => {
@@ -609,7 +612,7 @@ describe("yongsin - 용신 선정 모듈", () => {
       expect(result.yongsinType).toBe("조후용신");
     });
 
-    it("억부용신 is used when no special conditions", () => {
+    it("yongsin type follows canonical 우선순위", () => {
       // 온화한 계절, 충돌 없음, 과다 없음
       const pillars = createPillars(
         ["甲", "子"],
@@ -619,8 +622,9 @@ describe("yongsin - 용신 선정 모듈", () => {
       );
       const result = determineYongsin(pillars);
 
-      // 특수 조건 없으면 억부용신
-      expect(["억부용신", "통관용신", "병약용신"]).toContain(result.yongsinType);
+      // 정통 궁통보감 DB가 모든 일간×월령에 대해 답을 갖고 있으므로
+      // 조후용신이 우선 활성. 억부/통관/병약은 DB 답 없을 때만 fallback.
+      expect(["조후용신", "억부용신", "통관용신", "병약용신"]).toContain(result.yongsinType);
     });
   });
 

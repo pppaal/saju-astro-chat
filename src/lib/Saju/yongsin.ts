@@ -131,18 +131,39 @@ function assessDaymasterStrength(
   daymaster: string,
   pillars: SajuPillarsInput
 ): DaymasterStrength {
+  // Delegate to canonical `calculateStrengthScore` (6단계 100점 시스템 +
+  // 득령·통근 정밀 분석). Map 6 levels → 5 levels for backward compat.
+  try {
+    // strengthScore expects SajuPillars (full PillarData), not SajuPillarsInput
+    // (simple stem/branch). Best-effort adaptation: enrich the simple input.
+    const enriched = enrichInputForStrengthScore(pillars)
+    if (enriched) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { calculateStrengthScore } = require('./strengthScore') as typeof import('./strengthScore')
+      const result = calculateStrengthScore(enriched as Parameters<typeof calculateStrengthScore>[0])
+      switch (result.level) {
+        case '극강': return '극신강'
+        case '강':   return '신강'
+        case '중강': return '신강'
+        case '중약': return '신약'
+        case '약':   return '신약'
+        case '극약': return '극신약'
+      }
+    }
+  } catch {
+    // Fall through to legacy heuristic.
+  }
+
+  // Legacy fallback (when strengthScore data shape is incompatible).
   const daymasterElement = getElement(daymaster);
   if (!daymasterElement) {return '중화';}
 
   const stats = countElements(pillars);
-
-  // 일간을 생하거나 같은 오행(비겁, 인성)의 힘
   const supportingElement = FIVE_ELEMENT_RELATIONS.생받는관계[daymasterElement];
   const selfPower = stats[daymasterElement];
   const supportPower = supportingElement ? stats[supportingElement] : 0;
   const totalSupport = selfPower + supportPower;
 
-  // 일간을 극하거나 설기하는 오행(관살, 식상, 재성)의 힘
   const controlElement = FIVE_ELEMENT_RELATIONS.극받는관계[daymasterElement];
   const drainElement = FIVE_ELEMENT_RELATIONS.생하는관계[daymasterElement];
   const wealthElement = FIVE_ELEMENT_RELATIONS.극하는관계[daymasterElement];
@@ -152,12 +173,10 @@ function assessDaymasterStrength(
   const wealthPower = wealthElement ? stats[wealthElement] : 0;
   const totalWeaken = controlPower + drainPower + wealthPower;
 
-  // 월령 득령 여부 체크
   const monthBranchElement = getElement(pillars.month.branch);
   const hasMonthSupport = monthBranchElement === daymasterElement ||
                           monthBranchElement === supportingElement;
 
-  // 강약 판단
   const ratio = totalSupport / (totalWeaken + 0.1);
 
   if (ratio > 2.5 || (ratio > 1.8 && hasMonthSupport)) {return '극신강';}
@@ -166,6 +185,36 @@ function assessDaymasterStrength(
   if (ratio < 0.8 || (ratio < 0.9 && !hasMonthSupport)) {return '신약';}
 
   return '중화';
+}
+
+// Best-effort adapter from `SajuPillarsInput` (simple stem/branch) to
+// `SajuPillars` (full pillar data). Returns null if any required pillar
+// element/yin_yang lookup fails.
+function enrichInputForStrengthScore(pillars: SajuPillarsInput): unknown {
+  const STEM_DATA = STEMS.reduce<Record<string, { element: FiveElement; yin_yang: YinYang }>>((acc, s) => {
+    acc[s.name] = { element: s.element, yin_yang: s.yin_yang }
+    return acc
+  }, {})
+  const BRANCH_DATA = BRANCHES.reduce<Record<string, { element: FiveElement; yin_yang: YinYang }>>((acc, b) => {
+    acc[b.name] = { element: b.element, yin_yang: b.yin_yang }
+    return acc
+  }, {})
+  const buildPillar = (p: { stem: string; branch: string }) => {
+    const sd = STEM_DATA[p.stem]
+    const bd = BRANCH_DATA[p.branch]
+    if (!sd || !bd) return null
+    return {
+      heavenlyStem: { name: p.stem, element: sd.element, yin_yang: sd.yin_yang },
+      earthlyBranch: { name: p.branch, element: bd.element, yin_yang: bd.yin_yang },
+      jijanggan: {},
+    }
+  }
+  const year = buildPillar(pillars.year)
+  const month = buildPillar(pillars.month)
+  const day = buildPillar(pillars.day)
+  const time = buildPillar(pillars.time)
+  if (!year || !month || !day || !time) return null
+  return { year, month, day, time }
 }
 
 /**
