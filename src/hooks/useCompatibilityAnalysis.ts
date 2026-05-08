@@ -203,6 +203,8 @@ interface CompatibilityResult {
     mercury?: { sign?: string; element?: string }
     ascendant?: { sign?: string; element?: string }
   } | null>
+  /** ⭐ 각 사람별 통합엔진 결과 — saju.fullInsights / astro.advanced / cross / matrix */
+  person_unified?: Array<unknown | null>
   error?: string | { message?: string }
 }
 
@@ -276,6 +278,8 @@ export function useCompatibilityAnalysis() {
       ascendant?: { sign?: string; element?: string }
     } | null>
   >([])
+  // ⭐ 각 사람별 통합엔진 결과 (UI 표시용)
+  const [personUnified, setPersonUnified] = useState<Array<unknown | null>>([])
 
   const validate = useCallback(
     (persons: PersonForm[], count: number, t: (key: string, fallback: string) => string) => {
@@ -402,6 +406,7 @@ export function useCompatibilityAnalysis() {
         setDeepInsights(data.deep_insights ?? null)
         setPersonElements(Array.isArray(data.person_elements) ? data.person_elements : [])
         setPersonCharts(Array.isArray(data.person_charts) ? data.person_charts : [])
+        setPersonUnified(Array.isArray(data.person_unified) ? data.person_unified : [])
         setIdealTypeProfiles(data.ideal_type_profiles ?? null)
         setMultiFacetReport(data.multi_facet_report ?? null)
         setTier(data.tier ?? 'free')
@@ -432,6 +437,7 @@ export function useCompatibilityAnalysis() {
     setDeepInsights(null)
     setPersonElements([])
     setPersonCharts([])
+    setPersonUnified([])
     setIdealTypeProfiles(null)
     setMultiFacetReport(null)
     setTier('free')
@@ -456,6 +462,7 @@ export function useCompatibilityAnalysis() {
     deepInsights,
     personElements,
     personCharts,
+    personUnified,
     idealTypeProfiles,
     multiFacetReport,
     tier,

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DestinyMatrixPlanner from '@/components/calendar/DestinyMatrixPlanner'
 import { loadSharedBirthInfo } from '@/components/calendar/sharedBirthInfo'
+import UnifiedInsightsPanel from '@/components/unified/UnifiedInsightsPanel'
+import type { UnifiedOutput } from '@/lib/engine/types'
 import type { BirthInfo, CalendarData } from '@/components/calendar/types'
 import { getUserProfile } from '@/lib/userProfile'
 import { localizeStoredCity } from '@/lib/cities/formatter'
@@ -235,6 +237,15 @@ export default function DestinyMatrixPlannerClient() {
         />
       )}
       <DestinyMatrixPlanner data={data} birthInfo={birthInfo} />
+      {/* ⭐ 통합엔진 풍부 표시 — saju 13 advice + astro 5 advance + cross 5축 + matrix 점수 */}
+      {data?.unifiedEngine && (
+        <UnifiedInsightsPanel
+          unified={data.unifiedEngine as UnifiedOutput}
+          variant="full"
+          label="🌌 정통 종합 분석"
+          className="mt-4 mx-auto max-w-md"
+        />
+      )}
     </>
   )
 }

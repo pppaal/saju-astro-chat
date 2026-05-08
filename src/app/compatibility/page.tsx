@@ -1,6 +1,8 @@
 'use client'
 
 import UnifiedSummaryCard from '@/components/unified/UnifiedSummaryCard'
+import UnifiedInsightsPanel from '@/components/unified/UnifiedInsightsPanel'
+import type { UnifiedOutput } from '@/lib/engine/types'
 
 import { useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
@@ -132,6 +134,7 @@ export default function CompatPage() {
     deepInsights,
     personElements,
     personCharts,
+    personUnified,
     idealTypeProfiles,
     multiFacetReport,
     tier,
@@ -224,6 +227,19 @@ export default function CompatPage() {
               gender={persons[1].gender === 'F' ? 'female' : 'male'}
               variant="compact"
             />
+          </div>
+        )}
+        {/* ⭐ 각 사람별 통합엔진 풍부 패널 — saju 13 advice + astro 5 advance + cross + matrix */}
+        {resultText && personUnified && personUnified.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            {personUnified.slice(0, 2).map((u, i) => (
+              <UnifiedInsightsPanel
+                key={i}
+                unified={u as UnifiedOutput}
+                variant="full"
+                label={`${persons[i]?.name || (i === 0 ? '본인' : '상대')} — 정통 종합`}
+              />
+            ))}
           </div>
         )}
         {/* Decorative floating hearts + tabs marketing intro were removed —

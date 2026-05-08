@@ -328,6 +328,14 @@ export interface CalendarData {
     summary: string
   }
   matrixEvidencePackets?: MatrixEvidencePacketMap
+  /** ⭐ 통합엔진 결과 — saju.fullInsights / astro.advanced / cross / matrix */
+  unifiedEngine?: {
+    saju?: unknown
+    astro?: unknown
+    cross?: unknown
+    matrix?: unknown
+    unified?: unknown
+  }
   error?: string
 }
 
