@@ -86,7 +86,10 @@ export async function getOracleReading(input: OracleInput): Promise<OracleReadin
   const windowDays = input.windowDays ?? 14;
   const topN = input.topN ?? 5;
 
-  const seed = buildOracleSeed({ connectionId: input.connectionId, activity, asOf });
+  // Tarot seed intentionally omits `activity` so cards stay stable when
+  // the user toggles between meeting / proposal / etc. — only the date
+  // list should change.
+  const seed = buildOracleSeed({ connectionId: input.connectionId, asOf });
   const tarot = drawRelationshipSpread(seed);
 
   let dates: AuspiciousDate[] = [];

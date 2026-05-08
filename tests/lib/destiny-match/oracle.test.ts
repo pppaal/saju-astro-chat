@@ -118,28 +118,29 @@ describe('buildOracleSeed', () => {
   it('buckets by UTC day so two requests on the same day match', () => {
     const morning = new Date('2026-05-07T01:00:00Z');
     const evening = new Date('2026-05-07T23:30:00Z');
-    expect(
-      buildOracleSeed({ connectionId: 'c1', activity: 'meeting', asOf: morning }),
-    ).toBe(
-      buildOracleSeed({ connectionId: 'c1', activity: 'meeting', asOf: evening }),
+    expect(buildOracleSeed({ connectionId: 'c1', asOf: morning })).toBe(
+      buildOracleSeed({ connectionId: 'c1', asOf: evening }),
     );
   });
 
   it('changes seed across UTC day boundary', () => {
     const today = new Date('2026-05-07T20:00:00Z');
     const tomorrow = new Date('2026-05-08T03:00:00Z');
-    expect(
-      buildOracleSeed({ connectionId: 'c1', activity: 'meeting', asOf: today }),
-    ).not.toBe(
-      buildOracleSeed({ connectionId: 'c1', activity: 'meeting', asOf: tomorrow }),
+    expect(buildOracleSeed({ connectionId: 'c1', asOf: today })).not.toBe(
+      buildOracleSeed({ connectionId: 'c1', asOf: tomorrow }),
     );
   });
 
-  it('changes seed when activity differs', () => {
+  it('does NOT change when activity differs (cards stay stable across activity toggles)', () => {
     const at = new Date('2026-05-07T12:00:00Z');
-    expect(buildOracleSeed({ connectionId: 'c1', activity: 'meeting', asOf: at })).not.toBe(
-      buildOracleSeed({ connectionId: 'c1', activity: 'proposal', asOf: at }),
+    // Tarot draw must be deterministic across activity changes — see tarotDraw.ts.
+    const a = drawRelationshipSpread(
+      buildOracleSeed({ connectionId: 'c1', asOf: at }),
     );
+    const b = drawRelationshipSpread(
+      buildOracleSeed({ connectionId: 'c1', asOf: at }),
+    );
+    expect(a.cards.map((c) => c.id)).toEqual(b.cards.map((c) => c.id));
   });
 });
 

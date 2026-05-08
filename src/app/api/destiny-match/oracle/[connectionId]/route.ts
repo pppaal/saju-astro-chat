@@ -17,11 +17,14 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import {
   getOracleReading,
   isRelationshipActivity,
   DEFAULT_ORACLE_ACTIVITY,
+  type OracleReading,
 } from '@/lib/destiny-match/oracle'
+import { buildOracleCacheKey } from '@/lib/destiny-match/oracle/tarotDraw'
 
 type RouteContext = {
   params: Promise<{ connectionId: string }>
@@ -101,10 +104,22 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
         )
       }
 
+      // Cache by UTC day so toggling between meeting/proposal/etc. only
+      // recomputes once per (connectionId, activity, day). Each entry is
+      // ~10 KB and lives for TAROT_READING TTL (1 day) — same bucket the
+      // tarot seed uses, so we never serve a stale day's reading.
+      const asOf = new Date()
+      const cacheKey = buildOracleCacheKey({ connectionId, activity, asOf })
       try {
+        const cached = await cacheGet<OracleReading>(cacheKey)
+        if (cached) {
+          return apiSuccess(cached)
+        }
+
         const reading = await getOracleReading({
           connectionId,
           activity,
+          asOf,
           person1: {
             birthDate: profile1.birthDate,
             birthTime: profile1.birthTime ?? undefined,
@@ -118,6 +133,7 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
             timezone: profile2.tzId ?? undefined,
           },
         })
+        await cacheSet(cacheKey, reading, CACHE_TTL.TAROT_READING)
         return apiSuccess(reading)
       } catch (err) {
         logger.error('[oracle GET] reading failed:', { err })
