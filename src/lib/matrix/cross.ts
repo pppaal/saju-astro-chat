@@ -814,6 +814,29 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       astroModifier += 0.5
       astroPoints.push('Pallas 10H (전략 직업)')
     }
+    // ⭐ 10H 행성 (공식 직업)
+    const planetsIn10H = astro.natal.planets.filter((p) => p.house === 10)
+    if (planetsIn10H.length > 0) {
+      astroPoints.push(`10H 행성: ${planetsIn10H.map((p) => p.name).join(', ')} (공식 직업)`)
+      astroModifier += planetsIn10H.length * 0.3
+    }
+    // ⭐ 6H 행성 (실무·일상 직업)
+    const planetsIn6HCar = astro.natal.planets.filter((p) => p.house === 6)
+    if (planetsIn6HCar.length > 0) {
+      astroPoints.push(`6H 행성: ${planetsIn6HCar.map((p) => p.name).join(', ')} (실무)`)
+    }
+    // ⭐ Sun house (목적·정체성)
+    const sunInChart = astro.natal.planets.find((p) => p.name === 'Sun')
+    if (sunInChart) astroPoints.push(`Sun ${sunInChart.sign} (${sunInChart.house}H — 목적)`)
+    // ⭐ Sun/MC midpoint (커리어 정체성)
+    const sunMC = aAdv?.midpointActivations?.find(
+      (m) => (m.midpoint.planet1 === 'Sun' && m.midpoint.planet2 === 'MC') ||
+             (m.midpoint.planet1 === 'MC' && m.midpoint.planet2 === 'Sun'),
+    )
+    if (sunMC) {
+      astroModifier += 0.5
+      astroPoints.push(`Sun/MC midpoint (커리어 정체성)`)
+    }
   }
   if (theme === 'wealth') {
     const jupiterTransit = astro.current.majorTransits.find((t) => t.transitPlanet === 'Jupiter')
@@ -828,6 +851,55 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     if (venusInChart && (venusInChart.house === 2 || venusInChart.house === 8)) {
       astroModifier += 1
       astroPoints.push(`Venus ${venusInChart.house}H (재물궁)`)
+    }
+    // ⭐ 2H/8H 행성 (재물궁 — 사주만큼 풍부하게)
+    const planetsIn2H = astro.natal.planets.filter((p) => p.house === 2)
+    const planetsIn8H = astro.natal.planets.filter((p) => p.house === 8)
+    if (planetsIn2H.length > 0) {
+      astroPoints.push(`2H 행성: ${planetsIn2H.map((p) => p.name).join(', ')} (소득)`)
+      astroModifier += planetsIn2H.length * 0.3
+    }
+    if (planetsIn8H.length > 0) {
+      astroPoints.push(`8H 행성: ${planetsIn8H.map((p) => p.name).join(', ')} (공동자산)`)
+    }
+    // ⭐ Jupiter 위치 (확장 영역)
+    const jupiterInChart = astro.natal.planets.find((p) => p.name === 'Jupiter')
+    if (jupiterInChart) {
+      astroPoints.push(`Jupiter ${jupiterInChart.sign} (${jupiterInChart.house}H — 확장)`)
+      if ([2, 5, 8, 10, 11].includes(jupiterInChart.house)) {
+        astroModifier += 0.5
+        astroPoints.push(`Jupiter ${jupiterInChart.house}H (재물 길)`)
+      }
+    }
+    // ⭐ midpoint Sun/Jupiter, Venus/Jupiter (재물 행운)
+    const sunJup = aAdv?.midpointActivations?.find(
+      (m) => (m.midpoint.planet1 === 'Sun' && m.midpoint.planet2 === 'Jupiter') ||
+             (m.midpoint.planet1 === 'Jupiter' && m.midpoint.planet2 === 'Sun'),
+    )
+    if (sunJup) {
+      astroModifier += 0.5
+      astroPoints.push(`Sun/Jupiter midpoint (행운 재물)`)
+    }
+    const venJup = aAdv?.midpointActivations?.find(
+      (m) => (m.midpoint.planet1 === 'Venus' && m.midpoint.planet2 === 'Jupiter') ||
+             (m.midpoint.planet1 === 'Jupiter' && m.midpoint.planet2 === 'Venus'),
+    )
+    if (venJup) {
+      astroModifier += 0.5
+      astroPoints.push(`Venus/Jupiter midpoint (재물 매력)`)
+    }
+    // ⭐ Pluto 트랜짓 (변혁 재물)
+    const plutoTransit = astro.current.majorTransits.find((t) => t.transitPlanet === 'Pluto')
+    if (plutoTransit && (plutoTransit.natalPoint === 'Sun' || plutoTransit.natalPoint === 'Venus')) {
+      astroPoints.push(`T.Pluto ${plutoTransit.type} N.${plutoTransit.natalPoint} (변혁 재물)`)
+    }
+    // ⭐ fixedStar Spica/Regulus (부귀 별)
+    const wealthStars = aAdv?.fixedStars?.filter((f) =>
+      /Spica|Regulus|스피카|레굴루스/i.test(f.star.name + (f.star.name_ko || '')),
+    ) || []
+    for (const star of wealthStars.slice(0, 1)) {
+      astroModifier += 0.5
+      astroPoints.push(`★ ${star.star.name_ko || star.star.name} (부귀의 별)`)
     }
   }
   if (theme === 'love') {
@@ -851,6 +923,38 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       astroModifier += 0.5
       astroPoints.push(`Venus/Mars midpoint 활성 ← ${loveMid.activator}`)
     }
+    // ⭐ 7H 행성 (배우자상)
+    const planetsIn7H = astro.natal.planets.filter((p) => p.house === 7)
+    if (planetsIn7H.length > 0) {
+      astroPoints.push(`7H 행성: ${planetsIn7H.map((p) => p.name).join(', ')} (배우자상)`)
+      astroModifier += planetsIn7H.length * 0.3
+    }
+    // ⭐ 5H 행성 (연애·즐거움)
+    const planetsIn5H = astro.natal.planets.filter((p) => p.house === 5)
+    if (planetsIn5H.length > 0) {
+      astroPoints.push(`5H 행성: ${planetsIn5H.map((p) => p.name).join(', ')} (연애)`)
+    }
+    // ⭐ Mars 위치 (추진 사랑)
+    const marsInChart = astro.natal.planets.find((p) => p.name === 'Mars')
+    if (marsInChart) {
+      astroPoints.push(`Mars ${marsInChart.sign} (${marsInChart.house}H — 추진력)`)
+    }
+    // ⭐ DC sign (이상형) — 7H cusp 추정 = ASC + 180
+    // bigThree 에 dc 없을 수 있음, asc 사인 반대
+    const ascSign = astro.bigThree.ascendant.sign
+    const oppositeSigns: Record<string, string> = {
+      Aries: 'Libra', Taurus: 'Scorpio', Gemini: 'Sagittarius', Cancer: 'Capricorn',
+      Leo: 'Aquarius', Virgo: 'Pisces', Libra: 'Aries', Scorpio: 'Taurus',
+      Sagittarius: 'Gemini', Capricorn: 'Cancer', Aquarius: 'Leo', Pisces: 'Virgo',
+    }
+    const dcSign = oppositeSigns[ascSign]
+    if (dcSign) astroPoints.push(`DC ${dcSign} (이상형 사인)`)
+    // ⭐ Sun/Moon midpoint (관계 핵심)
+    const sunMoon = aAdv?.midpointActivations?.find(
+      (m) => (m.midpoint.planet1 === 'Sun' && m.midpoint.planet2 === 'Moon') ||
+             (m.midpoint.planet1 === 'Moon' && m.midpoint.planet2 === 'Sun'),
+    )
+    if (sunMoon) astroPoints.push(`Sun/Moon midpoint (관계 핵심)`)
   }
   if (theme === 'health') {
     // 6H + Saturn 균형
@@ -863,14 +967,43 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
     }
     // ⭐ Chiron (치유 소행성)
     const chiron = aAdv?.asteroids?.Chiron
-    if (chiron && chiron.house === 6) {
-      astroPoints.push(`Chiron 6H (건강 치유 테마)`)
+    if (chiron) {
+      astroPoints.push(`Chiron ${chiron.sign} ${chiron.house}H (치유 부위)`)
+      if (chiron.house === 6 || chiron.house === 12) {
+        astroPoints.push(`Chiron ${chiron.house}H (건강·재활 테마)`)
+      }
     }
     // ⭐ Eclipse Leo (심장)
     const upcomingLeoEclipse = aAdv?.upcomingEclipses?.find((e) => e.sign === 'Leo')
     if (upcomingLeoEclipse) {
       astroPoints.push(`다가올 Leo 식 ${upcomingLeoEclipse.date} (심장계 주의)`)
     }
+    // ⭐ 6H 행성 (실무·건강 일상)
+    const planetsIn6H = astro.natal.planets.filter((p) => p.house === 6)
+    if (planetsIn6H.length > 0) {
+      astroPoints.push(`6H 행성: ${planetsIn6H.map((p) => p.name).join(', ')} (건강·일상)`)
+      const malefic6H = planetsIn6H.filter((p) => ['Saturn', 'Mars', 'Pluto'].includes(p.name))
+      if (malefic6H.length > 0) {
+        astroModifier -= 0.5
+        astroPoints.push(`6H ${malefic6H.map((p) => p.name).join(',')} (만성 주의)`)
+      }
+    }
+    // ⭐ 8H/12H 행성 (재생·숨겨진)
+    const planetsIn12H = astro.natal.planets.filter((p) => p.house === 12)
+    if (planetsIn12H.length >= 2) {
+      astroPoints.push(`12H ${planetsIn12H.map((p) => p.name).join(',')} (잠재 질병)`)
+    }
+    // ⭐ Saturn 위치 (제약·만성)
+    const saturnInChart = astro.natal.planets.find((p) => p.name === 'Saturn')
+    if (saturnInChart && (saturnInChart.house === 6 || saturnInChart.house === 1 || saturnInChart.house === 12)) {
+      astroPoints.push(`Saturn ${saturnInChart.house}H (만성 영역)`)
+    }
+    // ⭐ Sun/Saturn midpoint (체력 시험)
+    const sunSat = aAdv?.midpointActivations?.find(
+      (m) => (m.midpoint.planet1 === 'Sun' && m.midpoint.planet2 === 'Saturn') ||
+             (m.midpoint.planet1 === 'Saturn' && m.midpoint.planet2 === 'Sun'),
+    )
+    if (sunSat) astroPoints.push(`Sun/Saturn midpoint (체력 시험)`)
   }
   if (theme === 'growth') {
     const jupiterTransit = astro.current.majorTransits.find((t) => t.transitPlanet === 'Jupiter')
@@ -896,6 +1029,35 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       astroModifier += 0.5
       astroPoints.push(`H7 강 (영감·신비)`)
     }
+    // ⭐ 9H 행성 (학문·고등교육)
+    const planetsIn9H = astro.natal.planets.filter((p) => p.house === 9)
+    if (planetsIn9H.length > 0) {
+      astroPoints.push(`9H ${planetsIn9H.map((p) => p.name).join(',')} (학문·철학)`)
+      astroModifier += planetsIn9H.length * 0.3
+    }
+    // ⭐ 3H 행성 (소통·학습)
+    const planetsIn3HG = astro.natal.planets.filter((p) => p.house === 3)
+    if (planetsIn3HG.length > 0) {
+      astroPoints.push(`3H ${planetsIn3HG.map((p) => p.name).join(',')} (소통·기초학습)`)
+    }
+    // ⭐ Mercury house (학습 영역)
+    const mercuryInG = astro.natal.planets.find((p) => p.name === 'Mercury')
+    if (mercuryInG) astroPoints.push(`Mercury ${mercuryInG.sign} ${mercuryInG.house}H (학습)`)
+    // ⭐ Jupiter house (확장 영역)
+    const jupiterInG = astro.natal.planets.find((p) => p.name === 'Jupiter')
+    if (jupiterInG) astroPoints.push(`Jupiter ${jupiterInG.sign} ${jupiterInG.house}H (확장 학문)`)
+    // ⭐ Mercury/Jupiter midpoint (지혜)
+    const merJup = aAdv?.midpointActivations?.find(
+      (m) => (m.midpoint.planet1 === 'Mercury' && m.midpoint.planet2 === 'Jupiter') ||
+             (m.midpoint.planet1 === 'Jupiter' && m.midpoint.planet2 === 'Mercury'),
+    )
+    if (merJup) {
+      astroModifier += 0.5
+      astroPoints.push(`Mercury/Jupiter midpoint (지혜·확장)`)
+    }
+    // ⭐ True Node (배움 방향)
+    const node = astro.natal.planets.find((p) => p.name === 'True Node')
+    if (node) astroPoints.push(`True Node ${node.sign} ${node.house}H (배움 방향)`)
   }
   if (theme === 'family') {
     // 4H 강조
@@ -913,6 +1075,37 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
       (m) => m.midpoint.planet1 === 'Moon' || m.midpoint.planet2 === 'Moon',
     )
     if (moonMid) astroPoints.push(`Moon midpoint 활성`)
+    // ⭐ 4H 행성 (가정·뿌리)
+    const planetsIn4H = astro.natal.planets.filter((p) => p.house === 4)
+    if (planetsIn4H.length > 0) {
+      astroPoints.push(`4H 행성: ${planetsIn4H.map((p) => p.name).join(', ')} (가정)`)
+      astroModifier += planetsIn4H.length * 0.3
+    }
+    // ⭐ IC sign (뿌리)
+    const ascSign2 = astro.bigThree.ascendant.sign
+    const oppositeMC: Record<string, string> = {
+      Aries: 'Libra', Taurus: 'Scorpio', Gemini: 'Sagittarius', Cancer: 'Capricorn',
+      Leo: 'Aquarius', Virgo: 'Pisces', Libra: 'Aries', Scorpio: 'Taurus',
+      Sagittarius: 'Gemini', Capricorn: 'Cancer', Aquarius: 'Leo', Pisces: 'Virgo',
+    }
+    const mcSign = astro.bigThree.mc.sign
+    const icSign = oppositeMC[mcSign] || ascSign2
+    astroPoints.push(`IC ${icSign} (뿌리·가정 환경)`)
+    // ⭐ Sun (부친) sign + house
+    const sunInFam = astro.natal.planets.find((p) => p.name === 'Sun')
+    if (sunInFam) astroPoints.push(`Sun ${sunInFam.sign} ${sunInFam.house}H (부친)`)
+    // ⭐ Moon (모친) sign + house
+    const moonInFam = astro.natal.planets.find((p) => p.name === 'Moon')
+    if (moonInFam) astroPoints.push(`Moon ${moonInFam.sign} ${moonInFam.house}H (모친)`)
+    // ⭐ 3H/11H 행성 (형제·동료)
+    const planetsIn3H = astro.natal.planets.filter((p) => p.house === 3)
+    const planetsIn11H = astro.natal.planets.filter((p) => p.house === 11)
+    if (planetsIn3H.length > 0) {
+      astroPoints.push(`3H ${planetsIn3H.map((p) => p.name).join(',')} (형제·근거리)`)
+    }
+    if (planetsIn11H.length > 0) {
+      astroPoints.push(`11H ${planetsIn11H.map((p) => p.name).join(',')} (동료·우정)`)
+    }
   }
 
   // ⭐ extendedAnalysis horizon 매칭 — 라이프스테이지 (4기둥별 시기)
@@ -1028,11 +1221,49 @@ function buildThemeSignal(theme: ThemeKind, ctx: SignalContext): ThemeSignal {
   if (isShortTerm) {
     // wolun/iljin: 일별·월별 트랜짓 정밀
     const fastTransits = astro.current.transitToNatal.filter((t) => t.orb < 1.5).slice(0, 3)
-    if (fastTransits.length && (theme === 'career' || theme === 'love')) {
-      const interesting = fastTransits.find((t) => ['Mercury', 'Venus', 'Mars', 'Moon'].includes(t.transitPlanet))
-      if (interesting) {
-        astroModifier += interesting.type === 'trine' || interesting.type === 'sextile' ? 0.5 : -0.3
-        astroPoints.push(`${horizon} T.${interesting.transitPlanet} ${interesting.type} N.${interesting.natalPoint} (정밀)`)
+    if (fastTransits.length) {
+      // 모든 theme 에서 정밀 트랜짓 + 관련 행성 매칭
+      const themeRelevantPlanets: Record<string, string[]> = {
+        career: ['Saturn', 'Sun', 'Mars'],
+        wealth: ['Jupiter', 'Venus', 'Pluto'],
+        love: ['Venus', 'Mars', 'Moon'],
+        health: ['Mars', 'Saturn', 'Chiron'],
+        growth: ['Mercury', 'Jupiter'],
+        family: ['Moon', 'Sun'],
+      }
+      const relevant = themeRelevantPlanets[theme] || []
+      const focused = fastTransits.find((t) => relevant.includes(t.transitPlanet))
+      if (focused) {
+        astroModifier += focused.type === 'trine' || focused.type === 'sextile' || focused.type === 'conjunction' ? 0.5 : -0.3
+        astroPoints.push(`${horizon} T.${focused.transitPlanet} ${focused.type} N.${focused.natalPoint} (정밀)`)
+      } else {
+        // 관련 행성 없어도 첫 정밀 트랜짓 표시
+        astroPoints.push(`${horizon} T.${fastTransits[0].transitPlanet} ${fastTransits[0].type} N.${fastTransits[0].natalPoint} (정밀)`)
+      }
+    }
+    // ⭐ wolun: 이번 달 lunar phase + Moon 사인
+    if (horizon === 'wolun') {
+      const moonNow = astro.current.transitChart.planets.find((p) => p.name === 'Moon')
+      if (moonNow) {
+        astroPoints.push(`이번 달 T.Moon ${moonNow.sign}`)
+      }
+      // Mercury 역행 체크
+      const mercuryNow = astro.current.transitChart.planets.find((p) => p.name === 'Mercury')
+      if (mercuryNow?.retrograde) {
+        astroModifier -= 0.3
+        astroPoints.push(`Mercury 역행 (소통·계약 주의)`)
+      }
+    }
+    // ⭐ iljin: 오늘 행성시 + Moon sign
+    if (horizon === 'iljin') {
+      const moonToday = astro.current.transitChart.planets.find((p) => p.name === 'Moon')
+      if (moonToday) {
+        astroPoints.push(`오늘 T.Moon ${moonToday.sign} (${moonToday.house}H)`)
+      }
+      // Sun 사인 (오늘 운기 톤)
+      const sunToday = astro.current.transitChart.planets.find((p) => p.name === 'Sun')
+      if (sunToday) {
+        astroPoints.push(`오늘 T.Sun ${sunToday.sign}`)
       }
     }
   }
