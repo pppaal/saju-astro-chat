@@ -336,7 +336,7 @@ export function ResultsStage(props: ResultsStageProps) {
         translate={translate}
       />
 
-      {/* ③ 답 — 직접답 + 행동 3개 */}
+      {/* ③ 답 — 한 줄 */}
       {quickSummary && (
         <section className={styles.quickAnswerPanel}>
           <div className={styles.quickAnswerTopRow}>
@@ -358,41 +358,8 @@ export function ResultsStage(props: ResultsStageProps) {
             )}
           </div>
           <p className={styles.quickAnswerConclusion}>{quickSummary.directAnswer}</p>
-          <p className={styles.quickAnswerAction}>
-            <strong>{language === 'ko' ? '오늘 할 것:' : 'Do today:'}</strong> {quickSummary.todayDo}
-          </p>
-          <p className={styles.quickAnswerAction}>
-            <strong>{language === 'ko' ? '피할 것:' : 'Avoid:'}</strong> {quickSummary.avoidLine}
-          </p>
-          <p className={styles.quickAnswerAction}>
-            <strong>{language === 'ko' ? '태도:' : 'Attitude:'}</strong> {quickSummary.attitudeLine}
-          </p>
         </section>
       )}
-
-      {/* ④ 전체 설명 — overall_message */}
-      {insight?.overall_message && (
-        <section className={styles.quickReasonPanel}>
-          <h3 className={styles.quickReasonTitle}>
-            {language === 'ko' ? '전체 흐름 설명' : 'Overall Reading'}
-          </h3>
-          <p className={styles.quickAnswerReason}>{insight.overall_message}</p>
-        </section>
-      )}
-
-      {/* ⑤ 카드별 설명 */}
-      <DetailedCardsSection
-        readingResult={readingResult}
-        interpretation={interpretation}
-        language={language}
-        selectedDeckStyle={selectedDeckStyle}
-        revealedCards={revealedCards}
-        expandedCard={expandedCard}
-        onToggleExpand={toggleCardExpand}
-        detailedSectionRef={detailedSectionRef}
-        translate={translate}
-        mode="summary"
-      />
 
       {insight?.fallback && (
         <div className={styles.interpretationFallbackNotice} role="status" aria-live="polite">
@@ -409,7 +376,7 @@ export function ResultsStage(props: ResultsStageProps) {
         </div>
       )}
 
-      {/* ⑥ 더 자세히 보기 — 나머지 다 숨김 */}
+      {/* ④ 더 자세히 보기 — 전체 설명 + 카드별 + foundation + AI 보조 다 통합 */}
       <details
         className={styles.layer2Details}
         open={showLayer2Cards}
@@ -418,15 +385,38 @@ export function ResultsStage(props: ResultsStageProps) {
         }}
       >
         <summary className={styles.layer2Summary}>
-          {language === 'ko' ? '더 자세히 보기 (카드 흐름·타이밍·결합)' : 'See Detailed Analysis'}
+          {language === 'ko' ? '더 자세히 보기' : 'See Detailed Analysis'}
         </summary>
 
-        {/* 카드 흐름 진단 (foundation) */}
-        {tarotSynthesis && <SpreadSynthesisCard data={tarotSynthesis} />}
-        {comboHits.length > 0 && <ComboPatternsCard hits={comboHits} />}
-        {tarotTiming && <TarotTimingCard data={tarotTiming} />}
+        {/* 전체 흐름 설명 */}
+        {insight?.overall_message && (
+          <section className={styles.quickReasonPanel}>
+            <h3 className={styles.quickReasonTitle}>
+              {language === 'ko' ? '전체 흐름 설명' : 'Overall Reading'}
+            </h3>
+            <p className={styles.quickAnswerReason}>{insight.overall_message}</p>
+          </section>
+        )}
 
-        {/* 카드별 풀 텍스트 */}
+        {/* 행동 가이드 */}
+        {quickSummary && (
+          <section className={styles.actionGuidePanel}>
+            <h3 className={styles.actionGuideTitle}>
+              {language === 'ko' ? '실천 조언' : 'Practical Guidance'}
+            </h3>
+            <p className={styles.actionGuideItem}>
+              <strong>{language === 'ko' ? '오늘 할 것:' : 'Do today:'}</strong> {quickSummary.todayDo}
+            </p>
+            <p className={styles.actionGuideItem}>
+              <strong>{language === 'ko' ? '피할 것:' : 'Avoid:'}</strong> {quickSummary.avoidLine}
+            </p>
+            <p className={styles.actionGuideItem}>
+              <strong>{language === 'ko' ? '태도:' : 'Attitude:'}</strong> {quickSummary.attitudeLine}
+            </p>
+          </section>
+        )}
+
+        {/* 카드별 설명 */}
         <DetailedCardsSection
           readingResult={readingResult}
           interpretation={interpretation}
@@ -435,8 +425,14 @@ export function ResultsStage(props: ResultsStageProps) {
           revealedCards={revealedCards}
           expandedCard={expandedCard}
           onToggleExpand={toggleCardExpand}
+          detailedSectionRef={detailedSectionRef}
           translate={translate}
         />
+
+        {/* 카드 흐름 진단 (foundation) */}
+        {tarotSynthesis && <SpreadSynthesisCard data={tarotSynthesis} />}
+        {comboHits.length > 0 && <ComboPatternsCard hits={comboHits} />}
+        {tarotTiming && <TarotTimingCard data={tarotTiming} />}
 
         {/* AI 해석 보조 */}
         {insight?.combinations && insight.combinations.length > 0 && (
