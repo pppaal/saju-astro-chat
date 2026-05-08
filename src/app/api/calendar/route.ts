@@ -780,6 +780,9 @@ export const GET = withApiMiddleware(
     }
 
     let matrixCalendarContext: MatrixCalendarContext = null
+    let crossFortune:
+      | Awaited<ReturnType<typeof import('@/lib/fortune/cross-rules').runFortune>>
+      | null = null
     let matrixInputCoverage: Record<string, unknown> | null = null
     let matrixEvidencePackets: CalendarMatrixEvidencePacketMap | null = null
     let responseMatrixEvidencePackets: Record<string, CounselorEvidencePacket> | null = null
@@ -830,6 +833,30 @@ export const GET = withApiMiddleware(
         import('@/lib/destiny-matrix/calendarSignals'),
         import('@/lib/destiny-matrix/counselorEvidence'),
       ])
+
+      // 🔥 교차 룰 엔진 (5106 라인) — 사주×점성 클래식 패턴 + 격국·용신·신살
+      // ·dignity·stellium·sect·lots·triplicity·profection·planetary joys·
+      // bonification·cazimi·zodiacal releasing 등 모든 정통 신호를 한 번에
+      // 컴퓨팅. 이전엔 cross-augment endpoint에서만 호출했는데, 메인 라우트
+      // 응답에도 포함시켜서 UI/리포트/매트릭스가 같은 결과를 공유하게 함.
+      try {
+        const { runFortune } = await import('@/lib/fortune/cross-rules')
+        crossFortune = await runFortune({
+          birth: {
+            birthDate: birthDateParam,
+            birthTime: birthTimeParam || '12:00',
+            gender: gender.toLowerCase() === 'female' ? 'female' : 'male',
+            timezone,
+            latitude: coords.lat,
+            longitude: coords.lng,
+          },
+          skipReturns: true,
+        })
+      } catch (crossErr) {
+        logger.warn('[calendar] cross-rules engine failed', {
+          error: crossErr instanceof Error ? crossErr.message : String(crossErr),
+        })
+      }
 
       // Compute the saju + astro advanced slots (sibsin / 12운성 / 신살 /
       // 격국 / 용신 + asteroids / extra points / advanced engine flags) so
@@ -1285,6 +1312,18 @@ export const GET = withApiMiddleware(
       workMoneyWeather: presentationView.workMoneyWeather,
       matrixInputCoverage,
       matrixEvidencePackets: responseMatrixEvidencePackets,
+      // 교차 엔진 풀 결과 — UI 어디서든 동일한 정통 패턴 신호 사용 가능.
+      crossFortune: crossFortune
+        ? {
+            byDomain: crossFortune.byDomain,
+            themes: crossFortune.themes.map((t) => ({
+              id: t.rule.id,
+              meaning: t.rule.meaning,
+              narrative: t.rule.narrative,
+            })),
+            context: crossFortune.context,
+          }
+        : null,
       topMatchedPatterns,
       ...(aiDates && {
         aiInsights: {
