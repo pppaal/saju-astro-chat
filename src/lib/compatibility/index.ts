@@ -8,7 +8,7 @@ export * from './compatibilityGraph';
 export * from './compatibilityFusion';
 
 // 심화 사주 분석 (십성, 신살, 육합/삼합, 충형파해)
-export * from './advancedSajuAnalysis';
+export * from './compatibilitySajuAnalysis';
 
 // 심화 점성학 분석 (Aspects, Synastry, Composite Chart)
 export * from './advancedAstrologyAnalysis';

@@ -11,7 +11,7 @@ import {
   analyzeGanHap,
   analyzeGyeokguk,
   analyzeTwelveStates,
-} from '../src/lib/compatibility/advancedSajuAnalysis';
+} from '../src/lib/compatibility/compatibilitySajuAnalysis';
 
 // Helper to convert raw saju to profile format
 function buildSajuProfile(saju: ReturnType<typeof calculateSajuData>) {

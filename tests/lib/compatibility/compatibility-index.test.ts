@@ -101,30 +101,30 @@ describe('Compatibility Module Exports', () => {
 
   describe('Advanced Saju Analysis exports', () => {
     it('should export advanced saju functions', async () => {
-      const module = await import('@/lib/compatibility/advancedSajuAnalysis')
+      const module = await import('@/lib/compatibility/compatibilitySajuAnalysis')
       expect(module).toBeDefined()
     })
 
     it('should have ten gods analysis function', async () => {
-      const module = await import('@/lib/compatibility/advancedSajuAnalysis')
+      const module = await import('@/lib/compatibility/compatibilitySajuAnalysis')
       expect(module.analyzeTenGods).toBeDefined()
       expect(typeof module.analyzeTenGods).toBe('function')
     })
 
     it('should have shinsals analysis function', async () => {
-      const module = await import('@/lib/compatibility/advancedSajuAnalysis')
+      const module = await import('@/lib/compatibility/compatibilitySajuAnalysis')
       expect(module.analyzeShinsals).toBeDefined()
       expect(typeof module.analyzeShinsals).toBe('function')
     })
 
     it('should have comprehensive saju analysis function', async () => {
-      const module = await import('@/lib/compatibility/advancedSajuAnalysis')
+      const module = await import('@/lib/compatibility/compatibilitySajuAnalysis')
       expect(module.performComprehensiveSajuAnalysis).toBeDefined()
       expect(typeof module.performComprehensiveSajuAnalysis).toBe('function')
     })
 
     it('should have yongsin compatibility function', async () => {
-      const module = await import('@/lib/compatibility/advancedSajuAnalysis')
+      const module = await import('@/lib/compatibility/compatibilitySajuAnalysis')
       expect(module.analyzeYongsinCompatibility).toBeDefined()
       expect(typeof module.analyzeYongsinCompatibility).toBe('function')
     })
@@ -173,7 +173,7 @@ describe('Compatibility Module Exports', () => {
 
   describe('Cross-Module Integration', () => {
     it('should allow combining saju and astrology analysis with compatible interfaces', async () => {
-      const sajuModule = await import('@/lib/compatibility/advancedSajuAnalysis')
+      const sajuModule = await import('@/lib/compatibility/compatibilitySajuAnalysis')
       const astroModule = await import('@/lib/compatibility/advancedAstrologyAnalysis')
 
       // Verify both modules export analysis functions

@@ -28,7 +28,7 @@ import {
   analyzeGanHap,
   analyzeGyeokguk,
   analyzeTwelveStates,
-} from '@/lib/compatibility/advancedSajuAnalysis'
+} from '@/lib/compatibility/compatibilitySajuAnalysis'
 
 import {
   analyzeAspects,

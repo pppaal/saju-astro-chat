@@ -9,7 +9,7 @@ import {
   analyzeTenGods,
   type TenGod,
   type TenGodAnalysis,
-} from "@/lib/compatibility/advancedSajuAnalysis";
+} from "@/lib/compatibility/compatibilitySajuAnalysis";
 import type { SajuProfile } from "@/lib/compatibility/cosmicCompatibility";
 
 // Test fixtures

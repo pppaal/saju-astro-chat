@@ -12,7 +12,7 @@ import type {
   GanHapAnalysis,
   GyeokgukAnalysis,
   TwelveStatesAnalysis,
-} from '@/lib/compatibility/advancedSajuAnalysis'
+} from '@/lib/compatibility/compatibilitySajuAnalysis'
 
 import type {
   AspectAnalysis,

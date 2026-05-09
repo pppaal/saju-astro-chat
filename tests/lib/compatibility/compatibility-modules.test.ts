@@ -203,67 +203,67 @@ describe('Advanced Astrology Analysis', () => {
 
 describe('Advanced Saju Analysis', () => {
   it('should export analyzeTenGods function', async () => {
-    const { analyzeTenGods } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeTenGods } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeTenGods).toBe('function');
   });
 
   it('should export analyzeShinsals function', async () => {
-    const { analyzeShinsals } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeShinsals } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeShinsals).toBe('function');
   });
 
   it('should export analyzeHap function', async () => {
-    const { analyzeHap } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeHap } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeHap).toBe('function');
   });
 
   it('should export analyzeConflicts function', async () => {
-    const { analyzeConflicts } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeConflicts } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeConflicts).toBe('function');
   });
 
   it('should export performComprehensiveSajuAnalysis function', async () => {
-    const { performComprehensiveSajuAnalysis } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { performComprehensiveSajuAnalysis } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof performComprehensiveSajuAnalysis).toBe('function');
   });
 
   it('should export analyzeYongsinCompatibility function', async () => {
-    const { analyzeYongsinCompatibility } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeYongsinCompatibility } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeYongsinCompatibility).toBe('function');
   });
 
   it('should export analyzeDaeunCompatibility function', async () => {
-    const { analyzeDaeunCompatibility } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeDaeunCompatibility } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeDaeunCompatibility).toBe('function');
   });
 
   it('should export analyzeSeunCompatibility function', async () => {
-    const { analyzeSeunCompatibility } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeSeunCompatibility } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeSeunCompatibility).toBe('function');
   });
 
   it('should export analyzeGongmang function', async () => {
-    const { analyzeGongmang } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeGongmang } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeGongmang).toBe('function');
   });
 
   it('should export analyzeGanHap function', async () => {
-    const { analyzeGanHap } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeGanHap } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeGanHap).toBe('function');
   });
 
   it('should export analyzeGyeokguk function', async () => {
-    const { analyzeGyeokguk } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeGyeokguk } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeGyeokguk).toBe('function');
   });
 
   it('should export analyzeTwelveStates function', async () => {
-    const { analyzeTwelveStates } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { analyzeTwelveStates } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof analyzeTwelveStates).toBe('function');
   });
 
   it('should export performExtendedSajuAnalysis function', async () => {
-    const { performExtendedSajuAnalysis } = await import('@/lib/compatibility/advancedSajuAnalysis');
+    const { performExtendedSajuAnalysis } = await import('@/lib/compatibility/compatibilitySajuAnalysis');
     expect(typeof performExtendedSajuAnalysis).toBe('function');
   });
 

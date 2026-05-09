@@ -14,7 +14,7 @@ import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import { buildActionPlanPayload } from './routeTimelineAssembly'
 import { polishCalendarDayNarrationKo } from '@/lib/llm/calendarNarrativePolish'
-import { buildDayContinuity, buildDayOfWeekTone } from '@/lib/calendar/dayContext'
+import { buildDayContinuity, buildDayOfWeekTone } from '@/lib/destiny-map/calendar/dayContext'
 import { getDisplayGradeFromScore } from '@/lib/destiny-map/calendar/scoring-config'
 import { getGradeLabel as getUnifiedGradeLabel } from '@/components/calendar/constants'
 import {
