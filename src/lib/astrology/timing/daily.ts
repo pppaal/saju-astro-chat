@@ -23,7 +23,7 @@ interface DailyInput {
   transitToNatalAspects: AspectHit[]   // 사용자가 미리 계산해 넘김
 }
 
-export function interpretDailyTransit(input: DailyInput): AstroTimingAnalysis {
+export function analyzeDailyAstro(input: DailyInput): AstroTimingAnalysis {
   const { isoDate, transitToNatalAspects } = input
   const highlights: AstroTimingHighlight[] = []
 

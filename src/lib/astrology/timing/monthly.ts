@@ -13,7 +13,7 @@ import type { AstroTimingAnalysis, AstroTimingHighlight } from './types'
 
 const ANGULAR_HOUSES = new Set([1, 4, 7, 10])
 
-export function interpretLunarReturn(chart: ReturnChart): AstroTimingAnalysis {
+export function analyzeMonthlyAstro(chart: ReturnChart): AstroTimingAnalysis {
   const baseSummary = getLunarReturnSummary(chart)
   const highlights: AstroTimingHighlight[] = []
 

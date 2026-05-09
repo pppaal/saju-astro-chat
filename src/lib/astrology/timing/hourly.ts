@@ -33,7 +33,7 @@ const ACTIVITY_BY_PLANET: Record<PlanetaryHourPlanet, string> = {
   Saturn: '부동산·농업·광업·장기 계획·규율·제한 수용',
 }
 
-export function interpretPlanetaryHour(input: PlanetaryHourInput): AstroTimingAnalysis {
+export function analyzeHourlyAstro(input: PlanetaryHourInput): AstroTimingAnalysis {
   const { isoDateTime, planet, isDay } = input
   const tone = TONE_BY_PLANET[planet]
 

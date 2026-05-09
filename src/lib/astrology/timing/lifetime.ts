@@ -30,7 +30,7 @@ function angleToAspectType(angle: number): AspectType | null {
   return null
 }
 
-export function interpretProgression(progressed: ProgressedChart, natal: Chart): AstroTimingAnalysis {
+export function analyzeLifetimeAstro(progressed: ProgressedChart, natal: Chart): AstroTimingAnalysis {
   const base = getProgressionSummary(progressed)
   const highlights: AstroTimingHighlight[] = []
 

@@ -1,5 +1,5 @@
-// astrology/timing — 타이밍 단위별 해석 wrapper
-// Saju/unseAnalysis 와 mirror 구조.
+// astrology/timing — 타이밍 단위별 해석 wrapper.
+// Saju/timing 와 mirror — 함수명 패턴: analyze{Decadal|Yearly|Monthly|Daily|Hourly|Lifetime}Astro
 
 export type {
   AstroTimingUnit,
@@ -8,12 +8,12 @@ export type {
   AstroTimingAnalysis,
 } from './types'
 
-export { interpretSolarReturn } from './yearly'
-export { interpretLunarReturn } from './monthly'
-export { interpretDailyTransit } from './daily'
+export { analyzeYearlyAstro } from './yearly'
+export { analyzeMonthlyAstro } from './monthly'
+export { analyzeDailyAstro } from './daily'
 export {
-  interpretPlanetaryHour,
+  analyzeHourlyAstro,
   type PlanetaryHourPlanet,
   type PlanetaryHourInput,
 } from './hourly'
-export { interpretProgression } from './lifetime'
+export { analyzeLifetimeAstro } from './lifetime'
