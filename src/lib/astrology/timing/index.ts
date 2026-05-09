@@ -8,7 +8,8 @@ export type {
   AstroTimingAnalysis,
 } from './types'
 
-export { analyzeYearlyAstro } from './yearly'
+export { analyzeDecadalAstro, type DecadalAstroOptions } from './decadal'
+export { analyzeYearlyAstro, type YearlyAstroOptions } from './yearly'
 export { analyzeMonthlyAstro } from './monthly'
 export { analyzeDailyAstro } from './daily'
 export {

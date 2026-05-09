@@ -9,10 +9,17 @@ import {
   getPlanetHouseInterpretation,
   getHouseDomainKo,
 } from '../interpretations'
+import { calculateArabicLots, getLotInterpretation } from '../foundation/arabicParts'
 import type { AstroThemeAnalysis, AstroThemeFactor } from './types'
 
 const CAREER_PLANETS: AstroPlanetName[] = ['Sun', 'Saturn']
 const CAREER_HOUSES = [6, 10]
+
+function isDayChart(chart: Chart): boolean {
+  const sun = chart.planets.find((p) => p.name === 'Sun')
+  if (!sun) return true
+  return sun.house >= 7 && sun.house <= 12
+}
 
 export function analyzeCareerAstro(chart: Chart): AstroThemeAnalysis {
   const factors: AstroThemeFactor[] = []
@@ -46,6 +53,23 @@ export function analyzeCareerAstro(chart: Chart): AstroThemeAnalysis {
         .join(' / '),
       tone: 'mixed',
     })
+  }
+
+  // Lots — Spirit (진로) + Victory (성공)
+  try {
+    const lots = calculateArabicLots(chart, isDayChart(chart))
+    for (const target of ['Spirit', 'Victory'] as const) {
+      const lot = lots.find((l) => l.name === target)
+      if (lot) {
+        factors.push({
+          source: `Lot of ${lot.name} in ${lot.sign} (${lot.formula})`,
+          meaning: getLotInterpretation(lot),
+          tone: 'positive',
+        })
+      }
+    }
+  } catch {
+    // skip
   }
 
   const summary =

@@ -93,3 +93,32 @@ export function calculateZodiacalReleasing(
   }
   return periods
 }
+
+const SIGN_CHAPTER_THEME: Record<ZodiacKo, string> = {
+  Aries:       '시작·개척·자기 발견의 챕터',
+  Taurus:      '안정·축적·뿌리 내림의 챕터',
+  Gemini:      '연결·학습·소통의 챕터',
+  Cancer:      '가정·정서·돌봄의 챕터',
+  Leo:         '자기 표현·창조·드러냄의 챕터',
+  Virgo:       '정밀·실무·다듬음의 챕터',
+  Libra:       '관계·균형·조율의 챕터',
+  Scorpio:     '심층 변환·위기 통과의 챕터',
+  Sagittarius: '확장·진리·먼 길의 챕터',
+  Capricorn:   '구조·책임·성취의 챕터',
+  Aquarius:    '혁신·집단·새 질서의 챕터',
+  Pisces:      '용해·연민·해체의 챕터',
+}
+
+/**
+ * ZR period 해석 — 사주 대운(decadal)과 cross 가능한 시기 의미.
+ */
+export function getZRPeriodInterpretation(period: ZRPeriod): string {
+  return `Years ${period.startYear}-${period.endYear} (${period.durationYears}년): ${period.sign} 챕터, ${period.ruler} 다스림. ${SIGN_CHAPTER_THEME[period.sign]}.`
+}
+
+/**
+ * 특정 나이의 활성 ZR period 찾기.
+ */
+export function getActiveZRPeriod(periods: ZRPeriod[], age: number): ZRPeriod | undefined {
+  return periods.find((p) => age >= p.startYear && age < p.endYear)
+}

@@ -9,10 +9,18 @@ import {
   getPlanetHouseInterpretation,
   getHouseDomainKo,
 } from '../interpretations'
+import { calculateArabicLots, getLotInterpretation } from '../foundation/arabicParts'
 import type { AstroThemeAnalysis, AstroThemeFactor } from './types'
 
 const LOVE_PLANETS: AstroPlanetName[] = ['Venus', 'Mars', 'Moon']
 const LOVE_HOUSES = [5, 7, 8]
+
+function isDayChart(chart: Chart): boolean {
+  const sun = chart.planets.find((p) => p.name === 'Sun')
+  if (!sun) return true
+  // Sun 이 7-12궁 (지평선 위) → 낮 차트
+  return sun.house >= 7 && sun.house <= 12
+}
 
 export function analyzeLoveAstro(chart: Chart): AstroThemeAnalysis {
   const factors: AstroThemeFactor[] = []
@@ -37,6 +45,21 @@ export function analyzeLoveAstro(chart: Chart): AstroThemeAnalysis {
         .join(' / '),
       tone: 'mixed',
     })
+  }
+
+  // Lot of Eros — 사랑·욕망 운명점
+  try {
+    const lots = calculateArabicLots(chart, isDayChart(chart))
+    const eros = lots.find((l) => l.name === 'Eros')
+    if (eros) {
+      factors.push({
+        source: `Lot of Eros in ${eros.sign} (${eros.formula})`,
+        meaning: getLotInterpretation(eros),
+        tone: 'positive',
+      })
+    }
+  } catch {
+    // Lot 산출 실패 시 (행성 누락 등) 그냥 skip
   }
 
   const summary =

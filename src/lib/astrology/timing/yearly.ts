@@ -1,9 +1,10 @@
 // astrology/timing/yearly.ts
 // Solar Return 해석 wrapper. 사주 세운(歲運) 해석과 mirror.
 
-import type { ReturnChart } from '../foundation/types'
+import type { Chart, ReturnChart } from '../foundation/types'
 import type { AstroPlanetName } from '../interpretations'
 import { getSolarReturnSummary } from '../foundation/returns'
+import { calculateProfection, getProfectionInterpretation } from '../foundation/profections'
 import {
   getPlanetSignInterpretation,
   getPlanetHouseInterpretation,
@@ -13,7 +14,12 @@ import type { AstroTimingAnalysis, AstroTimingHighlight } from './types'
 
 const ANGULAR_HOUSES = new Set([1, 4, 7, 10])
 
-export function analyzeYearlyAstro(chart: ReturnChart): AstroTimingAnalysis {
+export interface YearlyAstroOptions {
+  natalChart?: Chart   // Profection 산출용
+  age?: number         // Profection 산출용
+}
+
+export function analyzeYearlyAstro(chart: ReturnChart, options?: YearlyAstroOptions): AstroTimingAnalysis {
   const baseSummary = getSolarReturnSummary(chart)
   const highlights: AstroTimingHighlight[] = []
 
@@ -40,6 +46,20 @@ export function analyzeYearlyAstro(chart: ReturnChart): AstroTimingAnalysis {
       meaning: getPlanetHouseInterpretation(planet.name as AstroPlanetName, planet.house),
       tone: 'mixed',
     })
+  }
+
+  // Profection — natal + age 제공 시 활성 하우스 + Lord of the Year 추가
+  if (options?.natalChart && options.age != null) {
+    try {
+      const prof = calculateProfection(options.natalChart, options.age)
+      highlights.push({
+        source: `Profection age ${prof.age} — house ${prof.activatedHouse} activated`,
+        meaning: getProfectionInterpretation(prof),
+        tone: 'neutral',
+      })
+    } catch {
+      // age 음수 등 — skip
+    }
   }
 
   return {

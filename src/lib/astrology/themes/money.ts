@@ -9,10 +9,17 @@ import {
   getPlanetHouseInterpretation,
   getHouseDomainKo,
 } from '../interpretations'
+import { calculateArabicLots, getLotInterpretation } from '../foundation/arabicParts'
 import type { AstroThemeAnalysis, AstroThemeFactor } from './types'
 
 const MONEY_PLANETS: AstroPlanetName[] = ['Venus', 'Jupiter']
 const MONEY_HOUSES = [2, 8, 11]
+
+function isDayChart(chart: Chart): boolean {
+  const sun = chart.planets.find((p) => p.name === 'Sun')
+  if (!sun) return true
+  return sun.house >= 7 && sun.house <= 12
+}
 
 export function analyzeMoneyAstro(chart: Chart): AstroThemeAnalysis {
   const factors: AstroThemeFactor[] = []
@@ -37,6 +44,23 @@ export function analyzeMoneyAstro(chart: Chart): AstroThemeAnalysis {
         .join(' / '),
       tone: h === 8 ? 'cautious' : 'mixed',
     })
+  }
+
+  // Lots — Fortune (물질 흐름) + Necessity (제약·의무)
+  try {
+    const lots = calculateArabicLots(chart, isDayChart(chart))
+    for (const target of ['Fortune', 'Necessity'] as const) {
+      const lot = lots.find((l) => l.name === target)
+      if (lot) {
+        factors.push({
+          source: `Lot of ${lot.name} in ${lot.sign} (${lot.formula})`,
+          meaning: getLotInterpretation(lot),
+          tone: target === 'Fortune' ? 'positive' : 'cautious',
+        })
+      }
+    }
+  } catch {
+    // skip
   }
 
   const summary =
