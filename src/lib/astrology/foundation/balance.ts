@@ -148,3 +148,108 @@ function pickWeakest<K extends string>(counts: Record<K, number>): K | null {
   entries.sort((a, b) => a[1] - b[1])
   return entries[0][1] === 0 ? entries[0][0] : null
 }
+
+// ============================================================
+// 해석 — 사주 strengthScore.generateStrengthAdvice 와 mirror
+// ============================================================
+
+const ELEMENT_DOMINANT_KO: Record<Element, string> = {
+  fire:  '주도·발화·표현 지향. 추진력은 강하나 소진·과열 주의.',
+  earth: '안정·축적·실용 지향. 신뢰감 강하나 변화 적응이 더딤.',
+  air:   '연결·소통·추상 지향. 사고 활발하나 정서 깊이 약할 수 있음.',
+  water: '정서·공감·내면 지향. 감수성 풍부하나 경계 흐려질 수 있음.',
+}
+
+const ELEMENT_WEAK_KO: Record<Element, string> = {
+  fire:  '활력·동기 부재 — 의식적으로 신체 활동·도전·자기 표현 보충 필요.',
+  earth: '실행·뿌리 부재 — 루틴·신체·물질 영역 의식적으로 보강 필요.',
+  air:   '소통·객관 부재 — 토론·글쓰기·관계 다양화 시도 필요.',
+  water: '공감·정서 부재 — 내면 탐구·예술·휴식 시간 의식적 확보 필요.',
+}
+
+const MODALITY_DOMINANT_KO: Record<Modality, string> = {
+  cardinal: '시작·개시 우세 — 일을 벌이는 데 강함, 마무리·지속이 과제.',
+  fixed:    '지속·고정 우세 — 끈기 강함, 변화·전환이 과제.',
+  mutable:  '변통·적응 우세 — 유연성 강함, 결단·집중이 과제.',
+}
+
+const MODALITY_WEAK_KO: Record<Modality, string> = {
+  cardinal: '시작 동력 부재 — 의식적으로 첫발 떼는 훈련 필요.',
+  fixed:    '지속력 부재 — 한 가지 끝까지 가는 훈련 필요.',
+  mutable:  '유연성 부재 — 상황 변화에 적응하는 훈련 필요.',
+}
+
+const HEMISPHERE_LABEL_KO = {
+  below_dominant: '1-6궁(자기·사적 영역) 우세 — 내면·개인 작업 중심.',
+  above_dominant: '7-12궁(타인·공적 영역) 우세 — 관계·사회 작업 중심.',
+  east_dominant:  '동반구(1-3, 10-12궁) 우세 — 자기 주도·결정 성향.',
+  west_dominant:  '서반구(4-9궁) 우세 — 타인 영향·반응 성향.',
+}
+
+export interface ChartBalanceInterpretation {
+  dominantElementText: string | null
+  weakestElementText: string | null
+  dominantModalityText: string | null
+  weakestModalityText: string | null
+  hemisphereText: string
+  polarityText: string
+  overall: string
+}
+
+export function getChartBalanceInterpretation(balance: ChartBalance): ChartBalanceInterpretation {
+  const dominantElementText = balance.dominantElement
+    ? `Dominant element: ${balance.dominantElement} — ${ELEMENT_DOMINANT_KO[balance.dominantElement]}`
+    : null
+  const weakestElementText = balance.weakestElement
+    ? `Missing element: ${balance.weakestElement} — ${ELEMENT_WEAK_KO[balance.weakestElement]}`
+    : null
+  const dominantModalityText = balance.dominantModality
+    ? `Dominant modality: ${balance.dominantModality} — ${MODALITY_DOMINANT_KO[balance.dominantModality]}`
+    : null
+  const weakestModalityText = balance.weakestModality
+    ? `Missing modality: ${balance.weakestModality} — ${MODALITY_WEAK_KO[balance.weakestModality]}`
+    : null
+
+  const { below, above, east, west } = balance.hemispheres
+  const verticalText =
+    above > below + 1
+      ? HEMISPHERE_LABEL_KO.above_dominant
+      : below > above + 1
+        ? HEMISPHERE_LABEL_KO.below_dominant
+        : '상·하반구 균형 — 자기·타인 영역 모두 작동.'
+  const horizontalText =
+    east > west + 1
+      ? HEMISPHERE_LABEL_KO.east_dominant
+      : west > east + 1
+        ? HEMISPHERE_LABEL_KO.west_dominant
+        : '동·서반구 균형 — 자기 주도·반응 모두 작동.'
+  const hemisphereText = `${verticalText} | ${horizontalText}`
+
+  const yang = balance.polarity.masculine
+  const yin = balance.polarity.feminine
+  const polarityText =
+    yang > yin + 1
+      ? `양(masculine) ${yang} > 음(feminine) ${yin} — 능동·외향 우세.`
+      : yin > yang + 1
+        ? `음(feminine) ${yin} > 양(masculine) ${yang} — 수용·내향 우세.`
+        : `양(masculine) ${yang} ≈ 음(feminine) ${yin} — 음양 균형.`
+
+  const overall = [
+    dominantElementText,
+    weakestElementText,
+    dominantModalityText,
+    weakestModalityText,
+    polarityText,
+    hemisphereText,
+  ].filter(Boolean).join(' / ')
+
+  return {
+    dominantElementText,
+    weakestElementText,
+    dominantModalityText,
+    weakestModalityText,
+    hemisphereText,
+    polarityText,
+    overall,
+  }
+}
