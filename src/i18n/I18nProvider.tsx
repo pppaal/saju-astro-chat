@@ -27,10 +27,6 @@ async function loadLocaleDict(locale: Locale): Promise<DictValue> {
     import(`./locales/${locale}/tarot.json`),
     import(`./locales/${locale}/calendar.json`),
     import(`./locales/${locale}/personality.json`),
-    import(`./locales/${locale}/dream.json`),
-    import(`./locales/${locale}/numerology.json`),
-    import(`./locales/${locale}/iching.json`),
-    import(`./locales/${locale}/pastlife.json`),
     import(`./locales/${locale}/compatibility.json`),
     import(`./locales/${locale}/destinymap.json`),
     import(`./locales/${locale}/destinyMatch.json`),
@@ -249,7 +245,8 @@ export function I18nProvider({
       if (/[\u0400-\u04FF]/.test(value) || value.includes('\uFFFD')) {
         return true
       }
-      const suspiciousMatches = value.match(/[\u00C3\u00C2\u00E2\u00EC\u00EB\u00EA\u00ED\u00F0]/g) || []
+      const suspiciousMatches =
+        value.match(/[\u00C3\u00C2\u00E2\u00EC\u00EB\u00EA\u00ED\u00F0]/g) || []
       if (suspiciousMatches.length >= 3) {
         return true
       }
@@ -332,4 +329,3 @@ export function useI18n() {
   }
   return ctx
 }
-
