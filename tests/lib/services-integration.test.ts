@@ -248,22 +248,6 @@ describe('Services Integration', () => {
     })
   })
 
-  describe('AI Services', () => {
-    it('should export recommendations service', async () => {
-      const module = await import('@/lib/ai/recommendations')
-
-      expect(module.generateLifeRecommendations).toBeDefined()
-      expect(typeof module.generateLifeRecommendations).toBe('function')
-    })
-
-    it('should export summarize service', async () => {
-      const module = await import('@/lib/ai/summarize')
-
-      expect(module.summarizeConversation).toBeDefined()
-      expect(module.summarizeWithAI).toBeDefined()
-    })
-  })
-
   describe('Email Services', () => {
     it('should export email service', async () => {
       const module = await import('@/lib/email/emailService')
@@ -642,8 +626,6 @@ describe('Services Integration', () => {
         import('@/lib/notifications/pushService'),
         import('@/lib/notifications/premiumNotifications'),
         import('@/lib/notifications/sse'),
-        import('@/lib/ai/recommendations'),
-        import('@/lib/ai/summarize'),
         import('@/lib/email/emailService'),
         import('@/lib/email/providers/resendProvider'),
         import('@/lib/auth/authOptions'),

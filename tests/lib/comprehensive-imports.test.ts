@@ -47,8 +47,6 @@ const serviceModules = [
   'lib/notifications/pushService',
   'lib/notifications/premiumNotifications',
   'lib/notifications/sse',
-  'lib/ai/recommendations',
-  'lib/ai/summarize',
   'lib/email/emailService',
   'lib/email/providers/resendProvider',
   'lib/auth/authOptions',
@@ -126,7 +124,7 @@ const reducerModules = ['reducers/calendarReducer']
 describe('Comprehensive Module Imports - Phase 3', () => {
   describe('Service Layer (35 modules)', () => {
     it('should have service modules', () => {
-      expect(serviceModules.length).toBe(35)
+      expect(serviceModules.length).toBe(33)
       assertModules(serviceModules)
     })
 
@@ -251,7 +249,7 @@ describe('Comprehensive Module Imports - Phase 3', () => {
         hookModules.length +
         reducerModules.length
 
-      expect(total).toBe(76)
+      expect(total).toBe(74)
     })
   })
 

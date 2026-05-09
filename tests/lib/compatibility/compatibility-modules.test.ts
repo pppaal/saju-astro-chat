@@ -286,10 +286,3 @@ describe('Compatibility Graph', () => {
   });
 });
 
-describe('Compatibility Index', () => {
-  it('should export main functions from index', async () => {
-    const module = await import('@/lib/compatibility');
-
-    expect(module).toBeDefined();
-  });
-});
