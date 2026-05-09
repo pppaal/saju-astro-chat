@@ -68,9 +68,9 @@ import {
   getRulerOfSign,
   type DignityKind,
   type DignityResult,
-} from './dignities'
-import { aggregateAspectScore, scoreAspect, type ScoredAspect } from './aspectScoring'
-import { calculateChartBalance, type ChartBalance, type Element } from './balance'
+} from './foundation/dignities'
+import { aggregateAspectScore, scoreAspect, type ScoredAspect } from './foundation/aspectScoring'
+import { calculateChartBalance, type ChartBalance, type Element } from './foundation/balance'
 
 export type AstrologyDomain =
   | 'personality'

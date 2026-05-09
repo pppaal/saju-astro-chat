@@ -18,7 +18,7 @@
 // base type, then local modifiers (positions) tune the strength.
 
 import { getPairTone } from './dignities'
-import type { AstroPlanetName, AspectKind } from './interpretations'
+import type { AstroPlanetName, AspectKind } from '../interpretations'
 
 export interface ScoredAspect {
   fromPlanet: AstroPlanetName

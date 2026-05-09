@@ -2,7 +2,7 @@
 import { HouseSystem } from './types'
 import { formatLongitude, normalize360 } from './utils'
 import { getSwisseph } from './ephe'
-import { toAstroHouseId } from '../graphIds'
+import { toAstroHouseId } from './graphIds'
 
 export function calcHouses(
   ut_jd: number,

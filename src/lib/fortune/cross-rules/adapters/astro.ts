@@ -104,7 +104,7 @@ export type DignityStatus = 'domicile' | 'exaltation' | 'triplicity' | 'detrimen
 export function dignityOf(planet: string, sign: string): DignityStatus {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getEssentialDignity } = require('@/lib/astrology/dignities') as typeof import('@/lib/astrology/dignities')
+    const { getEssentialDignity } = require('@/lib/astrology/foundation/dignities') as typeof import('@/lib/astrology/foundation/dignities')
     const result = getEssentialDignity(
       planet as Parameters<typeof getEssentialDignity>[0],
       sign as Parameters<typeof getEssentialDignity>[1],

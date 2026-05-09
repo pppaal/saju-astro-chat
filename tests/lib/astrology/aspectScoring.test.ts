@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { scoreAspect, aggregateAspectScore } from '@/lib/astrology/aspectScoring'
+import { scoreAspect, aggregateAspectScore } from '@/lib/astrology/foundation/aspectScoring'
 
 describe('scoreAspect', () => {
   it('rates trine between Venus and Jupiter as strongly positive', () => {

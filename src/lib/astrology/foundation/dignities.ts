@@ -14,7 +14,7 @@
 // outer planets so callers can pick a flavour. Default uses the traditional
 // system for the seven visible planets and modern rulership for outer ones.
 
-import type { AstroPlanetName, ZodiacName } from './interpretations'
+import type { AstroPlanetName, ZodiacName } from '../interpretations'
 
 export type DignityKind =
   | 'rulership'

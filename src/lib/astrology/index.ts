@@ -385,16 +385,16 @@ export {
   getRulerOfSign,
   getPlanetTone,
   getPairTone,
-} from "./dignities";
-export type { DignityKind, DignityResult, PlanetTone } from "./dignities";
+} from "./foundation/dignities";
+export type { DignityKind, DignityResult, PlanetTone } from "./foundation/dignities";
 
-export { scoreAspect, aggregateAspectScore } from "./aspectScoring";
-export type { ScoredAspect } from "./aspectScoring";
+export { scoreAspect, aggregateAspectScore } from "./foundation/aspectScoring";
+export type { ScoredAspect } from "./foundation/aspectScoring";
 
-export { calculateChartBalance } from "./balance";
+export { calculateChartBalance } from "./foundation/balance";
 export type {
   ChartBalance,
   Element as ChartElement,
   Modality as ChartModality,
   Polarity as ChartPolarity,
-} from "./balance";
+} from "./foundation/balance";

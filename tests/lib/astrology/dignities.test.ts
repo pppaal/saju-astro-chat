@@ -5,7 +5,7 @@ import {
   getRulerOfSign,
   getPairTone,
   getPlanetTone,
-} from '@/lib/astrology/dignities'
+} from '@/lib/astrology/foundation/dignities'
 
 describe('getEssentialDignity', () => {
   it('returns rulership for canonical placements', () => {

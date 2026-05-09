@@ -4,7 +4,7 @@ import { formatLongitude } from './utils'
 import { calcHouses, inferHouseOf } from './houses'
 import { getSwisseph } from './ephe'
 import { getPlanetList, natalToJD, extractLongitudeSpeed } from './shared'
-import { toAstroHouseId, toAstroPlanetId, toAstroPointId } from '../graphIds'
+import { toAstroHouseId, toAstroPlanetId, toAstroPointId } from './graphIds'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 // --- 출생 차트 public API ---

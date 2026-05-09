@@ -10,7 +10,7 @@ dayjs.extend(timezone)
 import { getSwisseph } from './ephe'
 import { NatalInput, PlanetBase, House } from './types'
 import { formatLongitude, normalize360 } from './utils'
-import { toAstroPlanetId, toAstroPointId } from '../graphIds'
+import { toAstroPlanetId, toAstroPointId } from './graphIds'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 // ============================================================

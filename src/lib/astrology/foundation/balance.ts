@@ -5,7 +5,7 @@
 // with abstraction, all-fire chart burns out, etc. Used as one of the input
 // signals to the comprehensive report's domain scoring.
 
-import type { ZodiacName } from './interpretations'
+import type { ZodiacName } from '../interpretations'
 
 export type Element = 'fire' | 'earth' | 'air' | 'water'
 export type Modality = 'cardinal' | 'fixed' | 'mutable'
