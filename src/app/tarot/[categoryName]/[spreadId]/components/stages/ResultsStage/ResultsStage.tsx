@@ -1,19 +1,13 @@
-import React, { useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
 import styles from '../../../tarot-reading.module.css'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 import type { DeckStyle } from '@/lib/Tarot/tarot.types'
 import type { CardColor } from '../../../constants'
-import {
-  HorizontalCardsGrid,
-  DetailedCardsSection,
-  ActionButtons,
-} from '../../index'
+import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../index'
 import { ResultsHeader } from './ResultsHeader'
-import { CombinationsSection } from './CombinationsSection'
 import { GuidanceSection } from './GuidanceSection'
-import { FollowupSection } from './FollowupSection'
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -21,7 +15,6 @@ export interface ResultsStageProps {
   selectedColor: CardColor
   selectedDeckStyle: DeckStyle
   revealedCards: number[]
-  expandedCard: number | null
   detailedSectionRef: React.RefObject<HTMLDivElement | null>
   language: string
   translate: (key: string, fallback: string) => string
@@ -32,15 +25,12 @@ export interface ResultsStageProps {
   handleCardReveal: (index: number) => void
   canRevealCard: (index: number) => boolean
   isCardRevealed: (index: number) => boolean
-  scrollToDetails: () => void
-  toggleCardExpand: (index: number) => void
   isSaving: boolean
   isSaved: boolean
   saveMessage: string
   handleSaveReading: () => Promise<void>
   handleReset: () => void
 }
-
 
 export function ResultsStage(props: ResultsStageProps) {
   const {
@@ -49,7 +39,6 @@ export function ResultsStage(props: ResultsStageProps) {
     selectedColor,
     selectedDeckStyle,
     revealedCards,
-    expandedCard,
     detailedSectionRef,
     language,
     translate,
@@ -60,8 +49,6 @@ export function ResultsStage(props: ResultsStageProps) {
     handleCardReveal,
     canRevealCard,
     isCardRevealed,
-    scrollToDetails,
-    toggleCardExpand,
     isSaving,
     isSaved,
     saveMessage,
@@ -70,15 +57,11 @@ export function ResultsStage(props: ResultsStageProps) {
   } = props
 
   const insight = interpretation
-  const [showLayer2Cards, setShowLayer2Cards] = useState(false)
-
-  const handleCardSelect = (index: number) => {
-    setShowLayer2Cards(true)
-    if (expandedCard !== index) {
-      toggleCardExpand(index)
-    }
-    scrollToDetails()
-  }
+  const hasGuidance =
+    insight?.guidance &&
+    (Array.isArray(insight.guidance)
+      ? insight.guidance.length > 0
+      : insight.guidance.trim().length > 0)
 
   return (
     <div className={styles.resultsContainer}>
@@ -114,7 +97,6 @@ export function ResultsStage(props: ResultsStageProps) {
         onCardReveal={handleCardReveal}
         canRevealCard={canRevealCard}
         isCardRevealed={isCardRevealed}
-        onCardSelect={handleCardSelect}
         translate={translate}
       />
 
@@ -122,26 +104,21 @@ export function ResultsStage(props: ResultsStageProps) {
       {insight?.overall_message && (
         <section className={styles.quickAnswerPanel}>
           <div className={styles.quickAnswerTopRow}>
-            <div className={styles.quickAnswerHeader}>
-              {language === 'ko' ? '답변' : 'Answer'}
-            </div>
+            <div className={styles.quickAnswerHeader}>{language === 'ko' ? '답변' : 'Answer'}</div>
           </div>
           <p className={styles.quickAnswerConclusion}>{insight.overall_message}</p>
         </section>
       )}
 
-      {/* ④ 카드별 간단 설명 — LLM card_insights, 토글 없이 바로 */}
+      {/* ④ 카드별 정보 — 펼쳐보기 없이 전부 표시 */}
       <DetailedCardsSection
         readingResult={readingResult}
         interpretation={interpretation}
         language={language}
         selectedDeckStyle={selectedDeckStyle}
         revealedCards={revealedCards}
-        expandedCard={expandedCard}
-        onToggleExpand={toggleCardExpand}
         detailedSectionRef={detailedSectionRef}
         translate={translate}
-        mode="summary"
       />
 
       {insight?.fallback && (
@@ -159,29 +136,8 @@ export function ResultsStage(props: ResultsStageProps) {
         </div>
       )}
 
-      {/* ⑤ 더 자세히 보기 — guidance + combinations + followup (전부 LLM) */}
-      <details
-        className={styles.layer2Details}
-        open={showLayer2Cards}
-        onToggle={(event) => {
-          setShowLayer2Cards((event.currentTarget as HTMLDetailsElement).open)
-        }}
-      >
-        <summary className={styles.layer2Summary}>
-          {language === 'ko' ? '더 자세히 보기' : 'See Detailed Analysis'}
-        </summary>
-
-        {insight?.guidance &&
-          (Array.isArray(insight.guidance) ? insight.guidance.length > 0 : insight.guidance.trim().length > 0) && (
-            <GuidanceSection guidance={insight.guidance} language={language} />
-          )}
-        {insight?.combinations && insight.combinations.length > 0 && (
-          <CombinationsSection combinations={insight.combinations} translate={translate} />
-        )}
-        {insight?.followup_questions && insight.followup_questions.length > 0 && (
-          <FollowupSection questions={insight.followup_questions} translate={translate} />
-        )}
-      </details>
+      {/* ⑤ 조언 — LLM guidance, 토글 없이 마지막에 인라인 */}
+      {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
 
       {saveMessage && (
         <div className={styles.saveMessage} role="status" aria-live="polite">
