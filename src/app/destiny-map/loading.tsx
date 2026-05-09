@@ -1,5 +1,5 @@
-import { DestinyMapSkeleton } from "@/components/ui/DestinyMapSkeleton";
+import BrandSplash from '@/components/branding/BrandSplash'
 
 export default function Loading() {
-  return <DestinyMapSkeleton />;
+  return <BrandSplash />
 }

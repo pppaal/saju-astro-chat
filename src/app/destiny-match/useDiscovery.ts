@@ -51,6 +51,10 @@ export interface UseDiscoveryReturn {
   canUndo: boolean
   handleUndo: () => Promise<void>
 
+  // Match celebration (oracle modal on match success)
+  matchCelebration: { partner: UserProfile; connectionId: string } | null
+  dismissMatchCelebration: () => void
+
   // Callbacks
   loadProfiles: () => Promise<void>
   handleDragStart: (clientX: number, clientY: number) => void
@@ -92,6 +96,12 @@ export function useDiscovery({
   const [lastSwipeId, setLastSwipeId] = useState<string | null>(null)
   const [lastSwipeTime, setLastSwipeTime] = useState<number>(0)
   const canUndo = !!lastSwipeId && Date.now() - lastSwipeTime < 5 * 60 * 1000
+
+  // 매치 셀러브레이션 (오라클 모달)
+  const [matchCelebration, setMatchCelebration] = useState<
+    { partner: UserProfile; connectionId: string } | null
+  >(null)
+  const dismissMatchCelebration = useCallback(() => setMatchCelebration(null), [])
 
   const cardRef = useRef<HTMLDivElement>(null)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
@@ -162,7 +172,7 @@ export function useDiscovery({
   // 스와이프 API 호출
   const handleSwipeApi = useCallback(
     async (
-      profileId: string,
+      partner: UserProfile,
       action: 'like' | 'pass' | 'super_like',
       compatibilityScore?: number
     ) => {
@@ -171,7 +181,7 @@ export function useDiscovery({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            targetProfileId: profileId,
+            targetProfileId: partner.id,
             action,
             compatibilityScore,
           }),
@@ -192,9 +202,9 @@ export function useDiscovery({
           setLastSwipeId(null)
         }
 
-        // 매치 성사 시 알림
-        if (data.isMatch) {
-          alert('💕 매치 성사! 상대방도 당신을 좋아합니다!')
+        // 매치 성사 시 셀러브레이션 모달 (오라클 포함) 띄우기
+        if (data.isMatch && data.connectionId) {
+          setMatchCelebration({ partner, connectionId: data.connectionId })
         }
 
         return data
@@ -276,7 +286,7 @@ export function useDiscovery({
     }
     if (currentProfile) {
       // API 호출
-      await handleSwipeApi(currentProfile.id, 'like', currentProfile.compatibility)
+      await handleSwipeApi(currentProfile, 'like', currentProfile.compatibility)
       setLikedProfiles((prev) => [...prev, currentProfile.id])
       setCurrentIndex((prev) => prev + 1)
     }
@@ -289,7 +299,7 @@ export function useDiscovery({
     }
     if (currentProfile) {
       // API 호출
-      await handleSwipeApi(currentProfile.id, 'pass')
+      await handleSwipeApi(currentProfile, 'pass')
       setPassedProfiles((prev) => [...prev, currentProfile.id])
       setCurrentIndex((prev) => prev + 1)
     }
@@ -302,7 +312,7 @@ export function useDiscovery({
     }
     if (currentProfile) {
       // API 호출
-      await handleSwipeApi(currentProfile.id, 'super_like', currentProfile.compatibility)
+      await handleSwipeApi(currentProfile, 'super_like', currentProfile.compatibility)
       setLikedProfiles((prev) => [...prev, currentProfile.id])
       setCurrentIndex((prev) => prev + 1)
     }
@@ -387,6 +397,8 @@ export function useDiscovery({
     opacity,
     canUndo,
     handleUndo,
+    matchCelebration,
+    dismissMatchCelebration,
     loadProfiles,
     handleDragStart,
     handleDragMove,

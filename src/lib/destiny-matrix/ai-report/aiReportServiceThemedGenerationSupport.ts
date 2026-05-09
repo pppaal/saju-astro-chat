@@ -42,13 +42,13 @@ export async function generateThemedReportWithSupport(
     FORCE_REWRITE_ONLY_MODE,
     logger,
     buildNormalizedMatrixInput,
-    buildStructuredEvidence,
-    formatStructuredEvidenceForPrompt,
+    buildGraphRAGEvidence,
+    formatGraphRAGEvidenceForPrompt,
     buildDeterministicCore,
     runDestinyCore,
     adaptCoreToReport,
     buildTopMatchedPatterns,
-    buildEvidenceSummaryPayload,
+    buildGraphRagSummaryPayload,
     shouldUseDeterministicOnly,
     getThemedSectionKeys,
     buildProjectionFirstThemedSections,
@@ -116,15 +116,15 @@ export async function generateThemedReportWithSupport(
   const startTime = Date.now()
   const lang = options.lang || 'ko'
   const normalizedInput = buildNormalizedMatrixInput(input)
-  const structuredEvidence = buildStructuredEvidence(normalizedInput, matrixReport, {
+  const graphRagEvidence = buildGraphRAGEvidence(normalizedInput, matrixReport, {
     mode: 'themed',
     theme,
   })
-  const structuredEvidencePrompt = formatStructuredEvidenceForPrompt(structuredEvidence, lang)
+  const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
   const deterministicCore = buildDeterministicCore({
     matrixInput: normalizedInput,
     matrixReport,
-    graphEvidence: structuredEvidence,
+    graphEvidence: graphRagEvidence,
     userQuestion: options.userQuestion,
     lang,
     profile: options.deterministicProfile,
@@ -140,10 +140,10 @@ export async function generateThemedReportWithSupport(
   const signalSynthesis = coreSeed.signalSynthesis
   const strategyEngine = coreSeed.strategyEngine
   const topMatchedPatterns = buildTopMatchedPatterns(coreSeed.patterns)
-  const evidenceSummary = buildEvidenceSummaryPayload(
+  const graphRagSummary = buildGraphRagSummaryPayload(
     lang,
     matrixReport,
-    structuredEvidence,
+    graphRagEvidence,
     signalSynthesis,
     strategyEngine,
     reportCore
@@ -169,7 +169,7 @@ export async function generateThemedReportWithSupport(
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
-      structuredEvidence,
+      graphRagEvidence,
       timingData,
       birthDate: options.birthDate,
       sectionPaths,
@@ -340,8 +340,8 @@ export async function generateThemedReportWithSupport(
       themeLabel: themeMeta.label[lang],
       themeEmoji: themeMeta.emoji,
       sections: sections as unknown as ThemedReportSections,
-      structuredEvidence,
-      evidenceSummary,
+      graphRagEvidence,
+      graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
       deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
@@ -380,7 +380,7 @@ export async function generateThemedReportWithSupport(
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
-      structuredEvidence,
+      graphRagEvidence,
       timingData,
       birthDate: options.birthDate,
       sectionPaths,
@@ -519,8 +519,8 @@ export async function generateThemedReportWithSupport(
       themeLabel: themeMeta.label[lang],
       themeEmoji: themeMeta.emoji,
       sections: sections as unknown as ThemedReportSections,
-      structuredEvidence,
-      evidenceSummary,
+      graphRagEvidence,
+      graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
       deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
@@ -587,7 +587,6 @@ export async function generateThemedReportWithSupport(
     timingData,
     matrixSummary,
     undefined,
-    structuredEvidencePrompt,
     options.userQuestion,
     `${deterministicCore.promptBlock}${skeletonBlock}`,
     periodForPrompt,
@@ -837,7 +836,7 @@ export async function generateThemedReportWithSupport(
     matrixReport,
     matrixSummary: options.matrixSummary,
     signalSynthesis,
-    structuredEvidence,
+    graphRagEvidence,
     timingData,
     birthDate: options.birthDate,
     sectionPaths,
@@ -981,8 +980,8 @@ export async function generateThemedReportWithSupport(
     themeEmoji: themeMeta.emoji,
 
     sections: sections as unknown as ThemedReportSections,
-    structuredEvidence,
-    evidenceSummary,
+    graphRagEvidence,
+    graphRagSummary,
     evidenceRefs: themedEvidenceRefs,
     evidenceRefsByPara: unified.evidenceRefsByPara,
     deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),

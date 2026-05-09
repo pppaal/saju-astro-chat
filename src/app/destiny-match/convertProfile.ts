@@ -27,6 +27,7 @@ export function convertToUserProfile(profile: DiscoverProfile): UserProfile {
     compatibilityGrade: profile.compatibilityGrade,
     compatibilityEmoji: profile.compatibilityEmoji,
     compatibilityTagline: profile.compatibilityTagline,
+    synergy: profile.synergy,
     bio: profile.bio || '자기소개가 없습니다.',
     distance: profile.distance || 0,
     verified: profile.verified,

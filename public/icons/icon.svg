@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  DestinyPal master app icon.
+  Square 512×512. Designed to look correct as a Maskable icon —
+  the hex sits within the inner 80% safe zone (Android's mask cuts
+  the outer 10% on each side).
+
+  Source for /public/icons/icon-*.png — regenerate via
+  scripts/build-pwa-icons.mjs.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="dp-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#63d2ff" />
+      <stop offset="50%" stop-color="#a78bfa" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <radialGradient id="dp-halo" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.45" />
+      <stop offset="55%" stop-color="#7c3aed" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#06081a" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Solid background plate so the icon looks intentional on light home screens -->
+  <rect width="512" height="512" rx="96" ry="96" fill="#06081a" />
+
+  <!-- Soft halo glow -->
+  <circle cx="256" cy="256" r="220" fill="url(#dp-halo)" />
+
+  <!--
+    Hex mark. The HexDPLogo source uses points (32,5) (59,21) (59,51) (32,67) (5,51) (5,21)
+    on a 64×72 canvas. Scaled to 512: factor 8x, then translated +96/+76 so the
+    hex sits visually centred in the safe zone (the maskable safe zone is the
+    inner 80% — we keep all hex strokes well inside).
+  -->
+  <g transform="translate(96 76)">
+    <!-- Outer gradient hex -->
+    <polygon points="160,0 376,128 376,368 160,496 -56,368 -56,128"
+             fill="url(#dp-grad)" />
+    <!-- Inner dark plate -->
+    <polygon points="160,32 344,144 344,352 160,464 -24,352 -24,144"
+             fill="#06081a" />
+    <!-- "dp" wordmark in matching gradient -->
+    <text x="160" y="248"
+          text-anchor="middle"
+          dominant-baseline="central"
+          font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+          font-weight="800"
+          font-size="208"
+          letter-spacing="-0.03em"
+          fill="url(#dp-grad)">dp</text>
+  </g>
+</svg>

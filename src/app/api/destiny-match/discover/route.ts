@@ -7,6 +7,7 @@ import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/
 import { prisma } from '@/lib/db/prisma'
 import { getCompatibilitySummary } from '@/lib/destiny-match/quickCompatibility'
 import { quickPersonalityScore } from '@/lib/destiny-match/personalityCompatibility'
+import type { SynergyHighlight } from '@/lib/destiny-match/synergyHighlight'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
@@ -257,29 +258,34 @@ export const GET = withApiMiddleware(
     })
 
     // 2단계: 배치로 궁합 점수 계산 (N+1 방지)
+    const myBirthDate = myProfile.user.profile?.birthDate
+    const myZodiacSign = getZodiacSign(myBirthDate ?? null)
     const compatibilityPromises = filteredProfiles.slice(0, limit * 2).map(async (profile) => {
       let compatibilityScore = 75
       let compatibilityGrade = 'B'
       let compatibilityEmoji = '✨'
       let compatibilityTagline = '좋은 궁합'
       let sajuScore = 75
+      let synergy: SynergyHighlight = { saju: null, astro: null }
 
       // 사주/별자리 기반 궁합 (Redis 캐싱)
-      const myBirthDate = myProfile.user.profile?.birthDate
       const profileBirthDate = profile.user.profile?.birthDate
+      const profileZodiacSign = getZodiacSign(profileBirthDate ?? null)
       if (myBirthDate && profileBirthDate) {
         try {
           // 캐시 키: 두 사람의 생년월일+시간 조합 (순서 정규화)
+          // v2: payload now includes `synergy` highlight
           const person1Key = `${myBirthDate}:${myProfile.user.profile?.birthTime || 'unknown'}:${myProfile.user.profile?.gender || 'unknown'}`
           const person2Key = `${profileBirthDate}:${profile.user.profile?.birthTime || 'unknown'}:${profile.user.profile?.gender || 'unknown'}`
           const sortedKeys = [person1Key, person2Key].sort()
-          const compatCacheKey = `compatibility:v1:${sortedKeys[0]}:${sortedKeys[1]}`
+          const compatCacheKey = `compatibility:v2:${sortedKeys[0]}:${sortedKeys[1]}`
 
           const cachedSummary = await cacheGet<{
             score: number
             grade: string
             emoji: string
             tagline: string
+            synergy: SynergyHighlight
           }>(compatCacheKey)
 
           let summary
@@ -296,7 +302,8 @@ export const GET = withApiMiddleware(
                 birthDate: profileBirthDate,
                 birthTime: profile.user.profile?.birthTime || undefined,
                 gender: profile.user.profile?.gender || undefined,
-              }
+              },
+              { zodiac1: myZodiacSign, zodiac2: profileZodiacSign },
             )
             // 7일간 캐싱 (사주는 불변)
             await cacheSet(compatCacheKey, summary, CACHE_TTL.COMPATIBILITY)
@@ -306,6 +313,7 @@ export const GET = withApiMiddleware(
           compatibilityGrade = summary.grade
           compatibilityEmoji = summary.emoji
           compatibilityTagline = summary.tagline
+          synergy = summary.synergy ?? { saju: null, astro: null }
         } catch (e) {
           logger.warn('[discover] Compatibility calc failed:', { e })
         }
@@ -346,6 +354,7 @@ export const GET = withApiMiddleware(
         compatibilityGrade,
         compatibilityEmoji,
         compatibilityTagline,
+        synergy,
       }
     })
 
@@ -361,6 +370,7 @@ export const GET = withApiMiddleware(
       compatibilityGrade,
       compatibilityEmoji,
       compatibilityTagline,
+      synergy,
     } of compatibilityResults) {
       const age = calculateAge(profile.user.profile?.birthDate ?? null)
 
@@ -410,6 +420,7 @@ export const GET = withApiMiddleware(
         compatibilityGrade,
         compatibilityEmoji,
         compatibilityTagline,
+        synergy,
         lastActiveAt: profile.lastActiveAt,
       })
 

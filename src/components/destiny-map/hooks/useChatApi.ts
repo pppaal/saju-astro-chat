@@ -211,7 +211,7 @@ export function useChatApi({
       logger.debug(`[Chat] Request started (attempt ${attempt + 1})`)
 
       try {
-        const res = await fetch('/api/destiny-map/chat-stream', {
+        const res = await fetch('/api/counselor/realtime', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

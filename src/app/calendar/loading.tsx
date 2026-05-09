@@ -1,7 +1,5 @@
-import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
-import { detectServerLocale } from '@/i18n/server'
+import BrandSplash from '@/components/branding/BrandSplash'
 
-export default async function Loading() {
-  const locale = await detectServerLocale()
-  return <UnifiedServiceLoading kind="calendar" locale={locale} />
+export default function Loading() {
+  return <BrandSplash />
 }

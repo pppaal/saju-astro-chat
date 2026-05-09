@@ -242,7 +242,6 @@ export function buildAIPrompt(
   const sectionInstructions = getSectionInstructions(lang)
   const questionIntentInstruction = buildQuestionIntentInstruction(options.userQuestion, lang)
   const deterministicCorePrompt = options.deterministicCorePrompt?.trim()
-  const structuredEvidencePrompt = options.structuredEvidencePrompt?.trim()
   const age = inferCurrentAge(options.birthDate)
   const lifeCyclePrompt = age !== null ? buildLifeCyclePromptBlock(age, lang) : ''
   const schemaTheme =
@@ -312,7 +311,6 @@ ${profileInfo}
 ## 매트릭스 분석 결과
 ${matrixSummary}
 
-${structuredEvidencePrompt ? `## Evidence 근거 앵커\n${structuredEvidencePrompt}\n` : ''}
 ${themeSchemaPrompt ? `${themeSchemaPrompt}\n` : ''}
 ${lifeCyclePrompt ? `${lifeCyclePrompt}\n` : ''}
 ${deterministicCorePrompt ? `${deterministicCorePrompt}\n` : ''}
@@ -336,7 +334,6 @@ ${profileInfo}
 ## Matrix Analysis Results
 ${matrixSummary}
 
-${structuredEvidencePrompt ? `## Evidence Evidence Anchors\n${structuredEvidencePrompt}\n` : ''}
 ${themeSchemaPrompt ? `${themeSchemaPrompt}\n` : ''}
 ${lifeCyclePrompt ? `${lifeCyclePrompt}\n` : ''}
 ${deterministicCorePrompt ? `${deterministicCorePrompt}\n` : ''}

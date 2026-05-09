@@ -17,6 +17,7 @@ import {
   StatusScreens,
   NoMoreCards,
   KeyboardShortcuts,
+  MatchCelebrationModal,
 } from './components'
 
 export default function DestinyMatchPage() {
@@ -56,6 +57,8 @@ export default function DestinyMatchPage() {
     handleSuperLike,
     canUndo,
     handleUndo,
+    matchCelebration,
+    dismissMatchCelebration,
   } = useDiscovery({ session, status, router, signInUrl })
 
   // Determine if a status screen should be shown instead of main content
@@ -272,6 +275,16 @@ export default function DestinyMatchPage() {
           onLike={handleLike}
           onPass={handlePass}
           styles={styles}
+        />
+      )}
+
+      {/* Match Celebration + Oracle */}
+      {matchCelebration && (
+        <MatchCelebrationModal
+          partner={matchCelebration.partner}
+          connectionId={matchCelebration.connectionId}
+          styles={styles}
+          onClose={dismissMatchCelebration}
         />
       )}
     </div>

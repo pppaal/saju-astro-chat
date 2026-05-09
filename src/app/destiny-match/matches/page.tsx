@@ -9,6 +9,7 @@ import styles from '../DestinyMatch.module.css'
 import { ShareButton } from '@/components/share/ShareButton'
 import { generateDestinyMatchCard } from '@/components/share/cards/DestinyMatchCard'
 import { logger } from '@/lib/logger'
+import { MatchOracleView } from '../components/MatchOracleView'
 
 type MatchedPartner = {
   profileId: string
@@ -42,6 +43,7 @@ export default function DestinyMatchesPage() {
   const [loading, setLoading] = useState(true)
   const [matches, setMatches] = useState<Match[]>([])
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
+  const [oracleMatch, setOracleMatch] = useState<Match | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -317,6 +319,17 @@ export default function DestinyMatchesPage() {
                 >
                   💬 메시지 보내기
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOracleMatch(selectedMatch)
+                    setSelectedMatch(null)
+                  }}
+                  className={`${styles.modalButton} ${styles.modalLikeButton}`}
+                  style={{ background: 'linear-gradient(135deg, #f59e0b, #8b5cf6)' }}
+                >
+                  🔮 오라클: 카드 + 택일
+                </button>
                 <Link
                   href={`/tarot/couple?connectionId=${selectedMatch.connectionId}`}
                   className={`${styles.modalButton} ${styles.modalLikeButton}`}
@@ -337,6 +350,31 @@ export default function DestinyMatchesPage() {
                   매치 해제
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Oracle Modal (tarot + 택일) */}
+      {oracleMatch && (
+        <div className={styles.modal} onClick={() => setOracleMatch(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className={styles.modalClose}
+              onClick={() => setOracleMatch(null)}
+              aria-label="닫기"
+            >
+              ✕
+            </button>
+            <div style={{ padding: '1rem' }}>
+              <h2 className={styles.modalName}>
+                🔮 {oracleMatch.partner.displayName}님과의 운명
+              </h2>
+              <MatchOracleView
+                connectionId={oracleMatch.connectionId}
+                styles={styles}
+              />
             </div>
           </div>
         </div>
