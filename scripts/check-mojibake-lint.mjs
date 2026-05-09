@@ -16,6 +16,9 @@ const SKIP_FILES = new Set([
   path.normalize('src/lib/destiny-matrix/ai-report/signalSynthesizerClaimsSupport.ts'),
   path.normalize('src/lib/destiny-matrix/core/adaptersPersonModelEventSupport.ts'),
   path.normalize('src/lib/destiny-matrix/core/adaptersPersonModelProfileSupport.ts'),
+  // Mojibake repair lib + guard intentionally use U+FFFD as a literal/match target.
+  path.normalize('src/lib/text/mojibake.ts'),
+  path.normalize('src/app/api/calendar/lib/calendarMatrixEvidenceSupport.ts'),
 ])
 
 const SUSPICIOUS_PATTERNS = [
