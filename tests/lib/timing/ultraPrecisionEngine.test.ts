@@ -21,7 +21,7 @@ import {
   getQuickMinuteScore,
   type UltraPrecisionScore,
   type FiveElement,
-} from '@/lib/prediction/ultraPrecisionEngine';
+} from '@/lib/timing/ultraPrecisionEngine';
 
 // ============================================================
 // 일진(日辰) 계산 테스트

@@ -52,7 +52,7 @@ vi.mock('@/lib/destiny-map/type-guards', () => ({
   toSajuDataStructure: vi.fn((data: unknown) => data),
 }))
 
-vi.mock('@/lib/prediction/utils', () => ({
+vi.mock('@/lib/timing/utils', () => ({
   parseDateComponents: vi.fn(() => ({ year: 1990, month: 1, day: 1 })),
   parseTimeComponents: vi.fn(() => ({ hour: 12, minute: 0 })),
 }))

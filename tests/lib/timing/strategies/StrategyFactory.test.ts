@@ -4,10 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { EventTimingStrategyFactory } from '@/lib/prediction/strategies/StrategyFactory';
-import { MarriageStrategy } from '@/lib/prediction/strategies/MarriageStrategy';
-import { CareerStrategy } from '@/lib/prediction/strategies/CareerStrategy';
-import { InvestmentStrategy } from '@/lib/prediction/strategies/InvestmentStrategy';
+import { EventTimingStrategyFactory } from '@/lib/timing/strategies/StrategyFactory';
+import { MarriageStrategy } from '@/lib/timing/strategies/MarriageStrategy';
+import { CareerStrategy } from '@/lib/timing/strategies/CareerStrategy';
+import { InvestmentStrategy } from '@/lib/timing/strategies/InvestmentStrategy';
 import {
   RelationshipStrategy,
   MoveStrategy,
@@ -16,7 +16,7 @@ import {
   BusinessStrategy,
   TravelStrategy,
   SurgeryStrategy,
-} from '@/lib/prediction/strategies/OtherStrategies';
+} from '@/lib/timing/strategies/OtherStrategies';
 
 describe('EventTimingStrategyFactory', () => {
   describe('getStrategy', () => {

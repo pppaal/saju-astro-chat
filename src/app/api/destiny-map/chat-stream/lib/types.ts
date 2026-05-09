@@ -1,7 +1,7 @@
 // src/app/api/destiny-map/chat-stream/lib/types.ts
 // Type definitions for chat-stream API
 
-import type { FiveElement } from '@/lib/prediction/timingScore'
+import type { FiveElement } from '@/lib/timing/timingScore'
 import type { ChatMessage } from '@/lib/api/validator'
 
 export type { ChatMessage }

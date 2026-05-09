@@ -114,7 +114,7 @@ describe('Utils & Helpers Smoke Tests', () => {
 
   describe('Life Prediction Constants (1)', () => {
     it('should import life prediction constants', async () => {
-      const constants = await import('@/lib/prediction/life-prediction/constants');
+      const constants = await import('@/lib/timing/life-prediction/constants');
 
       expect(constants).toBeDefined();
       expect(Object.keys(constants).length).toBeGreaterThan(0);
@@ -147,7 +147,7 @@ describe('Utils & Helpers Smoke Tests', () => {
         import('@/lib/numerology/utils'),
 
         // Life Prediction (1)
-        import('@/lib/prediction/life-prediction/constants'),
+        import('@/lib/timing/life-prediction/constants'),
       ]);
 
       expect(utils.length).toBe(15);

@@ -9,7 +9,7 @@ import {
   scoreToGrade,
   getGradeLabel,
   calculateWeightedAverage,
-} from '@/lib/prediction/utils/scoring-utils';
+} from '@/lib/timing/utils/scoring-utils';
 
 describe('normalizeScore', () => {
   it('should return score within default range (0-100)', () => {

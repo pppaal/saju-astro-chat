@@ -11,7 +11,7 @@ import {
 import type { SajuDataStructure } from '@/app/api/destiny-map/chat-stream/lib/types'
 
 // Mock the ultraPrecisionEngine
-vi.mock('@/lib/prediction/ultraPrecisionEngine', () => ({
+vi.mock('@/lib/timing/ultraPrecisionEngine', () => ({
   analyzeGongmang: vi.fn((dayStem: string, dayBranch: string, todayBranch: string) => ({
     isToday空: todayBranch === '午',
     emptyBranches: ['午', '未'],

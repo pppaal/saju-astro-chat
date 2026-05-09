@@ -12,9 +12,9 @@ import {
   BusinessStrategy,
   TravelStrategy,
   SurgeryStrategy,
-} from '@/lib/prediction/strategies/OtherStrategies';
-import type { ScoringContext, ScoreResult } from '@/lib/prediction/strategies/types';
-import { EVENT_SCORING } from '@/lib/prediction/constants/scoring';
+} from '@/lib/timing/strategies/OtherStrategies';
+import type { ScoringContext, ScoreResult } from '@/lib/timing/strategies/types';
+import { EVENT_SCORING } from '@/lib/timing/constants/scoring';
 
 const createBaseContext = (overrides: Partial<ScoringContext> = {}): ScoringContext => ({
   year: 2024,

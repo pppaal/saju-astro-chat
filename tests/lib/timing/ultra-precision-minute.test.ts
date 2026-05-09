@@ -4,14 +4,14 @@ import {
   findOptimalMinutes,
   analyzeDayTimeSlots,
   getQuickMinuteScore,
-} from '@/lib/prediction/ultra-precision-minute';
+} from '@/lib/timing/ultra-precision-minute';
 
 // Mock dependencies
-vi.mock('@/lib/prediction/advancedTimingEngine', () => ({
+vi.mock('@/lib/timing/advancedTimingEngine', () => ({
   analyzeBranchInteractions: vi.fn(),
 }));
 
-vi.mock('@/lib/prediction/index', () => ({
+vi.mock('@/lib/timing/index', () => ({
   scoreToGrade: vi.fn((score: number) => {
     if (score >= 80) return 'S';
     if (score >= 70) return 'A';
@@ -21,11 +21,11 @@ vi.mock('@/lib/prediction/index', () => ({
   }),
 }));
 
-vi.mock('@/lib/prediction/utils/scoring-utils', () => ({
+vi.mock('@/lib/timing/utils/scoring-utils', () => ({
   normalizeScore: vi.fn((score: number) => Math.max(0, Math.min(100, score))),
 }));
 
-vi.mock('@/lib/prediction/precisionEngine', () => ({
+vi.mock('@/lib/timing/precisionEngine', () => ({
   PrecisionEngine: {
     getLunarPhaseName: vi.fn((phase: string) => {
       const names: Record<string, string> = {
@@ -47,13 +47,13 @@ vi.mock('@/lib/prediction/precisionEngine', () => ({
   calculatePlanetaryHours: vi.fn(),
 }));
 
-import { analyzeBranchInteractions } from '@/lib/prediction/advancedTimingEngine';
+import { analyzeBranchInteractions } from '@/lib/timing/advancedTimingEngine';
 import {
   getSolarTermForDate,
   getLunarMansion,
   getLunarPhase,
   calculatePlanetaryHours,
-} from '@/lib/prediction/precisionEngine';
+} from '@/lib/timing/precisionEngine';
 
 describe('ultra-precision-minute', () => {
   beforeEach(() => {

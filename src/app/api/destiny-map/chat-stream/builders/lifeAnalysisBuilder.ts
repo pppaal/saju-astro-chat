@@ -11,9 +11,9 @@ import {
   findOptimalEventTiming,
   type LifePredictionInput,
   type EventType,
-} from '@/lib/prediction/lifePredictionEngine';
-import { generateEventTimingPromptContext } from '@/lib/prediction/prompt-contexts';
-import { extractBirthYear, extractBirthMonth, extractBirthDay } from '@/lib/prediction/utils';
+} from '@/lib/timing/lifePredictionEngine';
+import { generateEventTimingPromptContext } from '@/lib/timing/prompt-contexts';
+import { extractBirthYear, extractBirthMonth, extractBirthDay } from '@/lib/timing/utils';
 import { logger } from '@/lib/logger';
 import type { SajuDataStructure, AstroDataStructure } from '../lib/types';
 import { extractAllStemsAndBranches } from '../helpers/pillarExtractors';

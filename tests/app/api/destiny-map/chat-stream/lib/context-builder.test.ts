@@ -27,7 +27,7 @@ vi.mock('@/lib/destiny-map/prompt/fortune/base', () => ({
   buildAllDataPrompt: vi.fn(() => 'mock-v3-snapshot'),
 }))
 
-vi.mock('@/lib/prediction/utils', () => ({
+vi.mock('@/lib/timing/utils', () => ({
   extractBirthYear: vi.fn(() => 1990),
 }))
 

@@ -18,7 +18,7 @@ vi.mock('@/lib/api/middleware', () => ({
   ErrorCodes: { BAD_REQUEST: 'BAD_REQUEST' },
 }))
 
-vi.mock('@/lib/prediction/ultra-precision-daily', () => ({
+vi.mock('@/lib/timing/ultra-precision-daily', () => ({
   calculateDailyPillar: vi.fn(() => ({ stem: '갑', branch: '자' })),
   generateHourlyAdvice: vi.fn(() =>
     Array.from({ length: 24 }, () => ({

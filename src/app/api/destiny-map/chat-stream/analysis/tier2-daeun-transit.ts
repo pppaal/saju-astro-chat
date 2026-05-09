@@ -5,7 +5,7 @@ import {
   convertSajuDaeunToInfo,
   analyzeDaeunTransitSync,
   type DaeunInfo,
-} from "@/lib/prediction/daeunTransitSync";
+} from "@/lib/timing/daeunTransitSync";
 import { logger } from "@/lib/logger";
 
 export interface Tier2AnalysisInput {

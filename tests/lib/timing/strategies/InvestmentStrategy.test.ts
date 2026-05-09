@@ -4,9 +4,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { InvestmentStrategy } from '@/lib/prediction/strategies/InvestmentStrategy';
-import type { ScoringContext, ScoreResult } from '@/lib/prediction/strategies/types';
-import { EVENT_SCORING } from '@/lib/prediction/constants/scoring';
+import { InvestmentStrategy } from '@/lib/timing/strategies/InvestmentStrategy';
+import type { ScoringContext, ScoreResult } from '@/lib/timing/strategies/types';
+import { EVENT_SCORING } from '@/lib/timing/constants/scoring';
 
 describe('InvestmentStrategy', () => {
   const strategy = new InvestmentStrategy();

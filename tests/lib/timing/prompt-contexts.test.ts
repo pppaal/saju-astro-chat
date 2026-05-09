@@ -8,7 +8,7 @@ import {
   generateLifePredictionPromptContext,
   generateEventTimingPromptContext,
   generatePastAnalysisPromptContext,
-} from '@/lib/prediction/prompt-contexts';
+} from '@/lib/timing/prompt-contexts';
 
 describe('prompt-contexts', () => {
   describe('generateLifePredictionPromptContext', () => {

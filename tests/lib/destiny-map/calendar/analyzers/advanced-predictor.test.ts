@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/prediction/ultraPrecisionEngine', () => ({
+vi.mock('@/lib/timing/ultraPrecisionEngine', () => ({
   calculateDailyPillar: vi.fn(() => ({
     stem: '甲',
     branch: '子',
@@ -35,7 +35,7 @@ vi.mock('@/lib/prediction/ultraPrecisionEngine', () => ({
   ]),
 }));
 
-vi.mock('@/lib/prediction/daeunTransitSync', () => ({
+vi.mock('@/lib/timing/daeunTransitSync', () => ({
   analyzeDaeunTransitSync: vi.fn(() => ({
     majorTransitions: [],
   })),
@@ -49,10 +49,10 @@ import {
   analyzeShinsal,
   analyzeEnergyFlow,
   generateHourlyAdvice,
-} from '@/lib/prediction/ultraPrecisionEngine';
+} from '@/lib/timing/ultraPrecisionEngine';
 import {
   analyzeDaeunTransitSync,
-} from '@/lib/prediction/daeunTransitSync';
+} from '@/lib/timing/daeunTransitSync';
 
 describe('advanced-predictor', () => {
   beforeEach(() => {

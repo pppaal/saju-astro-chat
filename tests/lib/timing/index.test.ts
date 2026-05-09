@@ -10,7 +10,7 @@ import {
   gradeToMinScore,
   type PredictionGrade,
   type StandardizedScore,
-} from '@/lib/prediction/index';
+} from '@/lib/timing/index';
 
 describe('Prediction Score System', () => {
   describe('standardizeScore', () => {

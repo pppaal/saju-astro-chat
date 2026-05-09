@@ -10,7 +10,7 @@ import {
 } from '@/app/api/destiny-map/chat-stream/analysis/tier2-daeun-transit'
 
 // Mock dependencies
-vi.mock('@/lib/prediction/daeunTransitSync', () => ({
+vi.mock('@/lib/timing/daeunTransitSync', () => ({
   convertSajuDaeunToInfo: vi.fn((data: unknown[]) => {
     if (!data || data.length === 0) return []
     return [
@@ -317,7 +317,7 @@ describe('Tier2 Daeun-Transit Analysis', () => {
     })
 
     it('should handle errors gracefully', async () => {
-      const { convertSajuDaeunToInfo } = await import('@/lib/prediction/daeunTransitSync')
+      const { convertSajuDaeunToInfo } = await import('@/lib/timing/daeunTransitSync')
       vi.mocked(convertSajuDaeunToInfo).mockImplementationOnce(() => {
         throw new Error('Test error')
       })
@@ -518,7 +518,7 @@ describe('Tier2 Daeun-Transit Analysis', () => {
     })
 
     it('should handle empty arrays in syncAnalysis', async () => {
-      const { analyzeDaeunTransitSync } = await import('@/lib/prediction/daeunTransitSync')
+      const { analyzeDaeunTransitSync } = await import('@/lib/timing/daeunTransitSync')
       vi.mocked(analyzeDaeunTransitSync).mockReturnValueOnce({
         lifeCyclePattern: '안정기',
         overallConfidence: 50,

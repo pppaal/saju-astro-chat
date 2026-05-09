@@ -9,7 +9,7 @@ import {
   findDaeunForAge,
   getDaeunGanji,
   type DaeunCycle,
-} from '@/lib/prediction/utils/ganji-helpers';
+} from '@/lib/timing/utils/ganji-helpers';
 
 describe('calculateYearMonthGanji', () => {
   it('should return yearGanji and monthGanji objects', () => {

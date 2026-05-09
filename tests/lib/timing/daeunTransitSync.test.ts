@@ -13,7 +13,7 @@ import {
   type TransitInfo,
   type SyncPoint,
   type LifeSyncAnalysis,
-} from "@/lib/prediction/daeunTransitSync";
+} from "@/lib/timing/daeunTransitSync";
 
 describe("analyzeDaeunTransitSync", () => {
   const createDaeunList = (): DaeunInfo[] => [

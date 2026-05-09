@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   getStemElement,
   getPlanetaryHourPlanet,
-} from '@/lib/prediction/ultra-precision-helpers';
+} from '@/lib/timing/ultra-precision-helpers';
 
 describe('ultra-precision-helpers', () => {
   describe('getStemElement', () => {

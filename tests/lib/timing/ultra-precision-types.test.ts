@@ -14,7 +14,7 @@ import type {
   EnergyFlowAnalysis,
   TonggeunResult,
   TuechulResult,
-} from '@/lib/prediction/ultra-precision-types';
+} from '@/lib/timing/ultra-precision-types';
 
 describe('Ultra Precision Types', () => {
   describe('FiveElement type', () => {

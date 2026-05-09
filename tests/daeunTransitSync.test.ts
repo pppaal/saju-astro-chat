@@ -7,7 +7,7 @@ import {
   convertSajuDaeunToInfo,
   generateDaeunTransitPromptContext,
   type DaeunInfo,
-} from '@/lib/prediction/daeunTransitSync';
+} from '@/lib/timing/daeunTransitSync';
 
 // 테스트용 대운 데이터 생성
 function createTestDaeunList(): DaeunInfo[] {

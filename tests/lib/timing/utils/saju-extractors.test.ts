@@ -8,7 +8,7 @@ import {
   extractPillarData,
   extractAllStems,
   extractAllBranches,
-} from '@/lib/prediction/utils/saju-extractors';
+} from '@/lib/timing/utils/saju-extractors';
 
 describe('saju-extractors', () => {
   describe('extractPillarData', () => {

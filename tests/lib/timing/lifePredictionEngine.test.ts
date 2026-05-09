@@ -16,7 +16,7 @@ import {
   type LifePredictionInput,
   type DaeunInfo,
   type EventType,
-} from '@/lib/prediction/lifePredictionEngine';
+} from '@/lib/timing/lifePredictionEngine';
 
 // ============================================================
 // 테스트 데이터 헬퍼

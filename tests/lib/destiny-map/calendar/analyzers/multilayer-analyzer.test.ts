@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/prediction/advancedTimingEngine', () => ({
+vi.mock('@/lib/timing/advancedTimingEngine', () => ({
   analyzeMultiLayer: vi.fn(() => ({
     interactions: [
       { scoreModifier: 10 },
@@ -37,7 +37,7 @@ import { analyzeMultiLayer } from '@/lib/destiny-map/calendar/analyzers/multilay
 import {
   analyzeMultiLayer as analyzeMultiLayerImport,
   calculatePreciseTwelveStage,
-} from '@/lib/prediction/advancedTimingEngine';
+} from '@/lib/timing/advancedTimingEngine';
 
 describe('multilayer-analyzer', () => {
   beforeEach(() => {

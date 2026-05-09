@@ -88,7 +88,7 @@ describe('Types Smoke Tests', () => {
     });
 
     it('should import life prediction types', async () => {
-      const types = await import('@/lib/prediction/life-prediction/types');
+      const types = await import('@/lib/timing/life-prediction/types');
 
       expect(types).toBeDefined();
     });
@@ -125,7 +125,7 @@ describe('Types Smoke Tests', () => {
         import('@/lib/i18n/types'),
         import('@/lib/icp/types'),
         import('@/lib/persona/types'),
-        import('@/lib/prediction/life-prediction/types'),
+        import('@/lib/timing/life-prediction/types'),
         import('@/lib/Saju/types'),
         import('@/lib/Tarot/tarot.types'),
       ]);

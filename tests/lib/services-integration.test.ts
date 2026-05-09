@@ -317,14 +317,14 @@ describe('Services Integration', () => {
 
   describe('Prediction Services', () => {
     it('should export daeun transit sync helpers', async () => {
-      const module = await import('@/lib/prediction/daeunTransitSync')
+      const module = await import('@/lib/timing/daeunTransitSync')
 
       expect(module.analyzeDaeunTransitSync).toBeDefined()
       expect(typeof module.analyzeDaeunTransitSync).toBe('function')
     })
 
     it('should export tier 7-10 analysis helpers', async () => {
-      const module = await import('@/lib/prediction/tier7To10Analysis')
+      const module = await import('@/lib/timing/tier7To10Analysis')
 
       expect(module.calculateTier7To10Bonus).toBeDefined()
       expect(typeof module.calculateTier7To10Bonus).toBe('function')
@@ -634,8 +634,8 @@ describe('Services Integration', () => {
         import('@/lib/credits/withCredits'),
         import('@/lib/consultation/saveConsultation'),
         import('@/lib/referral/referralService'),
-        import('@/lib/prediction/daeunTransitSync'),
-        import('@/lib/prediction/tier7To10Analysis'),
+        import('@/lib/timing/daeunTransitSync'),
+        import('@/lib/timing/tier7To10Analysis'),
         import('@/lib/weeklyFortune'),
         import('@/lib/userProfile'),
         import('@/lib/metrics'),

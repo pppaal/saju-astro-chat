@@ -16,7 +16,7 @@ import {
   analyzeTuechul,
   analyzeEnergyFlow,
   generateHourlyAdvice,
-} from '@/lib/prediction/ultra-precision-daily'
+} from '@/lib/timing/ultra-precision-daily'
 
 import {
   STEMS,
@@ -25,10 +25,10 @@ import {
   BRANCH_MEANINGS,
   SIBSIN_SCORES,
   SHINSAL_RULES,
-} from '@/lib/prediction/ultra-precision-constants'
+} from '@/lib/timing/ultra-precision-constants'
 
 // Mock dependencies
-vi.mock('@/lib/prediction/advancedTimingEngine', () => ({
+vi.mock('@/lib/timing/advancedTimingEngine', () => ({
   calculatePreciseTwelveStage: vi.fn((stem: string, branch: string) => ({
     stage: '장생',
     score: 75,
@@ -46,11 +46,11 @@ vi.mock('@/lib/prediction/advancedTimingEngine', () => ({
   calculateSibsin: vi.fn(() => '정관'),
 }))
 
-vi.mock('@/lib/prediction/utils/scoring-utils', () => ({
+vi.mock('@/lib/timing/utils/scoring-utils', () => ({
   normalizeScore: vi.fn((score: number) => Math.max(0, Math.min(100, score))),
 }))
 
-vi.mock('@/lib/prediction/ultra-precision-helpers', () => ({
+vi.mock('@/lib/timing/ultra-precision-helpers', () => ({
   getStemElement: vi.fn((stem: string) => {
     const map: Record<string, string> = {
       甲: '목',

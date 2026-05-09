@@ -10,7 +10,7 @@ import {
   BRANCH_MEANINGS,
   SIBSIN_SCORES,
   SHINSAL_RULES,
-} from '@/lib/prediction/ultra-precision-constants';
+} from '@/lib/timing/ultra-precision-constants';
 
 describe('Ultra Precision Constants', () => {
   describe('STEMS (천간)', () => {

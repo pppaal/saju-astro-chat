@@ -362,7 +362,7 @@ export const GET = withApiMiddleware(
       transit: transitData,
       hourlyTimeSlots: await (async () => {
         try {
-          const { analyzeDayTimeSlots } = await import('@/lib/prediction/ultra-precision-minute')
+          const { analyzeDayTimeSlots } = await import('@/lib/timing/ultra-precision-minute')
           const slots = analyzeDayTimeSlots(
             new Date(date + 'T00:00:00'),
             dayMasterStem,
@@ -381,7 +381,7 @@ export const GET = withApiMiddleware(
         if (!natalContext?.yongsin?.primary) return undefined
         try {
           const { findYongsinActivationPeriods } = await import(
-            '@/lib/prediction/specificDateEngine'
+            '@/lib/timing/specificDateEngine'
           )
           // Look forward 60 days from the selected date and return the
           // top 5 strongest 용신 activation days. "이번 60일 안에 너의
@@ -410,7 +410,7 @@ export const GET = withApiMiddleware(
       })(),
       lunarMansion: await (async () => {
         try {
-          const { getLunarMansion } = await import('@/lib/prediction/modules/lunarMansions')
+          const { getLunarMansion } = await import('@/lib/timing/modules/lunarMansions')
           const dateObj = new Date(date + 'T00:00:00')
           const lm = getLunarMansion(dateObj)
           return {

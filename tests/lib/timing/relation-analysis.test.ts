@@ -5,11 +5,11 @@ import {
   analyzeMultiLayerInteraction,
   analyzeDaeunTransition,
   generateEnergyRecommendations,
-} from '@/lib/prediction/life-prediction/relation-analysis';
-import type { LifePredictionInput, DaeunInfo, PreciseTwelveStage } from '@/lib/prediction/life-prediction/types';
+} from '@/lib/timing/life-prediction/relation-analysis';
+import type { LifePredictionInput, DaeunInfo, PreciseTwelveStage } from '@/lib/timing/life-prediction/types';
 
 // Mock advancedTimingEngine
-vi.mock('@/lib/prediction/advancedTimingEngine', () => ({
+vi.mock('@/lib/timing/advancedTimingEngine', () => ({
   calculateYearlyGanji: vi.fn((year: number) => {
     // Different years return different ganji for testing
     const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];

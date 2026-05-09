@@ -12,7 +12,7 @@ import {
   toChart,
 } from '@/lib/astrology'
 import { toSajuDataStructure } from '@/lib/destiny-map/type-guards'
-import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
+import { parseDateComponents, parseTimeComponents } from '@/lib/timing/utils'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from '../lib/types'
 import { loadUserProfile } from '../lib/profileLoader'

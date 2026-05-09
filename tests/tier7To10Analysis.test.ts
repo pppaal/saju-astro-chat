@@ -14,7 +14,7 @@ import {
   calculateTier7To10Bonus,
   type AdvancedAnalysisInput,
   type EventType,
-} from '@/lib/prediction/tier7To10Analysis';
+} from '@/lib/timing/tier7To10Analysis';
 
 // 테스트용 입력 데이터 생성
 function createTestInput(overrides?: Partial<AdvancedAnalysisInput>): AdvancedAnalysisInput {

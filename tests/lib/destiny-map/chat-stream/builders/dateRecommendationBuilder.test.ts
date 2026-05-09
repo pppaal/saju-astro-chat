@@ -13,7 +13,7 @@ vi.mock('@/lib/logger', () => ({
 }));
 
 // Mock specificDateEngine
-vi.mock('@/lib/prediction/specificDateEngine', () => ({
+vi.mock('@/lib/timing/specificDateEngine', () => ({
   findBestDates: vi.fn(),
   findYongsinActivationPeriods: vi.fn(),
   generateSpecificDatePromptContext: vi.fn(),
@@ -25,7 +25,7 @@ import {
   findYongsinActivationPeriods,
   generateSpecificDatePromptContext,
   generateYongsinPromptContext,
-} from '@/lib/prediction/specificDateEngine';
+} from '@/lib/timing/specificDateEngine';
 
 describe('dateRecommendationBuilder', () => {
   beforeEach(() => {

@@ -5,17 +5,17 @@
  * TIER 타이밍: 월별 다층 점수 + 연간 예측
  */
 
-import type { FiveElement } from '@/lib/prediction/timingScore';
+import type { FiveElement } from '@/lib/timing/timingScore';
 import {
   calculateAdvancedMonthlyScore,
   generateAdvancedTimingPromptContext,
   type LayeredTimingScore,
-} from '@/lib/prediction/advancedTimingEngine';
+} from '@/lib/timing/advancedTimingEngine';
 import {
   generateYearlyPrediction,
   generatePredictionPromptContext,
-} from '@/lib/prediction/timingScore';
-import { extractBirthYear } from '@/lib/prediction/utils';
+} from '@/lib/timing/timingScore';
+import { extractBirthYear } from '@/lib/timing/utils';
 import { STEMS_MAP } from '../lib/constants';
 import type { SajuDataStructure } from '../lib/types';
 import { logger } from '@/lib/logger';

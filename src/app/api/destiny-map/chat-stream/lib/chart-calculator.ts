@@ -3,7 +3,7 @@
 
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { toSajuDataStructure } from '@/lib/destiny-map/type-guards'
-import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
+import { parseDateComponents, parseTimeComponents } from '@/lib/timing/utils'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 import { performAdvancedAnalysis } from '@/app/api/saju/services/advancedAnalysis'

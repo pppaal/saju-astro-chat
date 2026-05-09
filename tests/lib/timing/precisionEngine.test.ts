@@ -20,7 +20,7 @@ import {
   type LunarPhase,
   type ConfidenceFactors,
   type FiveElement,
-} from "@/lib/prediction/precisionEngine";
+} from "@/lib/timing/precisionEngine";
 
 describe("PrecisionEngine", () => {
   describe("Solar Term Functions", () => {

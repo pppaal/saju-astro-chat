@@ -12,7 +12,7 @@ import {
   type PreciseTwelveStage,
   type BranchInteraction,
   type LayeredTimingScore,
-} from '@/lib/prediction/advancedTimingEngine';
+} from '@/lib/timing/advancedTimingEngine';
 
 describe('advancedTimingEngine', () => {
   describe('calculatePreciseTwelveStage', () => {

@@ -21,7 +21,7 @@ import {
   BRANCH_CLASHES,
   BRANCH_PUNISHMENTS,
   EVENT_NAMES_FULL,
-} from "@/lib/prediction/life-prediction/constants";
+} from "@/lib/timing/life-prediction/constants";
 
 describe("Basic Saju constants", () => {
   describe("STEMS (천간)", () => {

@@ -17,7 +17,7 @@ import {
   extractBirthYear,
   extractBirthMonth,
   extractBirthDay,
-} from '@/lib/prediction/utils/date-formatters';
+} from '@/lib/timing/utils/date-formatters';
 
 describe('date-formatters', () => {
   describe('formatDateToISO', () => {

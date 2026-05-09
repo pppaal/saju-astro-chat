@@ -3,7 +3,7 @@
  * Detects user activity intent from question text
  */
 
-import type { ActivityType } from '@/lib/prediction/specificDateEngine';
+import type { ActivityType } from '@/lib/timing/specificDateEngine';
 import { ACTIVITY_KEYWORD_MAP, DATE_QUESTION_KEYWORDS } from '../constants';
 
 /**

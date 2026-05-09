@@ -11,7 +11,7 @@ import {
   type FiveElement,
   type MonthlyTimingScore,
   type YearlyPrediction,
-} from "@/lib/prediction/timingScore";
+} from "@/lib/timing/timingScore";
 
 describe("TimingScore", () => {
   describe("calculateMonthlyTimingScore", () => {

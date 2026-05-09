@@ -9,7 +9,7 @@ import {
   generateYongsinPromptContext,
   type ActivityType,
   type DateSearchInput,
-} from '@/lib/prediction/specificDateEngine';
+} from '@/lib/timing/specificDateEngine';
 
 // ============================================================
 // 테스트 데이터 헬퍼
