@@ -2,7 +2,7 @@
 // 12운성, 신살, 십성 해석 데이터 및 종합 해석 리포트 생성
 // 데이터는 JSON에서 로드하고, 타입 정의와 헬퍼 함수만 유지
 
-import type { FiveElement, SibsinKind } from './types';
+import type { FiveElement, SibsinKind } from './foundation/types';
 import interpretationsData from './data/interpretations.json';
 
 // ============ 12운성 타입 정의 ============

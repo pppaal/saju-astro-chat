@@ -19,8 +19,8 @@ import {
   type GeokgukScore,
   type YongsinFitScore,
   type ComprehensiveScore,
-} from "@/lib/Saju/strengthScore";
-import type { SajuPillars, FiveElement } from "@/lib/Saju/types";
+} from "@/lib/Saju/foundation/strengthScore";
+import type { SajuPillars, FiveElement } from "@/lib/Saju/foundation/types";
 
 // 테스트용 헬퍼 - SajuPillars 생성
 function createTestPillars(

@@ -1,7 +1,7 @@
 // src/lib/Saju/compatibility/constants.ts
 // 궁합 분석 상수
 
-import { FiveElement } from '../types';
+import { FiveElement } from '../foundation/types';
 
 /** 천간합 */
 export const STEM_HAP: Record<string, { partner: string; result: FiveElement }> = {

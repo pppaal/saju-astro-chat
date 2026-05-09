@@ -9,7 +9,7 @@ import type {
   ImportantDate,
 } from '@/lib/destiny-map/destinyCalendar'
 import type { TranslationData } from '@/types/calendar-api'
-import type { PillarData } from '@/lib/Saju/types'
+import type { PillarData } from '@/lib/Saju/foundation/types'
 import type { CalendarMatrixEvidencePacketMap } from './matrixEvidencePacket'
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 export {

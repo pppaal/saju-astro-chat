@@ -7,7 +7,7 @@ import type {
   MatrixCalculationInput,
   MatrixCell,
 } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/Saju/foundation/types';
 import type {
   InsightDomain,
   FusionInsight,

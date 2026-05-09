@@ -22,7 +22,7 @@ import {
 import { dateSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/Saju/saju'
-import { STEM_TO_ELEMENT } from '@/lib/Saju/constants'
+import { STEM_TO_ELEMENT } from '@/lib/Saju/foundation/constants'
 import { analyzeDate } from '@/lib/destiny-map/calendar/date-analysis-orchestrator'
 import { calculateYearlyImportantDatesLite } from '@/app/api/calendar/lib/liteYearlyDates'
 import { getPillarStemName, getPillarBranchName } from '@/app/api/calendar/lib/helpers'
@@ -146,7 +146,7 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeAdvancedSaju } = await import('@/lib/Saju/advancedSajuAnalysis')
+      const { analyzeAdvancedSaju } = await import('@/lib/Saju/foundation/advancedSajuAnalysis')
       const advanced = analyzeAdvancedSaju(
         {
           name: dayMasterStem,

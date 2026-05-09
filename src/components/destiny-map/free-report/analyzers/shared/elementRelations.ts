@@ -3,7 +3,7 @@
  * 오행 관계 매핑을 위한 공통 유틸리티
  */
 
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/Saju/foundation/types';
 
 /**
  * 생성 관계 (相生): 어떤 오행이 생성하는 오행

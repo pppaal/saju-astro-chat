@@ -24,7 +24,7 @@ vi.mock('@/lib/astrology/foundation/electional', () => ({
   getRetrogradePlanets: vi.fn(() => ['Mercury']),
 }))
 
-vi.mock('@/lib/Saju/patternMatcher', () => ({
+vi.mock('@/lib/Saju/foundation/patternMatcher', () => ({
   analyzePatterns: vi.fn(() => ({
     matchedPatterns: [
       { patternName: '삼합', rarity: 'common', score: 80 },
@@ -413,7 +413,7 @@ describe('Tier3 Advanced Astro Analysis', () => {
     })
 
     it('should handle no matched patterns', async () => {
-      const { analyzePatterns } = await import('@/lib/Saju/patternMatcher')
+      const { analyzePatterns } = await import('@/lib/Saju/foundation/patternMatcher')
       vi.mocked(analyzePatterns).mockReturnValueOnce({
         matchedPatterns: [],
         patternSummary: '특별한 패턴이 없습니다',
@@ -431,7 +431,7 @@ describe('Tier3 Advanced Astro Analysis', () => {
     })
 
     it('should filter rare patterns correctly', async () => {
-      const { analyzePatterns } = await import('@/lib/Saju/patternMatcher')
+      const { analyzePatterns } = await import('@/lib/Saju/foundation/patternMatcher')
       vi.mocked(analyzePatterns).mockReturnValueOnce({
         matchedPatterns: [
           { patternName: '삼합', rarity: 'common', score: 80 },

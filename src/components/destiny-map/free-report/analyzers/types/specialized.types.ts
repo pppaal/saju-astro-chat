@@ -3,7 +3,7 @@
  * 도메인별 분석 결과 타입 정의
  */
 
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/Saju/foundation/types';
 import type { WesternElement } from '@/lib/destiny-matrix/types';
 import type { MatrixFusion } from '../matrix/types';
 
@@ -351,7 +351,7 @@ export interface TimingMatrixResult {
 // Extended Saju Data Type
 // ============================
 
-import type { SibsinKind, TwelveStage } from '@/lib/Saju/types';
+import type { SibsinKind, TwelveStage } from '@/lib/Saju/foundation/types';
 
 export interface ExtendedSajuData {
   dayMaster?: { element?: string; name?: string; heavenlyStem?: string };

@@ -10,7 +10,7 @@ import { TWELVE_STAGE_INFO } from '@/lib/destiny-matrix/data/layer6-stage-house'
 import { SHINSAL_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer8-shinsal-planet';
 import { EXTRAPOINT_INFO } from '@/lib/destiny-matrix/data/layer10-extrapoint-element';
 import type { HouseNumber, ShinsalKind } from '@/lib/destiny-matrix/types';
-import type { FiveElement, TwelveStage, TwelveStageStandard } from '@/lib/Saju/types';
+import type { FiveElement, TwelveStage, TwelveStageStandard } from '@/lib/Saju/foundation/types';
 import type { SajuData, AstroData } from '../../types';
 import type { HealthMatrixResult, ExtendedSajuData } from '../types/specialized.types';
 import { ElementRelations } from '../shared/elementRelations';

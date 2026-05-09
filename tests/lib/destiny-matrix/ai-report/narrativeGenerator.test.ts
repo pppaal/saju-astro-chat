@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/Saju/foundation/types'
 import { generateNarrativeSectionsFromSynthesis } from '@/lib/destiny-matrix/ai-report/narrativeGenerator'
 import type { SignalSynthesisResult } from '@/lib/destiny-matrix/ai-report/signalSynthesizer'
 

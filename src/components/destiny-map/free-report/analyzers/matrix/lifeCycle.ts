@@ -6,7 +6,7 @@
 import { getInteractionColor } from '@/lib/destiny-matrix/engine';
 import { TWELVE_STAGE_HOUSE_MATRIX, TWELVE_STAGE_INFO } from '@/lib/destiny-matrix/data/layer6-stage-house';
 import type { HouseNumber, PlanetName } from '@/lib/destiny-matrix/types';
-import type { TwelveStage, TwelveStageStandard } from '@/lib/Saju/types';
+import type { TwelveStage, TwelveStageStandard } from '@/lib/Saju/foundation/types';
 import type { SajuData, AstroData } from '../../types';
 import type { LifeCycleResult } from './types';
 

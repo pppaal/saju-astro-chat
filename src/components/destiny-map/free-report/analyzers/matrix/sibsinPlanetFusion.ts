@@ -6,7 +6,7 @@
 import { getInteractionColor } from '@/lib/destiny-matrix/engine';
 import { SIBSIN_PLANET_MATRIX, PLANET_KEYWORDS, SIBSIN_KEYWORDS } from '@/lib/destiny-matrix/data/layer2-sibsin-planet';
 import type { PlanetName } from '@/lib/destiny-matrix/types';
-import type { SibsinKind } from '@/lib/Saju/types';
+import type { SibsinKind } from '@/lib/Saju/foundation/types';
 import type { SajuData } from '../../types';
 import type { SibsinPlanetResult } from './types';
 

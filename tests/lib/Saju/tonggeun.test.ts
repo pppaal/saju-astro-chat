@@ -9,7 +9,7 @@ import {
   analyzeStrength,
   evaluateStemPower,
   type SajuPillarsInput,
-} from "@/lib/Saju/tonggeun";
+} from "@/lib/Saju/foundation/tonggeun";
 
 // Helper to create mock pillars input
 function createPillarsInput(

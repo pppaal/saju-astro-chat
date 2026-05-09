@@ -12,7 +12,7 @@ import type {
   RelationHit,
   ShinsalHit,
   TwelveStage,
-} from "@/lib/Saju/types";
+} from "@/lib/Saju/foundation/types";
 
 // ============ Request Types ============
 

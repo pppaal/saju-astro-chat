@@ -14,7 +14,7 @@
 
 import { FiveElement, SajuPillars, SibsinKind, PillarKind } from './types'
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS, BRANCHES } from './constants'
-import { iga, eulReul, euroRo } from '../i18n/koParticle'
+import { iga, eulReul, euroRo } from '../../i18n/koParticle'
 import {
   getStemElement,
   getBranchElement,

@@ -5,7 +5,7 @@ import type {
   MatrixHighlight,
 } from '@/lib/destiny-matrix/types'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/Saju/foundation/types'
 import {
   generateAIPremiumReport,
   generateThemedReport,

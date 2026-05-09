@@ -3,7 +3,7 @@
  */
 
 import type { SajuProfile } from '../cosmicCompatibility';
-import type { FiveElement } from '../../Saju/types';
+import type { FiveElement } from '../../Saju/foundation/types';
 
 export type { SajuProfile, FiveElement };
 

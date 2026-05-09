@@ -2,7 +2,7 @@
 // Extracted from matrixAnalyzer.ts
 
 import type { ShinsalPlanetResult, AsteroidHouseResult, SibsinHouseResult, MatrixFusion } from './matrix.types';
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/Saju/foundation/types';
 
 // Love Domain
 export interface LoveMatrixResult {

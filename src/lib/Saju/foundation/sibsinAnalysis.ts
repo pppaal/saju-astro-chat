@@ -4,7 +4,7 @@
 import { FiveElement } from './types';
 import { JIJANGGAN } from './constants';
 import { getStemElement } from './stemBranchUtils';
-import { iga, eulReul } from '../i18n/koParticle';
+import { iga, eulReul } from '../../i18n/koParticle';
 
 // ============================================================
 // 타입 정의

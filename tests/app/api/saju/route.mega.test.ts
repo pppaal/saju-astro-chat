@@ -59,30 +59,30 @@ vi.mock('@/lib/Saju/saju', () => ({
   calculateSajuData: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/unse', () => ({
+vi.mock('@/lib/Saju/foundation/unse', () => ({
   getDaeunCycles: vi.fn().mockReturnValue([]),
   getAnnualCycles: vi.fn().mockReturnValue([]),
   getMonthlyCycles: vi.fn().mockReturnValue([]),
   getIljinCalendar: vi.fn().mockReturnValue([]),
 }))
 
-vi.mock('@/lib/Saju/shinsal', () => ({
+vi.mock('@/lib/Saju/foundation/shinsal', () => ({
   getShinsalHits: vi.fn().mockReturnValue([]),
   getTwelveStagesForPillars: vi.fn().mockReturnValue({}),
   getTwelveShinsalSingleByPillar: vi.fn().mockReturnValue({}),
 }))
 
-vi.mock('@/lib/Saju/relations', () => ({
+vi.mock('@/lib/Saju/foundation/relations', () => ({
   analyzeRelations: vi.fn().mockReturnValue({ harmonies: [], conflicts: [] }),
   toAnalyzeInputFromSaju: vi.fn().mockReturnValue({}),
 }))
 
-vi.mock('@/lib/Saju/geokguk', () => ({
+vi.mock('@/lib/Saju/foundation/geokguk', () => ({
   determineGeokguk: vi.fn(),
   getGeokgukDescription: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/yongsin', () => ({
+vi.mock('@/lib/Saju/foundation/yongsin', () => ({
   determineYongsin: vi.fn(),
   getYongsinDescription: vi.fn(),
   getLuckyColors: vi.fn(),
@@ -90,24 +90,24 @@ vi.mock('@/lib/Saju/yongsin', () => ({
   getLuckyNumbers: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/hyeongchung', () => ({
+vi.mock('@/lib/Saju/foundation/hyeongchung', () => ({
   analyzeHyeongchung: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/advancedSajuCore', () => ({
+vi.mock('@/lib/Saju/foundation/advancedSajuCore', () => ({
   analyzeAdvancedSaju: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/tonggeun', () => ({
+vi.mock('@/lib/Saju/foundation/tonggeun', () => ({
   calculateTonggeun: vi.fn(),
   calculateDeukryeong: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/johuYongsin', () => ({
+vi.mock('@/lib/Saju/foundation/johuYongsin', () => ({
   getJohuYongsin: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/sibsinAnalysis', () => ({
+vi.mock('@/lib/Saju/foundation/sibsinAnalysis', () => ({
   analyzeSibsinComprehensive: vi.fn(),
 }))
 
@@ -120,7 +120,7 @@ vi.mock('@/lib/Saju/comprehensiveReport', () => ({
   generateComprehensiveReport: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/strengthScore', () => ({
+vi.mock('@/lib/Saju/foundation/strengthScore', () => ({
   calculateComprehensiveScore: vi.fn(),
 }))
 
@@ -249,28 +249,28 @@ import {
   getAnnualCycles,
   getMonthlyCycles,
   getIljinCalendar,
-} from '@/lib/Saju/unse'
+} from '@/lib/Saju/foundation/unse'
 import {
   getShinsalHits,
   getTwelveStagesForPillars,
   getTwelveShinsalSingleByPillar,
-} from '@/lib/Saju/shinsal'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { determineGeokguk, getGeokgukDescription } from '@/lib/Saju/geokguk'
+} from '@/lib/Saju/foundation/shinsal'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/foundation/relations'
+import { determineGeokguk, getGeokgukDescription } from '@/lib/Saju/foundation/geokguk'
 import {
   determineYongsin,
   getYongsinDescription,
   getLuckyColors,
   getLuckyDirection,
   getLuckyNumbers,
-} from '@/lib/Saju/yongsin'
-import { analyzeHyeongchung } from '@/lib/Saju/hyeongchung'
-import { calculateTonggeun, calculateDeukryeong } from '@/lib/Saju/tonggeun'
-import { getJohuYongsin } from '@/lib/Saju/johuYongsin'
-import { analyzeSibsinComprehensive } from '@/lib/Saju/sibsinAnalysis'
+} from '@/lib/Saju/foundation/yongsin'
+import { analyzeHyeongchung } from '@/lib/Saju/foundation/hyeongchung'
+import { calculateTonggeun, calculateDeukryeong } from '@/lib/Saju/foundation/tonggeun'
+import { getJohuYongsin } from '@/lib/Saju/foundation/johuYongsin'
+import { analyzeSibsinComprehensive } from '@/lib/Saju/foundation/sibsinAnalysis'
 import { analyzeHealth, analyzeCareer } from '@/lib/Saju/healthCareer'
 import { generateComprehensiveReport } from '@/lib/Saju/comprehensiveReport'
-import { calculateComprehensiveScore } from '@/lib/Saju/strengthScore'
+import { calculateComprehensiveScore } from '@/lib/Saju/foundation/strengthScore'
 import { getTwelveStageInterpretation, getElementInterpretation } from '@/lib/Saju/interpretations'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'

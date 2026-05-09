@@ -1,9 +1,9 @@
 // src/lib/Saju/textGenerator.ts
 // 운세 해석 문장 생성기 (200% 급 모듈)
 
-import { FiveElement, SajuPillars, SibsinKind } from './types';
-import { FIVE_ELEMENT_RELATIONS } from './constants';
-import { getStemElement, getBranchElement, getStemYinYang } from './stemBranchUtils';
+import { FiveElement, SajuPillars, SibsinKind } from './foundation/types';
+import { FIVE_ELEMENT_RELATIONS } from './foundation/constants';
+import { getStemElement, getBranchElement, getStemYinYang } from './foundation/stemBranchUtils';
 import { waGwa, iga } from '../i18n/koParticle';
 
 // ============================================================

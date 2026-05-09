@@ -18,7 +18,7 @@ export function mockSajuLibraries() {
   }))
 
   // Unse (운세) - fortune cycles
-  vi.mock('@/lib/Saju/unse', () => ({
+  vi.mock('@/lib/Saju/foundation/unse', () => ({
     getDaeunCycles: vi.fn().mockReturnValue([]),
     getAnnualCycles: vi.fn().mockReturnValue([]),
     getMonthlyCycles: vi.fn().mockReturnValue([]),
@@ -26,26 +26,26 @@ export function mockSajuLibraries() {
   }))
 
   // Shinsal (신살) - special stars
-  vi.mock('@/lib/Saju/shinsal', () => ({
+  vi.mock('@/lib/Saju/foundation/shinsal', () => ({
     getShinsalHits: vi.fn().mockReturnValue([]),
     getTwelveStagesForPillars: vi.fn().mockReturnValue({}),
     getTwelveShinsalSingleByPillar: vi.fn().mockReturnValue(null),
   }))
 
   // Relations (관계)
-  vi.mock('@/lib/Saju/relations', () => ({
+  vi.mock('@/lib/Saju/foundation/relations', () => ({
     analyzeRelations: vi.fn().mockReturnValue({ harmonies: [], conflicts: [] }),
     toAnalyzeInputFromSaju: vi.fn().mockReturnValue({}),
   }))
 
   // Geokguk (격국) - chart pattern
-  vi.mock('@/lib/Saju/geokguk', () => ({
+  vi.mock('@/lib/Saju/foundation/geokguk', () => ({
     determineGeokguk: vi.fn().mockReturnValue({ name: '정관격', type: 'official' }),
     getGeokgukDescription: vi.fn().mockReturnValue('Leadership pattern'),
   }))
 
   // Yongsin (용신) - favorable god
-  vi.mock('@/lib/Saju/yongsin', () => ({
+  vi.mock('@/lib/Saju/foundation/yongsin', () => ({
     determineYongsin: vi.fn().mockReturnValue({ primary: '木', secondary: '水' }),
     getYongsinDescription: vi.fn().mockReturnValue('Wood is favorable'),
     getLuckyColors: vi.fn().mockReturnValue(['green', 'blue']),
@@ -54,12 +54,12 @@ export function mockSajuLibraries() {
   }))
 
   // Hyeongchung (형충) - clashes and combinations
-  vi.mock('@/lib/Saju/hyeongchung', () => ({
+  vi.mock('@/lib/Saju/foundation/hyeongchung', () => ({
     analyzeHyeongchung: vi.fn().mockReturnValue({ clashes: [], punishments: [] }),
   }))
 
   // Advanced Saju Core
-  vi.mock('@/lib/Saju/advancedSajuCore', () => ({
+  vi.mock('@/lib/Saju/foundation/advancedSajuCore', () => ({
     analyzeAdvancedSaju: vi.fn().mockReturnValue({
       geokguk: {},
       yongsin: {},

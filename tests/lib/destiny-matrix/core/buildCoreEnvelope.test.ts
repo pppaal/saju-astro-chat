@@ -1,7 +1,7 @@
 ﻿import { describe, expect, it } from 'vitest'
 import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/Saju/foundation/types'
 
 function createInput(overrides: Partial<MatrixCalculationInput> = {}): MatrixCalculationInput {
   return {

@@ -8,8 +8,8 @@ import {
   getMonthlyCycles,
   getIljinCalendar,
   WolunDataExtended,
-} from '@/lib/Saju/unse';
-import type { DayMaster, SajuPillars } from '@/lib/Saju/types';
+} from '@/lib/Saju/foundation/unse';
+import type { DayMaster, SajuPillars } from '@/lib/Saju/foundation/types';
 
 // 테스트 헬퍼: 사주 팔자 생성
 function createTestPillars(

@@ -1,9 +1,9 @@
 // src/lib/Saju/compatibility/elementAnalysis.ts
 // 오행 궁합 분석 모듈
 
-import { FiveElement, SajuPillars } from '../types';
-import { FIVE_ELEMENT_RELATIONS } from '../constants';
-import { getStemElement, getBranchElement } from '../stemBranchUtils';
+import { FiveElement, SajuPillars } from '../foundation/types';
+import { FIVE_ELEMENT_RELATIONS } from '../foundation/constants';
+import { getStemElement, getBranchElement } from '../foundation/stemBranchUtils';
 import type { ElementCompatibility } from './types';
 
 const ALL_ELEMENTS: FiveElement[] = ['목', '화', '토', '금', '수'];

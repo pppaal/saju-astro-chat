@@ -1,5 +1,5 @@
 import type { MatrixCalculationInput, MatrixCell, TransitCycle, WesternElement } from './types'
-import type { FiveElement } from '../Saju/types'
+import type { FiveElement } from '../Saju/foundation/types'
 import { clamp01 } from './componentScores'
 
 export const TIME_OVERLAP_WEIGHTS = {

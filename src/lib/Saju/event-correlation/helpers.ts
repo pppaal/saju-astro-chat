@@ -1,8 +1,8 @@
 // src/lib/Saju/event-correlation/helpers.ts
 // 사주 사건 상관관계 분석 헬퍼 함수
 
-import { StemBranchInfo } from '../types'
-import { STEMS, BRANCHES } from '../constants'
+import { StemBranchInfo } from '../foundation/types'
+import { STEMS, BRANCHES } from '../foundation/constants'
 
 // ============================================================================
 // 기본 조회 함수

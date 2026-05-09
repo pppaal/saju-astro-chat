@@ -9,7 +9,7 @@
  */
 
 import type { TwelveStageHouseMatrix, InteractionCode, HouseNumber } from '../types';
-import type { TwelveStageStandard } from '../../Saju/types';
+import type { TwelveStageStandard } from '../../Saju/foundation/types';
 
 const c = (
   level: InteractionCode['level'],

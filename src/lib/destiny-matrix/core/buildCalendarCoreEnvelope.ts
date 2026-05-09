@@ -1,6 +1,6 @@
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
-import type { SibsinKind } from '@/lib/Saju/types'
+import type { SibsinKind } from '@/lib/Saju/foundation/types'
 import type {
   DestinyFusionMatrixComputed,
   MatrixCalculationInput,

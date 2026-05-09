@@ -9,8 +9,8 @@ import {
   analyzeGongmangDeep,
   analyzeSamgi,
   performUltraAdvancedAnalysis,
-} from '@/lib/Saju/advancedSajuCore';
-import type { SajuPillars, PillarData } from '@/lib/Saju/types';
+} from '@/lib/Saju/foundation/advancedSajuCore';
+import type { SajuPillars, PillarData } from '@/lib/Saju/foundation/types';
 
 // 헬퍼: 테스트용 기둥 데이터 생성
 function createPillarData(stemName: string, branchName: string): PillarData {

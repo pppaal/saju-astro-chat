@@ -15,8 +15,8 @@ import {
   type LifeCycleAnalysis,
   type YearDetailAnalysis,
   type MultiYearTrend,
-} from "@/lib/Saju/unseAnalysis";
-import type { FiveElement } from "@/lib/Saju/types";
+} from "@/lib/Saju/foundation/unseAnalysis";
+import type { FiveElement } from "@/lib/Saju/foundation/types";
 
 // 테스트용 사주 생성 헬퍼
 interface Pillar {

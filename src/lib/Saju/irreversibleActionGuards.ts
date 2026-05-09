@@ -6,7 +6,7 @@
 // 입력: 일간, 격국, 신강/신약, 용신, 기신, 현재 운기 (대운/세운/월운).
 // 출력: 비가역 행동에 대한 'go' / 'wait' / 'block' 추천 + 이유.
 
-import type { FiveElement } from './types'
+import type { FiveElement } from './foundation/types'
 
 const ELEMENT_OF_STEM: Record<string, FiveElement> = {
   甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토', 己: '토',

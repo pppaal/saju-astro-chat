@@ -9,7 +9,7 @@ import {
   SIXTY_PILLARS,
   type SixtyPillarInfo,
   type IljuInfo,
-} from "@/lib/Saju/pillarLookup";
+} from "@/lib/Saju/foundation/pillarLookup";
 
 describe("SIXTY_PILLARS constant", () => {
   it("has exactly 60 pillars", () => {

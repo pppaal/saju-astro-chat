@@ -14,8 +14,8 @@ import {
   getPatternStatistics,
   PatternCategory,
   PatternMatch,
-} from '@/lib/Saju/patternMatcher';
-import type { SajuPillars, PillarData } from '@/lib/Saju/types';
+} from '@/lib/Saju/foundation/patternMatcher';
+import type { SajuPillars, PillarData } from '@/lib/Saju/foundation/types';
 
 // 테스트 헬퍼 함수
 function createPillarData(stemName: string, branchName: string, sibsin?: string): PillarData {

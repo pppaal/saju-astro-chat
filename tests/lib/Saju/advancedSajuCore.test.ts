@@ -17,8 +17,8 @@ import {
   performUltraAdvancedAnalysis,
   type JonggeokType,
   type HwagyeokType,
-} from "@/lib/Saju/advancedSajuCore";
-import type { SajuPillars, PillarData } from "@/lib/Saju/types";
+} from "@/lib/Saju/foundation/advancedSajuCore";
+import type { SajuPillars, PillarData } from "@/lib/Saju/foundation/types";
 
 // Helper to create mock pillar data
 function createPillarData(stem: string, branch: string): PillarData {

@@ -18,8 +18,8 @@
  * - familyLineage.ts: Main analysis logic
  */
 
-import { FiveElement, SajuPillars, StemBranchInfo } from './types'
-import { STEMS, BRANCHES, JIJANGGAN } from './constants'
+import { FiveElement, SajuPillars, StemBranchInfo } from './foundation/types'
+import { STEMS, BRANCHES, JIJANGGAN } from './foundation/constants'
 import { iga, eulReul } from '../i18n/koParticle'
 
 // Re-export types from the dedicated types file

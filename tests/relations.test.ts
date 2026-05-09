@@ -12,7 +12,7 @@ import {
   DEFAULT_RELATION_OPTIONS,
   type PillarInput,
   type AnalyzeRelationsOptions,
-} from "@/lib/Saju/relations";
+} from "@/lib/Saju/foundation/relations";
 
 // 테스트 헬퍼
 function createPillars(

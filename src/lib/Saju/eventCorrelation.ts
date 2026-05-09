@@ -16,8 +16,8 @@
  * - eventCorrelation.ts: Main analysis orchestrator
  */
 
-import { FiveElement, StemBranchInfo } from './types'
-import { STEMS, BRANCHES, JIJANGGAN } from './constants'
+import { FiveElement, StemBranchInfo } from './foundation/types'
+import { STEMS, BRANCHES, JIJANGGAN } from './foundation/constants'
 
 // Re-export all types and helpers from modules
 export * from './event-correlation'

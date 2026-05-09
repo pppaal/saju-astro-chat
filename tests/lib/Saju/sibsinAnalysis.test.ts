@@ -16,7 +16,7 @@ import {
   SibsinPosition,
   SibsinCount,
   SibsinCategoryCount,
-} from '@/lib/Saju/sibsinAnalysis';
+} from '@/lib/Saju/foundation/sibsinAnalysis';
 
 // 테스트 헬퍼
 interface SimplePillar {

@@ -4,6 +4,6 @@
 export {
   analyzeSpecificYear as analyzeYearlySaju,
   type YearDetailAnalysis,
-} from '../unseAnalysis'
+} from '../foundation/unseAnalysis'
 
-export { analyzeMultiYearTrend as analyzeMultiYearSaju } from '../unseAnalysis'
+export { analyzeMultiYearTrend as analyzeMultiYearSaju } from '../foundation/unseAnalysis'

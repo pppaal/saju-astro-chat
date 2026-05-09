@@ -26,7 +26,7 @@ vi.mock("@/lib/Saju", () => ({
   performUltraAdvancedAnalysis: vi.fn(),
 }));
 
-vi.mock("@/lib/Saju/shinsal", () => ({
+vi.mock("@/lib/Saju/foundation/shinsal", () => ({
   annotateShinsal: vi.fn(() => ({})),
   toSajuPillarsLike: vi.fn((p) => p),
 }));

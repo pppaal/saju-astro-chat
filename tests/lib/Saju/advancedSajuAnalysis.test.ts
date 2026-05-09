@@ -19,8 +19,8 @@ import {
   RootAnalysis,
   JohuYongsinAnalysis,
   Season,
-} from '@/lib/Saju/advancedSajuAnalysis';
-import { FiveElement, YinYang } from '@/lib/Saju/types';
+} from '@/lib/Saju/foundation/advancedSajuAnalysis';
+import { FiveElement, YinYang } from '@/lib/Saju/foundation/types';
 
 // 테스트용 헬퍼 함수
 function createDayMaster(name: string, element: FiveElement, yin_yang: YinYang) {

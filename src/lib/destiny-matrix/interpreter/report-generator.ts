@@ -2,7 +2,7 @@
 // Destiny Fusion Matrix™ - Report Generation Engine
 // 특허 핵심: 다층 융합 데이터 → 사용자 친화적 리포트 변환
 
-import type { FiveElement, SibsinKind } from '../../Saju/types';
+import type { FiveElement, SibsinKind } from '../../Saju/foundation/types';
 import type {
   MatrixCalculationInput,
   MatrixCell,

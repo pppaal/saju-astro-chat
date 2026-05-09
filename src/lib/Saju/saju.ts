@@ -14,7 +14,7 @@ import {
   AnnualCycleData,
   MonthlyCycleData,
   IljinData,
-} from './types'
+} from './foundation/types'
 import {
   STEMS,
   BRANCHES,
@@ -25,8 +25,8 @@ import {
   FIVE_ELEMENT_RELATIONS,
   getSolarTermKST,
   assertKasiYearInRange,
-} from './constants'
-import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
+} from './foundation/constants'
+import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './foundation/graphIds'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 

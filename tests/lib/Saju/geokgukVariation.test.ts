@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { detectGeokgukVariation } from '@/lib/Saju/geokguk'
-import type { CalculateSajuDataResult } from '@/lib/Saju/types'
+import { detectGeokgukVariation } from '@/lib/Saju/foundation/geokguk'
+import type { CalculateSajuDataResult } from '@/lib/Saju/foundation/types'
 
 function makeSaju(opts: {
   dayStem: string; dayBranch: string; dayElement: string

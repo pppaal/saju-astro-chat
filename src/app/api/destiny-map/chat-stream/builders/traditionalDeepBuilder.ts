@@ -11,8 +11,8 @@
  * 현재 운에 큰 계약은 wait" 같은 정통 디테일을 그대로 인용하게 함.
  */
 
-import type { JohuPrescription } from '@/lib/Saju/johuYongsin'
-import type { GeokgukVariationResult } from '@/lib/Saju/geokguk'
+import type { JohuPrescription } from '@/lib/Saju/foundation/johuYongsin'
+import type { GeokgukVariationResult } from '@/lib/Saju/foundation/geokguk'
 import type { ActionGuard } from '@/lib/Saju/irreversibleActionGuards'
 import { summarizeGuards } from '@/lib/Saju/irreversibleActionGuards'
 

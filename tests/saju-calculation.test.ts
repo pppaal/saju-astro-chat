@@ -7,7 +7,7 @@
  */
 
 import { calculateSajuData, getAnnualCycles, getMonthlyCycles } from "../src/lib/Saju/saju";
-import type { CalculateSajuDataResult } from "../src/lib/Saju/types";
+import type { CalculateSajuDataResult } from "../src/lib/Saju/foundation/types";
 
 describe("Saju Calculation: Basic Pillar Calculation", () => {
   it("calculates correct pillars for a known date", () => {

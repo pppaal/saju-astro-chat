@@ -3,7 +3,7 @@
  * 사주(Saju) + 점성학(Astrology) 기반 종합 궁합 계산
  */
 
-import { FiveElement } from '../Saju/types'
+import { FiveElement } from '../Saju/foundation/types'
 import { iga, eulReul } from '../i18n/koParticle'
 
 // ============================================================

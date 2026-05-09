@@ -94,7 +94,7 @@ describe('Types Smoke Tests', () => {
     });
 
     it('should import saju types', async () => {
-      const types = await import('@/lib/Saju/types');
+      const types = await import('@/lib/Saju/foundation/types');
 
       expect(types).toBeDefined();
     });
@@ -126,7 +126,7 @@ describe('Types Smoke Tests', () => {
         import('@/lib/icp/types'),
         import('@/lib/persona/types'),
         import('@/lib/timing/life-prediction/types'),
-        import('@/lib/Saju/types'),
+        import('@/lib/Saju/foundation/types'),
         import('@/lib/Tarot/tarot.types'),
       ]);
 

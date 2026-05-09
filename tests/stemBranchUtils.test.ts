@@ -22,7 +22,7 @@ import {
   getBranchIndex,
   getStemByIndex,
   getBranchByIndex,
-} from "@/lib/Saju/stemBranchUtils";
+} from "@/lib/Saju/foundation/stemBranchUtils";
 
 describe("normalizeStem", () => {
   it("converts Korean stem to Chinese character", () => {

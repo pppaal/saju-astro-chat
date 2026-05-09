@@ -1,8 +1,8 @@
 // src/lib/Saju/healthCareer.ts
 // 건강 및 직업 적성 심층 분석 모듈 - 200% 급
 
-import { FiveElement } from './types';
-import { getStemElement, getBranchElement } from './stemBranchUtils';
+import { FiveElement } from './foundation/types';
+import { getStemElement, getBranchElement } from './foundation/stemBranchUtils';
 
 // ============================================================
 // 타입 정의

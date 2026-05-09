@@ -2,7 +2,7 @@
 // 사랑/배우자 single-chart 테마 wrapper. astrology/themes/love.ts 와 mirror.
 // 핵심: 일지(배우자궁) + 정재·정관·편재·편관 십신.
 
-import { analyzeSibsinPositions, countSibsin } from '../sibsinAnalysis'
+import { analyzeSibsinPositions, countSibsin } from '../foundation/sibsinAnalysis'
 import type { SajuThemeAnalysis, SajuThemeFactor, SimpleSajuPillars } from './types'
 
 export function analyzeLoveSaju(pillars: SimpleSajuPillars): SajuThemeAnalysis {

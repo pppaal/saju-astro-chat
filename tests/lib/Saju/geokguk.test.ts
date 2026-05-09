@@ -11,7 +11,7 @@ import {
   determineGeokgukAdvanced,
   type GeokgukType,
   type SajuPillarsInput,
-} from "@/lib/Saju/geokguk";
+} from "@/lib/Saju/foundation/geokguk";
 
 // Note: evaluateGeokgukStatus takes (geokguk, pillars) in that order
 // Note: evaluateHwagiGeokguk returns { possible, type, conditions, description }

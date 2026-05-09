@@ -9,7 +9,7 @@
  */
 
 import type { InteractionCode, ExtraPointName } from '../types';
-import type { FiveElement, SibsinKind } from '../../Saju/types';
+import type { FiveElement, SibsinKind } from '../../Saju/foundation/types';
 
 const c = (
   level: InteractionCode['level'],

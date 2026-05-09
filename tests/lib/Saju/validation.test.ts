@@ -31,7 +31,7 @@ import {
   VALID_SIBSIN,
   // Error class
   SajuValidationError,
-} from "@/lib/Saju/validation";
+} from "@/lib/Saju/foundation/validation";
 
 describe("SajuTimeSchema", () => {
   it("should accept valid 24-hour format", () => {

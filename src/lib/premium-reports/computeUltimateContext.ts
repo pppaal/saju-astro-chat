@@ -5,7 +5,7 @@
 // into the small set of fields the result page needs.
 
 import { calculateSajuData } from '@/lib/Saju/saju'
-import type { CalculateSajuDataResult, PillarData } from '@/lib/Saju/types'
+import type { CalculateSajuDataResult, PillarData } from '@/lib/Saju/foundation/types'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
 import type {
   NatalChartData,

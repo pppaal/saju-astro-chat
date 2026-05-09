@@ -1,10 +1,10 @@
 // src/lib/Saju/comprehensiveReport.ts
 // 사주 종합 해석 리포트 생성 모듈
 
-import type { FiveElement, SibsinKind } from './types'
-import { getIljuInfo, getPillarInfo, getGongmang } from './pillarLookup'
-import { getJohuYongsin, evaluateJohuNeed } from './johuYongsin'
-import { analyzeHyeongchung, calculateInteractionScore } from './hyeongchung'
+import type { FiveElement, SibsinKind } from './foundation/types'
+import { getIljuInfo, getPillarInfo, getGongmang } from './foundation/pillarLookup'
+import { getJohuYongsin, evaluateJohuNeed } from './foundation/johuYongsin'
+import { analyzeHyeongchung, calculateInteractionScore } from './foundation/hyeongchung'
 import {
   TWELVE_STAGE_INTERPRETATIONS,
   SIBSIN_INTERPRETATIONS,
@@ -13,7 +13,7 @@ import {
   analyzeElementBalance,
   type TwelveStageType,
 } from './interpretations'
-import { getStemElement, getBranchElement } from './stemBranchUtils'
+import { getStemElement, getBranchElement } from './foundation/stemBranchUtils'
 
 // ============ 타입 정의 ============
 

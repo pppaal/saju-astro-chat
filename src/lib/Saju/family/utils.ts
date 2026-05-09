@@ -3,8 +3,8 @@
  * Extracted from familyLineage.ts for better organization
  */
 
-import type { StemBranchInfo } from '../types'
-import { STEMS, BRANCHES } from '../constants'
+import type { StemBranchInfo } from '../foundation/types'
+import { STEMS, BRANCHES } from '../foundation/constants'
 
 export function getStemInfo(stemName: string): StemBranchInfo | undefined {
   return STEMS.find((s) => s.name === stemName)

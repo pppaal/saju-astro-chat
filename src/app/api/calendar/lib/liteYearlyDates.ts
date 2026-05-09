@@ -5,13 +5,13 @@ import type {
 } from '@/lib/destiny-matrix/types'
 import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/calendar/types'
 import type { UserAstroProfile, UserSajuProfile } from '@/lib/destiny-map/calendar/types'
-import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/Saju/johuYongsin'
+import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/Saju/foundation/johuYongsin'
 import { calculateDailyPillar } from '@/lib/timing/ultra-precision-daily'
 import {
   elementOfBranch,
   getMonthPillarForDate,
-} from '@/lib/Saju/datePillars'
-import { getShinsalHitsForDailyTarget } from '@/lib/Saju/shinsal'
+} from '@/lib/Saju/foundation/datePillars'
+import { getShinsalHitsForDailyTarget } from '@/lib/Saju/foundation/shinsal'
 import { calculateUltraPrecisionScore } from '@/lib/timing/ultraPrecisionEngine'
 import type { UltraPrecisionScore } from '@/lib/timing/ultra-precision-types'
 import { getPlanetaryHourPlanet } from '@/lib/timing/ultra-precision-helpers'

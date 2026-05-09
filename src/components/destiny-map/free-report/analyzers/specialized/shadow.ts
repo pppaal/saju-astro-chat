@@ -8,7 +8,7 @@ import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/la
 import { RELATION_ASPECT_MATRIX } from '@/lib/destiny-matrix/data/layer5-relation-aspect';
 import { SHINSAL_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer8-shinsal-planet';
 import type { WesternElement, ShinsalKind } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/Saju/foundation/types';
 import type { SajuData, AstroData } from '../../types';
 import type { ShadowPersonalityResult, ExtendedSajuData } from '../types/specialized.types';
 import { SHADOW_SHINSALS } from '../shared/constants';

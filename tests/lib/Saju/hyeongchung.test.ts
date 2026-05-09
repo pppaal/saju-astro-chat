@@ -14,7 +14,7 @@ import {
   type HyeongType,
   type InteractionResult,
   type HyeongchungAnalysis,
-} from '@/lib/Saju/hyeongchung'
+} from '@/lib/Saju/foundation/hyeongchung'
 
 describe('analyzeHyeongchung', () => {
   const createPillars = (

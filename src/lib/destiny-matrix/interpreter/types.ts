@@ -2,7 +2,7 @@
 // Destiny Fusion Matrix™ - Interpretation Engine Types
 // 특허 가능 요소: 동적 가중치 시스템, 인사이트 생성 알고리즘
 
-import type { FiveElement, SibsinKind } from '../../Saju/types';
+import type { FiveElement, SibsinKind } from '../../Saju/foundation/types';
 import type {
   InteractionCode,
   MatrixCalculationInput,

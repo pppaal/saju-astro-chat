@@ -10,9 +10,9 @@
  */
 
 import { calculateSajuData } from '@/lib/Saju/saju'
-import { getTwelveStagesForPillars, getShinsalHits } from '@/lib/Saju/shinsal'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { analyzeAdvancedSaju } from '@/lib/Saju/advancedSajuAnalysis'
+import { getTwelveStagesForPillars, getShinsalHits } from '@/lib/Saju/foundation/shinsal'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/foundation/relations'
+import { analyzeAdvancedSaju } from '@/lib/Saju/foundation/advancedSajuAnalysis'
 import { calculateAllAsteroids } from '@/lib/astrology/foundation/asteroids'
 import { calculateExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import { findFixedStarConjunctions } from '@/lib/astrology/foundation/fixedStars'
@@ -25,7 +25,7 @@ import { toChart } from '@/lib/astrology/foundation/astrologyService'
 import { logger } from '@/lib/logger'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
-import type { CalculateSajuDataResult } from '@/lib/Saju/types'
+import type { CalculateSajuDataResult } from '@/lib/Saju/foundation/types'
 
 const GEOKGUK_ALIASES: Partial<Record<string, MatrixCalculationInput['geokguk']>> = {
   정관격: 'jeonggwan',

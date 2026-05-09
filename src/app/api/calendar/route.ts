@@ -12,8 +12,8 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { BRANCH_TO_ELEMENT, STEM_TO_ELEMENT, STEM_TO_ELEMENT_EN } from '@/lib/Saju/constants'
-import type { FiveElement } from '@/lib/Saju/types'
+import { BRANCH_TO_ELEMENT, STEM_TO_ELEMENT, STEM_TO_ELEMENT_EN } from '@/lib/Saju/foundation/constants'
+import type { FiveElement } from '@/lib/Saju/foundation/types'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
@@ -622,7 +622,7 @@ export const GET = withApiMiddleware(
     // yongsin/geokguk을 안 넣어서 365일 score ladder의 용신 정렬 가중치가
     // 죽어 있었음. 이제 main에서도 채워줌.
     try {
-      const { analyzeAdvancedSaju } = await import('@/lib/Saju/advancedSajuAnalysis')
+      const { analyzeAdvancedSaju } = await import('@/lib/Saju/foundation/advancedSajuAnalysis')
       const advanced = analyzeAdvancedSaju(
         {
           name: dayMasterStem,

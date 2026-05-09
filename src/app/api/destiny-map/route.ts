@@ -20,7 +20,7 @@ import {
   isValidLatitude,
   isValidLongitude,
 } from '@/lib/validation'
-import { tryNormalizeTime } from '@/lib/Saju/normalizer'
+import { tryNormalizeTime } from '@/lib/Saju/foundation/normalizer'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'

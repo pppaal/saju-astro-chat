@@ -16,7 +16,7 @@ import {
   calculateSolarReturn,
   calculateLunarReturn,
 } from '@/lib/astrology'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/Saju/foundation/types'
 import {
   interpretCompatibilityScore,
   type FusionCompatibilityResult,
@@ -284,7 +284,7 @@ async function buildAutoSajuContext(
         day: saju.dayPillar,
         time: saju.timePillar,
       } as unknown as Parameters<typeof performAdvancedAnalysis>[2]
-      const { getTwelveStagesForPillars } = await import('@/lib/Saju/shinsal')
+      const { getTwelveStagesForPillars } = await import('@/lib/Saju/foundation/shinsal')
       const stages = getTwelveStagesForPillars(
         sajuLike as Parameters<typeof getTwelveStagesForPillars>[0],
       )

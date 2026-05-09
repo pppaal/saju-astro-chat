@@ -14,7 +14,7 @@ import {
   getBranchIndex,
   getStemByIndex,
   getBranchByIndex,
-} from "@/lib/Saju/stemBranchUtils";
+} from "@/lib/Saju/foundation/stemBranchUtils";
 
 describe("stemBranchUtils", () => {
   describe("normalizeStem", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { buildComputedFromSources } from '@/lib/premium-reports/computeUltimateContext'
-import type { CalculateSajuDataResult, PillarData } from '@/lib/Saju/types'
+import type { CalculateSajuDataResult, PillarData } from '@/lib/Saju/foundation/types'
 import type { NatalChartData, PlanetData } from '@/lib/astrology/foundation/astrologyService'
 
 function makePillar(stem: string, branch: string, stemEl: string, branchEl: string): PillarData {

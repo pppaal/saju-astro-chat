@@ -8,8 +8,8 @@ import {
   type ScoreItem,
   type ElementScore,
   type StrengthScore,
-} from "@/lib/Saju/strengthScore";
-import type { SajuPillars, PillarData } from "@/lib/Saju/types";
+} from "@/lib/Saju/foundation/strengthScore";
+import type { SajuPillars, PillarData } from "@/lib/Saju/foundation/types";
 
 // Helper to create mock pillar data
 function createPillarData(stem: string, branch: string): PillarData {

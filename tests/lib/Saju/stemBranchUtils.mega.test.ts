@@ -18,7 +18,7 @@ import {
   getBranchIndex,
   getStemByIndex,
   getBranchByIndex,
-} from '@/lib/Saju/stemBranchUtils';
+} from '@/lib/Saju/foundation/stemBranchUtils';
 
 describe('stemBranchUtils - comprehensive tests', () => {
   const koreanStems = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];

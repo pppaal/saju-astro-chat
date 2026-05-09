@@ -1,7 +1,7 @@
 // src/lib/Saju/compatibility/types.ts
 // 궁합 분석 타입 정의
 
-import { FiveElement, SajuPillars, SibsinKind } from '../types';
+import { FiveElement, SajuPillars, SibsinKind } from '../foundation/types';
 
 /** 궁합 대상 정보 */
 export interface CompatibilitySubject {

@@ -15,8 +15,8 @@
  */
 
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import { getGeokgukDescription } from '@/lib/Saju/geokguk'
-import type { GeokgukType } from '@/lib/Saju/geokguk'
+import { getGeokgukDescription } from '@/lib/Saju/foundation/geokguk'
+import type { GeokgukType } from '@/lib/Saju/foundation/geokguk'
 import {
   calculateCrossConfidence,
   estimateSajuSignalStrength,
@@ -73,7 +73,7 @@ function topEntry<T extends string>(
 }
 
 // 일주의 12운성을 sajuSnapshot.pillars.day에서 직접 추출 (분포 top이 아니라 본인 일간 stage)
-import { getTwelveStage } from '@/lib/Saju/shinsal'
+import { getTwelveStage } from '@/lib/Saju/foundation/shinsal'
 function readDayMasterStage(input: MatrixCalculationInput): string | null {
   const snap = (input as { sajuSnapshot?: { pillars?: { day?: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } } } } }).sajuSnapshot
   const stem = snap?.pillars?.day?.heavenlyStem?.name

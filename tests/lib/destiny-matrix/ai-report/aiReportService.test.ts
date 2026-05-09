@@ -2,7 +2,7 @@
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixHighlight, MatrixSummary } from '@/lib/destiny-matrix/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/Saju/foundation/types'
 
 vi.mock('@/lib/destiny-matrix/ai-report/aiBackend', () => ({
   callAIBackend: vi.fn(),

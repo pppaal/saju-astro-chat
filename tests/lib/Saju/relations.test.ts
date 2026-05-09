@@ -11,7 +11,7 @@ import {
   DEFAULT_RELATION_OPTIONS,
   type PillarInput,
   type AnalyzeRelationsOptions,
-} from "@/lib/Saju/relations";
+} from "@/lib/Saju/foundation/relations";
 
 // Helper to create pillar input
 function makePillars(

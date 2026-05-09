@@ -13,7 +13,7 @@ import {
   type WorkStyle,
   type ElementRecommendations,
 } from "../../../src/lib/Saju/healthCareer";
-import type { FiveElement } from "../../../src/lib/Saju/types";
+import type { FiveElement } from "../../../src/lib/Saju/foundation/types";
 
 interface Pillar {
   stem: string;

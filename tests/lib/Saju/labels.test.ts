@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { STEM_LABELS, BRANCH_LABELS } from '@/lib/Saju/constants';
+import { STEM_LABELS, BRANCH_LABELS } from '@/lib/Saju/foundation/constants';
 
 describe('Saju/labels', () => {
   describe('STEM_LABELS', () => {

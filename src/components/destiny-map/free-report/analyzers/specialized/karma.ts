@@ -10,7 +10,7 @@ import { RELATION_ASPECT_MATRIX } from '@/lib/destiny-matrix/data/layer5-relatio
 import { ADVANCED_ANALYSIS_MATRIX } from '@/lib/destiny-matrix/data/layer7-advanced-analysis';
 import { SHINSAL_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer8-shinsal-planet';
 import type { WesternElement, ProgressionType, ShinsalKind } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/Saju/foundation/types';
 import type { SajuData, AstroData } from '../../types';
 import type { KarmaMatrixResult, ExtendedSajuData } from '../types/specialized.types';
 import { KARMA_SHINSALS } from '../shared/constants';

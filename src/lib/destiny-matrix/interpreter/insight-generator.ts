@@ -2,7 +2,7 @@
 // Destiny Fusion Matrix™ - Insight Generation Engine
 // 특허 핵심: 다층 매트릭스 데이터 → 사용자 친화적 인사이트 변환 알고리즘
 
-import type { FiveElement, SibsinKind } from '../../Saju/types';
+import type { FiveElement, SibsinKind } from '../../Saju/foundation/types';
 import { iga, eulReul, eunNeun, waGwa } from '../../i18n/koParticle';
 import type {
   MatrixCalculationInput,

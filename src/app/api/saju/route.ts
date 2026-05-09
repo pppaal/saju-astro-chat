@@ -12,14 +12,14 @@ import {
   getAnnualCycles,
   getMonthlyCycles,
   getIljinCalendar,
-} from '@/lib/Saju/unse'
-import type { SajuPillars } from '@/lib/Saju/types'
+} from '@/lib/Saju/foundation/unse'
+import type { SajuPillars } from '@/lib/Saju/foundation/types'
 import {
   getShinsalHits,
   getTwelveStagesForPillars,
   getTwelveShinsalSingleByPillar,
-} from '@/lib/Saju/shinsal'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
+} from '@/lib/Saju/foundation/shinsal'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/foundation/relations'
 import { logger } from '@/lib/logger'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 

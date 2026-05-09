@@ -15,7 +15,7 @@ import {
   TextContext,
   FortuneInput,
 } from '@/lib/Saju/textGenerator';
-import type { SajuPillars, PillarData, FiveElement, SibsinKind } from '@/lib/Saju/types';
+import type { SajuPillars, PillarData, FiveElement, SibsinKind } from '@/lib/Saju/foundation/types';
 
 // 테스트 헬퍼 함수
 function createPillarData(stemName: string, branchName: string): PillarData {

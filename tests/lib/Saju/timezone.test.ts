@@ -3,7 +3,7 @@ import {
   getUserTimezone,
   getOffsetMinutes,
   formatOffset,
-} from "@/lib/Saju/timezone";
+} from "@/lib/Saju/foundation/timezone";
 
 describe("Saju Timezone Utils", () => {
   describe("getSupportedTimezones", () => {

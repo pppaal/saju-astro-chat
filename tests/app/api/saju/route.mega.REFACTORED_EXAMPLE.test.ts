@@ -73,30 +73,30 @@ vi.mock('@/lib/Saju/saju', () => ({
   calculateSajuData: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/unse', () => ({
+vi.mock('@/lib/Saju/foundation/unse', () => ({
   getDaeunCycles: vi.fn().mockReturnValue([]),
   getAnnualCycles: vi.fn().mockReturnValue([]),
   getMonthlyCycles: vi.fn().mockReturnValue([]),
   getIljinCalendar: vi.fn().mockReturnValue([]),
 }))
 
-vi.mock('@/lib/Saju/shinsal', () => ({
+vi.mock('@/lib/Saju/foundation/shinsal', () => ({
   getShinsalHits: vi.fn().mockReturnValue([]),
   getTwelveStagesForPillars: vi.fn().mockReturnValue({}),
   getTwelveShinsalSingleByPillar: vi.fn().mockReturnValue({}),
 }))
 
-vi.mock('@/lib/Saju/relations', () => ({
+vi.mock('@/lib/Saju/foundation/relations', () => ({
   analyzeRelations: vi.fn().mockReturnValue({ harmonies: [], conflicts: [] }),
   toAnalyzeInputFromSaju: vi.fn().mockReturnValue({}),
 }))
 
-vi.mock('@/lib/Saju/geokguk', () => ({
+vi.mock('@/lib/Saju/foundation/geokguk', () => ({
   determineGeokguk: vi.fn(),
   getGeokgukDescription: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/yongsin', () => ({
+vi.mock('@/lib/Saju/foundation/yongsin', () => ({
   determineYongsin: vi.fn(),
   getYongsinDescription: vi.fn(),
   getLuckyColors: vi.fn(),
@@ -104,11 +104,11 @@ vi.mock('@/lib/Saju/yongsin', () => ({
   getLuckyNumbers: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/hyeongchung', () => ({
+vi.mock('@/lib/Saju/foundation/hyeongchung', () => ({
   analyzeHyeongchung: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/advancedSajuCore', () => ({
+vi.mock('@/lib/Saju/foundation/advancedSajuCore', () => ({
   analyzeAdvancedSaju: vi.fn(),
 }))
 
@@ -130,16 +130,16 @@ function mockPremiumUser() {
 }
 
 // Additional specific mocks (not yet centralized)
-vi.mock('@/lib/Saju/tonggeun', () => ({
+vi.mock('@/lib/Saju/foundation/tonggeun', () => ({
   calculateTonggeun: vi.fn(),
   calculateDeukryeong: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/johuYongsin', () => ({
+vi.mock('@/lib/Saju/foundation/johuYongsin', () => ({
   getJohuYongsin: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/sibsinAnalysis', () => ({
+vi.mock('@/lib/Saju/foundation/sibsinAnalysis', () => ({
   analyzeSibsinComprehensive: vi.fn(),
 }))
 
@@ -152,7 +152,7 @@ vi.mock('@/lib/Saju/comprehensiveReport', () => ({
   generateComprehensiveReport: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/strengthScore', () => ({
+vi.mock('@/lib/Saju/foundation/strengthScore', () => ({
   calculateComprehensiveScore: vi.fn(),
 }))
 

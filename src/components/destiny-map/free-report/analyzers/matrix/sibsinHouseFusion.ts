@@ -7,7 +7,7 @@ import { getInteractionColor } from '@/lib/destiny-matrix/engine';
 import { SIBSIN_HOUSE_MATRIX, HOUSE_KEYWORDS } from '@/lib/destiny-matrix/data/layer3-sibsin-house';
 import { SIBSIN_KEYWORDS } from '@/lib/destiny-matrix/data/layer2-sibsin-planet';
 import type { HouseNumber } from '@/lib/destiny-matrix/types';
-import type { SibsinKind } from '@/lib/Saju/types';
+import type { SibsinKind } from '@/lib/Saju/foundation/types';
 import type { SajuData } from '../../types';
 import type { SibsinHouseResult } from './types';
 

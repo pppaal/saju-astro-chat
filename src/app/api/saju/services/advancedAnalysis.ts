@@ -2,26 +2,26 @@
 // 고급 분석 실행 함수들
 
 import { logger } from '@/lib/logger';
-import { determineGeokguk, getGeokgukDescription } from '@/lib/Saju/geokguk';
+import { determineGeokguk, getGeokgukDescription } from '@/lib/Saju/foundation/geokguk';
 import {
   determineYongsin,
   getYongsinDescription,
   getLuckyColors,
   getLuckyDirection,
   getLuckyNumbers,
-} from '@/lib/Saju/yongsin';
-import { analyzeHyeongchung } from '@/lib/Saju/hyeongchung';
-import { calculateTonggeun, calculateDeukryeong } from '@/lib/Saju/tonggeun';
-import { getJohuYongsin } from '@/lib/Saju/johuYongsin';
-import { analyzeSibsinComprehensive } from '@/lib/Saju/sibsinAnalysis';
+} from '@/lib/Saju/foundation/yongsin';
+import { analyzeHyeongchung } from '@/lib/Saju/foundation/hyeongchung';
+import { calculateTonggeun, calculateDeukryeong } from '@/lib/Saju/foundation/tonggeun';
+import { getJohuYongsin } from '@/lib/Saju/foundation/johuYongsin';
+import { analyzeSibsinComprehensive } from '@/lib/Saju/foundation/sibsinAnalysis';
 import { analyzeHealth, analyzeCareer } from '@/lib/Saju/healthCareer';
 import { generateComprehensiveReport } from '@/lib/Saju/comprehensiveReport';
-import { calculateComprehensiveScore } from '@/lib/Saju/strengthScore';
+import { calculateComprehensiveScore } from '@/lib/Saju/foundation/strengthScore';
 import {
   getTwelveStageInterpretation,
   getElementInterpretation,
 } from '@/lib/Saju/interpretations';
-import type { SajuPillars, FiveElement } from '@/lib/Saju/types';
+import type { SajuPillars, FiveElement } from '@/lib/Saju/foundation/types';
 import { isFiveElement, isTwelveStageType } from './utilities';
 
 export interface SimplePillars {

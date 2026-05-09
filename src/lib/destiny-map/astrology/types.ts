@@ -45,7 +45,7 @@ import type {
   UltraAdvancedAnalysis,
 } from '@/lib/Saju';
 
-import type { SajuPillarsAdapterInput } from '@/lib/Saju/shinsal';
+import type { SajuPillarsAdapterInput } from '@/lib/Saju/foundation/shinsal';
 
 // ======================================================
 // House & Chart Types

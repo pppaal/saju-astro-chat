@@ -5,4 +5,4 @@
 export {
   analyzeDaeunPeriod as analyzeDecadalSaju,
   type DaeunPeriodAnalysis,
-} from '../unseAnalysis'
+} from '../foundation/unseAnalysis'

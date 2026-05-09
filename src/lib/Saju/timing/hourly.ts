@@ -2,7 +2,7 @@
 // 시진 (1시간) 분석 wrapper. astrology/timing/hourly.ts:analyzeHourlyAstro 와 mirror.
 // 사주 12시진은 datePillars 에서 시간 기둥 계산 — 본 wrapper 는 thin 노출.
 
-import { getYearPillarForDate, getMonthPillarForDate } from '../datePillars'
+import { getYearPillarForDate, getMonthPillarForDate } from '../foundation/datePillars'
 import type { SajuTimingAnalysis, SajuTimingHighlight } from './types'
 
 export interface HourlyInput {

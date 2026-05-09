@@ -6,7 +6,7 @@ import {
   countSibsin,
   countSibsinByCategory,
   analyzePersonality,
-} from '../sibsinAnalysis'
+} from '../foundation/sibsinAnalysis'
 import type { SajuThemeAnalysis, SajuThemeFactor, SimpleSajuPillars } from './types'
 
 export function analyzePersonalitySaju(pillars: SimpleSajuPillars): SajuThemeAnalysis {

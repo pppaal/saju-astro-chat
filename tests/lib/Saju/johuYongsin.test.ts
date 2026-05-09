@@ -7,8 +7,8 @@ import {
   evaluateJohuNeed,
   harmonizeYongsin,
   type JohuYongsinInfo,
-} from "../../../src/lib/Saju/johuYongsin";
-import type { FiveElement } from "../../../src/lib/Saju/types";
+} from "../../../src/lib/Saju/foundation/johuYongsin";
+import type { FiveElement } from "../../../src/lib/Saju/foundation/types";
 
 // 일간 목록
 const DAYMASTERS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];

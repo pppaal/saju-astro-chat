@@ -10,7 +10,7 @@ import {
 import {
   analyzePatterns,
   getPatternStatistics,
-} from "@/lib/Saju/patternMatcher";
+} from "@/lib/Saju/foundation/patternMatcher";
 import type { Chart, PlanetBase } from "@/lib/astrology";
 import type { SajuDataStructure, AstroDataStructure } from "../lib/types";
 import { logger } from "@/lib/logger";
@@ -127,7 +127,7 @@ export function generateTier3Analysis(input: Tier3AnalysisInput): Tier3AnalysisR
 
     // 4. 사주 패턴 분석 (희귀도)
     if (saju?.pillars) {
-      const patternAnalysis = analyzePatterns(saju.pillars as unknown as import("@/lib/Saju/types").SajuPillars);
+      const patternAnalysis = analyzePatterns(saju.pillars as unknown as import("@/lib/Saju/foundation/types").SajuPillars);
       if (patternAnalysis.matchedPatterns.length > 0) {
         parts.push("");
         parts.push(lang === "ko" ? "--- 사주 패턴 분석 ---" : "--- Saju Pattern Analysis ---");

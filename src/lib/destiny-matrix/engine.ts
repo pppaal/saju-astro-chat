@@ -29,7 +29,7 @@ import type {
   TwelveStageStandard,
   TwelveStage,
   RelationHit,
-} from '../Saju/types'
+} from '../Saju/foundation/types'
 
 // Note: 건록(建祿)과 임관(臨官)은 별개 개념
 // - 건록: 특수격국 (Layer 7에서 처리)

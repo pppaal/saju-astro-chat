@@ -1,9 +1,9 @@
 // src/lib/Saju/compatibility/dayMasterAnalysis.ts
 // 일간 관계 분석 모듈
 
-import { SajuPillars, SibsinKind } from '../types';
-import { FIVE_ELEMENT_RELATIONS } from '../constants';
-import { getStemElement, getStemYinYang } from '../stemBranchUtils';
+import { SajuPillars, SibsinKind } from '../foundation/types';
+import { FIVE_ELEMENT_RELATIONS } from '../foundation/constants';
+import { getStemElement, getStemYinYang } from '../foundation/stemBranchUtils';
 import { DAY_MASTER_RELATION_SCORES } from './constants';
 import type { DayMasterRelation } from './types';
 

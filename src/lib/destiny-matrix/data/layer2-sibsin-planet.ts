@@ -9,7 +9,7 @@
  */
 
 import type { SibsinPlanetMatrix, InteractionCode, PlanetName } from '../types';
-import type { SibsinKind } from '../../Saju/types';
+import type { SibsinKind } from '../../Saju/foundation/types';
 
 // Helper with optional advice parameter
 const c = (

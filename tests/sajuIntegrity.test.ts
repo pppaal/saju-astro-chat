@@ -7,13 +7,13 @@ import {
   MONTH_STEM_LOOKUP,
   TIME_STEM_LOOKUP,
   JIJANGGAN,
-} from "@/lib/Saju/constants";
+} from "@/lib/Saju/foundation/constants";
 import {
   getSupportedTimezones,
   getOffsetMinutes,
   formatOffset,
-} from "@/lib/Saju/timezone";
-import { STEM_LABELS, BRANCH_LABELS } from "@/lib/Saju/constants";
+} from "@/lib/Saju/foundation/timezone";
+import { STEM_LABELS, BRANCH_LABELS } from "@/lib/Saju/foundation/constants";
 
 describe("Saju constants", () => {
   it("has 10 stems and 12 branches with unique names", () => {

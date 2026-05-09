@@ -2,16 +2,16 @@
 // Calls the existing saju engine; does NOT recompute facts here.
 
 import { calculateSajuData } from '@/lib/Saju/saju'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { calculateStrengthScore } from '@/lib/Saju/strengthScore'
-import { determineYongsin } from '@/lib/Saju/yongsin'
-import { determineGeokguk } from '@/lib/Saju/geokguk'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/foundation/relations'
+import { calculateStrengthScore } from '@/lib/Saju/foundation/strengthScore'
+import { determineYongsin } from '@/lib/Saju/foundation/yongsin'
+import { determineGeokguk } from '@/lib/Saju/foundation/geokguk'
 import {
   getShinsalHits,
   getTwelveStagesForPillars,
   toSajuPillarsLike,
-} from '@/lib/Saju/shinsal'
-import { getIljinCalendar } from '@/lib/Saju/unse'
+} from '@/lib/Saju/foundation/shinsal'
+import { getIljinCalendar } from '@/lib/Saju/foundation/unse'
 import type {
   CalculateSajuDataResult,
   RelationHit,
@@ -19,10 +19,10 @@ import type {
   TwelveStage,
   UnseData,
   PillarKind,
-} from '@/lib/Saju/types'
-import type { GeokgukResult } from '@/lib/Saju/geokguk'
-import type { YongsinResult } from '@/lib/Saju/yongsin'
-import type { StrengthScore } from '@/lib/Saju/strengthScore'
+} from '@/lib/Saju/foundation/types'
+import type { GeokgukResult } from '@/lib/Saju/foundation/geokguk'
+import type { YongsinResult } from '@/lib/Saju/foundation/yongsin'
+import type { StrengthScore } from '@/lib/Saju/foundation/strengthScore'
 import type { SajuNormalizerInput } from '../normalizer/saju'
 import { correctSolarTime, type SolarTimeMode } from './solar-time'
 
@@ -154,7 +154,7 @@ function pickCurrentIljin(saju: CalculateSajuDataResult, queryDate: Date): UnseD
 }
 
 export interface SajuExtras {
-  shinsal: import('@/lib/Saju/types').ShinsalHit[]
+  shinsal: import('@/lib/Saju/foundation/types').ShinsalHit[]
   twelveStages: { [K in PillarKind]: TwelveStage }
   geokguk: GeokgukResult | null
   yongsin: YongsinResult | null

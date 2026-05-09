@@ -15,7 +15,7 @@ import {
   type DaymasterStrength,
   type ElementStats,
   type SajuPillarsInput,
-} from "@/lib/Saju/yongsin";
+} from "@/lib/Saju/foundation/yongsin";
 
 // 테스트용 사주 생성 헬퍼
 function createPillars(

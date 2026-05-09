@@ -14,7 +14,7 @@ import {
   XING,
   HAI,
   PA,
-} from "@/lib/Saju/constants";
+} from "@/lib/Saju/foundation/constants";
 
 describe("Saju Constants", () => {
   describe("STEMS (천간)", () => {

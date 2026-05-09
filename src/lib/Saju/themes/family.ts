@@ -3,7 +3,7 @@
 // 핵심: 년주(조상·먼 부모), 월주(부모·형제), 일지(배우자), 시주(자녀).
 // 사주 기존 familyLineage.ts 는 multi-person 비교 분석 — 본 파일은 single-chart 위치 분석.
 
-import { analyzeSibsinPositions, countSibsin } from '../sibsinAnalysis'
+import { analyzeSibsinPositions, countSibsin } from '../foundation/sibsinAnalysis'
 import type { SajuThemeAnalysis, SajuThemeFactor, SimpleSajuPillars } from './types'
 
 export function analyzeFamilySaju(pillars: SimpleSajuPillars): SajuThemeAnalysis {

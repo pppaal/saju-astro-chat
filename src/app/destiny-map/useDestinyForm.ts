@@ -97,10 +97,10 @@ export const loadCitiesModule = (() => {
 })()
 
 export const loadTimezoneModule = (() => {
-  let promise: Promise<typeof import('@/lib/Saju/timezone')> | null = null
+  let promise: Promise<typeof import('@/lib/Saju/foundation/timezone')> | null = null
   return () => {
     if (!promise) {
-      promise = import('@/lib/Saju/timezone')
+      promise = import('@/lib/Saju/foundation/timezone')
     }
     return promise
   }

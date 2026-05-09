@@ -12,7 +12,7 @@ import {
   analyzeMultiPersonCompatibility,
   type CompatibilitySubject,
 } from '@/lib/Saju/compatibility';
-import type { SajuPillars, PillarData } from '@/lib/Saju/types';
+import type { SajuPillars, PillarData } from '@/lib/Saju/foundation/types';
 
 // 헬퍼: 테스트용 기둥 데이터 생성
 function createPillarData(stemName: string, branchName: string): PillarData {

@@ -1,8 +1,8 @@
 // src/lib/Saju/index.ts
 
 // 타입/상수
-export * from './types';
-export * from './constants';
+export * from './foundation/types';
+export * from './foundation/constants';
 
 // 원국 계산기
 export { calculateSajuData } from './saju';
@@ -29,14 +29,14 @@ export {
   type JohuYongsinAnalysis,
   type ExtendedAdvancedAnalysis,
   type Season,
-} from './advancedSajuAnalysis';
+} from './foundation/advancedSajuAnalysis';
 
 // 운세/캘린더
-export { getDaeunCycles, getAnnualCycles, getMonthlyCycles, getIljinCalendar } from './unse';
-export type { WolunDataExtended } from './unse';
+export { getDaeunCycles, getAnnualCycles, getMonthlyCycles, getIljinCalendar } from './foundation/unse';
+export type { WolunDataExtended } from './foundation/unse';
 
 // 관계(이미 구성해둔 함수만)
-export { analyzeRelations, toAnalyzeInputFromSaju } from './relations';
+export { analyzeRelations, toAnalyzeInputFromSaju } from './foundation/relations';
 
 // 신살: 이 파일(shinsal.ts)의 실존 함수만 선택적으로 공개
 export {
@@ -48,7 +48,7 @@ export {
   getTwelveShinsalSingleByPillar, // 표용: 일지 기준 12신살(각 기둥 1개)
   getLuckySingleByPillar,         // 표용: 길성(각 기둥 1개)
   getJijangganText,               // 지장간 텍스트
-} from './shinsal';
+} from './foundation/shinsal';
 export type {
   ShinsalHit,
   ShinsalAnnot,
@@ -56,12 +56,12 @@ export type {
   PillarKind,
   SajuPillarsLike,
   AnnotateOptions,
-} from './shinsal';
+} from './foundation/shinsal';
 
 // 타임존
-export * from './timezone';
+export * from './foundation/timezone';
 
-// Note: STEM_LABELS, BRANCH_LABELS are exported from './constants'
+// Note: STEM_LABELS, BRANCH_LABELS are exported from './foundation/constants'
 
 // 격국 판정 모듈
 export {
@@ -69,7 +69,7 @@ export {
   getGeokgukDescription,
   type GeokgukResult,
   type GeokgukType as GeokgukTypeNew,
-} from './geokguk';
+} from './foundation/geokguk';
 
 // 용신 선정 모듈
 export {
@@ -85,7 +85,7 @@ export {
   type DaymasterStrength,
   type SeasonClimate,
   type ElementStats,
-} from './yongsin';
+} from './foundation/yongsin';
 
 // 60갑자 조회 모듈
 export {
@@ -112,7 +112,7 @@ export {
   BRANCH_KOREAN,
   type SixtyPillarInfo,
   type IljuInfo,
-} from './pillarLookup';
+} from './foundation/pillarLookup';
 
 // 통근/투출/회국 분석 모듈
 export {
@@ -126,7 +126,7 @@ export {
   type HoegukResult,
   type DeukryeongResult,
   type TonggeunStrengthAnalysis,
-} from './tonggeun';
+} from './foundation/tonggeun';
 
 // 조후용신 (궁통보감) 모듈
 export {
@@ -136,7 +136,7 @@ export {
   JOHU_YONGSIN_DB,
   MONTH_CLIMATE,
   type JohuYongsinInfo,
-} from './johuYongsin';
+} from './foundation/johuYongsin';
 
 // 형충회합 작용력 계산 모듈
 export {
@@ -150,7 +150,7 @@ export {
   type HyeongchungAnalysis,
   type PillarPosition,
   type MergedElement,
-} from './hyeongchung';
+} from './foundation/hyeongchung';
 
 // 해석 데이터 모듈 (12운성, 십성, 신살, 오행)
 export {
@@ -201,7 +201,7 @@ export {
   type LifeCycleAnalysis,
   type YearDetailAnalysis,
   type MultiYearTrend,
-} from './unseAnalysis';
+} from './foundation/unseAnalysis';
 
 // 십신(십성) 심층 분석 모듈
 export {
@@ -225,7 +225,7 @@ export {
   type CareerAptitude,
   type RelationshipPattern,
   type SibsinComprehensiveAnalysis,
-} from './sibsinAnalysis';
+} from './foundation/sibsinAnalysis';
 
 // 건강 및 직업 적성 심층 분석 모듈
 export {
@@ -256,7 +256,7 @@ export {
   type YongsinFitScore,
   type UnseHarmonyScore,
   type ComprehensiveScore,
-} from './strengthScore';
+} from './foundation/strengthScore';
 
 // 운세 해석 문장 생성기
 export {
@@ -317,7 +317,7 @@ export {
   type PatternDefinition,
   type PatternAnalysis,
   type CelebrityProfile,
-} from './patternMatcher';
+} from './foundation/patternMatcher';
 
 // ============================================================
 // 1000% 급 초고급 모듈들
@@ -339,7 +339,7 @@ export {
   type GongmangDeepAnalysis,
   type SamgiAnalysis,
   type UltraAdvancedAnalysis,
-} from './advancedSajuCore';
+} from './foundation/advancedSajuCore';
 
 // 세대간/가족 분석 엔진
 export {

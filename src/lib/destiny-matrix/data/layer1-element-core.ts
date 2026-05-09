@@ -10,7 +10,7 @@
 // Layer 1: 오행 ↔ 4원소 교차
 
 import type { ElementCoreGrid, InteractionCode, WesternElement } from '../types';
-import type { FiveElement } from '../../Saju/types';
+import type { FiveElement } from '../../Saju/foundation/types';
 
 // Helper to create interaction codes with optional advice
 const c = (

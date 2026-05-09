@@ -12,8 +12,8 @@ import {
   type AnnotateOptions,
   type PillarBase,
   type SajuPillarsLike,
-} from "@/lib/Saju/shinsal";
-import type { PillarKind, TwelveStage } from "@/lib/Saju/types";
+} from "@/lib/Saju/foundation/shinsal";
+import type { PillarKind, TwelveStage } from "@/lib/Saju/foundation/types";
 
 describe("DEFAULT_ANNOTATE_OPTIONS", () => {
   it("has twelveStageBasis set to day", () => {

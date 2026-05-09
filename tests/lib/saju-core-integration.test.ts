@@ -43,20 +43,20 @@ describe('Saju Core Integration', () => {
   describe('Core Saju Module Exports', () => {
     it('should expose core saju exports', () => {
       assertNamedExports('lib/Saju/saju', ['calculateSajuData'])
-      assertNamedExports('lib/Saju/pillarLookup', [
+      assertNamedExports('lib/Saju/foundation/pillarLookup', [
         'getYearPillar',
         'getPillarInfo',
         'getPillarByIndex',
         'getGongmang',
       ])
-      assertNamedExports('lib/Saju/relations', ['analyzeRelations', 'toAnalyzeInputFromSaju'])
-      assertNamedExports('lib/Saju/strengthScore', ['calculateStrengthScore'])
-      assertNamedExports('lib/Saju/sibsinAnalysis', ['analyzeSibsinComprehensive'])
-      assertNamedExports('lib/Saju/unse', ['getDaeunCycles', 'getAnnualCycles', 'getMonthlyCycles'])
+      assertNamedExports('lib/Saju/foundation/relations', ['analyzeRelations', 'toAnalyzeInputFromSaju'])
+      assertNamedExports('lib/Saju/foundation/strengthScore', ['calculateStrengthScore'])
+      assertNamedExports('lib/Saju/foundation/sibsinAnalysis', ['analyzeSibsinComprehensive'])
+      assertNamedExports('lib/Saju/foundation/unse', ['getDaeunCycles', 'getAnnualCycles', 'getMonthlyCycles'])
     })
 
     it('should expose pillar lookup utilities', () => {
-      assertNamedExports('lib/Saju/pillarLookup', [
+      assertNamedExports('lib/Saju/foundation/pillarLookup', [
         'getYearPillar',
         'getPillarInfo',
         'getPillarByIndex',
@@ -64,7 +64,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should expose unse analysis types', () => {
-      assertNamedExports('lib/Saju/unseAnalysis', ['UnseType', 'UnseInfo'])
+      assertNamedExports('lib/Saju/foundation/unseAnalysis', ['UnseType', 'UnseInfo'])
     })
   })
 
@@ -79,11 +79,11 @@ describe('Saju Core Integration', () => {
     })
 
     it('should expose geokguk analysis', () => {
-      assertNamedExports('lib/Saju/geokguk', ['determineGeokguk', 'getGeokgukDescription'])
+      assertNamedExports('lib/Saju/foundation/geokguk', ['determineGeokguk', 'getGeokgukDescription'])
     })
 
     it('should expose tonggeun module', () => {
-      assertNamedExports('lib/Saju/tonggeun', ['calculateTonggeun', 'analyzeStrength'])
+      assertNamedExports('lib/Saju/foundation/tonggeun', ['calculateTonggeun', 'analyzeStrength'])
     })
 
     it('should expose health and career analysis', () => {
@@ -95,7 +95,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should expose pattern matcher', () => {
-      assertNamedExports('lib/Saju/patternMatcher', ['matchAllPatterns', 'analyzePatterns'])
+      assertNamedExports('lib/Saju/foundation/patternMatcher', ['matchAllPatterns', 'analyzePatterns'])
     })
 
     // aiPromptGenerator — 미사용으로 삭제됨 (2025 정리)
@@ -212,21 +212,21 @@ describe('Saju Core Integration', () => {
     it('should list all core module files', () => {
       const modules = [
         'lib/Saju/saju',
-        'lib/Saju/pillarLookup',
-        'lib/Saju/relations',
-        'lib/Saju/strengthScore',
-        'lib/Saju/sibsinAnalysis',
-        'lib/Saju/unse',
-        'lib/Saju/unseAnalysis',
+        'lib/Saju/foundation/pillarLookup',
+        'lib/Saju/foundation/relations',
+        'lib/Saju/foundation/strengthScore',
+        'lib/Saju/foundation/sibsinAnalysis',
+        'lib/Saju/foundation/unse',
+        'lib/Saju/foundation/unseAnalysis',
         'lib/Saju/textGenerator',
         'lib/Saju/compatibility',
         'lib/Saju/cache',
-        'lib/Saju/geokguk',
-        'lib/Saju/tonggeun',
+        'lib/Saju/foundation/geokguk',
+        'lib/Saju/foundation/tonggeun',
         'lib/Saju/healthCareer',
         'lib/Saju/familyLineage',
-        'lib/Saju/patternMatcher',
-        'lib/Saju/advancedSajuCore',
+        'lib/Saju/foundation/patternMatcher',
+        'lib/Saju/foundation/advancedSajuCore',
         'lib/Saju/comprehensiveReport',
       ]
       // visualizationData / fortuneSimulator / aiPromptGenerator — 미사용으로 삭제됨
@@ -244,13 +244,13 @@ describe('Saju Core Integration', () => {
     })
 
     it('should verify pillar lookup module exists', () => {
-      const content = readModule('lib/Saju/pillarLookup')
+      const content = readModule('lib/Saju/foundation/pillarLookup')
       expect(content).toBeDefined()
       expect(content.length).toBeGreaterThan(0)
     })
 
     it('should verify relations module exists', () => {
-      const content = readModule('lib/Saju/relations')
+      const content = readModule('lib/Saju/foundation/relations')
       expect(content).toBeDefined()
       expect(content.length).toBeGreaterThan(0)
     })
@@ -274,7 +274,7 @@ describe('Saju Core Integration', () => {
     // fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
 
     it('should expose advanced saju core', () => {
-      assertNamedExports('lib/Saju/advancedSajuCore', [
+      assertNamedExports('lib/Saju/foundation/advancedSajuCore', [
         'analyzeJonggeok',
         'performUltraAdvancedAnalysis',
       ])

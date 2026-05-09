@@ -20,8 +20,8 @@ import {
   safeNormalizeBirthInfo,
   // Auto-detection
   detectAndNormalize,
-} from "@/lib/Saju/normalizer";
-import { SajuValidationError } from "@/lib/Saju/validation";
+} from "@/lib/Saju/foundation/normalizer";
+import { SajuValidationError } from "@/lib/Saju/foundation/validation";
 
 // ============================================================
 // Date Normalization Tests

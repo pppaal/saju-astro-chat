@@ -30,7 +30,7 @@ import type {
   WolunData,
   IljinData,
   SajuFacts,
-} from "@/lib/Saju/types";
+} from "@/lib/Saju/foundation/types";
 
 describe("FiveElement type", () => {
   it("has five elements", () => {

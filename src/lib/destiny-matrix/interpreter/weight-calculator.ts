@@ -2,7 +2,7 @@
 // Destiny Fusion Matrix™ - Dynamic Weight Calculator
 // 특허 핵심: 컨텍스트 기반 동적 가중치 조정 알고리즘
 
-import type { FiveElement } from '../../Saju/types';
+import type { FiveElement } from '../../Saju/foundation/types';
 import type { GeokgukType, TransitCycle, MatrixCalculationInput } from '../types';
 import type {
   WeightConfig,

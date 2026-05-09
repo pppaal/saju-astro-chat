@@ -1,7 +1,7 @@
 // src/lib/Saju/compatibility/categoryAnalysis.ts
 // 카테고리별 궁합 분석 모듈
 
-import { SajuPillars } from '../types';
+import { SajuPillars } from '../foundation/types';
 import { CATEGORY_WEIGHTS, CATEGORY_ADVICE } from './constants';
 import { analyzeElementCompatibility } from './elementAnalysis';
 import { analyzeStemCompatibility, analyzeBranchCompatibility } from './stemBranchAnalysis';

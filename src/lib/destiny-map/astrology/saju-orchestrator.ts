@@ -31,11 +31,11 @@ import {
   performUltraAdvancedAnalysis,
 } from '@/lib/Saju';
 
-import { annotateShinsal, toSajuPillarsLike } from '@/lib/Saju/shinsal';
+import { annotateShinsal, toSajuPillarsLike } from '@/lib/Saju/foundation/shinsal';
 import { logger } from '@/lib/logger';
 import { getYinYangFromName, formatBirthTime } from './helpers';
 import type { SajuPillars, SajuData, AdvancedSajuAnalysis } from './types';
-import type { DayMaster } from '@/lib/Saju/types';
+import type { DayMaster } from '@/lib/Saju/foundation/types';
 
 // ======================================================
 // Types

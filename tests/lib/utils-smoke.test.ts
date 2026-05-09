@@ -45,7 +45,7 @@ describe('Utils & Helpers Smoke Tests', () => {
     });
 
     it('should import saju constants', async () => {
-      const constants = await import('@/lib/Saju/constants');
+      const constants = await import('@/lib/Saju/foundation/constants');
 
       expect(constants).toBeDefined();
       expect(Object.keys(constants).length).toBeGreaterThan(0);
@@ -132,7 +132,7 @@ describe('Utils & Helpers Smoke Tests', () => {
         import('@/lib/constants/index'),
         import('@/lib/constants/themes'),
         import('@/lib/destiny-map/calendar/constants'),
-        import('@/lib/Saju/constants'),
+        import('@/lib/Saju/foundation/constants'),
 
         // Destiny Map Utils (7)
         import('@/lib/destiny-map/calendar/daily-fortune-helpers'),

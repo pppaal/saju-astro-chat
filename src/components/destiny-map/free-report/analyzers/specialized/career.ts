@@ -7,7 +7,7 @@ import { getInteractionColor } from '@/lib/destiny-matrix/engine';
 import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
 import { ADVANCED_ANALYSIS_MATRIX } from '@/lib/destiny-matrix/data/layer7-advanced-analysis';
 import type { WesternElement } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/Saju/foundation/types';
 import type { SajuData, AstroData } from '../../types';
 import type { CareerAdvancedResult, ExtendedSajuData } from '../types/specialized.types';
 

@@ -1,5 +1,5 @@
 ﻿import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { RelationHit } from '@/lib/Saju/types'
+import type { RelationHit } from '@/lib/Saju/foundation/types'
 
 const SHINSAL_ALIASES: Array<[RegExp, string]> = [
   [/\uD654\uAC1C|華蓋/giu, '\uD654\uAC1C'],

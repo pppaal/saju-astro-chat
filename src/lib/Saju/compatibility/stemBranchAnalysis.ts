@@ -1,7 +1,7 @@
 // src/lib/Saju/compatibility/stemBranchAnalysis.ts
 // 천간/지지 궁합 분석 모듈
 
-import { FiveElement, SajuPillars } from '../types';
+import { FiveElement, SajuPillars } from '../foundation/types';
 import {
   STEM_HAP,
   STEM_CHUNG,

@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { FiveElement } from "@/lib/Saju/types";
+import type { FiveElement } from "@/lib/Saju/foundation/types";
 
 // Mock dependencies
 vi.mock("@/lib/compatibility/cosmicCompatibility", () => ({

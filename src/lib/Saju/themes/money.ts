@@ -2,7 +2,7 @@
 // 돈/재물 테마. astrology/themes/money.ts 와 mirror.
 // 핵심: 정재·편재(재성), 식신·상관(생재), 비견·겁재(쟁재).
 
-import { analyzeSibsinPositions, countSibsin } from '../sibsinAnalysis'
+import { analyzeSibsinPositions, countSibsin } from '../foundation/sibsinAnalysis'
 import type { SajuThemeAnalysis, SajuThemeFactor, SimpleSajuPillars } from './types'
 
 export function analyzeMoneySaju(pillars: SimpleSajuPillars): SajuThemeAnalysis {

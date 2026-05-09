@@ -24,8 +24,8 @@ import {
   getTwelveStagesForPillars,
   getTwelveShinsalSingleByPillar,
   getShinsalHits,
-} from '@/lib/Saju/shinsal'
-import type { SajuPillarsLike } from '@/lib/Saju/shinsal'
+} from '@/lib/Saju/foundation/shinsal'
+import type { SajuPillarsLike } from '@/lib/Saju/foundation/shinsal'
 
 interface PillarLikeData {
   heavenlyStem?: { name?: string; element?: string; yin_yang?: string }
