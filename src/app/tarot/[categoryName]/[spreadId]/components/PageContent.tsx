@@ -26,7 +26,6 @@ export interface PageContentProps {
   interpretation: InterpretationResult | null
   drawError: TarotDrawError | null
   detailedSectionRef: React.RefObject<HTMLDivElement | null>
-  expandedCard: number | null
   isSaving: boolean
   isSaved: boolean
   saveMessage: string
@@ -39,8 +38,6 @@ export interface PageContentProps {
   handleRedraw: () => void
   isCardRevealed: (index: number) => boolean
   canRevealCard: (index: number) => boolean
-  scrollToDetails: () => void
-  toggleCardExpand: (index: number) => void
   handleSaveReading: () => Promise<void>
   handleReset: () => void
   handlePersonalizationChange: (key: keyof TarotPersonalizationOptions, value: boolean) => void
@@ -146,7 +143,6 @@ export function PageContent(props: PageContentProps) {
         selectedColor={props.selectedColor}
         selectedDeckStyle={props.selectedDeckStyle}
         revealedCards={props.revealedCards}
-        expandedCard={props.expandedCard}
         detailedSectionRef={props.detailedSectionRef}
         language={language}
         translate={translate}
@@ -157,8 +153,6 @@ export function PageContent(props: PageContentProps) {
         handleCardReveal={props.handleCardReveal}
         canRevealCard={props.canRevealCard}
         isCardRevealed={props.isCardRevealed}
-        scrollToDetails={props.scrollToDetails}
-        toggleCardExpand={props.toggleCardExpand}
         isSaving={props.isSaving}
         isSaved={props.isSaved}
         saveMessage={props.saveMessage}

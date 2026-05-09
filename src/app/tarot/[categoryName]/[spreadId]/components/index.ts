@@ -10,7 +10,6 @@ export { default as ErrorState } from './ErrorState'
 export { HorizontalCardsGrid } from './ResultsView/HorizontalCardsGrid'
 export { DetailedCardsSection } from './ResultsView/DetailedCardsSection'
 export { DetailedCardItem } from './ResultsView/DetailedCardItem'
-export { InsightCard } from './ResultsView/InsightCard'
 
 // Chat Message Components
 export { ChatMessage } from './ChatMessages/ChatMessage'

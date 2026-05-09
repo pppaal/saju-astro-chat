@@ -16,7 +16,6 @@ interface HorizontalCardsGridProps {
   onCardReveal: (index: number) => void
   canRevealCard: (index: number) => boolean
   isCardRevealed: (index: number) => boolean
-  onCardSelect?: (index: number) => void
   translate: (key: string, fallback: string) => string
 }
 
@@ -28,7 +27,6 @@ export function HorizontalCardsGrid({
   onCardReveal,
   canRevealCard,
   isCardRevealed,
-  onCardSelect,
   translate,
 }: HorizontalCardsGridProps) {
   return (
@@ -44,7 +42,6 @@ export function HorizontalCardsGrid({
 
         const handleCardClick = () => {
           if (revealed) {
-            onCardSelect?.(index)
             return
           }
           if (canReveal) {
@@ -113,7 +110,10 @@ export function HorizontalCardsGrid({
                   <div className={styles.cardBackImageLarge}></div>
                   {canReveal && (
                     <div className={styles.clickPrompt}>
-                      {translate('tarot.results.clickToReveal', language === 'ko' ? '클릭하세요' : 'Click to reveal')}
+                      {translate(
+                        'tarot.results.clickToReveal',
+                        language === 'ko' ? '클릭하세요' : 'Click to reveal'
+                      )}
                     </div>
                   )}
                   {!canReveal && <div className={styles.lockIcon}>🔒</div>}
@@ -136,12 +136,6 @@ export function HorizontalCardsGrid({
                         {keyword}
                       </span>
                     ))}
-                </div>
-                <div className={styles.detailHintCompact}>
-                  {translate(
-                    'tarot.results.viewCardDetail',
-                    language === 'ko' ? '눌러서 상세 해석 보기' : 'Tap for detailed reading'
-                  )}
                 </div>
               </div>
             )}

@@ -42,7 +42,6 @@ function TarotReadingPage() {
 
   // Local state
   const detailedSectionRef = useRef<HTMLDivElement | null>(null)
-  const [expandedCard, setExpandedCard] = useState<number | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const requestedInterpretationKeyRef = useRef<string | null>(null)
   const isInterpretationFetchingRef = useRef(false)
@@ -136,12 +135,6 @@ function TarotReadingPage() {
     [gameHook, detailedSectionRef]
   )
 
-  const scrollToDetails = useCallback(() => {
-    if (detailedSectionRef.current) {
-      smoothScrollTo(detailedSectionRef.current, 800)
-    }
-  }, [])
-
   const handleSaveReading = useCallback(async () => {
     if (isSaving || interpretationHook.isSaved) return
     setIsSaving(true)
@@ -157,7 +150,6 @@ function TarotReadingPage() {
   }, [interpretationHook, gameHook, isSaving])
 
   const handleReset = () => router.push('/tarot')
-  const toggleCardExpand = (index: number) => setExpandedCard(expandedCard === index ? null : index)
 
   // Session loading state
   if (status === 'loading') {
@@ -173,15 +165,12 @@ function TarotReadingPage() {
       {...gameHook}
       {...interpretationHook}
       detailedSectionRef={detailedSectionRef}
-      expandedCard={expandedCard}
       isSaving={isSaving}
       isGuestUser={isGuestUser}
       signInUrl={signInUrl}
       handleCardReveal={handleCardReveal}
-      scrollToDetails={scrollToDetails}
       handleSaveReading={handleSaveReading}
       handleReset={handleReset}
-      toggleCardExpand={toggleCardExpand}
       language={language}
       translate={translate}
     />

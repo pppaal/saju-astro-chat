@@ -12,11 +12,8 @@ interface DetailedCardsSectionProps {
   language: string
   selectedDeckStyle: DeckStyle
   revealedCards: number[]
-  expandedCard: number | null
-  onToggleExpand: (index: number) => void
   detailedSectionRef?: React.RefObject<HTMLDivElement | null>
   translate: (key: string, fallback: string) => string
-  mode?: 'summary' | 'full'
 }
 
 export function DetailedCardsSection({
@@ -25,13 +22,9 @@ export function DetailedCardsSection({
   language,
   selectedDeckStyle,
   revealedCards,
-  expandedCard,
-  onToggleExpand,
   detailedSectionRef,
   translate,
-  mode = 'full',
 }: DetailedCardsSectionProps) {
-  // Only show when all cards are revealed
   if (revealedCards.length !== readingResult.drawnCards.length) {
     return null
   }
@@ -48,7 +41,6 @@ export function DetailedCardsSection({
             (language === 'ko' ? position?.titleKo || position?.title : position?.title) ||
             (language === 'ko' ? `카드 ${index + 1}` : `Card ${index + 1}`)
           const cardInsight = interpretation?.card_insights?.[index]
-          const isExpanded = expandedCard === index
 
           return (
             <DetailedCardItem
@@ -58,11 +50,8 @@ export function DetailedCardsSection({
               positionTitle={positionTitle}
               cardInsight={cardInsight}
               language={language}
-              isExpanded={isExpanded}
               selectedDeckStyle={selectedDeckStyle}
-              onToggle={onToggleExpand}
               translate={translate}
-              mode={mode}
             />
           )
         })}
