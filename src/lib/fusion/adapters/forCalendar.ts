@@ -192,6 +192,12 @@ export interface CalendarAdapterInput {
   natalInput?: NatalInput                  // Solar/Lunar Return + daily transit 산출용 (옵션)
   iljinByDate?: Record<string, string>     // '2027-05-15' → '갑자' (외부 계산)
   age?: number                             // 점성 Profection 용 (옵션)
+  // 사주 세운/대운 wire 용 (caller 가 calculateSajuData 결과에서 추출해 넘김)
+  birthYear?: number
+  daeunList?: Array<{ stem: string; branch: string; startAge: number }>
+  // 추가 사주·점성 layer (caller 가 미리 계산해 넘김 — 시진·세운·일진 형충회합 등)
+  extraSajuTimings?: SajuTimingAnalysis[]
+  extraAstroTimings?: AstroTimingAnalysis[]
 }
 
 /**
@@ -223,6 +229,51 @@ export async function buildCalendarMonth(
     const thisMonth = monthCycles.find((m) => m.month === month)
     if (thisMonth) {
       sajuMonthly = analyzeMonthlySaju({ month: thisMonth, dayMaster: input.saju.day.stem })
+    }
+  }
+
+  // ============================================================
+  // Layer 2b: 사주 세운 (그 해 1개) — birthYear + daeunList 제공 시
+  // ============================================================
+  let sajuYearly: SajuTimingAnalysis | undefined
+  if (input.birthYear != null && input.daeunList && input.daeunList.length > 0) {
+    try {
+      // 세운 천간/지지 — 60갑자 순회로 계산
+      const yearOffset = year - 1924  // 갑자년 기준
+      const yearSibsin = ((year - input.birthYear) % 60 + 60) % 60
+      // analyzeSpecificYear 가 복잡한 SajuPillars 필요 — 단순 wrap 만:
+      const yearStem = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'][yearOffset % 10]
+      const yearBranch = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'][yearOffset % 12]
+      sajuYearly = {
+        unit: 'yearly',
+        periodLabel: `세운 ${year} ${yearStem}${yearBranch}`,
+        highlights: [{
+          source: `세운 ${yearStem}${yearBranch}`,
+          meaning: `${year}년 천간 ${yearStem}, 지지 ${yearBranch} — 본명과 작용.`,
+          tone: 'neutral',
+        }],
+        summary: `${year} 세운 ${yearStem}${yearBranch}`,
+      }
+    } catch { /* skip */ }
+  }
+
+  // ============================================================
+  // Layer 2c: 사주 대운 (활성 period) — daeunList 제공 시
+  // ============================================================
+  let sajuDecadal: SajuTimingAnalysis | undefined
+  if (input.daeunList && input.age != null) {
+    const active = input.daeunList.find((d) => input.age! >= d.startAge && input.age! < d.startAge + 10)
+    if (active) {
+      sajuDecadal = {
+        unit: 'decadal',
+        periodLabel: `대운 ${active.stem}${active.branch} (age ${active.startAge}-${active.startAge + 9})`,
+        highlights: [{
+          source: `대운 ${active.stem}${active.branch}`,
+          meaning: `${active.startAge}-${active.startAge + 9}세 대운 — ${active.stem}${active.branch} 10년 backdrop.`,
+          tone: 'neutral',
+        }],
+        summary: `대운 ${active.stem}${active.branch}`,
+      }
     }
   }
 
@@ -417,11 +468,14 @@ export async function buildCalendarMonth(
     // Layer 4: 사주 일진 (그 날)
     // ============================================================
     const sajuTimings: SajuTimingAnalysis[] = []
+    if (sajuDecadal) sajuTimings.push(sajuDecadal)
+    if (sajuYearly) sajuTimings.push(sajuYearly)
     if (sajuMonthly) sajuTimings.push(sajuMonthly)
     const iljin = iljinMap[date]
     if (iljin) {
       sajuTimings.push(analyzeDailySaju({ iljin, dayMaster: input.saju.day.stem }))
     }
+    if (input.extraSajuTimings) sajuTimings.push(...input.extraSajuTimings)
 
     // ============================================================
     // 점성 layer 합 (decadal ZR + lifetime Progressions + lots + Profection + SR + LR + Eclipses + daily)
@@ -436,6 +490,7 @@ export async function buildCalendarMonth(
     if (astroEclipses) astroTimings.push(astroEclipses)
     const dailyAstros = dailyAstroByDate.get(date)
     if (dailyAstros) astroTimings.push(...dailyAstros)
+    if (input.extraAstroTimings) astroTimings.push(...input.extraAstroTimings)
 
     const crosses = CORE_THEMES.map((theme) =>
       crossThemeAtTime({
@@ -528,6 +583,40 @@ export async function buildCalendarDay(
   const sajuTimings: SajuTimingAnalysis[] = []
   let computedIljin: IljinData | undefined
   let computedIsCheoneul: boolean | undefined
+  // 대운 (decadal layer) — daeunList 제공 시
+  if (input.daeunList && input.age != null) {
+    const active = input.daeunList.find((d) => input.age! >= d.startAge && input.age! < d.startAge + 10)
+    if (active) {
+      sajuTimings.push({
+        unit: 'decadal',
+        periodLabel: `대운 ${active.stem}${active.branch}`,
+        highlights: [{
+          source: `대운 ${active.stem}${active.branch}`,
+          meaning: `${active.startAge}-${active.startAge + 9}세 backdrop.`,
+          tone: 'neutral',
+        }],
+        summary: `대운 ${active.stem}${active.branch}`,
+      })
+    }
+  }
+  // 세운 (yearly layer)
+  if (input.birthYear != null && input.daeunList && input.daeunList.length > 0) {
+    try {
+      const yearOffset = year - 1924
+      const yearStem = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'][yearOffset % 10]
+      const yearBranch = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'][yearOffset % 12]
+      sajuTimings.push({
+        unit: 'yearly',
+        periodLabel: `세운 ${year} ${yearStem}${yearBranch}`,
+        highlights: [{
+          source: `세운 ${yearStem}${yearBranch}`,
+          meaning: `${year}년 천간 ${yearStem}, 지지 ${yearBranch}.`,
+          tone: 'neutral',
+        }],
+        summary: `${year} 세운 ${yearStem}${yearBranch}`,
+      })
+    } catch { /* skip */ }
+  }
   if (dayMaster) {
     // 월운 (월 layer)
     const monthCycles = getMonthlyCycles(year, dayMaster) as WolunData[]
@@ -543,6 +632,7 @@ export async function buildCalendarDay(
       computedIsCheoneul = computedIljin.isCheoneulGwiin
     }
   }
+  if (input.extraSajuTimings) sajuTimings.push(...input.extraSajuTimings)
 
   // 점성 layers (Decadal ZR + Profection + SR + LR + Eclipses + Daily transit + Retrograde + VoC + Decan/Bound)
   const astroTimings: AstroTimingAnalysis[] = []
@@ -646,15 +736,7 @@ export async function buildCalendarDay(
     } catch { /* skip */ }
   }
 
-  // 사주 일진×본명 형충회합 (relations)
-  if (computedIljin && dayMaster) {
-    try {
-      const { analyzeRelations } = await import('@/lib/Saju/foundation/relations')
-      // 본명 4기둥 + 일진을 가상 5번째 기둥처럼 — 단순화: skip 본 단계 (옵션)
-      // 일진의 신살 발현 (도화·역마·천을·괴강 등 IljinData 안에 일부)
-      // 추가 detail은 여기서 skip — sajuTimings 의 daily 안에 이미 일부 포함
-    } catch { /* skip */ }
-  }
+  if (input.extraAstroTimings) astroTimings.push(...input.extraAstroTimings)
 
   const crosses = ALL_THEMES.map((theme) =>
     crossThemeAtTime({
