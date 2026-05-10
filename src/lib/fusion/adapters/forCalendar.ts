@@ -14,6 +14,11 @@ import { calculateTransitChart, findMajorTransits } from '@/lib/astrology/founda
 import { analyzeYearlyAstro } from '@/lib/astrology/timing/yearly'
 import { analyzeMonthlyAstro } from '@/lib/astrology/timing/monthly'
 import { analyzeDailyAstro } from '@/lib/astrology/timing/daily'
+import { analyzeDecadalAstro } from '@/lib/astrology/timing/decadal'
+import { getRetrogradePlanets, checkVoidOfCourse } from '@/lib/astrology/foundation/electional'
+import { getEclipsesBetween } from '@/lib/astrology/foundation/eclipses'
+import { getDecan } from '@/lib/astrology/foundation/decans'
+import { getEgyptianBound } from '@/lib/astrology/foundation/bounds'
 import { STEMS } from '@/lib/Saju/foundation/constants'
 import type { DayMaster, IljinData, WolunData } from '@/lib/Saju/foundation/types'
 import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
@@ -255,9 +260,41 @@ export async function buildCalendarMonth(
   }
 
   // ============================================================
-  // Layer 5: 점성 daily transit (매일) — natalInput + astro 제공 시
+  // Layer 5: 점성 ZR period (장기, 1번)
   // ============================================================
-  const dailyAstroByDate = new Map<string, AstroTimingAnalysis>()
+  let astroDecadal: AstroTimingAnalysis | undefined
+  if (input.age != null) {
+    try {
+      astroDecadal = analyzeDecadalAstro(input.astro, { age: input.age, yearsToProject: 90 })
+    } catch { /* skip */ }
+  }
+
+  // ============================================================
+  // Layer 6: 점성 Eclipses (그 달 일·월식)
+  // ============================================================
+  let astroEclipses: AstroTimingAnalysis | undefined
+  try {
+    const start = `${year}-${String(month).padStart(2, '0')}-01`
+    const end = `${year}-${String(month).padStart(2, '0')}-${daysInMonth}`
+    const eclipses = getEclipsesBetween(start, end)
+    if (eclipses.length > 0) {
+      astroEclipses = {
+        unit: 'monthly',
+        periodLabel: `Eclipses ${year}-${month}`,
+        highlights: eclipses.map((e) => ({
+          source: `${e.type} eclipse ${e.date}`,
+          meaning: `${e.type} 일·월식 — ${e.sign} 영역 강한 변환점.`,
+          tone: 'cautious',
+        })),
+        summary: `${eclipses.length}개 일·월식`,
+      }
+    }
+  } catch { /* skip */ }
+
+  // ============================================================
+  // Layer 7: 점성 daily transit + Retrograde + VoC + Decan/Bound (매일)
+  // ============================================================
+  const dailyAstroByDate = new Map<string, AstroTimingAnalysis[]>()
   if (input.natalInput) {
     for (let d = 1; d <= daysInMonth; d++) {
       const date = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
@@ -269,14 +306,53 @@ export async function buildCalendarMonth(
           timeZone: input.natalInput.timeZone,
         })
         const aspects = findMajorTransits(transitChart, input.astro, 1.0)
-        const transitAnalysis = analyzeDailyAstro({
+        const dayAnalyses: AstroTimingAnalysis[] = []
+        // 7a. transit aspects
+        dayAnalyses.push(analyzeDailyAstro({
           isoDate: date,
           transitChart,
           transitToNatalAspects: aspects.map(a => ({
             from: a.from, to: a.to, type: a.type, orb: a.orb, applying: a.applying, score: a.score,
           })),
-        })
-        dailyAstroByDate.set(date, transitAnalysis)
+        }))
+        // 7b. Retrograde + VoC (electional 보조)
+        const retros = getRetrogradePlanets(transitChart)
+        const voc = checkVoidOfCourse(transitChart)
+        const electHighlights = []
+        if (retros.length > 0) {
+          electHighlights.push({
+            source: `역행: ${retros.join(', ')}`,
+            meaning: `${retros.join(', ')} 역행 중 — 해당 행성 영역 신중.`,
+            tone: 'cautious' as const,
+          })
+        }
+        if (voc.isVoid) {
+          electHighlights.push({
+            source: 'Void of Course Moon',
+            meaning: '보이드 — 새 시작 보류, 마무리 일에 적합.',
+            tone: 'cautious' as const,
+          })
+        }
+        // 7c. Decan/Bound transit (Sun·Moon·Venus 위주)
+        for (const planet of transitChart.planets) {
+          if (!['Sun', 'Moon', 'Venus', 'Mars', 'Mercury'].includes(planet.name)) continue
+          const decan = getDecan(planet.longitude)
+          const bound = getEgyptianBound(planet.longitude)
+          electHighlights.push({
+            source: `${planet.name} ${planet.sign} (decan ${decan.ruler}, bound ${bound.ruler})`,
+            meaning: `${planet.name} 트랜짓 — decan ruler ${decan.ruler}, bound ruler ${bound.ruler}.`,
+            tone: 'neutral' as const,
+          })
+        }
+        if (electHighlights.length > 0) {
+          dayAnalyses.push({
+            unit: 'daily',
+            periodLabel: `Electional ${date}`,
+            highlights: electHighlights,
+            summary: `Retrograde ${retros.length}, VoC=${voc.isVoid}`,
+          })
+        }
+        dailyAstroByDate.set(date, dayAnalyses)
       } catch { /* skip */ }
     }
   }
@@ -295,14 +371,16 @@ export async function buildCalendarMonth(
     }
 
     // ============================================================
-    // 점성 layer 합 (Profection + Solar Return + Lunar Return + Daily transit)
+    // 점성 layer 합 (decadal ZR + Profection + SR + LR + Eclipses + daily)
     // ============================================================
     const astroTimings: AstroTimingAnalysis[] = []
+    if (astroDecadal) astroTimings.push(astroDecadal)
     if (astroYearly) astroTimings.push(astroYearly)
     if (astroSolarReturn) astroTimings.push(astroSolarReturn)
     if (astroLunarReturn) astroTimings.push(astroLunarReturn)
-    const dailyAstro = dailyAstroByDate.get(date)
-    if (dailyAstro) astroTimings.push(dailyAstro)
+    if (astroEclipses) astroTimings.push(astroEclipses)
+    const dailyAstros = dailyAstroByDate.get(date)
+    if (dailyAstros) astroTimings.push(...dailyAstros)
 
     const crosses = CORE_THEMES.map((theme) =>
       crossThemeAtTime({
@@ -411,9 +489,12 @@ export async function buildCalendarDay(
     }
   }
 
-  // 점성 layers (Profection + Solar Return + Lunar Return + Daily transit)
+  // 점성 layers (Decadal ZR + Profection + SR + LR + Eclipses + Daily transit + Retrograde + VoC + Decan/Bound)
   const astroTimings: AstroTimingAnalysis[] = []
   if (input.age != null) {
+    try {
+      astroTimings.push(analyzeDecadalAstro(input.astro, { age: input.age }))
+    } catch { /* skip */ }
     try {
       const prof = calculateProfection(input.astro, input.age)
       astroTimings.push({
@@ -428,6 +509,25 @@ export async function buildCalendarDay(
       })
     } catch { /* skip */ }
   }
+  // Eclipses 그 달
+  try {
+    const start = `${year}-${String(monthNum).padStart(2, '0')}-01`
+    const lastDay = new Date(year, monthNum, 0).getDate()
+    const end = `${year}-${String(monthNum).padStart(2, '0')}-${lastDay}`
+    const eclipses = getEclipsesBetween(start, end)
+    if (eclipses.length > 0) {
+      astroTimings.push({
+        unit: 'monthly',
+        periodLabel: `Eclipses ${year}-${monthNum}`,
+        highlights: eclipses.map((e) => ({
+          source: `${e.type} eclipse ${e.date}`,
+          meaning: `${e.type} 일·월식 — ${e.sign} 영역 변환점.`,
+          tone: 'cautious' as const,
+        })),
+        summary: `${eclipses.length}개 일·월식`,
+      })
+    }
+  } catch { /* skip */ }
   if (input.natalInput) {
     try {
       const sr = await calculateSolarReturn({ natal: input.natalInput, year })
@@ -452,6 +552,52 @@ export async function buildCalendarDay(
           from: a.from, to: a.to, type: a.type, orb: a.orb, applying: a.applying, score: a.score,
         })),
       }))
+      // Retrograde + VoC + Decan/Bound transit
+      const retros = getRetrogradePlanets(transitChart)
+      const voc = checkVoidOfCourse(transitChart)
+      const electHighlights = []
+      if (retros.length > 0) {
+        electHighlights.push({
+          source: `역행: ${retros.join(', ')}`,
+          meaning: `${retros.join(', ')} 역행 — 신중.`,
+          tone: 'cautious' as const,
+        })
+      }
+      if (voc.isVoid) {
+        electHighlights.push({
+          source: 'Void of Course Moon',
+          meaning: '보이드 — 새 시작 보류.',
+          tone: 'cautious' as const,
+        })
+      }
+      for (const planet of transitChart.planets) {
+        if (!['Sun', 'Moon', 'Venus', 'Mars', 'Mercury'].includes(planet.name)) continue
+        const decan = getDecan(planet.longitude)
+        const bound = getEgyptianBound(planet.longitude)
+        electHighlights.push({
+          source: `${planet.name} ${planet.sign} (decan ${decan.ruler}, bound ${bound.ruler})`,
+          meaning: `${planet.name} — decan ${decan.ruler}, bound ${bound.ruler}.`,
+          tone: 'neutral' as const,
+        })
+      }
+      if (electHighlights.length > 0) {
+        astroTimings.push({
+          unit: 'daily',
+          periodLabel: `Electional ${date}`,
+          highlights: electHighlights,
+          summary: `역행 ${retros.length}, VoC=${voc.isVoid}`,
+        })
+      }
+    } catch { /* skip */ }
+  }
+
+  // 사주 일진×본명 형충회합 (relations)
+  if (computedIljin && dayMaster) {
+    try {
+      const { analyzeRelations } = await import('@/lib/Saju/foundation/relations')
+      // 본명 4기둥 + 일진을 가상 5번째 기둥처럼 — 단순화: skip 본 단계 (옵션)
+      // 일진의 신살 발현 (도화·역마·천을·괴강 등 IljinData 안에 일부)
+      // 추가 detail은 여기서 skip — sajuTimings 의 daily 안에 이미 일부 포함
     } catch { /* skip */ }
   }
 
