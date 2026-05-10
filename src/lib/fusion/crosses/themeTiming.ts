@@ -16,8 +16,8 @@ export interface CrossInput {
   timing: {
     unit: TimingUnit
     periodLabel?: string
-    sajuTiming?: SajuTimingAnalysis      // 미리 계산된 사주 timing
-    astroTiming?: AstroTimingAnalysis    // 미리 계산된 점성 timing
+    sajuTimings?: SajuTimingAnalysis[]    // 여러 layer (decadal/yearly/monthly/daily/hourly)
+    astroTimings?: AstroTimingAnalysis[]
   }
 }
 
@@ -33,15 +33,15 @@ export function crossThemeAtTime(input: CrossInput): ThemeTimingCross {
     timing: { unit: input.timing.unit, periodLabel: input.timing.periodLabel },
     sajuTheme,
     astroTheme,
-    sajuTiming: input.timing.sajuTiming,
-    astroTiming: input.timing.astroTiming,
+    sajuTimings: input.timing.sajuTimings,
+    astroTimings: input.timing.astroTimings,
   })
 
   return {
     theme: input.theme,
     timing: { unit: input.timing.unit, periodLabel: input.timing.periodLabel },
-    sajuView: { theme: sajuTheme, timing: input.timing.sajuTiming },
-    astroView: { theme: astroTheme, timing: input.timing.astroTiming },
+    sajuView: { theme: sajuTheme, timings: input.timing.sajuTimings },
+    astroView: { theme: astroTheme, timings: input.timing.astroTimings },
     crossView: cross,
   }
 }

@@ -23,11 +23,11 @@ export interface ThemeTimingCross {
   timing: { unit: TimingUnit; periodLabel?: string }
   sajuView: {
     theme: SajuThemeAnalysis
-    timing?: SajuTimingAnalysis
+    timings?: SajuTimingAnalysis[]   // 여러 layer (decadal/yearly/monthly/daily/hourly)
   }
   astroView: {
     theme: AstroThemeAnalysis
-    timing?: AstroTimingAnalysis
+    timings?: AstroTimingAnalysis[]
   }
   crossView: {
     tone: CrossTone

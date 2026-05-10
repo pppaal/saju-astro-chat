@@ -5,11 +5,14 @@ import type { Chart } from '@/lib/astrology/foundation/types'
 import type { SimpleSajuPillars, SajuThemeKey } from '@/lib/Saju/themes/types'
 import type { CrossTone, ThemeKey, ThemeTimingCross } from '../crosses/types'
 import { crossThemeAtTime } from '../crosses'
-import { getIljinCalendar } from '@/lib/Saju/foundation/unse'
+import { getIljinCalendar, getMonthlyCycles } from '@/lib/Saju/foundation/unse'
 import { analyzeDailySaju } from '@/lib/Saju/timing/daily'
+import { analyzeMonthlySaju } from '@/lib/Saju/timing/monthly'
+import { calculateProfection, getProfectionInterpretation } from '@/lib/astrology/foundation/profections'
 import { STEMS } from '@/lib/Saju/foundation/constants'
-import type { DayMaster, IljinData } from '@/lib/Saju/foundation/types'
+import type { DayMaster, IljinData, WolunData } from '@/lib/Saju/foundation/types'
 import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
+import type { AstroTimingAnalysis } from '@/lib/astrology/timing/types'
 import type { CalendarDay, CalendarMonth, CalendarDayDetail } from './types'
 
 const CORE_THEMES: ThemeKey[] = [
@@ -173,6 +176,7 @@ export interface CalendarAdapterInput {
   saju: SimpleSajuPillars
   astro: Chart
   iljinByDate?: Record<string, string>     // '2027-05-15' → '갑자' (외부 계산)
+  age?: number                             // 점성 Profection 용 (옵션)
 }
 
 /**
@@ -186,29 +190,72 @@ export function buildCalendarMonth(
   const daysInMonth = getDaysInMonth(year, month)
   const days: CalendarDay[] = []
 
-  // 일진 매일 계산 (KASI 기반, 사주 일간 기준)
+  // ============================================================
+  // Layer 1: 사주 일진 매일 (KASI)
+  // ============================================================
   const dayMaster = getDayMaster(input.saju.day.stem)
   const iljins: IljinData[] = dayMaster
     ? getIljinCalendar(year, month, dayMaster)
     : []
   const iljinMap = indexIljinByDate(iljins)
 
+  // ============================================================
+  // Layer 2: 사주 월운 (그 달 1개)
+  // ============================================================
+  let sajuMonthly: SajuTimingAnalysis | undefined
+  if (dayMaster) {
+    const monthCycles = getMonthlyCycles(year, dayMaster) as WolunData[]
+    const thisMonth = monthCycles.find((m) => m.month === month)
+    if (thisMonth) {
+      sajuMonthly = analyzeMonthlySaju({ month: thisMonth, dayMaster: input.saju.day.stem })
+    }
+  }
+
+  // ============================================================
+  // Layer 3: 점성 Profection (그 해 1개) — age 제공 시
+  // ============================================================
+  let astroYearly: AstroTimingAnalysis | undefined
+  if (input.age != null) {
+    try {
+      const prof = calculateProfection(input.astro, input.age)
+      astroYearly = {
+        unit: 'yearly',
+        periodLabel: `Profection age ${prof.age}`,
+        highlights: [{
+          source: `Profection age ${prof.age} — house ${prof.activatedHouse}`,
+          meaning: getProfectionInterpretation(prof),
+          tone: 'neutral',
+        }],
+        summary: `${prof.activatedHouse}궁 활성, Lord ${prof.lordOfYear}`,
+      }
+    } catch { /* skip */ }
+  }
+
   for (let d = 1; d <= daysInMonth; d++) {
     const date = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
-    // 그 날 사주 일진 분석 → SajuTimingAnalysis
-    let sajuTiming: SajuTimingAnalysis | undefined
+    // ============================================================
+    // Layer 4: 사주 일진 (그 날)
+    // ============================================================
+    const sajuTimings: SajuTimingAnalysis[] = []
+    if (sajuMonthly) sajuTimings.push(sajuMonthly)
     const iljin = iljinMap[date]
     if (iljin) {
-      sajuTiming = analyzeDailySaju({ iljin, dayMaster: input.saju.day.stem })
+      sajuTimings.push(analyzeDailySaju({ iljin, dayMaster: input.saju.day.stem }))
     }
+
+    // ============================================================
+    // Layer 5: 점성 yearly (Profection)
+    // ============================================================
+    const astroTimings: AstroTimingAnalysis[] = []
+    if (astroYearly) astroTimings.push(astroYearly)
 
     const crosses = CORE_THEMES.map((theme) =>
       crossThemeAtTime({
         saju: input.saju,
         astro: input.astro,
         theme,
-        timing: { unit: 'daily', periodLabel: date, sajuTiming },
+        timing: { unit: 'daily', periodLabel: date, sajuTimings, astroTimings },
       }),
     )
 
@@ -291,16 +338,41 @@ export function buildCalendarDay(
   const monthNum = parseInt(monthStr, 10)
   const dayNum = parseInt(dayStr, 10)
   const dayMaster = getDayMaster(input.saju.day.stem)
-  let sajuTiming: SajuTimingAnalysis | undefined
+  const sajuTimings: SajuTimingAnalysis[] = []
   let computedIljin: IljinData | undefined
   let computedIsCheoneul: boolean | undefined
   if (dayMaster) {
+    // 월운 (월 layer)
+    const monthCycles = getMonthlyCycles(year, dayMaster) as WolunData[]
+    const thisMonth = monthCycles.find((m) => m.month === monthNum)
+    if (thisMonth) {
+      sajuTimings.push(analyzeMonthlySaju({ month: thisMonth, dayMaster: input.saju.day.stem }))
+    }
+    // 일진 (일 layer)
     const iljins = getIljinCalendar(year, monthNum, dayMaster)
     computedIljin = iljins.find((i) => i.day === dayNum)
     if (computedIljin) {
-      sajuTiming = analyzeDailySaju({ iljin: computedIljin, dayMaster: input.saju.day.stem })
+      sajuTimings.push(analyzeDailySaju({ iljin: computedIljin, dayMaster: input.saju.day.stem }))
       computedIsCheoneul = computedIljin.isCheoneulGwiin
     }
+  }
+
+  // 점성 yearly (Profection)
+  const astroTimings: AstroTimingAnalysis[] = []
+  if (input.age != null) {
+    try {
+      const prof = calculateProfection(input.astro, input.age)
+      astroTimings.push({
+        unit: 'yearly',
+        periodLabel: `Profection age ${prof.age}`,
+        highlights: [{
+          source: `Profection ${prof.activatedHouse}궁`,
+          meaning: getProfectionInterpretation(prof),
+          tone: 'neutral',
+        }],
+        summary: `${prof.activatedHouse}궁 활성, Lord ${prof.lordOfYear}`,
+      })
+    } catch { /* skip */ }
   }
 
   const crosses = ALL_THEMES.map((theme) =>
@@ -308,7 +380,7 @@ export function buildCalendarDay(
       saju: input.saju,
       astro: input.astro,
       theme,
-      timing: { unit: 'daily', periodLabel: date, sajuTiming },
+      timing: { unit: 'daily', periodLabel: date, sajuTimings, astroTimings },
     }),
   )
 

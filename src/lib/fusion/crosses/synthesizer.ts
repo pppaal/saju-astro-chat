@@ -45,19 +45,23 @@ export function synthesizeThemeCross(input: {
   timing: { unit: TimingUnit; periodLabel?: string }
   sajuTheme: SajuThemeAnalysis
   astroTheme: AstroThemeAnalysis
-  sajuTiming?: SajuTimingAnalysis
-  astroTiming?: AstroTimingAnalysis
+  sajuTimings?: SajuTimingAnalysis[]   // 여러 layer (decadal/yearly/monthly/daily/hourly)
+  astroTimings?: AstroTimingAnalysis[]
 }): { tone: CrossTone; consensus: string; factors: string[] } {
-  const { theme, timing, sajuTheme, astroTheme, sajuTiming, astroTiming } = input
+  const { theme, timing, sajuTheme, astroTheme, sajuTimings = [], astroTimings = [] } = input
 
+  // 모든 layer factor 합산
+  const sajuTimingFactors = sajuTimings.flatMap((t) => t.highlights)
+  const astroTimingFactors = astroTimings.flatMap((t) => t.highlights)
   const sajuFactors = [
     ...sajuTheme.factors,
-    ...((sajuTiming?.highlights ?? []) as { tone: Tone | SajuTimingTone }[]),
+    ...sajuTimingFactors as { tone: Tone | SajuTimingTone }[],
   ]
   const astroFactors = [
     ...astroTheme.factors,
-    ...((astroTiming?.highlights ?? []) as { tone: Tone | AstroTimingTone }[]),
+    ...astroTimingFactors as { tone: Tone | AstroTimingTone }[],
   ]
+
   const sajuTone = dominantTone(sajuFactors)
   const astroTone = dominantTone(astroFactors)
   const tone = combineTones(sajuTone, astroTone)
@@ -85,8 +89,8 @@ export function synthesizeThemeCross(input: {
     `사주 ${theme}: ${sajuTheme.summary}`,
     `점성 ${theme}: ${astroTheme.summary}`,
   ]
-  if (sajuTiming) factors.push(`사주 ${timing.unit}: ${sajuTiming.summary}`)
-  if (astroTiming) factors.push(`점성 ${timing.unit}: ${astroTiming.summary}`)
+  for (const t of sajuTimings) factors.push(`사주 ${t.unit}: ${t.summary}`)
+  for (const t of astroTimings) factors.push(`점성 ${t.unit}: ${t.summary}`)
 
   return { tone, consensus, factors }
 }
