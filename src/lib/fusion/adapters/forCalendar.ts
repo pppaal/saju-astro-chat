@@ -25,7 +25,9 @@ import { calculateArabicLots, getLotInterpretation } from '@/lib/astrology/found
 import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progressions'
 import { analyzeHourlySaju } from '@/lib/Saju/timing/hourly'
 import { analyzeHourlyAstro, type PlanetaryHourPlanet } from '@/lib/astrology/timing/hourly'
-import { STEMS } from '@/lib/Saju/foundation/constants'
+import { STEMS, TIME_STEM_LOOKUP } from '@/lib/Saju/foundation/constants'
+import { getTimeBranchFromHour } from '@/lib/Saju/foundation/validation'
+import { getYearPillarForDate } from '@/lib/Saju/foundation/datePillars'
 import type { DayMaster, IljinData, WolunData } from '@/lib/Saju/foundation/types'
 import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
 import type { AstroTimingAnalysis } from '@/lib/astrology/timing/types'
@@ -102,30 +104,19 @@ function getDaysInMonth(year: number, month: number): number {
 }
 
 // ============================================================
-// 시진(時辰) 계산 — 五鼠遁
+// 시진(時辰) 계산 — Saju 엔진의 foundation 함수 재사용
+// (saju.ts:295~325 와 동일 로직: TIME_STEM_LOOKUP + getTimeBranchFromHour)
 // ============================================================
-const HOUR_BRANCHES_BY_HOUR: string[] = [
-  '子','子','丑','丑','寅','寅','卯','卯','辰','辰','巳','巳',
-  '午','午','未','未','申','申','酉','酉','戌','戌','亥','亥',
-]
-// 五鼠遁: 일간 → 子時 천간
-const FIVE_RAT_TUN: Record<string, string> = {
-  '甲': '甲', '己': '甲',
-  '乙': '丙', '庚': '丙',
-  '丙': '戊', '辛': '戊',
-  '丁': '庚', '壬': '庚',
-  '戊': '壬', '癸': '壬',
-}
 const STEM_NAMES = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸']
 const BRANCH_NAMES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
 
 function calcHourPillar(dayStem: string, hour: number): { stem: string; branch: string } | null {
-  const startStem = FIVE_RAT_TUN[dayStem]
-  if (!startStem) return null
-  // 23시 = 子시 (다음 날)지만 보통 그날 0~23 기준
-  const branch = HOUR_BRANCHES_BY_HOUR[hour] // 0=子, 1=子, 2=丑, ...
+  const firstHourStem = TIME_STEM_LOOKUP[dayStem]
+  if (!firstHourStem) return null
+  const branch = getTimeBranchFromHour(hour)   // 23시=子 정확 매핑
   const branchIdx = BRANCH_NAMES.indexOf(branch)
-  const stemStartIdx = STEM_NAMES.indexOf(startStem)
+  const stemStartIdx = STEM_NAMES.indexOf(firstHourStem)
+  if (stemStartIdx < 0 || branchIdx < 0) return null
   const stemIdx = (stemStartIdx + branchIdx) % 10
   return { stem: STEM_NAMES[stemIdx], branch }
 }
@@ -323,21 +314,19 @@ export async function buildCalendarMonth(
   let sajuYearly: SajuTimingAnalysis | undefined
   if (input.birthYear != null && input.daeunList && input.daeunList.length > 0) {
     try {
-      // 세운 천간/지지 — 60갑자 순회로 계산
-      const yearOffset = year - 1924  // 갑자년 기준
-      const yearSibsin = ((year - input.birthYear) % 60 + 60) % 60
-      // analyzeSpecificYear 가 복잡한 SajuPillars 필요 — 단순 wrap 만:
-      const yearStem = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'][yearOffset % 10]
-      const yearBranch = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'][yearOffset % 12]
+      // 입춘(절기) 기준 정확한 세운 — 월 중간(15일)을 샘플로 사용해
+      // 1~2월 초의 입춘 전/후 경계도 정확히 반영.
+      const sampleDate = new Date(year, month - 1, 15)
+      const yearPillar = getYearPillarForDate(sampleDate)
       sajuYearly = {
         unit: 'yearly',
-        periodLabel: `세운 ${year} ${yearStem}${yearBranch}`,
+        periodLabel: `세운 ${year} ${yearPillar.stem}${yearPillar.branch}`,
         highlights: [{
-          source: `세운 ${yearStem}${yearBranch}`,
-          meaning: `${year}년 천간 ${yearStem}, 지지 ${yearBranch} — 본명과 작용.`,
+          source: `세운 ${yearPillar.stem}${yearPillar.branch}`,
+          meaning: `${year}년 천간 ${yearPillar.stem}, 지지 ${yearPillar.branch} — 본명과 작용.`,
           tone: 'neutral',
         }],
-        summary: `${year} 세운 ${yearStem}${yearBranch}`,
+        summary: `${year} 세운 ${yearPillar.stem}${yearPillar.branch}`,
       }
     } catch { /* skip */ }
   }
@@ -692,21 +681,19 @@ export async function buildCalendarDay(
       })
     }
   }
-  // 세운 (yearly layer)
+  // 세운 (yearly layer) — 입춘 경계 정확 반영 (그 날짜 기준)
   if (input.birthYear != null && input.daeunList && input.daeunList.length > 0) {
     try {
-      const yearOffset = year - 1924
-      const yearStem = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'][yearOffset % 10]
-      const yearBranch = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'][yearOffset % 12]
+      const yearPillar = getYearPillarForDate(new Date(year, monthNum - 1, dayNum))
       sajuTimings.push({
         unit: 'yearly',
-        periodLabel: `세운 ${year} ${yearStem}${yearBranch}`,
+        periodLabel: `세운 ${year} ${yearPillar.stem}${yearPillar.branch}`,
         highlights: [{
-          source: `세운 ${yearStem}${yearBranch}`,
-          meaning: `${year}년 천간 ${yearStem}, 지지 ${yearBranch}.`,
+          source: `세운 ${yearPillar.stem}${yearPillar.branch}`,
+          meaning: `${year}년 천간 ${yearPillar.stem}, 지지 ${yearPillar.branch}.`,
           tone: 'neutral',
         }],
-        summary: `${year} 세운 ${yearStem}${yearBranch}`,
+        summary: `${year} 세운 ${yearPillar.stem}${yearPillar.branch}`,
       })
     } catch { /* skip */ }
   }
