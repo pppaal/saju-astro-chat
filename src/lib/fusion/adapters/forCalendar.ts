@@ -3,7 +3,7 @@
 
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { SimpleSajuPillars, SajuThemeKey } from '@/lib/Saju/themes/types'
-import type { CrossTone, ThemeKey } from '../crosses/types'
+import type { CrossTone, ThemeKey, ThemeTimingCross } from '../crosses/types'
 import { crossThemeAtTime } from '../crosses'
 import type { CalendarDay, CalendarMonth, CalendarDayDetail } from './types'
 
@@ -77,6 +77,69 @@ function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate()
 }
 
+const DOMAIN_ADVICE_DO: Record<string, string[]> = {
+  'love.strong-positive':   ['결혼·약혼 결정', '고백·청혼', '연애 시작'],
+  'love.positive':          ['데이트', '관계 정리', '솔직한 대화'],
+  'money.strong-positive':  ['투자·계약 서명', '큰 거래 마무리', '재산 매입'],
+  'money.positive':         ['저축', '소액 투자', '재정 점검'],
+  'career.strong-positive': ['면접·승진 시도', '이직 결정', '발표·미팅'],
+  'career.positive':        ['중요 미팅', '업무 마무리', '협업 시작'],
+  'family.strong-positive': ['가족 모임', '가족 결정', '부모 방문'],
+  'family.positive':        ['가족과 시간', '소통'],
+  'health.strong-positive': ['건강검진', '운동 시작', '시술'],
+  'health.positive':        ['휴식', '명상', '식단 정리'],
+}
+
+const DOMAIN_ADVICE_AVOID: Record<string, string[]> = {
+  'love.cautious':          ['큰 다툼', '이별 결정', '조급한 결정'],
+  'love.strong-negative':   ['관계 파탄 결정', '돌이킬 수 없는 선택'],
+  'money.cautious':         ['큰 지출', '도박', '대출'],
+  'money.strong-negative':  ['큰 투자', '부동산 매매', '서명 미루기'],
+  'career.cautious':        ['직장 분쟁', '사표', '거친 발언'],
+  'career.strong-negative': ['중요 결정', '협상 강행'],
+  'family.cautious':        ['가족 갈등 회피', '큰 결정 보류'],
+  'family.strong-negative': ['가족 분쟁 격화'],
+  'health.cautious':        ['무리한 운동', '음주·과식', '수면 부족'],
+  'health.strong-negative': ['수술·시술 보류', '극단적 다이어트'],
+}
+
+function generateAdvice(crosses: ThemeTimingCross[]): { do: string[]; avoid: string[] } {
+  const doList: string[] = []
+  const avoidList: string[] = []
+  for (const c of crosses) {
+    const key = `${c.theme}.${c.crossView.tone}`
+    if (DOMAIN_ADVICE_DO[key]) doList.push(...DOMAIN_ADVICE_DO[key])
+    if (DOMAIN_ADVICE_AVOID[key]) avoidList.push(...DOMAIN_ADVICE_AVOID[key])
+  }
+  // 중복 제거 + 최대 5개
+  return {
+    do: Array.from(new Set(doList)).slice(0, 5),
+    avoid: Array.from(new Set(avoidList)).slice(0, 5),
+  }
+}
+
+function buildMonthNarrative(
+  monthTone: CrossTone,
+  monthlyDomains: Partial<Record<ThemeKey, number>>,
+  bestDays: CalendarDay[],
+): string {
+  const sorted = Object.entries(monthlyDomains)
+    .sort((a, b) => (b[1] as number) - (a[1] as number))
+  const top = sorted[0]
+  const weak = sorted[sorted.length - 1]
+  const toneText =
+    monthTone === 'strong-positive' ? '활발한 흐름'
+    : monthTone === 'positive'      ? '우호적'
+    : monthTone === 'mixed'         ? '양면성'
+    : monthTone === 'cautious'      ? '신중'
+    : monthTone === 'strong-negative' ? '주의 필요'
+    : '평이'
+  const bestText = bestDays.length > 0
+    ? ` 강한 날: ${bestDays.slice(0, 3).map((d) => `${d.date.slice(8)}일(${d.label})`).join(', ')}.`
+    : ''
+  return `이 달은 ${toneText} — ${top?.[0]} 영역 활성, ${weak?.[0]} 영역 약함.${bestText}`
+}
+
 // ============================================================
 // 메인 어댑터
 // ============================================================
@@ -145,19 +208,37 @@ export function buildCalendarMonth(
       .slice(0, 5)
   }
 
+  // 월 통계
+  const monthlyDomains: Partial<Record<ThemeKey, number>> = {}
+  for (const theme of CORE_THEMES) {
+    const scores = days.map((d) => d.domainScores[theme] ?? 0)
+    monthlyDomains[theme] = scores.reduce((a, b) => a + b, 0) / scores.length
+  }
+  const monthScore = (Object.values(monthlyDomains) as number[]).reduce((a, b) => a + b, 0) / CORE_THEMES.length
+  const monthTone = aggregateTone(days.map((d) => d.tone))
+  const monthNarrative = buildMonthNarrative(monthTone, monthlyDomains, bestDays)
+
   return {
     year,
     month,
     days,
     highlights: { bestDays, cautionDays, auspiciousByDomain },
+    monthScore,
+    monthTone,
+    monthlyDomains,
+    monthNarrative,
   }
 }
 
 /**
- * 일별 상세 — 18 테마 풀 cross.
+ * 일별 상세 — 18 테마 풀 cross + 조언 + TOP 3 (옵션).
  */
 export function buildCalendarDay(
-  input: CalendarAdapterInput,
+  input: CalendarAdapterInput & {
+    lunarByDate?: Record<string, string>
+    isCheoneulGwiinByDate?: Record<string, boolean>
+    bestDaysOfMonth?: CalendarDay[]
+  },
   date: string,
 ): CalendarDayDetail {
   const crosses = ALL_THEMES.map((theme) =>
@@ -169,17 +250,37 @@ export function buildCalendarDay(
     }),
   )
 
-  // top 5-7 핵심 narrative
   const topInsights = crosses
     .filter((c) => c.crossView.tone !== 'neutral')
     .sort((a, b) => scoreFromTone(b.crossView.tone) - scoreFromTone(a.crossView.tone))
     .slice(0, 7)
     .map((c) => c.crossView.consensus)
 
+  // 도메인 점수 (numeric)
+  const domainScores: Partial<Record<ThemeKey, number>> = {}
+  for (const c of crosses) {
+    domainScores[c.theme] = scoreFromTone(c.crossView.tone)
+  }
+
+  // 조언
+  const advice = generateAdvice(crosses)
+
+  // TOP 3 of month (옵션)
+  const bestDaysOfMonth = input.bestDaysOfMonth?.slice(0, 3).map((d) => ({
+    date: d.date,
+    label: d.label,
+    score: d.domainScores[d.topDomain ?? 'love'] ?? 0,
+  }))
+
   return {
     date,
     iljin: input.iljinByDate?.[date],
+    lunar: input.lunarByDate?.[date],
+    isCheoneulGwiin: input.isCheoneulGwiinByDate?.[date],
     crosses,
     topInsights,
+    domainScores,
+    advice,
+    bestDaysOfMonth,
   }
 }

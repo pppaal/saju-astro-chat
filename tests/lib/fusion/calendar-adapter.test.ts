@@ -95,6 +95,21 @@ describe('fusion/adapters/forCalendar', () => {
       const day15 = month.days.find((d) => d.date === '2027-05-15')
       expect(day15?.iljin).toBe('갑자')
     })
+
+    it('월 통계 — monthScore, monthTone, monthlyDomains, monthNarrative', () => {
+      const month = buildCalendarMonth(
+        { saju: fixturePillars, astro: fixtureChart },
+        2027,
+        5,
+      )
+      expect(month.monthScore).toBeGreaterThanOrEqual(0)
+      expect(month.monthScore).toBeLessThanOrEqual(1)
+      expect(month.monthTone).toBeDefined()
+      expect(month.monthlyDomains.love).toBeDefined()
+      expect(month.monthlyDomains.career).toBeDefined()
+      expect(month.monthNarrative).toContain('이 달은')
+      expect(month.monthNarrative.length).toBeGreaterThan(20)
+    })
   })
 
   describe('buildCalendarDay', () => {
@@ -113,6 +128,52 @@ describe('fusion/adapters/forCalendar', () => {
         '2027-05-15',
       )
       expect(day.topInsights.length).toBeLessThanOrEqual(7)
+    })
+
+    it('domainScores numeric (0~1)', () => {
+      const day = buildCalendarDay(
+        { saju: fixturePillars, astro: fixtureChart },
+        '2027-05-15',
+      )
+      expect(day.domainScores.love).toBeGreaterThanOrEqual(0)
+      expect(day.domainScores.love).toBeLessThanOrEqual(1)
+      expect(day.domainScores.career).toBeDefined()
+    })
+
+    it('advice do/avoid 배열', () => {
+      const day = buildCalendarDay(
+        { saju: fixturePillars, astro: fixtureChart },
+        '2027-05-15',
+      )
+      expect(day.advice).toBeDefined()
+      expect(Array.isArray(day.advice.do)).toBe(true)
+      expect(Array.isArray(day.advice.avoid)).toBe(true)
+    })
+
+    it('lunar / isCheoneulGwiin caller 제공', () => {
+      const day = buildCalendarDay(
+        {
+          saju: fixturePillars,
+          astro: fixtureChart,
+          lunarByDate: { '2027-05-15': '음 4월 9일' },
+          isCheoneulGwiinByDate: { '2027-05-15': true },
+        },
+        '2027-05-15',
+      )
+      expect(day.lunar).toBe('음 4월 9일')
+      expect(day.isCheoneulGwiin).toBe(true)
+    })
+
+    it('bestDaysOfMonth top 3', () => {
+      const month = buildCalendarMonth(
+        { saju: fixturePillars, astro: fixtureChart },
+        2027, 5,
+      )
+      const day = buildCalendarDay(
+        { saju: fixturePillars, astro: fixtureChart, bestDaysOfMonth: month.highlights.bestDays },
+        '2027-05-15',
+      )
+      expect(day.bestDaysOfMonth?.length).toBeLessThanOrEqual(3)
     })
   })
 })
