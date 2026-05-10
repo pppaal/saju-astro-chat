@@ -15,10 +15,14 @@ import { analyzeYearlyAstro } from '@/lib/astrology/timing/yearly'
 import { analyzeMonthlyAstro } from '@/lib/astrology/timing/monthly'
 import { analyzeDailyAstro } from '@/lib/astrology/timing/daily'
 import { analyzeDecadalAstro } from '@/lib/astrology/timing/decadal'
+import { analyzeLifetimeAstro } from '@/lib/astrology/timing/lifetime'
 import { getRetrogradePlanets, checkVoidOfCourse } from '@/lib/astrology/foundation/electional'
 import { getEclipsesBetween } from '@/lib/astrology/foundation/eclipses'
 import { getDecan } from '@/lib/astrology/foundation/decans'
 import { getEgyptianBound } from '@/lib/astrology/foundation/bounds'
+import { findFixedStarConjunctions } from '@/lib/astrology/foundation/fixedStars'
+import { calculateArabicLots, getLotInterpretation } from '@/lib/astrology/foundation/arabicParts'
+import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progressions'
 import { STEMS } from '@/lib/Saju/foundation/constants'
 import type { DayMaster, IljinData, WolunData } from '@/lib/Saju/foundation/types'
 import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
@@ -270,6 +274,41 @@ export async function buildCalendarMonth(
   }
 
   // ============================================================
+  // Layer 5b: 점성 Progressions (lifetime, 1번)
+  // ============================================================
+  let astroLifetime: AstroTimingAnalysis | undefined
+  if (input.natalInput) {
+    try {
+      const targetDate = `${year}-${String(month).padStart(2, '0')}-15`
+      const progressed = await calculateSecondaryProgressions({
+        natal: input.natalInput,
+        targetDate,
+      })
+      astroLifetime = analyzeLifetimeAstro(progressed, input.astro)
+    } catch { /* skip */ }
+  }
+
+  // ============================================================
+  // Layer 5c: 점성 Arabic Lots (1번, chart 기반)
+  // ============================================================
+  let astroLots: AstroTimingAnalysis | undefined
+  try {
+    const sun = input.astro.planets.find((p) => p.name === 'Sun')
+    const isDay = sun ? sun.house >= 7 && sun.house <= 12 : true
+    const lots = calculateArabicLots(input.astro, isDay)
+    astroLots = {
+      unit: 'lifetime',
+      periodLabel: 'Arabic Lots (natal)',
+      highlights: lots.map((l) => ({
+        source: `Lot of ${l.name} in ${l.sign}`,
+        meaning: getLotInterpretation(l),
+        tone: 'neutral' as const,
+      })),
+      summary: `${lots.length}개 lots`,
+    }
+  } catch { /* skip */ }
+
+  // ============================================================
   // Layer 6: 점성 Eclipses (그 달 일·월식)
   // ============================================================
   let astroEclipses: AstroTimingAnalysis | undefined
@@ -344,6 +383,20 @@ export async function buildCalendarMonth(
             tone: 'neutral' as const,
           })
         }
+        // 7d. Fixed Star transits (트랜짓 행성이 항성 conjunction)
+        try {
+          const starHits = findFixedStarConjunctions(transitChart, year, 1.0)
+          for (const hit of starHits.slice(0, 3)) {
+            const nature = (hit.star as { nature?: string }).nature ?? 'mixed'
+            electHighlights.push({
+              source: `Fixed Star ${hit.star.name} ↔ ${hit.planet} (orb ${hit.orb.toFixed(2)}°)`,
+              meaning: `${hit.star.name} (${nature}) — ${hit.planet} 자극.`,
+              tone: (nature === 'benefic' ? 'positive'
+                  : nature === 'malefic' ? 'cautious'
+                  : 'mixed') as 'positive' | 'cautious' | 'mixed',
+            })
+          }
+        } catch { /* skip */ }
         if (electHighlights.length > 0) {
           dayAnalyses.push({
             unit: 'daily',
@@ -371,10 +424,12 @@ export async function buildCalendarMonth(
     }
 
     // ============================================================
-    // 점성 layer 합 (decadal ZR + Profection + SR + LR + Eclipses + daily)
+    // 점성 layer 합 (decadal ZR + lifetime Progressions + lots + Profection + SR + LR + Eclipses + daily)
     // ============================================================
     const astroTimings: AstroTimingAnalysis[] = []
     if (astroDecadal) astroTimings.push(astroDecadal)
+    if (astroLifetime) astroTimings.push(astroLifetime)
+    if (astroLots) astroTimings.push(astroLots)
     if (astroYearly) astroTimings.push(astroYearly)
     if (astroSolarReturn) astroTimings.push(astroSolarReturn)
     if (astroLunarReturn) astroTimings.push(astroLunarReturn)
