@@ -5,6 +5,11 @@ import type { Chart } from '@/lib/astrology/foundation/types'
 import type { SimpleSajuPillars, SajuThemeKey } from '@/lib/Saju/themes/types'
 import type { CrossTone, ThemeKey, ThemeTimingCross } from '../crosses/types'
 import { crossThemeAtTime } from '../crosses'
+import { getIljinCalendar } from '@/lib/Saju/foundation/unse'
+import { analyzeDailySaju } from '@/lib/Saju/timing/daily'
+import { STEMS } from '@/lib/Saju/foundation/constants'
+import type { DayMaster, IljinData } from '@/lib/Saju/foundation/types'
+import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
 import type { CalendarDay, CalendarMonth, CalendarDayDetail } from './types'
 
 const CORE_THEMES: ThemeKey[] = [
@@ -75,6 +80,26 @@ function generateLabel(topDomain: ThemeKey | null, tone: CrossTone): string {
 
 function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate()
+}
+
+/**
+ * 사주 일간 stem (예: '甲') → DayMaster 객체.
+ */
+function getDayMaster(stemName: string): DayMaster | null {
+  const found = STEMS.find((s) => s.name === stemName)
+  return found ? (found as DayMaster) : null
+}
+
+/**
+ * 일진 list → date 키 map.
+ */
+function indexIljinByDate(iljins: IljinData[]): Record<string, IljinData> {
+  const map: Record<string, IljinData> = {}
+  for (const i of iljins) {
+    const date = `${i.year}-${String(i.month).padStart(2, '0')}-${String(i.day).padStart(2, '0')}`
+    map[date] = i
+  }
+  return map
 }
 
 const DOMAIN_ADVICE_DO: Record<string, string[]> = {
@@ -161,14 +186,29 @@ export function buildCalendarMonth(
   const daysInMonth = getDaysInMonth(year, month)
   const days: CalendarDay[] = []
 
+  // 일진 매일 계산 (KASI 기반, 사주 일간 기준)
+  const dayMaster = getDayMaster(input.saju.day.stem)
+  const iljins: IljinData[] = dayMaster
+    ? getIljinCalendar(year, month, dayMaster)
+    : []
+  const iljinMap = indexIljinByDate(iljins)
+
   for (let d = 1; d <= daysInMonth; d++) {
     const date = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+
+    // 그 날 사주 일진 분석 → SajuTimingAnalysis
+    let sajuTiming: SajuTimingAnalysis | undefined
+    const iljin = iljinMap[date]
+    if (iljin) {
+      sajuTiming = analyzeDailySaju({ iljin, dayMaster: input.saju.day.stem })
+    }
+
     const crosses = CORE_THEMES.map((theme) =>
       crossThemeAtTime({
         saju: input.saju,
         astro: input.astro,
         theme,
-        timing: { unit: 'daily', periodLabel: date },
+        timing: { unit: 'daily', periodLabel: date, sajuTiming },
       }),
     )
 
@@ -182,9 +222,13 @@ export function buildCalendarMonth(
     const tone = aggregateTone(crosses.map((c) => c.crossView.tone))
     const label = generateLabel(topDomain, tone)
 
+    // 일진 자동 표시 (input.iljinByDate 우선, 없으면 계산값)
+    const iljinLabel = input.iljinByDate?.[date]
+      ?? (iljin ? `${iljin.heavenlyStem}${iljin.earthlyBranch}` : undefined)
+
     days.push({
       date,
-      iljin: input.iljinByDate?.[date],
+      iljin: iljinLabel,
       domainScores,
       topDomain,
       tone,
@@ -241,12 +285,30 @@ export function buildCalendarDay(
   },
   date: string,
 ): CalendarDayDetail {
+  // 그 날 사주 일진 자동 계산
+  const [yearStr, monthStr, dayStr] = date.split('-')
+  const year = parseInt(yearStr, 10)
+  const monthNum = parseInt(monthStr, 10)
+  const dayNum = parseInt(dayStr, 10)
+  const dayMaster = getDayMaster(input.saju.day.stem)
+  let sajuTiming: SajuTimingAnalysis | undefined
+  let computedIljin: IljinData | undefined
+  let computedIsCheoneul: boolean | undefined
+  if (dayMaster) {
+    const iljins = getIljinCalendar(year, monthNum, dayMaster)
+    computedIljin = iljins.find((i) => i.day === dayNum)
+    if (computedIljin) {
+      sajuTiming = analyzeDailySaju({ iljin: computedIljin, dayMaster: input.saju.day.stem })
+      computedIsCheoneul = computedIljin.isCheoneulGwiin
+    }
+  }
+
   const crosses = ALL_THEMES.map((theme) =>
     crossThemeAtTime({
       saju: input.saju,
       astro: input.astro,
       theme,
-      timing: { unit: 'daily', periodLabel: date },
+      timing: { unit: 'daily', periodLabel: date, sajuTiming },
     }),
   )
 
@@ -274,9 +336,10 @@ export function buildCalendarDay(
 
   return {
     date,
-    iljin: input.iljinByDate?.[date],
+    iljin: input.iljinByDate?.[date]
+      ?? (computedIljin ? `${computedIljin.heavenlyStem}${computedIljin.earthlyBranch}` : undefined),
     lunar: input.lunarByDate?.[date],
-    isCheoneulGwiin: input.isCheoneulGwiinByDate?.[date],
+    isCheoneulGwiin: input.isCheoneulGwiinByDate?.[date] ?? computedIsCheoneul,
     crosses,
     topInsights,
     domainScores,

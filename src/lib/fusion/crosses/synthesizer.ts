@@ -50,8 +50,16 @@ export function synthesizeThemeCross(input: {
 }): { tone: CrossTone; consensus: string; factors: string[] } {
   const { theme, timing, sajuTheme, astroTheme, sajuTiming, astroTiming } = input
 
-  const sajuTone = dominantTone(sajuTheme.factors)
-  const astroTone = dominantTone(astroTheme.factors)
+  const sajuFactors = [
+    ...sajuTheme.factors,
+    ...((sajuTiming?.highlights ?? []) as { tone: Tone | SajuTimingTone }[]),
+  ]
+  const astroFactors = [
+    ...astroTheme.factors,
+    ...((astroTiming?.highlights ?? []) as { tone: Tone | AstroTimingTone }[]),
+  ]
+  const sajuTone = dominantTone(sajuFactors)
+  const astroTone = dominantTone(astroFactors)
   const tone = combineTones(sajuTone, astroTone)
 
   const periodLabel = timing.periodLabel ?? timing.unit
