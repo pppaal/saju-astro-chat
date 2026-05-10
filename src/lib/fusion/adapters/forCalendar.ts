@@ -23,6 +23,8 @@ import { getEgyptianBound } from '@/lib/astrology/foundation/bounds'
 import { findFixedStarConjunctions } from '@/lib/astrology/foundation/fixedStars'
 import { calculateArabicLots, getLotInterpretation } from '@/lib/astrology/foundation/arabicParts'
 import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progressions'
+import { analyzeHourlySaju } from '@/lib/Saju/timing/hourly'
+import { analyzeHourlyAstro, type PlanetaryHourPlanet } from '@/lib/astrology/timing/hourly'
 import { STEMS } from '@/lib/Saju/foundation/constants'
 import type { DayMaster, IljinData, WolunData } from '@/lib/Saju/foundation/types'
 import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
@@ -97,6 +99,87 @@ function generateLabel(topDomain: ThemeKey | null, tone: CrossTone): string {
 
 function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate()
+}
+
+// ============================================================
+// 시진(時辰) 계산 — 五鼠遁
+// ============================================================
+const HOUR_BRANCHES_BY_HOUR: string[] = [
+  '子','子','丑','丑','寅','寅','卯','卯','辰','辰','巳','巳',
+  '午','午','未','未','申','申','酉','酉','戌','戌','亥','亥',
+]
+// 五鼠遁: 일간 → 子時 천간
+const FIVE_RAT_TUN: Record<string, string> = {
+  '甲': '甲', '己': '甲',
+  '乙': '丙', '庚': '丙',
+  '丙': '戊', '辛': '戊',
+  '丁': '庚', '壬': '庚',
+  '戊': '壬', '癸': '壬',
+}
+const STEM_NAMES = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸']
+const BRANCH_NAMES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
+
+function calcHourPillar(dayStem: string, hour: number): { stem: string; branch: string } | null {
+  const startStem = FIVE_RAT_TUN[dayStem]
+  if (!startStem) return null
+  // 23시 = 子시 (다음 날)지만 보통 그날 0~23 기준
+  const branch = HOUR_BRANCHES_BY_HOUR[hour] // 0=子, 1=子, 2=丑, ...
+  const branchIdx = BRANCH_NAMES.indexOf(branch)
+  const stemStartIdx = STEM_NAMES.indexOf(startStem)
+  const stemIdx = (stemStartIdx + branchIdx) % 10
+  return { stem: STEM_NAMES[stemIdx], branch }
+}
+
+// ============================================================
+// 행성시 (Planetary Hour) — Chaldean order, 단순 (sunrise 06:00 가정)
+// ============================================================
+const CHALDEAN_ORDER: PlanetaryHourPlanet[] = ['Saturn','Jupiter','Mars','Sun','Venus','Mercury','Moon']
+// 요일별 첫 행성시 (sunday=Sun, ...)
+const DAY_RULER: PlanetaryHourPlanet[] = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn']
+
+function calcPlanetaryHour(date: Date, hour: number): PlanetaryHourPlanet {
+  const dayOfWeek = date.getDay()
+  const startPlanet = DAY_RULER[dayOfWeek]
+  const startIdx = CHALDEAN_ORDER.indexOf(startPlanet)
+  // 06:00 부터 1시간씩 Chaldean 역순으로 진행
+  const hoursFromSunrise = (hour - 6 + 24) % 24
+  const idx = (startIdx + hoursFromSunrise) % 7
+  return CHALDEAN_ORDER[idx]
+}
+
+/**
+ * 시진 layer (사주 + 점성 행성시) 빌드. hour=0~23.
+ * 둘 다 hourly 분석 반환 — 실패 시 null.
+ */
+function buildHourlyLayers(
+  date: string,
+  hour: number,
+  dayStem: string,
+): { saju?: SajuTimingAnalysis; astro?: AstroTimingAnalysis } {
+  const result: { saju?: SajuTimingAnalysis; astro?: AstroTimingAnalysis } = {}
+  const dt = new Date(`${date}T${String(hour).padStart(2, '0')}:00:00`)
+  if (isNaN(dt.getTime())) return result
+
+  // 사주 시진
+  try {
+    const hourPillar = calcHourPillar(dayStem, hour)
+    if (hourPillar) {
+      result.saju = analyzeHourlySaju({ date: dt, hourPillar, dayMaster: dayStem })
+    }
+  } catch { /* skip */ }
+
+  // 점성 행성시
+  try {
+    const planet = calcPlanetaryHour(dt, hour)
+    const isDay = hour >= 6 && hour < 18
+    result.astro = analyzeHourlyAstro({
+      isoDateTime: `${date}T${String(hour).padStart(2, '0')}:00:00`,
+      planet,
+      isDay,
+    })
+  } catch { /* skip */ }
+
+  return result
 }
 
 /**
@@ -195,9 +278,11 @@ export interface CalendarAdapterInput {
   // 사주 세운/대운 wire 용 (caller 가 calculateSajuData 결과에서 추출해 넘김)
   birthYear?: number
   daeunList?: Array<{ stem: string; branch: string; startAge: number }>
-  // 추가 사주·점성 layer (caller 가 미리 계산해 넘김 — 시진·세운·일진 형충회합 등)
+  // 추가 사주·점성 layer (caller 가 미리 계산해 넘김 — 세운·일진 형충회합 등)
   extraSajuTimings?: SajuTimingAnalysis[]
   extraAstroTimings?: AstroTimingAnalysis[]
+  // 시진(時辰) layer — 일별 상세 시 0~23 hour 지정. month build 시 정오(12) 기준 자동 적용.
+  hour?: number
 }
 
 /**
@@ -478,9 +563,17 @@ export async function buildCalendarMonth(
     if (input.extraSajuTimings) sajuTimings.push(...input.extraSajuTimings)
 
     // ============================================================
-    // 점성 layer 합 (decadal ZR + lifetime Progressions + lots + Profection + SR + LR + Eclipses + daily)
+    // Layer 4b: 사주 시진 + 점성 행성시 (hour 지정 시, 미지정 시 정오)
+    // ============================================================
+    const hour = input.hour ?? 12
+    const hourly = buildHourlyLayers(date, hour, input.saju.day.stem)
+    if (hourly.saju) sajuTimings.push(hourly.saju)
+
+    // ============================================================
+    // 점성 layer 합 (decadal ZR + lifetime Progressions + lots + Profection + SR + LR + Eclipses + daily + hourly)
     // ============================================================
     const astroTimings: AstroTimingAnalysis[] = []
+    if (hourly.astro) astroTimings.push(hourly.astro)
     if (astroDecadal) astroTimings.push(astroDecadal)
     if (astroLifetime) astroTimings.push(astroLifetime)
     if (astroLots) astroTimings.push(astroLots)
@@ -634,8 +727,14 @@ export async function buildCalendarDay(
   }
   if (input.extraSajuTimings) sajuTimings.push(...input.extraSajuTimings)
 
-  // 점성 layers (Decadal ZR + Profection + SR + LR + Eclipses + Daily transit + Retrograde + VoC + Decan/Bound)
+  // 시진 layer (input.hour 제공 시 — 미지정 시 정오 12)
+  const hour = input.hour ?? 12
+  const hourly = buildHourlyLayers(date, hour, input.saju.day.stem)
+  if (hourly.saju) sajuTimings.push(hourly.saju)
+
+  // 점성 layers (Decadal ZR + Profection + SR + LR + Eclipses + Daily transit + Retrograde + VoC + Decan/Bound + Hourly)
   const astroTimings: AstroTimingAnalysis[] = []
+  if (hourly.astro) astroTimings.push(hourly.astro)
   if (input.age != null) {
     try {
       astroTimings.push(analyzeDecadalAstro(input.astro, { age: input.age }))
