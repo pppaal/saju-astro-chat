@@ -1,7 +1,7 @@
 // fusion/adapters/forCalendar.ts
 // 캘린더용 fusion 어댑터 — 월별 grid 데이터 + 일별 상세.
 
-import type { Chart } from '@/lib/astrology/foundation/types'
+import type { Chart, NatalInput } from '@/lib/astrology/foundation/types'
 import type { SimpleSajuPillars, SajuThemeKey } from '@/lib/Saju/themes/types'
 import type { CrossTone, ThemeKey, ThemeTimingCross } from '../crosses/types'
 import { crossThemeAtTime } from '../crosses'
@@ -9,6 +9,11 @@ import { getIljinCalendar, getMonthlyCycles } from '@/lib/Saju/foundation/unse'
 import { analyzeDailySaju } from '@/lib/Saju/timing/daily'
 import { analyzeMonthlySaju } from '@/lib/Saju/timing/monthly'
 import { calculateProfection, getProfectionInterpretation } from '@/lib/astrology/foundation/profections'
+import { calculateSolarReturn, calculateLunarReturn } from '@/lib/astrology/foundation/returns'
+import { calculateTransitChart, findMajorTransits } from '@/lib/astrology/foundation/transit'
+import { analyzeYearlyAstro } from '@/lib/astrology/timing/yearly'
+import { analyzeMonthlyAstro } from '@/lib/astrology/timing/monthly'
+import { analyzeDailyAstro } from '@/lib/astrology/timing/daily'
 import { STEMS } from '@/lib/Saju/foundation/constants'
 import type { DayMaster, IljinData, WolunData } from '@/lib/Saju/foundation/types'
 import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
@@ -175,6 +180,7 @@ function buildMonthNarrative(
 export interface CalendarAdapterInput {
   saju: SimpleSajuPillars
   astro: Chart
+  natalInput?: NatalInput                  // Solar/Lunar Return + daily transit 산출용 (옵션)
   iljinByDate?: Record<string, string>     // '2027-05-15' → '갑자' (외부 계산)
   age?: number                             // 점성 Profection 용 (옵션)
 }
@@ -182,11 +188,11 @@ export interface CalendarAdapterInput {
 /**
  * 월별 캘린더 — 6 핵심 테마 × 30일 cross.
  */
-export function buildCalendarMonth(
+export async function buildCalendarMonth(
   input: CalendarAdapterInput,
   year: number,
   month: number,
-): CalendarMonth {
+): Promise<CalendarMonth> {
   const daysInMonth = getDaysInMonth(year, month)
   const days: CalendarDay[] = []
 
@@ -231,6 +237,50 @@ export function buildCalendarMonth(
     } catch { /* skip */ }
   }
 
+  // ============================================================
+  // Layer 4: 점성 Solar Return (그 해 1번) + Lunar Return (그 달 1번)
+  // — natalInput 제공 시 Swiss Ephemeris 호출
+  // ============================================================
+  let astroSolarReturn: AstroTimingAnalysis | undefined
+  let astroLunarReturn: AstroTimingAnalysis | undefined
+  if (input.natalInput) {
+    try {
+      const sr = await calculateSolarReturn({ natal: input.natalInput, year })
+      astroSolarReturn = analyzeYearlyAstro(sr)
+    } catch { /* skip */ }
+    try {
+      const lr = await calculateLunarReturn({ natal: input.natalInput, year, month })
+      astroLunarReturn = analyzeMonthlyAstro(lr)
+    } catch { /* skip */ }
+  }
+
+  // ============================================================
+  // Layer 5: 점성 daily transit (매일) — natalInput + astro 제공 시
+  // ============================================================
+  const dailyAstroByDate = new Map<string, AstroTimingAnalysis>()
+  if (input.natalInput) {
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+      try {
+        const transitChart = await calculateTransitChart({
+          iso: `${date}T12:00:00`,
+          latitude: input.natalInput.latitude,
+          longitude: input.natalInput.longitude,
+          timeZone: input.natalInput.timeZone,
+        })
+        const aspects = findMajorTransits(transitChart, input.astro, 1.0)
+        const transitAnalysis = analyzeDailyAstro({
+          isoDate: date,
+          transitChart,
+          transitToNatalAspects: aspects.map(a => ({
+            from: a.from, to: a.to, type: a.type, orb: a.orb, applying: a.applying, score: a.score,
+          })),
+        })
+        dailyAstroByDate.set(date, transitAnalysis)
+      } catch { /* skip */ }
+    }
+  }
+
   for (let d = 1; d <= daysInMonth; d++) {
     const date = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
@@ -245,10 +295,14 @@ export function buildCalendarMonth(
     }
 
     // ============================================================
-    // Layer 5: 점성 yearly (Profection)
+    // 점성 layer 합 (Profection + Solar Return + Lunar Return + Daily transit)
     // ============================================================
     const astroTimings: AstroTimingAnalysis[] = []
     if (astroYearly) astroTimings.push(astroYearly)
+    if (astroSolarReturn) astroTimings.push(astroSolarReturn)
+    if (astroLunarReturn) astroTimings.push(astroLunarReturn)
+    const dailyAstro = dailyAstroByDate.get(date)
+    if (dailyAstro) astroTimings.push(dailyAstro)
 
     const crosses = CORE_THEMES.map((theme) =>
       crossThemeAtTime({
@@ -324,14 +378,14 @@ export function buildCalendarMonth(
 /**
  * 일별 상세 — 18 테마 풀 cross + 조언 + TOP 3 (옵션).
  */
-export function buildCalendarDay(
+export async function buildCalendarDay(
   input: CalendarAdapterInput & {
     lunarByDate?: Record<string, string>
     isCheoneulGwiinByDate?: Record<string, boolean>
     bestDaysOfMonth?: CalendarDay[]
   },
   date: string,
-): CalendarDayDetail {
+): Promise<CalendarDayDetail> {
   // 그 날 사주 일진 자동 계산
   const [yearStr, monthStr, dayStr] = date.split('-')
   const year = parseInt(yearStr, 10)
@@ -357,7 +411,7 @@ export function buildCalendarDay(
     }
   }
 
-  // 점성 yearly (Profection)
+  // 점성 layers (Profection + Solar Return + Lunar Return + Daily transit)
   const astroTimings: AstroTimingAnalysis[] = []
   if (input.age != null) {
     try {
@@ -372,6 +426,32 @@ export function buildCalendarDay(
         }],
         summary: `${prof.activatedHouse}궁 활성, Lord ${prof.lordOfYear}`,
       })
+    } catch { /* skip */ }
+  }
+  if (input.natalInput) {
+    try {
+      const sr = await calculateSolarReturn({ natal: input.natalInput, year })
+      astroTimings.push(analyzeYearlyAstro(sr))
+    } catch { /* skip */ }
+    try {
+      const lr = await calculateLunarReturn({ natal: input.natalInput, year, month: monthNum })
+      astroTimings.push(analyzeMonthlyAstro(lr))
+    } catch { /* skip */ }
+    try {
+      const transitChart = await calculateTransitChart({
+        iso: `${date}T12:00:00`,
+        latitude: input.natalInput.latitude,
+        longitude: input.natalInput.longitude,
+        timeZone: input.natalInput.timeZone,
+      })
+      const aspects = findMajorTransits(transitChart, input.astro, 1.0)
+      astroTimings.push(analyzeDailyAstro({
+        isoDate: date,
+        transitChart,
+        transitToNatalAspects: aspects.map(a => ({
+          from: a.from, to: a.to, type: a.type, orb: a.orb, applying: a.applying, score: a.score,
+        })),
+      }))
     } catch { /* skip */ }
   }
 

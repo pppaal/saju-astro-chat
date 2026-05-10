@@ -4,7 +4,7 @@ import { buildCalendarMonth, buildCalendarDay } from '@/lib/fusion/adapters'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { SimpleSajuPillars } from '@/lib/Saju/themes/types'
 
-it('demo: 1995-02-09 06:40 calendar 출력', () => {
+it('demo: 1995-02-09 06:40 calendar 출력', async () => {
   const result = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
   const p = result.pillars
 
@@ -40,7 +40,7 @@ it('demo: 1995-02-09 06:40 calendar 출력', () => {
   }
 
   // 월별
-  const month = buildCalendarMonth({ saju: simplePillars, astro: chart }, 2026, 5)
+  const month = await buildCalendarMonth({ saju: simplePillars, astro: chart }, 2026, 5)
   console.log('\n===== 2026-05 월별 =====')
   console.log(`월점수: ${(month.monthScore * 100).toFixed(0)} | tone: ${month.monthTone}`)
   console.log(`월narrative: ${month.monthNarrative}`)
@@ -58,7 +58,7 @@ it('demo: 1995-02-09 06:40 calendar 출력', () => {
   }
 
   // 일별
-  const day = buildCalendarDay(
+  const day = await buildCalendarDay(
     { saju: simplePillars, astro: chart, bestDaysOfMonth: month.highlights.bestDays },
     '2026-05-15',
   )
