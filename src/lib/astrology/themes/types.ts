@@ -2,7 +2,10 @@
 // 테마별 해석 wrapper 공통 타입.
 // Saju/familyLineage, Saju/healthCareer, Saju/sibsinAnalysis 의 테마 분석과 mirror.
 
-export type AstroThemeKey = 'love' | 'money' | 'career' | 'family' | 'health' | 'personality'
+export type AstroThemeKey =
+  | 'love' | 'money' | 'career' | 'family' | 'health' | 'personality'
+  | 'study' | 'children' | 'parents' | 'travel' | 'social' | 'business'
+  | 'reputation' | 'spirituality' | 'karma' | 'crisis' | 'creativity' | 'legal'
 
 export type AstroThemeTone = 'positive' | 'mixed' | 'cautious' | 'neutral'
 

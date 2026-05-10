@@ -11,7 +11,10 @@ export interface SimpleSajuPillars {
   hour: SimplePillar  // sibsinAnalysis 의 SajuPillars 와 mirror (hour 키)
 }
 
-export type SajuThemeKey = 'love' | 'money' | 'career' | 'family' | 'health' | 'personality'
+export type SajuThemeKey =
+  | 'love' | 'money' | 'career' | 'family' | 'health' | 'personality'
+  | 'study' | 'children' | 'parents' | 'travel' | 'social' | 'business'
+  | 'reputation' | 'spirituality' | 'karma' | 'crisis' | 'creativity' | 'legal'
 
 export type SajuThemeTone = 'positive' | 'mixed' | 'cautious' | 'neutral'
 
