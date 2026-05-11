@@ -40,7 +40,13 @@ interface RealtimeBody {
 }
 
 const RATE_LIMIT_PER_MIN = 12
-const HISTORY_KEEP_TURNS = 4 // last N turns sent verbatim
+// Verbatim window for the user prompt. The latest turn (= the question
+// being answered) is always emitted whole; previous turns up to this
+// count are also emitted whole so the model has immediate context for
+// pronouns and follow-ups. Everything older collapses to a topic line.
+const HISTORY_KEEP_VERBATIM = 2
+const HISTORY_OLDER_TOPIC_CHARS = 50
+const HISTORY_OLDER_TOPIC_MAX = 6
 const CREDIT_PER_TURN = 1
 
 const SYSTEM_PROMPT_KO = `당신은 동양 사주명리와 서양 점성술을 함께 보는 운명 상담사입니다.
@@ -91,17 +97,41 @@ function birthFingerprint(b: RealtimeBody): string {
   ].join('|')
 }
 
-/** Keep last N turns verbatim; collapse older ones into a single tag line. */
-function compactHistory(messages: ChatMessage[]): string {
+/**
+ * Compact prior turns into a token-cheap preamble.
+ *
+ * The user prompt is the only cache-miss block per turn (system + birth
+ * snapshot are cached). Keeping multiple full assistant replies in it
+ * burns tokens every request. Instead emit:
+ *   - the last `HISTORY_KEEP_VERBATIM` messages verbatim (covers the
+ *     current question and the assistant turn it follows up on), and
+ *   - older user turns as a short topic list ("Earlier topics: …").
+ *
+ * Older assistant replies are dropped — they were derived from the same
+ * birth snapshot the model already has cached, so re-sending them is
+ * almost pure overhead.
+ */
+export function compactHistory(messages: ChatMessage[]): string {
   if (messages.length === 0) return ''
-  const recent = messages.slice(-HISTORY_KEEP_TURNS)
-  const olderCount = Math.max(0, messages.length - recent.length)
-  const olderLine =
-    olderCount > 0 ? `(earlier ${olderCount} turn${olderCount > 1 ? 's' : ''} omitted)\n` : ''
-  return (
-    olderLine +
-    recent.map((m) => `${m.role === 'user' ? 'User' : 'Counselor'}: ${m.content}`).join('\n')
-  )
+
+  const recent = messages.slice(-HISTORY_KEEP_VERBATIM)
+  const older = messages.slice(0, -recent.length)
+
+  const olderTopics = older
+    .filter((m) => m.role === 'user')
+    .map((m) => m.content.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .slice(-HISTORY_OLDER_TOPIC_MAX)
+    .map((q) => (q.length > HISTORY_OLDER_TOPIC_CHARS ? q.slice(0, HISTORY_OLDER_TOPIC_CHARS) + '…' : q))
+
+  const lines: string[] = []
+  if (olderTopics.length > 0) {
+    lines.push(`(Earlier topics: ${olderTopics.map((t) => `"${t}"`).join(', ')})`)
+  }
+  for (const m of recent) {
+    lines.push(`${m.role === 'user' ? 'User' : 'Counselor'}: ${m.content}`)
+  }
+  return lines.join('\n')
 }
 
 export async function POST(req: NextRequest) {
