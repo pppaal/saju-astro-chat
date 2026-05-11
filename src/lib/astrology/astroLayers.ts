@@ -167,55 +167,41 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
     const extraHighlights: Array<{
       source: string; meaning: string; tone: 'positive' | 'cautious' | 'mixed' | 'neutral'
     }> = []
-    // Asteroid aspects — Chiron (상처/치유), Lilith (그림자), Ceres (양육),
-    // Pallas (전략), Juno (파트너십), Vesta (헌신)
+    // Asteroid aspects — natal-static. 매일 동일하므로 tone='neutral' (정보용).
+    // 일 변동은 daily transit 이 만듦.
     if (bundle.raw.asteroidAspects) {
-      const ASTEROID_TONE: Record<string, 'positive' | 'cautious' | 'neutral'> = {
-        Chiron: 'cautious', Lilith: 'cautious',   // 상처·그림자 영역
-        Ceres: 'positive', Pallas: 'positive',
-        Juno: 'positive', Vesta: 'positive',
-      }
       for (const [name, hits] of Object.entries(bundle.raw.asteroidAspects)) {
         if (!hits || hits.length === 0) continue
         const tight = hits.filter((h) => h.orb < 2)
         if (tight.length === 0) continue
-        const baseTone = ASTEROID_TONE[name] ?? 'neutral'
-        // 트라인/섹스타일 = positive 우호, 스퀘어/오포지션 = 부정 강화
         for (const h of tight.slice(0, 2)) {
-          const harmonic = ['trine', 'sextile'].includes(h.type)
-          const dissonant = ['square', 'opposition'].includes(h.type)
-          const tone: 'positive' | 'cautious' | 'mixed' | 'neutral' =
-            harmonic ? 'positive'
-            : dissonant ? (baseTone === 'cautious' ? 'cautious' : 'mixed')
-            : baseTone
           extraHighlights.push({
             source: `${name} ${h.type} ${h.to.name} (orb ${h.orb.toFixed(1)})`,
-            meaning: `${name} 활성 — natal 본질 자극.`,
-            tone,
+            meaning: `natal ${name} aspect — 본질 자극 정보.`,
+            tone: 'neutral',
           })
         }
       }
     }
-    // Midpoint activations — current planet 이 natal midpoint 자극
+    // Midpoint activations — natal-static. neutral.
     if (bundle.raw.midpointActivations) {
       for (const m of bundle.raw.midpointActivations.slice(0, 5)) {
-        const tight = m.orb < 1.0
         extraHighlights.push({
           source: `Midpoint ${m.midpoint.id} ${m.aspectType} ${m.activator} (orb ${m.orb.toFixed(1)})`,
-          meaning: m.description ?? '중점 활성 — 미세하지만 정밀한 영향.',
-          tone: tight ? 'neutral' : 'neutral',
+          meaning: m.description ?? '중점 활성 — natal 패턴.',
+          tone: 'neutral',
         })
       }
     }
-    // Harmonics profile — 강한 harmonic pattern 이 있으면 positive 부각
+    // Harmonics profile — natal-static. neutral.
     if (bundle.raw.harmonics) {
       const h = bundle.raw.harmonics as { keyHarmonics?: Array<{ harmonic: number; strength: number }> }
       const strong = (h.keyHarmonics ?? []).filter((k) => k.strength > 0.7).slice(0, 2)
       for (const s of strong) {
         extraHighlights.push({
           source: `Harmonic ${s.harmonic} 강함 (강도 ${s.strength.toFixed(2)})`,
-          meaning: `${s.harmonic}번째 harmonic 패턴 활성 — 잠재적 재능/성향.`,
-          tone: 'positive',
+          meaning: `${s.harmonic}번째 harmonic 패턴 — natal 성향.`,
+          tone: 'neutral',
         })
       }
     }
