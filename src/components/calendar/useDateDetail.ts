@@ -49,6 +49,32 @@ export type DateDetailResponse = {
     monthStem: string
     monthBranch: string
   }
+  /** fusion 엔진 출력 — 18테마·24슬롯·사주축/점성축 (route 에서 채움) */
+  fusion?: {
+    overallScore: number
+    sajuAxisScore: number
+    astroAxisScore: number
+    agreement: number
+    confidence: number
+    domainScores: Record<string, number>
+    advice: { do: string[]; avoid: string[] }
+    topInsights: string[]
+    hourly: {
+      slots: Array<{
+        hour: number; score: number; tone: string; topDomain: string | null
+        hourPillar?: string; planetaryHour?: string; label: string
+      }>
+      bestHours: Array<{
+        hour: number; score: number; topDomain: string | null
+        hourPillar?: string; planetaryHour?: string
+      }>
+      worstHours: Array<{
+        hour: number; score: number; topDomain: string | null
+        hourPillar?: string; planetaryHour?: string
+      }>
+      bestByDomain: Record<string, { hour: number; score: number } | undefined>
+    }
+  }
 }
 
 type Cache = Record<string, DateDetailResponse>
