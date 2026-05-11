@@ -39,6 +39,7 @@ import { useParticleAnimation } from '@/hooks/calendar/useParticleAnimation'
 // Sub-components
 import BirthInfoForm from './BirthInfoForm'
 import CalendarMainView from './CalendarMainView'
+import { useDateDetail } from './useDateDetail'
 import { loadSharedBirthInfo, saveSharedBirthInfo } from './sharedBirthInfo'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 
@@ -656,6 +657,12 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     return null
   }
 
+  // fusion 데이터 — 선택 날짜에 한해 date-detail 호출 (lazy)
+  const { detail: dateDetail } = useDateDetail({
+    selectedDay,
+    birthInfo,
+  })
+
   return (
     <CalendarMainView
       data={data}
@@ -663,6 +670,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       currentDate={currentDate}
       selectedDay={selectedDay}
       selectedDate={selectedDate}
+      dateDetail={dateDetail}
       activeCategory={activeCategory}
       isDarkTheme={isDarkTheme}
       slideDirection={slideDirection}

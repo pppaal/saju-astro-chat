@@ -24,6 +24,7 @@ interface CalendarMainViewProps {
   currentDate: Date
   selectedDay: Date | null
   selectedDate: ImportantDate | null
+  dateDetail?: import('./useDateDetail').DateDetailResponse | null
   activeCategory: EventCategory | 'all'
   isDarkTheme: boolean
   slideDirection: 'left' | 'right' | null
@@ -77,6 +78,7 @@ const CalendarMainView = memo(function CalendarMainView({
   currentDate,
   selectedDay,
   selectedDate,
+  dateDetail,
   activeCategory,
   isDarkTheme,
   slideDirection,
@@ -734,6 +736,7 @@ const CalendarMainView = memo(function CalendarMainView({
           <SelectedDatePanel
             selectedDay={selectedDay}
             selectedDate={selectedDate}
+            dateDetail={dateDetail}
             canonicalCore={data?.canonicalCore}
             presentation={
               data

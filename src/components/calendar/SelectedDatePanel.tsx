@@ -187,6 +187,7 @@ interface ImportantDate {
 interface SelectedDatePanelProps {
   selectedDay: Date | null
   selectedDate: ImportantDate | null
+  dateDetail?: import('./useDateDetail').DateDetailResponse | null
   canonicalCore?: CalendarCoreAdapterResult
   presentation?: {
     dailyView?: {
@@ -292,6 +293,7 @@ interface SelectedDatePanelProps {
 const SelectedDatePanel = memo(function SelectedDatePanel({
   selectedDay,
   selectedDate,
+  dateDetail,
   canonicalCore,
   presentation,
   savedDates,
@@ -344,6 +346,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         dayRuler: selectedDate.dayRuler,
         transit: selectedDate.transit,
         lunarMansion: selectedDate.lunarMansion,
+        // fusion 엔진 — 18테마 점수 + 사주축/점성축/일치도/확신도 + 시간대 best/worst
+        fusion: dateDetail?.fusion,
       }
       const res = await fetch('/api/calendar/ai-narrative', {
         method: 'POST',
