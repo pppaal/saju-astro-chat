@@ -189,6 +189,7 @@ export async function buildCalendarMonth(
   // ============================================================
   const monthSaju = getSajuLayersForDate({
     dayMaster: input.saju.day.stem,
+    natalPillars: input.saju,
     daeunList: input.daeunList,
     birthYear: input.birthYear,
     age: input.age,
@@ -198,6 +199,7 @@ export async function buildCalendarMonth(
   // 일진 30일 batch
   const dailySajuMap = getSajuMonthDailyLayers({
     dayMaster: input.saju.day.stem,
+    natalPillars: input.saju,
     year, month,
   })
 
@@ -229,6 +231,7 @@ export async function buildCalendarMonth(
     // 그 날 hourly (정오 또는 input.hour)
     const dayLayers = getSajuLayersForDate({
       dayMaster: input.saju.day.stem,
+    natalPillars: input.saju,
       year, month, day: d, hour,
     })
     const astroDayLayers = await getAstroLayersForDate({
@@ -353,6 +356,7 @@ export async function buildCalendarDay(
   // 사주 layer 전부
   const sajuBundle = getSajuLayersForDate({
     dayMaster: input.saju.day.stem,
+    natalPillars: input.saju,
     daeunList: input.daeunList,
     birthYear: input.birthYear,
     age: input.age,

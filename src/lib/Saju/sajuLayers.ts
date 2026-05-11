@@ -14,8 +14,16 @@ import { getTimeBranchFromHour } from './foundation/validation'
 import { analyzeDailySaju } from './timing/daily'
 import { analyzeMonthlySaju } from './timing/monthly'
 import { analyzeHourlySaju } from './timing/hourly'
-import type { DayMaster, IljinData, WolunData } from './foundation/types'
-import type { SajuTimingAnalysis } from './timing/types'
+import type { DayMaster, IljinData, WolunData, SajuPillarsInput } from './foundation/types'
+import type { SajuTimingAnalysis, SajuTimingHighlight } from './timing/types'
+import type { SimpleSajuPillars } from './themes/types'
+// 정통 사주 분석 — 기존 foundation 파일들
+import { determineGeokguk, type GeokgukResult } from './foundation/geokguk'
+import { determineYongsin, type YongsinResult } from './foundation/yongsin'
+import { evaluateJohuNeed, getJohuYongsin, type JohuYongsinInfo } from './foundation/johuYongsin'
+import { calculateTonggeun, type TonggeunResult } from './foundation/tonggeun'
+import { analyzeUnseInteraction } from './foundation/hyeongchung'
+import { analyzeGongmang } from '@/lib/timing/ultra-precision-daily'
 
 const STEM_NAMES = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸']
 const BRANCH_NAMES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
@@ -23,6 +31,8 @@ const BRANCH_NAMES = ['子','丑','寅','卯','辰','巳','午','未','申','酉
 export interface SajuLayersInput {
   /** 일간 (예: '辛') */
   dayMaster: string
+  /** 본명 4기둥 — 격국/용신/조후/통근/형충회합/공망 산출에 사용 */
+  natalPillars?: SimpleSajuPillars
   /** 그 사람 대운 list (calculateSajuData 결과의 daeWoon.list) */
   daeunList?: Array<{ stem: string; branch: string; startAge: number }>
   /** 출생년도 (세운 계산용) */
@@ -36,15 +46,37 @@ export interface SajuLayersInput {
   hour?: number      // 0-23, 미지정 시 hourly 미산출
 }
 
+/** 점성 mirror — 정통 사주 raw 분석 결과 (점수 계산기·UI 가 받아씀) */
+export interface SajuLayersRaw {
+  /** 그 날 일진 raw */
+  iljinRaw?: IljinData
+  /** 그 시각 시주 raw */
+  hourPillar?: { stem: string; branch: string }
+  /** 격국 (natal once) */
+  geokguk?: GeokgukResult
+  /** 용신 (natal once) */
+  yongsin?: YongsinResult
+  /** 조후용신 (natal once) */
+  johu?: { yongsin: JohuYongsinInfo | null; need: ReturnType<typeof evaluateJohuNeed> }
+  /** 일간 통근 (natal once) */
+  tonggeun?: TonggeunResult
+  /** 그 날 일진 ↔ 본명 형충회합 hits */
+  hyeongchung?: ReturnType<typeof analyzeUnseInteraction>
+  /** 그 날 일진이 본명 일주의 공망인가 */
+  gongmang?: ReturnType<typeof analyzeGongmang>
+}
+
 export interface SajuLayersBundle {
   decadal?: SajuTimingAnalysis    // 대운 (10년)
   yearly?: SajuTimingAnalysis     // 세운 (1년)
   monthly?: SajuTimingAnalysis    // 월운 (1개월)
   daily?: SajuTimingAnalysis      // 일진 (1일) — day 지정 시
   hourly?: SajuTimingAnalysis     // 시진 (1시간) — hour 지정 시
-  /** 그 날 일진 raw (label·신살용) */
+  /** natal+per-day raw analysis (점수·UI 가 받아씀) — 점성 raw 와 mirror */
+  raw: SajuLayersRaw
+  /** @deprecated raw.iljinRaw 사용. back-compat 만 유지. */
   iljinRaw?: IljinData
-  /** 그 시각 시주 raw */
+  /** @deprecated raw.hourPillar 사용. back-compat 만 유지. */
   hourPillar?: { stem: string; branch: string }
 }
 
@@ -72,12 +104,80 @@ function calcHourPillar(dayStem: string, hour: number): { stem: string; branch: 
  *     year: 2026, month: 5, day: 15, hour: 12,
  *   })
  */
+/** SimpleSajuPillars (hour) → SajuPillarsInput (time) */
+function toFullPillars(p: SimpleSajuPillars): SajuPillarsInput {
+  return {
+    year:  p.year,
+    month: p.month,
+    day:   p.day,
+    time:  p.hour,
+  }
+}
+
+/** tone 변환 — TonggeunResult.deukryeongScore 등 점수 → SajuTimingTone */
+function scoreToTone(score: number, neutralBand = 0.2): SajuTimingHighlight['tone'] {
+  if (score > neutralBand) return 'positive'
+  if (score < -neutralBand) return 'cautious'
+  return 'neutral'
+}
+
 export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
-  const bundle: SajuLayersBundle = {}
+  const bundle: SajuLayersBundle = { raw: {} }
   const dm = getDayMasterObj(input.dayMaster)
   if (!dm) return bundle
 
+  // ============================================================
+  // natal-once 정통 분석 — 격국 / 용신 / 조후 / 통근
+  // ============================================================
+  const natalHighlights: SajuTimingHighlight[] = []
+  if (input.natalPillars) {
+    const fullPillars = toFullPillars(input.natalPillars)
+    try {
+      const geokguk = determineGeokguk(fullPillars)
+      bundle.raw.geokguk = geokguk
+      const confHigh = geokguk.confidence === 'high'
+      natalHighlights.push({
+        source: `격국: ${geokguk.primary} (${geokguk.category})`,
+        meaning: `${geokguk.description?.slice(0, 80) ?? ''} (확신도 ${geokguk.confidence})`,
+        tone: confHigh ? 'positive' : 'neutral',
+      })
+    } catch { /* skip */ }
+    try {
+      const yongsin = determineYongsin(fullPillars)
+      bundle.raw.yongsin = yongsin
+      natalHighlights.push({
+        source: `용신: ${yongsin.primaryYongsin} (${yongsin.yongsinType})`,
+        meaning: `용신 ${yongsin.primaryYongsin} — ${yongsin.reasoning?.slice(0, 60) ?? ''}`,
+        tone: 'neutral',  // 용신 자체는 중립, 그 운기가 들어올 때 +
+      })
+    } catch { /* skip */ }
+    try {
+      const johuInfo = getJohuYongsin(input.dayMaster, input.natalPillars.month.branch)
+      const johuNeed = evaluateJohuNeed(input.dayMaster, input.natalPillars.month.branch)
+      bundle.raw.johu = { yongsin: johuInfo, need: johuNeed }
+      if (johuInfo) {
+        natalHighlights.push({
+          source: `조후: ${johuInfo.primaryYongsin}`,
+          meaning: `${johuInfo.climate} 기후 — 조후용신 ${johuInfo.primaryYongsin} (필요도 ${johuInfo.rating}/5)`,
+          tone: johuNeed.urgent ? 'cautious' : 'neutral',
+        })
+      }
+    } catch { /* skip */ }
+    try {
+      const tonggeun = calculateTonggeun(input.dayMaster, fullPillars)
+      bundle.raw.tonggeun = tonggeun
+      const totalStrength = tonggeun.roots.reduce((sum, r) => sum + r.strength, 0)
+      natalHighlights.push({
+        source: `통근: 뿌리 ${tonggeun.roots.length}개`,
+        meaning: `일간 ${input.dayMaster} 통근 — ${tonggeun.roots.map(r => r.pillar).join('/')} (총 ${totalStrength.toFixed(0)})`,
+        tone: scoreToTone(totalStrength / 100),
+      })
+    } catch { /* skip */ }
+  }
+
   // 대운 (decadal) — daeunList + age 제공 시 활성 period
+  // + natal-once 정통 분석 (격국·용신·조후·통근) 도 여기 highlights 에 합침
+  // (대운 = 평생 backdrop, natal 분석도 평생 backdrop 이므로 같이 묶음)
   if (input.daeunList && input.age != null) {
     const active = input.daeunList.find(
       (d) => input.age! >= d.startAge && input.age! < d.startAge + 10,
@@ -86,13 +186,24 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
       bundle.decadal = {
         unit: 'decadal',
         periodLabel: `대운 ${active.stem}${active.branch} (age ${active.startAge}-${active.startAge + 9})`,
-        highlights: [{
-          source: `대운 ${active.stem}${active.branch}`,
-          meaning: `${active.startAge}-${active.startAge + 9}세 대운 — ${active.stem}${active.branch} 10년 backdrop.`,
-          tone: 'neutral',
-        }],
-        summary: `대운 ${active.stem}${active.branch}`,
+        highlights: [
+          {
+            source: `대운 ${active.stem}${active.branch}`,
+            meaning: `${active.startAge}-${active.startAge + 9}세 대운 — ${active.stem}${active.branch} 10년 backdrop.`,
+            tone: 'neutral',
+          },
+          ...natalHighlights,
+        ],
+        summary: `대운 ${active.stem}${active.branch} · 격국/용신/조후/통근 포함`,
       }
+    }
+  } else if (natalHighlights.length > 0) {
+    // 대운 없어도 natal 분석은 decadal layer 로 노출
+    bundle.decadal = {
+      unit: 'decadal',
+      periodLabel: '본명 정통 분석',
+      highlights: natalHighlights,
+      summary: '격국/용신/조후/통근',
     }
   }
 
@@ -124,13 +235,69 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
   } catch { /* skip */ }
 
   // 일진 (daily) — day 제공 시
+  // + natal 제공 시: 형충회합 (일진 ↔ 본명) + 공망 (일진이 본명 일주의 공망인지)
   if (input.day != null) {
     try {
       const iljins = getIljinCalendar(input.year, input.month, dm)
       const iljin = iljins.find((i) => i.day === input.day)
       if (iljin) {
-        bundle.iljinRaw = iljin
+        bundle.raw.iljinRaw = iljin
+        bundle.iljinRaw = iljin   // back-compat
         bundle.daily = analyzeDailySaju({ iljin, dayMaster: input.dayMaster })
+
+        // 형충회합·공망 — natalPillars 제공 시만
+        if (input.natalPillars && bundle.daily) {
+          const extraHighlights: SajuTimingHighlight[] = []
+          // 형충회합: 일진 지지 가 본명 4지지와 작용
+          try {
+            const natalBranches = [
+              input.natalPillars.year.branch,
+              input.natalPillars.month.branch,
+              input.natalPillars.day.branch,
+              input.natalPillars.hour.branch,
+            ]
+            const interactions = analyzeUnseInteraction(natalBranches, [iljin.earthlyBranch])
+            bundle.raw.hyeongchung = interactions
+            // 합 = +, 충/형/해/파/원진 = -
+            let totalScore = 0
+            for (const it of interactions) {
+              const positive = ['육합', '삼합', '반합', '방합'].includes(it.type)
+              const contribution = (positive ? 1 : -1) * (it.strength / 100)
+              totalScore += contribution
+            }
+            if (interactions.length > 0) {
+              const summary = interactions.map(i => i.type).join('+')
+              extraHighlights.push({
+                source: `형충회합: ${summary}`,
+                meaning: `일진 ${iljin.earthlyBranch} 가 본명과 ${summary} 작용 (점수 ${totalScore.toFixed(2)})`,
+                tone: scoreToTone(totalScore),
+              })
+            }
+          } catch { /* skip */ }
+          // 공망: 본명 일주의 旬空 에 일진 지지가 걸리나
+          try {
+            const natalDay = input.natalPillars.day
+            const gongmang = analyzeGongmang(natalDay.stem, natalDay.branch, iljin.earthlyBranch)
+            bundle.raw.gongmang = gongmang
+            const isEmpty = (gongmang as { isToday空?: boolean; isEmpty?: boolean }).isToday空
+              ?? (gongmang as { isEmpty?: boolean }).isEmpty
+              ?? false
+            if (isEmpty) {
+              extraHighlights.push({
+                source: `공망: ${iljin.earthlyBranch}`,
+                meaning: gongmang.advice ?? '공망일 — 해당 영역 신중',
+                tone: 'cautious',
+              })
+            }
+          } catch { /* skip */ }
+
+          if (extraHighlights.length > 0) {
+            bundle.daily = {
+              ...bundle.daily,
+              highlights: [...bundle.daily.highlights, ...extraHighlights],
+            }
+          }
+        }
       }
     } catch { /* skip */ }
   }
@@ -139,7 +306,8 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
   if (input.hour != null && input.day != null) {
     const hp = calcHourPillar(input.dayMaster, input.hour)
     if (hp) {
-      bundle.hourPillar = hp
+      bundle.raw.hourPillar = hp
+      bundle.hourPillar = hp    // back-compat
       try {
         const dt = new Date(input.year, input.month - 1, input.day, input.hour, 0, 0)
         bundle.hourly = analyzeHourlySaju({ date: dt, hourPillar: hp, dayMaster: input.dayMaster })
@@ -156,20 +324,63 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
  */
 export function getSajuMonthDailyLayers(input: {
   dayMaster: string
+  natalPillars?: SimpleSajuPillars   // 형충회합/공망 산출용
   year: number
   month: number
 }): Map<string, { daily: SajuTimingAnalysis; iljinRaw: IljinData }> {
   const map = new Map<string, { daily: SajuTimingAnalysis; iljinRaw: IljinData }>()
   const dm = getDayMasterObj(input.dayMaster)
   if (!dm) return map
+  const natalBranches = input.natalPillars ? [
+    input.natalPillars.year.branch,
+    input.natalPillars.month.branch,
+    input.natalPillars.day.branch,
+    input.natalPillars.hour.branch,
+  ] : null
   try {
     const iljins = getIljinCalendar(input.year, input.month, dm)
     for (const iljin of iljins) {
       const date = `${iljin.year}-${String(iljin.month).padStart(2, '0')}-${String(iljin.day).padStart(2, '0')}`
-      map.set(date, {
-        daily: analyzeDailySaju({ iljin, dayMaster: input.dayMaster }),
-        iljinRaw: iljin,
-      })
+      let daily = analyzeDailySaju({ iljin, dayMaster: input.dayMaster })
+
+      // 형충회합 + 공망 highlights 추가 — natal 있을 때만
+      if (input.natalPillars && natalBranches) {
+        const extras: SajuTimingHighlight[] = []
+        try {
+          const interactions = analyzeUnseInteraction(natalBranches, [iljin.earthlyBranch])
+          if (interactions.length > 0) {
+            let total = 0
+            for (const it of interactions) {
+              const pos = ['육합', '삼합', '반합', '방합'].includes(it.type)
+              total += (pos ? 1 : -1) * (it.strength / 100)
+            }
+            extras.push({
+              source: `형충회합: ${interactions.map(i => i.type).join('+')}`,
+              meaning: `일진 ${iljin.earthlyBranch} 본명과 작용 (${total.toFixed(2)})`,
+              tone: scoreToTone(total),
+            })
+          }
+        } catch { /* skip */ }
+        try {
+          const natalDay = input.natalPillars.day
+          const gm = analyzeGongmang(natalDay.stem, natalDay.branch, iljin.earthlyBranch)
+          const isEmpty = (gm as { isToday空?: boolean; isEmpty?: boolean }).isToday空
+            ?? (gm as { isEmpty?: boolean }).isEmpty
+            ?? false
+          if (isEmpty) {
+            extras.push({
+              source: `공망: ${iljin.earthlyBranch}`,
+              meaning: gm.advice ?? '공망일 — 신중',
+              tone: 'cautious',
+            })
+          }
+        } catch { /* skip */ }
+        if (extras.length > 0) {
+          daily = { ...daily, highlights: [...daily.highlights, ...extras] }
+        }
+      }
+
+      map.set(date, { daily, iljinRaw: iljin })
     }
   } catch { /* skip */ }
   return map
