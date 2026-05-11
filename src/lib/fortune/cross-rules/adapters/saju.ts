@@ -135,19 +135,33 @@ function pickDaeunSequence(
       yearsToNext: 0,
     }
   }
+  // The saju engine already decided which daeun is "current" using the
+  // Korean-age convention (daeWoon.current). Trusting it keeps adapter and
+  // engine consistent — previously we re-computed against floored manyAge,
+  // which silently shifted by one cycle right around birthday transitions.
+  const engineCurrent = saju.daeWoon?.current
   let index = -1
-  for (let i = cycles.length - 1; i >= 0; i--) {
-    if (ageYears >= cycles[i].age) {
-      index = i
-      break
+  if (engineCurrent && typeof (engineCurrent as { age?: number }).age === 'number') {
+    const targetAge = (engineCurrent as { age: number }).age
+    index = cycles.findIndex((c) => c.age === targetAge)
+  }
+  if (index < 0) {
+    for (let i = cycles.length - 1; i >= 0; i--) {
+      if (ageYears >= cycles[i].age) {
+        index = i
+        break
+      }
     }
   }
   if (index < 0) index = 0
   const current = cycles[index] ?? null
   const previous = index > 0 ? cycles[index - 1] : null
   const next = index + 1 < cycles.length ? cycles[index + 1] : null
-  const yearsIntoCurrent = current ? ageYears - current.age : 0
-  const yearsToNext = next ? next.age - ageYears : 99
+  // ageYears is floored manyAge; current.age uses Korean-age convention,
+  // so right around birthday transitions they can disagree by 1. Clamp to
+  // 0 so downstream "years into current daeun" never goes negative.
+  const yearsIntoCurrent = current ? Math.max(0, ageYears - current.age) : 0
+  const yearsToNext = next ? Math.max(0, next.age - ageYears) : 99
   return { current, previous, next, index, ageYears, yearsIntoCurrent, yearsToNext }
 }
 
