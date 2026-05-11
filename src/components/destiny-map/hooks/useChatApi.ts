@@ -370,6 +370,7 @@ export function useChatApi({
         name: profile.name,
         birthDate: profile.birthDate,
         birthTime: profile.birthTime,
+        birthTimeUnknown: profile.birthTimeUnknown,
         latitude: normalizedLatitude,
         longitude: normalizedLongitude,
         gender: normalizedGender,

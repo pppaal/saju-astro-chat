@@ -36,6 +36,11 @@ export function useCounselorData(sp: SearchParams) {
   const name = (Array.isArray(sp.name) ? sp.name[0] : sp.name) ?? ''
   const birthDate = (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? ''
   const birthTime = (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? ''
+  const rawBirthTimeUnknown = Array.isArray(sp.birthTimeUnknown)
+    ? sp.birthTimeUnknown[0]
+    : sp.birthTimeUnknown
+  const birthTimeUnknown =
+    rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true' || birthTime === '00:00'
   const city = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? ''
   const rawGender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? ''
   const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? 'ko'
@@ -458,6 +463,7 @@ export function useCounselorData(sp: SearchParams) {
     name,
     birthDate,
     birthTime,
+    birthTimeUnknown,
     city,
     gender: normalizedGender,
     theme: selectedTheme,

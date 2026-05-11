@@ -24,7 +24,8 @@ import {
 
 export interface StoredBirthInfo {
   birthDate: string // YYYY-MM-DD
-  birthTime: string // HH:MM
+  birthTime: string // HH:MM ('00:00' is the placeholder when birthTimeUnknown=true)
+  birthTimeUnknown?: boolean
   gender: 'male' | 'female'
   city?: string
   savedAt: string // ISO
@@ -40,6 +41,7 @@ function userProfileToBirthInfo(profile: UserProfile): StoredBirthInfo | null {
   return {
     birthDate: profile.birthDate,
     birthTime: profile.birthTime,
+    birthTimeUnknown: profile.birthTime === '00:00' ? true : undefined,
     gender,
     city: profile.birthCity || undefined,
     savedAt: profile.updatedAt || new Date().toISOString(),
@@ -115,5 +117,6 @@ export function buildBirthQuery(info: StoredBirthInfo | null): string {
   params.set('birthTime', info.birthTime)
   params.set('gender', info.gender === 'male' ? 'M' : 'F')
   if (info.city) params.set('birthCity', info.city)
+  if (info.birthTimeUnknown) params.set('birthTimeUnknown', '1')
   return params.toString()
 }

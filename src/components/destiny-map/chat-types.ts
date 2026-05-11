@@ -10,6 +10,7 @@ export interface ChatProfile {
   name?: string
   birthDate?: string
   birthTime?: string
+  birthTimeUnknown?: boolean
   city?: string
   gender?: string
   latitude?: number
@@ -167,6 +168,7 @@ export interface ChatPayload {
   name?: string
   birthDate?: string
   birthTime?: string
+  birthTimeUnknown?: boolean
   latitude?: number
   longitude?: number
   gender?: string
