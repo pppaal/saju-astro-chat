@@ -348,6 +348,25 @@ export async function buildCalendarMonth(
     const avgScore = rawAvg   // 임시 raw — 아래 days[] 빌드 후 expand
     const grade: DayGrade = 'normal'   // 임시 — 아래 expand 후 재계산
 
+    // ── 사주축 / 점성축 / 일치도 / 확신도 (synthesizer 이미 계산) ──
+    const sajuVals: number[] = []
+    const astroVals: number[] = []
+    for (const c of crosses) {
+      // crossView.sajuScore / astroScore 는 -1..+1
+      const ss = (c.crossView as { sajuScore?: number }).sajuScore
+      const as = (c.crossView as { astroScore?: number }).astroScore
+      if (typeof ss === 'number') sajuVals.push(ss)
+      if (typeof as === 'number') astroVals.push(as)
+    }
+    const avgSaju  = sajuVals.length  ? sajuVals.reduce((a, b) => a + b, 0) / sajuVals.length  : 0
+    const avgAstro = astroVals.length ? astroVals.reduce((a, b) => a + b, 0) / astroVals.length : 0
+    const sajuAxisRaw = (avgSaju + 1) * 50    // -1..+1 → 0..100
+    const astroAxisRaw = (avgAstro + 1) * 50
+    // 일치도: 사주축·점성축 둘 다 같은 부호이면 높음 (둘 다 +0.6 → 일치 100%, +0.6/-0.6 → 0%)
+    const agreement = Math.round(Math.max(0, 100 - Math.abs(avgSaju - avgAstro) * 50))
+    // 확신도: |saju| 와 |astro| 의 평균 (강한 신호일수록 ↑)
+    const confidence = Math.round(((Math.abs(avgSaju) + Math.abs(avgAstro)) / 2) * 100)
+
     const iljinLabel = input.iljinByDate?.[date]
       ?? (dailySaju ? `${dailySaju.iljinRaw.heavenlyStem}${dailySaju.iljinRaw.earthlyBranch}` : undefined)
 
@@ -357,6 +376,10 @@ export async function buildCalendarMonth(
       domainScores,    // raw 0..1 (아래 일괄 expand)
       topDomain,
       tone,
+      sajuAxisScore: sajuAxisRaw,    // raw, 아래 expand
+      astroAxisScore: astroAxisRaw,
+      agreement,
+      confidence,
       score: avgScore, // raw 0..100 (아래 일괄 expand)
       grade,
       label,
@@ -370,6 +393,8 @@ export async function buildCalendarMonth(
   // ============================================================
   for (const d of days) {
     d.score = expandScore(d.score)
+    d.sajuAxisScore = expandScore(d.sajuAxisScore)
+    d.astroAxisScore = expandScore(d.astroAxisScore)
     for (const k of Object.keys(d.domainScores) as ThemeKey[]) {
       d.domainScores[k] = expandScore((d.domainScores[k] ?? 0) * 100) / 100
     }

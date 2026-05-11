@@ -260,6 +260,10 @@ export const GET = withApiMiddleware(
     let fusionData:
       | {
           overallScore: number
+          sajuAxisScore: number
+          astroAxisScore: number
+          agreement: number
+          confidence: number
           domainScores: Record<string, number>
           advice: { do: string[]; avoid: string[] }
           topInsights: string[]
@@ -326,11 +330,20 @@ export const GET = withApiMiddleware(
         }
         const dayRes = await buildCalendarDay(fusionInput, date)
         const hourlyRes = await buildCalendarHourly(fusionInput, date)
+        // 사주축 / 점성축 / 일치도 / 확신도 — buildCalendarMonth 에서 가져옴
+        const { buildCalendarMonth } = await import('@/lib/fusion/adapters')
+        const [y, m, d] = date.split('-').map((v) => parseInt(v, 10))
+        const monthRes = await buildCalendarMonth(fusionInput, y, m)
+        const dayInMonth = monthRes.days.find((dd) => dd.date === date)
         fusionData = {
           overallScore: Math.round(
             (Object.values(dayRes.domainScores) as number[]).reduce((a, b) => a + b, 0)
             / Object.keys(dayRes.domainScores).length * 100,
           ),
+          sajuAxisScore: dayInMonth?.sajuAxisScore ?? 50,
+          astroAxisScore: dayInMonth?.astroAxisScore ?? 50,
+          agreement: dayInMonth?.agreement ?? 50,
+          confidence: dayInMonth?.confidence ?? 50,
           domainScores: Object.fromEntries(
             Object.entries(dayRes.domainScores).map(([k, v]) => [k, Math.round((v as number) * 100)]),
           ),

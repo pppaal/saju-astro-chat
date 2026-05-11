@@ -22,6 +22,14 @@ export interface CalendarDay {
   grade: DayGrade
   label: string                            // '결혼 길일', '신중' 등
   summary: string                          // 한 줄 요약
+  /** 사주 축 점수 0..100 (cross.sajuScore 평균 → display) */
+  sajuAxisScore: number
+  /** 점성 축 점수 0..100 (cross.astroScore 평균 → display) */
+  astroAxisScore: number
+  /** 사주↔점성 일치도 0..100 (둘 다 같은 방향이면 높음) */
+  agreement: number
+  /** 확신도 0..100 (강한 신호의 비율) */
+  confidence: number
 }
 
 /** 시간대 슬롯 (1시간 단위, 24개) */

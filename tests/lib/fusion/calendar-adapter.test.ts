@@ -74,7 +74,7 @@ describe('fusion/adapters/forCalendar', () => {
       expect(m.monthScore).toBeGreaterThanOrEqual(0)
       expect(m.monthScore).toBeLessThanOrEqual(1)
       expect(m.monthlyDomains.love).toBeDefined()
-      expect(m.monthNarrative).toContain('이 달은')
+      expect(m.monthNarrative).toMatch(/이[번]? 달은/)
     })
   })
 

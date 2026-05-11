@@ -107,25 +107,26 @@ it('UI 시뮬: 1995-02-09 06:40 Seoul male → 2026-05', async () => {
   // Stats 탭 — 4주차
   // ════════════════════════════════════════════════════════
   console.log('\n──────────────────────────── [ Stats — 4주차 ] ────────────────────────────')
-  const weeks: Array<{ wk: number; saju: number; astro: number; days: number }> = []
+  // 진짜 cross.sajuScore / astroScore 합산 (사주축/점성축, 임의 계수 아님)
+  const weeks: Array<{ wk: number; saju: number; astro: number; agreement: number; days: number }> = []
   for (let w = 0; w < 4; w++) {
     const start = w * 7
-    const end = w === 3 ? monthRes.days.length : start + 7   // 마지막 주는 나머지 다
+    const end = w === 3 ? monthRes.days.length : start + 7
     const slice = monthRes.days.slice(start, end)
     if (slice.length === 0) continue
-    const avgScore = slice.reduce((a, b) => a + b.score, 0) / slice.length
     weeks.push({
       wk: w + 1,
-      saju: Math.round(avgScore * 0.85 + (w % 2 ? -3 : 4)),   // saju side proxy
-      astro: Math.round(avgScore * 1.05 + (w % 2 ? 5 : -3)),  // astro side proxy
+      saju:  Math.round(slice.reduce((a, b) => a + b.sajuAxisScore,  0) / slice.length),
+      astro: Math.round(slice.reduce((a, b) => a + b.astroAxisScore, 0) / slice.length),
+      agreement: Math.round(slice.reduce((a, b) => a + b.agreement, 0) / slice.length),
       days: slice.length,
     })
   }
   console.log('\n▸ 주차별 사주 vs 점성 (라인 차트):')
-  console.log('  주차      사주    점성     일수')
+  console.log('  주차      사주    점성    일치도     일수')
   for (const w of weeks) {
     const sBar = '█'.repeat(Math.round(w.saju / 5)).padEnd(20, '░')
-    console.log(`  ${w.wk}주차    ${String(w.saju).padStart(3)}     ${String(w.astro).padStart(3)}      ${w.days}일   ${sBar}`)
+    console.log(`  ${w.wk}주차    ${String(w.saju).padStart(3)}     ${String(w.astro).padStart(3)}     ${String(w.agreement).padStart(3)}%      ${w.days}일   ${sBar}`)
   }
 
   // 슈퍼 타이밍 = 사주+점성 둘 다 높고 가까운 주
@@ -136,4 +137,16 @@ it('UI 시뮬: 1995-02-09 06:40 Seoul male → 2026-05', async () => {
     if (combined > superScore) { superScore = combined; superW = w }
   }
   console.log(`\n▸ 슈퍼 타이밍: ${superW.wk}주차 (사주·점성 가장 강하게 교차)`)
+
+  // ════════════════════════════════════════════════════════
+  // Daily 탭 — 신뢰도 / 일치도 (Daily 화면 상단 칩)
+  // ════════════════════════════════════════════════════════
+  const dayInMonth = monthRes.days.find((dd) => dd.date === '2026-05-15')
+  if (dayInMonth) {
+    console.log('\n──────────────────────────── [ Daily 상단 칩 ] ────────────────────────────')
+    console.log(`\n  사주축 점수:  ${dayInMonth.sajuAxisScore}점`)
+    console.log(`  점성축 점수:  ${dayInMonth.astroAxisScore}점`)
+    console.log(`  일치도:       ${dayInMonth.agreement}%   ← UI "합치 36%" 자리`)
+    console.log(`  확신도:       ${dayInMonth.confidence}%   ← UI "신뢰도 50%" 자리`)
+  }
 }, 60000)
