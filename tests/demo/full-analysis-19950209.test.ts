@@ -119,7 +119,9 @@ it('full demo: 1995-02-09 06:40 KST — 년/달/일/시 분석', async () => {
   for (const s of hourlyRes.slots) {
     const bar = '█'.repeat(Math.round(s.score / 5)).padEnd(20, '░')
     const star = s.tone === 'strong-positive' ? '★' : s.tone === 'strong-negative' ? '⚠' : ' '
-    console.log(`  ${star} ${String(s.hour).padStart(2)}시 ${bar} ${String(s.score).padStart(3)} [${s.tone.padEnd(15)}] ${s.label}`)
+    const sj = s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : '----'
+    const ph = (s.planetaryHour ?? '---').padEnd(7)
+    console.log(`  ${star} ${String(s.hour).padStart(2)}시 시주:${sj} 행성시:${ph} ${bar} ${String(s.score).padStart(3)} ${s.label}`)
   }
   console.log('\n★ 좋은 시간 TOP 5:')
   for (const s of hourlyRes.bestHours) {

@@ -587,12 +587,16 @@ export async function buildCalendarHourly(
   },
   date: string,
 ): Promise<CalendarHourly> {
+  const [yearStr, monthStr, dayStr] = date.split('-')
+  const year = parseInt(yearStr, 10)
+  const monthNum = parseInt(monthStr, 10)
+  const dayNum = parseInt(dayStr, 10)
+
   const slots: CalendarHourSlot[] = []
   for (let h = 0; h < 24; h++) {
     const day = await buildCalendarDay({ ...input, hour: h }, date)
     const topEntry = Object.entries(day.domainScores).sort((a, b) => (b[1] as number) - (a[1] as number))[0]
     const topDomain = (topEntry?.[0] ?? null) as ThemeKey | null
-    // 24슬롯 score = 6 핵심 테마 평균 (월/일과 일관)
     const coreSum = CORE_THEMES.reduce((acc, t) => acc + (day.domainScores[t] ?? 0), 0)
     const score = Math.round((coreSum / CORE_THEMES.length) * 100)
     const tone: CrossTone =
@@ -601,14 +605,26 @@ export async function buildCalendarHourly(
       score >= 42 ? 'neutral' :
       score >= 30 ? 'cautious' :
       'strong-negative'
-    // hourPillar / planetaryHour 는 sajuLayers/astroLayers 가 layer 안에 포함
-    // 여기서는 라벨용으로 day cross 중 hourly highlight 의 source 에서 추출 시도 가능 — 일단 빈값
+
+    // 시주 (사주) + 행성시 (점성) 추출 — sajuLayers/astroLayers raw 에서
+    const sajuHour = getSajuLayersForDate({
+      dayMaster: input.saju.day.stem,
+      natalPillars: input.saju,
+      year, month: monthNum, day: dayNum, hour: h,
+    })
+    const astroHour = await getAstroLayersForDate({
+      natal: input.astro,
+      year, month: monthNum, day: dayNum, hour: h,
+    })
+
     slots.push({
       hour: h,
       score,
       tone,
       topDomain,
       domainScores: day.domainScores,
+      hourPillar: sajuHour.raw.hourPillar,
+      planetaryHour: astroHour.raw.planetaryHour?.planet,
       label: HOUR_LABEL[tone],
     })
   }
