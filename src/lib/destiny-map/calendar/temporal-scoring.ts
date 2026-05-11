@@ -23,18 +23,18 @@ export {
   type SeunScoreResult,
   type WolunScoreResult,
   type IljinScoreResult,
-} from './saju-temporal-scoring';
+} from './saju-temporal-scoring'
 
-// Re-export from saju-analysis (getGanzhiForDate, analyzeYongsin, etc.)
+// Re-export from saju-analysis (getGanzhiForDate, scoreYongsinFitForDate, etc.)
 export {
   getGanzhiForDate,
-  analyzeYongsin,
-  analyzeGeokguk,
+  scoreYongsinFitForDate,
+  scoreGeokgukFitForDate,
   analyzeSolarReturn,
   analyzeProgressions,
   type YongsinAnalysis,
   type GeokgukInfo,
-} from './saju-analysis';
+} from './saju-analysis'
 
 // Re-export from astrology-analysis (getLunarPhase)
-export { getLunarPhase } from './astrology-analysis';
+export { getLunarPhase } from './astrology-analysis'

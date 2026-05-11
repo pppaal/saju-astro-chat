@@ -1,7 +1,7 @@
 /**
  * Saju Character Analysis - Comprehensive Tests
  *
- * Tests for getMoonElement, analyzeYongsin, analyzeGeokguk,
+ * Tests for getMoonElement, scoreYongsinFitForDate, scoreGeokgukFitForDate,
  * analyzeSolarReturn, analyzeProgressions, calculateTotalCharacterScore
  */
 
@@ -26,8 +26,8 @@ vi.mock('@/lib/logger', () => ({
 
 import {
   getMoonElement,
-  analyzeYongsin,
-  analyzeGeokguk,
+  scoreYongsinFitForDate,
+  scoreGeokgukFitForDate,
   analyzeSolarReturn,
   analyzeProgressions,
   calculateTotalCharacterScore,
@@ -118,10 +118,10 @@ describe('getMoonElement', () => {
 })
 
 // ═══════════════════════════════════════════════════════════════════════
-// analyzeYongsin
+// scoreYongsinFitForDate
 // ═══════════════════════════════════════════════════════════════════════
 
-describe('analyzeYongsin', () => {
+describe('scoreYongsinFitForDate', () => {
   const baseDate = new Date(2024, 0, 15)
 
   // Helper to create a standard ganzhi object
@@ -132,7 +132,7 @@ describe('analyzeYongsin', () => {
   // ---------- undefined / missing yongsin ----------
 
   it('returns zero-score result when yongsin is undefined', () => {
-    const result = analyzeYongsin(undefined, ganzhi('wood', 'water'), baseDate)
+    const result = scoreYongsinFitForDate(undefined, ganzhi('wood', 'water'), baseDate)
     expect(result.score).toBe(0)
     expect(result.factorKeys).toHaveLength(0)
     expect(result.positive).toBe(false)
@@ -141,7 +141,7 @@ describe('analyzeYongsin', () => {
 
   it('returns zero-score result when yongsin.primary is empty', () => {
     const yongsin: YongsinInfo = { primary: '', type: '억부' }
-    const result = analyzeYongsin(yongsin, ganzhi('wood', 'water'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('wood', 'water'), baseDate)
     expect(result.score).toBe(0)
   })
 
@@ -150,7 +150,7 @@ describe('analyzeYongsin', () => {
   it('gives +30 when day stem element matches primary yongsin (Korean key)', () => {
     // primary '목' normalizes to 'wood'
     const yongsin: YongsinInfo = { primary: '목', type: '억부' }
-    const result = analyzeYongsin(yongsin, ganzhi('wood', 'earth'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('wood', 'earth'), baseDate)
     expect(result.score).toBeGreaterThanOrEqual(30)
     expect(result.positive).toBe(true)
     expect(result.matchType).toBe('primaryYongsinMatch')
@@ -159,7 +159,7 @@ describe('analyzeYongsin', () => {
 
   it('gives +30 when day stem element matches primary yongsin (English key)', () => {
     const yongsin: YongsinInfo = { primary: 'wood', type: '억부' }
-    const result = analyzeYongsin(yongsin, ganzhi('wood', 'earth'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('wood', 'earth'), baseDate)
     expect(result.score).toBeGreaterThanOrEqual(30)
     expect(result.matchType).toBe('primaryYongsinMatch')
   })
@@ -174,7 +174,7 @@ describe('analyzeYongsin', () => {
     // ELEMENT_RELATIONS['wood'].generatedBy='water', controlledBy='metal' => neither is 'fire'
     // So no yongsinSupport or yongsinHarmed interference
     const yongsin: YongsinInfo = { primary: '목', secondary: '화', type: '조후' }
-    const result = analyzeYongsin(yongsin, ganzhi('fire', 'earth'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('fire', 'earth'), baseDate)
     expect(result.score).toBeGreaterThanOrEqual(18)
     expect(result.positive).toBe(true)
     expect(result.matchType).toBe('secondaryYongsinMatch')
@@ -186,7 +186,7 @@ describe('analyzeYongsin', () => {
   it('gives +15 branch bonus when branch matches primary yongsin', () => {
     const yongsin: YongsinInfo = { primary: '수', type: '통관' }
     // stem != primary, branch == primary
-    const result = analyzeYongsin(yongsin, ganzhi('fire', 'water'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('fire', 'water'), baseDate)
     expect(result.factorKeys).toContain('yongsinBranchMatch')
     expect(result.score).toBeGreaterThanOrEqual(15)
   })
@@ -194,7 +194,7 @@ describe('analyzeYongsin', () => {
   it('gives +10 branch bonus when branch matches secondary yongsin', () => {
     const yongsin: YongsinInfo = { primary: '화', secondary: '수', type: '통관' }
     // stem != primary or secondary, branch == secondary
-    const result = analyzeYongsin(yongsin, ganzhi('earth', 'water'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('earth', 'water'), baseDate)
     expect(result.factorKeys).toContain('yongsinSecondaryBranchMatch')
   })
 
@@ -202,7 +202,7 @@ describe('analyzeYongsin', () => {
 
   it('subtracts 28 when day stem matches kibsin', () => {
     const yongsin: YongsinInfo = { primary: '목', type: '억부', kibsin: '금' }
-    const result = analyzeYongsin(yongsin, ganzhi('metal', 'earth'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('metal', 'earth'), baseDate)
     expect(result.score).toBeLessThanOrEqual(-28)
     expect(result.negative).toBe(true)
     expect(result.factorKeys).toContain('kibsinMatch')
@@ -210,14 +210,14 @@ describe('analyzeYongsin', () => {
 
   it('subtracts 15 when day branch matches kibsin', () => {
     const yongsin: YongsinInfo = { primary: '목', type: '억부', kibsin: '금' }
-    const result = analyzeYongsin(yongsin, ganzhi('earth', 'metal'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('earth', 'metal'), baseDate)
     expect(result.negative).toBe(true)
     expect(result.factorKeys).toContain('kibsinBranchMatch')
   })
 
   it('subtracts from both stem and branch when both match kibsin', () => {
     const yongsin: YongsinInfo = { primary: '목', type: '억부', kibsin: '금' }
-    const result = analyzeYongsin(yongsin, ganzhi('metal', 'metal'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('metal', 'metal'), baseDate)
     expect(result.score).toBeLessThanOrEqual(-43) // -28 + -15
     expect(result.factorKeys).toContain('kibsinMatch')
     expect(result.factorKeys).toContain('kibsinBranchMatch')
@@ -229,14 +229,14 @@ describe('analyzeYongsin', () => {
     // wood is generatedBy water: ELEMENT_RELATIONS['wood'].generatedBy === 'water'
     const yongsin: YongsinInfo = { primary: 'wood', type: '억부' }
     // day stem element = water (the thing that generates wood)
-    const result = analyzeYongsin(yongsin, ganzhi('water', 'earth'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('water', 'earth'), baseDate)
     expect(result.factorKeys).toContain('yongsinSupport')
   })
 
   it('gives -10 when day stem controls primary yongsin (yongsinHarmed)', () => {
     // wood is controlledBy metal: ELEMENT_RELATIONS['wood'].controlledBy === 'metal'
     const yongsin: YongsinInfo = { primary: 'wood', type: '억부' }
-    const result = analyzeYongsin(yongsin, ganzhi('metal', 'earth'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('metal', 'earth'), baseDate)
     expect(result.factorKeys).toContain('yongsinHarmed')
   })
 
@@ -245,7 +245,7 @@ describe('analyzeYongsin', () => {
   it('accumulates both primary stem match and branch match', () => {
     // stem=wood (primary match +30), branch=wood (branch match +15)
     const yongsin: YongsinInfo = { primary: 'wood', type: '억부' }
-    const result = analyzeYongsin(yongsin, ganzhi('wood', 'wood'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('wood', 'wood'), baseDate)
     expect(result.score).toBeGreaterThanOrEqual(45) // 30 + 15
     expect(result.factorKeys).toContain('yongsinPrimaryMatch')
     expect(result.factorKeys).toContain('yongsinBranchMatch')
@@ -255,17 +255,17 @@ describe('analyzeYongsin', () => {
 
   it('normalizes hanja character keys correctly', () => {
     const yongsin: YongsinInfo = { primary: '木', type: '억부' }
-    const result = analyzeYongsin(yongsin, ganzhi('wood', 'earth'), baseDate)
+    const result = scoreYongsinFitForDate(yongsin, ganzhi('wood', 'earth'), baseDate)
     expect(result.score).toBeGreaterThanOrEqual(30)
     expect(result.matchType).toBe('primaryYongsinMatch')
   })
 })
 
 // ═══════════════════════════════════════════════════════════════════════
-// analyzeGeokguk
+// scoreGeokgukFitForDate
 // ═══════════════════════════════════════════════════════════════════════
 
-describe('analyzeGeokguk', () => {
+describe('scoreGeokgukFitForDate', () => {
   function ganzhi(stem: string, branch: string, stemEl: string, branchEl: string): GanzhiInfo {
     return { stem, branch, stemElement: stemEl, branchElement: branchEl }
   }
@@ -277,32 +277,36 @@ describe('analyzeGeokguk', () => {
   // ---------- missing / undefined ----------
 
   it('returns zero-score when geokguk is undefined', () => {
-    const result = analyzeGeokguk(undefined, ganzhi('己', '午', 'earth', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(
+      undefined,
+      ganzhi('己', '午', 'earth', 'fire'),
+      basePillars
+    )
     expect(result.score).toBe(0)
     expect(result.factorKeys).toHaveLength(0)
   })
 
   it('returns zero-score when geokguk.type is empty', () => {
     const geokguk: GeokgukInfo = { type: '', strength: '신강' }
-    const result = analyzeGeokguk(geokguk, ganzhi('己', '午', 'earth', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('己', '午', 'earth', 'fire'), basePillars)
     expect(result.score).toBe(0)
   })
 
   it('returns zero-score when pillars.day.stem is missing', () => {
     const geokguk: GeokgukInfo = { type: '정관격', strength: '신강' }
-    const result = analyzeGeokguk(geokguk, ganzhi('己', '午', 'earth', 'fire'), undefined)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('己', '午', 'earth', 'fire'), undefined)
     expect(result.score).toBe(0)
   })
 
   it('returns zero-score when pillars is empty object', () => {
     const geokguk: GeokgukInfo = { type: '정관격', strength: '신강' }
-    const result = analyzeGeokguk(geokguk, ganzhi('己', '午', 'earth', 'fire'), {})
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('己', '午', 'earth', 'fire'), {})
     expect(result.score).toBe(0)
   })
 
   it('returns zero-score for unknown geokguk type', () => {
     const geokguk: GeokgukInfo = { type: '알수없는격', strength: '신강' }
-    const result = analyzeGeokguk(geokguk, ganzhi('己', '午', 'earth', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('己', '午', 'earth', 'fire'), basePillars)
     expect(result.score).toBe(0)
   })
 
@@ -313,7 +317,7 @@ describe('analyzeGeokguk', () => {
     // dayMaster=甲, target stem = 辛 => sipsin = 정관 (not favored)
     // dayMaster=甲, target stem = 癸 => sipsin = 정인 (favored by 정관격!)
     const geokguk: GeokgukInfo = { type: '정관격', strength: '중화' }
-    const result = analyzeGeokguk(geokguk, ganzhi('癸', '午', 'water', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('癸', '午', 'water', 'fire'), basePillars)
     expect(result.score).toBe(20)
     expect(result.positive).toBe(true)
     expect(result.factorKeys).toContain('geokgukFavor_정인')
@@ -321,7 +325,7 @@ describe('analyzeGeokguk', () => {
 
   it('gives +20 when 정관격 gets 정재 (甲 -> 己 = 정재)', () => {
     const geokguk: GeokgukInfo = { type: '정관격', strength: '중화' }
-    const result = analyzeGeokguk(geokguk, ganzhi('己', '午', 'earth', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('己', '午', 'earth', 'fire'), basePillars)
     expect(result.score).toBe(20)
     expect(result.positive).toBe(true)
     expect(result.factorKeys).toContain('geokgukFavor_정재')
@@ -332,7 +336,7 @@ describe('analyzeGeokguk', () => {
   it('gives -18 when 정관격 gets an avoided sipsin (상관)', () => {
     // dayMaster=甲, target stem = 丁 => sipsin = 상관 (avoided by 정관격)
     const geokguk: GeokgukInfo = { type: '정관격', strength: '중화' }
-    const result = analyzeGeokguk(geokguk, ganzhi('丁', '午', 'fire', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('丁', '午', 'fire', 'fire'), basePillars)
     expect(result.score).toBe(-18)
     expect(result.negative).toBe(true)
     expect(result.factorKeys).toContain('geokgukAvoid_상관')
@@ -345,7 +349,7 @@ describe('analyzeGeokguk', () => {
     // 식신 is favored in 식신격, so let's use 건록격 to avoid favor overlap
     // dayMaster=甲, target=丙 => sipsin=식신 (favored by 건록격 AND setting for 신강)
     const geokguk: GeokgukInfo = { type: '건록격', strength: '신강' }
-    const result = analyzeGeokguk(geokguk, ganzhi('丙', '午', 'fire', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('丙', '午', 'fire', 'fire'), basePillars)
     // +20 (favor) + +8 (strength balance) = 28
     expect(result.score).toBe(28)
     expect(result.factorKeys).toContain('geokgukFavor_식신')
@@ -355,7 +359,7 @@ describe('analyzeGeokguk', () => {
   it('subtracts -6 for 신강 with excess bigyeob/inseong', () => {
     // dayMaster=甲, target=甲 => sipsin = 비견 (excess for 신강)
     const geokguk: GeokgukInfo = { type: '정관격', strength: '신강' }
-    const result = analyzeGeokguk(geokguk, ganzhi('甲', '午', 'wood', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('甲', '午', 'wood', 'fire'), basePillars)
     // 비견 is not in 정관격 favor or avoid
     // but 비견 is in excessElements for 신강 -> -6
     expect(result.score).toBe(-6)
@@ -367,7 +371,7 @@ describe('analyzeGeokguk', () => {
   it('adds +8 weak support for 신약 with 비견/겁재/인성', () => {
     // dayMaster=甲, target=甲 => sipsin = 비견 (support for 신약)
     const geokguk: GeokgukInfo = { type: '정관격', strength: '신약' }
-    const result = analyzeGeokguk(geokguk, ganzhi('甲', '午', 'wood', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('甲', '午', 'wood', 'fire'), basePillars)
     // 비견 is not in 정관격 favor or avoid
     // but 비견 is in supportElements for 신약 -> +8
     expect(result.score).toBe(8)
@@ -377,7 +381,7 @@ describe('analyzeGeokguk', () => {
   it('subtracts -6 for 신약 under pressure from 관살/재성', () => {
     // dayMaster=甲, target=庚 => sipsin = 편관 (pressure for 신약)
     const geokguk: GeokgukInfo = { type: '정관격', strength: '신약' }
-    const result = analyzeGeokguk(geokguk, ganzhi('庚', '午', 'metal', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('庚', '午', 'metal', 'fire'), basePillars)
     // 편관 is not in 정관격 favor or avoid list
     // but 편관 is pressure for 신약 -> -6
     expect(result.score).toBe(-6)
@@ -389,7 +393,7 @@ describe('analyzeGeokguk', () => {
   it('handles 종아격 favor (식신/상관/정재/편재)', () => {
     // dayMaster=甲, target=丙 => sipsin = 식신 (favored by 종아격)
     const geokguk: GeokgukInfo = { type: '종아격', strength: '신약' }
-    const result = analyzeGeokguk(geokguk, ganzhi('丙', '午', 'fire', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('丙', '午', 'fire', 'fire'), basePillars)
     expect(result.positive).toBe(true)
     expect(result.factorKeys).toContain('geokgukFavor_식신')
   })
@@ -397,7 +401,7 @@ describe('analyzeGeokguk', () => {
   it('handles 종아격 avoid (정인/편인)', () => {
     // dayMaster=甲, target=癸 => sipsin = 정인 (avoided by 종아격)
     const geokguk: GeokgukInfo = { type: '종아격', strength: '신약' }
-    const result = analyzeGeokguk(geokguk, ganzhi('癸', '午', 'water', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('癸', '午', 'water', 'fire'), basePillars)
     expect(result.negative).toBe(true)
     expect(result.factorKeys).toContain('geokgukAvoid_정인')
   })
@@ -408,7 +412,7 @@ describe('analyzeGeokguk', () => {
     // 겁재 is in 정관격 avoid list AND 겁재 is excess for 신강
     // dayMaster=甲, target=乙 => sipsin = 겁재
     const geokguk: GeokgukInfo = { type: '정관격', strength: '신강' }
-    const result = analyzeGeokguk(geokguk, ganzhi('乙', '午', 'wood', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('乙', '午', 'wood', 'fire'), basePillars)
     // -18 (avoid) + -6 (excess) = -24
     expect(result.score).toBe(-24)
     expect(result.factorKeys).toContain('geokgukAvoid_겁재')
@@ -420,14 +424,14 @@ describe('analyzeGeokguk', () => {
   it('recognizes 편관격', () => {
     // dayMaster=甲, 丙=식신 (favored by 편관격)
     const geokguk: GeokgukInfo = { type: '편관격', strength: '중화' }
-    const result = analyzeGeokguk(geokguk, ganzhi('丙', '午', 'fire', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('丙', '午', 'fire', 'fire'), basePillars)
     expect(result.positive).toBe(true)
   })
 
   it('recognizes 양인격', () => {
     // dayMaster=甲, 辛=정관 (favored by 양인격)
     const geokguk: GeokgukInfo = { type: '양인격', strength: '중화' }
-    const result = analyzeGeokguk(geokguk, ganzhi('辛', '午', 'metal', 'fire'), basePillars)
+    const result = scoreGeokgukFitForDate(geokguk, ganzhi('辛', '午', 'metal', 'fire'), basePillars)
     expect(result.positive).toBe(true)
   })
 })

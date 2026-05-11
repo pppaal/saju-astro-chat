@@ -1,9 +1,24 @@
 // Extended deterministic analysis bundle for premium reports.
 //
+// THIS IS A PAYLOAD BUILDER — not a saju analyzer.
+//
 // Aggregates 30+ traditional saju + western lookups into a single
 // ExtendedAnalysis object that ships alongside the AI-generated
 // sections. Everything here is deterministic — no LLM calls — so it
 // renders instantly while the LLM streams the long-form prose.
+//
+// How this differs from the other saju "* Analysis" modules:
+//   - saju/advancedAnalysis.ts    → 정통 명리 분석 함수들 (강약/격국/용신/통근/합화)
+//   - saju/advancedSajuCore.ts    → 종격·화격·일주 깊이·삼기·공망 깊이
+//   - saju/orthodoxInterpretation.ts → 위 둘을 wrapping + 궁위론·천간 합화·간여지동
+//   - saju/comprehensiveReport.ts → 한 사용자의 자유 톤(non-paid) 종합 리포트
+//   - saju/extendedAnalysis.ts (이 파일) → **premium 리포트 페이로드 빌더**
+//                                          (LifeStageEntry / DecisiveTimingEntry /
+//                                           RelationshipEntry / PracticalInfo /
+//                                           KarmicInsight 구조의 즉시 렌더용 번들)
+//
+// 호출: FreeReport.tsx, HealthTab.tsx, premium-reports AI route.
+// 새 분석 함수는 여기 추가하지 말 것 — analyzer는 advancedAnalysis로.
 
 import type { CalculateSajuDataResult } from './types'
 

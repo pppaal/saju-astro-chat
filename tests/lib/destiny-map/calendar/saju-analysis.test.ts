@@ -6,8 +6,8 @@ import {
   calculateSeunScore,
   calculateWolunScore,
   calculateIljinScore,
-  analyzeYongsin,
-  analyzeGeokguk,
+  scoreYongsinFitForDate,
+  scoreGeokgukFitForDate,
   analyzeSolarReturn,
   analyzeProgressions,
 } from '@/lib/destiny-map/calendar/saju-analysis'
@@ -101,10 +101,10 @@ describe('saju-analysis', () => {
     })
   })
 
-  describe('analyzeYongsin', () => {
+  describe('scoreYongsinFitForDate', () => {
     it('should return analysis result', () => {
       const ganzhi = getGanzhiForDate(new Date(2024, 5, 15))
-      const result = analyzeYongsin(
+      const result = scoreYongsinFitForDate(
         { primary: 'wood', type: '억부' },
         ganzhi,
         new Date(2024, 5, 15)
@@ -117,15 +117,15 @@ describe('saju-analysis', () => {
 
     it('should handle undefined yongsin', () => {
       const ganzhi = getGanzhiForDate(new Date(2024, 5, 15))
-      const result = analyzeYongsin(undefined, ganzhi, new Date(2024, 5, 15))
+      const result = scoreYongsinFitForDate(undefined, ganzhi, new Date(2024, 5, 15))
       expect(result.score).toBe(0)
     })
   })
 
-  describe('analyzeGeokguk', () => {
+  describe('scoreGeokgukFitForDate', () => {
     it('should return analysis result', () => {
       const ganzhi = getGanzhiForDate(new Date(2024, 5, 15))
-      const result = analyzeGeokguk({ type: '정관격', strength: '신강' }, ganzhi, {
+      const result = scoreGeokgukFitForDate({ type: '정관격', strength: '신강' }, ganzhi, {
         day: { stem: '甲', branch: '子' },
       })
       expect(result).toHaveProperty('score')
@@ -136,7 +136,7 @@ describe('saju-analysis', () => {
 
     it('should handle undefined geokguk', () => {
       const ganzhi = getGanzhiForDate(new Date(2024, 5, 15))
-      const result = analyzeGeokguk(undefined, ganzhi)
+      const result = scoreGeokgukFitForDate(undefined, ganzhi)
       expect(result.score).toBe(0)
     })
   })
