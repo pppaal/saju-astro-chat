@@ -40,6 +40,7 @@ import {
 } from 'recharts'
 
 import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
+import { useDateDetail } from './useDateDetail'
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -173,6 +174,17 @@ export default function DestinyMatrixPlanner({
     return data.allDates.find((d) => d.date === selectedDateStr) ?? null
   }, [data, selectedDateStr])
 
+  // ── fusion 엔진 (date-detail) — 선택 날짜 1번만 호출 ──
+  const selectedDayDate = useMemo(
+    () => new Date(viewYear, viewMonth, currentDay),
+    [viewYear, viewMonth, currentDay],
+  )
+  const { detail: dateDetail } = useDateDetail({
+    selectedDay: selectedDayDate,
+    birthInfo: birthInfo ?? { birthDate: '', birthTime: '', birthPlace: '', gender: 'Male' },
+  })
+  const fusion = dateDetail?.fusion
+
   // --- Daily indices: 총점 / 연애 / 재물 / 건강 ------------------------
   // yearly /api/calendar 페이로드에는 activityScores가 들어오지 않는다
   // (date-detail 엔드포인트에서만 계산). 그래서 도메인별 지수는
@@ -181,6 +193,15 @@ export default function DestinyMatrixPlanner({
   //  3) 그 외엔 중립값 50 (없는 신호를 60%로 위장하지 않음)
   // 의 정직한 우선순위로 도출한다.
   const dailyIndices = useMemo(() => {
+    // fusion 우선 — 18테마 점수 정밀
+    if (fusion) {
+      return {
+        score: fusion.overallScore,
+        love: fusion.domainScores.love ?? 50,
+        wealth: fusion.domainScores.money ?? 50,
+        health: fusion.domainScores.health ?? 50,
+      }
+    }
     if (!selectedImportantDate) {
       return { score: 88, love: 65, wealth: 78, health: 60 }
     }
@@ -202,13 +223,35 @@ export default function DestinyMatrixPlanner({
       wealth: domainScore('wealth', 'money'),
       health: domainScore('health', 'health'),
     }
-  }, [selectedImportantDate])
+  }, [fusion, selectedImportantDate])
 
   // --- Daily best/worst hours (engine-precise, 24-hour analysis) -------
   // 엔진은 selectedDate가 *오늘*일 때만 시간대 분석을 yearly 응답에 끼워
   // 보낸다 (`todayHourlyTimeSlots`). 다른 날짜는 자체 hourlyTimeSlots
   // 필드가 차 있을 때만 노출 — 그 외엔 placeholder로 정직하게 비운다.
   const dailyHourlySlots = useMemo(() => {
+    // fusion 우선 — 24슬롯 정밀 분석
+    if (fusion?.hourly) {
+      return {
+        best: fusion.hourly.bestHours.slice(0, 4).map((s) => ({
+          hour: s.hour,
+          score: s.score,
+          reason: [
+            s.topDomain ?? '',
+            s.hourPillar ? `시주 ${s.hourPillar}` : '',
+            s.planetaryHour ?? '',
+          ].filter(Boolean).join(' · '),
+        })),
+        worst: fusion.hourly.worstHours.slice(0, 2).map((s) => ({
+          hour: s.hour,
+          score: s.score,
+          reason: [
+            s.hourPillar ? `시주 ${s.hourPillar}` : '',
+            s.planetaryHour ?? '',
+          ].filter(Boolean).join(' · '),
+        })),
+      }
+    }
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
     const isToday = selectedDateStr === todayStr
     const perDay = selectedImportantDate?.hourlyTimeSlots
@@ -219,7 +262,7 @@ export default function DestinyMatrixPlanner({
       return data.todayHourlyTimeSlots
     }
     return null
-  }, [today, selectedDateStr, selectedImportantDate, data])
+  }, [fusion, today, selectedDateStr, selectedImportantDate, data])
 
   const formatHour = (h: number): string => {
     if (h === 0) return '자정 12시'
@@ -230,16 +273,18 @@ export default function DestinyMatrixPlanner({
 
   // --- Daily Dos / Donts ----------------------------------------------
   const dailyDos = useMemo(() => {
+    if (fusion?.advice?.do && fusion.advice.do.length > 0) return fusion.advice.do.slice(0, 2)
     const recs = selectedImportantDate?.recommendations
     if (recs && recs.length > 0) return recs.slice(0, 2)
     return MOCK_DOS
-  }, [selectedImportantDate])
+  }, [fusion, selectedImportantDate])
 
   const dailyDonts = useMemo(() => {
+    if (fusion?.advice?.avoid && fusion.advice.avoid.length > 0) return fusion.advice.avoid.slice(0, 2)
     const warns = selectedImportantDate?.warnings
     if (warns && warns.length > 0) return warns.slice(0, 2)
     return MOCK_DONTS
-  }, [selectedImportantDate])
+  }, [fusion, selectedImportantDate])
 
   // --- Daily one-line summary (engine pre-formatted, when available) ---
   const dailyOneLineSummary = useMemo(() => {
@@ -250,11 +295,28 @@ export default function DestinyMatrixPlanner({
     ) {
       return data.calendarDailyView.oneLineSummary
     }
+    // fusion 사람말 신호 (legacy 없을 때만 fallback — 이미 다른 곳에 narrative 있으면 중복 피함)
+    if (fusion && !selectedImportantDate?.summary) {
+      const { sajuAxisScore: s, astroAxisScore: a, agreement, confidence, overallScore } = fusion
+      if (agreement < 55) return confidence > 40 ? '사주와 점성이 갈리는 날 — 분별 필요' : '신호가 흐릿한 날'
+      if (overallScore >= 70 && confidence >= 45) return '강한 길일 — 사주·점성 모두 우호'
+      if (overallScore >= 60) return '잔잔하게 우호적인 흐름'
+      if (overallScore <= 30 && confidence >= 45) return '주의일 — 사주·점성 모두 신중'
+      if (overallScore <= 40) return '조금 부담되는 결'
+      return '평이한 흐름'
+    }
     return selectedImportantDate?.summary ?? null
-  }, [data, selectedDateStr, selectedImportantDate])
+  }, [fusion, data, selectedDateStr, selectedImportantDate])
 
   // --- Daily engine self-diagnostic: confidence + cross agreement ------
   const dailyEngineSignal = useMemo(() => {
+    // fusion 우선 — agreement + confidence 정밀
+    if (fusion) {
+      return {
+        confidence: fusion.confidence,
+        sync: fusion.agreement,
+      }
+    }
     if (!selectedImportantDate) return null
     const conf = selectedImportantDate.evidence?.confidence
     const sync = selectedImportantDate.evidence?.crossAgreementPercent
@@ -263,7 +325,7 @@ export default function DestinyMatrixPlanner({
       confidence: typeof conf === 'number' ? Math.round(conf) : null,
       sync: typeof sync === 'number' ? Math.round(sync) : null,
     }
-  }, [selectedImportantDate])
+  }, [fusion, selectedImportantDate])
 
   // --- Daily active 신살 (역마, 도화, 화개 등) -------------------------
   const dailyShinsal = useMemo(() => {

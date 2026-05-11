@@ -5,7 +5,7 @@
  * Query: birthDate, birthTime?, gender?, date (YYYY-MM-DD), timezone?
  *
  * Runs the full per-date analyzer (사주/점성/다층/고급/일진) for ONE date.
- * The 365-day list still comes from /api/calendar (engine + matrix);
+ * The 365-day list still comes from /api/calendar (lite + matrix);
  * this endpoint is what the UI hits when the user opens a single day or
  * when the action planner needs deep evidence.
  */
@@ -28,7 +28,10 @@ import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDate
 import { getPillarStemName, getPillarBranchName } from '@/app/api/calendar/lib/helpers'
 import { cacheOrCalculate, cacheGet, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import type { YearlyImportantDate } from '@/app/api/calendar/lib/yearlyDates'
-import type { UserSajuProfile, UserAstroProfile } from '@/lib/destiny-map/calendar/types'
+import type {
+  UserSajuProfile,
+  UserAstroProfile,
+} from '@/lib/destiny-map/calendar/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,18 +64,10 @@ function deriveSunSign(birthDate: Date): string {
 }
 
 const ZODIAC_ELEMENT: Record<string, string> = {
-  Aries: 'fire',
-  Leo: 'fire',
-  Sagittarius: 'fire',
-  Taurus: 'earth',
-  Virgo: 'earth',
-  Capricorn: 'earth',
-  Gemini: 'air',
-  Libra: 'air',
-  Aquarius: 'air',
-  Cancer: 'water',
-  Scorpio: 'water',
-  Pisces: 'water',
+  Aries: 'fire', Leo: 'fire', Sagittarius: 'fire',
+  Taurus: 'earth', Virgo: 'earth', Capricorn: 'earth',
+  Gemini: 'air', Libra: 'air', Aquarius: 'air',
+  Cancer: 'water', Scorpio: 'water', Pisces: 'water',
 }
 
 export const GET = withApiMiddleware(
@@ -137,7 +132,7 @@ export const GET = withApiMiddleware(
       },
     } as UserSajuProfile
 
-    // Advanced natal analysis — strength, geokguk, yongsin. The engine
+    // Advanced natal analysis — strength, geokguk, yongsin. The lite
     // generator's score ladder already uses yongsin alignment if the
     // profile carries it; calling analyzeAdvancedSaju here populates
     // those fields so per-date scoring is yongsin-aware AND we can
@@ -171,13 +166,15 @@ export const GET = withApiMiddleware(
         geokguk: String(advanced.geokguk.type || ''),
         yongsin: {
           primary: String(advanced.yongsin.primary || ''),
-          secondary: advanced.yongsin.secondary ? String(advanced.yongsin.secondary) : undefined,
+          secondary: advanced.yongsin.secondary
+            ? String(advanced.yongsin.secondary)
+            : undefined,
           type: String(advanced.yongsin.basis || ''),
           kibsin: kibsin || undefined,
         },
         summary: `${advanced.strength.level} ${advanced.geokguk.type}, 용신 ${advanced.yongsin.primary}${kibsin ? ` · 기신 ${kibsin}` : ''}`,
       }
-      // Inject yongsin into sajuProfile so the engine's yongsin
+      // Inject yongsin into sajuProfile so the lite generator's yongsin
       // alignment kicks in for this date too.
       ;(sajuProfile as UserSajuProfile & { yongsin?: unknown; geokguk?: unknown }).yongsin = {
         primary: advanced.yongsin.primary,
@@ -207,59 +204,46 @@ export const GET = withApiMiddleware(
     const yearOfDate = targetDate.getFullYear()
 
     // 1) 365 캘린더 뷰가 캐시에 있으면 그걸 권위 있는 답으로 사용 (사용자가 캘린더 페이지 들어왔으면 항상 채워져 있음)
-    let yearlyForDay: YearlyImportantDate | undefined
-    for (const cat of [
-      '',
-      'general',
-      'career',
-      'love',
-      'wealth',
-      'health',
-      'travel',
-      'study',
-    ] as const) {
-      const yk = CacheKeys.yearlyCalendar(
-        birthDate,
-        birthTime || '',
-        sajuGender,
-        yearOfDate,
-        cat || undefined
-      )
+    let liteForDay: YearlyImportantDate | undefined
+    for (const cat of ['', 'general', 'career', 'love', 'wealth', 'health', 'travel', 'study'] as const) {
+      const yk = CacheKeys.yearlyCalendar(birthDate, birthTime || '', sajuGender, yearOfDate, cat || undefined)
       const cached = await cacheGet<YearlyImportantDate[]>(yk)
       const hit = cached?.find((d) => d.date === date)
       if (hit) {
-        yearlyForDay = hit
+        liteForDay = hit
         break
       }
     }
 
-    // 2) 캐시 없으면 같은 엔진 점수식으로 그 해 한 번 돌려서 사용 (point-of-truth는 엔진)
+    // 2) 캐시 없으면 같은 lite 점수식으로 그 해 한 번 돌려서 사용 (point-of-truth는 lite)
     const cacheKey = `cal-detail:v3:${birthDate}:${birthTime || ''}:${sajuGender}:${date}`
     const merged = await cacheOrCalculate(
       cacheKey,
       async () => {
         const detail = analyzeDate(targetDate, sajuProfile, astroProfile)
         if (!detail) return null
-        let yearly = yearlyForDay
-        if (!yearly) {
-          const yearlyList = calculateYearlyImportantDates(yearOfDate, sajuProfile, astroProfile, {
-            locale: 'ko',
-            birthDate,
-          })
-          yearly = yearlyList.find((d) => d.date === detail.date)
+        let lite = liteForDay
+        if (!lite) {
+          const liteList = calculateYearlyImportantDates(
+            yearOfDate,
+            sajuProfile,
+            astroProfile,
+            { locale: 'ko', birthDate }
+          )
+          lite = liteList.find((d) => d.date === detail.date)
         }
-        return { detail, yearly }
+        return { detail, lite }
       },
       CACHE_TTL.CALENDAR_DATA
     )
     if (!merged?.detail) {
       return apiError(ErrorCodes.SERVICE_UNAVAILABLE, 'Date analysis unavailable')
     }
-    const { detail, yearly } = merged
-    // 365 엔진 결과를 정답으로 — 365 뷰 grade와 detail grade가 어긋나지 않게
-    const canonicalGrade = yearly?.grade ?? detail.grade
-    const canonicalScore = yearly?.score ?? detail.score
-    const canonicalDisplayScore = yearly?.displayScore ?? detail.displayScore ?? canonicalScore
+    const { detail, lite } = merged
+    // 365 lite를 정답으로 — 365 뷰 grade와 detail grade가 어긋나지 않게
+    const canonicalGrade = lite?.grade ?? detail.grade
+    const canonicalScore = lite?.score ?? detail.score
+    const canonicalDisplayScore = lite?.displayScore ?? detail.displayScore ?? canonicalScore
 
     // ── Transit aspects on the selected date ──
     // Engine has the same transit module the rest of the app uses; cheap
@@ -268,23 +252,37 @@ export const GET = withApiMiddleware(
     // we don't surface house cusps here.
     let transitData:
       | {
-          aspects: Array<{
-            transitPlanet: string
-            natalPoint: string
-            aspect: string
-            orb: number
-            isApplying: boolean
-          }>
+          aspects: Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number; isApplying: boolean }>
           retrogrades?: string[]
           summary?: string
         }
       | undefined
+    let fusionData:
+      | {
+          overallScore: number
+          sajuAxisScore: number
+          astroAxisScore: number
+          agreement: number
+          confidence: number
+          domainScores: Record<string, number>
+          advice: { do: string[]; avoid: string[] }
+          topInsights: string[]
+          hourly: {
+            slots: Array<{ hour: number; score: number; tone: string; topDomain: string | null; hourPillar?: string; planetaryHour?: string; label: string }>
+            bestHours: Array<{ hour: number; score: number; topDomain: string | null; hourPillar?: string; planetaryHour?: string }>
+            worstHours: Array<{ hour: number; score: number; topDomain: string | null; hourPillar?: string; planetaryHour?: string }>
+            bestByDomain: Record<string, { hour: number; score: number } | undefined>
+          }
+        }
+      | undefined
     try {
-      const [{ calculateNatalChart, toChart }, { calculateTransitChart, findTransitAspects }] =
-        await Promise.all([
-          import('@/lib/astrology/foundation/astrologyService'),
-          import('@/lib/astrology/foundation/transit'),
-        ])
+      const [
+        { calculateNatalChart, toChart },
+        { calculateTransitChart, findTransitAspects },
+      ] = await Promise.all([
+        import('@/lib/astrology/foundation/astrologyService'),
+        import('@/lib/astrology/foundation/transit'),
+      ])
       const birthDateObjForAstro = new Date(birthDate + 'T00:00:00')
       const [bH, bM] = (birthTime || '12:00').split(':').map((v) => Number.parseInt(v, 10))
       const natalChartData = await calculateNatalChart({
@@ -298,6 +296,102 @@ export const GET = withApiMiddleware(
         timeZone: timezone || 'Asia/Seoul',
       })
       const natalChart = toChart(natalChartData)
+
+      // ── fusion 한 날 분석 (18테마 × 0..100 + 24시간 슬롯) — Redis 캐시 ──
+      try {
+        const fusionCacheKey = CacheKeys.fusionDateDetail(birthDate, birthTime ?? '12:00', date)
+        const { buildCalendarDay, buildCalendarHourly } = await import('@/lib/fusion/adapters')
+        const simplePillars = {
+          year:  { stem: yearStem,        branch: yearBranch },
+          month: { stem: monthStem,       branch: monthBranch },
+          day:   { stem: dayMasterStem,   branch: dayBranch },
+          hour:  { stem: timeStem,        branch: timeBranch },
+        }
+        const ageAt = new Date(date).getFullYear() - birthDateObjForAstro.getFullYear()
+        const fusionInput = {
+          saju: simplePillars,
+          astro: natalChart,
+          natalInput: {
+            year: birthDateObjForAstro.getFullYear(),
+            month: birthDateObjForAstro.getMonth() + 1,
+            date: birthDateObjForAstro.getDate(),
+            hour: Number.isFinite(bH) ? bH : 12,
+            minute: Number.isFinite(bM) ? bM : 0,
+            latitude: 37.5665,
+            longitude: 126.978,
+            timeZone: timezone || 'Asia/Seoul',
+          },
+          age: ageAt,
+          birthYear: birthDateObjForAstro.getFullYear(),
+          daeunList: sajuResult.daeWoon.list.map((d) => ({
+            stem: d.heavenlyStem,
+            branch: d.earthlyBranch,
+            startAge: d.age,
+          })),
+        }
+        // Redis 캐시 — 같은 생일·같은 날짜 재호출 시 fusion 재계산 안 함
+        const fusionResult = await cacheOrCalculate(
+          fusionCacheKey,
+          async () => {
+            const dayRes = await buildCalendarDay(fusionInput, date)
+            const hourlyRes = await buildCalendarHourly(fusionInput, date)
+            const { buildCalendarMonth } = await import('@/lib/fusion/adapters')
+            const [y, m] = date.split('-').map((v) => parseInt(v, 10))
+            const monthRes = await buildCalendarMonth(fusionInput, y, m)
+            const dayInMonth = monthRes.days.find((dd) => dd.date === date)
+            return { dayRes, hourlyRes, dayInMonth }
+          },
+          CACHE_TTL.CALENDAR_DATA,
+        )
+        const { dayRes, hourlyRes, dayInMonth } = fusionResult
+        fusionData = {
+          overallScore: Math.round(
+            (Object.values(dayRes.domainScores) as number[]).reduce((a, b) => a + b, 0)
+            / Object.keys(dayRes.domainScores).length * 100,
+          ),
+          sajuAxisScore: dayInMonth?.sajuAxisScore ?? 50,
+          astroAxisScore: dayInMonth?.astroAxisScore ?? 50,
+          agreement: dayInMonth?.agreement ?? 50,
+          confidence: dayInMonth?.confidence ?? 50,
+          domainScores: Object.fromEntries(
+            Object.entries(dayRes.domainScores).map(([k, v]) => [k, Math.round((v as number) * 100)]),
+          ),
+          advice: dayRes.advice,
+          topInsights: dayRes.topInsights,
+          hourly: {
+            slots: hourlyRes.slots.map((s) => ({
+              hour: s.hour,
+              score: s.score,
+              tone: s.tone,
+              topDomain: s.topDomain,
+              hourPillar: s.hourPillar
+                ? `${s.hourPillar.stem}${s.hourPillar.branch}` : undefined,
+              planetaryHour: s.planetaryHour,
+              label: s.label,
+            })),
+            bestHours: hourlyRes.bestHours.map((s) => ({
+              hour: s.hour,
+              score: s.score,
+              topDomain: s.topDomain,
+              hourPillar: s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : undefined,
+              planetaryHour: s.planetaryHour,
+            })),
+            worstHours: hourlyRes.worstHours.map((s) => ({
+              hour: s.hour,
+              score: s.score,
+              topDomain: s.topDomain,
+              hourPillar: s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : undefined,
+              planetaryHour: s.planetaryHour,
+            })),
+            bestByDomain: hourlyRes.bestByDomain,
+          },
+        }
+      } catch (fusionErr) {
+        logger.warn('[calendar/date-detail] fusion analysis failed', {
+          error: fusionErr instanceof Error ? fusionErr.message : String(fusionErr),
+        })
+      }
+
       const transitChart = await calculateTransitChart({
         iso: `${date}T12:00:00`,
         latitude: 37.5665,
@@ -377,13 +471,18 @@ export const GET = withApiMiddleware(
         monthStem,
         monthBranch,
       },
-      longCycleContext: yearly?.longCycleContext,
-      cycleInteractions: yearly?.cycleInteractions,
+      longCycleContext: lite?.longCycleContext,
+      cycleInteractions: lite?.cycleInteractions,
       transit: transitData,
+      fusion: fusionData,
       hourlyTimeSlots: await (async () => {
         try {
-          const { analyzeDayTimeSlots } = await import('@/lib/prediction/ultra-precision-minute')
-          const slots = analyzeDayTimeSlots(new Date(date + 'T00:00:00'), dayMasterStem, dayBranch)
+          const { analyzeDayTimeSlots } = await import('@/lib/timing/ultra-precision-minute')
+          const slots = analyzeDayTimeSlots(
+            new Date(date + 'T00:00:00'),
+            dayMasterStem,
+            dayBranch
+          )
           return {
             best: slots.best.slice(0, 4),
             worst: slots.worst.slice(0, 2),
@@ -396,8 +495,9 @@ export const GET = withApiMiddleware(
       yongsinActivations: await (async () => {
         if (!natalContext?.yongsin?.primary) return undefined
         try {
-          const { findYongsinActivationPeriods } =
-            await import('@/lib/prediction/specificDateEngine')
+          const { findYongsinActivationPeriods } = await import(
+            '@/lib/timing/specificDateEngine'
+          )
           // Look forward 60 days from the selected date and return the
           // top 5 strongest 용신 activation days. "이번 60일 안에 너의
           // 용신 화가 가장 살아나는 날" reading.
@@ -408,7 +508,8 @@ export const GET = withApiMiddleware(
             60
           )
           const top = periods.slice(0, 5).map((p) => ({
-            date: `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}-${String(p.date.getDate()).padStart(2, '0')}`,
+            date:
+              `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}-${String(p.date.getDate()).padStart(2, '0')}`,
             score: p.score,
             level: p.activationLevel,
             sources: p.sources,
@@ -424,7 +525,7 @@ export const GET = withApiMiddleware(
       })(),
       lunarMansion: await (async () => {
         try {
-          const { getLunarMansion } = await import('@/lib/prediction/modules/lunarMansions')
+          const { getLunarMansion } = await import('@/lib/timing/modules/lunarMansions')
           const dateObj = new Date(date + 'T00:00:00')
           const lm = getLunarMansion(dateObj)
           return {
