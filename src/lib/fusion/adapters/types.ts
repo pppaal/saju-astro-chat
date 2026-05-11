@@ -30,6 +30,8 @@ export interface CalendarDay {
   agreement: number
   /** 확신도 0..100 (강한 신호의 비율) */
   confidence: number
+  /** 사람이 이해하는 한 줄 — "강한 길일", "평이", "양쪽 신호 갈림" 등 */
+  signalSummary: string
 }
 
 /** 시간대 슬롯 (1시간 단위, 24개) */

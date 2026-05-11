@@ -100,6 +100,32 @@ const LABEL_BY_DOMAIN_TONE: Record<string, string> = {
   'health.cautious':        '건강 주의',
 }
 
+/**
+ * 사주축·점성축·일치도·확신도 → 사람이 이해할 한 줄.
+ * UI 가 숫자 대신 이 문구 보여주면 됨.
+ */
+function readableSignal(args: {
+  sajuAxis: number      // 0..100
+  astroAxis: number     // 0..100
+  agreement: number     // 0..100
+  confidence: number    // 0..100
+  overallScore: number  // 0..100
+}): string {
+  const { sajuAxis, astroAxis, agreement, confidence, overallScore } = args
+  // 1) 사주·점성 갈림
+  if (agreement < 55) {
+    return confidence > 40
+      ? '⚠ 사주와 점성이 갈립니다 — 분별 필요'
+      : '신호가 흐릿한 날'
+  }
+  // 2) 둘 다 같은 방향 — 점수에 따라 분기
+  if (overallScore >= 70 && confidence >= 45) return '★ 강한 길일 — 사주·점성 모두 우호'
+  if (overallScore >= 60)                     return '잔잔하게 우호적인 흐름'
+  if (overallScore <= 30 && confidence >= 45) return '⚠ 주의일 — 사주·점성 모두 신중'
+  if (overallScore <= 40)                     return '조금 부담되는 결'
+  return '평이한 흐름'
+}
+
 function generateLabel(topDomain: ThemeKey | null, tone: CrossTone): string {
   if (!topDomain) return '평이한 날'
   return LABEL_BY_DOMAIN_TONE[`${topDomain}.${tone}`] ?? `${topDomain} ${tone}`
@@ -380,6 +406,7 @@ export async function buildCalendarMonth(
       astroAxisScore: astroAxisRaw,
       agreement,
       confidence,
+      signalSummary: '',   // 아래 expand 후 setting
       score: avgScore, // raw 0..100 (아래 일괄 expand)
       grade,
       label,
@@ -405,6 +432,14 @@ export async function buildCalendarMonth(
       d.score >= 42 ? 'normal' :
       d.score >= 30 ? 'caution' :
       'inauspicious'
+    // 사람말 한 줄 — UI 가 숫자 대신 보여줄 것
+    d.signalSummary = readableSignal({
+      sajuAxis:    d.sajuAxisScore,
+      astroAxis:   d.astroAxisScore,
+      agreement:   d.agreement,
+      confidence:  d.confidence,
+      overallScore: d.score,
+    })
   }
 
   // 통계
