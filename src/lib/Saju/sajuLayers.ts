@@ -145,6 +145,70 @@ function elementRoleTone(element: FiveElement, yongsin: YongsinAnalysis): { role
   return { role, tone }
 }
 
+/**
+ * 합살 변환 — 정통 명리 룰:
+ *   양인합살: 양인(신살) + 편관 → 편관이 길로 변환 ("재상감")
+ *   식신제살: 식신 ≥ 2 + 편관 ≥ 2 → 식신이 편관 제어
+ *   살인상생: 편관 + 인성 (편인/정인) ≥ 1 → 인성으로 변환
+ *
+ * 운기 element 가 본명 일간의 편관(살) 일 때, 위 패턴이 본명에 있으면
+ * tone 을 cautious 에서 neutral 로 완화.
+ */
+function applyHapsalTransform(args: {
+  incomingElement: FiveElement
+  dayMaster: string
+  natalShinsal?: ShinsalHitRich[]
+  natalPillars: SimpleSajuPillars
+  currentTone: SajuTimingHighlight['tone']
+}): { tone: SajuTimingHighlight['tone']; transformed: string | null } {
+  const { incomingElement, dayMaster, natalShinsal, natalPillars, currentTone } = args
+  if (currentTone !== 'cautious') return { tone: currentTone, transformed: null }
+  // 일간 element 의 편관 element 결정 (controls dayMaster)
+  const dmEl = getStemEl(dayMaster)
+  if (!dmEl) return { tone: currentTone, transformed: null }
+  const ELEMENT_CONTROLS: Record<FiveElement, FiveElement> = {
+    목: '토', 화: '금', 토: '수', 금: '목', 수: '화',
+  }
+  const ELEMENT_CONTROLLED_BY: Record<FiveElement, FiveElement> = {
+    목: '금', 화: '수', 토: '목', 금: '화', 수: '토',
+  }
+  // 편관 element = dayMaster 를 극하는 오행
+  const piongwanEl = ELEMENT_CONTROLLED_BY[dmEl]
+  if (incomingElement !== piongwanEl) return { tone: currentTone, transformed: null }
+
+  // 운기 편관 element 가 incoming — natal 에 통제 요소만 있으면 변환
+  const ELEMENT_GENERATES: Record<FiveElement, FiveElement> = {
+    목: '화', 화: '토', 토: '금', 금: '수', 수: '목',
+  }
+  const pillars = [natalPillars.year, natalPillars.month, natalPillars.day, natalPillars.hour]
+
+  // 1) 양인합살: 본명에 '양인' 신살 있으면 → 편관 통제
+  if (natalShinsal?.some((sh) => sh.kind === '양인')) {
+    return { tone: 'neutral', transformed: '양인합살 — 편관 통제됨' }
+  }
+  // 2) 식신제살: natal 식신 (dayMaster 가 생하는 오행) 있으면 → 제압
+  const sikshinEl = ELEMENT_GENERATES[dmEl]
+  const hasSikshin = pillars.some(
+    (p) => getStemEl(p.stem) === sikshinEl || getBranchEl(p.branch) === sikshinEl,
+  )
+  if (hasSikshin) {
+    return { tone: 'neutral', transformed: '식신제살 — 편관 제압됨' }
+  }
+  // 3) 살인상생: natal 인성 (dayMaster 를 생하는 오행) 있으면 → 인성 변환
+  const insungEl = Object.keys(ELEMENT_GENERATES).find(
+    (e) => ELEMENT_GENERATES[e as FiveElement] === dmEl,
+  ) as FiveElement | undefined
+  if (insungEl) {
+    const hasInsung = pillars.some(
+      (p) => getStemEl(p.stem) === insungEl || getBranchEl(p.branch) === insungEl,
+    )
+    if (hasInsung) {
+      return { tone: 'neutral', transformed: '살인상생 — 인성으로 변환' }
+    }
+  }
+  return { tone: currentTone, transformed: null }
+}
+
 function getStemEl(name: string): FiveElement | null {
   return STEMS.find((s) => s.name === name)?.element ?? null
 }
@@ -304,25 +368,40 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
       (d) => input.age! >= d.startAge && input.age! < d.startAge + 10,
     )
     if (active) {
-      // 용신 기준 대운 element 평가 (context-aware)
+      // 용신 기준 대운 element 평가 (context-aware) + 합살 변환
       const yongsinAna = bundle.raw.advanced?.yongsin
       const stemEl = getStemEl(active.stem)
       const branchEl = getBranchEl(active.branch)
       const ctxHighlights: SajuTimingHighlight[] = []
       if (yongsinAna && stemEl) {
         const r = elementRoleTone(stemEl, yongsinAna)
+        // 합살 변환 (양인합살 / 식신제살 / 살인상생)
+        const hap = input.natalPillars ? applyHapsalTransform({
+          incomingElement: stemEl,
+          dayMaster: input.dayMaster,
+          natalShinsal: bundle.raw.natalShinsal,
+          natalPillars: input.natalPillars,
+          currentTone: r.tone,
+        }) : { tone: r.tone, transformed: null }
         ctxHighlights.push({
-          source: `대운 천간 ${active.stem}(${stemEl}) — ${r.role}`,
-          meaning: `본명 용신 기준: ${r.role} (${r.tone})`,
-          tone: r.tone,
+          source: `대운 천간 ${active.stem}(${stemEl}) — ${r.role}${hap.transformed ? ' · ' + hap.transformed : ''}`,
+          meaning: hap.transformed ?? `본명 용신 기준: ${r.role}`,
+          tone: hap.tone,
         })
       }
       if (yongsinAna && branchEl) {
         const r = elementRoleTone(branchEl, yongsinAna)
+        const hap = input.natalPillars ? applyHapsalTransform({
+          incomingElement: branchEl,
+          dayMaster: input.dayMaster,
+          natalShinsal: bundle.raw.natalShinsal,
+          natalPillars: input.natalPillars,
+          currentTone: r.tone,
+        }) : { tone: r.tone, transformed: null }
         ctxHighlights.push({
-          source: `대운 지지 ${active.branch}(${branchEl}) — ${r.role}`,
-          meaning: `본명 용신 기준: ${r.role} (${r.tone})`,
-          tone: r.tone,
+          source: `대운 지지 ${active.branch}(${branchEl}) — ${r.role}${hap.transformed ? ' · ' + hap.transformed : ''}`,
+          meaning: hap.transformed ?? `본명 용신 기준: ${r.role}`,
+          tone: hap.tone,
         })
       }
       bundle.decadal = {
@@ -361,18 +440,28 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
       const branchEl = getBranchEl(yp.branch)
       if (yongsinAna && stemEl) {
         const r = elementRoleTone(stemEl, yongsinAna)
+        const hap = input.natalPillars ? applyHapsalTransform({
+          incomingElement: stemEl, dayMaster: input.dayMaster,
+          natalShinsal: bundle.raw.natalShinsal,
+          natalPillars: input.natalPillars, currentTone: r.tone,
+        }) : { tone: r.tone, transformed: null }
         ctxHl.push({
-          source: `세운 천간 ${yp.stem}(${stemEl}) — ${r.role}`,
-          meaning: `본명 용신 기준: ${r.role}`,
-          tone: r.tone,
+          source: `세운 천간 ${yp.stem}(${stemEl}) — ${r.role}${hap.transformed ? ' · ' + hap.transformed : ''}`,
+          meaning: hap.transformed ?? `본명 용신 기준: ${r.role}`,
+          tone: hap.tone,
         })
       }
       if (yongsinAna && branchEl) {
         const r = elementRoleTone(branchEl, yongsinAna)
+        const hap = input.natalPillars ? applyHapsalTransform({
+          incomingElement: branchEl, dayMaster: input.dayMaster,
+          natalShinsal: bundle.raw.natalShinsal,
+          natalPillars: input.natalPillars, currentTone: r.tone,
+        }) : { tone: r.tone, transformed: null }
         ctxHl.push({
-          source: `세운 지지 ${yp.branch}(${branchEl}) — ${r.role}`,
-          meaning: `본명 용신 기준: ${r.role}`,
-          tone: r.tone,
+          source: `세운 지지 ${yp.branch}(${branchEl}) — ${r.role}${hap.transformed ? ' · ' + hap.transformed : ''}`,
+          meaning: hap.transformed ?? `본명 용신 기준: ${r.role}`,
+          tone: hap.tone,
         })
       }
       bundle.yearly = {
@@ -421,17 +510,27 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
             const branchEl = getBranchEl(iljin.earthlyBranch)
             if (stemEl) {
               const r = elementRoleTone(stemEl, yongsinAna)
+              const hap = applyHapsalTransform({
+                incomingElement: stemEl, dayMaster: input.dayMaster,
+                natalShinsal: bundle.raw.natalShinsal,
+                natalPillars: input.natalPillars, currentTone: r.tone,
+              })
               extraHighlights.push({
-                source: `일진 천간 ${iljin.heavenlyStem}(${stemEl}) — ${r.role}`,
-                meaning: `본명 용신 기준: ${r.role}`,
-                tone: r.tone,
+                source: `일진 천간 ${iljin.heavenlyStem}(${stemEl}) — ${r.role}${hap.transformed ? ' · ' + hap.transformed : ''}`,
+                meaning: hap.transformed ?? `본명 용신 기준: ${r.role}`,
+                tone: hap.tone,
               })
             }
             if (branchEl) {
               const r = elementRoleTone(branchEl, yongsinAna)
+              const hap = applyHapsalTransform({
+                incomingElement: branchEl, dayMaster: input.dayMaster,
+                natalShinsal: bundle.raw.natalShinsal,
+                natalPillars: input.natalPillars, currentTone: r.tone,
+              })
               extraHighlights.push({
-                source: `일진 지지 ${iljin.earthlyBranch}(${branchEl}) — ${r.role}`,
-                meaning: `본명 용신 기준: ${r.role}`,
+                source: `일진 지지 ${iljin.earthlyBranch}(${branchEl}) — ${r.role}${hap.transformed ? ' · ' + hap.transformed : ''}`,
+                meaning: hap.transformed ?? `본명 용신 기준: ${r.role}`,
                 tone: r.tone,
               })
             }
@@ -525,12 +624,21 @@ export function getSajuMonthDailyLayers(input: {
     input.natalPillars.day.branch,
     input.natalPillars.hour.branch,
   ] : null
-  // 본명 용신 — 30일 batch 의 일진마다 element 평가
+  // 본명 용신 + 신살 — 30일 batch 의 일진마다 합살 변환 평가
   let yongsinAna: YongsinAnalysis | undefined
+  let natalShinsalLocal: ShinsalHitRich[] | undefined
   if (input.natalPillars) {
     try {
       const advPillars = toAdvancedPillars(input.natalPillars)
-      if (advPillars) yongsinAna = analyzeAdvancedSaju(dm, advPillars).yongsin
+      if (advPillars) {
+        yongsinAna = analyzeAdvancedSaju(dm, advPillars).yongsin
+        natalShinsalLocal = getShinsalHits({
+          year:  advPillars.yearPillar,
+          month: advPillars.monthPillar,
+          day:   advPillars.dayPillar,
+          time:  advPillars.timePillar,
+        })
+      }
     } catch { /* skip */ }
   }
   try {
@@ -548,18 +656,28 @@ export function getSajuMonthDailyLayers(input: {
           const branchEl = getBranchEl(iljin.earthlyBranch)
           if (stemEl) {
             const r = elementRoleTone(stemEl, yongsinAna)
+            const hap = input.natalPillars ? applyHapsalTransform({
+              incomingElement: stemEl, dayMaster: input.dayMaster,
+              natalShinsal: natalShinsalLocal,
+              natalPillars: input.natalPillars, currentTone: r.tone,
+            }) : { tone: r.tone, transformed: null }
             extras.push({
-              source: `일진 천간 ${iljin.heavenlyStem}(${stemEl}) — ${r.role}`,
-              meaning: `용신 기준: ${r.role}`,
-              tone: r.tone,
+              source: `일진 천간 ${iljin.heavenlyStem}(${stemEl}) — ${r.role}${hap.transformed ? ' · ' + hap.transformed : ''}`,
+              meaning: hap.transformed ?? `용신 기준: ${r.role}`,
+              tone: hap.tone,
             })
           }
           if (branchEl) {
             const r = elementRoleTone(branchEl, yongsinAna)
+            const hap = input.natalPillars ? applyHapsalTransform({
+              incomingElement: branchEl, dayMaster: input.dayMaster,
+              natalShinsal: natalShinsalLocal,
+              natalPillars: input.natalPillars, currentTone: r.tone,
+            }) : { tone: r.tone, transformed: null }
             extras.push({
-              source: `일진 지지 ${iljin.earthlyBranch}(${branchEl}) — ${r.role}`,
-              meaning: `용신 기준: ${r.role}`,
-              tone: r.tone,
+              source: `일진 지지 ${iljin.earthlyBranch}(${branchEl}) — ${r.role}${hap.transformed ? ' · ' + hap.transformed : ''}`,
+              meaning: hap.transformed ?? `용신 기준: ${r.role}`,
+              tone: hap.tone,
             })
           }
         }
