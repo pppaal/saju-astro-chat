@@ -257,6 +257,20 @@ export const GET = withApiMiddleware(
           summary?: string
         }
       | undefined
+    let fusionData:
+      | {
+          overallScore: number
+          domainScores: Record<string, number>
+          advice: { do: string[]; avoid: string[] }
+          topInsights: string[]
+          hourly: {
+            slots: Array<{ hour: number; score: number; tone: string; topDomain: string | null; hourPillar?: string; planetaryHour?: string; label: string }>
+            bestHours: Array<{ hour: number; score: number; topDomain: string | null; hourPillar?: string; planetaryHour?: string }>
+            worstHours: Array<{ hour: number; score: number; topDomain: string | null; hourPillar?: string; planetaryHour?: string }>
+            bestByDomain: Record<string, { hour: number; score: number } | undefined>
+          }
+        }
+      | undefined
     try {
       const [
         { calculateNatalChart, toChart },
@@ -278,6 +292,84 @@ export const GET = withApiMiddleware(
         timeZone: timezone || 'Asia/Seoul',
       })
       const natalChart = toChart(natalChartData)
+
+      // ── fusion 한 날 분석 (18테마 × 0..100 + 24시간 슬롯) ──
+      try {
+        const { buildCalendarDay, buildCalendarHourly } = await import('@/lib/fusion/adapters')
+        const simplePillars = {
+          year:  { stem: yearStem,        branch: yearBranch },
+          month: { stem: monthStem,       branch: monthBranch },
+          day:   { stem: dayMasterStem,   branch: dayBranch },
+          hour:  { stem: timeStem,        branch: timeBranch },
+        }
+        const ageAt = new Date(date).getFullYear() - birthDateObjForAstro.getFullYear()
+        const fusionInput = {
+          saju: simplePillars,
+          astro: natalChart,
+          natalInput: {
+            year: birthDateObjForAstro.getFullYear(),
+            month: birthDateObjForAstro.getMonth() + 1,
+            date: birthDateObjForAstro.getDate(),
+            hour: Number.isFinite(bH) ? bH : 12,
+            minute: Number.isFinite(bM) ? bM : 0,
+            latitude: 37.5665,
+            longitude: 126.978,
+            timeZone: timezone || 'Asia/Seoul',
+          },
+          age: ageAt,
+          birthYear: birthDateObjForAstro.getFullYear(),
+          daeunList: sajuResult.daeWoon.list.map((d) => ({
+            stem: d.heavenlyStem,
+            branch: d.earthlyBranch,
+            startAge: d.age,
+          })),
+        }
+        const dayRes = await buildCalendarDay(fusionInput, date)
+        const hourlyRes = await buildCalendarHourly(fusionInput, date)
+        fusionData = {
+          overallScore: Math.round(
+            (Object.values(dayRes.domainScores) as number[]).reduce((a, b) => a + b, 0)
+            / Object.keys(dayRes.domainScores).length * 100,
+          ),
+          domainScores: Object.fromEntries(
+            Object.entries(dayRes.domainScores).map(([k, v]) => [k, Math.round((v as number) * 100)]),
+          ),
+          advice: dayRes.advice,
+          topInsights: dayRes.topInsights,
+          hourly: {
+            slots: hourlyRes.slots.map((s) => ({
+              hour: s.hour,
+              score: s.score,
+              tone: s.tone,
+              topDomain: s.topDomain,
+              hourPillar: s.hourPillar
+                ? `${s.hourPillar.stem}${s.hourPillar.branch}` : undefined,
+              planetaryHour: s.planetaryHour,
+              label: s.label,
+            })),
+            bestHours: hourlyRes.bestHours.map((s) => ({
+              hour: s.hour,
+              score: s.score,
+              topDomain: s.topDomain,
+              hourPillar: s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : undefined,
+              planetaryHour: s.planetaryHour,
+            })),
+            worstHours: hourlyRes.worstHours.map((s) => ({
+              hour: s.hour,
+              score: s.score,
+              topDomain: s.topDomain,
+              hourPillar: s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : undefined,
+              planetaryHour: s.planetaryHour,
+            })),
+            bestByDomain: hourlyRes.bestByDomain,
+          },
+        }
+      } catch (fusionErr) {
+        logger.warn('[calendar/date-detail] fusion analysis failed', {
+          error: fusionErr instanceof Error ? fusionErr.message : String(fusionErr),
+        })
+      }
+
       const transitChart = await calculateTransitChart({
         iso: `${date}T12:00:00`,
         latitude: 37.5665,
@@ -360,6 +452,7 @@ export const GET = withApiMiddleware(
       longCycleContext: lite?.longCycleContext,
       cycleInteractions: lite?.cycleInteractions,
       transit: transitData,
+      fusion: fusionData,
       hourlyTimeSlots: await (async () => {
         try {
           const { analyzeDayTimeSlots } = await import('@/lib/timing/ultra-precision-minute')
