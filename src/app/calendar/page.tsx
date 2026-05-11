@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import DestinyCalendar from '@/components/calendar/DestinyCalendar'
+import DestinyMatrixPlannerClient from '@/components/calendar/DestinyMatrixPlannerClient'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -43,6 +43,5 @@ export const metadata: Metadata = {
 }
 
 export default function CalendarPage() {
-  // Force single unified calendar view only.
-  return <DestinyCalendar />
+  return <DestinyMatrixPlannerClient />
 }
