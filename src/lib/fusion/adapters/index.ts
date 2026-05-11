@@ -4,10 +4,16 @@ export type {
   CalendarDay,
   CalendarMonth,
   CalendarDayDetail,
+  CalendarYear,
+  CalendarHourly,
+  CalendarHourSlot,
+  DayGrade,
 } from './types'
 
 export {
   buildCalendarMonth,
   buildCalendarDay,
+  buildCalendarYear,
+  buildCalendarHourly,
   type CalendarAdapterInput,
 } from './forCalendar'

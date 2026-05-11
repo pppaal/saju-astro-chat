@@ -48,8 +48,42 @@ export interface CalendarMonth {
   // 월 통계
   monthScore: number                       // 그 달 평균 점수 (0~1)
   monthTone: CrossTone                     // 그 달 전체 결
+  monthGrade: DayGrade                     // 그 달 등급
   monthlyDomains: Partial<Record<ThemeKey, number>>  // 도메인별 월 평균
   monthNarrative: string                   // 그 달 해석 한 줄
+  advice: { do: string[]; avoid: string[] }  // 그 달 조언
+}
+
+/** 년 단위 캘린더 — 12달 통합 */
+export interface CalendarYear {
+  year: number
+  months: Array<{
+    month: number                          // 1..12
+    score: number                          // 0..100
+    tone: CrossTone
+    grade: DayGrade
+    topDomain: ThemeKey | null
+    label: string                          // '연애 활성', '재물 주의' 등
+    narrative: string
+  }>
+  yearScore: number                        // 0..100
+  yearTone: CrossTone
+  yearGrade: DayGrade
+  yearlyDomains: Partial<Record<ThemeKey, number>>  // 도메인 → 0..100 (18테마)
+  bestMonths: Array<{ month: number; score: number; label: string }>
+  cautionMonths: Array<{ month: number; score: number; label: string }>
+  yearNarrative: string
+  advice: { do: string[]; avoid: string[] }
+}
+
+/** 시간 24슬롯 캘린더 — 하루 안 시간대 변동 */
+export interface CalendarHourly {
+  date: string                             // 'YYYY-MM-DD'
+  slots: CalendarHourSlot[]                // 24개
+  bestHours: CalendarHourSlot[]            // 점수 높은 top 5
+  worstHours: CalendarHourSlot[]           // 점수 낮은 bottom 3
+  /** 도메인별 가장 좋은 시간대 */
+  bestByDomain: Partial<Record<ThemeKey, { hour: number; score: number }>>
 }
 
 export interface CalendarDayDetail {

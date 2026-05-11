@@ -17,7 +17,10 @@ import {
 } from '@/lib/astrology/astroLayers'
 import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
 import type { AstroTimingAnalysis } from '@/lib/astrology/timing/types'
-import type { CalendarDay, CalendarMonth, CalendarDayDetail, DayGrade } from './types'
+import type {
+  CalendarDay, CalendarMonth, CalendarDayDetail, CalendarYear, CalendarHourly,
+  CalendarHourSlot, DayGrade,
+} from './types'
 
 const CORE_THEMES: ThemeKey[] = [
   'love', 'money', 'career', 'family', 'health', 'personality',
@@ -328,11 +331,42 @@ export async function buildCalendarMonth(
   const monthScore = (Object.values(monthlyDomains) as number[]).reduce((a, b) => a + b, 0) / CORE_THEMES.length
   const monthTone = aggregateTone(days.map((d) => d.tone))
   const monthNarrative = buildMonthNarrative(monthTone, monthlyDomains, bestDays)
+  // 월 grade = days 의 평균 grade
+  const monthScore100 = Math.round(monthScore * 100)
+  const monthGrade: DayGrade =
+    monthScore100 >= 70 ? 'auspicious' :
+    monthScore100 >= 58 ? 'good' :
+    monthScore100 >= 42 ? 'normal' :
+    monthScore100 >= 30 ? 'caution' :
+    'inauspicious'
+  // 월 advice = 그 달의 모든 day cross 에서 추출 — 빈도 top 5
+  const monthAdvice = (() => {
+    const doFreq: Record<string, number> = {}
+    const avFreq: Record<string, number> = {}
+    for (const d of days) {
+      for (const theme of CORE_THEMES) {
+        const score = d.domainScores[theme] ?? 0
+        const tone: CrossTone =
+          score >= 0.7 ? 'positive' :
+          score >= 0.8 ? 'strong-positive' :
+          score <= 0.25 ? 'cautious' :
+          score <= 0.1 ? 'strong-negative' : 'neutral'
+        const key = `${theme}.${tone}`
+        for (const a of DOMAIN_ADVICE_DO[key] ?? []) doFreq[a] = (doFreq[a] ?? 0) + 1
+        for (const a of DOMAIN_ADVICE_AVOID[key] ?? []) avFreq[a] = (avFreq[a] ?? 0) + 1
+      }
+    }
+    return {
+      do: Object.entries(doFreq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k]) => k),
+      avoid: Object.entries(avFreq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k]) => k),
+    }
+  })()
 
   return {
     year, month, days,
     highlights: { bestDays, cautionDays, auspiciousByDomain },
-    monthScore, monthTone, monthlyDomains, monthNarrative,
+    monthScore, monthTone, monthGrade, monthlyDomains, monthNarrative,
+    advice: monthAdvice,
   }
 }
 
@@ -426,4 +460,172 @@ export async function buildCalendarDay(
     advice,
     bestDaysOfMonth,
   }
+}
+
+// ============================================================
+// 년 단위 캘린더 — 12달 통합
+// ============================================================
+
+const MONTH_LABEL_BY_TONE: Record<CrossTone, string> = {
+  'strong-positive': '활발',
+  positive:          '우호',
+  mixed:             '양면',
+  neutral:           '평이',
+  cautious:          '신중',
+  'strong-negative': '주의',
+}
+
+/**
+ * 년 캘린더 — 12달 buildCalendarMonth 호출 + 통합.
+ *
+ * 출력: 년 점수/등급, 18테마 평균, 좋은 달/주의 달, 연 narrative + 조언.
+ */
+export async function buildCalendarYear(
+  input: CalendarAdapterInput,
+  year: number,
+): Promise<CalendarYear> {
+  const months: CalendarMonth[] = []
+  for (let m = 1; m <= 12; m++) {
+    months.push(await buildCalendarMonth(input, year, m))
+  }
+
+  // 18 테마 연 평균
+  const yearlyDomains: Partial<Record<ThemeKey, number>> = {}
+  for (const theme of ALL_THEMES) {
+    let sum = 0, count = 0
+    for (const cm of months) {
+      const v = cm.monthlyDomains[theme]
+      if (typeof v === 'number') { sum += v; count++ }
+    }
+    yearlyDomains[theme] = count > 0 ? Math.round((sum / count) * 100) : 50
+  }
+
+  // 12달 점수 100 환산
+  const monthSummaries = months.map((cm) => {
+    const score = Math.round(cm.monthScore * 100)
+    const topDomain = Object.entries(cm.monthlyDomains)
+      .sort((a, b) => (b[1] as number) - (a[1] as number))[0]?.[0] as ThemeKey | undefined ?? null
+    const grade: DayGrade =
+      score >= 70 ? 'auspicious' :
+      score >= 58 ? 'good' :
+      score >= 42 ? 'normal' :
+      score >= 30 ? 'caution' :
+      'inauspicious'
+    return {
+      month: cm.month,
+      score,
+      tone: cm.monthTone,
+      grade,
+      topDomain,
+      label: `${MONTH_LABEL_BY_TONE[cm.monthTone]} · ${topDomain ?? '평이'}`,
+      narrative: cm.monthNarrative,
+    }
+  })
+
+  const yearScore = Math.round(monthSummaries.reduce((a, b) => a + b.score, 0) / 12)
+  const yearTone = aggregateTone(months.map((cm) => cm.monthTone))
+  const yearGrade: DayGrade =
+    yearScore >= 70 ? 'auspicious' :
+    yearScore >= 58 ? 'good' :
+    yearScore >= 42 ? 'normal' :
+    yearScore >= 30 ? 'caution' :
+    'inauspicious'
+
+  const sortedMonths = [...monthSummaries].sort((a, b) => b.score - a.score)
+  const bestMonths = sortedMonths.slice(0, 3).map((m) => ({ month: m.month, score: m.score, label: m.label }))
+  const cautionMonths = sortedMonths.slice(-3).reverse().map((m) => ({ month: m.month, score: m.score, label: m.label }))
+
+  // 연 advice = 12달 advice 의 빈도 합산 top 5
+  const doFreq: Record<string, number> = {}
+  const avFreq: Record<string, number> = {}
+  for (const cm of months) {
+    for (const a of cm.advice?.do ?? []) doFreq[a] = (doFreq[a] ?? 0) + 1
+    for (const a of cm.advice?.avoid ?? []) avFreq[a] = (avFreq[a] ?? 0) + 1
+  }
+  const advice = {
+    do: Object.entries(doFreq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k]) => k),
+    avoid: Object.entries(avFreq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k]) => k),
+  }
+
+  const topYearly = Object.entries(yearlyDomains).sort((a, b) => (b[1] as number) - (a[1] as number))[0]
+  const weakYearly = Object.entries(yearlyDomains).sort((a, b) => (a[1] as number) - (b[1] as number))[0]
+  const yearNarrative = `${year}년 종합: ${yearScore}점 (${MONTH_LABEL_BY_TONE[yearTone]}). 강한 영역: ${topYearly?.[0]}, 약한 영역: ${weakYearly?.[0]}. 길월 ${bestMonths.map((m) => m.month + '월').join('·')}.`
+
+  return {
+    year,
+    months: monthSummaries,
+    yearScore, yearTone, yearGrade,
+    yearlyDomains,
+    bestMonths, cautionMonths,
+    yearNarrative,
+    advice,
+  }
+}
+
+// ============================================================
+// 시간 24슬롯 — 하루 안 시간대 변동
+// ============================================================
+
+const HOUR_LABEL: Record<CrossTone, string> = {
+  'strong-positive': '집중·결정 좋은 시간',
+  positive:          '활동 우호',
+  mixed:             '양면 — 분별',
+  neutral:           '평이',
+  cautious:          '신중·휴식',
+  'strong-negative': '피하기',
+}
+
+/**
+ * 24시간 슬롯 캘린더 — 한 날의 시간대별 변동.
+ *
+ * 내부: 0..23 시간마다 buildCalendarDay (hour=h) 호출 → 슬롯별 점수.
+ */
+export async function buildCalendarHourly(
+  input: CalendarAdapterInput & {
+    lunarByDate?: Record<string, string>
+    isCheoneulGwiinByDate?: Record<string, boolean>
+  },
+  date: string,
+): Promise<CalendarHourly> {
+  const slots: CalendarHourSlot[] = []
+  for (let h = 0; h < 24; h++) {
+    const day = await buildCalendarDay({ ...input, hour: h }, date)
+    const topEntry = Object.entries(day.domainScores).sort((a, b) => (b[1] as number) - (a[1] as number))[0]
+    const topDomain = (topEntry?.[0] ?? null) as ThemeKey | null
+    // 24슬롯 score = 6 핵심 테마 평균 (월/일과 일관)
+    const coreSum = CORE_THEMES.reduce((acc, t) => acc + (day.domainScores[t] ?? 0), 0)
+    const score = Math.round((coreSum / CORE_THEMES.length) * 100)
+    const tone: CrossTone =
+      score >= 70 ? 'strong-positive' :
+      score >= 58 ? 'positive' :
+      score >= 42 ? 'neutral' :
+      score >= 30 ? 'cautious' :
+      'strong-negative'
+    // hourPillar / planetaryHour 는 sajuLayers/astroLayers 가 layer 안에 포함
+    // 여기서는 라벨용으로 day cross 중 hourly highlight 의 source 에서 추출 시도 가능 — 일단 빈값
+    slots.push({
+      hour: h,
+      score,
+      tone,
+      topDomain,
+      domainScores: day.domainScores,
+      label: HOUR_LABEL[tone],
+    })
+  }
+
+  const sorted = [...slots].sort((a, b) => b.score - a.score)
+  const bestHours = sorted.slice(0, 5)
+  const worstHours = sorted.slice(-3).reverse()
+
+  const bestByDomain: Partial<Record<ThemeKey, { hour: number; score: number }>> = {}
+  for (const theme of ALL_THEMES) {
+    let best: { hour: number; score: number } | null = null
+    for (const s of slots) {
+      const v = (s.domainScores[theme] ?? 0) * 100
+      if (!best || v > best.score) best = { hour: s.hour, score: Math.round(v) }
+    }
+    if (best) bestByDomain[theme] = best
+  }
+
+  return { date, slots, bestHours, worstHours, bestByDomain }
 }
