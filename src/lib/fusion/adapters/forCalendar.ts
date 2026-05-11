@@ -30,7 +30,7 @@ const ALL_THEMES: SajuThemeKey[] = [
 ]
 
 // ============================================================
-// tone → score
+// tone → 0..1 score (back-compat). 새 코드는 crossView.score (0..100) 사용.
 // ============================================================
 const TONE_TO_SCORE: Record<CrossTone, number> = {
   'strong-positive': 1.0,
@@ -43,6 +43,12 @@ const TONE_TO_SCORE: Record<CrossTone, number> = {
 
 function scoreFromTone(tone: CrossTone): number {
   return TONE_TO_SCORE[tone] ?? 0.4
+}
+
+/** crossView.score (0..100) → 0..1 도메인 점수 */
+function score01(cross: { crossView: { score?: number; tone: CrossTone } }): number {
+  if (typeof cross.crossView.score === 'number') return cross.crossView.score / 100
+  return scoreFromTone(cross.crossView.tone)
 }
 
 function aggregateTone(tones: CrossTone[]): CrossTone {
@@ -263,7 +269,7 @@ export async function buildCalendarMonth(
     )
 
     const domainScores: Partial<Record<ThemeKey, number>> = {}
-    for (const c of crosses) domainScores[c.theme] = scoreFromTone(c.crossView.tone)
+    for (const c of crosses) domainScores[c.theme] = score01(c)
 
     const topEntry = Object.entries(domainScores).sort((a, b) => (b[1] as number) - (a[1] as number))[0]
     const topDomain = (topEntry?.[0] ?? null) as ThemeKey | null
@@ -382,7 +388,7 @@ export async function buildCalendarDay(
     .map((c) => c.crossView.consensus)
 
   const domainScores: Partial<Record<ThemeKey, number>> = {}
-  for (const c of crosses) domainScores[c.theme] = scoreFromTone(c.crossView.tone)
+  for (const c of crosses) domainScores[c.theme] = score01(c)
 
   const advice = generateAdvice(crosses)
 

@@ -31,6 +31,12 @@ export interface ThemeTimingCross {
   }
   crossView: {
     tone: CrossTone
+    /** 연속 점수 0..100 (50 = 중립, 0 = 최악, 100 = 최고) */
+    score: number
+    /** 사주 측 normalized -1..+1 */
+    sajuScore: number
+    /** 점성 측 normalized -1..+1 */
+    astroScore: number
     consensus: string
     factors: string[]
   }
