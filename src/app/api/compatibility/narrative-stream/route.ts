@@ -185,6 +185,8 @@ const SYSTEM_PROMPT = `당신은 한국의 최고급 사주명리·점성술 통
 
 6. 추측·과장 금지: 데이터에 없는 사실 만들지 말 것. "운명적" "필연" 같은 단어 자제.
 
+7. 출생지 미상 처리: 사용자 프롬프트 상단에 "⚠ 출생지 미상: <이름>" 가 있으면 그 사람의 ASC/MC/하우스/profection/transit 시기 같은 위치 의존 결론을 **인용 회피**. 사주 연/월/일주 + 행성 sign/element/aspect는 정상 사용. 양쪽 다 미상이면 ⑩(시기 흐름) 단락은 사주 활성기 기반으로만 작성하고 점성 transit 시기는 생략. 답변 어딘가에 자연스럽게 "(출생지 미상으로 위치 기반 결론은 제외했습니다)" 한 줄 포함.
+
 7. 각 단락은 풍부하게 — 한 줄 결론이 아니라 두 분의 구체적인 결을 짚어가며 풀이. 비유와 이미지(악기, 계절, 강물 등) 적절히 사용해 따뜻하게.`
 
 function compactSibsin(s: unknown): string {
@@ -323,6 +325,25 @@ function buildUserPrompt(
     if (sb.fusion != null) parts.push(`융합 ${sb.fusion}`)
     if (sb.cross != null) parts.push(`교차 ${sb.cross}`)
     if (parts.length) lines.push(`내역: ${parts.join(' · ')}`)
+  }
+
+  // Detect silent 서울-fallback per person. When a person has no
+  // latitude/longitude/timezone the engine defaults to 서울, which makes
+  // their ASC/MC/houses/profection unreliable. Flag it so the LLM avoids
+  // citing those fields for that person specifically.
+  const p1 = req.persons?.[0]
+  const p2 = req.persons?.[1]
+  const p1CityUnknown =
+    p1 && p1.latitude === undefined && p1.longitude === undefined && !p1.timeZone
+  const p2CityUnknown =
+    p2 && p2.latitude === undefined && p2.longitude === undefined && !p2.timeZone
+  if (p1CityUnknown || p2CityUnknown) {
+    const missing: string[] = []
+    if (p1CityUnknown) missing.push(req.pairLabels[0])
+    if (p2CityUnknown) missing.push(req.pairLabels[1])
+    lines.push(
+      `\n⚠ 출생지 미상: ${missing.join(', ')} — 좌표가 서울 디폴트라 이 분의 ASC·MC·하우스·profection·transit timing은 신뢰 불가. 위치 기반 결론은 인용하지 말 것. 사주 일/월/년주와 행성 sign/element/aspect는 정상 사용 가능.`
+    )
   }
 
   // 사주 raw overview (per person)
