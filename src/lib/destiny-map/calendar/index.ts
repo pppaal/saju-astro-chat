@@ -21,28 +21,28 @@ export type {
   GeokgukInfo,
   GanzhiResult,
   FortuneArea,
-} from './types';
+} from './types'
 
 // Cache
-export { DestinyCalendarCache, destinyCache } from './cache';
+export { DestinyCalendarCache, destinyCache } from './cache'
 
 // Constants
-export * from './constants';
+export * from './constants'
 
 // Utilities (base utilities - getSipsin, isCheoneulGwiin, etc.)
-export * from './utils';
+export * from './utils'
 
 // Grading (통합 버전 with memoization)
-export * from './grading';
+export * from './grading'
 
 // Scoring System (New)
-export * from './scoring-config';
+export * from './scoring-config'
 export {
   calculateTotalScore,
   type SajuScoreInput,
   type AstroScoreInput,
   // Note: ScoreResult is also in saju-analysis, export with different name if needed
-} from './scoring';
+} from './scoring'
 
 // Saju Analysis (세운, 월운, 일진, 용신, 격국)
 export {
@@ -64,11 +64,11 @@ export {
   calculateWolunScore,
   getGanzhiForDate as getSajuGanzhiForDate,
   calculateIljinScore,
-  analyzeYongsin,
-  analyzeGeokguk,
+  scoreYongsinFitForDate,
+  scoreGeokgukFitForDate,
   analyzeSolarReturn,
   analyzeProgressions,
-} from './saju-analysis';
+} from './saju-analysis'
 
 // Astrology Analysis (행성, 달위상, 일월식)
 export {
@@ -100,7 +100,7 @@ export {
   getPlanetaryHourForDate,
   getAspect,
   analyzePlanetTransits,
-} from './astrology-analysis';
+} from './astrology-analysis'
 
 // Profile Utilities
 export {
@@ -110,7 +110,7 @@ export {
   extractAstroProfile,
   calculateSajuProfileFromBirthDate,
   calculateAstroProfileFromBirthDate,
-} from './profile-utils';
+} from './profile-utils'
 
 // Daily Fortune Utilities
 export {
@@ -125,7 +125,7 @@ export {
   getLuckyNumber,
   generateAlerts,
   createDefaultFortuneResult,
-} from './daily-fortune';
+} from './daily-fortune'
 
 // Special Days Analysis (12운성, 세운/월운 분석, 시간대 추천 등)
 export {
@@ -155,4 +155,4 @@ export {
   // 용신 추천
   getYongsinRecommendations,
   ELEMENT_RECOMMENDATIONS,
-} from './specialDays-analysis';
+} from './specialDays-analysis'
