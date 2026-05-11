@@ -54,6 +54,20 @@ function score01(cross: { crossView: { score?: number; tone: CrossTone } }): num
   return scoreFromTone(cross.crossView.tone)
 }
 
+/**
+ * 점수 분포 stretch — 계산·해석은 그대로 유지, **display 만 0..100 펼침**.
+ * raw 점수가 35~75 사이로 몰리는 현상을 contrast 보정.
+ *
+ *   50 (중립) → 50 (그대로)
+ *   60 → 70, 70 → 90, 80 → 100
+ *   40 → 30, 30 → 10, 20 → 0
+ *
+ * stretch=2.0 권장 (분포 폭이 약 2배로 확장).
+ */
+function expandScore(score0to100: number, stretch = 2.0): number {
+  return Math.max(0, Math.min(100, Math.round(50 + (score0to100 - 50) * stretch)))
+}
+
 function aggregateTone(tones: CrossTone[]): CrossTone {
   if (tones.length === 0) return 'neutral'
   const counts: Record<CrossTone, number> = {
@@ -281,16 +295,10 @@ export async function buildCalendarMonth(
     const topDomain = (topEntry?.[0] ?? null) as ThemeKey | null
     const tone = aggregateTone(crosses.map((c) => c.crossView.tone))
     const label = generateLabel(topDomain, tone)
-    // 종합 점수 = 도메인 점수 평균 × 100, grade = 임계값
-    const avgScore = Math.round(
-      (Object.values(domainScores) as number[]).reduce((a, b) => a + b, 0) / CORE_THEMES.length * 100,
-    )
-    const grade: DayGrade =
-      avgScore >= 70 ? 'auspicious' :
-      avgScore >= 58 ? 'good' :
-      avgScore >= 42 ? 'normal' :
-      avgScore >= 30 ? 'caution' :
-      'inauspicious'
+    // raw avg (월 통계용). 마지막에 일괄 expand.
+    const rawAvg = (Object.values(domainScores) as number[]).reduce((a, b) => a + b, 0) / CORE_THEMES.length * 100
+    const avgScore = rawAvg   // 임시 raw — 아래 days[] 빌드 후 expand
+    const grade: DayGrade = 'normal'   // 임시 — 아래 expand 후 재계산
 
     const iljinLabel = input.iljinByDate?.[date]
       ?? (dailySaju ? `${dailySaju.iljinRaw.heavenlyStem}${dailySaju.iljinRaw.earthlyBranch}` : undefined)
@@ -298,14 +306,32 @@ export async function buildCalendarMonth(
     days.push({
       date,
       iljin: iljinLabel,
-      domainScores,
+      domainScores,    // raw 0..1 (아래 일괄 expand)
       topDomain,
       tone,
-      score: avgScore,
+      score: avgScore, // raw 0..100 (아래 일괄 expand)
       grade,
       label,
       summary: crosses[0]?.crossView.consensus ?? '',
     })
+  }
+
+  // ============================================================
+  // 일괄 expand: days[].score + domainScores 를 0..100 분포 stretch
+  // (계산은 그대로, 표시만 펼침)
+  // ============================================================
+  for (const d of days) {
+    d.score = expandScore(d.score)
+    for (const k of Object.keys(d.domainScores) as ThemeKey[]) {
+      d.domainScores[k] = expandScore((d.domainScores[k] ?? 0) * 100) / 100
+    }
+    // grade 재계산 (expanded score 기준)
+    d.grade =
+      d.score >= 70 ? 'auspicious' :
+      d.score >= 58 ? 'good' :
+      d.score >= 42 ? 'normal' :
+      d.score >= 30 ? 'caution' :
+      'inauspicious'
   }
 
   // 통계
@@ -328,6 +354,7 @@ export async function buildCalendarMonth(
     const scores = days.map((d) => d.domainScores[theme] ?? 0)
     monthlyDomains[theme] = scores.reduce((a, b) => a + b, 0) / scores.length
   }
+  // monthScore: days[] domainScores 가 이미 expanded — 평균이 곧 expanded 값
   const monthScore = (Object.values(monthlyDomains) as number[]).reduce((a, b) => a + b, 0) / CORE_THEMES.length
   const monthTone = aggregateTone(days.map((d) => d.tone))
   const monthNarrative = buildMonthNarrative(monthTone, monthlyDomains, bestDays)
@@ -522,6 +549,7 @@ export async function buildCalendarYear(
     }
   })
 
+  // monthSummaries[].score 는 이미 expanded — 평균이 곧 expanded
   const yearScore = Math.round(monthSummaries.reduce((a, b) => a + b.score, 0) / 12)
   const yearTone = aggregateTone(months.map((cm) => cm.monthTone))
   const yearGrade: DayGrade =
