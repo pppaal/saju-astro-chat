@@ -32,17 +32,18 @@ type RouteContext = {
 
 export async function GET(request: NextRequest, routeContext: RouteContext) {
   const { connectionId } = await routeContext.params
-  if (!connectionId || typeof connectionId !== 'string') {
-    return apiError(ErrorCodes.VALIDATION_ERROR, 'connectionId is required')
-  }
-
   const activityRaw = request.nextUrl.searchParams.get('activity')
-  const activity = activityRaw && isRelationshipActivity(activityRaw)
-    ? activityRaw
-    : DEFAULT_ORACLE_ACTIVITY
 
   const handler = withApiMiddleware(
     async (_req: NextRequest, context: ApiContext) => {
+      if (!connectionId || typeof connectionId !== 'string') {
+        return apiError(ErrorCodes.VALIDATION_ERROR, 'connectionId is required')
+      }
+
+      const activity = activityRaw && isRelationshipActivity(activityRaw)
+        ? activityRaw
+        : DEFAULT_ORACLE_ACTIVITY
+
       const userId = context.userId!
 
       const myProfile = await prisma.matchProfile.findUnique({
