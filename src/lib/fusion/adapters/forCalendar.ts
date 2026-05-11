@@ -465,7 +465,10 @@ export async function buildCalendarDay(
     .map((c) => c.crossView.consensus)
 
   const domainScores: Partial<Record<ThemeKey, number>> = {}
-  for (const c of crosses) domainScores[c.theme] = score01(c)
+  for (const c of crosses) {
+    // raw 0..1 → expandScore(*100) → /100 — display 분포 stretch
+    domainScores[c.theme] = expandScore(score01(c) * 100) / 100
+  }
 
   const advice = generateAdvice(crosses)
 
