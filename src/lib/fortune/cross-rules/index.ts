@@ -24,7 +24,15 @@ export function runCrossRules(input: CrossRulesInput): FortuneReport {
 
   // Compose life-stage / sequence context from saju adapter outputs.
   const ageYears = input.saju.ageYears
-  let lifeStage: 'child' | 'teen' | 'young-adult' | 'mid-adult' | 'late-adult' | 'elder' | 'adult' | undefined
+  let lifeStage:
+    | 'child'
+    | 'teen'
+    | 'young-adult'
+    | 'mid-adult'
+    | 'late-adult'
+    | 'elder'
+    | 'adult'
+    | undefined
   if (typeof ageYears === 'number') {
     if (ageYears < 12) lifeStage = 'child'
     else if (ageYears < 20) lifeStage = 'teen'
@@ -59,5 +67,7 @@ export { renderWithLlm } from './llmRenderer'
 export type { RenderMode, RenderedSection, LlmRenderResult } from './llmRenderer'
 export { chatWithFortune } from './chat'
 export type { ChatOptions, ChatResult, ChatTurn } from './chat'
-export { runFortune } from './adapters/orchestrator'
+export { runFortune, runFortuneWithRaw } from './adapters/orchestrator'
 export type { BirthProfile, RunFortuneInput } from './adapters/orchestrator'
+export { serializeBirthSnapshot } from './birthSnapshot'
+export type { BirthSnapshotOptions } from './birthSnapshot'

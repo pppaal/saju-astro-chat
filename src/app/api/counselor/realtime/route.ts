@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { runFortune, renderToText } from '@/lib/fortune/cross-rules'
+import { runFortuneWithRaw, renderToText, serializeBirthSnapshot } from '@/lib/fortune/cross-rules'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -45,23 +45,33 @@ const CREDIT_PER_TURN = 1
 
 const SYSTEM_PROMPT_KO = `당신은 동양 사주명리와 서양 점성술을 함께 보는 운명 상담사입니다.
 
+당신은 두 종류의 컨텍스트를 받습니다:
+
+1. [Birth Snapshot] — 사주 원국(천간/지지/십성/격국/용신/신살/12운성/지장간 + 현재 대운·세운·월운·일진)과 점성술 원국(행성/사인/하우스/도수 + 현재 transit/return). 룰에 매칭되지 않은 원천 데이터.
+2. [Cross Signals] — 위 데이터를 도메인별(자아/사랑/재물/직업/건강/가정)로 룰이 추려낸 "양쪽 동의" / "양면성" 매칭 결과.
+
 규칙:
-- 아래 [Cross Signals] 블록에 사주·점성·교차분석이 이미 정리되어 있습니다.
-- 사용자의 질문을 그 신호에 비추어 직접 답하세요.
-- 결론을 먼저 1~2문장. 그다음 근거를 cross signal로 연결.
-- 양쪽 시스템이 같이 가리키면 "강한 신호", 한쪽만이면 "약함" 또는 "참고용"으로 표시.
-- 모르면 모른다고. 단정 금지.
-- 한 번에 한 가지에 집중. 산만한 만물상담 금지.`
+- 사용자의 질문에 답할 때 먼저 [Cross Signals]를 보고 매칭된 도메인이 있으면 그것을 우선 인용.
+- Cross가 비어있거나 질문이 다른 각도이면 [Birth Snapshot] raw에서 직접 패턴을 짚어 설명. (예: 격국+용신 조합, 사주 합화, 행성 aspect, 현재 transit, 12운성)
+- 결론을 먼저 1~2문장. 그 다음 근거를 raw 또는 cross에서 인용 (구체적 키워드: "정관격+재성 부귀쌍전" / "Saturn □ natal Moon orb 1.2°" 등).
+- 사주만 가리키거나 점성만 가리키면 "단일 신호", 둘 다 가리키면 "양쪽 동의" 표기.
+- 모르면 모른다고. 단정·예언 금지.
+- 한 번에 한 질문에만 집중.`
 
 const SYSTEM_PROMPT_EN = `You are a destiny counselor combining Eastern Saju and Western Astrology.
 
+You receive two kinds of context:
+
+1. [Birth Snapshot] — raw saju (pillars, ten gods, geokguk, yongsin, shinsal, 12 stages, hidden stems + current daeun/seun/wolun/iljin) and raw astrology (planets with sign/house/degree + current transits/returns).
+2. [Cross Signals] — rule-matched per-domain (self/love/money/career/health/family) "both agree" / "tension" findings from the data above.
+
 Rules:
-- The [Cross Signals] block below already contains the computed saju, astrology, and cross-analysis.
-- Answer the user's question by interpreting those signals directly.
-- Lead with the conclusion (1–2 sentences). Then link evidence from cross signals.
-- If both systems agree, mark as "strong signal". If only one, mark as "weak" or "for reference".
-- Say "I don't know" when uncertain. No absolute claims.
-- Focus on one question at a time.`
+- First check [Cross Signals] for a domain matching the user's question.
+- If cross is empty or the angle differs, derive the answer directly from [Birth Snapshot] raw (e.g. geokguk+yongsin combo, saju element transformation, aspect, current transit, 12-stage).
+- Lead with the conclusion (1–2 sentences). Then cite specific evidence from raw or cross ("Jeong-gwan-gyeok + Jaeseong fortune-honor pattern" / "Saturn □ natal Moon orb 1.2°" etc.).
+- Mark "single signal" when only one system points to it; "both agree" when saju + astro converge.
+- Say "I don't know" when uncertain. No absolute claims or prophecies.
+- Stay focused on one question per turn.`
 
 function utcDateKey(d: Date): string {
   const y = d.getUTCFullYear()
@@ -110,7 +120,7 @@ export async function POST(req: NextRequest) {
   if (!rl.allowed) {
     return NextResponse.json(
       { error: 'rate_limited', retryAfter: rl.retryAfter },
-      { status: 429, headers: rl.headers },
+      { status: 429, headers: rl.headers }
     )
   }
 
@@ -142,16 +152,16 @@ export async function POST(req: NextRequest) {
   if (!credit.allowed) {
     return NextResponse.json(
       { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
-      { status: 402 },
+      { status: 402 }
     )
   }
 
-  // 5) Compute (or fetch cached) cross signals
-  const crossKey = `cross:v1:${userId}:${birthFingerprint(body)}:${utcDateKey(new Date())}`
-  let crossText: string | null = await cacheGet<string>(crossKey)
-  if (!crossText) {
+  // 5) Compute (or fetch cached) birth snapshot + cross signals
+  const ctxKey = `counselor:ctx:v2:${userId}:${birthFingerprint(body)}:${utcDateKey(new Date())}`
+  let contextText: string | null = await cacheGet<string>(ctxKey)
+  if (!contextText) {
     try {
-      const report = await runFortune({
+      const { saju, astro, report } = await runFortuneWithRaw({
         birth: {
           birthDate: body.birthDate,
           birthTime: body.birthTime ?? '12:00',
@@ -163,11 +173,13 @@ export async function POST(req: NextRequest) {
         },
         queryDate: new Date(),
       })
-      crossText = renderToText(report)
+      const snapshot = serializeBirthSnapshot(saju, astro)
+      const crossText = renderToText(report)
+      contextText = `${snapshot}\n\n[Cross Signals]\n${crossText}`
       // Cache for 1 day — transits change daily
-      await cacheSet(crossKey, crossText, CACHE_TTL.CALENDAR_DATA)
+      await cacheSet(ctxKey, contextText, CACHE_TTL.CALENDAR_DATA)
     } catch (err) {
-      logger.error('[counselor/realtime] cross compute failed', { err })
+      logger.error('[counselor/realtime] context compute failed', { err })
       return NextResponse.json({ error: 'cross_failed' }, { status: 500 })
     }
   }
@@ -185,7 +197,7 @@ export async function POST(req: NextRequest) {
   // 7) Build prompt and stream
   const systemPrompt = lang === 'en' ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_KO
   const history = compactHistory(body.messages)
-  const cachedUserContext = `[Cross Signals]\n${crossText}`
+  const cachedUserContext = contextText
   const userPrompt =
     lang === 'en'
       ? `Conversation so far:\n${history}\n\nAnswer the latest user question using the cross signals.`

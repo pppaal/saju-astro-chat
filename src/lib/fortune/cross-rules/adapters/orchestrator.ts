@@ -40,6 +40,20 @@ function parseBirthDateTime(date: string, time: string) {
 }
 
 export async function runFortune(input: RunFortuneInput): Promise<FortuneReport> {
+  const { report } = await runFortuneWithRaw(input)
+  return report
+}
+
+/**
+ * Same as {@link runFortune} but also returns the normalized raw inputs.
+ * Useful for callers (e.g. counselor) that want to surface raw saju + astro
+ * to an LLM in addition to the cross-matched report.
+ */
+export async function runFortuneWithRaw(input: RunFortuneInput): Promise<{
+  saju: import('../normalizer/saju').SajuNormalizerInput
+  astro: import('../normalizer/astro').AstroNormalizerInput
+  report: FortuneReport
+}> {
   const queryDate = input.queryDate ?? new Date()
   const tz = input.birth.timezone ?? 'Asia/Seoul'
 
@@ -53,7 +67,7 @@ export async function runFortune(input: RunFortuneInput): Promise<FortuneReport>
       queryDate,
       solarTimeMode: input.birth.solarTimeMode,
       longitude: input.birth.longitude,
-    }),
+    })
   )
 
   const parts = parseBirthDateTime(input.birth.birthDate, input.birth.birthTime)
@@ -69,10 +83,11 @@ export async function runFortune(input: RunFortuneInput): Promise<FortuneReport>
 
   const [saju, astro] = await Promise.all([sajuP, astroP])
 
-  return runCrossRules({
+  const report = runCrossRules({
     saju,
     astro,
     rules: input.rules,
     metaRules: input.metaRules,
   })
+  return { saju, astro, report }
 }
