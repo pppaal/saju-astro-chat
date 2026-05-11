@@ -32,6 +32,12 @@ export interface BirthSnapshotOptions {
    * tagged so the LLM ignores them.
    */
   birthTimeUnknown?: boolean
+  /**
+   * Caller didn't provide birth place — lat/lng/timezone are placeholders
+   * (서울). When true, place-dependent fields (ASC/MC/houses/profection/
+   * planet.house) are tagged unreliable.
+   */
+  birthCityUnknown?: boolean
 }
 
 export function serializeBirthSnapshot(
@@ -42,6 +48,10 @@ export function serializeBirthSnapshot(
   const natalOrb = opts.natalAspectMaxOrb ?? NATAL_ASPECT_MAX_ORB
   const transitOrb = opts.transitAspectMaxOrb ?? TRANSIT_ASPECT_MAX_ORB
   const hourUnknown = !!opts.birthTimeUnknown
+  const cityUnknown = !!opts.birthCityUnknown
+  // ASC/MC/houses are unreliable if either hour or place is unknown — both
+  // are required to derive the rising sign and house cusps.
+  const placeFieldsUnreliable = hourUnknown || cityUnknown
 
   const parts: string[] = []
   parts.push('[Birth Snapshot]')
@@ -56,6 +66,15 @@ export function serializeBirthSnapshot(
       '#   Hour-independent fields (year/month/day pillars, planet sign/element/aspects) remain valid.'
     )
   }
+  if (cityUnknown) {
+    parts.push('# ⚠ birthCityUnknown=true — caller did not provide birth place.')
+    parts.push('#   Coordinates defaulted to 서울 (37.5665, 126.978, Asia/Seoul).')
+    parts.push('#   IGNORE place-dependent fields (placeholder only):')
+    parts.push('#     ASTRO.natal.ascendant, .mc, .houses, planet.house, profectionRuler')
+    parts.push('#   SAJU pillars depend only on timezone (defaulted to KST) — correct for')
+    parts.push('#   Korea-born users, otherwise day pillar may shift ±1 around midnight.')
+    parts.push('#   Planet signs/elements/aspects are valid regardless of place.')
+  }
   parts.push('')
 
   parts.push('## SAJU')
@@ -63,7 +82,14 @@ export function serializeBirthSnapshot(
   parts.push('')
 
   parts.push('## ASTROLOGY')
-  parts.push(serializeAstro(astro, { natalOrb, transitOrb, hourUnknown }))
+  parts.push(
+    serializeAstro(astro, {
+      natalOrb,
+      transitOrb,
+      hourUnknown: placeFieldsUnreliable,
+      cityUnknown,
+    })
+  )
 
   return parts.join('\n')
 }
@@ -206,10 +232,16 @@ function compactUnse(u: NonNullable<SajuNormalizerInput['currentDaeun']>) {
 
 function serializeAstro(
   input: AstroNormalizerInput,
-  cfg: { natalOrb: number; transitOrb: number; hourUnknown?: boolean }
+  cfg: {
+    natalOrb: number
+    transitOrb: number
+    hourUnknown?: boolean
+    cityUnknown?: boolean
+  }
 ): string {
   const out: Record<string, unknown> = {}
-  if (cfg.hourUnknown) out.birthTimeUnknown = true
+  if (cfg.hourUnknown) out.placeFieldsUnreliable = true
+  if (cfg.cityUnknown) out.birthCityUnknown = true
 
   out.natal = chartSummary(input.natal, !!cfg.hourUnknown)
 
