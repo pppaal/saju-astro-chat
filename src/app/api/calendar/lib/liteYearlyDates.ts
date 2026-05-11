@@ -175,6 +175,9 @@ type LiteOptions = {
   >
   /** Per-date list of currently-retrograde planet names (Mercury, Venus, …). */
   dailyRetrograde?: Record<string, string[]>
+  /** Per-date advanced astro modifier (-20..+20) from fusion/astroLayers
+   *  — Eclipse / Profection / SR / LR / Lots 등 30% → 95% 점성 활용. */
+  dailyAstroAdvanced?: Record<string, number>
 }
 
 const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
@@ -2156,6 +2159,9 @@ export function calculateYearlyImportantDatesLite(
     // practitioners weight 충합 highly), astrology gets 25% (real
     // transit aspect score), cross-agreement 10%, yongsin 5%, matrix
     // 5%, dailyShift event bonus on top.
+    // Advanced astro modifier from fusion/astroLayers (Eclipse/Profection/SR/LR).
+    // -20..+20 — additive on top of 5-axis blend so weight 안 깸.
+    const astroAdvancedShift = options?.dailyAstroAdvanced?.[dateKey] ?? 0
     const blendedRaw =
       0.30 * engineSub +
       0.20 * cycleSub +
@@ -2164,7 +2170,8 @@ export function calculateYearlyImportantDatesLite(
       0.05 * yongsinSub +
       0.05 * matrixSubAdj +
       0.05 * lunarRetroSub +
-      dailyShift
+      dailyShift +
+      astroAdvancedShift
     const score = Math.round(clamp(blendedRaw, 2, 99))
     const grade = scoreToGrade(score)
     const baseTier = tierFromStrength(primaryStrength)

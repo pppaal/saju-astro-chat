@@ -771,6 +771,136 @@ export const GET = withApiMiddleware(
           error: batchError instanceof Error ? batchError.message : String(batchError),
         })
       }
+
+      // ── Advanced astro layers (Eclipse / Profection / SR / LR / Lots) ──
+      // fusion/astroLayers 가 모든 점성 raw 데이터 수집 — 12달 호출해서
+      // 점성 활용률을 30% → 95% 끌어올림. 결과는 daily modifier 로 변환.
+      try {
+        const { getAstroLayersForDate } = await import('@/lib/astrology/astroLayers')
+        const ageAtYear = year - birthDate.getFullYear()
+        const dailyAstroAdvanced: Record<string, number> = {}
+
+        for (let m = 1; m <= 12; m++) {
+          const monthLayers = await getAstroLayersForDate({
+            natal: natalChart,
+            natalInput: {
+              year: birthDate.getFullYear(),
+              month: birthDate.getMonth() + 1,
+              date: birthDate.getDate(),
+              hour: Number.isFinite(birthHour) ? birthHour : 12,
+              minute: Number.isFinite(birthMinute) ? birthMinute : 0,
+              latitude: coords.lat,
+              longitude: coords.lng,
+              timeZone: timezone,
+            },
+            age: ageAtYear,
+            year,
+            month: m,
+          })
+
+          // Eclipse: 해당 달 모든 날에 강한 modifier
+          const eclipses = monthLayers.raw.eclipses ?? []
+          const daysInMonth = new Date(year, m, 0).getDate()
+          for (const ecl of eclipses) {
+            // eclipse 날짜와 가까울수록 강함 (±3일 -15, ±7일 -8)
+            const eclDate = new Date(ecl.date)
+            for (let d = 1; d <= daysInMonth; d++) {
+              const dt = new Date(year, m - 1, d)
+              const diffDays = Math.abs((dt.getTime() - eclDate.getTime()) / 86400000)
+              if (diffDays <= 7) {
+                const key = `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+                const impact = diffDays <= 3 ? -15 : -8
+                dailyAstroAdvanced[key] = (dailyAstroAdvanced[key] ?? 0) + impact
+              }
+            }
+          }
+
+          // Profection: 해당 해 전체 — 6궁(건강 부담)/12궁(은둔) 약함, 10궁(성공) 강함
+          if (monthLayers.raw.profection) {
+            const profHouse = monthLayers.raw.profection.activatedHouse
+            const profBonus =
+              profHouse === 10 ? 6 :    // 성공·명예
+              profHouse === 11 ? 5 :    // 사회·재물
+              profHouse === 5  ? 4 :    // 연애·창조
+              profHouse === 1  ? 3 :    // 자기·건강
+              profHouse === 4  ? 2 :    // 가정
+              profHouse === 6  ? -4 :   // 일·질병
+              profHouse === 12 ? -5 :   // 은둔·고립
+              profHouse === 8  ? -3 :   // 위기·변환
+              0
+            for (let d = 1; d <= daysInMonth; d++) {
+              const key = `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+              dailyAstroAdvanced[key] = (dailyAstroAdvanced[key] ?? 0) + profBonus
+            }
+          }
+
+          // Lunar Return: 해당 달 angular benefic — 가벼운 boost
+          if (monthLayers.raw.lunarReturn) {
+            const angularBenefics = monthLayers.raw.lunarReturn.planets.filter(
+              (p) => [1, 4, 7, 10].includes(p.house) && ['Venus', 'Jupiter'].includes(p.name),
+            ).length
+            const angularMalefics = monthLayers.raw.lunarReturn.planets.filter(
+              (p) => [1, 4, 7, 10].includes(p.house) && ['Mars', 'Saturn'].includes(p.name),
+            ).length
+            const lrBonus = angularBenefics * 3 - angularMalefics * 3
+            if (lrBonus !== 0) {
+              for (let d = 1; d <= daysInMonth; d++) {
+                const key = `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+                dailyAstroAdvanced[key] = (dailyAstroAdvanced[key] ?? 0) + lrBonus
+              }
+            }
+          }
+        }
+
+        // Solar Return: 해 전체 — angular benefic 강한 boost
+        try {
+          const { calculateSolarReturn } = await import('@/lib/astrology/foundation/returns')
+          const sr = await calculateSolarReturn({
+            natal: {
+              year: birthDate.getFullYear(),
+              month: birthDate.getMonth() + 1,
+              date: birthDate.getDate(),
+              hour: Number.isFinite(birthHour) ? birthHour : 12,
+              minute: Number.isFinite(birthMinute) ? birthMinute : 0,
+              latitude: coords.lat,
+              longitude: coords.lng,
+              timeZone: timezone,
+            },
+            year,
+          })
+          const srAngBenefic = sr.planets.filter(
+            (p) => [1, 4, 7, 10].includes(p.house) && ['Venus', 'Jupiter'].includes(p.name),
+          ).length
+          const srAngMalefic = sr.planets.filter(
+            (p) => [1, 4, 7, 10].includes(p.house) && ['Mars', 'Saturn'].includes(p.name),
+          ).length
+          const srBonus = srAngBenefic * 2 - srAngMalefic * 2
+          if (srBonus !== 0) {
+            for (const k of Object.keys(dailyAstroAdvanced)) {
+              dailyAstroAdvanced[k] += srBonus
+            }
+            // SR 만 적용된 날 (modifier 없는 날) 도 채움
+            for (let m = 1; m <= 12; m++) {
+              const daysInMonth = new Date(year, m, 0).getDate()
+              for (let d = 1; d <= daysInMonth; d++) {
+                const key = `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+                if (dailyAstroAdvanced[key] === undefined) dailyAstroAdvanced[key] = srBonus
+              }
+            }
+          }
+        } catch { /* skip */ }
+
+        // 결과를 -20..+20 으로 clamp
+        for (const k of Object.keys(dailyAstroAdvanced)) {
+          dailyAstroAdvanced[k] = Math.max(-20, Math.min(20, dailyAstroAdvanced[k]))
+        }
+        ;(astroProfile as { dailyAstroAdvanced?: Record<string, number> }).dailyAstroAdvanced =
+          dailyAstroAdvanced
+      } catch (advError) {
+        logger.warn('[calendar] advanced astro layers failed', {
+          error: advError instanceof Error ? advError.message : String(advError),
+        })
+      }
     } catch (astroError) {
       degradationReasons.push('astrology_input_lite')
       matrixDegradationReasons.push('astrology_input_lite')
@@ -1002,6 +1132,9 @@ export const GET = withApiMiddleware(
           ).dailyTransitTightest,
           dailyRetrograde: (astroProfile as { dailyRetrograde?: Record<string, string[]> })
             .dailyRetrograde,
+          dailyAstroAdvanced: (
+            astroProfile as { dailyAstroAdvanced?: Record<string, number> }
+          ).dailyAstroAdvanced,
         }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )
