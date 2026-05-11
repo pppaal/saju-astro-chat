@@ -28,6 +28,12 @@ export interface BirthProfile {
    * fields — 시주, ASC, MC, houses, planetary house placements — as unreliable.
    */
   birthTimeUnknown?: boolean
+  /**
+   * When true, the caller did not provide birth place — lat/lng/timezone
+   * are placeholder defaults (서울). Downstream must treat place-dependent
+   * fields (ASC, MC, houses, profection, transit timing) as unreliable.
+   */
+  birthCityUnknown?: boolean
 }
 
 export interface RunFortuneInput {
@@ -60,6 +66,7 @@ export async function runFortuneWithRaw(input: RunFortuneInput): Promise<{
   astro: import('../normalizer/astro').AstroNormalizerInput
   report: FortuneReport
   birthTimeUnknown: boolean
+  birthCityUnknown: boolean
 }> {
   const queryDate = input.queryDate ?? new Date()
   // Saju + astro must compute against the SAME instant. Past behaviour let
@@ -107,5 +114,11 @@ export async function runFortuneWithRaw(input: RunFortuneInput): Promise<{
     rules: input.rules,
     metaRules: input.metaRules,
   })
-  return { saju, astro, report, birthTimeUnknown: !!input.birth.birthTimeUnknown }
+  return {
+    saju,
+    astro,
+    report,
+    birthTimeUnknown: !!input.birth.birthTimeUnknown,
+    birthCityUnknown: !!input.birth.birthCityUnknown,
+  }
 }
