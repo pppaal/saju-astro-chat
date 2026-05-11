@@ -24,6 +24,10 @@ import { evaluateJohuNeed, getJohuYongsin, type JohuYongsinInfo } from './founda
 import { calculateTonggeun, type TonggeunResult } from './foundation/tonggeun'
 import { analyzeUnseInteraction } from './foundation/hyeongchung'
 import { analyzeGongmang } from '@/lib/timing/ultra-precision-daily'
+// 통합 정통 분석 — 강약+격국+용신 통합 + 용신 기준 운기 평가
+import { analyzeAdvancedSaju, evaluateElementInfluence, type AdvancedSajuAnalysis, type YongsinAnalysis } from './foundation/advancedSajuAnalysis'
+import { BRANCHES } from './foundation/constants'
+import type { FiveElement } from './foundation/types'
 
 const STEM_NAMES = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸']
 const BRANCH_NAMES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
@@ -64,6 +68,8 @@ export interface SajuLayersRaw {
   hyeongchung?: ReturnType<typeof analyzeUnseInteraction>
   /** 그 날 일진이 본명 일주의 공망인가 */
   gongmang?: ReturnType<typeof analyzeGongmang>
+  /** 통합 분석 — 강약+격국+용신 (context-aware tone 산출용) */
+  advanced?: AdvancedSajuAnalysis
 }
 
 export interface SajuLayersBundle {
@@ -121,6 +127,42 @@ function scoreToTone(score: number, neutralBand = 0.2): SajuTimingHighlight['ton
   return 'neutral'
 }
 
+/** 본명 용신 기준 element 가 길/흉 — context-aware. */
+function elementRoleTone(element: FiveElement, yongsin: YongsinAnalysis): { role: string; tone: SajuTimingHighlight['tone'] } {
+  const role = evaluateElementInfluence(element, yongsin)
+  const tone: SajuTimingHighlight['tone'] =
+    role === '용신' || role === '희신' ? 'positive' :
+    role === '기신' || role === '구신' ? 'cautious' :
+    'neutral'
+  return { role, tone }
+}
+
+function getStemEl(name: string): FiveElement | null {
+  return STEMS.find((s) => s.name === name)?.element ?? null
+}
+function getBranchEl(name: string): FiveElement | null {
+  return BRANCHES.find((b) => b.name === name)?.element ?? null
+}
+
+/** SimpleSajuPillars → advancedSajuAnalysis pillars input */
+function toAdvancedPillars(p: SimpleSajuPillars) {
+  const make = (stemName: string, branchName: string) => {
+    const stemEl = getStemEl(stemName)
+    const branchEl = getBranchEl(branchName)
+    if (!stemEl || !branchEl) return null
+    return {
+      heavenlyStem: { name: stemName, element: stemEl },
+      earthlyBranch: { name: branchName, element: branchEl },
+    }
+  }
+  const yp = make(p.year.stem,  p.year.branch)
+  const mp = make(p.month.stem, p.month.branch)
+  const dp = make(p.day.stem,   p.day.branch)
+  const hp = make(p.hour.stem,  p.hour.branch)
+  if (!yp || !mp || !dp || !hp) return null
+  return { yearPillar: yp, monthPillar: mp, dayPillar: dp, timePillar: hp }
+}
+
 export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
   const bundle: SajuLayersBundle = { raw: {} }
   const dm = getDayMasterObj(input.dayMaster)
@@ -132,6 +174,21 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
   const natalHighlights: SajuTimingHighlight[] = []
   if (input.natalPillars) {
     const fullPillars = toFullPillars(input.natalPillars)
+    // ── 통합 정통 분석 (강약 + 격국 + 용신 — context-aware tone 산출의 핵심) ──
+    try {
+      const advPillars = toAdvancedPillars(input.natalPillars)
+      if (advPillars && dm) {
+        const adv = analyzeAdvancedSaju(dm, advPillars)
+        bundle.raw.advanced = adv
+        natalHighlights.push({
+          source: `일간 강약: ${adv.strength.level} (점수 ${adv.strength.score})`,
+          meaning: `돕는 힘 ${adv.strength.helpingScore}, 빼는 힘 ${adv.strength.drainingScore}`,
+          tone: adv.strength.level === '중화' ? 'positive'
+              : (adv.strength.level === '극신강' || adv.strength.level === '극신약') ? 'cautious'
+              : 'neutral',
+        })
+      }
+    } catch { /* skip */ }
     try {
       const geokguk = determineGeokguk(fullPillars)
       bundle.raw.geokguk = geokguk
@@ -183,6 +240,27 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
       (d) => input.age! >= d.startAge && input.age! < d.startAge + 10,
     )
     if (active) {
+      // 용신 기준 대운 element 평가 (context-aware)
+      const yongsinAna = bundle.raw.advanced?.yongsin
+      const stemEl = getStemEl(active.stem)
+      const branchEl = getBranchEl(active.branch)
+      const ctxHighlights: SajuTimingHighlight[] = []
+      if (yongsinAna && stemEl) {
+        const r = elementRoleTone(stemEl, yongsinAna)
+        ctxHighlights.push({
+          source: `대운 천간 ${active.stem}(${stemEl}) — ${r.role}`,
+          meaning: `본명 용신 기준: ${r.role} (${r.tone})`,
+          tone: r.tone,
+        })
+      }
+      if (yongsinAna && branchEl) {
+        const r = elementRoleTone(branchEl, yongsinAna)
+        ctxHighlights.push({
+          source: `대운 지지 ${active.branch}(${branchEl}) — ${r.role}`,
+          meaning: `본명 용신 기준: ${r.role} (${r.tone})`,
+          tone: r.tone,
+        })
+      }
       bundle.decadal = {
         unit: 'decadal',
         periodLabel: `대운 ${active.stem}${active.branch} (age ${active.startAge}-${active.startAge + 9})`,
@@ -192,6 +270,7 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
             meaning: `${active.startAge}-${active.startAge + 9}세 대운 — ${active.stem}${active.branch} 10년 backdrop.`,
             tone: 'neutral',
           },
+          ...ctxHighlights,
           ...natalHighlights,
         ],
         summary: `대운 ${active.stem}${active.branch} · 격국/용신/조후/통근 포함`,
@@ -207,19 +286,42 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
     }
   }
 
-  // 세운 (yearly) — 입춘 절기 boundary 정확 (KASI)
+  // 세운 (yearly) — 입춘 절기 boundary 정확 (KASI) + 용신 기준 context-aware
   if (input.birthYear != null) {
     try {
       const sampleDate = new Date(input.year, input.month - 1, input.day ?? 15)
       const yp = getYearPillarForDate(sampleDate)
+      const yongsinAna = bundle.raw.advanced?.yongsin
+      const ctxHl: SajuTimingHighlight[] = []
+      const stemEl = getStemEl(yp.stem)
+      const branchEl = getBranchEl(yp.branch)
+      if (yongsinAna && stemEl) {
+        const r = elementRoleTone(stemEl, yongsinAna)
+        ctxHl.push({
+          source: `세운 천간 ${yp.stem}(${stemEl}) — ${r.role}`,
+          meaning: `본명 용신 기준: ${r.role}`,
+          tone: r.tone,
+        })
+      }
+      if (yongsinAna && branchEl) {
+        const r = elementRoleTone(branchEl, yongsinAna)
+        ctxHl.push({
+          source: `세운 지지 ${yp.branch}(${branchEl}) — ${r.role}`,
+          meaning: `본명 용신 기준: ${r.role}`,
+          tone: r.tone,
+        })
+      }
       bundle.yearly = {
         unit: 'yearly',
         periodLabel: `세운 ${input.year} ${yp.stem}${yp.branch}`,
-        highlights: [{
-          source: `세운 ${yp.stem}${yp.branch}`,
-          meaning: `${input.year}년 천간 ${yp.stem}, 지지 ${yp.branch} — 본명과 작용.`,
-          tone: 'neutral',
-        }],
+        highlights: [
+          {
+            source: `세운 ${yp.stem}${yp.branch}`,
+            meaning: `${input.year}년 천간 ${yp.stem}, 지지 ${yp.branch} — 본명과 작용.`,
+            tone: 'neutral',
+          },
+          ...ctxHl,
+        ],
         summary: `${input.year} 세운 ${yp.stem}${yp.branch}`,
       }
     } catch { /* skip */ }
@@ -245,9 +347,31 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
         bundle.iljinRaw = iljin   // back-compat
         bundle.daily = analyzeDailySaju({ iljin, dayMaster: input.dayMaster })
 
-        // 형충회합·공망 — natalPillars 제공 시만
+        // 형충회합·공망 + 용신 기준 일진 평가 — natalPillars 제공 시만
         if (input.natalPillars && bundle.daily) {
           const extraHighlights: SajuTimingHighlight[] = []
+          // 용신 기준 일진 element 평가 (context-aware)
+          const yongsinAna = bundle.raw.advanced?.yongsin
+          if (yongsinAna) {
+            const stemEl = getStemEl(iljin.heavenlyStem)
+            const branchEl = getBranchEl(iljin.earthlyBranch)
+            if (stemEl) {
+              const r = elementRoleTone(stemEl, yongsinAna)
+              extraHighlights.push({
+                source: `일진 천간 ${iljin.heavenlyStem}(${stemEl}) — ${r.role}`,
+                meaning: `본명 용신 기준: ${r.role}`,
+                tone: r.tone,
+              })
+            }
+            if (branchEl) {
+              const r = elementRoleTone(branchEl, yongsinAna)
+              extraHighlights.push({
+                source: `일진 지지 ${iljin.earthlyBranch}(${branchEl}) — ${r.role}`,
+                meaning: `본명 용신 기준: ${r.role}`,
+                tone: r.tone,
+              })
+            }
+          }
           // 형충회합: 일진 지지 가 본명 4지지와 작용
           try {
             const natalBranches = [
@@ -324,7 +448,7 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
  */
 export function getSajuMonthDailyLayers(input: {
   dayMaster: string
-  natalPillars?: SimpleSajuPillars   // 형충회합/공망 산출용
+  natalPillars?: SimpleSajuPillars   // 형충회합/공망 + 용신 context-aware 산출용
   year: number
   month: number
 }): Map<string, { daily: SajuTimingAnalysis; iljinRaw: IljinData }> {
@@ -337,15 +461,44 @@ export function getSajuMonthDailyLayers(input: {
     input.natalPillars.day.branch,
     input.natalPillars.hour.branch,
   ] : null
+  // 본명 용신 — 30일 batch 의 일진마다 element 평가
+  let yongsinAna: YongsinAnalysis | undefined
+  if (input.natalPillars) {
+    try {
+      const advPillars = toAdvancedPillars(input.natalPillars)
+      if (advPillars) yongsinAna = analyzeAdvancedSaju(dm, advPillars).yongsin
+    } catch { /* skip */ }
+  }
   try {
     const iljins = getIljinCalendar(input.year, input.month, dm)
     for (const iljin of iljins) {
       const date = `${iljin.year}-${String(iljin.month).padStart(2, '0')}-${String(iljin.day).padStart(2, '0')}`
       let daily = analyzeDailySaju({ iljin, dayMaster: input.dayMaster })
 
-      // 형충회합 + 공망 highlights 추가 — natal 있을 때만
+      // 형충회합 + 공망 + 용신 element 평가 — natal 있을 때만
       if (input.natalPillars && natalBranches) {
         const extras: SajuTimingHighlight[] = []
+        // 용신 기준 일진 element (context-aware)
+        if (yongsinAna) {
+          const stemEl = getStemEl(iljin.heavenlyStem)
+          const branchEl = getBranchEl(iljin.earthlyBranch)
+          if (stemEl) {
+            const r = elementRoleTone(stemEl, yongsinAna)
+            extras.push({
+              source: `일진 천간 ${iljin.heavenlyStem}(${stemEl}) — ${r.role}`,
+              meaning: `용신 기준: ${r.role}`,
+              tone: r.tone,
+            })
+          }
+          if (branchEl) {
+            const r = elementRoleTone(branchEl, yongsinAna)
+            extras.push({
+              source: `일진 지지 ${iljin.earthlyBranch}(${branchEl}) — ${r.role}`,
+              meaning: `용신 기준: ${r.role}`,
+              tone: r.tone,
+            })
+          }
+        }
         try {
           const interactions = analyzeUnseInteraction(natalBranches, [iljin.earthlyBranch])
           if (interactions.length > 0) {
