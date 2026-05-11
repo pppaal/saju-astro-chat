@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { compactHistory } from '@/app/api/counselor/realtime/route'
+import { compactHistory } from '@/app/api/counselor/realtime/compactHistory'
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
