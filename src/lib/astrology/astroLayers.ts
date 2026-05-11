@@ -22,6 +22,22 @@ import { analyzeDecadalAstro } from './timing/decadal'
 import { analyzeLifetimeAstro } from './timing/lifetime'
 import { analyzeHourlyAstro, type PlanetaryHourPlanet } from './timing/hourly'
 import type { AstroTimingAnalysis } from './timing/types'
+import type { ProfectionResult } from './foundation/profections'
+import type { ReturnChart, AspectHit } from './foundation/types'
+import type { Eclipse } from './foundation/eclipses'
+
+// astroScore.ts 가 소비할 raw 데이터 (계산 결과의 원본)
+export interface AstroLayersRaw {
+  transitChart?: Chart
+  transitAspects?: AspectHit[]
+  retrogradePlanets?: string[]
+  eclipses?: Eclipse[]
+  profection?: ProfectionResult
+  solarReturn?: ReturnChart
+  lunarReturn?: ReturnChart
+  lots?: ReturnType<typeof calculateArabicLots>
+  planetaryHour?: { planet: PlanetaryHourPlanet; isDay: boolean }
+}
 
 const CHALDEAN_ORDER: PlanetaryHourPlanet[] = ['Saturn','Jupiter','Mars','Sun','Venus','Mercury','Moon']
 const DAY_RULER: PlanetaryHourPlanet[] = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn']
@@ -54,6 +70,8 @@ export interface AstroLayersBundle {
   monthly?: AstroTimingAnalysis[]       // Lunar Return + Eclipses
   daily?: AstroTimingAnalysis[]         // Daily transit + Electional (Retro/VoC/Decan/Bound/FixedStar)
   hourly?: AstroTimingAnalysis          // Planetary Hour
+  /** astroScore.ts 등이 소비할 raw 계산 결과 */
+  raw: AstroLayersRaw
 }
 
 /**
@@ -66,7 +84,7 @@ export interface AstroLayersBundle {
  *   })
  */
 export async function getAstroLayersForDate(input: AstroLayersInput): Promise<AstroLayersBundle> {
-  const bundle: AstroLayersBundle = {}
+  const bundle: AstroLayersBundle = { raw: {} }
   const { natal, natalInput, age, year, month, day, hour } = input
 
   // ZR decadal (age 필요)
@@ -90,6 +108,7 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
     const sun = natal.planets.find((p) => p.name === 'Sun')
     const isDay = sun ? sun.house >= 7 && sun.house <= 12 : true
     const lots = calculateArabicLots(natal, isDay)
+    bundle.raw.lots = lots
     bundle.lots = {
       unit: 'lifetime',
       periodLabel: 'Arabic Lots (natal)',
@@ -107,6 +126,7 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
   if (age != null) {
     try {
       const prof = calculateProfection(natal, age)
+      bundle.raw.profection = prof
       yearlyList.push({
         unit: 'yearly',
         periodLabel: `Profection age ${prof.age}`,
@@ -122,6 +142,7 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
   if (natalInput) {
     try {
       const sr = await calculateSolarReturn({ natal: natalInput, year })
+      bundle.raw.solarReturn = sr
       yearlyList.push(analyzeYearlyAstro(sr))
     } catch { /* skip */ }
   }
@@ -132,6 +153,7 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
   if (natalInput) {
     try {
       const lr = await calculateLunarReturn({ natal: natalInput, year, month })
+      bundle.raw.lunarReturn = lr
       monthlyList.push(analyzeMonthlyAstro(lr))
     } catch { /* skip */ }
   }
@@ -140,6 +162,7 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
     const start = `${year}-${String(month).padStart(2, '0')}-01`
     const end = `${year}-${String(month).padStart(2, '0')}-${daysInMonth}`
     const eclipses = getEclipsesBetween(start, end)
+    bundle.raw.eclipses = eclipses
     if (eclipses.length > 0) {
       monthlyList.push({
         unit: 'monthly',
@@ -166,7 +189,10 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
         longitude: natalInput.longitude,
         timeZone: natalInput.timeZone,
       })
+      bundle.raw.transitChart = transitChart
       const aspects = findMajorTransits(transitChart, natal, 1.0)
+      bundle.raw.transitAspects = aspects
+      bundle.raw.retrogradePlanets = getRetrogradePlanets(transitChart)
       dailyList.push(analyzeDailyAstro({
         isoDate: date,
         transitChart,
@@ -175,7 +201,7 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
         })),
       }))
 
-      const retros = getRetrogradePlanets(transitChart)
+      const retros = bundle.raw.retrogradePlanets ?? []
       const voc = checkVoidOfCourse(transitChart)
       const electHighlights: Array<{ source: string; meaning: string; tone: 'positive' | 'cautious' | 'mixed' | 'neutral' }> = []
       if (retros.length > 0) {
@@ -231,6 +257,7 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
       const dt = new Date(year, month - 1, day, hour, 0, 0)
       const planet = calcPlanetaryHour(dt, hour)
       const isDay = hour >= 6 && hour < 18
+      bundle.raw.planetaryHour = { planet, isDay }
       bundle.hourly = analyzeHourlyAstro({
         isoDateTime: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00`,
         planet,
