@@ -79,11 +79,20 @@ export function isClaudeAvailable(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY)
 }
 
+// Anthropic prompt-cache TTL extension (beta).
+// Default ephemeral TTL is 5 minutes — too short for chat sessions where the
+// user reads + thinks between turns. The beta header below + `ttl: '1h'` on
+// each cache_control block extends the cache lifetime to 1 hour, so a
+// typical multi-turn counselor session keeps re-hitting the cache instead
+// of paying full input cost on every later turn.
+const PROMPT_CACHE_BETA_HEADER = 'extended-cache-ttl-2025-04-11'
+const CACHE_CONTROL_1H = { type: 'ephemeral' as const, ttl: '1h' as const }
+
 type UserMessageContent =
   | string
   | Array<
       | { type: 'text'; text: string }
-      | { type: 'text'; text: string; cache_control: { type: 'ephemeral' } }
+      | { type: 'text'; text: string; cache_control: { type: 'ephemeral'; ttl?: '5m' | '1h' } }
     >
 
 /**
@@ -101,7 +110,7 @@ function buildUserMessageContent(
     {
       type: 'text',
       text: cachedUserContext,
-      cache_control: { type: 'ephemeral' },
+      cache_control: CACHE_CONTROL_1H,
     },
     { type: 'text', text: userPrompt },
   ]
@@ -132,6 +141,7 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': ANTHROPIC_VERSION,
+        'anthropic-beta': PROMPT_CACHE_BETA_HEADER,
       },
       body: JSON.stringify({
         model,
@@ -141,7 +151,7 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
           {
             type: 'text',
             text: systemPrompt,
-            cache_control: { type: 'ephemeral' },
+            cache_control: CACHE_CONTROL_1H,
           },
         ],
         messages: [
@@ -274,16 +284,15 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
       'anthropic-version': ANTHROPIC_VERSION,
+      'anthropic-beta': PROMPT_CACHE_BETA_HEADER,
     },
     body: JSON.stringify({
       model,
       max_tokens: maxTokens,
       temperature,
       stream: true,
-      system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
-      messages: [
-        { role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) },
-      ],
+      system: [{ type: 'text', text: systemPrompt, cache_control: CACHE_CONTROL_1H }],
+      messages: [{ role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) }],
     }),
     signal: controller.signal,
   })
