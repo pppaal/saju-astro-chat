@@ -7,14 +7,33 @@ import type { ThemeKey, CrossTone, ThemeTimingCross } from '../crosses/types'
 // 캘린더
 // ============================================================
 
+/** 좋은날 / 보통날 / 안좋은날 — score 임계값에서 파생 */
+export type DayGrade = 'auspicious' | 'good' | 'normal' | 'caution' | 'inauspicious'
+
 export interface CalendarDay {
   date: string                             // 'YYYY-MM-DD'
   iljin?: string                           // '갑자' (사주 일진)
   domainScores: Partial<Record<ThemeKey, number>>  // 도메인 → 점수 (0~1)
   topDomain: ThemeKey | null               // 가장 강한 도메인
   tone: CrossTone                          // 그 날 전체 tone
+  /** 종합 점수 0~100 (도메인 가중평균) */
+  score: number
+  /** auspicious=길일, good=좋음, normal=보통, caution=조심, inauspicious=흉일 */
+  grade: DayGrade
   label: string                            // '결혼 길일', '신중' 등
   summary: string                          // 한 줄 요약
+}
+
+/** 시간대 슬롯 (1시간 단위, 24개) */
+export interface CalendarHourSlot {
+  hour: number                             // 0..23
+  score: number                            // 0..100
+  tone: CrossTone
+  topDomain: ThemeKey | null
+  domainScores: Partial<Record<ThemeKey, number>>
+  hourPillar?: { stem: string; branch: string }  // 시주 (사주)
+  planetaryHour?: string                   // 행성시 (점성)
+  label: string                            // '집중 좋은 시간', '대화 피하기' 등
 }
 
 export interface CalendarMonth {

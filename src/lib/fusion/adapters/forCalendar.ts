@@ -17,7 +17,7 @@ import {
 } from '@/lib/astrology/astroLayers'
 import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
 import type { AstroTimingAnalysis } from '@/lib/astrology/timing/types'
-import type { CalendarDay, CalendarMonth, CalendarDayDetail } from './types'
+import type { CalendarDay, CalendarMonth, CalendarDayDetail, DayGrade } from './types'
 
 const CORE_THEMES: ThemeKey[] = [
   'love', 'money', 'career', 'family', 'health', 'personality',
@@ -275,6 +275,16 @@ export async function buildCalendarMonth(
     const topDomain = (topEntry?.[0] ?? null) as ThemeKey | null
     const tone = aggregateTone(crosses.map((c) => c.crossView.tone))
     const label = generateLabel(topDomain, tone)
+    // 종합 점수 = 도메인 점수 평균 × 100, grade = 임계값
+    const avgScore = Math.round(
+      (Object.values(domainScores) as number[]).reduce((a, b) => a + b, 0) / CORE_THEMES.length * 100,
+    )
+    const grade: DayGrade =
+      avgScore >= 70 ? 'auspicious' :
+      avgScore >= 58 ? 'good' :
+      avgScore >= 42 ? 'normal' :
+      avgScore >= 30 ? 'caution' :
+      'inauspicious'
 
     const iljinLabel = input.iljinByDate?.[date]
       ?? (dailySaju ? `${dailySaju.iljinRaw.heavenlyStem}${dailySaju.iljinRaw.earthlyBranch}` : undefined)
@@ -285,6 +295,8 @@ export async function buildCalendarMonth(
       domainScores,
       topDomain,
       tone,
+      score: avgScore,
+      grade,
       label,
       summary: crosses[0]?.crossView.consensus ?? '',
     })
