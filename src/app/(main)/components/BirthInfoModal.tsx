@@ -27,8 +27,11 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved, locale
   const [birthTime, setBirthTime] = useState(
     initial?.birthTime && initial.birthTime !== '00:00' ? initial.birthTime : ''
   )
+  // Default to "time known" for new users so the time input is enabled.
+  // Only mark as unknown when a prior save explicitly used the 00:00
+  // placeholder or set the flag.
   const [timeUnknown, setTimeUnknown] = useState(
-    !initial?.birthTime || initial.birthTime === '00:00'
+    initial?.birthTimeUnknown === true || initial?.birthTime === '00:00'
   )
   const [gender, setGender] = useState<'male' | 'female' | ''>(initial?.gender || '')
   const [city, setCity] = useState(initial?.city || '')
@@ -73,6 +76,7 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved, locale
     const payload = {
       birthDate,
       birthTime: effectiveTime,
+      birthTimeUnknown: timeUnknown,
       gender: gender as 'male' | 'female',
       city: city.trim() || undefined,
     }
@@ -132,7 +136,10 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved, locale
               className={styles.modalInput}
               value={birthTime}
               disabled={timeUnknown}
-              onChange={(e) => setBirthTime(e.target.value)}
+              onChange={(e) => {
+                setBirthTime(e.target.value)
+                if (e.target.value) setTimeUnknown(false)
+              }}
             />
             <label
               style={{
