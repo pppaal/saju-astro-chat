@@ -370,7 +370,15 @@ export async function buildCalendarMonth(
     const tone = aggregateTone(crosses.map((c) => c.crossView.tone))
     const label = generateLabel(topDomain, tone)
     // raw avg (월 통계용). 마지막에 일괄 expand.
-    const rawAvg = (Object.values(domainScores) as number[]).reduce((a, b) => a + b, 0) / CORE_THEMES.length * 100
+    // 종합 점수 = top domain × 0.5 + 나머지 평균 × 0.5
+    // 평균만 쓰면 압축 (50~70 으로 몰림), max 만 쓰면 한 영역만 보고 길일.
+    // 절충 — 강한 영역 부각하면서 전체 균형도 반영.
+    const sortedDomVals = (Object.values(domainScores) as number[]).sort((a, b) => b - a)
+    const topVal = sortedDomVals[0] ?? 0
+    const restAvg = sortedDomVals.length > 1
+      ? sortedDomVals.slice(1).reduce((a, b) => a + b, 0) / (sortedDomVals.length - 1)
+      : topVal
+    const rawAvg = (topVal * 0.5 + restAvg * 0.5) * 100
     const avgScore = rawAvg   // 임시 raw — 아래 days[] 빌드 후 expand
     const grade: DayGrade = 'normal'   // 임시 — 아래 expand 후 재계산
 
