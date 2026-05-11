@@ -1,34 +1,20 @@
 // fusion/adapters/forCalendar.ts
-// 캘린더용 fusion 어댑터 — 월별 grid 데이터 + 일별 상세.
+// 캘린더용 fusion 어댑터 — 사주·점성 layer 를 받아 18테마 × 시점 교차 후 캘린더 grid 출력.
+//
+// 계산은 일체 하지 않음. 모든 raw layer 는 Saju/sajuLayers + astrology/astroLayers 에서 받음.
 
 import type { Chart, NatalInput } from '@/lib/astrology/foundation/types'
 import type { SimpleSajuPillars, SajuThemeKey } from '@/lib/Saju/themes/types'
 import type { CrossTone, ThemeKey, ThemeTimingCross } from '../crosses/types'
 import { crossThemeAtTime } from '../crosses'
-import { getIljinCalendar, getMonthlyCycles } from '@/lib/Saju/foundation/unse'
-import { analyzeDailySaju } from '@/lib/Saju/timing/daily'
-import { analyzeMonthlySaju } from '@/lib/Saju/timing/monthly'
-import { calculateProfection, getProfectionInterpretation } from '@/lib/astrology/foundation/profections'
-import { calculateSolarReturn, calculateLunarReturn } from '@/lib/astrology/foundation/returns'
-import { calculateTransitChart, findMajorTransits } from '@/lib/astrology/foundation/transit'
-import { analyzeYearlyAstro } from '@/lib/astrology/timing/yearly'
-import { analyzeMonthlyAstro } from '@/lib/astrology/timing/monthly'
-import { analyzeDailyAstro } from '@/lib/astrology/timing/daily'
-import { analyzeDecadalAstro } from '@/lib/astrology/timing/decadal'
-import { analyzeLifetimeAstro } from '@/lib/astrology/timing/lifetime'
-import { getRetrogradePlanets, checkVoidOfCourse } from '@/lib/astrology/foundation/electional'
-import { getEclipsesBetween } from '@/lib/astrology/foundation/eclipses'
-import { getDecan } from '@/lib/astrology/foundation/decans'
-import { getEgyptianBound } from '@/lib/astrology/foundation/bounds'
-import { findFixedStarConjunctions } from '@/lib/astrology/foundation/fixedStars'
-import { calculateArabicLots, getLotInterpretation } from '@/lib/astrology/foundation/arabicParts'
-import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progressions'
-import { analyzeHourlySaju } from '@/lib/Saju/timing/hourly'
-import { analyzeHourlyAstro, type PlanetaryHourPlanet } from '@/lib/astrology/timing/hourly'
-import { STEMS, TIME_STEM_LOOKUP } from '@/lib/Saju/foundation/constants'
-import { getTimeBranchFromHour } from '@/lib/Saju/foundation/validation'
-import { getYearPillarForDate } from '@/lib/Saju/foundation/datePillars'
-import type { DayMaster, IljinData, WolunData } from '@/lib/Saju/foundation/types'
+import {
+  getSajuLayersForDate,
+  getSajuMonthDailyLayers,
+} from '@/lib/Saju/sajuLayers'
+import {
+  getAstroLayersForDate,
+  getAstroMonthDailyLayers,
+} from '@/lib/astrology/astroLayers'
 import type { SajuTimingAnalysis } from '@/lib/Saju/timing/types'
 import type { AstroTimingAnalysis } from '@/lib/astrology/timing/types'
 import type { CalendarDay, CalendarMonth, CalendarDayDetail } from './types'
@@ -44,9 +30,8 @@ const ALL_THEMES: SajuThemeKey[] = [
 ]
 
 // ============================================================
-// 헬퍼
+// tone → score
 // ============================================================
-
 const TONE_TO_SCORE: Record<CrossTone, number> = {
   'strong-positive': 1.0,
   positive:          0.7,
@@ -66,7 +51,6 @@ function aggregateTone(tones: CrossTone[]): CrossTone {
     'strong-positive': 0, positive: 0, mixed: 0, neutral: 0, cautious: 0, 'strong-negative': 0,
   }
   for (const t of tones) counts[t] += 1
-  // 우선순위 결정 — strong이 있으면 우선
   if (counts['strong-positive'] >= 2) return 'strong-positive'
   if (counts['strong-negative'] >= 2) return 'strong-negative'
   if (counts.positive > counts.cautious) return 'positive'
@@ -95,102 +79,11 @@ const LABEL_BY_DOMAIN_TONE: Record<string, string> = {
 
 function generateLabel(topDomain: ThemeKey | null, tone: CrossTone): string {
   if (!topDomain) return '평이한 날'
-  const key = `${topDomain}.${tone}`
-  return LABEL_BY_DOMAIN_TONE[key] ?? `${topDomain} ${tone}`
+  return LABEL_BY_DOMAIN_TONE[`${topDomain}.${tone}`] ?? `${topDomain} ${tone}`
 }
 
 function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate()
-}
-
-// ============================================================
-// 시진(時辰) 계산 — Saju 엔진의 foundation 함수 재사용
-// (saju.ts:295~325 와 동일 로직: TIME_STEM_LOOKUP + getTimeBranchFromHour)
-// ============================================================
-const STEM_NAMES = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸']
-const BRANCH_NAMES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
-
-function calcHourPillar(dayStem: string, hour: number): { stem: string; branch: string } | null {
-  const firstHourStem = TIME_STEM_LOOKUP[dayStem]
-  if (!firstHourStem) return null
-  const branch = getTimeBranchFromHour(hour)   // 23시=子 정확 매핑
-  const branchIdx = BRANCH_NAMES.indexOf(branch)
-  const stemStartIdx = STEM_NAMES.indexOf(firstHourStem)
-  if (stemStartIdx < 0 || branchIdx < 0) return null
-  const stemIdx = (stemStartIdx + branchIdx) % 10
-  return { stem: STEM_NAMES[stemIdx], branch }
-}
-
-// ============================================================
-// 행성시 (Planetary Hour) — Chaldean order, 단순 (sunrise 06:00 가정)
-// ============================================================
-const CHALDEAN_ORDER: PlanetaryHourPlanet[] = ['Saturn','Jupiter','Mars','Sun','Venus','Mercury','Moon']
-// 요일별 첫 행성시 (sunday=Sun, ...)
-const DAY_RULER: PlanetaryHourPlanet[] = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn']
-
-function calcPlanetaryHour(date: Date, hour: number): PlanetaryHourPlanet {
-  const dayOfWeek = date.getDay()
-  const startPlanet = DAY_RULER[dayOfWeek]
-  const startIdx = CHALDEAN_ORDER.indexOf(startPlanet)
-  // 06:00 부터 1시간씩 Chaldean 역순으로 진행
-  const hoursFromSunrise = (hour - 6 + 24) % 24
-  const idx = (startIdx + hoursFromSunrise) % 7
-  return CHALDEAN_ORDER[idx]
-}
-
-/**
- * 시진 layer (사주 + 점성 행성시) 빌드. hour=0~23.
- * 둘 다 hourly 분석 반환 — 실패 시 null.
- */
-function buildHourlyLayers(
-  date: string,
-  hour: number,
-  dayStem: string,
-): { saju?: SajuTimingAnalysis; astro?: AstroTimingAnalysis } {
-  const result: { saju?: SajuTimingAnalysis; astro?: AstroTimingAnalysis } = {}
-  const dt = new Date(`${date}T${String(hour).padStart(2, '0')}:00:00`)
-  if (isNaN(dt.getTime())) return result
-
-  // 사주 시진
-  try {
-    const hourPillar = calcHourPillar(dayStem, hour)
-    if (hourPillar) {
-      result.saju = analyzeHourlySaju({ date: dt, hourPillar, dayMaster: dayStem })
-    }
-  } catch { /* skip */ }
-
-  // 점성 행성시
-  try {
-    const planet = calcPlanetaryHour(dt, hour)
-    const isDay = hour >= 6 && hour < 18
-    result.astro = analyzeHourlyAstro({
-      isoDateTime: `${date}T${String(hour).padStart(2, '0')}:00:00`,
-      planet,
-      isDay,
-    })
-  } catch { /* skip */ }
-
-  return result
-}
-
-/**
- * 사주 일간 stem (예: '甲') → DayMaster 객체.
- */
-function getDayMaster(stemName: string): DayMaster | null {
-  const found = STEMS.find((s) => s.name === stemName)
-  return found ? (found as DayMaster) : null
-}
-
-/**
- * 일진 list → date 키 map.
- */
-function indexIljinByDate(iljins: IljinData[]): Record<string, IljinData> {
-  const map: Record<string, IljinData> = {}
-  for (const i of iljins) {
-    const date = `${i.year}-${String(i.month).padStart(2, '0')}-${String(i.day).padStart(2, '0')}`
-    map[date] = i
-  }
-  return map
 }
 
 const DOMAIN_ADVICE_DO: Record<string, string[]> = {
@@ -227,7 +120,6 @@ function generateAdvice(crosses: ThemeTimingCross[]): { do: string[]; avoid: str
     if (DOMAIN_ADVICE_DO[key]) doList.push(...DOMAIN_ADVICE_DO[key])
     if (DOMAIN_ADVICE_AVOID[key]) avoidList.push(...DOMAIN_ADVICE_AVOID[key])
   }
-  // 중복 제거 + 최대 5개
   return {
     do: Array.from(new Set(doList)).slice(0, 5),
     avoid: Array.from(new Set(avoidList)).slice(0, 5),
@@ -263,21 +155,19 @@ function buildMonthNarrative(
 export interface CalendarAdapterInput {
   saju: SimpleSajuPillars
   astro: Chart
-  natalInput?: NatalInput                  // Solar/Lunar Return + daily transit 산출용 (옵션)
-  iljinByDate?: Record<string, string>     // '2027-05-15' → '갑자' (외부 계산)
-  age?: number                             // 점성 Profection 용 (옵션)
-  // 사주 세운/대운 wire 용 (caller 가 calculateSajuData 결과에서 추출해 넘김)
+  natalInput?: NatalInput
+  iljinByDate?: Record<string, string>
+  age?: number
   birthYear?: number
   daeunList?: Array<{ stem: string; branch: string; startAge: number }>
-  // 추가 사주·점성 layer (caller 가 미리 계산해 넘김 — 세운·일진 형충회합 등)
   extraSajuTimings?: SajuTimingAnalysis[]
   extraAstroTimings?: AstroTimingAnalysis[]
-  // 시진(時辰) layer — 일별 상세 시 0~23 hour 지정. month build 시 정오(12) 기준 자동 적용.
   hour?: number
 }
 
 /**
- * 월별 캘린더 — 6 핵심 테마 × 30일 cross.
+ * 월별 캘린더 — 6 핵심 테마 × N일 cross.
+ * 계산은 sajuLayers / astroLayers 에 위임.
  */
 export async function buildCalendarMonth(
   input: CalendarAdapterInput,
@@ -286,294 +176,83 @@ export async function buildCalendarMonth(
 ): Promise<CalendarMonth> {
   const daysInMonth = getDaysInMonth(year, month)
   const days: CalendarDay[] = []
+  const hour = input.hour ?? 12
 
   // ============================================================
-  // Layer 1: 사주 일진 매일 (KASI)
+  // 그 달 한 번만 계산되는 사주 layer (대운/세운/월운)
   // ============================================================
-  const dayMaster = getDayMaster(input.saju.day.stem)
-  const iljins: IljinData[] = dayMaster
-    ? getIljinCalendar(year, month, dayMaster)
-    : []
-  const iljinMap = indexIljinByDate(iljins)
+  const monthSaju = getSajuLayersForDate({
+    dayMaster: input.saju.day.stem,
+    daeunList: input.daeunList,
+    birthYear: input.birthYear,
+    age: input.age,
+    year, month,
+  })
+
+  // 일진 30일 batch
+  const dailySajuMap = getSajuMonthDailyLayers({
+    dayMaster: input.saju.day.stem,
+    year, month,
+  })
 
   // ============================================================
-  // Layer 2: 사주 월운 (그 달 1개)
+  // 그 달 한 번만 계산되는 점성 layer (decadal/lifetime/lots/yearly/monthly)
   // ============================================================
-  let sajuMonthly: SajuTimingAnalysis | undefined
-  if (dayMaster) {
-    const monthCycles = getMonthlyCycles(year, dayMaster) as WolunData[]
-    const thisMonth = monthCycles.find((m) => m.month === month)
-    if (thisMonth) {
-      sajuMonthly = analyzeMonthlySaju({ month: thisMonth, dayMaster: input.saju.day.stem })
-    }
-  }
+  const monthAstro = await getAstroLayersForDate({
+    natal: input.astro,
+    natalInput: input.natalInput,
+    age: input.age,
+    year, month,
+  })
 
-  // ============================================================
-  // Layer 2b: 사주 세운 (그 해 1개) — birthYear + daeunList 제공 시
-  // ============================================================
-  let sajuYearly: SajuTimingAnalysis | undefined
-  if (input.birthYear != null && input.daeunList && input.daeunList.length > 0) {
-    try {
-      // 입춘(절기) 기준 정확한 세운 — 월 중간(15일)을 샘플로 사용해
-      // 1~2월 초의 입춘 전/후 경계도 정확히 반영.
-      const sampleDate = new Date(year, month - 1, 15)
-      const yearPillar = getYearPillarForDate(sampleDate)
-      sajuYearly = {
-        unit: 'yearly',
-        periodLabel: `세운 ${year} ${yearPillar.stem}${yearPillar.branch}`,
-        highlights: [{
-          source: `세운 ${yearPillar.stem}${yearPillar.branch}`,
-          meaning: `${year}년 천간 ${yearPillar.stem}, 지지 ${yearPillar.branch} — 본명과 작용.`,
-          tone: 'neutral',
-        }],
-        summary: `${year} 세운 ${yearPillar.stem}${yearPillar.branch}`,
-      }
-    } catch { /* skip */ }
-  }
-
-  // ============================================================
-  // Layer 2c: 사주 대운 (활성 period) — daeunList 제공 시
-  // ============================================================
-  let sajuDecadal: SajuTimingAnalysis | undefined
-  if (input.daeunList && input.age != null) {
-    const active = input.daeunList.find((d) => input.age! >= d.startAge && input.age! < d.startAge + 10)
-    if (active) {
-      sajuDecadal = {
-        unit: 'decadal',
-        periodLabel: `대운 ${active.stem}${active.branch} (age ${active.startAge}-${active.startAge + 9})`,
-        highlights: [{
-          source: `대운 ${active.stem}${active.branch}`,
-          meaning: `${active.startAge}-${active.startAge + 9}세 대운 — ${active.stem}${active.branch} 10년 backdrop.`,
-          tone: 'neutral',
-        }],
-        summary: `대운 ${active.stem}${active.branch}`,
-      }
-    }
-  }
-
-  // ============================================================
-  // Layer 3: 점성 Profection (그 해 1개) — age 제공 시
-  // ============================================================
-  let astroYearly: AstroTimingAnalysis | undefined
-  if (input.age != null) {
-    try {
-      const prof = calculateProfection(input.astro, input.age)
-      astroYearly = {
-        unit: 'yearly',
-        periodLabel: `Profection age ${prof.age}`,
-        highlights: [{
-          source: `Profection age ${prof.age} — house ${prof.activatedHouse}`,
-          meaning: getProfectionInterpretation(prof),
-          tone: 'neutral',
-        }],
-        summary: `${prof.activatedHouse}궁 활성, Lord ${prof.lordOfYear}`,
-      }
-    } catch { /* skip */ }
-  }
-
-  // ============================================================
-  // Layer 4: 점성 Solar Return (그 해 1번) + Lunar Return (그 달 1번)
-  // — natalInput 제공 시 Swiss Ephemeris 호출
-  // ============================================================
-  let astroSolarReturn: AstroTimingAnalysis | undefined
-  let astroLunarReturn: AstroTimingAnalysis | undefined
-  if (input.natalInput) {
-    try {
-      const sr = await calculateSolarReturn({ natal: input.natalInput, year })
-      astroSolarReturn = analyzeYearlyAstro(sr)
-    } catch { /* skip */ }
-    try {
-      const lr = await calculateLunarReturn({ natal: input.natalInput, year, month })
-      astroLunarReturn = analyzeMonthlyAstro(lr)
-    } catch { /* skip */ }
-  }
-
-  // ============================================================
-  // Layer 5: 점성 ZR period (장기, 1번)
-  // ============================================================
-  let astroDecadal: AstroTimingAnalysis | undefined
-  if (input.age != null) {
-    try {
-      astroDecadal = analyzeDecadalAstro(input.astro, { age: input.age, yearsToProject: 90 })
-    } catch { /* skip */ }
-  }
-
-  // ============================================================
-  // Layer 5b: 점성 Progressions (lifetime, 1번)
-  // ============================================================
-  let astroLifetime: AstroTimingAnalysis | undefined
-  if (input.natalInput) {
-    try {
-      const targetDate = `${year}-${String(month).padStart(2, '0')}-15`
-      const progressed = await calculateSecondaryProgressions({
-        natal: input.natalInput,
-        targetDate,
+  // daily transit 30일 batch
+  const dailyAstroMap = input.natalInput
+    ? await getAstroMonthDailyLayers({
+        natal: input.astro,
+        natalInput: input.natalInput,
+        year, month,
       })
-      astroLifetime = analyzeLifetimeAstro(progressed, input.astro)
-    } catch { /* skip */ }
-  }
+    : new Map<string, AstroTimingAnalysis[]>()
 
   // ============================================================
-  // Layer 5c: 점성 Arabic Lots (1번, chart 기반)
+  // 30일 루프 — 그 날에 hourly 추가 + cross
   // ============================================================
-  let astroLots: AstroTimingAnalysis | undefined
-  try {
-    const sun = input.astro.planets.find((p) => p.name === 'Sun')
-    const isDay = sun ? sun.house >= 7 && sun.house <= 12 : true
-    const lots = calculateArabicLots(input.astro, isDay)
-    astroLots = {
-      unit: 'lifetime',
-      periodLabel: 'Arabic Lots (natal)',
-      highlights: lots.map((l) => ({
-        source: `Lot of ${l.name} in ${l.sign}`,
-        meaning: getLotInterpretation(l),
-        tone: 'neutral' as const,
-      })),
-      summary: `${lots.length}개 lots`,
-    }
-  } catch { /* skip */ }
-
-  // ============================================================
-  // Layer 6: 점성 Eclipses (그 달 일·월식)
-  // ============================================================
-  let astroEclipses: AstroTimingAnalysis | undefined
-  try {
-    const start = `${year}-${String(month).padStart(2, '0')}-01`
-    const end = `${year}-${String(month).padStart(2, '0')}-${daysInMonth}`
-    const eclipses = getEclipsesBetween(start, end)
-    if (eclipses.length > 0) {
-      astroEclipses = {
-        unit: 'monthly',
-        periodLabel: `Eclipses ${year}-${month}`,
-        highlights: eclipses.map((e) => ({
-          source: `${e.type} eclipse ${e.date}`,
-          meaning: `${e.type} 일·월식 — ${e.sign} 영역 강한 변환점.`,
-          tone: 'cautious',
-        })),
-        summary: `${eclipses.length}개 일·월식`,
-      }
-    }
-  } catch { /* skip */ }
-
-  // ============================================================
-  // Layer 7: 점성 daily transit + Retrograde + VoC + Decan/Bound (매일)
-  // ============================================================
-  const dailyAstroByDate = new Map<string, AstroTimingAnalysis[]>()
-  if (input.natalInput) {
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-      try {
-        const transitChart = await calculateTransitChart({
-          iso: `${date}T12:00:00`,
-          latitude: input.natalInput.latitude,
-          longitude: input.natalInput.longitude,
-          timeZone: input.natalInput.timeZone,
-        })
-        const aspects = findMajorTransits(transitChart, input.astro, 1.0)
-        const dayAnalyses: AstroTimingAnalysis[] = []
-        // 7a. transit aspects
-        dayAnalyses.push(analyzeDailyAstro({
-          isoDate: date,
-          transitChart,
-          transitToNatalAspects: aspects.map(a => ({
-            from: a.from, to: a.to, type: a.type, orb: a.orb, applying: a.applying, score: a.score,
-          })),
-        }))
-        // 7b. Retrograde + VoC (electional 보조)
-        const retros = getRetrogradePlanets(transitChart)
-        const voc = checkVoidOfCourse(transitChart)
-        const electHighlights = []
-        if (retros.length > 0) {
-          electHighlights.push({
-            source: `역행: ${retros.join(', ')}`,
-            meaning: `${retros.join(', ')} 역행 중 — 해당 행성 영역 신중.`,
-            tone: 'cautious' as const,
-          })
-        }
-        if (voc.isVoid) {
-          electHighlights.push({
-            source: 'Void of Course Moon',
-            meaning: '보이드 — 새 시작 보류, 마무리 일에 적합.',
-            tone: 'cautious' as const,
-          })
-        }
-        // 7c. Decan/Bound transit (Sun·Moon·Venus 위주)
-        for (const planet of transitChart.planets) {
-          if (!['Sun', 'Moon', 'Venus', 'Mars', 'Mercury'].includes(planet.name)) continue
-          const decan = getDecan(planet.longitude)
-          const bound = getEgyptianBound(planet.longitude)
-          electHighlights.push({
-            source: `${planet.name} ${planet.sign} (decan ${decan.ruler}, bound ${bound.ruler})`,
-            meaning: `${planet.name} 트랜짓 — decan ruler ${decan.ruler}, bound ruler ${bound.ruler}.`,
-            tone: 'neutral' as const,
-          })
-        }
-        // 7d. Fixed Star transits (트랜짓 행성이 항성 conjunction)
-        try {
-          const starHits = findFixedStarConjunctions(transitChart, year, 1.0)
-          for (const hit of starHits.slice(0, 3)) {
-            const nature = (hit.star as { nature?: string }).nature ?? 'mixed'
-            electHighlights.push({
-              source: `Fixed Star ${hit.star.name} ↔ ${hit.planet} (orb ${hit.orb.toFixed(2)}°)`,
-              meaning: `${hit.star.name} (${nature}) — ${hit.planet} 자극.`,
-              tone: (nature === 'benefic' ? 'positive'
-                  : nature === 'malefic' ? 'cautious'
-                  : 'mixed') as 'positive' | 'cautious' | 'mixed',
-            })
-          }
-        } catch { /* skip */ }
-        if (electHighlights.length > 0) {
-          dayAnalyses.push({
-            unit: 'daily',
-            periodLabel: `Electional ${date}`,
-            highlights: electHighlights,
-            summary: `Retrograde ${retros.length}, VoC=${voc.isVoid}`,
-          })
-        }
-        dailyAstroByDate.set(date, dayAnalyses)
-      } catch { /* skip */ }
-    }
-  }
-
   for (let d = 1; d <= daysInMonth; d++) {
     const date = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
-    // ============================================================
-    // Layer 4: 사주 일진 (그 날)
-    // ============================================================
+    // 그 날 hourly (정오 또는 input.hour)
+    const dayLayers = getSajuLayersForDate({
+      dayMaster: input.saju.day.stem,
+      year, month, day: d, hour,
+    })
+    const astroDayLayers = await getAstroLayersForDate({
+      natal: input.astro,
+      year, month, day: d, hour,
+    })
+
+    // 사주 layer 합
     const sajuTimings: SajuTimingAnalysis[] = []
-    if (sajuDecadal) sajuTimings.push(sajuDecadal)
-    if (sajuYearly) sajuTimings.push(sajuYearly)
-    if (sajuMonthly) sajuTimings.push(sajuMonthly)
-    const iljin = iljinMap[date]
-    if (iljin) {
-      sajuTimings.push(analyzeDailySaju({ iljin, dayMaster: input.saju.day.stem }))
-    }
+    if (monthSaju.decadal) sajuTimings.push(monthSaju.decadal)
+    if (monthSaju.yearly) sajuTimings.push(monthSaju.yearly)
+    if (monthSaju.monthly) sajuTimings.push(monthSaju.monthly)
+    const dailySaju = dailySajuMap.get(date)
+    if (dailySaju) sajuTimings.push(dailySaju.daily)
+    if (dayLayers.hourly) sajuTimings.push(dayLayers.hourly)
     if (input.extraSajuTimings) sajuTimings.push(...input.extraSajuTimings)
 
-    // ============================================================
-    // Layer 4b: 사주 시진 + 점성 행성시 (hour 지정 시, 미지정 시 정오)
-    // ============================================================
-    const hour = input.hour ?? 12
-    const hourly = buildHourlyLayers(date, hour, input.saju.day.stem)
-    if (hourly.saju) sajuTimings.push(hourly.saju)
-
-    // ============================================================
-    // 점성 layer 합 (decadal ZR + lifetime Progressions + lots + Profection + SR + LR + Eclipses + daily + hourly)
-    // ============================================================
+    // 점성 layer 합
     const astroTimings: AstroTimingAnalysis[] = []
-    if (hourly.astro) astroTimings.push(hourly.astro)
-    if (astroDecadal) astroTimings.push(astroDecadal)
-    if (astroLifetime) astroTimings.push(astroLifetime)
-    if (astroLots) astroTimings.push(astroLots)
-    if (astroYearly) astroTimings.push(astroYearly)
-    if (astroSolarReturn) astroTimings.push(astroSolarReturn)
-    if (astroLunarReturn) astroTimings.push(astroLunarReturn)
-    if (astroEclipses) astroTimings.push(astroEclipses)
-    const dailyAstros = dailyAstroByDate.get(date)
+    if (monthAstro.decadal) astroTimings.push(monthAstro.decadal)
+    if (monthAstro.lifetime) astroTimings.push(monthAstro.lifetime)
+    if (monthAstro.lots) astroTimings.push(monthAstro.lots)
+    if (monthAstro.yearly) astroTimings.push(...monthAstro.yearly)
+    if (monthAstro.monthly) astroTimings.push(...monthAstro.monthly)
+    const dailyAstros = dailyAstroMap.get(date)
     if (dailyAstros) astroTimings.push(...dailyAstros)
+    if (astroDayLayers.hourly) astroTimings.push(astroDayLayers.hourly)
     if (input.extraAstroTimings) astroTimings.push(...input.extraAstroTimings)
 
+    // 6 핵심 테마 cross
     const crosses = CORE_THEMES.map((theme) =>
       crossThemeAtTime({
         saju: input.saju,
@@ -584,18 +263,15 @@ export async function buildCalendarMonth(
     )
 
     const domainScores: Partial<Record<ThemeKey, number>> = {}
-    for (const c of crosses) {
-      domainScores[c.theme] = scoreFromTone(c.crossView.tone)
-    }
+    for (const c of crosses) domainScores[c.theme] = scoreFromTone(c.crossView.tone)
 
     const topEntry = Object.entries(domainScores).sort((a, b) => (b[1] as number) - (a[1] as number))[0]
     const topDomain = (topEntry?.[0] ?? null) as ThemeKey | null
     const tone = aggregateTone(crosses.map((c) => c.crossView.tone))
     const label = generateLabel(topDomain, tone)
 
-    // 일진 자동 표시 (input.iljinByDate 우선, 없으면 계산값)
     const iljinLabel = input.iljinByDate?.[date]
-      ?? (iljin ? `${iljin.heavenlyStem}${iljin.earthlyBranch}` : undefined)
+      ?? (dailySaju ? `${dailySaju.iljinRaw.heavenlyStem}${dailySaju.iljinRaw.earthlyBranch}` : undefined)
 
     days.push({
       date,
@@ -608,7 +284,7 @@ export async function buildCalendarMonth(
     })
   }
 
-  // Highlights
+  // 통계
   const sortedByScore = [...days].sort(
     (a, b) => (b.domainScores[b.topDomain!] ?? 0) - (a.domainScores[a.topDomain!] ?? 0),
   )
@@ -623,7 +299,6 @@ export async function buildCalendarMonth(
       .slice(0, 5)
   }
 
-  // 월 통계
   const monthlyDomains: Partial<Record<ThemeKey, number>> = {}
   for (const theme of CORE_THEMES) {
     const scores = days.map((d) => d.domainScores[theme] ?? 0)
@@ -634,14 +309,9 @@ export async function buildCalendarMonth(
   const monthNarrative = buildMonthNarrative(monthTone, monthlyDomains, bestDays)
 
   return {
-    year,
-    month,
-    days,
+    year, month, days,
     highlights: { bestDays, cautionDays, auspiciousByDomain },
-    monthScore,
-    monthTone,
-    monthlyDomains,
-    monthNarrative,
+    monthScore, monthTone, monthlyDomains, monthNarrative,
   }
 }
 
@@ -656,174 +326,46 @@ export async function buildCalendarDay(
   },
   date: string,
 ): Promise<CalendarDayDetail> {
-  // 그 날 사주 일진 자동 계산
   const [yearStr, monthStr, dayStr] = date.split('-')
   const year = parseInt(yearStr, 10)
   const monthNum = parseInt(monthStr, 10)
   const dayNum = parseInt(dayStr, 10)
-  const dayMaster = getDayMaster(input.saju.day.stem)
+  const hour = input.hour ?? 12
+
+  // 사주 layer 전부
+  const sajuBundle = getSajuLayersForDate({
+    dayMaster: input.saju.day.stem,
+    daeunList: input.daeunList,
+    birthYear: input.birthYear,
+    age: input.age,
+    year, month: monthNum, day: dayNum, hour,
+  })
   const sajuTimings: SajuTimingAnalysis[] = []
-  let computedIljin: IljinData | undefined
-  let computedIsCheoneul: boolean | undefined
-  // 대운 (decadal layer) — daeunList 제공 시
-  if (input.daeunList && input.age != null) {
-    const active = input.daeunList.find((d) => input.age! >= d.startAge && input.age! < d.startAge + 10)
-    if (active) {
-      sajuTimings.push({
-        unit: 'decadal',
-        periodLabel: `대운 ${active.stem}${active.branch}`,
-        highlights: [{
-          source: `대운 ${active.stem}${active.branch}`,
-          meaning: `${active.startAge}-${active.startAge + 9}세 backdrop.`,
-          tone: 'neutral',
-        }],
-        summary: `대운 ${active.stem}${active.branch}`,
-      })
-    }
-  }
-  // 세운 (yearly layer) — 입춘 경계 정확 반영 (그 날짜 기준)
-  if (input.birthYear != null && input.daeunList && input.daeunList.length > 0) {
-    try {
-      const yearPillar = getYearPillarForDate(new Date(year, monthNum - 1, dayNum))
-      sajuTimings.push({
-        unit: 'yearly',
-        periodLabel: `세운 ${year} ${yearPillar.stem}${yearPillar.branch}`,
-        highlights: [{
-          source: `세운 ${yearPillar.stem}${yearPillar.branch}`,
-          meaning: `${year}년 천간 ${yearPillar.stem}, 지지 ${yearPillar.branch}.`,
-          tone: 'neutral',
-        }],
-        summary: `${year} 세운 ${yearPillar.stem}${yearPillar.branch}`,
-      })
-    } catch { /* skip */ }
-  }
-  if (dayMaster) {
-    // 월운 (월 layer)
-    const monthCycles = getMonthlyCycles(year, dayMaster) as WolunData[]
-    const thisMonth = monthCycles.find((m) => m.month === monthNum)
-    if (thisMonth) {
-      sajuTimings.push(analyzeMonthlySaju({ month: thisMonth, dayMaster: input.saju.day.stem }))
-    }
-    // 일진 (일 layer)
-    const iljins = getIljinCalendar(year, monthNum, dayMaster)
-    computedIljin = iljins.find((i) => i.day === dayNum)
-    if (computedIljin) {
-      sajuTimings.push(analyzeDailySaju({ iljin: computedIljin, dayMaster: input.saju.day.stem }))
-      computedIsCheoneul = computedIljin.isCheoneulGwiin
-    }
-  }
+  if (sajuBundle.decadal) sajuTimings.push(sajuBundle.decadal)
+  if (sajuBundle.yearly) sajuTimings.push(sajuBundle.yearly)
+  if (sajuBundle.monthly) sajuTimings.push(sajuBundle.monthly)
+  if (sajuBundle.daily) sajuTimings.push(sajuBundle.daily)
+  if (sajuBundle.hourly) sajuTimings.push(sajuBundle.hourly)
   if (input.extraSajuTimings) sajuTimings.push(...input.extraSajuTimings)
 
-  // 시진 layer (input.hour 제공 시 — 미지정 시 정오 12)
-  const hour = input.hour ?? 12
-  const hourly = buildHourlyLayers(date, hour, input.saju.day.stem)
-  if (hourly.saju) sajuTimings.push(hourly.saju)
-
-  // 점성 layers (Decadal ZR + Profection + SR + LR + Eclipses + Daily transit + Retrograde + VoC + Decan/Bound + Hourly)
+  // 점성 layer 전부
+  const astroBundle = await getAstroLayersForDate({
+    natal: input.astro,
+    natalInput: input.natalInput,
+    age: input.age,
+    year, month: monthNum, day: dayNum, hour,
+  })
   const astroTimings: AstroTimingAnalysis[] = []
-  if (hourly.astro) astroTimings.push(hourly.astro)
-  if (input.age != null) {
-    try {
-      astroTimings.push(analyzeDecadalAstro(input.astro, { age: input.age }))
-    } catch { /* skip */ }
-    try {
-      const prof = calculateProfection(input.astro, input.age)
-      astroTimings.push({
-        unit: 'yearly',
-        periodLabel: `Profection age ${prof.age}`,
-        highlights: [{
-          source: `Profection ${prof.activatedHouse}궁`,
-          meaning: getProfectionInterpretation(prof),
-          tone: 'neutral',
-        }],
-        summary: `${prof.activatedHouse}궁 활성, Lord ${prof.lordOfYear}`,
-      })
-    } catch { /* skip */ }
-  }
-  // Eclipses 그 달
-  try {
-    const start = `${year}-${String(monthNum).padStart(2, '0')}-01`
-    const lastDay = new Date(year, monthNum, 0).getDate()
-    const end = `${year}-${String(monthNum).padStart(2, '0')}-${lastDay}`
-    const eclipses = getEclipsesBetween(start, end)
-    if (eclipses.length > 0) {
-      astroTimings.push({
-        unit: 'monthly',
-        periodLabel: `Eclipses ${year}-${monthNum}`,
-        highlights: eclipses.map((e) => ({
-          source: `${e.type} eclipse ${e.date}`,
-          meaning: `${e.type} 일·월식 — ${e.sign} 영역 변환점.`,
-          tone: 'cautious' as const,
-        })),
-        summary: `${eclipses.length}개 일·월식`,
-      })
-    }
-  } catch { /* skip */ }
-  if (input.natalInput) {
-    try {
-      const sr = await calculateSolarReturn({ natal: input.natalInput, year })
-      astroTimings.push(analyzeYearlyAstro(sr))
-    } catch { /* skip */ }
-    try {
-      const lr = await calculateLunarReturn({ natal: input.natalInput, year, month: monthNum })
-      astroTimings.push(analyzeMonthlyAstro(lr))
-    } catch { /* skip */ }
-    try {
-      const transitChart = await calculateTransitChart({
-        iso: `${date}T12:00:00`,
-        latitude: input.natalInput.latitude,
-        longitude: input.natalInput.longitude,
-        timeZone: input.natalInput.timeZone,
-      })
-      const aspects = findMajorTransits(transitChart, input.astro, 1.0)
-      astroTimings.push(analyzeDailyAstro({
-        isoDate: date,
-        transitChart,
-        transitToNatalAspects: aspects.map(a => ({
-          from: a.from, to: a.to, type: a.type, orb: a.orb, applying: a.applying, score: a.score,
-        })),
-      }))
-      // Retrograde + VoC + Decan/Bound transit
-      const retros = getRetrogradePlanets(transitChart)
-      const voc = checkVoidOfCourse(transitChart)
-      const electHighlights = []
-      if (retros.length > 0) {
-        electHighlights.push({
-          source: `역행: ${retros.join(', ')}`,
-          meaning: `${retros.join(', ')} 역행 — 신중.`,
-          tone: 'cautious' as const,
-        })
-      }
-      if (voc.isVoid) {
-        electHighlights.push({
-          source: 'Void of Course Moon',
-          meaning: '보이드 — 새 시작 보류.',
-          tone: 'cautious' as const,
-        })
-      }
-      for (const planet of transitChart.planets) {
-        if (!['Sun', 'Moon', 'Venus', 'Mars', 'Mercury'].includes(planet.name)) continue
-        const decan = getDecan(planet.longitude)
-        const bound = getEgyptianBound(planet.longitude)
-        electHighlights.push({
-          source: `${planet.name} ${planet.sign} (decan ${decan.ruler}, bound ${bound.ruler})`,
-          meaning: `${planet.name} — decan ${decan.ruler}, bound ${bound.ruler}.`,
-          tone: 'neutral' as const,
-        })
-      }
-      if (electHighlights.length > 0) {
-        astroTimings.push({
-          unit: 'daily',
-          periodLabel: `Electional ${date}`,
-          highlights: electHighlights,
-          summary: `역행 ${retros.length}, VoC=${voc.isVoid}`,
-        })
-      }
-    } catch { /* skip */ }
-  }
-
+  if (astroBundle.decadal) astroTimings.push(astroBundle.decadal)
+  if (astroBundle.lifetime) astroTimings.push(astroBundle.lifetime)
+  if (astroBundle.lots) astroTimings.push(astroBundle.lots)
+  if (astroBundle.yearly) astroTimings.push(...astroBundle.yearly)
+  if (astroBundle.monthly) astroTimings.push(...astroBundle.monthly)
+  if (astroBundle.daily) astroTimings.push(...astroBundle.daily)
+  if (astroBundle.hourly) astroTimings.push(astroBundle.hourly)
   if (input.extraAstroTimings) astroTimings.push(...input.extraAstroTimings)
 
+  // 18 테마 cross
   const crosses = ALL_THEMES.map((theme) =>
     crossThemeAtTime({
       saju: input.saju,
@@ -839,16 +381,11 @@ export async function buildCalendarDay(
     .slice(0, 7)
     .map((c) => c.crossView.consensus)
 
-  // 도메인 점수 (numeric)
   const domainScores: Partial<Record<ThemeKey, number>> = {}
-  for (const c of crosses) {
-    domainScores[c.theme] = scoreFromTone(c.crossView.tone)
-  }
+  for (const c of crosses) domainScores[c.theme] = scoreFromTone(c.crossView.tone)
 
-  // 조언
   const advice = generateAdvice(crosses)
 
-  // TOP 3 of month (옵션)
   const bestDaysOfMonth = input.bestDaysOfMonth?.slice(0, 3).map((d) => ({
     date: d.date,
     label: d.label,
@@ -858,9 +395,9 @@ export async function buildCalendarDay(
   return {
     date,
     iljin: input.iljinByDate?.[date]
-      ?? (computedIljin ? `${computedIljin.heavenlyStem}${computedIljin.earthlyBranch}` : undefined),
+      ?? (sajuBundle.iljinRaw ? `${sajuBundle.iljinRaw.heavenlyStem}${sajuBundle.iljinRaw.earthlyBranch}` : undefined),
     lunar: input.lunarByDate?.[date],
-    isCheoneulGwiin: input.isCheoneulGwiinByDate?.[date] ?? computedIsCheoneul,
+    isCheoneulGwiin: input.isCheoneulGwiinByDate?.[date] ?? sajuBundle.iljinRaw?.isCheoneulGwiin,
     crosses,
     topInsights,
     domainScores,
