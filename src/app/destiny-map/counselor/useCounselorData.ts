@@ -3,14 +3,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
-import type {
-  Lang,
-  ChartData,
-  UserContext,
-  CounselorContextResponse,
-} from '@/types/api'
+import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
 import { logger } from '@/lib/logger'
 
 type SearchParams = Record<string, string | string[] | undefined>
@@ -153,9 +148,9 @@ export function useCounselorData(sp: SearchParams) {
     // 점성은 못 본다" symptom we were seeing.
     const hasAllFields = Boolean(
       advancedAstro &&
-        'fixedStars' in advancedAstro &&
-        'eclipses' in advancedAstro &&
-        'midpoints' in advancedAstro
+      'fixedStars' in advancedAstro &&
+      'eclipses' in advancedAstro &&
+      'midpoints' in advancedAstro
     )
 
     if (!hasAllFields) {

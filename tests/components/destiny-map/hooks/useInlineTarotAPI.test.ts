@@ -4,11 +4,11 @@
  *
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { useInlineTarotAPI } from '@/components/destiny-map/hooks/useInlineTarotAPI';
-import type { UseInlineTarotStateReturn } from '@/components/destiny-map/hooks/useInlineTarotState';
-import type { DrawnCard, Spread, CardInsight } from '@/lib/Tarot/tarot.types';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { renderHook, act, waitFor } from '@testing-library/react'
+import { useInlineTarotAPI } from '@/components/destiny-map/hooks/useInlineTarotAPI'
+import type { UseInlineTarotStateReturn } from '@/components/destiny-map/hooks/useInlineTarotState'
+import type { DrawnCard, Spread, CardInsight } from '@/lib/tarot/tarot.types'
 
 // Mock logger
 vi.mock('@/lib/logger', () => ({
@@ -17,10 +17,10 @@ vi.mock('@/lib/logger', () => ({
     info: vi.fn(),
     debug: vi.fn(),
   },
-}));
+}))
 
 // Mock tarotThemes
-vi.mock('@/lib/Tarot/tarot-spreads-data', () => ({
+vi.mock('@/lib/tarot/tarot-spreads-data', () => ({
   tarotThemes: [
     {
       id: 'general-insight',
@@ -31,16 +31,14 @@ vi.mock('@/lib/Tarot/tarot-spreads-data', () => ({
     },
     {
       id: 'love-relationships',
-      spreads: [
-        { id: 'love-single', title: 'Love Single Card' },
-      ],
+      spreads: [{ id: 'love-single', title: 'Love Single Card' }],
     },
   ],
-}));
+}))
 
 // Mock fetch
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
+const mockFetch = vi.fn()
+global.fetch = mockFetch
 
 describe('useInlineTarotAPI', () => {
   const mockSpread: Spread = {
@@ -53,7 +51,7 @@ describe('useInlineTarotAPI', () => {
       { title: 'Present', titleKo: '현재' },
       { title: 'Future', titleKo: '미래' },
     ],
-  } as Spread;
+  } as Spread
 
   const mockDrawnCards: DrawnCard[] = [
     {
@@ -98,7 +96,7 @@ describe('useInlineTarotAPI', () => {
       },
       isReversed: true,
     },
-  ] as DrawnCard[];
+  ] as DrawnCard[]
 
   // Create mock state manager
   const createMockStateManager = (overrides = {}): UseInlineTarotStateReturn => ({
@@ -148,7 +146,7 @@ describe('useInlineTarotAPI', () => {
       focus_love: 'love-relationships',
       career: 'career-work',
     },
-  });
+  })
 
   const mockProfile = {
     name: 'Test User',
@@ -156,43 +154,50 @@ describe('useInlineTarotAPI', () => {
     birthTime: '12:00',
     city: 'Seoul',
     gender: 'male',
-  };
+  }
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockFetch.mockReset();
-  });
+    vi.clearAllMocks()
+    mockFetch.mockReset()
+  })
 
   afterEach(() => {
-    vi.restoreAllMocks();
-  });
+    vi.restoreAllMocks()
+  })
 
   describe('analyzeQuestion', () => {
     it('should not analyze if concern is empty', async () => {
-      const stateManager = createMockStateManager({ concern: '' });
+      const stateManager = createMockStateManager({ concern: '' })
       const { result } = renderHook(() =>
         useInlineTarotAPI({
           stateManager,
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.analyzeQuestion();
-      });
+        await result.current.analyzeQuestion()
+      })
 
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
+      expect(mockFetch).not.toHaveBeenCalled()
+    })
 
     it('should set isAnalyzing to true during analysis', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       mockFetch.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ spreadId: 'three-card' }),
-        }), 100))
-      );
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ spreadId: 'three-card' }),
+                }),
+              100
+            )
+          )
+      )
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -200,21 +205,21 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       act(() => {
-        result.current.analyzeQuestion();
-      });
+        result.current.analyzeQuestion()
+      })
 
-      expect(stateManager.actions.setIsAnalyzing).toHaveBeenCalledWith(true);
-    });
+      expect(stateManager.actions.setIsAnalyzing).toHaveBeenCalledWith(true)
+    })
 
     it('should send correct request body', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({ spreadId: 'three-card' }),
-      });
+      })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -222,11 +227,11 @@ describe('useInlineTarotAPI', () => {
           lang: 'ko',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.analyzeQuestion();
-      });
+        await result.current.analyzeQuestion()
+      })
 
       expect(mockFetch).toHaveBeenCalledWith('/api/tarot/question-engine-v2', {
         method: 'POST',
@@ -238,19 +243,19 @@ describe('useInlineTarotAPI', () => {
           question: 'What should I focus on?',
           language: 'ko',
         }),
-      });
-    });
+      })
+    })
 
     it('should handle dangerous question response', async () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      const stateManager = createMockStateManager();
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+      const stateManager = createMockStateManager()
       mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({
           isDangerous: true,
           message: 'This question contains harmful content',
         }),
-      });
+      })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -258,26 +263,26 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.analyzeQuestion();
-      });
+        await result.current.analyzeQuestion()
+      })
 
-      expect(alertSpy).toHaveBeenCalledWith('This question contains harmful content');
-      expect(stateManager.actions.selectSpreadAndProceed).not.toHaveBeenCalled();
-      alertSpy.mockRestore();
-    });
+      expect(alertSpy).toHaveBeenCalledWith('This question contains harmful content')
+      expect(stateManager.actions.selectSpreadAndProceed).not.toHaveBeenCalled()
+      alertSpy.mockRestore()
+    })
 
     it('should select spread and proceed on success', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({
           spreadId: 'three-card',
           reason: 'This spread is perfect for your question',
         }),
-      });
+      })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -285,27 +290,27 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.analyzeQuestion();
-      });
+        await result.current.analyzeQuestion()
+      })
 
       expect(stateManager.actions.selectSpreadAndProceed).toHaveBeenCalledWith(
         mockSpread,
         'This spread is perfect for your question'
-      );
-    });
+      )
+    })
 
     it('should use userFriendlyExplanation as reason fallback', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({
           spreadId: 'three-card',
           userFriendlyExplanation: 'Friendly explanation',
         }),
-      });
+      })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -313,26 +318,26 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.analyzeQuestion();
-      });
+        await result.current.analyzeQuestion()
+      })
 
       expect(stateManager.actions.selectSpreadAndProceed).toHaveBeenCalledWith(
         mockSpread,
         'Friendly explanation'
-      );
-    });
+      )
+    })
 
     it('should fallback to first recommended spread if AI spread not found', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({
           spreadId: 'non-existent-spread',
         }),
-      });
+      })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -340,22 +345,19 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.analyzeQuestion();
-      });
+        await result.current.analyzeQuestion()
+      })
 
       // Should use first recommended spread
-      expect(stateManager.actions.selectSpreadAndProceed).toHaveBeenCalledWith(
-        mockSpread,
-        ''
-      );
-    });
+      expect(stateManager.actions.selectSpreadAndProceed).toHaveBeenCalledWith(mockSpread, '')
+    })
 
     it('should go to spread-select on error', async () => {
-      const stateManager = createMockStateManager();
-      mockFetch.mockRejectedValue(new Error('Network error'));
+      const stateManager = createMockStateManager()
+      mockFetch.mockRejectedValue(new Error('Network error'))
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -363,21 +365,21 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.analyzeQuestion();
-      });
+        await result.current.analyzeQuestion()
+      })
 
-      expect(stateManager.actions.setStep).toHaveBeenCalledWith('spread-select');
-    });
+      expect(stateManager.actions.setStep).toHaveBeenCalledWith('spread-select')
+    })
 
     it('should go to spread-select on HTTP error', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       mockFetch.mockResolvedValue({
         ok: false,
         status: 500,
-      });
+      })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -385,18 +387,18 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.analyzeQuestion();
-      });
+        await result.current.analyzeQuestion()
+      })
 
-      expect(stateManager.actions.setStep).toHaveBeenCalledWith('spread-select');
-    });
+      expect(stateManager.actions.setStep).toHaveBeenCalledWith('spread-select')
+    })
 
     it('should always set isAnalyzing to false at the end', async () => {
-      const stateManager = createMockStateManager();
-      mockFetch.mockRejectedValue(new Error('Error'));
+      const stateManager = createMockStateManager()
+      mockFetch.mockRejectedValue(new Error('Error'))
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -404,38 +406,38 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.analyzeQuestion();
-      });
+        await result.current.analyzeQuestion()
+      })
 
-      expect(stateManager.actions.setIsAnalyzing).toHaveBeenLastCalledWith(false);
-    });
-  });
+      expect(stateManager.actions.setIsAnalyzing).toHaveBeenLastCalledWith(false)
+    })
+  })
 
   describe('drawCards', () => {
     it('should not draw if no spread selected', async () => {
-      const stateManager = createMockStateManager({ selectedSpread: null });
+      const stateManager = createMockStateManager({ selectedSpread: null })
       const { result } = renderHook(() =>
         useInlineTarotAPI({
           stateManager,
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.drawCards();
-      });
+        await result.current.drawCards()
+      })
 
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
+      expect(mockFetch).not.toHaveBeenCalled()
+    })
 
     it('should set isDrawing to true at start', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       // Mock to make it hang so we can check initial state
-      mockFetch.mockImplementation(() => new Promise(() => {}));
+      mockFetch.mockImplementation(() => new Promise(() => {}))
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -443,17 +445,17 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       act(() => {
-        result.current.drawCards();
-      });
+        result.current.drawCards()
+      })
 
-      expect(stateManager.actions.setIsDrawing).toHaveBeenCalledWith(true);
-    });
+      expect(stateManager.actions.setIsDrawing).toHaveBeenCalledWith(true)
+    })
 
     it('should send correct draw request', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       // Mock immediate response with no cards to skip animation
       mockFetch
         .mockResolvedValueOnce({
@@ -468,7 +470,7 @@ describe('useInlineTarotAPI', () => {
             guidance: 'Guidance text',
             affirmation: 'Affirmation text',
           }),
-        });
+        })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -476,11 +478,11 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.drawCards();
-      });
+        await result.current.drawCards()
+      })
 
       expect(mockFetch).toHaveBeenCalledWith('/api/tarot', {
         method: 'POST',
@@ -492,11 +494,11 @@ describe('useInlineTarotAPI', () => {
           categoryId: 'general-insight',
           spreadId: 'three-card',
         }),
-      });
-    });
+      })
+    })
 
     it('should set drawn cards from response', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
@@ -510,7 +512,7 @@ describe('useInlineTarotAPI', () => {
             guidance: 'Guidance text',
             affirmation: 'Affirmation text',
           }),
-        });
+        })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -518,22 +520,22 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.drawCards();
-      });
+        await result.current.drawCards()
+      })
 
-      expect(stateManager.actions.setDrawnCards).toHaveBeenCalled();
-    });
+      expect(stateManager.actions.setDrawnCards).toHaveBeenCalled()
+    })
 
     it('should handle draw API error', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       mockFetch.mockResolvedValue({
         ok: false,
         status: 500,
         json: async () => ({ error: 'Server error' }),
-      });
+      })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -541,78 +543,80 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.drawCards();
-      });
+        await result.current.drawCards()
+      })
 
-      expect(stateManager.actions.setIsDrawing).toHaveBeenLastCalledWith(false);
-    });
-  });
+      expect(stateManager.actions.setIsDrawing).toHaveBeenLastCalledWith(false)
+    })
+  })
 
   describe('saveReading', () => {
     it('should not save if already saving', async () => {
-      const stateManager = createMockStateManager({ isSaving: true });
+      const stateManager = createMockStateManager({ isSaving: true })
       const { result } = renderHook(() =>
         useInlineTarotAPI({
           stateManager,
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.saveReading();
-      });
+        await result.current.saveReading()
+      })
 
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
+      expect(mockFetch).not.toHaveBeenCalled()
+    })
 
     it('should not save if already saved', async () => {
-      const stateManager = createMockStateManager({ isSaved: true });
+      const stateManager = createMockStateManager({ isSaved: true })
       const { result } = renderHook(() =>
         useInlineTarotAPI({
           stateManager,
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.saveReading();
-      });
+        await result.current.saveReading()
+      })
 
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
+      expect(mockFetch).not.toHaveBeenCalled()
+    })
 
     it('should not save if no spread selected', async () => {
-      const stateManager = createMockStateManager({ selectedSpread: null });
+      const stateManager = createMockStateManager({ selectedSpread: null })
       const { result } = renderHook(() =>
         useInlineTarotAPI({
           stateManager,
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.saveReading();
-      });
+        await result.current.saveReading()
+      })
 
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
+      expect(mockFetch).not.toHaveBeenCalled()
+    })
 
     it('should send correct save request', async () => {
       const stateManager = createMockStateManager({
         drawnCards: mockDrawnCards,
         overallMessage: 'Overall message',
-        cardInsights: [{ position: 'Past', interpretation: 'Past interpretation' }] as CardInsight[],
+        cardInsights: [
+          { position: 'Past', interpretation: 'Past interpretation' },
+        ] as CardInsight[],
         guidance: 'Guidance text',
         affirmation: 'Affirmation text',
-      });
+      })
 
-      mockFetch.mockResolvedValue({ ok: true });
+      mockFetch.mockResolvedValue({ ok: true })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -620,11 +624,11 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.saveReading();
-      });
+        await result.current.saveReading()
+      })
 
       expect(mockFetch).toHaveBeenCalledWith('/api/tarot/save', {
         method: 'POST',
@@ -632,22 +636,22 @@ describe('useInlineTarotAPI', () => {
           'Content-Type': 'application/json',
         },
         body: expect.any(String),
-      });
+      })
 
-      const savedBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(savedBody.question).toBe('What should I focus on?');
-      expect(savedBody.theme).toBe('general-insight');
-      expect(savedBody.spreadId).toBe('three-card');
-      expect(savedBody.source).toBe('counselor');
-      expect(savedBody.locale).toBe('en');
-    });
+      const savedBody = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(savedBody.question).toBe('What should I focus on?')
+      expect(savedBody.theme).toBe('general-insight')
+      expect(savedBody.spreadId).toBe('three-card')
+      expect(savedBody.source).toBe('counselor')
+      expect(savedBody.locale).toBe('en')
+    })
 
     it('should use Korean titles when lang is ko', async () => {
       const stateManager = createMockStateManager({
         drawnCards: mockDrawnCards,
-      });
+      })
 
-      mockFetch.mockResolvedValue({ ok: true });
+      mockFetch.mockResolvedValue({ ok: true })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -655,23 +659,23 @@ describe('useInlineTarotAPI', () => {
           lang: 'ko',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.saveReading();
-      });
+        await result.current.saveReading()
+      })
 
-      const savedBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(savedBody.spreadTitle).toBe('세 장 뽑기');
-      expect(savedBody.cards[0].name).toBe('바보');
-    });
+      const savedBody = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(savedBody.spreadTitle).toBe('세 장 뽑기')
+      expect(savedBody.cards[0].name).toBe('바보')
+    })
 
     it('should set isSaved on success', async () => {
       const stateManager = createMockStateManager({
         drawnCards: mockDrawnCards,
-      });
+      })
 
-      mockFetch.mockResolvedValue({ ok: true });
+      mockFetch.mockResolvedValue({ ok: true })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -679,24 +683,24 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.saveReading();
-      });
+        await result.current.saveReading()
+      })
 
-      expect(stateManager.actions.setIsSaved).toHaveBeenCalledWith(true);
-    });
+      expect(stateManager.actions.setIsSaved).toHaveBeenCalledWith(true)
+    })
 
     it('should handle save error', async () => {
       const stateManager = createMockStateManager({
         drawnCards: mockDrawnCards,
-      });
+      })
 
       mockFetch.mockResolvedValue({
         ok: false,
         json: async () => ({ error: 'Save failed' }),
-      });
+      })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -704,22 +708,22 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.saveReading();
-      });
+        await result.current.saveReading()
+      })
 
-      expect(stateManager.actions.setIsSaved).not.toHaveBeenCalledWith(true);
-      expect(stateManager.actions.setIsSaving).toHaveBeenLastCalledWith(false);
-    });
+      expect(stateManager.actions.setIsSaved).not.toHaveBeenCalledWith(true)
+      expect(stateManager.actions.setIsSaving).toHaveBeenLastCalledWith(false)
+    })
 
     it('should handle network error during save', async () => {
       const stateManager = createMockStateManager({
         drawnCards: mockDrawnCards,
-      });
+      })
 
-      mockFetch.mockRejectedValue(new Error('Network error'));
+      mockFetch.mockRejectedValue(new Error('Network error'))
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -727,62 +731,62 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.saveReading();
-      });
+        await result.current.saveReading()
+      })
 
-      expect(stateManager.actions.setIsSaving).toHaveBeenLastCalledWith(false);
-    });
-  });
+      expect(stateManager.actions.setIsSaving).toHaveBeenLastCalledWith(false)
+    })
+  })
 
   describe('cleanup', () => {
     it('should abort any pending requests', () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       const { result } = renderHook(() =>
         useInlineTarotAPI({
           stateManager,
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       // Start a request first to create abort controller
-      mockFetch.mockImplementation(() => new Promise(() => {}));
+      mockFetch.mockImplementation(() => new Promise(() => {}))
       act(() => {
-        result.current.analyzeQuestion();
-      });
+        result.current.analyzeQuestion()
+      })
 
       // Cleanup should abort
-      const abortSpy = vi.fn();
+      const abortSpy = vi.fn()
       // Access internal ref is not possible, but we can verify cleanup doesn't throw
       expect(() => {
-        result.current.cleanup();
-      }).not.toThrow();
-    });
+        result.current.cleanup()
+      }).not.toThrow()
+    })
 
     it('should be safe to call cleanup multiple times', () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
       const { result } = renderHook(() =>
         useInlineTarotAPI({
           stateManager,
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       expect(() => {
-        result.current.cleanup();
-        result.current.cleanup();
-        result.current.cleanup();
-      }).not.toThrow();
-    });
-  });
+        result.current.cleanup()
+        result.current.cleanup()
+        result.current.cleanup()
+      }).not.toThrow()
+    })
+  })
 
   describe('interpretation fetch', () => {
     it('should request the main tarot interpret endpoint', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
 
       mockFetch
         .mockResolvedValueOnce({
@@ -797,7 +801,7 @@ describe('useInlineTarotAPI', () => {
             guidance: 'Your guidance',
             affirmation: 'Your affirmation',
           }),
-        });
+        })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -805,11 +809,11 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.drawCards();
-      });
+        await result.current.drawCards()
+      })
 
       expect(mockFetch).toHaveBeenNthCalledWith(
         2,
@@ -820,11 +824,11 @@ describe('useInlineTarotAPI', () => {
             'Content-Type': 'application/json',
           }),
         })
-      );
-    });
+      )
+    })
 
     it('should apply interpretation payload fields from the main tarot response', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
 
       mockFetch
         .mockResolvedValueOnce({
@@ -839,7 +843,7 @@ describe('useInlineTarotAPI', () => {
             guidance: 'Your guidance',
             affirmation: 'Your affirmation',
           }),
-        });
+        })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -847,22 +851,22 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.drawCards();
-      });
+        await result.current.drawCards()
+      })
 
-      expect(stateManager.actions.setOverallMessage).toHaveBeenCalledWith('Hello World');
+      expect(stateManager.actions.setOverallMessage).toHaveBeenCalledWith('Hello World')
       expect(stateManager.actions.setCardInsights).toHaveBeenCalledWith([
         { position: 'Past', interpretation: 'First card insight' },
-      ]);
-      expect(stateManager.actions.setGuidance).toHaveBeenCalledWith('Your guidance');
-      expect(stateManager.actions.setAffirmation).toHaveBeenCalledWith('Your affirmation');
-    });
+      ])
+      expect(stateManager.actions.setGuidance).toHaveBeenCalledWith('Your guidance')
+      expect(stateManager.actions.setAffirmation).toHaveBeenCalledWith('Your affirmation')
+    })
 
     it('should use default copy when interpretation payload is sparse', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
 
       mockFetch
         .mockResolvedValueOnce({
@@ -877,7 +881,7 @@ describe('useInlineTarotAPI', () => {
             guidance: '',
             affirmation: '',
           }),
-        });
+        })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -885,23 +889,23 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.drawCards();
-      });
+        await result.current.drawCards()
+      })
 
       expect(stateManager.actions.setOverallMessage).toHaveBeenCalledWith(
         'I summarized the core of your current situation based on the cards.'
-      );
+      )
       expect(stateManager.actions.setGuidance).toHaveBeenCalledWith(
         'Today, start with one practical action rather than forcing a big conclusion.'
-      );
-      expect(stateManager.actions.setAffirmation).not.toHaveBeenCalled();
-    });
+      )
+      expect(stateManager.actions.setAffirmation).not.toHaveBeenCalled()
+    })
 
     it('should set step to result after interpretation', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
 
       mockFetch
         .mockResolvedValueOnce({
@@ -916,7 +920,7 @@ describe('useInlineTarotAPI', () => {
             guidance: 'Guidance',
             affirmation: '',
           }),
-        });
+        })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -924,17 +928,17 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.drawCards();
-      });
+        await result.current.drawCards()
+      })
 
-      expect(stateManager.actions.setStep).toHaveBeenCalledWith('result');
-    });
+      expect(stateManager.actions.setStep).toHaveBeenCalledWith('result')
+    })
 
     it('should go to result step on interpretation error', async () => {
-      const stateManager = createMockStateManager();
+      const stateManager = createMockStateManager()
 
       mockFetch
         .mockResolvedValueOnce({
@@ -944,7 +948,7 @@ describe('useInlineTarotAPI', () => {
         .mockResolvedValueOnce({
           ok: false,
           json: async () => ({ error: 'failed' }),
-        });
+        })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -952,13 +956,13 @@ describe('useInlineTarotAPI', () => {
           lang: 'en',
           profile: mockProfile,
         })
-      );
+      )
 
       await act(async () => {
-        await result.current.drawCards();
-      });
+        await result.current.drawCards()
+      })
 
-      expect(stateManager.actions.setStep).toHaveBeenCalledWith('result');
-    });
-  });
-});
+      expect(stateManager.actions.setStep).toHaveBeenCalledWith('result')
+    })
+  })
+})

@@ -5,9 +5,9 @@
  */
 
 import { useState, useEffect, useMemo } from 'react'
-import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
-import type { DrawnCard, Spread, CardInsight } from '@/lib/Tarot/tarot.types'
-import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
+import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+import type { DrawnCard, Spread, CardInsight } from '@/lib/tarot/tarot.types'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 
 export type Step = 'concern' | 'spread-select' | 'card-draw' | 'interpreting' | 'result'
 

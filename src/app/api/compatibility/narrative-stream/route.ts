@@ -15,11 +15,7 @@
  */
 
 import { NextRequest } from 'next/server'
-import {
-  initializeApiContext,
-  createPublicStreamGuard,
-  extractLocale,
-} from '@/lib/api/middleware'
+import { initializeApiContext, createPublicStreamGuard, extractLocale } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
@@ -27,8 +23,8 @@ import { logger } from '@/lib/logger'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { isDbPremiumUser } from '@/lib/auth/premium'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { LRUCache } from '@/lib/Saju/cache/LRUCache'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { LRUCache } from '@/lib/saju/cache/LRUCache'
 import { sanitizeAstroJargon, hasJargonLeak } from '@/lib/text/sanitizeAstroJargon'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
@@ -79,9 +75,7 @@ function streamCachedNarrative(text: string, headers: Record<string, string>): R
           return
         }
         controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ content: chunks[i], done: false })}\n\n`
-          )
+          encoder.encode(`data: ${JSON.stringify({ content: chunks[i], done: false })}\n\n`)
         )
         i += 1
         // ~10ms tick — replay 6000 chars in ~1.5s so user still sees the streaming feel
@@ -211,9 +205,7 @@ function compactSajuOverview(saju: unknown): string {
 
   const lines: string[] = []
   if (dm) {
-    lines.push(
-      `일간: ${dm.name} (${dm.element}, ${dm.yin_yang})`
-    )
+    lines.push(`일간: ${dm.name} (${dm.element}, ${dm.yin_yang})`)
   }
   const fmt = (p: Record<string, unknown> | undefined): string => {
     if (!p) return ''
@@ -283,13 +275,20 @@ function compactSajuOverview(saju: unknown): string {
     if (ilju?.character) lines.push(`일주 archetype: ${ilju.character}`)
     const root = orthodox.root as Record<string, unknown> | undefined
     if (root && typeof root.hasRoot === 'boolean') {
-      const branches = Array.isArray(root.rootBranches) ? (root.rootBranches as string[]).join(',') : ''
-      lines.push(`근/통근: ${root.hasRoot ? '있음' : '없음'} (${branches}) 득령=${root.deukryeong} 득지=${root.deukji} 득세=${root.deukse}`)
+      const branches = Array.isArray(root.rootBranches)
+        ? (root.rootBranches as string[]).join(',')
+        : ''
+      lines.push(
+        `근/통근: ${root.hasRoot ? '있음' : '없음'} (${branches}) 득령=${root.deukryeong} 득지=${root.deukji} 득세=${root.deukse}`
+      )
     }
     const positions = orthodox.pillarPositions as Array<Record<string, unknown>> | undefined
     if (Array.isArray(positions) && positions[0]) {
       const tagline = positions
-        .map((p) => `${p.position}=${(p.stem as Record<string, unknown>)?.sibsin || '-'}/${(p.branch as Record<string, unknown>)?.sibsin || '-'}`)
+        .map(
+          (p) =>
+            `${p.position}=${(p.stem as Record<string, unknown>)?.sibsin || '-'}/${(p.branch as Record<string, unknown>)?.sibsin || '-'}`
+        )
         .join(' ')
       lines.push(`궁위(천간/지지 십성): ${tagline}`)
     }
@@ -328,32 +327,34 @@ function buildUserPrompt(
 
   // 사주 raw overview (per person)
   if (blocks.p1SajuOverview) {
-    lines.push(
-      `\n== ${req.pairLabels[0]} 사주 ==\n${blocks.p1SajuOverview}`
-    )
+    lines.push(`\n== ${req.pairLabels[0]} 사주 ==\n${blocks.p1SajuOverview}`)
   }
   if (blocks.p2SajuOverview) {
-    lines.push(
-      `\n== ${req.pairLabels[1]} 사주 ==\n${blocks.p2SajuOverview}`
-    )
+    lines.push(`\n== ${req.pairLabels[1]} 사주 ==\n${blocks.p2SajuOverview}`)
   }
 
   // Extended saju compatibility (십성·신살·합·충·용신·대운·세운·격국·12운성·천간합·공망)
   if (blocks.extendedSaju) {
     const block = JSON.stringify(blocks.extendedSaju, null, 1).slice(0, 6000)
-    lines.push(`\n== 사주 심화 분석 (십성·신살·합·용신·대운/세운·격국·12운성·천간합·공망) ==\n${block}`)
+    lines.push(
+      `\n== 사주 심화 분석 (십성·신살·합·용신·대운/세운·격국·12운성·천간합·공망) ==\n${block}`
+    )
   }
 
   // Extended astro compatibility (synastry/composite/aspects/Mercury·Jupiter·Saturn)
   if (blocks.extendedAstro) {
     const block = JSON.stringify(blocks.extendedAstro, null, 1).slice(0, 6000)
-    lines.push(`\n== 점성 심화 분석 (aspects·synastry·composite·house·Mercury/Jupiter/Saturn 분석) ==\n${block}`)
+    lines.push(
+      `\n== 점성 심화 분석 (aspects·synastry·composite·house·Mercury/Jupiter/Saturn 분석) ==\n${block}`
+    )
   }
 
   // Cross-system analysis (사주 ↔ 점성 매핑)
   if (blocks.crossSystem) {
     const block = JSON.stringify(blocks.crossSystem, null, 1).slice(0, 3000)
-    lines.push(`\n== 사주·점성 교차 분석 (일간↔Sun, 월지↔Moon, 5행 fusion, pillar↔planet 대응) ==\n${block}`)
+    lines.push(
+      `\n== 사주·점성 교차 분석 (일간↔Sun, 월지↔Moon, 5행 fusion, pillar↔planet 대응) ==\n${block}`
+    )
   }
 
   // Couple Matrix — cell-level cross between A and B (saju × saju, saju × astro, astro × astro)
@@ -363,15 +364,31 @@ function buildUserPrompt(
         totalScore?: number
         polarityBalance?: { positive?: number; negative?: number; neutral?: number }
         domainScores?: Record<string, number>
-        topPositiveCells?: Array<{ description: string; sajuBasis: string; astroBasis: string; score: number }>
-        topCautionCells?: Array<{ description: string; sajuBasis: string; astroBasis: string; score: number }>
+        topPositiveCells?: Array<{
+          description: string
+          sajuBasis: string
+          astroBasis: string
+          score: number
+        }>
+        topCautionCells?: Array<{
+          description: string
+          sajuBasis: string
+          astroBasis: string
+          score: number
+        }>
       }
     }
     const s = cm.summary
     if (s) {
       const ds = s.domainScores || {}
-      const topPos = (s.topPositiveCells || []).slice(0, 3).map((c) => `+ ${c.description} [${c.sajuBasis} × ${c.astroBasis}] (score ${c.score})`).join('\n')
-      const topNeg = (s.topCautionCells || []).slice(0, 3).map((c) => `- ${c.description} [${c.sajuBasis} × ${c.astroBasis}] (score ${c.score})`).join('\n')
+      const topPos = (s.topPositiveCells || [])
+        .slice(0, 3)
+        .map((c) => `+ ${c.description} [${c.sajuBasis} × ${c.astroBasis}] (score ${c.score})`)
+        .join('\n')
+      const topNeg = (s.topCautionCells || [])
+        .slice(0, 3)
+        .map((c) => `- ${c.description} [${c.sajuBasis} × ${c.astroBasis}] (score ${c.score})`)
+        .join('\n')
       lines.push(
         `\n== 커플 매트릭스 (셀-단위 교차: 6 레이어) ==\n` +
           `종합점수: ${s.totalScore} / overlap=${s.polarityBalance?.positive || 0}+ / ${s.polarityBalance?.negative || 0}-\n` +
@@ -469,7 +486,8 @@ function buildUserPrompt(
   const at = req.astroTiming
   if (at) {
     if (at.saturnEra) lines.push(`점성 새턴: ${at.saturnEra.signKo} — ${at.saturnEra.bothImpact}`)
-    if (at.jupiterEra) lines.push(`점성 주피터: ${at.jupiterEra.signKo} — ${at.jupiterEra.bothImpact}`)
+    if (at.jupiterEra)
+      lines.push(`점성 주피터: ${at.jupiterEra.signKo} — ${at.jupiterEra.bothImpact}`)
     if (at.crossNarrative) lines.push(`교차 신호: ${at.crossNarrative}`)
   }
 
@@ -479,9 +497,7 @@ function buildUserPrompt(
   return lines.join('\n')
 }
 
-async function buildExtendedBlocks(
-  persons: NarrativePerson[]
-): Promise<{
+async function buildExtendedBlocks(persons: NarrativePerson[]): Promise<{
   p1SajuOverview: string
   p2SajuOverview: string
   extendedSaju?: unknown
@@ -495,7 +511,7 @@ async function buildExtendedBlocks(
   if (!p1 || !p2) return { p1SajuOverview: '', p2SajuOverview: '' }
 
   // Full saju (cached internally) + orthodox interpretation per person
-  const { buildOrthodoxInterpretation } = await import('@/lib/Saju/orthodoxInterpretation')
+  const { buildOrthodoxInterpretation } = await import('@/lib/saju/orthodoxInterpretation')
   const attachOrthodox = (s: ReturnType<typeof calculateSajuData>, isoBirth: string) => {
     try {
       const koreanAge = new Date().getFullYear() - new Date(isoBirth).getFullYear() + 1
@@ -507,11 +523,23 @@ async function buildExtendedBlocks(
     return s
   }
   const p1Full = attachOrthodox(
-    calculateSajuData(p1.date, p1.time, normalizeSajuGender(p1.gender), 'solar', p1.timeZone || 'Asia/Seoul'),
+    calculateSajuData(
+      p1.date,
+      p1.time,
+      normalizeSajuGender(p1.gender),
+      'solar',
+      p1.timeZone || 'Asia/Seoul'
+    ),
     p1.date
   )
   const p2Full = attachOrthodox(
-    calculateSajuData(p2.date, p2.time, normalizeSajuGender(p2.gender), 'solar', p2.timeZone || 'Asia/Seoul'),
+    calculateSajuData(
+      p2.date,
+      p2.time,
+      normalizeSajuGender(p2.gender),
+      'solar',
+      p2.timeZone || 'Asia/Seoul'
+    ),
     p2.date
   )
 

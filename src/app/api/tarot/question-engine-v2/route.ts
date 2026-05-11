@@ -3,7 +3,7 @@ import { withApiMiddleware, createTarotGuard } from '@/lib/api/middleware'
 import { tarotAnalyzeQuestionSchema } from '@/lib/api/zodValidation'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { logger } from '@/lib/logger'
-import { analyzeTarotQuestionV2 } from '@/lib/Tarot/questionEngineV2'
+import { analyzeTarotQuestionV2 } from '@/lib/tarot/questionEngineV2'
 
 export const POST = withApiMiddleware(
   async (request: NextRequest) => {

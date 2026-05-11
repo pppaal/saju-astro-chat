@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import BackButton from '@/components/ui/BackButton'
-import { getDeckPreviewImagePath } from '@/lib/Tarot/deckPreview'
-import type { Spread } from '@/lib/Tarot/tarot.types'
-import type { CardColorOption } from '@/lib/Tarot/tarotThemeConfig'
+import { getDeckPreviewImagePath } from '@/lib/tarot/deckPreview'
+import type { Spread } from '@/lib/tarot/tarot.types'
+import type { CardColorOption } from '@/lib/tarot/tarotThemeConfig'
 import styles from './CardPickingScreen.module.css'
 
 interface CardPickingScreenProps {

@@ -1,111 +1,108 @@
-"use client";
+'use client'
 
-import React, { memo, useEffect } from "react";
-import TarotCard from "@/components/tarot/TarotCard";
-import type { Spread } from "@/lib/Tarot/tarot.types";
-import styles from "./InlineTarotModal.module.css";
-import { useFocusTrap } from "@/hooks/useFocusTrap";
-import {
-  useInlineTarotState,
-  useInlineTarotAPI,
-  getTarotTranslations,
-  type LangKey,
-} from "./hooks";
+import React, { memo, useEffect } from 'react'
+import TarotCard from '@/components/tarot/TarotCard'
+import type { Spread } from '@/lib/tarot/tarot.types'
+import styles from './InlineTarotModal.module.css'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useInlineTarotState, useInlineTarotAPI, getTarotTranslations, type LangKey } from './hooks'
 
 export interface TarotResultSummary {
-  question: string;
-  spreadTitle: string;
+  question: string
+  spreadTitle: string
   cards: Array<{
-    name: string;
-    isReversed: boolean;
-    position: string;
-    image: string;
-  }>;
-  overallMessage: string;
-  guidance?: string;
-  affirmation?: string;
+    name: string
+    isReversed: boolean
+    position: string
+    image: string
+  }>
+  overallMessage: string
+  guidance?: string
+  affirmation?: string
 }
 
 interface InlineTarotModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onComplete?: (result: TarotResultSummary) => void;
-  lang?: LangKey;
+  isOpen: boolean
+  onClose: () => void
+  onComplete?: (result: TarotResultSummary) => void
+  lang?: LangKey
   profile: {
-    name?: string;
-    birthDate?: string;
-    birthTime?: string;
-    city?: string;
-    gender?: string;
-  };
-  initialConcern?: string;
-  theme?: string;
+    name?: string
+    birthDate?: string
+    birthTime?: string
+    city?: string
+    gender?: string
+  }
+  initialConcern?: string
+  theme?: string
 }
 
 const InlineTarotModal = memo(function InlineTarotModal({
   isOpen,
   onClose,
   onComplete,
-  lang = "ko",
+  lang = 'ko',
   profile,
-  initialConcern = "",
-  theme = "general-insight",
+  initialConcern = '',
+  theme = 'general-insight',
 }: InlineTarotModalProps) {
-  const tr = getTarotTranslations(lang);
+  const tr = getTarotTranslations(lang)
 
   // State management hook
   const stateManager = useInlineTarotState({
     isOpen,
     initialConcern,
     theme,
-  });
+  })
 
-  const { state, actions, recommendedSpreads } = stateManager;
-  const questionSummary = state.questionAnalysis?.question_summary?.trim();
-  const directAnswer = state.questionAnalysis?.direct_answer?.trim();
+  const { state, actions, recommendedSpreads } = stateManager
+  const questionSummary = state.questionAnalysis?.question_summary?.trim()
+  const directAnswer = state.questionAnalysis?.direct_answer?.trim()
 
   // API hook
   const api = useInlineTarotAPI({
     stateManager,
     lang,
     profile,
-  });
+  })
 
   // Focus trap for accessibility
-  const focusTrapRef = useFocusTrap(isOpen);
+  const focusTrapRef = useFocusTrap(isOpen)
 
   // Keyboard handling and body scroll lock
   useEffect(() => {
-    if (!isOpen) {return;}
+    if (!isOpen) {
+      return
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
+      if (e.key === 'Escape') {
+        onClose()
       }
-    };
+    }
 
-    document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
+    document.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden'
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-      api.cleanup();
-    };
-  }, [isOpen, onClose, api]);
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+      api.cleanup()
+    }
+  }, [isOpen, onClose, api])
 
   // Handle concern submission (manual select)
   const handleConcernNext = () => {
     if (state.concern.trim()) {
-      actions.setStep("spread-select");
+      actions.setStep('spread-select')
     }
-  };
+  }
 
   // Handle spread selection
   const handleSpreadSelect = (spread: Spread) => {
-    actions.setSelectedSpread(spread);
-    actions.setStep("card-draw");
-  };
+    actions.setSelectedSpread(spread)
+    actions.setStep('card-draw')
+  }
 
   // Go to full tarot page
   const goToFullTarot = () => {
@@ -115,36 +112,41 @@ const InlineTarotModal = memo(function InlineTarotModal({
       concern: state.concern,
       fromCounselor: true,
       timestamp: Date.now(),
-    };
-    sessionStorage.setItem("tarotContext", JSON.stringify(tarotContext));
-    window.location.href = `/tarot?from=counselor&theme=${encodeURIComponent(theme)}`;
-  };
+    }
+    sessionStorage.setItem('tarotContext', JSON.stringify(tarotContext))
+    window.location.href = `/tarot?from=counselor&theme=${encodeURIComponent(theme)}`
+  }
 
   // Handle completion
   const handleComplete = () => {
     if (onComplete && state.selectedSpread) {
       onComplete({
         question: state.concern,
-        spreadTitle: lang === "ko"
-          ? state.selectedSpread.titleKo || state.selectedSpread.title
-          : state.selectedSpread.title,
+        spreadTitle:
+          lang === 'ko'
+            ? state.selectedSpread.titleKo || state.selectedSpread.title
+            : state.selectedSpread.title,
         cards: state.drawnCards.map((dc, idx) => ({
-          name: lang === "ko" ? dc.card.nameKo || dc.card.name : dc.card.name,
+          name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
           isReversed: dc.isReversed,
-          position: lang === "ko"
-            ? state.selectedSpread!.positions[idx]?.titleKo || state.selectedSpread!.positions[idx]?.title
-            : state.selectedSpread!.positions[idx]?.title,
+          position:
+            lang === 'ko'
+              ? state.selectedSpread!.positions[idx]?.titleKo ||
+                state.selectedSpread!.positions[idx]?.title
+              : state.selectedSpread!.positions[idx]?.title,
           image: dc.card.image,
         })),
         overallMessage: state.overallMessage,
         guidance: state.guidance || undefined,
         affirmation: state.affirmation || undefined,
-      });
+      })
     }
-    onClose();
-  };
+    onClose()
+  }
 
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null
+  }
 
   return (
     <div
@@ -157,7 +159,9 @@ const InlineTarotModal = memo(function InlineTarotModal({
       <div ref={focusTrapRef} className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.header}>
-          <h2 id="tarot-modal-title" className={styles.title}>🃏 {tr.title}</h2>
+          <h2 id="tarot-modal-title" className={styles.title}>
+            🃏 {tr.title}
+          </h2>
           <button className={styles.closeButton} onClick={onClose} aria-label={tr.close}>
             ✕
           </button>
@@ -165,15 +169,19 @@ const InlineTarotModal = memo(function InlineTarotModal({
 
         {/* Step indicator */}
         <div className={styles.stepIndicator}>
-          {["concern", "spread-select", "card-draw", "result"].map((s, i) => (
+          {['concern', 'spread-select', 'card-draw', 'result'].map((s, i) => (
             <div
               key={s}
               className={`${styles.stepDot} ${
-                state.step === s || (state.step === "interpreting" && s === "result") ? styles.active : ""
+                state.step === s || (state.step === 'interpreting' && s === 'result')
+                  ? styles.active
+                  : ''
               } ${
-                ["concern", "spread-select", "card-draw", "interpreting", "result"].indexOf(state.step) > i
+                ['concern', 'spread-select', 'card-draw', 'interpreting', 'result'].indexOf(
+                  state.step
+                ) > i
                   ? styles.completed
-                  : ""
+                  : ''
               }`}
             />
           ))}
@@ -182,7 +190,7 @@ const InlineTarotModal = memo(function InlineTarotModal({
         {/* Content */}
         <div className={styles.content}>
           {/* Step 1: Concern Input */}
-          {state.step === "concern" && (
+          {state.step === 'concern' && (
             <ConcernStep
               tr={tr}
               concern={state.concern}
@@ -194,7 +202,7 @@ const InlineTarotModal = memo(function InlineTarotModal({
           )}
 
           {/* Step 2: Spread Selection */}
-          {state.step === "spread-select" && (
+          {state.step === 'spread-select' && (
             <SpreadSelectStep
               tr={tr}
               lang={lang}
@@ -207,7 +215,7 @@ const InlineTarotModal = memo(function InlineTarotModal({
           )}
 
           {/* Step 3: Card Draw */}
-          {state.step === "card-draw" && (
+          {state.step === 'card-draw' && (
             <CardDrawStep
               tr={tr}
               lang={lang}
@@ -223,12 +231,12 @@ const InlineTarotModal = memo(function InlineTarotModal({
           )}
 
           {/* Step 4: Interpreting */}
-          {state.step === "interpreting" && (
+          {state.step === 'interpreting' && (
             <InterpretingStep tr={tr} overallMessage={state.overallMessage} />
           )}
 
           {/* Step 5: Result */}
-          {state.step === "result" && (
+          {state.step === 'result' && (
             <ResultStep
               tr={tr}
               lang={lang}
@@ -244,25 +252,32 @@ const InlineTarotModal = memo(function InlineTarotModal({
         </div>
       </div>
     </div>
-  );
-});
+  )
+})
 
-export default InlineTarotModal;
+export default InlineTarotModal
 
 // ─────────────────────────────────────────────────────
 // Sub-components for each step
 // ─────────────────────────────────────────────────────
 
 interface ConcernStepProps {
-  tr: ReturnType<typeof getTarotTranslations>;
-  concern: string;
-  isAnalyzing: boolean;
-  onConcernChange: (value: string) => void;
-  onNext: () => void;
-  onAutoSelect: () => void;
+  tr: ReturnType<typeof getTarotTranslations>
+  concern: string
+  isAnalyzing: boolean
+  onConcernChange: (value: string) => void
+  onNext: () => void
+  onAutoSelect: () => void
 }
 
-function ConcernStep({ tr, concern, isAnalyzing, onConcernChange, onNext, onAutoSelect }: ConcernStepProps) {
+function ConcernStep({
+  tr,
+  concern,
+  isAnalyzing,
+  onConcernChange,
+  onNext,
+  onAutoSelect,
+}: ConcernStepProps) {
   return (
     <div className={styles.stepContent}>
       <h3 className={styles.stepTitle}>{tr.concernTitle}</h3>
@@ -292,17 +307,17 @@ function ConcernStep({ tr, concern, isAnalyzing, onConcernChange, onNext, onAuto
         </button>
       </div>
     </div>
-  );
+  )
 }
 
 interface SpreadSelectStepProps {
-  tr: ReturnType<typeof getTarotTranslations>;
-  lang: LangKey;
-  concern: string;
-  questionSummary?: string;
-  directAnswer?: string;
-  recommendedSpreads: Spread[];
-  onSelect: (spread: Spread) => void;
+  tr: ReturnType<typeof getTarotTranslations>
+  lang: LangKey
+  concern: string
+  questionSummary?: string
+  directAnswer?: string
+  recommendedSpreads: Spread[]
+  onSelect: (spread: Spread) => void
 }
 
 function SpreadSelectStep({
@@ -331,45 +346,50 @@ function SpreadSelectStep({
       )}
       <div className={styles.spreadGrid}>
         {recommendedSpreads.map((spread) => (
-          <button
-            key={spread.id}
-            className={styles.spreadCard}
-            onClick={() => onSelect(spread)}
-          >
+          <button key={spread.id} className={styles.spreadCard} onClick={() => onSelect(spread)}>
             <div className={styles.spreadCardCount}>
               {spread.cardCount} {tr.cards}
             </div>
             <h4 className={styles.spreadTitle}>
-              {lang === "ko" ? spread.titleKo || spread.title : spread.title}
+              {lang === 'ko' ? spread.titleKo || spread.title : spread.title}
             </h4>
             <p className={styles.spreadDesc}>
-              {lang === "ko" ? spread.descriptionKo || spread.description : spread.description}
+              {lang === 'ko' ? spread.descriptionKo || spread.description : spread.description}
             </p>
             <div className={styles.spreadTip}>
               {spread.cardCount === 1
                 ? `💡 ${tr.quickTip}`
                 : spread.cardCount <= 3
-                ? `⏳ ${tr.normalTip}`
-                : `🔮 ${tr.deepTip}`}
+                  ? `⏳ ${tr.normalTip}`
+                  : `🔮 ${tr.deepTip}`}
             </div>
           </button>
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 interface CardDrawStepProps {
-  tr: ReturnType<typeof getTarotTranslations>;
-  lang: LangKey;
-  selectedSpread: Spread | null;
-  aiReason: string;
-  questionSummary?: string;
-  directAnswer?: string;
-  drawnCards: Array<{ card: { name: string; nameKo?: string; image: string; upright: { keywords: string[]; keywordsKo?: string[] }; reversed: { keywords: string[]; keywordsKo?: string[] } }; isReversed: boolean }>;
-  revealedCount: number;
-  isDrawing: boolean;
-  onDraw: () => void;
+  tr: ReturnType<typeof getTarotTranslations>
+  lang: LangKey
+  selectedSpread: Spread | null
+  aiReason: string
+  questionSummary?: string
+  directAnswer?: string
+  drawnCards: Array<{
+    card: {
+      name: string
+      nameKo?: string
+      image: string
+      upright: { keywords: string[]; keywordsKo?: string[] }
+      reversed: { keywords: string[]; keywordsKo?: string[] }
+    }
+    isReversed: boolean
+  }>
+  revealedCount: number
+  isDrawing: boolean
+  onDraw: () => void
 }
 
 function CardDrawStep({
@@ -387,21 +407,17 @@ function CardDrawStep({
   return (
     <div className={styles.stepContent}>
       <h3 className={styles.stepTitle}>
-        {lang === "ko"
-          ? selectedSpread?.titleKo || selectedSpread?.title
-          : selectedSpread?.title}
+        {lang === 'ko' ? selectedSpread?.titleKo || selectedSpread?.title : selectedSpread?.title}
       </h3>
 
       {directAnswer && (
         <p className={styles.resultText}>
-          <strong>{lang === "ko" ? "핵심 답변:" : "Direct answer:"}</strong> {directAnswer}
+          <strong>{lang === 'ko' ? '핵심 답변:' : 'Direct answer:'}</strong> {directAnswer}
         </p>
       )}
       {questionSummary && <p className={styles.hint}>{questionSummary}</p>}
 
-      {aiReason && (
-        <p className={styles.aiReasonText}>✨ {aiReason}</p>
-      )}
+      {aiReason && <p className={styles.aiReasonText}>✨ {aiReason}</p>}
 
       {drawnCards.length === 0 ? (
         <div className={styles.drawArea}>
@@ -410,11 +426,7 @@ function CardDrawStep({
             <div className={styles.deckCard} />
             <div className={styles.deckCard} />
           </div>
-          <button
-            className={styles.drawButton}
-            onClick={onDraw}
-            disabled={isDrawing}
-          >
+          <button className={styles.drawButton} onClick={onDraw} disabled={isDrawing}>
             {isDrawing ? tr.drawing : tr.drawCards}
           </button>
         </div>
@@ -423,29 +435,27 @@ function CardDrawStep({
           {drawnCards.map((dc, idx) => (
             <div
               key={idx}
-              className={`${styles.cardWrapper} ${
-                idx < revealedCount ? styles.revealed : ""
-              }`}
+              className={`${styles.cardWrapper} ${idx < revealedCount ? styles.revealed : ''}`}
             >
               {idx < revealedCount ? (
                 <TarotCard
-                  name={lang === "ko" ? dc.card.nameKo || dc.card.name : dc.card.name}
+                  name={lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name}
                   image={dc.card.image}
                   isReversed={dc.isReversed}
                   position={
-                    lang === "ko"
+                    lang === 'ko'
                       ? selectedSpread?.positions[idx]?.titleKo ||
                         selectedSpread?.positions[idx]?.title
                       : selectedSpread?.positions[idx]?.title
                   }
                   keywords={
                     dc.isReversed
-                      ? (lang === "ko"
-                          ? dc.card.reversed.keywordsKo || dc.card.reversed.keywords
-                          : dc.card.reversed.keywords)
-                      : (lang === "ko"
-                          ? dc.card.upright.keywordsKo || dc.card.upright.keywords
-                          : dc.card.upright.keywords)
+                      ? lang === 'ko'
+                        ? dc.card.reversed.keywordsKo || dc.card.reversed.keywords
+                        : dc.card.reversed.keywords
+                      : lang === 'ko'
+                        ? dc.card.upright.keywordsKo || dc.card.upright.keywords
+                        : dc.card.upright.keywords
                   }
                   size="small"
                   expandable={false}
@@ -461,12 +471,12 @@ function CardDrawStep({
         </div>
       )}
     </div>
-  );
+  )
 }
 
 interface InterpretingStepProps {
-  tr: ReturnType<typeof getTarotTranslations>;
-  overallMessage: string;
+  tr: ReturnType<typeof getTarotTranslations>
+  overallMessage: string
 }
 
 function InterpretingStep({ tr, overallMessage }: InterpretingStepProps) {
@@ -484,23 +494,43 @@ function InterpretingStep({ tr, overallMessage }: InterpretingStepProps) {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 interface ResultStepProps {
-  tr: ReturnType<typeof getTarotTranslations>;
-  lang: LangKey;
-  state: ReturnType<typeof useInlineTarotState>["state"];
-  questionSummary?: string;
-  directAnswer?: string;
-  onDrawAgain: () => void;
-  onSave: () => void;
-  onComplete: () => void;
-  onDeeper: () => void;
+  tr: ReturnType<typeof getTarotTranslations>
+  lang: LangKey
+  state: ReturnType<typeof useInlineTarotState>['state']
+  questionSummary?: string
+  directAnswer?: string
+  onDrawAgain: () => void
+  onSave: () => void
+  onComplete: () => void
+  onDeeper: () => void
 }
 
-function ResultStep({ tr, lang, state, questionSummary, directAnswer, onDrawAgain, onSave, onComplete, onDeeper }: ResultStepProps) {
-  const { concern, selectedSpread, drawnCards, cardInsights, overallMessage, guidance, affirmation, isSaving, isSaved } = state;
+function ResultStep({
+  tr,
+  lang,
+  state,
+  questionSummary,
+  directAnswer,
+  onDrawAgain,
+  onSave,
+  onComplete,
+  onDeeper,
+}: ResultStepProps) {
+  const {
+    concern,
+    selectedSpread,
+    drawnCards,
+    cardInsights,
+    overallMessage,
+    guidance,
+    affirmation,
+    isSaving,
+    isSaved,
+  } = state
 
   return (
     <div className={styles.stepContent}>
@@ -516,7 +546,7 @@ function ResultStep({ tr, lang, state, questionSummary, directAnswer, onDrawAgai
         <div className={styles.resultSection}>
           {directAnswer && (
             <p className={styles.resultText}>
-              <strong>{lang === "ko" ? "핵심 답변:" : "Direct answer:"}</strong> {directAnswer}
+              <strong>{lang === 'ko' ? '핵심 답변:' : 'Direct answer:'}</strong> {directAnswer}
             </p>
           )}
           {questionSummary && <p className={styles.resultText}>{questionSummary}</p>}
@@ -528,23 +558,22 @@ function ResultStep({ tr, lang, state, questionSummary, directAnswer, onDrawAgai
         {drawnCards.map((dc, idx) => (
           <div key={idx} className={styles.resultCardWrapper}>
             <TarotCard
-              name={lang === "ko" ? dc.card.nameKo || dc.card.name : dc.card.name}
+              name={lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name}
               image={dc.card.image}
               isReversed={dc.isReversed}
               position={
-                lang === "ko"
-                  ? selectedSpread?.positions[idx]?.titleKo ||
-                    selectedSpread?.positions[idx]?.title
+                lang === 'ko'
+                  ? selectedSpread?.positions[idx]?.titleKo || selectedSpread?.positions[idx]?.title
                   : selectedSpread?.positions[idx]?.title
               }
               keywords={
                 dc.isReversed
-                  ? (lang === "ko"
-                      ? dc.card.reversed.keywordsKo || dc.card.reversed.keywords
-                      : dc.card.reversed.keywords)
-                  : (lang === "ko"
-                      ? dc.card.upright.keywordsKo || dc.card.upright.keywords
-                      : dc.card.upright.keywords)
+                  ? lang === 'ko'
+                    ? dc.card.reversed.keywordsKo || dc.card.reversed.keywords
+                    : dc.card.reversed.keywords
+                  : lang === 'ko'
+                    ? dc.card.upright.keywordsKo || dc.card.upright.keywords
+                    : dc.card.upright.keywords
               }
               meaning={cardInsights[idx]?.interpretation}
               size="medium"
@@ -561,11 +590,11 @@ function ResultStep({ tr, lang, state, questionSummary, directAnswer, onDrawAgai
           {tr.drawAgain}
         </button>
         <button
-          className={`${styles.saveButton} ${isSaved ? styles.saved : ""}`}
+          className={`${styles.saveButton} ${isSaved ? styles.saved : ''}`}
           onClick={onSave}
           disabled={isSaving || isSaved}
         >
-          {isSaving ? "..." : isSaved ? tr.saved : tr.save}
+          {isSaving ? '...' : isSaved ? tr.saved : tr.save}
         </button>
       </div>
 
@@ -603,7 +632,5 @@ function ResultStep({ tr, lang, state, questionSummary, directAnswer, onDrawAgai
         </button>
       </div>
     </div>
-  );
+  )
 }
-
-

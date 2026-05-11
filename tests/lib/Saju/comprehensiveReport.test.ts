@@ -6,7 +6,7 @@ import {
   generateQuickSummary,
   ComprehensiveReport,
   ComprehensiveReportSection,
-} from '@/lib/Saju/comprehensiveReport'
+} from '@/lib/saju/comprehensiveReport'
 
 // 테스트용 사주 데이터 생성 헬퍼
 function createTestPillars(

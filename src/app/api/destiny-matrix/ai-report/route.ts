@@ -5,16 +5,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import type {
-  MatrixCell,
-} from '@/lib/destiny-matrix/types'
+import type { MatrixCell } from '@/lib/destiny-matrix/types'
 import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
 import { FusionReportGenerator } from '@/lib/destiny-matrix/interpreter/report-generator'
 import { DestinyMatrixError, ErrorCodes } from '@/lib/destiny-matrix/errors'
 import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
 import { buildSharedSurface } from '@/lib/destiny-matrix/core/adaptersPayload'
-import { generateFivePagePDF, generatePremiumPDF } from '@/lib/destiny-matrix/ai-report/pdfGenerator'
+import {
+  generateFivePagePDF,
+  generatePremiumPDF,
+} from '@/lib/destiny-matrix/ai-report/pdfGenerator'
 import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
 import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
 import {
@@ -405,7 +406,7 @@ export const POST = withApiMiddleware(
       const normalizedMatrixInput = coreEnvelope.normalizedInput
       const sharedSurface = buildSharedSurface(
         coreEnvelope.coreSeed,
-        (((normalizedMatrixInput.lang || 'ko') as 'ko' | 'en') || 'ko')
+        ((normalizedMatrixInput.lang || 'ko') as 'ko' | 'en') || 'ko'
       )
 
       if (isFreeTier) {
@@ -526,11 +527,11 @@ export const POST = withApiMiddleware(
       try {
         if (birthDate) {
           const [{ runMainSaju }, { buildExtendedAnalysisFromMain }] = await Promise.all([
-            import('@/lib/Saju/main'),
-            import('@/lib/Saju/extendedAnalysis'),
+            import('@/lib/saju/main'),
+            import('@/lib/saju/extendedAnalysis'),
           ])
           const rawGender = String(
-            (matrixInput as unknown as Record<string, unknown>).gender ?? '',
+            (matrixInput as unknown as Record<string, unknown>).gender ?? ''
           ).toLowerCase()
           const main = runMainSaju({
             birthDate,

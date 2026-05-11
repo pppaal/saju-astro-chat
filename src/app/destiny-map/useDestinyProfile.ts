@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import { logger } from '@/lib/logger'
-import { tryNormalizeTime } from '@/lib/Saju/normalizer'
+import { tryNormalizeTime } from '@/lib/saju/normalizer'
 import type { CityHit, FormState, FormAction } from './useDestinyForm'
 import { loadCitiesModule, resolveCityTimezone } from './useDestinyForm'
 

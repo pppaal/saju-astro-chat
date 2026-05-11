@@ -8,7 +8,7 @@ import {
   STEM_LABELS,
   BRANCH_LABELS,
   analyzeSibsinPositions,
-} from '@/lib/Saju'
+} from '@/lib/saju'
 
 describe('Saju/index exports', () => {
   describe('calculateSajuData', () => {
@@ -304,7 +304,9 @@ describe('Saju/index exports', () => {
       expect(result1.pillars.year.heavenlyStem.name).toBe(result2.pillars.year.heavenlyStem.name)
       expect(result1.pillars.year.earthlyBranch.name).toBe(result2.pillars.year.earthlyBranch.name)
       expect(result1.pillars.month.heavenlyStem.name).toBe(result2.pillars.month.heavenlyStem.name)
-      expect(result1.pillars.month.earthlyBranch.name).toBe(result2.pillars.month.earthlyBranch.name)
+      expect(result1.pillars.month.earthlyBranch.name).toBe(
+        result2.pillars.month.earthlyBranch.name
+      )
       expect(result1.pillars.day.heavenlyStem.name).toBe(result2.pillars.day.heavenlyStem.name)
       expect(result1.pillars.day.earthlyBranch.name).toBe(result2.pillars.day.earthlyBranch.name)
     })
@@ -314,7 +316,9 @@ describe('Saju/index exports', () => {
       const result2 = calculateSajuData('1991-01-01', '12:00', 'male', 'solar', 'Asia/Seoul')
 
       // Year pillars should be different for different years
-      expect(result1.pillars.year.heavenlyStem.name).not.toBe(result2.pillars.year.heavenlyStem.name)
+      expect(result1.pillars.year.heavenlyStem.name).not.toBe(
+        result2.pillars.year.heavenlyStem.name
+      )
     })
   })
 })

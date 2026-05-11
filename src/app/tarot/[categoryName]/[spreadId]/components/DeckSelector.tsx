@@ -8,10 +8,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import BackButton from '@/components/ui/BackButton'
 import CreditBadge from '@/components/ui/CreditBadge'
-import { getDeckPreviewImagePath } from '@/lib/Tarot/deckPreview'
+import { getDeckPreviewImagePath } from '@/lib/tarot/deckPreview'
 import { CARD_COLORS } from '../hooks/useTarotState'
 import type { TarotPersonalizationOptions } from '../hooks/useTarotGame'
-import type { Spread } from '@/lib/Tarot/tarot.types'
+import type { Spread } from '@/lib/tarot/tarot.types'
 import styles from '../tarot-reading.module.css'
 
 interface DeckSelectorProps {

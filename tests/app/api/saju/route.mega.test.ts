@@ -55,34 +55,34 @@ vi.mock('@/lib/cache/redis-cache', () => ({
   CACHE_TTL: { SAJU_RESULT: 604800 },
 }))
 
-vi.mock('@/lib/Saju/saju', () => ({
+vi.mock('@/lib/saju/saju', () => ({
   calculateSajuData: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/unse', () => ({
+vi.mock('@/lib/saju/unse', () => ({
   getDaeunCycles: vi.fn().mockReturnValue([]),
   getAnnualCycles: vi.fn().mockReturnValue([]),
   getMonthlyCycles: vi.fn().mockReturnValue([]),
   getIljinCalendar: vi.fn().mockReturnValue([]),
 }))
 
-vi.mock('@/lib/Saju/shinsal', () => ({
+vi.mock('@/lib/saju/shinsal', () => ({
   getShinsalHits: vi.fn().mockReturnValue([]),
   getTwelveStagesForPillars: vi.fn().mockReturnValue({}),
   getTwelveShinsalSingleByPillar: vi.fn().mockReturnValue({}),
 }))
 
-vi.mock('@/lib/Saju/relations', () => ({
+vi.mock('@/lib/saju/relations', () => ({
   analyzeRelations: vi.fn().mockReturnValue({ harmonies: [], conflicts: [] }),
   toAnalyzeInputFromSaju: vi.fn().mockReturnValue({}),
 }))
 
-vi.mock('@/lib/Saju/geokguk', () => ({
+vi.mock('@/lib/saju/geokguk', () => ({
   determineGeokguk: vi.fn(),
   getGeokgukDescription: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/yongsin', () => ({
+vi.mock('@/lib/saju/yongsin', () => ({
   determineYongsin: vi.fn(),
   getYongsinDescription: vi.fn(),
   getLuckyColors: vi.fn(),
@@ -90,41 +90,41 @@ vi.mock('@/lib/Saju/yongsin', () => ({
   getLuckyNumbers: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/hyeongchung', () => ({
+vi.mock('@/lib/saju/hyeongchung', () => ({
   analyzeHyeongchung: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/advancedSajuCore', () => ({
+vi.mock('@/lib/saju/advancedSajuCore', () => ({
   analyzeAdvancedSaju: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/tonggeun', () => ({
+vi.mock('@/lib/saju/tonggeun', () => ({
   calculateTonggeun: vi.fn(),
   calculateDeukryeong: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/johuYongsin', () => ({
+vi.mock('@/lib/saju/johuYongsin', () => ({
   getJohuYongsin: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/sibsinAnalysis', () => ({
+vi.mock('@/lib/saju/sibsinAnalysis', () => ({
   analyzeSibsinComprehensive: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/healthCareer', () => ({
+vi.mock('@/lib/saju/healthCareer', () => ({
   analyzeHealth: vi.fn(),
   analyzeCareer: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/comprehensiveReport', () => ({
+vi.mock('@/lib/saju/comprehensiveReport', () => ({
   generateComprehensiveReport: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/strengthScore', () => ({
+vi.mock('@/lib/saju/strengthScore', () => ({
   calculateComprehensiveScore: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/interpretations', () => ({
+vi.mock('@/lib/saju/interpretations', () => ({
   getTwelveStageInterpretation: vi.fn(),
   getElementInterpretation: vi.fn(),
   TWELVE_STAGE_INTERPRETATIONS: {
@@ -243,35 +243,35 @@ vi.mock('@/lib/api/middleware', async () => {
 // Import mocked modules
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/db/prisma'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import {
   getDaeunCycles,
   getAnnualCycles,
   getMonthlyCycles,
   getIljinCalendar,
-} from '@/lib/Saju/unse'
+} from '@/lib/saju/unse'
 import {
   getShinsalHits,
   getTwelveStagesForPillars,
   getTwelveShinsalSingleByPillar,
-} from '@/lib/Saju/shinsal'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { determineGeokguk, getGeokgukDescription } from '@/lib/Saju/geokguk'
+} from '@/lib/saju/shinsal'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { determineGeokguk, getGeokgukDescription } from '@/lib/saju/geokguk'
 import {
   determineYongsin,
   getYongsinDescription,
   getLuckyColors,
   getLuckyDirection,
   getLuckyNumbers,
-} from '@/lib/Saju/yongsin'
-import { analyzeHyeongchung } from '@/lib/Saju/hyeongchung'
-import { calculateTonggeun, calculateDeukryeong } from '@/lib/Saju/tonggeun'
-import { getJohuYongsin } from '@/lib/Saju/johuYongsin'
-import { analyzeSibsinComprehensive } from '@/lib/Saju/sibsinAnalysis'
-import { analyzeHealth, analyzeCareer } from '@/lib/Saju/healthCareer'
-import { generateComprehensiveReport } from '@/lib/Saju/comprehensiveReport'
-import { calculateComprehensiveScore } from '@/lib/Saju/strengthScore'
-import { getTwelveStageInterpretation, getElementInterpretation } from '@/lib/Saju/interpretations'
+} from '@/lib/saju/yongsin'
+import { analyzeHyeongchung } from '@/lib/saju/hyeongchung'
+import { calculateTonggeun, calculateDeukryeong } from '@/lib/saju/tonggeun'
+import { getJohuYongsin } from '@/lib/saju/johuYongsin'
+import { analyzeSibsinComprehensive } from '@/lib/saju/sibsinAnalysis'
+import { analyzeHealth, analyzeCareer } from '@/lib/saju/healthCareer'
+import { generateComprehensiveReport } from '@/lib/saju/comprehensiveReport'
+import { calculateComprehensiveScore } from '@/lib/saju/strengthScore'
+import { getTwelveStageInterpretation, getElementInterpretation } from '@/lib/saju/interpretations'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { getCreditBalance } from '@/lib/credits/creditService'

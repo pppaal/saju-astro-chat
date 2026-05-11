@@ -4,7 +4,7 @@ import React from 'react'
 import Image from 'next/image'
 import type { ReadingResult } from '../../types'
 import type { CardColor } from '../../constants'
-import { getCardImagePath, type DeckStyle, type DrawnCard } from '@/lib/Tarot/tarot.types'
+import { getCardImagePath, type DeckStyle, type DrawnCard } from '@/lib/tarot/tarot.types'
 import styles from '../../tarot-reading.module.css'
 
 interface HorizontalCardsGridProps {

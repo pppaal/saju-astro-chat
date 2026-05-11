@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import type { DeckStyle } from '@/lib/Tarot/tarot.types'
+import type { DeckStyle } from '@/lib/tarot/tarot.types'
 import type { ReadingResult, InterpretationResult } from '../../types'
 import { DetailedCardItem } from './DetailedCardItem'
 import styles from '../../tarot-reading.module.css'

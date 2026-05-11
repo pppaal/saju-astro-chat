@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { composeTarotFallbackReply, type TarotFallbackContext } from '@/lib/Tarot/fallbackReply'
-import { evaluateTarotFallbackQuality } from '@/lib/Tarot/fallbackQuality'
+import { composeTarotFallbackReply, type TarotFallbackContext } from '@/lib/tarot/fallbackReply'
+import { evaluateTarotFallbackQuality } from '@/lib/tarot/fallbackQuality'
 
 type GoldenCase = {
   id: string
@@ -75,7 +75,8 @@ const cases: GoldenCase[] = [
   {
     id: 'en-career',
     language: 'en',
-    question: 'I have an interview and I am worried about career direction. What should I do first?',
+    question:
+      'I have an interview and I am worried about career direction. What should I do first?',
     context: EN_CONTEXT,
     minScore: 85,
   },

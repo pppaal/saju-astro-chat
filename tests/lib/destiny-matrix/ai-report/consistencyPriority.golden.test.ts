@@ -6,7 +6,7 @@ import type {
 } from '@/lib/destiny-matrix/types'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type { TimingData } from '@/lib/destiny-matrix/ai-report/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/saju/types'
 import { runDestinyCore } from '@/lib/destiny-matrix/core/runDestinyCore'
 import {
   generateAIPremiumReport,

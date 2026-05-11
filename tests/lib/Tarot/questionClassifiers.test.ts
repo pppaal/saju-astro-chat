@@ -42,7 +42,7 @@ import {
   isDriverLicenseQuestion,
   isVolunteerCharityQuestion,
   isCoupleFightQuestion,
-} from '@/lib/Tarot/questionClassifiers'
+} from '@/lib/tarot/questionClassifiers'
 
 describe('Tarot Question Classifiers', () => {
   beforeEach(() => {

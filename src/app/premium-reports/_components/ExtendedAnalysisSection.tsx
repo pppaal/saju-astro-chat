@@ -1,6 +1,6 @@
 'use client'
 
-import type { ExtendedAnalysis } from '@/lib/Saju/extendedAnalysis'
+import type { ExtendedAnalysis } from '@/lib/saju/extendedAnalysis'
 
 const DOMAIN_ICON: Record<string, string> = {
   marriage: '💍',
@@ -47,9 +47,7 @@ export default function ExtendedAnalysisSection({
               </div>
               <div className="text-lg font-bold text-white mb-0.5">{stage.label}</div>
               <div className="text-xs text-slate-400 mb-3 font-mono">{stage.ageRange}</div>
-              <p className="text-[13px] text-slate-300 leading-relaxed mb-3">
-                {stage.description}
-              </p>
+              <p className="text-[13px] text-slate-300 leading-relaxed mb-3">{stage.description}</p>
               <div className="flex flex-wrap gap-1.5">
                 {stage.keywords.map((k) => (
                   <span
@@ -73,7 +71,9 @@ export default function ExtendedAnalysisSection({
               key={timing.domain}
               className="rounded-xl border border-white/10 bg-slate-900/40 p-4 backdrop-blur-md flex items-start gap-3"
             >
-              <div className="text-2xl flex-shrink-0 mt-0.5">{DOMAIN_ICON[timing.domain] || '·'}</div>
+              <div className="text-2xl flex-shrink-0 mt-0.5">
+                {DOMAIN_ICON[timing.domain] || '·'}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline justify-between gap-2 mb-1.5">
                   <h4 className="text-sm font-semibold text-white">{timing.label}</h4>
@@ -140,11 +140,7 @@ export default function ExtendedAnalysisSection({
             items={analysis.practical.luckyDirections}
             tone="emerald"
           />
-          <PracticalCard
-            label="길색"
-            items={analysis.practical.luckyColors}
-            tone="amber"
-          />
+          <PracticalCard label="길색" items={analysis.practical.luckyColors} tone="amber" />
           <PracticalCard
             label="길수"
             items={analysis.practical.luckyNumbers.map(String)}

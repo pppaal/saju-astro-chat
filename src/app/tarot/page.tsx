@@ -11,10 +11,10 @@ import {
   buildStableEntryPath,
   resolveStableTarotEntry,
   storeQuestionAnalysisSnapshot,
-} from '@/lib/Tarot/questionFlow'
-import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
-import { tarotThemeExamples } from '@/lib/Tarot/tarot-question-examples'
-import { DECK_STYLES, DECK_STYLE_INFO, type DeckStyle } from '@/lib/Tarot/tarot.types'
+} from '@/lib/tarot/questionFlow'
+import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+import { tarotThemeExamples } from '@/lib/tarot/tarot-question-examples'
+import { DECK_STYLES, DECK_STYLE_INFO, type DeckStyle } from '@/lib/tarot/tarot.types'
 import styles from './tarot-home.module.css'
 import { useCanvasAnimation, useRecentQuestions, useQuestionAnalysis } from './hooks'
 import { getQuickRecommendation } from './utils/recommendations'
@@ -432,11 +432,7 @@ export default function TarotHomePage() {
                             : 'Manual spread'}
                       </span>
                     </button>
-                    <button
-                      type="button"
-                      className={styles.composerTool}
-                      onClick={handleCycleTone}
-                    >
+                    <button type="button" className={styles.composerTool} onClick={handleCycleTone}>
                       <span aria-hidden="true">{tone.icon}</span>
                       <span>{isKo ? tone.ko : tone.en}</span>
                     </button>
@@ -503,9 +499,7 @@ export default function TarotHomePage() {
                         : `${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount} cards)`}
                     </strong>
                     {analysisResult.question_summary && (
-                      <p className={styles.primaryActionText}>
-                        {analysisResult.question_summary}
-                      </p>
+                      <p className={styles.primaryActionText}>{analysisResult.question_summary}</p>
                     )}
                   </div>
                   <button

@@ -1,5 +1,5 @@
 ﻿import { describe, expect, it } from 'vitest'
-import { evaluateTarotInterpretationQuality } from '@/lib/Tarot/interpretationQuality'
+import { evaluateTarotInterpretationQuality } from '@/lib/tarot/interpretationQuality'
 
 const cards = [
   { name: 'The Chariot', position: 'Present' },

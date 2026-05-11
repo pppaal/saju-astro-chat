@@ -12,8 +12,8 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { BRANCH_TO_ELEMENT, STEM_TO_ELEMENT, STEM_TO_ELEMENT_EN } from '@/lib/Saju/constants'
-import type { FiveElement } from '@/lib/Saju/types'
+import { BRANCH_TO_ELEMENT, STEM_TO_ELEMENT, STEM_TO_ELEMENT_EN } from '@/lib/saju/constants'
+import type { FiveElement } from '@/lib/saju/types'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
@@ -45,8 +45,8 @@ import {
   deriveAdvancedSajuMatrixFields,
   deriveSibsinDistributionFromSaju,
 } from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
-import type { CalculateSajuDataResult } from '@/lib/Saju/types'
-import { buildOrthodoxInterpretation } from '@/lib/Saju/orthodoxInterpretation'
+import type { CalculateSajuDataResult } from '@/lib/saju/types'
+import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
 
 export const dynamic = 'force-dynamic'
 
@@ -386,7 +386,9 @@ async function buildCalendarMatrixInput(params: {
   const fullNatal = astroProfile.natalChart as NatalChartData | undefined
   if (fullNatal && fullNatal.meta?.jdUT && Array.isArray(fullNatal.houses)) {
     try {
-      const houseCusps = fullNatal.houses.map((h) => h.cusp).filter((c): c is number => typeof c === 'number')
+      const houseCusps = fullNatal.houses
+        .map((h) => h.cusp)
+        .filter((c): c is number => typeof c === 'number')
       if (houseCusps.length === 12) {
         const asteroids = calculateAllAsteroids(fullNatal.meta.jdUT, houseCusps)
         const setH = (name: string, h: number | undefined) => {
@@ -418,11 +420,11 @@ async function buildCalendarMatrixInput(params: {
             sunPlanet.longitude,
             moonPlanet.longitude,
             sunPlanet.house,
-            houseCusps,
+            houseCusps
           )
           const setSign = (
             name: 'Vertex' | 'PartOfFortune' | 'Chiron' | 'Lilith',
-            sign: string | undefined,
+            sign: string | undefined
           ) => {
             if (sign) {
               ;(extraPointSigns as Record<string, string>)[name] = sign
@@ -469,7 +471,11 @@ async function buildCalendarMatrixInput(params: {
     derivedRelations = (adv.relations || []) as MatrixCalculationInput['relations']
     derivedShinsal = (adv.shinsalList || []) as NonNullable<MatrixCalculationInput['shinsalList']>
     const ELEMENT_MAP: Record<string, MatrixCalculationInput['dayMasterElement']> = {
-      목: '목', 화: '화', 토: '토', 금: '금', 수: '수',
+      목: '목',
+      화: '화',
+      토: '토',
+      금: '금',
+      수: '수',
     }
     const annualNow = (sajuFull.unse?.annual || []).find((row) => row.year === params.year)
     const annualEl = (annualNow as { element?: string } | undefined)?.element
@@ -643,7 +649,7 @@ export const GET = withApiMiddleware(
     let sajuResult
     try {
       const sajuGender = gender.toLowerCase() === 'female' ? ('female' as const) : ('male' as const)
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
       sajuResult = calculateSajuData(birthDateParam, birthTimeParam, sajuGender, 'solar', timezone)
     } catch (sajuError) {
       logger.error('[Calendar] Saju calculation error:', sajuError)
@@ -718,12 +724,11 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeAdvancedSaju } = await import('@/lib/Saju/advancedAnalysis')
+      const { analyzeAdvancedSaju } = await import('@/lib/saju/advancedAnalysis')
       const advanced = analyzeAdvancedSaju(
         {
           name: pillars.day.stem,
-          element:
-            STEM_TO_ELEMENT[pillars.day.stem as keyof typeof STEM_TO_ELEMENT] || 'earth',
+          element: STEM_TO_ELEMENT[pillars.day.stem as keyof typeof STEM_TO_ELEMENT] || 'earth',
           yin_yang: ['甲', '丙', '戊', '庚', '壬'].includes(pillars.day.stem) ? '양' : '음',
         } as Parameters<typeof analyzeAdvancedSaju>[0],
         {
@@ -735,9 +740,7 @@ export const GET = withApiMiddleware(
       )
       const yongsinPrimary = advanced.yongsin?.primary
       if (yongsinPrimary) {
-        const { findYongsinActivationPeriods } = await import(
-          '@/lib/prediction/specificDateEngine'
-        )
+        const { findYongsinActivationPeriods } = await import('@/lib/prediction/specificDateEngine')
         const periods = findYongsinActivationPeriods(
           yongsinPrimary,
           pillars.day.stem,
@@ -844,9 +847,8 @@ export const GET = withApiMiddleware(
       // enough for batch). Results threaded into engine as a new
       // dailyTransitScores axis.
       try {
-        const { calculateTransitPlanetsBatch, scoreTransitDay } = await import(
-          '@/lib/astrology/foundation/transitBatch'
-        )
+        const { calculateTransitPlanetsBatch, scoreTransitDay } =
+          await import('@/lib/astrology/foundation/transitBatch')
         const isoList: string[] = []
         const dateKeys: string[] = []
         const yearStart = new Date(year, 0, 1)
@@ -1234,9 +1236,8 @@ export const GET = withApiMiddleware(
     const matrixInputMode = 'full-chart' as const
     const degradedMode = {
       active: degradationReasonSet.length > 0,
-      level: degradationReasonSet.length > 0
-        ? ('engine-degraded' as const)
-        : ('full-engine' as const),
+      level:
+        degradationReasonSet.length > 0 ? ('engine-degraded' as const) : ('full-engine' as const),
       reasons: degradationReasonSet,
       labels:
         locale === 'en'

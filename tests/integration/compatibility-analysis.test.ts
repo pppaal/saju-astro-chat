@@ -12,8 +12,8 @@ import {
   connectTestDb,
   disconnectTestDb,
 } from './setup'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { analyzeComprehensiveCompatibility } from '@/lib/Saju/compatibility'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { analyzeComprehensiveCompatibility } from '@/lib/saju/compatibility'
 import { calculateCosmicCompatibility } from '@/lib/compatibility/cosmicCompatibility'
 
 const toCompatibilitySubject = (id: string, saju: ReturnType<typeof calculateSajuData>) => ({

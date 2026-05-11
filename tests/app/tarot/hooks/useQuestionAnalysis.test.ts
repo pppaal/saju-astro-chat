@@ -20,7 +20,7 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-vi.mock('@/lib/Tarot/tarot-recommend', () => ({
+vi.mock('@/lib/tarot/tarot-recommend', () => ({
   checkDangerousQuestion: vi.fn(() => ({ isDangerous: false })),
 }))
 

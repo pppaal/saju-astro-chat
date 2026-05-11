@@ -1,7 +1,7 @@
 import React from 'react'
 import styles from '../../../tarot-reading.module.css'
 import type { ReadingResponse } from '../../../types'
-import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 
 interface ResultsHeaderProps {
   readingResult: ReadingResponse

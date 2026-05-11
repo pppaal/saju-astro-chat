@@ -7,22 +7,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
-import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
-import { tarotDeck } from '@/lib/Tarot/tarot-data'
+import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+import { tarotDeck } from '@/lib/tarot/tarot-data'
 import {
   loadQuestionAnalysisSnapshot,
   type TarotQuestionAnalysisSnapshot,
-} from '@/lib/Tarot/questionFlow'
-import {
-  Spread,
-  DeckStyle,
-  type Card,
-  type DrawnCard,
-} from '@/lib/Tarot/tarot.types'
-import {
-  loadReadingRestorePayload,
-  type SavedTarotReading,
-} from '@/lib/Tarot/tarot-storage'
+} from '@/lib/tarot/questionFlow'
+import { Spread, DeckStyle, type Card, type DrawnCard } from '@/lib/tarot/tarot.types'
+import { loadReadingRestorePayload, type SavedTarotReading } from '@/lib/tarot/tarot-storage'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import type { GameState, ReadingResponse, InterpretationResult } from '../types'

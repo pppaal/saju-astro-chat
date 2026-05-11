@@ -1,6 +1,6 @@
 import type { MatrixCalculationInput, TransitCycle } from '@/lib/destiny-matrix/types'
-import type { FiveElement, PillarData } from '@/lib/Saju/types'
-import { STEMS } from '@/lib/Saju/constants'
+import type { FiveElement, PillarData } from '@/lib/saju/types'
+import { STEMS } from '@/lib/saju/constants'
 
 export type MatrixHighlight = { layer?: number; keyword?: string; score?: number }
 

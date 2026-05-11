@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getUserTimezone } from '@/lib/Saju/timezone'
+import { getUserTimezone } from '@/lib/saju/timezone'
 import { formatCityForDropdown, localizeStoredCity } from '@/lib/cities/formatter'
 import type { PersonForm, CityItem, Relation } from '@/app/compatibility/lib'
 import { makeEmptyPerson } from '@/app/compatibility/lib'

@@ -5,11 +5,19 @@
  * *요일 톤*을 prompt input에 포함시키는 헬퍼.
  */
 
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 
 const STEM_ELEMENT_KO: Record<string, string> = {
-  甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토',
-  己: '토', 庚: '금', 辛: '금', 壬: '수', 癸: '수',
+  甲: '목',
+  乙: '목',
+  丙: '화',
+  丁: '화',
+  戊: '토',
+  己: '토',
+  庚: '금',
+  辛: '금',
+  壬: '수',
+  癸: '수',
 }
 
 export interface DayContinuity {
@@ -52,7 +60,8 @@ export function buildDayContinuity(date: string, locale: 'ko' | 'en' = 'ko'): Da
     if (yesterdayEl && tomorrowEl) {
       if (sameRowYest && sameRowTomr) flowChange = 'stable'
       else if (yesterdayEl !== todayEl && tomorrowEl !== todayEl) flowChange = 'pivot'
-      else if (yesterdayEl !== todayEl) flowChange = 'rising' // 새 결로 들어옴
+      else if (yesterdayEl !== todayEl)
+        flowChange = 'rising' // 새 결로 들어옴
       else if (tomorrowEl !== todayEl) flowChange = 'falling' // 결이 떠나감
     }
 
@@ -117,7 +126,13 @@ function buildFlowNarrativeEn(input: {
 }): string {
   const { yesterdayEl, todayEl, tomorrowEl, flowChange } = input
   if (!todayEl) return ''
-  const map: Record<string, string> = { 목: 'wood', 화: 'fire', 토: 'earth', 금: 'metal', 수: 'water' }
+  const map: Record<string, string> = {
+    목: 'wood',
+    화: 'fire',
+    토: 'earth',
+    금: 'metal',
+    수: 'water',
+  }
   const today = map[todayEl]
   const yest = yesterdayEl ? map[yesterdayEl] : ''
   const tomr = tomorrowEl ? map[tomorrowEl] : ''
@@ -163,8 +178,10 @@ const TONE_KO: Record<number, { tone: string; pos: DayOfWeekTone['weekPosition']
 }
 
 const TONE_EN: Record<number, { tone: string }> = {
-  0: { tone: 'Sunday — wrapping the weekend and prepping for Monday. Rest, reset, and a light plan' },
-  1: { tone: 'Monday — set the week\'s big picture and priorities' },
+  0: {
+    tone: 'Sunday — wrapping the weekend and prepping for Monday. Rest, reset, and a light plan',
+  },
+  1: { tone: "Monday — set the week's big picture and priorities" },
   2: { tone: 'Tuesday — momentum building, dig into started work' },
   3: { tone: 'Wednesday — midweek checkpoint, recalibrate direction' },
   4: { tone: 'Thursday — push toward outcomes, decisions firming up' },

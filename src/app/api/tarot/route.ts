@@ -1,11 +1,20 @@
 // src/app/api/tarot/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import {
+  withApiMiddleware,
+  createPublicStreamGuard,
+  extractLocale,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
-import { Card, DrawnCard } from '@/lib/Tarot/tarot.types'
-import { tarotDeck } from '@/lib/Tarot/tarot-data'
-import { applyCreditResultCookies, checkCreditsOnly, creditErrorResponse } from '@/lib/credits/withCredits'
+import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+import { Card, DrawnCard } from '@/lib/tarot/tarot.types'
+import { tarotDeck } from '@/lib/tarot/tarot-data'
+import {
+  applyCreditResultCookies,
+  checkCreditsOnly,
+  creditErrorResponse,
+} from '@/lib/credits/withCredits'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { recordApiRequest } from '@/lib/metrics/index'

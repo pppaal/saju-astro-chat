@@ -5,11 +5,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { loadOrComputeAllData } from '@/app/api/destiny-map/chat-stream/handlers/dataLoader'
 import { loadUserProfile } from '@/app/api/destiny-map/chat-stream/lib/profileLoader'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateNatalChart, calculateTransitChart } from '@/lib/astrology'
 
 // Mock dependencies
-vi.mock('@/lib/Saju/saju', () => ({
+vi.mock('@/lib/saju/saju', () => ({
   calculateSajuData: vi.fn(() => ({
     dayMaster: { heavenlyStem: '甲', element: 'wood' },
     pillars: {

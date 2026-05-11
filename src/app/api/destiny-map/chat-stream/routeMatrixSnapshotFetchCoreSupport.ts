@@ -24,11 +24,11 @@ import {
 } from '@/lib/destiny-matrix/inputCross'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import { buildDerivedCrossSnapshot } from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import type { FiveElement } from '@/lib/Saju/types'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/Saju/shinsal'
-import { analyzeAdvancedSaju } from '@/lib/Saju/advancedAnalysis'
+import { calculateSajuData } from '@/lib/saju/saju'
+import type { FiveElement } from '@/lib/saju/types'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
+import { analyzeAdvancedSaju } from '@/lib/saju/advancedAnalysis'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from './lib/types'
 import type { CombinedResult } from '@/lib/destiny-map/astrology'
@@ -434,11 +434,8 @@ export async function fetchMatrixSnapshot(input: {
     // calendar / matrix-report routes get.
     if (!rawSaju.orthodoxInterpretation) {
       try {
-        const { buildOrthodoxInterpretation } = await import(
-          '@/lib/Saju/orthodoxInterpretation'
-        )
-        const koreanAge =
-          new Date().getFullYear() - new Date(input.birthDate).getFullYear() + 1
+        const { buildOrthodoxInterpretation } = await import('@/lib/saju/orthodoxInterpretation')
+        const koreanAge = new Date().getFullYear() - new Date(input.birthDate).getFullYear() + 1
         rawSaju.orthodoxInterpretation = buildOrthodoxInterpretation(
           rawSaju as unknown as ReturnType<typeof calculateSajuData>,
           { koreanAge }

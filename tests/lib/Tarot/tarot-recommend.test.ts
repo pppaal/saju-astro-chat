@@ -6,7 +6,7 @@ import {
   quickQuestions,
   type SpreadRecommendation,
   type RecommendSpreadsResult,
-} from '@/lib/Tarot/tarot-recommend'
+} from '@/lib/tarot/tarot-recommend'
 
 describe('tarot-recommend', () => {
   describe('checkDangerousQuestion', () => {

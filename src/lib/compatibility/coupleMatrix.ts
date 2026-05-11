@@ -17,7 +17,7 @@
  *  L6 daewoon sync        — A current 대운 × B current 대운 element flow
  */
 
-import type { CalculateSajuDataResult, FiveElement } from '@/lib/Saju/types'
+import type { CalculateSajuDataResult, FiveElement } from '@/lib/saju/types'
 
 // ──────────────────────────────────────────────────────────────────────
 // Shared types
@@ -104,13 +104,23 @@ const FIVE_ELEMENT_OVERCOMING: Record<FiveElement, FiveElement> = {
   수: '화',
 }
 
-function dominantWesternElement(natal: CoupleSajuInput['natal']): 'fire' | 'earth' | 'air' | 'water' | null {
+function dominantWesternElement(
+  natal: CoupleSajuInput['natal']
+): 'fire' | 'earth' | 'air' | 'water' | null {
   if (!natal) return null
   const SIGN_ELEM: Record<string, 'fire' | 'earth' | 'air' | 'water'> = {
-    Aries: 'fire', Leo: 'fire', Sagittarius: 'fire',
-    Taurus: 'earth', Virgo: 'earth', Capricorn: 'earth',
-    Gemini: 'air', Libra: 'air', Aquarius: 'air',
-    Cancer: 'water', Scorpio: 'water', Pisces: 'water',
+    Aries: 'fire',
+    Leo: 'fire',
+    Sagittarius: 'fire',
+    Taurus: 'earth',
+    Virgo: 'earth',
+    Capricorn: 'earth',
+    Gemini: 'air',
+    Libra: 'air',
+    Aquarius: 'air',
+    Cancer: 'water',
+    Scorpio: 'water',
+    Pisces: 'water',
   }
   const sun = natal.planets.find((p) => p.name === 'Sun')
   const moon = natal.planets.find((p) => p.name === 'Moon')
@@ -123,10 +133,7 @@ function dominantWesternElement(natal: CoupleSajuInput['natal']): 'fire' | 'eart
   return (winner as 'fire' | 'earth' | 'air' | 'water') || null
 }
 
-function analyzeL1ElementResonance(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixCell[] {
+function analyzeL1ElementResonance(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
   const aDayElem = a.saju.dayMaster?.element as FiveElement
   const bDayElem = b.saju.dayMaster?.element as FiveElement
@@ -209,10 +216,7 @@ function analyzeL1ElementResonance(
 // 명리학에서 일간이 상대 행성을 어떻게 받아들이는지
 // ──────────────────────────────────────────────────────────────────────
 
-function analyzeL2SibsinPlanet(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixCell[] {
+function analyzeL2SibsinPlanet(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
   const targets = ['Venus', 'Mars', 'Sun', 'Moon']
   for (const dir of ['A→B', 'B→A'] as const) {
@@ -226,10 +230,18 @@ function analyzeL2SibsinPlanet(
       if (!planet) continue
       // Score by sign element vs self day master
       const SIGN_TO_FIVE: Record<string, FiveElement> = {
-        Aries: '화', Leo: '화', Sagittarius: '화',
-        Taurus: '토', Virgo: '토', Capricorn: '토',
-        Gemini: '목', Libra: '금', Aquarius: '금',
-        Cancer: '수', Scorpio: '수', Pisces: '수',
+        Aries: '화',
+        Leo: '화',
+        Sagittarius: '화',
+        Taurus: '토',
+        Virgo: '토',
+        Capricorn: '토',
+        Gemini: '목',
+        Libra: '금',
+        Aquarius: '금',
+        Cancer: '수',
+        Scorpio: '수',
+        Pisces: '수',
       }
       const planetElem = SIGN_TO_FIVE[planet.sign]
       if (!planetElem) continue
@@ -284,10 +296,7 @@ const STEM_PAIRS: Array<[string, string, FiveElement, string]> = [
   ['戊', '癸', '화', '무계합화화'],
 ]
 
-function analyzeL3StemCombination(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixCell[] {
+function analyzeL3StemCombination(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
   const aStems = [
     { pos: '년', name: a.saju.yearPillar.heavenlyStem.name },
@@ -342,26 +351,44 @@ const YUKHAP: Array<[string, string, string]> = [
   ['午', '未', '오미합'],
 ]
 const CHUNG: Array<[string, string]> = [
-  ['子', '午'], ['丑', '未'], ['寅', '申'], ['卯', '酉'], ['辰', '戌'], ['巳', '亥'],
+  ['子', '午'],
+  ['丑', '未'],
+  ['寅', '申'],
+  ['卯', '酉'],
+  ['辰', '戌'],
+  ['巳', '亥'],
 ]
 const HYEONG: Array<[string, string]> = [
-  ['寅', '巳'], ['巳', '申'], ['申', '寅'], ['丑', '戌'], ['戌', '未'], ['未', '丑'], ['子', '卯'],
+  ['寅', '巳'],
+  ['巳', '申'],
+  ['申', '寅'],
+  ['丑', '戌'],
+  ['戌', '未'],
+  ['未', '丑'],
+  ['子', '卯'],
 ]
 const PA: Array<[string, string]> = [
-  ['子', '酉'], ['寅', '亥'], ['辰', '丑'], ['午', '卯'], ['申', '巳'], ['戌', '未'],
+  ['子', '酉'],
+  ['寅', '亥'],
+  ['辰', '丑'],
+  ['午', '卯'],
+  ['申', '巳'],
+  ['戌', '未'],
 ]
 const HAE: Array<[string, string]> = [
-  ['子', '未'], ['丑', '午'], ['寅', '巳'], ['卯', '辰'], ['申', '亥'], ['酉', '戌'],
+  ['子', '未'],
+  ['丑', '午'],
+  ['寅', '巳'],
+  ['卯', '辰'],
+  ['申', '亥'],
+  ['酉', '戌'],
 ]
 
 function pairMatch(arr: Array<[string, string]>, x: string, y: string): boolean {
   return arr.some((p) => (p[0] === x && p[1] === y) || (p[0] === y && p[1] === x))
 }
 
-function analyzeL4BranchInteraction(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixCell[] {
+function analyzeL4BranchInteraction(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
   const aBranches = [
     { pos: '년', name: a.saju.yearPillar.earthlyBranch.name },
@@ -382,47 +409,67 @@ function analyzeL4BranchInteraction(
       for (const [x, y, label] of YUKHAP) {
         if ((ai.name === x && bi.name === y) || (ai.name === y && bi.name === x)) {
           cells.push({
-            layer: 4, rowKey: `A.${ai.pos}지`, colKey: `B.${bi.pos}지`,
+            layer: 4,
+            rowKey: `A.${ai.pos}지`,
+            colKey: `B.${bi.pos}지`,
             score: ai.pos === '일' && bi.pos === '일' ? 10 : 8,
-            sajuBasis: `A ${ai.pos}지 ${ai.name}`, astroBasis: `B ${bi.pos}지 ${bi.name}`,
-            description: `${label} — 친밀한 결속`, polarity: 'positive',
+            sajuBasis: `A ${ai.pos}지 ${ai.name}`,
+            astroBasis: `B ${bi.pos}지 ${bi.name}`,
+            description: `${label} — 친밀한 결속`,
+            polarity: 'positive',
           })
         }
       }
       // 충
       if (pairMatch(CHUNG, ai.name, bi.name)) {
         cells.push({
-          layer: 4, rowKey: `A.${ai.pos}지`, colKey: `B.${bi.pos}지`,
+          layer: 4,
+          rowKey: `A.${ai.pos}지`,
+          colKey: `B.${bi.pos}지`,
           score: ai.pos === '일' && bi.pos === '일' ? 1 : 3,
-          sajuBasis: `A ${ai.pos}지 ${ai.name}`, astroBasis: `B ${bi.pos}지 ${bi.name}`,
-          description: `${ai.name}-${bi.name} 충 — 충돌·이별 신호`, polarity: 'negative',
+          sajuBasis: `A ${ai.pos}지 ${ai.name}`,
+          astroBasis: `B ${bi.pos}지 ${bi.name}`,
+          description: `${ai.name}-${bi.name} 충 — 충돌·이별 신호`,
+          polarity: 'negative',
         })
       }
       // 형
       if (pairMatch(HYEONG, ai.name, bi.name)) {
         cells.push({
-          layer: 4, rowKey: `A.${ai.pos}지`, colKey: `B.${bi.pos}지`,
+          layer: 4,
+          rowKey: `A.${ai.pos}지`,
+          colKey: `B.${bi.pos}지`,
           score: 3,
-          sajuBasis: `A ${ai.pos}지 ${ai.name}`, astroBasis: `B ${bi.pos}지 ${bi.name}`,
-          description: `${ai.name}-${bi.name} 형 — 갈등·소송`, polarity: 'negative',
+          sajuBasis: `A ${ai.pos}지 ${ai.name}`,
+          astroBasis: `B ${bi.pos}지 ${bi.name}`,
+          description: `${ai.name}-${bi.name} 형 — 갈등·소송`,
+          polarity: 'negative',
         })
       }
       // 파
       if (pairMatch(PA, ai.name, bi.name)) {
         cells.push({
-          layer: 4, rowKey: `A.${ai.pos}지`, colKey: `B.${bi.pos}지`,
+          layer: 4,
+          rowKey: `A.${ai.pos}지`,
+          colKey: `B.${bi.pos}지`,
           score: 4,
-          sajuBasis: `A ${ai.pos}지 ${ai.name}`, astroBasis: `B ${bi.pos}지 ${bi.name}`,
-          description: `${ai.name}-${bi.name} 파 — 균열`, polarity: 'negative',
+          sajuBasis: `A ${ai.pos}지 ${ai.name}`,
+          astroBasis: `B ${bi.pos}지 ${bi.name}`,
+          description: `${ai.name}-${bi.name} 파 — 균열`,
+          polarity: 'negative',
         })
       }
       // 해
       if (pairMatch(HAE, ai.name, bi.name)) {
         cells.push({
-          layer: 4, rowKey: `A.${ai.pos}지`, colKey: `B.${bi.pos}지`,
+          layer: 4,
+          rowKey: `A.${ai.pos}지`,
+          colKey: `B.${bi.pos}지`,
           score: 4,
-          sajuBasis: `A ${ai.pos}지 ${ai.name}`, astroBasis: `B ${bi.pos}지 ${bi.name}`,
-          description: `${ai.name}-${bi.name} 해 — 방해·헐뜯음`, polarity: 'negative',
+          sajuBasis: `A ${ai.pos}지 ${ai.name}`,
+          astroBasis: `B ${bi.pos}지 ${bi.name}`,
+          description: `${ai.name}-${bi.name} 해 — 방해·헐뜯음`,
+          polarity: 'negative',
         })
       }
     }
@@ -435,9 +482,14 @@ function analyzeL4BranchInteraction(
     const inB = trio.filter((b) => bSet.has(b))
     if (inA.length + inB.length >= 3 && inA.length > 0 && inB.length > 0) {
       cells.push({
-        layer: 4, rowKey: 'A.지지', colKey: 'B.지지',
-        score: 10, sajuBasis: `A ${inA.join(',')}`, astroBasis: `B ${inB.join(',')}`,
-        description: `${label} 완성 — 강력한 공동 목적 (${elem})`, polarity: 'positive',
+        layer: 4,
+        rowKey: 'A.지지',
+        colKey: 'B.지지',
+        score: 10,
+        sajuBasis: `A ${inA.join(',')}`,
+        astroBasis: `B ${inB.join(',')}`,
+        description: `${label} 완성 — 강력한 공동 목적 (${elem})`,
+        polarity: 'positive',
       })
     }
   }
@@ -449,14 +501,21 @@ function analyzeL4BranchInteraction(
 // ──────────────────────────────────────────────────────────────────────
 
 const SIGN_START: Record<string, number> = {
-  Aries: 0, Taurus: 30, Gemini: 60, Cancer: 90, Leo: 120, Virgo: 150,
-  Libra: 180, Scorpio: 210, Sagittarius: 240, Capricorn: 270, Aquarius: 300, Pisces: 330,
+  Aries: 0,
+  Taurus: 30,
+  Gemini: 60,
+  Cancer: 90,
+  Leo: 120,
+  Virgo: 150,
+  Libra: 180,
+  Scorpio: 210,
+  Sagittarius: 240,
+  Capricorn: 270,
+  Aquarius: 300,
+  Pisces: 330,
 }
 
-function analyzeL5AspectBridge(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixCell[] {
+function analyzeL5AspectBridge(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
   if (!a.natal || !b.natal) return cells
   const targets = ['Venus', 'Mars', 'Sun', 'Moon', 'Jupiter']
@@ -502,14 +561,19 @@ function analyzeL5AspectBridge(
 // ──────────────────────────────────────────────────────────────────────
 
 const STEM_TO_ELEM: Record<string, FiveElement> = {
-  甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토', 己: '토',
-  庚: '금', 辛: '금', 壬: '수', 癸: '수',
+  甲: '목',
+  乙: '목',
+  丙: '화',
+  丁: '화',
+  戊: '토',
+  己: '토',
+  庚: '금',
+  辛: '금',
+  壬: '수',
+  癸: '수',
 }
 
-function analyzeL6DaewoonSync(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixCell[] {
+function analyzeL6DaewoonSync(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
   type SajuWithUnse = { unse?: { daeun?: Array<{ age: number; heavenlyStem: string }> } }
   const aDaeun = (a.saju as unknown as SajuWithUnse).unse?.daeun || []
@@ -555,16 +619,21 @@ function analyzeL6DaewoonSync(
 // ──────────────────────────────────────────────────────────────────────
 
 const SIGN_TO_FIVE: Record<string, FiveElement> = {
-  Aries: '화', Leo: '화', Sagittarius: '화',
-  Taurus: '토', Virgo: '토', Capricorn: '토',
-  Gemini: '목', Libra: '금', Aquarius: '금',
-  Cancer: '수', Scorpio: '수', Pisces: '수',
+  Aries: '화',
+  Leo: '화',
+  Sagittarius: '화',
+  Taurus: '토',
+  Virgo: '토',
+  Capricorn: '토',
+  Gemini: '목',
+  Libra: '금',
+  Aquarius: '금',
+  Cancer: '수',
+  Scorpio: '수',
+  Pisces: '수',
 }
 
-function analyzeL7DaeunNatal(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixCell[] {
+function analyzeL7DaeunNatal(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
   for (const dir of ['A→B', 'B→A'] as const) {
     const self = dir === 'A→B' ? a : b
@@ -572,9 +641,11 @@ function analyzeL7DaeunNatal(
     const otherLabel = dir.split('→')[1]
     const selfLabel = dir.split('→')[0]
     const daeunList =
-      (self.saju as unknown as {
-        unse?: { daeun?: Array<{ age: number; heavenlyStem: string }> }
-      }).unse?.daeun || []
+      (
+        self.saju as unknown as {
+          unse?: { daeun?: Array<{ age: number; heavenlyStem: string }> }
+        }
+      ).unse?.daeun || []
     const cur = [...daeunList].reverse().find((d) => self.koreanAge >= d.age)
     if (!cur || !other.natal) continue
     const daeunElem = STEM_TO_ELEM[cur.heavenlyStem]
@@ -634,22 +705,34 @@ function analyzeL7DaeunNatal(
 
 /** 천을귀인이 관할하는 두 지지 (일간 기준). */
 const CHEONUL_GUIIN_BY_DAYSTEM: Record<string, [string, string]> = {
-  甲: ['丑', '未'], 戊: ['丑', '未'], 庚: ['丑', '未'],
-  乙: ['子', '申'], 己: ['子', '申'],
-  丙: ['亥', '酉'], 丁: ['亥', '酉'],
-  壬: ['卯', '巳'], 癸: ['卯', '巳'],
+  甲: ['丑', '未'],
+  戊: ['丑', '未'],
+  庚: ['丑', '未'],
+  乙: ['子', '申'],
+  己: ['子', '申'],
+  丙: ['亥', '酉'],
+  丁: ['亥', '酉'],
+  壬: ['卯', '巳'],
+  癸: ['卯', '巳'],
   辛: ['寅', '午'],
 }
 
 const BRANCH_TO_FIVE: Record<string, FiveElement> = {
-  子: '수', 丑: '토', 寅: '목', 卯: '목', 辰: '토', 巳: '화',
-  午: '화', 未: '토', 申: '금', 酉: '금', 戌: '토', 亥: '수',
+  子: '수',
+  丑: '토',
+  寅: '목',
+  卯: '목',
+  辰: '토',
+  巳: '화',
+  午: '화',
+  未: '토',
+  申: '금',
+  酉: '금',
+  戌: '토',
+  亥: '수',
 }
 
-function analyzeL8ShinsalPlanet(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixCell[] {
+function analyzeL8ShinsalPlanet(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
   const targets = ['Sun', 'Moon', 'Venus', 'Mars', 'Jupiter']
   for (const dir of ['A→B', 'B→A'] as const) {
@@ -703,22 +786,30 @@ const GEOKGUK_FAVOR_ELEMENT: Record<string, FiveElement> = {
   겁재격: '목',
 }
 
-function analyzeL9GeokgukDominant(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixCell[] {
+function analyzeL9GeokgukDominant(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixCell[] {
   const cells: CoupleMatrixCell[] = []
   type SajuWithOrthodox = {
     orthodoxInterpretation?: { advanced?: { geokguk?: { type?: string } } }
   }
-  const aGeokguk = (a.saju as unknown as SajuWithOrthodox).orthodoxInterpretation?.advanced?.geokguk?.type
-  const bGeokguk = (b.saju as unknown as SajuWithOrthodox).orthodoxInterpretation?.advanced?.geokguk?.type
+  const aGeokguk = (a.saju as unknown as SajuWithOrthodox).orthodoxInterpretation?.advanced?.geokguk
+    ?.type
+  const bGeokguk = (b.saju as unknown as SajuWithOrthodox).orthodoxInterpretation?.advanced?.geokguk
+    ?.type
   const aDominant = dominantWesternElement(a.natal)
   const bDominant = dominantWesternElement(b.natal)
   const WESTERN_TO_FIVE: Record<string, FiveElement> = {
-    fire: '화', earth: '토', air: '목', water: '수',
+    fire: '화',
+    earth: '토',
+    air: '목',
+    water: '수',
   }
-  const evaluate = (label: string, geokguk: string | undefined, otherDominant: 'fire'|'earth'|'air'|'water'|null, selfFor: string, otherFor: string) => {
+  const evaluate = (
+    label: string,
+    geokguk: string | undefined,
+    otherDominant: 'fire' | 'earth' | 'air' | 'water' | null,
+    selfFor: string,
+    otherFor: string
+  ) => {
     if (!geokguk || !otherDominant) return
     const geokElem = GEOKGUK_FAVOR_ELEMENT[geokguk]
     if (!geokElem) return
@@ -767,10 +858,7 @@ function analyzeL9GeokgukDominant(
 // Aggregator
 // ──────────────────────────────────────────────────────────────────────
 
-export function buildCoupleMatrix(
-  a: CoupleSajuInput,
-  b: CoupleSajuInput
-): CoupleMatrixResult {
+export function buildCoupleMatrix(a: CoupleSajuInput, b: CoupleSajuInput): CoupleMatrixResult {
   const L1 = analyzeL1ElementResonance(a, b)
   const L2 = analyzeL2SibsinPlanet(a, b)
   const L3 = analyzeL3StemCombination(a, b)
@@ -794,7 +882,10 @@ export function buildCoupleMatrix(
 
   const sortedDesc = [...all].sort((a, b) => b.score - a.score)
   const topPositive = sortedDesc.filter((c) => c.polarity === 'positive').slice(0, 5)
-  const topCaution = [...all].filter((c) => c.polarity === 'negative').sort((a, b) => a.score - b.score).slice(0, 5)
+  const topCaution = [...all]
+    .filter((c) => c.polarity === 'negative')
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 5)
 
   // Domain scores
   const clamp01_100 = (v: number) => Math.max(0, Math.min(100, v))
@@ -818,7 +909,8 @@ export function buildCoupleMatrix(
   const drivers: string[] = []
   if (topPositive[0]) drivers.push(topPositive[0].description)
   if (L3.length > 0) drivers.push(`천간합 ${L3.length}건 — 화학적 끌림`)
-  if (L4.filter((c) => c.polarity === 'positive').length >= 2) drivers.push('지지 합/삼합 다수 — 강한 결속')
+  if (L4.filter((c) => c.polarity === 'positive').length >= 2)
+    drivers.push('지지 합/삼합 다수 — 강한 결속')
 
   const cautions: string[] = []
   if (topCaution[0]) cautions.push(topCaution[0].description)

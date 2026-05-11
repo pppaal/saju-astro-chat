@@ -7,7 +7,7 @@ import type {
   TwelveStageStandard,
   TwelveStage,
   RelationHit,
-} from '../Saju/types'
+} from '../saju/types'
 import type { AspectType, ZodiacKo } from '../astrology/foundation/types'
 
 // Re-export types for use in other modules

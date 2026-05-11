@@ -90,9 +90,9 @@ vi.mock('@/app/tarot/utils/recommendations', () => ({
   }),
 }))
 
-vi.mock('@/lib/Tarot/questionFlow', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/Tarot/questionFlow')>(
-    '@/lib/Tarot/questionFlow'
+vi.mock('@/lib/tarot/questionFlow', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/tarot/questionFlow')>(
+    '@/lib/tarot/questionFlow'
   )
   return {
     ...actual,

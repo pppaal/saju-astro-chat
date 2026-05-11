@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger'
-import { evaluateTarotInterpretationQuality } from '@/lib/Tarot/interpretationQuality'
-import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
+import { evaluateTarotInterpretationQuality } from '@/lib/tarot/interpretationQuality'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 
 const MAX_CARD_MEANING_LENGTH = 500
 
@@ -435,50 +435,126 @@ export function classifyPositionSemantics(positionLabel: string | undefined): Po
 }
 
 // 위치 의미 × 정/역방향 별 톤 한 줄 — fallback 카드 해석 고유성 확보
-function getPositionTone(semantics: PositionSemantics, isReversed: boolean, isKorean: boolean): string {
+function getPositionTone(
+  semantics: PositionSemantics,
+  isReversed: boolean,
+  isKorean: boolean
+): string {
   const tones: Record<PositionSemantics, [string, string]> = {
     feelings: isKorean
-      ? ['속에 흐르는 감정의 결을 보여주는 자리예요.', '겉으로 드러나지 않은 망설임이 흐르고 있어요.']
-      : ['shows the inner current of feeling underneath the surface.', 'reveals hesitation that has not surfaced yet.'],
+      ? [
+          '속에 흐르는 감정의 결을 보여주는 자리예요.',
+          '겉으로 드러나지 않은 망설임이 흐르고 있어요.',
+        ]
+      : [
+          'shows the inner current of feeling underneath the surface.',
+          'reveals hesitation that has not surfaced yet.',
+        ],
     desire: isKorean
       ? ['속으로 원하는 그림을 솔직하게 비춰요.', '바라는 마음이 있지만 표현 방식이 어긋나 있어요.']
-      : ['mirrors what is genuinely wanted underneath.', 'shows desire that has trouble finding clear expression.'],
+      : [
+          'mirrors what is genuinely wanted underneath.',
+          'shows desire that has trouble finding clear expression.',
+        ],
     possibility: isKorean
-      ? ['지금 흐름에서 열려 있는 가능성의 폭을 보여줘요.', '가능성이 있지만 조건이 정렬돼야 보이는 자리예요.']
-      : ['marks the range of possibility currently open.', 'flags possibility that needs alignment to appear.'],
+      ? [
+          '지금 흐름에서 열려 있는 가능성의 폭을 보여줘요.',
+          '가능성이 있지만 조건이 정렬돼야 보이는 자리예요.',
+        ]
+      : [
+          'marks the range of possibility currently open.',
+          'flags possibility that needs alignment to appear.',
+        ],
     current: isKorean
       ? ['지금 이 시점의 진짜 상태를 비춰요.', '지금이 정체된 듯 보여도 정리되는 중인 흐름이에요.']
-      : ['shows the real state of the current moment.', 'reads as a paused phase that is actually re-sorting.'],
+      : [
+          'shows the real state of the current moment.',
+          'reads as a paused phase that is actually re-sorting.',
+        ],
     future: isKorean
       ? ['가까운 미래로 흐르는 방향을 가리켜요.', '곧 다가올 흐름이지만 속도가 늦어질 수 있어요.']
-      : ['points to the direction shaping up soon.', 'the next phase is moving but on a slower clock.'],
+      : [
+          'points to the direction shaping up soon.',
+          'the next phase is moving but on a slower clock.',
+        ],
     past: isKorean
-      ? ['지금 이 자리까지 끌고 온 배경을 보여줘요.', '아직 정리되지 않은 과거의 잔상이 영향을 주고 있어요.']
-      : ['shows the background that brought you here.', 'an unresolved residue still presses on the present.'],
+      ? [
+          '지금 이 자리까지 끌고 온 배경을 보여줘요.',
+          '아직 정리되지 않은 과거의 잔상이 영향을 주고 있어요.',
+        ]
+      : [
+          'shows the background that brought you here.',
+          'an unresolved residue still presses on the present.',
+        ],
     advice: isKorean
-      ? ['지금 가장 도움 되는 태도를 알려줘요.', '조언이지만 즉시 적용보다 한 박자 늦춰서 적용할 카드예요.']
-      : ['points to the most useful posture right now.', 'advice that lands better with one beat of delay.'],
+      ? [
+          '지금 가장 도움 되는 태도를 알려줘요.',
+          '조언이지만 즉시 적용보다 한 박자 늦춰서 적용할 카드예요.',
+        ]
+      : [
+          'points to the most useful posture right now.',
+          'advice that lands better with one beat of delay.',
+        ],
     self: isKorean
-      ? ['지금 내 안에서 일어나는 진짜 흐름을 보여줘요.', '내가 지금 인정하기 어려운 부분을 비춰요.']
-      : ['mirrors what is actually moving inside you.', 'reflects the part you are reluctant to acknowledge.'],
+      ? [
+          '지금 내 안에서 일어나는 진짜 흐름을 보여줘요.',
+          '내가 지금 인정하기 어려운 부분을 비춰요.',
+        ]
+      : [
+          'mirrors what is actually moving inside you.',
+          'reflects the part you are reluctant to acknowledge.',
+        ],
     other: isKorean
-      ? ['상대 안에서 일어나는 진짜 흐름을 보여줘요.', '상대가 인정하지 못한 채 흘러가는 감정을 보여줘요.']
-      : ['shows what is genuinely moving in the other person.', 'reads what flows through them unacknowledged.'],
+      ? [
+          '상대 안에서 일어나는 진짜 흐름을 보여줘요.',
+          '상대가 인정하지 못한 채 흘러가는 감정을 보여줘요.',
+        ]
+      : [
+          'shows what is genuinely moving in the other person.',
+          'reads what flows through them unacknowledged.',
+        ],
     obstacle: isKorean
-      ? ['지금 흐름을 잡고 있는 진짜 장애물을 보여줘요.', '겉으로 보이는 문제 뒤의 더 깊은 막힘을 비춰요.']
-      : ['shows the real obstacle holding the flow.', 'points behind the visible problem to a deeper block.'],
+      ? [
+          '지금 흐름을 잡고 있는 진짜 장애물을 보여줘요.',
+          '겉으로 보이는 문제 뒤의 더 깊은 막힘을 비춰요.',
+        ]
+      : [
+          'shows the real obstacle holding the flow.',
+          'points behind the visible problem to a deeper block.',
+        ],
     opportunity: isKorean
-      ? ['지금 잡으면 결이 바뀌는 기회의 자리예요.', '기회는 있지만 조건을 갖춰야 잡히는 흐름이에요.']
-      : ['marks an opportunity that shifts the texture if taken.', 'opportunity is available but conditional.'],
+      ? [
+          '지금 잡으면 결이 바뀌는 기회의 자리예요.',
+          '기회는 있지만 조건을 갖춰야 잡히는 흐름이에요.',
+        ]
+      : [
+          'marks an opportunity that shifts the texture if taken.',
+          'opportunity is available but conditional.',
+        ],
     timing: isKorean
-      ? ['지금 적절한 시점인지 짚어주는 자리예요.', '시기는 가까워지는 중이지만 아직 핵심 조건이 빠져 있어요.']
-      : ['points to whether the timing fits now.', 'timing is approaching but a key condition is still missing.'],
+      ? [
+          '지금 적절한 시점인지 짚어주는 자리예요.',
+          '시기는 가까워지는 중이지만 아직 핵심 조건이 빠져 있어요.',
+        ]
+      : [
+          'points to whether the timing fits now.',
+          'timing is approaching but a key condition is still missing.',
+        ],
     outcome: isKorean
-      ? ['지금 흐름이 향하는 결말의 결을 보여줘요.', '결말은 보이지만 중간에 한 번 결이 바뀔 수 있어요.']
-      : ['shows the texture of the outcome this flow is heading to.', 'the outcome is shaping up but may pivot once midway.'],
+      ? [
+          '지금 흐름이 향하는 결말의 결을 보여줘요.',
+          '결말은 보이지만 중간에 한 번 결이 바뀔 수 있어요.',
+        ]
+      : [
+          'shows the texture of the outcome this flow is heading to.',
+          'the outcome is shaping up but may pivot once midway.',
+        ],
     lesson: isKorean
       ? ['이 흐름이 남기는 의미를 보여줘요.', '교훈은 명확하지만 받아들이기까지 시간이 필요해요.']
-      : ['shows the meaning this phase is leaving with you.', 'the lesson is clear but takes time to settle.'],
+      : [
+          'shows the meaning this phase is leaving with you.',
+          'the lesson is clear but takes time to settle.',
+        ],
     default: isKorean
       ? ['이 자리에서 카드가 말하는 결을 보여줘요.', '흐름은 있지만 표현이 아직 정리되지 않았어요.']
       : ['shows what this seat is voicing.', 'a current is present but not yet articulated.'],
@@ -486,7 +562,11 @@ function getPositionTone(semantics: PositionSemantics, isReversed: boolean, isKo
   return tones[semantics][isReversed ? 1 : 0]
 }
 
-export function buildMinimumInsight(language: string, card: CardInput, userQuestion?: string): string {
+export function buildMinimumInsight(
+  language: string,
+  card: CardInput,
+  userQuestion?: string
+): string {
   const cardName = language === 'ko' ? card.nameKo || card.name : card.name
   const orientation = card.isReversed
     ? language === 'ko'
@@ -873,7 +953,12 @@ export function buildAnchoredCardInsights(
     is_reversed: card.isReversed,
     interpretation: ensureActionAndTimeAnchor(
       language,
-      ensureCardAnchoring(language, card, buildMinimumInsight(language, card, userQuestion), userQuestion)
+      ensureCardAnchoring(
+        language,
+        card,
+        buildMinimumInsight(language, card, userQuestion),
+        userQuestion
+      )
     ),
     spirit_animal: null,
     chakra: null,
@@ -937,11 +1022,7 @@ function buildDynamicGuidance(cards: CardInput[], language: string): string {
           ? '흐름은 가능성과 늦어짐이 섞여 있어요'
           : 'The flow mixes openness with delay'
   const kw = allKeywords.length > 0 ? allKeywords.join(isKorean ? ' · ' : ' / ') : ''
-  const kwLine = kw
-    ? isKorean
-      ? `핵심 결: ${kw}`
-      : `Core threads: ${kw}`
-    : ''
+  const kwLine = kw ? (isKorean ? `핵심 결: ${kw}` : `Core threads: ${kw}`) : ''
 
   if (isKorean) {
     return [

@@ -1,16 +1,9 @@
 import { logger } from '@/lib/logger'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import {
-  type SajuProfile,
-} from '@/lib/compatibility/cosmicCompatibility'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { type SajuProfile } from '@/lib/compatibility/cosmicCompatibility'
 import { type FusionCompatibilityResult } from '@/lib/compatibility/compatibilityFusion'
-import {
-  type ExtendedAstrologyProfile,
-} from '@/lib/compatibility/astrology/comprehensive'
-import {
-  calculateNatalChart,
-  toChart,
-} from '@/lib/astrology/foundation/astrologyService'
+import { type ExtendedAstrologyProfile } from '@/lib/compatibility/astrology/comprehensive'
+import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 import type { AspectType } from '@/lib/astrology/foundation/types'
 import type { PersonInput } from './types'
 import {
@@ -220,8 +213,6 @@ export function formatAspectLine(
     ? `${aspect.from.name} ${label} ${aspect.to.name} (오브 ${aspect.orb.toFixed(2)}°)`
     : `${aspect.from.name} ${label} ${aspect.to.name} (orb ${aspect.orb.toFixed(2)}°)`
 }
-
-
 
 export function pickFusionInsights(fusion: FusionCompatibilityResult): PairFusionInsights {
   return {
@@ -907,5 +898,3 @@ export function buildInterpretationMarkdown(params: {
 
   return lines.join('\n')
 }
-
-

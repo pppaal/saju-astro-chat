@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { checkDangerousQuestion } from '@/lib/Tarot/tarot-recommend'
-import type { TarotQuestionAnalysisResult } from '@/lib/Tarot/questionFlow'
+import { checkDangerousQuestion } from '@/lib/tarot/tarot-recommend'
+import type { TarotQuestionAnalysisResult } from '@/lib/tarot/questionFlow'
 import { tarotLogger } from '@/lib/logger'
 import { apiFetch } from '@/lib/api'
 import {
@@ -258,7 +258,9 @@ export function useQuestionAnalysis({
         const errName = (error as { name?: string } | null)?.name
         const isAbortError =
           errName === 'AbortError' ||
-          (typeof DOMException !== 'undefined' && error instanceof DOMException && errName === 'AbortError')
+          (typeof DOMException !== 'undefined' &&
+            error instanceof DOMException &&
+            errName === 'AbortError')
         const isTimeout = timeoutControl.didTimeout()
         if (isAbortError && !isTimeout) {
           return { result: null, fallbackReason: null }

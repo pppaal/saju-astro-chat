@@ -15,7 +15,7 @@ import { refundCredits } from '@/lib/credits/creditRefund'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
-import { buildQuestionContextPrompt } from '@/lib/Tarot/questionFlow'
+import { buildQuestionContextPrompt } from '@/lib/tarot/questionFlow'
 import { recordCounter, recordTiming } from '@/lib/metrics'
 import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
 import {
@@ -789,7 +789,11 @@ ${outputSchemaEn}`
           error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
         })
         recordCounter('tarot.interpret.fallback_total', 1, { from: 'claude', to: 'gpt' })
-        result = await callGPT(`${systemPrompt}\n\n${userPrompt}`, budget.maxTokens, budget.timeoutMs)
+        result = await callGPT(
+          `${systemPrompt}\n\n${userPrompt}`,
+          budget.maxTokens,
+          budget.timeoutMs
+        )
       }
     } else {
       result = await callGPT(`${systemPrompt}\n\n${userPrompt}`, budget.maxTokens, budget.timeoutMs)

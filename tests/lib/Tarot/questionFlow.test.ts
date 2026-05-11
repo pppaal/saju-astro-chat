@@ -9,7 +9,7 @@ import {
   resolveStableTarotEntry,
   storeQuestionAnalysisSnapshot,
   type TarotQuestionAnalysisResult,
-} from '@/lib/Tarot/questionFlow'
+} from '@/lib/tarot/questionFlow'
 
 function createAnalysis(
   overrides: Partial<TarotQuestionAnalysisResult> = {}

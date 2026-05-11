@@ -6,8 +6,8 @@ import { Sparkles, Lock } from 'lucide-react'
 import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import { expandNarrativeDeep } from './free-report/tabs/shared/longForm'
 import PremiumNarrativeCard from '@/components/reports/PremiumNarrativeCard'
-import { runMainSaju } from '@/lib/Saju/main'
-import { buildExtendedAnalysisFromMain } from '@/lib/Saju/extendedAnalysis'
+import { runMainSaju } from '@/lib/saju/main'
+import { buildExtendedAnalysisFromMain } from '@/lib/saju/extendedAnalysis'
 import ExtendedAnalysisSection from '@/app/premium-reports/_components/ExtendedAnalysisSection'
 
 // Import Tab Components
@@ -137,16 +137,18 @@ const FreeReport = memo(function FreeReport({
   const extendedAnalysis = useMemo(() => {
     if (!birthInfo?.birthDate) return null
     try {
-      const gender =
-        String(birthInfo.gender || '').toLowerCase().startsWith('f') ? 'female' : 'male'
+      const gender = String(birthInfo.gender || '')
+        .toLowerCase()
+        .startsWith('f')
+        ? 'female'
+        : 'male'
       const main = runMainSaju({
         birthDate: birthInfo.birthDate,
         birthTime: birthInfo.birthTime || '12:00',
         gender,
         timezone: birthInfo.timezone || 'Asia/Seoul',
       })
-      const koreanAge =
-        new Date().getFullYear() - parseInt(birthInfo.birthDate.slice(0, 4), 10) + 1
+      const koreanAge = new Date().getFullYear() - parseInt(birthInfo.birthDate.slice(0, 4), 10) + 1
       return buildExtendedAnalysisFromMain(main, { koreanAge })
     } catch {
       return null
@@ -180,7 +182,7 @@ const FreeReport = memo(function FreeReport({
     if (!normalizedAstro?.planets || normalizedAstro.planets.length === 0) return null
     try {
       return buildThemedAstroReading(
-        normalizedAstro as unknown as Parameters<typeof buildThemedAstroReading>[0],
+        normalizedAstro as unknown as Parameters<typeof buildThemedAstroReading>[0]
       )
     } catch {
       return null
@@ -395,8 +397,8 @@ const FreeReport = memo(function FreeReport({
               <h3 className="text-sm font-bold text-white">결정론 사주 분석</h3>
             </div>
             <p className="text-xs text-slate-300/80 leading-snug">
-              사주 8자에서 직접 도출한 30+ 섹션입니다 — 인생 시기, 결정적
-              타이밍, 관계운, 카르마 유형까지 무료로 풀어드립니다.
+              사주 8자에서 직접 도출한 30+ 섹션입니다 — 인생 시기, 결정적 타이밍, 관계운, 카르마
+              유형까지 무료로 풀어드립니다.
             </p>
           </div>
           <div className="-mx-4 sm:-mx-0">
@@ -438,9 +440,8 @@ const FreeReport = memo(function FreeReport({
                   AI가 풀어쓰는 24,000자 인생 총운
                 </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  성격 심층 / 커리어 경로 / 관계 역학 / 배우자상 / 재물 흐름 /
-                  건강 / 사명 / 변곡점 / 향후 5년 / 타이밍 / 실천 가이드까지
-                  AI가 너만을 위해 작성합니다 →
+                  성격 심층 / 커리어 경로 / 관계 역학 / 배우자상 / 재물 흐름 / 건강 / 사명 / 변곡점
+                  / 향후 5년 / 타이밍 / 실천 가이드까지 AI가 너만을 위해 작성합니다 →
                 </p>
               </div>
             </div>

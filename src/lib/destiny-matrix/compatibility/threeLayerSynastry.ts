@@ -9,7 +9,7 @@
  * 출력: 각 층 점수·신호·narration + 통합 verdict
  */
 
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 
 // ─────────────────────────────────────────────────────────
 // 타입
@@ -23,11 +23,11 @@ export type CompatibilityPerson = {
 
 export type CompatibilitySignal = {
   text: string
-  delta: number  // -15 ~ +15
+  delta: number // -15 ~ +15
 }
 
 export type CompatibilityLayerResult = {
-  score: number  // 0-100
+  score: number // 0-100
   signals: CompatibilitySignal[]
   narration: string
 }
@@ -48,21 +48,57 @@ export type ThreeLayerCompatibility = {
 // ─────────────────────────────────────────────────────────
 
 const STEM_KO_EL: Record<string, string> = {
-  甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토',
-  己: '토', 庚: '금', 辛: '금', 壬: '수', 癸: '수',
+  甲: '목',
+  乙: '목',
+  丙: '화',
+  丁: '화',
+  戊: '토',
+  己: '토',
+  庚: '금',
+  辛: '금',
+  壬: '수',
+  癸: '수',
 }
 const STEM_HAP: Record<string, string> = {
-  甲: '己', 乙: '庚', 丙: '辛', 丁: '壬', 戊: '癸',
-  己: '甲', 庚: '乙', 辛: '丙', 壬: '丁', 癸: '戊',
+  甲: '己',
+  乙: '庚',
+  丙: '辛',
+  丁: '壬',
+  戊: '癸',
+  己: '甲',
+  庚: '乙',
+  辛: '丙',
+  壬: '丁',
+  癸: '戊',
 }
 const STEM_CHUNG = new Set(['甲-庚', '庚-甲', '乙-辛', '辛-乙', '丙-壬', '壬-丙', '丁-癸', '癸-丁'])
 const BRANCH_HAP: Record<string, string> = {
-  子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯',
-  辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午',
+  子: '丑',
+  丑: '子',
+  寅: '亥',
+  亥: '寅',
+  卯: '戌',
+  戌: '卯',
+  辰: '酉',
+  酉: '辰',
+  巳: '申',
+  申: '巳',
+  午: '未',
+  未: '午',
 }
 const BRANCH_CHUNG: Record<string, string> = {
-  子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅',
-  卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳',
+  子: '午',
+  午: '子',
+  丑: '未',
+  未: '丑',
+  寅: '申',
+  申: '寅',
+  卯: '酉',
+  酉: '卯',
+  辰: '戌',
+  戌: '辰',
+  巳: '亥',
+  亥: '巳',
 }
 // 삼합 그룹
 const SAMHAP_GROUPS = [
@@ -76,7 +112,10 @@ function shareSamhap(b1: string, b2: string): boolean {
 }
 
 const ELEMENT_ORDER = ['목', '화', '토', '금', '수']
-function elementRelation(a: string, b: string): 'same' | 'support' | 'controlled' | 'control' | 'drain' {
+function elementRelation(
+  a: string,
+  b: string
+): 'same' | 'support' | 'controlled' | 'control' | 'drain' {
   const ai = ELEMENT_ORDER.indexOf(a)
   const bi = ELEMENT_ORDER.indexOf(b)
   if (ai < 0 || bi < 0) return 'same'
@@ -107,7 +146,10 @@ function analyzeSajuCompatibility(
 
   // 일주 천간 관계
   if (aDS === bDS) {
-    signals.push({ text: `두 사람 일간이 ${aDS}로 같음 — 비슷한 기질, 동질감 강하지만 경쟁 가능`, delta: 4 })
+    signals.push({
+      text: `두 사람 일간이 ${aDS}로 같음 — 비슷한 기질, 동질감 강하지만 경쟁 가능`,
+      delta: 4,
+    })
     score += 4
   } else if (STEM_HAP[aDS] === bDS) {
     signals.push({ text: `일간 천간합 ${aDS}-${bDS} — 부드럽게 맞물리는 협력 구도`, delta: 12 })
@@ -155,23 +197,36 @@ function analyzeSajuCompatibility(
   const aFE = (a.fiveElements || {}) as Record<string, number>
   const bFE = (b.fiveElements || {}) as Record<string, number>
   let supplemented = 0
-  const elKeys: Array<[string, string]> = [['wood', '목'], ['fire', '화'], ['earth', '토'], ['metal', '금'], ['water', '수']]
+  const elKeys: Array<[string, string]> = [
+    ['wood', '목'],
+    ['fire', '화'],
+    ['earth', '토'],
+    ['metal', '금'],
+    ['water', '수'],
+  ]
   for (const [enKey] of elKeys) {
     if ((aFE[enKey] || 0) <= 1 && (bFE[enKey] || 0) >= 2) supplemented++
     if ((bFE[enKey] || 0) <= 1 && (aFE[enKey] || 0) >= 2) supplemented++
   }
   if (supplemented >= 2) {
-    signals.push({ text: `5행 보완 — 서로 부족한 오행을 채워주는 구도 (${supplemented}개)`, delta: 6 })
+    signals.push({
+      text: `5행 보완 — 서로 부족한 오행을 채워주는 구도 (${supplemented}개)`,
+      delta: 6,
+    })
     score += 6
   }
 
   score = Math.max(0, Math.min(100, score))
 
   let narration: string
-  if (score >= 75) narration = `사주 궁합으로 보면 두 사람이 자연스럽게 맞물리는 구도예요. 일상·결정·방향이 큰 충돌 없이 풀립니다.`
-  else if (score >= 60) narration = `사주 궁합은 안정 구간이에요. 큰 갈등은 적되 한 두 가지 조정 포인트가 있어요.`
-  else if (score >= 45) narration = `사주 궁합은 중립 구간 — 받쳐주는 신호와 부담 신호가 섞여 있어요. 노력으로 맞춰가는 관계.`
-  else if (score >= 30) narration = `사주 궁합은 도전적이에요. 일상 패턴이나 결정 방식에서 충돌이 잦을 가능성.`
+  if (score >= 75)
+    narration = `사주 궁합으로 보면 두 사람이 자연스럽게 맞물리는 구도예요. 일상·결정·방향이 큰 충돌 없이 풀립니다.`
+  else if (score >= 60)
+    narration = `사주 궁합은 안정 구간이에요. 큰 갈등은 적되 한 두 가지 조정 포인트가 있어요.`
+  else if (score >= 45)
+    narration = `사주 궁합은 중립 구간 — 받쳐주는 신호와 부담 신호가 섞여 있어요. 노력으로 맞춰가는 관계.`
+  else if (score >= 30)
+    narration = `사주 궁합은 도전적이에요. 일상 패턴이나 결정 방식에서 충돌이 잦을 가능성.`
   else narration = `사주 궁합 자체가 어려운 조합이에요. 깊은 이해와 거리 조절이 필요한 관계.`
 
   return { score, signals, narration }
@@ -183,7 +238,11 @@ function analyzeSajuCompatibility(
 // (실제 production은 calculateNatal 두 번 + 어스펙트 매칭이 정밀)
 // ─────────────────────────────────────────────────────────
 
-function approximateAstroFromSaju(s: ReturnType<typeof calculateSajuData>): { sun: string; moon: string; mercury: string } {
+function approximateAstroFromSaju(s: ReturnType<typeof calculateSajuData>): {
+  sun: string
+  moon: string
+  mercury: string
+} {
   // 본명 4기둥의 element 분포로 간이 점성 추정
   const ds = s.pillars.day.heavenlyStem.name
   const ms = s.pillars.month.heavenlyStem.name
@@ -209,10 +268,16 @@ function analyzeSynastry(
   } else {
     const rel = elementRelation(ax.sun, bx.sun)
     if (rel === 'support') {
-      signals.push({ text: `자아 element 상생 (${ax.sun}↔${bx.sun}) — 정체성 서로 받쳐줌`, delta: 8 })
+      signals.push({
+        text: `자아 element 상생 (${ax.sun}↔${bx.sun}) — 정체성 서로 받쳐줌`,
+        delta: 8,
+      })
       score += 8
     } else if (rel === 'control' || rel === 'controlled') {
-      signals.push({ text: `자아 element 상극 (${ax.sun}↔${bx.sun}) — 정체성 충돌 가능`, delta: -5 })
+      signals.push({
+        text: `자아 element 상극 (${ax.sun}↔${bx.sun}) — 정체성 충돌 가능`,
+        delta: -5,
+      })
       score -= 5
     }
   }
@@ -220,7 +285,10 @@ function analyzeSynastry(
   // Sun-Moon 관계 (자아 vs 정서) — 이게 부부 궁합에 가장 중요
   const sunMoonRel = elementRelation(ax.sun, bx.moon)
   if (sunMoonRel === 'support') {
-    signals.push({ text: `A의 자아(${ax.sun})와 B의 정서(${bx.moon}) 상생 — 정서적 안정`, delta: 9 })
+    signals.push({
+      text: `A의 자아(${ax.sun})와 B의 정서(${bx.moon}) 상생 — 정서적 안정`,
+      delta: 9,
+    })
     score += 9
   } else if (sunMoonRel === 'control' || sunMoonRel === 'controlled') {
     signals.push({ text: `A의 자아와 B의 정서 상극 — 정서적 거리감`, delta: -4 })
@@ -265,19 +333,30 @@ function analyzeComposite(
   } else {
     const rel = elementRelation(aEl, bEl)
     if (rel === 'support') {
-      signals.push({ text: `관계 본질이 상생 흐름 (${fusionElement}) — 함께 성장하는 관계`, delta: 10 })
+      signals.push({
+        text: `관계 본질이 상생 흐름 (${fusionElement}) — 함께 성장하는 관계`,
+        delta: 10,
+      })
       score += 10
     } else if (rel === 'control' || rel === 'controlled') {
-      signals.push({ text: `관계 본질에 통제 흐름 (${fusionElement}) — 한 쪽이 주도, 다른 쪽이 견제`, delta: -3 })
+      signals.push({
+        text: `관계 본질에 통제 흐름 (${fusionElement}) — 한 쪽이 주도, 다른 쪽이 견제`,
+        delta: -3,
+      })
       score -= 3
     } else if (rel === 'drain') {
-      signals.push({ text: `관계 본질이 헌신 흐름 (${fusionElement}) — 한 쪽이 더 주는 구도`, delta: 0 })
+      signals.push({
+        text: `관계 본질이 헌신 흐름 (${fusionElement}) — 한 쪽이 더 주는 구도`,
+        delta: 0,
+      })
     }
   }
 
   // 두 사람 격국 매칭 (사주 lib에 있다면)
-  const aGeokguk = (a as { advancedAnalysis?: { geokguk?: { primary?: string } } }).advancedAnalysis?.geokguk?.primary
-  const bGeokguk = (b as { advancedAnalysis?: { geokguk?: { primary?: string } } }).advancedAnalysis?.geokguk?.primary
+  const aGeokguk = (a as { advancedAnalysis?: { geokguk?: { primary?: string } } }).advancedAnalysis
+    ?.geokguk?.primary
+  const bGeokguk = (b as { advancedAnalysis?: { geokguk?: { primary?: string } } }).advancedAnalysis
+    ?.geokguk?.primary
   if (aGeokguk && bGeokguk) {
     if (aGeokguk === bGeokguk) {
       signals.push({ text: `두 사람 격국 같음 (${aGeokguk}) — 가치관 동기화`, delta: 7 })
@@ -299,7 +378,10 @@ function analyzeComposite(
     const aDaeunEl = STEM_KO_EL[aDaeun.heavenlyStem]
     const bDaeunEl = STEM_KO_EL[bDaeun.heavenlyStem]
     if (aDaeunEl === bDaeunEl) {
-      signals.push({ text: `현 대운 element 같음 (${aDaeunEl}) — 비슷한 인생 phase에 함께 있음`, delta: 5 })
+      signals.push({
+        text: `현 대운 element 같음 (${aDaeunEl}) — 비슷한 인생 phase에 함께 있음`,
+        delta: 5,
+      })
       score += 5
     }
   }
@@ -308,8 +390,10 @@ function analyzeComposite(
 
   let narration: string
   if (score >= 70) narration = `관계 본질이 단단한 구도예요. 시간이 갈수록 깊어지는 사이.`
-  else if (score >= 55) narration = `관계 본질에 안정성과 변동성이 같이 있어요. 큰 흐름 안에서 조율이 핵심.`
-  else if (score >= 40) narration = `관계 본질에 긴장이 있어요. 의식적 노력 없으면 거리감 생기기 쉬움.`
+  else if (score >= 55)
+    narration = `관계 본질에 안정성과 변동성이 같이 있어요. 큰 흐름 안에서 조율이 핵심.`
+  else if (score >= 40)
+    narration = `관계 본질에 긴장이 있어요. 의식적 노력 없으면 거리감 생기기 쉬움.`
   else narration = `관계 본질이 도전적이에요. 두 사람의 인생 방향이 다른 곳을 가리킬 가능성.`
 
   return { score, signals, narration }
@@ -347,8 +431,20 @@ export function analyzeThreeLayerCompatibility(
   personA: CompatibilityPerson,
   personB: CompatibilityPerson
 ): ThreeLayerCompatibility {
-  const sajuA = calculateSajuData(personA.birthDate, personA.birthTime, personA.gender, 'solar', 'Asia/Seoul')
-  const sajuB = calculateSajuData(personB.birthDate, personB.birthTime, personB.gender, 'solar', 'Asia/Seoul')
+  const sajuA = calculateSajuData(
+    personA.birthDate,
+    personA.birthTime,
+    personA.gender,
+    'solar',
+    'Asia/Seoul'
+  )
+  const sajuB = calculateSajuData(
+    personB.birthDate,
+    personB.birthTime,
+    personB.gender,
+    'solar',
+    'Asia/Seoul'
+  )
 
   const layer1 = analyzeSajuCompatibility(sajuA, sajuB)
   const layer2 = analyzeSynastry(sajuA, sajuB)

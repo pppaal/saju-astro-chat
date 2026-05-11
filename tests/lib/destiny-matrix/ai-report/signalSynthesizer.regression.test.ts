@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixHighlight, MatrixSummary } from '@/lib/destiny-matrix/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/saju/types'
 import { synthesizeMatrixSignals } from '@/lib/destiny-matrix/ai-report/signalSynthesizer'
 
 function mkHighlight(

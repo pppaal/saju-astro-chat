@@ -1,9 +1,9 @@
 // Element Mapping Utilities
 // Converts between Saju (Five Elements) and Western (Four Elements) systems
 
-import { SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
-import type { WesternElement } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import { SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core'
+import type { WesternElement } from '@/lib/destiny-matrix/types'
+import type { FiveElement } from '@/lib/saju/types'
 
 /**
  * Maps Saju Five Element to Western Four Element system
@@ -29,18 +29,18 @@ import type { FiveElement } from '@/lib/Saju/types';
  */
 export function mapSajuElementToWestern(element: string): 'fire' | 'earth' | 'air' | 'water' {
   const mapping: Record<string, 'fire' | 'earth' | 'air' | 'water'> = {
-    '목': 'air',    // Wood → Air (growth, expansion)
-    '화': 'fire',   // Fire → Fire
-    '토': 'earth',  // Earth → Earth
-    '금': 'air',    // Metal → Air (sharpness, decisiveness)
-    '수': 'water',  // Water → Water
-    'wood': 'air',
-    'fire': 'fire',
-    'earth': 'earth',
-    'metal': 'air',
-    'water': 'water',
-  };
-  return mapping[element] || 'earth';
+    목: 'air', // Wood → Air (growth, expansion)
+    화: 'fire', // Fire → Fire
+    토: 'earth', // Earth → Earth
+    금: 'air', // Metal → Air (sharpness, decisiveness)
+    수: 'water', // Water → Water
+    wood: 'air',
+    fire: 'fire',
+    earth: 'earth',
+    metal: 'air',
+    water: 'water',
+  }
+  return mapping[element] || 'earth'
 }
 
 /**
@@ -64,8 +64,8 @@ export function mapSajuElementToKo(el: string): FiveElement {
     earth: '토',
     metal: '금',
     water: '수',
-  };
-  return map[el] || '토';
+  }
+  return map[el] || '토'
 }
 
 /**
@@ -88,30 +88,30 @@ export function mapSajuElementToKo(el: string): FiveElement {
  * ```
  */
 export function getWestElementFromSign(sign: string): WesternElement {
-  const normalized = sign?.charAt(0).toUpperCase() + sign?.slice(1).toLowerCase();
-  return SIGN_TO_ELEMENT[normalized] || 'earth';
+  const normalized = sign?.charAt(0).toUpperCase() + sign?.slice(1).toLowerCase()
+  return SIGN_TO_ELEMENT[normalized] || 'earth'
 }
 
 /**
  * Five Element names in Korean
  */
 export const elementNameKo: Record<string, string> = {
-  '목': '나무',
-  '화': '불',
-  '토': '흙',
-  '금': '쇠',
-  '수': '물',
-};
+  목: '나무',
+  화: '불',
+  토: '흙',
+  금: '쇠',
+  수: '물',
+}
 
 /**
  * Western element names in Korean
  */
 export const westElementNameKo: Record<string, string> = {
-  'fire': '불',
-  'earth': '흙',
-  'air': '바람',
-  'water': '물',
-};
+  fire: '불',
+  earth: '흙',
+  air: '바람',
+  water: '물',
+}
 
 /**
  * Five Element Relationship Functions
@@ -140,13 +140,13 @@ export const westElementNameKo: Record<string, string> = {
  */
 export function getGeneratedElement(el: FiveElement): FiveElement {
   const cycle: Record<FiveElement, FiveElement> = {
-    '목': '화',
-    '화': '토',
-    '토': '금',
-    '금': '수',
-    '수': '목',
-  };
-  return cycle[el] || '토';
+    목: '화',
+    화: '토',
+    토: '금',
+    금: '수',
+    수: '목',
+  }
+  return cycle[el] || '토'
 }
 
 /**
@@ -171,13 +171,13 @@ export function getGeneratedElement(el: FiveElement): FiveElement {
  */
 export function getControlledElement(el: FiveElement): FiveElement {
   const cycle: Record<FiveElement, FiveElement> = {
-    '목': '토',
-    '화': '금',
-    '토': '수',
-    '금': '목',
-    '수': '화',
-  };
-  return cycle[el] || '토';
+    목: '토',
+    화: '금',
+    토: '수',
+    금: '목',
+    수: '화',
+  }
+  return cycle[el] || '토'
 }
 
 /**
@@ -202,13 +202,13 @@ export function getControlledElement(el: FiveElement): FiveElement {
  */
 export function getControllerElement(el: FiveElement): FiveElement {
   const cycle: Record<FiveElement, FiveElement> = {
-    '목': '금',
-    '화': '수',
-    '토': '목',
-    '금': '화',
-    '수': '토',
-  };
-  return cycle[el] || '토';
+    목: '금',
+    화: '수',
+    토: '목',
+    금: '화',
+    수: '토',
+  }
+  return cycle[el] || '토'
 }
 
 /**
@@ -233,11 +233,11 @@ export function getControllerElement(el: FiveElement): FiveElement {
  */
 export function getGeneratorElement(el: FiveElement): FiveElement {
   const cycle: Record<FiveElement, FiveElement> = {
-    '목': '수',
-    '화': '목',
-    '토': '화',
-    '금': '토',
-    '수': '금',
-  };
-  return cycle[el] || '토';
+    목: '수',
+    화: '목',
+    토: '화',
+    금: '토',
+    수: '금',
+  }
+  return cycle[el] || '토'
 }

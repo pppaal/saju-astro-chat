@@ -13,7 +13,7 @@ import {
   enhancedYesNoMatch,
   decodeChosung,
   similarity,
-} from '@/lib/Tarot/utils/koreanTextNormalizer'
+} from '@/lib/tarot/utils/koreanTextNormalizer'
 
 describe('Korean Text Normalizer', () => {
   describe('isChosungOnly', () => {

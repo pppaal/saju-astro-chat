@@ -3,7 +3,7 @@
  * Extracted from page.tsx for modularity
  */
 
-import { getUserTimezone } from '@/lib/Saju/timezone'
+import { getUserTimezone } from '@/lib/saju/timezone'
 import type { PersonForm, ParsedSection } from './types'
 import { sectionPatterns } from './constants'
 import { repairMojibakeText } from '@/lib/text/mojibake'
