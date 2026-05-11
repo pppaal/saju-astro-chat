@@ -10,19 +10,25 @@ import {
 } from '@/lib/astrology/foundation/astrologyService'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import {
+  DOMICILE,
+  EXALTATION,
+  dignityOf,
+  type DignityStatus,
+} from '@/lib/astrology/foundation/dignities'
+import {
   calculateTransitChart,
   findTransitAspects,
   type TransitAspect,
 } from '@/lib/astrology/foundation/transit'
-import {
-  calculateSolarReturn,
-  calculateLunarReturn,
-} from '@/lib/astrology/foundation/returns'
+import { calculateSolarReturn, calculateLunarReturn } from '@/lib/astrology/foundation/returns'
 import {
   calculateSecondaryProgressions,
   findProgressedToNatalAspects,
 } from '@/lib/astrology/foundation/progressions'
-import { findFixedStarConjunctions, type FixedStarConjunction } from '@/lib/astrology/foundation/fixedStars'
+import {
+  findFixedStarConjunctions,
+  type FixedStarConjunction,
+} from '@/lib/astrology/foundation/fixedStars'
 import type { AspectHit, Chart } from '@/lib/astrology/foundation/types'
 import type { AstroNormalizerInput } from '../normalizer/astro'
 
@@ -43,81 +49,71 @@ export interface AstroAdapterInput {
 }
 
 function toAspectHit(t: TransitAspect): AspectHit {
-  return { from: t.from, to: t.to, type: t.type, orb: t.orb, applying: t.isApplying, score: t.score }
+  return {
+    from: t.from,
+    to: t.to,
+    type: t.type,
+    orb: t.orb,
+    applying: t.isApplying,
+    score: t.score,
+  }
 }
 
-function profectionHouseFor(birth: { year: number; month: number; date: number }, queryDate: Date): number {
+function profectionHouseFor(
+  birth: { year: number; month: number; date: number },
+  queryDate: Date
+): number {
   const birthDate = new Date(birth.year, birth.month - 1, birth.date)
-  const ageYears = Math.floor((queryDate.getTime() - birthDate.getTime()) / (365.25 * 24 * 3600 * 1000))
+  const ageYears = Math.floor(
+    (queryDate.getTime() - birthDate.getTime()) / (365.25 * 24 * 3600 * 1000)
+  )
   return (Math.max(0, ageYears) % 12) + 1
 }
 
-// ── Essential dignities table (Lilly + modern rulers) ──────
-const DOMICILE: Record<string, string[]> = {
-  Sun: ['Leo', '사자자리'],
-  Moon: ['Cancer', '게자리'],
-  Mercury: ['Gemini', '쌍둥이자리', 'Virgo', '처녀자리'],
-  Venus: ['Taurus', '황소자리', 'Libra', '천칭자리'],
-  Mars: ['Aries', '양자리', 'Scorpio', '전갈자리'],
-  Jupiter: ['Sagittarius', '사수자리', 'Pisces', '물고기자리'],
-  Saturn: ['Capricorn', '염소자리', 'Aquarius', '물병자리'],
-  Uranus: ['Aquarius', '물병자리'],
-  Neptune: ['Pisces', '물고기자리'],
-  Pluto: ['Scorpio', '전갈자리'],
-}
-const EXALTATION: Record<string, string[]> = {
-  Sun: ['Aries', '양자리'],
-  Moon: ['Taurus', '황소자리'],
-  Mercury: ['Virgo', '처녀자리'],
-  Venus: ['Pisces', '물고기자리'],
-  Mars: ['Capricorn', '염소자리'],
-  Jupiter: ['Cancer', '게자리'],
-  Saturn: ['Libra', '천칭자리'],
-}
-const DETRIMENT: Record<string, string[]> = {
-  Sun: ['Aquarius', '물병자리'],
-  Moon: ['Capricorn', '염소자리'],
-  Mercury: ['Sagittarius', '사수자리', 'Pisces', '물고기자리'],
-  Venus: ['Aries', '양자리', 'Scorpio', '전갈자리'],
-  Mars: ['Libra', '천칭자리', 'Taurus', '황소자리'],
-  Jupiter: ['Gemini', '쌍둥이자리', 'Virgo', '처녀자리'],
-  Saturn: ['Cancer', '게자리', 'Leo', '사자자리'],
-}
-const FALL: Record<string, string[]> = {
-  Sun: ['Libra', '천칭자리'],
-  Moon: ['Scorpio', '전갈자리'],
-  Mercury: ['Pisces', '물고기자리'],
-  Venus: ['Virgo', '처녀자리'],
-  Mars: ['Cancer', '게자리'],
-  Jupiter: ['Capricorn', '염소자리'],
-  Saturn: ['Aries', '양자리'],
-}
-
-export type DignityStatus = 'domicile' | 'exaltation' | 'detriment' | 'fall' | 'peregrine'
-
-export function dignityOf(planet: string, sign: string): DignityStatus {
-  if (DOMICILE[planet]?.includes(sign)) return 'domicile'
-  if (EXALTATION[planet]?.includes(sign)) return 'exaltation'
-  if (DETRIMENT[planet]?.includes(sign)) return 'detriment'
-  if (FALL[planet]?.includes(sign)) return 'fall'
-  return 'peregrine'
-}
+// Essential dignities live in `@/lib/astrology/foundation/dignities`.
+// Re-exported here for backwards-compatible imports of `DignityStatus` /
+// `dignityOf` from `@/lib/fortune/cross-rules/adapters/astro`.
+export { dignityOf } from '@/lib/astrology/foundation/dignities'
+export type { DignityStatus } from '@/lib/astrology/foundation/dignities'
 
 // ── Mode (cardinal/fixed/mutable) per sign ─────────────────
 const SIGN_MODE: Record<string, 'cardinal' | 'fixed' | 'mutable'> = {
-  Aries: 'cardinal', Cancer: 'cardinal', Libra: 'cardinal', Capricorn: 'cardinal',
-  Taurus: 'fixed', Leo: 'fixed', Scorpio: 'fixed', Aquarius: 'fixed',
-  Gemini: 'mutable', Virgo: 'mutable', Sagittarius: 'mutable', Pisces: 'mutable',
-  양자리: 'cardinal', 게자리: 'cardinal', 천칭자리: 'cardinal', 염소자리: 'cardinal',
-  황소자리: 'fixed', 사자자리: 'fixed', 전갈자리: 'fixed', 물병자리: 'fixed',
-  쌍둥이자리: 'mutable', 처녀자리: 'mutable', 사수자리: 'mutable', 물고기자리: 'mutable',
+  Aries: 'cardinal',
+  Cancer: 'cardinal',
+  Libra: 'cardinal',
+  Capricorn: 'cardinal',
+  Taurus: 'fixed',
+  Leo: 'fixed',
+  Scorpio: 'fixed',
+  Aquarius: 'fixed',
+  Gemini: 'mutable',
+  Virgo: 'mutable',
+  Sagittarius: 'mutable',
+  Pisces: 'mutable',
+  양자리: 'cardinal',
+  게자리: 'cardinal',
+  천칭자리: 'cardinal',
+  염소자리: 'cardinal',
+  황소자리: 'fixed',
+  사자자리: 'fixed',
+  전갈자리: 'fixed',
+  물병자리: 'fixed',
+  쌍둥이자리: 'mutable',
+  처녀자리: 'mutable',
+  사수자리: 'mutable',
+  물고기자리: 'mutable',
 }
 
 export interface AstroExtrasInput {
   dignities: Array<{ planet: string; sign: string; status: DignityStatus }>
   // Accidental dignity per planet (Lilly-style aggregate score).
   // tier: very_strong (>=8) / strong (>=4) / neutral (>=-2) / weak (>=-6) / very_weak (<-6)
-  accidentals: Array<{ planet: string; score: number; tier: 'very_strong' | 'strong' | 'neutral' | 'weak' | 'very_weak'; reasons: string[] }>
+  accidentals: Array<{
+    planet: string
+    score: number
+    tier: 'very_strong' | 'strong' | 'neutral' | 'weak' | 'very_weak'
+    reasons: string[]
+  }>
   modeCount: Record<'cardinal' | 'fixed' | 'mutable', number>
   modeDominant: 'cardinal' | 'fixed' | 'mutable' | null
   retrograde: string[] // planet names
@@ -132,7 +128,12 @@ export interface AstroExtrasInput {
   sectLight: 'Sun' | 'Moon'
   lotOfFortune: { longitude: number; sign: string; house: number }
   lotOfSpirit: { longitude: number; sign: string; house: number }
-  triplicityRulers: Array<{ element: 'fire' | 'earth' | 'air' | 'water'; primary: string; secondary: string; participating: string }>
+  triplicityRulers: Array<{
+    element: 'fire' | 'earth' | 'air' | 'water'
+    primary: string
+    secondary: string
+    participating: string
+  }>
   profectionRuler?: { house: number; sign: string; ruler: string; rulerHouse: number }
   // Planetary Joys (each planet's "happy" house).
   planetaryJoys: Array<{ planet: string; joyHouse: number; inJoy: boolean }>
@@ -145,16 +146,20 @@ export interface AstroExtrasInput {
     malefics: string[]
     // Detailed conditions (true if pattern detected):
     conditions: {
-      adherence?: { by: string; orb: number }      // applying conjunction within 3°
-      strikingRay?: { by: string; orb: number }    // applying square within 3°
-      overcoming?: { by: string }                  // sign-based superior square (10th from)
-      opposition?: { by: string }                  // sign-based opposition
-      enclosure?: { left: string; right: string }  // besieged between two planets
+      adherence?: { by: string; orb: number } // applying conjunction within 3°
+      strikingRay?: { by: string; orb: number } // applying square within 3°
+      overcoming?: { by: string } // sign-based superior square (10th from)
+      opposition?: { by: string } // sign-based opposition
+      enclosure?: { left: string; right: string } // besieged between two planets
       reception?: { by: string; method: 'domicile' | 'exaltation' }
     }
   }>
   // Combust / Cazimi / Under-Beams per planet (Sun proximity).
-  combustState: Array<{ planet: string; state: 'cazimi' | 'combust' | 'under_beams' | 'free'; orb: number }>  // Zodiacal Releasing Level 1 from Lot of Spirit (default starting Lot).
+  combustState: Array<{
+    planet: string
+    state: 'cazimi' | 'combust' | 'under_beams' | 'free'
+    orb: number
+  }> // Zodiacal Releasing Level 1 from Lot of Spirit (default starting Lot).
   zodiacalReleasing?: {
     startingSign: string
     currentL1Sign: string
@@ -255,22 +260,28 @@ function computeExtras(natal: Chart): AstroExtrasInput {
     let score = 0
     const reasons: string[] = []
     if (ANGULAR.has(p.house)) {
-      score += 5; reasons.push(`angular house ${p.house} +5`)
+      score += 5
+      reasons.push(`angular house ${p.house} +5`)
     } else if (SUCCEDENT.has(p.house)) {
-      score += 4; reasons.push(`succedent house ${p.house} +4`)
+      score += 4
+      reasons.push(`succedent house ${p.house} +4`)
     } else {
       // cadent
       if (CADENT_FRIENDLY.has(p.name)) {
-        score += 2; reasons.push(`cadent house ${p.house} (Mercury/Saturn favor) +2`)
+        score += 2
+        reasons.push(`cadent house ${p.house} (Mercury/Saturn favor) +2`)
       } else {
-        score -= 2; reasons.push(`cadent house ${p.house} -2`)
+        score -= 2
+        reasons.push(`cadent house ${p.house} -2`)
       }
     }
     if (p.retrograde) {
-      score -= 5; reasons.push('retrograde -5')
+      score -= 5
+      reasons.push('retrograde -5')
     } else if (typeof p.speed === 'number' && p.speed > 0) {
       // direct & moving
-      score += 1; reasons.push('direct +1')
+      score += 1
+      reasons.push('direct +1')
     }
     let tier: AstroExtrasInput['accidentals'][number]['tier']
     if (score >= 8) tier = 'very_strong'
@@ -290,7 +301,20 @@ function computeExtras(natal: Chart): AstroExtrasInput {
 
   // ─── Lot of Fortune & Lot of Spirit ─────────────────────
   // Fortune: 신체·재물 / Spirit: 정신·직업/소명. Spirit는 Fortune의 부호 반대.
-  const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+  const SIGNS = [
+    'Aries',
+    'Taurus',
+    'Gemini',
+    'Cancer',
+    'Leo',
+    'Virgo',
+    'Libra',
+    'Scorpio',
+    'Sagittarius',
+    'Capricorn',
+    'Aquarius',
+    'Pisces',
+  ]
   function findHouse(lon: number): number {
     if (!natal.houses || natal.houses.length !== 12) return 1
     for (let i = 0; i < 12; i++) {
@@ -309,19 +333,35 @@ function computeExtras(natal: Chart): AstroExtrasInput {
   let lotOfSpirit: AstroExtrasInput['lotOfSpirit'] = { longitude: 0, sign: '', house: 1 }
   if (sun && moon) {
     const ascLon = natal.ascendant.longitude
-    const fortuneRaw = sect === 'day' ? ascLon + moon.longitude - sun.longitude : ascLon + sun.longitude - moon.longitude
-    const spiritRaw = sect === 'day' ? ascLon + sun.longitude - moon.longitude : ascLon + moon.longitude - sun.longitude
+    const fortuneRaw =
+      sect === 'day'
+        ? ascLon + moon.longitude - sun.longitude
+        : ascLon + sun.longitude - moon.longitude
+    const spiritRaw =
+      sect === 'day'
+        ? ascLon + sun.longitude - moon.longitude
+        : ascLon + moon.longitude - sun.longitude
     lotOfFortune = lonToSignHouse(fortuneRaw)
     lotOfSpirit = lonToSignHouse(spiritRaw)
   }
 
   // ─── Planetary Joys (Hellenistic) ────────────────────────
   const JOY_HOUSES: Record<string, number> = {
-    Mercury: 1, Moon: 3, Venus: 5, Mars: 6, Sun: 9, Jupiter: 11, Saturn: 12,
+    Mercury: 1,
+    Moon: 3,
+    Venus: 5,
+    Mars: 6,
+    Sun: 9,
+    Jupiter: 11,
+    Saturn: 12,
   }
   const planetaryJoys: AstroExtrasInput['planetaryJoys'] = planets
     .filter((p) => p.name in JOY_HOUSES)
-    .map((p) => ({ planet: p.name, joyHouse: JOY_HOUSES[p.name], inJoy: p.house === JOY_HOUSES[p.name] }))
+    .map((p) => ({
+      planet: p.name,
+      joyHouse: JOY_HOUSES[p.name],
+      inJoy: p.house === JOY_HOUSES[p.name],
+    }))
 
   // ─── Bonification / Maltreatment (Hellenistic 7 conditions) ──
   // Per Demetra George (Ancient Astrology) + Robert Schmidt:
@@ -334,7 +374,20 @@ function computeExtras(natal: Chart): AstroExtrasInput {
   //   7. Reception — target in by-domicile-or-exaltation house of approaching planet (mitigation)
   const NAT_BENEFICS = new Set(['Jupiter', 'Venus'])
   const NAT_MALEFICS = new Set(['Mars', 'Saturn'])
-  const SIGNS_LIST = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+  const SIGNS_LIST = [
+    'Aries',
+    'Taurus',
+    'Gemini',
+    'Cancer',
+    'Leo',
+    'Virgo',
+    'Libra',
+    'Scorpio',
+    'Sagittarius',
+    'Capricorn',
+    'Aquarius',
+    'Pisces',
+  ]
   const signIdx = (s: string) => SIGNS_LIST.indexOf(s)
 
   const bonifications: AstroExtrasInput['bonifications'] = []
@@ -352,7 +405,7 @@ function computeExtras(natal: Chart): AstroExtrasInput {
       if (!isBenefic && !isMalefic) continue
 
       // Closest aspect angle 0-180
-      const angle = ((ap.longitude - target.longitude + 360) % 360)
+      const angle = (ap.longitude - target.longitude + 360) % 360
       const folded = angle > 180 ? 360 - angle : angle
       // applying = ap.speed - target.speed; if positive, ap moves toward target
       const isApplying = (ap.speed ?? 0) > (target.speed ?? 0) ? false : true
@@ -378,8 +431,9 @@ function computeExtras(natal: Chart): AstroExtrasInput {
       const tIdx = signIdx(target.sign)
       const aIdx = signIdx(ap.sign)
       if (tIdx >= 0 && aIdx >= 0) {
-        const dist = ((aIdx - tIdx + 12) % 12)
-        if (dist === 9) { // 10th sign (0-indexed: target's sign + 9)
+        const dist = (aIdx - tIdx + 12) % 12
+        if (dist === 9) {
+          // 10th sign (0-indexed: target's sign + 9)
           conditions.overcoming = { by: ap.name }
           if (isBenefic && !benefics.includes(ap.name)) benefics.push(ap.name)
           if (isMalefic && !malefics.includes(ap.name)) malefics.push(ap.name)
@@ -395,7 +449,9 @@ function computeExtras(natal: Chart): AstroExtrasInput {
 
     // 5. Enclosure: target's longitude has malefic on one side and another malefic on the other
     //    within 7° (or both benefics → bonification by enclosure).
-    const others = planets.filter((p) => p !== target && (NAT_BENEFICS.has(p.name) || NAT_MALEFICS.has(p.name)))
+    const others = planets.filter(
+      (p) => p !== target && (NAT_BENEFICS.has(p.name) || NAT_MALEFICS.has(p.name))
+    )
     const maleficsAround = others
       .map((p) => ({ p, signed: ((p.longitude - target.longitude + 540) % 360) - 180 }))
       .filter((o) => Math.abs(o.signed) <= 7)
@@ -431,11 +487,15 @@ function computeExtras(natal: Chart): AstroExtrasInput {
   // - Cazimi: within 17 arc-minutes (≈0.283°) of Sun → planet strengthened
   // - Combust: within 8.5° of Sun → planet weakened
   // - Under the Beams: within 17° but not 8.5° → mildly weakened
-  const combustState: Array<{ planet: string; state: 'cazimi' | 'combust' | 'under_beams' | 'free'; orb: number }> = []
+  const combustState: Array<{
+    planet: string
+    state: 'cazimi' | 'combust' | 'under_beams' | 'free'
+    orb: number
+  }> = []
   if (sun) {
     for (const p of planets) {
       if (p.name === 'Sun') continue
-      const angle = ((p.longitude - sun.longitude + 360) % 360)
+      const angle = (p.longitude - sun.longitude + 360) % 360
       const folded = angle > 180 ? 360 - angle : angle
       let state: 'cazimi' | 'combust' | 'under_beams' | 'free' = 'free'
       if (folded < 0.283) state = 'cazimi'
@@ -476,11 +536,18 @@ function computeExtras(natal: Chart): AstroExtrasInput {
   }
 }
 
-export async function buildAstroNormalizerInput(input: AstroAdapterInput): Promise<AstroNormalizerInput> {
+export async function buildAstroNormalizerInput(
+  input: AstroAdapterInput
+): Promise<AstroNormalizerInput> {
   const natalInput: NatalChartInput = {
-    year: input.year, month: input.month, date: input.date,
-    hour: input.hour, minute: input.minute,
-    latitude: input.latitude, longitude: input.longitude, timeZone: input.timeZone,
+    year: input.year,
+    month: input.month,
+    date: input.date,
+    hour: input.hour,
+    minute: input.minute,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    timeZone: input.timeZone,
   }
 
   const natalData = await calculateNatalChart(natalInput)
@@ -508,7 +575,11 @@ export async function buildAstroNormalizerInput(input: AstroAdapterInput): Promi
   }
   if (input.includeLunarReturn !== false) {
     try {
-      const lr = await calculateLunarReturn({ natal: natalInput, year: q.getFullYear(), month: q.getMonth() + 1 })
+      const lr = await calculateLunarReturn({
+        natal: natalInput,
+        year: q.getFullYear(),
+        month: q.getMonth() + 1,
+      })
       lunarReturn = { chart: lr }
     } catch {}
   }
@@ -517,7 +588,10 @@ export async function buildAstroNormalizerInput(input: AstroAdapterInput): Promi
 
   if (input.includeProgression !== false) {
     try {
-      const prog = await calculateSecondaryProgressions({ natal: natalInput, targetDate: transitIso })
+      const prog = await calculateSecondaryProgressions({
+        natal: natalInput,
+        targetDate: transitIso,
+      })
       const aspects = findProgressedToNatalAspects(prog, natal)
       const flat: NonNullable<AstroExtrasInput['progressedAspects']> = []
       const ASPECT_ANGLES = [0, 60, 90, 120, 180]
@@ -543,12 +617,30 @@ export async function buildAstroNormalizerInput(input: AstroAdapterInput): Promi
   // Profection ruler: traditional sign rulers used.
   // Profected sign = sign of natal house at profectionHouse cusp.
   const TRAD_RULER: Record<string, string> = {
-    Aries: 'Mars', Taurus: 'Venus', Gemini: 'Mercury', Cancer: 'Moon',
-    Leo: 'Sun', Virgo: 'Mercury', Libra: 'Venus', Scorpio: 'Mars',
-    Sagittarius: 'Jupiter', Capricorn: 'Saturn', Aquarius: 'Saturn', Pisces: 'Jupiter',
-    양자리: 'Mars', 황소자리: 'Venus', 쌍둥이자리: 'Mercury', 게자리: 'Moon',
-    사자자리: 'Sun', 처녀자리: 'Mercury', 천칭자리: 'Venus', 전갈자리: 'Mars',
-    사수자리: 'Jupiter', 염소자리: 'Saturn', 물병자리: 'Saturn', 물고기자리: 'Jupiter',
+    Aries: 'Mars',
+    Taurus: 'Venus',
+    Gemini: 'Mercury',
+    Cancer: 'Moon',
+    Leo: 'Sun',
+    Virgo: 'Mercury',
+    Libra: 'Venus',
+    Scorpio: 'Mars',
+    Sagittarius: 'Jupiter',
+    Capricorn: 'Saturn',
+    Aquarius: 'Saturn',
+    Pisces: 'Jupiter',
+    양자리: 'Mars',
+    황소자리: 'Venus',
+    쌍둥이자리: 'Mercury',
+    게자리: 'Moon',
+    사자자리: 'Sun',
+    처녀자리: 'Mercury',
+    천칭자리: 'Venus',
+    전갈자리: 'Mars',
+    사수자리: 'Jupiter',
+    염소자리: 'Saturn',
+    물병자리: 'Saturn',
+    물고기자리: 'Jupiter',
   }
   const profectedHouseObj = (natal.houses ?? []).find((h) => h.index === profectionHouse)
   if (profectedHouseObj) {
@@ -583,7 +675,20 @@ export async function buildAstroNormalizerInput(input: AstroAdapterInput): Promi
     Aquarius: { ruler: 'Saturn', years: 27 },
     Pisces: { ruler: 'Jupiter', years: 12 },
   }
-  const SIGN_ORDER = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+  const SIGN_ORDER = [
+    'Aries',
+    'Taurus',
+    'Gemini',
+    'Cancer',
+    'Leo',
+    'Virgo',
+    'Libra',
+    'Scorpio',
+    'Sagittarius',
+    'Capricorn',
+    'Aquarius',
+    'Pisces',
+  ]
 
   const birthDate = new Date(input.year, input.month - 1, input.date)
   const ageDays = Math.max(0, (q.getTime() - birthDate.getTime()) / (24 * 3600 * 1000))
