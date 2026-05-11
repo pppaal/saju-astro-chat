@@ -13,17 +13,24 @@ export const KO_TO_SAJU_ELEMENT: Record<string, SajuElement> = {
   수: 'water',
 }
 
-// 점성술 4원소 → 사주 오행 후보 (정제: 같은 의미 매핑)
+// 5행 ↔ 4원소 후보 매핑.
+//
+// fire/earth/water는 양 시스템에 동치 개념이 있어 정확 매핑.
+// wood, metal은 4원소에 1:1 대응이 없어 의미가 가장 가까운 air에만 약하게 연결한다.
+// (wood = 확장·성장 = air의 movement; metal = 분별·수렴 = air의 analytic)
+// 룰 predicate는 이 fallback에 대해 strength penalty(보통 ×0.7)를 적용한다.
+//
+// 이전에 있던 wood ↔ earth 매핑은 목극토(상극) 관계라 동치로 보기 어렵고
+// "사주 목 강 + 점성 earth 강 → 같은 본성"식의 거짓 발화를 만들어 제거.
 export const ASTRO_TO_SAJU: Record<AstroElement, SajuElement[]> = {
   fire: ['fire'],
   earth: ['earth'],
-  air: ['metal', 'wood'],
+  air: ['wood', 'metal'],
   water: ['water'],
 }
 
-// 사주 오행 → 점성 4원소 후보
 export const SAJU_TO_ASTRO: Record<SajuElement, AstroElement[]> = {
-  wood: ['air', 'earth'],
+  wood: ['air'],
   fire: ['fire'],
   earth: ['earth'],
   metal: ['air'],

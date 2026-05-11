@@ -22,6 +22,12 @@ export interface BirthProfile {
    * 'meanSolar' 또는 'trueSolar' 시 longitude로 보정.
    */
   solarTimeMode?: 'standard' | 'meanSolar' | 'trueSolar'
+  /**
+   * When true, the caller did not know the birth hour and `birthTime` is a
+   * placeholder. Downstream (snapshot, LLM prompt) must treat hour-dependent
+   * fields — 시주, ASC, MC, houses, planetary house placements — as unreliable.
+   */
+  birthTimeUnknown?: boolean
 }
 
 export interface RunFortuneInput {
@@ -53,9 +59,21 @@ export async function runFortuneWithRaw(input: RunFortuneInput): Promise<{
   saju: import('../normalizer/saju').SajuNormalizerInput
   astro: import('../normalizer/astro').AstroNormalizerInput
   report: FortuneReport
+  birthTimeUnknown: boolean
 }> {
   const queryDate = input.queryDate ?? new Date()
+  // Saju + astro must compute against the SAME instant. Past behaviour let
+  // callers pass a different astroTimezone, which silently produced two
+  // mismatched moments (e.g. LA-born user with default tz='Asia/Seoul').
+  // Align both to the place-of-birth timezone when caller split them.
   const tz = input.birth.timezone ?? 'Asia/Seoul'
+  if (input.birth.astroTimezone && input.birth.astroTimezone !== tz) {
+    console.warn(
+      `[runFortune] timezone mismatch (saju=${tz}, astro=${input.birth.astroTimezone}). ` +
+        `Aligning both to astroTimezone for instant consistency.`
+    )
+  }
+  const placeTz = input.birth.astroTimezone ?? tz
 
   const sajuP = Promise.resolve(
     buildSajuNormalizerInput({
@@ -63,7 +81,7 @@ export async function runFortuneWithRaw(input: RunFortuneInput): Promise<{
       birthTime: input.birth.birthTime,
       gender: input.birth.gender,
       calendarType: input.birth.calendarType,
-      timezone: tz,
+      timezone: placeTz,
       queryDate,
       solarTimeMode: input.birth.solarTimeMode,
       longitude: input.birth.longitude,
@@ -75,7 +93,7 @@ export async function runFortuneWithRaw(input: RunFortuneInput): Promise<{
     ...parts,
     latitude: input.birth.latitude,
     longitude: input.birth.longitude,
-    timeZone: input.birth.astroTimezone ?? tz,
+    timeZone: placeTz,
     queryDate,
     includeSolarReturn: !input.skipReturns,
     includeLunarReturn: !input.skipReturns,
@@ -89,5 +107,5 @@ export async function runFortuneWithRaw(input: RunFortuneInput): Promise<{
     rules: input.rules,
     metaRules: input.metaRules,
   })
-  return { saju, astro, report }
+  return { saju, astro, report, birthTimeUnknown: !!input.birth.birthTimeUnknown }
 }

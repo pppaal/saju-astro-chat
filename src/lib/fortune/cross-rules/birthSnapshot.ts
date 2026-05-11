@@ -26,6 +26,12 @@ export interface BirthSnapshotOptions {
   transitAspectMaxOrb?: number
   /** Drop fields that are empty / zero / null. Default true. */
   compact?: boolean
+  /**
+   * Caller didn't know the birth hour — the time field is a placeholder.
+   * When true, a caveat header is emitted and hour-dependent fields are
+   * tagged so the LLM ignores them.
+   */
+  birthTimeUnknown?: boolean
 }
 
 export function serializeBirthSnapshot(
@@ -35,24 +41,34 @@ export function serializeBirthSnapshot(
 ): string {
   const natalOrb = opts.natalAspectMaxOrb ?? NATAL_ASPECT_MAX_ORB
   const transitOrb = opts.transitAspectMaxOrb ?? TRANSIT_ASPECT_MAX_ORB
+  const hourUnknown = !!opts.birthTimeUnknown
 
   const parts: string[] = []
   parts.push('[Birth Snapshot]')
   parts.push('# Raw saju + astrology that the rule engine consumed.')
   parts.push('# Use this when cross signals do not cover a question.')
+  if (hourUnknown) {
+    parts.push('# ⚠ birthTimeUnknown=true — caller did not provide hour.')
+    parts.push('#   IGNORE these fields (placeholder only):')
+    parts.push('#     SAJU.pillars.time, SAJU.timing.iljin, SAJU.shinsal entries on `time`')
+    parts.push('#     ASTRO.natal.ascendant, .mc, .houses, planet.house, profectionRuler')
+    parts.push(
+      '#   Hour-independent fields (year/month/day pillars, planet sign/element/aspects) remain valid.'
+    )
+  }
   parts.push('')
 
   parts.push('## SAJU')
-  parts.push(serializeSaju(saju))
+  parts.push(serializeSaju(saju, hourUnknown))
   parts.push('')
 
   parts.push('## ASTROLOGY')
-  parts.push(serializeAstro(astro, { natalOrb, transitOrb }))
+  parts.push(serializeAstro(astro, { natalOrb, transitOrb, hourUnknown }))
 
   return parts.join('\n')
 }
 
-function serializeSaju(input: SajuNormalizerInput): string {
+function serializeSaju(input: SajuNormalizerInput, hourUnknown = false): string {
   const {
     saju,
     natalRelations,
@@ -72,7 +88,9 @@ function serializeSaju(input: SajuNormalizerInput): string {
     yinYang: (saju.dayMaster as { yinYang?: string }).yinYang ?? undefined,
   }
 
-  out.pillars = pillarSummary(saju.pillars)
+  if (hourUnknown) out.birthTimeUnknown = true
+
+  out.pillars = pillarSummary(saju.pillars, hourUnknown)
 
   out.fiveElements = saju.fiveElements
 
@@ -142,7 +160,7 @@ function serializeSaju(input: SajuNormalizerInput): string {
   return JSON.stringify(out, null, 2)
 }
 
-function pillarSummary(pillars: SajuNormalizerInput['saju']['pillars']) {
+function pillarSummary(pillars: SajuNormalizerInput['saju']['pillars'], hourUnknown = false) {
   const compact = (p: SajuNormalizerInput['saju']['pillars']['year']) => ({
     ganji: `${p.heavenlyStem.name}${p.earthlyBranch.name}`,
     stem: {
@@ -160,7 +178,7 @@ function pillarSummary(pillars: SajuNormalizerInput['saju']['pillars']) {
     year: compact(pillars.year),
     month: compact(pillars.month),
     day: compact(pillars.day),
-    time: compact(pillars.time),
+    time: hourUnknown ? { unreliable: true, reason: 'birthTimeUnknown' } : compact(pillars.time),
   }
 }
 
@@ -188,11 +206,12 @@ function compactUnse(u: NonNullable<SajuNormalizerInput['currentDaeun']>) {
 
 function serializeAstro(
   input: AstroNormalizerInput,
-  cfg: { natalOrb: number; transitOrb: number }
+  cfg: { natalOrb: number; transitOrb: number; hourUnknown?: boolean }
 ): string {
   const out: Record<string, unknown> = {}
+  if (cfg.hourUnknown) out.birthTimeUnknown = true
 
-  out.natal = chartSummary(input.natal)
+  out.natal = chartSummary(input.natal, !!cfg.hourUnknown)
 
   if (input.natalAspects && input.natalAspects.length > 0) {
     out.natalAspects = filterAspects(input.natalAspects, cfg.natalOrb)
@@ -200,7 +219,7 @@ function serializeAstro(
 
   if (input.transits) {
     out.currentTransits = {
-      planets: input.transits.planets.map(planetCompact),
+      planets: input.transits.planets.map((p) => planetCompact(p, false)),
     }
   }
   if (input.transitAspects && input.transitAspects.length > 0) {
@@ -213,7 +232,7 @@ function serializeAstro(
 
   if (input.solarReturn) {
     out.solarReturn = {
-      planets: input.solarReturn.chart.planets.map(planetCompact),
+      planets: input.solarReturn.chart.planets.map((p) => planetCompact(p, false)),
       aspects:
         input.solarReturn.aspects && input.solarReturn.aspects.length > 0
           ? filterAspects(input.solarReturn.aspects, cfg.natalOrb)
@@ -223,7 +242,7 @@ function serializeAstro(
 
   if (input.lunarReturn) {
     out.lunarReturn = {
-      planets: input.lunarReturn.chart.planets.map(planetCompact),
+      planets: input.lunarReturn.chart.planets.map((p) => planetCompact(p, false)),
       aspects:
         input.lunarReturn.aspects && input.lunarReturn.aspects.length > 0
           ? filterAspects(input.lunarReturn.aspects, cfg.natalOrb)
@@ -257,22 +276,26 @@ function serializeAstro(
   return JSON.stringify(out, null, 2)
 }
 
-function chartSummary(c: Chart) {
+function chartSummary(c: Chart, hourUnknown = false) {
   return {
-    planets: c.planets.map(planetCompact),
-    ascendant: planetCompact(c.ascendant),
-    mc: planetCompact(c.mc),
-    houses: c.houses.map((h) => ({ index: h.index, sign: h.sign, cusp: round2(h.cusp) })),
+    planets: c.planets.map((p) => planetCompact(p, hourUnknown)),
+    ascendant: hourUnknown
+      ? { unreliable: true, reason: 'birthTimeUnknown' }
+      : planetCompact(c.ascendant),
+    mc: hourUnknown ? { unreliable: true, reason: 'birthTimeUnknown' } : planetCompact(c.mc),
+    houses: hourUnknown
+      ? { unreliable: true, reason: 'birthTimeUnknown' }
+      : c.houses.map((h) => ({ index: h.index, sign: h.sign, cusp: round2(h.cusp) })),
   }
 }
 
-function planetCompact(p: PlanetBase) {
+function planetCompact(p: PlanetBase, hourUnknown = false) {
   const out: Record<string, unknown> = {
     name: p.name,
     sign: p.sign,
     degree: round2(p.degree + (p.minute ?? 0) / 60),
-    house: p.house,
   }
+  if (!hourUnknown) out.house = p.house
   if (p.retrograde) out.retrograde = true
   return out
 }
