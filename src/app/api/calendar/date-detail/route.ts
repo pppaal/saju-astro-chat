@@ -297,8 +297,9 @@ export const GET = withApiMiddleware(
       })
       const natalChart = toChart(natalChartData)
 
-      // ── fusion 한 날 분석 (18테마 × 0..100 + 24시간 슬롯) ──
+      // ── fusion 한 날 분석 (18테마 × 0..100 + 24시간 슬롯) — Redis 캐시 ──
       try {
+        const fusionCacheKey = CacheKeys.fusionDateDetail(birthDate, birthTime ?? '12:00', date)
         const { buildCalendarDay, buildCalendarHourly } = await import('@/lib/fusion/adapters')
         const simplePillars = {
           year:  { stem: yearStem,        branch: yearBranch },
@@ -328,13 +329,21 @@ export const GET = withApiMiddleware(
             startAge: d.age,
           })),
         }
-        const dayRes = await buildCalendarDay(fusionInput, date)
-        const hourlyRes = await buildCalendarHourly(fusionInput, date)
-        // 사주축 / 점성축 / 일치도 / 확신도 — buildCalendarMonth 에서 가져옴
-        const { buildCalendarMonth } = await import('@/lib/fusion/adapters')
-        const [y, m, d] = date.split('-').map((v) => parseInt(v, 10))
-        const monthRes = await buildCalendarMonth(fusionInput, y, m)
-        const dayInMonth = monthRes.days.find((dd) => dd.date === date)
+        // Redis 캐시 — 같은 생일·같은 날짜 재호출 시 fusion 재계산 안 함
+        const fusionResult = await cacheOrCalculate(
+          fusionCacheKey,
+          async () => {
+            const dayRes = await buildCalendarDay(fusionInput, date)
+            const hourlyRes = await buildCalendarHourly(fusionInput, date)
+            const { buildCalendarMonth } = await import('@/lib/fusion/adapters')
+            const [y, m] = date.split('-').map((v) => parseInt(v, 10))
+            const monthRes = await buildCalendarMonth(fusionInput, y, m)
+            const dayInMonth = monthRes.days.find((dd) => dd.date === date)
+            return { dayRes, hourlyRes, dayInMonth }
+          },
+          CACHE_TTL.CALENDAR_DATA,
+        )
+        const { dayRes, hourlyRes, dayInMonth } = fusionResult
         fusionData = {
           overallScore: Math.round(
             (Object.values(dayRes.domainScores) as number[]).reduce((a, b) => a + b, 0)

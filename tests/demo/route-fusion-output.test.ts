@@ -129,14 +129,17 @@ it('UI 시뮬: 1995-02-09 06:40 Seoul male → 2026-05', async () => {
     console.log(`  ${w.wk}주차    ${String(w.saju).padStart(3)}     ${String(w.astro).padStart(3)}     ${String(w.agreement).padStart(3)}%      ${w.days}일   ${sBar}`)
   }
 
-  // 슈퍼 타이밍 = 사주+점성 둘 다 높고 가까운 주
-  let superW = weeks[0]
-  let superScore = 0
-  for (const w of weeks) {
-    const combined = (w.saju + w.astro) / 2 - Math.abs(w.saju - w.astro) * 0.3
-    if (combined > superScore) { superScore = combined; superW = w }
+  // 슈퍼 타이밍 = 두 시스템 일치도 80%+ AND 둘 다 60+ 인 주
+  // (둘 다 강하면서 같은 방향을 가리키는 주)
+  const eligibleWeeks = weeks.filter(w => w.agreement >= 80 && w.saju >= 60 && w.astro >= 60)
+  const superW = eligibleWeeks.length > 0
+    ? eligibleWeeks.reduce((a, b) => ((a.saju + a.astro) > (b.saju + b.astro) ? a : b))
+    : null
+  if (superW) {
+    console.log(`\n▸ 슈퍼 타이밍: ${superW.wk}주차 (사주·점성 모두 60+ AND 일치 ${superW.agreement}%)`)
+  } else {
+    console.log(`\n▸ 슈퍼 타이밍: 이번 달은 양쪽 모두 강한 주가 없음 — 평이한 달`)
   }
-  console.log(`\n▸ 슈퍼 타이밍: ${superW.wk}주차 (사주·점성 가장 강하게 교차)`)
 
   // ════════════════════════════════════════════════════════
   // Daily 탭 — 신뢰도 / 일치도 (Daily 화면 상단 칩)
