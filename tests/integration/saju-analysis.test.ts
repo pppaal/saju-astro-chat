@@ -12,8 +12,8 @@ import {
   connectTestDb,
   disconnectTestDb,
 } from './setup'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { generateComprehensiveReport } from '@/lib/Saju/comprehensiveReport'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { generateComprehensiveReport } from '@/lib/saju/comprehensiveReport'
 
 const hasTestDb = await checkTestDbConnection()
 

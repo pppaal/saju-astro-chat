@@ -2,8 +2,8 @@
  * Tarot Reading Page Types
  */
 
-import type { Spread, DrawnCard } from '@/lib/Tarot/tarot.types'
-import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
+import type { Spread, DrawnCard } from '@/lib/tarot/tarot.types'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 
 export interface CardInsight {
   position: string
@@ -60,4 +60,4 @@ export type GameState =
   | 'error'
 
 // Re-export types for convenience
-export type { Spread, CardColor, DeckStyle } from '@/lib/Tarot/tarot.types'
+export type { Spread, CardColor, DeckStyle } from '@/lib/tarot/tarot.types'

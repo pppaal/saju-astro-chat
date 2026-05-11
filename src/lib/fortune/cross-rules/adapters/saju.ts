@@ -1,17 +1,13 @@
 // Saju adapter: birth + queryDate → SajuNormalizerInput.
 // Calls the existing saju engine; does NOT recompute facts here.
 
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { calculateStrengthScore } from '@/lib/Saju/strengthScore'
-import { determineYongsin } from '@/lib/Saju/yongsin'
-import { determineGeokguk } from '@/lib/Saju/geokguk'
-import {
-  getShinsalHits,
-  getTwelveStagesForPillars,
-  toSajuPillarsLike,
-} from '@/lib/Saju/shinsal'
-import { getIljinCalendar } from '@/lib/Saju/unse'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { calculateStrengthScore } from '@/lib/saju/strengthScore'
+import { determineYongsin } from '@/lib/saju/yongsin'
+import { determineGeokguk } from '@/lib/saju/geokguk'
+import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
+import { getIljinCalendar } from '@/lib/saju/unse'
 import type {
   CalculateSajuDataResult,
   RelationHit,
@@ -19,10 +15,10 @@ import type {
   TwelveStage,
   UnseData,
   PillarKind,
-} from '@/lib/Saju/types'
-import type { GeokgukResult } from '@/lib/Saju/geokguk'
-import type { YongsinResult } from '@/lib/Saju/yongsin'
-import type { StrengthScore } from '@/lib/Saju/strengthScore'
+} from '@/lib/saju/types'
+import type { GeokgukResult } from '@/lib/saju/geokguk'
+import type { YongsinResult } from '@/lib/saju/yongsin'
+import type { StrengthScore } from '@/lib/saju/strengthScore'
 import type { SajuNormalizerInput } from '../normalizer/saju'
 import { correctSolarTime, type SolarTimeMode } from './solar-time'
 
@@ -43,17 +39,54 @@ export interface SajuAdapterInput {
   longitude?: number
 }
 
-const BRANCH_CHUNG = new Set(['子-午','午-子','丑-未','未-丑','寅-申','申-寅','卯-酉','酉-卯','辰-戌','戌-辰','巳-亥','亥-巳'])
-const BRANCH_YUKHAP = new Set(['子-丑','丑-子','寅-亥','亥-寅','卯-戌','戌-卯','辰-酉','酉-辰','巳-申','申-巳','午-未','未-午'])
-const STEM_CHUNG = new Set(['甲-庚','庚-甲','乙-辛','辛-乙','丙-壬','壬-丙','丁-癸','癸-丁'])
-const STEM_HAP = new Set(['甲-己','己-甲','乙-庚','庚-乙','丙-辛','辛-丙','丁-壬','壬-丁','戊-癸','癸-戊'])
+const BRANCH_CHUNG = new Set([
+  '子-午',
+  '午-子',
+  '丑-未',
+  '未-丑',
+  '寅-申',
+  '申-寅',
+  '卯-酉',
+  '酉-卯',
+  '辰-戌',
+  '戌-辰',
+  '巳-亥',
+  '亥-巳',
+])
+const BRANCH_YUKHAP = new Set([
+  '子-丑',
+  '丑-子',
+  '寅-亥',
+  '亥-寅',
+  '卯-戌',
+  '戌-卯',
+  '辰-酉',
+  '酉-辰',
+  '巳-申',
+  '申-巳',
+  '午-未',
+  '未-午',
+])
+const STEM_CHUNG = new Set(['甲-庚', '庚-甲', '乙-辛', '辛-乙', '丙-壬', '壬-丙', '丁-癸', '癸-丁'])
+const STEM_HAP = new Set([
+  '甲-己',
+  '己-甲',
+  '乙-庚',
+  '庚-乙',
+  '丙-辛',
+  '辛-丙',
+  '丁-壬',
+  '壬-丁',
+  '戊-癸',
+  '癸-戊',
+])
 
 const PILLAR_NAMES: PillarKind[] = ['year', 'month', 'day', 'time']
 
 function detectUnseRelations(
   pillars: SajuPillars,
   unseStem: string,
-  unseBranch: string,
+  unseBranch: string
 ): RelationHit[] {
   const out: RelationHit[] = []
   for (const name of PILLAR_NAMES) {
@@ -62,15 +95,23 @@ function detectUnseRelations(
     const nb = p.earthlyBranch.name
     const stemPair = `${unseStem}-${ns}`
     const branchPair = `${unseBranch}-${nb}`
-    if (STEM_CHUNG.has(stemPair)) out.push({ kind: '천간충', pillars: [name], detail: `운 ${unseStem} - ${name} ${ns}` })
-    else if (STEM_HAP.has(stemPair)) out.push({ kind: '천간합', pillars: [name], detail: `운 ${unseStem} - ${name} ${ns}` })
-    if (BRANCH_CHUNG.has(branchPair)) out.push({ kind: '지지충', pillars: [name], detail: `운 ${unseBranch} - ${name} ${nb}` })
-    else if (BRANCH_YUKHAP.has(branchPair)) out.push({ kind: '지지육합', pillars: [name], detail: `운 ${unseBranch} - ${name} ${nb}` })
+    if (STEM_CHUNG.has(stemPair))
+      out.push({ kind: '천간충', pillars: [name], detail: `운 ${unseStem} - ${name} ${ns}` })
+    else if (STEM_HAP.has(stemPair))
+      out.push({ kind: '천간합', pillars: [name], detail: `운 ${unseStem} - ${name} ${ns}` })
+    if (BRANCH_CHUNG.has(branchPair))
+      out.push({ kind: '지지충', pillars: [name], detail: `운 ${unseBranch} - ${name} ${nb}` })
+    else if (BRANCH_YUKHAP.has(branchPair))
+      out.push({ kind: '지지육합', pillars: [name], detail: `운 ${unseBranch} - ${name} ${nb}` })
   }
   return out
 }
 
-function pickDaeunSequence(saju: CalculateSajuDataResult, queryDate: Date, birthDate: Date): {
+function pickDaeunSequence(
+  saju: CalculateSajuDataResult,
+  queryDate: Date,
+  birthDate: Date
+): {
   current: UnseData | null
   previous: UnseData | null
   next: UnseData | null
@@ -80,13 +121,26 @@ function pickDaeunSequence(saju: CalculateSajuDataResult, queryDate: Date, birth
   yearsToNext: number
 } {
   const cycles = saju.daeWoon?.list ?? []
-  const ageYears = Math.floor((queryDate.getTime() - birthDate.getTime()) / (365.25 * 24 * 3600 * 1000))
+  const ageYears = Math.floor(
+    (queryDate.getTime() - birthDate.getTime()) / (365.25 * 24 * 3600 * 1000)
+  )
   if (cycles.length === 0) {
-    return { current: null, previous: null, next: null, index: -1, ageYears, yearsIntoCurrent: 0, yearsToNext: 0 }
+    return {
+      current: null,
+      previous: null,
+      next: null,
+      index: -1,
+      ageYears,
+      yearsIntoCurrent: 0,
+      yearsToNext: 0,
+    }
   }
   let index = -1
   for (let i = cycles.length - 1; i >= 0; i--) {
-    if (ageYears >= cycles[i].age) { index = i; break }
+    if (ageYears >= cycles[i].age) {
+      index = i
+      break
+    }
   }
   if (index < 0) index = 0
   const current = cycles[index] ?? null
@@ -101,7 +155,13 @@ function pickCurrentSeun(saju: CalculateSajuDataResult, queryDate: Date): UnseDa
   const yr = queryDate.getFullYear()
   const annual = saju.unse?.annual ?? []
   const found = annual.find((a) => a.year === yr) as
-    | { year: number; ganji?: string; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon: string; ji: string } }
+    | {
+        year: number
+        ganji?: string
+        heavenlyStem?: string
+        earthlyBranch?: string
+        sibsin?: { cheon: string; ji: string }
+      }
     | undefined
   if (!found) return null
   // saju 엔진은 annual에 ganji 단일 필드만 채움 (예: '丙午'). 양 시스템 어댑터는
@@ -121,25 +181,38 @@ function pickCurrentWolun(saju: CalculateSajuDataResult, queryDate: Date): UnseD
   const yr = queryDate.getFullYear()
   const mo = queryDate.getMonth() + 1
   const found = monthly.find(
-    (m: { year?: number; month?: number; ganji?: string; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon: string; ji: string } }) =>
-      m.year === yr && m.month === mo,
+    (m: {
+      year?: number
+      month?: number
+      ganji?: string
+      heavenlyStem?: string
+      earthlyBranch?: string
+      sibsin?: { cheon: string; ji: string }
+    }) => m.year === yr && m.month === mo
   ) as
-    | { year?: number; month?: number; ganji?: string; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon: string; ji: string } }
+    | {
+        year?: number
+        month?: number
+        ganji?: string
+        heavenlyStem?: string
+        earthlyBranch?: string
+        sibsin?: { cheon: string; ji: string }
+      }
     | undefined
   if (!found) return null
   const stem = found.heavenlyStem ?? (found.ganji ? found.ganji.slice(0, 1) : '')
   const branch = found.earthlyBranch ?? (found.ganji ? found.ganji.slice(1) : '')
   if (!stem || !branch) return null
-  return { heavenlyStem: stem, earthlyBranch: branch, sibsin: found.sibsin ?? { cheon: '', ji: '' } }
+  return {
+    heavenlyStem: stem,
+    earthlyBranch: branch,
+    sibsin: found.sibsin ?? { cheon: '', ji: '' },
+  }
 }
 
 function pickCurrentIljin(saju: CalculateSajuDataResult, queryDate: Date): UnseData | null {
   try {
-    const cal = getIljinCalendar(
-      queryDate.getFullYear(),
-      queryDate.getMonth() + 1,
-      saju.dayMaster,
-    )
+    const cal = getIljinCalendar(queryDate.getFullYear(), queryDate.getMonth() + 1, saju.dayMaster)
     const day = queryDate.getDate()
     const found = cal.find((d) => d.day === day)
     if (!found) return null
@@ -154,7 +227,7 @@ function pickCurrentIljin(saju: CalculateSajuDataResult, queryDate: Date): UnseD
 }
 
 export interface SajuExtras {
-  shinsal: import('@/lib/Saju/types').ShinsalHit[]
+  shinsal: import('@/lib/saju/types').ShinsalHit[]
   twelveStages: { [K in PillarKind]: TwelveStage }
   geokguk: GeokgukResult | null
   yongsin: YongsinResult | null
@@ -170,15 +243,27 @@ function pullExtras(saju: CalculateSajuDataResult): SajuExtras {
   })
 
   const simpleInput = {
-    year: { stem: saju.pillars.year.heavenlyStem.name, branch: saju.pillars.year.earthlyBranch.name },
-    month: { stem: saju.pillars.month.heavenlyStem.name, branch: saju.pillars.month.earthlyBranch.name },
+    year: {
+      stem: saju.pillars.year.heavenlyStem.name,
+      branch: saju.pillars.year.earthlyBranch.name,
+    },
+    month: {
+      stem: saju.pillars.month.heavenlyStem.name,
+      branch: saju.pillars.month.earthlyBranch.name,
+    },
     day: { stem: saju.pillars.day.heavenlyStem.name, branch: saju.pillars.day.earthlyBranch.name },
-    time: { stem: saju.pillars.time.heavenlyStem.name, branch: saju.pillars.time.earthlyBranch.name },
+    time: {
+      stem: saju.pillars.time.heavenlyStem.name,
+      branch: saju.pillars.time.earthlyBranch.name,
+    },
   }
 
   let shinsal: SajuExtras['shinsal'] = []
   try {
-    shinsal = getShinsalHits(pillarsLike, { includeGeneralShinsal: true, includeLuckyDetails: true }) as SajuExtras['shinsal']
+    shinsal = getShinsalHits(pillarsLike, {
+      includeGeneralShinsal: true,
+      includeLuckyDetails: true,
+    }) as SajuExtras['shinsal']
   } catch {}
 
   let twelveStages: SajuExtras['twelveStages']
@@ -225,29 +310,18 @@ export function buildSajuNormalizerInput(input: SajuAdapterInput): SajuNormalize
   let effectiveDate = input.birthDate
   let effectiveTime = input.birthTime
   if (mode !== 'standard' && typeof input.longitude === 'number') {
-    const corrected = correctSolarTime(
-      input.birthDate,
-      input.birthTime,
-      input.longitude,
-      mode,
-    )
+    const corrected = correctSolarTime(input.birthDate, input.birthTime, input.longitude, mode)
     effectiveDate = corrected.date
     effectiveTime = corrected.time
   }
 
-  const saju = calculateSajuData(
-    effectiveDate,
-    effectiveTime,
-    input.gender,
-    calendarType,
-    timezone,
-  )
+  const saju = calculateSajuData(effectiveDate, effectiveTime, input.gender, calendarType, timezone)
 
   const natalRelations = analyzeRelations(
     toAnalyzeInputFromSaju(saju.pillars, saju.dayMaster.name, {
       includeGongmang: true,
       gongmangPolicy: 'dayPillar-60jiazi',
-    }),
+    })
   )
 
   const birthDateObj = new Date(`${input.birthDate}T${input.birthTime}:00`)
@@ -265,8 +339,9 @@ export function buildSajuNormalizerInput(input: SajuAdapterInput): SajuNormalize
     [currentIljin, 'iljin' as const],
   ] satisfies Array<[UnseData | null, 'daeun' | 'seun' | 'wolun' | 'iljin']>) {
     if (!unse) continue
-    detectUnseRelations(saju.pillars, unse.heavenlyStem, unse.earthlyBranch)
-      .forEach((r) => unseRelations.push({ source, relation: r }))
+    detectUnseRelations(saju.pillars, unse.heavenlyStem, unse.earthlyBranch).forEach((r) =>
+      unseRelations.push({ source, relation: r })
+    )
   }
 
   let strength: StrengthScore | undefined

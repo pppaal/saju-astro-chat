@@ -4,72 +4,72 @@
  * 타로 리딩 요청 및 저장 로직
  */
 
-import { apiFetch } from '@/lib/api';
-import { saveReading, formatReadingForSave } from '@/lib/Tarot/tarot-storage';
-import {
-  buildTarotSaveRequest,
-  flattenTarotGuidance,
-} from '@/lib/Tarot/tarot-save-request';
-import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow';
-import { tarotLogger } from '@/lib/logger';
-import type { ReadingResponse, InterpretationResult } from '../constants/types';
-import { getCardImagePath, type Spread, type DeckStyle } from '@/lib/Tarot/tarot.types';
-import type { Session } from 'next-auth';
+import { apiFetch } from '@/lib/api'
+import { saveReading, formatReadingForSave } from '@/lib/tarot/tarot-storage'
+import { buildTarotSaveRequest, flattenTarotGuidance } from '@/lib/tarot/tarot-save-request'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
+import { tarotLogger } from '@/lib/logger'
+import type { ReadingResponse, InterpretationResult } from '../constants/types'
+import { getCardImagePath, type Spread, type DeckStyle } from '@/lib/tarot/tarot.types'
+import type { Session } from 'next-auth'
 
 export interface FetchReadingInput {
-  categoryId: string | undefined;
-  spreadId: string | undefined;
-  cardCount: number;
-  userTopic: string;
+  categoryId: string | undefined
+  spreadId: string | undefined
+  cardCount: number
+  userTopic: string
 }
 
 /**
  * 타로 리딩 가져오기
  */
 export async function fetchReading(input: FetchReadingInput): Promise<ReadingResponse> {
-  const { categoryId, spreadId, cardCount, userTopic } = input;
+  const { categoryId, spreadId, cardCount, userTopic } = input
 
   const response = await apiFetch('/api/tarot', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ categoryId, spreadId, cardCount, userTopic }),
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-    tarotLogger.error('Tarot API error', { status: response.status, errorData });
-    throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`);
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+    tarotLogger.error('Tarot API error', { status: response.status, errorData })
+    throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`)
   }
 
-  return response.json();
+  return response.json()
 }
 
 /**
  * RAG 컨텍스트 프리페치 (비차단)
  */
-export async function prefetchRAGContext(categoryId: string | undefined, spreadId: string | undefined) {
+export async function prefetchRAGContext(
+  categoryId: string | undefined,
+  spreadId: string | undefined
+) {
   try {
     await apiFetch('/api/tarot/prefetch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ categoryId, spreadId }),
-    });
+    })
   } catch {
     // Silently ignore prefetch errors
   }
 }
 
 export interface SaveReadingInput {
-  userTopic: string;
-  spreadInfo: Spread;
-  readingResult: ReadingResponse;
-  interpretation: InterpretationResult | null;
-  categoryName: string;
-  spreadId: string;
-  selectedDeckStyle: DeckStyle;
-  language: string;
-  session: Session | null;
-  questionAnalysis?: TarotQuestionAnalysisSnapshot | null;
+  userTopic: string
+  spreadInfo: Spread
+  readingResult: ReadingResponse
+  interpretation: InterpretationResult | null
+  categoryName: string
+  spreadId: string
+  selectedDeckStyle: DeckStyle
+  language: string
+  session: Session | null
+  questionAnalysis?: TarotQuestionAnalysisSnapshot | null
 }
 
 /**
@@ -87,10 +87,10 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
     language,
     session,
     questionAnalysis,
-  } = input;
+  } = input
 
   // Guidance 텍스트 변환
-  const guidanceText = flattenTarotGuidance(interpretation?.guidance);
+  const guidanceText = flattenTarotGuidance(interpretation?.guidance)
 
   const saveInterpretation = interpretation
     ? {
@@ -98,7 +98,7 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
         guidance: guidanceText,
         card_insights: interpretation.card_insights,
       }
-    : null;
+    : null
 
   if (session?.user) {
     const savePayload = buildTarotSaveRequest({
@@ -111,14 +111,14 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
       selectedDeckStyle,
       language,
       questionAnalysis: questionAnalysis || readingResult.questionContext || null,
-    });
+    })
 
     await apiFetch('/api/tarot/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(savePayload),
-    });
-    return;
+    })
+    return
   }
 
   // 로컬 스토리지 저장
@@ -131,8 +131,8 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
     spreadId,
     selectedDeckStyle,
     questionAnalysis || readingResult.questionContext || null
-  );
-  saveReading(formattedReading);
+  )
+  saveReading(formattedReading)
 
   // 서버 저장 (로그인 사용자만)
   if (session?.user) {
@@ -158,7 +158,7 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
         })),
         overallMessage: interpretation?.overall_message || '',
         cardInsights:
-          interpretation?.card_insights?.map(ci => ({
+          interpretation?.card_insights?.map((ci) => ({
             position: ci.position,
             card_name: ci.card_name,
             is_reversed: ci.is_reversed,
@@ -170,6 +170,6 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
         locale: language,
         questionContext: questionAnalysis || readingResult.questionContext || undefined,
       }),
-    });
+    })
   }
 }

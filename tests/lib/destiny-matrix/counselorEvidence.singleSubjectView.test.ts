@@ -9,7 +9,7 @@ import {
   buildScenarioActionHints,
 } from '@/lib/destiny-matrix/counselorEvidenceSupport'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/saju/types'
 
 function createInput(overrides: Partial<MatrixCalculationInput> = {}): MatrixCalculationInput {
   return {

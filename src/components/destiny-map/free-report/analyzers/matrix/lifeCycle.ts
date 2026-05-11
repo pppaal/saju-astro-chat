@@ -3,20 +3,23 @@
  * 생애주기-하우스 분석
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { TWELVE_STAGE_HOUSE_MATRIX, TWELVE_STAGE_INFO } from '@/lib/destiny-matrix/data/layer6-stage-house';
-import type { HouseNumber, PlanetName } from '@/lib/destiny-matrix/types';
-import type { TwelveStage, TwelveStageStandard } from '@/lib/Saju/types';
-import type { SajuData, AstroData } from '../../types';
-import type { LifeCycleResult } from './types';
+import { getInteractionColor } from '@/lib/destiny-matrix/engine'
+import {
+  TWELVE_STAGE_HOUSE_MATRIX,
+  TWELVE_STAGE_INFO,
+} from '@/lib/destiny-matrix/data/layer6-stage-house'
+import type { HouseNumber, PlanetName } from '@/lib/destiny-matrix/types'
+import type { TwelveStage, TwelveStageStandard } from '@/lib/saju/types'
+import type { SajuData, AstroData } from '../../types'
+import type { LifeCycleResult } from './types'
 
 interface ExtendedSajuData extends SajuData {
   twelveStages?: {
-    year?: TwelveStage;
-    month?: TwelveStage;
-    day?: TwelveStage;
-    hour?: TwelveStage;
-  };
+    year?: TwelveStage
+    month?: TwelveStage
+    day?: TwelveStage
+    hour?: TwelveStage
+  }
 }
 
 function getHouseLifeArea(house: number, isKo: boolean): string {
@@ -33,8 +36,8 @@ function getHouseLifeArea(house: number, isKo: boolean): string {
     10: { ko: '커리어/명예', en: 'Career/Status' },
     11: { ko: '희망/네트워크', en: 'Hopes/Network' },
     12: { ko: '영성/무의식', en: 'Spirituality/Unconscious' },
-  };
-  return isKo ? areas[house]?.ko || '' : areas[house]?.en || '';
+  }
+  return isKo ? areas[house]?.ko || '' : areas[house]?.en || ''
 }
 
 /**
@@ -45,34 +48,38 @@ export function analyzeLifeCycle(
   astro: AstroData | undefined,
   lang: string
 ): LifeCycleResult[] {
-  const isKo = lang === 'ko';
-  const lifeCycles: LifeCycleResult[] = [];
+  const isKo = lang === 'ko'
+  const lifeCycles: LifeCycleResult[] = []
 
-  if (!saju) {return lifeCycles;}
+  if (!saju) {
+    return lifeCycles
+  }
 
-  const extSaju = saju as ExtendedSajuData;
-  const twelveStages = extSaju?.twelveStages || {};
+  const extSaju = saju as ExtendedSajuData
+  const twelveStages = extSaju?.twelveStages || {}
 
   // 행성 하우스 매핑
-  const planetHouses: Partial<Record<PlanetName, number>> = {};
+  const planetHouses: Partial<Record<PlanetName, number>> = {}
   if (astro?.planets && Array.isArray(astro.planets)) {
     for (const p of astro.planets) {
       if (p.name && p.house) {
-        const pName = p.name.charAt(0).toUpperCase() + p.name.slice(1).toLowerCase();
-        planetHouses[pName as PlanetName] = p.house as HouseNumber;
+        const pName = p.name.charAt(0).toUpperCase() + p.name.slice(1).toLowerCase()
+        planetHouses[pName as PlanetName] = p.house as HouseNumber
       }
     }
   }
 
   // 12운성별 분석
-  const stageKeys = Object.keys(twelveStages) as Array<'year' | 'month' | 'day' | 'hour'>;
+  const stageKeys = Object.keys(twelveStages) as Array<'year' | 'month' | 'day' | 'hour'>
   for (const pillar of stageKeys) {
-    const stage = twelveStages[pillar] as TwelveStage | undefined;
-    if (!stage) {continue;}
+    const stage = twelveStages[pillar] as TwelveStage | undefined
+    if (!stage) {
+      continue
+    }
 
     // 건록/제왕 변환 (TwelveStage -> TwelveStageStandard)
     const normalizedStage: TwelveStageStandard =
-      stage === '건록' ? '임관' : stage === '제왕' ? '왕지' : stage as TwelveStageStandard;
+      stage === '건록' ? '임관' : stage === '제왕' ? '왕지' : (stage as TwelveStageStandard)
 
     // 해당 기둥에 연결된 하우스 찾기 (예: 월주 → 4하우스)
     const pillarHouseMap: Record<string, HouseNumber> = {
@@ -80,11 +87,11 @@ export function analyzeLifeCycle(
       month: 4,
       day: 1,
       hour: 10,
-    };
-    const house = pillarHouseMap[pillar] || 1;
+    }
+    const house = pillarHouseMap[pillar] || 1
 
-    const interaction = TWELVE_STAGE_HOUSE_MATRIX[normalizedStage]?.[house];
-    const stageInfo = TWELVE_STAGE_INFO[normalizedStage];
+    const interaction = TWELVE_STAGE_HOUSE_MATRIX[normalizedStage]?.[house]
+    const stageInfo = TWELVE_STAGE_INFO[normalizedStage]
     if (interaction && stageInfo) {
       lifeCycles.push({
         stage: normalizedStage,
@@ -102,11 +109,11 @@ export function analyzeLifeCycle(
         },
         stageInfo: { ko: stageInfo.ko, en: stageInfo.en },
         lifeArea: getHouseLifeArea(house, isKo),
-      });
+      })
     }
   }
 
-  return lifeCycles;
+  return lifeCycles
 }
 
 /**
@@ -117,14 +124,16 @@ export function getLifeCycleDescription(
   house: HouseNumber,
   lang: string
 ): string | null {
-  const isKo = lang === 'ko';
-  const interaction = TWELVE_STAGE_HOUSE_MATRIX[stage]?.[house];
-  const stageInfo = TWELVE_STAGE_INFO[stage];
-  if (!interaction || !stageInfo) {return null;}
+  const isKo = lang === 'ko'
+  const interaction = TWELVE_STAGE_HOUSE_MATRIX[stage]?.[house]
+  const stageInfo = TWELVE_STAGE_INFO[stage]
+  if (!interaction || !stageInfo) {
+    return null
+  }
 
-  const lifeArea = getHouseLifeArea(house, isKo);
+  const lifeArea = getHouseLifeArea(house, isKo)
 
   return isKo
     ? `${stage}(${stageInfo.ko.split(' - ')[1] || ''}) × ${house}하우스(${lifeArea}) = ${interaction.keyword} ${interaction.icon}`
-    : `${stage}(${stageInfo.en.split(' - ')[1] || ''}) × House ${house}(${lifeArea}) = ${interaction.keywordEn} ${interaction.icon}`;
+    : `${stage}(${stageInfo.en.split(' - ')[1] || ''}) × House ${house}(${lifeArea}) = ${interaction.keywordEn} ${interaction.icon}`
 }

@@ -1,7 +1,7 @@
 // chart-calculator.ts
 // Handles computation of Saju and Astrology charts with caching
 
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { toSajuDataStructure } from '@/lib/destiny-map/type-guards'
 import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'

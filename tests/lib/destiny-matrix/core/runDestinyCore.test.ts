@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/saju/types'
 import {
   buildNormalizedMatrixInput,
   runDestinyCore,
@@ -179,11 +179,21 @@ function createSummary(): MatrixSummary {
       },
     },
     overlapTimelineByDomain: {
-      career: [{ month: '2026-04', overlapStrength: 0.78, timeOverlapWeight: 1.22, peakLevel: 'peak' }],
-      love: [{ month: '2026-05', overlapStrength: 0.72, timeOverlapWeight: 1.18, peakLevel: 'high' }],
-      money: [{ month: '2026-07', overlapStrength: 0.65, timeOverlapWeight: 1.14, peakLevel: 'high' }],
-      health: [{ month: '2026-03', overlapStrength: 0.62, timeOverlapWeight: 1.13, peakLevel: 'high' }],
-      move: [{ month: '2026-09', overlapStrength: 0.59, timeOverlapWeight: 1.1, peakLevel: 'normal' }],
+      career: [
+        { month: '2026-04', overlapStrength: 0.78, timeOverlapWeight: 1.22, peakLevel: 'peak' },
+      ],
+      love: [
+        { month: '2026-05', overlapStrength: 0.72, timeOverlapWeight: 1.18, peakLevel: 'high' },
+      ],
+      money: [
+        { month: '2026-07', overlapStrength: 0.65, timeOverlapWeight: 1.14, peakLevel: 'high' },
+      ],
+      health: [
+        { month: '2026-03', overlapStrength: 0.62, timeOverlapWeight: 1.13, peakLevel: 'high' },
+      ],
+      move: [
+        { month: '2026-09', overlapStrength: 0.59, timeOverlapWeight: 1.1, peakLevel: 'normal' },
+      ],
     },
   }
 }
@@ -406,7 +416,9 @@ describe('runDestinyCore', () => {
 
     expect(stable.canonical.crossAgreement).not.toBeNull()
     expect(stressed.canonical.crossAgreement).not.toBeNull()
-    expect((stable.canonical.crossAgreement || 0) - (stressed.canonical.crossAgreement || 0)).toBeGreaterThan(0.1)
+    expect(
+      (stable.canonical.crossAgreement || 0) - (stressed.canonical.crossAgreement || 0)
+    ).toBeGreaterThan(0.1)
   })
 
   it('synthesizes cross agreement matrix from summary and timing inputs when matrix rows are missing', () => {

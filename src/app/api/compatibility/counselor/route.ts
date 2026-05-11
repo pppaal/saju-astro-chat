@@ -385,27 +385,40 @@ export async function POST(req: NextRequest) {
         coupleMatrixContext = cached
       } else {
         try {
-          const [{ buildCoupleMatrix }, { calculateSajuData }, { calculateNatalChart }, { buildOrthodoxInterpretation }] =
-            await Promise.all([
-              import('@/lib/compatibility/coupleMatrix'),
-              import('@/lib/Saju/saju'),
-              import('@/lib/astrology/foundation/astrologyService'),
-              import('@/lib/Saju/orthodoxInterpretation'),
-            ])
+          const [
+            { buildCoupleMatrix },
+            { calculateSajuData },
+            { calculateNatalChart },
+            { buildOrthodoxInterpretation },
+          ] = await Promise.all([
+            import('@/lib/compatibility/coupleMatrix'),
+            import('@/lib/saju/saju'),
+            import('@/lib/astrology/foundation/astrologyService'),
+            import('@/lib/saju/orthodoxInterpretation'),
+          ])
           const buildPerson = async (p: CompatPerson) => {
             const tz = p.timeZone || 'Asia/Seoul'
-            const gender = (p.gender === 'female' || p.gender === 'F') ? 'female' : 'male'
-            const koreanAge = new Date().getFullYear() - parseInt(String(p.date).split('-')[0], 10) + 1
+            const gender = p.gender === 'female' || p.gender === 'F' ? 'female' : 'male'
+            const koreanAge =
+              new Date().getFullYear() - parseInt(String(p.date).split('-')[0], 10) + 1
             const saju = calculateSajuData(p.date!, p.time || '12:00', gender, 'solar', tz)
             ;(saju as unknown as Record<string, unknown>).orthodoxInterpretation =
               buildOrthodoxInterpretation(saju, { koreanAge })
             const [Y, M, D] = String(p.date).split('-').map(Number)
-            const [h, mi] = String(p.time || '12:00').split(':').map(Number)
+            const [h, mi] = String(p.time || '12:00')
+              .split(':')
+              .map(Number)
             const lat = typeof p.latitude === 'number' ? p.latitude : 37.5665
             const lon = typeof p.longitude === 'number' ? p.longitude : 126.978
             const natal = await calculateNatalChart({
-              year: Y, month: M, date: D, hour: h, minute: mi,
-              latitude: lat, longitude: lon, timeZone: tz,
+              year: Y,
+              month: M,
+              date: D,
+              hour: h,
+              minute: mi,
+              latitude: lat,
+              longitude: lon,
+              timeZone: tz,
             })
             return {
               saju,
@@ -415,12 +428,26 @@ export async function POST(req: NextRequest) {
           }
           const [A, B] = await Promise.all([buildPerson(p1ForMatrix), buildPerson(p2ForMatrix)])
           const matrix = buildCoupleMatrix(
-            { saju: A.saju, natal: A.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'], koreanAge: A.koreanAge },
-            { saju: B.saju, natal: B.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'], koreanAge: B.koreanAge }
+            {
+              saju: A.saju,
+              natal: A.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'],
+              koreanAge: A.koreanAge,
+            },
+            {
+              saju: B.saju,
+              natal: B.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'],
+              koreanAge: B.koreanAge,
+            }
           )
           const s = matrix.summary
-          const top = s.topPositiveCells.slice(0, 5).map((c) => `+ ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`).join('\n')
-          const bot = s.topCautionCells.slice(0, 5).map((c) => `- ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`).join('\n')
+          const top = s.topPositiveCells
+            .slice(0, 5)
+            .map((c) => `+ ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`)
+            .join('\n')
+          const bot = s.topCautionCells
+            .slice(0, 5)
+            .map((c) => `- ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`)
+            .join('\n')
           coupleMatrixContext = [
             '== 커플 매트릭스 (9 레이어 셀-단위 사주×점성 교차) ==',
             `종합 ${s.totalScore} / overlap ${s.overlapStrength} / polarity +${s.polarityBalance.positive}/-${s.polarityBalance.negative}`,
@@ -480,7 +507,7 @@ export async function POST(req: NextRequest) {
             voice,
             '',
             '[Compatibility counselor domain rules]',
-            '- Read *both people\'s edges*. Never praise only one or critique only one.',
+            "- Read *both people's edges*. Never praise only one or critique only one.",
             '- Show one synergy + one friction in every answer. A one-sided read is cheerleading or a curse, not diagnosis.',
             '- When saju×astro cross data is provided, name whether the two systems point the *same direction* or pull apart.',
             '- When timing data (daeun / seun / transits) is present, *which season they are in* is the axis that changes the read.',

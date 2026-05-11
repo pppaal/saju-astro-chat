@@ -16,10 +16,10 @@ import type {
   TwelveStage,
   UnseData,
   PillarKind,
-} from '@/lib/Saju/types'
-import type { StrengthScore } from '@/lib/Saju/strengthScore'
-import type { GeokgukResult } from '@/lib/Saju/geokguk'
-import type { YongsinResult } from '@/lib/Saju/yongsin'
+} from '@/lib/saju/types'
+import type { StrengthScore } from '@/lib/saju/strengthScore'
+import type { GeokgukResult } from '@/lib/saju/geokguk'
+import type { YongsinResult } from '@/lib/saju/yongsin'
 import { KO_TO_SAJU_ELEMENT } from '../bridges/element'
 import type { SajuSignal } from '../types'
 
@@ -33,7 +33,7 @@ export interface SajuExtrasInput {
 
 export interface SajuNormalizerInput {
   saju: CalculateSajuDataResult
-  natalRelations?: RelationHit[]   // 원국끼리의 합/충/형/파/해
+  natalRelations?: RelationHit[] // 원국끼리의 합/충/형/파/해
   currentDaeun?: UnseData | null
   currentSeun?: UnseData | null
   currentWolun?: UnseData | null
@@ -178,11 +178,16 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     인성: 0, // 정인 + 편인
   }
   const sibsinToGroup: Record<string, keyof typeof sibsinGroupCounts> = {
-    비견: '비겁', 겁재: '비겁',
-    식신: '식상', 상관: '식상',
-    정재: '재성', 편재: '재성',
-    정관: '관성', 편관: '관성',
-    정인: '인성', 편인: '인성',
+    비견: '비겁',
+    겁재: '비겁',
+    식신: '식상',
+    상관: '식상',
+    정재: '재성',
+    편재: '재성',
+    정관: '관성',
+    편관: '관성',
+    정인: '인성',
+    편인: '인성',
   }
   for (const pillarKind of ['year', 'month', 'day', 'time'] as const) {
     const p = saju.pillars[pillarKind]
@@ -218,7 +223,9 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
   const groupTotal = Object.values(sibsinGroupCounts).reduce((a, b) => a + b, 0) || 1
   let dominantGroup: keyof typeof sibsinGroupCounts | null = null
   let dominantCount = 0
-  for (const [grp, count] of Object.entries(sibsinGroupCounts) as Array<[keyof typeof sibsinGroupCounts, number]>) {
+  for (const [grp, count] of Object.entries(sibsinGroupCounts) as Array<
+    [keyof typeof sibsinGroupCounts, number]
+  >) {
     out.push({
       system: 'saju',
       layer: 'state',
@@ -260,7 +267,9 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     day: '배우자',
     time: '자녀',
   }
-  for (const [pillarKind, palace] of Object.entries(palaces) as Array<['year' | 'month' | 'day' | 'time', string]>) {
+  for (const [pillarKind, palace] of Object.entries(palaces) as Array<
+    ['year' | 'month' | 'day' | 'time', string]
+  >) {
     const p = saju.pillars[pillarKind]
     out.push({
       system: 'saju',
@@ -296,9 +305,12 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
   for (const r of natalRelations) {
     const k = pairKey(r.pillars)
     if (
-      r.kind === '천간합' || r.kind === '지지육합' ||
-      r.kind === '지지삼합' || r.kind === '지지방합'
-    ) hapPairs.add(k)
+      r.kind === '천간합' ||
+      r.kind === '지지육합' ||
+      r.kind === '지지삼합' ||
+      r.kind === '지지방합'
+    )
+      hapPairs.add(k)
     if (r.kind === '천간충' || r.kind === '지지충') chungPairs.add(k)
   }
   // Pillars involved in 충 — used later for 신살 cancellation.
@@ -343,9 +355,15 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     }
 
     // 합화 추출: detail에 "합화X" 또는 "化X" 포함 시 해당 오행 신호 추가.
-    if ((r.kind === '천간합' || r.kind === '지지육합' || r.kind === '지지삼합' || r.kind === '지지방합') && r.detail) {
+    if (
+      (r.kind === '천간합' ||
+        r.kind === '지지육합' ||
+        r.kind === '지지삼합' ||
+        r.kind === '지지방합') &&
+      r.detail
+    ) {
       const m = /합화\s*(목|화|토|금|수)|化\s*(목|화|토|금|수)/.exec(r.detail)
-      const transformed = m ? (m[1] || m[2]) : null
+      const transformed = m ? m[1] || m[2] : null
       if (transformed) {
         out.push({
           system: 'saju',
@@ -362,13 +380,20 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
   // ── 신살 충 처리: 신살이 충된 기둥에 있으면 cancelled 신호 ──
   const cancelledShinsalLater = chungPillars
   // (extras 처리 시 사용 — extras 함수에서 이 set을 읽어 신살 무력화 신호 추가)
-  ;(out as { _cancelledShinsalPillars?: Set<string> } & SajuSignal[])._cancelledShinsalPillars = cancelledShinsalLater
+  ;(out as { _cancelledShinsalPillars?: Set<string> } & SajuSignal[])._cancelledShinsalPillars =
+    cancelledShinsalLater
 
   // ── 통근 (rooting) — 천간이 지지 지장간에 뿌리 있는지 ───
   // jeonggi=3, junggi=2, chogi=1 가중. 4기둥 지지 모두 검사.
   const elementToKo: Record<string, string> = { 목: '목', 화: '화', 토: '토', 금: '금', 수: '수' }
   type Pillar = typeof saju.pillars.year
-  type WithJijanggan = Pillar & { jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } } }
+  type WithJijanggan = Pillar & {
+    jijanggan?: {
+      chogi?: { name?: string }
+      junggi?: { name?: string }
+      jeonggi?: { name?: string }
+    }
+  }
   function jijangganElements(p: WithJijanggan): Array<{ stem: string; weight: number }> {
     const j = p.jijanggan ?? {}
     const out: Array<{ stem: string; weight: number }> = []
@@ -380,8 +405,16 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
   function stemElement(stemName: string): string {
     // 갑을=목, 병정=화, 무기=토, 경신=금, 임계=수
     const map: Record<string, string> = {
-      甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토', 己: '토',
-      庚: '금', 辛: '금', 壬: '수', 癸: '수',
+      甲: '목',
+      乙: '목',
+      丙: '화',
+      丁: '화',
+      戊: '토',
+      己: '토',
+      庚: '금',
+      辛: '금',
+      壬: '수',
+      癸: '수',
     }
     return map[stemName] ?? ''
   }
@@ -428,10 +461,10 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
       ur.source === 'daeun'
         ? 'decade'
         : ur.source === 'seun'
-        ? 'year'
-        : ur.source === 'wolun'
-        ? 'month'
-        : 'day'
+          ? 'year'
+          : ur.source === 'wolun'
+            ? 'month'
+            : 'day'
     out.push({
       system: 'saju',
       layer: 'timing',
@@ -553,7 +586,10 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     겁재: ['이복형제', '경쟁자'],
   }
   for (const [pillarKind, palace] of [
-    ['year', '조상'], ['month', '부모'], ['day', '배우자'], ['time', '자녀'],
+    ['year', '조상'],
+    ['month', '부모'],
+    ['day', '배우자'],
+    ['time', '자녀'],
   ] as const) {
     const sb = String(saju.pillars[pillarKind].earthlyBranch.sibsin ?? '')
     const persons = yukchinMap[sb]
@@ -579,12 +615,39 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
   return out
 }
 
-function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerInput['extras']>, saju: CalculateSajuDataResult) {
+function pushExtraSignals(
+  out: SajuSignal[],
+  extras: NonNullable<SajuNormalizerInput['extras']>,
+  saju: CalculateSajuDataResult
+) {
   // 신살 (각 hit를 single signal로 + 길/흉 분류 시그널)
-  const luckyShinsal = new Set(['천을귀인','천덕귀인','월덕귀인','문창','학당','금여','암록','복성귀인','반안','장성','길성'])
-  const unluckyShinsal = new Set(['망신','겁살','재살','천살','월살','육해','괘살','흉성','자형'])
+  const luckyShinsal = new Set([
+    '천을귀인',
+    '천덕귀인',
+    '월덕귀인',
+    '문창',
+    '학당',
+    '금여',
+    '암록',
+    '복성귀인',
+    '반안',
+    '장성',
+    '길성',
+  ])
+  const unluckyShinsal = new Set([
+    '망신',
+    '겁살',
+    '재살',
+    '천살',
+    '월살',
+    '육해',
+    '괘살',
+    '흉성',
+    '자형',
+  ])
   // 신살 충 처리: 운반자 구조에 cancellation set이 들어있으면 사용.
-  const cancelSet: Set<string> | undefined = (out as { _cancelledShinsalPillars?: Set<string> })._cancelledShinsalPillars
+  const cancelSet: Set<string> | undefined = (out as { _cancelledShinsalPillars?: Set<string> })
+    ._cancelledShinsalPillars
   for (const hit of extras.shinsal) {
     const cancelled = !!cancelSet && hit.pillars.some((p) => cancelSet.has(p))
     out.push({
@@ -593,7 +656,13 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
       key: `saju.state.shinsal.${hit.kind}`,
       fired: true,
       strength: cancelled ? 0.4 : 0.85,
-      evidence: { kind: hit.kind, pillars: hit.pillars, target: hit.target, detail: hit.detail, cancelled },
+      evidence: {
+        kind: hit.kind,
+        pillars: hit.pillars,
+        target: hit.target,
+        detail: hit.detail,
+        cancelled,
+      },
     })
     if (cancelled) {
       // 충된 길성 = 불귀인 (효력 약화), 충된 흉성 = 비교적 풀림 (소손). 둘 다 cancelled 신호.
@@ -629,9 +698,12 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
   }
 
   // 12운성
-  const activeStages = new Set(['장생','관대','임관','왕지','건록','제왕'])
-  const dormantStages = new Set(['쇠','병','사','묘','절'])
-  for (const [pillar, stage] of Object.entries(extras.twelveStages) as [keyof typeof extras.twelveStages, string][]) {
+  const activeStages = new Set(['장생', '관대', '임관', '왕지', '건록', '제왕'])
+  const dormantStages = new Set(['쇠', '병', '사', '묘', '절'])
+  for (const [pillar, stage] of Object.entries(extras.twelveStages) as [
+    keyof typeof extras.twelveStages,
+    string,
+  ][]) {
     out.push({
       system: 'saju',
       layer: 'state',
@@ -664,7 +736,8 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
 
   // 격국
   if (extras.geokguk && extras.geokguk.primary !== '미정') {
-    const confidenceWeight = extras.geokguk.confidence === 'high' ? 1 : extras.geokguk.confidence === 'medium' ? 0.7 : 0.4
+    const confidenceWeight =
+      extras.geokguk.confidence === 'high' ? 1 : extras.geokguk.confidence === 'medium' ? 0.7 : 0.4
     out.push({
       system: 'saju',
       layer: 'state',
@@ -722,7 +795,10 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
   }
 
   // 지장간 (각 기둥의 hidden stems)
-  for (const [pillar, hiddenStems] of Object.entries(extras.jijanggan) as [keyof typeof extras.jijanggan, string[]][]) {
+  for (const [pillar, hiddenStems] of Object.entries(extras.jijanggan) as [
+    keyof typeof extras.jijanggan,
+    string[],
+  ][]) {
     for (const hs of hiddenStems) {
       out.push({
         system: 'saju',
@@ -748,9 +824,21 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
     const dmEl = saju.dayMaster.element
     // 일간 vs 용신 오행 관계 → 어떤 십성 그룹이 용신인지 결정
     const sangsang: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' } // 생함
-    const sangsangBack: Record<string, string> = { 화: '목', 토: '화', 금: '토', 수: '금', 목: '수' } // 받음
+    const sangsangBack: Record<string, string> = {
+      화: '목',
+      토: '화',
+      금: '토',
+      수: '금',
+      목: '수',
+    } // 받음
     const sangkeuk: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' } // 극함
-    const sangkeukBack: Record<string, string> = { 토: '목', 수: '토', 화: '수', 금: '화', 목: '금' } // 극받음
+    const sangkeukBack: Record<string, string> = {
+      토: '목',
+      수: '토',
+      화: '수',
+      금: '화',
+      목: '금',
+    } // 극받음
 
     let yongsinGroup: string | null = null
     if (yongsinKo === dmEl) yongsinGroup = '비겁'
@@ -772,16 +860,66 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
       // 자평진전 classical 조합 식별:
       const geokguk = extras.geokguk.primary
       const combos: Array<{ geokguk: string; yongsin: string; id: string; meaning: string }> = [
-        { geokguk: '정관격', yongsin: '재성', id: '부귀쌍전', meaning: '정관격에 재성이 받쳐주는 부귀쌍전 구조' },
-        { geokguk: '정관격', yongsin: '인성', id: '관인상생', meaning: '정관격에 인성이 흐르는 명예·학문 구조' },
-        { geokguk: '식신격', yongsin: '재성', id: '식신생재', meaning: '식신이 재성을 생하는 부유 패턴' },
-        { geokguk: '편관격', yongsin: '인성', id: '살인상생', meaning: '칠살을 인성으로 화하는 권력자 구조' },
-        { geokguk: '편관격', yongsin: '식상', id: '식신제살', meaning: '식상이 칠살을 제어하는 능동적 권력' },
-        { geokguk: '양인격', yongsin: '관성', id: '양인합살', meaning: '양인이 칠살과 합하는 무관·정치 패턴' },
-        { geokguk: '정인격', yongsin: '관성', id: '관인쌍청', meaning: '관성과 인성이 함께 청한 학자형 구조' },
-        { geokguk: '편인격', yongsin: '관성', id: '편인봉관', meaning: '비정형 학습이 권위와 만나는 구조' },
-        { geokguk: '정재격', yongsin: '관성', id: '재관인상생', meaning: '재성이 관성을 생하는 부유한 책임가' },
-        { geokguk: '편재격', yongsin: '관성', id: '편재봉살', meaning: '활동 재성이 권력과 만나는 큰 흐름' },
+        {
+          geokguk: '정관격',
+          yongsin: '재성',
+          id: '부귀쌍전',
+          meaning: '정관격에 재성이 받쳐주는 부귀쌍전 구조',
+        },
+        {
+          geokguk: '정관격',
+          yongsin: '인성',
+          id: '관인상생',
+          meaning: '정관격에 인성이 흐르는 명예·학문 구조',
+        },
+        {
+          geokguk: '식신격',
+          yongsin: '재성',
+          id: '식신생재',
+          meaning: '식신이 재성을 생하는 부유 패턴',
+        },
+        {
+          geokguk: '편관격',
+          yongsin: '인성',
+          id: '살인상생',
+          meaning: '칠살을 인성으로 화하는 권력자 구조',
+        },
+        {
+          geokguk: '편관격',
+          yongsin: '식상',
+          id: '식신제살',
+          meaning: '식상이 칠살을 제어하는 능동적 권력',
+        },
+        {
+          geokguk: '양인격',
+          yongsin: '관성',
+          id: '양인합살',
+          meaning: '양인이 칠살과 합하는 무관·정치 패턴',
+        },
+        {
+          geokguk: '정인격',
+          yongsin: '관성',
+          id: '관인쌍청',
+          meaning: '관성과 인성이 함께 청한 학자형 구조',
+        },
+        {
+          geokguk: '편인격',
+          yongsin: '관성',
+          id: '편인봉관',
+          meaning: '비정형 학습이 권위와 만나는 구조',
+        },
+        {
+          geokguk: '정재격',
+          yongsin: '관성',
+          id: '재관인상생',
+          meaning: '재성이 관성을 생하는 부유한 책임가',
+        },
+        {
+          geokguk: '편재격',
+          yongsin: '관성',
+          id: '편재봉살',
+          meaning: '활동 재성이 권력과 만나는 큰 흐름',
+        },
       ]
       const matched = combos.find((c) => c.geokguk === geokguk && c.yongsin === yongsinGroup)
       if (matched) {
@@ -799,15 +937,15 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
     // ── 상신(相神) derivation + 성격(成格)/파격(破格) ────────
     // 자평진전: 격국마다 그 격을 보좌하는 "재상" 십성 그룹이 정해져 있음.
     const sangsinByGeokguk: Record<string, string[]> = {
-      정관격: ['재성', '인성'],   // 생관 또는 호관
-      편관격: ['식상', '인성'],   // 식신제살 또는 살인상생
-      정인격: ['관성'],           // 생인
+      정관격: ['재성', '인성'], // 생관 또는 호관
+      편관격: ['식상', '인성'], // 식신제살 또는 살인상생
+      정인격: ['관성'], // 생인
       편인격: ['관성'],
-      정재격: ['식상', '관성'],   // 생재 또는 호재
+      정재격: ['식상', '관성'], // 생재 또는 호재
       편재격: ['식상', '관성'],
-      식신격: ['재성'],           // 식신생재
-      상관격: ['재성', '인성'],   // 생재 또는 수상관
-      양인격: ['관성'],           // 제양인 (칠살)
+      식신격: ['재성'], // 식신생재
+      상관격: ['재성', '인성'], // 생재 또는 수상관
+      양인격: ['관성'], // 제양인 (칠살)
       건록격: ['관성', '재성'],
       월겁격: ['관성', '재성'],
     }
@@ -822,7 +960,9 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
         strongCount += 1
       } else {
         // weak/absent
-        const weakInOut = out.find((s) => s.key === `saju.state.sibsinGroup.${cand}.count` && s.fired)
+        const weakInOut = out.find(
+          (s) => s.key === `saju.state.sibsinGroup.${cand}.count` && s.fired
+        )
         if (weakInOut) {
           // present but not strong
           if (!foundSangsin) foundSangsin = cand
@@ -863,16 +1003,22 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
       // 사주 운(대운/세운)에서 들어오는 십성이 missingSangsin 그룹에 속하면
       // "패중유성" — 패격이 운에서 회복되는 시기.
       const sibsinToGroupForRescue: Record<string, string> = {
-        비견: '비겁', 겁재: '비겁',
-        식신: '식상', 상관: '식상',
-        정재: '재성', 편재: '재성',
-        정관: '관성', 편관: '관성',
-        정인: '인성', 편인: '인성',
+        비견: '비겁',
+        겁재: '비겁',
+        식신: '식상',
+        상관: '식상',
+        정재: '재성',
+        편재: '재성',
+        정관: '관성',
+        편관: '관성',
+        정인: '인성',
+        편인: '인성',
       }
-      const unseSignals = out.filter((s) =>
-        s.fired &&
-        (s.key.startsWith('saju.timing.daeun.sibsin.') ||
-         s.key.startsWith('saju.timing.seun.sibsin.')),
+      const unseSignals = out.filter(
+        (s) =>
+          s.fired &&
+          (s.key.startsWith('saju.timing.daeun.sibsin.') ||
+            s.key.startsWith('saju.timing.seun.sibsin.'))
       )
       for (const us of unseSignals) {
         const m = /sibsin\.(.+)$/.exec(us.key)
@@ -915,20 +1061,27 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
       const opp = oppositeGroup[foundSangsin]
       if (opp) {
         const sibsinToGroupOpp: Record<string, string> = {
-          비견: '비겁', 겁재: '비겁',
-          식신: '식상', 상관: '식상',
-          정재: '재성', 편재: '재성',
-          정관: '관성', 편관: '관성',
-          정인: '인성', 편인: '인성',
+          비견: '비겁',
+          겁재: '비겁',
+          식신: '식상',
+          상관: '식상',
+          정재: '재성',
+          편재: '재성',
+          정관: '관성',
+          편관: '관성',
+          정인: '인성',
+          편인: '인성',
         }
-        const unseStrike = out.find((s) =>
-          s.fired &&
-          (s.key.startsWith('saju.timing.daeun.sibsin.') || s.key.startsWith('saju.timing.seun.sibsin.')) &&
-          (() => {
-            const mm = /sibsin\.(.+)$/.exec(s.key)
-            if (!mm) return false
-            return sibsinToGroupOpp[mm[1]] === opp
-          })()
+        const unseStrike = out.find(
+          (s) =>
+            s.fired &&
+            (s.key.startsWith('saju.timing.daeun.sibsin.') ||
+              s.key.startsWith('saju.timing.seun.sibsin.')) &&
+            (() => {
+              const mm = /sibsin\.(.+)$/.exec(s.key)
+              if (!mm) return false
+              return sibsinToGroupOpp[mm[1]] === opp
+            })()
         )
         if (unseStrike) {
           const scale: 'decade' | 'year' = unseStrike.key.includes('.daeun.') ? 'decade' : 'year'
@@ -961,7 +1114,7 @@ function pushUnseSignals(
   out: SajuSignal[],
   unse: UnseData | null | undefined,
   name: 'daeun' | 'seun' | 'wolun' | 'iljin',
-  scale: 'decade' | 'year' | 'month' | 'day',
+  scale: 'decade' | 'year' | 'month' | 'day'
 ) {
   if (!unse) return
   out.push({

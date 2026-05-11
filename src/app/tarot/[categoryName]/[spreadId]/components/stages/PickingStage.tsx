@@ -1,5 +1,5 @@
 import React from 'react'
-import type { Spread } from '@/lib/Tarot/tarot.types'
+import type { Spread } from '@/lib/tarot/tarot.types'
 import type { CardColor } from '../../constants'
 import type { GameState } from '../../types'
 import { CardPickingScreen } from '@/components/tarot/CardPickingScreen'

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { tarotThemeExamples } from '@/lib/Tarot/tarot-question-examples'
-import { recommendSpreads } from '@/lib/Tarot/tarot-recommend'
+import { tarotThemeExamples } from '@/lib/tarot/tarot-question-examples'
+import { recommendSpreads } from '@/lib/tarot/tarot-recommend'
 
 describe('tarot example question mapping', () => {
   it('maps every example question to its intended theme', () => {

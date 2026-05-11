@@ -2,8 +2,8 @@
  * Tarot Reading Types
  */
 
-import type { Spread, DrawnCard } from '@/lib/Tarot/tarot.types'
-import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
+import type { Spread, DrawnCard } from '@/lib/tarot/tarot.types'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 
 export type GameState =
   | 'loading'

@@ -9,13 +9,10 @@ import type {
   ImportantDate,
 } from '@/lib/destiny-map/destinyCalendar'
 import type { TranslationData } from '@/types/calendar-api'
-import type { PillarData } from '@/lib/Saju/types'
+import type { PillarData } from '@/lib/saju/types'
 import type { CalendarMatrixEvidencePacketMap } from './matrixEvidencePacket'
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
-export {
-  __resetAIDatesCircuitStateForTests,
-  fetchAIDates,
-} from './calendarAIDatesSupport'
+export { __resetAIDatesCircuitStateForTests, fetchAIDates } from './calendarAIDatesSupport'
 import {
   isAlignedAcrossSystems,
   isDefensivePhaseLabel,
@@ -650,12 +647,13 @@ export function formatDateForResponse(
     matrixVerdict?.topAnchorSummary || matrixVerdict?.topClaim || matrixVerdict?.verdict
   )
   // 매트릭스가 풍부한 서사를 주면 그걸 쓰고, 없을 땐 엔진 베이스(상담사 톤)를 우선
-  const matrixFallbackSummary = matrixHasNarrative && CALENDAR_MATRIX_STRICT_MODE
-    ? buildMatrixStrictSummaryFallback({
-        lang,
-        evidence: evidenceWithVerdict,
-      })
-    : engineDescription || baseSummary
+  const matrixFallbackSummary =
+    matrixHasNarrative && CALENDAR_MATRIX_STRICT_MODE
+      ? buildMatrixStrictSummaryFallback({
+          lang,
+          evidence: evidenceWithVerdict,
+        })
+      : engineDescription || baseSummary
   const finalSummary = buildMatrixFirstSummary({
     verdict: matrixVerdict?.verdict,
     topClaim: matrixVerdict?.topClaim,
@@ -816,13 +814,20 @@ export function formatDateForResponse(
     astroFactors: orderedAstroFactors,
     glossary: (date as { glossary?: Record<string, string> }).glossary,
     crossCheck: (date as { crossCheck?: { line: string; agreementPercent: number } }).crossCheck,
-    longCycleContext: (date as { longCycleContext?: import('./yearlyDates').YearlyImportantDate['longCycleContext'] })
-      .longCycleContext,
-    cycleInteractions: (date as { cycleInteractions?: import('./yearlyDates').YearlyImportantDate['cycleInteractions'] })
-      .cycleInteractions,
+    longCycleContext: (
+      date as { longCycleContext?: import('./yearlyDates').YearlyImportantDate['longCycleContext'] }
+    ).longCycleContext,
+    cycleInteractions: (
+      date as {
+        cycleInteractions?: import('./yearlyDates').YearlyImportantDate['cycleInteractions']
+      }
+    ).cycleInteractions,
     cycleNarrative: (date as { cycleNarrative?: string }).cycleNarrative,
-    dayRuler: (date as { dayRuler?: import('./yearlyDates').YearlyImportantDate['dayRuler'] }).dayRuler,
-    scoreBreakdown: (date as { scoreBreakdown?: import('./yearlyDates').YearlyImportantDate['scoreBreakdown'] }).scoreBreakdown,
+    dayRuler: (date as { dayRuler?: import('./yearlyDates').YearlyImportantDate['dayRuler'] })
+      .dayRuler,
+    scoreBreakdown: (
+      date as { scoreBreakdown?: import('./yearlyDates').YearlyImportantDate['scoreBreakdown'] }
+    ).scoreBreakdown,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),

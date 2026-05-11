@@ -5,7 +5,7 @@ import type {
   MatrixSummary,
 } from '@/lib/destiny-matrix/types'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/saju/types'
 import { runDestinyCore } from '@/lib/destiny-matrix/core/runDestinyCore'
 
 function mkHighlight(

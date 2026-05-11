@@ -4,7 +4,7 @@ vi.mock('@/lib/http', () => ({
   fetchWithRetry: vi.fn(),
 }))
 
-import { analyzeTarotQuestionV2 } from '@/lib/Tarot/questionEngineV2'
+import { analyzeTarotQuestionV2 } from '@/lib/tarot/questionEngineV2'
 import { fetchWithRetry } from '@/lib/http'
 import { questionEngineGoldenCases } from './data/questionEngineGoldenCases'
 

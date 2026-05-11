@@ -3,53 +3,53 @@
  * 오행 관계 매핑을 위한 공통 유틸리티
  */
 
-import type { FiveElement } from '@/lib/Saju/types';
+import type { FiveElement } from '@/lib/saju/types'
 
 /**
  * 생성 관계 (相生): 어떤 오행이 생성하는 오행
  * 목→화→토→금→수→목
  */
 const GENERATION_CYCLE: Record<FiveElement, FiveElement> = {
-  '목': '화',
-  '화': '토',
-  '토': '금',
-  '금': '수',
-  '수': '목',
-};
+  목: '화',
+  화: '토',
+  토: '금',
+  금: '수',
+  수: '목',
+}
 
 /**
  * 극복 관계 (相克): 어떤 오행이 극복하는 오행
  * 목극토, 화극금, 토극수, 금극목, 수극화
  */
 const CONTROL_CYCLE: Record<FiveElement, FiveElement> = {
-  '목': '토',
-  '화': '금',
-  '토': '수',
-  '금': '목',
-  '수': '화',
-};
+  목: '토',
+  화: '금',
+  토: '수',
+  금: '목',
+  수: '화',
+}
 
 /**
  * 역극 관계: 어떤 오행을 극복하는 오행
  */
 const CONTROLLER_CYCLE: Record<FiveElement, FiveElement> = {
-  '목': '금',
-  '화': '수',
-  '토': '목',
-  '금': '화',
-  '수': '토',
-};
+  목: '금',
+  화: '수',
+  토: '목',
+  금: '화',
+  수: '토',
+}
 
 /**
  * 역생 관계: 어떤 오행을 생성하는 오행
  */
 const GENERATOR_CYCLE: Record<FiveElement, FiveElement> = {
-  '목': '수',
-  '화': '목',
-  '토': '화',
-  '금': '토',
-  '수': '금',
-};
+  목: '수',
+  화: '목',
+  토: '화',
+  금: '토',
+  수: '금',
+}
 
 /**
  * Element Relations Manager
@@ -61,7 +61,7 @@ export class ElementRelations {
    * @example 목 → 화
    */
   static getGenerated(element: FiveElement): FiveElement {
-    return GENERATION_CYCLE[element];
+    return GENERATION_CYCLE[element]
   }
 
   /**
@@ -69,7 +69,7 @@ export class ElementRelations {
    * @example 목 극 토
    */
   static getControlled(element: FiveElement): FiveElement {
-    return CONTROL_CYCLE[element];
+    return CONTROL_CYCLE[element]
   }
 
   /**
@@ -77,7 +77,7 @@ export class ElementRelations {
    * @example 금 극 목
    */
   static getController(element: FiveElement): FiveElement {
-    return CONTROLLER_CYCLE[element];
+    return CONTROLLER_CYCLE[element]
   }
 
   /**
@@ -85,7 +85,7 @@ export class ElementRelations {
    * @example 수 → 목
    */
   static getGenerator(element: FiveElement): FiveElement {
-    return GENERATOR_CYCLE[element];
+    return GENERATOR_CYCLE[element]
   }
 
   /**
@@ -97,7 +97,7 @@ export class ElementRelations {
       controls: this.getControlled(element),
       controlledBy: this.getController(element),
       generatedBy: this.getGenerator(element),
-    };
+    }
   }
 
   /**
@@ -107,20 +107,20 @@ export class ElementRelations {
    */
   static sibsinToElement(sibsin: string, dayMasterElement: FiveElement): FiveElement {
     const relations: Record<string, (el: FiveElement) => FiveElement> = {
-      '비견': (el) => el,
-      '겁재': (el) => el,
-      '식신': this.getGenerated,
-      '상관': this.getGenerated,
-      '편재': this.getControlled,
-      '정재': this.getControlled,
-      '편관': this.getController,
-      '정관': this.getController,
-      '편인': this.getGenerator,
-      '정인': this.getGenerator,
-    };
+      비견: (el) => el,
+      겁재: (el) => el,
+      식신: this.getGenerated,
+      상관: this.getGenerated,
+      편재: this.getControlled,
+      정재: this.getControlled,
+      편관: this.getController,
+      정관: this.getController,
+      편인: this.getGenerator,
+      정인: this.getGenerator,
+    }
 
-    const converter = relations[sibsin];
-    return converter ? converter(dayMasterElement) : dayMasterElement;
+    const converter = relations[sibsin]
+    return converter ? converter(dayMasterElement) : dayMasterElement
   }
 
   /**
@@ -131,26 +131,26 @@ export class ElementRelations {
     dayMasterElement: FiveElement
   ): Record<FiveElement, number> {
     const result: Record<FiveElement, number> = {
-      '목': 0,
-      '화': 0,
-      '토': 0,
-      '금': 0,
-      '수': 0,
-    };
-
-    for (const [sibsin, count] of Object.entries(sibsinDist)) {
-      const element = this.sibsinToElement(sibsin, dayMasterElement);
-      result[element] += count;
+      목: 0,
+      화: 0,
+      토: 0,
+      금: 0,
+      수: 0,
     }
 
-    return result;
+    for (const [sibsin, count] of Object.entries(sibsinDist)) {
+      const element = this.sibsinToElement(sibsin, dayMasterElement)
+      result[element] += count
+    }
+
+    return result
   }
 }
 
 /**
  * Legacy function exports for backward compatibility
  */
-export const getGeneratedElement = ElementRelations.getGenerated;
-export const getControlledElement = ElementRelations.getControlled;
-export const getControllerElement = ElementRelations.getController;
-export const getGeneratorElement = ElementRelations.getGenerator;
+export const getGeneratedElement = ElementRelations.getGenerated
+export const getControlledElement = ElementRelations.getControlled
+export const getControllerElement = ElementRelations.getController
+export const getGeneratorElement = ElementRelations.getGenerator

@@ -1,6 +1,6 @@
 ﻿import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
-import type { FiveElement, RelationHit } from '@/lib/Saju/types'
-import { STEMS } from '@/lib/Saju/constants'
+import type { FiveElement, RelationHit } from '@/lib/saju/types'
+import { STEMS } from '@/lib/saju/constants'
 import { getRetrogradePlanetsForDate } from '@/lib/destiny-map/calendar/astrology/retrograde'
 import type {
   GeokgukType,

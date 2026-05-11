@@ -10,7 +10,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
-import { extractStoredCards, extractStoredQuestionContext } from '@/lib/Tarot/savedReadingPayload'
+import { extractStoredCards, extractStoredQuestionContext } from '@/lib/tarot/savedReadingPayload'
 
 export const dynamic = 'force-dynamic'
 

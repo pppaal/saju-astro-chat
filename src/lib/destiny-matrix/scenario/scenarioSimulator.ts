@@ -10,7 +10,7 @@
  *        + (점수 낮으면) 더 나은 대안 시점 제안
  */
 
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateDailyPillar } from '@/lib/prediction/ultra-precision-daily'
 
 // ─────────────────────────────────────────────────────────
@@ -18,23 +18,23 @@ import { calculateDailyPillar } from '@/lib/prediction/ultra-precision-daily'
 // ─────────────────────────────────────────────────────────
 
 export type ScenarioAction =
-  | 'careerChange'    // 이직·전직
-  | 'startBusiness'   // 사업 시작
-  | 'marriage'        // 결혼
-  | 'meetSomeone'     // 새 인연
-  | 'relocation'      // 이사
-  | 'travel'          // 장기 여행·해외
-  | 'invest'          // 큰 투자
-  | 'majorPurchase'   // 큰 지출 (집·차)
-  | 'startStudy'      // 학업·자격 시작
-  | 'healthRestart'   // 건강 리셋 (수술·치료·다이어트)
+  | 'careerChange' // 이직·전직
+  | 'startBusiness' // 사업 시작
+  | 'marriage' // 결혼
+  | 'meetSomeone' // 새 인연
+  | 'relocation' // 이사
+  | 'travel' // 장기 여행·해외
+  | 'invest' // 큰 투자
+  | 'majorPurchase' // 큰 지출 (집·차)
+  | 'startStudy' // 학업·자격 시작
+  | 'healthRestart' // 건강 리셋 (수술·치료·다이어트)
 
 export type ScenarioInput = {
-  birthDate: string   // 'YYYY-MM-DD'
-  birthTime: string   // 'HH:MM'
+  birthDate: string // 'YYYY-MM-DD'
+  birthTime: string // 'HH:MM'
   gender: 'male' | 'female'
   action: ScenarioAction
-  targetDate: string  // 'YYYY-MM-DD'
+  targetDate: string // 'YYYY-MM-DD'
   /** 대안 시점들 (점수 비교용, 선택) */
   alternatives?: string[]
 }
@@ -42,16 +42,16 @@ export type ScenarioInput = {
 export type ScenarioSignal = {
   source: 'saju' | 'astro' | 'cross'
   text: string
-  delta: number  // -20 ~ +20, score에 미치는 기여
+  delta: number // -20 ~ +20, score에 미치는 기여
 }
 
 export type ScenarioForecast = {
   scenario: { action: ScenarioAction; actionLabel: string; targetDate: string }
-  score: number          // 0-100, 100이 가장 유리
+  score: number // 0-100, 100이 가장 유리
   level: '강력 추천' | '진행 가능' | '검토 후 진행' | '주의' | '비추천'
-  confidence: number     // 0-100, 신호 일관도
+  confidence: number // 0-100, 신호 일관도
   signals: ScenarioSignal[]
-  narration: string      // 3-4문장 카운슬러 톤
+  narration: string // 3-4문장 카운슬러 톤
   bestAlternative?: { date: string; score: number; reason: string }
 }
 
@@ -64,16 +64,17 @@ const ACTION_META: Record<
   {
     label: string
     domain: 'career' | 'love' | 'wealth' | 'health' | 'move'
-    favorableSibsin: string[]    // 이 십신이 강하면 +
-    unfavorableSibsin: string[]  // 이 십신이 강하면 -
-    favorableShinsal: string[]   // 활성이면 +
+    favorableSibsin: string[] // 이 십신이 강하면 +
+    unfavorableSibsin: string[] // 이 십신이 강하면 -
+    favorableShinsal: string[] // 활성이면 +
     unfavorableShinsal: string[] // 활성이면 -
-    favorableElements: string[]  // 대운/세운 element가 이거면 +
-    minScore: number             // 권고 임계
+    favorableElements: string[] // 대운/세운 element가 이거면 +
+    minScore: number // 권고 임계
   }
 > = {
   careerChange: {
-    label: '이직·전직', domain: 'career',
+    label: '이직·전직',
+    domain: 'career',
     favorableSibsin: ['정관', '편관', '정재'],
     unfavorableSibsin: ['겁재', '비견'],
     favorableShinsal: ['역마', '천을귀인', '암록'],
@@ -82,7 +83,8 @@ const ACTION_META: Record<
     minScore: 55,
   },
   startBusiness: {
-    label: '사업 시작', domain: 'career',
+    label: '사업 시작',
+    domain: 'career',
     favorableSibsin: ['편재', '식신', '상관'],
     unfavorableSibsin: ['편관'],
     favorableShinsal: ['역마', '천을귀인', '문창'],
@@ -91,7 +93,8 @@ const ACTION_META: Record<
     minScore: 60,
   },
   marriage: {
-    label: '결혼', domain: 'love',
+    label: '결혼',
+    domain: 'love',
     favorableSibsin: ['정재', '정관', '식신'],
     unfavorableSibsin: ['겁재', '편관', '비견'],
     favorableShinsal: ['천을귀인', '월덕귀인', '도화'],
@@ -100,7 +103,8 @@ const ACTION_META: Record<
     minScore: 65,
   },
   meetSomeone: {
-    label: '새 인연', domain: 'love',
+    label: '새 인연',
+    domain: 'love',
     favorableSibsin: ['정재', '편재', '식신'],
     unfavorableSibsin: ['편관'],
     favorableShinsal: ['도화', '천을귀인', '홍염살'],
@@ -109,7 +113,8 @@ const ACTION_META: Record<
     minScore: 50,
   },
   relocation: {
-    label: '이사', domain: 'move',
+    label: '이사',
+    domain: 'move',
     favorableSibsin: ['정재', '편재'],
     unfavorableSibsin: [],
     favorableShinsal: ['역마', '지살', '천을귀인'],
@@ -118,7 +123,8 @@ const ACTION_META: Record<
     minScore: 55,
   },
   travel: {
-    label: '장기 여행·해외', domain: 'move',
+    label: '장기 여행·해외',
+    domain: 'move',
     favorableSibsin: ['편재', '식신'],
     unfavorableSibsin: ['편관'],
     favorableShinsal: ['역마', '문곡', '천을귀인'],
@@ -127,7 +133,8 @@ const ACTION_META: Record<
     minScore: 50,
   },
   invest: {
-    label: '큰 투자', domain: 'wealth',
+    label: '큰 투자',
+    domain: 'wealth',
     favorableSibsin: ['편재', '정재', '식신'],
     unfavorableSibsin: ['겁재', '편관'],
     favorableShinsal: ['천을귀인', '암록', '문곡'],
@@ -136,7 +143,8 @@ const ACTION_META: Record<
     minScore: 65,
   },
   majorPurchase: {
-    label: '큰 지출 (집·차)', domain: 'wealth',
+    label: '큰 지출 (집·차)',
+    domain: 'wealth',
     favorableSibsin: ['정재', '정인'],
     unfavorableSibsin: ['겁재'],
     favorableShinsal: ['천을귀인', '월덕귀인'],
@@ -145,7 +153,8 @@ const ACTION_META: Record<
     minScore: 60,
   },
   startStudy: {
-    label: '학업·자격 시작', domain: 'career',
+    label: '학업·자격 시작',
+    domain: 'career',
     favorableSibsin: ['정인', '편인', '식신'],
     unfavorableSibsin: ['겁재'],
     favorableShinsal: ['문창', '문곡', '천을귀인', '학당귀인'],
@@ -154,7 +163,8 @@ const ACTION_META: Record<
     minScore: 55,
   },
   healthRestart: {
-    label: '건강 리셋', domain: 'health',
+    label: '건강 리셋',
+    domain: 'health',
     favorableSibsin: ['정인', '식신'],
     unfavorableSibsin: ['편관', '상관'],
     favorableShinsal: ['천을귀인', '천덕귀인', '월덕귀인'],
@@ -165,8 +175,16 @@ const ACTION_META: Record<
 }
 
 const STEM_KO_EL: Record<string, string> = {
-  甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토',
-  己: '토', 庚: '금', 辛: '금', 壬: '수', 癸: '수',
+  甲: '목',
+  乙: '목',
+  丙: '화',
+  丁: '화',
+  戊: '토',
+  己: '토',
+  庚: '금',
+  辛: '금',
+  壬: '수',
+  癸: '수',
 }
 
 // ─────────────────────────────────────────────────────────
@@ -189,7 +207,12 @@ function scoreScenario(
 
   // 1) 십신 분포 평가
   const sibsinDist: Record<string, number> = {}
-  for (const pl of [baseSaju.pillars.year, baseSaju.pillars.month, baseSaju.pillars.day, baseSaju.pillars.time]) {
+  for (const pl of [
+    baseSaju.pillars.year,
+    baseSaju.pillars.month,
+    baseSaju.pillars.day,
+    baseSaju.pillars.time,
+  ]) {
     for (const s of [pl.heavenlyStem.sibsin, pl.earthlyBranch.sibsin]) {
       if (s && typeof s === 'string') sibsinDist[s] = (sibsinDist[s] || 0) + 1
     }
@@ -198,7 +221,11 @@ function scoreScenario(
     const cnt = sibsinDist[sib] || 0
     if (cnt > 0) {
       const delta = Math.min(cnt * 4, 12)
-      signals.push({ source: 'saju', text: `본명에 ${sib}${igaScenario(sib)} ${cnt}개 활성 (${meta.label} 적합)`, delta })
+      signals.push({
+        source: 'saju',
+        text: `본명에 ${sib}${igaScenario(sib)} ${cnt}개 활성 (${meta.label} 적합)`,
+        delta,
+      })
       score += delta
       supportSignals++
     }
@@ -207,7 +234,11 @@ function scoreScenario(
     const cnt = sibsinDist[sib] || 0
     if (cnt > 0) {
       const delta = -Math.min(cnt * 3, 10)
-      signals.push({ source: 'saju', text: `본명에 ${sib}${igaScenario(sib)} ${cnt}개 (${meta.label}엔 부담 신호)`, delta })
+      signals.push({
+        source: 'saju',
+        text: `본명에 ${sib}${igaScenario(sib)} ${cnt}개 (${meta.label}엔 부담 신호)`,
+        delta,
+      })
       score += delta
       resistSignals++
     }
@@ -218,11 +249,19 @@ function scoreScenario(
   if (cur) {
     const daeunEl = STEM_KO_EL[cur.heavenlyStem]
     if (meta.favorableElements.includes(daeunEl)) {
-      signals.push({ source: 'saju', text: `현재 대운 ${cur.heavenlyStem}${cur.earthlyBranch}(${daeunEl}) — ${meta.label}에 우호 흐름`, delta: 8 })
+      signals.push({
+        source: 'saju',
+        text: `현재 대운 ${cur.heavenlyStem}${cur.earthlyBranch}(${daeunEl}) — ${meta.label}에 우호 흐름`,
+        delta: 8,
+      })
       score += 8
       supportSignals++
     } else {
-      signals.push({ source: 'saju', text: `현재 대운 ${cur.heavenlyStem}${cur.earthlyBranch}(${daeunEl}) — 중립 (전형 권장 원소 아님)`, delta: 0 })
+      signals.push({
+        source: 'saju',
+        text: `현재 대운 ${cur.heavenlyStem}${cur.earthlyBranch}(${daeunEl}) — 중립 (전형 권장 원소 아님)`,
+        delta: 0,
+      })
     }
   }
 
@@ -230,25 +269,46 @@ function scoreScenario(
   const annualRow = baseSaju.unse?.annual?.find((a) => a.year === targetYear)
   if (annualRow?.heavenlyStem) {
     const seunEl = STEM_KO_EL[annualRow.heavenlyStem]
-    if (meta.favorableElements.includes(seunEl) || meta.favorableElements.includes(annualRow.element || '')) {
-      signals.push({ source: 'saju', text: `${targetYear}년 세운 ${annualRow.ganji}(${annualRow.element}) — 환경이 받쳐주는 해`, delta: 10 })
+    if (
+      meta.favorableElements.includes(seunEl) ||
+      meta.favorableElements.includes(annualRow.element || '')
+    ) {
+      signals.push({
+        source: 'saju',
+        text: `${targetYear}년 세운 ${annualRow.ganji}(${annualRow.element}) — 환경이 받쳐주는 해`,
+        delta: 10,
+      })
       score += 10
       supportSignals++
     } else {
-      signals.push({ source: 'saju', text: `${targetYear}년 세운 ${annualRow.ganji}(${annualRow.element}) — 중립 또는 전환 시기`, delta: -2 })
+      signals.push({
+        source: 'saju',
+        text: `${targetYear}년 세운 ${annualRow.ganji}(${annualRow.element}) — 중립 또는 전환 시기`,
+        delta: -2,
+      })
       score -= 2
     }
   }
 
   // 4) 월운 element 평가 (target month)
-  const monthlyRow = baseSaju.unse?.monthly?.find((m) => m.year === targetYear && m.month === targetMonth)
+  const monthlyRow = baseSaju.unse?.monthly?.find(
+    (m) => m.year === targetYear && m.month === targetMonth
+  )
   if (monthlyRow?.element) {
     if (meta.favorableElements.includes(monthlyRow.element)) {
-      signals.push({ source: 'saju', text: `${targetYear}/${targetMonth} 월운 ${monthlyRow.ganji}(${monthlyRow.element}) — 월 단위 흐름 우호`, delta: 6 })
+      signals.push({
+        source: 'saju',
+        text: `${targetYear}/${targetMonth} 월운 ${monthlyRow.ganji}(${monthlyRow.element}) — 월 단위 흐름 우호`,
+        delta: 6,
+      })
       score += 6
       supportSignals++
     } else {
-      signals.push({ source: 'saju', text: `${targetYear}/${targetMonth} 월운 ${monthlyRow.ganji}(${monthlyRow.element}) — 월 단위 흐름 약함`, delta: -3 })
+      signals.push({
+        source: 'saju',
+        text: `${targetYear}/${targetMonth} 월운 ${monthlyRow.ganji}(${monthlyRow.element}) — 월 단위 흐름 약함`,
+        delta: -3,
+      })
       score -= 3
     }
   }
@@ -258,27 +318,66 @@ function scoreScenario(
   if (dailyPillar) {
     const natalDayStem = baseSaju.pillars.day.heavenlyStem.name
     const natalDayBranch = baseSaju.pillars.day.earthlyBranch.name
-    const STEM_CHUNG = new Set(['甲-庚', '庚-甲', '乙-辛', '辛-乙', '丙-壬', '壬-丙', '丁-癸', '癸-丁'])
+    const STEM_CHUNG = new Set([
+      '甲-庚',
+      '庚-甲',
+      '乙-辛',
+      '辛-乙',
+      '丙-壬',
+      '壬-丙',
+      '丁-癸',
+      '癸-丁',
+    ])
     const BRANCH_CHUNG: Record<string, string> = {
-      子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅',
-      卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳',
+      子: '午',
+      午: '子',
+      丑: '未',
+      未: '丑',
+      寅: '申',
+      申: '寅',
+      卯: '酉',
+      酉: '卯',
+      辰: '戌',
+      戌: '辰',
+      巳: '亥',
+      亥: '巳',
     }
     if (STEM_CHUNG.has(`${natalDayStem}-${dailyPillar.stem}`)) {
-      signals.push({ source: 'saju', text: `${input.targetDate} 일진 ${dailyPillar.stem}${dailyPillar.branch} — 본명 일간과 천간충, 결정 강제 trigger`, delta: -8 })
+      signals.push({
+        source: 'saju',
+        text: `${input.targetDate} 일진 ${dailyPillar.stem}${dailyPillar.branch} — 본명 일간과 천간충, 결정 강제 trigger`,
+        delta: -8,
+      })
       score -= 8
       resistSignals++
     }
     if (BRANCH_CHUNG[natalDayBranch] === dailyPillar.branch) {
-      signals.push({ source: 'saju', text: `${input.targetDate} 일진 ${dailyPillar.stem}${dailyPillar.branch} — 본명 일지와 지지충, 환경·이동 변동`, delta: -5 })
+      signals.push({
+        source: 'saju',
+        text: `${input.targetDate} 일진 ${dailyPillar.stem}${dailyPillar.branch} — 본명 일지와 지지충, 환경·이동 변동`,
+        delta: -5,
+      })
       score -= 5
       resistSignals++
     }
     const STEM_HAP: Record<string, string> = {
-      甲: '己', 乙: '庚', 丙: '辛', 丁: '壬', 戊: '癸',
-      己: '甲', 庚: '乙', 辛: '丙', 壬: '丁', 癸: '戊',
+      甲: '己',
+      乙: '庚',
+      丙: '辛',
+      丁: '壬',
+      戊: '癸',
+      己: '甲',
+      庚: '乙',
+      辛: '丙',
+      壬: '丁',
+      癸: '戊',
     }
     if (STEM_HAP[natalDayStem] === dailyPillar.stem) {
-      signals.push({ source: 'saju', text: `${input.targetDate} 일진 ${dailyPillar.stem}${dailyPillar.branch} — 본명과 천간합, 협의·동의 잘 떨어짐`, delta: 7 })
+      signals.push({
+        source: 'saju',
+        text: `${input.targetDate} 일진 ${dailyPillar.stem}${dailyPillar.branch} — 본명과 천간합, 협의·동의 잘 떨어짐`,
+        delta: 7,
+      })
       score += 7
       supportSignals++
     }
@@ -292,16 +391,28 @@ function scoreScenario(
     score += 5
   }
   if (age >= 36 && age <= 44 && input.action !== 'marriage') {
-    signals.push({ source: 'astro', text: '명왕성 트랜짓 활성 — 깊은 변혁기, 큰 결정에 무게', delta: 4 })
+    signals.push({
+      source: 'astro',
+      text: '명왕성 트랜짓 활성 — 깊은 변혁기, 큰 결정에 무게',
+      delta: 4,
+    })
     score += 4
   }
 
   // 7) cross signal — 사주↔점성 정합 추정 (simplified)
   if (supportSignals >= 3 && resistSignals === 0) {
-    signals.push({ source: 'cross', text: `사주·점성 모두 ${meta.label} 방향으로 정합 (강한 정합)`, delta: 5 })
+    signals.push({
+      source: 'cross',
+      text: `사주·점성 모두 ${meta.label} 방향으로 정합 (강한 정합)`,
+      delta: 5,
+    })
     score += 5
   } else if (resistSignals >= 2 && supportSignals === 0) {
-    signals.push({ source: 'cross', text: `사주·점성 모두 ${meta.label}에 부정 (강한 보류 신호)`, delta: -5 })
+    signals.push({
+      source: 'cross',
+      text: `사주·점성 모두 ${meta.label}에 부정 (강한 보류 신호)`,
+      delta: -5,
+    })
     score -= 5
   } else if (supportSignals >= 1 && resistSignals >= 1) {
     signals.push({ source: 'cross', text: `사주·점성 신호 엇갈림 — 한 번 더 검증 권장`, delta: -2 })
@@ -320,9 +431,10 @@ function scoreScenario(
 
   // confidence — supportSignals + resistSignals 일관도
   const totalSignals = supportSignals + resistSignals
-  const confidence = totalSignals === 0
-    ? 30
-    : Math.round((Math.max(supportSignals, resistSignals) / totalSignals) * 100)
+  const confidence =
+    totalSignals === 0
+      ? 30
+      : Math.round((Math.max(supportSignals, resistSignals) / totalSignals) * 100)
 
   // narration
   const narration = composeNarration(meta, score, level, signals, input.targetDate)
@@ -353,7 +465,7 @@ function igaScenario(word: string): '이' | '가' {
 }
 
 function composeNarration(
-  meta: typeof ACTION_META[ScenarioAction],
+  meta: (typeof ACTION_META)[ScenarioAction],
   score: number,
   level: ScenarioForecast['level'],
   signals: ScenarioSignal[],
@@ -364,7 +476,9 @@ function composeNarration(
   const lines: string[] = []
   const labelEul = `${meta.label}${eulReul(meta.label)}`
 
-  lines.push(`${targetDate} 시점에 ${labelEul} 하면 신호 종합 점수는 ${score}/100, 등급은 "${level}"이에요.`)
+  lines.push(
+    `${targetDate} 시점에 ${labelEul} 하면 신호 종합 점수는 ${score}/100, 등급은 "${level}"이에요.`
+  )
 
   if (supports.length > 0) {
     lines.push(`받쳐주는 신호: ${supports.map((s) => s.text).join(' / ')}.`)
@@ -378,8 +492,8 @@ function composeNarration(
     '강력 추천': `여러 신호가 같은 방향이라 이 시점은 ${meta.label}에 가장 유리한 구간이에요. 결정 후 실행까지 같은 분기에 묶어도 괜찮아요.`,
     '진행 가능': `핵심 신호가 우호적이라 ${labelEul} 진행해도 무리 없는 시점이에요. 다만 작은 검증 1단계만 잡으세요.`,
     '검토 후 진행': `유리한 신호와 주의 신호가 섞여 있어요. 결정 전 반대 근거 1개 확인하고, 1주 보류 후 재검토하시는 편이 좋아요.`,
-    '주의': `이 시점은 ${meta.label}에 부담 신호가 많아요. 가능하면 1-3개월 미루고 다른 시점을 찾는 편이 안전해요.`,
-    '비추천': `${labelEul} 이 시점에 하면 손실·갈등 신호가 우세해요. 이 결정은 다음 사이클까지 보류하는 편을 권해요.`,
+    주의: `이 시점은 ${meta.label}에 부담 신호가 많아요. 가능하면 1-3개월 미루고 다른 시점을 찾는 편이 안전해요.`,
+    비추천: `${labelEul} 이 시점에 하면 손실·갈등 신호가 우세해요. 이 결정은 다음 사이클까지 보류하는 편을 권해요.`,
   }
   lines.push(closing[level])
 
@@ -391,7 +505,13 @@ function composeNarration(
 // ─────────────────────────────────────────────────────────
 
 export function simulateScenario(input: ScenarioInput): ScenarioForecast {
-  const baseSaju = calculateSajuData(input.birthDate, input.birthTime, input.gender, 'solar', 'Asia/Seoul')
+  const baseSaju = calculateSajuData(
+    input.birthDate,
+    input.birthTime,
+    input.gender,
+    'solar',
+    'Asia/Seoul'
+  )
   return scoreScenario(input, baseSaju)
 }
 
@@ -403,7 +523,13 @@ export function compareScenarios(input: ScenarioInput): {
   alternatives: ScenarioForecast[]
   bestPick: ScenarioForecast
 } {
-  const baseSaju = calculateSajuData(input.birthDate, input.birthTime, input.gender, 'solar', 'Asia/Seoul')
+  const baseSaju = calculateSajuData(
+    input.birthDate,
+    input.birthTime,
+    input.gender,
+    'solar',
+    'Asia/Seoul'
+  )
   const primary = scoreScenario(input, baseSaju)
   const alternatives = (input.alternatives || []).map((d) =>
     scoreScenario({ ...input, targetDate: d }, baseSaju)

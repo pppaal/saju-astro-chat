@@ -3,16 +3,16 @@
  * Specialized shadow and hidden self analysis combining Saju and Astrology data
  */
 
-import { getInteractionColor } from '@/lib/destiny-matrix/engine';
-import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
-import { RELATION_ASPECT_MATRIX } from '@/lib/destiny-matrix/data/layer5-relation-aspect';
-import { SHINSAL_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer8-shinsal-planet';
-import type { WesternElement, ShinsalKind } from '@/lib/destiny-matrix/types';
-import type { FiveElement } from '@/lib/Saju/types';
-import type { SajuData, AstroData } from '../../types';
-import type { ShadowPersonalityResult, ExtendedSajuData } from '../types/specialized.types';
-import { SHADOW_SHINSALS } from '../shared/constants';
-import { extractShinsals } from '../shared/shinsalFilter';
+import { getInteractionColor } from '@/lib/destiny-matrix/engine'
+import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core'
+import { RELATION_ASPECT_MATRIX } from '@/lib/destiny-matrix/data/layer5-relation-aspect'
+import { SHINSAL_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer8-shinsal-planet'
+import type { WesternElement, ShinsalKind } from '@/lib/destiny-matrix/types'
+import type { FiveElement } from '@/lib/saju/types'
+import type { SajuData, AstroData } from '../../types'
+import type { ShadowPersonalityResult, ExtendedSajuData } from '../types/specialized.types'
+import { SHADOW_SHINSALS } from '../shared/constants'
+import { extractShinsals } from '../shared/shinsalFilter'
 
 // Helper functions
 function mapSajuElementToKo(el: string): FiveElement {
@@ -22,13 +22,13 @@ function mapSajuElementToKo(el: string): FiveElement {
     earth: '토',
     metal: '금',
     water: '수',
-  };
-  return map[el] || '토';
+  }
+  return map[el] || '토'
 }
 
 function getWestElementFromSign(sign: string): WesternElement {
-  const normalized = sign?.charAt(0).toUpperCase() + sign?.slice(1).toLowerCase();
-  return SIGN_TO_ELEMENT[normalized] || 'earth';
+  const normalized = sign?.charAt(0).toUpperCase() + sign?.slice(1).toLowerCase()
+  return SIGN_TO_ELEMENT[normalized] || 'earth'
 }
 
 /**
@@ -40,19 +40,21 @@ export function getShadowPersonalityAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): ShadowPersonalityResult | null {
-  const _isKo = lang === 'ko';
-  if (!saju && !astro) {return null;}
+  const _isKo = lang === 'ko'
+  if (!saju && !astro) {
+    return null
+  }
 
-  const extSaju = saju as ExtendedSajuData | undefined;
-  const dayElement = saju?.dayMaster?.element || 'wood';
-  const sajuEl = mapSajuElementToKo(dayElement);
+  const extSaju = saju as ExtendedSajuData | undefined
+  const dayElement = saju?.dayMaster?.element || 'wood'
+  const sajuEl = mapSajuElementToKo(dayElement)
 
   // 1. 신살 그림자 (L8)
-  const shinsalShadows: ShadowPersonalityResult['shinsalShadows'] = [];
-  const shinsalList = extractShinsals(extSaju, SHADOW_SHINSALS);
+  const shinsalShadows: ShadowPersonalityResult['shinsalShadows'] = []
+  const shinsalList = extractShinsals(extSaju, SHADOW_SHINSALS)
 
   for (const shinsal of shinsalList.slice(0, 3)) {
-    const plutoData = SHINSAL_PLANET_MATRIX[shinsal as ShinsalKind]?.['Pluto'];
+    const plutoData = SHINSAL_PLANET_MATRIX[shinsal as ShinsalKind]?.['Pluto']
     if (plutoData) {
       shinsalShadows.push({
         shinsal,
@@ -73,23 +75,23 @@ export function getShadowPersonalityAnalysis(
           ko: '이 그림자를 인식하고 통합하세요',
           en: 'Recognize and integrate this shadow',
         },
-      });
+      })
     }
   }
 
   // 2. 키론 상처 (L10)
-  let chironWound: ShadowPersonalityResult['chironWound'] = null;
+  let chironWound: ShadowPersonalityResult['chironWound'] = null
   if (astro?.planets && Array.isArray(astro.planets)) {
-    const chiron = astro.planets.find(p => p.name?.toLowerCase() === 'chiron');
+    const chiron = astro.planets.find((p) => p.name?.toLowerCase() === 'chiron')
     if (chiron?.house) {
-      const house = chiron.house as number;
+      const house = chiron.house as number
       const houseAreas: Record<number, { ko: string; en: string }> = {
         1: { ko: '자아 정체성', en: 'Self-identity' },
         4: { ko: '가족과 뿌리', en: 'Family and roots' },
         7: { ko: '관계와 타인', en: 'Relationships' },
         10: { ko: '사회적 성공', en: 'Social success' },
-      };
-      const area = houseAreas[house] || { ko: '특정 영역', en: 'Specific area' };
+      }
+      const area = houseAreas[house] || { ko: '특정 영역', en: 'Specific area' }
       chironWound = {
         area,
         manifestation: {
@@ -104,18 +106,20 @@ export function getShadowPersonalityAnalysis(
           ko: '상처받은 치유자로서 다른 이를 도울 수 있어요',
           en: 'As a wounded healer, you can help others',
         },
-      };
+      }
     }
   }
 
   // 3. 릴리스 에너지 (L10)
-  let lilithEnergy: ShadowPersonalityResult['lilithEnergy'] = null;
+  let lilithEnergy: ShadowPersonalityResult['lilithEnergy'] = null
   if (astro?.planets && Array.isArray(astro.planets)) {
-    const lilith = astro.planets.find(p => p.name?.toLowerCase() === 'lilith' || p.name?.toLowerCase() === 'black moon lilith');
+    const lilith = astro.planets.find(
+      (p) => p.name?.toLowerCase() === 'lilith' || p.name?.toLowerCase() === 'black moon lilith'
+    )
     if (lilith?.sign) {
-      const lilithEl = getWestElementFromSign(lilith.sign);
-      const lilithSajuEl = mapSajuElementToKo(lilithEl);
-      const interaction = ELEMENT_CORE_GRID[sajuEl]?.[lilithEl];
+      const lilithEl = getWestElementFromSign(lilith.sign)
+      const lilithSajuEl = mapSajuElementToKo(lilithEl)
+      const interaction = ELEMENT_CORE_GRID[sajuEl]?.[lilithEl]
       if (interaction) {
         lilithEnergy = {
           element: lilithSajuEl,
@@ -135,16 +139,16 @@ export function getShadowPersonalityAnalysis(
             ko: '이 어두운 여성성을 표현하고 통합하세요',
             en: 'Express and integrate this dark feminine energy',
           },
-        };
+        }
       }
     }
   }
 
   // 4. 투사 패턴 (L5 - 관계)
-  const projection: ShadowPersonalityResult['projection'] = [];
-  const conflictRelations = ['chung', 'hyeong', 'wonjin'] as const;
+  const projection: ShadowPersonalityResult['projection'] = []
+  const conflictRelations = ['chung', 'hyeong', 'wonjin'] as const
   for (const relation of conflictRelations.slice(0, 2)) {
-    const relationData = RELATION_ASPECT_MATRIX[relation as keyof typeof RELATION_ASPECT_MATRIX];
+    const relationData = RELATION_ASPECT_MATRIX[relation as keyof typeof RELATION_ASPECT_MATRIX]
     if (relationData && relationData.opposition) {
       projection.push({
         pattern: relation,
@@ -158,15 +162,15 @@ export function getShadowPersonalityAnalysis(
           ko: '자신의 그림자를 타인에게서 보고 있는지 확인하세요',
           en: 'Check if you are seeing your shadow in others',
         },
-      });
+      })
     }
   }
 
   // 종합 점수
-  const shadowCount = shinsalShadows.length;
-  const woundDepth = chironWound ? 80 : 0;
-  const suppressionLevel = lilithEnergy ? lilithEnergy.fusion.score : 0;
-  const shadowScore = Math.round((shadowCount * 20 + woundDepth + suppressionLevel) / 3);
+  const shadowCount = shinsalShadows.length
+  const woundDepth = chironWound ? 80 : 0
+  const suppressionLevel = lilithEnergy ? lilithEnergy.fusion.score : 0
+  const shadowScore = Math.round((shadowCount * 20 + woundDepth + suppressionLevel) / 3)
 
   return {
     shadowScore,
@@ -174,5 +178,5 @@ export function getShadowPersonalityAnalysis(
     chironWound,
     lilithEnergy,
     projection,
-  };
+  }
 }

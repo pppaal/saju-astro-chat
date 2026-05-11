@@ -14,7 +14,7 @@ import {
   buildStoredCardsPayload,
   extractStoredCards,
   extractStoredQuestionContext,
-} from '@/lib/Tarot/savedReadingPayload'
+} from '@/lib/tarot/savedReadingPayload'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,8 +37,7 @@ function normalizeTarotSavePayload(raw: unknown): unknown {
       const cardObj = card as Record<string, unknown>
       return {
         ...cardObj,
-        cardId:
-          typeof cardObj.cardId === 'number' ? String(cardObj.cardId) : cardObj.cardId,
+        cardId: typeof cardObj.cardId === 'number' ? String(cardObj.cardId) : cardObj.cardId,
       }
     }),
   }

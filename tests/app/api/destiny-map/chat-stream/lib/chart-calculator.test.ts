@@ -12,7 +12,7 @@ import {
 } from '@/app/api/destiny-map/chat-stream/lib/chart-calculator'
 
 // Mock dependencies
-vi.mock('@/lib/Saju/saju', () => ({
+vi.mock('@/lib/saju/saju', () => ({
   calculateSajuData: vi.fn(() => ({
     dayMaster: { heavenlyStem: '甲', element: 'wood' },
     pillars: {},
@@ -105,7 +105,7 @@ describe('Chart Calculator', () => {
     })
 
     it('should return undefined on failure', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
       vi.mocked(calculateSajuData).mockImplementationOnce(() => {
         throw new Error('Saju error')
       })
@@ -304,7 +304,7 @@ describe('Chart Calculator', () => {
     })
 
     it('should skip saju computation with valid dayMaster', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
       const existingSaju = { dayMaster: { heavenlyStem: '甲' } } as any
 
       await calculateChartData(baseInput, existingSaju)
@@ -331,7 +331,7 @@ describe('Chart Calculator', () => {
     })
 
     it('should handle complete failure gracefully', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
       const { calculateNatalChart } = await import('@/lib/astrology')
 
       vi.mocked(calculateSajuData).mockImplementationOnce(() => {

@@ -10,7 +10,7 @@ import {
   getAllCardTranslations,
   type CardTranslation,
   type TarotTranslations,
-} from '@/lib/Tarot/tarot-translations'
+} from '@/lib/tarot/tarot-translations'
 
 describe('Tarot Translations', () => {
   describe('tarotTranslationsKo', () => {

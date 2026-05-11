@@ -1,7 +1,7 @@
 // src/components/destiny-map/Analyzer.ts
 import { logger } from '@/lib/logger'
 import { normalizeGender } from '@/lib/utils/gender'
-import { tryNormalizeTime } from '@/lib/Saju/normalizer'
+import { tryNormalizeTime } from '@/lib/saju/normalizer'
 
 export type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es'
 

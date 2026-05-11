@@ -72,7 +72,7 @@ describe('Saju Core Integration', () => {
     it('should expose supporting modules', async () => {
       assertNamedExports('lib/Saju/textGenerator', ['generateFortuneText'])
       assertNamedExports('lib/Saju/compatibility', ['analyzeComprehensiveCompatibility'])
-      const sajuCache = await import('@/lib/Saju/cache')
+      const sajuCache = await import('@/lib/saju/cache')
       expect(sajuCache.getSajuFromCache).toBeDefined()
       expect(sajuCache.setSajuToCache).toBeDefined()
       // visualizationData / fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
@@ -103,7 +103,7 @@ describe('Saju Core Integration', () => {
 
   describe('Saju Calculation', () => {
     it('should calculate saju data with basic inputs and verify pillar structure', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
 
       const result = calculateSajuData('1990-01-15', '14:30', 'male', 'solar', 'Asia/Seoul')
 
@@ -132,7 +132,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should calculate saju data for female with complete structure', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
 
       const result = calculateSajuData('1985-06-20', '09:15', 'female', 'solar', 'Asia/Seoul')
 
@@ -148,7 +148,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should calculate saju data with lunar calendar correctly', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
 
       const result = calculateSajuData('1988-03-10', '22:00', 'male', 'lunar', 'Asia/Seoul')
 
@@ -160,7 +160,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should calculate saju data for different timezones', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
 
       const seoulResult = calculateSajuData('1990-01-15', '14:30', 'male', 'solar', 'Asia/Seoul')
       const tokyoResult = calculateSajuData('1990-01-15', '14:30', 'male', 'solar', 'Asia/Tokyo')
@@ -173,7 +173,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should calculate saju data for edge case - midnight', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
 
       const result = calculateSajuData('1995-12-31', '00:00', 'male', 'solar', 'Asia/Seoul')
 
@@ -185,7 +185,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should calculate saju data for edge case - late night', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
 
       const result = calculateSajuData('2000-01-01', '23:59', 'female', 'solar', 'Asia/Seoul')
 
@@ -197,7 +197,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should produce consistent results for same input', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
 
       const result1 = calculateSajuData('1990-05-15', '10:00', 'male', 'solar', 'Asia/Seoul')
       const result2 = calculateSajuData('1990-05-15', '10:00', 'male', 'solar', 'Asia/Seoul')
@@ -258,7 +258,7 @@ describe('Saju Core Integration', () => {
 
   describe('Cache Integration', () => {
     it('should have cache get and set functions', async () => {
-      const sajuCache = await import('@/lib/Saju/cache')
+      const sajuCache = await import('@/lib/saju/cache')
       expect(typeof sajuCache.getSajuFromCache).toBe('function')
       expect(typeof sajuCache.setSajuToCache).toBe('function')
     })

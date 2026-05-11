@@ -10,8 +10,8 @@ Before this library, each test file had to duplicate 20-30 lines of `vi.mock()` 
 // ❌ BEFORE: Duplicated in every test file (130+ lines)
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }))
 vi.mock('stripe', () => ({ default: vi.fn().mockImplementation(...) }))
-vi.mock('@/lib/Saju/saju', () => ({ calculateSajuData: vi.fn() }))
-vi.mock('@/lib/Saju/unse', () => ({ getDaeunCycles: vi.fn() }))
+vi.mock('@/lib/saju/saju', () => ({ calculateSajuData: vi.fn() }))
+vi.mock('@/lib/saju/unse', () => ({ getDaeunCycles: vi.fn() }))
 // ... 20+ more mocks
 ```
 

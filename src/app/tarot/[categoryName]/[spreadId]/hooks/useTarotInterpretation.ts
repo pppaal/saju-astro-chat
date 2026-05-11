@@ -8,11 +8,11 @@
 import { useCallback, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
-import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
-import { Spread, DrawnCard, DeckStyle } from '@/lib/Tarot/tarot.types'
-import { buildTarotSaveRequest, flattenTarotGuidance } from '@/lib/Tarot/tarot-save-request'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
+import { Spread, DrawnCard, DeckStyle } from '@/lib/tarot/tarot.types'
+import { buildTarotSaveRequest, flattenTarotGuidance } from '@/lib/tarot/tarot-save-request'
 import { getStoredBirthDate, fetchAndSyncUserProfile } from '@/lib/userProfile'
-import { saveReading, formatReadingForSave } from '@/lib/Tarot/tarot-storage'
+import { saveReading, formatReadingForSave } from '@/lib/tarot/tarot-storage'
 import { apiFetch, type ApiFetchOptions } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import type { InterpretationResult, ReadingResponse } from '../types'
@@ -387,7 +387,8 @@ export function useTarotInterpretation({
               const dayMaster = (saju.dayMaster as string) || ''
               const dayMasterElement = (saju.dayMasterElement as string) || ''
               const dayMasterYinYang = (saju.dayMasterYinYang as string) || ''
-              const pillars = (saju.pillars as Record<string, { stem?: string; branch?: string }>) || {}
+              const pillars =
+                (saju.pillars as Record<string, { stem?: string; branch?: string }>) || {}
               const formatPillar = (p?: { stem?: string; branch?: string }) =>
                 p?.stem && p?.branch ? `${p.stem}${p.branch}` : ''
               const pillarLine = isKorean

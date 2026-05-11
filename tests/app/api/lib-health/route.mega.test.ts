@@ -18,7 +18,7 @@ const mockAstroLib = {
 }
 
 // Set up mocks before importing the route
-vi.mock('@/lib/Saju/saju', () => mockSajuLib)
+vi.mock('@/lib/saju/saju', () => mockSajuLib)
 vi.mock('@/lib/astrology/foundation/astrologyService', () => mockAstroLib)
 
 import { GET } from '@/app/api/lib-health/route'

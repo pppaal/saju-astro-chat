@@ -9,7 +9,7 @@ import { vi } from 'vitest'
  */
 export function mockSajuLibraries() {
   // Core Saju calculation
-  vi.mock('@/lib/Saju/saju', () => ({
+  vi.mock('@/lib/saju/saju', () => ({
     calculateSajuData: vi.fn().mockReturnValue({
       fourPillars: {},
       dayMaster: { name: '甲', element: '木' },
@@ -18,7 +18,7 @@ export function mockSajuLibraries() {
   }))
 
   // Unse (운세) - fortune cycles
-  vi.mock('@/lib/Saju/unse', () => ({
+  vi.mock('@/lib/saju/unse', () => ({
     getDaeunCycles: vi.fn().mockReturnValue([]),
     getAnnualCycles: vi.fn().mockReturnValue([]),
     getMonthlyCycles: vi.fn().mockReturnValue([]),
@@ -26,26 +26,26 @@ export function mockSajuLibraries() {
   }))
 
   // Shinsal (신살) - special stars
-  vi.mock('@/lib/Saju/shinsal', () => ({
+  vi.mock('@/lib/saju/shinsal', () => ({
     getShinsalHits: vi.fn().mockReturnValue([]),
     getTwelveStagesForPillars: vi.fn().mockReturnValue({}),
     getTwelveShinsalSingleByPillar: vi.fn().mockReturnValue(null),
   }))
 
   // Relations (관계)
-  vi.mock('@/lib/Saju/relations', () => ({
+  vi.mock('@/lib/saju/relations', () => ({
     analyzeRelations: vi.fn().mockReturnValue({ harmonies: [], conflicts: [] }),
     toAnalyzeInputFromSaju: vi.fn().mockReturnValue({}),
   }))
 
   // Geokguk (격국) - chart pattern
-  vi.mock('@/lib/Saju/geokguk', () => ({
+  vi.mock('@/lib/saju/geokguk', () => ({
     determineGeokguk: vi.fn().mockReturnValue({ name: '정관격', type: 'official' }),
     getGeokgukDescription: vi.fn().mockReturnValue('Leadership pattern'),
   }))
 
   // Yongsin (용신) - favorable god
-  vi.mock('@/lib/Saju/yongsin', () => ({
+  vi.mock('@/lib/saju/yongsin', () => ({
     determineYongsin: vi.fn().mockReturnValue({ primary: '木', secondary: '水' }),
     getYongsinDescription: vi.fn().mockReturnValue('Wood is favorable'),
     getLuckyColors: vi.fn().mockReturnValue(['green', 'blue']),
@@ -54,12 +54,12 @@ export function mockSajuLibraries() {
   }))
 
   // Hyeongchung (형충) - clashes and combinations
-  vi.mock('@/lib/Saju/hyeongchung', () => ({
+  vi.mock('@/lib/saju/hyeongchung', () => ({
     analyzeHyeongchung: vi.fn().mockReturnValue({ clashes: [], punishments: [] }),
   }))
 
   // Advanced Saju Core
-  vi.mock('@/lib/Saju/advancedSajuCore', () => ({
+  vi.mock('@/lib/saju/advancedSajuCore', () => ({
     analyzeAdvancedSaju: vi.fn().mockReturnValue({
       geokguk: {},
       yongsin: {},
@@ -94,7 +94,7 @@ export function mockSajuLibraries() {
  * Mock only core Saju calculation
  */
 export function mockSajuCore() {
-  vi.mock('@/lib/Saju/saju', () => ({
+  vi.mock('@/lib/saju/saju', () => ({
     calculateSajuData: vi.fn().mockReturnValue({
       fourPillars: {},
       dayMaster: { name: '甲', element: '木' },

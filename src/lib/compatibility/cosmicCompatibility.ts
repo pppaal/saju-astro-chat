@@ -3,7 +3,7 @@
  * 사주(Saju) + 점성학(Astrology) 기반 종합 궁합 계산
  */
 
-import { FiveElement } from '../Saju/types'
+import { FiveElement } from '../saju/types'
 import { iga, eulReul } from '../i18n/koParticle'
 
 // ============================================================
@@ -188,7 +188,7 @@ function calculateSajuCompatibility(
 
   const score = Math.round(
     dayMasterHarmony * 0.4 + elementBalance * 0.3 + yinYangBalance * 0.15 + pillarSynergy * 0.15
-  );
+  )
 
   return {
     score,
@@ -212,32 +212,32 @@ function calculateDayMasterHarmony(
 
   // 같은 오행: 70점
   if (el1 === el2) {
-    insights.push(`🌟 일간이 같은 ${el1} 오행으로 서로를 잘 이해합니다`);
+    insights.push(`🌟 일간이 같은 ${el1} 오행으로 서로를 잘 이해합니다`)
     return 70
   }
 
   // 상생 관계: 90점
   if (ELEMENT_RELATIONS.generates[el1En] === el2En) {
-    insights.push(`✨ ${el1}${iga(el1)} ${el2}${eulReul(el2)} 생해주는 상생 관계입니다`);
+    insights.push(`✨ ${el1}${iga(el1)} ${el2}${eulReul(el2)} 생해주는 상생 관계입니다`)
     return 90
   }
   if (ELEMENT_RELATIONS.generates[el2En] === el1En) {
-    insights.push(`✨ ${el2}${iga(el2)} ${el1}${eulReul(el1)} 생해주는 상생 관계입니다`);
+    insights.push(`✨ ${el2}${iga(el2)} ${el1}${eulReul(el1)} 생해주는 상생 관계입니다`)
     return 90
   }
 
   // 상극 관계: 40점
   if (ELEMENT_RELATIONS.controls[el1En] === el2En) {
-    insights.push(`⚠️ ${el1}${iga(el1)} ${el2}${eulReul(el2)} 극하는 관계로 조율이 필요합니다`);
+    insights.push(`⚠️ ${el1}${iga(el1)} ${el2}${eulReul(el2)} 극하는 관계로 조율이 필요합니다`)
     return 40
   }
   if (ELEMENT_RELATIONS.controls[el2En] === el1En) {
-    insights.push(`⚠️ ${el2}${iga(el2)} ${el1}${eulReul(el1)} 극하는 관계로 조율이 필요합니다`);
+    insights.push(`⚠️ ${el2}${iga(el2)} ${el1}${eulReul(el1)} 극하는 관계로 조율이 필요합니다`)
     return 40
   }
 
   // 중립: 60점
-  insights.push(`중립적인 오행 관계입니다`);
+  insights.push(`중립적인 오행 관계입니다`)
   return 60
 }
 
@@ -275,10 +275,10 @@ function calculateYinYangBalance(
   insights: string[]
 ): number {
   if (yy1 !== yy2) {
-    insights.push(`☯️ 음양이 조화를 이루어 균형잡힌 관계입니다`);
+    insights.push(`☯️ 음양이 조화를 이루어 균형잡힌 관계입니다`)
     return 100
   } else {
-    insights.push(`음양이 같아 한쪽으로 치우칠 수 있습니다`);
+    insights.push(`음양이 같아 한쪽으로 치우칠 수 있습니다`)
     return 60
   }
 }
@@ -334,7 +334,7 @@ function calculateAstrologyCompatibility(
 
   const score = Math.round(
     sunMoonHarmony * 0.4 + venusMarsSynergy * 0.35 + elementalAlignment * 0.25
-  );
+  )
 
   return {
     score,
@@ -488,7 +488,7 @@ export function calculateCosmicCompatibility(
   )
 
   // 7. 조언 생성
-  const advice = generateAdvice(overallScore, strengths, challenges);
+  const advice = generateAdvice(overallScore, strengths, challenges)
 
   return {
     overallScore,
@@ -608,7 +608,7 @@ export function calculateSajuCompatibilityOnly(
   person1: SajuProfile,
   person2: SajuProfile
 ): { score: number; insights: string[] } {
-  const analysis = calculateSajuCompatibility(person1, person2);
+  const analysis = calculateSajuCompatibility(person1, person2)
   return {
     score: analysis.score,
     insights: analysis.insights,
@@ -619,7 +619,7 @@ export function calculateAstrologyCompatibilityOnly(
   person1: AstrologyProfile,
   person2: AstrologyProfile
 ): { score: number; insights: string[] } {
-  const analysis = calculateAstrologyCompatibility(person1, person2);
+  const analysis = calculateAstrologyCompatibility(person1, person2)
   return {
     score: analysis.score,
     insights: analysis.insights,

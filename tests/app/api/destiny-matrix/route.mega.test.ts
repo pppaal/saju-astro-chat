@@ -10,7 +10,7 @@ vi.mock('@/lib/destiny-matrix', () => ({
   calculateDestinyMatrix: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/saju', () => ({
+vi.mock('@/lib/saju/saju', () => ({
   calculateSajuData: vi.fn(),
 }))
 
@@ -24,7 +24,7 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { logger } from '@/lib/logger'
 
 let requestSequence = 0

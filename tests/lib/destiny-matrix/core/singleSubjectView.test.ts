@@ -5,7 +5,7 @@ import {
   adaptCoreToReport,
 } from '@/lib/destiny-matrix/core'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/saju/types'
 
 function createInput(overrides: Partial<MatrixCalculationInput> = {}): MatrixCalculationInput {
   return {

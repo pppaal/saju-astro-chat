@@ -205,7 +205,7 @@ export interface AIPremiumReport {
    * the saju snapshot without any LLM call so it renders instantly
    * alongside the streamed prose.
    */
-  extendedAnalysis?: import('@/lib/Saju/extendedAnalysis').ExtendedAnalysis
+  extendedAnalysis?: import('@/lib/saju/extendedAnalysis').ExtendedAnalysis
 
   // 메타데이터
   meta: {

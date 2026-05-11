@@ -1,7 +1,7 @@
 ﻿import { describe, expect, it } from 'vitest'
 import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement } from '@/lib/saju/types'
 
 function createInput(overrides: Partial<MatrixCalculationInput> = {}): MatrixCalculationInput {
   return {
@@ -38,8 +38,8 @@ describe('buildCoreEnvelope', () => {
     expect(first.layerResults.layer10_extraPointElement).toBeDefined()
     expect(first.matrixReport.topInsights.length).toBeGreaterThanOrEqual(1)
     expect(first.coreSeed.canonical.claimIds.length).toBeGreaterThanOrEqual(1)
-    expect(first.coreSeed.strategyEngine.attackPercent + first.coreSeed.strategyEngine.defensePercent).toBe(
-      100
-    )
+    expect(
+      first.coreSeed.strategyEngine.attackPercent + first.coreSeed.strategyEngine.defensePercent
+    ).toBe(100)
   })
 })

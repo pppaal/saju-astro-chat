@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Sparkles, Clock } from 'lucide-react'
-import { runMainSaju } from '@/lib/Saju/main'
-import { buildExtendedAnalysisFromMain } from '@/lib/Saju/extendedAnalysis'
-import type { ExtendedAnalysis } from '@/lib/Saju/extendedAnalysis'
+import { runMainSaju } from '@/lib/saju/main'
+import { buildExtendedAnalysisFromMain } from '@/lib/saju/extendedAnalysis'
+import type { ExtendedAnalysis } from '@/lib/saju/extendedAnalysis'
 import ExtendedAnalysisSection from './ExtendedAnalysisSection'
 
 const AI_SECTIONS: Array<{ key: string; label: string }> = [
@@ -46,16 +46,18 @@ export default function GeneratingPreview({ birth }: GeneratingPreviewProps) {
   const analysis: ExtendedAnalysis | null = useMemo(() => {
     if (!birth.birthDate) return null
     try {
-      const gender =
-        String(birth.gender || '').toLowerCase().startsWith('f') ? 'female' : 'male'
+      const gender = String(birth.gender || '')
+        .toLowerCase()
+        .startsWith('f')
+        ? 'female'
+        : 'male'
       const main = runMainSaju({
         birthDate: birth.birthDate,
         birthTime: birth.birthTime || '12:00',
         gender,
         timezone: birth.timezone || 'Asia/Seoul',
       })
-      const koreanAge =
-        new Date().getFullYear() - parseInt(birth.birthDate.slice(0, 4), 10) + 1
+      const koreanAge = new Date().getFullYear() - parseInt(birth.birthDate.slice(0, 4), 10) + 1
       return buildExtendedAnalysisFromMain(main, { koreanAge })
     } catch {
       return null
@@ -93,7 +95,8 @@ export default function GeneratingPreview({ birth }: GeneratingPreviewProps) {
             />
           </div>
           <p className="text-xs text-slate-300/80">
-            결정론적 사주 분석은 아래에 즉시 표시됩니다. AI가 작성하는 14개 섹션은 아래에 차례로 채워집니다.
+            결정론적 사주 분석은 아래에 즉시 표시됩니다. AI가 작성하는 14개 섹션은 아래에 차례로
+            채워집니다.
           </p>
         </div>
 

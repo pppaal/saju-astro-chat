@@ -5,13 +5,13 @@
  */
 
 import { useCallback, useRef } from 'react'
-import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
-import type { DrawnCard, CardInsight } from '@/lib/Tarot/tarot.types'
+import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+import type { DrawnCard, CardInsight } from '@/lib/tarot/tarot.types'
 import {
   resolveStableTarotEntry,
   toAnalysisSnapshot,
   type TarotQuestionAnalysisResult,
-} from '@/lib/Tarot/questionFlow'
+} from '@/lib/tarot/questionFlow'
 import { logger } from '@/lib/logger'
 import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
@@ -118,7 +118,11 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
         stableEntry.themeId ||
         selectedCategory
 
-      const reason = [(data as { reason?: string }).reason, data.direct_answer, data.userFriendlyExplanation]
+      const reason = [
+        (data as { reason?: string }).reason,
+        data.direct_answer,
+        data.userFriendlyExplanation,
+      ]
         .filter((item) => typeof item === 'string' && item.trim().length > 0)
         .join(' ')
 

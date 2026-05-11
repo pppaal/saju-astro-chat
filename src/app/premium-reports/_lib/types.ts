@@ -68,6 +68,6 @@ export interface PremiumReportData {
    * Deterministic add-on bundle (A~E sections). Surfaces immediately
    * alongside the streamed prose since it requires no LLM calls.
    */
-  extendedAnalysis?: import('@/lib/Saju/extendedAnalysis').ExtendedAnalysis
+  extendedAnalysis?: import('@/lib/saju/extendedAnalysis').ExtendedAnalysis
   fullData?: Record<string, unknown>
 }

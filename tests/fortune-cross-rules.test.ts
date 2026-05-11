@@ -3,27 +3,24 @@ import { aggregate } from '@/lib/fortune/cross-rules/aggregator'
 import { hitByKeys, hitByPrefix, runRules } from '@/lib/fortune/cross-rules/engine'
 import { metaRules } from '@/lib/fortune/cross-rules/metaRules'
 import { allRules } from '@/lib/fortune/cross-rules/rules'
-import type {
-  AstroSignal,
-  Rule,
-  SajuSignal,
-} from '@/lib/fortune/cross-rules/types'
+import type { AstroSignal, Rule, SajuSignal } from '@/lib/fortune/cross-rules/types'
 
 const sig = (
   system: 'saju' | 'astro',
   layer: 'state' | 'relation' | 'timing',
   key: string,
   strength = 1,
-  scale?: 'longterm' | 'decade' | 'year' | 'month' | 'day' | 'event',
-): SajuSignal | AstroSignal => ({
-  system,
-  layer,
-  scale,
-  key,
-  fired: true,
-  strength,
-  evidence: {},
-}) as SajuSignal | AstroSignal
+  scale?: 'longterm' | 'decade' | 'year' | 'month' | 'day' | 'event'
+): SajuSignal | AstroSignal =>
+  ({
+    system,
+    layer,
+    scale,
+    key,
+    fired: true,
+    strength,
+    evidence: {},
+  }) as SajuSignal | AstroSignal
 
 describe('engine — polarity decision', () => {
   const rule: Rule = {
@@ -41,7 +38,7 @@ describe('engine — polarity decision', () => {
     const matches = runRules(
       [rule],
       [sig('saju', 'state', 'saju.state.x') as SajuSignal],
-      [sig('astro', 'state', 'astro.state.y') as AstroSignal],
+      [sig('astro', 'state', 'astro.state.y') as AstroSignal]
     )
     expect(matches[0].polarity).toBe('confirm')
     // state layer prior 0.7 × min(1,1) = 0.7 → 'strong' (>=0.7)
@@ -49,11 +46,7 @@ describe('engine — polarity decision', () => {
   })
 
   it('is silent when only saju fires', () => {
-    const matches = runRules(
-      [rule],
-      [sig('saju', 'state', 'saju.state.x') as SajuSignal],
-      [],
-    )
+    const matches = runRules([rule], [sig('saju', 'state', 'saju.state.x') as SajuSignal], [])
     expect(matches[0].polarity).toBe('silent')
     expect(matches[0].rawWeight).toBe(0)
   })
@@ -80,7 +73,7 @@ describe('engine — intensity tier', () => {
     const m = runRules(
       [rule],
       [sig('saju', 'relation', 'saju.relation.x', 0.9) as SajuSignal],
-      [sig('astro', 'relation', 'astro.relation.y', 0.9) as AstroSignal],
+      [sig('astro', 'relation', 'astro.relation.y', 0.9) as AstroSignal]
     )[0]
     expect(m.intensity).toBe('strong') // min(0.9,0.9) × 1.0 = 0.9
   })
@@ -89,7 +82,7 @@ describe('engine — intensity tier', () => {
     const m = runRules(
       [rule],
       [sig('saju', 'relation', 'saju.relation.x', 0.3) as SajuSignal],
-      [sig('astro', 'relation', 'astro.relation.y', 0.9) as AstroSignal],
+      [sig('astro', 'relation', 'astro.relation.y', 0.9) as AstroSignal]
     )[0]
     expect(m.intensity).toBe('weak')
   })
@@ -112,7 +105,7 @@ describe('engine — scale gating', () => {
     const m = runRules(
       [yearRule],
       [sig('saju', 'timing', 'saju.timing.x', 1, 'day') as SajuSignal],
-      [sig('astro', 'timing', 'astro.timing.y', 1, 'day') as AstroSignal],
+      [sig('astro', 'timing', 'astro.timing.y', 1, 'day') as AstroSignal]
     )[0]
     expect(m.polarity).toBe('silent')
   })
@@ -121,7 +114,7 @@ describe('engine — scale gating', () => {
     const m = runRules(
       [yearRule],
       [sig('saju', 'timing', 'saju.timing.x', 1, 'year') as SajuSignal],
-      [sig('astro', 'timing', 'astro.timing.y', 1, 'year') as AstroSignal],
+      [sig('astro', 'timing', 'astro.timing.y', 1, 'year') as AstroSignal]
     )[0]
     expect(m.polarity).toBe('confirm')
   })
@@ -143,7 +136,7 @@ describe('engine — context-dependent polarity', () => {
     const m = runRules(
       [ruleMixed],
       [sig('saju', 'state', 'saju.state.x') as SajuSignal],
-      [sig('astro', 'state', 'astro.state.y') as AstroSignal],
+      [sig('astro', 'state', 'astro.state.y') as AstroSignal]
     )[0]
     expect(m.polarity).toBe('conflict')
   })
@@ -152,7 +145,7 @@ describe('engine — context-dependent polarity', () => {
 describe('aggregator — tone & meta', () => {
   const r = (
     domain: 'self' | 'love' | 'money' | 'career' | 'health' | 'family',
-    polarityHint: 'pos' | 'neg' = 'pos',
+    polarityHint: 'pos' | 'neg' = 'pos'
   ): Rule => ({
     id: `r.${domain}.${polarityHint}`,
     layer: 'state',
@@ -168,7 +161,7 @@ describe('aggregator — tone & meta', () => {
     const matches = runRules(
       [r('money', 'pos')],
       [sig('saju', 'state', 'saju.state.money') as SajuSignal],
-      [sig('astro', 'state', 'astro.state.money') as AstroSignal],
+      [sig('astro', 'state', 'astro.state.money') as AstroSignal]
     )
     const report = aggregate(matches, [])
     expect(report.byDomain.money.tone).toBe('positive')
@@ -188,7 +181,7 @@ describe('aggregator — tone & meta', () => {
     const matches = runRules(
       [ruleMixed],
       [sig('saju', 'state', 'saju.state.love') as SajuSignal],
-      [sig('astro', 'state', 'astro.state.love') as AstroSignal],
+      [sig('astro', 'state', 'astro.state.love') as AstroSignal]
     )
     const report = aggregate(matches, [])
     expect(report.byDomain.love.conflicts).toHaveLength(1)
@@ -342,7 +335,7 @@ describe('rule corpus invariants', () => {
       career: { domain: 'career', tone: 'neutral', confirms: [], conflicts: [], silents: [] },
       health: { domain: 'health', tone: 'neutral', confirms: [], conflicts: [], silents: [] },
       family: { domain: 'family', tone: 'neutral', confirms: [], conflicts: [], silents: [] },
-    } as Parameters<typeof metaRules[number]['detect']>[0]
+    } as Parameters<(typeof metaRules)[number]['detect']>[0]
     for (const m of metaRules) {
       const a = m.detect(empty)
       const b = m.detect(empty)
@@ -371,7 +364,7 @@ describe('engine — edge cases', () => {
     const m = runRules(
       [r],
       [{ system: 'saju', layer: 'state', key: 'saju.x', fired: true, strength: 0, evidence: {} }],
-      [{ system: 'astro', layer: 'state', key: 'astro.y', fired: true, strength: 0, evidence: {} }],
+      [{ system: 'astro', layer: 'state', key: 'astro.y', fired: true, strength: 0, evidence: {} }]
     )[0]
     // hitByKeys requires strength > 0 to count, so strength=0 doesn't update best.
     // Result: predicate returns no-hit → silent (correct: 0-strength = no real signal).
@@ -391,8 +384,26 @@ describe('engine — edge cases', () => {
     }
     const m = runRules(
       [r],
-      [{ system: 'saju', layer: 'relation', key: 'saju.x', fired: false, strength: 0.9, evidence: {} }],
-      [{ system: 'astro', layer: 'relation', key: 'astro.y', fired: true, strength: 0.9, evidence: {} }],
+      [
+        {
+          system: 'saju',
+          layer: 'relation',
+          key: 'saju.x',
+          fired: false,
+          strength: 0.9,
+          evidence: {},
+        },
+      ],
+      [
+        {
+          system: 'astro',
+          layer: 'relation',
+          key: 'astro.y',
+          fired: true,
+          strength: 0.9,
+          evidence: {},
+        },
+      ]
     )[0]
     expect(m.polarity).toBe('silent')
   })
@@ -410,7 +421,7 @@ describe('aggregator — domain & meta interplay', () => {
   it('multiple confirms in same domain accumulate', () => {
     const r1 = (
       domain: 'self' | 'love' | 'money' | 'career' | 'health' | 'family',
-      id: string,
+      id: string
     ): Rule => ({
       id,
       layer: 'state',
@@ -447,7 +458,9 @@ describe('meta thresholds — configurable knob', () => {
   it('setMetaThresholds merges partials', () => {
     setMetaThresholds({ strongNegativeMinSignals: 5 })
     expect(getMetaThresholds().strongNegativeMinSignals).toBe(5)
-    expect(getMetaThresholds().anyStrongConfirmMin).toBe(DEFAULT_META_THRESHOLDS.anyStrongConfirmMin)
+    expect(getMetaThresholds().anyStrongConfirmMin).toBe(
+      DEFAULT_META_THRESHOLDS.anyStrongConfirmMin
+    )
   })
 
   it('resetMetaThresholds restores defaults', () => {
@@ -477,7 +490,10 @@ describe('classical patterns sanity', () => {
   ]
   for (const id of classicalIds) {
     it(`rule "${id}" exists`, () => {
-      expect(allRules.find((r) => r.id === id), `missing ${id}`).toBeDefined()
+      expect(
+        allRules.find((r) => r.id === id),
+        `missing ${id}`
+      ).toBeDefined()
     })
   }
 })
@@ -503,7 +519,10 @@ describe('Hellenistic-pattern rules sanity', () => {
   ]
   for (const id of hellenisticIds) {
     it(`rule "${id}" exists`, () => {
-      expect(allRules.find((r) => r.id === id), `missing ${id}`).toBeDefined()
+      expect(
+        allRules.find((r) => r.id === id),
+        `missing ${id}`
+      ).toBeDefined()
     })
   }
 })
@@ -525,7 +544,10 @@ describe('health rules sanity', () => {
       'health.state.water-earth-kidney',
     ]
     for (const id of ids) {
-      expect(allRules.find((r) => r.id === id), `missing ${id}`).toBeDefined()
+      expect(
+        allRules.find((r) => r.id === id),
+        `missing ${id}`
+      ).toBeDefined()
     }
   })
 })
@@ -551,33 +573,45 @@ describe('regression: 대운 direction across yin/yang × gender', () => {
   const cases: Case[] = [
     {
       name: '男+양년 → 순행 (1990-05-15 14:30 male)',
-      date: '1990-05-15', time: '14:30', gender: 'male',
-      expectedYearGanji: '庚午', expectedDirection: 'forward',
+      date: '1990-05-15',
+      time: '14:30',
+      gender: 'male',
+      expectedYearGanji: '庚午',
+      expectedDirection: 'forward',
       expectedDaeunsuRange: [3, 10],
     },
     {
       name: '女+음년 → 순행 (1991-03-10 03:00 female)',
-      date: '1991-03-10', time: '03:00', gender: 'female',
-      expectedYearGanji: '辛未', expectedDirection: 'forward',
+      date: '1991-03-10',
+      time: '03:00',
+      gender: 'female',
+      expectedYearGanji: '辛未',
+      expectedDirection: 'forward',
       expectedDaeunsuRange: [4, 12],
     },
     {
       name: '女+양년 → 역행 (1992-08-20 12:00 female)',
-      date: '1992-08-20', time: '12:00', gender: 'female',
-      expectedYearGanji: '壬申', expectedDirection: 'backward',
+      date: '1992-08-20',
+      time: '12:00',
+      gender: 'female',
+      expectedYearGanji: '壬申',
+      expectedDirection: 'backward',
       expectedDaeunsuRange: [3, 8],
     },
     {
       name: '男+음년 → 역행 (1995-02-09 06:40 male)',
-      date: '1995-02-09', time: '06:40', gender: 'male',
-      expectedYearGanji: '乙亥', expectedDirection: 'backward',
+      date: '1995-02-09',
+      time: '06:40',
+      gender: 'male',
+      expectedYearGanji: '乙亥',
+      expectedDirection: 'backward',
       expectedDaeunsuRange: [1, 4],
     },
   ]
 
   for (const c of cases) {
     it(c.name, async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const { calculateSajuData } = await import('@/lib/saju/saju')
       const r = calculateSajuData(c.date, c.time, c.gender, 'solar', 'Asia/Seoul')
       const yearGanji = `${r.pillars.year.heavenlyStem.name}${r.pillars.year.earthlyBranch.name}`
       expect(yearGanji).toBe(c.expectedYearGanji)
@@ -595,7 +629,7 @@ describe('regression: 대운 direction across yin/yang × gender', () => {
 
 describe('regression: unified ganji + stem/branch fields', () => {
   it('saju engine fills both ganji AND heavenlyStem/earthlyBranch on annual', async () => {
-    const { calculateSajuData } = await import('@/lib/Saju/saju')
+    const { calculateSajuData } = await import('@/lib/saju/saju')
     const r = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
     const a2026 = r.unse.annual.find((x) => x.year === 2026)
     expect(a2026?.ganji).toBe('丙午')
@@ -604,7 +638,7 @@ describe('regression: unified ganji + stem/branch fields', () => {
   })
 
   it('saju engine fills both ganji AND heavenlyStem/earthlyBranch on monthly', async () => {
-    const { calculateSajuData } = await import('@/lib/Saju/saju')
+    const { calculateSajuData } = await import('@/lib/saju/saju')
     const r = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
     // monthly is "from current month, 12 entries forward" — not tied to birth year.
     // Just verify the first entry has all three fields.
@@ -656,7 +690,7 @@ describe('regression: 대운 calculation', () => {
   // 이전 saju.ts:346 버그로 역행 대운수 = 11 (정답은 2). 이 테스트는
   // 그 버그가 다시 생기지 않도록 공식 결과(입춘에서 4.76일 ≈ 1.58년 → round 2)를 고정시킨다.
   it('1995-02-09 06:40 male KST → 대운수 = 2 (not 11)', async () => {
-    const { calculateSajuData } = await import('@/lib/Saju/saju')
+    const { calculateSajuData } = await import('@/lib/saju/saju')
     const r = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
     expect(r.daeWoon.startAge).toBe(2)
     expect(r.daeWoon.isForward).toBe(false)
@@ -676,8 +710,11 @@ describe('regression: 대운 calculation', () => {
   it('1995-02-09 06:40 male / query 2026-04-28 → 세운·월운 stem/branch parsed', async () => {
     const { buildSajuNormalizerInput } = await import('@/lib/fortune/cross-rules/adapters/saju')
     const r = buildSajuNormalizerInput({
-      birthDate: '1995-02-09', birthTime: '06:40', gender: 'male',
-      timezone: 'Asia/Seoul', queryDate: new Date('2026-04-28T12:00:00+09:00'),
+      birthDate: '1995-02-09',
+      birthTime: '06:40',
+      gender: 'male',
+      timezone: 'Asia/Seoul',
+      queryDate: new Date('2026-04-28T12:00:00+09:00'),
     })
     expect(r.currentDaeun?.heavenlyStem).toBe('乙')
     expect(r.currentDaeun?.earthlyBranch).toBe('亥')

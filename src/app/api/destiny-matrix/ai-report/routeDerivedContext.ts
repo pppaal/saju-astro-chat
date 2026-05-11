@@ -24,13 +24,13 @@ import {
   type DerivedCrossDomain,
   type DerivedDomainScore,
 } from './routeDerivedContext.support'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { analyzeAdvancedSaju } from '@/lib/Saju/advancedAnalysis'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { getShinsalHits, getTwelveStagesForPillars } from '@/lib/Saju/shinsal'
-import { buildOrthodoxInterpretation } from '@/lib/Saju/orthodoxInterpretation'
-import { STEMS as SAJU_STEMS } from '@/lib/Saju/constants'
-import type { FiveElement } from '@/lib/Saju/types'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { analyzeAdvancedSaju } from '@/lib/saju/advancedAnalysis'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
+import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
+import { STEMS as SAJU_STEMS } from '@/lib/saju/constants'
+import type { FiveElement } from '@/lib/saju/types'
 import {
   calculateAllAsteroids,
   calculateExtraPoints,
@@ -337,8 +337,14 @@ export function buildDerivedCrossSnapshot(
       astroComponentScore: base?.astroComponentScore,
       alignmentScore: base?.alignmentScore,
       peakMonth: base?.peakMonth,
-      drivers: [...new Set([...(base?.drivers || []), ...(insightHints?.drivers || [])])].slice(0, 4),
-      cautions: [...new Set([...(base?.cautions || []), ...(insightHints?.cautions || [])])].slice(0, 4),
+      drivers: [...new Set([...(base?.drivers || []), ...(insightHints?.drivers || [])])].slice(
+        0,
+        4
+      ),
+      cautions: [...new Set([...(base?.cautions || []), ...(insightHints?.cautions || [])])].slice(
+        0,
+        4
+      ),
     }
   }
   const crossAgreementMatrix = deriveCrossAgreementMatrix(
@@ -362,7 +368,8 @@ export function buildDerivedCrossSnapshot(
     ...(existing || {}),
     source: toOptionalString(existing?.source) || 'auto-derived-from-input',
     theme: toOptionalString(existing?.theme) || toOptionalString(requestBody.theme) || null,
-    category: toOptionalString(existing?.category) || toOptionalString(requestBody.category) || null,
+    category:
+      toOptionalString(existing?.category) || toOptionalString(requestBody.category) || null,
     currentDateIso,
     anchors: {
       ...(existingAnchors || {}),
@@ -614,8 +621,7 @@ export function enrichRequestWithDerivedSaju(
     // bundled so prompts and the matrix can read everything at once.
     if (!requestBody.orthodoxInterpretation) {
       try {
-        const koreanAge =
-          new Date().getFullYear() - new Date(birthDate).getFullYear() + 1
+        const koreanAge = new Date().getFullYear() - new Date(birthDate).getFullYear() + 1
         requestBody.orthodoxInterpretation = buildOrthodoxInterpretation(sajuData, {
           koreanAge,
         }) as unknown as Record<string, unknown>

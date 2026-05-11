@@ -6,7 +6,10 @@ import { prisma } from '@/lib/db/prisma'
 import { LIMITS } from '@/lib/validation'
 import { sanitizeString } from '@/lib/api/sanitizers'
 import { logger } from '@/lib/logger'
-import { calculateAstrologyCompatibilityOnly, calculateSajuCompatibilityOnly } from '@/lib/compatibility/cosmicCompatibility'
+import {
+  calculateAstrologyCompatibilityOnly,
+  calculateSajuCompatibilityOnly,
+} from '@/lib/compatibility/cosmicCompatibility'
 import { calculateFusionCompatibility } from '@/lib/compatibility/compatibilityFusion'
 import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
@@ -15,9 +18,12 @@ import { analyzeCoupleTiming } from '@/lib/compatibility/coupleTimingAnalysis'
 import { analyzeCoupleAstroTiming } from '@/lib/compatibility/coupleAstroTiming'
 import { analyzeCoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
 import { buildIdealTypeProfiles } from '@/lib/compatibility/coupleIdealTypeProfile'
-import { buildMultiFacetReport, filterFacetsByTier } from '@/lib/compatibility/coupleMultiFacetReport'
+import {
+  buildMultiFacetReport,
+  filterFacetsByTier,
+} from '@/lib/compatibility/coupleMultiFacetReport'
 import { isDbPremiumUser } from '@/lib/auth/premium'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
 import { normalizeSajuGender } from './routeSupportCommon'
 import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
@@ -380,7 +386,12 @@ export const POST = withApiMiddleware(
         const [aIdx, bIdx] = primaryPair.pair
         const analysisA = personAnalyses[aIdx]
         const analysisB = personAnalyses[bIdx]
-        if (analysisA?.sajuProfile && analysisB?.sajuProfile && analysisA.astroProfile && analysisB.astroProfile) {
+        if (
+          analysisA?.sajuProfile &&
+          analysisB?.sajuProfile &&
+          analysisA.astroProfile &&
+          analysisB.astroProfile
+        ) {
           deepInsights = analyzeCoupleDeepInsights({
             p1Saju: analysisA.sajuProfile,
             p2Saju: analysisB.sajuProfile,

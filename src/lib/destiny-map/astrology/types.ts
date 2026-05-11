@@ -27,7 +27,7 @@ import type {
   Midpoint,
   MidpointActivation,
   Asteroid,
-} from '@/lib/astrology';
+} from '@/lib/astrology'
 
 import type {
   SajuFacts,
@@ -43,30 +43,30 @@ import type {
   HealthCareerComprehensive,
   ComprehensiveScore,
   UltraAdvancedAnalysis,
-} from '@/lib/Saju';
+} from '@/lib/saju'
 
-import type { SajuPillarsAdapterInput } from '@/lib/Saju/shinsal';
+import type { SajuPillarsAdapterInput } from '@/lib/saju/shinsal'
 
 // ======================================================
 // House & Chart Types
 // ======================================================
 
 export interface HouseCusp {
-  cusp: number;
-  formatted: string;
+  cusp: number
+  formatted: string
 }
 
 // ======================================================
 // Saju Pillar Types
 // ======================================================
 
-export type SajuPillar = SajuPillarsAdapterInput['yearPillar'];
+export type SajuPillar = SajuPillarsAdapterInput['yearPillar']
 
 export interface SajuPillars {
-  year?: SajuPillar;
-  month?: SajuPillar;
-  day?: SajuPillar;
-  time?: SajuPillar;
+  year?: SajuPillar
+  month?: SajuPillar
+  day?: SajuPillar
+  time?: SajuPillar
 }
 
 // ======================================================
@@ -74,10 +74,10 @@ export interface SajuPillars {
 // ======================================================
 
 export interface TransitAspect {
-  type: string;
-  from: { name: string; longitude: number };
-  to: { name: string; longitude: number };
-  orb: string;
+  type: string
+  from: { name: string; longitude: number }
+  to: { name: string; longitude: number }
+  orb: string
 }
 
 // ======================================================
@@ -85,15 +85,15 @@ export interface TransitAspect {
 // ======================================================
 
 export interface AstrologyData {
-  facts: AstrologyChartFacts;
-  planets: PlanetData[];
-  houses: HouseCusp[];
-  ascendant: PlanetData;
-  mc: PlanetData;
-  aspects: AspectHit[];
-  meta: unknown;
-  options: unknown;
-  transits: TransitAspect[];
+  facts: AstrologyChartFacts
+  planets: PlanetData[]
+  houses: HouseCusp[]
+  ascendant: PlanetData
+  mc: PlanetData
+  aspects: AspectHit[]
+  meta: unknown
+  options: unknown
+  transits: TransitAspect[]
 }
 
 // ======================================================
@@ -101,32 +101,32 @@ export interface AstrologyData {
 // ======================================================
 
 export interface AdvancedSajuAnalysis {
-  extended?: ExtendedAdvancedAnalysis;
-  geokguk?: GeokgukResult;
-  yongsin?: YongsinResult;
-  tonggeun?: TonggeunResult;
-  tuechul?: TuechulResult[];
-  hoeguk?: HoegukResult[];
-  deukryeong?: DeukryeongResult;
-  hyeongchung?: HyeongchungAnalysis;
-  sibsin?: SibsinComprehensiveAnalysis;
-  healthCareer?: HealthCareerComprehensive;
-  score?: ComprehensiveScore;
-  ultraAdvanced?: UltraAdvancedAnalysis;
+  extended?: ExtendedAdvancedAnalysis
+  geokguk?: GeokgukResult
+  yongsin?: YongsinResult
+  tonggeun?: TonggeunResult
+  tuechul?: TuechulResult[]
+  hoeguk?: HoegukResult[]
+  deukryeong?: DeukryeongResult
+  hyeongchung?: HyeongchungAnalysis
+  sibsin?: SibsinComprehensiveAnalysis
+  healthCareer?: HealthCareerComprehensive
+  score?: ComprehensiveScore
+  ultraAdvanced?: UltraAdvancedAnalysis
 }
 
 export interface SajuData {
-  facts: SajuFacts | Record<string, unknown>;
-  pillars: SajuPillars;
-  dayMaster: Record<string, unknown>;
+  facts: SajuFacts | Record<string, unknown>
+  pillars: SajuPillars
+  dayMaster: Record<string, unknown>
   unse: {
-    daeun: unknown[];
-    annual: unknown[];
-    monthly: unknown[];
-    iljin: unknown[];
-  };
-  sinsal: unknown;
-  advancedAnalysis?: AdvancedSajuAnalysis;
+    daeun: unknown[]
+    annual: unknown[]
+    monthly: unknown[]
+    iljin: unknown[]
+  }
+  sinsal: unknown
+  advancedAnalysis?: AdvancedSajuAnalysis
 }
 
 // ======================================================
@@ -134,15 +134,15 @@ export interface SajuData {
 // ======================================================
 
 export interface CombinedInput {
-  name?: string;
-  gender?: 'male' | 'female';
-  birthDate: string;
-  birthTime: string;
-  latitude: number;
-  longitude: number;
-  theme?: string;
-  tz?: string;
-  userTimezone?: string;
+  name?: string
+  gender?: 'male' | 'female'
+  birthDate: string
+  birthTime: string
+  latitude: number
+  longitude: number
+  theme?: string
+  tz?: string
+  userTimezone?: string
 }
 
 // ======================================================
@@ -151,88 +151,88 @@ export interface CombinedInput {
 
 export interface CombinedResult {
   meta: {
-    generator: string;
-    generatedAt: string;
-    name?: string;
-    gender?: string;
-  };
-  astrology: AstrologyData | Record<string, unknown>;
-  saju: SajuData;
-  summary: string;
-  userTimezone?: string;
-  analysisDate?: string;
+    generator: string
+    generatedAt: string
+    name?: string
+    gender?: string
+  }
+  astrology: AstrologyData | Record<string, unknown>
+  saju: SajuData
+  summary: string
+  userTimezone?: string
+  analysisDate?: string
 
   // Advanced Astrology Data
   extraPoints?: {
-    chiron?: ExtraPoint;
-    lilith?: ExtraPoint;
-    partOfFortune?: ExtraPoint;
-    vertex?: ExtraPoint;
-  };
+    chiron?: ExtraPoint
+    lilith?: ExtraPoint
+    partOfFortune?: ExtraPoint
+    vertex?: ExtraPoint
+  }
 
   solarReturn?: {
-    chart: ReturnChart;
-    summary: ReturnType<typeof import('@/lib/astrology').getSolarReturnSummary>;
-  };
+    chart: ReturnChart
+    summary: ReturnType<typeof import('@/lib/astrology').getSolarReturnSummary>
+  }
 
   lunarReturn?: {
-    chart: ReturnChart;
-    summary: ReturnType<typeof import('@/lib/astrology').getLunarReturnSummary>;
-  };
+    chart: ReturnChart
+    summary: ReturnType<typeof import('@/lib/astrology').getLunarReturnSummary>
+  }
 
   progressions?: {
     secondary: {
-      chart: ProgressedChart;
-      moonPhase: unknown;
-      summary: ReturnType<typeof import('@/lib/astrology').getProgressionSummary>;
-    };
+      chart: ProgressedChart
+      moonPhase: unknown
+      summary: ReturnType<typeof import('@/lib/astrology').getProgressionSummary>
+    }
     solarArc?: {
-      chart: ProgressedChart;
-      summary: ReturnType<typeof import('@/lib/astrology').getProgressionSummary>;
-    };
-  };
+      chart: ProgressedChart
+      summary: ReturnType<typeof import('@/lib/astrology').getProgressionSummary>
+    }
+  }
 
   draconic?: {
-    chart: DraconicChart;
-    comparison: DraconicComparison;
-  };
+    chart: DraconicChart
+    comparison: DraconicComparison
+  }
 
   harmonics?: {
-    h5: HarmonicChart;
-    h7: HarmonicChart;
-    h9: HarmonicChart;
-    profile: HarmonicProfile;
-  };
+    h5: HarmonicChart
+    h7: HarmonicChart
+    h9: HarmonicChart
+    profile: HarmonicProfile
+  }
 
   asteroids?: {
-    ceres?: Asteroid;
-    pallas?: Asteroid;
-    juno?: Asteroid;
-    vesta?: Asteroid;
-    aspects?: ReturnType<typeof import('@/lib/astrology').findAllAsteroidAspects>;
-  };
+    ceres?: Asteroid
+    pallas?: Asteroid
+    juno?: Asteroid
+    vesta?: Asteroid
+    aspects?: ReturnType<typeof import('@/lib/astrology').findAllAsteroidAspects>
+  }
 
-  fixedStars?: FixedStarConjunction[];
+  fixedStars?: FixedStarConjunction[]
 
   eclipses?: {
-    impact: EclipseImpact | null;
-    upcoming: Eclipse[];
-  };
+    impact: EclipseImpact | null
+    upcoming: Eclipse[]
+  }
 
   electional?: {
-    moonPhase: MoonPhase;
-    voidOfCourse: VoidOfCourseInfo | null;
-    planetaryHour: PlanetaryHour;
-    retrograde: string[];
-    analysis?: ElectionalAnalysis;
-  };
+    moonPhase: MoonPhase
+    voidOfCourse: VoidOfCourseInfo | null
+    planetaryHour: PlanetaryHour
+    retrograde: string[]
+    analysis?: ElectionalAnalysis
+  }
 
   midpoints?: {
-    sunMoon?: Midpoint;
-    ascMc?: Midpoint;
-    all: Midpoint[];
-    activations?: MidpointActivation[];
-  };
+    sunMoon?: Midpoint
+    ascMc?: Midpoint
+    all: Midpoint[]
+    activations?: MidpointActivation[]
+  }
 }
 
 // ======================================================
@@ -240,23 +240,23 @@ export interface CombinedResult {
 // ======================================================
 
 export interface DateComponents {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
+  year: number
+  month: number
+  day: number
+  hour: number
+  minute: number
 }
 
 export interface MaskedInput {
-  name?: string;
-  birthDate?: string;
-  birthTime?: string;
-  latitude: number;
-  longitude: number;
-  gender?: string;
-  tz?: string;
-  theme?: string;
-  userTimezone?: string;
+  name?: string
+  birthDate?: string
+  birthTime?: string
+  latitude: number
+  longitude: number
+  gender?: string
+  tz?: string
+  theme?: string
+  userTimezone?: string
 }
 
 // ======================================================
@@ -264,8 +264,8 @@ export interface MaskedInput {
 // ======================================================
 
 export interface LightPoint {
-  name: string;
-  longitude: number;
+  name: string
+  longitude: number
 }
 
 // ======================================================
@@ -273,11 +273,11 @@ export interface LightPoint {
 // ======================================================
 
 export interface ElectionalResult {
-  moonPhase: MoonPhase;
-  voidOfCourse: VoidOfCourseInfo | null;
-  planetaryHour: PlanetaryHour;
-  retrograde: string[];
-  analysis?: ElectionalAnalysis;
+  moonPhase: MoonPhase
+  voidOfCourse: VoidOfCourseInfo | null
+  planetaryHour: PlanetaryHour
+  retrograde: string[]
+  analysis?: ElectionalAnalysis
 }
 
 // ======================================================
@@ -285,10 +285,10 @@ export interface ElectionalResult {
 // ======================================================
 
 export interface MidpointsResult {
-  sunMoon?: Midpoint;
-  ascMc?: Midpoint;
-  all: Midpoint[];
-  activations?: MidpointActivation[];
+  sunMoon?: Midpoint
+  ascMc?: Midpoint
+  all: Midpoint[]
+  activations?: MidpointActivation[]
 }
 
 // ======================================================
@@ -296,15 +296,15 @@ export interface MidpointsResult {
 // ======================================================
 
 export interface SummaryInput {
-  name?: string;
-  planets: PlanetData[];
-  ascendant: { sign?: string };
-  mc: { sign?: string };
-  astrologyFacts: AstrologyChartFacts;
+  name?: string
+  planets: PlanetData[]
+  ascendant: { sign?: string }
+  mc: { sign?: string }
+  astrologyFacts: AstrologyChartFacts
   dayMaster: {
-    name?: string;
-    element?: string;
-  };
+    name?: string
+    element?: string
+  }
 }
 
 // ======================================================
@@ -332,7 +332,7 @@ export type {
   Midpoint,
   MidpointActivation,
   Asteroid,
-};
+}
 
 // ======================================================
 // Re-export Saju types for convenience
@@ -352,4 +352,4 @@ export type {
   HealthCareerComprehensive,
   ComprehensiveScore,
   UltraAdvancedAnalysis,
-};
+}

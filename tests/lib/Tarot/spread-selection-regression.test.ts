@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
-import { recommendSpreads } from '@/lib/Tarot/tarot-recommend'
+import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+import { recommendSpreads } from '@/lib/tarot/tarot-recommend'
 import { getQuickRecommendation } from '@/app/tarot/utils/recommendations'
 
 const validSpreadKeys = new Set(

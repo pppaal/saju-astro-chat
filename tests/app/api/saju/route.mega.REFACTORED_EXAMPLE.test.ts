@@ -69,34 +69,34 @@ vi.mock('@/lib/cache/redis-cache', () => ({
   CACHE_TTL: { SAJU_RESULT: 604800 },
 }))
 
-vi.mock('@/lib/Saju/saju', () => ({
+vi.mock('@/lib/saju/saju', () => ({
   calculateSajuData: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/unse', () => ({
+vi.mock('@/lib/saju/unse', () => ({
   getDaeunCycles: vi.fn().mockReturnValue([]),
   getAnnualCycles: vi.fn().mockReturnValue([]),
   getMonthlyCycles: vi.fn().mockReturnValue([]),
   getIljinCalendar: vi.fn().mockReturnValue([]),
 }))
 
-vi.mock('@/lib/Saju/shinsal', () => ({
+vi.mock('@/lib/saju/shinsal', () => ({
   getShinsalHits: vi.fn().mockReturnValue([]),
   getTwelveStagesForPillars: vi.fn().mockReturnValue({}),
   getTwelveShinsalSingleByPillar: vi.fn().mockReturnValue({}),
 }))
 
-vi.mock('@/lib/Saju/relations', () => ({
+vi.mock('@/lib/saju/relations', () => ({
   analyzeRelations: vi.fn().mockReturnValue({ harmonies: [], conflicts: [] }),
   toAnalyzeInputFromSaju: vi.fn().mockReturnValue({}),
 }))
 
-vi.mock('@/lib/Saju/geokguk', () => ({
+vi.mock('@/lib/saju/geokguk', () => ({
   determineGeokguk: vi.fn(),
   getGeokgukDescription: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/yongsin', () => ({
+vi.mock('@/lib/saju/yongsin', () => ({
   determineYongsin: vi.fn(),
   getYongsinDescription: vi.fn(),
   getLuckyColors: vi.fn(),
@@ -104,11 +104,11 @@ vi.mock('@/lib/Saju/yongsin', () => ({
   getLuckyNumbers: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/hyeongchung', () => ({
+vi.mock('@/lib/saju/hyeongchung', () => ({
   analyzeHyeongchung: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/advancedSajuCore', () => ({
+vi.mock('@/lib/saju/advancedSajuCore', () => ({
   analyzeAdvancedSaju: vi.fn(),
 }))
 
@@ -130,33 +130,33 @@ function mockPremiumUser() {
 }
 
 // Additional specific mocks (not yet centralized)
-vi.mock('@/lib/Saju/tonggeun', () => ({
+vi.mock('@/lib/saju/tonggeun', () => ({
   calculateTonggeun: vi.fn(),
   calculateDeukryeong: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/johuYongsin', () => ({
+vi.mock('@/lib/saju/johuYongsin', () => ({
   getJohuYongsin: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/sibsinAnalysis', () => ({
+vi.mock('@/lib/saju/sibsinAnalysis', () => ({
   analyzeSibsinComprehensive: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/healthCareer', () => ({
+vi.mock('@/lib/saju/healthCareer', () => ({
   analyzeHealth: vi.fn(),
   analyzeCareer: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/comprehensiveReport', () => ({
+vi.mock('@/lib/saju/comprehensiveReport', () => ({
   generateComprehensiveReport: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/strengthScore', () => ({
+vi.mock('@/lib/saju/strengthScore', () => ({
   calculateComprehensiveScore: vi.fn(),
 }))
 
-vi.mock('@/lib/Saju/interpretations', () => ({
+vi.mock('@/lib/saju/interpretations', () => ({
   getTwelveStageInterpretation: vi.fn(),
   getElementInterpretation: vi.fn(),
   TWELVE_STAGE_INTERPRETATIONS: {

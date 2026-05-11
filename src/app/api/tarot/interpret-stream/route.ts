@@ -14,7 +14,7 @@ import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/cla
 import {
   buildQuestionContextPrompt,
   type TarotQuestionAnalysisSnapshot,
-} from '@/lib/Tarot/questionFlow'
+} from '@/lib/tarot/questionFlow'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
@@ -33,9 +33,10 @@ interface CardInput {
 
 const OPENAI_TIMEOUT_MS = 30000
 
-function withCreditCookies(response: Response, creditResult: Awaited<
-  ReturnType<typeof checkAndConsumeCredits>
-> | null): Response {
+function withCreditCookies(
+  response: Response,
+  creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null
+): Response {
   if (!creditResult?.guestReadingAccess) {
     return response
   }
@@ -51,9 +52,7 @@ function withCreditCookies(response: Response, creditResult: Awaited<
 
 // Use centralized sanitizeString from @/lib/api/sanitizers
 
-function normalizeQuestionContext(
-  value: unknown
-): TarotQuestionAnalysisSnapshot | undefined {
+function normalizeQuestionContext(value: unknown): TarotQuestionAnalysisSnapshot | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return undefined
   }
@@ -378,7 +377,11 @@ export async function POST(req: NextRequest) {
     const rawCards = body.cards
     const userQuestion = body.userQuestion || ''
     const questionContext = normalizeQuestionContext(body.questionContext)
-    const effectiveUserQuestion = buildQuestionContextPrompt(userQuestion, questionContext, language)
+    const effectiveUserQuestion = buildQuestionContextPrompt(
+      userQuestion,
+      questionContext,
+      language
+    )
     const includeAstrology = body.includeAstrology !== false
     const includeSaju = body.includeSaju !== false
     const birthdate = includeAstrology ? body.birthdate || '' : ''
@@ -558,19 +561,12 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
           timeoutMs: OPENAI_TIMEOUT_MS,
           label: 'tarot-stream',
         })
-        recordExternalCall(
-          'anthropic',
-          'claude-haiku-4-5',
-          'success',
-          Date.now() - claudeStartTime
-        )
+        recordExternalCall('anthropic', 'claude-haiku-4-5', 'success', Date.now() - claudeStartTime)
         // 응답을 SSE 단일 청크로 emit — 클라이언트는 동일 컨트랙트 유지
         const encoder = new TextEncoder()
         const stream = new ReadableStream({
           start(controller) {
-            controller.enqueue(
-              encoder.encode(createSSEEvent({ content: claudeResult.text }))
-            )
+            controller.enqueue(encoder.encode(createSSEEvent({ content: claudeResult.text })))
             controller.enqueue(encoder.encode(createSSEDoneEvent()))
             controller.close()
           },
@@ -588,12 +584,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
           creditResult
         )
       } catch (claudeErr) {
-        recordExternalCall(
-          'anthropic',
-          'claude-haiku-4-5',
-          'error',
-          Date.now() - claudeStartTime
-        )
+        recordExternalCall('anthropic', 'claude-haiku-4-5', 'error', Date.now() - claudeStartTime)
         logger.warn('Tarot stream Claude failed, falling back to OpenAI', {
           error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
         })

@@ -39,7 +39,7 @@ import { STEMS, BRANCHES, STEM_TO_ELEMENT, BRANCH_TO_ELEMENT, ZODIAC_TO_ELEMENT 
 
 import { normalizeElement } from './utils'
 import { getPlanetPosition } from './transit-analysis'
-import { calculateSajuData as calculateSajuDataFull } from '@/lib/Saju/saju'
+import { calculateSajuData as calculateSajuDataFull } from '@/lib/saju/saju'
 
 /**
  * 월별 캘린더 데이터

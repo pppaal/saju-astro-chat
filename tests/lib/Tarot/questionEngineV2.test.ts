@@ -4,7 +4,7 @@ vi.mock('@/lib/http', () => ({
   fetchWithRetry: vi.fn(),
 }))
 
-import { analyzeTarotQuestionV2 } from '@/lib/Tarot/questionEngineV2'
+import { analyzeTarotQuestionV2 } from '@/lib/tarot/questionEngineV2'
 import { fetchWithRetry } from '@/lib/http'
 
 function createOpenAIResponse(payload: Record<string, unknown>) {
@@ -299,12 +299,12 @@ describe('questionEngineV2', () => {
     expect(result.spreadId).toBe('reconciliation')
   })
 
-
   it('keeps reunion-possibility questions on reconciliation instead of meeting likelihood', async () => {
     mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
 
     const result = await analyzeTarotQuestionV2({
-      question: '\uADF8 \uC0AC\uB78C\uACFC \uB2E4\uC2DC \uB9CC\uB0A0 \uAC00\uB2A5\uC131 \uC788\uC5B4?',
+      question:
+        '\uADF8 \uC0AC\uB78C\uACFC \uB2E4\uC2DC \uB9CC\uB0A0 \uAC00\uB2A5\uC131 \uC788\uC5B4?',
       language: 'ko',
     })
 

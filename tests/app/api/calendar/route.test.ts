@@ -36,20 +36,68 @@ vi.mock('@/lib/api/middleware', () => ({
   }),
 }))
 
-vi.mock('@/lib/Saju/saju', () => ({
+vi.mock('@/lib/saju/saju', () => ({
   calculateSajuData: vi.fn(),
 }))
 
 vi.mock('@/lib/astrology/foundation/astrologyService', () => ({
   calculateNatalChart: vi.fn(async () => ({
     planets: [
-      { name: 'Sun', sign: 'Capricorn', house: 10, longitude: 0, degree: 15, minute: 0, formatted: 'Capricorn 15°', speed: 1 },
-      { name: 'Moon', sign: 'Pisces', house: 12, longitude: 0, degree: 10, minute: 0, formatted: 'Pisces 10°', speed: 13 },
-      { name: 'Mercury', sign: 'Capricorn', house: 10, longitude: 0, degree: 5, minute: 0, formatted: 'Capricorn 5°', speed: 1.2 },
+      {
+        name: 'Sun',
+        sign: 'Capricorn',
+        house: 10,
+        longitude: 0,
+        degree: 15,
+        minute: 0,
+        formatted: 'Capricorn 15°',
+        speed: 1,
+      },
+      {
+        name: 'Moon',
+        sign: 'Pisces',
+        house: 12,
+        longitude: 0,
+        degree: 10,
+        minute: 0,
+        formatted: 'Pisces 10°',
+        speed: 13,
+      },
+      {
+        name: 'Mercury',
+        sign: 'Capricorn',
+        house: 10,
+        longitude: 0,
+        degree: 5,
+        minute: 0,
+        formatted: 'Capricorn 5°',
+        speed: 1.2,
+      },
     ],
-    ascendant: { name: 'Ascendant', sign: 'Aries', house: 1, longitude: 0, degree: 0, minute: 0, formatted: 'Aries 0°' },
-    mc: { name: 'MC', sign: 'Capricorn', house: 10, longitude: 0, degree: 0, minute: 0, formatted: 'Capricorn 0°' },
-    houses: Array.from({ length: 12 }, (_, i) => ({ index: i + 1, cusp: i * 30, formatted: `H${i + 1}`, sign: 'Aries' })),
+    ascendant: {
+      name: 'Ascendant',
+      sign: 'Aries',
+      house: 1,
+      longitude: 0,
+      degree: 0,
+      minute: 0,
+      formatted: 'Aries 0°',
+    },
+    mc: {
+      name: 'MC',
+      sign: 'Capricorn',
+      house: 10,
+      longitude: 0,
+      degree: 0,
+      minute: 0,
+      formatted: 'Capricorn 0°',
+    },
+    houses: Array.from({ length: 12 }, (_, i) => ({
+      index: i + 1,
+      cusp: i * 30,
+      formatted: `H${i + 1}`,
+      sign: 'Aries',
+    })),
   })),
   toChart: vi.fn((chart) => ({
     planets: chart.planets,
@@ -62,18 +110,61 @@ vi.mock('@/lib/astrology/foundation/astrologyService', () => ({
 vi.mock('@/lib/astrology/foundation/transit', () => ({
   calculateTransitChart: vi.fn(async () => ({
     planets: [
-      { name: 'Saturn', sign: 'Pisces', house: 12, longitude: 0, degree: 8, minute: 0, formatted: 'Pisces 8°', speed: 0.03, retrograde: false },
-      { name: 'Mercury', sign: 'Aries', house: 1, longitude: 0, degree: 2, minute: 0, formatted: 'Aries 2°', speed: -0.4, retrograde: true },
+      {
+        name: 'Saturn',
+        sign: 'Pisces',
+        house: 12,
+        longitude: 0,
+        degree: 8,
+        minute: 0,
+        formatted: 'Pisces 8°',
+        speed: 0.03,
+        retrograde: false,
+      },
+      {
+        name: 'Mercury',
+        sign: 'Aries',
+        house: 1,
+        longitude: 0,
+        degree: 2,
+        minute: 0,
+        formatted: 'Aries 2°',
+        speed: -0.4,
+        retrograde: true,
+      },
     ],
-    ascendant: { name: 'Ascendant', sign: 'Aries', house: 1, longitude: 0, degree: 0, minute: 0, formatted: 'Aries 0°' },
-    mc: { name: 'MC', sign: 'Capricorn', house: 10, longitude: 0, degree: 0, minute: 0, formatted: 'Capricorn 0°' },
-    houses: Array.from({ length: 12 }, (_, i) => ({ index: i + 1, cusp: i * 30, formatted: `H${i + 1}`, sign: 'Aries' })),
+    ascendant: {
+      name: 'Ascendant',
+      sign: 'Aries',
+      house: 1,
+      longitude: 0,
+      degree: 0,
+      minute: 0,
+      formatted: 'Aries 0°',
+    },
+    mc: {
+      name: 'MC',
+      sign: 'Capricorn',
+      house: 10,
+      longitude: 0,
+      degree: 0,
+      minute: 0,
+      formatted: 'Capricorn 0°',
+    },
+    houses: Array.from({ length: 12 }, (_, i) => ({
+      index: i + 1,
+      cusp: i * 30,
+      formatted: `H${i + 1}`,
+      sign: 'Aries',
+    })),
   })),
   findTransitAspects: vi.fn(() => [
     { transitPlanet: 'Saturn', natalPoint: 'Sun', type: 'sextile', orb: 1.2 },
     { transitPlanet: 'Mercury', natalPoint: 'Mercury', type: 'conjunction', orb: 0.4 },
   ]),
-  findMajorTransits: vi.fn(() => [{ transitPlanet: 'Saturn', natalPoint: 'Sun', type: 'sextile', orb: 1.2 }]),
+  findMajorTransits: vi.fn(() => [
+    { transitPlanet: 'Saturn', natalPoint: 'Sun', type: 'sextile', orb: 1.2 },
+  ]),
 }))
 
 vi.mock('@/lib/astrology/foundation/aspects', () => ({
@@ -369,7 +460,7 @@ vi.mock('@/i18n/locales/en', () => ({
 
 // Import after mocks
 import { GET } from '@/app/api/calendar/route'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
 import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
 import { cacheOrCalculate } from '@/lib/cache/redis-cache'
@@ -488,13 +579,58 @@ describe('Calendar API Route - /api/calendar', () => {
     vi.mocked(calculateSajuData).mockReturnValue(mockSajuResult as any)
     vi.mocked(calculateNatalChart).mockResolvedValue({
       planets: [
-        { name: 'Sun', sign: 'Capricorn', house: 10, longitude: 0, degree: 15, minute: 0, formatted: 'Capricorn 15°' },
-        { name: 'Moon', sign: 'Pisces', house: 12, longitude: 0, degree: 10, minute: 0, formatted: 'Pisces 10°' },
-        { name: 'Mercury', sign: 'Capricorn', house: 10, longitude: 0, degree: 5, minute: 0, formatted: 'Capricorn 5°' },
+        {
+          name: 'Sun',
+          sign: 'Capricorn',
+          house: 10,
+          longitude: 0,
+          degree: 15,
+          minute: 0,
+          formatted: 'Capricorn 15°',
+        },
+        {
+          name: 'Moon',
+          sign: 'Pisces',
+          house: 12,
+          longitude: 0,
+          degree: 10,
+          minute: 0,
+          formatted: 'Pisces 10°',
+        },
+        {
+          name: 'Mercury',
+          sign: 'Capricorn',
+          house: 10,
+          longitude: 0,
+          degree: 5,
+          minute: 0,
+          formatted: 'Capricorn 5°',
+        },
       ],
-      ascendant: { name: 'Ascendant', sign: 'Aries', house: 1, longitude: 0, degree: 0, minute: 0, formatted: 'Aries 0°' },
-      mc: { name: 'MC', sign: 'Capricorn', house: 10, longitude: 0, degree: 0, minute: 0, formatted: 'Capricorn 0°' },
-      houses: Array.from({ length: 12 }, (_, i) => ({ index: i + 1, cusp: i * 30, formatted: `H${i + 1}`, sign: 'Aries' })),
+      ascendant: {
+        name: 'Ascendant',
+        sign: 'Aries',
+        house: 1,
+        longitude: 0,
+        degree: 0,
+        minute: 0,
+        formatted: 'Aries 0°',
+      },
+      mc: {
+        name: 'MC',
+        sign: 'Capricorn',
+        house: 10,
+        longitude: 0,
+        degree: 0,
+        minute: 0,
+        formatted: 'Capricorn 0°',
+      },
+      houses: Array.from({ length: 12 }, (_, i) => ({
+        index: i + 1,
+        cusp: i * 30,
+        formatted: `H${i + 1}`,
+        sign: 'Aries',
+      })),
     } as any)
     vi.mocked(calculateYearlyImportantDates).mockReturnValue(mockImportantDates as any)
   })

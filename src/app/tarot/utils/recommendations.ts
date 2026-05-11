@@ -1,4 +1,4 @@
-import { recommendSpreads } from '@/lib/Tarot/tarot-recommend'
+import { recommendSpreads } from '@/lib/tarot/tarot-recommend'
 
 const DEFAULT_QUICK_THEME_ID = 'general-insight'
 const DEFAULT_QUICK_SPREAD_ID = 'quick-reading'

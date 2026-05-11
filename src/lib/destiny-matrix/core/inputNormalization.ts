@@ -1,5 +1,5 @@
 ﻿import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { RelationHit } from '@/lib/Saju/types'
+import type { RelationHit } from '@/lib/saju/types'
 
 const SHINSAL_ALIASES: Array<[RegExp, string]> = [
   [/\uD654\uAC1C|華蓋/giu, '\uD654\uAC1C'],
@@ -38,7 +38,9 @@ function normalizeShinsalList(
   shinsalList: MatrixCalculationInput['shinsalList']
 ): MatrixCalculationInput['shinsalList'] {
   if (!Array.isArray(shinsalList)) return shinsalList
-  return shinsalList.map((item) => normalizeText(String(item))) as MatrixCalculationInput['shinsalList']
+  return shinsalList.map((item) =>
+    normalizeText(String(item))
+  ) as MatrixCalculationInput['shinsalList']
 }
 
 function normalizeRelations(

@@ -1,12 +1,12 @@
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
 import {
   buildCoupleMatrix,
   type CoupleMatrixResult,
   type CoupleMatrixCell,
 } from '@/lib/compatibility/coupleMatrix'
-import { buildOrthodoxInterpretation } from '@/lib/Saju/orthodoxInterpretation'
-import type { CalculateSajuDataResult } from '@/lib/Saju/types'
+import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
+import type { CalculateSajuDataResult } from '@/lib/saju/types'
 
 export interface CompatibilityPremiumInput {
   a: { name?: string; date: string; time: string; gender: 'male' | 'female' }
@@ -56,7 +56,12 @@ const DOMAIN_LABELS: Array<[keyof CoupleMatrixResult['summary']['domainScores'],
   ['timing', '시기 동기'],
 ]
 
-async function loadPerson(input: CompatibilityPremiumInput['a'], lat: number, lon: number, tz: string) {
+async function loadPerson(
+  input: CompatibilityPremiumInput['a'],
+  lat: number,
+  lon: number,
+  tz: string
+) {
   const koreanAge = new Date().getFullYear() - parseInt(input.date.split('-')[0], 10) + 1
   const saju = calculateSajuData(input.date, input.time, input.gender, 'solar', tz)
   ;(saju as unknown as Record<string, unknown>).orthodoxInterpretation =
@@ -64,8 +69,14 @@ async function loadPerson(input: CompatibilityPremiumInput['a'], lat: number, lo
   const [Y, M, D] = input.date.split('-').map(Number)
   const [h, mi] = input.time.split(':').map(Number)
   const natal = await calculateNatalChart({
-    year: Y, month: M, date: D, hour: h, minute: mi,
-    latitude: lat, longitude: lon, timeZone: tz,
+    year: Y,
+    month: M,
+    date: D,
+    hour: h,
+    minute: mi,
+    latitude: lat,
+    longitude: lon,
+    timeZone: tz,
   })
   return { saju, natal: { planets: natal.planets, ascendant: natal.ascendant }, koreanAge }
 }
@@ -142,11 +153,22 @@ export async function buildCompatibilityPremiumReport(
   const lon = input.longitude ?? 126.978
   const tz = input.timezone ?? 'Asia/Seoul'
 
-  const [A, B] = await Promise.all([loadPerson(input.a, lat, lon, tz), loadPerson(input.b, lat, lon, tz)])
+  const [A, B] = await Promise.all([
+    loadPerson(input.a, lat, lon, tz),
+    loadPerson(input.b, lat, lon, tz),
+  ])
 
   const matrix = buildCoupleMatrix(
-    { saju: A.saju, natal: A.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'], koreanAge: A.koreanAge },
-    { saju: B.saju, natal: B.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'], koreanAge: B.koreanAge }
+    {
+      saju: A.saju,
+      natal: A.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'],
+      koreanAge: A.koreanAge,
+    },
+    {
+      saju: B.saju,
+      natal: B.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'],
+      koreanAge: B.koreanAge,
+    }
   )
 
   const radar = DOMAIN_LABELS.map(([k, label]) => ({

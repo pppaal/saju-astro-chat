@@ -59,7 +59,7 @@ vi.mock('@/lib/db/prisma', () => ({
 // ---------------------------------------------------------------------------
 // Mock Saju calculation
 // ---------------------------------------------------------------------------
-vi.mock('@/lib/Saju', () => ({
+vi.mock('@/lib/saju', () => ({
   calculateSajuData: vi.fn(),
 }))
 
@@ -80,7 +80,7 @@ vi.mock('@/lib/logger', () => ({
 // ---------------------------------------------------------------------------
 import { GET } from '@/app/api/me/saju/route'
 import { prisma } from '@/lib/db/prisma'
-import { calculateSajuData } from '@/lib/Saju'
+import { calculateSajuData } from '@/lib/saju'
 import { logger } from '@/lib/logger'
 
 // ---------------------------------------------------------------------------
@@ -123,15 +123,7 @@ function buildDefaultSajuResult() {
 
 /** Build a user object returned by prisma.user.findUnique. */
 function makeUser(overrides?: Record<string, unknown>) {
-  const {
-    birthDate,
-    birthTime,
-    gender,
-    tzId,
-    profile,
-    personaMemory,
-    ...rest
-  } = overrides || {}
+  const { birthDate, birthTime, gender, tzId, profile, personaMemory, ...rest } = overrides || {}
 
   const baseProfile = {
     birthDate: '1990-01-15',

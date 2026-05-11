@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, type ComponentProps } from 'react'
 import { logger } from '@/lib/logger'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 import type FortuneDashboard from '@/components/life-prediction/FortuneDashboard'
 
 type FortuneTrend = ComponentProps<typeof FortuneDashboard>['trend']

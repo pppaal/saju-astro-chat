@@ -3,9 +3,9 @@
  * 기타 이벤트 시기 분석 전략들 (설정 기반)
  */
 
-import { ConfigurableEventStrategy, type StrategyConfig } from './types';
-import { EVENT_SCORING } from '../constants/scoring';
-import type { FiveElement } from '@/lib/Saju/types';
+import { ConfigurableEventStrategy, type StrategyConfig } from './types'
+import { EVENT_SCORING } from '../constants/scoring'
+import type { FiveElement } from '@/lib/saju/types'
 
 /**
  * 전략 설정 정의
@@ -199,61 +199,61 @@ const STRATEGY_CONFIGS: Record<string, StrategyConfig> = {
       avoidReason: '대운 {value} - 염증 위험',
     },
   },
-} as const;
+} as const
 
 /**
  * 전략 인스턴스 생성 팩토리
  */
 function createStrategy(configKey: string): ConfigurableEventStrategy {
-  const config = STRATEGY_CONFIGS[configKey];
+  const config = STRATEGY_CONFIGS[configKey]
   if (!config) {
-    throw new Error(`Unknown strategy config: ${configKey}`);
+    throw new Error(`Unknown strategy config: ${configKey}`)
   }
-  return new ConfigurableEventStrategy(config);
+  return new ConfigurableEventStrategy(config)
 }
 
 // 전략 클래스 export (하위 호환성 유지)
 export class RelationshipStrategy extends ConfigurableEventStrategy {
   constructor() {
-    super(STRATEGY_CONFIGS.relationship);
+    super(STRATEGY_CONFIGS.relationship)
   }
 }
 
 export class MoveStrategy extends ConfigurableEventStrategy {
   constructor() {
-    super(STRATEGY_CONFIGS.move);
+    super(STRATEGY_CONFIGS.move)
   }
 }
 
 export class StudyStrategy extends ConfigurableEventStrategy {
   constructor() {
-    super(STRATEGY_CONFIGS.study);
+    super(STRATEGY_CONFIGS.study)
   }
 }
 
 export class HealthStrategy extends ConfigurableEventStrategy {
   constructor() {
-    super(STRATEGY_CONFIGS.health);
+    super(STRATEGY_CONFIGS.health)
   }
 }
 
 export class BusinessStrategy extends ConfigurableEventStrategy {
   constructor() {
-    super(STRATEGY_CONFIGS.business);
+    super(STRATEGY_CONFIGS.business)
   }
 }
 
 export class TravelStrategy extends ConfigurableEventStrategy {
   constructor() {
-    super(STRATEGY_CONFIGS.travel);
+    super(STRATEGY_CONFIGS.travel)
   }
 }
 
 export class SurgeryStrategy extends ConfigurableEventStrategy {
   constructor() {
-    super(STRATEGY_CONFIGS.surgery);
+    super(STRATEGY_CONFIGS.surgery)
   }
 }
 
 // 설정 및 팩토리 export
-export { STRATEGY_CONFIGS, createStrategy };
+export { STRATEGY_CONFIGS, createStrategy }

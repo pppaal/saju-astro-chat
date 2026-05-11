@@ -18,11 +18,11 @@ import { buildPremiumActionChecklist } from '@/lib/destiny-matrix/actionChecklis
 import { buildCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
 import { runDestinyCore } from '@/lib/destiny-matrix/core/runDestinyCore'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import type { FiveElement } from '@/lib/Saju/types'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/Saju/shinsal'
-import { analyzeAdvancedSaju } from '@/lib/Saju/advancedAnalysis'
+import { calculateSajuData } from '@/lib/saju/saju'
+import type { FiveElement } from '@/lib/saju/types'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
+import { analyzeAdvancedSaju } from '@/lib/saju/advancedAnalysis'
 import type { GeokgukType, WesternElement, TransitCycle } from '@/lib/destiny-matrix/types'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -188,14 +188,15 @@ export const POST = withApiMiddleware(
       // birth profile. This keeps every entry point producing the same
       // matrix layer set.
       try {
-        const { enrichRequestWithDerivedSaju } = await import(
-          '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
-        )
+        const { enrichRequestWithDerivedSaju } =
+          await import('@/app/api/destiny-matrix/ai-report/routeDerivedContext')
         const enriched = enrichRequestWithDerivedSaju(
           validationResult.data as unknown as Record<string, unknown>
         )
-        ;(validationResult as { data: Record<string, unknown> }).data =
-          enriched as Record<string, unknown>
+        ;(validationResult as { data: Record<string, unknown> }).data = enriched as Record<
+          string,
+          unknown
+        >
       } catch {
         // Non-fatal — falls back to whatever the caller sent.
       }

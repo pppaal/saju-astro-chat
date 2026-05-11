@@ -63,7 +63,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { tarotSaveRequestSchema, tarotQuerySchema } from '@/lib/api/zodValidation'
-import { buildStoredCardsPayload } from '@/lib/Tarot/savedReadingPayload'
+import { buildStoredCardsPayload } from '@/lib/tarot/savedReadingPayload'
 
 describe('/api/tarot/save', () => {
   const mockUserId = 'test-user-id'

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuData } from '@/lib/saju/saju'
 
 type GoldenCase = {
   birthDate: string

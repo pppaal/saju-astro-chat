@@ -2,9 +2,9 @@
 
 import React from 'react'
 import Image from 'next/image'
-import type { DrawnCard, DeckStyle } from '@/lib/Tarot/tarot.types'
+import type { DrawnCard, DeckStyle } from '@/lib/tarot/tarot.types'
 import type { CardInsight } from '../../types'
-import { getCardImagePath } from '@/lib/Tarot/tarot.types'
+import { getCardImagePath } from '@/lib/tarot/tarot.types'
 import styles from '../../tarot-reading.module.css'
 
 interface DetailedCardItemProps {

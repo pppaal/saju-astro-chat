@@ -3,8 +3,8 @@ import {
   buildTarotSaveRequest,
   flattenTarotGuidance,
   normalizeTarotQuestionText,
-} from '@/lib/Tarot/tarot-save-request'
-import type { DrawnCard, Spread } from '@/lib/Tarot/tarot.types'
+} from '@/lib/tarot/tarot-save-request'
+import type { DrawnCard, Spread } from '@/lib/tarot/tarot.types'
 
 const spread: Spread = {
   id: 'quick-reading',
