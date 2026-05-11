@@ -1168,63 +1168,6 @@
   border-color: rgba(167, 139, 250, 0.5);
 }
 
-.messageEvidencePanel {
-  margin-top: 10px;
-  border: 1px solid rgba(167, 139, 250, 0.2);
-  background: rgba(10, 16, 32, 0.42);
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-.messageEvidenceSummary {
-  cursor: pointer;
-  list-style: none;
-  padding: 12px 14px;
-  font-size: 0.98rem;
-  font-weight: 700;
-  color: rgba(196, 181, 253, 0.96);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.messageEvidenceSummary::-webkit-details-marker {
-  display: none;
-}
-
-.messageEvidenceSummary::after {
-  content: '+';
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.messageEvidencePanel[open] .messageEvidenceSummary::after {
-  content: '-';
-}
-
-.messageEvidenceLead {
-  margin: 0;
-  padding: 0 14px 10px;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.97rem;
-  line-height: 1.7;
-  line-height: 1.6;
-}
-
-.messageEvidenceList {
-  margin: 0;
-  padding: 0 14px 14px 30px;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.94rem;
-  line-height: 1.7;
-  line-height: 1.6;
-}
-
-.messageEvidenceList li + li {
-  margin-top: 6px;
-}
-
 /* ========== Suggested Questions ========== */
 .suggestionsContainer {
   display: flex;

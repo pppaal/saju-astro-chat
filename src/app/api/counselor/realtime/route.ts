@@ -18,6 +18,7 @@ import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { compactHistory } from './compactHistory'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -42,7 +43,6 @@ interface RealtimeBody {
 }
 
 const RATE_LIMIT_PER_MIN = 12
-const HISTORY_KEEP_TURNS = 4 // last N turns sent verbatim
 const CREDIT_PER_TURN = 1
 
 const SYSTEM_PROMPT_KO = `당신은 동양 사주명리와 서양 점성술을 함께 보는 운명 상담사입니다.
@@ -93,19 +93,6 @@ function birthFingerprint(b: RealtimeBody): string {
     b.latitude ?? '',
     b.longitude ?? '',
   ].join('|')
-}
-
-/** Keep last N turns verbatim; collapse older ones into a single tag line. */
-function compactHistory(messages: ChatMessage[]): string {
-  if (messages.length === 0) return ''
-  const recent = messages.slice(-HISTORY_KEEP_TURNS)
-  const olderCount = Math.max(0, messages.length - recent.length)
-  const olderLine =
-    olderCount > 0 ? `(earlier ${olderCount} turn${olderCount > 1 ? 's' : ''} omitted)\n` : ''
-  return (
-    olderLine +
-    recent.map((m) => `${m.role === 'user' ? 'User' : 'Counselor'}: ${m.content}`).join('\n')
-  )
 }
 
 export async function POST(req: NextRequest) {

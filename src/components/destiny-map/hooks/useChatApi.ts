@@ -77,36 +77,6 @@ function buildLocalCounselingBrief(whatUserWants: string, lang: LangKey) {
   }
 }
 
-function decodeCounselorEvidenceHeader(value: string | null): Message['evidence'] | undefined {
-  if (!value) return undefined
-  try {
-    const normalized = value.replace(/-/g, '+').replace(/_/g, '/')
-    const padded = normalized + '='.repeat((4 - (normalized.length % 4 || 4)) % 4)
-    const decoded = atob(padded)
-    const json = JSON.parse(decoded) as {
-      title?: unknown
-      summary?: unknown
-      bullets?: unknown
-    }
-    const title = typeof json.title === 'string' ? json.title.trim().slice(0, 80) : ''
-    const summary = typeof json.summary === 'string' ? json.summary.trim().slice(0, 220) : ''
-    const bullets = Array.isArray(json.bullets)
-      ? json.bullets
-          .map((item) => (typeof item === 'string' ? item.trim().slice(0, 180) : ''))
-          .filter(Boolean)
-          .slice(0, 3)
-      : []
-    if (!title && !summary && bullets.length === 0) return undefined
-    return {
-      title: title || undefined,
-      summary: summary || undefined,
-      bullets: bullets.length ? bullets : undefined,
-    }
-  } catch {
-    return undefined
-  }
-}
-
 export function useChatApi({
   sessionIdRef,
   messages,
@@ -423,9 +393,6 @@ export function useChatApi({
           setUsedFallback(true)
           setNotice(tr.fallbackNote)
         }
-        const counselorEvidence = decodeCounselorEvidenceHeader(
-          res.headers.get('x-counselor-evidence')
-        )
 
         const assistantMsgId = generateMessageId('assistant')
         setMessages((prev) => [
@@ -435,7 +402,6 @@ export function useChatApi({
             content: '',
             id: assistantMsgId,
             streaming: true,
-            evidence: counselorEvidence,
           },
         ])
         setLoading(false)

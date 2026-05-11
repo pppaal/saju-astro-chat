@@ -36,11 +36,6 @@ export type Message = {
   content: string
   id?: string
   streaming?: boolean
-  evidence?: {
-    title?: string
-    summary?: string
-    bullets?: string[]
-  }
 }
 
 // Feedback types
