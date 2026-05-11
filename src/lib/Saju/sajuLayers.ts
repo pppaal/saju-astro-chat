@@ -27,7 +27,11 @@ import { analyzeGongmang } from '@/lib/timing/ultra-precision-daily'
 // 통합 정통 분석 — 강약+격국+용신 통합 + 용신 기준 운기 평가
 import { analyzeAdvancedSaju, evaluateElementInfluence, type AdvancedSajuAnalysis, type YongsinAnalysis } from './foundation/advancedSajuAnalysis'
 import { BRANCHES } from './foundation/constants'
-import type { FiveElement } from './foundation/types'
+import type { FiveElement, RelationHit } from './foundation/types'
+// 합살/합화/천간합/지지 충형해파/원진/귀문 — 정통 관계 분석
+import { analyzeRelations, type AnalyzeInput as RelAnalyzeInput } from './foundation/relations'
+// 전체 신살 (양인·백호·괴강·현침·도화·역마·천을귀인 등)
+import { getShinsalHits, type ShinsalHit as ShinsalHitRich } from './foundation/shinsal'
 
 const STEM_NAMES = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸']
 const BRANCH_NAMES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
@@ -70,6 +74,10 @@ export interface SajuLayersRaw {
   gongmang?: ReturnType<typeof analyzeGongmang>
   /** 통합 분석 — 강약+격국+용신 (context-aware tone 산출용) */
   advanced?: AdvancedSajuAnalysis
+  /** 본명 관계 hits — 천간합/충, 지지 합/충/형/해/파/원진/귀문, 합살, 합화 */
+  natalRelations?: RelationHit[]
+  /** 본명 전체 신살 — 양인·백호·괴강·천을귀인·도화·역마 등 */
+  natalShinsal?: ShinsalHitRich[]
 }
 
 export interface SajuLayersBundle {
@@ -229,6 +237,62 @@ export function getSajuLayersForDate(input: SajuLayersInput): SajuLayersBundle {
         meaning: `일간 ${input.dayMaster} 통근 — ${tonggeun.roots.map(r => r.pillar).join('/')} (총 ${totalStrength.toFixed(0)})`,
         tone: scoreToTone(totalStrength / 100),
       })
+    } catch { /* skip */ }
+    // 본명 관계 hits — 천간합·충, 지지 합/충/형/해/파, 합살, 합화
+    try {
+      const relInput: RelAnalyzeInput = {
+        pillars: {
+          year:  { heavenlyStem: input.natalPillars.year.stem,  earthlyBranch: input.natalPillars.year.branch },
+          month: { heavenlyStem: input.natalPillars.month.stem, earthlyBranch: input.natalPillars.month.branch },
+          day:   { heavenlyStem: input.natalPillars.day.stem,   earthlyBranch: input.natalPillars.day.branch },
+          time:  { heavenlyStem: input.natalPillars.hour.stem,  earthlyBranch: input.natalPillars.hour.branch },
+        },
+        dayMasterStem: input.dayMaster,
+      }
+      const relations = analyzeRelations(relInput)
+      bundle.raw.natalRelations = relations
+      // 의미 있는 관계만 highlights
+      for (const r of relations.slice(0, 5)) {
+        const isPositive = ['천간합', '지지육합', '지지삼합', '지지방합'].includes(r.kind)
+        const isNegative = ['천간충', '지지충', '지지형', '지지파', '지지해', '원진'].includes(r.kind)
+        natalHighlights.push({
+          source: `관계: ${r.kind} (${r.pillars.join('-')})`,
+          meaning: r.detail ?? r.note ?? r.kind,
+          tone: isPositive ? 'positive' : isNegative ? 'cautious' : 'neutral',
+        })
+      }
+    } catch { /* skip */ }
+    // 본명 신살 — 양인·백호·괴강·천을귀인·도화·역마 등
+    try {
+      const advPillars = toAdvancedPillars(input.natalPillars)
+      if (advPillars) {
+        const pillarsLike = {
+          year:  { heavenlyStem: advPillars.yearPillar.heavenlyStem,  earthlyBranch: advPillars.yearPillar.earthlyBranch },
+          month: { heavenlyStem: advPillars.monthPillar.heavenlyStem, earthlyBranch: advPillars.monthPillar.earthlyBranch },
+          day:   { heavenlyStem: advPillars.dayPillar.heavenlyStem,   earthlyBranch: advPillars.dayPillar.earthlyBranch },
+          time:  { heavenlyStem: advPillars.timePillar.heavenlyStem,  earthlyBranch: advPillars.timePillar.earthlyBranch },
+        }
+        const shinsalHits = getShinsalHits(pillarsLike)
+        bundle.raw.natalShinsal = shinsalHits
+        // 길신/흉신 분류해서 highlights
+        const luckySet = new Set<string>([
+          '천을귀인', '월덕귀인', '천덕귀인', '문창', '문곡', '학당귀인', '암록', '건록',
+          '제왕', '태극귀인', '천주귀인', '천의성', '금여성', '천문성', '길성',
+        ])
+        const evilSet = new Set<string>([
+          '양인', '백호', '괴강', '현침', '귀문관', '원진', '도화', '역마', '망신',
+          '겁살', '재살', '천살', '월살', '화개', '육해', '화해', '홍염살', '천라지망', '삼재', '흉성',
+        ])
+        for (const sh of shinsalHits.slice(0, 8)) {
+          const isLucky = luckySet.has(sh.kind)
+          const isEvil = evilSet.has(sh.kind)
+          natalHighlights.push({
+            source: `신살: ${sh.kind} (${sh.pillars.join('/')})`,
+            meaning: sh.detail ?? sh.kind,
+            tone: isLucky ? 'positive' : isEvil ? 'cautious' : 'neutral',
+          })
+        }
+      }
     } catch { /* skip */ }
   }
 

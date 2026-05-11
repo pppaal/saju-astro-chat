@@ -15,6 +15,10 @@ import { getRetrogradePlanets, checkVoidOfCourse } from './foundation/electional
 import { getDecan } from './foundation/decans'
 import { getEgyptianBound } from './foundation/bounds'
 import { findFixedStarConjunctions } from './foundation/fixedStars'
+import { calculateAllAsteroids, findAllAsteroidAspects, type AsteroidCollection } from './foundation/asteroids'
+import type { AspectHit as AspectHitFoundation } from './foundation/types'
+import { calculateMidpoints, findMidpointActivations, type Midpoint, type MidpointActivation } from './foundation/midpoints'
+import { generateHarmonicProfile, type HarmonicProfile } from './foundation/harmonics'
 import { analyzeYearlyAstro } from './timing/yearly'
 import { analyzeMonthlyAstro } from './timing/monthly'
 import { analyzeDailyAstro } from './timing/daily'
@@ -37,6 +41,16 @@ export interface AstroLayersRaw {
   lunarReturn?: ReturnChart
   lots?: ReturnType<typeof calculateArabicLots>
   planetaryHour?: { planet: PlanetaryHourPlanet; isDay: boolean }
+  /** Asteroids (Chiron, Lilith, Ceres, Pallas, Juno, Vesta) — natal collection */
+  asteroids?: AsteroidCollection
+  /** Asteroid → natal planet aspects (keyed by asteroid name) */
+  asteroidAspects?: Record<string, AspectHitFoundation[]>
+  /** Midpoints (natal) */
+  midpoints?: Midpoint[]
+  /** Midpoint activations (current planet ↔ natal midpoint) */
+  midpointActivations?: MidpointActivation[]
+  /** Harmonic profile (natal) */
+  harmonics?: HarmonicProfile
 }
 
 const CHALDEAN_ORDER: PlanetaryHourPlanet[] = ['Saturn','Jupiter','Mars','Sun','Venus','Mercury','Moon']
@@ -119,6 +133,31 @@ export async function getAstroLayersForDate(input: AstroLayersInput): Promise<As
       })),
       summary: `${lots.length}개 lots`,
     }
+  } catch { /* skip */ }
+
+  // Asteroids (Chiron, Lilith, Ceres, Pallas, Juno, Vesta) — natal
+  try {
+    if (natal.meta?.jdUT) {
+      const houseCusps = natal.houses.map((h) => h.cusp)
+      const asteroids = calculateAllAsteroids(natal.meta.jdUT, houseCusps)
+      bundle.raw.asteroids = asteroids
+      const aspects = findAllAsteroidAspects(asteroids, natal.planets)
+      bundle.raw.asteroidAspects = aspects as Record<string, AspectHitFoundation[]>
+    }
+  } catch { /* skip */ }
+
+  // Midpoints (natal 기반)
+  try {
+    const midpoints = calculateMidpoints(natal)
+    bundle.raw.midpoints = midpoints
+    const activations = findMidpointActivations(natal, 1.5)
+    bundle.raw.midpointActivations = activations
+  } catch { /* skip */ }
+
+  // Harmonics profile (natal)
+  try {
+    const harmonics = generateHarmonicProfile(natal, age)
+    bundle.raw.harmonics = harmonics
   } catch { /* skip */ }
 
   // Yearly: Profection + Solar Return
