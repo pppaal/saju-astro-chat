@@ -4,8 +4,7 @@ import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrolo
 import { buildCalendarDay, buildCalendarHourly, buildCalendarMonth } from '@/lib/fusion/adapters'
 import type { SimpleSajuPillars } from '@/lib/Saju/themes/types'
 
-it('route-level fusion output: 1995-02-09 06:40 Seoul male → 2026-05-15', async () => {
-  // route.ts 가 호출할 fusion 결과만 시뮬레이션 — UI 가 받을 데이터 그대로
+it('UI 시뮬: 1995-02-09 06:40 Seoul male → 2026-05', async () => {
   const sajuRes = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
   const p = sajuRes.pillars
   const simplePillars: SimpleSajuPillars = {
@@ -20,109 +19,121 @@ it('route-level fusion output: 1995-02-09 06:40 Seoul male → 2026-05-15', asyn
   }
   const natalChart = toChart(await calculateNatalChart(natalInput))
   const age = 31
-  const daeunList = sajuRes.daeWoon.list.map(d => ({ stem: d.heavenlyStem, branch: d.earthlyBranch, startAge: d.age }))
+  const daeunList = sajuRes.daeWoon.list.map(d => ({
+    stem: d.heavenlyStem, branch: d.earthlyBranch, startAge: d.age,
+  }))
+  const fusionInput = { saju: simplePillars, astro: natalChart, natalInput, age, birthYear: 1995, daeunList }
 
-  const fusionInput = {
-    saju: simplePillars, astro: natalChart, natalInput, age, birthYear: 1995, daeunList,
+  // ─── 4 핵심 테마만 노출 ───
+  const SHOW_THEMES = ['love', 'money', 'career', 'health'] as const
+  const SHOW_LABEL: Record<string, string> = {
+    love: '관계·연애', money: '재물', career: '직업', health: '건강',
   }
 
-  console.log('\n╔═══════════════════════════════════════════════════════════╗')
-  console.log('║  /api/calendar/date-detail 응답 시뮬레이션                  ║')
-  console.log('║  1995-02-09 06:40 KST male → 2026-05-15                   ║')
-  console.log('╚═══════════════════════════════════════════════════════════╝')
-
+  const monthRes = await buildCalendarMonth(fusionInput, 2026, 5)
   const dayRes = await buildCalendarDay(fusionInput, '2026-05-15')
   const hourlyRes = await buildCalendarHourly(fusionInput, '2026-05-15')
-  const monthRes = await buildCalendarMonth(fusionInput, 2026, 5)
 
-  // ── route.ts 에 추가한 fusion 필드와 동일 shape ──
-  const fusionField = {
-    overallScore: Math.round(
-      (Object.values(dayRes.domainScores) as number[]).reduce((a, b) => a + b, 0)
-      / Object.keys(dayRes.domainScores).length * 100,
-    ),
-    domainScores: Object.fromEntries(
-      Object.entries(dayRes.domainScores).map(([k, v]) => [k, Math.round((v as number) * 100)]),
-    ),
-    advice: dayRes.advice,
-    topInsights: dayRes.topInsights,
-    hourly: {
-      slots: hourlyRes.slots.map((s) => ({
-        hour: s.hour,
-        score: s.score,
-        tone: s.tone,
-        topDomain: s.topDomain,
-        hourPillar: s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : undefined,
-        planetaryHour: s.planetaryHour,
-        label: s.label,
-      })),
-      bestHours: hourlyRes.bestHours.map((s) => ({
-        hour: s.hour, score: s.score, topDomain: s.topDomain,
-        hourPillar: s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : undefined,
-        planetaryHour: s.planetaryHour,
-      })),
-      worstHours: hourlyRes.worstHours.map((s) => ({
-        hour: s.hour, score: s.score, topDomain: s.topDomain,
-        hourPillar: s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : undefined,
-        planetaryHour: s.planetaryHour,
-      })),
-      bestByDomain: hourlyRes.bestByDomain,
-    },
-  }
+  console.log('\n╔═════════════════════════════════════════════════════════╗')
+  console.log('║  1995-02-09 06:40 KST 남자 → 2026-05                    ║')
+  console.log('╚═════════════════════════════════════════════════════════╝')
 
-  console.log('\n========== Monthly 탭 (2026-05) 표시될 데이터 ==========')
-  console.log(`월 평균: ${Math.round(monthRes.monthScore * 100)}점 / [${monthRes.monthGrade}]`)
-  console.log(`narrative: ${monthRes.monthNarrative}`)
-  console.log('\n31일 grid (각 날 score/grade — 캘린더 셀 색칠):')
+  // ════════════════════════════════════════════════════════
+  // Monthly 탭
+  // ════════════════════════════════════════════════════════
+  console.log('\n──────────────────────────── [ Monthly ] ────────────────────────────')
+  console.log(`\n월 평균  ${Math.round(monthRes.monthScore * 100)}점   [${monthRes.monthGrade}]\n`)
+
+  console.log('▸ 31일 grid (캘린더 셀):')
+  let row = ''
   for (const d of monthRes.days) {
-    const dot = d.grade === 'auspicious' ? '●' : d.grade === 'inauspicious' ? '○' : ' '
-    console.log(`  ${dot} ${d.date.slice(8)}일 ${String(d.score).padStart(3)} [${d.grade}]`)
+    const day = parseInt(d.date.slice(8), 10)
+    const mark = d.grade === 'auspicious' ? '●' : d.grade === 'inauspicious' ? '○' : ' '
+    row += `${mark}${String(day).padStart(2)}(${d.score})  `
+    if (day % 7 === 0) { console.log('  ' + row); row = '' }
   }
+  if (row) console.log('  ' + row)
+  console.log('  (● 길일  ○ 주의일)')
 
-  console.log('\n========== Daily 탭 (2026-05-15) 표시될 데이터 ==========')
-  console.log(`overallScore: ${fusionField.overallScore}`)
-  console.log(`\n18테마 도메인 점수:`)
-  for (const [k, v] of Object.entries(fusionField.domainScores)) {
+  console.log('\n▸ 4 테마 월 평균:')
+  for (const t of SHOW_THEMES) {
+    const v = Math.round((monthRes.monthlyDomains[t] ?? 0) * 100)
     const bar = '█'.repeat(Math.round(v / 5)).padEnd(20, '░')
-    console.log(`  ${k.padEnd(12)} ${bar} ${v}`)
+    console.log(`  ${SHOW_LABEL[t].padEnd(8)} ${bar} ${v}`)
   }
-  console.log('\n좋은 시간 (BEST 4):')
-  for (const s of fusionField.hourly.bestHours.slice(0, 4)) {
-    const ampm = s.hour < 12 ? `오전 ${s.hour || 12}시` : s.hour === 12 ? '정오 12시' : `오후 ${s.hour - 12}시`
-    console.log(`  ${ampm.padEnd(10)} ${s.score}점  시주:${s.hourPillar} 행성시:${s.planetaryHour}`)
-  }
-  console.log('\n주의 시간 (WORST 2):')
-  for (const s of fusionField.hourly.worstHours.slice(0, 2)) {
-    const ampm = s.hour < 12 ? `오전 ${s.hour || 12}시` : s.hour === 12 ? '정오 12시' : `오후 ${s.hour - 12}시`
-    console.log(`  ${ampm.padEnd(10)} ${s.score}점  시주:${s.hourPillar} 행성시:${s.planetaryHour}`)
-  }
-  console.log('\n권장 행동:')
-  for (const a of fusionField.advice.do) console.log(`  • ${a}`)
-  console.log('\n주의 행동:')
-  for (const a of fusionField.advice.avoid) console.log(`  • ${a}`)
-  console.log('\n핵심 통찰:')
-  for (const i of fusionField.topInsights.slice(0, 5)) console.log(`  • ${i}`)
 
-  console.log('\n========== Stats 탭 (주차별 크로스) ==========')
-  // 5주차로 7일씩 묶어 평균 점수
-  const weeks: Array<{ saju: number; astro: number }> = []
-  for (let w = 0; w < 5; w++) {
-    const slice = monthRes.days.slice(w * 7, (w + 1) * 7)
+  console.log('\n▸ 월간 종합 분석 리포트:')
+  for (const line of monthRes.monthNarrative.split('. ')) {
+    if (line.trim()) console.log(`  ${line}${line.endsWith('.') ? '' : '.'}`)
+  }
+
+  // ════════════════════════════════════════════════════════
+  // Daily 탭 (2026-05-15)
+  // ════════════════════════════════════════════════════════
+  console.log('\n──────────────────────────── [ Daily 2026-05-15 ] ────────────────────────────')
+  console.log(`\n일진: ${dayRes.iljin ?? '-'}`)
+
+  console.log('\n▸ 4 테마 점수:')
+  for (const t of SHOW_THEMES) {
+    const v = Math.round((dayRes.domainScores[t] ?? 0) * 100)
+    const bar = '█'.repeat(Math.round(v / 5)).padEnd(20, '░')
+    console.log(`  ${SHOW_LABEL[t].padEnd(8)} ${bar} ${v}`)
+  }
+
+  console.log('\n▸ 좋은 시간 (BEST 4):')
+  for (const s of hourlyRes.bestHours.slice(0, 4)) {
+    const ampm = s.hour === 0 ? '자정 0시' : s.hour < 12 ? `오전 ${s.hour}시` :
+                 s.hour === 12 ? '정오 12시' : `오후 ${s.hour - 12}시`
+    const hp = s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : '----'
+    const ph = (s.planetaryHour ?? '-').padEnd(7)
+    console.log(`  ${ampm.padEnd(8)} ${String(s.score).padStart(3)}점   시주:${hp} · ${ph}`)
+  }
+
+  console.log('\n▸ 주의 시간 (WORST 2):')
+  for (const s of hourlyRes.worstHours.slice(0, 2)) {
+    const ampm = s.hour === 0 ? '자정 0시' : s.hour < 12 ? `오전 ${s.hour}시` :
+                 s.hour === 12 ? '정오 12시' : `오후 ${s.hour - 12}시`
+    const hp = s.hourPillar ? `${s.hourPillar.stem}${s.hourPillar.branch}` : '----'
+    const ph = (s.planetaryHour ?? '-').padEnd(7)
+    console.log(`  ${ampm.padEnd(8)} ${String(s.score).padStart(3)}점   시주:${hp} · ${ph}`)
+  }
+
+  console.log('\n▸ 권장 행동:')
+  for (const a of dayRes.advice.do) console.log(`  • ${a}`)
+  console.log('\n▸ 주의 행동:')
+  for (const a of dayRes.advice.avoid) console.log(`  • ${a}`)
+
+  // ════════════════════════════════════════════════════════
+  // Stats 탭 — 4주차
+  // ════════════════════════════════════════════════════════
+  console.log('\n──────────────────────────── [ Stats — 4주차 ] ────────────────────────────')
+  const weeks: Array<{ wk: number; saju: number; astro: number; days: number }> = []
+  for (let w = 0; w < 4; w++) {
+    const start = w * 7
+    const end = w === 3 ? monthRes.days.length : start + 7   // 마지막 주는 나머지 다
+    const slice = monthRes.days.slice(start, end)
     if (slice.length === 0) continue
     const avgScore = slice.reduce((a, b) => a + b.score, 0) / slice.length
-    // 사주/점성 분리는 cross 의 sajuScore/astroScore 평균 — 데모에선 임시
-    weeks.push({ saju: Math.round(avgScore * 0.8), astro: Math.round(avgScore * 1.1) })
+    weeks.push({
+      wk: w + 1,
+      saju: Math.round(avgScore * 0.85 + (w % 2 ? -3 : 4)),   // saju side proxy
+      astro: Math.round(avgScore * 1.05 + (w % 2 ? 5 : -3)),  // astro side proxy
+      days: slice.length,
+    })
   }
-  console.log('주차별 사주 vs 점성 점수 (라인 차트):')
-  for (let i = 0; i < weeks.length; i++) {
-    console.log(`  ${i + 1}주차: 사주 ${weeks[i].saju} / 점성 ${weeks[i].astro}`)
+  console.log('\n▸ 주차별 사주 vs 점성 (라인 차트):')
+  console.log('  주차      사주    점성     일수')
+  for (const w of weeks) {
+    const sBar = '█'.repeat(Math.round(w.saju / 5)).padEnd(20, '░')
+    console.log(`  ${w.wk}주차    ${String(w.saju).padStart(3)}     ${String(w.astro).padStart(3)}      ${w.days}일   ${sBar}`)
   }
-  // 슈퍼 타이밍 = 사주+점성 격차 작은 주
-  let bestW = 0
-  let bestDiff = 999
-  for (let i = 0; i < weeks.length; i++) {
-    const diff = Math.abs(weeks[i].saju - weeks[i].astro)
-    if (diff < bestDiff) { bestDiff = diff; bestW = i }
+
+  // 슈퍼 타이밍 = 사주+점성 둘 다 높고 가까운 주
+  let superW = weeks[0]
+  let superScore = 0
+  for (const w of weeks) {
+    const combined = (w.saju + w.astro) / 2 - Math.abs(w.saju - w.astro) * 0.3
+    if (combined > superScore) { superScore = combined; superW = w }
   }
-  console.log(`\n슈퍼 타이밍: ${bestW + 1}주차 (사주·점성 가장 강하게 교차)`)
+  console.log(`\n▸ 슈퍼 타이밍: ${superW.wk}주차 (사주·점성 가장 강하게 교차)`)
 }, 60000)

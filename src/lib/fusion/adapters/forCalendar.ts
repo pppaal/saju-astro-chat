@@ -149,26 +149,74 @@ function generateAdvice(crosses: ThemeTimingCross[]): { do: string[]; avoid: str
   }
 }
 
+const DOMAIN_KO: Record<string, string> = {
+  love: '관계·연애', money: '재물', career: '직업', family: '가정',
+  health: '건강', personality: '자기',
+}
+
+const DOMAIN_SITUATION: Record<string, { strong: string; weak: string }> = {
+  love:        { strong: '관계 진전·고백 등 결정에 우호적',  weak: '관계 갈등·이별 대화 보류' },
+  money:       { strong: '계약·투자 결정에 좋은 흐름',        weak: '큰 지출·서명은 미루는 게 안전' },
+  career:      { strong: '미팅·발표·중요 업무 추진 가능',     weak: '업무 강행보다 정리·복기에 집중' },
+  family:      { strong: '가족 모임·소통의 자리',              weak: '가족 갈등 표면화 피하기' },
+  health:      { strong: '운동·검진·식단 정비 시작 좋음',     weak: '무리한 활동·음주 피하고 회복 우선' },
+  personality: { strong: '자기 정비·새 시도에 우호',           weak: '결단 미루고 관찰 모드' },
+}
+
 function buildMonthNarrative(
   monthTone: CrossTone,
   monthlyDomains: Partial<Record<ThemeKey, number>>,
   bestDays: CalendarDay[],
+  cautionDays: CalendarDay[] = [],
 ): string {
   const sorted = Object.entries(monthlyDomains)
     .sort((a, b) => (b[1] as number) - (a[1] as number))
   const top = sorted[0]
   const weak = sorted[sorted.length - 1]
+  const topKo = DOMAIN_KO[top?.[0] ?? ''] ?? top?.[0] ?? ''
+  const weakKo = DOMAIN_KO[weak?.[0] ?? ''] ?? weak?.[0] ?? ''
   const toneText =
-    monthTone === 'strong-positive' ? '활발한 흐름'
-    : monthTone === 'positive'      ? '우호적'
-    : monthTone === 'mixed'         ? '양면성'
-    : monthTone === 'cautious'      ? '신중'
-    : monthTone === 'strong-negative' ? '주의 필요'
-    : '평이'
-  const bestText = bestDays.length > 0
-    ? ` 강한 날: ${bestDays.slice(0, 3).map((d) => `${d.date.slice(8)}일(${d.label})`).join(', ')}.`
-    : ''
-  return `이 달은 ${toneText} — ${top?.[0]} 영역 활성, ${weak?.[0]} 영역 약함.${bestText}`
+    monthTone === 'strong-positive' ? '활발한 흐름의'
+    : monthTone === 'positive'      ? '우호적인'
+    : monthTone === 'mixed'         ? '양면성이 큰'
+    : monthTone === 'cautious'      ? '신중이 필요한'
+    : monthTone === 'strong-negative' ? '주의가 필요한'
+    : '평이한'
+
+  const lines: string[] = []
+  // 1) 전체 흐름
+  lines.push(`이번 달은 ${toneText} 한 달입니다. 종합적으로 보면 ${topKo} 영역이 가장 활성되어 있고, ${weakKo} 영역은 상대적으로 약합니다.`)
+
+  // 2) 강한 영역 — 상황 조언
+  const topSit = DOMAIN_SITUATION[top?.[0] ?? '']?.strong
+  if (topSit) lines.push(`${topKo}: ${topSit}.`)
+
+  // 3) 약한 영역 — 주의
+  const weakSit = DOMAIN_SITUATION[weak?.[0] ?? '']?.weak
+  if (weakSit) lines.push(`${weakKo}: ${weakSit}.`)
+
+  // 4) 강한 날
+  if (bestDays.length > 0) {
+    const bestText = bestDays.slice(0, 3).map((d) => `${d.date.slice(8)}일(${d.score}점, ${d.label})`).join(', ')
+    lines.push(`강하게 살아나는 날: ${bestText}. 중요한 결정은 이 시기에 묶어두는 것이 유리합니다.`)
+  }
+
+  // 5) 주의 날
+  if (cautionDays.length > 0) {
+    const cautionText = cautionDays.slice(0, 3).map((d) => `${d.date.slice(8)}일(${d.score}점)`).join(', ')
+    lines.push(`반대로 ${cautionText} 같은 날은 신중하게 — 큰 결정은 미루고 회복·정리에 집중하세요.`)
+  }
+
+  // 6) 전반적 가이드
+  if (monthTone === 'cautious' || monthTone === 'strong-negative') {
+    lines.push('전반적으로 무리하기보다 페이스 조절이 핵심입니다. 흐름을 거스르지 않는 것이 이번 달 운기 활용의 요령입니다.')
+  } else if (monthTone === 'positive' || monthTone === 'strong-positive') {
+    lines.push('흐름이 좋을 때 미루던 일들을 정리해두면, 다음 달까지 동력이 이어집니다.')
+  } else {
+    lines.push('큰 변화보다는 일상의 리듬을 가다듬는 데 좋은 시기입니다.')
+  }
+
+  return lines.join(' ')
 }
 
 // ============================================================
@@ -357,7 +405,7 @@ export async function buildCalendarMonth(
   // monthScore: days[] domainScores 가 이미 expanded — 평균이 곧 expanded 값
   const monthScore = (Object.values(monthlyDomains) as number[]).reduce((a, b) => a + b, 0) / CORE_THEMES.length
   const monthTone = aggregateTone(days.map((d) => d.tone))
-  const monthNarrative = buildMonthNarrative(monthTone, monthlyDomains, bestDays)
+  const monthNarrative = buildMonthNarrative(monthTone, monthlyDomains, bestDays, cautionDays)
   // 월 grade = days 의 평균 grade
   const monthScore100 = Math.round(monthScore * 100)
   const monthGrade: DayGrade =
