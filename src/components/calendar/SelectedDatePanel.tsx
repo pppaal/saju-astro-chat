@@ -402,7 +402,19 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         ? '\uC77C\uC8FC (\uC624\uB298\uC758 \uD575\uC2EC \uAE30\uC6B4)'
         : 'Day Pillar (today core energy)',
   }
-  const displayScore = selectedDate?.displayScore ?? selectedDate?.score ?? 0
+  const displayScore = dateDetail?.fusion?.overallScore ?? selectedDate?.displayScore ?? selectedDate?.score ?? 0
+  // fusion 사람말 신호 (있으면 우선)
+  const fusionSignal = dateDetail?.fusion
+    ? (() => {
+        const { sajuAxisScore: s, astroAxisScore: a, agreement, confidence, overallScore } = dateDetail.fusion
+        if (agreement < 55) return confidence > 40 ? '⚠ 사주와 점성이 갈립니다 — 분별 필요' : '신호가 흐릿한 날'
+        if (overallScore >= 70 && confidence >= 45) return '★ 강한 길일 — 사주·점성 모두 우호'
+        if (overallScore >= 60) return '잔잔하게 우호적인 흐름'
+        if (overallScore <= 30 && confidence >= 45) return '⚠ 주의일 — 사주·점성 모두 신중'
+        if (overallScore <= 40) return '조금 부담되는 결'
+        return '평이한 흐름'
+      })()
+    : null
   const displayGrade = selectedDate?.displayGrade ?? getDisplayGradeFromScore(displayScore)
   const reliabilityBand = getReliabilityBand(selectedDate?.evidence?.confidence)
   const isLowReliability = reliabilityBand === 'low'
@@ -1227,14 +1239,29 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 직관적으로 보여주는 게 우리 차별점. 두 막대를 위아래로
                 나란히 두면 사용자가 "한쪽만 좋은 날"인지 "둘 다 좋은
                 날"인지 한눈에 판단. */}
-            {selectedDate?.scoreBreakdown?.sajuAxis !== undefined &&
-              selectedDate?.scoreBreakdown?.astroAxis !== undefined && (
+            {/* fusion 사람말 칩 (fusion 있을 때만) */}
+            {fusionSignal && (
+              <div style={{
+                marginTop: 8, padding: '6px 12px', borderRadius: 999,
+                background: 'rgba(99,102,241,0.12)', color: '#a5b4fc',
+                fontSize: '0.85em', display: 'inline-block',
+              }}>
+                {fusionSignal}
+                {dateDetail?.fusion && (
+                  <span style={{ marginLeft: 8, opacity: 0.7 }}>
+                    · 일치도 {dateDetail.fusion.agreement}% · 확신도 {dateDetail.fusion.confidence}%
+                  </span>
+                )}
+              </div>
+            )}
+            {(dateDetail?.fusion || (selectedDate?.scoreBreakdown?.sajuAxis !== undefined &&
+              selectedDate?.scoreBreakdown?.astroAxis !== undefined)) && (
                 <div style={{ marginTop: 10, fontSize: '0.86em' }}>
                   {(['saju', 'astro'] as const).map((axis) => {
                     const v =
                       axis === 'saju'
-                        ? selectedDate!.scoreBreakdown!.sajuAxis!
-                        : selectedDate!.scoreBreakdown!.astroAxis!
+                        ? (dateDetail?.fusion?.sajuAxisScore ?? selectedDate!.scoreBreakdown!.sajuAxis!)
+                        : (dateDetail?.fusion?.astroAxisScore ?? selectedDate!.scoreBreakdown!.astroAxis!)
                     const label = axis === 'saju' ? '📍 사주' : '⭐ 점성'
                     const tone =
                       v >= 65
@@ -1272,7 +1299,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                       </div>
                     )
                   })}
-                  {selectedDate.scoreBreakdown.axisAgreement && (
+                  {selectedDate?.scoreBreakdown?.axisAgreement && (
                     <p
                       style={{
                         marginTop: 6,
@@ -1289,6 +1316,72 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                   )}
                 </div>
               )}
+
+            {/* ── fusion 4 테마 막대 (love · money · career · health) ── */}
+            {dateDetail?.fusion?.domainScores && (
+              <div style={{ marginTop: 12, fontSize: '0.86em' }}>
+                <div style={{ marginBottom: 6, opacity: 0.75 }}>핵심 4 영역</div>
+                {([
+                  ['love', '관계·연애'],
+                  ['money', '재물'],
+                  ['career', '직업'],
+                  ['health', '건강'],
+                ] as const).map(([key, label]) => {
+                  const v = dateDetail.fusion!.domainScores[key] ?? 50
+                  const tone =
+                    v >= 70 ? '#86efac' : v >= 55 ? '#93c5fd' : v >= 40 ? '#cbd5e1' : '#fca5a5'
+                  return (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                      <span style={{ minWidth: 70, opacity: 0.85 }}>{label}</span>
+                      <div style={{ flex: 1, height: 8, background: 'rgba(148,163,184,0.15)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ width: `${v}%`, height: '100%', background: tone, transition: 'width 0.3s ease' }} />
+                      </div>
+                      <strong style={{ minWidth: 28, textAlign: 'right', color: tone }}>{v}</strong>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* ── fusion BEST 4 / WORST 2 시간 ── */}
+            {dateDetail?.fusion?.hourly && (dateDetail.fusion.hourly.bestHours.length > 0 || dateDetail.fusion.hourly.worstHours.length > 0) && (
+              <div style={{ marginTop: 12, fontSize: '0.85em' }}>
+                {dateDetail.fusion.hourly.bestHours.length > 0 && (
+                  <div>
+                    <div style={{ color: '#4ade80', marginBottom: 4 }}>↑ 좋은 시간 (BEST)</div>
+                    {dateDetail.fusion.hourly.bestHours.slice(0, 4).map((s) => {
+                      const ampm = s.hour === 0 ? '자정 0시' : s.hour < 12 ? `오전 ${s.hour}시`
+                        : s.hour === 12 ? '정오 12시' : `오후 ${s.hour - 12}시`
+                      return (
+                        <div key={s.hour} style={{ display: 'flex', gap: 8, opacity: 0.85, marginTop: 2 }}>
+                          <span style={{ minWidth: 70 }}>{ampm}</span>
+                          <span style={{ minWidth: 36, color: '#86efac' }}>{s.score}점</span>
+                          {s.hourPillar && <span style={{ opacity: 0.7 }}>시주 {s.hourPillar}</span>}
+                          {s.planetaryHour && <span style={{ opacity: 0.7 }}>· {s.planetaryHour}</span>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                {dateDetail.fusion.hourly.worstHours.length > 0 && (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ color: '#fca5a5', marginBottom: 4 }}>↓ 주의 시간 (WORST)</div>
+                    {dateDetail.fusion.hourly.worstHours.slice(0, 2).map((s) => {
+                      const ampm = s.hour === 0 ? '자정 0시' : s.hour < 12 ? `오전 ${s.hour}시`
+                        : s.hour === 12 ? '정오 12시' : `오후 ${s.hour - 12}시`
+                      return (
+                        <div key={s.hour} style={{ display: 'flex', gap: 8, opacity: 0.85, marginTop: 2 }}>
+                          <span style={{ minWidth: 70 }}>{ampm}</span>
+                          <span style={{ minWidth: 36, color: '#fca5a5' }}>{s.score}점</span>
+                          {s.hourPillar && <span style={{ opacity: 0.7 }}>시주 {s.hourPillar}</span>}
+                          {s.planetaryHour && <span style={{ opacity: 0.7 }}>· {s.planetaryHour}</span>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {plainReading && (
               <p
