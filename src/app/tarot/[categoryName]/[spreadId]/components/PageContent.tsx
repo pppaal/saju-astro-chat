@@ -173,6 +173,7 @@ export function PageContent(props: PageContentProps) {
       isSpreading={props.isSpreading}
       handleCardClick={props.handleCardClick}
       handleRedraw={props.handleRedraw}
+      userTopic={props.userTopic}
     />
   )
 }

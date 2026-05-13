@@ -4,7 +4,6 @@ import React from 'react'
 import type { DeckStyle } from '@/lib/tarot/tarot.types'
 import type { ReadingResult, InterpretationResult } from '../../types'
 import { DetailedCardItem } from './DetailedCardItem'
-import styles from '../../tarot-reading.module.css'
 
 interface DetailedCardsSectionProps {
   readingResult: ReadingResult
@@ -29,17 +28,25 @@ export function DetailedCardsSection({
     return null
   }
 
+  const isKo = language === 'ko'
+
   return (
-    <div className={styles.detailedCardsSection} ref={detailedSectionRef}>
-      <h2 className={styles.detailedSectionTitle}>
-        {translate('tarot.results.detailedReadings', '질문 기준 카드 해석')}
-      </h2>
-      <div className={styles.resultsGrid}>
+    <section ref={detailedSectionRef} className="space-y-4">
+      <div className="flex items-center gap-2">
+        <h2 className="text-sm font-medium text-indigo-300 tracking-wider uppercase">
+          {translate(
+            'tarot.results.detailedReadings',
+            isKo ? '카드별 해석' : 'Per-Card Reading'
+          )}
+        </h2>
+        <div className="flex-1 h-px bg-gradient-to-r from-indigo-500/30 to-transparent" />
+      </div>
+      <div className="grid grid-cols-1 gap-4">
         {readingResult.drawnCards.map((drawnCard, index) => {
           const position = readingResult.spread.positions[index]
           const positionTitle =
-            (language === 'ko' ? position?.titleKo || position?.title : position?.title) ||
-            (language === 'ko' ? `카드 ${index + 1}` : `Card ${index + 1}`)
+            (isKo ? position?.titleKo || position?.title : position?.title) ||
+            (isKo ? `카드 ${index + 1}` : `Card ${index + 1}`)
           const cardInsight = interpretation?.card_insights?.[index]
 
           return (
@@ -56,6 +63,6 @@ export function DetailedCardsSection({
           )
         })}
       </div>
-    </div>
+    </section>
   )
 }
