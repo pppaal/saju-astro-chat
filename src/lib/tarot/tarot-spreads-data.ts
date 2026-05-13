@@ -54,6 +54,29 @@ export const tarotThemes: TarotTheme[] = [
           { title: 'The Outcome', titleKo: '결과' },
         ],
       },
+      {
+        id: 'clock-spread',
+        title: 'Clock Spread (Year Ahead)',
+        titleKo: '시계 스프레드 (12개월 운세)',
+        cardCount: 12,
+        description:
+          'A card for each of the twelve months ahead — the monthly flow of the year to come.',
+        descriptionKo: '앞으로 1년, 매달의 흐름을 한눈에 살펴봐요.',
+        positions: [
+          { title: 'January', titleKo: '1월' },
+          { title: 'February', titleKo: '2월' },
+          { title: 'March', titleKo: '3월' },
+          { title: 'April', titleKo: '4월' },
+          { title: 'May', titleKo: '5월' },
+          { title: 'June', titleKo: '6월' },
+          { title: 'July', titleKo: '7월' },
+          { title: 'August', titleKo: '8월' },
+          { title: 'September', titleKo: '9월' },
+          { title: 'October', titleKo: '10월' },
+          { title: 'November', titleKo: '11월' },
+          { title: 'December', titleKo: '12월' },
+        ],
+      },
     ],
   },
   {
@@ -420,6 +443,24 @@ export const tarotThemes: TarotTheme[] = [
           { title: 'Key Action to Unlock Timing', titleKo: '해야 할 행동' },
         ],
       },
+      {
+        id: 'horseshoe',
+        title: 'Horseshoe Spread',
+        titleKo: '말굽 스프레드',
+        cardCount: 7,
+        description:
+          'A seven-card arc for problem-solving: past, present, hidden influences, obstacles, environment, advice, and the final outcome.',
+        descriptionKo: '문제 해결의 열쇠 — 과거·현재·숨은 영향·장애물·주변 환경·조언·최종 결과까지 짚어봐요.',
+        positions: [
+          { title: 'The Past', titleKo: '과거' },
+          { title: 'The Present', titleKo: '현재' },
+          { title: 'Hidden Influences', titleKo: '숨겨진 영향' },
+          { title: 'Obstacles', titleKo: '장애물' },
+          { title: 'Surrounding Environment', titleKo: '주변 환경' },
+          { title: 'Advice', titleKo: '조언' },
+          { title: 'Final Outcome', titleKo: '최종 결과' },
+        ],
+      },
     ],
   },
   {
@@ -429,6 +470,22 @@ export const tarotThemes: TarotTheme[] = [
     description: 'Deeper inner work beyond the day-to-day.',
     descriptionKo: '나에 대해 더 깊이 알아봐요.',
     spreads: [
+      {
+        id: 'johari-window',
+        title: "Johari Window",
+        titleKo: '조하리의 창',
+        cardCount: 4,
+        description:
+          'Four windows onto the self — open (known to you and others), blind (others see but you don\'t), hidden (you know but keep), unknown (yet to surface).',
+        descriptionKo:
+          '네 개의 창으로 본 나 — 공개 영역(나도 남도 아는 나) · 맹점 영역(남만 아는 나) · 숨겨진 영역(나만 아는 나) · 미지 영역(아직 드러나지 않은 나).',
+        positions: [
+          { title: 'Open Self', titleKo: '공개 영역 — 나도 남도 아는 나' },
+          { title: 'Blind Self', titleKo: '맹점 영역 — 남만 보는 나' },
+          { title: 'Hidden Self', titleKo: '숨겨진 영역 — 나만 아는 나' },
+          { title: 'Unknown Self', titleKo: '미지 영역 — 아직 드러나지 않은 나' },
+        ],
+      },
       {
         id: 'identity-core',
         title: 'Identity Core',
