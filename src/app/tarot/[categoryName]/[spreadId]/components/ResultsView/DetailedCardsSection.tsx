@@ -29,6 +29,9 @@ export function DetailedCardsSection({
   }
 
   const isKo = language === 'ko'
+  // AI 해석 대기 중 — useTarotGame 가 카드 펼치는 동안 임시 fallback insight 를 채우고
+  // 이후 LLM 응답이 오면 fallback=false 로 바뀜.
+  const aiPending = interpretation?.fallback === true
 
   return (
     <section ref={detailedSectionRef} className="space-y-4">
@@ -63,6 +66,7 @@ export function DetailedCardsSection({
               language={language}
               selectedDeckStyle={selectedDeckStyle}
               translate={translate}
+              aiPending={aiPending}
             />
           )
         })}

@@ -32,6 +32,8 @@ export default function TarotChatScreen() {
   const [question, setQuestion] = useState('')
   const [selectedDeck, setSelectedDeck] = useState<DeckStyle>(DEFAULT_DECK)
   const [selectedSpread, setSelectedSpread] = useState(DEFAULT_SPREAD)
+  const [includeSaju, setIncludeSaju] = useState(true)
+  const [includeAstrology, setIncludeAstrology] = useState(true)
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false)
   const [isSpreadModalOpen, setIsSpreadModalOpen] = useState(false)
   const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
@@ -41,11 +43,22 @@ export default function TarotChatScreen() {
     textareaRef.current?.focus()
   }, [])
 
+  // 덱 모달 열릴 때 1초 lag 해결 — 페이지 로드 직후 6개 덱 backImage 를 미리 prefetch
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    DECK_STYLES.forEach((id) => {
+      const img = new window.Image()
+      img.src = DECK_STYLE_INFO[id].backImage
+    })
+  }, [])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!question.trim()) return
     const q = encodeURIComponent(question.trim())
-    const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?topic=${q}&deck=${selectedDeck}`
+    const sajuQ = includeSaju ? '' : '&saju=0'
+    const astroQ = includeAstrology ? '' : '&astro=0'
+    const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?topic=${q}&deck=${selectedDeck}${sajuQ}${astroQ}`
     router.push(path)
   }
 
@@ -108,6 +121,37 @@ export default function TarotChatScreen() {
                 {spreadTitle} ({selectedSpread.spread.cardCount})
               </span>
               <ChevronRight className="w-3.5 h-3.5 opacity-50" />
+            </button>
+
+            {/* 사주·점성 추가 토글 — 로그인+생년월일 있는 유저면 cross 해석 */}
+            <button
+              type="button"
+              onClick={() => setIncludeSaju((v) => !v)}
+              aria-pressed={includeSaju}
+              title={isKo ? '사주 컨텍스트 추가' : 'Include Saju context'}
+              className={`flex items-center gap-1 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
+                includeSaju
+                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+                  : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              <span className="text-sm leading-none">☯</span>
+              {isKo ? '사주' : 'Saju'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIncludeAstrology((v) => !v)}
+              aria-pressed={includeAstrology}
+              title={isKo ? '점성 컨텍스트 추가' : 'Include Astrology context'}
+              className={`flex items-center gap-1 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
+                includeAstrology
+                  ? 'bg-violet-500/15 border-violet-500/40 text-violet-200'
+                  : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              <span className="text-sm leading-none">🌟</span>
+              {isKo ? '점성' : 'Astro'}
             </button>
           </div>
 
@@ -187,6 +231,8 @@ export default function TarotChatScreen() {
                           fill
                           sizes="(max-width: 768px) 30vw, 15vw"
                           className="object-cover"
+                          priority
+                          loading="eager"
                         />
                       </div>
                       <span

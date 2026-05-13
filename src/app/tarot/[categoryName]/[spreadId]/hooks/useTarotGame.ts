@@ -136,6 +136,9 @@ export function useTarotGame(): UseTarotGameReturn {
   const questionFromUrl = searchParams?.get('question') || ''
   const analysisKeyFromUrl = searchParams?.get('analysisKey') || ''
   const restoreKeyFromUrl = searchParams?.get('restoreKey') || ''
+  const deckFromUrl = searchParams?.get('deck') || ''
+  const sajuFromUrl = searchParams?.get('saju')
+  const astroFromUrl = searchParams?.get('astro')
 
   // Game state
   const [gameState, setGameState] = useState<GameState>('loading')
@@ -156,6 +159,16 @@ export function useTarotGame(): UseTarotGameReturn {
   const [isSpreading, setIsSpreading] = useState(false)
   const [personalizationOptions, setPersonalizationOptions] = useState<TarotPersonalizationOptions>(
     () => {
+      // URL ?saju=0&astro=0 가 명시되면 URL 우선; 아니면 localStorage; 둘 다 없으면 기본 ON.
+      const fromUrl = (() => {
+        if (sajuFromUrl === null && astroFromUrl === null) return null
+        return {
+          includeSaju: sajuFromUrl !== '0',
+          includeAstrology: astroFromUrl !== '0',
+        }
+      })()
+      if (fromUrl) return fromUrl
+
       if (typeof window === 'undefined') {
         return { includeSaju: true, includeAstrology: true }
       }
@@ -192,8 +205,18 @@ export function useTarotGame(): UseTarotGameReturn {
 
     if (spread) {
       setSpreadInfo(spread)
+      // 우선순위: URL ?deck= > localStorage 저장값
       let preferred: DeckStyle | null = null
-      if (typeof window !== 'undefined') {
+      if (deckFromUrl && CARD_COLORS.some((c) => c.id === deckFromUrl)) {
+        preferred = deckFromUrl as DeckStyle
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(TAROT_DECK_PREF_KEY, deckFromUrl)
+          } catch {
+            // ignore
+          }
+        }
+      } else if (typeof window !== 'undefined') {
         try {
           const saved = localStorage.getItem(TAROT_DECK_PREF_KEY) as DeckStyle | null
           if (saved && CARD_COLORS.some((c) => c.id === saved)) {
