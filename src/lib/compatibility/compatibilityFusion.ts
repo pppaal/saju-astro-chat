@@ -84,9 +84,26 @@ function buildFusionCacheKey(
   p2Saju: SajuProfile,
   p2Astro: AstrologyProfile
 ): string {
-  const p1Key = `${p1Saju.dayMaster.name}:${p1Saju.dayMaster.yin_yang}:${p1Astro.sun.sign}:${p1Astro.moon.sign}`
-  const p2Key = `${p2Saju.dayMaster.name}:${p2Saju.dayMaster.yin_yang}:${p2Astro.sun.sign}:${p2Astro.moon.sign}`
-  return `${p1Key}|${p2Key}`
+  // Fusion analysis reads 4 pillars + element distribution from saju and
+  // 5 placements (sun/moon/venus/mars/asc) from astro per person. Earlier
+  // versions of this key only captured dayMaster + sun + moon, which let
+  // unrelated couples sharing those four dimensions collide on the
+  // 30-minute cache and receive each other's results.
+  const sajuKey = (s: SajuProfile) => {
+    const p = s.pillars
+    return [
+      s.dayMaster.name,
+      s.dayMaster.yin_yang,
+      `${p.year.stem}${p.year.branch}`,
+      `${p.month.stem}${p.month.branch}`,
+      `${p.day.stem}${p.day.branch}`,
+      `${p.time.stem}${p.time.branch}`,
+      `${s.elements.wood}/${s.elements.fire}/${s.elements.earth}/${s.elements.metal}/${s.elements.water}`,
+    ].join('|')
+  }
+  const astroKey = (a: AstrologyProfile) =>
+    [a.sun.sign, a.moon.sign, a.venus.sign, a.mars.sign, a.ascendant?.sign || '_'].join('|')
+  return `${sajuKey(p1Saju)}::${astroKey(p1Astro)}__${sajuKey(p2Saju)}::${astroKey(p2Astro)}`
 }
 
 function cleanupFusionCache() {
@@ -421,9 +438,7 @@ function analyzeRelationshipDynamics(
   // instead of binary 50/75/100 from element-only matching.
   const vm1 = aspectStrengthScore(signDistance(p1Astro.venus.sign, p2Astro.mars.sign))
   const vm2 = aspectStrengthScore(signDistance(p2Astro.venus.sign, p1Astro.mars.sign))
-  const venusElementBonus = elementsCompatible(p1Astro.venus.element, p2Astro.venus.element)
-    ? 8
-    : 0
+  const venusElementBonus = elementsCompatible(p1Astro.venus.element, p2Astro.venus.element) ? 8 : 0
   const emotionalIntensity = Math.min(100, Math.max(vm1, vm2) + venusElementBonus)
 
   // Intellectual Alignment — Mercury synastry + Sun-Mercury cross

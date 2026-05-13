@@ -11,6 +11,15 @@ interface PersonData {
   longitude?: number | null
   timeZone?: string
   relation?: string
+  gender?: 'M' | 'F' | 'Male' | 'Female'
+}
+
+function normaliseGender(g?: string): 'female' | 'male' | undefined {
+  if (!g) return undefined
+  const v = g.toLowerCase()
+  if (v === 'female' || v === 'f') return 'female'
+  if (v === 'male' || v === 'm') return 'male'
+  return undefined
 }
 
 interface ActionButtonsProps {
@@ -37,6 +46,7 @@ export const ActionButtons = React.memo<ActionButtonsProps>(({ persons, resultTe
               longitude: p.longitude,
               timeZone: p.timeZone,
               relation: p.relation,
+              gender: normaliseGender(p.gender),
             }))
             router.push(
               `/compatibility/insights?persons=${encodeURIComponent(JSON.stringify(personsData))}`
@@ -55,7 +65,7 @@ export const ActionButtons = React.memo<ActionButtonsProps>(({ persons, resultTe
         className={styles.actionButton}
         onClick={() =>
           router.push(
-            `/compatibility/chat?persons=${encodeURIComponent(JSON.stringify(persons.map((p) => ({ name: p.name, date: p.date, time: p.time, city: p.cityQuery, relation: p.relation }))))}&result=${encodeURIComponent(resultText || '')}`
+            `/compatibility/chat?persons=${encodeURIComponent(JSON.stringify(persons.map((p) => ({ name: p.name, date: p.date, time: p.time, city: p.cityQuery, relation: p.relation, gender: normaliseGender(p.gender) }))))}&result=${encodeURIComponent(resultText || '')}`
           )
         }
       >
@@ -78,6 +88,7 @@ export const ActionButtons = React.memo<ActionButtonsProps>(({ persons, resultTe
             longitude: p.longitude,
             timeZone: p.timeZone,
             relation: p.relation,
+            gender: normaliseGender(p.gender),
           }))
           router.push(
             `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(personsData))}`

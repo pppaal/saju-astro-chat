@@ -490,6 +490,35 @@ export async function POST(req: NextRequest) {
     // 공통 voice (counselorVoiceBase) + 궁합 카운슬러에만 해당하는 도메인 규칙.
     const counselorLang: CounselorLang = lang === 'ko' ? 'ko' : 'en'
     const voice = counselorVoiceBase(counselorLang)
+
+    // Surface seed-level data gaps so the model knows which axes were
+    // auto-defaulted (Seoul / 12:00 / male / etc.) and can hedge instead
+    // of confidently reading a fake chart.
+    const defaultedAxes = (
+      [
+        ['person1', person1Seed?.source],
+        ['person2', person2Seed?.source],
+      ] as const
+    )
+      .flatMap(([who, src]) => {
+        if (!src) return []
+        const axes: string[] = []
+        if (src.usedDefaultLocation) axes.push(`${who}:city`)
+        if (src.usedDefaultTimezone) axes.push(`${who}:timezone`)
+        if (src.usedDefaultGender) axes.push(`${who}:gender`)
+        return axes
+      })
+      .concat(completenessMissing)
+
+    const dataHedgeKo =
+      defaultedAxes.length > 0
+        ? `\n[데이터 결손 경고]\n- 다음 축은 디폴트값으로 채워졌거나 누락됨: ${defaultedAxes.join(', ')}.\n- 해당 축에 의존하는 결론(점성 하우스/일주 시간 의존 셀/성별 의존 십성 등)은 *단정하지 말고* 한계를 명시하거나 사용자에게 정확한 값 입력을 요청한다.`
+        : ''
+    const dataHedgeEn =
+      defaultedAxes.length > 0
+        ? `\n[Data gap warning]\n- These axes were auto-defaulted or are missing: ${defaultedAxes.join(', ')}.\n- Do NOT state conclusions that rely on those axes (astrology houses, time-dependent day pillar cells, gender-dependent sibsin, etc.) as fact — flag the limit or ask the user for the missing value.`
+        : ''
+
     const systemPrompt =
       counselorLang === 'ko'
         ? [
@@ -502,7 +531,10 @@ export async function POST(req: NextRequest) {
             '- 시기 데이터(대운·세운·트랜짓)가 있을 땐 "지금 어느 시기에 있는가"가 진단을 바꾸는 축이다.',
             '- 두 사람이 함께 결정해야 하는 일(이사·결혼·창업)에 caution 신호가 잡히면 *비가역 행동을 미루는 결*로 마무리.',
             '- 궁합은 *고정 점수*가 아니라 *시기와 자세에 따라 바뀌는 결*이라는 톤을 유지.',
-          ].join('\n')
+            dataHedgeKo,
+          ]
+            .filter(Boolean)
+            .join('\n')
         : [
             voice,
             '',
@@ -513,7 +545,10 @@ export async function POST(req: NextRequest) {
             '- When timing data (daeun / seun / transits) is present, *which season they are in* is the axis that changes the read.',
             '- For joint irreversible decisions (move-in, marriage, business) with caution flags, end on *deferring the irreversible*.',
             '- Hold the line that compatibility is not a *fixed score* — it is a flow that shifts with timing and posture.',
-          ].join('\n')
+            dataHedgeEn,
+          ]
+            .filter(Boolean)
+            .join('\n')
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:
     //  - cachedUserContext: 두 사람의 차트 + 사주/점성/시기 분석 + 가이드 (안정)
