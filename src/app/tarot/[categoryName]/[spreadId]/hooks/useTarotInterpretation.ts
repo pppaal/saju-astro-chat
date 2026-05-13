@@ -429,6 +429,87 @@ export function useTarotInterpretation({
         }
       }
 
+      // ───────────────────────────────────────────────────────────────────
+      // Fusion (사주 + 점성 cross) 컨텍스트 — 우리 fusion 엔진이 오늘자 18테마
+      // 점수와 트랜짓을 이미 계산하므로, 그 결과를 LLM에 컴팩트하게 넘겨
+      // 카드 해석을 *오늘의 사주·점성 흐름*에 자동 cross 시킨다.
+      // ───────────────────────────────────────────────────────────────────
+      let astroContext: string | undefined
+      if (birthdate && (includeSaju || includeAstrology)) {
+        try {
+          const today = new Date()
+          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+          const detailResp = await apiFetch(
+            `/api/calendar/date-detail?birthDate=${encodeURIComponent(birthdate)}&date=${todayStr}`
+          )
+          if (detailResp.ok) {
+            const detailPayload = (await detailResp.json()) as Record<string, unknown>
+            const detail =
+              typeof detailPayload.data === 'object' && detailPayload.data
+                ? (detailPayload.data as Record<string, unknown>)
+                : detailPayload
+            const fusion = (detail.fusion as Record<string, unknown> | undefined) || {}
+            const transit = (detail.transit as Record<string, unknown> | undefined) || {}
+            const natalContext =
+              (detail.natalContext as Record<string, unknown> | undefined) || {}
+            const yongsin =
+              ((natalContext.yongsin as Record<string, unknown> | undefined)?.primary as
+                | string
+                | undefined) || undefined
+
+            const sajuAxisScore = typeof fusion.sajuAxisScore === 'number' ? fusion.sajuAxisScore : undefined
+            const astroAxisScore = typeof fusion.astroAxisScore === 'number' ? fusion.astroAxisScore : undefined
+            const domainScores = (fusion.domainScores as Record<string, number> | undefined) || {}
+            const topDomains = Object.entries(domainScores)
+              .sort(([, a], [, b]) => b - a)
+              .slice(0, 3)
+              .map(([k, v]) => `${k} ${Math.round(v)}`)
+              .join(' · ')
+
+            // sajuContext 풍부화 — 기존 4기둥에 오늘 점수 + 용신 + top 도메인 추가
+            if (includeSaju && sajuContext) {
+              const extra: string[] = []
+              if (sajuAxisScore !== undefined) extra.push(isKorean ? `오늘 사주축 점수: ${sajuAxisScore}` : `Today saju axis: ${sajuAxisScore}`)
+              if (yongsin) extra.push(isKorean ? `용신: ${yongsin}` : `Favorable element: ${yongsin}`)
+              if (topDomains) extra.push(isKorean ? `오늘 강한 영역: ${topDomains}` : `Top domains today: ${topDomains}`)
+              if (extra.length > 0) sajuContext = `${sajuContext}\n${extra.join(' · ')}`
+            }
+
+            // astroContext 신규 빌드 — 오늘 점성축 점수 + 트랜짓 요약 + 역행
+            if (includeAstrology) {
+              const lines: string[] = []
+              if (astroAxisScore !== undefined) {
+                lines.push(isKorean ? `점성: 오늘 점성축 점수 ${astroAxisScore}` : `Astrology: today's axis ${astroAxisScore}`)
+              }
+              const aspects = transit.aspects as Array<Record<string, unknown>> | undefined
+              if (aspects && aspects.length > 0) {
+                const top = aspects
+                  .slice(0, 3)
+                  .map((a) => {
+                    const tp = String(a.transitPlanet || '')
+                    const np = String(a.natalPoint || '')
+                    const ty = String(a.aspect || '')
+                    const orb = typeof a.orb === 'number' ? a.orb.toFixed(1) : ''
+                    return `${tp} ${ty} natal ${np}${orb ? ` (orb ${orb}°)` : ''}`
+                  })
+                  .join(' · ')
+                lines.push(isKorean ? `오늘 트랜짓: ${top}` : `Today transits: ${top}`)
+              }
+              const retros = transit.retrogrades as string[] | undefined
+              if (retros && retros.length > 0) {
+                lines.push(isKorean ? `역행 행성: ${retros.join(', ')}` : `Retrograde: ${retros.join(', ')}`)
+              }
+              if (lines.length > 0) astroContext = lines.join('\n')
+            }
+          }
+        } catch (fusionError) {
+          tarotLogger.error(
+            'Failed to load fusion context before tarot interpretation',
+            fusionError instanceof Error ? fusionError : undefined
+          )
+        }
+      }
+
       // 분석 결과에서 메타데이터 추출 — interpret 단계 재추론 비용 절감
       const questionMeta = questionAnalysis
         ? {
@@ -452,6 +533,7 @@ export function useTarotInterpretation({
         includeAstrology,
         includeSaju,
         sajuContext,
+        astroContext,
         questionContext: questionAnalysis || undefined,
         questionMeta,
       }
