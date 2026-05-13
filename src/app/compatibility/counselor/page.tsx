@@ -5,17 +5,13 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import ServicePageLayout from '@/components/ui/ServicePageLayout'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
+import BrandSplash from '@/components/branding/BrandSplash'
 import styles from '../chat/Chat.module.css'
 import { logger } from '@/lib/logger'
 
-// Loading fallback for Suspense
+// 단순 in-flow 로딩 — 브랜드 스플래시(로고)로 통일
 function CounselorLoading() {
-  return (
-    <div className={styles.loadingContainer}>
-      <div className={styles.loadingSpinner} />
-      <p>상담사 준비 중...</p>
-    </div>
-  )
+  return <BrandSplash message="상담사 준비 중..." />
 }
 
 type ChatMessage = {

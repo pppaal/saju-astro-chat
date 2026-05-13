@@ -1,12 +1,12 @@
 /**
  * Loading State Component
  *
- * 로딩 상태 UI
+ * Tarot 인터프리트 진행 중 등 in-flow 로딩 — 브랜드 스플래시(로고)로 통일.
  */
 
 'use client';
 
-import styles from '../tarot-reading.module.css';
+import BrandSplash from '@/components/branding/BrandSplash';
 
 interface LoadingStateProps {
   message: string;
@@ -14,11 +14,5 @@ interface LoadingStateProps {
 }
 
 export default function LoadingState({ message, submessage }: LoadingStateProps) {
-  return (
-    <div className={styles.loading}>
-      <div className={styles.loadingOrb}></div>
-      <p>{message}</p>
-      {submessage && <p className={styles.interpretingSubtext}>{submessage}</p>}
-    </div>
-  );
+  return <BrandSplash message={message} submessage={submessage} />;
 }

@@ -5,6 +5,8 @@ import HexDPLogo from './HexDPLogo'
 interface BrandSplashProps {
   /** Optional caption under the wordmark — defaults to "Loading…". */
   message?: string
+  /** Optional secondary line under the message. */
+  submessage?: string
   /** Pixel size of the hex badge. */
   size?: number
 }
@@ -16,7 +18,7 @@ interface BrandSplashProps {
  * glide bar underneath. Renders fixed-position so it covers the
  * viewport regardless of parent layout.
  */
-export default function BrandSplash({ message, size = 120 }: BrandSplashProps) {
+export default function BrandSplash({ message, submessage, size = 120 }: BrandSplashProps) {
   return (
     <main
       style={{
@@ -76,12 +78,32 @@ export default function BrandSplash({ message, size = 120 }: BrandSplashProps) {
             position: 'relative',
             zIndex: 1,
             margin: 0,
-            fontSize: '0.9rem',
-            color: 'rgba(220, 215, 255, 0.78)',
+            fontSize: '0.95rem',
+            color: 'rgba(232, 226, 255, 0.92)',
             letterSpacing: '0.02em',
+            textAlign: 'center',
+            maxWidth: '24rem',
           }}
         >
           {message}
+        </p>
+      )}
+
+      {submessage && (
+        <p
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            margin: 0,
+            marginTop: '-0.4rem',
+            fontSize: '0.8rem',
+            color: 'rgba(200, 195, 235, 0.65)',
+            letterSpacing: '0.01em',
+            textAlign: 'center',
+            maxWidth: '22rem',
+          }}
+        >
+          {submessage}
         </p>
       )}
 
