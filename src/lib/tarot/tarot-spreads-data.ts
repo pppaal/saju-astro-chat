@@ -20,6 +20,19 @@ export const tarotThemes: TarotTheme[] = [
         positions: [{ title: 'Core Insight', titleKo: '핵심' }],
       },
       {
+        id: 'situation-obstacle',
+        title: 'Situation & Obstacle',
+        titleKo: '상황과 장애물',
+        cardCount: 2,
+        description:
+          'A quick read on where you stand right now and the key obstacle to watch for.',
+        descriptionKo: '지금 내 상황과, 조심해야 할 한 가지를 빠르게 짚어봐요.',
+        positions: [
+          { title: 'Current Situation', titleKo: '현재 상황' },
+          { title: 'Key Obstacle', titleKo: '주의할 점' },
+        ],
+      },
+      {
         id: 'past-present-future',
         title: 'Past, Present, Future',
         titleKo: '과거, 현재, 미래',
@@ -31,6 +44,22 @@ export const tarotThemes: TarotTheme[] = [
           { title: 'The Past', titleKo: '과거' },
           { title: 'The Present', titleKo: '현재' },
           { title: 'The Future', titleKo: '미래' },
+        ],
+      },
+      {
+        id: 'general-cross',
+        title: 'Five-Card Cross',
+        titleKo: '5장 크로스',
+        cardCount: 5,
+        description:
+          'A balanced five-card spread covering the cause, the present, what lies ahead, the advice, and the likely outcome.',
+        descriptionKo: '원인 · 현재 · 앞으로 · 조언 · 결과 — 균형 잡힌 종합 리딩.',
+        positions: [
+          { title: 'Root Cause', titleKo: '원인' },
+          { title: 'The Present', titleKo: '현재' },
+          { title: 'What Lies Ahead', titleKo: '앞으로의 흐름' },
+          { title: 'Advice', titleKo: '조언' },
+          { title: 'Likely Outcome', titleKo: '결과' },
         ],
       },
       {
