@@ -112,7 +112,7 @@ export function ResultsStage(props: ResultsStageProps) {
           translate={translate}
         />
 
-        {/* ③ 전체 해석 — LLM overall_message (loading placeholder until ready) */}
+        {/* ③ 전체 해석 — LLM overall_message (스트리밍이면 부분 텍스트 + 타이핑 인디케이터) */}
         {(insight?.overall_message || aiPending) && (
           <section className="rounded-2xl bg-slate-900/50 border border-indigo-500/20 shadow-[0_0_24px_rgba(99,102,241,0.08)] p-5 md:p-6">
             <div className="flex items-center gap-2 mb-3">
@@ -120,10 +120,19 @@ export function ResultsStage(props: ResultsStageProps) {
               <h2 className="text-sm font-medium text-indigo-300 tracking-wider uppercase">
                 {isKo ? '전체 해석 (AI)' : 'Overall Reading (AI)'}
               </h2>
+              {aiPending && insight?.overall_message && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-[10px] text-indigo-200">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  {isKo ? '타이핑 중' : 'typing'}
+                </span>
+              )}
             </div>
             {insight?.overall_message ? (
               <p className="text-base md:text-[17px] text-slate-100 leading-relaxed whitespace-pre-wrap">
                 {insight.overall_message}
+                {aiPending && (
+                  <span className="inline-block w-1.5 h-4 ml-0.5 bg-indigo-300/80 align-middle animate-pulse" />
+                )}
               </p>
             ) : (
               <div className="flex items-center gap-2 text-sm text-indigo-200/80 py-2">
