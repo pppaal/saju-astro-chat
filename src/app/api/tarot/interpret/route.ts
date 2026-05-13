@@ -41,7 +41,6 @@ const MAX_CARD_MEANING_LENGTH = 500
 const OPENAI_TIMEOUT_MS = 40000
 const OPENAI_MAX_RETRIES = 1
 const LARGE_SPREAD_THRESHOLD = 8
-const LARGE_SPREAD_GPT_TIMEOUT_MS = 16000
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
@@ -416,22 +415,23 @@ type PromptBudget = {
 }
 
 function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
-  // Large spread (8+장): overall에 흐름 통합, cards 배열 생략
+  // Large spread (8+장): 2 chunks 병렬 — 각 chunk가 일부 카드만 담당하므로
+  // 6-7장 single-call 과 비슷한 per-card 분량을 유지한다.
   if (cardCount >= LARGE_SPREAD_THRESHOLD) {
     return isKorean
       ? {
-          overallGuide: '180-280자',
-          perCardGuide: '',
-          adviceGuide: '120-180자',
-          maxTokens: 900,
-          timeoutMs: LARGE_SPREAD_GPT_TIMEOUT_MS,
+          overallGuide: '320-480자',
+          perCardGuide: '140-220자',
+          adviceGuide: '140-200자',
+          maxTokens: 2400,
+          timeoutMs: 40000,
         }
       : {
-          overallGuide: '100-160 words',
-          perCardGuide: '',
-          adviceGuide: '60-90 words',
-          maxTokens: 900,
-          timeoutMs: LARGE_SPREAD_GPT_TIMEOUT_MS,
+          overallGuide: '180-260 words',
+          perCardGuide: '80-130 words',
+          adviceGuide: '90-130 words',
+          maxTokens: 2400,
+          timeoutMs: 40000,
         }
   }
 
@@ -526,7 +526,9 @@ type QuestionMetaShape = {
   questionType?: string
 }
 
-// LLM 통합형 타로 해석 (Claude 우선, GPT fallback) — 백엔드 RAG 실패 시 폴백
+// LLM 통합형 타로 해석 — Claude 우선, GPT fallback.
+// 8장 미만: 단일 호출.  8장 이상: 카드를 절반으로 나눠 2회 병렬 호출 (양쪽 모두 전체
+// 카드 리스트를 컨텍스트로 받아 일관성 유지) 후 card_insights 를 머지.
 async function generateGPTInterpretation(
   cards: CardInput[],
   spreadTitle: string,
@@ -540,7 +542,7 @@ async function generateGPTInterpretation(
   const isLargeSpread = cards.length >= LARGE_SPREAD_THRESHOLD
   const budget = getPromptBudget(cards.length, isKorean)
 
-  // 카드 정보 정리
+  // 전체 카드 정보 (양 chunk 모두 컨텍스트로 받음)
   const cardListText = cards
     .map((c, i) => {
       const name = isKorean && c.nameKo ? c.nameKo : c.name
@@ -553,7 +555,6 @@ async function generateGPTInterpretation(
   const q = userQuestion || (isKorean ? '일반 상담' : 'general reading')
   const compactSaju = truncatePromptContext(sajuContext)
   const compactAstro = truncatePromptContext(astroContext)
-  // 사주·점성 컨텍스트는 *별도 블록*으로 분리 (옛: 질문에 dump → 새: structured section)
   const sajuBlock = compactSaju
     ? isKorean
       ? `\n## 사주 컨텍스트\n${compactSaju}`
@@ -566,52 +567,50 @@ async function generateGPTInterpretation(
     : ''
   const hasContext = Boolean(sajuBlock || astroBlock)
 
-  const cardExamples = isLargeSpread
-    ? ''
-    : cards
-        .map((c, i) => {
-          const pos = isKorean && c.positionKo ? c.positionKo : c.position
-          const ordinal = isKorean
-            ? `${i + 1}번째`
-            : i === 0
-              ? 'First'
-              : i === 1
-                ? 'Second'
-                : i === 2
-                  ? 'Third'
-                  : `${i + 1}th`
-          return isKorean
-            ? `    {
+  // chunk 별 카드 예시 + JSON 스키마 빌더
+  const buildChunkSchemas = (chunkStart: number, chunkEnd: number, includeMeta: boolean) => {
+    const chunkCards = cards.slice(chunkStart, chunkEnd)
+    const cardExamples = chunkCards
+      .map((c, j) => {
+        const i = chunkStart + j
+        const pos = isKorean && c.positionKo ? c.positionKo : c.position
+        const ordinal = isKorean
+          ? `${i + 1}번째`
+          : i === 0
+            ? 'First'
+            : i === 1
+              ? 'Second'
+              : i === 2
+                ? 'Third'
+                : `${i + 1}th`
+        return isKorean
+          ? `    {
       "position": "${pos}",
       "interpretation": "${ordinal} 카드 해석 (${budget.perCardGuide})"
     }`
-            : `    {
+          : `    {
       "position": "${pos}",
       "interpretation": "${ordinal} card interpretation (${budget.perCardGuide})"
     }`
-        })
-        .join(',\n')
+      })
+      .join(',\n')
 
-  const outputSchemaKo = isLargeSpread
-    ? `{
-  "overall": "오프닝 + 시너지 (${budget.overallGuide})",
-  "advice": "실행 지침 (150-230자)"
-}`
-    : `{
+    const schemaKo = includeMeta
+      ? `{
   "overall": "오프닝 + 시너지 (${budget.overallGuide})",
   "cards": [
 ${cardExamples}
   ],
-  "synergy": "세 카드가 함께 말하는 한 줄 (60-120자)",
+  "synergy": "카드들이 함께 말하는 한 줄 (60-120자)",
   "advice": "실행 지침 (${budget.adviceGuide})"
 }`
-
-  const outputSchemaEn = isLargeSpread
-    ? `{
-  "overall": "Opening + synergy (${budget.overallGuide})",
-  "advice": "Practical action steps (80-130 words)"
+      : `{
+  "cards": [
+${cardExamples}
+  ]
 }`
-    : `{
+    const schemaEn = includeMeta
+      ? `{
   "overall": "Opening + synergy (${budget.overallGuide})",
   "cards": [
 ${cardExamples}
@@ -619,6 +618,13 @@ ${cardExamples}
   "synergy": "One-line on what the cards say together (40-80 words)",
   "advice": "Practical action steps (${budget.adviceGuide})"
 }`
+      : `{
+  "cards": [
+${cardExamples}
+  ]
+}`
+    return { schemaKo, schemaEn }
+  }
 
   // System 프롬프트 — 정적 (페르소나 + 4단계 메서드 + 출력 형식). 캐시 가능.
   const systemPrompt = isKorean
@@ -661,7 +667,7 @@ ${cardExamples}
 - 출력은 오직 JSON. 마크다운 코드펜스 금지.
 - 사용자 질문이 모호하면 가장 가능성 높은 의도로 해석하고 그 전제를 첫 문장에 한 번 명시.
 - 같은 문장 골격을 반복하지 마세요 (카드별로 다른 문장 형태).
-- 대형 스프레드(8장 이상)이면 cards 배열은 비우고 overall에 흐름을 녹입니다.
+- 출력 스키마가 cards[] 일부만 요구하면(예: 대형 스프레드의 일부 chunk), 요청된 카드의 해석만 출력하되 전체 흐름은 컨텍스트로 인지하고 일관성을 유지하세요.
 
 # 입체 통합 규칙 (사주/점성 컨텍스트가 같이 들어왔을 때)
 - "사주" 또는 "점성"으로 시작하는 컨텍스트가 입력에 보이면 cross-only 모드:
@@ -708,7 +714,7 @@ Bad: "Open your heart and wait." (abstract)
 - Output JSON only. No markdown code fences.
 - If the question is ambiguous, pick the most likely intent and state that assumption in the first sentence.
 - Vary sentence shape across cards — do not reuse the same sentence skeleton.
-- For large spreads (8+ cards), leave cards array empty and fold the flow into overall.
+- If the output schema requests only a subset of cards (e.g. one chunk of a large spread), output interpretations only for the requested cards, but stay aware of the full flow as context for consistency.
 
 # Cross-Integration Rules (when saju / astrology context is supplied)
 - When a "Saju" or "Astrology" context line is present, switch to cross-only mode:
@@ -717,136 +723,180 @@ Bad: "Open your heart and wait." (abstract)
   - The first sentence of overall_message must include a cross anchor (e.g., "On the weak phase of Day Master X, the appearance of Two of Cups means…").
 - If neither context is provided, ignore this rule and read cards alone.`
 
-  // User 프롬프트 — 동적 (이번 요청의 입력만)
-  const userPrompt = isKorean
-    ? `# 입력
+  // chunk 별 user 프롬프트 빌더
+  const buildChunkUserPrompt = (
+    chunkStart: number,
+    chunkEnd: number,
+    includeMeta: boolean
+  ): string => {
+    const { schemaKo, schemaEn } = buildChunkSchemas(chunkStart, chunkEnd, includeMeta)
+    const isChunked = chunkStart > 0 || chunkEnd < cards.length
+    const chunkInfoKo = isChunked
+      ? `(전체 ${cards.length}장 중 ${chunkStart + 1}~${chunkEnd}번 카드만 해석)`
+      : ''
+    const chunkInfoEn = isChunked
+      ? `(interpret only cards ${chunkStart + 1}-${chunkEnd} of ${cards.length})`
+      : ''
+
+    const taskKo = includeMeta
+      ? isChunked
+        ? `- 전체 카드 흐름을 보고 overall + synergy + advice를 작성하고, ${chunkInfoKo} 의 카드별 해석을 cards[] 에 채우세요.`
+        : `- 반드시 ${cards.length}개 카드 해석을 모두 포함하고, synergy 한 줄과 advice를 작성.`
+      : `- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfoKo} 의 카드별 해석만 cards[] 에 채우세요. overall/synergy/advice는 출력하지 마세요.`
+    const taskEn = includeMeta
+      ? isChunked
+        ? `- Read the full ${cards.length}-card flow; write overall + synergy + advice, and fill cards[] with per-card interpretations ${chunkInfoEn}.`
+        : `- Include all ${cards.length} per-card interpretations, plus synergy and advice.`
+      : `- Use the full ${cards.length}-card flow as context only. Output ONLY per-card interpretations ${chunkInfoEn} in cards[]. Do NOT include overall/synergy/advice.`
+
+    return isKorean
+      ? `# 입력
 ## 스프레드: ${spreadTitle}
 ## 사용자 질문: "${q}"${
-        questionMeta
-          ? `
+          questionMeta
+            ? `
 ## 사전 분석 (이미 추출됨 — 다시 추론하지 말고 그대로 사용)
 - intent: ${questionMeta.intent || '-'}
 - subject: ${questionMeta.subject || '-'} | focus: ${questionMeta.focus || '-'}
 - timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
-          : ''
-      }${sajuBlock}${astroBlock}
-## 뽑힌 카드
+            : ''
+        }${sajuBlock}${astroBlock}
+## 뽑힌 카드 (전체)
 ${cardListText}
 
 # 출력 지시
-- ${
-        isLargeSpread
-          ? '대형 스프레드이므로 cards 배열은 비우고, overall에 오프닝+카드 흐름+시너지를 모두 녹이고, advice는 3단계로 구체화.'
-          : `반드시 ${cards.length}개 카드 해석을 모두 포함하고, synergy 한 줄과 advice를 작성.`
-      }
+${taskKo}
 - overall ${budget.overallGuide}, 카드별 ${budget.perCardGuide}, advice ${budget.adviceGuide}.${
-        hasContext
-          ? '\n- 사주/점성 컨텍스트가 입력됐으니 cross-only 모드: 모든 카드별 해석에 카드 ↔ 사주/점성 anchor 1회 이상, synergy/overall 첫 문장도 cross로 시작.'
-          : ''
-      }
+          hasContext
+            ? '\n- 사주/점성 컨텍스트가 입력됐으니 cross-only 모드: 모든 카드별 해석에 카드 ↔ 사주/점성 anchor 1회 이상, synergy/overall 첫 문장도 cross로 시작.'
+            : ''
+        }
 
 # 출력 형식 (JSON)
-${outputSchemaKo}`
-    : `# Input
+${schemaKo}`
+      : `# Input
 ## Spread: ${spreadTitle}
 ## User Question: "${q}"${
-        questionMeta
-          ? `
+          questionMeta
+            ? `
 ## Pre-analyzed (already extracted — do NOT re-infer, use as-is)
 - intent: ${questionMeta.intent || '-'}
 - subject: ${questionMeta.subject || '-'} | focus: ${questionMeta.focus || '-'}
 - timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
-          : ''
-      }${sajuBlock}${astroBlock}
-## Cards Drawn
+            : ''
+        }${sajuBlock}${astroBlock}
+## Cards Drawn (full)
 ${cardListText}
 
 # Output instructions
-- ${
-        isLargeSpread
-          ? 'Large spread: leave cards array empty; fold opening + card flow + synergy into overall; write 3 concrete advice steps.'
-          : `Include all ${cards.length} per-card interpretations, plus synergy and advice.`
-      }
+${taskEn}
 - Length: overall ${budget.overallGuide}, per-card ${budget.perCardGuide}, advice ${budget.adviceGuide}.${
-        hasContext
-          ? '\n- Saju/Astrology context provided: enter cross-only mode. Each card interpretation must anchor to saju OR astro at least once. Synergy and opening lines must start with a cross.'
-          : ''
-      }
+          hasContext
+            ? '\n- Saju/Astrology context provided: enter cross-only mode. Each card interpretation must anchor to saju OR astro at least once. Synergy and opening lines must start with a cross.'
+            : ''
+        }
 
 # Output Format (JSON)
-${outputSchemaEn}`
+${schemaEn}`
+  }
 
-  // Claude 우선 시도 → GPT fallback
+  // Claude 우선 → GPT fallback. chunk 1건씩 호출.
   const useClaude = isClaudeAvailable()
-
-  try {
-    let result: string
+  const runChunkCall = async (
+    chunkStart: number,
+    chunkEnd: number,
+    includeMeta: boolean
+  ): Promise<{ raw: string; parsed: Record<string, unknown> | null }> => {
+    const userPrompt = buildChunkUserPrompt(chunkStart, chunkEnd, includeMeta)
+    let raw: string
     if (useClaude) {
       try {
-        result = await callClaude(systemPrompt, userPrompt, budget.maxTokens, budget.timeoutMs)
+        raw = await callClaude(systemPrompt, userPrompt, budget.maxTokens, budget.timeoutMs)
       } catch (claudeErr) {
         logger.warn('[Tarot interpret] Claude failed, falling back to GPT', {
           error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
+          chunk: `${chunkStart}-${chunkEnd}`,
         })
         recordCounter('tarot.interpret.fallback_total', 1, { from: 'claude', to: 'gpt' })
-        result = await callGPT(
+        raw = await callGPT(
           `${systemPrompt}\n\n${userPrompt}`,
           budget.maxTokens,
           budget.timeoutMs
         )
       }
     } else {
-      result = await callGPT(`${systemPrompt}\n\n${userPrompt}`, budget.maxTokens, budget.timeoutMs)
+      raw = await callGPT(`${systemPrompt}\n\n${userPrompt}`, budget.maxTokens, budget.timeoutMs)
     }
+    return { raw, parsed: tryParseJsonCandidate(raw) }
+  }
 
-    const parsed = tryParseJsonCandidate(result)
-    if (parsed) {
-      const card_insights = isLargeSpread
-        ? buildAnchoredCardInsights(cards, language, userQuestion)
-        : cards.map((card, i) => {
-            const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
-            const cardData = asRecord(parsedCards[i])
-            let interpretation =
-              typeof cardData.interpretation === 'string' ? cardData.interpretation : ''
-
-            // 해석이 너무 짧으면 스프레드/위치/방향 정보 기반 최소 보장 텍스트로 보강
-            if (!interpretation || interpretation.length < 80) {
-              interpretation = ensureCardAnchoring(
-                language,
-                card,
-                buildMinimumInsight(language, card, userQuestion),
-                userQuestion
-              )
-            }
-
-            const anchoredInterpretation = ensureActionAndTimeAnchor(
-              language,
-              ensureCardAnchoring(language, card, interpretation, userQuestion)
-            )
-
-            return {
-              position: card.position,
-              card_name: card.name,
-              is_reversed: card.isReversed,
-              interpretation: anchoredInterpretation,
-              spirit_animal: null,
-              chakra: null,
-              element: null,
-              shadow: null,
-            }
-          })
-
-      // synergy 필드가 있으면 overall에 한 단락으로 합쳐 보냄
-      const overallText = typeof parsed.overall === 'string' ? parsed.overall : ''
-      const synergyText = typeof parsed.synergy === 'string' ? parsed.synergy.trim() : ''
-      const mergedOverall =
-        overallText && synergyText
-          ? `${overallText}\n\n${isKorean ? '함께 보면, ' : 'Read together, '}${synergyText}`
-          : overallText || synergyText
-
+  // 파싱된 cards[] 를 우리 CardInsight 구조로 변환 (앵커링 + 시간/행동 보강)
+  const assembleChunkInsights = (
+    parsedCardsArr: unknown,
+    chunkStart: number,
+    chunkEnd: number
+  ) => {
+    const parsedCards = Array.isArray(parsedCardsArr) ? parsedCardsArr : []
+    return cards.slice(chunkStart, chunkEnd).map((card, j) => {
+      const cardData = asRecord(parsedCards[j])
+      let interpretation =
+        typeof cardData.interpretation === 'string' ? cardData.interpretation : ''
+      if (!interpretation || interpretation.length < 80) {
+        interpretation = ensureCardAnchoring(
+          language,
+          card,
+          buildMinimumInsight(language, card, userQuestion),
+          userQuestion
+        )
+      }
+      const anchored = ensureActionAndTimeAnchor(
+        language,
+        ensureCardAnchoring(language, card, interpretation, userQuestion)
+      )
       return {
-        overall_message: mergedOverall,
-        card_insights,
+        position: card.position,
+        card_name: card.name,
+        is_reversed: card.isReversed,
+        interpretation: anchored,
+        spirit_animal: null,
+        chakra: null,
+        element: null,
+        shadow: null,
+      }
+    })
+  }
+
+  const mergeOverallWithSynergy = (overall: string, synergy: string) =>
+    overall && synergy
+      ? `${overall}\n\n${isKorean ? '함께 보면, ' : 'Read together, '}${synergy}`
+      : overall || synergy
+
+  const textFallback = (raw: string) => {
+    logger.warn('[Tarot interpret] LLM returned non-JSON; using text fallback payload', {
+      preview: raw.slice(0, 280),
+    })
+    return {
+      overall_message: raw,
+      card_insights: buildAnchoredCardInsights(cards, language, userQuestion),
+      guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
+      affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
+      combinations: normalizeCombinations(undefined, cards, language),
+      followup_questions: [],
+      fallback: false,
+    }
+  }
+
+  try {
+    if (!isLargeSpread) {
+      // 단일 호출
+      const { raw, parsed } = await runChunkCall(0, cards.length, true)
+      if (!parsed) return textFallback(raw)
+
+      const overall = typeof parsed.overall === 'string' ? parsed.overall : ''
+      const synergy = typeof parsed.synergy === 'string' ? parsed.synergy.trim() : ''
+      return {
+        overall_message: mergeOverallWithSynergy(overall, synergy),
+        card_insights: assembleChunkInsights(parsed.cards, 0, cards.length),
         guidance:
           (typeof parsed.advice === 'string' && parsed.advice) ||
           buildActionableGuidance(language, userQuestion),
@@ -857,22 +907,47 @@ ${outputSchemaEn}`
       }
     }
 
-    logger.warn('[Tarot interpret] GPT returned non-JSON content; using text fallback payload', {
-      preview: result.slice(0, 280),
+    // 8장 이상: 두 chunk 병렬 호출
+    const mid = Math.ceil(cards.length / 2)
+    logger.info('[Tarot interpret] large spread parallel call', {
+      cardCount: cards.length,
+      chunkA: `0-${mid}`,
+      chunkB: `${mid}-${cards.length}`,
     })
+    const [chunkA, chunkB] = await Promise.all([
+      runChunkCall(0, mid, true),
+      runChunkCall(mid, cards.length, false),
+    ])
 
-    // JSON 파싱 실패 시 원본 텍스트로 overall 폴백
+    if (!chunkA.parsed) return textFallback(chunkA.raw)
+
+    const overall = typeof chunkA.parsed.overall === 'string' ? chunkA.parsed.overall : ''
+    const synergy =
+      typeof chunkA.parsed.synergy === 'string' ? chunkA.parsed.synergy.trim() : ''
+    const insightsA = assembleChunkInsights(chunkA.parsed.cards, 0, mid)
+    // chunk B 가 파싱 실패하면 후반 카드들은 정적 앵커 fallback
+    const insightsB = chunkB.parsed
+      ? assembleChunkInsights(chunkB.parsed.cards, mid, cards.length)
+      : buildAnchoredCardInsights(cards.slice(mid), language, userQuestion)
+    if (!chunkB.parsed) {
+      logger.warn('[Tarot interpret] chunk B parse failed; using anchored fallback for tail', {
+        cardCount: cards.length,
+      })
+    }
+
     return {
-      overall_message: result,
-      card_insights: buildAnchoredCardInsights(cards, language, userQuestion),
-      guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
-      affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
-      combinations: normalizeCombinations(undefined, cards, language),
+      overall_message: mergeOverallWithSynergy(overall, synergy),
+      card_insights: [...insightsA, ...insightsB],
+      guidance:
+        (typeof chunkA.parsed.advice === 'string' && chunkA.parsed.advice) ||
+        buildActionableGuidance(language, userQuestion),
+      affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
+      combinations: normalizeCombinations(chunkA.parsed.combinations, cards, language),
       followup_questions: [],
       fallback: false,
     }
   } catch (error) {
-    logger.error('GPT interpretation failed:', error)
+    logger.error('Tarot interpretation failed:', error)
     return generateSimpleFallback(cards, spreadTitle, language, userQuestion)
   }
 }
