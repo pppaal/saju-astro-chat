@@ -208,6 +208,69 @@ function extractPartialOverall(buffer: string): string | null {
 }
 
 /**
+ * 부분 JSON 안의 cards[].interpretation 값들을 progressive 하게 뽑아낸다.
+ * 카드별 streaming UX 용 — 청크마다 호출되어, 지금까지 도착한 카드 해석들을 배열로 반환.
+ * 예: cards 가 아직 첫 카드 일부만 왔으면 ["부분 텍스트"] 반환, 4번째 카드 시작했으면
+ * [완성1, 완성2, 완성3, 부분4] 반환.
+ */
+function extractPartialCardTexts(buffer: string): string[] {
+  // "cards" 배열의 시작 인덱스 찾기
+  const arrIdx = buffer.indexOf('"cards"')
+  if (arrIdx < 0) return []
+  const arrOpen = buffer.indexOf('[', arrIdx)
+  if (arrOpen < 0) return []
+
+  const results: string[] = []
+  // 배열 안에서 각 객체의 "interpretation": "..." 값을 순차적으로 찾는다.
+  // 객체 경계는 신경쓰지 않고, 단순히 interpretation 키들을 등장 순서대로 모은다 —
+  // cards[i] 순서대로 LLM 이 stream 하니까 안전하다.
+  let scanFrom = arrOpen
+  while (true) {
+    const keyIdx = buffer.indexOf('"interpretation"', scanFrom)
+    if (keyIdx < 0) break
+    const colonIdx = buffer.indexOf(':', keyIdx)
+    if (colonIdx < 0) break
+    const openQuote = buffer.indexOf('"', colonIdx + 1)
+    if (openQuote < 0) break
+
+    let i = openQuote + 1
+    let out = ''
+    let closed = false
+    while (i < buffer.length) {
+      const ch = buffer[i]
+      if (ch === '\\') {
+        const next = buffer[i + 1]
+        if (next === 'n') out += '\n'
+        else if (next === 't') out += '\t'
+        else if (next === '"') out += '"'
+        else if (next === '\\') out += '\\'
+        else if (next === '/') out += '/'
+        else if (next === undefined) {
+          // 아직 도착 안 함 — 이 카드는 부분 텍스트로 마무리
+          break
+        } else out += next
+        i += 2
+        continue
+      }
+      if (ch === '"') {
+        closed = true
+        i += 1
+        break
+      }
+      out += ch
+      i += 1
+    }
+    results.push(out)
+    if (!closed) {
+      // 마지막 카드가 아직 진행 중 — 더 찾을 게 없음
+      break
+    }
+    scanFrom = i
+  }
+  return results
+}
+
+/**
  * 스트리밍 JSON 응답을 InterpretationResult로 변환
  */
 function parseStreamedInterpretation(
@@ -692,11 +755,19 @@ export function useTarotInterpretation({
             }
             const jsonText = await consumeSSEStream(response, (accumulated) => {
               if (!options?.onProgress) return
-              const partial = extractPartialOverall(accumulated)
-              if (partial && partial.length > 0) {
+              const partialOverall = extractPartialOverall(accumulated) || ''
+              const partialCards = extractPartialCardTexts(accumulated)
+              // 카드별 해석을 baseSnapshot.card_insights 위에 덮어쓴다 — 아직 안 온 카드는 빈 문자열 유지.
+              const updatedInsights = baseSnapshot.card_insights.map((ci, i) => {
+                const text = partialCards[i]
+                if (!text) return ci
+                return { ...ci, interpretation: text }
+              })
+              if (partialOverall.length > 0 || partialCards.length > 0) {
                 options.onProgress({
                   ...baseSnapshot,
-                  overall_message: partial,
+                  overall_message: partialOverall,
+                  card_insights: updatedInsights,
                 })
               }
             })
