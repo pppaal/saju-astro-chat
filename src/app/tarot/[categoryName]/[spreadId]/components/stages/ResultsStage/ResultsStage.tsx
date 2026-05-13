@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
+import { MessageCircle } from 'lucide-react'
 import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
-import styles from '../../../tarot-reading.module.css'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 import type { DeckStyle } from '@/lib/tarot/tarot.types'
 import type { CardColor } from '../../../constants'
@@ -56,6 +56,7 @@ export function ResultsStage(props: ResultsStageProps) {
     handleReset,
   } = props
 
+  const isKo = language === 'ko'
   const insight = interpretation
   const hasGuidance =
     insight?.guidance &&
@@ -64,94 +65,116 @@ export function ResultsStage(props: ResultsStageProps) {
       : insight.guidance.trim().length > 0)
 
   return (
-    <div className={styles.resultsContainer}>
-      {/* ① 질문 */}
-      <ResultsHeader
-        readingResult={readingResult}
-        userTopic={userTopic}
-        language={language}
-        translate={translate}
-        questionAnalysis={questionAnalysis}
-      />
+    <div className="relative min-h-screen bg-slate-950 text-slate-100 font-sans">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none flex justify-center">
+        <div className="w-96 h-96 bg-indigo-900 rounded-full blur-3xl opacity-20 mt-10" />
+      </div>
 
-      {isGuestUser && (
-        <section className={styles.guestResultsBanner}>
-          <p className={styles.guestResultsText}>
-            {language === 'ko'
-              ? '이번 무료 1회 리딩은 완료되었습니다. 추가 질문과 다음 리딩은 로그인 후 이어서 볼 수 있습니다.'
-              : 'Your free guest reading is complete. Sign in to continue with more questions and another reading.'}
-          </p>
-          <Link href={signInUrl} className={styles.guestResultsLink}>
-            {language === 'ko' ? '로그인하고 계속 보기' : 'Sign In To Continue'}
-          </Link>
-        </section>
-      )}
+      <div className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-14 space-y-8">
+        {/* ① 질문 */}
+        <ResultsHeader
+          readingResult={readingResult}
+          userTopic={userTopic}
+          language={language}
+          translate={translate}
+          questionAnalysis={questionAnalysis}
+        />
 
-      {/* ② 카드 펼치기 */}
-      <HorizontalCardsGrid
-        readingResult={readingResult}
-        selectedColor={selectedColor}
-        selectedDeckStyle={selectedDeckStyle}
-        language={language}
-        revealedCards={revealedCards}
-        onCardReveal={handleCardReveal}
-        canRevealCard={canRevealCard}
-        isCardRevealed={isCardRevealed}
-        translate={translate}
-      />
+        {isGuestUser && (
+          <section className="rounded-2xl bg-amber-500/5 border border-amber-500/20 p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+            <p className="text-sm text-amber-200/90">
+              {isKo
+                ? '이번 무료 1회 리딩은 완료되었습니다. 추가 질문과 다음 리딩은 로그인 후 이어서 볼 수 있습니다.'
+                : 'Your free guest reading is complete. Sign in to continue with more questions and another reading.'}
+            </p>
+            <Link
+              href={signInUrl}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-100 text-sm font-medium transition-colors whitespace-nowrap"
+            >
+              {isKo ? '로그인하고 계속 보기' : 'Sign In To Continue'}
+            </Link>
+          </section>
+        )}
 
-      {/* ③ 답변 — LLM 전체 응답 */}
-      {insight?.overall_message && (
-        <section className={styles.quickAnswerPanel}>
-          <div className={styles.quickAnswerTopRow}>
-            <div className={styles.quickAnswerHeader}>{language === 'ko' ? '답변' : 'Answer'}</div>
-          </div>
-          <p className={styles.quickAnswerConclusion}>{insight.overall_message}</p>
-        </section>
-      )}
+        {/* ② 카드 펼치기 */}
+        <HorizontalCardsGrid
+          readingResult={readingResult}
+          selectedColor={selectedColor}
+          selectedDeckStyle={selectedDeckStyle}
+          language={language}
+          revealedCards={revealedCards}
+          onCardReveal={handleCardReveal}
+          canRevealCard={canRevealCard}
+          isCardRevealed={isCardRevealed}
+          translate={translate}
+        />
 
-      {/* ④ 카드별 정보 — 펼쳐보기 없이 전부 표시 */}
-      <DetailedCardsSection
-        readingResult={readingResult}
-        interpretation={interpretation}
-        language={language}
-        selectedDeckStyle={selectedDeckStyle}
-        revealedCards={revealedCards}
-        detailedSectionRef={detailedSectionRef}
-        translate={translate}
-      />
+        {/* ③ 전체 해석 — LLM overall_message */}
+        {insight?.overall_message && (
+          <section className="rounded-2xl bg-slate-900/50 border border-indigo-500/20 shadow-[0_0_24px_rgba(99,102,241,0.08)] p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <MessageCircle className="w-4 h-4 text-indigo-400" />
+              <h2 className="text-sm font-medium text-indigo-300 tracking-wider uppercase">
+                {isKo ? '전체 해석' : 'Overall Reading'}
+              </h2>
+            </div>
+            <p className="text-[15px] md:text-base text-slate-100 leading-relaxed whitespace-pre-wrap">
+              {insight.overall_message}
+            </p>
+          </section>
+        )}
 
-      {insight?.fallback && (
-        <div className={styles.interpretationFallbackNotice} role="status" aria-live="polite">
-          <div className={styles.interpretationNoticeHeader}>
-            <strong>{language === 'ko' ? '임시 해석 모드' : 'Fallback interpretation mode'}</strong>
+        {/* ④ 카드별 해석 — 우리 카드 의미 + LLM 해석 + 실천 팁 */}
+        <DetailedCardsSection
+          readingResult={readingResult}
+          interpretation={interpretation}
+          language={language}
+          selectedDeckStyle={selectedDeckStyle}
+          revealedCards={revealedCards}
+          detailedSectionRef={detailedSectionRef}
+          translate={translate}
+        />
+
+        {insight?.fallback && (
+          <div
+            className="rounded-xl bg-slate-900/70 border border-slate-700 p-4 flex items-center justify-between gap-3"
+            role="status"
+            aria-live="polite"
+          >
+            <strong className="text-sm text-slate-200">
+              {isKo ? '임시 해석 모드' : 'Fallback interpretation mode'}
+            </strong>
             <button
               type="button"
-              className={styles.interpretationRetryButton}
+              className="px-3 py-1.5 rounded-full bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-200 text-xs font-medium transition-colors"
               onClick={() => window.location.reload()}
             >
-              {language === 'ko' ? 'AI 해석 다시 시도' : 'Retry AI interpretation'}
+              {isKo ? 'AI 해석 다시 시도' : 'Retry AI interpretation'}
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ⑤ 조언 — LLM guidance, 토글 없이 마지막에 인라인 */}
-      {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
+        {/* ⑤ 조언과 예측 */}
+        {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
 
-      {saveMessage && (
-        <div className={styles.saveMessage} role="status" aria-live="polite">
-          {saveMessage}
-        </div>
-      )}
+        {saveMessage && (
+          <div
+            className="rounded-xl bg-slate-900/60 border border-slate-700 px-4 py-3 text-sm text-slate-300"
+            role="status"
+            aria-live="polite"
+          >
+            {saveMessage}
+          </div>
+        )}
 
-      <ActionButtons
-        language={language}
-        isSaved={isSaved}
-        isSaving={isSaving}
-        onSave={handleSaveReading}
-        onReset={handleReset}
-      />
+        <ActionButtons
+          language={language}
+          isSaved={isSaved}
+          isSaving={isSaving}
+          onSave={handleSaveReading}
+          onReset={handleReset}
+        />
+      </div>
     </div>
   )
 }
