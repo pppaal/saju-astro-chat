@@ -15,6 +15,8 @@ interface ChatInputAreaProps {
   onSend: () => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
   styles: Record<string, string>
+  /** Auto-focus the textarea on mount (opens mobile keyboard immediately). */
+  autoFocus?: boolean
 }
 
 export const ChatInputArea = React.memo(function ChatInputArea({
@@ -29,11 +31,23 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onSend,
   onFileUpload,
   styles,
+  autoFocus,
 }: ChatInputAreaProps) {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  React.useEffect(() => {
+    if (!autoFocus) return
+    // Defer slightly so layout settles, then focus to surface the mobile
+    // keyboard right when the chat opens.
+    const id = window.setTimeout(() => textareaRef.current?.focus(), 120)
+    return () => window.clearTimeout(id)
+  }, [autoFocus])
+
   return (
     <div className={styles.inputArea}>
       <div className={styles.inputBox}>
         <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={onKeyDown}
@@ -45,11 +59,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           maxLength={2000}
         />
         <div className={styles.inputBoxActions}>
-          <label
-            className={styles.attachButton}
-            aria-label={tr.uploadCv}
-            title={tr.uploadCv}
-          >
+          <label className={styles.attachButton} aria-label={tr.uploadCv} title={tr.uploadCv}>
             <span aria-hidden="true">&#x1F4CE;</span>
             <input
               type="file"

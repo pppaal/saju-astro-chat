@@ -7,6 +7,9 @@ import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
 import styles from '../chat/Chat.module.css'
 import { logger } from '@/lib/logger'
+import CompatProfileHeader from './CompatProfileHeader'
+
+const COMPAT_PERSONS_STORAGE_KEY = 'destinypal:compatibilityPersons:v1'
 
 // Loading fallback for Suspense
 function CounselorLoading() {
@@ -32,6 +35,7 @@ type PersonData = {
   longitude?: number
   timeZone?: string
   relation?: string
+  gender?: string
 }
 
 type Theme = 'general' | 'love' | 'business' | 'family'
@@ -64,7 +68,12 @@ function CompatibilityCounselorContent() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const isKo = locale === 'ko'
 
-  // Parse URL params and fetch data on mount
+  // Parse URL params and fetch data on mount.
+  // Persons can arrive via the `persons` URL param (e.g. from the
+  // /compatibility form's ActionButtons → counselor button) OR from
+  // localStorage (set the last time the user submitted the compat form).
+  // If neither is present we bounce to the form so the user can fill in
+  // the pair — the counselor needs both people to function.
   useEffect(() => {
     if (!searchParams) {
       return
@@ -79,15 +88,44 @@ function CompatibilityCounselorContent() {
           setTheme(themeParam)
         }
 
+        let parsed: PersonData[] | null = null
         if (personsParam) {
-          const parsed = JSON.parse(decodeURIComponent(personsParam)) as PersonData[]
-          setPersons(parsed)
-
-          if (parsed.length >= 2) {
-            // Fetch Saju and Astrology data
-            await fetchPersonData(parsed)
+          try {
+            parsed = JSON.parse(decodeURIComponent(personsParam)) as PersonData[]
+          } catch (e) {
+            logger.warn('Failed to parse persons URL param:', { error: e })
           }
         }
+
+        if (!parsed || parsed.length < 2) {
+          try {
+            const raw = window.localStorage.getItem(COMPAT_PERSONS_STORAGE_KEY)
+            if (raw) {
+              const stored = JSON.parse(raw) as PersonData[]
+              if (Array.isArray(stored) && stored.length >= 2) {
+                parsed = stored
+              }
+            }
+          } catch (e) {
+            logger.warn('Failed to read compat persons from localStorage:', { error: e })
+          }
+        }
+
+        if (!parsed || parsed.length < 2) {
+          // No pair info anywhere — bounce to the form so the user can
+          // enter both people. Once they submit, the form persists to
+          // localStorage so future "궁합 상담사" clicks land directly here.
+          router.replace('/compatibility?next=counselor')
+          return
+        }
+
+        setPersons(parsed)
+        try {
+          window.localStorage.setItem(COMPAT_PERSONS_STORAGE_KEY, JSON.stringify(parsed))
+        } catch {
+          // ignore storage quota / privacy-mode errors
+        }
+        await fetchPersonData(parsed)
       } catch (e) {
         logger.error('Failed to parse URL params:', { error: e })
         setError('데이터를 불러오는 중 오류가 발생했습니다.')
@@ -97,7 +135,7 @@ function CompatibilityCounselorContent() {
     }
 
     initializeData()
-  }, [searchParams])
+  }, [searchParams, router])
 
   const fetchPersonData = async (personList: PersonData[]) => {
     try {
@@ -167,6 +205,14 @@ function CompatibilityCounselorContent() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Auto-focus the message input once we've finished initialising so the
+  // mobile keyboard opens the moment the user lands on the counselor.
+  useEffect(() => {
+    if (isInitializing) return
+    const id = window.setTimeout(() => inputRef.current?.focus(), 120)
+    return () => window.clearTimeout(id)
+  }, [isInitializing])
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) {
@@ -289,12 +335,20 @@ function CompatibilityCounselorContent() {
 
   return (
     <ServicePageLayout
-      icon="🔮"
-      title={isKo ? '프리미엄 궁합 상담사' : 'Premium Compatibility Counselor'}
+      icon="💕"
+      title={isKo ? '궁합 상담사' : 'Compatibility Counselor'}
       subtitle={personNames || (isKo ? '심화 궁합 상담' : 'Deep Compatibility Counseling')}
       onBack={() => router.back()}
       backLabel={isKo ? '뒤로' : 'Back'}
     >
+      <CompatProfileHeader
+        personA={persons[0] || null}
+        personB={persons[1] || null}
+        sajuA={person1Saju}
+        sajuB={person2Saju}
+        lang={isKo ? 'ko' : 'en'}
+      />
+
       {/* Theme Selector & Credit Badge */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex gap-2 flex-wrap">

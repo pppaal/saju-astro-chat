@@ -61,11 +61,11 @@ const ALL_SERVICES: readonly EnabledService[] = [
   },
   {
     id: 'compatibility',
-    href: '/compatibility',
+    href: '/compatibility/counselor',
     icon: '💕',
     menuKey: 'menu.compatibility',
     descriptionKey: 'services.compatibility.desc',
-    label: { en: 'Compatibility', ko: '궁합' },
+    label: { en: 'Compatibility Counselor', ko: '궁합 상담사' },
     description: { en: 'Relationship Analysis', ko: '관계 궁합 분석' },
   },
   {

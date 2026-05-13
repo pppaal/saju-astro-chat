@@ -4,9 +4,11 @@ import { useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import ServicePageLayout from '@/components/ui/ServicePageLayout'
 import { useI18n } from '@/i18n/I18nProvider'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import styles from './Compatibility.module.css'
+
+const COMPAT_PERSONS_STORAGE_KEY = 'destinypal:compatibilityPersons:v1'
 
 import { ShareButton } from '@/components/share/ShareButton'
 import ScrollToTop from '@/components/ui/ScrollToTop'
@@ -88,12 +90,16 @@ const KO_COMPAT_FALLBACKS: Record<string, string> = {
   'compatibilityPage.astroElements.earth': '흙',
   'compatibilityPage.astroElements.air': '바람',
   'compatibilityPage.astroElements.water': '물',
+  'compatibilityPage.startCounselor': '궁합 상담 시작하기',
+  'compatibilityPage.startingCounselor': '상담사를 부르는 중...',
 }
 
 export default function CompatPage() {
   const { t, locale } = useI18n()
   const normalizedLocale: 'ko' | 'en' = locale.toLowerCase().startsWith('ko') ? 'ko' : 'en'
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const goToCounselorAfterSubmit = searchParams?.get('next') === 'counselor'
   const { data: session, status } = useSession()
 
   // The marketing tabs intro was retired — the form is the entry point now.
@@ -144,8 +150,52 @@ export default function CompatPage() {
       setError(errorMsg)
       return
     }
+
+    // Persist the pair so future "궁합 상담사" service clicks bypass the
+    // form and land directly on the counselor chat.
+    const pairPayload = persons.slice(0, 2).map((p) => ({
+      name: p.name,
+      date: p.date,
+      time: p.time,
+      city: p.cityQuery,
+      latitude: p.lat ?? undefined,
+      longitude: p.lon ?? undefined,
+      timeZone: p.timeZone,
+      relation: p.relation,
+      gender:
+        p.gender === 'F' || p.gender === 'Female'
+          ? 'female'
+          : p.gender === 'M' || p.gender === 'Male'
+            ? 'male'
+            : undefined,
+    }))
+    try {
+      window.localStorage.setItem(COMPAT_PERSONS_STORAGE_KEY, JSON.stringify(pairPayload))
+    } catch {
+      // ignore storage quota / privacy-mode errors
+    }
+
+    if (goToCounselorAfterSubmit) {
+      // Chat-first entry — skip the analysis page and hand the pair off
+      // to the counselor directly so the keyboard opens on landing.
+      router.push(
+        `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(pairPayload))}`
+      )
+      return
+    }
+
     await analyzeCompatibility(persons, normalizedLocale)
-  }, [persons, count, t, validate, setError, analyzeCompatibility, normalizedLocale])
+  }, [
+    persons,
+    count,
+    t,
+    validate,
+    setError,
+    analyzeCompatibility,
+    normalizedLocale,
+    goToCounselorAfterSubmit,
+    router,
+  ])
 
   const handleBack = useCallback(() => {
     if (resultText) {
@@ -290,7 +340,11 @@ export default function CompatPage() {
               </div>
 
               {/* Submit Button */}
-              <SubmitButton isLoading={isLoading} t={compatT} />
+              <SubmitButton
+                isLoading={isLoading}
+                t={compatT}
+                toCounselor={goToCounselorAfterSubmit}
+              />
 
               {error && <div className={styles.error}>{error}</div>}
             </form>
@@ -304,10 +358,7 @@ export default function CompatPage() {
               overallScore={overallScore}
               driverCount={pairDetails[0]?.strengths.length}
               cautionCount={pairDetails[0]?.challenges.length}
-              pairLabels={[
-                persons[0]?.name || 'Person 1',
-                persons[1]?.name || 'Person 2',
-              ]}
+              pairLabels={[persons[0]?.name || 'Person 1', persons[1]?.name || 'Person 2']}
               persons={persons.slice(0, 2).map((p) => ({
                 name: p.name,
                 date: p.date,
@@ -318,100 +369,99 @@ export default function CompatPage() {
               }))}
             >
               {pairDetails.length > 0 && !isGroupResult ? (
-              <CompatibilityRichReport
-                pairDetails={pairDetails}
-                overallScore={overallScore}
-                pairLabels={persons.map((p) => p.name || 'Person')}
-                personsForNarrative={persons.map((p) => ({
-                  name: p.name || 'Person',
-                  date: p.date,
-                  time: p.time || '12:00',
-                  gender: p.gender,
-                  latitude: p.lat ?? undefined,
-                  longitude: p.lon ?? undefined,
-                  timeZone: p.timeZone || 'Asia/Seoul',
-                  city: p.cityQuery || undefined,
-                  relationToP1: p.relation,
-                }))}
-                relationshipDynamics={relationshipDynamics}
-                futureGuidance={futureGuidance}
-                coupleTiming={coupleTiming}
-                astroTiming={astroTiming}
-                deepInsights={deepInsights}
-                personElements={personElements}
-                personCharts={personCharts}
-                idealTypeProfiles={idealTypeProfiles}
-                multiFacetReport={multiFacetReport}
-                tier={tier}
-                actionItems={actionItems}
-              />
-            ) : (
-              <>
-                {/* Legacy markdown rendering — used for group (3+) or when pair_details missing */}
-                <div className={styles.resultHeader}>
-                  <div className={styles.resultIcon}>{'\u{1F495}'}</div>
-                  <h1 className={styles.resultTitle}>
-                    {compatT('compatibilityPage.resultTitle', 'Compatibility Analysis')}
-                  </h1>
-                  <p className={styles.resultSubtitle}>
-                    {persons.map((p) => p.name || 'Person').join(' & ')}
-                  </p>
-                </div>
-
-                {overallScore !== null && <OverallScoreCard score={overallScore} t={compatT} />}
-
-                {sections.length > 0 ? (
-                  <ResultSectionsDisplay
-                    sections={sections}
-                    t={compatT}
-                    locale={normalizedLocale}
-                  />
-                ) : (
-                  <div className={styles.interpretationText}>{resultText}</div>
-                )}
-              </>
-            )}
-
-            {/* Group Analysis Section — only for 3+ people */}
-            {isGroupResult && groupAnalysis && (
-              <GroupAnalysisSection
-                groupAnalysis={groupAnalysis}
-                synergyBreakdown={synergyBreakdown || undefined}
-                personCount={persons.length}
-                t={compatT}
-              />
-            )}
-
-            {/* Timing Guide Section */}
-            {timing && (
-              <TimingGuideCard timing={timing} isGroupResult={isGroupResult} t={compatT} />
-            )}
-
-            {/* Legacy Action Items — only show for group mode (rich report already renders for pairs) */}
-            {isGroupResult && actionItems.length > 0 && (
-              <div className={styles.actionSection}>
-                <div className={styles.resultCard}>
-                  <div className={styles.resultCardGlow} />
-                  <div className={styles.resultCardHeader}>
-                    <span className={styles.resultCardIcon}>{'\u{1F4AA}'}</span>
-                    <h3 className={styles.resultCardTitle}>
-                      {compatT('compatibilityPage.growthActions', 'Growth Actions')}
-                    </h3>
+                <CompatibilityRichReport
+                  pairDetails={pairDetails}
+                  overallScore={overallScore}
+                  pairLabels={persons.map((p) => p.name || 'Person')}
+                  personsForNarrative={persons.map((p) => ({
+                    name: p.name || 'Person',
+                    date: p.date,
+                    time: p.time || '12:00',
+                    gender: p.gender,
+                    latitude: p.lat ?? undefined,
+                    longitude: p.lon ?? undefined,
+                    timeZone: p.timeZone || 'Asia/Seoul',
+                    city: p.cityQuery || undefined,
+                    relationToP1: p.relation,
+                  }))}
+                  relationshipDynamics={relationshipDynamics}
+                  futureGuidance={futureGuidance}
+                  coupleTiming={coupleTiming}
+                  astroTiming={astroTiming}
+                  deepInsights={deepInsights}
+                  personElements={personElements}
+                  personCharts={personCharts}
+                  idealTypeProfiles={idealTypeProfiles}
+                  multiFacetReport={multiFacetReport}
+                  tier={tier}
+                  actionItems={actionItems}
+                />
+              ) : (
+                <>
+                  {/* Legacy markdown rendering — used for group (3+) or when pair_details missing */}
+                  <div className={styles.resultHeader}>
+                    <div className={styles.resultIcon}>{'\u{1F495}'}</div>
+                    <h1 className={styles.resultTitle}>
+                      {compatT('compatibilityPage.resultTitle', 'Compatibility Analysis')}
+                    </h1>
+                    <p className={styles.resultSubtitle}>
+                      {persons.map((p) => p.name || 'Person').join(' & ')}
+                    </p>
                   </div>
-                  <div className={styles.resultCardContent}>
-                    <ul className={styles.actionList}>
-                      {actionItems.map((item, idx) => (
-                        <li key={idx} className={styles.actionItem}>
-                          <span className={styles.actionNumber}>{idx + 1}</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
+
+                  {overallScore !== null && <OverallScoreCard score={overallScore} t={compatT} />}
+
+                  {sections.length > 0 ? (
+                    <ResultSectionsDisplay
+                      sections={sections}
+                      t={compatT}
+                      locale={normalizedLocale}
+                    />
+                  ) : (
+                    <div className={styles.interpretationText}>{resultText}</div>
+                  )}
+                </>
+              )}
+
+              {/* Group Analysis Section — only for 3+ people */}
+              {isGroupResult && groupAnalysis && (
+                <GroupAnalysisSection
+                  groupAnalysis={groupAnalysis}
+                  synergyBreakdown={synergyBreakdown || undefined}
+                  personCount={persons.length}
+                  t={compatT}
+                />
+              )}
+
+              {/* Timing Guide Section */}
+              {timing && (
+                <TimingGuideCard timing={timing} isGroupResult={isGroupResult} t={compatT} />
+              )}
+
+              {/* Legacy Action Items — only show for group mode (rich report already renders for pairs) */}
+              {isGroupResult && actionItems.length > 0 && (
+                <div className={styles.actionSection}>
+                  <div className={styles.resultCard}>
+                    <div className={styles.resultCardGlow} />
+                    <div className={styles.resultCardHeader}>
+                      <span className={styles.resultCardIcon}>{'\u{1F4AA}'}</span>
+                      <h3 className={styles.resultCardTitle}>
+                        {compatT('compatibilityPage.growthActions', 'Growth Actions')}
+                      </h3>
+                    </div>
+                    <div className={styles.resultCardContent}>
+                      <ul className={styles.actionList}>
+                        {actionItems.map((item, idx) => (
+                          <li key={idx} className={styles.actionItem}>
+                            <span className={styles.actionNumber}>{idx + 1}</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-
+              )}
             </CompatibilityPaywall>
 
             {/* Action Buttons: Insights, Chat, Counselor, Tarot */}

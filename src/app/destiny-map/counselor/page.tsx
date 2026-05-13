@@ -15,6 +15,7 @@ import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
 import { CounselorLoadingScreen } from './CounselorLoadingScreen'
 import Chat from '@/components/destiny-map/Chat'
+import ProfileHeader from './ProfileHeader'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -176,6 +177,18 @@ export default function CounselorPage() {
           empty state. Login CTA lives in the page header (top-right)
           and via /api save attempts when guests try to persist. */}
 
+      <ProfileHeader
+        name={name}
+        birthDate={birthDate}
+        birthTime={birthTime}
+        birthTimeUnknown={birthTimeUnknown}
+        city={city}
+        gender={gender}
+        saju={chartData?.saju as Parameters<typeof ProfileHeader>[0]['saju']}
+        astro={chartData?.astro as Parameters<typeof ProfileHeader>[0]['astro']}
+        lang={lang}
+      />
+
       <div className={styles.chatWrapper}>
         <ErrorBoundary
           fallback={<ChatErrorFallback error={new Error('Chat error')} reset={handleChatReset} />}
@@ -208,6 +221,7 @@ export default function CounselorPage() {
             autoScroll={false}
             ragSessionId={sessionId || undefined}
             autoSendSeed
+            autoFocusInput
           />
         </ErrorBoundary>
       </div>

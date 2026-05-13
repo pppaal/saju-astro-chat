@@ -161,6 +161,8 @@ export interface ChatProps {
   ragSessionId?: string
   // Auto-send initial seeded question
   autoSendSeed?: boolean
+  // Auto-focus the message input on mount so the mobile keyboard opens
+  autoFocusInput?: boolean
 }
 
 // Chat API request payload

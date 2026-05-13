@@ -40,6 +40,7 @@ const Chat = memo(function Chat({
   autoScroll = true,
   ragSessionId,
   autoSendSeed = false,
+  autoFocusInput = false,
 }: ChatProps) {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
@@ -529,6 +530,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onSend={() => void handleSend()}
               onFileUpload={handleFileUpload}
               styles={styles}
+              autoFocus={autoFocusInput}
             />
           </div>
         </section>
