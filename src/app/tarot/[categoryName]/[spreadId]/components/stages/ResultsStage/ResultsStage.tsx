@@ -9,6 +9,7 @@ import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../
 import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { CombinationsSection } from './CombinationsSection'
+import { FollowupChat } from './FollowupChat'
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -172,6 +173,16 @@ export function ResultsStage(props: ResultsStageProps) {
 
         {/* ⑥ 조언과 예측 */}
         {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
+
+        {/* ⑦ Follow-up 채팅 — AI 응답이 도착한 후에만 노출 */}
+        {!aiPending && insight?.overall_message && (
+          <FollowupChat
+            readingResult={readingResult}
+            interpretation={interpretation}
+            userTopic={userTopic}
+            language={language}
+          />
+        )}
 
         {saveMessage && (
           <div
