@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, Loader2 } from 'lucide-react'
 import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 import type { DeckStyle } from '@/lib/tarot/tarot.types'
@@ -58,6 +58,7 @@ export function ResultsStage(props: ResultsStageProps) {
 
   const isKo = language === 'ko'
   const insight = interpretation
+  const aiPending = insight?.fallback === true
   const hasGuidance =
     insight?.guidance &&
     (Array.isArray(insight.guidance)
@@ -109,18 +110,29 @@ export function ResultsStage(props: ResultsStageProps) {
           translate={translate}
         />
 
-        {/* ③ 전체 해석 — LLM overall_message */}
-        {insight?.overall_message && (
+        {/* ③ 전체 해석 — LLM overall_message (loading placeholder until ready) */}
+        {(insight?.overall_message || aiPending) && (
           <section className="rounded-2xl bg-slate-900/50 border border-indigo-500/20 shadow-[0_0_24px_rgba(99,102,241,0.08)] p-5 md:p-6">
             <div className="flex items-center gap-2 mb-3">
               <MessageCircle className="w-4 h-4 text-indigo-400" />
               <h2 className="text-sm font-medium text-indigo-300 tracking-wider uppercase">
-                {isKo ? '전체 해석' : 'Overall Reading'}
+                {isKo ? '전체 해석 (AI)' : 'Overall Reading (AI)'}
               </h2>
             </div>
-            <p className="text-[15px] md:text-base text-slate-100 leading-relaxed whitespace-pre-wrap">
-              {insight.overall_message}
-            </p>
+            {insight?.overall_message ? (
+              <p className="text-base md:text-[17px] text-slate-100 leading-relaxed whitespace-pre-wrap">
+                {insight.overall_message}
+              </p>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-indigo-200/80 py-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>
+                  {isKo
+                    ? 'AI가 펼친 카드 전체를 당신의 질문에 맞춰 읽고 있어요…'
+                    : 'AI is reading the full spread for your question…'}
+                </span>
+              </div>
+            )}
           </section>
         )}
 
