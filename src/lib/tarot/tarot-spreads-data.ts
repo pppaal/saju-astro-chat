@@ -84,6 +84,27 @@ export const tarotThemes: TarotTheme[] = [
         ],
       },
       {
+        id: 'three-by-three-grid',
+        title: 'The 3×3 Grid',
+        titleKo: '3×3 그리드 (9장)',
+        cardCount: 9,
+        description:
+          'A classic nine-card matrix: rows for past / present / future, columns for situation, challenge, and outcome.',
+        descriptionKo:
+          '가로 3 × 세로 3 — 행은 과거·현재·미래, 열은 상황·도전·결과. 9개 칸 모두에서 흐름과 변수를 동시에 봐요.',
+        positions: [
+          { title: 'Past — Situation', titleKo: '과거 — 상황' },
+          { title: 'Past — Challenge', titleKo: '과거 — 도전' },
+          { title: 'Past — Outcome', titleKo: '과거 — 결과' },
+          { title: 'Present — Situation', titleKo: '현재 — 상황' },
+          { title: 'Present — Challenge', titleKo: '현재 — 도전' },
+          { title: 'Present — Outcome', titleKo: '현재 — 결과' },
+          { title: 'Future — Situation', titleKo: '미래 — 상황' },
+          { title: 'Future — Challenge', titleKo: '미래 — 도전' },
+          { title: 'Future — Outcome', titleKo: '미래 — 결과' },
+        ],
+      },
+      {
         id: 'clock-spread',
         title: 'Clock Spread (Year Ahead)',
         titleKo: '시계 스프레드 (12개월 운세)',
