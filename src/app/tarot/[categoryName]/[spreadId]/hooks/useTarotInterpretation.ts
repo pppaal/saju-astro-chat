@@ -361,6 +361,8 @@ export function useTarotInterpretation({
           isReversed: dc.isReversed,
           position: result.spread.positions[idx]?.title || `Card ${idx + 1}`,
           positionKo: result.spread.positions[idx]?.titleKo,
+          positionMeaning: result.spread.positions[idx]?.meaning,
+          positionMeaningKo: result.spread.positions[idx]?.meaningKo,
           // Payload slimming for high-card spreads to reduce timeout pressure.
           keywords: (meaning.keywords || []).slice(0, 8),
           keywordsKo: (meaning.keywordsKo || []).slice(0, 8),
