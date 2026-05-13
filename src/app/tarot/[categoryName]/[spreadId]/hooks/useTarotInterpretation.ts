@@ -172,8 +172,18 @@ function parseStreamedInterpretation(
     overall_message?: string
     advice?: string
     guidance?: string
-    cards?: Array<{ interpretation?: string; meaning?: string }>
-    card_insights?: Array<{ interpretation?: string; meaning?: string }>
+    cards?: Array<{
+      interpretation?: string
+      meaning?: string
+      actionTip?: string
+      action_tip?: string
+    }>
+    card_insights?: Array<{
+      interpretation?: string
+      meaning?: string
+      actionTip?: string
+      action_tip?: string
+    }>
   }
   const parsedCards = Array.isArray(parsed.cards)
     ? parsed.cards
@@ -184,7 +194,14 @@ function parseStreamedInterpretation(
   return {
     overall_message: parsed.overall_message || parsed.overall || '',
     card_insights: cards.map((dc, i) => {
-      const cardData = parsedCards[i] as { interpretation?: string; meaning?: string } | undefined
+      const cardData = parsedCards[i] as
+        | {
+            interpretation?: string
+            meaning?: string
+            actionTip?: string
+            action_tip?: string
+          }
+        | undefined
       const fallbackMeaning = dc.isReversed
         ? isKorean
           ? dc.card.reversed.meaningKo || dc.card.reversed.meaning
@@ -192,12 +209,15 @@ function parseStreamedInterpretation(
         : isKorean
           ? dc.card.upright.meaningKo || dc.card.upright.meaning
           : dc.card.upright.meaning
+      const actionTip =
+        (cardData?.action_tip || cardData?.actionTip || '').trim() || undefined
       return {
         position: positions[i]?.title || `Card ${i + 1}`,
         card_name: dc.card.name,
         is_reversed: dc.isReversed,
         interpretation:
           (cardData?.interpretation || cardData?.meaning || '').trim() || fallbackMeaning || '',
+        action_tip: actionTip,
         spirit_animal: null,
         chakra: null,
         element: null,
@@ -623,6 +643,8 @@ export function useTarotInterpretation({
                   ? drawnCard.card.upright.meaningKo || drawnCard.card.upright.meaning
                   : drawnCard.card.upright.meaning
 
+              const actionTip =
+                ((ci.action_tip as string) || (ci.actionTip as string) || '').trim() || undefined
               return {
                 position:
                   (ci.position as string) || result.spread.positions[i]?.title || `Card ${i + 1}`,
@@ -634,6 +656,7 @@ export function useTarotInterpretation({
                   (language === 'ko'
                     ? '카드 메시지를 읽고 현재 상황과 연결해보세요.'
                     : 'Connect this card message to your current situation.'),
+                action_tip: actionTip,
                 spirit_animal: null,
                 chakra: null,
                 element: null,

@@ -8,6 +8,7 @@ import type { CardColor } from '../../../constants'
 import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../index'
 import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
+import { CombinationsSection } from './CombinationsSection'
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -166,7 +167,10 @@ export function ResultsStage(props: ResultsStageProps) {
           </div>
         )}
 
-        {/* ⑤ 조언과 예측 */}
+        {/* ⑤ 카드 조합 (LLM combinations) */}
+        <CombinationsSection combinations={insight?.combinations} language={language} />
+
+        {/* ⑥ 조언과 예측 */}
         {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
 
         {saveMessage && (
