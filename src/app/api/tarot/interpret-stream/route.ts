@@ -62,7 +62,7 @@ function normalizeQuestionContext(value: unknown): TarotQuestionAnalysisSnapshot
 function buildFallbackPayload(
   cards: CardInput[],
   language: 'ko' | 'en'
-): { overall: string; cards: { position: string; interpretation: string }[]; advice: string } {
+): { overall: string; cards: { position: string; interpretation: string; actionTip?: string }[]; advice: string } {
   const isKorean = language === 'ko'
   const overall = isKorean
     ? '\uCE74\uB4DC\uC5D0\uC11C \uC804\uD574\uC9C0\uB294 \uD575\uC2EC \uBA54\uC2DC\uC9C0\uB97C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.'
@@ -119,12 +119,12 @@ function normalizeBackendPayload(
   data: unknown,
   fallback: {
     overall: string
-    cards: { position: string; interpretation: string }[]
+    cards: { position: string; interpretation: string; actionTip?: string }[]
     advice: string
   }
 ): {
   overall: string
-  cards: { position: string; interpretation: string }[]
+  cards: { position: string; interpretation: string; actionTip?: string }[]
   advice: string
 } | null {
   if (!data || typeof data !== 'object') {
@@ -150,7 +150,14 @@ function normalizeBackendPayload(
             typeof cardRecord.interpretation === 'string' && cardRecord.interpretation.trim()
               ? cardRecord.interpretation
               : fallback.cards[index]?.interpretation || ''
-          return { position, interpretation }
+          // backend RAG 응답 — 보통 action_tip 으로 옴 (interpret/route.ts 와 동일)
+          const actionTipRaw =
+            typeof cardRecord.action_tip === 'string' && cardRecord.action_tip.trim()
+              ? cardRecord.action_tip
+              : typeof cardRecord.actionTip === 'string' && cardRecord.actionTip.trim()
+                ? cardRecord.actionTip
+                : undefined
+          return { position, interpretation, actionTip: actionTipRaw }
         })
       : fallback.cards
 
@@ -160,7 +167,7 @@ function normalizeBackendPayload(
 function streamJsonPayload(
   payload: {
     overall: string
-    cards: { position: string; interpretation: string }[]
+    cards: { position: string; interpretation: string; actionTip?: string }[]
     advice: string
   },
   extraHeaders?: Record<string, string>
@@ -484,16 +491,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 카드 수에 맞는 JSON 예시 생성
+    // 카드 수에 맞는 JSON 예시 생성 — actionTip 도 함께 요구 (카드+자리+질문 cross 실천 조언)
     const cardExamplesKo = rawCards
       .map((c, i) => {
         const pos = isKorean && c.positionKo ? c.positionKo : c.position
-        return `    {"position": "${pos || `카드 ${i + 1}`}", "interpretation": "이 위치에서 이 카드가 의미하는 바를 구체적으로 설명 (300-500자)"}`
+        return `    {"position": "${pos || `카드 ${i + 1}`}", "interpretation": "이 위치에서 이 카드가 의미하는 바를 구체적으로 설명 (300-500자)", "actionTip": "이 카드 + 자리 + 질문에 딱 맞춘 실천 행동 1-2문장 (80-140자) — 시간 앵커 + 구체 행동 1개"}`
       })
       .join(',\n')
     const cardExamplesEn = rawCards
       .map((c, i) => {
-        return `    {"position": "${c.position || `Card ${i + 1}`}", "interpretation": "What this card means in this position specifically (180-280 words)"}`
+        return `    {"position": "${c.position || `Card ${i + 1}`}", "interpretation": "What this card means in this position specifically (180-280 words)", "actionTip": "Concrete action for this card+seat+question (50-90 words) — time anchor + one specific step"}`
       })
       .join(',\n')
 

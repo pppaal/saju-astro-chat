@@ -591,11 +591,13 @@ async function generateGPTInterpretation(
         return isKorean
           ? `    {
       "position": "${pos}",
-      "interpretation": "${ordinal} 카드 해석 (${budget.perCardGuide})"
+      "interpretation": "${ordinal} 카드 해석 (${budget.perCardGuide})",
+      "actionTip": "이 카드 + 이 자리 + 질문 맥락에 맞춘 실천 행동 1-2문장 (80-140자) — 시간 앵커 + 구체 행동 1개 이상"
     }`
           : `    {
       "position": "${pos}",
-      "interpretation": "${ordinal} card interpretation (${budget.perCardGuide})"
+      "interpretation": "${ordinal} card interpretation (${budget.perCardGuide})",
+      "actionTip": "Concrete action tied to this card+seat+question (50-90 words) — include a time anchor + one specific action"
     }`
       })
       .join(',\n')
@@ -858,11 +860,14 @@ ${schemaEn}`
         language,
         ensureCardAnchoring(language, card, interpretation, userQuestion)
       )
+      const actionTipRaw =
+        typeof cardData.actionTip === 'string' ? cardData.actionTip.trim() : ''
       return {
         position: card.position,
         card_name: card.name,
         is_reversed: card.isReversed,
         interpretation: anchored,
+        action_tip: actionTipRaw || undefined,
         spirit_animal: null,
         chakra: null,
         element: null,

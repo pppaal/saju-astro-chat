@@ -45,6 +45,10 @@ export function DetailedCardItem({
   const staticMeaning = (isKo ? meaning.meaningKo || meaning.meaning : meaning.meaning) || ''
   const staticAdvice = (isKo ? meaning.adviceKo || meaning.advice : meaning.advice) || ''
   const aiInterpretation = cardInsight?.interpretation?.trim() || ''
+  const dynamicTip = cardInsight?.action_tip?.trim() || ''
+  // 동적 조언이 있으면 그걸 쓰고, 없으면 정적 advice 로 폴백. 둘 다 빈칸이면 박스 안 보임.
+  const adviceText = dynamicTip || staticAdvice
+  const adviceIsDynamic = Boolean(dynamicTip)
   const hasAiText = aiInterpretation.length > 0
 
   const keywords = (isKo ? meaning.keywordsKo || meaning.keywords : meaning.keywords).slice(0, 5)
@@ -144,12 +148,18 @@ export function DetailedCardItem({
             )}
           </div>
 
-          {staticAdvice && (
-            <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 p-3">
-              <div className="text-[11px] uppercase tracking-wider text-amber-300/90 mb-1">
-                {isKo ? '실천 팁' : 'Tip'}
+          {adviceText && (
+            <div className="rounded-xl bg-amber-500/8 border border-amber-500/25 p-4">
+              <div className="text-[11px] uppercase tracking-wider text-amber-300/90 mb-1.5">
+                {adviceIsDynamic
+                  ? isKo
+                    ? '실천 조언 (질문 맞춤)'
+                    : 'Action Step (For Your Question)'
+                  : isKo
+                    ? '실천 팁'
+                    : 'Tip'}
               </div>
-              <p className="text-sm text-slate-200 leading-relaxed">{staticAdvice}</p>
+              <p className="text-base text-slate-100 leading-relaxed">{adviceText}</p>
             </div>
           )}
         </div>
