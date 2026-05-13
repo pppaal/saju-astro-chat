@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Send, Layers, X, MoonStar, ChevronRight } from 'lucide-react'
+import { Sparkles, Send, Layers, X, MoonStar, ChevronRight, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
 import { DECK_STYLES, DECK_STYLE_INFO, type DeckStyle } from '@/lib/tarot/tarot.types'
@@ -34,6 +34,7 @@ export default function TarotChatScreen() {
   const [selectedSpread, setSelectedSpread] = useState(DEFAULT_SPREAD)
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false)
   const [isSpreadModalOpen, setIsSpreadModalOpen] = useState(false)
+  const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -236,46 +237,108 @@ export default function TarotChatScreen() {
                     <h3 className="text-sm font-semibold text-amber-400/90 mb-2 px-1">
                       {isKo ? theme.categoryKo : theme.category}
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <ul className="rounded-2xl bg-slate-900 border border-slate-800 divide-y divide-slate-800 overflow-hidden">
                       {theme.spreads.map((sp) => {
                         const selected = selectedSpread.spread.id === sp.id
+                        const expanded = expandedSpreadId === sp.id
+                        const title = isKo ? sp.titleKo ?? sp.title : sp.title
+                        const desc = isKo ? sp.descriptionKo ?? sp.description : sp.description
                         return (
-                          <button
-                            key={sp.id}
-                            onClick={() => {
-                              setSelectedSpread({
-                                spread: sp,
-                                categoryKo: theme.categoryKo ?? theme.category,
-                                categoryId: theme.id,
-                              })
-                              setIsSpreadModalOpen(false)
-                              setTimeout(() => textareaRef.current?.focus(), 100)
-                            }}
-                            className={`flex flex-col text-left p-4 rounded-2xl border transition-all ${
-                              selected
-                                ? 'bg-amber-500/10 border-amber-500/50'
-                                : 'bg-slate-900 border-slate-800 hover:border-slate-600'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span
-                                className={`text-base font-medium ${
-                                  selected ? 'text-amber-400' : 'text-slate-200'
-                                }`}
+                          <li key={sp.id} className={selected ? 'bg-amber-500/5' : ''}>
+                            <div className="flex items-center gap-2 px-3 py-2.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedSpread({
+                                    spread: sp,
+                                    categoryKo: theme.categoryKo ?? theme.category,
+                                    categoryId: theme.id,
+                                  })
+                                  setIsSpreadModalOpen(false)
+                                  setTimeout(() => textareaRef.current?.focus(), 100)
+                                }}
+                                className="flex-1 flex items-center gap-3 text-left min-w-0"
                               >
-                                {isKo ? sp.titleKo ?? sp.title : sp.title}
-                              </span>
-                              <span className="text-[11px] text-slate-500 ml-2 whitespace-nowrap">
-                                {sp.cardCount}장
-                              </span>
+                                <span
+                                  className={`inline-flex items-center justify-center min-w-12 px-2 py-0.5 rounded-full text-[11px] font-semibold tracking-wide ${
+                                    selected
+                                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                      : 'bg-slate-800 text-slate-300 border border-slate-700'
+                                  }`}
+                                >
+                                  {sp.cardCount}장
+                                </span>
+                                <span
+                                  className={`truncate text-[15px] font-medium ${
+                                    selected ? 'text-amber-300' : 'text-slate-100'
+                                  }`}
+                                >
+                                  {title}
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setExpandedSpreadId(expanded ? null : sp.id)
+                                }}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/60 hover:bg-slate-700 border border-slate-700 text-[11px] text-slate-400 transition-colors whitespace-nowrap"
+                                aria-expanded={expanded}
+                                aria-label={isKo ? '자세히 보기' : 'See details'}
+                              >
+                                {isKo ? '자세히' : 'Details'}
+                                <ChevronDown
+                                  className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                                />
+                              </button>
                             </div>
-                            <span className="text-xs text-slate-500 leading-snug">
-                              {isKo ? sp.descriptionKo ?? sp.description : sp.description}
-                            </span>
-                          </button>
+                            <AnimatePresence initial={false}>
+                              {expanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="px-4 pb-4 pt-1 space-y-3 bg-slate-900/40">
+                                    <p className="text-sm text-slate-300 leading-relaxed">{desc}</p>
+                                    {sp.positions?.length > 0 && (
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {sp.positions.map((pos, i) => (
+                                          <span
+                                            key={i}
+                                            className="px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-400"
+                                          >
+                                            {i + 1}. {isKo ? pos.titleKo ?? pos.title : pos.title}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedSpread({
+                                          spread: sp,
+                                          categoryKo: theme.categoryKo ?? theme.category,
+                                          categoryId: theme.id,
+                                        })
+                                        setIsSpreadModalOpen(false)
+                                        setTimeout(() => textareaRef.current?.focus(), 100)
+                                      }}
+                                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-200 text-xs font-medium transition-colors"
+                                    >
+                                      {isKo ? '이걸로 시작하기' : 'Start with this'}
+                                      <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </li>
                         )
                       })}
-                    </div>
+                    </ul>
                   </div>
                 ))}
               </div>
