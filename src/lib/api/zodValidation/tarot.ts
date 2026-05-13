@@ -28,6 +28,8 @@ export const tarotCardSchema = z.object({
   isReversed: z.boolean(),
   position: z.string().min(1).max(80),
   positionKo: z.string().max(80).optional(),
+  positionMeaning: z.string().max(300).optional(),
+  positionMeaningKo: z.string().max(300).optional(),
   meaning: z.string().max(500).optional(),
   meaningKo: z.string().max(500).optional(),
   keywords: z.array(z.string()).max(8).optional(),

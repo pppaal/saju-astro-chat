@@ -239,6 +239,10 @@ export interface DrawnCard {
 export interface SpreadPosition {
   title: string
   titleKo?: string
+  // 자리의 의미 — LLM이 카드를 이 자리에 매핑할 때 추측 대신 사용할 컨텍스트.
+  // 정통 5+장 스프레드(5장 크로스 · 말굽 · 3×3 그리드 · 켈틱 크로스)에 채워짐.
+  meaning?: string
+  meaningKo?: string
 }
 
 export interface Spread {

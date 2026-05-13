@@ -10,6 +10,11 @@ export interface CardInput {
   isReversed: boolean
   position: string
   positionKo?: string
+  // What this seat means inside the spread (passed through from SpreadPosition).
+  // Lets the LLM ground its per-card interpretation on the predefined role of
+  // the slot instead of guessing from the position title alone.
+  positionMeaning?: string
+  positionMeaningKo?: string
   meaning?: string
   meaningKo?: string
   keywords?: string[]

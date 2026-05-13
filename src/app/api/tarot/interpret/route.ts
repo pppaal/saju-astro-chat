@@ -542,13 +542,18 @@ async function generateGPTInterpretation(
   const isLargeSpread = cards.length >= LARGE_SPREAD_THRESHOLD
   const budget = getPromptBudget(cards.length, isKorean)
 
-  // 전체 카드 정보 (양 chunk 모두 컨텍스트로 받음)
+  // 전체 카드 정보 (양 chunk 모두 컨텍스트로 받음).
+  // 자리 의미(positionMeaning)가 있으면 함께 보내 LLM 이 추측 대신 그 의미에 맞춰 매핑하도록.
   const cardListText = cards
     .map((c, i) => {
       const name = isKorean && c.nameKo ? c.nameKo : c.name
       const pos = isKorean && c.positionKo ? c.positionKo : c.position
+      const posMeaning = isKorean
+        ? c.positionMeaningKo || c.positionMeaning
+        : c.positionMeaning
       const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || []
-      return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
+      const seat = posMeaning ? `${pos} — ${posMeaning}` : pos
+      return `${i + 1}. [${seat}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
     })
     .join('\n')
 
