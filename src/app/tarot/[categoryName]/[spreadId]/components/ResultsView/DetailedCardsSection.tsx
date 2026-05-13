@@ -47,6 +47,9 @@ export function DetailedCardsSection({
           const positionTitle =
             (isKo ? position?.titleKo || position?.title : position?.title) ||
             (isKo ? `카드 ${index + 1}` : `Card ${index + 1}`)
+          const positionMeaning = isKo
+            ? position?.meaningKo || position?.meaning
+            : position?.meaning
           const cardInsight = interpretation?.card_insights?.[index]
 
           return (
@@ -55,6 +58,7 @@ export function DetailedCardsSection({
               drawnCard={drawnCard}
               index={index}
               positionTitle={positionTitle}
+              positionMeaning={positionMeaning}
               cardInsight={cardInsight}
               language={language}
               selectedDeckStyle={selectedDeckStyle}

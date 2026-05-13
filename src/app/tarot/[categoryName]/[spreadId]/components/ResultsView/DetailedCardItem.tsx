@@ -10,6 +10,7 @@ interface DetailedCardItemProps {
   drawnCard: DrawnCard
   index: number
   positionTitle: string
+  positionMeaning?: string
   cardInsight?: CardInsight
   language: string
   selectedDeckStyle: DeckStyle
@@ -20,6 +21,7 @@ export function DetailedCardItem({
   drawnCard,
   index,
   positionTitle,
+  positionMeaning,
   cardInsight,
   language,
   selectedDeckStyle,
@@ -44,8 +46,8 @@ export function DetailedCardItem({
 
   return (
     <article className="rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/30 transition-colors p-5 md:p-6">
-      <header className="flex items-center gap-3 mb-4">
-        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-sm font-semibold">
+      <header className="flex items-start gap-3 mb-4">
+        <span className="mt-0.5 flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-sm font-semibold shrink-0">
           {index + 1}
         </span>
         <div className="flex-1 min-w-0">
@@ -54,6 +56,12 @@ export function DetailedCardItem({
             {cardName}
             <span className="ml-2 text-xs font-normal text-slate-400">({orientationLabel})</span>
           </h3>
+          {positionMeaning && (
+            <p className="mt-1 text-xs text-slate-400 leading-snug">
+              <span className="text-indigo-300/70">{isKo ? '이 자리: ' : 'This seat: '}</span>
+              {positionMeaning}
+            </p>
+          )}
         </div>
       </header>
 
