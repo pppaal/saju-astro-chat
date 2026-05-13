@@ -14,6 +14,7 @@ export interface PickingStageProps {
   isSpreading: boolean
   handleCardClick: (index: number) => void
   handleRedraw: () => void
+  userTopic?: string
 }
 
 export function PickingStage({
@@ -26,6 +27,7 @@ export function PickingStage({
   isSpreading,
   handleCardClick,
   handleRedraw,
+  userTopic,
 }: PickingStageProps) {
   return (
     <CardPickingScreen
@@ -38,6 +40,7 @@ export function PickingStage({
       isSpreading={isSpreading}
       onCardClick={handleCardClick}
       onRedraw={handleRedraw}
+      userTopic={userTopic}
     />
   )
 }
