@@ -27,10 +27,19 @@ interface UseTarotInterpretationParams {
   personalizationOptions: TarotPersonalizationOptions
 }
 
+export interface FetchInterpretationOptions {
+  // 스트리밍 중간 진행 상황을 받아서 UI 에 progressive 하게 반영하기 위한 콜백.
+  // overall_message 가 토큰 단위로 누적될 때마다 호출된다.
+  onProgress?: (snapshot: InterpretationResult) => void
+}
+
 interface UseTarotInterpretationReturn {
   isSaved: boolean
   saveMessage: string
-  fetchInterpretation: (result: ReadingResponse) => Promise<InterpretationResult | null>
+  fetchInterpretation: (
+    result: ReadingResponse,
+    options?: FetchInterpretationOptions
+  ) => Promise<InterpretationResult | null>
   handleSaveReading: (
     readingResult: ReadingResponse | null,
     spreadInfo: Spread | null,
@@ -105,7 +114,10 @@ async function apiFetchWithTimeout(
 /**
  * SSE 스트림에서 JSON 텍스트를 누적 수집하여 파싱
  */
-async function consumeSSEStream(response: Response): Promise<string> {
+async function consumeSSEStream(
+  response: Response,
+  onChunk?: (accumulated: string) => void
+): Promise<string> {
   const reader = response.body?.getReader()
   if (!reader) throw new Error('No response body')
 
@@ -121,6 +133,7 @@ async function consumeSSEStream(response: Response): Promise<string> {
     const lines = lineBuffer.split('\n')
     lineBuffer = lines.pop() || ''
 
+    let changed = false
     for (const line of lines) {
       if (line.startsWith('data: ')) {
         const data = line.slice(6)
@@ -129,12 +142,14 @@ async function consumeSSEStream(response: Response): Promise<string> {
           const parsed = JSON.parse(data)
           if (parsed.content) {
             accumulated += parsed.content
+            changed = true
           }
         } catch {
           // 불완전한 청크 무시
         }
       }
     }
+    if (changed && onChunk) onChunk(accumulated)
   }
 
   lineBuffer += decoder.decode()
@@ -145,6 +160,7 @@ async function consumeSSEStream(response: Response): Promise<string> {
         const parsed = JSON.parse(data)
         if (parsed.content) {
           accumulated += parsed.content
+          onChunk?.(accumulated)
         }
       } catch {
         // 무시 가능한 마지막 청크
@@ -153,6 +169,42 @@ async function consumeSSEStream(response: Response): Promise<string> {
   }
 
   return accumulated
+}
+
+/**
+ * 부분 JSON 안의 "overall": "..." 값을 progressive 하게 뽑아낸다.
+ * 종료 따옴표가 아직 안 왔어도 현재까지의 텍스트는 그대로 보여줄 수 있게.
+ */
+function extractPartialOverall(buffer: string): string | null {
+  const idx = buffer.indexOf('"overall"')
+  if (idx < 0) return null
+  // "overall" 다음의 첫 따옴표 위치
+  const colonIdx = buffer.indexOf(':', idx)
+  if (colonIdx < 0) return null
+  const openQuote = buffer.indexOf('"', colonIdx + 1)
+  if (openQuote < 0) return null
+  // 닫힘 따옴표까지 — backslash escape 고려
+  let i = openQuote + 1
+  let out = ''
+  while (i < buffer.length) {
+    const ch = buffer[i]
+    if (ch === '\\') {
+      const next = buffer[i + 1]
+      if (next === 'n') out += '\n'
+      else if (next === 't') out += '\t'
+      else if (next === '"') out += '"'
+      else if (next === '\\') out += '\\'
+      else if (next === '/') out += '/'
+      else if (next === undefined) break // 아직 도착 안 함
+      else out += next
+      i += 2
+      continue
+    }
+    if (ch === '"') return out // 완성됨
+    out += ch
+    i += 1
+  }
+  return out // 아직 닫힘 따옴표 안 왔지만 누적된 만큼은 반환
 }
 
 /**
@@ -355,7 +407,10 @@ export function useTarotInterpretation({
   const [saveMessage, setSaveMessage] = useState<string>('')
 
   const fetchInterpretation = useCallback(
-    async (result: ReadingResponse): Promise<InterpretationResult | null> => {
+    async (
+      result: ReadingResponse,
+      options?: FetchInterpretationOptions
+    ): Promise<InterpretationResult | null> => {
       const isKorean = (language || 'ko') === 'ko'
       const includeAstrology = personalizationOptions.includeAstrology !== false
       const includeSaju = personalizationOptions.includeSaju !== false
@@ -614,8 +669,37 @@ export function useTarotInterpretation({
           const contentType = response.headers.get('content-type') || ''
 
           if (contentType.includes('text/event-stream') && response.body) {
-            // SSE 스트림 처리
-            const jsonText = await consumeSSEStream(response)
+            // SSE 스트림 처리 — 청크마다 overall 부분만 progressive 하게 UI 에 흘려보냄.
+            const baseSnapshot: InterpretationResult = {
+              overall_message: '',
+              card_insights: result.drawnCards.map((dc, i) => ({
+                position: result.spread.positions[i]?.title || `Card ${i + 1}`,
+                card_name: dc.card.name,
+                is_reversed: dc.isReversed,
+                interpretation: '',
+                action_tip: undefined,
+                spirit_animal: null,
+                chakra: null,
+                element: null,
+                shadow: null,
+              })),
+              guidance: '',
+              affirmation: '',
+              combinations: [],
+              followup_questions: [],
+              fallback: true,
+              interpretation_source: 'stream_sse_fallback',
+            }
+            const jsonText = await consumeSSEStream(response, (accumulated) => {
+              if (!options?.onProgress) return
+              const partial = extractPartialOverall(accumulated)
+              if (partial && partial.length > 0) {
+                options.onProgress({
+                  ...baseSnapshot,
+                  overall_message: partial,
+                })
+              }
+            })
             return parseStreamedInterpretation(
               jsonText,
               result.drawnCards,

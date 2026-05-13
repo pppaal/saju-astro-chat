@@ -95,7 +95,13 @@ function TarotReadingPage() {
     isInterpretationFetchingRef.current = true
     let cancelled = false
 
-    fetchInterpretation(readingResult)
+    fetchInterpretation(readingResult, {
+      // 스트리밍 도중 overall 텍스트 누적분을 받아 즉시 UI 반영 (fallback=true 로 유지).
+      onProgress: (snapshot) => {
+        if (cancelled) return
+        setInterpretation(snapshot)
+      },
+    })
       .then((result) => {
         if (!cancelled && result) {
           setInterpretation(result)
