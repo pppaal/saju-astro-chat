@@ -141,6 +141,24 @@ export const tarotThemes: TarotTheme[] = [
         ],
       },
       {
+        id: 'horseshoe',
+        title: 'Horseshoe Spread',
+        titleKo: '말굽 스프레드',
+        cardCount: 7,
+        description:
+          'A seven-card arc for problem-solving: past, present, hidden influences, obstacles, environment, advice, and the final outcome.',
+        descriptionKo: '문제 해결의 열쇠 — 과거·현재·숨은 영향·장애물·주변 환경·조언·최종 결과까지 짚어봐요.',
+        positions: [
+          { title: 'The Past', titleKo: '과거' },
+          { title: 'The Present', titleKo: '현재' },
+          { title: 'Hidden Influences', titleKo: '숨겨진 영향' },
+          { title: 'Obstacles', titleKo: '장애물' },
+          { title: 'Surrounding Environment', titleKo: '주변 환경' },
+          { title: 'Advice', titleKo: '조언' },
+          { title: 'Final Outcome', titleKo: '최종 결과' },
+        ],
+      },
+      {
         id: 'celtic-cross',
         title: 'The Celtic Cross',
         titleKo: '켈틱 크로스',
