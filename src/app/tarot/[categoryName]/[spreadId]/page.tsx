@@ -43,6 +43,7 @@ function TarotReadingPage() {
   // Local state
   const detailedSectionRef = useRef<HTMLDivElement | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [interpretationFailed, setInterpretationFailed] = useState(false)
   const requestedInterpretationKeyRef = useRef<string | null>(null)
   const isInterpretationFetchingRef = useRef(false)
 
@@ -103,9 +104,21 @@ function TarotReadingPage() {
       },
     })
       .then((result) => {
-        if (!cancelled && result) {
+        if (cancelled) return
+        if (result) {
           setInterpretation(result)
         }
+        // LLM 이 완전 실패해 정적 fallback 으로 떨어진 경우 → 사용자에게 재시도 옵션 제공.
+        const failedToLLM =
+          !result ||
+          result.interpretation_source === 'local_personalized_fallback' ||
+          result.interpretation_source === 'emergency_fallback' ||
+          (result.fallback === true && (!result.overall_message || result.overall_message.length < 40))
+        setInterpretationFailed(failedToLLM)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setInterpretationFailed(true)
       })
       .finally(() => {
         if (!cancelled) {
@@ -157,6 +170,27 @@ function TarotReadingPage() {
 
   const handleReset = () => router.push('/tarot')
 
+  // 재시도: ref 를 비워서 useEffect 가 다시 fetchInterpretation 트리거.
+  const handleRetryInterpretation = useCallback(() => {
+    if (!gameHook.readingResult) return
+    setInterpretationFailed(false)
+    requestedInterpretationKeyRef.current = null
+    isInterpretationFetchingRef.current = false
+    // basicInterpretation(fallback=true) 로 되돌려 useEffect 조건 만족시킴.
+    setInterpretation({
+      overall_message: '',
+      card_insights: gameHook.readingResult.drawnCards.map((dc, i) => ({
+        position: gameHook.readingResult!.spread.positions[i]?.title || `Card ${i + 1}`,
+        card_name: dc.card.name,
+        is_reversed: dc.isReversed,
+        interpretation: '',
+      })),
+      guidance: '',
+      affirmation: '',
+      fallback: true,
+    })
+  }, [gameHook.readingResult, setInterpretation])
+
   // Session loading state
   if (status === 'loading') {
     return (
@@ -177,6 +211,8 @@ function TarotReadingPage() {
       handleCardReveal={handleCardReveal}
       handleSaveReading={handleSaveReading}
       handleReset={handleReset}
+      interpretationFailed={interpretationFailed}
+      handleRetryInterpretation={handleRetryInterpretation}
       language={language}
       translate={translate}
     />

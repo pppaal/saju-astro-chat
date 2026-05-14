@@ -41,6 +41,8 @@ export interface PageContentProps {
   handleSaveReading: () => Promise<void>
   handleReset: () => void
   handlePersonalizationChange: (key: keyof TarotPersonalizationOptions, value: boolean) => void
+  interpretationFailed?: boolean
+  handleRetryInterpretation?: () => void
   language: string
   translate: (key: string, fallback: string) => string
 }
@@ -158,6 +160,8 @@ export function PageContent(props: PageContentProps) {
         saveMessage={props.saveMessage}
         handleSaveReading={props.handleSaveReading}
         handleReset={props.handleReset}
+        interpretationFailed={props.interpretationFailed}
+        handleRetryInterpretation={props.handleRetryInterpretation}
       />
     )
   }
