@@ -4,7 +4,6 @@
   | 'report'
   | 'calendar'
   | 'compatibility'
-  | 'compatibilityRealtime'
   | 'destinyMatch'
 
 export type EnabledService = {
@@ -61,22 +60,14 @@ const ALL_SERVICES: readonly EnabledService[] = [
     description: { en: 'Important Timing Guide', ko: '중요한 타이밍 가이드' },
   },
   {
+    // /compatibility now redirects to the realtime chat counselor.
     id: 'compatibility',
     href: '/compatibility',
-    icon: '💕',
+    icon: '💬',
     menuKey: 'menu.compatibility',
     descriptionKey: 'services.compatibility.desc',
     label: { en: 'Compatibility', ko: '궁합' },
-    description: { en: 'Relationship Analysis', ko: '관계 궁합 분석' },
-  },
-  {
-    id: 'compatibilityRealtime',
-    href: '/compatibility/realtime',
-    icon: '💬',
-    menuKey: 'menu.compatibilityRealtime',
-    descriptionKey: 'services.compatibilityRealtime.desc',
-    label: { en: 'Live Compatibility', ko: '실시간 궁합' },
-    description: { en: 'Chat with the counselor', ko: '카운슬러와 채팅 상담' },
+    description: { en: 'Chat counselor', ko: 'AI 궁합 상담' },
   },
   {
     id: 'destinyMatch',
@@ -98,7 +89,6 @@ export const ACTIVE_PUBLIC_SERVICE_IDS: readonly EnabledServiceId[] = [
   'report',
   'calendar',
   'compatibility',
-  'compatibilityRealtime',
 ] as const
 
 const ACTIVE_SERVICE_SET = new Set<EnabledServiceId>(ACTIVE_PUBLIC_SERVICE_IDS)

@@ -13,7 +13,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { findOrCreateSession } from '@/lib/compatibility/counselor/chatSession'
+import {
+  deleteSession,
+  findOrCreateSession,
+} from '@/lib/compatibility/counselor/chatSession'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -107,5 +110,33 @@ export async function POST(req: NextRequest): Promise<Response> {
   } catch (err) {
     logger.error('[compat/realtime/session] failed', err)
     return NextResponse.json({ error: 'session_create_failed' }, { status: 500 })
+  }
+}
+
+/**
+ * DELETE /api/compatibility/realtime/session?id=<sessionId>
+ *
+ * Lets a logged-in user wipe a chat session (privacy + mistakes). Guests
+ * have nothing persisted so a 401 is returned in that case.
+ */
+export async function DELETE(req: NextRequest): Promise<Response> {
+  const session = await getServerSession(authOptions).catch(() => null)
+  const userId = session?.user?.id ?? null
+  if (!userId) {
+    return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+  }
+  const sessionId = new URL(req.url).searchParams.get('id')
+  if (!sessionId) {
+    return NextResponse.json({ error: 'missing_id' }, { status: 400 })
+  }
+  try {
+    const ok = await deleteSession(userId, sessionId)
+    if (!ok) {
+      return NextResponse.json({ error: 'not_found' }, { status: 404 })
+    }
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    logger.error('[compat/realtime/session DELETE] failed', err)
+    return NextResponse.json({ error: 'delete_failed' }, { status: 500 })
   }
 }

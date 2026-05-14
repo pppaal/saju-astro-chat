@@ -157,6 +157,19 @@ export async function appendTurn(
   }, null)
 }
 
+/** Delete a session. Owned by `userId` — silent no-op otherwise. */
+export async function deleteSession(userId: string, sessionId: string): Promise<boolean> {
+  return safeAccess<boolean>(async () => {
+    const existing = await prisma.compatibilityChatSession.findUnique({
+      where: { id: sessionId },
+      select: { userId: true },
+    })
+    if (!existing || existing.userId !== userId) return false
+    await prisma.compatibilityChatSession.delete({ where: { id: sessionId } })
+    return true
+  }, false)
+}
+
 function rowToRecord(row: {
   id: string
   userId: string

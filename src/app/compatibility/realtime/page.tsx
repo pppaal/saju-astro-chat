@@ -4,9 +4,23 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Send, Sparkles, Users } from 'lucide-react'
+import { Send, Sparkles, Trash2, Users } from 'lucide-react'
 import { RELATION_OPTIONS, type RelationKey } from '@/lib/compatibility/counselor'
+
+const VALID_RELATION_KEYS = new Set<RelationKey>(
+  RELATION_OPTIONS.map((r) => r.key)
+)
+function asRelationKey(value: string | null | undefined): RelationKey {
+  if (value && VALID_RELATION_KEYS.has(value as RelationKey)) return value as RelationKey
+  return 'partner'
+}
+
+function normalizeGender(value: unknown): 'male' | 'female' {
+  const s = String(value || '').toLowerCase()
+  return s === 'female' || s === 'f' ? 'female' : 'male'
+}
 
 type PersonForm = {
   name: string
@@ -34,11 +48,16 @@ interface QuotaState {
 }
 
 export default function CompatibilityRealtimePage() {
+  const searchParams = useSearchParams()
+  const circlePersonId = searchParams.get('circlePersonId')
+
   const [personA, setPersonA] = useState<PersonForm>(emptyPerson(''))
   const [personB, setPersonB] = useState<PersonForm>(emptyPerson(''))
   const [relation, setRelation] = useState<RelationKey>('partner')
   const [relationNote, setRelationNote] = useState('')
 
+  const [prefilling, setPrefilling] = useState(Boolean(circlePersonId))
+  const [prefillError, setPrefillError] = useState<string | null>(null)
   const [started, setStarted] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -64,6 +83,79 @@ export default function CompatibilityRealtimePage() {
   useEffect(() => {
     void refreshQuota()
   }, [])
+
+  // Prefill from a "saved person" card click on /profile.
+  // The URL carries `circlePersonId`; we hydrate Partner B from that and
+  // Partner A from the user's own profile, then auto-start the chat.
+  useEffect(() => {
+    if (!circlePersonId) return
+    let cancelled = false
+    const load = async () => {
+      try {
+        const [profileRes, circleRes] = await Promise.all([
+          fetch('/api/me/profile', { cache: 'no-store' }).then((r) =>
+            r.ok ? r.json() : null
+          ),
+          fetch('/api/me/circle?limit=100', { cache: 'no-store' }).then((r) =>
+            r.ok ? r.json() : null
+          ),
+        ])
+        if (cancelled) return
+
+        const meRaw = profileRes?.user
+        const peopleRaw = circleRes?.data?.people || circleRes?.people || []
+        const target = (peopleRaw as Array<Record<string, unknown>>).find(
+          (p) => p.id === circlePersonId
+        )
+
+        if (!target || !target.birthDate) {
+          setPrefillError('이 인연은 생년월일이 비어있어 상담을 시작할 수 없어요.')
+          setPrefilling(false)
+          return
+        }
+        if (!meRaw?.birthDate) {
+          setPrefillError(
+            '내 사주 정보가 없어요. 프로필에서 먼저 입력해주세요.'
+          )
+          setPrefilling(false)
+          return
+        }
+
+        const prefilledA: PersonForm = {
+          name: String(meRaw.name || '나'),
+          birthDate: String(meRaw.birthDate),
+          birthTime: String(meRaw.birthTime || ''),
+          gender: normalizeGender(meRaw.gender),
+          birthCity: String(meRaw.birthCity || ''),
+        }
+        const prefilledB: PersonForm = {
+          name: String(target.name || '상대'),
+          birthDate: String(target.birthDate || ''),
+          birthTime: String(target.birthTime || ''),
+          gender: normalizeGender(target.gender),
+          birthCity: String(target.birthCity || ''),
+        }
+        const prefilledRel = asRelationKey(
+          typeof target.relation === 'string' ? target.relation : null
+        )
+        setPersonA(prefilledA)
+        setPersonB(prefilledB)
+        setRelation(prefilledRel)
+        setPrefilling(false)
+        // Open chat immediately with the prefilled values (we pass them
+        // explicitly so we don't depend on async state propagation).
+        await startSession(prefilledA, prefilledB, prefilledRel, '')
+      } catch {
+        setPrefillError('인연 정보를 불러오지 못했어요.')
+        setPrefilling(false)
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [circlePersonId])
 
   const canStart = useMemo(() => {
     return (
@@ -187,21 +279,26 @@ export default function CompatibilityRealtimePage() {
     }
   }
 
-  const handleStart = async () => {
-    if (!canStart || streaming) return
+  const startSession = async (
+    a: PersonForm,
+    b: PersonForm,
+    rel: RelationKey,
+    note: string
+  ) => {
     setStarted(true)
 
     // Try to fetch or create a persistent session (logged-in users only).
     // Guests fall through with sessionId=null and start fresh.
+    let resumed = false
     try {
       const res = await fetch('/api/compatibility/realtime/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          personA: toApiPerson(personA),
-          personB: toApiPerson(personB),
-          relation,
-          relationNote: relationNote.trim() || null,
+          personA: toApiPerson(a),
+          personB: toApiPerson(b),
+          relation: rel,
+          relationNote: note.trim() || null,
         }),
       })
       if (res.ok) {
@@ -212,23 +309,45 @@ export default function CompatibilityRealtimePage() {
         }
         if (data.sessionId) setSessionId(data.sessionId)
         if (data.isResumed && data.messages.length > 0) {
-          // Restore prior conversation, then let the user ask the next thing
-          // instead of auto-greeting again.
           setMessages(data.messages.map((m) => ({ role: m.role, content: m.content })))
-          return
+          resumed = true
         }
       }
     } catch {
       // Continue without persistence — falls back to ephemeral chat
     }
 
-    void send(true)
+    if (!resumed) {
+      void send(true)
+    }
+  }
+
+  const handleStart = async () => {
+    if (!canStart || streaming) return
+    await startSession(personA, personB, relation, relationNote)
   }
 
   const handleSend = (e?: FormEvent) => {
     e?.preventDefault()
     if (!input.trim() || streaming) return
     void send(false)
+  }
+
+  const handleDeleteSession = async () => {
+    if (!sessionId) return
+    if (!window.confirm('이 대화를 삭제할까요? 되돌릴 수 없어요.')) return
+    try {
+      await fetch(`/api/compatibility/realtime/session?id=${encodeURIComponent(sessionId)}`, {
+        method: 'DELETE',
+      })
+    } catch {
+      // best-effort
+    }
+    // Reset back to the setup form regardless of server outcome.
+    setSessionId(null)
+    setMessages([])
+    setStarted(false)
+    setQuotaBlock(null)
   }
 
   const handleQuickChip = (text: string) => {
@@ -245,22 +364,29 @@ export default function CompatibilityRealtimePage() {
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-2xl flex-col px-5 pt-20 pb-6 sm:px-6">
-        <header className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users size={18} className="text-violet-300" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-200/70">
-              궁합 카운슬러
-            </span>
-          </div>
-          <Link
-            href="/compatibility"
-            className="text-xs text-slate-400 transition-colors hover:text-violet-200"
-          >
-            기존 궁합 →
-          </Link>
+        <header className="mb-6 flex items-center gap-2">
+          <Users size={18} className="text-violet-300" />
+          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-200/70">
+            궁합 카운슬러
+          </span>
         </header>
 
-        {!started ? (
+        {prefilling ? (
+          <div className="flex flex-1 items-center justify-center text-sm text-slate-400">
+            <Sparkles size={16} className="mr-2 animate-pulse text-violet-300" />
+            인연 정보를 불러오는 중...
+          </div>
+        ) : prefillError ? (
+          <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-5 text-[13px] text-amber-100">
+            <p className="leading-relaxed">{prefillError}</p>
+            <Link
+              href="/profile"
+              className="mt-3 inline-block rounded-xl bg-violet-500 px-4 py-2 text-[13px] font-semibold text-white"
+            >
+              프로필로 이동
+            </Link>
+          </div>
+        ) : !started ? (
           <SetupForm
             personA={personA}
             personB={personB}
@@ -291,7 +417,20 @@ export default function CompatibilityRealtimePage() {
                   </p>
                 )}
               </div>
-              <QuotaBadge quota={quota} />
+              <div className="flex items-center gap-2">
+                <QuotaBadge quota={quota} />
+                {sessionId && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteSession}
+                    className="rounded-full p-1.5 text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                    aria-label="이 대화 삭제"
+                    title="이 대화 삭제"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div

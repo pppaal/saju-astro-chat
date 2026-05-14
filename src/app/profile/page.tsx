@@ -811,10 +811,14 @@ function PersonCard({
 }) {
   const [confirming, setConfirming] = useState(false)
   return (
-    <div className="relative flex h-32 w-32 shrink-0 cursor-pointer snap-start flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-md transition-all hover:border-white/20 hover:bg-white/[0.06]">
+    <Link
+      href={`/compatibility/realtime?circlePersonId=${encodeURIComponent(person.id)}`}
+      className="relative flex h-32 w-32 shrink-0 cursor-pointer snap-start flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-md transition-all hover:border-white/20 hover:bg-white/[0.06]"
+    >
       <button
         type="button"
         onClick={(e) => {
+          e.preventDefault()
           e.stopPropagation()
           if (confirming) {
             onDelete(person.id)
@@ -839,7 +843,7 @@ function PersonCard({
       <span className="mt-1 rounded-full bg-violet-500/15 px-2.5 py-0.5 text-[10px] font-medium text-violet-200">
         {relationLabel}
       </span>
-    </div>
+    </Link>
   )
 }
 
