@@ -623,11 +623,29 @@ export function useTarotInterpretation({
             const isHealth = /건강|몸|컨디션|스트레스|병원|아프|아픈|치료/i.test(qText)
 
             const domainScores = (fusion.domainScores as Record<string, number> | undefined) || {}
-            const topDomains = Object.entries(domainScores)
+            // 사주축·점성축 분리 근거 — 점수 대신 "왜 강한지" 시그널 텍스트
+            const domainCross =
+              (fusion.domainCross as
+                | Array<{
+                    theme: string
+                    sajuScore: number
+                    astroScore: number
+                    sajuSummary: string
+                    astroSummary: string
+                  }>
+                | undefined) || []
+            const crossByTheme = new Map(domainCross.map((d) => [d.theme, d]))
+            // 점수 기준 top 3 → 각 테마의 사주축·점성축 시그널을 근거로 노출 (점수 숨김)
+            const topDomainLines = Object.entries(domainScores)
               .sort(([, a], [, b]) => b - a)
               .slice(0, 3)
-              .map(([k, v]) => `${k} ${Math.round(v)}`)
-              .join(' · ')
+              .map(([theme]) => {
+                const basis = crossByTheme.get(theme)
+                if (!basis) return `- ${theme}`
+                return isKorean
+                  ? `- ${theme}: 사주 = ${basis.sajuSummary} / 점성 = ${basis.astroSummary}`
+                  : `- ${theme}: saju = ${basis.sajuSummary} / astro = ${basis.astroSummary}`
+              })
 
             // sajuContext 풍부화
             // 기본(일간) + 신강/신약 + 용신 + 대운 + 오늘 강한 영역
@@ -648,10 +666,13 @@ export function useTarotInterpretation({
                     : `Current decadal: ${currentDaeun.label}${daeunSib ? ` (${daeunSib})` : ''}`
                 )
               }
-              if (topDomains)
+              if (topDomainLines.length > 0) {
                 extra.push(
-                  isKorean ? `오늘 강한 영역: ${topDomains}` : `Top domains today: ${topDomains}`
+                  isKorean
+                    ? `오늘 강한 영역 (사주·점성 교차 근거):\n${topDomainLines.join('\n')}`
+                    : `Top domains today (saju × astro cross basis):\n${topDomainLines.join('\n')}`
                 )
+              }
 
               // [universal] 십신 분포 top 2
               const tenGodCounts = sajuExtras?.tenGodCounts || {}
