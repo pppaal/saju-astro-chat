@@ -27,7 +27,7 @@ export interface MetricDefinition {
 
 export const MetricLabels = {
   // Service categories
-  service: ["destiny-map", "tarot", "dream", "astrology", "compatibility", "iching", "calendar", "counselor"] as const,
+  service: ["destiny-map", "tarot", "astrology", "compatibility", "iching", "calendar", "counselor"] as const,
 
   // Operation types
   operation: ["create", "read", "update", "delete", "generate", "interpret", "analyze"] as const,
@@ -126,13 +126,6 @@ export const MetricRegistry: Record<string, MetricDefinition> = {
     description: "Tarot interpretation time",
     unit: "milliseconds",
     labels: ["category"],
-  },
-
-  "dream.analysis.total": {
-    name: "dream_analysis_total",
-    type: "counter",
-    description: "Total dream analyses",
-    labels: ["locale", "status"],
   },
 
   "astrology.chart.total": {

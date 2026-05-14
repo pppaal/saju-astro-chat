@@ -62,7 +62,6 @@ const VALID_SERVICES = [
   'astrology',
   'saju',
   'tarot',
-  'dream',
   'destiny-map',
   'numerology',
   'iching',

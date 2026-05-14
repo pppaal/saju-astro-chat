@@ -576,7 +576,7 @@ export const contentAccessGetQuerySchema = paginationQuerySchema.extend({
 })
 
 export const shareImageRequestSchema = z.object({
-  type: z.enum(['tarot', 'astrology', 'saju', 'compatibility', 'dream']),
+  type: z.enum(['tarot', 'astrology', 'saju', 'compatibility']),
   title: z.string().min(1).max(200).trim(),
   content: z.string().max(2000).trim(),
   theme: z.enum(['light', 'dark']).optional(),
@@ -601,7 +601,6 @@ export const shareResultRequestSchema = z.object({
     'astrology',
     'saju',
     'compatibility',
-    'dream',
     'numerology',
     'iching',
   ]),
@@ -617,13 +616,12 @@ export const readingsMetadataSchema = z.object({
   question: z.string().max(1000).optional(),
   cards: z.array(z.string().max(100)).optional(),
   hexagram: z.number().int().min(1).max(64).optional(),
-  dreamSymbols: z.array(z.string().max(100)).optional(),
   birthDate: dateSchema.optional(),
   score: z.number().min(0).max(100).optional(),
 })
 
 export const readingsSaveSchema = z.object({
-  type: z.enum(['tarot', 'iching', 'dream', 'numerology', 'daily-fortune', 'compatibility']),
+  type: z.enum(['tarot', 'iching', 'numerology', 'daily-fortune', 'compatibility']),
   title: z.string().max(200).trim().optional(),
   content: z.string().min(1).max(50000),
   metadata: readingsMetadataSchema.optional(),
