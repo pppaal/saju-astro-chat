@@ -39,44 +39,6 @@ export function buildCounselingBrief(params: {
   }
 }
 
-export function buildFortuneWithIcpSection(
-  counselingBrief: CounselingBrief | null | undefined,
-  lang: 'ko' | 'en'
-): string {
-  if (!counselingBrief) {
-    return ''
-  }
-
-  const header =
-    lang === 'ko'
-      ? '[CounselingBrief: 성향 기반 보조 컨텍스트]'
-      : '[CounselingBrief: personality grounding context]'
-
-  return `${header}\n${JSON.stringify(counselingBrief)}`
-}
-
-export function buildFortuneWithIcpOutputGuide(lang: 'ko' | 'en'): string {
-  if (lang === 'ko') {
-    return [
-      '[출력 가이드]',
-      '- 질문에 대한 직접 답을 먼저 제시한다.',
-      '- 순서를 지킨다: 한 줄 결론 -> 근거 -> 실행 계획 -> 주의/재확인.',
-      '- 근거 없는 단정/예언 금지. 가능성/조건형으로 표현한다.',
-      '- 의료/법률/투자 확정 조언은 금지한다.',
-      '- 마지막에 다음 행동 1개를 제시한다.',
-    ].join('\n')
-  }
-
-  return [
-    '[Output Guide]',
-    '- Answer the question directly first.',
-    '- Use this order: direct answer -> evidence -> action plan -> avoid/recheck.',
-    '- Use probabilistic wording, not deterministic prediction.',
-    '- Do not provide medical/legal/investment certainty.',
-    '- End with one immediate next action.',
-  ].join('\n')
-}
-
 export function buildEvidenceGroundingGuide(lang: 'ko' | 'en'): string {
   if (lang === 'ko') {
     return [
