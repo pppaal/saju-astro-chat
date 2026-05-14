@@ -1,7 +1,7 @@
 // chart-calculator.ts
 // Handles computation of Saju and Astrology charts with caching
 
-import { calculateSajuData } from '@/lib/saju/saju'
+import { calculateSajuOrchestrated } from '@/lib/destiny-map/astrology/saju-orchestrator'
 import { toSajuDataStructure } from '@/lib/destiny-map/type-guards'
 import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
@@ -38,7 +38,20 @@ function isSwissephUnavailableError(error: unknown): boolean {
 }
 
 /**
- * Compute Saju data with caching
+ * Compute Saju data with caching.
+ *
+ * Uses `calculateSajuOrchestrated` (full orchestration) instead of the
+ * lighter `calculateSajuData` so the LLM receives the complete picture:
+ *   - 4 pillars + dayMaster + daeun/saeun/wolun/iljin (already in light)
+ *   - sinsal (천을귀인 / 도화 / 화개 / 공망 etc.)
+ *   - advancedAnalysis: 격국 / 용신·희신·기신 / 통근·투출·회국·득령 /
+ *     충·합·형·파·해·삼합 / 종합 점수 / 건강·직업 적성 / 일주 성격
+ *
+ * `buildAllDataPrompt` already reads all of these fields from the saju
+ * object and renders them into the COMPREHENSIVE SNAPSHOT prompt block.
+ * Previously the light path left them undefined, so the prompt showed
+ * "-" placeholders and the LLM was effectively guessing structural
+ * details (격국 / 용신 / 신살) that the user expects it to know.
  */
 export async function computeSajuData(
   birthDate: string,
@@ -50,12 +63,21 @@ export async function computeSajuData(
     const sajuCacheKey = CacheKeys.saju(birthDate, birthTime, gender, 'solar')
     const computedSaju = await cacheOrCalculate(
       sajuCacheKey,
-      () => Promise.resolve(calculateSajuData(birthDate, birthTime, gender, 'solar', timeZone)),
+      () =>
+        calculateSajuOrchestrated({
+          birthDate,
+          birthTime,
+          gender,
+          timezone: timeZone,
+        }),
       CACHE_TTL.SAJU // 7 days - birth data doesn't change
     )
     const validatedSaju = toSajuDataStructure(computedSaju)
     if (validatedSaju) {
-      logger.debug('[chart-calculator] Computed saju:', validatedSaju.dayMaster?.heavenlyStem)
+      logger.debug(
+        '[chart-calculator] Computed orchestrated saju keys:',
+        Object.keys(validatedSaju)
+      )
       return validatedSaju as SajuDataStructure
     }
   } catch (e) {
