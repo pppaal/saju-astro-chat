@@ -2,6 +2,7 @@ export type {
   RelationKey,
   CounselorPerson,
   BuildCounselorPromptInput,
+  SavedPerson,
 } from './types'
 export {
   RELATION_OPTIONS,

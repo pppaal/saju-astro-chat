@@ -44,3 +44,24 @@ export interface BuildCounselorPromptInput {
   /** UI locale — only affects a few fallback labels; AI always replies in 한국어. */
   locale?: 'ko' | 'en'
 }
+
+/**
+ * Saved person row from the user's circle (DB: `SavedPerson` model).
+ * Loaded by the profile page and `useMyCircle` hook, then handed to the
+ * realtime counselor so the user can resume a chat for that pair.
+ *
+ * Lives in the counselor types module because that's the only consumer
+ * left after the legacy compatibility flow was removed.
+ */
+export interface SavedPerson {
+  id: string
+  name: string
+  relation: string
+  birthDate?: string | null
+  birthTime?: string | null
+  gender?: string | null
+  birthCity?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  tzId?: string | null
+}

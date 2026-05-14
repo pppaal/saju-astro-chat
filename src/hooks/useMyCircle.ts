@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { SavedPerson } from '@/app/compatibility/lib'
+import type { SavedPerson } from '@/lib/compatibility/counselor'
 import { logger } from '@/lib/logger'
 
 export type CirclePerson = SavedPerson

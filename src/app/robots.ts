@@ -23,7 +23,6 @@ export default function robots(): MetadataRoute.Robots {
           '/destiny-map/result/',
           '/premium-reports/result/',
           '/tarot/history/',
-          '/compatibility/chat/',
         ],
       },
       {
