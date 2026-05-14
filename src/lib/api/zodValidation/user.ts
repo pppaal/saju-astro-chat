@@ -223,7 +223,6 @@ export type FeedbackRequestValidated = z.infer<typeof feedbackRequestSchema>
 
 export const sectionFeedbackRequestSchema = z.object({
   service: z.string().min(1).max(64).trim(),
-  theme: z.string().min(1).max(64).trim(),
   sectionId: z.string().min(1).max(80).trim(),
   helpful: z.boolean(),
   dayMaster: z.string().max(32).trim().optional(),
@@ -242,12 +241,10 @@ export type SectionFeedbackRequestValidated = z.infer<typeof sectionFeedbackRequ
 
 export const feedbackGetQuerySchema = z.object({
   service: z.string().max(50).optional(),
-  theme: z.string().max(50).optional(),
 })
 
 export const feedbackRecordsQuerySchema = z.object({
   service: z.string().optional(),
-  theme: z.string().optional(),
   helpful: z
     .enum(['true', 'false'])
     .transform((val) => val === 'true')
@@ -535,7 +532,6 @@ export type ChatHistorySaveRequestValidated = z.infer<typeof chatHistorySaveRequ
 
 export const counselorSessionSaveRequestSchema = z.object({
   sessionId: z.string().min(1).max(100).trim(),
-  theme: z.string().max(100).trim().optional(),
   messages: z.array(chatMessageSchema).min(1).max(200),
   locale: localeSchema.optional(),
 })
@@ -543,12 +539,10 @@ export const counselorSessionSaveRequestSchema = z.object({
 export type CounselorSessionSaveRequestValidated = z.infer<typeof counselorSessionSaveRequestSchema>
 
 export const counselorSessionLoadQuerySchema = z.object({
-  theme: z.string().max(50).optional().default('chat'),
   sessionId: z.string().max(100).optional(),
 })
 
 export const counselorSessionListQuerySchema = z.object({
-  theme: z.string().max(50).optional(),
   limit: z.coerce.number().int().min(1).max(50).optional().default(20),
 })
 
@@ -582,7 +576,7 @@ export const contentAccessGetQuerySchema = paginationQuerySchema.extend({
 })
 
 export const shareImageRequestSchema = z.object({
-  type: z.enum(['tarot', 'astrology', 'saju', 'compatibility', 'dream']),
+  type: z.enum(['tarot', 'astrology', 'saju', 'compatibility']),
   title: z.string().min(1).max(200).trim(),
   content: z.string().max(2000).trim(),
   theme: z.enum(['light', 'dark']).optional(),
@@ -607,7 +601,6 @@ export const shareResultRequestSchema = z.object({
     'astrology',
     'saju',
     'compatibility',
-    'dream',
     'numerology',
     'iching',
   ]),
@@ -623,13 +616,12 @@ export const readingsMetadataSchema = z.object({
   question: z.string().max(1000).optional(),
   cards: z.array(z.string().max(100)).optional(),
   hexagram: z.number().int().min(1).max(64).optional(),
-  dreamSymbols: z.array(z.string().max(100)).optional(),
   birthDate: dateSchema.optional(),
   score: z.number().min(0).max(100).optional(),
 })
 
 export const readingsSaveSchema = z.object({
-  type: z.enum(['tarot', 'iching', 'dream', 'numerology', 'daily-fortune', 'compatibility']),
+  type: z.enum(['tarot', 'iching', 'numerology', 'daily-fortune', 'compatibility']),
   title: z.string().max(200).trim().optional(),
   content: z.string().min(1).max(50000),
   metadata: readingsMetadataSchema.optional(),

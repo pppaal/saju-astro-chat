@@ -23,7 +23,6 @@ export type FeedbackType = 'up' | 'down' | null
  */
 export interface SessionItem {
   id: string
-  theme?: string
   summary?: string
   lastMessageAt?: string
   createdAt?: string
@@ -43,8 +42,6 @@ export interface UseChatSessionOptions {
   enableDbPersistence?: boolean
   /** Enable persona memory updates */
   enablePersonaMemory?: boolean
-  /** Theme for DB persistence */
-  theme?: string
   /** Language for DB persistence */
   lang?: string
   /** Saju data for persona memory */
@@ -80,7 +77,6 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     storageKey,
     enableDbPersistence = false,
     enablePersonaMemory = false,
-    theme = 'chat',
     lang = 'ko',
     saju,
     astro,
@@ -147,7 +143,6 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     enableDbPersistence,
     enablePersonaMemory,
     sessionLoaded,
-    theme,
     lang,
     saju,
     astro,
@@ -163,7 +158,6 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     loadSession,
     deleteSession,
   } = useSessionHistory({
-    theme,
     setMessages,
     onSessionIdChange: (newId) => {
       sessionIdRef.current = newId

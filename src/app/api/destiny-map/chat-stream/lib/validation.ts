@@ -77,8 +77,7 @@ export const DestinyMapChatStreamSchema = z.object({
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
 
-  // Theme and language
-  theme: z.string().max(LIMITS.THEME).default('chat'),
+  // Language
   lang: z.enum(['ko', 'en']).default('ko'),
 
   // Chat messages (max 50 messages)

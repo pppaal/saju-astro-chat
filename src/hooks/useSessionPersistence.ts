@@ -14,7 +14,6 @@ interface UseSessionPersistenceOptions {
   enableDbPersistence?: boolean
   enablePersonaMemory?: boolean
   sessionLoaded: boolean
-  theme?: string
   lang?: string
   saju?: unknown
   astro?: unknown
@@ -28,7 +27,6 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
     enableDbPersistence = false,
     enablePersonaMemory = false,
     sessionLoaded,
-    theme = 'chat',
     lang = 'ko',
     saju,
     astro,
@@ -72,7 +70,6 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sessionId: sessionId,
-            theme,
             locale: lang,
             messages: messages.filter((m) => m.role !== 'system').slice(-200),
           }),
@@ -91,7 +88,7 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
     }, 2000) // 2s debounce
 
     return () => clearTimeout(saveTimer)
-  }, [messages, sessionLoaded, theme, lang, enableDbPersistence, sessionId])
+  }, [messages, sessionLoaded, lang, enableDbPersistence, sessionId])
 
   // Auto-update PersonaMemory
   useEffect(() => {
@@ -121,7 +118,6 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: sessionId,
-        theme,
         locale: lang,
         messages: visibleMsgs.slice(-200),
         saju: saju || undefined,
@@ -136,7 +132,7 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
       .catch((e) => {
         logger.warn('[useChatSession] Failed to update PersonaMemory:', e)
       })
-  }, [messages, sessionLoaded, theme, lang, saju, astro, enablePersonaMemory, sessionId])
+  }, [messages, sessionLoaded, lang, saju, astro, enablePersonaMemory, sessionId])
 
   return { saveError }
 }

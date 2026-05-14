@@ -217,16 +217,6 @@ const DOMAIN_PATTERNS: DomainPattern[] = [
   },
 ]
 
-const DOMAIN_THEME_MAP: Record<InsightDomain, string> = {
-  personality: 'chat',
-  career: 'career',
-  relationship: 'love',
-  wealth: 'wealth',
-  health: 'health',
-  spirituality: 'life',
-  timing: 'life',
-}
-
 const LAYER_DOMAIN_MAP: Partial<Record<InsightDomain, DomainKey>> = {
   career: 'career',
   relationship: 'love',
@@ -291,19 +281,10 @@ function domainBonus(domain: InsightDomain, text: string): number {
 
 export function inferCounselorFocusDomain(input: {
   lastUserMessage?: string | null
-  theme?: string | null
 }): InsightDomain {
   const text = (input.lastUserMessage || '').trim()
   if (!text) {
-    return input.theme === 'health'
-      ? 'health'
-      : input.theme === 'career'
-        ? 'career'
-        : input.theme === 'wealth'
-          ? 'wealth'
-          : input.theme === 'love' || input.theme === 'family'
-            ? 'relationship'
-            : 'personality'
+    return 'personality'
   }
 
   const scores = DOMAIN_PATTERNS.map(({ domain, patterns }) => ({
@@ -404,7 +385,6 @@ function inferFrame(input: {
 
 export function analyzeCounselorQuestion(input: {
   lastUserMessage?: string | null
-  theme?: string | null
 }): CounselorQuestionAnalysis {
   const text = (input.lastUserMessage || '').trim()
   const primaryDomain = inferCounselorFocusDomain(input)
@@ -436,26 +416,18 @@ export function analyzeCounselorQuestion(input: {
   }
 }
 
-export function mapFocusDomainToTheme(focusDomain: InsightDomain): string {
-  return DOMAIN_THEME_MAP[focusDomain] || 'chat'
-}
-
 export interface CounselorStorageSignals {
   analysis: CounselorQuestionAnalysis
-  inferredTheme: string
   memoryTopics: string[]
 }
 
 export function deriveCounselorStorageSignals(input: {
   lastUserMessage?: string | null
-  theme?: string | null
   keyTopics?: string[] | null
 }): CounselorStorageSignals {
   const analysis = analyzeCounselorQuestion({
     lastUserMessage: input.lastUserMessage,
-    theme: input.theme,
   })
-  const inferredTheme = mapFocusDomainToTheme(analysis.primaryDomain)
   const memoryTopics = Array.from(
     new Set([
       analysis.primaryDomain,
@@ -466,7 +438,6 @@ export function deriveCounselorStorageSignals(input: {
 
   return {
     analysis,
-    inferredTheme,
     memoryTopics,
   }
 }

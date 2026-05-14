@@ -325,18 +325,6 @@ export const SERVICE_FAQS = {
         'Yes, Tarot readings depend on the symbolic meanings of cards drawn. Our AI provides detailed interpretations that many users find insightful and helpful.',
     },
   ],
-  dream: [
-    {
-      question: 'How does dream interpretation work?',
-      answer:
-        'Our AI analyzes the symbols, emotions, and themes in your dream description using both psychological frameworks and cultural symbolism to provide meaningful interpretations.',
-    },
-    {
-      question: 'What cultural perspectives are included?',
-      answer:
-        'We include Korean, Chinese, Islamic, Western, Hindu, Japanese, and Native American dream symbolism for a comprehensive interpretation.',
-    },
-  ],
   saju: [
     {
       question: 'What is Saju?',
@@ -384,7 +372,7 @@ export const SERVICE_FAQS = {
 
 // Generate service schema for specific pages
 export function generateServiceSchema(
-  serviceType: 'destiny-map' | 'tarot' | 'dream' | 'saju' | 'astrology' | 'numerology' | 'iching'
+  serviceType: 'destiny-map' | 'tarot' | 'saju' | 'astrology' | 'numerology' | 'iching'
 ) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
   const services = {
@@ -399,12 +387,6 @@ export function generateServiceSchema(
       description:
         'Professional tarot readings with 78 cards, advanced spreads, and AI-powered interpretations for love, career, and life guidance.',
       category: 'Tarot Reading',
-    },
-    dream: {
-      name: 'Dream Interpretation',
-      description:
-        'AI-powered dream analysis using psychological and cultural symbolism from multiple traditions.',
-      category: 'Dream Analysis',
     },
     saju: {
       name: 'Saju - Four Pillars of Destiny',

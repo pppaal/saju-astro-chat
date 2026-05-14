@@ -60,7 +60,6 @@ export const POST = withApiMiddleware(
     const feedback = await prisma.sectionFeedback.create({
       data: {
         service: body.service,
-        theme: body.theme,
         sectionId: body.sectionId,
         helpful: body.helpful,
         dayMaster: safeDayMaster,
@@ -77,7 +76,6 @@ export const POST = withApiMiddleware(
       const rlhfPayload = {
         consultation_data: {
           record_id: safeRecordId || feedback.id,
-          theme: body.theme,
           locale: safeLocale,
           user_prompt: safeUserQuestion || '',
           consultation_summary: safeConsultationSummary || body.sectionId,
@@ -123,7 +121,6 @@ export const GET = withApiMiddleware(
     const { searchParams } = new URL(req.url)
     const queryValidation = feedbackGetQuerySchema.safeParse({
       service: searchParams.get('service') || undefined,
-      theme: searchParams.get('theme') || undefined,
     })
     if (!queryValidation.success) {
       logger.warn('[Feedback GET] query validation failed', {
@@ -134,14 +131,11 @@ export const GET = withApiMiddleware(
         `Validation failed: ${queryValidation.error.issues.map((e) => e.message).join(', ')}`
       )
     }
-    const { service, theme } = queryValidation.data
+    const { service } = queryValidation.data
 
-    const where: { service?: string; theme?: string } = {}
+    const where: { service?: string } = {}
     if (service) {
       where.service = service
-    }
-    if (theme) {
-      where.theme = theme
     }
 
     // Get aggregated stats with individual error handling

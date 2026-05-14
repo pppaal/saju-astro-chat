@@ -263,22 +263,15 @@ async function fetchNotificationsData(start: Date, end: Date) {
 async function fetchContentData(start: Date, end: Date) {
   const [
     consultationCount,
-    consultationByTheme,
     destinyMatrixCount,
     destinyMatrixByType,
     pdfGeneratedCount,
     tarotReadingCount,
-    tarotByTheme,
     readingsByType,
     pastLifeCount,
     compatibilityCount,
   ] = await Promise.all([
     prisma.consultationHistory.count({ where: { createdAt: { gte: start, lte: end } } }),
-    prisma.consultationHistory.groupBy({
-      by: ['theme'],
-      where: { createdAt: { gte: start, lte: end } },
-      _count: { id: true },
-    }),
     prisma.destinyMatrixReport.count({ where: { createdAt: { gte: start, lte: end } } }),
     prisma.destinyMatrixReport.groupBy({
       by: ['reportType'],
@@ -289,11 +282,6 @@ async function fetchContentData(start: Date, end: Date) {
       where: { createdAt: { gte: start, lte: end }, pdfGenerated: true },
     }),
     prisma.tarotReading.count({ where: { createdAt: { gte: start, lte: end } } }),
-    prisma.tarotReading.groupBy({
-      by: ['theme'],
-      where: { createdAt: { gte: start, lte: end } },
-      _count: { id: true },
-    }),
     prisma.reading.groupBy({
       by: ['type'],
       where: { createdAt: { gte: start, lte: end } },
@@ -306,7 +294,6 @@ async function fetchContentData(start: Date, end: Date) {
   return {
     consultations: {
       count: consultationCount,
-      byTheme: consultationByTheme.map((c) => ({ theme: c.theme, count: c._count.id })),
     },
     destinyMatrix: {
       count: destinyMatrixCount,
@@ -315,7 +302,6 @@ async function fetchContentData(start: Date, end: Date) {
     },
     tarotReadings: {
       count: tarotReadingCount,
-      byTheme: tarotByTheme.map((t) => ({ theme: t.theme, count: t._count.id })),
     },
     readingsByType: readingsByType.map((r) => ({ type: r.type, count: r._count.id })),
     pastLifeCount,

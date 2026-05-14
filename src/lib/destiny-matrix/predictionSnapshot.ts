@@ -112,7 +112,6 @@ export async function persistDestinyPredictionSnapshot(
         userId: input.userId,
         type: 'destiny_prediction_snapshot',
         service: input.service,
-        theme: input.theme ?? null,
         metadata: metadata as unknown as object,
       },
     })
@@ -148,7 +147,6 @@ export async function persistDestinyOutcomeFeedback(
         userId: input.userId,
         type: 'destiny_outcome_logged',
         service: input.service,
-        theme: input.actualDomain ?? null,
         metadata: metadata as unknown as object,
       },
       select: { id: true },

@@ -34,7 +34,6 @@ interface InlineTarotModalProps {
     gender?: string
   }
   initialConcern?: string
-  theme?: string
 }
 
 const InlineTarotModal = memo(function InlineTarotModal({
@@ -44,7 +43,6 @@ const InlineTarotModal = memo(function InlineTarotModal({
   lang = 'ko',
   profile,
   initialConcern = '',
-  theme = 'general-insight',
 }: InlineTarotModalProps) {
   const tr = getTarotTranslations(lang)
 
@@ -52,7 +50,6 @@ const InlineTarotModal = memo(function InlineTarotModal({
   const stateManager = useInlineTarotState({
     isOpen,
     initialConcern,
-    theme,
   })
 
   const { state, actions, recommendedSpreads } = stateManager
@@ -108,13 +105,12 @@ const InlineTarotModal = memo(function InlineTarotModal({
   const goToFullTarot = () => {
     const tarotContext = {
       profile,
-      theme,
       concern: state.concern,
       fromCounselor: true,
       timestamp: Date.now(),
     }
     sessionStorage.setItem('tarotContext', JSON.stringify(tarotContext))
-    window.location.href = `/tarot?from=counselor&theme=${encodeURIComponent(theme)}`
+    window.location.href = `/tarot?from=counselor`
   }
 
   // Handle completion

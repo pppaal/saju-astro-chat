@@ -60,42 +60,28 @@ const initialState: TarotState = {
   suggestedSpreads: [],
 }
 
-// Theme mapping: destiny-map theme -> tarot category
-const themeToCategory: Record<string, string> = {
-  focus_love: 'love-relationships',
-  love: 'love-relationships',
-  focus_career: 'career-work',
-  career: 'career-work',
-  focus_energy: 'well-being-health',
-  health: 'well-being-health',
-  wealth: 'money-finance',
-  life: 'general-insight',
-  life_path: 'general-insight',
-  chat: 'general-insight',
-}
+const DEFAULT_TAROT_CATEGORY = 'general-insight'
 
 interface UseInlineTarotStateOptions {
   isOpen: boolean
   initialConcern: string
-  theme: string
 }
 
-export function useInlineTarotState({ isOpen, initialConcern, theme }: UseInlineTarotStateOptions) {
+export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotStateOptions) {
   const [state, setState] = useState<TarotState>(() => ({
     ...initialState,
     concern: initialConcern,
-    selectedCategory: themeToCategory[theme] || 'general-insight',
+    selectedCategory: DEFAULT_TAROT_CATEGORY,
   }))
 
-  // Get recommended spreads based on theme
+  // Get recommended spreads based on the default tarot category
   const defaultRecommendedSpreads = useMemo(() => {
-    const categoryId = themeToCategory[theme] || 'general-insight'
-    const category = tarotThemes.find((t) => t.id === categoryId)
+    const category = tarotThemes.find((t) => t.id === DEFAULT_TAROT_CATEGORY)
     if (!category) {
       return []
     }
     return [...category.spreads].sort((a, b) => a.cardCount - b.cardCount)
-  }, [theme])
+  }, [])
 
   const recommendedSpreads = useMemo(() => {
     if (state.suggestedSpreads.length > 0) {
@@ -104,24 +90,16 @@ export function useInlineTarotState({ isOpen, initialConcern, theme }: UseInline
     return defaultRecommendedSpreads
   }, [state.suggestedSpreads, defaultRecommendedSpreads])
 
-  // Update category when theme changes
-  useEffect(() => {
-    setState((prev) => ({
-      ...prev,
-      selectedCategory: themeToCategory[theme] || 'general-insight',
-    }))
-  }, [theme])
-
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setState({
         ...initialState,
         concern: initialConcern,
-        selectedCategory: themeToCategory[theme] || 'general-insight',
+        selectedCategory: DEFAULT_TAROT_CATEGORY,
       })
     }
-  }, [isOpen, initialConcern, theme])
+  }, [isOpen, initialConcern])
 
   // Action creators
   const actions = useMemo(
@@ -191,7 +169,6 @@ export function useInlineTarotState({ isOpen, initialConcern, theme }: UseInline
     state,
     actions,
     recommendedSpreads,
-    themeToCategory,
   }
 }
 

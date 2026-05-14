@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
@@ -13,19 +12,9 @@ const DEFAULT_LATITUDE = 37.5665
 const DEFAULT_LONGITUDE = 126.978
 
 export function useCounselorData(sp: SearchParams) {
-  const { t, setLocale } = useI18n()
-  const router = useRouter()
+  const { setLocale } = useI18n()
 
-  const [isLoading, setIsLoading] = useState(true)
-  const [showChat, setShowChat] = useState(false)
-  const [loadingStep, setLoadingStep] = useState(0)
   const [chartData, setChartData] = useState<ChartData | null>(null)
-  const [prefetchStatus, setPrefetchStatus] = useState<{
-    done: boolean
-    timeMs?: number
-    graphNodes?: number
-    corpusQuotes?: number
-  }>({ done: false })
   const [sessionId] = useState<string | null>(null)
 
   // Premium: User context and chat session for returning users
@@ -46,7 +35,6 @@ export function useCounselorData(sp: SearchParams) {
   const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? 'ko'
   const lang: Lang = langParam === 'en' ? 'en' : 'ko'
   const initialQuestion = (Array.isArray(sp.q) ? sp.q[0] : sp.q) ?? ''
-  const counselorTheme = 'chat'
 
   const latStr =
     (Array.isArray(sp.lat) ? sp.lat[0] : sp.lat) ??
@@ -60,32 +48,6 @@ export function useCounselorData(sp: SearchParams) {
   const resolvedLatitude = Number.isFinite(latitude) ? latitude : DEFAULT_LATITUDE
   const resolvedLongitude = Number.isFinite(longitude) ? longitude : DEFAULT_LONGITUDE
   const normalizedGender = String(rawGender).toLowerCase() === 'female' ? 'female' : 'male'
-
-  // Theme selection state (can be changed by user)
-  const [selectedTheme, setSelectedTheme] = useState(counselorTheme)
-
-  // Available themes with labels
-  const themeOptions = useMemo<Array<{ key: string; icon: string; label: string }>>(
-    () => [
-      { key: 'life', icon: '🌌', label: lang === 'ko' ? '종합 상담' : 'General' },
-      { key: 'love', icon: '💞', label: t('destinyMap.counselor.theme.love', '연애') },
-      { key: 'career', icon: '💼', label: t('destinyMap.counselor.theme.career', '직업') },
-      { key: 'wealth', icon: '💰', label: t('destinyMap.counselor.theme.wealth', '재물') },
-      { key: 'health', icon: '🩺', label: t('destinyMap.counselor.theme.health', '건강') },
-      { key: 'family', icon: '🏠', label: t('destinyMap.counselor.theme.family', '가족') },
-    ],
-    [lang, t]
-  )
-
-  const loadingMessages = useMemo(
-    () => [
-      t('destinyMap.counselor.loading1', '상담사와 연결 중...'),
-      t('destinyMap.counselor.loading2', '사주/점성 프로필을 분석 중...'),
-      t('destinyMap.counselor.loading3', '교차 데이터와 문맥을 준비 중...'),
-      t('destinyMap.counselor.loading4', '곧 상담을 시작할 수 있어요'),
-    ],
-    [t]
-  )
 
   // Set locale from URL parameter
   useEffect(() => {
@@ -307,8 +269,7 @@ export function useCounselorData(sp: SearchParams) {
 
     // Python AI backend was removed — counselor RAG prefetch is now a no-op.
     // The chat itself runs through @anthropic-ai/sdk directly, no init step needed.
-    setPrefetchStatus({ done: true })
-  }, [selectedTheme, birthDate, birthTime, normalizedGender, resolvedLatitude, resolvedLongitude])
+  }, [birthDate, birthTime, normalizedGender, resolvedLatitude, resolvedLongitude])
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
@@ -337,7 +298,7 @@ export function useCounselorData(sp: SearchParams) {
           // Ignore localStorage errors
         }
 
-        const res = await fetch(`/api/counselor/chat-history?theme=${selectedTheme}&limit=3`)
+        const res = await fetch(`/api/counselor/chat-history?limit=3`)
         if (res.ok) {
           const data = (await res.json()) as CounselorContextResponse
           if (data.success) {
@@ -361,10 +322,10 @@ export function useCounselorData(sp: SearchParams) {
                 lastMessageAt: s.lastMessageAt,
               }))
 
-              // If continuing the same theme, use the most recent session
-              const recentThemeSession = sessions.find((s) => s.theme === selectedTheme)
-              if (recentThemeSession) {
-                setChatSessionId(recentThemeSession.id)
+              // Resume the most recent session
+              const recentSession = sessions[0]
+              if (recentSession) {
+                setChatSessionId(recentSession.id)
               }
             }
 
@@ -383,7 +344,7 @@ export function useCounselorData(sp: SearchParams) {
     }
 
     loadUserContext()
-  }, [selectedTheme])
+  }, [])
 
   // Premium: Save message callback
   const handleSaveMessage = useCallback(
@@ -394,7 +355,6 @@ export function useCounselorData(sp: SearchParams) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sessionId: chatSessionId, // Will create new if undefined
-            theme: selectedTheme,
             locale: lang,
             userMessage,
             assistantMessage,
@@ -413,51 +373,8 @@ export function useCounselorData(sp: SearchParams) {
         logger.warn('[Counselor] Failed to save message:', e)
       }
     },
-    [chatSessionId, selectedTheme, lang]
+    [chatSessionId, lang]
   )
-
-  // Loading animation
-  useEffect(() => {
-    if (!birthDate || !birthTime) {
-      router.push('/destiny-counselor')
-      return
-    }
-
-    const stepInterval = setInterval(() => {
-      setLoadingStep((prev) => {
-        if (prev < loadingMessages.length - 1) {
-          return prev + 1
-        }
-        return prev
-      })
-    }, 800)
-
-    // Wait for either: 3.2s OR prefetch complete (whichever is later, min 2s)
-    const minLoadTime = 2000
-    const startTime = Date.now()
-
-    const checkReady = setInterval(() => {
-      const elapsed = Date.now() - startTime
-      if (elapsed >= minLoadTime && (prefetchStatus.done || elapsed >= 5000)) {
-        setIsLoading(false)
-        setTimeout(() => setShowChat(true), 300)
-        clearInterval(checkReady)
-      }
-    }, 100)
-
-    return () => {
-      clearInterval(stepInterval)
-      clearInterval(checkReady)
-    }
-  }, [
-    birthDate,
-    birthTime,
-    resolvedLatitude,
-    resolvedLongitude,
-    router,
-    loadingMessages.length,
-    prefetchStatus.done,
-  ])
 
   const parsedParams = {
     name,
@@ -466,27 +383,18 @@ export function useCounselorData(sp: SearchParams) {
     birthTimeUnknown,
     city,
     gender: normalizedGender,
-    theme: selectedTheme,
     lang,
     initialQuestion,
     latitude: resolvedLatitude,
     longitude: resolvedLongitude,
-    selectedTheme,
-    setSelectedTheme,
-    themeOptions,
   }
 
   return {
     chartData,
-    prefetchStatus,
     sessionId,
     userContext,
     chatSessionId,
     handleSaveMessage,
-    isLoading,
-    showChat,
-    loadingStep,
-    loadingMessages,
     parsedParams,
   }
 }

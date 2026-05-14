@@ -5,7 +5,7 @@ import { sajuChatStreamSchema, type SajuChatStreamValidated } from '@/lib/api/zo
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
+import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
 
 export const dynamic = 'force-dynamic'
@@ -75,7 +75,6 @@ export const POST = createStreamRoute<SajuChatStreamValidated>({
     const birthDate = typeof rawBody.birthDate === 'string' ? rawBody.birthDate.trim() : ''
     const birthTime = typeof rawBody.birthTime === 'string' ? rawBody.birthTime.trim() : ''
     const gender = typeof rawBody.gender === 'string' ? rawBody.gender : 'male'
-    const theme = typeof rawBody.theme === 'string' ? rawBody.theme.trim().slice(0, 100) : 'life'
     const lang = validated.locale || (context.locale as string)
     const userContext =
       typeof rawBody.userContext === 'string' ? rawBody.userContext.slice(0, 1000) : undefined
@@ -107,17 +106,14 @@ export const POST = createStreamRoute<SajuChatStreamValidated>({
 
     const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
     const normalizedLang = lang === 'ko' ? 'ko' : 'en'
-    const themeDepthGuide = buildThemeDepthGuide(theme, normalizedLang)
     const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
     const chatPrompt = [
       sajuCounselorSystemPrompt(lang),
-      themeDepthGuide,
       evidenceGuide,
       `Name: ${name || 'User'}`,
       `Birth: ${birthDate} ${birthTime}`,
       `Gender: ${gender}`,
-      `Theme: ${theme}`,
       historyText ? `\nConversation:\n${historyText}` : '',
       `\nQuestion: ${userQuestion}`,
     ]
@@ -129,7 +125,6 @@ export const POST = createStreamRoute<SajuChatStreamValidated>({
     return {
       endpoint: '/saju/ask-stream',
       body: {
-        theme,
         prompt: chatPrompt,
         locale: lang,
         saju: validated.saju || undefined,

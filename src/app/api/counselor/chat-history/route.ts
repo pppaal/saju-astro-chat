@@ -78,7 +78,6 @@ export const GET = withApiMiddleware(
     // Validate query parameters with Zod
     const searchParams = req.nextUrl.searchParams
     const validation = GetChatHistorySchema.safeParse({
-      theme: searchParams.get('theme'),
       limit: searchParams.get('limit'),
     })
 
@@ -90,20 +89,18 @@ export const GET = withApiMiddleware(
       })
     }
 
-    const { theme, limit } = validation.data
+    const { limit } = validation.data
 
       // 병렬 쿼리: 채팅 세션 + 페르소나 메모리 동시 조회 (100-200ms 절약)
       const [chatSessions, personaMemory] = await Promise.all([
         prisma.counselorChatSession.findMany({
           where: {
             userId,
-            ...(theme && { theme }),
           },
           orderBy: { updatedAt: 'desc' },
           take: limit,
           select: {
             id: true,
-            theme: true,
             summary: true,
             keyTopics: true,
             messageCount: true,
@@ -162,14 +159,11 @@ export const POST = withApiMiddleware(
       })
     }
 
-    const { sessionId, theme, locale, userMessage, assistantMessage } = validation.data
+    const { sessionId, locale, userMessage, assistantMessage } = validation.data
     const initialSignals = deriveCounselorStorageSignals({
       lastUserMessage: userMessage || null,
-      theme,
     })
-    const explicitTheme = theme === 'chat' ? null : theme
-    const initialSessionTheme = explicitTheme || initialSignals.inferredTheme
-    const initialMemoryTopics = explicitTheme ? [explicitTheme] : initialSignals.memoryTopics
+    const initialMemoryTopics = initialSignals.memoryTopics
 
       const now = new Date()
       const newMessages: ChatMessage[] = []
@@ -212,21 +206,12 @@ export const POST = withApiMiddleware(
           null
         const storageSignals = deriveCounselorStorageSignals({
           lastUserMessage: lastUserContent,
-          theme: existingSession.theme || theme,
         })
-        const storedTheme =
-          existingSession.theme && existingSession.theme !== 'chat'
-            ? existingSession.theme
-            : explicitTheme || storageSignals.inferredTheme
-        const memoryTopics =
-          storedTheme !== 'chat' && storedTheme === (explicitTheme || storedTheme)
-            ? [storedTheme]
-            : storageSignals.memoryTopics
+        const memoryTopics = storageSignals.memoryTopics
 
         const updated = await prisma.counselorChatSession.update({
           where: { id: sessionId },
           data: {
-            theme: storedTheme,
             messages: updatedMessages,
             messageCount: updatedMessages.length,
             lastMessageAt: now,
@@ -249,7 +234,6 @@ export const POST = withApiMiddleware(
         const created = await prisma.counselorChatSession.create({
           data: {
             userId,
-            theme: initialSessionTheme,
             locale,
             messages: newMessages,
             messageCount: newMessages.length,

@@ -13,7 +13,6 @@ import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './counselor.module.css'
 import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
-import { CounselorLoadingScreen } from './CounselorLoadingScreen'
 import Chat from '@/components/destiny-map/Chat'
 
 type SearchParams = Record<string, string | string[] | undefined>
@@ -43,10 +42,7 @@ export default function CounselorPage() {
     return result
   }, [rawSearchParams])
   const counselorSearchParams = useMemo<SearchParams>(
-    () => ({
-      ...sp,
-      theme: 'chat',
-    }),
+    () => ({ ...sp }),
     [sp]
   )
 
@@ -62,10 +58,6 @@ export default function CounselorPage() {
     userContext,
     chatSessionId,
     handleSaveMessage,
-    isLoading,
-    showChat,
-    loadingStep,
-    loadingMessages,
     parsedParams,
   } = useCounselorData(counselorSearchParams)
 
@@ -80,7 +72,6 @@ export default function CounselorPage() {
     initialQuestion,
     latitude,
     longitude,
-    selectedTheme,
   } = parsedParams
 
   // handleLogin removed alongside the guest banner. If we reintroduce
@@ -122,18 +113,8 @@ export default function CounselorPage() {
     )
   }
 
-  if (isLoading) {
-    return (
-      <CounselorLoadingScreen
-        title={t('destinyMap.counselor.title', 'Destiny Counselor')}
-        loadingStep={loadingStep}
-        loadingMessages={loadingMessages}
-      />
-    )
-  }
-
   return (
-    <main className={`${styles.page} ${showChat ? styles.fadeIn : ''}`}>
+    <main className={styles.page}>
       <BodyScrollLock />
       <CounselorSidebar
         open={sidebarOpen}
@@ -196,7 +177,6 @@ export default function CounselorPage() {
               longitude,
             }}
             lang={lang}
-            theme={selectedTheme}
             initialContext={initialQuestion ? `User's initial question: ${initialQuestion}` : ''}
             seedEvent="counselor:seed"
             saju={chartData?.saju}
@@ -208,6 +188,7 @@ export default function CounselorPage() {
             autoScroll={false}
             ragSessionId={sessionId || undefined}
             autoSendSeed
+            autoFocus
           />
         </ErrorBoundary>
       </div>
