@@ -172,8 +172,8 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           </h1>
           <p className={styles.homeSubline}>
             {locale === 'ko'
-              ? '사주 · 점성 · 캘린더 · 타로 · 궁합'
-              : 'Saju · Astrology · Calendar · Tarot · Compatibility'}
+              ? '사주 · 점성 · 캘린더 · 타로 · 궁합 상담사'
+              : 'Saju · Astrology · Calendar · Tarot · Compatibility Counselor'}
           </p>
         </section>
 
