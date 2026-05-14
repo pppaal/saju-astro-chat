@@ -282,6 +282,10 @@ export const GET = withApiMiddleware(
           sun?: { sign: string; formatted: string }
           moon?: { sign: string; formatted: string }
           ascendant?: { sign: string; formatted: string }
+          venus?: { sign: string; formatted: string }
+          mars?: { sign: string; formatted: string }
+          jupiter?: { sign: string; formatted: string }
+          mc?: { sign: string; formatted: string }
         }
       | undefined
     let todayMoonPhase: { phase: string; name: string } | undefined
@@ -441,16 +445,23 @@ export const GET = withApiMiddleware(
         summary: summaryParts.join(' · '),
       }
 
-      // 타로 cross-reading 용 추가 필드 — 본명 angle + 오늘 달 위상
+      // 타로 cross-reading 용 추가 필드 — 본명 angle (Sun/Moon/ASC + Venus/Mars/Jupiter/MC)
       try {
         const sun = natalChart.planets.find((p) => p.name === 'Sun')
         const moon = natalChart.planets.find((p) => p.name === 'Moon')
+        const venus = natalChart.planets.find((p) => p.name === 'Venus')
+        const mars = natalChart.planets.find((p) => p.name === 'Mars')
+        const jupiter = natalChart.planets.find((p) => p.name === 'Jupiter')
+        const pick = (p?: { sign: string; formatted: string }) =>
+          p ? { sign: p.sign, formatted: p.formatted } : undefined
         natalAngles = {
-          sun: sun ? { sign: sun.sign, formatted: sun.formatted } : undefined,
-          moon: moon ? { sign: moon.sign, formatted: moon.formatted } : undefined,
-          ascendant: natalChart.ascendant
-            ? { sign: natalChart.ascendant.sign, formatted: natalChart.ascendant.formatted }
-            : undefined,
+          sun: pick(sun),
+          moon: pick(moon),
+          ascendant: pick(natalChart.ascendant),
+          venus: pick(venus),
+          mars: pick(mars),
+          jupiter: pick(jupiter),
+          mc: pick(natalChart.mc),
         }
       } catch {
         // natal angles 추출 실패 — 컨텍스트만 비고 나머지는 그대로.
@@ -509,6 +520,41 @@ export const GET = withApiMiddleware(
         monthStem,
         monthBranch,
       },
+      // 타로 cross-reading 용 — 십신 분포 + 오행 분포 (4기둥 cheon/ji 십신 합산)
+      sajuExtras: (() => {
+        try {
+          const tenGodCounts: Record<string, number> = {}
+          const bump = (key?: string) => {
+            if (!key) return
+            tenGodCounts[key] = (tenGodCounts[key] || 0) + 1
+          }
+          for (const pillar of [
+            sajuResult.yearPillar,
+            sajuResult.monthPillar,
+            sajuResult.dayPillar,
+            sajuResult.timePillar,
+          ]) {
+            const p = pillar as unknown as Record<string, unknown> | undefined
+            if (!p) continue
+            const sibsin = p.sibsin as
+              | { cheon?: string; ji?: string }
+              | string
+              | undefined
+            if (typeof sibsin === 'object' && sibsin) {
+              bump(sibsin.cheon)
+              bump(sibsin.ji)
+            } else if (typeof sibsin === 'string') {
+              bump(sibsin)
+            }
+          }
+          return {
+            tenGodCounts,
+            fiveElements: sajuResult.fiveElements,
+          }
+        } catch {
+          return undefined
+        }
+      })(),
       // 현재 대운 (10년 큰 흐름) — 타로 cross-reading 에서 장기 톤 anchor 용
       currentDaeun: sajuResult.daeWoon?.current
         ? {
