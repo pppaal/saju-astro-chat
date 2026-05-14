@@ -615,12 +615,25 @@ export function useTarotInterpretation({
               | undefined
 
             // ────────────────── 키워드 기반 카테고리 감지 (무료) ──────────────────
-            const qText = userTopic || ''
+            const qText = (userTopic || '').trim()
+            const qLen = qText.length
+            // 캐주얼 감지 — 짧고 일상 도메인이면 사주·점성 컨텍스트를 통째로 차단.
+            // 프롬프트에 "캐주얼엔 raw 인용 금지" 라고만 적지 말고 *실제로 보내지 않는다*.
+            const casualPattern = /^(오늘|내일|모레|이번주|주말|낼|뭐|어디|언제|누구|뭐 ?먹|뭐 ?입|뭐 ?사|뭐 ?신|뭐 ?할|어디 ?가)/i
+            const isCasual = qLen > 0 && (qLen <= 12 || (qLen <= 25 && casualPattern.test(qText)))
+
             const isLove = /연애|사랑|썸|짝사랑|이별|결혼|애인|남친|여친|관계|데이트|고백|재회|헤어|남자친구|여자친구|좋아해|마음|호감|호감|배우자/i.test(qText)
             const isCareer = /이직|취업|면접|직장|커리어|승진|상사|동료|회사|일자리|직업|진로/i.test(qText)
             const isMoney = /돈|재정|투자|주식|코인|매출|수입|지출|용돈|월급|급여|매입|매도|재물|재산|돈줄|매수/i.test(qText)
             const isSpiritual = /자기|성장|영성|마음|내면|회의|의미|인생|길|소명|방향/i.test(qText)
             const isHealth = /건강|몸|컨디션|스트레스|병원|아프|아픈|치료/i.test(qText)
+
+            // 캐주얼이면 — 사주 풍부화 / 점성 블록 전부 skip.
+            // 별자리는 system 단의 user prompt 에 zodiac 으로 가볍게 들어가니 유지.
+            // sajuContext 는 위에서 head line 만 세팅된 상태 — extra 푸쉬·astro 빌드 둘 다 가드.
+            if (isCasual) {
+              tarotLogger.info('Tarot: casual question detected — skipping saju/astro raw context')
+            }
 
             const domainScores = (fusion.domainScores as Record<string, number> | undefined) || {}
             // 사주축·점성축 분리 근거 — 점수 대신 "왜 강한지" 시그널 텍스트
@@ -651,7 +664,7 @@ export function useTarotInterpretation({
             // 기본(일간) + 신강/신약 + 용신 + 대운 + 오늘 강한 영역
             // + 유니버설 raw (십신 top 2, 오행 분포)
             // + conditional raw (연애→도화/홍염, 직장→관성, 재물→재성, 영성→화개, 건강→공망)
-            if (includeSaju && sajuContext) {
+            if (!isCasual && includeSaju && sajuContext) {
               const extra: string[] = []
               if (strength)
                 extra.push(isKorean ? `신강/신약: ${strength}` : `Day master strength: ${strength}`)
@@ -752,7 +765,7 @@ export function useTarotInterpretation({
             // astroContext — 사주와 동일한 깊이로 균형
             // Universal: Sun/Moon/ASC + Mercury/Venus/Mars (6 identity planets) + 오늘 트랜짓 top 3
             // Conditional (테마별): +1~2 추가 행성/하우스로 카테고리 anchor 강화
-            if (includeAstrology) {
+            if (!isCasual && includeAstrology) {
               const lines: string[] = []
               const parts: string[] = []
               // [universal] 정체성 + 일상 3 행성
@@ -805,18 +818,8 @@ export function useTarotInterpretation({
         }
       }
 
-      // 분석 결과에서 메타데이터 추출 — interpret 단계 재추론 비용 절감
-      const questionMeta = questionAnalysis
-        ? {
-            intent: questionAnalysis.intent,
-            subject: questionAnalysis.question_profile?.subject?.label,
-            focus: questionAnalysis.question_profile?.focus?.label,
-            timeframe: questionAnalysis.question_profile?.timeframe?.label,
-            tone: questionAnalysis.question_profile?.tone?.label,
-            questionType: questionAnalysis.question_profile?.type?.label,
-          }
-        : undefined
-
+      // questionMeta / questionContext 메타라벨은 system prompt 의 0단계 가 동일 정보를
+      // LLM 이 직접 추출하므로 중복. 보내지 않는다 (50-100 tokens / call 절감).
       const requestBody = {
         categoryId: categoryName,
         spreadId,
@@ -829,8 +832,6 @@ export function useTarotInterpretation({
         includeSaju,
         sajuContext,
         astroContext,
-        questionContext: questionAnalysis || undefined,
-        questionMeta,
       }
 
       const requestNonStreamInterpretation = async (
