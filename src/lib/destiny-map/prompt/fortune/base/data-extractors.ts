@@ -251,12 +251,14 @@ export function formatPillar(p: PillarForFormat | undefined): string | null {
 export function getCurrentTimeInfo(): {
   currentYear: number;
   currentMonth: number;
+  currentDay: number;
   currentDate: Date;
 } {
   const now = new Date();
   return {
     currentYear: now.getFullYear(),
     currentMonth: now.getMonth() + 1,
+    currentDay: now.getDate(),
     currentDate: now,
   };
 }
