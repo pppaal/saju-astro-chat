@@ -8,6 +8,7 @@ import CreditBadge from '@/components/ui/CreditBadge'
 import BrandSplash from '@/components/branding/BrandSplash'
 import styles from '../chat/Chat.module.css'
 import { logger } from '@/lib/logger'
+import { runQuickCoupleTarot } from './runQuickCoupleTarot'
 
 // 단순 in-flow 로딩 — 브랜드 스플래시(로고)로 통일
 function CounselorLoading() {
@@ -276,6 +277,72 @@ function CompatibilityCounselorContent() {
     }
   }
 
+  // 🎴 둘 궁합 타로 — 한 번 클릭으로 5장 관계 크로스를 펼치고 chat 에 inline 으로 풀어준다.
+  const handleQuickCoupleTarot = useCallback(async () => {
+    if (isLoading || persons.length < 2) return
+    setIsLoading(true)
+    setError(null)
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: isKo ? '둘 궁합 타로 5장 펼쳐줘' : 'Pull a 5-card couple tarot for us',
+    }
+    setMessages((prev) => [...prev, userMessage, { role: 'assistant', content: '' }])
+    try {
+      const { markdown } = await runQuickCoupleTarot({
+        persons,
+        person1Saju,
+        person2Saju,
+        person1Astro,
+        person2Astro,
+        language: isKo ? 'ko' : 'en',
+        onChunk: (partial) => {
+          setMessages((prev) => {
+            const copy = [...prev]
+            const lastIdx = copy.length - 1
+            if (lastIdx >= 0 && copy[lastIdx].role === 'assistant') {
+              copy[lastIdx] = { role: 'assistant', content: partial }
+            }
+            return copy
+          })
+        },
+      })
+      setMessages((prev) => {
+        const copy = [...prev]
+        const lastIdx = copy.length - 1
+        if (lastIdx >= 0 && copy[lastIdx].role === 'assistant') {
+          copy[lastIdx] = { role: 'assistant', content: markdown }
+        }
+        return copy
+      })
+    } catch (e) {
+      logger.error('Quick couple tarot failed:', { error: e })
+      setError(
+        isKo
+          ? '타로 카드를 펼치지 못했어요. 잠시 후 다시 시도해 주세요.'
+          : 'Could not draw the cards. Please try again in a moment.'
+      )
+      setMessages((prev) => {
+        const copy = [...prev]
+        const lastIdx = copy.length - 1
+        if (lastIdx >= 0 && copy[lastIdx].role === 'assistant' && !copy[lastIdx].content) {
+          // 빈 placeholder 제거
+          copy.pop()
+        }
+        return copy
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [
+    isLoading,
+    persons,
+    person1Saju,
+    person2Saju,
+    person1Astro,
+    person2Astro,
+    isKo,
+  ])
+
   const personNames = persons.map((p) => p.name || 'Person').join(' & ')
   const _currentTheme = themeInfo[theme]
 
@@ -411,6 +478,46 @@ function CompatibilityCounselorContent() {
           {error && <div className={styles.errorMessage}>{error}</div>}
 
           <div ref={messagesEndRef} />
+        </div>
+
+        {/* 🎴 둘 궁합 타로 즉시 버튼 — 한 번 클릭으로 5장 관계 크로스 펼침 */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '8px 12px 0',
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleQuickCoupleTarot}
+            disabled={isLoading || persons.length < 2}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 999,
+              border: '1px solid rgba(167, 139, 250, 0.45)',
+              background:
+                isLoading || persons.length < 2
+                  ? 'rgba(71, 85, 105, 0.4)'
+                  : 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(167,139,250,0.22))',
+              color: isLoading || persons.length < 2 ? '#94a3b8' : '#e0e7ff',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: isLoading || persons.length < 2 ? 'not-allowed' : 'pointer',
+              boxShadow:
+                isLoading || persons.length < 2
+                  ? 'none'
+                  : '0 0 18px rgba(99,102,241,0.18)',
+              transition: 'all 0.15s',
+            }}
+            title={isKo ? '두 사람 관계를 5장 관계 크로스로 즉시 봐요' : 'Quick 5-card relationship reading'}
+          >
+            <span style={{ fontSize: 14 }}>🎴</span>
+            {isKo ? '둘 궁합 타로 즉시 보기' : 'Quick Couple Tarot'}
+          </button>
         </div>
 
         {/* Input */}
