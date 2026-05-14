@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { MessageCircle, Loader2 } from 'lucide-react'
+import { MessageCircle, Loader2, AlertCircle, History, RotateCcw } from 'lucide-react'
 import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 import type { DeckStyle } from '@/lib/tarot/tarot.types'
@@ -32,6 +32,8 @@ export interface ResultsStageProps {
   saveMessage: string
   handleSaveReading: () => Promise<void>
   handleReset: () => void
+  interpretationFailed?: boolean
+  handleRetryInterpretation?: () => void
 }
 
 export function ResultsStage(props: ResultsStageProps) {
@@ -56,11 +58,13 @@ export function ResultsStage(props: ResultsStageProps) {
     saveMessage,
     handleSaveReading,
     handleReset,
+    interpretationFailed = false,
+    handleRetryInterpretation,
   } = props
 
   const isKo = language === 'ko'
   const insight = interpretation
-  const aiPending = insight?.fallback === true
+  const aiPending = insight?.fallback === true && !interpretationFailed
   const hasGuidance =
     insight?.guidance &&
     (Array.isArray(insight.guidance)
@@ -158,21 +162,33 @@ export function ResultsStage(props: ResultsStageProps) {
           translate={translate}
         />
 
-        {insight?.fallback && (
+        {interpretationFailed && (
           <div
-            className="rounded-xl bg-slate-900/70 border border-slate-700 p-4 flex items-center justify-between gap-3"
-            role="status"
-            aria-live="polite"
+            className="rounded-2xl bg-rose-500/5 border border-rose-500/30 p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3"
+            role="alert"
           >
-            <strong className="text-sm text-slate-200">
-              {isKo ? '임시 해석 모드' : 'Fallback interpretation mode'}
-            </strong>
+            <div className="flex items-start gap-3 flex-1">
+              <AlertCircle className="w-5 h-5 text-rose-300 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-sm font-medium text-rose-100">
+                  {isKo
+                    ? 'AI 해석을 받지 못했어요'
+                    : 'AI reading could not be loaded'}
+                </div>
+                <div className="text-xs text-rose-200/70 mt-0.5 leading-snug">
+                  {isKo
+                    ? '네트워크 또는 서버가 잠시 응답하지 않았어요. 다시 시도해 주세요.'
+                    : 'Network or server briefly unavailable. Please try again.'}
+                </div>
+              </div>
+            </div>
             <button
               type="button"
-              className="px-3 py-1.5 rounded-full bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-200 text-xs font-medium transition-colors"
-              onClick={() => window.location.reload()}
+              onClick={handleRetryInterpretation}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/50 text-rose-100 text-sm font-medium transition-colors whitespace-nowrap"
             >
-              {isKo ? 'AI 해석 다시 시도' : 'Retry AI interpretation'}
+              <RotateCcw className="w-3.5 h-3.5" />
+              {isKo ? '다시 시도' : 'Retry'}
             </button>
           </div>
         )}
@@ -210,6 +226,19 @@ export function ResultsStage(props: ResultsStageProps) {
           onSave={handleSaveReading}
           onReset={handleReset}
         />
+
+        {/* 저장된 리딩은 어디서? — 사용자 동선 회복 */}
+        {!isGuestUser && (
+          <div className="flex justify-center">
+            <Link
+              href="/tarot/history"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-sm text-slate-300 hover:text-slate-100 transition-colors"
+            >
+              <History className="w-4 h-4" />
+              {isKo ? '내 리딩 보기' : 'View my readings'}
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   )
