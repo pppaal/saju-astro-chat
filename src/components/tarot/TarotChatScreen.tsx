@@ -147,80 +147,68 @@ export default function TarotChatScreen() {
               <ChevronRight className="w-3.5 h-3.5 opacity-50" />
             </button>
 
-            {/* + 추가 — 사주·점성 체크박스 팝오버 */}
+            {/* + 추가 — 사주·점성 cross 단일 토글 (한 박스 안에서 둘 다 ON/OFF) */}
             <div className="relative" ref={addonsRef}>
               <button
                 type="button"
                 onClick={() => setIsAddonsOpen((v) => !v)}
                 aria-haspopup="true"
                 aria-expanded={isAddonsOpen}
-                title={isKo ? '사주·점성 추가' : 'Add saju / astrology'}
+                title={isKo ? '사주·점성 cross 추가' : 'Add Saju × Astrology cross'}
                 className={`flex items-center gap-1 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
-                  includeSaju || includeAstrology
-                    ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-200'
+                  includeSaju && includeAstrology
+                    ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-100'
                     : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-slate-100'
                 }`}
               >
                 <Plus className="w-3.5 h-3.5" />
                 {isKo ? '추가' : 'Add'}
-                {(includeSaju ? 1 : 0) + (includeAstrology ? 1 : 0) > 0 && (
-                  <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500/30 text-[10px] font-semibold text-indigo-100">
-                    {(includeSaju ? 1 : 0) + (includeAstrology ? 1 : 0)}
-                  </span>
+                {includeSaju && includeAstrology && (
+                  <Check className="w-3 h-3 text-indigo-200" />
                 )}
               </button>
 
               {isAddonsOpen && (
                 <div
-                  className="absolute bottom-full mb-2 right-0 w-56 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/40 p-2 z-30"
-                  role="menu"
+                  className="absolute bottom-full mb-3 right-0 w-72 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 p-3 z-30"
+                  role="dialog"
+                  aria-label={isKo ? '사주·점성 cross 추가' : 'Saju × Astrology cross add-on'}
                 >
                   <button
                     type="button"
-                    role="menuitemcheckbox"
-                    aria-checked={includeSaju}
-                    onClick={() => setIncludeSaju((v) => !v)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-800 transition-colors text-left"
+                    role="checkbox"
+                    aria-checked={includeSaju && includeAstrology}
+                    onClick={() => {
+                      const next = !(includeSaju && includeAstrology)
+                      setIncludeSaju(next)
+                      setIncludeAstrology(next)
+                    }}
+                    className="w-full flex items-start gap-3 px-2 py-2.5 rounded-xl hover:bg-slate-800/60 transition-colors text-left"
                   >
                     <span
-                      className={`flex items-center justify-center w-5 h-5 rounded-md border ${
-                        includeSaju
-                          ? 'bg-emerald-500/25 border-emerald-500/60 text-emerald-200'
-                          : 'border-slate-600 text-transparent'
+                      className={`flex items-center justify-center w-6 h-6 rounded-md border-2 shrink-0 mt-0.5 transition-colors ${
+                        includeSaju && includeAstrology
+                          ? 'bg-indigo-500 border-indigo-400 text-white'
+                          : 'bg-slate-950 border-slate-500 text-transparent'
                       }`}
                     >
-                      <Check className="w-3 h-3" />
+                      <Check className="w-4 h-4" strokeWidth={3} />
                     </span>
-                    <span className="text-sm leading-none">☯</span>
-                    <span className="text-sm text-slate-200 flex-1">
-                      {isKo ? '사주 추가' : 'Add Saju'}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitemcheckbox"
-                    aria-checked={includeAstrology}
-                    onClick={() => setIncludeAstrology((v) => !v)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-800 transition-colors text-left"
-                  >
-                    <span
-                      className={`flex items-center justify-center w-5 h-5 rounded-md border ${
-                        includeAstrology
-                          ? 'bg-violet-500/25 border-violet-500/60 text-violet-200'
-                          : 'border-slate-600 text-transparent'
-                      }`}
-                    >
-                      <Check className="w-3 h-3" />
-                    </span>
-                    <span className="text-sm leading-none">🌟</span>
-                    <span className="text-sm text-slate-200 flex-1">
-                      {isKo ? '점성 추가' : 'Add Astrology'}
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium text-slate-100">
+                        {isKo ? '사주 · 점성 cross 추가' : 'Add Saju × Astrology cross'}
+                      </span>
+                      <span className="block text-[11px] text-slate-400 leading-snug mt-0.5">
+                        {isKo
+                          ? '내 사주 · 점성 흐름을 카드 해석에 같이 엮습니다'
+                          : 'Weaves your saju & astrology flow into the card reading'}
+                      </span>
                     </span>
                   </button>
-                  <p className="px-3 pt-1 pb-0.5 text-[10px] text-slate-500 leading-tight">
+                  <p className="px-2 pt-1 text-[10px] text-slate-500 leading-tight">
                     {isKo
-                      ? '로그인 + 생년월일 있어야 cross 해석'
-                      : 'Sign in + birthday needed for cross reading'}
+                      ? '로그인 + 생년월일이 있어야 cross 해석이 적용돼요'
+                      : 'Sign in + birthday required for cross reading'}
                   </p>
                 </div>
               )}
