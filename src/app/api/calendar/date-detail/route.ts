@@ -275,6 +275,16 @@ export const GET = withApiMiddleware(
           }
         }
       | undefined
+    // 타로 cross-reading 용 — natalChart 와 transitChart 는 try 블록 안에서 계산되므로,
+    // apiSuccess 시점에 접근 가능하도록 hoist 한 변수에 담아둔다.
+    let natalAngles:
+      | {
+          sun?: { sign: string; formatted: string }
+          moon?: { sign: string; formatted: string }
+          ascendant?: { sign: string; formatted: string }
+        }
+      | undefined
+    let todayMoonPhase: { phase: string; name: string } | undefined
     try {
       const [
         { calculateNatalChart, toChart },
@@ -430,6 +440,34 @@ export const GET = withApiMiddleware(
         retrogrades: retrogrades.length > 0 ? retrogrades : undefined,
         summary: summaryParts.join(' · '),
       }
+
+      // 타로 cross-reading 용 추가 필드 — 본명 angle + 오늘 달 위상
+      try {
+        const sun = natalChart.planets.find((p) => p.name === 'Sun')
+        const moon = natalChart.planets.find((p) => p.name === 'Moon')
+        natalAngles = {
+          sun: sun ? { sign: sun.sign, formatted: sun.formatted } : undefined,
+          moon: moon ? { sign: moon.sign, formatted: moon.formatted } : undefined,
+          ascendant: natalChart.ascendant
+            ? { sign: natalChart.ascendant.sign, formatted: natalChart.ascendant.formatted }
+            : undefined,
+        }
+      } catch {
+        // natal angles 추출 실패 — 컨텍스트만 비고 나머지는 그대로.
+      }
+      try {
+        const { getMoonPhase, getMoonPhaseName } = await import(
+          '@/lib/astrology/foundation/electional'
+        )
+        const transitSun = transitChart.planets?.find((p) => p.name === 'Sun')
+        const transitMoon = transitChart.planets?.find((p) => p.name === 'Moon')
+        if (transitSun && transitMoon) {
+          const phase = getMoonPhase(transitSun.longitude, transitMoon.longitude)
+          todayMoonPhase = { phase, name: getMoonPhaseName(phase) }
+        }
+      } catch {
+        // moon phase 계산 실패 — 무시.
+      }
     } catch (err) {
       logger.warn('[calendar/date-detail] transit aspect calc failed', {
         error: err instanceof Error ? err.message : String(err),
@@ -471,6 +509,19 @@ export const GET = withApiMiddleware(
         monthStem,
         monthBranch,
       },
+      // 현재 대운 (10년 큰 흐름) — 타로 cross-reading 에서 장기 톤 anchor 용
+      currentDaeun: sajuResult.daeWoon?.current
+        ? {
+            stem: sajuResult.daeWoon.current.heavenlyStem,
+            branch: sajuResult.daeWoon.current.earthlyBranch,
+            label: `${sajuResult.daeWoon.current.heavenlyStem}${sajuResult.daeWoon.current.earthlyBranch}`,
+            sibsinCheon: sajuResult.daeWoon.current.sibsin?.cheon,
+            sibsinJi: sajuResult.daeWoon.current.sibsin?.ji,
+          }
+        : undefined,
+      // 본명 태양/달/ASC + 오늘 달 위상 — try 블록 안에서 채워둔 hoisted 변수 사용
+      natalAngles,
+      todayMoonPhase,
       longCycleContext: lite?.longCycleContext,
       cycleInteractions: lite?.cycleInteractions,
       transit: transitData,

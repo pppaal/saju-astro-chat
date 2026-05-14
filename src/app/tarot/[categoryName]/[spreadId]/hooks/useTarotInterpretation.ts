@@ -594,6 +594,20 @@ export function useTarotInterpretation({
               ((natalContext.yongsin as Record<string, unknown> | undefined)?.primary as
                 | string
                 | undefined) || undefined
+            const strength = typeof natalContext.strength === 'string' ? natalContext.strength : ''
+            const currentDaeun = detail.currentDaeun as
+              | { label?: string; sibsinCheon?: string; sibsinJi?: string }
+              | undefined
+            const natalAngles = detail.natalAngles as
+              | {
+                  sun?: { sign?: string; formatted?: string }
+                  moon?: { sign?: string; formatted?: string }
+                  ascendant?: { sign?: string; formatted?: string }
+                }
+              | undefined
+            const moonPhase = detail.todayMoonPhase as
+              | { phase?: string; name?: string }
+              | undefined
 
             const sajuAxisScore = typeof fusion.sajuAxisScore === 'number' ? fusion.sajuAxisScore : undefined
             const astroAxisScore = typeof fusion.astroAxisScore === 'number' ? fusion.astroAxisScore : undefined
@@ -604,20 +618,51 @@ export function useTarotInterpretation({
               .map(([k, v]) => `${k} ${Math.round(v)}`)
               .join(' · ')
 
-            // sajuContext 풍부화 — 기존 4기둥에 오늘 점수 + 용신 + top 도메인 추가
+            // sajuContext 풍부화
+            // 기본 (4기둥) + 신강/신약 + 용신 + 현재 대운 + 오늘 사주축 점수 + 오늘 강한 영역
             if (includeSaju && sajuContext) {
               const extra: string[] = []
-              if (sajuAxisScore !== undefined) extra.push(isKorean ? `오늘 사주축 점수: ${sajuAxisScore}` : `Today saju axis: ${sajuAxisScore}`)
+              if (strength)
+                extra.push(isKorean ? `신강/신약: ${strength}` : `Day master strength: ${strength}`)
               if (yongsin) extra.push(isKorean ? `용신: ${yongsin}` : `Favorable element: ${yongsin}`)
-              if (topDomains) extra.push(isKorean ? `오늘 강한 영역: ${topDomains}` : `Top domains today: ${topDomains}`)
+              if (currentDaeun?.label) {
+                const daeunSib = [currentDaeun.sibsinCheon, currentDaeun.sibsinJi]
+                  .filter(Boolean)
+                  .join('·')
+                extra.push(
+                  isKorean
+                    ? `현재 대운: ${currentDaeun.label}${daeunSib ? ` (${daeunSib})` : ''}`
+                    : `Current decadal: ${currentDaeun.label}${daeunSib ? ` (${daeunSib})` : ''}`
+                )
+              }
+              if (sajuAxisScore !== undefined)
+                extra.push(
+                  isKorean ? `오늘 사주축 점수: ${sajuAxisScore}` : `Today saju axis: ${sajuAxisScore}`
+                )
+              if (topDomains)
+                extra.push(
+                  isKorean ? `오늘 강한 영역: ${topDomains}` : `Top domains today: ${topDomains}`
+                )
               if (extra.length > 0) sajuContext = `${sajuContext}\n${extra.join(' · ')}`
             }
 
-            // astroContext 신규 빌드 — 오늘 점성축 점수 + 트랜짓 요약 + 역행
+            // astroContext 풍부화
+            // 본명 Sun/Moon/Asc + 오늘 달 위상 + 오늘 점성축 점수 + 트랜짓 + 역행
             if (includeAstrology) {
               const lines: string[] = []
+              if (natalAngles?.sun?.sign || natalAngles?.moon?.sign || natalAngles?.ascendant?.sign) {
+                const parts: string[] = []
+                if (natalAngles.sun?.sign) parts.push(`태양 ${natalAngles.sun.sign}`)
+                if (natalAngles.moon?.sign) parts.push(`달 ${natalAngles.moon.sign}`)
+                if (natalAngles.ascendant?.sign) parts.push(`ASC ${natalAngles.ascendant.sign}`)
+                if (parts.length > 0)
+                  lines.push(isKorean ? `본명: ${parts.join(' · ')}` : `Natal: ${parts.join(' · ')}`)
+              }
+              if (moonPhase?.name) {
+                lines.push(isKorean ? `오늘 달 위상: ${moonPhase.name}` : `Moon phase today: ${moonPhase.name}`)
+              }
               if (astroAxisScore !== undefined) {
-                lines.push(isKorean ? `점성: 오늘 점성축 점수 ${astroAxisScore}` : `Astrology: today's axis ${astroAxisScore}`)
+                lines.push(isKorean ? `오늘 점성축 점수: ${astroAxisScore}` : `Astro axis today: ${astroAxisScore}`)
               }
               const aspects = transit.aspects as Array<Record<string, unknown>> | undefined
               if (aspects && aspects.length > 0) {
