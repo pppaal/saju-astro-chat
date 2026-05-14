@@ -6,6 +6,7 @@ import { Sparkles, Loader2 } from 'lucide-react'
 import type { DrawnCard, DeckStyle } from '@/lib/tarot/tarot.types'
 import type { CardInsight } from '../../types'
 import { getCardImagePath } from '@/lib/tarot/tarot.types'
+import { renderHighlighted } from './highlight'
 
 interface DetailedCardItemProps {
   drawnCard: DrawnCard
@@ -43,8 +44,19 @@ export function DetailedCardItem({
       : 'Upright'
 
   const staticMeaning = (isKo ? meaning.meaningKo || meaning.meaning : meaning.meaning) || ''
-  // 일반 의미 전체 노출 — 사용자가 충분한 컨텍스트 보고 싶다는 요청. 자르지 않음.
-  const fullStaticMeaning = staticMeaning.trim()
+  // 일반 의미 — 첫 2문장 또는 200자 cap (이전 전체 노출은 AI 해석을 가려서 단축).
+  const trimmedStaticMeaning = (() => {
+    const text = staticMeaning.trim()
+    if (!text) return ''
+    const sentences = text.match(/[^.!?。]+[.!?。]?/g) || [text]
+    let out = sentences.slice(0, 2).join('').trim()
+    if (out.length > 200) {
+      const cut = out.slice(0, 200)
+      const lastDot = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('? '), cut.lastIndexOf('! '))
+      out = lastDot > 100 ? cut.slice(0, lastDot + 1) : `${cut.trim()}…`
+    }
+    return out
+  })()
   const aiInterpretation = cardInsight?.interpretation?.trim() || ''
   const hasAiText = aiInterpretation.length > 0
 
@@ -104,14 +116,14 @@ export function DetailedCardItem({
             </div>
           )}
 
-          {/* 정적 의미 — 전체 노출 (사용자 요청). AI 해석이 메인이지만 참고 텍스트도 충분히 보이게. */}
-          {fullStaticMeaning && (
+          {/* 정적 의미 — 첫 2문장만. AI 해석이 메인이라 참고 텍스트는 짧게. */}
+          {trimmedStaticMeaning && (
             <div className="space-y-1.5">
               <div className="text-[11px] uppercase tracking-wider text-slate-500">
                 {isKo ? '카드 일반 의미' : 'General card meaning'}
               </div>
-              <p className="text-[15px] md:text-base text-slate-300 leading-relaxed">
-                {fullStaticMeaning}
+              <p className="text-[14px] md:text-[15px] text-slate-400 leading-relaxed">
+                {trimmedStaticMeaning}
               </p>
             </div>
           )}
@@ -126,7 +138,7 @@ export function DetailedCardItem({
             </div>
             {hasAiText ? (
               <p className="text-base md:text-[17px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-                {aiInterpretation}
+                {renderHighlighted(aiInterpretation)}
               </p>
             ) : aiPending ? (
               <div className="flex items-center gap-2 text-sm text-indigo-200/80 py-2">
