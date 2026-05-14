@@ -383,20 +383,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 카드 수에 맞는 JSON 예시 생성 — actionTip 도 함께 요구 (카드+자리+질문 cross 실천 조언)
-    const cardExamplesKo = rawCards
-      .map((c, i) => {
-        const pos = isKorean && c.positionKo ? c.positionKo : c.position
-        return `    {"position": "${pos || `카드 ${i + 1}`}", "interpretation": "이 위치에서 이 카드가 의미하는 바를 구체적으로 설명 (300-500자)", "actionTip": "이 카드 + 자리 + 질문에 딱 맞춘 실천 행동 1-2문장 (80-140자) — 시간 앵커 + 구체 행동 1개"}`
-      })
-      .join(',\n')
-    const cardExamplesEn = rawCards
-      .map((c, i) => {
-        return `    {"position": "${c.position || `Card ${i + 1}`}", "interpretation": "What this card means in this position specifically (180-280 words)", "actionTip": "Concrete action for this card+seat+question (50-90 words) — time anchor + one specific step"}`
-      })
-      .join(',\n')
-
-    // 시스템 프롬프트 — 페르소나 + 4단계 메서드 + 질문 앵커링 강제 (caching 친화 정적 prefix)
+    // 시스템 프롬프트 — 100% 정적 (페르소나 + 4단계 + 스키마).
+    // ${rawCards.length} 같은 인터폴레이션 *금지* — Anthropic prompt caching prefix 안정화.
+    // 카드 수·자리명 등 동적 부분은 모두 user prompt 에서 명시.
     const systemPrompt = isKorean
       ? `당신은 15년차 한국인 타로 리더입니다. 길에서 만난 친구처럼 따뜻하고, 사촌언니처럼 직설적이며, 구체적인 행동까지 짚어줍니다.
 
@@ -424,7 +413,7 @@ export async function POST(req: NextRequest) {
 4) **클로징**: 전체 advice + 카드별 actionTip. 두루뭉술 금지, 구체 행동만.
 
 # 절대 출력 규칙
-- 카드 수 정확히 ${rawCards.length} 개. cards 배열 길이 = ${rawCards.length}. 하나도 빠뜨리거나 추가하지 마세요.
+- cards 배열 길이는 user prompt 에서 지정한 카드 수와 *정확히* 일치해야 합니다. 하나도 빠뜨리거나 추가하지 마세요.
 - 각 카드의 actionTip 은 반드시 채워야 합니다. 80-140자, 시간 앵커 + 구체 행동 1개.
 - 출력은 *오직* 아래 JSON 스키마. 마크다운 코드펜스(\`\`\`) 절대 사용 금지. 주석/설명/머리말 금지.
 
@@ -470,7 +459,7 @@ export async function POST(req: NextRequest) {
 4) **Closing**: Overall advice + per-card actionTip. Specific, no fluff.
 
 # Output Rules
-- Exactly ${rawCards.length} cards in cards[]. Do not skip or add.
+- The cards[] array length must match exactly the card count specified in the user prompt. Do not skip or add.
 - Every card's actionTip is mandatory. 50-90 words. Time anchor + one specific action.
 - Output JSON only — no code fences, no preamble, no comments.
 
@@ -521,28 +510,146 @@ ${personalizationContext}
 - Each card's actionTip is 1-2 sentences of action directly applicable to the question, with a time anchor.
 - The first sentence of overall must reference the user's question directly.${zodiac ? `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.` : ''}${astroContext ? '\n- Cross with the astrology context.' : ''}${sajuContext ? '\n- Cross with the saju context — anchor in every card at least once.' : ''}${previousReadings.length > 0 ? '\n- Reference previous readings if relevant.' : ''}`
 
-    // Claude 우선: 비스트리밍 단일 청크 emit (페르소나/메서드 system 자동 캐싱)
+    // Claude 우선.
+    //  - <8장: 단일 호출, 응답 전체를 SSE 단일 청크로 emit (기존 흐름)
+    //  - >=8장: 카드를 둘로 나눠 병렬 2회 호출 후 JSON 머지 → 단일 청크 emit
+    //          token 한계로 후반 카드 잘리던 문제 해결 + 같은 system prompt 재사용해 cache hit
+    const LARGE_SPREAD_THRESHOLD = 8
     if (isClaudeAvailable()) {
       const claudeStartTime = Date.now()
+      const isLargeSpread = rawCards.length >= LARGE_SPREAD_THRESHOLD
       try {
-        logger.info('Tarot stream Claude request', {
-          systemLen: systemPrompt.length,
-          userLen: userPrompt.length,
+        if (!isLargeSpread) {
+          // 소형 스프레드 — 단일 호출
+          logger.info('Tarot stream Claude request (single)', {
+            cards: rawCards.length,
+            systemLen: systemPrompt.length,
+            userLen: userPrompt.length,
+          })
+          const claudeResult = await callSharedClaude({
+            systemPrompt,
+            userPrompt,
+            maxTokens: 4000,
+            temperature: 0.7,
+            timeoutMs: OPENAI_TIMEOUT_MS,
+            label: 'tarot-stream',
+          })
+          recordExternalCall(
+            'anthropic',
+            'claude-haiku-4-5',
+            'success',
+            Date.now() - claudeStartTime
+          )
+          const encoder = new TextEncoder()
+          const stream = new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode(createSSEEvent({ content: claudeResult.text })))
+              controller.enqueue(encoder.encode(createSSEDoneEvent()))
+              controller.close()
+            },
+          })
+          return withCreditCookies(
+            new NextResponse(stream, {
+              headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache, no-transform',
+                Connection: 'keep-alive',
+                'X-Accel-Buffering': 'no',
+                'X-Provider': 'claude',
+              },
+            }),
+            creditResult
+          )
+        }
+
+        // 대형 스프레드 — chunk A (앞 절반 + overall + advice) || chunk B (뒤 절반 cards 만)
+        const mid = Math.ceil(rawCards.length / 2)
+        const buildChunkUserPrompt = (
+          startIdx: number,
+          endIdx: number,
+          includeMeta: boolean
+        ): string => {
+          const chunkInfo = isKorean
+            ? `(전체 ${rawCards.length}장 중 ${startIdx + 1}~${endIdx}번 카드만 해석)`
+            : `(interpret only cards ${startIdx + 1}-${endIdx} of ${rawCards.length})`
+          const task = includeMeta
+            ? isKorean
+              ? `# 작성 지시\n- 전체 카드 흐름을 보고 overall + advice 작성하고, ${chunkInfo} 의 카드별 cards[] 항목을 채우세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
+              : `# Instructions\n- Read the full ${rawCards.length}-card flow; write overall + advice, fill cards[] with per-card interpretations ${chunkInfo}.\n- cards[] length must be exactly ${endIdx - startIdx}.`
+            : isKorean
+              ? `# 작성 지시\n- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfo} 의 카드별 해석만 cards[] 에 채우세요. overall/advice 는 출력하지 마세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
+              : `# Instructions\n- Use the full ${rawCards.length}-card flow as context only. Output ONLY per-card interpretations ${chunkInfo} in cards[]. Do NOT include overall/advice.\n- cards[] length must be exactly ${endIdx - startIdx}.`
+          const personalizationLine = `${zodiac ? (isKorean ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.`) : ''}${astroContext ? (isKorean ? '\n- 점성 맥락도 해석에 cross.' : '\n- Cross with the astrology context.') : ''}${sajuContext ? (isKorean ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : '\n- Cross with the saju context — anchor in every card at least once.') : ''}${previousReadings.length > 0 ? (isKorean ? '\n- 이전 상담과의 연결점 있으면 언급.' : '\n- Reference previous readings if relevant.') : ''}`
+          if (isKorean) {
+            return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${rawCards.length}장)\n\n# 펼친 카드 — 전체 (자리명 — 자리 의미)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
+          }
+          return `# User's Question\n"${q}"\n\n# Spread\n${spreadTitle} (${rawCards.length} cards)\n\n# Cards Drawn — full list (seat — meaning)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
+        }
+
+        logger.info('Tarot stream Claude request (parallel chunks)', {
+          cards: rawCards.length,
+          chunkA: `0-${mid}`,
+          chunkB: `${mid}-${rawCards.length}`,
         })
-        const claudeResult = await callSharedClaude({
-          systemPrompt,
-          userPrompt,
-          maxTokens: 4000,
-          temperature: 0.7,
-          timeoutMs: OPENAI_TIMEOUT_MS,
-          label: 'tarot-stream',
+        const [chunkA, chunkB] = await Promise.all([
+          callSharedClaude({
+            systemPrompt,
+            userPrompt: buildChunkUserPrompt(0, mid, true),
+            maxTokens: 2400,
+            temperature: 0.7,
+            timeoutMs: OPENAI_TIMEOUT_MS,
+            label: 'tarot-stream-chunkA',
+          }),
+          callSharedClaude({
+            systemPrompt,
+            userPrompt: buildChunkUserPrompt(mid, rawCards.length, false),
+            maxTokens: 2400,
+            temperature: 0.7,
+            timeoutMs: OPENAI_TIMEOUT_MS,
+            label: 'tarot-stream-chunkB',
+          }),
+        ])
+        recordExternalCall(
+          'anthropic',
+          'claude-haiku-4-5',
+          'success',
+          Date.now() - claudeStartTime
+        )
+
+        // JSON 머지 — chunk A 의 overall/advice + chunk A.cards + chunk B.cards 를 합쳐 단일 JSON.
+        const safeParse = (raw: string): Record<string, unknown> | null => {
+          const match = raw.match(/\{[\s\S]*\}/)
+          if (!match) return null
+          try {
+            return JSON.parse(match[0]) as Record<string, unknown>
+          } catch {
+            return null
+          }
+        }
+        const parsedA = safeParse(chunkA.text)
+        const parsedB = safeParse(chunkB.text)
+        const cardsA = Array.isArray(parsedA?.cards) ? (parsedA!.cards as unknown[]) : []
+        const cardsB = Array.isArray(parsedB?.cards) ? (parsedB!.cards as unknown[]) : []
+        const mergedJson = {
+          overall: parsedA?.overall ?? '',
+          cards: [...cardsA, ...cardsB],
+          advice: parsedA?.advice ?? '',
+        }
+        // 만약 chunk B 파싱 실패 → mergedJson.cards 가 절반만 남음.
+        // buildFallbackPayload 가 길이 맞춰 부족분 채우도록 클라이언트 측 parseStreamedInterpretation 이 처리함.
+        const mergedText = JSON.stringify(mergedJson)
+        logger.info('Tarot stream parallel chunks merged', {
+          cards: rawCards.length,
+          aCards: cardsA.length,
+          bCards: cardsB.length,
+          aParsed: parsedA !== null,
+          bParsed: parsedB !== null,
         })
-        recordExternalCall('anthropic', 'claude-haiku-4-5', 'success', Date.now() - claudeStartTime)
-        // 응답을 SSE 단일 청크로 emit — 클라이언트는 동일 컨트랙트 유지
+
         const encoder = new TextEncoder()
         const stream = new ReadableStream({
           start(controller) {
-            controller.enqueue(encoder.encode(createSSEEvent({ content: claudeResult.text })))
+            controller.enqueue(encoder.encode(createSSEEvent({ content: mergedText })))
             controller.enqueue(encoder.encode(createSSEDoneEvent()))
             controller.close()
           },
@@ -555,6 +662,7 @@ ${personalizationContext}
               Connection: 'keep-alive',
               'X-Accel-Buffering': 'no',
               'X-Provider': 'claude',
+              'X-Tarot-Strategy': 'parallel-chunks',
             },
           }),
           creditResult
@@ -563,6 +671,7 @@ ${personalizationContext}
         recordExternalCall('anthropic', 'claude-haiku-4-5', 'error', Date.now() - claudeStartTime)
         logger.warn('Tarot stream Claude failed, falling back to OpenAI', {
           error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
+          isLargeSpread,
         })
         // fall through to OpenAI streaming
       }
