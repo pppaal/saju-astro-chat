@@ -238,7 +238,7 @@ export function useTarotGame(): UseTarotGameReturn {
     } else {
       setGameState('error')
     }
-  }, [categoryName, spreadId, spreadInfo?.id])
+  }, [categoryName, spreadId, spreadInfo?.id, deckFromUrl])
 
   // Stop spreading animation
   useEffect(() => {
