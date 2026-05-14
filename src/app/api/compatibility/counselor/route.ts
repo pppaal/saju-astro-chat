@@ -87,6 +87,7 @@ function buildGuestCompatTurnCookie(next: number): string {
 import {
   clampMessages,
   stringifyForPrompt,
+  prunePromptContext,
   countObjectKeys,
   extractTimingDetails,
   buildPersonSeed,
@@ -251,8 +252,8 @@ export async function POST(req: NextRequest) {
     const p2Age = getAgeFromBirthDate(persons?.[1]?.date)
     const currentYear = now.getFullYear()
     const timingDetails = {
-      person1: extractTimingDetails(effectivePerson1Saju, p1Age, now),
-      person2: extractTimingDetails(effectivePerson2Saju, p2Age, now),
+      person1: extractTimingDetails(effectivePerson1Saju, p1Age, now, String(theme || 'general')),
+      person2: extractTimingDetails(effectivePerson2Saju, p2Age, now, String(theme || 'general')),
     }
 
     try {
@@ -300,7 +301,9 @@ export async function POST(req: NextRequest) {
         person2Astro: effectivePerson2Astro,
         theme,
       } as Record<string, unknown>)
-    const fullContextText = stringifyForPrompt(resolvedFullContext)
+    // 응답에 거의 인용되지 않는 raw 필드(napum 등)는 prune해서 prompt 노이즈를
+    // 줄인다. 핵심 분석은 위 ==심화 분석== 블록에 이미 들어 있다.
+    const fullContextText = stringifyForPrompt(prunePromptContext(resolvedFullContext))
     const contextTrace = {
       currentDateIso: new Date().toISOString().slice(0, 10),
       hasFusionResult: !!fusionResult,
@@ -486,11 +489,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Format persons info
+    // Format persons info. 라벨을 A/B로 통일해 커플 매트릭스의 "A의 갑목 일간
+    // ↔ B의 기토 일간" 같은 prose 셀과 매핑이 즉시 명확하다. 이름이 있으면
+    // 함께 표기해 응답에서 자연어로 부르기 쉽게 한다.
     const personsInfo = persons
       .map(
-        (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) =>
-          `Person ${i + 1}: ${p.name || `Person ${i + 1}`} (${p.date} ${p.time})${i > 0 ? ` - ${p.relation || 'partner'}` : ''}`
+        (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) => {
+          const label = i === 0 ? 'A' : i === 1 ? 'B' : `P${i + 1}`
+          const name = p.name || ''
+          const head = name ? `${label} (${name})` : label
+          const rel = i > 0 ? ` - ${p.relation || 'partner'}` : ''
+          return `${head}: ${p.date} ${p.time}${rel}`
+        }
       )
       .join('\n')
 
@@ -550,11 +560,12 @@ export async function POST(req: NextRequest) {
           ].join('\n')
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:
-    //  - cachedUserContext: 두 사람의 차트 + 사주/점성/시기 분석 + 가이드 (안정)
-    //  - userPrompt: 이번 턴의 history + 새 질문 (변동)
+    //  - cachedUserContext: 두 사람의 차트와 분석 (테마·세션 무관, 진짜 안정)
+    //  - userPrompt: 테마·시기 흐름·가이드·이력·질문 (테마 바뀌면 변동)
+    //
+    // 테마/품질가이드/시기 흐름(wolun/ilun이 테마 의존)을 변동 블록으로 옮겨
+    // 같은 페어로 테마만 바꿔도 캐시 prefix가 hit하도록 한다.
     const cachedUserContext = [
-      `테마: ${themeContext}`,
-      ``,
       `== 참여자 정보 ==`,
       personsInfo,
       coupleMatrixContext ? `\n${coupleMatrixContext}` : '',
@@ -565,18 +576,19 @@ export async function POST(req: NextRequest) {
       extendedAstroCompatibility
         ? `\n== 점성 심화 분석 ==\n${stringifyForPrompt(extendedAstroCompatibility)}`
         : '',
-      `\n== 시기 흐름 (대운/세운/월운/일운) ==\n${stringifyForPrompt(timingDetails)}`,
       // contextTrace(키 개수, 커버리지 플래그 등)는 디버그 메타데이터 — 응답에
       // 쓸 정보가 아니므로 server log로만 남기고 prompt에는 포함하지 않는다.
       fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
-      `\n== 품질 기준 ==\n${themeDepthGuide}`,
-      `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
     ]
       .filter(Boolean)
       .join('\n')
 
     const userPrompt = [
-      historyText ? `== 이전 대화 ==\n${historyText}` : '',
+      `테마: ${themeContext}`,
+      `\n== 시기 흐름 (대운/세운/월운/일운) ==\n${stringifyForPrompt(timingDetails)}`,
+      `\n== 품질 기준 ==\n${themeDepthGuide}`,
+      `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
+      historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
       `\n== 사용자 질문 ==\n${userQuestion}`,
     ]
       .filter(Boolean)

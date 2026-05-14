@@ -47,6 +47,43 @@ function stringifyForPrompt(value: unknown): string {
   }
 }
 
+/**
+ * raw 사주/점성 컨텍스트에서 LLM 응답에 거의 인용되지 않는 저신호 필드를
+ * 제거한다. 위쪽 ==사주/점성 심화 분석== 블록에 핵심 가공 데이터가 이미
+ * 들어가므로 raw는 보조 역할이고, 노이즈를 줄여 prompt cache 안정성과
+ * attention 집중도를 끌어올린다.
+ *
+ * 제거 대상(깊이 무관):
+ *  - napum / napeum / 납음   : 60갑자 납음(예: "산두화") — 응답 빈도 거의 0
+ *  - chineseChar / hanja      : 한자 표기 — 한국어 이름 옆에 따로 안 씀
+ *  - icon / emoji / colorHex  : UI 메타데이터
+ */
+const PROMPT_PRUNE_KEYS = new Set([
+  'napum',
+  'napeum',
+  '납음',
+  'chineseChar',
+  'hanja',
+  'icon',
+  'emoji',
+  'colorHex',
+])
+
+function prunePromptContext(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((v) => prunePromptContext(v))
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (PROMPT_PRUNE_KEYS.has(k)) continue
+      out[k] = prunePromptContext(v)
+    }
+    return out
+  }
+  return value
+}
+
 function countObjectKeys(value: unknown): number {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return 0
   return Object.keys(value as Record<string, unknown>).length
@@ -91,10 +128,23 @@ function toNumber(value: unknown): number | null {
   return null
 }
 
+/**
+ * 장기 결정 테마(연애·결혼·가족·비즈니스)에서는 월운/일운이 노이즈가 된다.
+ * 결혼할까/창업할까 같은 1-N년 결정에 "오늘 일진" 정보는 의미가 없어서 LLM이
+ * 자칫 단기 신호를 장기 답에 끌어다 쓰는 실패를 만들 수 있다. 일반·운세
+ * 테마처럼 단기 신호가 의미 있는 경우에만 wolun/ilun을 노출한다.
+ */
+function shouldIncludeShortTermTiming(theme?: string): boolean {
+  if (!theme) return true
+  const longTerm = new Set(['love', 'business', 'family'])
+  return !longTerm.has(theme)
+}
+
 function extractTimingDetails(
   saju: Record<string, unknown> | null | undefined,
   age: number,
-  targetDate: Date
+  targetDate: Date,
+  theme?: string
 ): Record<string, unknown> {
   if (!saju) {
     return {
@@ -104,6 +154,7 @@ function extractTimingDetails(
       hasIlun: false,
     }
   }
+  const includeShortTerm = shouldIncludeShortTermTiming(theme)
 
   const unse = asRecord(saju.unse)
   const daeWoon = asRecord(saju.daeWoon) || asRecord(saju.daeun)
@@ -137,18 +188,22 @@ function extractTimingDetails(
       return year === targetYear
     })
 
-  const wolunCurrent = pickCurrentCycle(monthlyList, (item) => {
-    const year = toNumber(item.year)
-    const month = toNumber(item.month)
-    return year === targetYear && month === targetMonth
-  })
+  const wolunCurrent = includeShortTerm
+    ? pickCurrentCycle(monthlyList, (item) => {
+        const year = toNumber(item.year)
+        const month = toNumber(item.month)
+        return year === targetYear && month === targetMonth
+      })
+    : null
 
-  const ilunCurrent = pickCurrentCycle(iljinList, (item) => {
-    const year = toNumber(item.year)
-    const month = toNumber(item.month)
-    const day = toNumber(item.day)
-    return year === targetYear && month === targetMonth && day === targetDay
-  })
+  const ilunCurrent = includeShortTerm
+    ? pickCurrentCycle(iljinList, (item) => {
+        const year = toNumber(item.year)
+        const month = toNumber(item.month)
+        const day = toNumber(item.day)
+        return year === targetYear && month === targetMonth && day === targetDay
+      })
+    : null
 
   return {
     hasDaeun: !!daeunCurrent,
@@ -162,8 +217,8 @@ function extractTimingDetails(
     counts: {
       daeun: asArray(daeWoon?.list).length || asArray(daeWoon?.cycles).length,
       saeun: annualList.length,
-      wolun: monthlyList.length,
-      ilun: iljinList.length,
+      wolun: includeShortTerm ? monthlyList.length : 0,
+      ilun: includeShortTerm ? iljinList.length : 0,
     },
   }
 }
@@ -868,6 +923,7 @@ function formatFusionForPrompt(fusion: FusionCompatibilityResult, lang: string):
 export {
   clampMessages,
   stringifyForPrompt,
+  prunePromptContext,
   countObjectKeys,
   extractTimingDetails,
   buildPersonSeed,
