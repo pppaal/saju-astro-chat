@@ -613,8 +613,6 @@ export function useTarotInterpretation({
             const isSpiritual = /자기|성장|영성|마음|내면|회의|의미|인생|길|소명|방향/i.test(qText)
             const isHealth = /건강|몸|컨디션|스트레스|병원|아프|아픈|치료/i.test(qText)
 
-            const sajuAxisScore = typeof fusion.sajuAxisScore === 'number' ? fusion.sajuAxisScore : undefined
-            const astroAxisScore = typeof fusion.astroAxisScore === 'number' ? fusion.astroAxisScore : undefined
             const domainScores = (fusion.domainScores as Record<string, number> | undefined) || {}
             const topDomains = Object.entries(domainScores)
               .sort(([, a], [, b]) => b - a)
@@ -641,10 +639,6 @@ export function useTarotInterpretation({
                     : `Current decadal: ${currentDaeun.label}${daeunSib ? ` (${daeunSib})` : ''}`
                 )
               }
-              if (sajuAxisScore !== undefined)
-                extra.push(
-                  isKorean ? `오늘 사주축 점수: ${sajuAxisScore}` : `Today saju axis: ${sajuAxisScore}`
-                )
               if (topDomains)
                 extra.push(
                   isKorean ? `오늘 강한 영역: ${topDomains}` : `Top domains today: ${topDomains}`
@@ -721,23 +715,14 @@ export function useTarotInterpretation({
             // 달 위상 / 역행 행성은 토큰 대비 시그널 약해서 제거 (LLM 이 어색하게 끼워넣는 경우 더 많음).
             if (includeAstrology) {
               const lines: string[] = []
-              // [universal] 본명 핵심 행성/각도 — Sun/Moon/ASC + Venus + Mars 항상 포함
+              // 본명 — Sun/Moon/ASC 만 유지. Venus/Mars/MC/Jupiter 추가 없음.
               const parts: string[] = []
               if (natalAngles?.sun?.sign) parts.push(`태양 ${natalAngles.sun.sign}`)
               if (natalAngles?.moon?.sign) parts.push(`달 ${natalAngles.moon.sign}`)
               if (natalAngles?.ascendant?.sign) parts.push(`ASC ${natalAngles.ascendant.sign}`)
-              if (natalAngles?.venus?.sign) parts.push(`Venus ${natalAngles.venus.sign}`)
-              if (natalAngles?.mars?.sign) parts.push(`Mars ${natalAngles.mars.sign}`)
-              // [conditional] 직장/커리어 → MC sign
-              if (isCareer && natalAngles?.mc?.sign) parts.push(`MC ${natalAngles.mc.sign}`)
-              // [conditional] 재물 → Jupiter sign
-              if (isMoney && natalAngles?.jupiter?.sign) parts.push(`Jupiter ${natalAngles.jupiter.sign}`)
               if (parts.length > 0)
                 lines.push(isKorean ? `본명: ${parts.join(' · ')}` : `Natal: ${parts.join(' · ')}`)
 
-              if (astroAxisScore !== undefined) {
-                lines.push(isKorean ? `오늘 점성축 점수: ${astroAxisScore}` : `Astro axis today: ${astroAxisScore}`)
-              }
               const aspects = transit.aspects as Array<Record<string, unknown>> | undefined
               if (aspects && aspects.length > 0) {
                 const top = aspects
