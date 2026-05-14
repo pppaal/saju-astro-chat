@@ -608,79 +608,20 @@ export function buildMinimumInsight(
     .trim()
 }
 
+// Pass-through — 옛 post-processor 가 LLM 출력에 template ("질문 X 기준으로 보면, 현재의 카드는...")
+// 을 덮어쓰면서 답변 품질을 일관되게 망치고 있었음. system prompt 의 4단계 메서드 + 시간 앵커
+// 필수 조항이 이미 그 일을 더 잘 수행함. 이 helper 들은 호출 사이트 호환을 위해 식별자만 남김.
 export function ensureCardAnchoring(
-  language: string,
-  card: CardInput,
+  _language: string,
+  _card: CardInput,
   interpretation: string,
-  userQuestion?: string
+  _userQuestion?: string
 ): string {
-  const cardName = language === 'ko' ? card.nameKo || card.name : card.name
-  const position = language === 'ko' ? card.positionKo || card.position : card.position
-  const question = (userQuestion || '').trim()
-  const normalized = interpretation.trim()
-
-  const hasCardName = normalized.includes(cardName)
-  const hasPosition = position ? normalized.includes(position) : false
-  const hasQuestionAnchor = question.length === 0 || normalized.includes(question.slice(0, 6))
-
-  if (hasCardName && hasPosition && hasQuestionAnchor) {
-    return normalized
-  }
-
-  if (language === 'ko') {
-    const questionLine = question ? `질문 "${question}" 기준으로 보면, ` : ''
-    return `${questionLine}${position}의 ${cardName}는 ${normalized}`
-  }
-
-  const questionLine = question ? `For your question "${question}", ` : ''
-  return `${questionLine}${cardName} in the ${position} position indicates: ${normalized}`
+  return interpretation.trim()
 }
 
-export function ensureActionAndTimeAnchor(language: string, interpretation: string): string {
-  const normalized = interpretation.trim()
-  const lower = normalized.toLowerCase()
-  const hasTimeAnchor = [
-    'today',
-    'this week',
-    'within 7 days',
-    'next week',
-    '오늘',
-    '이번 주',
-    '7일',
-    '다음 주',
-  ].some((term) => lower.includes(term))
-  const hasActionVerb = [
-    'write',
-    'plan',
-    'track',
-    'review',
-    'start',
-    'focus',
-    'set',
-    'talk',
-    'record',
-    'apply',
-    '적기',
-    '계획',
-    '기록',
-    '검토',
-    '시작',
-    '집중',
-    '정리',
-    '대화',
-    '확인',
-    '실행',
-  ].some((term) => lower.includes(term))
-
-  if (hasTimeAnchor && hasActionVerb) {
-    return normalized
-  }
-
-  if (language === 'ko') {
-    return `${normalized} 오늘은 바로 확인할 행동 하나만 정하고, 이번 주 안에 7일 기준으로 결과를 다시 점검하세요.`
-  }
-
-  return `${normalized} Pick one 20-minute action for today, then log outcomes in 3 lines within this week to guide your next move.`
+export function ensureActionAndTimeAnchor(_language: string, interpretation: string): string {
+  return interpretation.trim()
 }
 
 export function normalizeResultPayload(raw: unknown): Partial<TarotInterpretResult> {

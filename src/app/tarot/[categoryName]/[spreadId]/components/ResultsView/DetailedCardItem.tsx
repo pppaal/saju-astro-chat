@@ -43,6 +43,18 @@ export function DetailedCardItem({
       : 'Upright'
 
   const staticMeaning = (isKo ? meaning.meaningKo || meaning.meaning : meaning.meaning) || ''
+  // 너무 길면 첫 문장만 — 결과 페이지는 AI 해석이 메인이고 일반 의미는 *참고*.
+  const compactMeaning = (() => {
+    if (!staticMeaning) return ''
+    const trimmed = staticMeaning.trim()
+    // 첫 문장 (마침표 / 느낌표 / 물음표 기준), 너무 길면 80자에서 컷.
+    const sentenceMatch = trimmed.match(/^[^.!?。！？]*[.!?。！？]/)
+    let first = sentenceMatch ? sentenceMatch[0].trim() : trimmed
+    if (first.length > 90) {
+      first = first.slice(0, 80).trimEnd() + '…'
+    }
+    return first
+  })()
   const staticAdvice = (isKo ? meaning.adviceKo || meaning.advice : meaning.advice) || ''
   const aiInterpretation = cardInsight?.interpretation?.trim() || ''
   const dynamicTip = cardInsight?.action_tip?.trim() || ''
@@ -107,17 +119,14 @@ export function DetailedCardItem({
             </div>
           )}
 
-          {/* 정적 의미 — 컴팩트 (참고용) */}
-          {staticMeaning && (
-            <details className="group">
-              <summary className="cursor-pointer text-[11px] uppercase tracking-wider text-slate-500 hover:text-slate-400 list-none flex items-center gap-1">
-                <span className="inline-block transition-transform group-open:rotate-90">▸</span>
-                {isKo ? '카드의 일반 의미 (참고)' : 'General Card Meaning'}
-              </summary>
-              <p className="mt-2 text-sm text-slate-400 leading-relaxed pl-3 border-l border-slate-700">
-                {staticMeaning}
-              </p>
-            </details>
+          {/* 정적 의미 — 첫 문장만 핵심 한 줄로. AI 해석이 메인. */}
+          {compactMeaning && (
+            <div className="flex items-baseline gap-2">
+              <span className="text-[11px] uppercase tracking-wider text-slate-500 shrink-0">
+                {isKo ? '참고' : 'Ref'}
+              </span>
+              <p className="text-base text-slate-300 leading-relaxed">{compactMeaning}</p>
+            </div>
           )}
 
           {/* AI 해석 — 메인 박스, 시각적으로 구분 */}
