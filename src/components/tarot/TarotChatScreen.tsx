@@ -6,7 +6,17 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Send, Layers, X, MoonStar, ChevronRight, ChevronDown } from 'lucide-react'
+import {
+  Sparkles,
+  Send,
+  Layers,
+  X,
+  MoonStar,
+  ChevronRight,
+  ChevronDown,
+  Plus,
+  Check,
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
 import { DECK_STYLES, DECK_STYLE_INFO, type DeckStyle } from '@/lib/tarot/tarot.types'
@@ -36,8 +46,22 @@ export default function TarotChatScreen() {
   const [includeAstrology, setIncludeAstrology] = useState(true)
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false)
   const [isSpreadModalOpen, setIsSpreadModalOpen] = useState(false)
+  const [isAddonsOpen, setIsAddonsOpen] = useState(false)
   const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const addonsRef = useRef<HTMLDivElement>(null)
+
+  // addons 팝오버 바깥 클릭 시 닫기
+  useEffect(() => {
+    if (!isAddonsOpen) return
+    const onClick = (e: MouseEvent) => {
+      if (addonsRef.current && !addonsRef.current.contains(e.target as Node)) {
+        setIsAddonsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [isAddonsOpen])
 
   useEffect(() => {
     textareaRef.current?.focus()
@@ -74,13 +98,13 @@ export default function TarotChatScreen() {
         <div className="w-96 h-96 bg-indigo-900 rounded-full blur-3xl opacity-20"></div>
       </div>
 
-      {/* 메인 — 환영 영역 */}
+      {/* 메인 — 환영 영역 + 예시 질문 */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 pb-44 z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
-          className="text-center space-y-4"
+          className="text-center space-y-4 w-full max-w-xl"
         >
           <div className="flex justify-center mb-4">
             <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
@@ -95,20 +119,55 @@ export default function TarotChatScreen() {
               ? '하단 입력창에 고민을 적어주세요.\n선택하신 덱과 스프레드에 맞춰 카드를 펼칩니다.'
               : 'Type your question below.\nThe cards will be drawn from your selected deck and spread.'}
           </p>
+
+          {/* 예시 질문 chip — 클릭하면 textarea 에 채워서 첫 사용자 ramp-up */}
+          {question.trim().length === 0 && (
+            <div className="pt-3">
+              <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">
+                {isKo ? '이런 걸 물어볼 수 있어요' : 'Try asking'}
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {(isKo
+                  ? ['오늘 컨디션 어때?', '그 사람 마음이 궁금해', '이직해도 될까?', '내일 어떻게 보낼까?']
+                  : [
+                      'How is my day looking?',
+                      "What's on their mind?",
+                      'Should I switch jobs?',
+                      'How should I spend tomorrow?',
+                    ]
+                ).map((sample) => (
+                  <button
+                    key={sample}
+                    type="button"
+                    onClick={() => {
+                      setQuestion(sample)
+                      setTimeout(() => {
+                        textareaRef.current?.focus()
+                        textareaRef.current?.setSelectionRange(sample.length, sample.length)
+                      }, 50)
+                    }}
+                    className="px-3 py-1.5 rounded-full bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 hover:text-slate-100 transition-colors"
+                  >
+                    {sample}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
 
       {/* 하단 입력창 */}
       <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]">
         <div className="max-w-3xl mx-auto p-3 md:p-4 flex flex-col gap-3">
-          {/* 덱·스프레드 chips */}
+          {/* 덱·스프레드 chips + 추가(+) 버튼 */}
           <div className="flex items-center gap-2 px-1 overflow-x-auto">
             <button
               onClick={() => setIsDeckModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-xs text-slate-300 transition-colors whitespace-nowrap"
             >
               <Layers className="w-3.5 h-3.5" style={{ color: deckInfo.accent }} />
-              <span className="truncate max-w-28">{isKo ? deckInfo.nameKo : deckInfo.name}</span>
+              <span>{isKo ? deckInfo.nameKo : deckInfo.name}</span>
               <ChevronRight className="w-3.5 h-3.5 opacity-50" />
             </button>
 
@@ -117,42 +176,78 @@ export default function TarotChatScreen() {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-xs text-slate-300 transition-colors whitespace-nowrap"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span className="truncate max-w-36">
+              <span>
                 {spreadTitle} ({selectedSpread.spread.cardCount})
               </span>
               <ChevronRight className="w-3.5 h-3.5 opacity-50" />
             </button>
 
-            {/* 사주·점성 추가 토글 — 로그인+생년월일 있는 유저면 cross 해석 */}
-            <button
-              type="button"
-              onClick={() => setIncludeSaju((v) => !v)}
-              aria-pressed={includeSaju}
-              title={isKo ? '사주 컨텍스트 추가' : 'Include Saju context'}
-              className={`flex items-center gap-1 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
-                includeSaju
-                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
-                  : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'
-              }`}
-            >
-              <span className="text-sm leading-none">☯</span>
-              {isKo ? '사주' : 'Saju'}
-            </button>
+            {/* + 추가 — 사주·점성 cross 단일 토글 (한 박스 안에서 둘 다 ON/OFF) */}
+            <div className="relative" ref={addonsRef}>
+              <button
+                type="button"
+                onClick={() => setIsAddonsOpen((v) => !v)}
+                aria-haspopup="true"
+                aria-expanded={isAddonsOpen}
+                title={isKo ? '사주·점성 cross 추가' : 'Add Saju × Astrology cross'}
+                className={`flex items-center gap-1 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
+                  includeSaju && includeAstrology
+                    ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-100'
+                    : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-slate-100'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                {isKo ? '추가' : 'Add'}
+                {includeSaju && includeAstrology && (
+                  <Check className="w-3 h-3 text-indigo-200" />
+                )}
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setIncludeAstrology((v) => !v)}
-              aria-pressed={includeAstrology}
-              title={isKo ? '점성 컨텍스트 추가' : 'Include Astrology context'}
-              className={`flex items-center gap-1 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
-                includeAstrology
-                  ? 'bg-violet-500/15 border-violet-500/40 text-violet-200'
-                  : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'
-              }`}
-            >
-              <span className="text-sm leading-none">🌟</span>
-              {isKo ? '점성' : 'Astro'}
-            </button>
+              {isAddonsOpen && (
+                <div
+                  className="absolute bottom-full mb-3 right-0 w-72 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 p-3 z-30"
+                  role="dialog"
+                  aria-label={isKo ? '사주·점성 cross 추가' : 'Saju × Astrology cross add-on'}
+                >
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={includeSaju && includeAstrology}
+                    onClick={() => {
+                      const next = !(includeSaju && includeAstrology)
+                      setIncludeSaju(next)
+                      setIncludeAstrology(next)
+                    }}
+                    className="w-full flex items-start gap-3 px-2 py-2.5 rounded-xl hover:bg-slate-800/60 transition-colors text-left"
+                  >
+                    <span
+                      className={`flex items-center justify-center w-6 h-6 rounded-md border-2 shrink-0 mt-0.5 transition-colors ${
+                        includeSaju && includeAstrology
+                          ? 'bg-indigo-500 border-indigo-400 text-white'
+                          : 'bg-slate-950 border-slate-500 text-transparent'
+                      }`}
+                    >
+                      <Check className="w-4 h-4" strokeWidth={3} />
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium text-slate-100">
+                        {isKo ? '사주 · 점성 cross 추가' : 'Add Saju × Astrology cross'}
+                      </span>
+                      <span className="block text-[11px] text-slate-400 leading-snug mt-0.5">
+                        {isKo
+                          ? '내 사주 · 점성 흐름을 카드 해석에 같이 엮습니다'
+                          : 'Weaves your saju & astrology flow into the card reading'}
+                      </span>
+                    </span>
+                  </button>
+                  <p className="px-2 pt-1 text-[10px] text-slate-500 leading-tight">
+                    {isKo
+                      ? '로그인 + 생년월일이 있어야 cross 해석이 적용돼요'
+                      : 'Sign in + birthday required for cross reading'}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 텍스트 입력 + 전송 */}
@@ -189,16 +284,16 @@ export default function TarotChatScreen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-50 bg-slate-950 flex flex-col"
+            className="fixed inset-0 z-[10005] bg-slate-950 flex flex-col"
           >
-            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Layers className="w-5 h-5 text-indigo-400" />
-                {isKo ? '타로 덱 선택' : 'Choose a Deck'}
+            <div className="flex items-center justify-between gap-3 px-4 pl-16 pt-[max(env(safe-area-inset-top),1rem)] pb-4 border-b border-slate-800 bg-slate-900/50">
+              <h2 className="text-lg font-semibold flex items-center gap-2 min-w-0">
+                <Layers className="w-5 h-5 text-indigo-400 shrink-0" />
+                <span className="truncate">{isKo ? '타로 덱 선택' : 'Choose a Deck'}</span>
               </h2>
               <button
                 onClick={() => setIsDeckModalOpen(false)}
-                className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white"
+                className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white shrink-0"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />
@@ -261,16 +356,16 @@ export default function TarotChatScreen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-50 bg-slate-950 flex flex-col"
+            className="fixed inset-0 z-[10005] bg-slate-950 flex flex-col"
           >
-            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-400" />
-                {isKo ? '스프레드(배열법) 선택' : 'Choose a Spread'}
+            <div className="flex items-center justify-between gap-3 px-4 pl-16 pt-[max(env(safe-area-inset-top),1rem)] pb-4 border-b border-slate-800 bg-slate-900/50">
+              <h2 className="text-lg font-semibold flex items-center gap-2 min-w-0">
+                <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
+                <span className="truncate">{isKo ? '스프레드 선택' : 'Choose a Spread'}</span>
               </h2>
               <button
                 onClick={() => setIsSpreadModalOpen(false)}
-                className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white"
+                className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white shrink-0"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />

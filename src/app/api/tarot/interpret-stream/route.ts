@@ -27,6 +27,8 @@ interface CardInput {
   isReversed: boolean
   position: string
   positionKo?: string
+  positionMeaning?: string
+  positionMeaningKo?: string
   keywords?: string[]
   keywordsKo?: string[]
 }
@@ -91,79 +93,6 @@ function buildFallbackPayload(
   return { overall, cards: cardsPayload, advice }
 }
 
-function normalizeAdvice(advice: unknown): string {
-  if (typeof advice === 'string') {
-    return advice
-  }
-  if (Array.isArray(advice)) {
-    const lines = advice
-      .map((entry) => {
-        if (!entry || typeof entry !== 'object') {
-          return ''
-        }
-        const record = entry as Record<string, unknown>
-        const title = typeof record.title === 'string' ? record.title.trim() : ''
-        const detail = typeof record.detail === 'string' ? record.detail.trim() : ''
-        if (title && detail) {
-          return `${title}: ${detail}`
-        }
-        return title || detail
-      })
-      .filter(Boolean)
-    return lines.join('\n')
-  }
-  return ''
-}
-
-function normalizeBackendPayload(
-  data: unknown,
-  fallback: {
-    overall: string
-    cards: { position: string; interpretation: string; actionTip?: string }[]
-    advice: string
-  }
-): {
-  overall: string
-  cards: { position: string; interpretation: string; actionTip?: string }[]
-  advice: string
-} | null {
-  if (!data || typeof data !== 'object') {
-    return null
-  }
-  const record = data as Record<string, unknown>
-  const overall =
-    typeof record.overall_message === 'string' && record.overall_message.trim()
-      ? record.overall_message
-      : fallback.overall
-  const advice = normalizeAdvice(record.guidance) || fallback.advice
-
-  const insights = Array.isArray(record.card_insights) ? record.card_insights : []
-  const cards =
-    insights.length > 0
-      ? insights.map((entry, index) => {
-          const cardRecord = entry as Record<string, unknown>
-          const position =
-            typeof cardRecord.position === 'string' && cardRecord.position.trim()
-              ? cardRecord.position
-              : fallback.cards[index]?.position || `Card ${index + 1}`
-          const interpretation =
-            typeof cardRecord.interpretation === 'string' && cardRecord.interpretation.trim()
-              ? cardRecord.interpretation
-              : fallback.cards[index]?.interpretation || ''
-          // backend RAG 응답 — 보통 action_tip 으로 옴 (interpret/route.ts 와 동일)
-          const actionTipRaw =
-            typeof cardRecord.action_tip === 'string' && cardRecord.action_tip.trim()
-              ? cardRecord.action_tip
-              : typeof cardRecord.actionTip === 'string' && cardRecord.actionTip.trim()
-                ? cardRecord.actionTip
-                : undefined
-          return { position, interpretation, actionTip: actionTipRaw }
-        })
-      : fallback.cards
-
-  return { overall, cards, advice }
-}
-
 function streamJsonPayload(
   payload: {
     overall: string
@@ -190,23 +119,6 @@ function streamJsonPayload(
       ...(extraHeaders || {}),
     },
   })
-}
-
-async function fetchBackendFallback(_payload: {
-  categoryId: string
-  spreadId: string
-  spreadTitle: string
-  cards: CardInput[]
-  userQuestion: string
-  language: 'ko' | 'en'
-  birthdate: string
-  includeAstrology: boolean
-  includeSaju: boolean
-  sajuContext?: string
-  astroContext?: string
-}): Promise<unknown | null> {
-  // Python backend 제거 — 항상 null 반환해 Claude/OpenAI 직접 streaming 흐름으로.
-  return null
 }
 
 // 별자리 계산 함수
@@ -284,47 +196,8 @@ function getZodiacSign(
   return null
 }
 
-// 감정 분석 함수
-function analyzeQuestionMood(
-  question: string
-): 'worried' | 'curious' | 'hopeful' | 'urgent' | 'neutral' {
-  const lowerQ = question.toLowerCase()
-  const koreanQ = question
-
-  // 걱정/불안 패턴
-  if (
-    /걱정|불안|두렵|힘들|무서|어떡|망하|실패|잃|끝|포기/i.test(koreanQ) ||
-    /worried|anxious|scared|afraid|fail|lose|end/i.test(lowerQ)
-  ) {
-    return 'worried'
-  }
-
-  // 긴급 패턴
-  if (
-    /급해|빨리|당장|지금|바로|언제|오늘/i.test(koreanQ) ||
-    /urgent|asap|now|immediately|today|when/i.test(lowerQ)
-  ) {
-    return 'urgent'
-  }
-
-  // 희망/긍정 패턴
-  if (
-    /잘될|좋아질|성공|행복|사랑|만날|이룰|희망/i.test(koreanQ) ||
-    /hope|success|love|happy|better|achieve/i.test(lowerQ)
-  ) {
-    return 'hopeful'
-  }
-
-  // 호기심 패턴
-  if (
-    /어떨까|궁금|알고싶|보여줘|뭘까|왜/i.test(koreanQ) ||
-    /what|how|why|curious|wonder/i.test(lowerQ)
-  ) {
-    return 'curious'
-  }
-
-  return 'neutral'
-}
+// 옛 analyzeQuestionMood / previousReadings 는 system prompt 의 Step 0 가 이미
+// subject/object/timeframe/intent 를 추출하므로 중복 noise — 제거됨.
 
 export async function POST(req: NextRequest) {
   let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
@@ -394,7 +267,6 @@ export async function POST(req: NextRequest) {
     const birthdate = includeAstrology ? body.birthdate || '' : ''
     const sajuContext = includeSaju ? (body.sajuContext || '').trim() : ''
     const astroContext = includeAstrology ? (body.astroContext || '').trim() : ''
-    const previousReadings = body.previousReadings || []
 
     logger.info('Tarot stream payload', {
       categoryId,
@@ -407,173 +279,391 @@ export async function POST(req: NextRequest) {
       includeSaju,
       hasSajuContext: Boolean(sajuContext),
       hasAstroContext: Boolean(astroContext),
-      previousReadings: previousReadings.length,
     })
-
-    // Always prefer backend Hybrid RAG (Evidence + tarot rules) first.
-    // This ensures question-aware interpretation quality for all questions.
-    const backendPrimaryBase = buildFallbackPayload(rawCards, language)
-    const backendPrimary = await fetchBackendFallback({
-      categoryId,
-      spreadId,
-      spreadTitle,
-      cards: rawCards,
-      userQuestion: effectiveUserQuestion,
-      language,
-      birthdate,
-      includeAstrology,
-      includeSaju,
-      sajuContext,
-      astroContext,
-    })
-    const backendPrimaryPayload = normalizeBackendPayload(backendPrimary, backendPrimaryBase)
-    if (backendPrimaryPayload) {
-      logger.info('Tarot stream served by backend Hybrid RAG')
-      return withCreditCookies(
-        streamJsonPayload(backendPrimaryPayload, { 'X-RAG-Source': 'backend' }),
-        creditResult
-      )
-    }
 
     const isKorean = language === 'ko'
+    // 자리 이름 + 자리 의미(있으면) 를 같이 LLM 에 보낸다 — interpret/route.ts 와 동일 포맷.
     const cardListText = rawCards
       .map((c, i) => {
         const name = isKorean && c.nameKo ? c.nameKo : c.name
         const pos = isKorean && c.positionKo ? c.positionKo : c.position
+        const posMeaning = isKorean
+          ? c.positionMeaningKo || c.positionMeaning
+          : c.positionMeaning
         const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || []
-        return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
+        const seat = posMeaning ? `${pos} — ${posMeaning}` : pos
+        return `${i + 1}. [${seat}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
       })
       .join('\n')
 
     const q = effectiveUserQuestion || (isKorean ? '일반 운세' : 'general reading')
 
-    // 개인화 정보 구성
+    // 개인화 컨텍스트 — 사주/점성 등록 안 한 게스트라도 birthdate 만 있으면 별자리는 anchor 로 활용.
+    // mood/previousReadings 는 LLM Step 0 가 더 잘 처리해서 제거됨.
     const zodiac = birthdate ? getZodiacSign(birthdate) : null
-    const mood = analyzeQuestionMood(q)
-
-    // 개인화 컨텍스트 생성
-    let personalizationContext = ''
-    if (isKorean) {
-      if (zodiac) {
-        personalizationContext += `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.element} 원소)\n`
-      }
-      if (astroContext) {
-        personalizationContext += `\n## 점성 맥락\n${astroContext}\n`
-      }
-      if (sajuContext) {
-        personalizationContext += `\n## 사주 맥락\n${sajuContext}\n`
-      }
-      if (previousReadings.length > 0) {
-        personalizationContext += `\n## 이전 상담 요약 (맥락 참고용)\n${previousReadings.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n`
-      }
-      const moodGuide: Record<typeof mood, string> = {
-        worried: '질문자가 걱정하고 있어요. 안심시키면서도 현실적인 조언을 해주세요.',
-        urgent: '질문자가 급한 상황이에요. 핵심을 먼저 말하고 구체적인 행동 지침을 주세요.',
-        hopeful: '질문자가 희망적이에요. 긍정적인 에너지를 유지하면서 균형 잡힌 조언을 해주세요.',
-        curious: '질문자가 호기심이 많아요. 흥미롭게 설명하면서 깊이 있는 통찰을 주세요.',
-        neutral: '',
-      }
-      if (moodGuide[mood]) {
-        personalizationContext += `\n## 말투 힌트\n${moodGuide[mood]}\n`
-      }
-    } else {
-      if (zodiac) {
-        personalizationContext += `\n## Querent Info\n- Zodiac: ${zodiac.sign} (${zodiac.element} element)\n`
-      }
-      if (astroContext) {
-        personalizationContext += `\n## Astrology Context\n${astroContext}\n`
-      }
-      if (sajuContext) {
-        personalizationContext += `\n## Saju Context\n${sajuContext}\n`
-      }
-      if (previousReadings.length > 0) {
-        personalizationContext += `\n## Previous Readings Summary (for context)\n${previousReadings.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n`
-      }
+    const sections: string[] = []
+    if (zodiac) {
+      sections.push(
+        isKorean
+          ? `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.element} 원소)\n`
+          : `\n## Querent Info\n- Zodiac: ${zodiac.sign} (${zodiac.element} element)\n`
+      )
     }
+    if (astroContext) {
+      sections.push(
+        isKorean ? `\n## 점성 맥락\n${astroContext}\n` : `\n## Astrology Context\n${astroContext}\n`
+      )
+    }
+    if (sajuContext) {
+      sections.push(
+        isKorean ? `\n## 사주 맥락\n${sajuContext}\n` : `\n## Saju Context\n${sajuContext}\n`
+      )
+    }
+    const personalizationContext = sections.join('')
 
-    // 카드 수에 맞는 JSON 예시 생성 — actionTip 도 함께 요구 (카드+자리+질문 cross 실천 조언)
-    const cardExamplesKo = rawCards
-      .map((c, i) => {
-        const pos = isKorean && c.positionKo ? c.positionKo : c.position
-        return `    {"position": "${pos || `카드 ${i + 1}`}", "interpretation": "이 위치에서 이 카드가 의미하는 바를 구체적으로 설명 (300-500자)", "actionTip": "이 카드 + 자리 + 질문에 딱 맞춘 실천 행동 1-2문장 (80-140자) — 시간 앵커 + 구체 행동 1개"}`
-      })
-      .join(',\n')
-    const cardExamplesEn = rawCards
-      .map((c, i) => {
-        return `    {"position": "${c.position || `Card ${i + 1}`}", "interpretation": "What this card means in this position specifically (180-280 words)", "actionTip": "Concrete action for this card+seat+question (50-90 words) — time anchor + one specific step"}`
-      })
-      .join(',\n')
-
-    // 시스템 프롬프트 분리 (OpenAI 자동 프롬프트 캐싱 활용 - 동일 프리픽스 재사용 시 비용 절감)
+    // 시스템 프롬프트 — 100% 정적 (페르소나 + 4단계 + 스키마).
+    // ${rawCards.length} 같은 인터폴레이션 *금지* — Anthropic prompt caching prefix 안정화.
+    // 카드 수·자리명 등 동적 부분은 모두 user prompt 에서 명시.
     const systemPrompt = isKorean
-      ? `당신은 친근한 타로 리더예요. 따뜻하고 공감하는 말투로 해석해주세요.
+      ? `당신은 15년차 한국인 타로 리더입니다. 길에서 만난 친구처럼 따뜻하고, 사촌언니처럼 직설적이며, 구체적인 행동까지 짚어줍니다.
 
-## 중요: 반드시 모든 ${rawCards.length}개 카드에 대해 각각 해석을 작성하세요!
-cards 배열에 정확히 ${rawCards.length}개의 항목이 있어야 합니다. 하나도 빠뜨리지 마세요.
+# 0단계 — 시작 전 (출력 X, 머릿속 정리)
+- 질문에서 **주체** (누구/무엇 — 나/상대/일/관계), **대상** (이 일/그 사람/오늘), **시간**(오늘/이번 주/n개월/장기), **의도** (결정·예측·조언) 를 추출하세요.
+- 스프레드 자리 수와 질문 시간선의 *스케일* 을 비교하세요.
+  · 질문이 단기인데 스프레드가 장기(12개월 등) → 각 자리를 "그 단위 안의 작은 국면"으로 *비유적* 으로 매핑.
+  · 질문이 장기인데 스프레드가 1-3장 → 카드 하나를 "전체 흐름의 핵심 한 컷"으로 압축.
+- 그 다음 4단계로 들어가세요. 0단계는 절대 출력하지 않습니다.
 
-## 출력 형식 (JSON)
+# 절대 규칙
+- **사용자의 질문을 항상 카드 해석의 중심에 두세요.** 카드의 일반 의미를 나열하지 말고, *그 카드가 이 질문 안에서 무엇을 말하는지* 풀어쓰세요.
+- 사전식 정의 절대 금지. 카드 이름·역방향 키워드 베끼지 말고 *이 질문 안에서의 의미* 로 풀어쓰세요.
+- 자리 의미(seat meaning)가 입력에 포함되면 *반드시* 그 의미에 카드를 매핑하세요.
+
+# 역방향 의미 (정/역 톤 가이드 — 단순 "부정"이 아님)
+- 역방향 = 다음 중 하나로 해석: **막힘 / 지연 / 내면화 / 미숙함 / 과잉**.
+- 예: 컵2 정방향 = "이미 마주친 끌림", 컵2 역방향 = "끌림은 있는데 *표현이 늦거나 안으로 묶임* (지연/내면화)".
+- 역방향이 떴다고 자동으로 "안 좋다"고 말하지 마세요. 그 흐름이 *어떤 방식으로 막혀있는지/늦어지는지/안으로 가는지* 를 질문 맥락 안에서 짚어주세요.
+- 정방향과 역방향이 *섞인* 스프레드라면, 역방향 카드들이 어디서 흐름을 늦추거나 내면화시키는지 짚어 시너지에 반영.
+
+# 자리 의미가 없는 스프레드 (1·2·3·12장 등)
+- 자리명이 자명한 경우 (예: "현재", "1월", "오늘의 메시지") → 그 자리명을 *질문 맥락 안의 작은 국면* 으로 매핑하세요.
+- 예: "1월" 자리에 컵5 역방향 + 질문 "올해 연애운" → "1월은 작년 끌림을 정리하는 데 시간이 걸리는 시기예요" (시간 단위 해석)
+- 예: "오늘의 메시지" 자리에 별 + 질문 "내일 뭐 먹지" → "오늘부터 가벼운 회복식이 좋다고 카드가 말해요" (단일 메시지 압축)
+
+# 시너지 방법론 (단순 요약 금지)
+시너지 = 카드들 *사이의 관계*. 다음 3가지 중 하나로 명시:
+1) **보완**: 카드 A 의 부족을 카드 B 가 채움 — "끌림(컵2) ↔ 가능성(별)" 처럼 같은 방향 강화.
+2) **충돌**: 카드 A 와 B 가 서로 잡아당김 — "추진(완드1) vs 망설임(검 7 역방향)" 처럼 톤이 반대.
+3) **전개**: 카드 A → B → C 시간 순서 — "끌림(컵2) → 망설임(컵 기사 역방향) → 결과(별)"
+- 시너지 한 줄은 반드시 위 3종 중 하나의 *틀* 로 작성. 단순 요약 ("세 카드 다 긍정적") 금지.
+
+# 예시 (3종 — 일상 / 관계 / 결정 — 어떤 카테고리든 같은 식으로)
+- "내일 뭐 먹지?" + 컵5(역방향, 현재 자리) → "내일 메뉴 정하는 자리에서 컵5 역방향은 '예전에 끌리던 그 메뉴에 시선 묶이지 말고 지금 식탁에 남은 옵션을 보라'는 신호예요."
+- "그 사람이 나를 좋아해?" + 컵2(정방향, 상대 마음 자리) → "그 사람 마음 자리에 컵2가 떴어요. 이미 시선이 마주친 끌림은 분명한데, 표현 타이밍을 늦추고 있는 흐름이에요."
+- "이직할까?" + 완드7(정방향, 도전 자리) → "이직 결정을 가로지르는 변수가 외부 반대가 아니라 *매번 내 결정을 변호해야 하는 피로감*이라고 카드가 말해요."
+
+# Cross 방법 (사주·점성 컨텍스트가 입력에 들어왔을 때)
+사주 컨텍스트(일간·용신·오늘 점수·강한 영역) 또는 점성 컨텍스트(트랜짓·역행)가 user prompt 에 *명시되어 있으면*:
+- **모든 카드별 해석에 cross anchor 를 1회 이상 짜 넣으세요** — 카드 단독 해석 금지.
+- 카드의 흐름 ↔ 사주(또는 점성)의 흐름을 *연결* 해서 풀어 쓰세요. "사주는 X예요"처럼 따로 떼어내 한 줄 끼우기 금지.
+- 사주·점성이 *없으면* 이 규칙 무시하고 카드만 해석.
+
+## Cross 예시 3종
+1) **카드 ↔ 일간 강약 cross** (사주축 점수가 낮을 때 = 일간 약함):
+   - 질문 "이직할까?" + 켈틱 5번(의식 자리) + 완드7 정방향, 사주: 일간 갑목 약함(사주축 38)
+   - → "일간 갑목이 약해진 지금, 의식 자리에 완드7이 떴다는 건 *외부 결정보다 자기 결단력이 더 큰 변수* 라는 신호예요. 사주가 받쳐주지 못하는 만큼 1주일은 결정을 미루고 자기 확신부터 모으세요."
+   - ❌ 나쁜 예: "완드7은 도전을 의미해요. 일간이 갑목이시군요." (카드와 사주가 따로)
+
+2) **카드 ↔ 오늘 강한 영역 cross** (themeScores top domain):
+   - 질문 "그 사람 마음" + 컵2 정방향, 사주: 오늘 love 72(강함)
+   - → "오늘 사주 흐름이 관계 쪽으로 가장 살아있어요(love 72). 컵2가 떴으니 *오늘 가벼운 신호 한 번* 보내면 받기 좋은 타이밍이에요. 내일은 점수가 떨어지니 미루지 마세요."
+
+3) **카드 ↔ 트랜짓 cross** (점성 aspect):
+   - 질문 "지금 시작해도 될까?" + 완드1 정방향, 점성: 화성 trine natal Sun (orb 0.8°)
+   - → "오늘 화성이 본명 태양에 부드럽게 닿아있어요 — 추진력이 본인 안에서 자연스럽게 끌려나오는 시점. 완드1 정방향이 그걸 받쳐주니 *시작은 오늘이 best*, 늦으면 화성이 멀어져요."
+
+# 4단계 메서드 (반드시 이 순서)
+1) **오프닝**: 첫 1-2문장이 사용자 질문을 *직접* 언급. 추출한 주체·시간·의도 한 번 반영.
+2) **카드별 해석**: 각 카드 = 위치 의미 × 카드 × 정/역 × 질문 4중 cross. 마무리에 시간 앵커(오늘/이번 주/14일/N개월).
+3) **시너지**: 카드들이 *함께* 말하는 한 줄 — overall 안에 녹임.
+4) **클로징**: 전체 advice + 카드별 actionTip. 두루뭉술 금지, 구체 행동만.
+
+# 절대 출력 규칙
+- cards 배열 길이는 user prompt 에서 지정한 카드 수와 *정확히* 일치해야 합니다. 하나도 빠뜨리거나 추가하지 마세요.
+- 각 카드의 actionTip 은 반드시 채워야 합니다. 80-140자, 시간 앵커 + 구체 행동 1개.
+- 출력은 *오직* 아래 JSON 스키마. 마크다운 코드펜스(\`\`\`) 절대 사용 금지. 주석/설명/머리말 금지.
+
+# JSON 스키마 (정확히 이 키, 이 구조)
 {
-  "overall": "전체 메시지 (400-600자). 친근한 말투로 카드들이 전하는 큰 그림을 설명해요.",
+  "overall": "string — 오프닝 + 시너지, 400-600자, 첫 문장에 사용자 질문 직접 언급",
   "cards": [
-${cardExamplesKo}
+    {
+      "position": "string — 자리명 그대로",
+      "interpretation": "string — 자리 의미 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함",
+      "actionTip": "string — 이 카드+자리+질문 cross 의 실천 행동 1-2문장 (80-140자) + 시간 앵커"
+    }
   ],
-  "advice": "실용적인 조언 (100-150자). 구체적인 행동 지침."
+  "advice": "string — 전체 차원 실행 지침 (100-150자), 구체 행동 1-3개"
 }
 
-## 말투 규칙
-✅ 사용: "~해요", "~네요", "~거든요", "~죠"
-❌ 금지: "~것입니다", "~하겠습니다" (딱딱한 말투)`
-      : `You are a warm, intuitive tarot reader. Give interpretations in a friendly, conversational tone.
+# 말투
+✅ "~해요", "~네요", "~거든요", "~죠" — 친근, 따뜻, 직설
+❌ "~것입니다", "~하겠습니다", "~당신은 반드시…" — 딱딱 / 점쟁이 톤 / 운명론 금지.`
+      : `You are a 15-year veteran tarot reader. Warm like a friend, direct like an older sister, concrete with action.
 
-## IMPORTANT: You MUST provide interpretation for ALL ${rawCards.length} cards!
-The "cards" array must contain exactly ${rawCards.length} entries. Do not skip any card.
+# Step 0 — Before You Write (silent, do NOT output)
+- Extract from the question: **subject** (me / them / this matter), **object** (this thing / that person / today), **timeframe** (today / this week / months / long-term), **intent** (decide / predict / advise).
+- Compare the question's time horizon to the spread size.
+  · Short-term question on a long-spread (e.g., 12-month) → map each seat to a small "phase within that unit" metaphorically.
+  · Long-term question on a 1-3 card spread → compress the card to "one defining snapshot" of the larger flow.
+- Then proceed to the 4 steps. Step 0 is never emitted.
 
-## Output Format (JSON)
+# Hard Rules
+- The user's question is ALWAYS the center of every card interpretation. Never recite generic card meanings; unpack *what this card says inside this question*.
+- No textbook definitions. Re-read each card *inside the user's situation*.
+- If a seat meaning is supplied in the input, map the card onto that meaning explicitly.
+
+# Reversed Orientation (not simply "negative")
+- Reversed = one of: **blockage / delay / internalization / immaturity / excess**.
+- Example: Two of Cups upright = "an attraction already met", Two of Cups reversed = "the attraction is there but its expression is delayed or held inward."
+- Never auto-read a reversed card as "bad". Explain *how* the flow is blocked / delayed / internalized inside the user's situation.
+- In a mixed-orientation spread, call out where the reversed cards slow or internalize the current and fold that into the synergy line.
+
+# When the spread has no seat meaning (1·2·3·12 card spreads)
+- If the seat name is self-evident (e.g., "Present", "January", "Message of the day"), map it to a *small phase inside the user's question*.
+- E.g., "January" seat with Five of Cups reversed + question "How is my love life this year?" → "January is a window where last year's attraction is still being processed (slow start)."
+- E.g., "Message of the day" + Star + question "What should I eat tomorrow?" → "The card says start with a light recovery meal from today."
+
+# Synergy Method (no generic summaries)
+Synergy = the *relationship between* the cards. Choose one of:
+1) **Complement**: A fills B's gap — "attraction (Two of Cups) ↔ possibility (Star)" reinforcing same direction.
+2) **Clash**: A and B pull against each other — "drive (Ace of Wands) vs hesitation (Seven of Swords reversed)" opposite tones.
+3) **Progression**: A → B → C as a sequence — "attraction (Two of Cups) → hesitation (Knight of Cups reversed) → outcome (Star)".
+- The synergy line must explicitly use one of the three frames above. Never write "all three cards are positive" style summaries.
+
+# Examples (3 categories — daily / relationship / decision — same method everywhere)
+- "What should I eat tomorrow?" + Five of Cups reversed (Present seat) → "On the seat of tomorrow's meal, Five of Cups reversed says stop staring at the dish you miss and look at what's actually on the table tonight."
+- "Does he like me?" + Two of Cups (Their feelings seat) → "On the seat of their feelings, Two of Cups: the attraction is real and mutual, but the timing of expression is running late."
+- "Should I switch jobs?" + Seven of Wands (Challenge seat) → "The variable across this decision isn't external resistance — it's the fatigue of constantly defending your own decision to yourself."
+
+# Cross Method (when saju or astrology context is provided)
+If the user prompt includes Saju context (day master, favorable element, today's score, top domains) or Astrology context (transits, retrogrades):
+- **Anchor every card interpretation to a cross point at least once** — never read a card standalone.
+- Weave the card's flow into the saju/astro flow. Do NOT just append a separate "your saju is X" sentence.
+- If neither context is present, ignore this section and read cards alone.
+
+## Cross examples (3 patterns)
+1) **Card × day-master strength cross** (saju axis score low = weak day master):
+   - "Should I switch jobs?" + Celtic Cross #5 (Conscious seat) + Seven of Wands upright, saju: day master 갑/wood weak (saju axis 38)
+   - → "With your day master 갑 (wood) running weak right now, the Conscious seat showing Seven of Wands says the variable is *your own resolve, not external pushback*. Hold the decision for a week and rebuild conviction first."
+   - ❌ Bad: "Seven of Wands means challenge. Your day master is wood." (card and saju separate)
+
+2) **Card × today's top domain cross** (themeScores top domain):
+   - "Does he like me?" + Two of Cups upright, saju: today's love score 72 (high)
+   - → "Today the saju flow is strongest in relationships (love 72). Two of Cups landing here means *send one light signal today* — the channel is open. Tomorrow's score drops, so don't sit on it."
+
+3) **Card × transit cross** (astrology aspect):
+   - "Should I start today?" + Ace of Wands upright, astro: Mars trine natal Sun (orb 0.8°)
+   - → "Mars is gently touching your natal Sun today — drive is pulled out of you naturally. Ace of Wands upright underwrites that, so today is the launch window; once Mars moves off, the lift fades."
+
+# 4-Step Method
+1) **Opening**: First 1-2 sentences reference the user's question directly. Mention the extracted subject/time/intent once.
+2) **Per card**: Position-meaning × card × upright/reversed × question. End with a time anchor (today / this week / within 14 days / N months).
+3) **Synergy**: One line on what the cards say together — folded into overall.
+4) **Closing**: Overall advice + per-card actionTip. Specific, no fluff.
+
+# Output Rules
+- The cards[] array length must match exactly the card count specified in the user prompt. Do not skip or add.
+- Every card's actionTip is mandatory. 50-90 words. Time anchor + one specific action.
+- Output JSON only — no code fences, no preamble, no comments.
+
+# JSON Schema (exact keys, exact shape)
 {
-  "overall": "Overall message (250-350 words). Explain the big picture from these cards warmly.",
+  "overall": "string — Opening + synergy, 250-350 words, first sentence references the question",
   "cards": [
-${cardExamplesEn}
+    {
+      "position": "string — seat name as-is",
+      "interpretation": "string — seat × card × orientation × question cross, 180-280 words, with a time anchor",
+      "actionTip": "string — actionable step rooted in card+seat+question, 50-90 words + time anchor"
+    }
   ],
-  "advice": "Practical advice (60-90 words). Specific action steps."
-}`
+  "advice": "string — overall-level next steps (60-90 words), 1-3 concrete actions"
+}
 
-    // 유저 프롬프트 (요청마다 달라지는 동적 부분)
+# Tone
+- Calm, warm, trustworthy. No fortune-teller theatrics. No fatalism — show possibility and what the user can move.`
+
+    // 유저 프롬프트 — 질문을 맨 위, 가장 눈에 띄게 배치
     const userPrompt = isKorean
-      ? `## 스프레드: ${spreadTitle}
-## 질문: "${q}"
-${personalizationContext}
-## 뽑힌 카드
-${cardListText}
-${zodiac ? `\n질문자 별자리(${zodiac.signKo}, ${zodiac.element} 원소)를 자연스럽게 연결해서 해석해주세요.` : ''}${astroContext ? '\n점성 맥락도 해석에 반영해주세요.' : ''}${sajuContext ? '\n사주 맥락도 해석에 반영해주세요.' : ''}${previousReadings.length > 0 ? '\n이전 상담 내용과의 연결점이 있다면 언급해주세요.' : ''}`
-      : `## Spread: ${spreadTitle}
-## Question: "${q}"
-${personalizationContext}
-## Cards Drawn
-${cardListText}
-${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element traits.` : ''}${astroContext ? '\nApply the provided astrology context in your interpretation.' : ''}${sajuContext ? '\nApply the provided saju context in your interpretation.' : ''}${previousReadings.length > 0 ? '\nReference connections to previous readings if relevant.' : ''}`
+      ? `# 사용자의 질문
+"${q}"
 
-    // Claude 우선: 비스트리밍 단일 청크 emit (페르소나/메서드 system 자동 캐싱)
+# 스프레드
+${spreadTitle} (${rawCards.length}장)
+
+# 펼친 카드 (자리명 — 자리 의미)
+${cardListText}
+${personalizationContext}
+# 작성 지시
+- 모든 ${rawCards.length}장의 카드에 대해 cards[] 항목을 만드세요.
+- 각 카드는 위 질문 맥락 안에서 해석합니다. 카드를 보고 사전식 정의를 쓰지 마세요.
+- 각 카드의 actionTip 은 *질문에 직접 적용 가능한* 1-2문장 행동 + 시간 앵커.
+- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}`
+      : `# User's Question
+"${q}"
+
+# Spread
+${spreadTitle} (${rawCards.length} cards)
+
+# Cards Drawn (seat name — seat meaning)
+${cardListText}
+${personalizationContext}
+# Instructions
+- Produce cards[] entries for all ${rawCards.length} cards.
+- Interpret each card *inside the user's question above*. No textbook definitions.
+- Each card's actionTip is 1-2 sentences of action directly applicable to the question, with a time anchor.
+- The first sentence of overall must reference the user's question directly.${zodiac ? `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.` : ''}${astroContext ? '\n- Cross with the astrology context.' : ''}${sajuContext ? '\n- Cross with the saju context — anchor in every card at least once.' : ''}`
+
+    // Claude 우선.
+    //  - <8장: 단일 호출, 응답 전체를 SSE 단일 청크로 emit (기존 흐름)
+    //  - >=8장: 카드를 둘로 나눠 병렬 2회 호출 후 JSON 머지 → 단일 청크 emit
+    //          token 한계로 후반 카드 잘리던 문제 해결 + 같은 system prompt 재사용해 cache hit
+    const LARGE_SPREAD_THRESHOLD = 8
     if (isClaudeAvailable()) {
       const claudeStartTime = Date.now()
+      const isLargeSpread = rawCards.length >= LARGE_SPREAD_THRESHOLD
       try {
-        logger.info('Tarot stream Claude request', {
-          systemLen: systemPrompt.length,
-          userLen: userPrompt.length,
+        if (!isLargeSpread) {
+          // 소형 스프레드 — 단일 호출
+          logger.info('Tarot stream Claude request (single)', {
+            cards: rawCards.length,
+            systemLen: systemPrompt.length,
+            userLen: userPrompt.length,
+          })
+          const claudeResult = await callSharedClaude({
+            systemPrompt,
+            userPrompt,
+            maxTokens: 4000,
+            temperature: 0.7,
+            timeoutMs: OPENAI_TIMEOUT_MS,
+            label: 'tarot-stream',
+          })
+          recordExternalCall(
+            'anthropic',
+            'claude-haiku-4-5',
+            'success',
+            Date.now() - claudeStartTime
+          )
+          const encoder = new TextEncoder()
+          const stream = new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode(createSSEEvent({ content: claudeResult.text })))
+              controller.enqueue(encoder.encode(createSSEDoneEvent()))
+              controller.close()
+            },
+          })
+          return withCreditCookies(
+            new NextResponse(stream, {
+              headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache, no-transform',
+                Connection: 'keep-alive',
+                'X-Accel-Buffering': 'no',
+                'X-Provider': 'claude',
+              },
+            }),
+            creditResult
+          )
+        }
+
+        // 대형 스프레드 — chunk A (앞 절반 + overall + advice) || chunk B (뒤 절반 cards 만)
+        const mid = Math.ceil(rawCards.length / 2)
+        const buildChunkUserPrompt = (
+          startIdx: number,
+          endIdx: number,
+          includeMeta: boolean
+        ): string => {
+          const chunkInfo = isKorean
+            ? `(전체 ${rawCards.length}장 중 ${startIdx + 1}~${endIdx}번 카드만 해석)`
+            : `(interpret only cards ${startIdx + 1}-${endIdx} of ${rawCards.length})`
+          const task = includeMeta
+            ? isKorean
+              ? `# 작성 지시\n- 전체 카드 흐름을 보고 overall + advice 작성하고, ${chunkInfo} 의 카드별 cards[] 항목을 채우세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
+              : `# Instructions\n- Read the full ${rawCards.length}-card flow; write overall + advice, fill cards[] with per-card interpretations ${chunkInfo}.\n- cards[] length must be exactly ${endIdx - startIdx}.`
+            : isKorean
+              ? `# 작성 지시\n- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfo} 의 카드별 해석만 cards[] 에 채우세요. overall/advice 는 출력하지 마세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
+              : `# Instructions\n- Use the full ${rawCards.length}-card flow as context only. Output ONLY per-card interpretations ${chunkInfo} in cards[]. Do NOT include overall/advice.\n- cards[] length must be exactly ${endIdx - startIdx}.`
+          const personalizationLine = `${zodiac ? (isKorean ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.`) : ''}${astroContext ? (isKorean ? '\n- 점성 맥락도 해석에 cross.' : '\n- Cross with the astrology context.') : ''}${sajuContext ? (isKorean ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : '\n- Cross with the saju context — anchor in every card at least once.') : ''}`
+          if (isKorean) {
+            return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${rawCards.length}장)\n\n# 펼친 카드 — 전체 (자리명 — 자리 의미)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
+          }
+          return `# User's Question\n"${q}"\n\n# Spread\n${spreadTitle} (${rawCards.length} cards)\n\n# Cards Drawn — full list (seat — meaning)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
+        }
+
+        logger.info('Tarot stream Claude request (parallel chunks)', {
+          cards: rawCards.length,
+          chunkA: `0-${mid}`,
+          chunkB: `${mid}-${rawCards.length}`,
         })
-        const claudeResult = await callSharedClaude({
-          systemPrompt,
-          userPrompt,
-          maxTokens: 4000,
-          temperature: 0.7,
-          timeoutMs: OPENAI_TIMEOUT_MS,
-          label: 'tarot-stream',
+        const [chunkA, chunkB] = await Promise.all([
+          callSharedClaude({
+            systemPrompt,
+            userPrompt: buildChunkUserPrompt(0, mid, true),
+            maxTokens: 2400,
+            temperature: 0.7,
+            timeoutMs: OPENAI_TIMEOUT_MS,
+            label: 'tarot-stream-chunkA',
+          }),
+          callSharedClaude({
+            systemPrompt,
+            userPrompt: buildChunkUserPrompt(mid, rawCards.length, false),
+            maxTokens: 2400,
+            temperature: 0.7,
+            timeoutMs: OPENAI_TIMEOUT_MS,
+            label: 'tarot-stream-chunkB',
+          }),
+        ])
+        recordExternalCall(
+          'anthropic',
+          'claude-haiku-4-5',
+          'success',
+          Date.now() - claudeStartTime
+        )
+
+        // JSON 머지 — chunk A 의 overall/advice + chunk A.cards + chunk B.cards 를 합쳐 단일 JSON.
+        const safeParse = (raw: string): Record<string, unknown> | null => {
+          const match = raw.match(/\{[\s\S]*\}/)
+          if (!match) return null
+          try {
+            return JSON.parse(match[0]) as Record<string, unknown>
+          } catch {
+            return null
+          }
+        }
+        const parsedA = safeParse(chunkA.text)
+        const parsedB = safeParse(chunkB.text)
+        const cardsA = Array.isArray(parsedA?.cards) ? (parsedA!.cards as unknown[]) : []
+        const cardsB = Array.isArray(parsedB?.cards) ? (parsedB!.cards as unknown[]) : []
+        const mergedJson = {
+          overall: parsedA?.overall ?? '',
+          cards: [...cardsA, ...cardsB],
+          advice: parsedA?.advice ?? '',
+        }
+        // 만약 chunk B 파싱 실패 → mergedJson.cards 가 절반만 남음.
+        // buildFallbackPayload 가 길이 맞춰 부족분 채우도록 클라이언트 측 parseStreamedInterpretation 이 처리함.
+        const mergedText = JSON.stringify(mergedJson)
+        logger.info('Tarot stream parallel chunks merged', {
+          cards: rawCards.length,
+          aCards: cardsA.length,
+          bCards: cardsB.length,
+          aParsed: parsedA !== null,
+          bParsed: parsedB !== null,
         })
-        recordExternalCall('anthropic', 'claude-haiku-4-5', 'success', Date.now() - claudeStartTime)
-        // 응답을 SSE 단일 청크로 emit — 클라이언트는 동일 컨트랙트 유지
+
         const encoder = new TextEncoder()
         const stream = new ReadableStream({
           start(controller) {
-            controller.enqueue(encoder.encode(createSSEEvent({ content: claudeResult.text })))
+            controller.enqueue(encoder.encode(createSSEEvent({ content: mergedText })))
             controller.enqueue(encoder.encode(createSSEDoneEvent()))
             controller.close()
           },
@@ -586,6 +676,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
               Connection: 'keep-alive',
               'X-Accel-Buffering': 'no',
               'X-Provider': 'claude',
+              'X-Tarot-Strategy': 'parallel-chunks',
             },
           }),
           creditResult
@@ -594,6 +685,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
         recordExternalCall('anthropic', 'claude-haiku-4-5', 'error', Date.now() - claudeStartTime)
         logger.warn('Tarot stream Claude failed, falling back to OpenAI', {
           error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
+          isLargeSpread,
         })
         // fall through to OpenAI streaming
       }
@@ -639,22 +731,8 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
       clearTimeout(openaiTimeoutId)
       recordExternalCall('openai', 'gpt-4o-mini', 'error', Date.now() - openaiStartTime)
       logger.error('OpenAI stream fetch error:', { error })
-      logger.warn('Tarot stream fallback to backend')
-      const fallbackBase = buildFallbackPayload(rawCards, language)
-      const backendFallback = await fetchBackendFallback({
-        categoryId,
-        spreadId,
-        spreadTitle,
-        cards: rawCards,
-        userQuestion: effectiveUserQuestion,
-        language,
-        birthdate,
-        includeAstrology,
-        includeSaju,
-        sajuContext,
-        astroContext,
-      })
-      const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
+      logger.warn('Tarot stream emergency fallback')
+      const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
     clearTimeout(openaiTimeoutId)
@@ -663,22 +741,8 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
       recordExternalCall('openai', 'gpt-4o-mini', 'error', Date.now() - openaiStartTime)
       const errorText = await openaiResponse.text()
       logger.error('OpenAI stream error:', { status: openaiResponse.status, error: errorText })
-      logger.warn('Tarot stream fallback to backend')
-      const fallbackBase = buildFallbackPayload(rawCards, language)
-      const backendFallback = await fetchBackendFallback({
-        categoryId,
-        spreadId,
-        spreadTitle,
-        cards: rawCards,
-        userQuestion: effectiveUserQuestion,
-        language,
-        birthdate,
-        includeAstrology,
-        includeSaju,
-        sajuContext,
-        astroContext,
-      })
-      const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
+      logger.warn('Tarot stream emergency fallback')
+      const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
 
@@ -693,21 +757,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
         const reader = openaiResponse.body?.getReader()
         logger.info('Tarot stream SSE start', { hasReader: Boolean(reader) })
         if (!reader) {
-          const fallbackBase = buildFallbackPayload(rawCards, language)
-          const backendFallback = await fetchBackendFallback({
-            categoryId,
-            spreadId,
-            spreadTitle,
-            cards: rawCards,
-            userQuestion: effectiveUserQuestion,
-            language,
-            birthdate,
-            includeAstrology,
-            includeSaju,
-            sajuContext,
-            astroContext,
-          })
-          const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
+          const fallback = buildFallbackPayload(rawCards, language)
           controller.enqueue(encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) })))
           controller.enqueue(encoder.encode(createSSEDoneEvent()))
           controller.close()

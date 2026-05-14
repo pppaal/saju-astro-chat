@@ -275,6 +275,29 @@ export const GET = withApiMiddleware(
           }
         }
       | undefined
+    // 타로 cross-reading 용 — natalChart 와 transitChart 는 try 블록 안에서 계산되므로,
+    // apiSuccess 시점에 접근 가능하도록 hoist 한 변수에 담아둔다.
+    let natalAngles:
+      | {
+          sun?: { sign: string; formatted: string }
+          moon?: { sign: string; formatted: string }
+          ascendant?: { sign: string; formatted: string }
+          mercury?: { sign: string; formatted: string }
+          venus?: { sign: string; formatted: string }
+          mars?: { sign: string; formatted: string }
+          jupiter?: { sign: string; formatted: string }
+          saturn?: { sign: string; formatted: string }
+          neptune?: { sign: string; formatted: string }
+          mc?: { sign: string; formatted: string }
+          // 주요 하우스 cusp sign — conditional 용 (2 재물 / 6 건강 / 7 관계 / 9 영성 / 10 직업=MC)
+          house2?: { sign: string }
+          house6?: { sign: string }
+          house7?: { sign: string }
+          house9?: { sign: string }
+          house10?: { sign: string }
+        }
+      | undefined
+    let todayMoonPhase: { phase: string; name: string } | undefined
     try {
       const [
         { calculateNatalChart, toChart },
@@ -430,6 +453,58 @@ export const GET = withApiMiddleware(
         retrogrades: retrogrades.length > 0 ? retrogrades : undefined,
         summary: summaryParts.join(' · '),
       }
+
+      // 타로 cross-reading 용 추가 필드 — 본명 행성 + 주요 하우스 (테마별 anchor)
+      try {
+        const planetBy = (name: string) =>
+          natalChart.planets.find((p) => p.name === name)
+        const sun = planetBy('Sun')
+        const moon = planetBy('Moon')
+        const mercury = planetBy('Mercury')
+        const venus = planetBy('Venus')
+        const mars = planetBy('Mars')
+        const jupiter = planetBy('Jupiter')
+        const saturn = planetBy('Saturn')
+        const neptune = planetBy('Neptune')
+        const pick = (p?: { sign: string; formatted: string }) =>
+          p ? { sign: p.sign, formatted: p.formatted } : undefined
+        const houseBy = (idx: number) => {
+          const h = (natalChart.houses || []).find((house) => house.index === idx)
+          return h ? { sign: h.sign } : undefined
+        }
+        natalAngles = {
+          sun: pick(sun),
+          moon: pick(moon),
+          ascendant: pick(natalChart.ascendant),
+          mercury: pick(mercury),
+          venus: pick(venus),
+          mars: pick(mars),
+          jupiter: pick(jupiter),
+          saturn: pick(saturn),
+          neptune: pick(neptune),
+          mc: pick(natalChart.mc),
+          house2: houseBy(2),
+          house6: houseBy(6),
+          house7: houseBy(7),
+          house9: houseBy(9),
+          house10: houseBy(10),
+        }
+      } catch {
+        // natal angles 추출 실패 — 컨텍스트만 비고 나머지는 그대로.
+      }
+      try {
+        const { getMoonPhase, getMoonPhaseName } = await import(
+          '@/lib/astrology/foundation/electional'
+        )
+        const transitSun = transitChart.planets?.find((p) => p.name === 'Sun')
+        const transitMoon = transitChart.planets?.find((p) => p.name === 'Moon')
+        if (transitSun && transitMoon) {
+          const phase = getMoonPhase(transitSun.longitude, transitMoon.longitude)
+          todayMoonPhase = { phase, name: getMoonPhaseName(phase) }
+        }
+      } catch {
+        // moon phase 계산 실패 — 무시.
+      }
     } catch (err) {
       logger.warn('[calendar/date-detail] transit aspect calc failed', {
         error: err instanceof Error ? err.message : String(err),
@@ -471,6 +546,54 @@ export const GET = withApiMiddleware(
         monthStem,
         monthBranch,
       },
+      // 타로 cross-reading 용 — 십신 분포 + 오행 분포 (4기둥 cheon/ji 십신 합산)
+      sajuExtras: (() => {
+        try {
+          const tenGodCounts: Record<string, number> = {}
+          const bump = (key?: string) => {
+            if (!key) return
+            tenGodCounts[key] = (tenGodCounts[key] || 0) + 1
+          }
+          for (const pillar of [
+            sajuResult.yearPillar,
+            sajuResult.monthPillar,
+            sajuResult.dayPillar,
+            sajuResult.timePillar,
+          ]) {
+            const p = pillar as unknown as Record<string, unknown> | undefined
+            if (!p) continue
+            const sibsin = p.sibsin as
+              | { cheon?: string; ji?: string }
+              | string
+              | undefined
+            if (typeof sibsin === 'object' && sibsin) {
+              bump(sibsin.cheon)
+              bump(sibsin.ji)
+            } else if (typeof sibsin === 'string') {
+              bump(sibsin)
+            }
+          }
+          return {
+            tenGodCounts,
+            fiveElements: sajuResult.fiveElements,
+          }
+        } catch {
+          return undefined
+        }
+      })(),
+      // 현재 대운 (10년 큰 흐름) — 타로 cross-reading 에서 장기 톤 anchor 용
+      currentDaeun: sajuResult.daeWoon?.current
+        ? {
+            stem: sajuResult.daeWoon.current.heavenlyStem,
+            branch: sajuResult.daeWoon.current.earthlyBranch,
+            label: `${sajuResult.daeWoon.current.heavenlyStem}${sajuResult.daeWoon.current.earthlyBranch}`,
+            sibsinCheon: sajuResult.daeWoon.current.sibsin?.cheon,
+            sibsinJi: sajuResult.daeWoon.current.sibsin?.ji,
+          }
+        : undefined,
+      // 본명 태양/달/ASC + 오늘 달 위상 — try 블록 안에서 채워둔 hoisted 변수 사용
+      natalAngles,
+      todayMoonPhase,
       longCycleContext: lite?.longCycleContext,
       cycleInteractions: lite?.cycleInteractions,
       transit: transitData,

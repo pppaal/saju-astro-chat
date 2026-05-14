@@ -182,12 +182,10 @@ export function FollowupChat({
             }
           }}
           placeholder={
-            isKo
-              ? '이 카드에 대해 더 궁금한 점을 적어 보세요…'
-              : 'Ask anything more about this reading…'
+            isKo ? '더 궁금한 점을 적어주세요' : 'Ask another question'
           }
           rows={1}
-          className="flex-1 bg-slate-800 border border-slate-700 focus:border-cyan-500 rounded-xl px-3 py-2.5 text-slate-100 placeholder-slate-500 resize-none outline-none text-sm min-h-11 max-h-32 transition-colors"
+          className="flex-1 bg-slate-800 border border-slate-700 focus:border-cyan-500 rounded-full px-4 py-2.5 text-slate-100 placeholder-slate-500 resize-none outline-none text-sm h-11 max-h-32 transition-colors leading-6"
           disabled={submitting}
         />
         <button

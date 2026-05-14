@@ -38,7 +38,7 @@ const ALL_SERVICES: readonly EnabledService[] = [
     icon: '🔮',
     menuKey: 'menu.tarot',
     descriptionKey: 'services.tarot.desc',
-    label: { en: 'Tarot', ko: '타로' },
+    label: { en: 'Tarot Counselor', ko: '타로 상담사' },
     description: { en: 'Tarot Card Reading', ko: '타로 카드 리딩' },
   },
   {
@@ -65,7 +65,7 @@ const ALL_SERVICES: readonly EnabledService[] = [
     icon: '💕',
     menuKey: 'menu.compatibility',
     descriptionKey: 'services.compatibility.desc',
-    label: { en: 'Compatibility', ko: '궁합' },
+    label: { en: 'Compatibility Counselor', ko: '궁합 상담사' },
     description: { en: 'Relationship Analysis', ko: '관계 궁합 분석' },
   },
   {

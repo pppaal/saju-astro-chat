@@ -49,7 +49,7 @@ export const POST = withApiMiddleware(
     let fallbackQuestion: string | undefined
     let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
     const startedAt = Date.now()
-    let interpretationSource: 'backend_rag' | 'gpt_fallback' | 'emergency_fallback' = 'backend_rag'
+    let interpretationSource: 'gpt_fallback' | 'emergency_fallback' = 'gpt_fallback'
 
     try {
       recordCounter('tarot.interpret.request_total', 1, { stage: 'received' })

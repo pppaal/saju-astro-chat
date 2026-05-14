@@ -297,7 +297,7 @@ export default function DestinyMatrixPlanner({
     }
     // fusion 사람말 신호 (legacy 없을 때만 fallback — 이미 다른 곳에 narrative 있으면 중복 피함)
     if (fusion && !selectedImportantDate?.summary) {
-      const { sajuAxisScore: s, astroAxisScore: a, agreement, confidence, overallScore } = fusion
+      const { agreement, confidence, overallScore } = fusion
       if (agreement < 55) return confidence > 40 ? '사주와 점성이 갈리는 날 — 분별 필요' : '신호가 흐릿한 날'
       if (overallScore >= 70 && confidence >= 45) return '강한 길일 — 사주·점성 모두 우호'
       if (overallScore >= 60) return '잔잔하게 우호적인 흐름'
