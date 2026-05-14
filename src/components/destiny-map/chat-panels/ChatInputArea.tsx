@@ -15,6 +15,7 @@ interface ChatInputAreaProps {
   onSend: () => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
   styles: Record<string, string>
+  autoFocus?: boolean
 }
 
 export const ChatInputArea = React.memo(function ChatInputArea({
@@ -29,11 +30,25 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onSend,
   onFileUpload,
   styles,
+  autoFocus = false,
 }: ChatInputAreaProps) {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  // Pop the soft keyboard the moment the chat is ready. iOS Safari
+  // restricts programmatic focus outside a user gesture, so this is a
+  // best-effort: works on desktop + Android; on iOS it places the cursor
+  // and waits for the user to tap.
+  React.useEffect(() => {
+    if (autoFocus) {
+      textareaRef.current?.focus()
+    }
+  }, [autoFocus])
+
   return (
     <div className={styles.inputArea}>
       <div className={styles.inputBox}>
         <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={onKeyDown}

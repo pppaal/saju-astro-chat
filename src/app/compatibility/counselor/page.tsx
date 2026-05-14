@@ -29,15 +29,6 @@ type PersonData = {
   relation?: string
 }
 
-type Theme = 'general' | 'love' | 'business' | 'family'
-
-const themeInfo: Record<Theme, { emoji: string; label: string; labelEn: string }> = {
-  general: { emoji: '💫', label: '종합 상담', labelEn: 'General' },
-  love: { emoji: '💕', label: '연애/결혼', labelEn: 'Love/Marriage' },
-  business: { emoji: '🤝', label: '비즈니스', labelEn: 'Business' },
-  family: { emoji: '👨‍👩‍👧‍👦', label: '가족 관계', labelEn: 'Family' },
-}
-
 function formatBirthSnippet(p: PersonData): string {
   const date = p.date || ''
   const time = p.time && p.time !== '12:00' ? ` ${p.time}` : ''
@@ -59,7 +50,6 @@ function CompatibilityCounselorContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [theme, setTheme] = useState<Theme>('general')
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -73,11 +63,6 @@ function CompatibilityCounselorContent() {
     const initializeData = async () => {
       try {
         const personsParam = searchParams.get('persons')
-        const themeParam = searchParams.get('theme') as Theme | null
-
-        if (themeParam && themeInfo[themeParam]) {
-          setTheme(themeParam)
-        }
 
         if (personsParam) {
           const parsed = JSON.parse(decodeURIComponent(personsParam)) as PersonData[]
@@ -176,6 +161,15 @@ function CompatibilityCounselorContent() {
     }
   }, [])
 
+  // Pop the soft keyboard the moment the page is ready. iOS Safari
+  // restricts programmatic focus outside a user gesture; this works on
+  // desktop + Android, and on iOS at least places the cursor.
+  useEffect(() => {
+    if (!isInitializing) {
+      inputRef.current?.focus()
+    }
+  }, [isInitializing])
+
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) {
       return
@@ -200,7 +194,7 @@ function CompatibilityCounselorContent() {
           lang: locale,
           messages: [...messages, userMessage],
           useRag: true,
-          theme,
+          theme: 'general',
         }),
       })
 
@@ -275,7 +269,6 @@ function CompatibilityCounselorContent() {
     person1Astro,
     person2Astro,
     locale,
-    theme,
     isKo,
   ])
 
@@ -371,23 +364,6 @@ function CompatibilityCounselorContent() {
           </div>
         </div>
       )}
-
-      {/* Theme selector */}
-      <div className={styles.themeBar}>
-        <div className={styles.themeScroll}>
-          {(Object.keys(themeInfo) as Theme[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTheme(t)}
-              className={`${styles.themeChip} ${theme === t ? styles.themeChipActive : ''}`}
-            >
-              <span>{themeInfo[t].emoji}</span>
-              <span>{isKo ? themeInfo[t].label : themeInfo[t].labelEn}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Chat */}
       <div className={styles.chatWrapper}>

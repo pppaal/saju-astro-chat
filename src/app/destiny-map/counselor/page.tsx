@@ -208,6 +208,7 @@ export default function CounselorPage() {
             autoScroll={false}
             ragSessionId={sessionId || undefined}
             autoSendSeed
+            autoFocus
           />
         </ErrorBoundary>
       </div>
