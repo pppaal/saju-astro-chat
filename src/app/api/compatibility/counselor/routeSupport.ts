@@ -851,69 +851,82 @@ function getAgeFromBirthDate(date?: string): number {
 }
 
 // Format fusion result for AI prompt
+/**
+ * Format Fusion compatibility data for the prompt.
+ *
+ * Output uses the same prose+`▷ 라벨` convention as the couple-matrix
+ * block, instead of the previous markdown (`###` headers, `**bold**`,
+ * `- ` bullets). The system prompt forbids the LLM from echoing
+ * markdown back at the user, but mixing markdown into the source
+ * made the LLM lean toward listy/headered output anyway. Stripping
+ * markdown at the source aligns the input shape with the desired
+ * output shape (prose).
+ */
 function formatFusionForPrompt(fusion: FusionCompatibilityResult, lang: string): string {
   const isKo = lang === 'ko'
   const scoreInfo = interpretCompatibilityScore(fusion.overallScore)
 
-  const lines = [
-    `## ${isKo ? '종합 궁합 분석' : 'Comprehensive Compatibility Analysis'}`,
-    `${isKo ? '등급' : 'Grade'}: ${scoreInfo.grade} ${scoreInfo.emoji} - ${scoreInfo.title}`,
-    `${isKo ? '점수' : 'Score'}: ${fusion.overallScore}/100`,
-    ``,
-    `### ${isKo ? 'AI 심층 분석' : 'AI Deep Analysis'}`,
+  const header = isKo ? '== 종합 궁합 분석 ==' : '== Comprehensive Compatibility =='
+  const lines: string[] = [
+    header,
+    `${isKo ? '등급/점수' : 'Grade/Score'}: ${scoreInfo.grade} ${scoreInfo.title} (${fusion.overallScore}/100)`,
+    '',
+    `▷ ${isKo ? 'AI 심층 분석' : 'AI Deep Analysis'}`,
     fusion.aiInsights.deepAnalysis,
-    ``,
   ]
 
-  if (fusion.aiInsights.hiddenPatterns.length > 0) {
-    lines.push(`### ${isKo ? '숨겨진 패턴' : 'Hidden Patterns'}`)
-    fusion.aiInsights.hiddenPatterns.forEach((p) => lines.push(`- ${p}`))
-    lines.push(``)
+  const joinBullets = (label: string, items: string[]) => {
+    if (items.length === 0) return
+    lines.push('')
+    lines.push(`▷ ${label}`)
+    items.forEach((s) => lines.push(`- ${s}`))
   }
 
-  if (fusion.aiInsights.synergySources.length > 0) {
-    lines.push(`### ${isKo ? '시너지 요인' : 'Synergy Sources'}`)
-    fusion.aiInsights.synergySources.forEach((s) => lines.push(`- ${s}`))
-    lines.push(``)
-  }
+  joinBullets(
+    isKo ? '숨겨진 패턴' : 'Hidden Patterns',
+    fusion.aiInsights.hiddenPatterns
+  )
+  joinBullets(
+    isKo ? '시너지 요인' : 'Synergy Sources',
+    fusion.aiInsights.synergySources
+  )
+  joinBullets(
+    isKo ? '성장 기회' : 'Growth Opportunities',
+    fusion.aiInsights.growthOpportunities
+  )
 
-  if (fusion.aiInsights.growthOpportunities.length > 0) {
-    lines.push(`### ${isKo ? '성장 기회' : 'Growth Opportunities'}`)
-    fusion.aiInsights.growthOpportunities.forEach((g) => lines.push(`- ${g}`))
-    lines.push(``)
-  }
-
-  // Relationship Dynamics
-  lines.push(`### ${isKo ? '관계 역학' : 'Relationship Dynamics'}`)
+  const dyn = fusion.relationshipDynamics
+  lines.push('')
+  lines.push(`▷ ${isKo ? '관계 역학' : 'Relationship Dynamics'}`)
   lines.push(
-    `- ${isKo ? '감정적 강도' : 'Emotional Intensity'}: ${fusion.relationshipDynamics.emotionalIntensity}%`
+    `- ${isKo ? '감정적 강도' : 'Emotional Intensity'}: ${dyn.emotionalIntensity}`
   )
   lines.push(
-    `- ${isKo ? '지적 조화' : 'Intellectual Alignment'}: ${fusion.relationshipDynamics.intellectualAlignment}%`
+    `- ${isKo ? '지적 조화' : 'Intellectual Alignment'}: ${dyn.intellectualAlignment}`
   )
   lines.push(
-    `- ${isKo ? '영적 연결' : 'Spiritual Connection'}: ${fusion.relationshipDynamics.spiritualConnection}%`
+    `- ${isKo ? '영적 연결' : 'Spiritual Connection'}: ${dyn.spiritualConnection}`
   )
   lines.push(
-    `- ${isKo ? '갈등 해결 스타일' : 'Conflict Style'}: ${fusion.relationshipDynamics.conflictResolutionStyle}`
+    `- ${isKo ? '갈등 해결 스타일' : 'Conflict Resolution Style'}: ${dyn.conflictResolutionStyle}`
   )
-  lines.push(``)
 
-  // Future Guidance
-  lines.push(`### ${isKo ? '미래 가이던스' : 'Future Guidance'}`)
-  lines.push(`**${isKo ? '단기(1-6개월)' : 'Short-term'}**: ${fusion.futureGuidance.shortTerm}`)
-  lines.push(`**${isKo ? '중기(6개월-2년)' : 'Medium-term'}**: ${fusion.futureGuidance.mediumTerm}`)
-  lines.push(`**${isKo ? '장기(2년+)' : 'Long-term'}**: ${fusion.futureGuidance.longTerm}`)
-  lines.push(``)
+  const fg = fusion.futureGuidance
+  lines.push('')
+  lines.push(`▷ ${isKo ? '미래 가이던스' : 'Future Guidance'}`)
+  lines.push(`- ${isKo ? '단기 (1-6개월)' : 'Short-term (1-6mo)'}: ${fg.shortTerm}`)
+  lines.push(`- ${isKo ? '중기 (6개월-2년)' : 'Medium-term (6mo-2yr)'}: ${fg.mediumTerm}`)
+  lines.push(`- ${isKo ? '장기 (2년+)' : 'Long-term (2yr+)'}: ${fg.longTerm}`)
 
-  // Recommended Actions
   if (fusion.recommendedActions.length > 0) {
-    lines.push(`### ${isKo ? '추천 행동' : 'Recommended Actions'}`)
+    lines.push('')
+    lines.push(`▷ ${isKo ? '추천 행동 (내부 참조 — 응답에선 prose 한 줄로)' : 'Recommended Actions (internal — fold into prose)'}`)
     fusion.recommendedActions.forEach((action) => {
       const priority =
-        action.priority === 'high' ? 'HIGH' : action.priority === 'medium' ? 'MEDIUM' : 'LOW'
-      lines.push(`${priority} [${action.category}] ${action.action}`)
-      lines.push(`   ${isKo ? '이유' : 'Why'}: ${action.reasoning}`)
+        action.priority === 'high' ? '↑' : action.priority === 'medium' ? '·' : '↓'
+      lines.push(
+        `${priority} [${action.category}] ${action.action} — ${isKo ? '이유' : 'why'}: ${action.reasoning}`
+      )
     })
   }
 
