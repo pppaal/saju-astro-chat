@@ -2,14 +2,13 @@
 
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import ServicePageLayout from '@/components/ui/ServicePageLayout'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
 import BrandSplash from '@/components/branding/BrandSplash'
-import styles from '../chat/Chat.module.css'
+import MarkdownMessage from '@/components/ui/MarkdownMessage'
+import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 
-// 단순 in-flow 로딩 — 브랜드 스플래시(로고)로 통일
 function CounselorLoading() {
   return <BrandSplash message="상담사 준비 중..." />
 }
@@ -39,8 +38,14 @@ const themeInfo: Record<Theme, { emoji: string; label: string; labelEn: string }
   family: { emoji: '👨‍👩‍👧‍👦', label: '가족 관계', labelEn: 'Family' },
 }
 
+function formatBirthSnippet(p: PersonData): string {
+  const date = p.date || ''
+  const time = p.time && p.time !== '12:00' ? ` ${p.time}` : ''
+  return `${date}${time}`.trim()
+}
+
 function CompatibilityCounselorContent() {
-  const { locale } = useI18n()
+  const { locale, setLocale } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -60,7 +65,6 @@ function CompatibilityCounselorContent() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const isKo = locale === 'ko'
 
-  // Parse URL params and fetch data on mount
   useEffect(() => {
     if (!searchParams) {
       return
@@ -80,65 +84,57 @@ function CompatibilityCounselorContent() {
           setPersons(parsed)
 
           if (parsed.length >= 2) {
-            // Fetch Saju and Astrology data
             await fetchPersonData(parsed)
           }
         }
       } catch (e) {
         logger.error('Failed to parse URL params:', { error: e })
-        setError('데이터를 불러오는 중 오류가 발생했습니다.')
+        setError(isKo ? '데이터를 불러오는 중 오류가 발생했습니다.' : 'Failed to load data.')
       } finally {
         setIsInitializing(false)
       }
     }
 
     initializeData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
   const fetchPersonData = async (personList: PersonData[]) => {
     try {
+      const sajuPayload = (p: PersonData) => ({
+        date: p.date,
+        time: p.time,
+        latitude: p.latitude || 37.5665,
+        longitude: p.longitude || 126.978,
+        timeZone: p.timeZone || 'Asia/Seoul',
+      })
+      const astroPayload = (p: PersonData) => ({
+        date: p.date,
+        time: p.time,
+        latitude: p.latitude || 37.5665,
+        longitude: p.longitude || 126.978,
+      })
+
       const [saju1Res, saju2Res, astro1Res, astro2Res] = await Promise.all([
         fetch('/api/saju', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: personList[0].date,
-            time: personList[0].time,
-            latitude: personList[0].latitude || 37.5665,
-            longitude: personList[0].longitude || 126.978,
-            timeZone: personList[0].timeZone || 'Asia/Seoul',
-          }),
+          body: JSON.stringify(sajuPayload(personList[0])),
         }),
         fetch('/api/saju', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: personList[1].date,
-            time: personList[1].time,
-            latitude: personList[1].latitude || 37.5665,
-            longitude: personList[1].longitude || 126.978,
-            timeZone: personList[1].timeZone || 'Asia/Seoul',
-          }),
+          body: JSON.stringify(sajuPayload(personList[1])),
         }),
         fetch('/api/astrology', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: personList[0].date,
-            time: personList[0].time,
-            latitude: personList[0].latitude || 37.5665,
-            longitude: personList[0].longitude || 126.978,
-          }),
+          body: JSON.stringify(astroPayload(personList[0])),
         }),
         fetch('/api/astrology', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: personList[1].date,
-            time: personList[1].time,
-            latitude: personList[1].latitude || 37.5665,
-            longitude: personList[1].longitude || 126.978,
-          }),
+          body: JSON.stringify(astroPayload(personList[1])),
         }),
       ])
 
@@ -159,10 +155,26 @@ function CompatibilityCounselorContent() {
     }
   }
 
-  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // dvh layout requires html/body scroll lock — same trick as destiny-counselor.
+  useEffect(() => {
+    const html = document.documentElement
+    const body = document.body
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+    const prevBodyOverscroll = body.style.overscrollBehavior
+    html.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+    body.style.overscrollBehavior = 'contain'
+    return () => {
+      html.style.overflow = prevHtmlOverflow
+      body.style.overflow = prevBodyOverflow
+      body.style.overscrollBehavior = prevBodyOverscroll
+    }
+  }, [])
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) {
@@ -207,7 +219,6 @@ function CompatibilityCounselorContent() {
       const decoder = new TextDecoder()
       let assistantContent = ''
 
-      // Add empty assistant message
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
       while (true) {
@@ -227,7 +238,6 @@ function CompatibilityCounselorContent() {
             }
             assistantContent += data
 
-            // Update the last assistant message
             setMessages((prev) => {
               const updated = [...prev]
               if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
@@ -276,137 +286,166 @@ function CompatibilityCounselorContent() {
     }
   }
 
-  const personNames = persons.map((p) => p.name || 'Person').join(' & ')
-  const _currentTheme = themeInfo[theme]
+  const toggleLocale = useCallback(() => {
+    setLocale(locale === 'ko' ? 'en' : 'ko')
+  }, [locale, setLocale])
 
   if (isInitializing) {
     return <CounselorLoading />
   }
 
+  const personA = persons[0]
+  const personB = persons[1]
+
+  const suggestionItems = isKo
+    ? [
+        '우리의 숨겨진 인연은 뭐야?',
+        '우리 관계의 미래 가이던스를 알려줘',
+        '우리가 함께 성장하려면 어떻게 해야 해?',
+        '우리 갈등 해결 스타일은 어때?',
+      ]
+    : [
+        'What are our hidden connections?',
+        'Give me future guidance for our relationship',
+        'How can we grow together?',
+        'What is our conflict resolution style?',
+      ]
+
   return (
-    <ServicePageLayout
-      icon="🔮"
-      title={isKo ? '프리미엄 궁합 상담사' : 'Premium Compatibility Counselor'}
-      subtitle={personNames || (isKo ? '심화 궁합 상담' : 'Deep Compatibility Counseling')}
-      onBack={() => router.back()}
-      backLabel={isKo ? '뒤로' : 'Back'}
-    >
-      {/* Theme Selector & Credit Badge */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div className="flex gap-2 flex-wrap">
+    <main className={`${styles.page} ${styles.fadeIn}`}>
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.headerLeft}>
+          <button
+            type="button"
+            className={styles.backButton}
+            onClick={() => router.back()}
+            aria-label={isKo ? '뒤로' : 'Back'}
+          >
+            <span className={styles.backIcon}>{'←'}</span>
+          </button>
+          <h1 className={styles.headerTitle}>
+            {isKo ? '궁합 상담사' : 'Compatibility Counselor'}
+          </h1>
+        </div>
+        <div className={styles.headerActions}>
+          <button
+            type="button"
+            onClick={toggleLocale}
+            className={styles.localeToggle}
+            aria-label={isKo ? 'Switch to English' : '한국어로 전환'}
+          >
+            {isKo ? 'EN' : 'KO'}
+          </button>
+          <CreditBadge variant="compact" />
+        </div>
+      </header>
+
+      {/* Two-persons hero with heart */}
+      {personA && personB && (
+        <div className={styles.twoPersonsHero}>
+          <div className={styles.personCard}>
+            <div className={`${styles.personAvatar} ${styles.personAvatarA}`}>
+              {(personA.name || 'A').charAt(0).toUpperCase()}
+            </div>
+            <div className={styles.personMeta}>
+              <span className={styles.personName}>
+                {personA.name || (isKo ? '사람 1' : 'Person 1')}
+              </span>
+              <span className={styles.personDate}>{formatBirthSnippet(personA)}</span>
+            </div>
+          </div>
+          <span className={styles.heartCenter} aria-hidden="true">
+            {'\u{1F495}'}
+          </span>
+          <div className={`${styles.personCard} ${styles.personCardRight}`}>
+            <div className={`${styles.personAvatar} ${styles.personAvatarB}`}>
+              {(personB.name || 'B').charAt(0).toUpperCase()}
+            </div>
+            <div className={styles.personMeta}>
+              <span className={styles.personName}>
+                {personB.name || (isKo ? '사람 2' : 'Person 2')}
+              </span>
+              <span className={styles.personDate}>{formatBirthSnippet(personB)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Theme selector */}
+      <div className={styles.themeBar}>
+        <div className={styles.themeScroll}>
           {(Object.keys(themeInfo) as Theme[]).map((t) => (
             <button
               key={t}
+              type="button"
               onClick={() => setTheme(t)}
-              className={`px-3 py-1.5 rounded-full text-sm transition-all ${
-                theme === t
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white'
-                  : 'bg-slate-800/50 border border-slate-700/50 text-gray-400 hover:text-white'
-              }`}
+              className={`${styles.themeChip} ${theme === t ? styles.themeChipActive : ''}`}
             >
-              {themeInfo[t].emoji} {isKo ? themeInfo[t].label : themeInfo[t].labelEn}
+              <span>{themeInfo[t].emoji}</span>
+              <span>{isKo ? themeInfo[t].label : themeInfo[t].labelEn}</span>
             </button>
           ))}
         </div>
-        <CreditBadge />
       </div>
 
-      {/* Premium Badge */}
-      <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">✨</span>
-          <div>
-            <p className="text-amber-300 font-medium text-sm">
-              {isKo ? '프리미엄 AI 상담' : 'Premium AI Counseling'}
-            </p>
-            <p className="text-gray-400 text-xs">
-              {isKo
-                ? 'Evidence + 사주 + 점성학 심화 분석 기반'
-                : 'Based on Evidence + Saju + Astrology deep analysis'}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.chatContainer}>
-        {/* Messages */}
+      {/* Chat */}
+      <div className={styles.chatWrapper}>
         <div className={styles.messagesContainer}>
           {messages.length === 0 && (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>🔮</div>
-              <h3>{isKo ? '프리미엄 궁합 상담을 시작하세요' : 'Start Premium Counseling'}</h3>
-              <p>
+              <div className={styles.emptyIcon}>{'\u{1F495}'}</div>
+              <h3 className={styles.emptyTitle}>
+                {isKo ? '두 사람의 이야기를 시작해보세요' : 'Begin your story together'}
+              </h3>
+              <p className={styles.emptySubtitle}>
                 {isKo
-                  ? '사주와 점성학의 심화 분석을 바탕으로 깊은 상담을 받아보세요'
-                  : 'Get deep insights based on advanced Saju and Astrology analysis'}
+                  ? '사주와 점성학 심화 분석을 바탕으로 두 사람의 관계를 깊이 들여다봅니다.'
+                  : 'Deep insights from Saju + Astrology to understand your bond.'}
               </p>
               <div className={styles.suggestions}>
-                <button
-                  className={styles.suggestionButton}
-                  onClick={() =>
-                    setInput(
-                      isKo ? '우리의 숨겨진 인연은 뭐야?' : 'What are our hidden connections?'
-                    )
-                  }
-                >
-                  {isKo ? '숨겨진 인연 분석' : 'Hidden connections'}
-                </button>
-                <button
-                  className={styles.suggestionButton}
-                  onClick={() =>
-                    setInput(
-                      isKo
-                        ? '우리 관계의 미래 가이던스를 알려줘'
-                        : 'Give me future guidance for our relationship'
-                    )
-                  }
-                >
-                  {isKo ? '미래 가이던스' : 'Future guidance'}
-                </button>
-                <button
-                  className={styles.suggestionButton}
-                  onClick={() =>
-                    setInput(
-                      isKo ? '우리가 함께 성장하려면 어떻게 해야 해?' : 'How can we grow together?'
-                    )
-                  }
-                >
-                  {isKo ? '성장 조언' : 'Growth advice'}
-                </button>
-                <button
-                  className={styles.suggestionButton}
-                  onClick={() =>
-                    setInput(
-                      isKo
-                        ? '우리 갈등 해결 스타일은 어때?'
-                        : 'What is our conflict resolution style?'
-                    )
-                  }
-                >
-                  {isKo ? '갈등 해결 스타일' : 'Conflict style'}
-                </button>
+                {suggestionItems.map((s, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={styles.suggestionButton}
+                    onClick={() => setInput(s)}
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`${styles.message} ${msg.role === 'user' ? styles.userMessage : styles.assistantMessage}`}
-            >
-              <div className={styles.messageIcon}>{msg.role === 'user' ? '👤' : '🔮'}</div>
-              <div className={styles.messageContent}>
-                {msg.content ||
-                  (isLoading && idx === messages.length - 1 && (
+          {messages.map((msg, idx) => {
+            const isUser = msg.role === 'user'
+            const isLastAssistant = !isUser && idx === messages.length - 1
+            const showTyping = isLastAssistant && isLoading && !msg.content
+            return (
+              <div
+                key={idx}
+                className={`${styles.message} ${isUser ? styles.userMessage : ''}`}
+              >
+                <div className={styles.messageAvatar} aria-hidden="true">
+                  {isUser ? '\u{1F464}' : '\u{1F495}'}
+                </div>
+                <div className={styles.messageBubble}>
+                  {showTyping ? (
                     <span className={styles.typing}>
-                      <span>.</span>
-                      <span>.</span>
-                      <span>.</span>
+                      <span />
+                      <span />
+                      <span />
                     </span>
-                  ))}
+                  ) : isUser ? (
+                    msg.content
+                  ) : (
+                    <MarkdownMessage content={msg.content} />
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
 
           {error && <div className={styles.errorMessage}>{error}</div>}
 
@@ -422,7 +461,7 @@ function CompatibilityCounselorContent() {
             onKeyDown={handleKeyDown}
             placeholder={
               isKo
-                ? '궁합에 대해 깊이 있는 질문을 해보세요...'
+                ? '두 사람에 대해 깊이 있는 질문을 해보세요...'
                 : 'Ask deep questions about your compatibility...'
             }
             className={styles.input}
@@ -430,21 +469,23 @@ function CompatibilityCounselorContent() {
             disabled={isLoading}
           />
           <button
+            type="button"
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
             className={styles.sendButton}
+            aria-label={isKo ? '전송' : 'Send'}
           >
             {isLoading ? (
               <span className={styles.loadingSpinner} />
             ) : (
-              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
               </svg>
             )}
           </button>
         </div>
       </div>
-    </ServicePageLayout>
+    </main>
   )
 }
 
