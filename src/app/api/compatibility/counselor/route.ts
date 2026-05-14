@@ -87,6 +87,7 @@ function buildGuestCompatTurnCookie(next: number): string {
 import {
   clampMessages,
   stringifyForPrompt,
+  prunePromptContext,
   countObjectKeys,
   extractTimingDetails,
   buildPersonSeed,
@@ -101,6 +102,10 @@ import {
   buildExtendedAstroProfile,
   getAgeFromBirthDate,
   formatFusionForPrompt,
+  formatExtendedSajuForPrompt,
+  formatExtendedAstroForPrompt,
+  formatTimingForPrompt,
+  scoreLabel,
 } from './routeSupport'
 
 export async function POST(req: NextRequest) {
@@ -251,8 +256,8 @@ export async function POST(req: NextRequest) {
     const p2Age = getAgeFromBirthDate(persons?.[1]?.date)
     const currentYear = now.getFullYear()
     const timingDetails = {
-      person1: extractTimingDetails(effectivePerson1Saju, p1Age, now),
-      person2: extractTimingDetails(effectivePerson2Saju, p2Age, now),
+      person1: extractTimingDetails(effectivePerson1Saju, p1Age, now, String(theme || 'general')),
+      person2: extractTimingDetails(effectivePerson2Saju, p2Age, now, String(theme || 'general')),
     }
 
     try {
@@ -286,6 +291,10 @@ export async function POST(req: NextRequest) {
       logger.error('[Compatibility Counselor] Fusion error:', { error: fusionError })
     }
 
+    // raw 컨텍스트는 위 ==사주/점성/시기/Fusion 심화 분석== 블록과 겹치지 않는
+    // raw pillars + raw natal planets만 남긴다. 가공된 분석 결과(fusionResult,
+    // extendedSaju/Astro, timingDetails)는 위 전용 블록에 이미 들어가므로 중복
+    // 직렬화를 피해 prompt-cache 효율과 토큰 비용을 개선한다.
     const resolvedFullContext =
       fullContext ||
       ({
@@ -294,25 +303,11 @@ export async function POST(req: NextRequest) {
         person2Saju: effectivePerson2Saju,
         person1Astro: effectivePerson1Astro,
         person2Astro: effectivePerson2Astro,
-        autoEnrichment: {
-          person1: {
-            seed: person1Seed,
-            hasAutoSaju: !!autoPerson1Saju,
-            hasAutoAstro: !!autoPerson1Astro,
-          },
-          person2: {
-            seed: person2Seed,
-            hasAutoSaju: !!autoPerson2Saju,
-            hasAutoAstro: !!autoPerson2Astro,
-          },
-        },
-        fusionResult,
-        extendedSajuCompatibility,
-        extendedAstroCompatibility,
-        timingDetails,
         theme,
       } as Record<string, unknown>)
-    const fullContextText = stringifyForPrompt(resolvedFullContext)
+    // 응답에 거의 인용되지 않는 raw 필드(napum 등)는 prune해서 prompt 노이즈를
+    // 줄인다. 핵심 분석은 위 ==심화 분석== 블록에 이미 들어 있다.
+    const fullContextText = stringifyForPrompt(prunePromptContext(resolvedFullContext))
     const contextTrace = {
       currentDateIso: new Date().toISOString().slice(0, 10),
       hasFusionResult: !!fusionResult,
@@ -346,6 +341,8 @@ export async function POST(req: NextRequest) {
       strictCompleteness,
       missingFields: completenessMissing,
     }
+    // contextTrace는 prompt에서 빠졌으므로 server-side 디버깅 용도로만 남긴다.
+    logger.debug('[compatibility/counselor] context trace', { contextTrace })
 
     // Build conversation context
     const historyText = trimmedHistory
@@ -396,37 +393,88 @@ export async function POST(req: NextRequest) {
             import('@/lib/astrology/foundation/astrologyService'),
             import('@/lib/saju/orthodoxInterpretation'),
           ])
-          const buildPerson = async (p: CompatPerson) => {
+          /**
+           * Reuse already-computed saju + natal from the buildAuto*Context
+           * pass when possible. Previously this block re-ran calculateSajuData
+           * + calculateNatalChart for both people on every fresh request,
+           * doubling the per-pair compute. Falls back to fresh calculation
+           * only when the auto* enrichment didn't run (e.g., user supplied
+           * partial pre-computed data without the matrix-required shape).
+           */
+          const buildPerson = async (
+            p: CompatPerson,
+            cachedSaju: Record<string, unknown> | null,
+            cachedAstro: Record<string, unknown> | null
+          ) => {
             const tz = p.timeZone || 'Asia/Seoul'
             const gender = p.gender === 'female' || p.gender === 'F' ? 'female' : 'male'
             const koreanAge =
               new Date().getFullYear() - parseInt(String(p.date).split('-')[0], 10) + 1
-            const saju = calculateSajuData(p.date!, p.time || '12:00', gender, 'solar', tz)
-            ;(saju as unknown as Record<string, unknown>).orthodoxInterpretation =
-              buildOrthodoxInterpretation(saju, { koreanAge })
-            const [Y, M, D] = String(p.date).split('-').map(Number)
-            const [h, mi] = String(p.time || '12:00')
-              .split(':')
-              .map(Number)
-            const lat = typeof p.latitude === 'number' ? p.latitude : 37.5665
-            const lon = typeof p.longitude === 'number' ? p.longitude : 126.978
-            const natal = await calculateNatalChart({
-              year: Y,
-              month: M,
-              date: D,
-              hour: h,
-              minute: mi,
-              latitude: lat,
-              longitude: lon,
-              timeZone: tz,
-            })
-            return {
-              saju,
-              natal: { planets: natal.planets, ascendant: natal.ascendant },
-              koreanAge,
+
+            // Saju: reuse if it has the shape the matrix needs (pillars +
+            // dayMaster). calculateSajuData is sync and the matrix needs
+            // its output exactly.
+            type SajuShape = ReturnType<typeof calculateSajuData> & {
+              orthodoxInterpretation?: unknown
             }
+            const cachedAsRecord = cachedSaju as
+              | (Record<string, unknown> & { pillars?: unknown; dayMaster?: unknown })
+              | null
+            const looksLikeSaju = !!(
+              cachedAsRecord &&
+              cachedAsRecord.pillars &&
+              cachedAsRecord.dayMaster
+            )
+            const saju: SajuShape = looksLikeSaju
+              ? (cachedSaju as unknown as SajuShape)
+              : (calculateSajuData(
+                  p.date!,
+                  p.time || '12:00',
+                  gender,
+                  'solar',
+                  tz
+                ) as SajuShape)
+            if (!saju.orthodoxInterpretation) {
+              saju.orthodoxInterpretation = buildOrthodoxInterpretation(saju, { koreanAge })
+            }
+
+            // Natal: reuse from cachedAstro.natalData when present. Only
+            // planets + ascendant are needed for the matrix.
+            const cachedNatalData = (cachedAstro as { natalData?: Record<string, unknown> } | null)
+              ?.natalData
+            let natal: { planets: unknown; ascendant: unknown }
+            if (
+              cachedNatalData &&
+              Array.isArray(cachedNatalData.planets) &&
+              cachedNatalData.ascendant
+            ) {
+              natal = {
+                planets: cachedNatalData.planets,
+                ascendant: cachedNatalData.ascendant,
+              }
+            } else {
+              const [Y, M, D] = String(p.date).split('-').map(Number)
+              const [h, mi] = String(p.time || '12:00').split(':').map(Number)
+              const lat = typeof p.latitude === 'number' ? p.latitude : 37.5665
+              const lon = typeof p.longitude === 'number' ? p.longitude : 126.978
+              const fresh = await calculateNatalChart({
+                year: Y,
+                month: M,
+                date: D,
+                hour: h,
+                minute: mi,
+                latitude: lat,
+                longitude: lon,
+                timeZone: tz,
+              })
+              natal = { planets: fresh.planets, ascendant: fresh.ascendant }
+            }
+            return { saju, natal, koreanAge }
           }
-          const [A, B] = await Promise.all([buildPerson(p1ForMatrix), buildPerson(p2ForMatrix)])
+          const [A, B] = await Promise.all([
+            buildPerson(p1ForMatrix, effectivePerson1Saju, effectivePerson1Astro),
+            buildPerson(p2ForMatrix, effectivePerson2Saju, effectivePerson2Astro),
+          ])
           const matrix = buildCoupleMatrix(
             {
               saju: A.saju,
@@ -448,14 +496,51 @@ export async function POST(req: NextRequest) {
             .slice(0, 5)
             .map((c) => `- ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`)
             .join('\n')
+          // 레이어별 대표 셀 1개씩 — 전체 Top-5만 보면 어떤 레이어는 한 줄도
+          // 안 들어가는 사각지대가 생긴다. 각 레이어에서 |score|가 가장 큰 셀을
+          // 하나씩 뽑아 9개 레이어 모두 최소 한 줄은 보장한다.
+          const layerLabels: Record<number, string> = {
+            1: 'L1 오행',
+            2: 'L2 십성-행성',
+            3: 'L3 천간합',
+            4: 'L4 지지합충',
+            5: 'L5 어스펙트',
+            6: 'L6 대운동조',
+            7: 'L7 대운-네이탈',
+            8: 'L8 신살-행성',
+            9: 'L9 격국',
+          }
+          const layerEntries = Object.entries(matrix.layers) as Array<
+            [string, typeof matrix.layers.L1_element]
+          >
+          const perLayer = layerEntries
+            .map(([, cells]) => {
+              if (!cells || cells.length === 0) return null
+              const pick = [...cells].sort(
+                (a, b) => Math.abs(b.score) - Math.abs(a.score)
+              )[0]
+              if (!pick) return null
+              const mark =
+                pick.polarity === 'positive' ? '+' : pick.polarity === 'negative' ? '-' : '·'
+              const tag = layerLabels[pick.layer] || `L${pick.layer}`
+              return `${mark} [${tag}] ${pick.description} [${pick.sajuBasis} × ${pick.astroBasis}]`
+            })
+            .filter((line): line is string => Boolean(line))
+            .join('\n')
+          // 점수는 bucket label을 primary로, raw 숫자는 괄호 안에 보조로.
+          // 시스템 룰("raw 숫자 그대로 인용 금지")과 source 표기를 일치시켜
+          // LLM drift를 더 확실히 줄인다.
+          const langKey: 'ko' | 'en' = lang === 'ko' ? 'ko' : 'en'
+          const ds = s.domainScores
           coupleMatrixContext = [
             '== 커플 매트릭스 (9 레이어 셀-단위 사주×점성 교차) ==',
-            `종합 ${s.totalScore} / overlap ${s.overlapStrength} / polarity +${s.polarityBalance.positive}/-${s.polarityBalance.negative}`,
-            `도메인: 매력 ${s.domainScores.attraction} · 안정 ${s.domainScores.stability} · 성장 ${s.domainScores.growth} · 갈등견딤 ${s.domainScores.conflict} · 시기동기 ${s.domainScores.timing}`,
-            `Drivers: ${s.drivers.join(' / ') || '없음'}`,
-            `Cautions: ${s.cautions.join(' / ') || '없음'}`,
+            `종합 ${scoreLabel(s.totalScore, langKey)} (${s.totalScore}) · ${langKey === 'ko' ? '신호 겹침' : 'overlap'} ${scoreLabel(s.overlapStrength * 100, langKey)} · polarity +${s.polarityBalance.positive}/-${s.polarityBalance.negative}`,
+            `${langKey === 'ko' ? '도메인' : 'domains'}: ${langKey === 'ko' ? '매력' : 'attraction'} ${scoreLabel(ds.attraction, langKey)} · ${langKey === 'ko' ? '안정' : 'stability'} ${scoreLabel(ds.stability, langKey)} · ${langKey === 'ko' ? '성장' : 'growth'} ${scoreLabel(ds.growth, langKey)} · ${langKey === 'ko' ? '갈등견딤' : 'conflict'} ${scoreLabel(ds.conflict, langKey)} · ${langKey === 'ko' ? '시기동기' : 'timing'} ${scoreLabel(ds.timing, langKey)}`,
+            `Drivers: ${s.drivers.join(' / ') || (langKey === 'ko' ? '없음' : 'none')}`,
+            `Cautions: ${s.cautions.join(' / ') || (langKey === 'ko' ? '없음' : 'none')}`,
             `\n[Top positive cells]\n${top}`,
             `\n[Top caution cells]\n${bot}`,
+            `\n[${langKey === 'ko' ? '레이어별 대표 셀' : 'per-layer representative cells'}]\n${perLayer}`,
           ].join('\n')
           setCachedCoupleMatrixContext(cacheKey, coupleMatrixContext)
         } catch (err) {
@@ -464,11 +549,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Format persons info
+    // Format persons info. 라벨을 A/B로 통일해 커플 매트릭스의 "A의 갑목 일간
+    // ↔ B의 기토 일간" 같은 prose 셀과 매핑이 즉시 명확하다. 이름이 있으면
+    // 함께 표기해 응답에서 자연어로 부르기 쉽게 한다.
     const personsInfo = persons
       .map(
-        (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) =>
-          `Person ${i + 1}: ${p.name || `Person ${i + 1}`} (${p.date} ${p.time})${i > 0 ? ` - ${p.relation || 'partner'}` : ''}`
+        (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) => {
+          const label = i === 0 ? 'A' : i === 1 ? 'B' : `P${i + 1}`
+          const name = p.name || ''
+          const head = name ? `${label} (${name})` : label
+          const rel = i > 0 ? ` - ${p.relation || 'partner'}` : ''
+          return `${head}: ${p.date} ${p.time}${rel}`
+        }
       )
       .join('\n')
 
@@ -502,6 +594,12 @@ export async function POST(req: NextRequest) {
             '- 시기 데이터(대운·세운·트랜짓)가 있을 땐 "지금 어느 시기에 있는가"가 진단을 바꾸는 축이다.',
             '- 두 사람이 함께 결정해야 하는 일(이사·결혼·창업)에 caution 신호가 잡히면 *비가역 행동을 미루는 결*로 마무리.',
             '- 궁합은 *고정 점수*가 아니라 *시기와 자세에 따라 바뀌는 결*이라는 톤을 유지.',
+            '',
+            '[내부 데이터 인용 규칙]',
+            '- 컨텍스트의 raw 점수(78/100, 0.69, 82% 등)는 *내부 참조용*이다. 답변에 숫자 그대로 인용 금지.',
+            '- 점수는 "강함/중상/중/약함" 같은 자연어 결로 풀어서 말한다. "장기성은 단단하지 않지만 무너지는 결도 아니에요" 처럼.',
+            '- 컨텍스트의 markdown 헤더(###)·번호 list·JSON 키 이름을 응답에 그대로 옮기지 말 것. 사람 말로 풀어서.',
+            '- "추천 행동" 같은 내부 list 항목은 답에서 prose 한 줄로 녹여 인용한다.',
           ].join('\n')
         : [
             voice,
@@ -513,35 +611,51 @@ export async function POST(req: NextRequest) {
             '- When timing data (daeun / seun / transits) is present, *which season they are in* is the axis that changes the read.',
             '- For joint irreversible decisions (move-in, marriage, business) with caution flags, end on *deferring the irreversible*.',
             '- Hold the line that compatibility is not a *fixed score* — it is a flow that shifts with timing and posture.',
+            '',
+            '[Internal data citation rules]',
+            "- Raw scores in context (78/100, 0.69, 82%) are *internal references*. Never quote numbers verbatim in the response.",
+            '- Translate scores into natural language ("strong / fairly steady / moderate / soft"). e.g. "long-term not rock-solid, but not crumbling either."',
+            '- Never copy markdown headers (###), numbered lists, or JSON key names from the context into the response. Render in plain prose.',
+            '- "Recommended actions" lists in context must be folded into a single prose sentence in the response — no list output.',
           ].join('\n')
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:
-    //  - cachedUserContext: 두 사람의 차트 + 사주/점성/시기 분석 + 가이드 (안정)
-    //  - userPrompt: 이번 턴의 history + 새 질문 (변동)
+    //  - cachedUserContext: 두 사람의 차트와 분석 (테마·세션 무관, 진짜 안정)
+    //  - userPrompt: 테마·시기 흐름·가이드·이력·질문 (테마 바뀌면 변동)
+    //
+    // 테마/품질가이드/시기 흐름(wolun/ilun이 테마 의존)을 변동 블록으로 옮겨
+    // 같은 페어로 테마만 바꿔도 캐시 prefix가 hit하도록 한다.
     const cachedUserContext = [
-      `테마: ${themeContext}`,
-      ``,
       `== 참여자 정보 ==`,
       personsInfo,
       coupleMatrixContext ? `\n${coupleMatrixContext}` : '',
       fusionContext ? `\n${fusionContext}` : '',
       extendedSajuCompatibility
-        ? `\n== 사주 심화 분석 ==\n${stringifyForPrompt(extendedSajuCompatibility)}`
+        ? `\n${formatExtendedSajuForPrompt(extendedSajuCompatibility, normalizedLang)}`
         : '',
       extendedAstroCompatibility
-        ? `\n== 점성 심화 분석 ==\n${stringifyForPrompt(extendedAstroCompatibility)}`
+        ? `\n${formatExtendedAstroForPrompt(extendedAstroCompatibility, normalizedLang)}`
         : '',
-      `\n== 시기 흐름 (대운/세운/월운/일운) ==\n${stringifyForPrompt(timingDetails)}`,
-      `\n== 결정적 컨텍스트 ==\n${stringifyForPrompt(contextTrace)}`,
+      // contextTrace(키 개수, 커버리지 플래그 등)는 디버그 메타데이터 — 응답에
+      // 쓸 정보가 아니므로 server log로만 남기고 prompt에는 포함하지 않는다.
       fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
-      `\n== 품질 기준 ==\n${themeDepthGuide}`,
-      `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
     ]
       .filter(Boolean)
       .join('\n')
 
     const userPrompt = [
-      historyText ? `== 이전 대화 ==\n${historyText}` : '',
+      `테마: ${themeContext}`,
+      `\n${formatTimingForPrompt(
+        timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> },
+        {
+          person1: effectivePerson1Astro as Record<string, unknown> | null,
+          person2: effectivePerson2Astro as Record<string, unknown> | null,
+        },
+        normalizedLang
+      )}`,
+      `\n== 품질 기준 ==\n${themeDepthGuide}`,
+      `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
+      historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
       `\n== 사용자 질문 ==\n${userQuestion}`,
     ]
       .filter(Boolean)
