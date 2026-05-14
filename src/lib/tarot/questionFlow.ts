@@ -127,12 +127,15 @@ export function resolveStableTarotEntry(
   question: string,
   analysis?: TarotQuestionAnalysisSnapshot | null
 ): StableEntry {
+  // 4 스프레드만 남은 뒤로는 도메인이 아닌 *깊이* 만 본다.
+  // 도메인은 LLM 이 해석 단계에서 알아서 추출 (분리된 라우팅 불필요).
   const profile = analysis?.question_profile
   const typeCode = profile?.type?.code
   const subjectCode = profile?.subject?.code
   const timeframeCode = profile?.timeframe?.code
   const toneCode = profile?.tone?.code
 
+  // 흐름 질문 = 3장
   if (
     typeCode === 'broad_flow' ||
     timeframeCode === 'current_phase' ||
@@ -142,48 +145,21 @@ export function resolveStableTarotEntry(
     return { themeId: 'general-insight', spreadId: 'past-present-future' }
   }
 
-  if (typeCode === 'reconciliation') {
-    return { themeId: 'love-relationships', spreadId: 'reconciliation' }
+  const q = (question || '').trim()
+  // 인생급 질문 = 10장
+  if (/(인생|평생|운명|진로|소명|왜 ?사|어떻게 ?살|삶의 ?의미)/i.test(q) || q.length >= 80) {
+    return { themeId: 'general-insight', spreadId: 'celtic-cross' }
   }
-
-  if (typeCode === 'meeting_likelihood') {
-    return { themeId: 'decisions-crossroads', spreadId: 'yes-no-why' }
+  // 본격 결정·관계·재정 등 = 5장
+  if (q.length >= 40 || /(어떻게|왜|이직|결혼|헤어|선택|결정|투자)/i.test(q)) {
+    return { themeId: 'general-insight', spreadId: 'general-cross' }
   }
-
-  if (typeCode === 'timing') {
-    return { themeId: 'decisions-crossroads', spreadId: 'timing-window' }
+  // 가벼운 단답 = 1장
+  if (q.length <= 10) {
+    return { themeId: 'general-insight', spreadId: 'quick-reading' }
   }
-
-  if (typeCode === 'self_decision' || typeCode === 'decision') {
-    return { themeId: 'decisions-crossroads', spreadId: 'yes-no-why' }
-  }
-
-  if (
-    typeCode === 'inner_feelings' ||
-    typeCode === 'emotion_read' ||
-    typeCode === 'other_person_response' ||
-    typeCode === 'other_response'
-  ) {
-    return { themeId: 'love-relationships', spreadId: 'crush-feelings' }
-  }
-
-  if (subjectCode === 'relationship' && toneCode === 'emotion') {
-    return { themeId: 'love-relationships', spreadId: 'relationship-check-in' }
-  }
-
-  if (subjectCode === 'relationship') {
-    return { themeId: 'love-relationships', spreadId: 'relationship-check-in' }
-  }
-
-  if (subjectCode === 'other_person') {
-    return { themeId: 'love-relationships', spreadId: 'crush-feelings' }
-  }
-
-  if (inferIntentFromQuestion(question) === 'flow') {
-    return { themeId: 'general-insight', spreadId: 'past-present-future' }
-  }
-
-  return { themeId: 'general-insight', spreadId: 'quick-reading' }
+  // 기본 = 3장
+  return { themeId: 'general-insight', spreadId: 'past-present-future' }
 }
 
 export function toAnalysisSnapshot(

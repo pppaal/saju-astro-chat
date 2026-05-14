@@ -339,6 +339,12 @@ export async function POST(req: NextRequest) {
 - 사전식 정의 절대 금지. 카드 이름·역방향 키워드 베끼지 말고 *이 질문 안에서의 의미* 로 풀어쓰세요.
 - 자리 의미(seat meaning)가 입력에 포함되면 *반드시* 그 의미에 카드를 매핑하세요.
 
+# 답변 무게 = 질문 무게 (가장 중요)
+- 캐주얼·일상 질문 ("낼 뭐 먹어", "오늘 입을 옷", "주말에 어디 가") → 답도 가볍게. overall 100-200자, 카드별 80-150자 권장.
+- 무거운 질문 ("이직할까", "헤어질까", "인생 방향") → 평소 길이로 깊게.
+- 질문이 가볍다면 사주·점성 raw 데이터를 굳이 인용하지 마세요. 트랜짓 orb / 본명 행성 / 신살 이름 같은 디테일은 *질문이 그걸 부를 때만*.
+- "낼 뭐 먹어" 같은 질문에 "내면의 혼란을 정리하는 전환점" 같은 거시 해석 절대 금지.
+
 # 역방향 의미 (정/역 톤 가이드 — 단순 "부정"이 아님)
 - 역방향 = 다음 중 하나로 해석: **막힘 / 지연 / 내면화 / 미숙함 / 과잉**.
 - 예: 컵2 정방향 = "이미 마주친 끌림", 컵2 역방향 = "끌림은 있는데 *표현이 늦거나 안으로 묶임* (지연/내면화)".
@@ -363,8 +369,9 @@ export async function POST(req: NextRequest) {
 - "이직할까?" + 완드7(정방향, 도전 자리) → "이직 결정을 가로지르는 변수가 외부 반대가 아니라 *매번 내 결정을 변호해야 하는 피로감*이라고 카드가 말해요."
 
 # Cross 방법 (사주·점성 컨텍스트가 입력에 들어왔을 때)
-사주 컨텍스트(일간·용신·오늘 점수·강한 영역) 또는 점성 컨텍스트(트랜짓·역행)가 user prompt 에 *명시되어 있으면*:
-- **모든 카드별 해석에 cross anchor 를 1회 이상 짜 넣으세요** — 카드 단독 해석 금지.
+사주 컨텍스트(일간·용신·강한 영역) 또는 점성 컨텍스트(본명·트랜짓)가 user prompt 에 *명시되어 있으면*:
+- **질문이 무거울 때만** 적극적으로 cross — 모든 카드에 anchor 짜넣어도 OK.
+- **질문이 가벼울 때 (낼 뭐 먹어, 오늘 입을 거…)**: cross 강제 금지. 카드 위주로 풀고 사주·점성은 *카드 해석을 자연스럽게 받쳐줄 때만* 한 번 정도 살짝 인용.
 - 카드의 흐름 ↔ 사주(또는 점성)의 흐름을 *연결* 해서 풀어 쓰세요. "사주는 X예요"처럼 따로 떼어내 한 줄 끼우기 금지.
 - 사주·점성이 *없으면* 이 규칙 무시하고 카드만 해석.
 
@@ -422,6 +429,12 @@ export async function POST(req: NextRequest) {
 - No textbook definitions. Re-read each card *inside the user's situation*.
 - If a seat meaning is supplied in the input, map the card onto that meaning explicitly.
 
+# Answer Weight = Question Weight (most important)
+- Casual/daily questions ("what should I eat tomorrow", "what to wear today") → keep it light. overall ~80-130 words, per-card ~50-90 words.
+- Heavy questions ("should I switch jobs", "should we break up", "life direction") → normal full depth.
+- For light questions, do NOT cite saju/astro raw data (transit orbs, natal planets, shinsal names) unless the question explicitly calls for them.
+- Never blow up a casual question into a "turning point of inner chaos" type macro reading.
+
 # Reversed Orientation (not simply "negative")
 - Reversed = one of: **blockage / delay / internalization / immaturity / excess**.
 - Example: Two of Cups upright = "an attraction already met", Two of Cups reversed = "the attraction is there but its expression is delayed or held inward."
@@ -446,8 +459,9 @@ Synergy = the *relationship between* the cards. Choose one of:
 - "Should I switch jobs?" + Seven of Wands (Challenge seat) → "The variable across this decision isn't external resistance — it's the fatigue of constantly defending your own decision to yourself."
 
 # Cross Method (when saju or astrology context is provided)
-If the user prompt includes Saju context (day master, favorable element, today's score, top domains) or Astrology context (transits, retrogrades):
-- **Anchor every card interpretation to a cross point at least once** — never read a card standalone.
+If the user prompt includes Saju context (day master, favorable element, top domains) or Astrology context (natal, transits):
+- **Heavy questions only:** anchor every card to a cross point. Active weaving encouraged.
+- **Light/casual questions** ("what to eat", "what to wear"): do NOT force cross anchors. Read cards primarily; touch saju/astro only when it *naturally* supports a card meaning.
 - Weave the card's flow into the saju/astro flow. Do NOT just append a separate "your saju is X" sentence.
 - If neither context is present, ignore this section and read cards alone.
 
