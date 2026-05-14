@@ -1,5 +1,6 @@
 // src/app/api/tarot/interpret-stream/route.ts
-// Tarot streaming interpretation — Claude Haiku 4.5 (single-chunk emit) with OpenAI streaming fallback.
+// Tarot streaming interpretation — Claude Haiku 4.5 (token-by-token streaming)
+// with OpenAI streaming fallback.
 
 import { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
@@ -10,7 +11,11 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
+import {
+  callClaude as callSharedClaude,
+  callClaudeStream,
+  isClaudeAvailable,
+} from '@/lib/llm/claude'
 import {
   buildQuestionContextPrompt,
   type TarotQuestionAnalysisSnapshot,
@@ -534,13 +539,15 @@ ${personalizationContext}
       const isLargeSpread = rawCards.length >= LARGE_SPREAD_THRESHOLD
       try {
         if (!isLargeSpread) {
-          // 소형 스프레드 — 단일 호출
-          logger.info('Tarot stream Claude request (single)', {
+          // 소형 스프레드 — 단일 호출, 토큰 단위로 진짜 스트리밍해서
+          // 첫 글자가 즉시 화면에 뜨도록. (예전엔 전체 응답을 다 받은 다음
+          // 한 방에 SSE 한 청크로 던져서 사용자가 1~3초 멍하니 기다림.)
+          logger.info('Tarot stream Claude request (single, streamed)', {
             cards: rawCards.length,
             systemLen: systemPrompt.length,
             userLen: userPrompt.length,
           })
-          const claudeResult = await callSharedClaude({
+          const tokenStream = await callClaudeStream({
             systemPrompt,
             userPrompt,
             maxTokens: 4000,
@@ -548,22 +555,40 @@ ${personalizationContext}
             timeoutMs: OPENAI_TIMEOUT_MS,
             label: 'tarot-stream',
           })
-          recordExternalCall(
-            'anthropic',
-            'claude-haiku-4-5',
-            'success',
-            Date.now() - claudeStartTime
-          )
+          const reader = tokenStream.getReader()
           const encoder = new TextEncoder()
-          const stream = new ReadableStream({
-            start(controller) {
-              controller.enqueue(encoder.encode(createSSEEvent({ content: claudeResult.text })))
-              controller.enqueue(encoder.encode(createSSEDoneEvent()))
-              controller.close()
+          const sseStream = new ReadableStream<Uint8Array>({
+            async start(controller) {
+              try {
+                while (true) {
+                  const { done, value } = await reader.read()
+                  if (done) break
+                  if (value)
+                    controller.enqueue(encoder.encode(createSSEEvent({ content: value })))
+                }
+                controller.enqueue(encoder.encode(createSSEDoneEvent()))
+                recordExternalCall(
+                  'anthropic',
+                  'claude-haiku-4-5',
+                  'success',
+                  Date.now() - claudeStartTime
+                )
+              } catch (err) {
+                recordExternalCall(
+                  'anthropic',
+                  'claude-haiku-4-5',
+                  'error',
+                  Date.now() - claudeStartTime
+                )
+                logger.warn('Tarot stream Claude stream error', { error: err })
+                controller.enqueue(encoder.encode(createSSEDoneEvent()))
+              } finally {
+                controller.close()
+              }
             },
           })
           return withCreditCookies(
-            new NextResponse(stream, {
+            new NextResponse(sseStream, {
               headers: {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache, no-transform',
