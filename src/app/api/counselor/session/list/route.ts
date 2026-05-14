@@ -12,18 +12,16 @@ import {
   counselorSessionDeleteQuerySchema,
   createValidationErrorResponse,
 } from '@/lib/api/zodValidation'
-import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
 
 export const dynamic = 'force-dynamic'
 
-// GET: List all chat sessions for a user (optionally filtered by theme)
+// GET: List all chat sessions for a user
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const userId = context.userId!
 
     const searchParams = req.nextUrl.searchParams
     const queryValidation = counselorSessionListQuerySchema.safeParse({
-      theme: searchParams.get('theme') ?? undefined,
       limit: searchParams.get('limit') ?? undefined,
     })
     if (!queryValidation.success) {
@@ -32,20 +30,17 @@ export const GET = withApiMiddleware(
         route: 'counselor/session/list',
       })
     }
-    const { theme, limit } = queryValidation.data
-    const normalizedTheme = normalizeReportTheme(theme) || theme
+    const { limit } = queryValidation.data
 
     // Single query to get user's sessions
     const sessions = await prisma.counselorChatSession.findMany({
       where: {
         userId,
-        ...(normalizedTheme && { theme: normalizedTheme }),
       },
       orderBy: { updatedAt: 'desc' },
       take: limit,
       select: {
         id: true,
-        theme: true,
         locale: true,
         messageCount: true,
         summary: true,

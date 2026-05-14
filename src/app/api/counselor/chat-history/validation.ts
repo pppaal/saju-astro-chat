@@ -16,7 +16,6 @@ export const ChatMessageSchema = z.object({
  * GET query parameters schema
  */
 export const GetChatHistorySchema = z.object({
-  theme: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(5),
 })
 
@@ -25,7 +24,6 @@ export const GetChatHistorySchema = z.object({
  */
 export const PostChatHistorySchema = z.object({
   sessionId: z.string().optional(),
-  theme: z.string().default('chat'),
   locale: z.enum(['ko', 'en']).default('ko'),
   userMessage: z.string().optional(),
   assistantMessage: z.string().optional(),

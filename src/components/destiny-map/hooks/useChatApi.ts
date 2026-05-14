@@ -23,7 +23,6 @@ interface UseChatApiOptions {
   messages: Message[]
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>
   profile: ChatProps['profile']
-  theme: string
   lang: LangKey
   saju?: ChatProps['saju']
   astro?: ChatProps['astro']
@@ -82,7 +81,6 @@ export function useChatApi({
   messages,
   setMessages,
   profile,
-  theme,
   lang,
   saju,
   astro,
@@ -302,7 +300,7 @@ export function useChatApi({
           setFollowUpQuestions(result.followUps.slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT))
         } else {
           setFollowUpQuestions(
-            generateFollowUpQuestions(theme, userText, lang, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+            generateFollowUpQuestions(userText, lang, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
           )
         }
 
@@ -318,7 +316,6 @@ export function useChatApi({
       messagesEndRef,
       tr.error,
       tr.noResponse,
-      theme,
       lang,
       onSaveMessage,
       setNotice,
@@ -375,7 +372,6 @@ export function useChatApi({
         longitude: normalizedLongitude,
         gender: normalizedGender,
         city: profile.city,
-        theme,
         lang,
         messages: nextMessages.slice(-50),
         cvText,
@@ -438,7 +434,6 @@ export function useChatApi({
       setMessages,
       setNotice,
       profile,
-      theme,
       lang,
       cvText,
       saju,

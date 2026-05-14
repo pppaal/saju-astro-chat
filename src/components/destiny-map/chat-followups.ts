@@ -208,10 +208,9 @@ export const SUGGESTED_QUESTIONS: Record<"ko" | "en", Record<string, string[]>> 
 };
 
 /**
- * Generate follow-up questions based on theme and user message
+ * Generate follow-up questions based on the user's last message.
  */
 export function generateFollowUpQuestions(
-  theme: string,
   lastUserMsg: string,
   lang: LangKey,
   maxCount: number = 2
@@ -228,20 +227,20 @@ export function generateFollowUpQuestions(
 
   const themed = THEMED_FOLLOWUPS[effectiveLang];
 
-  // Bias by current theme
-  if (theme.includes("career") || text.match(/job|work|이직|커리어|직업/)) {
+  // Bias by topic detected in the user message
+  if (text.match(/job|work|이직|커리어|직업/)) {
     add(themed.career);
   }
-  if (theme.includes("love") || text.match(/love|relationship|연애|사랑|썸/)) {
+  if (text.match(/love|relationship|연애|사랑|썸/)) {
     add(themed.love);
   }
-  if (theme.includes("health") || text.match(/health|몸|건강|스트레스|수면/)) {
+  if (text.match(/health|몸|건강|스트레스|수면/)) {
     add(themed.health);
   }
-  if (theme.includes("wealth") || text.match(/money|finance|돈|재정|투자|주식/)) {
+  if (text.match(/money|finance|돈|재정|투자|주식/)) {
     add(themed.wealth);
   }
-  if (theme.includes("family") || text.match(/family|가족|부모|형제|자녀/)) {
+  if (text.match(/family|가족|부모|형제|자녀/)) {
     add(themed.family);
   }
 
@@ -255,10 +254,9 @@ export function generateFollowUpQuestions(
 }
 
 /**
- * Get suggested questions for a theme
+ * Get suggested initial questions for the chat hero.
  */
-export function getSuggestedQuestions(theme: string, lang: LangKey): string[] {
+export function getSuggestedQuestions(lang: LangKey): string[] {
   const effectiveLang = lang === "ko" ? "ko" : "en";
-  const suggestions = SUGGESTED_QUESTIONS[effectiveLang];
-  return suggestions[theme] || suggestions.chat;
+  return SUGGESTED_QUESTIONS[effectiveLang].chat;
 }

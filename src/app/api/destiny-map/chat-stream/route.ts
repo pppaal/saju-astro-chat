@@ -24,7 +24,6 @@ import type { InterpretedAnswerQualityResult } from '@/lib/destiny-matrix/interp
 
 import { clampMessages } from './lib/helpers'
 import { validateDestinyMapRequest } from './lib/validation'
-import { analyzeCounselorQuestion, mapFocusDomainToTheme } from './lib/focusDomain'
 import { prepareCounselorExecution, resolveEffectiveCounselorInputs } from './routeExecution'
 
 export const dynamic = 'force-dynamic'
@@ -314,12 +313,6 @@ export async function POST(req: NextRequest) {
     const validated = validation.data
     const trimmedHistory = clampMessages(validated.messages)
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
-    const questionAnalysis = analyzeCounselorQuestion({
-      lastUserMessage: lastUser?.content,
-      theme: validated.theme,
-    })
-    const inferredTheme = mapFocusDomainToTheme(questionAnalysis.primaryDomain)
-    const effectiveTheme = validated.theme === 'chat' ? inferredTheme : validated.theme
 
     const resolvedInputs = await resolveEffectiveCounselorInputs({
       validated,
@@ -366,7 +359,6 @@ export async function POST(req: NextRequest) {
     if (preparedExecution.isStrictMatrixFailure) {
       logger.error('[chat-stream] Matrix snapshot unavailable (strict mode)', {
         userId: userId || 'guest',
-        theme: effectiveTheme,
         lang: validated.lang,
       })
       if (context?.refundCreditsOnError) {

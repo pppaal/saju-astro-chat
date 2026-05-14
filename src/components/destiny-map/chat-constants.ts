@@ -68,7 +68,6 @@ export type ChatRequest = {
     latitude?: number
     longitude?: number
   }
-  theme: string
   lang: string
   messages: Message[]
 }

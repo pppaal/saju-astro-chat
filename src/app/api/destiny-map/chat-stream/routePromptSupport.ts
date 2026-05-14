@@ -236,26 +236,6 @@ export interface MatrixSnapshot {
   inputCrossMissing?: string[]
 }
 
-function pickMatrixThemeFocus(
-  theme: string,
-  domainScores: Record<string, number>
-): { domain: string; score?: number } {
-  const mapping: Record<string, string> = {
-    love: 'love',
-    family: 'love',
-    career: 'career',
-    wealth: 'money',
-    health: 'health',
-    today: 'general',
-    month: 'general',
-    year: 'general',
-    life: 'general',
-    chat: 'general',
-  }
-  const domain = mapping[theme] || 'general'
-  return { domain, score: domainScores[domain] }
-}
-
 function trimPromptBlock(content: string, maxChars: number): string {
   if (!content) return ''
   const cleaned = content.trim()
@@ -342,11 +322,11 @@ function trimCounselorEvidenceBlock(content: string, maxChars: number): string {
   })
 }
 
-function trimThemeAppliedContextBlock(content: string, maxChars: number): string {
+function trimFocusAppliedContextBlock(content: string, maxChars: number): string {
   return trimPromptBlockWithProtection(content, maxChars, {
-    headerLines: ['[Theme Applied Context]', '[Theme Event Condition Packet]'],
+    headerLines: ['[Focus Applied Context]', '[Focus Event Condition Packet]'],
     protectedPrefixes: [
-      'theme_domain=',
+      'focus_domain=',
       'domain_state=',
       'domain_read=',
       'domain_first_move=',
@@ -391,14 +371,10 @@ function isCounselorCostOptimized(): boolean {
   return shared === 'true' || shared === '1' || shared === 'yes'
 }
 
-function isRelationshipTheme(theme: string): boolean {
-  return theme === 'love' || theme === 'family'
-}
-
-function buildThemeSpecificAppliedContext(
+function buildFocusAppliedContext(
   snapshot: MatrixSnapshot | null,
   lang: string,
-  theme: string
+  focusDomain: string | null | undefined
 ): string {
   const personModel = snapshot?.core?.counselorEvidence?.personModel
   if (!personModel) return ''
@@ -408,32 +384,30 @@ function buildThemeSpecificAppliedContext(
   const appliedProfile = personModel.appliedProfile
   const uncertainty = personModel.uncertaintyEnvelope
 
-  const targetDomain = isRelationshipTheme(theme)
-    ? 'relationship'
-    : theme === 'career'
-      ? 'career'
-      : theme === 'wealth'
-        ? 'wealth'
-        : theme === 'health'
-          ? 'health'
-          : null
+  const targetDomain =
+    focusDomain === 'relationship' ||
+    focusDomain === 'career' ||
+    focusDomain === 'wealth' ||
+    focusDomain === 'health'
+      ? focusDomain
+      : null
 
   const domainState =
     (targetDomain && domainStateGraph.find((item) => item.domain === targetDomain)) ||
     domainStateGraph[0]
   const eventCandidates =
-    theme === 'career'
+    targetDomain === 'career'
       ? eventOutlook.filter((item) => item.key === 'careerEntry' || item.domain === 'career')
-      : isRelationshipTheme(theme)
+      : targetDomain === 'relationship'
         ? eventOutlook.filter(
             (item) =>
               item.key === 'partnerEntry' ||
               item.key === 'commitment' ||
               item.domain === 'relationship'
           )
-        : theme === 'wealth'
+        : targetDomain === 'wealth'
           ? eventOutlook.filter((item) => item.key === 'moneyBuild' || item.domain === 'wealth')
-          : theme === 'health'
+          : targetDomain === 'health'
             ? eventOutlook.filter((item) => item.key === 'healthReset' || item.domain === 'health')
             : eventOutlook.slice(0, 2)
   const birthTimeHypothesis = (personModel.birthTimeHypotheses || []).slice(0, 2)
@@ -441,13 +415,13 @@ function buildThemeSpecificAppliedContext(
   const pastMarkers = personModel.pastEventReconstruction?.markers || []
 
   const profileLines =
-    theme === 'career'
+    targetDomain === 'career'
       ? [
           appliedProfile?.workStyleProfile?.summary || '',
           ...((appliedProfile?.workStyleProfile?.bestConditions || []).slice(0, 2) as string[]),
           ...((appliedProfile?.workStyleProfile?.leverageMoves || []).slice(0, 2) as string[]),
         ]
-      : isRelationshipTheme(theme)
+      : targetDomain === 'relationship'
         ? [
             appliedProfile?.relationshipStyleProfile?.summary || '',
             ...((appliedProfile?.relationshipStyleProfile?.attractionPatterns || []).slice(
@@ -459,7 +433,7 @@ function buildThemeSpecificAppliedContext(
               2
             ) as string[]),
           ]
-        : theme === 'wealth'
+        : targetDomain === 'wealth'
           ? [
               appliedProfile?.moneyStyleProfile?.summary || '',
               ...((appliedProfile?.moneyStyleProfile?.earningPattern || []).slice(
@@ -468,7 +442,7 @@ function buildThemeSpecificAppliedContext(
               ) as string[]),
               ...((appliedProfile?.moneyStyleProfile?.controlRules || []).slice(0, 2) as string[]),
             ]
-          : theme === 'health'
+          : targetDomain === 'health'
             ? [
                 appliedProfile?.lifeRhythmProfile?.summary || '',
                 ...((appliedProfile?.lifeRhythmProfile?.recoveryWindows || []).slice(
@@ -504,8 +478,8 @@ function buildThemeSpecificAppliedContext(
     ])
 
   const lines = [
-    '[Theme Applied Context]',
-    targetDomain ? `theme_domain=${targetDomain}` : `theme_domain=${theme || 'general'}`,
+    '[Focus Applied Context]',
+    targetDomain ? `focus_domain=${targetDomain}` : `focus_domain=${focusDomain || 'general'}`,
     domainState?.label ? `domain_label=${domainState.label}` : '',
     domainState?.currentState ? `domain_state=${domainState.currentState}` : '',
     domainState?.thesis ? `domain_read=${domainState.thesis}` : '',
@@ -517,7 +491,7 @@ function buildThemeSpecificAppliedContext(
     ...(domainState?.pressureSignals || [])
       .slice(0, 2)
       .map((item, index) => `pressure_${index + 1}=${item}`),
-    '[Theme Event Condition Packet]',
+    '[Focus Event Condition Packet]',
     ...eventConditionLines,
     ...birthTimeHypothesis.flatMap((item, index) => [
       item.label ? `birth_hypothesis_${index + 1}=${item.label}` : '',
@@ -586,13 +560,13 @@ function buildThemeSpecificAppliedContext(
   if (lang === 'ko') {
     return [
       ...lines,
-      '이 블록은 질문 테마에 맞는 적용층입니다. 답변에서는 이 테마와 직접 연결되는 event/profile/domain lines를 우선 사용하고, 다른 영역은 보조 근거로만 쓰세요.',
+      '이 블록은 질문 초점 도메인에 맞는 적용층입니다. 답변에서는 이 초점과 직접 연결되는 event/profile/domain lines를 우선 사용하고, 다른 영역은 보조 근거로만 쓰세요.',
     ].join('\n')
   }
 
   return [
     ...lines,
-    'This block is the theme-specific applied layer. Prioritize event/profile/domain lines that directly fit the current question theme, and use other domains only as support.',
+    'This block is the focus-domain applied layer. Prioritize event/profile/domain lines that directly fit the current question focus, and use other domains only as support.',
   ].join('\n')
 }
 
@@ -600,9 +574,8 @@ export function buildCompactPromptSections(params: {
   contextSections: ReturnType<typeof buildContextSections>
   longTermMemorySection: string
   predictionSection: string
-  theme: string
 }): PromptSection[] {
-  const { contextSections, longTermMemorySection, predictionSection, theme } = params
+  const { contextSections, longTermMemorySection, predictionSection } = params
   const costOptimized = isCounselorCostOptimized()
   const sections: Array<PromptSection | null> = []
 
@@ -655,14 +628,15 @@ export function buildCompactPromptSections(params: {
     )
   )
 
-  if (theme === 'life' || theme === 'year' || theme === 'month') {
+  const lifeTrendBlock = firstNonEmptyBlock(
+    contextSections.lifePredictionSection,
+    contextSections.pastAnalysisSection
+  )
+  if (lifeTrendBlock) {
     sections.push(
       createPromptBlock(
         'life-trend',
-        firstNonEmptyBlock(
-          contextSections.lifePredictionSection,
-          contextSections.pastAnalysisSection
-        ),
+        lifeTrendBlock,
         SECTION_PRIORITIES.LIFE_PREDICTION,
         costOptimized ? 360 : 700
       )
@@ -675,7 +649,6 @@ export function buildCompactPromptSections(params: {
 export function buildMatrixProfileSection(
   snapshot: MatrixSnapshot | null,
   lang: string,
-  theme: string,
   questionAnalysis?: CounselorQuestionAnalysis | null
 ): string {
   if (!snapshot) {
@@ -688,7 +661,8 @@ export function buildMatrixProfileSection(
   const corePhaseText = snapshot.core
     ? `${snapshot.core.overallPhaseLabel}(${snapshot.core.attackPercent}/${snapshot.core.defensePercent})`
     : 'none'
-  const focus = pickMatrixThemeFocus(theme, snapshot.domainScores)
+  const focusDomain =
+    snapshot.core?.counselorEvidence?.focusDomain || questionAnalysis?.primaryDomain || null
   const hasCommRisk = /communication|mercury|수성|소통|오해|문서|계약/i.test(cautionText)
   const counselorEvidenceText = formatCounselorEvidencePacket(
     snapshot.core?.counselorEvidence as Parameters<typeof formatCounselorEvidencePacket>[0],
@@ -762,21 +736,21 @@ export function buildMatrixProfileSection(
         }
       )
     : ''
-  const themeAppliedContext = trimThemeAppliedContextBlock(
-    buildThemeSpecificAppliedContext(snapshot, lang, theme),
+  const focusAppliedContext = trimFocusAppliedContextBlock(
+    buildFocusAppliedContext(snapshot, lang, focusDomain),
     costOptimized ? 520 : 1100
   )
 
   if (lang === 'ko') {
     return [
       '[Destiny Matrix Profile Context]',
-      `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
+      `focus_domain=${focusDomain || 'general'}`,
       `core_phase=${corePhaseText}`,
       `cross_evidence=${crossEvidenceText}`,
       `cautions=${cautionText}`,
       interpretedAnswerText,
       compactCounselorEvidenceText,
-      themeAppliedContext,
+      focusAppliedContext,
       '첫 두 문장은 질문에 대한 직접 답으로 시작하고, 교차 근거는 설명 보강에만 사용하세요.',
       '점수, 레이어, 내부 id를 늘어놓지 말고 지금 먼저 움직여야 할 영역과 가장 조심해야 할 변수만 분명하게 말하세요.',
       hasCommRisk
@@ -787,227 +761,17 @@ export function buildMatrixProfileSection(
 
   return [
     '[Destiny Matrix Profile Context]',
-    `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
+    `focus_domain=${focusDomain || 'general'}`,
     `core_phase=${corePhaseText}`,
     `cross_evidence=${crossEvidenceText}`,
     `cautions=${cautionText}`,
     interpretedAnswerText,
     compactCounselorEvidenceText,
-    themeAppliedContext,
+    focusAppliedContext,
     'Answer directly in the first 1-2 sentences, and use cross_evidence only as supporting explanation.',
     'Prioritize the immediate action area, the main risk, and the realistic branches over raw score or layer dumps.',
     hasCommRisk
       ? 'If communication/document risk is present, do not recommend immediate signing/finalizing; prefer verification actions.'
       : 'Ensure recommendations never contradict cautions.',
   ].join('\n')
-}
-export function mapFocusDomainToPromptTheme(
-  focusDomain: string | null | undefined,
-  fallback: string
-): string {
-  switch (focusDomain) {
-    case 'relationship':
-      return 'love'
-    case 'career':
-      return 'career'
-    case 'wealth':
-      return 'wealth'
-    case 'health':
-      return 'health'
-    case 'move':
-      return 'life'
-    case 'timing':
-    case 'personality':
-    case 'spirituality':
-      return 'life'
-    default:
-      return fallback
-  }
-}
-
-export function buildFocusDomainDepthGuide(
-  focusDomain: string | null | undefined,
-  lang: string
-): string {
-  const domain = focusDomain || 'personality'
-  if (lang === 'ko') {
-    switch (domain) {
-      case 'relationship':
-        return [
-          '[Core Focus Guide]',
-          '- 관계 질문은 감정 해석보다 거리, 경계, 기대치 조정 순서로 답합니다.',
-          '- 실행 답변은 commitment 강행보다 clarify / boundary / preparation을 우선 검토합니다.',
-        ].join('\n')
-      case 'career':
-        return [
-          '[Core Focus Guide]',
-          '- 커리어 질문은 기회 자체보다 역할, 조건, 검토 순서를 먼저 답합니다.',
-          '- 실행 답변은 commit보다 review / negotiate / staged execution을 우선 검토합니다.',
-        ].join('\n')
-      case 'wealth':
-        return [
-          '[Core Focus Guide]',
-          '- 재정 질문은 수익 기대보다 구조, 누수, 조건 검증을 먼저 답합니다.',
-          '- 실행 답변은 allocation / review / staged commitment를 우선 검토합니다.',
-        ].join('\n')
-      case 'health':
-        return [
-          '[Core Focus Guide]',
-          '- 건강 질문은 의지보다 회복, 과부하, 루틴 준수 기준으로 답합니다.',
-          '- 실행 답변은 push보다 recovery / boundary / reduce-load를 우선 검토합니다.',
-        ].join('\n')
-      case 'move':
-        return [
-          '[Core Focus Guide]',
-          '- 이동 질문은 결론보다 경로, 거점, 검증 순서로 답합니다.',
-          '- 실행 답변은 relocate 강행보다 route recheck / commute restructure / staged move를 우선 검토합니다.',
-        ].join('\n')
-      default:
-        return [
-          '[Core Focus Guide]',
-          '- 종합 질문도 하나의 우선 축으로 압축해 답합니다.',
-          '- 설명보다 지금 먼저 해야 할 검토 또는 행동 하나를 분명히 제시합니다.',
-        ].join('\n')
-    }
-  }
-
-  switch (domain) {
-    case 'relationship':
-      return [
-        '[Core Focus Guide]',
-        '- Answer relationship questions through distance, boundaries, and expectation alignment.',
-        '- Prefer clarify / boundary / preparation over forcing commitment.',
-      ].join('\n')
-    case 'career':
-      return [
-        '[Core Focus Guide]',
-        '- Answer career questions through role, terms, and review order before expansion.',
-        '- Prefer review / negotiate / staged execution over impulsive commitment.',
-      ].join('\n')
-    case 'wealth':
-      return [
-        '[Core Focus Guide]',
-        '- Answer money questions through structure, leakage, and term validation before upside.',
-        '- Prefer allocation / review / staged commitment over one-shot bets.',
-      ].join('\n')
-    case 'health':
-      return [
-        '[Core Focus Guide]',
-        '- Answer health questions through recovery, overload, and routine compliance.',
-        '- Prefer recovery / boundary / load reduction over willpower-heavy pushes.',
-      ].join('\n')
-    case 'move':
-      return [
-        '[Core Focus Guide]',
-        '- Answer movement questions through route, base, and verification order.',
-        '- Prefer route recheck / commute restructure / staged move over hard relocation pushes.',
-      ].join('\n')
-    default:
-      return [
-        '[Core Focus Guide]',
-        '- Even broad questions must collapse into one operational priority.',
-        '- Give one clear next move before expanding the explanation.',
-      ].join('\n')
-  }
-}
-
-export function buildFocusDomainVoiceGuide(
-  focusDomain: string | null | undefined,
-  lang: string
-): string {
-  const domain = focusDomain || 'personality'
-
-  if (lang === 'ko') {
-    switch (domain) {
-      case 'relationship':
-        return [
-          '[Voice Guide]',
-          '- 한 줄 결론은 감정 단정이 아니라 관계 거리감, 대화 가능성, 확인 포인트 중심으로 씁니다.',
-          '- 실행 계획은 "대화를 어떻게 꺼낼지", "어떤 표현을 줄일지", "어떤 반응을 기다릴지"처럼 관계 운영 언어를 씁니다.',
-          '- 주의/재확인은 자존심 싸움, 추측성 확신, 답을 재촉하는 행동을 경계하는 문장으로 씁니다.',
-        ].join('\n')
-      case 'career':
-        return [
-          '[Voice Guide]',
-          '- 한 줄 결론은 가능성보다 역할, 책임 범위, 우선순위가 맞는지 중심으로 씁니다.',
-          '- 실행 계획은 "무엇을 먼저 끝낼지", "무슨 조건을 문서로 확인할지", "어디까지 협상할지"처럼 실무 언어를 씁니다.',
-          '- 주의/재확인은 성급한 확정, 책임 범위 불명확, 일정 과적재를 경계하는 문장으로 씁니다.',
-        ].join('\n')
-      case 'wealth':
-        return [
-          '[Voice Guide]',
-          '- 한 줄 결론은 기대 수익보다 현금 흐름, 손실 상한, 조건 검증을 먼저 말합니다.',
-          '- 실행 계획은 "얼마까지 허용할지", "어떤 숫자를 다시 볼지", "무슨 조건이 갖춰져야 들어갈지"처럼 숫자/조건 언어를 씁니다.',
-          '- 주의/재확인은 조급한 베팅, 대충 본 약관, 누수되는 지출을 경계하는 문장으로 씁니다.',
-        ].join('\n')
-      case 'health':
-        return [
-          '[Voice Guide]',
-          '- 한 줄 결론은 의지보다 회복 상태, 과부하 여부, 루틴 유지 가능성을 먼저 말합니다.',
-          '- 실행 계획은 "무엇을 줄일지", "어떤 회복 블록을 지킬지", "언제 쉬어야 하는지"처럼 회복 언어를 씁니다.',
-          '- 주의/재확인은 무리한 버티기, 수면 붕괴, 통증 무시를 경계하는 문장으로 씁니다.',
-        ].join('\n')
-      case 'move':
-      case 'timing':
-        return [
-          '[Voice Guide]',
-          '- 한 줄 결론은 가도 되는지보다 지금 움직일 창이 열렸는지, 더 봐야 하는지 중심으로 씁니다.',
-          '- 실행 계획은 "언제 다시 볼지", "무슨 신호가 맞아야 하는지", "어떤 조건이면 미룰지"처럼 타이밍 언어를 씁니다.',
-          '- 주의/재확인은 성급한 확정, 버퍼 없는 일정, 확인 없는 이동을 경계하는 문장으로 씁니다.',
-        ].join('\n')
-      default:
-        return [
-          '[Voice Guide]',
-          '- 한 줄 결론은 추상적 성향 설명보다 지금 질문에 대한 운영 판단으로 시작합니다.',
-          '- 실행 계획은 오늘 바로 할 수 있는 한두 가지 행동으로 씁니다.',
-          '- 주의/재확인은 과장된 확신, 반복 실수, 확인 없는 확정을 경계하는 문장으로 씁니다.',
-        ].join('\n')
-    }
-  }
-
-  switch (domain) {
-    case 'relationship':
-      return [
-        '[Voice Guide]',
-        '- Direct Answer should talk about distance, communication viability, and what still needs confirmation.',
-        '- Action Plan should sound like relationship management: what to say, what to stop, what response to wait for.',
-        '- Avoid/Recheck should warn against projection, emotional overconfidence, and forcing the pace.',
-      ].join('\n')
-    case 'career':
-      return [
-        '[Voice Guide]',
-        '- Direct Answer should focus on role fit, scope, and order of execution more than vague opportunity.',
-        '- Action Plan should sound operational: what to finish first, what to verify in writing, what to negotiate.',
-        '- Avoid/Recheck should warn against premature commitment, unclear ownership, and schedule overload.',
-      ].join('\n')
-    case 'wealth':
-      return [
-        '[Voice Guide]',
-        '- Direct Answer should focus on cash flow, downside, and validation before upside.',
-        '- Action Plan should sound numeric and conditional: limits, thresholds, and missing terms.',
-        '- Avoid/Recheck should warn against rushed bets, sloppy term review, and recurring leakage.',
-      ].join('\n')
-    case 'health':
-      return [
-        '[Voice Guide]',
-        '- Direct Answer should focus on recovery status, overload, and sustainability over pure willpower.',
-        '- Action Plan should sound restorative: what to reduce, what to protect, when to rest.',
-        '- Avoid/Recheck should warn against pushing through exhaustion and ignoring repeated symptoms.',
-      ].join('\n')
-    case 'move':
-    case 'timing':
-      return [
-        '[Voice Guide]',
-        '- Direct Answer should focus on whether the window is truly open or still conditional.',
-        '- Action Plan should sound timing-led: when to revisit, what has to align, what delays the move.',
-        '- Avoid/Recheck should warn against hard commitment without buffer, confirmation, or sequencing.',
-      ].join('\n')
-    default:
-      return [
-        '[Voice Guide]',
-        '- Direct Answer should start with an operational read, not an abstract personality summary.',
-        '- Action Plan should give one or two concrete next moves.',
-        '- Avoid/Recheck should warn against exaggerated certainty and preventable repetition.',
-      ].join('\n')
-  }
 }

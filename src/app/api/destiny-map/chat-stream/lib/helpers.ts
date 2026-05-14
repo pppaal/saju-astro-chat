@@ -61,15 +61,3 @@ export function counselorSystemPrompt(lang: string): string {
   ].join('\n')
 }
 
-/**
- * Get theme context string
- */
-export function getThemeContext(
-  theme: string,
-  themeDesc: { ko: string; en: string },
-  lang: string
-): string {
-  return lang === 'ko'
-    ? `현재 상담 테마: ${theme} (${themeDesc.ko})\n질문에 먼저 답하고 테마와 직접 관련된 근거만 사용하세요.`
-    : `Current theme: ${theme} (${themeDesc.en})\nFocus your answer on this theme.`
-}

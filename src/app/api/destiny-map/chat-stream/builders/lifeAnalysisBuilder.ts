@@ -8,11 +8,8 @@ import {
   analyzePastDate,
   generatePastAnalysisPromptContext,
   analyzeMultiYearTrend,
-  findOptimalEventTiming,
   type LifePredictionInput,
-  type EventType,
 } from '@/lib/prediction/lifePredictionEngine';
-import { generateEventTimingPromptContext } from '@/lib/prediction/prompt-contexts';
 import { extractBirthYear, extractBirthMonth, extractBirthDay } from '@/lib/prediction/utils';
 import { logger } from '@/lib/logger';
 import type { SajuDataStructure, AstroDataStructure } from '../lib/types';
@@ -91,20 +88,9 @@ export function buildMultiYearTrendSection(
   astro: AstroDataStructure | undefined,
   birthDate: string,
   gender: 'male' | 'female',
-  theme: string,
   lang: string
 ): string {
-  const longTermThemes = [
-    'future',
-    'life-plan',
-    'career',
-    'marriage',
-    'investment',
-    'money',
-    'love',
-  ];
-
-  if (!longTermThemes.includes(theme) || !saju?.dayMaster) {
+  if (!saju?.dayMaster) {
     return '';
   }
 
@@ -134,31 +120,6 @@ export function buildMultiYearTrendSection(
     // 다년간 트렌드 분석
     const trendAnalysis = analyzeMultiYearTrend(input, startYear, endYear);
 
-    // 이벤트별 최적 시기 (테마에 따라)
-    const eventMap: Record<string, EventType> = {
-      'marriage': 'marriage',
-      'love': 'relationship',
-      'career': 'career',
-      'investment': 'investment',
-      'money': 'investment',
-    };
-
-    const eventType = eventMap[theme];
-    let eventTimingContext = '';
-
-    if (eventType) {
-      const eventTiming = findOptimalEventTiming(
-        input,
-        eventType,
-        startYear,
-        endYear
-      );
-      eventTimingContext = generateEventTimingPromptContext(
-        eventTiming,
-        lang as 'ko' | 'en'
-      );
-    }
-
     // MultiYearTrend를 간단한 문자열로 변환
     const peakYearsStr = trendAnalysis.peakYears.slice(0, 3).join(', ');
     const lowYearsStr = trendAnalysis.lowYears.slice(0, 3).join(', ');
@@ -176,7 +137,7 @@ export function buildMultiYearTrendSection(
       `${lang === 'ko' ? '위 분석을 바탕으로 인생 전반의 흐름을 설명하고 조언을 제공하세요.' : 'Based on the analysis above, explain the overall life flow and provide advice.'}`,
     ].join('\n');
 
-    return `${trendSummary}\n\n${eventTimingContext}`.trim();
+    return trendSummary;
   } catch (e) {
     logger.warn('[lifeAnalysisBuilder] Multi-year trend error:', e);
     return '';

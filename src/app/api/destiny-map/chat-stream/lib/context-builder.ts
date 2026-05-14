@@ -25,7 +25,6 @@ export interface ContextBuilderInput {
   currentTransits: unknown[]
   birthDate: string
   gender: 'male' | 'female'
-  theme: string
   lang: string
   trimmedHistory: ChatMessage[]
   lastUserMessage?: string
@@ -52,8 +51,7 @@ function buildV3Snapshot(
   astro: AstroDataStructure | undefined,
   advancedAstro: Partial<CombinedResult> | undefined,
   currentTransits: unknown[],
-  lang: string,
-  theme: string
+  lang: string
 ): string {
   if (!saju && !astro) {
     return ''
@@ -103,7 +101,7 @@ function buildV3Snapshot(
       hasTransits: currentTransits.length > 0,
     })
 
-    const snapshot = buildAllDataPrompt(lang, theme, combinedResult)
+    const snapshot = buildAllDataPrompt(lang, 'chat', combinedResult)
     logger.warn(`[context-builder] v3.1 snapshot built: ${snapshot.length} chars`)
     return snapshot
   } catch (e) {
@@ -281,7 +279,6 @@ function buildAdvancedSections(
   natalChartData: unknown,
   birthDate: string,
   gender: 'male' | 'female',
-  theme: string,
   lang: string,
   lastUserMessage: string
 ): {
@@ -310,8 +307,8 @@ function buildAdvancedSections(
     const birthYear = extractBirthYear(birthDate)
     const currentAge = birthYear ? currentYear - birthYear : undefined
 
-    const timingScoreSection = buildAdvancedTimingSection(saju, birthDate, theme, lang)
-    const enhancedAnalysisSection = buildDailyPrecisionSection(saju, theme, lang)
+    const timingScoreSection = buildAdvancedTimingSection(saju, birthDate, lang)
+    const enhancedAnalysisSection = buildDailyPrecisionSection(saju, lang)
     const daeunTransitSection = buildDaeunTransitSection(saju, birthDate, lang)
     const pastAnalysisSection = buildPastAnalysisSection(
       saju,
@@ -326,7 +323,6 @@ function buildAdvancedSections(
       astro,
       birthDate,
       gender,
-      theme,
       lang
     )
     const advancedAstroSection = generateTier3Analysis({ saju, astro, lang }).section
@@ -374,13 +370,12 @@ export function buildContextSections(input: ContextBuilderInput): ContextSection
     currentTransits,
     birthDate,
     gender,
-    theme,
     lang,
     trimmedHistory,
     lastUserMessage = '',
   } = input
 
-  const v3Snapshot = buildV3Snapshot(saju, astro, advancedAstro, currentTransits, lang, theme)
+  const v3Snapshot = buildV3Snapshot(saju, astro, advancedAstro, currentTransits, lang)
 
   const historyText = buildHistoryText(trimmedHistory)
   const userQuestion = guardText(lastUserMessage, 500)
@@ -391,7 +386,6 @@ export function buildContextSections(input: ContextBuilderInput): ContextSection
     natalChartData,
     birthDate,
     gender,
-    theme,
     lang,
     lastUserMessage
   )

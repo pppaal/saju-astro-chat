@@ -6,7 +6,6 @@ import type { Message, FeedbackType } from "../chat-constants";
 
 interface UseChatFeedbackOptions {
   sessionIdRef: React.MutableRefObject<string>;
-  theme: string;
   lang: string;
   messages: Message[];
 }
@@ -20,7 +19,7 @@ interface UseChatFeedbackReturn {
  * Hook for managing message feedback (thumbs up/down)
  */
 export function useChatFeedback(options: UseChatFeedbackOptions): UseChatFeedbackReturn {
-  const { sessionIdRef, theme, lang, messages } = options;
+  const { sessionIdRef, lang, messages } = options;
   const [feedback, setFeedback] = React.useState<Record<string, FeedbackType>>({});
 
   const getLastUserMessage = React.useCallback(() => {
@@ -49,7 +48,6 @@ export function useChatFeedback(options: UseChatFeedbackOptions): UseChatFeedbac
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           service: "destiny-map",
-          theme,
           sectionId: msgId,
           helpful: type === "up",
           locale: lang,
@@ -69,7 +67,7 @@ export function useChatFeedback(options: UseChatFeedbackOptions): UseChatFeedbac
     } catch (err) {
       logger.warn("[Feedback] Failed to send:", err);
     }
-  }, [feedback, messages, theme, lang, sessionIdRef, getLastUserMessage]);
+  }, [feedback, messages, lang, sessionIdRef, getLastUserMessage]);
 
   return {
     feedback,

@@ -25,19 +25,15 @@ import { logger } from '@/lib/logger';
  *
  * @param saju - Saju 데이터
  * @param birthDate - 생년월일
- * @param theme - 테마
  * @param lang - 언어
  * @returns 타이밍 분석 프롬프트 섹션
  */
 export function buildAdvancedTimingSection(
   saju: SajuDataStructure | undefined,
   birthDate: string,
-  theme: string,
   lang: string
 ): string {
-  // 특정 테마에서만 활성화
-  const allowedThemes = ['year', 'month', 'today', 'life', 'chat'];
-  if (!saju?.dayMaster || !allowedThemes.includes(theme)) {
+  if (!saju?.dayMaster) {
     return '';
   }
 

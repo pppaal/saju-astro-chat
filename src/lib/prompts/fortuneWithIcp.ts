@@ -77,48 +77,6 @@ export function buildFortuneWithIcpOutputGuide(lang: 'ko' | 'en'): string {
   ].join('\n')
 }
 
-export function buildThemeDepthGuide(theme: string, lang: 'ko' | 'en'): string {
-  const normalizedTheme = theme || 'chat'
-
-  if (lang === 'ko') {
-    return [
-      '[해석 품질 규칙]',
-      '- 모든 답변은 "근거 -> 해석 -> 행동" 순서로 연결한다.',
-      '- 근거는 최소 3개 사용: 사주 1 + 점성 1 + 메트릭스/타이밍 1.',
-      '- 문장 반복 금지. 섹션마다 새 정보만 제공한다.',
-      '- 과장 금지: 완벽/무조건/반드시/최적 표현 사용 금지.',
-      '- 불확실하면 단정하지 말고 재확인 포인트를 제시한다.',
-      '',
-      '[테마 초점]',
-      normalizedTheme === 'love' || normalizedTheme === 'family'
-        ? '- 관계 테마: 감정 신호, 대화 방식, 경계 설정, 복구 행동 중심으로 답한다.'
-        : normalizedTheme === 'career' || normalizedTheme === 'wealth'
-          ? '- 일/돈 테마: 의사결정 기준, 검토 항목, 실행 시점을 분리해서 답한다.'
-          : normalizedTheme === 'health'
-            ? '- 건강 테마: 생활 리듬, 회복 루틴, 과부하 신호를 관찰 가능한 지표로 제시한다.'
-            : '- 종합 테마: 우선순위 1개를 정하고 행동을 그 기준에 정렬한다.',
-    ].join('\n')
-  }
-
-  return [
-    '[Interpretation Quality Contract]',
-    '- Use evidence -> interpretation -> action in every answer.',
-    '- Include at least 3 evidence points: saju 1 + astrology 1 + matrix/timing 1.',
-    '- No repetition across sections.',
-    '- Avoid overclaim words: perfect, guaranteed, must, optimal.',
-    '- If uncertain, provide explicit recheck checkpoints.',
-    '',
-    '[Theme Focus]',
-    normalizedTheme === 'love' || normalizedTheme === 'family'
-      ? '- Relationship: communication patterns, boundaries, and repair actions.'
-      : normalizedTheme === 'career' || normalizedTheme === 'wealth'
-        ? '- Work/money: decision criteria, due-diligence checks, and timing by horizon.'
-        : normalizedTheme === 'health'
-          ? '- Health: daily rhythm, recovery protocol, and overload signals.'
-          : '- General: pick one priority and align actions to it.',
-  ].join('\n')
-}
-
 export function buildEvidenceGroundingGuide(lang: 'ko' | 'en'): string {
   if (lang === 'ko') {
     return [

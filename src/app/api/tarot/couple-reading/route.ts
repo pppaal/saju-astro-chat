@@ -117,7 +117,6 @@ export const POST = withApiMiddleware(
         spreadTitle,
         cards,
         question,
-        theme,
         overallMessage,
         cardInsights,
         guidance,
@@ -178,7 +177,6 @@ export const POST = withApiMiddleware(
           data: {
             userId,
             question: question || '커플 타로',
-            theme: theme || 'love',
             spreadId,
             spreadTitle: (spreadTitle || '커플 스프레드') as string,
             cards: cards as Prisma.InputJsonValue,

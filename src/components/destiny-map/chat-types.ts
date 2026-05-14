@@ -145,7 +145,6 @@ export interface ChatProps {
   profile: ChatProfile
   initialContext?: string
   lang?: LangKey
-  theme?: string
   seedEvent?: string
   saju?: SajuData
   astro?: AstroData
@@ -176,7 +175,6 @@ export interface ChatPayload {
   longitude?: number
   gender?: string
   city?: string
-  theme: string
   lang: LangKey
   messages: Message[]
   cvText?: string

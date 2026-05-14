@@ -56,22 +56,6 @@ export function ContentTab({
           {renderDistribution(data.readingsByType.map((r) => ({ label: r.type, count: r.count })))}
         </section>
       )}
-      {data.consultations.byTheme.length > 0 && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>상담 테마별</h2>
-          {renderDistribution(
-            data.consultations.byTheme.map((c) => ({ label: c.theme, count: c.count }))
-          )}
-        </section>
-      )}
-      {data.tarotReadings.byTheme.length > 0 && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>타로 테마별</h2>
-          {renderDistribution(
-            data.tarotReadings.byTheme.map((t) => ({ label: t.theme || 'general', count: t.count }))
-          )}
-        </section>
-      )}
       {data.destinyMatrix.byType.length > 0 && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>운명 리포트 유형별</h2>

@@ -3,7 +3,6 @@ import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/
 import { prisma } from '@/lib/db/prisma'
 import { counselorSessionLoadQuerySchema } from '@/lib/api/zodValidation'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +12,6 @@ export const GET = withApiMiddleware(
 
     const searchParams = req.nextUrl.searchParams
     const queryValidation = counselorSessionLoadQuerySchema.safeParse({
-      theme: searchParams.get('theme') ?? undefined,
       sessionId: searchParams.get('sessionId') ?? undefined,
     })
     if (!queryValidation.success) {
@@ -22,8 +20,7 @@ export const GET = withApiMiddleware(
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
-    const { theme, sessionId } = queryValidation.data
-    const normalizedTheme = normalizeReportTheme(theme) || theme
+    const { sessionId } = queryValidation.data
 
     let chatSession
 
@@ -36,11 +33,10 @@ export const GET = withApiMiddleware(
         },
       })
     } else {
-      // Get most recent session for this theme
+      // Get most recent session for this user
       chatSession = await prisma.counselorChatSession.findFirst({
         where: {
           userId,
-          theme: normalizedTheme,
         },
         orderBy: {
           updatedAt: 'desc',

@@ -5,7 +5,6 @@ import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface SessionItem {
   id: string;
-  theme: string;
   messageCount: number;
   updatedAt: string;
   summary?: string;

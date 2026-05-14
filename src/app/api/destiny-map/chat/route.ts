@@ -18,7 +18,7 @@ import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
+import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 
 import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS } from '@/lib/constants/api-limits'
 // HTTP_STATUS not used directly, status codes handled via createErrorResponse
@@ -31,7 +31,6 @@ const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover'
 
 const ALLOWED_LANG = ALLOWED_LOCALES
 const ALLOWED_ROLE = new Set(['system', 'user', 'assistant'])
-const MAX_THEME = LIMITS.THEME
 const MAX_MESSAGES = MESSAGE_LIMITS.MAX_STREAM_MESSAGES
 const ALLOWED_GENDER = new Set([...ALLOWED_GENDERS, 'prefer_not'])
 const MAX_NAME = LIMITS.NAME
@@ -41,7 +40,7 @@ function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max)
 }
 
-function buildChatPrompt(lang: string, theme: string, snapshot: string, history: ChatMessage[]) {
+function buildChatPrompt(lang: string, snapshot: string, history: ChatMessage[]) {
   const historyText = history
     .map((m) => `${m.role.toUpperCase()}: ${guardText(m.content, 400)}`)
     .join('\n')
@@ -65,7 +64,6 @@ function buildChatPrompt(lang: string, theme: string, snapshot: string, history:
     'Safety: add a short disclaimer + suggest professional help for medical/legal/finance/emergency.',
     'Length: ~140 words; concise, supportive, specific. Do not output unstructured long paragraphs.',
     `Locale: ${lang}`,
-    `Theme: ${theme}`,
     'User snapshot (authoritative):',
     snapshot,
     'Recent conversation:',
@@ -185,7 +183,6 @@ export async function POST(request: NextRequest) {
       typeof body.gender === 'string' && ALLOWED_GENDER.has(body.gender) ? body.gender : 'male'
     const latitude = typeof body.latitude === 'number' ? body.latitude : Number(body.latitude)
     const longitude = typeof body.longitude === 'number' ? body.longitude : Number(body.longitude)
-    const theme = typeof body.theme === 'string' ? body.theme.trim().slice(0, MAX_THEME) : 'life'
     const lang = typeof body.lang === 'string' && ALLOWED_LANG.has(body.lang) ? body.lang : 'ko'
     const messages = Array.isArray(body.messages) ? body.messages.slice(-MAX_MESSAGES) : []
     const cvText = typeof body.cvText === 'string' ? body.cvText : ''
@@ -255,11 +252,11 @@ export async function POST(request: NextRequest) {
       latitude: Number(latitude),
       longitude: Number(longitude),
       gender,
-      theme,
+      theme: 'chat',
     })
 
     // v3.1: Full snapshot without truncation - backend will use this as authoritative prompt
-    const snapshot = buildAllDataPrompt(lang, theme, result)
+    const snapshot = buildAllDataPrompt(lang, 'chat', result)
     const trimmedHistory = clampMessages(normalizedMessages)
 
     // 2) build chat prompt
@@ -275,8 +272,7 @@ export async function POST(request: NextRequest) {
     }
 
     const chatPrompt = [
-      buildChatPrompt(lang, theme, snapshot, trimmedHistory),
-      buildThemeDepthGuide(theme, lang === 'ko' ? 'ko' : 'en'),
+      buildChatPrompt(lang, snapshot, trimmedHistory),
       buildEvidenceGroundingGuide(lang === 'ko' ? 'ko' : 'en'),
       cvSnippet ? `User CV (partial):\n${cvSnippet}` : '',
     ]
@@ -291,7 +287,7 @@ export async function POST(request: NextRequest) {
         : 'AI analysis service is temporarily unavailable. Please try again later.'
 
     const response = await askClaude(chatPrompt, {
-      theme: theme || 'chat',
+      theme: 'chat',
       maxTokens: 2000,
       timeoutMs: 60000,
       label: 'destiny-map-chat',

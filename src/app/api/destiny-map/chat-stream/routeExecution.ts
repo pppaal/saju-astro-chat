@@ -30,14 +30,12 @@ import {
   analyzeCounselorQuestion,
   buildCounselingStructureGuide,
   describeQuestionAnalysis,
-  mapFocusDomainToTheme,
 } from './lib/focusDomain'
 import { assembleFinalPromptSplit } from './builders/promptAssembly'
 import type { AstroDataStructure, SajuDataStructure } from './lib/types'
 import {
   buildCompactPromptSections,
   buildMatrixProfileSection,
-  mapFocusDomainToPromptTheme,
 } from './routePromptSupport'
 import {
   encodeCounselorUiEvidence,
@@ -56,7 +54,6 @@ export interface EffectiveCounselorInputs {
   effectiveSaju?: SajuDataStructure
   effectiveAstro?: AstroDataStructure
   advancedAstro?: Partial<CombinedResult>
-  effectiveTheme: string
   lang: 'ko' | 'en'
   trimmedHistory: DestinyMapChatStreamInput['messages']
   lastUserContent?: string
@@ -84,7 +81,6 @@ export async function resolveEffectiveCounselorInputs(params: {
     gender,
     latitude,
     longitude,
-    theme,
     lang,
     messages,
     saju,
@@ -100,10 +96,7 @@ export async function resolveEffectiveCounselorInputs(params: {
   const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
   const questionAnalysis = analyzeCounselorQuestion({
     lastUserMessage: lastUser?.content,
-    theme,
   })
-  const inferredTheme = mapFocusDomainToTheme(questionAnalysis.primaryDomain)
-  const effectiveTheme = theme === 'chat' ? inferredTheme : theme
 
   let effectiveBirthDate = birthDate || ''
   let effectiveBirthTime = birthTime || ''
@@ -167,7 +160,6 @@ export async function resolveEffectiveCounselorInputs(params: {
       effectiveSaju: effectiveSaju as SajuDataStructure | undefined,
       effectiveAstro: effectiveAstro as AstroDataStructure | undefined,
       advancedAstro: advancedAstro as Partial<CombinedResult> | undefined,
-      effectiveTheme,
       lang,
       trimmedHistory,
       lastUserContent: lastUser?.content,
@@ -209,7 +201,6 @@ type PredictionPacket = {
 
 export interface PreparedCounselorExecution {
   lang: 'ko' | 'en'
-  promptTheme: string
   /** 합쳐진 단일 문자열 (호환용). */
   chatPrompt: string
   /** prompt-caching용 — 멀티턴에 안정적인 system + 차트 컨텍스트 + sections. */
@@ -241,7 +232,6 @@ export async function prepareCounselorExecution(params: {
     effectiveSaju,
     effectiveAstro,
     advancedAstro,
-    effectiveTheme,
     lang,
     trimmedHistory,
     lastUserContent,
@@ -260,7 +250,7 @@ export async function prepareCounselorExecution(params: {
       // fire-and-forget — recall append 실패가 메인 응답을 막지 않게
       appendUserUtteranceToRecall(userId, lastUserContent).catch(() => {})
     }
-    const memoryResult = await loadPersonaMemory(userId, effectiveTheme, lang)
+    const memoryResult = await loadPersonaMemory(userId, lang)
     personaMemoryContext = memoryResult.personaMemoryContext
     recentSessionSummaries = memoryResult.recentSessionSummaries
   }
@@ -287,7 +277,6 @@ export async function prepareCounselorExecution(params: {
     gender: effectiveGender,
     latitude: effectiveLatitude,
     longitude: effectiveLongitude,
-    theme: effectiveTheme,
     advancedAstro,
   })
 
@@ -299,7 +288,6 @@ export async function prepareCounselorExecution(params: {
     currentTransits,
     birthDate: effectiveBirthDate,
     gender: effectiveGender,
-    theme: effectiveTheme,
     lang,
     trimmedHistory,
     lastUserMessage: lastUserContent,
@@ -342,7 +330,6 @@ export async function prepareCounselorExecution(params: {
     natalChartData,
     advancedAstro: enrichedAdvancedAstro,
     currentTransits,
-    theme: effectiveTheme,
     focusDomain: questionAnalysis.primaryDomain,
     questionText: lastUserContent,
     needsPreciseTiming: questionAnalysis.needsTimingGuidance,
@@ -351,7 +338,6 @@ export async function prepareCounselorExecution(params: {
   if (strictMatrixEnabled && !matrixSnapshot) {
     return {
       lang,
-      promptTheme: effectiveTheme,
       chatPrompt: '',
       chatPromptCachedContext: '',
       chatPromptDynamicTail: '',
@@ -365,8 +351,6 @@ export async function prepareCounselorExecution(params: {
   }
 
   const coreCounselorPacket = matrixSnapshot?.core?.counselorEvidence || null
-  const coreFocusDomain = coreCounselorPacket?.focusDomain || questionAnalysis.primaryDomain || null
-  const promptTheme = mapFocusDomainToPromptTheme(coreFocusDomain, effectiveTheme)
   const sessionId = req.headers.get('x-session-id') || undefined
   const canonicalCounselorSection = formatCounselorEvidencePacket(
     coreCounselorPacket as Parameters<typeof formatCounselorEvidencePacket>[0],
@@ -375,7 +359,6 @@ export async function prepareCounselorExecution(params: {
   const matrixProfileSection = buildMatrixProfileSection(
     matrixSnapshot,
     lang,
-    promptTheme,
     questionAnalysis
   )
   const counselorUiEvidence = encodeCounselorUiEvidence(matrixSnapshot, lang) || ''
@@ -390,7 +373,6 @@ export async function prepareCounselorExecution(params: {
     userId,
     service: 'counselor',
     lang: lang === 'ko' ? 'ko' : 'en',
-    theme: promptTheme,
     sessionId,
     questionText: lastUserContent,
     focusDomain: predictionPacket?.focusDomain,
@@ -420,38 +402,6 @@ export async function prepareCounselorExecution(params: {
     questionAnalysis,
     lang === 'ko' ? 'ko' : 'en'
   )
-
-  const themeDescriptions: Record<string, { ko: string; en: string }> = {
-    love: { ko: '연애/결혼/배우자 질문', en: 'Love, marriage, partner questions' },
-    career: { ko: '커리어/직업/사업 질문', en: 'Career, job, business questions' },
-    wealth: { ko: '재정/투자/돈 관련 질문', en: 'Money, investment, finance questions' },
-    health: { ko: '건강/회복/컨디션 질문', en: 'Health, wellness questions' },
-    family: { ko: '가족/대인관계 질문', en: 'Family, relationships questions' },
-    today: { ko: '오늘 운세 질문', en: "Today's fortune and advice" },
-    month: { ko: '이번 달 운세 질문', en: "This month's fortune" },
-    year: { ko: '올해 운세 질문', en: "This year's fortune" },
-    life: { ko: '인생 전반/총운 질문', en: 'Life overview, general counseling' },
-    chat: { ko: '자유 주제 상담', en: 'Free topic counseling' },
-  }
-  const themeDesc = themeDescriptions[promptTheme] || themeDescriptions.chat
-  const themeContext =
-    lang === 'ko'
-      ? [
-          `요청 원본 테마: ${effectiveTheme}`,
-          coreFocusDomain ? `현재 코어 초점 도메인: ${coreFocusDomain}` : '',
-          `실제 응답 축: ${promptTheme} (${themeDesc.ko})`,
-          '질문에 직접 답하고, 코어 초점과 맞는 근거를 우선 사용하세요.',
-        ]
-          .filter(Boolean)
-          .join('\n')
-      : [
-          `Requested theme: ${effectiveTheme}`,
-          coreFocusDomain ? `Current core focus domain: ${coreFocusDomain}` : '',
-          `Primary answer track: ${promptTheme} (${themeDesc.en})`,
-          'Answer the question first and prioritize evidence aligned with the core focus.',
-        ]
-          .filter(Boolean)
-          .join('\n')
 
   const fortuneIcpSection = buildFortuneWithIcpSection(counselingBrief, lang)
 
@@ -504,7 +454,6 @@ export async function prepareCounselorExecution(params: {
     contextSections,
     longTermMemorySection,
     predictionSection,
-    theme: promptTheme,
   })
 
   const baseContext = [
@@ -513,7 +462,6 @@ export async function prepareCounselorExecution(params: {
     questionAnalysisSection,
     counselingStructureGuide,
     canonicalCounselorSection,
-    themeContext,
     fortuneIcpSection,
     matrixProfileSection,
   ]
@@ -532,7 +480,6 @@ export async function prepareCounselorExecution(params: {
 
   return {
     lang,
-    promptTheme,
     chatPrompt,
     chatPromptCachedContext: split.cachedContext,
     chatPromptDynamicTail: split.dynamicTail,

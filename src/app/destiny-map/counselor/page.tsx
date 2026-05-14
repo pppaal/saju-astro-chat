@@ -43,10 +43,7 @@ export default function CounselorPage() {
     return result
   }, [rawSearchParams])
   const counselorSearchParams = useMemo<SearchParams>(
-    () => ({
-      ...sp,
-      theme: 'chat',
-    }),
+    () => ({ ...sp }),
     [sp]
   )
 
@@ -80,7 +77,6 @@ export default function CounselorPage() {
     initialQuestion,
     latitude,
     longitude,
-    selectedTheme,
   } = parsedParams
 
   // handleLogin removed alongside the guest banner. If we reintroduce
@@ -196,7 +192,6 @@ export default function CounselorPage() {
               longitude,
             }}
             lang={lang}
-            theme={selectedTheme}
             initialContext={initialQuestion ? `User's initial question: ${initialQuestion}` : ''}
             seedEvent="counselor:seed"
             saju={chartData?.saju}

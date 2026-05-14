@@ -95,13 +95,13 @@ export type NotificationsData = {
 }
 
 export type ContentData = {
-  consultations: { count: number; byTheme: Array<{ theme: string; count: number }> }
+  consultations: { count: number }
   destinyMatrix: {
     count: number
     byType: Array<{ reportType: string; count: number }>
     pdfGenerated: number
   }
-  tarotReadings: { count: number; byTheme: Array<{ theme: string | null; count: number }> }
+  tarotReadings: { count: number }
   readingsByType: Array<{ type: string; count: number }>
   pastLifeCount: number
   compatibilityCount: number

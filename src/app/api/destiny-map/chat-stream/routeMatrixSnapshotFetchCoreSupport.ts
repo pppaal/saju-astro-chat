@@ -252,7 +252,6 @@ export async function ensureAdvancedAstroData(input: {
   gender: 'male' | 'female'
   latitude: number
   longitude: number
-  theme: string
   advancedAstro?: Partial<CombinedResult>
 }): Promise<Partial<CombinedResult> | undefined> {
   if (hasAdvancedAstroCoverage(input.advancedAstro)) {
@@ -267,7 +266,7 @@ export async function ensureAdvancedAstroData(input: {
       latitude: input.latitude,
       longitude: input.longitude,
       gender: input.gender,
-      theme: input.theme,
+      theme: 'chat',
     })
 
     const computedAdvanced = pickAdvancedAstroFields(computed)
@@ -395,7 +394,6 @@ export async function fetchMatrixSnapshot(input: {
   natalChartData?: NatalChartData
   advancedAstro?: Partial<CombinedResult>
   currentTransits?: unknown[]
-  theme: string
   focusDomain?: InsightDomain
   questionText?: string
   needsPreciseTiming?: boolean
@@ -638,14 +636,15 @@ export async function fetchMatrixSnapshot(input: {
       lang: matrixLang,
       startYearMonth: `${new Date().getFullYear()}-01`,
     }
+    const crossSnapshotCategory = input.focusDomain || 'general'
     const matrixInput: MatrixCalculationInput = {
       ...baseMatrixInput,
       crossSnapshot: buildDerivedCrossSnapshot(
         baseMatrixInput as unknown as Record<string, unknown>,
         {
           source: 'chat-stream',
-          theme: input.theme,
-          category: input.theme,
+          theme: crossSnapshotCategory,
+          category: crossSnapshotCategory,
         }
       ),
     }
@@ -668,7 +667,7 @@ export async function fetchMatrixSnapshot(input: {
     if (
       matrixSummaryForCounselor &&
       !input.skipPreciseTiming &&
-      shouldBuildPreciseTiming(input.theme, input.needsPreciseTiming)
+      shouldBuildPreciseTiming(input.needsPreciseTiming)
     ) {
       try {
         const preciseTimelineSummary = await buildPreciseTimelineSummary(
@@ -692,7 +691,7 @@ export async function fetchMatrixSnapshot(input: {
       }
     }
     const baseCounselorPacket = buildCounselorEvidencePacket({
-      theme: input.theme as Parameters<typeof buildCounselorEvidencePacket>[0]['theme'],
+      theme: 'chat' as Parameters<typeof buildCounselorEvidencePacket>[0]['theme'],
       lang: matrixLang,
       focusDomainOverride: input.focusDomain,
       questionText: input.questionText,
@@ -786,7 +785,7 @@ export async function fetchMatrixSnapshot(input: {
     }
 
     const counselorEvidence = buildCounselorEvidencePacket({
-      theme: input.theme as Parameters<typeof buildCounselorEvidencePacket>[0]['theme'],
+      theme: 'chat' as Parameters<typeof buildCounselorEvidencePacket>[0]['theme'],
       lang: matrixLang,
       focusDomainOverride: input.focusDomain,
       questionText: input.questionText,
@@ -815,22 +814,10 @@ export async function fetchMatrixSnapshot(input: {
       score: point.cell?.interaction?.score || 0,
     }))
     const merged = [...strengths, ...cautions]
-    const themeDomainMap: Record<string, string> = {
-      love: 'love',
-      family: 'love',
-      career: 'career',
-      wealth: 'money',
-      health: 'health',
-      today: 'career',
-      month: 'career',
-      year: 'career',
-      life: 'career',
-      chat: 'general',
-    }
-    const themeDomain = input.focusDomain || themeDomainMap[input.theme] || 'career'
+    const focusEvidenceDomain = input.focusDomain || 'general'
     const crossEvidenceHighlights = collectCrossEvidenceHighlights(
       normalizedMatrixInput.crossSnapshot,
-      input.focusDomain || themeDomain
+      focusEvidenceDomain
     )
 
     return {
@@ -878,7 +865,9 @@ export async function fetchMatrixSnapshot(input: {
       layerThemeBriefs: (layerThemeProfiles || [])
         .slice(0, 6)
         .map((layer) => {
-          const insight = (layer.themeInsights || []).find((item) => item.domain === themeDomain)
+          const insight = (layer.themeInsights || []).find(
+            (item) => item.domain === focusEvidenceDomain
+          )
           const summary = matrixLang === 'ko' ? insight?.summaryKo : insight?.summaryEn
           if (!summary) return ''
           return `${layer.layerNameKo || layer.layerId || 'layer'}: ${summary}`

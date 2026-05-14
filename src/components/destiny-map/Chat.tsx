@@ -28,7 +28,6 @@ const Chat = memo(function Chat({
   profile,
   initialContext = '',
   lang = 'ko',
-  theme = 'chat',
   seedEvent = 'chat:seed',
   saju,
   astro,
@@ -58,7 +57,7 @@ const Chat = memo(function Chat({
     loadSession,
     deleteSession,
     startNewChat: hookStartNewChat,
-  } = useChatSession({ theme, lang, initialContext, saju, astro })
+  } = useChatSession({ lang, initialContext, saju, astro })
 
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
@@ -88,7 +87,6 @@ const Chat = memo(function Chat({
     messages,
     setMessages,
     profile,
-    theme,
     lang,
     saju,
     astro,
@@ -105,7 +103,6 @@ const Chat = memo(function Chat({
 
   const { feedback, handleFeedback } = useChatFeedback({
     sessionIdRef,
-    theme,
     lang,
     messages,
   })
@@ -156,7 +153,6 @@ const Chat = memo(function Chat({
 
     const payload = JSON.stringify({
       sessionId: sessionIdRef.current,
-      theme: theme || 'chat',
       locale: lang || 'ko',
       messages: messages.filter((m) => m.role !== 'system'),
     })
@@ -187,7 +183,7 @@ const Chat = memo(function Chat({
         clearTimeout(pendingSaveRef.current)
       }
     }
-  }, [messages, sessionLoaded, theme, lang, sessionIdRef])
+  }, [messages, sessionLoaded, lang, sessionIdRef])
 
   React.useEffect(() => {
     const handleBeforeUnload = () => {
@@ -228,7 +224,6 @@ const Chat = memo(function Chat({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: sessionIdRef.current,
-        theme: theme || 'chat',
         locale: lang || 'ko',
         messages: visibleMsgs,
         saju: saju || undefined,
@@ -243,7 +238,7 @@ const Chat = memo(function Chat({
       .catch((error) => {
         logger.warn('[Chat] Failed to update PersonaMemory:', error)
       })
-  }, [messages, sessionLoaded, theme, lang, saju, astro, sessionIdRef])
+  }, [messages, sessionLoaded, lang, saju, astro, sessionIdRef])
 
   const { showWelcome: showWelcomeBack } = useWelcomeBack({
     shouldShow: Boolean(userContext?.persona?.sessionCount && userContext.persona.sessionCount > 1),
@@ -378,7 +373,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
   }
 
   const visibleMessages = messages.filter((m) => m.role !== 'system')
-  const suggestedQs = getSuggestedQuestions(theme, lang)
+  const suggestedQs = getSuggestedQuestions(lang)
   const railSessions = sessionHistory.slice(0, 8)
 
   return (
@@ -543,7 +538,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         lang={lang}
         profile={profile}
         initialConcern={extractConcernFromMessages()}
-        theme={theme}
       />
     </div>
   )

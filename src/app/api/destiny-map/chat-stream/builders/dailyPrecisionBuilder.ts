@@ -25,20 +25,13 @@ import { logger } from '@/lib/logger';
  * 일진 정밀 분석 섹션 구성
  *
  * @param saju - Saju 데이터
- * @param theme - 테마
  * @param lang - 언어
  * @returns 일진 정밀 분석 프롬프트 섹션
  */
 export function buildDailyPrecisionSection(
   saju: SajuDataStructure | undefined,
-  theme: string,
   lang: string
 ): string {
-  // 'today'와 'chat' 테마에서만 활성화
-  if (theme !== 'today' && theme !== 'chat') {
-    return '';
-  }
-
   if (!saju?.dayMaster) {
     return '';
   }

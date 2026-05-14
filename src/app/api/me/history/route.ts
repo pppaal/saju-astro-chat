@@ -26,25 +26,6 @@ type DailyHistory = {
   records: ServiceRecord[]
 }
 
-// Format destiny map summary based on theme
-function formatDestinyMapSummary(theme?: string | null): string {
-  if (!theme) {
-    return 'Destiny Map 분석을 이용했습니다'
-  }
-
-  const themeLabels: Record<string, string> = {
-    focus_overall: '종합 운세',
-    focus_love: '연애운',
-    focus_career: '직장/사업운',
-    focus_money: '재물운',
-    focus_health: '건강운',
-    dream: '꿈 해석',
-  }
-
-  const label = themeLabels[theme] || theme
-  return `${label} 분석을 이용했습니다`
-}
-
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     try {
@@ -110,21 +91,21 @@ export const GET = withApiMiddleware(
           orderBy: { createdAt: 'desc' },
           take: perTableLimit,
           skip: offset > 0 ? Math.floor(offset / 9) : 0,
-          select: { id: true, createdAt: true, question: true, theme: true, spreadTitle: true },
+          select: { id: true, createdAt: true, question: true, spreadTitle: true },
         }),
         prisma.consultationHistory.findMany({
           where: { userId },
           orderBy: { createdAt: 'desc' },
           take: perTableLimit,
           skip: offset > 0 ? Math.floor(offset / 9) : 0,
-          select: { id: true, createdAt: true, theme: true, summary: true },
+          select: { id: true, createdAt: true, summary: true },
         }),
         prisma.userInteraction.findMany({
           where: { userId, type: { in: ['complete', 'view'] } },
           orderBy: { createdAt: 'desc' },
           take: minorTableLimit,
           skip: offset > 0 ? Math.floor(offset / 9) : 0,
-          select: { id: true, createdAt: true, type: true, service: true, theme: true },
+          select: { id: true, createdAt: true, type: true, service: true },
         }),
         prisma.dailyFortune.findMany({
           where: { userId },
@@ -200,35 +181,23 @@ export const GET = withApiMiddleware(
           id: t.id,
           date: t.createdAt.toISOString().split('T')[0],
           service: 'tarot' as string,
-          theme: (t.theme || undefined) as string | undefined,
+          theme: undefined as string | undefined,
           summary: t.question || t.spreadTitle || '타로 리딩',
           type: 'tarot-reading' as string,
         })),
         ...consultations.map((c) => ({
           id: c.id,
           date: c.createdAt.toISOString().split('T')[0],
-          service:
-            c.theme === 'dream'
-              ? 'dream'
-              : c.theme === 'life-prediction-timing'
-                ? 'life-prediction-timing'
-                : c.theme === 'life-prediction'
-                  ? 'life-prediction'
-                  : 'destiny-map',
-          theme: c.theme === 'dream' ? undefined : c.theme || undefined,
-          summary:
-            c.theme === 'dream'
-              ? c.summary || '꿈 해석'
-              : c.theme?.startsWith('life-prediction')
-                ? c.summary || '인생 예측'
-                : formatDestinyMapSummary(c.theme),
+          service: 'destiny-map',
+          theme: undefined as string | undefined,
+          summary: c.summary || 'Destiny Map 분석을 이용했습니다',
           type: 'consultation',
         })),
         ...interactions.map((i) => ({
           id: i.id,
           date: i.createdAt.toISOString().split('T')[0],
           service: i.service,
-          theme: (i.theme || undefined) as string | undefined,
+          theme: undefined as string | undefined,
           summary: undefined as string | undefined,
           type: 'interaction',
         })),
