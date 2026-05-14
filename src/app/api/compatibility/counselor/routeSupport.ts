@@ -1232,19 +1232,64 @@ function formatExtendedAstroForPrompt(
  * from JSON to prose. Skips short-term cycles when theme filter set
  * them to null. Drops the `hasX` flags — the presence of an entry
  * already implies the flag.
+ *
+ * Now also surfaces astrology timing (current transits, solar/lunar
+ * returns) per-person from the astro context. Previously these were
+ * computed by buildAutoAstroContext but only buried in the raw JSON
+ * dump — saju timing came through as clean prose while astro timing
+ * was an 80-aspect array the LLM had to dig out. Surfacing both
+ * here gives the two systems symmetric "what season are we in"
+ * signals.
  */
 function formatTimingForPrompt(
   timing: { person1: Record<string, unknown>; person2: Record<string, unknown> },
+  astro: { person1?: Record<string, unknown> | null; person2?: Record<string, unknown> | null },
   lang: 'ko' | 'en'
 ): string {
   const isKo = lang === 'ko'
   const header = isKo
-    ? '== 시기 흐름 (대운/세운/월운/일운) =='
-    : '== Timing (Daeun / Seun / Wolun / Ilun) =='
+    ? '== 시기 흐름 (사주 대운/세운 + 점성 트랜짓·리턴) =='
+    : '== Timing (Saju cycles + Astro transits/returns) =='
   const out: string[] = [header]
 
-  const renderSide = (label: string, side: Record<string, unknown>) => {
+  /**
+   * Pick top transit aspects: smallest orb first (tightest aspects
+   * matter most), then prefer slow-moving outer planets (Jupiter,
+   * Saturn, Uranus, Neptune, Pluto, Chiron) since their transits
+   * define multi-month seasons rather than day-scale flickers.
+   */
+  const SLOW = new Set(['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Chiron'])
+  type Aspect = {
+    from?: { name?: string; sign?: string }
+    to?: { name?: string; sign?: string }
+    type?: string
+    orb?: number
+    applying?: boolean
+  }
+  const pickTopTransits = (aspects: unknown, limit = 5): string[] => {
+    if (!Array.isArray(aspects)) return []
+    const list = (aspects as Aspect[]).filter(
+      (a) => a && a.from?.name && a.to?.name && a.type && typeof a.orb === 'number'
+    )
+    list.sort((a, b) => {
+      const aSlow = SLOW.has(String(a.from?.name)) ? 0 : 1
+      const bSlow = SLOW.has(String(b.from?.name)) ? 0 : 1
+      if (aSlow !== bSlow) return aSlow - bSlow
+      return (a.orb ?? 99) - (b.orb ?? 99)
+    })
+    return list.slice(0, limit).map((a) => {
+      const arrow = a.applying ? '↗' : '↘'
+      const fromName = String(a.from?.name)
+      const toName = String(a.to?.name)
+      const toSign = a.to?.sign ? ` ${a.to.sign}` : ''
+      return `${fromName} ${a.type} ${toName}${toSign} (orb ${(a.orb ?? 0).toFixed(1)}° ${arrow})`
+    })
+  }
+
+  const renderSide = (label: string, side: Record<string, unknown>, sideAstro?: Record<string, unknown> | null) => {
     const lines: string[] = []
+
+    // Saju side
     const d = side.daeunCurrent as Record<string, unknown> | null
     if (d) {
       const stem = d.heavenlyStem || d.stem || ''
@@ -1254,7 +1299,7 @@ function formatTimingForPrompt(
       const endAge = d.endAge
       const theme = d.theme || ''
       lines.push(
-        `${isKo ? '대운' : 'daeun'}: ${stem}${branch} ${elem} (${startAge}-${endAge}) — ${theme}`
+        `${isKo ? '사주 대운' : 'saju daeun'}: ${stem}${branch} ${elem} (${startAge}-${endAge}) — ${theme}`
       )
     }
     const sa = side.saeunCurrent as Record<string, unknown> | null
@@ -1265,7 +1310,7 @@ function formatTimingForPrompt(
       const yr = sa.year
       const sum = sa.summary || ''
       lines.push(
-        `${isKo ? '세운' : 'saeun'} ${yr}: ${stem}${branch} ${elem}${sum ? ' — ' + sum : ''}`
+        `${isKo ? '사주 세운' : 'saju saeun'} ${yr}: ${stem}${branch} ${elem}${sum ? ' — ' + sum : ''}`
       )
     }
     const w = side.wolunCurrent as Record<string, unknown> | null
@@ -1276,7 +1321,7 @@ function formatTimingForPrompt(
       const mo = w.month
       const sum = w.summary || ''
       lines.push(
-        `${isKo ? '월운' : 'wolun'} ${yr}-${mo}: ${stem}${branch}${sum ? ' — ' + sum : ''}`
+        `${isKo ? '사주 월운' : 'saju wolun'} ${yr}-${mo}: ${stem}${branch}${sum ? ' — ' + sum : ''}`
       )
     }
     const il = side.ilunCurrent as Record<string, unknown> | null
@@ -1288,9 +1333,52 @@ function formatTimingForPrompt(
       const da = il.day
       const sum = il.summary || ''
       lines.push(
-        `${isKo ? '일운' : 'ilun'} ${yr}-${mo}-${da}: ${stem}${branch}${sum ? ' — ' + sum : ''}`
+        `${isKo ? '사주 일운' : 'saju ilun'} ${yr}-${mo}-${da}: ${stem}${branch}${sum ? ' — ' + sum : ''}`
       )
     }
+
+    // Astro side — surface currentTransits + returns from already-computed
+    // buildAutoAstroContext output. No new calculation, just exposure.
+    if (sideAstro) {
+      const ct = sideAstro.currentTransits as Record<string, unknown> | undefined
+      if (ct) {
+        const asOf = ct.asOfIso ? String(ct.asOfIso).slice(0, 10) : ''
+        const major = pickTopTransits(ct.majorTransits, 5)
+        const fallback = major.length > 0 ? major : pickTopTransits(ct.aspects, 5)
+        if (fallback.length > 0) {
+          lines.push(
+            `${isKo ? '점성 트랜짓' : 'astro transits'}${asOf ? ` (${asOf})` : ''}:`
+          )
+          fallback.forEach((line) => lines.push(`  - ${line}`))
+        }
+      }
+      const returns = sideAstro.returns as Record<string, unknown> | undefined
+      const sr = returns?.solarReturn as Record<string, unknown> | undefined
+      if (sr) {
+        const asc = (sr.ascendant as Record<string, unknown> | undefined)?.sign
+        const planets = sr.planets as Array<Record<string, unknown>> | undefined
+        const sun = planets?.find((p) => String(p.name).toLowerCase() === 'sun')
+        const moon = planets?.find((p) => String(p.name).toLowerCase() === 'moon')
+        const yr = sr.returnYear || ''
+        const tag = `Asc ${asc || '-'}, Sun ${sun?.sign || '-'} h${sun?.house || '-'}, Moon ${moon?.sign || '-'} h${moon?.house || '-'}`
+        lines.push(
+          `${isKo ? '점성 솔라 리턴' : 'astro solar return'} ${yr}: ${tag}`
+        )
+      }
+      const lr = returns?.lunarReturn as Record<string, unknown> | undefined
+      if (lr) {
+        const asc = (lr.ascendant as Record<string, unknown> | undefined)?.sign
+        const planets = lr.planets as Array<Record<string, unknown>> | undefined
+        const moon = planets?.find((p) => String(p.name).toLowerCase() === 'moon')
+        const yr = lr.returnYear || ''
+        const mo = lr.returnMonth || ''
+        const tag = `Asc ${asc || '-'}, Moon ${moon?.sign || '-'} h${moon?.house || '-'}`
+        lines.push(
+          `${isKo ? '점성 루나 리턴' : 'astro lunar return'} ${yr}-${mo}: ${tag}`
+        )
+      }
+    }
+
     if (lines.length === 0) {
       lines.push(isKo ? '(시기 데이터 없음)' : '(no timing data)')
     }
@@ -1298,9 +1386,9 @@ function formatTimingForPrompt(
   }
 
   out.push('')
-  out.push(renderSide('A', timing.person1))
+  out.push(renderSide('A', timing.person1, astro.person1))
   out.push('')
-  out.push(renderSide('B', timing.person2))
+  out.push(renderSide('B', timing.person2, astro.person2))
 
   return out.join('\n')
 }

@@ -393,37 +393,88 @@ export async function POST(req: NextRequest) {
             import('@/lib/astrology/foundation/astrologyService'),
             import('@/lib/saju/orthodoxInterpretation'),
           ])
-          const buildPerson = async (p: CompatPerson) => {
+          /**
+           * Reuse already-computed saju + natal from the buildAuto*Context
+           * pass when possible. Previously this block re-ran calculateSajuData
+           * + calculateNatalChart for both people on every fresh request,
+           * doubling the per-pair compute. Falls back to fresh calculation
+           * only when the auto* enrichment didn't run (e.g., user supplied
+           * partial pre-computed data without the matrix-required shape).
+           */
+          const buildPerson = async (
+            p: CompatPerson,
+            cachedSaju: Record<string, unknown> | null,
+            cachedAstro: Record<string, unknown> | null
+          ) => {
             const tz = p.timeZone || 'Asia/Seoul'
             const gender = p.gender === 'female' || p.gender === 'F' ? 'female' : 'male'
             const koreanAge =
               new Date().getFullYear() - parseInt(String(p.date).split('-')[0], 10) + 1
-            const saju = calculateSajuData(p.date!, p.time || '12:00', gender, 'solar', tz)
-            ;(saju as unknown as Record<string, unknown>).orthodoxInterpretation =
-              buildOrthodoxInterpretation(saju, { koreanAge })
-            const [Y, M, D] = String(p.date).split('-').map(Number)
-            const [h, mi] = String(p.time || '12:00')
-              .split(':')
-              .map(Number)
-            const lat = typeof p.latitude === 'number' ? p.latitude : 37.5665
-            const lon = typeof p.longitude === 'number' ? p.longitude : 126.978
-            const natal = await calculateNatalChart({
-              year: Y,
-              month: M,
-              date: D,
-              hour: h,
-              minute: mi,
-              latitude: lat,
-              longitude: lon,
-              timeZone: tz,
-            })
-            return {
-              saju,
-              natal: { planets: natal.planets, ascendant: natal.ascendant },
-              koreanAge,
+
+            // Saju: reuse if it has the shape the matrix needs (pillars +
+            // dayMaster). calculateSajuData is sync and the matrix needs
+            // its output exactly.
+            type SajuShape = ReturnType<typeof calculateSajuData> & {
+              orthodoxInterpretation?: unknown
             }
+            const cachedAsRecord = cachedSaju as
+              | (Record<string, unknown> & { pillars?: unknown; dayMaster?: unknown })
+              | null
+            const looksLikeSaju = !!(
+              cachedAsRecord &&
+              cachedAsRecord.pillars &&
+              cachedAsRecord.dayMaster
+            )
+            const saju: SajuShape = looksLikeSaju
+              ? (cachedSaju as unknown as SajuShape)
+              : (calculateSajuData(
+                  p.date!,
+                  p.time || '12:00',
+                  gender,
+                  'solar',
+                  tz
+                ) as SajuShape)
+            if (!saju.orthodoxInterpretation) {
+              saju.orthodoxInterpretation = buildOrthodoxInterpretation(saju, { koreanAge })
+            }
+
+            // Natal: reuse from cachedAstro.natalData when present. Only
+            // planets + ascendant are needed for the matrix.
+            const cachedNatalData = (cachedAstro as { natalData?: Record<string, unknown> } | null)
+              ?.natalData
+            let natal: { planets: unknown; ascendant: unknown }
+            if (
+              cachedNatalData &&
+              Array.isArray(cachedNatalData.planets) &&
+              cachedNatalData.ascendant
+            ) {
+              natal = {
+                planets: cachedNatalData.planets,
+                ascendant: cachedNatalData.ascendant,
+              }
+            } else {
+              const [Y, M, D] = String(p.date).split('-').map(Number)
+              const [h, mi] = String(p.time || '12:00').split(':').map(Number)
+              const lat = typeof p.latitude === 'number' ? p.latitude : 37.5665
+              const lon = typeof p.longitude === 'number' ? p.longitude : 126.978
+              const fresh = await calculateNatalChart({
+                year: Y,
+                month: M,
+                date: D,
+                hour: h,
+                minute: mi,
+                latitude: lat,
+                longitude: lon,
+                timeZone: tz,
+              })
+              natal = { planets: fresh.planets, ascendant: fresh.ascendant }
+            }
+            return { saju, natal, koreanAge }
           }
-          const [A, B] = await Promise.all([buildPerson(p1ForMatrix), buildPerson(p2ForMatrix)])
+          const [A, B] = await Promise.all([
+            buildPerson(p1ForMatrix, effectivePerson1Saju, effectivePerson1Astro),
+            buildPerson(p2ForMatrix, effectivePerson2Saju, effectivePerson2Astro),
+          ])
           const matrix = buildCoupleMatrix(
             {
               saju: A.saju,
@@ -594,7 +645,14 @@ export async function POST(req: NextRequest) {
 
     const userPrompt = [
       `테마: ${themeContext}`,
-      `\n${formatTimingForPrompt(timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> }, normalizedLang)}`,
+      `\n${formatTimingForPrompt(
+        timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> },
+        {
+          person1: effectivePerson1Astro as Record<string, unknown> | null,
+          person2: effectivePerson2Astro as Record<string, unknown> | null,
+        },
+        normalizedLang
+      )}`,
       `\n== 품질 기준 ==\n${themeDepthGuide}`,
       `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
       historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
