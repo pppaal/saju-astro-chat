@@ -133,7 +133,9 @@ export function useTarotGame(): UseTarotGameReturn {
   const searchParams = useSearchParams()
   const categoryName = params?.categoryName as string | undefined
   const spreadId = params?.spreadId as string | undefined
-  const questionFromUrl = searchParams?.get('question') || ''
+  // 옛 진입 경로가 ?topic= 로 보낼 수 있어 fallback 으로도 읽는다.
+  const questionFromUrl =
+    searchParams?.get('question') || searchParams?.get('topic') || ''
   const analysisKeyFromUrl = searchParams?.get('analysisKey') || ''
   const restoreKeyFromUrl = searchParams?.get('restoreKey') || ''
   const deckFromUrl = searchParams?.get('deck') || ''

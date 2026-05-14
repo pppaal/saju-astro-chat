@@ -114,7 +114,7 @@ export default function TarotChatScreen() {
     const astroQ = includeAstrology ? '' : '&astro=0'
     // birthInfo가 있으면 결과 페이지로 전달해 saju/astro cross에 즉시 쓸 수 있게.
     const birthQ = birthInfo ? `&${buildBirthQuery(birthInfo)}` : ''
-    const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?topic=${q}&deck=${selectedDeck}${sajuQ}${astroQ}${birthQ}`
+    const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?question=${q}&deck=${selectedDeck}${sajuQ}${astroQ}${birthQ}`
     router.push(path)
   }
 
