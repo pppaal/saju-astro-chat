@@ -130,23 +130,10 @@ function toNumber(value: unknown): number | null {
   return null
 }
 
-/**
- * 장기 결정 테마(연애·결혼·가족·비즈니스)에서는 월운/일운이 노이즈가 된다.
- * 결혼할까/창업할까 같은 1-N년 결정에 "오늘 일진" 정보는 의미가 없어서 LLM이
- * 자칫 단기 신호를 장기 답에 끌어다 쓰는 실패를 만들 수 있다. 일반·운세
- * 테마처럼 단기 신호가 의미 있는 경우에만 wolun/ilun을 노출한다.
- */
-function shouldIncludeShortTermTiming(theme?: string): boolean {
-  if (!theme) return true
-  const longTerm = new Set(['love', 'business', 'family'])
-  return !longTerm.has(theme)
-}
-
 function extractTimingDetails(
   saju: Record<string, unknown> | null | undefined,
   age: number,
-  targetDate: Date,
-  theme?: string
+  targetDate: Date
 ): Record<string, unknown> {
   if (!saju) {
     return {
@@ -156,7 +143,7 @@ function extractTimingDetails(
       hasIlun: false,
     }
   }
-  const includeShortTerm = shouldIncludeShortTermTiming(theme)
+  const includeShortTerm = true
 
   const unse = asRecord(saju.unse)
   const daeWoon = asRecord(saju.daeWoon) || asRecord(saju.daeun)

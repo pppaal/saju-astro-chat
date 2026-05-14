@@ -20,7 +20,7 @@ import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehens
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
-import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
+import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
 
 export const dynamic = 'force-dynamic'
@@ -196,7 +196,6 @@ export async function POST(req: NextRequest) {
       fullContext,
       lang = context.locale,
       messages = [],
-      theme = 'general',
     } = validationResult.data
 
     const trimmedHistory = clampMessages(messages)
@@ -256,8 +255,8 @@ export async function POST(req: NextRequest) {
     const p2Age = getAgeFromBirthDate(persons?.[1]?.date)
     const currentYear = now.getFullYear()
     const timingDetails = {
-      person1: extractTimingDetails(effectivePerson1Saju, p1Age, now, String(theme || 'general')),
-      person2: extractTimingDetails(effectivePerson2Saju, p2Age, now, String(theme || 'general')),
+      person1: extractTimingDetails(effectivePerson1Saju, p1Age, now),
+      person2: extractTimingDetails(effectivePerson2Saju, p2Age, now),
     }
 
     try {
@@ -303,7 +302,6 @@ export async function POST(req: NextRequest) {
         person2Saju: effectivePerson2Saju,
         person1Astro: effectivePerson1Astro,
         person2Astro: effectivePerson2Astro,
-        theme,
       } as Record<string, unknown>)
     // 응답에 거의 인용되지 않는 raw 필드(napum 등)는 prune해서 prompt 노이즈를
     // 줄인다. 핵심 분석은 위 ==심화 분석== 블록에 이미 들어 있다.
@@ -564,18 +562,7 @@ export async function POST(req: NextRequest) {
       )
       .join('\n')
 
-    // Theme-specific context
-    const themeContextMap: Record<string, string> = {
-      general: lang === 'ko' ? '전반적인 궁합 상담' : 'General compatibility counseling',
-      love: lang === 'ko' ? '연애/결혼 궁합 전문 상담' : 'Romance/Marriage compatibility',
-      business:
-        lang === 'ko' ? '비즈니스 파트너십 궁합 상담' : 'Business partnership compatibility',
-      family: lang === 'ko' ? '가족 관계 궁합 상담' : 'Family relationship compatibility',
-    }
-    const themeContext =
-      themeContextMap[theme as string] || (lang === 'ko' ? '궁합 상담' : 'Compatibility counseling')
     const normalizedLang = lang === 'ko' ? 'ko' : 'en'
-    const themeDepthGuide = buildThemeDepthGuide(String(theme || 'general'), normalizedLang)
     const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
     // System prompt — counselor role.
@@ -644,8 +631,7 @@ export async function POST(req: NextRequest) {
       .join('\n')
 
     const userPrompt = [
-      `테마: ${themeContext}`,
-      `\n${formatTimingForPrompt(
+      `${formatTimingForPrompt(
         timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> },
         {
           person1: effectivePerson1Astro as Record<string, unknown> | null,
@@ -653,7 +639,6 @@ export async function POST(req: NextRequest) {
         },
         normalizedLang
       )}`,
-      `\n== 품질 기준 ==\n${themeDepthGuide}`,
       `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
       historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
       `\n== 사용자 질문 ==\n${userQuestion}`,
