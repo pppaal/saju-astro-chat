@@ -23,6 +23,8 @@ import {
 } from '@/lib/compatibility/compatibilityFusion'
 import type { SajuProfile, AstrologyProfile } from '@/lib/compatibility/cosmicCompatibility'
 import type { ExtendedAstrologyProfile } from '@/lib/compatibility/astrology/comprehensive'
+import type { ExtendedSajuCompatibility } from '@/lib/compatibility/saju/types'
+import type { ExtendedAstrologyCompatibility } from '@/lib/compatibility/astrology/comprehensive'
 import type { ChatMessage } from '@/lib/api'
 function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max)
@@ -850,6 +852,459 @@ function getAgeFromBirthDate(date?: string): number {
   return Math.max(0, age)
 }
 
+/**
+ * Bucket a raw score into a qualitative label. The LLM is forbidden
+ * from quoting raw numbers in the response (system rule), so we also
+ * relabel them at source. Bare numerics in the prompt invite drift —
+ * presenting "강세 (내부 78/100)" makes the bucket primary and the
+ * raw value advisory.
+ *
+ * Scale assumes 0–100 unless `max` is provided (use 1 for 0–1 ratios).
+ */
+function scoreLabel(value: number, lang: 'ko' | 'en', max = 100): string {
+  if (!Number.isFinite(value)) return ''
+  const pct = max === 1 ? value * 100 : (value / max) * 100
+  const ko = ['미약', '약함', '중', '중상', '강함', '매우 강함']
+  const en = ['minimal', 'soft', 'moderate', 'fairly steady', 'strong', 'very strong']
+  let idx = 0
+  if (pct >= 90) idx = 5
+  else if (pct >= 75) idx = 4
+  else if (pct >= 60) idx = 3
+  else if (pct >= 45) idx = 2
+  else if (pct >= 25) idx = 1
+  else idx = 0
+  return lang === 'ko' ? ko[idx] : en[idx]
+}
+
+/** Format a score as "label (raw)" — bucket primary, raw advisory. */
+function scoreWithLabel(
+  value: number,
+  lang: 'ko' | 'en',
+  max = 100
+): string {
+  if (!Number.isFinite(value)) return ''
+  const label = scoreLabel(value, lang, max)
+  const raw = max === 1 ? value.toFixed(2) : String(Math.round(value))
+  const tail = max === 1 ? '' : `/${max}`
+  return `${label} (${raw}${tail})`
+}
+
+/**
+ * Convert ExtendedSajuCompatibility (11 categories) from a verbose JSON
+ * dump into compact prose using the same `▷ 라벨` convention as the
+ * matrix and Fusion blocks. Skips empty arrays and dropped fields to
+ * cut noise. This is the largest JSON block in the prompt; converting
+ * to prose removes ~40% of its bytes and eliminates the JSON-key echo
+ * risk in responses.
+ */
+function formatExtendedSajuForPrompt(
+  s: ExtendedSajuCompatibility,
+  lang: 'ko' | 'en'
+): string {
+  const isKo = lang === 'ko'
+  const header = isKo ? '== 사주 심화 분석 ==' : '== Extended Saju Analysis =='
+  const out: string[] = [header]
+
+  out.push(
+    `${isKo ? '종합' : 'Overall'}: ${s.grade} · ${scoreWithLabel(s.overallScore, lang)} — ${s.summary}`
+  )
+
+  // 1. Ten Gods
+  out.push('')
+  out.push(`▷ ${isKo ? '십성 관계' : 'Ten Gods'}`)
+  out.push(
+    `A: ${s.tenGods.person1Primary.join('·') || '-'} / B: ${s.tenGods.person2Primary.join('·') || '-'} (${isKo ? '균형' : 'balance'} ${scoreLabel(s.tenGods.interaction.balance, lang)})`
+  )
+  if (s.tenGods.interaction.supports.length > 0)
+    out.push(`${isKo ? '보완' : 'supports'}: ${s.tenGods.interaction.supports.join(' / ')}`)
+  if (s.tenGods.interaction.conflicts.length > 0)
+    out.push(`${isKo ? '갈등' : 'conflicts'}: ${s.tenGods.interaction.conflicts.join(' / ')}`)
+  out.push(`${isKo ? '역학' : 'dynamics'}: ${s.tenGods.relationshipDynamics}`)
+
+  // 2. Shinsals
+  if (s.shinsals.person1Shinsals.length + s.shinsals.person2Shinsals.length > 0) {
+    out.push('')
+    out.push(`▷ ${isKo ? '신살' : 'Shinsals'} (${s.shinsals.overallImpact})`)
+    out.push(
+      `A: ${s.shinsals.person1Shinsals.join('·') || '-'} / B: ${s.shinsals.person2Shinsals.join('·') || '-'}`
+    )
+    if (s.shinsals.luckyInteractions.length > 0)
+      out.push(`+ ${s.shinsals.luckyInteractions.join(' / ')}`)
+    if (s.shinsals.unluckyInteractions.length > 0)
+      out.push(`- ${s.shinsals.unluckyInteractions.join(' / ')}`)
+  }
+
+  // 3. Harmonies (합)
+  const h = s.harmonies
+  if (h.yukhap.length + h.samhap.length + h.banghap.length > 0) {
+    out.push('')
+    out.push(
+      `▷ ${isKo ? '합' : 'Harmonies'} (${scoreWithLabel(h.score, lang)}): ${h.description}`
+    )
+    if (h.yukhap.length > 0) out.push(`${isKo ? '육합' : 'yukhap'}: ${h.yukhap.join(' / ')}`)
+    if (h.samhap.length > 0) out.push(`${isKo ? '삼합' : 'samhap'}: ${h.samhap.join(' / ')}`)
+    if (h.banghap.length > 0) out.push(`${isKo ? '방합' : 'banghap'}: ${h.banghap.join(' / ')}`)
+  }
+
+  // 4. Conflicts (충형파해)
+  const c = s.conflicts
+  if (c.totalConflicts > 0) {
+    out.push('')
+    out.push(
+      `▷ ${isKo ? '충·형·파·해' : 'Conflicts'}: ${c.totalConflicts}건 (${c.severity})`
+    )
+    if (c.chung.length > 0) out.push(`충: ${c.chung.join(' / ')}`)
+    if (c.hyeong.length > 0) out.push(`형: ${c.hyeong.join(' / ')}`)
+    if (c.pa.length > 0) out.push(`파: ${c.pa.join(' / ')}`)
+    if (c.hae.length > 0) out.push(`해: ${c.hae.join(' / ')}`)
+    if (c.mitigationAdvice.length > 0)
+      out.push(`${isKo ? '완화' : 'mitigation'}: ${c.mitigationAdvice.join(' / ')}`)
+  }
+
+  // 5. Yongsin
+  const y = s.yongsin
+  out.push('')
+  out.push(`▷ ${isKo ? '용신' : 'Yongsin'} (${scoreWithLabel(y.compatibility, lang)})`)
+  out.push(
+    `A: ${y.person1Yongsin}/${y.person1Huisin} · B: ${y.person2Yongsin}/${y.person2Huisin}` +
+      ` · ${isKo ? '상호 지원' : 'mutual support'}: ${y.mutualSupport ? 'yes' : 'no'}`
+  )
+  if (y.interpretation.length > 0) out.push(y.interpretation.join(' · '))
+
+  // 6. Daeun
+  const d = s.daeun
+  out.push('')
+  out.push(`▷ ${isKo ? '대운 동조' : 'Daeun sync'} (${scoreWithLabel(d.currentSynergy, lang, 1)})`)
+  out.push(
+    `A: ${d.person1CurrentDaeun.stem}${d.person1CurrentDaeun.branch} ${d.person1CurrentDaeun.element} (${d.person1CurrentDaeun.startAge}-${d.person1CurrentDaeun.endAge}) — ${d.person1CurrentDaeun.theme}`
+  )
+  out.push(
+    `B: ${d.person2CurrentDaeun.stem}${d.person2CurrentDaeun.branch} ${d.person2CurrentDaeun.element} (${d.person2CurrentDaeun.startAge}-${d.person2CurrentDaeun.endAge}) — ${d.person2CurrentDaeun.theme}`
+  )
+  if (d.harmonicPeriods.length > 0) out.push(`+ ${d.harmonicPeriods.join(' / ')}`)
+  if (d.challengingPeriods.length > 0) out.push(`- ${d.challengingPeriods.join(' / ')}`)
+  if (d.futureOutlook) out.push(d.futureOutlook)
+
+  // 7. Seun
+  const se = s.seun
+  out.push('')
+  out.push(
+    `▷ ${isKo ? '세운' : 'Seun'} ${se.year} (${se.yearStem}${se.yearBranch} ${se.yearElement})`
+  )
+  out.push(`A: ${se.person1Impact} · B: ${se.person2Impact}`)
+  if (se.combinedOutlook) out.push(se.combinedOutlook)
+  if (se.advice.length > 0) out.push(`${isKo ? '조언' : 'advice'}: ${se.advice.join(' / ')}`)
+
+  // 8. Gongmang
+  const g = s.gongmang
+  if (g.person1InP2Gongmang || g.person2InP1Gongmang || g.interpretation.length > 0) {
+    out.push('')
+    out.push(`▷ ${isKo ? '공망' : 'Gongmang'} (${g.impact})`)
+    out.push(
+      `A 공망: ${g.person1Gongmang.join('·') || '-'} · B 공망: ${g.person2Gongmang.join('·') || '-'}`
+    )
+    out.push(
+      `A→B 공망 진입: ${g.person1InP2Gongmang ? 'yes' : 'no'} · B→A: ${g.person2InP1Gongmang ? 'yes' : 'no'}`
+    )
+    if (g.interpretation.length > 0) out.push(g.interpretation.join(' · '))
+  }
+
+  // 9. GanHap
+  const gh = s.ganHap
+  if (gh.combinations.length > 0) {
+    out.push('')
+    out.push(
+      `▷ ${isKo ? '천간합' : 'Stem combos'} (${scoreWithLabel(gh.totalHarmony, lang, 1)}): ${gh.significance}`
+    )
+    gh.combinations.forEach((c) => {
+      out.push(
+        `- ${c.stem1}${c.stem2}합 (${c.pillar1}-${c.pillar2}) → ${c.resultElement}: ${c.description}`
+      )
+    })
+  }
+
+  // 10. Gyeokguk
+  const gk = s.gyeokguk
+  out.push('')
+  out.push(`▷ ${isKo ? '격국' : 'Gyeokguk'} (${gk.compatibility})`)
+  out.push(`A: ${gk.person1Gyeokguk} · B: ${gk.person2Gyeokguk} — ${gk.dynamics}`)
+  if (gk.strengths.length > 0) out.push(`+ ${gk.strengths.join(' / ')}`)
+  if (gk.challenges.length > 0) out.push(`- ${gk.challenges.join(' / ')}`)
+
+  // 11. Twelve states
+  const ts = s.twelveStates
+  out.push('')
+  out.push(
+    `▷ ${isKo ? '12운성' : '12 states'} (${scoreWithLabel(ts.energyCompatibility, lang)})`
+  )
+  out.push(
+    'A: ' + ts.person1States.map((p) => `${p.pillar}=${p.state}`).join('·')
+  )
+  out.push(
+    'B: ' + ts.person2States.map((p) => `${p.pillar}=${p.state}`).join('·')
+  )
+  if (ts.interpretation.length > 0) out.push(ts.interpretation.join(' · '))
+
+  if (s.detailedInsights.length > 0) {
+    out.push('')
+    out.push(`▷ ${isKo ? '핵심 인사이트' : 'Key insights'}`)
+    s.detailedInsights.forEach((i) => out.push(`- ${i}`))
+  }
+
+  return out.join('\n')
+}
+
+/**
+ * Convert ExtendedAstrologyCompatibility (up to 13 categories) into
+ * compact prose. Same rationale as formatExtendedSajuForPrompt.
+ * Optional `*Analysis` blocks are skipped when absent.
+ */
+function formatExtendedAstroForPrompt(
+  a: ExtendedAstrologyCompatibility,
+  lang: 'ko' | 'en'
+): string {
+  const isKo = lang === 'ko'
+  const header = isKo ? '== 점성 심화 분석 ==' : '== Extended Astrology Analysis =='
+  const out: string[] = [header]
+
+  out.push(
+    `${isKo ? '종합' : 'Overall'}: ${a.extendedGrade} · ${scoreWithLabel(a.extendedScore, lang)} — ${a.extendedSummary}`
+  )
+
+  // Aspects
+  out.push('')
+  out.push(
+    `▷ ${isKo ? '어스펙트' : 'Aspects'} (${scoreWithLabel(a.aspects.overallHarmony, lang)})`
+  )
+  if (a.aspects.keyInsights.length > 0)
+    a.aspects.keyInsights.forEach((k) => out.push(`- ${k}`))
+
+  // Synastry
+  const sy = a.synastry
+  out.push('')
+  out.push(`▷ ${isKo ? '시너스트리' : 'Synastry'} (${scoreWithLabel(sy.compatibilityIndex, lang)})`)
+  if (sy.strengths.length > 0) out.push(`+ ${sy.strengths.join(' / ')}`)
+  if (sy.challenges.length > 0) out.push(`- ${sy.challenges.join(' / ')}`)
+
+  // Composite chart (from composite-house.CompositeChartAnalysis)
+  const cc = a.compositeChart
+  out.push('')
+  out.push(`▷ ${isKo ? '컴포지트' : 'Composite'}`)
+  out.push(
+    `${cc.coreTheme} — ${cc.relationshipPurpose} (${isKo ? '장기성' : 'longevity'} ${scoreWithLabel(cc.longevityPotential, lang)})`
+  )
+  if (cc.strengths.length > 0) out.push(`+ ${cc.strengths.join(' / ')}`)
+  if (cc.growthAreas.length > 0) out.push(`▸ ${cc.growthAreas.join(' / ')}`)
+
+  if (a.degreeBasedAspects) {
+    const dba = a.degreeBasedAspects
+    out.push('')
+    out.push(`▷ ${isKo ? '도수 기반 어스펙트' : 'Degree aspects'}`)
+    out.push(
+      `${isKo ? '긴장' : 'tension'} ${scoreLabel(dba.tensionScore, lang)} · ${isKo ? '조화' : 'harmony'} ${scoreLabel(dba.harmonyScore, lang)} · ${isKo ? '균형' : 'balance'} ${scoreLabel(dba.overallBalance, lang)}`
+    )
+    if (dba.tightestAspect) {
+      const t = dba.tightestAspect
+      out.push(
+        `tightest: ${t.planet1} ${t.aspectType || '-'} ${t.planet2} (orb ${t.orb.toFixed(1)}°)`
+      )
+    }
+    if (dba.majorAspects.length > 0) {
+      const top = dba.majorAspects
+        .slice(0, 3)
+        .map((d) => `${d.planet1} ${d.aspectType || '-'} ${d.planet2} (orb ${d.orb.toFixed(1)}°)`)
+        .join(' / ')
+      out.push(`major: ${top}`)
+    }
+  }
+
+  if (a.mercuryAnalysis) {
+    const m = a.mercuryAnalysis
+    out.push('')
+    out.push(`▷ Mercury (${scoreWithLabel(m.mercuryCompatibility, lang)}) — ${m.communicationStyle}`)
+    if (m.intellectualSynergy)
+      out.push(`${isKo ? '지적 시너지' : 'intellectual synergy'}: ${m.intellectualSynergy}`)
+    if (m.strengths.length > 0) out.push(`+ ${m.strengths.join(' / ')}`)
+    if (m.potentialMiscommunications.length > 0)
+      out.push(`- ${m.potentialMiscommunications.join(' / ')}`)
+  }
+
+  if (a.jupiterAnalysis) {
+    const j = a.jupiterAnalysis
+    out.push('')
+    out.push(`▷ Jupiter (${scoreWithLabel(j.expansionCompatibility, lang)}) — ${j.sharedBeliefs}`)
+    if (j.blessingAreas.length > 0)
+      out.push(`+ ${isKo ? '축복' : 'blessing'}: ${j.blessingAreas.join(' / ')}`)
+    if (j.growthAreas.length > 0)
+      out.push(`▸ ${isKo ? '성장' : 'growth'}: ${j.growthAreas.join(' / ')}`)
+    if (j.potentialConflicts.length > 0)
+      out.push(`- ${j.potentialConflicts.join(' / ')}`)
+  }
+
+  if (a.saturnAnalysis) {
+    const sa = a.saturnAnalysis
+    out.push('')
+    out.push(
+      `▷ Saturn — ${sa.structureInRelationship} (${isKo ? '안정' : 'stability'} ${scoreLabel(sa.stabilityCompatibility, lang)} · ${isKo ? '장기' : 'long-term'} ${scoreLabel(sa.longTermPotential, lang)})`
+    )
+    if (sa.karmicLesson) out.push(`${isKo ? '카르마 교훈' : 'karmic'}: ${sa.karmicLesson}`)
+    if (sa.maturityAreas.length > 0)
+      out.push(`▸ ${isKo ? '성숙' : 'maturity'}: ${sa.maturityAreas.join(' / ')}`)
+    if (sa.challenges.length > 0) out.push(`- ${sa.challenges.join(' / ')}`)
+  }
+
+  if (a.outerPlanetsAnalysis) {
+    const op = a.outerPlanetsAnalysis
+    out.push('')
+    out.push(`▷ Outer planets (${scoreWithLabel(op.overallTranscendentScore, lang)})`)
+    out.push(
+      `Uranus ${scoreLabel(op.uranusInfluence.changeCompatibility, lang)} (${op.uranusInfluence.revolutionaryEnergy})` +
+        ` · Neptune ${scoreLabel(op.neptuneInfluence.spiritualConnection, lang)} (${op.neptuneInfluence.dreamyQualities})` +
+        ` · Pluto ${scoreLabel(op.plutoInfluence.transformationPotential, lang)} (${op.plutoInfluence.powerDynamics})`
+    )
+    if (op.generationalThemes.length > 0)
+      out.push(`${isKo ? '세대 테마' : 'generation'}: ${op.generationalThemes.join(' / ')}`)
+  }
+
+  if (a.nodeAnalysis) {
+    const n = a.nodeAnalysis
+    out.push('')
+    out.push(`▷ Nodes (${n.karmicRelationshipType}) — ${n.evolutionaryPurpose}`)
+    out.push(
+      `${isKo ? '북교점' : 'north node'}: ${scoreLabel(n.northNodeConnection.compatibility, lang)} — ${n.northNodeConnection.growthDirection}`
+    )
+    if (n.lifeLessons.length > 0)
+      out.push(`${isKo ? '인생 교훈' : 'lessons'}: ${n.lifeLessons.join(' / ')}`)
+  }
+
+  if (a.lilithAnalysis) {
+    const li = a.lilithAnalysis
+    out.push('')
+    out.push(
+      `▷ Lilith (${scoreWithLabel(li.lilithCompatibility, lang)}) — ${li.shadowDynamics}`
+    )
+    out.push(
+      `${isKo ? '자성 매력' : 'magnetic attraction'}: ${scoreLabel(li.magneticAttraction, lang)}`
+    )
+    if (li.repressedDesires.length > 0)
+      out.push(`${isKo ? '억압된 욕망' : 'repressed'}: ${li.repressedDesires.join(' / ')}`)
+    if (li.potentialChallenges.length > 0)
+      out.push(`- ${li.potentialChallenges.join(' / ')}`)
+  }
+
+  if (a.davisonChart) {
+    const dv = a.davisonChart
+    out.push('')
+    out.push(`▷ Davison — ${dv.relationshipIdentity}`)
+    out.push(
+      `Sun ${dv.relationshipSun.sign} · Moon ${dv.relationshipMoon.sign} · Asc ${dv.relationshipAscendant.sign}`
+    )
+    if (dv.emotionalFoundation)
+      out.push(`${isKo ? '감정 기반' : 'emotional foundation'}: ${dv.emotionalFoundation}`)
+    if (dv.coreStrengths.length > 0) out.push(`+ ${dv.coreStrengths.join(' / ')}`)
+    if (dv.relationshipPurpose) out.push(`${isKo ? '목적' : 'purpose'}: ${dv.relationshipPurpose}`)
+  }
+
+  if (a.progressedChart) {
+    const pg = a.progressedChart
+    out.push('')
+    out.push(`▷ Progressed — ${pg.currentRelationshipTheme}`)
+    out.push(
+      `Sun phase: ${pg.progressedSunPhase} · Moon phase: ${pg.progressedMoonPhase}`
+    )
+    if (pg.upcomingTrends.length > 0)
+      out.push(`${isKo ? '예정 흐름' : 'upcoming'}: ${pg.upcomingTrends.join(' / ')}`)
+    if (pg.timedInfluences.length > 0)
+      out.push(`${isKo ? '시기 영향' : 'timed'}: ${pg.timedInfluences.join(' / ')}`)
+  }
+
+  if (a.extendedInsights.length > 0) {
+    out.push('')
+    out.push(`▷ ${isKo ? '핵심 인사이트' : 'Key insights'}`)
+    a.extendedInsights.forEach((i) => out.push(`- ${i}`))
+  }
+
+  return out.join('\n')
+}
+
+/**
+ * Convert timing details (daeun/seun/wolun/ilun for both partners)
+ * from JSON to prose. Skips short-term cycles when theme filter set
+ * them to null. Drops the `hasX` flags — the presence of an entry
+ * already implies the flag.
+ */
+function formatTimingForPrompt(
+  timing: { person1: Record<string, unknown>; person2: Record<string, unknown> },
+  lang: 'ko' | 'en'
+): string {
+  const isKo = lang === 'ko'
+  const header = isKo
+    ? '== 시기 흐름 (대운/세운/월운/일운) =='
+    : '== Timing (Daeun / Seun / Wolun / Ilun) =='
+  const out: string[] = [header]
+
+  const renderSide = (label: string, side: Record<string, unknown>) => {
+    const lines: string[] = []
+    const d = side.daeunCurrent as Record<string, unknown> | null
+    if (d) {
+      const stem = d.heavenlyStem || d.stem || ''
+      const branch = d.earthlyBranch || d.branch || ''
+      const elem = d.element || ''
+      const startAge = d.startAge
+      const endAge = d.endAge
+      const theme = d.theme || ''
+      lines.push(
+        `${isKo ? '대운' : 'daeun'}: ${stem}${branch} ${elem} (${startAge}-${endAge}) — ${theme}`
+      )
+    }
+    const sa = side.saeunCurrent as Record<string, unknown> | null
+    if (sa) {
+      const stem = sa.heavenlyStem || sa.stem || ''
+      const branch = sa.earthlyBranch || sa.branch || ''
+      const elem = sa.element || ''
+      const yr = sa.year
+      const sum = sa.summary || ''
+      lines.push(
+        `${isKo ? '세운' : 'saeun'} ${yr}: ${stem}${branch} ${elem}${sum ? ' — ' + sum : ''}`
+      )
+    }
+    const w = side.wolunCurrent as Record<string, unknown> | null
+    if (w) {
+      const stem = w.heavenlyStem || w.stem || ''
+      const branch = w.earthlyBranch || w.branch || ''
+      const yr = w.year
+      const mo = w.month
+      const sum = w.summary || ''
+      lines.push(
+        `${isKo ? '월운' : 'wolun'} ${yr}-${mo}: ${stem}${branch}${sum ? ' — ' + sum : ''}`
+      )
+    }
+    const il = side.ilunCurrent as Record<string, unknown> | null
+    if (il) {
+      const stem = il.heavenlyStem || il.stem || ''
+      const branch = il.earthlyBranch || il.branch || ''
+      const yr = il.year
+      const mo = il.month
+      const da = il.day
+      const sum = il.summary || ''
+      lines.push(
+        `${isKo ? '일운' : 'ilun'} ${yr}-${mo}-${da}: ${stem}${branch}${sum ? ' — ' + sum : ''}`
+      )
+    }
+    if (lines.length === 0) {
+      lines.push(isKo ? '(시기 데이터 없음)' : '(no timing data)')
+    }
+    return [`▷ ${label}`, ...lines].join('\n')
+  }
+
+  out.push('')
+  out.push(renderSide('A', timing.person1))
+  out.push('')
+  out.push(renderSide('B', timing.person2))
+
+  return out.join('\n')
+}
+
 // Format fusion result for AI prompt
 /**
  * Format Fusion compatibility data for the prompt.
@@ -864,12 +1319,13 @@ function getAgeFromBirthDate(date?: string): number {
  */
 function formatFusionForPrompt(fusion: FusionCompatibilityResult, lang: string): string {
   const isKo = lang === 'ko'
+  const langKey: 'ko' | 'en' = isKo ? 'ko' : 'en'
   const scoreInfo = interpretCompatibilityScore(fusion.overallScore)
 
   const header = isKo ? '== 종합 궁합 분석 ==' : '== Comprehensive Compatibility =='
   const lines: string[] = [
     header,
-    `${isKo ? '등급/점수' : 'Grade/Score'}: ${scoreInfo.grade} ${scoreInfo.title} (${fusion.overallScore}/100)`,
+    `${isKo ? '등급' : 'Grade'}: ${scoreInfo.grade} ${scoreInfo.title} · ${scoreWithLabel(fusion.overallScore, langKey)}`,
     '',
     `▷ ${isKo ? 'AI 심층 분석' : 'AI Deep Analysis'}`,
     fusion.aiInsights.deepAnalysis,
@@ -899,13 +1355,13 @@ function formatFusionForPrompt(fusion: FusionCompatibilityResult, lang: string):
   lines.push('')
   lines.push(`▷ ${isKo ? '관계 역학' : 'Relationship Dynamics'}`)
   lines.push(
-    `- ${isKo ? '감정적 강도' : 'Emotional Intensity'}: ${dyn.emotionalIntensity}`
+    `- ${isKo ? '감정적 강도' : 'Emotional Intensity'}: ${scoreLabel(dyn.emotionalIntensity, langKey)}`
   )
   lines.push(
-    `- ${isKo ? '지적 조화' : 'Intellectual Alignment'}: ${dyn.intellectualAlignment}`
+    `- ${isKo ? '지적 조화' : 'Intellectual Alignment'}: ${scoreLabel(dyn.intellectualAlignment, langKey)}`
   )
   lines.push(
-    `- ${isKo ? '영적 연결' : 'Spiritual Connection'}: ${dyn.spiritualConnection}`
+    `- ${isKo ? '영적 연결' : 'Spiritual Connection'}: ${scoreLabel(dyn.spiritualConnection, langKey)}`
   )
   lines.push(
     `- ${isKo ? '갈등 해결 스타일' : 'Conflict Resolution Style'}: ${dyn.conflictResolutionStyle}`
@@ -937,6 +1393,11 @@ export {
   clampMessages,
   stringifyForPrompt,
   prunePromptContext,
+  scoreLabel,
+  scoreWithLabel,
+  formatExtendedSajuForPrompt,
+  formatExtendedAstroForPrompt,
+  formatTimingForPrompt,
   countObjectKeys,
   extractTimingDetails,
   buildPersonSeed,

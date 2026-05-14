@@ -102,6 +102,10 @@ import {
   buildExtendedAstroProfile,
   getAgeFromBirthDate,
   formatFusionForPrompt,
+  formatExtendedSajuForPrompt,
+  formatExtendedAstroForPrompt,
+  formatTimingForPrompt,
+  scoreLabel,
 } from './routeSupport'
 
 export async function POST(req: NextRequest) {
@@ -472,15 +476,20 @@ export async function POST(req: NextRequest) {
             })
             .filter((line): line is string => Boolean(line))
             .join('\n')
+          // 점수는 bucket label을 primary로, raw 숫자는 괄호 안에 보조로.
+          // 시스템 룰("raw 숫자 그대로 인용 금지")과 source 표기를 일치시켜
+          // LLM drift를 더 확실히 줄인다.
+          const langKey: 'ko' | 'en' = lang === 'ko' ? 'ko' : 'en'
+          const ds = s.domainScores
           coupleMatrixContext = [
             '== 커플 매트릭스 (9 레이어 셀-단위 사주×점성 교차) ==',
-            `종합 ${s.totalScore} / overlap ${s.overlapStrength} / polarity +${s.polarityBalance.positive}/-${s.polarityBalance.negative}`,
-            `도메인: 매력 ${s.domainScores.attraction} · 안정 ${s.domainScores.stability} · 성장 ${s.domainScores.growth} · 갈등견딤 ${s.domainScores.conflict} · 시기동기 ${s.domainScores.timing}`,
-            `Drivers: ${s.drivers.join(' / ') || '없음'}`,
-            `Cautions: ${s.cautions.join(' / ') || '없음'}`,
+            `종합 ${scoreLabel(s.totalScore, langKey)} (${s.totalScore}) · ${langKey === 'ko' ? '신호 겹침' : 'overlap'} ${scoreLabel(s.overlapStrength * 100, langKey)} · polarity +${s.polarityBalance.positive}/-${s.polarityBalance.negative}`,
+            `${langKey === 'ko' ? '도메인' : 'domains'}: ${langKey === 'ko' ? '매력' : 'attraction'} ${scoreLabel(ds.attraction, langKey)} · ${langKey === 'ko' ? '안정' : 'stability'} ${scoreLabel(ds.stability, langKey)} · ${langKey === 'ko' ? '성장' : 'growth'} ${scoreLabel(ds.growth, langKey)} · ${langKey === 'ko' ? '갈등견딤' : 'conflict'} ${scoreLabel(ds.conflict, langKey)} · ${langKey === 'ko' ? '시기동기' : 'timing'} ${scoreLabel(ds.timing, langKey)}`,
+            `Drivers: ${s.drivers.join(' / ') || (langKey === 'ko' ? '없음' : 'none')}`,
+            `Cautions: ${s.cautions.join(' / ') || (langKey === 'ko' ? '없음' : 'none')}`,
             `\n[Top positive cells]\n${top}`,
             `\n[Top caution cells]\n${bot}`,
-            `\n[레이어별 대표 셀]\n${perLayer}`,
+            `\n[${langKey === 'ko' ? '레이어별 대표 셀' : 'per-layer representative cells'}]\n${perLayer}`,
           ].join('\n')
           setCachedCoupleMatrixContext(cacheKey, coupleMatrixContext)
         } catch (err) {
@@ -571,10 +580,10 @@ export async function POST(req: NextRequest) {
       coupleMatrixContext ? `\n${coupleMatrixContext}` : '',
       fusionContext ? `\n${fusionContext}` : '',
       extendedSajuCompatibility
-        ? `\n== 사주 심화 분석 ==\n${stringifyForPrompt(extendedSajuCompatibility)}`
+        ? `\n${formatExtendedSajuForPrompt(extendedSajuCompatibility, normalizedLang)}`
         : '',
       extendedAstroCompatibility
-        ? `\n== 점성 심화 분석 ==\n${stringifyForPrompt(extendedAstroCompatibility)}`
+        ? `\n${formatExtendedAstroForPrompt(extendedAstroCompatibility, normalizedLang)}`
         : '',
       // contextTrace(키 개수, 커버리지 플래그 등)는 디버그 메타데이터 — 응답에
       // 쓸 정보가 아니므로 server log로만 남기고 prompt에는 포함하지 않는다.
@@ -585,7 +594,7 @@ export async function POST(req: NextRequest) {
 
     const userPrompt = [
       `테마: ${themeContext}`,
-      `\n== 시기 흐름 (대운/세운/월운/일운) ==\n${stringifyForPrompt(timingDetails)}`,
+      `\n${formatTimingForPrompt(timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> }, normalizedLang)}`,
       `\n== 품질 기준 ==\n${themeDepthGuide}`,
       `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
       historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
