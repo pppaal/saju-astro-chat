@@ -8,7 +8,7 @@ import BackButton from '@/components/ui/BackButton'
 import type { Spread } from '@/lib/tarot/tarot.types'
 import type { CardColorOption } from '@/lib/tarot/tarotThemeConfig'
 
-const TOTAL_CARDS = 22 // 메이저 아르카나 22장 펼치기
+const TOTAL_CARDS = 40 // 부채꼴 펼침 — 시각적으로 더 풍성하고 카드 선택 변화 폭 확보
 
 interface CardPickingScreenProps {
   locale: string
@@ -42,23 +42,24 @@ export function CardPickingScreen({
   const containerRef = useRef<HTMLDivElement>(null)
   const [constraints, setConstraints] = useState({ left: 0, right: 0 })
 
-  // 드래그 영역 계산
+  // 드래그 영역 계산 — 40장 호 폭(1400px) + 양쪽 여유 200px
   useEffect(() => {
     if (containerRef.current) {
       const containerWidth = containerRef.current.offsetWidth
-      const spreadWidth = 1400
-      const bound = Math.max(0, (spreadWidth - containerWidth) / 2 + 150)
+      const spreadWidth = 1600
+      const bound = Math.max(0, (spreadWidth - containerWidth) / 2 + 200)
       setConstraints({ left: -bound, right: bound })
     }
   }, [])
 
-  // 부채꼴 카드 위치 계산
+  // 부채꼴 카드 위치 계산 — 40장 기준으로 호 폭/곡률 재조정
   const getCardStyle = (index: number) => {
     const progress = index / (TOTAL_CARDS - 1)
     const normalized = progress - 0.5
-    const x = normalized * 1200
-    const y = Math.pow(normalized * 2, 2) * 45
-    const rotate = normalized * 35
+    // 카드 수 늘어난 만큼 호 폭 1400px 로 확장 (드래그로 양옆 탐색)
+    const x = normalized * 1400
+    const y = Math.pow(normalized * 2, 2) * 55
+    const rotate = normalized * 45
     return { x, y, rotate }
   }
 
@@ -173,12 +174,8 @@ export function CardPickingScreen({
                   rotate: sp.rotate,
                   scale: isPicked ? 0.85 : 1,
                 }}
-                transition={{
-                  duration: 0.6,
-                  type: 'spring',
-                  stiffness: 200,
-                  damping: 20,
-                }}
+                // 마운트 fan-out 만 spring — hover/drag 동안에는 빠른 tween 사용 (40장 spring physics 비용 회피)
+                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 whileHover={
                   !isPicked && selectedIndices.length < MAX_SELECTED
                     ? {
@@ -186,6 +183,7 @@ export function CardPickingScreen({
                         scale: 1.08,
                         rotate: 0,
                         zIndex: 100,
+                        transition: { duration: 0.18, ease: 'easeOut' },
                       }
                     : undefined
                 }
@@ -195,6 +193,7 @@ export function CardPickingScreen({
                   zIndex: index,
                   pointerEvents: isPicked ? 'none' : 'auto',
                   background: selectedColor.gradient,
+                  willChange: 'transform',
                 }}
               >
                 {/* 카드 뒷면 — 선택된 덱 이미지 */}

@@ -741,27 +741,7 @@ export function useTarotInterpretation({
         return await response.json()
       }
 
-      // Always prefer backend Hybrid RAG first so every question is interpreted
-      // with question-aware tarot context (Evidence + domain rules).
-      const shouldPreferBackendRag = true
-      if (shouldPreferBackendRag) {
-        try {
-          const ragResult = await requestNonStreamInterpretation(PRIMARY_INTERPRET_TIMEOUT_MS)
-          if (ragResult) {
-            return {
-              ...ragResult,
-              interpretation_source: ragResult.interpretation_source || 'backend_rag',
-            }
-          }
-        } catch (ragError) {
-          tarotLogger.error(
-            'Backend RAG interpretation failed, trying stream fallback',
-            ragError instanceof Error ? ragError : undefined
-          )
-        }
-      }
-
-      // 1) 스트리밍 엔드포인트 시도
+      // 1) 스트리밍 엔드포인트 우선 — 깨끗한 LLM 출력 (post-processor 템플릿 없음)
       try {
         const response = await apiFetchWithTimeout(
           '/api/tarot/interpret-stream',
@@ -883,12 +863,28 @@ export function useTarotInterpretation({
         throw new Error('Stream interpretation failed')
       } catch (streamError) {
         tarotLogger.error(
-          'Streaming interpretation failed, using local fallback',
+          'Streaming interpretation failed, trying non-stream interpret',
           streamError instanceof Error ? streamError : undefined
         )
       }
 
-      // 2) Final fallback with personalized renderable copy
+      // 2) Non-stream interpret 폴백 — 스트리밍이 죽었을 때만.
+      try {
+        const ragResult = await requestNonStreamInterpretation(PRIMARY_INTERPRET_TIMEOUT_MS)
+        if (ragResult) {
+          return {
+            ...ragResult,
+            interpretation_source: ragResult.interpretation_source || 'gpt_fallback',
+          }
+        }
+      } catch (nonStreamError) {
+        tarotLogger.error(
+          'Non-stream interpret failed, using local fallback',
+          nonStreamError instanceof Error ? nonStreamError : undefined
+        )
+      }
+
+      // 3) Final fallback with personalized renderable copy
       return buildPersonalizedFallback(result, userTopic, isKorean, personalizationOptions)
     },
     [categoryName, spreadId, language, session, userTopic, questionAnalysis, personalizationOptions]
