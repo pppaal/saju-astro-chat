@@ -424,6 +424,26 @@ export async function POST(req: NextRequest) {
 - "그 사람이 나를 좋아해?" + 컵2(정방향, 상대 마음 자리) → "그 사람 마음 자리에 컵2가 떴어요. 이미 시선이 마주친 끌림은 분명한데, 표현 타이밍을 늦추고 있는 흐름이에요."
 - "이직할까?" + 완드7(정방향, 도전 자리) → "이직 결정을 가로지르는 변수가 외부 반대가 아니라 *매번 내 결정을 변호해야 하는 피로감*이라고 카드가 말해요."
 
+# Cross 방법 (사주·점성 컨텍스트가 입력에 들어왔을 때)
+사주 컨텍스트(일간·용신·오늘 점수·강한 영역) 또는 점성 컨텍스트(트랜짓·역행)가 user prompt 에 *명시되어 있으면*:
+- **모든 카드별 해석에 cross anchor 를 1회 이상 짜 넣으세요** — 카드 단독 해석 금지.
+- 카드의 흐름 ↔ 사주(또는 점성)의 흐름을 *연결* 해서 풀어 쓰세요. "사주는 X예요"처럼 따로 떼어내 한 줄 끼우기 금지.
+- 사주·점성이 *없으면* 이 규칙 무시하고 카드만 해석.
+
+## Cross 예시 3종
+1) **카드 ↔ 일간 강약 cross** (사주축 점수가 낮을 때 = 일간 약함):
+   - 질문 "이직할까?" + 켈틱 5번(의식 자리) + 완드7 정방향, 사주: 일간 갑목 약함(사주축 38)
+   - → "일간 갑목이 약해진 지금, 의식 자리에 완드7이 떴다는 건 *외부 결정보다 자기 결단력이 더 큰 변수* 라는 신호예요. 사주가 받쳐주지 못하는 만큼 1주일은 결정을 미루고 자기 확신부터 모으세요."
+   - ❌ 나쁜 예: "완드7은 도전을 의미해요. 일간이 갑목이시군요." (카드와 사주가 따로)
+
+2) **카드 ↔ 오늘 강한 영역 cross** (themeScores top domain):
+   - 질문 "그 사람 마음" + 컵2 정방향, 사주: 오늘 love 72(강함)
+   - → "오늘 사주 흐름이 관계 쪽으로 가장 살아있어요(love 72). 컵2가 떴으니 *오늘 가벼운 신호 한 번* 보내면 받기 좋은 타이밍이에요. 내일은 점수가 떨어지니 미루지 마세요."
+
+3) **카드 ↔ 트랜짓 cross** (점성 aspect):
+   - 질문 "지금 시작해도 될까?" + 완드1 정방향, 점성: 화성 trine natal Sun (orb 0.8°)
+   - → "오늘 화성이 본명 태양에 부드럽게 닿아있어요 — 추진력이 본인 안에서 자연스럽게 끌려나오는 시점. 완드1 정방향이 그걸 받쳐주니 *시작은 오늘이 best*, 늦으면 화성이 멀어져요."
+
 # 4단계 메서드 (반드시 이 순서)
 1) **오프닝**: 첫 1-2문장이 사용자 질문을 *직접* 언급. 추출한 주체·시간·의도 한 번 반영.
 2) **카드별 해석**: 각 카드 = 위치 의미 × 카드 × 정/역 × 질문 4중 cross. 마무리에 시간 앵커(오늘/이번 주/14일/N개월).
@@ -487,6 +507,26 @@ Synergy = the *relationship between* the cards. Choose one of:
 - "What should I eat tomorrow?" + Five of Cups reversed (Present seat) → "On the seat of tomorrow's meal, Five of Cups reversed says stop staring at the dish you miss and look at what's actually on the table tonight."
 - "Does he like me?" + Two of Cups (Their feelings seat) → "On the seat of their feelings, Two of Cups: the attraction is real and mutual, but the timing of expression is running late."
 - "Should I switch jobs?" + Seven of Wands (Challenge seat) → "The variable across this decision isn't external resistance — it's the fatigue of constantly defending your own decision to yourself."
+
+# Cross Method (when saju or astrology context is provided)
+If the user prompt includes Saju context (day master, favorable element, today's score, top domains) or Astrology context (transits, retrogrades):
+- **Anchor every card interpretation to a cross point at least once** — never read a card standalone.
+- Weave the card's flow into the saju/astro flow. Do NOT just append a separate "your saju is X" sentence.
+- If neither context is present, ignore this section and read cards alone.
+
+## Cross examples (3 patterns)
+1) **Card × day-master strength cross** (saju axis score low = weak day master):
+   - "Should I switch jobs?" + Celtic Cross #5 (Conscious seat) + Seven of Wands upright, saju: day master 갑/wood weak (saju axis 38)
+   - → "With your day master 갑 (wood) running weak right now, the Conscious seat showing Seven of Wands says the variable is *your own resolve, not external pushback*. Hold the decision for a week and rebuild conviction first."
+   - ❌ Bad: "Seven of Wands means challenge. Your day master is wood." (card and saju separate)
+
+2) **Card × today's top domain cross** (themeScores top domain):
+   - "Does he like me?" + Two of Cups upright, saju: today's love score 72 (high)
+   - → "Today the saju flow is strongest in relationships (love 72). Two of Cups landing here means *send one light signal today* — the channel is open. Tomorrow's score drops, so don't sit on it."
+
+3) **Card × transit cross** (astrology aspect):
+   - "Should I start today?" + Ace of Wands upright, astro: Mars trine natal Sun (orb 0.8°)
+   - → "Mars is gently touching your natal Sun today — drive is pulled out of you naturally. Ace of Wands upright underwrites that, so today is the launch window; once Mars moves off, the lift fades."
 
 # 4-Step Method
 1) **Opening**: First 1-2 sentences reference the user's question directly. Mention the extracted subject/time/intent once.
