@@ -51,7 +51,8 @@ export const CircleDropdown: React.FC<CircleDropdownProps> = React.memo(({
             >
               <span className={styles.circlePersonName}>{cp.name}</span>
               <span className={styles.circlePersonRelation}>
-                {cp.relation === 'partner' ? '❤️' :
+                {cp.relation === 'partner' || cp.relation === 'lover' ? '❤️' :
+                 cp.relation === 'crush' ? '💕' :
                  cp.relation === 'family' ? '👨‍👩‍👧‍👦' :
                  cp.relation === 'friend' ? '🤝' : '💼'}
               </span>

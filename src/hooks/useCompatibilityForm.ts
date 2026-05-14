@@ -77,7 +77,7 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
       setPersons((prev) => {
         const next = [...prev]
         const mapRelation = (rel: string): Relation => {
-          if (rel === 'partner') {
+          if (rel === 'partner' || rel === 'lover' || rel === 'crush') {
             return 'lover'
           }
           if (rel === 'friend') {

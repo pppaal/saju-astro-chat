@@ -27,6 +27,12 @@ import AuthGate from '@/components/auth/AuthGate'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { logger } from '@/lib/logger'
+import BirthInfoModal from '@/app/(main)/components/BirthInfoModal'
+import {
+  getStoredBirthInfo,
+  type StoredBirthInfo,
+} from '@/app/(main)/birthInfoStorage'
+import { searchCities } from '@/lib/cities'
 
 type ServiceKey = 'tarot' | 'compatibility' | 'report' | 'calendar' | 'counselor'
 
@@ -74,6 +80,9 @@ interface CirclePerson {
   birthTime?: string | null
   gender?: string | null
   birthCity?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  tzId?: string | null
 }
 
 function classifyService(serviceId: string): ServiceKey {
@@ -95,13 +104,45 @@ const SERVICE_META: Record<
   counselor: { label: '카운슬러', href: '/destiny-counselor', bar: 'bg-pink-400' },
 }
 
-const RELATION_PRESETS = [
-  { value: '연인', label: '연인' },
-  { value: '썸/관심', label: '썸/관심' },
-  { value: '친구', label: '친구' },
-  { value: '가족', label: '가족' },
-  { value: '동료', label: '동료' },
+// Canonical relation keys match the values CircleDropdown + useCompatibilityForm
+// already understand. Korean labels are display-only.
+type RelationKey = 'partner' | 'crush' | 'friend' | 'family' | 'colleague'
+
+const RELATION_PRESETS: ReadonlyArray<{ key: RelationKey; label: string }> = [
+  { key: 'partner', label: '연인' },
+  { key: 'crush', label: '썸/관심' },
+  { key: 'friend', label: '친구' },
+  { key: 'family', label: '가족' },
+  { key: 'colleague', label: '동료' },
 ]
+
+const RELATION_LABEL: Record<string, string> = {
+  partner: '연인',
+  lover: '연인',
+  crush: '썸/관심',
+  friend: '친구',
+  family: '가족',
+  colleague: '동료',
+}
+
+function relationDisplay(rel: string): string {
+  return RELATION_LABEL[rel] || rel
+}
+
+function cityLabel(c: CitySuggestion): string {
+  return c.displayKr || c.displayEn || `${c.name}, ${c.country}`
+}
+
+interface CitySuggestion {
+  name: string
+  country: string
+  lat: number
+  lon: number
+  nameKr?: string
+  countryKr?: string
+  displayKr?: string
+  displayEn?: string
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -127,6 +168,7 @@ export default function ProfilePage() {
   const [editingName, setEditingName] = useState(false)
   const [draftName, setDraftName] = useState('')
   const [showAddPerson, setShowAddPerson] = useState(false)
+  const [showBirthModal, setShowBirthModal] = useState(false)
 
   useEffect(() => {
     if (status !== 'authenticated') return
@@ -218,11 +260,13 @@ export default function ProfilePage() {
 
   const handleAddPerson = async (payload: {
     name: string
-    relation: string
+    relation: RelationKey
     birthDate?: string
     birthTime?: string
     gender?: 'male' | 'female'
     birthCity?: string
+    latitude?: number | null
+    longitude?: number | null
   }) => {
     try {
       const res = await fetch('/api/me/circle', {
@@ -406,7 +450,11 @@ export default function ProfilePage() {
 
             {/* Birth info card */}
             <motion.section variants={itemVariants}>
-              <BirthInfoCard user={user} loading={loading} />
+              <BirthInfoCard
+                user={user}
+                loading={loading}
+                onEdit={() => setShowBirthModal(true)}
+              />
             </motion.section>
 
             {/* Saved connections — usable in compatibility readings */}
@@ -517,6 +565,34 @@ export default function ProfilePage() {
           />
         )}
 
+        {/* Birth info modal — saves locally + syncs to /api/me/profile */}
+        <BirthInfoModal
+          open={showBirthModal}
+          initial={birthInfoFromUser(user) || (typeof window !== 'undefined' ? getStoredBirthInfo() : null)}
+          onClose={() => setShowBirthModal(false)}
+          onSaved={async (info: StoredBirthInfo) => {
+            try {
+              const res = await fetch('/api/me/profile', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  birthDate: info.birthDate,
+                  birthTime: info.birthTime,
+                  gender: info.gender,
+                  birthCity: info.city,
+                }),
+              })
+              if (res.ok) {
+                const json = await res.json()
+                if (json?.user) setUser(json.user)
+              }
+            } catch (err) {
+              logger.warn('[profile] birth info API sync failed', err)
+            }
+            setShowBirthModal(false)
+          }}
+        />
+
         <style jsx global>{`
           .hide-scrollbar::-webkit-scrollbar {
             display: none;
@@ -565,7 +641,35 @@ function StatCard({
   return href ? <Link href={href}>{inner}</Link> : <div>{inner}</div>
 }
 
-function BirthInfoCard({ user, loading }: { user: ProfileUser | null; loading: boolean }) {
+function birthInfoFromUser(user: ProfileUser | null): StoredBirthInfo | null {
+  if (!user?.birthDate) return null
+  const gender =
+    user.gender === 'male' || user.gender === 'Male'
+      ? 'male'
+      : user.gender === 'female' || user.gender === 'Female'
+        ? 'female'
+        : null
+  if (!gender) return null
+  const birthTime = user.birthTime || '00:00'
+  return {
+    birthDate: user.birthDate,
+    birthTime,
+    birthTimeUnknown: birthTime === '00:00',
+    gender,
+    city: user.birthCity || undefined,
+    savedAt: new Date().toISOString(),
+  }
+}
+
+function BirthInfoCard({
+  user,
+  loading,
+  onEdit,
+}: {
+  user: ProfileUser | null
+  loading: boolean
+  onEdit: () => void
+}) {
   const hasBirth = Boolean(user?.birthDate)
   return (
     <div className="rounded-2xl border border-white bg-white/70 p-5 shadow-lg shadow-purple-900/5 backdrop-blur-xl">
@@ -576,12 +680,13 @@ function BirthInfoCard({ user, loading }: { user: ProfileUser | null; loading: b
           </div>
           <span className="text-xs font-semibold text-slate-500">내 사주 정보</span>
         </div>
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={onEdit}
           className="text-xs font-bold text-purple-600 transition-colors hover:text-purple-800"
         >
           {hasBirth ? '수정' : '입력하기'}
-        </Link>
+        </button>
       </div>
       {loading ? (
         <p className="text-sm text-slate-400">불러오는 중...</p>
@@ -663,7 +768,7 @@ function PersonCard({
       </div>
       <span className="text-sm font-bold text-slate-700">{person.name}</span>
       <span className="mt-1 rounded-full bg-purple-100/50 px-2.5 py-0.5 text-[10px] font-medium text-purple-600/80">
-        {person.relation}
+        {relationDisplay(person.relation)}
       </span>
     </div>
   )
@@ -702,39 +807,67 @@ function AddPersonModal({
   onClose: () => void
   onSubmit: (payload: {
     name: string
-    relation: string
+    relation: RelationKey
     birthDate?: string
     birthTime?: string
     gender?: 'male' | 'female'
     birthCity?: string
+    latitude?: number | null
+    longitude?: number | null
   }) => Promise<boolean>
 }) {
   const [name, setName] = useState('')
-  const [relation, setRelation] = useState('연인')
+  const [relation, setRelation] = useState<RelationKey>('partner')
   const [birthDate, setBirthDate] = useState('')
   const [birthTime, setBirthTime] = useState('')
   const [timeUnknown, setTimeUnknown] = useState(false)
   const [gender, setGender] = useState<'male' | 'female' | ''>('')
-  const [birthCity, setBirthCity] = useState('')
+  const [cityQuery, setCityQuery] = useState('')
+  const [cityFocused, setCityFocused] = useState(false)
+  const [citySuggestions, setCitySuggestions] = useState<CitySuggestion[]>([])
+  const [pickedCity, setPickedCity] = useState<CitySuggestion | null>(null)
   const [saving, setSaving] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const canSave = name.trim().length > 0 && relation.trim().length > 0 && !saving
+  const canSave = name.trim().length > 0 && !saving
+
+  // Debounced city search (mirrors BirthInfoModal pattern)
+  useEffect(() => {
+    if (!cityFocused) return
+    if (pickedCity && cityQuery === cityLabel(pickedCity)) return
+    const q = cityQuery.trim()
+    if (q.length < 1) {
+      setCitySuggestions([])
+      return
+    }
+    const id = setTimeout(async () => {
+      try {
+        const hits = (await searchCities(q, { limit: 8 })) as CitySuggestion[]
+        setCitySuggestions(hits || [])
+      } catch {
+        setCitySuggestions([])
+      }
+    }, 150)
+    return () => clearTimeout(id)
+  }, [cityQuery, cityFocused, pickedCity])
 
   const submit = async () => {
     if (!canSave) return
     setSaving(true)
+    setErrorMsg(null)
     const ok = await onSubmit({
       name: name.trim(),
-      relation: relation.trim(),
+      relation,
       birthDate: birthDate || undefined,
       birthTime: timeUnknown ? '00:00' : birthTime || undefined,
       gender: gender || undefined,
-      birthCity: birthCity.trim() || undefined,
+      birthCity: pickedCity ? cityLabel(pickedCity) : cityQuery.trim() || undefined,
+      latitude: pickedCity?.lat ?? null,
+      longitude: pickedCity?.lon ?? null,
     })
     setSaving(false)
     if (!ok) {
-      // best-effort: surface a minimal hint
-      // (validation errors from API are already logged via fetch failure path)
+      setErrorMsg('저장에 실패했어요. 입력값을 다시 확인해 주세요.')
     }
   }
 
@@ -779,10 +912,10 @@ function AddPersonModal({
               {RELATION_PRESETS.map((r) => (
                 <button
                   type="button"
-                  key={r.value}
-                  onClick={() => setRelation(r.value)}
+                  key={r.key}
+                  onClick={() => setRelation(r.key)}
                   className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                    relation === r.value
+                    relation === r.key
                       ? 'bg-purple-500 text-white'
                       : 'bg-purple-100/60 text-purple-700 hover:bg-purple-200/60'
                   }`}
@@ -852,17 +985,53 @@ function AddPersonModal({
                 ))}
               </div>
             </div>
-            <div>
+            <div className="relative">
               <label className="mb-1 block text-xs font-semibold text-slate-600">출생 도시</label>
               <input
                 type="text"
-                value={birthCity}
-                onChange={(e) => setBirthCity(e.target.value)}
+                value={cityQuery}
+                onChange={(e) => {
+                  setCityQuery(e.target.value)
+                  setPickedCity(null)
+                  setCityFocused(true)
+                }}
+                onFocus={() => setCityFocused(true)}
+                onBlur={() => setTimeout(() => setCityFocused(false), 150)}
                 placeholder="예: 서울"
+                autoComplete="off"
                 className="w-full rounded-xl border border-purple-100 bg-purple-50/40 px-3 py-2.5 text-sm text-slate-800 outline-none ring-purple-300 focus:ring-2"
               />
+              {cityFocused && citySuggestions.length > 0 && (
+                <ul className="absolute left-0 right-0 top-full z-10 mt-1 max-h-44 overflow-y-auto rounded-xl border border-purple-200 bg-white p-1 shadow-xl shadow-purple-900/10">
+                  {citySuggestions.map((s, i) => (
+                    <li key={`${s.name}-${s.country}-${i}`}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          setPickedCity(s)
+                          setCityQuery(cityLabel(s))
+                          setCitySuggestions([])
+                          setCityFocused(false)
+                        }}
+                        className="block w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-700 hover:bg-purple-100"
+                      >
+                        {cityLabel(s)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {pickedCity && (
+                <p className="mt-1 text-[10px] text-purple-600/80">
+                  ✓ {pickedCity.lat.toFixed(2)}, {pickedCity.lon.toFixed(2)} 좌표 저장됨
+                </p>
+              )}
             </div>
           </div>
+          {errorMsg && (
+            <p className="text-xs font-medium text-red-500">{errorMsg}</p>
+          )}
         </div>
 
         <div className="mt-5 flex gap-2">
