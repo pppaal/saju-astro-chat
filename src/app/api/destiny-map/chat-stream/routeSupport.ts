@@ -93,26 +93,47 @@ function buildDaeunRows(
   return rows
 }
 
+// 60갑자 inline 계산. saju.unse.annual은 현재 연도부터 forward로만
+// 사전 populate되지만, 같은 modular 공식이라 과거 연도도 cost 0으로
+// 재구성된다.
+const SAEUN_STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+const SAEUN_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+const SAEUN_STEM_ELEMENT_KO = ['목', '목', '화', '화', '토', '토', '금', '금', '수', '수']
+
+function computeSaeunRow(year: number, currentYear: number): SaeunRow {
+  const idx60 = (year - 4 + 6000) % 60
+  const stem = SAEUN_STEMS[idx60 % 10]
+  const branch = SAEUN_BRANCHES[idx60 % 12]
+  const element = SAEUN_STEM_ELEMENT_KO[idx60 % 10]
+  return {
+    year,
+    stem,
+    branch,
+    element,
+    summary: '',
+    isCurrent: year === currentYear,
+  }
+}
+
 function buildSaeunRows(
   saju: Record<string, unknown>,
   currentYear: number,
-  windowBack = 0,
+  windowBack = 3,
   windowForward = 5
 ): SaeunRow[] {
   const unse = asRecord(saju.unse)
-  const list =
+  const preComputed =
     asArray(unse?.annual).length > 0 ? asArray(unse?.annual) : asArray(saju.yeonun)
-  // The engine pre-computes from currentYear forward only. If older entries
-  // appear they are kept; otherwise we just render what's present in the
-  // requested window.
-  const rows: SaeunRow[] = []
-  for (const raw of list) {
+  // Index pre-computed entries by year so any extra fields (summary,
+  // sibsin) carry through; missing years are filled with the inline
+  // modular computation.
+  const byYear = new Map<number, SaeunRow>()
+  for (const raw of preComputed) {
     const item = asRecord(raw)
     if (!item) continue
     const year = toNumber(item.year)
     if (year === null) continue
-    if (year < currentYear - windowBack || year > currentYear + windowForward) continue
-    rows.push({
+    byYear.set(year, {
       year,
       stem: getStr(item.heavenlyStem ?? item.stem),
       branch: getStr(item.earthlyBranch ?? item.branch),
@@ -121,7 +142,10 @@ function buildSaeunRows(
       isCurrent: year === currentYear,
     })
   }
-  rows.sort((a, b) => (a.year ?? 0) - (b.year ?? 0))
+  const rows: SaeunRow[] = []
+  for (let y = currentYear - windowBack; y <= currentYear + windowForward; y++) {
+    rows.push(byYear.get(y) ?? computeSaeunRow(y, currentYear))
+  }
   return rows
 }
 
@@ -191,12 +215,25 @@ function renderReturnLine(
   return `${yr}: Asc ${asc || '-'}, Sun ${sun?.sign || '-'} h${sun?.house || '-'}, Moon ${moon?.sign || '-'} h${moon?.house || '-'}`
 }
 
+export interface TimedTransitSnapshot {
+  label: string
+  isoDate: string
+  aspects: unknown[]
+}
+
 export interface FormatTimingInput {
   saju?: Record<string, unknown> | null
   astro?: Record<string, unknown> | null
   birthDate?: string
   lang: 'ko' | 'en'
   now?: Date
+  /**
+   * Optional past/future transit snapshots. The engine can compute
+   * findMajorTransits at any date — the destiny route passes a small
+   * window (past ~12mo, +6mo) so the LLM can answer "why was last year
+   * heavy?" / "what's coming next half?" without hallucinating ephemeris.
+   */
+  timedTransits?: TimedTransitSnapshot[]
 }
 
 /**
@@ -264,11 +301,11 @@ export function formatTimingForPrompt(input: FormatTimingInput): string {
     }
   }
 
-  // --- 사주 세운 (현재 + 향후 5년)
+  // --- 사주 세운 (과거 3년 + 현재 + 향후 5년)
   if (sajuRecord) {
     const saeunRows = buildSaeunRows(sajuRecord, currentYear)
     if (saeunRows.length > 0) {
-      out.push(isKo ? '[사주 세운 — 현재 + 향후]' : '[Saju Saeun — current + forward]')
+      out.push(isKo ? '[사주 세운 — 과거 3년 + 현재 + 향후 5년]' : '[Saju Saeun — past 3y + current + forward 5y]')
       for (const row of saeunRows) {
         const marker = row.isCurrent ? '  ★' : '   '
         const gz = `${row.stem}${row.branch}`.trim()
@@ -301,8 +338,19 @@ export function formatTimingForPrompt(input: FormatTimingInput): string {
     }
   }
 
-  // --- 점성 트랜짓 (현재 snapshot)
-  if (astroRecord) {
+  // --- 점성 트랜짓: timed snapshots (과거 / 현재 / 미래) 우선,
+  //     없으면 astro.currentTransits만
+  const timed = input.timedTransits ?? []
+  if (timed.length > 0) {
+    out.push(isKo ? '[점성 트랜짓]' : '[Astro Transits]')
+    for (const snap of timed) {
+      const lines = pickTopTransits(snap.aspects, 5)
+      if (lines.length === 0) continue
+      out.push(`  ${snap.label} (${snap.isoDate.slice(0, 10)}):`)
+      lines.forEach((line) => out.push(`    - ${line}`))
+    }
+    out.push('')
+  } else if (astroRecord) {
     const ct = astroRecord.currentTransits as Record<string, unknown> | undefined
     if (ct) {
       const asOf = ct.asOfIso ? String(ct.asOfIso).slice(0, 10) : ''
@@ -316,6 +364,10 @@ export function formatTimingForPrompt(input: FormatTimingInput): string {
         out.push('')
       }
     }
+  }
+
+  // --- 점성 솔라·루나 리턴 (timed transits 유무와 무관하게 출력)
+  if (astroRecord) {
     const returns = astroRecord.returns as Record<string, unknown> | undefined
     const solar = renderReturnLine(
       returns?.solarReturn as Record<string, unknown> | undefined,

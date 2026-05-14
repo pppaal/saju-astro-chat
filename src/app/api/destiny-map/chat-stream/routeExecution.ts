@@ -12,8 +12,73 @@ import {
 } from './lib/context-builder'
 import { assembleFinalPromptSplit } from './builders/promptAssembly'
 import type { AstroDataStructure, SajuDataStructure } from './lib/types'
-import { formatTimingForPrompt } from './routeSupport'
+import { formatTimingForPrompt, type TimedTransitSnapshot } from './routeSupport'
 import type { DestinyMapChatStreamInput } from './lib/validation'
+import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
+
+/**
+ * Slow-planet snapshots at past / current / future dates. The natal
+ * chart is fixed; running `findMajorTransits` against a `transitChart`
+ * built for any ISO timestamp returns the aspects active at that
+ * moment. Slow planets (Jupiter+) barely move month-to-month, so
+ * three snapshots over a ±12m window are enough for the LLM to answer
+ * "why was last year heavy" and "what's coming next half".
+ */
+async function computeTimedTransitSnapshots(
+  natalChartData: NatalChartData,
+  latitude: number,
+  longitude: number,
+  lang: 'ko' | 'en',
+  now: Date = new Date()
+): Promise<TimedTransitSnapshot[]> {
+  try {
+    const astro = await import('@/lib/astrology')
+    const natalChart = astro.toChart(natalChartData)
+
+    const isoOffset = (monthsDelta: number): string => {
+      const d = new Date(now)
+      d.setMonth(d.getMonth() + monthsDelta)
+      return d.toISOString().slice(0, 19)
+    }
+
+    const targets: Array<{ delta: number; labelKo: string; labelEn: string }> = [
+      { delta: -12, labelKo: '12개월 전', labelEn: '12mo ago' },
+      { delta: 0, labelKo: '현재', labelEn: 'now' },
+      { delta: 6, labelKo: '6개월 후', labelEn: '+6mo' },
+    ]
+
+    const snapshots = await Promise.all(
+      targets.map(async (t) => {
+        const iso = isoOffset(t.delta)
+        const chart = await astro.calculateTransitChart({
+          iso,
+          latitude,
+          longitude,
+          timeZone: 'Asia/Seoul',
+        })
+        const major = astro.findMajorTransits(chart, natalChart)
+        const aspects = major.map((m) => ({
+          from: { name: m.transitPlanet, sign: undefined },
+          to: { name: m.natalPoint, sign: undefined },
+          type: m.type,
+          orb: m.orb,
+          applying: m.isApplying,
+        }))
+        return {
+          label: lang === 'ko' ? t.labelKo : t.labelEn,
+          isoDate: iso,
+          aspects,
+        }
+      })
+    )
+    return snapshots
+  } catch (err) {
+    logger.warn('[chat-stream] timed transit snapshots failed; falling back to current-only', {
+      error: err instanceof Error ? err.message : String(err),
+    })
+    return []
+  }
+}
 
 export interface EffectiveCounselorInputs {
   name?: string
@@ -182,7 +247,16 @@ export async function prepareCounselorExecution(params: {
 
   const finalSaju = chartResult.saju
   const finalAstro = chartResult.astro
-  const { currentTransits } = chartResult
+  const { currentTransits, natalChartData } = chartResult
+
+  const timedTransits = natalChartData
+    ? await computeTimedTransitSnapshots(
+        natalChartData,
+        effectiveLatitude,
+        effectiveLongitude,
+        lang
+      )
+    : []
 
   const contextSections = buildContextSections({
     saju: finalSaju,
@@ -228,6 +302,7 @@ export async function prepareCounselorExecution(params: {
     astro: astroWithTransits,
     birthDate: effectiveBirthDate,
     lang,
+    timedTransits,
   })
 
   const baseContext = [
