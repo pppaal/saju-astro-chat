@@ -93,45 +93,9 @@ function classifyService(serviceId: string): ServiceKey {
   return 'report'
 }
 
-const SERVICE_META: Record<
-  ServiceKey,
-  { label: string; href: string; bar: string }
-> = {
-  tarot: { label: '타로 리딩', href: '/tarot', bar: 'bg-purple-500' },
-  compatibility: { label: '궁합/관계', href: '/compatibility', bar: 'bg-fuchsia-400' },
-  report: { label: '운세 리포트', href: '/premium-reports', bar: 'bg-violet-400' },
-  calendar: { label: '데스티니 캘린더', href: '/calendar', bar: 'bg-indigo-400' },
-  counselor: { label: '카운슬러', href: '/destiny-counselor', bar: 'bg-pink-400' },
-}
-
 // Canonical relation keys match the values CircleDropdown + useCompatibilityForm
-// already understand. Korean labels are display-only.
+// already understand. Display labels come from i18n.
 type RelationKey = 'partner' | 'crush' | 'friend' | 'family' | 'colleague'
-
-const RELATION_PRESETS: ReadonlyArray<{ key: RelationKey; label: string }> = [
-  { key: 'partner', label: '연인' },
-  { key: 'crush', label: '썸/관심' },
-  { key: 'friend', label: '친구' },
-  { key: 'family', label: '가족' },
-  { key: 'colleague', label: '동료' },
-]
-
-const RELATION_LABEL: Record<string, string> = {
-  partner: '연인',
-  lover: '연인',
-  crush: '썸/관심',
-  friend: '친구',
-  family: '가족',
-  colleague: '동료',
-}
-
-function relationDisplay(rel: string): string {
-  return RELATION_LABEL[rel] || rel
-}
-
-function cityLabel(c: CitySuggestion): string {
-  return c.displayKr || c.displayEn || `${c.name}, ${c.country}`
-}
 
 interface CitySuggestion {
   name: string
@@ -142,6 +106,10 @@ interface CitySuggestion {
   countryKr?: string
   displayKr?: string
   displayEn?: string
+}
+
+function cityLabel(c: CitySuggestion): string {
+  return c.displayKr || c.displayEn || `${c.name}, ${c.country}`
 }
 
 const containerVariants = {
@@ -157,7 +125,55 @@ const itemVariants = {
 export default function ProfilePage() {
   const { status } = useSession()
   const { t } = useI18n()
+  const td = (k: string, ko: string) => t(`myjourney.dashboard.${k}`, ko)
   const signInUrl = buildSignInUrl('/profile')
+
+  const SERVICE_META: Record<
+    ServiceKey,
+    { label: string; href: string; bar: string }
+  > = {
+    tarot: { label: td('serviceTarot', '타로 리딩'), href: '/tarot', bar: 'bg-violet-500' },
+    compatibility: {
+      label: td('serviceCompatibility', '궁합/관계'),
+      href: '/compatibility',
+      bar: 'bg-fuchsia-500',
+    },
+    report: {
+      label: td('serviceReport', '운세 리포트'),
+      href: '/premium-reports',
+      bar: 'bg-purple-500',
+    },
+    calendar: {
+      label: td('serviceCalendar', '데스티니 캘린더'),
+      href: '/calendar',
+      bar: 'bg-cyan-500',
+    },
+    counselor: {
+      label: td('serviceCounselor', '카운슬러'),
+      href: '/destiny-counselor',
+      bar: 'bg-pink-500',
+    },
+  }
+
+  const RELATION_PRESETS: ReadonlyArray<{ key: RelationKey; label: string }> = [
+    { key: 'partner', label: td('relPartner', '연인') },
+    { key: 'crush', label: td('relCrush', '썸/관심') },
+    { key: 'friend', label: td('relFriend', '친구') },
+    { key: 'family', label: td('relFamily', '가족') },
+    { key: 'colleague', label: td('relColleague', '동료') },
+  ]
+
+  const relationDisplay = (rel: string): string => {
+    const map: Record<string, string> = {
+      partner: td('relPartner', '연인'),
+      lover: td('relPartner', '연인'),
+      crush: td('relCrush', '썸/관심'),
+      friend: td('relFriend', '친구'),
+      family: td('relFamily', '가족'),
+      colleague: td('relColleague', '동료'),
+    }
+    return map[rel] || rel
+  }
 
   const [user, setUser] = useState<ProfileUser | null>(null)
   const [credits, setCredits] = useState<CreditsResponse | null>(null)
@@ -228,7 +244,8 @@ export default function ProfilePage() {
     return c
   }, [history])
 
-  const totalReadings = counts.tarot + counts.compatibility + counts.report + counts.calendar + counts.counselor
+  const totalReadings =
+    counts.tarot + counts.compatibility + counts.report + counts.calendar + counts.counselor
   const usageMax = Math.max(20, ...Object.values(counts))
   const remainingCredits = credits?.credits?.remaining ?? 0
 
@@ -300,14 +317,14 @@ export default function ProfilePage() {
       statusOverride={status}
       callbackUrl="/profile"
       fallback={
-        <div className="relative min-h-[100svh] overflow-hidden bg-slate-50 text-slate-800">
-          <div className="pointer-events-none absolute -top-20 -right-20 h-96 w-96 rounded-full bg-purple-300/30 blur-3xl" />
-          <div className="pointer-events-none absolute top-40 -left-20 h-80 w-80 rounded-full bg-fuchsia-200/30 blur-3xl" />
+        <div className="relative min-h-[100svh] overflow-hidden bg-[#03060d] text-slate-100">
+          <div className="pointer-events-none absolute -left-24 top-[-180px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-violet-500/16 to-fuchsia-500/0 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-[-220px] right-[-110px] h-[460px] w-[460px] rounded-full bg-gradient-to-br from-cyan-400/14 to-blue-500/0 blur-3xl" />
           <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-            <h1 className="text-balance text-3xl font-semibold leading-[1.15] tracking-tight text-slate-800">
+            <h1 className="text-balance text-3xl font-semibold leading-[1.15] tracking-tight text-white">
               {t('profile.loginRequired', '로그인하면 나의 여정이 시작돼요')}
             </h1>
-            <p className="text-[15px] leading-relaxed text-slate-500">
+            <p className="text-[15px] leading-relaxed text-slate-400">
               {t(
                 'profile.loginDesc',
                 '리딩 기록, 결정 일지, 크레딧 사용 내역을 한곳에서 볼 수 있어요.'
@@ -315,7 +332,7 @@ export default function ProfilePage() {
             </p>
             <Link
               href={signInUrl}
-              className="mt-3 rounded-2xl bg-gradient-to-tr from-purple-500 to-fuchsia-500 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/30 transition hover:opacity-90"
+              className="mt-3 rounded-2xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] px-7 py-3 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(124,92,255,0.35)] transition hover:opacity-90"
             >
               {t('common.login', '로그인')}
             </Link>
@@ -323,22 +340,25 @@ export default function ProfilePage() {
         </div>
       }
     >
-      <div className="relative min-h-screen overflow-hidden bg-slate-50 text-slate-800 selection:bg-purple-200">
-        {/* Bright purple background glows */}
-        <div className="pointer-events-none absolute top-0 left-0 h-96 w-full bg-gradient-to-b from-purple-200/50 via-fuchsia-100/30 to-transparent" />
-        <div className="pointer-events-none absolute -top-20 -right-20 h-96 w-96 rounded-full bg-purple-300/30 blur-3xl" />
-        <div className="pointer-events-none absolute top-40 -left-20 h-80 w-80 rounded-full bg-fuchsia-200/30 blur-3xl" />
+      <div className="relative min-h-screen overflow-hidden bg-[#03060d] text-slate-100 selection:bg-violet-500/30">
+        {/* Dark cosmic glows */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-24 top-[-180px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-violet-500/16 to-fuchsia-500/0 blur-3xl" />
+          <div className="absolute -right-24 top-[120px] h-[360px] w-[360px] rounded-full bg-gradient-to-br from-fuchsia-500/14 to-purple-500/0 blur-3xl" />
+          <div className="absolute bottom-[-220px] right-[-110px] h-[460px] w-[460px] rounded-full bg-gradient-to-br from-cyan-400/12 to-blue-500/0 blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(18,28,44,0.52)_0%,rgba(3,6,13,0.96)_58%,rgba(3,6,13,1)_100%)]" />
+        </div>
 
         <div className="relative z-10 mx-auto flex min-h-screen max-w-md flex-col">
           {/* Page label (the global header lives above this) */}
           <header className="flex items-center justify-between px-6 pt-20 pb-2">
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-purple-900/60">
-              My Space
+            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-200/70">
+              {td('pageLabel', 'My Space')}
             </span>
             <Link
               href="/pricing"
-              className="rounded-full p-2 text-slate-500 transition-colors hover:bg-purple-100/50 hover:text-purple-700"
-              aria-label="요금제"
+              className="rounded-full p-2 text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-violet-200"
+              aria-label={td('pageLabel', 'My Space')}
             >
               <Star size={18} />
             </Link>
@@ -353,8 +373,8 @@ export default function ProfilePage() {
             {/* Profile header */}
             <motion.section variants={itemVariants} className="mt-2 flex flex-col items-center">
               <div className="group relative mb-5 cursor-default">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-300 to-fuchsia-300 opacity-60 blur-md transition-opacity duration-500 group-hover:opacity-100" />
-                <div className="relative z-10 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-purple-100 bg-white shadow-xl shadow-purple-900/5">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-violet-500/50 to-fuchsia-500/50 opacity-70 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
+                <div className="relative z-10 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/[0.04] shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
                   {user?.image ? (
                     <Image
                       src={user.image}
@@ -364,7 +384,7 @@ export default function ProfilePage() {
                       className="h-20 w-20 rounded-full object-cover"
                     />
                   ) : (
-                    <span className="text-2xl font-bold text-purple-400">
+                    <span className="text-2xl font-bold text-violet-200">
                       {user?.name?.[0]?.toUpperCase() || '·'}
                     </span>
                   )}
@@ -386,15 +406,15 @@ export default function ProfilePage() {
                       }
                     }}
                     maxLength={50}
-                    className="rounded-xl border border-purple-200 bg-white/80 px-3 py-1.5 text-center text-xl font-bold tracking-wide text-slate-800 outline-none ring-purple-300 backdrop-blur focus:ring-2"
-                    placeholder="이름"
+                    className="rounded-xl border border-white/15 bg-white/[0.06] px-3 py-1.5 text-center text-xl font-bold tracking-wide text-white outline-none ring-violet-400/40 focus:ring-2"
+                    placeholder={td('fieldName', '이름')}
                   />
                   <button
                     type="button"
                     onClick={saveName}
                     disabled={savingName}
-                    className="rounded-full bg-purple-500 p-1.5 text-white shadow hover:bg-purple-600 disabled:opacity-50"
-                    aria-label="저장"
+                    className="rounded-full bg-violet-500 p-1.5 text-white shadow hover:bg-violet-600 disabled:opacity-50"
+                    aria-label={td('save', '저장')}
                   >
                     <Check size={14} />
                   </button>
@@ -404,8 +424,8 @@ export default function ProfilePage() {
                       setDraftName(user?.name || '')
                       setEditingName(false)
                     }}
-                    className="rounded-full bg-white/80 p-1.5 text-slate-500 shadow hover:bg-white"
-                    aria-label="취소"
+                    className="rounded-full bg-white/[0.06] p-1.5 text-slate-300 shadow hover:bg-white/[0.1]"
+                    aria-label={td('cancel', '취소')}
                   >
                     <X size={14} />
                   </button>
@@ -414,16 +434,19 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setEditingName(true)}
-                  className="group/name flex items-center gap-1.5 rounded-xl px-2 py-0.5 transition-colors hover:bg-purple-100/50"
+                  className="group/name flex items-center gap-1.5 rounded-xl px-2 py-0.5 transition-colors hover:bg-white/[0.05]"
                 >
-                  <h1 className="text-2xl font-bold tracking-wide text-slate-800">
+                  <h1 className="text-2xl font-bold tracking-wide text-white">
                     {user?.name || '게스트'}
                   </h1>
-                  <Pencil size={14} className="text-purple-400 opacity-0 transition-opacity group-hover/name:opacity-100" />
+                  <Pencil
+                    size={14}
+                    className="text-violet-300/70 opacity-0 transition-opacity group-hover/name:opacity-100"
+                  />
                 </button>
               )}
-              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-purple-600/70">
-                운명의 여행자
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-violet-300/70">
+                {td('subtitle', '운명의 여행자')}
               </p>
             </motion.section>
 
@@ -431,20 +454,20 @@ export default function ProfilePage() {
             <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
               <StatCard
                 Icon={Sparkles}
-                title="보유 크레딧"
+                title={td('credits', '보유 크레딧')}
                 value={loading ? '·' : String(remainingCredits)}
-                label="C"
-                iconBg="bg-purple-100"
-                iconColor="text-purple-600"
+                label={td('creditsUnit', 'C')}
+                iconBg="bg-violet-500/20"
+                iconColor="text-violet-300"
                 href="/pricing"
               />
               <StatCard
                 Icon={Moon}
-                title="총 리딩 횟수"
+                title={td('totalReadings', '총 리딩 횟수')}
                 value={loading ? '·' : String(totalReadings)}
-                label="회"
-                iconBg="bg-fuchsia-100"
-                iconColor="text-fuchsia-600"
+                label={td('readingsUnit', '회')}
+                iconBg="bg-fuchsia-500/20"
+                iconColor="text-fuchsia-300"
               />
             </motion.section>
 
@@ -454,6 +477,7 @@ export default function ProfilePage() {
                 user={user}
                 loading={loading}
                 onEdit={() => setShowBirthModal(true)}
+                td={td}
               />
             </motion.section>
 
@@ -461,16 +485,16 @@ export default function ProfilePage() {
             <motion.section variants={itemVariants} className="flex flex-col gap-4">
               <div className="flex items-end justify-between px-1">
                 <div>
-                  <h2 className="text-sm font-bold text-slate-800">나의 인연</h2>
-                  <p className="mt-1 text-xs text-slate-500">
-                    궁합 리딩 시 바로 불러올 수 있습니다
+                  <h2 className="text-sm font-bold text-white">{td('myCircle', '나의 인연')}</h2>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {td('myCircleHint', '궁합 리딩 시 바로 불러올 수 있습니다')}
                   </p>
                 </div>
                 <Link
                   href="/compatibility"
-                  className="text-xs font-bold text-purple-600 transition-colors hover:text-purple-800"
+                  className="text-xs font-bold text-violet-300 transition-colors hover:text-violet-100"
                 >
-                  궁합 보기 →
+                  {td('goCompatibility', '궁합 보기 →')}
                 </Link>
               </div>
 
@@ -479,22 +503,32 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setShowAddPerson(true)}
-                  className="group flex h-32 w-28 shrink-0 cursor-pointer snap-start flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-purple-200 bg-purple-50/50 transition-colors hover:border-purple-300 hover:bg-purple-100/50"
+                  className="group flex h-32 w-28 shrink-0 cursor-pointer snap-start flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-violet-400/30 bg-white/[0.02] transition-colors hover:border-violet-400/60 hover:bg-white/[0.04]"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-purple-100 bg-white shadow-sm transition-transform group-hover:scale-110">
-                    <Plus size={18} className="text-purple-400 transition-colors group-hover:text-purple-600" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/[0.05] shadow-sm transition-transform group-hover:scale-110">
+                    <Plus
+                      size={18}
+                      className="text-violet-300 transition-colors group-hover:text-violet-100"
+                    />
                   </div>
-                  <span className="text-xs font-semibold text-purple-600/70">새 인연 추가</span>
+                  <span className="text-xs font-semibold text-violet-200/80">
+                    {td('addNewPerson', '새 인연 추가')}
+                  </span>
                 </button>
 
                 {circle.length === 0 && !loading && (
-                  <div className="flex h-32 shrink-0 snap-start items-center px-3 text-xs text-slate-400">
-                    아직 저장된 인연이 없어요
+                  <div className="flex h-32 shrink-0 snap-start items-center px-3 text-xs text-slate-500">
+                    {td('emptyCircle', '아직 저장된 인연이 없어요')}
                   </div>
                 )}
 
                 {circle.map((person) => (
-                  <PersonCard key={person.id} person={person} onDelete={handleDeletePerson} />
+                  <PersonCard
+                    key={person.id}
+                    person={person}
+                    onDelete={handleDeletePerson}
+                    relationLabel={relationDisplay(person.relation)}
+                  />
                 ))}
               </div>
             </motion.section>
@@ -502,15 +536,17 @@ export default function ProfilePage() {
             {/* Service usage breakdown */}
             <motion.section
               variants={itemVariants}
-              className="rounded-3xl border border-white bg-white/70 p-6 shadow-lg shadow-purple-900/5 backdrop-blur-xl"
+              className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md"
             >
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-sm font-bold text-slate-800">리딩 분석</h2>
+                <h2 className="text-sm font-bold text-white">
+                  {td('readingBreakdown', '리딩 분석')}
+                </h2>
                 <Link
                   href="/profile/decisions"
-                  className="flex items-center text-xs font-medium text-slate-400 transition-colors hover:text-purple-600"
+                  className="flex items-center text-xs font-medium text-slate-400 transition-colors hover:text-violet-200"
                 >
-                  전체보기 <ChevronRight size={14} className="ml-0.5" />
+                  {td('viewAll', '전체보기')} <ChevronRight size={14} className="ml-0.5" />
                 </Link>
               </div>
 
@@ -520,19 +556,15 @@ export default function ProfilePage() {
                   const count = counts[key]
                   const pct = Math.min(100, (count / usageMax) * 100)
                   return (
-                    <Link
-                      key={key}
-                      href={meta.href}
-                      className="block"
-                    >
+                    <Link key={key} href={meta.href} className="block">
                       <div className="flex flex-col gap-2">
                         <div className="flex justify-between text-xs">
-                          <span className="font-semibold text-slate-600">{meta.label}</span>
-                          <span className="font-medium text-slate-500">
-                            {loading ? '·' : `${count}회`}
+                          <span className="font-semibold text-slate-200">{meta.label}</span>
+                          <span className="font-medium text-slate-400">
+                            {loading ? '·' : `${count}${td('readingsUnit', '회')}`}
                           </span>
                         </div>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-purple-100">
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${pct}%` }}
@@ -549,10 +581,34 @@ export default function ProfilePage() {
 
             {/* Quick service shortcuts */}
             <motion.section variants={itemVariants} className="grid grid-cols-4 gap-3">
-              <ShortcutTile Icon={Wand2} label="타로" href="/tarot" tint="text-purple-600" bg="bg-purple-100" />
-              <ShortcutTile Icon={Users} label="궁합" href="/compatibility" tint="text-fuchsia-600" bg="bg-fuchsia-100" />
-              <ShortcutTile Icon={Sparkles} label="리포트" href="/premium-reports" tint="text-violet-600" bg="bg-violet-100" />
-              <ShortcutTile Icon={MessageCircle} label="상담" href="/destiny-counselor" tint="text-pink-600" bg="bg-pink-100" />
+              <ShortcutTile
+                Icon={Wand2}
+                label={td('shortcutTarot', '타로')}
+                href="/tarot"
+                tint="text-violet-300"
+                bg="bg-violet-500/15"
+              />
+              <ShortcutTile
+                Icon={Users}
+                label={td('shortcutCompatibility', '궁합')}
+                href="/compatibility"
+                tint="text-fuchsia-300"
+                bg="bg-fuchsia-500/15"
+              />
+              <ShortcutTile
+                Icon={Sparkles}
+                label={td('shortcutReport', '리포트')}
+                href="/premium-reports"
+                tint="text-purple-300"
+                bg="bg-purple-500/15"
+              />
+              <ShortcutTile
+                Icon={MessageCircle}
+                label={td('shortcutCounselor', '상담')}
+                href="/destiny-counselor"
+                tint="text-pink-300"
+                bg="bg-pink-500/15"
+              />
             </motion.section>
           </motion.div>
         </div>
@@ -562,13 +618,18 @@ export default function ProfilePage() {
           <AddPersonModal
             onClose={() => setShowAddPerson(false)}
             onSubmit={handleAddPerson}
+            td={td}
+            presets={RELATION_PRESETS}
           />
         )}
 
         {/* Birth info modal — saves locally + syncs to /api/me/profile */}
         <BirthInfoModal
           open={showBirthModal}
-          initial={birthInfoFromUser(user) || (typeof window !== 'undefined' ? getStoredBirthInfo() : null)}
+          initial={
+            birthInfoFromUser(user) ||
+            (typeof window !== 'undefined' ? getStoredBirthInfo() : null)
+          }
           onClose={() => setShowBirthModal(false)}
           onSaved={async (info: StoredBirthInfo) => {
             try {
@@ -625,16 +686,16 @@ function StatCard({
   href?: string
 }) {
   const inner = (
-    <div className="flex h-full flex-col justify-between rounded-2xl border border-white bg-white/70 p-5 shadow-lg shadow-purple-900/5 backdrop-blur-xl transition-colors hover:bg-white/90">
+    <div className="flex h-full flex-col justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md transition-colors hover:bg-white/[0.05]">
       <div className="mb-4 flex items-center gap-2">
         <div className={`rounded-lg p-1.5 ${iconBg}`}>
           <Icon size={14} className={iconColor} />
         </div>
-        <span className="text-xs font-semibold text-slate-500">{title}</span>
+        <span className="text-xs font-semibold text-slate-400">{title}</span>
       </div>
       <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-bold tracking-tight text-slate-800">{value}</span>
-        <span className="text-xs font-medium text-slate-400">{label}</span>
+        <span className="text-2xl font-bold tracking-tight text-white">{value}</span>
+        {label && <span className="text-xs font-medium text-slate-500">{label}</span>}
       </div>
     </div>
   )
@@ -665,59 +726,65 @@ function BirthInfoCard({
   user,
   loading,
   onEdit,
+  td,
 }: {
   user: ProfileUser | null
   loading: boolean
   onEdit: () => void
+  td: (k: string, ko: string) => string
 }) {
   const hasBirth = Boolean(user?.birthDate)
   return (
-    <div className="rounded-2xl border border-white bg-white/70 p-5 shadow-lg shadow-purple-900/5 backdrop-blur-xl">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="rounded-lg bg-indigo-100 p-1.5">
-            <CalendarDays size={14} className="text-indigo-600" />
+          <div className="rounded-lg bg-indigo-500/20 p-1.5">
+            <CalendarDays size={14} className="text-indigo-300" />
           </div>
-          <span className="text-xs font-semibold text-slate-500">내 사주 정보</span>
+          <span className="text-xs font-semibold text-slate-400">
+            {td('myBirthInfo', '내 사주 정보')}
+          </span>
         </div>
         <button
           type="button"
           onClick={onEdit}
-          className="text-xs font-bold text-purple-600 transition-colors hover:text-purple-800"
+          className="text-xs font-bold text-violet-300 transition-colors hover:text-violet-100"
         >
-          {hasBirth ? '수정' : '입력하기'}
+          {hasBirth ? td('edit', '수정') : td('addBirthInfo', '입력하기')}
         </button>
       </div>
       {loading ? (
-        <p className="text-sm text-slate-400">불러오는 중...</p>
+        <p className="text-sm text-slate-500">{td('loading', '불러오는 중...')}</p>
       ) : hasBirth ? (
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm">
-          <BirthChip label="생년월일" value={user?.birthDate || '-'} />
+          <BirthChip label={td('labelBirthDate', '생년월일')} value={user?.birthDate || '-'} />
           <BirthChip
-            label="시간"
+            label={td('labelBirthTime', '시간')}
             value={
               user?.birthTime
                 ? user.birthTime === '00:00'
-                  ? '모름'
+                  ? td('unknownTime', '모름')
                   : user.birthTime
                 : '-'
             }
           />
           <BirthChip
-            label="성별"
+            label={td('labelGender', '성별')}
             value={
               user?.gender === 'male' || user?.gender === 'Male'
-                ? '남'
+                ? td('genderMale', '남')
                 : user?.gender === 'female' || user?.gender === 'Female'
-                  ? '여'
+                  ? td('genderFemale', '여')
                   : '-'
             }
           />
-          {user?.birthCity && <BirthChip label="출생지" value={user.birthCity} />}
+          {user?.birthCity && (
+            <BirthChip label={td('labelBirthCity', '출생지')} value={user.birthCity} />
+          )}
         </div>
       ) : (
-        <p className="text-sm text-slate-400">
-          아직 사주 정보가 없어요. 한 번 입력하면 모든 서비스에서 자동으로 쓰여요.
+        <p className="text-sm text-slate-500">
+          {td('emptyBirthInfo', '아직 사주 정보가 없어요. 한 번 입력하면 모든 서비스에서 자동으로 쓰여요.')}
         </p>
       )}
     </div>
@@ -727,8 +794,8 @@ function BirthInfoCard({
 function BirthChip({ label, value }: { label: string; value: string }) {
   return (
     <span className="text-sm">
-      <span className="mr-1 text-xs font-semibold text-slate-400">{label}</span>
-      <span className="font-medium text-slate-700">{value}</span>
+      <span className="mr-1 text-xs font-semibold text-slate-500">{label}</span>
+      <span className="font-medium text-slate-200">{value}</span>
     </span>
   )
 }
@@ -736,13 +803,15 @@ function BirthChip({ label, value }: { label: string; value: string }) {
 function PersonCard({
   person,
   onDelete,
+  relationLabel,
 }: {
   person: CirclePerson
   onDelete: (id: string) => void
+  relationLabel: string
 }) {
   const [confirming, setConfirming] = useState(false)
   return (
-    <div className="relative flex h-32 w-32 shrink-0 cursor-pointer snap-start flex-col items-center justify-center overflow-hidden rounded-2xl border border-white bg-white/80 p-4 shadow-md shadow-purple-900/5 backdrop-blur-md transition-all hover:shadow-lg hover:shadow-purple-900/10">
+    <div className="relative flex h-32 w-32 shrink-0 cursor-pointer snap-start flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-md transition-all hover:border-white/20 hover:bg-white/[0.06]">
       <button
         type="button"
         onClick={(e) => {
@@ -756,19 +825,19 @@ function PersonCard({
         }}
         className={`absolute right-1.5 top-1.5 rounded-full p-1 transition-colors ${
           confirming
-            ? 'bg-red-100 text-red-500'
-            : 'text-fuchsia-400/70 hover:bg-fuchsia-100 hover:text-fuchsia-600'
+            ? 'bg-red-500/20 text-red-300'
+            : 'text-fuchsia-300/70 hover:bg-fuchsia-500/15 hover:text-fuchsia-200'
         }`}
-        aria-label={confirming ? '삭제 확인' : '삭제'}
+        aria-label={confirming ? 'Confirm delete' : 'Delete'}
       >
         {confirming ? <Trash2 size={12} /> : <Heart size={12} />}
       </button>
-      <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-purple-100 bg-purple-50">
-        <span className="text-sm font-bold text-purple-600">{person.name.charAt(0)}</span>
+      <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-violet-500/15">
+        <span className="text-sm font-bold text-violet-200">{person.name.charAt(0)}</span>
       </div>
-      <span className="text-sm font-bold text-slate-700">{person.name}</span>
-      <span className="mt-1 rounded-full bg-purple-100/50 px-2.5 py-0.5 text-[10px] font-medium text-purple-600/80">
-        {relationDisplay(person.relation)}
+      <span className="text-sm font-bold text-white">{person.name}</span>
+      <span className="mt-1 rounded-full bg-violet-500/15 px-2.5 py-0.5 text-[10px] font-medium text-violet-200">
+        {relationLabel}
       </span>
     </div>
   )
@@ -790,12 +859,12 @@ function ShortcutTile({
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-2 rounded-2xl border border-white bg-white/70 p-3 shadow-md shadow-purple-900/5 backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-900/10"
+      className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.05]"
     >
       <div className={`rounded-xl p-2 ${bg}`}>
         <Icon size={16} className={tint} />
       </div>
-      <span className="text-[11px] font-semibold text-slate-600">{label}</span>
+      <span className="text-[11px] font-semibold text-slate-300">{label}</span>
     </Link>
   )
 }
@@ -803,6 +872,8 @@ function ShortcutTile({
 function AddPersonModal({
   onClose,
   onSubmit,
+  td,
+  presets,
 }: {
   onClose: () => void
   onSubmit: (payload: {
@@ -815,6 +886,8 @@ function AddPersonModal({
     latitude?: number | null
     longitude?: number | null
   }) => Promise<boolean>
+  td: (k: string, ko: string) => string
+  presets: ReadonlyArray<{ key: RelationKey; label: string }>
 }) {
   const [name, setName] = useState('')
   const [relation, setRelation] = useState<RelationKey>('partner')
@@ -867,27 +940,27 @@ function AddPersonModal({
     })
     setSaving(false)
     if (!ok) {
-      setErrorMsg('저장에 실패했어요. 입력값을 다시 확인해 주세요.')
+      setErrorMsg(td('saveFailed', '저장에 실패했어요. 입력값을 다시 확인해 주세요.'))
     }
   }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 px-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 px-4 backdrop-blur-sm sm:items-center"
       role="dialog"
       aria-modal="true"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="w-full max-w-md rounded-t-3xl border border-purple-100 bg-white p-6 shadow-2xl shadow-purple-900/20 sm:rounded-3xl">
+      <div className="w-full max-w-md rounded-t-3xl border border-white/10 bg-[#0c1020] p-6 shadow-2xl sm:rounded-3xl">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-800">새 인연 추가</h2>
+          <h2 className="text-lg font-bold text-white">{td('addPersonTitle', '새 인연 추가')}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-            aria-label="닫기"
+            className="rounded-full p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-white"
+            aria-label={td('close', '닫기')}
           >
             <X size={16} />
           </button>
@@ -895,29 +968,33 @@ function AddPersonModal({
 
         <div className="space-y-3.5">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600">이름</label>
+            <label className="mb-1 block text-xs font-semibold text-slate-400">
+              {td('fieldName', '이름')}
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={100}
-              placeholder="예: 이도현"
-              className="w-full rounded-xl border border-purple-100 bg-purple-50/40 px-3.5 py-2.5 text-sm text-slate-800 outline-none ring-purple-300 focus:ring-2"
+              placeholder={td('namePlaceholder', '예: 이도현')}
+              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-white outline-none ring-violet-400/40 placeholder:text-slate-500 focus:ring-2"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-slate-600">관계</label>
+            <label className="mb-1.5 block text-xs font-semibold text-slate-400">
+              {td('fieldRelation', '관계')}
+            </label>
             <div className="flex flex-wrap gap-1.5">
-              {RELATION_PRESETS.map((r) => (
+              {presets.map((r) => (
                 <button
                   type="button"
                   key={r.key}
                   onClick={() => setRelation(r.key)}
                   className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                     relation === r.key
-                      ? 'bg-purple-500 text-white'
-                      : 'bg-purple-100/60 text-purple-700 hover:bg-purple-200/60'
+                      ? 'bg-violet-500 text-white'
+                      : 'bg-white/[0.05] text-slate-300 hover:bg-white/[0.1]'
                   }`}
                 >
                   {r.label}
@@ -928,18 +1005,22 @@ function AddPersonModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">생년월일</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-400">
+                {td('fieldBirthDate', '생년월일')}
+              </label>
               <input
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
                 min="1900-01-01"
                 max="2100-12-31"
-                className="w-full rounded-xl border border-purple-100 bg-purple-50/40 px-3 py-2.5 text-sm text-slate-800 outline-none ring-purple-300 focus:ring-2"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none ring-violet-400/40 [color-scheme:dark] focus:ring-2"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">출생 시간</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-400">
+                {td('fieldBirthTime', '출생 시간')}
+              </label>
               <input
                 type="time"
                 value={birthTime}
@@ -948,7 +1029,7 @@ function AddPersonModal({
                   if (e.target.value) setTimeUnknown(false)
                 }}
                 disabled={timeUnknown}
-                className="w-full rounded-xl border border-purple-100 bg-purple-50/40 px-3 py-2.5 text-sm text-slate-800 outline-none ring-purple-300 focus:ring-2 disabled:opacity-60"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none ring-violet-400/40 [color-scheme:dark] focus:ring-2 disabled:opacity-60"
               />
               <label className="mt-1 flex cursor-pointer items-center gap-1.5 text-[11px] text-slate-500">
                 <input
@@ -958,16 +1039,18 @@ function AddPersonModal({
                     setTimeUnknown(e.target.checked)
                     if (e.target.checked) setBirthTime('')
                   }}
-                  className="accent-purple-500"
+                  className="accent-violet-500"
                 />
-                시간 모름
+                {td('fieldTimeUnknown', '시간 모름')}
               </label>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">성별</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-400">
+                {td('fieldGender', '성별')}
+              </label>
               <div className="flex gap-2">
                 {(['male', 'female'] as const).map((g) => (
                   <button
@@ -976,17 +1059,19 @@ function AddPersonModal({
                     onClick={() => setGender(g)}
                     className={`flex-1 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
                       gender === g
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-purple-100/60 text-purple-700 hover:bg-purple-200/60'
+                        ? 'bg-violet-500 text-white'
+                        : 'bg-white/[0.05] text-slate-300 hover:bg-white/[0.1]'
                     }`}
                   >
-                    {g === 'male' ? '남' : '여'}
+                    {g === 'male' ? td('genderMale', '남') : td('genderFemale', '여')}
                   </button>
                 ))}
               </div>
             </div>
             <div className="relative">
-              <label className="mb-1 block text-xs font-semibold text-slate-600">출생 도시</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-400">
+                {td('fieldBirthCity', '출생 도시')}
+              </label>
               <input
                 type="text"
                 value={cityQuery}
@@ -997,12 +1082,12 @@ function AddPersonModal({
                 }}
                 onFocus={() => setCityFocused(true)}
                 onBlur={() => setTimeout(() => setCityFocused(false), 150)}
-                placeholder="예: 서울"
+                placeholder={td('cityPlaceholder', '예: 서울')}
                 autoComplete="off"
-                className="w-full rounded-xl border border-purple-100 bg-purple-50/40 px-3 py-2.5 text-sm text-slate-800 outline-none ring-purple-300 focus:ring-2"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none ring-violet-400/40 placeholder:text-slate-500 focus:ring-2"
               />
               {cityFocused && citySuggestions.length > 0 && (
-                <ul className="absolute left-0 right-0 top-full z-10 mt-1 max-h-44 overflow-y-auto rounded-xl border border-purple-200 bg-white p-1 shadow-xl shadow-purple-900/10">
+                <ul className="absolute left-0 right-0 top-full z-10 mt-1 max-h-44 overflow-y-auto rounded-xl border border-white/15 bg-[#0c1020] p-1 shadow-xl">
                   {citySuggestions.map((s, i) => (
                     <li key={`${s.name}-${s.country}-${i}`}>
                       <button
@@ -1014,7 +1099,7 @@ function AddPersonModal({
                           setCitySuggestions([])
                           setCityFocused(false)
                         }}
-                        className="block w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-700 hover:bg-purple-100"
+                        className="block w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-200 hover:bg-white/[0.06]"
                       >
                         {cityLabel(s)}
                       </button>
@@ -1023,32 +1108,31 @@ function AddPersonModal({
                 </ul>
               )}
               {pickedCity && (
-                <p className="mt-1 text-[10px] text-purple-600/80">
-                  ✓ {pickedCity.lat.toFixed(2)}, {pickedCity.lon.toFixed(2)} 좌표 저장됨
+                <p className="mt-1 text-[10px] text-violet-300/80">
+                  ✓ {pickedCity.lat.toFixed(2)}, {pickedCity.lon.toFixed(2)}{' '}
+                  {td('coordSaved', '좌표 저장됨')}
                 </p>
               )}
             </div>
           </div>
-          {errorMsg && (
-            <p className="text-xs font-medium text-red-500">{errorMsg}</p>
-          )}
+          {errorMsg && <p className="text-xs font-medium text-red-400">{errorMsg}</p>}
         </div>
 
         <div className="mt-5 flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+            className="flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/[0.06]"
           >
-            취소
+            {td('cancel', '취소')}
           </button>
           <button
             type="button"
             onClick={submit}
             disabled={!canSave}
-            className="flex-1 rounded-xl bg-gradient-to-tr from-purple-500 to-fuchsia-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-purple-500/30 hover:opacity-90 disabled:opacity-50"
+            className="flex-1 rounded-xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(124,92,255,0.35)] hover:opacity-90 disabled:opacity-50"
           >
-            {saving ? '저장 중...' : '저장'}
+            {saving ? td('saving', '저장 중...') : td('save', '저장')}
           </button>
         </div>
       </div>
