@@ -588,10 +588,18 @@ export function useTarotInterpretation({
                   sun?: { sign?: string; formatted?: string }
                   moon?: { sign?: string; formatted?: string }
                   ascendant?: { sign?: string; formatted?: string }
+                  mercury?: { sign?: string; formatted?: string }
                   venus?: { sign?: string; formatted?: string }
                   mars?: { sign?: string; formatted?: string }
                   jupiter?: { sign?: string; formatted?: string }
+                  saturn?: { sign?: string; formatted?: string }
+                  neptune?: { sign?: string; formatted?: string }
                   mc?: { sign?: string; formatted?: string }
+                  house2?: { sign?: string }
+                  house6?: { sign?: string }
+                  house7?: { sign?: string }
+                  house9?: { sign?: string }
+                  house10?: { sign?: string }
                 }
               | undefined
             const sajuExtras = detail.sajuExtras as
@@ -711,15 +719,32 @@ export function useTarotInterpretation({
               if (extra.length > 0) sajuContext = `${sajuContext}\n${extra.join(' · ')}`
             }
 
-            // astroContext — 본명 Sun/Moon/Asc + 오늘 점성축 점수 + 트랜짓 top 3.
-            // 달 위상 / 역행 행성은 토큰 대비 시그널 약해서 제거 (LLM 이 어색하게 끼워넣는 경우 더 많음).
+            // astroContext — 사주와 동일한 깊이로 균형
+            // Universal: Sun/Moon/ASC + Mercury/Venus/Mars (6 identity planets) + 오늘 트랜짓 top 3
+            // Conditional (테마별): +1~2 추가 행성/하우스로 카테고리 anchor 강화
             if (includeAstrology) {
               const lines: string[] = []
-              // 본명 — Sun/Moon/ASC 만 유지. Venus/Mars/MC/Jupiter 추가 없음.
               const parts: string[] = []
+              // [universal] 정체성 + 일상 3 행성
               if (natalAngles?.sun?.sign) parts.push(`태양 ${natalAngles.sun.sign}`)
               if (natalAngles?.moon?.sign) parts.push(`달 ${natalAngles.moon.sign}`)
               if (natalAngles?.ascendant?.sign) parts.push(`ASC ${natalAngles.ascendant.sign}`)
+              if (natalAngles?.mercury?.sign) parts.push(`Mercury ${natalAngles.mercury.sign}`)
+              if (natalAngles?.venus?.sign) parts.push(`Venus ${natalAngles.venus.sign}`)
+              if (natalAngles?.mars?.sign) parts.push(`Mars ${natalAngles.mars.sign}`)
+              // [conditional] 연애 — 7th house ruler sign (관계 angle)
+              if (isLove && natalAngles?.house7?.sign) parts.push(`7H ${natalAngles.house7.sign}`)
+              // [conditional] 직장 — MC + Saturn (직업 angle + 구조)
+              if (isCareer && natalAngles?.mc?.sign) parts.push(`MC ${natalAngles.mc.sign}`)
+              if (isCareer && natalAngles?.saturn?.sign) parts.push(`Saturn ${natalAngles.saturn.sign}`)
+              // [conditional] 재물 — Jupiter + 2nd house (풍요 + 자산)
+              if (isMoney && natalAngles?.jupiter?.sign) parts.push(`Jupiter ${natalAngles.jupiter.sign}`)
+              if (isMoney && natalAngles?.house2?.sign) parts.push(`2H ${natalAngles.house2.sign}`)
+              // [conditional] 영성 — Neptune + 9th house (영성 + 의미)
+              if (isSpiritual && natalAngles?.neptune?.sign) parts.push(`Neptune ${natalAngles.neptune.sign}`)
+              if (isSpiritual && natalAngles?.house9?.sign) parts.push(`9H ${natalAngles.house9.sign}`)
+              // [conditional] 건강 — 6th house (건강 angle)
+              if (isHealth && natalAngles?.house6?.sign) parts.push(`6H ${natalAngles.house6.sign}`)
               if (parts.length > 0)
                 lines.push(isKorean ? `본명: ${parts.join(' · ')}` : `Natal: ${parts.join(' · ')}`)
 
