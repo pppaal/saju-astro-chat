@@ -15,12 +15,21 @@
  *   - Response is plain SSE: `data: {"content": "...", "done": false}\n\n`,
  *     ending with `data: {"content": "", "done": true}\n\n`.
  *
- * Free-quota enforcement (1 free question for guests, 2 for logged-in,
- * then per-turn credit deduction) lives one layer up — this endpoint
- * trusts the caller. Wiring that into auth middleware is a follow-up.
+ * Free-quota policy (enforced here):
+ *   - Guest (no session): 1 free question lifetime per device — tracked via
+ *     httpOnly cookie. After that → 402 with reason="login_required".
+ *   - Logged-in: 2 free questions lifetime (UserCredits.compatRealtimeFreeUsed).
+ *     After that → consume 1 `reading` credit per question. If the user has
+ *     no credits → 402 with reason="no_credits".
+ *   - The "__start__" sentinel + the assistant's auto-greeting also count as
+ *     1 question — the auto greeting is the first answer the user sees.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { prisma } from '@/lib/db/prisma'
+import { canUseCredits, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { buildCounselorPrompt } from '@/lib/compatibility/counselor'
 import { RealtimeChatRequestSchema } from './validation'
 import { logger } from '@/lib/logger'
@@ -36,6 +45,102 @@ const CACHE_CONTROL_1H = { type: 'ephemeral' as const, ttl: '1h' as const }
 
 const MODEL = process.env.COUNSELOR_CLAUDE_MODEL || 'claude-sonnet-4-5-20250929'
 const MAX_TOKENS = 1800
+
+const GUEST_FREE_LIMIT = 1
+const LOGGED_IN_FREE_LIMIT = 2
+const GUEST_COOKIE_NAME = 'compat_realtime_guest_used'
+const GUEST_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
+
+interface QuotaDecision {
+  /** When set, the request is rejected with this status + payload. */
+  reject?: { status: number; body: Record<string, unknown> }
+  /** True if this turn consumed the free quota — caller increments at end. */
+  consumedFree?: boolean
+  /** True if this turn should consume 1 paid `reading` credit on success. */
+  needsPaidConsume?: boolean
+  /** Cookie value to set on the response (guest only). */
+  setGuestCookie?: string
+}
+
+async function decideQuota(
+  req: NextRequest,
+  userId: string | null
+): Promise<QuotaDecision> {
+  // Guest path — cookie-based, no DB
+  if (!userId) {
+    const usedRaw = req.cookies.get(GUEST_COOKIE_NAME)?.value
+    const used = Number.parseInt(usedRaw || '0', 10) || 0
+    if (used >= GUEST_FREE_LIMIT) {
+      return {
+        reject: {
+          status: 402,
+          body: {
+            error: 'quota_exhausted',
+            reason: 'login_required',
+            message: '이 기기에선 무료 상담을 다 쓰셨어요. 로그인하면 2회 더 무료예요.',
+          },
+        },
+      }
+    }
+    return {
+      consumedFree: true,
+      setGuestCookie: buildGuestCookie(used + 1),
+    }
+  }
+
+  // Logged-in path — DB-backed counter, then `reading` credit pool.
+  // The `compatRealtimeFreeUsed` column was added in 20260514 migration.
+  // If the migration hasn't been deployed yet we fail soft (allow the
+  // turn as "free") rather than 500'ing the whole route.
+  let freeUsed = 0
+  try {
+    const credits = await prisma.userCredits.findUnique({
+      where: { userId },
+      select: { compatRealtimeFreeUsed: true },
+    })
+    freeUsed = credits?.compatRealtimeFreeUsed ?? 0
+  } catch (err) {
+    logger.warn(
+      '[compat/realtime] compatRealtimeFreeUsed column missing — falling back to free mode (apply migration 20260514_add_compat_realtime_free_used)',
+      err
+    )
+    return { consumedFree: true }
+  }
+
+  if (freeUsed < LOGGED_IN_FREE_LIMIT) {
+    return { consumedFree: true }
+  }
+
+  // Out of free quota — check paid credits
+  const check = await canUseCredits(userId, 'reading', 1)
+  if (!check.allowed) {
+    const balance = await getCreditBalance(userId).catch(() => null)
+    return {
+      reject: {
+        status: 402,
+        body: {
+          error: 'quota_exhausted',
+          reason: 'no_credits',
+          message: '무료 상담을 모두 쓰셨어요. 크레딧 1개로 한 번 더 이어갈 수 있어요.',
+          remainingCredits: balance?.remainingCredits ?? 0,
+        },
+      },
+    }
+  }
+  return { needsPaidConsume: true }
+}
+
+function buildGuestCookie(next: number): string {
+  const parts = [
+    `${GUEST_COOKIE_NAME}=${next}`,
+    'Path=/',
+    `Max-Age=${GUEST_COOKIE_MAX_AGE}`,
+    'SameSite=Lax',
+    'HttpOnly',
+  ]
+  if (process.env.NODE_ENV === 'production') parts.push('Secure')
+  return parts.join('; ')
+}
 
 export async function POST(req: NextRequest): Promise<Response> {
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -63,6 +168,16 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   const { personA, personB, relation, relationNote, messages } = parsed.data
+
+  // Resolve identity + enforce free / paid quota BEFORE we burn an LLM call.
+  const session = await getServerSession(authOptions).catch(() => null)
+  const userId = session?.user?.id ?? null
+  const quota = await decideQuota(req, userId)
+  if (quota.reject) {
+    const res = NextResponse.json(quota.reject.body, { status: quota.reject.status })
+    if (quota.setGuestCookie) res.headers.set('Set-Cookie', quota.setGuestCookie)
+    return res
+  }
 
   let systemPrompt: string
   let missingLocation: string[]
@@ -170,6 +285,11 @@ export async function POST(req: NextRequest): Promise<Response> {
             }
           }
         }
+        // Settlement: now that we know the LLM answered, charge the user.
+        // Done at-most-once per turn, only on success.
+        await settleQuota(userId, quota).catch((err) => {
+          logger.warn('[compat/realtime] quota settle failed', err)
+        })
         const finalLine = `data: ${JSON.stringify({ content: '', done: true })}\n\n`
         streamController.enqueue(encoder.encode(finalLine))
         streamController.close()
@@ -188,12 +308,35 @@ export async function POST(req: NextRequest): Promise<Response> {
     },
   })
 
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream; charset=utf-8',
-      'Cache-Control': 'no-cache, no-store',
-      Connection: 'keep-alive',
-      'X-Accel-Buffering': 'no',
-    },
+  const headers = new Headers({
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-store',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
   })
+  if (quota.setGuestCookie) {
+    headers.set('Set-Cookie', quota.setGuestCookie)
+  }
+  return new Response(stream, { headers })
+}
+
+async function settleQuota(userId: string | null, quota: QuotaDecision): Promise<void> {
+  if (!userId) {
+    // Guest accounting is done up-front via cookie — nothing to settle.
+    return
+  }
+  if (quota.consumedFree) {
+    try {
+      await prisma.userCredits.update({
+        where: { userId },
+        data: { compatRealtimeFreeUsed: { increment: 1 } },
+      })
+    } catch (err) {
+      logger.warn('[compat/realtime] failed to increment compatRealtimeFreeUsed', err)
+    }
+    return
+  }
+  if (quota.needsPaidConsume) {
+    await consumeCredits(userId, 'reading', 1)
+  }
 }

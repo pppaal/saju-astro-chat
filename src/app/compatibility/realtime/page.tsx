@@ -26,8 +26,6 @@ const emptyPerson = (name = ''): PersonForm => ({
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
-const GUEST_FREE_KEY = 'destinypal:counselor:guestFreeUsed:v1'
-
 export default function CompatibilityRealtimePage() {
   const [personA, setPersonA] = useState<PersonForm>(emptyPerson(''))
   const [personB, setPersonB] = useState<PersonForm>(emptyPerson(''))
@@ -40,6 +38,7 @@ export default function CompatibilityRealtimePage() {
   const [streaming, setStreaming] = useState(false)
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [quotaBlock, setQuotaBlock] = useState<{ reason: string; message: string } | null>(null)
 
   const canStart = useMemo(() => {
     return (
@@ -67,6 +66,7 @@ export default function CompatibilityRealtimePage() {
     setInput('')
     setStreaming(true)
     setError(null)
+    setQuotaBlock(null)
 
     try {
       const res = await fetch('/api/compatibility/realtime', {
@@ -80,6 +80,23 @@ export default function CompatibilityRealtimePage() {
           messages: nextMessages,
         }),
       })
+
+      if (res.status === 402) {
+        const payload = (await res.json().catch(() => null)) as {
+          reason?: string
+          message?: string
+        } | null
+        setQuotaBlock({
+          reason: payload?.reason || 'no_credits',
+          message:
+            payload?.message ||
+            (payload?.reason === 'login_required'
+              ? '이 기기에선 무료 상담을 다 쓰셨어요. 로그인하면 2회 더 무료예요.'
+              : '무료 상담을 모두 쓰셨어요. 크레딧 1개로 한 번 더 이어갈 수 있어요.'),
+        })
+        setStreaming(false)
+        return
+      }
 
       if (!res.ok || !res.body) {
         const text = await res.text().catch(() => '')
@@ -145,15 +162,6 @@ export default function CompatibilityRealtimePage() {
   const handleStart = () => {
     if (!canStart || streaming) return
     setStarted(true)
-    // Mark guest free-question consumed (client-side only — server-side
-    // enforcement is a follow-up).
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(GUEST_FREE_KEY, String(Date.now()))
-      } catch {
-        // ignore
-      }
-    }
     void send(true)
   }
 
@@ -257,6 +265,36 @@ export default function CompatibilityRealtimePage() {
 
             {error && (
               <p className="mt-2 text-xs text-red-400">{error}</p>
+            )}
+
+            {quotaBlock && (
+              <div className="mt-3 rounded-2xl border border-violet-400/30 bg-violet-500/10 p-4 text-[13px] text-violet-100">
+                <p className="leading-relaxed">{quotaBlock.message}</p>
+                <div className="mt-3 flex gap-2">
+                  {quotaBlock.reason === 'login_required' ? (
+                    <Link
+                      href="/auth/signin"
+                      className="rounded-xl bg-gradient-to-tr from-violet-500 to-fuchsia-500 px-4 py-2 text-[13px] font-semibold text-white shadow"
+                    >
+                      로그인하기
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/pricing"
+                      className="rounded-xl bg-gradient-to-tr from-violet-500 to-fuchsia-500 px-4 py-2 text-[13px] font-semibold text-white shadow"
+                    >
+                      크레딧 충전
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setQuotaBlock(null)}
+                    className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-[13px] text-slate-300 hover:bg-white/[0.08]"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </div>
             )}
 
             {messages.length >= 2 && !streaming && (

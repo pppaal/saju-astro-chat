@@ -212,6 +212,20 @@ export default function CompatPage() {
             landing screen. */}
 
         {!resultText && (
+          <a
+            href="/compatibility/realtime"
+            className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-violet-400/30 bg-gradient-to-r from-violet-500/15 via-fuchsia-500/10 to-transparent px-4 py-2.5 text-[13px] text-violet-100 transition-colors hover:border-violet-300/60 hover:from-violet-500/25"
+          >
+            <span>
+              <span className="mr-2">💬</span>
+              <span className="font-semibold text-white">실시간 카운슬러로 대화</span>
+              <span className="ml-2 text-violet-200/80">— 점수 대신 채팅으로 풀어드려요</span>
+            </span>
+            <span className="text-violet-200">→</span>
+          </a>
+        )}
+
+        {!resultText && (
           <div className={`${styles.formContainer} ${styles.fadeIn}`}>
             {/* The ServicePageLayout already shows the page title + subtitle
                 up top, so the form's own duplicate header was retired. This

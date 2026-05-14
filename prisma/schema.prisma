@@ -471,6 +471,9 @@ model UserCredits {
   compatibilityUsed Int @default(0) // 궁합 분석 사용 횟수
   followUpUsed      Int @default(0) // 후속질문 사용 횟수
 
+  // 실시간 궁합 카운슬러 — 평생 누적 무료 질문 카운터 (2개까지 무료, 그 후 reading 풀에서 차감)
+  compatRealtimeFreeUsed Int @default(0)
+
   // 플랜별 한도
   compatibilityLimit Int @default(0) // 궁합 한도 (free:0, starter:2, pro:5, premium:10)
   followUpLimit      Int @default(0) // 후속질문 한도
