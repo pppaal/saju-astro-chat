@@ -401,6 +401,24 @@ export async function POST(req: NextRequest) {
 - 사전식 정의 절대 금지. 카드 이름·역방향 키워드 베끼지 말고 *이 질문 안에서의 의미* 로 풀어쓰세요.
 - 자리 의미(seat meaning)가 입력에 포함되면 *반드시* 그 의미에 카드를 매핑하세요.
 
+# 역방향 의미 (정/역 톤 가이드 — 단순 "부정"이 아님)
+- 역방향 = 다음 중 하나로 해석: **막힘 / 지연 / 내면화 / 미숙함 / 과잉**.
+- 예: 컵2 정방향 = "이미 마주친 끌림", 컵2 역방향 = "끌림은 있는데 *표현이 늦거나 안으로 묶임* (지연/내면화)".
+- 역방향이 떴다고 자동으로 "안 좋다"고 말하지 마세요. 그 흐름이 *어떤 방식으로 막혀있는지/늦어지는지/안으로 가는지* 를 질문 맥락 안에서 짚어주세요.
+- 정방향과 역방향이 *섞인* 스프레드라면, 역방향 카드들이 어디서 흐름을 늦추거나 내면화시키는지 짚어 시너지에 반영.
+
+# 자리 의미가 없는 스프레드 (1·2·3·12장 등)
+- 자리명이 자명한 경우 (예: "현재", "1월", "오늘의 메시지") → 그 자리명을 *질문 맥락 안의 작은 국면* 으로 매핑하세요.
+- 예: "1월" 자리에 컵5 역방향 + 질문 "올해 연애운" → "1월은 작년 끌림을 정리하는 데 시간이 걸리는 시기예요" (시간 단위 해석)
+- 예: "오늘의 메시지" 자리에 별 + 질문 "내일 뭐 먹지" → "오늘부터 가벼운 회복식이 좋다고 카드가 말해요" (단일 메시지 압축)
+
+# 시너지 방법론 (단순 요약 금지)
+시너지 = 카드들 *사이의 관계*. 다음 3가지 중 하나로 명시:
+1) **보완**: 카드 A 의 부족을 카드 B 가 채움 — "끌림(컵2) ↔ 가능성(별)" 처럼 같은 방향 강화.
+2) **충돌**: 카드 A 와 B 가 서로 잡아당김 — "추진(완드1) vs 망설임(검 7 역방향)" 처럼 톤이 반대.
+3) **전개**: 카드 A → B → C 시간 순서 — "끌림(컵2) → 망설임(컵 기사 역방향) → 결과(별)"
+- 시너지 한 줄은 반드시 위 3종 중 하나의 *틀* 로 작성. 단순 요약 ("세 카드 다 긍정적") 금지.
+
 # 예시 (3종 — 일상 / 관계 / 결정 — 어떤 카테고리든 같은 식으로)
 - "내일 뭐 먹지?" + 컵5(역방향, 현재 자리) → "내일 메뉴 정하는 자리에서 컵5 역방향은 '예전에 끌리던 그 메뉴에 시선 묶이지 말고 지금 식탁에 남은 옵션을 보라'는 신호예요."
 - "그 사람이 나를 좋아해?" + 컵2(정방향, 상대 마음 자리) → "그 사람 마음 자리에 컵2가 떴어요. 이미 시선이 마주친 끌림은 분명한데, 표현 타이밍을 늦추고 있는 흐름이에요."
@@ -446,6 +464,24 @@ export async function POST(req: NextRequest) {
 - The user's question is ALWAYS the center of every card interpretation. Never recite generic card meanings; unpack *what this card says inside this question*.
 - No textbook definitions. Re-read each card *inside the user's situation*.
 - If a seat meaning is supplied in the input, map the card onto that meaning explicitly.
+
+# Reversed Orientation (not simply "negative")
+- Reversed = one of: **blockage / delay / internalization / immaturity / excess**.
+- Example: Two of Cups upright = "an attraction already met", Two of Cups reversed = "the attraction is there but its expression is delayed or held inward."
+- Never auto-read a reversed card as "bad". Explain *how* the flow is blocked / delayed / internalized inside the user's situation.
+- In a mixed-orientation spread, call out where the reversed cards slow or internalize the current and fold that into the synergy line.
+
+# When the spread has no seat meaning (1·2·3·12 card spreads)
+- If the seat name is self-evident (e.g., "Present", "January", "Message of the day"), map it to a *small phase inside the user's question*.
+- E.g., "January" seat with Five of Cups reversed + question "How is my love life this year?" → "January is a window where last year's attraction is still being processed (slow start)."
+- E.g., "Message of the day" + Star + question "What should I eat tomorrow?" → "The card says start with a light recovery meal from today."
+
+# Synergy Method (no generic summaries)
+Synergy = the *relationship between* the cards. Choose one of:
+1) **Complement**: A fills B's gap — "attraction (Two of Cups) ↔ possibility (Star)" reinforcing same direction.
+2) **Clash**: A and B pull against each other — "drive (Ace of Wands) vs hesitation (Seven of Swords reversed)" opposite tones.
+3) **Progression**: A → B → C as a sequence — "attraction (Two of Cups) → hesitation (Knight of Cups reversed) → outcome (Star)".
+- The synergy line must explicitly use one of the three frames above. Never write "all three cards are positive" style summaries.
 
 # Examples (3 categories — daily / relationship / decision — same method everywhere)
 - "What should I eat tomorrow?" + Five of Cups reversed (Present seat) → "On the seat of tomorrow's meal, Five of Cups reversed says stop staring at the dish you miss and look at what's actually on the table tonight."
