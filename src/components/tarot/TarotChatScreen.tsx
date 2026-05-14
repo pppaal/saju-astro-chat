@@ -98,13 +98,13 @@ export default function TarotChatScreen() {
         <div className="w-96 h-96 bg-indigo-900 rounded-full blur-3xl opacity-20"></div>
       </div>
 
-      {/* 메인 — 환영 영역 */}
+      {/* 메인 — 환영 영역 + 예시 질문 */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 pb-44 z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
-          className="text-center space-y-4"
+          className="text-center space-y-4 w-full max-w-xl"
         >
           <div className="flex justify-center mb-4">
             <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
@@ -119,6 +119,41 @@ export default function TarotChatScreen() {
               ? '하단 입력창에 고민을 적어주세요.\n선택하신 덱과 스프레드에 맞춰 카드를 펼칩니다.'
               : 'Type your question below.\nThe cards will be drawn from your selected deck and spread.'}
           </p>
+
+          {/* 예시 질문 chip — 클릭하면 textarea 에 채워서 첫 사용자 ramp-up */}
+          {question.trim().length === 0 && (
+            <div className="pt-3">
+              <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">
+                {isKo ? '이런 걸 물어볼 수 있어요' : 'Try asking'}
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {(isKo
+                  ? ['오늘 컨디션 어때?', '그 사람 마음이 궁금해', '이직해도 될까?', '내일 어떻게 보낼까?']
+                  : [
+                      'How is my day looking?',
+                      "What's on their mind?",
+                      'Should I switch jobs?',
+                      'How should I spend tomorrow?',
+                    ]
+                ).map((sample) => (
+                  <button
+                    key={sample}
+                    type="button"
+                    onClick={() => {
+                      setQuestion(sample)
+                      setTimeout(() => {
+                        textareaRef.current?.focus()
+                        textareaRef.current?.setSelectionRange(sample.length, sample.length)
+                      }, 50)
+                    }}
+                    className="px-3 py-1.5 rounded-full bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 hover:text-slate-100 transition-colors"
+                  >
+                    {sample}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
 
