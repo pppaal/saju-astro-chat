@@ -704,7 +704,6 @@ export const compatibilityCounselorRequestSchema = z.object({
   useRag: z.boolean().optional(),
   lang: z.enum(['ko', 'en']).optional(),
   messages: z.array(chatMessageSchema).max(50).optional(),
-  theme: z.enum(['general', 'love', 'business', 'family']).optional(),
 })
 
 export type CompatibilityCounselorRequestValidated = z.infer<
