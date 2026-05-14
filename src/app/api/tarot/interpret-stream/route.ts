@@ -196,47 +196,8 @@ function getZodiacSign(
   return null
 }
 
-// 감정 분석 함수
-function analyzeQuestionMood(
-  question: string
-): 'worried' | 'curious' | 'hopeful' | 'urgent' | 'neutral' {
-  const lowerQ = question.toLowerCase()
-  const koreanQ = question
-
-  // 걱정/불안 패턴
-  if (
-    /걱정|불안|두렵|힘들|무서|어떡|망하|실패|잃|끝|포기/i.test(koreanQ) ||
-    /worried|anxious|scared|afraid|fail|lose|end/i.test(lowerQ)
-  ) {
-    return 'worried'
-  }
-
-  // 긴급 패턴
-  if (
-    /급해|빨리|당장|지금|바로|언제|오늘/i.test(koreanQ) ||
-    /urgent|asap|now|immediately|today|when/i.test(lowerQ)
-  ) {
-    return 'urgent'
-  }
-
-  // 희망/긍정 패턴
-  if (
-    /잘될|좋아질|성공|행복|사랑|만날|이룰|희망/i.test(koreanQ) ||
-    /hope|success|love|happy|better|achieve/i.test(lowerQ)
-  ) {
-    return 'hopeful'
-  }
-
-  // 호기심 패턴
-  if (
-    /어떨까|궁금|알고싶|보여줘|뭘까|왜/i.test(koreanQ) ||
-    /what|how|why|curious|wonder/i.test(lowerQ)
-  ) {
-    return 'curious'
-  }
-
-  return 'neutral'
-}
+// 옛 analyzeQuestionMood / previousReadings 는 system prompt 의 Step 0 가 이미
+// subject/object/timeframe/intent 를 추출하므로 중복 noise — 제거됨.
 
 export async function POST(req: NextRequest) {
   let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
@@ -306,7 +267,6 @@ export async function POST(req: NextRequest) {
     const birthdate = includeAstrology ? body.birthdate || '' : ''
     const sajuContext = includeSaju ? (body.sajuContext || '').trim() : ''
     const astroContext = includeAstrology ? (body.astroContext || '').trim() : ''
-    const previousReadings = body.previousReadings || []
 
     logger.info('Tarot stream payload', {
       categoryId,
@@ -319,7 +279,6 @@ export async function POST(req: NextRequest) {
       includeSaju,
       hasSajuContext: Boolean(sajuContext),
       hasAstroContext: Boolean(astroContext),
-      previousReadings: previousReadings.length,
     })
 
     const isKorean = language === 'ko'
@@ -339,49 +298,28 @@ export async function POST(req: NextRequest) {
 
     const q = effectiveUserQuestion || (isKorean ? '일반 운세' : 'general reading')
 
-    // 개인화 정보 구성
+    // 개인화 컨텍스트 — 사주/점성 등록 안 한 게스트라도 birthdate 만 있으면 별자리는 anchor 로 활용.
+    // mood/previousReadings 는 LLM Step 0 가 더 잘 처리해서 제거됨.
     const zodiac = birthdate ? getZodiacSign(birthdate) : null
-    const mood = analyzeQuestionMood(q)
-
-    // 개인화 컨텍스트 생성
-    let personalizationContext = ''
-    if (isKorean) {
-      if (zodiac) {
-        personalizationContext += `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.element} 원소)\n`
-      }
-      if (astroContext) {
-        personalizationContext += `\n## 점성 맥락\n${astroContext}\n`
-      }
-      if (sajuContext) {
-        personalizationContext += `\n## 사주 맥락\n${sajuContext}\n`
-      }
-      if (previousReadings.length > 0) {
-        personalizationContext += `\n## 이전 상담 요약 (맥락 참고용)\n${previousReadings.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n`
-      }
-      const moodGuide: Record<typeof mood, string> = {
-        worried: '질문자가 걱정하고 있어요. 안심시키면서도 현실적인 조언을 해주세요.',
-        urgent: '질문자가 급한 상황이에요. 핵심을 먼저 말하고 구체적인 행동 지침을 주세요.',
-        hopeful: '질문자가 희망적이에요. 긍정적인 에너지를 유지하면서 균형 잡힌 조언을 해주세요.',
-        curious: '질문자가 호기심이 많아요. 흥미롭게 설명하면서 깊이 있는 통찰을 주세요.',
-        neutral: '',
-      }
-      if (moodGuide[mood]) {
-        personalizationContext += `\n## 말투 힌트\n${moodGuide[mood]}\n`
-      }
-    } else {
-      if (zodiac) {
-        personalizationContext += `\n## Querent Info\n- Zodiac: ${zodiac.sign} (${zodiac.element} element)\n`
-      }
-      if (astroContext) {
-        personalizationContext += `\n## Astrology Context\n${astroContext}\n`
-      }
-      if (sajuContext) {
-        personalizationContext += `\n## Saju Context\n${sajuContext}\n`
-      }
-      if (previousReadings.length > 0) {
-        personalizationContext += `\n## Previous Readings Summary (for context)\n${previousReadings.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n`
-      }
+    const sections: string[] = []
+    if (zodiac) {
+      sections.push(
+        isKorean
+          ? `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.element} 원소)\n`
+          : `\n## Querent Info\n- Zodiac: ${zodiac.sign} (${zodiac.element} element)\n`
+      )
     }
+    if (astroContext) {
+      sections.push(
+        isKorean ? `\n## 점성 맥락\n${astroContext}\n` : `\n## Astrology Context\n${astroContext}\n`
+      )
+    }
+    if (sajuContext) {
+      sections.push(
+        isKorean ? `\n## 사주 맥락\n${sajuContext}\n` : `\n## Saju Context\n${sajuContext}\n`
+      )
+    }
+    const personalizationContext = sections.join('')
 
     // 시스템 프롬프트 — 100% 정적 (페르소나 + 4단계 + 스키마).
     // ${rawCards.length} 같은 인터폴레이션 *금지* — Anthropic prompt caching prefix 안정화.
@@ -570,7 +508,7 @@ ${personalizationContext}
 - 모든 ${rawCards.length}장의 카드에 대해 cards[] 항목을 만드세요.
 - 각 카드는 위 질문 맥락 안에서 해석합니다. 카드를 보고 사전식 정의를 쓰지 마세요.
 - 각 카드의 actionTip 은 *질문에 직접 적용 가능한* 1-2문장 행동 + 시간 앵커.
-- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}${previousReadings.length > 0 ? '\n- 이전 상담과의 연결점 있으면 언급.' : ''}`
+- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}`
       : `# User's Question
 "${q}"
 
@@ -584,7 +522,7 @@ ${personalizationContext}
 - Produce cards[] entries for all ${rawCards.length} cards.
 - Interpret each card *inside the user's question above*. No textbook definitions.
 - Each card's actionTip is 1-2 sentences of action directly applicable to the question, with a time anchor.
-- The first sentence of overall must reference the user's question directly.${zodiac ? `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.` : ''}${astroContext ? '\n- Cross with the astrology context.' : ''}${sajuContext ? '\n- Cross with the saju context — anchor in every card at least once.' : ''}${previousReadings.length > 0 ? '\n- Reference previous readings if relevant.' : ''}`
+- The first sentence of overall must reference the user's question directly.${zodiac ? `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.` : ''}${astroContext ? '\n- Cross with the astrology context.' : ''}${sajuContext ? '\n- Cross with the saju context — anchor in every card at least once.' : ''}`
 
     // Claude 우선.
     //  - <8장: 단일 호출, 응답 전체를 SSE 단일 청크로 emit (기존 흐름)
@@ -655,7 +593,7 @@ ${personalizationContext}
             : isKorean
               ? `# 작성 지시\n- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfo} 의 카드별 해석만 cards[] 에 채우세요. overall/advice 는 출력하지 마세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
               : `# Instructions\n- Use the full ${rawCards.length}-card flow as context only. Output ONLY per-card interpretations ${chunkInfo} in cards[]. Do NOT include overall/advice.\n- cards[] length must be exactly ${endIdx - startIdx}.`
-          const personalizationLine = `${zodiac ? (isKorean ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.`) : ''}${astroContext ? (isKorean ? '\n- 점성 맥락도 해석에 cross.' : '\n- Cross with the astrology context.') : ''}${sajuContext ? (isKorean ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : '\n- Cross with the saju context — anchor in every card at least once.') : ''}${previousReadings.length > 0 ? (isKorean ? '\n- 이전 상담과의 연결점 있으면 언급.' : '\n- Reference previous readings if relevant.') : ''}`
+          const personalizationLine = `${zodiac ? (isKorean ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.`) : ''}${astroContext ? (isKorean ? '\n- 점성 맥락도 해석에 cross.' : '\n- Cross with the astrology context.') : ''}${sajuContext ? (isKorean ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : '\n- Cross with the saju context — anchor in every card at least once.') : ''}`
           if (isKorean) {
             return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${rawCards.length}장)\n\n# 펼친 카드 — 전체 (자리명 — 자리 의미)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
           }

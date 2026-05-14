@@ -180,8 +180,6 @@ export const tarotInterpretStreamSchema = z.object({
   astroContext: z.string().max(1000).optional(),
   questionContext: tarotQuestionContextSchema.optional(),
   zodiacSign: z.string().max(50).optional(),
-  previousReadings: z.array(z.string().max(200)).max(3).optional(),
-  questionMood: z.enum(['worried', 'curious', 'hopeful', 'urgent', 'neutral']).optional(),
 })
 
 export type TarotInterpretStreamValidated = z.infer<typeof tarotInterpretStreamSchema>
