@@ -9,7 +9,6 @@ import styles from './CounselorSidebar.module.css'
 
 type SessionItem = {
   id: string
-  theme?: string | null
   title?: string | null
   preview?: string | null
   updatedAt?: string | null
@@ -114,7 +113,7 @@ export default function CounselorSidebar({ open, onClose, onNewChat }: Counselor
                     onClick={onClose}
                   >
                     <span className={styles.sessionTitle}>
-                      {s.title || s.preview || s.theme || s.id.slice(0, 8)}
+                      {s.title || s.preview || s.id.slice(0, 8)}
                     </span>
                     {s.updatedAt && (
                       <span className={styles.sessionDate}>

@@ -73,7 +73,6 @@ const tarotQuestionContextSchema = z.object({
 
 export const tarotSaveRequestSchema = z.object({
   question: z.string().min(1).max(1000).trim(),
-  theme: z.string().max(100).trim().optional(),
   spreadId: z.string().min(1).max(100),
   spreadTitle: z.string().min(1).max(200),
   cards: z.array(tarotCardSaveSchema).min(1).max(20),
@@ -92,7 +91,6 @@ export type TarotSaveRequestValidated = z.infer<typeof tarotSaveRequestSchema>
 export const tarotQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional().default(10),
   offset: z.coerce.number().int().min(0).optional().default(0),
-  theme: z.string().max(100).optional(),
 })
 
 export type TarotQueryValidated = z.infer<typeof tarotQuerySchema>
@@ -230,7 +228,6 @@ export const coupleTarotReadingPostSchema = z.object({
   spreadTitle: z.string().max(120).trim().optional(),
   cards: z.array(tarotCardSaveSchema),
   question: z.string().max(600).trim().optional(),
-  theme: z.string().max(100).trim().optional(),
   overallMessage: z.string().max(10000).optional(),
   cardInsights: z.array(tarotCardInsightSchema).optional(),
   guidance: z.string().max(5000).optional(),

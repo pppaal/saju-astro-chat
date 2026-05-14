@@ -529,33 +529,18 @@ export function useTarotInterpretation({
               const dayMasterYinYang = (saju.dayMasterYinYang as string) || ''
               const pillars =
                 (saju.pillars as Record<string, { stem?: string; branch?: string }>) || {}
-              const formatPillar = (p?: { stem?: string; branch?: string }) =>
-                p?.stem && p?.branch ? `${p.stem}${p.branch}` : ''
-              const pillarLine = isKorean
-                ? [
-                    pillars.year && `년주 ${formatPillar(pillars.year)}`,
-                    pillars.month && `월주 ${formatPillar(pillars.month)}`,
-                    pillars.day && `일주 ${formatPillar(pillars.day)}`,
-                    pillars.time && `시주 ${formatPillar(pillars.time)}`,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')
-                : [
-                    pillars.year && `Year ${formatPillar(pillars.year)}`,
-                    pillars.month && `Month ${formatPillar(pillars.month)}`,
-                    pillars.day && `Day ${formatPillar(pillars.day)}`,
-                    pillars.time && `Hour ${formatPillar(pillars.time)}`,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')
+              // 4기둥 전체는 LLM 이 거의 인용 안 함 — 일주(일간+일지)만 유지.
+              // 나머지 년/월/시주는 토큰 비용 대비 시그널 약함.
+              const dayPillarStr =
+                pillars.day?.stem && pillars.day?.branch
+                  ? `${pillars.day.stem}${pillars.day.branch}`
+                  : ''
 
               if (dayMaster || dayMasterElement) {
-                // 구조화된 4기둥 cross context — 카드 해석 시 LLM이 일간/오행 외에도
-                // 4기둥을 함께 참조하여 입체 weaving 가능.
                 const headLine = isKorean
-                  ? `사주 핵심: 일간 ${dayMaster}, 오행 ${dayMasterElement}${dayMasterYinYang ? `, 음양 ${dayMasterYinYang}` : ''}`
-                  : `Saju core: Day master ${dayMaster}, element ${dayMasterElement}${dayMasterYinYang ? `, yin-yang ${dayMasterYinYang}` : ''}`
-                sajuContext = pillarLine ? `${headLine}\n사주 4기둥: ${pillarLine}` : headLine
+                  ? `사주 핵심: 일간 ${dayMaster}, 오행 ${dayMasterElement}${dayMasterYinYang ? `, 음양 ${dayMasterYinYang}` : ''}${dayPillarStr ? `, 일주 ${dayPillarStr}` : ''}`
+                  : `Saju core: Day master ${dayMaster}, element ${dayMasterElement}${dayMasterYinYang ? `, yin-yang ${dayMasterYinYang}` : ''}${dayPillarStr ? `, Day pillar ${dayPillarStr}` : ''}`
+                sajuContext = headLine
               }
             }
           }
@@ -603,14 +588,40 @@ export function useTarotInterpretation({
                   sun?: { sign?: string; formatted?: string }
                   moon?: { sign?: string; formatted?: string }
                   ascendant?: { sign?: string; formatted?: string }
+                  mercury?: { sign?: string; formatted?: string }
+                  venus?: { sign?: string; formatted?: string }
+                  mars?: { sign?: string; formatted?: string }
+                  jupiter?: { sign?: string; formatted?: string }
+                  saturn?: { sign?: string; formatted?: string }
+                  neptune?: { sign?: string; formatted?: string }
+                  northNode?: { sign?: string; formatted?: string }
+                  mc?: { sign?: string; formatted?: string }
+                  house2?: { sign?: string }
+                  house6?: { sign?: string }
+                  house7?: { sign?: string }
+                  house9?: { sign?: string }
+                  house10?: { sign?: string }
                 }
               | undefined
-            const moonPhase = detail.todayMoonPhase as
-              | { phase?: string; name?: string }
+            const sajuExtras = detail.sajuExtras as
+              | {
+                  tenGodCounts?: Record<string, number>
+                  fiveElements?: { wood?: number; fire?: number; earth?: number; metal?: number; water?: number }
+                }
+              | undefined
+            const shinsalActive = (detail.shinsalActive as Array<{ name?: string }> | undefined) || []
+            const gongmangStatus = detail.gongmangStatus as
+              | { isAffected?: boolean; areas?: string[] }
               | undefined
 
-            const sajuAxisScore = typeof fusion.sajuAxisScore === 'number' ? fusion.sajuAxisScore : undefined
-            const astroAxisScore = typeof fusion.astroAxisScore === 'number' ? fusion.astroAxisScore : undefined
+            // ────────────────── 키워드 기반 카테고리 감지 (무료) ──────────────────
+            const qText = userTopic || ''
+            const isLove = /연애|사랑|썸|짝사랑|이별|결혼|애인|남친|여친|관계|데이트|고백|재회|헤어|남자친구|여자친구|좋아해|마음|호감|호감|배우자/i.test(qText)
+            const isCareer = /이직|취업|면접|직장|커리어|승진|상사|동료|회사|일자리|직업|진로/i.test(qText)
+            const isMoney = /돈|재정|투자|주식|코인|매출|수입|지출|용돈|월급|급여|매입|매도|재물|재산|돈줄|매수/i.test(qText)
+            const isSpiritual = /자기|성장|영성|마음|내면|회의|의미|인생|길|소명|방향/i.test(qText)
+            const isHealth = /건강|몸|컨디션|스트레스|병원|아프|아픈|치료/i.test(qText)
+
             const domainScores = (fusion.domainScores as Record<string, number> | undefined) || {}
             const topDomains = Object.entries(domainScores)
               .sort(([, a], [, b]) => b - a)
@@ -619,7 +630,9 @@ export function useTarotInterpretation({
               .join(' · ')
 
             // sajuContext 풍부화
-            // 기본 (4기둥) + 신강/신약 + 용신 + 현재 대운 + 오늘 사주축 점수 + 오늘 강한 영역
+            // 기본(일간) + 신강/신약 + 용신 + 대운 + 오늘 강한 영역
+            // + 유니버설 raw (십신 top 2, 오행 분포)
+            // + conditional raw (연애→도화/홍염, 직장→관성, 재물→재성, 영성→화개, 건강→공망)
             if (includeSaju && sajuContext) {
               const extra: string[] = []
               if (strength)
@@ -635,35 +648,117 @@ export function useTarotInterpretation({
                     : `Current decadal: ${currentDaeun.label}${daeunSib ? ` (${daeunSib})` : ''}`
                 )
               }
-              if (sajuAxisScore !== undefined)
-                extra.push(
-                  isKorean ? `오늘 사주축 점수: ${sajuAxisScore}` : `Today saju axis: ${sajuAxisScore}`
-                )
               if (topDomains)
                 extra.push(
                   isKorean ? `오늘 강한 영역: ${topDomains}` : `Top domains today: ${topDomains}`
                 )
+
+              // [universal] 십신 분포 top 2
+              const tenGodCounts = sajuExtras?.tenGodCounts || {}
+              const topTenGods = Object.entries(tenGodCounts)
+                .sort(([, a], [, b]) => (b as number) - (a as number))
+                .slice(0, 2)
+                .map(([name, count]) => `${name} ${count}`)
+                .join(' · ')
+              if (topTenGods) extra.push(isKorean ? `십신: ${topTenGods}` : `Ten gods: ${topTenGods}`)
+
+              // [universal] 오행 분포
+              const fe = sajuExtras?.fiveElements
+              if (fe) {
+                extra.push(
+                  isKorean
+                    ? `오행: 목${fe.wood ?? 0}·화${fe.fire ?? 0}·토${fe.earth ?? 0}·금${fe.metal ?? 0}·수${fe.water ?? 0}`
+                    : `5 elements: wood${fe.wood ?? 0}/fire${fe.fire ?? 0}/earth${fe.earth ?? 0}/metal${fe.metal ?? 0}/water${fe.water ?? 0}`
+                )
+              }
+
+              // [universal] 천을귀인 — helper star, 어떤 질문에도 도움 받을 운 anchor
+              const hasCheoneul = shinsalActive.some(
+                (s) => (s?.name || '').includes('천을귀인')
+              )
+              if (hasCheoneul) {
+                extra.push(isKorean ? '천을귀인 활성' : 'Cheoneul Gwiin (helper star) active')
+              }
+
+              // [conditional] 연애 — 도화살 / 홍염살
+              if (isLove) {
+                const loveShinsals = shinsalActive
+                  .map((s) => s?.name || '')
+                  .filter((n) => n.includes('도화') || n.includes('홍염'))
+                if (loveShinsals.length > 0) {
+                  extra.push(isKorean ? `연애 신살: ${loveShinsals.join(', ')}` : `Love shinsals: ${loveShinsals.join(', ')}`)
+                }
+              }
+
+              // [conditional] 직장 — 관성 (정관+편관) 카운트
+              if (isCareer) {
+                const off = (tenGodCounts['정관'] || 0) + (tenGodCounts['편관'] || 0)
+                if (off > 0) {
+                  extra.push(isKorean ? `관성(공식권력): ${off}` : `Officer (authority): ${off}`)
+                }
+              }
+
+              // [conditional] 재물 — 재성 (정재+편재) 카운트
+              if (isMoney) {
+                const wealth = (tenGodCounts['정재'] || 0) + (tenGodCounts['편재'] || 0)
+                if (wealth > 0) {
+                  extra.push(isKorean ? `재성(돈): ${wealth}` : `Wealth gods: ${wealth}`)
+                }
+              }
+
+              // [conditional] 자기성장/영성 — 화개살
+              if (isSpiritual) {
+                const spiritual = shinsalActive
+                  .map((s) => s?.name || '')
+                  .filter((n) => n.includes('화개'))
+                if (spiritual.length > 0) {
+                  extra.push(isKorean ? `영성 신살: ${spiritual.join(', ')}` : `Spiritual shinsals: ${spiritual.join(', ')}`)
+                }
+              }
+
+              // [conditional] 건강 — 공망 (비어있는 영역)
+              if (isHealth && gongmangStatus?.isAffected && gongmangStatus.areas?.length) {
+                extra.push(
+                  isKorean
+                    ? `공망 영역: ${gongmangStatus.areas.join(', ')}`
+                    : `Gongmang areas: ${gongmangStatus.areas.join(', ')}`
+                )
+              }
+
               if (extra.length > 0) sajuContext = `${sajuContext}\n${extra.join(' · ')}`
             }
 
-            // astroContext 풍부화
-            // 본명 Sun/Moon/Asc + 오늘 달 위상 + 오늘 점성축 점수 + 트랜짓 + 역행
+            // astroContext — 사주와 동일한 깊이로 균형
+            // Universal: Sun/Moon/ASC + Mercury/Venus/Mars (6 identity planets) + 오늘 트랜짓 top 3
+            // Conditional (테마별): +1~2 추가 행성/하우스로 카테고리 anchor 강화
             if (includeAstrology) {
               const lines: string[] = []
-              if (natalAngles?.sun?.sign || natalAngles?.moon?.sign || natalAngles?.ascendant?.sign) {
-                const parts: string[] = []
-                if (natalAngles.sun?.sign) parts.push(`태양 ${natalAngles.sun.sign}`)
-                if (natalAngles.moon?.sign) parts.push(`달 ${natalAngles.moon.sign}`)
-                if (natalAngles.ascendant?.sign) parts.push(`ASC ${natalAngles.ascendant.sign}`)
-                if (parts.length > 0)
-                  lines.push(isKorean ? `본명: ${parts.join(' · ')}` : `Natal: ${parts.join(' · ')}`)
-              }
-              if (moonPhase?.name) {
-                lines.push(isKorean ? `오늘 달 위상: ${moonPhase.name}` : `Moon phase today: ${moonPhase.name}`)
-              }
-              if (astroAxisScore !== undefined) {
-                lines.push(isKorean ? `오늘 점성축 점수: ${astroAxisScore}` : `Astro axis today: ${astroAxisScore}`)
-              }
+              const parts: string[] = []
+              // [universal] 정체성 + 일상 3 행성
+              if (natalAngles?.sun?.sign) parts.push(`태양 ${natalAngles.sun.sign}`)
+              if (natalAngles?.moon?.sign) parts.push(`달 ${natalAngles.moon.sign}`)
+              if (natalAngles?.ascendant?.sign) parts.push(`ASC ${natalAngles.ascendant.sign}`)
+              if (natalAngles?.mercury?.sign) parts.push(`Mercury ${natalAngles.mercury.sign}`)
+              if (natalAngles?.venus?.sign) parts.push(`Venus ${natalAngles.venus.sign}`)
+              if (natalAngles?.mars?.sign) parts.push(`Mars ${natalAngles.mars.sign}`)
+              // [universal] North Node — 영혼의 방향 (인생 큰 결정 anchor)
+              if (natalAngles?.northNode?.sign) parts.push(`North Node ${natalAngles.northNode.sign}`)
+              // [conditional] 연애 — 7th house ruler sign (관계 angle)
+              if (isLove && natalAngles?.house7?.sign) parts.push(`7H ${natalAngles.house7.sign}`)
+              // [conditional] 직장 — MC + Saturn (직업 angle + 구조)
+              if (isCareer && natalAngles?.mc?.sign) parts.push(`MC ${natalAngles.mc.sign}`)
+              if (isCareer && natalAngles?.saturn?.sign) parts.push(`Saturn ${natalAngles.saturn.sign}`)
+              // [conditional] 재물 — Jupiter + 2nd house (풍요 + 자산)
+              if (isMoney && natalAngles?.jupiter?.sign) parts.push(`Jupiter ${natalAngles.jupiter.sign}`)
+              if (isMoney && natalAngles?.house2?.sign) parts.push(`2H ${natalAngles.house2.sign}`)
+              // [conditional] 영성 — Neptune + 9th house (영성 + 의미)
+              if (isSpiritual && natalAngles?.neptune?.sign) parts.push(`Neptune ${natalAngles.neptune.sign}`)
+              if (isSpiritual && natalAngles?.house9?.sign) parts.push(`9H ${natalAngles.house9.sign}`)
+              // [conditional] 건강 — 6th house (건강 angle)
+              if (isHealth && natalAngles?.house6?.sign) parts.push(`6H ${natalAngles.house6.sign}`)
+              if (parts.length > 0)
+                lines.push(isKorean ? `본명: ${parts.join(' · ')}` : `Natal: ${parts.join(' · ')}`)
+
               const aspects = transit.aspects as Array<Record<string, unknown>> | undefined
               if (aspects && aspects.length > 0) {
                 const top = aspects
@@ -677,10 +772,6 @@ export function useTarotInterpretation({
                   })
                   .join(' · ')
                 lines.push(isKorean ? `오늘 트랜짓: ${top}` : `Today transits: ${top}`)
-              }
-              const retros = transit.retrogrades as string[] | undefined
-              if (retros && retros.length > 0) {
-                lines.push(isKorean ? `역행 행성: ${retros.join(', ')}` : `Retrograde: ${retros.join(', ')}`)
               }
               if (lines.length > 0) astroContext = lines.join('\n')
             }

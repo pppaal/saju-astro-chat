@@ -98,12 +98,6 @@ export default function SharedResultPage() {
           title: isKo ? '별자리 운세' : 'Astrology Reading',
           color: 'from-blue-500 to-cyan-500',
         }
-      case 'dream':
-        return {
-          icon: '🌙',
-          title: isKo ? '꿈 해몽' : 'Dream Interpretation',
-          color: 'from-violet-500 to-purple-500',
-        }
       case 'compatibility':
         return {
           icon: '💕',

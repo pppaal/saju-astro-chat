@@ -10,7 +10,6 @@ import type { Message } from '../chat-constants'
 import type { SessionItem } from '../modals/HistoryModal'
 
 interface UseChatSessionOptions {
-  theme: string
   lang: string
   initialContext?: string
   saju?: unknown
@@ -39,18 +38,11 @@ function generateSessionId(): string {
   return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 }
 
-function buildThemeQuery(theme: string): string {
-  if (!theme || theme === 'chat') {
-    return ''
-  }
-  return `theme=${encodeURIComponent(theme)}&`
-}
-
 /**
  * Hook for managing chat session state and persistence
  */
 export function useChatSession(options: UseChatSessionOptions): UseChatSessionReturn {
-  const { theme, lang, initialContext, saju, astro } = options
+  const { lang, initialContext, saju, astro } = options
 
   const sessionIdRef = React.useRef<string>(generateSessionId())
   const [messages, setMessages] = React.useState<Message[]>(
@@ -83,7 +75,6 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sessionId: sessionIdRef.current,
-            theme: theme || 'chat',
             locale: lang || 'ko',
             messages: messages.filter((m) => m.role !== 'system'),
           }),
@@ -95,7 +86,7 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
     }, CHAT_TIMINGS.DEBOUNCE_SAVE)
 
     return () => clearTimeout(saveTimer)
-  }, [messages, sessionLoaded, theme, lang])
+  }, [messages, sessionLoaded, lang])
 
   // Auto-update PersonaMemory after conversation
   const lastUpdateRef = React.useRef<number>(0)
@@ -125,7 +116,6 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: sessionIdRef.current,
-        theme: theme || 'chat',
         locale: lang || 'ko',
         messages: visibleMsgs,
         saju: saju || undefined,
@@ -140,13 +130,13 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
       .catch((e) => {
         logger.warn('[Chat] Failed to update PersonaMemory:', e)
       })
-  }, [messages, sessionLoaded, theme, lang, saju, astro])
+  }, [messages, sessionLoaded, lang, saju, astro])
 
   // Load session history
   const loadSessionHistory = React.useCallback(async () => {
     setHistoryLoading(true)
     try {
-      const res = await fetch(`/api/counselor/session/list?${buildThemeQuery(theme)}limit=20`)
+      const res = await fetch(`/api/counselor/session/list?limit=20`)
       if (res.ok) {
         const data = await res.json()
         setSessionHistory(data.sessions || [])
@@ -156,15 +146,13 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
     } finally {
       setHistoryLoading(false)
     }
-  }, [theme])
+  }, [])
 
   // Load a specific session
   const loadSession = React.useCallback(
     async (sessionId: string) => {
       try {
-        const res = await fetch(
-          `/api/counselor/session/load?${buildThemeQuery(theme)}sessionId=${sessionId}`
-        )
+        const res = await fetch(`/api/counselor/session/load?sessionId=${sessionId}`)
         if (res.ok) {
           const data = await res.json()
           if (data.messages && Array.isArray(data.messages)) {
@@ -176,7 +164,7 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
         logger.warn('[Chat] Failed to load session:', e)
       }
     },
-    [theme]
+    []
   )
 
   // Delete a session

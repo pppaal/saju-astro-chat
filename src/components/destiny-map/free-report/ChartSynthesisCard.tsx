@@ -11,6 +11,12 @@ const ELEMENT_TONE: Record<string, string> = {
   air: 'bg-cyan-500/20 text-cyan-200 border-cyan-400/30',
   water: 'bg-blue-500/20 text-blue-200 border-blue-400/30',
 }
+const ELEMENT_BAR: Record<string, string> = {
+  fire: 'bg-rose-400/70',
+  earth: 'bg-amber-400/70',
+  air: 'bg-cyan-400/70',
+  water: 'bg-blue-400/70',
+}
 const MODALITY_KO: Record<string, string> = {
   cardinal: '활동형(주도)', fixed: '고정형(지속)', mutable: '변동형(유연)',
 }
@@ -34,8 +40,12 @@ export default function ChartSynthesisCard({ synth }: { synth: ChartSynthesis })
         <p className="text-[10px] font-mono uppercase tracking-[0.28em] text-purple-300 mb-1">
           Chart Synthesis
         </p>
-        <h3 className="text-lg font-bold text-white">{synth.signature}</h3>
-        <p className="text-sm text-slate-300 mt-2 leading-relaxed">{synth.archetype}</p>
+        {synth.signature && (
+          <h3 className="text-lg font-bold text-white">{synth.signature}</h3>
+        )}
+        {synth.archetype && (
+          <p className="text-sm text-slate-300 mt-2 leading-relaxed">{synth.archetype}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -54,7 +64,7 @@ export default function ChartSynthesisCard({ synth }: { synth: ChartSynthesis })
                     {ELEMENT_KO[el]}
                   </span>
                   <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
-                    <div className={tone.split(' ')[0]} style={{ width: `${v}%`, height: '100%' }} />
+                    <div className={ELEMENT_BAR[el]} style={{ width: `${v}%`, height: '100%' }} />
                   </div>
                   <span className="w-10 text-right font-mono text-slate-300">{v}%</span>
                 </div>
@@ -96,20 +106,24 @@ export default function ChartSynthesisCard({ synth }: { synth: ChartSynthesis })
         {/* Hemisphere */}
         <div className="rounded-xl bg-slate-900/40 border border-white/10 p-4">
           <div className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-2">
-            반구 분포
+            반구 분포 (행성 수)
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="text-slate-300">
-              낮(공적, H7-12): <span className="text-white font-bold">{balance.hemisphere.daytime}</span>
+              낮·공적 (H7–12):{' '}
+              <span className="text-white font-bold">{balance.hemisphere.daytime}개</span>
             </div>
             <div className="text-slate-300">
-              밤(사적, H1-6): <span className="text-white font-bold">{balance.hemisphere.nighttime}</span>
+              밤·사적 (H1–6):{' '}
+              <span className="text-white font-bold">{balance.hemisphere.nighttime}개</span>
             </div>
             <div className="text-slate-300">
-              동(자기, H10-3): <span className="text-white font-bold">{balance.hemisphere.eastern}</span>
+              자기 (H10–12·1–3):{' '}
+              <span className="text-white font-bold">{balance.hemisphere.eastern}개</span>
             </div>
             <div className="text-slate-300">
-              서(타인, H4-9): <span className="text-white font-bold">{balance.hemisphere.western}</span>
+              타인 (H4–9):{' '}
+              <span className="text-white font-bold">{balance.hemisphere.western}개</span>
             </div>
           </div>
         </div>
@@ -122,10 +136,10 @@ export default function ChartSynthesisCard({ synth }: { synth: ChartSynthesis })
           {dominant ? (
             <p className="text-sm text-slate-200">
               <span className="text-fuchsia-300 font-bold">{dominant.name}</span> — 어스펙트{' '}
-              {dominant.aspectCount}개, 가중점 {dominant.totalScore}
+              {dominant.aspectCount}개 (영향력 {dominant.totalScore}점)
             </p>
           ) : (
-            <p className="text-sm text-slate-400">계산할 어스펙트 부족</p>
+            <p className="text-sm text-slate-400">감지된 어스펙트가 없어요</p>
           )}
           {emphasizedHouse !== null ? (
             <p className="text-sm text-slate-200 mt-1">
@@ -156,7 +170,10 @@ export default function ChartSynthesisCard({ synth }: { synth: ChartSynthesis })
           </div>
           <ul className="space-y-1">
             {patterns.map((p, i) => (
-              <li key={i} className="text-sm text-amber-100 flex items-start gap-2">
+              <li
+                key={`${p}-${i}`}
+                className="text-sm text-amber-100 flex items-start gap-2"
+              >
                 <span className="text-amber-400">⚡</span>
                 <span>{p}</span>
               </li>

@@ -32,7 +32,7 @@ type FeedbackRecord = {
   createdAt: string;
 };
 
-const SERVICES = ["all", "destiny-map", "tarot", "dream", "saju", "astrology"];
+const SERVICES = ["all", "destiny-map", "tarot", "saju", "astrology"];
 const THEMES = ["all", "career", "love", "wealth", "health", "family", "life_path", "chat"];
 
 export default function FeedbackDashboard() {

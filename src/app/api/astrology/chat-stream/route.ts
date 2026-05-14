@@ -9,7 +9,7 @@ import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { DATE_RE, TIME_RE } from '@/lib/validation/patterns'
-import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
+import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
 
 export const dynamic = 'force-dynamic'
@@ -85,7 +85,6 @@ export const POST = createStreamRoute<AstrologyChatStreamValidated>({
       typeof rawBody.latitude === 'number' ? rawBody.latitude : Number(rawBody.latitude)
     const longitude =
       typeof rawBody.longitude === 'number' ? rawBody.longitude : Number(rawBody.longitude)
-    const theme = typeof rawBody.theme === 'string' ? rawBody.theme.trim().slice(0, 100) : 'life'
     const lang = validated.locale || (context.locale as string)
     const astro =
       typeof rawBody.astro === 'object' && rawBody.astro !== null ? rawBody.astro : undefined
@@ -132,18 +131,15 @@ export const POST = createStreamRoute<AstrologyChatStreamValidated>({
 
     const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
     const normalizedLang = lang === 'ko' ? 'ko' : 'en'
-    const themeDepthGuide = buildThemeDepthGuide(theme, normalizedLang)
     const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
     const chatPrompt = [
       astrologyCounselorSystemPrompt(lang),
-      themeDepthGuide,
       evidenceGuide,
       `Name: ${name || 'User'}`,
       `Birth: ${birthDate} ${birthTime}`,
       `Gender: ${gender}`,
       `Location: lat=${latitude}, lon=${longitude}`,
-      `Theme: ${theme}`,
       historyText ? `\nConversation:\n${historyText}` : '',
       `\nQuestion: ${userQuestion}`,
     ]
@@ -155,7 +151,6 @@ export const POST = createStreamRoute<AstrologyChatStreamValidated>({
     return {
       endpoint: '/astrology/ask-stream',
       body: {
-        theme,
         prompt: chatPrompt,
         locale: lang,
         astro: astro || undefined,

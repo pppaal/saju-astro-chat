@@ -145,7 +145,6 @@ export interface ChatProps {
   profile: ChatProfile
   initialContext?: string
   lang?: LangKey
-  theme?: string
   seedEvent?: string
   saju?: SajuData
   astro?: AstroData
@@ -161,6 +160,9 @@ export interface ChatProps {
   ragSessionId?: string
   // Auto-send initial seeded question
   autoSendSeed?: boolean
+  // Auto-focus the chat input on mount (pops mobile keyboard where the
+  // platform allows it, e.g. Android/desktop).
+  autoFocus?: boolean
 }
 
 // Chat API request payload
@@ -173,7 +175,6 @@ export interface ChatPayload {
   longitude?: number
   gender?: string
   city?: string
-  theme: string
   lang: LangKey
   messages: Message[]
   cvText?: string

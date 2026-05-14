@@ -1,4 +1,3 @@
-import type { DomainKey } from '@/lib/destiny-matrix/types'
 import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 
 export type CounselorEmotionalTone =
@@ -217,25 +216,6 @@ const DOMAIN_PATTERNS: DomainPattern[] = [
   },
 ]
 
-const DOMAIN_THEME_MAP: Record<InsightDomain, string> = {
-  personality: 'chat',
-  career: 'career',
-  relationship: 'love',
-  wealth: 'wealth',
-  health: 'health',
-  spirituality: 'life',
-  timing: 'life',
-}
-
-const LAYER_DOMAIN_MAP: Partial<Record<InsightDomain, DomainKey>> = {
-  career: 'career',
-  relationship: 'love',
-  wealth: 'money',
-  health: 'health',
-  timing: 'move',
-  spirituality: 'move',
-}
-
 function countMatches(text: string, patterns: RegExp[]): number {
   return patterns.reduce((total, pattern) => total + (pattern.test(text) ? 1 : 0), 0)
 }
@@ -291,19 +271,10 @@ function domainBonus(domain: InsightDomain, text: string): number {
 
 export function inferCounselorFocusDomain(input: {
   lastUserMessage?: string | null
-  theme?: string | null
 }): InsightDomain {
   const text = (input.lastUserMessage || '').trim()
   if (!text) {
-    return input.theme === 'health'
-      ? 'health'
-      : input.theme === 'career'
-        ? 'career'
-        : input.theme === 'wealth'
-          ? 'wealth'
-          : input.theme === 'love' || input.theme === 'family'
-            ? 'relationship'
-            : 'personality'
+    return 'personality'
   }
 
   const scores = DOMAIN_PATTERNS.map(({ domain, patterns }) => ({
@@ -404,7 +375,6 @@ function inferFrame(input: {
 
 export function analyzeCounselorQuestion(input: {
   lastUserMessage?: string | null
-  theme?: string | null
 }): CounselorQuestionAnalysis {
   const text = (input.lastUserMessage || '').trim()
   const primaryDomain = inferCounselorFocusDomain(input)
@@ -436,26 +406,18 @@ export function analyzeCounselorQuestion(input: {
   }
 }
 
-export function mapFocusDomainToTheme(focusDomain: InsightDomain): string {
-  return DOMAIN_THEME_MAP[focusDomain] || 'chat'
-}
-
 export interface CounselorStorageSignals {
   analysis: CounselorQuestionAnalysis
-  inferredTheme: string
   memoryTopics: string[]
 }
 
 export function deriveCounselorStorageSignals(input: {
   lastUserMessage?: string | null
-  theme?: string | null
   keyTopics?: string[] | null
 }): CounselorStorageSignals {
   const analysis = analyzeCounselorQuestion({
     lastUserMessage: input.lastUserMessage,
-    theme: input.theme,
   })
-  const inferredTheme = mapFocusDomainToTheme(analysis.primaryDomain)
   const memoryTopics = Array.from(
     new Set([
       analysis.primaryDomain,
@@ -466,140 +428,6 @@ export function deriveCounselorStorageSignals(input: {
 
   return {
     analysis,
-    inferredTheme,
     memoryTopics,
   }
-}
-
-export function mapFocusDomainToLayerDomain(focusDomain: InsightDomain): DomainKey | null {
-  return LAYER_DOMAIN_MAP[focusDomain] || null
-}
-
-export function describeFocusDomain(focusDomain: InsightDomain, lang: 'ko' | 'en'): string {
-  const labels: Record<InsightDomain, { ko: string; en: string }> = {
-    personality: { ko: '\uC778\uBB3C/\uC804\uCCB4 \uD750\uB984', en: 'personality / overall flow' },
-    career: { ko: '\uCEE4\uB9AC\uC5B4/\uC77C', en: 'career / work' },
-    relationship: { ko: '\uAD00\uACC4/\uC5F0\uC560', en: 'relationships / love' },
-    wealth: { ko: '\uB3C8/\uC7AC\uC815', en: 'money / finances' },
-    health: { ko: '\uAC74\uAC15/\uD68C\uBCF5', en: 'health / recovery' },
-    spirituality: { ko: '\uB0B4\uBA74/\uC131\uC7A5', en: 'inner growth / spirituality' },
-    timing: { ko: '\uD0C0\uC774\uBC0D/\uD310\uB2E8 \uC2DC\uAE30', en: 'timing / decision window' },
-  }
-  return labels[focusDomain]?.[lang] || labels.personality[lang]
-}
-
-export function describeQuestionAnalysis(
-  analysis: CounselorQuestionAnalysis,
-  lang: 'ko' | 'en'
-): string {
-  const frameLabels: Record<CounselorFrame, { ko: string; en: string }> = {
-    relationship_repair: { ko: '\uAD00\uACC4 \uC815\uB82C', en: 'relationship repair' },
-    relationship_commitment: { ko: '\uAD00\uACC4 \uD655\uC815', en: 'relationship commitment' },
-    career_decision: { ko: '\uCEE4\uB9AC\uC5B4 \uD310\uB2E8', en: 'career decision' },
-    wealth_planning: { ko: '\uC7AC\uC815 \uD310\uB2E8', en: 'wealth planning' },
-    health_recovery: { ko: '\uD68C\uBCF5 \uD310\uB2E8', en: 'health recovery' },
-    move_lease: { ko: '\uACC4\uC57D/\uAC70\uC8FC \uD310\uB2E8', en: 'lease and housing decision' },
-    move_relocation: {
-      ko: '\uC774\uB3D9/\uAC70\uC810 \uD310\uB2E8',
-      en: 'relocation and base reset',
-    },
-    timing_window: { ko: '\uD0C0\uC774\uBC0D \uD310\uB2E8', en: 'timing window' },
-    identity_reflection: { ko: '\uC778\uBB3C \uD574\uC11D', en: 'identity reflection' },
-    open_counseling: { ko: '\uC0C1\uB2F4 \uD574\uC11D', en: 'open counseling' },
-  }
-  const toneLabels: Record<CounselorEmotionalTone, { ko: string; en: string }> = {
-    steady: { ko: '\uC548\uC815', en: 'steady' },
-    anxious: { ko: '\uBD88\uC548', en: 'anxious' },
-    urgent: { ko: '\uAE09\uBC15', en: 'urgent' },
-    conflicted: { ko: '\uD63C\uB780', en: 'conflicted' },
-    hopeful: { ko: '\uAE30\uB300', en: 'hopeful' },
-    heavy: { ko: '\uBB34\uAC70\uC6C0', en: 'heavy' },
-  }
-  const secondary =
-    analysis.secondaryDomains.length > 0
-      ? analysis.secondaryDomains.map((domain) => describeFocusDomain(domain, lang)).join(', ')
-      : lang === 'ko'
-        ? '\uC5C6\uC74C'
-        : 'none'
-
-  const lines =
-    lang === 'ko'
-      ? [
-          '[Question Analysis]',
-          `- primary_domain: ${describeFocusDomain(analysis.primaryDomain, lang)}`,
-          `- secondary_domains: ${secondary}`,
-          `- frame: ${frameLabels[analysis.frame].ko}`,
-          `- emotional_tone: ${toneLabels[analysis.emotionalTone].ko}`,
-          `- decision_question: ${analysis.isDecisionQuestion ? 'yes' : 'no'}`,
-          `- timing_needed: ${analysis.needsTimingGuidance ? 'yes' : 'no'}`,
-          `- confidence: ${analysis.confidence}`,
-        ]
-      : [
-          '[Question Analysis]',
-          `- primary_domain: ${describeFocusDomain(analysis.primaryDomain, lang)}`,
-          `- secondary_domains: ${secondary}`,
-          `- frame: ${frameLabels[analysis.frame].en}`,
-          `- emotional_tone: ${toneLabels[analysis.emotionalTone].en}`,
-          `- decision_question: ${analysis.isDecisionQuestion ? 'yes' : 'no'}`,
-          `- timing_needed: ${analysis.needsTimingGuidance ? 'yes' : 'no'}`,
-          `- confidence: ${analysis.confidence}`,
-        ]
-
-  return lines.join('\n')
-}
-
-export function buildCounselingStructureGuide(
-  analysis: CounselorQuestionAnalysis,
-  lang: 'ko' | 'en'
-): string {
-  const lineMap: Record<CounselorFrame, { ko: string; en: string }> = {
-    relationship_repair: {
-      ko: '- 문단 순서: 현재 거리감 -> 막히는 이유 -> 다시 맞춰야 할 조건 -> 지금 할 행동.',
-      en: '- Paragraph order: current distance -> blockage -> repair conditions -> immediate action.',
-    },
-    relationship_commitment: {
-      ko: '- 문단 순서: 상대 패턴 -> 관계 확정 조건 -> 깨지는 위험 -> 지금 확인할 기준.',
-      en: '- Paragraph order: partner pattern -> commitment conditions -> break risks -> what to verify now.',
-    },
-    career_decision: {
-      ko: '- 문단 순서: 선택지 정리 -> 리스크 비교 -> 지금 움직일지 보류할지 -> 실행 체크포인트.',
-      en: '- Paragraph order: main options -> risk comparison -> move now or wait -> execution checkpoints.',
-    },
-    wealth_planning: {
-      ko: '- 문단 순서: 현재 흐름 -> 누수 지점 -> 보수적 계획 -> 확인해야 할 지표.',
-      en: '- Paragraph order: current flow -> leakage -> conservative plan -> metrics to verify.',
-    },
-    health_recovery: {
-      ko: '- 문단 순서: 현재 상태 -> 과부하 신호 -> 회복 루틴 -> 멈춰야 할 기준.',
-      en: '- Paragraph order: present condition -> overload signs -> recovery routine -> when to seek help.',
-    },
-    move_lease: {
-      ko: '- 문단 순서: 계약 조건 -> 비용과 보증금 압박 -> 보류 조건 -> 지금 다시 볼 항목.',
-      en: '- Paragraph order: lease conditions -> cost and deposit pressure -> hold conditions -> what to recheck now.',
-    },
-    move_relocation: {
-      ko: '- 문단 순서: 현재 거점 -> 일과 회복에 미치는 영향 -> 이동 성립 조건 -> 거점 재정비 체크포인트.',
-      en: '- Paragraph order: current base -> impact on work and recovery -> relocation conditions -> base reset checkpoints.',
-    },
-    timing_window: {
-      ko: '- 문단 순서: 지금 움직일지 보류할지 -> 강한 창 -> 늦춰야 할 조건 -> 다음 점검 시점.',
-      en: '- Paragraph order: move now or wait -> best window -> delay conditions -> next review date.',
-    },
-    identity_reflection: {
-      ko: '- 문단 순서: 기본 구조 -> 반복 패턴 -> 강점과 한계 -> 앞으로의 방향.',
-      en: '- Paragraph order: core nature -> repeated pattern -> strengths/limits -> direction.',
-    },
-    open_counseling: {
-      ko: '- 문단 순서: 직접 답 -> 근거 -> 현실적인 행동 -> 다시 확인할 지점.',
-      en: '- Paragraph order: direct answer -> grounded evidence -> realistic action -> recheck point.',
-    },
-  }
-
-  return [
-    '[Counseling Structure]',
-    lineMap[analysis.frame][lang],
-    lang === 'ko'
-      ? '- 감정 톤은 반영하되 과장하지 않습니다.'
-      : '- Reflect the emotional tone without exaggeration.',
-  ].join('\n')
 }

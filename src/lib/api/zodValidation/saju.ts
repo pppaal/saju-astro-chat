@@ -187,7 +187,6 @@ export const destinyMapRequestSchema = z.object({
 export type DestinyMapRequestValidated = z.infer<typeof destinyMapRequestSchema>
 
 export const destinyMapContextSchema = z.object({
-  theme: z.string().max(50).optional(),
   sessionId: z.string().max(100).optional(),
   previousTopics: z.array(z.string().max(100)).optional(),
   userPreferences: z

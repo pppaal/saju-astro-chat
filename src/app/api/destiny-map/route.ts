@@ -380,7 +380,6 @@ export const POST = withApiMiddleware(
         const summary = extractSummary(fullReport)
         await saveConsultation({
           userId,
-          theme,
           summary,
           fullReport,
           signals: {

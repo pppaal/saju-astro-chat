@@ -6,7 +6,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   loadUserProfile,
   loadPersonaMemory,
-  __testUtils,
   type ProfileLoadResult,
   type MemoryLoadResult,
 } from '@/app/api/destiny-map/chat-stream/lib/profileLoader'
@@ -264,10 +263,10 @@ describe('ProfileLoader', () => {
   })
 
   describe('loadPersonaMemory', () => {
-    it('omits theme filtering for unified chat counselor memory', async () => {
+    it('loads recent counselor sessions without theme filtering', async () => {
       vi.mocked(prisma.counselorChatSession.findMany).mockResolvedValue([])
 
-      await loadPersonaMemory('user123', 'chat', 'ko')
+      await loadPersonaMemory('user123', 'ko')
 
       expect(prisma.counselorChatSession.findMany).toHaveBeenCalledWith({
         where: {
@@ -281,30 +280,6 @@ describe('ProfileLoader', () => {
           updatedAt: true,
         },
       })
-    })
-
-    it('keeps explicit theme filtering for legacy themed sessions', async () => {
-      await loadPersonaMemory('user123', 'love', 'en')
-
-      expect(prisma.counselorChatSession.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: 'user123',
-          theme: 'love',
-        },
-        orderBy: { updatedAt: 'desc' },
-        take: 3,
-        select: {
-          summary: true,
-          keyTopics: true,
-          updatedAt: true,
-        },
-      })
-    })
-
-    it('buildSessionThemeWhere returns undefined for chat and empty themes', () => {
-      expect(__testUtils.buildSessionThemeWhere('chat')).toBeUndefined()
-      expect(__testUtils.buildSessionThemeWhere('')).toBeUndefined()
-      expect(__testUtils.buildSessionThemeWhere('career')).toEqual({ theme: 'career' })
     })
   })
 

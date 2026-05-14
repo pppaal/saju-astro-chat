@@ -282,6 +282,20 @@ export const GET = withApiMiddleware(
           sun?: { sign: string; formatted: string }
           moon?: { sign: string; formatted: string }
           ascendant?: { sign: string; formatted: string }
+          mercury?: { sign: string; formatted: string }
+          venus?: { sign: string; formatted: string }
+          mars?: { sign: string; formatted: string }
+          jupiter?: { sign: string; formatted: string }
+          saturn?: { sign: string; formatted: string }
+          neptune?: { sign: string; formatted: string }
+          northNode?: { sign: string; formatted: string }
+          mc?: { sign: string; formatted: string }
+          // 주요 하우스 cusp sign — conditional 용 (2 재물 / 6 건강 / 7 관계 / 9 영성 / 10 직업=MC)
+          house2?: { sign: string }
+          house6?: { sign: string }
+          house7?: { sign: string }
+          house9?: { sign: string }
+          house10?: { sign: string }
         }
       | undefined
     let todayMoonPhase: { phase: string; name: string } | undefined
@@ -441,16 +455,44 @@ export const GET = withApiMiddleware(
         summary: summaryParts.join(' · '),
       }
 
-      // 타로 cross-reading 용 추가 필드 — 본명 angle + 오늘 달 위상
+      // 타로 cross-reading 용 추가 필드 — 본명 행성 + 주요 하우스 (테마별 anchor)
       try {
-        const sun = natalChart.planets.find((p) => p.name === 'Sun')
-        const moon = natalChart.planets.find((p) => p.name === 'Moon')
+        const planetBy = (name: string) =>
+          natalChart.planets.find((p) => p.name === name)
+        const sun = planetBy('Sun')
+        const moon = planetBy('Moon')
+        const mercury = planetBy('Mercury')
+        const venus = planetBy('Venus')
+        const mars = planetBy('Mars')
+        const jupiter = planetBy('Jupiter')
+        const saturn = planetBy('Saturn')
+        const neptune = planetBy('Neptune')
+        // North Node — ephemeris 마다 이름이 다름 (True Node / Mean Node / North Node)
+        const northNode =
+          planetBy('True Node') || planetBy('Mean Node') || planetBy('North Node')
+        const pick = (p?: { sign: string; formatted: string }) =>
+          p ? { sign: p.sign, formatted: p.formatted } : undefined
+        const houseBy = (idx: number) => {
+          const h = (natalChart.houses || []).find((house) => house.index === idx)
+          return h ? { sign: h.sign } : undefined
+        }
         natalAngles = {
-          sun: sun ? { sign: sun.sign, formatted: sun.formatted } : undefined,
-          moon: moon ? { sign: moon.sign, formatted: moon.formatted } : undefined,
-          ascendant: natalChart.ascendant
-            ? { sign: natalChart.ascendant.sign, formatted: natalChart.ascendant.formatted }
-            : undefined,
+          sun: pick(sun),
+          moon: pick(moon),
+          ascendant: pick(natalChart.ascendant),
+          mercury: pick(mercury),
+          venus: pick(venus),
+          mars: pick(mars),
+          jupiter: pick(jupiter),
+          saturn: pick(saturn),
+          neptune: pick(neptune),
+          northNode: pick(northNode),
+          mc: pick(natalChart.mc),
+          house2: houseBy(2),
+          house6: houseBy(6),
+          house7: houseBy(7),
+          house9: houseBy(9),
+          house10: houseBy(10),
         }
       } catch {
         // natal angles 추출 실패 — 컨텍스트만 비고 나머지는 그대로.
@@ -509,6 +551,41 @@ export const GET = withApiMiddleware(
         monthStem,
         monthBranch,
       },
+      // 타로 cross-reading 용 — 십신 분포 + 오행 분포 (4기둥 cheon/ji 십신 합산)
+      sajuExtras: (() => {
+        try {
+          const tenGodCounts: Record<string, number> = {}
+          const bump = (key?: string) => {
+            if (!key) return
+            tenGodCounts[key] = (tenGodCounts[key] || 0) + 1
+          }
+          for (const pillar of [
+            sajuResult.yearPillar,
+            sajuResult.monthPillar,
+            sajuResult.dayPillar,
+            sajuResult.timePillar,
+          ]) {
+            const p = pillar as unknown as Record<string, unknown> | undefined
+            if (!p) continue
+            const sibsin = p.sibsin as
+              | { cheon?: string; ji?: string }
+              | string
+              | undefined
+            if (typeof sibsin === 'object' && sibsin) {
+              bump(sibsin.cheon)
+              bump(sibsin.ji)
+            } else if (typeof sibsin === 'string') {
+              bump(sibsin)
+            }
+          }
+          return {
+            tenGodCounts,
+            fiveElements: sajuResult.fiveElements,
+          }
+        } catch {
+          return undefined
+        }
+      })(),
       // 현재 대운 (10년 큰 흐름) — 타로 cross-reading 에서 장기 톤 anchor 용
       currentDaeun: sajuResult.daeWoon?.current
         ? {

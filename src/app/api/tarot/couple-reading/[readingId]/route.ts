@@ -90,7 +90,6 @@ export async function GET(request: Request, routeContext: RouteContext) {
           reading: {
             id: reading.id,
             question: reading.question,
-            theme: reading.theme,
             spreadId: reading.spreadId,
             spreadTitle: reading.spreadTitle,
             cards: reading.cards,

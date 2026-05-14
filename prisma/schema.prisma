@@ -207,14 +207,12 @@ model UserInteraction {
   createdAt DateTime @default(now())
   type      String
   service   String
-  theme     String?
   rating    Int?
   metadata  Json?
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([userId, service])
-  @@index([userId, theme])
 }
 
 model UserPreferences {
@@ -236,7 +234,6 @@ model ConsultationHistory {
   id           String   @id @default(cuid())
   userId       String
   createdAt    DateTime @default(now())
-  theme        String // love, career, life_path, etc.
   summary      String // 상담 요약 (1-2줄)
   fullReport   String   @db.Text // 전체 리포트 내용
   jungQuotes   Json? // 사용된 Jung 인용문들
@@ -246,8 +243,6 @@ model ConsultationHistory {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
-  @@index([userId, theme])
-  @@index([userId, theme, createdAt]) // theme별 정렬 조회 최적화
 }
 
 // 섹션별 피드백 - AI 품질 개선용
@@ -260,7 +255,6 @@ model SectionFeedback {
 
   // 피드백 대상
   service   String // destiny-map, dream, tarot, etc.
-  theme     String // focus_love, focus_career, etc.
   sectionId String // personality, relationships, career, etc.
 
   // 피드백 데이터
@@ -271,7 +265,7 @@ model SectionFeedback {
   sunSign   String? // Aries, Taurus, etc.
   locale    String  @default("ko")
 
-  @@index([service, theme])
+  @@index([service])
   @@index([sectionId, helpful])
   @@index([dayMaster])
   @@index([createdAt])
@@ -432,7 +426,6 @@ model CounselorChatSession {
   updatedAt DateTime @updatedAt
 
   // 세션 정보
-  theme  String @default("chat") // career, love, health, etc.
   locale String @default("ko")
 
   // 대화 메시지들 (JSON 배열)
@@ -449,7 +442,6 @@ model CounselorChatSession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, updatedAt])
-  @@index([userId, theme])
 }
 
 // 유저 크레딧 관리 - 플랜별 사용량 추적
@@ -614,7 +606,6 @@ model TarotReading {
 
   // 질문/관심사
   question String  @db.Text
-  theme    String? // love, career, general, etc.
 
   // 스프레드 정보
   spreadId    String // 스프레드 ID
@@ -646,7 +637,6 @@ model TarotReading {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
-  @@index([userId, theme])
   @@index([sharedWithUserId, createdAt])
   @@index([matchConnectionId, createdAt])
 }

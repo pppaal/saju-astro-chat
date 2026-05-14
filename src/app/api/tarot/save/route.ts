@@ -67,7 +67,6 @@ export const POST = withApiMiddleware(
     const body = validationResult.data
     const {
       question,
-      theme,
       spreadId,
       spreadTitle,
       cards,
@@ -85,7 +84,6 @@ export const POST = withApiMiddleware(
       data: {
         userId: context.userId!,
         question,
-        theme,
         spreadId,
         spreadTitle,
         cards: buildStoredCardsPayload(cards, questionContext),
@@ -119,7 +117,6 @@ export const GET = withApiMiddleware(
     const queryValidation = tarotQuerySchema.safeParse({
       limit: searchParams.get('limit') || '10',
       offset: searchParams.get('offset') || '0',
-      theme: searchParams.get('theme'),
     })
 
     if (!queryValidation.success) {
@@ -127,11 +124,10 @@ export const GET = withApiMiddleware(
       return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_query_parameters')
     }
 
-    const { limit = 10, offset = 0, theme } = queryValidation.data
+    const { limit = 10, offset = 0 } = queryValidation.data
 
     const where = {
       userId: context.userId!,
-      ...(theme && { theme }),
     }
 
     const [readings, total] = await Promise.all([
@@ -144,7 +140,6 @@ export const GET = withApiMiddleware(
           id: true,
           createdAt: true,
           question: true,
-          theme: true,
           spreadId: true,
           spreadTitle: true,
           cards: true,

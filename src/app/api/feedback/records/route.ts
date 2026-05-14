@@ -13,7 +13,6 @@ export const GET = withApiMiddleware(
       // Validate query parameters with Zod
       const validation = FeedbackRecordsQuerySchema.safeParse({
         service: searchParams.get('service'),
-        theme: searchParams.get('theme'),
         helpful: searchParams.get('helpful'),
         limit: searchParams.get('limit'),
       })
@@ -29,14 +28,11 @@ export const GET = withApiMiddleware(
         )
       }
 
-      const { service, theme, helpful, limit } = validation.data
+      const { service, helpful, limit } = validation.data
 
-      const where: { service?: string; theme?: string; helpful?: boolean } = {}
+      const where: { service?: string; helpful?: boolean } = {}
       if (service) {
         where.service = service
-      }
-      if (theme) {
-        where.theme = theme
       }
       if (helpful !== undefined) {
         where.helpful = helpful
@@ -49,7 +45,6 @@ export const GET = withApiMiddleware(
         select: {
           id: true,
           service: true,
-          theme: true,
           sectionId: true,
           helpful: true,
           dayMaster: true,

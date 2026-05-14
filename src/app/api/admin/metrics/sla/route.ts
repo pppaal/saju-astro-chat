@@ -27,7 +27,6 @@ const API_REQUEST_METRICS = [
   'http.request.total',
   'destiny.report.total',
   'tarot.reading.total',
-  'dream.analysis.total',
   'astrology.chart.total',
 ]
 

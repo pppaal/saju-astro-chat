@@ -5,7 +5,6 @@ import { deriveCounselorStorageSignals } from "@/app/api/destiny-map/chat-stream
 
 interface SaveConsultationParams {
   userId: string;
-  theme: string;
   summary: string;
   fullReport: string;
   jungQuotes?: unknown;
@@ -21,7 +20,6 @@ interface SaveConsultationParams {
 export async function saveConsultation(params: SaveConsultationParams) {
   const {
     userId,
-    theme,
     summary,
     fullReport,
     jungQuotes,
@@ -33,17 +31,13 @@ export async function saveConsultation(params: SaveConsultationParams) {
   try {
     const storageSignals = deriveCounselorStorageSignals({
       lastUserMessage: userQuestion || null,
-      theme,
     });
-    const storedTheme = theme === "chat" ? storageSignals.inferredTheme : theme;
-    const primaryTopic =
-      theme === "chat" ? storageSignals.memoryTopics[0] || storedTheme : storedTheme;
+    const primaryTopic = storageSignals.memoryTopics[0] || storageSignals.analysis.primaryDomain;
 
     // 1. 상담 기록 저장
     const consultation = await prisma.consultationHistory.create({
       data: {
         userId,
-        theme: storedTheme,
         summary,
         fullReport,
         jungQuotes: jungQuotes ? (jungQuotes as Prisma.InputJsonValue) : Prisma.JsonNull,

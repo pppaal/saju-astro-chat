@@ -9,13 +9,12 @@ import type { ChatMessage } from '@/lib/api/validator'
 import type { SessionItem } from '@/hooks/useChatSession.unified'
 
 interface UseSessionHistoryOptions {
-  theme?: string
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
   onSessionIdChange?: (newSessionId: string) => void
 }
 
 export function useSessionHistory(options: UseSessionHistoryOptions) {
-  const { theme = 'chat', setMessages, onSessionIdChange } = options
+  const { setMessages, onSessionIdChange } = options
 
   const [sessionHistory, setSessionHistory] = useState<SessionItem[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -25,7 +24,7 @@ export function useSessionHistory(options: UseSessionHistoryOptions) {
   const loadSessionHistory = useCallback(async () => {
     setHistoryLoading(true)
     try {
-      const res = await fetch(`/api/counselor/session/list?theme=${theme}&limit=20`)
+      const res = await fetch(`/api/counselor/session/list?limit=20`)
       if (res.ok) {
         const data = await res.json()
         setSessionHistory(data.sessions || [])
@@ -35,13 +34,13 @@ export function useSessionHistory(options: UseSessionHistoryOptions) {
     } finally {
       setHistoryLoading(false)
     }
-  }, [theme])
+  }, [])
 
   // Load a specific session
   const loadSession = useCallback(
     async (sid: string) => {
       try {
-        const res = await fetch(`/api/counselor/session/load?theme=${theme}&sessionId=${sid}`)
+        const res = await fetch(`/api/counselor/session/load?sessionId=${sid}`)
         if (res.ok) {
           const data = await res.json()
           if (data.messages && Array.isArray(data.messages)) {
@@ -53,7 +52,7 @@ export function useSessionHistory(options: UseSessionHistoryOptions) {
         logger.warn('[useChatSession] Failed to load session:', e)
       }
     },
-    [theme, setMessages, onSessionIdChange]
+    [setMessages, onSessionIdChange]
   )
 
   // Delete a session
