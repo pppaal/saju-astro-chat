@@ -46,6 +46,7 @@ export interface PromptData {
   currentAnnualElement: string;
   currentAnnualGanji: string;
   currentMonthlyElement: string;
+  currentDailyGanji: string;
   lucky: string;
   unlucky: string;
   allDaeunText: string;
@@ -177,6 +178,7 @@ Four Pillars: ${data.pillarText}
 현재 장기 흐름: ${data.daeunText}
 ${data.currentYear}년 연간 흐름: ${data.currentAnnualElement} (${data.currentAnnualGanji})
 ${data.currentYear}년 ${data.currentMonth}월 월간 흐름: ${data.currentMonthlyElement}
+오늘 일진: ${data.currentDailyGanji || "-"}
 길한 에너지: ${data.lucky || "-"}
 주의 에너지: ${data.unlucky || "-"}
 

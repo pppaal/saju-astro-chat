@@ -40,15 +40,33 @@ const isAnnualWithYear = (item: AnnualItem): item is AnnualItem & { year: number
 const isMonthlyWithYearMonth = (item: MonthlyItem): item is MonthlyItem & { year: number; month: number } =>
   typeof item.year === "number" && typeof item.month === "number";
 /**
- * Format planet list to single line
+ * Format planet list to single line.
+ *
+ * Includes precise degree (예: 24°12') + retrograde marker (R) so the LLM
+ * can distinguish anaretic-degree planets (29°), 0° cusps, and natally
+ * retrograde planets. Previously only `name: sign (Hhouse)` was emitted
+ * which dropped a meaningful chunk of natal precision.
  *
  * @param planets - Array of planet data
- * @returns Formatted string like "Sun: Aries (H1); Moon: Taurus (H2)"
+ * @returns Formatted string like "Sun: Aries 24°12' (H1); Mercury: Pisces 5°33' (H10) R"
  */
 export function formatPlanetLines(planets: PlanetData[]): string {
   return planets
     .slice(0, 12)
-    .map((p) => `${p.name ?? "?"}: ${p.sign ?? "-"} (H${p.house ?? "-"})`)
+    .map((p) => {
+      const sign = p.sign ?? "-";
+      const house = p.house ?? "-";
+      const deg = typeof p.degree === "number" ? Math.floor(p.degree) : null;
+      const min = typeof p.minute === "number" ? Math.floor(p.minute) : null;
+      const degText =
+        deg !== null && min !== null
+          ? ` ${deg}°${String(min).padStart(2, "0")}'`
+          : deg !== null
+            ? ` ${deg}°`
+            : "";
+      const retro = p.retrograde ? " R" : "";
+      return `${p.name ?? "?"}: ${sign}${degText} (H${house})${retro}`;
+    })
     .join("; ");
 }
 

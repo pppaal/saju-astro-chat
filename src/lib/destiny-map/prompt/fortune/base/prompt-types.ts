@@ -80,6 +80,17 @@ export interface MonthlyItem {
   name?: string
 }
 
+export interface IljinItem {
+  year?: number
+  month?: number
+  day?: number
+  ganji?: string
+  heavenlyStem?: string
+  earthlyBranch?: string
+  element?: string
+  sibsin?: { cheon?: string; ji?: string }
+}
+
 export interface UnseData {
   daeun?: DaeunItem[]
   annual?: AnnualItem[]
