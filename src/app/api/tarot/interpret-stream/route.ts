@@ -93,79 +93,6 @@ function buildFallbackPayload(
   return { overall, cards: cardsPayload, advice }
 }
 
-function normalizeAdvice(advice: unknown): string {
-  if (typeof advice === 'string') {
-    return advice
-  }
-  if (Array.isArray(advice)) {
-    const lines = advice
-      .map((entry) => {
-        if (!entry || typeof entry !== 'object') {
-          return ''
-        }
-        const record = entry as Record<string, unknown>
-        const title = typeof record.title === 'string' ? record.title.trim() : ''
-        const detail = typeof record.detail === 'string' ? record.detail.trim() : ''
-        if (title && detail) {
-          return `${title}: ${detail}`
-        }
-        return title || detail
-      })
-      .filter(Boolean)
-    return lines.join('\n')
-  }
-  return ''
-}
-
-function normalizeBackendPayload(
-  data: unknown,
-  fallback: {
-    overall: string
-    cards: { position: string; interpretation: string; actionTip?: string }[]
-    advice: string
-  }
-): {
-  overall: string
-  cards: { position: string; interpretation: string; actionTip?: string }[]
-  advice: string
-} | null {
-  if (!data || typeof data !== 'object') {
-    return null
-  }
-  const record = data as Record<string, unknown>
-  const overall =
-    typeof record.overall_message === 'string' && record.overall_message.trim()
-      ? record.overall_message
-      : fallback.overall
-  const advice = normalizeAdvice(record.guidance) || fallback.advice
-
-  const insights = Array.isArray(record.card_insights) ? record.card_insights : []
-  const cards =
-    insights.length > 0
-      ? insights.map((entry, index) => {
-          const cardRecord = entry as Record<string, unknown>
-          const position =
-            typeof cardRecord.position === 'string' && cardRecord.position.trim()
-              ? cardRecord.position
-              : fallback.cards[index]?.position || `Card ${index + 1}`
-          const interpretation =
-            typeof cardRecord.interpretation === 'string' && cardRecord.interpretation.trim()
-              ? cardRecord.interpretation
-              : fallback.cards[index]?.interpretation || ''
-          // backend RAG 응답 — 보통 action_tip 으로 옴 (interpret/route.ts 와 동일)
-          const actionTipRaw =
-            typeof cardRecord.action_tip === 'string' && cardRecord.action_tip.trim()
-              ? cardRecord.action_tip
-              : typeof cardRecord.actionTip === 'string' && cardRecord.actionTip.trim()
-                ? cardRecord.actionTip
-                : undefined
-          return { position, interpretation, actionTip: actionTipRaw }
-        })
-      : fallback.cards
-
-  return { overall, cards, advice }
-}
-
 function streamJsonPayload(
   payload: {
     overall: string
@@ -192,23 +119,6 @@ function streamJsonPayload(
       ...(extraHeaders || {}),
     },
   })
-}
-
-async function fetchBackendFallback(_payload: {
-  categoryId: string
-  spreadId: string
-  spreadTitle: string
-  cards: CardInput[]
-  userQuestion: string
-  language: 'ko' | 'en'
-  birthdate: string
-  includeAstrology: boolean
-  includeSaju: boolean
-  sajuContext?: string
-  astroContext?: string
-}): Promise<unknown | null> {
-  // Python backend 제거 — 항상 null 반환해 Claude/OpenAI 직접 streaming 흐름으로.
-  return null
 }
 
 // 별자리 계산 함수
@@ -412,31 +322,6 @@ export async function POST(req: NextRequest) {
       previousReadings: previousReadings.length,
     })
 
-    // Always prefer backend Hybrid RAG (Evidence + tarot rules) first.
-    // This ensures question-aware interpretation quality for all questions.
-    const backendPrimaryBase = buildFallbackPayload(rawCards, language)
-    const backendPrimary = await fetchBackendFallback({
-      categoryId,
-      spreadId,
-      spreadTitle,
-      cards: rawCards,
-      userQuestion: effectiveUserQuestion,
-      language,
-      birthdate,
-      includeAstrology,
-      includeSaju,
-      sajuContext,
-      astroContext,
-    })
-    const backendPrimaryPayload = normalizeBackendPayload(backendPrimary, backendPrimaryBase)
-    if (backendPrimaryPayload) {
-      logger.info('Tarot stream served by backend Hybrid RAG')
-      return withCreditCookies(
-        streamJsonPayload(backendPrimaryPayload, { 'X-RAG-Source': 'backend' }),
-        creditResult
-      )
-    }
-
     const isKorean = language === 'ko'
     // 자리 이름 + 자리 의미(있으면) 를 같이 LLM 에 보낸다 — interpret/route.ts 와 동일 포맷.
     const cardListText = rawCards
@@ -515,64 +400,95 @@ export async function POST(req: NextRequest) {
     const systemPrompt = isKorean
       ? `당신은 15년차 한국인 타로 리더입니다. 길에서 만난 친구처럼 따뜻하고, 사촌언니처럼 직설적이며, 구체적인 행동까지 짚어줍니다.
 
+# 0단계 — 시작 전 (출력 X, 머릿속 정리)
+- 질문에서 **주체** (누구/무엇 — 나/상대/일/관계), **대상** (이 일/그 사람/오늘), **시간**(오늘/이번 주/n개월/장기), **의도** (결정·예측·조언) 를 추출하세요.
+- 스프레드 자리 수와 질문 시간선의 *스케일* 을 비교하세요.
+  · 질문이 단기인데 스프레드가 장기(12개월 등) → 각 자리를 "그 단위 안의 작은 국면"으로 *비유적* 으로 매핑.
+  · 질문이 장기인데 스프레드가 1-3장 → 카드 하나를 "전체 흐름의 핵심 한 컷"으로 압축.
+- 그 다음 4단계로 들어가세요. 0단계는 절대 출력하지 않습니다.
+
 # 절대 규칙
 - **사용자의 질문을 항상 카드 해석의 중심에 두세요.** 카드의 일반 의미를 나열하지 말고, *그 카드가 이 질문 안에서 무엇을 말하는지* 풀어쓰세요.
-- 예: 질문="내일 뭐 먹지?" + 컵5(역방향, 현재 자리) → "내일 메뉴를 정하는 자리에서 컵5 역방향은 '예전에 끌리던 그 메뉴에 시선 묶이지 말고 지금 식탁에 남은 옵션을 보라'는 신호예요." (X) "컵5는 상실을 의미합니다." (사전식 금지)
 - 사전식 정의 절대 금지. 카드 이름·역방향 키워드 베끼지 말고 *이 질문 안에서의 의미* 로 풀어쓰세요.
 - 자리 의미(seat meaning)가 입력에 포함되면 *반드시* 그 의미에 카드를 매핑하세요.
 
-# 4단계 메서드 (반드시 이 순서로 사고)
-1) **오프닝**: 카드를 펼친 첫 인상을 사용자 질문에 직접 묶어서 1-2문장.
-2) **카드별 해석**: 각 카드 = 위치 의미 × 카드 × 정/역 × 질문 4중 cross. 마무리에 시간 앵커(오늘/이번 주/14일 안).
-3) **시너지**: 카드들이 *함께* 말하는 한 줄 — overall 안에 자연스럽게 녹임.
-4) **클로징 (advice + 카드별 actionTip)**: 구체 행동, 두루뭉술 금지.
+# 예시 (3종 — 일상 / 관계 / 결정 — 어떤 카테고리든 같은 식으로)
+- "내일 뭐 먹지?" + 컵5(역방향, 현재 자리) → "내일 메뉴 정하는 자리에서 컵5 역방향은 '예전에 끌리던 그 메뉴에 시선 묶이지 말고 지금 식탁에 남은 옵션을 보라'는 신호예요."
+- "그 사람이 나를 좋아해?" + 컵2(정방향, 상대 마음 자리) → "그 사람 마음 자리에 컵2가 떴어요. 이미 시선이 마주친 끌림은 분명한데, 표현 타이밍을 늦추고 있는 흐름이에요."
+- "이직할까?" + 완드7(정방향, 도전 자리) → "이직 결정을 가로지르는 변수가 외부 반대가 아니라 *매번 내 결정을 변호해야 하는 피로감*이라고 카드가 말해요."
 
-# 중요: 반드시 모든 ${rawCards.length}개 카드에 대해 cards[] 에 항목을 작성하세요. 하나도 빠뜨리지 마세요.
-# 중요: 각 카드의 actionTip 필드는 *반드시* 채우세요. 카드+자리+질문 cross 의 구체 행동 1-2문장 (80-140자) + 시간 앵커.
+# 4단계 메서드 (반드시 이 순서)
+1) **오프닝**: 첫 1-2문장이 사용자 질문을 *직접* 언급. 추출한 주체·시간·의도 한 번 반영.
+2) **카드별 해석**: 각 카드 = 위치 의미 × 카드 × 정/역 × 질문 4중 cross. 마무리에 시간 앵커(오늘/이번 주/14일/N개월).
+3) **시너지**: 카드들이 *함께* 말하는 한 줄 — overall 안에 녹임.
+4) **클로징**: 전체 advice + 카드별 actionTip. 두루뭉술 금지, 구체 행동만.
 
-# 출력 형식 (JSON 만, 코드펜스 금지)
+# 절대 출력 규칙
+- 카드 수 정확히 ${rawCards.length} 개. cards 배열 길이 = ${rawCards.length}. 하나도 빠뜨리거나 추가하지 마세요.
+- 각 카드의 actionTip 은 반드시 채워야 합니다. 80-140자, 시간 앵커 + 구체 행동 1개.
+- 출력은 *오직* 아래 JSON 스키마. 마크다운 코드펜스(\`\`\`) 절대 사용 금지. 주석/설명/머리말 금지.
+
+# JSON 스키마 (정확히 이 키, 이 구조)
 {
-  "overall": "오프닝 + 시너지 (400-600자). 첫 문장에 사용자의 질문을 직접 언급.",
+  "overall": "string — 오프닝 + 시너지, 400-600자, 첫 문장에 사용자 질문 직접 언급",
   "cards": [
-${cardExamplesKo}
+    {
+      "position": "string — 자리명 그대로",
+      "interpretation": "string — 자리 의미 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함",
+      "actionTip": "string — 이 카드+자리+질문 cross 의 실천 행동 1-2문장 (80-140자) + 시간 앵커"
+    }
   ],
-  "advice": "전체 차원의 실행 지침 (100-150자). 구체 행동 1-3개."
+  "advice": "string — 전체 차원 실행 지침 (100-150자), 구체 행동 1-3개"
 }
 
 # 말투
 ✅ "~해요", "~네요", "~거든요", "~죠" — 친근, 따뜻, 직설
-❌ "~것입니다", "~하겠습니다", "~당신은 반드시…" — 딱딱하거나 점쟁이 톤
-❌ 운명론 금지. 가능성과 변수, 사용자가 움직일 여지 포함.`
+❌ "~것입니다", "~하겠습니다", "~당신은 반드시…" — 딱딱 / 점쟁이 톤 / 운명론 금지.`
       : `You are a 15-year veteran tarot reader. Warm like a friend, direct like an older sister, concrete with action.
 
+# Step 0 — Before You Write (silent, do NOT output)
+- Extract from the question: **subject** (me / them / this matter), **object** (this thing / that person / today), **timeframe** (today / this week / months / long-term), **intent** (decide / predict / advise).
+- Compare the question's time horizon to the spread size.
+  · Short-term question on a long-spread (e.g., 12-month) → map each seat to a small "phase within that unit" metaphorically.
+  · Long-term question on a 1-3 card spread → compress the card to "one defining snapshot" of the larger flow.
+- Then proceed to the 4 steps. Step 0 is never emitted.
+
 # Hard Rules
-- **The user's question is ALWAYS the center of every card interpretation.** Never recite generic card meanings; unpack *what this card says inside this question*.
-- Example: question "What should I eat tomorrow?" + Five of Cups reversed (Present seat) → "On the seat of tomorrow's meal, Five of Cups reversed says stop staring at the dish you miss and look at what's actually on the table tonight." NOT "Five of Cups means loss."
+- The user's question is ALWAYS the center of every card interpretation. Never recite generic card meanings; unpack *what this card says inside this question*.
 - No textbook definitions. Re-read each card *inside the user's situation*.
-- If a seat meaning is provided in the input, map the card onto that meaning explicitly.
+- If a seat meaning is supplied in the input, map the card onto that meaning explicitly.
+
+# Examples (3 categories — daily / relationship / decision — same method everywhere)
+- "What should I eat tomorrow?" + Five of Cups reversed (Present seat) → "On the seat of tomorrow's meal, Five of Cups reversed says stop staring at the dish you miss and look at what's actually on the table tonight."
+- "Does he like me?" + Two of Cups (Their feelings seat) → "On the seat of their feelings, Two of Cups: the attraction is real and mutual, but the timing of expression is running late."
+- "Should I switch jobs?" + Seven of Wands (Challenge seat) → "The variable across this decision isn't external resistance — it's the fatigue of constantly defending your own decision to yourself."
 
 # 4-Step Method
-1) **Opening**: First 1-2 sentences must reference the user's question directly.
-2) **Per card**: Cross position × card × upright/reversed × question. End with a time anchor (today / this week / within 14 days).
+1) **Opening**: First 1-2 sentences reference the user's question directly. Mention the extracted subject/time/intent once.
+2) **Per card**: Position-meaning × card × upright/reversed × question. End with a time anchor (today / this week / within 14 days / N months).
 3) **Synergy**: One line on what the cards say together — folded into overall.
-4) **Closing**: Practical advice + per-card actionTip. Specific, no fluff.
+4) **Closing**: Overall advice + per-card actionTip. Specific, no fluff.
 
-# IMPORTANT
-- The cards[] array must contain exactly ${rawCards.length} entries.
-- Each card's actionTip MUST be filled: 1-2 sentences (50-90 words) — one concrete action tied to card+seat+question, with a time anchor.
+# Output Rules
+- Exactly ${rawCards.length} cards in cards[]. Do not skip or add.
+- Every card's actionTip is mandatory. 50-90 words. Time anchor + one specific action.
+- Output JSON only — no code fences, no preamble, no comments.
 
-# Output Format (JSON only, no code fences)
+# JSON Schema (exact keys, exact shape)
 {
-  "overall": "Opening + synergy (250-350 words). First sentence references the question.",
+  "overall": "string — Opening + synergy, 250-350 words, first sentence references the question",
   "cards": [
-${cardExamplesEn}
+    {
+      "position": "string — seat name as-is",
+      "interpretation": "string — seat × card × orientation × question cross, 180-280 words, with a time anchor",
+      "actionTip": "string — actionable step rooted in card+seat+question, 50-90 words + time anchor"
+    }
   ],
-  "advice": "Practical actions across the whole spread (60-90 words)."
+  "advice": "string — overall-level next steps (60-90 words), 1-3 concrete actions"
 }
 
 # Tone
-- Calm, warm, trustworthy. No fortune-teller theatrics.
-- Show possibility and what the user can move, not fate.`
+- Calm, warm, trustworthy. No fortune-teller theatrics. No fatalism — show possibility and what the user can move.`
 
     // 유저 프롬프트 — 질문을 맨 위, 가장 눈에 띄게 배치
     const userPrompt = isKorean
@@ -692,22 +608,8 @@ ${personalizationContext}
       clearTimeout(openaiTimeoutId)
       recordExternalCall('openai', 'gpt-4o-mini', 'error', Date.now() - openaiStartTime)
       logger.error('OpenAI stream fetch error:', { error })
-      logger.warn('Tarot stream fallback to backend')
-      const fallbackBase = buildFallbackPayload(rawCards, language)
-      const backendFallback = await fetchBackendFallback({
-        categoryId,
-        spreadId,
-        spreadTitle,
-        cards: rawCards,
-        userQuestion: effectiveUserQuestion,
-        language,
-        birthdate,
-        includeAstrology,
-        includeSaju,
-        sajuContext,
-        astroContext,
-      })
-      const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
+      logger.warn('Tarot stream emergency fallback')
+      const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
     clearTimeout(openaiTimeoutId)
@@ -716,22 +618,8 @@ ${personalizationContext}
       recordExternalCall('openai', 'gpt-4o-mini', 'error', Date.now() - openaiStartTime)
       const errorText = await openaiResponse.text()
       logger.error('OpenAI stream error:', { status: openaiResponse.status, error: errorText })
-      logger.warn('Tarot stream fallback to backend')
-      const fallbackBase = buildFallbackPayload(rawCards, language)
-      const backendFallback = await fetchBackendFallback({
-        categoryId,
-        spreadId,
-        spreadTitle,
-        cards: rawCards,
-        userQuestion: effectiveUserQuestion,
-        language,
-        birthdate,
-        includeAstrology,
-        includeSaju,
-        sajuContext,
-        astroContext,
-      })
-      const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
+      logger.warn('Tarot stream emergency fallback')
+      const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
 
@@ -746,21 +634,7 @@ ${personalizationContext}
         const reader = openaiResponse.body?.getReader()
         logger.info('Tarot stream SSE start', { hasReader: Boolean(reader) })
         if (!reader) {
-          const fallbackBase = buildFallbackPayload(rawCards, language)
-          const backendFallback = await fetchBackendFallback({
-            categoryId,
-            spreadId,
-            spreadTitle,
-            cards: rawCards,
-            userQuestion: effectiveUserQuestion,
-            language,
-            birthdate,
-            includeAstrology,
-            includeSaju,
-            sajuContext,
-            astroContext,
-          })
-          const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
+          const fallback = buildFallbackPayload(rawCards, language)
           controller.enqueue(encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) })))
           controller.enqueue(encoder.encode(createSSEDoneEvent()))
           controller.close()
