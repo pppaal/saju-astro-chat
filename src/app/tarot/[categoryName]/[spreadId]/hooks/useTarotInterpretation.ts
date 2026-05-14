@@ -529,33 +529,18 @@ export function useTarotInterpretation({
               const dayMasterYinYang = (saju.dayMasterYinYang as string) || ''
               const pillars =
                 (saju.pillars as Record<string, { stem?: string; branch?: string }>) || {}
-              const formatPillar = (p?: { stem?: string; branch?: string }) =>
-                p?.stem && p?.branch ? `${p.stem}${p.branch}` : ''
-              const pillarLine = isKorean
-                ? [
-                    pillars.year && `년주 ${formatPillar(pillars.year)}`,
-                    pillars.month && `월주 ${formatPillar(pillars.month)}`,
-                    pillars.day && `일주 ${formatPillar(pillars.day)}`,
-                    pillars.time && `시주 ${formatPillar(pillars.time)}`,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')
-                : [
-                    pillars.year && `Year ${formatPillar(pillars.year)}`,
-                    pillars.month && `Month ${formatPillar(pillars.month)}`,
-                    pillars.day && `Day ${formatPillar(pillars.day)}`,
-                    pillars.time && `Hour ${formatPillar(pillars.time)}`,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')
+              // 4기둥 전체는 LLM 이 거의 인용 안 함 — 일주(일간+일지)만 유지.
+              // 나머지 년/월/시주는 토큰 비용 대비 시그널 약함.
+              const dayPillarStr =
+                pillars.day?.stem && pillars.day?.branch
+                  ? `${pillars.day.stem}${pillars.day.branch}`
+                  : ''
 
               if (dayMaster || dayMasterElement) {
-                // 구조화된 4기둥 cross context — 카드 해석 시 LLM이 일간/오행 외에도
-                // 4기둥을 함께 참조하여 입체 weaving 가능.
                 const headLine = isKorean
-                  ? `사주 핵심: 일간 ${dayMaster}, 오행 ${dayMasterElement}${dayMasterYinYang ? `, 음양 ${dayMasterYinYang}` : ''}`
-                  : `Saju core: Day master ${dayMaster}, element ${dayMasterElement}${dayMasterYinYang ? `, yin-yang ${dayMasterYinYang}` : ''}`
-                sajuContext = pillarLine ? `${headLine}\n사주 4기둥: ${pillarLine}` : headLine
+                  ? `사주 핵심: 일간 ${dayMaster}, 오행 ${dayMasterElement}${dayMasterYinYang ? `, 음양 ${dayMasterYinYang}` : ''}${dayPillarStr ? `, 일주 ${dayPillarStr}` : ''}`
+                  : `Saju core: Day master ${dayMaster}, element ${dayMasterElement}${dayMasterYinYang ? `, yin-yang ${dayMasterYinYang}` : ''}${dayPillarStr ? `, Day pillar ${dayPillarStr}` : ''}`
+                sajuContext = headLine
               }
             }
           }
@@ -605,9 +590,6 @@ export function useTarotInterpretation({
                   ascendant?: { sign?: string; formatted?: string }
                 }
               | undefined
-            const moonPhase = detail.todayMoonPhase as
-              | { phase?: string; name?: string }
-              | undefined
 
             const sajuAxisScore = typeof fusion.sajuAxisScore === 'number' ? fusion.sajuAxisScore : undefined
             const astroAxisScore = typeof fusion.astroAxisScore === 'number' ? fusion.astroAxisScore : undefined
@@ -646,8 +628,8 @@ export function useTarotInterpretation({
               if (extra.length > 0) sajuContext = `${sajuContext}\n${extra.join(' · ')}`
             }
 
-            // astroContext 풍부화
-            // 본명 Sun/Moon/Asc + 오늘 달 위상 + 오늘 점성축 점수 + 트랜짓 + 역행
+            // astroContext — 본명 Sun/Moon/Asc + 오늘 점성축 점수 + 트랜짓 top 3.
+            // 달 위상 / 역행 행성은 토큰 대비 시그널 약해서 제거 (LLM 이 어색하게 끼워넣는 경우 더 많음).
             if (includeAstrology) {
               const lines: string[] = []
               if (natalAngles?.sun?.sign || natalAngles?.moon?.sign || natalAngles?.ascendant?.sign) {
@@ -657,9 +639,6 @@ export function useTarotInterpretation({
                 if (natalAngles.ascendant?.sign) parts.push(`ASC ${natalAngles.ascendant.sign}`)
                 if (parts.length > 0)
                   lines.push(isKorean ? `본명: ${parts.join(' · ')}` : `Natal: ${parts.join(' · ')}`)
-              }
-              if (moonPhase?.name) {
-                lines.push(isKorean ? `오늘 달 위상: ${moonPhase.name}` : `Moon phase today: ${moonPhase.name}`)
               }
               if (astroAxisScore !== undefined) {
                 lines.push(isKorean ? `오늘 점성축 점수: ${astroAxisScore}` : `Astro axis today: ${astroAxisScore}`)
@@ -677,10 +656,6 @@ export function useTarotInterpretation({
                   })
                   .join(' · ')
                 lines.push(isKorean ? `오늘 트랜짓: ${top}` : `Today transits: ${top}`)
-              }
-              const retros = transit.retrogrades as string[] | undefined
-              if (retros && retros.length > 0) {
-                lines.push(isKorean ? `역행 행성: ${retros.join(', ')}` : `Retrograde: ${retros.join(', ')}`)
               }
               if (lines.length > 0) astroContext = lines.join('\n')
             }
