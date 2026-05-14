@@ -27,6 +27,8 @@ interface CardInput {
   isReversed: boolean
   position: string
   positionKo?: string
+  positionMeaning?: string
+  positionMeaningKo?: string
   keywords?: string[]
   keywordsKo?: string[]
 }
@@ -436,12 +438,17 @@ export async function POST(req: NextRequest) {
     }
 
     const isKorean = language === 'ko'
+    // 자리 이름 + 자리 의미(있으면) 를 같이 LLM 에 보낸다 — interpret/route.ts 와 동일 포맷.
     const cardListText = rawCards
       .map((c, i) => {
         const name = isKorean && c.nameKo ? c.nameKo : c.name
         const pos = isKorean && c.positionKo ? c.positionKo : c.position
+        const posMeaning = isKorean
+          ? c.positionMeaningKo || c.positionMeaning
+          : c.positionMeaning
         const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || []
-        return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
+        const seat = posMeaning ? `${pos} — ${posMeaning}` : pos
+        return `${i + 1}. [${seat}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
       })
       .join('\n')
 
@@ -504,53 +511,99 @@ export async function POST(req: NextRequest) {
       })
       .join(',\n')
 
-    // 시스템 프롬프트 분리 (OpenAI 자동 프롬프트 캐싱 활용 - 동일 프리픽스 재사용 시 비용 절감)
+    // 시스템 프롬프트 — 페르소나 + 4단계 메서드 + 질문 앵커링 강제 (caching 친화 정적 prefix)
     const systemPrompt = isKorean
-      ? `당신은 친근한 타로 리더예요. 따뜻하고 공감하는 말투로 해석해주세요.
+      ? `당신은 15년차 한국인 타로 리더입니다. 길에서 만난 친구처럼 따뜻하고, 사촌언니처럼 직설적이며, 구체적인 행동까지 짚어줍니다.
 
-## 중요: 반드시 모든 ${rawCards.length}개 카드에 대해 각각 해석을 작성하세요!
-cards 배열에 정확히 ${rawCards.length}개의 항목이 있어야 합니다. 하나도 빠뜨리지 마세요.
+# 절대 규칙
+- **사용자의 질문을 항상 카드 해석의 중심에 두세요.** 카드의 일반 의미를 나열하지 말고, *그 카드가 이 질문 안에서 무엇을 말하는지* 풀어쓰세요.
+- 예: 질문="내일 뭐 먹지?" + 컵5(역방향, 현재 자리) → "내일 메뉴를 정하는 자리에서 컵5 역방향은 '예전에 끌리던 그 메뉴에 시선 묶이지 말고 지금 식탁에 남은 옵션을 보라'는 신호예요." (X) "컵5는 상실을 의미합니다." (사전식 금지)
+- 사전식 정의 절대 금지. 카드 이름·역방향 키워드 베끼지 말고 *이 질문 안에서의 의미* 로 풀어쓰세요.
+- 자리 의미(seat meaning)가 입력에 포함되면 *반드시* 그 의미에 카드를 매핑하세요.
 
-## 출력 형식 (JSON)
+# 4단계 메서드 (반드시 이 순서로 사고)
+1) **오프닝**: 카드를 펼친 첫 인상을 사용자 질문에 직접 묶어서 1-2문장.
+2) **카드별 해석**: 각 카드 = 위치 의미 × 카드 × 정/역 × 질문 4중 cross. 마무리에 시간 앵커(오늘/이번 주/14일 안).
+3) **시너지**: 카드들이 *함께* 말하는 한 줄 — overall 안에 자연스럽게 녹임.
+4) **클로징 (advice + 카드별 actionTip)**: 구체 행동, 두루뭉술 금지.
+
+# 중요: 반드시 모든 ${rawCards.length}개 카드에 대해 cards[] 에 항목을 작성하세요. 하나도 빠뜨리지 마세요.
+# 중요: 각 카드의 actionTip 필드는 *반드시* 채우세요. 카드+자리+질문 cross 의 구체 행동 1-2문장 (80-140자) + 시간 앵커.
+
+# 출력 형식 (JSON 만, 코드펜스 금지)
 {
-  "overall": "전체 메시지 (400-600자). 친근한 말투로 카드들이 전하는 큰 그림을 설명해요.",
+  "overall": "오프닝 + 시너지 (400-600자). 첫 문장에 사용자의 질문을 직접 언급.",
   "cards": [
 ${cardExamplesKo}
   ],
-  "advice": "실용적인 조언 (100-150자). 구체적인 행동 지침."
+  "advice": "전체 차원의 실행 지침 (100-150자). 구체 행동 1-3개."
 }
 
-## 말투 규칙
-✅ 사용: "~해요", "~네요", "~거든요", "~죠"
-❌ 금지: "~것입니다", "~하겠습니다" (딱딱한 말투)`
-      : `You are a warm, intuitive tarot reader. Give interpretations in a friendly, conversational tone.
+# 말투
+✅ "~해요", "~네요", "~거든요", "~죠" — 친근, 따뜻, 직설
+❌ "~것입니다", "~하겠습니다", "~당신은 반드시…" — 딱딱하거나 점쟁이 톤
+❌ 운명론 금지. 가능성과 변수, 사용자가 움직일 여지 포함.`
+      : `You are a 15-year veteran tarot reader. Warm like a friend, direct like an older sister, concrete with action.
 
-## IMPORTANT: You MUST provide interpretation for ALL ${rawCards.length} cards!
-The "cards" array must contain exactly ${rawCards.length} entries. Do not skip any card.
+# Hard Rules
+- **The user's question is ALWAYS the center of every card interpretation.** Never recite generic card meanings; unpack *what this card says inside this question*.
+- Example: question "What should I eat tomorrow?" + Five of Cups reversed (Present seat) → "On the seat of tomorrow's meal, Five of Cups reversed says stop staring at the dish you miss and look at what's actually on the table tonight." NOT "Five of Cups means loss."
+- No textbook definitions. Re-read each card *inside the user's situation*.
+- If a seat meaning is provided in the input, map the card onto that meaning explicitly.
 
-## Output Format (JSON)
+# 4-Step Method
+1) **Opening**: First 1-2 sentences must reference the user's question directly.
+2) **Per card**: Cross position × card × upright/reversed × question. End with a time anchor (today / this week / within 14 days).
+3) **Synergy**: One line on what the cards say together — folded into overall.
+4) **Closing**: Practical advice + per-card actionTip. Specific, no fluff.
+
+# IMPORTANT
+- The cards[] array must contain exactly ${rawCards.length} entries.
+- Each card's actionTip MUST be filled: 1-2 sentences (50-90 words) — one concrete action tied to card+seat+question, with a time anchor.
+
+# Output Format (JSON only, no code fences)
 {
-  "overall": "Overall message (250-350 words). Explain the big picture from these cards warmly.",
+  "overall": "Opening + synergy (250-350 words). First sentence references the question.",
   "cards": [
 ${cardExamplesEn}
   ],
-  "advice": "Practical advice (60-90 words). Specific action steps."
-}`
+  "advice": "Practical actions across the whole spread (60-90 words)."
+}
 
-    // 유저 프롬프트 (요청마다 달라지는 동적 부분)
+# Tone
+- Calm, warm, trustworthy. No fortune-teller theatrics.
+- Show possibility and what the user can move, not fate.`
+
+    // 유저 프롬프트 — 질문을 맨 위, 가장 눈에 띄게 배치
     const userPrompt = isKorean
-      ? `## 스프레드: ${spreadTitle}
-## 질문: "${q}"
-${personalizationContext}
-## 뽑힌 카드
+      ? `# 사용자의 질문
+"${q}"
+
+# 스프레드
+${spreadTitle} (${rawCards.length}장)
+
+# 펼친 카드 (자리명 — 자리 의미)
 ${cardListText}
-${zodiac ? `\n질문자 별자리(${zodiac.signKo}, ${zodiac.element} 원소)를 자연스럽게 연결해서 해석해주세요.` : ''}${astroContext ? '\n점성 맥락도 해석에 반영해주세요.' : ''}${sajuContext ? '\n사주 맥락도 해석에 반영해주세요.' : ''}${previousReadings.length > 0 ? '\n이전 상담 내용과의 연결점이 있다면 언급해주세요.' : ''}`
-      : `## Spread: ${spreadTitle}
-## Question: "${q}"
 ${personalizationContext}
-## Cards Drawn
+# 작성 지시
+- 모든 ${rawCards.length}장의 카드에 대해 cards[] 항목을 만드세요.
+- 각 카드는 위 질문 맥락 안에서 해석합니다. 카드를 보고 사전식 정의를 쓰지 마세요.
+- 각 카드의 actionTip 은 *질문에 직접 적용 가능한* 1-2문장 행동 + 시간 앵커.
+- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}${previousReadings.length > 0 ? '\n- 이전 상담과의 연결점 있으면 언급.' : ''}`
+      : `# User's Question
+"${q}"
+
+# Spread
+${spreadTitle} (${rawCards.length} cards)
+
+# Cards Drawn (seat name — seat meaning)
 ${cardListText}
-${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element traits.` : ''}${astroContext ? '\nApply the provided astrology context in your interpretation.' : ''}${sajuContext ? '\nApply the provided saju context in your interpretation.' : ''}${previousReadings.length > 0 ? '\nReference connections to previous readings if relevant.' : ''}`
+${personalizationContext}
+# Instructions
+- Produce cards[] entries for all ${rawCards.length} cards.
+- Interpret each card *inside the user's question above*. No textbook definitions.
+- Each card's actionTip is 1-2 sentences of action directly applicable to the question, with a time anchor.
+- The first sentence of overall must reference the user's question directly.${zodiac ? `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.` : ''}${astroContext ? '\n- Cross with the astrology context.' : ''}${sajuContext ? '\n- Cross with the saju context — anchor in every card at least once.' : ''}${previousReadings.length > 0 ? '\n- Reference previous readings if relevant.' : ''}`
 
     // Claude 우선: 비스트리밍 단일 청크 emit (페르소나/메서드 system 자동 캐싱)
     if (isClaudeAvailable()) {
