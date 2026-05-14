@@ -334,6 +334,7 @@ export async function POST(req: NextRequest) {
 - 사용자 질문이 카드 해석의 중심. 사전식 정의·키워드 베끼기 금지 — *이 질문 안에서의 의미* 로 풀어쓰세요.
 - 자리 의미가 입력에 있으면 반드시 그 의미에 카드를 매핑.
 - **답변 무게 = 질문 무게.** 캐주얼 ("낼 뭐 먹어") → overall 100-200자, 카드별 80-150자, 거시 해석 금지. 무거운 질문 ("이직", "인생 방향") → 평소 길이로 깊게.
+- **핵심 한 구절을 \`*별표*\` 로 강조하세요.** 카드별 interpretation 마다 가장 중요한 행동 트리거 1구절 (예: "*오늘 가벼운 신호 한 번*", "*결정 미루고 자기 확신부터*"). overall 도 핵심 1구절. 과용 금지 — 카드당 1회, overall 1-2회.
 
 # 역방향 의미 (정/역 톤 가이드 — 단순 "부정"이 아님)
 - 역방향 = 다음 중 하나로 해석: **막힘 / 지연 / 내면화 / 미숙함 / 과잉**.
@@ -405,6 +406,7 @@ Extract **subject / object / timeframe / intent** from the question, and compare
 - The user's question is ALWAYS the center of every card interpretation. No textbook definitions; re-read each card *inside the user's situation*.
 - If a seat meaning is supplied, map the card onto that meaning explicitly.
 - **Answer weight = question weight.** Casual ("what to eat tomorrow") → overall ~80-130 words, per-card ~50-90 words, no macro reading. Heavy ("switch jobs", "life direction") → full depth.
+- **Wrap one key phrase per card in \`*asterisks*\`** — the single most action-triggering line in each card's interpretation (e.g., "*send one light signal today*", "*hold the decision a week*"). overall also gets 1-2 starred phrases. Do not overuse — one per card.
 
 # Reversed Orientation (not simply "negative")
 - Reversed = one of: **blockage / delay / internalization / immaturity / excess**.

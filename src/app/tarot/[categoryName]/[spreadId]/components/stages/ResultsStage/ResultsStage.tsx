@@ -10,6 +10,7 @@ import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { CombinationsSection } from './CombinationsSection'
 import { FollowupChat } from './FollowupChat'
+import { renderHighlighted } from '../../ResultsView/highlight'
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -133,7 +134,7 @@ export function ResultsStage(props: ResultsStageProps) {
             </div>
             {insight?.overall_message ? (
               <p className="text-base md:text-[17px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-                {insight.overall_message}
+                {renderHighlighted(insight.overall_message)}
                 {aiPending && (
                   <span className="inline-block w-1.5 h-4 ml-0.5 bg-indigo-300/80 align-middle animate-pulse" />
                 )}
