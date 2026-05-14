@@ -31,6 +31,7 @@ import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
 import { canUseCredits, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { buildCounselorPrompt } from '@/lib/compatibility/counselor'
+import { appendTurn } from '@/lib/compatibility/counselor/chatSession'
 import { RealtimeChatRequestSchema } from './validation'
 import { logger } from '@/lib/logger'
 
@@ -167,7 +168,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     )
   }
 
-  const { personA, personB, relation, relationNote, messages } = parsed.data
+  const { personA, personB, relation, relationNote, messages, sessionId } = parsed.data
 
   // Resolve identity + enforce free / paid quota BEFORE we burn an LLM call.
   const session = await getServerSession(authOptions).catch(() => null)
@@ -246,6 +247,8 @@ export async function POST(req: NextRequest): Promise<Response> {
   const decoder = new TextDecoder()
   const encoder = new TextEncoder()
 
+  let assistantBuffer = ''
+
   const stream = new ReadableStream<Uint8Array>({
     async start(streamController) {
       // Emit a single meta event so the client knows which person(s) had
@@ -276,6 +279,7 @@ export async function POST(req: NextRequest): Promise<Response> {
               if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
                 const text = event.delta.text || ''
                 if (text) {
+                  assistantBuffer += text
                   const line = `data: ${JSON.stringify({ content: text, done: false })}\n\n`
                   streamController.enqueue(encoder.encode(line))
                 }
@@ -290,6 +294,20 @@ export async function POST(req: NextRequest): Promise<Response> {
         await settleQuota(userId, quota).catch((err) => {
           logger.warn('[compat/realtime] quota settle failed', err)
         })
+        // Persist this exchange to the chat session (logged-in only).
+        if (userId && sessionId && assistantBuffer.trim()) {
+          const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user')
+          const now = new Date().toISOString()
+          const toPersist: Array<{ role: 'user' | 'assistant'; content: string; createdAt: string }> = []
+          // Drop the "__start__" sentinel — only persist real user input.
+          if (lastUserMsg && lastUserMsg.content !== '__start__') {
+            toPersist.push({ role: 'user', content: lastUserMsg.content, createdAt: now })
+          }
+          toPersist.push({ role: 'assistant', content: assistantBuffer, createdAt: now })
+          await appendTurn(userId, sessionId, toPersist).catch((err) => {
+            logger.warn('[compat/realtime] session persist failed', err)
+          })
+        }
         const finalLine = `data: ${JSON.stringify({ content: '', done: true })}\n\n`
         streamController.enqueue(encoder.encode(finalLine))
         streamController.close()

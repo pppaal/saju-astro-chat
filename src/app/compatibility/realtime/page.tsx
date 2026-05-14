@@ -26,6 +26,13 @@ const emptyPerson = (name = ''): PersonForm => ({
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
+interface QuotaState {
+  mode: 'guest' | 'free' | 'paid'
+  freeRemaining: number
+  freeLimit: number
+  paidRemaining: number
+}
+
 export default function CompatibilityRealtimePage() {
   const [personA, setPersonA] = useState<PersonForm>(emptyPerson(''))
   const [personB, setPersonB] = useState<PersonForm>(emptyPerson(''))
@@ -33,12 +40,30 @@ export default function CompatibilityRealtimePage() {
   const [relationNote, setRelationNote] = useState('')
 
   const [started, setStarted] = useState(false)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [missingLocation, setMissingLocation] = useState<string[]>([])
   const [streaming, setStreaming] = useState(false)
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [quotaBlock, setQuotaBlock] = useState<{ reason: string; message: string } | null>(null)
+  const [quota, setQuota] = useState<QuotaState | null>(null)
+
+  const refreshQuota = async () => {
+    try {
+      const res = await fetch('/api/compatibility/realtime/quota', { cache: 'no-store' })
+      if (res.ok) {
+        const data = (await res.json()) as QuotaState
+        setQuota(data)
+      }
+    } catch {
+      // best-effort — counter just hides
+    }
+  }
+
+  useEffect(() => {
+    void refreshQuota()
+  }, [])
 
   const canStart = useMemo(() => {
     return (
@@ -78,6 +103,7 @@ export default function CompatibilityRealtimePage() {
           relation,
           relationNote: relationNote.trim() || null,
           messages: nextMessages,
+          sessionId,
         }),
       })
 
@@ -156,12 +182,46 @@ export default function CompatibilityRealtimePage() {
       setError(err instanceof Error ? err.message : '알 수 없는 오류')
     } finally {
       setStreaming(false)
+      // Refresh quota counter so the user sees the new remaining count.
+      void refreshQuota()
     }
   }
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!canStart || streaming) return
     setStarted(true)
+
+    // Try to fetch or create a persistent session (logged-in users only).
+    // Guests fall through with sessionId=null and start fresh.
+    try {
+      const res = await fetch('/api/compatibility/realtime/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          personA: toApiPerson(personA),
+          personB: toApiPerson(personB),
+          relation,
+          relationNote: relationNote.trim() || null,
+        }),
+      })
+      if (res.ok) {
+        const data = (await res.json()) as {
+          sessionId: string | null
+          messages: Array<{ role: 'user' | 'assistant'; content: string }>
+          isResumed: boolean
+        }
+        if (data.sessionId) setSessionId(data.sessionId)
+        if (data.isResumed && data.messages.length > 0) {
+          // Restore prior conversation, then let the user ask the next thing
+          // instead of auto-greeting again.
+          setMessages(data.messages.map((m) => ({ role: m.role, content: m.content })))
+          return
+        }
+      }
+    } catch {
+      // Continue without persistence — falls back to ephemeral chat
+    }
+
     void send(true)
   }
 
@@ -212,22 +272,26 @@ export default function CompatibilityRealtimePage() {
             setRelationNote={setRelationNote}
             canStart={canStart}
             onStart={handleStart}
+            quota={quota}
           />
         ) : (
           <div className="flex flex-1 flex-col">
-            <div className="mb-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-[12px] text-slate-300">
-              <span className="font-semibold text-white">
-                {personA.name} × {personB.name}
-              </span>{' '}
-              <span className="text-slate-500">·</span>{' '}
-              <span className="text-violet-300">
-                {RELATION_OPTIONS.find((r) => r.key === relation)?.label}
-              </span>
-              {missingLocation.length > 0 && (
-                <p className="mt-1 text-[11px] text-amber-300/80">
-                  ⚠ 출생지 미상: {missingLocation.join(', ')} — 위치 기반 결론은 제외돼요.
-                </p>
-              )}
+            <div className="mb-3 flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-[12px] text-slate-300">
+              <div className="min-w-0 flex-1">
+                <span className="font-semibold text-white">
+                  {personA.name} × {personB.name}
+                </span>{' '}
+                <span className="text-slate-500">·</span>{' '}
+                <span className="text-violet-300">
+                  {RELATION_OPTIONS.find((r) => r.key === relation)?.label}
+                </span>
+                {missingLocation.length > 0 && (
+                  <p className="mt-1 text-[11px] text-amber-300/80">
+                    ⚠ 출생지 미상: {missingLocation.join(', ')} — 위치 기반 결론은 제외돼요.
+                  </p>
+                )}
+              </div>
+              <QuotaBadge quota={quota} />
             </div>
 
             <div
@@ -371,6 +435,7 @@ function SetupForm({
   setRelationNote,
   canStart,
   onStart,
+  quota,
 }: {
   personA: PersonForm
   personB: PersonForm
@@ -382,6 +447,7 @@ function SetupForm({
   setRelationNote: (s: string) => void
   canStart: boolean
   onStart: () => void
+  quota: QuotaState | null
 }) {
   return (
     <div className="space-y-5">
@@ -426,14 +492,49 @@ function SetupForm({
         />
       </div>
 
-      <button
-        type="button"
-        onClick={onStart}
-        disabled={!canStart}
-        className="w-full rounded-2xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] py-3 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(124,92,255,0.35)] transition hover:opacity-90 disabled:opacity-40"
-      >
-        상담 시작
-      </button>
+      <div className="space-y-2">
+        {quota && (
+          <p className="text-center text-[11px] text-slate-400">
+            {quota.freeRemaining > 0
+              ? `남은 무료 답변 ${quota.freeRemaining}/${quota.freeLimit}`
+              : quota.mode === 'guest'
+                ? '무료 답변을 다 쓰셨어요. 로그인하면 2회 더 무료예요.'
+                : `보유 크레딧 ${quota.paidRemaining}개 — 답변마다 1개씩 차감돼요.`}
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={onStart}
+          disabled={!canStart}
+          className="w-full rounded-2xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] py-3 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(124,92,255,0.35)] transition hover:opacity-90 disabled:opacity-40"
+        >
+          상담 시작
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function QuotaBadge({ quota }: { quota: QuotaState | null }) {
+  if (!quota) return null
+  const isFree = quota.freeRemaining > 0
+  if (isFree) {
+    return (
+      <div className="shrink-0 rounded-full bg-violet-500/15 px-2.5 py-0.5 text-[10px] font-semibold text-violet-200">
+        무료 {quota.freeRemaining}/{quota.freeLimit}
+      </div>
+    )
+  }
+  if (quota.mode === 'guest') {
+    return (
+      <div className="shrink-0 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-semibold text-amber-200">
+        로그인 필요
+      </div>
+    )
+  }
+  return (
+    <div className="shrink-0 rounded-full bg-fuchsia-500/15 px-2.5 py-0.5 text-[10px] font-semibold text-fuchsia-200">
+      크레딧 {quota.paidRemaining}
     </div>
   )
 }

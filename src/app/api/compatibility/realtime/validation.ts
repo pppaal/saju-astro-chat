@@ -39,11 +39,17 @@ export const RealtimeChatRequestSchema = z.object({
   relation: z.enum(RELATION_KEYS),
   relationNote: z.string().max(200).nullable().optional(),
   /**
-   * Full conversation so far. Client owns chat history (no server-side
-   * persistence in v1). Send a single message with content "__start__" to
-   * trigger the AI's auto greeting.
+   * Full conversation so far. Client owns chat history (server may also
+   * persist it for logged-in users — see sessionId). Send a single message
+   * with content "__start__" to trigger the AI's auto greeting.
    */
   messages: z.array(messageSchema).min(1).max(40),
+  /**
+   * When present, the server will append this turn's user message and the
+   * AI's reply to the matching CompatibilityChatSession. Ignored for
+   * guests. Treat as opaque — obtained from POST /session.
+   */
+  sessionId: z.string().min(1).max(60).nullable().optional(),
 })
 
 export type RealtimeChatRequest = z.infer<typeof RealtimeChatRequestSchema>
