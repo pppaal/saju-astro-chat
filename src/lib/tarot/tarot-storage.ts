@@ -135,17 +135,6 @@ export function deleteReading(id: string): boolean {
   }
 }
 
-// 특정 리딩 가져오기
-export function getReadingById(id: string): SavedTarotReading | null {
-  const readings = getSavedReadings()
-  return readings.find((r) => r.id === id) || null
-}
-
-// 리딩 개수 가져오기
-export function getReadingsCount(): number {
-  return getSavedReadings().length
-}
-
 export function storeReadingRestorePayload(reading: SavedTarotReading): string | null {
   if (typeof window === 'undefined') {
     return null
@@ -279,36 +268,5 @@ export function mapServerReadingToSavedReading(reading: ServerSavedReading): Sav
   }
 }
 
-// 날짜 포맷
-export function formatReadingDate(timestamp: number, isKo: boolean): string {
-  const date = new Date(timestamp)
-  if (isKo) {
-    return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`
-  }
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-}
-
-// 상대 시간 포맷
-export function formatRelativeTime(timestamp: number, isKo: boolean): string {
-  const now = Date.now()
-  const diff = now - timestamp
-
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-
-  if (minutes < 1) {
-    return isKo ? '방금 전' : 'Just now'
-  }
-  if (minutes < 60) {
-    return isKo ? `${minutes}분 전` : `${minutes} min ago`
-  }
-  if (hours < 24) {
-    return isKo ? `${hours}시간 전` : `${hours}h ago`
-  }
-  if (days < 7) {
-    return isKo ? `${days}일 전` : `${days}d ago`
-  }
-
-  return formatReadingDate(timestamp, isKo)
-}
+// 날짜/시간 포맷터는 src/app/tarot/history/historyClientUtils.ts 에 자체 구현이 있어 그쪽 사용.
+// 이전에는 공개 export 두었으나 어디서도 import 하지 않음 → 제거.
