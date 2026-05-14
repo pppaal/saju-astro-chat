@@ -43,24 +43,9 @@ export function DetailedCardItem({
       : 'Upright'
 
   const staticMeaning = (isKo ? meaning.meaningKo || meaning.meaning : meaning.meaning) || ''
-  // 너무 길면 첫 문장만 — 결과 페이지는 AI 해석이 메인이고 일반 의미는 *참고*.
-  const compactMeaning = (() => {
-    if (!staticMeaning) return ''
-    const trimmed = staticMeaning.trim()
-    // 첫 문장 (마침표 / 느낌표 / 물음표 기준), 너무 길면 80자에서 컷.
-    const sentenceMatch = trimmed.match(/^[^.!?。！？]*[.!?。！？]/)
-    let first = sentenceMatch ? sentenceMatch[0].trim() : trimmed
-    if (first.length > 90) {
-      first = first.slice(0, 80).trimEnd() + '…'
-    }
-    return first
-  })()
-  const staticAdvice = (isKo ? meaning.adviceKo || meaning.advice : meaning.advice) || ''
+  // 일반 의미 전체 노출 — 사용자가 충분한 컨텍스트 보고 싶다는 요청. 자르지 않음.
+  const fullStaticMeaning = staticMeaning.trim()
   const aiInterpretation = cardInsight?.interpretation?.trim() || ''
-  const dynamicTip = cardInsight?.action_tip?.trim() || ''
-  // 동적 조언이 있으면 그걸 쓰고, 없으면 정적 advice 로 폴백. 둘 다 빈칸이면 박스 안 보임.
-  const adviceText = dynamicTip || staticAdvice
-  const adviceIsDynamic = Boolean(dynamicTip)
   const hasAiText = aiInterpretation.length > 0
 
   const keywords = (isKo ? meaning.keywordsKo || meaning.keywords : meaning.keywords).slice(0, 5)
@@ -119,13 +104,15 @@ export function DetailedCardItem({
             </div>
           )}
 
-          {/* 정적 의미 — 첫 문장만 핵심 한 줄로. AI 해석이 메인. */}
-          {compactMeaning && (
-            <div className="flex items-baseline gap-2">
-              <span className="text-[11px] uppercase tracking-wider text-slate-500 shrink-0">
-                {isKo ? '참고' : 'Ref'}
-              </span>
-              <p className="text-base text-slate-300 leading-relaxed">{compactMeaning}</p>
+          {/* 정적 의미 — 전체 노출 (사용자 요청). AI 해석이 메인이지만 참고 텍스트도 충분히 보이게. */}
+          {fullStaticMeaning && (
+            <div className="space-y-1.5">
+              <div className="text-[11px] uppercase tracking-wider text-slate-500">
+                {isKo ? '카드 일반 의미' : 'General card meaning'}
+              </div>
+              <p className="text-[15px] md:text-base text-slate-300 leading-relaxed">
+                {fullStaticMeaning}
+              </p>
             </div>
           )}
 
@@ -157,20 +144,7 @@ export function DetailedCardItem({
             )}
           </div>
 
-          {adviceText && (
-            <div className="rounded-xl bg-amber-500/8 border border-amber-500/25 p-4">
-              <div className="text-[11px] uppercase tracking-wider text-amber-300/90 mb-1.5">
-                {adviceIsDynamic
-                  ? isKo
-                    ? '실천 조언 (질문 맞춤)'
-                    : 'Action Step (For Your Question)'
-                  : isKo
-                    ? '실천 팁'
-                    : 'Tip'}
-              </div>
-              <p className="text-base text-slate-100 leading-relaxed">{adviceText}</p>
-            </div>
-          )}
+          {/* 실천 팁/조언 박스 제거 — 사용자 요청. AI 해석 안에 시간 앵커 + 행동 안내가 이미 들어있음. */}
         </div>
       </div>
     </article>
