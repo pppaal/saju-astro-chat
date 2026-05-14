@@ -288,6 +288,7 @@ export const GET = withApiMiddleware(
           jupiter?: { sign: string; formatted: string }
           saturn?: { sign: string; formatted: string }
           neptune?: { sign: string; formatted: string }
+          northNode?: { sign: string; formatted: string }
           mc?: { sign: string; formatted: string }
           // 주요 하우스 cusp sign — conditional 용 (2 재물 / 6 건강 / 7 관계 / 9 영성 / 10 직업=MC)
           house2?: { sign: string }
@@ -466,6 +467,9 @@ export const GET = withApiMiddleware(
         const jupiter = planetBy('Jupiter')
         const saturn = planetBy('Saturn')
         const neptune = planetBy('Neptune')
+        // North Node — ephemeris 마다 이름이 다름 (True Node / Mean Node / North Node)
+        const northNode =
+          planetBy('True Node') || planetBy('Mean Node') || planetBy('North Node')
         const pick = (p?: { sign: string; formatted: string }) =>
           p ? { sign: p.sign, formatted: p.formatted } : undefined
         const houseBy = (idx: number) => {
@@ -482,6 +486,7 @@ export const GET = withApiMiddleware(
           jupiter: pick(jupiter),
           saturn: pick(saturn),
           neptune: pick(neptune),
+          northNode: pick(northNode),
           mc: pick(natalChart.mc),
           house2: houseBy(2),
           house6: houseBy(6),
