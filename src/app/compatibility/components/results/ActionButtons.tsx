@@ -80,7 +80,7 @@ export const ActionButtons = React.memo<ActionButtonsProps>(({ persons, resultTe
             relation: p.relation,
           }))
           router.push(
-            `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(personsData))}`
+            `/compatibility/realtime?persons=${encodeURIComponent(JSON.stringify(personsData))}`
           )
         }}
       >

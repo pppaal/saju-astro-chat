@@ -69,7 +69,7 @@ export default function CompatibilityPaywall({
       if (p.cityQuery) sp.set(`p${idx}City`, p.cityQuery)
       if (p.relation) sp.set(`p${idx}Relation`, p.relation)
     })
-    return `/compatibility/counselor?${sp.toString()}`
+    return `/compatibility/realtime?${sp.toString()}`
   })()
 
   if (unlocked) {

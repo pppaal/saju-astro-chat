@@ -8,6 +8,8 @@ import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Send, Sparkles, Trash2, Users } from 'lucide-react'
 import { RELATION_OPTIONS, type RelationKey } from '@/lib/compatibility/counselor'
+import { runQuickCoupleTarot } from '@/lib/compatibility/counselor/runQuickCoupleTarot'
+import { logger } from '@/lib/logger'
 
 const VALID_RELATION_KEYS = new Set<RelationKey>(
   RELATION_OPTIONS.map((r) => r.key)
@@ -67,6 +69,13 @@ export default function CompatibilityRealtimePage() {
   const [error, setError] = useState<string | null>(null)
   const [quotaBlock, setQuotaBlock] = useState<{ reason: string; message: string } | null>(null)
   const [quota, setQuota] = useState<QuotaState | null>(null)
+
+  // Saju + astro raw responses, prefetched after chat starts so the Quick
+  // Couple Tarot button can stream a 5-card reading inline.
+  const [person1Saju, setPerson1Saju] = useState<Record<string, unknown> | null>(null)
+  const [person2Saju, setPerson2Saju] = useState<Record<string, unknown> | null>(null)
+  const [person1Astro, setPerson1Astro] = useState<Record<string, unknown> | null>(null)
+  const [person2Astro, setPerson2Astro] = useState<Record<string, unknown> | null>(null)
 
   const refreshQuota = async () => {
     try {
@@ -287,6 +296,11 @@ export default function CompatibilityRealtimePage() {
   ) => {
     setStarted(true)
 
+    // Fire-and-forget prefetch of saju + astrology so the Quick Couple Tarot
+    // button has the data ready when the user clicks it. We don't await —
+    // the tarot button shows a disabled state until both land.
+    void prefetchCouplePayload(a, b)
+
     // Try to fetch or create a persistent session (logged-in users only).
     // Guests fall through with sessionId=null and start fresh.
     let resumed = false
@@ -325,6 +339,102 @@ export default function CompatibilityRealtimePage() {
   const handleStart = async () => {
     if (!canStart || streaming) return
     await startSession(personA, personB, relation, relationNote)
+  }
+
+  const prefetchCouplePayload = async (a: PersonForm, b: PersonForm) => {
+    const buildSajuBody = (p: PersonForm) => ({
+      date: p.birthDate,
+      time: p.birthTime || '00:00',
+      latitude: 37.5665,
+      longitude: 126.978,
+      timeZone: 'Asia/Seoul',
+    })
+    const buildAstroBody = (p: PersonForm) => ({
+      date: p.birthDate,
+      time: p.birthTime || '00:00',
+      latitude: 37.5665,
+      longitude: 126.978,
+    })
+    const fire = async (
+      url: string,
+      body: Record<string, unknown>
+    ): Promise<Record<string, unknown> | null> => {
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) return null
+        return (await res.json()) as Record<string, unknown>
+      } catch {
+        return null
+      }
+    }
+    const [s1, s2, a1, a2] = await Promise.all([
+      fire('/api/saju', buildSajuBody(a)),
+      fire('/api/saju', buildSajuBody(b)),
+      fire('/api/astrology', buildAstroBody(a)),
+      fire('/api/astrology', buildAstroBody(b)),
+    ])
+    setPerson1Saju(s1)
+    setPerson2Saju(s2)
+    setPerson1Astro(a1)
+    setPerson2Astro(a2)
+  }
+
+  const tarotReady = Boolean(person1Saju && person2Saju && person1Astro && person2Astro)
+  const [tarotPending, setTarotPending] = useState(false)
+
+  const handleQuickCoupleTarot = async () => {
+    if (!tarotReady || tarotPending || streaming) return
+    setTarotPending(true)
+    const userBubble: ChatMessage = { role: 'user', content: '둘 궁합 타로 5장 펼쳐줘' }
+    setMessages((prev) => [...prev, userBubble, { role: 'assistant', content: '' }])
+    try {
+      const { markdown } = await runQuickCoupleTarot({
+        persons: [
+          { name: personA.name, date: personA.birthDate, time: personA.birthTime || '00:00', city: personA.birthCity },
+          { name: personB.name, date: personB.birthDate, time: personB.birthTime || '00:00', city: personB.birthCity },
+        ],
+        person1Saju,
+        person2Saju,
+        person1Astro,
+        person2Astro,
+        language: 'ko',
+        onChunk: (partial) => {
+          setMessages((prev) => {
+            const copy = [...prev]
+            const lastIdx = copy.length - 1
+            if (lastIdx >= 0 && copy[lastIdx].role === 'assistant') {
+              copy[lastIdx] = { role: 'assistant', content: partial }
+            }
+            return copy
+          })
+        },
+      })
+      setMessages((prev) => {
+        const copy = [...prev]
+        const lastIdx = copy.length - 1
+        if (lastIdx >= 0 && copy[lastIdx].role === 'assistant') {
+          copy[lastIdx] = { role: 'assistant', content: markdown }
+        }
+        return copy
+      })
+    } catch (err) {
+      logger.warn('[compat/realtime] quick couple tarot failed', err)
+      setMessages((prev) => {
+        const copy = [...prev]
+        const lastIdx = copy.length - 1
+        if (lastIdx >= 0 && copy[lastIdx].role === 'assistant' && !copy[lastIdx].content) {
+          copy.pop()
+        }
+        return copy
+      })
+      setError('타로 카드를 펼치지 못했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setTarotPending(false)
+    }
   }
 
   const handleSend = (e?: FormEvent) => {
@@ -515,9 +625,22 @@ export default function CompatibilityRealtimePage() {
               </div>
             )}
 
+            <div className="mt-3 flex justify-center">
+              <button
+                type="button"
+                onClick={handleQuickCoupleTarot}
+                disabled={!tarotReady || tarotPending || streaming}
+                className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/40 bg-gradient-to-r from-indigo-500/15 to-violet-500/20 px-4 py-1.5 text-[12px] font-medium text-violet-100 shadow-[0_0_18px_rgba(99,102,241,0.18)] transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+                title="두 사람 관계를 5장 관계 크로스로 즉시 봐요"
+              >
+                <span>🎴</span>
+                {tarotPending ? '카드를 펼치는 중...' : '둘 궁합 타로 즉시 보기'}
+              </button>
+            </div>
+
             <form
               onSubmit={handleSend}
-              className="mt-3 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 backdrop-blur-md"
+              className="mt-2 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 backdrop-blur-md"
             >
               <input
                 type="text"

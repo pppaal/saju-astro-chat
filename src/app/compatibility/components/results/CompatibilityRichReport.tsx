@@ -1470,7 +1470,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
                 시기, 갈등 해결, 미래 흐름 등 궁금한 것 무엇이든.
               </p>
               <Link
-                href="/compatibility/counselor"
+                href="/compatibility/realtime"
                 className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_12px_40px_rgba(124,92,255,0.35)] transition hover:opacity-90"
               >
                 상담사와 대화 시작
