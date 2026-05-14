@@ -64,7 +64,7 @@ function normalizeQuestionContext(value: unknown): TarotQuestionAnalysisSnapshot
 function buildFallbackPayload(
   cards: CardInput[],
   language: 'ko' | 'en'
-): { overall: string; cards: { position: string; interpretation: string; actionTip?: string }[]; advice: string } {
+): { overall: string; cards: { position: string; interpretation: string }[]; advice: string } {
   const isKorean = language === 'ko'
   const overall = isKorean
     ? '\uCE74\uB4DC\uC5D0\uC11C \uC804\uD574\uC9C0\uB294 \uD575\uC2EC \uBA54\uC2DC\uC9C0\uB97C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.'
@@ -96,7 +96,7 @@ function buildFallbackPayload(
 function streamJsonPayload(
   payload: {
     overall: string
-    cards: { position: string; interpretation: string; actionTip?: string }[]
+    cards: { position: string; interpretation: string }[]
     advice: string
   },
   extraHeaders?: Record<string, string>
@@ -386,11 +386,11 @@ export async function POST(req: NextRequest) {
 1) **오프닝**: 첫 1-2문장이 사용자 질문을 *직접* 언급. 추출한 주체·시간·의도 한 번 반영.
 2) **카드별 해석**: 각 카드 = 위치 의미 × 카드 × 정/역 × 질문 4중 cross. 마무리에 시간 앵커(오늘/이번 주/14일/N개월).
 3) **시너지**: 카드들이 *함께* 말하는 한 줄 — overall 안에 녹임.
-4) **클로징**: 전체 advice + 카드별 actionTip. 두루뭉술 금지, 구체 행동만.
+4) **클로징**: 전체 advice. 두루뭉술 금지, 구체 행동만.
 
 # 절대 출력 규칙
 - cards 배열 길이는 user prompt 에서 지정한 카드 수와 *정확히* 일치해야 합니다. 하나도 빠뜨리거나 추가하지 마세요.
-- 각 카드의 actionTip 은 반드시 채워야 합니다. 80-140자, 시간 앵커 + 구체 행동 1개.
+- 각 카드 interpretation 은 자리 의미 × 카드 × 정/역 × 질문 4중 cross 로 작성, 끝에 시간 앵커 포함.
 - 출력은 *오직* 아래 JSON 스키마. 마크다운 코드펜스(\`\`\`) 절대 사용 금지. 주석/설명/머리말 금지.
 
 # JSON 스키마 (정확히 이 키, 이 구조)
@@ -399,8 +399,7 @@ export async function POST(req: NextRequest) {
   "cards": [
     {
       "position": "string — 자리명 그대로",
-      "interpretation": "string — 자리 의미 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함",
-      "actionTip": "string — 이 카드+자리+질문 cross 의 실천 행동 1-2문장 (80-140자) + 시간 앵커"
+      "interpretation": "string — 자리 의미 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함"
     }
   ],
   "advice": "string — 전체 차원 실행 지침 (100-150자), 구체 행동 1-3개"
@@ -470,11 +469,11 @@ If the user prompt includes Saju context (day master, favorable element, today's
 1) **Opening**: First 1-2 sentences reference the user's question directly. Mention the extracted subject/time/intent once.
 2) **Per card**: Position-meaning × card × upright/reversed × question. End with a time anchor (today / this week / within 14 days / N months).
 3) **Synergy**: One line on what the cards say together — folded into overall.
-4) **Closing**: Overall advice + per-card actionTip. Specific, no fluff.
+4) **Closing**: Overall advice. Specific, no fluff.
 
 # Output Rules
 - The cards[] array length must match exactly the card count specified in the user prompt. Do not skip or add.
-- Every card's actionTip is mandatory. 50-90 words. Time anchor + one specific action.
+- Each card interpretation must cross seat × card × orientation × question and end with a time anchor.
 - Output JSON only — no code fences, no preamble, no comments.
 
 # JSON Schema (exact keys, exact shape)
@@ -483,8 +482,7 @@ If the user prompt includes Saju context (day master, favorable element, today's
   "cards": [
     {
       "position": "string — seat name as-is",
-      "interpretation": "string — seat × card × orientation × question cross, 180-280 words, with a time anchor",
-      "actionTip": "string — actionable step rooted in card+seat+question, 50-90 words + time anchor"
+      "interpretation": "string — seat × card × orientation × question cross, 180-280 words, with a time anchor"
     }
   ],
   "advice": "string — overall-level next steps (60-90 words), 1-3 concrete actions"
@@ -507,7 +505,6 @@ ${personalizationContext}
 # 작성 지시
 - 모든 ${rawCards.length}장의 카드에 대해 cards[] 항목을 만드세요.
 - 각 카드는 위 질문 맥락 안에서 해석합니다. 카드를 보고 사전식 정의를 쓰지 마세요.
-- 각 카드의 actionTip 은 *질문에 직접 적용 가능한* 1-2문장 행동 + 시간 앵커.
 - overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}`
       : `# User's Question
 "${q}"
@@ -521,7 +518,6 @@ ${personalizationContext}
 # Instructions
 - Produce cards[] entries for all ${rawCards.length} cards.
 - Interpret each card *inside the user's question above*. No textbook definitions.
-- Each card's actionTip is 1-2 sentences of action directly applicable to the question, with a time anchor.
 - The first sentence of overall must reference the user's question directly.${zodiac ? `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.` : ''}${astroContext ? '\n- Cross with the astrology context.' : ''}${sajuContext ? '\n- Cross with the saju context — anchor in every card at least once.' : ''}`
 
     // Claude 우선.
