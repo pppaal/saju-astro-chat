@@ -186,32 +186,6 @@ export function resolveStableTarotEntry(
   return { themeId: 'general-insight', spreadId: 'quick-reading' }
 }
 
-export function appendQuestionContextToPath(
-  path: string,
-  question: string,
-  analysisKey?: string | null
-): string {
-  const url = new URL(path, 'https://tarot.local')
-  url.searchParams.set('question', normalizeQuestion(question))
-  if (analysisKey) {
-    url.searchParams.set('analysisKey', analysisKey)
-  }
-  return `${url.pathname}${url.search}`
-}
-
-export function buildStableEntryPath(
-  question: string,
-  analysis?: TarotQuestionAnalysisSnapshot | null,
-  analysisKey?: string | null
-): string {
-  const entry = resolveStableTarotEntry(question, analysis)
-  return appendQuestionContextToPath(
-    `/tarot/${entry.themeId}/${entry.spreadId}`,
-    question,
-    analysisKey
-  )
-}
-
 export function toAnalysisSnapshot(
   analysis?: TarotQuestionAnalysisResult | null
 ): TarotQuestionAnalysisSnapshot | null {
