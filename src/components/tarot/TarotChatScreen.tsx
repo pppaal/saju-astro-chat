@@ -22,6 +22,11 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { DECK_STYLES, DECK_STYLE_INFO, type DeckStyle } from '@/lib/tarot/tarot.types'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import type { Spread } from '@/lib/tarot/tarot.types'
+import {
+  getStoredBirthInfo,
+  buildBirthQuery,
+  type StoredBirthInfo,
+} from '@/app/(main)/birthInfoStorage'
 
 // 카테고리(테마) 안의 모든 spread 를 flat 하게 펼침 — chip 1개로 선택
 const ALL_SPREADS: Array<{ spread: Spread; categoryKo: string; categoryId: string }> = []
@@ -48,8 +53,33 @@ export default function TarotChatScreen() {
   const [isSpreadModalOpen, setIsSpreadModalOpen] = useState(false)
   const [isAddonsOpen, setIsAddonsOpen] = useState(false)
   const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
+  const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const addonsRef = useRef<HTMLDivElement>(null)
+
+  // 홈에서 저장된 생년월일을 끌어와 타로 결과 페이지로 propagate. URL params
+  // 가 있으면 그것을 우선 (홈 chip → tarot chip 경로), 없으면 localStorage
+  // fallback (직접 /tarot 진입 케이스).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const sp = new URLSearchParams(window.location.search)
+    const qBirthDate = sp.get('birthDate')
+    if (qBirthDate) {
+      const qBirthTime = sp.get('birthTime') || '12:00'
+      const qGenderRaw = (sp.get('gender') || 'M').toUpperCase()
+      const gender = qGenderRaw === 'F' || qGenderRaw === 'FEMALE' ? 'female' : 'male'
+      setBirthInfo({
+        birthDate: qBirthDate,
+        birthTime: qBirthTime,
+        birthTimeUnknown: sp.get('birthTimeUnknown') === '1' || qBirthTime === '00:00',
+        gender,
+        city: sp.get('birthCity') || sp.get('city') || undefined,
+        savedAt: new Date().toISOString(),
+      })
+      return
+    }
+    setBirthInfo(getStoredBirthInfo())
+  }, [])
 
   // addons 팝오버 바깥 클릭 시 닫기
   useEffect(() => {
@@ -82,7 +112,9 @@ export default function TarotChatScreen() {
     const q = encodeURIComponent(question.trim())
     const sajuQ = includeSaju ? '' : '&saju=0'
     const astroQ = includeAstrology ? '' : '&astro=0'
-    const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?topic=${q}&deck=${selectedDeck}${sajuQ}${astroQ}`
+    // birthInfo가 있으면 결과 페이지로 전달해 saju/astro cross에 즉시 쓸 수 있게.
+    const birthQ = birthInfo ? `&${buildBirthQuery(birthInfo)}` : ''
+    const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?topic=${q}&deck=${selectedDeck}${sajuQ}${astroQ}${birthQ}`
     router.push(path)
   }
 
@@ -119,6 +151,16 @@ export default function TarotChatScreen() {
               ? '하단 입력창에 고민을 적어주세요.\n선택하신 덱과 스프레드에 맞춰 카드를 펼칩니다.'
               : 'Type your question below.\nThe cards will be drawn from your selected deck and spread.'}
           </p>
+
+          {/* 홈에서 입력한 생일 정보가 있으면 cross context 적용된다고 알려주기 */}
+          {birthInfo && (
+            <div className="pt-1">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-300">
+                ✓ {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
+                {birthInfo.gender === 'male' ? (isKo ? '남성' : 'Male') : isKo ? '여성' : 'Female'}
+              </span>
+            </div>
+          )}
 
           {/* 예시 질문 chip — 클릭하면 textarea 에 채워서 첫 사용자 ramp-up */}
           {question.trim().length === 0 && (
