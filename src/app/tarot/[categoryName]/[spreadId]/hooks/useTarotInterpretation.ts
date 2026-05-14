@@ -594,6 +594,7 @@ export function useTarotInterpretation({
                   jupiter?: { sign?: string; formatted?: string }
                   saturn?: { sign?: string; formatted?: string }
                   neptune?: { sign?: string; formatted?: string }
+                  northNode?: { sign?: string; formatted?: string }
                   mc?: { sign?: string; formatted?: string }
                   house2?: { sign?: string }
                   house6?: { sign?: string }
@@ -671,6 +672,14 @@ export function useTarotInterpretation({
                 )
               }
 
+              // [universal] 천을귀인 — helper star, 어떤 질문에도 도움 받을 운 anchor
+              const hasCheoneul = shinsalActive.some(
+                (s) => (s?.name || '').includes('천을귀인')
+              )
+              if (hasCheoneul) {
+                extra.push(isKorean ? '천을귀인 활성' : 'Cheoneul Gwiin (helper star) active')
+              }
+
               // [conditional] 연애 — 도화살 / 홍염살
               if (isLove) {
                 const loveShinsals = shinsalActive
@@ -732,6 +741,8 @@ export function useTarotInterpretation({
               if (natalAngles?.mercury?.sign) parts.push(`Mercury ${natalAngles.mercury.sign}`)
               if (natalAngles?.venus?.sign) parts.push(`Venus ${natalAngles.venus.sign}`)
               if (natalAngles?.mars?.sign) parts.push(`Mars ${natalAngles.mars.sign}`)
+              // [universal] North Node — 영혼의 방향 (인생 큰 결정 anchor)
+              if (natalAngles?.northNode?.sign) parts.push(`North Node ${natalAngles.northNode.sign}`)
               // [conditional] 연애 — 7th house ruler sign (관계 angle)
               if (isLove && natalAngles?.house7?.sign) parts.push(`7H ${natalAngles.house7.sign}`)
               // [conditional] 직장 — MC + Saturn (직업 angle + 구조)
