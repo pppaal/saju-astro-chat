@@ -233,44 +233,12 @@ export function loadQuestionAnalysisSnapshot(
 
 export function buildQuestionContextPrompt(
   question: string,
-  analysis: TarotQuestionAnalysisSnapshot | null | undefined,
-  language: 'ko' | 'en'
+  _analysis: TarotQuestionAnalysisSnapshot | null | undefined,
+  _language: 'ko' | 'en'
 ): string {
-  const trimmedQuestion = normalizeQuestion(question)
-  if (!analysis) {
-    return trimmedQuestion
-  }
-
-  const lines: string[] = []
-  if (trimmedQuestion) {
-    lines.push(trimmedQuestion)
-  }
-
-  const typeLabel = analysis.question_profile?.type?.label?.trim()
-  const subjectLabel = analysis.question_profile?.subject?.label?.trim()
-  const focusLabel = analysis.question_profile?.focus?.label?.trim()
-  const timeframeLabel = analysis.question_profile?.timeframe?.label?.trim()
-  const toneLabel = analysis.question_profile?.tone?.label?.trim()
-  const directAnswer = analysis.direct_answer?.trim()
-  const questionSummary = analysis.question_summary?.trim()
-
-  if (language === 'ko') {
-    if (questionSummary) lines.push(`[질문 요약] ${questionSummary}`)
-    if (typeLabel) lines.push(`[질문 종류] ${typeLabel}`)
-    if (subjectLabel) lines.push(`[주체] ${subjectLabel}`)
-    if (focusLabel) lines.push(`[핵심 포커스] ${focusLabel}`)
-    if (timeframeLabel) lines.push(`[시간축] ${timeframeLabel}`)
-    if (toneLabel) lines.push(`[질문 톤] ${toneLabel}`)
-    if (directAnswer) lines.push(`[질문 선해석] ${directAnswer}`)
-  } else {
-    if (questionSummary) lines.push(`[Question Summary] ${questionSummary}`)
-    if (typeLabel) lines.push(`[Question Type] ${typeLabel}`)
-    if (subjectLabel) lines.push(`[Subject] ${subjectLabel}`)
-    if (focusLabel) lines.push(`[Core Focus] ${focusLabel}`)
-    if (timeframeLabel) lines.push(`[Timeframe] ${timeframeLabel}`)
-    if (toneLabel) lines.push(`[Tone] ${toneLabel}`)
-    if (directAnswer) lines.push(`[Pre-read Answer] ${directAnswer}`)
-  }
-
-  return lines.join('\n')
+  // 시스템 프롬프트의 0단계 (silent extraction) 가 동일 정보를 LLM 이 직접 추출하므로
+  // 질문 메타 라벨 (type/subject/focus/timeframe/tone/...) 은 토큰 낭비 + 중복. 질문만 전달.
+  void _analysis
+  void _language
+  return normalizeQuestion(question)
 }
