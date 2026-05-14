@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
@@ -13,19 +12,9 @@ const DEFAULT_LATITUDE = 37.5665
 const DEFAULT_LONGITUDE = 126.978
 
 export function useCounselorData(sp: SearchParams) {
-  const { t, setLocale } = useI18n()
-  const router = useRouter()
+  const { setLocale } = useI18n()
 
-  const [isLoading, setIsLoading] = useState(true)
-  const [showChat, setShowChat] = useState(false)
-  const [loadingStep, setLoadingStep] = useState(0)
   const [chartData, setChartData] = useState<ChartData | null>(null)
-  const [prefetchStatus, setPrefetchStatus] = useState<{
-    done: boolean
-    timeMs?: number
-    graphNodes?: number
-    corpusQuotes?: number
-  }>({ done: false })
   const [sessionId] = useState<string | null>(null)
 
   // Premium: User context and chat session for returning users
@@ -59,16 +48,6 @@ export function useCounselorData(sp: SearchParams) {
   const resolvedLatitude = Number.isFinite(latitude) ? latitude : DEFAULT_LATITUDE
   const resolvedLongitude = Number.isFinite(longitude) ? longitude : DEFAULT_LONGITUDE
   const normalizedGender = String(rawGender).toLowerCase() === 'female' ? 'female' : 'male'
-
-  const loadingMessages = useMemo(
-    () => [
-      t('destinyMap.counselor.loading1', '상담사와 연결 중...'),
-      t('destinyMap.counselor.loading2', '사주/점성 프로필을 분석 중...'),
-      t('destinyMap.counselor.loading3', '교차 데이터와 문맥을 준비 중...'),
-      t('destinyMap.counselor.loading4', '곧 상담을 시작할 수 있어요'),
-    ],
-    [t]
-  )
 
   // Set locale from URL parameter
   useEffect(() => {
@@ -290,7 +269,6 @@ export function useCounselorData(sp: SearchParams) {
 
     // Python AI backend was removed — counselor RAG prefetch is now a no-op.
     // The chat itself runs through @anthropic-ai/sdk directly, no init step needed.
-    setPrefetchStatus({ done: true })
   }, [birthDate, birthTime, normalizedGender, resolvedLatitude, resolvedLongitude])
 
   // Premium: Load user context (persona + recent sessions) for returning users
@@ -398,49 +376,6 @@ export function useCounselorData(sp: SearchParams) {
     [chatSessionId, lang]
   )
 
-  // Loading animation
-  useEffect(() => {
-    if (!birthDate || !birthTime) {
-      router.push('/destiny-counselor')
-      return
-    }
-
-    const stepInterval = setInterval(() => {
-      setLoadingStep((prev) => {
-        if (prev < loadingMessages.length - 1) {
-          return prev + 1
-        }
-        return prev
-      })
-    }, 800)
-
-    // Wait for either: 3.2s OR prefetch complete (whichever is later, min 2s)
-    const minLoadTime = 2000
-    const startTime = Date.now()
-
-    const checkReady = setInterval(() => {
-      const elapsed = Date.now() - startTime
-      if (elapsed >= minLoadTime && (prefetchStatus.done || elapsed >= 5000)) {
-        setIsLoading(false)
-        setTimeout(() => setShowChat(true), 300)
-        clearInterval(checkReady)
-      }
-    }, 100)
-
-    return () => {
-      clearInterval(stepInterval)
-      clearInterval(checkReady)
-    }
-  }, [
-    birthDate,
-    birthTime,
-    resolvedLatitude,
-    resolvedLongitude,
-    router,
-    loadingMessages.length,
-    prefetchStatus.done,
-  ])
-
   const parsedParams = {
     name,
     birthDate,
@@ -456,15 +391,10 @@ export function useCounselorData(sp: SearchParams) {
 
   return {
     chartData,
-    prefetchStatus,
     sessionId,
     userContext,
     chatSessionId,
     handleSaveMessage,
-    isLoading,
-    showChat,
-    loadingStep,
-    loadingMessages,
     parsedParams,
   }
 }

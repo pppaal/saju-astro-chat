@@ -13,7 +13,6 @@ import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './counselor.module.css'
 import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
-import { CounselorLoadingScreen } from './CounselorLoadingScreen'
 import Chat from '@/components/destiny-map/Chat'
 
 type SearchParams = Record<string, string | string[] | undefined>
@@ -59,10 +58,6 @@ export default function CounselorPage() {
     userContext,
     chatSessionId,
     handleSaveMessage,
-    isLoading,
-    showChat,
-    loadingStep,
-    loadingMessages,
     parsedParams,
   } = useCounselorData(counselorSearchParams)
 
@@ -118,18 +113,8 @@ export default function CounselorPage() {
     )
   }
 
-  if (isLoading) {
-    return (
-      <CounselorLoadingScreen
-        title={t('destinyMap.counselor.title', 'Destiny Counselor')}
-        loadingStep={loadingStep}
-        loadingMessages={loadingMessages}
-      />
-    )
-  }
-
   return (
-    <main className={`${styles.page} ${showChat ? styles.fadeIn : ''}`}>
+    <main className={styles.page}>
       <BodyScrollLock />
       <CounselorSidebar
         open={sidebarOpen}
