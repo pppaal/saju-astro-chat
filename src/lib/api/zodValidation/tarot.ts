@@ -163,6 +163,8 @@ export const tarotInterpretStreamSchema = z.object({
         isReversed: z.boolean(),
         position: z.string().min(1).max(200),
         positionKo: z.string().max(200).optional(),
+        positionMeaning: z.string().max(300).optional(),
+        positionMeaningKo: z.string().max(300).optional(),
         keywords: z.array(z.string().max(100)).max(20).optional(),
         keywordsKo: z.array(z.string().max(100)).max(20).optional(),
       })
