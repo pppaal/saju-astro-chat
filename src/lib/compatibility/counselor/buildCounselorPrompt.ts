@@ -16,7 +16,7 @@
 
 import { formatSajuBlock } from './formatSajuBlock'
 import { formatAstroBlock } from './formatAstroBlock'
-import { getRelation, RELATION_OPTIONS } from './relationConfig'
+import { getRelation } from './relationConfig'
 import type { BuildCounselorPromptInput } from './types'
 
 const PERSONA = `당신은 한국의 사주명리·점성술 통합 카운슬러입니다.
@@ -83,21 +83,20 @@ const FIRST_RESPONSE_RULES = `[첫 응답 규칙]
 - 비-로맨틱 관계: 함께하는 결 / 마찰 줄이는 길 / 신뢰의 자리 / 도움이 되는 흐름`
 
 function buildRelationToneBlock(activeKey: string): string {
-  const lines = ['[관계 유형별 상담 톤 — 활성 관계에 맞춰 자동 조절]']
-  for (const opt of RELATION_OPTIONS) {
-    const marker = opt.key === activeKey ? '●' : '·'
-    lines.push(`${marker} ${opt.key} (${opt.label}): ${opt.tone}`)
-  }
-  lines.push('')
-  lines.push(
-    [
-      '공통:',
-      '- 사용자가 묻지 않으면 결혼·연애 얘기 강요 안 함.',
-      '- 비-로맨틱 관계(친구·가족·직장·비즈)에선 금성·화성을 "끌림"이 아니라 "표현 스타일", "추진 방식"으로 풀이.',
-      '- 일간 합(예: 戊癸合)이 로맨틱 의미로 강하게 잡혀도, 관계 유형이 비-로맨틱이면 "강한 결합 신호"로 중립 풀이.',
-    ].join('\n')
-  )
-  return lines.join('\n')
+  // We inject only the active relation's tone — earlier versions listed all
+  // 10 with a marker for the active one, which both wasted ~600 chars of
+  // prompt and risked the model bleeding the wrong tone into answers (e.g.
+  // dropping marriage framing into a friend chat).
+  const active = getRelation(activeKey)
+  return [
+    `[현재 관계 유형: ${active.key} (${active.label})]`,
+    `- ${active.tone}`,
+    '',
+    '공통:',
+    '- 사용자가 묻지 않으면 결혼·연애 얘기 강요 안 함.',
+    '- 비-로맨틱 관계(친구·가족·직장·비즈)에선 금성·화성을 "끌림"이 아니라 "표현 스타일", "추진 방식"으로 풀이.',
+    '- 일간 합(예: 戊癸合)이 로맨틱 의미로 강하게 잡혀도, 관계 유형이 비-로맨틱이면 "강한 결합 신호"로 중립 풀이.',
+  ].join('\n')
 }
 
 function buildUserContext(input: BuildCounselorPromptInput, missingLocation: string[]): string {
