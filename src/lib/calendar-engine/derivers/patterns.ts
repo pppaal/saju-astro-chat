@@ -137,10 +137,48 @@ const RULES: PatternRule[] = [
     },
   },
 
-  // ─── 4. (제거) 5층 정렬 ───
-  // 의도: 大運+歲運+月運+日辰 모두 동방향이면 강력 정렬.
-  // 실제: 거의 매칭 안 됨 (1년에 0~2회). 가치 대비 노이즈 큼.
-  //   → 제거. 매칭 신호 다발 자체로 충분.
+  // ─── 4. 5층 정렬 (공명) — 드물지만 핵심 가치 ───
+  // 大運·歲運·月運·일진 4개 레이어 모두 동방향일 때 매칭.
+  // 1년에 1~2번 뜨는 게 정상 — 그게 진짜 강력한 시기.
+  {
+    id: 'five-layer-resonance',
+    name: '5층 정렬',
+    themes: [],
+    headline: '대운·세운·월운·일진 모두 정렬 — 진짜 강력한 시기',
+    description: '4개 레이어 평균 polarity 모두 동방향',
+    action: '평소 미뤄둔 큰 결정·시작·발의에 최적. 1년에 한두 번 오는 시기.',
+    match(signals) {
+      const layers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily']
+      const layerPolarities = new Map<SignalLayer, number[]>()
+      for (const s of signals) {
+        if (!layers.includes(s.layer)) continue
+        const arr = layerPolarities.get(s.layer) ?? []
+        arr.push(s.polarity * s.weight)
+        layerPolarities.set(s.layer, arr)
+      }
+      const layerAvgs: Record<string, number> = {}
+      for (const l of layers) {
+        const arr = layerPolarities.get(l) ?? []
+        layerAvgs[l] = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
+      }
+      // 4 레이어 모두 같은 부호 (>0 또는 <0) + 평균 강도 ≥ 0.4
+      const positiveLayers = layers.filter((l) => layerAvgs[l] > 0)
+      const negativeLayers = layers.filter((l) => layerAvgs[l] < 0)
+      const totalAvg =
+        Object.values(layerAvgs).reduce((a, b) => a + b, 0) / Object.keys(layerAvgs).length
+      const allPositive = positiveLayers.length === 4 && totalAvg >= 0.4
+      const allNegative = negativeLayers.length === 4 && totalAvg <= -0.4
+      if (!allPositive && !allNegative) {
+        return { matched: false, strength: 0, matchedIds: [] }
+      }
+      const dominant = positiveLayers.length >= 4 ? 'positive' : 'negative'
+      const matched = signals.filter((s) =>
+        layers.includes(s.layer) &&
+        (dominant === 'positive' ? s.polarity >= 1 : s.polarity <= -1),
+      )
+      return { matched: true, strength: 95, matchedIds: matched.map((s) => s.id) }
+    },
+  },
 
   // ─── 5. 천을귀인 + 길성 트라인 ───
   {
