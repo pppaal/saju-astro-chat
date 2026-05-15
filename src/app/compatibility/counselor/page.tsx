@@ -9,6 +9,7 @@ import MarkdownMessage from '@/components/ui/MarkdownMessage'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { runQuickCoupleTarot } from './runQuickCoupleTarot'
+import { streamProcessor } from '@/lib/streaming'
 
 function CounselorLoading() {
   return <BrandSplash message="상담사 준비 중..." />
@@ -205,46 +206,30 @@ function CompatibilityCounselorContent() {
         throw new Error('Failed to get response')
       }
 
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('No response body')
-      }
-
-      const decoder = new TextDecoder()
-      let assistantContent = ''
-
+      // 서버는 `data: {"content":"...","done":false}\n\n` 형식의 JSON SSE를
+      // 보낸다. 이전엔 `data:` 라인 뒤의 *JSON 문자열 전체*를 그대로
+      // 누적해서 화면에 `{"content":"안","done":false}{"content":"녕"...}`
+      // 식의 깨진 텍스트가 나왔다. 운명 상담사가 이미 쓰던 streamProcessor
+      // 로 통일 — `content` 필드만 추출해 누적한다.
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) {
-          break
-        }
-
-        const chunk = decoder.decode(value, { stream: true })
-        const lines = chunk.split('\n')
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6)
-            if (data === '[DONE]') {
-              continue
-            }
-            assistantContent += data
-
-            setMessages((prev) => {
-              const updated = [...prev]
-              if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
-                updated[updated.length - 1] = {
-                  role: 'assistant',
-                  content: assistantContent,
-                }
+      await streamProcessor.process(response, {
+        onChunk: (_accumulated, cleaned) => {
+          setMessages((prev) => {
+            const updated = [...prev]
+            if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
+              updated[updated.length - 1] = {
+                role: 'assistant',
+                content: cleaned,
               }
-              return updated
-            })
-          }
-        }
-      }
+            }
+            return updated
+          })
+        },
+        onError: (err) => {
+          logger.warn('[CompatCounselor] stream error', { error: err })
+        },
+      })
     } catch (e) {
       logger.error('Chat error:', { error: e })
       if ((e as Error).message === 'login_required') {
