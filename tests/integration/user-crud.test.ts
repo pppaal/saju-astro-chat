@@ -182,19 +182,6 @@ describe('Integration: User CRUD Operations', () => {
       expect(updated.updatedAt.getTime()).toBeGreaterThan(user.createdAt.getTime())
     })
 
-    it('updates email notification preference', async () => {
-      const user = await createTestUserInDb()
-
-      expect(user.emailNotifications).toBe(false) // Default
-
-      const updated = await testPrisma.user.update({
-        where: { id: user.id },
-        data: { emailNotifications: true },
-      })
-
-      expect(updated.emailNotifications).toBe(true)
-    })
-
     it('tracks updatedAt timestamp', async () => {
       const user = await createTestUserInDb()
       const originalUpdatedAt = user.updatedAt

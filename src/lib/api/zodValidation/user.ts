@@ -36,25 +36,10 @@ export type UserRegistrationRequestValidated = z.infer<typeof userRegistrationRe
 
 // ============ User Profile Schemas ============
 
-export const notificationSettingsSchema = z.object({
-  dailyFortune: z.boolean().optional(),
-  weeklyFortune: z.boolean().optional(),
-  monthlyFortune: z.boolean().optional(),
-  specialEvents: z.boolean().optional(),
-  promotions: z.boolean().optional(),
-  preferredTime: z
-    .string()
-    .regex(/^([01]?\d|2[0-3]):([0-5]\d)$/)
-    .optional(),
-  timezone: timezoneSchema.optional(),
-})
-
 export const userProfileUpdateSchema = z.object({
   name: z.string().min(1).max(64).trim().optional(),
   image: z.string().url().max(500).optional().nullable(),
-  emailNotifications: z.boolean().optional(),
   preferredLanguage: localeSchema.optional(),
-  notificationSettings: notificationSettingsSchema.optional(),
   tonePreference: z.enum(['formal', 'casual', 'mystical', 'friendly']).optional(),
   readingLength: z.enum(['brief', 'moderate', 'detailed']).optional(),
   birthDate: dateSchema.optional().nullable(),
