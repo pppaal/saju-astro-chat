@@ -34,11 +34,26 @@ function stripReportMarkdown(input: string): string {
   )
   text = text.replace(/^[ \t]*【([^】\n]+)】[ \t]*$\n?/gm, '')
   text = text.replace(/【([^】\n]+)】/g, '$1')
+  text = text.replace(/^[ \t]*\[([^\[\]\n]{1,30})\][ \t]*$\n?/gm, '')
+  text = text.replace(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$\n?/gm, '')
+  text = text.replace(
+    /^([ \t]*)([^\n]{2,30})[ \t]*\n([ \t]*\n)/gm,
+    (m, _indent: string, line: string, blank: string) => {
+      const trimmed = line.trim()
+      if (!trimmed) return m
+      if (/[.?!~…」』》)]$/.test(trimmed)) return m
+      if (/(다|요|까|죠|네|음|함|임)$/.test(trimmed)) return m
+      if (/\?\s*$/.test(trimmed)) return m
+      if (/[()+\/·=,*]/.test(trimmed)) return m
+      return blank
+    }
+  )
   text = text.replace(/\*\*([^*\n]+)\*\*/g, '$1')
   text = text.replace(/(?<!\*)\*(?!\*)([^*\n]+?)(?<!\*)\*(?!\*)/g, '$1')
   text = text.replace(/^[ \t]*[-*+][ \t]+/gm, '')
   text = text.replace(/^[ \t]*\d+\.[ \t]+/gm, '')
   text = text.replace(/^[ \t]*[→▶●■▷▸▪◆※][ \t]+/gm, '')
+  text = text.replace(/^[ \t]*->[ \t]+/gm, '')
   text = text.replace(/`([^`\n]+)`/g, '$1')
   text = text.replace(/\n{3,}/g, '\n\n')
   return text.trim()
@@ -139,6 +154,50 @@ describe('counselor chat: stripReportMarkdown', () => {
   it('drops leading arrow/triangle bullet markers (→ ▶ ● ■ ▷ ▸ ▪ ◆ ※)', () => {
     expect(stripReportMarkdown('→ 첫째\n▶ 둘째\n● 셋째')).toBe('첫째\n둘째\n셋째')
     expect(stripReportMarkdown('※ 주의\n◆ 핵심')).toBe('주의\n핵심')
+  })
+
+  it('drops markdown horizontal rule (---/***/___) on its own line', () => {
+    expect(stripReportMarkdown('앞 단락이에요.\n\n---\n\n뒤 단락이에요.')).toBe(
+      '앞 단락이에요.\n\n뒤 단락이에요.'
+    )
+    expect(stripReportMarkdown('가\n***\n나')).toBe('가\n나')
+    expect(stripReportMarkdown('가\n___\n나')).toBe('가\n나')
+  })
+
+  it('drops standalone short label lines used as pseudo-headings', () => {
+    // Short line + colon + no sentence ender, followed by paragraph
+    const input = '현재 당신의 상태: 표면화되는 시기\n\n그 안에서 당신은 흔들리고 있어요. 표면으로 올라온 감정이 부담스럽고 익숙하지 않아서요.'
+    const output = stripReportMarkdown(input)
+    expect(output).not.toContain('현재 당신의 상태: 표면화되는 시기')
+    expect(output).toContain('그 안에서 당신은 흔들리고')
+  })
+
+  it('drops "당신의 양면성" style standalone label', () => {
+    const input = '당신의 양면성\n\n안정의 축은 또렷한데, 그 또렷함이 본인을 누르고 있어요.'
+    const output = stripReportMarkdown(input)
+    expect(output).not.toMatch(/^당신의 양면성$/m)
+    expect(output).toContain('안정의 축')
+  })
+
+  it('drops standalone [bracket] pseudo-labels', () => {
+    expect(stripReportMarkdown('[양면성]\n사주와 점성이 같이 같은 결을 가리키고 있어요.')).toBe(
+      '사주와 점성이 같이 같은 결을 가리키고 있어요.'
+    )
+    expect(stripReportMarkdown('[duality]\nThe two charts point the same way.')).toBe(
+      'The two charts point the same way.'
+    )
+  })
+
+  it('drops leading ASCII arrow "->" bullets', () => {
+    expect(stripReportMarkdown('-> 첫째\n-> 둘째')).toBe('첫째\n둘째')
+  })
+
+  it('keeps real sentence-ending lines (다/요/까/?) intact', () => {
+    // These end in "다" / "요" / "?" — they are sentences, not labels.
+    const input1 = '지금 당신은 흔들리고 있어요.\n\n이건 자연스러운 일이에요.'
+    expect(stripReportMarkdown(input1)).toBe(input1)
+    const input2 = '그게 어떤 느낌인가요?\n\n조금만 더 이야기해 줄래요?'
+    expect(stripReportMarkdown(input2)).toBe(input2)
   })
 
   it('strips the user-reported failure mode end-to-end', () => {
