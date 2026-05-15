@@ -168,13 +168,14 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 5) Compute (or fetch cached) birth snapshot + cross signals
+  // 5) Compute (or fetch cached) birth snapshot
   const hourUnknown = !!body.birthTimeUnknown || !body.birthTime
   // City unknown when explicit flag set, or when coords/timezone all missing.
   const cityUnknown =
     !!body.birthCityUnknown ||
     (body.latitude === undefined && body.longitude === undefined && !body.timezone)
-  const ctxKey = `counselor:ctx:v4:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${utcDateKey(new Date())}`
+  // v5: dropped Cross Signals from context; previous v4 entries are stale.
+  const ctxKey = `counselor:ctx:v5:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${utcDateKey(new Date())}`
   let contextText: string | null = await cacheGet<string>(ctxKey)
   if (!contextText) {
     try {

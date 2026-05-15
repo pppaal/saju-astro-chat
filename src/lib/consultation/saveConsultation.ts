@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
 import { logger } from "@/lib/logger";
-import { deriveCounselorStorageSignals } from "@/app/api/destiny-map/chat-stream/lib/focusDomain";
+import { deriveCounselorStorageSignals } from "@/lib/counselor/focusDomain";
 
 interface SaveConsultationParams {
   userId: string;
