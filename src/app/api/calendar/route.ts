@@ -1242,11 +1242,30 @@ export const GET = withApiMiddleware(
       const targetMonth = monthMatch ? Number(monthMatch[2]) - 1 : new Date().getMonth()
       const rangeStart = new Date(targetYear, targetMonth, 1)
       const rangeEnd = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59)
-      const ceCells = await buildCalendar(ceNatal, {
-        start: rangeStart.toISOString(),
-        end: rangeEnd.toISOString(),
-        granularity: 'day',
-      })
+      const ceCells = await buildCalendar(
+        ceNatal,
+        {
+          start: rangeStart.toISOString(),
+          end: rangeEnd.toISOString(),
+          granularity: 'day',
+        },
+        { includeEvidence: true },  // matcher가 evidence 필요
+      )
+
+      // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
+      try {
+        const { buildInterpretation } = await import('@/lib/calendar-engine/interpretation')
+        const interp = buildInterpretation({ natal: ceNatal, cells: ceCells, scope: 'monthly' })
+        ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
+        // interpretation은 그 달 전체 단위라 셀별 부착 X.
+        // 모든 셀에 동일 narrative 부착 — 클라가 어느 날짜든 같은 텍스트 사용.
+        for (const d of formattedDates) {
+          d.monthlyInterpretation = interp
+        }
+      } catch (err) {
+        logger.warn?.('[interpretation] skipped:', err instanceof Error ? err.message : String(err))
+      }
+
       const cellByDate = new Map(ceCells.map((c) => [c.datetime.slice(0, 10), c]))
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))

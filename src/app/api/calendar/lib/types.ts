@@ -99,6 +99,12 @@ export interface FormattedDate {
     weight: number
   }>
   themeScores?: Partial<Record<string, number>>
+  /** 그 달 narrative 해석 (룰 DB 기반, LLM 0번) */
+  monthlyInterpretation?: {
+    narrative: string
+    matchedRuleIds: string[]
+    sections: Array<{ section: string; title: string; text: string }>
+  }
 }
 
 export interface CalendarDailyView {

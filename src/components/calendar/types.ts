@@ -201,6 +201,12 @@ export interface ImportantDate {
   }>
   /** 테마별 점수 (0~100) */
   themeScores?: Partial<Record<string, number>>
+  /** 그 달 narrative 해석 (룰 DB 기반) */
+  monthlyInterpretation?: {
+    narrative: string
+    matchedRuleIds: string[]
+    sections: Array<{ section: string; title: string; text: string }>
+  }
 }
 
 export interface CalendarData {
