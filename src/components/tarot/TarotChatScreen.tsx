@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
-import { DECK_STYLES, DECK_STYLE_INFO, type DeckStyle } from '@/lib/tarot/tarot.types'
+import { DECK_STYLES, DECK_STYLE_INFO, getCardImagePath, type DeckStyle } from '@/lib/tarot/tarot.types'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import type { Spread } from '@/lib/tarot/tarot.types'
 import {
@@ -97,14 +97,30 @@ export default function TarotChatScreen() {
     textareaRef.current?.focus()
   }, [])
 
-  // 덱 모달 열릴 때 1초 lag 해결 — 페이지 로드 직후 6개 덱 backImage 를 미리 prefetch
+  // 페이지 로드 직후 prefetch:
+  //   1) 덱 뒷면 (모달 열릴 때 1초 lag 방지)
+  //   2) 78장 카드 앞면 (결과 화면 첫 진입 1-2초 lag 방지)
+  // requestIdleCallback 으로 메인 thread 안 막고 백그라운드에서 처리.
   useEffect(() => {
     if (typeof window === 'undefined') return
-    DECK_STYLES.forEach((id) => {
-      const img = new window.Image()
-      img.src = DECK_STYLE_INFO[id].backImage
-    })
-  }, [])
+    const prefetch = () => {
+      DECK_STYLES.forEach((id) => {
+        const img = new window.Image()
+        img.src = DECK_STYLE_INFO[id].backImage
+      })
+      // 0..77 카드 ID 전체. getCardImagePath 가 webp 경로 반환.
+      for (let cardId = 0; cardId < 78; cardId++) {
+        const img = new window.Image()
+        img.src = getCardImagePath(cardId, selectedDeck)
+      }
+    }
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(prefetch, { timeout: 2000 })
+      return () => window.cancelIdleCallback?.(handle)
+    }
+    const t = window.setTimeout(prefetch, 400)
+    return () => window.clearTimeout(t)
+  }, [selectedDeck])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
