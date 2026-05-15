@@ -75,11 +75,6 @@ vi.mock('@/lib/api/zodValidation', () => ({
         }
       }
 
-      // boolean fields
-      if (data.emailNotifications !== undefined) {
-        result.emailNotifications = !!data.emailNotifications
-      }
-
       // string fields
       if (data.preferredLanguage !== undefined) {
         if (typeof data.preferredLanguage === 'string' && data.preferredLanguage.length <= 8) {
@@ -92,9 +87,6 @@ vi.mock('@/lib/api/zodValidation', () => ({
         }
       }
 
-      if (data.notificationSettings !== undefined) {
-        result.notificationSettings = data.notificationSettings
-      }
       if (data.tonePreference !== undefined) {
         result.tonePreference = data.tonePreference
       }
@@ -206,9 +198,6 @@ describe('/api/me/profile', () => {
       birthCity: 'Seoul',
       tzId: 'Asia/Seoul',
     },
-    settings: {
-      emailNotifications: true,
-    },
   }
 
   beforeEach(() => {
@@ -245,11 +234,6 @@ describe('/api/me/profile', () => {
               gender: true,
               birthCity: true,
               tzId: true,
-            },
-          },
-          settings: {
-            select: {
-              emailNotifications: true,
             },
           },
         }),
@@ -329,23 +313,6 @@ describe('/api/me/profile', () => {
 
       // Zod validation rejects long name
       expect(response.status).toBe(400)
-    })
-
-    it('should update emailNotifications boolean', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUserData as any)
-
-      const req = new NextRequest('http://localhost:3000/api/me/profile', {
-        method: 'PATCH',
-        body: JSON.stringify({ emailNotifications: false }),
-      })
-
-      await PATCH(req, mockContext)
-
-      expect(prisma.userSettings.upsert).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        create: { userId: mockUserId, emailNotifications: false },
-        update: { emailNotifications: false },
-      })
     })
 
     it('should update image URL', async () => {
@@ -596,17 +563,6 @@ describe('/api/me/profile', () => {
       expect(response.status).toBe(200)
     })
 
-    it('should accept notificationSettings in body without error', async () => {
-      const settings = { email: true, push: false, sms: true }
-      const req = new NextRequest('http://localhost:3000/api/me/profile', {
-        method: 'PATCH',
-        body: JSON.stringify({ notificationSettings: settings }),
-      })
-
-      const response = await PATCH(req, mockContext)
-      expect(response.status).toBe(200)
-    })
-
     it('should reject preferredLanguage longer than 8 chars', async () => {
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
         method: 'PATCH',
@@ -664,14 +620,12 @@ describe('/api/me/profile', () => {
         ...mockUserData,
         name: 'New Name',
         profile: { ...mockUserData.profile, birthDate: '1995-05-20' },
-        settings: { emailNotifications: false },
       } as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
         method: 'PATCH',
         body: JSON.stringify({
           name: 'New Name',
-          emailNotifications: false,
           birthDate: '1995-05-20',
         }),
       })
@@ -684,11 +638,6 @@ describe('/api/me/profile', () => {
           data: expect.objectContaining({ name: 'New Name' }),
         })
       )
-      expect(prisma.userSettings.upsert).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        create: { userId: mockUserId, emailNotifications: false },
-        update: { emailNotifications: false },
-      })
       expect(prisma.userProfile.upsert).toHaveBeenCalledWith({
         where: { userId: mockUserId },
         create: { userId: mockUserId, birthDate: '1995-05-20' },

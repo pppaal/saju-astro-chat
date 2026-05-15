@@ -120,11 +120,6 @@ describe('Integration: User Workflow Scenarios', () => {
           userId: user.id,
           preferredLanguage: 'ko',
           preferredThemes: { theme: 'dark' },
-          notificationSettings: {
-            email: true,
-            push: false,
-            dailyFortune: true,
-          },
         },
       })
 

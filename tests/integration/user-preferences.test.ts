@@ -69,33 +69,6 @@ describe('Integration: User Preferences', () => {
       expect(prefs.preferredThemes).toEqual(['career', 'love', 'health'])
     })
 
-    it('creates preferences with notification settings', async () => {
-      const user = await createTestUserInDb()
-
-      const prefs = await testPrisma.userPreferences.create({
-        data: {
-          userId: user.id,
-          preferredLanguage: 'ko',
-          notificationSettings: {
-            email: {
-              dailyFortune: true,
-              weeklyDigest: true,
-              marketing: false,
-            },
-            push: {
-              enabled: true,
-              dailyReminder: true,
-            },
-          },
-        },
-      })
-
-      const settings = prefs.notificationSettings as {
-        email: { dailyFortune: boolean }
-      }
-      expect(settings.email.dailyFortune).toBe(true)
-    })
-
     it('creates default preferences for new user', async () => {
       const user = await createTestUserInDb()
 
@@ -104,10 +77,6 @@ describe('Integration: User Preferences', () => {
           userId: user.id,
           preferredLanguage: 'ko',
           preferredThemes: [],
-          notificationSettings: {
-            email: { all: true },
-            push: { all: true },
-          },
         },
       })
 
@@ -153,38 +122,6 @@ describe('Integration: User Preferences', () => {
       })
 
       expect(updated.preferredThemes).toHaveLength(3)
-    })
-
-    it('toggles notification settings', async () => {
-      const user = await createTestUserInDb()
-
-      const prefs = await testPrisma.userPreferences.create({
-        data: {
-          userId: user.id,
-          preferredLanguage: 'ko',
-          notificationSettings: {
-            email: { dailyFortune: true },
-            push: { enabled: true },
-          },
-        },
-      })
-
-      const updated = await testPrisma.userPreferences.update({
-        where: { id: prefs.id },
-        data: {
-          notificationSettings: {
-            email: { dailyFortune: false },
-            push: { enabled: false },
-          },
-        },
-      })
-
-      const settings = updated.notificationSettings as {
-        email: { dailyFortune: boolean }
-        push: { enabled: boolean }
-      }
-      expect(settings.email.dailyFortune).toBe(false)
-      expect(settings.push.enabled).toBe(false)
     })
 
     it('adds new theme to existing preferences', async () => {
@@ -312,68 +249,6 @@ describe('Integration: User Preferences', () => {
     })
   })
 
-  describe('Notification Settings', () => {
-    it('finds users with email notifications enabled', async () => {
-      const users: string[] = []
-
-      for (let i = 0; i < 5; i++) {
-        const user = await createTestUserInDb()
-        users.push(user.id)
-
-        await testPrisma.userPreferences.create({
-          data: {
-            userId: user.id,
-            preferredLanguage: 'ko',
-            notificationSettings: {
-              email: { enabled: i < 3 },
-            },
-          },
-        })
-      }
-
-      const allPrefs = await testPrisma.userPreferences.findMany({
-        where: { userId: { in: users } },
-      })
-
-      const emailEnabled = allPrefs.filter((p) => {
-        const settings = p.notificationSettings as { email?: { enabled?: boolean } } | null
-        return settings?.email?.enabled === true
-      })
-
-      expect(emailEnabled).toHaveLength(3)
-    })
-
-    it('finds users with push notifications enabled', async () => {
-      const users: string[] = []
-
-      for (let i = 0; i < 4; i++) {
-        const user = await createTestUserInDb()
-        users.push(user.id)
-
-        await testPrisma.userPreferences.create({
-          data: {
-            userId: user.id,
-            preferredLanguage: 'ko',
-            notificationSettings: {
-              push: { enabled: i % 2 === 0 },
-            },
-          },
-        })
-      }
-
-      const allPrefs = await testPrisma.userPreferences.findMany({
-        where: { userId: { in: users } },
-      })
-
-      const pushEnabled = allPrefs.filter((p) => {
-        const settings = p.notificationSettings as { push?: { enabled?: boolean } } | null
-        return settings?.push?.enabled === true
-      })
-
-      expect(pushEnabled).toHaveLength(2)
-    })
-  })
-
   describe('Preference Deletion', () => {
     it('deletes user preferences', async () => {
       const user = await createTestUserInDb()
@@ -404,10 +279,6 @@ describe('Integration: User Preferences', () => {
           userId: user.id,
           preferredLanguage: 'ja',
           preferredThemes: ['career', 'love', 'health'],
-          notificationSettings: {
-            email: { all: false },
-            push: { all: false },
-          },
         },
       })
 
@@ -417,10 +288,6 @@ describe('Integration: User Preferences', () => {
         data: {
           preferredLanguage: 'ko',
           preferredThemes: [],
-          notificationSettings: {
-            email: { all: true },
-            push: { all: true },
-          },
         },
       })
 

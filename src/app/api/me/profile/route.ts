@@ -31,11 +31,6 @@ export const GET = withApiMiddleware(
             tzId: true,
           },
         },
-        settings: {
-          select: {
-            emailNotifications: true,
-          },
-        },
       },
     })
 
@@ -48,7 +43,7 @@ export const GET = withApiMiddleware(
       })
     }
 
-    // Flatten profile and settings for backward compatibility
+    // Flatten profile for backward compatibility
     const flattenedUser = {
       id: user.id,
       name: user.name,
@@ -61,7 +56,6 @@ export const GET = withApiMiddleware(
       gender: user.profile?.gender ?? null,
       birthCity: user.profile?.birthCity ?? null,
       tzId: user.profile?.tzId ?? null,
-      emailNotifications: user.settings?.emailNotifications ?? false,
     }
 
     return NextResponse.json({ user: flattenedUser })
@@ -92,14 +86,10 @@ export const PATCH = withApiMiddleware(
     const body = validationResult.data
     const userData: Record<string, unknown> = {}
     const profileData: Record<string, unknown> = {}
-    const settingsData: Record<string, unknown> = {}
 
     // Map validated data to respective models
     if (body.name) userData.name = body.name
     if (body.image !== undefined) userData.image = body.image
-
-    // Settings fields
-    if (body.emailNotifications !== undefined) settingsData.emailNotifications = body.emailNotifications
 
     // Birth info fields (Profile model)
     const birthDate = body.birthDate
@@ -131,15 +121,6 @@ export const PATCH = withApiMiddleware(
       })
     }
 
-    // Update or create settings if needed
-    if (Object.keys(settingsData).length > 0) {
-      await prisma.userSettings.upsert({
-        where: { userId: context.userId! },
-        create: { userId: context.userId!, ...settingsData },
-        update: settingsData,
-      })
-    }
-
     // Fetch updated user with relations
     const updatedUser = await prisma.user.findUnique({
       where: { id: context.userId! },
@@ -157,11 +138,6 @@ export const PATCH = withApiMiddleware(
             gender: true,
             birthCity: true,
             tzId: true,
-          },
-        },
-        settings: {
-          select: {
-            emailNotifications: true,
           },
         },
       },
@@ -203,49 +179,6 @@ export const PATCH = withApiMiddleware(
       }
     }
 
-    // Upsert user preferences if any preference fields provided
-    // TEMPORARILY DISABLED: Preferences table may not be synced in production
-    // const hasPrefs =
-    //   isNonEmptyString(preferredLanguage, 8) ||
-    //   notificationSettings ||
-    //   isNonEmptyString(tonePreference, 32) ||
-    //   isNonEmptyString(readingLength, 32)
-
-    // if (hasPrefs) {
-    //   await prisma.userPreferences.upsert({
-    //     where: { userId: context.userId! },
-    //     update: {
-    //       ...(isNonEmptyString(preferredLanguage, 8) && {
-    //         preferredLanguage: preferredLanguage.trim(),
-    //       }),
-    //       ...(notificationSettings && { notificationSettings }),
-    //       ...(isNonEmptyString(tonePreference, 32) && { tonePreference: tonePreference.trim() }),
-    //       ...(isNonEmptyString(readingLength, 32) && { readingLength: readingLength.trim() }),
-    //     },
-    //     create: {
-    //       userId: context.userId!,
-    //       preferredLanguage: isNonEmptyString(preferredLanguage, 8)
-    //         ? preferredLanguage.trim()
-    //         : 'en',
-    //       notificationSettings: notificationSettings || null,
-    //       tonePreference: isNonEmptyString(tonePreference, 32) ? tonePreference.trim() : 'casual',
-    //       readingLength: isNonEmptyString(readingLength, 32) ? readingLength.trim() : 'medium',
-    //     },
-    //   })
-
-    //   // Refresh preferences in response
-    //   const freshPrefs = await prisma.userPreferences.findUnique({
-    //     where: { userId: context.userId! },
-    //     select: {
-    //       preferredLanguage: true,
-    //       notificationSettings: true,
-    //       tonePreference: true,
-    //       readingLength: true,
-    //     },
-    //   })
-    //   updatedUser.preferences = freshPrefs
-    // }
-
     // Flatten for backward compatibility
     const flattenedUser = updatedUser ? {
       id: updatedUser.id,
@@ -259,7 +192,6 @@ export const PATCH = withApiMiddleware(
       gender: updatedUser.profile?.gender ?? null,
       birthCity: updatedUser.profile?.birthCity ?? null,
       tzId: updatedUser.profile?.tzId ?? null,
-      emailNotifications: updatedUser.settings?.emailNotifications ?? false,
     } : null
 
     return NextResponse.json({ user: flattenedUser })

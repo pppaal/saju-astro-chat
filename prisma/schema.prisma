@@ -115,15 +115,12 @@ model UserProfile {
   @@index([birthDate])
 }
 
-// 사용자 설정 - 알림, 추천코드 등
+// 사용자 설정 - 추천코드 등
 model UserSettings {
   id        String   @id @default(cuid())
   userId    String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // 알림 설정
-  emailNotifications Boolean @default(false)
 
   // 추천 시스템
   referralCode String? @unique // 내 고유 추천 코드
@@ -222,7 +219,6 @@ model UserPreferences {
   preferredLanguage    String   @default("en")
   preferredThemes      Json?
   preferredServices    Json?
-  notificationSettings Json?
   readingLength        String   @default("medium")
   tonePreference       String   @default("casual")
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
