@@ -69,6 +69,13 @@ function stripReportMarkdown(input: string): string {
   text = text.replace(/^[ \t]*【([^】\n]+)】[ \t]*$\n?/gm, '')
   text = text.replace(/【([^】\n]+)】/g, '$1')
 
+  // Square bracket pseudo-labels "[양면성]" "[duality]". Standalone
+  // bracket lines are pure structural markers — drop entirely.
+  // Inline `[X]` is harmless to leave alone (could be content), but
+  // standalone short `[label]` lines are exactly the analyst-symbol
+  // pattern the user flagged.
+  text = text.replace(/^[ \t]*\[([^\[\]\n]{1,30})\][ \t]*$\n?/gm, '')
+
   // Markdown horizontal rule (`---` `***` `___` on their own line).
   // The LLM uses these to slice the answer into sections — rendered
   // as a visible `<hr>` divider, which is exactly the segmented look
@@ -109,6 +116,8 @@ function stripReportMarkdown(input: string): string {
   text = text.replace(/^[ \t]*[-*+][ \t]+/gm, '')
   text = text.replace(/^[ \t]*\d+\.[ \t]+/gm, '')
   text = text.replace(/^[ \t]*[→▶●■▷▸▪◆※][ \t]+/gm, '')
+  // ASCII arrow "->" used as a pseudo-bullet at line start.
+  text = text.replace(/^[ \t]*->[ \t]+/gm, '')
 
   // Inline backticks rarely matter for chat; drop the ticks.
   text = text.replace(/`([^`\n]+)`/g, '$1')

@@ -34,6 +34,7 @@ function stripReportMarkdown(input: string): string {
   )
   text = text.replace(/^[ \t]*【([^】\n]+)】[ \t]*$\n?/gm, '')
   text = text.replace(/【([^】\n]+)】/g, '$1')
+  text = text.replace(/^[ \t]*\[([^\[\]\n]{1,30})\][ \t]*$\n?/gm, '')
   text = text.replace(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$\n?/gm, '')
   text = text.replace(
     /^([ \t]*)([^\n]{2,30})[ \t]*\n([ \t]*\n)/gm,
@@ -52,6 +53,7 @@ function stripReportMarkdown(input: string): string {
   text = text.replace(/^[ \t]*[-*+][ \t]+/gm, '')
   text = text.replace(/^[ \t]*\d+\.[ \t]+/gm, '')
   text = text.replace(/^[ \t]*[→▶●■▷▸▪◆※][ \t]+/gm, '')
+  text = text.replace(/^[ \t]*->[ \t]+/gm, '')
   text = text.replace(/`([^`\n]+)`/g, '$1')
   text = text.replace(/\n{3,}/g, '\n\n')
   return text.trim()
@@ -175,6 +177,19 @@ describe('counselor chat: stripReportMarkdown', () => {
     const output = stripReportMarkdown(input)
     expect(output).not.toMatch(/^당신의 양면성$/m)
     expect(output).toContain('안정의 축')
+  })
+
+  it('drops standalone [bracket] pseudo-labels', () => {
+    expect(stripReportMarkdown('[양면성]\n사주와 점성이 같이 같은 결을 가리키고 있어요.')).toBe(
+      '사주와 점성이 같이 같은 결을 가리키고 있어요.'
+    )
+    expect(stripReportMarkdown('[duality]\nThe two charts point the same way.')).toBe(
+      'The two charts point the same way.'
+    )
+  })
+
+  it('drops leading ASCII arrow "->" bullets', () => {
+    expect(stripReportMarkdown('-> 첫째\n-> 둘째')).toBe('첫째\n둘째')
   })
 
   it('keeps real sentence-ending lines (다/요/까/?) intact', () => {
