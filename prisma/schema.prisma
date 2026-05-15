@@ -424,6 +424,10 @@ model CounselorChatSession {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Service discriminator: "destiny" (single user) or "compat" (couple).
+  // Existing rows default to "destiny" via the migration backfill.
+  type String @default("destiny")
+
   // 세션 정보
   locale String  @default("ko")
   title  String? // user-editable chat title; sidebar falls back to summary/preview/id when null
@@ -435,6 +439,11 @@ model CounselorChatSession {
   summary   String? // 대화 요약 (다음 방문 시 참조용)
   keyTopics Json? // 주요 주제들 ["취업", "2025년 상반기"]
 
+  // Type-specific persisted context. For compat: { persons, person1Saju,
+  // person2Saju, person1Astro, person2Astro } so the past-chat link can
+  // restore the full chart without re-fetching.
+  meta Json?
+
   // 메타데이터
   messageCount  Int      @default(0)
   lastMessageAt DateTime @default(now())
@@ -442,6 +451,7 @@ model CounselorChatSession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, updatedAt])
+  @@index([userId, type, updatedAt])
 }
 
 // 유저 크레딧 관리 - 플랜별 사용량 추적

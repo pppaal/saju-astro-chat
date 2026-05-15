@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
@@ -159,7 +160,8 @@ export const POST = withApiMiddleware(
       })
     }
 
-    const { sessionId, locale, userMessage, assistantMessage } = validation.data
+    const { sessionId, locale, userMessage, assistantMessage, type, meta } = validation.data
+    const sessionType = type ?? 'destiny'
     const initialSignals = deriveCounselorStorageSignals({
       lastUserMessage: userMessage || null,
     })
@@ -218,11 +220,15 @@ export const POST = withApiMiddleware(
           },
         });
 
-        await syncPersonaMemoryTopics({
-          userId,
-          memoryTopics,
-          incrementSessionCount: false,
-        })
+        // Persona memory is destiny-counselor specific (single-user
+        // recall). Compat sessions describe couple dynamics — skip.
+        if (sessionType === 'destiny') {
+          await syncPersonaMemoryTopics({
+            userId,
+            memoryTopics,
+            incrementSessionCount: false,
+          })
+        }
 
         return NextResponse.json({
           success: true,
@@ -235,17 +241,25 @@ export const POST = withApiMiddleware(
           data: {
             userId,
             locale,
+            type: sessionType,
+            // Prisma expects Prisma.InputJsonValue for Json columns; the
+            // zod parse output is Record<string, unknown> which is
+            // structurally compatible but typed loosely.
+            ...(meta ? { meta: meta as Prisma.InputJsonValue } : {}),
             messages: newMessages,
             messageCount: newMessages.length,
             lastMessageAt: now,
           },
         })
 
-        await syncPersonaMemoryTopics({
-          userId,
-          memoryTopics: initialMemoryTopics,
-          incrementSessionCount: true,
-        })
+        // Persona memory is destiny-only.
+        if (sessionType === 'destiny') {
+          await syncPersonaMemoryTopics({
+            userId,
+            memoryTopics: initialMemoryTopics,
+            incrementSessionCount: true,
+          })
+        }
 
         return NextResponse.json({
           success: true,

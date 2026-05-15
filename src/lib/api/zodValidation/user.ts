@@ -544,6 +544,10 @@ export const counselorSessionLoadQuerySchema = z.object({
 
 export const counselorSessionListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+  // Optional service filter so the sidebar can scope to destiny or
+  // compat sessions only. Omitted → returns all types (legacy
+  // behavior).
+  type: z.enum(['destiny', 'compat']).optional(),
 })
 
 export const counselorSessionDeleteQuerySchema = z.object({
