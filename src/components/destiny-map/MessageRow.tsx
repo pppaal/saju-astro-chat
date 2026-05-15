@@ -107,9 +107,12 @@ function stripReportMarkdown(input: string): string {
     }
   )
 
-  // Bold / italic — strip markers, keep the inner text.
-  text = text.replace(/\*\*([^*\n]+)\*\*/g, '$1')
-  text = text.replace(/(?<!\*)\*(?!\*)([^*\n]+?)(?<!\*)\*(?!\*)/g, '$1')
+  // Bold / italic — keep as-is. MarkdownMessage downstream renders
+  // `**text**` and `*text*` as <strong>/<em>, which is what the user
+  // expects (key terms like "남편복", "양면성" should pop). Stripping
+  // these here also caused a flicker during streaming: half-streamed
+  // `**hello` showed raw asterisks until the closing `**` arrived,
+  // after which the markers vanished into plain text.
 
   // Bullet / numbered list markers at line start + decorative arrow
   // bullets the LLM substitutes when standard bullets are banned.
