@@ -27,11 +27,12 @@ export function ResultsHeader({
 
   return (
     <section className="space-y-4">
-      {/* 사용자 질문 — 가장 위, 가장 크게. 우리가 답하고 있는 게 뭔지 한눈에. */}
+      {/* 사용자 질문 — 가장 위, 가운데 정렬. GlobalHeader (fixed top-4, ≈ 60px 높이) 와
+          겹치지 않게 mt-20 (80px) 으로 충분히 띄움. */}
       {userTopic && (
-        <div className="rounded-2xl bg-gradient-to-br from-indigo-500/15 to-violet-500/10 border border-indigo-500/30 px-5 py-4 md:px-6 md:py-5">
-          <div className="flex items-start gap-3">
-            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/25 border border-indigo-500/40 text-indigo-100 text-base font-semibold shrink-0">
+        <div className="mt-20 md:mt-16 rounded-2xl bg-gradient-to-br from-indigo-500/15 to-violet-500/10 border border-indigo-500/30 px-5 py-4 md:px-6 md:py-5">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/25 border border-indigo-500/40 text-indigo-100 text-base font-semibold">
               Q
             </span>
             <p className="text-lg md:text-xl text-slate-50 leading-snug font-medium">

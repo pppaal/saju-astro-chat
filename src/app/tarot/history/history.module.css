@@ -2,7 +2,9 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #0a0a1a 0%, #1a0b2e 50%, #16213e 100%);
   padding: 1rem;
-  padding-top: env(safe-area-inset-top, 1rem);
+  /* GlobalHeader (fixed top-4 ≈ 60px) 가 위에 떠 있어 페이지 헤더와 겹쳤음.
+     safe-area + ~5rem 으로 페이지 헤더를 그 아래로 내림. */
+  padding-top: calc(env(safe-area-inset-top, 0px) + 5rem);
 }
 
 .header {

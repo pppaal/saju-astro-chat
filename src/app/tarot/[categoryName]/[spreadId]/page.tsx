@@ -8,18 +8,11 @@ import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { useTarotGame, useTarotInterpretation } from './hooks'
 import { smoothScrollTo } from './utils'
 import { PageContent } from './components/PageContent'
-import styles from './tarot-reading.module.css'
+import BrandSplash from '@/components/branding/BrandSplash'
 
 export default function TarotReadingPageWrapper() {
   return (
-    <Suspense
-      fallback={
-        <div className={styles.loading}>
-          <div className={styles.loadingOrb}></div>
-          <p>✨ Loading...</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<BrandSplash />}>
       <TarotReadingPage />
     </Suspense>
   )
@@ -193,12 +186,7 @@ function TarotReadingPage() {
 
   // Session loading state
   if (status === 'loading') {
-    return (
-      <div className={styles.loading}>
-        <div className={styles.loadingOrb}></div>
-        <p>✨ {translate('common.loading', 'Loading...')}</p>
-      </div>
-    )
+    return <BrandSplash />
   }
   return (
     <PageContent
