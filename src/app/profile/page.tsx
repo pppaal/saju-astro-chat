@@ -23,6 +23,10 @@ import {
   Crown,
   Receipt,
   Gift,
+  Share2,
+  Copy,
+  Check,
+  UserPlus,
 } from 'lucide-react'
 import AuthGate from '@/components/auth/AuthGate'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -116,6 +120,17 @@ interface PurchaseRow {
 interface PurchasesResponse {
   subscription: SubscriptionSummary | null
   purchases: PurchaseRow[]
+}
+
+interface ReferralResponse {
+  referralCode: string
+  stats: {
+    total: number
+    completed: number
+    pending: number
+    creditsEarned: number
+  }
+  referralUrl: string
 }
 
 function classifyService(serviceId: string): {
@@ -253,6 +268,8 @@ export default function ProfilePage() {
   const [history, setHistory] = useState<DailyHistory[]>([])
   const [credits, setCredits] = useState<CreditsResponse | null>(null)
   const [purchases, setPurchases] = useState<PurchasesResponse | null>(null)
+  const [referral, setReferral] = useState<ReferralResponse | null>(null)
+  const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
   const [circleOpen, setCircleOpen] = useState(false)
@@ -260,13 +277,14 @@ export default function ProfilePage() {
   const loadAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [profileRes, circleRes, historyRes, creditsRes, purchasesRes] =
+      const [profileRes, circleRes, historyRes, creditsRes, purchasesRes, referralRes] =
         await Promise.all([
           fetch('/api/me/profile').then((r) => (r.ok ? r.json() : null)),
           fetch('/api/me/circle').then((r) => (r.ok ? r.json() : null)),
           fetch('/api/me/history?limit=20').then((r) => (r.ok ? r.json() : null)),
           fetch('/api/me/credits').then((r) => (r.ok ? r.json() : null)),
           fetch('/api/me/purchases').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/referral/me').then((r) => (r.ok ? r.json() : null)),
         ])
 
       // /api/me/profile returns { user: {...} } directly (no envelope).
@@ -286,6 +304,11 @@ export default function ProfilePage() {
       const pr = purchasesRes?.data || purchasesRes
       if (pr && typeof pr === 'object' && 'purchases' in pr) {
         setPurchases(pr as PurchasesResponse)
+      }
+
+      const rr = referralRes?.data || referralRes
+      if (rr && typeof rr === 'object' && 'referralCode' in rr) {
+        setReferral(rr as ReferralResponse)
       }
     } catch (err) {
       logger.warn('[profile] load failed', err)
@@ -319,6 +342,38 @@ export default function ProfilePage() {
           : 'Failed to delete. Please try again in a moment.',
       )
     }
+  }
+
+  const handleCopyReferral = async () => {
+    if (!referral?.referralUrl) return
+    try {
+      await navigator.clipboard.writeText(referral.referralUrl)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch (err) {
+      logger.warn('[profile/referral] clipboard failed', err)
+    }
+  }
+
+  const handleShareReferral = async () => {
+    if (!referral?.referralUrl) return
+    const text =
+      locale === 'ko'
+        ? `데스티니팔에서 함께해요! ${referral.referralUrl}`
+        : `Join me on DestinyPal! ${referral.referralUrl}`
+    if (typeof navigator !== 'undefined' && 'share' in navigator) {
+      try {
+        await (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share({
+          title: 'DestinyPal',
+          text,
+          url: referral.referralUrl,
+        })
+        return
+      } catch {
+        // user cancelled or share not supported — fall through to copy
+      }
+    }
+    void handleCopyReferral()
   }
 
   const flatRecords = history.flatMap((d) => d.records).slice(0, 8)
@@ -739,6 +794,90 @@ export default function ProfilePage() {
               )}
             </section>
 
+            {/* Referral */}
+            <section className="mt-7 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
+              <h2 className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                <UserPlus className="h-3.5 w-3.5" />
+                {locale === 'ko' ? '친구 추천' : 'Refer a friend'}
+              </h2>
+
+              {loading ? (
+                <p className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-5 text-center text-[13px] text-slate-500">
+                  {locale === 'ko' ? '불러오는 중...' : 'Loading...'}
+                </p>
+              ) : !referral ? (
+                <p className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-5 text-center text-[13px] text-slate-500">
+                  {locale === 'ko'
+                    ? '추천 정보를 불러올 수 없어요'
+                    : 'Could not load referral info'}
+                </p>
+              ) : (
+                <>
+                  <p className="mt-3 text-[12.5px] leading-relaxed text-slate-400">
+                    {locale === 'ko'
+                      ? '친구가 코드로 가입하고 첫 분석을 받으면, 둘 다 보너스 크레딧을 받아요.'
+                      : 'When a friend signs up with your code and finishes their first reading, you both get bonus credits.'}
+                  </p>
+
+                  <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-cyan-300/20 bg-gradient-to-br from-cyan-400/[0.06] to-violet-500/[0.04] p-3.5 sm:flex-row sm:items-center sm:gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10.5px] font-medium uppercase tracking-[0.18em] text-cyan-200/70">
+                        {locale === 'ko' ? '내 추천 코드' : 'My code'}
+                      </p>
+                      <p className="mt-1 truncate font-mono text-[1.1rem] font-semibold tracking-wider text-white">
+                        {referral.referralCode}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleCopyReferral}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.04] px-3 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40 hover:text-white"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 text-emerald-300" />
+                            {locale === 'ko' ? '복사됨' : 'Copied'}
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5" />
+                            {locale === 'ko' ? '링크 복사' : 'Copy link'}
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleShareReferral}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1.5 text-[12px] text-cyan-100 transition hover:border-cyan-300/50 hover:bg-cyan-300/15"
+                      >
+                        <Share2 className="h-3.5 w-3.5" />
+                        {locale === 'ko' ? '공유' : 'Share'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-3 gap-2.5">
+                    <ReferralStat
+                      label={locale === 'ko' ? '가입' : 'Joined'}
+                      value={referral.stats.total}
+                      accent="#22d3ee"
+                    />
+                    <ReferralStat
+                      label={locale === 'ko' ? '분석 완료' : 'Completed'}
+                      value={referral.stats.completed}
+                      accent="#a78bfa"
+                    />
+                    <ReferralStat
+                      label={locale === 'ko' ? '받은 크레딧' : 'Credits earned'}
+                      value={`+${referral.stats.creditsEarned}`}
+                      accent="#f59e0b"
+                    />
+                  </div>
+                </>
+              )}
+            </section>
+
             {/* Recent activity */}
             <section className="mt-7 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
               <div className="flex items-center justify-between">
@@ -852,6 +991,30 @@ export default function ProfilePage() {
         />
       </div>
     </AuthGate>
+  )
+}
+
+function ReferralStat({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: number | string
+  accent: string
+}) {
+  return (
+    <div
+      className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-3 py-3 text-center"
+      style={{ borderColor: `${accent}22` }}
+    >
+      <p className="text-[1.25rem] font-semibold leading-none" style={{ color: accent }}>
+        {value}
+      </p>
+      <p className="mt-1.5 text-[10.5px] font-medium uppercase tracking-[0.16em] text-slate-500">
+        {label}
+      </p>
+    </div>
   )
 }
 
