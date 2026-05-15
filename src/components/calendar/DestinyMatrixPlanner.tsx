@@ -42,9 +42,9 @@ import {
 import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
 import { useDateDetail } from './useDateDetail'
 import MatchedPatternsCard from './MatchedPatternsCard'
-import ActiveSignalsList from './ActiveSignalsList'
 import MonthHighlightsCard from './MonthHighlightsCard'
 import MonthlyInterpretationCard from './MonthlyInterpretationCard'
+import DailyFlowCard from './DailyFlowCard'
 import { getGrade, computeGradeThresholds } from './scoreGrade'
 
 interface DestinyMatrixPlannerProps {
@@ -840,39 +840,12 @@ export default function DestinyMatrixPlanner({
                 </div>
               )}
 
-              {/* ── calendar-engine v2: 매칭 패턴 카드 ── */}
+              {/* ── calendar-engine v2: 매칭 패턴 카드 (헤드라인+액션) ── */}
               <MatchedPatternsCard patterns={selectedImportantDate?.matchedPatterns} />
 
-              {/* ── calendar-engine v2: 활성 신호 전체 리스트 ── */}
-              <ActiveSignalsList signals={selectedImportantDate?.engineSignals} />
-
-              {/* Active 신살 chips */}
-              {dailyShinsal.length > 0 && (
-                <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
-                  <h3 className="text-xs font-bold text-zinc-300 tracking-wider uppercase mb-3 flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> 발동 중인 신살
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {dailyShinsal.map((s, i) => {
-                      const tone =
-                        s.type === 'lucky'
-                          ? 'border-emerald-500/30 text-emerald-300 bg-emerald-900/20'
-                          : s.type === 'unlucky'
-                            ? 'border-rose-500/30 text-rose-300 bg-rose-900/20'
-                            : 'border-amber-500/30 text-amber-300 bg-amber-900/20'
-                      return (
-                        <span
-                          key={`${s.name}-${i}`}
-                          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border ${tone}`}
-                          title={`${s.affectedArea ?? ''} 영역`}
-                        >
-                          {s.name}
-                        </span>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
+              {/* ── calendar-engine v2: 오늘의 활성 흐름 (글로 풀어씀) ── */}
+              {/* 기존 ActiveSignalsList 리스트 + 신살 칩 → 단일 narrative 카드로 통합 */}
+              <DailyFlowCard importantDate={selectedImportantDate} />
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2 mb-4">
