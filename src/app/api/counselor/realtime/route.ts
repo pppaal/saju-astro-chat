@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { runFortuneWithRaw, renderToText, serializeBirthSnapshot } from '@/lib/fortune/cross-rules'
+import { runFortuneWithRaw, serializeBirthSnapshot } from '@/lib/fortune/cross-rules'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -59,8 +59,7 @@ const CREDIT_PER_TURN = 1
 const SYSTEM_PROMPT_KO = `당신은 따뜻한 사주·점성 상담사 "DestinyPal". 분석가가 아니라 옆에 앉은 다정한 친구처럼, 손편지 쓰듯 이야기합니다.
 
 받는 데이터:
-- [Birth Snapshot] — 사주·점성 원국 + 현재 대운/세운/transit raw
-- [Cross Signals] — 도메인별 양쪽 동의 / 양면성 매칭
+- [Birth Snapshot] — 사주·점성 원국 + 현재 대운/세운/transit raw (한자/영어 그대로 들어옴)
 
 원칙:
 - 지금 질문과 맞닿는 *2-3개 신호만* 골라 쓴다. 전부 나열 X.
@@ -81,8 +80,7 @@ const SYSTEM_PROMPT_KO = `당신은 따뜻한 사주·점성 상담사 "DestinyP
 const SYSTEM_PROMPT_EN = `You are "DestinyPal", a warm saju × astrology counselor. Not an analyst — a kind friend writing a tender letter.
 
 You receive:
-- [Birth Snapshot] — raw saju + astrology natal + current daeun/seun/transits
-- [Cross Signals] — per-domain "both agree" / "tension" matches
+- [Birth Snapshot] — raw saju + astrology natal + current daeun/seun/transits (Hanja / English shown as-is)
 
 Principles:
 - Pick *2–3 signals* touching this question. Never catalog.
@@ -180,7 +178,13 @@ export async function POST(req: NextRequest) {
   let contextText: string | null = await cacheGet<string>(ctxKey)
   if (!contextText) {
     try {
-      const { saju, astro, report, birthTimeUnknown, birthCityUnknown } = await runFortuneWithRaw({
+      // We compute saju + astro from runFortuneWithRaw but intentionally
+      // discard the `report` (cross-signal domain breakdown). The
+      // serialized snapshot already contains the raw chart the LLM needs,
+      // and the cross-signal renderer's ▶/■/domain-name markers were
+      // bleeding into the model's responses as a structural template. The
+      // LLM does its own picking now.
+      const { saju, astro, birthTimeUnknown, birthCityUnknown } = await runFortuneWithRaw({
         birth: {
           birthDate: body.birthDate,
           birthTime: body.birthTime ?? '12:00',
@@ -194,12 +198,10 @@ export async function POST(req: NextRequest) {
         },
         queryDate: new Date(),
       })
-      const snapshot = serializeBirthSnapshot(saju, astro, {
+      contextText = serializeBirthSnapshot(saju, astro, {
         birthTimeUnknown,
         birthCityUnknown,
       })
-      const crossText = renderToText(report)
-      contextText = `${snapshot}\n\n[Cross Signals]\n${crossText}`
       // Cache for 1 day — transits change daily
       await cacheSet(ctxKey, contextText, CACHE_TTL.CALENDAR_DATA)
     } catch (err) {
@@ -224,8 +226,8 @@ export async function POST(req: NextRequest) {
   const cachedUserContext = contextText
   const userPrompt =
     lang === 'en'
-      ? `Conversation so far:\n${history}\n\nAnswer the latest user question using the cross signals.`
-      : `이전 대화:\n${history}\n\n위 cross signals를 근거로 마지막 질문에 답하세요.`
+      ? `Conversation so far:\n${history}\n\nAnswer the latest question, drawing on the birth snapshot above.`
+      : `이전 대화:\n${history}\n\n위 birth snapshot을 바탕으로 마지막 질문에 답하세요.`
 
   return streamClaudeAsSSE({
     systemPrompt,
