@@ -44,6 +44,7 @@ import { useDateDetail } from './useDateDetail'
 import MatchedPatternsCard from './MatchedPatternsCard'
 import ActiveSignalsList from './ActiveSignalsList'
 import MonthHighlightsCard from './MonthHighlightsCard'
+import MonthlyInterpretationCard from './MonthlyInterpretationCard'
 import { getGrade, computeGradeThresholds } from './scoreGrade'
 
 interface DestinyMatrixPlannerProps {
@@ -674,6 +675,11 @@ export default function DestinyMatrixPlanner({
                   </p>
                 </div>
               </div>
+
+              {/* ── calendar-engine v2: 월간 narrative 해석 ── */}
+              <MonthlyInterpretationCard
+                interp={monthDates[0]?.monthlyInterpretation
+                        ?? selectedImportantDate?.monthlyInterpretation} />
 
               {/* ── calendar-engine v2: 길일/흉일 TOP 5 ── */}
               <MonthHighlightsCard
