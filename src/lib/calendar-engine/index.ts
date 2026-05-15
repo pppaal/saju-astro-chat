@@ -145,10 +145,11 @@ function groupIntoCells(
   }
 
   // derivers — 점수·테마점수·패턴·요약 계산 (점수는 부산물)
+  // 패턴을 먼저 검출하고, 점수 계산에 패턴 보너스 반영.
   for (const cell of cells.values()) {
-    cell.derivedScore = deriveScore(cell.signals)
-    cell.themeScores = deriveThemeScores(cell.signals)
     cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(cell.signals)
+    cell.derivedScore = deriveScore(cell.signals, cell.matchedPatterns)
+    cell.themeScores = deriveThemeScores(cell.signals)
     cell.topReasons = deriveTopReasons(cell.signals)
   }
 

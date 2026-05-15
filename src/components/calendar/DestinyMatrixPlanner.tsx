@@ -194,6 +194,17 @@ export default function DestinyMatrixPlanner({
   //  3) 그 외엔 중립값 50 (없는 신호를 60%로 위장하지 않음)
   // 의 정직한 우선순위로 도출한다.
   const dailyIndices = useMemo(() => {
+    // calendar-engine v2 우선 — 신호 기반 점수 + themeScores
+    // ImportantDate.engineSignals가 있으면 새 엔진이 작동한 것.
+    if (selectedImportantDate?.engineSignals && selectedImportantDate.engineSignals.length > 0) {
+      const ts = selectedImportantDate.themeScores ?? {}
+      return {
+        score: Math.round(selectedImportantDate.displayScore ?? selectedImportantDate.score),
+        love:   typeof ts.love   === 'number' ? Math.round(ts.love)   : (fusion?.domainScores.love   ?? 50),
+        wealth: typeof ts.money  === 'number' ? Math.round(ts.money)  : (fusion?.domainScores.money  ?? 50),
+        health: typeof ts.health === 'number' ? Math.round(ts.health) : (fusion?.domainScores.health ?? 50),
+      }
+    }
     // fusion 우선 — 18테마 점수 정밀
     if (fusion) {
       return {

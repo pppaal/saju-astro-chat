@@ -1221,6 +1221,9 @@ export const GET = withApiMiddleware(
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
+        // ★ 점수 교체 — 새 엔진 점수를 displayScore로 우선 노출
+        //   기존 score는 그대로 유지 (rollback 가능).
+        d.displayScore = cell.derivedScore
         if (cell.matchedPatterns.length > 0) {
           d.matchedPatterns = cell.matchedPatterns.map((p) => ({
             id: p.id,

@@ -81,13 +81,16 @@ const RULES: PatternRule[] = [
     id: 'shadow-cluster',
     name: '흉살 집중일',
     themes: ['crisis'],
-    description: '하루에 강한 흉신호 3개 이상 — 신중 모드',
+    description: '강한 흉신호 5개 이상 + 평균 polarity ≤ -1.5',
     match(signals) {
-      const bad = signals.filter((s) => s.polarity <= -2)
-      if (bad.length < 3) return { matched: false, strength: 0, matchedIds: [] }
+      // 임계값 강화: 5개 이상 + 평균 강도 조건
+      const bad = signals.filter((s) => s.polarity <= -2 && s.weight >= 0.6)
+      if (bad.length < 5) return { matched: false, strength: 0, matchedIds: [] }
+      const avgPol = bad.reduce((a, s) => a + s.polarity, 0) / bad.length
+      if (avgPol > -1.5) return { matched: false, strength: 0, matchedIds: [] }
       return {
         matched: true,
-        strength: Math.min(100, 50 + bad.length * 10),
+        strength: Math.min(100, 60 + bad.length * 6),
         matchedIds: bad.map((s) => s.id),
       }
     },
@@ -98,21 +101,31 @@ const RULES: PatternRule[] = [
     id: 'five-layer-resonance',
     name: '5층 정렬',
     themes: [],
-    description: '대운·세운·월운·일진·트랜짓 5층이 모두 같은 방향(+ 또는 −)',
+    description: '대운·세운·월운·일진 4개 레이어 모두 강한 동방향',
     match(signals) {
+      // 임계값 강화: polarity ≥ 2 (강한 신호만) + 4개 레이어 모두 포함
       const layers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily']
-      const positiveLayers = new Set<SignalLayer>()
-      const negativeLayers = new Set<SignalLayer>()
+      const layerPolarities = new Map<SignalLayer, number[]>()
       for (const s of signals) {
-        if (s.polarity >= 2) positiveLayers.add(s.layer)
-        if (s.polarity <= -2) negativeLayers.add(s.layer)
+        if (!layers.includes(s.layer)) continue
+        const arr = layerPolarities.get(s.layer) ?? []
+        arr.push(s.polarity * s.weight)
+        layerPolarities.set(s.layer, arr)
       }
-      const posCount = layers.filter((l) => positiveLayers.has(l)).length
-      const negCount = layers.filter((l) => negativeLayers.has(l)).length
-      if (posCount < 4 && negCount < 4) return { matched: false, strength: 0, matchedIds: [] }
-      const dominant = posCount >= negCount ? 'positive' : 'negative'
+      const layerAvgs: Record<string, number> = {}
+      for (const l of layers) {
+        const arr = layerPolarities.get(l) ?? []
+        layerAvgs[l] = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
+      }
+      const positiveLayers = layers.filter((l) => layerAvgs[l] >= 1.0)
+      const negativeLayers = layers.filter((l) => layerAvgs[l] <= -1.0)
+      if (positiveLayers.length < 4 && negativeLayers.length < 4) {
+        return { matched: false, strength: 0, matchedIds: [] }
+      }
+      const dominant = positiveLayers.length >= 4 ? 'positive' : 'negative'
       const matched = signals.filter((s) =>
-        dominant === 'positive' ? s.polarity >= 2 : s.polarity <= -2,
+        layers.includes(s.layer) &&
+        (dominant === 'positive' ? s.polarity >= 2 : s.polarity <= -2),
       )
       return { matched: true, strength: 95, matchedIds: matched.map((s) => s.id) }
     },
