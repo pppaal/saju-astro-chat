@@ -69,6 +69,37 @@ function stripReportMarkdown(input: string): string {
   text = text.replace(/^[ \t]*【([^】\n]+)】[ \t]*$\n?/gm, '')
   text = text.replace(/【([^】\n]+)】/g, '$1')
 
+  // Markdown horizontal rule (`---` `***` `___` on their own line).
+  // The LLM uses these to slice the answer into sections — rendered
+  // as a visible `<hr>` divider, which is exactly the segmented look
+  // we are trying to kill.
+  text = text.replace(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$\n?/gm, '')
+
+  // Standalone label lines: short, no sentence terminator, followed
+  // by a blank line and a longer paragraph. These are pseudo-headings
+  // like "현재 당신의 상태: 표면화되는 시기" or "당신의 양면성" — the
+  // LLM uses them as section dividers without any markdown syntax.
+  // We only drop *label-shaped* short lines: ≤30 chars, no
+  // sentence-end, no content punctuation (parens, +, /, ·, =, comma).
+  // Without those guards we accidentally drop content lines like
+  // "사주 정인격 + 점성 MC/10궁 강조" or "1. 자아: 정격(정인격)".
+  text = text.replace(
+    /^([ \t]*)([^\n]{2,30})[ \t]*\n([ \t]*\n)/gm,
+    (m, _indent: string, line: string, blank: string) => {
+      const trimmed = line.trim()
+      if (!trimmed) return m
+      // Sentence-final punctuation / 종결 어미 → real sentence.
+      if (/[.?!~…」』》)]$/.test(trimmed)) return m
+      if (/(다|요|까|죠|네|음|함|임)$/.test(trimmed)) return m
+      if (/\?\s*$/.test(trimmed)) return m
+      // Content-line markers: parens, +, /, ·, =, slash → keep.
+      // These almost never appear in a true label phrase.
+      if (/[()+\/·=,*]/.test(trimmed)) return m
+      // Drop the label line, keep the blank that follows.
+      return blank
+    }
+  )
+
   // Bold / italic — strip markers, keep the inner text.
   text = text.replace(/\*\*([^*\n]+)\*\*/g, '$1')
   text = text.replace(/(?<!\*)\*(?!\*)([^*\n]+?)(?<!\*)\*(?!\*)/g, '$1')

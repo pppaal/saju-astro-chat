@@ -3,19 +3,21 @@
 
 .markdown {
   font-size: 1.02rem;
-  line-height: 1.6;
+  line-height: 1.75;
   letter-spacing: -0.005em;
   word-break: keep-all;
   overflow-wrap: break-word;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.6rem;
 }
 
-/* 단락 */
+/* 단락 — 한 흐름의 답변이 시각적으로 숨 쉴 수 있게 단락 간 여백을 살짝
+   더 줌. 너무 빽빽하면 길이감이 부담스럽고, 너무 벌리면 "리포트"처럼
+   섹션으로 보임. 0.6em이 conversational chat 톤의 균형점. */
 .paragraph {
-  margin: 0 0 0.35em 0;
-  line-height: 1.6;
+  margin: 0 0 0.6em 0;
+  line-height: 1.75;
 }
 
 .paragraph:last-child {

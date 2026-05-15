@@ -423,9 +423,9 @@
 .userMessage {
   padding: 14px 18px;
   border-radius: 16px;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  letter-spacing: 0;
+  font-size: 1rem;
+  line-height: 1.75;
+  letter-spacing: -0.005em;
   white-space: pre-wrap;
   word-wrap: break-word;
   position: relative;
@@ -437,7 +437,7 @@
   border: none;
   color: rgba(255, 255, 255, 0.94);
   box-shadow: none;
-  padding: 4px 0;
+  padding: 6px 0;
   border-radius: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
 }
@@ -454,9 +454,10 @@
   white-space: pre-wrap;
   word-break: keep-all;
   overflow-wrap: anywhere;
-  line-height: 1.6;
+  line-height: 1.75;
+  letter-spacing: -0.005em;
   color: rgba(255, 255, 255, 0.92);
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .counselorSections {
