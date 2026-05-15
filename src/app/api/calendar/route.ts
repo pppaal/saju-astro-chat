@@ -1211,7 +1211,6 @@ export const GET = withApiMiddleware(
     // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
     // 실패해도 기존 응답 그대로 반환. UI는 새 필드 없으면 기존 동작 유지.
     try {
-      const { buildCalendar } = await import('@/lib/calendar-engine')
       const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
       // 본명 차트 재사용 — 기존 엔진이 이미 계산했다면 Swiss Ephemeris 재호출 방지.
       // astroProfile.natalChart가 있으면 그것 전달 (없으면 buildNatalContext가 직접 계산).
@@ -1242,15 +1241,27 @@ export const GET = withApiMiddleware(
       const targetMonth = monthMatch ? Number(monthMatch[2]) - 1 : new Date().getMonth()
       const rangeStart = new Date(targetYear, targetMonth, 1)
       const rangeEnd = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59)
-      const ceCells = await buildCalendar(
-        ceNatal,
-        {
+      // CalendarCell DB 캐시 사용 — 같은 본명·달이면 instant 반환.
+      const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
+      const birthKey = makeBirthKey({
+        birthDate: birthDateParam,
+        birthTime: birthTimeParam || '12:00',
+        birthPlace,
+        gender: gender || 'Male',
+      })
+      const monthKey = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`
+      const { cells: ceCells, cached: ceCached } = await getOrBuildMonth({
+        birthKey,
+        monthKey,
+        natal: ceNatal,
+        range: {
           start: rangeStart.toISOString(),
           end: rangeEnd.toISOString(),
           granularity: 'day',
         },
-        { includeEvidence: true },  // matcher가 evidence 필요
-      )
+        options: { includeEvidence: true },
+      })
+      logger.info?.(`[calendar-engine v2] ${ceCached ? 'cache HIT' : 'cache MISS'} for ${monthKey}, cells=${ceCells.length}`)
 
       // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
       try {

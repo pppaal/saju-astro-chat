@@ -1171,3 +1171,20 @@ model SecurityAuditLog {
   @@index([ipAddress, createdAt])
   @@index([action, createdAt])
 }
+
+/// calendar-engine v2 — 1 사용자 1 월치 빌드 결과 캐시.
+/// 본명 입력 + 월 키로 unique. 같은 입력이면 cell 데이터 재계산 없이 반환.
+/// 영구 캐시 (본명 변동 없으면 결과도 결정적).
+model CalendarBuildCache {
+  id        String   @id @default(cuid())
+  /// hash(birthDate + birthTime + birthPlace + gender + 'v2')
+  birthKey  String
+  /// 'YYYY-MM' (예: '2026-05')
+  monthKey  String
+  /// CalendarCell[] JSON (engineSignals · matchedPatterns · derivedScore · themeScores 등)
+  data      Json
+  builtAt   DateTime @default(now())
+
+  @@unique([birthKey, monthKey])
+  @@index([builtAt])
+}
