@@ -79,6 +79,26 @@ export interface FormattedDate {
     astroAxis?: number
     axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
+  /** ── calendar-engine v2 augmentation (optional, non-breaking) ── */
+  matchedPatterns?: Array<{
+    id: string
+    name: string
+    themes: string[]
+    strength: number
+    description?: string
+  }>
+  engineSignals?: Array<{
+    id: string
+    source: 'saju' | 'astro'
+    kind: string
+    name: string
+    korean?: string
+    themes: string[]
+    polarity: number
+    layer: 'decadal' | 'yearly' | 'monthly' | 'daily' | 'hourly' | 'instant'
+    weight: number
+  }>
+  themeScores?: Partial<Record<string, number>>
 }
 
 export interface CalendarDailyView {

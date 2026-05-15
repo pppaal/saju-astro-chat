@@ -178,6 +178,29 @@ export interface ImportantDate {
     goodFor: string[]
     badFor: string[]
   }
+  /** ── calendar-engine v2 augmentation (optional, non-breaking) ── */
+  /** 매칭된 명명 패턴 — "재물 황금주간" 등 */
+  matchedPatterns?: Array<{
+    id: string
+    name: string
+    themes: string[]
+    strength: number
+    description?: string
+  }>
+  /** 활성 신호 다발 — 사주·점성 모든 추출기 결과 */
+  engineSignals?: Array<{
+    id: string
+    source: 'saju' | 'astro'
+    kind: string
+    name: string
+    korean?: string
+    themes: string[]
+    polarity: number
+    layer: 'decadal' | 'yearly' | 'monthly' | 'daily' | 'hourly' | 'instant'
+    weight: number
+  }>
+  /** 테마별 점수 (0~100) */
+  themeScores?: Partial<Record<string, number>>
 }
 
 export interface CalendarData {

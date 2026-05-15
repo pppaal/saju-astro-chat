@@ -41,6 +41,7 @@ import {
 
 import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
 import { useDateDetail } from './useDateDetail'
+import MatchedPatternsCard from './MatchedPatternsCard'
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -795,6 +796,9 @@ export default function DestinyMatrixPlanner({
                   </div>
                 </div>
               )}
+
+              {/* ── calendar-engine v2: 매칭 패턴 카드 ── */}
+              <MatchedPatternsCard patterns={selectedImportantDate?.matchedPatterns} />
 
               {/* Active 신살 chips */}
               {dailyShinsal.length > 0 && (

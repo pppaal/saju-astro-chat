@@ -1197,6 +1197,60 @@ export const GET = withApiMiddleware(
       }
     })
     const formattedDates = rebalanceCalendarDisplayGrades(formattedDatesWithAI)
+
+    // ── calendar-engine v2 augmentation (non-blocking, opt-in via fields) ──
+    // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
+    // 실패해도 기존 응답 그대로 반환. UI는 새 필드 없으면 기존 동작 유지.
+    try {
+      const { buildCalendar } = await import('@/lib/calendar-engine')
+      const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
+      const ceNatal = await buildNatalContext({
+        birthDate: birthDateParam,
+        birthTime: birthTimeParam || '12:00',
+        gender: gender.toLowerCase() === 'female' ? 'female' : 'male',
+        latitude: coords.lat,
+        longitude: coords.lng,
+        timeZone: timezone,
+      })
+      const ceCells = await buildCalendar(ceNatal, {
+        start: new Date(year, 0, 1).toISOString(),
+        end: new Date(year, 11, 31, 23, 59, 59).toISOString(),
+        granularity: 'day',
+      })
+      const cellByDate = new Map(ceCells.map((c) => [c.datetime.slice(0, 10), c]))
+      for (const d of formattedDates) {
+        const cell = cellByDate.get(d.date.slice(0, 10))
+        if (!cell) continue
+        if (cell.matchedPatterns.length > 0) {
+          d.matchedPatterns = cell.matchedPatterns.map((p) => ({
+            id: p.id,
+            name: p.name,
+            themes: p.themes,
+            strength: p.strength,
+            description: p.description,
+          }))
+        }
+        if (cell.signals.length > 0) {
+          d.engineSignals = cell.signals.map((s) => ({
+            id: s.id,
+            source: s.source,
+            kind: s.kind,
+            name: s.name,
+            korean: s.korean,
+            themes: s.themes,
+            polarity: s.polarity,
+            layer: s.layer,
+            weight: s.weight,
+          }))
+        }
+        if (Object.keys(cell.themeScores).length > 0) {
+          d.themeScores = cell.themeScores
+        }
+      }
+    } catch (err) {
+      logger.warn?.('[calendar-engine v2 augment] skipped:', err instanceof Error ? err.message : String(err))
+    }
+
     const sortByDisplayScoreDesc = (
       a: (typeof formattedDates)[number],
       b: (typeof formattedDates)[number]
