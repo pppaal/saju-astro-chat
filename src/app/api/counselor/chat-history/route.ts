@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
-import { deriveCounselorStorageSignals } from '@/app/api/destiny-map/chat-stream/lib/focusDomain'
+import { deriveCounselorStorageSignals } from '@/lib/counselor/focusDomain'
 import {
   GetChatHistorySchema,
   PostChatHistorySchema,
