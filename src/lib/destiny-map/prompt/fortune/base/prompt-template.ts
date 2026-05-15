@@ -214,23 +214,11 @@ PART 2: 서양 점성술 (WESTERN ASTROLOGY)
 🌟 핵심 행성 배치 (Core Planets)
 ───────────────────────────────────────
 ASC: ${data.ascendantSign} | MC: ${data.mcSign}
-Sun: ${data.sunSign} (H${data.sunHouse})
-Moon: ${data.moonSign} (H${data.moonHouse})
-Mercury: ${data.mercurySign} (H${data.mercuryHouse})
-Venus: ${data.venusSign} (H${data.venusHouse})
-Mars: ${data.marsSign} (H${data.marsHouse})
-Jupiter: ${data.jupiterSign} (H${data.jupiterHouse})
-Saturn: ${data.saturnSign} (H${data.saturnHouse})
-Uranus: ${data.uranusSign} (H${data.uranusHouse})
-Neptune: ${data.neptuneSign} (H${data.neptuneHouse})
-Pluto: ${data.plutoSign} (H${data.plutoHouse})
-North Node: ${data.northNodeSign} (H${data.northNodeHouse})
-Elements: ${data.elements || "-"}
-
-All Planets: ${data.planetLines}
+Planets: ${data.planetLines}
 Houses: ${data.houseLines}
 Major Aspects: ${data.aspectLines}
 Current Transits: ${data.significantTransits || "-"}
+Elements: ${data.elements || "-"}
 
 🔮 Extra Points (특수점)
 ───────────────────────────────────────
