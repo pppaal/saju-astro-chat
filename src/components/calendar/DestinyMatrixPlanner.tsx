@@ -43,6 +43,7 @@ import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './ty
 import { useDateDetail } from './useDateDetail'
 import MatchedPatternsCard from './MatchedPatternsCard'
 import ActiveSignalsList from './ActiveSignalsList'
+import { getScoreGrade } from './scoreGrade'
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -715,12 +716,15 @@ export default function DestinyMatrixPlanner({
               )}
 
               <div className="grid grid-cols-5 gap-4">
-                <div className="col-span-2 bg-gradient-to-br from-indigo-900/40 to-cyan-900/20 p-4 rounded-2xl border border-indigo-500/30 flex flex-col items-center justify-center text-center shadow-lg">
-                  <span className="text-xs font-bold text-indigo-300 mb-1">오늘의 총점</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-black text-white">{dailyIndices.score}</span>
-                    <span className="text-sm text-zinc-400">점</span>
-                  </div>
+                <div
+                  className={`col-span-2 p-4 rounded-2xl border flex flex-col items-center justify-center text-center shadow-lg ${getScoreGrade(dailyIndices.score).bgClass} ${getScoreGrade(dailyIndices.score).borderClass}`}
+                >
+                  <span className="text-[10px] font-bold text-zinc-400 mb-1 tracking-widest">오늘의 흐름</span>
+                  <span className={`text-4xl font-black ${getScoreGrade(dailyIndices.score).colorClass} leading-none`}>
+                    {getScoreGrade(dailyIndices.score).label}
+                  </span>
+                  <span className="text-[10px] text-zinc-500 mt-1">{getScoreGrade(dailyIndices.score).sub}</span>
+                  <span className="text-[10px] text-zinc-600 mt-2 font-mono">score {dailyIndices.score}</span>
                 </div>
 
                 <div className="col-span-3 bg-zinc-900/60 p-4 rounded-2xl border border-white/5 flex flex-col justify-center space-y-3">
