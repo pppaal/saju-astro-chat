@@ -400,20 +400,6 @@ export function getDisplayGradeFromScore(score: number): DisplayScoreGrade {
   return 4
 }
 
-/**
- * @deprecated Use getGradeLabel(grade, locale) from
- * '@/components/calendar/constants' for consistent UI labels across the app.
- * This function survives only for legacy call sites.
- */
-export function getDisplayLabelFromScore(score: number, locale: 'ko' | 'en'): string {
-  const grade = getDisplayGradeFromScore(score)
-  // Inline 5-tier labels to keep lib layer free of UI-component imports.
-  // Must stay in sync with GRADE_LABELS in src/components/calendar/constants.ts
-  const ko = ['최고', '아주 좋음', '평범', '조심', '지키기']
-  const en = ['Peak', 'Excellent', 'Normal', 'Caution', 'Hold']
-  return locale === 'ko' ? ko[grade] : en[grade]
-}
-
 // ============================================================
 // 점수 계산 헬퍼 함수
 // ============================================================
