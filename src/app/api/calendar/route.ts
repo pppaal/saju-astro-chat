@@ -56,6 +56,15 @@ import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
 
+/** astroProfile.natalChart가 NatalChartData 모양인지 검사 (calendar-engine v2 augmentation 용) */
+function isNatalChartData(chart: unknown): chart is NatalChartData {
+  if (!chart || typeof chart !== 'object') return false
+  const c = chart as { planets?: unknown; ascendant?: unknown; mc?: unknown }
+  if (!Array.isArray(c.planets) || c.planets.length === 0) return false
+  const firstPlanet = c.planets[0] as { longitude?: unknown }
+  return typeof firstPlanet?.longitude === 'number'
+}
+
 // Zodiac to element mapping (extracted to avoid duplication in try/catch blocks)
 const ZODIAC_TO_ELEMENT: Record<string, string> = {
   Aries: 'fire',
@@ -1204,14 +1213,26 @@ export const GET = withApiMiddleware(
     try {
       const { buildCalendar } = await import('@/lib/calendar-engine')
       const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
-      const ceNatal = await buildNatalContext({
-        birthDate: birthDateParam,
-        birthTime: birthTimeParam || '12:00',
-        gender: gender.toLowerCase() === 'female' ? 'female' : 'male',
-        latitude: coords.lat,
-        longitude: coords.lng,
-        timeZone: timezone,
-      })
+      // 본명 차트 재사용 — 기존 엔진이 이미 계산했다면 Swiss Ephemeris 재호출 방지.
+      // astroProfile.natalChart가 있으면 그것 전달 (없으면 buildNatalContext가 직접 계산).
+      const ceNatal = await buildNatalContext(
+        {
+          birthDate: birthDateParam,
+          birthTime: birthTimeParam || '12:00',
+          gender: gender.toLowerCase() === 'female' ? 'female' : 'male',
+          latitude: coords.lat,
+          longitude: coords.lng,
+          timeZone: timezone,
+        },
+        {
+          saju: sajuResult,
+          // astroProfile.natalChart는 NatalChartData | null | 느슨한 shape의 union.
+          // NatalChartData만 buildNatalContext에 전달 (그 외엔 직접 계산하게 함).
+          astroChart: isNatalChartData(astroProfile.natalChart)
+            ? astroProfile.natalChart
+            : undefined,
+        },
+      )
       const ceCells = await buildCalendar(ceNatal, {
         start: new Date(year, 0, 1).toISOString(),
         end: new Date(year, 11, 31, 23, 59, 59).toISOString(),
