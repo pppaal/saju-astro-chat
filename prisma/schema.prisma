@@ -425,7 +425,8 @@ model CounselorChatSession {
   updatedAt DateTime @updatedAt
 
   // 세션 정보
-  locale String @default("ko")
+  locale String  @default("ko")
+  title  String? // user-editable chat title; sidebar falls back to summary/preview/id when null
 
   // 대화 메시지들 (JSON 배열)
   messages Json // [{role: "user"|"assistant", content: "...", timestamp: "..."}]

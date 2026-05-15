@@ -550,6 +550,14 @@ export const counselorSessionDeleteQuerySchema = z.object({
   sessionId: z.string().min(1).max(100),
 })
 
+export const counselorSessionRenameRequestSchema = z.object({
+  sessionId: z.string().min(1).max(100),
+  // .trim() must come *before* .min() so whitespace-only titles ('   ')
+  // are rejected at validation time rather than collapsing to '' inside
+  // the handler.
+  title: z.string().trim().min(1).max(80),
+})
+
 // ============ Content Access & Share Schemas ============
 
 export const contentAccessMetadataSchema = z.object({

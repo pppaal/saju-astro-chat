@@ -133,6 +133,12 @@
   max-height: 50dvh;
 }
 
+.sessionRow {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
 .sessionItem {
   display: flex;
   flex-direction: column;
@@ -141,11 +147,18 @@
   border-radius: 8px;
   text-decoration: none;
   color: rgba(245, 243, 255, 0.85);
-  transition: background 0.12s ease;
+  transition: background 0.12s ease, transform 0.2s ease;
+  position: relative;
+  z-index: 1;
+  background: transparent;
 }
 
 .sessionItem:hover {
   background: rgba(167, 139, 250, 0.08);
+}
+
+.sessionItemSwiped {
+  transform: translateX(-72px);
 }
 
 .sessionTitle {
@@ -158,6 +171,81 @@
 .sessionDate {
   font-size: 0.7rem;
   color: rgba(196, 181, 253, 0.5);
+}
+
+/* === Per-row hover actions (kebab + reveal) === */
+.sessionActions {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+}
+
+.sessionRow:hover .sessionActions,
+.sessionRow:focus-within .sessionActions {
+  opacity: 1;
+}
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(15, 12, 33, 0.85);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  color: rgba(245, 243, 255, 0.85);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.iconBtn:hover {
+  background: rgba(167, 139, 250, 0.2);
+}
+
+.iconBtnDanger {
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fca5a5;
+}
+
+.iconBtnDanger:hover {
+  background: rgba(248, 113, 113, 0.18);
+}
+
+/* === Mobile swipe-to-reveal === */
+.swipeActions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-right: 6px;
+  gap: 4px;
+  z-index: 0;
+}
+
+.renameInput {
+  width: 100%;
+  background: rgba(15, 12, 33, 0.85);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  border-radius: 6px;
+  color: #f5f3ff;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.renameInput:focus {
+  border-color: rgba(167, 139, 250, 0.7);
 }
 
 .footer {
