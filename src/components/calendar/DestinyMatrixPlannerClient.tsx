@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import BrandSplash from '@/components/branding/BrandSplash'
 import DestinyMatrixPlanner from '@/components/calendar/DestinyMatrixPlanner'
 import { loadSharedBirthInfo } from '@/components/calendar/sharedBirthInfo'
 import type { BirthInfo, CalendarData } from '@/components/calendar/types'
@@ -193,19 +194,11 @@ export default function DestinyMatrixPlannerClient() {
   }, [birthInfo, fetchCalendar])
 
   if (!hasBirthInfo) {
-    return (
-      <div className="w-full max-w-md mx-auto h-screen bg-zinc-950 text-zinc-400 flex items-center justify-center">
-        홈으로 이동 중…
-      </div>
-    )
+    return <BrandSplash message="홈으로 이동 중…" />
   }
 
   if (loading) {
-    return (
-      <div className="w-full max-w-md mx-auto h-screen bg-zinc-950 text-zinc-400 flex items-center justify-center">
-        엔진 호출 중…
-      </div>
-    )
+    return <BrandSplash message="운명 흐름을 계산 중이에요" submessage="잠시만요…" />
   }
 
   if (error) {
