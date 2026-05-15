@@ -19,6 +19,10 @@ import {
   Wand2,
   ArrowRight,
   Users,
+  Coins,
+  Crown,
+  Receipt,
+  Gift,
 } from 'lucide-react'
 import AuthGate from '@/components/auth/AuthGate'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -68,6 +72,50 @@ interface HistoryRecord {
 interface DailyHistory {
   date: string
   records: HistoryRecord[]
+}
+
+type PlanId = 'free' | 'starter' | 'pro' | 'premium'
+
+interface CreditsResponse {
+  plan: PlanId
+  credits: {
+    monthly: number
+    used: number
+    bonus: number
+    remaining: number
+    total: number
+  }
+  compatibility: { used: number; limit: number; remaining: number }
+  followUp: { used: number; limit: number; remaining: number }
+  periodEnd: string | null
+  historyRetention: number
+}
+
+interface SubscriptionSummary {
+  status: string
+  plan: string
+  billingCycle: string | null
+  currentPeriodStart: string | null
+  currentPeriodEnd: string | null
+  cancelAtPeriodEnd: boolean
+  canceledAt: string | null
+  paymentMethod: string | null
+  createdAt: string
+}
+
+interface PurchaseRow {
+  id: string
+  createdAt: string
+  amount: number
+  remaining: number
+  expiresAt: string
+  expired: boolean
+  source: string
+}
+
+interface PurchasesResponse {
+  subscription: SubscriptionSummary | null
+  purchases: PurchaseRow[]
 }
 
 function classifyService(serviceId: string): {
@@ -132,6 +180,49 @@ function genderLabel(g: string | null | undefined, locale: Locale): string {
   return locale === 'ko' ? '미입력' : 'Not set'
 }
 
+const PLAN_DISPLAY: Record<PlanId, { ko: string; en: string; accent: string }> = {
+  free: { ko: 'Free', en: 'Free', accent: '#94a3b8' },
+  starter: { ko: 'Starter', en: 'Starter', accent: '#22d3ee' },
+  pro: { ko: 'Pro', en: 'Pro', accent: '#a78bfa' },
+  premium: { ko: 'Premium', en: 'Premium', accent: '#f59e0b' },
+}
+
+function planDisplay(plan: string, locale: Locale): { label: string; accent: string } {
+  const key = (plan as PlanId) in PLAN_DISPLAY ? (plan as PlanId) : 'free'
+  const entry = PLAN_DISPLAY[key]
+  return { label: locale === 'ko' ? entry.ko : entry.en, accent: entry.accent }
+}
+
+function formatDateOnly(iso: string | null | undefined, locale: Locale): string {
+  if (!iso) return locale === 'ko' ? '—' : '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+function purchaseSourceLabel(source: string, locale: Locale): string {
+  if (locale === 'en') {
+    const m: Record<string, string> = {
+      purchase: 'Purchased',
+      referral: 'Referral',
+      promotion: 'Promotion',
+      gift: 'Gift',
+    }
+    return m[source] ?? source
+  }
+  const m: Record<string, string> = {
+    purchase: '구매',
+    referral: '추천 보상',
+    promotion: '프로모션',
+    gift: '선물',
+  }
+  return m[source] ?? source
+}
+
 function relationLabel(r: string, locale: Locale): string {
   if (locale === 'en') {
     const m: Record<string, string> = {
@@ -160,6 +251,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<MeProfile | null>(null)
   const [circle, setCircle] = useState<SavedPerson[]>([])
   const [history, setHistory] = useState<DailyHistory[]>([])
+  const [credits, setCredits] = useState<CreditsResponse | null>(null)
+  const [purchases, setPurchases] = useState<PurchasesResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
   const [circleOpen, setCircleOpen] = useState(false)
@@ -167,23 +260,33 @@ export default function ProfilePage() {
   const loadAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [profileRes, circleRes, historyRes] = await Promise.all([
-        fetch('/api/me/profile').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/me/circle').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/me/history?limit=20').then((r) => (r.ok ? r.json() : null)),
-      ])
+      const [profileRes, circleRes, historyRes, creditsRes, purchasesRes] =
+        await Promise.all([
+          fetch('/api/me/profile').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/me/circle').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/me/history?limit=20').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/me/credits').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/me/purchases').then((r) => (r.ok ? r.json() : null)),
+        ])
 
       // /api/me/profile returns { user: {...} } directly (no envelope).
       if (profileRes?.user) setProfile(profileRes.user)
 
-      // /api/me/circle goes through withApiMiddleware, so the envelope is
-      // { success: true, data: { people, pagination } }.
-      const people =
-        circleRes?.data?.people || circleRes?.people || []
+      // The other endpoints all flow through withApiMiddleware, so the
+      // envelope is { success: true, data: {...} }.
+      const people = circleRes?.data?.people || circleRes?.people || []
       setCircle(Array.isArray(people) ? people : [])
 
       const days = historyRes?.data?.history || historyRes?.history || []
       setHistory(Array.isArray(days) ? days : [])
+
+      const cr = creditsRes?.data || creditsRes
+      if (cr && typeof cr === 'object' && 'plan' in cr) setCredits(cr as CreditsResponse)
+
+      const pr = purchasesRes?.data || purchasesRes
+      if (pr && typeof pr === 'object' && 'purchases' in pr) {
+        setPurchases(pr as PurchasesResponse)
+      }
     } catch (err) {
       logger.warn('[profile] load failed', err)
     } finally {
@@ -405,6 +508,237 @@ export default function ProfilePage() {
               )}
             </section>
 
+            {/* Credits */}
+            <section className="mt-7 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                  <Coins className="h-3.5 w-3.5" />
+                  {locale === 'ko' ? '크레딧' : 'Credits'}
+                </h2>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-1 text-[12px] text-slate-300 transition hover:text-white"
+                >
+                  {locale === 'ko' ? '크레딧 충전' : 'Top up'}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+
+              {loading ? (
+                <p className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-5 text-center text-[13px] text-slate-500">
+                  {locale === 'ko' ? '불러오는 중...' : 'Loading...'}
+                </p>
+              ) : !credits ? (
+                <p className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-5 text-center text-[13px] text-slate-500">
+                  {locale === 'ko' ? '크레딧 정보를 불러올 수 없어요' : 'Could not load credit info'}
+                </p>
+              ) : (
+                <>
+                  <div className="mt-4 flex items-end justify-between gap-4 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-amber-500/[0.08] to-fuchsia-500/[0.04] px-4 py-4">
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-amber-200/70">
+                        {locale === 'ko' ? '남은 크레딧' : 'Remaining'}
+                      </p>
+                      <p className="mt-1 text-[2rem] font-semibold leading-none text-white">
+                        {credits.credits.remaining}
+                      </p>
+                      <p className="mt-1.5 text-[11.5px] text-slate-400">
+                        {locale === 'ko'
+                          ? `이번 달 ${credits.credits.monthly} · 보너스 ${credits.credits.bonus}`
+                          : `Monthly ${credits.credits.monthly} · Bonus ${credits.credits.bonus}`}
+                      </p>
+                    </div>
+                    <div className="text-right text-[11px] text-slate-400">
+                      <p>{locale === 'ko' ? '다음 갱신' : 'Resets'}</p>
+                      <p className="mt-0.5 text-[12px] text-slate-200">
+                        {formatDateOnly(credits.periodEnd, locale)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2.5">
+                    <UsageMini
+                      label={locale === 'ko' ? '궁합 상담' : 'Compatibility'}
+                      used={credits.compatibility.used}
+                      limit={credits.compatibility.limit}
+                      accent="#fb7185"
+                    />
+                    <UsageMini
+                      label={locale === 'ko' ? '추가 질문' : 'Follow-ups'}
+                      used={credits.followUp.used}
+                      limit={credits.followUp.limit}
+                      accent="#22d3ee"
+                    />
+                  </div>
+                </>
+              )}
+            </section>
+
+            {/* Membership */}
+            <section className="mt-7 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                  <Crown className="h-3.5 w-3.5" />
+                  {locale === 'ko' ? '멤버십' : 'Membership'}
+                </h2>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-1 text-[12px] text-slate-300 transition hover:text-white"
+                >
+                  {credits?.plan && credits.plan !== 'free'
+                    ? locale === 'ko'
+                      ? '관리'
+                      : 'Manage'
+                    : locale === 'ko'
+                      ? '플랜 보기'
+                      : 'View plans'}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+
+              {loading ? (
+                <p className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-5 text-center text-[13px] text-slate-500">
+                  {locale === 'ko' ? '불러오는 중...' : 'Loading...'}
+                </p>
+              ) : (
+                <div className="mt-4 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const pd = planDisplay(credits?.plan ?? 'free', locale)
+                      return (
+                        <span
+                          className="rounded-full border px-3 py-1 text-[12px] font-semibold tracking-wide"
+                          style={{
+                            color: pd.accent,
+                            borderColor: `${pd.accent}55`,
+                            background: `${pd.accent}10`,
+                          }}
+                        >
+                          {pd.label}
+                        </span>
+                      )
+                    })()}
+                    {purchases?.subscription?.billingCycle && (
+                      <span className="text-[12px] text-slate-400">
+                        {purchases.subscription.billingCycle === 'annual'
+                          ? locale === 'ko'
+                            ? '연 결제'
+                            : 'Annual'
+                          : locale === 'ko'
+                            ? '월 결제'
+                            : 'Monthly'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-3 text-[12px]">
+                    <div>
+                      <p className="text-[10.5px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                        {locale === 'ko' ? '다음 갱신일' : 'Next renewal'}
+                      </p>
+                      <p className="mt-1 text-slate-200">
+                        {formatDateOnly(
+                          purchases?.subscription?.currentPeriodEnd ?? credits?.periodEnd,
+                          locale,
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10.5px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                        {locale === 'ko' ? '히스토리 보관' : 'History retention'}
+                      </p>
+                      <p className="mt-1 text-slate-200">
+                        {credits?.historyRetention
+                          ? `${credits.historyRetention}${locale === 'ko' ? '일' : ' days'}`
+                          : '—'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {purchases?.subscription?.cancelAtPeriodEnd && (
+                    <p className="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-[11.5px] text-amber-200">
+                      {locale === 'ko'
+                        ? '다음 갱신일에 멤버십이 종료됩니다.'
+                        : 'Membership will end at the next renewal date.'}
+                    </p>
+                  )}
+                </div>
+              )}
+            </section>
+
+            {/* Purchases */}
+            <section className="mt-7 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
+              <h2 className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                <Receipt className="h-3.5 w-3.5" />
+                {locale === 'ko' ? '구매 내역' : 'Purchase history'}
+              </h2>
+
+              {loading ? (
+                <p className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-5 text-center text-[13px] text-slate-500">
+                  {locale === 'ko' ? '불러오는 중...' : 'Loading...'}
+                </p>
+              ) : !purchases || purchases.purchases.length === 0 ? (
+                <div className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-6 text-center">
+                  <p className="text-[14px] text-slate-300">
+                    {locale === 'ko' ? '아직 구매 내역이 없어요' : 'No purchases yet'}
+                  </p>
+                  <p className="mt-1 text-[12px] text-slate-500">
+                    {locale === 'ko'
+                      ? '추천 보상이나 프로모션 크레딧도 여기에 표시돼요'
+                      : 'Referral and promotion credits will also show up here'}
+                  </p>
+                </div>
+              ) : (
+                <ul className="mt-4 space-y-2">
+                  {purchases.purchases.map((p) => {
+                    const isPaid = p.source === 'purchase'
+                    return (
+                      <li
+                        key={p.id}
+                        className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-3.5 py-3"
+                      >
+                        <div
+                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
+                          style={{
+                            background: isPaid ? '#a78bfa1f' : '#22d3ee1f',
+                            color: isPaid ? '#a78bfa' : '#22d3ee',
+                          }}
+                        >
+                          {isPaid ? (
+                            <Coins className="h-4 w-4" />
+                          ) : (
+                            <Gift className="h-4 w-4" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="flex items-center gap-1.5 truncate text-[13.5px] font-medium text-white">
+                            +{p.amount} {locale === 'ko' ? '크레딧' : 'credits'}
+                            <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[10.5px] font-normal uppercase tracking-wider text-slate-300">
+                              {purchaseSourceLabel(p.source, locale)}
+                            </span>
+                          </p>
+                          <p className="mt-0.5 truncate text-[11.5px] text-slate-500">
+                            {formatDateOnly(p.createdAt, locale)} ·{' '}
+                            {p.expired
+                              ? locale === 'ko'
+                                ? '만료됨'
+                                : 'expired'
+                              : `${locale === 'ko' ? '남은' : 'remaining'} ${p.remaining}`}
+                          </p>
+                        </div>
+                        {!p.expired && (
+                          <span className="flex-shrink-0 text-[11px] text-slate-500">
+                            {locale === 'ko' ? '만료' : 'exp'}{' '}
+                            {formatDateOnly(p.expiresAt, locale)}
+                          </span>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </section>
+
             {/* Recent activity */}
             <section className="mt-7 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
               <div className="flex items-center justify-between">
@@ -518,6 +852,40 @@ export default function ProfilePage() {
         />
       </div>
     </AuthGate>
+  )
+}
+
+function UsageMini({
+  label,
+  used,
+  limit,
+  accent,
+}: {
+  label: string
+  used: number
+  limit: number
+  accent: string
+}) {
+  // limit === -1 is the "unlimited" sentinel in PLAN_CONFIG.
+  const unlimited = limit < 0
+  const pct = unlimited ? 0 : limit === 0 ? 0 : Math.min(100, Math.round((used / limit) * 100))
+  return (
+    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-3">
+      <p className="text-[10.5px] font-medium uppercase tracking-[0.18em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 text-[13px] text-white">
+        {unlimited ? `${used} / ∞` : `${used} / ${limit}`}
+      </p>
+      {!unlimited && limit > 0 && (
+        <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+          <div
+            className="h-full rounded-full transition-all"
+            style={{ width: `${pct}%`, background: accent }}
+          />
+        </div>
+      )}
+    </div>
   )
 }
 
