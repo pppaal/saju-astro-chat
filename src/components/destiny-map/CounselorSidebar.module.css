@@ -231,6 +231,20 @@
   padding-right: 6px;
   gap: 4px;
   z-index: 0;
+  /* `.sessionItem` sits in-flow above this layer with a transparent
+     background, which made these icons visible at all times and let
+     accidental taps fall through to the underlying Link (the user
+     would press the trash and instead navigate to that session).
+     Keep the layer in the DOM for the swipe animation, but hide it
+     until the row's `aria-hidden` flips to "false" on swipe. */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.swipeActions[aria-hidden='false'] {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .renameInput {

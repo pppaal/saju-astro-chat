@@ -59,6 +59,7 @@ export default function CounselorPage() {
     chatSessionId,
     handleSaveMessage,
     parsedParams,
+    profileLoading,
   } = useCounselorData(counselorSearchParams)
 
   const {
@@ -85,6 +86,13 @@ export default function CounselorPage() {
   const handleChatReset = useCallback(() => {
     setChatResetKey((k) => k + 1)
   }, [])
+
+  // Don't flash the gate while the profile fallback is loading — the
+  // user may have valid birth info on their profile that we haven't
+  // fetched yet.
+  if (profileLoading) {
+    return <main className={styles.page} />
+  }
 
   if (!birthDate || !birthTime) {
     return (
