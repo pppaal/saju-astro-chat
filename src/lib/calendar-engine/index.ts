@@ -28,6 +28,8 @@ import astroReturnExtractor from './extractors/astro-return'
 import astroProgressionExtractor from './extractors/astro-progression'
 import astroPlanetaryHourExtractor from './extractors/astro-planetary-hour'
 import astroElectionalExtractor from './extractors/astro-electional'
+import astroDignityExtractor from './extractors/astro-dignity'
+import astroMoonNodesExtractor from './extractors/astro-moon-nodes'
 
 // derivers
 import { deriveScore } from './derivers/score'
@@ -89,7 +91,7 @@ function getRegisteredExtractors(): SignalExtractor[] {
     sajuYongsinExtractor,
     sajuPatternExtractor,
 
-    // ── astro (11) ──
+    // ── astro (13) ──
     astroTransitExtractor,
     astroEclipseExtractor,
     astroProfectionExtractor,
@@ -101,6 +103,8 @@ function getRegisteredExtractors(): SignalExtractor[] {
     astroProgressionExtractor,
     astroPlanetaryHourExtractor,
     astroElectionalExtractor,
+    astroDignityExtractor,
+    astroMoonNodesExtractor,
   ]
 }
 
