@@ -1,6 +1,6 @@
 /**
  * Comprehensive tests for Referral API Routes
- * Tests /claim, /link, /validate, /stats endpoints with authentication and rate limiting
+ * Tests /claim, /stats endpoints with authentication and rate limiting
  */
 
 import { vi } from 'vitest'
@@ -9,8 +9,6 @@ import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/db/prisma'
 import {
   claimReferralReward,
-  linkReferrer,
-  findUserByReferralCode,
   getReferralStats,
 } from '@/lib/referral'
 
@@ -49,8 +47,6 @@ vi.mock('@/lib/db/prisma', () => ({
 }))
 vi.mock('@/lib/referral', () => ({
   claimReferralReward: vi.fn(),
-  linkReferrer: vi.fn(),
-  findUserByReferralCode: vi.fn(),
   getReferralStats: vi.fn(),
 }))
 
@@ -132,11 +128,10 @@ vi.mock('@/lib/api/middleware', () => ({
         )
       }
 
-      // Check if auth is required - claim, link, stats require auth; validate does not
+      // Check if auth is required - claim, stats require auth
       const requiresAuth =
         _options?.requireAuth !== false &&
         (_options?.route?.includes('claim') ||
-          _options?.route?.includes('link') ||
           _options?.route?.includes('stats') ||
           _options?.requireAuth === true)
 
@@ -308,246 +303,6 @@ describe('Referral API Routes', () => {
     })
   })
 
-  describe('POST /api/referral/link', () => {
-    it('should link referral code successfully', async () => {
-      const mockUser = {
-        referrerId: null,
-        createdAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-      }
-
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
-      ;(linkReferrer as ReturnType<typeof vi.fn>).mockResolvedValue({
-        success: true,
-        referrerId: 'referrer_123',
-      })
-
-      const { POST } = await import('@/app/api/referral/link/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({ referralCode: 'TEST1234' }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(data.data.linked).toBe(true)
-      expect(data.data.referrerId).toBe('referrer_123')
-    })
-
-    it('should return 401 when not authenticated', async () => {
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(null)
-
-      const { POST } = await import('@/app/api/referral/link/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({ referralCode: 'TEST1234' }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(data.error.code).toBe('UNAUTHORIZED')
-      expect(response.status).toBe(401)
-    })
-
-    it('should return 422 when referral code missing', async () => {
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-
-      const { POST } = await import('@/app/api/referral/link/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(data.error.code).toBe('VALIDATION_ERROR')
-      expect(response.status).toBe(422)
-    })
-
-    it('should reject when already linked', async () => {
-      const mockUser = {
-        referrerId: 'existing_referrer',
-        createdAt: new Date(),
-      }
-
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
-
-      const { POST } = await import('@/app/api/referral/link/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({ referralCode: 'TEST1234' }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(data.data.linked).toBe(false)
-      expect(data.data.reason).toBe('already_linked')
-    })
-
-    it('should reject after 24 hours', async () => {
-      const mockUser = {
-        referrerId: null,
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 25), // 25 hours ago
-      }
-
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
-
-      const { POST } = await import('@/app/api/referral/link/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({ referralCode: 'TEST1234' }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(data.data.linked).toBe(false)
-      expect(data.data.reason).toBe('too_late')
-    })
-
-    it('should handle link errors', async () => {
-      const mockUser = {
-        referrerId: null,
-        createdAt: new Date(),
-      }
-
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
-      ;(linkReferrer as ReturnType<typeof vi.fn>).mockResolvedValue({
-        success: false,
-        error: 'invalid_code',
-      })
-
-      const { POST } = await import('@/app/api/referral/link/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({ referralCode: 'INVALID' }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(data.data.linked).toBe(false)
-      expect(data.data.reason).toBe('invalid_code')
-    })
-
-    it('should handle self-referral attempt', async () => {
-      const mockUser = {
-        referrerId: null,
-        createdAt: new Date(),
-      }
-
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
-      ;(linkReferrer as ReturnType<typeof vi.fn>).mockResolvedValue({
-        success: false,
-        error: 'self_referral',
-      })
-
-      const { POST } = await import('@/app/api/referral/link/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({ referralCode: 'SELF1234' }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(data.data.linked).toBe(false)
-      expect(data.data.reason).toBe('self_referral')
-    })
-  })
-
-  describe('GET /api/referral/validate', () => {
-    it('should validate correct referral code', async () => {
-      ;(findUserByReferralCode as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: 'user_123',
-        name: 'Test User',
-        referralCode: 'VALID123',
-      })
-
-      const { GET } = await import('@/app/api/referral/validate/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/validate?code=VALID123')
-
-      const response = await GET(request)
-      const data = await response.json()
-
-      expect(data.data.valid).toBe(true)
-      expect(data.data.referrerName).toBe('Test User')
-    })
-
-    it('should handle invalid code', async () => {
-      ;(findUserByReferralCode as ReturnType<typeof vi.fn>).mockResolvedValue(null)
-
-      const { GET } = await import('@/app/api/referral/validate/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/validate?code=INVALID')
-
-      const response = await GET(request)
-      const data = await response.json()
-
-      expect(data.data.valid).toBe(false)
-      expect(data.data.error).toBe('invalid_code')
-    })
-
-    it('should return error when code missing', async () => {
-      const { GET } = await import('@/app/api/referral/validate/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/validate')
-
-      const response = await GET(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(422)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
-    })
-
-    it('should use default name when referrer has no name', async () => {
-      ;(findUserByReferralCode as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: 'user_123',
-        name: null,
-        referralCode: 'VALID123',
-      })
-
-      const { GET } = await import('@/app/api/referral/validate/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/validate?code=VALID123')
-
-      const response = await GET(request)
-      const data = await response.json()
-
-      expect(data.data.valid).toBe(true)
-      expect(data.data.referrerName).toBe('Friend')
-    })
-
-    it('should be rate limited', async () => {
-      // Rate limit: 20 req / 60 sec
-      const { GET } = await import('@/app/api/referral/validate/route')
-
-      // This would normally trigger rate limiting after 20 requests
-      // Testing the middleware options are set correctly
-      expect(GET).toBeDefined()
-    })
-
-    it('should not require authentication', async () => {
-      ;(findUserByReferralCode as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: 'user_123',
-        name: 'Public User',
-        referralCode: 'PUBLIC12',
-      })
-
-      const { GET } = await import('@/app/api/referral/validate/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/validate?code=PUBLIC12')
-
-      const response = await GET(request)
-
-      expect(response.status).toBe(200)
-      // Should work without session
-    })
-  })
 
   describe('GET /api/referral/stats', () => {
     it('should return referral statistics', async () => {
@@ -646,160 +401,6 @@ describe('Referral API Routes', () => {
 
       expect(response.status).toBe(500)
       expect(data.error.message).toContain('Failed to fetch')
-    })
-  })
-
-  describe('Security & Edge Cases', () => {
-    it('should prevent SQL injection in referral code', async () => {
-      const maliciousCode = "'; DROP TABLE users; --"
-
-      ;(findUserByReferralCode as ReturnType<typeof vi.fn>).mockResolvedValue(null)
-
-      const { GET } = await import('@/app/api/referral/validate/route')
-      const request = new NextRequest(
-        `http://localhost:3000/api/referral/validate?code=${encodeURIComponent(maliciousCode)}`
-      )
-
-      const response = await GET(request)
-      const data = await response.json()
-
-      expect(data.data.valid).toBe(false)
-    })
-
-    it('should handle very long referral codes', async () => {
-      const longCode = 'A'.repeat(1000)
-
-      // Long code exceeds 50 chars, so Zod validation fails
-      const { GET } = await import('@/app/api/referral/validate/route')
-      const request = new NextRequest(
-        `http://localhost:3000/api/referral/validate?code=${longCode}`
-      )
-
-      const response = await GET(request)
-      const data = await response.json()
-
-      // Zod validation rejects codes > 50 chars with VALIDATION_ERROR
-      expect(response.status).toBe(422)
-    })
-
-    it('should handle Unicode in referral codes', async () => {
-      const unicodeCode = '\uC548\uB155\uD558\uC138\uC694'
-
-      ;(findUserByReferralCode as ReturnType<typeof vi.fn>).mockResolvedValue(null)
-
-      const { GET } = await import('@/app/api/referral/validate/route')
-      const request = new NextRequest(
-        `http://localhost:3000/api/referral/validate?code=${encodeURIComponent(unicodeCode)}`
-      )
-
-      const response = await GET(request)
-      const data = await response.json()
-
-      expect(data.data.valid).toBe(false)
-    })
-
-    it('should handle case sensitivity correctly', async () => {
-      // Codes should be case-insensitive (converted to uppercase)
-      ;(findUserByReferralCode as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: 'user_123',
-        name: 'User',
-        referralCode: 'ABC12345',
-      })
-
-      const { GET } = await import('@/app/api/referral/validate/route')
-      const request = new NextRequest('http://localhost:3000/api/referral/validate?code=abc12345')
-
-      const response = await GET(request)
-
-      // Should match regardless of case
-      expect(findUserByReferralCode).toHaveBeenCalled()
-    })
-
-    it('should handle concurrent link attempts', async () => {
-      const mockUser = {
-        referrerId: null,
-        createdAt: new Date(),
-      }
-
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
-      ;(linkReferrer as ReturnType<typeof vi.fn>).mockResolvedValue({
-        success: true,
-        referrerId: 'referrer_123',
-      })
-
-      const { POST } = await import('@/app/api/referral/link/route')
-      // Use separate Request objects with their own bodies
-      const request1 = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({ referralCode: 'TEST1234' }),
-      })
-      const request2 = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({ referralCode: 'TEST1234' }),
-      })
-
-      // Run sequentially since Request body can only be consumed once per fetch spec
-      const response1 = await POST(request1)
-      const response2 = await POST(request2)
-
-      expect(response1.status).toBeLessThanOrEqual(500)
-      expect(response2.status).toBeLessThanOrEqual(500)
-      // At least one should succeed
-      expect(response1.status === 200 || response2.status === 200).toBe(true)
-    })
-  })
-
-  describe('Integration Scenarios', () => {
-    it('should handle complete referral workflow', async () => {
-      // 1. Validate code before signup
-      ;(findUserByReferralCode as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: 'referrer_123',
-        name: 'Referrer',
-        referralCode: 'FLOW1234',
-      })
-
-      const { GET: validateGET } = await import('@/app/api/referral/validate/route')
-      const validateReq = new NextRequest(
-        'http://localhost:3000/api/referral/validate?code=FLOW1234'
-      )
-      const validateRes = await validateGET(validateReq)
-      const validateData = await validateRes.json()
-      expect(validateData.data.valid).toBe(true)
-
-      // 2. Link after signup
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-        referrerId: null,
-        createdAt: new Date(),
-      })
-      ;(linkReferrer as ReturnType<typeof vi.fn>).mockResolvedValue({
-        success: true,
-        referrerId: 'referrer_123',
-      })
-
-      const { POST: linkPOST } = await import('@/app/api/referral/link/route')
-      const linkReq = new NextRequest('http://localhost:3000/api/referral/link', {
-        method: 'POST',
-        body: JSON.stringify({ referralCode: 'FLOW1234' }),
-      })
-      const linkRes = await linkPOST(linkReq)
-      const linkData = await linkRes.json()
-      expect(linkData.data.linked).toBe(true)
-
-      // 3. Claim reward after first analysis
-      ;(claimReferralReward as ReturnType<typeof vi.fn>).mockResolvedValue({
-        success: true,
-        creditsAwarded: 5,
-      })
-
-      const { POST: claimPOST } = await import('@/app/api/referral/claim/route')
-      const claimReq = new NextRequest('http://localhost:3000/api/referral/claim', {
-        method: 'POST',
-      })
-      const claimRes = await claimPOST(claimReq)
-      const claimData = await claimRes.json()
-      expect(claimData.data.claimed).toBe(true)
     })
   })
 })
