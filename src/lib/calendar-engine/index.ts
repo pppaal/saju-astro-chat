@@ -14,6 +14,9 @@ import sajuShinsalExtractor from './extractors/saju-shinsal'
 import sajuPillarExtractor from './extractors/saju-pillar'
 import sajuHyeongchungExtractor from './extractors/saju-hyeongchung'
 import sajuTonggeunExtractor from './extractors/saju-tonggeun'
+import sajuTwelveStageExtractor from './extractors/saju-twelve-stage'
+import sajuYongsinExtractor from './extractors/saju-yongsin'
+import sajuPatternExtractor from './extractors/saju-pattern'
 import astroTransitExtractor from './extractors/astro-transit'
 import astroEclipseExtractor from './extractors/astro-eclipse'
 import astroProfectionExtractor from './extractors/astro-profection'
@@ -30,6 +33,7 @@ import astroElectionalExtractor from './extractors/astro-electional'
 import { deriveScore } from './derivers/score'
 import { deriveThemeScores } from './derivers/themeScores'
 import { deriveTopReasons } from './derivers/summary'
+import { derivePatterns } from './derivers/patterns'
 
 /**
  * 캘린더 엔진 진입점.
@@ -76,12 +80,14 @@ export async function buildCalendar(
  */
 function getRegisteredExtractors(): SignalExtractor[] {
   return [
-    // ── saju (4) ──
+    // ── saju (7) ──
     sajuShinsalExtractor,
     sajuPillarExtractor,
     sajuHyeongchungExtractor,
     sajuTonggeunExtractor,
-    // TODO: saju-pattern (격국 컨텍스트화)
+    sajuTwelveStageExtractor,
+    sajuYongsinExtractor,
+    sajuPatternExtractor,
 
     // ── astro (11) ──
     astroTransitExtractor,
@@ -134,12 +140,12 @@ function groupIntoCells(
     }
   }
 
-  // derivers — 점수·테마점수·요약 계산 (점수는 부산물)
+  // derivers — 점수·테마점수·패턴·요약 계산 (점수는 부산물)
   for (const cell of cells.values()) {
     cell.derivedScore = deriveScore(cell.signals)
     cell.themeScores = deriveThemeScores(cell.signals)
+    cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(cell.signals)
     cell.topReasons = deriveTopReasons(cell.signals)
-    // TODO: matchedPatterns — 별도 wave에서 추가
   }
 
   return Array.from(cells.values()).sort((a, b) => a.datetime.localeCompare(b.datetime))
