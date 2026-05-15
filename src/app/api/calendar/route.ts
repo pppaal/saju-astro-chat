@@ -1280,6 +1280,8 @@ export const GET = withApiMiddleware(
             themes: p.themes,
             strength: p.strength,
             description: p.description,
+            headline: p.headline,
+            action: p.action,
           }))
         }
         if (cell.signals.length > 0) {

@@ -50,7 +50,8 @@ export function deriveScore(signals: ActiveSignal[], patterns: SignalPattern[] =
   if (totalWeight === 0) return 50
 
   const grandAvg = weightedSum / totalWeight   // -3 ~ +3
-  let score = 50 + grandAvg * 12   // 압축 완화 (이전 tanh×40 → 선형 ×12)
+  let score = 50 + grandAvg * 16   // 분포 넓힘 (이전 ×12 → ×16)
+                                   // 이론적 max 98, min 2 — 실제로 20~85 정도
 
   // 공명 보너스
   if (positiveLayers.length >= 3) score += 4

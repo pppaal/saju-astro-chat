@@ -16,7 +16,12 @@ interface PatternRule {
   name: string
   themes: AstroThemeKey[]
   match: (signals: ActiveSignal[]) => { matched: boolean; strength: number; matchedIds: string[] }
+  /** 근거 한 줄 — 어떤 신호 조합인지 */
   description?: string
+  /** 사용자 액션 추천 — 발동 시 "이 날엔 X 하세요" */
+  action?: string
+  /** UI 헤드라인 — "오늘은 ... 발동일!" */
+  headline?: string
 }
 
 // 트리거 = 일별 차이를 만드는 레이어 (그 날만 활성)
@@ -33,7 +38,9 @@ const RULES: PatternRule[] = [
     id: 'wealth-golden-week',
     name: '재물 황금주간',
     themes: ['money', 'business'],
-    description: '일진·월운 재성 + 길성 트랜짓 peak + 용신 정렬',
+    headline: '오늘은 재물 흐름이 두텁게 들어오는 날',
+    description: '일진 재성 + 길성 트랜짓 peak가 동시에 들어옴',
+    action: '투자·계약·큰 결정·재정 정리에 우호적. 미뤘던 돈 관련 일을 처리하기 좋음.',
     match(signals) {
       // 트리거: transient 레이어 재성만 카운트
       const wealthTransient = signals.filter((s) =>
@@ -74,12 +81,13 @@ const RULES: PatternRule[] = [
   },
 
   // ─── 2. 연애·도화 트리거 ───
-  // 트리거: 일진에 도화/홍염 신살 + 그 날 Venus 트랜짓 peak
   {
     id: 'romance-trigger',
     name: '도화·연애 트리거',
     themes: ['love'],
+    headline: '오늘은 인연이 가까이 오는 날',
     description: '일진 도화/홍염 + Venus 트랜짓 peak',
+    action: '소개 자리·모임·연락 시도가 우호적. 평소 어울리지 않는 곳에서 새 인연 가능.',
     match(signals) {
       // 도화·홍염은 일진 단위로만 (shinsal 추출기는 daily 레이어)
       const dohwaTransient = signals.filter((s) =>
@@ -106,12 +114,13 @@ const RULES: PatternRule[] = [
   },
 
   // ─── 3. 흉살 집중일 ───
-  // 트리거: 그 날 transient 흉신호 5+ 개 + 평균 강도
   {
     id: 'shadow-cluster',
     name: '흉살 집중일',
     themes: ['crisis'],
-    description: '일진 흉신호 5+ 발동 + 평균 polarity ≤ -1.5',
+    headline: '오늘은 신중 모드 — 큰 결정 미루기',
+    description: '일진에 강한 흉신호 4+개 발동',
+    action: '큰 결정·계약·이동·새 시작은 길일로 미루기. 일상 루틴 유지에 집중.',
     match(signals) {
       // transient 흉신호만 카운트 — decadal 흉 신호 매일 동일이라 제외
       const bad = signals.filter((s) =>
@@ -128,48 +137,19 @@ const RULES: PatternRule[] = [
     },
   },
 
-  // ─── 4. 5층 정렬 (공명) ───
-  // 트리거: 4개 레이어 모두 강한 동방향 (이미 layer-wide 검사라 OK)
-  {
-    id: 'five-layer-resonance',
-    name: '5층 정렬',
-    themes: [],
-    description: '대운·세운·월운·일진 모두 강한 동방향',
-    match(signals) {
-      const layers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily']
-      const layerPolarities = new Map<SignalLayer, number[]>()
-      for (const s of signals) {
-        if (!layers.includes(s.layer)) continue
-        const arr = layerPolarities.get(s.layer) ?? []
-        arr.push(s.polarity * s.weight)
-        layerPolarities.set(s.layer, arr)
-      }
-      const layerAvgs: Record<string, number> = {}
-      for (const l of layers) {
-        const arr = layerPolarities.get(l) ?? []
-        layerAvgs[l] = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
-      }
-      const positiveLayers = layers.filter((l) => layerAvgs[l] >= 1.0)
-      const negativeLayers = layers.filter((l) => layerAvgs[l] <= -1.0)
-      if (positiveLayers.length < 4 && negativeLayers.length < 4) {
-        return { matched: false, strength: 0, matchedIds: [] }
-      }
-      const dominant = positiveLayers.length >= 4 ? 'positive' : 'negative'
-      const matched = signals.filter((s) =>
-        layers.includes(s.layer) &&
-        (dominant === 'positive' ? s.polarity >= 2 : s.polarity <= -2),
-      )
-      return { matched: true, strength: 95, matchedIds: matched.map((s) => s.id) }
-    },
-  },
+  // ─── 4. (제거) 5층 정렬 ───
+  // 의도: 大運+歲運+月運+日辰 모두 동방향이면 강력 정렬.
+  // 실제: 거의 매칭 안 됨 (1년에 0~2회). 가치 대비 노이즈 큼.
+  //   → 제거. 매칭 신호 다발 자체로 충분.
 
   // ─── 5. 천을귀인 + 길성 트라인 ───
-  // 이미 daily 신살 + transit이라 transient OK
   {
     id: 'noble-fortune',
-    name: '귀인 강림 (Noble Fortune)',
+    name: '귀인 강림',
     themes: ['career', 'reputation', 'crisis'],
+    headline: '오늘은 도움 받기 좋은 날',
     description: '천을귀인 일진 + 길성 트라인',
+    action: '부탁·조언·중요한 만남 — 평소 멀어진 인맥에 먼저 연락하기 좋음.',
     match(signals) {
       const noble = signals.find((s) =>
         isTrigger(s) && s.evidence.shinsalName === '천을귀인',
@@ -187,14 +167,13 @@ const RULES: PatternRule[] = [
   },
 
   // ─── 6. 라이프 챕터 전환점 ───
-  // 트리거: 라이프사이클·ZR은 본질적으로 long-term. 이 패턴은 "월 1회"가 맞음.
-  //   → 트리거 조건을 daily 외행성 트랜짓 peak로 한정.
-  //   → lifecycle/ZR은 배경 보너스만.
   {
     id: 'life-chapter-shift',
     name: '인생 챕터 전환',
     themes: ['personality', 'spirituality'],
+    headline: '인생 큰 흐름의 전환점',
     description: '외행성 트랜짓 peak + 라이프사이클·ZR 배경',
+    action: '큰 그림을 다시 그리기 좋음. 작은 일에 매이지 말고 방향성 점검.',
     match(signals) {
       // 트리거: 외행성 트랜짓 peak (orb ≤ 2°)만
       const slowTransitPeak = signals.find((s) =>
@@ -231,6 +210,8 @@ export function derivePatterns(signals: ActiveSignal[]): SignalPattern[] {
       matchedSignalIds: result.matchedIds,
       strength: result.strength,
       description: rule.description,
+      headline: rule.headline,
+      action: rule.action,
     })
   }
   return matched

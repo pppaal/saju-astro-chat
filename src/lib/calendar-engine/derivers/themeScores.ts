@@ -31,8 +31,8 @@ export function deriveThemeScores(signals: ActiveSignal[]): Partial<Record<Astro
   for (const [theme, b] of buckets) {
     if (b.weight === 0) continue
     const avg = b.sum / b.weight
-    // 압축 완화 — score deriver와 동일한 선형 매핑
-    result[theme] = Math.max(0, Math.min(100, Math.round(50 + avg * 12)))
+    // 분포 넓힘 — score deriver와 동일한 ×16 매핑
+    result[theme] = Math.max(0, Math.min(100, Math.round(50 + avg * 16)))
   }
   return result
 }

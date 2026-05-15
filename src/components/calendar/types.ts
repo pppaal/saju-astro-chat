@@ -186,6 +186,8 @@ export interface ImportantDate {
     themes: string[]
     strength: number
     description?: string
+    headline?: string
+    action?: string
   }>
   /** 활성 신호 다발 — 사주·점성 모든 추출기 결과 */
   engineSignals?: Array<{

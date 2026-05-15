@@ -100,7 +100,11 @@ export interface SignalPattern {
   themes: AstroThemeKey[]
   matchedSignalIds: string[]
   strength: number              // 0~100
-  description?: string
+  description?: string          // 근거 (어떤 신호 조합에서 나온 패턴)
+  /** 사용자한테 보여줄 한 줄 액션 추천 */
+  action?: string
+  /** 패턴 발동 강조 — UI에서 "오늘 발동!" 형식으로 노출 */
+  headline?: string
 }
 
 // ============================================================================

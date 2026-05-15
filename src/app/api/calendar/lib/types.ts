@@ -86,6 +86,8 @@ export interface FormattedDate {
     themes: string[]
     strength: number
     description?: string
+    headline?: string
+    action?: string
   }>
   engineSignals?: Array<{
     id: string
