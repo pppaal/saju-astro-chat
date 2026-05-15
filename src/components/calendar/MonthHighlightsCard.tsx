@@ -2,7 +2,7 @@
 
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import type { ImportantDate } from './types'
-import { getScoreGrade } from './scoreGrade'
+import { getGrade, type GradeThresholds } from './scoreGrade'
 
 interface Props {
   /** 그 달의 모든 ImportantDate (calendar-engine 점수 포함) */
@@ -11,6 +11,8 @@ interface Props {
   onDayClick: (day: number) => void
   /** 표시할 상위/하위 개수 (기본 5) */
   topN?: number
+  /** 사용자의 1년 분포 기반 임계값 (없으면 폴백) */
+  gradeThresholds?: GradeThresholds
 }
 
 /**
@@ -20,7 +22,7 @@ interface Props {
  * 점수는 cell.derivedScore 우선 (engine v2). 없으면 displayScore.
  * 핵심 사유는 matchedPatterns[0].name 우선, 없으면 topReasons / sajuFactors.
  */
-export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 5 }: Props) {
+export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 5, gradeThresholds }: Props) {
   if (monthDates.length === 0) return null
 
   const ranked = monthDates
@@ -53,6 +55,7 @@ export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 5 }
                   rank={i + 1}
                   importantDate={item.date}
                   score={item.score}
+                  thresholds={gradeThresholds}
                   onClick={() => onDayClick(parseDay(item.date.date))}
                 />
               ))
@@ -76,6 +79,7 @@ export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 5 }
                   rank={i + 1}
                   importantDate={item.date}
                   score={item.score}
+                  thresholds={gradeThresholds}
                   onClick={() => onDayClick(parseDay(item.date.date))}
                 />
               ))
@@ -91,11 +95,12 @@ interface DayRowProps {
   rank: number
   importantDate: ImportantDate
   score: number
+  thresholds?: GradeThresholds
   onClick: () => void
 }
 
-function DayRow({ rank, importantDate, score, onClick }: DayRowProps) {
-  const grade = getScoreGrade(score)
+function DayRow({ rank, importantDate, score, thresholds, onClick }: DayRowProps) {
+  const grade = getGrade(score, thresholds)
   const day = parseDay(importantDate.date)
   // reason 방향이 점수와 일치해야 자연스러움 (길일에 흉신호 사유 안 나오게)
   const direction: 'positive' | 'negative' = score >= 50 ? 'positive' : 'negative'

@@ -44,7 +44,7 @@ import { useDateDetail } from './useDateDetail'
 import MatchedPatternsCard from './MatchedPatternsCard'
 import ActiveSignalsList from './ActiveSignalsList'
 import MonthHighlightsCard from './MonthHighlightsCard'
-import { getScoreGrade } from './scoreGrade'
+import { getGrade, computeGradeThresholds } from './scoreGrade'
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -162,6 +162,13 @@ export default function DestinyMatrixPlanner({
     if (monthDates.length === 0) return 84 // mock fallback
     return Math.round(avg(monthDates.map(pickFinalScore)))
   }, [monthDates])
+
+  // 사용자 분포 기반 등급 임계값 (1년치 → 상위/하위 20%).
+  // allDates 없으면 fallback 임계값으로 자동 폴백.
+  const gradeThresholds = useMemo(
+    () => computeGradeThresholds((data?.allDates ?? []).map(pickFinalScore)),
+    [data?.allDates],
+  )
 
   const phaseLabel =
     data?.matrixContract?.overallPhaseLabel ?? data?.matrixContract?.overallPhase ?? null
@@ -669,7 +676,11 @@ export default function DestinyMatrixPlanner({
               </div>
 
               {/* ── calendar-engine v2: 길일/흉일 TOP 5 ── */}
-              <MonthHighlightsCard monthDates={monthDates} onDayClick={handleDayClick} />
+              <MonthHighlightsCard
+                monthDates={monthDates}
+                onDayClick={handleDayClick}
+                gradeThresholds={gradeThresholds}
+              />
             </motion.div>
           )}
 
@@ -719,17 +730,22 @@ export default function DestinyMatrixPlanner({
                 </div>
               )}
 
-              <div className="grid grid-cols-5 gap-4">
-                <div
-                  className={`col-span-2 p-4 rounded-2xl border flex flex-col items-center justify-center text-center shadow-lg ${getScoreGrade(dailyIndices.score).bgClass} ${getScoreGrade(dailyIndices.score).borderClass}`}
-                >
-                  <span className="text-[10px] font-bold text-zinc-400 mb-1 tracking-widest">오늘의 흐름</span>
-                  <span className={`text-4xl font-black ${getScoreGrade(dailyIndices.score).colorClass} leading-none`}>
-                    {getScoreGrade(dailyIndices.score).label}
-                  </span>
-                  <span className="text-[10px] text-zinc-500 mt-1">{getScoreGrade(dailyIndices.score).sub}</span>
-                  <span className="text-[10px] text-zinc-600 mt-2 font-mono">score {dailyIndices.score}</span>
-                </div>
+              {(() => {
+                const todayGrade = getGrade(dailyIndices.score, gradeThresholds)
+                return (
+                  <div className="grid grid-cols-5 gap-4">
+                    <div
+                      className={`col-span-2 p-4 rounded-2xl border flex flex-col items-center justify-center text-center shadow-lg ${todayGrade.bgClass} ${todayGrade.borderClass}`}
+                    >
+                      <span className="text-[10px] font-bold text-zinc-400 mb-1 tracking-widest">오늘의 흐름</span>
+                      <span className={`text-4xl font-black ${todayGrade.colorClass} leading-none`}>
+                        {todayGrade.label}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 mt-1">{todayGrade.sub}</span>
+                      <span className="text-[10px] text-zinc-600 mt-2 font-mono">
+                        score {dailyIndices.score} · 임계 {gradeThresholds.unluckyMax}/{gradeThresholds.luckyMin}
+                      </span>
+                    </div>
 
                 <div className="col-span-3 bg-zinc-900/60 p-4 rounded-2xl border border-white/5 flex flex-col justify-center space-y-3">
                   <div>
@@ -782,6 +798,7 @@ export default function DestinyMatrixPlanner({
                   </div>
                 </div>
               </div>
+              )})()}
 
               {/* Engine self-diagnostic */}
               {dailyEngineSignal && (
