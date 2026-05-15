@@ -83,28 +83,8 @@ test.describe('Tarot Flow', () => {
     }
   })
 
-  test('should load love category with content', async ({ page }) => {
-    await page.goto('/tarot/love', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-
-    const hasLoveContent =
-      bodyText!.includes('연애') ||
-      bodyText!.includes('사랑') ||
-      bodyText!.includes('Love') ||
-      bodyText!.includes('타로')
-    expect(hasLoveContent).toBe(true)
-  })
-
-  test('should load career category with content', async ({ page }) => {
-    await page.goto('/tarot/career', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
+  // /tarot/love + /tarot/career 같은 카테고리 경로는 PR #150 에서 제거됨 (정통 4 스프레드로 축소).
+  // 카테고리 단위 테스트는 tarot-classic-flow.spec.ts 에 4 스프레드 라우트 검증으로 대체.
 })
 
 test.describe('Dream Interpretation Flow', () => {

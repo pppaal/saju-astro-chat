@@ -11,6 +11,7 @@ import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
+import { getZodiacSign } from '@/lib/tarot/zodiacSign'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
@@ -111,74 +112,7 @@ function streamJsonPayload(
 }
 
 // 별자리 계산 함수
-function parseBirthMonthDay(birthdate: string): { month: number; day: number } | null {
-  // Handle YYYY-MM-DD explicitly to avoid timezone shifts.
-  const directDateMatch = birthdate.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-  if (directDateMatch) {
-    const year = Number(directDateMatch[1])
-    const month = Number(directDateMatch[2])
-    const day = Number(directDateMatch[3])
-    const utcDate = new Date(Date.UTC(year, month - 1, day))
-
-    if (
-      utcDate.getUTCFullYear() === year &&
-      utcDate.getUTCMonth() + 1 === month &&
-      utcDate.getUTCDate() === day
-    ) {
-      return { month, day }
-    }
-    return null
-  }
-
-  // Fallback for other ISO-like inputs. Use UTC fields for determinism.
-  const parsed = new Date(birthdate)
-  if (Number.isNaN(parsed.getTime())) {
-    return null
-  }
-  return { month: parsed.getUTCMonth() + 1, day: parsed.getUTCDate() }
-}
-
-function getZodiacSign(
-  birthdate: string
-): { sign: string; signKo: string; element: string; elementKo: string } | null {
-  const parts = parseBirthMonthDay(birthdate)
-  if (!parts) {
-    return null
-  }
-
-  const { month, day } = parts
-
-  const zodiacData = [
-    { sign: 'Capricorn', signKo: '염소자리', element: 'earth', elementKo: '흙', start: [12, 22], end: [1, 19] },
-    { sign: 'Aquarius', signKo: '물병자리', element: 'air', elementKo: '공기', start: [1, 20], end: [2, 18] },
-    { sign: 'Pisces', signKo: '물고기자리', element: 'water', elementKo: '물', start: [2, 19], end: [3, 20] },
-    { sign: 'Aries', signKo: '양자리', element: 'fire', elementKo: '불', start: [3, 21], end: [4, 19] },
-    { sign: 'Taurus', signKo: '황소자리', element: 'earth', elementKo: '흙', start: [4, 20], end: [5, 20] },
-    { sign: 'Gemini', signKo: '쌍둥이자리', element: 'air', elementKo: '공기', start: [5, 21], end: [6, 20] },
-    { sign: 'Cancer', signKo: '게자리', element: 'water', elementKo: '물', start: [6, 21], end: [7, 22] },
-    { sign: 'Leo', signKo: '사자자리', element: 'fire', elementKo: '불', start: [7, 23], end: [8, 22] },
-    { sign: 'Virgo', signKo: '처녀자리', element: 'earth', elementKo: '흙', start: [8, 23], end: [9, 22] },
-    { sign: 'Libra', signKo: '천칭자리', element: 'air', elementKo: '공기', start: [9, 23], end: [10, 22] },
-    { sign: 'Scorpio', signKo: '전갈자리', element: 'water', elementKo: '물', start: [10, 23], end: [11, 21] },
-    { sign: 'Sagittarius', signKo: '사수자리', element: 'fire', elementKo: '불', start: [11, 22], end: [12, 21] },
-  ]
-
-  for (const z of zodiacData) {
-    const [startM, startD] = z.start
-    const [endM, endD] = z.end
-    const inWrappedRange =
-      startM > endM && ((month === startM && day >= startD) || (month === endM && day <= endD))
-    const inNormalRange =
-      startM <= endM &&
-      ((month === startM && day >= startD) ||
-        (month === endM && day <= endD) ||
-        (month > startM && month < endM))
-    if (inWrappedRange || inNormalRange) {
-      return { sign: z.sign, signKo: z.signKo, element: z.element, elementKo: z.elementKo }
-    }
-  }
-  return null
-}
+// getZodiacSign / parseBirthMonthDay 는 @/lib/tarot/zodiacSign 으로 이전 (테스트 + 재사용).
 
 // 옛 analyzeQuestionMood / previousReadings 는 system prompt 의 Step 0 가 이미
 // subject/object/timeframe/intent 를 추출하므로 중복 noise — 제거됨.
