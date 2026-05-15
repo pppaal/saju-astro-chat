@@ -316,12 +316,25 @@ export async function prepareCounselorExecution(params: {
     .filter(Boolean)
     .join('\n\n')
 
+  // Conversation history that gets injected as `--- Conversation History ---`.
+  // Drop the trailing user turn — it is already surfaced as the
+  // `--- User Question ---` block right after, and emitting it twice
+  // muddied follow-up handling ("더 자세히 알려줘" was being read as a
+  // fresh ask instead of a continuation).
+  const nonSystem = trimmedHistory.filter((m) => m.role !== 'system')
+  const lastUserIdx = nonSystem
+    .map((m, i) => (m.role === 'user' ? i : -1))
+    .filter((i) => i >= 0)
+    .pop()
+  const priorMessages =
+    typeof lastUserIdx === 'number' ? nonSystem.slice(0, lastUserIdx) : nonSystem
+
   const split = assembleFinalPromptSplit({
     systemPrompt: counselorSystemPrompt(lang),
     baseContext,
     memoryContext: '',
     sections: [],
-    messages: trimmedHistory.filter((m) => m.role !== 'system'),
+    messages: priorMessages,
     userQuestion: contextSections.userQuestion,
   })
 
