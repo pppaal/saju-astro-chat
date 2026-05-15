@@ -97,19 +97,20 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
       // Void of Course
       const voc = checkVoidOfCourse(chart)
       if (voc.isVoid) {
+        const hoursRemaining = voc.hoursRemaining ?? 12
         signals.push({
           id: `astro.voc.${dayIso}`,
           source: 'astro',
           kind: 'void-of-course',
           name: `Moon VoC (${voc.moonSign})`,
-          korean: `달 공전 — ${voc.moonSign}에서 ${voc.hoursRemaining}시간 남음`,
+          korean: `달 공전 — ${voc.moonSign}에서 ${hoursRemaining}시간 남음`,
           themes: [],
           polarity: -1 as Polarity,
           layer: 'daily',
           active: {
             start: `${dayIso}T00:00:00.000Z`,
             peak: `${dayIso}T12:00:00.000Z`,
-            end: new Date(new Date(`${dayIso}T00:00:00.000Z`).getTime() + voc.hoursRemaining * 3600_000).toISOString(),
+            end: new Date(new Date(`${dayIso}T00:00:00.000Z`).getTime() + hoursRemaining * 3600_000).toISOString(),
           },
           weight: 0.45,
           evidence: {

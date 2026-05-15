@@ -42,32 +42,34 @@ const astroProgressionExtractor: SignalExtractor = {
         }
       }
 
-      // 진행 달 → 본명 어스펙트 검사
-      const aspects = findProgressedMoonAspects(progressed, natal.astro.chart, ORB_DEG)
+      // 진행 달 → 본명 어스펙트 검사 ({target, angle} 반환)
+      const aspects = findProgressedMoonAspects(progressed, natal.astro.chart)
       const monthEnd = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0, 23, 59, 59))
 
       for (const a of aspects) {
-        const polarity: Polarity = inferAspectPolarity(a.aspectType, 'Moon', a.point2)
+        const classified = classifyAngle(a.angle)
+        if (!classified) continue
+        const polarity: Polarity = inferAspectPolarity(classified.aspect, 'Moon', a.target)
         const startIso = cursor.toISOString()
         const endIso = monthEnd.toISOString()
         const peakIso = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15)).toISOString()
 
         signals.push({
-          id: `astro.progressed-moon.${cursor.toISOString().slice(0, 7)}.${a.aspectType}.${a.point2}`,
+          id: `astro.progressed-moon.${cursor.toISOString().slice(0, 7)}.${classified.aspect}.${a.target}`,
           source: 'astro',
           kind: 'progressed-moon',
-          name: `Prog Moon ${a.aspectType} ${a.point2}`,
-          korean: `진행달 ${a.aspectType} 본명 ${a.point2}`,
+          name: `Prog Moon ${classified.aspect} ${a.target}`,
+          korean: `진행달 ${classified.aspect} 본명 ${a.target}`,
           themes: [],
           polarity,
           layer: 'monthly',
           active: { start: startIso, peak: peakIso, end: endIso },
-          weight: 0.65 * Math.max(0.4, 1 - (a.orb ?? 0) / ORB_DEG),
+          weight: 0.65 * Math.max(0.4, 1 - classified.orb / ORB_DEG),
           evidence: {
             module: 'astro-progression',
-            aspectType: a.aspectType,
-            orbDegrees: a.orb,
-            planets: ['Moon', a.point2],
+            aspectType: classified.aspect,
+            orbDegrees: classified.orb,
+            planets: ['Moon', a.target],
             detail: { progressionType: 'secondary' },
           },
         })
@@ -78,6 +80,24 @@ const astroProgressionExtractor: SignalExtractor = {
 
     return signals
   },
+}
+
+/**
+ * 0~180° 각도를 aspect 종류로 분류. orb는 정확한 각도와의 차이.
+ */
+function classifyAngle(angle: number): { aspect: 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition'; orb: number } | null {
+  const candidates = [
+    { aspect: 'conjunction' as const, exact: 0 },
+    { aspect: 'sextile'     as const, exact: 60 },
+    { aspect: 'square'      as const, exact: 90 },
+    { aspect: 'trine'       as const, exact: 120 },
+    { aspect: 'opposition'  as const, exact: 180 },
+  ]
+  for (const c of candidates) {
+    const orb = Math.abs(angle - c.exact)
+    if (orb <= ORB_DEG) return { aspect: c.aspect, orb }
+  }
+  return null
 }
 
 export default astroProgressionExtractor

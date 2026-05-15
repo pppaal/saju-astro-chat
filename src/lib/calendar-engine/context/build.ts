@@ -1,7 +1,7 @@
 import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 import { determineYongsin } from '@/lib/saju/yongsin'
-import { annotateShinsal } from '@/lib/saju/shinsal'
+import { annotateShinsal, type ShinsalHit as ShinsalHitInternal } from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import type { NatalContext } from './types'
 import type { FiveElement, SajuPillarsInput } from '@/lib/saju/types'
@@ -88,7 +88,6 @@ export async function buildNatalContext(input: BuildContextInput): Promise<Natal
         name: pillars.day.heavenlyStem.name,
         element: pillars.day.heavenlyStem.element,
         yin_yang: pillars.day.heavenlyStem.yin_yang,
-        sibsin: '',
       },
       yongsin: {
         primary: yongsinResult.primaryYongsin,
@@ -96,7 +95,7 @@ export async function buildNatalContext(input: BuildContextInput): Promise<Natal
         avoid: [yongsinResult.kibsin, yongsinResult.gusin].filter(Boolean) as FiveElement[],
       },
       strength: mapStrength(yongsinResult.daymasterStrength),
-      natalShinsal: shinsalAnnot.hits,
+      natalShinsal: shinsalAnnot.hits as unknown as NatalContext['saju']['natalShinsal'],
       natalRelations: relations,
       daeun,
     },

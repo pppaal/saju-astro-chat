@@ -46,14 +46,14 @@ const astroTransitExtractor: SignalExtractor = {
     for (const { iso, chart } of dailyCharts) {
       const aspects = findTransitAspects(chart, natalChart)
       for (const a of aspects) {
-        const key = `${a.transitPlanet}|${a.natalPoint}|${a.aspectType}`
+        const key = `${a.transitPlanet}|${a.natalPoint}|${a.type}`
         const arr = hitsByKey.get(key) ?? []
         arr.push({
           iso,
           orb: a.orb,
           transitPlanet: a.transitPlanet,
           natalPoint: a.natalPoint,
-          aspectType: a.aspectType,
+          aspectType: a.type,
         })
         hitsByKey.set(key, arr)
       }
