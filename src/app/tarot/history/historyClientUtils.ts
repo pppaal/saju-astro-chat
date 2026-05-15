@@ -106,6 +106,76 @@ export function getSavedReadings(): SavedTarotReading[] {
   return readStoredReadings()
 }
 
+const MIGRATION_FLAG = 'tarot_local_to_server_migrated_v1'
+
+/**
+ * 게스트 시절 localStorage 에 쌓인 리딩을 로그인 사용자의 서버 기록으로 이전.
+ * 한 번 성공하면 flag 세팅 → 재로그인 / 재방문 시 재실행 안 함.
+ *
+ * @returns {migrated, failed} — 성공·실패 개수. local 은 모두 성공했을 때만 삭제.
+ */
+export async function migrateLocalReadingsToServer(): Promise<{
+  migrated: number
+  failed: number
+}> {
+  if (typeof window === 'undefined') return { migrated: 0, failed: 0 }
+  if (window.localStorage.getItem(MIGRATION_FLAG)) return { migrated: 0, failed: 0 }
+
+  const local = readStoredReadings()
+  if (local.length === 0) {
+    // 빈 상태 — 다음 방문에 굳이 다시 시도 안 하게 flag 만 박아둠.
+    window.localStorage.setItem(MIGRATION_FLAG, String(Date.now()))
+    return { migrated: 0, failed: 0 }
+  }
+
+  let migrated = 0
+  let failed = 0
+  for (const reading of local) {
+    try {
+      const payload = {
+        question: reading.question,
+        spreadId: reading.spreadId || 'general-cross',
+        spreadTitle: reading.spread.title,
+        cards: reading.cards.map((c) => ({
+          cardId: c.name, // best-effort — 게스트 시절엔 id 안 남겼을 수 있음
+          name: c.name,
+          image: '', // server 는 받기만 함, 안 쓰면 ''
+          isReversed: c.isReversed,
+          position: c.position,
+        })),
+        overallMessage: reading.interpretation.overallMessage,
+        cardInsights: reading.interpretation.cardInsights.map((ci) => ({
+          position: ci.position,
+          card_name: ci.cardName,
+          is_reversed: false,
+          interpretation: ci.interpretation,
+        })),
+        guidance: reading.interpretation.guidance,
+        source: 'standalone' as const,
+        locale: 'ko',
+      }
+      const res = await fetch('/api/tarot/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload),
+      })
+      if (res.ok) migrated++
+      else failed++
+    } catch {
+      failed++
+    }
+  }
+
+  // 모두 성공했을 때만 local 정리 — 부분 실패면 사용자 데이터 보존이 우선.
+  if (failed === 0 && migrated > 0) {
+    window.localStorage.removeItem(STORAGE_KEY)
+    window.localStorage.setItem(MIGRATION_FLAG, String(Date.now()))
+  }
+
+  return { migrated, failed }
+}
+
 export function deleteReading(id: string): boolean {
   const readings = readStoredReadings()
   const filtered = readings.filter((reading) => reading.id !== id)
