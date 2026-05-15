@@ -214,7 +214,12 @@ export async function POST(req: NextRequest) {
         systemPrompt: counselorSystemPrompt(preparedInputs.lang),
         cachedUserContext: preparedExecution.chatPromptCachedContext,
         userPrompt: preparedExecution.chatPromptDynamicTail,
-        maxTokens: 2500,
+        // 3500 picked so deep "내 인생 큰 그림" type answers don't cut
+        // mid-sentence. Previous 2500 was hitting the ceiling when the
+        // LLM bloated output with markdown structure; even after the
+        // strict no-markdown prompt + post-render strip, leave the
+        // ceiling generous so prose replies are never truncated.
+        maxTokens: 3500,
         temperature: 0.7,
         timeoutMs: 60000,
         label: 'counselor-chat-stream',
