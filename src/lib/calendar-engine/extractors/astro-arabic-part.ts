@@ -1,8 +1,8 @@
 import { calculateArabicLots } from '@/lib/astrology/foundation/arabicParts'
-import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { inferAspectPolarity } from '../themes/tagger'
+import { getCachedTransitChart } from '../ephe-cache'
 
 /**
  * Arabic Parts (아라빅 파츠) 활성 추출기.
@@ -40,16 +40,17 @@ const astroArabicPartExtractor: SignalExtractor = {
 
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
-      const cacheKey = `transit-chart:${noonIso}:${natal.astro.location.latitude}:${natal.astro.location.longitude}`
-      let transitChart = cache.get<Chart>(cacheKey)
-      if (!transitChart) {
-        transitChart = await calculateTransitChart({
+      let transitChart: Chart
+      try {
+        transitChart = await getCachedTransitChart({
           iso: noonIso,
           latitude: natal.astro.location.latitude,
           longitude: natal.astro.location.longitude,
           timeZone: natal.astro.location.timeZone,
+          inMemoryCache: cache,
         })
-        cache.set(cacheKey, transitChart)
+      } catch {
+        continue
       }
 
       const dayIso = new Date(t).toISOString().slice(0, 10)

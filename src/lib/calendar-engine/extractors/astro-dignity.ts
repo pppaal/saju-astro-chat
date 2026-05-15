@@ -1,7 +1,7 @@
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
-import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity, SignalLayer } from '../types'
+import { getCachedTransitChart } from '../ephe-cache'
 
 /**
  * 행성 품위 (Essential Dignity) 추출기.
@@ -43,20 +43,17 @@ const astroDignityExtractor: SignalExtractor = {
     const hits: Hit[] = []
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
-      const cacheKey = `transit-chart:${noonIso}:${natal.astro.location.latitude}:${natal.astro.location.longitude}`
-      let chart = cache.get<Chart>(cacheKey)
-      if (!chart) {
-        try {
-          chart = await calculateTransitChart({
-            iso: noonIso,
-            latitude: natal.astro.location.latitude,
-            longitude: natal.astro.location.longitude,
-            timeZone: natal.astro.location.timeZone,
-          })
-          cache.set(cacheKey, chart)
-        } catch {
-          continue
-        }
+      let chart: Chart
+      try {
+        chart = await getCachedTransitChart({
+          iso: noonIso,
+          latitude: natal.astro.location.latitude,
+          longitude: natal.astro.location.longitude,
+          timeZone: natal.astro.location.timeZone,
+          inMemoryCache: cache,
+        })
+      } catch {
+        continue
       }
 
       for (const p of chart.planets) {

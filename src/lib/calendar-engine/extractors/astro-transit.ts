@@ -1,7 +1,8 @@
-import { calculateTransitChart, findTransitAspects } from '@/lib/astrology/foundation/transit'
+import { findTransitAspects } from '@/lib/astrology/foundation/transit'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity, SignalLayer } from '../types'
 import { inferAspectPolarity } from '../themes/tagger'
+import { getCachedTransitChart } from '../ephe-cache'
 
 /**
  * 트랜짓 어스펙트 추출기 — 가장 핵심.
@@ -20,23 +21,19 @@ const astroTransitExtractor: SignalExtractor = {
     const { natal, range, cache } = ctx
     const natalChart = natal.astro.chart
 
-    // 1) range 내 매일 정오의 트랜짓 차트 계산 (캐시)
+    // 1) range 내 매일 정오의 트랜짓 차트 계산 — 2단 캐시 (InMemory + Redis)
     const dailyCharts: Array<{ iso: string; chart: Chart }> = []
     const start = new Date(range.start)
     const end = new Date(range.end)
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
-      const cacheKey = `transit-chart:${noonIso}:${natal.astro.location.latitude}:${natal.astro.location.longitude}`
-      let chart = cache.get<Chart>(cacheKey)
-      if (!chart) {
-        chart = await calculateTransitChart({
-          iso: noonIso,
-          latitude: natal.astro.location.latitude,
-          longitude: natal.astro.location.longitude,
-          timeZone: natal.astro.location.timeZone,
-        })
-        cache.set(cacheKey, chart)
-      }
+      const chart = await getCachedTransitChart({
+        iso: noonIso,
+        latitude: natal.astro.location.latitude,
+        longitude: natal.astro.location.longitude,
+        timeZone: natal.astro.location.timeZone,
+        inMemoryCache: cache,
+      })
       dailyCharts.push({ iso: noonIso, chart })
     }
 

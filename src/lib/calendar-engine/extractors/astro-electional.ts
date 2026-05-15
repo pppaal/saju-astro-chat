@@ -1,8 +1,8 @@
 import { analyzeElection } from '@/lib/astrology/foundation/electional'
-import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ElectionalEventType } from '@/lib/astrology/foundation/electional'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
+import { getCachedTransitChart } from '../ephe-cache'
 
 /**
  * Electional (택일) 추출기.
@@ -44,20 +44,17 @@ const astroElectionalExtractor: SignalExtractor = {
 
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
-      const cacheKey = `transit-chart:${noonIso}:${natal.astro.location.latitude}:${natal.astro.location.longitude}`
-      let chart = cache.get<Chart>(cacheKey)
-      if (!chart) {
-        try {
-          chart = await calculateTransitChart({
-            iso: noonIso,
-            latitude: natal.astro.location.latitude,
-            longitude: natal.astro.location.longitude,
-            timeZone: natal.astro.location.timeZone,
-          })
-          cache.set(cacheKey, chart)
-        } catch {
-          continue
-        }
+      let chart: Chart
+      try {
+        chart = await getCachedTransitChart({
+          iso: noonIso,
+          latitude: natal.astro.location.latitude,
+          longitude: natal.astro.location.longitude,
+          timeZone: natal.astro.location.timeZone,
+          inMemoryCache: cache,
+        })
+      } catch {
+        continue
       }
 
       const dayIso = new Date(t).toISOString().slice(0, 10)
