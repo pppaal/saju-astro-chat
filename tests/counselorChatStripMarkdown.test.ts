@@ -11,6 +11,9 @@ import { describe, it, expect } from 'vitest'
 // component-level test would require RTL + jsdom which is overkill for
 // a pure string transform.
 
+const EMOJI_PATTERN =
+  '[\\u2600-\\u27BF\\u{1F300}-\\u{1F9FF}\\u{1FA70}-\\u{1FAFF}]'
+
 function stripReportMarkdown(input: string): string {
   let text = input
   text = text.replace(/^[ \t]{0,3}#{1,6}[ \t]+/gm, '')
@@ -25,10 +28,17 @@ function stripReportMarkdown(input: string): string {
       .filter((cell) => cell.length > 0)
     return cells.join(' · ')
   })
+  text = text.replace(
+    new RegExp(`^[ \\t]*${EMOJI_PATTERN}[ \\t]+[^\\n]{1,60}$\\n?`, 'gmu'),
+    ''
+  )
+  text = text.replace(/^[ \t]*【([^】\n]+)】[ \t]*$\n?/gm, '')
+  text = text.replace(/【([^】\n]+)】/g, '$1')
   text = text.replace(/\*\*([^*\n]+)\*\*/g, '$1')
   text = text.replace(/(?<!\*)\*(?!\*)([^*\n]+?)(?<!\*)\*(?!\*)/g, '$1')
   text = text.replace(/^[ \t]*[-*+][ \t]+/gm, '')
   text = text.replace(/^[ \t]*\d+\.[ \t]+/gm, '')
+  text = text.replace(/^[ \t]*[→▶●■▷▸▪◆※][ \t]+/gm, '')
   text = text.replace(/`([^`\n]+)`/g, '$1')
   text = text.replace(/\n{3,}/g, '\n\n')
   return text.trim()
@@ -88,6 +98,47 @@ describe('counselor chat: stripReportMarkdown', () => {
     const prose =
       '기준이 또렷한 결인데, 지금은 그 또렷함이 본인을 좀 누르고 있는 것 같아요. 정인격이 안정의 축이긴 한데 乙亥 대운 들어가면서 평소 외면한 불안이 떠오르는 시기예요.'
     expect(stripReportMarkdown(prose)).toBe(prose)
+  })
+
+  it('drops emoji-heading lines (the LLM bypass)', () => {
+    const input = '🎯 구조적 정체성\n사주 정인격 + 점성 MC/10궁 강조'
+    expect(stripReportMarkdown(input)).toBe('사주 정인격 + 점성 MC/10궁 강조')
+  })
+
+  it('drops multiple emoji-heading sections', () => {
+    const input = [
+      '🎯 구조적 정체성',
+      '사주 정인격 + 점성 MC/10궁 강조',
+      '',
+      '💫 현재 당신의 상태 (31세)',
+      '운(세운 丙午)과 일진(辛未)이 다른 영역을 자극',
+      '',
+      '🌱 당신의 강점',
+      '정서·자원 순환이 잘 됨',
+      '',
+      '🔮 지금 당신에게 필요한 것',
+      '뿌리로의 회귀',
+    ].join('\n')
+    const output = stripReportMarkdown(input)
+    expect(output).not.toMatch(/🎯|💫|🌱|🔮/)
+    expect(output).not.toMatch(/구조적 정체성$/m)
+    expect(output).not.toMatch(/현재 당신의 상태/)
+    expect(output).toContain('사주 정인격')
+    expect(output).toContain('뿌리로의 회귀')
+  })
+
+  it('drops standalone 【bracket】 label lines and unwraps inline brackets', () => {
+    expect(
+      stripReportMarkdown('【양쪽 동의 - 강】\n사주 정인격 + 점성 MC/10궁')
+    ).toBe('사주 정인격 + 점성 MC/10궁')
+    expect(stripReportMarkdown('답변은 【중요】한 흐름이다')).toBe(
+      '답변은 중요한 흐름이다'
+    )
+  })
+
+  it('drops leading arrow/triangle bullet markers (→ ▶ ● ■ ▷ ▸ ▪ ◆ ※)', () => {
+    expect(stripReportMarkdown('→ 첫째\n▶ 둘째\n● 셋째')).toBe('첫째\n둘째\n셋째')
+    expect(stripReportMarkdown('※ 주의\n◆ 핵심')).toBe('주의\n핵심')
   })
 
   it('strips the user-reported failure mode end-to-end', () => {
