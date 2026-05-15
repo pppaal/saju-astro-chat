@@ -73,6 +73,14 @@ export const DestinyMapChatStreamSchema = z.object({
   name: z.string().max(LIMITS.NAME).optional(),
   birthDate: z.string().optional(),
   birthTime: z.string().optional(),
+  // True when the user explicitly marked their birth time unknown.
+  // The client derives this from a checkbox or from a sentinel value
+  // ("00:00") and the prompt builder uses it to decide whether to
+  // include hour-sensitive interpretations. Without this flag the
+  // backend can't tell "time = 02:00 (real)" from "time = 02:00
+  // (placeholder because user doesn't know)", and the LLM was
+  // defaulting to "(출생 시간 미상)" even when the time was real.
+  birthTimeUnknown: z.boolean().optional(),
   gender: z.enum(['male', 'female']).default('male'),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
