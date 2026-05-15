@@ -24,6 +24,7 @@ export const GET = withApiMiddleware(
     const searchParams = req.nextUrl.searchParams
     const queryValidation = counselorSessionListQuerySchema.safeParse({
       limit: searchParams.get('limit') ?? undefined,
+      type: searchParams.get('type') ?? undefined,
     })
     if (!queryValidation.success) {
       return createValidationErrorResponse(queryValidation.error, {
@@ -31,17 +32,20 @@ export const GET = withApiMiddleware(
         route: 'counselor/session/list',
       })
     }
-    const { limit } = queryValidation.data
+    const { limit, type } = queryValidation.data
 
-    // Single query to get user's sessions
+    // Single query to get user's sessions, optionally scoped to one
+    // service type (destiny / compat).
     const sessions = await prisma.counselorChatSession.findMany({
       where: {
         userId,
+        ...(type ? { type } : {}),
       },
       orderBy: { updatedAt: 'desc' },
       take: limit,
       select: {
         id: true,
+        type: true,
         title: true,
         locale: true,
         messageCount: true,

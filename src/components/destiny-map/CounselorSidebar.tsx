@@ -14,16 +14,33 @@ type SessionItem = {
   updatedAt?: string | null
 }
 
+type ServiceType = 'destiny' | 'compat'
+
 interface CounselorSidebarProps {
   open: boolean
   onClose: () => void
   onNewChat: () => void
+  /**
+   * Which counselor's chats to list. Default 'destiny' keeps the
+   * existing destiny-counselor sidebar behavior identical. Pass
+   * 'compat' from the compatibility counselor page to scope the list
+   * (and the row-click URL) to its own past chats.
+   */
+  serviceType?: ServiceType
+  /** Where each past-chat row navigates. Defaults to the destiny path. */
+  sessionHrefBase?: string
 }
 
 const SWIPE_REVEAL_PX = 60 // user must drag this far to lock the swipe-open state
 const SWIPE_RESET_PX = 30 // drag back this far to snap closed
 
-export default function CounselorSidebar({ open, onClose, onNewChat }: CounselorSidebarProps) {
+export default function CounselorSidebar({
+  open,
+  onClose,
+  onNewChat,
+  serviceType = 'destiny',
+  sessionHrefBase,
+}: CounselorSidebarProps) {
   const { t } = useI18n()
   const { data: session, status } = useSession()
   const [sessions, setSessions] = useState<SessionItem[]>([])
@@ -34,11 +51,15 @@ export default function CounselorSidebar({ open, onClose, onNewChat }: Counselor
   const swipeStartXRef = useRef<number | null>(null)
   const swipeRowIdRef = useRef<string | null>(null)
 
+  const hrefBase =
+    sessionHrefBase ??
+    (serviceType === 'compat' ? '/compatibility/counselor' : '/destiny-map/counselor')
+
   useEffect(() => {
     if (!open || status !== 'authenticated') return
     let cancelled = false
     setLoadingList(true)
-    fetch('/api/counselor/session/list?limit=30')
+    fetch(`/api/counselor/session/list?limit=30&type=${serviceType}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return
@@ -56,7 +77,7 @@ export default function CounselorSidebar({ open, onClose, onNewChat }: Counselor
     return () => {
       cancelled = true
     }
-  }, [open, status])
+  }, [open, status, serviceType])
 
   const closeSwipe = useCallback(() => setSwipedId(null), [])
 
@@ -250,7 +271,7 @@ export default function CounselorSidebar({ open, onClose, onNewChat }: Counselor
                       </div>
                     ) : (
                       <Link
-                        href={`/destiny-map/counselor?session=${s.id}`}
+                        href={`${hrefBase}?session=${s.id}`}
                         className={`${styles.sessionItem} ${isSwiped ? styles.sessionItemSwiped : ''}`}
                         onClick={(e) => {
                           if (isSwiped) {
