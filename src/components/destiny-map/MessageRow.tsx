@@ -25,10 +25,19 @@ interface MessageRowProps {
  *
  * Keeps the *content*; removes only the syntactic envelope.
  */
+// Unicode emoji used as pseudo-headings. The LLM bypassed the markdown
+// ban by using "🎯 구조적 정체성", "💫 현재 상태" etc. so we have to catch
+// the *shape* (line that opens with one+ emoji codepoints + a Korean/
+// English heading-like phrase) regardless of which emoji it picks.
+const EMOJI_PATTERN =
+  '[\\u2600-\\u27BF\\u{1F300}-\\u{1F9FF}\\u{1FA70}-\\u{1FAFF}]'
+
 function stripReportMarkdown(input: string): string {
   let text = input
+
   // Headings — keep heading text, drop the `#` prefix.
   text = text.replace(/^[ \t]{0,3}#{1,6}[ \t]+/gm, '')
+
   // Markdown table separator row (`|---|---|`). Match an *entire line*
   // and replace with empty. Important: use `[ \t]` not `\s` so the
   // pattern never devours adjacent newlines (which would otherwise glue
@@ -37,6 +46,7 @@ function stripReportMarkdown(input: string): string {
     /^[ \t]*\|?[ \t]*:?-{2,}:?(?:[ \t]*\|[ \t]*:?-{2,}:?)+[ \t]*\|?[ \t]*$\n?/gm,
     ''
   )
+
   // Pipe-delimited row → "cell · cell" prose. Again `[ \t]` only.
   text = text.replace(/^[ \t]*\|(.+)\|[ \t]*$/gm, (_m, row: string) => {
     const cells = row
@@ -45,15 +55,33 @@ function stripReportMarkdown(input: string): string {
       .filter((cell) => cell.length > 0)
     return cells.join(' · ')
   })
+
+  // Emoji-as-heading at line start ("🎯 구조적 정체성", "💫 현재 상태",
+  // "🔮 필요한 것"). Drop the entire line — these are pure structure
+  // markers, the actual claim is on subsequent lines.
+  text = text.replace(
+    new RegExp(`^[ \\t]*${EMOJI_PATTERN}[ \\t]+[^\\n]{1,60}$\\n?`, 'gmu'),
+    ''
+  )
+
+  // Korean bracket label "【제목】" — keep the inner text but drop the
+  // visual frame. Standalone-line brackets are removed entirely.
+  text = text.replace(/^[ \t]*【([^】\n]+)】[ \t]*$\n?/gm, '')
+  text = text.replace(/【([^】\n]+)】/g, '$1')
+
   // Bold / italic — strip markers, keep the inner text.
   text = text.replace(/\*\*([^*\n]+)\*\*/g, '$1')
   text = text.replace(/(?<!\*)\*(?!\*)([^*\n]+?)(?<!\*)\*(?!\*)/g, '$1')
-  // Bullet / numbered list markers at line start → comma-joined sentence
-  // fragments don't read well in prose; demote bullets to plain lines.
-  text = text.replace(/^\s*[-*+]\s+/gm, '')
-  text = text.replace(/^\s*\d+\.\s+/gm, '')
+
+  // Bullet / numbered list markers at line start + decorative arrow
+  // bullets the LLM substitutes when standard bullets are banned.
+  text = text.replace(/^[ \t]*[-*+][ \t]+/gm, '')
+  text = text.replace(/^[ \t]*\d+\.[ \t]+/gm, '')
+  text = text.replace(/^[ \t]*[→▶●■▷▸▪◆※][ \t]+/gm, '')
+
   // Inline backticks rarely matter for chat; drop the ticks.
   text = text.replace(/`([^`\n]+)`/g, '$1')
+
   // Collapse the 3+ blank lines introduced by stripped blocks.
   text = text.replace(/\n{3,}/g, '\n\n')
   return text.trim()
