@@ -184,6 +184,11 @@ function CompatibilityCounselorContent() {
     setError(null)
 
     try {
+      // Send only the most recent turns. The server already clamps to
+      // 8 via `clampMessages`, but uploading the full history every
+      // turn wastes the user's mobile data + adds round-trip latency
+      // for long conversations.
+      const recentHistory = [...messages, userMessage].slice(-10)
       const response = await fetch('/api/compatibility/counselor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -194,7 +199,7 @@ function CompatibilityCounselorContent() {
           person1Astro,
           person2Astro,
           lang: locale,
-          messages: [...messages, userMessage],
+          messages: recentHistory,
           useRag: true,
         }),
       })
@@ -373,6 +378,24 @@ function CompatibilityCounselorContent() {
           </h1>
         </div>
         <div className={styles.headerActions}>
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (isLoading) return
+                setMessages([])
+                setError(null)
+                setInput('')
+                setTimeout(() => inputRef.current?.focus(), 0)
+              }}
+              className={styles.localeToggle}
+              aria-label={isKo ? '새 채팅' : 'New chat'}
+              title={isKo ? '새 채팅 시작' : 'Start a new chat'}
+              disabled={isLoading}
+            >
+              {isKo ? '＋ 새 채팅' : '＋ New'}
+            </button>
+          )}
           <button
             type="button"
             onClick={toggleLocale}
