@@ -61,8 +61,6 @@ model User {
 
   // 서비스 데이터 관계
   readings              Reading[]
-  fortunes              Fortune[]
-  snapshots             DestinySnapshot[]
   dailyFortunes         DailyFortune[]
   interactions          UserInteraction[]
   preferences           UserPreferences?
@@ -150,33 +148,6 @@ model Reading {
 
   @@index([userId, createdAt], name: "idx_reading_user_date")
   @@index([userId, type], name: "idx_reading_user_type")
-}
-
-model Fortune {
-  id        String   @id @default(cuid())
-  userId    String
-  date      DateTime
-  kind      String
-  title     String?
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, date, kind])
-  @@index([userId, date])
-}
-
-model DestinySnapshot {
-  id         String   @id @default(cuid())
-  userId     String
-  targetDate String
-  data       Json
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, targetDate])
-  @@index([userId, targetDate])
 }
 
 model DailyFortune {
