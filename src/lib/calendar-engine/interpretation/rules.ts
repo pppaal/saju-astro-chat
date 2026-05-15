@@ -395,6 +395,462 @@ export const RULES: InterpretationRule[] = [
       `여행·이직·이사 등 미뤄둔 이동 계획이 있다면 이때.`,
     themes: ['travel'],
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // 신살 추가 (8종)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'shinsal-hwagae',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 45,
+    conditions: { shinsalName: ['화개', '화개살'] },
+    template:
+      `🕯 **화개** 발동 — 내면 깊어지기·예술·종교·연구에 ` +
+      `우호적인 시기. 혼자만의 시간이 결과로 이어집니다.`,
+    themes: ['spirituality', 'study'],
+  },
+  {
+    id: 'shinsal-mungchang',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 50,
+    conditions: { shinsalName: ['문창', '문창귀인'] },
+    template:
+      `📚 **문창** 발동 — 학습·시험·집필·발표에 강력한 보조. ` +
+      `시험 준비·논문·콘텐츠 제작 모두 이때.`,
+    themes: ['study', 'reputation'],
+  },
+  {
+    id: 'shinsal-dohwa',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 48,
+    conditions: { shinsalName: ['도화', '도화살'] },
+    template:
+      `🌸 **도화** 발동 — 매력·끌림·인기 에너지가 강해집니다. ` +
+      `소개·미팅·자기 표현이 잘 통하는 시기.`,
+    themes: ['love', 'creativity'],
+  },
+  {
+    id: 'shinsal-yangin',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 42,
+    conditions: { shinsalName: ['양인', '양인살'] },
+    template:
+      `⚔️ **양인** 발동 — 강력한 추진력. 단, 충돌·다툼 주의. ` +
+      `결단력 필요한 일에 좋고, 인내가 필요한 일은 조심.`,
+    themes: ['career', 'crisis'],
+  },
+  {
+    id: 'shinsal-baekho',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 42,
+    conditions: { shinsalName: ['백호', '백호살'] },
+    template:
+      `🔥 **백호** 발동 — 극단적 변동·사고 가능성. 운전·외출· ` +
+      `위험 작업 신중. 큰 결정은 길일로.`,
+    themes: ['crisis', 'health'],
+  },
+  {
+    id: 'shinsal-gongmang',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 38,
+    conditions: { shinsalName: ['공망'] },
+    template:
+      `🌫 **공망** 발동 — 결과 안 보이는 시기. 새 시작보다 ` +
+      `정리·복기·내면 작업이 더 효과적.`,
+    themes: ['spirituality', 'crisis'],
+  },
+  {
+    id: 'shinsal-cheondeok',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 50,
+    conditions: { shinsalName: ['천덕', '천덕귀인', '월덕', '월덕귀인'] },
+    template:
+      `🛡 **천덕·월덕** 발동 — 건강·가정·정서 영역에서 보호받는 ` +
+      `시기. 회복·치유에 자연스러운 흐름.`,
+    themes: ['health', 'family'],
+  },
+  {
+    id: 'shinsal-jangseong',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 46,
+    conditions: { shinsalName: ['장성', '장성살'] },
+    template:
+      `🎖 **장성** 발동 — 리더십·명예·공적 자리. 발표·발의· ` +
+      `대표 역할이 들어올 수 있는 시기.`,
+    themes: ['career', 'reputation'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 月運 추가 (12종 — 십신별 길/흉 조합)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'wolun-jaeseong-positive',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 78,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['정재', '편재'],
+      minPolarity: 1,
+    },
+    template:
+      `이번 달은 **재물·자원이 활성화되는 흐름**입니다. ` +
+      `수입 확보·자산 정리·계약에 좋은 한 달.`,
+    themes: ['money', 'business'],
+  },
+  {
+    id: 'wolun-gwanseong-positive',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 78,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['정관', '편관'],
+      minPolarity: 1,
+    },
+    template:
+      `이번 달은 **사회적 평가·책임·공식 자리**가 핵심 주제. ` +
+      `승진·발탁·중요 책임 부여가 들어올 수 있어요.`,
+    themes: ['career', 'reputation'],
+  },
+  {
+    id: 'wolun-sigsang-positive',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 76,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['식신', '상관'],
+      minPolarity: 1,
+    },
+    template:
+      `이번 달은 **표현·창작·자기 목소리**가 활성화되는 흐름. ` +
+      `콘텐츠·발표·새로운 시도가 결과로 이어지기 좋아요.`,
+    themes: ['creativity', 'study'],
+  },
+  {
+    id: 'wolun-inseong-positive',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 76,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['정인', '편인'],
+      minPolarity: 1,
+    },
+    template:
+      `이번 달은 **학습·정리·내실 다지기**에 우호적인 흐름. ` +
+      `자격증·시험·전문성 강화·독서·정리에 좋아요.`,
+    themes: ['study', 'spirituality'],
+  },
+  {
+    id: 'wolun-bigeop',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 70,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['비견', '겁재'],
+    },
+    template:
+      `이번 달은 **인맥·동료·협업**의 영향이 큰 흐름. ` +
+      `좋은 인연이 들어오기도, 경쟁·갈등이 생기기도 — 사람과의 ` +
+      `거리 조절이 핵심.`,
+    themes: ['social', 'personality'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 외행성 dignity 추가 (8종)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'transit-jupiter-domicile',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 76,
+    conditions: { signalSource: 'astro', planet: ['Jupiter'], dignity: ['domicile'] },
+    template:
+      `**Jupiter가 자기 자리(${'{sign}'})에 머무는 시기**입니다. ` +
+      `확장·신뢰·기회의 흐름이 안정적이며, 평소보다 일이 ` +
+      `잘 풀리는 한 달.`,
+    themes: ['business', 'reputation'],
+  },
+  {
+    id: 'transit-saturn-domicile',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 74,
+    conditions: { signalSource: 'astro', planet: ['Saturn'], dignity: ['domicile'] },
+    template:
+      `**Saturn이 자기 자리(${'{sign}'})에 머무는 시기**입니다. ` +
+      `책임·구조·장기 계획에 우호적. 인내가 결과를 만드는 흐름.`,
+    themes: ['career', 'legal'],
+  },
+  {
+    id: 'transit-saturn-detriment',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 76,
+    conditions: { signalSource: 'astro', planet: ['Saturn'], dignity: ['detriment'] },
+    template:
+      `**Saturn 디트리먼트** — 공식 절차·책임·약속에서 어긋남이 ` +
+      `자주 드러나는 시기. 중요 약속은 길일로.`,
+    themes: ['career', 'crisis'],
+  },
+  {
+    id: 'transit-mars-domicile',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 72,
+    conditions: { signalSource: 'astro', planet: ['Mars'], dignity: ['domicile'] },
+    template:
+      `**Mars가 자기 자리(${'{sign}'})에 머무는 시기** — 행동력· ` +
+      `추진력이 강해집니다. 미뤘던 일·결단이 필요한 일을 처리할 때.`,
+    themes: ['career', 'crisis'],
+  },
+  {
+    id: 'transit-mars-fall',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 70,
+    conditions: { signalSource: 'astro', planet: ['Mars'], dignity: ['fall'] },
+    template:
+      `**Mars 폴** — 행동력 둔화·의욕 저하의 시기. 큰 도전보다 ` +
+      `회복·휴식·기존 일 정리가 효율적.`,
+    themes: ['crisis', 'health'],
+  },
+  {
+    id: 'transit-venus-domicile',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 70,
+    conditions: { signalSource: 'astro', planet: ['Venus'], dignity: ['domicile', 'exaltation'] },
+    template:
+      `**Venus가 자기 자리(${'{sign}'})에 머무는 시기** — 관계· ` +
+      `미적 감각·재정 흐름이 우호적. 데이트·예술·소비에 좋아요.`,
+    themes: ['love', 'creativity'],
+  },
+  {
+    id: 'transit-mercury-domicile',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 68,
+    conditions: { signalSource: 'astro', planet: ['Mercury'], dignity: ['domicile', 'exaltation'] },
+    template:
+      `**Mercury가 강한 자리(${'{sign}'})에 머무는 시기** — 소통· ` +
+      `학습·이동·문서 작업이 매끄러운 흐름.`,
+    themes: ['study', 'travel'],
+  },
+  {
+    id: 'transit-sun-exalt',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 72,
+    conditions: { signalSource: 'astro', planet: ['Sun'], dignity: ['exaltation'] },
+    template:
+      `**Sun 엑잘테이션** — 자기 표현·리더십·중요한 발의에 ` +
+      `우호적인 시기. 자신을 드러낼 일에 좋아요.`,
+    themes: ['reputation', 'personality'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 테마 forecast 추가 (12종)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'theme-money-warning',
+    scope: 'monthly',
+    section: 'theme-money',
+    priority: 58,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['겁재'],
+      maxPolarity: -1,
+    },
+    template:
+      `💰 **재물** — 분탈·낭비 주의 시기. 큰 베팅·신규 투자 보류, ` +
+      `기존 자산 지키기에 집중.`,
+    themes: ['money'],
+  },
+  {
+    id: 'theme-love-warning',
+    scope: 'monthly',
+    section: 'theme-love',
+    priority: 58,
+    conditions: {
+      signalSource: 'saju',
+      shinsalName: ['공망'],
+    },
+    template:
+      `❤️ **연애** — 진척 더딘 시기. 새 관계보다 기존 관계 ` +
+      `다지기에 집중하는 게 효율적.`,
+    themes: ['love'],
+  },
+  {
+    id: 'theme-health-warning',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 58,
+    conditions: {
+      signalSource: 'astro',
+      planet: ['Saturn', 'Mars'],
+      maxPolarity: -1,
+    },
+    template:
+      `⚡ **건강** — 무리·과로 주의. 충분한 휴식·규칙적 운동· ` +
+      `건강검진 권장. 작은 신호 놓치지 마세요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'theme-health-positive',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 56,
+    conditions: {
+      shinsalName: ['천덕', '천덕귀인', '월덕', '월덕귀인'],
+    },
+    template:
+      `⚡ **건강** — 회복·치유에 우호적인 흐름. 미뤘던 건강 ` +
+      `관리·검진·식습관 개선에 좋은 시기.`,
+    themes: ['health'],
+  },
+  {
+    id: 'theme-study-positive',
+    scope: 'monthly',
+    section: 'theme-study',
+    priority: 56,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['정인', '편인'],
+      minPolarity: 1,
+    },
+    template:
+      `📚 **학업** — 학습·시험·자격증·전문성 다지기 시기. ` +
+      `깊이 있는 공부가 잘 들어옵니다.`,
+    themes: ['study'],
+  },
+  {
+    id: 'theme-travel-positive',
+    scope: 'monthly',
+    section: 'theme-travel',
+    priority: 56,
+    conditions: {
+      shinsalName: ['역마', '역마살'],
+    },
+    template:
+      `✈️ **이동** — 여행·이직·이사 등 환경 변화에 우호적. ` +
+      `평소 미뤘던 이동 계획 실행에 좋은 시기.`,
+    themes: ['travel'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 매칭 패턴 narrative 추가 (3종)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'pattern-romance-month',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 80,
+    conditions: { patternId: ['romance-trigger'] },
+    template:
+      `이번 달 **인연이 가까이 오는 날이 {count}번** 있습니다. ` +
+      `소개·모임·연락 시도가 우호적인 날들.`,
+    themes: ['love'],
+  },
+  {
+    id: 'pattern-life-shift',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 84,
+    conditions: { patternId: ['life-chapter-shift'] },
+    template:
+      `이번 달 **인생 큰 흐름 전환점 {count}회**. 큰 그림을 다시 ` +
+      `그리기 좋은 시기 — 작은 일에 매이지 말고 방향성 점검.`,
+    themes: ['personality', 'spirituality'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 大運 narrative 추가 (4종 — 강약 변형)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'daeun-jaeseong-weak',
+    scope: 'monthly',
+    section: 'daeun',
+    priority: 90,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      signalLayer: ['decadal'],
+      sibsin: ['정재', '편재'],
+    },
+    template:
+      `이 10년은 **재성 흐름이 강하지만 본인이 신약**한 시기입니다. ` +
+      `현실적 성취 욕구가 크지만, 무리한 확장보다 자기 회복과 ` +
+      `구조 다지기를 우선해야 결과가 따라옵니다.`,
+    themes: ['money', 'health'],
+  },
+  {
+    id: 'daeun-gwanseong-weak',
+    scope: 'monthly',
+    section: 'daeun',
+    priority: 90,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      signalLayer: ['decadal'],
+      sibsin: ['정관', '편관'],
+    },
+    template:
+      `이 10년은 **사회적 압박이 큰 시기**입니다. 책임이 무겁게 ` +
+      `들어오지만 본인이 신약해서 부담될 수 있어요. ` +
+      `힘 분배·우선순위 조절이 핵심입니다.`,
+    themes: ['career', 'crisis'],
+  },
+  {
+    id: 'daeun-bigeop-weak',
+    scope: 'monthly',
+    section: 'daeun',
+    priority: 88,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      signalLayer: ['decadal'],
+      sibsin: ['비견', '겁재'],
+    },
+    template:
+      `이 10년은 **비겁(동료·경쟁자) 흐름**이 큰 시기입니다. ` +
+      `신약자에게 도움 — 동료·친구·인맥이 자원이 됩니다. ` +
+      `혼자 짊어지지 말고 협업으로.`,
+    themes: ['social'],
+  },
+  {
+    id: 'daeun-sigsang-weak',
+    scope: 'monthly',
+    section: 'daeun',
+    priority: 86,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      signalLayer: ['decadal'],
+      sibsin: ['식신', '상관'],
+    },
+    template:
+      `이 10년은 **표현 욕구가 크지만 신약**한 시기입니다. ` +
+      `창작·발휘는 좋지만 에너지 소진 주의. 결과보다 과정의 ` +
+      `즐거움에 비중을 두세요.`,
+    themes: ['creativity', 'health'],
+  },
 ]
 
 /** 룰 매핑 — id로 빠른 조회 */
