@@ -8,8 +8,8 @@ import type { CardColor } from '../../../constants'
 import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../index'
 import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
-import { CombinationsSection } from './CombinationsSection'
 import { FollowupChat } from './FollowupChat'
+import { renderHighlighted } from '../../ResultsView/highlight'
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -133,7 +133,7 @@ export function ResultsStage(props: ResultsStageProps) {
             </div>
             {insight?.overall_message ? (
               <p className="text-base md:text-[17px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-                {insight.overall_message}
+                {renderHighlighted(insight.overall_message)}
                 {aiPending && (
                   <span className="inline-block w-1.5 h-4 ml-0.5 bg-indigo-300/80 align-middle animate-pulse" />
                 )}
@@ -193,10 +193,7 @@ export function ResultsStage(props: ResultsStageProps) {
           </div>
         )}
 
-        {/* ⑤ 카드 조합 (LLM combinations) */}
-        <CombinationsSection combinations={insight?.combinations} language={language} />
-
-        {/* ⑥ 조언과 예측 */}
+        {/* ⑤ 조언과 예측 */}
         {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
 
         {/* ⑦ Follow-up 채팅 — AI 응답이 도착한 후에만 노출 */}

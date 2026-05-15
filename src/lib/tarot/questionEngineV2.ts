@@ -1,85 +1,72 @@
-﻿import { callClaudeJson, isClaudeAvailable } from '@/lib/llm/claude'
-import { prepareForMatching } from './utils/koreanTextNormalizer'
+// 스프레드 4개만 남은 뒤의 슬림 question-engine.
+// 깊이 기반 추천기에 위임 — 옛 헬퍼 (Heuristics/Helpers/Support) 의존 제거.
 
-export type {
-  QuestionEngineV2FallbackReason,
-  QuestionEngineV2Result,
-} from './questionEngineV2Support'
+import { recommendSpreads } from './tarot-recommend'
 
-import {
-  buildPath,
-  getSpreadOptions,
-  isDangerousQuestion,
-  type AnalyzeSource,
-  type EngineLanguage,
-  type EngineSpreadOption,
-  type LLMAnalysisPayload,
-  type PrimarySelection,
-  type QuestionProfile,
-  type QuestionEngineV2FallbackReason,
-  type QuestionEngineV2Result,
-  type SpreadOption,
-  type StructuredIntent,
-} from './questionEngineV2Support'
-import { getIntentLabel } from './questionEngineV2Heuristics'
-import {
-  buildHeuristicDirectAnswer,
-  buildHeuristicIntent,
-  buildQuestionProfile,
-  buildQuestionSummary,
-  buildQuestionVariants,
-  buildRecommendedSpreads,
-  buildResult,
-  chooseResolvedIntent,
-  classifyOpenAIFailure,
-  findSpread,
-  resolveDeterministicSpread,
-  repairIntentAnalysis,
-  shouldPreferHeuristicSpread,
-} from './questionEngineV2Helpers'
-// Question routing has a deterministic heuristic fallback — fail fast on Claude error.
-async function callQuestionLLM(systemPrompt: string, userPrompt: string): Promise<string> {
-  if (!isClaudeAvailable()) {
-    throw new Error('ANTHROPIC_API_KEY_MISSING')
-  }
-  const result = await callClaudeJson({
-    systemPrompt,
-    userPrompt,
-    maxTokens: 420,
-    temperature: 0.2,
-    timeoutMs: 4200,
-    label: 'question-engine-v2',
-  })
-  return result.raw
+export type QuestionEngineV2FallbackReason =
+  | 'auth_failed'
+  | 'server_error'
+  | 'network_error'
+  | 'parse_failed'
+  | 'no_candidate'
+
+export type EngineLanguage = 'ko' | 'en'
+
+export interface EngineSpreadOption {
+  themeId: string
+  themeTitle: string
+  spreadId: string
+  spreadTitle: string
+  cardCount: number
+  reason: string
+  matchScore: number | null
+  path: string
+  recommended: boolean
 }
 
-function buildAnalysisPrompt(spreadList: string) {
-  return `You are a tarot question understanding engine.
+export interface QuestionEngineV2Result {
+  isDangerous: boolean
+  message?: string
+  themeId: string
+  spreadId: string
+  spreadTitle: string
+  cardCount: number
+  userFriendlyExplanation: string
+  question_summary: string
+  question_profile: null
+  direct_answer: string
+  intent: string
+  intent_label: string
+  recommended_spreads: EngineSpreadOption[]
+  path: string
+  source: 'heuristic'
+  fallback_reason: QuestionEngineV2FallbackReason | null
+}
 
-Understand the user's actual intent before any reading starts.
-Even if the wording is messy, abbreviated, playful, or indirect, interpret it as a real human question.
+const DANGEROUS_KEYWORDS = [
+  '자살',
+  '죽고 싶',
+  '죽을래',
+  '살기 싫',
+  '끝내고 싶',
+  '죽어버릴',
+  '자해',
+  '목숨',
+  '생을 마감',
+  '세상 떠나',
+  'suicide',
+  'kill myself',
+  'end my life',
+  'want to die',
+]
 
-Return JSON only with:
-- questionType: self_decision | other_person_response | meeting_likelihood | near_term_outcome | timing | reconciliation | inner_feelings | unknown
-- subject: self | other_person | relationship | overall_flow | external_situation
-- focus: short phrase
-- timeframe: immediate | near_term | current_phase | mid_term | open
-- tone: prediction | advice | emotion | flow
-- directAnswer: 1-2 sentence opener that answers the real question
-- userFriendlyExplanation: short explanation of what reading posture fits
-- reason: why the chosen spread fits
-- themeId: exact theme ID from the list
-- spreadId: exact spread ID from the list
+function isDangerousQuestion(q: string): boolean {
+  const n = q.toLowerCase()
+  return DANGEROUS_KEYWORDS.some((kw) => n.includes(kw.toLowerCase()))
+}
 
-Rules:
-- When the subject is someone else, do not answer as if it were about the user.
-- Broad questions should stay broad.
-- Timing questions should talk about timing posture, not fake certainty.
-- Weird questions should still be interpreted as human intent, not dismissed as nonsense.
-- Use a stable spread from the list.
-
-Available spreads:
-${spreadList}`
+function buildPath(themeId: string, spreadId: string, question: string) {
+  return `/tarot/${themeId}/${spreadId}?question=${encodeURIComponent(question)}`
 }
 
 export async function analyzeTarotQuestionV2(input: {
@@ -87,208 +74,70 @@ export async function analyzeTarotQuestionV2(input: {
   language: EngineLanguage
 }): Promise<QuestionEngineV2Result> {
   const { question, language } = input
-  const trimmedQuestion = question.trim()
-  const spreadOptions = getSpreadOptions()
-  const questionVariants = buildQuestionVariants(trimmedQuestion)
-  const heuristicIntent = buildHeuristicIntent(questionVariants, language)
-  const heuristicSelection = resolveDeterministicSpread(
-    trimmedQuestion,
-    language,
-    spreadOptions,
-    questionVariants,
-    heuristicIntent
-  )
-  const responseQuestion =
-    /((내가|먼저).*(연락|사과).*(반응|답장|어때|어떤)|호감표시.*부담|반응 어떨까)/.test(
-      trimmedQuestion
-    ) ||
-    /((내가|먼저).*(연락|사과).*(반응|답장|어때|어떤)|호감표시.*부담|반응 어떨까)/.test(
-      questionVariants.join(' ')
-    )
-  const impressionQuestion =
-    /(눈에.*내가|나를.*어떻게|어떤 사람|어때 보|어떻게 보)/.test(trimmedQuestion) ||
-    /(눈에.*내가|나를.*어떻게|어떤 사람|어때 보|어떻게 보)/.test(questionVariants.join(' '))
-  const effectiveSelection = responseQuestion
-    ? {
-        themeId: 'love-relationships',
-        spreadId: 'crush-feelings',
-        reason:
-          language === 'ko'
-            ? '상대가 어떻게 반응할지 읽는 질문으로 보고 관계 감정 스프레드로 연결했어요.'
-            : 'Routed to a relationship feelings spread for response intent.',
-        userFriendlyExplanation:
-          language === 'ko'
-            ? '내 행동보다 상대 반응을 읽는 질문이라 감정 스프레드가 더 잘 맞습니다.'
-            : 'A feelings spread fits better when the question is about the other person’s response.',
-      }
-    : impressionQuestion && heuristicSelection.themeId === 'general-insight'
-      ? {
-          themeId: 'love-relationships',
-          spreadId: 'crush-feelings',
-          reason:
-            language === 'ko'
-              ? '상대가 나를 어떻게 느끼는지 읽는 질문으로 보고 관계 감정 스프레드로 연결했어요.'
-              : 'Routed to a relationship feelings spread for how-they-see-me intent.',
-          userFriendlyExplanation:
-            language === 'ko'
-              ? '상대의 시선과 내면 반응을 읽는 질문이라 감정 스프레드가 더 잘 맞습니다.'
-              : 'A feelings spread fits better when the question is about how the other person sees you.',
-        }
-      : heuristicSelection
-  const defaultSpread =
-    findSpread(effectiveSelection.themeId, effectiveSelection.spreadId, spreadOptions) ||
-    findSpread('general-insight', 'quick-reading', spreadOptions) ||
-    spreadOptions[0]
+  const trimmed = question.trim()
+  const isKo = language === 'ko'
 
-  if (!defaultSpread) {
+  if (isDangerousQuestion(trimmed)) {
     return {
-      isDangerous: false,
+      isDangerous: true,
+      message: isKo
+        ? '지금 많이 힘드시면 1393(자살예방상담전화)로 연락해 주세요.'
+        : 'If you are in crisis, please reach out to a crisis line (US: 988).',
       themeId: 'general-insight',
       spreadId: 'quick-reading',
-      spreadTitle: language === 'ko' ? '빠른 리딩' : 'Quick Reading',
+      spreadTitle: isKo ? '한 장 리딩' : 'Quick Reading',
       cardCount: 1,
-      userFriendlyExplanation:
-        language === 'ko'
-          ? '기본 스프레드를 찾지 못해 최소 설정으로 연결했어요.'
-          : 'A minimal default spread was used because no spread could be resolved.',
-      question_summary: buildQuestionSummary(heuristicIntent, language),
-      question_profile: buildQuestionProfile(heuristicIntent, language),
-      direct_answer: buildHeuristicDirectAnswer(heuristicIntent, questionVariants, language),
-      intent: heuristicIntent.questionType,
-      intent_label: getIntentLabel(heuristicIntent.questionType, language),
-      recommended_spreads: [],
-      path: buildPath('general-insight', 'quick-reading', trimmedQuestion),
-      source: 'fallback',
-      fallback_reason: 'no_candidate',
-    }
-  }
-
-  if (isDangerousQuestion(trimmedQuestion)) {
-    return buildResult({
-      question: trimmedQuestion,
-      language,
-      intent: heuristicIntent,
-      primarySpread: defaultSpread,
-      reason: heuristicSelection.reason,
       userFriendlyExplanation: '',
-      directAnswer: '',
-      source: 'fallback',
-      fallbackReason: 'no_candidate',
-      isDangerous: true,
-      message:
-        language === 'ko'
-          ? '힘든 시간을 보내고 계신 것 같아요. 전문가의 도움을 받으시길 권해드려요. 자살예방상담전화: 1393 (24시간)'
-          : 'I sense you may be going through a difficult time. Please reach out to a professional or local crisis service.',
+      question_summary: trimmed,
+      question_profile: null,
+      direct_answer: '',
+      intent: 'safety',
+      intent_label: '',
       recommended_spreads: [],
-    })
+      path: buildPath('general-insight', 'quick-reading', trimmed),
+      source: 'heuristic',
+      fallback_reason: null,
+    }
   }
 
-  const heuristicResult = buildResult({
-    question: trimmedQuestion,
-    language,
-    intent: (responseQuestion && heuristicIntent.questionType === 'self_decision'
-      ? { ...heuristicIntent, questionType: 'other_person_response', subject: 'relationship' }
-      : heuristicIntent) as StructuredIntent,
-    primarySpread: defaultSpread,
-    reason: effectiveSelection.reason,
-    userFriendlyExplanation: effectiveSelection.userFriendlyExplanation,
-    directAnswer: buildHeuristicDirectAnswer(heuristicIntent, questionVariants, language),
+  const recs = recommendSpreads(trimmed, 4)
+  const primary = recs[0]
+
+  const recommended_spreads: EngineSpreadOption[] = recs.map((r, i) => ({
+    themeId: r.themeId,
+    themeTitle: r.theme.categoryKo || r.theme.category,
+    spreadId: r.spreadId,
+    spreadTitle: r.spread.titleKo || r.spread.title,
+    cardCount: r.spread.cardCount,
+    reason: isKo ? r.reasonKo : r.reason,
+    matchScore: r.matchScore,
+    path: buildPath(r.themeId, r.spreadId, trimmed),
+    recommended: i === 0,
+  }))
+
+  return {
+    isDangerous: false,
+    themeId: primary?.themeId ?? 'general-insight',
+    spreadId: primary?.spreadId ?? 'past-present-future',
+    spreadTitle: primary
+      ? primary.spread.titleKo || primary.spread.title
+      : isKo
+        ? '과거 · 현재 · 미래'
+        : 'Past, Present, Future',
+    cardCount: primary?.spread.cardCount ?? 3,
+    userFriendlyExplanation: primary ? (isKo ? primary.reasonKo : primary.reason) : '',
+    question_summary: trimmed,
+    question_profile: null,
+    direct_answer: '',
+    intent: 'general',
+    intent_label: isKo ? '일반 질문' : 'General',
+    recommended_spreads,
+    path: buildPath(
+      primary?.themeId ?? 'general-insight',
+      primary?.spreadId ?? 'past-present-future',
+      trimmed
+    ),
     source: 'heuristic',
-    fallbackReason: null,
-  })
-
-  const spreadList = spreadOptions
-    .map(
-      (spread) =>
-        `- ${spread.themeId}/${spread.id}: ${spread.titleKo || spread.title} (${spread.cardCount} cards)`
-    )
-    .join('\n')
-
-  try {
-    const responseText = await callQuestionLLM(
-      buildAnalysisPrompt(spreadList),
-      [
-        `Raw question: ${trimmedQuestion}`,
-        `Normalized variants: ${questionVariants.join(' || ')}`,
-        `Heuristic intent hint: ${JSON.stringify(heuristicIntent)}`,
-      ].join('\n')
-    )
-
-    const parsed = JSON.parse(responseText) as LLMAnalysisPayload
-    const repairedLlmIntent = repairIntentAnalysis(
-      questionVariants,
-      heuristicIntent,
-      parsed,
-      language
-    )
-    const resolvedIntent = chooseResolvedIntent(heuristicIntent, repairedLlmIntent)
-    const finalResolvedIntent: StructuredIntent =
-      responseQuestion && resolvedIntent.questionType === 'self_decision'
-        ? { ...resolvedIntent, questionType: 'other_person_response', subject: 'relationship' }
-        : resolvedIntent
-    const parsedPrimarySpread =
-      (parsed.themeId &&
-        parsed.spreadId &&
-        findSpread(parsed.themeId, parsed.spreadId, spreadOptions)) ||
-      defaultSpread
-    const preferHeuristicSpread = shouldPreferHeuristicSpread(
-      heuristicIntent,
-      resolvedIntent,
-      defaultSpread,
-      parsedPrimarySpread
-    )
-    const primarySpread = preferHeuristicSpread ? defaultSpread : parsedPrimarySpread
-    const shouldUseHeuristicCopy =
-      preferHeuristicSpread &&
-      primarySpread.id === defaultSpread.id &&
-      primarySpread.themeId === defaultSpread.themeId
-
-    return buildResult({
-      question: trimmedQuestion,
-      language,
-      intent: finalResolvedIntent,
-      primarySpread,
-      reason: shouldUseHeuristicCopy
-        ? effectiveSelection.reason
-        : parsed.reason?.trim() || effectiveSelection.reason,
-      userFriendlyExplanation: shouldUseHeuristicCopy
-        ? effectiveSelection.userFriendlyExplanation
-        : parsed.userFriendlyExplanation?.trim() || effectiveSelection.userFriendlyExplanation,
-      directAnswer:
-        shouldUseHeuristicCopy && heuristicIntent.questionType !== 'unknown'
-          ? buildHeuristicDirectAnswer(resolvedIntent, questionVariants, language)
-          : parsed.directAnswer?.trim() ||
-            buildHeuristicDirectAnswer(resolvedIntent, questionVariants, language),
-      source: 'llm',
-      fallbackReason: null,
-      recommended_spreads: buildRecommendedSpreads(
-        trimmedQuestion,
-        language,
-        {
-          themeId: primarySpread.themeId,
-          spreadId: primarySpread.id,
-          reason: shouldUseHeuristicCopy
-            ? effectiveSelection.reason
-            : parsed.reason?.trim() || effectiveSelection.reason,
-        },
-        spreadOptions
-      ),
-    })
-  } catch (error) {
-    const fallbackReason = classifyOpenAIFailure(error)
-
-    if (
-      fallbackReason === 'auth_failed' ||
-      fallbackReason === 'parse_failed' ||
-      fallbackReason === 'server_error'
-    ) {
-      return heuristicResult
-    }
-
-    return {
-      ...heuristicResult,
-      source: 'fallback',
-      fallback_reason: fallbackReason,
-    }
+    fallback_reason: null,
   }
 }

@@ -1,14 +1,16 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
 import BrandSplash from '@/components/branding/BrandSplash'
 import MarkdownMessage from '@/components/ui/MarkdownMessage'
+import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { runQuickCoupleTarot } from './runQuickCoupleTarot'
+import { streamProcessor } from '@/lib/streaming'
 
 function CounselorLoading() {
   return <BrandSplash message="상담사 준비 중..." />
@@ -38,7 +40,6 @@ function formatBirthSnippet(p: PersonData): string {
 
 function CompatibilityCounselorContent() {
   const { locale, setLocale } = useI18n()
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   const [persons, setPersons] = useState<PersonData[]>([])
@@ -51,6 +52,10 @@ function CompatibilityCounselorContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Persistent chat session id (returned by /api/counselor/chat-history
+  // after the first save). Subsequent saves attach to the same row.
+  const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -63,6 +68,58 @@ function CompatibilityCounselorContent() {
 
     const initializeData = async () => {
       try {
+        // 1) Past-chat resume path: ?session=<id>. Restore both the
+        //    conversation and the couple snapshot we saved alongside.
+        const sessionParam = searchParams.get('session')
+        if (sessionParam) {
+          try {
+            const res = await fetch(
+              `/api/counselor/session/load?sessionId=${encodeURIComponent(sessionParam)}`
+            )
+            if (res.ok) {
+              const loaded = (await res.json()) as {
+                session?: {
+                  id?: string
+                  messages?: ChatMessage[]
+                  meta?: {
+                    persons?: PersonData[]
+                    person1Saju?: Record<string, unknown> | null
+                    person2Saju?: Record<string, unknown> | null
+                    person1Astro?: Record<string, unknown> | null
+                    person2Astro?: Record<string, unknown> | null
+                  } | null
+                }
+              }
+              const s = loaded?.session
+              if (s?.id) {
+                setChatSessionId(s.id)
+                if (Array.isArray(s.messages)) {
+                  setMessages(
+                    s.messages.filter(
+                      (m): m is ChatMessage =>
+                        !!m && (m.role === 'user' || m.role === 'assistant')
+                    )
+                  )
+                }
+                if (s.meta?.persons) setPersons(s.meta.persons)
+                if (s.meta?.person1Saju !== undefined)
+                  setPerson1Saju(s.meta.person1Saju ?? null)
+                if (s.meta?.person2Saju !== undefined)
+                  setPerson2Saju(s.meta.person2Saju ?? null)
+                if (s.meta?.person1Astro !== undefined)
+                  setPerson1Astro(s.meta.person1Astro ?? null)
+                if (s.meta?.person2Astro !== undefined)
+                  setPerson2Astro(s.meta.person2Astro ?? null)
+                return // skip fresh-start path
+              }
+            }
+          } catch (loadErr) {
+            logger.warn('[CompatCounselor] resume past chat failed', { error: loadErr })
+            // fall through to fresh-start path
+          }
+        }
+
+        // 2) Fresh-start path: ?persons=... from the form.
         const personsParam = searchParams.get('persons')
 
         if (personsParam) {
@@ -183,6 +240,11 @@ function CompatibilityCounselorContent() {
     setError(null)
 
     try {
+      // Send only the most recent turns. The server already clamps to
+      // 8 via `clampMessages`, but uploading the full history every
+      // turn wastes the user's mobile data + adds round-trip latency
+      // for long conversations.
+      const recentHistory = [...messages, userMessage].slice(-10)
       const response = await fetch('/api/compatibility/counselor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -193,7 +255,7 @@ function CompatibilityCounselorContent() {
           person1Astro,
           person2Astro,
           lang: locale,
-          messages: [...messages, userMessage],
+          messages: recentHistory,
           useRag: true,
         }),
       })
@@ -205,45 +267,69 @@ function CompatibilityCounselorContent() {
         throw new Error('Failed to get response')
       }
 
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('No response body')
-      }
-
-      const decoder = new TextDecoder()
-      let assistantContent = ''
-
+      // 서버는 `data: {"content":"...","done":false}\n\n` 형식의 JSON SSE를
+      // 보낸다. 이전엔 `data:` 라인 뒤의 *JSON 문자열 전체*를 그대로
+      // 누적해서 화면에 `{"content":"안","done":false}{"content":"녕"...}`
+      // 식의 깨진 텍스트가 나왔다. 운명 상담사가 이미 쓰던 streamProcessor
+      // 로 통일 — `content` 필드만 추출해 누적한다.
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) {
-          break
-        }
-
-        const chunk = decoder.decode(value, { stream: true })
-        const lines = chunk.split('\n')
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6)
-            if (data === '[DONE]') {
-              continue
-            }
-            assistantContent += data
-
-            setMessages((prev) => {
-              const updated = [...prev]
-              if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
-                updated[updated.length - 1] = {
-                  role: 'assistant',
-                  content: assistantContent,
-                }
+      let finalAssistantContent = ''
+      await streamProcessor.process(response, {
+        onChunk: (_accumulated, cleaned) => {
+          finalAssistantContent = cleaned
+          setMessages((prev) => {
+            const updated = [...prev]
+            if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
+              updated[updated.length - 1] = {
+                role: 'assistant',
+                content: cleaned,
               }
-              return updated
-            })
+            }
+            return updated
+          })
+        },
+        onError: (err) => {
+          logger.warn('[CompatCounselor] stream error', { error: err })
+        },
+      })
+
+      // Persist the exchange so it shows up in the past-chats sidebar
+      // next visit. Fire-and-forget; save failure must not block UX.
+      if (finalAssistantContent) {
+        const isFirstSave = !chatSessionId
+        const body: Record<string, unknown> = {
+          sessionId: chatSessionId,
+          locale: locale === 'ko' ? 'ko' : 'en',
+          userMessage: userMessage.content,
+          assistantMessage: finalAssistantContent,
+          type: 'compat',
+        }
+        // On the *first* save attach the couple snapshot so a future
+        // re-open can restore the chart without recomputing.
+        if (isFirstSave) {
+          body.meta = {
+            persons,
+            person1Saju,
+            person2Saju,
+            person1Astro,
+            person2Astro,
           }
         }
+        fetch('/api/counselor/chat-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((data: { success?: boolean; session?: { id: string } } | null) => {
+            if (data?.success && data.session?.id && !chatSessionId) {
+              setChatSessionId(data.session.id)
+            }
+          })
+          .catch((err) =>
+            logger.warn('[CompatCounselor] chat-history save failed', { error: err })
+          )
       }
     } catch (e) {
       logger.error('Chat error:', { error: e })
@@ -270,6 +356,7 @@ function CompatibilityCounselorContent() {
     person2Astro,
     locale,
     isKo,
+    chatSessionId,
   ])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -372,22 +459,53 @@ function CompatibilityCounselorContent() {
 
   return (
     <main className={`${styles.page} ${styles.fadeIn}`}>
+      <CounselorSidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onNewChat={() => {
+          if (isLoading) return
+          setMessages([])
+          setError(null)
+          setInput('')
+          setChatSessionId(undefined)
+          setTimeout(() => inputRef.current?.focus(), 0)
+        }}
+        serviceType="compat"
+      />
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <button
             type="button"
             className={styles.backButton}
-            onClick={() => router.back()}
-            aria-label={isKo ? '뒤로' : 'Back'}
+            onClick={() => setSidebarOpen(true)}
+            aria-label={isKo ? '메뉴' : 'Menu'}
           >
-            <span className={styles.backIcon}>{'←'}</span>
+            <span className={styles.backIcon}>{'☰'}</span>
           </button>
           <h1 className={styles.headerTitle}>
             {isKo ? '궁합 상담사' : 'Compatibility Counselor'}
           </h1>
         </div>
         <div className={styles.headerActions}>
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (isLoading) return
+                setMessages([])
+                setError(null)
+                setInput('')
+                setTimeout(() => inputRef.current?.focus(), 0)
+              }}
+              className={styles.localeToggle}
+              aria-label={isKo ? '새 채팅' : 'New chat'}
+              title={isKo ? '새 채팅 시작' : 'Start a new chat'}
+              disabled={isLoading}
+            >
+              {isKo ? '＋ 새 채팅' : '＋ New'}
+            </button>
+          )}
           <button
             type="button"
             onClick={toggleLocale}

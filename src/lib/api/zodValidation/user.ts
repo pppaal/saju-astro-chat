@@ -544,10 +544,22 @@ export const counselorSessionLoadQuerySchema = z.object({
 
 export const counselorSessionListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+  // Optional service filter so the sidebar can scope to destiny or
+  // compat sessions only. Omitted → returns all types (legacy
+  // behavior).
+  type: z.enum(['destiny', 'compat']).optional(),
 })
 
 export const counselorSessionDeleteQuerySchema = z.object({
   sessionId: z.string().min(1).max(100),
+})
+
+export const counselorSessionRenameRequestSchema = z.object({
+  sessionId: z.string().min(1).max(100),
+  // .trim() must come *before* .min() so whitespace-only titles ('   ')
+  // are rejected at validation time rather than collapsing to '' inside
+  // the handler.
+  title: z.string().trim().min(1).max(80),
 })
 
 // ============ Content Access & Share Schemas ============

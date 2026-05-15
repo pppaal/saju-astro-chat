@@ -70,6 +70,17 @@ export function assembleFinalPromptSplit(params: {
     dynamicParts.push(formattedHistory)
   }
   if (userQuestion) {
+    // Strict reminder sitting *right against* the user question so it
+    // gets max attention from the model. The system prompt bans these
+    // patterns but the data block above is full of emoji headers
+    // (📌 ⚠️ 📊 🌟 ☀️ 🌙 …) and the LLM tends to mirror that shape
+    // into its reply. Repeating the rule here keeps it salient.
+    dynamicParts.push(
+      '\n--- Output reminder ---\n' +
+        'Answer in ONE flowing paragraph. No headings of any kind ' +
+        '(##, **bold**, "🎯 X", "💫 X", 【X】, →, ▶, ●). No section labels. ' +
+        'No bullet lists. Plain conversational prose, like a text reply.'
+    )
     dynamicParts.push('\n--- User Question ---')
     dynamicParts.push(userQuestion)
   }

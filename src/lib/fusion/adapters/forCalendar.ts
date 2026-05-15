@@ -490,10 +490,10 @@ export async function buildCalendarMonth(
       for (const theme of CORE_THEMES) {
         const score = d.domainScores[theme] ?? 0
         const tone: CrossTone =
-          score >= 0.7 ? 'positive' :
           score >= 0.8 ? 'strong-positive' :
-          score <= 0.25 ? 'cautious' :
-          score <= 0.1 ? 'strong-negative' : 'neutral'
+          score >= 0.7 ? 'positive' :
+          score <= 0.1 ? 'strong-negative' :
+          score <= 0.25 ? 'cautious' : 'neutral'
         const key = `${theme}.${tone}`
         for (const a of DOMAIN_ADVICE_DO[key] ?? []) doFreq[a] = (doFreq[a] ?? 0) + 1
         for (const a of DOMAIN_ADVICE_AVOID[key] ?? []) avFreq[a] = (avFreq[a] ?? 0) + 1

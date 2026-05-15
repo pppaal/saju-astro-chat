@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowLeft, BarChart3, MoonStar, Search, X, RotateCcw, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
 
 import {
@@ -9,20 +10,12 @@ import {
   formatRelativeTime,
   getSavedReadings,
   mapServerReadingToSavedReading,
+  migrateLocalReadingsToServer,
   type SavedTarotReading,
   storeReadingRestorePayload,
 } from './historyClientUtils'
-import styles from './history.module.css'
 
 type SortOption = 'newest' | 'oldest'
-type FilterOption = 'all' | 'love' | 'career' | 'daily' | 'general'
-type QuestionTypeFilter =
-  | 'all'
-  | 'other_response'
-  | 'emotion_read'
-  | 'flow_read'
-  | 'decision'
-  | 'open_read'
 
 type CardFrequency = {
   name: string
@@ -31,51 +24,35 @@ type CardFrequency = {
   reversedCount: number
 }
 
-function truncateText(text: string | null | undefined, maxLength = 110): string {
+function truncate(text: string | null | undefined, maxLength = 140): string {
   const normalized = (text || '').trim()
-  if (!normalized) {
-    return ''
-  }
-  if (normalized.length <= maxLength) {
-    return normalized
-  }
+  if (!normalized) return ''
+  if (normalized.length <= maxLength) return normalized
   return `${normalized.slice(0, maxLength - 1).trim()}…`
 }
 
-function getQuestionProfileLabels(reading: SavedTarotReading): string[] {
-  const profile = reading.questionAnalysis?.question_profile
-  if (!profile) {
-    return []
-  }
-
-  return [profile.type, profile.subject, profile.focus, profile.timeframe, profile.tone]
-    .map((field) => field?.label?.trim() || '')
-    .filter(Boolean)
-}
-
-function getQuestionTypeCode(reading: SavedTarotReading): string {
-  return reading.questionAnalysis?.question_profile?.type?.code?.trim() || 'open_read'
-}
-
-function EmptyHistoryState({
+function EmptyState({
   title,
   description,
   action,
 }: {
   title: string
   description: string
-  action?: {
-    text: string
-    onClick: () => void
-  }
+  action?: { text: string; onClick: () => void }
 }) {
   return (
-    <div className={styles.emptyState}>
-      <span className={styles.emptyIcon}>🔮</span>
-      <h2>{title}</h2>
-      <p>{description}</p>
+    <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-3">
+      <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-[0_0_32px_rgba(99,102,241,0.18)]">
+        <MoonStar className="w-8 h-8 text-indigo-300" />
+      </div>
+      <h2 className="text-lg font-semibold text-slate-100 mt-2">{title}</h2>
+      <p className="text-sm text-slate-400 max-w-xs">{description}</p>
       {action && (
-        <button type="button" className={styles.startButton} onClick={action.onClick}>
+        <button
+          type="button"
+          onClick={action.onClick}
+          className="mt-3 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-sm font-medium hover:from-indigo-400 hover:to-violet-400 transition-colors shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+        >
           {action.text}
         </button>
       )}
@@ -90,8 +67,6 @@ export default function TarotHistoryClient() {
 
   const [readings, setReadings] = useState<SavedTarotReading[]>([])
   const [sortBy, setSortBy] = useState<SortOption>('newest')
-  const [filterBy, setFilterBy] = useState<FilterOption>('all')
-  const [questionTypeFilter, setQuestionTypeFilter] = useState<QuestionTypeFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedReading, setSelectedReading] = useState<SavedTarotReading | null>(null)
   const [showStats, setShowStats] = useState(false)
@@ -104,104 +79,70 @@ export default function TarotHistoryClient() {
         credentials: 'same-origin',
       })
       if (response.ok) {
-        const payload = (await response.json()) as {
+        // 로그인 사용자임을 확인 — 게스트 시절 localStorage 에 쌓인 리딩이 있으면 서버로 1회 이전.
+        // flag 로 한 번만 실행되고, 실패 시 다음 방문에 재시도하지 않으려고 flag 안 박음.
+        const migration = await migrateLocalReadingsToServer()
+        const payload = (await (migration.migrated > 0
+          ? fetch('/api/tarot/save?limit=100', { credentials: 'same-origin' }).then((r) => r.json())
+          : response.json())) as {
           readings?: Array<Parameters<typeof mapServerReadingToSavedReading>[0]>
         }
         const serverReadings = Array.isArray(payload.readings)
           ? payload.readings.map((reading) => mapServerReadingToSavedReading(reading))
           : []
         setReadings(serverReadings)
+        if (migration.migrated > 0) {
+          setDeleteNotice(
+            isKo
+              ? `이전 ${migration.migrated}개의 리딩을 계정으로 옮겼어요.`
+              : `Imported ${migration.migrated} guest reading${migration.migrated > 1 ? 's' : ''}.`,
+          )
+        }
         return
       }
     } catch {
       // Fall back to local storage when server history is unavailable.
     }
-
     setReadings(getSavedReadings())
-  }, [])
+  }, [isKo])
 
   useEffect(() => {
     let cancelled = false
     setIsLoadingReadings(true)
-
     void loadReadings().finally(() => {
-      if (!cancelled) {
-        setIsLoadingReadings(false)
-      }
+      if (!cancelled) setIsLoadingReadings(false)
     })
-
     return () => {
       cancelled = true
     }
   }, [loadReadings])
 
   useEffect(() => {
-    if (!deleteNotice) {
-      return
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setDeleteNotice('')
-    }, 2500)
-
-    return () => {
-      window.clearTimeout(timeoutId)
-    }
+    if (!deleteNotice) return
+    const id = window.setTimeout(() => setDeleteNotice(''), 2500)
+    return () => window.clearTimeout(id)
   }, [deleteNotice])
 
   const filteredReadings = useMemo(() => {
     let result = [...readings]
-
-    if (filterBy !== 'all') {
-      result = result.filter((reading) => {
-        const category = reading.categoryId.toLowerCase()
-        switch (filterBy) {
-          case 'love':
-            return category.includes('love') || category.includes('relationship')
-          case 'career':
-            return category.includes('career') || category.includes('work')
-          case 'daily':
-            return category.includes('daily') || category.includes('today')
-          case 'general':
-            return (
-              !category.includes('love') &&
-              !category.includes('relationship') &&
-              !category.includes('career') &&
-              !category.includes('work') &&
-              !category.includes('daily') &&
-              !category.includes('today')
-            )
-          default:
-            return true
-        }
-      })
-    }
-
-    if (questionTypeFilter !== 'all') {
-      result = result.filter((reading) => getQuestionTypeCode(reading) === questionTypeFilter)
-    }
-
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
+      const q = searchQuery.toLowerCase()
       result = result.filter(
         (reading) =>
-          reading.question.toLowerCase().includes(query) ||
-          (reading.questionAnalysis?.question_summary || '').toLowerCase().includes(query) ||
-          (reading.questionAnalysis?.direct_answer || '').toLowerCase().includes(query) ||
+          reading.question.toLowerCase().includes(q) ||
           reading.cards.some(
             (card) =>
-              card.name.toLowerCase().includes(query) || card.nameKo?.toLowerCase().includes(query)
+              card.name.toLowerCase().includes(q) ||
+              card.nameKo?.toLowerCase().includes(q)
           )
       )
     }
-
     result.sort((a, b) => (sortBy === 'newest' ? b.timestamp - a.timestamp : a.timestamp - b.timestamp))
     return result
-  }, [filterBy, questionTypeFilter, readings, searchQuery, sortBy])
+  }, [readings, searchQuery, sortBy])
 
   const cardStats = useMemo((): CardFrequency[] => {
     const freqMap = new Map<string, CardFrequency>()
-
     readings.forEach((reading) => {
       reading.cards.forEach((card) => {
         const existing = freqMap.get(card.name) || {
@@ -211,16 +152,11 @@ export default function TarotHistoryClient() {
           reversedCount: 0,
         }
         existing.count += 1
-        if (card.isReversed) {
-          existing.reversedCount += 1
-        }
+        if (card.isReversed) existing.reversedCount += 1
         freqMap.set(card.name, existing)
       })
     })
-
-    return Array.from(freqMap.values())
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10)
+    return Array.from(freqMap.values()).sort((a, b) => b.count - a.count).slice(0, 10)
   }, [readings])
 
   const handleDelete = async (
@@ -228,9 +164,7 @@ export default function TarotHistoryClient() {
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     event.stopPropagation()
-    if (!window.confirm(isKo ? '이 리딩을 삭제하시겠습니까?' : 'Delete this reading?')) {
-      return
-    }
+    if (!window.confirm(isKo ? '이 리딩을 삭제하시겠습니까?' : 'Delete this reading?')) return
 
     if (reading.storageOrigin === 'server') {
       try {
@@ -242,29 +176,21 @@ export default function TarotHistoryClient() {
           setReadings((prev) => prev.filter((item) => item.id !== reading.id))
           setDeleteNotice(isKo ? '리딩을 삭제했습니다.' : 'Reading deleted.')
         } else {
-          setDeleteNotice(
-            isKo ? '삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.' : 'Delete failed. Please try again.'
-          )
+          setDeleteNotice(isKo ? '삭제하지 못했어요. 잠시 후 다시 시도해 주세요.' : 'Delete failed.')
         }
       } catch {
-        setDeleteNotice(
-          isKo ? '삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.' : 'Delete failed. Please try again.'
-        )
+        setDeleteNotice(isKo ? '삭제하지 못했어요. 잠시 후 다시 시도해 주세요.' : 'Delete failed.')
       }
     } else {
       if (deleteReading(reading.id)) {
         setReadings(getSavedReadings())
         setDeleteNotice(isKo ? '리딩을 삭제했습니다.' : 'Reading deleted.')
       } else {
-        setDeleteNotice(
-          isKo ? '삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.' : 'Delete failed. Please try again.'
-        )
+        setDeleteNotice(isKo ? '삭제하지 못했어요.' : 'Delete failed.')
       }
     }
 
-    if (selectedReading?.id === reading.id) {
-      setSelectedReading(null)
-    }
+    if (selectedReading?.id === reading.id) setSelectedReading(null)
   }
 
   const handleResumeReading = useCallback(
@@ -272,132 +198,142 @@ export default function TarotHistoryClient() {
       const restoreKey = storeReadingRestorePayload(reading)
       const params = new URLSearchParams()
       const question = (reading.question || '').trim()
-
-      if (question) {
-        params.set('question', question)
-      }
-      if (restoreKey) {
-        params.set('restoreKey', restoreKey)
-      }
-
+      if (question) params.set('question', question)
+      if (restoreKey) params.set('restoreKey', restoreKey)
       router.push(`/tarot/${reading.categoryId}/${reading.spreadId}?${params.toString()}`)
     },
     [router]
   )
 
+  const hasFilters = Boolean(searchQuery.trim())
+
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <button type="button" className={styles.startButton} onClick={() => router.push('/tarot')}>
-          {isKo ? '타로로 돌아가기' : 'Back to Tarot'}
-        </button>
-        <h1 className={styles.title}>{isKo ? '타로 리딩 기록' : 'Tarot Reading History'}</h1>
-        <button
-          type="button"
-          className={`${styles.statsToggle} ${showStats ? styles.active : ''}`}
-          onClick={() => setShowStats((prev) => !prev)}
-          aria-expanded={showStats}
-          aria-label={isKo ? '통계 보기 전환' : 'Toggle statistics'}
-        >
-          📊
-        </button>
-      </div>
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      {/* 글로벌 헤더 (☰ / EN) 와 안 겹치게 상단 여백 충분히. */}
+      <div className="max-w-2xl mx-auto px-4 pt-20 pb-16">
+        {/* 페이지 헤더 */}
+        <header className="flex items-center gap-3 mb-6">
+          <button
+            type="button"
+            onClick={() => router.push('/tarot')}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 text-slate-300 text-sm transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>{isKo ? '돌아가기' : 'Back'}</span>
+          </button>
+          <h1 className="flex-1 text-lg md:text-xl font-semibold text-slate-100">
+            {isKo ? '타로 리딩 기록' : 'Tarot Reading History'}
+          </h1>
+          <button
+            type="button"
+            onClick={() => setShowStats((prev) => !prev)}
+            aria-expanded={showStats}
+            aria-label={isKo ? '통계 보기 전환' : 'Toggle statistics'}
+            className={`p-2 rounded-xl border transition-colors ${
+              showStats
+                ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-200'
+                : 'bg-slate-900/60 border-slate-800 hover:border-indigo-500/40 text-slate-400'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+          </button>
+        </header>
 
-      {deleteNotice && (
-        <div className={styles.deleteNotice} role="status" aria-live="polite">
-          {deleteNotice}
-        </div>
-      )}
+        {/* 삭제 알림 */}
+        {deleteNotice && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 px-4 py-3 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-sm text-indigo-100"
+          >
+            {deleteNotice}
+          </div>
+        )}
 
-      {showStats && (
-        <div className={`${styles.statsPanel} ${styles.statsPanelVisible}`}>
-          <h3 className={styles.statsSectionTitle}>
-            {isKo ? '자주 나온 카드 TOP 10' : 'Most Frequent Cards TOP 10'}
-          </h3>
-          {cardStats.length > 0 ? (
-            <div className={styles.statsGrid}>
-              {cardStats.map((stat, idx) => (
-                <div key={stat.name} className={styles.statCard}>
-                  <span className={styles.statRank}>#{idx + 1}</span>
-                  <span className={styles.statName}>{isKo ? stat.nameKo || stat.name : stat.name}</span>
-                  <span className={styles.statCount}>
-                    {stat.count}
-                    {isKo ? '회' : 'x'}
-                    {stat.reversedCount > 0 && (
-                      <span className={styles.reversedCount}>
-                        ({stat.reversedCount} {isKo ? '역방향' : 'reversed'})
-                      </span>
-                    )}
-                  </span>
-                </div>
-              ))}
+        {/* 통계 패널 */}
+        {showStats && (
+          <section className="mb-6 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/5 border border-indigo-500/20 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-4 h-4 text-indigo-300" />
+              <h3 className="text-xs uppercase tracking-wider text-indigo-300 font-medium">
+                {isKo ? '자주 나온 카드 TOP 10' : 'Most Frequent Cards TOP 10'}
+              </h3>
             </div>
-          ) : (
-            <p className={styles.emptyStats}>{isKo ? '아직 데이터가 없습니다' : 'No data yet'}</p>
-          )}
-          <div className={styles.totalReadings}>
-            {isKo ? `총 ${readings.length}개의 리딩` : `${readings.length} total readings`}
+            {cardStats.length > 0 ? (
+              <ul className="space-y-2">
+                {cardStats.map((stat, idx) => (
+                  <li
+                    key={stat.name}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-900/40 border border-slate-800"
+                  >
+                    <span className="text-xs font-semibold text-indigo-300 w-6">#{idx + 1}</span>
+                    <span className="flex-1 text-sm text-slate-200 truncate">
+                      {isKo ? stat.nameKo || stat.name : stat.name}
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      {stat.count}
+                      {isKo ? '회' : 'x'}
+                      {stat.reversedCount > 0 && (
+                        <span className="ml-1.5 text-rose-300/80">
+                          ({stat.reversedCount} {isKo ? '역방향' : 'rev'})
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-500 italic">
+                {isKo ? '아직 데이터가 없어요' : 'No data yet'}
+              </p>
+            )}
+            <div className="mt-4 text-xs text-slate-500 text-center">
+              {isKo ? `총 ${readings.length}개의 리딩` : `${readings.length} total readings`}
+            </div>
+          </section>
+        )}
+
+        {/* 컨트롤 — 검색 + 정렬 chip */}
+        <div className="mb-5 space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={isKo ? '질문 또는 카드 검색…' : 'Search questions or cards…'}
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/60 border border-slate-800 focus:border-indigo-500/50 focus:outline-none text-slate-100 text-sm placeholder-slate-500 transition-colors"
+            />
+          </div>
+          <div className="flex gap-2">
+            {(['newest', 'oldest'] as SortOption[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setSortBy(option)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  sortBy === option
+                    ? 'bg-indigo-500/25 border-indigo-500/50 text-indigo-100'
+                    : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:border-slate-700'
+                }`}
+              >
+                {option === 'newest' ? (isKo ? '최신순' : 'Newest') : isKo ? '오래된순' : 'Oldest'}
+              </button>
+            ))}
           </div>
         </div>
-      )}
 
-      <div className={styles.controls}>
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder={isKo ? '질문 또는 카드 검색...' : 'Search questions or cards...'}
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-        />
-        <select
-          className={styles.select}
-          value={filterBy}
-          onChange={(event) => setFilterBy(event.target.value as FilterOption)}
-        >
-          <option value="all">{isKo ? '전체' : 'All'}</option>
-          <option value="love">{isKo ? '연애' : 'Love'}</option>
-          <option value="career">{isKo ? '커리어' : 'Career'}</option>
-          <option value="daily">{isKo ? '오늘의 운세' : 'Daily'}</option>
-          <option value="general">{isKo ? '일반' : 'General'}</option>
-        </select>
-        <select
-          className={styles.select}
-          value={questionTypeFilter}
-          onChange={(event) => setQuestionTypeFilter(event.target.value as QuestionTypeFilter)}
-        >
-          <option value="all">{isKo ? '질문 유형 전체' : 'All question types'}</option>
-          <option value="other_response">{isKo ? '상대 반응' : 'Other response'}</option>
-          <option value="emotion_read">{isKo ? '감정 해석' : 'Emotion reading'}</option>
-          <option value="flow_read">{isKo ? '흐름 해석' : 'Flow reading'}</option>
-          <option value="decision">{isKo ? '선택/조언' : 'Decision/advice'}</option>
-          <option value="open_read">{isKo ? '열린 질문' : 'Open reading'}</option>
-        </select>
-        <select
-          className={styles.select}
-          value={sortBy}
-          onChange={(event) => setSortBy(event.target.value as SortOption)}
-        >
-          <option value="newest">{isKo ? '최신순' : 'Newest'}</option>
-          <option value="oldest">{isKo ? '오래된순' : 'Oldest'}</option>
-        </select>
-      </div>
-
-      <div className={styles.readingList}>
-        {isLoadingReadings ? (
-          <EmptyHistoryState
-            title={isKo ? '기록을 불러오는 중...' : 'Loading readings...'}
-            description={isKo ? '저장된 리딩을 확인하고 있습니다.' : 'Fetching your saved readings.'}
-          />
-        ) : filteredReadings.length > 0 ? (
-          filteredReadings.map((reading) => {
-            const summary = reading.questionAnalysis?.question_summary?.trim()
-            const directAnswer = reading.questionAnalysis?.direct_answer?.trim()
-            const profileLabels = getQuestionProfileLabels(reading)
-
-            return (
-              <div
+        {/* 리딩 리스트 */}
+        <div className="space-y-3">
+          {isLoadingReadings ? (
+            <EmptyState
+              title={isKo ? '기록을 불러오는 중…' : 'Loading readings…'}
+              description={isKo ? '저장된 리딩을 확인하고 있어요.' : 'Fetching your saved readings.'}
+            />
+          ) : filteredReadings.length > 0 ? (
+            filteredReadings.map((reading) => (
+              <article
                 key={reading.id}
-                className={styles.readingCard}
                 role="button"
                 tabIndex={0}
                 onClick={() => setSelectedReading(reading)}
@@ -407,206 +343,168 @@ export default function TarotHistoryClient() {
                     setSelectedReading(reading)
                   }
                 }}
+                className="group cursor-pointer rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/40 transition-colors p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
               >
-                <div className={styles.readingHeader}>
-                  <span className={styles.readingTime}>{formatRelativeTime(reading.timestamp, isKo)}</span>
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <span className="text-xs text-slate-500">
+                    {formatRelativeTime(reading.timestamp, isKo)}
+                  </span>
                   <button
                     type="button"
-                    className={styles.deleteBtn}
                     onClick={(event) => void handleDelete(reading, event)}
+                    aria-label={isKo ? '삭제' : 'Delete'}
+                    className="text-slate-500 hover:text-rose-300 transition-colors"
                   >
-                    ✕
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
-                <p className={styles.readingQuestion}>{reading.question}</p>
-                {summary && <p className={styles.readingSummary}>{summary}</p>}
-                {directAnswer && (
-                  <div className={styles.directAnswerPreview}>
-                    <span className={styles.previewLabel}>{isKo ? 'AI 선해석' : 'Pre-read Answer'}</span>
-                    <p>{truncateText(directAnswer, 120)}</p>
-                  </div>
-                )}
-                {profileLabels.length > 0 && (
-                  <div className={styles.profileChips}>
-                    {profileLabels.slice(0, 4).map((label) => (
-                      <span key={`${reading.id}-${label}`} className={styles.profileChip}>
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className={styles.readingMeta}>
-                  <span className={styles.spreadName}>
-                    {isKo ? reading.spread.titleKo || reading.spread.title : reading.spread.title}
+                <p className="text-base md:text-[17px] text-slate-100 font-medium leading-snug mb-3">
+                  {reading.question}
+                </p>
+                <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
+                  <span className="text-indigo-300/80">
+                    {isKo
+                      ? reading.spread.titleKo || reading.spread.title
+                      : reading.spread.title}
                   </span>
-                  <span className={styles.cardCount}>🃏 {reading.cards.length}</span>
+                  <span className="text-slate-600">·</span>
+                  <span>
+                    {isKo ? `카드 ${reading.cards.length}장` : `${reading.cards.length} cards`}
+                  </span>
                 </div>
-                <div className={styles.cardPreview}>
+                <div className="flex flex-wrap gap-1.5">
                   {reading.cards.slice(0, 5).map((card, idx) => (
                     <span
                       key={`${reading.id}-card-${idx}`}
-                      className={`${styles.cardChip} ${card.isReversed ? styles.reversed : ''}`}
+                      className={`px-2.5 py-0.5 text-[11px] rounded-full border ${
+                        card.isReversed
+                          ? 'bg-rose-500/10 border-rose-500/30 text-rose-200'
+                          : 'bg-slate-800 border-slate-700 text-slate-300'
+                      }`}
                       title={isKo ? card.nameKo || card.name : card.name}
                     >
-                      {(isKo ? card.nameKo || card.name : card.name).substring(0, 8)}
+                      {(isKo ? card.nameKo || card.name : card.name).slice(0, 8)}
                       {card.isReversed && ' ↓'}
                     </span>
                   ))}
                   {reading.cards.length > 5 && (
-                    <span className={styles.moreCards}>+{reading.cards.length - 5}</span>
+                    <span className="px-2.5 py-0.5 text-[11px] rounded-full border border-slate-800 text-slate-500">
+                      +{reading.cards.length - 5}
+                    </span>
                   )}
                 </div>
-              </div>
-            )
-          })
-        ) : (
-          <EmptyHistoryState
-            title={
-              searchQuery || filterBy !== 'all' || questionTypeFilter !== 'all'
-                ? isKo
-                  ? '검색 결과가 없습니다'
-                  : 'No results found'
-                : isKo
-                  ? '저장된 리딩이 없습니다'
-                  : 'No saved readings yet'
-            }
-            description={
-              searchQuery || filterBy !== 'all' || questionTypeFilter !== 'all'
-                ? isKo
-                  ? '다른 검색어나 필터를 시도해보세요'
-                  : 'Try different keywords or filters'
-                : isKo
-                  ? '타로 카드로 미래를 예측해보세요'
-                  : 'Start your first tarot reading'
-            }
-            action={
-              !searchQuery && filterBy === 'all' && questionTypeFilter === 'all'
-                ? {
-                    text: isKo ? '타로 시작하기' : 'Start a Reading',
-                    onClick: () => router.push('/tarot'),
-                  }
-                : undefined
-            }
-          />
-        )}
+              </article>
+            ))
+          ) : (
+            <EmptyState
+              title={
+                hasFilters
+                  ? isKo ? '검색 결과가 없어요' : 'No results found'
+                  : isKo ? '저장된 리딩이 없어요' : 'No saved readings yet'
+              }
+              description={
+                hasFilters
+                  ? isKo ? '다른 키워드로 시도해보세요' : 'Try different keywords'
+                  : isKo ? '첫 번째 타로 리딩을 시작해보세요' : 'Start your first tarot reading'
+              }
+              action={
+                hasFilters
+                  ? undefined
+                  : {
+                      text: isKo ? '타로 시작하기' : 'Start a Reading',
+                      onClick: () => router.push('/tarot'),
+                    }
+              }
+            />
+          )}
+        </div>
       </div>
 
+      {/* 상세 모달 */}
       {selectedReading && (
         <div
-          className={`${styles.modalOverlay} ${styles.modalOverlayVisible}`}
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6"
           onClick={() => setSelectedReading(null)}
         >
           <div
-            className={`${styles.modalContent} ${styles.modalContentVisible}`}
             onClick={(event) => event.stopPropagation()}
+            className="relative w-full md:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-2xl bg-slate-900 border border-indigo-500/20 shadow-[0_0_60px_rgba(99,102,241,0.18)] p-6"
           >
             <button
               type="button"
-              className={styles.modalClose}
               onClick={() => setSelectedReading(null)}
+              aria-label={isKo ? '닫기' : 'Close'}
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
-            <h2 className={styles.modalTitle}>
+
+            <div className="text-xs uppercase tracking-wider text-indigo-300/80 mb-1">
               {isKo
                 ? selectedReading.spread.titleKo || selectedReading.spread.title
                 : selectedReading.spread.title}
+            </div>
+            <h2 className="text-xl md:text-2xl font-semibold text-slate-100 leading-snug mb-1">
+              {selectedReading.question}
             </h2>
-            <p className={styles.modalTime}>{formatRelativeTime(selectedReading.timestamp, isKo)}</p>
-            <div className={styles.modalQuestion}>
-              <strong>{isKo ? '질문:' : 'Question:'}</strong> {selectedReading.question}
-            </div>
+            <p className="text-xs text-slate-500 mb-5">
+              {formatRelativeTime(selectedReading.timestamp, isKo)}
+            </p>
 
-            {(() => {
-              const summary = selectedReading.questionAnalysis?.question_summary?.trim()
-              const directAnswer = selectedReading.questionAnalysis?.direct_answer?.trim()
-              const profile = selectedReading.questionAnalysis?.question_profile
-              const profileRows = [
-                { key: 'type', title: isKo ? '질문 종류' : 'Type', value: profile?.type?.label?.trim() },
-                { key: 'subject', title: isKo ? '주체' : 'Subject', value: profile?.subject?.label?.trim() },
-                { key: 'focus', title: isKo ? '핵심 포커스' : 'Focus', value: profile?.focus?.label?.trim() },
-                {
-                  key: 'timeframe',
-                  title: isKo ? '시간축' : 'Timeframe',
-                  value: profile?.timeframe?.label?.trim(),
-                },
-                { key: 'tone', title: isKo ? '질문 톤' : 'Tone', value: profile?.tone?.label?.trim() },
-              ].filter((row) => row.value)
-
-              if (!summary && !directAnswer && profileRows.length === 0) {
-                return null
-              }
-
-              return (
-                <div className={styles.modalAnalysis}>
-                  <h4 className={styles.modalSectionTitle}>
-                    {isKo ? '질문 이해' : 'Question Understanding'}
-                  </h4>
-                  {summary && (
-                    <div className={styles.modalSummary}>
-                      <strong>{isKo ? '질문 요약' : 'Summary'}</strong>
-                      <p>{summary}</p>
-                    </div>
-                  )}
-                  {profileRows.length > 0 && (
-                    <div className={styles.modalProfileGrid}>
-                      {profileRows.map((row) => (
-                        <div key={row.key} className={styles.modalProfileItem}>
-                          <span>{row.title}</span>
-                          <strong>{row.value}</strong>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {directAnswer && (
-                    <div className={styles.modalDirectAnswer}>
-                      <strong>{isKo ? 'AI 선해석' : 'Pre-read Answer'}</strong>
-                      <p>{directAnswer}</p>
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-
-            <div className={styles.modalCards}>
-              <h4>{isKo ? '뽑은 카드' : 'Drawn Cards'}</h4>
-              {selectedReading.cards.map((card, idx) => (
-                <div key={`${selectedReading.id}-detail-${idx}`} className={styles.modalCardItem}>
-                  <span className={styles.modalCardPosition}>
-                    {isKo ? card.positionKo || card.position : card.position}
-                  </span>
-                  <span
-                    className={`${styles.modalCardName} ${card.isReversed ? styles.reversed : ''}`}
+            {/* 카드 리스트 */}
+            <section className="mb-5">
+              <h4 className="text-xs uppercase tracking-wider text-slate-500 mb-2">
+                {isKo ? '뽑은 카드' : 'Drawn Cards'}
+              </h4>
+              <ul className="space-y-2">
+                {selectedReading.cards.map((card, idx) => (
+                  <li
+                    key={`${selectedReading.id}-detail-${idx}`}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700/60"
                   >
-                    {isKo ? card.nameKo || card.name : card.name}
-                    {card.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
-                  </span>
-                </div>
-              ))}
-            </div>
+                    <span className="text-xs text-indigo-300/80 w-20 shrink-0">
+                      {isKo ? card.positionKo || card.position : card.position}
+                    </span>
+                    <span
+                      className={`text-sm font-medium ${
+                        card.isReversed ? 'text-rose-200' : 'text-slate-100'
+                      }`}
+                    >
+                      {isKo ? card.nameKo || card.name : card.name}
+                      {card.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
 
+            {/* 전체 해석 */}
             {selectedReading.interpretation.overallMessage && (
-              <div className={styles.modalInterpretation}>
-                <h4>{isKo ? '해석' : 'Interpretation'}</h4>
-                <p>{selectedReading.interpretation.overallMessage}</p>
+              <section className="mb-5 rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/5 border border-indigo-500/30 p-4">
+                <h4 className="text-xs uppercase tracking-wider text-indigo-300 font-medium mb-2">
+                  {isKo ? '해석' : 'Interpretation'}
+                </h4>
+                <p className="text-sm md:text-[15px] text-slate-100 leading-relaxed whitespace-pre-wrap">
+                  {selectedReading.interpretation.overallMessage}
+                </p>
                 {selectedReading.interpretation.guidance && (
-                  <div className={styles.modalGuidance}>
-                    <strong>{isKo ? '조언:' : 'Guidance:'}</strong>{' '}
+                  <div className="mt-3 pt-3 border-t border-indigo-500/20 text-sm text-slate-200">
+                    <strong className="text-indigo-200">{isKo ? '조언: ' : 'Guidance: '}</strong>
                     {selectedReading.interpretation.guidance}
                   </div>
                 )}
-              </div>
+              </section>
             )}
 
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.resumeButton}
-                onClick={() => handleResumeReading(selectedReading)}
-              >
-                {isKo ? '이 리딩 다시 열기' : 'Open this reading again'}
-              </button>
-            </div>
+            {/* 액션 */}
+            <button
+              type="button"
+              onClick={() => handleResumeReading(selectedReading)}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white text-sm font-medium transition-colors shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+            >
+              <RotateCcw className="w-4 h-4" />
+              {truncate(isKo ? '이 리딩 다시 열기' : 'Open this reading again', 40)}
+            </button>
           </div>
         </div>
       )}

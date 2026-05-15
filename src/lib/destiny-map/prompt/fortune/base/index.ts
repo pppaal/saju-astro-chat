@@ -21,7 +21,7 @@
 import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import type { PlanetData } from '@/lib/astrology'
 import { logger } from '@/lib/logger'
-import type { AnnualItem, MonthlyItem, PillarSet } from './prompt-types'
+import type { AnnualItem, IljinItem, MonthlyItem, PillarSet } from './prompt-types'
 import type { UnseDataForFormat } from './formatter-utils'
 
 // Import all modules
@@ -126,7 +126,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     const { lucky, unlucky } = formatSinsalLists(saju.sinsal)
     const advancedAnalysis = formatAdvancedSajuAnalysis(saju.advancedAnalysis)
 
-    // Step 5: Find current annual and monthly
+    // Step 5: Find current annual, monthly, and today's iljin
     const currentAnnual = (saju.unse?.annual ?? []).find(
       (a) => (a as AnnualItem).year === timeInfo.currentYear
     ) as AnnualItem | undefined
@@ -134,6 +134,18 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       const item = m as MonthlyItem
       return item.year === timeInfo.currentYear && item.month === timeInfo.currentMonth
     }) as MonthlyItem | undefined
+    const currentDaily = (saju.unse?.iljin ?? []).find((i) => {
+      const item = i as IljinItem
+      return (
+        item.year === timeInfo.currentYear &&
+        item.month === timeInfo.currentMonth &&
+        item.day === timeInfo.currentDay
+      )
+    }) as IljinItem | undefined
+    const currentDailyGanji =
+      currentDaily?.ganji ||
+      `${currentDaily?.heavenlyStem ?? ''}${currentDaily?.earthlyBranch ?? ''}` ||
+      ''
 
     // Step 6: Format extra points (Chiron, Lilith, Vertex, Part of Fortune)
     const extraPointsText =
@@ -489,6 +501,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       currentAnnualElement: currentAnnual?.element ?? '-',
       currentAnnualGanji: currentAnnual?.ganji ?? '',
       currentMonthlyElement: currentMonthly?.element ?? '-',
+      currentDailyGanji,
       lucky,
       unlucky,
       allDaeunText,

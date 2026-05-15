@@ -27,6 +27,13 @@ export const PostChatHistorySchema = z.object({
   locale: z.enum(['ko', 'en']).default('ko'),
   userMessage: z.string().optional(),
   assistantMessage: z.string().optional(),
+  // Service discriminator. Existing destiny clients omit this and the
+  // server defaults to 'destiny'. Compat clients send 'compat'.
+  type: z.enum(['destiny', 'compat']).optional(),
+  // Type-specific persisted context. Compat sends a couple snapshot
+  // (persons + person*Saju + person*Astro) on the *first* save so the
+  // past-chat link can restore the chart without re-fetching.
+  meta: z.record(z.string(), z.unknown()).optional(),
 }).refine(
   (data) => data.userMessage || data.assistantMessage,
   {

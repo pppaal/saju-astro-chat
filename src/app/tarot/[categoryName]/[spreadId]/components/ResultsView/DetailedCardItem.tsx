@@ -6,6 +6,7 @@ import { Sparkles, Loader2 } from 'lucide-react'
 import type { DrawnCard, DeckStyle } from '@/lib/tarot/tarot.types'
 import type { CardInsight } from '../../types'
 import { getCardImagePath } from '@/lib/tarot/tarot.types'
+import { renderHighlighted } from './highlight'
 
 interface DetailedCardItemProps {
   drawnCard: DrawnCard
@@ -43,24 +44,20 @@ export function DetailedCardItem({
       : 'Upright'
 
   const staticMeaning = (isKo ? meaning.meaningKo || meaning.meaning : meaning.meaning) || ''
-  // 너무 길면 첫 문장만 — 결과 페이지는 AI 해석이 메인이고 일반 의미는 *참고*.
-  const compactMeaning = (() => {
-    if (!staticMeaning) return ''
-    const trimmed = staticMeaning.trim()
-    // 첫 문장 (마침표 / 느낌표 / 물음표 기준), 너무 길면 80자에서 컷.
-    const sentenceMatch = trimmed.match(/^[^.!?。！？]*[.!?。！？]/)
-    let first = sentenceMatch ? sentenceMatch[0].trim() : trimmed
-    if (first.length > 90) {
-      first = first.slice(0, 80).trimEnd() + '…'
+  // 일반 의미 — 첫 2문장 또는 200자 cap (이전 전체 노출은 AI 해석을 가려서 단축).
+  const trimmedStaticMeaning = (() => {
+    const text = staticMeaning.trim()
+    if (!text) return ''
+    const sentences = text.match(/[^.!?。]+[.!?。]?/g) || [text]
+    let out = sentences.slice(0, 2).join('').trim()
+    if (out.length > 200) {
+      const cut = out.slice(0, 200)
+      const lastDot = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('? '), cut.lastIndexOf('! '))
+      out = lastDot > 100 ? cut.slice(0, lastDot + 1) : `${cut.trim()}…`
     }
-    return first
+    return out
   })()
-  const staticAdvice = (isKo ? meaning.adviceKo || meaning.advice : meaning.advice) || ''
   const aiInterpretation = cardInsight?.interpretation?.trim() || ''
-  const dynamicTip = cardInsight?.action_tip?.trim() || ''
-  // 동적 조언이 있으면 그걸 쓰고, 없으면 정적 advice 로 폴백. 둘 다 빈칸이면 박스 안 보임.
-  const adviceText = dynamicTip || staticAdvice
-  const adviceIsDynamic = Boolean(dynamicTip)
   const hasAiText = aiInterpretation.length > 0
 
   const keywords = (isKo ? meaning.keywordsKo || meaning.keywords : meaning.keywords).slice(0, 5)
@@ -119,13 +116,15 @@ export function DetailedCardItem({
             </div>
           )}
 
-          {/* 정적 의미 — 첫 문장만 핵심 한 줄로. AI 해석이 메인. */}
-          {compactMeaning && (
-            <div className="flex items-baseline gap-2">
-              <span className="text-[11px] uppercase tracking-wider text-slate-500 shrink-0">
-                {isKo ? '참고' : 'Ref'}
-              </span>
-              <p className="text-base text-slate-300 leading-relaxed">{compactMeaning}</p>
+          {/* 정적 의미 — 첫 2문장만. AI 해석이 메인이라 참고 텍스트는 짧게. */}
+          {trimmedStaticMeaning && (
+            <div className="space-y-1.5">
+              <div className="text-[11px] uppercase tracking-wider text-slate-500">
+                {isKo ? '카드 일반 의미' : 'General card meaning'}
+              </div>
+              <p className="text-[14px] md:text-[15px] text-slate-400 leading-relaxed">
+                {trimmedStaticMeaning}
+              </p>
             </div>
           )}
 
@@ -139,7 +138,7 @@ export function DetailedCardItem({
             </div>
             {hasAiText ? (
               <p className="text-base md:text-[17px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-                {aiInterpretation}
+                {renderHighlighted(aiInterpretation)}
               </p>
             ) : aiPending ? (
               <div className="flex items-center gap-2 text-sm text-indigo-200/80 py-2">
@@ -157,20 +156,7 @@ export function DetailedCardItem({
             )}
           </div>
 
-          {adviceText && (
-            <div className="rounded-xl bg-amber-500/8 border border-amber-500/25 p-4">
-              <div className="text-[11px] uppercase tracking-wider text-amber-300/90 mb-1.5">
-                {adviceIsDynamic
-                  ? isKo
-                    ? '실천 조언 (질문 맞춤)'
-                    : 'Action Step (For Your Question)'
-                  : isKo
-                    ? '실천 팁'
-                    : 'Tip'}
-              </div>
-              <p className="text-base text-slate-100 leading-relaxed">{adviceText}</p>
-            </div>
-          )}
+          {/* 실천 팁/조언 박스 제거 — 사용자 요청. AI 해석 안에 시간 앵커 + 행동 안내가 이미 들어있음. */}
         </div>
       </div>
     </article>

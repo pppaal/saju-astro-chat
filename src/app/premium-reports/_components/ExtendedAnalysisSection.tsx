@@ -32,100 +32,120 @@ export default function ExtendedAnalysisSection({
   analysis,
   className = '',
 }: ExtendedAnalysisSectionProps) {
+  const fixedPct = Math.max(
+    0,
+    Math.min(100, Math.round((analysis.karmic.fateVsDestiny.fixedRatio ?? 0) * 100))
+  )
+  const flexiblePct = 100 - fixedPct
+
   return (
     <section className={`mx-auto mt-8 max-w-4xl space-y-8 px-4 ${className}`.trim()}>
       {/* A. Life stages */}
-      <Block title="🌱 인생 시기별 흐름" subtitle="원국과 대운이 시기별로 만드는 결">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-          {analysis.lifeStages.map((stage) => (
-            <div
-              key={stage.label}
-              className="rounded-2xl border border-white/10 bg-slate-900/40 p-4 backdrop-blur-md"
-            >
-              <div className="text-[10px] font-mono uppercase tracking-widest text-fuchsia-400 mb-1">
-                {stage.governedBy}
+      {analysis.lifeStages.length > 0 && (
+        <Block title="🌱 인생 시기별 흐름" subtitle="원국과 대운이 시기별로 만드는 결">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+            {analysis.lifeStages.map((stage, idx) => (
+              <div
+                key={`${stage.label}-${idx}`}
+                className="rounded-2xl border border-white/10 bg-slate-900/40 p-4 backdrop-blur-md"
+              >
+                <div className="text-[10px] font-mono uppercase tracking-widest text-fuchsia-400 mb-1">
+                  {stage.governedBy}
+                </div>
+                <div className="text-lg font-bold text-white mb-0.5">{stage.label}</div>
+                <div className="text-xs text-slate-400 mb-3 font-mono">{stage.ageRange}</div>
+                <p className="text-[13px] text-slate-300 leading-relaxed mb-3">
+                  {stage.description}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {stage.keywords.map((k, i) => (
+                    <span
+                      key={`${k}-${i}`}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-fuchsia-500/15 text-fuchsia-200 border border-fuchsia-400/20"
+                    >
+                      #{k}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="text-lg font-bold text-white mb-0.5">{stage.label}</div>
-              <div className="text-xs text-slate-400 mb-3 font-mono">{stage.ageRange}</div>
-              <p className="text-[13px] text-slate-300 leading-relaxed mb-3">{stage.description}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {stage.keywords.map((k) => (
-                  <span
-                    key={k}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-fuchsia-500/15 text-fuchsia-200 border border-fuchsia-400/20"
-                  >
-                    #{k}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Block>
+            ))}
+          </div>
+        </Block>
+      )}
 
       {/* B. Decisive timings */}
-      <Block title="⏳ 결정적 시기" subtitle="대운 흐름으로 본 인생의 변곡점">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {analysis.decisiveTimings.map((timing) => (
-            <div
-              key={timing.domain}
-              className="rounded-xl border border-white/10 bg-slate-900/40 p-4 backdrop-blur-md flex items-start gap-3"
-            >
-              <div className="text-2xl flex-shrink-0 mt-0.5">
-                {DOMAIN_ICON[timing.domain] || '·'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline justify-between gap-2 mb-1.5">
-                  <h4 className="text-sm font-semibold text-white">{timing.label}</h4>
-                  <div className="flex flex-wrap gap-1 justify-end">
-                    {timing.ageWindows.map((w) => (
-                      <span
-                        key={w}
-                        className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-200 border border-cyan-400/20 whitespace-nowrap"
-                      >
-                        {w}
-                      </span>
-                    ))}
-                  </div>
+      {analysis.decisiveTimings.length > 0 && (
+        <Block title="⏳ 결정적 시기" subtitle="대운 흐름으로 본 인생의 변곡점">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {analysis.decisiveTimings.map((timing, idx) => (
+              <div
+                key={`${timing.domain}-${idx}`}
+                className="rounded-xl border border-white/10 bg-slate-900/40 p-4 backdrop-blur-md flex items-start gap-3"
+              >
+                <div className="text-2xl flex-shrink-0 mt-0.5">
+                  {DOMAIN_ICON[timing.domain] || '·'}
                 </div>
-                <p className="text-[12px] text-slate-400 leading-snug">{timing.reasoning}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline justify-between gap-2 mb-1.5 flex-wrap">
+                    <h4 className="text-sm font-semibold text-white min-w-0">{timing.label}</h4>
+                    <div className="flex flex-wrap gap-1 justify-end">
+                      {timing.ageWindows.map((w, i) => (
+                        <span
+                          key={`${w}-${i}`}
+                          className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-200 border border-cyan-400/20 whitespace-nowrap"
+                        >
+                          {w}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-[12px] text-slate-400 leading-snug">{timing.reasoning}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </Block>
+            ))}
+          </div>
+        </Block>
+      )}
 
       {/* C. Relationships */}
-      <Block title="👥 관계 운" subtitle="궁위론으로 본 가족·배우자·인덕">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {analysis.relationships.map((rel) => (
-            <div
-              key={rel.domain}
-              className="rounded-xl border border-white/10 bg-slate-900/40 p-4 backdrop-blur-md"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{DOMAIN_ICON[rel.domain] || '·'}</span>
-                <h4 className="text-sm font-semibold text-white">{rel.label}</h4>
+      {analysis.relationships.length > 0 && (
+        <Block title="👥 관계 운" subtitle="궁위론으로 본 가족·배우자·인덕">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {analysis.relationships.map((rel, idx) => (
+              <div
+                key={`${rel.domain}-${idx}`}
+                className="rounded-xl border border-white/10 bg-slate-900/40 p-4 backdrop-blur-md"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">{DOMAIN_ICON[rel.domain] || '·'}</span>
+                  <h4 className="text-sm font-semibold text-white">{rel.label}</h4>
+                </div>
+                <p className="text-[12.5px] text-slate-300 leading-relaxed mb-3">{rel.summary}</p>
+                <div className="space-y-1.5">
+                  {rel.strengths.map((s, i) => (
+                    <div
+                      key={`s-${s}-${i}`}
+                      className="flex items-start gap-1.5 text-[11.5px] text-emerald-300"
+                    >
+                      <span>+</span>
+                      <span>{s}</span>
+                    </div>
+                  ))}
+                  {rel.cautions.map((c, i) => (
+                    <div
+                      key={`c-${c}-${i}`}
+                      className="flex items-start gap-1.5 text-[11.5px] text-amber-300"
+                    >
+                      <span>−</span>
+                      <span>{c}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p className="text-[12.5px] text-slate-300 leading-relaxed mb-3">{rel.summary}</p>
-              <div className="space-y-1.5">
-                {rel.strengths.map((s) => (
-                  <div key={s} className="flex items-start gap-1.5 text-[11.5px] text-emerald-300">
-                    <span>+</span>
-                    <span>{s}</span>
-                  </div>
-                ))}
-                {rel.cautions.map((c) => (
-                  <div key={c} className="flex items-start gap-1.5 text-[11.5px] text-amber-300">
-                    <span>−</span>
-                    <span>{c}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Block>
+            ))}
+          </div>
+        </Block>
+      )}
 
       {/* D. Practical info */}
       <Block title="🧭 실용 정보" subtitle="용신 + 격국 매핑">
@@ -146,21 +166,23 @@ export default function ExtendedAnalysisSection({
             items={analysis.practical.luckyNumbers.map(String)}
             tone="cyan"
           />
-          <div className="col-span-2 md:col-span-2 rounded-xl border border-fuchsia-400/20 bg-fuchsia-500/5 p-4 backdrop-blur-md">
-            <div className="text-[10px] font-mono uppercase tracking-widest text-fuchsia-300 mb-2">
-              운명 키워드
+          {analysis.practical.destinyKeywords.length > 0 && (
+            <div className="col-span-2 md:col-span-2 rounded-xl border border-fuchsia-400/20 bg-fuchsia-500/5 p-4 backdrop-blur-md">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-fuchsia-300 mb-2">
+                운명 키워드
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {analysis.practical.destinyKeywords.map((k, i) => (
+                  <span
+                    key={`${k}-${i}`}
+                    className="text-xs px-2.5 py-1 rounded-full bg-fuchsia-500/15 text-fuchsia-100 border border-fuchsia-400/30 font-medium"
+                  >
+                    #{k}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {analysis.practical.destinyKeywords.map((k) => (
-                <span
-                  key={k}
-                  className="text-xs px-2.5 py-1 rounded-full bg-fuchsia-500/15 text-fuchsia-100 border border-fuchsia-400/30 font-medium"
-                >
-                  #{k}
-                </span>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
       </Block>
 
@@ -183,21 +205,21 @@ export default function ExtendedAnalysisSection({
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-purple-300 mb-2">
-              숙명 vs 운명
+              타고난 결 vs 만들어가는 결
             </div>
             <div className="flex h-3 rounded-full overflow-hidden bg-white/5 mb-2">
               <div
                 className="bg-gradient-to-r from-rose-400 to-fuchsia-500"
-                style={{ width: `${analysis.karmic.fateVsDestiny.fixedRatio * 100}%` }}
+                style={{ width: `${fixedPct}%` }}
               />
               <div
                 className="bg-gradient-to-r from-cyan-400 to-emerald-400"
-                style={{ width: `${analysis.karmic.fateVsDestiny.flexibleRatio * 100}%` }}
+                style={{ width: `${flexiblePct}%` }}
               />
             </div>
             <div className="flex justify-between text-[11px] font-mono text-slate-400 mb-2">
-              <span>숙명 {Math.round(analysis.karmic.fateVsDestiny.fixedRatio * 100)}%</span>
-              <span>운명 {Math.round(analysis.karmic.fateVsDestiny.flexibleRatio * 100)}%</span>
+              <span>타고난 결(숙명) {fixedPct}%</span>
+              <span>만드는 결(운명) {flexiblePct}%</span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">
               {analysis.karmic.fateVsDestiny.interpretation}

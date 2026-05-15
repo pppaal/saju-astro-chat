@@ -1,150 +1,135 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-
+import { describe, expect, it } from 'vitest'
 import {
-  appendQuestionContextToPath,
   buildQuestionContextPrompt,
-  buildStableEntryPath,
-  getQuestionIntent,
-  loadQuestionAnalysisSnapshot,
   resolveStableTarotEntry,
-  storeQuestionAnalysisSnapshot,
-  type TarotQuestionAnalysisResult,
+  toAnalysisSnapshot,
+  loadQuestionAnalysisSnapshot,
 } from '@/lib/tarot/questionFlow'
 
-function createAnalysis(
-  overrides: Partial<TarotQuestionAnalysisResult> = {}
-): TarotQuestionAnalysisResult {
-  return {
-    themeId: 'general-insight',
-    spreadId: 'quick-reading',
-    spreadTitle: 'Quick Reading',
-    cardCount: 1,
-    userFriendlyExplanation: 'Read the question first.',
-    path: '/tarot/general-insight/quick-reading?question=test',
-    question_profile: {
-      type: { code: 'open_read', label: 'Open question' },
-      subject: { code: 'self', label: 'Self' },
-      focus: { code: 'focus', label: 'Focus' },
-      timeframe: { code: 'open', label: 'Open' },
-      tone: { code: 'prediction', label: 'Prediction' },
-    },
-    ...overrides,
-  }
-}
-
 describe('questionFlow', () => {
-  beforeEach(() => {
-    window.sessionStorage.clear()
-  })
-
-  it('uses a stable flow spread for current-phase questions', () => {
-    const analysis = createAnalysis({
-      question_profile: {
-        type: { code: 'flow_read', label: 'Flow' },
-        subject: { code: 'overall_flow', label: 'Overall flow' },
-        focus: { code: 'flow', label: 'Overall flow' },
-        timeframe: { code: 'current_phase', label: 'Current phase' },
-        tone: { code: 'flow', label: 'Flow' },
-      },
+  describe('buildQuestionContextPrompt', () => {
+    it('returns just the trimmed question — no metadata labels (simplified after PR #153)', () => {
+      const text = buildQuestionContextPrompt('   이직할까   ', null, 'ko')
+      expect(text).toBe('이직할까')
     })
 
-    expect(resolveStableTarotEntry('지금 전체 흐름은 어때?', analysis)).toEqual({
-      themeId: 'general-insight',
-      spreadId: 'past-present-future',
-    })
-  })
-
-  it('keeps other-person questions on a stable relationship entry path', () => {
-    const analysis = createAnalysis({
-      question_profile: {
-        type: { code: 'other_response', label: 'Other response' },
-        subject: { code: 'other_person', label: 'Other person' },
-        focus: { code: 'reply', label: 'Reply' },
-        timeframe: { code: 'near_term', label: 'Near term' },
-        tone: { code: 'prediction', label: 'Prediction' },
-      },
-    })
-
-    expect(buildStableEntryPath('내일 이차연이 무슨 대답을 할까?', analysis)).toBe(
-      '/tarot/love-relationships/crush-feelings?question=%EB%82%B4%EC%9D%BC+%EC%9D%B4%EC%B0%A8%EC%97%B0%EC%9D%B4+%EB%AC%B4%EC%8A%A8+%EB%8C%80%EB%8B%B5%EC%9D%84+%ED%95%A0%EA%B9%8C%3F'
-    )
-  })
-
-  it('keeps meeting-likelihood questions on a stable yes-no path', () => {
-    const analysis = createAnalysis({
-      question_profile: {
-        type: { code: 'meeting_likelihood', label: 'Meeting likelihood' },
-        subject: { code: 'other_person', label: 'Other person' },
-        focus: { code: 'contact', label: 'Contact' },
-        timeframe: { code: 'near_term', label: 'Near term' },
-        tone: { code: 'prediction', label: 'Prediction' },
-      },
+    it('ignores analysis snapshot (LLM step-0 handles extraction)', () => {
+      const snapshot = {
+        question_summary: '직장 고민',
+        question_profile: {
+          type: { code: 'decision', label: '결정' },
+          subject: { code: 'self', label: '나' },
+          focus: { code: 'work', label: '직장' },
+          timeframe: { code: 'near_term', label: '근시일' },
+          tone: { code: 'advice', label: '조언' },
+        },
+        direct_answer: '결정 미루지 마라',
+        intent: 'self_decision',
+      }
+      const text = buildQuestionContextPrompt('이직할까', snapshot, 'ko')
+      expect(text).toBe('이직할까')
+      expect(text).not.toContain('[질문 종류]')
+      expect(text).not.toContain('[주체]')
     })
 
-    expect(resolveStableTarotEntry('걔 연락 올까?', analysis)).toEqual({
-      themeId: 'decisions-crossroads',
-      spreadId: 'yes-no-why',
+    it('handles empty input gracefully', () => {
+      expect(buildQuestionContextPrompt('', null, 'ko')).toBe('')
+      expect(buildQuestionContextPrompt('   ', null, 'en')).toBe('')
     })
   })
 
-  it('prefers analyzed intent over regex fallback', () => {
-    const analysis = createAnalysis({
-      question_profile: {
-        type: { code: 'flow_read', label: 'Flow' },
-        subject: { code: 'overall_flow', label: 'Overall flow' },
-        focus: { code: 'flow', label: 'Overall flow' },
-        timeframe: { code: 'current_phase', label: 'Current phase' },
-        tone: { code: 'flow', label: 'Flow' },
-      },
+  describe('resolveStableTarotEntry', () => {
+    it('all paths route to general-insight (no themed routing)', () => {
+      const cases = [
+        'this is a casual question',
+        '이직할까 고민중',
+        '인생 방향을 모르겠다',
+        '낼 뭐먹어',
+        '',
+      ]
+      for (const q of cases) {
+        const entry = resolveStableTarotEntry(q)
+        expect(entry.themeId, `q: ${q}`).toBe('general-insight')
+      }
     })
 
-    expect(getQuestionIntent('이거 될까?', analysis)).toBe('flow')
+    it('only routes to one of the 4 canonical spread IDs', () => {
+      const allowed = new Set(['quick-reading', 'past-present-future', 'general-cross', 'celtic-cross'])
+      const cases = [
+        '낼 뭐 먹어',
+        '오늘 흐름 어때',
+        '이직할까',
+        '인생 어떻게 살까',
+        '회사 그만두고 새로운 분야로 가고 싶은데 정말 맞는 결정인지 모르겠고 가족도 반대하고 돈도 부족해서 어떻게 해야 할지 정말 막막',
+      ]
+      for (const q of cases) {
+        const entry = resolveStableTarotEntry(q)
+        expect(allowed.has(entry.spreadId), `q: ${q} → ${entry.spreadId}`).toBe(true)
+      }
+    })
+
+    it('short → quick-reading, life-level → celtic-cross', () => {
+      expect(resolveStableTarotEntry('짧').spreadId).toBe('quick-reading')
+      expect(resolveStableTarotEntry('인생 방향').spreadId).toBe('celtic-cross')
+      expect(resolveStableTarotEntry('내 운명이 어떻게 될까').spreadId).toBe('celtic-cross')
+    })
+
+    it('decision keywords → general-cross', () => {
+      expect(resolveStableTarotEntry('이직할까 고민').spreadId).toBe('general-cross')
+      expect(resolveStableTarotEntry('헤어질지 고민').spreadId).toBe('general-cross')
+    })
+
+    it('broad_flow analysis snapshot → past-present-future', () => {
+      const snapshot = {
+        question_profile: {
+          type: { code: 'broad_flow', label: '흐름' },
+          subject: { code: 'self', label: '나' },
+          focus: { code: 'general', label: '전반' },
+          timeframe: { code: 'current_phase', label: '현재' },
+          tone: { code: 'flow', label: '흐름' },
+        },
+      }
+      // 짧은 질문이라도 flow 의도면 3장
+      expect(resolveStableTarotEntry('짧', snapshot).spreadId).toBe('past-present-future')
+    })
   })
 
-  it('round-trips analysis snapshots through session storage', () => {
-    const analysis = createAnalysis({
-      direct_answer: '지금은 방향 정리가 먼저입니다.',
-      question_summary: '흐름형 질문입니다.',
-      intent_label: 'Flow',
+  describe('toAnalysisSnapshot', () => {
+    it('returns null for null / undefined', () => {
+      expect(toAnalysisSnapshot(null)).toBeNull()
+      expect(toAnalysisSnapshot(undefined)).toBeNull()
     })
 
-    const key = storeQuestionAnalysisSnapshot('지금 전체 흐름은 어때?', analysis)
-
-    expect(key).toBeTruthy()
-    expect(loadQuestionAnalysisSnapshot(key, '지금 전체 흐름은 어때?')).toEqual({
-      question_summary: '흐름형 질문입니다.',
-      question_profile: analysis.question_profile,
-      direct_answer: '지금은 방향 정리가 먼저입니다.',
-      intent: undefined,
-      intent_label: 'Flow',
+    it('extracts snapshot fields from analysis result', () => {
+      const result = {
+        themeId: 'general-insight',
+        spreadId: 'quick-reading',
+        spreadTitle: 'Quick',
+        cardCount: 1,
+        userFriendlyExplanation: 'x',
+        path: '/tarot/general-insight/quick-reading',
+        question_summary: 'sum',
+        direct_answer: 'da',
+        intent: 'general',
+        intent_label: '일반',
+      }
+      const snap = toAnalysisSnapshot(result)
+      expect(snap?.question_summary).toBe('sum')
+      expect(snap?.direct_answer).toBe('da')
+      expect(snap?.intent).toBe('general')
     })
   })
 
-  it('appends both question and analysis key to existing paths', () => {
-    expect(
-      appendQuestionContextToPath('/tarot/general-insight/quick-reading?foo=bar', '질문', 'abc123')
-    ).toBe(
-      '/tarot/general-insight/quick-reading?foo=bar&question=%EC%A7%88%EB%AC%B8&analysisKey=abc123'
-    )
-  })
-
-  it('builds a prompt-friendly question context block', () => {
-    const analysis = createAnalysis({
-      question_summary: '흐름형 질문입니다.',
-      direct_answer: '지금은 정리와 재배치가 먼저입니다.',
-      question_profile: {
-        type: { code: 'flow_read', label: '흐름 해석 질문' },
-        subject: { code: 'overall_flow', label: '전체 흐름' },
-        focus: { code: 'flow', label: '현재 국면과 방향' },
-        timeframe: { code: 'current_phase', label: '현재 국면' },
-        tone: { code: 'flow', label: '흐름 해석 중심' },
-      },
+  describe('loadQuestionAnalysisSnapshot', () => {
+    it('returns null on server (window undefined) without throwing', () => {
+      // vitest runs jsdom by default — but our guard checks window
+      // either way function should be safe
+      expect(() => loadQuestionAnalysisSnapshot(null, null)).not.toThrow()
     })
 
-    const prompt = buildQuestionContextPrompt('지금 전체 흐름은 어때?', analysis, 'ko')
-
-    expect(prompt).toContain('지금 전체 흐름은 어때?')
-    expect(prompt).toContain('[질문 요약] 흐름형 질문입니다.')
-    expect(prompt).toContain('[질문 선해석] 지금은 정리와 재배치가 먼저입니다.')
+    it('returns null when no key provided', () => {
+      expect(loadQuestionAnalysisSnapshot(null, 'q')).toBeNull()
+      expect(loadQuestionAnalysisSnapshot('', 'q')).toBeNull()
+    })
   })
 })

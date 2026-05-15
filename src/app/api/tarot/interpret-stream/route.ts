@@ -11,10 +11,7 @@ import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
-import {
-  buildQuestionContextPrompt,
-  type TarotQuestionAnalysisSnapshot,
-} from '@/lib/tarot/questionFlow'
+import { getZodiacSign } from '@/lib/tarot/zodiacSign'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
@@ -54,17 +51,10 @@ function withCreditCookies(
 
 // Use centralized sanitizeString from @/lib/api/sanitizers
 
-function normalizeQuestionContext(value: unknown): TarotQuestionAnalysisSnapshot | undefined {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return undefined
-  }
-  return value as TarotQuestionAnalysisSnapshot
-}
-
 function buildFallbackPayload(
   cards: CardInput[],
   language: 'ko' | 'en'
-): { overall: string; cards: { position: string; interpretation: string; actionTip?: string }[]; advice: string } {
+): { overall: string; cards: { position: string; interpretation: string }[]; advice: string } {
   const isKorean = language === 'ko'
   const overall = isKorean
     ? '\uCE74\uB4DC\uC5D0\uC11C \uC804\uD574\uC9C0\uB294 \uD575\uC2EC \uBA54\uC2DC\uC9C0\uB97C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.'
@@ -96,7 +86,7 @@ function buildFallbackPayload(
 function streamJsonPayload(
   payload: {
     overall: string
-    cards: { position: string; interpretation: string; actionTip?: string }[]
+    cards: { position: string; interpretation: string }[]
     advice: string
   },
   extraHeaders?: Record<string, string>
@@ -122,79 +112,7 @@ function streamJsonPayload(
 }
 
 // 별자리 계산 함수
-function parseBirthMonthDay(birthdate: string): { month: number; day: number } | null {
-  // Handle YYYY-MM-DD explicitly to avoid timezone shifts.
-  const directDateMatch = birthdate.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-  if (directDateMatch) {
-    const year = Number(directDateMatch[1])
-    const month = Number(directDateMatch[2])
-    const day = Number(directDateMatch[3])
-    const utcDate = new Date(Date.UTC(year, month - 1, day))
-
-    if (
-      utcDate.getUTCFullYear() === year &&
-      utcDate.getUTCMonth() + 1 === month &&
-      utcDate.getUTCDate() === day
-    ) {
-      return { month, day }
-    }
-    return null
-  }
-
-  // Fallback for other ISO-like inputs. Use UTC fields for determinism.
-  const parsed = new Date(birthdate)
-  if (Number.isNaN(parsed.getTime())) {
-    return null
-  }
-  return { month: parsed.getUTCMonth() + 1, day: parsed.getUTCDate() }
-}
-
-function getZodiacSign(
-  birthdate: string
-): { sign: string; signKo: string; element: string } | null {
-  const parts = parseBirthMonthDay(birthdate)
-  if (!parts) {
-    return null
-  }
-
-  const { month, day } = parts
-
-  const zodiacData = [
-    { sign: 'Capricorn', signKo: '염소자리', element: '흙', start: [12, 22], end: [1, 19] },
-    { sign: 'Aquarius', signKo: '물병자리', element: '공기', start: [1, 20], end: [2, 18] },
-    { sign: 'Pisces', signKo: '물고기자리', element: '물', start: [2, 19], end: [3, 20] },
-    { sign: 'Aries', signKo: '양자리', element: '불', start: [3, 21], end: [4, 19] },
-    { sign: 'Taurus', signKo: '황소자리', element: '흙', start: [4, 20], end: [5, 20] },
-    { sign: 'Gemini', signKo: '쌍둥이자리', element: '공기', start: [5, 21], end: [6, 20] },
-    { sign: 'Cancer', signKo: '게자리', element: '물', start: [6, 21], end: [7, 22] },
-    { sign: 'Leo', signKo: '사자자리', element: '불', start: [7, 23], end: [8, 22] },
-    { sign: 'Virgo', signKo: '처녀자리', element: '흙', start: [8, 23], end: [9, 22] },
-    { sign: 'Libra', signKo: '천칭자리', element: '공기', start: [9, 23], end: [10, 22] },
-    { sign: 'Scorpio', signKo: '전갈자리', element: '물', start: [10, 23], end: [11, 21] },
-    { sign: 'Sagittarius', signKo: '사수자리', element: '불', start: [11, 22], end: [12, 21] },
-  ]
-
-  for (const z of zodiacData) {
-    const [startM, startD] = z.start
-    const [endM, endD] = z.end
-
-    if (startM > endM) {
-      // 염소자리 같이 연도를 걸치는 경우
-      if ((month === startM && day >= startD) || (month === endM && day <= endD)) {
-        return { sign: z.sign, signKo: z.signKo, element: z.element }
-      }
-    } else {
-      if (
-        (month === startM && day >= startD) ||
-        (month === endM && day <= endD) ||
-        (month > startM && month < endM)
-      ) {
-        return { sign: z.sign, signKo: z.signKo, element: z.element }
-      }
-    }
-  }
-  return null
-}
+// getZodiacSign / parseBirthMonthDay 는 @/lib/tarot/zodiacSign 으로 이전 (테스트 + 재사용).
 
 // 옛 analyzeQuestionMood / previousReadings 는 system prompt 의 Step 0 가 이미
 // subject/object/timeframe/intent 를 추출하므로 중복 noise — 제거됨.
@@ -255,13 +173,8 @@ export async function POST(req: NextRequest) {
             ? 'en'
             : 'ko'
     const rawCards = body.cards
-    const userQuestion = body.userQuestion || ''
-    const questionContext = normalizeQuestionContext(body.questionContext)
-    const effectiveUserQuestion = buildQuestionContextPrompt(
-      userQuestion,
-      questionContext,
-      language
-    )
+    const userQuestion = (body.userQuestion || '').trim()
+    const effectiveUserQuestion = userQuestion
     const includeAstrology = body.includeAstrology !== false
     const includeSaju = body.includeSaju !== false
     const birthdate = includeAstrology ? body.birthdate || '' : ''
@@ -305,7 +218,7 @@ export async function POST(req: NextRequest) {
     if (zodiac) {
       sections.push(
         isKorean
-          ? `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.element} 원소)\n`
+          ? `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.elementKo} 원소)\n`
           : `\n## Querent Info\n- Zodiac: ${zodiac.sign} (${zodiac.element} element)\n`
       )
     }
@@ -327,17 +240,14 @@ export async function POST(req: NextRequest) {
     const systemPrompt = isKorean
       ? `당신은 15년차 한국인 타로 리더입니다. 길에서 만난 친구처럼 따뜻하고, 사촌언니처럼 직설적이며, 구체적인 행동까지 짚어줍니다.
 
-# 0단계 — 시작 전 (출력 X, 머릿속 정리)
-- 질문에서 **주체** (누구/무엇 — 나/상대/일/관계), **대상** (이 일/그 사람/오늘), **시간**(오늘/이번 주/n개월/장기), **의도** (결정·예측·조언) 를 추출하세요.
-- 스프레드 자리 수와 질문 시간선의 *스케일* 을 비교하세요.
-  · 질문이 단기인데 스프레드가 장기(12개월 등) → 각 자리를 "그 단위 안의 작은 국면"으로 *비유적* 으로 매핑.
-  · 질문이 장기인데 스프레드가 1-3장 → 카드 하나를 "전체 흐름의 핵심 한 컷"으로 압축.
-- 그 다음 4단계로 들어가세요. 0단계는 절대 출력하지 않습니다.
+# 0단계 — 시작 전 (silent, 출력 X)
+질문에서 **주체 / 대상 / 시간 / 의도** 를 추출하고, 스프레드 자리 수와 질문 시간 스케일을 비교 (단기↔장기 mismatch 시 자리를 그 단위 안의 작은 국면으로 매핑).
 
-# 절대 규칙
-- **사용자의 질문을 항상 카드 해석의 중심에 두세요.** 카드의 일반 의미를 나열하지 말고, *그 카드가 이 질문 안에서 무엇을 말하는지* 풀어쓰세요.
-- 사전식 정의 절대 금지. 카드 이름·역방향 키워드 베끼지 말고 *이 질문 안에서의 의미* 로 풀어쓰세요.
-- 자리 의미(seat meaning)가 입력에 포함되면 *반드시* 그 의미에 카드를 매핑하세요.
+# 단단한 규칙
+- 사용자 질문이 카드 해석의 중심. 사전식 정의·키워드 베끼기 금지 — *이 질문 안에서의 의미* 로 풀어쓰세요.
+- 자리 의미가 입력에 있으면 반드시 그 의미에 카드를 매핑.
+- **답변 무게 = 질문 무게.** 캐주얼 ("낼 뭐 먹어") → overall 100-200자, 카드별 80-150자, 거시 해석 금지. 무거운 질문 ("이직", "인생 방향") → 평소 길이로 깊게.
+- **핵심 한 구절을 \`*별표*\` 로 강조하세요.** 카드별 interpretation 마다 가장 중요한 행동 트리거 1구절 (예: "*오늘 가벼운 신호 한 번*", "*결정 미루고 자기 확신부터*"). overall 도 핵심 1구절. 과용 금지 — 카드당 1회, overall 1-2회.
 
 # 역방향 의미 (정/역 톤 가이드 — 단순 "부정"이 아님)
 - 역방향 = 다음 중 하나로 해석: **막힘 / 지연 / 내면화 / 미숙함 / 과잉**.
@@ -362,35 +272,27 @@ export async function POST(req: NextRequest) {
 - "그 사람이 나를 좋아해?" + 컵2(정방향, 상대 마음 자리) → "그 사람 마음 자리에 컵2가 떴어요. 이미 시선이 마주친 끌림은 분명한데, 표현 타이밍을 늦추고 있는 흐름이에요."
 - "이직할까?" + 완드7(정방향, 도전 자리) → "이직 결정을 가로지르는 변수가 외부 반대가 아니라 *매번 내 결정을 변호해야 하는 피로감*이라고 카드가 말해요."
 
-# Cross 방법 (사주·점성 컨텍스트가 입력에 들어왔을 때)
-사주 컨텍스트(일간·용신·오늘 점수·강한 영역) 또는 점성 컨텍스트(트랜짓·역행)가 user prompt 에 *명시되어 있으면*:
-- **모든 카드별 해석에 cross anchor 를 1회 이상 짜 넣으세요** — 카드 단독 해석 금지.
-- 카드의 흐름 ↔ 사주(또는 점성)의 흐름을 *연결* 해서 풀어 쓰세요. "사주는 X예요"처럼 따로 떼어내 한 줄 끼우기 금지.
-- 사주·점성이 *없으면* 이 규칙 무시하고 카드만 해석.
+# Cross 방법 (사주·점성 컨텍스트가 user prompt 에 있을 때만)
+- 카드의 흐름 ↔ 사주/점성 흐름을 *연결*. 따로 떼어내 한 줄 끼우기 금지 ("사주는 X예요" 형태 X).
+- 사주·점성이 없으면 이 섹션 무시하고 카드만 해석.
 
-## Cross 예시 3종
-1) **카드 ↔ 일간 강약 cross** (사주축 점수가 낮을 때 = 일간 약함):
-   - 질문 "이직할까?" + 켈틱 5번(의식 자리) + 완드7 정방향, 사주: 일간 갑목 약함(사주축 38)
-   - → "일간 갑목이 약해진 지금, 의식 자리에 완드7이 떴다는 건 *외부 결정보다 자기 결단력이 더 큰 변수* 라는 신호예요. 사주가 받쳐주지 못하는 만큼 1주일은 결정을 미루고 자기 확신부터 모으세요."
-   - ❌ 나쁜 예: "완드7은 도전을 의미해요. 일간이 갑목이시군요." (카드와 사주가 따로)
+## Cross 예시
+1) **카드 ↔ 일간 강약** — "이직할까?" + 완드7 정방향, 사주: 일간 갑목 약함
+   → "일간 갑목이 약해진 지금, 완드7이 떴다는 건 *외부 결정보다 자기 결단력이 더 큰 변수* 라는 신호. 1주일은 결정 미루고 자기 확신부터 모으세요."
+   ❌ 나쁜 예: "완드7은 도전을 의미해요. 일간이 갑목이시군요." (카드와 사주가 따로)
 
-2) **카드 ↔ 오늘 강한 영역 cross** (themeScores top domain):
-   - 질문 "그 사람 마음" + 컵2 정방향, 사주: 오늘 love 72(강함)
-   - → "오늘 사주 흐름이 관계 쪽으로 가장 살아있어요(love 72). 컵2가 떴으니 *오늘 가벼운 신호 한 번* 보내면 받기 좋은 타이밍이에요. 내일은 점수가 떨어지니 미루지 마세요."
-
-3) **카드 ↔ 트랜짓 cross** (점성 aspect):
-   - 질문 "지금 시작해도 될까?" + 완드1 정방향, 점성: 화성 trine natal Sun (orb 0.8°)
-   - → "오늘 화성이 본명 태양에 부드럽게 닿아있어요 — 추진력이 본인 안에서 자연스럽게 끌려나오는 시점. 완드1 정방향이 그걸 받쳐주니 *시작은 오늘이 best*, 늦으면 화성이 멀어져요."
+2) **카드 ↔ 강한 영역** — "그 사람 마음" + 컵2 정방향, 사주: 오늘 연애축 살아있음
+   → "오늘 사주 흐름이 관계 쪽으로 가장 살아있어요. 컵2가 떴으니 *오늘 가벼운 신호 한 번* 보내면 받기 좋은 타이밍."
 
 # 4단계 메서드 (반드시 이 순서)
 1) **오프닝**: 첫 1-2문장이 사용자 질문을 *직접* 언급. 추출한 주체·시간·의도 한 번 반영.
 2) **카드별 해석**: 각 카드 = 위치 의미 × 카드 × 정/역 × 질문 4중 cross. 마무리에 시간 앵커(오늘/이번 주/14일/N개월).
 3) **시너지**: 카드들이 *함께* 말하는 한 줄 — overall 안에 녹임.
-4) **클로징**: 전체 advice + 카드별 actionTip. 두루뭉술 금지, 구체 행동만.
+4) **클로징**: 전체 advice. 두루뭉술 금지, 구체 행동만.
 
 # 절대 출력 규칙
 - cards 배열 길이는 user prompt 에서 지정한 카드 수와 *정확히* 일치해야 합니다. 하나도 빠뜨리거나 추가하지 마세요.
-- 각 카드의 actionTip 은 반드시 채워야 합니다. 80-140자, 시간 앵커 + 구체 행동 1개.
+- 각 카드 interpretation 은 자리 의미 × 카드 × 정/역 × 질문 4중 cross 로 작성, 끝에 시간 앵커 포함.
 - 출력은 *오직* 아래 JSON 스키마. 마크다운 코드펜스(\`\`\`) 절대 사용 금지. 주석/설명/머리말 금지.
 
 # JSON 스키마 (정확히 이 키, 이 구조)
@@ -399,8 +301,7 @@ export async function POST(req: NextRequest) {
   "cards": [
     {
       "position": "string — 자리명 그대로",
-      "interpretation": "string — 자리 의미 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함",
-      "actionTip": "string — 이 카드+자리+질문 cross 의 실천 행동 1-2문장 (80-140자) + 시간 앵커"
+      "interpretation": "string — 자리 의미 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함"
     }
   ],
   "advice": "string — 전체 차원 실행 지침 (100-150자), 구체 행동 1-3개"
@@ -412,16 +313,13 @@ export async function POST(req: NextRequest) {
       : `You are a 15-year veteran tarot reader. Warm like a friend, direct like an older sister, concrete with action.
 
 # Step 0 — Before You Write (silent, do NOT output)
-- Extract from the question: **subject** (me / them / this matter), **object** (this thing / that person / today), **timeframe** (today / this week / months / long-term), **intent** (decide / predict / advise).
-- Compare the question's time horizon to the spread size.
-  · Short-term question on a long-spread (e.g., 12-month) → map each seat to a small "phase within that unit" metaphorically.
-  · Long-term question on a 1-3 card spread → compress the card to "one defining snapshot" of the larger flow.
-- Then proceed to the 4 steps. Step 0 is never emitted.
+Extract **subject / object / timeframe / intent** from the question, and compare it to the spread size (map seats to small phases if timeframes mismatch).
 
 # Hard Rules
-- The user's question is ALWAYS the center of every card interpretation. Never recite generic card meanings; unpack *what this card says inside this question*.
-- No textbook definitions. Re-read each card *inside the user's situation*.
-- If a seat meaning is supplied in the input, map the card onto that meaning explicitly.
+- The user's question is ALWAYS the center of every card interpretation. No textbook definitions; re-read each card *inside the user's situation*.
+- If a seat meaning is supplied, map the card onto that meaning explicitly.
+- **Answer weight = question weight.** Casual ("what to eat tomorrow") → overall ~80-130 words, per-card ~50-90 words, no macro reading. Heavy ("switch jobs", "life direction") → full depth.
+- **Wrap one key phrase per card in \`*asterisks*\`** — the single most action-triggering line in each card's interpretation (e.g., "*send one light signal today*", "*hold the decision a week*"). overall also gets 1-2 starred phrases. Do not overuse — one per card.
 
 # Reversed Orientation (not simply "negative")
 - Reversed = one of: **blockage / delay / internalization / immaturity / excess**.
@@ -446,35 +344,27 @@ Synergy = the *relationship between* the cards. Choose one of:
 - "Does he like me?" + Two of Cups (Their feelings seat) → "On the seat of their feelings, Two of Cups: the attraction is real and mutual, but the timing of expression is running late."
 - "Should I switch jobs?" + Seven of Wands (Challenge seat) → "The variable across this decision isn't external resistance — it's the fatigue of constantly defending your own decision to yourself."
 
-# Cross Method (when saju or astrology context is provided)
-If the user prompt includes Saju context (day master, favorable element, today's score, top domains) or Astrology context (transits, retrogrades):
-- **Anchor every card interpretation to a cross point at least once** — never read a card standalone.
-- Weave the card's flow into the saju/astro flow. Do NOT just append a separate "your saju is X" sentence.
+# Cross Method (only when saju/astrology context is in the user prompt)
+- Weave the card's flow into the saju/astro flow. Do NOT append a separate "your saju is X" sentence.
 - If neither context is present, ignore this section and read cards alone.
 
-## Cross examples (3 patterns)
-1) **Card × day-master strength cross** (saju axis score low = weak day master):
-   - "Should I switch jobs?" + Celtic Cross #5 (Conscious seat) + Seven of Wands upright, saju: day master 갑/wood weak (saju axis 38)
-   - → "With your day master 갑 (wood) running weak right now, the Conscious seat showing Seven of Wands says the variable is *your own resolve, not external pushback*. Hold the decision for a week and rebuild conviction first."
-   - ❌ Bad: "Seven of Wands means challenge. Your day master is wood." (card and saju separate)
+## Cross examples
+1) **Card × day-master strength** — "Should I switch jobs?" + Seven of Wands upright, saju: day master 갑/wood weak
+   → "With 갑 wood weak right now, Seven of Wands says the variable is *your own resolve, not external pushback*. Hold the decision for a week and rebuild conviction first."
+   ❌ Bad: "Seven of Wands means challenge. Your day master is wood." (card and saju separate)
 
-2) **Card × today's top domain cross** (themeScores top domain):
-   - "Does he like me?" + Two of Cups upright, saju: today's love score 72 (high)
-   - → "Today the saju flow is strongest in relationships (love 72). Two of Cups landing here means *send one light signal today* — the channel is open. Tomorrow's score drops, so don't sit on it."
-
-3) **Card × transit cross** (astrology aspect):
-   - "Should I start today?" + Ace of Wands upright, astro: Mars trine natal Sun (orb 0.8°)
-   - → "Mars is gently touching your natal Sun today — drive is pulled out of you naturally. Ace of Wands upright underwrites that, so today is the launch window; once Mars moves off, the lift fades."
+2) **Card × top domain** — "Does he like me?" + Two of Cups upright, saju: relationships active today
+   → "Today's saju flow is strongest in relationships. Two of Cups landing here means *send one light signal today* — the channel is open."
 
 # 4-Step Method
 1) **Opening**: First 1-2 sentences reference the user's question directly. Mention the extracted subject/time/intent once.
 2) **Per card**: Position-meaning × card × upright/reversed × question. End with a time anchor (today / this week / within 14 days / N months).
 3) **Synergy**: One line on what the cards say together — folded into overall.
-4) **Closing**: Overall advice + per-card actionTip. Specific, no fluff.
+4) **Closing**: Overall advice. Specific, no fluff.
 
 # Output Rules
 - The cards[] array length must match exactly the card count specified in the user prompt. Do not skip or add.
-- Every card's actionTip is mandatory. 50-90 words. Time anchor + one specific action.
+- Each card interpretation must cross seat × card × orientation × question and end with a time anchor.
 - Output JSON only — no code fences, no preamble, no comments.
 
 # JSON Schema (exact keys, exact shape)
@@ -483,8 +373,7 @@ If the user prompt includes Saju context (day master, favorable element, today's
   "cards": [
     {
       "position": "string — seat name as-is",
-      "interpretation": "string — seat × card × orientation × question cross, 180-280 words, with a time anchor",
-      "actionTip": "string — actionable step rooted in card+seat+question, 50-90 words + time anchor"
+      "interpretation": "string — seat × card × orientation × question cross, 180-280 words, with a time anchor"
     }
   ],
   "advice": "string — overall-level next steps (60-90 words), 1-3 concrete actions"
@@ -507,8 +396,7 @@ ${personalizationContext}
 # 작성 지시
 - 모든 ${rawCards.length}장의 카드에 대해 cards[] 항목을 만드세요.
 - 각 카드는 위 질문 맥락 안에서 해석합니다. 카드를 보고 사전식 정의를 쓰지 마세요.
-- 각 카드의 actionTip 은 *질문에 직접 적용 가능한* 1-2문장 행동 + 시간 앵커.
-- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}`
+- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.elementKo} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}`
       : `# User's Question
 "${q}"
 
@@ -521,7 +409,6 @@ ${personalizationContext}
 # Instructions
 - Produce cards[] entries for all ${rawCards.length} cards.
 - Interpret each card *inside the user's question above*. No textbook definitions.
-- Each card's actionTip is 1-2 sentences of action directly applicable to the question, with a time anchor.
 - The first sentence of overall must reference the user's question directly.${zodiac ? `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.` : ''}${astroContext ? '\n- Cross with the astrology context.' : ''}${sajuContext ? '\n- Cross with the saju context — anchor in every card at least once.' : ''}`
 
     // Claude 우선.
@@ -593,7 +480,7 @@ ${personalizationContext}
             : isKorean
               ? `# 작성 지시\n- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfo} 의 카드별 해석만 cards[] 에 채우세요. overall/advice 는 출력하지 마세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
               : `# Instructions\n- Use the full ${rawCards.length}-card flow as context only. Output ONLY per-card interpretations ${chunkInfo} in cards[]. Do NOT include overall/advice.\n- cards[] length must be exactly ${endIdx - startIdx}.`
-          const personalizationLine = `${zodiac ? (isKorean ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.`) : ''}${astroContext ? (isKorean ? '\n- 점성 맥락도 해석에 cross.' : '\n- Cross with the astrology context.') : ''}${sajuContext ? (isKorean ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : '\n- Cross with the saju context — anchor in every card at least once.') : ''}`
+          const personalizationLine = `${zodiac ? (isKorean ? `\n- 별자리(${zodiac.signKo}, ${zodiac.elementKo} 원소) 자연스럽게 한 번만 연결.` : `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.`) : ''}${astroContext ? (isKorean ? '\n- 점성 맥락도 해석에 cross.' : '\n- Cross with the astrology context.') : ''}${sajuContext ? (isKorean ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : '\n- Cross with the saju context — anchor in every card at least once.') : ''}`
           if (isKorean) {
             return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${rawCards.length}장)\n\n# 펼친 카드 — 전체 (자리명 — 자리 의미)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
           }

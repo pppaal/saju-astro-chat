@@ -88,11 +88,11 @@ export async function runQuickCoupleTarot(
   const { persons, person1Saju, person2Saju, person1Astro, person2Astro, language, onChunk } = input
   const isKorean = language === 'ko'
 
-  // 관계 크로스 (5장) — 가장 둘 사이를 풀어내기 좋은 정통 스프레드
-  const loveTheme = tarotThemes.find((t) => t.id === 'love-relationships')
-  const spread = loveTheme?.spreads.find((s) => s.id === 'relationship-cross')
+  // 5장 크로스 — 정통 스프레드로 두 사람의 관계 결을 풀어냄
+  const generalTheme = tarotThemes.find((t) => t.id === 'general-insight')
+  const spread = generalTheme?.spreads.find((s) => s.id === 'general-cross')
   if (!spread) {
-    throw new Error('relationship-cross spread not found')
+    throw new Error('general-cross spread not found')
   }
 
   const drawn = drawRandomCards(spread.cardCount)
@@ -144,8 +144,8 @@ export async function runQuickCoupleTarot(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      categoryId: 'love-relationships',
-      spreadId: 'relationship-cross',
+      categoryId: 'general-insight',
+      spreadId: 'general-cross',
       spreadTitle: isKorean ? '관계 크로스 — 둘 궁합' : 'Relationship Cross — Couple',
       cards: cardsPayload,
       userQuestion,

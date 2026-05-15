@@ -265,6 +265,14 @@ export const GET = withApiMiddleware(
           agreement: number
           confidence: number
           domainScores: Record<string, number>
+          // 테마별 사주축·점성축 분리 근거 — LLM 이 "왜 강한지" 노출 가능
+          domainCross: Array<{
+            theme: string
+            sajuScore: number      // 0..100
+            astroScore: number     // 0..100
+            sajuSummary: string
+            astroSummary: string
+          }>
           advice: { do: string[]; avoid: string[] }
           topInsights: string[]
           hourly: {
@@ -380,6 +388,14 @@ export const GET = withApiMiddleware(
           domainScores: Object.fromEntries(
             Object.entries(dayRes.domainScores).map(([k, v]) => [k, Math.round((v as number) * 100)]),
           ),
+          domainCross: dayRes.crosses.map((c) => ({
+            theme: c.theme,
+            // synthesizer 의 -1..+1 → 0..100 변환 (UI 일관성)
+            sajuScore: Math.round((c.crossView.sajuScore + 1) * 50),
+            astroScore: Math.round((c.crossView.astroScore + 1) * 50),
+            sajuSummary: c.sajuView.theme.summary,
+            astroSummary: c.astroView.theme.summary,
+          })),
           advice: dayRes.advice,
           topInsights: dayRes.topInsights,
           hourly: {

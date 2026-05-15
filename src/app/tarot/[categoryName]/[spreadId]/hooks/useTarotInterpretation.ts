@@ -15,6 +15,7 @@ import { getStoredBirthDate, fetchAndSyncUserProfile } from '@/lib/userProfile'
 import { saveReading, formatReadingForSave } from '@/lib/tarot/tarot-storage'
 import { apiFetch, type ApiFetchOptions } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
+import { isCasualQuestion } from '@/lib/tarot/casualQuestion'
 import type { InterpretationResult, ReadingResponse } from '../types'
 import type { TarotPersonalizationOptions } from './useTarotGame'
 
@@ -282,41 +283,19 @@ function parseStreamedInterpretation(
   const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new Error('No JSON found')
 
+  // 현재 스키마는 { overall, cards: [{ position, interpretation }], advice } 만 emit.
+  // 옛 key 들 (overall_message/card_insights/actionTip/meaning) 은 모두 dead branch — 단순화.
   const parsed = JSON.parse(jsonMatch[0]) as {
     overall?: string
-    overall_message?: string
     advice?: string
-    guidance?: string
-    cards?: Array<{
-      interpretation?: string
-      meaning?: string
-      actionTip?: string
-      action_tip?: string
-    }>
-    card_insights?: Array<{
-      interpretation?: string
-      meaning?: string
-      actionTip?: string
-      action_tip?: string
-    }>
+    cards?: Array<{ interpretation?: string }>
   }
-  const parsedCards = Array.isArray(parsed.cards)
-    ? parsed.cards
-    : Array.isArray(parsed.card_insights)
-      ? parsed.card_insights
-      : []
+  const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
 
   return {
-    overall_message: parsed.overall_message || parsed.overall || '',
+    overall_message: parsed.overall || '',
     card_insights: cards.map((dc, i) => {
-      const cardData = parsedCards[i] as
-        | {
-            interpretation?: string
-            meaning?: string
-            actionTip?: string
-            action_tip?: string
-          }
-        | undefined
+      const cardData = parsedCards[i]
       const fallbackMeaning = dc.isReversed
         ? isKorean
           ? dc.card.reversed.meaningKo || dc.card.reversed.meaning
@@ -324,28 +303,18 @@ function parseStreamedInterpretation(
         : isKorean
           ? dc.card.upright.meaningKo || dc.card.upright.meaning
           : dc.card.upright.meaning
-      const actionTip =
-        (cardData?.action_tip || cardData?.actionTip || '').trim() || undefined
       return {
         position: positions[i]?.title || `Card ${i + 1}`,
         card_name: dc.card.name,
         is_reversed: dc.isReversed,
         interpretation:
-          (cardData?.interpretation || cardData?.meaning || '').trim() || fallbackMeaning || '',
-        action_tip: actionTip,
-        spirit_animal: null,
-        chakra: null,
-        element: null,
-        shadow: null,
+          (cardData?.interpretation || '').trim() || fallbackMeaning || '',
       }
     }),
     guidance:
-      parsed.guidance ||
       parsed.advice ||
       (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
     affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
-    combinations: [],
-    followup_questions: [],
     fallback: false,
     interpretation_source: 'stream_sse_fallback',
   }
@@ -615,25 +584,53 @@ export function useTarotInterpretation({
               | undefined
 
             // ────────────────── 키워드 기반 카테고리 감지 (무료) ──────────────────
-            const qText = userTopic || ''
+            const qText = (userTopic || '').trim()
+            // 캐주얼이면 saju/astroContext 통째로 차단 (token + UX).
+            const isCasual = isCasualQuestion(qText)
+
             const isLove = /연애|사랑|썸|짝사랑|이별|결혼|애인|남친|여친|관계|데이트|고백|재회|헤어|남자친구|여자친구|좋아해|마음|호감|호감|배우자/i.test(qText)
             const isCareer = /이직|취업|면접|직장|커리어|승진|상사|동료|회사|일자리|직업|진로/i.test(qText)
             const isMoney = /돈|재정|투자|주식|코인|매출|수입|지출|용돈|월급|급여|매입|매도|재물|재산|돈줄|매수/i.test(qText)
             const isSpiritual = /자기|성장|영성|마음|내면|회의|의미|인생|길|소명|방향/i.test(qText)
             const isHealth = /건강|몸|컨디션|스트레스|병원|아프|아픈|치료/i.test(qText)
 
+            // 캐주얼이면 — 사주 풍부화 / 점성 블록 전부 skip.
+            // 별자리는 system 단의 user prompt 에 zodiac 으로 가볍게 들어가니 유지.
+            // sajuContext 는 위에서 head line 만 세팅된 상태 — extra 푸쉬·astro 빌드 둘 다 가드.
+            if (isCasual) {
+              tarotLogger.info('Tarot: casual question detected — skipping saju/astro raw context')
+            }
+
             const domainScores = (fusion.domainScores as Record<string, number> | undefined) || {}
-            const topDomains = Object.entries(domainScores)
+            // 사주축·점성축 분리 근거 — 점수 대신 "왜 강한지" 시그널 텍스트
+            const domainCross =
+              (fusion.domainCross as
+                | Array<{
+                    theme: string
+                    sajuScore: number
+                    astroScore: number
+                    sajuSummary: string
+                    astroSummary: string
+                  }>
+                | undefined) || []
+            const crossByTheme = new Map(domainCross.map((d) => [d.theme, d]))
+            // 점수 기준 top 3 → 각 테마의 사주축·점성축 시그널을 근거로 노출 (점수 숨김)
+            const topDomainLines = Object.entries(domainScores)
               .sort(([, a], [, b]) => b - a)
               .slice(0, 3)
-              .map(([k, v]) => `${k} ${Math.round(v)}`)
-              .join(' · ')
+              .map(([theme]) => {
+                const basis = crossByTheme.get(theme)
+                if (!basis) return `- ${theme}`
+                return isKorean
+                  ? `- ${theme}: 사주 = ${basis.sajuSummary} / 점성 = ${basis.astroSummary}`
+                  : `- ${theme}: saju = ${basis.sajuSummary} / astro = ${basis.astroSummary}`
+              })
 
             // sajuContext 풍부화
             // 기본(일간) + 신강/신약 + 용신 + 대운 + 오늘 강한 영역
             // + 유니버설 raw (십신 top 2, 오행 분포)
             // + conditional raw (연애→도화/홍염, 직장→관성, 재물→재성, 영성→화개, 건강→공망)
-            if (includeSaju && sajuContext) {
+            if (!isCasual && includeSaju && sajuContext) {
               const extra: string[] = []
               if (strength)
                 extra.push(isKorean ? `신강/신약: ${strength}` : `Day master strength: ${strength}`)
@@ -648,10 +645,13 @@ export function useTarotInterpretation({
                     : `Current decadal: ${currentDaeun.label}${daeunSib ? ` (${daeunSib})` : ''}`
                 )
               }
-              if (topDomains)
+              if (topDomainLines.length > 0) {
                 extra.push(
-                  isKorean ? `오늘 강한 영역: ${topDomains}` : `Top domains today: ${topDomains}`
+                  isKorean
+                    ? `오늘 강한 영역 (사주·점성 교차 근거):\n${topDomainLines.join('\n')}`
+                    : `Top domains today (saju × astro cross basis):\n${topDomainLines.join('\n')}`
                 )
+              }
 
               // [universal] 십신 분포 top 2
               const tenGodCounts = sajuExtras?.tenGodCounts || {}
@@ -731,7 +731,7 @@ export function useTarotInterpretation({
             // astroContext — 사주와 동일한 깊이로 균형
             // Universal: Sun/Moon/ASC + Mercury/Venus/Mars (6 identity planets) + 오늘 트랜짓 top 3
             // Conditional (테마별): +1~2 추가 행성/하우스로 카테고리 anchor 강화
-            if (includeAstrology) {
+            if (!isCasual && includeAstrology) {
               const lines: string[] = []
               const parts: string[] = []
               // [universal] 정체성 + 일상 3 행성
@@ -784,18 +784,8 @@ export function useTarotInterpretation({
         }
       }
 
-      // 분석 결과에서 메타데이터 추출 — interpret 단계 재추론 비용 절감
-      const questionMeta = questionAnalysis
-        ? {
-            intent: questionAnalysis.intent,
-            subject: questionAnalysis.question_profile?.subject?.label,
-            focus: questionAnalysis.question_profile?.focus?.label,
-            timeframe: questionAnalysis.question_profile?.timeframe?.label,
-            tone: questionAnalysis.question_profile?.tone?.label,
-            questionType: questionAnalysis.question_profile?.type?.label,
-          }
-        : undefined
-
+      // questionMeta / questionContext 메타라벨은 system prompt 의 0단계 가 동일 정보를
+      // LLM 이 직접 추출하므로 중복. 보내지 않는다 (50-100 tokens / call 절감).
       const requestBody = {
         categoryId: categoryName,
         spreadId,
@@ -808,8 +798,6 @@ export function useTarotInterpretation({
         includeSaju,
         sajuContext,
         astroContext,
-        questionContext: questionAnalysis || undefined,
-        questionMeta,
       }
 
       const requestNonStreamInterpretation = async (
@@ -856,16 +844,9 @@ export function useTarotInterpretation({
                 card_name: dc.card.name,
                 is_reversed: dc.isReversed,
                 interpretation: '',
-                action_tip: undefined,
-                spirit_animal: null,
-                chakra: null,
-                element: null,
-                shadow: null,
               })),
               guidance: '',
               affirmation: '',
-              combinations: [],
-              followup_questions: [],
               fallback: true,
               interpretation_source: 'stream_sse_fallback',
             }
@@ -895,7 +876,7 @@ export function useTarotInterpretation({
             )
           }
 
-          // JSON 응답 (폴백으로 내려온 경우)
+          // JSON 응답 (스트림이 죽고 non-stream JSON 으로 내려온 경우)
           const data = await response.json()
           if (data.overall || data.overall_message) {
             const sourceInsights = Array.isArray(data.card_insights)
@@ -914,8 +895,6 @@ export function useTarotInterpretation({
                   ? drawnCard.card.upright.meaningKo || drawnCard.card.upright.meaning
                   : drawnCard.card.upright.meaning
 
-              const actionTip =
-                ((ci.action_tip as string) || (ci.actionTip as string) || '').trim() || undefined
               return {
                 position:
                   (ci.position as string) || result.spread.positions[i]?.title || `Card ${i + 1}`,
@@ -927,11 +906,6 @@ export function useTarotInterpretation({
                   (language === 'ko'
                     ? '카드 메시지를 읽고 현재 상황과 연결해보세요.'
                     : 'Connect this card message to your current situation.'),
-                action_tip: actionTip,
-                spirit_animal: null,
-                chakra: null,
-                element: null,
-                shadow: null,
               }
             })
 
@@ -943,8 +917,6 @@ export function useTarotInterpretation({
                 data.advice ||
                 (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
               affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
-              combinations: [],
-              followup_questions: [],
               fallback: false,
               interpretation_source: 'stream_json_fallback',
             }
