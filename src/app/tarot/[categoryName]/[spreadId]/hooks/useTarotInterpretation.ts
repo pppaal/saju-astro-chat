@@ -15,6 +15,7 @@ import { getStoredBirthDate, fetchAndSyncUserProfile } from '@/lib/userProfile'
 import { saveReading, formatReadingForSave } from '@/lib/tarot/tarot-storage'
 import { apiFetch, type ApiFetchOptions } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
+import { isCasualQuestion } from '@/lib/tarot/casualQuestion'
 import type { InterpretationResult, ReadingResponse } from '../types'
 import type { TarotPersonalizationOptions } from './useTarotGame'
 
@@ -584,11 +585,8 @@ export function useTarotInterpretation({
 
             // ────────────────── 키워드 기반 카테고리 감지 (무료) ──────────────────
             const qText = (userTopic || '').trim()
-            const qLen = qText.length
-            // 캐주얼 감지 — 짧고 일상 도메인이면 사주·점성 컨텍스트를 통째로 차단.
-            // 프롬프트에 "캐주얼엔 raw 인용 금지" 라고만 적지 말고 *실제로 보내지 않는다*.
-            const casualPattern = /^(오늘|내일|모레|이번주|주말|낼|뭐|어디|언제|누구|뭐 ?먹|뭐 ?입|뭐 ?사|뭐 ?신|뭐 ?할|어디 ?가)/i
-            const isCasual = qLen > 0 && (qLen <= 12 || (qLen <= 25 && casualPattern.test(qText)))
+            // 캐주얼이면 saju/astroContext 통째로 차단 (token + UX).
+            const isCasual = isCasualQuestion(qText)
 
             const isLove = /연애|사랑|썸|짝사랑|이별|결혼|애인|남친|여친|관계|데이트|고백|재회|헤어|남자친구|여자친구|좋아해|마음|호감|호감|배우자/i.test(qText)
             const isCareer = /이직|취업|면접|직장|커리어|승진|상사|동료|회사|일자리|직업|진로/i.test(qText)
