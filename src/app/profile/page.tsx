@@ -3,28 +3,60 @@
 export const dynamic = 'force-dynamic'
 
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
   Calendar,
-  Sparkles,
+  Clock,
+  MapPin,
+  User as UserIcon,
+  Pencil,
+  Plus,
+  Trash2,
+  Heart,
   MessageCircle,
   Wand2,
-  Heart,
   ArrowRight,
-  Coins,
-  Clock,
-  ScrollText,
+  Users,
 } from 'lucide-react'
 import AuthGate from '@/components/auth/AuthGate'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { logger } from '@/lib/logger'
+import { ProfileEditModal } from './components/ProfileEditModal'
+import { CircleAddModal } from './components/CircleAddModal'
 
-type ServiceKey = 'calendar' | 'report' | 'counselor' | 'tarot' | 'compatibility'
+type Locale = 'ko' | 'en'
 
-interface ServiceRecord {
+interface MeProfile {
+  id?: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  createdAt?: string
+  profilePhoto?: string | null
+  birthDate?: string | null
+  birthTime?: string | null
+  gender?: string | null
+  birthCity?: string | null
+  tzId?: string | null
+}
+
+interface SavedPerson {
+  id: string
+  name: string
+  relation: string
+  birthDate?: string | null
+  birthTime?: string | null
+  gender?: string | null
+  birthCity?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  tzId?: string | null
+}
+
+interface HistoryRecord {
   id: string
   date: string
   service: string
@@ -35,117 +67,158 @@ interface ServiceRecord {
 
 interface DailyHistory {
   date: string
-  records: ServiceRecord[]
+  records: HistoryRecord[]
 }
 
-interface CreditsBalance {
-  credits?: { remaining?: number; total?: number; monthly?: number; bonus?: number }
+function classifyService(serviceId: string): {
+  key: 'counselor' | 'compatibility' | 'tarot' | 'other'
+  href: string
+  Icon: typeof Calendar
+  accent: string
+} {
+  if (serviceId === 'tarot')
+    return { key: 'tarot', href: '/tarot', Icon: Wand2, accent: '#f472b6' }
+  if (serviceId === 'compatibility' || serviceId === 'compat-counselor')
+    return {
+      key: 'compatibility',
+      href: '/compatibility/counselor',
+      Icon: Heart,
+      accent: '#fb7185',
+    }
+  if (
+    serviceId === 'destiny-counselor' ||
+    serviceId === 'counselor' ||
+    serviceId === 'destiny-map'
+  )
+    return {
+      key: 'counselor',
+      href: '/destiny-counselor',
+      Icon: MessageCircle,
+      accent: '#f59e0b',
+    }
+  return { key: 'other', href: '/profile', Icon: Calendar, accent: '#22d3ee' }
 }
 
-interface ProfileMeta {
-  createdAt?: string
+function formatBirthDate(iso: string | null | undefined, locale: Locale): string {
+  if (!iso) return locale === 'ko' ? '미입력' : 'Not set'
+  // birthDate is stored as 'YYYY-MM-DD' string. Display nicely without
+  // letting Date() reinterpret in the local timezone.
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso)
+  if (!m) return iso
+  const [, y, mo, d] = m
+  return locale === 'ko' ? `${y}년 ${Number(mo)}월 ${Number(d)}일` : `${mo}/${d}/${y}`
 }
 
-const SERVICE_LABELS: Record<ServiceKey, { ko: string; Icon: typeof Calendar; accent: string }> = {
-  calendar: { ko: '캘린더', Icon: Calendar, accent: '#22d3ee' },
-  report: { ko: '리포트', Icon: Sparkles, accent: '#a78bfa' },
-  counselor: { ko: '카운슬러', Icon: MessageCircle, accent: '#f59e0b' },
-  tarot: { ko: '타로', Icon: Wand2, accent: '#f472b6' },
-  compatibility: { ko: '궁합', Icon: Heart, accent: '#fb7185' },
-}
-
-function classifyService(serviceId: string): ServiceKey {
-  if (serviceId === 'tarot') return 'tarot'
-  if (serviceId === 'destiny-calendar' || serviceId === 'daily-fortune') return 'calendar'
-  if (serviceId === 'compatibility') return 'compatibility'
-  if (serviceId === 'destiny-counselor') return 'counselor'
-  return 'report'
-}
-
-function daysSince(iso?: string): number {
-  if (!iso) return 0
-  const ms = Date.now() - new Date(iso).getTime()
-  return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)))
-}
-
-function formatRelative(iso: string): string {
+function formatRelative(iso: string, locale: Locale): string {
   const ms = Date.now() - new Date(iso).getTime()
   const min = Math.floor(ms / 60000)
-  if (min < 1) return '방금 전'
-  if (min < 60) return `${min}분 전`
+  if (min < 1) return locale === 'ko' ? '방금 전' : 'just now'
+  if (min < 60) return locale === 'ko' ? `${min}분 전` : `${min}m ago`
   const hr = Math.floor(min / 60)
-  if (hr < 24) return `${hr}시간 전`
+  if (hr < 24) return locale === 'ko' ? `${hr}시간 전` : `${hr}h ago`
   const day = Math.floor(hr / 24)
-  if (day < 7) return `${day}일 전`
-  return new Date(iso).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+  if (day < 7) return locale === 'ko' ? `${day}일 전` : `${day}d ago`
+  return new Date(iso).toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'en-US', {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+function genderLabel(g: string | null | undefined, locale: Locale): string {
+  if (!g) return locale === 'ko' ? '미입력' : 'Not set'
+  const norm = g.toLowerCase()
+  if (norm === 'm' || norm === 'male') return locale === 'ko' ? '남성' : 'Male'
+  if (norm === 'f' || norm === 'female') return locale === 'ko' ? '여성' : 'Female'
+  return locale === 'ko' ? '미입력' : 'Not set'
+}
+
+function relationLabel(r: string, locale: Locale): string {
+  if (locale === 'en') {
+    const m: Record<string, string> = {
+      family: 'Family',
+      friend: 'Friend',
+      partner: 'Partner',
+      colleague: 'Colleague',
+    }
+    return m[r] ?? r
+  }
+  const m: Record<string, string> = {
+    family: '가족',
+    friend: '친구',
+    partner: '연인',
+    colleague: '동료',
+  }
+  return m[r] ?? r
 }
 
 export default function ProfilePage() {
   const { status } = useSession()
-  const { t } = useI18n()
+  const { t, locale: rawLocale } = useI18n()
+  const locale: Locale = rawLocale === 'en' ? 'en' : 'ko'
   const signInUrl = buildSignInUrl('/profile')
 
-  const [profile, setProfile] = useState<{ name?: string; email?: string; image?: string } | null>(
-    null
-  )
-  const [meta, setMeta] = useState<ProfileMeta>({})
+  const [profile, setProfile] = useState<MeProfile | null>(null)
+  const [circle, setCircle] = useState<SavedPerson[]>([])
   const [history, setHistory] = useState<DailyHistory[]>([])
-  const [credits, setCredits] = useState<CreditsBalance | null>(null)
   const [loading, setLoading] = useState(true)
+  const [editOpen, setEditOpen] = useState(false)
+  const [circleOpen, setCircleOpen] = useState(false)
+
+  const loadAll = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [profileRes, circleRes, historyRes] = await Promise.all([
+        fetch('/api/me/profile').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/me/circle').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/me/history?limit=20').then((r) => (r.ok ? r.json() : null)),
+      ])
+
+      // /api/me/profile returns { user: {...} } directly (no envelope).
+      if (profileRes?.user) setProfile(profileRes.user)
+
+      // /api/me/circle goes through withApiMiddleware, so the envelope is
+      // { success: true, data: { people, pagination } }.
+      const people =
+        circleRes?.data?.people || circleRes?.people || []
+      setCircle(Array.isArray(people) ? people : [])
+
+      const days = historyRes?.data?.history || historyRes?.history || []
+      setHistory(Array.isArray(days) ? days : [])
+    } catch (err) {
+      logger.warn('[profile] load failed', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    if (status !== 'authenticated') return
-    let cancelled = false
+    if (status === 'authenticated') void loadAll()
+  }, [status, loadAll])
 
-    const load = async () => {
-      try {
-        const [profileRes, historyRes, creditsRes] = await Promise.all([
-          fetch('/api/me/profile').then((r) => (r.ok ? r.json() : null)),
-          fetch('/api/me/history?limit=30').then((r) => (r.ok ? r.json() : null)),
-          fetch('/api/me/credits').then((r) => (r.ok ? r.json() : null)),
-        ])
-        if (cancelled) return
-
-        if (profileRes?.data) {
-          setProfile({
-            name: profileRes.data.name,
-            email: profileRes.data.email,
-            image: profileRes.data.image,
-          })
-          setMeta({ createdAt: profileRes.data.createdAt })
-        }
-
-        const days = historyRes?.data?.history || historyRes?.history || []
-        setHistory(Array.isArray(days) ? days : [])
-
-        setCredits(creditsRes?.data || creditsRes || null)
-      } catch (err) {
-        logger.warn('[profile] load failed', err)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [status])
-
-  const counts: Record<ServiceKey, number> = {
-    calendar: 0,
-    report: 0,
-    counselor: 0,
-    tarot: 0,
-    compatibility: 0,
-  }
-  for (const day of history) {
-    for (const rec of day.records || []) {
-      counts[classifyService(rec.service)] += 1
+  const handleDeletePerson = async (id: string, name: string) => {
+    const ok = window.confirm(
+      locale === 'ko'
+        ? `'${name}' 을(를) 지인 목록에서 삭제할까요?`
+        : `Remove '${name}' from your circle?`,
+    )
+    if (!ok) return
+    try {
+      const res = await fetch(`/api/me/circle?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      setCircle((prev) => prev.filter((p) => p.id !== id))
+    } catch (err) {
+      logger.warn('[profile/circle] delete failed', err)
+      window.alert(
+        locale === 'ko'
+          ? '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.'
+          : 'Failed to delete. Please try again in a moment.',
+      )
     }
   }
-  const totalReadings = counts.calendar + counts.report + counts.counselor + counts.tarot
-  const memberDays = daysSince(meta.createdAt)
-  const remainingCredits = credits?.credits?.remaining ?? 0
+
+  const flatRecords = history.flatMap((d) => d.records).slice(0, 8)
 
   return (
     <AuthGate
@@ -160,7 +233,7 @@ export default function ProfilePage() {
             <p className="text-[15px] leading-relaxed text-slate-400">
               {t(
                 'profile.loginDesc',
-                '리딩 기록, 결정 일지, 크레딧 사용 내역을 한곳에서 볼 수 있어요.'
+                '내 정보, 지인 목록, 최근 상담 기록을 한 곳에서 볼 수 있어요.',
               )}
             </p>
             <Link
@@ -181,179 +254,227 @@ export default function ProfilePage() {
         </div>
 
         <div className="relative z-10">
-          {/* Hamburger + locale toggle live in the GlobalHeader; the page's
-              own back button + redundant pill were removed for a cleaner top. */}
-
-          <div className="mx-auto max-w-4xl px-5 pb-20 pt-20 sm:px-6 sm:pt-24">
+          <div className="mx-auto max-w-3xl px-5 pb-24 pt-20 sm:px-6 sm:pt-24">
             {/* Hero */}
             <header className="flex flex-col items-center gap-4 text-center">
-              <div className="flex flex-col items-center gap-4">
-                {profile?.image ? (
-                  <Image
-                    src={profile.image}
-                    alt={profile.name || 'User'}
-                    width={88}
-                    height={88}
-                    className="rounded-full border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
-                  />
-                ) : (
-                  <div className="flex h-[88px] w-[88px] items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-2xl font-semibold text-white">
-                    {profile?.name?.[0]?.toUpperCase() || '·'}
-                  </div>
-                )}
-                <div>
-                  <h1 className="text-balance text-3xl font-semibold leading-[1.15] tracking-[-0.025em] text-white sm:text-4xl">
-                    {profile?.name || '게스트'}
-                  </h1>
-                  {profile?.email && (
-                    <p className="mt-1 text-[13px] text-slate-400">{profile.email}</p>
-                  )}
+              {profile?.image ? (
+                <Image
+                  src={profile.image}
+                  alt={profile.name || 'User'}
+                  width={88}
+                  height={88}
+                  className="rounded-full border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+                />
+              ) : (
+                <div className="flex h-[88px] w-[88px] items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-2xl font-semibold text-white">
+                  {profile?.name?.[0]?.toUpperCase() || '·'}
                 </div>
+              )}
+              <div>
+                <h1 className="text-balance text-[1.85rem] font-semibold leading-[1.15] tracking-[-0.025em] text-white">
+                  {profile?.name ||
+                    (locale === 'ko' ? '이름을 알려주세요' : 'Set your name')}
+                </h1>
+                {profile?.email && (
+                  <p className="mt-1 text-[13px] text-slate-400">{profile.email}</p>
+                )}
               </div>
             </header>
 
-            {/* Stat Cards */}
-            <section className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatCard
-                Icon={ScrollText}
-                value={loading ? '·' : String(totalReadings)}
-                label="총 리딩"
-                accent="#22d3ee"
-              />
-              <StatCard
-                Icon={Coins}
-                value={loading ? '·' : String(remainingCredits)}
-                label="남은 크레딧"
-                accent="#a78bfa"
-              />
-              <StatCard
-                Icon={Clock}
-                value={loading ? '·' : `${memberDays}일`}
-                label="함께한 날"
-                accent="#f59e0b"
-              />
-              <StatCard
-                Icon={Sparkles}
-                value={loading ? '·' : String(history.length)}
-                label="활동 일자"
-                accent="#f472b6"
-              />
-            </section>
-
-            {/* Service breakdown */}
-            <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
+            {/* My Info */}
+            <section className="mt-9 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
-                  서비스별 이용
+                  {locale === 'ko' ? '내 정보' : 'My info'}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.04] px-3 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40 hover:text-white"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  {locale === 'ko' ? '수정' : 'Edit'}
+                </button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                <InfoRow
+                  Icon={Calendar}
+                  label={locale === 'ko' ? '생년월일' : 'Birth date'}
+                  value={formatBirthDate(profile?.birthDate, locale)}
+                  loading={loading}
+                />
+                <InfoRow
+                  Icon={Clock}
+                  label={locale === 'ko' ? '출생 시간' : 'Birth time'}
+                  value={
+                    profile?.birthTime || (locale === 'ko' ? '미입력' : 'Not set')
+                  }
+                  loading={loading}
+                />
+                <InfoRow
+                  Icon={MapPin}
+                  label={locale === 'ko' ? '출생 도시' : 'Birth city'}
+                  value={
+                    profile?.birthCity || (locale === 'ko' ? '미입력' : 'Not set')
+                  }
+                  loading={loading}
+                />
+                <InfoRow
+                  Icon={UserIcon}
+                  label={locale === 'ko' ? '성별' : 'Gender'}
+                  value={genderLabel(profile?.gender, locale)}
+                  loading={loading}
+                />
+              </div>
+            </section>
+
+            {/* My Circle */}
+            <section className="mt-7 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                  <Users className="h-3.5 w-3.5" />
+                  {locale === 'ko' ? '내 지인' : 'My circle'}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setCircleOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1.5 text-[12px] text-cyan-100 transition hover:border-cyan-300/50 hover:bg-cyan-300/15"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {locale === 'ko' ? '추가' : 'Add'}
+                </button>
+              </div>
+
+              {loading ? (
+                <p className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-5 text-center text-[13px] text-slate-500">
+                  {locale === 'ko' ? '불러오는 중...' : 'Loading...'}
+                </p>
+              ) : circle.length === 0 ? (
+                <div className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-6 text-center">
+                  <p className="text-[14px] text-slate-300">
+                    {locale === 'ko'
+                      ? '아직 등록한 지인이 없어요'
+                      : 'No one in your circle yet'}
+                  </p>
+                  <p className="mt-1 text-[12px] text-slate-500">
+                    {locale === 'ko'
+                      ? '지인의 생년월일을 저장해두면 궁합 상담을 더 빠르게 받을 수 있어요'
+                      : 'Save birth info to speed up compatibility readings'}
+                  </p>
+                </div>
+              ) : (
+                <ul className="mt-4 space-y-2">
+                  {circle.map((p) => (
+                    <li
+                      key={p.id}
+                      className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-3.5 py-3"
+                    >
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[13px] font-semibold text-white">
+                        {p.name[0]?.toUpperCase() || '·'}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="flex items-center gap-1.5 truncate text-[14px] font-medium text-white">
+                          {p.name}
+                          <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[10.5px] font-normal uppercase tracking-wider text-slate-300">
+                            {relationLabel(p.relation, locale)}
+                          </span>
+                        </p>
+                        <p className="mt-0.5 truncate text-[11.5px] text-slate-500">
+                          {[
+                            formatBirthDate(p.birthDate, locale),
+                            p.birthTime ?? null,
+                            p.birthCity ?? null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePerson(p.id, p.name)}
+                        className="rounded-full p-1.5 text-slate-500 transition hover:bg-rose-500/15 hover:text-rose-300"
+                        aria-label={locale === 'ko' ? '삭제' : 'Delete'}
+                        title={locale === 'ko' ? '삭제' : 'Delete'}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            {/* Recent activity */}
+            <section className="mt-7 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                  {locale === 'ko' ? '최근 활동' : 'Recent activity'}
                 </h2>
                 <Link
                   href="/profile/decisions"
                   className="inline-flex items-center gap-1 text-[12px] text-slate-300 transition hover:text-white"
                 >
-                  결정 기록 <ArrowRight className="h-3.5 w-3.5" />
+                  {locale === 'ko' ? '결정 기록' : 'Decision log'}
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-                {(Object.keys(SERVICE_LABELS) as ServiceKey[]).map((key) => {
-                  const sm = SERVICE_LABELS[key]
-                  const ServiceIcon = sm.Icon
-                  const count = counts[key]
-                  return (
-                    <div
-                      key={key}
-                      className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3.5"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="flex h-7 w-7 items-center justify-center rounded-lg"
-                          style={{ background: `${sm.accent}1f`, color: sm.accent }}
-                        >
-                          <ServiceIcon className="h-3.5 w-3.5" />
-                        </div>
-                        <span className="text-[12px] font-medium text-slate-300">{sm.ko}</span>
-                      </div>
-                      <p className="mt-2.5 text-[1.5rem] font-semibold leading-none text-white">
-                        {loading ? '·' : count}
-                      </p>
-                      <p className="mt-1 text-[11px] text-slate-500">회 이용</p>
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
 
-            {/* Recent activity */}
-            <section className="mt-8">
-              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
-                최근 활동
-              </h2>
-              <div className="mt-3 space-y-2">
-                {loading && (
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-center text-[13px] text-slate-500">
-                    불러오는 중...
+              {loading ? (
+                <p className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-5 text-center text-[13px] text-slate-500">
+                  {locale === 'ko' ? '불러오는 중...' : 'Loading...'}
+                </p>
+              ) : flatRecords.length === 0 ? (
+                <div className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-6 text-center">
+                  <p className="text-[14px] text-slate-300">
+                    {locale === 'ko'
+                      ? '아직 활동 기록이 없어요'
+                      : 'No activity yet'}
+                  </p>
+                  <div className="mt-3 flex flex-wrap justify-center gap-2">
+                    <Link
+                      href="/destiny-counselor"
+                      className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
+                    >
+                      {locale === 'ko' ? '운명 상담사' : 'Destiny counselor'}
+                    </Link>
+                    <Link
+                      href="/compatibility"
+                      className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
+                    >
+                      {locale === 'ko' ? '궁합' : 'Compatibility'}
+                    </Link>
+                    <Link
+                      href="/tarot"
+                      className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
+                    >
+                      {locale === 'ko' ? '타로' : 'Tarot'}
+                    </Link>
                   </div>
-                )}
-                {!loading && history.length === 0 && (
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-center">
-                    <p className="text-[14px] text-slate-300">아직 활동 기록이 없어요</p>
-                    <p className="mt-1 text-[12px] text-slate-500">
-                      4개 서비스 중 하나를 시작해보세요
-                    </p>
-                    <div className="mt-4 flex flex-wrap justify-center gap-2">
-                      <Link
-                        href="/destiny-counselor"
-                        className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
-                      >
-                        카운슬러
-                      </Link>
-                      <Link
-                        href="/calendar"
-                        className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
-                      >
-                        캘린더
-                      </Link>
-                      <Link
-                        href="/tarot"
-                        className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
-                      >
-                        타로
-                      </Link>
-                      <Link
-                        href="/compatibility"
-                        className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
-                      >
-                        궁합
-                      </Link>
-                      <Link
-                        href="/premium-reports"
-                        className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
-                      >
-                        리포트
-                      </Link>
-                    </div>
-                  </div>
-                )}
-                {!loading &&
-                  history.slice(0, 8).flatMap((day) =>
-                    day.records.slice(0, 3).map((rec) => {
-                      const key = classifyService(rec.service)
-                      const sm = SERVICE_LABELS[key]
-                      const ServiceIcon = sm.Icon
-                      return (
-                        <div
-                          key={`${day.date}-${rec.id}`}
-                          className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3.5"
+                </div>
+              ) : (
+                <ul className="mt-4 space-y-2">
+                  {flatRecords.map((rec) => {
+                    const meta = classifyService(rec.service)
+                    const ServiceIcon = meta.Icon
+                    return (
+                      <li key={rec.id}>
+                        <Link
+                          href={meta.href}
+                          className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] px-3.5 py-3 transition hover:border-white/15 hover:bg-white/[0.04]"
                         >
                           <div
                             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
-                            style={{ background: `${sm.accent}1f`, color: sm.accent }}
+                            style={{
+                              background: `${meta.accent}1f`,
+                              color: meta.accent,
+                            }}
                           >
                             <ServiceIcon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-[13.5px] font-medium text-white">
-                              {sm.ko}
-                              {rec.theme ? ` · ${rec.theme}` : ''}
+                              {rec.theme || rec.service}
                             </p>
                             {rec.summary && (
                               <p className="mt-0.5 truncate text-[12px] text-slate-400">
@@ -362,42 +483,68 @@ export default function ProfilePage() {
                             )}
                           </div>
                           <span className="flex-shrink-0 text-[11px] text-slate-500">
-                            {formatRelative(rec.date)}
+                            {formatRelative(rec.date, locale)}
                           </span>
-                        </div>
-                      )
-                    })
-                  )}
-              </div>
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </section>
           </div>
         </div>
+
+        <ProfileEditModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          initial={{
+            name: profile?.name ?? null,
+            birthDate: profile?.birthDate ?? null,
+            birthTime: profile?.birthTime ?? null,
+            gender: profile?.gender ?? null,
+            birthCity: profile?.birthCity ?? null,
+            tzId: profile?.tzId ?? null,
+          }}
+          locale={locale}
+          onSaved={() => void loadAll()}
+        />
+
+        <CircleAddModal
+          open={circleOpen}
+          onClose={() => setCircleOpen(false)}
+          locale={locale}
+          onAdded={() => void loadAll()}
+        />
       </div>
     </AuthGate>
   )
 }
 
-function StatCard({
+function InfoRow({
   Icon,
-  value,
   label,
-  accent,
+  value,
+  loading,
 }: {
   Icon: typeof Calendar
-  value: string
   label: string
-  accent: string
+  value: string
+  loading: boolean
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-md">
-      <div
-        className="flex h-7 w-7 items-center justify-center rounded-lg"
-        style={{ background: `${accent}1f`, color: accent }}
-      >
+    <div className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-3">
+      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-slate-300">
         <Icon className="h-3.5 w-3.5" />
       </div>
-      <p className="mt-3 text-[1.5rem] font-semibold leading-none text-white">{value}</p>
-      <p className="mt-1 text-[11.5px] text-slate-500">{label}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10.5px] font-medium uppercase tracking-[0.18em] text-slate-500">
+          {label}
+        </p>
+        <p className="mt-0.5 truncate text-[13.5px] text-white">
+          {loading ? '·' : value}
+        </p>
+      </div>
     </div>
   )
 }
