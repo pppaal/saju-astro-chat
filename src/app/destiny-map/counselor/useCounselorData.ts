@@ -82,7 +82,7 @@ export function useCounselorData(sp: SearchParams) {
   const city = urlCity || profileFallback.birthCity || ''
   const effectiveGender = rawGender || profileFallback.gender || ''
   const birthTimeUnknown =
-    rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true' || birthTime === '00:00'
+    rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true'
 
   const latStr =
     (Array.isArray(sp.lat) ? sp.lat[0] : sp.lat) ??

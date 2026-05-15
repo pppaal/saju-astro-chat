@@ -24,8 +24,8 @@ import {
 
 export interface StoredBirthInfo {
   birthDate: string // YYYY-MM-DD
-  birthTime: string // HH:MM ('00:00' is the placeholder when birthTimeUnknown=true)
-  birthTimeUnknown?: boolean
+  birthTime: string // HH:MM (a real value — '00:00' means midnight, NOT unknown)
+  birthTimeUnknown?: boolean // explicit flag; set only when the user checked "I don't know my time"
   gender: 'male' | 'female'
   city?: string
   savedAt: string // ISO
@@ -38,10 +38,15 @@ function userProfileToBirthInfo(profile: UserProfile): StoredBirthInfo | null {
   const gender =
     profile.gender === 'Male' ? 'male' : profile.gender === 'Female' ? 'female' : null
   if (!gender) return null
+  // birthTimeUnknown is intentionally not derived from `birthTime === '00:00'`
+  // anymore: midnight is a real birth time, and people born at 자정 were
+  // being silently flagged as "time unknown" everywhere downstream. The
+  // unknown flag should only flip true when the user explicitly checked
+  // the "I don't know my time" toggle (which travels via URL/profile as an
+  // explicit boolean, not as a magic sentinel value).
   return {
     birthDate: profile.birthDate,
     birthTime: profile.birthTime,
-    birthTimeUnknown: profile.birthTime === '00:00' ? true : undefined,
     gender,
     city: profile.birthCity || undefined,
     savedAt: profile.updatedAt || new Date().toISOString(),

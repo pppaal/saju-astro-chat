@@ -71,7 +71,7 @@ export default function TarotChatScreen() {
       setBirthInfo({
         birthDate: qBirthDate,
         birthTime: qBirthTime,
-        birthTimeUnknown: sp.get('birthTimeUnknown') === '1' || qBirthTime === '00:00',
+        birthTimeUnknown: sp.get('birthTimeUnknown') === '1',
         gender,
         city: sp.get('birthCity') || sp.get('city') || undefined,
         savedAt: new Date().toISOString(),
