@@ -1233,9 +1233,18 @@ export const GET = withApiMiddleware(
             : undefined,
         },
       )
+      // 사용자가 보고 있는 달만 빌드 — 1년 365일 다 돌리면 너무 비쌈.
+      // 엔진 자체는 1년 능력 유지 (range만 좁힘). 클라가 ?month=YYYY-MM 보내면 그 달,
+      // 안 보내면 오늘의 달.
+      const monthParam = searchParams.get('month')
+      const monthMatch = monthParam?.match(/^(\d{4})-(\d{1,2})$/)
+      const targetYear = monthMatch ? Number(monthMatch[1]) : year
+      const targetMonth = monthMatch ? Number(monthMatch[2]) - 1 : new Date().getMonth()
+      const rangeStart = new Date(targetYear, targetMonth, 1)
+      const rangeEnd = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59)
       const ceCells = await buildCalendar(ceNatal, {
-        start: new Date(year, 0, 1).toISOString(),
-        end: new Date(year, 11, 31, 23, 59, 59).toISOString(),
+        start: rangeStart.toISOString(),
+        end: rangeEnd.toISOString(),
         granularity: 'day',
       })
       const cellByDate = new Map(ceCells.map((c) => [c.datetime.slice(0, 10), c]))
