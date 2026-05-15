@@ -43,6 +43,7 @@ import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './ty
 import { useDateDetail } from './useDateDetail'
 import MatchedPatternsCard from './MatchedPatternsCard'
 import ActiveSignalsList from './ActiveSignalsList'
+import MonthHighlightsCard from './MonthHighlightsCard'
 import { getScoreGrade } from './scoreGrade'
 
 interface DestinyMatrixPlannerProps {
@@ -666,6 +667,9 @@ export default function DestinyMatrixPlanner({
                   </p>
                 </div>
               </div>
+
+              {/* ── calendar-engine v2: 길일/흉일 TOP 5 ── */}
+              <MonthHighlightsCard monthDates={monthDates} onDayClick={handleDayClick} />
             </motion.div>
           )}
 
