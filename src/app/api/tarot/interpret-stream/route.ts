@@ -12,10 +12,6 @@ import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
 import {
-  buildQuestionContextPrompt,
-  type TarotQuestionAnalysisSnapshot,
-} from '@/lib/tarot/questionFlow'
-import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
   creditErrorResponse,
@@ -53,13 +49,6 @@ function withCreditCookies(
 }
 
 // Use centralized sanitizeString from @/lib/api/sanitizers
-
-function normalizeQuestionContext(value: unknown): TarotQuestionAnalysisSnapshot | undefined {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return undefined
-  }
-  return value as TarotQuestionAnalysisSnapshot
-}
 
 function buildFallbackPayload(
   cards: CardInput[],
@@ -151,7 +140,7 @@ function parseBirthMonthDay(birthdate: string): { month: number; day: number } |
 
 function getZodiacSign(
   birthdate: string
-): { sign: string; signKo: string; element: string } | null {
+): { sign: string; signKo: string; element: string; elementKo: string } | null {
   const parts = parseBirthMonthDay(birthdate)
   if (!parts) {
     return null
@@ -160,37 +149,32 @@ function getZodiacSign(
   const { month, day } = parts
 
   const zodiacData = [
-    { sign: 'Capricorn', signKo: '염소자리', element: '흙', start: [12, 22], end: [1, 19] },
-    { sign: 'Aquarius', signKo: '물병자리', element: '공기', start: [1, 20], end: [2, 18] },
-    { sign: 'Pisces', signKo: '물고기자리', element: '물', start: [2, 19], end: [3, 20] },
-    { sign: 'Aries', signKo: '양자리', element: '불', start: [3, 21], end: [4, 19] },
-    { sign: 'Taurus', signKo: '황소자리', element: '흙', start: [4, 20], end: [5, 20] },
-    { sign: 'Gemini', signKo: '쌍둥이자리', element: '공기', start: [5, 21], end: [6, 20] },
-    { sign: 'Cancer', signKo: '게자리', element: '물', start: [6, 21], end: [7, 22] },
-    { sign: 'Leo', signKo: '사자자리', element: '불', start: [7, 23], end: [8, 22] },
-    { sign: 'Virgo', signKo: '처녀자리', element: '흙', start: [8, 23], end: [9, 22] },
-    { sign: 'Libra', signKo: '천칭자리', element: '공기', start: [9, 23], end: [10, 22] },
-    { sign: 'Scorpio', signKo: '전갈자리', element: '물', start: [10, 23], end: [11, 21] },
-    { sign: 'Sagittarius', signKo: '사수자리', element: '불', start: [11, 22], end: [12, 21] },
+    { sign: 'Capricorn', signKo: '염소자리', element: 'earth', elementKo: '흙', start: [12, 22], end: [1, 19] },
+    { sign: 'Aquarius', signKo: '물병자리', element: 'air', elementKo: '공기', start: [1, 20], end: [2, 18] },
+    { sign: 'Pisces', signKo: '물고기자리', element: 'water', elementKo: '물', start: [2, 19], end: [3, 20] },
+    { sign: 'Aries', signKo: '양자리', element: 'fire', elementKo: '불', start: [3, 21], end: [4, 19] },
+    { sign: 'Taurus', signKo: '황소자리', element: 'earth', elementKo: '흙', start: [4, 20], end: [5, 20] },
+    { sign: 'Gemini', signKo: '쌍둥이자리', element: 'air', elementKo: '공기', start: [5, 21], end: [6, 20] },
+    { sign: 'Cancer', signKo: '게자리', element: 'water', elementKo: '물', start: [6, 21], end: [7, 22] },
+    { sign: 'Leo', signKo: '사자자리', element: 'fire', elementKo: '불', start: [7, 23], end: [8, 22] },
+    { sign: 'Virgo', signKo: '처녀자리', element: 'earth', elementKo: '흙', start: [8, 23], end: [9, 22] },
+    { sign: 'Libra', signKo: '천칭자리', element: 'air', elementKo: '공기', start: [9, 23], end: [10, 22] },
+    { sign: 'Scorpio', signKo: '전갈자리', element: 'water', elementKo: '물', start: [10, 23], end: [11, 21] },
+    { sign: 'Sagittarius', signKo: '사수자리', element: 'fire', elementKo: '불', start: [11, 22], end: [12, 21] },
   ]
 
   for (const z of zodiacData) {
     const [startM, startD] = z.start
     const [endM, endD] = z.end
-
-    if (startM > endM) {
-      // 염소자리 같이 연도를 걸치는 경우
-      if ((month === startM && day >= startD) || (month === endM && day <= endD)) {
-        return { sign: z.sign, signKo: z.signKo, element: z.element }
-      }
-    } else {
-      if (
-        (month === startM && day >= startD) ||
+    const inWrappedRange =
+      startM > endM && ((month === startM && day >= startD) || (month === endM && day <= endD))
+    const inNormalRange =
+      startM <= endM &&
+      ((month === startM && day >= startD) ||
         (month === endM && day <= endD) ||
-        (month > startM && month < endM)
-      ) {
-        return { sign: z.sign, signKo: z.signKo, element: z.element }
-      }
+        (month > startM && month < endM))
+    if (inWrappedRange || inNormalRange) {
+      return { sign: z.sign, signKo: z.signKo, element: z.element, elementKo: z.elementKo }
     }
   }
   return null
@@ -255,13 +239,8 @@ export async function POST(req: NextRequest) {
             ? 'en'
             : 'ko'
     const rawCards = body.cards
-    const userQuestion = body.userQuestion || ''
-    const questionContext = normalizeQuestionContext(body.questionContext)
-    const effectiveUserQuestion = buildQuestionContextPrompt(
-      userQuestion,
-      questionContext,
-      language
-    )
+    const userQuestion = (body.userQuestion || '').trim()
+    const effectiveUserQuestion = userQuestion
     const includeAstrology = body.includeAstrology !== false
     const includeSaju = body.includeSaju !== false
     const birthdate = includeAstrology ? body.birthdate || '' : ''
@@ -305,7 +284,7 @@ export async function POST(req: NextRequest) {
     if (zodiac) {
       sections.push(
         isKorean
-          ? `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.element} 원소)\n`
+          ? `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.elementKo} 원소)\n`
           : `\n## Querent Info\n- Zodiac: ${zodiac.sign} (${zodiac.element} element)\n`
       )
     }
@@ -483,7 +462,7 @@ ${personalizationContext}
 # 작성 지시
 - 모든 ${rawCards.length}장의 카드에 대해 cards[] 항목을 만드세요.
 - 각 카드는 위 질문 맥락 안에서 해석합니다. 카드를 보고 사전식 정의를 쓰지 마세요.
-- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}`
+- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.elementKo} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}`
       : `# User's Question
 "${q}"
 
@@ -567,7 +546,7 @@ ${personalizationContext}
             : isKorean
               ? `# 작성 지시\n- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfo} 의 카드별 해석만 cards[] 에 채우세요. overall/advice 는 출력하지 마세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
               : `# Instructions\n- Use the full ${rawCards.length}-card flow as context only. Output ONLY per-card interpretations ${chunkInfo} in cards[]. Do NOT include overall/advice.\n- cards[] length must be exactly ${endIdx - startIdx}.`
-          const personalizationLine = `${zodiac ? (isKorean ? `\n- 별자리(${zodiac.signKo}, ${zodiac.element} 원소) 자연스럽게 한 번만 연결.` : `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.`) : ''}${astroContext ? (isKorean ? '\n- 점성 맥락도 해석에 cross.' : '\n- Cross with the astrology context.') : ''}${sajuContext ? (isKorean ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : '\n- Cross with the saju context — anchor in every card at least once.') : ''}`
+          const personalizationLine = `${zodiac ? (isKorean ? `\n- 별자리(${zodiac.signKo}, ${zodiac.elementKo} 원소) 자연스럽게 한 번만 연결.` : `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.`) : ''}${astroContext ? (isKorean ? '\n- 점성 맥락도 해석에 cross.' : '\n- Cross with the astrology context.') : ''}${sajuContext ? (isKorean ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : '\n- Cross with the saju context — anchor in every card at least once.') : ''}`
           if (isKorean) {
             return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${rawCards.length}장)\n\n# 펼친 카드 — 전체 (자리명 — 자리 의미)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
           }

@@ -53,8 +53,6 @@ export interface TarotQuestionAnalysisSnapshot {
   intent_label?: string
 }
 
-export type TarotQuestionIntent = 'yesNo' | 'flow' | 'open'
-
 type StableEntry = {
   themeId: string
   spreadId: string
@@ -64,63 +62,6 @@ const ANALYSIS_STORAGE_PREFIX = 'tarot-question-analysis:'
 
 function normalizeQuestion(text: string): string {
   return (text || '').trim()
-}
-
-function inferIntentFromQuestion(question: string): TarotQuestionIntent {
-  const normalized = question.toLowerCase().trim()
-  if (!normalized) return 'open'
-
-  if (
-    /(흐름|전반|전체|방향|큰\s*그림|overall|general\s*flow|big\s*picture|direction)/i.test(
-      normalized
-    )
-  ) {
-    return 'flow'
-  }
-
-  if (/(할까|될까|인가|일까|가능성|should i|will i|is it|can i|\?)/i.test(normalized)) {
-    return 'yesNo'
-  }
-
-  return 'open'
-}
-
-export function getQuestionIntent(
-  question: string,
-  analysis?: TarotQuestionAnalysisSnapshot | null
-): TarotQuestionIntent {
-  const profile = analysis?.question_profile
-  const typeCode = profile?.type?.code
-  const subjectCode = profile?.subject?.code
-  const timeframeCode = profile?.timeframe?.code
-  const toneCode = profile?.tone?.code
-
-  if (
-    typeCode === 'broad_flow' ||
-    toneCode === 'flow' ||
-    timeframeCode === 'current_phase' ||
-    subjectCode === 'overall_flow'
-  ) {
-    return 'flow'
-  }
-
-  if (
-    typeCode === 'decision' ||
-    typeCode === 'other_response' ||
-    typeCode === 'self_decision' ||
-    typeCode === 'other_person_response' ||
-    typeCode === 'meeting_likelihood' ||
-    typeCode === 'near_term_outcome' ||
-    typeCode === 'timing'
-  ) {
-    return 'yesNo'
-  }
-
-  if (toneCode === 'prediction' && /[?？]/.test(question)) {
-    return 'yesNo'
-  }
-
-  return inferIntentFromQuestion(question)
 }
 
 export function resolveStableTarotEntry(
@@ -172,33 +113,6 @@ export function toAnalysisSnapshot(
     direct_answer: analysis.direct_answer,
     intent: analysis.intent,
     intent_label: analysis.intent_label,
-  }
-}
-
-export function storeQuestionAnalysisSnapshot(
-  question: string,
-  analysis?: TarotQuestionAnalysisResult | null
-): string | null {
-  if (typeof window === 'undefined') return null
-
-  const trimmedQuestion = normalizeQuestion(question)
-  const snapshot = toAnalysisSnapshot(analysis)
-  if (!trimmedQuestion || !snapshot) return null
-
-  const key = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
-
-  try {
-    window.sessionStorage.setItem(
-      `${ANALYSIS_STORAGE_PREFIX}${key}`,
-      JSON.stringify({
-        question: trimmedQuestion,
-        snapshot,
-        savedAt: Date.now(),
-      })
-    )
-    return key
-  } catch {
-    return null
   }
 }
 

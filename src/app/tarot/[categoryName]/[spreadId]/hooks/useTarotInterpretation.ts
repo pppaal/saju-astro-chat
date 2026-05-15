@@ -282,41 +282,19 @@ function parseStreamedInterpretation(
   const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new Error('No JSON found')
 
+  // 현재 스키마는 { overall, cards: [{ position, interpretation }], advice } 만 emit.
+  // 옛 key 들 (overall_message/card_insights/actionTip/meaning) 은 모두 dead branch — 단순화.
   const parsed = JSON.parse(jsonMatch[0]) as {
     overall?: string
-    overall_message?: string
     advice?: string
-    guidance?: string
-    cards?: Array<{
-      interpretation?: string
-      meaning?: string
-      actionTip?: string
-      action_tip?: string
-    }>
-    card_insights?: Array<{
-      interpretation?: string
-      meaning?: string
-      actionTip?: string
-      action_tip?: string
-    }>
+    cards?: Array<{ interpretation?: string }>
   }
-  const parsedCards = Array.isArray(parsed.cards)
-    ? parsed.cards
-    : Array.isArray(parsed.card_insights)
-      ? parsed.card_insights
-      : []
+  const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
 
   return {
-    overall_message: parsed.overall_message || parsed.overall || '',
+    overall_message: parsed.overall || '',
     card_insights: cards.map((dc, i) => {
-      const cardData = parsedCards[i] as
-        | {
-            interpretation?: string
-            meaning?: string
-            actionTip?: string
-            action_tip?: string
-          }
-        | undefined
+      const cardData = parsedCards[i]
       const fallbackMeaning = dc.isReversed
         ? isKorean
           ? dc.card.reversed.meaningKo || dc.card.reversed.meaning
@@ -324,28 +302,18 @@ function parseStreamedInterpretation(
         : isKorean
           ? dc.card.upright.meaningKo || dc.card.upright.meaning
           : dc.card.upright.meaning
-      const actionTip =
-        (cardData?.action_tip || cardData?.actionTip || '').trim() || undefined
       return {
         position: positions[i]?.title || `Card ${i + 1}`,
         card_name: dc.card.name,
         is_reversed: dc.isReversed,
         interpretation:
-          (cardData?.interpretation || cardData?.meaning || '').trim() || fallbackMeaning || '',
-        action_tip: actionTip,
-        spirit_animal: null,
-        chakra: null,
-        element: null,
-        shadow: null,
+          (cardData?.interpretation || '').trim() || fallbackMeaning || '',
       }
     }),
     guidance:
-      parsed.guidance ||
       parsed.advice ||
       (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
     affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
-    combinations: [],
-    followup_questions: [],
     fallback: false,
     interpretation_source: 'stream_sse_fallback',
   }
@@ -878,16 +846,9 @@ export function useTarotInterpretation({
                 card_name: dc.card.name,
                 is_reversed: dc.isReversed,
                 interpretation: '',
-                action_tip: undefined,
-                spirit_animal: null,
-                chakra: null,
-                element: null,
-                shadow: null,
               })),
               guidance: '',
               affirmation: '',
-              combinations: [],
-              followup_questions: [],
               fallback: true,
               interpretation_source: 'stream_sse_fallback',
             }
@@ -917,7 +878,7 @@ export function useTarotInterpretation({
             )
           }
 
-          // JSON 응답 (폴백으로 내려온 경우)
+          // JSON 응답 (스트림이 죽고 non-stream JSON 으로 내려온 경우)
           const data = await response.json()
           if (data.overall || data.overall_message) {
             const sourceInsights = Array.isArray(data.card_insights)
@@ -936,8 +897,6 @@ export function useTarotInterpretation({
                   ? drawnCard.card.upright.meaningKo || drawnCard.card.upright.meaning
                   : drawnCard.card.upright.meaning
 
-              const actionTip =
-                ((ci.action_tip as string) || (ci.actionTip as string) || '').trim() || undefined
               return {
                 position:
                   (ci.position as string) || result.spread.positions[i]?.title || `Card ${i + 1}`,
@@ -949,11 +908,6 @@ export function useTarotInterpretation({
                   (language === 'ko'
                     ? '카드 메시지를 읽고 현재 상황과 연결해보세요.'
                     : 'Connect this card message to your current situation.'),
-                action_tip: actionTip,
-                spirit_animal: null,
-                chakra: null,
-                element: null,
-                shadow: null,
               }
             })
 
@@ -965,8 +919,6 @@ export function useTarotInterpretation({
                 data.advice ||
                 (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
               affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
-              combinations: [],
-              followup_questions: [],
               fallback: false,
               interpretation_source: 'stream_json_fallback',
             }

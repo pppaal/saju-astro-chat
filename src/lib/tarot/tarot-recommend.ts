@@ -71,18 +71,10 @@ function pick(depth: Depth): SpreadRecommendation | null {
   }
 }
 
-export function recommendSpreads(question: string, maxResults?: number): SpreadRecommendation[]
 export function recommendSpreads(
   question: string,
-  maxResults: number,
-  language: 'ko' | 'en'
-): SpreadRecommendation[]
-export function recommendSpreads(
-  question: string,
-  maxResults: number = 3,
-  _language: 'ko' | 'en' = 'ko'
+  maxResults: number = 3
 ): SpreadRecommendation[] {
-  void _language
   // 깊이 기반 — primary 1개. 추가 결과는 인접 깊이 (호환을 위해 N개 채워줌).
   const order: Depth[] = ['shallow', 'normal', 'deep', 'full']
   const primary = classifyDepth(question)
@@ -98,8 +90,4 @@ export function recommendSpreads(
     if (results.length >= Math.max(1, maxResults)) break
   }
   return results
-}
-
-export function getDefaultRecommendation(): SpreadRecommendation | null {
-  return pick('normal')
 }

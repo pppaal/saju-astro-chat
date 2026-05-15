@@ -100,7 +100,7 @@ export async function analyzeTarotQuestionV2(input: {
     }
   }
 
-  const recs = recommendSpreads(trimmed, 4, language)
+  const recs = recommendSpreads(trimmed, 4)
   const primary = recs[0]
 
   const recommended_spreads: EngineSpreadOption[] = recs.map((r, i) => ({
