@@ -122,8 +122,15 @@ interface SajuLike {
   timePillar?: PillarLike
   dayMaster?: { name?: string; element?: string; yin_yang?: string }
   fiveElements?: { wood?: number; fire?: number; earth?: number; metal?: number; water?: number }
+  // The compat path's buildAutoSajuContext aliases the raw saju.daeWoon
+  // as `daeun`; the destiny path leaves it as `daeWoon`. Accept either
+  // so this formatter can be reused for both routes.
   daeun?: {
-    current?: LuckStage
+    current?: LuckStage | null
+    list?: LuckStage[]
+  }
+  daeWoon?: {
+    current?: LuckStage | null
     list?: LuckStage[]
   }
   yeonun?: AnnualEntry[]
@@ -185,8 +192,9 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
   // 대운 — prev / current / next (3 of 10). Static raw fields above
   // are kept full; only the time-series windows around "now" get
   // trimmed since 5-stage-out daeun almost never gets cited and
-  // every row costs ~20 chars.
-  const daeun = saju.daeun
+  // every row costs ~20 chars. Accept `daeun` (compat alias) or
+  // `daeWoon` (raw saju lib key) as the source.
+  const daeun = saju.daeun ?? saju.daeWoon
   if (daeun?.list && daeun.list.length > 0) {
     lines.push('')
     lines.push('[대운]')
@@ -330,6 +338,229 @@ export function formatAstroAsTable(astro: AstroLike | null | undefined, label: s
           `${s(a.from?.name)} | ${s(a.type)} | ${s(a.to?.name)} | ${a.orb != null ? a.orb.toFixed(1) + '°' : '?'}${a.applying ? ' →' : ''}`,
         )
       })
+    }
+  }
+
+  return lines.join('\n')
+}
+
+/* --------------------------------------------------------------------
+ * Destiny-route adapters
+ *
+ * The destiny counselor (/api/counselor/realtime) passes data through
+ * a SajuNormalizerInput / AstroNormalizerInput shape that differs from
+ * the compat counselor's buildAutoSajuContext output. The saju portion
+ * is close enough that the main formatSajuAsTable handles it via the
+ * daeWoon fallback above; what's left is the destiny-only "current
+ * single-entry" timing block and the astro block in Chart shape.
+ * ------------------------------------------------------------------ */
+
+interface UnseLike {
+  heavenlyStem?: string
+  earthlyBranch?: string
+  sibsin?: { cheon?: string; ji?: string } | string
+  year?: number
+  month?: number
+  day?: number
+  age?: number
+}
+
+function unseLine(u: UnseLike | null | undefined): string | null {
+  if (!u) return null
+  const stem = s(u.heavenlyStem)
+  const branch = s(u.earthlyBranch)
+  let sib = '?'
+  if (typeof u.sibsin === 'string') sib = u.sibsin
+  else if (u.sibsin && typeof u.sibsin === 'object') {
+    const v = u.sibsin
+    sib = `${v.cheon ?? '?'}/${v.ji ?? '?'}`
+  }
+  const when =
+    u.day != null
+      ? `${u.year ?? '?'}-${u.month ?? '?'}-${u.day}`
+      : u.month != null
+        ? `${u.year ?? '?'}-${u.month}`
+        : u.year != null
+          ? String(u.year)
+          : u.age != null
+            ? `${u.age}세`
+            : ''
+  return `${when ? when + ' ' : ''}${stem}${branch} ${sib}`
+}
+
+/**
+ * Single-entry timing block used by the destiny counselor.
+ * Renders currentDaeun / currentSeun / currentWolun / currentIljin in
+ * one compact section + a daeunSequence summary if present. This
+ * replaces ~150 chars of pretty JSON per category with ~50.
+ */
+export function formatDestinyTiming(input: {
+  currentDaeun?: UnseLike | null
+  currentSeun?: UnseLike | null
+  currentWolun?: UnseLike | null
+  currentIljin?: UnseLike | null
+  daeunSequence?: {
+    index?: number
+    yearsIntoCurrent?: number
+    yearsToNext?: number
+    previous?: UnseLike | null
+    next?: UnseLike | null
+  } | null
+}): string {
+  const lines: string[] = []
+  const daeunStr = unseLine(input.currentDaeun)
+  const seunStr = unseLine(input.currentSeun)
+  const wolunStr = unseLine(input.currentWolun)
+  const iljinStr = unseLine(input.currentIljin)
+  if (daeunStr || seunStr || wolunStr || iljinStr) {
+    lines.push('[현재 시기]')
+    if (daeunStr) lines.push(`대운: ${daeunStr}`)
+    if (seunStr) lines.push(`세운: ${seunStr}`)
+    if (wolunStr) lines.push(`월운: ${wolunStr}`)
+    if (iljinStr) lines.push(`일운: ${iljinStr}`)
+  }
+
+  const seq = input.daeunSequence
+  if (seq) {
+    const prev = unseLine(seq.previous)
+    const next = unseLine(seq.next)
+    if (prev || next) {
+      lines.push('[대운 전/다음]')
+      if (prev) lines.push(`이전: ${prev}`)
+      if (next) {
+        const tail =
+          seq.yearsToNext != null && seq.yearsToNext <= 1
+            ? ` (전환 임박, ${seq.yearsToNext.toFixed(1)}년 남음)`
+            : seq.yearsToNext != null
+              ? ` (${seq.yearsToNext.toFixed(1)}년 남음)`
+              : ''
+        lines.push(`다음: ${next}${tail}`)
+      }
+    }
+  }
+
+  return lines.join('\n')
+}
+
+interface DestinyChartLike {
+  planets?: PlanetLike[]
+  ascendant?: { sign?: string; degree?: number }
+  mc?: { sign?: string; degree?: number }
+}
+
+interface DestinyAstroInput {
+  natal?: DestinyChartLike
+  natalAspects?: AspectLike[]
+  transits?: DestinyChartLike
+  transitAspects?: AspectLike[]
+  solarReturn?: { chart?: DestinyChartLike; aspects?: AspectLike[] }
+  lunarReturn?: { chart?: DestinyChartLike; aspects?: AspectLike[] }
+  profectionHouse?: number
+}
+
+function chartBlock(label: string, c: DestinyChartLike | undefined): string[] {
+  if (!c) return []
+  const lines: string[] = [label]
+  if (c.ascendant?.sign) {
+    lines.push(
+      `Asc: ${c.ascendant.sign}${c.ascendant.degree != null ? ` ${c.ascendant.degree.toFixed(1)}°` : ''}`,
+    )
+  }
+  if (c.mc?.sign) {
+    lines.push(`MC: ${c.mc.sign}${c.mc.degree != null ? ` ${c.mc.degree.toFixed(1)}°` : ''}`)
+  }
+  if (c.planets && c.planets.length > 0) {
+    lines.push('이름 | 사인 | 하우스 | 도수')
+    c.planets.forEach((p) => {
+      lines.push(
+        `${s(p.name)} | ${s(p.sign)} | ${p.house ?? '?'} | ${p.degree != null ? p.degree.toFixed(1) : '?'}${p.retrograde ? ' R' : ''}`,
+      )
+    })
+  }
+  return lines
+}
+
+function aspectBlock(label: string, list: AspectLike[] | undefined, max: number): string[] {
+  if (!list || list.length === 0) return []
+  const valid = list.filter((a) => a.from?.name && a.to?.name && a.type)
+  if (valid.length === 0) return []
+  const sorted = [...valid].sort((a, b) => (a.orb ?? 99) - (b.orb ?? 99)).slice(0, max)
+  const lines = [label, 'from | type | to | orb']
+  sorted.forEach((a) => {
+    lines.push(
+      `${s(a.from?.name)} | ${s(a.type)} | ${s(a.to?.name)} | ${a.orb != null ? a.orb.toFixed(1) + '°' : '?'}${a.applying ? ' →' : ''}`,
+    )
+  })
+  return lines
+}
+
+/**
+ * Compact destiny-route astrology block.
+ *
+ * Same coverage as serializeAstro's JSON output, ~5× fewer chars:
+ *  - natal (Asc / MC / planets)
+ *  - natalAspects (full)
+ *  - currentTransits (chart + top 5 aspects)
+ *  - solarReturn / lunarReturn (chart + tight aspects)
+ *
+ * profectionHouse is rendered as a one-line header when present.
+ */
+export function formatDestinyAstro(input: DestinyAstroInput): string {
+  const lines: string[] = ['== 점성 ==']
+
+  if (typeof input.profectionHouse === 'number') {
+    lines.push(`Profection: ${input.profectionHouse}H`)
+  }
+
+  const natalLines = chartBlock('[Natal]', input.natal)
+  if (natalLines.length > 1) {
+    lines.push('')
+    lines.push(...natalLines)
+  }
+
+  const natalAspectLines = aspectBlock('[Natal 어스펙트]', input.natalAspects, 999)
+  if (natalAspectLines.length > 0) {
+    lines.push('')
+    lines.push(...natalAspectLines)
+  }
+
+  const transitChart = chartBlock('[현재 트랜짓 행성]', input.transits)
+  if (transitChart.length > 1) {
+    lines.push('')
+    lines.push(...transitChart)
+  }
+
+  const transitAspectLines = aspectBlock('[현재 트랜짓 어스펙트]', input.transitAspects, 5)
+  if (transitAspectLines.length > 0) {
+    lines.push('')
+    lines.push(...transitAspectLines)
+  }
+
+  const sr = input.solarReturn
+  if (sr) {
+    const srChart = chartBlock('[Solar Return]', sr.chart)
+    if (srChart.length > 1) {
+      lines.push('')
+      lines.push(...srChart)
+    }
+    const srAspects = aspectBlock('[Solar Return 어스펙트]', sr.aspects, 5)
+    if (srAspects.length > 0) {
+      lines.push('')
+      lines.push(...srAspects)
+    }
+  }
+
+  const lr = input.lunarReturn
+  if (lr) {
+    const lrChart = chartBlock('[Lunar Return]', lr.chart)
+    if (lrChart.length > 1) {
+      lines.push('')
+      lines.push(...lrChart)
+    }
+    const lrAspects = aspectBlock('[Lunar Return 어스펙트]', lr.aspects, 5)
+    if (lrAspects.length > 0) {
+      lines.push('')
+      lines.push(...lrAspects)
     }
   }
 

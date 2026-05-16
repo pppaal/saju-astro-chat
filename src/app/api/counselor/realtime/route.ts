@@ -11,7 +11,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { runFortuneWithRaw, serializeBirthSnapshot } from '@/lib/fortune/cross-rules'
+import { runFortuneWithRaw } from '@/lib/fortune/cross-rules'
+import {
+  formatSajuAsTable,
+  formatDestinyTiming,
+  formatDestinyAstro,
+} from '@/lib/compatibility/sajuTableFormatter'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -65,17 +70,17 @@ const CREDIT_PER_TURN = 1
 const SYSTEM_PROMPT_KO = `[Birth Snapshot] 의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다.
 
 규칙:
+- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.
 - 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.
 - snapshot에 birthTimeUnknown=true면 시주/일진/ASC/MC/하우스 인용 금지. birthCityUnknown=true면 위치 의존 결론 금지.
-- caution 신호가 명시되면 비가역 행동(서명·확정·결제·이별 통보)을 즉시 권하지 않는다.
 - AI/모델/상담사 정체 노출 금지.`
 
 const SYSTEM_PROMPT_EN = `Answer the user directly from the saju and astrology data in [Birth Snapshot].
 
 Rules:
+- Fuse saju and astrology in one flow. No system-split.
 - No markdown headers (##) or numbered lists. Plain prose paragraphs.
 - If snapshot has birthTimeUnknown=true: do not cite time pillar / iljin / ASC / MC / houses. If birthCityUnknown=true: skip place-dependent claims.
-- If caution flags are present, never push irreversible actions (sign / finalize / pay / break up).
 - Never reveal you're an AI / model / counselor system.`
 
 function utcDateKey(d: Date): string {
@@ -179,10 +184,23 @@ export async function POST(req: NextRequest) {
         },
         queryDate: new Date(),
       })
-      contextText = serializeBirthSnapshot(saju, astro, {
-        birthTimeUnknown,
-        birthCityUnknown,
-      })
+      // Compact table form — replaces the older pretty-JSON snapshot
+      // (PR #204 had made it compact-JSON, this PR makes it a real
+      // pipe-table same shape compat counselor uses). Same data,
+      // ~5× fewer chars.
+      const parts: string[] = ['[Birth Snapshot]']
+      if (birthTimeUnknown) parts.push('# 시간 미상 — 시주/일진/ASC/MC/하우스 인용 금지.')
+      if (birthCityUnknown) parts.push('# 출생지 미상 — 위치 의존 결론 금지.')
+      parts.push('')
+      parts.push(formatSajuAsTable(saju.saju, '나'))
+      const timingBlock = formatDestinyTiming(saju)
+      if (timingBlock) {
+        parts.push('')
+        parts.push(timingBlock)
+      }
+      parts.push('')
+      parts.push(formatDestinyAstro(astro))
+      contextText = parts.join('\n')
       // Cache for 1 day — transits change daily
       await cacheSet(ctxKey, contextText, CACHE_TTL.CALENDAR_DATA)
     } catch (err) {
