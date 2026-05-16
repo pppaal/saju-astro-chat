@@ -60,10 +60,10 @@ interface PillarLike {
 function pillarRow(label: string, p?: PillarLike): string {
   const hs = p?.heavenlyStem
   const eb = p?.earthlyBranch
-  // Pipes are intentional — they make the column boundaries obvious to
-  // the model even without true markdown tables, which Claude doesn't
-  // need to render visually anyway.
-  return `${label} | ${s(hs?.name)}${hs?.yin_yang ? `(${hs.yin_yang})` : ''} | ${s(eb?.name)}${eb?.yin_yang ? `(${eb.yin_yang})` : ''} | ${s(hs?.element)} | ${s(eb?.element)} | ${s(hs?.sibsin)} | ${s(eb?.sibsin)}`
+  // 60갑자 규칙상 천간 음이면 지지도 음, 천간 양이면 지지도 양 —
+  // 음양은 한 쌍씩 묶여 있어 천간 옆에만 한 번 적으면 둘 다 알 수 있다.
+  // 지지 음양 표기 제거 → 행마다 ~4자 절약 × 4행 × 2명 = ~30자.
+  return `${label} | ${s(hs?.name)}${hs?.yin_yang ? `(${hs.yin_yang})` : ''} | ${s(eb?.name)} | ${s(hs?.element)} | ${s(eb?.element)} | ${s(hs?.sibsin)} | ${s(eb?.sibsin)}`
 }
 
 function jijangganLine(label: string, p?: PillarLike): string | null {
@@ -182,44 +182,54 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
     lines.push(...jgLines)
   }
 
-  // 대운 — render prev / current / next around the active stage. The
-  // active stage gets a "←" marker so the model doesn't have to
-  // re-derive which one is "now" from age math.
+  // 대운 — prev / current / next (3 of 10). Static raw fields above
+  // are kept full; only the time-series windows around "now" get
+  // trimmed since 5-stage-out daeun almost never gets cited and
+  // every row costs ~20 chars.
   const daeun = saju.daeun
   if (daeun?.list && daeun.list.length > 0) {
     lines.push('')
     lines.push('[대운]')
     const currentAge = daeun.current?.age
-    daeun.list.forEach((d) => {
+    const idx = currentAge != null ? daeun.list.findIndex((d) => d.age === currentAge) : -1
+    const center = idx >= 0 ? idx : 0
+    const window = daeun.list.slice(Math.max(0, center - 1), Math.min(daeun.list.length, center + 2))
+    window.forEach((d) => {
       const isCurrent = currentAge != null && d.age === currentAge
       lines.push(daeunRow(d, isCurrent ? ' ← 현재' : ''))
     })
   }
 
-  // 세운 — typically 3 entries (last/this/next year) after prune.
+  // 세운 — last / this / next year (3 of 10).
   if (saju.yeonun && saju.yeonun.length > 0) {
     lines.push('')
     lines.push('[세운]')
     const nowYear = new Date().getFullYear()
-    saju.yeonun.forEach((y) => {
+    const idx = saju.yeonun.findIndex((y) => y.year === nowYear)
+    const center = idx >= 0 ? idx : 0
+    const window = saju.yeonun.slice(Math.max(0, center - 1), Math.min(saju.yeonun.length, center + 2))
+    window.forEach((y) => {
       lines.push(yeonunRow(y, y.year === nowYear ? ' ← 올해' : ''))
     })
   }
 
-  // 월운 — typically 3 entries (prev/this/next month).
+  // 월운 — prev / this / next month (3 of 12).
   if (saju.wolun && saju.wolun.length > 0) {
     lines.push('')
     lines.push('[월운]')
     const now = new Date()
     const nowYear = now.getFullYear()
     const nowMonth = now.getMonth() + 1
-    saju.wolun.forEach((m) => {
+    const idx = saju.wolun.findIndex((m) => m.year === nowYear && m.month === nowMonth)
+    const center = idx >= 0 ? idx : 0
+    const window = saju.wolun.slice(Math.max(0, center - 1), Math.min(saju.wolun.length, center + 2))
+    window.forEach((m) => {
       const isNow = m.year === nowYear && m.month === nowMonth
       lines.push(wolunRow(m, isNow ? ' ← 이번달' : ''))
     })
   }
 
-  // 일운 — typically 7 entries (today ±3).
+  // 일운 — today ±3 days (7 of 31).
   if (saju.iljin && saju.iljin.length > 0) {
     lines.push('')
     lines.push('[일운]')
@@ -227,7 +237,12 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
     const nowYear = now.getFullYear()
     const nowMonth = now.getMonth() + 1
     const nowDay = now.getDate()
-    saju.iljin.forEach((d) => {
+    const idx = saju.iljin.findIndex(
+      (d) => d.year === nowYear && d.month === nowMonth && d.day === nowDay,
+    )
+    const center = idx >= 0 ? idx : 0
+    const window = saju.iljin.slice(Math.max(0, center - 3), Math.min(saju.iljin.length, center + 4))
+    window.forEach((d) => {
       const isToday = d.year === nowYear && d.month === nowMonth && d.day === nowDay
       lines.push(iljinRow(d, isToday ? ' ← 오늘' : ''))
     })
@@ -252,11 +267,22 @@ interface PlanetLike {
   retrograde?: boolean
 }
 
+interface AspectLike {
+  from?: { name?: string }
+  to?: { name?: string }
+  type?: string
+  orb?: number
+  applying?: boolean
+  score?: number
+}
+
 interface AstroLike {
   natalData?: {
     planets?: PlanetLike[]
     ascendant?: { sign?: string; degree?: number }
     midheaven?: { sign?: string; degree?: number }
+    mc?: { sign?: string; degree?: number }
+    aspects?: AspectLike[]
   }
   sun?: { sign?: string }
   moon?: { sign?: string }
@@ -273,8 +299,10 @@ export function formatAstroAsTable(astro: AstroLike | null | undefined, label: s
   const natal = astro.natalData
   const asc = natal?.ascendant
   if (asc?.sign) lines.push(`Asc: ${asc.sign}${asc.degree != null ? ` ${asc.degree.toFixed(1)}°` : ''}`)
-  if (natal?.midheaven?.sign) {
-    const mc = natal.midheaven
+  // buildAutoAstroContext spells the midheaven as `mc`; older callers
+  // may use the long form. Accept either.
+  const mc = natal?.midheaven ?? natal?.mc
+  if (mc?.sign) {
     lines.push(`MC: ${mc.sign}${mc.degree != null ? ` ${mc.degree.toFixed(1)}°` : ''}`)
   }
 
@@ -286,6 +314,23 @@ export function formatAstroAsTable(astro: AstroLike | null | undefined, label: s
         `${s(p.name)} | ${s(p.sign)} | ${p.house ?? '?'} | ${p.degree != null ? p.degree.toFixed(1) : '?'}${p.retrograde ? ' R' : ''}`,
       )
     })
+  }
+
+  // Natal aspects — full set as findNatalAspects returns it (up to
+  // 80, ranked by score). User explicitly asked for raw astro intact,
+  // so no extra slicing on top of the upstream library cap.
+  const aspects = natal?.aspects
+  if (Array.isArray(aspects) && aspects.length > 0) {
+    const valid = aspects.filter((a) => a.from?.name && a.to?.name && a.type)
+    if (valid.length > 0) {
+      lines.push('')
+      lines.push('[Natal 어스펙트] from | type | to | orb')
+      valid.forEach((a) => {
+        lines.push(
+          `${s(a.from?.name)} | ${s(a.type)} | ${s(a.to?.name)} | ${a.orb != null ? a.orb.toFixed(1) + '°' : '?'}${a.applying ? ' →' : ''}`,
+        )
+      })
+    }
   }
 
   return lines.join('\n')

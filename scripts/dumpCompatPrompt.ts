@@ -225,15 +225,15 @@ async function main() {
     fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
   ].filter(Boolean).join('\n')
 
-  const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
+  void buildEvidenceGroundingGuide
   const historyText = ''
+  const timingBlock = formatTimingForPrompt(
+    timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> },
+    { person1: eff1Astro as Record<string, unknown> | null, person2: eff2Astro as Record<string, unknown> | null },
+    normalizedLang,
+  )
   const userPrompt = [
-    `${formatTimingForPrompt(
-      timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> },
-      { person1: eff1Astro as Record<string, unknown> | null, person2: eff2Astro as Record<string, unknown> | null },
-      normalizedLang,
-    )}`,
-    `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
+    timingBlock,
     historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
     `\n== 사용자 질문 ==\n${userQuestion}`,
   ].filter(Boolean).join('\n')

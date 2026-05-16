@@ -183,7 +183,9 @@ function serializeSaju(input: SajuNormalizerInput, hourUnknown = false): string 
 
   if (typeof ageYears === 'number') out.ageYears = ageYears
 
-  return JSON.stringify(out, null, 2)
+  // Compact JSON (no indentation). The model parses it identically and
+  // each newline + indent saved ~30% of the snapshot's char count.
+  return JSON.stringify(out)
 }
 
 function pillarSummary(pillars: SajuNormalizerInput['saju']['pillars'], hourUnknown = false) {
@@ -305,7 +307,8 @@ function serializeAstro(
     if (Object.keys(ex).length > 0) out.extras = ex
   }
 
-  return JSON.stringify(out, null, 2)
+  // Compact JSON — see serializeSaju for the same rationale.
+  return JSON.stringify(out)
 }
 
 function chartSummary(c: Chart, hourUnknown = false) {
