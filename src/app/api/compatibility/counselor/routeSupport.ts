@@ -1378,12 +1378,14 @@ function formatTimingForPrompt(
       const ct = sideAstro.currentTransits as Record<string, unknown> | undefined
       if (ct) {
         const asOf = ct.asOfIso ? String(ct.asOfIso).slice(0, 10) : ''
-        // Full transit list — user explicitly asked for raw astro
-        // intact, so we pass through what findMajorTransits /
-        // findTransitAspects already pre-limited upstream (40 major,
-        // 80 aspect, both orb-bounded).
-        const major = pickTopTransits(ct.majorTransits, 40)
-        const fallback = major.length > 0 ? major : pickTopTransits(ct.aspects, 80)
+        // Astro timing — trimmed to top 5 transits per side, same
+        // "around now" policy as 대운/세운/월운/일운 on the saju side.
+        // findMajorTransits already ranks slow-mover outer planets
+        // first (defining multi-month seasons) and ties on tight orb.
+        // The fallback to transit aspects covers the case where no
+        // major transit is in effect right now.
+        const major = pickTopTransits(ct.majorTransits, 5)
+        const fallback = major.length > 0 ? major : pickTopTransits(ct.aspects, 5)
         if (fallback.length > 0) {
           lines.push(
             `${isKo ? '점성 트랜짓' : 'astro transits'}${asOf ? ` (${asOf})` : ''}:`
