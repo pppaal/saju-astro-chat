@@ -612,6 +612,20 @@ export async function POST(req: NextRequest) {
           const label = i === 0 ? 'A' : i === 1 ? 'B' : `P${i + 1}`
           const name = p.name || ''
           const head = name ? `${label} (${name})` : label
+          // Show the current age inline. Without this the LLM has to
+          // derive "what age is this person now" from the birth year
+          // and the current date — and it kept getting confused
+          // between current age and the daeun stage start age (e.g.
+          // 32세 대운 시작 vs 만 35세 현재) in earlier production
+          // turns. Korean age = ageYears + 1 (one for the year of
+          // birth, conventional 만 vs 한국나이 offset).
+          const age = p.date ? getAgeFromBirthDate(p.date) : null
+          const ageNote =
+            age != null
+              ? normalizedLang === 'ko'
+                ? ` (만 ${age}세 / 한국 ${age + 1}세)`
+                : ` (age ${age})`
+              : ''
           // Person 1 is always the anchor — no relation suffix. For
           // everyone else, pipe through relationLabel so the LLM
           // sees "연인 / 배우자 / 가족 / 형제자매 / 친구 / 동료 / 기타"
@@ -622,7 +636,7 @@ export async function POST(req: NextRequest) {
             i > 0
               ? ` - ${relationLabel(normalizedLang, p.relation as Relation | undefined, p.relationNote)}`
               : ''
-          return `${head}: ${p.date} ${p.time}${rel}`
+          return `${head}: ${p.date} ${p.time}${ageNote}${rel}`
         }
       )
       .join('\n')

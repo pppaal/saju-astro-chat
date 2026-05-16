@@ -191,6 +191,13 @@ export async function POST(req: NextRequest) {
       const parts: string[] = ['[Birth Snapshot]']
       if (birthTimeUnknown) parts.push('# 시간 미상 — 시주/일진/ASC/MC/하우스 인용 금지.')
       if (birthCityUnknown) parts.push('# 출생지 미상 — 위치 의존 결론 금지.')
+      // Pin the current age so the LLM stops conflating "current age"
+      // with "daeun stage start age" (e.g. 32세 대운 시작 vs 만 35세
+      // 현재). SajuNormalizerInput carries ageYears already.
+      const ageYears = (saju as { ageYears?: number }).ageYears
+      if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
+        parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
+      }
       parts.push('')
       parts.push(formatSajuAsTable(saju.saju, '나'))
       const timingBlock = formatDestinyTiming(saju)
