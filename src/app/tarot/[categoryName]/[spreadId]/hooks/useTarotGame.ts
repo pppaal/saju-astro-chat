@@ -442,6 +442,13 @@ export function useTarotGame(): UseTarotGameReturn {
         }
         setInterpretation(basicInterpretation)
 
+        // Auto-reveal every card on entry. Previously revealedCards
+        // stayed empty so every card landed face-down with a "Click
+        // to reveal" prompt — the user had to click each one of the
+        // five (or twelve) before seeing any actual card art.
+        // HorizontalCardsGrid's animationDelay (index * 0.15s) still
+        // staggers the flip so the cascade feels intentional.
+        setRevealedCards(data.drawnCards.map((_: unknown, i: number) => i))
         setTimeout(() => {
           setGameState('results')
         }, 1000)

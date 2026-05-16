@@ -36,7 +36,12 @@ export const GET = withApiMiddleware(
 
     // Single query to get user's sessions, optionally scoped to one
     // service type (destiny / compat).
-    const sessions = await prisma.counselorChatSession.findMany({
+    //
+    // We fetch `messages` here just to derive a fallback title for
+    // sessions that predate the auto-titler (PR #193). The sidebar
+    // shouldn't render the entire conversation, so we strip `messages`
+    // before sending and only keep the derived 30-char title.
+    const rows = await prisma.counselorChatSession.findMany({
       where: {
         userId,
         ...(type ? { type } : {}),
@@ -51,10 +56,26 @@ export const GET = withApiMiddleware(
         messageCount: true,
         summary: true,
         keyTopics: true,
+        messages: true,
         createdAt: true,
         updatedAt: true,
         lastMessageAt: true,
       },
+    })
+
+    type ChatMsg = { role?: string; content?: string }
+    const sessions = rows.map((row) => {
+      const { messages, ...rest } = row
+      let title = rest.title
+      if (!title || !title.trim()) {
+        const msgs = Array.isArray(messages) ? (messages as ChatMsg[]) : []
+        const firstUser = msgs.find((m) => m && m.role === 'user')?.content
+        if (firstUser && typeof firstUser === 'string') {
+          const cleaned = firstUser.replace(/\s+/g, ' ').trim()
+          title = cleaned.length <= 30 ? cleaned : `${cleaned.slice(0, 29).trim()}…`
+        }
+      }
+      return { ...rest, title }
     })
 
     return NextResponse.json({ sessions })

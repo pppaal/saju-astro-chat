@@ -52,6 +52,7 @@ export function CircleAddModal({
   const [relation, setRelation] = useState<string>('friend')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [justSaved, setJustSaved] = useState(false)
 
   if (!open) return null
 
@@ -115,8 +116,19 @@ export function CircleAddModal({
       // Reset for next add
       setName('')
       setRelation('friend')
+      // Brief visual confirmation so the user sees the save took.
+      // Without this the modal disappears instantly and they wonder
+      // if anything happened — the list under it refreshes async.
+      setError(null)
+      setJustSaved(true)
       onAdded()
-      onClose()
+      // Hold the modal open with the success line for ~700ms, then
+      // close. onAdded already kicked off the list refresh in parallel.
+      setTimeout(() => {
+        setJustSaved(false)
+        onClose()
+      }, 700)
+      return
     } catch (err) {
       logger.warn('[profile/circle] add failed', err)
       const rawMsg = err instanceof Error ? err.message : String(err)
@@ -210,6 +222,11 @@ export function CircleAddModal({
           {error && (
             <p className="mt-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[12.5px] text-rose-200">
               {error}
+            </p>
+          )}
+          {justSaved && (
+            <p className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[12.5px] text-emerald-200">
+              {locale === 'ko' ? '저장되었어요.' : 'Saved.'}
             </p>
           )}
         </div>
