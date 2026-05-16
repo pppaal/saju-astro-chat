@@ -15,6 +15,7 @@ import { refundCredits } from '@/lib/credits/creditRefund'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
+import { pickTarotRules } from '@/lib/tarot/promptShared'
 import { buildQuestionContextPrompt } from '@/lib/tarot/questionFlow'
 import { recordCounter, recordTiming } from '@/lib/metrics'
 import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
@@ -633,30 +634,16 @@ ${cardExamples}
     return { schemaKo, schemaEn }
   }
 
-  // System 프롬프트 — 정적 (페르소나 + 4단계 메서드 + 출력 형식). 캐시 가능.
-  const systemPrompt = isKorean
-    ? `질문과 자리 의미를 근거로 카드를 해석한다. 카드 사전식 정의 복붙 X.
-
-규칙:
-- 사용자 질문이 중심. 자리 의미와 카드를 그 질문 안에서 연결.
-- 역방향 = 막힘/지연/내면화/미숙함/과잉 중 하나. 단순 "부정" X.
-- 사주/점성 컨텍스트가 있으면 카드 흐름과 한 흐름으로 통합 (시스템 분리 X).
-- 답변 무게 = 질문 무게.
-- 핵심 한 구절을 \`*별표*\` 로 강조 (카드당 1회, overall 1-2회).
-- AI/모델 정체 노출 금지.
-
-출력 JSON 스키마는 user prompt 에서 지정한다. 코드펜스/주석/머리말 절대 X.`
-    : `Interpret each card from the user's question and seat meanings. No textbook definitions.
-
-Rules:
-- The user's question is always the center. Cross seat × card inside that question.
-- Reversed = one of blockage / delay / internalization / immaturity / excess. Never just "negative".
-- If saju/astrology context is provided, weave it into the card flow (no system-split).
-- Answer weight matches question weight.
-- Wrap one key phrase per card in \`*asterisks*\` (1 per card, 1-2 in overall).
-- Never reveal you're an AI / model.
-
-Output JSON schema is supplied in the user prompt. No code fences, no preamble, no comments.`
+  // System prompt — shared rules + a one-line output-format reminder.
+  // The JSON schema itself ships in the user prompt because this route
+  // returns a different shape than interpret-stream
+  // (`{ overall_message, guidance, affirmation, card_insights[] }` vs
+  // `{ overall, cards[], advice }`) and the schema is chunk-dependent.
+  const systemPrompt =
+    pickTarotRules(isKorean ? 'ko' : 'en') +
+    (isKorean
+      ? '\n\n출력 JSON 스키마는 user prompt 에서 지정한다. 코드펜스/주석/머리말 절대 X.'
+      : '\n\nOutput JSON schema is supplied in the user prompt. No code fences, no preamble, no comments.')
 
   // chunk 별 user 프롬프트 빌더
   const buildChunkUserPrompt = (

@@ -17,6 +17,7 @@ import {
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { callClaude, isClaudeAvailable } from '@/lib/llm/claude'
+import { pickTarotFollowupRules } from '@/lib/tarot/promptShared'
 
 const followupCardSchema = z.object({
   position: z.string().max(120),
@@ -92,21 +93,7 @@ export const POST = withApiMiddleware(
         .map((t) => `[${t.role}] ${t.content}`)
         .join('\n')
 
-      const systemPrompt = isKo
-        ? `이미 펼친 카드 안에서 후속 질문에 답한다. 새 카드 X.
-
-규칙:
-- 3-6 문장 (200-360자), 마크다운/코드펜스 X.
-- 결말: 구체 행동 1개 + 시간 앵커.
-- 한 카드 질문이면 그 카드만, 흐름 질문이면 카드 간 관계.
-- AI/모델 정체 노출 금지.`
-        : `Answer the follow-up using only the cards already on the table. No new cards.
-
-Rules:
-- 3-6 sentences (120-200 words). No markdown / code fences.
-- Close with 1 concrete action + a time anchor.
-- One-card question → stay on it; flow question → address card relationships.
-- Never reveal you're an AI / model.`
+      const systemPrompt = pickTarotFollowupRules(isKo ? 'ko' : 'en')
 
       const userPrompt = isKo
         ? `# 원래 리딩
