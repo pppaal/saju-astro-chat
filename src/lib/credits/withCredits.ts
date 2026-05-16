@@ -31,6 +31,13 @@ interface CreditCheckResult {
     planName?: string
   }
   guestReadingAccess?: GuestReadingAccess
+  /**
+   * Which counter was actually debited. Equals the request `type` in
+   * the normal path; may downgrade to 'reading' when the dedicated
+   * compat/followUp monthly cap is full and we fall back to general
+   * credit. The refund path needs this to credit the right counter.
+   */
+  chargedAs?: CreditType
 }
 
 const GUEST_TAROT_USED_COOKIE = 'tarot_guest_reading_used'
@@ -172,6 +179,12 @@ export async function checkAndConsumeCredits(
     allowed: true,
     userId,
     remaining: canUse.remaining,
+    // chargedAs reflects which counter actually got debited: it will
+    // equal `type` for the normal case, but may downgrade to 'reading'
+    // when the monthly compat/followUp cap was exhausted and we fell
+    // back to general credit. Pass it on so the refund path can put
+    // the credit back on the right counter when the route fails.
+    chargedAs: consumeResult.chargedAs ?? type,
   }
 }
 
