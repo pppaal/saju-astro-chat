@@ -182,45 +182,54 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
     lines.push(...jgLines)
   }
 
-  // 대운 — full 10-stage life cycle. User explicitly asked for raw
-  // saju + raw astro both, so the table mirrors what calculateSajuData
-  // returns. The ← 현재 marker keeps the active stage easy to spot.
+  // 대운 — prev / current / next (3 of 10). Static raw fields above
+  // are kept full; only the time-series windows around "now" get
+  // trimmed since 5-stage-out daeun almost never gets cited and
+  // every row costs ~20 chars.
   const daeun = saju.daeun
   if (daeun?.list && daeun.list.length > 0) {
     lines.push('')
     lines.push('[대운]')
     const currentAge = daeun.current?.age
-    daeun.list.forEach((d) => {
+    const idx = currentAge != null ? daeun.list.findIndex((d) => d.age === currentAge) : -1
+    const center = idx >= 0 ? idx : 0
+    const window = daeun.list.slice(Math.max(0, center - 1), Math.min(daeun.list.length, center + 2))
+    window.forEach((d) => {
       const isCurrent = currentAge != null && d.age === currentAge
       lines.push(daeunRow(d, isCurrent ? ' ← 현재' : ''))
     })
   }
 
-  // 세운 — full 10-year forecast as the saju lib produces it.
+  // 세운 — last / this / next year (3 of 10).
   if (saju.yeonun && saju.yeonun.length > 0) {
     lines.push('')
     lines.push('[세운]')
     const nowYear = new Date().getFullYear()
-    saju.yeonun.forEach((y) => {
+    const idx = saju.yeonun.findIndex((y) => y.year === nowYear)
+    const center = idx >= 0 ? idx : 0
+    const window = saju.yeonun.slice(Math.max(0, center - 1), Math.min(saju.yeonun.length, center + 2))
+    window.forEach((y) => {
       lines.push(yeonunRow(y, y.year === nowYear ? ' ← 올해' : ''))
     })
   }
 
-  // 월운 — full 12-month arc.
+  // 월운 — prev / this / next month (3 of 12).
   if (saju.wolun && saju.wolun.length > 0) {
     lines.push('')
     lines.push('[월운]')
     const now = new Date()
     const nowYear = now.getFullYear()
     const nowMonth = now.getMonth() + 1
-    saju.wolun.forEach((m) => {
+    const idx = saju.wolun.findIndex((m) => m.year === nowYear && m.month === nowMonth)
+    const center = idx >= 0 ? idx : 0
+    const window = saju.wolun.slice(Math.max(0, center - 1), Math.min(saju.wolun.length, center + 2))
+    window.forEach((m) => {
       const isNow = m.year === nowYear && m.month === nowMonth
       lines.push(wolunRow(m, isNow ? ' ← 이번달' : ''))
     })
   }
 
-  // 일운 — full month (~31 days). buildAutoSajuContext output
-  // shipped as-is so the model has the complete daily almanac.
+  // 일운 — today ±3 days (7 of 31).
   if (saju.iljin && saju.iljin.length > 0) {
     lines.push('')
     lines.push('[일운]')
@@ -228,7 +237,12 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
     const nowYear = now.getFullYear()
     const nowMonth = now.getMonth() + 1
     const nowDay = now.getDate()
-    saju.iljin.forEach((d) => {
+    const idx = saju.iljin.findIndex(
+      (d) => d.year === nowYear && d.month === nowMonth && d.day === nowDay,
+    )
+    const center = idx >= 0 ? idx : 0
+    const window = saju.iljin.slice(Math.max(0, center - 3), Math.min(saju.iljin.length, center + 4))
+    window.forEach((d) => {
       const isToday = d.year === nowYear && d.month === nowMonth && d.day === nowDay
       lines.push(iljinRow(d, isToday ? ' ← 오늘' : ''))
     })
