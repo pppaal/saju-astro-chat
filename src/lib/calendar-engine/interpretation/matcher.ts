@@ -49,22 +49,56 @@ export function buildInterpretation(args: {
     })
   }
 
-  // 우선순위 desc 정렬 + section별 첫 매칭만 (중복 방지)
+  // 우선순위 desc 정렬 + domain별 묶음 (테마 5도메인은 다중 룰 허용)
   matched.sort((a, b) => b.rule.priority - a.rule.priority)
+
+  // domain별 picked — context/trigger는 section당 1개, 도메인은 최대 N개
   const usedSections = new Set<string>()
+  const domainPicks = new Map<string, typeof matched>()
   const picked: typeof matched = []
+
   for (const m of matched) {
-    if (usedSections.has(m.rule.section)) continue
-    picked.push(m)
-    usedSections.add(m.rule.section)
+    const domain = SECTION_TO_DOMAIN[m.rule.section]
+    if (domain && DOMAIN_TITLES[domain]) {
+      // 5 도메인 통합 — section 중복 막되 같은 도메인 안에서 여러 룰 허용
+      if (usedSections.has(m.rule.section)) continue
+      const list = domainPicks.get(domain) ?? []
+      if (list.length >= MAX_RULES_PER_DOMAIN) continue
+      list.push(m)
+      domainPicks.set(domain, list)
+      usedSections.add(m.rule.section)
+    } else {
+      // context (daeun/seun/wolun/natal) + trigger (transit/pattern/shinsal) — section당 1개
+      if (usedSections.has(m.rule.section)) continue
+      picked.push(m)
+      usedSections.add(m.rule.section)
+    }
   }
 
-  // section별 정렬 (UI 순서)
+  // 도메인 묶음을 단일 가상 entry로 합쳐 picked에 추가
+  for (const domain of DOMAIN_ORDER) {
+    const list = domainPicks.get(domain)
+    if (!list || list.length === 0) continue
+    const merged: typeof matched[number] = {
+      rule: {
+        ...list[0].rule,
+        id: `domain.${domain}`,
+        section: `domain-${domain}`,
+        priority: list[0].rule.priority,
+        template: mergeDomainTemplates(
+          list.map((m) => fillTemplate(m.rule.template, m.vars)),
+        ),
+      },
+      vars: list[0].vars,
+    }
+    picked.push(merged)
+  }
+
+  // section별 정렬 (UI 순서) — context → trigger → 5 domain
   const SECTION_ORDER = [
-    'daeun', 'seun', 'wolun',
-    'transit', 'pattern',
-    'theme-money', 'theme-career', 'theme-love', 'theme-health', 'theme-study',
-    'shinsal',
+    'daeun', 'seun', 'wolun', 'natal',
+    'transit', 'pattern', 'shinsal',
+    'domain-money', 'domain-work', 'domain-relations', 'domain-body', 'domain-expression',
   ]
   picked.sort((a, b) => {
     const ai = SECTION_ORDER.indexOf(a.rule.section)
@@ -72,7 +106,7 @@ export function buildInterpretation(args: {
     return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
   })
 
-  // 템플릿 채우기
+  // 템플릿 채우기 (도메인 entry는 이미 합쳐진 텍스트라 fillTemplate 한 번 더 통과해도 안전)
   const sections = picked.map((m) => ({
     section: m.rule.section,
     title: sectionTitle(m.rule.section),
@@ -211,15 +245,75 @@ function sectionTitle(section: string): string {
     daeun: '대운 흐름',
     seun: '올해의 운',
     wolun: '이번 달',
+    natal: '본명 컨텍스트',
     transit: '주요 트랜짓',
     pattern: '매칭 패턴',
-    'theme-money': '재물',
-    'theme-career': '직업',
-    'theme-love': '연애',
-    'theme-health': '건강',
-    'theme-study': '학업',
-    'theme-travel': '이동',
     shinsal: '신살',
+    // 5 도메인 통합 헤더
+    'domain-money': '돈·자산',
+    'domain-work': '일·커리어',
+    'domain-relations': '관계',
+    'domain-body': '몸·내면',
+    'domain-expression': '표현·창작',
   }
   return map[section] ?? section
+}
+
+// ────────────────────────────────────────────────────────────────────
+// 도메인 통합 — theme-* 룰 16종을 5도메인으로 묶어 narrative 풍부도 향상.
+// 같은 도메인 안에서 매칭된 룰들은 한 단락에 자연스럽게 합침.
+// ────────────────────────────────────────────────────────────────────
+const SECTION_TO_DOMAIN: Record<string, string> = {
+  // 일·커리어
+  'theme-career': 'work',
+  'theme-business': 'work',
+  'theme-reputation': 'work',
+  'theme-legal': 'work',
+  'theme-travel': 'work',     // 이직·이동도 일 흐름
+  // 관계
+  'theme-love': 'relations',
+  'theme-family': 'relations',
+  'theme-social': 'relations',
+  // 돈·자산
+  'theme-money': 'money',
+  // 몸·내면
+  'theme-health': 'body',
+  'theme-study': 'body',
+  'theme-spirituality': 'body',
+  // 표현·창작
+  'theme-creativity': 'expression',
+  'theme-children': 'expression',
+  'theme-karma': 'expression',
+}
+
+const DOMAIN_TITLES: Record<string, string> = {
+  money: '돈·자산',
+  work: '일·커리어',
+  relations: '관계',
+  body: '몸·내면',
+  expression: '표현·창작',
+}
+
+const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'expression']
+
+const MAX_RULES_PER_DOMAIN = 5
+
+/**
+ * 도메인 안 여러 룰 텍스트를 자연스럽게 한 단락으로.
+ * 첫 줄 = 메인 헤드라인, 뒤따르는 룰은 자연 연결사로 이어붙임.
+ * 룰 텍스트의 이모지 + 굵은 헤더는 제거하고 본문만 사용해 같은 톤 유지.
+ */
+const CONNECTORS = ['여기에', '한편', '추가로', '또한', '단,']
+
+function mergeDomainTemplates(texts: string[]): string {
+  if (texts.length === 0) return ''
+  const cleaned = texts.map((t) => t.trim()).filter(Boolean)
+  if (cleaned.length === 1) return cleaned[0]
+  const [head, ...rest] = cleaned
+  const tail = rest.map((t, i) => {
+    const stripped = t.replace(/^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u, '')
+    const connector = CONNECTORS[i % CONNECTORS.length]
+    return `\n${connector} ${stripped}`
+  })
+  return head + tail.join('')
 }
