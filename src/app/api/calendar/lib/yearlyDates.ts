@@ -2531,42 +2531,12 @@ export function calculateYearlyImportantDates(
       confidence: Math.round(clamp(primaryStrength * 100, 0, 100)),
       confidenceNote: locale === 'ko' ? '캘린더 스코어링 기준' : 'Calendar scoring baseline',
       crossAgreementPercent,
-      glossary: (() => {
-        // 본문에 등장한 한글 용어를 골라 풀이를 첨부 (KO/EN 둘 다 지원 — EN도 한글 용어가 본문에 박힐 수 있음)
-        const surface = [
-          dailyPack?.sibsin || '',
-          ...(dailyPack?.sinsals || []),
-          ...buildSajuFactors(locale, sajuProfile, primary.domain, month, dailyPack, `${seed}|s`),
-        ].join(' ')
-        const terms = pickGlossaryTerms(surface)
-        if (!terms.length) return undefined
-        const dict = locale === 'ko' ? GLOSSARY_KO : GLOSSARY_EN
-        const map: Record<string, string> = {}
-        for (const t of terms) map[t] = dict[t] || GLOSSARY_KO[t]
-        return map
-      })(),
       crossCheck: {
         line:
           locale === 'ko'
             ? buildCrossCheckLineKo(crossAgreementPercent)
             : buildCrossCheckLineEn(crossAgreementPercent),
         agreementPercent: crossAgreementPercent,
-      },
-      scoreBreakdown: {
-        engine: Math.round(engineSub),
-        matrix: Math.round(matrixSubAdj),
-        cycle: Math.round(cycleSub),
-        cross: Math.round(crossSub),
-        yongsin: Math.round(yongsinSub),
-        transit: Math.round(transitSub),
-        lunarRetro: Math.round(lunarRetroSub),
-        dailyShift: Math.round(dailyShift),
-        weakPenalty: 0,
-        peakBoost: 0,
-        finalScore: score,
-        sajuAxis: sajuAxisScore,
-        astroAxis: astroAxisScore,
-        axisAgreement,
       },
       longCycleContext: {
         daeun: findDaeunForDate(date) || undefined,
@@ -2588,26 +2558,6 @@ export function calculateYearlyImportantDates(
         wolwoonForPack(dailyPack),
         { ganji: `${dailyPillar.stem}${dailyPillar.branch}` }
       ),
-      cycleNarrative: summarizeCycleInteractions(
-        buildCycleInteractions(
-          sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || '',
-          findDaeunForDate(date),
-          sewoonForYear(date.getFullYear()),
-          wolwoonForPack(dailyPack),
-          { ganji: `${dailyPillar.stem}${dailyPillar.branch}` }
-        ) || []
-      ),
-      dayRuler: (() => {
-        const planet = getPlanetaryHourPlanet(date)
-        const theme = DAY_RULER_THEMES[planet]
-        if (!theme) return undefined
-        return {
-          planet,
-          planetKo: theme.planetKo,
-          themeKo: theme.themeKo,
-          themeEn: theme.themeEn,
-        }
-      })(),
     })
   }
 
