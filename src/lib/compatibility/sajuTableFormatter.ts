@@ -252,11 +252,22 @@ interface PlanetLike {
   retrograde?: boolean
 }
 
+interface AspectLike {
+  from?: { name?: string }
+  to?: { name?: string }
+  type?: string
+  orb?: number
+  applying?: boolean
+  score?: number
+}
+
 interface AstroLike {
   natalData?: {
     planets?: PlanetLike[]
     ascendant?: { sign?: string; degree?: number }
     midheaven?: { sign?: string; degree?: number }
+    mc?: { sign?: string; degree?: number }
+    aspects?: AspectLike[]
   }
   sun?: { sign?: string }
   moon?: { sign?: string }
@@ -273,8 +284,10 @@ export function formatAstroAsTable(astro: AstroLike | null | undefined, label: s
   const natal = astro.natalData
   const asc = natal?.ascendant
   if (asc?.sign) lines.push(`Asc: ${asc.sign}${asc.degree != null ? ` ${asc.degree.toFixed(1)}°` : ''}`)
-  if (natal?.midheaven?.sign) {
-    const mc = natal.midheaven
+  // buildAutoAstroContext spells the midheaven as `mc`; older callers
+  // may use the long form. Accept either.
+  const mc = natal?.midheaven ?? natal?.mc
+  if (mc?.sign) {
     lines.push(`MC: ${mc.sign}${mc.degree != null ? ` ${mc.degree.toFixed(1)}°` : ''}`)
   }
 
@@ -286,6 +299,30 @@ export function formatAstroAsTable(astro: AstroLike | null | undefined, label: s
         `${s(p.name)} | ${s(p.sign)} | ${p.house ?? '?'} | ${p.degree != null ? p.degree.toFixed(1) : '?'}${p.retrograde ? ' R' : ''}`,
       )
     })
+  }
+
+  // Natal aspects — the geometric relationships between the chart's
+  // planets (conjunction / sextile / square / trine / opposition + a
+  // handful of minor angles). Same role in astro as 합/충 plays in
+  // saju, so the model genuinely needs them. We keep the top 12 by
+  // tightest orb — findNatalAspects already returns up to 80 ranked
+  // by score, so 12 captures the strongest signals without bloating
+  // the prompt.
+  const aspects = natal?.aspects
+  if (Array.isArray(aspects) && aspects.length > 0) {
+    const top = [...aspects]
+      .filter((a) => a.from?.name && a.to?.name && a.type)
+      .sort((a, b) => (a.orb ?? 99) - (b.orb ?? 99))
+      .slice(0, 12)
+    if (top.length > 0) {
+      lines.push('')
+      lines.push('[Natal 어스펙트] from | type | to | orb')
+      top.forEach((a) => {
+        lines.push(
+          `${s(a.from?.name)} | ${s(a.type)} | ${s(a.to?.name)} | ${a.orb != null ? a.orb.toFixed(1) + '°' : '?'}${a.applying ? ' →' : ''}`,
+        )
+      })
+    }
   }
 
   return lines.join('\n')
