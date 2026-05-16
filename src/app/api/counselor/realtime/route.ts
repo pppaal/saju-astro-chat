@@ -11,7 +11,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { runFortuneWithRaw, serializeBirthSnapshot } from '@/lib/fortune/cross-rules'
+import { runFortuneWithRaw } from '@/lib/fortune/cross-rules'
+import {
+  formatSajuAsTable,
+  formatDestinyTiming,
+  formatDestinyAstro,
+} from '@/lib/compatibility/sajuTableFormatter'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -179,10 +184,23 @@ export async function POST(req: NextRequest) {
         },
         queryDate: new Date(),
       })
-      contextText = serializeBirthSnapshot(saju, astro, {
-        birthTimeUnknown,
-        birthCityUnknown,
-      })
+      // Compact table form — replaces the older pretty-JSON snapshot
+      // (PR #204 had made it compact-JSON, this PR makes it a real
+      // pipe-table same shape compat counselor uses). Same data,
+      // ~5× fewer chars.
+      const parts: string[] = ['[Birth Snapshot]']
+      if (birthTimeUnknown) parts.push('# 시간 미상 — 시주/일진/ASC/MC/하우스 인용 금지.')
+      if (birthCityUnknown) parts.push('# 출생지 미상 — 위치 의존 결론 금지.')
+      parts.push('')
+      parts.push(formatSajuAsTable(saju.saju, '나'))
+      const timingBlock = formatDestinyTiming(saju)
+      if (timingBlock) {
+        parts.push('')
+        parts.push(timingBlock)
+      }
+      parts.push('')
+      parts.push(formatDestinyAstro(astro))
+      contextText = parts.join('\n')
       // Cache for 1 day — transits change daily
       await cacheSet(ctxKey, contextText, CACHE_TTL.CALENDAR_DATA)
     } catch (err) {
