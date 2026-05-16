@@ -6099,16 +6099,27 @@
    ==================================== */
 
 /* Override the legacy .container padding/gap for the home route so the
-   page fits in one mobile viewport (100dvh) without scrolling. */
+   page fits in one mobile viewport without scrolling on most phones.
+   Height fallback chain: vh (universal) → svh (small viewport, no URL
+   bar surprises) → dvh (dynamic, modern). Safe-area insets keep notch
+   and home-indicator hardware from clipping the topbar/chat bar. */
 .homeContainer {
   position: fixed;
   inset: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100vh;
+  height: 100svh;
   height: 100dvh;
+  max-height: 100vh;
+  max-height: 100svh;
   max-height: 100dvh;
   padding: 0;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   gap: 0;
   overflow: hidden;
   overscroll-behavior: none;
@@ -6116,7 +6127,7 @@
 }
 
 .homeBody {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -6129,8 +6140,8 @@
   width: 100%;
   max-width: 560px;
   margin: 0 auto;
-  padding: 4.5rem 1.25rem 0;
-  gap: 1.25rem;
+  padding: 3.5rem 1.25rem 0;
+  gap: 1.1rem;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -6140,6 +6151,161 @@
     max-width: 600px;
     padding-top: 5rem;
     gap: 1.75rem;
+  }
+}
+
+/* Short viewports (most phones with browser chrome, foldables outer
+   screen, iPhone SE etc.): trim vertical spacing so hero + chips +
+   chat bar all stay visible without clipping. */
+@media (max-height: 740px) {
+  .homeBody {
+    padding-top: 2.75rem;
+    gap: 0.85rem;
+  }
+
+  .homeHero {
+    gap: 0.55rem;
+    margin-top: 0.1rem;
+  }
+
+  .homeOrnament {
+    width: 56px;
+    height: 63px;
+  }
+
+  .homeHeadline {
+    font-size: clamp(1.2rem, 4.6vw, 1.55rem);
+    line-height: 1.2;
+  }
+
+  .homeSubline {
+    font-size: 0.84rem;
+  }
+
+  .homeChatBar {
+    padding-bottom: 0.85rem;
+  }
+
+  .homeChatBarInner {
+    padding: 0.55rem 0.7rem;
+  }
+
+  .homeChatTextarea {
+    min-height: 40px;
+  }
+}
+
+/* Very short viewports — small phones, landscape, in-app browsers
+   with large bottom UI. Release the no-scroll lock so the user can
+   reach the chat bar instead of having it permanently clipped. */
+@media (max-height: 620px) {
+  .homeContainer {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+    touch-action: auto;
+  }
+
+  .homeBody {
+    overflow: visible;
+    padding-top: 1.5rem;
+    padding-bottom: 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .homeOrnament {
+    width: 48px;
+    height: 54px;
+  }
+
+  .homeHeadline {
+    font-size: clamp(1.1rem, 4.4vw, 1.35rem);
+  }
+
+  .homeChatBar {
+    margin-top: 0.75rem;
+    padding-bottom: 1rem;
+  }
+}
+
+/* Landscape phones — text-heavy hero squeezes the chat bar off-screen
+   otherwise. Force a scrollable layout and tighten the hero. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .homeContainer {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+    touch-action: auto;
+  }
+
+  .homeBody {
+    overflow: visible;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    gap: 0.6rem;
+  }
+
+  .homeHero {
+    margin-top: 0;
+    gap: 0.4rem;
+  }
+
+  .homeOrnament {
+    width: 44px;
+    height: 50px;
+  }
+
+  .homeHeadline {
+    font-size: 1.15rem;
+  }
+
+  .homeSubline {
+    font-size: 0.8rem;
+  }
+}
+
+/* Extra-small width phones (e.g. Galaxy Fold outer screen ~280px,
+   older 320px devices). Tighter horizontal padding so chips don't
+   wrap to four rows and push the chat bar off-screen. */
+@media (max-width: 360px) {
+  .homeBody {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+    gap: 0.8rem;
+  }
+
+  .homeHeadline {
+    font-size: 1.15rem;
+  }
+
+  .homeSubline {
+    font-size: 0.8rem;
+  }
+
+  .homeChips {
+    gap: 0.35rem;
+  }
+
+  .homeChip {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.76rem;
+  }
+
+  .homeChatBarInner {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .homeChatToolBtn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.74rem;
   }
 }
 
@@ -6316,7 +6482,7 @@
      while hero + chips stay clustered at the top — one clean whitespace
      gap between them instead of three evenly-spread blocks. */
   margin: auto auto 0;
-  padding: 0 0.25rem 1.25rem;
+  padding: 0 0.25rem max(1.25rem, env(safe-area-inset-bottom));
   flex: 0 0 auto;
 }
 
@@ -6669,6 +6835,13 @@
   padding: 0.85rem 1rem;
   position: relative;
   z-index: 5;
+  flex: 0 0 auto;
+}
+
+@media (max-height: 740px) {
+  .homeTopBar {
+    padding: 0.5rem 1rem;
+  }
 }
 
 .homeTopBarHamburger {
