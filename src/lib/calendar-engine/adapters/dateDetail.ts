@@ -1,0 +1,392 @@
+/**
+ * date-detail adapter — v2 캘린더 엔진 출력을 캘린더 UI / 타로 LLM 컨텍스트가
+ * 기대하는 응답 형태로 변환.
+ *
+ * 옛 date-detail 라우트는 timing/·fusion adapter·analyzers 거대 체인을 거쳤지만,
+ * 클라이언트가 진짜 쓰는 필드는 한정적이라 v2 NatalContext + CalendarCell 다발에서
+ * 모두 derive 가능. 이 모듈이 그 변환을 책임진다.
+ */
+import type { CalendarCell, ActiveSignal } from '../types'
+import type { NatalContext } from '../context/types'
+import { getGongmang } from '@/lib/saju/pillarLookup'
+
+const ZH_TO_KO_BRANCH: Record<string, string> = {
+  子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사',
+  午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
+}
+const KO_TO_ZH_BRANCH: Record<string, string> = Object.fromEntries(
+  Object.entries(ZH_TO_KO_BRANCH).map(([z, k]) => [k, z]),
+)
+
+export interface V2DateDetailResponse {
+  date: string
+  fusion: {
+    overallScore: number
+    domainScores: Record<string, number>
+    domainCross: Array<{
+      theme: string
+      sajuScore: number
+      astroScore: number
+      sajuSummary: string
+      astroSummary: string
+    }>
+    hourly: {
+      bestHours: Array<{
+        hour: number
+        score: number
+        topDomain: string | null
+        hourPillar?: string
+        planetaryHour?: string
+      }>
+      worstHours: Array<{
+        hour: number
+        score: number
+        topDomain: string | null
+        hourPillar?: string
+        planetaryHour?: string
+      }>
+    }
+    advice: { do: string[]; avoid: string[] }
+    confidence: number
+    agreement: number
+  }
+  transit: {
+    aspects: Array<{
+      transitPlanet: string
+      natalPoint: string
+      aspect: string
+      orb: number
+      isApplying: boolean
+    }>
+  }
+  natalContext: {
+    yongsin: { primary: string }
+    strength: string
+  }
+  currentDaeun?: {
+    label: string
+    sibsinCheon?: string
+    sibsinJi?: string
+  }
+  natalAngles: Record<string, { sign?: string; formatted?: string } | undefined>
+  sajuExtras: {
+    tenGodCounts: Record<string, number>
+    fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number }
+  }
+  shinsalActive: Array<{ name: string; type: string; affectedArea: string }>
+  gongmangStatus: { isAffected: boolean; areas: string[] }
+}
+
+export interface BuildDateDetailInput {
+  natal: NatalContext
+  dayCell: CalendarCell
+  hourlyCells: CalendarCell[]
+  date: string
+  birthYear: number
+}
+
+export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDetailResponse {
+  const { natal, dayCell, hourlyCells, date, birthYear } = input
+
+  return {
+    date,
+    fusion: buildFusion(dayCell, hourlyCells),
+    transit: buildTransit(dayCell),
+    natalContext: {
+      yongsin: { primary: natal.saju.yongsin.primary },
+      strength: natal.saju.strength,
+    },
+    currentDaeun: buildCurrentDaeun(natal, date, birthYear),
+    natalAngles: buildNatalAngles(natal),
+    sajuExtras: buildSajuExtras(natal),
+    shinsalActive: buildShinsalActive(dayCell),
+    gongmangStatus: buildGongmangStatus(natal, dayCell),
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// fusion — overall + domain × saju/astro 축 분리 + hourly + advice
+// ──────────────────────────────────────────────────────────────────────
+
+function buildFusion(dayCell: CalendarCell, hourlyCells: CalendarCell[]): V2DateDetailResponse['fusion'] {
+  const overallScore = Math.round(dayCell.derivedScore)
+  const domainScores: Record<string, number> = {}
+  for (const [theme, score] of Object.entries(dayCell.themeScores)) {
+    if (typeof score === 'number') domainScores[mapThemeToLegacy(theme)] = Math.round(score)
+  }
+
+  // domainCross — 각 테마별 saju 축 vs astro 축 신호 강도 + 텍스트 요약
+  const domainCross: V2DateDetailResponse['fusion']['domainCross'] = []
+  const themesInPlay = Object.keys(dayCell.themeScores)
+  for (const theme of themesInPlay) {
+    const sajuSigs = dayCell.signals.filter((s) => s.source === 'saju' && s.themes.includes(theme as never))
+    const astroSigs = dayCell.signals.filter((s) => s.source === 'astro' && s.themes.includes(theme as never))
+    domainCross.push({
+      theme: mapThemeToLegacy(theme),
+      sajuScore: scoreFromSignals(sajuSigs),
+      astroScore: scoreFromSignals(astroSigs),
+      sajuSummary: summarizeSignals(sajuSigs) || '사주 신호 없음',
+      astroSummary: summarizeSignals(astroSigs) || '점성 신호 없음',
+    })
+  }
+
+  // hourly — 24h cells에서 best/worst 추출
+  const bestHours = hourlyCells
+    .map((c) => ({
+      hour: new Date(c.datetime).getUTCHours(),
+      score: Math.round(c.derivedScore),
+      topDomain: topThemeOfCell(c),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+  const worstHours = [...hourlyCells]
+    .map((c) => ({
+      hour: new Date(c.datetime).getUTCHours(),
+      score: Math.round(c.derivedScore),
+      topDomain: topThemeOfCell(c),
+    }))
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 2)
+
+  // advice — matchedPatterns의 headline/action에서 do/avoid 추출
+  const doList: string[] = []
+  const avoidList: string[] = []
+  for (const p of dayCell.matchedPatterns) {
+    const text = p.action ?? p.headline ?? p.name
+    if (!text) continue
+    if (p.themes.some((t) => /shadow|fatigue|risk/i.test(t))) {
+      avoidList.push(text)
+    } else {
+      doList.push(text)
+    }
+  }
+  if (doList.length === 0 && dayCell.topReasons.length > 0) {
+    doList.push(...dayCell.topReasons.slice(0, 2))
+  }
+
+  // confidence / agreement
+  // confidence = 활성 신호 개수 기반 (많을수록 신뢰도 높음)
+  const confidence = Math.min(100, Math.round((dayCell.signals.length / 20) * 100))
+  // agreement = saju vs astro 점수 차이 역수
+  const sajuAvg = avgPolarity(dayCell.signals.filter((s) => s.source === 'saju'))
+  const astroAvg = avgPolarity(dayCell.signals.filter((s) => s.source === 'astro'))
+  const diff = Math.abs(sajuAvg - astroAvg)
+  const agreement = Math.max(0, Math.round(100 - diff * 25))
+
+  return {
+    overallScore,
+    domainScores,
+    domainCross,
+    hourly: { bestHours, worstHours },
+    advice: { do: doList.slice(0, 3), avoid: avoidList.slice(0, 3) },
+    confidence,
+    agreement,
+  }
+}
+
+function scoreFromSignals(sigs: ActiveSignal[]): number {
+  if (sigs.length === 0) return 50
+  const sum = sigs.reduce((acc, s) => acc + s.polarity * s.weight, 0)
+  return Math.max(0, Math.min(100, Math.round(50 + sum * 8)))
+}
+
+function summarizeSignals(sigs: ActiveSignal[]): string {
+  if (sigs.length === 0) return ''
+  const top = [...sigs].sort((a, b) => Math.abs(b.polarity) * b.weight - Math.abs(a.polarity) * a.weight)[0]
+  return top.korean || top.name
+}
+
+function topThemeOfCell(cell: CalendarCell): string | null {
+  const entries = Object.entries(cell.themeScores)
+  if (entries.length === 0) return null
+  entries.sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))
+  return mapThemeToLegacy(entries[0][0])
+}
+
+function avgPolarity(sigs: ActiveSignal[]): number {
+  if (sigs.length === 0) return 0
+  return sigs.reduce((acc, s) => acc + s.polarity * s.weight, 0) / sigs.length
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// transit — astro 신호에서 aspect 추출
+// ──────────────────────────────────────────────────────────────────────
+
+function buildTransit(dayCell: CalendarCell): V2DateDetailResponse['transit'] {
+  const aspects: V2DateDetailResponse['transit']['aspects'] = []
+  for (const s of dayCell.signals) {
+    if (s.source !== 'astro' || s.kind !== 'transit') continue
+    const d = s.evidence.detail as Record<string, unknown>
+    aspects.push({
+      transitPlanet: String(d.transitPlanet ?? d.planet ?? ''),
+      natalPoint: String(d.natalPoint ?? d.target ?? ''),
+      aspect: String(d.aspect ?? d.type ?? ''),
+      orb: typeof d.orb === 'number' ? d.orb : 0,
+      isApplying: Boolean(d.isApplying ?? false),
+    })
+  }
+  return { aspects }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// natalAngles — 본명 차트에서 행성/하우스 sign 추출
+// ──────────────────────────────────────────────────────────────────────
+
+function buildNatalAngles(natal: NatalContext): V2DateDetailResponse['natalAngles'] {
+  const chart = natal.astro.chart
+  const angles: V2DateDetailResponse['natalAngles'] = {}
+  const findPlanet = (name: string) => chart.planets?.find((p) => p.name === name)
+  const pick = (p?: { sign?: string; degree?: number }) => {
+    if (!p?.sign) return undefined
+    return {
+      sign: p.sign,
+      formatted: p.degree != null ? `${p.sign} ${Math.floor(p.degree)}°` : p.sign,
+    }
+  }
+  angles.sun = pick(findPlanet('Sun'))
+  angles.moon = pick(findPlanet('Moon'))
+  angles.ascendant = chart.ascendant?.sign
+    ? { sign: chart.ascendant.sign, formatted: chart.ascendant.sign }
+    : undefined
+  angles.mercury = pick(findPlanet('Mercury'))
+  angles.venus = pick(findPlanet('Venus'))
+  angles.mars = pick(findPlanet('Mars'))
+  angles.jupiter = pick(findPlanet('Jupiter'))
+  angles.saturn = pick(findPlanet('Saturn'))
+  angles.neptune = pick(findPlanet('Neptune'))
+  angles.northNode = pick(findPlanet('North Node') ?? findPlanet('NorthNode'))
+  angles.mc = chart.mc?.sign ? { sign: chart.mc.sign, formatted: chart.mc.sign } : undefined
+  const houseBy = (n: number) => {
+    const h = chart.houses?.[n - 1]
+    return h?.sign ? { sign: h.sign } : undefined
+  }
+  angles.house2 = houseBy(2)
+  angles.house6 = houseBy(6)
+  angles.house7 = houseBy(7)
+  angles.house9 = houseBy(9)
+  angles.house10 = houseBy(10)
+  return angles
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// sajuExtras — 십신 분포 + 오행 분포 (4기둥)
+// ──────────────────────────────────────────────────────────────────────
+
+function buildSajuExtras(natal: NatalContext): V2DateDetailResponse['sajuExtras'] {
+  const tenGodCounts: Record<string, number> = {}
+  const fiveElements: Record<string, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
+  const pillars = natal.saju.pillars
+  for (const p of [pillars.year, pillars.month, pillars.day, pillars.time]) {
+    const stemSibsin = typeof p.heavenlyStem.sibsin === 'string' ? p.heavenlyStem.sibsin : String(p.heavenlyStem.sibsin)
+    const branchSibsin = typeof p.earthlyBranch.sibsin === 'string' ? p.earthlyBranch.sibsin : String(p.earthlyBranch.sibsin)
+    if (stemSibsin) tenGodCounts[stemSibsin] = (tenGodCounts[stemSibsin] || 0) + 1
+    if (branchSibsin) tenGodCounts[branchSibsin] = (tenGodCounts[branchSibsin] || 0) + 1
+    fiveElements[p.heavenlyStem.element] = (fiveElements[p.heavenlyStem.element] || 0) + 1
+    fiveElements[p.earthlyBranch.element] = (fiveElements[p.earthlyBranch.element] || 0) + 1
+  }
+  return {
+    tenGodCounts,
+    fiveElements: {
+      wood: fiveElements.wood,
+      fire: fiveElements.fire,
+      earth: fiveElements.earth,
+      metal: fiveElements.metal,
+      water: fiveElements.water,
+    },
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// currentDaeun — 현재 나이로 매칭
+// ──────────────────────────────────────────────────────────────────────
+
+function buildCurrentDaeun(natal: NatalContext, date: string, birthYear: number): V2DateDetailResponse['currentDaeun'] {
+  const year = parseInt(date.slice(0, 4), 10)
+  const age = year - birthYear
+  const list = natal.saju.daeun
+  if (!list || list.length === 0) return undefined
+  let current = list[0]
+  for (const d of list) {
+    if (d.startAge <= age) current = d
+    else break
+  }
+  return {
+    label: `${current.stem}${current.branch}`,
+    sibsinCheon: undefined, // 대운 sibsin은 v2 NatalContext에 없음 (옛 응답 호환용 빈 필드)
+    sibsinJi: undefined,
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// shinsalActive — 그 날 발동된 신살
+// ──────────────────────────────────────────────────────────────────────
+
+function buildShinsalActive(dayCell: CalendarCell): V2DateDetailResponse['shinsalActive'] {
+  const result: V2DateDetailResponse['shinsalActive'] = []
+  for (const s of dayCell.signals) {
+    if (s.source !== 'saju' || s.kind !== 'shinsal') continue
+    const d = s.evidence.detail as Record<string, unknown>
+    const name = (d.shinsalName as string) || s.name || ''
+    if (!name) continue
+    result.push({
+      name,
+      type: (d.type as string) || '길신',
+      affectedArea: (d.affectedArea as string) || '',
+    })
+  }
+  return result
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// gongmangStatus — 본명 일주 기반 공망 지지가 그 날 시지/일지에 걸리는지
+// ──────────────────────────────────────────────────────────────────────
+
+function buildGongmangStatus(natal: NatalContext, dayCell: CalendarCell): V2DateDetailResponse['gongmangStatus'] {
+  const dayStem = natal.saju.pillars.day.heavenlyStem.name
+  const dayBranch = natal.saju.pillars.day.earthlyBranch.name
+  const dayPillar = (KO_TO_ZH_BRANCH[dayStem] ?? dayStem) + (KO_TO_ZH_BRANCH[dayBranch] ?? dayBranch)
+  const gongmang = getGongmang(dayPillar) ?? []
+  if (gongmang.length === 0) return { isAffected: false, areas: [] }
+  const koGongmang = gongmang.map((b) => ZH_TO_KO_BRANCH[b] ?? b)
+
+  // 그 날의 일지가 공망 지지에 걸리면 활성
+  const todaySignals = dayCell.signals.filter((s) => s.source === 'saju' && s.layer === 'daily')
+  const todayBranchHit = todaySignals.some((s) => {
+    const d = s.evidence.detail as Record<string, unknown>
+    const branch = d.targetBranch as string | undefined
+    return branch && koGongmang.includes(branch)
+  })
+  return {
+    isAffected: todayBranchHit,
+    areas: todayBranchHit ? koGongmang : [],
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// theme 키 정규화 — v2 internal key ↔ 옛 응답 형식
+// ──────────────────────────────────────────────────────────────────────
+
+const THEME_LEGACY_MAP: Record<string, string> = {
+  money: '재물',
+  wealth: '재물',
+  love: '연애',
+  romance: '연애',
+  career: '직업',
+  work: '직업',
+  health: '건강',
+  study: '학업',
+  fame: '명예',
+  travel: '이동',
+  family: '가족',
+  spirituality: '영성',
+  legal: '법무',
+  creativity: '창작',
+  children: '자녀',
+  social: '인맥',
+  karma: '카르마',
+  reputation: '평판',
+}
+
+function mapThemeToLegacy(theme: string): string {
+  return THEME_LEGACY_MAP[theme] ?? theme
+}
