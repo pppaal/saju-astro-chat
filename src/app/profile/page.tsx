@@ -239,20 +239,31 @@ function purchaseSourceLabel(source: string, locale: Locale): string {
 }
 
 function relationLabel(r: string, locale: Locale): string {
+  // Keep in sync with CircleAddModal options + compatibility Relation
+  // union. 'partner' stays in the map for backward compatibility with
+  // rows saved before we standardized on 'lover'.
   if (locale === 'en') {
     const m: Record<string, string> = {
+      lover: 'Lover',
+      spouse: 'Spouse',
       family: 'Family',
+      sibling: 'Sibling',
       friend: 'Friend',
-      partner: 'Partner',
       colleague: 'Colleague',
+      other: 'Other',
+      partner: 'Lover',
     }
     return m[r] ?? r
   }
   const m: Record<string, string> = {
+    lover: '연인',
+    spouse: '배우자',
     family: '가족',
+    sibling: '형제자매',
     friend: '친구',
-    partner: '연인',
     colleague: '동료',
+    other: '기타',
+    partner: '연인',
   }
   return m[r] ?? r
 }
