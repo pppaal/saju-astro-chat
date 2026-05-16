@@ -25,6 +25,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      // The two specs below are viewport- or media-feature-specific and
+      // only make sense under their own projects (mobile-visibility,
+      // reduced-motion). Exclude them from the default desktop run.
+      testIgnore: [/mobile-visibility\.spec\.ts/, /reduced-motion\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
@@ -36,6 +40,22 @@ export default defineConfig({
           ],
         },
       },
+    },
+    // Small-phone viewport — catches "chat bar / hero clipped off-screen"
+    // bugs that don't reproduce on a desktop window. iPhone SE (375x667)
+    // is the smallest mainstream iOS device still in heavy use.
+    {
+      name: 'mobile-visibility',
+      use: { ...devices['iPhone SE'] },
+      testMatch: /mobile-visibility\.spec\.ts/,
+    },
+    // prefers-reduced-motion: reduce — iOS Accessibility setting + Low
+    // Power Mode trigger this. Catches cards/elements that start at
+    // opacity:0 + rely on an animation to land in their visible state.
+    {
+      name: 'reduced-motion',
+      use: { ...devices['iPhone 13'], reducedMotion: 'reduce' },
+      testMatch: /reduced-motion\.spec\.ts/,
     },
   ],
   webServer: {
