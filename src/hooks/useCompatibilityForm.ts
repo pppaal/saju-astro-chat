@@ -77,12 +77,17 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
       setPersons((prev) => {
         const next = [...prev]
         const mapRelation = (rel: string): Relation => {
-          if (rel === 'partner') {
-            return 'lover'
-          }
-          if (rel === 'friend') {
-            return 'friend'
-          }
+          // Circle ("내 지인") uses a slightly different vocabulary —
+          // most notably 'partner' for what the compat form calls
+          // 'lover'. Map known synonyms straight through; anything
+          // unfamiliar falls back to 'other' so the freeform
+          // relationNote can still carry the detail.
+          if (rel === 'partner' || rel === 'lover') return 'lover'
+          if (rel === 'spouse') return 'spouse'
+          if (rel === 'family') return 'family'
+          if (rel === 'sibling') return 'sibling'
+          if (rel === 'friend') return 'friend'
+          if (rel === 'colleague') return 'colleague'
           return 'other'
         }
         next[personIdx] = {

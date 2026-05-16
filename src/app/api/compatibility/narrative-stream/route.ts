@@ -579,7 +579,20 @@ async function buildExtendedBlocks(persons: NarrativePerson[]): Promise<{
   )
 
   // Astro bundles
-  const VALID_RELATIONS = ['lover', 'friend', 'other'] as const
+  // Keep in sync with src/app/compatibility/lib/types.ts Relation +
+  // src/app/api/compatibility/types.ts Relation. Adding a value to the
+  // form picker without listing it here makes narrative-stream silently
+  // drop it back to undefined and the free report loses the relation
+  // context the user explicitly provided.
+  const VALID_RELATIONS = [
+    'lover',
+    'spouse',
+    'family',
+    'sibling',
+    'friend',
+    'colleague',
+    'other',
+  ] as const
   const personInputBase = (p: NarrativePerson) => ({
     name: p.name || 'Person',
     date: p.date,
