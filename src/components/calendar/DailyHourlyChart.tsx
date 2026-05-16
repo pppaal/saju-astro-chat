@@ -73,32 +73,36 @@ export default function DailyHourlyChart({ importantDate }: Props) {
   // 빈 시간(둘 다 50 — 중립)이 많으면 차트 약함 — 일단 표시
   return (
     <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-      <h3 className="text-sm font-bold text-zinc-300 mb-4 flex items-center gap-2 tracking-wider uppercase">
-        <Clock className="w-4 h-4 text-cyan-400" />
-        시간대 교차 (24h)
+      <h3 className="text-base font-bold text-zinc-200 mb-3 flex items-center gap-2 tracking-wider uppercase">
+        <Clock className="w-5 h-5 text-cyan-400" />
+        시간대 흐름 (24시간)
       </h3>
-      <ResponsiveContainer width="100%" height={180}>
-        <LineChart data={hourly} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+      <p className="text-xs text-zinc-500 mb-3">하루 중 어느 시간에 운이 오는지 — 50점이 기준선</p>
+      <ResponsiveContainer width="100%" height={240}>
+        <LineChart data={hourly} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
           <XAxis
             dataKey="hour"
-            stroke="#71717a"
-            fontSize={10}
+            stroke="#a1a1aa"
+            fontSize={12}
+            fontWeight={600}
             interval={2}
           />
-          <YAxis domain={[0, 100]} stroke="#71717a" fontSize={11} />
+          <YAxis domain={[0, 100]} stroke="#a1a1aa" fontSize={12} />
           <Tooltip
             contentStyle={{
               background: '#09090b',
               border: '1px solid #3f3f46',
               borderRadius: '0.5rem',
-              fontSize: '12px',
+              fontSize: '13px',
+              padding: '8px 12px',
             }}
-            labelStyle={{ color: '#a1a1aa' }}
+            labelStyle={{ color: '#e4e4e7', fontWeight: 700 }}
+            itemStyle={{ padding: '2px 0' }}
           />
           <Legend
-            iconSize={8}
-            wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }}
+            iconSize={12}
+            wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingTop: '12px' }}
           />
           <ReferenceLine y={50} stroke="#52525b" strokeDasharray="3 3" />
           <Line
@@ -106,18 +110,18 @@ export default function DailyHourlyChart({ importantDate }: Props) {
             dataKey="saju"
             name="사주"
             stroke="#f59e0b"
-            strokeWidth={2.5}
-            dot={{ r: 2.5, fill: '#f59e0b' }}
-            activeDot={{ r: 5 }}
+            strokeWidth={3}
+            dot={{ r: 3.5, fill: '#f59e0b', strokeWidth: 0 }}
+            activeDot={{ r: 6 }}
           />
           <Line
             type="monotone"
             dataKey="astro"
             name="점성"
             stroke="#22d3ee"
-            strokeWidth={2.5}
-            dot={{ r: 2.5, fill: '#22d3ee' }}
-            activeDot={{ r: 5 }}
+            strokeWidth={3}
+            dot={{ r: 3.5, fill: '#22d3ee', strokeWidth: 0 }}
+            activeDot={{ r: 6 }}
           />
         </LineChart>
       </ResponsiveContainer>
