@@ -137,18 +137,18 @@ const RULES: PatternRule[] = [
     },
   },
 
-  // ─── 4. 5층 정렬 (공명) — 드물지만 핵심 가치 ───
-  // 大運·歲運·月運·일진 4개 레이어 모두 동방향일 때 매칭.
-  // 1년에 1~2번 뜨는 게 정상 — 그게 진짜 강력한 시기.
+  // ─── 4. 5층 정렬 (공명) — 진짜 5층 (大運·歲運·月運·日辰·時辰) ───
+  // 명리 5층 모두 같은 방향 → 천시·지리·인화 다 맞는 시기.
+  // 시진까지 일치하니 더 드물지만 진짜 정렬 — 월 1~2회 매칭 예상.
   {
     id: 'five-layer-resonance',
     name: '5층 정렬',
     themes: [],
-    headline: '대운·세운·월운·일진 모두 정렬 — 진짜 강력한 시기',
-    description: '4개 레이어 평균 polarity 모두 동방향',
-    action: '평소 미뤄둔 큰 결정·시작·발의에 최적. 1년에 한두 번 오는 시기.',
+    headline: '5층 정렬 — 대운·세운·월운·일진·시진 모두 같은 방향',
+    description: '5개 시간축이 모두 동방향 — 천시·지리·인화 정렬',
+    action: '평생 한두 번 오는 결정의 순간. 큰 시작·계약·고백·새 챕터 개시에 최적.',
     match(signals) {
-      const layers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily']
+      const layers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily', 'hourly']
       const layerPolarities = new Map<SignalLayer, number[]>()
       for (const s of signals) {
         if (!layers.includes(s.layer)) continue
@@ -157,26 +157,34 @@ const RULES: PatternRule[] = [
         layerPolarities.set(s.layer, arr)
       }
       const layerAvgs: Record<string, number> = {}
+      let validLayers = 0
       for (const l of layers) {
         const arr = layerPolarities.get(l) ?? []
-        layerAvgs[l] = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
+        if (arr.length === 0) {
+          layerAvgs[l] = 0
+          continue
+        }
+        layerAvgs[l] = arr.reduce((a, b) => a + b, 0) / arr.length
+        validLayers++
       }
-      // 4 레이어 모두 같은 부호 (>0 또는 <0) + 평균 강도 ≥ 0.4
+      // 모든 5개 레이어 같은 부호 + 평균 강도 ≥ 0.4
+      // (hourly 신호가 없는 셀이면 매칭 안 됨 — 자연스러움)
+      if (validLayers < 5) return { matched: false, strength: 0, matchedIds: [] }
       const positiveLayers = layers.filter((l) => layerAvgs[l] > 0)
       const negativeLayers = layers.filter((l) => layerAvgs[l] < 0)
       const totalAvg =
-        Object.values(layerAvgs).reduce((a, b) => a + b, 0) / Object.keys(layerAvgs).length
-      const allPositive = positiveLayers.length === 4 && totalAvg >= 0.4
-      const allNegative = negativeLayers.length === 4 && totalAvg <= -0.4
+        Object.values(layerAvgs).reduce((a, b) => a + b, 0) / 5
+      const allPositive = positiveLayers.length === 5 && totalAvg >= 0.4
+      const allNegative = negativeLayers.length === 5 && totalAvg <= -0.4
       if (!allPositive && !allNegative) {
         return { matched: false, strength: 0, matchedIds: [] }
       }
-      const dominant = positiveLayers.length >= 4 ? 'positive' : 'negative'
+      const dominant = allPositive ? 'positive' : 'negative'
       const matched = signals.filter((s) =>
         layers.includes(s.layer) &&
         (dominant === 'positive' ? s.polarity >= 1 : s.polarity <= -1),
       )
-      return { matched: true, strength: 95, matchedIds: matched.map((s) => s.id) }
+      return { matched: true, strength: 98, matchedIds: matched.map((s) => s.id) }
     },
   },
 
