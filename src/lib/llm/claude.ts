@@ -368,7 +368,7 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
 /**
  * JSON 응답 보장형 호출. 응답에서 첫 번째 JSON 객체만 파싱해 반환.
  */
-export async function callClaudeJson<T = unknown>(
+async function callClaudeJson<T = unknown>(
   opts: CallClaudeOptions
 ): Promise<{ data: T | null; raw: string; usage: Omit<CallClaudeResult, 'text'> }> {
   const jsonInstruction =

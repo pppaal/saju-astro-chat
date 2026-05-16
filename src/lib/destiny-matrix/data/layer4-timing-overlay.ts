@@ -272,7 +272,7 @@ export const TRANSIT_CYCLE_INFO = {
 } as const;
 
 // 대운 주기 설명
-export const LUCK_CYCLE_INFO = {
+const LUCK_CYCLE_INFO = {
   daeun: {
     period: '10년',
     ko: '대운 - 10년 단위의 큰 운의 흐름',
@@ -332,7 +332,7 @@ export const RETROGRADE_SCHEDULE = {
 } as const;
 
 // 역행 효과 해석 가이드
-export const RETROGRADE_INTERPRETATION = {
+const RETROGRADE_INTERPRETATION = {
   mercuryRetrograde: {
     dos: [
       '과거 프로젝트 마무리',

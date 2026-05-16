@@ -157,7 +157,7 @@ export function getRecommendedDates(
   }
 }
 
-export function getSimpleRecommendedDates(
+function getSimpleRecommendedDates(
   saju: SajuData | undefined,
   lang: string
 ): { date: string; type: string; reason: string; score: number }[] {

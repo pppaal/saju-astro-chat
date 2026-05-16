@@ -3,7 +3,7 @@
 
 
 // 행성 이미지 매핑
-export const PLANET_IMAGES: Record<string, string> = {
+const PLANET_IMAGES: Record<string, string> = {
   Sun: '/images/planets/sun.png',
   Moon: '/images/planets/moon.png',
   Mercury: '/images/planets/mercury.png',
@@ -190,7 +190,7 @@ export const PLANET_LABELS = {
   es: { Sun:'Sol', Moon:'Luna', Mercury:'Mercurio', Venus:'Venus', Mars:'Marte', Jupiter:'Júpiter', Saturn:'Saturno', Uranus:'Urano', Neptune:'Neptuno', Pluto:'Plutón', 'True Node':'Nodo Norte', Chiron:'Quirón', 'Lilith(True)':'Lilith(Verdad)', 'Lilith(Mean)':'Lilith(Media)', Fortune:'Parte de la Fortuna' },
 } as const;
 
-export const ASPECT_LABELS = {
+const ASPECT_LABELS = {
   en: { conjunction:'conjunction', opposition:'opposition', square:'square', trine:'trine', sextile:'sextile', quincunx:'quincunx', semisextile:'semisextile', quintile:'quintile' },
   ko: { conjunction:'합', opposition:'대립', square:'사각', trine:'삼합', sextile:'육분', quincunx:'퀸컨크스', semisextile:'반육분', quintile:'퀸타일' },
   zh: { conjunction:'合相', opposition:'对冲', square:'四分相', trine:'拱相', sextile:'六合', quincunx:'梅花相', semisextile:'半六合', quintile:'五分相' },
@@ -198,7 +198,7 @@ export const ASPECT_LABELS = {
   es: { conjunction:'conjunción', opposition:'oposición', square:'cuadratura', trine:'trígono', sextile:'sextil', quincunx:'quincuncio', semisextile:'semisextil', quintile:'quintil' },
 } as const;
 
-export const PAYWALL_LABELS = {
+const PAYWALL_LABELS = {
   en: {
     loginRequired: 'Login Required',
     loginDesc: 'Sign in to view detailed chart analysis',
@@ -247,7 +247,7 @@ export const PAYWALL_LABELS = {
 } as const;
 
 // Extra point names for filtering
-export const EXTRA_NAMES = new Set([
+const EXTRA_NAMES = new Set([
   'Chiron','키론','Lilith','리릴리스','Lilith(True)','Lilith(Mean)','Black Moon Lilith',
   'Part of Fortune','Fortune','행운점','True Node','Mean Node','North Node','South Node','진월교점',
 ]);
@@ -273,7 +273,7 @@ export type ChatCopy = {
   welcomeBack: string;
 };
 
-export const CHAT_I18N: Record<ChatLangKey, ChatCopy> = {
+const CHAT_I18N: Record<ChatLangKey, ChatCopy> = {
   en: {
     placeholder: "Ask about your birth chart (planets, houses, transits)",
     send: "Send",
@@ -430,7 +430,7 @@ export const CHAT_I18N: Record<ChatLangKey, ChatCopy> = {
 };
 
 // Follow-up questions for astrology chat
-export const ASTROLOGY_FOLLOWUPS = {
+const ASTROLOGY_FOLLOWUPS = {
   ko: [
     "제 태양 별자리의 특성을 알려주세요",
     "달 별자리가 감정에 어떤 영향을 주나요?",

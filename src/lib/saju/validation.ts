@@ -37,7 +37,7 @@ export const VALID_ELEMENTS = [
 ] as const satisfies readonly FiveElement[]
 
 /** Valid 음양 (Yin-Yang) */
-export const VALID_YIN_YANG = ['양', '음'] as const satisfies readonly YinYang[]
+const VALID_YIN_YANG = ['양', '음'] as const satisfies readonly YinYang[]
 
 /** Valid 십신 (Ten Gods) */
 export const VALID_SIBSIN = [
@@ -54,7 +54,7 @@ export const VALID_SIBSIN = [
 ] as const satisfies readonly SibsinKind[]
 
 /** Valid 기둥 종류 */
-export const VALID_PILLAR_KINDS = [
+const VALID_PILLAR_KINDS = [
   'year',
   'month',
   'day',
@@ -127,7 +127,7 @@ export const ElementSchema = z.enum(VALID_ELEMENTS)
 /**
  * 음양 (Yin-Yang) schema
  */
-export const YinYangSchema = z.enum(VALID_YIN_YANG)
+const YinYangSchema = z.enum(VALID_YIN_YANG)
 
 /**
  * 십신 (Ten Gods) schema
@@ -137,7 +137,7 @@ export const SibsinSchema = z.enum(VALID_SIBSIN)
 /**
  * 기둥 종류 schema
  */
-export const PillarKindSchema = z.enum(VALID_PILLAR_KINDS)
+const PillarKindSchema = z.enum(VALID_PILLAR_KINDS)
 
 /**
  * Simple pillar input schema

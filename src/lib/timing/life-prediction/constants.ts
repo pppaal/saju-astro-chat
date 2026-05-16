@@ -233,7 +233,7 @@ export const EVENT_HOUSES: Record<EventType, { primary: number[]; secondary: num
 // ============================================================
 // 십신 점수 (상대적 점수, 가중치 계산용)
 // ============================================================
-export const SIBSIN_SCORES_RELATIVE: Record<string, number> = {
+const SIBSIN_SCORES_RELATIVE: Record<string, number> = {
   '정관': 15, '정재': 12, '정인': 10, '식신': 8,
   '편관': 5, '편재': 5, '편인': 3, '상관': 0,
   '비견': -3, '겁재': -8,
@@ -339,7 +339,7 @@ export const MOON_PHASE_NAMES: Record<string, string> = {
 // ============================================================
 // 중요도 가중치
 // ============================================================
-export const IMPORTANCE_WEIGHT = {
+const IMPORTANCE_WEIGHT = {
   daeun: 0.25,
   seun: 0.35,
   wolun: 0.25,
@@ -366,7 +366,7 @@ export const SCORE_THRESHOLDS = {
 // ============================================================
 // 십신 점수 (0-100 스케일)
 // ============================================================
-export const SIBSIN_SCORES_100: Record<string, number> = {
+const SIBSIN_SCORES_100: Record<string, number> = {
   '정관': 80,
   '정재': 75,
   '정인': 70,
@@ -382,7 +382,7 @@ export const SIBSIN_SCORES_100: Record<string, number> = {
 // ============================================================
 // 이벤트 유형 한국어 이름
 // ============================================================
-export const EVENT_TYPE_NAMES_KO: Record<string, string> = {
+const EVENT_TYPE_NAMES_KO: Record<string, string> = {
   marriage: '결혼',
   career: '커리어',
   investment: '투자',
@@ -398,7 +398,7 @@ export const EVENT_TYPE_NAMES_KO: Record<string, string> = {
 // ============================================================
 // 이벤트 키워드
 // ============================================================
-export const EVENT_KEYWORDS: Record<string, string[]> = {
+const EVENT_KEYWORDS: Record<string, string[]> = {
   marriage: ['결혼', 'wedding', 'marry'],
   career: ['개업', '취업', '창업', 'business', 'job', 'career'],
   investment: ['계약', '투자', '매매', 'contract', 'investment', 'deal'],

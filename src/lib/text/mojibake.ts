@@ -167,7 +167,7 @@ function preferDecoded(original: string, decoded: string): boolean {
   return false
 }
 
-export function hasMojibake(value: string): boolean {
+function hasMojibake(value: string): boolean {
   return MOJIBAKE_REGEX.test(value) || SUSPICIOUS_CHAR_REGEX.test(value)
 }
 

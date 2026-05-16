@@ -12,7 +12,7 @@ type FollowUpsByTheme = {
 };
 
 // Universal follow-up questions (works for any response context)
-export const UNIVERSAL_FOLLOWUPS: Record<"ko" | "en", string[]> = {
+const UNIVERSAL_FOLLOWUPS: Record<"ko" | "en", string[]> = {
   ko: [
     // 깊이 파고들기
     "더 자세히 알려줘",
@@ -82,7 +82,7 @@ export const UNIVERSAL_FOLLOWUPS: Record<"ko" | "en", string[]> = {
 };
 
 // Theme-specific follow-up questions
-export const THEMED_FOLLOWUPS: Record<"ko" | "en", FollowUpsByTheme> = {
+const THEMED_FOLLOWUPS: Record<"ko" | "en", FollowUpsByTheme> = {
   ko: {
     career: [
       "일자리/커리어에서 가장 중요한 변수는 뭐예요?",
@@ -140,7 +140,7 @@ export const THEMED_FOLLOWUPS: Record<"ko" | "en", FollowUpsByTheme> = {
 };
 
 // Suggested questions based on theme (shown initially)
-export const SUGGESTED_QUESTIONS: Record<"ko" | "en", Record<string, string[]>> = {
+const SUGGESTED_QUESTIONS: Record<"ko" | "en", Record<string, string[]>> = {
   ko: {
     career: [
       "나한테 천직이 뭐예요? 🎯",

@@ -35,7 +35,7 @@ export function normalizeGender(value?: string | null): NormalizedGender | undef
   return undefined
 }
 
-export function toShortGender(value?: string | null): 'M' | 'F' | undefined {
+function toShortGender(value?: string | null): 'M' | 'F' | undefined {
   const normalized = normalizeGender(value)
   if (normalized === 'male') {
     return 'M'
