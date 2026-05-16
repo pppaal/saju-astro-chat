@@ -79,6 +79,34 @@ export interface FormattedDate {
     astroAxis?: number
     axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
+  /** ── calendar-engine v2 augmentation (optional, non-breaking) ── */
+  matchedPatterns?: Array<{
+    id: string
+    name: string
+    themes: string[]
+    strength: number
+    description?: string
+    headline?: string
+    action?: string
+  }>
+  engineSignals?: Array<{
+    id: string
+    source: 'saju' | 'astro'
+    kind: string
+    name: string
+    korean?: string
+    themes: string[]
+    polarity: number
+    layer: 'decadal' | 'yearly' | 'monthly' | 'daily' | 'hourly' | 'instant'
+    weight: number
+  }>
+  themeScores?: Partial<Record<string, number>>
+  /** 그 달 narrative 해석 (룰 DB 기반, LLM 0번) */
+  monthlyInterpretation?: {
+    narrative: string
+    matchedRuleIds: string[]
+    sections: Array<{ section: string; title: string; text: string }>
+  }
 }
 
 export interface CalendarDailyView {

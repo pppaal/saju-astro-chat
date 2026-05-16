@@ -56,6 +56,15 @@ import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
 
+/** astroProfile.natalChart가 NatalChartData 모양인지 검사 (calendar-engine v2 augmentation 용) */
+function isNatalChartData(chart: unknown): chart is NatalChartData {
+  if (!chart || typeof chart !== 'object') return false
+  const c = chart as { planets?: unknown; ascendant?: unknown; mc?: unknown }
+  if (!Array.isArray(c.planets) || c.planets.length === 0) return false
+  const firstPlanet = c.planets[0] as { longitude?: unknown }
+  return typeof firstPlanet?.longitude === 'number'
+}
+
 // Zodiac to element mapping (extracted to avoid duplication in try/catch blocks)
 const ZODIAC_TO_ELEMENT: Record<string, string> = {
   Aries: 'fire',
@@ -740,7 +749,7 @@ export const GET = withApiMiddleware(
       )
       const yongsinPrimary = advanced.yongsin?.primary
       if (yongsinPrimary) {
-        const { findYongsinActivationPeriods } = await import('@/lib/prediction/specificDateEngine')
+        const { findYongsinActivationPeriods } = await import('@/lib/timing/specificDateEngine')
         const periods = findYongsinActivationPeriods(
           yongsinPrimary,
           pillars.day.stem,
@@ -774,7 +783,7 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeDayTimeSlots } = await import('@/lib/prediction/ultra-precision-minute')
+      const { analyzeDayTimeSlots } = await import('@/lib/timing/ultra-precision-minute')
       const slots = analyzeDayTimeSlots(new Date(), pillars.day.stem, pillars.day.branch)
       if (slots.best.length > 0 || slots.worst.length > 0) {
         todayHourlyTimeSlots = {
@@ -1197,6 +1206,116 @@ export const GET = withApiMiddleware(
       }
     })
     const formattedDates = rebalanceCalendarDisplayGrades(formattedDatesWithAI)
+
+    // ── calendar-engine v2 augmentation (non-blocking, opt-in via fields) ──
+    // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
+    // 실패해도 기존 응답 그대로 반환. UI는 새 필드 없으면 기존 동작 유지.
+    try {
+      const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
+      // 본명 차트 재사용 — 기존 엔진이 이미 계산했다면 Swiss Ephemeris 재호출 방지.
+      // astroProfile.natalChart가 있으면 그것 전달 (없으면 buildNatalContext가 직접 계산).
+      const ceNatal = await buildNatalContext(
+        {
+          birthDate: birthDateParam,
+          birthTime: birthTimeParam || '12:00',
+          gender: gender.toLowerCase() === 'female' ? 'female' : 'male',
+          latitude: coords.lat,
+          longitude: coords.lng,
+          timeZone: timezone,
+        },
+        {
+          saju: sajuResult,
+          // astroProfile.natalChart는 NatalChartData | null | 느슨한 shape의 union.
+          // NatalChartData만 buildNatalContext에 전달 (그 외엔 직접 계산하게 함).
+          astroChart: isNatalChartData(astroProfile.natalChart)
+            ? astroProfile.natalChart
+            : undefined,
+        },
+      )
+      // 사용자가 보고 있는 달만 빌드 — 1년 365일 다 돌리면 너무 비쌈.
+      // 엔진 자체는 1년 능력 유지 (range만 좁힘). 클라가 ?month=YYYY-MM 보내면 그 달,
+      // 안 보내면 오늘의 달.
+      const monthParam = searchParams.get('month')
+      const monthMatch = monthParam?.match(/^(\d{4})-(\d{1,2})$/)
+      const targetYear = monthMatch ? Number(monthMatch[1]) : year
+      const targetMonth = monthMatch ? Number(monthMatch[2]) - 1 : new Date().getMonth()
+      const rangeStart = new Date(targetYear, targetMonth, 1)
+      const rangeEnd = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59)
+      // CalendarCell DB 캐시 사용 — 같은 본명·달이면 instant 반환.
+      const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
+      const birthKey = makeBirthKey({
+        birthDate: birthDateParam,
+        birthTime: birthTimeParam || '12:00',
+        birthPlace,
+        gender: gender || 'Male',
+      })
+      const monthKey = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`
+      const { cells: ceCells, cached: ceCached } = await getOrBuildMonth({
+        birthKey,
+        monthKey,
+        natal: ceNatal,
+        range: {
+          start: rangeStart.toISOString(),
+          end: rangeEnd.toISOString(),
+          granularity: 'day',
+        },
+        options: { includeEvidence: true },
+      })
+      logger.info?.(`[calendar-engine v2] ${ceCached ? 'cache HIT' : 'cache MISS'} for ${monthKey}, cells=${ceCells.length}`)
+
+      // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
+      try {
+        const { buildInterpretation } = await import('@/lib/calendar-engine/interpretation')
+        const interp = buildInterpretation({ natal: ceNatal, cells: ceCells, scope: 'monthly' })
+        ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
+        // interpretation은 그 달 전체 단위라 셀별 부착 X.
+        // 모든 셀에 동일 narrative 부착 — 클라가 어느 날짜든 같은 텍스트 사용.
+        for (const d of formattedDates) {
+          d.monthlyInterpretation = interp
+        }
+      } catch (err) {
+        logger.warn?.('[interpretation] skipped:', err instanceof Error ? err.message : String(err))
+      }
+
+      const cellByDate = new Map(ceCells.map((c) => [c.datetime.slice(0, 10), c]))
+      for (const d of formattedDates) {
+        const cell = cellByDate.get(d.date.slice(0, 10))
+        if (!cell) continue
+        // ★ 점수 교체 — 새 엔진 점수를 displayScore로 우선 노출
+        //   기존 score는 그대로 유지 (rollback 가능).
+        d.displayScore = cell.derivedScore
+        if (cell.matchedPatterns.length > 0) {
+          d.matchedPatterns = cell.matchedPatterns.map((p) => ({
+            id: p.id,
+            name: p.name,
+            themes: p.themes,
+            strength: p.strength,
+            description: p.description,
+            headline: p.headline,
+            action: p.action,
+          }))
+        }
+        if (cell.signals.length > 0) {
+          d.engineSignals = cell.signals.map((s) => ({
+            id: s.id,
+            source: s.source,
+            kind: s.kind,
+            name: s.name,
+            korean: s.korean,
+            themes: s.themes,
+            polarity: s.polarity,
+            layer: s.layer,
+            weight: s.weight,
+          }))
+        }
+        if (Object.keys(cell.themeScores).length > 0) {
+          d.themeScores = cell.themeScores
+        }
+      }
+    } catch (err) {
+      logger.warn?.('[calendar-engine v2 augment] skipped:', err instanceof Error ? err.message : String(err))
+    }
+
     const sortByDisplayScoreDesc = (
       a: (typeof formattedDates)[number],
       b: (typeof formattedDates)[number]

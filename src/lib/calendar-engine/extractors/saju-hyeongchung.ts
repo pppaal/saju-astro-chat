@@ -1,0 +1,207 @@
+import { computeDayBranch, computeDayStem } from './saju-shinsal'
+import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
+import type { PillarKind } from '@/lib/saju/types'
+
+/**
+ * 형충회합 (刑沖會合) 추출기 — 현재 일주(日柱) vs 본명 4기둥.
+ *
+ * 매일 일진의 천간/지지가 본명 4기둥의 천간/지지와 어떤 관계를 맺는지 검사.
+ * - 천간합/충
+ * - 지지 육합/삼합/방합/충/형/파/해/원진
+ *
+ * 활성 윈도우: 해당 1일.
+ */
+
+// ─── 천간합 (5쌍) ───
+const STEM_HAPS: Array<[string, string, string]> = [
+  ['甲', '己', '토'],   // 갑기합화토
+  ['乙', '庚', '금'],   // 을경합화금
+  ['丙', '辛', '수'],   // 병신합화수
+  ['丁', '壬', '목'],   // 정임합화목
+  ['戊', '癸', '화'],   // 무계합화화
+]
+
+// ─── 천간충 (4쌍) ───
+const STEM_CHUNGS: Array<[string, string]> = [
+  ['甲', '庚'], ['乙', '辛'], ['丙', '壬'], ['丁', '癸'],
+]
+
+// ─── 지지 육합 (6쌍) ───
+const BRANCH_YUKHAP: Array<[string, string]> = [
+  ['子', '丑'], ['寅', '亥'], ['卯', '戌'], ['辰', '酉'], ['巳', '申'], ['午', '未'],
+]
+
+// ─── 지지 삼합 (4그룹) — 펼쳐서 페어 ───
+const BRANCH_SAMHAP_GROUPS = [
+  ['申', '子', '辰'],   // 수국
+  ['亥', '卯', '未'],   // 목국
+  ['寅', '午', '戌'],   // 화국
+  ['巳', '酉', '丑'],   // 금국
+]
+
+// ─── 지지충 (6쌍) ───
+const BRANCH_CHUNG: Array<[string, string]> = [
+  ['子', '午'], ['丑', '未'], ['寅', '申'], ['卯', '酉'], ['辰', '戌'], ['巳', '亥'],
+]
+
+// ─── 지지형 (간략) ───
+const BRANCH_HYUNG: Array<[string, string]> = [
+  ['寅', '巳'], ['巳', '申'], ['申', '寅'],   // 寅巳申 삼형
+  ['丑', '戌'], ['戌', '未'], ['未', '丑'],   // 丑戌未 삼형
+  ['子', '卯'],                              // 자묘 무례지형
+  ['辰', '辰'], ['午', '午'], ['酉', '酉'], ['亥', '亥'],   // 자형
+]
+
+// ─── 원진 ───
+const BRANCH_WONJIN: Array<[string, string]> = [
+  ['子', '未'], ['丑', '午'], ['寅', '酉'], ['卯', '申'], ['辰', '亥'], ['巳', '戌'],
+]
+
+const PILLAR_NAMES: Record<PillarKind, string> = {
+  year: '년주', month: '월주', day: '일주', time: '시주',
+}
+
+const sajuHyeongchungExtractor: SignalExtractor = {
+  source: 'saju',
+  kind: 'hyeongchung',
+  extract(ctx: ExtractorContext): ActiveSignal[] {
+    const { natal, range } = ctx
+    const p = natal.saju.pillars
+    const natalPillars: Array<{ kind: PillarKind; stem: string; branch: string }> = [
+      { kind: 'year',  stem: p.year.heavenlyStem.name,  branch: p.year.earthlyBranch.name },
+      { kind: 'month', stem: p.month.heavenlyStem.name, branch: p.month.earthlyBranch.name },
+      { kind: 'day',   stem: p.day.heavenlyStem.name,   branch: p.day.earthlyBranch.name },
+      { kind: 'time',  stem: p.time.heavenlyStem.name,  branch: p.time.earthlyBranch.name },
+    ]
+
+    const signals: ActiveSignal[] = []
+    const start = new Date(range.start)
+    const end = new Date(range.end)
+
+    for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
+      const date = new Date(t)
+      const targetStem = computeDayStem(date)
+      const targetBranch = computeDayBranch(date)
+      if (!targetStem || !targetBranch) continue
+
+      const dayIso = date.toISOString().slice(0, 10)
+      const startIso = `${dayIso}T00:00:00.000Z`
+      const endIso = `${dayIso}T23:59:59.999Z`
+      const peakIso = `${dayIso}T12:00:00.000Z`
+
+      for (const np of natalPillars) {
+        // 천간합
+        for (const [a, b, transformed] of STEM_HAPS) {
+          if ((targetStem === a && np.stem === b) || (targetStem === b && np.stem === a)) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '천간합', polarity: 2, weight: 0.65,
+              name: `천간합 ${targetStem}-${np.stem} (화${transformed})`,
+              detail: { targetStem, natalStem: np.stem, natalPillar: np.kind, transformed },
+            }))
+          }
+        }
+        // 천간충
+        for (const [a, b] of STEM_CHUNGS) {
+          if ((targetStem === a && np.stem === b) || (targetStem === b && np.stem === a)) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '천간충', polarity: -2, weight: 0.7,
+              name: `천간충 ${targetStem}↔${np.stem} (${PILLAR_NAMES[np.kind]})`,
+              detail: { targetStem, natalStem: np.stem, natalPillar: np.kind },
+            }))
+          }
+        }
+        // 지지 육합
+        for (const [a, b] of BRANCH_YUKHAP) {
+          if ((targetBranch === a && np.branch === b) || (targetBranch === b && np.branch === a)) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '육합', polarity: 2, weight: 0.65,
+              name: `육합 ${targetBranch}-${np.branch} (${PILLAR_NAMES[np.kind]})`,
+              detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
+            }))
+          }
+        }
+        // 지지 삼합 (target과 natal이 같은 삼합국에 속하면)
+        for (const group of BRANCH_SAMHAP_GROUPS) {
+          if (group.includes(targetBranch) && group.includes(np.branch) && targetBranch !== np.branch) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '삼합', polarity: 3, weight: 0.7,
+              name: `삼합 ${targetBranch}-${np.branch} (${group.join('')})`,
+              detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind, samhapGroup: group },
+            }))
+          }
+        }
+        // 지지충
+        for (const [a, b] of BRANCH_CHUNG) {
+          if ((targetBranch === a && np.branch === b) || (targetBranch === b && np.branch === a)) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '지지충', polarity: -3, weight: 0.85,
+              name: `지지충 ${targetBranch}↔${np.branch} (${PILLAR_NAMES[np.kind]})`,
+              detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
+            }))
+          }
+        }
+        // 지지형
+        for (const [a, b] of BRANCH_HYUNG) {
+          if ((targetBranch === a && np.branch === b) || (targetBranch === b && np.branch === a)) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '지지형', polarity: -2, weight: 0.6,
+              name: `지지형 ${targetBranch}-${np.branch} (${PILLAR_NAMES[np.kind]})`,
+              detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
+            }))
+          }
+        }
+        // 원진
+        for (const [a, b] of BRANCH_WONJIN) {
+          if ((targetBranch === a && np.branch === b) || (targetBranch === b && np.branch === a)) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '원진', polarity: -2, weight: 0.55,
+              name: `원진 ${targetBranch}-${np.branch} (${PILLAR_NAMES[np.kind]})`,
+              detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
+            }))
+          }
+        }
+      }
+    }
+
+    return signals
+  },
+}
+
+interface MakeSignalArgs {
+  dayIso: string
+  startIso: string
+  peakIso: string
+  endIso: string
+  kindLabel: string
+  polarity: Polarity
+  weight: number
+  name: string
+  detail: Record<string, unknown>
+}
+
+function makeSignal(args: MakeSignalArgs): ActiveSignal {
+  return {
+    id: `saju.hyeongchung.${args.kindLabel}.${args.dayIso}.${args.detail.natalPillar}.${args.detail.targetBranch ?? args.detail.targetStem}`,
+    source: 'saju',
+    kind: 'hyeongchung',
+    name: args.name,
+    themes: [],   // tagger가 polarity 기반으로 폴백
+    polarity: args.polarity,
+    layer: 'daily',
+    active: { start: args.startIso, peak: args.peakIso, end: args.endIso },
+    weight: args.weight,
+    evidence: {
+      module: 'saju-hyeongchung',
+      detail: { ...args.detail, kindLabel: args.kindLabel },
+    },
+  }
+}
+
+export default sajuHyeongchungExtractor
