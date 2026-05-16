@@ -1453,7 +1453,6 @@ export const GET = withApiMiddleware(
       degradedMode,
       matrixContract: calendarMatrixContract,
       canonicalCore: calendarCoreCanonical,
-      yongsinActivations,
       todayHourlyTimeSlots,
       // 헤더 뱃지 / 프로필 카드용 본명 정체성
       astroIdentity: (() => {
@@ -1496,14 +1495,9 @@ export const GET = withApiMiddleware(
       badDates: [...grade4, ...grade3].sort(sortByDisplayScoreAsc).slice(0, 10),
       worstDates: [...grade4].sort(sortByDisplayScoreAsc).slice(0, 5),
       allDates: formattedDates,
-      daySummary: presentationView.daySummary,
-      weekSummary: presentationView.weekSummary,
       monthSummary: presentationView.monthSummary,
       calendarDailyView: presentationView.dailyView,
-      calendarWeekView: presentationView.weekView,
       calendarMonthView: presentationView.monthView,
-      surfaceCards: presentationView.surfaceCards,
-      topDomains: presentationView.topDomains,
       timingSignals: presentationView.timingSignals,
       cautions: presentationView.cautions,
       recommendedActions: presentationView.recommendedActions,

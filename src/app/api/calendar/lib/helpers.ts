@@ -812,7 +812,6 @@ export function formatDateForResponse(
     ),
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,
-    glossary: (date as { glossary?: Record<string, string> }).glossary,
     crossCheck: (date as { crossCheck?: { line: string; agreementPercent: number } }).crossCheck,
     longCycleContext: (
       date as { longCycleContext?: import('./yearlyDates').YearlyImportantDate['longCycleContext'] }
@@ -822,12 +821,6 @@ export function formatDateForResponse(
         cycleInteractions?: import('./yearlyDates').YearlyImportantDate['cycleInteractions']
       }
     ).cycleInteractions,
-    cycleNarrative: (date as { cycleNarrative?: string }).cycleNarrative,
-    dayRuler: (date as { dayRuler?: import('./yearlyDates').YearlyImportantDate['dayRuler'] })
-      .dayRuler,
-    scoreBreakdown: (
-      date as { scoreBreakdown?: import('./yearlyDates').YearlyImportantDate['scoreBreakdown'] }
-    ).scoreBreakdown,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),
