@@ -60,10 +60,10 @@ interface PillarLike {
 function pillarRow(label: string, p?: PillarLike): string {
   const hs = p?.heavenlyStem
   const eb = p?.earthlyBranch
-  // Pipes are intentional — they make the column boundaries obvious to
-  // the model even without true markdown tables, which Claude doesn't
-  // need to render visually anyway.
-  return `${label} | ${s(hs?.name)}${hs?.yin_yang ? `(${hs.yin_yang})` : ''} | ${s(eb?.name)}${eb?.yin_yang ? `(${eb.yin_yang})` : ''} | ${s(hs?.element)} | ${s(eb?.element)} | ${s(hs?.sibsin)} | ${s(eb?.sibsin)}`
+  // 60갑자 규칙상 천간 음이면 지지도 음, 천간 양이면 지지도 양 —
+  // 음양은 한 쌍씩 묶여 있어 천간 옆에만 한 번 적으면 둘 다 알 수 있다.
+  // 지지 음양 표기 제거 → 행마다 ~4자 절약 × 4행 × 2명 = ~30자.
+  return `${label} | ${s(hs?.name)}${hs?.yin_yang ? `(${hs.yin_yang})` : ''} | ${s(eb?.name)} | ${s(hs?.element)} | ${s(eb?.element)} | ${s(hs?.sibsin)} | ${s(eb?.sibsin)}`
 }
 
 function jijangganLine(label: string, p?: PillarLike): string | null {
@@ -182,44 +182,58 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
     lines.push(...jgLines)
   }
 
-  // 대운 — render prev / current / next around the active stage. The
-  // active stage gets a "←" marker so the model doesn't have to
-  // re-derive which one is "now" from age math.
+  // 대운 — print prev / current / next instead of the full 10 stages.
+  // The full list balloons to ~10 rows × 2 people while ~80% of the
+  // entries are too far past or future for any single answer to cite.
+  // Keep daeun.current intact so the active stage is fully described.
   const daeun = saju.daeun
   if (daeun?.list && daeun.list.length > 0) {
     lines.push('')
     lines.push('[대운]')
     const currentAge = daeun.current?.age
-    daeun.list.forEach((d) => {
+    const idx = currentAge != null ? daeun.list.findIndex((d) => d.age === currentAge) : -1
+    const center = idx >= 0 ? idx : 0
+    const window = daeun.list.slice(Math.max(0, center - 1), Math.min(daeun.list.length, center + 2))
+    window.forEach((d) => {
       const isCurrent = currentAge != null && d.age === currentAge
       lines.push(daeunRow(d, isCurrent ? ' ← 현재' : ''))
     })
   }
 
-  // 세운 — typically 3 entries (last/this/next year) after prune.
+  // 세운 — keep ±1 year window (last / this / next). Full 10-year
+  // arc almost never gets referenced explicitly.
   if (saju.yeonun && saju.yeonun.length > 0) {
     lines.push('')
     lines.push('[세운]')
     const nowYear = new Date().getFullYear()
-    saju.yeonun.forEach((y) => {
+    const idx = saju.yeonun.findIndex((y) => y.year === nowYear)
+    const center = idx >= 0 ? idx : 0
+    const window = saju.yeonun.slice(Math.max(0, center - 1), Math.min(saju.yeonun.length, center + 2))
+    window.forEach((y) => {
       lines.push(yeonunRow(y, y.year === nowYear ? ' ← 올해' : ''))
     })
   }
 
-  // 월운 — typically 3 entries (prev/this/next month).
+  // 월운 — ±1 month window. Full 12-month arc is too coarse-grained
+  // for any single answer to use; prev/this/next is what gets cited.
   if (saju.wolun && saju.wolun.length > 0) {
     lines.push('')
     lines.push('[월운]')
     const now = new Date()
     const nowYear = now.getFullYear()
     const nowMonth = now.getMonth() + 1
-    saju.wolun.forEach((m) => {
+    const idx = saju.wolun.findIndex((m) => m.year === nowYear && m.month === nowMonth)
+    const center = idx >= 0 ? idx : 0
+    const window = saju.wolun.slice(Math.max(0, center - 1), Math.min(saju.wolun.length, center + 2))
+    window.forEach((m) => {
       const isNow = m.year === nowYear && m.month === nowMonth
       lines.push(wolunRow(m, isNow ? ' ← 이번달' : ''))
     })
   }
 
-  // 일운 — typically 7 entries (today ±3).
+  // 일운 — today ±3 (7 days). The buildAutoSajuContext output ships
+  // the full month (31 entries); answers almost never reach beyond
+  // "this week" so trimming saves ~70% of the daily rows.
   if (saju.iljin && saju.iljin.length > 0) {
     lines.push('')
     lines.push('[일운]')
@@ -227,7 +241,12 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
     const nowYear = now.getFullYear()
     const nowMonth = now.getMonth() + 1
     const nowDay = now.getDate()
-    saju.iljin.forEach((d) => {
+    const idx = saju.iljin.findIndex(
+      (d) => d.year === nowYear && d.month === nowMonth && d.day === nowDay,
+    )
+    const center = idx >= 0 ? idx : 0
+    const window = saju.iljin.slice(Math.max(0, center - 3), Math.min(saju.iljin.length, center + 4))
+    window.forEach((d) => {
       const isToday = d.year === nowYear && d.month === nowMonth && d.day === nowDay
       lines.push(iljinRow(d, isToday ? ' ← 오늘' : ''))
     })
