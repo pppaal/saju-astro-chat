@@ -75,6 +75,27 @@ const PROMPT_PRUNE_KEYS = new Set([
   // yeonun/wolun/iljin keys, so the same arrays appeared twice in every
   // prompt. Drop the duplicate; keep the top-level keys.
   'unse',
+  // The saju lib spreads its raw pillar object two ways: under top-level
+  // `yearPillar`/`monthPillar`/`dayPillar`/`timePillar`, *and* under a
+  // grouped `pillars: { year, month, day, time }`. Same payload, twice.
+  // Keep the top-level form; drop the grouped duplicate.
+  'pillars',
+  // `daeWoon` is the raw 대운 object straight from the saju lib.
+  // buildAutoSajuContext aliases it to `daeun` (which we then trim to
+  // prev/current/next) and also forwards `currentDaeun`. The original
+  // `daeWoon` was being spread in untouched on top — full 10-stage list
+  // again. Drop it; the trimmed `daeun` carries the same info.
+  'daeWoon',
+  // `currentDaeun` duplicates `daeun.current` byte-for-byte.
+  'currentDaeun',
+  // UI-only render identifiers (`GAN_을`, `EL_목`, `BR_해`, `GAN_을해`).
+  // The model already sees the human-readable `name` next to each;
+  // these IDs only mattered for client-side iconography.
+  'graphId',
+  'elementGraphId',
+  'ganjiGraphId',
+  // 천을귀인 boolean — almost always false; true is too minor to act on.
+  'isCheoneulGwiin',
 ])
 
 // Keys whose array values get *trimmed around "today"* instead of dropped.
