@@ -674,16 +674,25 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join('\n')
 
+    // formatTimingForPrompt now emits only astro transits/returns (saju
+    // is already in the cached table). Returns '' when no astro data —
+    // the .filter(Boolean) below drops it.
+    const timingBlock = formatTimingForPrompt(
+      timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> },
+      {
+        person1: effectivePerson1Astro as Record<string, unknown> | null,
+        person2: effectivePerson2Astro as Record<string, unknown> | null,
+      },
+      normalizedLang,
+    )
+    // evidenceGuide used to live here as a 300-char block reminding the
+    // model to cite saju/astro and avoid pushing irreversible actions.
+    // After PR #195 the system prompt's three rules cover the same
+    // ground in 60 chars — kept the local variable for future opt-in
+    // toggles but dropped from the wire.
+    void evidenceGuide
     const userPrompt = [
-      `${formatTimingForPrompt(
-        timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> },
-        {
-          person1: effectivePerson1Astro as Record<string, unknown> | null,
-          person2: effectivePerson2Astro as Record<string, unknown> | null,
-        },
-        normalizedLang
-      )}`,
-      `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
+      timingBlock,
       historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
       `\n== 사용자 질문 ==\n${userQuestion}`,
     ]
