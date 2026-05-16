@@ -13,7 +13,7 @@ import {
   findBestDates,
   type ActivityType,
   type DateRecommendation,
-} from '@/lib/prediction/specificDateEngine'
+} from '@/lib/timing/specificDateEngine'
 import { logger } from '@/lib/logger'
 import { buildOracleSeed, drawRelationshipSpread, type RelationshipSpread } from './tarotDraw'
 

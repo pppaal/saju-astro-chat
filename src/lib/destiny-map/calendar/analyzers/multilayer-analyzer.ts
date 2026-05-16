@@ -11,7 +11,7 @@ import { analyzeMultiLayer as analyzeMultiLayerImport,
   calculateYearlyGanji,
   calculateMonthlyGanji as advancedMonthlyGanji,
   type BranchInteraction,
-} from '@/lib/prediction/advancedTimingEngine';
+} from '@/lib/timing/advancedTimingEngine';
 import { logger } from '@/lib/logger';
 
 export interface MultiLayerAnalysisResult {
