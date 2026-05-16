@@ -24,6 +24,10 @@ import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
 import { relationLabel } from '../routeSupportCommon'
 import type { Relation } from '../types'
+import {
+  formatSajuAsTable,
+  formatAstroAsTable,
+} from '@/lib/compatibility/sajuTableFormatter'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -292,10 +296,19 @@ export async function POST(req: NextRequest) {
       logger.error('[Compatibility Counselor] Fusion error:', { error: fusionError })
     }
 
-    // raw 컨텍스트는 위 ==사주/점성/시기/Fusion 심화 분석== 블록과 겹치지 않는
-    // raw pillars + raw natal planets만 남긴다. 가공된 분석 결과(fusionResult,
-    // extendedSaju/Astro, timingDetails)는 위 전용 블록에 이미 들어가므로 중복
-    // 직렬화를 피해 prompt-cache 효율과 토큰 비용을 개선한다.
+    // Raw chart context. Previously this was a pruned JSON dump of the
+    // saju + natal objects (~25k chars even after PR #197's prunes).
+    // 99% of the bytes were JSON quotes, brackets, and repeated key
+    // names ("heavenlyStem", "earthlyBranch", "sibsin"...) that say
+    // nothing to the model — the actual signal per character was tiny.
+    //
+    // Replaced with a flat, pipe-separated table form. Same info,
+    // ~5× less tokens. The model reads pipes fine; we don't need a
+    // visual table on the wire.
+    //
+    // If the caller supplies a pre-baked fullContext (legacy clients),
+    // we still serialize that as JSON because we can't guarantee its
+    // shape.
     const resolvedFullContext =
       fullContext ||
       ({
@@ -305,9 +318,28 @@ export async function POST(req: NextRequest) {
         person1Astro: effectivePerson1Astro,
         person2Astro: effectivePerson2Astro,
       } as Record<string, unknown>)
-    // 응답에 거의 인용되지 않는 raw 필드(napum 등)는 prune해서 prompt 노이즈를
-    // 줄인다. 핵심 분석은 위 ==심화 분석== 블록에 이미 들어 있다.
-    const fullContextText = stringifyForPrompt(prunePromptContext(resolvedFullContext))
+    const fullContextText = fullContext
+      ? stringifyForPrompt(prunePromptContext(resolvedFullContext))
+      : [
+          formatSajuAsTable(
+            effectivePerson1Saju as Parameters<typeof formatSajuAsTable>[0],
+            'A',
+          ),
+          formatSajuAsTable(
+            effectivePerson2Saju as Parameters<typeof formatSajuAsTable>[0],
+            'B',
+          ),
+          formatAstroAsTable(
+            effectivePerson1Astro as Parameters<typeof formatAstroAsTable>[0],
+            'A',
+          ),
+          formatAstroAsTable(
+            effectivePerson2Astro as Parameters<typeof formatAstroAsTable>[0],
+            'B',
+          ),
+        ]
+          .filter((block) => !/\(없음\)/.test(block))
+          .join('\n\n')
     const contextTrace = {
       currentDateIso: new Date().toISOString().slice(0, 10),
       hasFusionResult: !!fusionResult,

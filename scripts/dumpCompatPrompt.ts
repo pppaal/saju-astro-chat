@@ -36,6 +36,10 @@ import { performExtendedAstrologyAnalysis } from '../src/lib/compatibility/astro
 import { buildEvidenceGroundingGuide } from '../src/lib/prompts/fortuneWithIcp'
 import { relationLabel } from '../src/app/api/compatibility/routeSupportCommon'
 import type { Relation } from '../src/app/api/compatibility/types'
+import {
+  formatSajuAsTable,
+  formatAstroAsTable,
+} from '../src/lib/compatibility/sajuTableFormatter'
 
 const lang: 'ko' | 'en' = 'ko'
 const normalizedLang: 'ko' | 'en' = lang
@@ -189,15 +193,17 @@ async function main() {
     return `${head}: ${p.date} ${p.time}${rel}`
   }).join('\n')
 
-  // 5) fullContext text
-  const resolvedFullContext: Record<string, unknown> = {
-    persons,
-    person1Saju: eff1Saju,
-    person2Saju: eff2Saju,
-    person1Astro: eff1Astro,
-    person2Astro: eff2Astro,
-  }
-  const fullContextText = stringifyForPrompt(prunePromptContext(resolvedFullContext))
+  // 5) fullContext text — same table form route.ts now uses.
+  void stringifyForPrompt
+  void prunePromptContext
+  const fullContextText = [
+    formatSajuAsTable(eff1Saju as Parameters<typeof formatSajuAsTable>[0], 'A'),
+    formatSajuAsTable(eff2Saju as Parameters<typeof formatSajuAsTable>[0], 'B'),
+    formatAstroAsTable(eff1Astro as Parameters<typeof formatAstroAsTable>[0], 'A'),
+    formatAstroAsTable(eff2Astro as Parameters<typeof formatAstroAsTable>[0], 'B'),
+  ]
+    .filter((block) => !/\(없음\)/.test(block))
+    .join('\n\n')
 
   // 6) build systemPrompt + cached + userPrompt (route.ts:592+)
   const systemPrompt = [
