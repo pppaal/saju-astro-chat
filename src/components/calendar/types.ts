@@ -68,8 +68,6 @@ export interface ImportantDate {
   ganzhi?: string // 일주 간지
   transitSunSign?: string // 트랜짓 태양 별자리
   crossVerified?: boolean // 사주+점성술 교차 검증
-  /** 본문에 등장한 사주·점성 용어 → 한 줄 풀이 */
-  glossary?: Record<string, string>
   /** 사주 ↔ 점성 교차 확인 */
   crossCheck?: { line: string; agreementPercent: number }
   /** 본명 사주 (date-detail 통해 주입). 행동플래너 시간 십신 계산용 */
@@ -106,16 +104,7 @@ export interface ImportantDate {
     kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
     blurb: string
   }>
-  /** 운 충합 흐름을 한 줄로 종합한 narrative */
-  cycleNarrative?: string
-  /** 그날의 행성 지배 (요일 기반) */
-  dayRuler?: {
-    planet: string
-    planetKo: string
-    themeKo: string
-    themeEn: string
-  }
-  /** 점수 산출 7축 분해 + 2축 분리 */
+  /** 점수 산출 7축 분해 + 2축 분리 — WeeklyTimingChart의 사주/점성 라인용 */
   scoreBreakdown?: {
     engine: number
     matrix: number
@@ -156,17 +145,6 @@ export interface ImportantDate {
     geokguk: string
     yongsin: { primary: string; secondary?: string; type: string; kibsin?: string }
     summary: string
-  }
-  /** 향후 60일 용신 활성 일자 top 5 */
-  yongsinActivations?: {
-    yongsin: string
-    top: Array<{
-      date: string
-      score: number
-      level: string
-      sources: string[]
-      advice: string
-    }>
   }
   /** 28수 (Lunar Mansion) — 그날의 달 자리 */
   lunarMansion?: {
@@ -290,16 +268,6 @@ export interface CalendarData {
     confidence?: number
     reasonShort?: string
   }
-  calendarWeekView?: {
-    rangeStart: string
-    rangeEnd: string
-    frontDomain: string
-    frontDomainLabel: string
-    oneLineSummary: string
-    operatingRule: string
-    brightWindow?: string
-    cautiousWindow?: string
-  }
   calendarMonthView?: {
     month: string
     frontDomain: string
@@ -309,44 +277,10 @@ export interface CalendarData {
     strongestWindow?: string
     cautionWindow?: string
   }
-  daySummary?: {
-    date: string
-    summary: string
-    focusDomain: string
-    reliability: string
-  }
-  weekSummary?: {
-    rangeStart: string
-    rangeEnd: string
-    summary: string
-  }
   monthSummary?: {
     month: string
     summary: string
   }
-  surfaceCards?: Array<{
-    key: 'action' | 'risk' | 'window' | 'agreement' | 'branch'
-    label: string
-    summary: string
-    tag?: string
-    details?: string[]
-    visual?:
-      | {
-          kind: 'agreement'
-          agreementPercent: number
-          contradictionPercent: number
-          leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
-        }
-      | {
-          kind: 'branch'
-          rows: Array<{ label: string; text: string }>
-        }
-  }>
-  topDomains?: Array<{
-    domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
-    label: string
-    score: number
-  }>
   timingSignals?: string[]
   cautions?: string[]
   recommendedActions?: string[]
