@@ -712,8 +712,15 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     logger.error('[Compatibility Counselor] Error:', { error: error })
+    // We've been chasing a recurring generic "오류가 발생했습니다" on the
+    // client and have no signal beyond "something threw inside the
+    // route." Surface a *short* error tag (name + first 120 chars of
+    // message) so the next failure shows up directly in the chat
+    // bubble — no stack trace, no internals. Remove once stable.
+    const errName = error instanceof Error ? error.name : 'UnknownError'
+    const errMsg = error instanceof Error ? error.message.slice(0, 120) : String(error).slice(0, 120)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', errorTag: `${errName}: ${errMsg}` },
       { status: HTTP_STATUS.SERVER_ERROR }
     )
   }
