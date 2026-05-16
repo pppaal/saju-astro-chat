@@ -101,7 +101,7 @@ export const personaMemoryPostSchema = z.object({
   sajuProfile: sajuProfileMemorySchema.optional(),
 })
 
-export const personaMemoryPatchDataSchema = z.object({
+const personaMemoryPatchDataSchema = z.object({
   insight: z.string().max(1000).optional(),
   growthArea: z.string().max(200).optional(),
   recurringIssue: z.string().max(500).optional(),
@@ -282,7 +282,7 @@ export const icpScoreSchema = z.object({
   octantScores: z.record(z.string(), z.number()).optional(),
 })
 
-export const personaTypeSchema = z.object({
+const personaTypeSchema = z.object({
   typeCode: z.string().max(10),
   personaName: z.string().max(100),
   energyScore: z.number().min(0).max(100),
@@ -291,9 +291,9 @@ export const personaTypeSchema = z.object({
   rhythmScore: z.number().min(0).max(100),
 })
 
-export const icpOctantScoresSchema = z.record(icpOctantSchema, z.number().min(0).max(100))
+const icpOctantScoresSchema = z.record(icpOctantSchema, z.number().min(0).max(100))
 
-export const icpAnalysisDataSchema = z.object({
+const icpAnalysisDataSchema = z.object({
   description: z.string().max(5000).optional(),
   descriptionKo: z.string().max(5000).optional(),
   summary: z.string().max(5000).optional(),
@@ -343,7 +343,7 @@ export const icpAnalysisDataSchema = z.object({
   compatibleStyles: z.array(icpOctantSchema).optional(),
 })
 
-export const icpAnswersSchema = z.record(
+const icpAnswersSchema = z.record(
   z.string().max(50),
   z.union([z.number().min(1).max(7), z.string().max(100)])
 )
@@ -367,7 +367,7 @@ export const icpSaveRequestSchema = z.object({
 
 export type ICPSaveRequestValidated = z.infer<typeof icpSaveRequestSchema>
 
-export const icpSaveSchema = z.object({
+const icpSaveSchema = z.object({
   primaryStyle: icpOctantSchema,
   secondaryStyle: icpOctantSchema.optional(),
   dominanceScore: z.number().min(-100).max(100),
@@ -386,7 +386,7 @@ export const icpSaveSchema = z.object({
 
 export type IcpSaveValidated = z.infer<typeof icpSaveSchema>
 
-export const personalityCompatibilityPersonSchema = z.object({
+const personalityCompatibilityPersonSchema = z.object({
   userId: z.string().max(100).optional(),
   name: z.string().max(120).optional(),
   icp: icpScoreSchema,
@@ -450,11 +450,11 @@ export const personalityCompatibilitySchema = z.object({
 
 export type PersonalityCompatibilityValidated = z.infer<typeof personalityCompatibilitySchema>
 
-export const personalityIcpSaveGetQuerySchema = z.object({
+const personalityIcpSaveGetQuerySchema = z.object({
   id: z.string().max(100).optional(),
 })
 
-export const personalityCompatibilitySaveGetQuerySchema = z.object({
+const personalityCompatibilitySaveGetQuerySchema = z.object({
   id: z.string().max(100).optional(),
 })
 
@@ -549,7 +549,7 @@ export const counselorSessionRenameRequestSchema = z.object({
 
 // ============ Content Access & Share Schemas ============
 
-export const contentAccessMetadataSchema = z.object({
+const contentAccessMetadataSchema = z.object({
   source: z.enum(['web', 'mobile', 'api']).optional(),
   referrer: z.string().max(500).optional(),
   sessionId: z.string().max(100).optional(),
@@ -582,7 +582,7 @@ export const shareImageRequestSchema = z.object({
 
 export type ShareImageRequestValidated = z.infer<typeof shareImageRequestSchema>
 
-export const shareResultDataSchema = z.object({
+const shareResultDataSchema = z.object({
   score: z.number().min(0).max(100).optional(),
   grade: z.string().max(10).optional(),
   highlights: z.array(z.string().max(500)).optional(),
@@ -608,7 +608,7 @@ export type ShareResultRequestValidated = z.infer<typeof shareResultRequestSchem
 
 // ============ Readings Schemas ============
 
-export const readingsMetadataSchema = z.object({
+const readingsMetadataSchema = z.object({
   spread: z.string().max(50).optional(),
   question: z.string().max(1000).optional(),
   cards: z.array(z.string().max(100)).optional(),
@@ -651,12 +651,12 @@ export const dailyFortuneSchema = z.object({
 
 export type DailyFortuneValidated = z.infer<typeof dailyFortuneSchema>
 
-export const fortuneGetQuerySchema = z.object({
+const fortuneGetQuerySchema = z.object({
   date: dateSchema,
   kind: z.string().max(50).optional().default('daily'),
 })
 
-export const weeklyFortuneQuerySchema = z.object({
+const weeklyFortuneQuerySchema = z.object({
   locale: localeSchema.optional(),
   birthDate: dateSchema.optional(),
 })
@@ -724,6 +724,6 @@ export const cspReportSchema = z.object({
     .optional(),
 })
 
-export const metricsTokenSchema = z.object({
+const metricsTokenSchema = z.object({
   'x-metrics-token': z.string().optional(),
 })

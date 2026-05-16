@@ -28,21 +28,21 @@ const CHALLENGING_ASPECTS: AspectType[] = ['square', 'opposition']
 /**
  * Checks if an aspect type is harmonious (trine, sextile)
  */
-export function isHarmoniousAspect(type: AspectType): boolean {
+function isHarmoniousAspect(type: AspectType): boolean {
   return HARMONIOUS_ASPECTS.includes(type)
 }
 
 /**
  * Checks if an aspect type is challenging (square, opposition)
  */
-export function isChallengingAspect(type: AspectType): boolean {
+function isChallengingAspect(type: AspectType): boolean {
   return CHALLENGING_ASPECTS.includes(type)
 }
 
 /**
  * Get aspect strength based on orb
  */
-export function getAspectStrength(orb: number | undefined): 'exact' | 'close' | 'wide' {
+function getAspectStrength(orb: number | undefined): 'exact' | 'close' | 'wide' {
   if (orb === undefined) {
     return 'close'
   }
@@ -100,7 +100,7 @@ export function findAspect(
 /**
  * Find aspect with detailed info
  */
-export function findAspectDetailed(
+function findAspectDetailed(
   astro: AstroData | undefined,
   planet1: StandardPlanetName,
   planet2: StandardPlanetName
@@ -121,7 +121,7 @@ export function findAspectDetailed(
 /**
  * Find all aspects involving a specific planet
  */
-export function findPlanetAspects(
+function findPlanetAspects(
   astro: AstroData | undefined,
   planet: StandardPlanetName
 ): AspectInfo[] {
@@ -156,7 +156,7 @@ export function findPlanetAspects(
 /**
  * Find all harmonious aspects involving a planet
  */
-export function findHarmoniousAspects(
+function findHarmoniousAspects(
   astro: AstroData | undefined,
   planet: StandardPlanetName
 ): AspectInfo[] {
@@ -166,7 +166,7 @@ export function findHarmoniousAspects(
 /**
  * Find all challenging aspects involving a planet
  */
-export function findChallengingAspects(
+function findChallengingAspects(
   astro: AstroData | undefined,
   planet: StandardPlanetName
 ): AspectInfo[] {
@@ -176,7 +176,7 @@ export function findChallengingAspects(
 /**
  * Check if a specific aspect exists between two planets
  */
-export function hasAspect(
+function hasAspect(
   astro: AstroData | undefined,
   planet1: StandardPlanetName,
   planet2: StandardPlanetName,
@@ -208,7 +208,7 @@ export function hasHarmoniousAspect(
 /**
  * Check if challenging aspect exists between two planets
  */
-export function hasChallengingAspect(
+function hasChallengingAspect(
   astro: AstroData | undefined,
   planet1: StandardPlanetName,
   planet2: StandardPlanetName
@@ -221,7 +221,7 @@ export function hasChallengingAspect(
 /**
  * Get aspect type description
  */
-export function getAspectTypeDescription(type: AspectType, isKo: boolean): string {
+function getAspectTypeDescription(type: AspectType, isKo: boolean): string {
   const descriptions: Record<AspectType, { ko: string; en: string }> = {
     conjunction: { ko: '합(0°)', en: 'Conjunction (0°)' },
     opposition: { ko: '충(180°)', en: 'Opposition (180°)' },
@@ -240,7 +240,7 @@ export function getAspectTypeDescription(type: AspectType, isKo: boolean): strin
 /**
  * Count aspects by type for a planet
  */
-export function countAspectsByType(
+function countAspectsByType(
   astro: AstroData | undefined,
   planet: StandardPlanetName
 ): Record<AspectType, number> {

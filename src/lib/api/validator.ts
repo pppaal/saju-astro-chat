@@ -227,7 +227,7 @@ export type ChatMessage = z.infer<typeof ChatMessageSchema>
 export const ChatMessagesSchema = z.array(ChatMessageSchema).min(1).max(LIMITS.MAX_MESSAGES)
 
 /** I Ching changing line request */
-export const IChingChangingLineSchema = z.object({
+const IChingChangingLineSchema = z.object({
   hexagramNumber: z.number().int().min(1).max(64),
   lineIndex: z.number().int().min(0).max(5),
   locale: LocaleSchema.default('ko'),
@@ -242,7 +242,7 @@ export const TarotPrefetchSchema = z.object({
 export type TarotPrefetchRequest = z.infer<typeof TarotPrefetchSchema>
 
 /** Compatibility persons array request */
-export const CompatibilityPersonSchema = z.object({
+const CompatibilityPersonSchema = z.object({
   name: z.string().max(LIMITS.NAME).optional(),
   date: DateSchema,
   time: TimeSchema,
@@ -257,7 +257,7 @@ export const CompatibilityPersonSchema = z.object({
   relationNoteToP1: z.string().max(LIMITS.NOTE).optional(),
 })
 
-export const CompatibilityPersonsRequestSchema = z.object({
+const CompatibilityPersonsRequestSchema = z.object({
   persons: z.array(CompatibilityPersonSchema).min(2).max(4),
   locale: LocaleSchema.default('ko'),
 })

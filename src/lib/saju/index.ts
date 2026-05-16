@@ -120,7 +120,6 @@ export {
   calculateTuechul,
   calculateHoeguk,
   calculateDeukryeong,
-  analyzeStrength as analyzeTonggeunStrength,
   type TonggeunResult,
   type TuechulResult,
   type HoegukResult,
