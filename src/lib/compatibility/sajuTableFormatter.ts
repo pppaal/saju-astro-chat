@@ -408,13 +408,17 @@ export function formatDestinyTiming(input: {
   } | null
 }): string {
   const lines: string[] = []
-  const daeunStr = unseLine(input.currentDaeun)
+  // Skip `대운: …` here — the [대운] block above already shows the
+  // active stage with a "← 현재" marker. Re-printing it here was a
+  // one-line duplicate. Seun / wolun / iljin stay because the saju
+  // table on the destiny path doesn't have yeonun/wolun/iljin arrays
+  // (only currentSeun/Wolun/Iljin single entries), so this is where
+  // they first appear.
   const seunStr = unseLine(input.currentSeun)
   const wolunStr = unseLine(input.currentWolun)
   const iljinStr = unseLine(input.currentIljin)
-  if (daeunStr || seunStr || wolunStr || iljinStr) {
+  if (seunStr || wolunStr || iljinStr) {
     lines.push('[현재 시기]')
-    if (daeunStr) lines.push(`대운: ${daeunStr}`)
     if (seunStr) lines.push(`세운: ${seunStr}`)
     if (wolunStr) lines.push(`월운: ${wolunStr}`)
     if (iljinStr) lines.push(`일운: ${iljinStr}`)
