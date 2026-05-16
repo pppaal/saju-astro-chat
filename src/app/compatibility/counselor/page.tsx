@@ -39,7 +39,7 @@ function formatBirthSnippet(p: PersonData): string {
 }
 
 function CompatibilityCounselorContent() {
-  const { locale, setLocale } = useI18n()
+  const { locale } = useI18n()
   const searchParams = useSearchParams()
 
   const [persons, setPersons] = useState<PersonData[]>([])
@@ -366,10 +366,6 @@ function CompatibilityCounselorContent() {
     }
   }
 
-  const toggleLocale = useCallback(() => {
-    setLocale(locale === 'ko' ? 'en' : 'ko')
-  }, [locale, setLocale])
-
   // 🎴 둘 궁합 타로 — 한 번 클릭으로 5장 관계 크로스를 펼치고 chat 에 inline 으로 풀어준다.
   const handleQuickCoupleTarot = useCallback(async () => {
     if (isLoading || persons.length < 2) return
@@ -506,14 +502,6 @@ function CompatibilityCounselorContent() {
               {isKo ? '＋ 새 채팅' : '＋ New'}
             </button>
           )}
-          <button
-            type="button"
-            onClick={toggleLocale}
-            className={styles.localeToggle}
-            aria-label={isKo ? 'Switch to English' : '한국어로 전환'}
-          >
-            {isKo ? 'EN' : 'KO'}
-          </button>
           <CreditBadge variant="compact" />
         </div>
       </header>

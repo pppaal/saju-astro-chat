@@ -16,7 +16,14 @@ export type SavedPerson = {
   tzId?: string | null
 }
 
-export type Relation = 'friend' | 'lover' | 'other'
+export type Relation =
+  | 'lover'
+  | 'spouse'
+  | 'family'
+  | 'sibling'
+  | 'friend'
+  | 'colleague'
+  | 'other'
 
 export type CityItem = {
   name: string

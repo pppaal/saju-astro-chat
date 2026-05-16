@@ -288,6 +288,14 @@ export function useCompatibilityAnalysis() {
         if (!p.date) {
           return `${i + 1}: ${t('compatibilityPage.errorDateTimeRequired', 'date and time are required.')}`
         }
+        // Saju needs gender to compute daeun direction (male and female
+        // run the 10-year cycle opposite). Without it, person[i]'s chart
+        // computation throws downstream and the counselor route ends up
+        // calling the LLM with an empty chart — the user sees a generic
+        // "오류가 발생했습니다" instead of a useful prompt.
+        if (!p.gender) {
+          return `${i + 1}: ${t('compatibilityPage.errorGenderRequired', 'gender is required.')}`
+        }
         if (isDetailedMode && !p.time) {
           return `${i + 1}: ${t('compatibilityPage.errorDateTimeRequired', 'date and time are required.')}`
         }

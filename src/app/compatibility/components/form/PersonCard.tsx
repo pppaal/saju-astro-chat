@@ -220,6 +220,31 @@ export const PersonCard = React.memo<PersonCardProps>(
               {t('compatibilityPage.timeUnknown', '시간 모름 (00:00 처리)')}
             </label>
           </div>
+          {/* Gender — saju needs this to compute daeun direction (the 10-
+              year cycle runs opposite for male vs female). Missing it
+              cascades into a saju calc failure for person[1] and the
+              counselor route ends up sending an empty chart to Claude. */}
+          <div>
+            <label htmlFor={`gender-${idx}`} className={styles.label}>
+              {t('compatibilityPage.gender', 'Gender')}
+              <span className={styles.requiredMark}>*</span>
+            </label>
+            <select
+              id={`gender-${idx}`}
+              value={person.gender ?? ''}
+              onChange={(e) =>
+                onUpdatePerson(idx, 'gender', e.target.value as PersonForm['gender'])
+              }
+              className={styles.select}
+              required
+            >
+              <option value="">
+                {t('compatibilityPage.selectGender', 'Select gender')}
+              </option>
+              <option value="M">{t('compatibilityPage.male', 'Male')}</option>
+              <option value="F">{t('compatibilityPage.female', 'Female')}</option>
+            </select>
+          </div>
           <CityAutocompleteField
             id={`city-${idx}`}
             value={person.cityQuery}
@@ -258,10 +283,26 @@ export const PersonCard = React.memo<PersonCardProps>(
                     {t('compatibilityPage.selectRelation', 'Select relation')}
                   </option>
                   <option value="lover">
-                    {t('compatibilityPage.partnerLover', 'Partner / Lover')}
+                    {t('compatibilityPage.partnerLover', 'Partner / Lover 💕')}
                   </option>
-                  <option value="friend">{t('compatibilityPage.friend', 'Friend')}</option>
-                  <option value="other">{t('compatibilityPage.other', 'Other')}</option>
+                  <option value="spouse">
+                    {t('compatibilityPage.spouse', 'Spouse 💍')}
+                  </option>
+                  <option value="family">
+                    {t('compatibilityPage.family', 'Family (parent / child) 🏠')}
+                  </option>
+                  <option value="sibling">
+                    {t('compatibilityPage.sibling', 'Sibling 👯')}
+                  </option>
+                  <option value="friend">
+                    {t('compatibilityPage.friend', 'Friend 🤝')}
+                  </option>
+                  <option value="colleague">
+                    {t('compatibilityPage.colleague', 'Colleague 💼')}
+                  </option>
+                  <option value="other">
+                    {t('compatibilityPage.other', 'Other ✨')}
+                  </option>
                 </select>
               </div>
               <div>

@@ -55,7 +55,7 @@ export const CityAutocompleteField = React.memo<CityAutocompleteFieldProps>(({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={onFocus}
-        onBlur={() => setTimeout(onBlur, 200)}
+        onBlur={onBlur}
         placeholder={t('compatibilityPage.cityPlaceholder', 'e.g., Seoul, KR')}
         className={styles.input}
       />
