@@ -137,66 +137,55 @@ const RULES: PatternRule[] = [
     },
   },
 
-  // ─── 4. 5층 정렬 (공명) — 진짜 5층 (大運·歲運·月運·日辰·時辰) ───
-  // 사주 5층 AND 점성 5층 모두 같은 방향일 때만 매칭.
-  // raw data 둘 다 진짜로 정렬돼야 의미 있음.
+  // ─── 4. 5층 정렬 (공명) — 사주 5층 × 점성 4층 ───
+  // 사주: 大運·歲運·月運·日辰·時辰 (5층)
+  // 점성: ZR챕터·세운트랜짓·월간트랜짓·일진어스펙트 (4층 — 행성시는 미세함)
+  // 둘 다 정렬 + 같은 방향 → 진짜 사주×점성 동시 공명.
   {
     id: 'five-layer-resonance',
     name: '5층 정렬 (사주×점성 동시)',
     themes: [],
-    headline: '5층 정렬 — 사주와 점성 모두 같은 방향',
-    description: '사주 5층 + 점성 5층 모두 정렬 — 진짜 동시 공명',
+    headline: '사주 5층 + 점성 4층 — 동서양 동시 정렬',
+    description: '사주 5층 + 점성 4층 모두 같은 방향',
     action: '큰 결정의 절호. 사주와 점성이 동시에 같은 답을 주는 드문 시기.',
     match(signals) {
-      const layers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily', 'hourly']
+      const sajuLayers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily', 'hourly']
+      const astroLayers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily']
 
-      // source × layer별 평균 polarity
-      function avgByLayer(source: 'saju' | 'astro'): Record<SignalLayer, number> | null {
-        const result: Record<string, number> = {}
-        let hasAnySignal = false
+      function alignment(
+        source: 'saju' | 'astro',
+        layers: SignalLayer[],
+        minLayers: number,
+        minMag: number,
+      ): 'positive' | 'negative' | null {
+        const layerAvgs: Record<string, number> = {}
+        let valid = 0
         for (const l of layers) {
           const sigs = signals.filter((s) => s.layer === l && s.source === source)
-          if (sigs.length === 0) {
-            result[l] = 0
-            continue
-          }
-          hasAnySignal = true
-          result[l] = sigs.reduce((a, s) => a + s.polarity * s.weight, 0) / sigs.length
+          if (sigs.length === 0) { layerAvgs[l] = 0; continue }
+          layerAvgs[l] = sigs.reduce((a, s) => a + s.polarity * s.weight, 0) / sigs.length
+          valid++
         }
-        return hasAnySignal ? (result as Record<SignalLayer, number>) : null
-      }
-
-      const sajuLayer = avgByLayer('saju')
-      const astroLayer = avgByLayer('astro')
-      if (!sajuLayer || !astroLayer) {
-        return { matched: false, strength: 0, matchedIds: [] }
-      }
-
-      // 각 source가 모든 layer에서 같은 방향인지 검사
-      function alignment(la: Record<SignalLayer, number>): 'positive' | 'negative' | null {
-        const present = layers.filter((l) => la[l] !== 0)
-        if (present.length < 3) return null   // 최소 3개 layer는 신호 있어야
-        const allPos = present.every((l) => la[l] > 0)
-        const allNeg = present.every((l) => la[l] < 0)
-        const avg = present.reduce((a, l) => a + la[l], 0) / present.length
-        // 모든 layer가 |강도| ≥ 0.15 (drift 무시)
-        const minMag = Math.min(...present.map((l) => Math.abs(la[l])))
-        if (allPos && minMag >= 0.15) return 'positive'
-        if (allNeg && minMag >= 0.15) return 'negative'
+        if (valid < minLayers) return null
+        const present = layers.filter((l) => layerAvgs[l] !== 0)
+        const allPos = present.every((l) => layerAvgs[l] > 0)
+        const allNeg = present.every((l) => layerAvgs[l] < 0)
+        const minAbsMag = Math.min(...present.map((l) => Math.abs(layerAvgs[l])))
+        if (allPos && minAbsMag >= minMag) return 'positive'
+        if (allNeg && minAbsMag >= minMag) return 'negative'
         return null
       }
 
-      const sajuAlign = alignment(sajuLayer)
-      const astroAlign = alignment(astroLayer)
-
-      // 둘 다 정렬 + 같은 방향
+      // 동시 매칭 = 사주 5층 alignment AND 점성 4층 alignment + 같은 방향
+      // (saju-five-layer · astro-five-layer 룰과 동일 조건 사용 — 동시는 그 교집합)
+      const sajuAlign = alignment('saju', sajuLayers, 4, 0.2)
+      const astroAlign = alignment('astro', astroLayers, 3, 0.15)
       if (!sajuAlign || !astroAlign || sajuAlign !== astroAlign) {
         return { matched: false, strength: 0, matchedIds: [] }
       }
 
       const dominant = sajuAlign
       const matched = signals.filter((s) =>
-        layers.includes(s.layer) &&
         (dominant === 'positive' ? s.polarity >= 1 : s.polarity <= -1),
       )
       return { matched: true, strength: 99, matchedIds: matched.map((s) => s.id) }
@@ -241,17 +230,17 @@ const RULES: PatternRule[] = [
     },
   },
 
-  // ─── 4b. 점성 5층 정렬 (사주 무관) ───
-  // 점성만 정렬되어도 의미 — 대운 챕터·세운·월간 트랜짓·일진 어스펙트·행성시 정렬.
+  // ─── 4b. 점성 4층 정렬 (사주 무관) ───
+  // 점성에 명확한 "시진" 단위가 없어 4층(챕터·세운·월·일진)만 검사.
   {
     id: 'astro-five-layer',
-    name: '점성 5층 정렬',
+    name: '점성 4층 정렬',
     themes: [],
-    headline: '점성 5층 정렬 — 행성 흐름이 모두 같은 방향',
-    description: '점성 시간축 5개 모두 동방향',
+    headline: '점성 4층 정렬 — 행성 흐름이 모두 같은 방향',
+    description: '점성 시간축 4개 모두 동방향 (챕터·세운·월·일진)',
     action: '점성적 흐름 정렬기. 외부 환경과 기회가 같은 신호를 주는 시기.',
     match(signals) {
-      const layers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily', 'hourly']
+      const layers: SignalLayer[] = ['decadal', 'yearly', 'monthly', 'daily']
       const layerAvgs: Record<string, number> = {}
       let validLayers = 0
       for (const l of layers) {
@@ -260,16 +249,15 @@ const RULES: PatternRule[] = [
         layerAvgs[l] = sigs.reduce((a, s) => a + s.polarity * s.weight, 0) / sigs.length
         validLayers++
       }
-      if (validLayers < 4) return { matched: false, strength: 0, matchedIds: [] }
+      // 점성 4층 모두 신호 있어야
+      if (validLayers < 3) return { matched: false, strength: 0, matchedIds: [] }
       const present = layers.filter((l) => layerAvgs[l] !== 0)
-      if (present.length < 5) return { matched: false, strength: 0, matchedIds: [] }
-      // 진짜 정렬 — 모든 layer가 |강도| ≥ 0.5 + 같은 부호
-      // (가장 약한 layer 기준 — 어떤 layer라도 약하면 매칭 X)
+      // 모든 layer 같은 부호 + 최소 강도 0.15
       const minMagnitude = Math.min(...present.map((l) => Math.abs(layerAvgs[l])))
       const allPos = present.every((l) => layerAvgs[l] > 0)
       const allNeg = present.every((l) => layerAvgs[l] < 0)
-      const positive = allPos && minMagnitude >= 0.2
-      const negative = allNeg && minMagnitude >= 0.2
+      const positive = allPos && minMagnitude >= 0.15
+      const negative = allNeg && minMagnitude >= 0.15
       if (!positive && !negative) return { matched: false, strength: 0, matchedIds: [] }
       const dominant = positive ? 1 : -1
       const matched = signals.filter((s) =>
