@@ -11,79 +11,7 @@ import { elementOfBranch, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
 import { calculateUltraPrecisionScore } from '@/lib/timing/ultraPrecisionEngine'
 import type { UltraPrecisionScore } from '@/lib/timing/ultra-precision-types'
-import { getPlanetaryHourPlanet } from '@/lib/timing/ultra-precision-helpers'
 import { getLunarMansion } from '@/lib/timing/modules/lunarMansions'
-
-// Day-of-week planetary ruler theme. Cheap to compute (one lookup) and
-// gives the user one-glance sense of the day's character before reading
-// the full saju + astro stack.
-const DAY_RULER_THEMES: Record<string, { planetKo: string; themeKo: string; themeEn: string }> = {
-  Sun: {
-    planetKo: '태양',
-    themeKo: '결정·리더십·드러남에 힘이 실리는 날',
-    themeEn: 'leadership / decisions / visibility',
-  },
-  Moon: {
-    planetKo: '달',
-    themeKo: '감정·관계·돌봄이 짙어지는 날',
-    themeEn: 'emotion / relationships / care',
-  },
-  Mars: {
-    planetKo: '화성',
-    themeKo: '실행·추진·경쟁의 에너지가 강한 날',
-    themeEn: 'execution / push / competition',
-  },
-  Mercury: {
-    planetKo: '수성',
-    themeKo: '소통·계약·이동·정보의 흐름이 빠른 날',
-    themeEn: 'comms / contracts / travel / info',
-  },
-  Jupiter: {
-    planetKo: '목성',
-    themeKo: '확장·학습·기회의 호흡이 큰 날',
-    themeEn: 'expansion / learning / opportunity',
-  },
-  Venus: {
-    planetKo: '금성',
-    themeKo: '재물·관계·미적 감각이 살아나는 날',
-    themeEn: 'wealth / relationships / aesthetics',
-  },
-  Saturn: {
-    planetKo: '토성',
-    themeKo: '점검·책임·구조 다지기 좋은 날',
-    themeEn: 'review / responsibility / structure',
-  },
-}
-
-// Compose a single human-readable narrative line from the cycle
-// interaction list. The cycleInteractions array can balloon to 7-9 hits
-// per day; the panel shows only the top 4. The narrative folds the same
-// information into one sentence so the user reads "오늘은 본명-세운이
-// 합·합으로 묶이지만 본명-대운은 충" instead of parsing a bullet list.
-function summarizeCycleInteractions(
-  hits: Array<{ pair: string; kind: string; blurb: string }>
-): string {
-  if (!hits.length) return ''
-  const uniquePairs = (list: Array<{ pair: string; kind: string }>): string[] =>
-    Array.from(new Set(list.map((h) => h.pair))).slice(0, 3)
-  const supportive = hits.filter((h) => h.kind === '천간합' || h.kind === '지지합')
-  const challenging = hits.filter(
-    (h) => h.kind === '천간충' || h.kind === '지지충' || h.kind === '지지형'
-  )
-  const minor = hits.filter((h) => h.kind === '지지해' || h.kind === '지지파' || h.kind === '자형')
-  const parts: string[] = []
-  if (supportive.length > 0) {
-    parts.push(`${uniquePairs(supportive).join(', ')} 묶임`)
-  }
-  if (challenging.length > 0) {
-    parts.push(`${uniquePairs(challenging).join(', ')} 충돌`)
-  }
-  if (parts.length === 0 && minor.length > 0) {
-    parts.push(`${uniquePairs(minor).join(', ')} 작은 어긋남`)
-  }
-  if (parts.length === 0) return ''
-  return parts.join(' / ') + ' 흐름이 동시에 작동하는 날.'
-}
 
 type CalendarLocale = 'ko' | 'en'
 
@@ -121,8 +49,6 @@ export interface YearlyImportantDate {
   confidence?: number
   confidenceNote?: string
   crossAgreementPercent?: number
-  /** 본문에 등장한 사주·점성 용어 → 한 줄 풀이 (프런트 툴팁용) */
-  glossary?: Record<string, string>
   /** 사주 ↔ 점성 교차 확인 한 줄 + 신뢰도 % */
   crossCheck?: { line: string; agreementPercent: number }
   /** 대운 / 세운 / 월운 / 일운 — 본명 일간 기준 십신까지 박은 풀 흐름 컨텍스트 */
@@ -150,30 +76,21 @@ export interface YearlyImportantDate {
     kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
     blurb: string
   }>
-  /** 운끼리 충/합 흐름을 한 줄로 종합한 자연어 요약 */
-  cycleNarrative?: string
-  /** 그날의 행성 지배 (요일 기반) */
-  dayRuler?: {
-    planet: string // 'Sun', 'Moon', ...
-    planetKo: string
-    themeKo: string
-    themeEn: string
-  }
-  /** 점수 산출 분해 — 7축 weighted blend 투명성 */
+  /** 점수 산출 분해 — WeeklyTimingChart의 saju/astro axis 라인에 사용 */
   scoreBreakdown?: {
-    engine: number // 0-100, saju daily (sibsin/신살/공망/12운성/energy)
-    matrix: number // 0-100, long-cycle domain weighting
-    cycle: number // 0-100, 운끼리 충/합/형 balance
-    cross: number // 0-100, 사주↔점성 일치도
-    yongsin: number // 0-100, 용신 정렬
-    transit?: number // 0-100, real astrology transit aspect score
-    lunarRetro?: number // 0-100, 28수 길흉 + retrograde penalties combined
-    dailyShift: number // event bonus (+/-)
-    weakPenalty: number // signal weakness penalty
-    peakBoost: number // peak window bonus
-    finalScore: number // 2-99
-    sajuAxis?: number // 0-100
-    astroAxis?: number // 0-100
+    engine: number
+    matrix: number
+    cycle: number
+    cross: number
+    yongsin: number
+    transit?: number
+    lunarRetro?: number
+    dailyShift: number
+    weakPenalty: number
+    peakBoost: number
+    finalScore: number
+    sajuAxis?: number
+    astroAxis?: number
     axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
 }
@@ -899,95 +816,6 @@ function analyzeDailyPillarEvents(
 
 function getSibsinDailyKo(dayStem: string, dailyStem: string): string {
   return getSibsinKo(dayStem, dailyStem)
-}
-
-const GLOSSARY_KO: Record<string, string> = {
-  // 십신
-  비견: '나와 같은 오행·성별 — 동료, 동등한 협업 흐름',
-  겁재: '나와 같은 오행·반대 성별 — 경쟁자, 자원을 나누는 관계',
-  식신: '내가 만들어내는 부드러운 산출 — 꾸준한 표현·생산',
-  상관: '내가 만들어내는 강한 발산 — 창의·도전·말발',
-  편재: '내가 통제할 자원·외부 거래 — 유동적인 돈 흐름',
-  정재: '내가 안정적으로 거두는 자원 — 고정 수입·계약',
-  편관: '나를 누르는 강한 책임 — 도전적·압박형 업무',
-  정관: '나를 다스리는 정식 직책 — 공식·규칙 안의 일',
-  편인: '나를 키우는 비주류 인성 — 학습·내적 재정비',
-  정인: '나를 키우는 정식 인성 — 돌봄·문서·인정',
-  // 신살
-  역마: '이동·출장·전직 같은 환경 변동 신호',
-  도화: '관계 끌림·매력·공개적인 자리에 서기 좋은 흐름',
-  화개: '내적 정리·예술·고독한 시간이 깊어지는 흐름',
-  망신: '체면 흔들림·실수 노출에 조심해야 하는 흐름',
-  // 사주 기본 어휘
-  일간: '내 사주의 기준 천간(태어난 날의 위 글자) — 본인 그 자체',
-  일지: '태어난 날의 아래 글자(地支) — 배우자 자리·내 일상의 분위기',
-  월간: '태어난 달의 위 글자(천간) — 사회·직장·환경의 분위기',
-  월지: '태어난 달의 아래 글자(지지) — 시기·계절·격국의 뿌리',
-  대운: '10년 단위의 큰 운 흐름',
-  세운: '한 해의 운 흐름',
-  격국: '사주가 어떤 틀에 가까운지(정관격·정재격 등) — 본명의 큰 성격',
-  조후용신: '계절(月)에 비춰 본명을 살리는 핵심 오행',
-  // 오행
-  목: '나무 — 자라남·계획·시작',
-  화: '불 — 표현·확장·열정',
-  토: '흙 — 중재·신뢰·축적',
-  금: '쇠 — 결단·구조·정리',
-  수: '물 — 지혜·휴식·흐름',
-  // 점성
-  네이탈: '태어난 순간의 천체 위치(본명 차트)',
-  트랜짓: '오늘 하늘에 떠 있는 행성과 본명의 만남',
-  '환절기 트랜짓': '계절이 바뀌는 구간(3·9월 등)에 일어나는 외부 신호',
-  // 분석 용어
-  교차: '사주와 점성이 같은 방향을 가리키는지 확인하는 cross-check',
-}
-
-const GLOSSARY_EN: Record<string, string> = {
-  // 십신 (sibsin)
-  비견: 'Bigyeon — same element & polarity: a peer, even-keeled collaboration',
-  겁재: 'Geopjae — same element opposite polarity: rivalry, resources are split',
-  식신: 'Sikshin — soft output you produce: steady expression and craft',
-  상관: 'Sanggwan — strong output you radiate: creativity, daring, sharp speech',
-  편재: 'Pyeonjae — moving wealth you handle externally: fluid money flow',
-  정재: 'Jeongjae — stable wealth you collect: fixed income, contracts',
-  편관: 'Pyeongwan — pressing responsibility: high-stakes / pressured work',
-  정관: 'Jeonggwan — formal authority over you: official roles within rules',
-  편인: 'Pyeonin — non-mainstream nurture: learning, inner reset',
-  정인: 'Jeongin — formal nurture: care, paperwork, recognition',
-  // 신살 (sinsal)
-  역마: 'Yeokma — movement / travel / job-change signal',
-  도화: 'Dohwa — attraction / charm / public spotlight',
-  화개: 'Hwagae — inner cleanup / art / solitude deepens',
-  망신: 'Mangshin — caution against face-loss / exposed slips',
-  // 사주 기본
-  일간: 'Day-master (top character of birth day): the self',
-  일지: 'Day-branch (bottom character of birth day): spouse-seat / daily texture',
-  월간: 'Month-stem (top of birth month): social / work environment',
-  월지: 'Month-branch (bottom of birth month): season / root of the geokguk',
-  대운: 'Daeun — 10-year major luck cycle',
-  세운: 'Seun — single-year luck flow',
-  격국: 'Geokguk — chart structure (정관격, 정재격 …): the natal frame',
-  조후용신: 'Johu-yongsin — season-balancing element that keeps the chart healthy',
-  // 오행
-  목: 'Wood — growing, planning, beginnings',
-  화: 'Fire — expression, expansion, passion',
-  토: 'Earth — mediation, trust, accumulation',
-  금: 'Metal — decision, structure, cleanup',
-  수: 'Water — wisdom, rest, flow',
-  // 점성
-  네이탈: 'Natal — planetary positions at the moment of birth',
-  트랜짓: 'Transit — current sky planets meeting your natal chart',
-  '환절기 트랜짓':
-    'Shoulder-season transits (around March / September equinoxes etc.) — external prompts',
-  // 분석 용어
-  교차: 'Cross-check — verifying that saju and astrology point the same way',
-}
-
-function pickGlossaryTerms(text: string): string[] {
-  const out: string[] = []
-  for (const term of Object.keys(GLOSSARY_KO)) {
-    if (text.includes(term)) out.push(term)
-  }
-  return out
 }
 
 function buildCrossCheckLineKo(percent: number): string {
@@ -2531,6 +2359,22 @@ export function calculateYearlyImportantDates(
       confidence: Math.round(clamp(primaryStrength * 100, 0, 100)),
       confidenceNote: locale === 'ko' ? '캘린더 스코어링 기준' : 'Calendar scoring baseline',
       crossAgreementPercent,
+      scoreBreakdown: {
+        engine: Math.round(engineSub),
+        matrix: Math.round(matrixSubAdj),
+        cycle: Math.round(cycleSub),
+        cross: Math.round(crossSub),
+        yongsin: Math.round(yongsinSub),
+        transit: Math.round(transitSub),
+        lunarRetro: Math.round(lunarRetroSub),
+        dailyShift: Math.round(dailyShift),
+        weakPenalty: 0,
+        peakBoost: 0,
+        finalScore: score,
+        sajuAxis: sajuAxisScore,
+        astroAxis: astroAxisScore,
+        axisAgreement,
+      },
       crossCheck: {
         line:
           locale === 'ko'

@@ -821,6 +821,9 @@ export function formatDateForResponse(
         cycleInteractions?: import('./yearlyDates').YearlyImportantDate['cycleInteractions']
       }
     ).cycleInteractions,
+    scoreBreakdown: (
+      date as { scoreBreakdown?: import('./yearlyDates').YearlyImportantDate['scoreBreakdown'] }
+    ).scoreBreakdown,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),
