@@ -1470,6 +1470,235 @@ export const RULES: InterpretationRule[] = [
       `내실 다지기·계획에 좋은 한 달.`,
     themes: ['study', 'spirituality'],
   },
+
+  // ═════════════════════════════════════════════════════════════
+  // 도메인 × 본명 컨텍스트 분기 — 같은 도메인 안 다른 톤
+  // matcher의 5도메인 통합에 풍부도를 더하는 보조 룰들.
+  // 같은 section에 추가 매칭되면 도메인 단락에 자연 연결사로 합쳐짐.
+  // ═════════════════════════════════════════════════════════════
+
+  // ── 돈·자산 분기 ──
+  {
+    id: 'theme-money-strong-with-wealth',
+    scope: 'monthly',
+    section: 'theme-money',
+    priority: 55,
+    conditions: {
+      natalStrength: ['strong'],
+      signalSource: 'saju',
+      sibsin: ['정재', '편재'],
+      minPolarity: 1,
+    },
+    template:
+      `본인이 신강한데 재성도 강하게 들어와 — 벌이는 좋지만 지출도 ` +
+      `같이 커지는 시기. 큰 매입 전에 한 박자 쉬어주세요.`,
+    themes: ['money'],
+  },
+  {
+    id: 'theme-money-weak-with-food',
+    scope: 'monthly',
+    section: 'theme-money',
+    priority: 54,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      sibsin: ['식신', '상관'],
+    },
+    template:
+      `식상이 재성으로 흘러가는 구조 — 무리하지 않은 안정적 수입 ` +
+      `흐름. 본업 다지기·꾸준한 작은 베팅에 좋아요.`,
+    themes: ['money', 'business'],
+  },
+  {
+    id: 'theme-money-officer-real-estate',
+    scope: 'monthly',
+    section: 'theme-money',
+    priority: 53,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['정관', '편관'],
+      minPolarity: 1,
+    },
+    template:
+      `관성 활성으로 부동산·계약·공식 자산 강세. 명의·서류 정리, ` +
+      `구조화된 자산 형성에 우호적인 흐름.`,
+    themes: ['money', 'legal'],
+  },
+
+  // ── 일·커리어 분기 ──
+  {
+    id: 'theme-career-strong-officer',
+    scope: 'monthly',
+    section: 'theme-career',
+    priority: 55,
+    conditions: {
+      natalStrength: ['strong'],
+      signalSource: 'saju',
+      sibsin: ['정관', '편관'],
+      minPolarity: 1,
+    },
+    template:
+      `본인 힘이 충분한데 관성도 강 — 공식 자리·승진·새 책임 ` +
+      `다 받아낼 수 있는 시기. 적극적인 도전 가능.`,
+    themes: ['career', 'reputation'],
+  },
+  {
+    id: 'theme-career-weak-officer',
+    scope: 'monthly',
+    section: 'theme-career',
+    priority: 54,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      sibsin: ['정관', '편관'],
+      minPolarity: 1,
+    },
+    template:
+      `관성 압박이 큰데 본인은 신약 — 책임 무거움. 가장 중요한 ` +
+      `한 건에 집중하고 나머지는 위임 권장.`,
+    themes: ['career', 'crisis'],
+  },
+  {
+    id: 'theme-career-strong-food',
+    scope: 'monthly',
+    section: 'theme-business',
+    priority: 53,
+    conditions: {
+      natalStrength: ['strong'],
+      signalSource: 'saju',
+      sibsin: ['식신', '상관'],
+      minPolarity: 1,
+    },
+    template:
+      `식상 활성 + 본인 힘 충분 — 표현·기획·창업·외주 일에 강한 ` +
+      `시기. 새 분야 진출에 우호적.`,
+    themes: ['business', 'creativity'],
+  },
+  {
+    id: 'theme-career-bigeop-partner',
+    scope: 'monthly',
+    section: 'theme-social',
+    priority: 52,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['비견', '겁재'],
+      minPolarity: 1,
+    },
+    template:
+      `비겁 활성 — 동료·파트너십·공동 사업 흐름. 같이 일하는 ` +
+      `사람들과 호흡이 잘 맞는 시기.`,
+    themes: ['social', 'business'],
+  },
+
+  // ── 관계 분기 ──
+  {
+    id: 'theme-love-strong-food',
+    scope: 'monthly',
+    section: 'theme-love',
+    priority: 55,
+    conditions: {
+      natalStrength: ['strong'],
+      signalSource: 'saju',
+      sibsin: ['식신', '상관'],
+    },
+    template:
+      `식상 + 본인 힘 충분 — 매력·표현이 자연스럽게 발산되는 시기. ` +
+      `새로운 만남에 적극 나서볼 만해요.`,
+    themes: ['love', 'creativity'],
+  },
+  {
+    id: 'theme-family-weak-officer',
+    scope: 'monthly',
+    section: 'theme-family',
+    priority: 53,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      sibsin: ['정관', '편관'],
+    },
+    template:
+      `관성 압박 + 신약 — 가족·윗사람 책임이 무거워질 수 있어요. ` +
+      `완벽하려 하지 말고 도움 청하기.`,
+    themes: ['family'],
+  },
+
+  // ── 몸·내면 분기 ──
+  {
+    id: 'theme-health-weak-officer',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 55,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      sibsin: ['정관', '편관'],
+    },
+    template:
+      `신약 + 관성 압박 — 체력 무리 주의. 일·관계에 과부하 걸리기 ` +
+      `쉬워요. 휴식 우선 순위 올려주세요.`,
+    themes: ['health', 'crisis'],
+  },
+  {
+    id: 'theme-study-strong-print',
+    scope: 'monthly',
+    section: 'theme-study',
+    priority: 54,
+    conditions: {
+      natalStrength: ['strong'],
+      signalSource: 'saju',
+      sibsin: ['정인', '편인'],
+    },
+    template:
+      `인성 + 본인 힘 충분 — 학업·연구·자기성장에 깊이 들어가기 ` +
+      `좋은 시기. 자격증·전문 분야 다지기에 우호적.`,
+    themes: ['study', 'personality'],
+  },
+
+  // ── 표현·창작 분기 ──
+  {
+    id: 'theme-creativity-food-active',
+    scope: 'monthly',
+    section: 'theme-creativity',
+    priority: 55,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['식신', '상관'],
+      minPolarity: 1,
+    },
+    template:
+      `식상 활성 — 표현·창작·아이디어 발산이 잘 들어오는 시기. ` +
+      `글·영상·기획 같은 결과물 만들기 우호적.`,
+    themes: ['creativity', 'business'],
+  },
+  {
+    id: 'theme-children-food-active',
+    scope: 'monthly',
+    section: 'theme-children',
+    priority: 53,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['식신', '상관'],
+      minPolarity: 1,
+    },
+    template:
+      `식상 활성 — 자녀·후배·새 작품과의 시간이 잘 흐르는 시기. ` +
+      `돌봄·교육·전수에 우호적.`,
+    themes: ['children'],
+  },
+  {
+    id: 'theme-karma-spiritual-deep',
+    scope: 'monthly',
+    section: 'theme-karma',
+    priority: 52,
+    conditions: {
+      signalSource: 'saju',
+      shinsalName: ['화개', '천문성', '문곡'],
+    },
+    template:
+      `화개·천문 활성 — 카르마·인연·깊은 흐름을 정리할 시기. ` +
+      `명상·기록·내면 작업이 의외로 큰 변화를 만들어요.`,
+    themes: ['karma', 'spirituality'],
+  },
 ]
 
 /** 룰 매핑 — id로 빠른 조회 */
