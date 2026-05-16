@@ -41,6 +41,13 @@
   border-bottom: 1px solid rgba(244, 114, 182, 0.18);
   min-width: 0;
   flex-shrink: 0;
+  /* Pin the header so it stays visible when the mobile keyboard
+     pushes content up and the user scrolls. Without this the row
+     scrolled away with the messages, leaving no way to open the
+     sidebar or start a new chat without scrolling all the way back. */
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .headerLeft {

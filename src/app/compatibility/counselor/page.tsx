@@ -226,7 +226,33 @@ function CompatibilityCounselorContent() {
   }
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    // Streaming updates the *last* message's content in place — array
+    // length doesn't change after the second chunk, but the array
+    // reference does, so this effect refires on every chunk. We need
+    // the scroll to keep up with the growing bubble, not just the
+    // initial append.
+    //
+    // Pre-fix this used scrollIntoView({ behavior: 'smooth' }), which
+    // (1) targets window-level scroll instead of the inner messages
+    // container, and (2) cancels itself when called many times per
+    // second during streaming — so the chat stopped following the
+    // assistant's reply mid-paragraph.
+    //
+    // Replacement: scrollTop = scrollHeight on the actual scroll
+    // container, deferred a frame so the freshly appended chunk is
+    // already in the DOM. Falls back to scrollIntoView in case the
+    // ref structure ever changes.
+    const end = messagesEndRef.current
+    if (!end) return
+    const container = end.parentElement
+    const raf = requestAnimationFrame(() => {
+      if (container && container.scrollHeight > container.clientHeight) {
+        container.scrollTop = container.scrollHeight
+      } else {
+        end.scrollIntoView({ block: 'end' })
+      }
+    })
+    return () => cancelAnimationFrame(raf)
   }, [messages])
 
   // dvh layout requires html/body scroll lock — same trick as destiny-counselor.
