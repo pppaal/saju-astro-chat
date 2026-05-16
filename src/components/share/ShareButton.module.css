@@ -41,7 +41,7 @@
 
 .toast {
   position: fixed;
-  bottom: 2rem;
+  bottom: max(2rem, env(safe-area-inset-bottom, 0px) + 1rem);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(34, 197, 94, 0.9);
