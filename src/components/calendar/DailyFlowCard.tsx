@@ -54,13 +54,13 @@ export default function DailyFlowCard({ importantDate }: Props) {
     .slice(0, 2)
 
   return (
-    <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
-      <h3 className="text-sm font-bold text-zinc-300 mb-3 flex items-center gap-2 tracking-wider uppercase">
-        <Sparkles className="w-4 h-4 text-indigo-400" />
+    <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
+      <h3 className="text-base font-bold text-zinc-200 mb-3 flex items-center gap-2 tracking-wider uppercase">
+        <Sparkles className="w-5 h-5 text-indigo-400" />
         오늘의 활성 흐름
       </h3>
 
-      <div className="text-sm text-zinc-300 leading-relaxed space-y-3">
+      <div className="text-base text-zinc-200 leading-relaxed space-y-3">
         {/* 핵심 한 줄 */}
         {lead && (
           <p className="text-amber-200 font-bold text-base">{lead}.</p>
@@ -102,7 +102,7 @@ export default function DailyFlowCard({ importantDate }: Props) {
 
         {/* 신살 — 길/흉 따로 문장으로 */}
         {(luckyShinsal.length > 0 || unluckyShinsal.length > 0 || neutralShinsal.length > 0) && (
-          <p className="text-xs text-zinc-400">
+          <p className="text-sm text-zinc-300">
             {luckyShinsal.length > 0 && (
               <>
                 길성 발동:{' '}
