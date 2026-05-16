@@ -57,6 +57,15 @@ export default defineConfig({
       use: { ...devices['iPhone 13'], reducedMotion: 'reduce' },
       testMatch: /reduced-motion\.spec\.ts/,
     },
+    // Narrowest realistic viewport — Galaxy Z Fold outer screen is 280px
+    // wide. Chips, buttons, and headlines often overflow at this width
+    // even when iPhone SE (375px) passes. Same spec file as iPhone SE so
+    // both run the visibility assertions.
+    {
+      name: 'narrow-viewport',
+      use: { viewport: { width: 280, height: 653 }, isMobile: true, hasTouch: true },
+      testMatch: /mobile-visibility\.spec\.ts/,
+    },
   ],
   webServer: {
     command:

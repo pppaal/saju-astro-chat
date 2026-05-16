@@ -6,10 +6,13 @@ import { test, expect } from '@playwright/test'
  * The default `mobile.spec.ts` only checks that `body` renders — it
  * passes even when the chat bar is positioned off-screen. These tests
  * assert that specific UI controls actually fit inside the visible
- * viewport on the smallest mainstream device (iPhone SE, 375x667).
+ * viewport on the smallest realistic phones.
  *
- * Runs under the `mobile-visibility` Playwright project, which sets
- * the iPhone SE device profile.
+ * Runs under TWO Playwright projects:
+ *  - `mobile-visibility`: iPhone SE (375x667), smallest mainstream iOS
+ *  - `narrow-viewport`:   Galaxy Z Fold outer screen (280x653)
+ * Both projects exercise the same assertions, so a regression that
+ * only shows up on the narrowest screens is also caught.
  */
 
 test.describe('Main page — controls reachable on small phones', () => {
