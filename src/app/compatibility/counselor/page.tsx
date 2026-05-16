@@ -52,6 +52,7 @@ function CompatibilityCounselorContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [creditExhausted, setCreditExhausted] = useState(false)
   // Persistent chat session id (returned by /api/counselor/chat-history
   // after the first save). Subsequent saves attach to the same row.
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
@@ -264,6 +265,14 @@ function CompatibilityCounselorContent() {
         if (response.status === 401) {
           throw new Error('login_required')
         }
+        // 402 Payment Required — credit exhausted. The middleware
+        // returns { error, code: 'INSUFFICIENT_CREDITS', upgradeUrl,
+        // remaining }. We want a user-friendly bubble + pricing link
+        // instead of a generic "오류 발생", which is what every user
+        // (and three rounds of debugging) had been seeing.
+        if (response.status === 402) {
+          throw new Error('payment_required')
+        }
         // Pull the route's short errorTag so the chat bubble shows
         // *why* the request failed instead of a generic "오류 발생".
         // The route returns { error, errorTag } as JSON for non-2xx.
@@ -343,18 +352,28 @@ function CompatibilityCounselorContent() {
       }
     } catch (e) {
       logger.error('Chat error:', { error: e })
-      if ((e as Error).message === 'login_required') {
+      const errMsg = (e as Error).message || ''
+      if (errMsg === 'login_required') {
         setError(
           isKo ? '로그인이 필요한 프리미엄 기능입니다.' : 'Login required for this premium feature.'
         )
+      } else if (errMsg === 'payment_required') {
+        // Friendly credit-exhausted message + flip a flag so the error
+        // bubble renders a tappable "플랜 보기" button alongside the
+        // text. setError on its own can only emit plain text.
+        setError(
+          isKo
+            ? '이번 달 무료 궁합 분석 횟수를 모두 사용했어요.'
+            : "You've used all free compatibility readings this month."
+        )
+        setCreditExhausted(true)
       } else {
         // Append the route's errorTag (set above from response body) so
         // the user-visible bubble points at the actual failure mode
         // instead of a generic message. The Error here is either our
         // "Failed (500): ErrorName: message…" string or a network error.
-        const rawMsg = (e as Error).message || ''
         const base = isKo ? '오류가 발생했습니다. 다시 시도해 주세요.' : 'An error occurred. Please try again.'
-        setError(rawMsg && rawMsg !== 'Failed to get response' ? `${base}\n[${rawMsg}]` : base)
+        setError(errMsg && errMsg !== 'Failed to get response' ? `${base}\n[${errMsg}]` : base)
       }
     } finally {
       setIsLoading(false)
@@ -609,7 +628,30 @@ function CompatibilityCounselorContent() {
             )
           })}
 
-          {error && <div className={styles.errorMessage}>{error}</div>}
+          {error && (
+            <div className={styles.errorMessage}>
+              {error}
+              {creditExhausted && (
+                <a
+                  href="/pricing"
+                  style={{
+                    display: 'inline-block',
+                    marginTop: 10,
+                    padding: '8px 14px',
+                    borderRadius: 999,
+                    background:
+                      'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%)',
+                    color: '#3a1f3a',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {isKo ? '플랜 보기' : 'View plans'}
+                </a>
+              )}
+            </div>
+          )}
 
           <div ref={messagesEndRef} />
         </div>
