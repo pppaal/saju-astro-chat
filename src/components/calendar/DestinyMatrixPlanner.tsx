@@ -365,18 +365,6 @@ export default function DestinyMatrixPlanner({
     return found?.natalContext ?? null
   }, [data])
 
-  // --- Stats: yongsin activation top 5 (next 60 days) ------------------
-  const yongsinTop = useMemo(() => {
-    return data?.yongsinActivations ?? null
-  }, [data])
-
-  const formatDateKo = (dateStr: string): string => {
-    // 'YYYY-MM-DD' → 'M월 D일'
-    const m = parseInt(dateStr.slice(5, 7), 10)
-    const d = parseInt(dateStr.slice(8, 10), 10)
-    return `${m}월 ${d}일`
-  }
-
   // --- Astro identity badge for the header ---------------------------
   // 풀 차트가 들어오면 ASC, 없으면 태양 별자리.
   const astroBadge = useMemo(() => {
