@@ -46,7 +46,7 @@ export const GET = withApiMiddleware(
       }
       const { limit, offset, type: service } = queryValidation.data
 
-      // Check Redis cache first (5 minute TTL for history)
+      // Check Redis cache first (30s TTL — 최근활동은 새 활동 즉시 반영이 중요)
       const cacheKey = `user:${userId}:history:${limit}:${offset}:${service || 'all'}`
       try {
         const cached = await cacheGet<DailyHistory[]>(cacheKey)
@@ -280,8 +280,8 @@ export const GET = withApiMiddleware(
       const hasMore = totalRecords >= limit || history.length >= limit
 
       try {
-        await cacheSet(cacheKey, history, 300)
-        logger.info('[History] Cached result')
+        await cacheSet(cacheKey, history, 30)
+        logger.info('[History] Cached result (30s TTL)')
       } catch (err) {
         logger.warn('[History] Cache write failed:', err)
       }
