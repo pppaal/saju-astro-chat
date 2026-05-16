@@ -1,4 +1,4 @@
-import { ICP_V2_QUESTIONS } from './questions'
+import { ICP_V2_QUESTIONS } from './test-questions'
 
 type RawAnswers = Record<string, unknown>
 

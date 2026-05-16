@@ -1,6 +1,6 @@
-import { ICP_ARCHETYPE_PROFILES, getAxisInterpretation } from '@/lib/icpTest/results'
-import { resolveHybridArchetype } from '@/lib/icpTest/hybrid'
-import type { CounselingBrief, IcpAxisKey, IcpResult } from '@/lib/icpTest/types'
+import { ICP_ARCHETYPE_PROFILES, getAxisInterpretation } from '@/lib/icp/results'
+import { resolveHybridArchetype } from '@/lib/icp/hybrid'
+import type { CounselingBrief, IcpAxisKey, IcpResult } from '@/lib/icp/test-types'
 import type { PersonaAnalysis } from '@/lib/persona/types'
 
 const AXIS_ORDER: IcpAxisKey[] = ['agency', 'warmth', 'boundary', 'resilience']

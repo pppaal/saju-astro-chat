@@ -10,7 +10,7 @@ import { fetchWithRetry, FetchWithRetryError } from '@/lib/http'
 import { useConfetti } from '@/hooks/useConfetti'
 import { sanitizePersonaPayload, sanitizePersonaText } from '@/lib/persona/sanitize'
 import { generateShareCard } from './generateShareCard'
-import { hasCompleteIcpV2Answers } from '@/lib/icpTest/answerValidation'
+import { hasCompleteIcpV2Answers } from '@/lib/icp/answerValidation'
 
 export function usePersonaResult() {
   const { t, locale } = useI18n()

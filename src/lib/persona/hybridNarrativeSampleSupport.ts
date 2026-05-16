@@ -1,5 +1,5 @@
 import type { ICPAnalysis, ICPOctantCode } from '@/lib/icp/types'
-import { ICP_ARCHETYPE_PROFILES } from '@/lib/icpTest/results'
+import { ICP_ARCHETYPE_PROFILES } from '@/lib/icp/results'
 import { ICP_OCTANTS } from '@/lib/icp/analysis'
 import type { PersonaAnalysis } from '@/lib/persona/types'
 import { PERSONA_ARCHETYPES, PERSONA_ARCHETYPES_KO } from '@/lib/persona/archetypes'

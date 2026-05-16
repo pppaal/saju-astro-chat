@@ -6,8 +6,8 @@
   PersonaAxisData,
   CrossSystemCompatibility,
 } from './types'
-import { scoreIcpTest } from '@/lib/icpTest/scoring'
-import { ICP_ARCHETYPE_PROFILES } from '@/lib/icpTest/results'
+import { scoreIcpTest } from '@/lib/icp/scoring'
+import { ICP_ARCHETYPE_PROFILES } from '@/lib/icp/results'
 
 const OCTANT_EMOJI: Record<ICPOctantCode, string> = {
   PA: '🎯',

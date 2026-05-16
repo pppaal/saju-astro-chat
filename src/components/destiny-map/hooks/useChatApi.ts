@@ -13,7 +13,7 @@ import {
 } from '../chat-utils'
 import { generateFollowUpQuestions } from '../chat-followups'
 import type { ChatProps, ChatPayload } from '../chat-types'
-import { scoreIcpTest } from '@/lib/icpTest/scoring'
+import { scoreIcpTest } from '@/lib/icp/scoring'
 import { analyzePersona } from '@/lib/persona/analysis'
 import { buildCounselingBrief } from '@/lib/prompts/fortuneWithIcp'
 import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'

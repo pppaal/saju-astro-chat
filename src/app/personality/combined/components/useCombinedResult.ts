@@ -7,20 +7,20 @@ import type { PersonaAnalysis } from '@/lib/persona/types'
 import { analyzeICP } from '@/lib/icp/analysis'
 import { analyzePersona } from '@/lib/persona/analysis'
 import { buildHybridNarrative, type HybridNarrative } from '@/lib/persona/hybridNarrative'
-import { scoreIcpTest } from '@/lib/icpTest/scoring'
-import { resolveHybridArchetype } from '@/lib/icpTest/hybrid'
-import type { IcpAnswers, IcpHybridResult, IcpResult } from '@/lib/icpTest/types'
-import { hasCompleteIcpV2Answers } from '@/lib/icpTest/answerValidation'
+import { scoreIcpTest } from '@/lib/icp/scoring'
+import { resolveHybridArchetype } from '@/lib/icp/hybrid'
+import type { IcpAnswers, IcpHybridResult, IcpResult } from '@/lib/icp/test-types'
+import { hasCompleteIcpV2Answers } from '@/lib/icp/answerValidation'
 import {
   computeIcpDimensions,
   computeIntegratedProfileId,
   type IcpDimensionResult,
   type IntegratedProfileId,
-} from '@/lib/assessment/integratedProfile'
+} from '@/lib/persona/integratedProfile'
 import {
   INTEGRATED_PROFILES,
   type IntegratedProfileTemplate,
-} from '@/lib/assessment/integratedProfiles'
+} from '@/lib/persona/integratedProfiles'
 
 export interface CombinedResult {
   icpResult: ICPAnalysis | null

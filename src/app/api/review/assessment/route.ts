@@ -6,8 +6,8 @@ import {
   computeIcpDimensions,
   computeIntegratedProfileId,
   type IcpDimensionResult,
-} from '@/lib/assessment/integratedProfile'
-import { INTEGRATED_PROFILES } from '@/lib/assessment/integratedProfiles'
+} from '@/lib/persona/integratedProfile'
+import { INTEGRATED_PROFILES } from '@/lib/persona/integratedProfiles'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'

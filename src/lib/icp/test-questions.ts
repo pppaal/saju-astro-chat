@@ -1,4 +1,4 @@
-﻿import type { IcpQuestion, IcpLikertValue } from './types'
+﻿import type { IcpQuestion, IcpLikertValue } from './test-types'
 
 export const ICP_TEST_VERSION = 'icp_v2' as const
 

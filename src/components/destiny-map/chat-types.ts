@@ -3,7 +3,7 @@
 
 import type { LangKey } from './chat-i18n'
 import type { Message, UserContext } from './chat-constants'
-import type { CounselingBrief } from '@/lib/icpTest/types'
+import type { CounselingBrief } from '@/lib/icp/test-types'
 
 // Profile type for chat component
 export interface ChatProfile {

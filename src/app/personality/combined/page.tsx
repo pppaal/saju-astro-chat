@@ -8,7 +8,7 @@ import { ConfettiAnimation } from '@/components/shared'
 import { useConfetti } from '@/hooks/useConfetti'
 import { TestStatusCard, useCombinedResult } from './components'
 import { buildHybridNarrativeSample } from '@/lib/persona/hybridNarrative'
-import type { IcpDimensionKey } from '@/lib/assessment/integratedProfile'
+import type { IcpDimensionKey } from '@/lib/persona/integratedProfile'
 import styles from './combined.module.css'
 
 export default function CombinedResultPage() {

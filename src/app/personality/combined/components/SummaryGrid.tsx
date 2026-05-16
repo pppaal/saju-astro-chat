@@ -1,6 +1,6 @@
 import type { ICPAnalysis } from '@/lib/icp/types'
 import type { PersonaAnalysis } from '@/lib/persona/types'
-import type { IcpHybridResult } from '@/lib/icpTest/types'
+import type { IcpHybridResult } from '@/lib/icp/test-types'
 
 interface SummaryGridProps {
   styles: Record<string, string>

@@ -1,6 +1,6 @@
 import type { ICPAnalysis, ICPOctantCode } from './types'
 import { ICP_OCTANTS } from './analysis'
-import { ICP_ARCHETYPE_PROFILES } from '@/lib/icpTest/results'
+import { ICP_ARCHETYPE_PROFILES } from '@/lib/icp/results'
 export {
   buildBCRenderSample,
   buildIcpRenderSample,

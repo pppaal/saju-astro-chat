@@ -11,7 +11,7 @@ import type { SajuResult, AstrologyResult } from '@/lib/destiny-map/types'
 import { recordCounter, recordTiming } from '@/lib/metrics'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth/authOptions'
-import { saveConsultation, extractSummary } from '@/lib/consultation/saveConsultation'
+import { saveConsultation, extractSummary } from '@/lib/destiny-map/saveConsultation'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
 import {
   LIMITS,

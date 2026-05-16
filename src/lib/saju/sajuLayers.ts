@@ -23,7 +23,7 @@ import { determineYongsin, type YongsinResult } from './yongsin'
 import { evaluateJohuNeed, getJohuYongsin, type JohuYongsinInfo } from './johuYongsin'
 import { calculateTonggeun, type TonggeunResult } from './tonggeun'
 import { analyzeUnseInteraction } from './hyeongchung'
-import { analyzeGongmang } from '@/lib/timing/ultra-precision-daily'
+import { analyzeGongmang } from '@/lib/prediction/ultra-precision-daily'
 // 통합 정통 분석 — 강약+격국+용신 통합 + 용신 기준 운기 평가
 import { analyzeAdvancedSaju, evaluateElementInfluence, type AdvancedSajuAnalysis, type YongsinAnalysis } from './advancedAnalysis'
 import { BRANCHES } from './constants'

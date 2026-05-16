@@ -1,6 +1,6 @@
 import type { ICPOctantCode, ICPAnalysis } from './types'
 import { ICP_OCTANTS } from './analysis'
-import { ICP_ARCHETYPE_PROFILES } from '@/lib/icpTest/results'
+import { ICP_ARCHETYPE_PROFILES } from '@/lib/icp/results'
 import type { buildIcpNarrative } from './narrativeBuildCoreSupport'
 import { ICP_SAMPLE_STYLE_CODES } from './narrativeBuildCoreSupport'
 

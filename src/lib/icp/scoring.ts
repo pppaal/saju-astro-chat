@@ -1,5 +1,5 @@
 ﻿import { ICP_ARCHETYPE_PROFILES, getAxisInterpretation } from './results'
-import { ICP_TEST_VERSION, ICP_V2_QUESTIONS } from './questions'
+import { ICP_TEST_VERSION, ICP_V2_QUESTIONS } from './test-questions'
 import type {
   IcpAnswers,
   IcpArchetypeCode,
@@ -7,7 +7,7 @@ import type {
   IcpExplainability,
   IcpLikertValue,
   IcpResult,
-} from './types'
+} from './test-types'
 
 const OCTANT_COORDINATES: Record<IcpArchetypeCode, { d: number; a: number }> = {
   PA: { d: 1.0, a: 0.6 },
