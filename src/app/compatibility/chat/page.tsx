@@ -28,6 +28,8 @@ type PersonData = {
   time: string;
   city: string;
   relation?: string;
+  /** 대운 순/역행에 필수 — 빠지면 server side에서 default male로 잘못 계산. */
+  gender?: 'M' | 'F' | 'Male' | 'Female';
 };
 
 function CompatibilityChatContent() {

@@ -68,6 +68,9 @@ export default function CompatPage() {
       longitude: p.lon ?? undefined,
       timeZone: p.timeZone || 'Asia/Seoul',
       relation: p.relation,
+      // 대운은 음양남녀에 따라 순행/역행이 갈리므로 gender가 반드시 따라가야 함.
+      // 빠지면 buildPersonSeed가 default 'male'로 처리해 두 사람 대운이 같은 방향으로 잘못 계산됨.
+      gender: p.gender,
     }))
 
     router.push(

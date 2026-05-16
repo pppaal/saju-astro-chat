@@ -668,6 +668,7 @@ export async function POST(req: NextRequest) {
             '- 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.',
             '- "A/B 시간 미상" 표시가 있으면 그쪽 시주/일진/ASC/MC/하우스 인용 금지.',
             '- AI/모델/상담사 정체 노출 금지.',
+            '- 사주·점성 전문 용어(일간, 십성, 대운, 천을귀인, 트랜짓, 어스펙트, 하우스 등)는 최대한 쓰지 말 것. 데이터는 근거로만 읽고, 일상 언어로 자연스럽게 풀어서 답한다. 꼭 필요할 때만 짧은 괄호 설명과 함께 한 번 언급.',
           ].join('\n')
         : [
             'Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.',
@@ -678,6 +679,7 @@ export async function POST(req: NextRequest) {
             '- No markdown headers (##) or numbered lists. Plain prose paragraphs.',
             '- If "A/B 시간 미상" is marked, do not cite that side\'s hour pillar / 일진 / ASC / MC / houses.',
             "- Never reveal you're an AI / model / counselor system.",
+            '- Avoid jargon (day master, ten gods, daeun, transit, aspect, house, etc.). Use the data as evidence but speak in plain, natural language. Only mention a technical term once with a short parenthetical when truly needed.',
           ].join('\n')
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:
@@ -686,19 +688,19 @@ export async function POST(req: NextRequest) {
     //
     // 테마/품질가이드/시기 흐름(wolun/ilun이 테마 의존)을 변동 블록으로 옮겨
     // 같은 페어로 테마만 바꿔도 캐시 prefix가 hit하도록 한다.
+    // cached에는 raw 차트만 둔다. 매트릭스/종합/사주심화/점성심화 등
+    // 우리 엔진이 만든 2차 분석 텍스트는 빼서:
+    //   1. 토큰 ~60% 감축 (12,400 → ~5,000자)
+    //   2. 모델이 우리 점수/등급을 그대로 받아쓰는 환각 차단
+    //   3. raw에서 직접 추론하게 함
+    // (분석 변수들은 다른 흐름에서 쓰일 수 있어 import는 유지.)
+    void coupleMatrixContext
+    void fusionContext
+    void extendedSajuCompatibility
+    void extendedAstroCompatibility
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
-      coupleMatrixContext ? `\n${coupleMatrixContext}` : '',
-      fusionContext ? `\n${fusionContext}` : '',
-      extendedSajuCompatibility
-        ? `\n${formatExtendedSajuForPrompt(extendedSajuCompatibility, normalizedLang)}`
-        : '',
-      extendedAstroCompatibility
-        ? `\n${formatExtendedAstroForPrompt(extendedAstroCompatibility, normalizedLang)}`
-        : '',
-      // contextTrace(키 개수, 커버리지 플래그 등)는 디버그 메타데이터 — 응답에
-      // 쓸 정보가 아니므로 server log로만 남기고 prompt에는 포함하지 않는다.
       fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
     ]
       .filter(Boolean)
