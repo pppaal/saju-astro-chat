@@ -9,9 +9,9 @@ import { useEffect, useState } from 'react'
  */
 export function useTypewriterPlaceholder(
   prompts: readonly string[],
-  options: { typingMs?: number; deletingMs?: number; holdMs?: number } = {}
+  options: { typingMs?: number; deletingMs?: number; holdMs?: number; loop?: boolean } = {}
 ): string {
-  const { typingMs = 75, deletingMs = 35, holdMs = 1600 } = options
+  const { typingMs = 75, deletingMs = 35, holdMs = 1600, loop = false } = options
   const [text, setText] = useState('')
 
   // Rejoin prompts into a stable key so the effect resets cleanly when
@@ -23,17 +23,26 @@ export function useTypewriterPlaceholder(
     let cancelled = false
     let promptIdx = 0
     let charIdx = 0
-    let phase: 'typing' | 'holding' | 'deleting' = 'typing'
+    let phase: 'typing' | 'holding' | 'deleting' | 'done' = 'typing'
     let timer: ReturnType<typeof setTimeout> | undefined
 
     const step = () => {
       if (cancelled) return
       const current = prompts[promptIdx]
 
+      if (phase === 'done') return
+
       if (phase === 'typing') {
         charIdx += 1
         setText(current.slice(0, charIdx))
         if (charIdx >= current.length) {
+          // Non-loop mode: settle on the first prompt and stop. The user
+          // wants the placeholder to type out once and stay there
+          // instead of cycling through the suggestion list forever.
+          if (!loop) {
+            phase = 'done'
+            return
+          }
           phase = 'holding'
           timer = setTimeout(step, holdMs)
         } else {
@@ -65,7 +74,7 @@ export function useTypewriterPlaceholder(
       if (timer) clearTimeout(timer)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [promptsKey, typingMs, deletingMs, holdMs])
+  }, [promptsKey, typingMs, deletingMs, holdMs, loop])
 
   return text
 }

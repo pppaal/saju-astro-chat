@@ -163,7 +163,14 @@
 }
 
 .sessionTitle {
-  font-size: 0.85rem;
+  /* User reported titles were invisible on some phones — bumped from
+     0.85rem to 0.95rem and forced full opacity (was inheriting
+     rgba(245,243,255,0.85) from .sessionItem which read as nearly
+     hidden on OLED screens with dark theme calibration). */
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

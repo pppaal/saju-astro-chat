@@ -707,47 +707,15 @@ function CompatibilityCounselorContent() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* 🎴 둘 궁합 타로 즉시 버튼 — 한 번 클릭으로 5장 관계 크로스 펼침 */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            padding: '8px 12px 0',
-          }}
-        >
-          <button
-            type="button"
-            onClick={handleQuickCoupleTarot}
-            disabled={isLoading || persons.length < 2}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 16px',
-              borderRadius: 999,
-              border: '1px solid rgba(167, 139, 250, 0.45)',
-              background:
-                isLoading || persons.length < 2
-                  ? 'rgba(71, 85, 105, 0.4)'
-                  : 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(167,139,250,0.22))',
-              color: isLoading || persons.length < 2 ? '#94a3b8' : '#e0e7ff',
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: isLoading || persons.length < 2 ? 'not-allowed' : 'pointer',
-              boxShadow:
-                isLoading || persons.length < 2
-                  ? 'none'
-                  : '0 0 18px rgba(99,102,241,0.18)',
-              transition: 'all 0.15s',
-            }}
-            title={isKo ? '두 사람 관계를 5장 관계 크로스로 즉시 봐요' : 'Quick 5-card relationship reading'}
-          >
-            <span style={{ fontSize: 14 }}>🎴</span>
-            {isKo ? '둘 궁합 타로 즉시 보기' : 'Quick Couple Tarot'}
-          </button>
+        {/* The standalone "둘 궁합 타로 즉시 보기" pill above the input
+            was merged into the input toolbar below (Claude-style) so
+            the textarea gets the full width and the three actions
+            (📎 / 🎴 / ▶) share one row underneath. */}
+        <div style={{ display: 'none' }}>
         </div>
 
-        {/* Input */}
+        {/* Input — Claude-style: textarea on top, action row below.
+            Three actions: 📎 attach (placeholder), 🎴 quick tarot, ▶ send. */}
         <div className={styles.inputContainer}>
           <textarea
             ref={inputRef}
@@ -756,24 +724,53 @@ function CompatibilityCounselorContent() {
             onKeyDown={handleKeyDown}
             placeholder={animatedPlaceholder || (isKo ? '질문을 입력하세요…' : 'Type a question…')}
             className={styles.input}
-            rows={1}
+            rows={3}
             disabled={isLoading}
           />
-          <button
-            type="button"
-            onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
-            className={styles.sendButton}
-            aria-label={isKo ? '전송' : 'Send'}
-          >
-            {isLoading ? (
-              <span className={styles.loadingSpinner} />
-            ) : (
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-              </svg>
-            )}
-          </button>
+          <div className={styles.inputToolbar}>
+            <div className={styles.inputToolbarLeft}>
+              <button
+                type="button"
+                onClick={() => {
+                  // File attach is a placeholder for the compat counselor
+                  // for now — destiny has CV upload, compat doesn't yet.
+                  // Hooking up the actual upload is a separate change.
+                  alert(isKo ? '파일 첨부는 곧 지원돼요.' : 'File attach coming soon.')
+                }}
+                className={styles.toolButton}
+                aria-label={isKo ? '파일 첨부' : 'Attach file'}
+                title={isKo ? '파일 첨부 (준비 중)' : 'Attach file (coming soon)'}
+              >
+                <span className={styles.toolButtonIcon}>📎</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleQuickCoupleTarot}
+                disabled={isLoading || persons.length < 2}
+                className={styles.toolButton}
+                aria-label={isKo ? '둘 궁합 타로' : 'Quick tarot'}
+                title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
+              >
+                <span className={styles.toolButtonIcon}>🎴</span>
+                <span>{isKo ? '타로' : 'Tarot'}</span>
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+              className={styles.sendButton}
+              aria-label={isKo ? '전송' : 'Send'}
+            >
+              {isLoading ? (
+                <span className={styles.loadingSpinner} />
+              ) : (
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </main>

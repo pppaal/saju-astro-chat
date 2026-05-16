@@ -404,11 +404,15 @@
 }
 
 /* ============ Input ============ */
+/* Claude-style two-row layout: textarea on top, toolbar (attach / tarot
+   on the left, send on the right) below. The old single-row form
+   crammed input + send into one strip and made the textarea feel
+   tiny on mobile. */
 .inputContainer {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   gap: 0.5rem;
-  padding: 0.65rem 0.75rem;
+  padding: 0.75rem 0.85rem;
   margin-top: 0.65rem;
   background: rgba(20, 8, 30, 0.7);
   border: 1px solid rgba(244, 114, 182, 0.28);
@@ -570,4 +574,50 @@
   .loadingSpinner {
     animation: none !important;
   }
+}
+
+/* Toolbar row inside the input container (claude-style).
+   Attach + tarot on the left, send on the right. */
+.inputToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.inputToolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.toolButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  height: 32px;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(99, 102, 241, 0.1);
+  color: #e0e7ff;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.toolButton:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(167, 139, 250, 0.55);
+}
+
+.toolButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.toolButtonIcon {
+  font-size: 14px;
+  line-height: 1;
 }
