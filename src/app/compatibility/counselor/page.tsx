@@ -569,24 +569,9 @@ function CompatibilityCounselorContent() {
           </h1>
         </div>
         <div className={styles.headerActions}>
-          {messages.length > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                if (isLoading) return
-                setMessages([])
-                setError(null)
-                setInput('')
-                setTimeout(() => inputRef.current?.focus(), 0)
-              }}
-              className={styles.localeToggle}
-              aria-label={isKo ? '새 채팅' : 'New chat'}
-              title={isKo ? '새 채팅 시작' : 'Start a new chat'}
-              disabled={isLoading}
-            >
-              {isKo ? '＋ 새 채팅' : '＋ New'}
-            </button>
-          )}
+          {/* "+ 새 채팅" lives in the sidebar (CounselorSidebar) already.
+              The duplicate header button was just stacking with the
+              hamburger and EN toggle, eating real estate. */}
           <button
             type="button"
             onClick={toggleLocale}
