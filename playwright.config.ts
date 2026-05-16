@@ -25,10 +25,15 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      // The two specs below are viewport- or media-feature-specific and
-      // only make sense under their own projects (mobile-visibility,
-      // reduced-motion). Exclude them from the default desktop run.
-      testIgnore: [/mobile-visibility\.spec\.ts/, /reduced-motion\.spec\.ts/],
+      // The specs below are viewport- or media-feature-specific and only
+      // make sense under their own projects (mobile-visibility,
+      // reduced-motion, screenshots). Exclude them from the default
+      // desktop run.
+      testIgnore: [
+        /mobile-visibility\.spec\.ts/,
+        /reduced-motion\.spec\.ts/,
+        /screenshots\.spec\.ts/,
+      ],
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
@@ -65,6 +70,31 @@ export default defineConfig({
       name: 'narrow-viewport',
       use: { viewport: { width: 280, height: 653 }, isMobile: true, hasTouch: true },
       testMatch: /mobile-visibility\.spec\.ts/,
+    },
+    // Visual regression — captures pixel snapshots of key pages so a CSS
+    // change that visually breaks the layout is caught even if no
+    // explicit assertion covers the affected region. Runs with motion
+    // disabled (reducedMotion: 'reduce' + animations: 'disabled' in
+    // toHaveScreenshot) so canvas particles / typewriter prompts /
+    // loading spinners don't make snapshots flaky.
+    //
+    // Baselines live in e2e/screenshots.spec.ts-snapshots/. Generate or
+    // update them with:
+    //   npx playwright test --project=screenshots --update-snapshots
+    {
+      name: 'screenshots',
+      use: {
+        ...devices['iPhone 13'],
+        reducedMotion: 'reduce',
+      },
+      testMatch: /screenshots\.spec\.ts/,
+      expect: {
+        toHaveScreenshot: {
+          maxDiffPixelRatio: 0.02,
+          animations: 'disabled',
+          caret: 'hide',
+        },
+      },
     },
   ],
   webServer: {
