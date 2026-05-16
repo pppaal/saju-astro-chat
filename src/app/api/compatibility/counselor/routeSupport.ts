@@ -390,6 +390,68 @@ async function buildAutoSajuContext(
     const currentSaeun =
       annual.find((a) => Number(a.year) === now.getFullYear()) || asRecord(annual[0]) || null
 
+    // Pull extras + natalRelations so the compat counselor prompt
+    // matches what destiny already had: 신살 / 격국 / 용신 / 12운성
+    // and the pillar-to-pillar 합/충/형/파/해/공망/원진 list.
+    // Each helper is wrapped in its own try/catch — if any one
+    // throws we still ship the base saju instead of bailing the
+    // whole turn.
+    let extras: Record<string, unknown> = {}
+    let natalRelations: unknown[] = []
+    try {
+      const [
+        { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike },
+        { determineGeokguk },
+        { determineYongsin },
+        { analyzeRelations, toAnalyzeInputFromSaju },
+      ] = await Promise.all([
+        import('@/lib/saju/shinsal'),
+        import('@/lib/saju/geokguk'),
+        import('@/lib/saju/yongsin'),
+        import('@/lib/saju/relations'),
+      ])
+      const pillarsLike = toSajuPillarsLike(saju)
+      // simpleInput is the shape determineGeokguk / determineYongsin expect
+      // (stem/branch pairs). Mirrors buildSajuNormalizerInput.
+      const simpleInput = {
+        year: { stem: saju.pillars.year.heavenlyStem.name, branch: saju.pillars.year.earthlyBranch.name },
+        month: { stem: saju.pillars.month.heavenlyStem.name, branch: saju.pillars.month.earthlyBranch.name },
+        day: { stem: saju.pillars.day.heavenlyStem.name, branch: saju.pillars.day.earthlyBranch.name },
+        time: { stem: saju.pillars.time.heavenlyStem.name, branch: saju.pillars.time.earthlyBranch.name },
+        dayMaster: saju.dayMaster.name,
+      }
+      let shinsal: unknown[] = []
+      try {
+        shinsal = getShinsalHits(pillarsLike, {
+          includeGeneralShinsal: true,
+          includeLuckyDetails: true,
+        }) as unknown[]
+      } catch { /* advisory */ }
+      let twelveStages: unknown = null
+      try {
+        twelveStages = getTwelveStagesForPillars(pillarsLike, 'day')
+      } catch { /* advisory */ }
+      let geokguk: unknown = null
+      try {
+        geokguk = determineGeokguk(simpleInput as Parameters<typeof determineGeokguk>[0])
+      } catch { /* advisory */ }
+      let yongsin: unknown = null
+      try {
+        yongsin = determineYongsin(simpleInput as Parameters<typeof determineYongsin>[0])
+      } catch { /* advisory */ }
+      try {
+        natalRelations = analyzeRelations(
+          toAnalyzeInputFromSaju(saju.pillars, saju.dayMaster.name, {
+            includeGongmang: true,
+            gongmangPolicy: 'dayPillar-60jiazi',
+          })
+        ) as unknown[]
+      } catch { /* advisory */ }
+      extras = { shinsal, twelveStages, geokguk, yongsin }
+    } catch (err) {
+      logger.warn('[compatibility/counselor] extras compute failed (non-fatal)', { err })
+    }
+
     return {
       ...saju,
       yeonun: annual,
@@ -404,6 +466,8 @@ async function buildAutoSajuContext(
         monthly,
         iljin,
       },
+      extras,
+      natalRelations,
       autoComputedMeta: {
         source: seed.source,
         computedAtIso: now.toISOString(),

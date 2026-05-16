@@ -14,6 +14,7 @@ import {
   formatSajuAsTable,
   formatDestinyTiming,
   formatDestinyAstro,
+  formatSajuExtras,
 } from '../src/lib/compatibility/sajuTableFormatter'
 
 const birth = {
@@ -54,6 +55,14 @@ async function main() {
   }
   parts.push('')
   parts.push(formatSajuAsTable(saju.saju, '나'))
+  const extrasBlock = formatSajuExtras({
+    extras: (saju as { extras?: Parameters<typeof formatSajuExtras>[0]['extras'] }).extras,
+    natalRelations: (saju as { natalRelations?: Parameters<typeof formatSajuExtras>[0]['natalRelations'] }).natalRelations,
+  })
+  if (extrasBlock) {
+    parts.push('')
+    parts.push(extrasBlock)
+  }
   const timingBlock = formatDestinyTiming(saju)
   if (timingBlock) {
     parts.push('')

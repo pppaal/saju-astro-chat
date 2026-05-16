@@ -16,6 +16,7 @@ import {
   formatSajuAsTable,
   formatDestinyTiming,
   formatDestinyAstro,
+  formatSajuExtras,
 } from '@/lib/compatibility/sajuTableFormatter'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
@@ -202,6 +203,18 @@ export async function POST(req: NextRequest) {
       }
       parts.push('')
       parts.push(formatSajuAsTable(saju.saju, '나'))
+      // 격국·용신·신살·12운성 + 합/충/형/파/해/공망. Calculated by
+      // runFortuneWithRaw → buildSajuNormalizerInput and previously
+      // dropped from the prompt; users noticed neither shinsal nor
+      // gongmang were ever cited.
+      const extrasBlock = formatSajuExtras({
+        extras: (saju as { extras?: Parameters<typeof formatSajuExtras>[0]['extras'] }).extras,
+        natalRelations: (saju as { natalRelations?: Parameters<typeof formatSajuExtras>[0]['natalRelations'] }).natalRelations,
+      })
+      if (extrasBlock) {
+        parts.push('')
+        parts.push(extrasBlock)
+      }
       const timingBlock = formatDestinyTiming(saju)
       if (timingBlock) {
         parts.push('')
