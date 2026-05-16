@@ -82,45 +82,48 @@ export default function WeeklyTimingChart({ monthDates }: Props) {
 
   return (
     <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-      <h3 className="text-sm font-bold text-zinc-300 mb-4 flex items-center gap-2 tracking-wider uppercase">
-        <TrendingUp className="w-4 h-4 text-indigo-400" />
+      <h3 className="text-base font-bold text-zinc-200 mb-3 flex items-center gap-2 tracking-wider uppercase">
+        <TrendingUp className="w-5 h-5 text-indigo-400" />
         주간 타이밍
       </h3>
-      <ResponsiveContainer width="100%" height={180}>
-        <LineChart data={weekly} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+      <p className="text-xs text-zinc-500 mb-3">사주(노랑)와 점성(시안)이 주별로 어떻게 흐르는지</p>
+      <ResponsiveContainer width="100%" height={240}>
+        <LineChart data={weekly} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-          <XAxis dataKey="week" stroke="#71717a" fontSize={12} />
-          <YAxis domain={[0, 100]} stroke="#71717a" fontSize={11} />
+          <XAxis dataKey="week" stroke="#a1a1aa" fontSize={13} fontWeight={600} />
+          <YAxis domain={[0, 100]} stroke="#a1a1aa" fontSize={12} />
           <Tooltip
             contentStyle={{
               background: '#09090b',
               border: '1px solid #3f3f46',
               borderRadius: '0.5rem',
-              fontSize: '12px',
+              fontSize: '13px',
+              padding: '8px 12px',
             }}
-            labelStyle={{ color: '#a1a1aa' }}
+            labelStyle={{ color: '#e4e4e7', fontWeight: 700 }}
+            itemStyle={{ padding: '2px 0' }}
           />
           <Legend
-            iconSize={8}
-            wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }}
+            iconSize={12}
+            wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingTop: '12px' }}
           />
           <Line
             type="monotone"
             dataKey="saju"
             name="사주"
             stroke="#f59e0b"
-            strokeWidth={2.5}
-            dot={{ r: 4, fill: '#f59e0b' }}
-            activeDot={{ r: 6 }}
+            strokeWidth={3}
+            dot={{ r: 5, fill: '#f59e0b', strokeWidth: 0 }}
+            activeDot={{ r: 7 }}
           />
           <Line
             type="monotone"
             dataKey="astro"
             name="점성"
             stroke="#22d3ee"
-            strokeWidth={2.5}
-            dot={{ r: 4, fill: '#22d3ee' }}
-            activeDot={{ r: 6 }}
+            strokeWidth={3}
+            dot={{ r: 5, fill: '#22d3ee', strokeWidth: 0 }}
+            activeDot={{ r: 7 }}
           />
         </LineChart>
       </ResponsiveContainer>

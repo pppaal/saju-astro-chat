@@ -110,10 +110,29 @@ export default function DestinyMatrixPlanner({
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
 
-  // --- View date (current real month) ---------------------------------
+  // --- View date (state — prev/next month 이동 가능) -------------------
+  // 이전엔 today로 하드코딩돼 month 이동 자체가 안 됐음. 우측 상단 모달의
+  // "외부 캘린더 연동 추후 추가 예정" 안내도 그래서 무력화돼 있었다.
+  // API는 year 단위로 1년치 allDates를 한 번에 받으니 month 전환은 client-only.
   const today = useMemo(() => new Date(), [])
-  const viewYear = today.getFullYear()
-  const viewMonth = today.getMonth() // 0-indexed
+  const [viewDate, setViewDate] = useState<Date>(() => new Date(today.getFullYear(), today.getMonth(), 1))
+  const viewYear = viewDate.getFullYear()
+  const viewMonth = viewDate.getMonth() // 0-indexed
+
+  const goToPrevMonth = useCallback(() => {
+    setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
+    setCurrentDay(1)
+  }, [])
+  const goToNextMonth = useCallback(() => {
+    setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
+    setCurrentDay(1)
+  }, [])
+  const goToThisMonth = useCallback(() => {
+    const now = new Date()
+    setViewDate(new Date(now.getFullYear(), now.getMonth(), 1))
+    setCurrentDay(now.getDate())
+  }, [])
+  const isThisMonth = viewYear === today.getFullYear() && viewMonth === today.getMonth()
 
   const monthLabel = useMemo(() => {
     const labels = [
@@ -583,11 +602,35 @@ export default function DestinyMatrixPlanner({
               className="p-6 space-y-6"
             >
               <div className="bg-zinc-900/60 p-6 rounded-3xl border border-white/5 shadow-2xl">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-black text-zinc-100 tracking-widest">{monthLabel}</h2>
-                  <span className="text-xs font-medium text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                    {phaseLabel ? `Phase: ${phaseLabel}` : '甲戌 대운 (32세~)'}
+                <div className="flex justify-between items-center mb-4 gap-2">
+                  <button
+                    onClick={goToPrevMonth}
+                    className="p-2 rounded-lg bg-zinc-950/70 hover:bg-zinc-800 border border-white/5 text-zinc-300 transition shrink-0"
+                    aria-label="이전 달"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <h2 className="text-2xl font-black text-zinc-100 tracking-widest flex-1 text-center">{monthLabel}</h2>
+                  <button
+                    onClick={goToNextMonth}
+                    className="p-2 rounded-lg bg-zinc-950/70 hover:bg-zinc-800 border border-white/5 text-zinc-300 transition shrink-0"
+                    aria-label="다음 달"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex justify-center items-center mb-5 gap-2 flex-wrap">
+                  <span className="text-[12px] font-semibold text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                    {phaseLabel ? `Phase · ${phaseLabel}` : '甲戌 대운 (32세~)'}
                   </span>
+                  {!isThisMonth && (
+                    <button
+                      onClick={goToThisMonth}
+                      className="text-[11px] font-semibold text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-3 py-1 rounded-full border border-cyan-500/30 transition"
+                    >
+                      오늘로
+                    </button>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-7 gap-2 text-center mb-4">
@@ -639,17 +682,17 @@ export default function DestinyMatrixPlanner({
               </div>
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5 shadow-xl">
-                <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2 mb-4">
-                  <Activity className="w-4 h-4 text-indigo-400" /> 월간 종합 분석 리포트
+                <h3 className="text-base font-bold text-zinc-200 flex items-center gap-2 mb-4">
+                  <Activity className="w-5 h-5 text-indigo-400" /> 월간 종합 분석 리포트
                 </h3>
                 <div className="flex items-center gap-4">
-                  <div className="flex flex-col items-center justify-center bg-zinc-950/80 p-4 rounded-xl border border-indigo-500/20 min-w-[80px]">
-                    <span className="text-[10px] text-zinc-500 font-bold mb-1">월 평균</span>
-                    <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
+                  <div className="flex flex-col items-center justify-center bg-zinc-950/80 p-4 rounded-xl border border-indigo-500/20 min-w-[88px]">
+                    <span className="text-xs text-zinc-500 font-bold mb-1">월 평균</span>
+                    <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
                       {monthScore}
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
+                  <p className="text-sm text-zinc-300 leading-relaxed">
                     {data && monthlySummaryText ? (
                       monthlySummaryText
                     ) : (
@@ -724,7 +767,7 @@ export default function DestinyMatrixPlanner({
               {/* One-line summary (engine pre-formatted) */}
               {dailyOneLineSummary && (
                 <div className="bg-indigo-900/10 border border-indigo-500/20 px-4 py-3 rounded-xl">
-                  <p className="text-xs text-zinc-300 leading-relaxed">{dailyOneLineSummary}</p>
+                  <p className="text-sm text-zinc-200 leading-relaxed">{dailyOneLineSummary}</p>
                 </div>
               )}
 
@@ -800,31 +843,31 @@ export default function DestinyMatrixPlanner({
 
               {/* Engine self-diagnostic */}
               {dailyEngineSignal && (
-                <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
+                <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
                   <div className="flex items-center gap-2 mb-3">
-                    <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-                    <h3 className="text-xs font-bold text-zinc-300 tracking-wider uppercase">
+                    <Cpu className="w-4 h-4 text-indigo-400" />
+                    <h3 className="text-sm font-bold text-zinc-200 tracking-wider uppercase">
                       엔진 자기 진단
                     </h3>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-zinc-950/60 p-3 rounded-xl border border-indigo-500/10">
-                      <div className="text-[10px] text-zinc-500 mb-1">신뢰도 (Confidence)</div>
-                      <div className="text-2xl font-black text-indigo-300">
+                    <div className="bg-zinc-950/60 p-4 rounded-xl border border-indigo-500/10">
+                      <div className="text-xs text-zinc-500 mb-1">신뢰도</div>
+                      <div className="text-3xl font-black text-indigo-300">
                         {dailyEngineSignal.confidence != null
                           ? `${dailyEngineSignal.confidence}%`
                           : '—'}
                       </div>
-                      <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">
+                      <p className="text-xs text-zinc-500 mt-2 leading-snug">
                         엔진이 이 예측에 부여한 자체 신뢰도
                       </p>
                     </div>
-                    <div className="bg-zinc-950/60 p-3 rounded-xl border border-cyan-500/10">
-                      <div className="text-[10px] text-zinc-500 mb-1">사주↔점성 합치</div>
-                      <div className="text-2xl font-black text-cyan-300">
+                    <div className="bg-zinc-950/60 p-4 rounded-xl border border-cyan-500/10">
+                      <div className="text-xs text-zinc-500 mb-1">사주↔점성 합치</div>
+                      <div className="text-3xl font-black text-cyan-300">
                         {dailyEngineSignal.sync != null ? `${dailyEngineSignal.sync}%` : '—'}
                       </div>
-                      <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">
+                      <p className="text-xs text-zinc-500 mt-2 leading-snug">
                         두 시스템이 같은 방향을 가리키는 정도
                       </p>
                     </div>
@@ -843,78 +886,78 @@ export default function DestinyMatrixPlanner({
               <DailyHourlyChart importantDate={selectedImportantDate} />
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-                <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2 mb-4">
-                  <Clock className="w-4 h-4 text-cyan-400" /> 좋은 시간 · 주의 시간
+                <h3 className="text-base font-bold text-zinc-200 flex items-center gap-2 mb-4">
+                  <Clock className="w-5 h-5 text-cyan-400" /> 좋은 시간 · 주의 시간
                 </h3>
                 {dailyHourlySlots ? (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <div className="text-[10px] font-bold text-emerald-400 mb-2 tracking-wider">
+                      <div className="text-xs font-bold text-emerald-400 mb-2 tracking-wider">
                         ↑ BEST
                       </div>
-                      <ul className="space-y-1.5">
+                      <ul className="space-y-2">
                         {dailyHourlySlots.best.length > 0 ? (
                           dailyHourlySlots.best.slice(0, 4).map((s, i) => (
                             <li
                               key={`best-${i}`}
-                              className="bg-emerald-900/10 border border-emerald-500/15 px-2.5 py-1.5 rounded-md"
+                              className="bg-emerald-900/10 border border-emerald-500/15 px-3 py-2 rounded-lg"
                             >
                               <div className="flex items-baseline justify-between gap-2">
-                                <span className="text-xs font-bold text-emerald-200">
+                                <span className="text-base font-bold text-emerald-200">
                                   {formatHour(s.hour)}
                                 </span>
-                                <span className="text-[10px] font-bold text-emerald-400">
+                                <span className="text-xs font-bold text-emerald-400">
                                   {Math.round(s.score)}점
                                 </span>
                               </div>
                               {s.reason && (
-                                <p className="text-[10px] text-zinc-400 mt-0.5 leading-snug">
+                                <p className="text-xs text-zinc-400 mt-1 leading-snug">
                                   {s.reason}
                                 </p>
                               )}
                             </li>
                           ))
                         ) : (
-                          <li className="text-[11px] text-zinc-500">신호 없음</li>
+                          <li className="text-xs text-zinc-500">신호 없음</li>
                         )}
                       </ul>
                     </div>
                     <div>
-                      <div className="text-[10px] font-bold text-rose-400 mb-2 tracking-wider">
+                      <div className="text-xs font-bold text-rose-400 mb-2 tracking-wider">
                         ↓ WORST
                       </div>
-                      <ul className="space-y-1.5">
+                      <ul className="space-y-2">
                         {dailyHourlySlots.worst.length > 0 ? (
                           dailyHourlySlots.worst.slice(0, 2).map((s, i) => (
                             <li
                               key={`worst-${i}`}
-                              className="bg-rose-900/10 border border-rose-500/15 px-2.5 py-1.5 rounded-md"
+                              className="bg-rose-900/10 border border-rose-500/15 px-3 py-2 rounded-lg"
                             >
                               <div className="flex items-baseline justify-between gap-2">
-                                <span className="text-xs font-bold text-rose-200">
+                                <span className="text-base font-bold text-rose-200">
                                   {formatHour(s.hour)}
                                 </span>
-                                <span className="text-[10px] font-bold text-rose-400">
+                                <span className="text-xs font-bold text-rose-400">
                                   {Math.round(s.score)}점
                                 </span>
                               </div>
                               {s.reason && (
-                                <p className="text-[10px] text-zinc-400 mt-0.5 leading-snug">
+                                <p className="text-xs text-zinc-400 mt-1 leading-snug">
                                   {s.reason}
                                 </p>
                               )}
                             </li>
                           ))
                         ) : (
-                          <li className="text-[11px] text-zinc-500">신호 없음</li>
+                          <li className="text-xs text-zinc-500">신호 없음</li>
                         )}
                       </ul>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  <p className="text-sm text-zinc-400 leading-relaxed">
                     이 날의 시간대별 정밀 분석은{' '}
-                    <span className="text-zinc-400 font-medium">달력에서 날짜를 탭</span>하면
+                    <span className="text-zinc-200 font-medium">달력에서 날짜를 탭</span>하면
                     상세보기에 표시됩니다.
                   </p>
                 )}
@@ -991,34 +1034,62 @@ export default function DestinyMatrixPlanner({
                       className="text-lg font-bold text-white flex items-center gap-2"
                     >
                       <Calendar className="w-5 h-5 text-indigo-400" />
-                      일정 선택
+                      월 이동
                     </Dialog.Title>
                     <button
                       onClick={() => setIsCalendarModalOpen(false)}
-                      className="text-zinc-400 hover:text-white"
+                      className="text-zinc-400 hover:text-white p-1"
+                      aria-label="닫기"
                     >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
 
-                  <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800 text-center text-zinc-400 text-sm">
-                    {birthInfo?.birthDate ? (
-                      <>
-                        <p className="mb-2">기준 생년월일: {birthInfo.birthDate}</p>
-                        <p>외부 캘린더 연동, 연/월 이동은 추후 추가 예정.</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="mb-2">구글 캘린더 등 외부 캘린더 연동이나</p>
-                        <p>연/월 단위 이동 기능을 추가할 수 있습니다.</p>
-                      </>
-                    )}
+                  {/* 현재 보고 있는 달 + prev/next */}
+                  <div className="bg-zinc-950 rounded-2xl p-5 border border-zinc-800">
+                    <div className="flex items-center justify-between mb-5">
+                      <button
+                        onClick={() => {
+                          goToPrevMonth()
+                          setIsCalendarModalOpen(false)
+                        }}
+                        className="p-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/5 text-zinc-200 transition"
+                        aria-label="이전 달"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <div className="text-center">
+                        <div className="text-[11px] text-zinc-500 tracking-widest uppercase mb-1">보는 달</div>
+                        <div className="text-xl font-black text-white tracking-wide">{monthLabel}</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          goToNextMonth()
+                          setIsCalendarModalOpen(false)
+                        }}
+                        className="p-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/5 text-zinc-200 transition"
+                        aria-label="다음 달"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+
                     <button
-                      onClick={() => setIsCalendarModalOpen(false)}
-                      className="mt-6 w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition-colors"
+                      onClick={() => {
+                        goToThisMonth()
+                        setIsCalendarModalOpen(false)
+                      }}
+                      disabled={isThisMonth}
+                      className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white rounded-xl font-bold transition-colors"
                     >
-                      확인
+                      {isThisMonth ? '이번 달입니다' : '이번 달로 가기'}
                     </button>
+
+                    {birthInfo?.birthDate && (
+                      <p className="mt-4 text-[11px] text-zinc-500 text-center">
+                        기준 생년월일 · {birthInfo.birthDate}
+                      </p>
+                    )}
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

@@ -22,7 +22,7 @@ interface Props {
  * 점수는 cell.derivedScore 우선 (engine v2). 없으면 displayScore.
  * 핵심 사유는 matchedPatterns[0].name 우선, 없으면 topReasons / sajuFactors.
  */
-export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 5, gradeThresholds }: Props) {
+export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 3, gradeThresholds }: Props) {
   if (monthDates.length === 0) return null
 
   const ranked = monthDates
@@ -41,13 +41,13 @@ export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 5, 
       <div className="grid grid-cols-2 gap-px bg-white/5">
         {/* ── 길일 TOP ── */}
         <div className="bg-zinc-900/60 p-4">
-          <h3 className="text-xs font-bold text-emerald-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
-            <TrendingUp className="w-3.5 h-3.5" />
+          <h3 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
+            <TrendingUp className="w-4 h-4" />
             길일 TOP {topN}
           </h3>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {lucky.length === 0 ? (
-              <div className="text-[10px] text-zinc-500 py-2 text-center">데이터 없음</div>
+              <div className="text-xs text-zinc-500 py-2 text-center">데이터 없음</div>
             ) : (
               lucky.map((item, i) => (
                 <DayRow
@@ -56,6 +56,7 @@ export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 5, 
                   importantDate={item.date}
                   score={item.score}
                   thresholds={gradeThresholds}
+                  tone="positive"
                   onClick={() => onDayClick(parseDay(item.date.date))}
                 />
               ))
@@ -65,13 +66,13 @@ export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 5, 
 
         {/* ── 흉일 TOP ── */}
         <div className="bg-zinc-900/60 p-4">
-          <h3 className="text-xs font-bold text-rose-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
-            <TrendingDown className="w-3.5 h-3.5" />
+          <h3 className="text-sm font-bold text-rose-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
+            <TrendingDown className="w-4 h-4" />
             흉일 TOP {topN}
           </h3>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {unlucky.length === 0 ? (
-              <div className="text-[10px] text-zinc-500 py-2 text-center">데이터 없음</div>
+              <div className="text-xs text-zinc-500 py-2 text-center">데이터 없음</div>
             ) : (
               unlucky.map((item, i) => (
                 <DayRow
@@ -80,6 +81,7 @@ export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 5, 
                   importantDate={item.date}
                   score={item.score}
                   thresholds={gradeThresholds}
+                  tone="negative"
                   onClick={() => onDayClick(parseDay(item.date.date))}
                 />
               ))
@@ -96,31 +98,37 @@ interface DayRowProps {
   importantDate: ImportantDate
   score: number
   thresholds?: GradeThresholds
+  tone: 'positive' | 'negative'
   onClick: () => void
 }
 
-function DayRow({ rank, importantDate, score, thresholds, onClick }: DayRowProps) {
+function DayRow({ rank, importantDate, score, thresholds, tone, onClick }: DayRowProps) {
   const grade = getGrade(score, thresholds)
   const day = parseDay(importantDate.date)
-  // reason 방향이 점수와 일치해야 자연스러움 (길일에 흉신호 사유 안 나오게)
-  const direction: 'positive' | 'negative' = score >= 50 ? 'positive' : 'negative'
-  const reason = pickReason(importantDate, direction)
+  const reason = pickReason(importantDate, tone)
+
+  // 날짜 강조 — 길일은 emerald, 흉일은 rose 톤
+  const dayClass =
+    tone === 'positive'
+      ? 'text-emerald-300'
+      : 'text-rose-300'
 
   return (
     <button
       onClick={onClick}
-      className="w-full bg-zinc-950/60 hover:bg-zinc-900 rounded-lg p-2 flex items-center gap-2 text-left transition border border-white/5"
+      className="w-full bg-zinc-950/60 hover:bg-zinc-900 rounded-xl p-3 flex items-center gap-3 text-left transition border border-white/5 hover:border-white/10"
     >
       <span className="text-[10px] text-zinc-600 font-mono w-4 shrink-0">#{rank}</span>
-      <div className="flex flex-col items-center justify-center w-9 shrink-0">
-        <span className="text-base font-bold text-zinc-100 leading-none">{day}</span>
-        <span className="text-[8px] text-zinc-600 font-mono mt-0.5">{score}</span>
+      {/* 날짜 — 큰 글자로 한눈에 보이게 */}
+      <div className="flex flex-col items-center justify-center min-w-[2.5rem] shrink-0">
+        <span className={`text-3xl font-black leading-none ${dayClass}`}>{day}</span>
+        <span className="text-[10px] text-zinc-500 font-mono mt-1">{score}점</span>
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-[11px] font-bold ${grade.colorClass} leading-tight`}>
+        <div className={`text-sm font-bold ${grade.colorClass} leading-tight`}>
           {grade.label}
         </div>
-        <div className="text-[10px] text-zinc-500 truncate leading-tight mt-0.5">
+        <div className="text-xs text-zinc-400 truncate leading-snug mt-1">
           {reason}
         </div>
       </div>
