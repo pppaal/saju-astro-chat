@@ -205,7 +205,7 @@ async function main() {
     .filter((block) => !/\(없음\)/.test(block))
     .join('\n\n')
 
-  // 6) build systemPrompt + cached + userPrompt (route.ts:592+)
+  // 6) build systemPrompt + cached + userPrompt (route.ts:592+ 미러)
   const systemPrompt = [
     '아래 == 참여자 정보 == 블록의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다.',
     '',
@@ -214,15 +214,18 @@ async function main() {
     '- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.',
     '- 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.',
     '- AI/모델/상담사 정체 노출 금지.',
+    '- 사주·점성 전문 용어(일간, 십성, 대운, 천을귀인, 트랜짓, 어스펙트, 하우스 등)는 최대한 쓰지 말 것. 데이터는 근거로만 읽고, 일상 언어로 자연스럽게 풀어서 답한다. 꼭 필요할 때만 짧은 괄호 설명과 함께 한 번 언급.',
   ].join('\n')
 
+  // production route와 동일: 매트릭스/종합/사주심화/점성심화 4개 분석 블록은 빼고
+  // raw 차트만 cached로 보낸다. 변수들은 dump 구조 유지를 위해 build만 해둠.
+  void coupleMatrixContext
+  void fusionContext
+  void extSaju
+  void extAstro
   const cachedUserContext = [
     `== 참여자 정보 ==`,
     personsInfo,
-    coupleMatrixContext ? `\n${coupleMatrixContext}` : '',
-    fusionContext ? `\n${fusionContext}` : '',
-    extSaju ? `\n${formatExtendedSajuForPrompt(extSaju, normalizedLang)}` : '',
-    extAstro ? `\n${formatExtendedAstroForPrompt(extAstro, normalizedLang)}` : '',
     fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
   ].filter(Boolean).join('\n')
 
