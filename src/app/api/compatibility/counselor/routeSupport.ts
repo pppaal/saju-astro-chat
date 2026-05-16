@@ -69,17 +69,84 @@ const PROMPT_PRUNE_KEYS = new Set([
   'icon',
   'emoji',
   'colorHex',
+  // Debug metadata — useful in server logs, useless to the LLM.
+  'autoComputedMeta',
+  // `unse` re-serializes annual/monthly/iljin alongside the top-level
+  // yeonun/wolun/iljin keys, so the same arrays appeared twice in every
+  // prompt. Drop the duplicate; keep the top-level keys.
+  'unse',
 ])
 
-function prunePromptContext(value: unknown): unknown {
+// Keys whose array values get *trimmed around "today"* instead of dropped.
+// Without trimming, one couple's prompt drops ~40k chars of almanac-style
+// data the model never references. The trim is on-prompt only — internal
+// saju calculation still keeps the full lists.
+const PROMPT_TRIM_WINDOWS: Record<
+  string,
+  { around: 'day' | 'month' | 'year'; before: number; after: number }
+> = {
+  iljin: { around: 'day', before: 3, after: 3 }, // 31 → 7
+  wolun: { around: 'month', before: 1, after: 1 }, // 12 → 3
+  yeonun: { around: 'year', before: 1, after: 1 }, // 10 → 3
+}
+
+function trimSajuTimeWindow(key: string, arr: unknown[]): unknown[] {
+  const cfg = PROMPT_TRIM_WINDOWS[key]
+  if (!cfg) return arr
+  const today = new Date()
+  const yearNow = today.getFullYear()
+  const monthNow = today.getMonth() + 1
+  const dayNow = today.getDate()
+  const pickIdx = arr.findIndex((entry) => {
+    if (!entry || typeof entry !== 'object') return false
+    const e = entry as Record<string, unknown>
+    if (cfg.around === 'year') return Number(e.year) === yearNow
+    if (cfg.around === 'month')
+      return Number(e.year) === yearNow && Number(e.month) === monthNow
+    return (
+      Number(e.year) === yearNow &&
+      Number(e.month) === monthNow &&
+      Number(e.day) === dayNow
+    )
+  })
+  const center = pickIdx >= 0 ? pickIdx : 0
+  const start = Math.max(0, center - cfg.before)
+  const end = Math.min(arr.length, center + cfg.after + 1)
+  return arr.slice(start, end)
+}
+
+// `daeun` is the 10-stage life cycle. Keep prev / current / next so the
+// model can still talk about the transition; drop the other seven.
+function trimDaeunList(daeun: Record<string, unknown>): Record<string, unknown> {
+  const list = Array.isArray(daeun.list) ? (daeun.list as Record<string, unknown>[]) : null
+  const current = daeun.current as Record<string, unknown> | undefined
+  if (!list || !current) return daeun
+  const currentAge = Number(current.age)
+  const idx = list.findIndex((d) => Number(d.age) === currentAge)
+  if (idx < 0) return daeun
+  return {
+    ...daeun,
+    list: list.slice(Math.max(0, idx - 1), Math.min(list.length, idx + 2)),
+  }
+}
+
+function prunePromptContext(value: unknown, parentKey?: string): unknown {
   if (Array.isArray(value)) {
-    return value.map((v) => prunePromptContext(v))
+    const trimmed =
+      parentKey && PROMPT_TRIM_WINDOWS[parentKey]
+        ? trimSajuTimeWindow(parentKey, value)
+        : value
+    return trimmed.map((v) => prunePromptContext(v))
   }
   if (value && typeof value === 'object') {
     const out: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
       if (PROMPT_PRUNE_KEYS.has(k)) continue
-      out[k] = prunePromptContext(v)
+      if (k === 'daeun' && v && typeof v === 'object') {
+        out[k] = trimDaeunList(v as Record<string, unknown>)
+        continue
+      }
+      out[k] = prunePromptContext(v, k)
     }
     return out
   }
