@@ -1008,130 +1008,6 @@
   }
 }
 
-/* ========== Tarot Transition Card ========== */
-.tarotPromptCard {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  border-radius: 16px;
-  margin-top: 20px;
-  animation: fadeInSlide 0.5s ease-out;
-  position: relative;
-  overflow: hidden;
-}
-
-.tarotPromptCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0%,
-  100% {
-    left: -100%;
-  }
-  50% {
-    left: 100%;
-  }
-}
-
-@keyframes fadeInSlide {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.tarotPromptIcon {
-  font-size: 40px;
-  filter: drop-shadow(0 0 12px rgba(236, 72, 153, 0.5));
-  animation: tarotIconFloat 3s ease-in-out infinite;
-}
-
-@keyframes tarotIconFloat {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-5px) rotate(5deg);
-  }
-}
-
-.tarotPromptContent {
-  flex: 1;
-}
-
-.tarotPromptTitle {
-  margin: 0 0 6px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
-  background: linear-gradient(90deg, #a78bfa, #ec4899);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.tarotPromptDesc {
-  margin: 0;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.5;
-}
-
-.tarotPromptButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.4);
-  white-space: nowrap;
-}
-
-.tarotPromptButton:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 24px rgba(236, 72, 153, 0.6);
-}
-
-.tarotPromptButton:active {
-  transform: translateY(0);
-}
-
-@media (max-width: 768px) {
-  .tarotPromptCard {
-    flex-direction: column;
-    text-align: center;
-    padding: 18px;
-  }
-
-  .tarotPromptButton {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
 /* ========== Feedback Buttons ========== */
 .feedbackButtons {
   display: flex;
@@ -1544,13 +1420,23 @@
 .welcomeBackBanner {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 16px;
-  margin-bottom: 16px;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(167, 139, 250, 0.06);
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  border-radius: 999px;
+  margin: 0 auto 10px;
+  width: fit-content;
+  font-size: 0.78rem;
+  color: rgba(232, 226, 255, 0.78);
+  letter-spacing: 0.01em;
   animation: slideDown 0.5s ease-out;
+}
+
+.welcomeBackSpark {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.4));
 }
 
 @keyframes slideDown {
@@ -1650,12 +1536,6 @@
   .crisisHotlineNumber {
     font-size: 18px;
     padding: 10px 20px;
-  }
-
-  .welcomeBackBanner {
-    flex-direction: column;
-    text-align: center;
-    gap: 12px;
   }
 
   .welcomeCloseBtn {
@@ -2207,34 +2087,6 @@
     font-size: 20px;
   }
 
-  /* Tarot Prompt */
-  .tarotPromptCard {
-    padding: 14px;
-    border-radius: 14px;
-    margin-top: 14px;
-    gap: 12px;
-  }
-
-  .tarotPromptIcon {
-    font-size: 32px;
-  }
-
-  .tarotPromptTitle {
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-
-  .tarotPromptDesc {
-    font-size: 12px;
-  }
-
-  .tarotPromptButton {
-    padding: 10px 16px;
-    font-size: 13px;
-    border-radius: 10px;
-    gap: 6px;
-  }
-
   /* Feedback Buttons */
   .feedbackBtn {
     padding: 3px 6px;
@@ -2334,14 +2186,6 @@
     padding: 14px 20px;
     font-size: 14px;
     border-radius: 10px;
-  }
-
-  /* Welcome Back */
-  .welcomeBackBanner {
-    padding: 14px 16px;
-    border-radius: 14px;
-    gap: 10px;
-    margin-bottom: 12px;
   }
 
   .welcomeIcon {
@@ -2480,7 +2324,6 @@
 .sessionBtn:focus-visible,
 .suggestionChip:focus-visible,
 .followUpChip:focus-visible,
-.tarotPromptButton:focus-visible,
 .feedbackBtn:focus-visible,
 .crisisCloseBtn:focus-visible,
 .crisisHotlineNumber:focus-visible,
@@ -2513,9 +2356,6 @@
   .counselorAvatar::before,
   .counselorThinking,
   .counselorThinking::after,
-  .tarotPromptCard,
-  .tarotPromptCard::before,
-  .tarotPromptIcon,
   .crisisModal,
   .crisisIcon,
   .welcomeBackBanner,

@@ -14,7 +14,6 @@ interface MessagesPanelProps {
   showSuggestions: boolean
   suggestedQs: string[]
   followUpQuestions: string[]
-  showTarotPrompt: boolean
   feedback: Record<string, FeedbackType>
   effectiveLang: 'ko' | 'en'
   tr: Copy
@@ -22,7 +21,6 @@ interface MessagesPanelProps {
   onSuggestion: (question: string) => void
   onFeedback: (msgId: string, type: FeedbackType) => Promise<void>
   onFollowUp: (question: string) => void
-  onGoToTarot: () => void
   styles: Record<string, string>
 }
 
@@ -34,7 +32,6 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   showSuggestions,
   suggestedQs,
   followUpQuestions,
-  showTarotPrompt,
   feedback,
   effectiveLang,
   tr,
@@ -42,7 +39,6 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   onSuggestion,
   onFeedback,
   onFollowUp,
-  onGoToTarot,
   styles,
 }: MessagesPanelProps) {
   return (
@@ -133,21 +129,6 @@ export const MessagesPanel = React.memo(function MessagesPanel({
               </button>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Tarot Transition Card */}
-      {showTarotPrompt && !loading && (
-        <div className={styles.tarotPromptCard}>
-          <div className={styles.tarotPromptIcon}>&#x1F0CF;</div>
-          <div className={styles.tarotPromptContent}>
-            <h4 className={styles.tarotPromptTitle}>{tr.tarotPrompt}</h4>
-            <p className={styles.tarotPromptDesc}>{tr.tarotDesc}</p>
-          </div>
-          <button type="button" onClick={onGoToTarot} className={styles.tarotPromptButton}>
-            <span>&#x2728;</span>
-            <span>{tr.tarotButton}</span>
-          </button>
         </div>
       )}
 

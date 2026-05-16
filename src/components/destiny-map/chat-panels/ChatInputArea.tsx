@@ -14,6 +14,7 @@ interface ChatInputAreaProps {
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
   onSend: () => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
+  onOpenTarot: () => void
   styles: Record<string, string>
   autoFocus?: boolean
 }
@@ -29,6 +30,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onKeyDown,
   onSend,
   onFileUpload,
+  onOpenTarot,
   styles,
   autoFocus = false,
 }: ChatInputAreaProps) {
@@ -73,6 +75,15 @@ export const ChatInputArea = React.memo(function ChatInputArea({
               onChange={onFileUpload}
             />
           </label>
+          <button
+            type="button"
+            onClick={onOpenTarot}
+            className={styles.attachButton}
+            aria-label={tr.tarotButton}
+            title={tr.tarotButton}
+          >
+            <span aria-hidden="true">&#x1F0CF;</span>
+          </button>
           {parsingPdf && (
             <span className={styles.fileName}>
               <span className={styles.loadingSpinner} />
