@@ -755,20 +755,47 @@ export const RULES: InterpretationRule[] = [
   },
 
   // ═══════════════════════════════════════════════════════════
-  // 5층 정렬 narrative (특수 케이스 — 매우 강조)
+  // 5층 정렬 narrative (3종 — 사주×점성 동시 / 사주만 / 점성만)
   // ═══════════════════════════════════════════════════════════
   {
-    id: 'pattern-five-layer-positive',
+    id: 'pattern-five-layer-both',
     scope: 'monthly',
     section: 'pattern',
     priority: 99,
     conditions: { patternId: ['five-layer-resonance'] },
     template:
-      `이번 달 **5층 정렬일이 {count}번** 들어 있습니다. ` +
-      `대운·세운·월운·일진·시진 — 다섯 시간축이 모두 같은 방향으로 ` +
-      `정렬되는 드문 순간입니다. 명리적으로 "천시·지리·인화가 ` +
-      `다 맞는 때". 큰 시작·고백·계약·인생 챕터 개시에 가장 좋은 시기.`,
+      `이번 달 **사주·점성이 동시에 5층 정렬되는 날이 {count}번** ` +
+      `있습니다. 명리 다섯 시간축(대운·세운·월운·일진·시진)과 점성의 ` +
+      `5층 흐름이 모두 같은 방향으로 가는 드문 순간 — 동서양 두 ` +
+      `시스템이 동시에 같은 답을 주는 시기입니다. 큰 결정·새 시작· ` +
+      `계약·고백에 가장 좋은 날들.`,
     themes: ['personality', 'career'],
+  },
+  {
+    id: 'pattern-saju-five-layer',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 92,
+    conditions: { patternId: ['saju-five-layer'] },
+    template:
+      `이번 달 **사주 5층 정렬일이 {count}번** 있습니다. ` +
+      `대운부터 시진까지 명리적 흐름이 모두 같은 방향 — 본명의 ` +
+      `리듬이 가장 자연스럽게 흘러가는 날들. 사주적으로 결정이 ` +
+      `매끄러운 시기입니다.`,
+    themes: ['personality'],
+  },
+  {
+    id: 'pattern-astro-five-layer',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 90,
+    conditions: { patternId: ['astro-five-layer'] },
+    template:
+      `이번 달 **점성 5층 정렬일이 {count}번** 있습니다. ` +
+      `행성 챕터·세운 흐름·월간 트랜짓·일진 어스펙트·행성시까지 모두 ` +
+      `같은 방향. 외부 환경·타이밍이 받쳐주는 시기 — 새 만남·` +
+      `이동·확장에 우호적입니다.`,
+    themes: ['business', 'travel'],
   },
 
   // ═══════════════════════════════════════════════════════════
