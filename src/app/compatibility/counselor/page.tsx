@@ -264,7 +264,17 @@ function CompatibilityCounselorContent() {
         if (response.status === 401) {
           throw new Error('login_required')
         }
-        throw new Error('Failed to get response')
+        // Pull the route's short errorTag so the chat bubble shows
+        // *why* the request failed instead of a generic "오류 발생".
+        // The route returns { error, errorTag } as JSON for non-2xx.
+        let detail = ''
+        try {
+          const body = (await response.clone().json()) as { errorTag?: string; error?: string }
+          detail = body.errorTag || body.error || ''
+        } catch {
+          /* response wasn't JSON — fall through to plain status */
+        }
+        throw new Error(detail ? `Failed (${response.status}): ${detail}` : `Failed (${response.status})`)
       }
 
       // 서버는 `data: {"content":"...","done":false}\n\n` 형식의 JSON SSE를
@@ -338,9 +348,13 @@ function CompatibilityCounselorContent() {
           isKo ? '로그인이 필요한 프리미엄 기능입니다.' : 'Login required for this premium feature.'
         )
       } else {
-        setError(
-          isKo ? '오류가 발생했습니다. 다시 시도해 주세요.' : 'An error occurred. Please try again.'
-        )
+        // Append the route's errorTag (set above from response body) so
+        // the user-visible bubble points at the actual failure mode
+        // instead of a generic message. The Error here is either our
+        // "Failed (500): ErrorName: message…" string or a network error.
+        const rawMsg = (e as Error).message || ''
+        const base = isKo ? '오류가 발생했습니다. 다시 시도해 주세요.' : 'An error occurred. Please try again.'
+        setError(rawMsg && rawMsg !== 'Failed to get response' ? `${base}\n[${rawMsg}]` : base)
       }
     } finally {
       setIsLoading(false)
