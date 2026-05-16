@@ -12,18 +12,29 @@ interface CircleAddModalProps {
   onAdded: () => void
 }
 
+// Keep this in lockstep with src/app/compatibility/lib/types.ts Relation
+// and the <select> options in compatibility/components/form/PersonCard.tsx.
+// The compat form's fillFromCircle maps these straight through — so any
+// option we expose here must exist there, or the imported person lands
+// in the compat form as 기타 / Other.
 const RELATION_OPTIONS_KO = [
-  { value: 'family', label: '가족' },
-  { value: 'friend', label: '친구' },
-  { value: 'partner', label: '연인' },
-  { value: 'colleague', label: '동료' },
+  { value: 'lover', label: '연인 💕' },
+  { value: 'spouse', label: '배우자 💍' },
+  { value: 'family', label: '가족 🏠' },
+  { value: 'sibling', label: '형제자매 👯' },
+  { value: 'friend', label: '친구 🤝' },
+  { value: 'colleague', label: '동료 💼' },
+  { value: 'other', label: '기타 ✨' },
 ] as const
 
 const RELATION_OPTIONS_EN = [
-  { value: 'family', label: 'Family' },
-  { value: 'friend', label: 'Friend' },
-  { value: 'partner', label: 'Partner' },
-  { value: 'colleague', label: 'Colleague' },
+  { value: 'lover', label: 'Lover 💕' },
+  { value: 'spouse', label: 'Spouse 💍' },
+  { value: 'family', label: 'Family 🏠' },
+  { value: 'sibling', label: 'Sibling 👯' },
+  { value: 'friend', label: 'Friend 🤝' },
+  { value: 'colleague', label: 'Colleague 💼' },
+  { value: 'other', label: 'Other ✨' },
 ] as const
 
 /**
@@ -77,8 +88,29 @@ export function CircleAddModal({
         body: JSON.stringify(body),
       })
       if (!res.ok) {
-        const txt = await res.text().catch(() => '')
-        throw new Error(txt || `HTTP ${res.status}`)
+        // Pull the API's structured error so the user (and we) can see
+        // *why* it failed — 401 (session expired), validation_error
+        // (bad payload), database_error, etc. Without this the modal
+        // just silently shows the generic Korean "추가에 실패했어요" and
+        // we have no diagnostic.
+        let apiMessage = ''
+        try {
+          const json = (await res.clone().json()) as {
+            error?: { code?: string; message?: string } | string
+            message?: string
+          }
+          if (typeof json.error === 'string') {
+            apiMessage = json.error
+          } else if (json.error?.message) {
+            apiMessage = `${json.error.code || ''}: ${json.error.message}`.trim()
+          } else if (json.message) {
+            apiMessage = json.message
+          }
+        } catch {
+          /* not JSON — fall back to plain text */
+          apiMessage = await res.clone().text().catch(() => '')
+        }
+        throw new Error(apiMessage ? `HTTP ${res.status} — ${apiMessage}` : `HTTP ${res.status}`)
       }
       // Reset for next add
       setName('')
@@ -87,11 +119,9 @@ export function CircleAddModal({
       onClose()
     } catch (err) {
       logger.warn('[profile/circle] add failed', err)
-      setError(
-        locale === 'ko'
-          ? '추가에 실패했어요. 잠시 후 다시 시도해 주세요.'
-          : 'Failed to add. Please try again in a moment.',
-      )
+      const rawMsg = err instanceof Error ? err.message : String(err)
+      const base = locale === 'ko' ? '추가에 실패했어요.' : 'Failed to add.'
+      setError(rawMsg ? `${base} [${rawMsg}]` : base)
     } finally {
       setSaving(false)
     }
