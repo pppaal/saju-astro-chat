@@ -54,25 +54,28 @@ export function buildInterpretation(args: {
   matched.sort((a, b) => b.rule.priority - a.rule.priority)
 
   // domain별 picked — context/trigger는 section당 1개, 도메인은 최대 N개
-  const usedSections = new Set<string>()
+  // (도메인 안에서는 section 중복 허용 — 같은 section의 다른 conditions 분기 룰
+  //  여러 개 매칭 시 다 추가되어 narrative 풍부도 ↑)
+  const usedSectionsOutsideDomain = new Set<string>()
+  const usedRuleIds = new Set<string>()
   const domainPicks = new Map<string, typeof matched>()
   const picked: typeof matched = []
 
   for (const m of matched) {
+    if (usedRuleIds.has(m.rule.id)) continue
     const domain = SECTION_TO_DOMAIN[m.rule.section]
     if (domain && DOMAIN_TITLES[domain]) {
-      // 5 도메인 통합 — section 중복 막되 같은 도메인 안에서 여러 룰 허용
-      if (usedSections.has(m.rule.section)) continue
       const list = domainPicks.get(domain) ?? []
       if (list.length >= MAX_RULES_PER_DOMAIN) continue
       list.push(m)
       domainPicks.set(domain, list)
-      usedSections.add(m.rule.section)
+      usedRuleIds.add(m.rule.id)
     } else {
       // context (daeun/seun/wolun/natal) + trigger (transit/pattern/shinsal) — section당 1개
-      if (usedSections.has(m.rule.section)) continue
+      if (usedSectionsOutsideDomain.has(m.rule.section)) continue
       picked.push(m)
-      usedSections.add(m.rule.section)
+      usedSectionsOutsideDomain.add(m.rule.section)
+      usedRuleIds.add(m.rule.id)
     }
   }
 
