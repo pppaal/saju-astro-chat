@@ -6,13 +6,13 @@ import type {
 import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/calendar/types'
 import type { UserAstroProfile, UserSajuProfile } from '@/lib/destiny-map/calendar/types'
 import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/saju/johuYongsin'
-import { calculateDailyPillar } from '@/lib/prediction/ultra-precision-daily'
+import { calculateDailyPillar } from '@/lib/timing/ultra-precision-daily'
 import { elementOfBranch, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
-import { calculateUltraPrecisionScore } from '@/lib/prediction/ultraPrecisionEngine'
-import type { UltraPrecisionScore } from '@/lib/prediction/ultra-precision-types'
-import { getPlanetaryHourPlanet } from '@/lib/prediction/ultra-precision-helpers'
-import { getLunarMansion } from '@/lib/prediction/modules/lunarMansions'
+import { calculateUltraPrecisionScore } from '@/lib/timing/ultraPrecisionEngine'
+import type { UltraPrecisionScore } from '@/lib/timing/ultra-precision-types'
+import { getPlanetaryHourPlanet } from '@/lib/timing/ultra-precision-helpers'
+import { getLunarMansion } from '@/lib/timing/modules/lunarMansions'
 
 // Day-of-week planetary ruler theme. Cheap to compute (one lookup) and
 // gives the user one-glance sense of the day's character before reading

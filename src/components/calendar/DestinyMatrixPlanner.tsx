@@ -41,6 +41,13 @@ import {
 
 import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
 import { useDateDetail } from './useDateDetail'
+import MatchedPatternsCard from './MatchedPatternsCard'
+import MonthHighlightsCard from './MonthHighlightsCard'
+import MonthlyInterpretationCard from './MonthlyInterpretationCard'
+import DailyFlowCard from './DailyFlowCard'
+import DailyHourlyChart from './DailyHourlyChart'
+import WeeklyTimingChart from './WeeklyTimingChart'
+import { getGrade, computeGradeThresholds } from './scoreGrade'
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -49,7 +56,7 @@ interface DestinyMatrixPlannerProps {
   birthInfo?: BirthInfo | null
 }
 
-type ViewMode = 'monthly' | 'daily' | 'stats'
+type ViewMode = 'monthly' | 'daily'
 
 // --- Mock Data (used only when `data` is null) ---
 const MOCK_TIMING = [
@@ -159,6 +166,13 @@ export default function DestinyMatrixPlanner({
     return Math.round(avg(monthDates.map(pickFinalScore)))
   }, [monthDates])
 
+  // 사용자 분포 기반 등급 임계값 (1년치 → 상위/하위 20%).
+  // allDates 없으면 fallback 임계값으로 자동 폴백.
+  const gradeThresholds = useMemo(
+    () => computeGradeThresholds((data?.allDates ?? []).map(pickFinalScore)),
+    [data?.allDates],
+  )
+
   const phaseLabel =
     data?.matrixContract?.overallPhaseLabel ?? data?.matrixContract?.overallPhase ?? null
 
@@ -193,6 +207,17 @@ export default function DestinyMatrixPlanner({
   //  3) 그 외엔 중립값 50 (없는 신호를 60%로 위장하지 않음)
   // 의 정직한 우선순위로 도출한다.
   const dailyIndices = useMemo(() => {
+    // calendar-engine v2 우선 — 신호 기반 점수 + themeScores
+    // ImportantDate.engineSignals가 있으면 새 엔진이 작동한 것.
+    if (selectedImportantDate?.engineSignals && selectedImportantDate.engineSignals.length > 0) {
+      const ts = selectedImportantDate.themeScores ?? {}
+      return {
+        score: Math.round(selectedImportantDate.displayScore ?? selectedImportantDate.score),
+        love:   typeof ts.love   === 'number' ? Math.round(ts.love)   : (fusion?.domainScores.love   ?? 50),
+        wealth: typeof ts.money  === 'number' ? Math.round(ts.money)  : (fusion?.domainScores.money  ?? 50),
+        health: typeof ts.health === 'number' ? Math.round(ts.health) : (fusion?.domainScores.health ?? 50),
+      }
+    }
     // fusion 우선 — 18테마 점수 정밀
     if (fusion) {
       return {
@@ -538,7 +563,7 @@ export default function DestinyMatrixPlanner({
 
         {/* View Mode Toggle */}
         <div className="flex bg-zinc-900/50 rounded-xl p-1.5 border border-white/5 backdrop-blur-sm">
-          {(['monthly', 'daily', 'stats'] as const).map((mode) => (
+          {(['monthly', 'daily'] as const).map((mode) => (
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
@@ -550,7 +575,6 @@ export default function DestinyMatrixPlanner({
             >
               {mode === 'monthly' && <ScrollText className="w-4 h-4" />}
               {mode === 'daily' && <Activity className="w-4 h-4" />}
-              {mode === 'stats' && <Cpu className="w-4 h-4" />}
               {mode}
             </button>
           ))}
@@ -652,6 +676,21 @@ export default function DestinyMatrixPlanner({
                   </p>
                 </div>
               </div>
+
+              {/* ── calendar-engine v2: 월간 narrative 해석 ── */}
+              <MonthlyInterpretationCard
+                interp={monthDates[0]?.monthlyInterpretation
+                        ?? selectedImportantDate?.monthlyInterpretation} />
+
+              {/* ── 주간 타이밍 그래프 (saju × astro) ── */}
+              <WeeklyTimingChart monthDates={monthDates} />
+
+              {/* ── calendar-engine v2: 길일/흉일 TOP 5 ── */}
+              <MonthHighlightsCard
+                monthDates={monthDates}
+                onDayClick={handleDayClick}
+                gradeThresholds={gradeThresholds}
+              />
             </motion.div>
           )}
 
@@ -701,14 +740,22 @@ export default function DestinyMatrixPlanner({
                 </div>
               )}
 
-              <div className="grid grid-cols-5 gap-4">
-                <div className="col-span-2 bg-gradient-to-br from-indigo-900/40 to-cyan-900/20 p-4 rounded-2xl border border-indigo-500/30 flex flex-col items-center justify-center text-center shadow-lg">
-                  <span className="text-xs font-bold text-indigo-300 mb-1">오늘의 총점</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-black text-white">{dailyIndices.score}</span>
-                    <span className="text-sm text-zinc-400">점</span>
-                  </div>
-                </div>
+              {(() => {
+                const todayGrade = getGrade(dailyIndices.score, gradeThresholds)
+                return (
+                  <div className="grid grid-cols-5 gap-4">
+                    <div
+                      className={`col-span-2 p-4 rounded-2xl border flex flex-col items-center justify-center text-center shadow-lg ${todayGrade.bgClass} ${todayGrade.borderClass}`}
+                    >
+                      <span className="text-[10px] font-bold text-zinc-400 mb-1 tracking-widest">오늘의 흐름</span>
+                      <span className={`text-4xl font-black ${todayGrade.colorClass} leading-none`}>
+                        {todayGrade.label}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 mt-1">{todayGrade.sub}</span>
+                      <span className="text-[10px] text-zinc-600 mt-2 font-mono">
+                        score {dailyIndices.score} · 임계 {gradeThresholds.unluckyMax}/{gradeThresholds.luckyMin}
+                      </span>
+                    </div>
 
                 <div className="col-span-3 bg-zinc-900/60 p-4 rounded-2xl border border-white/5 flex flex-col justify-center space-y-3">
                   <div>
@@ -761,6 +808,7 @@ export default function DestinyMatrixPlanner({
                   </div>
                 </div>
               </div>
+              )})()}
 
               {/* Engine self-diagnostic */}
               {dailyEngineSignal && (
@@ -796,33 +844,15 @@ export default function DestinyMatrixPlanner({
                 </div>
               )}
 
-              {/* Active 신살 chips */}
-              {dailyShinsal.length > 0 && (
-                <div className="bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
-                  <h3 className="text-xs font-bold text-zinc-300 tracking-wider uppercase mb-3 flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> 발동 중인 신살
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {dailyShinsal.map((s, i) => {
-                      const tone =
-                        s.type === 'lucky'
-                          ? 'border-emerald-500/30 text-emerald-300 bg-emerald-900/20'
-                          : s.type === 'unlucky'
-                            ? 'border-rose-500/30 text-rose-300 bg-rose-900/20'
-                            : 'border-amber-500/30 text-amber-300 bg-amber-900/20'
-                      return (
-                        <span
-                          key={`${s.name}-${i}`}
-                          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border ${tone}`}
-                          title={`${s.affectedArea ?? ''} 영역`}
-                        >
-                          {s.name}
-                        </span>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
+              {/* ── calendar-engine v2: 매칭 패턴 카드 (헤드라인+액션) ── */}
+              <MatchedPatternsCard patterns={selectedImportantDate?.matchedPatterns} />
+
+              {/* ── calendar-engine v2: 오늘의 활성 흐름 (글로 풀어씀) ── */}
+              {/* 기존 ActiveSignalsList 리스트 + 신살 칩 → 단일 narrative 카드로 통합 */}
+              <DailyFlowCard importantDate={selectedImportantDate} />
+
+              {/* ── 24h 시간대 교차 그래프 (saju 시진 × 점성 행성시) ── */}
+              <DailyHourlyChart importantDate={selectedImportantDate} />
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2 mb-4">
@@ -937,351 +967,6 @@ export default function DestinyMatrixPlanner({
             </motion.div>
           )}
 
-          {/* 3. STATS VIEW */}
-          {viewMode === 'stats' && (
-            <motion.div
-              key="stats"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="p-6 space-y-6"
-            >
-              {/* 분석 대상자 프로필 */}
-              <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 rounded-full bg-zinc-950 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-                    <Cpu className="w-6 h-6 text-indigo-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-lg font-bold text-white tracking-wide">
-                      분석 대상자 프로필
-                    </h2>
-                    <p className="text-sm text-zinc-400 flex flex-wrap items-center gap-2 mt-1">
-                      {!data && (
-                        <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-indigo-300">
-                          ASC 물병자리
-                        </span>
-                      )}
-                      <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-amber-300">
-                        {natalDayPillar ?? '辛未(신미)'} 일주
-                      </span>
-                      {natalContextSummary?.strength && (
-                        <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-zinc-300">
-                          {natalContextSummary.strength}
-                        </span>
-                      )}
-                      {natalContextSummary?.geokguk && (
-                        <span className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700 rounded text-[11px] text-zinc-300">
-                          {natalContextSummary.geokguk}
-                        </span>
-                      )}
-                      {natalContextSummary?.yongsin?.primary && (
-                        <span className="px-2 py-0.5 bg-amber-900/30 border border-amber-500/30 rounded text-[11px] text-amber-200">
-                          용신 {natalContextSummary.yongsin.primary}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-                {natalContextSummary?.summary && (
-                  <p className="text-[11px] text-zinc-500 mt-3 pt-3 border-t border-white/5 leading-relaxed">
-                    {natalContextSummary.summary}
-                  </p>
-                )}
-              </div>
-
-              {/* 용신 활성 top 5 (향후 60일) */}
-              {yongsinTop && yongsinTop.top.length > 0 && (
-                <div className="bg-gradient-to-br from-amber-900/15 to-zinc-900/40 border border-amber-500/20 p-5 rounded-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
-                    <Sparkles className="w-16 h-16 text-amber-400" />
-                  </div>
-                  <div className="flex items-center gap-2 mb-2 relative z-10">
-                    <Sparkles className="w-4 h-4 text-amber-400" />
-                    <h3 className="text-sm font-bold text-amber-200">
-                      용신 {yongsinTop.yongsin} 활성 — 향후 60일 슈퍼 데이 top {yongsinTop.top.length}
-                    </h3>
-                  </div>
-                  <p className="text-[11px] text-zinc-500 mb-4 relative z-10 leading-relaxed">
-                    본명 용신({yongsinTop.yongsin})이 가장 강하게 받쳐주는 날 — 큰 결정·계약·시작에 추천.
-                  </p>
-                  <div className="space-y-2 relative z-10">
-                    {yongsinTop.top.map((d, i) => (
-                      <div
-                        key={d.date}
-                        className="flex items-start gap-3 bg-zinc-950/70 p-3 rounded-xl border border-amber-500/10"
-                      >
-                        <div className="flex flex-col items-center justify-center w-14 shrink-0 border-r border-amber-500/10 pr-2">
-                          <span className="text-[9px] text-amber-400/80 font-bold uppercase tracking-wider">
-                            #{i + 1}
-                          </span>
-                          <span className="text-xl font-black text-amber-300 leading-none mt-0.5">
-                            {Math.round(d.score)}
-                          </span>
-                          <span className="text-[9px] text-zinc-500 mt-0.5">{d.level}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold text-white mb-1">
-                            {formatDateKo(d.date)}{' '}
-                            <span className="text-zinc-500 text-[10px] font-normal">
-                              ({d.date})
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-zinc-400 leading-relaxed">{d.advice}</p>
-                          {d.sources && d.sources.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-1.5">
-                              {d.sources.slice(0, 4).map((src, si) => (
-                                <span
-                                  key={si}
-                                  className="px-1.5 py-0.5 text-[9px] bg-zinc-900 border border-zinc-700 rounded text-zinc-400"
-                                >
-                                  {src}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 운세 영역별 동기화 분석 */}
-              <div className="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-indigo-400" /> 운세 영역별 동기화 분석
-                  </h3>
-                </div>
-                <p className="text-[11px] text-zinc-500 mb-4">
-                  사주와 점성술이 가리키는 삶의 영역별 일치도를 분석합니다.
-                </p>
-
-                <div className="flex flex-col gap-5">
-                  <div className="h-56 w-full -ml-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
-                        <PolarGrid stroke="#3f3f46" />
-                        <PolarAngleAxis
-                          dataKey="subject"
-                          tick={{ fill: '#d4d4d8', fontSize: 11, fontWeight: 600 }}
-                        />
-                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                        <Radar
-                          name="사주 예측"
-                          dataKey="saju"
-                          stroke="#6366f1"
-                          strokeWidth={2}
-                          fill="#6366f1"
-                          fillOpacity={0.35}
-                        />
-                        <Radar
-                          name="점성술 예측"
-                          dataKey="astro"
-                          stroke="#22d3ee"
-                          strokeWidth={2}
-                          fill="#22d3ee"
-                          fillOpacity={0.35}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#18181b',
-                            border: '1px solid #27272a',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                          }}
-                        />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-indigo-900/20 border border-indigo-500/30 p-3.5 rounded-xl">
-                      <span className="text-[10px] text-indigo-400 font-bold mb-1.5 block tracking-wider">
-                        최대 시너지 영역
-                      </span>
-                      <div className="text-sm font-black text-white mb-1.5 flex items-center gap-1">
-                        <Coins className="w-3.5 h-3.5" />{' '}
-                        {data && domainExtremes ? domainExtremes.synergy.subject : '재물 & 직업'}
-                      </div>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed">
-                        {data && domainExtremes ? (
-                          <>
-                            사주 평균{' '}
-                            <strong className="text-indigo-300 font-medium">
-                              {domainExtremes.synergy.saju}점
-                            </strong>{' '}
-                            + 점성{' '}
-                            <strong className="text-cyan-300 font-medium">
-                              {domainExtremes.synergy.astro}점
-                            </strong>
-                            로 두 엔진이 모두 강하게 받쳐주는 영역입니다.
-                          </>
-                        ) : (
-                          <>
-                            사주의{' '}
-                            <strong className="text-indigo-300 font-medium">정재(正財)</strong>{' '}
-                            기운과 점성술의{' '}
-                            <strong className="text-cyan-300 font-medium">2하우스(소유)</strong>{' '}
-                            확장이 완벽히 일치하여 강한 성과를 냅니다.
-                          </>
-                        )}
-                      </p>
-                    </div>
-                    <div className="bg-rose-900/20 border border-rose-500/30 p-3.5 rounded-xl">
-                      <span className="text-[10px] text-rose-400 font-bold mb-1.5 block tracking-wider">
-                        주의 및 상충 영역
-                      </span>
-                      <div className="text-sm font-black text-white mb-1.5 flex items-center gap-1">
-                        <Heart className="w-3.5 h-3.5" />{' '}
-                        {data && domainExtremes ? domainExtremes.conflict.subject : '연애 & 대인관계'}
-                      </div>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed">
-                        {data && domainExtremes ? (
-                          <>
-                            사주{' '}
-                            <strong className="text-rose-300 font-medium">
-                              {domainExtremes.conflict.saju}점
-                            </strong>{' '}
-                            / 점성{' '}
-                            <strong className="text-rose-300 font-medium">
-                              {domainExtremes.conflict.astro}점
-                            </strong>
-                            으로 두 엔진 모두 약한 신호를 보내는 구간입니다.
-                          </>
-                        ) : (
-                          <>
-                            사주의{' '}
-                            <strong className="text-rose-300 font-medium">원진살</strong>과 금성(Venus)의{' '}
-                            <strong className="text-rose-300 font-medium">흉각</strong>이 겹치는 시기로,
-                            오해나 갈등이 발생하기 쉽습니다.
-                          </>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 주차별 크로스 타이밍 */}
-              <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2">
-                      <Target className="w-4 h-4 text-cyan-400" /> 주차별 크로스 타이밍
-                    </h3>
-                    <p className="text-[10px] text-zinc-500 mt-1">
-                      두 학문이 공통으로 가리키는 &lsquo;슈퍼 타이밍&rsquo;을 찾습니다.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="h-48 w-full -ml-4 mt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                      <XAxis dataKey="week" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#18181b',
-                          border: '1px solid #27272a',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                        }}
-                        formatter={
-                          ((value: number, name: string) => [
-                            `${value}점`,
-                            name === 'saju' ? '사주 흐름' : '점성술 흐름',
-                          ]) as never
-                        }
-                      />
-                      {superTiming && (
-                        <ReferenceArea
-                          x1={`${Math.max(1, parseInt(superTiming.week, 10) - 1)}주차`}
-                          x2={`${Math.min(5, parseInt(superTiming.week, 10) + 1)}주차`}
-                          fill="#6366f1"
-                          fillOpacity={0.1}
-                        />
-                      )}
-                      <Line
-                        type="monotone"
-                        dataKey="saju"
-                        name="saju"
-                        stroke="#6366f1"
-                        strokeWidth={2.5}
-                        dot={{ r: 3, fill: '#6366f1' }}
-                        activeDot={{ r: 5 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="astro"
-                        name="astro"
-                        stroke="#22d3ee"
-                        strokeWidth={2.5}
-                        dot={{ r: 3, fill: '#22d3ee' }}
-                        activeDot={{ r: 5 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="flex justify-center gap-6 mt-4 border-t border-white/5 pt-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 bg-indigo-500 rounded-sm" />
-                    <span className="text-xs text-zinc-400 font-medium">사주 (동양)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 bg-cyan-400 rounded-sm" />
-                    <span className="text-xs text-zinc-400 font-medium">점성술 (서양)</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 슈퍼 타이밍 카드 */}
-              <div className="bg-zinc-900/60 border border-indigo-500/20 p-5 rounded-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-3 opacity-10">
-                  <TrendingUp className="w-16 h-16 text-indigo-400" />
-                </div>
-                <h4 className="text-sm font-bold text-indigo-300 flex items-center gap-2 mb-3 relative z-10">
-                  <Sparkles className="w-4 h-4 text-amber-300" /> 엔진이 발견한 이번 달의 슈퍼 타이밍
-                </h4>
-                <p className="text-sm text-zinc-300 leading-relaxed relative z-10">
-                  이번 달은{' '}
-                  <span className="text-white font-bold bg-indigo-500/30 px-1.5 py-0.5 rounded text-xs mx-1">
-                    {superTiming
-                      ? `${superTiming.week}(${superTiming.dayStart}일~${superTiming.dayEnd}일)`
-                      : '3주차(15일~21일)'}
-                  </span>
-                  에 두 엔진의 예측이 가장 강하게 교차합니다.
-                </p>
-                <div className="mt-4 space-y-3 relative z-10">
-                  <div className="flex items-start gap-3 bg-zinc-950/80 p-3 rounded-xl border border-white/5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
-                    <p className="text-xs text-zinc-400 leading-relaxed">
-                      <strong className="text-indigo-300 font-medium">사주 엔진:</strong>{' '}
-                      {superTimingReasons.saju}
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3 bg-zinc-950/80 p-3 rounded-xl border border-white/5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
-                    <p className="text-xs text-zinc-400 leading-relaxed">
-                      <strong className="text-cyan-300 font-medium">점성술 엔진:</strong>{' '}
-                      {superTimingReasons.astro}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4 relative z-10 bg-emerald-900/10 p-3 rounded-lg border border-emerald-500/10 text-center">
-                  <p className="text-xs text-emerald-400/90 font-medium leading-relaxed">
-                    💡 동서양의 운세가 공통으로 긍정적인 신호를 보내는 이 시기에
-                    <br />
-                    중요한 계약이나 계획을 실행하는 것을 강력히 추천합니다.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
         </AnimatePresence>
       </div>
 

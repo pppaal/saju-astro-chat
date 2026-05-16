@@ -26,7 +26,7 @@ import {
   isSonEomneunDay,
   isYeokmaDay,
 } from '../utils'
-import { analyzeShinsal } from '@/lib/prediction/ultraPrecisionEngine'
+import { analyzeShinsal } from '@/lib/timing/ultraPrecisionEngine'
 
 export interface SpecialFactors {
   hasCheoneulGwiin: boolean
