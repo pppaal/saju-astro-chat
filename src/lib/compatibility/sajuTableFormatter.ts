@@ -182,58 +182,45 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
     lines.push(...jgLines)
   }
 
-  // 대운 — print prev / current / next instead of the full 10 stages.
-  // The full list balloons to ~10 rows × 2 people while ~80% of the
-  // entries are too far past or future for any single answer to cite.
-  // Keep daeun.current intact so the active stage is fully described.
+  // 대운 — full 10-stage life cycle. User explicitly asked for raw
+  // saju + raw astro both, so the table mirrors what calculateSajuData
+  // returns. The ← 현재 marker keeps the active stage easy to spot.
   const daeun = saju.daeun
   if (daeun?.list && daeun.list.length > 0) {
     lines.push('')
     lines.push('[대운]')
     const currentAge = daeun.current?.age
-    const idx = currentAge != null ? daeun.list.findIndex((d) => d.age === currentAge) : -1
-    const center = idx >= 0 ? idx : 0
-    const window = daeun.list.slice(Math.max(0, center - 1), Math.min(daeun.list.length, center + 2))
-    window.forEach((d) => {
+    daeun.list.forEach((d) => {
       const isCurrent = currentAge != null && d.age === currentAge
       lines.push(daeunRow(d, isCurrent ? ' ← 현재' : ''))
     })
   }
 
-  // 세운 — keep ±1 year window (last / this / next). Full 10-year
-  // arc almost never gets referenced explicitly.
+  // 세운 — full 10-year forecast as the saju lib produces it.
   if (saju.yeonun && saju.yeonun.length > 0) {
     lines.push('')
     lines.push('[세운]')
     const nowYear = new Date().getFullYear()
-    const idx = saju.yeonun.findIndex((y) => y.year === nowYear)
-    const center = idx >= 0 ? idx : 0
-    const window = saju.yeonun.slice(Math.max(0, center - 1), Math.min(saju.yeonun.length, center + 2))
-    window.forEach((y) => {
+    saju.yeonun.forEach((y) => {
       lines.push(yeonunRow(y, y.year === nowYear ? ' ← 올해' : ''))
     })
   }
 
-  // 월운 — ±1 month window. Full 12-month arc is too coarse-grained
-  // for any single answer to use; prev/this/next is what gets cited.
+  // 월운 — full 12-month arc.
   if (saju.wolun && saju.wolun.length > 0) {
     lines.push('')
     lines.push('[월운]')
     const now = new Date()
     const nowYear = now.getFullYear()
     const nowMonth = now.getMonth() + 1
-    const idx = saju.wolun.findIndex((m) => m.year === nowYear && m.month === nowMonth)
-    const center = idx >= 0 ? idx : 0
-    const window = saju.wolun.slice(Math.max(0, center - 1), Math.min(saju.wolun.length, center + 2))
-    window.forEach((m) => {
+    saju.wolun.forEach((m) => {
       const isNow = m.year === nowYear && m.month === nowMonth
       lines.push(wolunRow(m, isNow ? ' ← 이번달' : ''))
     })
   }
 
-  // 일운 — today ±3 (7 days). The buildAutoSajuContext output ships
-  // the full month (31 entries); answers almost never reach beyond
-  // "this week" so trimming saves ~70% of the daily rows.
+  // 일운 — full month (~31 days). buildAutoSajuContext output
+  // shipped as-is so the model has the complete daily almanac.
   if (saju.iljin && saju.iljin.length > 0) {
     lines.push('')
     lines.push('[일운]')
@@ -241,12 +228,7 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
     const nowYear = now.getFullYear()
     const nowMonth = now.getMonth() + 1
     const nowDay = now.getDate()
-    const idx = saju.iljin.findIndex(
-      (d) => d.year === nowYear && d.month === nowMonth && d.day === nowDay,
-    )
-    const center = idx >= 0 ? idx : 0
-    const window = saju.iljin.slice(Math.max(0, center - 3), Math.min(saju.iljin.length, center + 4))
-    window.forEach((d) => {
+    saju.iljin.forEach((d) => {
       const isToday = d.year === nowYear && d.month === nowMonth && d.day === nowDay
       lines.push(iljinRow(d, isToday ? ' ← 오늘' : ''))
     })
@@ -320,23 +302,16 @@ export function formatAstroAsTable(astro: AstroLike | null | undefined, label: s
     })
   }
 
-  // Natal aspects — the geometric relationships between the chart's
-  // planets (conjunction / sextile / square / trine / opposition + a
-  // handful of minor angles). Same role in astro as 합/충 plays in
-  // saju, so the model genuinely needs them. We keep the top 12 by
-  // tightest orb — findNatalAspects already returns up to 80 ranked
-  // by score, so 12 captures the strongest signals without bloating
-  // the prompt.
+  // Natal aspects — full set as findNatalAspects returns it (up to
+  // 80, ranked by score). User asked for raw — no extra trimming on
+  // top of what the upstream library already limits.
   const aspects = natal?.aspects
   if (Array.isArray(aspects) && aspects.length > 0) {
-    const top = [...aspects]
-      .filter((a) => a.from?.name && a.to?.name && a.type)
-      .sort((a, b) => (a.orb ?? 99) - (b.orb ?? 99))
-      .slice(0, 12)
-    if (top.length > 0) {
+    const valid = aspects.filter((a) => a.from?.name && a.to?.name && a.type)
+    if (valid.length > 0) {
       lines.push('')
       lines.push('[Natal 어스펙트] from | type | to | orb')
-      top.forEach((a) => {
+      valid.forEach((a) => {
         lines.push(
           `${s(a.from?.name)} | ${s(a.type)} | ${s(a.to?.name)} | ${a.orb != null ? a.orb.toFixed(1) + '°' : '?'}${a.applying ? ' →' : ''}`,
         )

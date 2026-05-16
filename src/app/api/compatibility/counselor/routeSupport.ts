@@ -1378,12 +1378,12 @@ function formatTimingForPrompt(
       const ct = sideAstro.currentTransits as Record<string, unknown> | undefined
       if (ct) {
         const asOf = ct.asOfIso ? String(ct.asOfIso).slice(0, 10) : ''
-        // Top 3 transits per person — was 5, but the table already
-        // carries enough timing context (대운/세운 + ← markers) that 5
-        // outer-planet aspects per side was over-spending the prompt.
-        // 3 keeps the strongest season-defining aspect plus two others.
-        const major = pickTopTransits(ct.majorTransits, 3)
-        const fallback = major.length > 0 ? major : pickTopTransits(ct.aspects, 3)
+        // Full transit list — user explicitly asked for raw saju
+        // and raw astro both, so we pass through what findMajor-
+        // Transits / findTransitAspects already pre-limited
+        // upstream (40 major, 80 aspect, both orb-bounded).
+        const major = pickTopTransits(ct.majorTransits, 40)
+        const fallback = major.length > 0 ? major : pickTopTransits(ct.aspects, 80)
         if (fallback.length > 0) {
           lines.push(
             `${isKo ? '점성 트랜짓' : 'astro transits'}${asOf ? ` (${asOf})` : ''}:`
