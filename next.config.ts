@@ -120,6 +120,24 @@ const nextConfig = {
       './node_modules/swisseph/build/Release/**/*.node',
       './public/ephe/**/*',
     ],
+    // Counselor routes pull astrology in too: compat through
+    // buildAutoAstroContext, destiny realtime through runFortuneWithRaw,
+    // tarot through cross-mode + couple-reading natal cross. These were
+    // missing so the production serverless bundle couldn't find swisseph
+    // at runtime and the LLM ended up with empty astro data — user
+    // noticed because answers stopped citing astrology terms.
+    '/app/api/compatibility/**': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
+    '/app/api/counselor/**': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
+    '/app/api/tarot/**': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
   },
   outputFileTracingExcludes: {
     '/app/api/**': [
