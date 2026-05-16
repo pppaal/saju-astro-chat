@@ -11,6 +11,13 @@ type SearchParams = Record<string, string | string[] | undefined>
 const DEFAULT_LATITUDE = 37.5665
 const DEFAULT_LONGITUDE = 126.978
 
+interface ProfileFallback {
+  birthDate?: string
+  birthTime?: string
+  gender?: string
+  birthCity?: string
+}
+
 export function useCounselorData(sp: SearchParams) {
   const { setLocale } = useI18n()
 
@@ -23,18 +30,59 @@ export function useCounselorData(sp: SearchParams) {
 
   // Parse search params
   const name = (Array.isArray(sp.name) ? sp.name[0] : sp.name) ?? ''
-  const birthDate = (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? ''
-  const birthTime = (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? ''
+  const urlBirthDate = (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? ''
+  const urlBirthTime = (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? ''
   const rawBirthTimeUnknown = Array.isArray(sp.birthTimeUnknown)
     ? sp.birthTimeUnknown[0]
     : sp.birthTimeUnknown
-  const birthTimeUnknown =
-    rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true' || birthTime === '00:00'
-  const city = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? ''
+  const urlCity = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? ''
   const rawGender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? ''
   const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? 'ko'
   const lang: Lang = langParam === 'en' ? 'en' : 'ko'
   const initialQuestion = (Array.isArray(sp.q) ? sp.q[0] : sp.q) ?? ''
+
+  // Returning users (e.g. opening a saved session from the sidebar)
+  // arrive at /destiny-map/counselor without birth params on the URL.
+  // Fall back to /api/me/profile so the gate stops re-prompting them.
+  // Loading is true until either: the URL already has birthDate+
+  // birthTime, or the profile fetch resolves.
+  const hasUrlBirthInfo = Boolean(urlBirthDate && urlBirthTime)
+  const [profileFallback, setProfileFallback] = useState<ProfileFallback>({})
+  const [profileLoading, setProfileLoading] = useState(!hasUrlBirthInfo)
+
+  useEffect(() => {
+    if (hasUrlBirthInfo) return
+    let cancelled = false
+    fetch('/api/me/profile')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return
+        const u = data?.user
+        if (u) {
+          setProfileFallback({
+            birthDate: u.birthDate ?? undefined,
+            birthTime: u.birthTime ?? undefined,
+            gender: u.gender ?? undefined,
+            birthCity: u.birthCity ?? undefined,
+          })
+        }
+      })
+      .catch((e) => logger.warn('[useCounselorData] profile fallback failed', { e }))
+      .finally(() => {
+        if (!cancelled) setProfileLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [hasUrlBirthInfo])
+
+  // Merged values — URL params win, profile fills in.
+  const birthDate = urlBirthDate || profileFallback.birthDate || ''
+  const birthTime = urlBirthTime || profileFallback.birthTime || ''
+  const city = urlCity || profileFallback.birthCity || ''
+  const effectiveGender = rawGender || profileFallback.gender || ''
+  const birthTimeUnknown =
+    rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true'
 
   const latStr =
     (Array.isArray(sp.lat) ? sp.lat[0] : sp.lat) ??
@@ -47,7 +95,7 @@ export function useCounselorData(sp: SearchParams) {
   const longitude = lonStr ? Number(lonStr) : NaN
   const resolvedLatitude = Number.isFinite(latitude) ? latitude : DEFAULT_LATITUDE
   const resolvedLongitude = Number.isFinite(longitude) ? longitude : DEFAULT_LONGITUDE
-  const normalizedGender = String(rawGender).toLowerCase() === 'female' ? 'female' : 'male'
+  const normalizedGender = String(effectiveGender).toLowerCase() === 'female' ? 'female' : 'male'
 
   // Set locale from URL parameter
   useEffect(() => {
@@ -396,5 +444,6 @@ export function useCounselorData(sp: SearchParams) {
     chatSessionId,
     handleSaveMessage,
     parsedParams,
+    profileLoading,
   }
 }

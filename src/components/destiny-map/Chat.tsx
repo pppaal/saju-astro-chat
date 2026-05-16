@@ -61,7 +61,6 @@ const Chat = memo(function Chat({
 
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
-  const [showTarotPrompt, setShowTarotPrompt] = React.useState(false)
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [showSuggestions, setShowSuggestions] = React.useState(true)
   const [showHistoryModal, setShowHistoryModal] = React.useState(false)
@@ -266,12 +265,6 @@ const Chat = memo(function Chat({
     })
   }, [returningSummary, setMessages])
 
-  React.useEffect(() => {
-    const assistantMessages = messages.filter((m) => m.role === 'assistant')
-    if (assistantMessages.length >= 2 && !showTarotPrompt) {
-      setShowTarotPrompt(true)
-    }
-  }, [messages, showTarotPrompt])
 
   useSeedEvent({
     eventName: seedEvent,
@@ -408,7 +401,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
 
       {showWelcomeBack && (
         <div className={styles.welcomeBackBanner}>
-          <span>{'\uD83D\uDC4B'}</span>
+          <span className={styles.welcomeBackSpark} aria-hidden="true">{'\u2728'}</span>
           <span>{tr.welcomeBack}</span>
         </div>
       )}
@@ -501,7 +494,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               showSuggestions={showSuggestions}
               suggestedQs={suggestedQs}
               followUpQuestions={followUpQuestions}
-              showTarotPrompt={showTarotPrompt}
               feedback={feedback}
               effectiveLang={effectiveLang}
               tr={tr}
@@ -509,7 +501,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onSuggestion={handleSuggestion}
               onFeedback={handleFeedback}
               onFollowUp={handleFollowUp}
-              onGoToTarot={goToTarot}
               styles={styles}
             />
 
@@ -520,10 +511,12 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               parsingPdf={parsingPdf}
               usedFallback={usedFallback}
               tr={tr}
+              lang={lang}
               onInputChange={setInput}
               onKeyDown={onKeyDown}
               onSend={() => void handleSend()}
               onFileUpload={handleFileUpload}
+              onOpenTarot={goToTarot}
               styles={styles}
               autoFocus={autoFocus}
             />

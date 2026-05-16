@@ -11,6 +11,26 @@ import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { runQuickCoupleTarot } from './runQuickCoupleTarot'
 import { streamProcessor } from '@/lib/streaming'
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+
+// Short, one-line prompts that cycle through the textarea placeholder.
+// The original single-string placeholder ("두 사람에 대해 깊이 있는 질문을
+// 해보세요…") wraps to two lines on mobile; these stay on one line and
+// double as suggestion hints for users who don't know where to start.
+const TYPEWRITER_PROMPTS_KO = [
+  '우리 인연의 의미는?',
+  '갈등은 어떻게 풀까?',
+  '함께할 미래의 흐름?',
+  '관계의 강점은?',
+  '서로 다른 점은?',
+] as const
+const TYPEWRITER_PROMPTS_EN = [
+  'What is our bond about?',
+  'How do we handle conflict?',
+  "Where is this heading?",
+  'What are our strengths?',
+  'Where do we differ?',
+] as const
 
 function CounselorLoading() {
   return <BrandSplash message="상담사 준비 중..." />
@@ -40,6 +60,12 @@ function formatBirthSnippet(p: PersonData): string {
 
 function CompatibilityCounselorContent() {
   const { locale, setLocale } = useI18n()
+  const toggleLocale = useCallback(() => {
+    setLocale(locale === 'ko' ? 'en' : 'ko')
+  }, [locale, setLocale])
+  const animatedPlaceholder = useTypewriterPlaceholder(
+    locale === 'ko' ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
+  )
   const searchParams = useSearchParams()
 
   const [persons, setPersons] = useState<PersonData[]>([])
@@ -52,6 +78,7 @@ function CompatibilityCounselorContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [creditExhausted, setCreditExhausted] = useState(false)
   // Persistent chat session id (returned by /api/counselor/chat-history
   // after the first save). Subsequent saves attach to the same row.
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
@@ -199,7 +226,33 @@ function CompatibilityCounselorContent() {
   }
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    // Streaming updates the *last* message's content in place — array
+    // length doesn't change after the second chunk, but the array
+    // reference does, so this effect refires on every chunk. We need
+    // the scroll to keep up with the growing bubble, not just the
+    // initial append.
+    //
+    // Pre-fix this used scrollIntoView({ behavior: 'smooth' }), which
+    // (1) targets window-level scroll instead of the inner messages
+    // container, and (2) cancels itself when called many times per
+    // second during streaming — so the chat stopped following the
+    // assistant's reply mid-paragraph.
+    //
+    // Replacement: scrollTop = scrollHeight on the actual scroll
+    // container, deferred a frame so the freshly appended chunk is
+    // already in the DOM. Falls back to scrollIntoView in case the
+    // ref structure ever changes.
+    const end = messagesEndRef.current
+    if (!end) return
+    const container = end.parentElement
+    const raf = requestAnimationFrame(() => {
+      if (container && container.scrollHeight > container.clientHeight) {
+        container.scrollTop = container.scrollHeight
+      } else {
+        end.scrollIntoView({ block: 'end' })
+      }
+    })
+    return () => cancelAnimationFrame(raf)
   }, [messages])
 
   // dvh layout requires html/body scroll lock — same trick as destiny-counselor.
@@ -264,7 +317,25 @@ function CompatibilityCounselorContent() {
         if (response.status === 401) {
           throw new Error('login_required')
         }
-        throw new Error('Failed to get response')
+        // 402 Payment Required — credit exhausted. The middleware
+        // returns { error, code: 'INSUFFICIENT_CREDITS', upgradeUrl,
+        // remaining }. We want a user-friendly bubble + pricing link
+        // instead of a generic "오류 발생", which is what every user
+        // (and three rounds of debugging) had been seeing.
+        if (response.status === 402) {
+          throw new Error('payment_required')
+        }
+        // Pull the route's short errorTag so the chat bubble shows
+        // *why* the request failed instead of a generic "오류 발생".
+        // The route returns { error, errorTag } as JSON for non-2xx.
+        let detail = ''
+        try {
+          const body = (await response.clone().json()) as { errorTag?: string; error?: string }
+          detail = body.errorTag || body.error || ''
+        } catch {
+          /* response wasn't JSON — fall through to plain status */
+        }
+        throw new Error(detail ? `Failed (${response.status}): ${detail}` : `Failed (${response.status})`)
       }
 
       // 서버는 `data: {"content":"...","done":false}\n\n` 형식의 JSON SSE를
@@ -333,14 +404,28 @@ function CompatibilityCounselorContent() {
       }
     } catch (e) {
       logger.error('Chat error:', { error: e })
-      if ((e as Error).message === 'login_required') {
+      const errMsg = (e as Error).message || ''
+      if (errMsg === 'login_required') {
         setError(
           isKo ? '로그인이 필요한 프리미엄 기능입니다.' : 'Login required for this premium feature.'
         )
-      } else {
+      } else if (errMsg === 'payment_required') {
+        // Friendly credit-exhausted message + flip a flag so the error
+        // bubble renders a tappable "플랜 보기" button alongside the
+        // text. setError on its own can only emit plain text.
         setError(
-          isKo ? '오류가 발생했습니다. 다시 시도해 주세요.' : 'An error occurred. Please try again.'
+          isKo
+            ? '이번 달 무료 궁합 분석 횟수를 모두 사용했어요.'
+            : "You've used all free compatibility readings this month."
         )
+        setCreditExhausted(true)
+      } else {
+        // Append the route's errorTag (set above from response body) so
+        // the user-visible bubble points at the actual failure mode
+        // instead of a generic message. The Error here is either our
+        // "Failed (500): ErrorName: message…" string or a network error.
+        const base = isKo ? '오류가 발생했습니다. 다시 시도해 주세요.' : 'An error occurred. Please try again.'
+        setError(errMsg && errMsg !== 'Failed to get response' ? `${base}\n[${errMsg}]` : base)
       }
     } finally {
       setIsLoading(false)
@@ -365,10 +450,6 @@ function CompatibilityCounselorContent() {
       sendMessage()
     }
   }
-
-  const toggleLocale = useCallback(() => {
-    setLocale(locale === 'ko' ? 'en' : 'ko')
-  }, [locale, setLocale])
 
   // 🎴 둘 궁합 타로 — 한 번 클릭으로 5장 관계 크로스를 펼치고 chat 에 inline 으로 풀어준다.
   const handleQuickCoupleTarot = useCallback(async () => {
@@ -511,6 +592,7 @@ function CompatibilityCounselorContent() {
             onClick={toggleLocale}
             className={styles.localeToggle}
             aria-label={isKo ? 'Switch to English' : '한국어로 전환'}
+            title={isKo ? 'Switch to English' : '한국어로 전환'}
           >
             {isKo ? 'EN' : 'KO'}
           </button>
@@ -607,7 +689,30 @@ function CompatibilityCounselorContent() {
             )
           })}
 
-          {error && <div className={styles.errorMessage}>{error}</div>}
+          {error && (
+            <div className={styles.errorMessage}>
+              {error}
+              {creditExhausted && (
+                <a
+                  href="/pricing"
+                  style={{
+                    display: 'inline-block',
+                    marginTop: 10,
+                    padding: '8px 14px',
+                    borderRadius: 999,
+                    background:
+                      'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%)',
+                    color: '#3a1f3a',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {isKo ? '플랜 보기' : 'View plans'}
+                </a>
+              )}
+            </div>
+          )}
 
           <div ref={messagesEndRef} />
         </div>
@@ -659,11 +764,7 @@ function CompatibilityCounselorContent() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={
-              isKo
-                ? '두 사람에 대해 깊이 있는 질문을 해보세요...'
-                : 'Ask deep questions about your compatibility...'
-            }
+            placeholder={animatedPlaceholder || (isKo ? '질문을 입력하세요…' : 'Type a question…')}
             className={styles.input}
             rows={1}
             disabled={isLoading}

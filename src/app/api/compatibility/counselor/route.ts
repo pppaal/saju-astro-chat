@@ -22,6 +22,12 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
+import { relationLabel } from '../routeSupportCommon'
+import type { Relation } from '../types'
+import {
+  formatSajuAsTable,
+  formatAstroAsTable,
+} from '@/lib/compatibility/sajuTableFormatter'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -290,10 +296,19 @@ export async function POST(req: NextRequest) {
       logger.error('[Compatibility Counselor] Fusion error:', { error: fusionError })
     }
 
-    // raw 컨텍스트는 위 ==사주/점성/시기/Fusion 심화 분석== 블록과 겹치지 않는
-    // raw pillars + raw natal planets만 남긴다. 가공된 분석 결과(fusionResult,
-    // extendedSaju/Astro, timingDetails)는 위 전용 블록에 이미 들어가므로 중복
-    // 직렬화를 피해 prompt-cache 효율과 토큰 비용을 개선한다.
+    // Raw chart context. Previously this was a pruned JSON dump of the
+    // saju + natal objects (~25k chars even after PR #197's prunes).
+    // 99% of the bytes were JSON quotes, brackets, and repeated key
+    // names ("heavenlyStem", "earthlyBranch", "sibsin"...) that say
+    // nothing to the model — the actual signal per character was tiny.
+    //
+    // Replaced with a flat, pipe-separated table form. Same info,
+    // ~5× less tokens. The model reads pipes fine; we don't need a
+    // visual table on the wire.
+    //
+    // If the caller supplies a pre-baked fullContext (legacy clients),
+    // we still serialize that as JSON because we can't guarantee its
+    // shape.
     const resolvedFullContext =
       fullContext ||
       ({
@@ -303,9 +318,28 @@ export async function POST(req: NextRequest) {
         person1Astro: effectivePerson1Astro,
         person2Astro: effectivePerson2Astro,
       } as Record<string, unknown>)
-    // 응답에 거의 인용되지 않는 raw 필드(napum 등)는 prune해서 prompt 노이즈를
-    // 줄인다. 핵심 분석은 위 ==심화 분석== 블록에 이미 들어 있다.
-    const fullContextText = stringifyForPrompt(prunePromptContext(resolvedFullContext))
+    const fullContextText = fullContext
+      ? stringifyForPrompt(prunePromptContext(resolvedFullContext))
+      : [
+          formatSajuAsTable(
+            effectivePerson1Saju as Parameters<typeof formatSajuAsTable>[0],
+            'A',
+          ),
+          formatSajuAsTable(
+            effectivePerson2Saju as Parameters<typeof formatSajuAsTable>[0],
+            'B',
+          ),
+          formatAstroAsTable(
+            effectivePerson1Astro as Parameters<typeof formatAstroAsTable>[0],
+            'A',
+          ),
+          formatAstroAsTable(
+            effectivePerson2Astro as Parameters<typeof formatAstroAsTable>[0],
+            'B',
+          ),
+        ]
+          .filter((block) => !/\(없음\)/.test(block))
+          .join('\n\n')
     const contextTrace = {
       currentDateIso: new Date().toISOString().slice(0, 10),
       hasFusionResult: !!fusionResult,
@@ -550,60 +584,70 @@ export async function POST(req: NextRequest) {
     // Format persons info. 라벨을 A/B로 통일해 커플 매트릭스의 "A의 갑목 일간
     // ↔ B의 기토 일간" 같은 prose 셀과 매핑이 즉시 명확하다. 이름이 있으면
     // 함께 표기해 응답에서 자연어로 부르기 쉽게 한다.
+    const normalizedLang = lang === 'ko' ? 'ko' : 'en'
     const personsInfo = persons
       .map(
-        (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) => {
+        (
+          p: {
+            name?: string
+            date?: string
+            time?: string
+            relation?: string
+            relationNote?: string
+          },
+          i: number
+        ) => {
           const label = i === 0 ? 'A' : i === 1 ? 'B' : `P${i + 1}`
           const name = p.name || ''
           const head = name ? `${label} (${name})` : label
-          const rel = i > 0 ? ` - ${p.relation || 'partner'}` : ''
+          // Person 1 is always the anchor — no relation suffix. For
+          // everyone else, pipe through relationLabel so the LLM
+          // sees "연인 / 배우자 / 가족 / 형제자매 / 친구 / 동료 / 기타"
+          // in Korean (or the English equivalent) instead of the raw
+          // English enum key. relationLabel falls back to the freeform
+          // relationNote when the user picked "other".
+          const rel =
+            i > 0
+              ? ` - ${relationLabel(normalizedLang, p.relation as Relation | undefined, p.relationNote)}`
+              : ''
           return `${head}: ${p.date} ${p.time}${rel}`
         }
       )
       .join('\n')
 
-    const normalizedLang = lang === 'ko' ? 'ko' : 'en'
     const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
-    // System prompt — counselor role.
-    // 공통 voice (counselorVoiceBase) + 궁합 카운슬러에만 해당하는 도메인 규칙.
+    // System prompt — minimal. The previous build pulled in the full
+    // counselorVoiceBase (identity + listening protocol + 16 signature
+    // sentences + absolute rules + anti-patterns + length guide) plus
+    // compat domain rules plus citation rules — ~3k tokens of stage
+    // direction that the model treated as scripture. Two side effects:
+    //   1. answers got copy-pasted from the "한계 인정" signature
+    //      block ("그 부분은 차트에 안 잡혀요…") even when the chart
+    //      *could* speak to the question.
+    //   2. every turn paid the full prompt cost.
+    // User asked for raw-data-in, direct-answer-out. We keep only the
+    // four hard safety/format guards. Tone is whatever the data
+    // suggests; the model is no longer told *how* to sound.
     const counselorLang: CounselorLang = lang === 'ko' ? 'ko' : 'en'
-    const voice = counselorVoiceBase(counselorLang)
+    void counselorVoiceBase // intentionally unused — kept imported for other counselors
     const systemPrompt =
       counselorLang === 'ko'
         ? [
-            voice,
+            '아래 == 참여자 정보 == 블록의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다.',
             '',
-            '[궁합 카운슬러 도메인 규칙]',
-            '- *두 사람의 결*을 본다. 한 사람만 칭찬하거나 한 사람만 꼬집지 말 것.',
-            '- 시너지 1개 + 마찰 1개를 최소 한 답변에 같이 보여준다 — 한쪽으로 치우치면 진단이 아니라 응원/저주가 됨.',
-            '- 사주·점성 cross 데이터가 들어오면 두 시스템이 *같은 방향을 가리키는지 다른 방향인지* 짚어준다.',
-            '- 시기 데이터(대운·세운·트랜짓)가 있을 땐 "지금 어느 시기에 있는가"가 진단을 바꾸는 축이다.',
-            '- 두 사람이 함께 결정해야 하는 일(이사·결혼·창업)에 caution 신호가 잡히면 *비가역 행동을 미루는 결*로 마무리.',
-            '- 궁합은 *고정 점수*가 아니라 *시기와 자세에 따라 바뀌는 결*이라는 톤을 유지.',
-            '',
-            '[내부 데이터 인용 규칙]',
-            '- 컨텍스트의 raw 점수(78/100, 0.69, 82% 등)는 *내부 참조용*이다. 답변에 숫자 그대로 인용 금지.',
-            '- 점수는 "강함/중상/중/약함" 같은 자연어 결로 풀어서 말한다. "장기성은 단단하지 않지만 무너지는 결도 아니에요" 처럼.',
-            '- 컨텍스트의 markdown 헤더(###)·번호 list·JSON 키 이름을 응답에 그대로 옮기지 말 것. 사람 말로 풀어서.',
-            '- "추천 행동" 같은 내부 list 항목은 답에서 prose 한 줄로 녹여 인용한다.',
+            '규칙:',
+            '- 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.',
+            '- caution 신호가 명시되면 비가역 행동(서명·확정·결제·이별 통보)을 즉시 권하지 않는다.',
+            '- AI/모델/상담사 정체 노출 금지.',
           ].join('\n')
         : [
-            voice,
+            'Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.',
             '',
-            '[Compatibility counselor domain rules]',
-            "- Read *both people's edges*. Never praise only one or critique only one.",
-            '- Show one synergy + one friction in every answer. A one-sided read is cheerleading or a curse, not diagnosis.',
-            '- When saju×astro cross data is provided, name whether the two systems point the *same direction* or pull apart.',
-            '- When timing data (daeun / seun / transits) is present, *which season they are in* is the axis that changes the read.',
-            '- For joint irreversible decisions (move-in, marriage, business) with caution flags, end on *deferring the irreversible*.',
-            '- Hold the line that compatibility is not a *fixed score* — it is a flow that shifts with timing and posture.',
-            '',
-            '[Internal data citation rules]',
-            "- Raw scores in context (78/100, 0.69, 82%) are *internal references*. Never quote numbers verbatim in the response.",
-            '- Translate scores into natural language ("strong / fairly steady / moderate / soft"). e.g. "long-term not rock-solid, but not crumbling either."',
-            '- Never copy markdown headers (###), numbered lists, or JSON key names from the context into the response. Render in plain prose.',
-            '- "Recommended actions" lists in context must be folded into a single prose sentence in the response — no list output.',
+            'Rules:',
+            '- No markdown headers (##) or numbered lists. Plain prose paragraphs.',
+            '- If caution flags are present, never push irreversible actions (sign / finalize / pay / break up).',
+            "- Never reveal you're an AI / model / counselor system.",
           ].join('\n')
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:
@@ -692,8 +736,15 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     logger.error('[Compatibility Counselor] Error:', { error: error })
+    // We've been chasing a recurring generic "오류가 발생했습니다" on the
+    // client and have no signal beyond "something threw inside the
+    // route." Surface a *short* error tag (name + first 120 chars of
+    // message) so the next failure shows up directly in the chat
+    // bubble — no stack trace, no internals. Remove once stable.
+    const errName = error instanceof Error ? error.name : 'UnknownError'
+    const errMsg = error instanceof Error ? error.message.slice(0, 120) : String(error).slice(0, 120)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', errorTag: `${errName}: ${errMsg}` },
       { status: HTTP_STATUS.SERVER_ERROR }
     )
   }

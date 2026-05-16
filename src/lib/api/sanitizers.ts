@@ -1,6 +1,8 @@
 // src/lib/api/sanitizers.ts
 // Common sanitization functions for API routes
 
+import type { ChatMessage } from './validator'
+
 /**
  * Type guard to check if value is a plain object
  */
@@ -34,14 +36,7 @@ export function cleanStringArray(value: unknown, maxItems = 20, maxLen = 60): st
  */
 export type ChatRole = 'user' | 'assistant' | 'system'
 
-/**
- * Standard chat message interface
- * @deprecated Use ChatMessage from @/lib/api/validator instead
- */
-export interface ChatMessage {
-  role: ChatRole
-  content: string
-}
+export type { ChatMessage } from './validator'
 
 const ALLOWED_ROLES = new Set<ChatRole>(['user', 'assistant', 'system'])
 

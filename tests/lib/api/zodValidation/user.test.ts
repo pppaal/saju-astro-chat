@@ -6,7 +6,6 @@
 import { describe, it, expect } from 'vitest'
 import {
   userRegistrationRequestSchema,
-  notificationSettingsSchema,
   userProfileUpdateSchema,
   userBirthInfoUpdateSchema,
   birthChartMemorySchema,
@@ -111,41 +110,10 @@ describe('Auth Schema Tests', () => {
 })
 
 describe('Profile Schema Tests', () => {
-  describe('notificationSettingsSchema', () => {
-    it('should accept valid settings', () => {
-      expect(notificationSettingsSchema.safeParse({
-        dailyFortune: true,
-        weeklyFortune: false,
-        monthlyFortune: true,
-        specialEvents: true,
-        promotions: false,
-      }).success).toBe(true)
-    })
-
-    it('should accept preferredTime', () => {
-      expect(notificationSettingsSchema.safeParse({
-        preferredTime: '09:00',
-      }).success).toBe(true)
-    })
-
-    it('should reject invalid preferredTime', () => {
-      expect(notificationSettingsSchema.safeParse({
-        preferredTime: '25:00',
-      }).success).toBe(false)
-    })
-
-    it('should accept timezone', () => {
-      expect(notificationSettingsSchema.safeParse({
-        timezone: 'Asia/Seoul',
-      }).success).toBe(true)
-    })
-  })
-
   describe('userProfileUpdateSchema', () => {
     it('should accept valid profile update', () => {
       expect(userProfileUpdateSchema.safeParse({
         name: 'John Doe',
-        emailNotifications: true,
         preferredLanguage: 'ko',
       }).success).toBe(true)
     })

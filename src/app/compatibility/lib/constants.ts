@@ -7,7 +7,11 @@ import type { Relation } from './types'
 
 export const relationIcons: Record<Relation, string> = {
   lover: '\u{1F495}',
+  spouse: '\u{1F48D}',
+  family: '\u{1F3E0}',
+  sibling: '\u{1F46F}',
   friend: '\u{1F91D}',
+  colleague: '\u{1F4BC}',
   other: '\u2728',
 }
 

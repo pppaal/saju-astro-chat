@@ -219,12 +219,17 @@ async function handleCredits(
     }
   }
 
-  // Create refund function for error cases
+  // Create refund function for error cases. We refund on whatever
+  // counter the consume path *actually* debited (chargedAs) — not the
+  // request type. They diverge when monthly compat/followUp caps fall
+  // back to general reading credit; without this the refund would
+  // credit a counter that was never charged.
+  const refundType = creditResult.chargedAs ?? options.credits!.type
   const refundCreditsOnError = async (errorMessage: string, metadata?: Record<string, unknown>) => {
     try {
       await refundCredits({
         userId: userId!,
-        creditType: options.credits!.type,
+        creditType: refundType,
         amount: options.credits!.amount || 1,
         reason: 'api_error',
         apiRoute: options.route,
@@ -234,7 +239,7 @@ async function handleCredits(
       logger.info('[Middleware] Credits refunded due to API error', {
         userId,
         route: options.route,
-        creditType: options.credits!.type,
+        creditType: refundType,
         amount: options.credits!.amount || 1,
       })
     } catch (error) {

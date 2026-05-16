@@ -251,7 +251,9 @@ export const CompatibilityPersonSchema = z.object({
   timeZone: z.string().min(1).max(LIMITS.TIMEZONE),
   city: z.string().max(LIMITS.CITY).optional(),
   gender: z.string().optional(),
-  relationToP1: z.enum(['friend', 'lover', 'other']).optional(),
+  relationToP1: z
+    .enum(['lover', 'spouse', 'family', 'sibling', 'friend', 'colleague', 'other'])
+    .optional(),
   relationNoteToP1: z.string().max(LIMITS.NOTE).optional(),
 })
 

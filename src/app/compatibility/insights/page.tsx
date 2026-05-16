@@ -255,7 +255,15 @@ function CompatibilityInsightsContent() {
                   person1Name: persons[0]?.name || 'Person 1',
                   person2Name: persons[1]?.name || 'Person 2',
                   score: 85, // Default score, could be calculated from saju/astro data
-                  relation: (persons[1]?.relation as 'lover' | 'friend' | 'other') || 'lover',
+                  relation:
+                    (persons[1]?.relation as
+                      | 'lover'
+                      | 'spouse'
+                      | 'family'
+                      | 'sibling'
+                      | 'friend'
+                      | 'colleague'
+                      | 'other') || 'lover',
                   highlights: [
                     '깊은 정서적 유대감',
                     '강한 의사소통 능력',

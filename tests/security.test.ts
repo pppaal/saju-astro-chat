@@ -3,30 +3,9 @@
  * Security Tests
  * - Input validation (email, Stripe query injection)
  * - Rate limiting key generation
- *
- * NOTE: validateEnv tests are skipped because src/lib/validateEnv.ts does not exist
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-
-// Mock environment
-const originalEnv = process.env
-
-// Skip validateEnv tests - source file does not exist
-describe.skip('Security: Environment Variable Validation (skipped - validateEnv module does not exist)', () => {
-  beforeEach(() => {
-    vi.resetModules()
-    process.env = { ...originalEnv }
-  })
-
-  afterEach(() => {
-    process.env = originalEnv
-  })
-
-  it('placeholder - validateEnv module does not exist', () => {
-    // This entire describe block is skipped
-  })
-})
+import { describe, it, expect } from 'vitest'
 
 describe('Security: Input Validation', () => {
   it('validates email format correctly', () => {

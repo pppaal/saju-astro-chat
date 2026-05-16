@@ -15,13 +15,17 @@ export type CompatibilityData = {
   person1Name: string;
   person2Name: string;
   score: number;
-  relation: 'lover' | 'friend' | 'other';
+  relation: 'lover' | 'spouse' | 'family' | 'sibling' | 'friend' | 'colleague' | 'other';
   highlights?: string[];
 };
 
 const RELATION_EMOJI: Record<string, string> = {
   lover: '💕',
+  spouse: '💍',
+  family: '🏠',
+  sibling: '👯',
   friend: '🤝',
+  colleague: '💼',
   other: '✨',
 };
 

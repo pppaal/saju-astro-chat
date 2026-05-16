@@ -57,6 +57,14 @@ export default function CounselorSidebar({
 
   useEffect(() => {
     if (!open || status !== 'authenticated') return
+    // Reset transient row state every time the drawer reopens. Without
+    // this, a row left in swipe / rename mode from a previous open
+    // stays mid-swipe — the title slides 72px off-screen and the user
+    // sees only the action icons, which looks like "past chats are
+    // gone" even though the data is there.
+    setSwipedId(null)
+    setRenamingId(null)
+    setRenameValue('')
     let cancelled = false
     setLoadingList(true)
     fetch(`/api/counselor/session/list?limit=30&type=${serviceType}`)
@@ -217,7 +225,15 @@ export default function CounselorSidebar({
               {sessions.map((s) => {
                 const isSwiped = swipedId === s.id
                 const isRenaming = renamingId === s.id
-                const displayName = s.title || s.preview || s.id.slice(0, 8)
+                // Old rows can land with title/preview both empty (saved
+                // before the auto-titler shipped). Falling back to an 8-
+                // char UUID slice rendered as faint white text — so the
+                // row looked empty and the user assumed past chats were
+                // missing. Show a labeled placeholder instead.
+                const displayName =
+                  (s.title && s.title.trim()) ||
+                  (s.preview && s.preview.trim()) ||
+                  t('destinyMap.counselor.untitledChat', 'Untitled chat')
                 return (
                   <li
                     key={s.id}

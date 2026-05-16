@@ -561,7 +561,15 @@ export const personDataSchema = z.object({
   gender: genderSchema.optional(),
 })
 
-export const relationTypeSchema = z.enum(['friend', 'lover', 'other'])
+export const relationTypeSchema = z.enum([
+  'lover',
+  'spouse',
+  'family',
+  'sibling',
+  'friend',
+  'colleague',
+  'other',
+])
 
 export const compatibilityPersonInputSchema = z
   .object({
