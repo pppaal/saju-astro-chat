@@ -77,11 +77,13 @@ export function buildInterpretation(args: {
   }
 
   // 도메인 묶음을 단일 가상 entry로 합쳐 picked에 추가
-  // — 도메인별 cells에서 top dates 추출 → narrative 마지막 줄에 추가
+  // — 도메인별 cells에서 top/bottom dates 추출 → narrative 끝에 추가
   for (const domain of DOMAIN_ORDER) {
     const list = domainPicks.get(domain)
     if (!list || list.length === 0) continue
-    const topDates = pickDomainTopDates(cells, DOMAIN_THEMES[domain] ?? [], 3)
+    const themes = DOMAIN_THEMES[domain] ?? []
+    const topDates = pickDomainExtremeDates(cells, themes, 3, 'high')
+    const lowDates = pickDomainExtremeDates(cells, themes, 2, 'low')
     const merged: typeof matched[number] = {
       rule: {
         ...list[0].rule,
@@ -91,6 +93,7 @@ export function buildInterpretation(args: {
         template: mergeDomainTemplates(
           list.map((m) => fillTemplate(m.rule.template, m.vars)),
           topDates,
+          lowDates,
         ),
       },
       vars: list[0].vars,
@@ -310,7 +313,11 @@ const MAX_RULES_PER_DOMAIN = 5
  */
 const CONNECTORS = ['여기에', '한편', '추가로', '또한', '단,']
 
-function mergeDomainTemplates(texts: string[], topDates: string[] = []): string {
+function mergeDomainTemplates(
+  texts: string[],
+  topDates: string[] = [],
+  lowDates: string[] = [],
+): string {
   if (texts.length === 0) return ''
   const cleaned = texts.map((t) => t.trim()).filter(Boolean)
   let body: string
@@ -328,42 +335,55 @@ function mergeDomainTemplates(texts: string[], topDates: string[] = []): string 
   if (topDates.length > 0) {
     body += `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
   }
+  if (lowDates.length > 0) {
+    body += `\n⚠️ 주의 날: ${lowDates.join(' · ')}`
+  }
   return body
 }
 
 /**
- * 한 도메인 안 themeKeys를 합쳐서 cell당 평균 점수를 매기고
- * 상위 N개 날짜 (MM-DD) 반환. 평균 60 미만은 제외 (모두 약하면 비표시).
+ * 한 도메인 안 themeKeys를 합쳐서 cell당 (max+avg)/2 점수를 매기고
+ * direction='high'면 상위, 'low'면 하위 N개 날짜 (MM-DD) 반환.
+ * 임계값 미달은 빈 배열 반환 (모두 평이하면 비표시 — 정직 유지).
  */
-function pickDomainTopDates(
+function pickDomainExtremeDates(
   cells: CalendarCell[],
   themeKeys: AstroThemeKey[],
   topN: number,
+  direction: 'high' | 'low',
 ): string[] {
   if (themeKeys.length === 0) return []
-  // cell당 점수 = (도메인 테마 max + avg) / 2 — max가 한 테마라도 강하면 잡아냄
-  const ranked = cells
+  const scored = cells
     .map((c) => {
       let sum = 0
       let max = 0
+      let min = 100
       let cnt = 0
       for (const tk of themeKeys) {
         const v = c.themeScores[tk]
         if (typeof v === 'number') {
           sum += v
           if (v > max) max = v
+          if (v < min) min = v
           cnt += 1
         }
       }
-      const score = cnt > 0 ? (max + sum / cnt) / 2 : 0
+      // high면 (max + avg)/2, low면 (min + avg)/2
+      const avg = cnt > 0 ? sum / cnt : 50
+      const score = direction === 'high' ? (max + avg) / 2 : (min + avg) / 2
       return { date: c.datetime.slice(5, 10), score, hasScore: cnt > 0 }
     })
     .filter((x) => x.hasScore)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topN)
-  // 가장 강한 날도 평이(52 미만)면 굳이 표시 안 함
-  if (ranked.length === 0 || ranked[0].score < 52) return []
-  return ranked.map((x) => x.date)
+
+  if (scored.length === 0) return []
+  const sorted = scored.sort((a, b) =>
+    direction === 'high' ? b.score - a.score : a.score - b.score,
+  )
+  const top = sorted.slice(0, topN)
+  // 가장 극단값도 평이(high < 52 또는 low > 48)면 표시 안 함
+  if (direction === 'high' && top[0].score < 52) return []
+  if (direction === 'low' && top[0].score > 48) return []
+  return top.map((x) => x.date)
 }
 
 const DOMAIN_THEMES: Record<string, AstroThemeKey[]> = {
