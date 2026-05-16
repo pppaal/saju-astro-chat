@@ -163,7 +163,11 @@ describe('destiny counselor prompt composition', () => {
     })
     const out = formatDestinyTiming(input)
     expect(out).toContain('[현재 시기]')
-    expect(out).toMatch(/대운:/)
+    // 대운 is intentionally NOT in the [현재 시기] block — the
+    // formatSajuAsTable [대운] block already shows the active stage
+    // with a "← 현재" marker, so re-printing here would duplicate
+    // one line per turn.
+    expect(out).not.toMatch(/^대운:/m)
     expect(out).toMatch(/세운:/)
     expect(out).toMatch(/월운:/)
     expect(out).toMatch(/일운:/)
