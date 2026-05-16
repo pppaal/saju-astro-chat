@@ -130,10 +130,14 @@ export function relationWeight(relation?: Relation) {
   if (!relation) {
     return 1.0
   }
-  if (relation === 'lover') {
+  // Romantic and family bonds carry the strongest emotional load → 1.0.
+  // Friends and siblings sit just below → 0.95. Colleague / other are the
+  // most utilitarian → 0.9. Numbers feed the compatibility-fusion scoring
+  // so changes here shift the headline score, not the LLM narrative.
+  if (relation === 'lover' || relation === 'spouse' || relation === 'family') {
     return 1.0
   }
-  if (relation === 'friend') {
+  if (relation === 'friend' || relation === 'sibling') {
     return 0.95
   }
   return 0.9
@@ -149,11 +153,29 @@ export function normalizeLocale(locale?: string): LocaleCode {
 
 export function relationLabel(locale: LocaleCode, relation?: Relation, note?: string) {
   const isKo = locale === 'ko'
+  // Keep this in lockstep with Relation in ./types and the <select>
+  // options in src/app/compatibility/components/form/PersonCard.tsx —
+  // the counselor route and free-report path both feed the returned
+  // string straight into the LLM prompt, so any new option that lands
+  // in the form must add a case here or the chart will reach Claude
+  // labeled as a generic "관계" / "related".
   if (relation === 'lover') {
     return isKo ? '연인' : 'lover'
   }
+  if (relation === 'spouse') {
+    return isKo ? '배우자' : 'spouse'
+  }
+  if (relation === 'family') {
+    return isKo ? '가족' : 'family'
+  }
+  if (relation === 'sibling') {
+    return isKo ? '형제자매' : 'sibling'
+  }
   if (relation === 'friend') {
     return isKo ? '친구' : 'friend'
+  }
+  if (relation === 'colleague') {
+    return isKo ? '동료' : 'colleague'
   }
   if (relation === 'other') {
     return note?.trim() || (isKo ? '기타' : 'other')

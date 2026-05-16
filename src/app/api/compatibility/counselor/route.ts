@@ -22,6 +22,8 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
+import { relationLabel } from '../routeSupportCommon'
+import type { Relation } from '../types'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -550,19 +552,37 @@ export async function POST(req: NextRequest) {
     // Format persons info. 라벨을 A/B로 통일해 커플 매트릭스의 "A의 갑목 일간
     // ↔ B의 기토 일간" 같은 prose 셀과 매핑이 즉시 명확하다. 이름이 있으면
     // 함께 표기해 응답에서 자연어로 부르기 쉽게 한다.
+    const normalizedLang = lang === 'ko' ? 'ko' : 'en'
     const personsInfo = persons
       .map(
-        (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) => {
+        (
+          p: {
+            name?: string
+            date?: string
+            time?: string
+            relation?: string
+            relationNote?: string
+          },
+          i: number
+        ) => {
           const label = i === 0 ? 'A' : i === 1 ? 'B' : `P${i + 1}`
           const name = p.name || ''
           const head = name ? `${label} (${name})` : label
-          const rel = i > 0 ? ` - ${p.relation || 'partner'}` : ''
+          // Person 1 is always the anchor — no relation suffix. For
+          // everyone else, pipe through relationLabel so the LLM
+          // sees "연인 / 배우자 / 가족 / 형제자매 / 친구 / 동료 / 기타"
+          // in Korean (or the English equivalent) instead of the raw
+          // English enum key. relationLabel falls back to the freeform
+          // relationNote when the user picked "other".
+          const rel =
+            i > 0
+              ? ` - ${relationLabel(normalizedLang, p.relation as Relation | undefined, p.relationNote)}`
+              : ''
           return `${head}: ${p.date} ${p.time}${rel}`
         }
       )
       .join('\n')
 
-    const normalizedLang = lang === 'ko' ? 'ko' : 'en'
     const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
     // System prompt — counselor role.

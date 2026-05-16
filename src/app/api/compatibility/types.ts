@@ -88,7 +88,14 @@ export type CompatibilityBackendResponse =
       interpretation?: string
     }
 
-export type Relation = 'lover' | 'friend' | 'other'
+export type Relation =
+  | 'lover'
+  | 'spouse'
+  | 'family'
+  | 'sibling'
+  | 'friend'
+  | 'colleague'
+  | 'other'
 
 export interface PersonInput {
   name?: string

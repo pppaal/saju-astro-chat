@@ -63,7 +63,7 @@ export interface PersonInput {
   latitude: number
   longitude: number
   city?: string
-  relationToP1?: 'friend' | 'lover' | 'other'
+  relationToP1?: 'lover' | 'spouse' | 'family' | 'sibling' | 'friend' | 'colleague' | 'other'
   relationNoteToP1?: string
 }
 
