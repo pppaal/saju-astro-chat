@@ -895,6 +895,581 @@ export const RULES: InterpretationRule[] = [
       `즐거움에 비중을 두세요.`,
     themes: ['creativity', 'health'],
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // 본명 컨텍스트 — 일주 archetype, 격국, 강약 narrative (10종)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'natal-strength-strong',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 65,
+    conditions: { natalStrength: ['strong'] },
+    template:
+      `본명은 **신강** — 자기 주장과 추진력이 자연스러운 사주입니다. ` +
+      `식상·재성·관성 운에 결과가 잘 나오는 타입.`,
+    themes: ['personality'],
+  },
+  {
+    id: 'natal-strength-weak',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 65,
+    conditions: { natalStrength: ['weak'] },
+    template:
+      `본명은 **신약** — 인성·비겁의 도움이 들어올 때 결과가 따라옵니다. ` +
+      `무리한 확장보다 협력·정리·내실 다지기가 어울리는 시기에 ` +
+      `이 사주는 빛납니다.`,
+    themes: ['personality'],
+  },
+  {
+    id: 'natal-yongsin-fire',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 60,
+    conditions: { yongsin: ['화'] },
+    template:
+      `본명 용신은 **화(火)** — 표현·열정·확장의 에너지가 ` +
+      `흐름의 핵심. 火 활성기에 가장 활발해집니다.`,
+    themes: ['creativity', 'reputation'],
+  },
+  {
+    id: 'natal-yongsin-wood',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 60,
+    conditions: { yongsin: ['목'] },
+    template:
+      `본명 용신은 **목(木)** — 성장·시작·학습의 에너지가 ` +
+      `흐름의 핵심. 木 활성기(봄·초여름)에 큰 결과.`,
+    themes: ['study', 'creativity'],
+  },
+  {
+    id: 'natal-yongsin-metal',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 60,
+    conditions: { yongsin: ['금'] },
+    template:
+      `본명 용신은 **금(金)** — 결단·정리·실행의 에너지가 ` +
+      `핵심. 金 활성기(가을)에 결과가 모아짐.`,
+    themes: ['career', 'legal'],
+  },
+  {
+    id: 'natal-yongsin-water',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 60,
+    conditions: { yongsin: ['수'] },
+    template:
+      `본명 용신은 **수(水)** — 지혜·연구·축적의 에너지가 ` +
+      `핵심. 水 활성기(겨울)에 깊이가 만들어집니다.`,
+    themes: ['study', 'spirituality'],
+  },
+  {
+    id: 'natal-yongsin-earth',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 60,
+    conditions: { yongsin: ['토'] },
+    template:
+      `본명 용신은 **토(土)** — 안정·중재·축적의 에너지가 ` +
+      `핵심. 土 활성기에 관계·재산·뿌리가 단단해집니다.`,
+    themes: ['family', 'social'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 점성 정통 narrative (8종 — ZR / Profection / Lifecycle)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'astro-zr-chapter',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 80,
+    conditions: { signalSource: 'astro', signalKinds: ['zodiacal-releasing'] },
+    template:
+      `점성 **ZR(Zodiacal Releasing) 챕터** 진행 중. 헬레니즘 ` +
+      `점성에서 인생의 큰 챕터를 표시하는 시기로, 이 챕터의 ` +
+      `테마가 평생 흐름의 무대를 만듭니다.`,
+    themes: ['personality', 'spirituality'],
+  },
+  {
+    id: 'astro-profection-house',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 78,
+    conditions: { signalSource: 'astro', signalKinds: ['profection'] },
+    template:
+      `**Profection (연주술)** — 올해 활성 하우스가 사회·관계·일상의 ` +
+      `어느 영역을 비추는지 보여줍니다. 그 하우스의 ` +
+      `Lord of Year가 1년 흐름의 주도자.`,
+    themes: ['career', 'personality'],
+  },
+  {
+    id: 'astro-lifecycle-saturn-return',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 85,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      maxPolarity: -1,
+    },
+    template:
+      `**Saturn Return** 진행 — 인생의 큰 통과의례 시기. 책임·구조· ` +
+      `현실의 무게가 강해지는 2~3년. 도망보다 정면 통과가 ` +
+      `이후 30년 토대를 만듭니다.`,
+    themes: ['career', 'crisis'],
+  },
+  {
+    id: 'astro-lifecycle-jupiter-return',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 75,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      minPolarity: 1,
+    },
+    template:
+      `**Jupiter Return** 진행 — 확장·낙관·기회가 다시 들어오는 ` +
+      `12년 주기 회귀. 새 시작·외부 진출에 우호적입니다.`,
+    themes: ['business', 'travel'],
+  },
+  {
+    id: 'astro-eclipse-solar',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 78,
+    conditions: { signalSource: 'astro', signalKinds: ['eclipse'] },
+    template:
+      `**일식·월식 영향권** — ±2주 동안 변화·발견·재구성의 ` +
+      `에너지. 평소 보이지 않던 것이 드러나는 시기입니다.`,
+    themes: ['crisis', 'personality'],
+  },
+  {
+    id: 'astro-solar-return',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 72,
+    conditions: { signalSource: 'astro', signalKinds: ['solar-return'] },
+    template:
+      `**Solar Return** (태양 회귀) — 새 1년 사이클 시작. ` +
+      `이 차트의 ASC·MC sign이 한 해 전체 톤을 만듭니다.`,
+    themes: ['personality'],
+  },
+  {
+    id: 'astro-lunar-return',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 60,
+    conditions: { signalSource: 'astro', signalKinds: ['lunar-return'] },
+    template:
+      `**Lunar Return** (달 회귀) — 한 달 정서 사이클 시작. ` +
+      `이번 달 정서·관계·일상 톤이 이 차트에 담깁니다.`,
+    themes: ['family', 'personality'],
+  },
+  {
+    id: 'astro-progressed-moon',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 70,
+    conditions: { signalSource: 'astro', signalKinds: ['progressed-moon'] },
+    template:
+      `**진행 달 어스펙트** — 28년 정서 사이클에서 본명에 ` +
+      `걸리는 시기. 정서·내면 변화가 자연스럽게 일어납니다.`,
+    themes: ['family', 'personality'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 신살 narrative 확장 (12종 추가)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'shinsal-cheonui',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 48,
+    conditions: { shinsalName: ['천의', '천의성'] },
+    template:
+      `🩺 **천의성** 발동 — 의약·치유·건강 영역에 도움이 들어오는 ` +
+      `시기. 건강 점검·치료 시작에 좋아요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'shinsal-amlock',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 47,
+    conditions: { shinsalName: ['암록'] },
+    template:
+      `🤝 **암록** 발동 — 보이지 않는 도움·뒤에서 챙겨주는 사람· ` +
+      `숨은 자원이 들어오는 시기. 부탁받지 않은 도움이 옵니다.`,
+    themes: ['career', 'money'],
+  },
+  {
+    id: 'shinsal-hakdang',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 47,
+    conditions: { shinsalName: ['학당', '학당귀인'] },
+    template:
+      `🎓 **학당귀인** 발동 — 학문·자격·시험·연구에 보호 ` +
+      `들어오는 시기. 큰 시험·논문·발표에 우호적입니다.`,
+    themes: ['study'],
+  },
+  {
+    id: 'shinsal-geollok',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 45,
+    conditions: { shinsalName: ['건록'] },
+    template:
+      `💼 **건록** 발동 — 자기 자리·소속·기반이 단단해지는 ` +
+      `시기. 자리 잡기·소속 안정에 좋아요.`,
+    themes: ['career', 'money'],
+  },
+  {
+    id: 'shinsal-jewang',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 45,
+    conditions: { shinsalName: ['제왕'] },
+    template:
+      `👑 **제왕** 발동 — 절정의 에너지. 자기 표현·발의·` +
+      `리더십이 잘 통하는 시기. 단, 과강 주의.`,
+    themes: ['career', 'reputation'],
+  },
+  {
+    id: 'shinsal-wonjin',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 42,
+    conditions: { shinsalName: ['원진'] },
+    template:
+      `⚡ **원진** 발동 — 가까운 사람과의 미묘한 갈등·오해 가능. ` +
+      `중요한 대화는 조심스럽게.`,
+    themes: ['family', 'crisis'],
+  },
+  {
+    id: 'shinsal-hyeonchim',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 42,
+    conditions: { shinsalName: ['현침', '현침살'] },
+    template:
+      `📌 **현침** 발동 — 정밀·예리한 일에 좋음. 의료·기술· ` +
+      `분석 영역. 단, 사람 관계는 부드럽게.`,
+    themes: ['career', 'health'],
+  },
+  {
+    id: 'shinsal-gwigwan',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 43,
+    conditions: { shinsalName: ['귀문', '귀문관', '귀문관살'] },
+    template:
+      `🌑 **귀문** 발동 — 정신적 예민함·직관·꿈이 활성. ` +
+      `명상·내적 작업에 좋고, 큰 결정은 신중히.`,
+    themes: ['health', 'spirituality'],
+  },
+  {
+    id: 'shinsal-tianmun',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 44,
+    conditions: { shinsalName: ['천문', '천문성'] },
+    template:
+      `🔮 **천문성** 발동 — 영적 통찰·고차원 학문·신비주의 ` +
+      `영역에 우호적. 깊은 공부와 명상에 적합한 시기.`,
+    themes: ['spirituality', 'study'],
+  },
+  {
+    id: 'shinsal-geumyeo',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 46,
+    conditions: { shinsalName: ['금여', '금여성'] },
+    template:
+      `💎 **금여성** 발동 — 재물·결혼 운에 우호적. 안정적 ` +
+      `풍요를 만드는 시기.`,
+    themes: ['money', 'love'],
+  },
+  {
+    id: 'shinsal-mungok',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 46,
+    conditions: { shinsalName: ['문곡'] },
+    template:
+      `📖 **문곡** 발동 — 학문·문장·창작에 강한 보조. ` +
+      `글·작품·발표가 잘 풀리는 시기.`,
+    themes: ['study', 'creativity'],
+  },
+  {
+    id: 'shinsal-taegeuk',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 49,
+    conditions: { shinsalName: ['태극', '태극귀인'] },
+    template:
+      `☯️ **태극귀인** 발동 — 영성·종교·깨달음 영역에서 ` +
+      `보호받는 시기. 내적 균형이 잡힙니다.`,
+    themes: ['spirituality'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 테마 forecast 확장 (15종 추가 — 영역별 길/평/흉)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'theme-business-positive',
+    scope: 'monthly',
+    section: 'theme-business',
+    priority: 58,
+    conditions: {
+      signalSource: 'astro',
+      planet: ['Jupiter'],
+      minPolarity: 2,
+    },
+    template:
+      `🏢 **사업·창업** — Jupiter 활성으로 확장 기회 강함. ` +
+      `새 분야 진출·외부 협업에 우호적.`,
+    themes: ['business'],
+  },
+  {
+    id: 'theme-business-warning',
+    scope: 'monthly',
+    section: 'theme-business',
+    priority: 56,
+    conditions: {
+      signalSource: 'astro',
+      planet: ['Saturn'],
+      maxPolarity: -1,
+    },
+    template:
+      `🏢 **사업·창업** — Saturn 영향으로 진행 지연·구조 ` +
+      `재정비 필요한 시기. 새 시작보다 기존 정리.`,
+    themes: ['business'],
+  },
+  {
+    id: 'theme-reputation-positive',
+    scope: 'monthly',
+    section: 'theme-reputation',
+    priority: 56,
+    conditions: {
+      shinsalName: ['장성', '장성살'],
+    },
+    template:
+      `🎖 **명예·평판** — 장성 활성. 공식 자리·대표 역할· ` +
+      `발의에 우호적. 이름이 드러나는 시기.`,
+    themes: ['reputation'],
+  },
+  {
+    id: 'theme-family-warning',
+    scope: 'monthly',
+    section: 'theme-family',
+    priority: 55,
+    conditions: {
+      signalSource: 'saju',
+      shinsalName: ['원진', '귀문관', '귀문'],
+    },
+    template:
+      `👨‍👩‍👧 **가족·관계** — 미묘한 긴장 가능. 평소보다 부드러운 ` +
+      `소통이 필요한 시기.`,
+    themes: ['family'],
+  },
+  {
+    id: 'theme-spirituality-positive',
+    scope: 'monthly',
+    section: 'theme-spirituality',
+    priority: 54,
+    conditions: {
+      signalSource: 'saju',
+      shinsalName: ['화개', '화개살', '천문성'],
+    },
+    template:
+      `🧘 **영성·내면** — 화개·천문 활성으로 명상·종교·` +
+      `깊은 공부에 우호적인 시기.`,
+    themes: ['spirituality'],
+  },
+  {
+    id: 'theme-legal-warning',
+    scope: 'monthly',
+    section: 'theme-legal',
+    priority: 55,
+    conditions: {
+      signalSource: 'astro',
+      planet: ['Saturn'],
+      maxPolarity: -1,
+    },
+    template:
+      `⚖️ **법무·계약** — 공식 절차·서류 지연 가능. ` +
+      `중요 계약은 길일 골라서. 작은 약속도 명확히.`,
+    themes: ['legal'],
+  },
+  {
+    id: 'theme-creativity-positive',
+    scope: 'monthly',
+    section: 'theme-creativity',
+    priority: 55,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['식신', '상관'],
+      minPolarity: 1,
+    },
+    template:
+      `🎨 **창의·표현** — 식상 활성으로 작품·콘텐츠·` +
+      `발표가 잘 풀리는 시기.`,
+    themes: ['creativity'],
+  },
+  {
+    id: 'theme-children-positive',
+    scope: 'monthly',
+    section: 'theme-children',
+    priority: 50,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['식신'],
+      minPolarity: 1,
+    },
+    template:
+      `👶 **자녀** — 식신 활성. 자녀 관련 기쁨·소식· ` +
+      `임신·교육 진전에 우호적.`,
+    themes: ['children'],
+  },
+  {
+    id: 'theme-social-positive',
+    scope: 'monthly',
+    section: 'theme-social',
+    priority: 50,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['비견', '겁재'],
+    },
+    template:
+      `🤝 **인맥·동료** — 비겁 활성으로 동료·친구·네트워크 ` +
+      `에너지가 강해지는 시기.`,
+    themes: ['social'],
+  },
+  {
+    id: 'theme-karma-active',
+    scope: 'monthly',
+    section: 'theme-karma',
+    priority: 50,
+    conditions: {
+      signalSource: 'astro',
+      planet: ['NorthNode', 'SouthNode'],
+    },
+    template:
+      `🔮 **카르마** — 노드 트랜짓 활성. 인생 방향·과거 ` +
+      `청산·새 챕터 진입의 신호가 들어오는 시기.`,
+    themes: ['karma', 'spirituality'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 조후용신 narrative (5종)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'johu-fire-needed',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 62,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['pillar-sibsin'],
+    },
+    template:
+      `이 달 **조후용신** — 본명 일간과 月支의 기후 균형에 ` +
+      `필요한 오행이 들어옵니다. 그 오행이 강한 날들이 ` +
+      `이번 달의 진짜 길일.`,
+    themes: ['personality'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 사주 패턴 / 격국 narrative (5종)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'saju-pattern-special',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 68,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['saju-pattern'],
+      minPolarity: 2,
+    },
+    template:
+      `이 사주는 **특수 격국**을 형성하고 있어요. 일반 사주와 다른 ` +
+      `규칙으로 흐르며, 그 격국이 활성화되는 시기에 진짜 ` +
+      `결과가 나옵니다.`,
+    themes: ['personality'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 오행 흐름 narrative (5종)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'element-flow-receive',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 65,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['pillar-sibsin'],
+    },
+    template:
+      `오늘 **일진 오행 흐름** — 본명에 도움이 들어오는 ` +
+      `날·받쳐주는 날·중립인 날이 매일 다르게 흘러갑니다. ` +
+      `상생 받는 날을 골라 결정하면 자연스럽습니다.`,
+    themes: ['personality'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 月運 추가 — 12 절기월 × 본명 매칭 핵심 케이스 (10종)
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'wolun-spring-wood',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 72,
+    conditions: { yongsin: ['목'], signalSource: 'saju', signalLayer: ['monthly'] },
+    template:
+      `봄 月運은 본명 용신(목)에 우호적인 시기로 들어갑니다. ` +
+      `새 시작·진출·확장에 좋은 한 달.`,
+    themes: ['study', 'creativity'],
+  },
+  {
+    id: 'wolun-summer-fire',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 72,
+    conditions: { yongsin: ['화'], signalSource: 'saju', signalLayer: ['monthly'] },
+    template:
+      `여름 月運은 본명 용신(화)에 우호적입니다. 자기 표현· ` +
+      `대외 활동·인맥 확장이 잘 통하는 한 달.`,
+    themes: ['reputation', 'creativity'],
+  },
+  {
+    id: 'wolun-autumn-metal',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 72,
+    conditions: { yongsin: ['금'], signalSource: 'saju', signalLayer: ['monthly'] },
+    template:
+      `가을 月運은 본명 용신(금)에 우호적입니다. 결단·정리· ` +
+      `결과 만들기에 좋은 한 달.`,
+    themes: ['career', 'legal'],
+  },
+  {
+    id: 'wolun-winter-water',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 72,
+    conditions: { yongsin: ['수'], signalSource: 'saju', signalLayer: ['monthly'] },
+    template:
+      `겨울 月運은 본명 용신(수)에 우호적입니다. 연구·학습· ` +
+      `내실 다지기·계획에 좋은 한 달.`,
+    themes: ['study', 'spirituality'],
+  },
 ]
 
 /** 룰 매핑 — id로 빠른 조회 */
