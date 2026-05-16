@@ -700,6 +700,7 @@ export const counselorPersonSchema = z.object({
   longitude: longitudeSchema.optional(),
   timeZone: timezoneSchema.optional(),
   relation: z.string().max(50).optional(),
+  timeUnknown: z.boolean().optional(),
 })
 
 export const compatibilityCounselorRequestSchema = z.object({

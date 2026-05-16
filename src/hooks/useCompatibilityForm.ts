@@ -90,11 +90,17 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
           if (rel === 'colleague') return 'colleague'
           return 'other'
         }
+        const hasTime = !!(savedPerson.birthTime && savedPerson.birthTime !== '00:00')
         next[personIdx] = {
           ...next[personIdx],
           name: savedPerson.name,
           date: savedPerson.birthDate || '',
-          time: savedPerson.birthTime || '',
+          // Force 00:00 when the Circle record has no real birth time so
+          // downstream saju calc uses a stable anchor; the timeUnknown
+          // flag below tells the counselor route to skip time-dependent
+          // signals (siju / 일진 / ASC / MC / houses).
+          time: hasTime ? savedPerson.birthTime! : '00:00',
+          timeUnknown: !hasTime,
           gender:
             savedPerson.gender?.toLowerCase() === 'female' ||
             savedPerson.gender?.toLowerCase() === 'f'

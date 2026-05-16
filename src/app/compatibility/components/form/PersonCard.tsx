@@ -41,11 +41,14 @@ export const PersonCard = React.memo<PersonCardProps>(
   }) => {
     const idx = index
     const [profileLoading, setProfileLoading] = useState(false)
-    // "Time unknown" — when checked we force time to 00:00 and disable
-    // the picker. Pre-check it whenever the stored time is missing or
-    // already set to 00:00 so the form reflects what's actually saved.
-    const [timeUnknown, setTimeUnknown] = useState(
-      !person.time || person.time === '00:00'
+    // "Time unknown" — now a controlled field on PersonForm so the
+    // server can tell the LLM to ignore time-dependent saju / astro
+    // signals. Default it on when the stored time is missing or
+    // already 00:00 so reopens stay consistent with what's saved.
+    const timeUnknown = person.timeUnknown ?? (!person.time || person.time === '00:00')
+    const setTimeUnknown = useCallback(
+      (value: boolean) => onUpdatePerson(idx, 'timeUnknown', value),
+      [idx, onUpdatePerson],
     )
     useEffect(() => {
       if (timeUnknown && person.time !== '00:00') {
