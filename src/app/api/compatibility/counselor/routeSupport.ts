@@ -1378,10 +1378,10 @@ function formatTimingForPrompt(
       const ct = sideAstro.currentTransits as Record<string, unknown> | undefined
       if (ct) {
         const asOf = ct.asOfIso ? String(ct.asOfIso).slice(0, 10) : ''
-        // Full transit list — user explicitly asked for raw saju
-        // and raw astro both, so we pass through what findMajor-
-        // Transits / findTransitAspects already pre-limited
-        // upstream (40 major, 80 aspect, both orb-bounded).
+        // Full transit list — user explicitly asked for raw astro
+        // intact, so we pass through what findMajorTransits /
+        // findTransitAspects already pre-limited upstream (40 major,
+        // 80 aspect, both orb-bounded).
         const major = pickTopTransits(ct.majorTransits, 40)
         const fallback = major.length > 0 ? major : pickTopTransits(ct.aspects, 80)
         if (fallback.length > 0) {

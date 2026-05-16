@@ -317,8 +317,8 @@ export function formatAstroAsTable(astro: AstroLike | null | undefined, label: s
   }
 
   // Natal aspects — full set as findNatalAspects returns it (up to
-  // 80, ranked by score). User asked for raw — no extra trimming on
-  // top of what the upstream library already limits.
+  // 80, ranked by score). User explicitly asked for raw astro intact,
+  // so no extra slicing on top of the upstream library cap.
   const aspects = natal?.aspects
   if (Array.isArray(aspects) && aspects.length > 0) {
     const valid = aspects.filter((a) => a.from?.name && a.to?.name && a.type)
