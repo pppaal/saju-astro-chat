@@ -51,6 +51,7 @@ function GlobalHeaderContent() {
         '/destiny-map/counselor',
         '/destiny-map/result',
         '/astrology/counselor',
+        '/compatibility/counselor',
       ].includes(pathname) ||
       pathname.startsWith('/premium-reports/result') ||
       pathname.startsWith('/premium-reports/comprehensive') ||

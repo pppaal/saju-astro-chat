@@ -511,6 +511,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               parsingPdf={parsingPdf}
               usedFallback={usedFallback}
               tr={tr}
+              lang={lang}
               onInputChange={setInput}
               onKeyDown={onKeyDown}
               onSend={() => void handleSend()}
