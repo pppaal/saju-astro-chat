@@ -4546,7 +4546,13 @@
   outline-offset: 2px;
 }
 
-/* ===== Reduced Motion ===== */
+/* ===== Reduced Motion =====
+   Several card elements start at opacity:0 / rotateY(0) and rely on a
+   forwards animation to land on their visible end state. When the user
+   opts into prefers-reduced-motion: reduce, killing the animation alone
+   would leave cards invisible (opacity 0) or showing the back forever
+   (the front face is rotateY(180deg) + backface-visibility: hidden).
+   So we explicitly pin them to the end state too. */
 @media (prefers-reduced-motion: reduce) {
   .loadingOrb,
   .revealingOrb,
@@ -4559,6 +4565,7 @@
   .resultsSubtitle,
   .userTopicDisplay,
   .cardFlipInnerSlow,
+  .cardInfoCompact,
   .saveMessage {
     animation: none !important;
     transition: none !important;
@@ -4566,5 +4573,20 @@
 
   .cardWrapper.spreading {
     animation: none !important;
+  }
+
+  /* Pin animated elements to their visible end state so the card grid
+     stays readable for users with reduced motion. */
+  .resultCardHorizontal,
+  .cardInfoCompact,
+  .resultsTitle,
+  .resultsSubtitle,
+  .userTopicDisplay {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .cardFlipInnerSlow {
+    transform: rotateY(180deg) !important;
   }
 }
