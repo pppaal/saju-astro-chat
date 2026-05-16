@@ -50,6 +50,13 @@ export type PersonForm = {
   relation?: Relation
   relationNote?: string
   isDetailedMode?: boolean
+  /**
+   * User checked "시간 모름 (00:00 처리)". `time` will be set to '00:00'
+   * in that case, but we still need this flag so the counselor route
+   * can tell the LLM not to cite time-pillar / 일진 / ASC / MC / houses.
+   * Without it the model sees `00:00` and treats it as a real midnight.
+   */
+  timeUnknown?: boolean
 }
 
 export type TimingData = {

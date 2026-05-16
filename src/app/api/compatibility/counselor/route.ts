@@ -318,9 +318,21 @@ export async function POST(req: NextRequest) {
         person1Astro: effectivePerson1Astro,
         person2Astro: effectivePerson2Astro,
       } as Record<string, unknown>)
+    // Surface time-unknown flags as a header so the LLM can see which
+    // sides should skip time-pillar / 일진 / ASC / MC / hour-dependent
+    // signals. Without this the model just sees `time: 00:00` and
+    // treats it as a real midnight birth.
+    const personA = persons[0] as { timeUnknown?: boolean } | undefined
+    const personB = persons[1] as { timeUnknown?: boolean } | undefined
+    const unknownNotices: string[] = []
+    if (personA?.timeUnknown) unknownNotices.push('# A 시간 미상.')
+    if (personB?.timeUnknown) unknownNotices.push('# B 시간 미상.')
+
     const fullContextText = fullContext
       ? stringifyForPrompt(prunePromptContext(resolvedFullContext))
       : [
+          ...unknownNotices,
+          ...(unknownNotices.length > 0 ? [''] : []),
           formatSajuAsTable(
             effectivePerson1Saju as Parameters<typeof formatSajuAsTable>[0],
             'A',
@@ -640,6 +652,7 @@ export async function POST(req: NextRequest) {
             '- 두 사람의 관계 역학에 답한다. 한 명만 분석하지 말 것.',
             '- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.',
             '- 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.',
+            '- "A/B 시간 미상" 표시가 있으면 그쪽 시주/일진/ASC/MC/하우스 인용 금지.',
             '- AI/모델/상담사 정체 노출 금지.',
           ].join('\n')
         : [
@@ -649,6 +662,7 @@ export async function POST(req: NextRequest) {
             '- Answer about the relationship dynamic. Never analyze only one person.',
             '- Fuse saju and astrology in one flow. No system-split.',
             '- No markdown headers (##) or numbered lists. Plain prose paragraphs.',
+            '- If "A/B 시간 미상" is marked, do not cite that side\'s hour pillar / 일진 / ASC / MC / houses.',
             "- Never reveal you're an AI / model / counselor system.",
           ].join('\n')
 
