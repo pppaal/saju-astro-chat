@@ -20,6 +20,7 @@ import sajuPatternExtractor from './extractors/saju-pattern'
 import sajuHourExtractor from './extractors/saju-hour'
 import sajuElementFlowExtractor from './extractors/saju-element-flow'
 import sajuIljuArchetypeExtractor from './extractors/saju-ilju-archetype'
+import sajuJohuYongsinExtractor from './extractors/saju-johu-yongsin'
 import astroTransitExtractor from './extractors/astro-transit'
 import astroEclipseExtractor from './extractors/astro-eclipse'
 import astroProfectionExtractor from './extractors/astro-profection'
@@ -96,6 +97,7 @@ function getRegisteredExtractors(): SignalExtractor[] {
     sajuHourExtractor,
     sajuElementFlowExtractor,
     sajuIljuArchetypeExtractor,
+    sajuJohuYongsinExtractor,
 
     // ── astro (13) ──
     astroTransitExtractor,
