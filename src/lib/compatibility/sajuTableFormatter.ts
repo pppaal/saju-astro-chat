@@ -566,3 +566,121 @@ export function formatDestinyAstro(input: DestinyAstroInput): string {
 
   return lines.join('\n')
 }
+
+/* --------------------------------------------------------------------
+ * Saju extras + relations — the part of the chart that calculateSajuData
+ * doesn't itself produce (신살 / 격국 / 용신 / 12운성) plus the
+ * pillar-to-pillar relations (합·충·형·파·해·원진·공망).
+ *
+ * Destiny's runFortuneWithRaw populates these on SajuNormalizerInput.
+ * Compat used to skip them entirely; pass through when available.
+ * ------------------------------------------------------------------ */
+
+interface ShinsalLike {
+  kind?: string
+  pillars?: string[]
+  target?: string
+  detail?: string
+}
+
+interface RelationLike {
+  kind?: string
+  pillars?: string[]
+  detail?: string
+  note?: string
+}
+
+interface SajuExtrasLike {
+  shinsal?: ShinsalLike[]
+  twelveStages?: { year?: string; month?: string; day?: string; time?: string }
+  geokguk?: { primary?: string; category?: string; confidence?: number } | null
+  yongsin?: {
+    primary?: string
+    primaryYongsin?: string
+    type?: string
+    yongsinType?: string
+    kibsin?: string | null
+    dayMasterStrength?: string
+    daymasterStrength?: string
+  } | null
+}
+
+/**
+ * Compact extras + natalRelations block. Skips silently when nothing
+ * is supplied — keeps the cached prefix clean for routes that don't
+ * compute them.
+ */
+export function formatSajuExtras(input: {
+  extras?: SajuExtrasLike | null
+  natalRelations?: RelationLike[] | null
+}): string {
+  const lines: string[] = []
+  const ex = input.extras
+  const rels = input.natalRelations
+
+  if (ex?.geokguk?.primary) {
+    const confidence = ex.geokguk.confidence
+    const conf =
+      typeof confidence === 'number' && Number.isFinite(confidence)
+        ? ` (${Math.round(confidence * 100)}%)`
+        : ''
+    lines.push(`격국: ${ex.geokguk.primary}${conf}`)
+  }
+
+  if (ex?.yongsin) {
+    const primary = ex.yongsin.primary ?? ex.yongsin.primaryYongsin
+    const type = ex.yongsin.type ?? ex.yongsin.yongsinType
+    const strength = ex.yongsin.dayMasterStrength ?? ex.yongsin.daymasterStrength
+    const kibsin = ex.yongsin.kibsin
+    if (primary) {
+      const parts = [primary]
+      if (type) parts.push(`(${type})`)
+      if (strength) parts.push(`· 일간 ${strength}`)
+      if (kibsin) parts.push(`· 기신 ${kibsin}`)
+      lines.push(`용신: ${parts.join(' ')}`)
+    }
+  }
+
+  const ts = ex?.twelveStages
+  if (ts && (ts.year || ts.month || ts.day || ts.time)) {
+    lines.push(
+      `12운성: 연 ${ts.year ?? '?'} / 월 ${ts.month ?? '?'} / 일 ${ts.day ?? '?'} / 시 ${ts.time ?? '?'}`,
+    )
+  }
+
+  if (ex?.shinsal && ex.shinsal.length > 0) {
+    const formatted = ex.shinsal
+      .filter((s) => s.kind)
+      .map((s) => {
+        const tag = s.kind!
+        const where = s.pillars && s.pillars.length > 0 ? `(${s.pillars.join('/')})` : ''
+        return `${tag}${where}`
+      })
+    if (formatted.length > 0) {
+      lines.push(`신살: ${formatted.join(' · ')}`)
+    }
+  }
+
+  if (rels && rels.length > 0) {
+    const valid = rels.filter((r) => r.kind && r.pillars && r.pillars.length > 0)
+    if (valid.length > 0) {
+      // Group by kind to keep the block tight — "지지충: 寅-申 (일-시)
+      // / 子-午 (월-시)" reads better than four separate lines.
+      const byKind = new Map<string, string[]>()
+      valid.forEach((r) => {
+        const entry = r.detail
+          ? `${r.detail} (${r.pillars!.join('-')})`
+          : `(${r.pillars!.join('-')})`
+        if (!byKind.has(r.kind!)) byKind.set(r.kind!, [])
+        byKind.get(r.kind!)!.push(entry)
+      })
+      const parts = Array.from(byKind.entries()).map(
+        ([kind, items]) => `${kind}: ${items.join(' / ')}`,
+      )
+      lines.push(...parts)
+    }
+  }
+
+  if (lines.length === 0) return ''
+  return ['[격국·용신·신살·합충]', ...lines].join('\n')
+}

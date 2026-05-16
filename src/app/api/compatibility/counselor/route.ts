@@ -27,6 +27,7 @@ import type { Relation } from '../types'
 import {
   formatSajuAsTable,
   formatAstroAsTable,
+  formatSajuExtras,
 } from '@/lib/compatibility/sajuTableFormatter'
 
 export const dynamic = 'force-dynamic'
@@ -328,6 +329,19 @@ export async function POST(req: NextRequest) {
     if (personA?.timeUnknown) unknownNotices.push('# A 시간 미상.')
     if (personB?.timeUnknown) unknownNotices.push('# B 시간 미상.')
 
+    // Pull extras + natalRelations out of each effective saju (they
+    // live next to the raw pillars on buildAutoSajuContext output) so
+    // formatSajuExtras can emit 격국·용신·신살·12운성 + 합/충/형/파/해/공망.
+    type ExtrasSource = Parameters<typeof formatSajuExtras>[0]
+    const extras1 = formatSajuExtras({
+      extras: (effectivePerson1Saju as { extras?: ExtrasSource['extras'] })?.extras,
+      natalRelations: (effectivePerson1Saju as { natalRelations?: ExtrasSource['natalRelations'] })?.natalRelations,
+    })
+    const extras2 = formatSajuExtras({
+      extras: (effectivePerson2Saju as { extras?: ExtrasSource['extras'] })?.extras,
+      natalRelations: (effectivePerson2Saju as { natalRelations?: ExtrasSource['natalRelations'] })?.natalRelations,
+    })
+
     const fullContextText = fullContext
       ? stringifyForPrompt(prunePromptContext(resolvedFullContext))
       : [
@@ -337,10 +351,12 @@ export async function POST(req: NextRequest) {
             effectivePerson1Saju as Parameters<typeof formatSajuAsTable>[0],
             'A',
           ),
+          extras1 ? `A의 ${extras1}` : '',
           formatSajuAsTable(
             effectivePerson2Saju as Parameters<typeof formatSajuAsTable>[0],
             'B',
           ),
+          extras2 ? `B의 ${extras2}` : '',
           formatAstroAsTable(
             effectivePerson1Astro as Parameters<typeof formatAstroAsTable>[0],
             'A',

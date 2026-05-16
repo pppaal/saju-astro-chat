@@ -14,6 +14,7 @@ import {
   formatSajuAsTable,
   formatDestinyTiming,
   formatDestinyAstro,
+  formatSajuExtras,
 } from '../src/lib/compatibility/sajuTableFormatter'
 
 const birth = {
@@ -38,29 +39,37 @@ const SYSTEM_PROMPT_KO = `[Birth Snapshot] 의 사주·점성 데이터를 근�
 const userQuestion = '올해 흐름 어때?'
 
 async function main() {
-  // Saju only — astro requires swisseph which isn't bundled in this
-  // dev environment. The production route runs the same saju + the
-  // missing astro half via runFortuneWithRaw.
-  const saju = buildSajuNormalizerInput({
-    birthDate: birth.birthDate,
-    birthTime: birth.birthTime,
-    gender: birth.gender,
-    calendarType: birth.calendarType,
-    timezone: birth.timezone,
+  // Now swisseph rebuilt, run the real fortune pipeline.
+  const { runFortuneWithRaw } = await import('../src/lib/fortune/cross-rules')
+  const { saju, astro, birthTimeUnknown, birthCityUnknown } = await runFortuneWithRaw({
+    birth,
     queryDate: new Date(),
   })
-  void formatDestinyAstro
 
   const parts: string[] = ['[Birth Snapshot]']
+  if (birthTimeUnknown) parts.push('# 시간 미상.')
+  if (birthCityUnknown) parts.push('# 출생지 미상.')
+  const ageYears = (saju as { ageYears?: number }).ageYears
+  if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
+    parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
+  }
   parts.push('')
   parts.push(formatSajuAsTable(saju.saju, '나'))
+  const extrasBlock = formatSajuExtras({
+    extras: (saju as { extras?: Parameters<typeof formatSajuExtras>[0]['extras'] }).extras,
+    natalRelations: (saju as { natalRelations?: Parameters<typeof formatSajuExtras>[0]['natalRelations'] }).natalRelations,
+  })
+  if (extrasBlock) {
+    parts.push('')
+    parts.push(extrasBlock)
+  }
   const timingBlock = formatDestinyTiming(saju)
   if (timingBlock) {
     parts.push('')
     parts.push(timingBlock)
   }
   parts.push('')
-  parts.push('== 점성 == (dev: swisseph 부재로 생략, production에선 formatDestinyAstro 출력)')
+  parts.push(formatDestinyAstro(astro))
   const cachedUserContext = parts.join('\n')
 
   const userPrompt = `이전 대화:\n(none)\n\n위 birth snapshot을 바탕으로 마지막 질문에 답하세요.\n\n질문: ${userQuestion}`

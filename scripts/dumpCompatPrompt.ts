@@ -39,6 +39,7 @@ import type { Relation } from '../src/app/api/compatibility/types'
 import {
   formatSajuAsTable,
   formatAstroAsTable,
+  formatSajuExtras,
 } from '../src/lib/compatibility/sajuTableFormatter'
 
 const lang: 'ko' | 'en' = 'ko'
@@ -198,7 +199,21 @@ async function main() {
   void prunePromptContext
   const fullContextText = [
     formatSajuAsTable(eff1Saju as Parameters<typeof formatSajuAsTable>[0], 'A'),
+    ((): string => {
+      const e = formatSajuExtras({
+        extras: (eff1Saju as { extras?: Parameters<typeof formatSajuExtras>[0]['extras'] })?.extras,
+        natalRelations: (eff1Saju as { natalRelations?: Parameters<typeof formatSajuExtras>[0]['natalRelations'] })?.natalRelations,
+      })
+      return e ? `A의 ${e}` : ''
+    })(),
     formatSajuAsTable(eff2Saju as Parameters<typeof formatSajuAsTable>[0], 'B'),
+    ((): string => {
+      const e = formatSajuExtras({
+        extras: (eff2Saju as { extras?: Parameters<typeof formatSajuExtras>[0]['extras'] })?.extras,
+        natalRelations: (eff2Saju as { natalRelations?: Parameters<typeof formatSajuExtras>[0]['natalRelations'] })?.natalRelations,
+      })
+      return e ? `B의 ${e}` : ''
+    })(),
     formatAstroAsTable(eff1Astro as Parameters<typeof formatAstroAsTable>[0], 'A'),
     formatAstroAsTable(eff2Astro as Parameters<typeof formatAstroAsTable>[0], 'B'),
   ]
