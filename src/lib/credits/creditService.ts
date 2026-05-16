@@ -114,6 +114,14 @@ export async function canUseCredits(
     if (balance.compatibility.remaining >= amount) {
       return { allowed: true, remaining: balance.compatibility.remaining - amount }
     }
+    // Monthly compat cap exhausted — fall back to the user's general
+    // reading credit so paying users with unused balance can keep
+    // running analyses. Previously this surfaced as a hard 402 even
+    // when the user clearly had credit, which is what the chat-error
+    // bubble has been complaining about.
+    if (balance.remainingCredits >= amount) {
+      return { allowed: true, remaining: balance.remainingCredits - amount }
+    }
     return {
       allowed: false,
       reason: 'compatibility_limit',
@@ -206,7 +214,7 @@ export async function consumeCredits(
   userId: string,
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
   amount: number = 1
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; chargedAs?: 'reading' | 'compatibility' | 'followUp' }> {
   try {
     // 트랜잭션 내에서 원자적으로 체크 + 차감
     const result = await prisma.$transaction(async (tx) => {
@@ -222,17 +230,31 @@ export async function consumeCredits(
       // 2. 사용 가능 여부 체크 (트랜잭션 내에서)
       const available = credits.monthlyCredits - credits.usedCredits + credits.bonusCredits
 
+      // effectiveType drives both the validation branch below *and* the
+      // deduction block further down. We start with the caller's request
+      // and downgrade to 'reading' for compatibility / followUp callers
+      // whose dedicated monthly cap has been used up but who still have
+      // unused general credit. Without this fallback, paying users with
+      // credit on file were getting hard 402s on the counselor route.
+      let effectiveType: 'reading' | 'compatibility' | 'followUp' = type
+
       if (type === 'reading') {
         if (available < amount) {
           throw new CreditBusinessError('크레딧이 부족합니다')
         }
       } else if (type === 'compatibility') {
         if (credits.compatibilityUsed >= credits.compatibilityLimit) {
-          throw new CreditBusinessError('궁합 분석 한도를 초과했습니다')
+          if (available < amount) {
+            throw new CreditBusinessError('궁합 분석 한도를 초과했습니다')
+          }
+          effectiveType = 'reading'
         }
       } else if (type === 'followUp') {
         if (credits.followUpUsed >= credits.followUpLimit) {
-          throw new CreditBusinessError('후속질문 한도를 초과했습니다')
+          if (available < amount) {
+            throw new CreditBusinessError('후속질문 한도를 초과했습니다')
+          }
+          effectiveType = 'reading'
         }
       }
 
@@ -240,7 +262,7 @@ export async function consumeCredits(
       let fromBonus = 0
       let fromMonthly = amount
 
-      if (type === 'reading' && credits.bonusCredits > 0) {
+      if (effectiveType === 'reading' && credits.bonusCredits > 0) {
         fromBonus = Math.min(credits.bonusCredits, amount)
         fromMonthly = amount - fromBonus
 
@@ -260,16 +282,16 @@ export async function consumeCredits(
       // 4. 크레딧 차감 (트랜잭션 내에서 원자적으로)
       const updateData: Record<string, { increment?: number; decrement?: number }> = {}
 
-      if (type === 'reading') {
+      if (effectiveType === 'reading') {
         if (fromBonus > 0) {
           updateData.bonusCredits = { decrement: fromBonus }
         }
         if (fromMonthly > 0) {
           updateData.usedCredits = { increment: fromMonthly }
         }
-      } else if (type === 'compatibility') {
+      } else if (effectiveType === 'compatibility') {
         updateData.compatibilityUsed = { increment: amount }
-      } else if (type === 'followUp') {
+      } else if (effectiveType === 'followUp') {
         updateData.followUpUsed = { increment: amount }
       }
 
@@ -280,7 +302,9 @@ export async function consumeCredits(
         })
       }
 
-      return { success: true }
+      // Return chargedAs so the API middleware's refund path can put the
+      // credit back on the right counter when downstream LLM calls fail.
+      return { success: true, chargedAs: effectiveType }
     })
 
     return result
