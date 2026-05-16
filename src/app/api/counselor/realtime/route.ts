@@ -70,17 +70,17 @@ const CREDIT_PER_TURN = 1
 const SYSTEM_PROMPT_KO = `[Birth Snapshot] 의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다.
 
 규칙:
+- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.
 - 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.
 - snapshot에 birthTimeUnknown=true면 시주/일진/ASC/MC/하우스 인용 금지. birthCityUnknown=true면 위치 의존 결론 금지.
-- caution 신호가 명시되면 비가역 행동(서명·확정·결제·이별 통보)을 즉시 권하지 않는다.
 - AI/모델/상담사 정체 노출 금지.`
 
 const SYSTEM_PROMPT_EN = `Answer the user directly from the saju and astrology data in [Birth Snapshot].
 
 Rules:
+- Fuse saju and astrology in one flow. No system-split.
 - No markdown headers (##) or numbered lists. Plain prose paragraphs.
 - If snapshot has birthTimeUnknown=true: do not cite time pillar / iljin / ASC / MC / houses. If birthCityUnknown=true: skip place-dependent claims.
-- If caution flags are present, never push irreversible actions (sign / finalize / pay / break up).
 - Never reveal you're an AI / model / counselor system.`
 
 function utcDateKey(d: Date): string {
