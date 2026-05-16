@@ -1,5 +1,6 @@
 import type { ActiveSignal, CalendarCell, SignalPattern } from '../types'
 import type { NatalContext } from '../context/types'
+import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type {
   Interpretation,
   InterpretationRule,
@@ -76,9 +77,11 @@ export function buildInterpretation(args: {
   }
 
   // 도메인 묶음을 단일 가상 entry로 합쳐 picked에 추가
+  // — 도메인별 cells에서 top dates 추출 → narrative 마지막 줄에 추가
   for (const domain of DOMAIN_ORDER) {
     const list = domainPicks.get(domain)
     if (!list || list.length === 0) continue
+    const topDates = pickDomainTopDates(cells, DOMAIN_THEMES[domain] ?? [], 3)
     const merged: typeof matched[number] = {
       rule: {
         ...list[0].rule,
@@ -87,6 +90,7 @@ export function buildInterpretation(args: {
         priority: list[0].rule.priority,
         template: mergeDomainTemplates(
           list.map((m) => fillTemplate(m.rule.template, m.vars)),
+          topDates,
         ),
       },
       vars: list[0].vars,
@@ -301,19 +305,71 @@ const MAX_RULES_PER_DOMAIN = 5
 /**
  * 도메인 안 여러 룰 텍스트를 자연스럽게 한 단락으로.
  * 첫 줄 = 메인 헤드라인, 뒤따르는 룰은 자연 연결사로 이어붙임.
+ * 마지막 줄 = 그 도메인이 가장 강한 날짜 top 3 (있을 때만).
  * 룰 텍스트의 이모지 + 굵은 헤더는 제거하고 본문만 사용해 같은 톤 유지.
  */
 const CONNECTORS = ['여기에', '한편', '추가로', '또한', '단,']
 
-function mergeDomainTemplates(texts: string[]): string {
+function mergeDomainTemplates(texts: string[], topDates: string[] = []): string {
   if (texts.length === 0) return ''
   const cleaned = texts.map((t) => t.trim()).filter(Boolean)
-  if (cleaned.length === 1) return cleaned[0]
-  const [head, ...rest] = cleaned
-  const tail = rest.map((t, i) => {
-    const stripped = t.replace(/^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u, '')
-    const connector = CONNECTORS[i % CONNECTORS.length]
-    return `\n${connector} ${stripped}`
-  })
-  return head + tail.join('')
+  let body: string
+  if (cleaned.length === 1) {
+    body = cleaned[0]
+  } else {
+    const [head, ...rest] = cleaned
+    const tail = rest.map((t, i) => {
+      const stripped = t.replace(/^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u, '')
+      const connector = CONNECTORS[i % CONNECTORS.length]
+      return `\n${connector} ${stripped}`
+    })
+    body = head + tail.join('')
+  }
+  if (topDates.length > 0) {
+    body += `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
+  }
+  return body
+}
+
+/**
+ * 한 도메인 안 themeKeys를 합쳐서 cell당 평균 점수를 매기고
+ * 상위 N개 날짜 (MM-DD) 반환. 평균 60 미만은 제외 (모두 약하면 비표시).
+ */
+function pickDomainTopDates(
+  cells: CalendarCell[],
+  themeKeys: AstroThemeKey[],
+  topN: number,
+): string[] {
+  if (themeKeys.length === 0) return []
+  // cell당 점수 = (도메인 테마 max + avg) / 2 — max가 한 테마라도 강하면 잡아냄
+  const ranked = cells
+    .map((c) => {
+      let sum = 0
+      let max = 0
+      let cnt = 0
+      for (const tk of themeKeys) {
+        const v = c.themeScores[tk]
+        if (typeof v === 'number') {
+          sum += v
+          if (v > max) max = v
+          cnt += 1
+        }
+      }
+      const score = cnt > 0 ? (max + sum / cnt) / 2 : 0
+      return { date: c.datetime.slice(5, 10), score, hasScore: cnt > 0 }
+    })
+    .filter((x) => x.hasScore)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topN)
+  // 가장 강한 날도 평이(52 미만)면 굳이 표시 안 함
+  if (ranked.length === 0 || ranked[0].score < 52) return []
+  return ranked.map((x) => x.date)
+}
+
+const DOMAIN_THEMES: Record<string, AstroThemeKey[]> = {
+  money: ['money'],
+  work: ['career', 'business', 'reputation', 'legal', 'travel'],
+  relations: ['love', 'family', 'social'],
+  body: ['health', 'study', 'spirituality'],
+  expression: ['creativity', 'children', 'karma'],
 }
