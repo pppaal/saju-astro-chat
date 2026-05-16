@@ -1363,54 +1363,14 @@ function formatTimingForPrompt(
 
   const renderSide = (label: string, side: Record<string, unknown>, sideAstro?: Record<string, unknown> | null) => {
     const lines: string[] = []
-
-    // Saju side
-    const d = side.daeunCurrent as Record<string, unknown> | null
-    if (d) {
-      const stem = d.heavenlyStem || d.stem || ''
-      const branch = d.earthlyBranch || d.branch || ''
-      const elem = d.element || ''
-      const startAge = d.startAge
-      const endAge = d.endAge
-      const theme = d.theme || ''
-      lines.push(
-        `${isKo ? '사주 대운' : 'saju daeun'}: ${stem}${branch} ${elem} (${startAge}-${endAge}) — ${theme}`
-      )
-    }
-    const sa = side.saeunCurrent as Record<string, unknown> | null
-    if (sa) {
-      const stem = sa.heavenlyStem || sa.stem || ''
-      const branch = sa.earthlyBranch || sa.branch || ''
-      const elem = sa.element || ''
-      const yr = sa.year
-      const sum = sa.summary || ''
-      lines.push(
-        `${isKo ? '사주 세운' : 'saju saeun'} ${yr}: ${stem}${branch} ${elem}${sum ? ' — ' + sum : ''}`
-      )
-    }
-    const w = side.wolunCurrent as Record<string, unknown> | null
-    if (w) {
-      const stem = w.heavenlyStem || w.stem || ''
-      const branch = w.earthlyBranch || w.branch || ''
-      const yr = w.year
-      const mo = w.month
-      const sum = w.summary || ''
-      lines.push(
-        `${isKo ? '사주 월운' : 'saju wolun'} ${yr}-${mo}: ${stem}${branch}${sum ? ' — ' + sum : ''}`
-      )
-    }
-    const il = side.ilunCurrent as Record<string, unknown> | null
-    if (il) {
-      const stem = il.heavenlyStem || il.stem || ''
-      const branch = il.earthlyBranch || il.branch || ''
-      const yr = il.year
-      const mo = il.month
-      const da = il.day
-      const sum = il.summary || ''
-      lines.push(
-        `${isKo ? '사주 일운' : 'saju ilun'} ${yr}-${mo}-${da}: ${stem}${branch}${sum ? ' — ' + sum : ''}`
-      )
-    }
+    void side
+    // Saju daeun/saeun/wolun/ilun used to be printed here, but they're
+    // already in the cached saju table (see sajuTableFormatter) with
+    // the ← 현재 / ← 올해 / ← 이번달 / ← 오늘 markers. Re-emitting them
+    // here was duplicating ~250 chars per turn and the old build was
+    // also dropping `(undefined-undefined)` placeholders because the
+    // startAge/endAge fields aren't on side.daeunCurrent. Astro
+    // transits / returns below are kept — they aren't in the table.
 
     // Astro side — surface currentTransits + returns from already-computed
     // buildAutoAstroContext output. No new calculation, just exposure.
@@ -1454,17 +1414,26 @@ function formatTimingForPrompt(
       }
     }
 
-    if (lines.length === 0) {
-      lines.push(isKo ? '(시기 데이터 없음)' : '(no timing data)')
-    }
+    if (lines.length === 0) return ''
     return [`▷ ${label}`, ...lines].join('\n')
   }
 
-  out.push('')
-  out.push(renderSide('A', timing.person1, astro.person1))
-  out.push('')
-  out.push(renderSide('B', timing.person2, astro.person2))
+  const aBlock = renderSide('A', timing.person1, astro.person1)
+  const bBlock = renderSide('B', timing.person2, astro.person2)
 
+  // If neither side produced any astro timing content, the saju side is
+  // already in the cached table — skip the whole section instead of
+  // emitting a lonely "== 시기 흐름 ==" header.
+  if (!aBlock && !bBlock) return ''
+
+  if (aBlock) {
+    out.push('')
+    out.push(aBlock)
+  }
+  if (bBlock) {
+    out.push('')
+    out.push(bBlock)
+  }
   return out.join('\n')
 }
 
