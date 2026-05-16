@@ -19,6 +19,7 @@ import { test, expect } from '@playwright/test'
  */
 
 const TAROT_ROUTE = '/tarot/general-insight/quick-reading?question=test'
+const COMPATIBILITY_ROUTE = '/compatibility'
 
 /**
  * Walk every loaded stylesheet on the page, find every rule block that
@@ -85,5 +86,18 @@ test.describe('Tarot — reduced-motion CSS contract', () => {
     // animations (otherwise the keyframe still runs and the !important
     // pins above lose to specificity at certain points in time).
     expect(reducedMotionCss).toMatch(/animation:\s*none/)
+  })
+})
+
+test.describe('Compatibility — reduced-motion CSS contract', () => {
+  test('person cards are pinned to a visible end state', async ({ page }) => {
+    await page.goto(COMPATIBILITY_ROUTE, { waitUntil: 'domcontentloaded' })
+
+    const reducedMotionCss = await getReducedMotionRules(page)
+    // .personCard starts at opacity:0 and only becomes visible via the
+    // slideInUp animation; without an explicit reduced-motion fallback
+    // the entire compatibility card stays invisible.
+    expect(reducedMotionCss).toMatch(/personCard/)
+    expect(reducedMotionCss).toMatch(/opacity:\s*1/)
   })
 })
