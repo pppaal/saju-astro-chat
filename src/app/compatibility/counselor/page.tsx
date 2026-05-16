@@ -11,6 +11,26 @@ import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { runQuickCoupleTarot } from './runQuickCoupleTarot'
 import { streamProcessor } from '@/lib/streaming'
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+
+// Short, one-line prompts that cycle through the textarea placeholder.
+// The original single-string placeholder ("두 사람에 대해 깊이 있는 질문을
+// 해보세요…") wraps to two lines on mobile; these stay on one line and
+// double as suggestion hints for users who don't know where to start.
+const TYPEWRITER_PROMPTS_KO = [
+  '우리 인연의 의미는?',
+  '갈등은 어떻게 풀까?',
+  '함께할 미래의 흐름?',
+  '관계의 강점은?',
+  '서로 다른 점은?',
+] as const
+const TYPEWRITER_PROMPTS_EN = [
+  'What is our bond about?',
+  'How do we handle conflict?',
+  "Where is this heading?",
+  'What are our strengths?',
+  'Where do we differ?',
+] as const
 
 function CounselorLoading() {
   return <BrandSplash message="상담사 준비 중..." />
@@ -39,7 +59,13 @@ function formatBirthSnippet(p: PersonData): string {
 }
 
 function CompatibilityCounselorContent() {
-  const { locale } = useI18n()
+  const { locale, setLocale } = useI18n()
+  const toggleLocale = useCallback(() => {
+    setLocale(locale === 'ko' ? 'en' : 'ko')
+  }, [locale, setLocale])
+  const animatedPlaceholder = useTypewriterPlaceholder(
+    locale === 'ko' ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
+  )
   const searchParams = useSearchParams()
 
   const [persons, setPersons] = useState<PersonData[]>([])
@@ -535,6 +561,15 @@ function CompatibilityCounselorContent() {
               {isKo ? '＋ 새 채팅' : '＋ New'}
             </button>
           )}
+          <button
+            type="button"
+            onClick={toggleLocale}
+            className={styles.localeToggle}
+            aria-label={isKo ? 'Switch to English' : '한국어로 전환'}
+            title={isKo ? 'Switch to English' : '한국어로 전환'}
+          >
+            {isKo ? 'EN' : 'KO'}
+          </button>
           <CreditBadge variant="compact" />
         </div>
       </header>
@@ -703,11 +738,7 @@ function CompatibilityCounselorContent() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={
-              isKo
-                ? '두 사람에 대해 깊이 있는 질문을 해보세요...'
-                : 'Ask deep questions about your compatibility...'
-            }
+            placeholder={animatedPlaceholder || (isKo ? '질문을 입력하세요…' : 'Type a question…')}
             className={styles.input}
             rows={1}
             disabled={isLoading}

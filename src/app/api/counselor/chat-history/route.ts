@@ -15,6 +15,17 @@ import {
 
 export const dynamic = 'force-dynamic'
 
+// Sidebar shows the title in a narrow column on mobile — anything past
+// ~30 chars wraps or clips. Trim whitespace, collapse runs of inner
+// whitespace, and ellipsize. We keep the cap modest so even an
+// unbroken Korean question fits on one line.
+const CHAT_TITLE_MAX = 30
+function truncateChatTitle(raw: string): string {
+  const cleaned = raw.replace(/\s+/g, ' ').trim()
+  if (cleaned.length <= CHAT_TITLE_MAX) return cleaned
+  return `${cleaned.slice(0, CHAT_TITLE_MAX - 1).trim()}…`
+}
+
 function mergeAndLimit(items: string[], max: number): string[] {
   return [...new Set(items.filter(Boolean))].slice(0, max)
 }
@@ -211,12 +222,23 @@ export const POST = withApiMiddleware(
         })
         const memoryTopics = storageSignals.memoryTopics
 
+        // Backfill title from the first user turn for rows that
+        // predate the auto-titler. Sidebar otherwise shows "Untitled
+        // chat" forever — the title only changes on a manual rename.
+        const firstUserContent =
+          updatedMessages.find((m) => m.role === 'user')?.content?.trim() || ''
+        const backfillTitle =
+          !existingSession.title && firstUserContent
+            ? truncateChatTitle(firstUserContent)
+            : undefined
+
         const updated = await prisma.counselorChatSession.update({
           where: { id: sessionId },
           data: {
             messages: updatedMessages,
             messageCount: updatedMessages.length,
             lastMessageAt: now,
+            ...(backfillTitle ? { title: backfillTitle } : {}),
           },
         });
 
@@ -236,12 +258,16 @@ export const POST = withApiMiddleware(
           action: 'updated',
         })
       } else {
-        // 새 세션 생성
+        // 새 세션 생성 — auto-derive a title from the first user turn
+        // so the sidebar shows the question, not "Untitled chat".
+        // User can still rename via the pencil action.
+        const autoTitle = userMessage ? truncateChatTitle(userMessage) : null
         const created = await prisma.counselorChatSession.create({
           data: {
             userId,
             locale,
             type: sessionType,
+            ...(autoTitle ? { title: autoTitle } : {}),
             // Prisma expects Prisma.InputJsonValue for Json columns; the
             // zod parse output is Record<string, unknown> which is
             // structurally compatible but typed loosely.
