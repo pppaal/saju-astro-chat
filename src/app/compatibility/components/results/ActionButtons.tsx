@@ -11,6 +11,8 @@ interface PersonData {
   longitude?: number | null
   timeZone?: string
   relation?: string
+  /** 대운 순/역행이 음양남녀에 따라 갈리므로 빠지면 잘못 계산됨. */
+  gender?: 'M' | 'F' | 'Male' | 'Female'
 }
 
 interface ActionButtonsProps {
@@ -37,6 +39,7 @@ export const ActionButtons = React.memo<ActionButtonsProps>(({ persons, resultTe
               longitude: p.longitude,
               timeZone: p.timeZone,
               relation: p.relation,
+              gender: p.gender,
             }))
             router.push(
               `/compatibility/insights?persons=${encodeURIComponent(JSON.stringify(personsData))}`
@@ -55,7 +58,7 @@ export const ActionButtons = React.memo<ActionButtonsProps>(({ persons, resultTe
         className={styles.actionButton}
         onClick={() =>
           router.push(
-            `/compatibility/chat?persons=${encodeURIComponent(JSON.stringify(persons.map((p) => ({ name: p.name, date: p.date, time: p.time, city: p.cityQuery, relation: p.relation }))))}&result=${encodeURIComponent(resultText || '')}`
+            `/compatibility/chat?persons=${encodeURIComponent(JSON.stringify(persons.map((p) => ({ name: p.name, date: p.date, time: p.time, city: p.cityQuery, relation: p.relation, gender: p.gender }))))}&result=${encodeURIComponent(resultText || '')}`
           )
         }
       >
@@ -78,6 +81,7 @@ export const ActionButtons = React.memo<ActionButtonsProps>(({ persons, resultTe
             longitude: p.longitude,
             timeZone: p.timeZone,
             relation: p.relation,
+            gender: p.gender,
           }))
           router.push(
             `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(personsData))}`

@@ -50,6 +50,8 @@ type PersonData = {
   longitude?: number
   timeZone?: string
   relation?: string
+  /** 대운 순/역행이 음양남녀에 따라 갈리므로 빠지면 잘못 계산됨. */
+  gender?: 'M' | 'F' | 'Male' | 'Female'
 }
 
 function formatBirthSnippet(p: PersonData): string {
@@ -171,12 +173,15 @@ function CompatibilityCounselorContent() {
 
   const fetchPersonData = async (personList: PersonData[]) => {
     try {
+      // gender는 대운 순/역행에 필수. /api/saju가 required로 받으니 빠뜨리면 fetch 실패.
       const sajuPayload = (p: PersonData) => ({
-        date: p.date,
-        time: p.time,
+        birthDate: p.date,
+        birthTime: p.time,
+        gender: (p.gender || 'male').toString().toLowerCase().startsWith('f') ? 'female' : 'male',
+        calendarType: 'solar' as const,
+        timezone: p.timeZone || 'Asia/Seoul',
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
-        timeZone: p.timeZone || 'Asia/Seoul',
       })
       const astroPayload = (p: PersonData) => ({
         date: p.date,

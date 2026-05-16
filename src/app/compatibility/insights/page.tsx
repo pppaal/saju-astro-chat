@@ -29,7 +29,13 @@ type PersonData = {
   longitude?: number;
   timeZone?: string;
   relation?: string;
+  /** 대운 순/역행이 음양남녀에 따라 갈리므로 빠지면 잘못 계산됨. */
+  gender?: 'M' | 'F' | 'Male' | 'Female';
 };
+
+function normalizeGender(g: string | undefined): 'male' | 'female' {
+  return (g || '').toString().toLowerCase().startsWith('f') ? 'female' : 'male'
+}
 
 function CompatibilityInsightsContent() {
   const { t, locale } = useI18n();
@@ -83,7 +89,7 @@ function CompatibilityInsightsContent() {
           body: JSON.stringify({
             birthDate: personList[0].date,
             birthTime: personList[0].time || '12:00',
-            gender: 'M', // 궁합 분석용 기본값
+            gender: normalizeGender(personList[0].gender),
             calendarType: 'solar',
             timezone: personList[0].timeZone || 'Asia/Seoul',
             latitude: personList[0].latitude || 37.5665,
@@ -96,7 +102,7 @@ function CompatibilityInsightsContent() {
           body: JSON.stringify({
             birthDate: personList[1].date,
             birthTime: personList[1].time || '12:00',
-            gender: 'F', // 궁합 분석용 기본값
+            gender: normalizeGender(personList[1].gender),
             calendarType: 'solar',
             timezone: personList[1].timeZone || 'Asia/Seoul',
             latitude: personList[1].latitude || 37.5665,
