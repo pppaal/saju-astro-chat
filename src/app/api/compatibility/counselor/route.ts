@@ -38,6 +38,9 @@ import {
   formatAstroAsTable,
   formatSajuExtras,
 } from '@/lib/compatibility/sajuTableFormatter'
+import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
+import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
+import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -451,9 +454,67 @@ export async function POST(req: NextRequest) {
     //   2. 모델이 우리 점수/등급을 그대로 받아쓰는 환각 차단
     //   3. raw에서 직접 추론하게 함
     //   4. 호출당 계산 비용 절감 (cross-rules / 9-layer matrix 패스 스킵)
+    // ── Synastry (두 사람 사이 cross 신호) ──────────────────────
+    // 각자 natal/사주 raw만 주면 LLM이 *두 사람 관계*를 매번 직접 추론해야
+    // 함. cross 신호(천간합·지지충·천을귀인 발동·점성 aspect orb·house
+    // overlay)를 라인 단위로 미리 제공하면 정통 깊이 ↑↑ 토큰 ~5K 추가지만
+    // cached prefix라 prompt caching이 cover.
+    let sajuSynastryBlock = ''
+    let astroSynastryBlock = ''
+    try {
+      const aP = (effectivePerson1Saju as { pillars?: Record<string, { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }> } | null)?.pillars
+      const bP = (effectivePerson2Saju as { pillars?: Record<string, { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }> } | null)?.pillars
+      if (aP && bP) {
+        const toPair = (p: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } } | undefined) => ({
+          stem: p?.heavenlyStem?.name ?? '',
+          branch: p?.earthlyBranch?.name ?? '',
+        })
+        const aDae = (effectivePerson1Saju as { daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } } | null } | null)?.daeWoon?.current
+        const bDae = (effectivePerson2Saju as { daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } } | null } | null)?.daeWoon?.current
+        sajuSynastryBlock = formatSajuSynastry({
+          pillarsA: [toPair(aP.year), toPair(aP.month), toPair(aP.day), toPair(aP.time)],
+          pillarsB: [toPair(bP.year), toPair(bP.month), toPair(bP.day), toPair(bP.time)],
+          currentDaeunA: aDae ? { stem: aDae.heavenlyStem ?? '', branch: aDae.earthlyBranch ?? '', age: aDae.age } : null,
+          currentDaeunB: bDae ? { stem: bDae.heavenlyStem ?? '', branch: bDae.earthlyBranch ?? '', age: bDae.age } : null,
+        })
+      }
+    } catch (err) {
+      logger.warn('[compat counselor] saju synastry failed', { err: err instanceof Error ? err.message : String(err) })
+    }
+    if (person1Seed && person2Seed && process.env.NODE_ENV !== 'test') {
+      try {
+        const [Y1, M1, D1] = person1Seed.date.split('-').map(Number)
+        const [h1, mi1] = person1Seed.time.split(':').map(Number)
+        const [Y2, M2, D2] = person2Seed.date.split('-').map(Number)
+        const [h2, mi2] = person2Seed.time.split(':').map(Number)
+        if ([Y1, M1, D1, h1, mi1, Y2, M2, D2, h2, mi2].every(Number.isFinite)) {
+          const [natalA, natalB] = await Promise.all([
+            calculateNatalChart({
+              year: Y1, month: M1, date: D1, hour: h1, minute: mi1,
+              latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone,
+            }),
+            calculateNatalChart({
+              year: Y2, month: M2, date: D2, hour: h2, minute: mi2,
+              latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone,
+            }),
+          ])
+          astroSynastryBlock = formatAstroSynastry({
+            chartA: toChart(natalA),
+            chartB: toChart(natalB),
+            latA: person1Seed.latitude, lonA: person1Seed.longitude,
+            latB: person2Seed.latitude, lonB: person2Seed.longitude,
+          })
+        }
+      } catch (err) {
+        logger.warn('[compat counselor] astro synastry failed', { err: err instanceof Error ? err.message : String(err) })
+      }
+    }
+
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
+      sajuSynastryBlock ? `\n${sajuSynastryBlock}` : '',
+      astroSynastryBlock ? `\n${astroSynastryBlock}` : '',
       // contextTrace(키 개수, 커버리지 플래그 등)는 디버그 메타데이터 — 응답에
       // 쓸 정보가 아니므로 server log로만 남기고 prompt에는 포함하지 않는다.
       fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
