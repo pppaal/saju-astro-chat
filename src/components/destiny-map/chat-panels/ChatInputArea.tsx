@@ -178,9 +178,10 @@ export const ChatInputArea = React.memo(function ChatInputArea({
             onClick={onSend}
             disabled={loading || !input.trim()}
             className={styles.sendButton}
+            aria-label={tr.send}
+            title={tr.send}
           >
             <span className={styles.sendIcon}>&#x2728;</span>
-            <span className={styles.sendText}>{tr.send}</span>
           </button>
         </div>
       </div>
