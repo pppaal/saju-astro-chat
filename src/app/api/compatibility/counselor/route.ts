@@ -16,8 +16,23 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
-import { relationLabel } from '../routeSupportCommon'
 import type { Relation } from '../types'
+
+// Inlined from the now-deleted routeSupportCommon (which served the
+// retired results/narrative-stream flow). The counselor route is the
+// only remaining caller. Keep in lockstep with Relation in ../types and
+// the <select> in src/app/compatibility/components/form/PersonCard.tsx.
+function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string): string {
+  const isKo = locale === 'ko'
+  if (relation === 'lover') return isKo ? '연인' : 'lover'
+  if (relation === 'spouse') return isKo ? '배우자' : 'spouse'
+  if (relation === 'family') return isKo ? '가족' : 'family'
+  if (relation === 'sibling') return isKo ? '형제자매' : 'sibling'
+  if (relation === 'friend') return isKo ? '친구' : 'friend'
+  if (relation === 'colleague') return isKo ? '동료' : 'colleague'
+  if (relation === 'other') return note?.trim() || (isKo ? '기타' : 'other')
+  return isKo ? '관계' : 'related'
+}
 import {
   formatSajuAsTable,
   formatAstroAsTable,
