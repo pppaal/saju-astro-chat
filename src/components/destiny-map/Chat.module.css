@@ -629,64 +629,104 @@
   align-items: stretch;
 }
 
-/* New consolidated composer box that wraps the textarea + the action
-   row (attach button, file name, send) in one rounded card. */
+/* Consolidated composer box — textarea on top, action row below in
+   one rounded card. Mirrors compat counselor's .inputContainer for
+   visual consistency between the two counselors. */
 .inputBox {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px 10px;
-  border-radius: 18px;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 16px;
   border: 1px solid rgba(167, 139, 250, 0.28);
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
+  background: rgba(20, 12, 30, 0.7);
+  backdrop-filter: blur(8px);
 }
 
 .inputBox .textarea {
   flex: 1;
-  min-height: 52px;
-  padding: 6px 4px;
+  min-height: 1.5rem;
+  max-height: 6rem;
+  padding: 0.25rem 0.4rem;
   background: transparent;
   border: none;
   border-radius: 0;
   resize: none;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  box-shadow: none;
 }
 
 .inputBox .textarea:focus {
   outline: none;
   box-shadow: none;
   border: none;
+  background: transparent;
 }
 
 .inputBoxActions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
 }
 
+/* Attach / tarot buttons — small transparent flat squares, hover fills.
+   Mirrors compat counselor's .toolButton. */
 .attachButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(167, 139, 250, 0.35);
-  background: rgba(167, 139, 250, 0.1);
-  color: rgba(232, 222, 255, 0.95);
-  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(220, 215, 255, 0.85);
+  font-size: 18px;
+  line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .attachButton:hover {
-  background: rgba(167, 139, 250, 0.22);
-  border-color: rgba(196, 181, 253, 0.6);
+  background: rgba(167, 139, 250, 0.18);
+  color: #fff;
 }
 
 .inputBoxActions .sendButton {
   margin-left: auto;
+  min-width: 38px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.inputBoxActions .sendButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.55);
+}
+
+.inputBoxActions .sendButton:disabled {
+  background: rgba(107, 114, 128, 0.3);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .inputBoxActions .fileName {
@@ -700,6 +740,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
 }
 
 .textarea {
