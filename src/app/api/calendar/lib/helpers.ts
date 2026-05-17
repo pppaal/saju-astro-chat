@@ -12,7 +12,6 @@ import type { TranslationData } from '@/types/calendar-api'
 import type { PillarData } from '@/lib/saju/types'
 import type { CalendarMatrixEvidencePacketMap } from './matrixEvidencePacket'
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
-export { __resetAIDatesCircuitStateForTests, fetchAIDates } from './calendarAIDatesSupport'
 import {
   isAlignedAcrossSystems,
   isDefensivePhaseLabel,
@@ -507,7 +506,6 @@ export function formatDateForResponse(
   enTranslations: TranslationData,
   matrixContext?: MatrixCalendarContext,
   matrixEvidencePackets?: CalendarMatrixEvidencePacketMap,
-  _aiEnrichmentFailed = false
 ): FormattedDate {
   const translations = locale === 'ko' ? koTranslations : enTranslations
   const lang = locale === 'ko' ? 'ko' : 'en'

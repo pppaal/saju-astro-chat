@@ -27,7 +27,6 @@ export {
   generateBestTimes,
   applyMatrixPreformatRegrade,
   formatDateForResponse,
-  fetchAIDates,
   LOCATION_COORDS,
 } from './helpers'
 
