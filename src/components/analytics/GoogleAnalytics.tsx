@@ -98,7 +98,7 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
 }
 
 // Helper function to track custom events
-export const trackEvent = (eventName: string, params?: Record<string, unknown>) => {
+const trackEvent = (eventName: string, params?: Record<string, unknown>) => {
   const gtag = getGtag()
   if (gtag) {
     gtag('event', eventName, params)

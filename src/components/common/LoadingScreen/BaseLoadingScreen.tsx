@@ -43,7 +43,7 @@ interface ParticleBackgroundProps {
   className?: string;
 }
 
-export const ParticleBackground = memo(function ParticleBackground({
+const ParticleBackground = memo(function ParticleBackground({
   count = 30,
   className = '',
 }: ParticleBackgroundProps) {
@@ -84,7 +84,7 @@ interface OrbitAnimationProps {
   className?: string;
 }
 
-export const OrbitAnimation = memo(function OrbitAnimation({
+const OrbitAnimation = memo(function OrbitAnimation({
   centerIcon = '🌌',
   orbitItems = [],
   className = '',
@@ -119,7 +119,7 @@ interface LoadingStepsProps {
   stepDurationSec?: number;
 }
 
-export const LoadingSteps = memo(function LoadingSteps({
+const LoadingSteps = memo(function LoadingSteps({
   steps,
   className = '',
   stepDurationSec = 8,
@@ -228,31 +228,6 @@ export const BaseLoadingScreen = memo(function BaseLoadingScreen({
 // ============ Pre-configured Loading Screens ============
 
 /**
- * Destiny Matrix loading screen
- */
-export const DestinyMatrixLoading = memo(function DestinyMatrixLoading() {
-  return (
-    <BaseLoadingScreen
-      title="운명 매트릭스 분석 중..."
-      steps={[
-        { text: '동양 사주 데이터 처리', icon: '☯' },
-        { text: '서양 점성술 매핑', icon: '🌟' },
-        { text: '통합 분석 생성', icon: '✨' },
-      ]}
-      orbitItems={[
-        { icon: '☀️', label: 'Sun' },
-        { icon: '🌙', label: 'Moon' },
-        { icon: '⭐', label: 'Stars' },
-        { icon: '🔮', label: 'Crystal' },
-        { icon: '☯', label: 'Yin-Yang' },
-        { icon: '🌌', label: 'Galaxy' },
-      ]}
-      centerIcon="🌌"
-    />
-  );
-});
-
-/**
  * Counselor loading screen
  */
 export const CounselorLoading = memo(function CounselorLoading() {
@@ -275,26 +250,3 @@ export const CounselorLoading = memo(function CounselorLoading() {
   );
 });
 
-/**
- * ICP Result loading screen
- */
-export const ICPResultLoading = memo(function ICPResultLoading() {
-  return (
-    <BaseLoadingScreen
-      title="이상형 분석 중..."
-      steps={[
-        { text: '성격 패턴 분석', icon: '🎯' },
-        { text: '궁합 요소 계산', icon: '💕' },
-      ]}
-      orbitItems={[
-        { icon: '❤️', label: 'Love' },
-        { icon: '🌹', label: 'Romance' },
-        { icon: '💑', label: 'Couple' },
-        { icon: '✨', label: 'Match' },
-      ]}
-      centerIcon="💖"
-    />
-  );
-});
-
-export default BaseLoadingScreen;

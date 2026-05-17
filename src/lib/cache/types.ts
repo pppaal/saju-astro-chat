@@ -16,6 +16,6 @@ export type CacheWriteResult =
   | { ok: false; error: Error }
 
 /** Extract the data from a CacheResult (returns null on miss or error) */
-export function cacheResultValue<T>(result: CacheResult<T>): T | null {
+function cacheResultValue<T>(result: CacheResult<T>): T | null {
   return result.hit ? result.data : null;
 }

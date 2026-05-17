@@ -1,7 +1,7 @@
 .scrollToTop {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
+  bottom: max(30px, env(safe-area-inset-bottom, 0px) + 16px);
+  right: max(30px, env(safe-area-inset-right, 0px) + 16px);
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -58,8 +58,8 @@
 
 @media (max-width: 768px) {
   .scrollToTop {
-    bottom: 20px;
-    right: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom, 0px) + 8px);
+    right: max(20px, env(safe-area-inset-right, 0px) + 8px);
     width: 48px;
     height: 48px;
     touch-action: manipulation;
@@ -77,8 +77,8 @@
 /* Mobile responsive - Small */
 @media (max-width: 480px) {
   .scrollToTop {
-    bottom: 16px;
-    right: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom, 0px) + 4px);
+    right: max(16px, env(safe-area-inset-right, 0px) + 4px);
     width: 44px;
     height: 44px;
   }

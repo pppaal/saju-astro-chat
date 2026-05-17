@@ -25,6 +25,15 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      // The specs below are viewport- or media-feature-specific and only
+      // make sense under their own projects (mobile-visibility,
+      // reduced-motion, screenshots). Exclude them from the default
+      // desktop run.
+      testIgnore: [
+        /mobile-visibility\.spec\.ts/,
+        /reduced-motion\.spec\.ts/,
+        /screenshots\.spec\.ts/,
+      ],
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
@@ -34,6 +43,56 @@ export default defineConfig({
             '--disable-setuid-sandbox',
             '--disable-gpu',
           ],
+        },
+      },
+    },
+    // Small-phone viewport — catches "chat bar / hero clipped off-screen"
+    // bugs that don't reproduce on a desktop window. iPhone SE (375x667)
+    // is the smallest mainstream iOS device still in heavy use.
+    {
+      name: 'mobile-visibility',
+      use: { ...devices['iPhone SE'] },
+      testMatch: /mobile-visibility\.spec\.ts/,
+    },
+    // prefers-reduced-motion: reduce — iOS Accessibility setting + Low
+    // Power Mode trigger this. Catches cards/elements that start at
+    // opacity:0 + rely on an animation to land in their visible state.
+    {
+      name: 'reduced-motion',
+      use: { ...devices['iPhone 13'], reducedMotion: 'reduce' },
+      testMatch: /reduced-motion\.spec\.ts/,
+    },
+    // Narrowest realistic viewport — Galaxy Z Fold outer screen is 280px
+    // wide. Chips, buttons, and headlines often overflow at this width
+    // even when iPhone SE (375px) passes. Same spec file as iPhone SE so
+    // both run the visibility assertions.
+    {
+      name: 'narrow-viewport',
+      use: { viewport: { width: 280, height: 653 }, isMobile: true, hasTouch: true },
+      testMatch: /mobile-visibility\.spec\.ts/,
+    },
+    // Visual regression — captures pixel snapshots of key pages so a CSS
+    // change that visually breaks the layout is caught even if no
+    // explicit assertion covers the affected region. Runs with motion
+    // disabled (reducedMotion: 'reduce' + animations: 'disabled' in
+    // toHaveScreenshot) so canvas particles / typewriter prompts /
+    // loading spinners don't make snapshots flaky.
+    //
+    // Baselines live in e2e/screenshots.spec.ts-snapshots/. Generate or
+    // update them with:
+    //   npx playwright test --project=screenshots --update-snapshots
+    {
+      name: 'screenshots',
+      use: {
+        ...devices['iPhone 13'],
+        reducedMotion: 'reduce',
+      },
+      testMatch: /screenshots\.spec\.ts/,
+      expect: {
+        toHaveScreenshot: {
+          maxDiffPixelRatio: 0.02,
+          animations: 'disabled',
+          caret: 'hide',
         },
       },
     },

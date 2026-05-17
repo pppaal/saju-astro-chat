@@ -373,5 +373,5 @@ export function makeCacheKey(
 }
 
 // Aliases for backwards compatibility
-export const getCache = cacheGet
-export const setCache = cacheSet
+const getCache = cacheGet
+const setCache = cacheSet

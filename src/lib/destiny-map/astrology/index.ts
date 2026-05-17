@@ -89,7 +89,6 @@ export { CacheManager, generateDestinyMapCacheKey } from './cache-manager';
 // Natal Calculations
 // ======================================================
 export { calculateNatal } from './natal-calculations';
-export { getNowInTimezone as getNowInTimezoneFromNatal } from './natal-calculations';
 
 // ======================================================
 // Advanced Points

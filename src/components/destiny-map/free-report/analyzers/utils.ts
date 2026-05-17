@@ -10,7 +10,7 @@ export * from './utils/index';
 /**
  * Language helper - returns localized text based on language setting
  */
-export function t<T extends string>(isKo: boolean, ko: T, en: T): T {
+function t<T extends string>(isKo: boolean, ko: T, en: T): T {
   return isKo ? ko : en;
 }
 
@@ -57,7 +57,7 @@ export function extractFiveElementsSorted(
 /**
  * Get strongest element from saju data
  */
-export function getStrongestElement(saju: SajuData | undefined): string | null {
+function getStrongestElement(saju: SajuData | undefined): string | null {
   const sorted = extractFiveElementsSorted(saju);
   return sorted[0]?.[0] || null;
 }
@@ -65,7 +65,7 @@ export function getStrongestElement(saju: SajuData | undefined): string | null {
 /**
  * Get weakest element from saju data
  */
-export function getWeakestElement(saju: SajuData | undefined): string | null {
+function getWeakestElement(saju: SajuData | undefined): string | null {
   const sorted = extractFiveElementsSorted(saju);
   return sorted[sorted.length - 1]?.[0] || null;
 }
@@ -94,7 +94,7 @@ export function extractPlanetSign(
 /**
  * Extract multiple planet signs at once
  */
-export function extractPlanetSigns(
+function extractPlanetSigns(
   astro: AstroData | undefined,
   planetNames: string[]
 ): Record<string, string | null> {
@@ -108,7 +108,7 @@ export function extractPlanetSigns(
 /**
  * Convert Korean element name to English key
  */
-export function toElementKey(koreanElement: string): string {
+function toElementKey(koreanElement: string): string {
   return elementKeyMap[koreanElement] || koreanElement.toLowerCase();
 }
 
@@ -135,7 +135,7 @@ export interface AnalysisContext {
 /**
  * Create common analysis context from saju and astro data
  */
-export function createAnalysisContext(
+function createAnalysisContext(
   saju: SajuData | undefined,
   astro: AstroData | undefined,
   lang: string
@@ -181,14 +181,14 @@ export function mapSajuElementToKo(el: string): string {
 /**
  * Get element name in Korean (stub for compatibility)
  */
-export function elementNameKo(el: string): string {
+function elementNameKo(el: string): string {
   return mapSajuElementToKo(el);
 }
 
 /**
  * Get house life area (stub for compatibility)
  */
-export function getHouseLifeArea(house: number, isKo: boolean): string {
+function getHouseLifeArea(house: number, isKo: boolean): string {
   const areas: Record<number, { ko: string; en: string }> = {
     1: { ko: '자아', en: 'Self' },
     2: { ko: '재산', en: 'Resources' },

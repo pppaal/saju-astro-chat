@@ -385,7 +385,7 @@ export const EVIDENCE_CONFIDENCE_THRESHOLDS = {
   medium: 70,
 } as const
 
-export const PEAK_LEVEL_THRESHOLDS = {
+const PEAK_LEVEL_THRESHOLDS = {
   peak: 85,
   high: 70,
 } as const

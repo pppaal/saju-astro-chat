@@ -370,3 +370,15 @@
     border-radius: 6px;
   }
 }
+
+/* ===== Reduced Motion =====
+   .personCard starts at opacity:0 and fades in via slideInUp. Without
+   the animation (prefers-reduced-motion: reduce), the whole card would
+   stay invisible. Pin it to the visible end state. */
+@media (prefers-reduced-motion: reduce) {
+  .personCard {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

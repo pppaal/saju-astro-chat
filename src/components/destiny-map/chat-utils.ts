@@ -5,8 +5,8 @@ import type { ConnectionStatus } from './chat-constants'
 import { CHAT_LIMITS } from './chat-constants'
 import type { LangKey, Copy } from './chat-i18n'
 
-// Re-export StreamProcessor for stream handling
-export { StreamProcessor, streamProcessor } from '@/lib/streaming'
+// Re-export streamProcessor for stream handling
+export { streamProcessor } from '@/lib/streaming'
 export type { StreamResult, StreamProcessorOptions } from '@/lib/streaming'
 
 /**
@@ -30,7 +30,7 @@ export function generateMessageId(prefix: 'user' | 'assistant' | 'error'): strin
  * Clean follow-up markers from streamed content
  * Handles: ||FOLLOWUP||[...], partial ||FO, ||FOLLOW, ||FOLLOWUP|, etc.
  */
-export function cleanFollowupMarkers(text: string): string {
+function cleanFollowupMarkers(text: string): string {
   return text
     .replace(/\|\|FOLLOWUP\|\|.*/s, '') // Full marker with content
     .replace(/\|\|F(?:O(?:L(?:L(?:O(?:W(?:U(?:P(?:\|(?:\|)?)?)?)?)?)?)?)?)?$/s, '') // Any partial state
@@ -42,7 +42,7 @@ export function cleanFollowupMarkers(text: string): string {
  * Parse AI-generated follow-up questions from response
  * Returns [cleanContent, followUpQuestions]
  */
-export function parseFollowUpQuestions(accumulated: string): {
+function parseFollowUpQuestions(accumulated: string): {
   cleanContent: string
   followUps: string[]
 } {

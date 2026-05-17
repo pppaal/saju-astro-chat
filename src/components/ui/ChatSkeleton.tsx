@@ -71,7 +71,7 @@ export function ChatSkeleton() {
 /**
  * 간단한 채팅 로딩 (작은 버전)
  */
-export function MiniChatSkeleton() {
+function MiniChatSkeleton() {
   return (
     <div className={styles.miniContainer}>
       <div className={styles.miniHeader} />

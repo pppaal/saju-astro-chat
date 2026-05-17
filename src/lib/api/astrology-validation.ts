@@ -9,7 +9,7 @@ import { z } from 'zod'
  * Base schema for astrology calculations
  * Validates birth data with proper coordinate bounds
  */
-export const AstrologyBirthDataSchema = z.object({
+const AstrologyBirthDataSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
   time: z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format'),
   latitude: z
@@ -30,7 +30,7 @@ export type AstrologyBirthData = z.infer<typeof AstrologyBirthDataSchema>
 /**
  * Schema for advanced astrology endpoints (asteroids, fixed stars, etc.)
  */
-export const AdvancedAstrologyRequestSchema = AstrologyBirthDataSchema.extend({
+const AdvancedAstrologyRequestSchema = AstrologyBirthDataSchema.extend({
   includeAspects: z.boolean().optional().default(true),
 })
 
@@ -39,7 +39,7 @@ export type AdvancedAstrologyRequest = z.infer<typeof AdvancedAstrologyRequestSc
 /**
  * Schema for transit calculations
  */
-export const TransitRequestSchema = AstrologyBirthDataSchema.extend({
+const TransitRequestSchema = AstrologyBirthDataSchema.extend({
   transitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Transit date must be in YYYY-MM-DD format'),
   transitTime: z
     .string()
@@ -52,7 +52,7 @@ export type TransitRequest = z.infer<typeof TransitRequestSchema>
 /**
  * Helper function to validate astrology request with proper error formatting
  */
-export function validateAstrologyRequest<T>(
+function validateAstrologyRequest<T>(
   schema: z.ZodSchema<T>,
   body: unknown
 ): { success: true; data: T } | { success: false; error: string; issues: z.ZodIssue[] } {
@@ -75,7 +75,7 @@ export function validateAstrologyRequest<T>(
 /**
  * Coordinate validation helpers
  */
-export const CoordinateValidation = {
+const CoordinateValidation = {
   /**
    * Check if latitude is valid (between -90 and 90)
    */
@@ -120,7 +120,7 @@ export const AsteroidsRequestSchema = z.object({
 })
 
 /** Rectification request schema */
-export const RectificationRequestSchema = z.object({
+const RectificationRequestSchema = z.object({
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Birth date must be in YYYY-MM-DD format'),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
@@ -175,7 +175,7 @@ export const FixedStarsRequestSchema = AdvancedAstrologyRequestSchema.extend({
 })
 
 /** Electional request schema */
-export const ElectionalRequestSchema = AdvancedAstrologyRequestSchema.extend({
+const ElectionalRequestSchema = AdvancedAstrologyRequestSchema.extend({
   eventType: z.string().optional(),
   basicOnly: z.boolean().optional(),
 })

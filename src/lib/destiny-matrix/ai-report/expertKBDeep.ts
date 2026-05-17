@@ -15,7 +15,7 @@ export interface GeokgukDeep {
   lifelong: string // 일생 핵심 과제
 }
 
-export const GEOKGUK_DEEP_KO: Record<string, GeokgukDeep> = {
+const GEOKGUK_DEEP_KO: Record<string, GeokgukDeep> = {
   정관격: {
     core: '공식 책임과 위계를 통해 사회 안에서 자기 자리를 만드는 격이에요',
     strength: '원칙·신뢰·절제가 자연스럽게 형성돼 외부에서 책임 있는 자리를 맡기기 좋은 사람',
@@ -108,7 +108,7 @@ export interface ShinsalDeep {
   prescription: string // 활용/처방
 }
 
-export const SHINSAL_DEEP_KO: Record<string, ShinsalDeep> = {
+const SHINSAL_DEEP_KO: Record<string, ShinsalDeep> = {
   천을귀인: {
     core: '인생의 결정적 순간마다 외부에서 도움이 들어오는 길성',
     pattern: '큰 결정·시험·위기 직전에 모르는 사람이나 잊고 있던 인연이 도움을 주는 패턴이 반복돼요',

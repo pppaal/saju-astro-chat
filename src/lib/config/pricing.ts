@@ -11,7 +11,7 @@
  */
 export type PricingVariant = 'control' | 'variant_a' | 'variant_b';
 
-export const PRICING_VARIANT: PricingVariant =
+const PRICING_VARIANT: PricingVariant =
   (process.env.NEXT_PUBLIC_PRICING_VARIANT as PricingVariant) || 'control';
 
 /**
@@ -41,7 +41,7 @@ export function getPricingVariantForUser(userId: string): PricingVariant {
 // CURRENCY & LOCALE
 // ============================================================================
 
-export const CURRENCIES = {
+const CURRENCIES = {
   KRW: 'KRW',
   USD: 'USD',
 } as const;
@@ -359,7 +359,7 @@ export const PLAN_CONFIG = {
  * Variant-specific pricing overrides
  * Use these for A/B testing different price points
  */
-export const PRICING_VARIANTS: Record<PricingVariant, Partial<Record<PlanType, Partial<PlanPricing>>>> = {
+const PRICING_VARIANTS: Record<PricingVariant, Partial<Record<PlanType, Partial<PlanPricing>>>> = {
   control: {}, // No overrides - use default PLANS
   variant_a: {
     // Example: Test lower Pro price

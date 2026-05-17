@@ -54,7 +54,7 @@ export interface GradeLabel {
   full: string   // 'emoji + phrase' (for tooltips, day cards, headings)
 }
 
-export const GRADE_LABELS: Record<CalendarLocale, Record<0 | 1 | 2 | 3 | 4, GradeLabel>> = {
+const GRADE_LABELS: Record<CalendarLocale, Record<0 | 1 | 2 | 3 | 4, GradeLabel>> = {
   ko: {
     0: { emoji: '\uD83C\uDF1F', short: '\uCD5C\uACE0', full: '\uD83C\uDF1F \uCD5C\uACE0\uC758 \uB0A0' },
     1: { emoji: '\u2728', short: '\uC544\uC8FC \uC88B\uC74C', full: '\u2728 \uC544\uC8FC \uC88B\uC740 \uB0A0' },

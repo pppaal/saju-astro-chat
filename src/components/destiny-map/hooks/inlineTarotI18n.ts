@@ -33,7 +33,7 @@ export interface TarotI18n {
   analyzing: string;
 }
 
-export const TAROT_I18N: Record<string, TarotI18n> = {
+const TAROT_I18N: Record<string, TarotI18n> = {
   ko: {
     title: '타로 리딩',
     concernTitle: '어떤 고민이 있으신가요?',

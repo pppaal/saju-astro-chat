@@ -266,7 +266,7 @@ export const FIVE_ELEMENT_RELATIONS = {
 }
 
 // 서양 원소 상성 관계
-export const WESTERN_ELEMENT_RELATIONS = {
+const WESTERN_ELEMENT_RELATIONS = {
   harmonious: {
     fire: ['air'],
     air: ['fire'],

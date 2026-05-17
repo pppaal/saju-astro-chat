@@ -62,7 +62,6 @@ export {
   calculateSeunScore,
   getMonthGanzhi,
   calculateWolunScore,
-  getGanzhiForDate as getSajuGanzhiForDate,
   calculateIljinScore,
   scoreYongsinFitForDate,
   scoreGeokgukFitForDate,

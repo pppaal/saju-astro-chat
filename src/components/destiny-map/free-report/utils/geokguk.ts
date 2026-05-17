@@ -85,7 +85,7 @@ export function getGeokgukType(name: string | undefined | null): GeokgukType | n
 /**
  * Checks if a geokguk type is valid
  */
-export function isValidGeokgukType(type: unknown): type is GeokgukType {
+function isValidGeokgukType(type: unknown): type is GeokgukType {
   if (typeof type !== 'string') {return false;}
 
   const validTypes: GeokgukType[] = [
@@ -137,21 +137,21 @@ const GEOKGUK_CATEGORIES: Record<GeokgukType, GeokgukCategory> = {
 /**
  * Get category for a geokguk type
  */
-export function getGeokgukCategory(type: GeokgukType): GeokgukCategory {
+function getGeokgukCategory(type: GeokgukType): GeokgukCategory {
   return GEOKGUK_CATEGORIES[type];
 }
 
 /**
  * Check if geokguk is a "following" type (종격)
  */
-export function isFollowingGeokguk(type: GeokgukType): boolean {
+function isFollowingGeokguk(type: GeokgukType): boolean {
   return GEOKGUK_CATEGORIES[type] === 'follow';
 }
 
 /**
  * Check if geokguk is an "element" type (오행격)
  */
-export function isElementGeokguk(type: GeokgukType): boolean {
+function isElementGeokguk(type: GeokgukType): boolean {
   return GEOKGUK_CATEGORIES[type] === 'element';
 }
 
@@ -160,7 +160,7 @@ export function isElementGeokguk(type: GeokgukType): boolean {
 /**
  * Geokguk display names (bilingual)
  */
-export const GEOKGUK_NAMES: Record<GeokgukType, { ko: string; en: string }> = {
+const GEOKGUK_NAMES: Record<GeokgukType, { ko: string; en: string }> = {
   jeonggwan: { ko: '정관격', en: 'Jeonggwan (Proper Official)' },
   pyeongwan: { ko: '편관격', en: 'Pyeongwan (Biased Official)' },
   jeongin: { ko: '정인격', en: 'Jeongin (Proper Seal)' },
@@ -185,7 +185,7 @@ export const GEOKGUK_NAMES: Record<GeokgukType, { ko: string; en: string }> = {
 /**
  * Get display name for a geokguk type
  */
-export function getGeokgukDisplayName(type: GeokgukType, isKo: boolean): string {
+function getGeokgukDisplayName(type: GeokgukType, isKo: boolean): string {
   return isKo ? GEOKGUK_NAMES[type].ko : GEOKGUK_NAMES[type].en;
 }
 
@@ -196,7 +196,7 @@ import type { SajuData } from '../types';
 /**
  * Extract geokguk type from saju data
  */
-export function extractGeokgukType(saju: SajuData | undefined): GeokgukType | null {
+function extractGeokgukType(saju: SajuData | undefined): GeokgukType | null {
   if (!saju?.advancedAnalysis?.geokguk) {return null;}
 
   const geokguk = saju.advancedAnalysis.geokguk;

@@ -69,7 +69,7 @@ const pickLocale = (raw?: string | null): ServerLocale | null => {
   return null
 }
 
-export async function detectServerLocale(): Promise<ServerLocale> {
+async function detectServerLocale(): Promise<ServerLocale> {
   const cookieStore = await cookies()
   const localeCookie = cookieStore.get('locale')?.value ?? cookieStore.get('NEXT_LOCALE')?.value
   const cookieLocale = pickLocale(localeCookie)
