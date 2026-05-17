@@ -11,7 +11,7 @@ import styles from './Compatibility.module.css'
 import { useCompatibilityForm } from '@/hooks/useCompatibilityForm'
 import { useCityAutocomplete } from '@/hooks/useCityAutocomplete'
 import { useMyCircle } from '@/hooks/useMyCircle'
-import { useCompatibilityAnalysis } from '@/hooks/useCompatibilityAnalysis'
+import { validatePersons } from './validatePersons'
 
 import { PersonCard, SubmitButton } from './components'
 
@@ -43,15 +43,13 @@ export default function CompatPage() {
   const { circlePeople, showCircleDropdown, setShowCircleDropdown, circleError } =
     useMyCircle(status)
 
-  // We only need `validate` from the analysis hook now — the form routes
-  // straight to /compatibility/counselor instead of running an inline
-  // analysis and showing a result card.
-  const { validate } = useCompatibilityAnalysis()
+  // Form-level validation only — submit routes straight to
+  // /compatibility/counselor instead of running an inline analysis.
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = useCallback(() => {
-    const errorMsg = validate(persons, count, t)
+    const errorMsg = validatePersons(persons, count, t)
     if (errorMsg) {
       setError(errorMsg)
       return
@@ -76,7 +74,7 @@ export default function CompatPage() {
     router.push(
       `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(personsData))}`
     )
-  }, [persons, count, t, validate, router])
+  }, [persons, count, t, router])
 
   const handleBack = useCallback(() => {
     router.push('/')
