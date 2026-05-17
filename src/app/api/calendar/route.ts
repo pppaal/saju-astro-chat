@@ -1179,13 +1179,14 @@ export const GET = withApiMiddleware(
       // 사용자가 보고 있는 달만 빌드 — 1년 365일 다 돌리면 너무 비쌈.
       // 엔진 자체는 1년 능력 유지 (range만 좁힘). 클라가 ?month=YYYY-MM 보내면 그 달,
       // 안 보내면 오늘의 달.
+      // 3-month window: 사용자가 prev/next 한 번 누르면 그 달이 이미 계산돼 있음.
+      // 1년치 다 빌드하면 비싸고, 1달만 빌드하면 prev/next 갈 때 fallback score 봄.
+      // ±1달이 trade-off 가장 좋음.
       const monthParam = searchParams.get('month')
       const monthMatch = monthParam?.match(/^(\d{4})-(\d{1,2})$/)
       const targetYear = monthMatch ? Number(monthMatch[1]) : year
       const targetMonth = monthMatch ? Number(monthMatch[2]) - 1 : new Date().getMonth()
-      const rangeStart = new Date(targetYear, targetMonth, 1)
-      const rangeEnd = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59)
-      // CalendarCell DB 캐시 사용 — 같은 본명·달이면 instant 반환.
+
       const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
       const birthKey = makeBirthKey({
         birthDate: birthDateParam,
@@ -1193,19 +1194,39 @@ export const GET = withApiMiddleware(
         birthPlace,
         gender: gender || 'Male',
       })
-      const monthKey = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`
-      const { cells: ceCells, cached: ceCached } = await getOrBuildMonth({
-        birthKey,
-        monthKey,
-        natal: ceNatal,
-        range: {
-          start: rangeStart.toISOString(),
-          end: rangeEnd.toISOString(),
-          granularity: 'day',
-        },
-        options: { includeEvidence: true },
+
+      // 빌드 대상 3달: [prev, current, next]. 같은 본명·달이면 cell-cache에서 instant.
+      const monthsToBuild = [-1, 0, 1].map((offset) => {
+        const d = new Date(targetYear, targetMonth + offset, 1)
+        return {
+          year: d.getFullYear(),
+          month: d.getMonth(),
+          monthKey: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+          rangeStart: d,
+          rangeEnd: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+        }
       })
-      logger.info?.(`[calendar-engine v2] ${ceCached ? 'cache HIT' : 'cache MISS'} for ${monthKey}, cells=${ceCells.length}`)
+
+      const allCells: typeof ceCells = []
+      let ceCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
+      for (const m of monthsToBuild) {
+        const { cells, cached } = await getOrBuildMonth({
+          birthKey,
+          monthKey: m.monthKey,
+          natal: ceNatal,
+          range: {
+            start: m.rangeStart.toISOString(),
+            end: m.rangeEnd.toISOString(),
+            granularity: 'day',
+          },
+          options: { includeEvidence: true },
+        })
+        logger.info?.(`[calendar-engine v2] ${cached ? 'cache HIT' : 'cache MISS'} for ${m.monthKey}, cells=${cells.length}`)
+        allCells.push(...cells)
+        if (m.month === targetMonth && m.year === targetYear) {
+          ceCells = cells // narrative는 current month 기준
+        }
+      }
 
       // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
       try {
@@ -1221,7 +1242,9 @@ export const GET = withApiMiddleware(
         logger.warn?.('[interpretation] skipped:', err instanceof Error ? err.message : String(err))
       }
 
-      const cellByDate = new Map(ceCells.map((c) => [c.datetime.slice(0, 10), c]))
+      // 3달 모든 cell을 date 키로 — prev/next month 이동해도 그 달 displayScore/
+      // engineSignals 부착됨 (현재 달만 부착하면 다른 달은 fallback yearlyDates.score).
+      const cellByDate = new Map(allCells.map((c) => [c.datetime.slice(0, 10), c]))
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
