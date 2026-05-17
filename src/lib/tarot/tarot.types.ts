@@ -34,7 +34,7 @@ export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
     descriptionKo: '황금빛 태양과 달, 우주의 조화',
     gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f1a 100%)',
     accent: '#f4d03f',
-    backImage: '/images/tarot/backs/celestial.png',
+    backImage: '/images/tarot/backs/celestial.webp',
   },
   classic: {
     id: 'classic',
@@ -44,7 +44,7 @@ export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
     descriptionKo: '전통적인 시대를 초월한 우아함',
     gradient: 'linear-gradient(135deg, #2c1810 0%, #4a3728 50%, #1a0f0a 100%)',
     accent: '#c9a959',
-    backImage: '/images/tarot/backs/classic.png',
+    backImage: '/images/tarot/backs/classic.webp',
   },
   cyber: {
     id: 'cyber',
@@ -54,7 +54,7 @@ export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
     descriptionKo: '미래적인 디지털 신비주의',
     gradient: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0f0f2a 100%)',
     accent: '#00ffff',
-    backImage: '/images/tarot/backs/cyber.png',
+    backImage: '/images/tarot/backs/cyber.webp',
   },
   egyptian: {
     id: 'egyptian',
@@ -64,7 +64,7 @@ export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
     descriptionKo: '고대 호루스의 눈, 지혜의 상징',
     gradient: 'linear-gradient(135deg, #1a1005 0%, #3d2914 50%, #0f0a05 100%)',
     accent: '#d4af37',
-    backImage: '/images/tarot/backs/egyptian.png',
+    backImage: '/images/tarot/backs/egyptian.webp',
   },
   elegant: {
     id: 'elegant',
@@ -74,7 +74,7 @@ export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
     descriptionKo: '세련된 품격',
     gradient: 'linear-gradient(135deg, #1a0533 0%, #2d1b4e 50%, #0f0a1a 100%)',
     accent: '#e8d5b7',
-    backImage: '/images/tarot/backs/elegant.png',
+    backImage: '/images/tarot/backs/elegant.webp',
   },
   ethereal: {
     id: 'ethereal',
@@ -84,7 +84,7 @@ export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
     descriptionKo: '몽환적인 수채화의 부드러움',
     gradient: 'linear-gradient(135deg, #f5e6d3 0%, #e8d5c4 50%, #d4c4b0 100%)',
     accent: '#8b7355',
-    backImage: '/images/tarot/backs/ethereal.png',
+    backImage: '/images/tarot/backs/ethereal.webp',
   },
   sacred: {
     id: 'sacred',
@@ -94,7 +94,7 @@ export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
     descriptionKo: '만다라 패턴, 우주적 균형',
     gradient: 'linear-gradient(135deg, #1a0a2e 0%, #2d1b69 50%, #0f0a1a 100%)',
     accent: '#9f7aea',
-    backImage: '/images/tarot/backs/sacred.png',
+    backImage: '/images/tarot/backs/sacred.webp',
   },
   minimal: {
     id: 'minimal',
@@ -104,7 +104,7 @@ export const DECK_STYLE_INFO: Record<DeckStyle, DeckStyleInfo> = {
     descriptionKo: '깔끔한 기하학적 신비주의',
     gradient: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%)',
     accent: '#e0e0e0',
-    backImage: '/images/tarot/backs/minimal.png',
+    backImage: '/images/tarot/backs/minimal.webp',
   },
 }
 
