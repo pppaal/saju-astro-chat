@@ -266,6 +266,7 @@ export default function CoupleReadingDetailPage({
                 color: 'rgba(255,255,255,0.9)',
                 lineHeight: 1.8,
                 whiteSpace: 'pre-wrap',
+                fontSize: '1.2rem',
               }}
             >
               {reading.overallMessage}
@@ -293,7 +294,7 @@ export default function CoupleReadingDetailPage({
                     style={{
                       color: '#63d2ff',
                       margin: '0 0 1rem 0',
-                      fontSize: '1.1rem',
+                      fontSize: '1.25rem',
                     }}
                   >
                     {insight.position}: {insight.card_name}
@@ -305,6 +306,7 @@ export default function CoupleReadingDetailPage({
                       lineHeight: 1.8,
                       margin: 0,
                       whiteSpace: 'pre-wrap',
+                      fontSize: '1.15rem',
                     }}
                   >
                     {insight.interpretation}
@@ -327,6 +329,7 @@ export default function CoupleReadingDetailPage({
                 lineHeight: 1.8,
                 margin: 0,
                 whiteSpace: 'pre-wrap',
+                fontSize: '1.2rem',
               }}
             >
               {reading.guidance}

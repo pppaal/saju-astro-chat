@@ -132,7 +132,7 @@ export function ResultsStage(props: ResultsStageProps) {
               )}
             </div>
             {insight?.overall_message ? (
-              <p className="text-base md:text-[17px] text-slate-100 leading-relaxed whitespace-pre-wrap">
+              <p className="text-lg md:text-[19px] text-slate-100 leading-relaxed whitespace-pre-wrap">
                 {renderHighlighted(insight.overall_message)}
                 {aiPending && (
                   <span className="inline-block w-1.5 h-4 ml-0.5 bg-indigo-300/80 align-middle animate-pulse" />

@@ -571,14 +571,14 @@
 }
 
 .resultSectionTitle {
-  font-size: 1.05rem;
+  font-size: 1.18rem;
   font-weight: 600;
   color: #c4b5fd;
   margin: 0 0 14px;
 }
 
 .resultText {
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   color: rgba(255, 255, 255, 0.95);
   line-height: 1.82;
   letter-spacing: 0.01em;
@@ -603,7 +603,7 @@
 }
 
 .affirmationText {
-  font-size: 1.08rem;
+  font-size: 1.22rem;
   color: #fff;
   font-style: italic;
   line-height: 1.72;
@@ -820,12 +820,12 @@
   }
 
   .resultSectionTitle {
-    font-size: 0.98rem;
+    font-size: 1.1rem;
     margin-bottom: 10px;
   }
 
   .resultText {
-    font-size: 0.98rem;
+    font-size: 1.12rem;
     line-height: 1.7;
   }
 
@@ -841,7 +841,7 @@
   }
 
   .affirmationText {
-    font-size: 1rem;
+    font-size: 1.14rem;
     line-height: 1.6;
   }
 }

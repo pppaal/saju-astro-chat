@@ -39,10 +39,10 @@ export function GuidanceSection({ guidance, language }: GuidanceSectionProps) {
         {items.map((item, i) => (
           <div key={i} className="rounded-xl bg-slate-800/40 border border-slate-700/50 p-4">
             {item.title && (
-              <div className="text-sm font-medium text-slate-200 mb-1.5">{item.title}</div>
+              <div className="text-base font-medium text-slate-200 mb-1.5">{item.title}</div>
             )}
             {item.detail && (
-              <p className="text-sm md:text-[15px] text-slate-300 leading-relaxed whitespace-pre-wrap">
+              <p className="text-base md:text-[17px] text-slate-300 leading-relaxed whitespace-pre-wrap">
                 {item.detail}
               </p>
             )}
