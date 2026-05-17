@@ -14,19 +14,12 @@ import {
   MoonStar,
   ChevronRight,
   ChevronDown,
-  Plus,
-  Check,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
 import { DECK_STYLES, DECK_STYLE_INFO, getCardImagePath, type DeckStyle } from '@/lib/tarot/tarot.types'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import type { Spread } from '@/lib/tarot/tarot.types'
-import {
-  getStoredBirthInfo,
-  buildBirthQuery,
-  type StoredBirthInfo,
-} from '@/app/(main)/birthInfoStorage'
 
 // 카테고리(테마) 안의 모든 spread 를 flat 하게 펼침 — chip 1개로 선택
 const ALL_SPREADS: Array<{ spread: Spread; categoryKo: string; categoryId: string }> = []
@@ -47,51 +40,10 @@ export default function TarotChatScreen() {
   const [question, setQuestion] = useState('')
   const [selectedDeck, setSelectedDeck] = useState<DeckStyle>(DEFAULT_DECK)
   const [selectedSpread, setSelectedSpread] = useState(DEFAULT_SPREAD)
-  const [includeSaju, setIncludeSaju] = useState(true)
-  const [includeAstrology, setIncludeAstrology] = useState(true)
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false)
   const [isSpreadModalOpen, setIsSpreadModalOpen] = useState(false)
-  const [isAddonsOpen, setIsAddonsOpen] = useState(false)
   const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
-  const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const addonsRef = useRef<HTMLDivElement>(null)
-
-  // 홈에서 저장된 생년월일을 끌어와 타로 결과 페이지로 propagate. URL params
-  // 가 있으면 그것을 우선 (홈 chip → tarot chip 경로), 없으면 localStorage
-  // fallback (직접 /tarot 진입 케이스).
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const sp = new URLSearchParams(window.location.search)
-    const qBirthDate = sp.get('birthDate')
-    if (qBirthDate) {
-      const qBirthTime = sp.get('birthTime') || '12:00'
-      const qGenderRaw = (sp.get('gender') || 'M').toUpperCase()
-      const gender = qGenderRaw === 'F' || qGenderRaw === 'FEMALE' ? 'female' : 'male'
-      setBirthInfo({
-        birthDate: qBirthDate,
-        birthTime: qBirthTime,
-        birthTimeUnknown: sp.get('birthTimeUnknown') === '1',
-        gender,
-        city: sp.get('birthCity') || sp.get('city') || undefined,
-        savedAt: new Date().toISOString(),
-      })
-      return
-    }
-    setBirthInfo(getStoredBirthInfo())
-  }, [])
-
-  // addons 팝오버 바깥 클릭 시 닫기
-  useEffect(() => {
-    if (!isAddonsOpen) return
-    const onClick = (e: MouseEvent) => {
-      if (addonsRef.current && !addonsRef.current.contains(e.target as Node)) {
-        setIsAddonsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [isAddonsOpen])
 
   useEffect(() => {
     textareaRef.current?.focus()
@@ -126,11 +78,8 @@ export default function TarotChatScreen() {
     e.preventDefault()
     if (!question.trim()) return
     const q = encodeURIComponent(question.trim())
-    const sajuQ = includeSaju ? '' : '&saju=0'
-    const astroQ = includeAstrology ? '' : '&astro=0'
-    // birthInfo가 있으면 결과 페이지로 전달해 saju/astro cross에 즉시 쓸 수 있게.
-    const birthQ = birthInfo ? `&${buildBirthQuery(birthInfo)}` : ''
-    const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?question=${q}&deck=${selectedDeck}${sajuQ}${astroQ}${birthQ}`
+    // birthInfo 는 더 이상 타로 cross 에 쓰이지 않음 — 순수 타로만 읽음.
+    const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?question=${q}&deck=${selectedDeck}`
     router.push(path)
   }
 
@@ -167,16 +116,6 @@ export default function TarotChatScreen() {
               ? '하단 입력창에 고민을 적어주세요.\n선택하신 덱과 스프레드에 맞춰 카드를 펼칩니다.'
               : 'Type your question below.\nThe cards will be drawn from your selected deck and spread.'}
           </p>
-
-          {/* 홈에서 입력한 생일 정보가 있으면 cross context 적용된다고 알려주기 */}
-          {birthInfo && (
-            <div className="pt-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-300">
-                ✓ {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
-                {birthInfo.gender === 'male' ? (isKo ? '남성' : 'Male') : isKo ? '여성' : 'Female'}
-              </span>
-            </div>
-          )}
 
           {/* 예시 질문 chip — 클릭하면 textarea 에 채워서 첫 사용자 ramp-up */}
           {question.trim().length === 0 && (
@@ -218,7 +157,7 @@ export default function TarotChatScreen() {
       {/* 하단 입력창 */}
       <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]">
         <div className="max-w-3xl mx-auto p-3 md:p-4 flex flex-col gap-3">
-          {/* 덱·스프레드 chips + 추가(+) 버튼 */}
+          {/* 덱·카드 매수 chips */}
           <div className="flex items-center gap-2 px-1 overflow-x-auto">
             <button
               onClick={() => setIsDeckModalOpen(true)}
@@ -239,73 +178,6 @@ export default function TarotChatScreen() {
               </span>
               <ChevronRight className="w-3.5 h-3.5 opacity-50" />
             </button>
-
-            {/* + 추가 — 사주·점성 cross 단일 토글 (한 박스 안에서 둘 다 ON/OFF) */}
-            <div className="relative" ref={addonsRef}>
-              <button
-                type="button"
-                onClick={() => setIsAddonsOpen((v) => !v)}
-                aria-haspopup="true"
-                aria-expanded={isAddonsOpen}
-                title={isKo ? '사주·점성 cross 추가' : 'Add Saju × Astrology cross'}
-                className={`flex items-center gap-1 px-3 py-1.5 border rounded-full text-xs transition-colors whitespace-nowrap ${
-                  includeSaju && includeAstrology
-                    ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-100'
-                    : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-slate-100'
-                }`}
-              >
-                <Plus className="w-3.5 h-3.5" />
-                {isKo ? '추가' : 'Add'}
-                {includeSaju && includeAstrology && (
-                  <Check className="w-3 h-3 text-indigo-200" />
-                )}
-              </button>
-
-              {isAddonsOpen && (
-                <div
-                  className="absolute bottom-full mb-3 right-0 w-72 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 p-3 z-30"
-                  role="dialog"
-                  aria-label={isKo ? '사주·점성 cross 추가' : 'Saju × Astrology cross add-on'}
-                >
-                  <button
-                    type="button"
-                    role="checkbox"
-                    aria-checked={includeSaju && includeAstrology}
-                    onClick={() => {
-                      const next = !(includeSaju && includeAstrology)
-                      setIncludeSaju(next)
-                      setIncludeAstrology(next)
-                    }}
-                    className="w-full flex items-start gap-3 px-2 py-2.5 rounded-xl hover:bg-slate-800/60 transition-colors text-left"
-                  >
-                    <span
-                      className={`flex items-center justify-center w-6 h-6 rounded-md border-2 shrink-0 mt-0.5 transition-colors ${
-                        includeSaju && includeAstrology
-                          ? 'bg-indigo-500 border-indigo-400 text-white'
-                          : 'bg-slate-950 border-slate-500 text-transparent'
-                      }`}
-                    >
-                      <Check className="w-4 h-4" strokeWidth={3} />
-                    </span>
-                    <span className="flex-1 min-w-0">
-                      <span className="block text-sm font-medium text-slate-100">
-                        {isKo ? '사주 · 점성 cross 추가' : 'Add Saju × Astrology cross'}
-                      </span>
-                      <span className="block text-[11px] text-slate-400 leading-snug mt-0.5">
-                        {isKo
-                          ? '내 사주 · 점성 흐름을 카드 해석에 같이 엮습니다'
-                          : 'Weaves your saju & astrology flow into the card reading'}
-                      </span>
-                    </span>
-                  </button>
-                  <p className="px-2 pt-1 text-[10px] text-slate-500 leading-tight">
-                    {isKo
-                      ? '로그인 + 생년월일이 있어야 cross 해석이 적용돼요'
-                      : 'Sign in + birthday required for cross reading'}
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* 텍스트 입력 + 전송 */}
