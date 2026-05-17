@@ -15,9 +15,7 @@ import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
 import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
 import {
   formatSajuAsTable,
-  formatDestinyTiming,
   formatDestinyAstro,
-  formatSajuExtras,
 } from '@/lib/compatibility/sajuTableFormatter'
 import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
@@ -228,23 +226,9 @@ export async function POST(req: NextRequest) {
       }
       parts.push('')
       parts.push(formatSajuAsTable(saju.saju, '나'))
-      // 격국·용신·신살·12운성 + 합/충/형/파/해/공망. Calculated by
-      // runFortuneWithRaw → buildSajuNormalizerInput and previously
-      // dropped from the prompt; users noticed neither shinsal nor
-      // gongmang were ever cited.
-      const extrasBlock = formatSajuExtras({
-        extras: (saju as { extras?: Parameters<typeof formatSajuExtras>[0]['extras'] }).extras,
-        natalRelations: (saju as { natalRelations?: Parameters<typeof formatSajuExtras>[0]['natalRelations'] }).natalRelations,
-      })
-      if (extrasBlock) {
-        parts.push('')
-        parts.push(extrasBlock)
-      }
-      const timingBlock = formatDestinyTiming(saju)
-      if (timingBlock) {
-        parts.push('')
-        parts.push(timingBlock)
-      }
+      // formatSajuExtras (격국·용신·신살·12운성·합/충) + formatDestinyTiming
+      // (대운/세운/월운/일진 1줄 요약)은 self-cross 블록이 100% cover하므로
+      // 제거. formatDestinyAstro는 Solar/Lunar Return이 self-cross에 없어 유지.
       parts.push('')
       parts.push(formatDestinyAstro(astro))
 
