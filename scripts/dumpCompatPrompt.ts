@@ -34,7 +34,19 @@ import {
 import { performExtendedSajuAnalysis } from '../src/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '../src/lib/compatibility/astrology/comprehensive'
 import { buildEvidenceGroundingGuide } from '../src/lib/prompts/fortuneWithIcp'
-import { relationLabel } from '../src/app/api/compatibility/routeSupportCommon'
+// routeSupportCommon은 PR #231에서 dead로 제거됨. production route는 inline
+// relationLabel을 갖고 있으니 dump script도 동일하게 inline로 미러.
+function relationLabel(locale: 'ko' | 'en', relation?: string, note?: string): string {
+  const isKo = locale === 'ko'
+  if (relation === 'lover') return isKo ? '연인' : 'lover'
+  if (relation === 'spouse') return isKo ? '배우자' : 'spouse'
+  if (relation === 'family') return isKo ? '가족' : 'family'
+  if (relation === 'sibling') return isKo ? '형제자매' : 'sibling'
+  if (relation === 'friend') return isKo ? '친구' : 'friend'
+  if (relation === 'colleague') return isKo ? '동료' : 'colleague'
+  if (relation === 'other') return note?.trim() || (isKo ? '기타' : 'other')
+  return isKo ? '관계' : 'related'
+}
 import type { Relation } from '../src/app/api/compatibility/types'
 import {
   formatSajuAsTable,
