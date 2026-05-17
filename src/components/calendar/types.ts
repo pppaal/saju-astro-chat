@@ -104,22 +104,16 @@ export interface ImportantDate {
     kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
     blurb: string
   }>
-  /** 점수 산출 7축 분해 + 2축 분리 — WeeklyTimingChart의 사주/점성 라인용 */
+  /**
+   * v3 점수 = (사주축 + 점성축) / 2 — WeeklyTimingChart의 사주/점성 라인이
+   * 그대로 finalScore를 만든다 (그래프 ≡ 점수).
+   * axisAgreement: 두 시스템 합치도 (점수 외 부가 표시).
+   */
   scoreBreakdown?: {
-    engine: number
-    matrix: number
-    cycle: number
-    cross: number
-    yongsin: number
-    transit?: number
-    lunarRetro?: number
-    dailyShift: number
-    weakPenalty: number
-    peakBoost: number
+    sajuAxis: number
+    astroAxis: number
+    axisAgreement: 'aligned' | 'mixed' | 'opposed'
     finalScore: number
-    sajuAxis?: number
-    astroAxis?: number
-    axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
   /** 트랜짓 점성 — 선택일 기준 행성 위치 + 본명 차트와의 aspect */
   transit?: {
