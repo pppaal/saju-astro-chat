@@ -1,13 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react'
+import { User, Users, ChevronDown, Loader2 } from 'lucide-react'
 import { type PersonForm, type Relation } from '../../lib/types'
-import { PersonCardHeader } from './PersonCardHeader'
-import { CircleDropdown } from './CircleDropdown'
-import { CityAutocompleteField } from './CityAutocompleteField'
-import DateTimePicker from '@/components/ui/DateTimePicker'
-import TimePicker from '@/components/ui/TimePicker'
+import { useCitySearch } from '@/hooks/calendar/useCitySearch'
+import { formatCityForDropdown } from '@/lib/cities/formatter'
 import type { CirclePerson } from '@/hooks/useMyCircle'
 import type { CityResult } from '@/lib/cities/types'
-import styles from '../../Compatibility.module.css'
 
 interface PersonCardProps {
   person: PersonForm
@@ -24,6 +21,20 @@ interface PersonCardProps {
   onFillFromCircle: (idx: number, person: CirclePerson) => void
 }
 
+/**
+ * Compatibility 페이지의 한 사람 입력 카드.
+ *
+ * 이전엔 Compatibility.module.css의 light/legacy 디자인을 썼지만 페이지
+ * 톤이 다크라 시각이 어긋났음. ProfileEditModal / CircleAddModal과 동일한
+ * 패턴(Tailwind dark + Field 헬퍼 + useCitySearch 직접)으로 재작성.
+ *
+ * 보존 기능:
+ *  - 내 프로필 불러오기 (idx === 0만)
+ *  - 지인(My Circle) 불러오기 dropdown
+ *  - 시간 모름 옵션
+ *  - 도시 autocomplete (useCitySearch)
+ *  - 두 번째 사람: 관계 + 메모
+ */
 export const PersonCard = React.memo<PersonCardProps>(
   ({
     person,
@@ -40,11 +51,8 @@ export const PersonCard = React.memo<PersonCardProps>(
     onFillFromCircle,
   }) => {
     const idx = index
+    const isKo = locale === 'ko' || locale.startsWith('ko')
     const [profileLoading, setProfileLoading] = useState(false)
-    // "Time unknown" — now a controlled field on PersonForm so the
-    // server can tell the LLM to ignore time-dependent saju / astro
-    // signals. Default it on when the stored time is missing or
-    // already 00:00 so reopens stay consistent with what's saved.
     const timeUnknown = person.timeUnknown ?? (!person.time || person.time === '00:00')
     const setTimeUnknown = useCallback(
       (value: boolean) => onUpdatePerson(idx, 'timeUnknown', value),
@@ -56,29 +64,53 @@ export const PersonCard = React.memo<PersonCardProps>(
       }
     }, [timeUnknown, person.time, idx, onUpdatePerson])
 
+    // City autocomplete — 우리 hook 직접 사용. PersonForm.suggestions를 같이
+    // sync해서 onSetPersons 흐름과 충돌 X. blur 시 dropdown 닫힘.
+    const {
+      suggestions: hookSuggestions,
+      openSug,
+      setOpenSug,
+      handleCityInputChange,
+      handleCitySelect: pickCity,
+    } = useCitySearch(locale)
+
+    const onCityInput = (val: string) => {
+      onSetPersons((prev) => {
+        const next = [...prev]
+        next[idx] = { ...next[idx], cityQuery: val, lat: null, lon: null }
+        return next
+      })
+      handleCityInputChange(val)
+    }
+    const onCityPick = (city: Parameters<typeof pickCity>[0]) => {
+      const enriched = pickCity(city)
+      // 기존 onPickCity 흐름 유지 — useCompatibilityForm이 lat/lon/timeZone을 채움.
+      onPickCity(idx, {
+        name: enriched.name,
+        country: enriched.country,
+        lat: enriched.lat,
+        lon: enriched.lon,
+        timezone: enriched.timezone,
+      } as unknown as CityResult)
+      setOpenSug(false)
+    }
+
     const loadMyProfile = useCallback(async () => {
       setProfileLoading(true)
       try {
         const res = await fetch('/api/me/profile')
-        if (!res.ok) {
-          return
-        }
+        if (!res.ok) return
         const data = await res.json()
         const user = data.user
-        if (!user) {
-          return
-        }
+        if (!user) return
 
-        // Look up city coordinates if birthCity exists
         let lat: number | null = null
         let lon: number | null = null
         if (user.birthCity) {
           try {
             const cityRes = await fetch(
               `/api/cities?q=${encodeURIComponent(user.birthCity)}&limit=1`,
-              {
-                headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
-              }
+              { headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '' } },
             )
             if (cityRes.ok) {
               const cityData = await cityRes.json()
@@ -88,9 +120,7 @@ export const PersonCard = React.memo<PersonCardProps>(
                 lon = cities[0].lon ?? cities[0].longitude ?? null
               }
             }
-          } catch {
-            /* ignore city lookup failure */
-          }
+          } catch { /* ignore */ }
         }
 
         onSetPersons((prev) => {
@@ -100,6 +130,12 @@ export const PersonCard = React.memo<PersonCardProps>(
             name: user.name || next[idx].name,
             date: user.birthDate || '',
             time: user.birthTime || '',
+            gender:
+              user.gender === 'female' || user.gender === 'F'
+                ? 'F'
+                : user.gender === 'male' || user.gender === 'M'
+                  ? 'M'
+                  : next[idx].gender,
             cityQuery: user.birthCity || '',
             lat,
             lon,
@@ -107,225 +143,230 @@ export const PersonCard = React.memo<PersonCardProps>(
           }
           return next
         })
-      } catch {
-        /* ignore */
-      } finally {
+      } catch { /* ignore */ } finally {
         setProfileLoading(false)
       }
     }, [idx, onSetPersons])
 
-    // Person 1: show profile load button + circle dropdown
-    // Person 2+: show circle dropdown only
-    const headerButton = (() => {
-      if (!isAuthenticated) {
-        return undefined
-      }
-      if (idx === 0) {
-        return (
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className={styles.circleImportBtn}
-              onClick={loadMyProfile}
-              disabled={profileLoading}
-            >
-              {profileLoading ? '...' : '\u{1F464}'} {t('compatibilityPage.loadMyProfile', 'My Profile')}
-            </button>
-            {circlePeople.length > 0 && (
-              <CircleDropdown
-                circlePeople={circlePeople}
-                isOpen={showCircleDropdown}
-                onToggle={onToggleCircleDropdown}
-                onSelect={(cp) => onFillFromCircle(idx, cp)}
-                t={t}
-              />
-            )}
-          </div>
-        )
-      }
-      if (circlePeople.length > 0) {
-        return (
-          <CircleDropdown
-            circlePeople={circlePeople}
-            isOpen={showCircleDropdown}
-            onToggle={onToggleCircleDropdown}
-            onSelect={(cp) => onFillFromCircle(idx, cp)}
-            t={t}
-          />
-        )
-      }
-      return undefined
-    })()
+    const personLabel = idx === 0 ? t('compatibilityPage.person1', '나') : t('compatibilityPage.person2', '상대')
 
     return (
-      <div className={styles.personCard} style={{ animationDelay: `${idx * 0.1}s` }}>
-        <div className={styles.cardGlow} />
-        <PersonCardHeader
-          index={idx}
-          relation={person.relation}
-          t={t}
-          circleImportButton={headerButton}
-        />
+      <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm">
+        {/* 헤더 — 라벨 + 불러오기 버튼들 */}
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400/30 to-indigo-500/30 text-cyan-200">
+              {idx === 0 ? <User className="h-4 w-4" /> : <Users className="h-4 w-4" />}
+            </div>
+            <h3 className="text-[15px] font-semibold text-white">
+              {personLabel}
+            </h3>
+          </div>
 
-        <div className={styles.grid}>
-          {/* Required fields: name, date of birth (always shown) */}
-          <div>
-            <label htmlFor={`name-${idx}`} className={styles.label}>
-              {t('compatibilityPage.name', 'Name')}
-              <span className={styles.requiredMark}>*</span>
-            </label>
+          {isAuthenticated && (
+            <div className="flex items-center gap-1.5">
+              {idx === 0 && (
+                <button
+                  type="button"
+                  onClick={loadMyProfile}
+                  disabled={profileLoading}
+                  className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[11.5px] font-medium text-cyan-100 transition hover:border-cyan-300/50 hover:bg-cyan-400/15 disabled:opacity-50"
+                >
+                  {profileLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <User className="h-3 w-3" />
+                  )}
+                  {t('compatibilityPage.loadMyProfile', '내 프로필')}
+                </button>
+              )}
+              {circlePeople.length > 0 && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={onToggleCircleDropdown}
+                    className="inline-flex items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-400/10 px-3 py-1 text-[11.5px] font-medium text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-400/15"
+                  >
+                    <Users className="h-3 w-3" />
+                    {t('compatibilityPage.fromCircle', '지인에서')}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  {showCircleDropdown && (
+                    <ul className="absolute right-0 z-20 mt-1 max-h-56 w-56 overflow-auto rounded-xl border border-white/10 bg-[#0e1426] shadow-xl">
+                      {circlePeople.map((cp) => (
+                        <li key={cp.id}>
+                          <button
+                            type="button"
+                            onClick={() => onFillFromCircle(idx, cp)}
+                            className="block w-full px-3 py-2 text-left text-[13px] text-slate-200 transition hover:bg-white/[0.06]"
+                          >
+                            <span className="font-medium">{cp.name}</span>
+                            {cp.relation && (
+                              <span className="ml-1.5 text-[11px] text-slate-500">· {cp.relation}</span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          {/* 이름 */}
+          <Field label={t('compatibilityPage.name', '이름')} required>
             <input
-              id={`name-${idx}`}
+              type="text"
               value={person.name}
               onChange={(e) => onUpdatePerson(idx, 'name', e.target.value)}
-              placeholder={t('compatibilityPage.namePlaceholder', 'Name')}
-              className={styles.input}
+              placeholder={t('compatibilityPage.namePlaceholder', '이름')}
+              className={inputClass}
               required
             />
-          </div>
-          <div>
-            <DateTimePicker
-              value={person.date}
-              onChange={(date) => onUpdatePerson(idx, 'date', date)}
-              label={t('compatibilityPage.dateOfBirth', 'Date of Birth')}
-              required
-              locale={locale}
-            />
-          </div>
+          </Field>
 
-          {/* Time of birth + "unknown" toggle — checked = 00:00. */}
-          <div>
-            <div style={{ opacity: timeUnknown ? 0.55 : 1, pointerEvents: timeUnknown ? 'none' : 'auto' }}>
-              <TimePicker
-                value={timeUnknown ? '00:00' : person.time}
-                onChange={(time) => onUpdatePerson(idx, 'time', time)}
-                label={t('compatibilityPage.timeOfBirth', 'Time of Birth')}
-                locale={locale}
-              />
+          {/* 생년월일 */}
+          <Field label={t('compatibilityPage.dateOfBirth', '생년월일')} required>
+            <input
+              type="date"
+              value={person.date}
+              onChange={(e) => onUpdatePerson(idx, 'date', e.target.value)}
+              required
+              className={inputClass}
+            />
+          </Field>
+
+          {/* 성별 */}
+          <Field label={t('compatibilityPage.gender', '성별')} required>
+            <div className="grid grid-cols-2 gap-2">
+              {(['M', 'F'] as const).map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => onUpdatePerson(idx, 'gender', g as PersonForm['gender'])}
+                  className={
+                    person.gender === g
+                      ? 'rounded-xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2.5 text-[14px] font-medium text-cyan-200 transition'
+                      : 'rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-[14px] text-slate-300 transition hover:border-white/20 hover:text-white'
+                  }
+                >
+                  {g === 'M' ? t('compatibilityPage.male', '남자') : t('compatibilityPage.female', '여자')}
+                </button>
+              ))}
             </div>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                marginTop: 6,
-                fontSize: '0.78rem',
-                color: 'rgba(220, 215, 255, 0.78)',
-                cursor: 'pointer',
-              }}
-            >
+          </Field>
+
+          {/* 시간 */}
+          <Field label={t('compatibilityPage.timeOfBirth', '태어난 시간')}>
+            <input
+              type="time"
+              value={timeUnknown ? '' : person.time}
+              onChange={(e) => onUpdatePerson(idx, 'time', e.target.value)}
+              disabled={timeUnknown}
+              className={inputClass + (timeUnknown ? ' opacity-50' : '')}
+            />
+            <label className="mt-2 flex cursor-pointer items-start gap-2 text-[12.5px] text-slate-400">
               <input
                 type="checkbox"
                 checked={timeUnknown}
                 onChange={(e) => setTimeUnknown(e.target.checked)}
-                style={{ accentColor: '#fcb69f' }}
+                className="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-cyan-400"
               />
-              {t('compatibilityPage.timeUnknown', '시간 모름 (00:00 처리)')}
+              <span>{t('compatibilityPage.timeUnknown', '시간 모름 (00:00 처리)')}</span>
             </label>
-          </div>
-          {/* Gender — saju needs this to compute daeun direction (the 10-
-              year cycle runs opposite for male vs female). Missing it
-              cascades into a saju calc failure for person[1] and the
-              counselor route ends up sending an empty chart to Claude. */}
-          <div>
-            <label htmlFor={`gender-${idx}`} className={styles.label}>
-              {t('compatibilityPage.gender', 'Gender')}
-              <span className={styles.requiredMark}>*</span>
-            </label>
-            <select
-              id={`gender-${idx}`}
-              value={person.gender ?? ''}
-              onChange={(e) =>
-                onUpdatePerson(idx, 'gender', e.target.value as PersonForm['gender'])
-              }
-              className={styles.select}
-              required
-            >
-              <option value="">
-                {t('compatibilityPage.selectGender', 'Select gender')}
-              </option>
-              <option value="M">{t('compatibilityPage.male', 'Male')}</option>
-              <option value="F">{t('compatibilityPage.female', 'Female')}</option>
-            </select>
-          </div>
-          <CityAutocompleteField
-            id={`city-${idx}`}
-            value={person.cityQuery}
-            suggestions={person.suggestions}
-            showDropdown={person.showDropdown}
-            locale={locale}
-            onChange={(val) => {
-              onSetPersons((prev) => {
-                const next = [...prev]
-                next[idx] = { ...next[idx], cityQuery: val, lat: null, lon: null }
-                return next
-              })
-            }}
-            onFocus={() => {
-              if (person.lat === null) {
-                onUpdatePerson(idx, 'showDropdown', true)
-              }
-            }}
-            onBlur={() => setTimeout(() => onUpdatePerson(idx, 'showDropdown', false), 200)}
-            onSelect={(city) => onPickCity(idx, city)}
-            t={t}
-          />
+          </Field>
+
+          {/* 도시 */}
+          <Field label={t('compatibilityPage.birthCity', '태어난 도시')}>
+            <div className="relative">
+              <input
+                type="text"
+                value={person.cityQuery}
+                onChange={(e) => onCityInput(e.target.value)}
+                onFocus={() => hookSuggestions.length > 0 && setOpenSug(true)}
+                placeholder={t('compatibilityPage.cityPlaceholder', '도시명 (예: Seoul)')}
+                className={inputClass}
+                autoComplete="off"
+              />
+              {openSug && hookSuggestions.length > 0 && (
+                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-white/10 bg-[#0e1426] shadow-lg">
+                  {hookSuggestions.slice(0, 8).map((city, i) => (
+                    <li key={`${city.name}-${city.country}-${i}`}>
+                      <button
+                        type="button"
+                        onClick={() => onCityPick(city)}
+                        className="block w-full px-3 py-2 text-left text-[13px] text-slate-200 transition hover:bg-white/[0.06]"
+                      >
+                        {formatCityForDropdown(city.name, city.country, isKo ? 'ko' : 'en')}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Field>
+
+          {/* 두 번째 사람 — 관계 + 메모 */}
           {idx > 0 && (
-            <div className={`${styles.grid} ${styles.gridTwo}`}>
-              <div>
-                <label htmlFor={`rel-${idx}`} className={styles.label}>
-                  {t('compatibilityPage.relationToPerson1', 'Relation to Person 1')}
-                </label>
+            <>
+              <Field label={t('compatibilityPage.relationToPerson1', '나와의 관계')}>
                 <select
-                  id={`rel-${idx}`}
                   value={person.relation ?? ''}
                   onChange={(e) => onUpdatePerson(idx, 'relation', e.target.value as Relation)}
-                  className={styles.select}
+                  className={inputClass + ' cursor-pointer'}
                 >
-                  <option value="">
-                    {t('compatibilityPage.selectRelation', 'Select relation')}
-                  </option>
-                  <option value="lover">
-                    {t('compatibilityPage.partnerLover', 'Partner / Lover 💕')}
-                  </option>
-                  <option value="spouse">
-                    {t('compatibilityPage.spouse', 'Spouse 💍')}
-                  </option>
-                  <option value="family">
-                    {t('compatibilityPage.family', 'Family (parent / child) 🏠')}
-                  </option>
-                  <option value="sibling">
-                    {t('compatibilityPage.sibling', 'Sibling 👯')}
-                  </option>
-                  <option value="friend">
-                    {t('compatibilityPage.friend', 'Friend 🤝')}
-                  </option>
-                  <option value="colleague">
-                    {t('compatibilityPage.colleague', 'Colleague 💼')}
-                  </option>
-                  <option value="other">
-                    {t('compatibilityPage.other', 'Other ✨')}
-                  </option>
+                  <option value="">{t('compatibilityPage.selectRelation', '선택')}</option>
+                  <option value="lover">{t('compatibilityPage.partnerLover', '연인 💕')}</option>
+                  <option value="spouse">{t('compatibilityPage.spouse', '배우자 💍')}</option>
+                  <option value="family">{t('compatibilityPage.family', '가족 🏠')}</option>
+                  <option value="sibling">{t('compatibilityPage.sibling', '형제자매 👯')}</option>
+                  <option value="friend">{t('compatibilityPage.friend', '친구 🤝')}</option>
+                  <option value="colleague">{t('compatibilityPage.colleague', '동료 💼')}</option>
+                  <option value="other">{t('compatibilityPage.other', '기타 ✨')}</option>
                 </select>
-              </div>
-              <div>
-                <label htmlFor={`note-${idx}`} className={styles.label}>
-                  {t('compatibilityPage.relationNote', 'Relation Note')}
-                </label>
+              </Field>
+              <Field label={t('compatibilityPage.relationNote', '메모 (선택)')}>
                 <input
-                  id={`note-${idx}`}
+                  type="text"
                   value={person.relationNote ?? ''}
                   onChange={(e) => onUpdatePerson(idx, 'relationNote', e.target.value)}
-                  placeholder={t('compatibilityPage.shortNote', 'Short note')}
-                  className={styles.input}
+                  placeholder={t('compatibilityPage.shortNote', '짧은 메모')}
+                  className={inputClass}
+                  maxLength={60}
                 />
-              </div>
-            </div>
+              </Field>
+            </>
           )}
         </div>
       </div>
     )
-  }
+  },
 )
 
 PersonCard.displayName = 'PersonCard'
+
+const inputClass =
+  'w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[14px] text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none disabled:cursor-not-allowed'
+
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string
+  required?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-[11.5px] font-medium uppercase tracking-[0.15em] text-slate-400">
+        {label}
+        {required && <span className="ml-1 text-rose-400">*</span>}
+      </label>
+      {children}
+    </div>
+  )
+}
