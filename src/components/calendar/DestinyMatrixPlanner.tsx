@@ -686,11 +686,19 @@ export default function DestinyMatrixPlanner({
                   <Activity className="w-5 h-5 text-indigo-400" /> 월간 종합 분석 리포트
                 </h3>
                 <div className="flex items-center gap-4">
-                  <div className="flex flex-col items-center justify-center bg-zinc-950/80 p-4 rounded-xl border border-indigo-500/20 min-w-[88px]">
+                  <div className="flex flex-col items-center justify-center bg-zinc-950/80 p-4 rounded-xl border border-indigo-500/20 min-w-[96px]">
                     <span className="text-xs text-zinc-500 font-bold mb-1">월 평균</span>
-                    <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
+                    <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 leading-none">
                       {monthScore}
                     </span>
+                    {(() => {
+                      const g = getGrade(monthScore, gradeThresholds)
+                      return (
+                        <span className={`mt-2 text-xs font-bold px-2 py-0.5 rounded-full border ${g.colorClass} ${g.borderClass}`}>
+                          {g.label} · {g.sub}
+                        </span>
+                      )
+                    })()}
                   </div>
                   <p className="text-sm text-zinc-300 leading-relaxed">
                     {data && monthlySummaryText ? (
@@ -778,14 +786,12 @@ export default function DestinyMatrixPlanner({
                     <div
                       className={`col-span-2 p-4 rounded-2xl border flex flex-col items-center justify-center text-center shadow-lg ${todayGrade.bgClass} ${todayGrade.borderClass}`}
                     >
-                      <span className="text-[10px] font-bold text-zinc-400 mb-1 tracking-widest">오늘의 흐름</span>
-                      <span className={`text-4xl font-black ${todayGrade.colorClass} leading-none`}>
+                      <span className="text-[11px] font-bold text-zinc-400 mb-1 tracking-widest">오늘의 흐름</span>
+                      <span className={`text-5xl font-black ${todayGrade.colorClass} leading-none`}>
                         {todayGrade.label}
                       </span>
-                      <span className="text-[10px] text-zinc-500 mt-1">{todayGrade.sub}</span>
-                      <span className="text-[10px] text-zinc-600 mt-2 font-mono">
-                        score {dailyIndices.score} · 임계 {gradeThresholds.unluckyMax}/{gradeThresholds.luckyMin}
-                      </span>
+                      <span className="text-xs text-zinc-400 mt-2">{todayGrade.sub}</span>
+                      <span className="text-[11px] text-zinc-500 mt-1">{dailyIndices.score}점</span>
                     </div>
 
                 <div className="col-span-3 bg-zinc-900/60 p-4 rounded-2xl border border-white/5 flex flex-col justify-center space-y-3">
