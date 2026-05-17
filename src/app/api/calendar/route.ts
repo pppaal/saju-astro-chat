@@ -82,10 +82,6 @@ const ZODIAC_TO_ELEMENT: Record<string, string> = {
 }
 
 // AI enrichment should be best-effort by default.
-// Enable strict failure only when explicitly opted in.
-const CALENDAR_STRICT_AI_ENRICHMENT =
-  process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_AI_ENRICHMENT === 'true'
-
 const ZODIAC_TO_WESTERN_ELEMENT: Record<
   string,
   NonNullable<MatrixCalculationInput['dominantWesternElement']>
@@ -854,7 +850,6 @@ export const GET = withApiMiddleware(
     }
 
     let matrixCalendarContext: MatrixCalendarContext = null
-    let matrixInputCoverage: Record<string, unknown> | null = null
     let matrixEvidencePackets: CalendarMatrixEvidencePacketMap | null = null
     let responseMatrixEvidencePackets: Record<string, CounselorEvidencePacket> | null = null
     let calendarCoreCanonical = null as CalendarCoreAdapterResult | null
@@ -865,14 +860,6 @@ export const GET = withApiMiddleware(
       qualityPenalties: string[]
       confidenceReason: string
     } | null
-    let topMatchedPatterns: Array<{
-      id: string
-      label: string
-      score: number
-      confidence: number
-      domains: string[]
-      activationReason: string
-    }> = []
     let calendarMatrixContract:
       | {
           coreHash?: string
@@ -959,22 +946,10 @@ export const GET = withApiMiddleware(
         timingCalibration: coreSummary.timingCalibration,
         domainScores: coreSummary.domainScores,
       }
-      const crossAudit = buildServiceInputCrossAudit(crossCompleteInput, 'calendar')
-      matrixInputCoverage = {
-        availability: engineEnvelope.coreSeed.availability,
-        qualityScore: engineEnvelope.coreSeed.quality.score,
-        qualityGrade: engineEnvelope.coreSeed.quality.grade,
-        dataQuality: engineEnvelope.coreSeed.quality.dataQuality,
-        missingServiceKeys: listMissingCrossKeysForService(crossAudit, 'calendar'),
-      }
-      topMatchedPatterns = engineEnvelope.coreSeed.patterns.slice(0, 10).map((pattern) => ({
-        id: pattern.id,
-        label: pattern.label,
-        score: pattern.score,
-        confidence: pattern.confidence,
-        domains: [...pattern.domains],
-        activationReason: pattern.activationReason,
-      }))
+      // matrixInputCoverage + topMatchedPatterns used to be computed here
+      // and returned in the response, but no UI consumer ever reads them.
+      // Dropped the compute + response surface; if a future client needs
+      // either, fish it back out of engineEnvelope.coreSeed.
       calendarMatrixContract = {
         coreHash: calendarCoreCanonical.coreHash,
         overallPhase: calendarCoreCanonical.phase,
@@ -1086,23 +1061,10 @@ export const GET = withApiMiddleware(
       },
     }
 
-    // AI 백엔드 호출 시도
-    const { fetchAIDates } = await import('./lib/helpers')
-    const aiDates = await fetchAIDates(sajuData, astroData, category || 'overall')
-    if (!aiDates && CALENDAR_STRICT_AI_ENRICHMENT) {
-      logger.error('[Calendar] AI date enrichment unavailable (strict mode)')
-      return createErrorResponse({
-        code: ErrorCodes.SERVICE_UNAVAILABLE,
-        message: 'AI date enrichment unavailable',
-        locale: extractLocale(request),
-        route: 'calendar',
-      })
-    }
-    if (!aiDates && !CALENDAR_STRICT_AI_ENRICHMENT) {
-      degradationReasons.push('ai_enrichment_unavailable')
-      logger.warn('[Calendar] AI date enrichment unavailable (fallback to local rules)')
-    }
-    const aiEnrichmentFailed = !aiDates
+    // AI date enrichment was wired up in v1 to call /api/theme/important-dates
+    // and decorate dates with AI-flagged auspicious/caution markers; the
+    // backing route never shipped (or was retired), so fetchAIDates has
+    // returned null on every prod call since. Dropped the whole branch.
     const formatCalendarDate = (d: (typeof matrixRegradedDates)[number]) =>
       formatDateForResponse(
         d,
@@ -1111,45 +1073,10 @@ export const GET = withApiMiddleware(
         enTranslations as unknown as TranslationData,
         matrixCalendarContext,
         matrixEvidencePackets || undefined,
-        aiEnrichmentFailed
       )
 
     const formattedDatesBase = matrixRegradedDates.map((d) => formatCalendarDate(d))
-    const auspiciousDateSet = new Set(
-      (aiDates?.auspicious || []).map((item) => item.date).filter(Boolean)
-    )
-    const cautionDateSet = new Set(
-      (aiDates?.caution || []).map((item) => item.date).filter(Boolean)
-    )
-    const formattedDatesWithAI = formattedDatesBase.map((item) => {
-      const aiNotes: string[] = []
-      if (auspiciousDateSet.has(item.date)) {
-        aiNotes.push(
-          locale === 'en'
-            ? 'AI review also marks this date as favorable.'
-            : 'AI 보강에서도 이 날짜를 유리한 날로 봅니다.'
-        )
-      }
-      if (cautionDateSet.has(item.date)) {
-        aiNotes.push(
-          locale === 'en'
-            ? 'AI review flags this date for extra caution.'
-            : 'AI 보강에서는 이 날짜를 주의 구간으로 봅니다.'
-        )
-      }
-      if (aiNotes.length === 0) {
-        return item
-      }
-      return {
-        ...item,
-        recommendations: auspiciousDateSet.has(item.date)
-          ? [...item.recommendations, ...aiNotes]
-          : item.recommendations,
-        warnings: cautionDateSet.has(item.date) ? [...item.warnings, ...aiNotes] : item.warnings,
-        summary: [item.summary, ...aiNotes].join(' '),
-      }
-    })
-    const formattedDates = rebalanceCalendarDisplayGrades(formattedDatesWithAI)
+    const formattedDates = rebalanceCalendarDisplayGrades(formattedDatesBase)
 
     // ── calendar-engine v2 augmentation (non-blocking, opt-in via fields) ──
     // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
@@ -1312,11 +1239,6 @@ export const GET = withApiMiddleware(
     const grade3 = gradeGroups[3] // 보통 날
     const grade4 = gradeGroups[4] // 최악의 날
 
-    // AI 날짜 병합
-    let aiEnhanced = false
-    if (aiDates) {
-      aiEnhanced = true
-    }
     const degradationReasonSet = [...new Set(degradationReasons)]
     const matrixDegradationReasonSet = [...new Set(matrixDegradationReasons)]
     const matrixInputMode = 'full-chart' as const
@@ -1414,7 +1336,6 @@ export const GET = withApiMiddleware(
       predictionId,
       type: 'yearly',
       year,
-      aiEnhanced,
       matrixStrictMode: matrixEngineAvailable && matrixDegradationReasonSet.length === 0,
       matrixInputMode,
       degradedMode,
@@ -1470,15 +1391,7 @@ export const GET = withApiMiddleware(
       recommendedActions: presentationView.recommendedActions,
       relationshipWeather: presentationView.relationshipWeather,
       workMoneyWeather: presentationView.workMoneyWeather,
-      matrixInputCoverage,
       matrixEvidencePackets: responseMatrixEvidencePackets,
-      topMatchedPatterns,
-      ...(aiDates && {
-        aiInsights: {
-          auspicious: aiDates.auspicious,
-          caution: aiDates.caution,
-        },
-      }),
     })
     const res = NextResponse.json(responsePayload)
 
