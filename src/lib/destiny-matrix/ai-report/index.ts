@@ -1,11 +1,11 @@
 // src/lib/destiny-matrix/ai-report/index.ts
 // Destiny Fusion Matrix™ - AI Report Module Export
-
-export {
-  generateAIPremiumReport,
-  generateTimingReport,
-  generateThemedReport,
-} from './aiReportService'
+//
+// NOTE: Claude live-generation entry points (generateAIPremiumReport,
+// generateTimingReport, generateThemedReport, narrative formatting /
+// sanitizing helpers) have been removed. What remains here is the
+// deterministic / structural surface that counselorEvidenceSupport,
+// calendar routes, and signal synthesis still use.
 
 export type { AIPremiumReport, AIReportGenerationOptions } from './reportTypes'
 
