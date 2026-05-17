@@ -2,7 +2,7 @@
 // This file eliminates duplicate code patterns across analyzer files
 
 import type { SajuData, AstroData, PlanetData } from '../types';
-import { tianGanMap, elementKeyMap } from '../data/constants';
+import { tianGanMap } from '../data/constants';
 
 // Re-export from utils/ directory for backwards compatibility
 export * from './utils/index';
@@ -98,30 +98,3 @@ export function mapSajuElementToKo(el: string): string {
   return map[el] || el;
 }
 
-/**
- * Get element name in Korean (stub for compatibility)
- */
-function elementNameKo(el: string): string {
-  return mapSajuElementToKo(el);
-}
-
-/**
- * Get house life area (stub for compatibility)
- */
-function getHouseLifeArea(house: number, isKo: boolean): string {
-  const areas: Record<number, { ko: string; en: string }> = {
-    1: { ko: '자아', en: 'Self' },
-    2: { ko: '재산', en: 'Resources' },
-    3: { ko: '소통', en: 'Communication' },
-    4: { ko: '가정', en: 'Home' },
-    5: { ko: '연애', en: 'Romance' },
-    6: { ko: '건강', en: 'Health' },
-    7: { ko: '관계', en: 'Relationships' },
-    8: { ko: '변화', en: 'Transformation' },
-    9: { ko: '철학', en: 'Philosophy' },
-    10: { ko: '커리어', en: 'Career' },
-    11: { ko: '우정', en: 'Friendship' },
-    12: { ko: '영성', en: 'Spirituality' },
-  };
-  return areas[house]?.[isKo ? 'ko' : 'en'] || (isKo ? '기타' : 'Other');
-}
