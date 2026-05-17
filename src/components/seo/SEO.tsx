@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { headers } from 'next/headers'
 
 export interface SEOProps {
   title: string
@@ -11,6 +12,67 @@ export interface SEOProps {
   author?: string
   publishedTime?: string
   modifiedTime?: string
+  /** locale for openGraph + meta. default 'en' (영어 시장 우선). */
+  locale?: 'ko' | 'en'
+}
+
+/**
+ * Middleware가 심어둔 `x-locale` 헤더로 현재 요청 locale을 파악.
+ * 영어 시장 우선이라 default는 'en'.
+ */
+export async function getServerLocale(): Promise<'ko' | 'en'> {
+  try {
+    const h = await headers()
+    const raw = h.get('x-locale')
+    return raw === 'ko' ? 'ko' : 'en'
+  } catch {
+    return 'en'
+  }
+}
+
+/**
+ * 영어/한국어 두 set의 SEO 텍스트를 받아 locale에 맞는 Metadata 반환.
+ * 영어 검색자에 영문 title/description, 한국어 검색자에 한글 — Google이
+ * 그 검색자에 맞는 결과 SERP에 표시.
+ *
+ * 사용:
+ *   export async function generateMetadata() {
+ *     const locale = await getServerLocale()
+ *     return generateLocalizedMetadata({
+ *       en: { title: '...', description: '...', keywords: [...] },
+ *       ko: { title: '...', description: '...', keywords: [...] },
+ *       canonicalUrl: 'https://destinypal.com/foo',
+ *     }, locale)
+ *   }
+ */
+export function generateLocalizedMetadata(
+  input: {
+    en: Pick<SEOProps, 'title' | 'description' | 'keywords'>
+    ko: Pick<SEOProps, 'title' | 'description' | 'keywords'>
+    ogImage?: string
+    ogType?: SEOProps['ogType']
+    twitterCard?: SEOProps['twitterCard']
+    canonicalUrl?: string
+    author?: string
+    publishedTime?: string
+    modifiedTime?: string
+  },
+  locale: 'ko' | 'en',
+): Metadata {
+  const pick = locale === 'ko' ? input.ko : input.en
+  return generateMetadata({
+    title: pick.title,
+    description: pick.description,
+    keywords: pick.keywords,
+    ogImage: input.ogImage,
+    ogType: input.ogType,
+    twitterCard: input.twitterCard,
+    canonicalUrl: input.canonicalUrl,
+    author: input.author,
+    publishedTime: input.publishedTime,
+    modifiedTime: input.modifiedTime,
+    locale,
+  })
 }
 
 export function generateMetadata({
@@ -24,6 +86,7 @@ export function generateMetadata({
   author = 'DestinyPal',
   publishedTime,
   modifiedTime,
+  locale = 'en',
 }: SEOProps): Metadata {
   const siteName = 'DestinyPal'
   const pageTitle = title.trim()
@@ -45,8 +108,8 @@ export function generateMetadata({
     // Open Graph
     openGraph: {
       type: ogType,
-      locale: 'ko_KR',
-      alternateLocale: ['en_US'],
+      locale: locale === 'ko' ? 'ko_KR' : 'en_US',
+      alternateLocale: [locale === 'ko' ? 'en_US' : 'ko_KR'],
       url: canonical,
       siteName,
       title: socialTitle,
@@ -88,8 +151,8 @@ export function generateMetadata({
     alternates: {
       canonical,
       languages: {
-        'ko-KR': canonical,
         'en-US': canonical,
+        'ko-KR': canonical,
         'x-default': canonical,
       },
     },
