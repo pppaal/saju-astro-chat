@@ -46,14 +46,13 @@ export function DetailedCardsSection({
       </div>
       <div className="grid grid-cols-1 gap-4">
         {readingResult.drawnCards.map((drawnCard, index) => {
-          const position = readingResult.spread.positions[index]
-          const positionTitle =
-            (isKo ? position?.titleKo || position?.title : position?.title) ||
-            (isKo ? `카드 ${index + 1}` : `Card ${index + 1}`)
-          const positionMeaning = isKo
-            ? position?.meaningKo || position?.meaning
-            : position?.meaning
           const cardInsight = interpretation?.card_insights?.[index]
+          // 자리 라벨은 LLM 응답(cardInsight.position) 우선, 폴백은 ordinal.
+          const positionTitle =
+            cardInsight?.position?.trim() ||
+            (isKo ? `${index + 1}번 카드` : `Card ${index + 1}`)
+          // 사전 자리 의미 — 동적 명명에서는 별도로 없음.
+          const positionMeaning: string | undefined = undefined
 
           return (
             <DetailedCardItem

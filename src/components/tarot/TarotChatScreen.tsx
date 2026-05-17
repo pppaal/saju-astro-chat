@@ -419,7 +419,7 @@ export default function TarotChatScreen() {
             <div className="flex items-center justify-between gap-3 px-4 pl-16 pt-[max(env(safe-area-inset-top),1rem)] pb-4 border-b border-slate-800 bg-slate-900/50">
               <h2 className="text-lg font-semibold flex items-center gap-2 min-w-0">
                 <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
-                <span className="truncate">{isKo ? '스프레드 선택' : 'Choose a Spread'}</span>
+                <span className="truncate">{isKo ? '카드 매수 선택' : 'Choose Card Count'}</span>
               </h2>
               <button
                 onClick={() => setIsSpreadModalOpen(false)}
@@ -502,18 +502,9 @@ export default function TarotChatScreen() {
                                 >
                                   <div className="px-4 pb-4 pt-1 space-y-3 bg-slate-900/40">
                                     <p className="text-sm text-slate-300 leading-relaxed">{desc}</p>
-                                    {sp.positions?.length > 0 && (
-                                      <div className="flex flex-wrap gap-1.5">
-                                        {sp.positions.map((pos, i) => (
-                                          <span
-                                            key={i}
-                                            className="px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-400"
-                                          >
-                                            {i + 1}. {isKo ? pos.titleKo ?? pos.title : pos.title}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    )}
+                                    {/* 자리(positions) 라벨은 LLM 이 사용자
+                                        질문 맥락에 맞춰 직접 명명 — 고정
+                                        라벨 미리보기 제거됨. */}
                                     <button
                                       type="button"
                                       onClick={() => {

@@ -96,17 +96,14 @@ export async function runQuickCoupleTarot(
   }
 
   const drawn = drawRandomCards(spread.cardCount)
-  const cardsPayload = drawn.map((dc, i) => {
-    const pos = spread.positions[i]
+  // position / positionKo 는 더 이상 안 보낸다 — LLM 이 두 사람 관계
+  // 맥락에 맞춰 직접 명명한다.
+  const cardsPayload = drawn.map((dc) => {
     const meaning = dc.isReversed ? dc.card.reversed : dc.card.upright
     return {
       name: dc.card.name,
       nameKo: dc.card.nameKo,
       isReversed: dc.isReversed,
-      position: pos?.title || `Card ${i + 1}`,
-      positionKo: pos?.titleKo,
-      positionMeaning: pos?.meaning,
-      positionMeaningKo: pos?.meaningKo,
       keywords: (meaning?.keywords || []).slice(0, 8),
       keywordsKo: (meaning?.keywordsKo || []).slice(0, 8),
     }
@@ -196,20 +193,20 @@ export async function runQuickCoupleTarot(
     return out
   }
   const formatProgressive = (overall: string): string => {
+    // 자리(position) 라벨은 LLM 응답 안에서 명명되므로 헤더 카드 목록은
+    // 카드명만 번호 매겨 표시.
     const header = isKorean
       ? `🎴 **관계 크로스 — 둘 궁합 5장**\n\n${drawn
           .map((dc, i) => {
-            const pos = isKorean ? spread.positions[i]?.titleKo || spread.positions[i]?.title : spread.positions[i]?.title
             const name = isKorean ? dc.card.nameKo || dc.card.name : dc.card.name
-            const tag = dc.isReversed ? (isKorean ? ' (역방향)' : ' (reversed)') : ''
-            return `${i + 1}. [${pos}] ${name}${tag}`
+            const tag = dc.isReversed ? ' (역방향)' : ''
+            return `${i + 1}. ${name}${tag}`
           })
           .join('\n')}\n\n---\n\n`
       : `🎴 **Relationship Cross — Couple (5 cards)**\n\n${drawn
           .map((dc, i) => {
-            const pos = spread.positions[i]?.title
             const tag = dc.isReversed ? ' (reversed)' : ''
-            return `${i + 1}. [${pos}] ${dc.card.name}${tag}`
+            return `${i + 1}. ${dc.card.name}${tag}`
           })
           .join('\n')}\n\n---\n\n`
     return header + overall
