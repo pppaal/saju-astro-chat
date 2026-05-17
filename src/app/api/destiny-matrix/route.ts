@@ -189,7 +189,7 @@ export const POST = withApiMiddleware(
       // matrix layer set.
       try {
         const { enrichRequestWithDerivedSaju } =
-          await import('@/app/api/destiny-matrix/ai-report/routeDerivedContext')
+          await import('@/lib/destiny-matrix/derived')
         const enriched = enrichRequestWithDerivedSaju(
           validationResult.data as unknown as Record<string, unknown>
         )

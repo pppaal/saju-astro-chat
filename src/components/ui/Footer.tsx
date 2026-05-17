@@ -18,7 +18,6 @@ const HIDE_FOOTER_PREFIXES = [
   "/calendar",
   "/compatibility",
   "/report",
-  "/premium-reports",
   "/astrology/counselor",
 ];
 

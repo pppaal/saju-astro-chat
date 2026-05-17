@@ -237,7 +237,7 @@ export const GET = withApiMiddleware(
           id: m.id,
           date: m.createdAt.toISOString().split('T')[0],
           service: ['timing', 'themed', 'comprehensive'].includes(m.reportType)
-            ? 'premium-reports'
+            ? 'destiny-map'
             : 'destiny-matrix',
           theme: m.reportType === 'timing' ? m.period : m.theme || m.period,
           summary: m.summary || m.title || `${m.grade || ''} ${m.overallScore || ''}점`,

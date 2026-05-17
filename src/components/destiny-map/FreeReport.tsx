@@ -1,14 +1,13 @@
 'use client'
 
 import { useMemo, useState, memo } from 'react'
-import Link from 'next/link'
-import { Sparkles, Lock } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import { expandNarrativeDeep } from './free-report/tabs/shared/longForm'
 import PremiumNarrativeCard from '@/components/reports/PremiumNarrativeCard'
 import { runMainSaju } from '@/lib/saju/main'
 import { buildExtendedAnalysisFromMain } from '@/lib/saju/extendedAnalysis'
-import ExtendedAnalysisSection from '@/app/premium-reports/_components/ExtendedAnalysisSection'
+import ExtendedAnalysisSection from '@/components/reports/ExtendedAnalysisSection'
 
 // Import Tab Components
 import {
@@ -422,30 +421,6 @@ const FreeReport = memo(function FreeReport({
               All were already implemented but only Chiron rendered;
               the other 8 were orphaned. Now all surfaced as cards. */}
           <AdvancedAstroInsights astro={normalizedAstro} lang={lang} className="-mx-4 sm:-mx-0" />
-
-          {/* 프리미엄 업그레이드 후크 — ExtendedAnalysis 다 본 직후 */}
-          <Link
-            href="/premium-reports/comprehensive"
-            className="block rounded-3xl border border-amber-300/30 bg-gradient-to-br from-amber-500/10 via-fuchsia-500/5 to-purple-500/10 p-6 hover:border-amber-300/60 transition-colors"
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-fuchsia-500 flex items-center justify-center text-white shadow-lg">
-                <Lock className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-mono uppercase tracking-[0.28em] text-amber-300 mb-1">
-                  Premium · AI 14 섹션
-                </p>
-                <h4 className="text-base font-bold text-white mb-1.5">
-                  AI가 풀어쓰는 24,000자 인생 총운
-                </h4>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  성격 심층 / 커리어 경로 / 관계 역학 / 배우자상 / 재물 흐름 / 건강 / 사명 / 변곡점
-                  / 향후 5년 / 타이밍 / 실천 가이드까지 AI가 너만을 위해 작성합니다 →
-                </p>
-              </div>
-            </div>
-          </Link>
         </>
       )}
 

@@ -53,10 +53,10 @@ const SERVICE_DETAILS: Partial<
     summaryEn: 'Organizes your current context and options by spread.',
   },
   report: {
-    href: '/premium-reports',
+    href: '/destiny-map/result',
     nameKo: '리포트',
     nameEn: 'Report',
-    summaryKo: '무료 요약과 프리미엄 리포트로 깊이 있는 해석을 제공합니다.',
+    summaryKo: '인생 5단계 × 6 테마로 풀어내는 통합 리포트.',
     summaryEn: 'Offers free digest and premium reports for deeper interpretation.',
   },
   calendar: {
@@ -139,7 +139,7 @@ export default function AboutPage() {
             <Link href="/destiny-counselor" className={styles.primaryBtn}>
               {isKo ? '상담 시작' : 'Start counselor'}
             </Link>
-            <Link href="/premium-reports" className={styles.secondaryBtn}>
+            <Link href="/destiny-map/result" className={styles.secondaryBtn}>
               {isKo ? '리포트 보기' : 'View reports'}
             </Link>
           </div>

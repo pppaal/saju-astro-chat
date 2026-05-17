@@ -45,22 +45,13 @@ function GlobalHeaderContent() {
   // consistent.
   const hasCustomPageHeader = Boolean(
     pathname &&
-    (
-      [
-        '/destiny-counselor/chat',
-        '/destiny-map/counselor',
-        '/destiny-map/result',
-        '/astrology/counselor',
-        '/compatibility/counselor',
-      ].includes(pathname) ||
-      pathname.startsWith('/premium-reports/result') ||
-      pathname.startsWith('/premium-reports/comprehensive') ||
-      pathname.startsWith('/premium-reports/monthly') ||
-      pathname.startsWith('/premium-reports/yearly') ||
-      pathname.startsWith('/premium-reports/themed') ||
-      pathname.startsWith('/premium-reports/timing') ||
-      pathname.startsWith('/premium-reports/preview')
-    )
+    [
+      '/destiny-counselor/chat',
+      '/destiny-map/counselor',
+      '/destiny-map/result',
+      '/astrology/counselor',
+      '/compatibility/counselor',
+    ].includes(pathname)
   )
 
   const headerAriaLabel = t('nav.header') || 'Site header'
