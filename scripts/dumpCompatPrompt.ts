@@ -34,7 +34,19 @@ import {
 import { performExtendedSajuAnalysis } from '../src/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '../src/lib/compatibility/astrology/comprehensive'
 import { buildEvidenceGroundingGuide } from '../src/lib/prompts/fortuneWithIcp'
-import { relationLabel } from '../src/app/api/compatibility/routeSupportCommon'
+// routeSupportCommon은 PR #231에서 dead로 제거됨. production route는 inline
+// relationLabel을 갖고 있으니 dump script도 동일하게 inline로 미러.
+function relationLabel(locale: 'ko' | 'en', relation?: string, note?: string): string {
+  const isKo = locale === 'ko'
+  if (relation === 'lover') return isKo ? '연인' : 'lover'
+  if (relation === 'spouse') return isKo ? '배우자' : 'spouse'
+  if (relation === 'family') return isKo ? '가족' : 'family'
+  if (relation === 'sibling') return isKo ? '형제자매' : 'sibling'
+  if (relation === 'friend') return isKo ? '친구' : 'friend'
+  if (relation === 'colleague') return isKo ? '동료' : 'colleague'
+  if (relation === 'other') return note?.trim() || (isKo ? '기타' : 'other')
+  return isKo ? '관계' : 'related'
+}
 import type { Relation } from '../src/app/api/compatibility/types'
 import {
   formatSajuAsTable,
@@ -238,9 +250,49 @@ async function main() {
   void fusionContext
   void extSaju
   void extAstro
+
+  // Synastry — production route와 같은 흐름 (사주 + 점성 cross 라인)
+  const { formatSajuSynastry } = await import('../src/lib/compatibility/sajuSynastryFormatter')
+  const { formatAstroSynastry } = await import('../src/lib/compatibility/astroSynastryFormatter')
+  const { calculateNatalChart, toChart } = await import('../src/lib/astrology/foundation/astrologyService')
+
+  const toPair = (p?: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }) => ({
+    stem: p?.heavenlyStem?.name ?? '',
+    branch: p?.earthlyBranch?.name ?? '',
+  })
+  const aP = (eff1Saju as { pillars?: Record<string, { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }> } | null)?.pillars
+  const bP = (eff2Saju as { pillars?: Record<string, { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }> } | null)?.pillars
+  const aDae = (eff1Saju as { daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } } | null } | null)?.daeWoon?.current
+  const bDae = (eff2Saju as { daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } } | null } | null)?.daeWoon?.current
+  const sajuSyn = aP && bP ? formatSajuSynastry({
+    pillarsA: [toPair(aP.year), toPair(aP.month), toPair(aP.day), toPair(aP.time)],
+    pillarsB: [toPair(bP.year), toPair(bP.month), toPair(bP.day), toPair(bP.time)],
+    currentDaeunA: aDae ? { stem: aDae.heavenlyStem ?? '', branch: aDae.earthlyBranch ?? '', age: aDae.age } : null,
+    currentDaeunB: bDae ? { stem: bDae.heavenlyStem ?? '', branch: bDae.earthlyBranch ?? '', age: bDae.age } : null,
+  }) : ''
+
+  let astroSyn = ''
+  try {
+    const [Y1, M1, D1] = persons[0].date.split('-').map(Number)
+    const [h1, mi1] = persons[0].time.split(':').map(Number)
+    const [Y2, M2, D2] = persons[1].date.split('-').map(Number)
+    const [h2, mi2] = persons[1].time.split(':').map(Number)
+    const [natalA, natalB] = await Promise.all([
+      calculateNatalChart({ year: Y1, month: M1, date: D1, hour: h1, minute: mi1, latitude: persons[0].latitude!, longitude: persons[0].longitude!, timeZone: persons[0].timeZone! }),
+      calculateNatalChart({ year: Y2, month: M2, date: D2, hour: h2, minute: mi2, latitude: persons[1].latitude!, longitude: persons[1].longitude!, timeZone: persons[1].timeZone! }),
+    ])
+    astroSyn = formatAstroSynastry({
+      chartA: toChart(natalA), chartB: toChart(natalB),
+      latA: persons[0].latitude!, lonA: persons[0].longitude!,
+      latB: persons[1].latitude!, lonB: persons[1].longitude!,
+    })
+  } catch (e) { console.error('[astro syn]', e) }
+
   const cachedUserContext = [
     `== 참여자 정보 ==`,
     personsInfo,
+    sajuSyn ? `\n${sajuSyn}` : '',
+    astroSyn ? `\n${astroSyn}` : '',
     fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
   ].filter(Boolean).join('\n')
 
