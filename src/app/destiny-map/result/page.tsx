@@ -369,6 +369,9 @@ export default function DestinyResultPage({
               astro={mergedAstro}
               lang={lang}
               theme={activeTheme}
+              fusionFragments={
+                (result as { fusionFragments?: unknown } | null)?.fusionFragments as Parameters<typeof FreeReport>[0]['fusionFragments']
+              }
               birthInfo={{
                 birthDate: (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? '',
                 birthTime: (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? '',

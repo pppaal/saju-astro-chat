@@ -100,6 +100,27 @@ interface AstroData {
   [key: string]: unknown
 }
 
+interface FusionFragmentItem {
+  id: string
+  meaning: string
+  narrative: string
+  intensity: string
+}
+export interface FusionFragments {
+  generatedAt?: string
+  byDomain?: Partial<
+    Record<
+      'self' | 'love' | 'money' | 'career' | 'health' | 'family',
+      {
+        tone: string
+        confirms: FusionFragmentItem[]
+        conflicts: FusionFragmentItem[]
+      }
+    >
+  >
+  themes?: Array<{ id: string; meaning: string; narrative: string }>
+}
+
 interface Props {
   saju?: SajuData
   astro?: AstroData
@@ -113,6 +134,13 @@ interface Props {
     gender?: string
     timezone?: string
   }
+  /**
+   * Rule-matched narrative fragments from the fusion engine (see
+   * /api/destiny-map → fusionFragments). Pure DB-text composition,
+   * no LLM call. When present, surfaced as the "사주×점성 룰 매칭"
+   * section near the bottom of the report.
+   */
+  fusionFragments?: FusionFragments | null
 }
 
 // ============================================================
@@ -126,6 +154,7 @@ const FreeReport = memo(function FreeReport({
   theme = '',
   className = '',
   birthInfo,
+  fusionFragments,
 }: Props) {
   const isKo = lang === 'ko'
 
@@ -421,6 +450,11 @@ const FreeReport = memo(function FreeReport({
               All were already implemented but only Chiron rendered;
               the other 8 were orphaned. Now all surfaced as cards. */}
           <AdvancedAstroInsights astro={normalizedAstro} lang={lang} className="-mx-4 sm:-mx-0" />
+
+          {/* 사주×점성 룰 매칭 — fusion 엔진이 (saju predicate AND
+              astro predicate) 매칭된 룰의 narrative fragment를 도메인별로
+              모아 보여줌. 같은 사주는 같은 fragment. LLM 호출 없음. */}
+          {fusionFragments && <FusionFragmentsSection fragments={fusionFragments} isKo={isKo} />}
         </>
       )}
 
@@ -553,5 +587,114 @@ const FreeReport = memo(function FreeReport({
     </div>
   )
 })
+
+// ============================================================
+// Fusion fragments — DB-text composition section
+// ============================================================
+
+const DOMAIN_LABELS_KO: Record<string, { label: string; icon: string }> = {
+  self: { label: '자기·정체성', icon: '🌟' },
+  love: { label: '사랑·관계', icon: '💕' },
+  money: { label: '재물', icon: '💰' },
+  career: { label: '커리어', icon: '💼' },
+  health: { label: '건강', icon: '💪' },
+  family: { label: '가족', icon: '👪' },
+}
+const DOMAIN_LABELS_EN: Record<string, { label: string; icon: string }> = {
+  self: { label: 'Self', icon: '🌟' },
+  love: { label: 'Love', icon: '💕' },
+  money: { label: 'Money', icon: '💰' },
+  career: { label: 'Career', icon: '💼' },
+  health: { label: 'Health', icon: '💪' },
+  family: { label: 'Family', icon: '👪' },
+}
+
+function FusionFragmentsSection({
+  fragments,
+  isKo,
+}: {
+  fragments: NonNullable<Props['fusionFragments']>
+  isKo: boolean
+}) {
+  const labels = isKo ? DOMAIN_LABELS_KO : DOMAIN_LABELS_EN
+  const byDomain = fragments.byDomain || {}
+  const domainEntries = (
+    Object.entries(byDomain) as Array<
+      [string, { tone: string; confirms: { id: string; meaning: string; narrative: string; intensity: string }[]; conflicts: { id: string; meaning: string; narrative: string; intensity: string }[] }]
+    >
+  ).filter(([, agg]) => agg.confirms.length > 0 || agg.conflicts.length > 0)
+  const themes = fragments.themes || []
+  if (domainEntries.length === 0 && themes.length === 0) return null
+
+  return (
+    <div className="rounded-3xl border border-cyan-300/20 bg-slate-900/50 p-6 mt-6">
+      <h3 className="text-base font-bold text-white mb-1">
+        {isKo ? '🔗 사주×점성 룰 매칭' : '🔗 Saju × Astrology rule matches'}
+      </h3>
+      <p className="text-xs text-slate-400 mb-5">
+        {isKo
+          ? '사주 패턴과 점성 패턴이 동시에 매칭된 영역의 룰 fragment입니다. 동일 사주는 동일 fragment.'
+          : 'Rule fragments where both saju and astrology predicates fire. Same chart, same fragments.'}
+      </p>
+
+      <div className="space-y-5">
+        {domainEntries.map(([domain, agg]) => {
+          const meta = labels[domain] ?? { label: domain, icon: '·' }
+          return (
+            <article key={domain} className="rounded-2xl border border-white/10 bg-[#0a1224]/70 p-4">
+              <header className="flex items-center justify-between gap-3 mb-3">
+                <p className="text-sm font-semibold text-white">
+                  <span className="mr-1" aria-hidden>{meta.icon}</span>
+                  {meta.label}
+                </p>
+                <span className="text-[11px] uppercase tracking-[0.14em] text-cyan-200/80">
+                  {agg.tone}
+                </span>
+              </header>
+              {agg.confirms.length > 0 && (
+                <ul className="space-y-2 mb-2">
+                  {agg.confirms.slice(0, 5).map((m) => (
+                    <li key={m.id} className="text-[13px] leading-[1.7] text-slate-200">
+                      <span className="text-cyan-200 mr-1.5">+</span>
+                      <span className="font-medium">{m.meaning}</span>
+                      <span className="text-slate-400"> — {m.narrative}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {agg.conflicts.length > 0 && (
+                <ul className="space-y-2">
+                  {agg.conflicts.slice(0, 3).map((m) => (
+                    <li key={m.id} className="text-[13px] leading-[1.7] text-slate-200">
+                      <span className="text-rose-200 mr-1.5">!</span>
+                      <span className="font-medium">{m.meaning}</span>
+                      <span className="text-slate-400"> — {m.narrative}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          )
+        })}
+
+        {themes.length > 0 && (
+          <article className="rounded-2xl border border-amber-300/20 bg-[#1a1408]/40 p-4">
+            <p className="text-sm font-semibold text-amber-100 mb-3">
+              {isKo ? '✨ 교차 테마 (도메인 결합)' : '✨ Cross-domain themes'}
+            </p>
+            <ul className="space-y-2">
+              {themes.slice(0, 5).map((t) => (
+                <li key={t.id} className="text-[13px] leading-[1.7] text-amber-50/90">
+                  <span className="font-medium">{t.meaning}</span>
+                  <span className="text-amber-100/70"> — {t.narrative}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default FreeReport

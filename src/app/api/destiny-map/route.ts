@@ -34,6 +34,8 @@ const enableDebugLogs = process.env.ENABLE_DESTINY_LOGS === 'true'
 import { ALLOWED_LOCALES, ALLOWED_GENDERS } from '@/lib/constants/api-limits'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { destinyMapRequestSchema } from '@/lib/api/zodValidation'
+import { runFortune } from '@/lib/fusion'
+import type { FortuneReport, Domain } from '@/lib/fusion/types'
 const ALLOWED_LANG = ALLOWED_LOCALES
 const ALLOWED_GENDER = new Set([...ALLOWED_GENDERS, 'prefer_not'])
 
@@ -565,6 +567,72 @@ export const POST = withApiMiddleware(
       })
     }
 
+    // Rule-based DB-text composition. Calls the fusion engine with raw
+    // saju + astro and gets back a FortuneReport: pre-written narrative
+    // fragments per (saju × astro) pattern match, bucketed by domain.
+    // No LLM call — same birth always produces the same fragments. The
+    // free report renders these as deeper-than-analyzeDestiny content.
+    let fusionReport: FortuneReport | null = null
+    try {
+      const fusionGender: 'male' | 'female' = gender === 'female' ? 'female' : 'male'
+      const fusionTz = userTimezone || 'Asia/Seoul'
+      fusionReport = await runFortune({
+        birth: {
+          birthDate,
+          birthTime,
+          gender: fusionGender,
+          timezone: fusionTz,
+          latitude,
+          longitude,
+          astroTimezone: fusionTz,
+        },
+        queryDate: new Date(),
+        skipReturns: true,
+      })
+    } catch (fusionErr) {
+      logger.warn('[API] fusion runFortune failed (non-fatal):', { err: fusionErr })
+    }
+
+    // Compact projection: just the rule narrative + domain summary, no
+    // raw saju/astro signals (they double the size and the caller
+    // already has `saju` / `astrology` on the same payload).
+    const fusionFragments = fusionReport
+      ? {
+          generatedAt: fusionReport.generatedAt,
+          byDomain: (Object.fromEntries(
+            (Object.entries(fusionReport.byDomain) as Array<[Domain, (typeof fusionReport.byDomain)[Domain]]>).map(
+              ([domain, agg]) => [
+                domain,
+                {
+                  tone: agg.tone,
+                  confirms: agg.confirms.map((m) => ({
+                    id: m.rule.id,
+                    meaning: m.rule.meaning,
+                    narrative: m.rule.narrative.confirm,
+                    intensity: m.intensity,
+                  })),
+                  conflicts: agg.conflicts.map((m) => ({
+                    id: m.rule.id,
+                    meaning: m.rule.meaning,
+                    narrative: m.rule.narrative.confirm,
+                    intensity: m.intensity,
+                  })),
+                },
+              ],
+            ),
+          ) as Record<Domain, {
+            tone: string
+            confirms: Array<{ id: string; meaning: string; narrative: string; intensity: string }>
+            conflicts: Array<{ id: string; meaning: string; narrative: string; intensity: string }>
+          }>),
+          themes: fusionReport.themes.map((t) => ({
+            id: t.rule.id,
+            meaning: t.rule.meaning,
+            narrative: t.rule.narrative,
+          })),
+        }
+      : null
+
     // Build response payload
     const responsePayload = {
       profile: { name, birthDate, birthTime, city, gender },
@@ -597,6 +665,8 @@ export const POST = withApiMiddleware(
         electional: report.raw?.electional,
         midpoints: report.raw?.midpoints,
       },
+      // 룰 매칭 기반 텍스트 fragment (free report deeper content용)
+      fusionFragments,
     }
 
     // Return with warning wrapper if validation failed
