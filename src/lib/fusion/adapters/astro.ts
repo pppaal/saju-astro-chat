@@ -72,7 +72,7 @@ function profectionHouseFor(
 
 // Essential dignities live in `@/lib/astrology/foundation/dignities`.
 // Re-exported here for backwards-compatible imports of `DignityStatus` /
-// `dignityOf` from `@/lib/fortune/cross-rules/adapters/astro`.
+// `dignityOf` from `@/lib/fusion/adapters/astro`.
 export { dignityOf } from '@/lib/astrology/foundation/dignities'
 export type { DignityStatus } from '@/lib/astrology/foundation/dignities'
 

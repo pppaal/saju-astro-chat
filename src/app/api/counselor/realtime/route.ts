@@ -11,8 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { buildSajuNormalizerInput } from '@/lib/fortune/cross-rules/adapters/saju'
-import { buildAstroNormalizerInput } from '@/lib/fortune/cross-rules/adapters/astro'
+import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
+import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
 import {
   formatSajuAsTable,
   formatDestinyTiming,

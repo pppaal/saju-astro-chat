@@ -6,8 +6,8 @@
 // 365번 반복 호출되는 analyzeDate에 async를 끼워 넣지 않아 성능 영향 0.
 // 기존 캘린더 출력은 그대로, '이번 시기의 큰 그림' 한 카드만 추가.
 
-import { runFortune, type FortuneReport } from '@/lib/fortune/cross-rules'
-import type { BirthProfile } from '@/lib/fortune/cross-rules'
+import { runFortune, type FortuneReport } from '@/lib/fusion'
+import type { BirthProfile } from '@/lib/fusion'
 
 /** 캘린더 페이지 상단/사이드에 표시할 cross-rules 요약. */
 export interface CalendarCrossAugment {
