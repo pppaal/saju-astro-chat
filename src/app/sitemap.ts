@@ -17,8 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
       alternates: {
         languages: {
-          ko: BASE_URL,
           en: BASE_URL,
+          ko: BASE_URL,
         },
       },
     },
@@ -79,8 +79,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
     alternates: {
       languages: {
-        ko: `${BASE_URL}${service.href}`,
         en: `${BASE_URL}${service.href}`,
+        ko: `${BASE_URL}${service.href}`,
       },
     },
   }))
