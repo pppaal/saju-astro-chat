@@ -1,7 +1,6 @@
 import type { BirthInfo } from './types'
 
 const SHARED_BIRTH_INFO_KEY = 'calendar.sharedBirthInfo.v1'
-const SHARED_BIRTH_INFO_UPDATED_EVENT = 'calendar.sharedBirthInfo.updated'
 
 const DEFAULT_BIRTH_INFO: BirthInfo = {
   birthDate: '',
@@ -41,19 +40,3 @@ export function loadSharedBirthInfo(): BirthInfo | null {
   }
 }
 
-function saveSharedBirthInfo(value: BirthInfo): void {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  try {
-    window.localStorage.setItem(SHARED_BIRTH_INFO_KEY, JSON.stringify(value))
-    window.dispatchEvent(
-      new CustomEvent<BirthInfo>(SHARED_BIRTH_INFO_UPDATED_EVENT, {
-        detail: value,
-      })
-    )
-  } catch {
-    // no-op: localStorage can fail in private mode/quota exceeded
-  }
-}

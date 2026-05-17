@@ -2014,10 +2014,6 @@ export function calculateYearlyImportantDates(
       options?.matrixContext?.overlapTimelineByDomain?.[primary.domain],
       currentMonthKey
     )
-    const secondaryMonthStrength = getMonthStrength(
-      options?.matrixContext?.overlapTimelineByDomain?.[secondary.domain],
-      currentMonthKey
-    )
     const dominanceGap = clamp(primary.score - secondary.score, 0, 1)
     const primaryStrength = clamp(
       primary.score * 0.52 +

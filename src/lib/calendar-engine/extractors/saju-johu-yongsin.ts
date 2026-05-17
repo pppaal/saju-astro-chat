@@ -31,7 +31,7 @@ const sajuJohuYongsinExtractor: SignalExtractor = {
     const end = new Date(range.end)
 
     // 매달 月支별로 조후용신 계산
-    let cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
+    const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
     while (cursor <= end) {
       const monthPillar = getMonthPillarForDate(cursor)
       const monthBranch = monthPillar.branch

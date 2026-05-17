@@ -82,9 +82,3 @@ export function getGrade(score: number, thresholds: GradeThresholds = FALLBACK):
   return NEUTRAL
 }
 
-/**
- * @deprecated 기존 5단계 호환 alias. 신규 코드는 getGrade 사용.
- */
-function getScoreGrade(score: number): GradeInfo & { label: string } {
-  return getGrade(score)
-}

@@ -31,13 +31,13 @@ export default function DeckSelector({
   spreadInfo,
   selectedColor,
   userTopic,
-  personalizationOptions,
+  personalizationOptions: _personalizationOptions,
   language,
   isGuestUser,
   signInUrl,
   onColorSelect,
   onStartReading,
-  onPersonalizationChange,
+  onPersonalizationChange: _onPersonalizationChange,
 }: DeckSelectorProps) {
   const effectiveCardCount = spreadInfo?.cardCount || 3
   const isKo = language === 'ko'

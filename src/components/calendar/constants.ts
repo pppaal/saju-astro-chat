@@ -43,39 +43,6 @@ export const GRADE_EMOJI: Record<number, string> = {
   4: '\u{1F6E1}\uFE0F',
 }
 
-// Single source of truth for grade labels \u2014 used by DayCell, MonthHighlights,
-// CalendarMainView. Add a new entry here whenever you add a tier; do NOT
-// hardcode labels at call sites or they will drift apart.
-export type CalendarLocale = 'ko' | 'en'
-
-export interface GradeLabel {
-  emoji: string  // emoji-only (for badge icon slot)
-  short: string  // 2-3 chars (for badge label slot)
-  full: string   // 'emoji + phrase' (for tooltips, day cards, headings)
-}
-
-const GRADE_LABELS: Record<CalendarLocale, Record<0 | 1 | 2 | 3 | 4, GradeLabel>> = {
-  ko: {
-    0: { emoji: '\uD83C\uDF1F', short: '\uCD5C\uACE0', full: '\uD83C\uDF1F \uCD5C\uACE0\uC758 \uB0A0' },
-    1: { emoji: '\u2728', short: '\uC544\uC8FC \uC88B\uC74C', full: '\u2728 \uC544\uC8FC \uC88B\uC740 \uB0A0' },
-    2: { emoji: '\uD83C\uDF3F', short: '\uD3C9\uBC94', full: '\uD83C\uDF3F \uD3C9\uBC94\uD55C \uB0A0' },
-    3: { emoji: '\u26A0\uFE0F', short: '\uC870\uC2EC', full: '\u26A0 \uC870\uC2EC\uD558\uB294 \uB0A0' },
-    4: { emoji: '\uD83D\uDEE1', short: '\uC9C0\uD0A4\uAE30', full: '\uD83D\uDEE1 \uC2E0\uC911\uD558\uAC8C \uC9C0\uD0A4\uB294 \uB0A0' },
-  },
-  en: {
-    0: { emoji: '\uD83C\uDF1F', short: 'Peak', full: '\uD83C\uDF1F Peak day' },
-    1: { emoji: '\u2728', short: 'Excellent', full: '\u2728 Excellent day' },
-    2: { emoji: '\uD83C\uDF3F', short: 'Normal', full: '\uD83C\uDF3F Normal day' },
-    3: { emoji: '\u26A0\uFE0F', short: 'Caution', full: '\u26A0 Caution' },
-    4: { emoji: '\uD83D\uDEE1', short: 'Hold', full: '\uD83D\uDEE1 Hold steady' },
-  },
-}
-
-function getGradeLabel(grade: number, locale: CalendarLocale): GradeLabel {
-  const clamped = Math.min(Math.max(grade, 0), 4) as 0 | 1 | 2 | 3 | 4
-  return GRADE_LABELS[locale][clamped]
-}
-
 export const CATEGORY_LABELS_KO: Record<EventCategory, string> = {
   wealth: '재물',
   career: '직장',
