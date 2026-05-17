@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Calendar,
   Heart,
-  Sparkles,
   ScrollText,
   Activity,
   Moon,
@@ -17,27 +16,9 @@ import {
   ThumbsUp,
   ThumbsDown,
   Clock,
-  Target,
   Cpu,
-  TrendingUp,
   X,
-  Layers,
 } from 'lucide-react'
-import {
-  XAxis,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  YAxis,
-  CartesianGrid,
-  ReferenceArea,
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-} from 'recharts'
 
 import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
 import { useDateDetail } from './useDateDetail'
@@ -371,19 +352,6 @@ export default function DestinyMatrixPlanner({
     }
   }, [fusion, selectedImportantDate])
 
-  // --- Daily active 신살 (역마, 도화, 화개 등) -------------------------
-  const dailyShinsal = useMemo(() => {
-    const list = selectedImportantDate?.shinsalActive ?? []
-    return list.slice(0, 6)
-  }, [selectedImportantDate])
-
-  // --- Stats: natal context (강약 / 격국 / 용신) -----------------------
-  const natalContextSummary = useMemo(() => {
-    if (!data?.allDates) return null
-    const found = data.allDates.find((d) => d.natalContext?.summary)
-    return found?.natalContext ?? null
-  }, [data])
-
   // --- Astro identity badge for the header ---------------------------
   // 풀 차트가 들어오면 ASC, 없으면 태양 별자리.
   const astroBadge = useMemo(() => {
@@ -432,13 +400,6 @@ export default function DestinyMatrixPlanner({
       }
     })
   }, [data])
-
-  const domainExtremes = useMemo(() => {
-    const radar = domainSyncData
-    if (!radar || radar.length === 0) return null
-    const sorted = [...radar].sort((a, b) => b.saju + b.astro - (a.saju + a.astro))
-    return { synergy: sorted[0], conflict: sorted[sorted.length - 1] }
-  }, [domainSyncData])
 
   // --- Stats: weekly cross timing -------------------------------------
   // 캘린더 주차 (일요일 시작) 기준으로 버킷팅. 옛 단순 7일 그룹팅
@@ -493,32 +454,6 @@ export default function DestinyMatrixPlanner({
     return { week: best.week, dayStart, dayEnd, sajuScore: best.saju, astroScore: best.astro }
   }, [weeklyTimingData, weekRange])
 
-  // --- Engine reasons for the super-timing card -----------------------
-  const superTimingReasons = useMemo(() => {
-    if (!data || !superTiming || monthDates.length === 0) {
-      return {
-        saju: '재물을 뜻하는 기운이 들어와 결실을 맺기 좋은 시기로 분석했습니다.',
-        astro: '금성(Venus)이 커리어를 상징하는 위치에 자리하여 성과가 두드러지는 시기로 분석했습니다.',
-      }
-    }
-    const weekIdx = parseInt(superTiming.week, 10) - 1
-    const { dayStart, dayEnd } = weekRange(weekIdx)
-    const weekDates = monthDates.filter((d) => {
-      const day = parseInt(d.date.slice(8, 10), 10)
-      return day >= dayStart && day <= dayEnd
-    })
-    if (weekDates.length === 0) {
-      return {
-        saju: data.matrixContract?.topClaim ?? '사주 흐름이 강하게 받쳐주는 구간으로 분석되었습니다.',
-        astro: '점성 트랜짓이 동시에 우호적으로 정렬되어 신호가 증폭됩니다.',
-      }
-    }
-    const topDay = weekDates.reduce((best, d) => (pickFinalScore(d) > pickFinalScore(best) ? d : best))
-    const sajuFactor = topDay.sajuFactors?.[0] ?? topDay.title
-    const astroFactor = topDay.astroFactors?.[0] ?? topDay.evidence?.cross?.astroEvidence ?? '점성 트랜짓이 동시에 받쳐주는 구간입니다.'
-    return { saju: sajuFactor, astro: astroFactor }
-  }, [data, superTiming, monthDates, weekRange])
-
   const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
   const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
 
@@ -531,9 +466,6 @@ export default function DestinyMatrixPlanner({
     const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
     return days[new Date(viewYear, viewMonth, day).getDay()]
   }
-
-  const radarData = data && domainSyncData ? domainSyncData : MOCK_DOMAIN_RADAR
-  const lineData = data && weeklyTimingData ? weeklyTimingData : MOCK_TIMING
 
   return (
     <div className="w-full max-w-md mx-auto h-screen bg-zinc-950 text-zinc-200 font-sans flex flex-col shadow-2xl overflow-hidden relative border-x border-zinc-900">
