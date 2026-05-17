@@ -1,16 +1,16 @@
 # Docs Index
 
-Last audited: 2026-05-06 (Asia/Hong_Kong)
+Last audited: 2026-05-17 (Asia/Hong_Kong)
 
 ## Core Docs
 
 | Document                                                             | Covers                                                          | Audience                    | Last audited |
 | -------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------- | ------------ |
-| `README.md`                                                          | Repo overview, destiny-engine status, QA snapshot               | All engineers               | 2026-04-01   |
+| `README.md`                                                          | Repo overview, destiny-engine status, QA snapshot               | All engineers               | 2026-05-17   |
 | `BUILD_INSTRUCTIONS.md`                                              | Prereqs, env setup, DB, build/test, deployment, troubleshooting | Developers, DevOps          | 2026-04-01   |
-| `OVERVIEW.md`                                                        | Architecture and runtime topology                               | Engineers, architects       | 2026-04-01   |
+| `OVERVIEW.md`                                                        | Architecture and runtime topology                               | Engineers, architects       | 2026-05-17   |
 | `docs/SECURITY_AUDIT_REPORT.md`                                      | Current API security posture and open items                     | Security, backend engineers | 2026-02-15   |
-| `ROADMAP.md`                                                         | Technical planning priorities                                   | Engineering leadership      | 2026-04-01   |
+| `ROADMAP.md`                                                         | Technical planning priorities                                   | Engineering leadership      | 2026-05-17   |
 | `docs/UNICORN_STRATEGY.md`                                           | Long-range product strategy (non-normative)                     | Product leadership          | 2026-02-15   |
 | `docs/archive/root-history/PROJECT_IMPROVEMENT_STATUS_2026-02-03.md` | Historical checkpoint, de-authorized                            | Maintainers                 | 2026-02-15   |
 
@@ -19,7 +19,7 @@ Last audited: 2026-05-06 (Asia/Hong_Kong)
 | Document                                    | Covers                                                            | Audience                        | Last audited |
 | ------------------------------------------- | ----------------------------------------------------------------- | ------------------------------- | ------------ |
 | `docs/README.md`                            | Docs hub and canonical vs archive guidance                        | All engineers                   | 2026-04-01   |
-| `docs/REPO_STRUCTURE.md`                    | Repo boundaries and storage policy for source vs generated output | Maintainers, all engineers      | 2026-04-01   |
+| `docs/REPO_STRUCTURE.md`                    | Repo boundaries and storage policy for source vs generated output | Maintainers, all engineers      | 2026-05-17   |
 | `docs/DESTINY_MATRIX.md`                    | Current destiny core architecture, adapters, QA status            | Product/backend engineers       | 2026-04-01   |
 | `docs/RAG_AND_GRAPHRAG.md`                  | GraphRAG role, evidence model, tracing, and diagnostics           | AI/backend engineers            | 2026-04-01   |
 | `docs/CALCULATION_SPEC.md`                  | Current calculation pipeline for core/report/calendar/counselor   | Backend/AI engineers            | 2026-04-01   |
@@ -63,6 +63,13 @@ Last audited: 2026-05-06 (Asia/Hong_Kong)
 | `docs/TYPECHECK_OPS.md`                             | Typecheck hotspots and zero-error plan            | All engineers             | 2026-03-11   |
 | `docs/DEPLOYMENT.md`                                | Deployment notes                                  | DevOps                    | 2026-03-11   |
 | `docs/CEO_TECH_GLOSSARY.md`                         | Non-technical glossary for product reviews        | Product/leadership        | 2026-03-11   |
+
+## Feature Subsystem Docs
+
+| Document                          | Covers                                                                                                  | Audience                        | Last audited |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------- | ------------ |
+| `docs/TAROT_OVERVIEW.md`          | Tarot routes, shared prompt rules, result typography, card asset sizing                                 | Product/backend/AI engineers    | 2026-05-17   |
+| `docs/EVAL_TAROT_PROMPTS.jsonl`   | Routing/safety evaluation cases for tarot prompts                                                       | AI engineers                    | 2026-05-17   |
 
 ## Library Docs
 

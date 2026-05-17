@@ -1,6 +1,6 @@
 # DestinyPal
 
-Last audited: 2026-05-06 (Asia/Hong_Kong)
+Last audited: 2026-05-17 (Asia/Hong_Kong)
 
 DestinyPal is a Next.js App Router application for saju, astrology, tarot, counseling, calendar guidance, and premium reporting. AI calls go through `@anthropic-ai/sdk` directly from Next.js routes.
 
@@ -119,6 +119,7 @@ Start with:
 - `docs/RAG_AND_GRAPHRAG.md`: GraphRAG role, domains, and evidence flow
 - `docs/TESTING_AND_GUARDRAILS.md`: required checks and destiny QA scripts
 - `docs/CALCULATION_SPEC.md`: code-derived current calculation spec for the modern pipeline
+- `docs/TAROT_OVERVIEW.md`: tarot routes, shared prompt rules, result typography, card asset sizing
 
 API route audit snapshot from `npm run audit:api` on 2026-04-01:
 

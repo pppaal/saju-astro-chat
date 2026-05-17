@@ -1,6 +1,6 @@
 # Repo Structure
 
-Last updated: 2026-05-06 (Asia/Hong_Kong)
+Last updated: 2026-05-17 (Asia/Hong_Kong)
 
 ## Intent
 
@@ -33,6 +33,12 @@ Top-level `data/` should not be used for mixed test inputs and generated output.
 - Use `artifacts/` for raw execution byproducts such as screenshots, audit exports, and coverage files
 - Use `qa-dumps/` for raw inventories and temporary audit dumps
 - Use `tmp/` for scratch work and local tool output such as Playwright reports, test results, coverage, and lint HTML
+
+## Static Asset Policy
+
+- `public/images/<feature>/`: feature-owned visual assets. Prefer WebP. Resize source to ~1.2× the largest UI render size — don't ship 4× retina source for a 100px card thumbnail.
+- Animated WebP is allowed when the animation is intentional UX (e.g. tarot card shimmer). Audit frame count + per-file size annually.
+- See `docs/TAROT_OVERVIEW.md` § Card Assets for current sizing and the 2026-05-17 compression baseline.
 
 ## Git Policy
 
