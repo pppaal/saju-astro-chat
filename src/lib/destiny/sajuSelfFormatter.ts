@@ -242,6 +242,35 @@ export function formatSajuSelf(input: SajuSelfInput): string {
     out.push('')
   }
 
+  // ── 통근 (천간이 어느 지지 안에 같은 오행으로 뿌리 박았나) ──────
+  // 정통 사주: 천간의 강도는 지지(지장간 포함)에 같은 오행 천간이 있느냐로 결정.
+  // 지장간 array는 [chogi, junggi?, jeonggi] 순 — 마지막이 정기(가장 강).
+  if (hasJijanggan) {
+    const tonggeunLines: string[] = []
+    for (let i = 0; i < 4; i++) {
+      const stem = P[i].stem
+      const stemEl = STEM_EL_LOCAL[stem]
+      if (!stemEl) continue
+      const roots: string[] = []
+      for (let j = 0; j < 4; j++) {
+        const jij = P[j].jijanggan ?? []
+        for (let k = 0; k < jij.length; k++) {
+          if (STEM_EL_LOCAL[jij[k]] === stemEl) {
+            const strength = jij.length === 1 || k === jij.length - 1 ? '정기' : k === 0 ? '초기' : '중기'
+            roots.push(`${PILLAR_LABELS[j]}지 ${P[j].branch}(${jij[k]} ${strength})`)
+          }
+        }
+      }
+      const role = i === 2 ? '일간' : `${PILLAR_LABELS[i]}천간`
+      tonggeunLines.push(`${role} ${stem}(${stemEl}): ${roots.length > 0 ? roots.join(', ') : '통근 X'}`)
+    }
+    if (tonggeunLines.length > 0) {
+      out.push('[통근 — 천간이 지지 안 같은 오행에 뿌리 박았나]')
+      out.push(...tonggeunLines)
+      out.push('')
+    }
+  }
+
   // 대운 시계열 — prev/current/next 3개만 (full list는 너무 길어짐)
   if (input.daeunList && input.daeunList.length > 0 && input.currentDaeun) {
     const curIdx = input.daeunList.findIndex((d) => d.age === input.currentDaeun?.age)
