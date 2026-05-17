@@ -11,7 +11,6 @@ import { elementOfBranch, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
 import { calculateUltraPrecisionScore } from '@/lib/timing/ultraPrecisionEngine'
 import type { UltraPrecisionScore } from '@/lib/timing/ultra-precision-types'
-import { getLunarMansion } from '@/lib/timing/modules/lunarMansions'
 
 type CalendarLocale = 'ko' | 'en'
 
@@ -76,22 +75,15 @@ export interface YearlyImportantDate {
     kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
     blurb: string
   }>
-  /** 점수 산출 분해 — WeeklyTimingChart의 saju/astro axis 라인에 사용 */
+  /**
+   * v3 점수 분해 — finalScore = (sajuAxis + astroAxis) / 2.
+   * WeeklyTimingChart의 두 라인이 그대로 점수를 만든다.
+   */
   scoreBreakdown?: {
-    engine: number
-    matrix: number
-    cycle: number
-    cross: number
-    yongsin: number
-    transit?: number
-    lunarRetro?: number
-    dailyShift: number
-    weakPenalty: number
-    peakBoost: number
+    sajuAxis: number
+    astroAxis: number
+    axisAgreement: 'aligned' | 'mixed' | 'opposed'
     finalScore: number
-    sajuAxis?: number
-    astroAxis?: number
-    axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
 }
 
@@ -2131,96 +2123,28 @@ export function calculateYearlyImportantDates(
       return Math.round(30 + reliability * 10)
     })()
 
-    // ── 새 점수 시스템 ──
-    // 5 축을 weighted blend. 각 축은 0-100으로 정규화.
-    //   0.40 engine (saju daily — sibsin / 신살 / 공망 / 12운성 / energy)
-    //   0.20 matrix (long-cycle domain weighting + reliability)
-    //   0.15 cycle (충/합/형/원진/삼합 balance over 5 slots)
-    //   0.10 cross (사주 ↔ 점성 일치도)
-    //   0.10 yongsin (용신 정렬: support / neutral / conflict)
-    // dailyShift (event blurb sum) added on top, weakPenalty subtracted.
-    // The matrix sub still feeds in so existing destiny-matrix continuity
-    // is preserved; engine sub is what fixes "오늘은 별것 없다" days.
+    // ── 점수 시스템 v3 (signal-based) ──────────────────────────────
+    // v2 PR #199의 원래 의도: "calendar score is a byproduct of the
+    // signal bundle." 그런데 점수 공식은 호환성 잔재 5개 sub(cycle/cross/
+    // yongsin/matrix/lunarRetro)를 가중 합으로 끼워넣어 신호의 좋은 점을
+    // 못 살렸음. v3에서는 신호 두 축만:
+    //   사주축 = engine (사주 일진 ultra-precision: sibsin/신살/공망/
+    //                    12운성/통근/cycle/yongsin 다 포함)
+    //   점성축 = transit (점성 longitude-based aspect score)
+    //   점수    = (사주축 + 점성축) / 2
+    // 제거된 sub들:
+    //   cycle    → engine의 saju-hyeongchung extractor에 이미 포함
+    //   yongsin  → engine의 saju-johu-yongsin extractor에 이미 포함
+    //   matrix   → 사용자 항상적 강도, 매일 동일 → 분산 X
+    //   cross    → 두 시스템 *관계*, 점수에 섞으면 이중계산 → axisAgreement로 별도 표시
+    //   lunarRetro → 분산 적음
+    //   dailyShift → engine signals에 이미 포함
     const engineSub = (() => {
       if (engineScore && Number.isFinite(engineScore.totalScore)) {
         return clamp(engineScore.totalScore, 0, 100)
       }
       return 50
     })()
-    const matrixSub = clamp(
-      primaryStrength * 70 +
-        primaryMonthStrength * 20 +
-        secondaryMonthStrength * 5 +
-        dominanceGap * 5,
-      0,
-      100
-    )
-    const cycleSub = (() => {
-      const hits =
-        buildCycleInteractions(
-          sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || '',
-          findDaeunForDate(date),
-          sewoonForYear(date.getFullYear()),
-          wolwoonForPack(dailyPack),
-          { ganji: `${dailyPillar.stem}${dailyPillar.branch}` }
-        ) || []
-      let net = 50
-      for (const h of hits) {
-        if (h.kind === '천간합') net += 5
-        else if (h.kind === '지지합') {
-          // 삼합/방합 라벨은 더 큰 가중
-          if (/삼합/.test(h.blurb)) net += 15
-          else if (/방합/.test(h.blurb)) net += 10
-          else net += 5
-        } else if (h.kind === '천간충') net -= 8
-        else if (h.kind === '지지충') net -= 8
-        else if (h.kind === '지지형') net -= 10
-        else if (h.kind === '지지해') {
-          if (/원진/.test(h.blurb)) net -= 5
-          else net -= 3
-        } else if (h.kind === '지지파') net -= 3
-        else if (h.kind === '자형') net -= 4
-      }
-      return clamp(net, 0, 100)
-    })()
-    const crossSub = clamp(crossAgreementPercent, 0, 100)
-    const yongsinSub =
-      monthPack?.yongsinAlign === 'support' ? 75 : monthPack?.yongsinAlign === 'conflict' ? 25 : 50
-
-    // 2-axis score split: 사주 측 vs 점성 측. Users want to see "사주만
-    // 좋은 날" / "점성만 좋은 날" separately to choose which axis to
-    // trust. Compute proxies from the same subscores at hand:
-    //   사주 측 = 0.55 engine + 0.30 cycle + 0.15 yongsin
-    //   점성 측 = 50 ± astroClaim sign + cross-agreement weight + matrix month
-    const sajuAxisScore = clamp(
-      Math.round(0.55 * engineSub + 0.3 * cycleSub + 0.15 * yongsinSub),
-      0,
-      100
-    )
-    const astroAxisScore = clamp(
-      Math.round(
-        50 +
-          (astroClaim === 1 ? 18 : astroClaim === -1 ? -18 : 0) +
-          (crossSub - 50) * 0.4 +
-          (primaryMonthStrength - 0.5) * 30
-      ),
-      0,
-      100
-    )
-    const axisAgreement: 'aligned' | 'mixed' | 'opposed' =
-      Math.abs(sajuAxisScore - astroAxisScore) <= 12
-        ? 'aligned'
-        : Math.abs(sajuAxisScore - astroAxisScore) <= 28
-          ? 'mixed'
-          : 'opposed'
-
-    // Engine subscore (per-date 사주 일진/신살/공망/12운성/energy) is the
-    // strongest single signal — weight it 0.55. Matrix kept at 0.15 for
-    // destiny-matrix continuity; users without a matrixContext still
-    // get a reasonable distribution because engine + cycle dominate.
-    // Fall back matrixSub to a neutral 50 when matrix context is sparse
-    // (otherwise primaryStrength drags everyone to grade 3).
-    const matrixSubAdj = matrixSub < 30 ? 50 : matrixSub
     // Real astrology transit score (longitude-based aspects to natal),
     // pre-computed in the route. Falls back to neutral 50 when natal
     // chart wasn't built (no birthplace coords).
@@ -2229,40 +2153,17 @@ export function calculateYearlyImportantDates(
       const v = options?.dailyTransitScores?.[dateKey]
       return typeof v === 'number' ? clamp(v, 0, 100) : 50
     })()
-    // 28수 길흉 + 역행 행성 페널티 → 0-100 axis. Replaces the previous
-    // reserved 0.05 slot with real engine data.
-    //   28수 길수 +12, 흉수 -12, 중립 0
-    //   역행: 수성/금성/화성 -6 each (사용자 일정에 직접 영향),
-    //        Jupiter/Saturn -3 each, outer planets -1 each.
-    const lunarRetroSub = (() => {
-      let v = 50
-      try {
-        const lm = getLunarMansion(date)
-        v += lm.isAuspicious ? 12 : -12
-      } catch {
-        // 28수 lookup failed — keep neutral 50.
-      }
-      const rxs = options?.dailyRetrograde?.[dateKey] || []
-      for (const planet of rxs) {
-        if (planet === 'Mercury' || planet === 'Venus' || planet === 'Mars') v -= 6
-        else if (planet === 'Jupiter' || planet === 'Saturn') v -= 3
-        else v -= 1 // outer planets (Uranus/Neptune/Pluto/Chiron) — almost always retrograde, mild penalty
-      }
-      return clamp(v, 0, 100)
-    })()
-    // Full-engine blend. Saju gets 50% (engine 30 + cycle 20 — saju
-    // practitioners weight 충합 highly), astrology gets 25% (real
-    // transit aspect score), cross-agreement 10%, yongsin 5%, matrix
-    // 5%, dailyShift event bonus on top.
-    const blendedRaw =
-      0.3 * engineSub +
-      0.2 * cycleSub +
-      0.25 * transitSub +
-      0.1 * crossSub +
-      0.05 * yongsinSub +
-      0.05 * matrixSubAdj +
-      0.05 * lunarRetroSub +
-      dailyShift
+
+    const sajuAxisScore = Math.round(engineSub)
+    const astroAxisScore = Math.round(transitSub)
+    const axisAgreement: 'aligned' | 'mixed' | 'opposed' =
+      Math.abs(sajuAxisScore - astroAxisScore) <= 12
+        ? 'aligned'
+        : Math.abs(sajuAxisScore - astroAxisScore) <= 28
+          ? 'mixed'
+          : 'opposed'
+
+    const blendedRaw = (sajuAxisScore + astroAxisScore) / 2
     const score = Math.round(clamp(blendedRaw, 2, 99))
     const grade = scoreToGrade(score)
     const baseTier = tierFromStrength(primaryStrength)
@@ -2360,20 +2261,10 @@ export function calculateYearlyImportantDates(
       confidenceNote: locale === 'ko' ? '캘린더 스코어링 기준' : 'Calendar scoring baseline',
       crossAgreementPercent,
       scoreBreakdown: {
-        engine: Math.round(engineSub),
-        matrix: Math.round(matrixSubAdj),
-        cycle: Math.round(cycleSub),
-        cross: Math.round(crossSub),
-        yongsin: Math.round(yongsinSub),
-        transit: Math.round(transitSub),
-        lunarRetro: Math.round(lunarRetroSub),
-        dailyShift: Math.round(dailyShift),
-        weakPenalty: 0,
-        peakBoost: 0,
-        finalScore: score,
         sajuAxis: sajuAxisScore,
         astroAxis: astroAxisScore,
         axisAgreement,
+        finalScore: score,
       },
       crossCheck: {
         line:

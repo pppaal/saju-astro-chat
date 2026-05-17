@@ -62,22 +62,15 @@ export interface FormattedDate {
     themeKo: string
     themeEn: string
   }
-  /** 점수 산출 7축 분해 + 2축 분리 (사주/점성) */
+  /**
+   * 점수 = (사주축 + 점성축) / 2 — v3 signal-based 분해.
+   * axisAgreement: 두 시스템이 같은 방향을 가리키는지 (점수 외 부가 표시).
+   */
   scoreBreakdown?: {
-    engine: number
-    matrix: number
-    cycle: number
-    cross: number
-    yongsin: number
-    transit?: number
-    lunarRetro?: number
-    dailyShift: number
-    weakPenalty: number
-    peakBoost: number
+    sajuAxis: number
+    astroAxis: number
+    axisAgreement: 'aligned' | 'mixed' | 'opposed'
     finalScore: number
-    sajuAxis?: number
-    astroAxis?: number
-    axisAgreement?: 'aligned' | 'mixed' | 'opposed'
   }
   /** ── calendar-engine v2 augmentation (optional, non-breaking) ── */
   matchedPatterns?: Array<{
