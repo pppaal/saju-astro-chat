@@ -71,6 +71,49 @@ async function main() {
   }
   parts.push('')
   parts.push(formatDestinyAstro(astro))
+
+  // ── self-cross 라인 (PR #243 이후 production 추가분) ──────────
+  const { formatSajuSelf } = await import('../src/lib/destiny/sajuSelfFormatter')
+  const { formatAstroSelf } = await import('../src/lib/destiny/astroSelfFormatter')
+  const { calculateNatalChart, toChart } = await import('../src/lib/astrology/foundation/astrologyService')
+
+  try {
+    const sajuP = (saju.saju as { pillars?: Record<string, { heavenlyStem?: { name?: string; sibsin?: string }; earthlyBranch?: { name?: string; sibsin?: string } }> }).pillars
+    if (sajuP) {
+      const toP = (slot?: { heavenlyStem?: { name?: string; sibsin?: string }; earthlyBranch?: { name?: string; sibsin?: string } }) => ({
+        stem: slot?.heavenlyStem?.name ?? '',
+        branch: slot?.earthlyBranch?.name ?? '',
+        stemSibsin: slot?.heavenlyStem?.sibsin,
+        branchSibsin: slot?.earthlyBranch?.sibsin,
+      })
+      const cur = (saju.saju as { daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null } }).daeWoon?.current
+      const extras = (saju as { extras?: { geokguk?: { primary?: string } | null; yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null } | null }).extras
+      const sajuSelfBlock = formatSajuSelf({
+        pillars: [toP(sajuP.year), toP(sajuP.month), toP(sajuP.day), toP(sajuP.time)],
+        geokguk: extras?.geokguk?.primary ?? null,
+        yongsin: extras?.yongsin ?? null,
+        currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
+      })
+      if (sajuSelfBlock) { parts.push(''); parts.push(sajuSelfBlock) }
+    }
+  } catch (e) { console.error('[sajuSelf]', e) }
+
+  try {
+    const [y, m, d] = birth.birthDate.split('-').map(Number)
+    const [hh, mm] = birth.birthTime.split(':').map(Number)
+    const natal = await calculateNatalChart({
+      year: y, month: m, date: d, hour: hh, minute: mm,
+      latitude: birth.latitude, longitude: birth.longitude, timeZone: birth.timezone,
+    })
+    const astroSelfBlock = await formatAstroSelf({
+      chart: toChart(natal),
+      latitude: birth.latitude, longitude: birth.longitude, timeZone: birth.timezone,
+      koreanAge: typeof ageYears === 'number' ? ageYears + 1 : undefined,
+      now: new Date(),
+    })
+    if (astroSelfBlock) { parts.push(''); parts.push(astroSelfBlock) }
+  } catch (e) { console.error('[astroSelf]', e) }
+
   const cachedUserContext = parts.join('\n')
 
   const userPrompt = `이전 대화:\n(none)\n\n위 birth snapshot을 바탕으로 마지막 질문에 답하세요.\n\n질문: ${userQuestion}`
