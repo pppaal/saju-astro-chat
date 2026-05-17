@@ -15,7 +15,12 @@ import { calculateTransitChart, findTransitAspects } from '@/lib/astrology/found
 import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { calculateSolarReturn, calculateLunarReturn } from '@/lib/astrology/foundation/returns'
+import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progressions'
 import type { NatalInput } from '@/lib/astrology/foundation/types'
+
+// 요일 ruler — Chaldean order의 day-of-week 매핑
+const DAY_RULER = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'] as const
+// 0=일요일
 import type {
   AspectType,
   Chart,
@@ -206,11 +211,47 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   // Profection — 해 단위 house ((나이 % 12) + 1)
   if (typeof input.koreanAge === 'number' && input.koreanAge > 0) {
     const profectionHouse = (input.koreanAge % 12) + 1  // 0세 1H, 1세 2H, ... 12세 1H 반복
-    // 그 house의 ruler — 1H Asc 사인의 ruler
     out.push(`[Profection — 이번 해 (${input.koreanAge}세) 활성 house]`)
     out.push(`해 단위 활성 house: ${profectionHouse}H (시점·자아 강조 영역)`)
     out.push('')
   }
+
+  // ── Secondary Progression — natalInput 있으면 ────────────────
+  if (input.natalInput) {
+    try {
+      const nowDate = input.now ?? new Date()
+      const prog = await calculateSecondaryProgressions({
+        natal: input.natalInput,
+        targetDate: nowDate.toISOString().slice(0, 10),
+      })
+      // 주요 행성만 (Sun~Mars + Asc + MC)
+      const major = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars']
+      const lines: string[] = []
+      for (const pl of prog.planets) {
+        if (!major.includes(pl.name)) continue
+        lines.push(`Progressed ${label(pl.name)}: ${sign(pl.sign)} ${pl.degree}°${pl.minute.toString().padStart(2, '0')}'${pl.retrograde ? ' R' : ''}`)
+      }
+      if (prog.ascendant?.sign) lines.push(`Progressed Asc: ${sign(prog.ascendant.sign)} ${prog.ascendant.degree}°`)
+      if (prog.mc?.sign) lines.push(`Progressed MC: ${sign(prog.mc.sign)} ${prog.mc.degree}°`)
+      if (lines.length > 0) {
+        out.push(`[Secondary Progression — 사용자 1년 = 행성 1일 진행]`)
+        out.push(...lines)
+        out.push('')
+      }
+    } catch { /* skip */ }
+  }
+
+  // ── Planetary Hour / Day Ruler — 오늘 요일 기반 ─────────────
+  const nowDate = input.now ?? new Date()
+  const dayRuler = DAY_RULER[nowDate.getDay()]
+  out.push(`[현재 시점 행성 신호]`)
+  out.push(`오늘 (${nowDate.toISOString().slice(0, 10)}) 요일 ruler: ${dayRuler} (행성시 base)`)
+
+  // Lunar phase (electional용 단순화) — Sun · Moon 각도로 phase 추정
+  // chart에 있는 Sun/Moon 위치는 *natal*이라 의미 없음. transit chart에서 가져옴.
+  // calculateTransitChart 결과는 위 transit aspects 계산 때 만들었지만 scope 밖.
+  // 여기선 다시 호출하지 않고 day ruler만으로 마무리 — electional은 day ruler가 핵심.
+  out.push('')
 
   return out.join('\n')
 }
