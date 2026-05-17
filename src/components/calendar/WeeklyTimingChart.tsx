@@ -13,6 +13,7 @@ import {
 } from 'recharts'
 import { TrendingUp } from 'lucide-react'
 import type { ImportantDate } from './types'
+import { deriveScore } from '@/lib/calendar-engine/derivers/score'
 
 interface Props {
   monthDates: ImportantDate[]
@@ -22,9 +23,11 @@ interface Props {
  * 주간 타이밍 그래프 — 한 달 4~5주의 saju × astro 라인.
  *
  * 데이터 소스 우선순위:
- *  1. cell.engineSignals — saju source 신호 평균 vs astro source 신호 평균
- *  2. scoreBreakdown.sajuAxis / astroAxis (기존 엔진)
- *  3. displayScore 양쪽 동일 (폴백)
+ *  1. cell.engineSignals — source별로 분리해 deriveScore (=cell.derivedScore와
+ *     동일한 layer-가중 + 공명 보너스 공식) → 두 라인 평균이 그대로 캘린더
+ *     displayScore에 근접 (그래프 ≡ 점수).
+ *  2. scoreBreakdown.sajuAxis / astroAxis (fallback — cell-engine 미적용 달)
+ *  3. displayScore 양쪽 동일 (최후 폴백)
  */
 export default function WeeklyTimingChart({ monthDates }: Props) {
   const weekly = useMemo(() => {
@@ -47,18 +50,12 @@ export default function WeeklyTimingChart({ monthDates }: Props) {
 
         for (const d of arr) {
           if (d.engineSignals && d.engineSignals.length > 0) {
+            // source별로 deriveScore (cell.derivedScore와 같은 공식)
+            // → 두 라인 평균이 화면 점수(displayScore)에 근접한다.
             const sajuSig = d.engineSignals.filter((s) => s.source === 'saju')
             const astroSig = d.engineSignals.filter((s) => s.source === 'astro')
-            const sajuAvg =
-              sajuSig.length > 0
-                ? sajuSig.reduce((sum, s) => sum + s.polarity * s.weight, 0) / sajuSig.length
-                : 0
-            const astroAvg =
-              astroSig.length > 0
-                ? astroSig.reduce((sum, s) => sum + s.polarity * s.weight, 0) / astroSig.length
-                : 0
-            sajuScores.push(Math.max(0, Math.min(100, 50 + sajuAvg * 16)))
-            astroScores.push(Math.max(0, Math.min(100, 50 + astroAvg * 16)))
+            sajuScores.push(sajuSig.length > 0 ? deriveScore(sajuSig) : 50)
+            astroScores.push(astroSig.length > 0 ? deriveScore(astroSig) : 50)
           } else if (d.scoreBreakdown?.sajuAxis != null && d.scoreBreakdown?.astroAxis != null) {
             sajuScores.push(d.scoreBreakdown.sajuAxis)
             astroScores.push(d.scoreBreakdown.astroAxis)
