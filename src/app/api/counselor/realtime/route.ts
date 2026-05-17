@@ -19,6 +19,9 @@ import {
   formatDestinyAstro,
   formatSajuExtras,
 } from '@/lib/compatibility/sajuTableFormatter'
+import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
+import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
+import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -244,6 +247,70 @@ export async function POST(req: NextRequest) {
       }
       parts.push('')
       parts.push(formatDestinyAstro(astro))
+
+      // ── self-cross 라인 (사주 정통 신살·12운성·합/충 + 점성 aspect/transit) ──
+      // raw table만 주면 LLM이 매번 4기둥 cross를 다시 계산해야 함. 라인
+      // 단위로 미리 펴 주면 정통 깊이 ↑↑. ~3K 자 추가, cached prefix라
+      // prompt caching 90% 할인.
+      try {
+        interface PillarSlot {
+          heavenlyStem?: { name?: string; sibsin?: string }
+          earthlyBranch?: { name?: string; sibsin?: string }
+        }
+        const sajuLoose = saju as unknown as {
+          saju?: {
+            pillars?: { year?: PillarSlot; month?: PillarSlot; day?: PillarSlot; time?: PillarSlot }
+            daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null } | null
+          }
+          extras?: {
+            geokguk?: { primary?: string } | null
+            yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null
+          } | null
+        }
+        const sajuP = sajuLoose.saju?.pillars
+        if (sajuP) {
+          const toP = (slot?: PillarSlot) => ({
+            stem: slot?.heavenlyStem?.name ?? '',
+            branch: slot?.earthlyBranch?.name ?? '',
+            stemSibsin: slot?.heavenlyStem?.sibsin,
+            branchSibsin: slot?.earthlyBranch?.sibsin,
+          })
+          const cur = sajuLoose.saju?.daeWoon?.current
+          const extras = sajuLoose.extras
+          const sajuSelfBlock = formatSajuSelf({
+            pillars: [toP(sajuP.year), toP(sajuP.month), toP(sajuP.day), toP(sajuP.time)],
+            geokguk: extras?.geokguk?.primary ?? null,
+            yongsin: extras?.yongsin ?? null,
+            currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
+          })
+          if (sajuSelfBlock) {
+            parts.push('')
+            parts.push(sajuSelfBlock)
+          }
+        }
+      } catch (err) {
+        logger.warn('[counselor/realtime] sajuSelf format failed', { err: err instanceof Error ? err.message : String(err) })
+      }
+
+      try {
+        const natal = await calculateNatalChart({
+          year: y, month: m, date: d, hour: hh, minute: mm,
+          latitude, longitude, timeZone: tz,
+        })
+        const astroSelfBlock = await formatAstroSelf({
+          chart: toChart(natal),
+          latitude, longitude, timeZone: tz,
+          koreanAge: typeof ageYears === 'number' ? ageYears + 1 : undefined,
+          now: queryDate,
+        })
+        if (astroSelfBlock) {
+          parts.push('')
+          parts.push(astroSelfBlock)
+        }
+      } catch (err) {
+        logger.warn('[counselor/realtime] astroSelf format failed', { err: err instanceof Error ? err.message : String(err) })
+      }
+
       contextText = parts.join('\n')
       // Cache for 1 day — transits change daily
       await cacheSet(ctxKey, contextText, CACHE_TTL.CALENDAR_DATA)
