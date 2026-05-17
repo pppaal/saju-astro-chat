@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
   "cards": [
     { "position": "자리명", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함" }
   ],
-  "advice": "구체 행동 1-3개, 100-150자"
+  "advice": "구체 행동 1-3개, 150-200자"
 }`
       : `${TAROT_RULES_EN}
 
@@ -243,7 +243,7 @@ Output — exactly this JSON schema (no code fences, no preamble, no comments):
   "cards": [
     { "position": "seat name", "interpretation": "seat × card × orientation × question cross, 180-280 words, with a time anchor" }
   ],
-  "advice": "1-3 concrete actions, 60-90 words"
+  "advice": "1-3 concrete actions, 90-130 words"
 }`
 
 
