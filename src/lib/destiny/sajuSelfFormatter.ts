@@ -192,6 +192,8 @@ export interface SajuSelfInput {
   currentSewoon?: { stem: string; branch: string; year?: number } | null
   currentWolwoon?: { stem: string; branch: string } | null
   currentIljin?: { stem: string; branch: string; date?: string } | null
+  /** 섹션 헤더 라벨 — default '사주' (둘 사람 비교 시 'A 사주' / 'B 사주' 등) */
+  label?: string
 }
 
 /**
@@ -204,7 +206,7 @@ export function formatSajuSelf(input: SajuSelfInput): string {
   const day = P[2]
   if (!day.stem || !day.branch) return ''
 
-  const out: string[] = ['== 사주 ==', '']
+  const out: string[] = [`== ${input.label ?? '사주'} ==`, '']
 
   // 일간 + 오행 카운트
   if (input.dayMaster) {

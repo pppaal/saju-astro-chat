@@ -118,12 +118,14 @@ export interface AstroSelfInput {
   now?: Date
   /** Solar Return / Lunar Return 계산용 natal input — 없으면 SR/LR skip */
   natalInput?: NatalInput
+  /** 섹션 헤더 라벨 — default '점성' (둘 사람 비교 시 'A 점성' / 'B 점성' 등) */
+  label?: string
 }
 
 export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   if (!input.chart) return ''
   const chart = expandChart(input.chart, input.latitude, input.longitude)
-  const out: string[] = ['== 점성 self-cross ==', '']
+  const out: string[] = [`== ${input.label ?? '점성'} ==`, '']
 
   // 행성 in 사인·house
   out.push('[행성·angle in 사인 · house]')
