@@ -9,7 +9,7 @@
  * appears (same caveat as dumpCompatPrompt.ts).
  */
 
-import { buildSajuNormalizerInput } from '../src/lib/fortune/cross-rules/adapters/saju'
+import { buildSajuNormalizerInput } from '../src/lib/fusion/adapters/saju'
 import {
   formatSajuAsTable,
   formatDestinyTiming,
@@ -41,7 +41,7 @@ const userQuestion = '올해 흐름 어때?'
 
 async function main() {
   // Now swisseph rebuilt, run the real fortune pipeline.
-  const { runFortuneWithRaw } = await import('../src/lib/fortune/cross-rules')
+  const { runFortuneWithRaw } = await import('../src/lib/fusion')
   const { saju, astro, birthTimeUnknown, birthCityUnknown } = await runFortuneWithRaw({
     birth,
     queryDate: new Date(),
