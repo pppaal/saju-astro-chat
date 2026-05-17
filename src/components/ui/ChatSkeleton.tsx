@@ -67,20 +67,3 @@ export function ChatSkeleton() {
     </div>
   );
 }
-
-/**
- * 간단한 채팅 로딩 (작은 버전)
- */
-function MiniChatSkeleton() {
-  return (
-    <div className={styles.miniContainer}>
-      <div className={styles.miniHeader} />
-      <div className={styles.miniMessages}>
-        <div className={styles.miniMessageLeft} />
-        <div className={styles.miniMessageRight} />
-        <div className={styles.miniMessageLeft} />
-      </div>
-      <div className={styles.miniInput} />
-    </div>
-  );
-}

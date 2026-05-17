@@ -15,45 +15,9 @@ export interface AspectInfo {
   orb?: number
 }
 
-export interface DetailedAspectInfo extends AspectInfo {
-  isHarmonious: boolean
-  isChallenging: boolean
-  strength: 'exact' | 'close' | 'wide'
-}
-
 // ========== Aspect Classification ==========
 
 const HARMONIOUS_ASPECTS: AspectType[] = ['trine', 'sextile']
-const CHALLENGING_ASPECTS: AspectType[] = ['square', 'opposition']
-/**
- * Checks if an aspect type is harmonious (trine, sextile)
- */
-function isHarmoniousAspect(type: AspectType): boolean {
-  return HARMONIOUS_ASPECTS.includes(type)
-}
-
-/**
- * Checks if an aspect type is challenging (square, opposition)
- */
-function isChallengingAspect(type: AspectType): boolean {
-  return CHALLENGING_ASPECTS.includes(type)
-}
-
-/**
- * Get aspect strength based on orb
- */
-function getAspectStrength(orb: number | undefined): 'exact' | 'close' | 'wide' {
-  if (orb === undefined) {
-    return 'close'
-  }
-  if (orb <= 1) {
-    return 'exact'
-  }
-  if (orb <= 3) {
-    return 'close'
-  }
-  return 'wide'
-}
 
 // ========== Aspect Finding ==========
 

@@ -259,24 +259,3 @@ export interface TarotReading {
   interpretation?: string
 }
 
-// ============================================================
-// Type Guards
-// ============================================================
-
-function isApiError(response: unknown): response is ApiError {
-  return (
-    typeof response === 'object' &&
-    response !== null &&
-    'error' in response &&
-    typeof (response as ApiError).error === 'string'
-  )
-}
-
-function isCounselorInitResponse(response: unknown): response is CounselorInitResponse {
-  return (
-    typeof response === 'object' &&
-    response !== null &&
-    'status' in response &&
-    (response as CounselorInitResponse).status === 'success'
-  )
-}
