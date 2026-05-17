@@ -10,10 +10,7 @@
  */
 
 import { buildSajuNormalizerInput } from '../src/lib/fusion/adapters/saju'
-import {
-  formatSajuAsTable,
-  formatDestinyAstro,
-} from '../src/lib/compatibility/sajuTableFormatter'
+// 옛 sajuTableFormatter 호출 제거됨 — self-cross가 raw + cross 모두 통합.
 
 const birth = {
   birthDate: '1995-02-09',
@@ -52,37 +49,64 @@ async function main() {
   if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
     parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
   }
-  parts.push('')
-  parts.push(formatSajuAsTable(saju.saju, '나'))
-  // formatSajuExtras + formatDestinyTiming은 self-cross가 100% cover하므로 제거.
-  parts.push('')
-  parts.push(formatDestinyAstro(astro))
-
-  // ── self-cross 라인 (PR #243 이후 production 추가분) ──────────
+  // ── 사주 (raw + cross 통합) ───────────────────────────────
   const { formatSajuSelf } = await import('../src/lib/destiny/sajuSelfFormatter')
   const { formatAstroSelf } = await import('../src/lib/destiny/astroSelfFormatter')
   const { calculateNatalChart, toChart } = await import('../src/lib/astrology/foundation/astrologyService')
 
   try {
-    const sajuP = (saju.saju as { pillars?: Record<string, { heavenlyStem?: { name?: string; sibsin?: string }; earthlyBranch?: { name?: string; sibsin?: string } }> }).pillars
+    interface PillarSlot {
+      heavenlyStem?: { name?: string; sibsin?: string }
+      earthlyBranch?: { name?: string; sibsin?: string }
+      jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } }
+    }
+    const sajuLoose = saju as unknown as {
+      saju?: {
+        pillars?: { year?: PillarSlot; month?: PillarSlot; day?: PillarSlot; time?: PillarSlot }
+        dayMaster?: { name?: string; element?: string; yin_yang?: string }
+        daeWoon?: {
+          current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null
+          list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }>
+        } | null
+      }
+      currentSaeun?: { stem?: string; branch?: string; year?: number } | null
+      currentWolun?: { stem?: string; branch?: string } | null
+      currentIljin?: { stem?: string; branch?: string; date?: string } | null
+      extras?: { geokguk?: { primary?: string } | null; yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null } | null
+    }
+    const sajuP = sajuLoose.saju?.pillars
     if (sajuP) {
-      const toP = (slot?: { heavenlyStem?: { name?: string; sibsin?: string }; earthlyBranch?: { name?: string; sibsin?: string } }) => ({
+      const toP = (slot?: PillarSlot) => ({
         stem: slot?.heavenlyStem?.name ?? '',
         branch: slot?.earthlyBranch?.name ?? '',
         stemSibsin: slot?.heavenlyStem?.sibsin,
         branchSibsin: slot?.earthlyBranch?.sibsin,
+        jijanggan: [slot?.jijanggan?.chogi?.name, slot?.jijanggan?.junggi?.name, slot?.jijanggan?.jeonggi?.name].filter((s): s is string => Boolean(s)),
       })
-      const cur = (saju.saju as { daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null } }).daeWoon?.current
-      const extras = (saju as { extras?: { geokguk?: { primary?: string } | null; yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null } | null }).extras
-      const sajuSelfBlock = formatSajuSelf({
+      const cur = sajuLoose.saju?.daeWoon?.current
+      const extras = sajuLoose.extras
+      const daeunList = (sajuLoose.saju?.daeWoon?.list ?? []).map((d) => ({
+        age: d.age ?? 0,
+        stem: d.heavenlyStem ?? '',
+        branch: d.earthlyBranch ?? '',
+        sibsinStem: d.sibsin?.cheon,
+        sibsinBranch: d.sibsin?.ji,
+      }))
+      const dm = sajuLoose.saju?.dayMaster
+      const sajuBlock = formatSajuSelf({
         pillars: [toP(sajuP.year), toP(sajuP.month), toP(sajuP.day), toP(sajuP.time)],
+        dayMaster: dm?.name ? { name: dm.name, element: dm.element ?? '', yinYang: dm.yin_yang } : null,
         geokguk: extras?.geokguk?.primary ?? null,
         yongsin: extras?.yongsin ?? null,
+        daeunList,
         currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
+        currentSewoon: sajuLoose.currentSaeun ? { stem: sajuLoose.currentSaeun.stem ?? '', branch: sajuLoose.currentSaeun.branch ?? '', year: sajuLoose.currentSaeun.year } : null,
+        currentWolwoon: sajuLoose.currentWolun ? { stem: sajuLoose.currentWolun.stem ?? '', branch: sajuLoose.currentWolun.branch ?? '' } : null,
+        currentIljin: sajuLoose.currentIljin ? { stem: sajuLoose.currentIljin.stem ?? '', branch: sajuLoose.currentIljin.branch ?? '', date: sajuLoose.currentIljin.date } : null,
       })
-      if (sajuSelfBlock) { parts.push(''); parts.push(sajuSelfBlock) }
+      if (sajuBlock) { parts.push(''); parts.push(sajuBlock) }
     }
-  } catch (e) { console.error('[sajuSelf]', e) }
+  } catch (e) { console.error('[saju]', e) }
 
   try {
     const [y, m, d] = birth.birthDate.split('-').map(Number)
@@ -96,6 +120,7 @@ async function main() {
       latitude: birth.latitude, longitude: birth.longitude, timeZone: birth.timezone,
       koreanAge: typeof ageYears === 'number' ? ageYears + 1 : undefined,
       now: new Date(),
+      natalInput: { year: y, month: m, date: d, hour: hh, minute: mm, latitude: birth.latitude, longitude: birth.longitude, timeZone: birth.timezone },
     })
     if (astroSelfBlock) { parts.push(''); parts.push(astroSelfBlock) }
   } catch (e) { console.error('[astroSelf]', e) }

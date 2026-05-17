@@ -13,10 +13,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
 import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
-import {
-  formatSajuAsTable,
-  formatDestinyAstro,
-} from '@/lib/compatibility/sajuTableFormatter'
 import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
@@ -224,28 +220,25 @@ export async function POST(req: NextRequest) {
       if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
         parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
       }
-      parts.push('')
-      parts.push(formatSajuAsTable(saju.saju, '나'))
-      // formatSajuExtras (격국·용신·신살·12운성·합/충) + formatDestinyTiming
-      // (대운/세운/월운/일진 1줄 요약)은 self-cross 블록이 100% cover하므로
-      // 제거. formatDestinyAstro는 Solar/Lunar Return이 self-cross에 없어 유지.
-      parts.push('')
-      parts.push(formatDestinyAstro(astro))
-
-      // ── self-cross 라인 (사주 정통 신살·12운성·합/충 + 점성 aspect/transit) ──
-      // raw table만 주면 LLM이 매번 4기둥 cross를 다시 계산해야 함. 라인
-      // 단위로 미리 펴 주면 정통 깊이 ↑↑. ~3K 자 추가, cached prefix라
-      // prompt caching 90% 할인.
+      // ── 사주 (raw + cross 통합) ────────────────────────────
       try {
         interface PillarSlot {
           heavenlyStem?: { name?: string; sibsin?: string }
           earthlyBranch?: { name?: string; sibsin?: string }
+          jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } }
         }
         const sajuLoose = saju as unknown as {
           saju?: {
             pillars?: { year?: PillarSlot; month?: PillarSlot; day?: PillarSlot; time?: PillarSlot }
-            daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null } | null
+            dayMaster?: { name?: string; element?: string; yin_yang?: string }
+            daeWoon?: {
+              current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null
+              list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }>
+            } | null
           }
+          currentSaeun?: { stem?: string; branch?: string; year?: number } | null
+          currentWolun?: { stem?: string; branch?: string } | null
+          currentIljin?: { stem?: string; branch?: string; date?: string } | null
           extras?: {
             geokguk?: { primary?: string } | null
             yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null
@@ -258,24 +251,43 @@ export async function POST(req: NextRequest) {
             branch: slot?.earthlyBranch?.name ?? '',
             stemSibsin: slot?.heavenlyStem?.sibsin,
             branchSibsin: slot?.earthlyBranch?.sibsin,
+            jijanggan: [
+              slot?.jijanggan?.chogi?.name,
+              slot?.jijanggan?.junggi?.name,
+              slot?.jijanggan?.jeonggi?.name,
+            ].filter((s): s is string => Boolean(s)),
           })
           const cur = sajuLoose.saju?.daeWoon?.current
           const extras = sajuLoose.extras
-          const sajuSelfBlock = formatSajuSelf({
+          const daeunList = (sajuLoose.saju?.daeWoon?.list ?? []).map((d) => ({
+            age: d.age ?? 0,
+            stem: d.heavenlyStem ?? '',
+            branch: d.earthlyBranch ?? '',
+            sibsinStem: d.sibsin?.cheon,
+            sibsinBranch: d.sibsin?.ji,
+          }))
+          const dm = sajuLoose.saju?.dayMaster
+          const sajuBlock = formatSajuSelf({
             pillars: [toP(sajuP.year), toP(sajuP.month), toP(sajuP.day), toP(sajuP.time)],
+            dayMaster: dm?.name ? { name: dm.name, element: dm.element ?? '', yinYang: dm.yin_yang } : null,
             geokguk: extras?.geokguk?.primary ?? null,
             yongsin: extras?.yongsin ?? null,
+            daeunList,
             currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
+            currentSewoon: sajuLoose.currentSaeun ? { stem: sajuLoose.currentSaeun.stem ?? '', branch: sajuLoose.currentSaeun.branch ?? '', year: sajuLoose.currentSaeun.year } : null,
+            currentWolwoon: sajuLoose.currentWolun ? { stem: sajuLoose.currentWolun.stem ?? '', branch: sajuLoose.currentWolun.branch ?? '' } : null,
+            currentIljin: sajuLoose.currentIljin ? { stem: sajuLoose.currentIljin.stem ?? '', branch: sajuLoose.currentIljin.branch ?? '', date: sajuLoose.currentIljin.date } : null,
           })
-          if (sajuSelfBlock) {
+          if (sajuBlock) {
             parts.push('')
-            parts.push(sajuSelfBlock)
+            parts.push(sajuBlock)
           }
         }
       } catch (err) {
         logger.warn('[counselor/realtime] sajuSelf format failed', { err: err instanceof Error ? err.message : String(err) })
       }
 
+      // ── 점성 (raw + cross 통합 — natal/aspects/transits/SR/LR/profection) ──
       try {
         const natal = await calculateNatalChart({
           year: y, month: m, date: d, hour: hh, minute: mm,
@@ -286,6 +298,7 @@ export async function POST(req: NextRequest) {
           latitude, longitude, timeZone: tz,
           koreanAge: typeof ageYears === 'number' ? ageYears + 1 : undefined,
           now: queryDate,
+          natalInput: { year: y, month: m, date: d, hour: hh, minute: mm, latitude, longitude, timeZone: tz },
         })
         if (astroSelfBlock) {
           parts.push('')

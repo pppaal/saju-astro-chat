@@ -160,17 +160,34 @@ function twelveStage(dayStem: string, branch: string): string {
 
 const PILLAR_LABELS = ['년', '월', '일', '시'] as const
 
+// 천간/지지 → 오행 (오행 카운트 계산용)
+const STEM_EL_LOCAL: Record<string, string> = {
+  '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
+  '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수',
+}
+const BRANCH_EL_LOCAL: Record<string, string> = {
+  '寅': '목', '卯': '목', '巳': '화', '午': '화', '辰': '토',
+  '戌': '토', '丑': '토', '未': '토', '申': '금', '酉': '금',
+  '子': '수', '亥': '수',
+}
+
 export interface SajuSelfPillarInput {
   stem: string
   branch: string
   stemSibsin?: string
   branchSibsin?: string
+  /** 지장간 — 그 지지 안에 숨은 천간들 (chogi/junggi/jeonggi 순) */
+  jijanggan?: string[]
 }
 
 export interface SajuSelfInput {
   pillars: SajuSelfPillarInput[]  // 년/월/일/시
+  /** 일간 메타 (음양·오행) — output에 한 줄로 표시 */
+  dayMaster?: { name: string; element: string; yinYang?: string } | null
   geokguk?: string | null
   yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null
+  /** 대운 시계열 — 시작 age 순서 */
+  daeunList?: Array<{ age: number; stem: string; branch: string; sibsinStem?: string; sibsinBranch?: string }>
   currentDaeun?: { stem: string; branch: string; age?: number } | null
   currentSewoon?: { stem: string; branch: string; year?: number } | null
   currentWolwoon?: { stem: string; branch: string } | null
@@ -187,7 +204,21 @@ export function formatSajuSelf(input: SajuSelfInput): string {
   const day = P[2]
   if (!day.stem || !day.branch) return ''
 
-  const out: string[] = ['== 사주 self-cross ==', '']
+  const out: string[] = ['== 사주 ==', '']
+
+  // 일간 + 오행 카운트
+  if (input.dayMaster) {
+    out.push(`일간: ${input.dayMaster.name}(${input.dayMaster.yinYang ?? ''}${input.dayMaster.element})`)
+  } else {
+    out.push(`일간: ${day.stem}`)
+  }
+  const elCounts: Record<string, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
+  for (const p of P) {
+    if (STEM_EL_LOCAL[p.stem]) elCounts[STEM_EL_LOCAL[p.stem]]++
+    if (BRANCH_EL_LOCAL[p.branch]) elCounts[BRANCH_EL_LOCAL[p.branch]]++
+  }
+  out.push(`오행: 목 ${elCounts['목']} / 화 ${elCounts['화']} / 토 ${elCounts['토']} / 금 ${elCounts['금']} / 수 ${elCounts['수']}`)
+  out.push('')
 
   // 4기둥
   out.push('[4기둥]')
@@ -196,8 +227,44 @@ export function formatSajuSelf(input: SajuSelfInput): string {
     const branchSib = P[i].branchSibsin ?? '-'
     out.push(`${PILLAR_LABELS[i]}: ${P[i].stem}${P[i].branch}  (천간 ${stemSib} / 지지 ${branchSib})`)
   }
-  out.push(`일간: ${day.stem}`)
   out.push('')
+
+  // 지장간
+  const hasJijanggan = P.some((p) => p.jijanggan && p.jijanggan.length > 0)
+  if (hasJijanggan) {
+    out.push('[지장간 — 각 지지 안 숨은 천간]')
+    for (let i = 0; i < 4; i++) {
+      const j = P[i].jijanggan ?? []
+      if (j.length > 0) out.push(`${PILLAR_LABELS[i]}지 ${P[i].branch}: ${j.join(' · ')}`)
+    }
+    out.push('')
+  }
+
+  // 대운 시계열 — prev/current/next 3개만 (full list는 너무 길어짐)
+  if (input.daeunList && input.daeunList.length > 0 && input.currentDaeun) {
+    const curIdx = input.daeunList.findIndex((d) => d.age === input.currentDaeun?.age)
+    if (curIdx >= 0) {
+      const window = input.daeunList.slice(Math.max(0, curIdx - 1), Math.min(input.daeunList.length, curIdx + 2))
+      out.push('[대운]')
+      for (const d of window) {
+        const marker = d.age === input.currentDaeun?.age ? ' ← 현재' : ''
+        const sib = `${d.sibsinStem ?? '?'}/${d.sibsinBranch ?? '?'}`
+        out.push(`${d.age}세 ${d.stem}${d.branch}  ${sib}${marker}`)
+      }
+      out.push('')
+    }
+  }
+
+  // 현재 세운 / 월운 / 일진 — 1줄씩
+  const periodLines: string[] = []
+  if (input.currentSewoon) periodLines.push(`세운 ${input.currentSewoon.year ?? '?'}: ${input.currentSewoon.stem}${input.currentSewoon.branch}`)
+  if (input.currentWolwoon) periodLines.push(`월운: ${input.currentWolwoon.stem}${input.currentWolwoon.branch}`)
+  if (input.currentIljin) periodLines.push(`일진${input.currentIljin.date ? ` (${input.currentIljin.date})` : ''}: ${input.currentIljin.stem}${input.currentIljin.branch}`)
+  if (periodLines.length > 0) {
+    out.push('[현재 시기]')
+    out.push(...periodLines)
+    out.push('')
+  }
 
   // 격국 · 용신
   if (input.geokguk || input.yongsin?.primary) {
