@@ -15,9 +15,11 @@ import { GetCircleSchema, PostCircleSchema, DeleteCircleSchema } from './validat
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const { searchParams } = new URL(req.url)
+    // searchParams.get은 param 없을 때 null을 반환하는데, z.coerce.number()는
+    // null → 0으로 coerce해서 min(1)에 걸린다. ??로 undefined로 바꿔야 .default가 먹힌다.
     const validation = GetCircleSchema.safeParse({
-      limit: searchParams.get('limit'),
-      offset: searchParams.get('offset'),
+      limit: searchParams.get('limit') ?? undefined,
+      offset: searchParams.get('offset') ?? undefined,
     })
 
     if (!validation.success) {
