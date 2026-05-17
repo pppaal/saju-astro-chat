@@ -46,7 +46,7 @@ export function normalizeZodiacSign(sign: unknown): ZodiacSign | null {
 /**
  * Type guard for zodiac sign
  */
-export function isValidZodiacSign(sign: unknown): sign is ZodiacSign {
+function isValidZodiacSign(sign: unknown): sign is ZodiacSign {
   return normalizeZodiacSign(sign) !== null
 }
 
@@ -75,7 +75,7 @@ export function validateHouseNumber(house: unknown): HouseNumber | null {
 /**
  * Type guard for house number
  */
-export function isValidHouseNumber(house: unknown): house is HouseNumber {
+function isValidHouseNumber(house: unknown): house is HouseNumber {
   return validateHouseNumber(house) !== null
 }
 
@@ -115,7 +115,7 @@ export function normalizeFiveElement(element: unknown): FiveElement | null {
 /**
  * Type guard for five element
  */
-export function isValidFiveElement(element: unknown): element is FiveElement {
+function isValidFiveElement(element: unknown): element is FiveElement {
   return normalizeFiveElement(element) !== null
 }
 
@@ -149,7 +149,7 @@ const STEM_ALIASES: Record<string, HeavenlyStem> = {
 /**
  * Validates and normalizes heavenly stem
  */
-export function normalizeHeavenlyStem(stem: unknown): HeavenlyStem | null {
+function normalizeHeavenlyStem(stem: unknown): HeavenlyStem | null {
   if (typeof stem !== 'string' || !stem.trim()) {
     return null
   }
@@ -161,7 +161,7 @@ export function normalizeHeavenlyStem(stem: unknown): HeavenlyStem | null {
 /**
  * Type guard for heavenly stem
  */
-export function isValidHeavenlyStem(stem: unknown): stem is HeavenlyStem {
+function isValidHeavenlyStem(stem: unknown): stem is HeavenlyStem {
   return normalizeHeavenlyStem(stem) !== null
 }
 
@@ -170,7 +170,7 @@ export function isValidHeavenlyStem(stem: unknown): stem is HeavenlyStem {
 /**
  * Checks if saju data has minimum required fields for analysis
  */
-export function validateSajuData(saju: unknown): saju is SajuData {
+function validateSajuData(saju: unknown): saju is SajuData {
   if (!saju || typeof saju !== 'object') {
     return false
   }
@@ -205,7 +205,7 @@ export function hasFiveElements(saju: SajuData | undefined): boolean {
 /**
  * Checks if saju has advanced analysis data
  */
-export function hasAdvancedAnalysis(saju: SajuData | undefined): boolean {
+function hasAdvancedAnalysis(saju: SajuData | undefined): boolean {
   if (!saju?.advancedAnalysis) {
     return false
   }
@@ -217,7 +217,7 @@ export function hasAdvancedAnalysis(saju: SajuData | undefined): boolean {
 /**
  * Checks if saju has sinsal/shinsal data
  */
-export function hasSinsalData(saju: SajuData | undefined): boolean {
+function hasSinsalData(saju: SajuData | undefined): boolean {
   if (!saju) {
     return false
   }
@@ -239,7 +239,7 @@ export function hasSinsalData(saju: SajuData | undefined): boolean {
 /**
  * Checks if astro data has minimum required fields for analysis
  */
-export function validateAstroData(astro: unknown): astro is AstroData {
+function validateAstroData(astro: unknown): astro is AstroData {
   if (!astro || typeof astro !== 'object') {
     return false
   }
@@ -256,7 +256,7 @@ export function validateAstroData(astro: unknown): astro is AstroData {
 /**
  * Checks if astro has valid planet data
  */
-export function hasPlanetData(astro: AstroData | undefined): boolean {
+function hasPlanetData(astro: AstroData | undefined): boolean {
   if (!astro?.planets) {
     return false
   }
@@ -271,14 +271,14 @@ export function hasPlanetData(astro: AstroData | undefined): boolean {
 /**
  * Checks if astro has aspect data
  */
-export function hasAspectData(astro: AstroData | undefined): boolean {
+function hasAspectData(astro: AstroData | undefined): boolean {
   return Array.isArray(astro?.aspects) && astro.aspects.length > 0
 }
 
 /**
  * Checks if astro has house data
  */
-export function hasHouseData(astro: AstroData | undefined): boolean {
+function hasHouseData(astro: AstroData | undefined): boolean {
   return Array.isArray(astro?.houses) && astro.houses.length > 0
 }
 
@@ -304,7 +304,7 @@ export function hasExtraPoints(astro: AstroData | undefined): boolean {
  * Validates both saju and astro data for analysis
  * Returns info about what data is available
  */
-export function validateAnalysisInput(
+function validateAnalysisInput(
   saju: unknown,
   astro: unknown
 ): {

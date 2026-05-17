@@ -50,14 +50,29 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
 
   // Lock the page to the viewport — the home is a single-screen UI and
   // any scroll on body/html (URL bar collapse, overscroll bounce, etc.)
-  // clips the bottom controls. Restore on unmount so other routes scroll.
+  // clips the bottom controls. On very short viewports (small phones,
+  // landscape, in-app browsers with large bottom UI) the CSS releases
+  // the lock and the body becomes scrollable; mirror that here so the
+  // JS overflow hint matches the layout and the user can reach the
+  // chat bar. Restore on unmount so other routes scroll normally.
   useEffect(() => {
-    if (typeof document === 'undefined') return
+    if (typeof document === 'undefined' || typeof window === 'undefined') return
     const prevBody = document.body.style.overflow
     const prevHtml = document.documentElement.style.overflow
-    document.body.style.overflow = 'hidden'
-    document.documentElement.style.overflow = 'hidden'
+
+    const shortViewport = window.matchMedia(
+      '(max-height: 620px), (orientation: landscape) and (max-height: 500px)'
+    )
+    const apply = () => {
+      const next = shortViewport.matches ? '' : 'hidden'
+      document.body.style.overflow = next
+      document.documentElement.style.overflow = next
+    }
+    apply()
+    shortViewport.addEventListener('change', apply)
+
     return () => {
+      shortViewport.removeEventListener('change', apply)
       document.body.style.overflow = prevBody
       document.documentElement.style.overflow = prevHtml
     }

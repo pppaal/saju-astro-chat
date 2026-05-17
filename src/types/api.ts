@@ -263,7 +263,7 @@ export interface TarotReading {
 // Type Guards
 // ============================================================
 
-export function isApiError(response: unknown): response is ApiError {
+function isApiError(response: unknown): response is ApiError {
   return (
     typeof response === 'object' &&
     response !== null &&
@@ -272,7 +272,7 @@ export function isApiError(response: unknown): response is ApiError {
   )
 }
 
-export function isCounselorInitResponse(response: unknown): response is CounselorInitResponse {
+function isCounselorInitResponse(response: unknown): response is CounselorInitResponse {
   return (
     typeof response === 'object' &&
     response !== null &&

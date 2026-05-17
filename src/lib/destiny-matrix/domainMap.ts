@@ -21,7 +21,7 @@ type LayerName =
 // - love is stronger in layer5/layer9
 // - health is stronger in layer6/layer10
 // - move is stronger in layer8/layer9/layer10
-export const LAYER_DOMAIN_MAP: Record<LayerName, Record<DomainKey, number>> = {
+const LAYER_DOMAIN_MAP: Record<LayerName, Record<DomainKey, number>> = {
   layer1: { career: 0.15, love: 0.2, money: 0.2, health: 0.25, move: 0.2 },
   layer2: { career: 0.35, love: 0.2, money: 0.25, health: 0.1, move: 0.1 },
   layer3: { career: 0.25, love: 0.25, money: 0.2, health: 0.1, move: 0.2 },

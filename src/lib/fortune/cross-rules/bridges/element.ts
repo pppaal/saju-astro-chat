@@ -22,14 +22,14 @@ export const KO_TO_SAJU_ELEMENT: Record<string, SajuElement> = {
 //
 // 이전에 있던 wood ↔ earth 매핑은 목극토(상극) 관계라 동치로 보기 어렵고
 // "사주 목 강 + 점성 earth 강 → 같은 본성"식의 거짓 발화를 만들어 제거.
-export const ASTRO_TO_SAJU: Record<AstroElement, SajuElement[]> = {
+const ASTRO_TO_SAJU: Record<AstroElement, SajuElement[]> = {
   fire: ['fire'],
   earth: ['earth'],
   air: ['wood', 'metal'],
   water: ['water'],
 }
 
-export const SAJU_TO_ASTRO: Record<SajuElement, AstroElement[]> = {
+const SAJU_TO_ASTRO: Record<SajuElement, AstroElement[]> = {
   wood: ['air'],
   fire: ['fire'],
   earth: ['earth'],

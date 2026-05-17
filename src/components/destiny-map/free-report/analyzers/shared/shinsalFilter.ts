@@ -98,7 +98,7 @@ export function extractShinsals(
  * });
  * ```
  */
-export function extractMultipleShinsals<T extends string>(
+function extractMultipleShinsals<T extends string>(
   data: ShinsalData | undefined,
   categories: Record<T, readonly ShinsalKind[] | readonly string[]>
 ): Record<T, Array<ShinsalKind | string>> {
@@ -120,7 +120,7 @@ export function extractMultipleShinsals<T extends string>(
  * @param shinsals 신살 목록
  * @param weights 신살별 가중치 (기본값: 각 1점)
  */
-export function calculateShinsalScore(
+function calculateShinsalScore(
   shinsals: Array<ShinsalKind | string>,
   weights: Partial<Record<ShinsalKind | string, number>> = {}
 ): number {

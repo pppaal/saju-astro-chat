@@ -65,7 +65,7 @@ export function DestinyMapSkeleton() {
 /**
  * 사주 결과 페이지 로딩 스켈레톤
  */
-export function DestinyResultSkeleton() {
+function DestinyResultSkeleton() {
   return (
     <div className={styles.resultContainer}>
       {/* 헤더 */}

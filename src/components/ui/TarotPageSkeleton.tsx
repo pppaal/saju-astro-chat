@@ -43,7 +43,7 @@ export function TarotPageSkeleton() {
  * 타로 카드 뽑기 페이지 로딩 스켈레톤
  * 카드 뽑는 페이지에서 사용
  */
-export function TarotReadingSkeleton() {
+function TarotReadingSkeleton() {
   return (
     <div className={styles.readingContainer}>
       {/* 상단 질문 영역 */}

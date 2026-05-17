@@ -180,7 +180,7 @@ function getAiProviders(): AIProvider[] {
 // 기본 AI 백엔드 호출
 // ===========================
 
-export async function callAIBackend(
+async function callAIBackend(
   prompt: string,
   lang: 'ko' | 'en',
   options?: {
@@ -714,7 +714,7 @@ function extractJSONFromResponse<T>(responseText: string): T {
 // 폴백 섹션 생성
 // ===========================
 
-export function createFallbackSections(lang: 'ko' | 'en'): AIPremiumReport['sections'] {
+function createFallbackSections(lang: 'ko' | 'en'): AIPremiumReport['sections'] {
   return {
     introduction: '',
     personalityDeep: '',

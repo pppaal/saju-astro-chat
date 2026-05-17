@@ -91,7 +91,7 @@ export async function trackVisitor(visitorId: string): Promise<void> {
 /**
  * Get current visitor statistics
  */
-export async function getVisitorStats(): Promise<{
+async function getVisitorStats(): Promise<{
   todayVisitors: number
   totalVisitors: number
 }> {
@@ -136,7 +136,7 @@ export async function getVisitorStats(): Promise<{
 /**
  * Reset all visitor statistics (for testing/admin purposes)
  */
-export async function resetVisitorStats(): Promise<void> {
+async function resetVisitorStats(): Promise<void> {
   try {
     const client = getRedisClient()
 

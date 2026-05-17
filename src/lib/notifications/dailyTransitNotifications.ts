@@ -446,7 +446,7 @@ export function getNotificationsForHour(
 /**
  * 알림 메시지를 다국어로 변환
  */
-export function localizeNotification(
+function localizeNotification(
   notification: DailyNotification,
   locale: string
 ): DailyNotification {
@@ -513,7 +513,7 @@ export function localizeNotification(
 /**
  * 다음 알림까지 남은 시간 계산 (밀리초)
  */
-export function getNextNotificationDelay(
+function getNextNotificationDelay(
   notifications: DailyNotification[],
   currentHour: number
 ): { notification: DailyNotification | null; delayMs: number } {

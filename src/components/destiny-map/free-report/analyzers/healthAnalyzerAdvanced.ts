@@ -185,7 +185,7 @@ function getTwelveStage(saju: SajuData | undefined): string | null {
   return saju?.twelveStages?.day || saju?.twelveStage || null;
 }
 
-export function getHealthAnalysisAdvanced(
+function getHealthAnalysisAdvanced(
   saju: SajuData | undefined,
   astro: AstroData | undefined,
   lang: string

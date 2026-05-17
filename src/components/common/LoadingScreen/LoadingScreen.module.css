@@ -193,3 +193,15 @@
     font-size: 0.75rem;
   }
 }
+
+/* ===== Reduced Motion =====
+   .loadingStep starts at opacity:0 and fades in via fadeInUp. Without
+   the animation the loading sub-step descriptions stay invisible.
+   Pin to the visible end state. */
+@media (prefers-reduced-motion: reduce) {
+  .loadingStep {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

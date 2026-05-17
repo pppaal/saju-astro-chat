@@ -41,7 +41,7 @@ export function loadSharedBirthInfo(): BirthInfo | null {
   }
 }
 
-export function saveSharedBirthInfo(value: BirthInfo): void {
+function saveSharedBirthInfo(value: BirthInfo): void {
   if (typeof window === 'undefined') {
     return
   }

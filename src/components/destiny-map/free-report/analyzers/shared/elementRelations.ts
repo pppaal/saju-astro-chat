@@ -150,7 +150,7 @@ export class ElementRelations {
 /**
  * Legacy function exports for backward compatibility
  */
-export const getGeneratedElement = ElementRelations.getGenerated
-export const getControlledElement = ElementRelations.getControlled
-export const getControllerElement = ElementRelations.getController
-export const getGeneratorElement = ElementRelations.getGenerator
+const getGeneratedElement = ElementRelations.getGenerated
+const getControlledElement = ElementRelations.getControlled
+const getControllerElement = ElementRelations.getController
+const getGeneratorElement = ElementRelations.getGenerator
