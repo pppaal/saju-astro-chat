@@ -60,21 +60,10 @@ export const MessagesPanel = React.memo(function MessagesPanel({
             &#x2734;
           </div>
           <p className={styles.emptyText}>{tr.empty}</p>
-
-          {showSuggestions && (
-            <div className={styles.suggestionsContainer}>
-              {suggestedQs.map((q, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className={styles.suggestionChip}
-                  onClick={() => onSuggestion(q)}
-                >
-                  {repairMojibakeText(q)}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Suggestion chips removed per user request — "나는 어떤
+              사람이에요? ✨" / "올해 무슨 일이 생길까요?" / "행운의
+              숫자/색깔 알려줘" felt like a fortune-app catalog when
+              the rest of the UI moved to a chat-first layout. */}
         </div>
       )}
 
