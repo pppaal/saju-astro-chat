@@ -392,7 +392,16 @@ export async function POST(req: NextRequest) {
             '- 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.',
             '- "A/B 시간 미상" 표시가 있으면 그쪽 시주/일진/ASC/MC/하우스 인용 금지.',
             '- AI/모델/상담사 정체 노출 금지.',
-            '- 사주·점성 전문 용어(일간, 십성, 대운, 천을귀인, 트랜짓, 어스펙트, 하우스 등)는 최대한 쓰지 말 것. 데이터는 근거로만 읽고, 일상 언어로 자연스럽게 풀어서 답한다. 꼭 필요할 때만 짧은 괄호 설명과 함께 한 번 언급.',
+            '',
+            '★ jargon 절대 금지 — raw 텍스트 그대로 인용 X:',
+            '  - 한자 (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 등) 출력 X',
+            '  - 용어 (일간, 십성, 대운, 천을귀인, 트랜짓, 어스펙트, 하우스, 합·충·형·해, Conjunction·Square·Trine 등) 출력 X',
+            '  - 데이터를 일상 한국어로 *완전 번역*해서 답:',
+            '    · "未丑충" → "감정·생활 패턴이 부딪힘"',
+            '    · "A 일간 辛 ↔ B 일간 甲, 금극목" → "A가 B를 정리·다듬는 결, B는 그게 따끔하게 느낄 수 있음"',
+            '    · "Moon Conjunction Mars" → "감정과 욕망이 같은 결로 끌림"',
+            '    · "천을귀인 발화" → "서로 보호해주는 흐름"',
+            '  - 답변에 한자나 영문 점성 용어가 *단 한 자도* 나오면 안 됨.',
           ].join('\n')
         : [
             'Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.',
@@ -560,13 +569,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 궁합 상담사는 *관계*만 답하므로 각 사람 self block은 빼고 synastry만
+    // 보낸다. synastry 라인이 각 사람 일간·대운 등 핵심 정보를 이미 포함.
+    // 개별 self는 운명 상담사 영역. self 변수는 build만 유지 (extraction
+    // 흐름은 다른 곳에서 참조 가능).
+    void sajuSelfA
+    void sajuSelfB
+    void astroSelfA
+    void astroSelfB
+
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
-      sajuSelfA ? `\n${sajuSelfA}` : '',
-      sajuSelfB ? `\n${sajuSelfB}` : '',
-      astroSelfA ? `\n${astroSelfA}` : '',
-      astroSelfB ? `\n${astroSelfB}` : '',
       sajuSynastryBlock ? `\n${sajuSynastryBlock}` : '',
       astroSynastryBlock ? `\n${astroSynastryBlock}` : '',
       // legacy fullContext 또는 시간 미상 안내
