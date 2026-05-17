@@ -71,7 +71,7 @@ const GRADE_LABELS: Record<CalendarLocale, Record<0 | 1 | 2 | 3 | 4, GradeLabel>
   },
 }
 
-export function getGradeLabel(grade: number, locale: CalendarLocale): GradeLabel {
+function getGradeLabel(grade: number, locale: CalendarLocale): GradeLabel {
   const clamped = Math.min(Math.max(grade, 0), 4) as 0 | 1 | 2 | 3 | 4
   return GRADE_LABELS[locale][clamped]
 }
