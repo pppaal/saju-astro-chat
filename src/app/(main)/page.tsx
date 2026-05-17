@@ -1,33 +1,55 @@
 import type { Metadata } from 'next'
 import MainPageClient from './MainPageClient'
 import { getServerI18n } from '@/i18n/server'
-import { generateJsonLd, generateMetadata } from '@/components/seo/SEO'
+import { generateJsonLd, generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
 import { JsonLd } from '@/components/seo/JsonLd'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
-export const metadata: Metadata = generateMetadata({
-  title: 'DestinyPal — AI 사주·점성·타로·궁합·캘린더',
-  description:
-    'AI가 사주와 점성을 함께 분석해 운세 상담, 타로, 궁합, 캘린더, 리포트를 한 곳에서 제공합니다. 결정이 필요한 순간 흐름과 타이밍을 알려드립니다.',
-  keywords: [
-    'DestinyPal',
-    '데스티니팔',
-    'AI 사주',
-    '사주풀이',
-    '오늘의 운세',
-    'AI 타로',
-    'AI 궁합',
-    '운세 캘린더',
-    'AI 운명 상담',
-    'ai saju',
-    'ai tarot',
-    'horoscope today',
-    'fortune calendar',
-    'compatibility test',
-  ],
-  canonicalUrl: baseUrl,
-})
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale()
+  return generateLocalizedMetadata(
+    {
+      en: {
+        title: 'DestinyPal — AI Saju, Astrology, Tarot, Compatibility & Fortune Calendar',
+        description:
+          "AI reads your Saju (Korean Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.",
+        keywords: [
+          'DestinyPal',
+          'ai saju',
+          'saju reading',
+          'four pillars of destiny',
+          'ai astrology',
+          'natal chart reading',
+          'ai tarot reading',
+          'horoscope today',
+          'compatibility test',
+          'synastry chart',
+          'fortune calendar',
+          'ai life counselor',
+        ],
+      },
+      ko: {
+        title: 'DestinyPal — AI 사주·점성·타로·궁합·캘린더',
+        description:
+          'AI가 사주와 점성을 함께 분석해 운세 상담, 타로, 궁합, 캘린더, 리포트를 한 곳에서 제공합니다. 결정이 필요한 순간 흐름과 타이밍을 알려드립니다.',
+        keywords: [
+          'DestinyPal',
+          '데스티니팔',
+          'AI 사주',
+          '사주풀이',
+          '오늘의 운세',
+          'AI 타로',
+          'AI 궁합',
+          '운세 캘린더',
+          'AI 운명 상담',
+        ],
+      },
+      canonicalUrl: baseUrl,
+    },
+    locale,
+  )
+}
 
 export default async function MainPage() {
   const { locale, messages } = await getServerI18n()
