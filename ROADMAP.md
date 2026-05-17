@@ -1,6 +1,6 @@
 # Development Roadmap
 
-Last audited: 2026-05-06 (Asia/Hong_Kong)
+Last audited: 2026-05-17 (Asia/Hong_Kong)
 
 This roadmap is a planning document. It is not a source of truth for current implementation status.
 
