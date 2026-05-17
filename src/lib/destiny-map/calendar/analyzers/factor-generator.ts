@@ -7,7 +7,7 @@
  * - recommendationKeys / warningKeys 생성
  */
 
-import type { BranchInteraction } from '@/lib/timing/advancedTimingEngine';
+import type { BranchInteraction } from '@/lib/calendar-engine/timing-helpers/advancedTimingEngine';
 import type { EventCategory } from '../types';
 import {
   ELEMENT_RELATIONS,
