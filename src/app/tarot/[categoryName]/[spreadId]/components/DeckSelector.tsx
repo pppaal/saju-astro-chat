@@ -121,42 +121,11 @@ export default function DeckSelector({
             ))}
           </div>
 
-          <section
-            className={styles.personalizationSection}
-            data-testid="tarot-personalization-controls"
-          >
-            <h2 className={styles.personalizationTitle}>
-              {isKo ? '\uD574\uC11D \uAC1C\uC778\uD654 \uC124\uC815' : 'Personalization'}
-            </h2>
-            <label className={styles.toggleRow} htmlFor="tarot-toggle-saju">
-              <span className={styles.toggleLabelMain}>
-                {isKo ? '\uC0AC\uC8FC \uBC18\uC601' : 'Include Saju'}
-              </span>
-              <input
-                id="tarot-toggle-saju"
-                data-testid="tarot-toggle-saju"
-                type="checkbox"
-                checked={personalizationOptions.includeSaju}
-                onChange={(event) =>
-                  onPersonalizationChange('includeSaju', event.currentTarget.checked)
-                }
-              />
-            </label>
-            <label className={styles.toggleRow} htmlFor="tarot-toggle-astrology">
-              <span className={styles.toggleLabelMain}>
-                {isKo ? '\uC810\uC131 \uBC18\uC601' : 'Include Astrology'}
-              </span>
-              <input
-                id="tarot-toggle-astrology"
-                data-testid="tarot-toggle-astrology"
-                type="checkbox"
-                checked={personalizationOptions.includeAstrology}
-                onChange={(event) =>
-                  onPersonalizationChange('includeAstrology', event.currentTarget.checked)
-                }
-              />
-            </label>
-          </section>
+          {/* Personalization toggles removed \u2014 user wants pure tarot
+              readings, no saju/astrology cross. includeSaju and
+              includeAstrology stay on the personalizationOptions
+              shape for backward compatibility with persisted local-
+              storage but are forced false at the hook level. */}
 
           <button
             className={styles.startReadingButton}

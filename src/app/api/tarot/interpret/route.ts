@@ -559,19 +559,16 @@ async function generateGPTInterpretation(
     .join('\n')
 
   const q = userQuestion || (isKorean ? '일반 상담' : 'general reading')
-  const compactSaju = truncatePromptContext(sajuContext)
-  const compactAstro = truncatePromptContext(astroContext)
-  const sajuBlock = compactSaju
-    ? isKorean
-      ? `\n## 사주 컨텍스트\n${compactSaju}`
-      : `\n## Saju Context\n${compactSaju}`
-    : ''
-  const astroBlock = compactAstro
-    ? isKorean
-      ? `\n## 점성 컨텍스트\n${compactAstro}`
-      : `\n## Astrology Context\n${compactAstro}`
-    : ''
-  const hasContext = Boolean(sajuBlock || astroBlock)
+  // Pure tarot — saju / astro cross removed per user request. The
+  // parameters stay on the function signature so existing callers
+  // compile without a cascade of plumbing changes; the values are
+  // intentionally ignored.
+  void truncatePromptContext
+  void sajuContext
+  void astroContext
+  const sajuBlock = ''
+  const astroBlock = ''
+  const hasContext = false
 
   // chunk 별 카드 예시 + JSON 스키마 빌더
   const buildChunkSchemas = (chunkStart: number, chunkEnd: number, includeMeta: boolean) => {

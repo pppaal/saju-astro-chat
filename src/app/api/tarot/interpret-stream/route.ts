@@ -212,28 +212,14 @@ export async function POST(req: NextRequest) {
 
     const q = effectiveUserQuestion || (isKorean ? '일반 운세' : 'general reading')
 
-    // 개인화 컨텍스트 — 사주/점성 등록 안 한 게스트라도 birthdate 만 있으면 별자리는 anchor 로 활용.
-    // mood/previousReadings 는 LLM Step 0 가 더 잘 처리해서 제거됨.
-    const zodiac = birthdate ? getZodiacSign(birthdate) : null
-    const sections: string[] = []
-    if (zodiac) {
-      sections.push(
-        isKorean
-          ? `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.elementKo} 원소)\n`
-          : `\n## Querent Info\n- Zodiac: ${zodiac.sign} (${zodiac.element} element)\n`
-      )
-    }
-    if (astroContext) {
-      sections.push(
-        isKorean ? `\n## 점성 맥락\n${astroContext}\n` : `\n## Astrology Context\n${astroContext}\n`
-      )
-    }
-    if (sajuContext) {
-      sections.push(
-        isKorean ? `\n## 사주 맥락\n${sajuContext}\n` : `\n## Saju Context\n${sajuContext}\n`
-      )
-    }
-    const personalizationContext = sections.join('')
+    // Pure tarot — no saju / astrology / zodiac cross. Variables
+    // remain in scope to keep the existing logging payload typed; we
+    // just don't surface any of them to the LLM.
+    void getZodiacSign
+    void birthdate
+    void sajuContext
+    void astroContext
+    const personalizationContext = ''
 
     // 시스템 프롬프트 — 100% 정적 (페르소나 + 4단계 + 스키마).
     // ${rawCards.length} 같은 인터폴레이션 *금지* — Anthropic prompt caching prefix 안정화.
@@ -275,7 +261,7 @@ ${personalizationContext}
 # 작성 지시
 - 모든 ${rawCards.length}장의 카드에 대해 cards[] 항목을 만드세요.
 - 각 카드는 위 질문 맥락 안에서 해석합니다. 카드를 보고 사전식 정의를 쓰지 마세요.
-- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.${zodiac ? `\n- 별자리(${zodiac.signKo}, ${zodiac.elementKo} 원소) 자연스럽게 한 번만 연결.` : ''}${astroContext ? '\n- 점성 맥락도 해석에 cross.' : ''}${sajuContext ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : ''}`
+- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.`
       : `# User's Question
 "${q}"
 
@@ -288,7 +274,7 @@ ${personalizationContext}
 # Instructions
 - Produce cards[] entries for all ${rawCards.length} cards.
 - Interpret each card *inside the user's question above*. No textbook definitions.
-- The first sentence of overall must reference the user's question directly.${zodiac ? `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.` : ''}${astroContext ? '\n- Cross with the astrology context.' : ''}${sajuContext ? '\n- Cross with the saju context — anchor in every card at least once.' : ''}`
+- The first sentence of overall must reference the user's question directly.`
 
     // Claude 우선.
     //  - <8장: 단일 호출, 응답 전체를 SSE 단일 청크로 emit (기존 흐름)
@@ -359,7 +345,7 @@ ${personalizationContext}
             : isKorean
               ? `# 작성 지시\n- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfo} 의 카드별 해석만 cards[] 에 채우세요. overall/advice 는 출력하지 마세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
               : `# Instructions\n- Use the full ${rawCards.length}-card flow as context only. Output ONLY per-card interpretations ${chunkInfo} in cards[]. Do NOT include overall/advice.\n- cards[] length must be exactly ${endIdx - startIdx}.`
-          const personalizationLine = `${zodiac ? (isKorean ? `\n- 별자리(${zodiac.signKo}, ${zodiac.elementKo} 원소) 자연스럽게 한 번만 연결.` : `\n- Mention ${zodiac.sign}'s ${zodiac.element} element naturally once.`) : ''}${astroContext ? (isKorean ? '\n- 점성 맥락도 해석에 cross.' : '\n- Cross with the astrology context.') : ''}${sajuContext ? (isKorean ? '\n- 사주 맥락도 해석에 cross — 모든 카드에 anchor 1회 이상.' : '\n- Cross with the saju context — anchor in every card at least once.') : ''}`
+          const personalizationLine = ''
           if (isKorean) {
             return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${rawCards.length}장)\n\n# 펼친 카드 — 전체 (자리명 — 자리 의미)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
           }
