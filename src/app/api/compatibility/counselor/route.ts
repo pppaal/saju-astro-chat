@@ -33,13 +33,10 @@ function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string):
   if (relation === 'other') return note?.trim() || (isKo ? '기타' : 'other')
   return isKo ? '관계' : 'related'
 }
-import {
-  formatSajuAsTable,
-  formatAstroAsTable,
-  formatSajuExtras,
-} from '@/lib/compatibility/sajuTableFormatter'
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
+import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
+import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 
 export const dynamic = 'force-dynamic'
@@ -271,45 +268,12 @@ export async function POST(req: NextRequest) {
     if (personA?.timeUnknown) unknownNotices.push('# A 시간 미상.')
     if (personB?.timeUnknown) unknownNotices.push('# B 시간 미상.')
 
-    // Pull extras + natalRelations out of each effective saju (they
-    // live next to the raw pillars on buildAutoSajuContext output) so
-    // formatSajuExtras can emit 격국·용신·신살·12운성 + 합/충/형/파/해/공망.
-    type ExtrasSource = Parameters<typeof formatSajuExtras>[0]
-    const extras1 = formatSajuExtras({
-      extras: (effectivePerson1Saju as { extras?: ExtrasSource['extras'] })?.extras,
-      natalRelations: (effectivePerson1Saju as { natalRelations?: ExtrasSource['natalRelations'] })?.natalRelations,
-    })
-    const extras2 = formatSajuExtras({
-      extras: (effectivePerson2Saju as { extras?: ExtrasSource['extras'] })?.extras,
-      natalRelations: (effectivePerson2Saju as { natalRelations?: ExtrasSource['natalRelations'] })?.natalRelations,
-    })
-
+    // legacy fullContext 입력(있을 때)만 raw JSON으로 직렬화. self 블록이
+    // 각 사람 raw + cross 다 cover하므로 fullContext가 없으면 fullContextText는
+    // 빈 string — cached의 == 전체 raw 컨텍스트 == 섹션 자체가 생략됨.
     const fullContextText = fullContext
       ? stringifyForPrompt(prunePromptContext(resolvedFullContext))
-      : [
-          ...unknownNotices,
-          ...(unknownNotices.length > 0 ? [''] : []),
-          formatSajuAsTable(
-            effectivePerson1Saju as Parameters<typeof formatSajuAsTable>[0],
-            'A',
-          ),
-          extras1 ? `A의 ${extras1}` : '',
-          formatSajuAsTable(
-            effectivePerson2Saju as Parameters<typeof formatSajuAsTable>[0],
-            'B',
-          ),
-          extras2 ? `B의 ${extras2}` : '',
-          formatAstroAsTable(
-            effectivePerson1Astro as Parameters<typeof formatAstroAsTable>[0],
-            'A',
-          ),
-          formatAstroAsTable(
-            effectivePerson2Astro as Parameters<typeof formatAstroAsTable>[0],
-            'B',
-          ),
-        ]
-          .filter((block) => !/\(없음\)/.test(block))
-          .join('\n\n')
+      : [...unknownNotices].filter(Boolean).join('\n')
     const contextTrace = {
       currentDateIso: new Date().toISOString().slice(0, 10),
       hasDaeun: Boolean(timingDetails.person1.hasDaeun) || Boolean(timingDetails.person2.hasDaeun),
@@ -510,14 +474,103 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ── 각 사람 self 블록 (raw + cross 통합 — 운명 상담사와 동일 형식) ──
+    let sajuSelfA = ''
+    let sajuSelfB = ''
+    let astroSelfA = ''
+    let astroSelfB = ''
+    try {
+      const aP = (effectivePerson1Saju as { pillars?: Record<string, Record<string, unknown>> } | null)?.pillars
+      const bP = (effectivePerson2Saju as { pillars?: Record<string, Record<string, unknown>> } | null)?.pillars
+      const toSlot = (slot?: Record<string, unknown>) => {
+        const stem = slot?.heavenlyStem as { name?: string; sibsin?: string } | undefined
+        const branch = slot?.earthlyBranch as { name?: string; sibsin?: string } | undefined
+        const j = slot?.jijanggan as { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } } | undefined
+        return {
+          stem: stem?.name ?? '',
+          branch: branch?.name ?? '',
+          stemSibsin: stem?.sibsin,
+          branchSibsin: branch?.sibsin,
+          jijanggan: [j?.chogi?.name, j?.junggi?.name, j?.jeonggi?.name].filter((s): s is string => Boolean(s)),
+        }
+      }
+      const buildSajuSelf = (
+        sajuCtx: Record<string, unknown> | null | undefined,
+        pillarsRecord: Record<string, Record<string, unknown>> | undefined,
+        label: string,
+      ): string => {
+        if (!pillarsRecord) return ''
+        const dm = (sajuCtx?.dayMaster as { name?: string; element?: string; yin_yang?: string } | undefined)
+        const daeWoon = (sajuCtx?.daeWoon as { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null; list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }> } | undefined)
+        const extras = (sajuCtx?.extras as { geokguk?: { primary?: string } | null; yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null } | undefined)
+        const cur = daeWoon?.current
+        const daeunList = (daeWoon?.list ?? []).map((d) => ({
+          age: d.age ?? 0,
+          stem: d.heavenlyStem ?? '',
+          branch: d.earthlyBranch ?? '',
+          sibsinStem: d.sibsin?.cheon,
+          sibsinBranch: d.sibsin?.ji,
+        }))
+        return formatSajuSelf({
+          pillars: [toSlot(pillarsRecord.year), toSlot(pillarsRecord.month), toSlot(pillarsRecord.day), toSlot(pillarsRecord.time)],
+          dayMaster: dm?.name ? { name: dm.name, element: dm.element ?? '', yinYang: dm.yin_yang } : null,
+          geokguk: extras?.geokguk?.primary ?? null,
+          yongsin: extras?.yongsin ?? null,
+          daeunList,
+          currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
+          label,
+        })
+      }
+      sajuSelfA = buildSajuSelf(effectivePerson1Saju as Record<string, unknown> | null, aP, 'A 사주')
+      sajuSelfB = buildSajuSelf(effectivePerson2Saju as Record<string, unknown> | null, bP, 'B 사주')
+    } catch (err) {
+      logger.warn('[compat counselor] saju-self format failed', { err: err instanceof Error ? err.message : String(err) })
+    }
+
+    if (person1Seed && person2Seed && process.env.NODE_ENV !== 'test') {
+      try {
+        const [Y1, M1, D1] = person1Seed.date.split('-').map(Number)
+        const [h1, mi1] = person1Seed.time.split(':').map(Number)
+        const [Y2, M2, D2] = person2Seed.date.split('-').map(Number)
+        const [h2, mi2] = person2Seed.time.split(':').map(Number)
+        if ([Y1, M1, D1, h1, mi1, Y2, M2, D2, h2, mi2].every(Number.isFinite)) {
+          const [natalA, natalB] = await Promise.all([
+            calculateNatalChart({ year: Y1, month: M1, date: D1, hour: h1, minute: mi1, latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone }),
+            calculateNatalChart({ year: Y2, month: M2, date: D2, hour: h2, minute: mi2, latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone }),
+          ])
+          ;[astroSelfA, astroSelfB] = await Promise.all([
+            formatAstroSelf({
+              chart: toChart(natalA),
+              latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone,
+              koreanAge: p1Age,
+              natalInput: { year: Y1, month: M1, date: D1, hour: h1, minute: mi1, latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone },
+              label: 'A 점성',
+            }),
+            formatAstroSelf({
+              chart: toChart(natalB),
+              latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone,
+              koreanAge: p2Age,
+              natalInput: { year: Y2, month: M2, date: D2, hour: h2, minute: mi2, latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone },
+              label: 'B 점성',
+            }),
+          ])
+        }
+      } catch (err) {
+        logger.warn('[compat counselor] astro-self format failed', { err: err instanceof Error ? err.message : String(err) })
+      }
+    }
+
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
+      sajuSelfA ? `\n${sajuSelfA}` : '',
+      sajuSelfB ? `\n${sajuSelfB}` : '',
+      astroSelfA ? `\n${astroSelfA}` : '',
+      astroSelfB ? `\n${astroSelfB}` : '',
       sajuSynastryBlock ? `\n${sajuSynastryBlock}` : '',
       astroSynastryBlock ? `\n${astroSynastryBlock}` : '',
-      // contextTrace(키 개수, 커버리지 플래그 등)는 디버그 메타데이터 — 응답에
-      // 쓸 정보가 아니므로 server log로만 남기고 prompt에는 포함하지 않는다.
-      fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
+      // legacy fullContext 또는 시간 미상 안내
+      fullContextText ? `\n${fullContextText}` : '',
     ]
       .filter(Boolean)
       .join('\n')

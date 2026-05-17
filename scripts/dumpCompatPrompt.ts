@@ -206,29 +206,14 @@ async function main() {
     return `${head}: ${p.date} ${p.time}${rel}`
   }).join('\n')
 
-  // 5) fullContext text — same table form route.ts now uses.
+  // 5) legacy fullContext (옛 raw 4기둥/extras/astro 테이블)은 self 블록이
+  // 다 cover하므로 dump 출력에서도 제외. void만으로 import 보존.
   void stringifyForPrompt
   void prunePromptContext
-  const fullContextText = [
-    formatSajuAsTable(eff1Saju as Parameters<typeof formatSajuAsTable>[0], 'A'),
-    ((): string => {
-      const e = formatSajuExtras({
-        extras: (eff1Saju as { extras?: Parameters<typeof formatSajuExtras>[0]['extras'] })?.extras,
-        natalRelations: (eff1Saju as { natalRelations?: Parameters<typeof formatSajuExtras>[0]['natalRelations'] })?.natalRelations,
-      })
-      return e ? `A의 ${e}` : ''
-    })(),
-    formatSajuAsTable(eff2Saju as Parameters<typeof formatSajuAsTable>[0], 'B'),
-    ((): string => {
-      const e = formatSajuExtras({
-        extras: (eff2Saju as { extras?: Parameters<typeof formatSajuExtras>[0]['extras'] })?.extras,
-        natalRelations: (eff2Saju as { natalRelations?: Parameters<typeof formatSajuExtras>[0]['natalRelations'] })?.natalRelations,
-      })
-      return e ? `B의 ${e}` : ''
-    })(),
-    formatAstroAsTable(eff1Astro as Parameters<typeof formatAstroAsTable>[0], 'A'),
-    formatAstroAsTable(eff2Astro as Parameters<typeof formatAstroAsTable>[0], 'B'),
-  ]
+  void formatSajuAsTable
+  void formatAstroAsTable
+  void formatSajuExtras
+  const fullContextText = [''] // self 블록으로 대체됨
     .filter((block) => !/\(없음\)/.test(block))
     .join('\n\n')
 
@@ -271,7 +256,42 @@ async function main() {
     currentDaeunB: bDae ? { stem: bDae.heavenlyStem ?? '', branch: bDae.earthlyBranch ?? '', age: bDae.age } : null,
   }) : ''
 
+  // self 블록 (raw + cross 통합) — production route #248 미러
+  const { formatSajuSelf } = await import('../src/lib/destiny/sajuSelfFormatter')
+  const { formatAstroSelf } = await import('../src/lib/destiny/astroSelfFormatter')
+
+  const toSlot = (slot: { heavenlyStem?: { name?: string; sibsin?: string }; earthlyBranch?: { name?: string; sibsin?: string }; jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } } } | undefined) => ({
+    stem: slot?.heavenlyStem?.name ?? '',
+    branch: slot?.earthlyBranch?.name ?? '',
+    stemSibsin: slot?.heavenlyStem?.sibsin,
+    branchSibsin: slot?.earthlyBranch?.sibsin,
+    jijanggan: [slot?.jijanggan?.chogi?.name, slot?.jijanggan?.junggi?.name, slot?.jijanggan?.jeonggi?.name].filter((s): s is string => Boolean(s)),
+  })
+  const buildSajuSelf = (sajuCtx: Record<string, unknown> | null, pillarsR: Record<string, { heavenlyStem?: { name?: string; sibsin?: string }; earthlyBranch?: { name?: string; sibsin?: string }; jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } } }> | undefined, label: string) => {
+    if (!pillarsR) return ''
+    const dm = sajuCtx?.dayMaster as { name?: string; element?: string; yin_yang?: string } | undefined
+    const daeWoon = sajuCtx?.daeWoon as { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null; list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }> } | undefined
+    const extras = sajuCtx?.extras as { geokguk?: { primary?: string } | null; yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null } | undefined
+    const cur = daeWoon?.current
+    const daeunList = (daeWoon?.list ?? []).map((d) => ({ age: d.age ?? 0, stem: d.heavenlyStem ?? '', branch: d.earthlyBranch ?? '', sibsinStem: d.sibsin?.cheon, sibsinBranch: d.sibsin?.ji }))
+    return formatSajuSelf({
+      pillars: [toSlot(pillarsR.year), toSlot(pillarsR.month), toSlot(pillarsR.day), toSlot(pillarsR.time)],
+      dayMaster: dm?.name ? { name: dm.name, element: dm.element ?? '', yinYang: dm.yin_yang } : null,
+      geokguk: extras?.geokguk?.primary ?? null,
+      yongsin: extras?.yongsin ?? null,
+      daeunList,
+      currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
+      label,
+    })
+  }
+  const aPSelf = (eff1Saju as { pillars?: Record<string, { heavenlyStem?: { name?: string; sibsin?: string }; earthlyBranch?: { name?: string; sibsin?: string }; jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } } }> } | null)?.pillars
+  const bPSelf = (eff2Saju as { pillars?: Record<string, { heavenlyStem?: { name?: string; sibsin?: string }; earthlyBranch?: { name?: string; sibsin?: string }; jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } } }> } | null)?.pillars
+  const sajuSelfA = buildSajuSelf(eff1Saju as Record<string, unknown> | null, aPSelf, 'A 사주')
+  const sajuSelfB = buildSajuSelf(eff2Saju as Record<string, unknown> | null, bPSelf, 'B 사주')
+
   let astroSyn = ''
+  let astroSelfA = ''
+  let astroSelfB = ''
   try {
     const [Y1, M1, D1] = persons[0].date.split('-').map(Number)
     const [h1, mi1] = persons[0].time.split(':').map(Number)
@@ -286,14 +306,34 @@ async function main() {
       latA: persons[0].latitude!, lonA: persons[0].longitude!,
       latB: persons[1].latitude!, lonB: persons[1].longitude!,
     })
-  } catch (e) { console.error('[astro syn]', e) }
+    ;[astroSelfA, astroSelfB] = await Promise.all([
+      formatAstroSelf({
+        chart: toChart(natalA),
+        latitude: persons[0].latitude!, longitude: persons[0].longitude!, timeZone: persons[0].timeZone!,
+        koreanAge: p1Age,
+        natalInput: { year: Y1, month: M1, date: D1, hour: h1, minute: mi1, latitude: persons[0].latitude!, longitude: persons[0].longitude!, timeZone: persons[0].timeZone! },
+        label: 'A 점성',
+      }),
+      formatAstroSelf({
+        chart: toChart(natalB),
+        latitude: persons[1].latitude!, longitude: persons[1].longitude!, timeZone: persons[1].timeZone!,
+        koreanAge: p2Age,
+        natalInput: { year: Y2, month: M2, date: D2, hour: h2, minute: mi2, latitude: persons[1].latitude!, longitude: persons[1].longitude!, timeZone: persons[1].timeZone! },
+        label: 'B 점성',
+      }),
+    ])
+  } catch (e) { console.error('[astro syn/self]', e) }
 
   const cachedUserContext = [
     `== 참여자 정보 ==`,
     personsInfo,
+    sajuSelfA ? `\n${sajuSelfA}` : '',
+    sajuSelfB ? `\n${sajuSelfB}` : '',
+    astroSelfA ? `\n${astroSelfA}` : '',
+    astroSelfB ? `\n${astroSelfB}` : '',
     sajuSyn ? `\n${sajuSyn}` : '',
     astroSyn ? `\n${astroSyn}` : '',
-    fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
+    fullContextText ? `\n${fullContextText}` : '',
   ].filter(Boolean).join('\n')
 
   void buildEvidenceGroundingGuide
