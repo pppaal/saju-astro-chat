@@ -1,4 +1,4 @@
-import type { ActiveSignal, SignalLayer, SignalPattern } from '../types'
+import type { SignalLayer, SignalPattern } from '../types'
 
 /**
  * ActiveSignal[] → 종합 점수 (0~100).
@@ -19,7 +19,18 @@ const LAYER_WEIGHT: Record<SignalLayer, number> = {
   instant:  0.5,
 }
 
-export function deriveScore(signals: ActiveSignal[], patterns: SignalPattern[] = []): number {
+/**
+ * 점수 계산에 실제로 쓰이는 최소 필드만 요구 — full ActiveSignal 뿐 아니라
+ * 응답에 직렬화된 engineSignals(폴라리티가 plain number) 같은 lite shape도
+ * 그대로 넘길 수 있다.
+ */
+export interface SignalForScore {
+  layer: SignalLayer
+  polarity: number
+  weight: number
+}
+
+export function deriveScore(signals: SignalForScore[], patterns: SignalPattern[] = []): number {
   if (signals.length === 0) return 50
 
   // 1단: 레이어별로 평균 polarity 산출 (weight 가중)
