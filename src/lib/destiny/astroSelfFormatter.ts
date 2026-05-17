@@ -14,6 +14,8 @@
 import { calculateTransitChart, findTransitAspects } from '@/lib/astrology/foundation/transit'
 import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
+import { calculateSolarReturn, calculateLunarReturn } from '@/lib/astrology/foundation/returns'
+import type { NatalInput } from '@/lib/astrology/foundation/types'
 import type {
   AspectType,
   Chart,
@@ -114,6 +116,8 @@ export interface AstroSelfInput {
   koreanAge?: number
   /** 현재 시간 (transit aspects 기준) — default now */
   now?: Date
+  /** Solar Return / Lunar Return 계산용 natal input — 없으면 SR/LR skip */
+  natalInput?: NatalInput
 }
 
 export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
@@ -173,6 +177,31 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
       out.push('')
     }
   } catch { /* skip — transit ephemeris 실패 시 */ }
+
+  // Solar Return / Lunar Return — natalInput 있으면 계산
+  if (input.natalInput) {
+    const nowDate = input.now ?? new Date()
+    try {
+      const sr = await calculateSolarReturn({ natal: input.natalInput, year: nowDate.getFullYear() })
+      out.push(`[Solar Return — ${nowDate.getFullYear()}]`)
+      if (sr.ascendant?.sign) out.push(`Asc: ${sign(sr.ascendant.sign)} ${sr.ascendant.degree}°`)
+      if (sr.mc?.sign) out.push(`MC: ${sign(sr.mc.sign)} ${sr.mc.degree}°`)
+      for (const pl of sr.planets) {
+        out.push(`${label(pl.name)} in ${sign(pl.sign)} ${pl.degree}°, House ${pl.house}${pl.retrograde ? ' R' : ''}`)
+      }
+      out.push('')
+    } catch { /* skip */ }
+    try {
+      const lr = await calculateLunarReturn({ natal: input.natalInput, year: nowDate.getFullYear(), month: nowDate.getMonth() + 1 })
+      out.push(`[Lunar Return — ${nowDate.getFullYear()}-${String(nowDate.getMonth() + 1).padStart(2, '0')}]`)
+      if (lr.ascendant?.sign) out.push(`Asc: ${sign(lr.ascendant.sign)} ${lr.ascendant.degree}°`)
+      if (lr.mc?.sign) out.push(`MC: ${sign(lr.mc.sign)} ${lr.mc.degree}°`)
+      for (const pl of lr.planets) {
+        out.push(`${label(pl.name)} in ${sign(pl.sign)} ${pl.degree}°, House ${pl.house}${pl.retrograde ? ' R' : ''}`)
+      }
+      out.push('')
+    } catch { /* skip */ }
+  }
 
   // Profection — 해 단위 house ((나이 % 12) + 1)
   if (typeof input.koreanAge === 'number' && input.koreanAge > 0) {
