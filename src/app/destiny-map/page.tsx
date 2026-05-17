@@ -67,17 +67,10 @@ export default function DestinyMapPage() {
             href="/destiny-map/theme"
             className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] px-8 py-4 text-[15px] font-semibold text-white shadow-[0_20px_60px_rgba(124,92,255,0.4)] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_22px_70px_rgba(124,92,255,0.5)]"
           >
-            무료 리포트 시작
+            리포트 시작
             <span className="text-[18px] transition-transform duration-300 group-hover:translate-x-1">
               →
             </span>
-          </Link>
-
-          <Link
-            href="/premium-reports"
-            className="text-[13px] text-slate-400 underline-offset-4 transition hover:text-cyan-300 hover:underline"
-          >
-            더 깊이 보고 싶다면 — Premium 리포트
           </Link>
         </section>
 

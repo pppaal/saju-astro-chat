@@ -21,9 +21,7 @@ export default function robots(): MetadataRoute.Robots {
           '/offline/',
           '/shared/',
           '/destiny-map/result/',
-          '/premium-reports/result/',
           '/tarot/history/',
-          '/compatibility/chat/',
         ],
       },
       {
