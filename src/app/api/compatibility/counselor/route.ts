@@ -33,13 +33,10 @@ function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string):
   if (relation === 'other') return note?.trim() || (isKo ? '기타' : 'other')
   return isKo ? '관계' : 'related'
 }
-import {
-  formatSajuAsTable,
-  formatAstroAsTable,
-  formatSajuExtras,
-} from '@/lib/compatibility/sajuTableFormatter'
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
+import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
+import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 
 export const dynamic = 'force-dynamic'
@@ -271,45 +268,12 @@ export async function POST(req: NextRequest) {
     if (personA?.timeUnknown) unknownNotices.push('# A 시간 미상.')
     if (personB?.timeUnknown) unknownNotices.push('# B 시간 미상.')
 
-    // Pull extras + natalRelations out of each effective saju (they
-    // live next to the raw pillars on buildAutoSajuContext output) so
-    // formatSajuExtras can emit 격국·용신·신살·12운성 + 합/충/형/파/해/공망.
-    type ExtrasSource = Parameters<typeof formatSajuExtras>[0]
-    const extras1 = formatSajuExtras({
-      extras: (effectivePerson1Saju as { extras?: ExtrasSource['extras'] })?.extras,
-      natalRelations: (effectivePerson1Saju as { natalRelations?: ExtrasSource['natalRelations'] })?.natalRelations,
-    })
-    const extras2 = formatSajuExtras({
-      extras: (effectivePerson2Saju as { extras?: ExtrasSource['extras'] })?.extras,
-      natalRelations: (effectivePerson2Saju as { natalRelations?: ExtrasSource['natalRelations'] })?.natalRelations,
-    })
-
+    // legacy fullContext 입력(있을 때)만 raw JSON으로 직렬화. self 블록이
+    // 각 사람 raw + cross 다 cover하므로 fullContext가 없으면 fullContextText는
+    // 빈 string — cached의 == 전체 raw 컨텍스트 == 섹션 자체가 생략됨.
     const fullContextText = fullContext
       ? stringifyForPrompt(prunePromptContext(resolvedFullContext))
-      : [
-          ...unknownNotices,
-          ...(unknownNotices.length > 0 ? [''] : []),
-          formatSajuAsTable(
-            effectivePerson1Saju as Parameters<typeof formatSajuAsTable>[0],
-            'A',
-          ),
-          extras1 ? `A의 ${extras1}` : '',
-          formatSajuAsTable(
-            effectivePerson2Saju as Parameters<typeof formatSajuAsTable>[0],
-            'B',
-          ),
-          extras2 ? `B의 ${extras2}` : '',
-          formatAstroAsTable(
-            effectivePerson1Astro as Parameters<typeof formatAstroAsTable>[0],
-            'A',
-          ),
-          formatAstroAsTable(
-            effectivePerson2Astro as Parameters<typeof formatAstroAsTable>[0],
-            'B',
-          ),
-        ]
-          .filter((block) => !/\(없음\)/.test(block))
-          .join('\n\n')
+      : [...unknownNotices].filter(Boolean).join('\n')
     const contextTrace = {
       currentDateIso: new Date().toISOString().slice(0, 10),
       hasDaeun: Boolean(timingDetails.person1.hasDaeun) || Boolean(timingDetails.person2.hasDaeun),
@@ -420,15 +384,24 @@ export async function POST(req: NextRequest) {
     const systemPrompt =
       counselorLang === 'ko'
         ? [
-            '아래 == 참여자 정보 == 블록의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다.',
+            '아래 == 참여자 정보 == 블록의 사주·점성 시너스트리 데이터를 근거로 두 사람의 관계 역학에 직접 답변한다.',
             '',
             '규칙:',
-            '- 두 사람의 관계 역학에 답한다. 한 명만 분석하지 말 것.',
-            '- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.',
-            '- 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.',
+            '- 두 사람의 *관계*에 답한다. 한 명만 분석 X.',
+            '- 사주와 점성을 한 흐름으로 통합. 시스템 분리 X.',
+            '- 마크다운 헤더(##)·번호 list 금지. 자연스러운 단락으로.',
             '- "A/B 시간 미상" 표시가 있으면 그쪽 시주/일진/ASC/MC/하우스 인용 금지.',
             '- AI/모델/상담사 정체 노출 금지.',
-            '- 사주·점성 전문 용어(일간, 십성, 대운, 천을귀인, 트랜짓, 어스펙트, 하우스 등)는 최대한 쓰지 말 것. 데이터는 근거로만 읽고, 일상 언어로 자연스럽게 풀어서 답한다. 꼭 필요할 때만 짧은 괄호 설명과 함께 한 번 언급.',
+            '',
+            '★ jargon 절대 금지 — raw 텍스트 그대로 인용 X:',
+            '  - 한자 (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 등) 출력 X',
+            '  - 용어 (일간, 십성, 대운, 천을귀인, 트랜짓, 어스펙트, 하우스, 합·충·형·해, Conjunction·Square·Trine 등) 출력 X',
+            '  - 데이터를 일상 한국어로 *완전 번역*해서 답:',
+            '    · "未丑충" → "감정·생활 패턴이 부딪힘"',
+            '    · "A 일간 辛 ↔ B 일간 甲, 금극목" → "A가 B를 정리·다듬는 결, B는 그게 따끔하게 느낄 수 있음"',
+            '    · "Moon Conjunction Mars" → "감정과 욕망이 같은 결로 끌림"',
+            '    · "천을귀인 발화" → "서로 보호해주는 흐름"',
+            '  - 답변에 한자나 영문 점성 용어가 *단 한 자도* 나오면 안 됨.',
           ].join('\n')
         : [
             'Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.',
@@ -510,14 +483,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 옛 each-person self block (A 사주 / B 사주 / A 점성 / B 점성) 제거.
+    // 궁합 상담사는 *관계*만 답하면 되므로 두 사람 synastry만 LLM에 주는 게
+    // 더 정확. 개별 사주 raw는 운명 상담사 영역. formatSajuSelf /
+    // formatAstroSelf import는 유지 — synastry 라인에서 각 사람 기본 정보
+    // (일간, 대운 등)를 이미 포함하므로 추가 self block 불필요.
+    void formatSajuSelf
+    void formatAstroSelf
+    void toChart
+    void calculateNatalChart
+
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
       sajuSynastryBlock ? `\n${sajuSynastryBlock}` : '',
       astroSynastryBlock ? `\n${astroSynastryBlock}` : '',
-      // contextTrace(키 개수, 커버리지 플래그 등)는 디버그 메타데이터 — 응답에
-      // 쓸 정보가 아니므로 server log로만 남기고 prompt에는 포함하지 않는다.
-      fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
+      // legacy fullContext 또는 시간 미상 안내
+      fullContextText ? `\n${fullContextText}` : '',
     ]
       .filter(Boolean)
       .join('\n')
