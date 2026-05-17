@@ -33,10 +33,10 @@ export function HorizontalCardsGrid({
     <div className={styles.resultsGridHorizontal}>
       {readingResult.drawnCards.map((drawnCard: DrawnCard, index: number) => {
         const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright
-        const position = readingResult.spread.positions[index]
+        // 자리 라벨은 LLM 응답에서 명명되지만 카드 선택 단계에서는
+        // 아직 응답 전 → ordinal 만 표시.
         const positionTitle =
-          (language === 'ko' ? position?.titleKo || position?.title : position?.title) ||
-          (language === 'ko' ? `카드 ${index + 1}` : `Card ${index + 1}`)
+          language === 'ko' ? `${index + 1}번 카드` : `Card ${index + 1}`
         const revealed = isCardRevealed(index)
         const canReveal = canRevealCard(index)
 

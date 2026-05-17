@@ -208,13 +208,19 @@ export function formatReadingForSave(
       titleKo: spread.titleKo,
       cardCount: spread.cardCount,
     },
-    cards: drawnCards.map((dc, idx) => ({
-      name: dc.card.name,
-      nameKo: dc.card.nameKo,
-      isReversed: dc.isReversed,
-      position: spread.positions[idx]?.title || `Card ${idx + 1}`,
-      positionKo: spread.positions[idx]?.titleKo,
-    })),
+    cards: drawnCards.map((dc, idx) => {
+      // 자리 라벨은 LLM 응답(card_insights[idx].position) 에서 가져오고,
+      // 없으면 ordinal 폴백.
+      const llmPosition = interpretation?.card_insights?.[idx]?.position
+      const fallback = `${idx + 1}번 카드`
+      return {
+        name: dc.card.name,
+        nameKo: dc.card.nameKo,
+        isReversed: dc.isReversed,
+        position: llmPosition || fallback,
+        positionKo: llmPosition || fallback,
+      }
+    }),
     interpretation: {
       overallMessage: interpretation?.overall_message || '',
       guidance: interpretation?.guidance || '',

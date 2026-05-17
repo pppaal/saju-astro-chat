@@ -543,18 +543,14 @@ async function generateGPTInterpretation(
   const isLargeSpread = cards.length >= LARGE_SPREAD_THRESHOLD
   const budget = getPromptBudget(cards.length, isKorean)
 
-  // 전체 카드 정보 (양 chunk 모두 컨텍스트로 받음).
-  // 자리 의미(positionMeaning)가 있으면 함께 보내 LLM 이 추측 대신 그 의미에 맞춰 매핑하도록.
+  // 카드 면(이름 + 정/역 + 키워드) 만 번호 매겨 전달. 자리 라벨은
+  // LLM 이 질문 맥락에 맞게 응답 시 직접 명명한다.
   const cardListText = cards
     .map((c, i) => {
       const name = isKorean && c.nameKo ? c.nameKo : c.name
-      const pos = isKorean && c.positionKo ? c.positionKo : c.position
-      const posMeaning = isKorean
-        ? c.positionMeaningKo || c.positionMeaning
-        : c.positionMeaning
       const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || []
-      const seat = posMeaning ? `${pos} — ${posMeaning}` : pos
-      return `${i + 1}. [${seat}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
+      const kw = keywords.slice(0, 3).join(', ')
+      return `${i + 1}. ${name}${c.isReversed ? '(역방향)' : ''}${kw ? ` - ${kw}` : ''}`
     })
     .join('\n')
 
@@ -570,13 +566,13 @@ async function generateGPTInterpretation(
   const astroBlock = ''
   const hasContext = false
 
-  // chunk 별 카드 예시 + JSON 스키마 빌더
+  // chunk 별 카드 예시 + JSON 스키마 빌더 — position 은 LLM 이 직접
+  // 명명하므로 스키마에 placeholder 만 박아둔다.
   const buildChunkSchemas = (chunkStart: number, chunkEnd: number, includeMeta: boolean) => {
     const chunkCards = cards.slice(chunkStart, chunkEnd)
     const cardExamples = chunkCards
-      .map((c, j) => {
+      .map((_c, j) => {
         const i = chunkStart + j
-        const pos = isKorean && c.positionKo ? c.positionKo : c.position
         const ordinal = isKorean
           ? `${i + 1}번째`
           : i === 0
@@ -588,12 +584,12 @@ async function generateGPTInterpretation(
                 : `${i + 1}th`
         return isKorean
           ? `    {
-      "position": "${pos}",
+      "position": "자리명 (네가 사용자 질문 맥락에 맞춰 명명, 2-6자, 중복 X)",
       "interpretation": "${ordinal} 카드 해석 (${budget.perCardGuide})",
       "actionTip": "이 카드 + 이 자리 + 질문 맥락에 맞춘 실천 행동 1-2문장 (80-140자) — 시간 앵커 + 구체 행동 1개 이상"
     }`
           : `    {
-      "position": "${pos}",
+      "position": "Seat name you choose for this card based on the user's question (2-4 words, no duplicates)",
       "interpretation": "${ordinal} card interpretation (${budget.perCardGuide})",
       "actionTip": "Concrete action tied to this card+seat+question (50-90 words) — include a time anchor + one specific action"
     }`
@@ -639,8 +635,8 @@ ${cardExamples}
   const systemPrompt =
     pickTarotRules(isKorean ? 'ko' : 'en') +
     (isKorean
-      ? '\n\n출력 JSON 스키마는 user prompt 에서 지정한다. 코드펜스/주석/머리말 절대 X.'
-      : '\n\nOutput JSON schema is supplied in the user prompt. No code fences, no preamble, no comments.')
+      ? '\n\n자리(position) 명명: 각 카드의 자리 라벨은 사용자 질문 맥락에 맞춰 *네가 직접* 한국어 짧은 라벨로 명명 (2-6자, 중복 X, 사전적 용어보다 질문 밀착 표현 우선).\n\n출력 JSON 스키마는 user prompt 에서 지정한다. 코드펜스/주석/머리말 절대 X.'
+      : '\n\nNaming positions: name each seat yourself in 2-4 English words, grounded in the user\'s question. No duplicates, prefer question-specific over generic labels.\n\nOutput JSON schema is supplied in the user prompt. No code fences, no preamble, no comments.')
 
   // chunk 별 user 프롬프트 빌더
   const buildChunkUserPrompt = (
@@ -680,7 +676,7 @@ ${cardExamples}
 - timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
             : ''
         }${sajuBlock}${astroBlock}
-## 뽑힌 카드 (전체)
+## 뽑힌 카드 (순서대로 — 자리 라벨은 네가 명명)
 ${cardListText}
 
 # 출력 지시
@@ -704,7 +700,7 @@ ${schemaKo}`
 - timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
             : ''
         }${sajuBlock}${astroBlock}
-## Cards Drawn (full)
+## Cards Drawn (in order — name each seat yourself)
 ${cardListText}
 
 # Output instructions

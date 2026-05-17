@@ -277,18 +277,18 @@ function extractPartialCardTexts(buffer: string): string[] {
 function parseStreamedInterpretation(
   jsonText: string,
   cards: DrawnCard[],
-  positions: ReadingResponse['spread']['positions'],
+  _positions: ReadingResponse['spread']['positions'],
   isKorean: boolean
 ): InterpretationResult {
   const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new Error('No JSON found')
 
   // 현재 스키마는 { overall, cards: [{ position, interpretation }], advice } 만 emit.
-  // 옛 key 들 (overall_message/card_insights/actionTip/meaning) 은 모두 dead branch — 단순화.
+  // 자리(position) 는 LLM 이 질문 맥락에 맞춰 직접 명명 — spread.positions 무시.
   const parsed = JSON.parse(jsonMatch[0]) as {
     overall?: string
     advice?: string
-    cards?: Array<{ interpretation?: string }>
+    cards?: Array<{ position?: string; interpretation?: string }>
   }
   const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
 
@@ -304,7 +304,9 @@ function parseStreamedInterpretation(
           ? dc.card.upright.meaningKo || dc.card.upright.meaning
           : dc.card.upright.meaning
       return {
-        position: positions[i]?.title || `Card ${i + 1}`,
+        position:
+          (cardData?.position || '').trim() ||
+          (isKorean ? `${i + 1}번 카드` : `Card ${i + 1}`),
         card_name: dc.card.name,
         is_reversed: dc.isReversed,
         interpretation:
@@ -365,7 +367,7 @@ function buildPersonalizedFallback(
       ? `질문 주제(${focus}) 기준으로 ${fallbackCardNames} 카드가 공통적으로 말하는 방향은 '속도보다 기준 정렬'입니다. 지금은 결론을 서두르기보다 핵심 조건 1개를 정해 실행 가능한 단위로 쪼개는 것이 유리합니다.`
       : `For your ${focus} question, the shared direction from ${fallbackCardNames} is to prioritize clear criteria over speed. Instead of forcing a fast answer, define one key condition and break it into executable steps.`,
     card_insights: result.drawnCards.map((dc, idx) => {
-      const positionTitle = result.spread.positions[idx]?.title || `Card ${idx + 1}`
+      const positionTitle = isKorean ? `${idx + 1}번 카드` : `Card ${idx + 1}`
       const cardName = isKorean ? dc.card.nameKo || dc.card.name : dc.card.name
 
       return {
@@ -460,16 +462,14 @@ export function useTarotInterpretation({
         }
       }
 
-      const cardPayload = result.drawnCards.map((dc, idx) => {
+      const cardPayload = result.drawnCards.map((dc, _idx) => {
         const meaning = dc.isReversed ? dc.card.reversed : dc.card.upright
+        // position / positionKo / positionMeaning 은 더 이상 클라이언트에서
+        // 보내지 않는다 — LLM 이 사용자 질문 맥락에 맞춰 직접 명명한다.
         return {
           name: dc.card.name,
           nameKo: dc.card.nameKo,
           isReversed: dc.isReversed,
-          position: result.spread.positions[idx]?.title || `Card ${idx + 1}`,
-          positionKo: result.spread.positions[idx]?.titleKo,
-          positionMeaning: result.spread.positions[idx]?.meaning,
-          positionMeaningKo: result.spread.positions[idx]?.meaningKo,
           // Payload slimming for high-card spreads to reduce timeout pressure.
           keywords: (meaning.keywords || []).slice(0, 8),
           keywordsKo: (meaning.keywordsKo || []).slice(0, 8),
@@ -840,7 +840,7 @@ export function useTarotInterpretation({
             const baseSnapshot: InterpretationResult = {
               overall_message: '',
               card_insights: result.drawnCards.map((dc, i) => ({
-                position: result.spread.positions[i]?.title || `Card ${i + 1}`,
+                position: isKorean ? `${i + 1}번 카드` : `Card ${i + 1}`,
                 card_name: dc.card.name,
                 is_reversed: dc.isReversed,
                 interpretation: '',
@@ -897,7 +897,8 @@ export function useTarotInterpretation({
 
               return {
                 position:
-                  (ci.position as string) || result.spread.positions[i]?.title || `Card ${i + 1}`,
+                  (ci.position as string) ||
+                  (language === 'ko' ? `${i + 1}번 카드` : `Card ${i + 1}`),
                 card_name: drawnCard.card.name,
                 is_reversed: drawnCard.isReversed,
                 interpretation:
