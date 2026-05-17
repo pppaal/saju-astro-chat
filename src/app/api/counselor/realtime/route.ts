@@ -11,7 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { runFortuneWithRaw } from '@/lib/fortune/cross-rules'
+import { buildSajuNormalizerInput } from '@/lib/fortune/cross-rules/adapters/saju'
+import { buildAstroNormalizerInput } from '@/lib/fortune/cross-rules/adapters/astro'
 import {
   formatSajuAsTable,
   formatDestinyTiming,
@@ -164,26 +165,47 @@ export async function POST(req: NextRequest) {
   let contextText: string | null = await cacheGet<string>(ctxKey)
   if (!contextText) {
     try {
-      // We compute saju + astro from runFortuneWithRaw but intentionally
-      // discard the `report` (cross-signal domain breakdown). The
-      // serialized snapshot already contains the raw chart the LLM needs,
-      // and the cross-signal renderer's ▶/■/domain-name markers were
-      // bleeding into the model's responses as a structural template. The
-      // LLM does its own picking now.
-      const { saju, astro, birthTimeUnknown, birthCityUnknown } = await runFortuneWithRaw({
-        birth: {
-          birthDate: body.birthDate,
-          birthTime: body.birthTime ?? '12:00',
-          birthTimeUnknown: hourUnknown,
-          birthCityUnknown: cityUnknown,
-          gender: body.gender === 'female' ? 'female' : 'male',
-          timezone: body.timezone ?? 'Asia/Seoul',
-          latitude: body.latitude ?? 37.5665,
-          longitude: body.longitude ?? 126.978,
-          astroTimezone: body.timezone ?? 'Asia/Seoul',
-        },
-        queryDate: new Date(),
+      // Raw saju + astro only. Previously this route ran the full
+      // fortune cross-rules pipeline via runFortuneWithRaw and threw
+      // away the resulting `report` — the cross-signal renderer's
+      // ▶/■/domain-name markers were bleeding into the model's response
+      // template, so the LLM does its own picking now. Calling the two
+      // normalizer builders directly skips the wasted cross-rules pass.
+      const queryDate = new Date()
+      const tz = body.timezone ?? 'Asia/Seoul'
+      const birthDate = body.birthDate
+      const birthTime = body.birthTime ?? '12:00'
+      const gender = body.gender === 'female' ? 'female' : 'male'
+      const latitude = body.latitude ?? 37.5665
+      const longitude = body.longitude ?? 126.978
+      const sajuPromise = Promise.resolve(
+        buildSajuNormalizerInput({
+          birthDate,
+          birthTime,
+          gender,
+          timezone: tz,
+          queryDate,
+          longitude,
+        }),
+      )
+      const [y, m, d] = birthDate.split('-').map(Number)
+      const [hh, mm] = birthTime.split(':').map(Number)
+      const astroPromise = buildAstroNormalizerInput({
+        year: y,
+        month: m,
+        date: d,
+        hour: hh,
+        minute: mm,
+        latitude,
+        longitude,
+        timeZone: tz,
+        queryDate,
+        includeSolarReturn: true,
+        includeLunarReturn: true,
       })
+      const [saju, astro] = await Promise.all([sajuPromise, astroPromise])
+      const birthTimeUnknown = hourUnknown
+      const birthCityUnknown = cityUnknown
       // Compact table form — replaces the older pretty-JSON snapshot
       // (PR #204 had made it compact-JSON, this PR makes it a real
       // pipe-table same shape compat counselor uses). Same data,

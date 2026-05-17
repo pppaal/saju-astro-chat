@@ -12,12 +12,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { logger } from '@/lib/logger'
-import {
-  calculateFusionCompatibility,
-  type FusionCompatibilityResult,
-} from '@/lib/compatibility/compatibilityFusion'
-import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
-import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
@@ -32,38 +26,6 @@ import {
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 90
-
-// In-memory LRU for couple-matrix prompt context. Keyed by the
-// (date|time|gender|lat|lon) hash of both people. Multi-turn chats with
-// the same pair reuse the same matrix instead of recalculating saju +
-// natal + 9-layer cross every turn (saves 1-2s per message).
-const COUPLE_MATRIX_CACHE = new Map<string, { value: string; expiresAt: number }>()
-const COUPLE_MATRIX_TTL_MS = 30 * 60 * 1000 // 30 min
-const COUPLE_MATRIX_MAX = 200
-
-function getCachedCoupleMatrixContext(key: string): string | null {
-  const hit = COUPLE_MATRIX_CACHE.get(key)
-  if (!hit) return null
-  if (hit.expiresAt < Date.now()) {
-    COUPLE_MATRIX_CACHE.delete(key)
-    return null
-  }
-  // touch for LRU
-  COUPLE_MATRIX_CACHE.delete(key)
-  COUPLE_MATRIX_CACHE.set(key, hit)
-  return hit.value
-}
-
-function setCachedCoupleMatrixContext(key: string, value: string): void {
-  if (COUPLE_MATRIX_CACHE.size >= COUPLE_MATRIX_MAX) {
-    const oldest = COUPLE_MATRIX_CACHE.keys().next().value
-    if (oldest) COUPLE_MATRIX_CACHE.delete(oldest)
-  }
-  COUPLE_MATRIX_CACHE.set(key, {
-    value,
-    expiresAt: Date.now() + COUPLE_MATRIX_TTL_MS,
-  })
-}
 
 // Guest free trial — 2 turns of compatibility counselor before login wall
 const GUEST_COMPAT_TURN_LIMIT = 2
@@ -103,15 +65,8 @@ import {
   collectMissingAstroKeys,
   mergeSajuContext,
   mergeAstroContext,
-  buildSajuProfile,
-  buildAstroProfile,
-  buildExtendedAstroProfile,
   getAgeFromBirthDate,
-  formatFusionForPrompt,
-  formatExtendedSajuForPrompt,
-  formatExtendedAstroForPrompt,
   formatTimingForPrompt,
-  scoreLabel,
 } from './routeSupport'
 
 export async function POST(req: NextRequest) {
@@ -215,12 +170,13 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Build profiles and run Fusion analysis
-    let fusionResult: FusionCompatibilityResult | null = null
-    let fusionContext = ''
-    let extendedSajuCompatibility: ReturnType<typeof performExtendedSajuAnalysis> | null = null
-    let extendedAstroCompatibility: ReturnType<typeof performExtendedAstrologyAnalysis> | null =
-      null
+    // Build raw saju + astro contexts. We hand the LLM raw chart tables
+    // (saju pillars, natal planets/houses/aspects) and let it do its
+    // own picking — previously we also fed it fusion scores, extended
+    // saju/astro compatibility analyses, and a 9-layer couple matrix,
+    // but those structured outputs were bleeding into the model's
+    // response template and effectively duplicating work the LLM does
+    // better itself.
     const person1Seed = buildPersonSeed((persons?.[0] as Record<string, unknown>) || null)
     const person2Seed = buildPersonSeed((persons?.[1] as Record<string, unknown>) || null)
     const now = new Date()
@@ -259,41 +215,9 @@ export async function POST(req: NextRequest) {
     }
     const p1Age = getAgeFromBirthDate(persons?.[0]?.date)
     const p2Age = getAgeFromBirthDate(persons?.[1]?.date)
-    const currentYear = now.getFullYear()
     const timingDetails = {
       person1: extractTimingDetails(effectivePerson1Saju, p1Age, now),
       person2: extractTimingDetails(effectivePerson2Saju, p2Age, now),
-    }
-
-    try {
-      const p1Saju = buildSajuProfile(effectivePerson1Saju)
-      const p2Saju = buildSajuProfile(effectivePerson2Saju)
-      const p1Astro = buildAstroProfile(effectivePerson1Astro)
-      const p2Astro = buildAstroProfile(effectivePerson2Astro)
-      const p1ExtendedAstro = buildExtendedAstroProfile(effectivePerson1Astro)
-      const p2ExtendedAstro = buildExtendedAstroProfile(effectivePerson2Astro)
-
-      if (p1Saju && p2Saju && p1Astro && p2Astro) {
-        fusionResult = calculateFusionCompatibility(p1Saju, p1Astro, p2Saju, p2Astro)
-        fusionContext = formatFusionForPrompt(fusionResult, lang)
-        extendedSajuCompatibility = performExtendedSajuAnalysis(
-          p1Saju,
-          p2Saju,
-          p1Age,
-          p2Age,
-          currentYear
-        )
-      }
-
-      if (p1ExtendedAstro && p2ExtendedAstro) {
-        extendedAstroCompatibility = performExtendedAstrologyAnalysis(
-          p1ExtendedAstro,
-          p2ExtendedAstro,
-          Math.abs(p1Age - p2Age)
-        )
-      }
-    } catch (fusionError) {
-      logger.error('[Compatibility Counselor] Fusion error:', { error: fusionError })
     }
 
     // Raw chart context. Previously this was a pruned JSON dump of the
@@ -354,9 +278,6 @@ export async function POST(req: NextRequest) {
           .join('\n\n')
     const contextTrace = {
       currentDateIso: new Date().toISOString().slice(0, 10),
-      hasFusionResult: !!fusionResult,
-      hasExtendedSajuCompatibility: !!extendedSajuCompatibility,
-      hasExtendedAstroCompatibility: !!extendedAstroCompatibility,
       hasDaeun: Boolean(timingDetails.person1.hasDaeun) || Boolean(timingDetails.person2.hasDaeun),
       hasSaeun: Boolean(timingDetails.person1.hasSaeun) || Boolean(timingDetails.person2.hasSaeun),
       hasWolun: Boolean(timingDetails.person1.hasWolun) || Boolean(timingDetails.person2.hasWolun),
@@ -397,201 +318,6 @@ export async function POST(req: NextRequest) {
 
     const userQuestion = lastUser ? guardText(lastUser.content, 600) : ''
 
-    // Couple Matrix context — cell-level cross between A's and B's
-    // saju+astro. Provides the AI with concrete cited cells (천간합 일주합,
-    // 해묘미 목국 완성, Venus trine Sun, 寅-申 충 등) instead of just
-    // aggregate scores.
-    //
-    // Cached by (date|time|gender|lat|lon)×2 hash so multi-turn chats
-    // don't rebuild calculateSajuData + calculateNatalChart + 9-layer
-    // couple matrix on every message — first turn pays the cost, rest
-    // are O(1) lookups.
-    type CompatPerson = {
-      date?: string
-      time?: string
-      gender?: string
-      timeZone?: string
-      latitude?: number
-      longitude?: number
-    }
-    let coupleMatrixContext = ''
-    const p1ForMatrix = (persons as CompatPerson[])[0]
-    const p2ForMatrix = (persons as CompatPerson[])[1]
-    if (p1ForMatrix?.date && p2ForMatrix?.date) {
-      const personKey = (p: CompatPerson) =>
-        [p.date, p.time || '', p.gender || '', p.latitude ?? '', p.longitude ?? ''].join('|')
-      const cacheKey = `${personKey(p1ForMatrix)}__${personKey(p2ForMatrix)}`
-      const cached = getCachedCoupleMatrixContext(cacheKey)
-      if (cached) {
-        coupleMatrixContext = cached
-      } else {
-        try {
-          const [
-            { buildCoupleMatrix },
-            { calculateSajuData },
-            { calculateNatalChart },
-            { buildOrthodoxInterpretation },
-          ] = await Promise.all([
-            import('@/lib/compatibility/coupleMatrix'),
-            import('@/lib/saju/saju'),
-            import('@/lib/astrology/foundation/astrologyService'),
-            import('@/lib/saju/orthodoxInterpretation'),
-          ])
-          /**
-           * Reuse already-computed saju + natal from the buildAuto*Context
-           * pass when possible. Previously this block re-ran calculateSajuData
-           * + calculateNatalChart for both people on every fresh request,
-           * doubling the per-pair compute. Falls back to fresh calculation
-           * only when the auto* enrichment didn't run (e.g., user supplied
-           * partial pre-computed data without the matrix-required shape).
-           */
-          const buildPerson = async (
-            p: CompatPerson,
-            cachedSaju: Record<string, unknown> | null,
-            cachedAstro: Record<string, unknown> | null
-          ) => {
-            const tz = p.timeZone || 'Asia/Seoul'
-            const gender = p.gender === 'female' || p.gender === 'F' ? 'female' : 'male'
-            const koreanAge =
-              new Date().getFullYear() - parseInt(String(p.date).split('-')[0], 10) + 1
-
-            // Saju: reuse if it has the shape the matrix needs (pillars +
-            // dayMaster). calculateSajuData is sync and the matrix needs
-            // its output exactly.
-            type SajuShape = ReturnType<typeof calculateSajuData> & {
-              orthodoxInterpretation?: unknown
-            }
-            const cachedAsRecord = cachedSaju as
-              | (Record<string, unknown> & { pillars?: unknown; dayMaster?: unknown })
-              | null
-            const looksLikeSaju = !!(
-              cachedAsRecord &&
-              cachedAsRecord.pillars &&
-              cachedAsRecord.dayMaster
-            )
-            const saju: SajuShape = looksLikeSaju
-              ? (cachedSaju as unknown as SajuShape)
-              : (calculateSajuData(
-                  p.date!,
-                  p.time || '12:00',
-                  gender,
-                  'solar',
-                  tz
-                ) as SajuShape)
-            if (!saju.orthodoxInterpretation) {
-              saju.orthodoxInterpretation = buildOrthodoxInterpretation(saju, { koreanAge })
-            }
-
-            // Natal: reuse from cachedAstro.natalData when present. Only
-            // planets + ascendant are needed for the matrix.
-            const cachedNatalData = (cachedAstro as { natalData?: Record<string, unknown> } | null)
-              ?.natalData
-            let natal: { planets: unknown; ascendant: unknown }
-            if (
-              cachedNatalData &&
-              Array.isArray(cachedNatalData.planets) &&
-              cachedNatalData.ascendant
-            ) {
-              natal = {
-                planets: cachedNatalData.planets,
-                ascendant: cachedNatalData.ascendant,
-              }
-            } else {
-              const [Y, M, D] = String(p.date).split('-').map(Number)
-              const [h, mi] = String(p.time || '12:00').split(':').map(Number)
-              const lat = typeof p.latitude === 'number' ? p.latitude : 37.5665
-              const lon = typeof p.longitude === 'number' ? p.longitude : 126.978
-              const fresh = await calculateNatalChart({
-                year: Y,
-                month: M,
-                date: D,
-                hour: h,
-                minute: mi,
-                latitude: lat,
-                longitude: lon,
-                timeZone: tz,
-              })
-              natal = { planets: fresh.planets, ascendant: fresh.ascendant }
-            }
-            return { saju, natal, koreanAge }
-          }
-          const [A, B] = await Promise.all([
-            buildPerson(p1ForMatrix, effectivePerson1Saju, effectivePerson1Astro),
-            buildPerson(p2ForMatrix, effectivePerson2Saju, effectivePerson2Astro),
-          ])
-          const matrix = buildCoupleMatrix(
-            {
-              saju: A.saju,
-              natal: A.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'],
-              koreanAge: A.koreanAge,
-            },
-            {
-              saju: B.saju,
-              natal: B.natal as unknown as Parameters<typeof buildCoupleMatrix>[0]['natal'],
-              koreanAge: B.koreanAge,
-            }
-          )
-          const s = matrix.summary
-          const top = s.topPositiveCells
-            .slice(0, 5)
-            .map((c) => `+ ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`)
-            .join('\n')
-          const bot = s.topCautionCells
-            .slice(0, 5)
-            .map((c) => `- ${c.description} [${c.sajuBasis} × ${c.astroBasis}]`)
-            .join('\n')
-          // 레이어별 대표 셀 1개씩 — 전체 Top-5만 보면 어떤 레이어는 한 줄도
-          // 안 들어가는 사각지대가 생긴다. 각 레이어에서 |score|가 가장 큰 셀을
-          // 하나씩 뽑아 9개 레이어 모두 최소 한 줄은 보장한다.
-          const layerLabels: Record<number, string> = {
-            1: 'L1 오행',
-            2: 'L2 십성-행성',
-            3: 'L3 천간합',
-            4: 'L4 지지합충',
-            5: 'L5 어스펙트',
-            6: 'L6 대운동조',
-            7: 'L7 대운-네이탈',
-            8: 'L8 신살-행성',
-            9: 'L9 격국',
-          }
-          const layerEntries = Object.entries(matrix.layers) as Array<
-            [string, typeof matrix.layers.L1_element]
-          >
-          const perLayer = layerEntries
-            .map(([, cells]) => {
-              if (!cells || cells.length === 0) return null
-              const pick = [...cells].sort(
-                (a, b) => Math.abs(b.score) - Math.abs(a.score)
-              )[0]
-              if (!pick) return null
-              const mark =
-                pick.polarity === 'positive' ? '+' : pick.polarity === 'negative' ? '-' : '·'
-              const tag = layerLabels[pick.layer] || `L${pick.layer}`
-              return `${mark} [${tag}] ${pick.description} [${pick.sajuBasis} × ${pick.astroBasis}]`
-            })
-            .filter((line): line is string => Boolean(line))
-            .join('\n')
-          // 점수는 bucket label을 primary로, raw 숫자는 괄호 안에 보조로.
-          // 시스템 룰("raw 숫자 그대로 인용 금지")과 source 표기를 일치시켜
-          // LLM drift를 더 확실히 줄인다.
-          const langKey: 'ko' | 'en' = lang === 'ko' ? 'ko' : 'en'
-          const ds = s.domainScores
-          coupleMatrixContext = [
-            '== 커플 매트릭스 (9 레이어 셀-단위 사주×점성 교차) ==',
-            `종합 ${scoreLabel(s.totalScore, langKey)} (${s.totalScore}) · ${langKey === 'ko' ? '신호 겹침' : 'overlap'} ${scoreLabel(s.overlapStrength * 100, langKey)} · polarity +${s.polarityBalance.positive}/-${s.polarityBalance.negative}`,
-            `${langKey === 'ko' ? '도메인' : 'domains'}: ${langKey === 'ko' ? '매력' : 'attraction'} ${scoreLabel(ds.attraction, langKey)} · ${langKey === 'ko' ? '안정' : 'stability'} ${scoreLabel(ds.stability, langKey)} · ${langKey === 'ko' ? '성장' : 'growth'} ${scoreLabel(ds.growth, langKey)} · ${langKey === 'ko' ? '갈등견딤' : 'conflict'} ${scoreLabel(ds.conflict, langKey)} · ${langKey === 'ko' ? '시기동기' : 'timing'} ${scoreLabel(ds.timing, langKey)}`,
-            `Drivers: ${s.drivers.join(' / ') || (langKey === 'ko' ? '없음' : 'none')}`,
-            `Cautions: ${s.cautions.join(' / ') || (langKey === 'ko' ? '없음' : 'none')}`,
-            `\n[Top positive cells]\n${top}`,
-            `\n[Top caution cells]\n${bot}`,
-            `\n[${langKey === 'ko' ? '레이어별 대표 셀' : 'per-layer representative cells'}]\n${perLayer}`,
-          ].join('\n')
-          setCachedCoupleMatrixContext(cacheKey, coupleMatrixContext)
-        } catch (err) {
-          logger.warn('[Compatibility Counselor] couple-matrix context build failed', { err })
-        }
-      }
-    }
 
     // Format persons info. 라벨을 A/B로 통일해 커플 매트릭스의 "A의 갑목 일간
     // ↔ B의 기토 일간" 같은 prose 셀과 매핑이 즉시 명확하다. 이름이 있으면
@@ -689,14 +415,6 @@ export async function POST(req: NextRequest) {
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
-      coupleMatrixContext ? `\n${coupleMatrixContext}` : '',
-      fusionContext ? `\n${fusionContext}` : '',
-      extendedSajuCompatibility
-        ? `\n${formatExtendedSajuForPrompt(extendedSajuCompatibility, normalizedLang)}`
-        : '',
-      extendedAstroCompatibility
-        ? `\n${formatExtendedAstroForPrompt(extendedAstroCompatibility, normalizedLang)}`
-        : '',
       // contextTrace(키 개수, 커버리지 플래그 등)는 디버그 메타데이터 — 응답에
       // 쓸 정보가 아니므로 server log로만 남기고 prompt에는 포함하지 않는다.
       fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
