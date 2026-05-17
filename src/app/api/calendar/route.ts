@@ -727,7 +727,7 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeDayTimeSlots } = await import('@/lib/timing/ultra-precision-minute')
+      const { analyzeDayTimeSlots } = await import('@/lib/calendar-engine/timing-helpers/ultra-precision-minute')
       const slots = analyzeDayTimeSlots(new Date(), pillars.day.stem, pillars.day.branch)
       if (slots.best.length > 0 || slots.worst.length > 0) {
         todayHourlyTimeSlots = {
