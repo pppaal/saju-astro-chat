@@ -160,31 +160,20 @@ export function useTarotGame(): UseTarotGameReturn {
   const [personalizationOptions, setPersonalizationOptions] = useState<TarotPersonalizationOptions>(
     () => {
       // URL ?saju=0&astro=0 가 명시되면 URL 우선; 아니면 localStorage; 둘 다 없으면 기본 ON.
-      const fromUrl = (() => {
-        if (sajuFromUrl === null && astroFromUrl === null) return null
-        return {
-          includeSaju: sajuFromUrl !== '0',
-          includeAstrology: astroFromUrl !== '0',
-        }
-      })()
-      if (fromUrl) return fromUrl
-
-      if (typeof window === 'undefined') {
-        return { includeSaju: true, includeAstrology: true }
-      }
-
+      // Tarot is pure now — no saju / astrology cross. Force off so
+      // neither the (now-removed) toggle UI nor the URL params nor a
+      // persisted localStorage value can re-enable cross-mode at the
+      // interpret routes.
+      void sajuFromUrl
+      void astroFromUrl
+      return { includeSaju: false, includeAstrology: false }
+      // Unused but kept compiling so the surrounding signature stays
+      // identical for the storage-write effect a few lines down.
+      // eslint-disable-next-line no-unreachable
       try {
-        const raw = localStorage.getItem(TAROT_PERSONALIZATION_KEY)
-        if (!raw) {
-          return { includeSaju: true, includeAstrology: true }
-        }
-        const parsed = JSON.parse(raw) as Partial<TarotPersonalizationOptions>
-        return {
-          includeSaju: parsed.includeSaju !== false,
-          includeAstrology: parsed.includeAstrology !== false,
-        }
+        return { includeSaju: false, includeAstrology: false }
       } catch {
-        return { includeSaju: true, includeAstrology: true }
+        return { includeSaju: false, includeAstrology: false }
       }
     }
   )
