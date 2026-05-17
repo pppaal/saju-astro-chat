@@ -3973,7 +3973,7 @@
 
 .chatText {
   font-family: var(--tarot-font-body);
-  font-size: 1.12rem;
+  font-size: 1.28rem;
   line-height: 1.92;
   color: rgba(255, 255, 255, 0.93);
   margin: 0;
@@ -4167,7 +4167,7 @@
 }
 
 .cardQuickLine {
-  font-size: 1rem;
+  font-size: 1.15rem;
   line-height: 1.72;
 }
 
@@ -4207,7 +4207,7 @@
 
 .adviceText {
   font-family: var(--tarot-font-body);
-  font-size: 1.12rem;
+  font-size: 1.28rem;
   line-height: 1.9;
   color: rgba(255, 255, 255, 0.97);
   margin: 0;
@@ -4260,14 +4260,14 @@
 
 .adviceCardTitle {
   font-family: var(--tarot-font-body);
-  font-size: 1.05rem;
+  font-size: 1.18rem;
   font-weight: 600;
   color: #7cf29c;
 }
 
 .adviceCardDetail {
   font-family: var(--tarot-font-body);
-  font-size: 1.02rem;
+  font-size: 1.16rem;
   line-height: 1.82;
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
@@ -4302,7 +4302,7 @@
   }
 
   .chatText {
-    font-size: 1.05rem;
+    font-size: 1.18rem;
     line-height: 1.86;
   }
 
@@ -4323,12 +4323,12 @@
   .quickAnswerReason,
   .quickAnswerAction,
   .cardQuickLine {
-    font-size: 0.92rem;
+    font-size: 1.05rem;
     line-height: 1.62;
   }
 
   .adviceText {
-    font-size: 1.04rem;
+    font-size: 1.18rem;
   }
 
   .chatName {

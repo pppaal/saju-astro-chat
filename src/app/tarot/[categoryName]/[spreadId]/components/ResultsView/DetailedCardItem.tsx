@@ -122,7 +122,7 @@ export function DetailedCardItem({
               <div className="text-[11px] uppercase tracking-wider text-slate-500">
                 {isKo ? '카드 일반 의미' : 'General card meaning'}
               </div>
-              <p className="text-[14px] md:text-[15px] text-slate-400 leading-relaxed">
+              <p className="text-[15px] md:text-[17px] text-slate-400 leading-relaxed">
                 {trimmedStaticMeaning}
               </p>
             </div>
@@ -137,7 +137,7 @@ export function DetailedCardItem({
               </div>
             </div>
             {hasAiText ? (
-              <p className="text-base md:text-[17px] text-slate-100 leading-relaxed whitespace-pre-wrap">
+              <p className="text-lg md:text-[19px] text-slate-100 leading-relaxed whitespace-pre-wrap">
                 {renderHighlighted(aiInterpretation)}
               </p>
             ) : aiPending ? (

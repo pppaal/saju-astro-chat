@@ -162,7 +162,7 @@ export function FollowupChat({
                     {isKo ? '답변 준비 중…' : 'Thinking…'}
                   </div>
                 ) : (
-                  <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{t.content}</p>
+                  <p className="text-[17px] leading-relaxed whitespace-pre-wrap">{t.content}</p>
                 )}
               </div>
             </div>
