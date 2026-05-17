@@ -116,10 +116,13 @@
 }
 
 .empty {
+  /* Was rgba(196,181,253,0.55) — too faint on OLED phones; user
+     couldn't tell whether the panel was empty, loading, or broken.
+     Bumped to readable white at 0.85 alpha. */
   padding: 0.5rem 0.75rem;
   margin: 0;
-  font-size: 0.82rem;
-  color: rgba(196, 181, 253, 0.55);
+  font-size: 0.88rem;
+  color: rgba(245, 243, 255, 0.85);
 }
 
 .sessionList {

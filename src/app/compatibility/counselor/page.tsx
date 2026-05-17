@@ -752,7 +752,6 @@ function CompatibilityCounselorContent() {
                 title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
               >
                 <span className={styles.toolButtonIcon}>🎴</span>
-                <span>{isKo ? '타로' : 'Tarot'}</span>
               </button>
             </div>
             <button

@@ -215,10 +215,12 @@ export default function CounselorSidebar({
               {t('destinyMap.counselor.signInToSee', 'Sign in to see past chats.')}
             </p>
           ) : loadingList ? (
-            <p className={styles.empty}>...</p>
+            <p className={styles.empty}>
+              {t('destinyMap.counselor.loadingChats', '불러오는 중...')}
+            </p>
           ) : sessions.length === 0 ? (
             <p className={styles.empty}>
-              {t('destinyMap.counselor.noPastChats', 'No saved chats yet.')}
+              {t('destinyMap.counselor.noPastChats', '아직 저장된 채팅이 없어요.')}
             </p>
           ) : (
             <ul className={styles.sessionList}>
