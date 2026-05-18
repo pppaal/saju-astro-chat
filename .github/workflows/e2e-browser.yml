@@ -126,11 +126,12 @@ jobs:
           cp .env.example .env.local || echo "No .env.example found"
         continue-on-error: true
 
-      - name: Build application
-        run: npm run build
+      - name: Build application (webpack — avoids turbopack font-fetch flakiness)
+        run: npm run build:webpack
         env:
           NODE_ENV: production
           TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
       - name: Start server in background
         run: |
