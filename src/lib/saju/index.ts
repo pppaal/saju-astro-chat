@@ -237,22 +237,6 @@ export {
   type ComprehensiveScore,
 } from './strengthScore'
 
-// 운세 해석 문장 생성기
-export {
-  generateElementText,
-  generateSibsinText,
-  generateTwelveStageText,
-  generateFortuneText,
-  generateChungText,
-  generateHapText,
-  generateStrengthAdvice,
-  generateComprehensiveText,
-  type TextStyle,
-  type TextContext,
-  type GeneratedText,
-  type FortuneInput,
-} from './textGenerator'
-
 // ============================================================
 // 500% 급 고급 모듈들
 // ============================================================
