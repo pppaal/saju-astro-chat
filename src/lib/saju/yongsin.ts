@@ -363,6 +363,11 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   const johuResult = selectJohuYongsin(pillars.month.branch, daymaster)
   if (johuResult) {
     const eokbuResult = selectEokbuYongsin(daymaster, strength)
+    // 조후용신이 우선되면 억부 시스템의 kibsin/gusin이 조후용신과 충돌
+    // 할 수 있음 (예: 辛 신약 + 寅월 → johu=화, eokbu.kibsin=화 → 자기
+    // 자신이 기신). primary와 같은 오행은 avoid에서 제외해서 모순 해소.
+    const filterKibGu = (e: FiveElement | undefined): FiveElement | undefined =>
+      e && e !== johuResult.yongsin ? e : undefined
     return {
       primaryYongsin: johuResult.yongsin,
       secondaryYongsin:
@@ -370,8 +375,8 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
       yongsinType: '조후용신',
       daymasterStrength: strength,
       reasoning: johuResult.reasoning,
-      kibsin: eokbuResult.kibsin,
-      gusin: eokbuResult.gusin,
+      kibsin: filterKibGu(eokbuResult.kibsin),
+      gusin: filterKibGu(eokbuResult.gusin),
     }
   }
 
