@@ -10,15 +10,32 @@ const LAYER_WEIGHT: Record<SignalLayer, number> = {
 }
 
 export function deriveTopReasons(signals: ActiveSignal[], limit = 5): string[] {
-  const ranked = [...signals]
+  // 우호 신호(polarity > 0)만 — 가중치·강도 큰 순
+  return [...signals]
+    .filter((s) => s.polarity > 0)
+    .map((s) => ({
+      s,
+      impact: s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5),
+    }))
+    .sort((a, b) => b.impact - a.impact)
+    .slice(0, limit)
+    .map(({ s }) => formatReason(s))
+}
+
+/**
+ * 한 셀의 주의 신호(polarity < 0) top N — topReasons의 mirror.
+ * cautions 배열을 채우는 deriver. 사용자가 주의 사유를 직접 보게.
+ */
+export function deriveCautions(signals: ActiveSignal[], limit = 5): string[] {
+  return [...signals]
+    .filter((s) => s.polarity < 0)
     .map((s) => ({
       s,
       impact: Math.abs(s.polarity) * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5),
     }))
     .sort((a, b) => b.impact - a.impact)
     .slice(0, limit)
-
-  return ranked.map(({ s }) => formatReason(s))
+    .map(({ s }) => formatReason(s))
 }
 
 function formatReason(s: ActiveSignal): string {

@@ -38,7 +38,7 @@ import astroMoonNodesExtractor from './extractors/astro-moon-nodes'
 // derivers
 import { deriveScore } from './derivers/score'
 import { deriveThemeScores } from './derivers/themeScores'
-import { deriveTopReasons } from './derivers/summary'
+import { deriveTopReasons, deriveCautions } from './derivers/summary'
 import { derivePatterns } from './derivers/patterns'
 
 /**
@@ -138,6 +138,7 @@ function groupIntoCells(
       themeScores: {},
       matchedPatterns: [],
       topReasons: [],
+      cautions: [],
     })
   }
 
@@ -159,6 +160,7 @@ function groupIntoCells(
     cell.derivedScore = deriveScore(cell.signals, cell.matchedPatterns)
     cell.themeScores = deriveThemeScores(cell.signals)
     cell.topReasons = deriveTopReasons(cell.signals)
+    cell.cautions = deriveCautions(cell.signals)
   }
 
   return Array.from(cells.values()).sort((a, b) => a.datetime.localeCompare(b.datetime))
