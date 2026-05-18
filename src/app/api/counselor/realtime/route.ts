@@ -179,10 +179,10 @@ export async function POST(req: NextRequest) {
   const cityUnknown =
     !!body.birthCityUnknown ||
     (body.latitude === undefined && body.longitude === undefined && !body.timezone)
-  // v7: birthCityUnknown 시 ASC/MC/houses 제거. 옛 v5 의 default Seoul
-  // 좌표 angle 데이터가 "위치 의존 결론 금지" 룰과 충돌. v6 (#293, XML
-  // 래핑) entry 까지 한 번에 무효화됨.
-  const ctxKey = `counselor:ctx:v7:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${utcDateKey(new Date())}`
+  // v8: [Meta] 에 raw birthDate/birthTime/location/timezone 추가. v7
+  // entry 는 그 정보 없이 저장돼서 LLM 이 한자→날짜 역산 → "내 생년
+  // 월일?" 같은 직접 질문에 틀린 답.
+  const ctxKey = `counselor:ctx:v8:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${utcDateKey(new Date())}`
   let contextText: string | null = await cacheGet<string>(ctxKey)
   if (!contextText) {
     try {
@@ -234,11 +234,16 @@ export async function POST(req: NextRequest) {
       const parts: string[] = ['[Birth Snapshot]']
       // Metadata block always present so the system prompt's
       // birthTimeUnknown / birthCityUnknown rules can match on a
-      // concrete value (true OR false). Previously only the true case
-      // emitted a line — false was implicit silence and the LLM had no
-      // explicit signal that time/place data is reliable.
+      // concrete value (true OR false). Raw birthDate / birthTime /
+      // location / timezone included so the LLM can answer "내 생년월일
+      // 뭐야?" directly instead of trying to reverse-derive the date
+      // from saju 한자 pillars + astro planet signs (low accuracy).
+      const locTag = birthCityUnknown
+        ? '미상'
+        : `${body.latitude?.toFixed(4) ?? '?'},${body.longitude?.toFixed(4) ?? '?'}`
+      const timeTag = birthTimeUnknown ? '미상' : (body.birthTime ?? '미상')
       parts.push(
-        `[Meta] birthTimeUnknown: ${birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${birthCityUnknown ? 'true' : 'false'}`
+        `[Meta] birthDate: ${body.birthDate} | birthTime: ${timeTag} | location: ${locTag} | timezone: ${body.timezone ?? 'Asia/Seoul'} | birthTimeUnknown: ${birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${birthCityUnknown ? 'true' : 'false'}`
       )
       if (birthTimeUnknown) parts.push('# 시간 미상 — 시주/일진/ASC/MC/하우스 인용 금지.')
       if (birthCityUnknown) parts.push('# 출생지 미상 — 위치 의존 결론 금지.')
