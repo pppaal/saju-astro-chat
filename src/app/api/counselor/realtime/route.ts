@@ -249,9 +249,15 @@ export async function POST(req: NextRequest) {
               list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }>
             } | null
           }
-          currentSaeun?: { stem?: string; branch?: string; year?: number } | null
-          currentWolun?: { stem?: string; branch?: string } | null
-          currentIljin?: { stem?: string; branch?: string; date?: string } | null
+          // buildSajuNormalizerInput 가 반환하는 UnseData shape 그대로.
+          // 이전엔 잘못된 type 정의 (.stem/.branch + currentSaeun 오타) 로
+          // formatSajuSelf 에 빈 값이 들어가서 [현재 시기] 의 월운/일진/
+          // 세운이 항상 비어 있었음. 일일·월 운세 분석이 데이터 없이
+          // 돌고 있던 셈. adapter 가 currentSeun (Seun) 으로 주는 거랑
+          // field 이름까지 정확히 맞춤.
+          currentSeun?: { heavenlyStem?: string; earthlyBranch?: string } | null
+          currentWolun?: { heavenlyStem?: string; earthlyBranch?: string } | null
+          currentIljin?: { heavenlyStem?: string; earthlyBranch?: string } | null
           extras?: {
             geokguk?: { primary?: string } | null
             yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null
@@ -287,9 +293,22 @@ export async function POST(req: NextRequest) {
             yongsin: extras?.yongsin ?? null,
             daeunList,
             currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
-            currentSewoon: sajuLoose.currentSaeun ? { stem: sajuLoose.currentSaeun.stem ?? '', branch: sajuLoose.currentSaeun.branch ?? '', year: sajuLoose.currentSaeun.year } : null,
-            currentWolwoon: sajuLoose.currentWolun ? { stem: sajuLoose.currentWolun.stem ?? '', branch: sajuLoose.currentWolun.branch ?? '' } : null,
-            currentIljin: sajuLoose.currentIljin ? { stem: sajuLoose.currentIljin.stem ?? '', branch: sajuLoose.currentIljin.branch ?? '', date: sajuLoose.currentIljin.date } : null,
+            // year / date 는 adapter UnseData 에 없음 → queryDate 로 채움.
+            // 이게 있어야 LLM 이 "이번 달 / 오늘" 같은 시점 reasoning 가능.
+            currentSewoon: sajuLoose.currentSeun ? {
+              stem: sajuLoose.currentSeun.heavenlyStem ?? '',
+              branch: sajuLoose.currentSeun.earthlyBranch ?? '',
+              year: queryDate.getFullYear(),
+            } : null,
+            currentWolwoon: sajuLoose.currentWolun ? {
+              stem: sajuLoose.currentWolun.heavenlyStem ?? '',
+              branch: sajuLoose.currentWolun.earthlyBranch ?? '',
+            } : null,
+            currentIljin: sajuLoose.currentIljin ? {
+              stem: sajuLoose.currentIljin.heavenlyStem ?? '',
+              branch: sajuLoose.currentIljin.earthlyBranch ?? '',
+              date: `${queryDate.getFullYear()}-${String(queryDate.getMonth() + 1).padStart(2, '0')}-${String(queryDate.getDate()).padStart(2, '0')}`,
+            } : null,
           })
           if (sajuBlock) {
             parts.push('')
