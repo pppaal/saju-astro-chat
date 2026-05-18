@@ -34,19 +34,22 @@ export function buildInterpretation(args: {
   const unluckyDates = ranked.slice(-3).reverse().map((c) => c.datetime.slice(5, 10)).join(', ')
 
   // 룰 매칭 + 변수 컨텍스트 수집
-  const matched: Array<{ rule: InterpretationRule; vars: TemplateVars }> = []
+  // matched[].polarity는 도메인 통합 시 우호·주의 분리에 사용 — 매칭된
+  // 첫 시그널의 polarity를 픽업하거나, conditions의 min/max에서 추정.
+  const matched: Array<{ rule: InterpretationRule; vars: TemplateVars; polarity: number }> = []
   for (const rule of RULES) {
     if (rule.scope !== scope) continue
-    const ctx = findMatchContext(rule.conditions, allSignals, allPatterns, natal)
-    if (!ctx) continue
+    const matchSig = findMatchContextWithSignal(rule.conditions, allSignals, allPatterns, natal)
+    if (!matchSig) continue
     matched.push({
       rule,
       vars: {
         ...buildBaseVars(natal),
-        ...ctx,
+        ...matchSig.ctx,
         luckyDates,
         unluckyDates,
       },
+      polarity: matchSig.polarity,
     })
   }
 
@@ -87,19 +90,33 @@ export function buildInterpretation(args: {
     const themes = DOMAIN_THEMES[domain] ?? []
     const topDates = pickDomainExtremeDates(cells, themes, 3, 'high')
     const lowDates = pickDomainExtremeDates(cells, themes, 2, 'low')
+    // 도메인 안에서 우호(polarity > 0)와 주의(polarity < 0) 둘 다 있으면
+    // 통합 헤더 한 줄 prepend — 사용자가 "그래서 좋다는 거야 나쁘다는
+    // 거야?" 헷갈리는 케이스 정리. polarity ≥ 1 → 우호, ≤ -1 → 주의.
+    const hasPositive = list.some((m) => m.polarity >= 1)
+    const hasCaution = list.some((m) => m.polarity <= -1)
+    // 우호 먼저, 주의 나중 순서로 sort (priority desc 내에서)
+    const sortedList = [...list].sort((a, b) => {
+      const pa = a.polarity >= 1 ? 0 : a.polarity <= -1 ? 1 : 0.5
+      const pb = b.polarity >= 1 ? 0 : b.polarity <= -1 ? 1 : 0.5
+      return pa - pb
+    })
+    const templates = sortedList.map((m) => fillTemplate(m.rule.template, m.vars))
+    if (hasPositive && hasCaution) {
+      templates.unshift(
+        '복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:',
+      )
+    }
     const merged: typeof matched[number] = {
       rule: {
         ...list[0].rule,
         id: `domain.${domain}`,
         section: `domain-${domain}`,
         priority: list[0].rule.priority,
-        template: mergeDomainTemplates(
-          list.map((m) => fillTemplate(m.rule.template, m.vars)),
-          topDates,
-          lowDates,
-        ),
+        template: mergeDomainTemplates(templates, topDates, lowDates),
       },
       vars: list[0].vars,
+      polarity: list[0].polarity,
     }
     picked.push(merged)
   }
@@ -165,6 +182,45 @@ function findMatchContext(
   if (!matchingSignal) return null
 
   return extractSignalVars(matchingSignal, signals)
+}
+
+/**
+ * findMatchContext + 매칭된 시그널의 polarity를 같이 반환.
+ * 도메인 통합 시 우호(polarity > 0)·주의(polarity < 0) 분리에 사용.
+ * 시그널 없이 natal 컨텍스트만 매칭하는 룰(natalStrength·yongsin only)은
+ * polarity 추정 불가 → 0(중립) 반환.
+ */
+function findMatchContextWithSignal(
+  cond: RuleConditions,
+  signals: ActiveSignal[],
+  patterns: SignalPattern[],
+  natal: NatalContext,
+): { ctx: TemplateVars; polarity: number } | null {
+  // 본명 조건
+  if (cond.natalStrength && !cond.natalStrength.includes(natal.saju.strength)) {
+    return null
+  }
+  if (cond.yongsin && !cond.yongsin.includes(natal.saju.yongsin.primary)) {
+    return null
+  }
+  if (cond.patternId) {
+    const pat = patterns.find((p) => cond.patternId!.includes(p.id))
+    if (!pat) return null
+    const count = patterns.filter((p) => p.id === pat.id).length
+    return { ctx: { patternName: pat.name, count }, polarity: 0 }
+  }
+  const matchingSignal = signals.find((s) => signalMatches(s, cond))
+  if (!matchingSignal) {
+    // natal context만으로 매칭되는 룰 — 첫 saju 신호 polarity 추정
+    if (cond.natalStrength || cond.yongsin) {
+      return { ctx: extractSignalVars(signals[0] ?? matchingSignal!, signals), polarity: 0 }
+    }
+    return null
+  }
+  return {
+    ctx: extractSignalVars(matchingSignal, signals),
+    polarity: matchingSignal.polarity,
+  }
 }
 
 function signalMatches(s: ActiveSignal, cond: RuleConditions): boolean {
