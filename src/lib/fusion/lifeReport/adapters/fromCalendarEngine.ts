@@ -24,7 +24,7 @@
 //   - saju ultraAdvanced.hyeongchung + iljuDeep  (saju side, via main output)
 
 import type { MainSajuOutput } from '@/lib/saju/main'
-import type { Chart } from '@/lib/astrology/foundation/types'
+import type { Chart, ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { AstrologyLikeChart } from '../types'
 
 import {
@@ -42,6 +42,11 @@ import {
   type ArabicLot,
   type ArabicLotName,
 } from '@/lib/astrology/foundation/arabicParts'
+import {
+  analyzeRelations,
+  toAnalyzeInputFromSaju,
+} from '@/lib/saju/relations'
+import type { RelationHit } from '@/lib/saju/types'
 import { dignityOf, type DignityStatus } from '@/lib/astrology/foundation/dignities'
 import {
   analyzeHarmonic,
@@ -113,6 +118,48 @@ export interface MidpointActivationEntry {
   orb: number
 }
 
+/** Extra Arabic Parts computed inside the adapter (Hellenistic Bonatti
+ *  formulas) — not part of the 7-Lot standard set. */
+export interface ExtraArabicPartEntry {
+  name: 'Basis' | 'Captivity' | 'Daimon'
+  longitude: number
+  sign: ZodiacKo
+  degreeInSign: number
+  formula: string
+}
+
+/** A single ZR level-2 sub-period inside the active L1 chapter. */
+export interface ZRSubEntry {
+  index: number
+  sign: ZodiacKo
+  ruler: string
+  startYear: number // absolute age (years from birth)
+  endYear: number
+  durationYears: number
+}
+
+/** A single saju 합/충/형/해/회 relation — natural-language friendly. */
+export interface SajuRelationEntry {
+  kind: '합' | '충' | '형' | '해' | '회' // 자연화된 종류
+  rawKind: RelationHit['kind'] // 원래 종류 (디버그용)
+  pillars: string[] // 관여한 기둥 (year/month/day/time)
+  detail?: string
+}
+
+export interface SajuRelationsSummary {
+  hap: SajuRelationEntry[]
+  chung: SajuRelationEntry[]
+  hyung: SajuRelationEntry[]
+  hae: SajuRelationEntry[]
+  hoe: SajuRelationEntry[]
+  heavenly: SajuRelationEntry[] // 천간합·천간충
+  earthly: SajuRelationEntry[] // 지지 합·충·형·파·해·원진
+  total: number
+  /** Pillar pair → narrative phrase. e.g. 'day-time' → '일간이 시지와 충돌해서'. */
+  primaryAxisKo?: string
+  primaryAxisEn?: string
+}
+
 export interface CalendarEngineSignals {
   /** Current-year profection (age = current chronological age). */
   profectionCurrent?: ProfectionEntry
@@ -122,8 +169,14 @@ export interface CalendarEngineSignals {
   zrCurrent?: ZREntry
   /** Next ZR chapter (so callers can name the 5–10y horizon). */
   zrNext?: ZREntry
+  /** ZR L2 sub-periods inside the active L1 chapter. */
+  zrSubPeriods?: ZRSubEntry[]
+  /** Active ZR L2 sub-period for the current age. */
+  zrSubCurrent?: ZRSubEntry
   /** 7 Hellenistic Lots, keyed by name. */
   arabicParts?: Partial<Record<ArabicLotName, ArabicLot>>
+  /** Extra Hellenistic Lots (Basis, Captivity, Daimon). */
+  arabicPartsExtra?: Partial<Record<'Basis' | 'Captivity' | 'Daimon', ExtraArabicPartEntry>>
   /** Essential dignity score per planet (domicile/exalt/detr/fall/peregrine). */
   dignities?: DignityEntry[]
   /** Strength + top conjunctions for harmonics 5 / 7 / 9 (deterministic). */
@@ -143,6 +196,8 @@ export interface CalendarEngineSignals {
     hasInteractions: boolean
     summary: string[] // e.g. ['년-월 합', '일-시 충']
   }
+  /** Detailed saju 합·충·형·해·회 relations (천간/지지) — natural-language ready. */
+  sajuRelations?: SajuRelationsSummary
   /** 12운성 of all 4 pillars (strong / weak / neutral). */
   twelveStageAll?: {
     year?: string
@@ -271,6 +326,9 @@ export function adaptCalendarEngineSignals(input: AdaptInput): CalendarEngineSig
       for (const l of lots) map[l.name] = l
       out.arabicParts = map
     }
+    // Extra Hellenistic Lots — Basis / Captivity / Daimon
+    const extras = safe(() => computeExtraArabicParts(chart, !nightChart, lots))
+    if (extras && Object.keys(extras).length > 0) out.arabicPartsExtra = extras
   }
 
   // ── Zodiacal Releasing (needs Spirit Lot → its sign)
@@ -284,10 +342,18 @@ export function adaptCalendarEngineSignals(input: AdaptInput): CalendarEngineSig
           out.zrCurrent = toZREntry(active)
           const next = periods.find((p) => p.startYear === active.endYear)
           if (next) out.zrNext = toZREntry(next)
+          // Compute L2 sub-periods inside the active L1 chapter.
+          const subs = safe(() => computeZRSubPeriods(active))
+          if (subs && subs.length > 0) {
+            out.zrSubPeriods = subs
+            out.zrSubCurrent = subs.find((s) => age >= s.startYear && age < s.endYear)
+          }
         } else {
           // fall back to first chapter
           out.zrCurrent = toZREntry(periods[0])
           if (periods[1]) out.zrNext = toZREntry(periods[1])
+          const subs = safe(() => computeZRSubPeriods(periods[0]))
+          if (subs && subs.length > 0) out.zrSubPeriods = subs
         }
       }
     }
@@ -378,6 +444,11 @@ export function adaptCalendarEngineSignals(input: AdaptInput): CalendarEngineSig
   const hcRaw = safeGetHyeongchung(saju)
   if (hcRaw) out.sajuHyeongchung = hcRaw
 
+  // ── Detailed saju relations (천간합/지지합/충/형/해/회) via analyzeRelations.
+  // Uses the read-only saju/relations engine — no calendar-engine modification.
+  const rel = safeGetSajuRelations(saju)
+  if (rel) out.sajuRelations = rel
+
   // ── 12운성 of all pillars from iljuDeep / ultraAdvanced
   const twelve = safeGetTwelveStageAll(saju)
   if (twelve) out.twelveStageAll = twelve
@@ -438,6 +509,287 @@ function safeGetHyeongchung(saju: MainSajuOutput): CalendarEngineSignals['sajuHy
     hasInteractions: true,
     summary: summary.slice(0, 6),
   }
+}
+
+// ─── Extra Arabic Parts (Bonatti formulas) — Basis / Captivity / Daimon ──
+const ZODIAC_ORDER: ZodiacKo[] = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+]
+
+function normDeg(deg: number): number {
+  return ((deg % 360) + 360) % 360
+}
+
+function positionOf(longitude: number): {
+  longitude: number
+  sign: ZodiacKo
+  degreeInSign: number
+} {
+  const lon = normDeg(longitude)
+  return {
+    longitude: lon,
+    sign: ZODIAC_ORDER[Math.floor(lon / 30)],
+    degreeInSign: lon % 30,
+  }
+}
+
+function planetLongitude(chart: Chart, name: string): number | undefined {
+  const p = chart.planets.find((x) => x.name === name)
+  return p?.longitude
+}
+
+function computeExtraArabicParts(
+  chart: Chart,
+  isDayChart: boolean,
+  lots: ArabicLot[] | undefined,
+): Partial<Record<'Basis' | 'Captivity' | 'Daimon', ExtraArabicPartEntry>> {
+  const out: Partial<Record<'Basis' | 'Captivity' | 'Daimon', ExtraArabicPartEntry>> = {}
+  const asc = chart.ascendant.longitude
+  const fortune = lots?.find((l) => l.name === 'Fortune')
+  const spirit = lots?.find((l) => l.name === 'Spirit')
+  const mars = planetLongitude(chart, 'Mars')
+  const saturn = planetLongitude(chart, 'Saturn')
+
+  // Lot of Basis — ASC + lesser(Fortune,Spirit) - greater (Bonatti)
+  if (fortune && spirit) {
+    const lower = Math.min(fortune.longitude, spirit.longitude)
+    const upper = Math.max(fortune.longitude, spirit.longitude)
+    const basisLon = normDeg(asc + lower - upper)
+    out.Basis = {
+      name: 'Basis',
+      ...positionOf(basisLon),
+      formula: 'ASC + min(Fortune,Spirit) - max(Fortune,Spirit)',
+    }
+  }
+
+  // Lot of Captivity (Imprisonment / Bondage) — Bonatti:
+  //   day  : ASC + Saturn - Mars
+  //   night: ASC + Mars - Saturn
+  if (typeof mars === 'number' && typeof saturn === 'number') {
+    const captivityLon = isDayChart
+      ? normDeg(asc + saturn - mars)
+      : normDeg(asc + mars - saturn)
+    out.Captivity = {
+      name: 'Captivity',
+      ...positionOf(captivityLon),
+      formula: isDayChart ? 'ASC + Saturn - Mars' : 'ASC + Mars - Saturn',
+    }
+  }
+
+  // Lot of Daimon — historically = Lot of Spirit. We expose it as a separate
+  // alias so domain narratives can speak of "다이몬·천재" without re-using the
+  // Spirit label which we've reserved for career/wisdom.
+  if (spirit) {
+    out.Daimon = {
+      name: 'Daimon',
+      longitude: spirit.longitude,
+      sign: spirit.sign,
+      degreeInSign: spirit.degreeInSign,
+      formula: `alias of Spirit (${spirit.formula})`,
+    }
+  }
+
+  return out
+}
+
+// ─── ZR L2 sub-period computation ─────────────────────────────
+// L2 inside an L1 chapter subdivides the chapter in zodiac order, starting
+// from the L1 sign, with each sub-sign's ruler holding its own planet-years
+// — proportionally compressed to fit inside the L1 chapter's total duration.
+const SIGN_RULERS: Record<ZodiacKo, string> = {
+  Aries: 'Mars', Taurus: 'Venus', Gemini: 'Mercury', Cancer: 'Moon',
+  Leo: 'Sun', Virgo: 'Mercury', Libra: 'Venus', Scorpio: 'Mars',
+  Sagittarius: 'Jupiter', Capricorn: 'Saturn', Aquarius: 'Saturn', Pisces: 'Jupiter',
+}
+const PLANET_YEARS_L2: Record<string, number> = {
+  Sun: 19, Moon: 25, Mercury: 20, Venus: 8,
+  Mars: 15, Jupiter: 12, Saturn: 27,
+}
+
+function computeZRSubPeriods(l1: ZRPeriod): ZRSubEntry[] {
+  // Sum of all 12 planet-years (one per sign in zodiac order from L1 sign).
+  // For each sub-sign with non-zero years, scale its proportion to fit the
+  // L1 duration. The result is deterministic.
+  const startIdx = ZODIAC_ORDER.indexOf(l1.sign)
+  if (startIdx < 0) return []
+  let total = 0
+  const candidates: Array<{ sign: ZodiacKo; ruler: string; years: number }> = []
+  for (let i = 0; i < 12; i++) {
+    const sign = ZODIAC_ORDER[(startIdx + i) % 12]
+    const ruler = SIGN_RULERS[sign]
+    const years = PLANET_YEARS_L2[ruler] ?? 0
+    if (years <= 0) continue
+    candidates.push({ sign, ruler, years })
+    total += years
+  }
+  if (total <= 0 || candidates.length === 0) return []
+  // Scale to L1.durationYears.
+  const subs: ZRSubEntry[] = []
+  let cursor = l1.startYear
+  candidates.forEach((c, i) => {
+    const scaled = (c.years / total) * l1.durationYears
+    const start = cursor
+    const end = i === candidates.length - 1 ? l1.endYear : start + scaled
+    subs.push({
+      index: i,
+      sign: c.sign,
+      ruler: c.ruler,
+      startYear: Number(start.toFixed(2)),
+      endYear: Number(end.toFixed(2)),
+      durationYears: Number((end - start).toFixed(2)),
+    })
+    cursor = end
+  })
+  return subs
+}
+
+// ─── saju relation summary helper ─────────────────────────────
+function safeGetSajuRelations(saju: MainSajuOutput): SajuRelationsSummary | undefined {
+  // We need raw pillar names; the saju output exposes stem/branch only.
+  // analyzeRelations expects heavenlyStem.name / earthlyBranch.name so we
+  // build that small shape defensively.
+  const p = saju.pillars
+  if (!p?.year?.stem || !p.day?.stem) return undefined
+  const input = toAnalyzeInputFromSaju(
+    {
+      year: { heavenlyStem: { name: p.year.stem }, earthlyBranch: { name: p.year.branch } },
+      month: { heavenlyStem: { name: p.month.stem }, earthlyBranch: { name: p.month.branch } },
+      day: { heavenlyStem: { name: p.day.stem }, earthlyBranch: { name: p.day.branch } },
+      time: { heavenlyStem: { name: p.time.stem }, earthlyBranch: { name: p.time.branch } },
+    },
+    p.day.stem,
+  )
+  let hits: RelationHit[] = []
+  try {
+    hits = analyzeRelations(input)
+  } catch {
+    return undefined
+  }
+  if (hits.length === 0) return undefined
+
+  const summary: SajuRelationsSummary = {
+    hap: [],
+    chung: [],
+    hyung: [],
+    hae: [],
+    hoe: [],
+    heavenly: [],
+    earthly: [],
+    total: 0,
+  }
+  for (const h of hits) {
+    const entry: SajuRelationEntry = {
+      kind: classifyRelationKind(h.kind),
+      rawKind: h.kind,
+      pillars: h.pillars as string[],
+      detail: h.detail,
+    }
+    summary.total += 1
+    switch (entry.kind) {
+      case '합':
+        summary.hap.push(entry)
+        break
+      case '충':
+        summary.chung.push(entry)
+        break
+      case '형':
+        summary.hyung.push(entry)
+        break
+      case '해':
+        summary.hae.push(entry)
+        break
+      case '회':
+        summary.hoe.push(entry)
+        break
+    }
+    if (h.kind === '천간합' || h.kind === '천간충') {
+      summary.heavenly.push(entry)
+    } else if (h.kind !== '공망') {
+      summary.earthly.push(entry)
+    }
+  }
+  // Primary axis = the most prominent pillar-pair amongst chung/hap.
+  const primary = pickPrimaryAxis(summary)
+  if (primary) {
+    summary.primaryAxisKo = primary.ko
+    summary.primaryAxisEn = primary.en
+  }
+  return summary
+}
+
+function classifyRelationKind(k: RelationHit['kind']): SajuRelationEntry['kind'] {
+  // 합 includes 천간합 + 지지육합. 회 covers 지지삼합·지지방합 (조합되어 모이는 결).
+  if (k === '천간합' || k === '지지육합') return '합'
+  if (k === '지지삼합' || k === '지지방합') return '회'
+  if (k === '천간충' || k === '지지충') return '충'
+  if (k === '지지형') return '형'
+  if (k === '지지해' || k === '원진' || k === '지지파') return '해'
+  // 공망 → '해' bucket (어긋남) as a final defensive fallback.
+  return '해'
+}
+
+function pickPrimaryAxis(
+  s: SajuRelationsSummary,
+): { ko: string; en: string } | undefined {
+  // Prefer day-time chung (most personally felt), then day-month, then year-month.
+  const order: Array<{ kind: SajuRelationEntry['kind']; pair: [string, string] }> = [
+    { kind: '충', pair: ['day', 'time'] },
+    { kind: '충', pair: ['day', 'month'] },
+    { kind: '형', pair: ['day', 'time'] },
+    { kind: '합', pair: ['day', 'time'] },
+    { kind: '합', pair: ['year', 'month'] },
+    { kind: '충', pair: ['year', 'month'] },
+  ]
+  const pillarsLabelKo: Record<string, string> = {
+    year: '년주', month: '월주', day: '일간', time: '시지',
+  }
+  const pillarsLabelEn: Record<string, string> = {
+    year: 'year pillar', month: 'month pillar', day: 'day master', time: 'hour pillar',
+  }
+  const kindVerbKo: Record<SajuRelationEntry['kind'], string> = {
+    합: '조화롭게 결합해서',
+    충: '팽팽하게 마주서서',
+    형: '변형을 일으키며 닿아서',
+    해: '은근히 어긋나서',
+    회: '한자리에 모여서',
+  }
+  const kindVerbEn: Record<SajuRelationEntry['kind'], string> = {
+    합: 'harmoniously joins',
+    충: 'stands in tense opposition to',
+    형: 'reshapes against',
+    해: 'subtly misaligns with',
+    회: 'gathers together with',
+  }
+  for (const cand of order) {
+    const bucket =
+      cand.kind === '합' ? s.hap :
+      cand.kind === '충' ? s.chung :
+      cand.kind === '형' ? s.hyung :
+      cand.kind === '해' ? s.hae : s.hoe
+    const hit = bucket.find((e) => e.pillars.length >= 2
+      && cand.pair.includes(e.pillars[0])
+      && cand.pair.includes(e.pillars[1]))
+    if (hit) {
+      const a = hit.pillars[0]
+      const b = hit.pillars[1]
+      return {
+        ko: `${pillarsLabelKo[a] ?? a}이 ${pillarsLabelKo[b] ?? b}와 ${kindVerbKo[hit.kind]}`,
+        en: `the ${pillarsLabelEn[a] ?? a} ${kindVerbEn[hit.kind]} the ${pillarsLabelEn[b] ?? b}`,
+      }
+    }
+  }
+  // Fallback: first chung or hap.
+  const fallback = s.chung[0] ?? s.hap[0] ?? s.hyung[0]
+  if (fallback && fallback.pillars.length >= 2) {
+    const a = fallback.pillars[0]
+    const b = fallback.pillars[1]
+    return {
+      ko: `${pillarsLabelKo[a] ?? a}이 ${pillarsLabelKo[b] ?? b}와 ${kindVerbKo[fallback.kind]}`,
+      en: `the ${pillarsLabelEn[a] ?? a} ${kindVerbEn[fallback.kind]} the ${pillarsLabelEn[b] ?? b}`,
+    }
+  }
+  return undefined
 }
 
 function safeGetTwelveStageAll(saju: MainSajuOutput): CalendarEngineSignals['twelveStageAll'] {

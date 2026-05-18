@@ -9,6 +9,8 @@ import {
   categoryCount,
   countSibsin,
   geokgukType,
+  relationPhraseEn,
+  relationPhraseKo,
 } from '../../signals/sajuSignals'
 import {
   aspectsOf,
@@ -179,6 +181,25 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   if (hakdang) {
     p3pieces.push('학당의 별도 함께 있어, 공식적인 교육과 자격 과정에서 운이 잘 풀려요.')
     p3piecesEn.push(`A 학당 (academy) star also sits in your chart — formal education and accreditation tracks suit you.`)
+  }
+  // Saju relations — 합(joining) often supports learning lineage / mentor
+  const relKoWisdom = relationPhraseKo(calendarSignals?.sajuRelations, {
+    preferKind: '합',
+  })
+  const relEnWisdom = relationPhraseEn(calendarSignals?.sajuRelations, {
+    preferKind: '합',
+  })
+  if (relKoWisdom) {
+    sajuUsed.push('calendarSignals.sajuRelations')
+    p3pieces.push(relKoWisdom.replace('흐름이 있어요.', '결이 있어서, 가르치는 사람이나 책과의 결합이 학습의 토대가 돼요.'))
+    if (relEnWisdom) p3piecesEn.push(relEnWisdom.replace(/\.$/, ' — pairing with teachers or books carries the learning foundation.'))
+  }
+  // Lot of Daimon — 영혼·천재의 점 (Spirit aliased)
+  const daimon = calendarSignals?.arabicPartsExtra?.Daimon
+  if (daimon) {
+    fusionUsed.push('calendarSignals.arabicPartsExtra.Daimon')
+    p3pieces.push(`영혼의 행운점이 ${signLabel(daimon.sign, 'ko')}의 결로 자리해서, 진짜 지혜가 자라는 자리도 그 톤이에요.`)
+    p3piecesEn.push(`Your Lot of Daimon in ${signLabel(daimon.sign, 'en')} — the seat where real wisdom grows shares that grain.`)
   }
   const p3ko = paragraph(
     p3pieces.length ? p3pieces : ['지금 흐름에선 새로운 지식보다 이미 알고 있는 것을 깊이 다지는 시기가 잘 맞아요.'],

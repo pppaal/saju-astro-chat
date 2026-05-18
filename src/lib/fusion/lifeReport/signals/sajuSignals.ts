@@ -3,6 +3,10 @@
 // All helpers are defensive — missing fields silently return undefined/[].
 
 import type { MainSajuOutput } from '@/lib/saju/main'
+import type {
+  SajuRelationsSummary,
+  SajuRelationEntry,
+} from '../adapters/fromCalendarEngine'
 
 type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
 
@@ -288,4 +292,88 @@ export function unluckyShinsalNames(saju: MainSajuOutput): string[] {
   }
   const items = obj.shinsal?.unluckyList ?? []
   return items.map((x) => x?.kind ?? '').filter(Boolean)
+}
+
+// ─── Saju relation narrative helpers ─────────────────────────
+// Map a SajuRelationsSummary into a 1-sentence natural-language phrase that
+// each domain narrative can splice into [paragraph 3] or [paragraph 4]
+// without exposing 합/충/형/해 jargon. Returns undefined when the summary
+// has no meaningful axis to talk about.
+
+interface RelationPhraseOpts {
+  /** Bias toward a specific kind ('충'|'합'|'형'|'해'|'회'). */
+  preferKind?: SajuRelationEntry['kind']
+  /** Bias toward involving a specific pillar (day/year/month/time). */
+  preferPillar?: 'year' | 'month' | 'day' | 'time'
+}
+
+export function relationPhraseKo(
+  rel: SajuRelationsSummary | undefined,
+  opts: RelationPhraseOpts = {},
+): string | undefined {
+  if (!rel || rel.total === 0) return undefined
+  const cand = pickRelationEntry(rel, opts)
+  if (!cand) return rel.primaryAxisKo ? `사주의 합충 패턴을 보면, ${rel.primaryAxisKo} 흐름이 인생 결에 한 번 굵게 작용해요.` : undefined
+  const pillarsKo: Record<string, string> = {
+    year: '년주', month: '월주', day: '일간', time: '시지',
+  }
+  const a = cand.pillars[0] ? pillarsKo[cand.pillars[0]] ?? cand.pillars[0] : '명식'
+  const b = cand.pillars[1] ? pillarsKo[cand.pillars[1]] ?? cand.pillars[1] : '다른 자리'
+  const verb = kindVerbKo(cand.kind)
+  return `사주의 합충 패턴을 보면, ${a}이 ${b}와 ${verb} 흐름이 있어요.`
+}
+
+export function relationPhraseEn(
+  rel: SajuRelationsSummary | undefined,
+  opts: RelationPhraseOpts = {},
+): string | undefined {
+  if (!rel || rel.total === 0) return undefined
+  const cand = pickRelationEntry(rel, opts)
+  if (!cand) return rel.primaryAxisEn ? `In the saju relations, ${rel.primaryAxisEn} runs as a heavy single grain through the chart.` : undefined
+  const pillarsEn: Record<string, string> = {
+    year: 'year pillar', month: 'month pillar', day: 'day master', time: 'hour pillar',
+  }
+  const a = cand.pillars[0] ? pillarsEn[cand.pillars[0]] ?? cand.pillars[0] : 'the chart'
+  const b = cand.pillars[1] ? pillarsEn[cand.pillars[1]] ?? cand.pillars[1] : 'another seat'
+  const verb = kindVerbEn(cand.kind)
+  return `Looking at the saju relations, the ${a} ${verb} the ${b}.`
+}
+
+/** Return the underlying entry (so callers can read kind / pillars). */
+export function pickRelationEntry(
+  rel: SajuRelationsSummary,
+  opts: RelationPhraseOpts = {},
+): SajuRelationEntry | undefined {
+  const buckets: SajuRelationEntry[][] = []
+  if (opts.preferKind === '합') buckets.push(rel.hap)
+  if (opts.preferKind === '충') buckets.push(rel.chung)
+  if (opts.preferKind === '형') buckets.push(rel.hyung)
+  if (opts.preferKind === '해') buckets.push(rel.hae)
+  if (opts.preferKind === '회') buckets.push(rel.hoe)
+  buckets.push(rel.chung, rel.hap, rel.hyung, rel.hoe, rel.hae)
+  for (const bucket of buckets) {
+    if (!bucket || bucket.length === 0) continue
+    if (opts.preferPillar) {
+      const hit = bucket.find((e) => e.pillars.includes(opts.preferPillar!))
+      if (hit) return hit
+    } else {
+      return bucket[0]
+    }
+  }
+  return undefined
+}
+
+function kindVerbKo(k: SajuRelationEntry['kind']): string {
+  if (k === '합') return '조화롭게 결합하는'
+  if (k === '충') return '팽팽하게 마주서는'
+  if (k === '형') return '변형을 일으키며 닿는'
+  if (k === '해') return '은근히 어긋나는'
+  return '한자리에 모이는'
+}
+function kindVerbEn(k: SajuRelationEntry['kind']): string {
+  if (k === '합') return 'harmoniously joins with'
+  if (k === '충') return 'stands in tense opposition to'
+  if (k === '형') return 'reshapes against'
+  if (k === '해') return 'subtly misaligns with'
+  return 'gathers together with'
 }

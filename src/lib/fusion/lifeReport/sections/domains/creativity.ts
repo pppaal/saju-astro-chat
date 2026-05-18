@@ -5,7 +5,11 @@
 //   • 점성: 5집(창조), 금성 + aspects, harmonics 5, 5집 ruler, Pisces/Leo emphasis
 
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
-import { countSibsin } from '../../signals/sajuSignals'
+import {
+  countSibsin,
+  relationPhraseEn,
+  relationPhraseKo,
+} from '../../signals/sajuSignals'
 import {
   aspectsOf,
   getPlanet,
@@ -167,6 +171,21 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   if (eros && !spirit) {
     p3pieces.push(`사랑·끌림의 점이 ${signLabel(eros.sign, 'ko')}에 있어, 창작에서도 ${spiritSignFlavorKo(eros.sign)}이 핵심이에요.`)
     p3piecesEn.push(`Your Lot of Eros in ${signLabel(eros.sign, 'en')} keeps ${spiritSignFlavorEn(eros.sign)} at the heart of your making.`)
+  }
+  // Saju relations — 형(reshape) often signals breakthrough / break-out energy
+  // in creative work; bias the pick toward 형 first, then 충.
+  const relKoCreate = relationPhraseKo(calendarSignals?.sajuRelations, {
+    preferKind: '형',
+  })
+    ?? relationPhraseKo(calendarSignals?.sajuRelations, { preferKind: '충' })
+  const relEnCreate = relationPhraseEn(calendarSignals?.sajuRelations, {
+    preferKind: '형',
+  })
+    ?? relationPhraseEn(calendarSignals?.sajuRelations, { preferKind: '충' })
+  if (relKoCreate) {
+    sajuUsed.push('calendarSignals.sajuRelations')
+    p3pieces.push(relKoCreate.replace('흐름이 있어요.', '결이 있어서, 그 마찰이 작품으로 풀려나오는 통로가 돼요.'))
+    if (relEnCreate) p3piecesEn.push(relEnCreate.replace(/\.$/, ' — that friction is where the work pushes out.'))
   }
   const p3ko = paragraph(
     p3pieces.length ? p3pieces : ['지금 결은 창작 자체보다 정리·다듬기에 더 무게가 실려 있어요. 묵힌 작업을 끄집어내기 좋은 시기예요.'],

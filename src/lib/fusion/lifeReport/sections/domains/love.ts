@@ -8,6 +8,8 @@ import {
   currentDaeun,
   dayBranch,
   findDaeunByCategory,
+  relationPhraseEn,
+  relationPhraseKo,
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
@@ -207,6 +209,27 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (loveConfirms.length > 0) {
     deepKo.push(`그리고 ${loveConfirms[0].rule.narrative.confirm}`)
     deepEn.push(`Additionally, ${loveConfirms[0].rule.meaning}.`)
+  }
+  // Saju relations — 합 weighted (love is union-coloured)
+  const relKoLove = relationPhraseKo(input.calendarSignals?.sajuRelations, {
+    preferKind: '합',
+    preferPillar: 'day',
+  })
+  const relEnLove = relationPhraseEn(input.calendarSignals?.sajuRelations, {
+    preferKind: '합',
+    preferPillar: 'day',
+  })
+  if (relKoLove) {
+    sajuUsed.push('calendarSignals.sajuRelations')
+    deepKo.push(relKoLove.replace('흐름이 있어요.', '결이 있어서, 한 사람과의 결합이 인생 결에 굵게 새겨져요.'))
+    if (relEnLove) deepEn.push(relEnLove.replace(/\.$/, ' — partnership leaves a strong imprint on the life grain.'))
+  }
+  // Lot of Eros now adds 끌림 colour at P3 (separate from existing P4 timing line)
+  const erosLot = input.calendarSignals?.arabicParts?.Eros
+  if (erosLot) {
+    fusionUsed.push('calendarSignals.arabicParts.Eros')
+    deepKo.push(`사랑의 끌림이 모이는 자리는 ${signLabel(erosLot.sign, 'ko')}의 결이라, 본인을 매료시키는 결도 그 톤으로 일관돼요.`)
+    deepEn.push(`Your Eros sits in ${signLabel(erosLot.sign, 'en')} — the colour that catches your attention runs through that grain.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '사랑의 결은 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 흐름이에요.'

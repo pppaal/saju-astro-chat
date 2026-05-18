@@ -4,6 +4,8 @@
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
 import {
   fiveElements,
+  relationPhraseEn,
+  relationPhraseKo,
   unluckyShinsalNames,
   weakElements,
   yongsinPrimary,
@@ -141,6 +143,25 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (healthConfirms.length > 0) {
     deepKo.push(`그리고 ${healthConfirms[0].rule.narrative.confirm}`)
     deepEn.push(`Additionally, ${healthConfirms[0].rule.meaning}.`)
+  }
+  // Saju relations — 형(reshape) / 충(clash) often surface as body-stress
+  // patterns. Bias the pick toward those kinds.
+  const relKoHealth = relationPhraseKo(input.calendarSignals?.sajuRelations, {
+    preferKind: '형',
+  })
+    ?? relationPhraseKo(input.calendarSignals?.sajuRelations, {
+      preferKind: '충',
+    })
+  const relEnHealth = relationPhraseEn(input.calendarSignals?.sajuRelations, {
+    preferKind: '형',
+  })
+    ?? relationPhraseEn(input.calendarSignals?.sajuRelations, {
+      preferKind: '충',
+    })
+  if (relKoHealth) {
+    sajuUsed.push('calendarSignals.sajuRelations')
+    deepKo.push(relKoHealth.replace('흐름이 있어요.', '결이 있어서, 무리가 쌓이면 그 자리부터 신호가 먼저 와요.'))
+    if (relEnHealth) deepEn.push(relEnHealth.replace(/\.$/, ' — overload signals tend to surface from that axis first.'))
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '건강의 결은 극단보다는 일상의 작은 누적이 만들어요.'

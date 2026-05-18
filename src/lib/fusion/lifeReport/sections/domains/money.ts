@@ -11,6 +11,8 @@ import {
   isJonggeok,
   jonggeokType,
   luckyShinsalNames,
+  relationPhraseEn,
+  relationPhraseKo,
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
@@ -169,6 +171,25 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   if (moneyConfirms.length > 0) {
     deepKo.push(`그리고 ${moneyConfirms[0].rule.narrative.confirm}`)
     deepEn.push(`Additionally, ${moneyConfirms[0].rule.meaning}.`)
+  }
+  // Saju relations — year/month axis often reflects family-resource flow.
+  const relKoMoney = relationPhraseKo(input.calendarSignals?.sajuRelations, {
+    preferPillar: 'month',
+  })
+  const relEnMoney = relationPhraseEn(input.calendarSignals?.sajuRelations, {
+    preferPillar: 'month',
+  })
+  if (relKoMoney) {
+    sajuUsed.push('calendarSignals.sajuRelations')
+    deepKo.push(relKoMoney.replace('흐름이 있어요.', '결이 있어서, 자원 흐름이 한 번 모이고 한 번 풀리는 사이클을 만들어요.'))
+    if (relEnMoney) deepEn.push(relEnMoney.replace(/\.$/, ' — resource flow runs as a gather/release cycle.'))
+  }
+  // Lot of Necessity — adds a 'where resources strain' note
+  const necessityLot = input.calendarSignals?.arabicParts?.Necessity
+  if (necessityLot) {
+    fusionUsed.push('calendarSignals.arabicParts.Necessity')
+    deepKo.push(`필연의 행운점이 ${signLabel(necessityLot.sign, 'ko')}의 결로 자리해서, 부담이 가장 자주 모이는 자원 자리도 그 톤으로 일관돼요.`)
+    deepEn.push(`Lot of Necessity in ${signLabel(necessityLot.sign, 'en')} — the resource-strain seat runs through that same grain.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '재물의 결은 큰 폭의 변동보다 꾸준한 누적의 길이 더 잘 어울려요.'

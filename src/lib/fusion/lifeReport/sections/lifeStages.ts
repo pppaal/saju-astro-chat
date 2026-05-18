@@ -159,9 +159,22 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const progSun = astro.progressions?.secondary?.progressedSun
   if (progSun) astroUsed.push('progressions.secondary.progressedSun')
 
-  // ─ saju ultra-advanced flavor
+  // ─ saju ultra-advanced flavor — pick the 12운성 of the pillar that
+  //   governs *this* stage (not always the day pillar).
+  const twelveAll = input.calendarSignals?.twelveStageAll
   const ilju12 = saju.ultraAdvanced?.iljuDeep?.twelveStage
-  if (ilju12) sajuUsed.push('ultraAdvanced.iljuDeep.twelveStage')
+  const pillarKey: 'year' | 'month' | 'day' | 'time' =
+    range.id === 'early' ? 'year' :
+    range.id === 'young' ? 'month' :
+    range.id === 'middle' ? 'day' : 'time'
+  const stageTwelve =
+    (twelveAll && twelveAll[pillarKey]) ||
+    (pillarKey === 'day' ? ilju12 : undefined)
+  if (stageTwelve) {
+    sajuUsed.push(`calendarSignals.twelveStageAll.${pillarKey}`)
+  } else if (ilju12 && pillarKey === 'day') {
+    sajuUsed.push('ultraAdvanced.iljuDeep.twelveStage')
+  }
   const geokguk = geokgukType(saju)
   if (geokguk) sajuUsed.push('advanced.geokguk.type')
   const jong = isJonggeok(saju) ? jonggeokType(saju) : ''
@@ -223,13 +236,13 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
 
   // ───────────────────── 文단 3: 도전·성취
   const p3ko = paragraph([
-    challengePieceKo(range.id, ilju12, geokguk, jong, lifecycleEvts),
+    challengePieceKo(range.id, stageTwelve, geokguk, jong, lifecycleEvts),
     sun && range.id === 'middle'
       ? `${signLabel(sun.sign, 'ko')}의 자아 결이 이 시기에 가장 진하게 드러나요.`
       : '',
   ])
   const p3en = paragraph([
-    challengePieceEn(range.id, ilju12, geokguk, jong, lifecycleEvts),
+    challengePieceEn(range.id, stageTwelve, geokguk, jong, lifecycleEvts),
     sun && range.id === 'middle'
       ? `Your ${signLabel(sun.sign, 'en')} Sun shows its truest colour through this window.`
       : '',
@@ -298,6 +311,23 @@ function twelveStageMeaningKo(stage: string): string {
   return ''
 }
 
+function twelveStageMeaningEn(stage: string): string {
+  if (!stage) return ''
+  if (stage.includes('장생') || stage === '생') return 'a birth-grain flows'
+  if (stage.includes('욕')) return 'a growth-grain flows'
+  if (stage.includes('관대')) return 'the closing of a growth phase'
+  if (stage.includes('임관') || stage.includes('건록')) return 'an entry into the public stage'
+  if (stage.includes('제왕') || stage.includes('왕지')) return 'the peak grain flows'
+  if (stage.includes('쇠')) return 'the first softening begins'
+  if (stage.includes('병')) return 'a slow descent flows'
+  if (stage.includes('사')) return 'a stillness-grain flows'
+  if (stage.includes('묘')) return 'a phase of rest and emptying'
+  if (stage.includes('절')) return 'an ending meets a new beginning'
+  if (stage.includes('태')) return 'a conception-grain flows'
+  if (stage.includes('양')) return 'a being-nurtured phase'
+  return ''
+}
+
 function geokgukShortKo(g: string): string {
   if (!g) return '본연의 결'
   if (g.includes('편관')) return '도전을 동력으로 쓰는 결'
@@ -318,8 +348,14 @@ function challengePieceEn(
   jong: string,
   events: AstroLifecycleEvent[]
 ): string {
+  const pillarLabel: Record<LifeStageId, string> = {
+    early: 'year pillar',
+    young: 'month pillar',
+    middle: 'day pillar',
+    late: 'hour pillar',
+  }
   const stagePiece = twelveStage
-    ? `Your day pillar sits at the ${twelveStage} stage of the 12-phase cycle, so `
+    ? `${twelveStageMeaningEn(twelveStage)} (the ${pillarLabel[id]} sits at this 12-stage phase), so `
     : ''
   if (id === 'early') {
     return `${stagePiece}childhood is the first felt-sense of your grain. ${jong ? `Because you carry a ${jong}, that one-direction current shows up early.` : geokguk ? `Your ${geokguk} colour appears at school and home from the start.` : ''}`

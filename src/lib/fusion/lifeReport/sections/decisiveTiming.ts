@@ -256,6 +256,47 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       `When the current chapter closes, you move into the ${zrNext.sign} chapter — another large bend in the river awaits.`,
     )
   }
+  // ZR L2: the smaller sub-period inside the current L1 chapter — adds 1-2
+  // upcoming micro-pivots inside the 5-10y window.
+  const zrSubCurrent = input.calendarSignals?.zrSubCurrent
+  const zrSubPeriods = input.calendarSignals?.zrSubPeriods
+  if (zrSubCurrent) {
+    astroUsed.push('calendarSignals.zrSubCurrent')
+    const birthYearForSub =
+      birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
+    const endAge = Math.round(zrSubCurrent.endYear)
+    const endYearAbsolute = birthYearForSub + endAge
+    p5pieces.push(
+      `그 안의 작은 시기로 보면, 지금은 ${zrSignKo(zrSubCurrent.sign)}의 결을 ${planetName(zrSubCurrent.ruler, 'ko')}이 다스리는 sub-period 안에 있어요. 이 작은 시기는 ${endAge}세(${endYearAbsolute}년) 무렵 닫히면서 작은 변곡이 한 번 와요.`,
+    )
+    p5piecesEn.push(
+      `Inside the chapter, you sit in a smaller ${zrSubCurrent.sign} sub-period ruled by ${zrSubCurrent.ruler}; it closes around age ${endAge} (≈ ${endYearAbsolute}), bringing one minor pivot.`,
+    )
+  }
+  if (zrSubPeriods && zrSubPeriods.length > 0) {
+    astroUsed.push('calendarSignals.zrSubPeriods')
+    // Pull the next 1-2 sub-period transitions inside the 5-10y window.
+    const ageNow = ageFromBirthInline(saju)
+    const upcoming = zrSubPeriods
+      .filter((s) => s.startYear > ageNow && s.startYear - ageNow <= 10)
+      .slice(0, 2)
+    if (upcoming.length > 0) {
+      const birthYearForSub =
+        birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
+      const labelsKo = upcoming.map(
+        (u) => `${Math.round(u.startYear)}세(${birthYearForSub + Math.round(u.startYear)}년)`,
+      )
+      const labelsEn = upcoming.map(
+        (u) => `age ${Math.round(u.startYear)} (≈ ${birthYearForSub + Math.round(u.startYear)})`,
+      )
+      p5pieces.push(
+        `다음 작은 변곡은 ${labelsKo.join(', ')} 즈음이에요. 인생 큰 챕터 안에서 결의 톤이 한 번씩 바뀌어요.`,
+      )
+      p5piecesEn.push(
+        `The next small pivots fall near ${labelsEn.join(', ')} — the tone of the chapter shifts a notch each time.`,
+      )
+    }
+  }
   if (profTimeline && profTimeline.length > 0) {
     astroUsed.push('calendarSignals.profectionTimeline')
     // pick first non-trivial activation in next 5 years (house != 1)
@@ -444,6 +485,25 @@ function labelKoDomain(d: string): string {
     default:
       return d
   }
+}
+
+// Inline age computation — mirrors adapter's ageFromBirth so we don't have
+// to plumb it down. Deterministic against the current UTC date.
+function ageFromBirthInline(saju: { input?: { birthDate?: string } }): number {
+  const bd = saju.input?.birthDate
+  if (!bd) return 0
+  const parts = bd.split('-')
+  if (parts.length !== 3) return 0
+  const by = Number(parts[0]) || 0
+  const bm = Number(parts[1]) || 1
+  const bdy = Number(parts[2]) || 1
+  if (!by) return 0
+  const now = new Date()
+  let age = now.getUTCFullYear() - by
+  const m = now.getUTCMonth() + 1
+  const d = now.getUTCDate()
+  if (m < bm || (m === bm && d < bdy)) age -= 1
+  return Math.max(0, age)
 }
 
 function labelEnDomain(d: string): string {

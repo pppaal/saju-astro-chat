@@ -9,6 +9,8 @@ import {
   geokgukType,
   isStageStrong,
   isStageWeak,
+  relationPhraseEn,
+  relationPhraseKo,
   timeBranch,
   timeStage,
   timeStem,
@@ -208,6 +210,18 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     fusionUsed.push('calendarSignals.harmonics.5')
     deepKo.push('창의의 깊은 결이 강하게 깔려 있어, 자녀가 있든 없든 ‘다음 세대로 무엇을 흘려보낼지’가 평생의 결로 묻혀 있어요.')
     deepEn.push('Harmonics 5 runs strongly — whether or not biological children appear, "what you pass to the next generation" remains a lifelong grain.')
+  }
+  // Saju relations — time pillar weighted (자녀 자리 = 시주)
+  const relKoChildren = relationPhraseKo(input.calendarSignals?.sajuRelations, {
+    preferPillar: 'time',
+  })
+  const relEnChildren = relationPhraseEn(input.calendarSignals?.sajuRelations, {
+    preferPillar: 'time',
+  })
+  if (relKoChildren) {
+    sajuUsed.push('calendarSignals.sajuRelations')
+    deepKo.push(relKoChildren.replace('흐름이 있어요.', '결이 있어서, 자녀와의 인연 색이 일찍부터 정해져 있는 결이에요.'))
+    if (relEnChildren) deepEn.push(relEnChildren.replace(/\.$/, ' — the colour of the child-bond is pre-set early.'))
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '자녀의 결은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.'

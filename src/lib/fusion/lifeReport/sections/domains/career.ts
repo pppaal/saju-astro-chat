@@ -10,6 +10,8 @@ import {
   geokgukType,
   isJonggeok,
   jonggeokType,
+  relationPhraseEn,
+  relationPhraseKo,
   samgiInfo,
 } from '../../signals/sajuSignals'
 import {
@@ -224,6 +226,30 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     deepPiecesEn.push(
       `Your ilju (${iljuName}) naturally fits ${iljuAptitudes.slice(0, 3).join(' / ')}.`
     )
+  }
+  // Saju relations — day master in tension/harmony with another pillar
+  // shows the deepest professional pivot baked into the chart.
+  const relKoCareer = relationPhraseKo(input.calendarSignals?.sajuRelations, {
+    preferPillar: 'day',
+  })
+  const relEnCareer = relationPhraseEn(input.calendarSignals?.sajuRelations, {
+    preferPillar: 'day',
+  })
+  if (relKoCareer) {
+    sajuUsed.push('calendarSignals.sajuRelations')
+    deepPieces.push(
+      relKoCareer.replace('합충 패턴', '합충 패턴').replace('흐름이 있어요.', '흐름이 있어서, 만년에 직업 색이 한 번 다듬어지는 결이에요.'),
+    )
+    if (relEnCareer) deepPiecesEn.push(
+      relEnCareer.replace('relations,', 'relations,').replace(/\.$/, ' — the late-career colour gets re-tuned once.'),
+    )
+  }
+  // Lot of Courage — adds an extra deep-grain note about challenge appetite
+  const courage = input.calendarSignals?.arabicParts?.Courage
+  if (courage) {
+    fusionUsed.push('calendarSignals.arabicParts.Courage')
+    deepPieces.push(`용기의 행운점이 ${karmaSignKoCareer(courage.sign)}의 결로 자리해서, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`)
+    deepPiecesEn.push(`Your Lot of Courage in ${courage.sign} pulls the strongest career luck through the place where you accept challenge.`)
   }
   // Fusion career confirms (top 2)
   if (careerConfirms.length > 0) {
@@ -449,6 +475,15 @@ function geokgukShortKoForCareer(g: string): string {
   if (g.includes('편인')) return '독특한 직관의 결'
   if (g.includes('정인')) return '배움과 돌봄의 결'
   return '본연의 결'
+}
+
+function karmaSignKoCareer(sign: string): string {
+  const map: Record<string, string> = {
+    Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
+    Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
+    Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
+  }
+  return map[sign] ?? sign
 }
 
 // career 섹션용 하우스 의미 자연어
