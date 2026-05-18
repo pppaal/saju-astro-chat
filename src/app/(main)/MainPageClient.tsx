@@ -2,6 +2,7 @@
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useSession } from 'next-auth/react'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -150,9 +151,64 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     if (next && next.startsWith('/')) window.location.assign(next)
   }
 
+  // Once the user has given the app a birth-date OR signed in, the home
+  // transitions from the cosmic dark hero ("brand" surface) to the
+  // premium white surface that mirrors the counselor pages — the user
+  // has crossed from prospect to tool-user. Trigger is sticky: birthInfo
+  // lives in localStorage, isAuthed in the session cookie.
+  const isPremiumWhite = isAuthed || !!birthInfo
+
   return (
-    <main className={`${styles.container} ${styles.homeContainer}`}>
-      <ParticleCanvas />
+    <motion.main
+      className={`${styles.container} ${styles.homeContainer} ${
+        isPremiumWhite ? styles.lightMode : ''
+      }`}
+      animate={{
+        backgroundColor: isPremiumWhite ? '#fafaf9' : '#06091a',
+        color: isPremiumWhite ? '#1c1917' : '#ffffff',
+      }}
+      transition={{ duration: 1.2, ease: 'easeInOut' }}
+    >
+      {/* Dark cosmic gradient layer — fades out when premium-white kicks
+          in. Kept as a separate layer because CSS gradients don't
+          interpolate smoothly between values; opacity transitions do. */}
+      <AnimatePresence>
+        {!isPremiumWhite && (
+          <motion.div
+            key="cosmic-bg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: 'easeInOut' }}
+            className={styles.cosmicBackdrop}
+            aria-hidden
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Subtle purple halo for the premium-white state — same vibe as
+          the counselor result pages' accent. */}
+      <AnimatePresence>
+        {isPremiumWhite && (
+          <motion.div
+            key="light-bg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.4, ease: 'easeInOut' }}
+            className={styles.lightHalo}
+            aria-hidden
+          />
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        animate={{ opacity: isPremiumWhite ? 0 : 1 }}
+        transition={{ duration: 1.2, ease: 'easeInOut' }}
+        style={{ pointerEvents: isPremiumWhite ? 'none' : 'auto' }}
+      >
+        <ParticleCanvas />
+      </motion.div>
 
       <div className={styles.homeTopBar}>
         <button
@@ -220,6 +276,6 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
 
       <PrefetchLinks />
       <SpeedInsights />
-    </main>
+    </motion.main>
   )
 }

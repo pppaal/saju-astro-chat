@@ -26,12 +26,33 @@
   isolation: isolate;
   padding: 6rem 1.5rem 5rem;
   gap: 3rem;
+  /* Base bg is a flat color so framer-motion can animate it smoothly
+     between dark/light states. The cosmic gradient lives on a separate
+     .cosmicBackdrop layer that opacity-fades out when the user crosses
+     into the premium-white state (see MainPageClient.tsx). */
+  background-color: #06091a;
+}
+
+.cosmicBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   background:
     radial-gradient(1200px 760px at 50% 18%, rgba(68, 95, 255, 0.2), transparent 62%),
     radial-gradient(980px 680px at 50% 46%, rgba(191, 96, 255, 0.28), transparent 58%),
     radial-gradient(760px 540px at 22% 22%, rgba(87, 207, 255, 0.16), transparent 60%),
-    radial-gradient(900px 620px at 82% 78%, rgba(117, 76, 255, 0.14), transparent 64%),
-    linear-gradient(180deg, #06091a 0%, #060916 52%, #050811 100%);
+    radial-gradient(900px 620px at 82% 78%, rgba(117, 76, 255, 0.14), transparent 64%);
+}
+
+.lightHalo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 540px at 50% 0%, rgba(196, 181, 253, 0.35), transparent 70%),
+    radial-gradient(720px 480px at 90% 80%, rgba(255, 207, 240, 0.22), transparent 70%);
 }
 
 .container::before {
@@ -6896,4 +6917,125 @@
   font-size: 0.74rem;
   font-weight: 500;
   margin-bottom: 0.35rem;
+}
+
+/* =====================================================================
+ * Premium White mode — kicks in when the user has either signed in or
+ * entered birth info. Mirrors the counselor result pages (stone-50 +
+ * white cards + ink text). framer-motion handles the bg / fg color
+ * transition; the rules below cover descendant surfaces that can't be
+ * animated by inline style alone.
+ * ===================================================================== */
+
+.lightMode .homeTopBarHamburger {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  color: #44403c;
+}
+
+.lightMode .homeTopBarHamburgerBar {
+  background: #44403c;
+}
+
+.lightMode .homeTopBarLogo {
+  color: #1c1917;
+}
+
+.lightMode .homeTopBarLogin {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  color: #44403c;
+}
+
+.lightMode .homeHeadline {
+  color: #1c1917;
+}
+
+.lightMode .homeSubline {
+  color: #57534e;
+}
+
+.lightMode .homeOrnament {
+  filter: drop-shadow(0 8px 24px rgba(139, 92, 246, 0.25));
+}
+
+.lightMode .homeBirthCta {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  color: #1c1917;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.lightMode .homeBirthCta:hover {
+  background: #f5f5f4;
+  border-color: #d6d3d1;
+}
+
+.lightMode .homeBirthCtaIcon {
+  background: #f5f5f4;
+  border-color: #e7e5e4;
+  color: #57534e;
+}
+
+.lightMode .homeBirthCtaText strong {
+  color: #1c1917;
+}
+
+.lightMode .homeBirthCtaHint {
+  color: #78716c;
+}
+
+.lightMode .homeChip {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  color: #44403c;
+}
+
+.lightMode .homeChip:hover,
+.lightMode .homeChip:focus-visible {
+  background: #f5f5f4;
+  border-color: #d6d3d1;
+}
+
+.lightMode .homeChatBarInner {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.lightMode .homeChatTextarea {
+  color: #1c1917;
+}
+
+.lightMode .homeChatTextarea::placeholder {
+  color: #a8a29e;
+}
+
+.lightMode .homeChatToolBtn {
+  background: transparent;
+  border-color: #e7e5e4;
+  color: #57534e;
+}
+
+.lightMode .homeChatToolBtn:hover,
+.lightMode .homeChatToolBtn:focus-visible {
+  background: #f5f5f4;
+  border-color: #d6d3d1;
+}
+
+.lightMode .homeChatToolBtnActive {
+  background: #1c1917;
+  border-color: #1c1917;
+  color: #fafaf9;
+}
+
+/* Submit button keeps the purple accent gradient on both themes — it's
+   the page's brand action and reads well against both backdrops. Just
+   tone the shadow on light. */
+.lightMode .homeChatSubmit {
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.28);
 }
