@@ -21,7 +21,6 @@ import { MessagesPanel, ChatInputArea } from './chat-panels'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
-const HistoryModal = dynamic(() => import('./modals/HistoryModal'), { ssr: false })
 const ChartModal = dynamic(() => import('./charts/ChartModal'), { ssr: false })
 
 const Chat = memo(function Chat({
@@ -52,18 +51,14 @@ const Chat = memo(function Chat({
     sessionLoaded,
     sessionHistory,
     historyLoading,
-    deleteConfirmId,
-    setDeleteConfirmId,
     loadSessionHistory,
     loadSession,
-    deleteSession,
     startNewChat: hookStartNewChat,
   } = useChatSession({ lang, initialContext, saju, astro })
 
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
   const [showTarotModal, setShowTarotModal] = React.useState(false)
-  const [showHistoryModal, setShowHistoryModal] = React.useState(false)
   const [showChartModal, setShowChartModal] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
@@ -325,40 +320,35 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
     ])
   }
 
-  const formatRelativeDate = React.useCallback(
-    (dateStr: string) => {
-      const date = new Date(dateStr)
-      const now = new Date()
-      const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-
-      if (diffDays === 0) {
-        return tr.today
-      }
-      if (diffDays === 1) {
-        return tr.yesterday
-      }
-      return `${diffDays} ${tr.daysAgo}`
-    },
-    [tr.today, tr.yesterday, tr.daysAgo]
-  )
-
-  const openHistoryModal = () => {
-    setShowHistoryModal(true)
-    void loadSessionHistory()
-  }
-
   const handleLoadSession = async (sessionId: string) => {
     await loadSession(sessionId)
     setActiveSessionId(sessionId)
-    setShowHistoryModal(false)
   }
 
   const startNewChat = () => {
     hookStartNewChat()
     setActiveSessionId(sessionIdRef.current)
-    setShowHistoryModal(false)
     setFollowUpQuestions([])
   }
+
+  // History grouping for sidebar — Today / Previous 7 Days / Older.
+  // Buckets stay tight to the mockup: a session that hasn't been touched
+  // since yesterday-midnight falls into "Previous 7 Days".
+  const groupedHistory = React.useMemo(() => {
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const sevenDaysAgo = startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000
+    const today: typeof sessionHistory = []
+    const week: typeof sessionHistory = []
+    const older: typeof sessionHistory = []
+    for (const s of sessionHistory) {
+      const t = new Date(s.updatedAt).getTime()
+      if (t >= startOfToday.getTime()) today.push(s)
+      else if (t >= sevenDaysAgo) week.push(s)
+      else older.push(s)
+    }
+    return { today, week, older }
+  }, [sessionHistory])
 
   const extractConcernFromMessages = React.useCallback(() => {
     const userMessages = messages.filter((m) => m.role === 'user').map((m) => m.content)
@@ -373,10 +363,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
   }
 
   const visibleMessages = messages.filter((m) => m.role !== 'system')
-  const railSessions = sessionHistory.slice(0, 8)
 
   return (
-    <div className={styles.chatContainer}>
+    <div className={`${styles.chatContainer} ${styles.lightTheme}`}>
       {connectionStatus === 'offline' && (
         <div className={`${styles.connectionStatus} ${styles[connectionStatus]}`}>
           {'\uD83D\uDCE1 Connection lost - Check your internet'}
@@ -386,21 +375,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
       <CrisisModal
         isOpen={showCrisisModal}
         onClose={() => setShowCrisisModal(false)}
-        tr={tr}
-        styles={styles}
-      />
-
-      <HistoryModal
-        isOpen={showHistoryModal}
-        onClose={() => setShowHistoryModal(false)}
-        sessions={sessionHistory}
-        loading={historyLoading}
-        deleteConfirmId={deleteConfirmId}
-        onLoadSession={handleLoadSession}
-        onDeleteSession={deleteSession}
-        onDeleteConfirm={setDeleteConfirmId}
-        onNewChat={startNewChat}
-        formatRelativeDate={formatRelativeDate}
         tr={tr}
         styles={styles}
       />
@@ -415,31 +389,19 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
       <div className={styles.chatLayout}>
         <aside className={styles.historyRail} aria-label={tr.previousChats}>
           <div className={styles.historyRailHeader}>
-            <span className={styles.historyRailEyebrow}>
-              {effectiveLang === 'ko' ? '\uAE30\uB85D' : 'History'}
-            </span>
-            <h2 className={styles.historyRailTitle}>{tr.previousChats}</h2>
+            <h2 className={styles.historyRailTitle}>
+              {'\u2728'} {effectiveLang === 'ko' ? 'DestinyPal' : 'DestinyPal'}
+            </h2>
           </div>
 
           <div className={styles.historyRailActions}>
             <button
               type="button"
-              className={`${styles.sessionBtn} ${styles.historyRailAction}`}
+              className={`${styles.sessionBtn} ${styles.historyRailAction} ${styles.historyRailActionPrimary}`}
               onClick={startNewChat}
               title={tr.newChat}
             >
-              {'\u2728'} {tr.newChat}
-            </button>
-            <button
-              type="button"
-              className={`${styles.sessionBtn} ${styles.historyRailAction}`}
-              onClick={openHistoryModal}
-              title={tr.previousChats}
-            >
-              {'\uD83D\uDCDC'}{' '}
-              {effectiveLang === 'ko'
-                ? '\uC804\uCCB4 \uAE30\uB85D \uBCF4\uAE30'
-                : 'See all history'}
+              {'+'} {tr.newChat}
             </button>
           </div>
 
@@ -448,37 +410,76 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               <div className={styles.historyRailEmpty}>
                 {effectiveLang === 'ko' ? '\uBD88\uB7EC\uC624\uB294 \uC911...' : 'Loading...'}
               </div>
-            ) : railSessions.length === 0 ? (
+            ) : sessionHistory.length === 0 ? (
               <div className={styles.historyRailEmpty}>
                 {effectiveLang === 'ko'
                   ? '\uC544\uC9C1 \uC800\uC7A5\uB41C \uC0C1\uB2F4 \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.'
                   : 'No saved conversations yet.'}
               </div>
             ) : (
-              railSessions.map((session) => (
-                <button
-                  key={session.id}
-                  type="button"
-                  className={`${styles.historyRailItem} ${
-                    activeSessionId === session.id ? styles.historyRailItemActive : ''
-                  }`}
-                  onClick={() => void handleLoadSession(session.id)}
-                >
-                  <span className={styles.historyRailItemDate}>
-                    {formatRelativeDate(session.updatedAt)}
-                  </span>
-                  <span className={styles.historyRailItemMeta}>
-                    {session.messageCount} {tr.messages}
-                  </span>
-                  <span className={styles.historyRailItemSummary}>
-                    {session.summary?.slice(0, 80) ||
-                      (effectiveLang === 'ko'
-                        ? '\uC800\uC7A5\uB41C \uC0C1\uB2F4 \uAE30\uB85D'
-                        : 'Saved conversation')}
-                  </span>
-                </button>
-              ))
+              <>
+                {(['today', 'week', 'older'] as const).map((bucket) => {
+                  const items = groupedHistory[bucket]
+                  if (items.length === 0) return null
+                  const groupLabel =
+                    bucket === 'today'
+                      ? (effectiveLang === 'ko' ? '\uC624\uB298' : 'Today')
+                      : bucket === 'week'
+                      ? (effectiveLang === 'ko' ? '\uC9C0\uB09C 7\uC77C' : 'Previous 7 Days')
+                      : (effectiveLang === 'ko' ? '\uC774\uC804' : 'Older')
+                  return (
+                    <div key={bucket} className={styles.historyRailGroup}>
+                      <h3 className={styles.historyRailGroupLabel}>{groupLabel}</h3>
+                      {items.map((session) => (
+                        <button
+                          key={session.id}
+                          type="button"
+                          className={`${styles.historyRailItem} ${
+                            activeSessionId === session.id ? styles.historyRailItemActive : ''
+                          }`}
+                          onClick={() => void handleLoadSession(session.id)}
+                        >
+                          <span className={styles.historyRailItemSummary}>
+                            {session.summary?.slice(0, 60) ||
+                              (effectiveLang === 'ko'
+                                ? '\uC800\uC7A5\uB41C \uC0C1\uB2F4 \uAE30\uB85D'
+                                : 'Saved conversation')}
+                          </span>
+                          <span className={styles.historyRailItemMeta}>
+                            {session.messageCount} {tr.messages}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                })}
+              </>
             )}
+          </div>
+
+          <div className={styles.historyRailFooter}>
+            <button
+              type="button"
+              className={styles.historyRailFooterBtn}
+              onClick={goToTarot}
+              title={tr.tarotButton}
+            >
+              <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
+                {'\uD83C\uDCCF'}
+              </span>
+              {effectiveLang === 'ko' ? '\uD0C0\uB85C \uCE74\uB4DC \uBF51\uAE30' : 'Draw tarot cards'}
+            </button>
+            <button
+              type="button"
+              className={styles.historyRailFooterBtn}
+              onClick={() => setShowChartModal(true)}
+              title={effectiveLang === 'ko' ? '\uB098\uC758 \uC6B4\uBA85 \uCC28\uD2B8' : 'My destiny chart'}
+            >
+              <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
+                {'\u2728'}
+              </span>
+              {effectiveLang === 'ko' ? '\uB098\uC758 \uC6B4\uBA85 \uCC28\uD2B8' : 'My destiny chart'}
+            </button>
           </div>
         </aside>
 
@@ -519,8 +520,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onKeyDown={onKeyDown}
               onSend={() => void handleSend()}
               onFileUpload={handleFileUpload}
-              onOpenTarot={goToTarot}
-              onOpenChart={() => setShowChartModal(true)}
               styles={styles}
               autoFocus={autoFocus}
             />
