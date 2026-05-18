@@ -97,9 +97,22 @@ async function main() {
   // 4. Build interpretation (monthly scope = 가장 풍부)
   const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
 
+  // API와 동일한 흐름: interp.themeScores를 cell에 overwrite해서
+  // 그래프(love/wealth/health 바)가 narrative와 같은 점수 모델 사용.
+  if (interp.themeScores) {
+    for (const c of cells) {
+      c.themeScores = { ...c.themeScores, ...interp.themeScores }
+    }
+  }
+
   console.log('=== 점수 매트릭스 (해석 동기화) ===')
-  console.log('interp.themeScores (룰 매칭 polarity 기반 — narrative 톤과 1:1):')
+  console.log('interp.themeScores (narrative 톤 + 신호 평균 base):')
   for (const [theme, score] of Object.entries(interp.themeScores ?? {})) {
+    console.log(`  ${theme}: ${score}`)
+  }
+  console.log()
+  console.log('cell.themeScores (overwrite 후 — 그래프 바가 사용):')
+  for (const [theme, score] of Object.entries(cells[0].themeScores ?? {})) {
     console.log(`  ${theme}: ${score}`)
   }
   console.log()
