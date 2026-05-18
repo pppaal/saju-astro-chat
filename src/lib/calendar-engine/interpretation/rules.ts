@@ -819,7 +819,7 @@ export const RULES: InterpretationRule[] = [
     priority: 84,
     conditions: { patternId: ['life-chapter-shift'] },
     template:
-      `이번 달 **인생 큰 흐름 전환점 {count}회**. 큰 그림을 다시 ` +
+      `이번 달 **인생 큰 흐름 전환점이 들어와요.** 큰 그림을 다시 ` +
       `그리기 좋은 시기 — 작은 일에 매이지 말고 방향성을 점검해주세요.`,
     themes: ['growth'],
   },
@@ -1554,8 +1554,8 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `관성 압박이 큰데 본인은 신약 — 책임 무거움. 가장 중요한 ` +
-      `한 건에 집중하고 나머지는 위임 권장.`,
+      `책임이 한꺼번에 몰리는데 본인 그릇이 작은 흐름이에요. 가장 중요한 ` +
+      `한 건에만 집중하고 나머지는 위임하는 편이 좋아요.`,
     themes: ['career', 'health'],
   },
   {
@@ -1617,8 +1617,8 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정관', '편관'],
     },
     template:
-      `관성 압박 + 신약 — 가족·윗사람 책임이 무거워질 수 있어요. ` +
-      `완벽하려 하지 말고 도움 청하기 좋아요.`,
+      `가족이나 윗사람과의 관계에서 책임감이 무거워지는 시기예요. ` +
+      `완벽하려 애쓰지 말고 도움이 필요한 부분은 솔직하게 말해보세요.`,
     themes: ['love'],
   },
 
@@ -1634,8 +1634,8 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정관', '편관'],
     },
     template:
-      `신약 + 관성 압박 — 체력 무리 주의. 일·관계에 과부하 걸리기 ` +
-      `쉬워요. 휴식 우선 순위 올려주세요.`,
+      `체력이 따라가지 못하는데 외부 부담이 큰 시기예요. 일이나 관계에 ` +
+      `과부하가 걸리기 쉬우니 휴식 우선순위를 올려주세요.`,
     themes: ['health'],
   },
   {
