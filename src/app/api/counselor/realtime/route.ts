@@ -179,10 +179,10 @@ export async function POST(req: NextRequest) {
   const cityUnknown =
     !!body.birthCityUnknown ||
     (body.latitude === undefined && body.longitude === undefined && !body.timezone)
-  // v6: snapshot wrapped in <birth_data> XML + [Meta] line. v5 entries
-  // would render without the tag and confuse the new prompt's `<birth_data>`
-  // reference; bump invalidates them safely.
-  const ctxKey = `counselor:ctx:v6:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${utcDateKey(new Date())}`
+  // v7: birthCityUnknown 시 ASC/MC/houses 제거. 옛 v5 의 default Seoul
+  // 좌표 angle 데이터가 "위치 의존 결론 금지" 룰과 충돌. v6 (#293, XML
+  // 래핑) entry 까지 한 번에 무효화됨.
+  const ctxKey = `counselor:ctx:v7:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${utcDateKey(new Date())}`
   let contextText: string | null = await cacheGet<string>(ctxKey)
   if (!contextText) {
     try {
@@ -347,6 +347,10 @@ export async function POST(req: NextRequest) {
           koreanAge: typeof ageYears === 'number' ? ageYears + 1 : undefined,
           now: queryDate,
           natalInput: { year: y, month: m, date: d, hour: hh, minute: mm, latitude, longitude, timeZone: tz },
+          // 출생지 미상이면 ASC/MC/houses 모두 default Seoul 좌표 기반 계산
+          // 이라 의미 없음. 출력 자체를 생략해서 "위치 의존 결론 금지" 룰과
+          // 데이터의 모순 제거.
+          skipAngles: birthCityUnknown,
         })
         if (astroSelfBlock) {
           parts.push('')

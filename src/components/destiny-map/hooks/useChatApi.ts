@@ -373,7 +373,11 @@ export function useChatApi({
         gender: normalizedGender,
         city: profile.city,
         lang,
-        messages: nextMessages.slice(-50),
+        // 마지막 20턴만 (10쌍 user/assistant). 이전엔 50턴이었는데 그건
+        // 매 message 마다 caching 안 되는 priorTurns 토큰만 ~5K 추가됐고
+        // 실제로 LLM 이 10쌍 너머 옛 turn 을 reference 하는 경우가 드물었음.
+        // 더 긴 컨텍스트가 필요하면 별도 summary 압축으로.
+        messages: nextMessages.slice(-20),
         cvText,
         saju,
         astro,
