@@ -125,12 +125,14 @@ export default function CounselorPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} ${styles.lightTheme}`}>
       <BodyScrollLock />
       <CounselorSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onNewChat={handleChatReset}
+        lightTheme
+        enableGrouping
       />
       <header className={styles.header}>
         <div className={styles.headerLeft}>

@@ -652,7 +652,10 @@
   border: none;
   border-radius: 0;
   resize: none;
-  font-size: 0.95rem;
+  /* 16px keeps iOS Safari from auto-zooming the viewport on focus. Anything
+     under 16px triggers a zoom-in that makes the page feel like it broke
+     out of its dvh container. */
+  font-size: 16px;
   line-height: 1.5;
   box-shadow: none;
 }
