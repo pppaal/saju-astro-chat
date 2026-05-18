@@ -399,11 +399,14 @@ export async function POST(req: NextRequest) {
         ? [
             '아래 == 참여자 정보 == 블록의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다.',
             '',
+            '말투: 다정하고 공감 능력 있는 따뜻한 멘토. 자연스러운 경어체 (해요체 기본, 필요시 합쇼체 섞기). 분석가 톤·진단서 X.',
+            '',
             '규칙:',
             '- 두 사람의 관계 역학에 답한다. 한 명만 분석하지 말 것.',
             '- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.',
+            '- 두 데이터가 같은 방향을 가리킬 때 (예: A 사주 목 기운 강함 + A 점성 목성 확장기) 하나의 비유/스토리로 엮는다. 양쪽 따로 나열 X.',
             '- 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.',
-            '- "A/B 시간 미상" 표시가 있으면 그쪽 시주/일진/ASC/MC/하우스 인용 금지.',
+            '- [Meta] 의 birthTimeUnknown=true 면 그쪽 시주/일진/ASC/MC/하우스 인용 금지. birthCityUnknown=true 면 그쪽 위치 의존 결론 금지.',
             '- AI/모델/상담사 정체 노출 금지.',
             '',
             '★ jargon 기본 금지 — 평소엔 raw 텍스트 그대로 인용 X:',
@@ -423,11 +426,14 @@ export async function POST(req: NextRequest) {
         : [
             'Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.',
             '',
+            'Tone: warm, empathetic mentor. Conversational, not analytical or clinical.',
+            '',
             'Rules:',
             '- Answer about the relationship dynamic. Never analyze only one person.',
             '- Fuse saju and astrology in one flow. No system-split.',
+            '- When the two systems point the same way for one side (e.g. A saju wood-growth + A Jupiter expansion), weave them into one metaphor/story, not parallel listings.',
             '- No markdown headers (##) or numbered lists. Plain prose paragraphs.',
-            '- If "A/B 시간 미상" is marked, do not cite that side\'s hour pillar / 일진 / ASC / MC / houses.',
+            '- If [Meta] has birthTimeUnknown=true for a side: do not cite that side\'s hour pillar / 일진 / ASC / MC / houses. If birthCityUnknown=true: skip that side\'s place-dependent claims.',
             "- Never reveal you're an AI / model / counselor system.",
             '- Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.',
             '- Exception: if the user asks *directly using a term* ("what\'s A\'s Sun sign?", "how about our Moon square?"), use the term and answer briefly. Don\'t dodge.',
@@ -596,9 +602,26 @@ export async function POST(req: NextRequest) {
     void astroSelfA
     void astroSelfB
 
+    // [Meta] 라인 — A/B 각자의 birthTimeUnknown / birthCityUnknown
+    // 플래그 + location/timezone. system prompt 의 "[Meta] 의 ...=true
+    // 면 인용 금지" 룰이 concrete 값에 매칭되게.
+    const metaLines: string[] = []
+    ;[person1Seed, person2Seed].forEach((seed, i) => {
+      if (!seed) return
+      const label = i === 0 ? 'A' : 'B'
+      const raw = persons?.[i] as { time?: string; birthTimeUnknown?: boolean } | undefined
+      const timeUnknown = !!raw?.birthTimeUnknown || !raw?.time || raw.time === '00:00'
+      const cityUnknown = !!seed.source?.usedDefaultLocation
+      metaLines.push(
+        `[Meta] ${label}: birthTimeUnknown=${timeUnknown}, birthCityUnknown=${cityUnknown}, location=${seed.latitude.toFixed(4)},${seed.longitude.toFixed(4)}, timezone=${seed.timeZone}`
+      )
+    })
+    const metaBlock = metaLines.join('\n')
+
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
+      metaBlock,
       sajuSynastryBlock ? `\n${sajuSynastryBlock}` : '',
       astroSynastryBlock ? `\n${astroSynastryBlock}` : '',
       // legacy fullContext 또는 시간 미상 안내
