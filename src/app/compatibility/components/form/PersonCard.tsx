@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { User, Users, ChevronDown, Loader2, Plus } from 'lucide-react'
+import { User, Users, ChevronDown, Loader2 } from 'lucide-react'
 import { type PersonForm, type Relation } from '../../lib/types'
 import { useCitySearch } from '@/hooks/calendar/useCitySearch'
 import { formatCityForDropdown } from '@/lib/cities/formatter'
@@ -7,7 +7,6 @@ import type { CirclePerson } from '@/hooks/useMyCircle'
 import type { CityResult } from '@/lib/cities/types'
 import DateTimePicker from '@/components/ui/DateTimePicker'
 import TimePicker from '@/components/ui/TimePicker'
-import { CircleAddModal } from '@/app/profile/components/CircleAddModal'
 
 interface PersonCardProps {
   person: PersonForm
@@ -22,12 +21,6 @@ interface PersonCardProps {
   onPickCity: (idx: number, city: CityResult) => void
   onToggleCircleDropdown: () => void
   onFillFromCircle: (idx: number, person: CirclePerson) => void
-  // After CircleAddModal saves a new person, the page should refetch the
-  // circle so the new entry shows up immediately in the dropdown
-  // (otherwise the user has to reload to use it). Optional — when the
-  // parent doesn't pass it, the modal still works but the local circle
-  // list won't refresh until next mount.
-  onCircleChanged?: () => void
 }
 
 /**
@@ -58,13 +51,10 @@ export const PersonCard = React.memo<PersonCardProps>(
     onPickCity,
     onToggleCircleDropdown,
     onFillFromCircle,
-    onCircleChanged,
   }) => {
     const idx = index
     const isKo = locale === 'ko' || locale.startsWith('ko')
-    const localeAsModalLocale: 'ko' | 'en' = isKo ? 'ko' : 'en'
     const [profileLoading, setProfileLoading] = useState(false)
-    const [showAddCircle, setShowAddCircle] = useState(false)
     const timeUnknown = person.timeUnknown ?? (!person.time || person.time === '00:00')
     const setTimeUnknown = useCallback(
       (value: boolean) => onUpdatePerson(idx, 'timeUnknown', value),
@@ -163,11 +153,13 @@ export const PersonCard = React.memo<PersonCardProps>(
     const personLabel = idx === 0 ? t('compatibilityPage.person1', '나') : t('compatibilityPage.person2', '상대')
 
     return (
-      <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm">
-        {/* 헤더 — 라벨 + 불러오기 버튼들 */}
+      <div className="rounded-[22px] border border-violet-400/25 bg-gradient-to-b from-[#0c1024] to-[#07091a] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+        {/* 헤더 — 라벨 + 불러오기 버튼들. 톤은 BirthInfoModal 매칭
+            (보라 그라데이션, 진한 navy 카드). 지인 추가 CTA 는 제거
+            (불러오기만 유지) — /profile 에서 추가하도록 분리. */}
         <div className="mb-5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400/30 to-indigo-500/30 text-cyan-200">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#a78bfa] to-[#8b5cf6] text-white">
               {idx === 0 ? <User className="h-4 w-4" /> : <Users className="h-4 w-4" />}
             </div>
             <h3 className="text-[15px] font-semibold text-white">
@@ -182,7 +174,7 @@ export const PersonCard = React.memo<PersonCardProps>(
                   type="button"
                   onClick={loadMyProfile}
                   disabled={profileLoading}
-                  className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[11.5px] font-medium text-cyan-100 transition hover:border-cyan-300/50 hover:bg-cyan-400/15 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[11.5px] font-medium text-violet-100 transition hover:border-violet-300/50 hover:bg-violet-400/15 disabled:opacity-50"
                 >
                   {profileLoading ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -192,35 +184,32 @@ export const PersonCard = React.memo<PersonCardProps>(
                   {t('compatibilityPage.loadMyProfile', '내 프로필')}
                 </button>
               )}
-              {/* `data-circle-dropdown` is required: useMyCircle attaches a
-                  document-level click listener that closes the dropdown
-                  unless the click target has this attribute as an ancestor.
-                  Without it the dropdown closed on the first item click and
-                  selection silently failed — felt like "the button isn't
-                  there". */}
-              {circlePeople.length > 0 ? (
+              {/* `data-circle-dropdown` 필수: useMyCircle 의 document
+                  click listener 가 이 attr 의 ancestor 아니면 dropdown
+                  닫음. 빼면 첫 클릭에 닫혀서 selection 실패. */}
+              {circlePeople.length > 0 && (
                 <div className="relative" data-circle-dropdown>
                   <button
                     type="button"
                     onClick={onToggleCircleDropdown}
-                    className="inline-flex items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-400/10 px-3 py-1 text-[11.5px] font-medium text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-400/15"
+                    className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[11.5px] font-medium text-violet-100 transition hover:border-violet-300/50 hover:bg-violet-400/15"
                   >
                     <Users className="h-3 w-3" />
                     {t('compatibilityPage.fromCircle', '지인에서')}
                     <ChevronDown className="h-3 w-3" />
                   </button>
                   {showCircleDropdown && (
-                    <ul className="absolute right-0 z-20 mt-1 max-h-56 w-56 overflow-auto rounded-xl border border-white/10 bg-[#0e1426] shadow-xl">
+                    <ul className="absolute right-0 z-20 mt-1 max-h-56 w-56 overflow-auto rounded-xl border border-violet-400/25 bg-[#0c1024] shadow-xl">
                       {circlePeople.map((cp) => (
                         <li key={cp.id}>
                           <button
                             type="button"
                             onClick={() => onFillFromCircle(idx, cp)}
-                            className="block w-full px-3 py-2 text-left text-[13px] text-slate-200 transition hover:bg-white/[0.06]"
+                            className="block w-full px-3 py-2 text-left text-[13px] text-slate-200 transition hover:bg-violet-400/10"
                           >
                             <span className="font-medium">{cp.name}</span>
                             {cp.relation && (
-                              <span className="ml-1.5 text-[11px] text-slate-500">· {cp.relation}</span>
+                              <span className="ml-1.5 text-[11px] text-slate-400">· {cp.relation}</span>
                             )}
                           </button>
                         </li>
@@ -228,19 +217,6 @@ export const PersonCard = React.memo<PersonCardProps>(
                     </ul>
                   )}
                 </div>
-              ) : (
-                // Empty circle — show an inline CTA so the user can add
-                // someone without bouncing to /profile first. Especially
-                // important on Person 2 since the whole reason to use the
-                // circle is to pre-fill the partner's birth info.
-                <button
-                  type="button"
-                  onClick={() => setShowAddCircle(true)}
-                  className="inline-flex items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-400/10 px-3 py-1 text-[11.5px] font-medium text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-400/15"
-                >
-                  <Plus className="h-3 w-3" />
-                  {t('compatibilityPage.addToCircle', '지인 추가')}
-                </button>
               )}
             </div>
           )}
@@ -280,8 +256,8 @@ export const PersonCard = React.memo<PersonCardProps>(
                   onClick={() => onUpdatePerson(idx, 'gender', g as PersonForm['gender'])}
                   className={
                     person.gender === g
-                      ? 'rounded-xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2.5 text-[14px] font-medium text-cyan-200 transition'
-                      : 'rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-[14px] text-slate-300 transition hover:border-white/20 hover:text-white'
+                      ? 'rounded-xl border-none bg-gradient-to-br from-[#a78bfa] to-[#8b5cf6] px-4 py-2.5 text-[14px] font-semibold text-white shadow transition'
+                      : 'rounded-xl border border-violet-400/15 bg-white/[0.03] px-4 py-2.5 text-[14px] text-slate-300 transition hover:border-violet-400/35 hover:text-white'
                   }
                 >
                   {g === 'M' ? t('compatibilityPage.male', '남자') : t('compatibilityPage.female', '여자')}
@@ -298,12 +274,12 @@ export const PersonCard = React.memo<PersonCardProps>(
               disabled={timeUnknown}
               locale={isKo ? 'ko' : 'en'}
             />
-            <label className="mt-2 flex cursor-pointer items-start gap-2 text-[12.5px] text-slate-400">
+            <label className="mt-2 flex cursor-pointer items-start gap-2 text-[12.5px] text-slate-300">
               <input
                 type="checkbox"
                 checked={timeUnknown}
                 onChange={(e) => setTimeUnknown(e.target.checked)}
-                className="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-cyan-400"
+                className="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-violet-400"
               />
               <span>{t('compatibilityPage.timeUnknown', '시간 모름 (00:00 처리)')}</span>
             </label>
@@ -322,13 +298,13 @@ export const PersonCard = React.memo<PersonCardProps>(
                 autoComplete="off"
               />
               {openSug && hookSuggestions.length > 0 && (
-                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-white/10 bg-[#0e1426] shadow-lg">
+                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-violet-400/25 bg-[#0c1024] shadow-lg">
                   {hookSuggestions.slice(0, 8).map((city, i) => (
                     <li key={`${city.name}-${city.country}-${i}`}>
                       <button
                         type="button"
                         onClick={() => onCityPick(city)}
-                        className="block w-full px-3 py-2 text-left text-[13px] text-slate-200 transition hover:bg-white/[0.06]"
+                        className="block w-full px-3 py-2 text-left text-[13px] text-slate-200 transition hover:bg-violet-400/10"
                       >
                         {formatCityForDropdown(city.name, city.country, isKo ? 'ko' : 'en')}
                       </button>
@@ -371,20 +347,6 @@ export const PersonCard = React.memo<PersonCardProps>(
             </>
           )}
         </div>
-
-        {/* Inline "add to circle" — only mounts when the user explicitly
-            opens it via the empty-state CTA above. Lives at the card root
-            (not inside the header) so the modal's full-viewport overlay
-            isn't constrained by the card's stacking context. */}
-        <CircleAddModal
-          open={showAddCircle}
-          onClose={() => setShowAddCircle(false)}
-          locale={localeAsModalLocale}
-          onAdded={() => {
-            setShowAddCircle(false)
-            onCircleChanged?.()
-          }}
-        />
       </div>
     )
   },
@@ -392,8 +354,9 @@ export const PersonCard = React.memo<PersonCardProps>(
 
 PersonCard.displayName = 'PersonCard'
 
+// BirthInfoModal 의 .modalInput 톤 매칭 — 보라 액센트, 진한 navy bg.
 const inputClass =
-  'w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[14px] text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none disabled:cursor-not-allowed'
+  'w-full rounded-xl border border-violet-400/22 bg-[rgba(15,17,35,0.7)] px-3 py-2.5 text-[14px] text-white placeholder:text-slate-400 focus:border-violet-300/60 focus:outline-none disabled:cursor-not-allowed transition'
 
 function Field({
   label,
@@ -406,7 +369,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-[11.5px] font-medium uppercase tracking-[0.15em] text-slate-400">
+      <label className="mb-1.5 block text-[12px] font-semibold tracking-[0.02em] text-slate-200/85">
         {label}
         {required && <span className="ml-1 text-rose-400">*</span>}
       </label>
