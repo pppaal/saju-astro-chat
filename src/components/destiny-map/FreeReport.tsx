@@ -9,16 +9,15 @@ import { runMainSaju } from '@/lib/saju/main'
 import { buildExtendedAnalysisFromMain } from '@/lib/saju/extendedAnalysis'
 import ExtendedAnalysisSection from '@/components/reports/ExtendedAnalysisSection'
 
-// Import Tab Components
+// Import Tab Components — 5 theme + 1 timing utility (캘린더 엔진 5테마 정합).
+// Growth = 옛 personality + karma + hidden 머지.
 import {
-  PersonalityTab,
   LoveTab,
   CareerTab,
   FortuneTab,
   HealthTab,
-  KarmaTab,
+  GrowthTab,
   TimingTab,
-  HiddenSelfTab,
   type TabId,
 } from './free-report/tabs'
 import type { TabData } from './free-report/types'
@@ -315,18 +314,18 @@ const FreeReport = memo(function FreeReport({
   }, [data, isKo])
 
   // 탭 상태
-  const [activeTab, setActiveTab] = useState<TabId>('personality')
+  const [activeTab, setActiveTab] = useState<TabId>('love')
 
-  // 탭 정의
+  // 탭 정의 — 5 theme + timing. 캘린더 엔진의 5테마와 정합.
+  // 옛 8탭(성격·연애·커리어·운세·건강·카르마·타이밍·숨겨진나) →
+  // 6탭 (성격·카르마·숨겨진나 → "성장(Growth)" 하나로 머지).
   const tabs: { id: TabId; label: string; emoji: string }[] = [
-    { id: 'personality', label: isKo ? '성격' : 'Personality', emoji: '🌟' },
     { id: 'love', label: isKo ? '연애' : 'Love', emoji: '💕' },
     { id: 'career', label: isKo ? '커리어' : 'Career', emoji: '💼' },
     { id: 'fortune', label: isKo ? '운세' : 'Fortune', emoji: '🔮' },
     { id: 'health', label: isKo ? '건강' : 'Health', emoji: '💪' },
-    { id: 'karma', label: isKo ? '카르마' : 'Karma', emoji: '🌌' },
+    { id: 'growth', label: isKo ? '성장' : 'Growth', emoji: '🌟' },
     { id: 'timing', label: isKo ? '타이밍' : 'Timing', emoji: '⏰' },
-    { id: 'hidden', label: isKo ? '숨겨진 나' : 'Hidden Self', emoji: '🌑' },
   ]
 
   // combinedLifeTheme 계산
@@ -489,20 +488,8 @@ const FreeReport = memo(function FreeReport({
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 탭 컨텐츠 */}
+      {/* 탭 컨텐츠 — 5 theme (love/career/fortune/health/growth) + timing */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'personality' && (
-        <PersonalityTab
-          saju={normalizedSaju}
-          astro={normalizedAstro}
-          lang={lang}
-          isKo={isKo}
-          data={tabData}
-          destinyNarrative={destinyNarrative}
-          combinedLifeTheme={combinedLifeTheme}
-        />
-      )}
-
       {activeTab === 'love' && (
         <LoveTab
           saju={normalizedSaju}
@@ -547,30 +534,20 @@ const FreeReport = memo(function FreeReport({
         />
       )}
 
-      {activeTab === 'karma' && (
-        <KarmaTab
+      {activeTab === 'growth' && (
+        <GrowthTab
           saju={normalizedSaju}
           astro={normalizedAstro}
           lang={lang}
           isKo={isKo}
           data={tabData}
           destinyNarrative={destinyNarrative}
+          combinedLifeTheme={combinedLifeTheme}
         />
       )}
 
       {activeTab === 'timing' && (
         <TimingTab
-          saju={normalizedSaju}
-          astro={normalizedAstro}
-          lang={lang}
-          isKo={isKo}
-          data={tabData}
-          destinyNarrative={destinyNarrative}
-        />
-      )}
-
-      {activeTab === 'hidden' && (
-        <HiddenSelfTab
           saju={normalizedSaju}
           astro={normalizedAstro}
           lang={lang}
