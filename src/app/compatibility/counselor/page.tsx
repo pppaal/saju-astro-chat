@@ -72,6 +72,9 @@ function CompatibilityCounselorContent() {
   const [isInitializing, setIsInitializing] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [creditExhausted, setCreditExhausted] = useState(false)
+  // LLM-generated follow-up chips. Filled from streamProcessor result.
+  // Cleared on every new send so stale suggestions never leak.
+  const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([])
   // Persistent chat session id (returned by /api/counselor/chat-history
   // after the first save). Subsequent saves attach to the same row.
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
@@ -277,14 +280,16 @@ function CompatibilityCounselorContent() {
     }
   }, [isInitializing])
 
-  const sendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) {
+  const sendMessage = useCallback(async (textOverride?: string) => {
+    const text = (textOverride ?? input).trim()
+    if (!text || isLoading) {
       return
     }
 
-    const userMessage: ChatMessage = { role: 'user', content: input.trim() }
+    const userMessage: ChatMessage = { role: 'user', content: text }
     setMessages((prev) => [...prev, userMessage])
-    setInput('')
+    if (!textOverride) setInput('')
+    setFollowUpQuestions([])
     setIsLoading(true)
     setError(null)
 
@@ -342,7 +347,7 @@ function CompatibilityCounselorContent() {
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
       let finalAssistantContent = ''
-      await streamProcessor.process(response, {
+      const result = await streamProcessor.process(response, {
         onChunk: (_accumulated, cleaned) => {
           finalAssistantContent = cleaned
           setMessages((prev) => {
@@ -360,6 +365,12 @@ function CompatibilityCounselorContent() {
           logger.warn('[CompatCounselor] stream error', { error: err })
         },
       })
+      // LLM-generated follow-up chips. Only set when we got the
+      // expected 2 — otherwise leave empty (no hardcoded fallback on
+      // compat side; destiny has one, compat keeps it clean).
+      if (result.followUps.length >= 2) {
+        setFollowUpQuestions(result.followUps.slice(0, 2))
+      }
 
       // Persist the exchange so it shows up in the past-chats sidebar
       // next visit. Fire-and-forget; save failure must not block UX.
@@ -636,6 +647,27 @@ function CompatibilityCounselorContent() {
             </div>
           )}
 
+          {!isLoading && followUpQuestions.length > 0 && messages.length > 0 && (
+            <div className={styles.followUpContainer}>
+              <span className={styles.followUpLabel}>
+                {isKo ? '이어서 물어보기' : 'Continue asking'}
+              </span>
+              <div className={styles.followUpButtons}>
+                {followUpQuestions.map((q, idx) => (
+                  <button
+                    key={`${idx}-${q}`}
+                    type="button"
+                    className={styles.followUpChip}
+                    onClick={() => sendMessage(q)}
+                  >
+                    <span className={styles.followUpIcon}>{'\u{1F4AC}'}</span>
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -675,7 +707,7 @@ function CompatibilityCounselorContent() {
             </div>
             <button
               type="button"
-              onClick={sendMessage}
+              onClick={() => sendMessage()}
               disabled={!input.trim() || isLoading}
               className={styles.sendButton}
               aria-label={isKo ? '전송' : 'Send'}

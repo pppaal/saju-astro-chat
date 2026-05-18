@@ -71,7 +71,7 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved, locale
   const effectiveTime = timeUnknown ? '00:00' : birthTime
   const isValid = Boolean(birthDate && (gender === 'male' || gender === 'female') && effectiveTime)
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!isValid) return
     const payload = {
       birthDate,
@@ -81,6 +81,26 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved, locale
       city: city.trim() || undefined,
     }
     saveBirthInfo(payload)
+    // Sync to DB so /api/me/profile (the counselor route's fallback
+    // source — useCounselorData reads it, localStorage is ignored)
+    // sees the new value. Without this, logged-in users who change
+    // their birth info here keep getting the old DB value in
+    // counselor sessions. Guest users get 401; swallow — localStorage
+    // is enough for them.
+    try {
+      await fetch('/api/me/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          birthDate,
+          birthTime: timeUnknown ? null : effectiveTime,
+          gender: gender as 'male' | 'female',
+          birthCity: city.trim() || null,
+        }),
+      })
+    } catch {
+      // localStorage already saved; tolerate transient API failures.
+    }
     onSaved({ ...payload, savedAt: new Date().toISOString() })
   }
 
