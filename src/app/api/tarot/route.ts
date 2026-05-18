@@ -105,7 +105,7 @@ export const POST = withApiMiddleware(
         drawnCards,
         questionContext: questionContext || null,
       })
-      return applyCreditResultCookies(response, creditResult)
+      return applyCreditResultCookies(response, creditResult, req)
     } catch (error) {
       recordApiRequest('tarot', 'generate', 'error', Date.now() - startTime)
       throw error
