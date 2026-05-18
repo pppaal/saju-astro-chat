@@ -142,9 +142,23 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
           TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
 
-      - name: Wait for server to be ready
-        run: npm run test:e2e:wait
-        timeout-minutes: 4
+      # dev:webpack compiles the root page on first request, which can
+      # take 60-120s in CI on cold cache. wait-for-server.mjs uses a 5s
+      # per-request timeout so it never sees the slow first compile
+      # finish. Use curl with a generous per-request timeout instead.
+      - name: Wait for dev server (long compile-aware)
+        run: |
+          for i in {1..20}; do
+            if curl -fsS --max-time 90 http://localhost:3000 >/dev/null 2>&1; then
+              echo "Server ready (attempt $i)"
+              exit 0
+            fi
+            echo "Attempt $i/20 — server not ready yet..."
+            sleep 5
+          done
+          echo "Server failed to become ready"
+          exit 1
+        timeout-minutes: 10
 
       - name: Show dev server log on failure
         if: failure()
