@@ -22,7 +22,7 @@ interface ExtendedSajuData extends SajuData {
     hour?: SibsinKind
   }
   advancedAnalysis?: {
-    sibsin?: { sibsinDistribution?: Record<string, number> }
+    sibsin?: { count?: Record<string, number> }
   }
 }
 
@@ -68,10 +68,10 @@ export function analyzeExtraPoint(
   const sajuEl = mapSajuElementToKo(dayElement)
 
   // 주요 십신 (advancedAnalysis에서 추출)
-  const sibsinDist = extSaju?.advancedAnalysis?.sibsin?.sibsinDistribution
+  const sibsinDist = extSaju?.advancedAnalysis?.sibsin?.count
   let mainSibsin: SibsinKind | undefined = extSaju?.sibsin?.month || extSaju?.sibsin?.hour
 
-  // sibsinDistribution에서 가장 강한 십신 찾기
+  // sibsin count에서 가장 강한 십신 찾기
   if (!mainSibsin && sibsinDist) {
     const sortedSibsin = Object.entries(sibsinDist).sort(
       ([, a], [, b]) => (b as number) - (a as number)

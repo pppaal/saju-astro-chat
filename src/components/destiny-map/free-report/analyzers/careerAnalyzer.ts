@@ -217,7 +217,7 @@ function getCurrentDaeunElement(saju: SajuData | undefined): string | null {
  * 십신 분포에서 가장 강한 십신 추출 및 카테고리화
  */
 function getDominantSibsinCategory(saju: SajuData | undefined): SibsinCategory | null {
-  const sibsinDist = saju?.advancedAnalysis?.sibsin?.sibsinDistribution
+  const sibsinDist = saju?.advancedAnalysis?.sibsin?.count
   if (!sibsinDist || typeof sibsinDist !== 'object') {
     return null
   }
@@ -286,7 +286,7 @@ function getWealthStyle(
   astro: AstroData | undefined,
   isKo: boolean
 ): string | null {
-  const sibsin = saju?.advancedAnalysis?.sibsin?.sibsinDistribution
+  const sibsin = saju?.advancedAnalysis?.sibsin?.count
   const jeongjae = (sibsin?.['정재'] || 0) as number
   const pyeonjae = (sibsin?.['편재'] || 0) as number
 

@@ -12,7 +12,7 @@ interface PersonalizedAdvice {
 
 // 십신 분포 추출
 function getSibsinDistribution(saju: SajuData | undefined): Record<string, number> {
-  return saju?.advancedAnalysis?.sibsin?.sibsinDistribution || {}
+  return saju?.advancedAnalysis?.sibsin?.count || {}
 }
 
 // 가장 강한 십신 찾기

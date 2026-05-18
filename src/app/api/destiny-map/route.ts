@@ -614,7 +614,9 @@ export const POST = withApiMiddleware(
                   conflicts: agg.conflicts.map((m) => ({
                     id: m.rule.id,
                     meaning: m.rule.meaning,
-                    narrative: m.rule.narrative.confirm,
+                    // conflict 룰은 narrative.conflict를 써야 함. confirm으로
+                    // 매핑하던 버그 때문에 갈등형 룰이 확인형 문구로 왜곡되었음.
+                    narrative: m.rule.narrative.conflict ?? m.rule.narrative.confirm,
                     intensity: m.intensity,
                   })),
                 },
