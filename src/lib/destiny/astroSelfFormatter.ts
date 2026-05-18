@@ -16,6 +16,8 @@ import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoin
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { calculateSolarReturn, calculateLunarReturn } from '@/lib/astrology/foundation/returns'
 import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progressions'
+import { findFixedStarConjunctions } from '@/lib/astrology/foundation/fixedStars'
+import { findEclipseImpact, getUpcomingEclipses } from '@/lib/astrology/foundation/eclipses'
 import type { NatalInput } from '@/lib/astrology/foundation/types'
 
 // 요일 ruler — Chaldean order의 day-of-week 매핑
@@ -154,6 +156,19 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   }
   out.push('')
 
+  // Fixed Stars — 본명 행성·angle과 1° 이내 합인 항성
+  try {
+    const birthYear = (input.now ?? new Date()).getFullYear()
+    const starConjs = findFixedStarConjunctions(chart, birthYear, 1.0).slice(0, 10)
+    if (starConjs.length > 0) {
+      out.push('[Fixed Stars — 본명 행성·angle ↔ 항성 합 (orb 1°)]')
+      for (const c of starConjs) {
+        out.push(`${label(c.planet)} ↔ ${c.star.name} (${c.star.name_ko}) — orb ${c.orb.toFixed(2)}°`)
+      }
+      out.push('')
+    }
+  } catch { /* skip */ }
+
   // Current transit aspects
   try {
     const nowIso = (input.now ?? new Date()).toISOString()
@@ -184,6 +199,23 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
       out.push('')
     }
   } catch { /* skip — transit ephemeris 실패 시 */ }
+
+  // Eclipses — 다가오는 일식·월식 중 본명 차트에 임팩트 있는 것만
+  try {
+    const upcoming = getUpcomingEclipses(input.now ?? new Date(), 4)
+    if (upcoming.length > 0) {
+      const impacts = findEclipseImpact(chart, upcoming, 3.0).slice(0, 8)
+      if (impacts.length > 0) {
+        out.push('[Upcoming Eclipses — 본명 차트에 임팩트 (orb 3°)]')
+        for (const imp of impacts) {
+          out.push(
+            `${imp.eclipse.type === 'solar' ? '일식' : '월식'} ${imp.eclipse.date} ${sign(imp.eclipse.sign)} ${imp.eclipse.degree}° ${imp.aspectType} ${label(imp.affectedPoint)} (House ${imp.house}, orb ${imp.orb.toFixed(2)}°)`
+          )
+        }
+        out.push('')
+      }
+    }
+  } catch { /* skip */ }
 
   // Solar Return / Lunar Return — natalInput 있으면 계산
   if (input.natalInput) {
