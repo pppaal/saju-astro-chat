@@ -2120,6 +2120,287 @@ export const RULES: InterpretationRule[] = [
       `시기로 가주세요.`,
     themes: ['growth'],
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // 5층 × 5테마 매트릭스 균등화 — 약했던 8개 칸 보강 (총 +19 룰).
+  // 大運×love / 月運×love·money·health / 본명×love·money·health 보강.
+  // ═══════════════════════════════════════════════════════════
+
+  // ─── 大運 × love (1 → 4) ───
+  {
+    id: 'daeun-love-jaeseong',
+    scope: 'monthly',
+    section: 'daeun',
+    priority: 88,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['decadal'],
+      sibsin: ['정재', '편재'],
+    },
+    template:
+      `이 10년은 재성이 들어오는 결이라 결혼·연애·동거 같은 관계 사건이 ` +
+      `자연스럽게 자리잡혀요. 인연이 결과로 이어지기 좋은 큰 시기예요.`,
+    themes: ['love', 'money'],
+  },
+  {
+    id: 'daeun-love-dohwa-hongyeom',
+    scope: 'monthly',
+    section: 'daeun',
+    priority: 86,
+    conditions: {
+      signalLayer: ['decadal'],
+      shinsalName: ['도화', '홍염살'],
+    },
+    template:
+      `이 10년은 매력·인기·인연이 강해지는 큰 흐름이에요. 평소보다 사람이 ` +
+      `잘 모이고, 첫인상이 좋게 작용해 새 인연이 자주 생겨요.`,
+    themes: ['love', 'growth'],
+  },
+  {
+    id: 'daeun-love-bijeon-geopjae',
+    scope: 'monthly',
+    section: 'daeun',
+    priority: 80,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['decadal'],
+      sibsin: ['비견', '겁재'],
+    },
+    template:
+      `이 10년은 친구·동료·동업 인연이 자주 들어오는 결이에요. 깊은 ` +
+      `연인보다 옆에서 같이 가는 사람이 인생을 바꾸는 시기예요.`,
+    themes: ['love', 'growth'],
+  },
+
+  // ─── 月運 × love (1 → 4) ───
+  {
+    id: 'wolun-love-jaeseong',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 68,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['정재', '편재'],
+    },
+    template:
+      `이번 달은 인연 만나기 좋은 흐름이에요. 새 만남이나 친밀한 관계의 ` +
+      `진전, 데이트·소개팅 결과가 평소보다 잘 따라와요.`,
+    themes: ['love'],
+  },
+  {
+    id: 'wolun-love-dohwa',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 66,
+    conditions: {
+      signalLayer: ['monthly'],
+      shinsalName: ['도화', '홍염살'],
+    },
+    template:
+      `이번 달은 매력·끌림이 강해지는 시기예요. 외출·소개·SNS 활동이 ` +
+      `자연스럽게 인연으로 이어지기 좋아요.`,
+    themes: ['love'],
+  },
+  {
+    id: 'wolun-love-siksang',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 64,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['식신', '상관'],
+    },
+    template:
+      `이번 달은 표현·다정함이 자연스러워지는 결이에요. 마음을 전하거나 ` +
+      `오해를 풀기 좋고, 자녀나 어린 사람과의 관계도 부드러워져요.`,
+    themes: ['love', 'growth'],
+  },
+
+  // ─── 月運 × money (2 → 4) ───
+  {
+    id: 'wolun-money-jeongjae',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 70,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['정재'],
+    },
+    template:
+      `이번 달은 안정적인 수입과 정기적인 돈 흐름이 좋은 시기예요. ` +
+      `월급·임대료·정기수입 같은 고정 돈줄을 점검·정리하기 좋아요.`,
+    themes: ['money'],
+  },
+  {
+    id: 'wolun-money-pyeonjae',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 69,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['편재'],
+    },
+    template:
+      `이번 달은 큰 돈·부수입·새 기회가 들어올 수 있는 흐름이에요. ` +
+      `평소에 안 보이던 부수입원·투자 기회를 살펴보기 좋아요.`,
+    themes: ['money'],
+  },
+
+  // ─── 月運 × health (1 → 4) ───
+  {
+    id: 'wolun-health-baekho-hyeonchim',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 62,
+    conditions: {
+      signalLayer: ['monthly'],
+      shinsalName: ['백호', '현침'],
+    },
+    template:
+      `이번 달은 갑작스러운 증상이나 사고 위험에 유의해야 하는 시기예요. ` +
+      `위험한 활동을 미루고, 운전·기계 작업·날카로운 도구 사용 시 ` +
+      `한 박자 천천히 가주세요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'wolun-health-cheondeok',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 65,
+    conditions: {
+      signalLayer: ['monthly'],
+      shinsalName: ['천덕귀인', '월덕귀인', '천의성'],
+    },
+    template:
+      `이번 달은 회복과 치유에 가장 좋은 흐름이에요. 미뤘던 건강검진·치과· ` +
+      `심리상담을 시작하면 효과가 좋고, 새 운동 루틴도 자리잡아요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'wolun-health-siksang-recovery',
+    scope: 'monthly',
+    section: 'wolun',
+    priority: 60,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      signalLayer: ['monthly'],
+      sibsin: ['식신', '상관'],
+    },
+    template:
+      `이번 달은 식상이 받쳐주는 흐름이라 컨디션 회복과 식욕·소화에 우호적이에요. ` +
+      `식습관·수면 리듬을 다시 잡기에 가장 좋은 시기예요.`,
+    themes: ['health'],
+  },
+
+  // ─── 본명 × love (2 → 4) ───
+  {
+    id: 'natal-love-dohwa-on-day',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 50,
+    conditions: {
+      shinsalName: ['도화'],
+    },
+    template:
+      `본명에 도화가 자리잡은 사주예요. 매력과 인연 끌림이 평생 강한 ` +
+      `결이라, 어디서든 사람이 잘 따르고 첫인상으로 기억되기 쉬워요.`,
+    themes: ['love', 'growth'],
+  },
+  {
+    id: 'natal-love-jaeseong-balance',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 48,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['정재', '편재'],
+      natalStrength: ['strong'],
+    },
+    template:
+      `재성을 충분히 다룰 수 있는 신강 사주예요. 결혼과 가정을 안정적으로 ` +
+      `꾸리는 결이라 관계를 길게 가져가는 데 강점이 있어요.`,
+    themes: ['love', 'money'],
+  },
+
+  // ─── 본명 × money (2 → 4) ───
+  {
+    id: 'natal-money-jaeseong-rich',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 49,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['정재', '편재'],
+      natalStrength: ['strong'],
+    },
+    template:
+      `재성을 감당할 힘이 있는 본명이에요. 큰 돈을 다루는 일이나 자기 ` +
+      `사업, 자산 운용에 강점이 있어 평생 풍요로운 결이에요.`,
+    themes: ['money', 'career'],
+  },
+  {
+    id: 'natal-money-bigeop-share',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 46,
+    conditions: {
+      signalSource: 'saju',
+      sibsin: ['비견', '겁재'],
+    },
+    template:
+      `본명에 비견·겁재가 강한 사주예요. 혼자 모으기보다 함께 벌고 나누는 ` +
+      `결이라, 동업·공동투자·팀 단위 수익이 잘 맞아요.`,
+    themes: ['money', 'growth'],
+  },
+
+  // ─── 본명 × health (1 → 4) ───
+  {
+    id: 'natal-health-fire-overload',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 50,
+    conditions: {
+      yongsin: ['수'],   // 수가 용신 = 화 과한 사주
+      signalSource: 'saju',
+    },
+    template:
+      `본명에 화 기운이 강한 결이에요. 평소에 심혈관·염증·불면을 평생 ` +
+      `유의해야 하고, 매운 음식과 과로를 자제하는 습관이 건강을 지켜줘요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'natal-health-water-weak',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 48,
+    conditions: {
+      yongsin: ['화'],   // 화가 용신 = 수 약함 또는 차가운 결
+      signalSource: 'saju',
+    },
+    template:
+      `본명에 수 기운이 약하거나 차가운 결이에요. 평생 신장·요통·하체 ` +
+      `냉증·우울감에 유의해야 하고, 따뜻한 음식과 하체 보온이 ` +
+      `체질에 큰 도움이 돼요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'natal-health-yangin-gwaegang',
+    scope: 'monthly',
+    section: 'natal',
+    priority: 47,
+    conditions: {
+      shinsalName: ['양인', '괴강', '백호'],
+    },
+    template:
+      `본명에 양인·괴강·백호가 있는 사주예요. 추진력이 강한 결인 만큼 ` +
+      `사고·부상·수술 같은 갑작스러운 신호에도 평생 유의해야 해요.`,
+    themes: ['health', 'career'],
+  },
 ]
 
 /** 룰 매핑 — id로 빠른 조회 */
