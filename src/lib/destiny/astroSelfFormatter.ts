@@ -127,29 +127,44 @@ export interface AstroSelfInput {
   natalInput?: NatalInput
   /** 섹션 헤더 라벨 — default '점성' (둘 사람 비교 시 'A 점성' / 'B 점성' 등) */
   label?: string
+  /**
+   * 출생 도시 미상일 때 ASC/MC/houses 출력을 모두 생략한다.
+   * 이 값들은 정확한 출생 좌표 없이는 계산이 무의미한데, 그동안 default
+   * Seoul 좌표로 계산된 결과가 그대로 LLM 에 들어가 "위치 의존 결론
+   * 금지" 룰과 충돌하던 버그를 막기 위함.
+   */
+  skipAngles?: boolean
 }
 
 export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   if (!input.chart) return ''
   const chart = expandChart(input.chart, input.latitude, input.longitude)
+  const skipAngles = !!input.skipAngles
+  const ANGLE_NAMES = new Set(['Ascendant', 'MC'])
   const out: string[] = [`== ${input.label ?? '점성'} ==`, '']
+  if (skipAngles) {
+    out.push('# 출생지 미상 — house / Ascendant / MC 데이터 생략.')
+    out.push('')
+  }
 
-  // 행성 in 사인·house
-  out.push('[행성·angle in 사인 · house]')
-  for (const pl of [...chart.planets, chart.ascendant, chart.mc]) {
-    const houseStr = pl.house > 0 ? `, House ${pl.house}` : ''
+  // 행성 in 사인 (cityKnown 이면 ASC/MC + house 도 같이)
+  out.push(skipAngles ? '[행성 in 사인]' : '[행성·angle in 사인 · house]')
+  const planetPoints = skipAngles ? chart.planets : [...chart.planets, chart.ascendant, chart.mc]
+  for (const pl of planetPoints) {
+    const houseStr = !skipAngles && pl.house > 0 ? `, House ${pl.house}` : ''
     out.push(`${label(pl.name)} in ${sign(pl.sign)} ${pl.degree}°${pl.minute.toString().padStart(2, '0')}'${houseStr}${pl.retrograde ? ' R' : ''}`)
   }
   out.push('')
 
-  // Natal aspects
+  // Natal aspects (skipAngles 면 ASC/MC 포함된 aspect 제외)
   const signByName = new Map<string, string>()
   for (const pl of [...chart.planets, chart.ascendant, chart.mc]) {
     signByName.set(pl.name, sign(pl.sign))
   }
-  out.push('[Natal aspects — 행성·angle 사이]')
+  out.push(skipAngles ? '[Natal aspects — 행성 사이]' : '[Natal aspects — 행성·angle 사이]')
   const natalAspects = findNatalAspects(chart, { includeMinor: true, maxResults: 80 })
   for (const asp of natalAspects) {
+    if (skipAngles && (ANGLE_NAMES.has(asp.from.name) || ANGLE_NAMES.has(asp.to.name))) continue
     const fromSign = signByName.get(asp.from.name) ?? '?'
     const toSign = signByName.get(asp.to.name) ?? '?'
     out.push(`${label(asp.from.name)} in ${fromSign} ${ASPECT_NAME[asp.type] ?? asp.type} ${label(asp.to.name)} in ${toSign} (Orb: ${orbToDegMin(asp.orb)})`)
@@ -223,27 +238,29 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
     try {
       const sr = await calculateSolarReturn({ natal: input.natalInput, year: nowDate.getFullYear() })
       out.push(`[Solar Return — ${nowDate.getFullYear()}]`)
-      if (sr.ascendant?.sign) out.push(`Asc: ${sign(sr.ascendant.sign)} ${sr.ascendant.degree}°`)
-      if (sr.mc?.sign) out.push(`MC: ${sign(sr.mc.sign)} ${sr.mc.degree}°`)
+      if (!skipAngles && sr.ascendant?.sign) out.push(`Asc: ${sign(sr.ascendant.sign)} ${sr.ascendant.degree}°`)
+      if (!skipAngles && sr.mc?.sign) out.push(`MC: ${sign(sr.mc.sign)} ${sr.mc.degree}°`)
       for (const pl of sr.planets) {
-        out.push(`${label(pl.name)} in ${sign(pl.sign)} ${pl.degree}°, House ${pl.house}${pl.retrograde ? ' R' : ''}`)
+        const houseStr = !skipAngles ? `, House ${pl.house}` : ''
+        out.push(`${label(pl.name)} in ${sign(pl.sign)} ${pl.degree}°${houseStr}${pl.retrograde ? ' R' : ''}`)
       }
       out.push('')
     } catch { /* skip */ }
     try {
       const lr = await calculateLunarReturn({ natal: input.natalInput, year: nowDate.getFullYear(), month: nowDate.getMonth() + 1 })
       out.push(`[Lunar Return — ${nowDate.getFullYear()}-${String(nowDate.getMonth() + 1).padStart(2, '0')}]`)
-      if (lr.ascendant?.sign) out.push(`Asc: ${sign(lr.ascendant.sign)} ${lr.ascendant.degree}°`)
-      if (lr.mc?.sign) out.push(`MC: ${sign(lr.mc.sign)} ${lr.mc.degree}°`)
+      if (!skipAngles && lr.ascendant?.sign) out.push(`Asc: ${sign(lr.ascendant.sign)} ${lr.ascendant.degree}°`)
+      if (!skipAngles && lr.mc?.sign) out.push(`MC: ${sign(lr.mc.sign)} ${lr.mc.degree}°`)
       for (const pl of lr.planets) {
-        out.push(`${label(pl.name)} in ${sign(pl.sign)} ${pl.degree}°, House ${pl.house}${pl.retrograde ? ' R' : ''}`)
+        const houseStr = !skipAngles ? `, House ${pl.house}` : ''
+        out.push(`${label(pl.name)} in ${sign(pl.sign)} ${pl.degree}°${houseStr}${pl.retrograde ? ' R' : ''}`)
       }
       out.push('')
     } catch { /* skip */ }
   }
 
-  // Profection — 해 단위 house ((나이 % 12) + 1)
-  if (typeof input.koreanAge === 'number' && input.koreanAge > 0) {
+  // Profection — 해 단위 house. house 기반이라 skipAngles 면 전체 skip.
+  if (!skipAngles && typeof input.koreanAge === 'number' && input.koreanAge > 0) {
     const profectionHouse = (input.koreanAge % 12) + 1  // 0세 1H, 1세 2H, ... 12세 1H 반복
     out.push(`[Profection — 이번 해 (${input.koreanAge}세) 활성 house]`)
     out.push(`해 단위 활성 house: ${profectionHouse}H (시점·자아 강조 영역)`)
@@ -265,8 +282,8 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
         if (!major.includes(pl.name)) continue
         lines.push(`Progressed ${label(pl.name)}: ${sign(pl.sign)} ${pl.degree}°${pl.minute.toString().padStart(2, '0')}'${pl.retrograde ? ' R' : ''}`)
       }
-      if (prog.ascendant?.sign) lines.push(`Progressed Asc: ${sign(prog.ascendant.sign)} ${prog.ascendant.degree}°`)
-      if (prog.mc?.sign) lines.push(`Progressed MC: ${sign(prog.mc.sign)} ${prog.mc.degree}°`)
+      if (!skipAngles && prog.ascendant?.sign) lines.push(`Progressed Asc: ${sign(prog.ascendant.sign)} ${prog.ascendant.degree}°`)
+      if (!skipAngles && prog.mc?.sign) lines.push(`Progressed MC: ${sign(prog.mc.sign)} ${prog.mc.degree}°`)
       if (lines.length > 0) {
         out.push(`[Secondary Progression — 사용자 1년 = 행성 1일 진행]`)
         out.push(...lines)
