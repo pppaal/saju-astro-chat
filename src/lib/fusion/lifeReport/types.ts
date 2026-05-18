@@ -9,6 +9,7 @@ import type {
 } from '@/lib/astrology/foundation/types'
 import type { Asteroid } from '@/lib/astrology/foundation/asteroids'
 import type { FortuneReport } from '@/lib/fusion/types'
+import type { CalendarEngineSignals } from './adapters/fromCalendarEngine'
 
 // ─── Bilingual paragraph ─────────────────────────────────────
 export interface Paragraph {
@@ -24,6 +25,9 @@ export type DomainId =
   | 'money'
   | 'health'
   | 'family'
+  | 'wisdom'
+  | 'creativity'
+  | 'spirituality'
 
 export interface DomainSignals {
   saju: string[] // raw saju field labels actually consumed
@@ -98,7 +102,10 @@ export interface KarmaSection {
 // ─── Top-level life report ───────────────────────────────────
 export interface LifeReport {
   generatedAt: string
-  generator: 'lifeReport-v1-deterministic' | 'lifeReport-v2-deterministic'
+  generator:
+    | 'lifeReport-v1-deterministic'
+    | 'lifeReport-v2-deterministic'
+    | 'lifeReport-v3-deterministic'
   headline: Headline
   lifeStages: LifeStages
   decisiveTiming: DecisiveTiming
@@ -111,6 +118,11 @@ export interface LifeReportInput {
   saju: MainSajuOutput
   astro: AstrologyLikeChart
   fusion?: FortuneReport
+  /**
+   * Optional pre-computed calendar-engine signals. When omitted, the
+   * builder will populate it automatically via adaptCalendarEngineSignals.
+   */
+  calendarSignals?: CalendarEngineSignals
 }
 
 // ─── Loose astrology chart shape (works with /api/astrology response or
@@ -174,3 +186,6 @@ export interface AstrologyLikeChart {
 export interface BuilderInput extends LifeReportInput {
   isKo: true // kept for future expansion; builders always render both
 }
+
+// Re-export the adapter shape so consumers can pre-build calendarSignals.
+export type { CalendarEngineSignals } from './adapters/fromCalendarEngine'
