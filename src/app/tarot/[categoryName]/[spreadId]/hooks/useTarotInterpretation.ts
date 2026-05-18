@@ -951,7 +951,7 @@ export function useTarotInterpretation({
       // 3) Final fallback with personalized renderable copy
       return buildPersonalizedFallback(result, userTopic, isKorean, personalizationOptions)
     },
-    [categoryName, spreadId, language, session, userTopic, questionAnalysis, personalizationOptions]
+    [categoryName, spreadId, language, session, userTopic, personalizationOptions]
   )
 
   const handleSaveReading = useCallback(
