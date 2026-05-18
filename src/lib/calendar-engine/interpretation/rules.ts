@@ -115,7 +115,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `올해는 **본명을 우호적으로 받쳐주는 한 해**예요. ` +
       `큰 결정·새 시도가 평소보다 매끄럽게 흘러요. ` +
-      `특히 봄·초여름에 운의 정점이 자리잡혀요.`,
+      `봄과 초여름이 운의 정점이에요.`,
     themes: ['career', 'money'],
   },
   {

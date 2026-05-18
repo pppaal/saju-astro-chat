@@ -292,7 +292,11 @@ const DOMAIN_TITLES: Record<string, string> = {
 
 const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'growth']
 
-const MAX_RULES_PER_DOMAIN = 5
+// 도메인 안에 룰이 5개까지 쌓이면 narrative 너무 길어지고 "여기에/한편/
+// 추가로/또한" 같은 연결사가 4번씩 반복됨. 사용자 audit 결과 3개가 최적
+// (긍정 1 + 주의 1 + 컨텍스트 1 정도). 잘려나간 룰은 다른 시기에 또
+// 매칭될 기회 있음.
+const MAX_RULES_PER_DOMAIN = 3
 
 /**
  * 도메인 안 여러 룰 텍스트를 자연스럽게 한 단락으로.
