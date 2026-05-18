@@ -278,17 +278,136 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     `In one line: this life is a journey of resolving ${karmaType}-style karma through ${missionEn}.`,
   ])
 
+  // ──────── 文단 5: 영혼의 결 (draconic Sun + harmonics 7)
+  const dra = input.calendarSignals?.draconicSummary
+  const h7 = input.calendarSignals?.harmonics?.[7]
+  if (dra) astroUsed.push('calendarSignals.draconicSummary')
+  if (h7) astroUsed.push('calendarSignals.harmonics.7')
+  const p5pieces: string[] = []
+  const p5piecesEn: string[] = []
+  if (dra?.sunSign) {
+    p5pieces.push(
+      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}의 결, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요. 본명과 영혼이 같은 음을 낼 때 가장 평온해져요.`,
+    )
+    p5piecesEn.push(
+      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} marks the soul-identity carried in — ${signSoulEn(dra.sunSign)}. The most settled feeling comes when natal and draconic resonate.`,
+    )
+  }
+  if (h7 && h7.strength >= 40) {
+    p5pieces.push(
+      '영적 친밀의 결이 차트 안에서 분명하게 울리고 있어, 신비적 체험·꿈·직관이 평소에도 가까이 있어요.',
+    )
+    p5piecesEn.push(
+      'Harmonics 7 resonates clearly — mystical experience, dreams and intuition remain close in ordinary life.',
+    )
+  } else if (h7) {
+    p5pieces.push(
+      '영적 친밀의 결은 잔잔히 깔려 있어요. 깊은 침묵과 명상의 시간이 이 결을 깨우는 길이에요.',
+    )
+    p5piecesEn.push(
+      'Harmonics 7 sits quietly — silence and meditation awaken this grain.',
+    )
+  }
+  const p5ko = paragraph(
+    p5pieces.length ? p5pieces : ['영혼의 결은 본명과 큰 충돌 없이 정렬돼 있어, 큰 깨달음보다 매일의 작은 결을 따라가는 길이 잘 맞아요.'],
+  )
+  const p5en = paragraph(
+    p5piecesEn.length ? p5piecesEn : ['Your soul-line aligns calmly with the natal — small daily attentions, not grand awakenings, fit best.'],
+  )
+
+  // ──────── 文단 6: 사주 합충 패턴 (hyeongchung) + 4기둥 12운성
+  const hc = input.calendarSignals?.sajuHyeongchung
+  const twelve = input.calendarSignals?.twelveStageAll
+  if (hc?.hasInteractions) sajuUsed.push('calendarSignals.sajuHyeongchung')
+  if (twelve) sajuUsed.push('calendarSignals.twelveStageAll')
+  const p6pieces: string[] = []
+  const p6piecesEn: string[] = []
+  if (hc && hc.hasInteractions) {
+    const total = hc.hapCount + hc.chungCount + hc.hyungCount + hc.haeCount
+    if (hc.hapCount > 0 && hc.chungCount > 0) {
+      p6pieces.push(
+        `명식 안에 합(合)과 충(沖)이 함께 ${total}회 일어나, 인생의 결이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`,
+      )
+      p6piecesEn.push(
+        `Inside your saju, both 합 (harmony) and 충 (clash) appear (${total} interactions total) — this life resolves karma through simultaneous union and severance. Patterns: ${hc.summary.slice(0, 3).join(' · ')}.`,
+      )
+    } else if (hc.hapCount > 0) {
+      p6pieces.push(
+        `명식 안 합(合)의 결이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`,
+      )
+      p6piecesEn.push(
+        `Your saju shows ${hc.hapCount} 합 (harmony) interactions — your karma resolves by joining people and currents. Patterns: ${hc.summary.slice(0, 2).join(' · ')}.`,
+      )
+    } else if (hc.chungCount > 0) {
+      p6pieces.push(
+        `명식 안 충(沖)의 결이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`,
+      )
+      p6piecesEn.push(
+        `Your saju shows ${hc.chungCount} 충 (clash) interactions — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`,
+      )
+    }
+    if (hc.hyungCount > 0) {
+      p6pieces.push('형(刑)의 결도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
+      p6piecesEn.push('A 형 (penalty) accent also runs through — refining your unbending sense of justice is one of this life\'s rites of passage.')
+    }
+  }
+  if (twelve) {
+    const stages = [twelve.year, twelve.month, twelve.day, twelve.time].filter(Boolean) as string[]
+    if (stages.length >= 2) {
+      const strong = stages.filter((s) => ['장생', '관대', '임관', '건록', '왕지', '제왕'].includes(s)).length
+      const weak = stages.filter((s) => ['병', '사', '묘', '절', '태'].includes(s)).length
+      if (strong >= 2) {
+        p6pieces.push('4기둥의 12운성을 종합하면, 인생의 무게추가 발산과 자립 쪽으로 기울어 있어요. 카르마도 적극적으로 만들어가는 결이 맞아요.')
+        p6piecesEn.push('Across the four pillars, the 12운성 stages tilt toward emanation and self-standing — your karma is actively shaped, not merely received.')
+      } else if (weak >= 2) {
+        p6pieces.push('4기둥의 12운성이 수렴과 마무리 쪽으로 기울어 있어요. 카르마는 정리와 결산으로 풀려요.')
+        p6piecesEn.push('The four-pillar 12운성 stages tilt toward closure and inwardness — karma resolves through completion and settling accounts.')
+      } else {
+        p6pieces.push('4기둥의 12운성이 강약 양쪽에 골고루 분포해서, 시기에 따라 발산과 수렴을 오가는 결이에요.')
+        p6piecesEn.push('Your four-pillar 12운성 stages spread evenly between strong and weak — you alternate between releasing and consolidating.')
+      }
+    }
+  }
+  const p6ko = paragraph(
+    p6pieces.length ? p6pieces : ['명식 내부 합충 패턴은 잔잔하게 정렬돼 있어, 카르마가 격한 사건보다 일상의 결로 풀려요.'],
+  )
+  const p6en = paragraph(
+    p6piecesEn.length ? p6piecesEn : ['Internal saju 합/충 sits calmly arranged — your karma works through daily grain rather than dramatic events.'],
+  )
+
   const paragraphs: Paragraph[] = [
     { ko: p1ko, en: p1en },
     { ko: p2ko, en: p2en },
     { ko: p3ko, en: p3en },
     { ko: p4ko, en: p4en },
+    { ko: p5ko, en: p5en },
+    { ko: p6ko, en: p6en },
   ]
 
   return {
     paragraphs,
     signals: { saju: sajuUsed, astro: astroUsed },
   }
+}
+
+// ─── helpers for P5 (draconic Sun, harmonics 7) ───────────────
+const SIGN_SOUL_KO: Record<string, string> = {
+  Aries: '개척자 영혼', Taurus: '건설자 영혼', Gemini: '메신저 영혼',
+  Cancer: '양육자 영혼', Leo: '창조자 영혼', Virgo: '치유자 영혼',
+  Libra: '조화자 영혼', Scorpio: '변형자 영혼', Sagittarius: '탐험가 영혼',
+  Capricorn: '성취자 영혼', Aquarius: '혁신가 영혼', Pisces: '신비주의자 영혼',
+}
+const SIGN_SOUL_EN: Record<string, string> = {
+  Aries: 'a pioneer soul', Taurus: 'a builder soul', Gemini: 'a messenger soul',
+  Cancer: 'a nurturer soul', Leo: 'a creator soul', Virgo: 'a healer soul',
+  Libra: 'a harmoniser soul', Scorpio: 'a transformer soul', Sagittarius: 'an explorer soul',
+  Capricorn: 'an achiever soul', Aquarius: 'an innovator soul', Pisces: 'a mystic soul',
+}
+function signSoulKo(sign: string): string {
+  return SIGN_SOUL_KO[sign] ?? '본연의 영혼'
+}
+function signSoulEn(sign: string): string {
+  return SIGN_SOUL_EN[sign] ?? 'a native soul-grain'
 }
 
 function shorten(s: string): string {

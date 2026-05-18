@@ -361,7 +361,7 @@ export function adaptCalendarEngineSignals(input: AdaptInput): CalendarEngineSig
         keywords: m.keywords.slice(0, 3),
       }))
       const acts = safe<MidpointActivation[]>(() =>
-        findMidpointActivations(chart, mps, 1.5),
+        findMidpointActivations(chart, 1.5),
       )
       if (acts && acts.length > 0) {
         out.midpointActivations = acts.slice(0, 5).map((a) => ({

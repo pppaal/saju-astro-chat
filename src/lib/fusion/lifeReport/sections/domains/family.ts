@@ -158,6 +158,27 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     deepKo.push(`그리고 ${familyConfirms[0].rule.narrative.confirm}`)
     deepEn.push(`Additionally, ${familyConfirms[0].rule.meaning}.`)
   }
+  // Calendar-engine: Lot of Victory (인연의 행운점) — 친구·후원의 결
+  const victory = input.calendarSignals?.arabicParts?.Victory
+  if (victory) {
+    fusionUsed.push('calendarSignals.arabicParts.Victory')
+    deepKo.push('인연의 행운점이 차트에 자리해서, 가족 너머의 ‘제 2의 가족’ 인연이 평생의 자원이 돼요.')
+    deepEn.push(`Your Lot of Victory sits in the chart — chosen-family ties beyond blood become a lifetime resource.`)
+  }
+  // Saju hyeongchung — 가족 갈등·결합 패턴
+  const hc = input.calendarSignals?.sajuHyeongchung
+  if (hc?.hasInteractions && hc.hapCount + hc.chungCount > 0) {
+    fusionUsed.push('calendarSignals.sajuHyeongchung')
+    const tone = hc.hapCount > hc.chungCount
+      ? '명식 안에 결합의 결이 강해서, 가족 결이 갈수록 단단해지는 결이에요.'
+      : '명식 안에 단절·결정의 결이 강해서, 가족과의 거리감을 인정한 뒤에야 진짜 연결이 풀려요.'
+    const toneEn = hc.hapCount > hc.chungCount
+      ? 'A 합 (joining) accent runs through your saju — family bonds harden over time.'
+      : 'A 충 (severance) accent runs through your saju — real connection unlocks after you acknowledge distance.'
+    deepKo.push(tone)
+    deepEn.push(toneEn)
+  }
+
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '이번 생의 가족 결은 큰 드라마보다 잔잔한 누적으로 빚어져요.'
   ])

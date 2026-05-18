@@ -191,6 +191,19 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     guideKo.push(`${wealthDaeun.age}세 직전에 자원 그릇을 키워두면 흐름이 자연스럽게 따라와요.`)
     guideEn.push(`Enlarge the resource vessel just before age ${wealthDaeun.age} — the flow follows.`)
   }
+  // Calendar-engine: Lot of Fortune (재물의 행운점)
+  const fortune = input.calendarSignals?.arabicParts?.Fortune
+  if (fortune) {
+    fusionUsed.push('calendarSignals.arabicParts.Fortune')
+    guideKo.push(`재물의 행운점이 ${signKoMoney(fortune.sign)}의 결로 자리해서, 이 결을 일상에 들여올수록 운이 자기 자리로 돌아와요.`)
+    guideEn.push(`Your Lot of Fortune sits in ${fortune.sign} — bringing this grain into daily life pulls luck home.`)
+  }
+  const jupiterDignity = input.calendarSignals?.dignities?.find((d) => d.planet === 'Jupiter')
+  if (jupiterDignity && (jupiterDignity.status === 'domicile' || jupiterDignity.status === 'exaltation')) {
+    fusionUsed.push('calendarSignals.dignities.Jupiter')
+    guideKo.push('확장의 별이 본인 자리에 있어, 큰 흐름을 탈 때 풍요가 자연스럽게 따라와요.')
+    guideEn.push(`Jupiter is in ${jupiterDignity.status} — riding large flows draws abundance naturally.`)
+  }
   const p4ko = paragraph(guideKo)
   const p4en = paragraph(guideEn)
 
@@ -334,4 +347,13 @@ function daeunMoneyFlavorEn(sibsin: string): string {
   if (sibsin.includes('인')) return 'turns study into capital'
   if (sibsin.includes('비') || sibsin.includes('겁')) return 'opens collaboration / partnership'
   return 'runs as a steady undercurrent'
+}
+
+function signKoMoney(sign: string): string {
+  const map: Record<string, string> = {
+    Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
+    Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
+    Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
+  }
+  return map[sign] ?? sign
 }

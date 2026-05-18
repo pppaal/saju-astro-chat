@@ -176,6 +176,17 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     guideKo.push('오행이 균형이라, 한 가지 큰 관리보다 골고루 작은 루틴이 더 잘 맞아요.')
     guideEn.push('Your elements are even — many small routines fit better than one heavy regimen.')
   }
+  // Calendar-engine: Lot of Necessity (약함의 자리)
+  const necessity = input.calendarSignals?.arabicParts?.Necessity
+  if (necessity) {
+    fusionUsed.push('calendarSignals.arabicParts.Necessity')
+    guideKo.push(
+      `약함의 자리(필연의 점)가 차트에 자리해서, 부담을 미루지 않고 작게 자주 풀어주는 흐름이 가장 무리가 없어요.`,
+    )
+    guideEn.push(
+      `Your Lot of Necessity sits in the chart — releasing pressure little and often, rather than postponing it, is the gentlest path.`,
+    )
+  }
   const p4ko = paragraph(guideKo)
   const p4en = paragraph(guideEn)
 

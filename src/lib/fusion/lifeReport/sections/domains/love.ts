@@ -238,6 +238,31 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     timingKo.push('인생 흐름이 점차 익어가는 구간이라, 한 해 한 해 신호가 모이고 있어요.')
     timingEn.push('Your daeun is in a ripening stretch — signals accumulate season by season.')
   }
+  // Calendar-engine signals: Lot of Eros (사랑의 행운점) + Venus dignity
+  const eros = input.calendarSignals?.arabicParts?.Eros
+  const venusDignity = input.calendarSignals?.dignities?.find(
+    (d) => d.planet === 'Venus',
+  )
+  if (eros) {
+    fusionUsed.push('calendarSignals.arabicParts.Eros')
+    timingKo.push(
+      `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}의 결로 자리해서, ${erosSignFlavorKoLove(eros.sign)} 결의 인연이 사랑의 운을 끌어와요.`,
+    )
+    timingEn.push(
+      `Your Lot of Eros in ${signLabel(eros.sign, 'en')} pulls love-luck through ${erosSignFlavorEnLove(eros.sign)}.`,
+    )
+  }
+  if (venusDignity) {
+    fusionUsed.push('calendarSignals.dignities.Venus')
+    if (venusDignity.status === 'domicile' || venusDignity.status === 'exaltation') {
+      timingKo.push('사랑의 별이 본인 자리에 있어, 일생 사랑의 결이 다정하게 흐르는 배치예요.')
+      timingEn.push(`Venus is in ${venusDignity.status} — love runs warmly through your life by native disposition.`)
+    } else if (venusDignity.status === 'detriment' || venusDignity.status === 'fall') {
+      timingKo.push('사랑의 별이 살짝 어색한 자리에 있어서, 첫 단계엔 시행착오가 있지만 결국 자기만의 방식을 찾는 결이에요.')
+      timingEn.push(`Venus sits in ${venusDignity.status} — early love has trial-and-error, but you eventually find your own form.`)
+    }
+  }
+
   const p4ko = paragraph(timingKo)
   const p4en = paragraph(timingEn)
 
@@ -429,4 +454,40 @@ function junoFlavorKo(h: number): string {
 }
 function junoFlavorEn(h: number): string {
   return JUNO_HOUSE_FLAVOR_EN[h] ?? 'a singular marital grain'
+}
+
+// ─── Lot of Eros sign flavor (love-luck origin) ──────────────
+const EROS_SIGN_KO: Record<string, string> = {
+  Aries: '직진하고 솔직한',
+  Taurus: '감각적이고 안정된',
+  Gemini: '대화가 잘 통하는',
+  Cancer: '정서적으로 깊이 연결되는',
+  Leo: '존재감 있고 다정한',
+  Virgo: '섬세하고 헌신적인',
+  Libra: '균형 잡힌 우아한',
+  Scorpio: '깊고 강렬한',
+  Sagittarius: '시야 넓고 모험적인',
+  Capricorn: '책임감 있는 진중한',
+  Aquarius: '독특하고 자유로운',
+  Pisces: '몽환적이고 흐르는',
+}
+const EROS_SIGN_EN: Record<string, string> = {
+  Aries: 'direct, honest',
+  Taurus: 'sensual, settled',
+  Gemini: 'conversation-rich',
+  Cancer: 'deeply emotional',
+  Leo: 'present, warm',
+  Virgo: 'subtle, devoted',
+  Libra: 'balanced, graceful',
+  Scorpio: 'deep, intense',
+  Sagittarius: 'broad-vision, adventurous',
+  Capricorn: 'responsible, serious',
+  Aquarius: 'unusual, free',
+  Pisces: 'dreamy, flowing',
+}
+function erosSignFlavorKoLove(sign: string): string {
+  return EROS_SIGN_KO[sign] ?? '독자적인'
+}
+function erosSignFlavorEnLove(sign: string): string {
+  return EROS_SIGN_EN[sign] ?? 'singular'
 }

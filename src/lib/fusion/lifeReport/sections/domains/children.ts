@@ -196,6 +196,19 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     deepKo.push('인생의 큰 패턴이 여유로운 표현과 창조의 결이라, 자녀를 키우는 일 자체가 자기 표현의 연장이에요.')
     deepEn.push('Your geokguk is 식신격 — raising children is an extension of self-expression.')
   }
+  // Calendar-engine: 5th-house profection year (자녀의 행운점 활성) + harmonics 5 (창조의 결)
+  const prof = input.calendarSignals?.profectionCurrent
+  if (prof?.house === 5) {
+    fusionUsed.push('calendarSignals.profections')
+    deepKo.push('올해는 창조와 자녀의 자리가 활성돼 있어, 임신·출산·자녀와의 결합 흐름이 다른 어느 해보다 가까이 와 있어요.')
+    deepEn.push('This year activates house 5 — conception, birth and child-bonding flows are closer than in any other year.')
+  }
+  const h5 = input.calendarSignals?.harmonics?.[5]
+  if (h5 && h5.strength >= 40) {
+    fusionUsed.push('calendarSignals.harmonics.5')
+    deepKo.push('창의의 깊은 결이 강하게 깔려 있어, 자녀가 있든 없든 ‘다음 세대로 무엇을 흘려보낼지’가 평생의 결로 묻혀 있어요.')
+    deepEn.push('Harmonics 5 runs strongly — whether or not biological children appear, "what you pass to the next generation" remains a lifelong grain.')
+  }
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '자녀의 결은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.'
   ])

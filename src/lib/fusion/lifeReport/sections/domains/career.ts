@@ -239,18 +239,33 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   ])
 
   // ── Paragraph 4: 실행 가이드
-  const guideKo = buildCareerGuideKo({
+  let guideKo = buildCareerGuideKo({
     dominantCategory,
     careerTone,
     wealthAge: wealthDaeun?.age,
     officialAge: officialDaeun?.age,
   })
-  const guideEn = buildCareerGuideEn({
+  let guideEn = buildCareerGuideEn({
     dominantCategory,
     careerTone,
     wealthAge: wealthDaeun?.age,
     officialAge: officialDaeun?.age,
   })
+
+  // Calendar-engine: Lot of Spirit (직업의 행운점 — 행적·진로) + 10th-house lord dignity
+  const spirit = input.calendarSignals?.arabicParts?.Spirit
+  if (spirit) {
+    fusionUsed.push('calendarSignals.arabicParts.Spirit')
+    guideKo += ` 직업의 행운점이 ${spirit.sign === 'Aries' ? '양자리' : spirit.sign === 'Taurus' ? '황소자리' : spirit.sign === 'Gemini' ? '쌍둥이자리' : spirit.sign === 'Cancer' ? '게자리' : spirit.sign === 'Leo' ? '사자자리' : spirit.sign === 'Virgo' ? '처녀자리' : spirit.sign === 'Libra' ? '천칭자리' : spirit.sign === 'Scorpio' ? '전갈자리' : spirit.sign === 'Sagittarius' ? '사수자리' : spirit.sign === 'Capricorn' ? '염소자리' : spirit.sign === 'Aquarius' ? '물병자리' : '물고기자리'}의 결로 자리해서, 이 결을 일터에 가져갈수록 운이 자기 자리로 와요.`
+    guideEn += ` Your Lot of Spirit in ${spirit.sign} signals the grain to bring into the workplace — luck arrives when you carry it deliberately.`
+  }
+  // Profection — current-year lord & house
+  const prof = input.calendarSignals?.profectionCurrent
+  if (prof && (prof.house === 10 || prof.house === 6 || prof.house === 2)) {
+    fusionUsed.push('calendarSignals.profections')
+    guideKo += ` 올해는 ${prof.house}궁(${prof.house === 10 ? '사회적 정점' : prof.house === 6 ? '일터·실무' : '재물·자원'})이 활성돼서, 직업의 결이 손에 잡히는 결과로 이어지는 한 해예요.`
+    guideEn += ` This year activates house ${prof.house} — career outcomes translate into tangible result.`
+  }
 
   const paragraphs: Paragraph[] = [
     { ko: p1ko, en: p1en },

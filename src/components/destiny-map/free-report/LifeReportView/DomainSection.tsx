@@ -7,6 +7,9 @@ import {
   Coins,
   HeartPulse,
   Users,
+  BookOpen,
+  Palette,
+  Moon,
   type LucideIcon,
 } from 'lucide-react'
 import type { DomainId, DomainNarrative } from '@/lib/fusion/lifeReport'
@@ -57,6 +60,21 @@ const DOMAIN_STYLES: Record<DomainId, DomainStyle> = {
     icon: Users,
     card: 'border-violet-400/25 from-violet-500/10',
     text: 'text-violet-200',
+  },
+  wisdom: {
+    icon: BookOpen,
+    card: 'border-indigo-400/25 from-indigo-500/10',
+    text: 'text-indigo-200',
+  },
+  creativity: {
+    icon: Palette,
+    card: 'border-pink-400/25 from-pink-500/10',
+    text: 'text-pink-200',
+  },
+  spirituality: {
+    icon: Moon,
+    card: 'border-purple-400/25 from-purple-500/10',
+    text: 'text-purple-200',
   },
 }
 
