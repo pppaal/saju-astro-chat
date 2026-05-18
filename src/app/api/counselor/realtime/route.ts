@@ -344,12 +344,20 @@ export async function POST(req: NextRequest) {
   // 직전 답변을 assistant role로 정확히 LLM에 전달해야 모델이 "내가 한
   // 말"로 인식하고 새 질문에 깔끔히 답한다. 예전엔 history를 통째로
   // string으로 박아서 직전 답 톤이 다음 답에 묻어 나왔음.
+  // role 필터: Anthropic Messages API는 user/assistant만 받음. 클라가
+  // 'system'을 messages 배열에 넣어 보내면 400 invalid_request_error.
   const systemPrompt = lang === 'en' ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_KO
   const cachedUserContext = contextText
-  const priorTurns = body.messages
+  const dialogTurns = body.messages.filter(
+    (m): m is ChatMessage => m.role === 'user' || m.role === 'assistant'
+  )
+  const priorTurns = dialogTurns
     .slice(0, -1)
     .map((m) => ({ role: m.role, content: m.content }))
-  const userPrompt = body.messages[body.messages.length - 1].content
+  const userPrompt = dialogTurns[dialogTurns.length - 1]?.content ?? ''
+  if (!userPrompt.trim()) {
+    return NextResponse.json({ error: 'empty_message' }, { status: 400 })
+  }
 
   return streamClaudeAsSSE({
     systemPrompt,

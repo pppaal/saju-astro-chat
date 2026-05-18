@@ -44,28 +44,40 @@ const GUEST_TAROT_USED_COOKIE = 'tarot_guest_reading_used'
 const GUEST_TAROT_INTERPRET_COOKIE = 'tarot_guest_interpret_pass'
 const GUEST_TAROT_USED_MAX_AGE = 60 * 60 * 24 * 30
 const GUEST_TAROT_INTERPRET_MAX_AGE = 60 * 30
+// 비로그인 사용자 무료 리딩 횟수. 카운터는 cookie GUEST_TAROT_USED_COOKIE에
+// 숫자로 저장 (legacy '1' 값은 1회 사용한 것으로 호환).
+const GUEST_TAROT_FREE_LIMIT = 2
 
 function readCookie(request: CookieReadableRequest | undefined, name: string): string | null {
   return request?.cookies?.get(name)?.value || null
 }
 
+function readGuestUsedCount(request: CookieReadableRequest | undefined): number {
+  const raw = readCookie(request, GUEST_TAROT_USED_COOKIE)
+  if (!raw) return 0
+  const n = parseInt(raw, 10)
+  if (Number.isFinite(n) && n >= 0) return n
+  // legacy boolean '1' = 1회 사용
+  return raw === '1' ? 1 : 0
+}
+
 function buildGuestReadingDeniedResult(): CreditCheckResult {
   return {
     allowed: false,
-    error: '무료 체험 리딩은 이미 사용했습니다. 로그인 후 계속 이용하세요.',
+    error: `무료 체험 리딩 ${GUEST_TAROT_FREE_LIMIT}회를 모두 사용했습니다. 로그인 후 계속 이용하세요.`,
     errorCode: 'guest_limit_reached',
   }
 }
 
 function allowGuestDraw(request?: CookieReadableRequest): CreditCheckResult {
-  const alreadyUsed = readCookie(request, GUEST_TAROT_USED_COOKIE) === '1'
-  if (alreadyUsed) {
+  const used = readGuestUsedCount(request)
+  if (used >= GUEST_TAROT_FREE_LIMIT) {
     return buildGuestReadingDeniedResult()
   }
 
   return {
     allowed: true,
-    remaining: 0,
+    remaining: GUEST_TAROT_FREE_LIMIT - used - 1,
     guestReadingAccess: 'draw_granted',
   }
 }
@@ -258,18 +270,24 @@ export function creditErrorResponse(result: CreditCheckResult): NextResponse {
   )
 }
 
+// applyCreditResultCookies가 request 컨텍스트를 받을 수 있도록 optional 인자 추가.
+// request가 있으면 GUEST_TAROT_USED_COOKIE 카운터를 정확히 +1 할 수 있다.
+// 없으면 (legacy 호출) draw_granted는 적어도 1로, interpret_granted는 +1.
 export function applyCreditResultCookies(
   response: NextResponse,
-  result: CreditCheckResult | null | undefined
+  result: CreditCheckResult | null | undefined,
+  request?: CookieReadableRequest
 ): NextResponse {
   if (!result?.guestReadingAccess) {
     return response
   }
 
   const secure = process.env.NODE_ENV === 'production'
+  const currentUsed = readGuestUsedCount(request)
 
   if (result.guestReadingAccess === 'draw_granted') {
-    response.cookies.set(GUEST_TAROT_USED_COOKIE, '1', {
+    const nextUsed = Math.min(currentUsed + 1, GUEST_TAROT_FREE_LIMIT)
+    response.cookies.set(GUEST_TAROT_USED_COOKIE, String(nextUsed), {
       httpOnly: true,
       sameSite: 'lax',
       secure,
@@ -286,13 +304,7 @@ export function applyCreditResultCookies(
     return response
   }
 
-  response.cookies.set(GUEST_TAROT_USED_COOKIE, '1', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure,
-    path: '/',
-    maxAge: GUEST_TAROT_USED_MAX_AGE,
-  })
+  // interpret_granted — interpret pass 소비, 카운터는 draw에서 이미 증가
   response.cookies.set(GUEST_TAROT_INTERPRET_COOKIE, '', {
     httpOnly: true,
     sameSite: 'lax',
