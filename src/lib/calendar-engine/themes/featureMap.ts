@@ -62,62 +62,56 @@ export const SIBSIN_THEME_MAP: Record<SibsinKind, AstroThemeKey[]> = {
 
 /**
  * 사주 신살 → 테마 매핑.
- * 신살명을 키로 사용 (한글 그대로).
- * 자주 등장하는 핵심 신살 위주 — 누락된 건 'growth'로 폴백.
+ * extractor가 실제로 emit하는 hit.kind 이름만. 누락된 신살은
+ * tagger가 'growth'로 폴백.
  */
 export const SHINSAL_THEME_MAP: Record<string, AstroThemeKey[]> = {
   // ─── 12신살 ───
-  장성:  ['career'],                     장성살: ['career'],
-  반안:  ['love', 'growth'],             반안살: ['love', 'growth'],
-  역마:  ['growth', 'career'],           역마살: ['growth', 'career'],
-  육해:  ['health'],                     육해살: ['health'],
-  화개:  ['growth', 'career'],           화개살: ['growth', 'career'],
+  장성:  ['career'],
+  반안:  ['love', 'growth'],
+  역마:  ['growth', 'career'],
+  육해:  ['health'],
+  화개:  ['growth', 'career'],
   겁살:  ['health', 'money'],
   재살:  ['health', 'career'],
   천살:  ['health'],
   월살:  ['money', 'health'],
-  망신:  ['career', 'health'],           망신살: ['career', 'health'],
+  망신:  ['career', 'health'],
   지살:  ['growth', 'money'],
   년살:  ['love', 'growth'],
 
   // ─── 길성 ───
-  천을귀인: ['career', 'health'],         천을: ['career', 'health'],
+  천을귀인: ['career', 'health'],
   태극귀인: ['growth', 'career'],
-  천덕귀인: ['health', 'love'],           천덕: ['health', 'love'],
-  월덕귀인: ['health', 'love'],           월덕: ['health', 'love'],
+  천덕귀인: ['health', 'love'],
+  월덕귀인: ['health', 'love'],
   천주귀인: ['love', 'money'],
   암록:     ['money', 'career'],
-  금여성:   ['love', 'money'],            금여: ['love', 'money'],
+  금여성:   ['love', 'money'],
   천의성:   ['health', 'career'],
   천문성:   ['career', 'growth'],
-  문창:     ['career'],                   문창귀인: ['career'],
+  문창:     ['career'],
   문곡:     ['career', 'growth'],
-  학당귀인: ['career'],                   학당: ['career'],
-  관귀학관: ['career'],
+  학당귀인: ['career'],
   건록:     ['career', 'money'],
   제왕:     ['career'],
-  길성:     ['growth'],
 
   // ─── 도화·홍염 (애정·매력) ───
-  도화:   ['love', 'growth'],             도화살: ['love', 'growth'],
-  홍염:   ['love'],                       홍염살: ['love'],
+  도화:   ['love', 'growth'],
+  홍염살: ['love'],
 
   // ─── 흉살 ───
-  현침:   ['health'],                     현침살: ['health'],
-  고신:   ['growth', 'health'],           고신살: ['growth', 'health'],
-  과숙:   ['love', 'health'],             과숙살: ['love', 'health'],
-  괴강:   ['career', 'health'],           괴강살: ['career', 'health'],
-  양인:   ['career', 'health'],           양인살: ['career', 'health'],
-  백호:   ['health'],                     백호살: ['health'],
+  현침:   ['health'],
+  고신:   ['growth', 'health'],
+  과숙:   ['love', 'health'],
+  괴강:   ['career', 'health'],
+  양인:   ['career', 'health'],
+  백호:   ['health'],
   공망:   ['health', 'growth'],
-  귀문관: ['health', 'growth'],           귀문: ['health', 'growth'],
-  귀문관살: ['health', 'growth'],
+  귀문관: ['health', 'growth'],
   원진:   ['love', 'health'],
   천라지망: ['health', 'career'],
   삼재:   ['health'],
-  화해:   ['love', 'health'],             화해살: ['love', 'health'],
-  괘살:   ['health'],
-  흉성:   ['health'],
 }
 
 /**

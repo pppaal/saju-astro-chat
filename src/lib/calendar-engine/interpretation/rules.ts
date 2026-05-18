@@ -344,7 +344,7 @@ export const RULES: InterpretationRule[] = [
     section: 'theme-love',
     priority: 60,
     conditions: {
-      shinsalName: ['도화', '도화살', '홍염', '홍염살'],
+      shinsalName: ['도화', '홍염살'],
     },
     template:
       `❤️ **연애** — 인연·만남·관계 진전이 자연스러운 흐름. ` +
@@ -388,7 +388,7 @@ export const RULES: InterpretationRule[] = [
     section: 'shinsal',
     priority: 45,
     conditions: {
-      shinsalName: ['역마', '역마살'],
+      shinsalName: ['역마'],
     },
     template:
       `✈️ **이동·환경 변화 에너지**가 강해지는 시기. ` +
@@ -404,7 +404,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 45,
-    conditions: { shinsalName: ['화개', '화개살'] },
+    conditions: { shinsalName: ['화개'] },
     template:
       `🕯 **화개** 발동 — 내면 깊어지기·예술·종교·연구에 ` +
       `우호적인 시기. 혼자만의 시간이 결과로 이어져요.`,
@@ -415,7 +415,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 50,
-    conditions: { shinsalName: ['문창', '문창귀인'] },
+    conditions: { shinsalName: ['문창'] },
     template:
       `📚 **문창** 발동 — 학습·시험·집필·발표에 강력한 보조. ` +
       `시험 준비·논문·콘텐츠 제작 모두 지금이 좋아요.`,
@@ -426,7 +426,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 48,
-    conditions: { shinsalName: ['도화', '도화살'] },
+    conditions: { shinsalName: ['도화'] },
     template:
       `🌸 **도화** 발동 — 매력·끌림·인기 에너지가 강해져요. ` +
       `소개·미팅·자기 표현이 잘 통하는 시기예요.`,
@@ -437,7 +437,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 42,
-    conditions: { shinsalName: ['양인', '양인살'] },
+    conditions: { shinsalName: ['양인'] },
     template:
       `⚔️ **양인** 발동 — 강력한 추진력. 단, 충돌·다툼 주의. ` +
       `결단력 필요한 일에 좋고, 인내가 필요한 일은 조심해주세요.`,
@@ -448,7 +448,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 42,
-    conditions: { shinsalName: ['백호', '백호살'] },
+    conditions: { shinsalName: ['백호'] },
     template:
       `🔥 **백호** 발동 — 극단적 변동·사고 가능성. 운전·외출· ` +
       `위험한 작업은 신중하게 가주세요. 큰 결정은 길일로 잡아주세요.`,
@@ -470,7 +470,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 50,
-    conditions: { shinsalName: ['천덕', '천덕귀인', '월덕', '월덕귀인'] },
+    conditions: { shinsalName: ['천덕귀인', '월덕귀인'] },
     template:
       `🛡 **천덕·월덕** 발동 — 건강·가정·정서 영역에서 보호받는 ` +
       `시기. 회복·치유에 자연스러운 흐름이에요.`,
@@ -481,7 +481,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 46,
-    conditions: { shinsalName: ['장성', '장성살'] },
+    conditions: { shinsalName: ['장성'] },
     template:
       `🎖 **장성** 발동 — 리더십·명예·공적 자리. 발표·발의· ` +
       `대표 역할이 들어올 수 있는 시기예요.`,
@@ -718,7 +718,7 @@ export const RULES: InterpretationRule[] = [
     section: 'theme-health',
     priority: 56,
     conditions: {
-      shinsalName: ['천덕', '천덕귀인', '월덕', '월덕귀인'],
+      shinsalName: ['천덕귀인', '월덕귀인'],
     },
     template:
       `⚡ **건강** — 회복·치유에 우호적인 흐름. 미뤘던 건강 ` +
@@ -746,7 +746,7 @@ export const RULES: InterpretationRule[] = [
     section: 'theme-growth',
     priority: 56,
     conditions: {
-      shinsalName: ['역마', '역마살'],
+      shinsalName: ['역마'],
     },
     template:
       `✈️ **이동** — 여행·이직·이사 등 환경 변화에 우호적. ` +
@@ -1089,7 +1089,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 48,
-    conditions: { shinsalName: ['천의', '천의성'] },
+    conditions: { shinsalName: ['천의성'] },
     template:
       `🩺 **천의성** 발동 — 의약·치유·건강 영역에 도움이 들어오는 ` +
       `시기. 건강 점검·치료 시작에 좋아요.`,
@@ -1111,7 +1111,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 47,
-    conditions: { shinsalName: ['학당', '학당귀인'] },
+    conditions: { shinsalName: ['학당귀인'] },
     template:
       `🎓 **학당귀인** 발동 — 학문·자격·시험·연구에 보호 ` +
       `들어오는 시기. 큰 시험·논문·발표에 우호적이에요.`,
@@ -1155,7 +1155,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 42,
-    conditions: { shinsalName: ['현침', '현침살'] },
+    conditions: { shinsalName: ['현침'] },
     template:
       `📌 **현침** 발동 — 정밀·예리한 일에 좋음. 의료·기술· ` +
       `분석 영역. 단, 사람 관계는 부드럽게 가주세요.`,
@@ -1166,7 +1166,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 43,
-    conditions: { shinsalName: ['귀문', '귀문관', '귀문관살'] },
+    conditions: { shinsalName: ['귀문관'] },
     template:
       `🌑 **귀문** 발동 — 정신적 예민함·직관·꿈이 활성. ` +
       `명상·내적 작업에 좋고, 큰 결정은 신중히 가주세요.`,
@@ -1177,7 +1177,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 44,
-    conditions: { shinsalName: ['천문', '천문성'] },
+    conditions: { shinsalName: ['천문성'] },
     template:
       `🔮 **천문성** 발동 — 영적 통찰·고차원 학문·신비주의 ` +
       `영역에 우호적. 깊은 공부와 명상에 적합한 시기예요.`,
@@ -1188,7 +1188,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 46,
-    conditions: { shinsalName: ['금여', '금여성'] },
+    conditions: { shinsalName: ['금여성'] },
     template:
       `💎 **금여성** 발동 — 재물·결혼 운에 우호적. 안정적 ` +
       `풍요를 만드는 시기예요.`,
@@ -1210,7 +1210,7 @@ export const RULES: InterpretationRule[] = [
     scope: 'monthly',
     section: 'shinsal',
     priority: 49,
-    conditions: { shinsalName: ['태극', '태극귀인'] },
+    conditions: { shinsalName: ['태극귀인'] },
     template:
       `☯️ **태극귀인** 발동 — 영성·종교·깨달음 영역에서 ` +
       `보호받는 시기. 내적 균형이 잡혀요.`,
@@ -1256,7 +1256,7 @@ export const RULES: InterpretationRule[] = [
     section: 'theme-career',
     priority: 56,
     conditions: {
-      shinsalName: ['장성', '장성살'],
+      shinsalName: ['장성'],
     },
     template:
       `🎖 **명예·평판** — 장성 활성. 공식 자리·대표 역할· ` +
@@ -1270,7 +1270,7 @@ export const RULES: InterpretationRule[] = [
     priority: 55,
     conditions: {
       signalSource: 'saju',
-      shinsalName: ['원진', '귀문관', '귀문'],
+      shinsalName: ['원진', '귀문관'],
     },
     template:
       `👨‍👩‍👧 **가족·관계** — 미묘한 긴장 가능. 평소보다 부드러운 ` +
@@ -1284,7 +1284,7 @@ export const RULES: InterpretationRule[] = [
     priority: 54,
     conditions: {
       signalSource: 'saju',
-      shinsalName: ['화개', '화개살', '천문성'],
+      shinsalName: ['화개', '천문성'],
     },
     template:
       `🧘 **영성·내면** — 화개·천문 활성으로 명상·종교·` +
@@ -1774,7 +1774,7 @@ export const RULES: InterpretationRule[] = [
     section: 'theme-health',
     priority: 53,
     conditions: {
-      shinsalName: ['백호', '현침', '귀문', '귀문관', '귀문관살'],
+      shinsalName: ['백호', '현침', '귀문관'],
     },
     template:
       `흉살(백호·현침·귀문 등)이 작용하는 시기예요. 갑작스러운 증상이나 ` +
@@ -1925,10 +1925,12 @@ export const RULES: InterpretationRule[] = [
     priority: 77,
     conditions: {
       signalLayer: ['yearly'],
-      shinsalName: ['삼합', '육합', '천을귀인', '천을'],
+      shinsalName: ['천을귀인'],
+      // 삼합·육합은 hyeongchung extractor가 별도 emit하는 신호라 같이
+      // 매칭하려면 separate 룰 필요. 여기는 천을귀인 단독으로 가용.
     },
     template:
-      `삼합·육합·천을귀인이 작용하는 해예요. 1년에 몇 번 안 오는 우호적인 ` +
+      `천을귀인이 작용하는 해예요. 1년에 몇 번 안 오는 우호적인 ` +
       `흐름이라 계약·결혼·이직·창업 같은 중요한 시작을 잡아두면 결과가 ` +
       `잘 풀려요.`,
     themes: ['career', 'love', 'money'],
@@ -1940,7 +1942,7 @@ export const RULES: InterpretationRule[] = [
     priority: 69,
     conditions: {
       signalLayer: ['yearly'],
-      shinsalName: ['양인', '양인살', '괴강', '괴강살'],
+      shinsalName: ['양인', '괴강'],
     },
     template:
       `양인이나 괴강이 작용하는 해예요. 추진력은 강해지지만 충돌도 ` +
@@ -1955,7 +1957,7 @@ export const RULES: InterpretationRule[] = [
     priority: 68,
     conditions: {
       signalLayer: ['yearly'],
-      shinsalName: ['역마', '역마살', '지살'],
+      shinsalName: ['역마', '지살'],
     },
     template:
       `역마나 지살이 작용하는 해예요. 이동·이사·해외·환경 변화가 ` +
@@ -1970,7 +1972,7 @@ export const RULES: InterpretationRule[] = [
     priority: 67,
     conditions: {
       signalLayer: ['yearly'],
-      shinsalName: ['도화', '도화살', '홍염', '홍염살'],
+      shinsalName: ['도화', '홍염살'],
     },
     template:
       `도화나 홍염이 작용하는 해예요. 매력·인기·인연 흐름이 강해져서 ` +
@@ -1985,7 +1987,7 @@ export const RULES: InterpretationRule[] = [
     priority: 66,
     conditions: {
       signalLayer: ['yearly'],
-      shinsalName: ['백호', '백호살', '현침', '현침살'],
+      shinsalName: ['백호', '현침'],
     },
     template:
       `백호나 현침이 작용하는 해예요. 갑작스러운 변화나 사고, 건강 신호에 ` +
@@ -2000,7 +2002,7 @@ export const RULES: InterpretationRule[] = [
     priority: 65,
     conditions: {
       signalLayer: ['yearly'],
-      shinsalName: ['망신', '망신살', '재살'],
+      shinsalName: ['망신', '재살'],
     },
     template:
       `망신이나 재살이 작용하는 해예요. 평판·법·계약 분쟁이 생기기 쉬워서 ` +
@@ -2015,7 +2017,7 @@ export const RULES: InterpretationRule[] = [
     priority: 79,
     conditions: {
       signalLayer: ['yearly'],
-      shinsalName: ['천덕', '천덕귀인', '월덕', '월덕귀인'],
+      shinsalName: ['천덕귀인', '월덕귀인'],
     },
     template:
       `천덕이나 월덕이 작용하는 해예요. 위기를 누군가가 막아주거나 ` +
@@ -2030,7 +2032,7 @@ export const RULES: InterpretationRule[] = [
     priority: 68,
     conditions: {
       signalLayer: ['yearly'],
-      shinsalName: ['문창', '문창귀인', '학당', '학당귀인'],
+      shinsalName: ['문창', '학당귀인'],
     },
     template:
       `문창이나 학당이 작용하는 해예요. 학업·시험·자격증·연구 흐름이 ` +
@@ -2045,12 +2047,12 @@ export const RULES: InterpretationRule[] = [
     priority: 67,
     conditions: {
       signalLayer: ['yearly'],
-      shinsalName: ['천의성', '활인성'],
+      shinsalName: ['천의성'],   // 활인성은 천의성과 혼동, 별도 신살 아님
     },
     template:
-      `천의나 활인이 작용하는 해예요. 치유·돌봄·의료·상담 분야가 잘 ` +
-      `풀려서 미뤘던 치료, 심리상담, 검진을 시작하면 효과가 좋고 ` +
-      `남을 돕는 일도 운이 잘 따라요.`,
+      `천의성이 작용하는 해예요. 치유·돌봄·의료·상담 분야가 잘 풀려서 ` +
+      `미뤘던 치료, 심리상담, 검진을 시작하면 효과가 좋고 남을 돕는 ` +
+      `일도 운이 잘 따라요.`,
     themes: ['health', 'growth'],
   },
   {
@@ -2061,7 +2063,7 @@ export const RULES: InterpretationRule[] = [
     conditions: {
       signalSource: 'saju',
       signalLayer: ['yearly'],
-      signalKinds: ['element-clash', 'hyeong-chung'],
+      signalKinds: ['hyeongchung', 'tonggeun-shift'],   // 실제 엔진 emit kind
       maxPolarity: -1,
     },
     template:
