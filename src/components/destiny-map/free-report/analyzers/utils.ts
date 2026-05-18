@@ -76,15 +76,25 @@ export function uniqueArray<T>(arr: T[]): T[] {
 }
 
 /**
- * Base analysis context - common data extraction for all analyzers
+ * Get level description text
  */
-export interface AnalysisContext {
-  isKo: boolean;
-  dayMasterName: string | null;
-  fiveElements: [string, number][];
-  strongestElement: string | null;
-  weakestElement: string | null;
-  sunSign: string | null;
-  moonSign: string | null;
+export function getLevelDescription(level: string, isKo: boolean): string {
+  const levelMap: Record<string, { ko: string; en: string }> = {
+    '최상': { ko: '최상', en: 'Excellent' },
+    '상': { ko: '상', en: 'Good' },
+    '중': { ko: '중', en: 'Medium' },
+    '하': { ko: '하', en: 'Low' },
+  };
+  return levelMap[level]?.[isKo ? 'ko' : 'en'] || level;
+}
+
+/**
+ * Map Saju element to Korean (stub for compatibility)
+ */
+export function mapSajuElementToKo(el: string): string {
+  const map: Record<string, string> = {
+    'wood': '목', 'fire': '화', 'earth': '토', 'metal': '금', 'water': '수'
+  };
+  return map[el] || el;
 }
 

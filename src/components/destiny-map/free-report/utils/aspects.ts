@@ -15,12 +15,6 @@ export interface AspectInfo {
   orb?: number
 }
 
-export interface DetailedAspectInfo extends AspectInfo {
-  isHarmonious: boolean
-  isChallenging: boolean
-  strength: 'exact' | 'close' | 'wide'
-}
-
 // ========== Aspect Classification ==========
 
 const HARMONIOUS_ASPECTS: AspectType[] = ['trine', 'sextile']

@@ -97,36 +97,3 @@ export const SHADOW_SHINSALS: readonly string[] = [
   '양인',
 ];
 
-/**
- * 직업/진로 관련 하우스 영역 매핑
- */
-export const HOUSE_CAREER_AREAS: Record<
-  number,
-  { ko: string; en: string; keywords: string[] }
-> = {
-  1: {
-    ko: '자아와 정체성',
-    en: 'Self and Identity',
-    keywords: ['개인 브랜드', '리더십', '자기표현'],
-  },
-  2: {
-    ko: '재능과 자원',
-    en: 'Talents and Resources',
-    keywords: ['재무', '가치', '소유'],
-  },
-  3: {
-    ko: '커뮤니케이션',
-    en: 'Communication',
-    keywords: ['글쓰기', '말하기', '미디어'],
-  },
-  6: {
-    ko: '일상과 서비스',
-    en: 'Daily Work and Service',
-    keywords: ['건강', '봉사', '루틴'],
-  },
-  10: {
-    ko: '커리어와 명성',
-    en: 'Career and Reputation',
-    keywords: ['직업', '성취', '공적 이미지'],
-  },
-};

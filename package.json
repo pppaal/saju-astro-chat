@@ -35,6 +35,7 @@
     "test:coverage": "vitest run --coverage",
     "test:a11y": "vitest run tests/a11y",
     "test:e2e": "vitest run tests/e2e",
+    "test:e2e:wait": "node scripts/wait-for-server.mjs",
     "test:integration": "vitest run tests/integration",
     "test:integration:setup": "node -e \"console.log('Run: .\\\\scripts\\\\setup-test-db.ps1 (Windows) or bash scripts/setup-test-db.sh (Linux/Mac)')\"",
     "test:tarot": "vitest run tests/lib/Tarot",

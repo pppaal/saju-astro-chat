@@ -1,6 +1,7 @@
 // src/components/astrology/constants.ts
 // Constants and labels for ResultDisplay component
 
+
 export const LABELS = {
   en: {
     title: 'Natal Chart Summary',

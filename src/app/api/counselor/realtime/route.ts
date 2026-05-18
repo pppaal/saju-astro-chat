@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
+import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
 import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
@@ -186,16 +187,32 @@ export async function POST(req: NextRequest) {
       const gender = body.gender === 'female' ? 'female' : 'male'
       const latitude = body.latitude ?? 37.5665
       const longitude = body.longitude ?? 126.978
-      const saju = buildSajuNormalizerInput({
-        birthDate,
-        birthTime,
-        gender,
-        timezone: tz,
-        queryDate,
-        longitude,
-      })
+      const sajuPromise = Promise.resolve(
+        buildSajuNormalizerInput({
+          birthDate,
+          birthTime,
+          gender,
+          timezone: tz,
+          queryDate,
+          longitude,
+        }),
+      )
       const [y, m, d] = birthDate.split('-').map(Number)
       const [hh, mm] = birthTime.split(':').map(Number)
+      const astroPromise = buildAstroNormalizerInput({
+        year: y,
+        month: m,
+        date: d,
+        hour: hh,
+        minute: mm,
+        latitude,
+        longitude,
+        timeZone: tz,
+        queryDate,
+        includeSolarReturn: true,
+        includeLunarReturn: true,
+      })
+      const [saju, _astro] = await Promise.all([sajuPromise, astroPromise])
       const birthTimeUnknown = hourUnknown
       const birthCityUnknown = cityUnknown
       // Compact table form — replaces the older pretty-JSON snapshot

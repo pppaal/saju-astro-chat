@@ -39,3 +39,4 @@ export function loadSharedBirthInfo(): BirthInfo | null {
     return null
   }
 }
+

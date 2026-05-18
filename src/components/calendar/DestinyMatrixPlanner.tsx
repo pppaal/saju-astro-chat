@@ -39,7 +39,6 @@ interface DestinyMatrixPlannerProps {
 
 type ViewMode = 'monthly' | 'daily'
 
-// --- Mock Data (used only when `data` is null) ---
 const MOCK_DOS = [
   '새로운 인연이나 모임에 참석하기',
   '밀린 업무나 서류 작업 마무리하기',
