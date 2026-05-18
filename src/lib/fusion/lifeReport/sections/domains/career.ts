@@ -1,0 +1,431 @@
+// src/lib/fusion/lifeReport/sections/domains/career.ts
+// Career / 직업·커리어 deterministic narrative builder.
+
+import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
+import {
+  categoryCount,
+  countSibsin,
+  currentDaeun,
+  findDaeunByCategory,
+  geokgukType,
+  isJonggeok,
+  jonggeokType,
+  samgiInfo,
+} from '../../signals/sajuSignals'
+import {
+  aspectBetween,
+  aspectsOf,
+  fixedStarOn,
+  getPlanet,
+  houseCusp,
+  partOfFortune,
+  planetsInHouse,
+  progressedSun,
+} from '../../signals/astroSignals'
+import {
+  aspectQuality,
+  houseLabel,
+  paragraph,
+  planetLabel,
+  signLabel,
+} from '../../templates/sentences'
+
+export function buildCareer(input: BuilderInput): DomainNarrative {
+  const { saju, astro, fusion } = input
+  const sajuUsed: string[] = []
+  const astroUsed: string[] = []
+  const fusionUsed: string[] = []
+
+  // ── Signals
+  const sib = countSibsin(saju)
+  const cat = categoryCount(sib)
+  sajuUsed.push('sibsin.count', 'sibsin.categoryCount')
+
+  const geokguk = geokgukType(saju)
+  if (geokguk) sajuUsed.push('geokguk')
+
+  const mc = astro.mc
+  if (mc) astroUsed.push('mc')
+  const sun = getPlanet(astro, 'Sun')
+  const mars = getPlanet(astro, 'Mars')
+  const saturn = getPlanet(astro, 'Saturn')
+  const mercury = getPlanet(astro, 'Mercury')
+  const pluto = getPlanet(astro, 'Pluto')
+  if (sun) astroUsed.push('planets.sun')
+  if (mars) astroUsed.push('planets.mars')
+  if (saturn) astroUsed.push('planets.saturn')
+  if (mercury) astroUsed.push('planets.mercury')
+  if (pluto) astroUsed.push('planets.pluto')
+
+  const tenthCusp = houseCusp(astro, 10)
+  if (tenthCusp) astroUsed.push('houses.10')
+  const sixthHouse = planetsInHouse(astro, 6)
+  if (sixthHouse.length > 0) astroUsed.push('houses.6')
+
+  const marsSaturn = mars && saturn ? aspectBetween(astro, 'Mars', 'Saturn') : undefined
+  const sunMc = sun && mc ? aspectBetween(astro, 'Sun', 'MC') : undefined
+
+  const pof = partOfFortune(astro)
+  const pofInTenth = pof?.house === 10
+  if (pof) astroUsed.push('partOfFortune')
+
+  const fxOnMc = mc ? fixedStarOn(astro, 'MC') : []
+  if (fxOnMc.length > 0) astroUsed.push('fixedStars(MC)')
+
+  const progSun = progressedSun(astro)
+  if (progSun) astroUsed.push('progressions.secondary.progressedSun')
+
+  // Daeun timing — career sibsin is 식상 (creative/output) or 관성 (rank/authority)
+  const officialDaeun = findDaeunByCategory(saju, '관성')
+  const outputDaeun = findDaeunByCategory(saju, '식상')
+  const wealthDaeun = findDaeunByCategory(saju, '재성')
+  const cur = currentDaeun(saju)
+  if (cur) sajuUsed.push('cycles.currentDaeun')
+  if (officialDaeun || outputDaeun || wealthDaeun) sajuUsed.push('cycles.daeunCycles')
+
+  // Fusion career confirms
+  const careerConfirms = fusion?.byDomain?.career?.confirms ?? []
+  const careerTone = fusion?.byDomain?.career?.tone
+  if (careerConfirms.length > 0) {
+    fusionUsed.push(...careerConfirms.slice(0, 3).map((m) => m.rule.id))
+  }
+
+  // Ultra advanced
+  const jong = isJonggeok(saju) ? jonggeokType(saju) : ''
+  if (jong) sajuUsed.push('ultraAdvanced.jonggeok')
+  const samgi = samgiInfo(saju)
+  if (samgi.hasSamgi) sajuUsed.push('ultraAdvanced.samgi')
+
+  const iljuName = saju.ultraAdvanced?.iljuDeep?.ilju
+  const iljuAptitudes = saju.ultraAdvanced?.iljuDeep?.careerAptitude ?? []
+  if (iljuAptitudes.length > 0) sajuUsed.push('ultraAdvanced.iljuDeep.careerAptitude')
+
+  // ── Paragraph 1: 기본 신호 (사주 + 점성 큰 그림)
+  const dominantCategory = pickDominantSibsinCategory(cat)
+  const p1ko = paragraph([
+    paragraphOpenerKo(dominantCategory, geokguk),
+    mc
+      ? `점성의 MC는 ${signLabel(mc.sign, 'ko')}에 있어, 당신이 사회에 보여주고 싶은 얼굴이 ${mcSignFlavorKo(mc.sign)}이에요.`
+      : '',
+    sun
+      ? `태양 ${signLabel(sun.sign, 'ko')}·${houseLabel(sun.house, 'ko')} 배치는 ${sunHouseFlavorKo(sun.house)}을 직업적 핵심 에너지로 보여줘요.`
+      : '',
+  ])
+  const p1en = paragraph([
+    paragraphOpenerEn(dominantCategory, geokguk),
+    mc
+      ? `Your MC sits in ${signLabel(mc.sign, 'en')}, so the face you bring to the world is ${mcSignFlavorEn(mc.sign)}.`
+      : '',
+    sun
+      ? `With the Sun in ${signLabel(sun.sign, 'en')} ${houseLabel(sun.house, 'en')}, your core professional energy is ${sunHouseFlavorEn(sun.house)}.`
+      : '',
+  ])
+
+  // ── Paragraph 2: 시기·흐름 (대운 + transits + SR)
+  const timingPieces: string[] = []
+  const timingPiecesEn: string[] = []
+  if (cur) {
+    timingPieces.push(
+      `지금 대운(${cur.age}세부터, ${cur.stem}${cur.branch})${cur.sibsin ? `에 ${cur.sibsin}의 기운이 흐르며` : '에서'} 직업 흐름의 결을 바꿔주고 있어요.`
+    )
+    timingPiecesEn.push(
+      `Your current daeun (from age ${cur.age}, ${cur.stem}${cur.branch})${cur.sibsin ? ` carries ${cur.sibsin} energy and` : ''} is reshaping your career grain.`
+    )
+  }
+  if (officialDaeun && (!cur || officialDaeun.age !== cur.age)) {
+    timingPieces.push(
+      `${officialDaeun.age}세 즈음의 관성 대운에서는 책임과 자리가 한 단계 올라가는 흐름이 있어요.`
+    )
+    timingPiecesEn.push(
+      `Around age ${officialDaeun.age}, an authority-cycle (관성 daeun) lifts your standing and responsibility.`
+    )
+  }
+  if (outputDaeun && (!cur || outputDaeun.age !== cur.age)) {
+    timingPieces.push(
+      `${outputDaeun.age}세 부근 식상 대운은 표현·창작·실행이 폭발하는 구간이에요.`
+    )
+    timingPiecesEn.push(
+      `Near age ${outputDaeun.age}, the 식상 daeun bursts open expression, creation and output.`
+    )
+  }
+  if (progSun) {
+    timingPieces.push(
+      `점성의 진행 태양이 ${signLabel(progSun.sign, 'ko')}${progSun.house ? `·${houseLabel(progSun.house, 'ko')}` : ''}로 옮겨간 단계라서 직업 정체성의 톤이 천천히 바뀌고 있어요.`
+    )
+    timingPiecesEn.push(
+      `Your progressed Sun has moved into ${signLabel(progSun.sign, 'en')}${progSun.house ? ` (${houseLabel(progSun.house, 'en')})` : ''}, slowly retuning your professional identity.`
+    )
+  }
+  const p2ko = paragraph(timingPieces.length ? timingPieces : [
+    '현 시점 대운과 점성 진행이 안정 구간이라, 큰 전환보다는 결을 다듬는 시기에요.'
+  ])
+  const p2en = paragraph(timingPiecesEn.length ? timingPiecesEn : [
+    'For now your daeun and progression sit in a steady stretch — a season for refining rather than overhauling.'
+  ])
+
+  // ── Paragraph 3: 심화 통찰 (고급 지표 자연스럽게)
+  const deepPieces: string[] = []
+  const deepPiecesEn: string[] = []
+  if (marsSaturn) {
+    deepPieces.push(
+      `왜냐하면 화성과 토성이 ${aspectQuality(marsSaturn.type, 'ko')} 있어서, 추진력(화성)과 인내(토성)가 같은 축에서 일하기 때문이에요.`
+    )
+    deepPiecesEn.push(
+      `Because Mars and Saturn ${aspectQuality(marsSaturn.type, 'en')} on the same axis, drive (Mars) and endurance (Saturn) cooperate as one engine.`
+    )
+  }
+  if (sunMc) {
+    deepPieces.push(
+      `태양과 MC가 ${aspectQuality(sunMc.type, 'ko')} 직업적 정체성과 공적 역할이 어긋나지 않게 흘러요.`
+    )
+    deepPiecesEn.push(
+      `Sun-MC ${aspectQuality(sunMc.type, 'en')}, keeping inner identity and public role aligned.`
+    )
+  }
+  if (pofInTenth) {
+    deepPieces.push(
+      `Part of Fortune이 10집에 자리해서, 직업 자체가 행운의 출구가 되는 드문 배치에요.`
+    )
+    deepPiecesEn.push(
+      `Part of Fortune in the 10th — a rare placement where the career itself becomes the door to luck.`
+    )
+  }
+  if (fxOnMc.length > 0) {
+    deepPieces.push(
+      `또 MC에 ${fxOnMc.join(', ')} 같은 항성이 닿아 있어서, 사회적 인상에 특별한 결이 새겨져 있어요.`
+    )
+    deepPiecesEn.push(
+      `Fixed star(s) ${fxOnMc.join(', ')} contact your MC, etching a distinct grain into how the world reads you.`
+    )
+  }
+  if (jong) {
+    deepPieces.push(
+      `사주는 ${jong}이라 한 방향으로 강하게 흐르는 구조라, 평범한 직업보다 한 분야에 깊이 들어가는 길이 맞아요.`
+    )
+    deepPiecesEn.push(
+      `Saju runs as ${jong} — a strong one-direction current that favors specialization over breadth.`
+    )
+  } else if (geokguk) {
+    deepPieces.push(`사주 격국은 ${geokguk}으로, 직업 색깔이 이미 명확하게 잡혀 있어요.`)
+    deepPiecesEn.push(`Your geokguk is ${geokguk}, so the basic shape of your career is already pre-tuned.`)
+  }
+  if (samgi.hasSamgi) {
+    deepPieces.push(
+      `${samgi.type ?? '삼기'}가 들어있어 큰 무대에서 인정받는 잠재력이 깔려 있어요.`
+    )
+    deepPiecesEn.push(
+      `A ${samgi.type ?? 'samgi'} pattern is present — a latent capacity for recognition on a larger stage.`
+    )
+  }
+  if (iljuAptitudes.length > 0 && iljuName) {
+    deepPieces.push(
+      `일주 ${iljuName}의 본래 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽에 잘 맞아요.`
+    )
+    deepPiecesEn.push(
+      `Your ilju (${iljuName}) naturally fits ${iljuAptitudes.slice(0, 3).join(' / ')}.`
+    )
+  }
+  // Fusion career confirms (top 2)
+  if (careerConfirms.length > 0) {
+    const top = careerConfirms[0]
+    deepPieces.push(`그리고 ${top.rule.narrative.confirm}`)
+    deepPiecesEn.push(`Additionally, ${top.rule.meaning}.`)
+  }
+  const p3ko = paragraph(deepPieces.length ? deepPieces : [
+    '왜냐하면 현재 신호들이 평탄하게 정렬되어 있어 한쪽으로 치우치는 강한 신호는 잠시 잠복기에요.'
+  ])
+  const p3en = paragraph(deepPiecesEn.length ? deepPiecesEn : [
+    'Because current signals sit in a balanced array, no single direction dominates right now.'
+  ])
+
+  // ── Paragraph 4: 실행 가이드
+  const guideKo = buildCareerGuideKo({
+    dominantCategory,
+    careerTone,
+    wealthAge: wealthDaeun?.age,
+    officialAge: officialDaeun?.age,
+  })
+  const guideEn = buildCareerGuideEn({
+    dominantCategory,
+    careerTone,
+    wealthAge: wealthDaeun?.age,
+    officialAge: officialDaeun?.age,
+  })
+
+  const paragraphs: Paragraph[] = [
+    { ko: p1ko, en: p1en },
+    { ko: p2ko, en: p2en },
+    { ko: p3ko, en: p3en },
+    { ko: guideKo, en: guideEn },
+  ]
+
+  return {
+    id: 'career',
+    title: { ko: '직업·커리어', en: 'Career & Vocation' },
+    paragraphs,
+    signals: { saju: sajuUsed, astro: astroUsed, fusion: fusionUsed },
+  }
+}
+
+// ─── helpers (deterministic) ────────────────────────────────
+function pickDominantSibsinCategory(cat: Record<string, number>): string {
+  let best = ''
+  let max = -1
+  for (const [k, v] of Object.entries(cat)) {
+    if (v > max) {
+      max = v
+      best = k
+    }
+  }
+  return best
+}
+
+function paragraphOpenerKo(cat: string, geokguk: string): string {
+  if (cat === '식상')
+    return '당신은 표현하고 만들어내는 사람이에요. 사주는 식상이 흐름의 중심에 있어, 손으로 무언가를 풀어낼 때 가장 본인다워져요.'
+  if (cat === '관성')
+    return '당신은 자리와 책임으로 자기를 증명하는 사람이에요. 사주의 관성이 직업적 무게추로 작동해요.'
+  if (cat === '재성')
+    return '당신은 실리와 결과로 움직이는 사람이에요. 사주의 재성이 직업적 목적을 자원·돈으로 끌어와요.'
+  if (cat === '인성')
+    return '당신은 배우고 정리해서 흐름을 만드는 사람이에요. 사주의 인성이 직업적 토대로 작동해요.'
+  if (cat === '비겁')
+    return '당신은 동료·동등한 관계 안에서 가장 잘 일하는 사람이에요. 사주의 비겁이 협업과 자기 주도성을 키워요.'
+  return geokguk
+    ? `당신의 직업 색깔은 ${geokguk} 격에서 출발해요.`
+    : '당신의 직업적 결은 사주 안에서 차분히 잡혀 있어요.'
+}
+
+function paragraphOpenerEn(cat: string, geokguk: string): string {
+  if (cat === '식상')
+    return 'You are a maker. 식상 sits at the heart of your saju, so you feel most yourself when you channel something out through your hands.'
+  if (cat === '관성')
+    return 'You prove yourself through role and responsibility. 관성 acts as the gravitational axis of your professional life.'
+  if (cat === '재성')
+    return 'You move by outcome and resource. 재성 pulls your professional purpose toward tangible returns.'
+  if (cat === '인성')
+    return 'You build flow by learning and organizing. 인성 forms the foundation of how you work.'
+  if (cat === '비겁')
+    return 'You thrive among peers and equals. 비겁 strengthens collaboration and self-direction.'
+  return geokguk
+    ? `Your career grain starts from the ${geokguk} pattern.`
+    : 'Your professional grain is quietly settled inside the saju.'
+}
+
+const MC_SIGN_FLAVOR_KO: Record<string, string> = {
+  Aries: '돌파와 개척의 인상',
+  Taurus: '안정과 신뢰의 인상',
+  Gemini: '명민함과 다재함의 인상',
+  Cancer: '돌봄과 가까움의 인상',
+  Leo: '존재감과 빛의 인상',
+  Virgo: '정확함과 헌신의 인상',
+  Libra: '균형과 조정자의 인상',
+  Scorpio: '깊이와 변혁의 인상',
+  Sagittarius: '시야와 가르침의 인상',
+  Capricorn: '구조와 권위의 인상',
+  Aquarius: '독창과 공동체의 인상',
+  Pisces: '공감과 예술의 인상',
+}
+const MC_SIGN_FLAVOR_EN: Record<string, string> = {
+  Aries: 'pioneering and direct',
+  Taurus: 'steady and trustworthy',
+  Gemini: 'quick-witted and versatile',
+  Cancer: 'caring and intimate',
+  Leo: 'luminous and present',
+  Virgo: 'precise and devoted',
+  Libra: 'balancing and diplomatic',
+  Scorpio: 'deep and transformative',
+  Sagittarius: 'far-sighted and teaching',
+  Capricorn: 'structural and authoritative',
+  Aquarius: 'inventive and communal',
+  Pisces: 'empathic and artistic',
+}
+function mcSignFlavorKo(sign: string): string {
+  return MC_SIGN_FLAVOR_KO[sign] ?? '독특한 결'
+}
+function mcSignFlavorEn(sign: string): string {
+  return MC_SIGN_FLAVOR_EN[sign] ?? 'a singular grain'
+}
+
+const SUN_HOUSE_FLAVOR_KO: Record<number, string> = {
+  1: '자기 자신을 드러내는 일',
+  2: '가치와 자원을 다루는 일',
+  3: '말과 학습으로 잇는 일',
+  4: '뿌리와 가정에 가까운 일',
+  5: '창작·놀이·자녀에 가까운 일',
+  6: '일터와 디테일을 다루는 일',
+  7: '파트너십과 거래의 일',
+  8: '깊이·재생·공동 자원의 일',
+  9: '시야·여행·가르침의 일',
+  10: '공적 자리에서 빛나는 일',
+  11: '동료·네트워크와 비전의 일',
+  12: '은둔·치유·내적 작업',
+}
+const SUN_HOUSE_FLAVOR_EN: Record<number, string> = {
+  1: 'work that puts you forward',
+  2: 'work with value and resources',
+  3: 'work that connects via words',
+  4: 'work close to home and roots',
+  5: 'creation, play and children',
+  6: 'craft and daily detail',
+  7: 'partnership and dealing',
+  8: 'depth, regeneration, shared resources',
+  9: 'vision, travel, teaching',
+  10: 'shining in a public seat',
+  11: 'community, networks, vision',
+  12: 'solitude, healing, inner work',
+}
+function sunHouseFlavorKo(h: number): string {
+  return SUN_HOUSE_FLAVOR_KO[h] ?? '독자적 직업의 결'
+}
+function sunHouseFlavorEn(h: number): string {
+  return SUN_HOUSE_FLAVOR_EN[h] ?? 'a singular professional grain'
+}
+
+function buildCareerGuideKo(args: {
+  dominantCategory: string
+  careerTone?: string
+  wealthAge?: number
+  officialAge?: number
+}): string {
+  const pieces: string[] = ['일상 가이드 한 줄:']
+  if (args.dominantCategory === '식상')
+    pieces.push('만든 결과를 외부에 꾸준히 내보내세요. 잠겨 있는 작품은 운을 못 끌어와요.')
+  else if (args.dominantCategory === '관성')
+    pieces.push('직책·자리를 회피하지 말고 한 단계씩 받아들이세요. 운이 자리로 들어와요.')
+  else if (args.dominantCategory === '재성')
+    pieces.push('숫자와 결과로 끝맺는 습관을 유지하세요. 자원으로 결산해야 운이 풀려요.')
+  else if (args.dominantCategory === '인성')
+    pieces.push('계속 배우고 정리하세요. 학습이 곧 직업 자본이에요.')
+  else if (args.dominantCategory === '비겁')
+    pieces.push('동료·파트너와의 연결을 끊지 마세요. 혼자 가지 않을 때 운이 더 커져요.')
+  if (args.officialAge)
+    pieces.push(`${args.officialAge}세 직전부터 책임을 살짝 키워두면 운이 자연스럽게 따라옵니다.`)
+  if (args.wealthAge && (!args.officialAge || args.wealthAge !== args.officialAge))
+    pieces.push(`${args.wealthAge}세 부근 재성 흐름은 부수입·확장의 창입니다.`)
+  return paragraph(pieces)
+}
+
+function buildCareerGuideEn(args: {
+  dominantCategory: string
+  careerTone?: string
+  wealthAge?: number
+  officialAge?: number
+}): string {
+  const pieces: string[] = ['Daily handle:']
+  if (args.dominantCategory === '식상')
+    pieces.push('Keep publishing what you make. Hidden output cannot attract luck.')
+  else if (args.dominantCategory === '관성')
+    pieces.push('Do not duck titles and seats — accept them one step at a time. Luck arrives through the seat.')
+  else if (args.dominantCategory === '재성')
+    pieces.push('Close every effort with numbers. Resource-completion unlocks the flow.')
+  else if (args.dominantCategory === '인성')
+    pieces.push('Keep learning and organizing. Study is your professional capital.')
+  else if (args.dominantCategory === '비겁')
+    pieces.push('Do not sever your peer links. Luck scales when you do not walk alone.')
+  if (args.officialAge)
+    pieces.push(`Slightly enlarge your responsibilities just before age ${args.officialAge} — the cycle catches up gracefully.`)
+  if (args.wealthAge && (!args.officialAge || args.wealthAge !== args.officialAge))
+    pieces.push(`Around age ${args.wealthAge}, the wealth cycle opens a side-income / expansion window.`)
+  return paragraph(pieces)
+}
