@@ -5,7 +5,7 @@
 // Absorbs:
 //   • saju/extendedAnalysis.ts → 7 decisive timings (marriage/job/business/
 //     move/health_warning/wealth_peak/crisis)
-//   • astrology/lifecycleTiming.ts → Saturn/Jupiter/Uranus/Chiron returns
+//   • fusion/lifeReport/signals/astroLifecycle.ts → Saturn/Jupiter/Uranus/Chiron returns
 //   • saju/orthodoxInterpretation.ts → pillar position rule (for ages 30/40/50)
 
 import type {

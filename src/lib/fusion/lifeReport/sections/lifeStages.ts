@@ -4,7 +4,7 @@
 // Absorbs:
 //   • saju/extendedAnalysis.ts → 5-stage life narrative (compressed 5→4)
 //   • saju/orthodoxInterpretation.ts → pillar position rule (year=초년 ...)
-//   • astrology/lifecycleTiming.ts → Saturn/Jupiter/Uranus/Chiron returns
+//   • fusion/lifeReport/signals/astroLifecycle.ts → Saturn/Jupiter/Uranus/Chiron returns
 //   • saju/ultraAdvanced.iljuDeep.twelveStage → 12운성 flavor
 //
 // Each stage gets 3–4 paragraphs:

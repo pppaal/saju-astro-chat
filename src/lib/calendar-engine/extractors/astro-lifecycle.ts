@@ -1,12 +1,14 @@
-import { buildLifecycleTiming } from '@/lib/astrology/foundation/lifecycleTiming'
+import { buildLifecycleTiming } from '@/lib/fusion/lifeReport/signals/astroLifecycle'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 
 /**
  * 라이프사이클 마일스톤 추출기.
- * 11개 외행성 마일스톤 (Saturn Return, Uranus Opposition 등).
+ * 12개 외행성 마일스톤 (Saturn Return, Uranus Opposition, Chiron Return 등).
  *
  * 활성 윈도우: ageStart~ageEnd (보통 2~4년).
  * polarity: 마일스톤은 본질적으로 변환 압력 → 약한 흉/중립으로 표시. 사용자 인식상 "쉽지 않은 시기".
+ *
+ * 데이터 출처: fusion/lifeReport/signals/astroLifecycle.ts (단일 진실 출처).
  */
 
 const EVENT_POLARITY: Record<string, Polarity> = {
@@ -20,6 +22,7 @@ const EVENT_POLARITY: Record<string, Polarity> = {
   pluto_square_pluto: -2,
   uranus_opposition:  -1,
   neptune_square:     -1,
+  chiron_return:       0,
   uranus_return:       0,
 }
 
@@ -34,6 +37,7 @@ const EVENT_PLANET: Record<string, string> = {
   pluto_square_pluto: 'Pluto',
   uranus_opposition:  'Uranus',
   neptune_square:     'Neptune',
+  chiron_return:      'Chiron',
   uranus_return:      'Uranus',
 }
 

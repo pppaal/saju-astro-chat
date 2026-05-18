@@ -1,9 +1,14 @@
 // src/lib/fusion/lifeReport/signals/astroLifecycle.ts
-// Ported (and trimmed) from /lib/astrology/foundation/lifecycleTiming.ts.
-// Pure age-window math for outer-planet returns and oppositions. No LLM.
+// Single source of truth for outer-planet life-cycle timing.
 //
-// Mirrors saju's daewoon timing in age form. The legacy module exposes a
-// far larger surface; here we only keep what life-report sections need.
+// Pure age-window math for outer-planet returns and oppositions. No LLM.
+// Mirrors saju's daewoon timing in age form. All deterministic — the
+// user's birth year is enough to surface "Saturn return at age 29".
+//
+// Consumers:
+//   • fusion/lifeReport/sections/decisiveTiming.ts  — lifecycleEvents()
+//   • fusion/lifeReport/sections/lifeStages.ts      — eventsInAgeRange()
+//   • calendar-engine/extractors/astro-lifecycle.ts — buildLifecycleTiming()
 
 export type AstroLifecycleEventKind =
   | 'jupiter_return_1' // 12yr
@@ -27,6 +32,8 @@ export interface AstroLifecycleEvent {
   labelEn: string
   meaningKo: string
   meaningEn: string
+  adviceKo: string
+  adviceEn: string
 }
 
 const TABLE: AstroLifecycleEvent[] = [
@@ -38,6 +45,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'First Jupiter return',
     meaningKo: '12년 만의 첫 회귀로 세계관이 한 번 크게 확장돼요.',
     meaningEn: 'A first 12-year return — your worldview expands one tier.',
+    adviceKo: '새로운 분야에 호기심을 활짝 열어두세요.',
+    adviceEn: 'Keep your curiosity wide open to new fields.',
   },
   {
     kind: 'jupiter_return_2',
@@ -47,6 +56,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Second Jupiter return',
     meaningKo: '진로의 큰 그림을 처음으로 자기 손에 쥐는 시기예요.',
     meaningEn: 'You first grip the larger picture of your career path.',
+    adviceKo: '단기 이익보다 장기 비전을 먼저 챙겨주세요.',
+    adviceEn: 'Put long-term vision before short-term gain.',
   },
   {
     kind: 'progressed_lunar_1',
@@ -56,6 +67,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Progressed lunar return',
     meaningKo: '감정과 관계의 한 사이클이 졸업되는 결이에요.',
     meaningEn: 'One full emotional / relational cycle graduates.',
+    adviceKo: '익숙해진 관계 패턴을 한 번 점검하고 정리해 보세요.',
+    adviceEn: 'Audit familiar relational patterns and let what is done go.',
   },
   {
     kind: 'saturn_return_1',
@@ -65,6 +78,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'First Saturn return',
     meaningKo: '책임과 전문성, 기반이 자리 잡는 시기예요.',
     meaningEn: 'The rite of adulthood — responsibility, craft and foundation lock in.',
+    adviceKo: '회피하지 말고 책임을 한 단계씩 받아들이세요. 30세 전후의 선택이 평생의 토대가 됩니다.',
+    adviceEn: 'Take responsibility step by step rather than avoiding it — choices around 30 become a lifelong foundation.',
   },
   {
     kind: 'jupiter_return_3',
@@ -74,6 +89,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Third Jupiter return',
     meaningKo: '인생 중반에 들어서기 직전, 마지막 큰 확장의 기회예요.',
     meaningEn: 'The last expansion window before midlife.',
+    adviceKo: '아직 시도하지 못한 큰 그림을 행동으로 옮기기 좋은 시기예요.',
+    adviceEn: 'A good window to put your untried big plan into action.',
   },
   {
     kind: 'pluto_square_pluto',
@@ -83,6 +100,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Pluto square Pluto',
     meaningKo: '정체성과 내면 깊은 곳이 강하게 재구성되는 시기예요.',
     meaningEn: 'Identity and the deep self are forcibly reorganised.',
+    adviceKo: '저항하기보다 흘려보내세요. 통제 욕구를 내려놓을수록 결과가 커집니다.',
+    adviceEn: 'Let it move through you rather than resisting — the more you release control, the larger the result.',
   },
   {
     kind: 'uranus_opposition',
@@ -92,6 +111,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Uranus opposition',
     meaningKo: '진짜 자기와 맞지 않는 길이 갑자기 깨지는 중년 각성기예요.',
     meaningEn: 'The midlife awakening — what is not truly you breaks open.',
+    adviceKo: '안정을 핑계로 미루지 말고 진짜 결정을 내릴 때예요.',
+    adviceEn: 'Stop hiding behind stability — this is the time for a real decision.',
   },
   {
     kind: 'neptune_square',
@@ -101,6 +122,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Neptune square',
     meaningKo: '의미와 환상이 시험대에 오르는 시기예요.',
     meaningEn: 'Meaning and illusion are put to the test.',
+    adviceKo: '환상은 정리하고, 진짜로 헌신할 가치 하나를 골라 보세요.',
+    adviceEn: 'Clear out illusions and pick a single value worth real devotion.',
   },
   {
     kind: 'chiron_return',
@@ -110,6 +133,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Chiron return',
     meaningKo: '평생의 상처를 본격적으로 치유로 바꾸는 시기예요.',
     meaningEn: 'The lifelong wound now converts itself into healing capacity.',
+    adviceKo: '오래된 상처를 외면하지 말고, 그것을 누군가에게 도움이 되는 형태로 바꿔 보세요.',
+    adviceEn: 'Stop looking away from the old wound — translate it into something that helps others.',
   },
   {
     kind: 'saturn_return_2',
@@ -119,6 +144,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Second Saturn return',
     meaningKo: '사회적 자리의 마지막 큰 전환, 진짜 남길 것을 정해주는 시기예요.',
     meaningEn: 'The last great social pivot — what you choose to leave behind.',
+    adviceKo: '진짜 의미 있는 일에만 시간을 쓰세요.',
+    adviceEn: 'Spend your time only on what truly matters.',
   },
   {
     kind: 'jupiter_return_5',
@@ -128,6 +155,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Fifth Jupiter return',
     meaningKo: '환갑의 결, 후반 인생의 첫 사이클이 열리는 시기예요.',
     meaningEn: 'A 환갑-style turn — the second half of life opens its first cycle.',
+    adviceKo: '지금 새로 시작해도 정말 괜찮습니다.',
+    adviceEn: 'Starting something new right now is genuinely fine.',
   },
   {
     kind: 'uranus_return',
@@ -137,6 +166,8 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'Uranus return',
     meaningKo: '평생의 자유와 독창성이 한 바퀴를 마감하는 결산기예요.',
     meaningEn: 'A lifetime of freedom and originality finishes its full circle.',
+    adviceKo: '마지막까지 자기다움을 잃지 마세요.',
+    adviceEn: "Hold on to your own voice all the way to the end.",
   },
 ]
 
@@ -159,4 +190,65 @@ export function birthYearFromBirthDate(birthDate: string): number | undefined {
   if (!m) return undefined
   const y = Number(m[1])
   return Number.isFinite(y) ? y : undefined
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Legacy-compatible wrapper for calendar-engine extractor.
+// Mirrors the old astrology/foundation/lifecycleTiming.ts surface, but now
+// driven by the LifeReport TABLE above (single source of truth).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface LifecycleEntry {
+  /** Old shape called this `event` (= LifeReport `kind`). */
+  event: AstroLifecycleEventKind
+  /** Locale-resolved label (defaults to Korean). */
+  label: string
+  /** Pre-formatted age window, e.g. "29~30세". */
+  ageRange: string
+  /** Birth year + ageStart. */
+  startYear: number
+  isPast: boolean
+  isCurrent: boolean
+  isUpcoming: boolean
+  /** Locale-resolved meaning. */
+  meaning: string
+  /** Locale-resolved advice. */
+  advice: string
+}
+
+export interface LifecycleTimingResult {
+  events: LifecycleEntry[]
+}
+
+/**
+ * Build life-cycle entries for a birth year, classifying each as
+ * past / current / upcoming relative to the current UTC year.
+ *
+ * @param birthYear Gregorian birth year (e.g. 1990).
+ * @param endYear   Inclusive upper bound — events whose startYear is past
+ *                  this value will not be flagged as upcoming.
+ * @param isKo      When true (default) use Korean labels; otherwise English.
+ */
+export function buildLifecycleTiming(
+  birthYear: number,
+  endYear: number,
+  isKo: boolean = true,
+): LifecycleTimingResult {
+  const currentYear = new Date().getUTCFullYear()
+  const events: LifecycleEntry[] = TABLE.map((evt) => {
+    const startYear = birthYear + evt.ageStart
+    const endYearOfEvent = birthYear + evt.ageEnd
+    return {
+      event: evt.kind,
+      label: isKo ? evt.labelKo : evt.labelEn,
+      ageRange: `${evt.ageStart}~${evt.ageEnd}세`,
+      startYear,
+      isPast: currentYear > endYearOfEvent,
+      isCurrent: currentYear >= startYear && currentYear <= endYearOfEvent,
+      isUpcoming: currentYear < startYear && startYear <= endYear,
+      meaning: isKo ? evt.meaningKo : evt.meaningEn,
+      advice: isKo ? evt.adviceKo : evt.adviceEn,
+    }
+  })
+  return { events }
 }
