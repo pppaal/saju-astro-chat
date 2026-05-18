@@ -147,13 +147,17 @@ export function buildInterpretation(args: {
     .map((s) => `**[${s.title}]**\n${s.text}`)
     .join('\n\n')
 
-  // 도메인별 themeScores — 매칭된 룰들의 polarity 평균을 0-100 점수로.
-  // cell.themeScores는 모든 신호 평균(+공명 보너스)이라 narrative와 어긋날
-  // 수 있음. 여기 점수는 narrative 결정한 룰들의 polarity 그대로 반영해
-  // 점수↔해석 1:1 동기화.
+  // 도메인별 themeScores — 룰 의도 + 신호 평균을 blend.
   //
-  // narrative와 score를 항상 같이 노출하는 UI(캘린더 도메인 카드)에서
-  // 이 점수를 우선 사용하면 "62점인데 부정 narrative" 같은 mismatch 해소.
+  // 룰 의도 단독으로 가면 1개 룰만 매칭됐을 때 점수 극단으로 (20 or 80)
+  // 떨어져서 사용자가 "왤케 낮아" 헷갈림. 신호 평균(cell.themeScores)이
+  // 전체 흐름을 반영하고, 룰 의도가 그 도메인 narrative 톤을 반영함.
+  // 60:40 blend가 narrative 톤 우세 + 전체 흐름도 함께 표현.
+  //
+  // 결과 분포 (사용자 audit 사례):
+  //   love: 룰 의도 20 + 신호 평균 61 → blend 36 (주의 narrative와 정합)
+  //   career: 룰 의도 60 + 신호 평균 57 → blend 59 (복합과 정합)
+  //   growth: 룰 의도 50 + 신호 평균 59 → blend 54 (중립과 정합)
   const DOMAIN_TO_THEME: Record<string, keyof NonNullable<Interpretation['themeScores']>> = {
     money: 'money',
     work: 'career',
@@ -161,22 +165,22 @@ export function buildInterpretation(args: {
     body: 'health',
     growth: 'growth',
   }
+  const cellThemeScores = cells[0]?.themeScores ?? {}
   const themeScores: NonNullable<Interpretation['themeScores']> = {}
   for (const [domain, list] of domainPicks) {
     const themeKey = DOMAIN_TO_THEME[domain]
     if (!themeKey) continue
-    // 모든 룰 polarity 포함 — 중립(0)은 50으로 끌어당기는 anchor 역할.
-    // 우호 룰만 있으면 +30 (80점), 주의 룰만 있으면 -30 (20점), 섞이면
-    // 양쪽 균형 → 50 근처.
-    const polarities = list.map((m) => m.polarity)
-    if (polarities.length === 0) {
-      themeScores[themeKey] = 50
-      continue
-    }
-    const avg = polarities.reduce((s, p) => s + p, 0) / polarities.length
-    // ruleIntent는 -1~+1 범위라 ×30으로 매핑하면 20~80 분포로 자연.
-    // 모든 도메인 룰이 같은 의도면 ±30 점수, 섞이면 가까운 50.
-    themeScores[themeKey] = Math.max(0, Math.min(100, Math.round(50 + avg * 30)))
+    // 룰 의도 평균 → 0-100
+    const intents = list.map((m) => m.polarity)
+    const intentAvg = intents.length > 0
+      ? intents.reduce((s, p) => s + p, 0) / intents.length
+      : 0
+    const ruleScore = Math.max(0, Math.min(100, Math.round(50 + intentAvg * 30)))
+    // 신호 기반 점수 (cell.themeScores에서)
+    const signalScore = cellThemeScores[themeKey] ?? 50
+    // 60:40 blend — narrative 톤 우세 + 전체 흐름 반영
+    const blended = Math.round(ruleScore * 0.6 + signalScore * 0.4)
+    themeScores[themeKey] = Math.max(0, Math.min(100, blended))
   }
 
   return {
