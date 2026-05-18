@@ -2,6 +2,7 @@ import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS, TIME_STEM_LOOKUP } from '@/lib
 import { computeDayStem } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
+import { HOUR_BRANCH_NARRATIVE, pickHourNarrative } from '../data/hourBranchNarrative'
 
 /**
  * 사주 시주(時柱) 추출기 — 24시간 변별력 확보.
@@ -81,6 +82,15 @@ const sajuHourExtractor: SignalExtractor = {
         const peakHour = branchIdx === 0 ? 0 : branchIdx * 2
         const peakIso = `${dayIso}T${String(peakHour).padStart(2, '0')}:00:00.000Z`
 
+        // 12 시진 narrative DB에서 baseline + polarity 매칭 텍스트 가져오기.
+        // polarity 부호에 따라 baseline/positive/caution 분기.
+        const branchKo = branch.name as keyof typeof HOUR_BRANCH_NARRATIVE
+        const branchNarrative = HOUR_BRANCH_NARRATIVE[branchKo]
+        const headline = branchNarrative
+          ? pickHourNarrative(branchKo, polarity, 'ko')
+          : undefined
+        const windowLabel = branchNarrative?.windowKo
+
         signals.push({
           id: `saju.hour.${dayIso}.${branch.name}.${stem.name}`,
           source: 'saju',
@@ -103,6 +113,9 @@ const sajuHourExtractor: SignalExtractor = {
               endHour,
               natalDayMaster: dayMaster.name,
               yongsin: yongsin.primary,
+              // 12 시진 narrative DB에서 polarity 매칭 텍스트 + 윈도우 라벨
+              windowLabel,
+              narrative: headline,
             },
           },
         })

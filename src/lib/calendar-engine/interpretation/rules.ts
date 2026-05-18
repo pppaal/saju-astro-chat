@@ -1827,6 +1827,279 @@ export const RULES: InterpretationRule[] = [
       `안 쓰던 SNS·블로그·포트폴리오 다시 손보면 운이 와요.`,
     themes: ['growth', 'career'],
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // 보강: 歲運 (yearly) 추가 — 12지지·신살·신강신약 케이스 확충
+  // 사용자가 "올해 운세" 가장 많이 묻기에 24개 정도 풍부하게.
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'seun-bijeon-geopjae',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 73,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      sibsin: ['비견', '겁재'],
+    },
+    template:
+      `올해는 **같이 가는 사람** 운 — 동료·동업·경쟁자가 자주 부딪히는 해. ` +
+      `협력은 잘 풀리지만 돈·역할 분배는 처음부터 명확히 합의해두세요.`,
+    themes: ['growth', 'money'],
+  },
+  {
+    id: 'seun-inseong-strong',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 71,
+    conditions: {
+      natalStrength: ['strong'],
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      sibsin: ['정인', '편인'],
+    },
+    template:
+      `신강 + 인성 세운 — 머리·자료는 가득 차는데 행동으로 옮기는 게 약한 해. ` +
+      `짧은 실행 단위로 끊고, 시작 자체를 가볍게.`,
+    themes: ['career', 'growth'],
+  },
+  {
+    id: 'seun-inseong-weak',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 76,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      sibsin: ['정인', '편인'],
+    },
+    template:
+      `신약 + 인성 세운 — 받쳐주는 큰 힘이 들어오는 해. 학습·자격증·전문성 ` +
+      `다지기에 가장 좋아요. 멘토·선배 조언을 적극 받으세요.`,
+    themes: ['career', 'love'],
+  },
+  {
+    id: 'seun-jaeseong-weak',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 74,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      sibsin: ['정재', '편재'],
+    },
+    template:
+      `신약 + 재성 세운 — 돈은 보이는데 챙기기 힘든 해. 큰 투자보다 ` +
+      `현금흐름 안정과 건강 관리를 우선하세요. 무리하면 손실 위험.`,
+    themes: ['money', 'health'],
+  },
+  {
+    id: 'seun-jaeseong-strong',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 78,
+    conditions: {
+      natalStrength: ['strong'],
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      sibsin: ['정재', '편재'],
+    },
+    template:
+      `신강 + 재성 세운 — 실행력과 돈 흐름이 맞물려 가는 해. 작은 사업· ` +
+      `투자·자산 정리 같은 큰 결정에 가장 좋은 시기.`,
+    themes: ['money', 'career'],
+  },
+  {
+    id: 'seun-shinsal-samhap',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 77,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['삼합', '육합', '천을귀인', '천을'],
+    },
+    template:
+      `삼합·육합·천을귀인 활성 세운 — 1년에 몇 번 안 오는 우호적 해. ` +
+      `중요한 시작(계약·결혼·이직·창업)을 잡아두면 결과 좋아요.`,
+    themes: ['career', 'love', 'money'],
+  },
+  {
+    id: 'seun-shinsal-yangin',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 69,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['양인', '양인살', '괴강', '괴강살'],
+    },
+    template:
+      `양인·괴강 활성 세운 — 추진력은 강한데 충돌도 늘어나는 해. ` +
+      `결단은 빠르되 사람 다루는 부분은 한 호흡 천천히.`,
+    themes: ['career', 'health'],
+  },
+  {
+    id: 'seun-shinsal-yeokma',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 68,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['역마', '역마살', '지살'],
+    },
+    template:
+      `역마·지살 활성 세운 — 이동·이사·해외·환경 변화가 큰 해. ` +
+      `자리 잡으려 애쓰지 말고 흐름을 타고 움직이는 편이 맞아요.`,
+    themes: ['growth', 'career'],
+  },
+  {
+    id: 'seun-shinsal-dohwa',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 67,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['도화', '도화살', '홍염', '홍염살'],
+    },
+    template:
+      `도화·홍염 활성 세운 — 매력·인기·인연 흐름이 강한 해. 연애·인지도· ` +
+      `노출이 잘 풀리지만 가벼운 인연도 늘어나니 선택은 신중하게.`,
+    themes: ['love', 'growth'],
+  },
+  {
+    id: 'seun-shinsal-baekho',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 66,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['백호', '백호살', '현침', '현침살'],
+    },
+    template:
+      `백호·현침 활성 세운 — 갑작스러운 변화·사고·건강 신호 주의해야 하는 해. ` +
+      `안전·검진·휴식 우선순위 올리고, 위험한 활동은 미루세요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'seun-shinsal-mangsin',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 65,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['망신', '망신살', '재살'],
+    },
+    template:
+      `망신·재살 세운 — 평판·법·계약 분쟁이 생기기 쉬운 해. SNS· ` +
+      `구두 약속·서류 한 줄도 꼼꼼히. 충동적 발언이 가장 큰 리스크.`,
+    themes: ['career'],
+  },
+  {
+    id: 'seun-shinsal-cheondeok',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 79,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['천덕', '천덕귀인', '월덕', '월덕귀인'],
+    },
+    template:
+      `천덕·월덕 활성 세운 — 위기를 누군가가 막아주거나 우호적 해결이 나오는 해. ` +
+      `평소 어려웠던 협상·치료·관계 회복 시도하기 좋아요.`,
+    themes: ['health', 'love', 'career'],
+  },
+  {
+    id: 'seun-shinsal-munchang',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 68,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['문창', '문창귀인', '학당', '학당귀인'],
+    },
+    template:
+      `문창·학당 활성 세운 — 학업·시험·자격증·연구 흐름이 가장 잘 풀리는 해. ` +
+      `오래 미뤘던 공부·자격증 도전에 가장 좋은 시기.`,
+    themes: ['career', 'growth'],
+  },
+  {
+    id: 'seun-shinsal-cheonui',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 67,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['천의성', '활인성'],
+    },
+    template:
+      `천의·활인 활성 세운 — 치유·돌봄·의료·상담 분야가 풀리는 해. ` +
+      `미뤘던 치료·심리상담·검진을 시작하면 효과 좋고, 남을 돕는 일도 운이 와요.`,
+    themes: ['health', 'growth'],
+  },
+  {
+    id: 'seun-element-conflict',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 64,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      signalKinds: ['element-clash', 'hyeong-chung'],
+      maxPolarity: -1,
+    },
+    template:
+      `오행 충돌·형충 세운 — 본명과 부딪히는 결의 해. 큰 변동·이별· ` +
+      `정리가 자연스럽게 나오는 시기예요. 거스르기보다 흐름을 받아들이세요.`,
+    themes: ['growth', 'health'],
+  },
+  {
+    id: 'seun-gwansal-strong',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 76,
+    conditions: {
+      natalStrength: ['strong'],
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      sibsin: ['정관', '편관'],
+    },
+    template:
+      `신강 + 관성 세운 — 책임·자리·직위가 들어오는 해. 평소 쌓아둔 능력이 ` +
+      `결과로 나오기 좋고, 승진·이직·창업도 잘 자리잡아요.`,
+    themes: ['career', 'money'],
+  },
+  {
+    id: 'seun-noble-protection',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 80,
+    conditions: {
+      signalLayer: ['yearly'],
+      shinsalName: ['암록', '태극귀인'],
+    },
+    template:
+      `암록·태극귀인 세운 — 보이지 않는 도움이 들어오는 해. 평소 도와준 사람· ` +
+      `오래된 인연이 결정적 순간에 등장해요. 자존심보다 도움 요청 가능.`,
+    themes: ['love', 'money', 'career'],
+  },
+  {
+    id: 'seun-baseline-neutral',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 60,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      signalKinds: ['pillar-sibsin'],
+      minPolarity: -1,
+      maxPolarity: 1,
+    },
+    template:
+      `중립 세운 — 큰 흥망 없이 평이하게 흘러가는 해. 새 일을 벌이기보단 ` +
+      `이미 시작한 것을 안정시키고, 다음 해의 도약을 위한 자료를 쌓는 시기.`,
+    themes: ['growth'],
+  },
 ]
 
 /** 룰 매핑 — id로 빠른 조회 */
