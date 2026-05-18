@@ -391,8 +391,8 @@ function pickDomainExtremeDates(
 
 const DOMAIN_THEMES: Record<string, AstroThemeKey[]> = {
   money: ['money'],
-  work: ['career', 'business', 'reputation', 'legal', 'travel'],
-  relations: ['love', 'family', 'social'],
-  body: ['health', 'study', 'spirituality'],
-  expression: ['creativity', 'children', 'karma'],
+  work: ['career'],
+  relations: ['love'],
+  body: ['health'],
+  expression: ['growth'],
 }

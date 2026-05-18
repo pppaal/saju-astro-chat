@@ -30,7 +30,7 @@ export const RULES: InterpretationRule[] = [
       `학습·전문성·내실을 다지기에 가장 좋은 시기 — 무리해서 ` +
       `밖으로 나가기보다 안으로 깊어지는 방향이 결과적으로 더 멀리 갑니다.`,
     authorNote: '대운 인성 + 신약 — 쉬운 톤',
-    themes: ['study', 'spirituality'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'daeun-inseong-strong',
@@ -47,7 +47,7 @@ export const RULES: InterpretationRule[] = [
       `이 10년은 **너무 받쳐주는 흐름**이라 오히려 정체될 수 있는 ` +
       `시기입니다. 생각이 깊어지고 결정이 느려지기 쉬워요. ` +
       `머리에 있는 것을 행동으로 옮기는 게 이 10년의 과제.`,
-    themes: ['personality'],
+    themes: ['growth'],
   },
   {
     id: 'daeun-jaeseong',
@@ -63,7 +63,7 @@ export const RULES: InterpretationRule[] = [
       `이 10년은 **돈·자원·구체적 성취가 전면에 나오는 시기**입니다. ` +
       `현실적 결과를 만들기 좋은 흐름이에요. 시스템과 구조를 ` +
       `단단히 만들면 이 시기의 결과가 평생 토대가 됩니다.`,
-    themes: ['money', 'business'],
+    themes: ['money'],
   },
   {
     id: 'daeun-gwanseong',
@@ -79,7 +79,7 @@ export const RULES: InterpretationRule[] = [
       `이 10년은 **사회적 위치·책임·공식 평가가 핵심 주제**로 떠오릅니다. ` +
       `승진·자리 잡기·중요한 책임이 들어올 수 있는 시기. ` +
       `자기 자리를 사회에서 명확히 정의하는 10년입니다.`,
-    themes: ['career', 'reputation'],
+    themes: ['career'],
   },
   {
     id: 'daeun-sigsang',
@@ -95,7 +95,7 @@ export const RULES: InterpretationRule[] = [
       `이 10년은 **표현·창작·자기 목소리가 강하게 작동**하는 시기입니다. ` +
       `머리에 있던 것을 세상에 내놓는 10년 — 콘텐츠·작품·` +
       `새로운 시도가 결과로 나오기 쉬워요.`,
-    themes: ['creativity', 'children'],
+    themes: ['growth', 'love'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -116,7 +116,7 @@ export const RULES: InterpretationRule[] = [
       `올해는 **본명을 우호적으로 받쳐주는 한 해**입니다. ` +
       `큰 결정·새 시도가 평소보다 매끄럽게 흘러요. ` +
       `특히 봄·초여름에 운의 정점이 형성됩니다.`,
-    themes: ['career', 'money', 'study'],
+    themes: ['career', 'money'],
   },
   {
     id: 'seun-kibsin',
@@ -133,7 +133,7 @@ export const RULES: InterpretationRule[] = [
       `올해는 **부담이 들어오는 한 해**입니다. 새로 벌이기보다 ` +
       `정리·점검·기존 자산 지키기로 방향 전환하는 게 유리. ` +
       `큰 결정은 길일을 골라서 하세요.`,
-    themes: ['crisis'],
+    themes: ['health'],
   },
   {
     id: 'seun-pyungin',
@@ -150,7 +150,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `올해는 **큰 변동 없이 착실히 다져가는 한 해**입니다. ` +
       `새 도약보다 작년 결과 정리하고 다음 도약 기반 만들기 좋아요.`,
-    themes: ['personality'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -188,7 +188,7 @@ export const RULES: InterpretationRule[] = [
       `이번 달은 **부담이 들어오는 한 달**입니다. 기운이 ` +
       `분산되는 시기 — 큰 결정은 보류, 일상 루틴 유지에 집중하세요. ` +
       `길일을 골라 중요한 일정을 배치하세요.`,
-    themes: ['crisis'],
+    themes: ['health'],
   },
   {
     id: 'wolun-yukhap',
@@ -204,7 +204,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `이번 달은 **사람·기회·자원이 자연스럽게 모이는 흐름**입니다. ` +
       `인맥 활용·협업·새로운 관계 시작이 우호적이에요.`,
-    themes: ['social', 'love'],
+    themes: ['growth', 'love'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -224,7 +224,7 @@ export const RULES: InterpretationRule[] = [
       `**확장·성장의 에너지가 가장 강한 시기**입니다. ` +
       `새 분야·해외·교육 영역에서 좋은 진전이 기대돼요. ` +
       `이 흐름은 {duration} 동안 지속됩니다.`,
-    themes: ['business', 'travel', 'study'],
+    themes: ['money', 'growth', 'career'],
   },
   {
     id: 'transit-saturn-fall',
@@ -240,7 +240,7 @@ export const RULES: InterpretationRule[] = [
       `**책임감·공식 관계에서 어려움이 자주 드러나는 시기**입니다. ` +
       `약속 어그러짐·계약 지연이 잦아요. 큰 약속·공식 절차는 ` +
       `길일로 미루기를 권합니다.`,
-    themes: ['career', 'legal'],
+    themes: ['career'],
   },
   {
     id: 'transit-jupiter-trine-natal',
@@ -272,7 +272,7 @@ export const RULES: InterpretationRule[] = [
       `**예측 불가한 변동·갑작스러운 사건이 가능한 시기**입니다. ` +
       `안정을 붙들기보다 변화를 정직하게 받아들이는 게 ` +
       `더 빠른 통과를 만들어요.`,
-    themes: ['crisis', 'personality'],
+    themes: ['health', 'growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -289,7 +289,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `이번 달 **재물 흐름이 두텁게 들어오는 날이 {count}번** 있습니다. ` +
       `큰 결정·계약·투자를 그 날에 배치하면 효과 최대.`,
-    themes: ['money', 'business'],
+    themes: ['money'],
   },
   {
     id: 'pattern-noble-fortune',
@@ -303,7 +303,7 @@ export const RULES: InterpretationRule[] = [
       `이번 달 **도움 받기 좋은 날이 {count}번** 있습니다. ` +
       `부탁·만남·조언 구하기에 우호적. 평소 거리 두었던 인맥에 ` +
       `먼저 연락해 보세요.`,
-    themes: ['career', 'social'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'pattern-shadow-cluster',
@@ -317,7 +317,7 @@ export const RULES: InterpretationRule[] = [
       `이번 달 **신중해야 할 날이 {count}번** 있습니다. ` +
       `큰 결정·계약·이동은 길일({luckyDates})로 배치하세요. ` +
       `신중일에는 중요 약속 피하고 일상 유지에 집중.`,
-    themes: ['crisis'],
+    themes: ['health'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -380,7 +380,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🌟 **도움 받기 좋은 날**이 이번 달에 들어 있어요. ` +
       `어려운 부탁·결정적 조언이 필요한 일은 그 날에.`,
-    themes: ['career', 'crisis'],
+    themes: ['career', 'health'],
   },
   {
     id: 'shinsal-yeokma',
@@ -393,7 +393,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `✈️ **이동·환경 변화 에너지**가 강해지는 시기. ` +
       `여행·이직·이사 등 미뤄둔 이동 계획이 있다면 이때.`,
-    themes: ['travel'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -408,7 +408,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🕯 **화개** 발동 — 내면 깊어지기·예술·종교·연구에 ` +
       `우호적인 시기. 혼자만의 시간이 결과로 이어집니다.`,
-    themes: ['spirituality', 'study'],
+    themes: ['growth', 'career'],
   },
   {
     id: 'shinsal-mungchang',
@@ -419,7 +419,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `📚 **문창** 발동 — 학습·시험·집필·발표에 강력한 보조. ` +
       `시험 준비·논문·콘텐츠 제작 모두 이때.`,
-    themes: ['study', 'reputation'],
+    themes: ['career'],
   },
   {
     id: 'shinsal-dohwa',
@@ -430,7 +430,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🌸 **도화** 발동 — 매력·끌림·인기 에너지가 강해집니다. ` +
       `소개·미팅·자기 표현이 잘 통하는 시기.`,
-    themes: ['love', 'creativity'],
+    themes: ['love', 'growth'],
   },
   {
     id: 'shinsal-yangin',
@@ -441,7 +441,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `⚔️ **양인** 발동 — 강력한 추진력. 단, 충돌·다툼 주의. ` +
       `결단력 필요한 일에 좋고, 인내가 필요한 일은 조심.`,
-    themes: ['career', 'crisis'],
+    themes: ['career', 'health'],
   },
   {
     id: 'shinsal-baekho',
@@ -452,7 +452,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🔥 **백호** 발동 — 극단적 변동·사고 가능성. 운전·외출· ` +
       `위험 작업 신중. 큰 결정은 길일로.`,
-    themes: ['crisis', 'health'],
+    themes: ['health'],
   },
   {
     id: 'shinsal-gongmang',
@@ -463,7 +463,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🌫 **공망** 발동 — 결과 안 보이는 시기. 새 시작보다 ` +
       `정리·복기·내면 작업이 더 효과적.`,
-    themes: ['spirituality', 'crisis'],
+    themes: ['growth', 'health'],
   },
   {
     id: 'shinsal-cheondeok',
@@ -474,7 +474,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🛡 **천덕·월덕** 발동 — 건강·가정·정서 영역에서 보호받는 ` +
       `시기. 회복·치유에 자연스러운 흐름.`,
-    themes: ['health', 'family'],
+    themes: ['health', 'love'],
   },
   {
     id: 'shinsal-jangseong',
@@ -485,7 +485,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🎖 **장성** 발동 — 리더십·명예·공적 자리. 발표·발의· ` +
       `대표 역할이 들어올 수 있는 시기.`,
-    themes: ['career', 'reputation'],
+    themes: ['career'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -505,7 +505,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `이번 달은 **재물·자원이 활성화되는 흐름**입니다. ` +
       `수입 확보·자산 정리·계약에 좋은 한 달.`,
-    themes: ['money', 'business'],
+    themes: ['money'],
   },
   {
     id: 'wolun-gwanseong-positive',
@@ -521,7 +521,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `이번 달은 **사회적 평가·책임·공식 자리**가 핵심 주제. ` +
       `승진·발탁·중요 책임 부여가 들어올 수 있어요.`,
-    themes: ['career', 'reputation'],
+    themes: ['career'],
   },
   {
     id: 'wolun-sigsang-positive',
@@ -537,7 +537,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `이번 달은 **표현·창작·자기 목소리**가 활성화되는 흐름. ` +
       `콘텐츠·발표·새로운 시도가 결과로 이어지기 좋아요.`,
-    themes: ['creativity', 'study'],
+    themes: ['growth', 'career'],
   },
   {
     id: 'wolun-inseong-positive',
@@ -553,7 +553,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `이번 달은 **학습·정리·내실 다지기**에 우호적인 흐름. ` +
       `자격증·시험·전문성 강화·독서·정리에 좋아요.`,
-    themes: ['study', 'spirituality'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'wolun-bigeop',
@@ -569,7 +569,7 @@ export const RULES: InterpretationRule[] = [
       `이번 달은 **인맥·동료·협업**의 영향이 큰 흐름. ` +
       `좋은 인연이 들어오기도, 경쟁·갈등이 생기기도 — 사람과의 ` +
       `거리 조절이 핵심.`,
-    themes: ['social', 'personality'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -585,7 +585,7 @@ export const RULES: InterpretationRule[] = [
       `**Jupiter가 자기 자리(${'{sign}'})에 머무는 시기**입니다. ` +
       `확장·신뢰·기회의 흐름이 안정적이며, 평소보다 일이 ` +
       `잘 풀리는 한 달.`,
-    themes: ['business', 'reputation'],
+    themes: ['money', 'career'],
   },
   {
     id: 'transit-saturn-domicile',
@@ -596,7 +596,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Saturn이 자기 자리(${'{sign}'})에 머무는 시기**입니다. ` +
       `책임·구조·장기 계획에 우호적. 인내가 결과를 만드는 흐름.`,
-    themes: ['career', 'legal'],
+    themes: ['career'],
   },
   {
     id: 'transit-saturn-detriment',
@@ -607,7 +607,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Saturn 디트리먼트** — 공식 절차·책임·약속에서 어긋남이 ` +
       `자주 드러나는 시기. 중요 약속은 길일로.`,
-    themes: ['career', 'crisis'],
+    themes: ['career', 'health'],
   },
   {
     id: 'transit-mars-domicile',
@@ -618,7 +618,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Mars가 자기 자리(${'{sign}'})에 머무는 시기** — 행동력· ` +
       `추진력이 강해집니다. 미뤘던 일·결단이 필요한 일을 처리할 때.`,
-    themes: ['career', 'crisis'],
+    themes: ['career', 'health'],
   },
   {
     id: 'transit-mars-fall',
@@ -629,7 +629,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Mars 폴** — 행동력 둔화·의욕 저하의 시기. 큰 도전보다 ` +
       `회복·휴식·기존 일 정리가 효율적.`,
-    themes: ['crisis', 'health'],
+    themes: ['health'],
   },
   {
     id: 'transit-venus-domicile',
@@ -640,7 +640,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Venus가 자기 자리(${'{sign}'})에 머무는 시기** — 관계· ` +
       `미적 감각·재정 흐름이 우호적. 데이트·예술·소비에 좋아요.`,
-    themes: ['love', 'creativity'],
+    themes: ['love', 'growth'],
   },
   {
     id: 'transit-mercury-domicile',
@@ -651,7 +651,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Mercury가 강한 자리(${'{sign}'})에 머무는 시기** — 소통· ` +
       `학습·이동·문서 작업이 매끄러운 흐름.`,
-    themes: ['study', 'travel'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'transit-sun-exalt',
@@ -662,7 +662,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Sun 엑잘테이션** — 자기 표현·리더십·중요한 발의에 ` +
       `우호적인 시기. 자신을 드러낼 일에 좋아요.`,
-    themes: ['reputation', 'personality'],
+    themes: ['career', 'growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -728,7 +728,7 @@ export const RULES: InterpretationRule[] = [
   {
     id: 'theme-study-positive',
     scope: 'monthly',
-    section: 'theme-study',
+    section: 'theme-career',
     priority: 56,
     conditions: {
       signalSource: 'saju',
@@ -738,12 +738,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `📚 **학업** — 학습·시험·자격증·전문성 다지기 시기. ` +
       `깊이 있는 공부가 잘 들어옵니다.`,
-    themes: ['study'],
+    themes: ['career'],
   },
   {
     id: 'theme-travel-positive',
     scope: 'monthly',
-    section: 'theme-travel',
+    section: 'theme-growth',
     priority: 56,
     conditions: {
       shinsalName: ['역마', '역마살'],
@@ -751,7 +751,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `✈️ **이동** — 여행·이직·이사 등 환경 변화에 우호적. ` +
       `평소 미뤘던 이동 계획 실행에 좋은 시기.`,
-    themes: ['travel'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -769,7 +769,7 @@ export const RULES: InterpretationRule[] = [
       `5층 흐름이 모두 같은 방향으로 가는 드문 순간 — 동서양 두 ` +
       `시스템이 동시에 같은 답을 주는 시기입니다. 큰 결정·새 시작· ` +
       `계약·고백에 가장 좋은 날들.`,
-    themes: ['personality', 'career'],
+    themes: ['growth', 'career'],
   },
   {
     id: 'pattern-saju-five-layer',
@@ -782,7 +782,7 @@ export const RULES: InterpretationRule[] = [
       `대운부터 시진까지 명리적 흐름이 모두 같은 방향 — 본명의 ` +
       `리듬이 가장 자연스럽게 흘러가는 날들. 사주적으로 결정이 ` +
       `매끄러운 시기입니다.`,
-    themes: ['personality'],
+    themes: ['growth'],
   },
   {
     id: 'pattern-astro-five-layer',
@@ -795,7 +795,7 @@ export const RULES: InterpretationRule[] = [
       `행성 챕터·세운 흐름·월간 트랜짓·일진 어스펙트·행성시까지 모두 ` +
       `같은 방향. 외부 환경·타이밍이 받쳐주는 시기 — 새 만남·` +
       `이동·확장에 우호적입니다.`,
-    themes: ['business', 'travel'],
+    themes: ['money', 'growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -821,7 +821,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `이번 달 **인생 큰 흐름 전환점 {count}회**. 큰 그림을 다시 ` +
       `그리기 좋은 시기 — 작은 일에 매이지 말고 방향성 점검.`,
-    themes: ['personality', 'spirituality'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -859,7 +859,7 @@ export const RULES: InterpretationRule[] = [
       `이 10년은 **사회적 압박이 큰 시기**입니다. 책임이 무겁게 ` +
       `들어오지만 본인이 신약해서 부담될 수 있어요. ` +
       `힘 분배·우선순위 조절이 핵심입니다.`,
-    themes: ['career', 'crisis'],
+    themes: ['career', 'health'],
   },
   {
     id: 'daeun-bigeop-weak',
@@ -876,7 +876,7 @@ export const RULES: InterpretationRule[] = [
       `이 10년은 **비겁(동료·경쟁자) 흐름**이 큰 시기입니다. ` +
       `신약자에게 도움 — 동료·친구·인맥이 자원이 됩니다. ` +
       `혼자 짊어지지 말고 협업으로.`,
-    themes: ['social'],
+    themes: ['growth'],
   },
   {
     id: 'daeun-sigsang-weak',
@@ -893,7 +893,7 @@ export const RULES: InterpretationRule[] = [
       `이 10년은 **표현 욕구가 크지만 신약**한 시기입니다. ` +
       `창작·발휘는 좋지만 에너지 소진 주의. 결과보다 과정의 ` +
       `즐거움에 비중을 두세요.`,
-    themes: ['creativity', 'health'],
+    themes: ['growth', 'health'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -908,7 +908,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `본명은 **신강** — 자기 주장과 추진력이 자연스러운 사주입니다. ` +
       `식상·재성·관성 운에 결과가 잘 나오는 타입.`,
-    themes: ['personality'],
+    themes: ['growth'],
   },
   {
     id: 'natal-strength-weak',
@@ -920,7 +920,7 @@ export const RULES: InterpretationRule[] = [
       `본명은 **신약** — 인성·비겁의 도움이 들어올 때 결과가 따라옵니다. ` +
       `무리한 확장보다 협력·정리·내실 다지기가 어울리는 시기에 ` +
       `이 사주는 빛납니다.`,
-    themes: ['personality'],
+    themes: ['growth'],
   },
   {
     id: 'natal-yongsin-fire',
@@ -931,7 +931,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `본명 용신은 **화(火)** — 표현·열정·확장의 에너지가 ` +
       `흐름의 핵심. 火 활성기에 가장 활발해집니다.`,
-    themes: ['creativity', 'reputation'],
+    themes: ['growth', 'career'],
   },
   {
     id: 'natal-yongsin-wood',
@@ -942,7 +942,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `본명 용신은 **목(木)** — 성장·시작·학습의 에너지가 ` +
       `흐름의 핵심. 木 활성기(봄·초여름)에 큰 결과.`,
-    themes: ['study', 'creativity'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'natal-yongsin-metal',
@@ -953,7 +953,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `본명 용신은 **금(金)** — 결단·정리·실행의 에너지가 ` +
       `핵심. 金 활성기(가을)에 결과가 모아짐.`,
-    themes: ['career', 'legal'],
+    themes: ['career'],
   },
   {
     id: 'natal-yongsin-water',
@@ -964,7 +964,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `본명 용신은 **수(水)** — 지혜·연구·축적의 에너지가 ` +
       `핵심. 水 활성기(겨울)에 깊이가 만들어집니다.`,
-    themes: ['study', 'spirituality'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'natal-yongsin-earth',
@@ -975,7 +975,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `본명 용신은 **토(土)** — 안정·중재·축적의 에너지가 ` +
       `핵심. 土 활성기에 관계·재산·뿌리가 단단해집니다.`,
-    themes: ['family', 'social'],
+    themes: ['love', 'growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -991,7 +991,7 @@ export const RULES: InterpretationRule[] = [
       `점성 **ZR(Zodiacal Releasing) 챕터** 진행 중. 헬레니즘 ` +
       `점성에서 인생의 큰 챕터를 표시하는 시기로, 이 챕터의 ` +
       `테마가 평생 흐름의 무대를 만듭니다.`,
-    themes: ['personality', 'spirituality'],
+    themes: ['growth'],
   },
   {
     id: 'astro-profection-house',
@@ -1003,7 +1003,7 @@ export const RULES: InterpretationRule[] = [
       `**Profection (연주술)** — 올해 활성 하우스가 사회·관계·일상의 ` +
       `어느 영역을 비추는지 보여줍니다. 그 하우스의 ` +
       `Lord of Year가 1년 흐름의 주도자.`,
-    themes: ['career', 'personality'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'astro-lifecycle-saturn-return',
@@ -1019,7 +1019,7 @@ export const RULES: InterpretationRule[] = [
       `**Saturn Return** 진행 — 인생의 큰 통과의례 시기. 책임·구조· ` +
       `현실의 무게가 강해지는 2~3년. 도망보다 정면 통과가 ` +
       `이후 30년 토대를 만듭니다.`,
-    themes: ['career', 'crisis'],
+    themes: ['career', 'health'],
   },
   {
     id: 'astro-lifecycle-jupiter-return',
@@ -1034,7 +1034,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Jupiter Return** 진행 — 확장·낙관·기회가 다시 들어오는 ` +
       `12년 주기 회귀. 새 시작·외부 진출에 우호적입니다.`,
-    themes: ['business', 'travel'],
+    themes: ['money', 'growth'],
   },
   {
     id: 'astro-eclipse-solar',
@@ -1045,7 +1045,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**일식·월식 영향권** — ±2주 동안 변화·발견·재구성의 ` +
       `에너지. 평소 보이지 않던 것이 드러나는 시기입니다.`,
-    themes: ['crisis', 'personality'],
+    themes: ['health', 'growth'],
   },
   {
     id: 'astro-solar-return',
@@ -1056,7 +1056,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Solar Return** (태양 회귀) — 새 1년 사이클 시작. ` +
       `이 차트의 ASC·MC sign이 한 해 전체 톤을 만듭니다.`,
-    themes: ['personality'],
+    themes: ['growth'],
   },
   {
     id: 'astro-lunar-return',
@@ -1067,7 +1067,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**Lunar Return** (달 회귀) — 한 달 정서 사이클 시작. ` +
       `이번 달 정서·관계·일상 톤이 이 차트에 담깁니다.`,
-    themes: ['family', 'personality'],
+    themes: ['love', 'growth'],
   },
   {
     id: 'astro-progressed-moon',
@@ -1078,7 +1078,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**진행 달 어스펙트** — 28년 정서 사이클에서 본명에 ` +
       `걸리는 시기. 정서·내면 변화가 자연스럽게 일어납니다.`,
-    themes: ['family', 'personality'],
+    themes: ['love', 'growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -1115,7 +1115,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🎓 **학당귀인** 발동 — 학문·자격·시험·연구에 보호 ` +
       `들어오는 시기. 큰 시험·논문·발표에 우호적입니다.`,
-    themes: ['study'],
+    themes: ['career'],
   },
   {
     id: 'shinsal-geollok',
@@ -1137,7 +1137,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `👑 **제왕** 발동 — 절정의 에너지. 자기 표현·발의·` +
       `리더십이 잘 통하는 시기. 단, 과강 주의.`,
-    themes: ['career', 'reputation'],
+    themes: ['career'],
   },
   {
     id: 'shinsal-wonjin',
@@ -1148,7 +1148,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `⚡ **원진** 발동 — 가까운 사람과의 미묘한 갈등·오해 가능. ` +
       `중요한 대화는 조심스럽게.`,
-    themes: ['family', 'crisis'],
+    themes: ['love', 'health'],
   },
   {
     id: 'shinsal-hyeonchim',
@@ -1170,7 +1170,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🌑 **귀문** 발동 — 정신적 예민함·직관·꿈이 활성. ` +
       `명상·내적 작업에 좋고, 큰 결정은 신중히.`,
-    themes: ['health', 'spirituality'],
+    themes: ['health', 'growth'],
   },
   {
     id: 'shinsal-tianmun',
@@ -1181,7 +1181,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🔮 **천문성** 발동 — 영적 통찰·고차원 학문·신비주의 ` +
       `영역에 우호적. 깊은 공부와 명상에 적합한 시기.`,
-    themes: ['spirituality', 'study'],
+    themes: ['growth', 'career'],
   },
   {
     id: 'shinsal-geumyeo',
@@ -1203,7 +1203,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `📖 **문곡** 발동 — 학문·문장·창작에 강한 보조. ` +
       `글·작품·발표가 잘 풀리는 시기.`,
-    themes: ['study', 'creativity'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'shinsal-taegeuk',
@@ -1214,7 +1214,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `☯️ **태극귀인** 발동 — 영성·종교·깨달음 영역에서 ` +
       `보호받는 시기. 내적 균형이 잡힙니다.`,
-    themes: ['spirituality'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -1223,7 +1223,7 @@ export const RULES: InterpretationRule[] = [
   {
     id: 'theme-business-positive',
     scope: 'monthly',
-    section: 'theme-business',
+    section: 'theme-money',
     priority: 58,
     conditions: {
       signalSource: 'astro',
@@ -1233,12 +1233,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `🏢 **사업·창업** — Jupiter 활성으로 확장 기회 강함. ` +
       `새 분야 진출·외부 협업에 우호적.`,
-    themes: ['business'],
+    themes: ['money'],
   },
   {
     id: 'theme-business-warning',
     scope: 'monthly',
-    section: 'theme-business',
+    section: 'theme-money',
     priority: 56,
     conditions: {
       signalSource: 'astro',
@@ -1248,12 +1248,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `🏢 **사업·창업** — Saturn 영향으로 진행 지연·구조 ` +
       `재정비 필요한 시기. 새 시작보다 기존 정리.`,
-    themes: ['business'],
+    themes: ['money'],
   },
   {
     id: 'theme-reputation-positive',
     scope: 'monthly',
-    section: 'theme-reputation',
+    section: 'theme-career',
     priority: 56,
     conditions: {
       shinsalName: ['장성', '장성살'],
@@ -1261,12 +1261,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `🎖 **명예·평판** — 장성 활성. 공식 자리·대표 역할· ` +
       `발의에 우호적. 이름이 드러나는 시기.`,
-    themes: ['reputation'],
+    themes: ['career'],
   },
   {
     id: 'theme-family-warning',
     scope: 'monthly',
-    section: 'theme-family',
+    section: 'theme-love',
     priority: 55,
     conditions: {
       signalSource: 'saju',
@@ -1275,12 +1275,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `👨‍👩‍👧 **가족·관계** — 미묘한 긴장 가능. 평소보다 부드러운 ` +
       `소통이 필요한 시기.`,
-    themes: ['family'],
+    themes: ['love'],
   },
   {
     id: 'theme-spirituality-positive',
     scope: 'monthly',
-    section: 'theme-spirituality',
+    section: 'theme-growth',
     priority: 54,
     conditions: {
       signalSource: 'saju',
@@ -1289,12 +1289,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `🧘 **영성·내면** — 화개·천문 활성으로 명상·종교·` +
       `깊은 공부에 우호적인 시기.`,
-    themes: ['spirituality'],
+    themes: ['growth'],
   },
   {
     id: 'theme-legal-warning',
     scope: 'monthly',
-    section: 'theme-legal',
+    section: 'theme-career',
     priority: 55,
     conditions: {
       signalSource: 'astro',
@@ -1304,12 +1304,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `⚖️ **법무·계약** — 공식 절차·서류 지연 가능. ` +
       `중요 계약은 길일 골라서. 작은 약속도 명확히.`,
-    themes: ['legal'],
+    themes: ['career'],
   },
   {
     id: 'theme-creativity-positive',
     scope: 'monthly',
-    section: 'theme-creativity',
+    section: 'theme-growth',
     priority: 55,
     conditions: {
       signalSource: 'saju',
@@ -1319,12 +1319,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `🎨 **창의·표현** — 식상 활성으로 작품·콘텐츠·` +
       `발표가 잘 풀리는 시기.`,
-    themes: ['creativity'],
+    themes: ['growth'],
   },
   {
     id: 'theme-children-positive',
     scope: 'monthly',
-    section: 'theme-children',
+    section: 'theme-love',
     priority: 50,
     conditions: {
       signalSource: 'saju',
@@ -1334,12 +1334,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `👶 **자녀** — 식신 활성. 자녀 관련 기쁨·소식· ` +
       `임신·교육 진전에 우호적.`,
-    themes: ['children'],
+    themes: ['love'],
   },
   {
     id: 'theme-social-positive',
     scope: 'monthly',
-    section: 'theme-social',
+    section: 'theme-growth',
     priority: 50,
     conditions: {
       signalSource: 'saju',
@@ -1348,12 +1348,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `🤝 **인맥·동료** — 비겁 활성으로 동료·친구·네트워크 ` +
       `에너지가 강해지는 시기.`,
-    themes: ['social'],
+    themes: ['growth'],
   },
   {
     id: 'theme-karma-active',
     scope: 'monthly',
-    section: 'theme-karma',
+    section: 'theme-growth',
     priority: 50,
     conditions: {
       signalSource: 'astro',
@@ -1362,7 +1362,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `🔮 **카르마** — 노드 트랜짓 활성. 인생 방향·과거 ` +
       `청산·새 챕터 진입의 신호가 들어오는 시기.`,
-    themes: ['karma', 'spirituality'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -1381,7 +1381,7 @@ export const RULES: InterpretationRule[] = [
       `이 달 **조후용신** — 본명 일간과 月支의 기후 균형에 ` +
       `필요한 오행이 들어옵니다. 그 오행이 강한 날들이 ` +
       `이번 달의 진짜 길일.`,
-    themes: ['personality'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -1401,7 +1401,7 @@ export const RULES: InterpretationRule[] = [
       `이 사주는 **특수 격국**을 형성하고 있어요. 일반 사주와 다른 ` +
       `규칙으로 흐르며, 그 격국이 활성화되는 시기에 진짜 ` +
       `결과가 나옵니다.`,
-    themes: ['personality'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -1420,7 +1420,7 @@ export const RULES: InterpretationRule[] = [
       `오늘 **일진 오행 흐름** — 본명에 도움이 들어오는 ` +
       `날·받쳐주는 날·중립인 날이 매일 다르게 흘러갑니다. ` +
       `상생 받는 날을 골라 결정하면 자연스럽습니다.`,
-    themes: ['personality'],
+    themes: ['growth'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -1435,7 +1435,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `봄 月運은 본명 용신(목)에 우호적인 시기로 들어갑니다. ` +
       `새 시작·진출·확장에 좋은 한 달.`,
-    themes: ['study', 'creativity'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'wolun-summer-fire',
@@ -1446,7 +1446,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `여름 月運은 본명 용신(화)에 우호적입니다. 자기 표현· ` +
       `대외 활동·인맥 확장이 잘 통하는 한 달.`,
-    themes: ['reputation', 'creativity'],
+    themes: ['career', 'growth'],
   },
   {
     id: 'wolun-autumn-metal',
@@ -1457,7 +1457,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `가을 月運은 본명 용신(금)에 우호적입니다. 결단·정리· ` +
       `결과 만들기에 좋은 한 달.`,
-    themes: ['career', 'legal'],
+    themes: ['career'],
   },
   {
     id: 'wolun-winter-water',
@@ -1468,7 +1468,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `겨울 月運은 본명 용신(수)에 우호적입니다. 연구·학습· ` +
       `내실 다지기·계획에 좋은 한 달.`,
-    themes: ['study', 'spirituality'],
+    themes: ['career', 'growth'],
   },
 
   // ═════════════════════════════════════════════════════════════
@@ -1507,7 +1507,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `식상이 재성으로 흘러가는 구조 — 무리하지 않은 안정적 수입 ` +
       `흐름. 본업 다지기·꾸준한 작은 베팅에 좋아요.`,
-    themes: ['money', 'business'],
+    themes: ['money'],
   },
   {
     id: 'theme-money-officer-real-estate',
@@ -1522,7 +1522,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `관성 활성으로 부동산·계약·공식 자산 강세. 명의·서류 정리, ` +
       `구조화된 자산 형성에 우호적인 흐름.`,
-    themes: ['money', 'legal'],
+    themes: ['money', 'career'],
   },
 
   // ── 일·커리어 분기 ──
@@ -1540,7 +1540,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `본인 힘이 충분한데 관성도 강 — 공식 자리·승진·새 책임 ` +
       `다 받아낼 수 있는 시기. 적극적인 도전 가능.`,
-    themes: ['career', 'reputation'],
+    themes: ['career'],
   },
   {
     id: 'theme-career-weak-officer',
@@ -1556,12 +1556,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `관성 압박이 큰데 본인은 신약 — 책임 무거움. 가장 중요한 ` +
       `한 건에 집중하고 나머지는 위임 권장.`,
-    themes: ['career', 'crisis'],
+    themes: ['career', 'health'],
   },
   {
     id: 'theme-career-strong-food',
     scope: 'monthly',
-    section: 'theme-business',
+    section: 'theme-money',
     priority: 53,
     conditions: {
       natalStrength: ['strong'],
@@ -1572,12 +1572,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `식상 활성 + 본인 힘 충분 — 표현·기획·창업·외주 일에 강한 ` +
       `시기. 새 분야 진출에 우호적.`,
-    themes: ['business', 'creativity'],
+    themes: ['money', 'growth'],
   },
   {
     id: 'theme-career-bigeop-partner',
     scope: 'monthly',
-    section: 'theme-social',
+    section: 'theme-growth',
     priority: 52,
     conditions: {
       signalSource: 'saju',
@@ -1587,7 +1587,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `비겁 활성 — 동료·파트너십·공동 사업 흐름. 같이 일하는 ` +
       `사람들과 호흡이 잘 맞는 시기.`,
-    themes: ['social', 'business'],
+    themes: ['growth', 'money'],
   },
 
   // ── 관계 분기 ──
@@ -1604,12 +1604,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `식상 + 본인 힘 충분 — 매력·표현이 자연스럽게 발산되는 시기. ` +
       `새로운 만남에 적극 나서볼 만해요.`,
-    themes: ['love', 'creativity'],
+    themes: ['love', 'growth'],
   },
   {
     id: 'theme-family-weak-officer',
     scope: 'monthly',
-    section: 'theme-family',
+    section: 'theme-love',
     priority: 53,
     conditions: {
       natalStrength: ['weak'],
@@ -1619,7 +1619,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `관성 압박 + 신약 — 가족·윗사람 책임이 무거워질 수 있어요. ` +
       `완벽하려 하지 말고 도움 청하기.`,
-    themes: ['family'],
+    themes: ['love'],
   },
 
   // ── 몸·내면 분기 ──
@@ -1636,12 +1636,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `신약 + 관성 압박 — 체력 무리 주의. 일·관계에 과부하 걸리기 ` +
       `쉬워요. 휴식 우선 순위 올려주세요.`,
-    themes: ['health', 'crisis'],
+    themes: ['health'],
   },
   {
     id: 'theme-study-strong-print',
     scope: 'monthly',
-    section: 'theme-study',
+    section: 'theme-career',
     priority: 54,
     conditions: {
       natalStrength: ['strong'],
@@ -1651,14 +1651,14 @@ export const RULES: InterpretationRule[] = [
     template:
       `인성 + 본인 힘 충분 — 학업·연구·자기성장에 깊이 들어가기 ` +
       `좋은 시기. 자격증·전문 분야 다지기에 우호적.`,
-    themes: ['study', 'personality'],
+    themes: ['career', 'growth'],
   },
 
   // ── 표현·창작 분기 ──
   {
     id: 'theme-creativity-food-active',
     scope: 'monthly',
-    section: 'theme-creativity',
+    section: 'theme-growth',
     priority: 55,
     conditions: {
       signalSource: 'saju',
@@ -1668,12 +1668,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `식상 활성 — 표현·창작·아이디어 발산이 잘 들어오는 시기. ` +
       `글·영상·기획 같은 결과물 만들기 우호적.`,
-    themes: ['creativity', 'business'],
+    themes: ['growth', 'money'],
   },
   {
     id: 'theme-children-food-active',
     scope: 'monthly',
-    section: 'theme-children',
+    section: 'theme-love',
     priority: 53,
     conditions: {
       signalSource: 'saju',
@@ -1683,12 +1683,12 @@ export const RULES: InterpretationRule[] = [
     template:
       `식상 활성 — 자녀·후배·새 작품과의 시간이 잘 흐르는 시기. ` +
       `돌봄·교육·전수에 우호적.`,
-    themes: ['children'],
+    themes: ['love'],
   },
   {
     id: 'theme-karma-spiritual-deep',
     scope: 'monthly',
-    section: 'theme-karma',
+    section: 'theme-growth',
     priority: 52,
     conditions: {
       signalSource: 'saju',
@@ -1697,7 +1697,135 @@ export const RULES: InterpretationRule[] = [
     template:
       `화개·천문 활성 — 카르마·인연·깊은 흐름을 정리할 시기. ` +
       `명상·기록·내면 작업이 의외로 큰 변화를 만들어요.`,
-    themes: ['karma', 'spirituality'],
+    themes: ['growth'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 보강: theme-health (3개 → 8개) — 4대 theme 평형 맞춤
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'theme-health-fire-yongsin-overload',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 56,
+    conditions: {
+      yongsin: ['수'],   // 수가 용신인 사주 = 화가 과한 사주
+      signalSource: 'saju',
+      sibsin: ['편관', '정관'],
+      maxPolarity: -1,
+    },
+    template:
+      `화(火) 기운이 과한 결 + 관성 압박 — 화상·염증·심혈관·불면 주의. ` +
+      `매운 음식·과로 자제하고, 차가운 물·휴식·녹지 산책으로 식혀주세요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'theme-health-water-yongsin-cold',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 55,
+    conditions: {
+      yongsin: ['화'],   // 화가 용신 = 수가 약하거나 차가운 결
+      signalSource: 'saju',
+      maxPolarity: -1,
+    },
+    template:
+      `수(水) 약화 + 차가운 결 — 신장·요통·우울감·하체 냉증 주의. 따뜻한 ` +
+      `물 자주 마시고, 허리·하체 보온, 충분한 수면을 챙기세요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'theme-health-mars-tension',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 54,
+    conditions: {
+      signalSource: 'astro',
+      planet: ['Mars'],
+      maxPolarity: -1,
+    },
+    template:
+      `Mars 긴장 신호 — 사고·부상·짜증 위험 ↑. 운동·운전·날카로운 도구 ` +
+      `사용 시 한 박자 천천히. 화도 한 박자 늦춰서.`,
+    themes: ['health'],
+  },
+  {
+    id: 'theme-health-recovery-window',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 57,
+    conditions: {
+      signalSource: 'astro',
+      planet: ['Jupiter', 'Venus'],
+      minPolarity: 1,
+    },
+    template:
+      `Jupiter·Venus 우호 신호 — 회복·치유에 가장 좋은 시기. 미뤄둔 ` +
+      `건강검진·치과·수술 일정 잡기 좋고, 새 운동 루틴 시작도 잘 자리잡아요.`,
+    themes: ['health'],
+  },
+  {
+    id: 'theme-health-shinsal-warning',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 53,
+    conditions: {
+      shinsalName: ['백호', '현침', '귀문', '귀문관', '귀문관살'],
+    },
+    template:
+      `흉살(백호·현침·귀문 등) 활성 — 갑작스러운 증상·소화기·신경 예민함 ` +
+      `주의. 무리한 일정 줄이고, 매운 음식·자극적 음료 피하세요.`,
+    themes: ['health'],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 보강: 歲運 (3개 → 6개) — 연운 narrative 확충
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'seun-jaeseong',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 75,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      sibsin: ['정재', '편재'],
+    },
+    template:
+      `올해는 **재성이 들어오는 해** — 돈·실물·실제 결과가 눈에 보이는 ` +
+      `흐름. 작년에 뿌린 씨앗이 현금흐름으로 돌아오기 좋은 시기예요.`,
+    themes: ['money'],
+  },
+  {
+    id: 'seun-gwansal-weak',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 72,
+    conditions: {
+      natalStrength: ['weak'],
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      sibsin: ['정관', '편관'],
+    },
+    template:
+      `신약 + 관성 세운 — 책임·압박이 한꺼번에 몰리기 쉬운 해. 무리하게 ` +
+      `짊어지지 말고 우선순위를 줄여서 갑니다. 휴식이 곧 전략.`,
+    themes: ['career', 'health'],
+  },
+  {
+    id: 'seun-siksang',
+    scope: 'monthly',
+    section: 'seun',
+    priority: 70,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['yearly'],
+      sibsin: ['식신', '상관'],
+    },
+    template:
+      `올해는 **표현·아이디어 흐름** — 새 콘텐츠·창작·기획이 잘 풀리는 해. ` +
+      `안 쓰던 SNS·블로그·포트폴리오 다시 손보면 운이 와요.`,
+    themes: ['growth', 'career'],
   },
 ]
 

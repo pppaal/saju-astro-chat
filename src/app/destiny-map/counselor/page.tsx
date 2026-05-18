@@ -18,7 +18,7 @@ import Chat from '@/components/destiny-map/Chat'
 type SearchParams = Record<string, string | string[] | undefined>
 
 export default function CounselorPage() {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const [chatResetKey, setChatResetKey] = useState(0)
   const rawSearchParams = useSearchParams()
   const sp = useMemo<SearchParams>(() => {

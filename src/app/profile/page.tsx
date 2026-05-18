@@ -271,7 +271,7 @@ function relationLabel(r: string, locale: Locale): string {
 
 export default function ProfilePage() {
   const { status } = useSession()
-  const { t, locale: rawLocale } = useI18n()
+  const { locale: rawLocale } = useI18n()
   const locale: Locale = rawLocale === 'en' ? 'en' : 'ko'
   const signInUrl = buildSignInUrl('/profile')
   const router = useRouter()

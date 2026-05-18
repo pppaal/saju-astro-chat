@@ -37,7 +37,7 @@ const RULES: PatternRule[] = [
   {
     id: 'wealth-golden-week',
     name: '재물 황금주간',
-    themes: ['money', 'business'],
+    themes: ['money'],
     headline: '오늘은 재물 흐름이 두텁게 들어오는 날',
     description: '일진 재성 + 길성 트랜짓 peak가 동시에 들어옴',
     action: '투자·계약·큰 결정·재정 정리에 우호적. 미뤘던 돈 관련 일을 처리하기 좋음.',
@@ -117,7 +117,7 @@ const RULES: PatternRule[] = [
   {
     id: 'shadow-cluster',
     name: '흉살 집중일',
-    themes: ['crisis'],
+    themes: ['health'],
     headline: '오늘은 신중 모드 — 큰 결정 미루기',
     description: '일진에 강한 흉신호 4+개 발동',
     action: '큰 결정·계약·이동·새 시작은 길일로 미루기. 일상 루틴 유지에 집중.',
@@ -271,7 +271,7 @@ const RULES: PatternRule[] = [
   {
     id: 'noble-fortune',
     name: '귀인 강림',
-    themes: ['career', 'reputation', 'crisis'],
+    themes: ['career', 'health'],
     headline: '오늘은 도움 받기 좋은 날',
     description: '천을귀인 일진 + 길성 트라인',
     action: '부탁·조언·중요한 만남 — 평소 멀어진 인맥에 먼저 연락하기 좋음.',
@@ -295,7 +295,7 @@ const RULES: PatternRule[] = [
   {
     id: 'life-chapter-shift',
     name: '인생 챕터 전환',
-    themes: ['personality', 'spirituality'],
+    themes: ['growth'],
     headline: '인생 큰 흐름의 전환점',
     description: '외행성 트랜짓 peak + 라이프사이클·ZR 배경',
     action: '큰 그림을 다시 그리기 좋음. 작은 일에 매이지 말고 방향성 점검.',
