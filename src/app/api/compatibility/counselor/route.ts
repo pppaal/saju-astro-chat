@@ -422,6 +422,12 @@ export async function POST(req: NextRequest) {
             '  - "A 일간 뭐야?" / "우리 Sun synastry 어때?" / "Moon square Mars는?" 같이',
             '    용어로 직접 물으면 그 용어 그대로 짧게 답. 회피하지 말 것.',
             '  - 일상어로 물었으면 (예: "우리 잘 맞아?") 답도 일상어로.',
+            '',
+            '답변 마지막에 *반드시* 다음 줄 정확한 형식으로 추가 (사용자에게 안 보이고 자동으로 후속 질문 버튼으로 렌더됨):',
+            '||FOLLOWUP||["방금 답변 흐름의 자연스러운 후속 질문 1", "조금 다른 각도의 후속 질문 2"]',
+            '  - 정확히 2개. JSON 문자열 배열. 각 25자 이내.',
+            '  - "더 자세히", "구체적으로 설명해줘" 같은 generic 금지 — 방금 한 답변의 *내용* hook 으로.',
+            '  - 두 사람 관계 맥락에서 다음 turn 이 자연스럽게 이어지도록.',
           ].join('\n')
         : [
             'Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.',
@@ -437,6 +443,12 @@ export async function POST(req: NextRequest) {
             "- Never reveal you're an AI / model / counselor system.",
             '- Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.',
             '- Exception: if the user asks *directly using a term* ("what\'s A\'s Sun sign?", "how about our Moon square?"), use the term and answer briefly. Don\'t dodge.',
+            '',
+            'At the very end of every reply, append *exactly* this line (auto-stripped + rendered as follow-up buttons; never shown to the user):',
+            '||FOLLOWUP||["short follow-up tied to what you just said", "different angle follow-up"]',
+            '  - Exactly 2 items. JSON string array. Each under 25 chars.',
+            '  - No generic "tell me more" / "explain" — hook off the *content* of your reply.',
+            '  - Bridge from the relationship context so the next turn flows naturally.',
           ].join('\n')
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:
