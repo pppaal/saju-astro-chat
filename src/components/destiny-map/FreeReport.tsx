@@ -390,12 +390,13 @@ const FreeReport = memo(function FreeReport({
       .map((line) => line.trim())
       .filter(Boolean)
     const firstLine = lines[0] || ''
-    const body = lines.slice(1).join('\n\n').trim()
-    const titleFromBracket =
-      firstLine.match(/^【(.+)】$/)?.[1] || firstLine.match(/^\[(.+)\]$/)?.[1] || ''
+    // bracket prefix like [인생 전반 Focus Report] is just a marker the
+    // generator emits; strip it from body and force a clean unified title.
+    const hasBracketPrefix = /^【.+】$|^\[.+\]$/.test(firstLine)
+    const body = (hasBracketPrefix ? lines.slice(1) : lines).join('\n\n').trim()
 
     return {
-      title: titleFromBracket || (isKo ? 'AI 프리미엄 리포트' : 'AI Premium Report'),
+      title: isKo ? '무료 리포트' : 'Free Report',
       content: body || raw,
     }
   }, [data?.report, isKo])
