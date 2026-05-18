@@ -218,7 +218,7 @@ export function calculateWealthScore(
   // === 사주 요소 ===
   if (saju) {
     // 재성 강함
-    const sibsinDist = saju.advancedAnalysis?.sibsin?.sibsinDistribution;
+    const sibsinDist = saju.advancedAnalysis?.sibsin?.count;
     if (sibsinDist) {
       const jaesung = (sibsinDist['정재'] || 0) + (sibsinDist['편재'] || 0) + (sibsinDist['재성'] || 0);
       if (jaesung >= 2) {

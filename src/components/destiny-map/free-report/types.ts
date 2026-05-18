@@ -67,7 +67,7 @@ export interface SajuData {
   twelveStage?: string;
   twelveStages?: { day?: string };
   advancedAnalysis?: {
-    sibsin?: { sibsinDistribution?: Record<string, number> };
+    sibsin?: { count?: Record<string, number>; categoryCount?: Record<string, number> };
     geokguk?: { name?: string; type?: string; description?: string };
     yongsin?: { element?: string; name?: string; type?: string; reason?: string };
     tonggeun?: { score?: number; totalScore?: number; details?: unknown[] };

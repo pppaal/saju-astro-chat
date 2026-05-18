@@ -110,7 +110,7 @@ export function getHealthMatrixAnalysis(
   // 1. 오행 균형 분석
   const elementBalance: HealthMatrixResult['elementBalance'] = []
   const fiveElements: FiveElement[] = ['목', '화', '토', '금', '수']
-  const elementDist = extSaju?.advancedAnalysis?.sibsin?.sibsinDistribution || {}
+  const elementDist = extSaju?.advancedAnalysis?.sibsin?.count || {}
   const sibsinToElement: Record<string, FiveElement> = {
     비견: sajuEl,
     겁재: sajuEl,
