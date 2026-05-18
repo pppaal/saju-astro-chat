@@ -23,7 +23,8 @@ interface CardInput {
   name: string
   nameKo?: string
   isReversed: boolean
-  position: string
+  // LLM이 명명 — 클라가 안 보내므로 undefined 가능. line 69의 fallback 참고.
+  position?: string
   positionKo?: string
   positionMeaning?: string
   positionMeaningKo?: string
