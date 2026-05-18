@@ -365,7 +365,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
   const visibleMessages = messages.filter((m) => m.role !== 'system')
 
   return (
-    <div className={styles.chatContainer}>
+    <div className={`${styles.chatContainer} ${styles.lightTheme}`}>
       {connectionStatus === 'offline' && (
         <div className={`${styles.connectionStatus} ${styles[connectionStatus]}`}>
           {'\uD83D\uDCE1 Connection lost - Check your internet'}
@@ -520,6 +520,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onKeyDown={onKeyDown}
               onSend={() => void handleSend()}
               onFileUpload={handleFileUpload}
+              onOpenTarot={goToTarot}
+              onOpenChart={() => setShowChartModal(true)}
               styles={styles}
               autoFocus={autoFocus}
             />

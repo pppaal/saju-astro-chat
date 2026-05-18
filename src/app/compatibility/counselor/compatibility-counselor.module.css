@@ -294,7 +294,8 @@
   outline: none;
   resize: none;
   color: #fff;
-  font-size: 0.95rem;
+  /* iOS Safari zooms inputs <16px on focus, which breaks dvh viewport. */
+  font-size: 16px;
   line-height: 1.5;
   max-height: 6rem;
   min-height: 1.5rem;

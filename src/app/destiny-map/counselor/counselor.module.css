@@ -1018,3 +1018,58 @@
     transition: none !important;
   }
 }
+
+/* =====================================================================
+ * Light theme — counselor result page (stone-50 / white palette).
+ * Applied via `${styles.page} ${styles.lightTheme}` on <main>.
+ * Sidebar + chat content get their own lightTheme via Chat.module.css
+ * and CounselorSidebar.module.css.
+ * ===================================================================== */
+.lightTheme {
+  background: #fafaf9;
+  color: #1c1917;
+}
+
+.lightTheme .header {
+  background: #ffffff;
+  border-bottom: 1px solid #e7e5e4;
+  backdrop-filter: none;
+}
+
+.lightTheme .headerTitle {
+  color: #1c1917;
+}
+
+.lightTheme .backButton {
+  background: transparent;
+  border: 1px solid #e7e5e4;
+  color: #57534e;
+}
+
+.lightTheme .backButton:hover {
+  background: #f5f5f4;
+  border-color: #d6d3d1;
+  color: #1c1917;
+}
+
+.lightTheme .backIcon {
+  color: #57534e;
+}
+
+/* On desktop the hamburger is redundant: CounselorSidebar drawer is
+   primarily a mobile entry now (destiny has its own desktop sidebar
+   inside <Chat>). Hide the back button on wide viewports to avoid two
+   sidebars competing. */
+@media (min-width: 1024px) {
+  .lightTheme .backButton {
+    display: none;
+  }
+}
+
+.lightTheme .chatWrapper {
+  background: transparent;
+}
+
+/* Missing profile state (when birthDate/birthTime not in URL) keeps the
+   dark cinematic intro card — that screen is the pre-auth marketing
+   surface, not the chat shell. */

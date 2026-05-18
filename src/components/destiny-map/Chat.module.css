@@ -652,7 +652,10 @@
   border: none;
   border-radius: 0;
   resize: none;
-  font-size: 0.95rem;
+  /* 16px keeps iOS Safari from auto-zooming the viewport on focus. Anything
+     under 16px triggers a zoom-in that makes the page feel like it broke
+     out of its dvh container. */
+  font-size: 16px;
   line-height: 1.5;
   box-shadow: none;
 }
@@ -2693,4 +2696,19 @@
 .lightTheme .followUpChip:hover {
   background: #f5f5f4;
   border-color: #d6d3d1;
+}
+
+/* =====================================================================
+ * Mobile-only tool buttons in the input toolbar (#286 후속 fix).
+ * 데스크탑은 historyRail footer 에 chart/tarot 가 있어서 입력박스의 동일
+ * 버튼은 중복. 모바일에서만 보이게.
+ * ===================================================================== */
+.mobileOnlyTool {
+  display: inline-flex;
+}
+
+@media (min-width: 1024px) {
+  .mobileOnlyTool {
+    display: none;
+  }
 }

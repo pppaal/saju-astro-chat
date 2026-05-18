@@ -87,6 +87,10 @@ interface ChatInputAreaProps {
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
   onSend: () => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
+  /** Optional mobile-only chart/tarot triggers — the desktop sidebar
+   *  carries these, but mobile users have no other entry point. */
+  onOpenTarot?: () => void
+  onOpenChart?: () => void
   styles: Record<string, string>
   autoFocus?: boolean
 }
@@ -103,6 +107,8 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onKeyDown,
   onSend,
   onFileUpload,
+  onOpenTarot,
+  onOpenChart,
   styles,
   autoFocus = false,
 }: ChatInputAreaProps) {
@@ -151,6 +157,31 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                 onChange={onFileUpload}
               />
             </label>
+            {/* Mobile-only chart/tarot entry — desktop has them in the
+                sidebar footer (.historyRailFooter). Hidden on ≥1024px via
+                .mobileOnlyTool to avoid double entry points. */}
+            {onOpenTarot && (
+              <button
+                type="button"
+                onClick={onOpenTarot}
+                className={`${styles.attachButton} ${styles.mobileOnlyTool}`}
+                aria-label={tr.tarotButton}
+                title={tr.tarotButton}
+              >
+                <span aria-hidden="true">&#x1F0CF;</span>
+              </button>
+            )}
+            {onOpenChart && (
+              <button
+                type="button"
+                onClick={onOpenChart}
+                className={`${styles.attachButton} ${styles.mobileOnlyTool}`}
+                aria-label={lang === 'ko' ? '내 차트' : 'My chart'}
+                title={lang === 'ko' ? '나의 운명 차트' : 'My destiny chart'}
+              >
+                <span aria-hidden="true">&#x2728;</span>
+              </button>
+            )}
             {parsingPdf && (
               <span className={styles.fileName}>
                 <span className={styles.loadingSpinner} />
