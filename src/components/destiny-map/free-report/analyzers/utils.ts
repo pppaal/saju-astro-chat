@@ -2,17 +2,10 @@
 // This file eliminates duplicate code patterns across analyzer files
 
 import type { SajuData, AstroData, PlanetData } from '../types';
-import { tianGanMap, elementKeyMap } from '../data/constants';
+import { tianGanMap } from '../data/constants';
 
 // Re-export from utils/ directory for backwards compatibility
 export * from './utils/index';
-
-/**
- * Language helper - returns localized text based on language setting
- */
-function t<T extends string>(isKo: boolean, ko: T, en: T): T {
-  return isKo ? ko : en;
-}
 
 /**
  * Select language from a bilingual object
@@ -55,22 +48,6 @@ export function extractFiveElementsSorted(
 }
 
 /**
- * Get strongest element from saju data
- */
-function getStrongestElement(saju: SajuData | undefined): string | null {
-  const sorted = extractFiveElementsSorted(saju);
-  return sorted[0]?.[0] || null;
-}
-
-/**
- * Get weakest element from saju data
- */
-function getWeakestElement(saju: SajuData | undefined): string | null {
-  const sorted = extractFiveElementsSorted(saju);
-  return sorted[sorted.length - 1]?.[0] || null;
-}
-
-/**
  * Extract planet data by name from astro data
  */
 export function extractPlanetSign(
@@ -92,27 +69,6 @@ export function extractPlanetSign(
 }
 
 /**
- * Extract multiple planet signs at once
- */
-function extractPlanetSigns(
-  astro: AstroData | undefined,
-  planetNames: string[]
-): Record<string, string | null> {
-  const result: Record<string, string | null> = {};
-  for (const name of planetNames) {
-    result[name.toLowerCase()] = extractPlanetSign(astro, name);
-  }
-  return result;
-}
-
-/**
- * Convert Korean element name to English key
- */
-function toElementKey(koreanElement: string): string {
-  return elementKeyMap[koreanElement] || koreanElement.toLowerCase();
-}
-
-/**
  * Remove duplicates from an array while maintaining order
  */
 export function uniqueArray<T>(arr: T[]): T[] {
@@ -130,28 +86,5 @@ export interface AnalysisContext {
   weakestElement: string | null;
   sunSign: string | null;
   moonSign: string | null;
-}
-
-/**
- * Create common analysis context from saju and astro data
- */
-function createAnalysisContext(
-  saju: SajuData | undefined,
-  astro: AstroData | undefined,
-  lang: string
-): AnalysisContext {
-  const isKo = lang === "ko";
-  const dayMasterName = extractDayMaster(saju);
-  const fiveElements = extractFiveElementsSorted(saju);
-
-  return {
-    isKo,
-    dayMasterName,
-    fiveElements,
-    strongestElement: fiveElements[0]?.[0] || null,
-    weakestElement: fiveElements[fiveElements.length - 1]?.[0] || null,
-    sunSign: extractPlanetSign(astro, 'sun'),
-    moonSign: extractPlanetSign(astro, 'moon'),
-  };
 }
 

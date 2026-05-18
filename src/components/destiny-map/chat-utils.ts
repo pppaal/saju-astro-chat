@@ -27,18 +27,6 @@ export function generateMessageId(prefix: 'user' | 'assistant' | 'error'): strin
 }
 
 /**
- * Clean follow-up markers from streamed content
- * Handles: ||FOLLOWUP||[...], partial ||FO, ||FOLLOW, ||FOLLOWUP|, etc.
- */
-function cleanFollowupMarkers(text: string): string {
-  return text
-    .replace(/\|\|FOLLOWUP\|\|.*/s, '') // Full marker with content
-    .replace(/\|\|F(?:O(?:L(?:L(?:O(?:W(?:U(?:P(?:\|(?:\|)?)?)?)?)?)?)?)?)?$/s, '') // Any partial state
-    .replace(/\|$/s, '') // Single pipe at end
-    .trim()
-}
-
-/**
  * Determine connection status based on response time
  */
 export function getConnectionStatus(responseTimeMs: number): ConnectionStatus {

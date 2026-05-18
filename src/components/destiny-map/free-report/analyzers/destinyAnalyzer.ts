@@ -324,7 +324,7 @@ function getDominantSibsin(saju: SajuData | undefined): string | null {
   return sorted[0]?.[0] || null;
 }
 
-function getDestinyAnalysis(
+export function getDestinyAnalysis(
   saju: SajuData | undefined,
   astro: AstroData | undefined,
   lang: string

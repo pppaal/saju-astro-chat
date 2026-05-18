@@ -100,7 +100,7 @@ export const SHADOW_SHINSALS: readonly string[] = [
 /**
  * 직업/진로 관련 하우스 영역 매핑
  */
-const HOUSE_CAREER_AREAS: Record<
+export const HOUSE_CAREER_AREAS: Record<
   number,
   { ko: string; en: string; keywords: string[] }
 > = {
