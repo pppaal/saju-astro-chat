@@ -65,6 +65,17 @@ import AdvancedAstroInsights from './free-report/AdvancedAstroInsights'
 import ChartSynthesisCard from './free-report/ChartSynthesisCard'
 import AstroThemedCards from './free-report/AstroThemedCards'
 import AstroLifecycleTimeline from './free-report/AstroLifecycleTimeline'
+import SajuComprehensiveScoreCard from './free-report/SajuComprehensiveScoreCard'
+import UltraAdvancedSajuCard from './free-report/UltraAdvancedSajuCard'
+import HealthCareerCard from './free-report/HealthCareerCard'
+import JohuYongsinCard from './free-report/JohuYongsinCard'
+import SinsalByPillarCard from './free-report/SinsalByPillarCard'
+import ProgressionsCard from './free-report/ProgressionsCard'
+import SolarLunarReturnCard from './free-report/SolarLunarReturnCard'
+import ElectionalCard from './free-report/ElectionalCard'
+import MidpointsCard from './free-report/MidpointsCard'
+import TransitsCard from './free-report/TransitsCard'
+import AspectsListCard from './free-report/AspectsListCard'
 import { synthesizeChart } from '@/lib/astrology/foundation/synthesis'
 import { buildThemedAstroReading } from '@/lib/astrology/foundation/themedReading'
 import { buildLifecycleTiming } from '@/lib/astrology/foundation/lifecycleTiming'
@@ -434,6 +445,60 @@ const FreeReport = memo(function FreeReport({
             <ExtendedAnalysisSection analysis={extendedAnalysis} />
           </div>
 
+          {/* Saju advanced cards — engine already produced these but the
+              UI previously didn't surface them. Each card is silent when
+              its data is missing (returns null). */}
+          <SajuComprehensiveScoreCard
+            score={
+              (normalizedSaju?.advancedAnalysis as Record<string, unknown> | undefined)
+                ?.score as Parameters<typeof SajuComprehensiveScoreCard>[0]['score']
+            }
+            isKo={isKo}
+          />
+          <UltraAdvancedSajuCard
+            ultra={
+              (normalizedSaju?.advancedAnalysis as Record<string, unknown> | undefined)
+                ?.ultraAdvanced as Parameters<typeof UltraAdvancedSajuCard>[0]['ultra']
+            }
+            isKo={isKo}
+          />
+          <HealthCareerCard
+            data={
+              (normalizedSaju?.advancedAnalysis as Record<string, unknown> | undefined)
+                ?.healthCareer as Parameters<typeof HealthCareerCard>[0]['data']
+            }
+            isKo={isKo}
+          />
+          <JohuYongsinCard
+            johuYongsin={
+              ((normalizedSaju?.advancedAnalysis as Record<string, unknown> | undefined)
+                ?.johuYongsin ??
+                ((normalizedSaju?.advancedAnalysis as Record<string, unknown> | undefined)
+                  ?.extended as Record<string, unknown> | undefined)?.johu) as Parameters<
+                typeof JohuYongsinCard
+              >[0]['johuYongsin']
+            }
+            tuechul={
+              (normalizedSaju?.advancedAnalysis as Record<string, unknown> | undefined)
+                ?.tuechul as Parameters<typeof JohuYongsinCard>[0]['tuechul']
+            }
+            hoeguk={
+              (normalizedSaju?.advancedAnalysis as Record<string, unknown> | undefined)
+                ?.hoeguk as Parameters<typeof JohuYongsinCard>[0]['hoeguk']
+            }
+            deukryeong={
+              (normalizedSaju?.advancedAnalysis as Record<string, unknown> | undefined)
+                ?.deukryeong as Parameters<typeof JohuYongsinCard>[0]['deukryeong']
+            }
+            isKo={isKo}
+          />
+          <SinsalByPillarCard
+            sinsal={
+              normalizedSaju?.sinsal as Parameters<typeof SinsalByPillarCard>[0]['sinsal']
+            }
+            isKo={isKo}
+          />
+
           {/* Chart synthesis — Sun×Moon×ASC + element/modality/hemisphere
               balance + chart shape + aspect patterns. Saju side has
               comprehensiveReport / advancedAnalysis; this is the
@@ -451,6 +516,51 @@ const FreeReport = memo(function FreeReport({
               All were already implemented but only Chiron rendered;
               the other 8 were orphaned. Now all surfaced as cards. */}
           <AdvancedAstroInsights astro={normalizedAstro} lang={lang} className="-mx-4 sm:-mx-0" />
+
+          {/* Astro advanced cards — progressions / returns / electional /
+              midpoints / transits / aspects raw. Engine emits all of
+              these; previously not surfaced in the free report UI. */}
+          <ProgressionsCard
+            progressions={
+              normalizedAstro?.progressions as Parameters<typeof ProgressionsCard>[0]['progressions']
+            }
+            isKo={isKo}
+          />
+          <SolarLunarReturnCard
+            solarReturn={
+              normalizedAstro?.solarReturn as Parameters<typeof SolarLunarReturnCard>[0]['solarReturn']
+            }
+            lunarReturn={
+              normalizedAstro?.lunarReturn as Parameters<typeof SolarLunarReturnCard>[0]['lunarReturn']
+            }
+            isKo={isKo}
+          />
+          <ElectionalCard
+            electional={
+              normalizedAstro?.electional as Parameters<typeof ElectionalCard>[0]['electional']
+            }
+            isKo={isKo}
+          />
+          <MidpointsCard
+            midpoints={
+              normalizedAstro?.midpoints as Parameters<typeof MidpointsCard>[0]['midpoints']
+            }
+            isKo={isKo}
+          />
+          <TransitsCard
+            transits={
+              (normalizedAstro as { transits?: unknown[] } | undefined)?.transits as Parameters<
+                typeof TransitsCard
+              >[0]['transits']
+            }
+            isKo={isKo}
+          />
+          <AspectsListCard
+            aspects={
+              normalizedAstro?.aspects as Parameters<typeof AspectsListCard>[0]['aspects']
+            }
+            isKo={isKo}
+          />
 
           {/* 사주×점성 룰 매칭 — fusion 엔진이 (saju predicate AND
               astro predicate) 매칭된 룰의 narrative fragment를 도메인별로
