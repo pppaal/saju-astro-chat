@@ -139,7 +139,9 @@ describe('cities/formatter', () => {
 
     describe('Korean locale', () => {
       it('should format known cities in Korean', () => {
-        expect(formatCityForDropdown('Seoul', 'KR', 'ko')).toBe('서울, 한국')
+        // KO + KR → city only ("country redundant for Korean reader",
+        // see formatter.ts JSDoc). KO + foreign → city, country.
+        expect(formatCityForDropdown('Seoul', 'KR', 'ko')).toBe('서울')
         expect(formatCityForDropdown('Tokyo', 'JP', 'ko')).toBe('도쿄, 일본')
         expect(formatCityForDropdown('New York', 'US', 'ko')).toBe('뉴욕, 미국')
       })
@@ -150,7 +152,8 @@ describe('cities/formatter', () => {
       })
 
       it('should handle English city + Korean country when city unknown but country known', () => {
-        expect(formatCityForDropdown('Unknown City', 'KR', 'ko')).toBe('Unknown City, 한국')
+        // KO + KR → city only (redundant rule applies even for unknown city).
+        expect(formatCityForDropdown('Unknown City', 'KR', 'ko')).toBe('Unknown City')
         expect(formatCityForDropdown('Unknown City', 'JP', 'ko')).toBe('Unknown City, 일본')
       })
 
@@ -159,7 +162,7 @@ describe('cities/formatter', () => {
       })
 
       it('should capitalize before lookup', () => {
-        expect(formatCityForDropdown('seoul', 'KR', 'ko')).toBe('서울, 한국')
+        expect(formatCityForDropdown('seoul', 'KR', 'ko')).toBe('서울')
         expect(formatCityForDropdown('TOKYO', 'JP', 'ko')).toBe('도쿄, 일본')
       })
 
