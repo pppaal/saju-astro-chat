@@ -365,7 +365,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
   const visibleMessages = messages.filter((m) => m.role !== 'system')
 
   return (
-    <div className={`${styles.chatContainer} ${styles.lightTheme}`}>
+    <div className={styles.chatContainer}>
       {connectionStatus === 'offline' && (
         <div className={`${styles.connectionStatus} ${styles[connectionStatus]}`}>
           {'\uD83D\uDCE1 Connection lost - Check your internet'}
