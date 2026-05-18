@@ -147,17 +147,19 @@ export function buildInterpretation(args: {
     .map((s) => `**[${s.title}]**\n${s.text}`)
     .join('\n\n')
 
-  // 도메인별 themeScores — 룰 의도 + 신호 평균을 blend.
+  // 도메인별 themeScores — 신호 평균 base + 룰 의도 adjustment.
   //
-  // 룰 의도 단독으로 가면 1개 룰만 매칭됐을 때 점수 극단으로 (20 or 80)
-  // 떨어져서 사용자가 "왤케 낮아" 헷갈림. 신호 평균(cell.themeScores)이
-  // 전체 흐름을 반영하고, 룰 의도가 그 도메인 narrative 톤을 반영함.
-  // 60:40 blend가 narrative 톤 우세 + 전체 흐름도 함께 표현.
+  // 점수 모델: final = signalAvg + ruleIntentAvg × 30
   //
-  // 결과 분포 (사용자 audit 사례):
-  //   love: 룰 의도 20 + 신호 평균 61 → blend 36 (주의 narrative와 정합)
-  //   career: 룰 의도 60 + 신호 평균 57 → blend 59 (복합과 정합)
-  //   growth: 룰 의도 50 + 신호 평균 59 → blend 54 (중립과 정합)
+  // - 신호 평균(cell.themeScores)이 base — 사용자 멘탈 모델(80=좋음,
+  //   50=보통, 20=주의)을 따라감.
+  // - 룰 의도 평균이 ±30 adjustment — narrative 톤이 양/음 쪽으로 끌어당김.
+  //   우호 룰 일관(+1) 시 +30, 주의 룰 일관(-1) 시 -30, 섞이면 0.
+  //
+  // 결과 분포 가능 범위: 20-90+ 자유롭게.
+  //  - 신호 우호(80) + 룰 우호(+1) → 110 → cap 100 (매우 좋은 날)
+  //  - 신호 평균(55) + 룰 주의(-1) → 25 (주의 날)
+  //  - 신호 평균(50) + 룰 중립(0) → 50 (보통)
   const DOMAIN_TO_THEME: Record<string, keyof NonNullable<Interpretation['themeScores']>> = {
     money: 'money',
     work: 'career',
@@ -170,17 +172,15 @@ export function buildInterpretation(args: {
   for (const [domain, list] of domainPicks) {
     const themeKey = DOMAIN_TO_THEME[domain]
     if (!themeKey) continue
-    // 룰 의도 평균 → 0-100
     const intents = list.map((m) => m.polarity)
     const intentAvg = intents.length > 0
       ? intents.reduce((s, p) => s + p, 0) / intents.length
       : 0
-    const ruleScore = Math.max(0, Math.min(100, Math.round(50 + intentAvg * 30)))
-    // 신호 기반 점수 (cell.themeScores에서)
+    // base: 신호 평균
     const signalScore = cellThemeScores[themeKey] ?? 50
-    // 60:40 blend — narrative 톤 우세 + 전체 흐름 반영
-    const blended = Math.round(ruleScore * 0.6 + signalScore * 0.4)
-    themeScores[themeKey] = Math.max(0, Math.min(100, blended))
+    // adjustment: ±30 swing
+    const final = signalScore + intentAvg * 30
+    themeScores[themeKey] = Math.max(0, Math.min(100, Math.round(final)))
   }
 
   return {
