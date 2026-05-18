@@ -87,8 +87,9 @@ jobs:
 
       - name: Lint changed files
         run: |
-          # Only lint files changed in this PR
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')
+          # Only lint files changed in this PR. --diff-filter=d excludes
+          # deleted paths so eslint doesn't fail with "No files matching".
+          CHANGED_FILES=$(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')
           if [ -n "$CHANGED_FILES" ]; then
             npx eslint $CHANGED_FILES
           else

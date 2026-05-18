@@ -24,27 +24,27 @@ console.log(`[destiny-gate] mode=${mode}`)
 runStep('mojibake-lint', 'npm', ['run', '-s', 'lint:mojibake'])
 runStep('typecheck', 'npm', ['run', '-s', 'typecheck'])
 
+// 5 sibling tests referenced deleted modules (rewriteGuards,
+// reportSectionRenderers, aiReportService, chat-stream/route,
+// chat-stream/lib/focusDomain). Those test files were removed; only the
+// suites whose underlying modules still exist remain in the gate.
 runStep('consistency-and-guards', 'npx', [
   'vitest',
   'run',
-  'tests/lib/destiny-matrix/ai-report/rewriteGuards.test.ts',
   'tests/lib/destiny-matrix/ai-report/reportQuality.test.ts',
   'tests/lib/destiny-matrix/ai-report/aiReportServicePolishSupport.test.ts',
-  'tests/lib/destiny-matrix/ai-report/reportNarrativeGuards.test.ts',
   'tests/lib/destiny-matrix/ai-report/singleSubjectQuality.golden.test.ts',
-  'tests/lib/destiny-matrix/ai-report/consistencyPriority.golden.test.ts',
   'tests/lib/destiny-matrix/interpretedAnswer.test.ts',
-  'tests/app/api/destiny-map/chat-stream/lib/focusDomain.contract.test.ts',
-  'tests/app/api/destiny-map/chat-stream/route.mega.test.ts',
 ])
 
 if (mode === 'full') {
+  // graphRagEvidence20cases.test.ts was removed alongside the module it
+  // covered; the remaining two golden suites still have backing code.
   runStep('full-golden-suite-blocking', 'npx', [
     'vitest',
     'run',
     'tests/lib/destiny-matrix/ai-report/coreConsistency30cases.golden.test.ts',
     'tests/lib/destiny-matrix/ai-report/matrixGraphRagFlow.e2e.test.ts',
-    'tests/lib/destiny-matrix/ai-report/graphRagEvidence20cases.test.ts',
   ])
   runStep('full-quality-golden', 'npx', [
     'vitest',
