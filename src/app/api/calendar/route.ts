@@ -871,8 +871,6 @@ export const GET = withApiMiddleware(
         }
       | undefined
 
-    let matrixEngineAvailable = false
-
     try {
       const [
         { buildCalendarCoreEnvelope },
@@ -955,7 +953,6 @@ export const GET = withApiMiddleware(
         focusDomain:
           mapCoreSignalDomainToCalendarDomain(calendarCoreCanonical.focusDomain) || undefined,
       }
-      matrixEngineAvailable = true
     } catch (matrixError) {
       degradationReasons.push('matrix_core_unavailable')
       matrixDegradationReasons.push('matrix_core_unavailable')
@@ -1167,67 +1164,6 @@ export const GET = withApiMiddleware(
       logger.warn?.('[calendar-engine v2 augment] skipped:', err instanceof Error ? err.message : String(err))
     }
 
-    const sortByDisplayScoreDesc = (
-      a: (typeof formattedDates)[number],
-      b: (typeof formattedDates)[number]
-    ) => (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
-    const sortByDisplayScoreAsc = (
-      a: (typeof formattedDates)[number],
-      b: (typeof formattedDates)[number]
-    ) => (a.displayScore ?? a.score) - (b.displayScore ?? b.score)
-
-    // Group by the final display grade so API summaries match what the UI actually shows.
-    const gradeGroups: Record<number, typeof formattedDates> = {
-      0: [],
-      1: [],
-      2: [],
-      3: [],
-      4: [],
-    }
-    for (const d of formattedDates) {
-      const effectiveGrade = d.displayGrade ?? d.grade
-      if (effectiveGrade >= 0 && effectiveGrade <= 4) {
-        gradeGroups[effectiveGrade].push(d)
-      }
-    }
-    const grade0 = gradeGroups[0] // 천운의 날
-    const grade1 = gradeGroups[1] // 아주 좋은 날
-    const grade2 = gradeGroups[2] // 좋은 날
-    const grade3 = gradeGroups[3] // 보통 날
-    const grade4 = gradeGroups[4] // 최악의 날
-
-    const degradationReasonSet = [...new Set(degradationReasons)]
-    const matrixDegradationReasonSet = [...new Set(matrixDegradationReasons)]
-    const matrixInputMode = 'full-chart' as const
-    const degradedMode = {
-      active: degradationReasonSet.length > 0,
-      level:
-        degradationReasonSet.length > 0 ? ('engine-degraded' as const) : ('full-engine' as const),
-      reasons: degradationReasonSet,
-      labels:
-        locale === 'en'
-          ? degradationReasonSet.map((reason) => {
-              switch (reason) {
-                case 'matrix_core_unavailable':
-                  return 'Destiny matrix core is unavailable.'
-                case 'ai_enrichment_unavailable':
-                  return 'AI date enrichment is unavailable; local rules are being used.'
-                default:
-                  return reason
-              }
-            })
-          : degradationReasonSet.map((reason) => {
-              switch (reason) {
-                case 'matrix_core_unavailable':
-                  return 'destiny-matrix core를 사용할 수 없습니다.'
-                case 'ai_enrichment_unavailable':
-                  return 'AI 날짜 보강을 사용할 수 없어 로컬 규칙으로 계산했습니다.'
-                default:
-                  return reason
-              }
-            }),
-    }
-
     const presentationDomainMap = {
       career: 'career',
       study: 'career',
@@ -1293,11 +1229,7 @@ export const GET = withApiMiddleware(
       predictionId,
       type: 'yearly',
       year,
-      matrixStrictMode: matrixEngineAvailable && matrixDegradationReasonSet.length === 0,
-      matrixInputMode,
-      degradedMode,
       matrixContract: calendarMatrixContract,
-      canonicalCore: calendarCoreCanonical,
       todayHourlyTimeSlots,
       // 헤더 뱃지 / 프로필 카드용 본명 정체성
       astroIdentity: (() => {
@@ -1319,36 +1251,12 @@ export const GET = withApiMiddleware(
         time: birthTimeParam,
         place: birthPlace,
       },
-      summary: {
-        total: formattedDates.length,
-        grade0: grade0.length, // 천운의 날
-        grade1: grade1.length, // 아주 좋은 날
-        grade2: grade2.length, // 좋은 날
-        grade3: grade3.length, // 보통 날
-        grade4: grade4.length, // 최악의 날
-      },
-      topDates: (() => {
-        // grade0 + grade1 + grade2가 부족하면 grade3 중 높은 점수 날짜도 포함
-        const topCandidates = [...grade0, ...grade1, ...grade2]
-        if (topCandidates.length < 5) {
-          const topGrade3 = grade3.sort(sortByDisplayScoreDesc).slice(0, 5 - topCandidates.length)
-          topCandidates.push(...topGrade3)
-        }
-        return topCandidates.sort(sortByDisplayScoreDesc).slice(0, 10)
-      })(),
-      goodDates: [...grade1, ...grade2].sort(sortByDisplayScoreDesc).slice(0, 20),
-      badDates: [...grade4, ...grade3].sort(sortByDisplayScoreAsc).slice(0, 10),
-      worstDates: [...grade4].sort(sortByDisplayScoreAsc).slice(0, 5),
       allDates: formattedDates,
       monthSummary: presentationView.monthSummary,
       calendarDailyView: presentationView.dailyView,
       calendarMonthView: presentationView.monthView,
-      timingSignals: presentationView.timingSignals,
-      cautions: presentationView.cautions,
-      recommendedActions: presentationView.recommendedActions,
       relationshipWeather: presentationView.relationshipWeather,
       workMoneyWeather: presentationView.workMoneyWeather,
-      matrixEvidencePackets: responseMatrixEvidencePackets,
     })
     const res = NextResponse.json(responsePayload)
 

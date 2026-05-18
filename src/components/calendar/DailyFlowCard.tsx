@@ -26,9 +26,31 @@ export default function DailyFlowCard({ importantDate }: Props) {
   const patterns = importantDate.matchedPatterns ?? []
   const shinsalActive = importantDate.shinsalActive ?? []
   const signals = importantDate.engineSignals ?? []
+  const cycle = importantDate.longCycleContext
+  const interactions = importantDate.cycleInteractions ?? []
 
-  if (patterns.length === 0 && shinsalActive.length === 0 && signals.length === 0) {
+  if (
+    patterns.length === 0 &&
+    shinsalActive.length === 0 &&
+    signals.length === 0 &&
+    !cycle &&
+    interactions.length === 0
+  ) {
     return null
+  }
+
+  const cycleRow: Array<{ label: string; ganji: string; sibsin?: string }> = []
+  if (cycle?.daeun) {
+    cycleRow.push({ label: '대운', ganji: cycle.daeun.ganji, sibsin: cycle.daeun.sibsinStem })
+  }
+  if (cycle?.sewoon) {
+    cycleRow.push({ label: '세운', ganji: cycle.sewoon.ganji, sibsin: cycle.sewoon.sibsinStem })
+  }
+  if (cycle?.wolwoon) {
+    cycleRow.push({ label: '월운', ganji: cycle.wolwoon.ganji, sibsin: cycle.wolwoon.sibsinStem })
+  }
+  if (cycle?.iljin) {
+    cycleRow.push({ label: '일진', ganji: cycle.iljin.ganji, sibsin: cycle.iljin.sibsinStem })
   }
 
   // 1. 핵심 헤드라인 (매칭 패턴 1번째)
@@ -64,6 +86,43 @@ export default function DailyFlowCard({ importantDate }: Props) {
         {/* 핵심 한 줄 */}
         {lead && (
           <p className="text-amber-200 font-bold text-base">{lead}.</p>
+        )}
+
+        {/* 대운/세운/월운/일진 흐름 한 줄 */}
+        {cycleRow.length > 0 && (
+          <div className="flex flex-wrap gap-2 text-xs">
+            {cycleRow.map((c) => (
+              <span
+                key={c.label}
+                className="inline-flex items-center gap-1.5 bg-zinc-950/60 border border-white/5 rounded-full px-2.5 py-1"
+              >
+                <span className="text-zinc-500">{c.label}</span>
+                <span className="text-zinc-100 font-bold tracking-wide">{c.ganji}</span>
+                {c.sibsin && <span className="text-indigo-300">{c.sibsin}</span>}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* 충/합/형 — 큰 흐름 끼리 부딪힘 */}
+        {interactions.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {interactions.slice(0, 6).map((it, i) => {
+              const isClash = it.kind.includes('충') || it.kind.includes('형') || it.kind.includes('파') || it.kind.includes('해')
+              const tone = isClash
+                ? 'bg-rose-900/30 border-rose-500/30 text-rose-200'
+                : 'bg-emerald-900/30 border-emerald-500/30 text-emerald-200'
+              return (
+                <span
+                  key={`${it.pair}-${it.kind}-${i}`}
+                  title={it.blurb}
+                  className={`text-[11px] font-medium border rounded-md px-2 py-0.5 ${tone}`}
+                >
+                  {it.pair} {it.kind}
+                </span>
+              )
+            })}
+          </div>
         )}
 
         {/* 큰 흐름 + 일진 디테일 */}
