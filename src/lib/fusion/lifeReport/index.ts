@@ -1,5 +1,5 @@
 // src/lib/fusion/lifeReport/index.ts
-// Public entry — phase 1.
+// Public entry — phase 2.
 
 export { buildLifeReport } from './builder'
 export type {
@@ -11,4 +11,12 @@ export type {
   Paragraph,
   AstrologyLikeChart,
   BuilderInput,
+  Headline,
+  HeadlineSignals,
+  LifeStage,
+  LifeStageId,
+  LifeStages,
+  DecisiveYear,
+  DecisiveTiming,
+  KarmaSection,
 } from './types'

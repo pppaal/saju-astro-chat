@@ -44,10 +44,65 @@ export interface DomainNarrative {
   }
 }
 
+// ─── Headline (한 줄 정의) ───────────────────────────────────
+export interface HeadlineSignals {
+  saju: string[]
+  astro: string[]
+}
+
+export interface Headline {
+  ko: string
+  en: string
+  signals: HeadlineSignals
+}
+
+// ─── Life stages (생애 단계 4개) ─────────────────────────────
+export type LifeStageId = 'early' | 'young' | 'middle' | 'late'
+
+export interface LifeStage {
+  id: LifeStageId
+  years: string // '0-20', '20-40', '40-60', '60+'
+  title: { ko: string; en: string }
+  paragraphs: Paragraph[]
+  signals: { saju: string[]; astro: string[] }
+}
+
+export interface LifeStages {
+  early: LifeStage
+  young: LifeStage
+  middle: LifeStage
+  late: LifeStage
+}
+
+// ─── Decisive timing (결정적 타이밍) ─────────────────────────
+export interface DecisiveYear {
+  age: number
+  year: number
+  domain: string // 'career' | 'love' | 'health' | 'wealth' | 'crisis' | ...
+  description: { ko: string; en: string }
+  sources: { saju?: string; astro?: string }
+}
+
+export interface DecisiveTiming {
+  decisiveYears: DecisiveYear[]
+  paragraphs: Paragraph[]
+  signals: { saju: string[]; astro: string[] }
+}
+
+// ─── Karma / 잠재력 ──────────────────────────────────────────
+export interface KarmaSection {
+  paragraphs: Paragraph[]
+  signals: { saju: string[]; astro: string[] }
+}
+
 // ─── Top-level life report ───────────────────────────────────
 export interface LifeReport {
   generatedAt: string
-  generator: 'lifeReport-v1-deterministic'
+  generator: 'lifeReport-v1-deterministic' | 'lifeReport-v2-deterministic'
+  headline: Headline
+  lifeStages: LifeStages
+  decisiveTiming: DecisiveTiming
+  karma: KarmaSection
   domains: DomainNarrative[]
 }
 
@@ -81,6 +136,8 @@ export interface AstrologyLikeChart {
   progressions?: {
     secondary?: {
       progressedSun?: { sign?: string; house?: number }
+      progressedMoon?: { sign?: string; house?: number }
+      progressedAscendant?: { sign?: string }
     }
   }
   fixedStars?: Array<{
@@ -100,7 +157,17 @@ export interface AstrologyLikeChart {
     vertex?: ExtraPoint
     partOfFortune?: ExtraPoint
     ceres?: ExtraPoint
+    northNode?: ExtraPoint
+    southNode?: ExtraPoint
   }
+  /** Active transits — optional defensive map for decisive timing. */
+  transits?: Array<{
+    planet?: string
+    target?: string
+    aspect?: string
+    exactAt?: string // ISO
+    orb?: number
+  }>
 }
 
 // ─── Internal helper used by domain builders ─────────────────
