@@ -89,9 +89,23 @@ export function planetLabel(planet: string, lang: Lang): string {
   return KO[planet] ?? planet
 }
 
-/** Translate FE element ko → en label. */
+/** Translate FE element to localized natural label. */
 export function elementLabel(el: string, lang: Lang): string {
-  if (lang === 'ko') return el
+  if (lang === 'ko') {
+    const KO: Record<string, string> = {
+      목: '목(나무)',
+      화: '화(불)',
+      토: '토(흙)',
+      금: '금(쇠)',
+      수: '수(물)',
+      wood: '목(나무)',
+      fire: '화(불)',
+      earth: '토(흙)',
+      metal: '금(쇠)',
+      water: '수(물)',
+    }
+    return KO[el] ?? el
+  }
   const EN: Record<string, string> = {
     목: 'Wood',
     화: 'Fire',

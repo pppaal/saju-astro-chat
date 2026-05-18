@@ -20,6 +20,7 @@ import {
   aspectQuality,
   elementLabel,
   houseLabel,
+  iGa,
   paragraph,
   planetLabel,
   signLabel,
@@ -88,7 +89,10 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
 
   // ── Paragraph 2: 점성 — 일터 건강 + Mars/Saturn
   const sixthFlavor = sixthPlanets.length > 0
-    ? `일상과 건강의 자리에 ${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 자리해서, 일상의 ${sixthHouseFlavorKo(sixthPlanets)}이 건강 신호를 만들어요.`
+    ? (() => {
+        const flavor = sixthHouseFlavorKo(sixthPlanets)
+        return `일상과 건강의 자리에 ${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 자리해서, 일상의 ${flavor}${iGa(flavor)} 건강 신호로 이어져요.`
+      })()
     : '일상과 건강의 자리는 비어 있어, 건강 신호는 다른 자리의 별들이 함께 짊어져요.'
   const sixthFlavorEn = sixthPlanets.length > 0
     ? `With ${sixthPlanets.map((p) => p.name).join(', ')} inside the 6th, daily ${sixthHouseFlavorEn(sixthPlanets)} carries your health signal.`

@@ -242,12 +242,12 @@ function confLabelKo(c: 'high' | 'medium' | 'low'): string {
 }
 
 function stageFlavorKo(stage: string | undefined): string {
-  if (!stage) return '자녀와의 관계가 일상에 자연스럽게 자리잡아요'
+  if (!stage) return '일상에 자연스럽게 자리잡는 결이에요'
   if (['장생', '관대', '임관', '왕지', '건록', '제왕'].includes(stage))
-    return '자녀의 기운이 강하게 살아 있는 결이에요'
+    return '강하게 살아 있는 기운의 결이에요'
   if (['병', '사', '묘', '절', '태'].includes(stage))
-    return '자녀 자리에 휴식과 비움의 결이 있어요'
-  return '자녀 자리에 잔잔한 결이 흘러요'
+    return '휴식과 비움의 결이 있어요'
+  return '잔잔한 결이 흘러요'
 }
 function stageFlavorEn(stage: string | undefined): string {
   if (!stage) return 'the children-bond settles naturally into daily life'
