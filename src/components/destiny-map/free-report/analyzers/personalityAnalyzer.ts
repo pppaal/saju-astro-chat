@@ -177,7 +177,7 @@ const moonStressResponse: Record<string, { ko: string; en: string }> = {
  * 십신 분포에서 가장 강한 십신 추출
  */
 function getDominantSibsin(saju: SajuData | undefined): string | null {
-  const sibsinDist = saju?.advancedAnalysis?.sibsin?.sibsinDistribution;
+  const sibsinDist = saju?.advancedAnalysis?.sibsin?.count;
   if (!sibsinDist || typeof sibsinDist !== 'object') {return null;}
 
   const entries = Object.entries(sibsinDist) as [string, number][];

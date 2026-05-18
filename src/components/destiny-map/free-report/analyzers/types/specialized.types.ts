@@ -399,7 +399,7 @@ export interface ExtendedSajuData {
     twelveAll?: Array<{ name?: string }>
   }
   advancedAnalysis?: {
-    sibsin?: { sibsinDistribution?: Record<string, number> }
+    sibsin?: { count?: Record<string, number>; categoryCount?: Record<string, number> }
     geokguk?: { name?: string; type?: string; description?: string }
     yongsin?: { element?: string; name?: string; type?: string; reason?: string }
     hyungChungHoeHap?: {

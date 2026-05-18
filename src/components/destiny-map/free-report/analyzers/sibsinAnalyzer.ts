@@ -4,9 +4,9 @@ import type { SajuData } from '../types';
 export function getSibsinDistribution(saju: SajuData | undefined): Record<string, number> {
   const distribution: Record<string, number> = {};
 
-  // advancedAnalysis에서 sibsin 가져오기
-  if (saju?.advancedAnalysis?.sibsin?.sibsinDistribution) {
-    return saju.advancedAnalysis.sibsin.sibsinDistribution;
+  // advancedAnalysis에서 sibsin 가져오기 (엔진은 `count`로 산출)
+  if (saju?.advancedAnalysis?.sibsin?.count) {
+    return saju.advancedAnalysis.sibsin.count;
   }
 
   // pillars에서 직접 계산
