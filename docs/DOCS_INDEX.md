@@ -82,17 +82,16 @@ Last audited: 2026-05-17 (Asia/Hong_Kong)
 
 ## Current Operating Notes
 
-- Current destiny release gate is not just type/build health. It also includes:
-  - `scripts/ops/qa-destiny-three-services.ts`
-  - `scripts/ops/qa-counselor-questions.ts`
-- 2026-05-06 verification snapshot:
+- Current destiny release gate (in package.json `ops:destiny:release`) is `typecheck` + `test:destiny:release` + `qa-destiny-three-services`. **The third step is broken** — see below. Until repaired, run the steps individually.
+- 2026-05-18 verification snapshot:
   - `npm run docs:check-links` -> **PASS** (8 markdown files)
-  - `npx tsc -p tsconfig.json --noEmit` -> **PASS** (0 errors, after `prisma generate`)
-  - `npm run lint` -> **PASS** (0 errors after fixing 2 unused-import errors in `MainPageClient.tsx`)
-  - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both` -> **PASS=42 WARN=0 FAIL=0** (was WARN=13 FAIL=8 in 2026-04-01 snapshot)
-  - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both` -> **PASS=10 WARN=0 FAIL=0** (was blocked by parse error in 2026-04-01 snapshot — now resolved)
-  - `npm test` not run in this snapshot (long-running suite)
+  - `npx tsc -p tsconfig.json --noEmit` -> **PASS** (0 errors, after `prisma generate` with any dummy `DATABASE_URL`)
+  - `npm run lint` -> **PASS** (0 errors) — recovered from 88 via PR #271 (unused-vars / dead exports cleanup, ~2,100 lines deleted)
+  - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=ko` -> **PASS=21 WARN=0 FAIL=0** (en mode not run this round; was `PASS=42` both-langs in 2026-05-06 snapshot)
+  - `npx tsx scripts/ops/qa-destiny-three-services.ts` -> **SCRIPT BROKEN**: imports `aiReportService.ts` (`generateAIPremiumReport`, `generateThemedReport`) which PR #245 removed. The 2026-05-06 `PASS=10` claim was unreproducible at the time it was recorded. Follow-up: rewrite against `runDestinyCore` + `adaptCoreTo*` adapters (already used by the rest of the script), or restore minimal entry points.
+  - `npm run test:destiny:release` -> **FAIL=16, PASS=72 (7 of 8 files have failures)**. Pre-existing — previous snapshots explicitly noted "`npm test` not run". Failures span `tests/app/api/tarot/interpret/route.test.ts` (auto-repair format expectations), and others. Follow-up: triage by file.
 - 2026-05-06 maintenance: `CROSS_RULES_SPEC.md` regenerated (205 rules + 10 meta); `npx knip` triage in `DEAD_CODE_TRIAGE.md`; 3 dead files removed from `src/lib/fortune/cross-rules/`; **Python `backend_ai` substrate fully retired** — folder, CI workflows, package.json scripts, tests, docker-compose service, and env vars all removed; `AUDIT_TAROT_GRAPHRAG.md`, `AUDIT_REPO_MAP.md`, `audit_tarot_quality.md` archived.
+- 2026-05-18 maintenance: lint dead-code cleanup (PR #271) — deleted `destinyAnalyzer.ts`, `healthAnalyzerAdvanced.ts`, cascade-deleted ~30 unused exports across analyzers/utils/types/skeletons.
 
 ## Archive Guidance
 

@@ -2,17 +2,10 @@
 // This file eliminates duplicate code patterns across analyzer files
 
 import type { SajuData, AstroData, PlanetData } from '../types';
-import { tianGanMap, elementKeyMap } from '../data/constants';
+import { tianGanMap } from '../data/constants';
 
 // Re-export from utils/ directory for backwards compatibility
 export * from './utils/index';
-
-/**
- * Language helper - returns localized text based on language setting
- */
-function t<T extends string>(isKo: boolean, ko: T, en: T): T {
-  return isKo ? ko : en;
-}
 
 /**
  * Select language from a bilingual object
@@ -55,22 +48,6 @@ export function extractFiveElementsSorted(
 }
 
 /**
- * Get strongest element from saju data
- */
-function getStrongestElement(saju: SajuData | undefined): string | null {
-  const sorted = extractFiveElementsSorted(saju);
-  return sorted[0]?.[0] || null;
-}
-
-/**
- * Get weakest element from saju data
- */
-function getWeakestElement(saju: SajuData | undefined): string | null {
-  const sorted = extractFiveElementsSorted(saju);
-  return sorted[sorted.length - 1]?.[0] || null;
-}
-
-/**
  * Extract planet data by name from astro data
  */
 export function extractPlanetSign(
@@ -92,67 +69,10 @@ export function extractPlanetSign(
 }
 
 /**
- * Extract multiple planet signs at once
- */
-function extractPlanetSigns(
-  astro: AstroData | undefined,
-  planetNames: string[]
-): Record<string, string | null> {
-  const result: Record<string, string | null> = {};
-  for (const name of planetNames) {
-    result[name.toLowerCase()] = extractPlanetSign(astro, name);
-  }
-  return result;
-}
-
-/**
- * Convert Korean element name to English key
- */
-function toElementKey(koreanElement: string): string {
-  return elementKeyMap[koreanElement] || koreanElement.toLowerCase();
-}
-
-/**
  * Remove duplicates from an array while maintaining order
  */
 export function uniqueArray<T>(arr: T[]): T[] {
   return [...new Set(arr)];
-}
-
-/**
- * Base analysis context - common data extraction for all analyzers
- */
-export interface AnalysisContext {
-  isKo: boolean;
-  dayMasterName: string | null;
-  fiveElements: [string, number][];
-  strongestElement: string | null;
-  weakestElement: string | null;
-  sunSign: string | null;
-  moonSign: string | null;
-}
-
-/**
- * Create common analysis context from saju and astro data
- */
-function createAnalysisContext(
-  saju: SajuData | undefined,
-  astro: AstroData | undefined,
-  lang: string
-): AnalysisContext {
-  const isKo = lang === "ko";
-  const dayMasterName = extractDayMaster(saju);
-  const fiveElements = extractFiveElementsSorted(saju);
-
-  return {
-    isKo,
-    dayMasterName,
-    fiveElements,
-    strongestElement: fiveElements[0]?.[0] || null,
-    weakestElement: fiveElements[fiveElements.length - 1]?.[0] || null,
-    sunSign: extractPlanetSign(astro, 'sun'),
-    moonSign: extractPlanetSign(astro, 'moon'),
-  };
 }
 
 /**
@@ -178,30 +98,3 @@ export function mapSajuElementToKo(el: string): string {
   return map[el] || el;
 }
 
-/**
- * Get element name in Korean (stub for compatibility)
- */
-function elementNameKo(el: string): string {
-  return mapSajuElementToKo(el);
-}
-
-/**
- * Get house life area (stub for compatibility)
- */
-function getHouseLifeArea(house: number, isKo: boolean): string {
-  const areas: Record<number, { ko: string; en: string }> = {
-    1: { ko: '자아', en: 'Self' },
-    2: { ko: '재산', en: 'Resources' },
-    3: { ko: '소통', en: 'Communication' },
-    4: { ko: '가정', en: 'Home' },
-    5: { ko: '연애', en: 'Romance' },
-    6: { ko: '건강', en: 'Health' },
-    7: { ko: '관계', en: 'Relationships' },
-    8: { ko: '변화', en: 'Transformation' },
-    9: { ko: '철학', en: 'Philosophy' },
-    10: { ko: '커리어', en: 'Career' },
-    11: { ko: '우정', en: 'Friendship' },
-    12: { ko: '영성', en: 'Spirituality' },
-  };
-  return areas[house]?.[isKo ? 'ko' : 'en'] || (isKo ? '기타' : 'Other');
-}

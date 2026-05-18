@@ -161,43 +161,6 @@ export interface AspectInterpretation {
   score?: number;
 }
 
-// ========== Helper type for element mapping ==========
-
-/**
- * Korean to English element mapping
- */
-const KOREAN_ELEMENT_MAP: Record<string, FiveElement> = {
-  '목': 'wood',
-  '화': 'fire',
-  '토': 'earth',
-  '금': 'metal',
-  '수': 'water',
-  'wood': 'wood',
-  'fire': 'fire',
-  'earth': 'earth',
-  'metal': 'metal',
-  'water': 'water',
-};
-
-/**
- * Chinese heavenly stem to Korean mapping
- */
-const CHINESE_TO_KOREAN_STEM: Record<ChineseHeavenlyStem | string, HeavenlyStem> = {
-  '甲': '갑', '乙': '을', '丙': '병', '丁': '정', '戊': '무',
-  '己': '기', '庚': '경', '辛': '신', '壬': '임', '癸': '계',
-};
-
-/**
- * Heavenly stem to element mapping
- */
-const STEM_ELEMENT_MAP: Record<HeavenlyStem, FiveElement> = {
-  '갑': 'wood', '을': 'wood',
-  '병': 'fire', '정': 'fire',
-  '무': 'earth', '기': 'earth',
-  '경': 'metal', '신': 'metal',
-  '임': 'water', '계': 'water',
-};
-
 // ========== Zodiac Sign Helpers ==========
 
 export const ZODIAC_SIGNS: readonly ZodiacSign[] = [
@@ -211,8 +174,3 @@ export const ZODIAC_ELEMENTS: Record<ZodiacSign, 'fire' | 'earth' | 'air' | 'wat
   sagittarius: 'fire', capricorn: 'earth', aquarius: 'air', pisces: 'water',
 };
 
-const ZODIAC_MODALITIES: Record<ZodiacSign, 'cardinal' | 'fixed' | 'mutable'> = {
-  aries: 'cardinal', taurus: 'fixed', gemini: 'mutable', cancer: 'cardinal',
-  leo: 'fixed', virgo: 'mutable', libra: 'cardinal', scorpio: 'fixed',
-  sagittarius: 'mutable', capricorn: 'cardinal', aquarius: 'fixed', pisces: 'mutable',
-};

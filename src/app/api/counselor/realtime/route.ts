@@ -212,7 +212,7 @@ export async function POST(req: NextRequest) {
         includeSolarReturn: true,
         includeLunarReturn: true,
       })
-      const [saju, astro] = await Promise.all([sajuPromise, astroPromise])
+      const [saju, _astro] = await Promise.all([sajuPromise, astroPromise])
       const birthTimeUnknown = hourUnknown
       const birthCityUnknown = cityUnknown
       // Compact table form — replaces the older pretty-JSON snapshot

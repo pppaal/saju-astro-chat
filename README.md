@@ -90,24 +90,23 @@ Honest technical assessment:
 
 ## Current QA Snapshot
 
-Verified in the current workspace on 2026-05-06:
+Verified in the current workspace on 2026-05-18:
 
-- `npx tsc -p tsconfig.json --noEmit`: passed (0 errors)
-- `npm run lint`: passed (0 errors)
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`: `PASS=10 WARN=0 FAIL=0`
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`: `PASS=42 WARN=0 FAIL=0`
-- `npm run docs:check-links`: passed (8 files)
+- `npx tsc -p tsconfig.json --noEmit`: **passed** (0 errors)
+- `npm run lint`: **passed** (0 errors) — recovered from 88 errors via PR #271 (unused-vars / dead exports cleanup)
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=ko`: `PASS=21 WARN=0 FAIL=0`
+- `npm run docs:check-links`: **passed** (8 files)
+- `npm run test:destiny:release`: **16 of 88 tests fail** across 7 of 8 files. Pre-existing — exposed when this snapshot was rerun. Tracked as a follow-up.
+- `npx tsx scripts/ops/qa-destiny-three-services.ts`: **script broken** — imports `aiReportService.ts` (`generateAIPremiumReport`, `generateThemedReport`), which PR #245 removed. The previous `PASS=10` claim was unreproducible at the time it was recorded. Tracked as a follow-up: either restore the entry points or rewrite the script against `runDestinyCore` + adapters.
 
 Practical release command:
 
-- `npm run ops:destiny:release`
-  - runs `typecheck`
-  - runs the targeted destiny regression bundle
-  - runs `qa-destiny-three-services` in Korean mode
+- `npm run ops:destiny:release` — **currently fails on its final step** because of the broken QA script above. Until that script is repaired, run `typecheck`, `lint`, `docs:check-links`, and the counselor-regression QA individually.
 
 Important nuance:
 
-- The repo is green on `tsc`, targeted regression suites, and the destiny three-service QA.
+- The repo is green on `tsc`, `lint`, `docs:check-links`, and counselor-regression QA.
+- Vitest destiny:release suite and the destiny-three-services QA script are **not** green right now — see follow-ups above.
 - Do not claim "full-suite green" unless the entire Vitest matrix has been rerun in the same revision window.
 
 ## Documentation Map

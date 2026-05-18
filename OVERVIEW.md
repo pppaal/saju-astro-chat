@@ -86,19 +86,21 @@ Premium report generation now uses `reportCore` first and GraphRAG as evidence s
 Canonical diagnostics:
 
 - `npx tsx scripts/ops/trace-destinypal-pipeline.ts`
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
 - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
+- `npx tsx scripts/ops/qa-destiny-three-services.ts` — **currently broken** (imports `aiReportService.ts` entry points removed by PR #245); listed for traceability, see `README.md` follow-ups
 
-Current verification snapshot on 2026-05-06:
+Current verification snapshot on 2026-05-18:
 
 - `npx tsc -p tsconfig.json --noEmit`: passed (0 errors)
-- `npm run lint`: passed (0 errors)
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`: `PASS=10 WARN=0 FAIL=0`
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`: `PASS=42 WARN=0 FAIL=0`
+- `npm run lint`: passed (0 errors) — recovered from 88 errors via PR #271
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=ko`: `PASS=21 WARN=0 FAIL=0`
+- `npx tsx scripts/ops/qa-destiny-three-services.ts`: **script broken** (does not run; see above)
+- `npm run test:destiny:release`: **16 of 88 tests fail** (7 of 8 files) — tracked as follow-up
 
 Scope note:
 
-- The current verification claim is based on targeted regression and service QA.
+- The current verification claim is honest about what is and isn't green.
+- The destiny-three-services QA script needs to be repaired or rewritten before its old `PASS=10` baseline can be re-established.
 - Treat full-suite status separately from this snapshot unless the entire Vitest matrix has been rerun for the same revision.
 
 ## Key Runtime Flags

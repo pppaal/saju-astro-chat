@@ -38,36 +38,3 @@ export function TarotPageSkeleton() {
     </div>
   );
 }
-
-/**
- * 타로 카드 뽑기 페이지 로딩 스켈레톤
- * 카드 뽑는 페이지에서 사용
- */
-function TarotReadingSkeleton() {
-  return (
-    <div className={styles.readingContainer}>
-      {/* 상단 질문 영역 */}
-      <div className={styles.questionSection}>
-        <div className={styles.questionTitle} />
-        <div className={styles.questionText} />
-      </div>
-
-      {/* 카드들 */}
-      <div className={styles.cardsGrid}>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className={styles.card}>
-            <div className={styles.cardBack} />
-          </div>
-        ))}
-      </div>
-
-      {/* 해석 영역 */}
-      <div className={styles.interpretationBox}>
-        <div className={styles.interpretationTitle} />
-        <div className={styles.interpretationLine} />
-        <div className={styles.interpretationLine} />
-        <div className={styles.interpretationLine} style={{ width: "80%" }} />
-      </div>
-    </div>
-  );
-}

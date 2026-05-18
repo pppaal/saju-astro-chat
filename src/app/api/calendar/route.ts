@@ -877,11 +877,7 @@ export const GET = withApiMiddleware(
       const [
         { buildCalendarCoreEnvelope },
         { adaptCoreToCalendar },
-        {
-          ensureMatrixInputCrossCompleteness,
-          buildServiceInputCrossAudit,
-          listMissingCrossKeysForService,
-        },
+        { ensureMatrixInputCrossCompleteness },
         { deriveCalendarSignals },
         { buildCounselorEvidencePacket },
       ] = await Promise.all([
@@ -1021,45 +1017,6 @@ export const GET = withApiMiddleware(
         if (a.grade !== b.grade) return a.grade - b.grade
         return (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
       })
-
-    // AI 백엔드에서 추가 정보 시도
-    const sajuData = {
-      birth_date: birthDateParam,
-      birth_time: birthTimeParam,
-      gender,
-      day_master: pillars.day.stem,
-      pillars,
-      elements: sajuProfile,
-    }
-
-    const astroData = {
-      birth_date: birthDateParam,
-      birth_time: birthTimeParam,
-      latitude: coords.lat,
-      longitude: coords.lng,
-      timezone: coords.tz,
-      sun_sign: astroProfile.sunSign,
-      planets: {
-        sun: {
-          sign:
-            astroProfile.natalChart?.planets?.find((planet) => planet?.name === 'Sun')?.sign ||
-            astroProfile.sunSign,
-          degree:
-            Number(
-              astroProfile.natalChart?.planets?.find((planet) => planet?.name === 'Sun')?.degree
-            ) || 15,
-        },
-        moon: {
-          sign:
-            astroProfile.natalChart?.planets?.find((planet) => planet?.name === 'Moon')?.sign ||
-            astroProfile.sunSign,
-          degree:
-            Number(
-              astroProfile.natalChart?.planets?.find((planet) => planet?.name === 'Moon')?.degree
-            ) || 15,
-        },
-      },
-    }
 
     // AI date enrichment was wired up in v1 to call /api/theme/important-dates
     // and decorate dates with AI-flagged auspicious/caution markers; the

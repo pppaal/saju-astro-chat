@@ -147,10 +147,3 @@ export class ElementRelations {
   }
 }
 
-/**
- * Legacy function exports for backward compatibility
- */
-const getGeneratedElement = ElementRelations.getGenerated
-const getControlledElement = ElementRelations.getControlled
-const getControllerElement = ElementRelations.getController
-const getGeneratorElement = ElementRelations.getGenerator
