@@ -28,9 +28,10 @@ export interface FormattedDate {
   title: string
   description: string
   summary: string
-  actionSummary?: string
+  /** @internal — engine-side, not emitted in API response */
   timingSignals?: string[]
-  bestTimes: string[]
+  /** @internal — engine-side, not emitted in API response */
+  bestTimes?: string[]
   sajuFactors: string[]
   astroFactors: string[]
   recommendations: string[]
@@ -38,8 +39,6 @@ export interface FormattedDate {
   evidence?: CalendarEvidence
   /** 본문에 등장한 사주·점성 용어 → 한 줄 풀이 (프런트 툴팁용) */
   glossary?: Record<string, string>
-  /** 사주 ↔ 점성 교차 확인 한 줄 + 일치도 % */
-  crossCheck?: { line: string; agreementPercent: number }
   /** 대운/세운/월운/일운 — 본명 일간 기준 십신까지 박은 풀 흐름 컨텍스트 */
   longCycleContext?: {
     daeun?: { ganji: string; ageStart: number; ageEnd: number; sibsinStem?: string }

@@ -36,8 +36,6 @@ import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLangua
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 export { generateBestTimes, generateSummary } from './calendarSummarySupport'
 import {
-  buildActionSummary,
-  buildTimingSignals,
   generateBestTimes,
   generateSummary,
 } from './calendarSummarySupport'
@@ -610,12 +608,6 @@ export function formatDateForResponse(
   })
   const evidenceWithVerdict = attachMatrixVerdict(matrixOverlay.evidence, matrixPacket)
   const matrixVerdict = evidenceWithVerdict.matrixVerdict
-  const timingSignals = buildTimingSignals({
-    date,
-    lang,
-    matrixVerdict,
-    peakLevel: evidenceWithVerdict.matrix?.peakLevel,
-  })
   const baseDisplayScore = date.displayScore ?? date.adjustedScore ?? date.score
   const hasPregradedDisplay =
     typeof date.displayScore === 'number' && typeof date.grade === 'number'
@@ -764,29 +756,6 @@ export function formatDateForResponse(
     lang
   )
   const summarized = normalizeUserFacingGuidance(summarizedBase, lang)
-  const actionSummaryCategory: EventCategory =
-    evidenceWithVerdict.matrix.domain === 'career'
-      ? 'career'
-      : evidenceWithVerdict.matrix.domain === 'love'
-        ? 'love'
-        : evidenceWithVerdict.matrix.domain === 'money'
-          ? 'wealth'
-          : evidenceWithVerdict.matrix.domain === 'health'
-            ? 'health'
-            : evidenceWithVerdict.matrix.domain === 'move'
-              ? 'travel'
-              : uniqueCategories[0] || 'general'
-  const actionSummary = normalizeUserFacingGuidance(
-    buildActionSummary({
-      lang,
-      category: actionSummaryCategory,
-      recommendations: recommendationsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
-      warnings: warningsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
-      bestTimes: bestTimes.map((text) => sanitizeCalendarCopy(text, lang)),
-      timingSignals: timingSignals.map((text) => sanitizeCalendarCopy(text, lang)),
-    }),
-    lang
-  )
 
   return normalizeMojibakePayload({
     date: date.date,
@@ -801,16 +770,8 @@ export function formatDateForResponse(
     title: normalizeUserFacingGuidance(sanitizeCalendarCopy(title, lang), lang),
     description: finalDescription,
     summary: summarized,
-    actionSummary,
-    timingSignals: timingSignals.map((text) =>
-      normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
-    ),
-    bestTimes: bestTimes.map((text) =>
-      normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
-    ),
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,
-    crossCheck: (date as { crossCheck?: { line: string; agreementPercent: number } }).crossCheck,
     longCycleContext: (
       date as { longCycleContext?: import('./yearlyDates').YearlyImportantDate['longCycleContext'] }
     ).longCycleContext,
