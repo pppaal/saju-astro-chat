@@ -20,11 +20,16 @@ interface Props {
 }
 
 /**
- * 주간 흐름 그래프 — 한 라인 (한 달 4~5주의 점수 흐름).
+ * 주간 흐름 그래프 — 한 라인 (그 달의 달력 row 수만큼 = 4~6주).
  *
- * 이전엔 사주/점성 두 라인이었지만 그 평균이 cell.derivedScore와 ±5점 차이
- * 나서 "그래프와 점수가 안 맞는다"는 문제가 있었음. 단일 라인으로 바꿔
- * 그래프 ≡ 점수.
+ * 이전엔 무조건 5칸을 잡고 7일 chunk로 채워서 (1-7, 8-14, ...) 29-31일
+ * 짜리 달은 마지막 5주 칸이 3일밖에 안 되는데도 한 칸을 차지하는
+ * "5주가 비정상적으로 짧음" 문제가 있었음. 또 28일 2월은 4주 그래프인데
+ * 30/31일 달은 5주 그래프가 돼서 사용자 직관 ("4주가 보통이지")과 안 맞음.
+ *
+ * 새 방식: 달력 grid의 실제 row 인덱스로 bucket — leadingBlanks(=1일의
+ * 요일 인덱스)와 daysInMonth로 row 수를 계산. 매월 화면의 monthly grid와
+ * 정확히 같은 주 구분이 됨.
  *
  * - 데이터: 주별 평균 displayScore (cell.derivedScore가 채운 값)
  * - 50점 기준선 + 위 영역 emerald (좋은 구간) / 아래 영역 rose (주의 구간)
@@ -33,11 +38,20 @@ export default function WeeklyTimingChart({ monthDates }: Props) {
   const weekly = useMemo(() => {
     if (monthDates.length === 0) return []
 
-    const buckets: ImportantDate[][] = [[], [], [], [], []]
+    // Derive month boundaries from the first cell — every monthDate is in
+    // the same calendar month, so any one works.
+    const firstDate = monthDates[0].date
+    const year = parseInt(firstDate.slice(0, 4), 10)
+    const month = parseInt(firstDate.slice(5, 7), 10) - 1
+    const leadingBlanks = new Date(year, month, 1).getDay()
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const weeksInMonth = Math.ceil((leadingBlanks + daysInMonth) / 7)
+
+    const buckets: ImportantDate[][] = Array.from({ length: weeksInMonth }, () => [])
     for (const d of monthDates) {
       const day = parseInt(d.date.slice(8, 10), 10)
-      const w = Math.min(4, Math.floor((day - 1) / 7))
-      buckets[w].push(d)
+      const w = Math.floor((leadingBlanks + day - 1) / 7)
+      if (w >= 0 && w < weeksInMonth) buckets[w].push(d)
     }
 
     return buckets
@@ -48,9 +62,6 @@ export default function WeeklyTimingChart({ monthDates }: Props) {
         return {
           week: `${i + 1}주`,
           score: avg,
-          // 영역 채우기용 — 50 기준 위/아래 분리
-          above: avg >= 50 ? avg : 50,
-          below: avg < 50 ? avg : 50,
         }
       })
       .filter((w) => w !== null)
@@ -71,10 +82,6 @@ export default function WeeklyTimingChart({ monthDates }: Props) {
             <linearGradient id="weeklyGood" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#10b981" stopOpacity={0.45} />
               <stop offset="100%" stopColor="#10b981" stopOpacity={0.05} />
-            </linearGradient>
-            <linearGradient id="weeklyBad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.05} />
-              <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.4} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />

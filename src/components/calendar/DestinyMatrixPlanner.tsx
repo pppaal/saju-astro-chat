@@ -540,35 +540,40 @@ export default function DestinyMatrixPlanner({
                 <h3 className="text-base font-bold text-zinc-200 flex items-center gap-2 mb-4">
                   <Activity className="w-5 h-5 text-indigo-400" /> 월간 종합 분석 리포트
                 </h3>
-                <div className="flex items-center gap-4">
-                  <div className="flex flex-col items-center justify-center bg-zinc-950/80 p-4 rounded-xl border border-indigo-500/20 min-w-[96px]">
-                    <span className="text-xs text-zinc-500 font-bold mb-1">월 평균</span>
-                    <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 leading-none">
-                      {monthScore}
-                    </span>
-                    {(() => {
-                      const g = getGrade(monthScore, gradeThresholds)
-                      return (
-                        <span className={`mt-2 text-xs font-bold px-2 py-0.5 rounded-full border ${g.colorClass} ${g.borderClass}`}>
-                          {g.label} · {g.sub}
-                        </span>
-                      )
-                    })()}
-                  </div>
-                  <p className="text-sm text-zinc-300 leading-relaxed">
-                    {data && monthlySummaryText ? (
-                      monthlySummaryText
-                    ) : (
-                      <>
-                        사주 명리의{' '}
-                        <span className="text-indigo-300 font-bold">목(木) 기운 발현</span>과 점성학의{' '}
-                        <span className="text-cyan-300 font-bold">수성(Mercury) 순행</span>이 강한
-                        동기화를 이루는 시기입니다. 두 엔진의 교차 검증 결과, 지적 활동과 커뮤니케이션
-                        영역에서 높은 성과 지표가 예측됩니다.
-                      </>
-                    )}
-                  </p>
+                {/* Score row — 가로 배치. 이전엔 좁은 세로 칼럼에 점수+
+                    grade pill을 우겨넣어서 "길 · 받쳐주는 흐름"이 두 줄로
+                    꺾이고 79가 답답해 보였음. 가로로 펴서 narrative는
+                    아래에 풀폭. */}
+                <div className="flex items-baseline gap-3 flex-wrap mb-3">
+                  <span className="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">
+                    월 평균
+                  </span>
+                  <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 leading-none">
+                    {monthScore}
+                  </span>
+                  <span className="text-xs text-zinc-600 font-medium">/ 100</span>
+                  {(() => {
+                    const g = getGrade(monthScore, gradeThresholds)
+                    return (
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${g.colorClass} ${g.borderClass}`}>
+                        {g.label} · {g.sub}
+                      </span>
+                    )
+                  })()}
                 </div>
+                <p className="text-sm text-zinc-300 leading-relaxed">
+                  {data && monthlySummaryText ? (
+                    monthlySummaryText
+                  ) : (
+                    <>
+                      사주 명리의{' '}
+                      <span className="text-indigo-300 font-bold">목(木) 기운 발현</span>과 점성학의{' '}
+                      <span className="text-cyan-300 font-bold">수성(Mercury) 순행</span>이 강한
+                      동기화를 이루는 시기입니다. 두 엔진의 교차 검증 결과, 지적 활동과 커뮤니케이션
+                      영역에서 높은 성과 지표가 예측됩니다.
+                    </>
+                  )}
+                </p>
               </div>
 
               {/* ── calendar-engine v2: 월간 narrative 해석 ── */}
