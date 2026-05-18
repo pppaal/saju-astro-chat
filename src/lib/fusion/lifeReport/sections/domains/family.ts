@@ -195,18 +195,18 @@ function familyShapeEn(inseong: number, bijeon: number): string {
 }
 
 const FOURTH_SIGN_FLAVOR_KO: Record<string, string> = {
-  Aries: '직접적이고 자율적인 가정',
-  Taurus: '안정과 풍요의 가정',
-  Gemini: '대화가 흐르는 가정',
-  Cancer: '정서적으로 깊은 가정',
-  Leo: '드라마가 살아있는 가정',
-  Virgo: '세심하게 정리된 가정',
-  Libra: '균형과 미감의 가정',
-  Scorpio: '깊고 비밀스러운 가정',
-  Sagittarius: '시야가 열린 가정',
-  Capricorn: '책임과 구조의 가정',
-  Aquarius: '독립적인 가정',
-  Pisces: '꿈과 공감의 가정',
+  Aries: '직접적이고 자율적인 결',
+  Taurus: '안정과 풍요의 결',
+  Gemini: '대화가 흐르는 결',
+  Cancer: '정서적으로 깊은 결',
+  Leo: '드라마가 살아 있는 결',
+  Virgo: '세심하게 정리된 결',
+  Libra: '균형과 미감의 결',
+  Scorpio: '깊고 비밀스러운 결',
+  Sagittarius: '시야가 열린 결',
+  Capricorn: '책임과 구조의 결',
+  Aquarius: '독립적인 결',
+  Pisces: '꿈과 공감의 결',
 }
 const FOURTH_SIGN_FLAVOR_EN: Record<string, string> = {
   Aries: 'direct and autonomous',
