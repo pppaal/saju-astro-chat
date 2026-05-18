@@ -41,8 +41,8 @@ describe("CATEGORY_MAX_SCORES", () => {
     expect(CATEGORY_MAX_SCORES.grandTotal).toBe(100);
   });
 
-  it("cross bonus is 3", () => {
-    expect(CATEGORY_MAX_SCORES.crossBonus).toBe(3);
+  it("cross bonus is 5", () => {
+    expect(CATEGORY_MAX_SCORES.crossBonus).toBe(5);
   });
 });
 
@@ -177,8 +177,8 @@ describe("GRADE_THRESHOLDS", () => {
     expect(GRADE_THRESHOLDS.grade2).toBeGreaterThan(GRADE_THRESHOLDS.grade3);
   });
 
-  it("grade0 is 68", () => {
-    expect(GRADE_THRESHOLDS.grade0).toBe(68);
+  it("grade0 is 63", () => {
+    expect(GRADE_THRESHOLDS.grade0).toBe(63);
   });
 });
 

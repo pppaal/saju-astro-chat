@@ -588,11 +588,10 @@ describe('Chat History & Counselor Schema Tests', () => {
   })
 
   describe('counselorSessionLoadQuerySchema', () => {
-    it('should use default theme', () => {
+    it('parses empty input successfully (no required fields)', () => {
+      // `theme` field removed from schema.
       const result = counselorSessionLoadQuerySchema.safeParse({})
-      if (result.success) {
-        expect(result.data.theme).toBe('chat')
-      }
+      expect(result.success).toBe(true)
     })
   })
 })
@@ -629,7 +628,8 @@ describe('Content & Share Schema Tests', () => {
     })
 
     it('should accept all types', () => {
-      const types = ['tarot', 'astrology', 'saju', 'compatibility', 'dream']
+      // 'dream' type removed from schema.
+      const types = ['tarot', 'astrology', 'saju', 'compatibility']
       types.forEach(type => {
         expect(shareImageRequestSchema.safeParse({
           type,

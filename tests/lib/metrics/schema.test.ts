@@ -36,9 +36,9 @@ describe("Metrics Schema", () => {
 
   describe("MetricLabels", () => {
     it("should define service categories", () => {
+      // 'dream' service 제거됨.
       expect(MetricLabels.service).toContain("destiny-map");
       expect(MetricLabels.service).toContain("tarot");
-      expect(MetricLabels.service).toContain("dream");
       expect(MetricLabels.service).toContain("astrology");
     });
 
@@ -88,9 +88,9 @@ describe("Metrics Schema", () => {
     });
 
     it("should define service-specific metrics", () => {
+      // 'dream' service 제거됨.
       expect(MetricRegistry["destiny.report.total"]).toBeDefined();
       expect(MetricRegistry["tarot.reading.total"]).toBeDefined();
-      expect(MetricRegistry["dream.analysis.total"]).toBeDefined();
     });
 
     it("should define auth metrics", () => {

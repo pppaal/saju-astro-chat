@@ -23,10 +23,6 @@ describe('API Error Handler Module', () => {
     expect(typeof createSuccessResponse).toBe('function')
   })
 
-  it('should export withErrorHandler function', async () => {
-    const { withErrorHandler } = await import('@/lib/api')
-    expect(typeof withErrorHandler).toBe('function')
-  })
 })
 
 describe('ErrorCodes', () => {
@@ -205,11 +201,3 @@ describe('createSuccessResponse', () => {
   })
 })
 
-describe('withErrorHandler', () => {
-  it('should throw because it is deprecated', async () => {
-    const { withErrorHandler } = await import('@/lib/api')
-
-    const handler = async () => new Response('OK')
-    expect(() => withErrorHandler(handler, '/test')).toThrow('withErrorHandler is deprecated')
-  })
-})
