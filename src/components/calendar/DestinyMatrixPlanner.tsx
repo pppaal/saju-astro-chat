@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Calendar,
   Heart,
-  Sparkles,
   ScrollText,
   Activity,
   Moon,
@@ -17,27 +16,9 @@ import {
   ThumbsUp,
   ThumbsDown,
   Clock,
-  Target,
   Cpu,
-  TrendingUp,
   X,
-  Layers,
 } from 'lucide-react'
-import {
-  XAxis,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  YAxis,
-  CartesianGrid,
-  ReferenceArea,
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-} from 'recharts'
 
 import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
 import { useDateDetail } from './useDateDetail'
@@ -59,30 +40,6 @@ interface DestinyMatrixPlannerProps {
 type ViewMode = 'monthly' | 'daily'
 
 // --- Mock Data (used only when `data` is null) ---
-const MOCK_TIMING = [
-  { week: '1주차', saju: 55, astro: 40 },
-  { week: '2주차', saju: 65, astro: 60 },
-  { week: '3주차', saju: 90, astro: 85 },
-  { week: '4주차', saju: 70, astro: 65 },
-  { week: '5주차', saju: 60, astro: 75 },
-]
-
-const MOCK_DOMAIN_RADAR = [
-  { subject: '재물', saju: 90, astro: 85 },
-  { subject: '직업', saju: 80, astro: 85 },
-  { subject: '학업', saju: 75, astro: 65 },
-  { subject: '건강', saju: 60, astro: 70 },
-  { subject: '연애', saju: 45, astro: 30 },
-]
-
-const DOMAIN_RADAR_TARGETS: Array<{ key: EventCategory; label: string }> = [
-  { key: 'wealth', label: '재물' },
-  { key: 'career', label: '직업' },
-  { key: 'study', label: '학업' },
-  { key: 'health', label: '건강' },
-  { key: 'love', label: '연애' },
-]
-
 const MOCK_DOS = [
   '새로운 인연이나 모임에 참석하기',
   '밀린 업무나 서류 작업 마무리하기',
@@ -371,19 +328,6 @@ export default function DestinyMatrixPlanner({
     }
   }, [fusion, selectedImportantDate])
 
-  // --- Daily active 신살 (역마, 도화, 화개 등) -------------------------
-  const dailyShinsal = useMemo(() => {
-    const list = selectedImportantDate?.shinsalActive ?? []
-    return list.slice(0, 6)
-  }, [selectedImportantDate])
-
-  // --- Stats: natal context (강약 / 격국 / 용신) -----------------------
-  const natalContextSummary = useMemo(() => {
-    if (!data?.allDates) return null
-    const found = data.allDates.find((d) => d.natalContext?.summary)
-    return found?.natalContext ?? null
-  }, [data])
-
   // --- Astro identity badge for the header ---------------------------
   // 풀 차트가 들어오면 ASC, 없으면 태양 별자리.
   const astroBadge = useMemo(() => {
@@ -414,111 +358,6 @@ export default function DestinyMatrixPlanner({
     return null
   }, [data])
 
-  // --- Stats: domain sync radar ---------------------------------------
-  // sajuAxis / astroAxis는 엔진의 모든 일자에 항상 들어옴 (yearlyDates.ts).
-  const domainSyncData = useMemo(() => {
-    if (!data?.allDates || data.allDates.length === 0) return null
-    return DOMAIN_RADAR_TARGETS.map(({ key, label }) => {
-      const matched = data.allDates!.filter((d) => d.categories.includes(key))
-      if (matched.length === 0) {
-        return { subject: label, saju: 50, astro: 50 }
-      }
-      const sajuAvg = avg(matched.map((d) => d.scoreBreakdown?.sajuAxis ?? 50))
-      const astroAvg = avg(matched.map((d) => d.scoreBreakdown?.astroAxis ?? 50))
-      return {
-        subject: label,
-        saju: Math.round(sajuAvg),
-        astro: Math.round(astroAvg),
-      }
-    })
-  }, [data])
-
-  const domainExtremes = useMemo(() => {
-    const radar = domainSyncData
-    if (!radar || radar.length === 0) return null
-    const sorted = [...radar].sort((a, b) => b.saju + b.astro - (a.saju + a.astro))
-    return { synergy: sorted[0], conflict: sorted[sorted.length - 1] }
-  }, [domainSyncData])
-
-  // --- Stats: weekly cross timing -------------------------------------
-  // 캘린더 주차 (일요일 시작) 기준으로 버킷팅. 옛 단순 7일 그룹팅
-  // (1-7 / 8-14 / 15-21 / 22-28 / 29+) 은 실제 주와 어긋나서 1주차에
-  // 화·수·목·금·토만 들어가는 식이었다. 이제 그 달의 1일이 무슨 요일인지
-  // 보고 leadingBlanks를 더해 진짜 주차로 정렬.
-  const weeklyTimingData = useMemo(() => {
-    if (monthDates.length === 0) return null
-    const buckets: Array<{ saju: number[]; astro: number[] }> = []
-    for (const d of monthDates) {
-      const day = parseInt(d.date.slice(8, 10), 10)
-      // leadingBlanks = 그 달 1일 직전 빈 칸 수 (= 1일의 요일 인덱스, 일=0).
-      // 같은 식을 적용하면 day가 그 달 캘린더 표에서 몇 번째 주에 들어가는지 나옴.
-      const weekIdx = Math.floor((day - 1 + leadingBlanks) / 7)
-      if (!buckets[weekIdx]) buckets[weekIdx] = { saju: [], astro: [] }
-      buckets[weekIdx].saju.push(d.scoreBreakdown?.sajuAxis ?? 50)
-      buckets[weekIdx].astro.push(d.scoreBreakdown?.astroAxis ?? 50)
-    }
-    return buckets.map((b, i) => ({
-      week: `${i + 1}주차`,
-      saju: b.saju.length > 0 ? Math.round(avg(b.saju)) : 50,
-      astro: b.astro.length > 0 ? Math.round(avg(b.astro)) : 50,
-    }))
-  }, [monthDates, leadingBlanks])
-
-  // --- Stats: super-timing (week with strongest cross signal) ---------
-  // 캘린더 주차 (일~토) 기준이라 1주차는 그 달 1일이 시작하는 요일에서
-  // 그 주의 토요일까지. 즉 dayStart = 1, dayEnd = 7 - leadingBlanks.
-  // 그 다음부터는 7일씩 흘러간다.
-  const weekRange = useCallback(
-    (weekIdx: number) => {
-      const dayStart = weekIdx === 0 ? 1 : weekIdx * 7 - leadingBlanks + 1
-      const dayEnd = Math.min(weekIdx * 7 - leadingBlanks + 7, daysInMonth)
-      return { dayStart, dayEnd }
-    },
-    [leadingBlanks, daysInMonth],
-  )
-
-  const superTiming = useMemo(() => {
-    const weeks = weeklyTimingData
-    if (!weeks || weeks.length === 0) return null
-    let best = weeks[0]
-    let bestSum = best.saju + best.astro
-    for (const w of weeks) {
-      if (w.saju + w.astro > bestSum) {
-        best = w
-        bestSum = w.saju + w.astro
-      }
-    }
-    const weekIdx = parseInt(best.week, 10) - 1
-    const { dayStart, dayEnd } = weekRange(weekIdx)
-    return { week: best.week, dayStart, dayEnd, sajuScore: best.saju, astroScore: best.astro }
-  }, [weeklyTimingData, weekRange])
-
-  // --- Engine reasons for the super-timing card -----------------------
-  const superTimingReasons = useMemo(() => {
-    if (!data || !superTiming || monthDates.length === 0) {
-      return {
-        saju: '재물을 뜻하는 기운이 들어와 결실을 맺기 좋은 시기로 분석했습니다.',
-        astro: '금성(Venus)이 커리어를 상징하는 위치에 자리하여 성과가 두드러지는 시기로 분석했습니다.',
-      }
-    }
-    const weekIdx = parseInt(superTiming.week, 10) - 1
-    const { dayStart, dayEnd } = weekRange(weekIdx)
-    const weekDates = monthDates.filter((d) => {
-      const day = parseInt(d.date.slice(8, 10), 10)
-      return day >= dayStart && day <= dayEnd
-    })
-    if (weekDates.length === 0) {
-      return {
-        saju: data.matrixContract?.topClaim ?? '사주 흐름이 강하게 받쳐주는 구간으로 분석되었습니다.',
-        astro: '점성 트랜짓이 동시에 우호적으로 정렬되어 신호가 증폭됩니다.',
-      }
-    }
-    const topDay = weekDates.reduce((best, d) => (pickFinalScore(d) > pickFinalScore(best) ? d : best))
-    const sajuFactor = topDay.sajuFactors?.[0] ?? topDay.title
-    const astroFactor = topDay.astroFactors?.[0] ?? topDay.evidence?.cross?.astroEvidence ?? '점성 트랜짓이 동시에 받쳐주는 구간입니다.'
-    return { saju: sajuFactor, astro: astroFactor }
-  }, [data, superTiming, monthDates, weekRange])
-
   const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
   const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
 
@@ -531,9 +370,6 @@ export default function DestinyMatrixPlanner({
     const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
     return days[new Date(viewYear, viewMonth, day).getDay()]
   }
-
-  const radarData = data && domainSyncData ? domainSyncData : MOCK_DOMAIN_RADAR
-  const lineData = data && weeklyTimingData ? weeklyTimingData : MOCK_TIMING
 
   return (
     <div className="w-full max-w-md mx-auto h-screen bg-zinc-950 text-zinc-200 font-sans flex flex-col shadow-2xl overflow-hidden relative border-x border-zinc-900">
