@@ -170,14 +170,6 @@ export {
   type ElementInterpretation,
 } from './interpretations'
 
-// 종합 해석 리포트 모듈
-export {
-  generateComprehensiveReport,
-  generateQuickSummary,
-  type ComprehensiveReport,
-  type ComprehensiveReportSection,
-} from './comprehensiveReport'
-
 // ============================================================
 // 200% 급 고급 모듈들
 // ============================================================

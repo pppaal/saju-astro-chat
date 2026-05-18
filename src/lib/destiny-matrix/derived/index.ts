@@ -28,7 +28,6 @@ import { calculateSajuData } from '@/lib/saju/saju'
 import { analyzeAdvancedSaju } from '@/lib/saju/advancedAnalysis'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { getShinsalHits, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
-import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
 import { STEMS as SAJU_STEMS } from '@/lib/saju/constants'
 import type { FiveElement } from '@/lib/saju/types'
 import {
@@ -613,21 +612,6 @@ export function enrichRequestWithDerivedSaju(
     }
     if (!requestBody.currentIljinDate && autoShortTermTiming.iljin?.date) {
       requestBody.currentIljinDate = autoShortTermTiming.iljin.date
-    }
-
-    // Orthodox 명리 interpretation: pillar position roles, stem
-    // combinations, same-element pillars, geokguk / yongsin / johu /
-    // ilju-deep / jonggeok / hwagyeok / samgi / gongmang-deep all
-    // bundled so prompts and the matrix can read everything at once.
-    if (!requestBody.orthodoxInterpretation) {
-      try {
-        const koreanAge = new Date().getFullYear() - new Date(birthDate).getFullYear() + 1
-        requestBody.orthodoxInterpretation = buildOrthodoxInterpretation(sajuData, {
-          koreanAge,
-        }) as unknown as Record<string, unknown>
-      } catch {
-        // Non-fatal — orthodox layer is additive.
-      }
     }
 
     if (!toOptionalRecord(requestBody.sajuSnapshot)) {
