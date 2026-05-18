@@ -39,15 +39,6 @@ interface DestinyMatrixPlannerProps {
 
 type ViewMode = 'monthly' | 'daily'
 
-const MOCK_DOS = [
-  '새로운 인연이나 모임에 참석하기',
-  '밀린 업무나 서류 작업 마무리하기',
-]
-const MOCK_DONTS = [
-  '가까운 사람과의 말다툼 피하기',
-  '충동적인 대규모 지출 금지',
-]
-
 // --- Helpers ---
 function avg(xs: number[]): number {
   if (xs.length === 0) return 0
@@ -268,18 +259,21 @@ export default function DestinyMatrixPlanner({
   }
 
   // --- Daily Dos / Donts ----------------------------------------------
+  // 엔진이 진짜 advice를 못 만들면 카드 자체를 숨김 (Dos·Donts 모두 빈 배열일 때
+  // 렌더 가드). 옛 MOCK_DOS/DONTS는 "충동적인 대규모 지출 금지" 같은 generic
+  // 한 줄이라 정직하지 않았음.
   const dailyDos = useMemo(() => {
     if (fusion?.advice?.do && fusion.advice.do.length > 0) return fusion.advice.do.slice(0, 2)
     const recs = selectedImportantDate?.recommendations
     if (recs && recs.length > 0) return recs.slice(0, 2)
-    return MOCK_DOS
+    return []
   }, [fusion, selectedImportantDate])
 
   const dailyDonts = useMemo(() => {
     if (fusion?.advice?.avoid && fusion.advice.avoid.length > 0) return fusion.advice.avoid.slice(0, 2)
     const warns = selectedImportantDate?.warnings
     if (warns && warns.length > 0) return warns.slice(0, 2)
-    return MOCK_DONTS
+    return []
   }, [fusion, selectedImportantDate])
 
   // --- Daily one-line summary (engine pre-formatted, when available) ---
@@ -451,9 +445,14 @@ export default function DestinyMatrixPlanner({
                   </button>
                 </div>
                 <div className="flex justify-center items-center mb-5 gap-2 flex-wrap">
-                  <span className="text-[12px] font-semibold text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                    {phaseLabel ? `Phase · ${phaseLabel}` : '甲戌 대운 (32세~)'}
-                  </span>
+                  {/* phaseLabel은 engine matrixContract에서 옴 — 없으면 그냥 숨김.
+                      이전엔 '甲戌 대운 (32세~)' 하드코딩이 fallback이었는데
+                      특정인의 phase라 다른 사용자에게 잘못 노출됐음. */}
+                  {phaseLabel && (
+                    <span className="text-[12px] font-semibold text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                      Phase · {phaseLabel}
+                    </span>
+                  )}
                   {!isThisMonth && (
                     <button
                       onClick={goToThisMonth}
@@ -484,9 +483,10 @@ export default function DestinyMatrixPlanner({
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1
                     const isSelected = day === currentDay
-                    const hasEvent = data
-                      ? monthEventSet.has(day)
-                      : [3, 9, 12, 15, 22, 28].includes(day)
+                    // 이벤트 dot은 engine의 monthEventSet 기준만 — 데이터
+                    // 없으면 그냥 점 없음. 이전엔 mock 날짜 6개가 박혀 있어서
+                    // 빈 캘린더에도 가짜 dot이 떴음.
+                    const hasEvent = monthEventSet.has(day)
                     return (
                       <motion.button
                         whileHover={{ scale: 1.1 }}
@@ -561,19 +561,11 @@ export default function DestinyMatrixPlanner({
                     )
                   })()}
                 </div>
-                <p className="text-sm text-zinc-300 leading-relaxed">
-                  {data && monthlySummaryText ? (
-                    monthlySummaryText
-                  ) : (
-                    <>
-                      사주 명리의{' '}
-                      <span className="text-indigo-300 font-bold">목(木) 기운 발현</span>과 점성학의{' '}
-                      <span className="text-cyan-300 font-bold">수성(Mercury) 순행</span>이 강한
-                      동기화를 이루는 시기입니다. 두 엔진의 교차 검증 결과, 지적 활동과 커뮤니케이션
-                      영역에서 높은 성과 지표가 예측됩니다.
-                    </>
-                  )}
-                </p>
+                {monthlySummaryText && (
+                  <p className="text-sm text-zinc-300 leading-relaxed">
+                    {monthlySummaryText}
+                  </p>
+                )}
               </div>
 
               {/* ── calendar-engine v2: 월간 narrative 해석 ── */}
@@ -829,7 +821,9 @@ export default function DestinyMatrixPlanner({
                 )}
               </div>
 
+              {(dailyDos.length > 0 || dailyDonts.length > 0) && (
               <div className="grid grid-cols-2 gap-4">
+                {dailyDos.length > 0 && (
                 <div className="bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-2xl">
                   <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-2 mb-3">
                     <ThumbsUp className="w-4 h-4" /> 권장 행동 패턴
@@ -845,6 +839,8 @@ export default function DestinyMatrixPlanner({
                     ))}
                   </ul>
                 </div>
+                )}
+                {dailyDonts.length > 0 && (
                 <div className="bg-rose-900/10 border border-rose-500/20 p-4 rounded-2xl">
                   <h4 className="text-sm font-bold text-rose-400 flex items-center gap-2 mb-3">
                     <ThumbsDown className="w-4 h-4" /> 주의 행동 패턴
@@ -860,7 +856,9 @@ export default function DestinyMatrixPlanner({
                     ))}
                   </ul>
                 </div>
+                )}
               </div>
+              )}
             </motion.div>
           )}
 

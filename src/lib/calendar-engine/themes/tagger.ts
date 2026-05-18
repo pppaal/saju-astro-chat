@@ -28,8 +28,8 @@ export function tagSignalWithThemes(signal: ActiveSignal): AstroThemeKey[] {
     if (mapped) {
       mapped.forEach((t) => themes.add(t))
     } else {
-      // 매핑 누락 신살은 일단 personality로 폴백 (UI에서 카드는 표시됨)
-      themes.add('personality')
+      // 매핑 누락 신살은 일단 growth로 폴백 (UI에서 카드는 표시됨)
+      themes.add('growth')
     }
   }
 

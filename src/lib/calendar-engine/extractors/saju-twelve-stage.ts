@@ -75,7 +75,7 @@ const sajuTwelveStageExtractor: SignalExtractor = {
         kind: 'pillar-sibsin',
         name: STAGE_LABEL[stage] ?? `12운성 ${stage}`,
         korean: STAGE_LABEL[stage],
-        themes: ['personality'],   // 기본; tagger가 보강 가능
+        themes: ['growth'],   // 기본; tagger가 보강 가능
         polarity,
         layer: 'daily',
         active: {

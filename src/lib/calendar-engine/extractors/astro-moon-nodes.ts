@@ -88,7 +88,7 @@ const astroMoonNodesExtractor: SignalExtractor = {
         kind: 'transit',
         name: `${sample.nodeKind === 'north' ? 'North Node' : 'South Node'} ☌ ${sample.natalPoint}`,
         korean: `${sample.nodeKind === 'north' ? '북노드 (성장)' : '남노드 (과거)'} 컨정션 본명 ${sample.natalPoint}`,
-        themes: ['karma'],
+        themes: ['growth'],
         polarity,
         layer: 'yearly',   // 노드는 천천히 움직임
         active: { start: startIso, peak: tightest.iso, end: endIso },

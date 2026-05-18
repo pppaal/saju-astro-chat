@@ -31,7 +31,7 @@ const sajuIljuArchetypeExtractor: SignalExtractor = {
         kind: 'saju-pattern',
         name: `${ganji} 일주 — ${archetype.character}`,
         korean: `${ganji} 일주: ${archetype.character}`,
-        themes: ['personality'],
+        themes: ['growth'],
         polarity: 0,
         layer: 'decadal',   // 평생 배경
         active: { start: range.start, peak: range.start, end: range.end },

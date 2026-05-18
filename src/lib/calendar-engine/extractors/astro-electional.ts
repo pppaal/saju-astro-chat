@@ -101,12 +101,12 @@ const astroElectionalExtractor: SignalExtractor = {
 
 function themesForEvent(event: ElectionalEventType): import('@/lib/astrology/themes/types').AstroThemeKey[] {
   switch (event) {
-    case 'marriage':          return ['love', 'family']
-    case 'business_start':    return ['business', 'money']
-    case 'long_journey':      return ['travel']
-    case 'surgery':           return ['health', 'crisis']
-    case 'buying_property':   return ['money', 'family']
-    case 'signing_contracts': return ['legal', 'business']
+    case 'marriage':          return ['love']
+    case 'business_start':    return ['money']
+    case 'long_journey':      return ['growth']
+    case 'surgery':           return ['health']
+    case 'buying_property':   return ['money', 'love']
+    case 'signing_contracts': return ['career', 'money']
     default:                  return []
   }
 }
