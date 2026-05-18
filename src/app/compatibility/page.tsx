@@ -40,7 +40,7 @@ export default function CompatPage() {
 
   useCityAutocomplete(persons, setPersons)
 
-  const { circlePeople, showCircleDropdown, setShowCircleDropdown, circleError, refreshCircle } =
+  const { circlePeople, showCircleDropdown, setShowCircleDropdown, circleError } =
     useMyCircle(status)
 
   // Form-level validation only — submit routes straight to
@@ -181,7 +181,6 @@ export default function CompatPage() {
                     setShowCircleDropdown(showCircleDropdown === idx ? null : idx)
                   }
                   onFillFromCircle={fillFromCircle}
-                  onCircleChanged={refreshCircle}
                 />
               ))}
             </div>
