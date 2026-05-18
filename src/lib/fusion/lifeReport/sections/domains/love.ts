@@ -124,7 +124,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const styleKo = pickLoveStyleKo(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
   const styleEn = pickLoveStyleEn(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
   const venusBlurb = venus
-    ? `점성의 금성이 ${signLabel(venus.sign, 'ko')}·${houseLabel(venus.house, 'ko')}에 있어 ${venusFlavorKo(venus.sign, venus.house)}이 사랑의 색깔이에요.`
+    ? `사랑의 별인 금성이 ${signLabel(venus.sign, 'ko')}의 결로 자리해서, ${venusFlavorKo(venus.sign, venus.house)}이 사랑의 색이에요.`
     : ''
   const venusBlurbEn = venus
     ? `Venus in ${signLabel(venus.sign, 'en')} (${houseLabel(venus.house, 'en')}) gives love the flavor of ${venusFlavorEn(venus.sign, venus.house)}.`
@@ -139,13 +139,12 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const seventhSignEn = seventh?.sign ? signLabel(seventh.sign, 'en') : 'the sky'
 
   const p2ko = paragraph([
-    `배우자상은 ${branchFlavor} 사람이에요.`,
-    `일지 ${dBranch}는 ${branchFlavor} 동반자를 끌어와요.`,
+    `당신을 향해 다가오는 동반자는 ${branchFlavor} 사람이에요.`,
     seventh
-      ? `점성의 7집은 ${seventhSignKo}에서 시작해서, 파트너에게서 ${seventhSignFlavorKo(seventh.sign)}을 바라게 해요.`
+      ? `관계의 자리는 ${seventhSignKo}의 결로 시작해서, 파트너에게서 ${seventhSignFlavorKo(seventh.sign)}을 자연스럽게 바라게 돼요.`
       : '',
     seventhPlanets.length > 0
-      ? `7집 안에 ${seventhPlanets.map((p) => p.name).join('·')}이 들어있어, 관계가 인생의 한가운데로 들어와요.`
+      ? `관계의 자리 안에 ${seventhPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 자리해서, 관계가 인생의 한가운데로 들어와요.`
       : '',
   ])
   const p2en = paragraph([
@@ -164,14 +163,14 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const deepEn: string[] = []
   if (vertexVenus) {
     deepKo.push(
-      `Vertex와 금성이 ${aspectQuality(vertexVenus.type, 'ko')} 운명적 만남을 한 번 강하게 기록해 둔 패턴이에요.`
+      `운명적 만남의 점과 사랑의 별이 ${aspectQuality(vertexVenus.type, 'ko')}, 운명적인 한 번의 만남이 새겨져 있어요.`
     )
     deepEn.push(
       `Vertex and Venus ${aspectQuality(vertexVenus.type, 'en')}, marking one fated encounter into the chart.`
     )
   } else if (vx) {
     deepKo.push(
-      `Vertex가 ${signLabel(vx.sign, 'ko')}·${houseLabel(vx.house, 'ko')}에 있어 그 자리가 운명적 만남의 좌표가 돼요.`
+      `운명적 만남의 점이 ${signLabel(vx.sign, 'ko')}의 결로 있어, 그 결을 따라가는 만남이 한 번 와요.`
     )
     deepEn.push(
       `Your Vertex sits in ${signLabel(vx.sign, 'en')} ${houseLabel(vx.house, 'en')}, marking the coordinate of fated encounter.`
@@ -179,19 +178,19 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   if (j) {
     deepKo.push(
-      `결혼별 Juno는 ${signLabel(j.sign, 'ko')}·${houseLabel(j.house, 'ko')}에 있어, 결혼 자체에 ${junoFlavorKo(j.house)}이 흐르게 해요.`
+      `결혼의 별은 ${signLabel(j.sign, 'ko')}의 결로, 결혼 자체에 ${junoFlavorKo(j.house)}이 흐르게 해요.`
     )
     deepEn.push(
       `Juno (marriage asteroid) sits in ${signLabel(j.sign, 'en')} ${houseLabel(j.house, 'en')}, so marriage carries the tone of ${junoFlavorEn(j.house)}.`
     )
   }
   if (pofInSeventh) {
-    deepKo.push(`Part of Fortune이 7집에 자리해서, 파트너십이 곧 행운의 통로가 되는 배치에요.`)
+    deepKo.push('행운의 점이 관계의 자리에 있어, 파트너십이 곧 행운의 통로가 되는 배치예요.')
     deepEn.push(`Part of Fortune sits in the 7th — partnership is itself the channel of luck.`)
   }
   if (venusSaturn) {
     deepKo.push(
-      `금성과 토성이 ${aspectQuality(venusSaturn.type, 'ko')} 성숙한 파트너, 시간이 깊어지는 사랑을 만들어요.`
+      `사랑의 별과 책임의 별이 ${aspectQuality(venusSaturn.type, 'ko')}, 성숙한 파트너와 시간이 갈수록 깊어지는 사랑을 만들어요.`
     )
     deepEn.push(
       `Venus-Saturn ${aspectQuality(venusSaturn.type, 'en')}, producing a mature partner and love that deepens with time.`
@@ -199,7 +198,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   if (venusMars) {
     deepKo.push(
-      `금성·화성 어스펙트가 ${aspectQuality(venusMars.type, 'ko')} 끌림과 욕망의 결을 분명히 해요.`
+      `사랑의 별과 행동의 별이 ${aspectQuality(venusMars.type, 'ko')} 있어, 끌림과 욕망의 결이 또렷해요.`
     )
     deepEn.push(
       `Venus-Mars ${aspectQuality(venusMars.type, 'en')}, defining the grain of attraction and desire.`
@@ -210,7 +209,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     deepEn.push(`Additionally, ${loveConfirms[0].rule.meaning}.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
-    '왜냐하면 사랑의 고급 신호들이 잔잔히 정렬되어 있어, 큰 운명적 흔들림보다는 일상 안에서 천천히 깊어지는 흐름이에요.'
+    '사랑의 결은 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 흐름이에요.'
   ])
   const p3en = paragraph(deepEn.length ? deepEn : [
     'Because the deeper love signals sit in a calm alignment, this lifetime favors a slow deepening over a fated lightning-strike.'
@@ -221,22 +220,22 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const timingEn: string[] = ['Decisive windows:']
   if (partnerDaeun) {
     timingKo.push(
-      `${partnerDaeun.age}세 대운(${partnerCat} 시작)이 ${isFemale ? '배우자' : '인연'}의 문을 정식으로 열어줘요.`
+      `${partnerDaeun.age}세 무렵 인생 흐름이 ${isFemale ? '배우자' : '인연'}의 문을 정식으로 열어줘요.`
     )
     timingEn.push(
       `Age ${partnerDaeun.age} daeun (${partnerCat} cycle) formally opens the door to ${isFemale ? 'spouse' : 'partnership'}.`
     )
   }
   if (cur && cur.sibsin) {
-    timingKo.push(`지금 흐르는 ${cur.sibsin} 대운도 관계의 결을 천천히 다듬어줘요.`)
+    timingKo.push(`지금의 인생 흐름에는 ${sibsinMeaningKoLove(cur.sibsin)}이 함께해서, 관계의 결을 천천히 다듬어주고 있어요.`)
     timingEn.push(`Your current ${cur.sibsin} daeun is also tuning the relational grain.`)
   }
   if (srSunInSeventh) {
-    timingKo.push(`올해 Solar Return 태양이 7집에 들어, 한 해 동안 관계가 무게중심을 잡아요.`)
+    timingKo.push('올해 한 해 동안 관계가 무게중심을 잡아주는 시기예요.')
     timingEn.push(`This year's Solar Return Sun lands in the 7th — relationship becomes the center-of-mass for the year.`)
   }
   if (timingKo.length === 1) {
-    timingKo.push('대운 흐름이 점차 익는 구간이라, 한 해 한 해 신호가 모이고 있어요.')
+    timingKo.push('인생 흐름이 점차 익어가는 구간이라, 한 해 한 해 신호가 모이고 있어요.')
     timingEn.push('Your daeun is in a ripening stretch — signals accumulate season by season.')
   }
   const p4ko = paragraph(timingKo)
@@ -267,18 +266,42 @@ function pickLoveStyleKo(
   isFemale: boolean
 ): string {
   if (isFemale && jg >= 1 && pg === 0)
-    return '당신은 안정과 깊이를 중시하는 관계형이에요. 정관이 한 자리에 있어 한 사람과의 진중한 관계로 운이 흘러요.'
+    return '당신은 안정과 깊이를 중시하는 관계형이에요. 한 사람과의 진중한 관계 쪽으로 흐름이 자연스럽게 열려요.'
   if (isFemale && pg >= 2)
-    return '당신은 강렬하고 본능적인 끌림에 반응하는 관계형이에요. 편관이 강해 자극적인 만남이 잦지만, 안정 구간이 따로 필요해요.'
+    return '당신은 강렬하고 본능적인 끌림에 반응하는 관계형이에요. 자극적인 만남이 잦지만, 따로 안정 구간이 꼭 필요해요.'
   if (!isFemale && jj >= 1 && pj === 0)
-    return '당신은 안정과 신뢰를 우선하는 사랑형이에요. 정재가 한 자리에 있어 한 사람과 길게 가는 관계가 어울려요.'
+    return '당신은 안정과 신뢰를 우선하는 사랑형이에요. 한 사람과 길게 가는 관계가 잘 어울려요.'
   if (!isFemale && pj >= 2)
-    return '당신은 자유롭고 변화에 끌리는 사랑형이에요. 편재가 강해 다양한 만남을 거치며 자기 결을 찾아가요.'
+    return '당신은 자유롭고 변화에 끌리는 사랑형이에요. 다양한 만남을 거치면서 자기 결을 찾아가요.'
   if (cat.관성 === 0 && isFemale)
-    return '관성이 잠잠해서 결혼·관계의 형식보다 자기 자신을 먼저 채우는 흐름이에요.'
+    return '관계의 형식보다 자기 자신을 먼저 채우는 흐름이에요.'
   if (cat.재성 === 0 && !isFemale)
-    return '재성이 잠잠해서 관계의 형식보다 자기 작업을 먼저 채우는 흐름이에요.'
+    return '관계의 형식보다 자기 작업을 먼저 채우는 흐름이에요.'
   return '당신은 관계의 깊이와 가능성을 동시에 보는 사람이에요.'
+}
+
+// love 섹션용 십신 자연어
+function sibsinMeaningKoLove(sibsin: string): string {
+  if (!sibsin) return '잔잔한 결'
+  if (sibsin.includes('편관')) return '도전과 책임이 무겁게 다가오는 결'
+  if (sibsin.includes('정관')) return '책임감 있게 자리를 잡는 결'
+  if (sibsin.includes('편재')) return '기회를 잡는 결'
+  if (sibsin.includes('정재')) return '꾸준히 쌓아가는 결'
+  if (sibsin.includes('식신')) return '여유롭게 표현하는 결'
+  if (sibsin.includes('상관')) return '재능을 자유롭게 풀어내는 결'
+  if (sibsin.includes('편인')) return '독특한 직관의 결'
+  if (sibsin.includes('정인')) return '배움과 돌봄의 결'
+  if (sibsin.includes('비견') || sibsin.includes('겁재')) return '동료와 함께 가는 결'
+  return '잔잔한 결'
+}
+
+// love 섹션 안에서 planetLabel 사용
+function planetLabelKo(name: string): string {
+  const map: Record<string, string> = {
+    Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
+    Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성',
+  }
+  return map[name] ?? name
 }
 function pickLoveStyleEn(
   cat: Record<string, number>,

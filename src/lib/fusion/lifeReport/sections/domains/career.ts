@@ -105,10 +105,10 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     paragraphOpenerKo(dominantCategory, geokguk),
     mc
-      ? `점성의 MC는 ${signLabel(mc.sign, 'ko')}에 있어, 당신이 사회에 보여주고 싶은 얼굴이 ${mcSignFlavorKo(mc.sign)}이에요.`
+      ? `사회에 보여주는 얼굴은 ${signLabel(mc.sign, 'ko')}의 결, ${mcSignFlavorKo(mc.sign)}이에요.`
       : '',
     sun
-      ? `태양 ${signLabel(sun.sign, 'ko')}·${houseLabel(sun.house, 'ko')} 배치는 ${sunHouseFlavorKo(sun.house)}을 직업적 핵심 에너지로 보여줘요.`
+      ? `자아의 별은 ${signLabel(sun.sign, 'ko')}에 있고${sun.house === 10 ? ', 사회적 정점에 자리해서' : sun.house ? `, ${karmaHouseHintForCareerKo(sun.house)} 자리에 있어` : ''} ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
       : '',
   ])
   const p1en = paragraph([
@@ -126,7 +126,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const timingPiecesEn: string[] = []
   if (cur) {
     timingPieces.push(
-      `지금 대운(${cur.age}세부터, ${cur.stem}${cur.branch})${cur.sibsin ? `에 ${cur.sibsin}의 기운이 흐르며` : '에서'} 직업 흐름의 결을 바꿔주고 있어요.`
+      `지금의 인생 흐름(${cur.age}세부터)에는 ${cur.sibsin ? sibsinMeaningKo(cur.sibsin) : '잔잔한 결'}이 함께해서, 직업의 결이 다듬어지고 있어요.`
     )
     timingPiecesEn.push(
       `Your current daeun (from age ${cur.age}, ${cur.stem}${cur.branch})${cur.sibsin ? ` carries ${cur.sibsin} energy and` : ''} is reshaping your career grain.`
@@ -134,7 +134,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (officialDaeun && (!cur || officialDaeun.age !== cur.age)) {
     timingPieces.push(
-      `${officialDaeun.age}세 즈음의 관성 대운에서는 책임과 자리가 한 단계 올라가는 흐름이 있어요.`
+      `${officialDaeun.age}세 무렵엔 책임과 자리가 한 단계 올라가는 흐름이 와요.`
     )
     timingPiecesEn.push(
       `Around age ${officialDaeun.age}, an authority-cycle (관성 daeun) lifts your standing and responsibility.`
@@ -142,7 +142,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (outputDaeun && (!cur || outputDaeun.age !== cur.age)) {
     timingPieces.push(
-      `${outputDaeun.age}세 부근 식상 대운은 표현·창작·실행이 폭발하는 구간이에요.`
+      `${outputDaeun.age}세 무렵엔 표현과 창조, 실행력이 폭발하는 구간이에요.`
     )
     timingPiecesEn.push(
       `Near age ${outputDaeun.age}, the 식상 daeun bursts open expression, creation and output.`
@@ -150,14 +150,14 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (progSun) {
     timingPieces.push(
-      `점성의 진행 태양이 ${signLabel(progSun.sign, 'ko')}${progSun.house ? `·${houseLabel(progSun.house, 'ko')}` : ''}로 옮겨간 단계라서 직업 정체성의 톤이 천천히 바뀌고 있어요.`
+      `자아의 결이 ${signLabel(progSun.sign, 'ko')}의 톤으로 옮겨가는 단계라, 직업 정체성도 천천히 색이 바뀌고 있어요.`
     )
     timingPiecesEn.push(
       `Your progressed Sun has moved into ${signLabel(progSun.sign, 'en')}${progSun.house ? ` (${houseLabel(progSun.house, 'en')})` : ''}, slowly retuning your professional identity.`
     )
   }
   const p2ko = paragraph(timingPieces.length ? timingPieces : [
-    '현 시점 대운과 점성 진행이 안정 구간이라, 큰 전환보다는 결을 다듬는 시기에요.'
+    '지금 흐름은 안정 구간이라, 큰 전환보다는 결을 다듬는 시기예요.'
   ])
   const p2en = paragraph(timingPiecesEn.length ? timingPiecesEn : [
     'For now your daeun and progression sit in a steady stretch — a season for refining rather than overhauling.'
@@ -168,7 +168,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const deepPiecesEn: string[] = []
   if (marsSaturn) {
     deepPieces.push(
-      `왜냐하면 화성과 토성이 ${aspectQuality(marsSaturn.type, 'ko')} 있어서, 추진력(화성)과 인내(토성)가 같은 축에서 일하기 때문이에요.`
+      `행동의 별과 책임의 별이 ${aspectQuality(marsSaturn.type, 'ko')} 있어서, 추진력과 인내가 한 엔진처럼 같이 일해요.`
     )
     deepPiecesEn.push(
       `Because Mars and Saturn ${aspectQuality(marsSaturn.type, 'en')} on the same axis, drive (Mars) and endurance (Saturn) cooperate as one engine.`
@@ -176,7 +176,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (sunMc) {
     deepPieces.push(
-      `태양과 MC가 ${aspectQuality(sunMc.type, 'ko')} 직업적 정체성과 공적 역할이 어긋나지 않게 흘러요.`
+      `자아의 결과 사회적 자리가 ${aspectQuality(sunMc.type, 'ko')}, 안과 밖이 어긋나지 않고 흘러요.`
     )
     deepPiecesEn.push(
       `Sun-MC ${aspectQuality(sunMc.type, 'en')}, keeping inner identity and public role aligned.`
@@ -184,7 +184,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (pofInTenth) {
     deepPieces.push(
-      `Part of Fortune이 10집에 자리해서, 직업 자체가 행운의 출구가 되는 드문 배치에요.`
+      `행운의 점이 사회적 정점 자리에 있어, 직업 자체가 행운의 통로가 되는 드문 배치예요.`
     )
     deepPiecesEn.push(
       `Part of Fortune in the 10th — a rare placement where the career itself becomes the door to luck.`
@@ -192,7 +192,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (fxOnMc.length > 0) {
     deepPieces.push(
-      `또 MC에 ${fxOnMc.join(', ')} 같은 항성이 닿아 있어서, 사회적 인상에 특별한 결이 새겨져 있어요.`
+      `사회적 자리에 특별한 별빛(${fxOnMc.join(', ')})이 닿아 있어서, 인상에 남다른 결이 새겨져 있어요.`
     )
     deepPiecesEn.push(
       `Fixed star(s) ${fxOnMc.join(', ')} contact your MC, etching a distinct grain into how the world reads you.`
@@ -200,18 +200,18 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (jong) {
     deepPieces.push(
-      `사주는 ${jong}이라 한 방향으로 강하게 흐르는 구조라, 평범한 직업보다 한 분야에 깊이 들어가는 길이 맞아요.`
+      '삶의 결이 한 방향으로 강하게 흐르는 구조라, 두루 넓히기보다 한 분야로 깊이 들어가는 길이 맞아요.'
     )
     deepPiecesEn.push(
       `Saju runs as ${jong} — a strong one-direction current that favors specialization over breadth.`
     )
   } else if (geokguk) {
-    deepPieces.push(`사주 격국은 ${geokguk}으로, 직업 색깔이 이미 명확하게 잡혀 있어요.`)
+    deepPieces.push(`인생의 큰 패턴이 ${geokgukShortKoForCareer(geokguk)}이라, 직업 색이 이미 명확하게 잡혀 있어요.`)
     deepPiecesEn.push(`Your geokguk is ${geokguk}, so the basic shape of your career is already pre-tuned.`)
   }
   if (samgi.hasSamgi) {
     deepPieces.push(
-      `${samgi.type ?? '삼기'}가 들어있어 큰 무대에서 인정받는 잠재력이 깔려 있어요.`
+      '큰 무대에서 인정받을 특별한 자질이 함께 깔려 있어요.'
     )
     deepPiecesEn.push(
       `A ${samgi.type ?? 'samgi'} pattern is present — a latent capacity for recognition on a larger stage.`
@@ -219,7 +219,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (iljuAptitudes.length > 0 && iljuName) {
     deepPieces.push(
-      `일주 ${iljuName}의 본래 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽에 잘 맞아요.`
+      `타고난 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽에 잘 맞아요.`
     )
     deepPiecesEn.push(
       `Your ilju (${iljuName}) naturally fits ${iljuAptitudes.slice(0, 3).join(' / ')}.`
@@ -232,7 +232,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     deepPiecesEn.push(`Additionally, ${top.rule.meaning}.`)
   }
   const p3ko = paragraph(deepPieces.length ? deepPieces : [
-    '왜냐하면 현재 신호들이 평탄하게 정렬되어 있어 한쪽으로 치우치는 강한 신호는 잠시 잠복기에요.'
+    '지금 신호들이 평탄하게 정렬돼 있어, 한쪽으로 치우치기보다 다양한 가능성이 함께 무르익는 시기예요.'
   ])
   const p3en = paragraph(deepPiecesEn.length ? deepPiecesEn : [
     'Because current signals sit in a balanced array, no single direction dominates right now.'
@@ -282,18 +282,18 @@ function pickDominantSibsinCategory(cat: Record<string, number>): string {
 
 function paragraphOpenerKo(cat: string, geokguk: string): string {
   if (cat === '식상')
-    return '당신은 표현하고 만들어내는 사람이에요. 사주는 식상이 흐름의 중심에 있어, 손으로 무언가를 풀어낼 때 가장 본인다워져요.'
+    return '당신은 표현하고 만들어내는 사람이에요. 손으로 무언가를 풀어낼 때 가장 본인다워져요.'
   if (cat === '관성')
-    return '당신은 자리와 책임으로 자기를 증명하는 사람이에요. 사주의 관성이 직업적 무게추로 작동해요.'
+    return '당신은 자리와 책임으로 자기를 증명하는 사람이에요. 책임감 있는 흐름이 직업의 무게추로 작동해요.'
   if (cat === '재성')
-    return '당신은 실리와 결과로 움직이는 사람이에요. 사주의 재성이 직업적 목적을 자원·돈으로 끌어와요.'
+    return '당신은 실리와 결과로 움직이는 사람이에요. 재물과 자원이 직업적 목적을 손에 잡히게 끌어와요.'
   if (cat === '인성')
-    return '당신은 배우고 정리해서 흐름을 만드는 사람이에요. 사주의 인성이 직업적 토대로 작동해요.'
+    return '당신은 배우고 정리해서 흐름을 만드는 사람이에요. 지혜와 돌봄의 결이 직업의 토대가 돼요.'
   if (cat === '비겁')
-    return '당신은 동료·동등한 관계 안에서 가장 잘 일하는 사람이에요. 사주의 비겁이 협업과 자기 주도성을 키워요.'
+    return '당신은 동등한 사람들과 함께 있을 때 가장 빛나는 사람이에요. 함께 가는 결이 협업과 자기 주도성을 키워줘요.'
   return geokguk
-    ? `당신의 직업 색깔은 ${geokguk} 격에서 출발해요.`
-    : '당신의 직업적 결은 사주 안에서 차분히 잡혀 있어요.'
+    ? `당신의 직업 색은 ${geokgukShortKoForCareer(geokguk)}에서 출발해요.`
+    : '당신의 직업적 결은 차분히 잘 잡혀 있어요.'
 }
 
 function paragraphOpenerEn(cat: string, geokguk: string): string {
@@ -390,20 +390,69 @@ function buildCareerGuideKo(args: {
 }): string {
   const pieces: string[] = ['일상 가이드 한 줄:']
   if (args.dominantCategory === '식상')
-    pieces.push('만든 결과를 외부에 꾸준히 내보내세요. 잠겨 있는 작품은 운을 못 끌어와요.')
+    pieces.push('만든 결과를 꾸준히 바깥에 내보내세요. 묵혀둔 작품은 운을 못 끌어와요.')
   else if (args.dominantCategory === '관성')
-    pieces.push('직책·자리를 회피하지 말고 한 단계씩 받아들이세요. 운이 자리로 들어와요.')
+    pieces.push('자리와 책임을 회피하지 말고 한 단계씩 받아들이세요. 운이 자리로 들어와요.')
   else if (args.dominantCategory === '재성')
-    pieces.push('숫자와 결과로 끝맺는 습관을 유지하세요. 자원으로 결산해야 운이 풀려요.')
+    pieces.push('숫자와 결과로 끝맺는 습관을 유지하세요. 자원으로 결산해야 흐름이 풀려요.')
   else if (args.dominantCategory === '인성')
-    pieces.push('계속 배우고 정리하세요. 학습이 곧 직업 자본이에요.')
+    pieces.push('계속 배우고 정리하세요. 학습 자체가 직업 자본이 돼요.')
   else if (args.dominantCategory === '비겁')
-    pieces.push('동료·파트너와의 연결을 끊지 마세요. 혼자 가지 않을 때 운이 더 커져요.')
+    pieces.push('동료와 파트너와의 연결을 끊지 마세요. 혼자 가지 않을 때 운이 더 커져요.')
   if (args.officialAge)
-    pieces.push(`${args.officialAge}세 직전부터 책임을 살짝 키워두면 운이 자연스럽게 따라옵니다.`)
+    pieces.push(`${args.officialAge}세 직전부터 책임을 살짝 키워두면 흐름이 자연스럽게 따라와요.`)
   if (args.wealthAge && (!args.officialAge || args.wealthAge !== args.officialAge))
-    pieces.push(`${args.wealthAge}세 부근 재성 흐름은 부수입·확장의 창입니다.`)
+    pieces.push(`${args.wealthAge}세 무렵엔 부수입과 확장의 창이 열려요.`)
   return paragraph(pieces)
+}
+
+// 십신 의미 자연어
+function sibsinMeaningKo(sibsin: string): string {
+  if (!sibsin) return '잔잔한 결'
+  if (sibsin.includes('편관')) return '도전과 책임이 무겁게 다가오는 결'
+  if (sibsin.includes('정관')) return '책임감 있게 자리를 잡는 결'
+  if (sibsin.includes('편재')) return '기회를 잡아내는 결'
+  if (sibsin.includes('정재')) return '꾸준히 쌓아가는 결'
+  if (sibsin.includes('식신')) return '여유롭게 표현하는 결'
+  if (sibsin.includes('상관')) return '재능을 자유롭게 풀어내는 결'
+  if (sibsin.includes('편인')) return '독특한 직관의 결'
+  if (sibsin.includes('정인')) return '배움과 돌봄의 결'
+  if (sibsin.includes('비견')) return '동등한 동료의 결'
+  if (sibsin.includes('겁재')) return '치열한 경쟁심의 결'
+  return '잔잔한 결'
+}
+
+// career 섹션용 격국 짧은 자연어
+function geokgukShortKoForCareer(g: string): string {
+  if (!g) return '본연의 결'
+  if (g.includes('편관')) return '도전과 책임을 동력으로 쓰는 결'
+  if (g.includes('정관')) return '책임감 있는 정통의 결'
+  if (g.includes('편재')) return '기회를 잡는 감각의 결'
+  if (g.includes('정재')) return '꾸준히 자원을 쌓는 결'
+  if (g.includes('식신')) return '여유로운 표현과 창조의 결'
+  if (g.includes('상관')) return '재능을 자유롭게 발산하는 결'
+  if (g.includes('편인')) return '독특한 직관의 결'
+  if (g.includes('정인')) return '배움과 돌봄의 결'
+  return '본연의 결'
+}
+
+// career 섹션용 하우스 의미 자연어
+function karmaHouseHintForCareerKo(h: number): string {
+  const map: Record<number, string> = {
+    1: '정체성의',
+    2: '재물의',
+    3: '소통의',
+    4: '가정의',
+    5: '창조의',
+    6: '일상의',
+    7: '관계의',
+    8: '깊이의',
+    9: '확장의',
+    10: '사회적 정점의',
+    11: '공동체의',
+    12: '내면의',
+  }
+  return map[h] || ''
 }
 
 function buildCareerGuideEn(args: {

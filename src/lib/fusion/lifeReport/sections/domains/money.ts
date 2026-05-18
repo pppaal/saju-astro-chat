@@ -90,10 +90,10 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     wealthFlavorKo(wealthTotal, sib.정재, sib.편재),
     second && second.sign
-      ? `점성의 2집은 ${signLabel(second.sign, 'ko')}에서 시작해서, 돈을 ${secondSignFlavorKo(second.sign)}으로 다루는 결이에요.`
+      ? `재물의 자리는 ${signLabel(second.sign, 'ko')}의 결로 시작해서, 돈을 ${secondSignFlavorKo(second.sign)} 방식으로 다뤄요.`
       : '',
     jupiter
-      ? `행운의 별 목성이 ${signLabel(jupiter.sign, 'ko')}·${houseLabel(jupiter.house, 'ko')}에 있어 ${jupiterFlavorKo(jupiter.house)}의 확장이 있어요.`
+      ? `행운의 별이 ${signLabel(jupiter.sign, 'ko')}의 결로 자리해서, ${jupiterFlavorKo(jupiter.house)} 영역으로 확장이 흘러요.`
       : '',
   ])
   const p1en = paragraph([

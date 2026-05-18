@@ -26,7 +26,46 @@ import {
   planetsInHouse,
 } from '../signals/astroSignals'
 import { northNode, findPlanet } from '../signals/astroSynthesis'
-import { paragraph, signLabel } from '../templates/sentences'
+import { paragraph, planetLabel, signLabel } from '../templates/sentences'
+
+// 행성명을 한국어로 (planetLabel은 동일 동작이지만 가독성을 위한 alias)
+function planetLabelKo(name: string): string {
+  return planetLabel(name, 'ko')
+}
+
+// 카르마 영역에서 사용하는 하우스 의미 자연어
+function karmaHouseHintKo(h: number | undefined): string {
+  if (!h) return ''
+  const map: Record<number, string> = {
+    1: '정체성의',
+    2: '재물과 자원의',
+    3: '소통과 학습의',
+    4: '가정과 뿌리의',
+    5: '창조와 자녀의',
+    6: '일상과 건강의',
+    7: '관계의',
+    8: '변용과 깊이의',
+    9: '확장과 신념의',
+    10: '사회적 정점의',
+    11: '공동체와 친구의',
+    12: '내면과 비밀의',
+  }
+  return map[h] || ''
+}
+
+// 격국을 자연어로 짧게 (karma 섹션에서 사용)
+function karmaGeokgukShortKo(g: string): string {
+  if (!g) return '본연의 삶의 결'
+  if (g.includes('편관')) return '도전과 책임으로 무게를 견디는 결'
+  if (g.includes('정관')) return '책임감 있게 자리 잡는 결'
+  if (g.includes('편재')) return '기회를 잡아내는 결'
+  if (g.includes('정재')) return '꾸준히 쌓아가는 결'
+  if (g.includes('식신')) return '여유롭게 창조하는 결'
+  if (g.includes('상관')) return '재능을 자유롭게 풀어내는 결'
+  if (g.includes('편인')) return '독특한 직관의 결'
+  if (g.includes('정인')) return '배움과 돌봄의 결'
+  return '본연의 삶의 결'
+}
 
 const ELEMENT_MISSION_KO: Record<string, string> = {
   목: '성장과 확장',
@@ -139,11 +178,11 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const missionKo = ELEMENT_MISSION_KO[dayEl] || '균형'
   const missionEn = ELEMENT_MISSION_EN[dayEl] || 'balance'
   const p1ko = paragraph([
-    `이번 생의 결은 '${missionKo}'을(를) 통해 ${geokguk || '본연의 결'}을 완성하는 흐름이에요.`,
+    `이번 생의 결은 '${missionKo}'을(를) 통해 ${karmaGeokgukShortKo(geokguk)}을 완성해가는 흐름이에요.`,
     nn
-      ? `점성의 North Node가 ${signLabel(nn.sign, 'ko')}${nn.house ? ` ${nn.house}H` : ''}에 있어, 영혼이 이번 생에 향하고 싶은 방향이 이 결 안에 있어요.`
+      ? `이번 생에 영혼이 향하고 싶은 방향은 ${signLabel(nn.sign, 'ko')}의 결, ${nn.house ? karmaHouseHintKo(nn.house) + ' 자리에 ' : ''}있어요.`
       : '',
-    ys ? `용신은 ${ys} 오행이라, 이 기운을 자기 환경에 들여올 때 영혼의 결이 펴져요.` : '',
+    ys ? `삶의 균형추가 되는 결은 '${ys}'의 기운이라, 이 결을 일상에 들여올수록 마음이 풀어져요.` : '',
   ])
   const p1en = paragraph([
     `Your soul-line in this life completes its ${geokguk || 'native pattern'} through ${missionEn}.`,
@@ -158,12 +197,12 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   // ──────── 文단 2: 카르마 패턴 (공망 + 12집 + South Node 영역)
   const p2ko = paragraph([
     `카르마 유형은 ${karmaType}이에요. ${KARMA_DESC_KO[karmaType]}`,
-    `약 ${Math.round(fixedRatio * 100)}%는 타고난 결이고, ${Math.round(flexibleRatio * 100)}%는 선택과 노력으로 바꿀 수 있는 영역이에요.`,
+    `약 ${Math.round(fixedRatio * 100)}%는 타고난 결이고, ${Math.round(flexibleRatio * 100)}%는 선택과 노력으로 바꿀 수 있어요.`,
     gongmang.length > 0
-      ? `사주의 공망(${gongmangBranches.join('·')})이 ${gongmang.join('·')} 영역에서 '채워지지 않는 감각'을 만드는데, 이게 바로 영혼이 다음 단계로 넘어가도록 미는 결이에요.`
+      ? `삶의 결 중에 ${gongmang.join('·')} 영역엔 '비어 있는 자리'가 있어서 채워지지 않는 감각이 들 수 있어요. 이게 바로 영혼이 다음 단계로 넘어가도록 미는 결이에요.`
       : '',
     twelfthPlanets.length > 0
-      ? `점성의 12집에 ${twelfthPlanets.map((p) => p.name).join(', ')}이 머물러 있어, 무의식·은둔의 자리에서 풀어야 할 카르마 결이 함께 있어요.`
+      ? `내면과 비밀의 자리에 ${twelfthPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 머물러 있어, 혼자 있는 시간 속에서 풀어야 할 결이 함께 있어요.`
       : '',
   ])
   const p2en = paragraph([
@@ -180,13 +219,13 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   // ──────── 文단 3: 치유의 자리 (일주 심화 + Chiron + Lilith)
   const p3ko = paragraph([
     iljuName
-      ? `일주 ${iljuName}의 본래 결을 한 마디로 말하면 '${shorten(iljuChar)}'이고, 이게 치유와 성장의 시작점이에요.`
+      ? `타고난 결을 한 마디로 말하면 '${shorten(iljuChar)}'이고, 이게 치유와 성장의 시작점이에요.`
       : '',
     ch
-      ? `점성의 카이런이 ${signLabel(ch.sign, 'ko')}${ch.house ? ` ${ch.house}H` : ''}에 자리해서, ${chironHouseHintKo(ch.house)}에서 평생의 상처가 치유 자원으로 바뀌어요.`
+      ? `상처와 치유의 결은 ${signLabel(ch.sign, 'ko')}의 톤으로 자리잡고 있어서, ${chironHouseHintKo(ch.house)} 영역에서 평생의 상처가 다른 사람을 돕는 자원으로 바뀌어요.`
       : '',
     lilith
-      ? `릴리스가 ${signLabel(lilith.sign, 'ko')}에 있어, 사회적 기대 밖의 결을 인정할 때 진짜 힘이 풀려요.`
+      ? `${signLabel(lilith.sign, 'ko')}의 결로 내면에 어두운 결이 있어, 사회적 기대 밖의 자기를 인정할 때 진짜 힘이 풀려요.`
       : '',
   ])
   const p3en = paragraph([
@@ -204,21 +243,21 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   // ──────── 文단 4: 잠재력 (특수 격국 + Part of Fortune)
   const p4ko = paragraph([
     jong
-      ? `사주가 ${jong}으로 한 방향에 강하게 응축돼서, 한 분야로 깊이 들어갈 때 가장 강한 잠재력이 풀려요.`
+      ? '삶의 결이 한 방향으로 강하게 응축돼서, 한 분야로 깊이 들어갈 때 가장 강한 잠재력이 풀려요.'
       : '',
     hwagyeok?.isHwagyeok
-      ? `천간 ${hwagyeok.type}이 들어 있어, 변화의 기운이 결정적 순간에 한 번 더 자기를 바꿀 자유를 줘요.`
+      ? '결정적인 순간에 한 번 더 자기를 바꿀 변화의 자유가 깔려 있어요.'
       : '',
     samgi.hasSamgi
-      ? `${samgi.type ?? '삼기'}가 들어있어 큰 무대에서 인정받을 잠재력이 깔려 있어요.`
+      ? '큰 무대에서 인정받을 특별한 자질이 깔려 있어요.'
       : '',
     pof
-      ? `점성의 Part of Fortune이 ${signLabel(pof.sign, 'ko')}${pof.house ? ` ${pof.house}H` : ''}에 자리해서, 이 영역을 가꿀 때 운이 자기 자리로 돌아와요.`
+      ? `행운의 점이 ${signLabel(pof.sign, 'ko')}의 결로 ${pof.house ? karmaHouseHintKo(pof.house) + ' 자리에 ' : ''}있어서, 이 영역을 가꿀수록 운이 자기 자리로 돌아와요.`
       : '',
     specialFormations.length > 0
-      ? `특별 격(${specialFormations.join(', ')})이 함께 있어, 평범한 흐름을 넘어서는 결이 잠재돼 있어요.`
+      ? '평범한 흐름을 넘어서는 특별한 결이 잠재돼 있어요.'
       : '',
-    `한 줄로 정리하면: 이번 생은 ${missionKo}을(를) 통해 ${karmaType}의 카르마를 풀어가는 여정이에요.`,
+    `한 줄로 정리하면: 이번 생은 ${missionKo}을(를) 통해 ${karmaType}의 결을 풀어가는 여정이에요.`,
   ])
   const p4en = paragraph([
     jong
@@ -257,22 +296,22 @@ function shorten(s: string): string {
 }
 
 function chironHouseHintKo(h: number | undefined): string {
-  if (!h) return '평생 가장 예민하게 반응하는 영역'
+  if (!h) return '평생 가장 예민하게 반응하는'
   const map: Record<number, string> = {
-    1: '자기 정체성',
-    2: '가치와 자원',
-    3: '소통과 학습',
-    4: '뿌리·가정',
-    5: '창작과 자녀',
-    6: '일터와 몸',
-    7: '파트너십',
-    8: '깊이·공동 자원',
-    9: '신념과 가르침',
-    10: '사회적 자리',
-    11: '동료·미래 비전',
-    12: '은둔·내면',
+    1: '자기 정체성의',
+    2: '가치와 자원의',
+    3: '소통과 학습의',
+    4: '뿌리와 가정의',
+    5: '창작과 자녀의',
+    6: '일과 몸의',
+    7: '관계의',
+    8: '깊이와 공동 자원의',
+    9: '신념과 가르침의',
+    10: '사회적 자리의',
+    11: '동료와 미래 비전의',
+    12: '내면과 은둔의',
   }
-  return map[h] || '평생 가장 예민하게 반응하는 영역'
+  return map[h] || '평생 가장 예민하게 반응하는'
 }
 function chironHouseHintEn(h: number | undefined): string {
   if (!h) return 'the most tender area of your life'
