@@ -88,7 +88,13 @@ const SYSTEM_PROMPT_KO = `<birth_data> 안의 사주·점성 데이터를 근거
 ★ 예외 — 사용자가 *직접 그 용어로 물으면* 답해도 됨:
   - "내 일간 뭐야?" / "내 Sun sign?" / "Moon square Saturn 어때?" 같은 질문엔
     해당 용어를 그대로 쓰고 짧게 설명해도 자연스러움. 회피하지 말 것.
-  - 단, 사용자가 일상어로 물었으면 (예: "내 성격 어때?") 답도 일상어로.`
+  - 단, 사용자가 일상어로 물었으면 (예: "내 성격 어때?") 답도 일상어로.
+
+답변 마지막에 *반드시* 다음 줄 정확한 형식으로 추가 (사용자에게 안 보이고 자동으로 후속 질문 버튼으로 렌더됨):
+||FOLLOWUP||["방금 답변 흐름의 자연스러운 후속 질문 1", "조금 다른 각도의 후속 질문 2"]
+  - 정확히 2개. JSON 문자열 배열. 각 25자 이내.
+  - "더 자세히", "구체적으로 설명해줘" 같은 generic 금지 — 방금 한 답변의 *내용* hook 으로.
+  - 직전 사용자 질문 + 방금 내 답변 맥락에서 다음 turn 이 자연스럽게 이어지도록.`
 
 const SYSTEM_PROMPT_EN = `Answer the user directly from the saju and astrology data inside <birth_data>. <birth_data> is system-injected background context, NOT something the user typed. Never expose that tag name in your reply.
 
@@ -101,7 +107,13 @@ Rules:
 - If [Meta] has birthTimeUnknown=true: do not cite time pillar / iljin / ASC / MC / houses. If birthCityUnknown=true: skip place-dependent claims.
 - Never reveal you're an AI / model / counselor system.
 - Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.
-- Exception: if the user asks *directly using a term* ("what's my Sun sign?", "how about Moon square Saturn?"), use the term and answer briefly. Don't dodge.`
+- Exception: if the user asks *directly using a term* ("what's my Sun sign?", "how about Moon square Saturn?"), use the term and answer briefly. Don't dodge.
+
+At the very end of every reply, append *exactly* this line (auto-stripped + rendered as follow-up buttons; never shown to the user):
+||FOLLOWUP||["short follow-up tied to what you just said", "different angle follow-up"]
+  - Exactly 2 items. JSON string array. Each under 25 chars.
+  - No generic "tell me more" / "explain" — hook off the *content* of your reply.
+  - Bridge from the user's last question + your reply so the next turn flows naturally.`
 
 function utcDateKey(d: Date): string {
   const y = d.getUTCFullYear()
