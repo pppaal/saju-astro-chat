@@ -741,7 +741,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-}
 
 .textarea {
   flex: 1;
