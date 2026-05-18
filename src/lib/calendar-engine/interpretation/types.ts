@@ -93,6 +93,16 @@ export interface Interpretation {
     title: string
     text: string
   }>
+  /**
+   * 도메인별 점수 — narrative와 동기화된 0-100 값.
+   *
+   * cell.themeScores는 신호 polarity 평균(+공명 보너스)이라 narrative
+   * 톤(룰 매칭 기반)과 어긋날 수 있음. 이 필드는 도메인별 실제 매칭된
+   * 룰들의 polarity 평균으로 계산 — narrative와 1:1 정합.
+   *
+   * 사용 우선순위: 이 필드 > cell.themeScores (UI 표시용).
+   */
+  themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
 }
 
 /**

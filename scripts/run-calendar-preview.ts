@@ -97,6 +97,13 @@ async function main() {
   // 4. Build interpretation (monthly scope = 가장 풍부)
   const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
 
+  console.log('=== 점수 매트릭스 (해석 동기화) ===')
+  console.log('interp.themeScores (룰 매칭 polarity 기반 — narrative 톤과 1:1):')
+  for (const [theme, score] of Object.entries(interp.themeScores ?? {})) {
+    console.log(`  ${theme}: ${score}`)
+  }
+  console.log()
+
   console.log('=== 해석 narrative ===')
   console.log(interp.narrative)
   console.log()
