@@ -1924,7 +1924,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 77,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['천을귀인'],
       // 삼합·육합은 hyeongchung extractor가 별도 emit하는 신호라 같이
       // 매칭하려면 separate 룰 필요. 여기는 천을귀인 단독으로 가용.
@@ -1941,7 +1940,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 69,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['양인', '괴강'],
     },
     template:
@@ -1956,7 +1954,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 68,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['역마', '지살'],
     },
     template:
@@ -1971,7 +1968,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 67,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['도화', '홍염살'],
     },
     template:
@@ -1986,7 +1982,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 66,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['백호', '현침'],
     },
     template:
@@ -2001,7 +1996,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 65,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['망신', '재살'],
     },
     template:
@@ -2016,7 +2010,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 79,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['천덕귀인', '월덕귀인'],
     },
     template:
@@ -2031,7 +2024,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 68,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['문창', '학당귀인'],
     },
     template:
@@ -2046,7 +2038,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 67,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['천의성'],   // 활인성은 천의성과 혼동, 별도 신살 아님
     },
     template:
@@ -2093,7 +2084,6 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 80,
     conditions: {
-      signalLayer: ['yearly'],
       shinsalName: ['암록', '태극귀인'],
     },
     template:
@@ -2194,12 +2184,13 @@ export const RULES: InterpretationRule[] = [
     section: 'wolun',
     priority: 66,
     conditions: {
-      signalLayer: ['monthly'],
+      // 신살(도화/홍염)은 daily layer로 emit되므로 signalLayer 조건 안 둠.
+      // wolun 카테고리에서 노출되지만 매칭은 일진 단위.
       shinsalName: ['도화', '홍염살'],
     },
     template:
-      `이번 달은 매력·끌림이 강해지는 시기예요. 외출·소개·SNS 활동이 ` +
-      `자연스럽게 인연으로 이어지기 좋아요.`,
+      `요즘 며칠씩 매력·끌림이 강해지는 흐름이에요. 외출·소개·SNS ` +
+      `활동이 자연스럽게 인연으로 이어지기 좋아요.`,
     themes: ['love'],
   },
   {
@@ -2257,11 +2248,11 @@ export const RULES: InterpretationRule[] = [
     section: 'wolun',
     priority: 62,
     conditions: {
-      signalLayer: ['monthly'],
+      // 신살은 daily layer만 emit. wolun 노출이지만 일진 단위 매칭.
       shinsalName: ['백호', '현침'],
     },
     template:
-      `이번 달은 갑작스러운 증상이나 사고 위험에 유의해야 하는 시기예요. ` +
+      `요즘 며칠씩 갑작스러운 증상이나 사고 위험에 유의해야 하는 흐름이에요. ` +
       `위험한 활동을 미루고, 운전·기계 작업·날카로운 도구 사용 시 ` +
       `한 박자 천천히 가주세요.`,
     themes: ['health'],
@@ -2272,12 +2263,12 @@ export const RULES: InterpretationRule[] = [
     section: 'wolun',
     priority: 65,
     conditions: {
-      signalLayer: ['monthly'],
+      // 신살은 daily layer만 emit. wolun 노출이지만 일진 단위 매칭.
       shinsalName: ['천덕귀인', '월덕귀인', '천의성'],
     },
     template:
-      `이번 달은 회복과 치유에 가장 좋은 흐름이에요. 미뤘던 건강검진·치과· ` +
-      `심리상담을 시작하면 효과가 좋고, 새 운동 루틴도 자리잡아요.`,
+      `요즘 회복과 치유에 가장 좋은 흐름이 들어와요. 미뤘던 건강검진· ` +
+      `치과·심리상담을 시작하면 효과가 좋고, 새 운동 루틴도 자리잡아요.`,
     themes: ['health'],
   },
   {
