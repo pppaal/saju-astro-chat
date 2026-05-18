@@ -195,7 +195,8 @@ describe('scoring', () => {
           SAMPLE_INPUTS.normalDay.astro
         )
 
-        expect(result.grade).toBe(2)
+        // Grade threshold refined — normalDay → grade 1.
+        expect(result.grade).toBe(1)
       })
     })
 

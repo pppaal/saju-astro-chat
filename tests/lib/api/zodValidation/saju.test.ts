@@ -525,9 +525,10 @@ describe('Calendar Schema Tests', () => {
     })
 
     it('should accept full data', () => {
+      // grade max = 4 (schema)
       expect(calendarSaveRequestSchema.safeParse({
         date: '2024-06-15',
-        grade: 5,
+        grade: 4,
         score: 95,
         title: 'Excellent Day',
         description: 'Very auspicious day',

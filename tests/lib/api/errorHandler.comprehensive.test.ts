@@ -7,7 +7,6 @@ import {
   ErrorCodes,
   createErrorResponse,
   createSuccessResponse,
-  withErrorHandler,
   jsonErrorResponse,
   type APIErrorOptions,
 } from '@/lib/api/errorHandler'
@@ -576,13 +575,6 @@ describe('API Error Handler', () => {
         expect(body.success).toBe(true)
         expect(body.data).toEqual(payload)
       })
-    })
-  })
-
-  describe('withErrorHandler (deprecated)', () => {
-    it('should throw an error when called', () => {
-      const handler = async () => new Response('OK')
-      expect(() => withErrorHandler(handler, '/test')).toThrow('withErrorHandler is deprecated')
     })
   })
 

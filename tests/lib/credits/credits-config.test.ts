@@ -64,7 +64,7 @@ describe('PLAN_CONFIG Structure', () => {
     const { PLAN_CONFIG } = await import('@/lib/credits');
 
     expect(PLAN_CONFIG.free).toBeDefined();
-    expect(PLAN_CONFIG.free.monthlyCredits).toBe(7);
+    expect(PLAN_CONFIG.free.monthlyCredits).toBe(0);
   });
 
   it('should have starter plan', async () => {
