@@ -640,3 +640,83 @@
 .lightTheme .typing > span {
   background: #a8a29e;
 }
+
+/* Follow-up question chips — mirrors destiny counselor's Chat.module.css.
+   Shown after each assistant reply when the LLM emits ||FOLLOWUP||[...]. */
+.followUpContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+  margin: 8px 0;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.06) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  animation: followUpSlideUp 0.4s ease-out;
+}
+
+@keyframes followUpSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.followUpLabel {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.followUpButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.followUpChip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.followUpChip:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(236, 72, 153, 0.2) 100%);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+.followUpChip:active { transform: translateY(0); }
+
+.followUpIcon { font-size: 14px; }
+
+@media (max-width: 640px) {
+  .followUpContainer { padding: 12px 16px; }
+  .followUpButtons { flex-direction: column; gap: 8px; }
+  .followUpChip { width: 100%; justify-content: center; padding: 12px 16px; }
+}
+
+.lightTheme .followUpContainer {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(236, 72, 153, 0.04) 100%);
+  border-color: rgba(139, 92, 246, 0.18);
+}
+.lightTheme .followUpLabel { color: rgba(60, 50, 80, 0.55); }
+.lightTheme .followUpChip {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.08) 100%);
+  border-color: rgba(139, 92, 246, 0.2);
+  color: rgba(40, 30, 60, 0.85);
+}
+.lightTheme .followUpChip:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(236, 72, 153, 0.14) 100%);
+  border-color: rgba(139, 92, 246, 0.35);
+}
