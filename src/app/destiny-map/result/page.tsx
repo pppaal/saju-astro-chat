@@ -47,7 +47,6 @@ export default function DestinyResultPage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<DestinyResult | null>(null)
-  const [activeTheme, setActiveTheme] = useState('focus_love')
 
   // Life Prediction states
   const [activeTab, setActiveTab] = useState<'destiny' | 'life-prediction'>('destiny')
@@ -77,8 +76,6 @@ export default function DestinyResultPage({
       const gender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? ''
       const rawLang = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? 'ko'
       const reqLang: Lang = rawLang === 'en' ? 'en' : 'ko'
-      const themeParam = (Array.isArray(sp.theme) ? sp.theme[0] : sp.theme) ?? 'focus_love'
-
       const latStr =
         (Array.isArray(sp.lat) ? sp.lat[0] : sp.lat) ??
         (Array.isArray(sp.latitude) ? sp.latitude[0] : sp.latitude)
@@ -86,11 +83,10 @@ export default function DestinyResultPage({
         (Array.isArray(sp.lon) ? sp.lon[0] : sp.lon) ??
         (Array.isArray(sp.longitude) ? sp.longitude[0] : sp.longitude)
       const userTz = (Array.isArray(sp.userTz) ? sp.userTz[0] : sp.userTz) ?? ''
+      const themeParam = (Array.isArray(sp.theme) ? sp.theme[0] : sp.theme) ?? 'focus_love'
 
       const latitude = latStr ? Number(latStr) : NaN
       const longitude = lonStr ? Number(lonStr) : NaN
-
-      setActiveTheme(themeParam)
 
       if (!birthDate || !birthTime || !city || isNaN(latitude) || isNaN(longitude)) {
         setError(
@@ -368,7 +364,6 @@ export default function DestinyResultPage({
               saju={result?.saju}
               astro={mergedAstro}
               lang={lang}
-              theme={activeTheme}
               fusionFragments={
                 (result as { fusionFragments?: unknown } | null)?.fusionFragments as Parameters<typeof FreeReport>[0]['fusionFragments']
               }
