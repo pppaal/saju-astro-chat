@@ -22,6 +22,7 @@ import { MessagesPanel, ChatInputArea } from './chat-panels'
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
 const HistoryModal = dynamic(() => import('./modals/HistoryModal'), { ssr: false })
+const ChartModal = dynamic(() => import('./charts/ChartModal'), { ssr: false })
 
 const Chat = memo(function Chat({
   profile,
@@ -63,6 +64,7 @@ const Chat = memo(function Chat({
   const [notice, setNotice] = React.useState<string | null>(null)
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [showHistoryModal, setShowHistoryModal] = React.useState(false)
+  const [showChartModal, setShowChartModal] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
@@ -518,6 +520,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onSend={() => void handleSend()}
               onFileUpload={handleFileUpload}
               onOpenTarot={goToTarot}
+              onOpenChart={() => setShowChartModal(true)}
               styles={styles}
               autoFocus={autoFocus}
             />
@@ -532,6 +535,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         lang={lang}
         profile={profile}
         initialConcern={extractConcernFromMessages()}
+      />
+
+      <ChartModal
+        open={showChartModal}
+        onClose={() => setShowChartModal(false)}
+        saju={saju}
+        astro={astro}
+        lang={effectiveLang}
       />
     </div>
   )

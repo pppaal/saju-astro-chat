@@ -667,8 +667,17 @@
 .inputBoxActions {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: space-between;
+  gap: 0.5rem;
   margin-top: 0.25rem;
+}
+
+.inputBoxActionsLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 /* Attach / tarot buttons — small transparent flat squares, hover fills.
