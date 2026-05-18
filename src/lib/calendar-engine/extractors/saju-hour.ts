@@ -84,7 +84,14 @@ const sajuHourExtractor: SignalExtractor = {
 
         // 12 시진 narrative DB에서 baseline + polarity 매칭 텍스트 가져오기.
         // polarity 부호에 따라 baseline/positive/caution 분기.
-        const branchKo = branch.name as keyof typeof HOUR_BRANCH_NARRATIVE
+        // BRANCHES.name은 한자(子, 丑, 寅...)인데 HOUR_BRANCH_NARRATIVE
+        // 키는 한글(자, 축, 인...)이라 직접 매칭 안 됨 — 한자→한글 변환.
+        const HANJA_TO_HANGUL: Record<string, string> = {
+          '子': '자', '丑': '축', '寅': '인', '卯': '묘',
+          '辰': '진', '巳': '사', '午': '오', '未': '미',
+          '申': '신', '酉': '유', '戌': '술', '亥': '해',
+        }
+        const branchKo = (HANJA_TO_HANGUL[branch.name] ?? branch.name) as keyof typeof HOUR_BRANCH_NARRATIVE
         const branchNarrative = HOUR_BRANCH_NARRATIVE[branchKo]
         const headline = branchNarrative
           ? pickHourNarrative(branchKo, polarity, 'ko')

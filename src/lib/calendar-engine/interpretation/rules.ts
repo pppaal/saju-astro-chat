@@ -113,8 +113,8 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 2,
     },
     template:
-      `올해는 **본명을 우호적으로 받쳐주는 한 해**예요. ` +
-      `큰 결정·새 시도가 평소보다 매끄럽게 흘러요. ` +
+      `**{yearGanji}** 세운 — 올해는 본명을 우호적으로 받쳐주는 ` +
+      `한 해예요. 큰 결정과 새 시도가 평소보다 매끄럽게 흘러요. ` +
       `봄과 초여름이 운의 정점이에요.`,
     themes: ['career', 'money'],
   },
@@ -171,7 +171,7 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 2,
     },
     template:
-      `이번 달은 **본명을 우호적으로 받쳐주는 한 달**이에요. ` +
+      `**{monthGanji}** 월 — 본명을 우호적으로 받쳐주는 한 달이에요. ` +
       `의사결정·관계·실행이 평소보다 매끄러워요. ` +
       `미뤄둔 일을 처리하기 좋아요.`,
     themes: ['career', 'money'],
@@ -593,7 +593,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정관', '편관'],
     },
     template:
-      `이번 달은 책임이나 외부 압박이 평소보다 무거워지는 흐름이에요. ` +
+      `**{monthGanji}** 월 — 책임이나 외부 압박이 평소보다 무거워지는 흐름이에요. ` +
       `완벽 다 하려 하지 말고 가장 중요한 한 건에만 집중해주세요.`,
     themes: ['career', 'health'],
   },
@@ -609,7 +609,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정재', '편재'],
     },
     template:
-      `이번 달은 돈은 보이는데 챙기기 힘든 흐름이에요. 큰 투자보다 ` +
+      `**{monthGanji}** 월 — 돈은 보이는데 챙기기 힘든 흐름이에요. 큰 투자보다 ` +
       `현금흐름 안정과 건강 관리를 우선해주세요.`,
     themes: ['money', 'health'],
   },
@@ -625,7 +625,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정인', '편인'],
     },
     template:
-      `이번 달은 받쳐주는 큰 힘이 들어오는 흐름이에요. 학습이나 자격증, ` +
+      `**{monthGanji}** 월 — 받쳐주는 큰 힘이 들어오는 흐름이에요. 학습이나 자격증, ` +
       `전문성 다지기에 가장 좋고 멘토·선배의 조언이 잘 통해요.`,
     themes: ['career', 'love'],
   },
@@ -641,7 +641,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['비견', '겁재'],
     },
     template:
-      `이번 달은 친구·동료·협업이 도움이 되는 흐름이에요. 혼자 ` +
+      `**{monthGanji}** 월 — 친구·동료·협업이 도움이 되는 흐름이에요. 혼자 ` +
       `짊어지지 말고 함께 가는 사람과 나눠 보세요.`,
     themes: ['growth', 'love'],
   },
@@ -657,7 +657,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정관', '편관'],
     },
     template:
-      `이번 달은 책임·자리·평가가 들어오는 흐름이에요. 평소 쌓아둔 ` +
+      `**{monthGanji}** 월 — 책임·자리·평가가 들어오는 흐름이에요. 평소 쌓아둔 ` +
       `능력이 결과로 나오기 좋고, 승진이나 새 책임 부여가 자연스러워요.`,
     themes: ['career', 'money'],
   },
@@ -673,7 +673,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정재', '편재'],
     },
     template:
-      `이번 달은 실행력과 돈 흐름이 맞물려 가는 흐름이에요. 작은 ` +
+      `**{monthGanji}** 월 — 실행력과 돈 흐름이 맞물려 가는 흐름이에요. 작은 ` +
       `투자나 자산 정리, 새 거래 시작에 가장 좋은 시기예요.`,
     themes: ['money', 'career'],
   },
@@ -689,7 +689,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정인', '편인'],
     },
     template:
-      `이번 달은 머리와 자료가 가득 차는데 행동이 약해지는 흐름이에요. ` +
+      `**{monthGanji}** 월 — 머리와 자료가 가득 차는데 행동이 약해지는 흐름이에요. ` +
       `짧은 실행 단위로 끊고 시작을 가볍게 만들면 잘 풀려요.`,
     themes: ['career', 'growth'],
   },
@@ -705,7 +705,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['식신', '상관'],
     },
     template:
-      `이번 달은 표현과 아이디어 흐름이 강해지는 시기예요. 새 콘텐츠나 ` +
+      `**{monthGanji}** 월 — 표현과 아이디어 흐름이 강해지는 시기예요. 새 콘텐츠나 ` +
       `창작, 기획이 잘 풀리고 안 쓰던 SNS·블로그를 다시 손보면 운이 따라요.`,
     themes: ['growth', 'career'],
   },
@@ -1935,8 +1935,9 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정재', '편재'],
     },
     template:
-      `재성이 들어오는 해예요. 돈·실물·실제 결과가 눈에 보이는 흐름이라 ` +
-      `작년에 뿌린 씨앗이 현금흐름으로 돌아오기 좋은 시기예요.`,
+      `**{yearGanji}** 세운 — 재성이 들어오는 해예요. 돈·실물·실제 ` +
+      `결과가 눈에 보이는 흐름이라 작년에 뿌린 씨앗이 현금흐름으로 ` +
+      `돌아오기 좋은 시기예요.`,
     themes: ['money'],
   },
   {
