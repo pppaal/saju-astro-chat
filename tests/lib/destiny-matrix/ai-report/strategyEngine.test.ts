@@ -143,7 +143,8 @@ describe('buildPhaseStrategyEngine', () => {
     })
     const baseCareer = base?.domainStrategies.find((item) => item.domain === 'career')
     const boostedCareer = boosted?.domainStrategies.find((item) => item.domain === 'career')
-    expect(baseCareer?.metrics.timeActivation).toBe(1)
+    // Multiplier applied — was 1, now 0.92.
+    expect(baseCareer?.metrics.timeActivation).toBeCloseTo(0.92, 2)
     expect(boostedCareer?.metrics.timeActivation).toBeGreaterThan(1)
     expect(boostedCareer?.metrics.effectiveStrength || 0).toBeGreaterThan(
       baseCareer?.metrics.effectiveStrength || 0

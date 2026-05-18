@@ -228,16 +228,15 @@ describe('Tarot Request Schemas', () => {
     })
 
     it('should accept custom values', () => {
+      // `theme` field 는 schema 에서 제거됨 — limit/offset 만 남음.
       const result = tarotQuerySchema.safeParse({
         limit: 50,
         offset: 20,
-        theme: 'career',
       })
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data.limit).toBe(50)
         expect(result.data.offset).toBe(20)
-        expect(result.data.theme).toBe('career')
       }
     })
 

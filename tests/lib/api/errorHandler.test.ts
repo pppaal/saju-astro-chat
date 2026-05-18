@@ -28,7 +28,6 @@ import {
   ErrorCodes,
   createErrorResponse,
   createSuccessResponse,
-  withErrorHandler,
   type ErrorCode,
 } from '@/lib/api/errorHandler'
 import { captureServerError } from '@/lib/telemetry'
@@ -306,13 +305,6 @@ describe('errorHandler', () => {
     it('sets Content-Type header to application/json', async () => {
       const response = createSuccessResponse({ id: 1 })
       expect(response.headers.get('Content-Type')).toBe('application/json')
-    })
-  })
-
-  describe('withErrorHandler (deprecated)', () => {
-    it('throws deprecation error', () => {
-      const handler = vi.fn()
-      expect(() => withErrorHandler(handler, '/api/test')).toThrow('withErrorHandler is deprecated')
     })
   })
 })
