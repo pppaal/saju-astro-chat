@@ -110,23 +110,23 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const timingKo: string[] = []
   const timingEn: string[] = []
   if (cur && cur.sibsin) {
-    timingKo.push(`지금 흐르는 ${cur.sibsin} 대운이 돈의 흐름에 ${daeunMoneyFlavorKo(cur.sibsin)}을 만들어요.`)
+    timingKo.push(`지금의 인생 흐름이 돈의 결에 ${daeunMoneyFlavorKo(cur.sibsin)}을 만들어줘요.`)
     timingEn.push(`Your current ${cur.sibsin} daeun ${daeunMoneyFlavorEn(cur.sibsin)} for money.`)
   }
   if (wealthDaeun && (!cur || cur.age !== wealthDaeun.age)) {
-    timingKo.push(`${wealthDaeun.age}세 부근 재성 대운이 돈의 큰 흐름이 열리는 구간이에요.`)
+    timingKo.push(`${wealthDaeun.age}세 무렵엔 돈의 큰 흐름이 열리는 구간이에요.`)
     timingEn.push(`Around age ${wealthDaeun.age}, the wealth (재성) daeun opens the larger money flow.`)
   }
   if (sr2.length > 0) {
-    timingKo.push(`올해 Solar Return은 2집에 ${sr2.join('·')}이 들어와, 자기 자원의 해에요.`)
+    timingKo.push('올해는 자기 자원의 해예요. 본인 손에 들어오는 결이 또렷해져요.')
     timingEn.push(`This year's Solar Return puts ${sr2.join(', ')} in the 2nd — a year of personal resource.`)
   }
   if (sr8.length > 0) {
-    timingKo.push(`그리고 SR 8집에 ${sr8.join('·')}이 있어 공동 자원·투자의 결도 열려 있어요.`)
+    timingKo.push('함께 다루는 자원과 투자의 결도 같은 해에 열려 있어요.')
     timingEn.push(`SR 8th carries ${sr8.join(', ')} as well — shared resources and investment are active.`)
   }
   if (timingKo.length === 0) {
-    timingKo.push('대운과 진행은 잔잔한 자원 축적 구간이에요.')
+    timingKo.push('지금은 잔잔하게 자원이 쌓이는 구간이에요.')
     timingEn.push('Your daeun and progressions sit in a quiet accumulation stretch.')
   }
   const p2ko = paragraph(timingKo)
@@ -136,36 +136,34 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const deepKo: string[] = []
   const deepEn: string[] = []
   if (jong === '종재격') {
-    deepKo.push('사주가 종재격이라, 재성에 모든 기운이 모이는 큰 재물 그릇이에요.')
+    deepKo.push('삶의 결이 재물 쪽으로 강하게 응축돼 있어, 큰 재물 그릇을 타고난 사람이에요.')
     deepEn.push('Your saju runs as 종재격 (following-wealth) — all energy converges into a large money vessel.')
   } else if (gk.includes('재격')) {
-    deepKo.push(`격국이 ${gk}이라, 돈을 직업과 자기 자리로 연결시키는 패턴이에요.`)
+    deepKo.push('인생의 큰 패턴이 돈을 직업과 자기 자리로 연결시키는 결이에요.')
     deepEn.push(`Your geokguk is ${gk}, fusing money into career and seat.`)
   }
   if (pofIn2nd) {
-    deepKo.push('Part of Fortune이 2집에 있어, 자기 자원이 곧 행운의 통로에요.')
+    deepKo.push('행운의 점이 재물 자리에 있어, 자기 자원이 곧 행운의 통로예요.')
     deepEn.push('Part of Fortune in the 2nd — personal resource is the literal channel of luck.')
   } else if (pofIn8th) {
-    deepKo.push('Part of Fortune이 8집에 있어, 공동 자원·유산·투자로 행운이 열려요.')
+    deepKo.push('행운의 점이 변용과 깊이의 자리에 있어, 함께 다루는 자원이나 유산, 투자로 행운이 열려요.')
     deepEn.push('Part of Fortune in the 8th — luck flows through shared resources, inheritance, investment.')
   }
   if (jupiterVenus) {
-    deepKo.push(`목성과 금성이 ${aspectQuality(jupiterVenus.type, 'ko')} 풍요와 미감이 손잡고 자원에 닿아요.`)
+    deepKo.push(`행운의 별과 사랑의 별이 ${aspectQuality(jupiterVenus.type, 'ko')}, 풍요와 미감이 손잡고 자원에 닿아요.`)
     deepEn.push(`Jupiter-Venus ${aspectQuality(jupiterVenus.type, 'en')} — abundance and beauty hold hands at your resources.`)
   }
   const jupHardSquare = jupiterAspects.find(
     (a) => a.type === 'square' || a.type === 'opposition'
   )
   if (jupHardSquare) {
-    deepKo.push(
-      `목성이 ${jupHardSquare.to.name === 'Jupiter' ? jupHardSquare.from.name : jupHardSquare.to.name}와 ${aspectQuality(jupHardSquare.type, 'ko')} 있어 과한 확장은 조절해야 해요.`
-    )
+    deepKo.push('행운의 별이 다른 별과 팽팽하게 마주 있어, 과한 확장은 조절이 필요해요.')
     deepEn.push(
       `Jupiter ${aspectQuality(jupHardSquare.type, 'en')} the other point, so over-expansion needs tempering.`
     )
   }
   if (lucky.length > 0) {
-    deepKo.push(`사주 신살에는 ${lucky.slice(0, 3).join('·')}이 있어 재물 흐름을 잔잔히 도와요.`)
+    deepKo.push(`재물 흐름을 잔잔히 받쳐주는 ${luckyShinsalReadableKo(lucky)} 같은 결이 함께 있어요.`)
     deepEn.push(`Your saju 신살 includes ${lucky.slice(0, 3).join(' / ')}, quietly supporting the money flow.`)
   }
   if (moneyConfirms.length > 0) {
@@ -173,7 +171,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     deepEn.push(`Additionally, ${moneyConfirms[0].rule.meaning}.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
-    '왜냐하면 자원 신호들이 평탄하게 정렬되어 있어, 큰 폭의 변동보다는 꾸준한 누적의 길이 어울려요.'
+    '재물의 결은 큰 폭의 변동보다 꾸준한 누적의 길이 더 잘 어울려요.'
   ])
   const p3en = paragraph(deepEn.length ? deepEn : [
     'Because the wealth signals sit in a balanced array, steady accumulation fits better than wide swings.'
@@ -183,14 +181,14 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const guideKo: string[] = ['일상 가이드 한 줄:']
   const guideEn: string[] = ['Daily handle:']
   if (sib.정재 >= sib.편재) {
-    guideKo.push('정기적 수입의 안정 라인을 먼저 굳히고, 그 위에서 확장하세요.')
+    guideKo.push('정기적인 수입의 안정 라인을 먼저 굳히고, 그 위에서 확장하세요.')
     guideEn.push('Lock the stable income line first, then expand on top of it.')
   } else {
-    guideKo.push('한 곳에 묶지 말고 분산된 자원 흐름을 만드세요. 편재는 다채로움을 좋아해요.')
+    guideKo.push('한 곳에 묶지 말고 분산된 자원 흐름을 만드세요. 다채로움이 운을 부르는 결이에요.')
     guideEn.push('Do not pin everything to one source — spread the flow. 편재 likes variety.')
   }
   if (wealthDaeun) {
-    guideKo.push(`${wealthDaeun.age}세 직전에 자원 그릇을 키워두면 흐름이 자연스럽게 따라옵니다.`)
+    guideKo.push(`${wealthDaeun.age}세 직전에 자원 그릇을 키워두면 흐름이 자연스럽게 따라와요.`)
     guideEn.push(`Enlarge the resource vessel just before age ${wealthDaeun.age} — the flow follows.`)
   }
   const p4ko = paragraph(guideKo)
