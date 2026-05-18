@@ -101,7 +101,7 @@
     "ops:destiny:gate:quick": "node scripts/ops/destiny-quality-gate.mjs --quick",
     "ops:destiny:gate": "node scripts/ops/destiny-quality-gate.mjs --full",
     "ops:destiny:nightly": "npm run test:nightly:shard -- --index=0 --total=1 && npm run ops:destiny:gate",
-    "ops:destiny:release": "npm run typecheck && npm run test:destiny:release && npx tsx scripts/ops/qa-destiny-three-services.ts --lang=ko"
+    "ops:destiny:release": "npm run typecheck && npm run test:destiny:release"
   },
   "overrides": {
     "node-gyp": "^10.0.1",

@@ -57,6 +57,7 @@ jobs:
 
       - name: 💬 Comment PR with a11y results
         if: github.event_name == 'pull_request' && always()
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
@@ -84,12 +85,19 @@ jobs:
             *For detailed results, download the accessibility report artifact.*
             `;
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } catch (err) {
+              // PR comment is informational only — silently swallow auth/permission
+              // failures (e.g. "Resource not accessible by integration" from bot
+              // tokens without issues:write).
+              console.log(`Comment skipped: ${err.message}`);
+            }
 
       - name: ❌ Fail if accessibility violations found
         if: failure()
@@ -143,6 +151,7 @@ jobs:
 
       - name: 💬 Comment Lighthouse scores
         if: github.event_name == 'pull_request' && always()
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
@@ -158,12 +167,16 @@ jobs:
             View the full Lighthouse report in the artifacts.
             `;
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } catch (err) {
+              console.log(`Comment skipped: ${err.message}`);
+            }
 
   summary:
     name: Accessibility Summary
