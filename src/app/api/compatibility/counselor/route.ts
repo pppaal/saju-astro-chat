@@ -307,13 +307,26 @@ export async function POST(req: NextRequest) {
     // contextTrace는 prompt에서 빠졌으므로 server-side 디버깅 용도로만 남긴다.
     logger.debug('[compatibility/counselor] context trace', { contextTrace })
 
-    // Build conversation context
-    const historyText = trimmedHistory
-      .filter((m) => m.role !== 'system')
-      .map((m) => `${m.role === 'user' ? 'Q' : 'A'}: ${guardText(m.content, 400)}`)
-      .join('\n')
-      .slice(0, 2000)
-
+    // 진짜 multi-turn — assistant 답변을 LLM이 자기 발화로 정확히
+    // 인식하게. 예전엔 Q:/A: 한 덩어리 string으로 박아서 직전 답 톤이
+    // 다음 답에 묻어 나왔다.
+    const dialogTurns = trimmedHistory.filter(
+      (m): m is { role: 'user' | 'assistant'; content: string } =>
+        m.role === 'user' || m.role === 'assistant'
+    )
+    // 마지막 user 턴까지만 prior, 마지막 user 턴 자체는 userPrompt로.
+    const lastUserIdxInDialog = (() => {
+      for (let i = dialogTurns.length - 1; i >= 0; i--) {
+        if (dialogTurns[i].role === 'user') return i
+      }
+      return -1
+    })()
+    const priorTurns =
+      lastUserIdxInDialog >= 0
+        ? dialogTurns
+            .slice(0, lastUserIdxInDialog)
+            .map((m) => ({ role: m.role, content: guardText(m.content, 400) }))
+        : []
     const userQuestion = lastUser ? guardText(lastUser.content, 600) : ''
 
 
@@ -606,19 +619,18 @@ export async function POST(req: NextRequest) {
     // ground in 60 chars — kept the local variable for future opt-in
     // toggles but dropped from the wire.
     void evidenceGuide
-    const userPrompt = [
-      timingBlock,
-      historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
-      `\n== 사용자 질문 ==\n${userQuestion}`,
-    ]
-      .filter(Boolean)
-      .join('\n')
+    // timingBlock(테마/시기 흐름)은 매 턴 다를 수 있어 cached가 아닌
+    // dynamic 영역. userPrompt 앞에 붙여서 latest user 메시지의 context로.
+    const userPrompt = timingBlock
+      ? `${timingBlock}\n\n== 사용자 질문 ==\n${userQuestion}`
+      : userQuestion
 
     try {
       return await streamClaudeAsSSE({
         systemPrompt,
         cachedUserContext,
         userPrompt,
+        priorTurns,
         maxTokens: 3500,
         temperature: 0.7,
         timeoutMs: 80000,
