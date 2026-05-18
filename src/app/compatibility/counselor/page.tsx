@@ -54,12 +54,6 @@ type PersonData = {
   gender?: 'M' | 'F' | 'Male' | 'Female'
 }
 
-function formatBirthSnippet(p: PersonData): string {
-  const date = p.date || ''
-  const time = p.time && p.time !== '12:00' ? ` ${p.time}` : ''
-  return `${date}${time}`.trim()
-}
-
 function CompatibilityCounselorContent() {
   const { locale, setLocale } = useI18n()
   const toggleLocale = useCallback(() => {
@@ -526,23 +520,6 @@ function CompatibilityCounselorContent() {
     return <CounselorLoading />
   }
 
-  const personA = persons[0]
-  const personB = persons[1]
-
-  const suggestionItems = isKo
-    ? [
-        '우리의 숨겨진 인연은 뭐야?',
-        '우리 관계의 미래 가이던스를 알려줘',
-        '우리가 함께 성장하려면 어떻게 해야 해?',
-        '우리 갈등 해결 스타일은 어때?',
-      ]
-    : [
-        'What are our hidden connections?',
-        'Give me future guidance for our relationship',
-        'How can we grow together?',
-        'What is our conflict resolution style?',
-      ]
-
   return (
     <main className={`${styles.page} ${styles.fadeIn}`}>
       <CounselorSidebar
@@ -590,63 +567,15 @@ function CompatibilityCounselorContent() {
         </div>
       </header>
 
-      {/* Two-persons hero with heart */}
-      {personA && personB && (
-        <div className={styles.twoPersonsHero}>
-          <div className={styles.personCard}>
-            <div className={`${styles.personAvatar} ${styles.personAvatarA}`}>
-              {(personA.name || 'A').charAt(0).toUpperCase()}
-            </div>
-            <div className={styles.personMeta}>
-              <span className={styles.personName}>
-                {personA.name || (isKo ? '사람 1' : 'Person 1')}
-              </span>
-              <span className={styles.personDate}>{formatBirthSnippet(personA)}</span>
-            </div>
-          </div>
-          <span className={styles.heartCenter} aria-hidden="true">
-            {'\u{1F495}'}
-          </span>
-          <div className={`${styles.personCard} ${styles.personCardRight}`}>
-            <div className={`${styles.personAvatar} ${styles.personAvatarB}`}>
-              {(personB.name || 'B').charAt(0).toUpperCase()}
-            </div>
-            <div className={styles.personMeta}>
-              <span className={styles.personName}>
-                {personB.name || (isKo ? '사람 2' : 'Person 2')}
-              </span>
-              <span className={styles.personDate}>{formatBirthSnippet(personB)}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Chat */}
       <div className={styles.chatWrapper}>
         <div className={styles.messagesContainer}>
           {messages.length === 0 && (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>{'\u{1F495}'}</div>
-              <h3 className={styles.emptyTitle}>
-                {isKo ? '두 사람의 이야기를 시작해보세요' : 'Begin your story together'}
-              </h3>
-              <p className={styles.emptySubtitle}>
-                {isKo
-                  ? '사주와 점성학 심화 분석을 바탕으로 두 사람의 관계를 깊이 들여다봅니다.'
-                  : 'Deep insights from Saju + Astrology to understand your bond.'}
+              <p className={styles.emptyText}>
+                {isKo ? '두 사람에 대해서 물어보세요' : 'Ask about the two of you'}
               </p>
-              <div className={styles.suggestions}>
-                {suggestionItems.map((s, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className={styles.suggestionButton}
-                    onClick={() => setInput(s)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
             </div>
           )}
 

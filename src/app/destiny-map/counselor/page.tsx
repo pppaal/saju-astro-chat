@@ -52,6 +52,13 @@ export default function CounselorPage() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  // /destiny-map/counselor?session=<id> — sidebar's past-chats list
+  // hands us a saved CounselorChatSession id here. We pass it to <Chat>
+  // which resumes the conversation on mount (was previously dropped on
+  // the floor, hence "눌러도 안 불러와져").
+  const initialSessionId =
+    (Array.isArray(sp.session) ? sp.session[0] : sp.session) ?? undefined
+
   const {
     chartData,
     sessionId,
@@ -197,6 +204,7 @@ export default function CounselorPage() {
             ragSessionId={sessionId || undefined}
             autoSendSeed
             autoFocus
+            initialSessionId={initialSessionId}
           />
         </ErrorBoundary>
       </div>

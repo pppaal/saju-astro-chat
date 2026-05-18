@@ -40,6 +40,7 @@ const Chat = memo(function Chat({
   ragSessionId,
   autoSendSeed = false,
   autoFocus = false,
+  initialSessionId,
 }: ChatProps) {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
@@ -286,6 +287,20 @@ const Chat = memo(function Chat({
   React.useEffect(() => {
     void loadSessionHistory()
   }, [loadSessionHistory])
+
+  // Resume a past session when the page hands us an id (e.g. from
+  // /destiny-map/counselor?session=…). Guarded so we only hit the
+  // load endpoint once per id, even if the parent rerenders.
+  const resumedSessionIdRef = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    if (!initialSessionId) return
+    if (resumedSessionIdRef.current === initialSessionId) return
+    resumedSessionIdRef.current = initialSessionId
+    void loadSession(initialSessionId).then(() => {
+      setActiveSessionId(initialSessionId)
+      setShowSuggestions(false)
+    })
+  }, [initialSessionId, loadSession])
 
   const goToTarot = React.useCallback(() => setShowTarotModal(true), [])
 
