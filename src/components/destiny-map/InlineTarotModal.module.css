@@ -1,11 +1,14 @@
 /* ========================================= */
-/* Inline Tarot Modal - Premium Design      */
+/* Inline Tarot Modal - Light Theme         */
+/* Matches the counselor's light surface     */
+/* (stone-50 background, white cards, violet */
+/*  accents). Linear/Vercel-style clean UI.  */
 /* ========================================= */
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(28, 25, 23, 0.5);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -16,16 +19,16 @@
 }
 
 .modal {
-  background: linear-gradient(145deg, rgba(30, 20, 50, 0.98), rgba(15, 10, 30, 0.98));
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: #fafaf9;
+  border: 1px solid #e7e5e4;
   border-radius: 24px;
   width: 100%;
   max-width: 900px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.5),
-    0 0 60px rgba(139, 92, 246, 0.15);
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 20px 50px rgba(0, 0, 0, 0.12);
   animation: slideUp 0.4s ease-out;
 }
 
@@ -55,20 +58,22 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid rgba(167, 139, 250, 0.15);
+  border-bottom: 1px solid #e7e5e4;
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
 }
 
 .title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #fff;
+  color: #1c1917;
   margin: 0;
 }
 
 .closeButton {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  border: 1px solid #e7e5e4;
+  color: #57534e;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -81,8 +86,9 @@
 }
 
 .closeButton:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: #f5f5f4;
+  border-color: #d6d3d1;
+  color: #1c1917;
 }
 
 /* ========== Step Indicator ========== */
@@ -98,18 +104,17 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: #e7e5e4;
   transition: all 0.3s;
 }
 
 .stepDot.active {
-  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
-  box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+  background: #7c3aed;
   transform: scale(1.2);
 }
 
 .stepDot.completed {
-  background: #22c55e;
+  background: #10b981;
 }
 
 /* ========== Content ========== */
@@ -124,7 +129,7 @@
 .stepTitle {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #fff;
+  color: #1c1917;
   margin: 0 0 20px;
   text-align: center;
 }
@@ -133,10 +138,10 @@
 .concernInput {
   width: 100%;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
   border-radius: 12px;
-  color: #fff;
+  color: #1c1917;
   font-size: 1rem;
   resize: none;
   font-family: inherit;
@@ -145,17 +150,17 @@
 
 .concernInput:focus {
   outline: none;
-  border-color: #a78bfa;
-  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
 .concernInput::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: #a8a29e;
 }
 
 .hint {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: #57534e;
   text-align: center;
   margin: 12px 0 20px;
 }
@@ -175,24 +180,25 @@
 .primaryButton {
   width: 100%;
   padding: 14px 24px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  border: none;
+  background: #7c3aed;
+  border: 1px solid #7c3aed;
   border-radius: 12px;
-  color: #fff;
+  color: #ffffff;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .primaryButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.35);
+  background: #6d28d9;
+  border-color: #6d28d9;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
 }
 
 .primaryButton:disabled {
@@ -203,10 +209,10 @@
 .secondaryButton {
   width: 100%;
   padding: 14px 24px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
   border-radius: 12px;
-  color: #fff;
+  color: #44403c;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -214,8 +220,9 @@
 }
 
 .secondaryButton:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: #f5f5f4;
+  border-color: #d6d3d1;
+  color: #1c1917;
 }
 
 /* ========== Spread Selection ========== */
@@ -226,60 +233,63 @@
 }
 
 .spreadCard {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
   border-radius: 16px;
   padding: 16px 20px;
   text-align: left;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .spreadCard:hover {
-  background: rgba(167, 139, 250, 0.1);
-  border-color: rgba(167, 139, 250, 0.4);
+  background: #ede9fe;
+  border-color: #7c3aed;
   transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
 }
 
 .spreadCardCount {
   display: inline-block;
   padding: 4px 10px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  background: #7c3aed;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #fff;
+  color: #ffffff;
   margin-bottom: 8px;
 }
 
 .spreadCard .spreadTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: #1c1917;
   margin: 0 0 6px;
   text-align: left;
 }
 
 .spreadDesc {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #57534e;
   margin: 0 0 8px;
   line-height: 1.4;
 }
 
 .spreadTip {
   font-size: 0.8rem;
-  color: #a78bfa;
+  color: #7c3aed;
 }
 
 /* AI 선택 이유 텍스트 */
 .aiReasonText {
   font-size: 0.9rem;
-  color: #a78bfa;
+  color: #6d28d9;
   text-align: center;
   margin: 0 0 16px;
   padding: 8px 16px;
-  background: rgba(167, 139, 250, 0.1);
+  background: #ede9fe;
+  border: 1px solid #ddd6fe;
   border-radius: 8px;
   font-style: italic;
 }
@@ -303,10 +313,10 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background: linear-gradient(145deg, #2d1b69, #1a0a2e);
-  border: 2px solid rgba(167, 139, 250, 0.3);
+  background: #ffffff;
+  border: 1px solid #d6d3d1;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .deckCard:nth-child(1) {
@@ -321,20 +331,23 @@
 
 .drawButton {
   padding: 16px 40px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  border: none;
+  background: #7c3aed;
+  border: 1px solid #7c3aed;
   border-radius: 30px;
-  color: #fff;
+  color: #ffffff;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
   animation: pulse 2s infinite;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .drawButton:hover:not(:disabled) {
+  background: #6d28d9;
+  border-color: #6d28d9;
   transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
 }
 
 .drawButton:disabled {
@@ -345,10 +358,10 @@
 @keyframes pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.3);
   }
   50% {
-    box-shadow: 0 0 0 15px rgba(139, 92, 246, 0);
+    box-shadow: 0 0 0 15px rgba(124, 58, 237, 0);
   }
 }
 
@@ -375,13 +388,14 @@
 .cardBack {
   width: 140px;
   height: 210px;
-  background: linear-gradient(145deg, #2d1b69, #1a0a2e);
-  border: 2px solid rgba(167, 139, 250, 0.3);
+  background: #ffffff;
+  border: 1px solid #d6d3d1;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* ========== Interpreting Loader ========== */
@@ -399,7 +413,7 @@
   background: radial-gradient(
     circle at 30% 30%,
     rgba(167, 139, 250, 0.5),
-    rgba(109, 40, 217, 0.3),
+    rgba(124, 58, 237, 0.25),
     transparent 70%
   );
   border-radius: 50%;
@@ -411,7 +425,7 @@
   position: absolute;
   inset: 10px;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.3), transparent 60%);
+  background: radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.8), transparent 60%);
   animation: shimmer 2s ease-in-out infinite;
 }
 
@@ -437,17 +451,18 @@
 
 .interpretingText {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #57534e;
   text-align: center;
 }
 
 .streamingPreview {
   max-width: 100%;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
   border-radius: 12px;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #44403c;
   line-height: 1.5;
   max-height: 150px;
   overflow-y: auto;
@@ -476,25 +491,27 @@
 
 /* 현재 고민 표시 */
 .concernDisplay {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(109, 40, 217, 0.1));
-  border: 1px solid rgba(167, 139, 250, 0.25);
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  border-left: 3px solid #7c3aed;
   border-radius: 12px;
   padding: 12px 16px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .concernLabel {
   font-size: 0.8rem;
-  color: #a78bfa;
+  color: #7c3aed;
   font-weight: 600;
 }
 
 .concernText {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: #1c1917;
   line-height: 1.6;
   flex: 1;
 }
@@ -510,44 +527,46 @@
 /* 다시 뽑기 버튼 */
 .drawAgainButton {
   padding: 12px 24px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(109, 40, 217, 0.15));
-  border: 1px solid rgba(167, 139, 250, 0.4);
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
   border-radius: 30px;
-  color: #a78bfa;
+  color: #7c3aed;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .drawAgainButton:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(109, 40, 217, 0.25));
-  border-color: #a78bfa;
+  background: #ede9fe;
+  border-color: #7c3aed;
   transform: scale(1.02);
 }
 
 /* 저장 버튼 */
 .saveButton {
   padding: 12px 24px;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.15));
-  border: 1px solid rgba(34, 197, 94, 0.4);
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
   border-radius: 30px;
-  color: #4ade80;
+  color: #059669;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .saveButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.25));
-  border-color: #4ade80;
+  background: #ecfdf5;
+  border-color: #10b981;
   transform: scale(1.02);
 }
 
@@ -557,29 +576,30 @@
 }
 
 .saveButton.saved {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.4), rgba(22, 163, 74, 0.35));
-  border-color: #22c55e;
-  color: #22c55e;
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
 }
 
 .resultSection {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(167, 139, 250, 0.15);
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
   border-radius: 16px;
   padding: 18px 22px;
   margin-bottom: 18px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .resultSectionTitle {
   font-size: 1.18rem;
   font-weight: 600;
-  color: #c4b5fd;
+  color: #7c3aed;
   margin: 0 0 14px;
 }
 
 .resultText {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: #1c1917;
   line-height: 1.82;
   letter-spacing: 0.01em;
   margin: 0;
@@ -591,8 +611,8 @@
   align-items: flex-start;
   gap: 12px;
   padding: 16px 20px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(109, 40, 217, 0.1));
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: #ede9fe;
+  border: 1px solid #ddd6fe;
   border-radius: 16px;
   margin-bottom: 24px;
 }
@@ -604,7 +624,7 @@
 
 .affirmationText {
   font-size: 1.22rem;
-  color: #fff;
+  color: #1c1917;
   font-style: italic;
   line-height: 1.72;
   margin: 0;
@@ -647,6 +667,7 @@
 
   .header {
     padding: 16px 20px;
+    border-radius: 20px 20px 0 0;
   }
 
   .title {
@@ -858,6 +879,7 @@
 
   .header {
     padding: 14px 16px;
+    border-radius: 16px 16px 0 0;
   }
 
   .title {
