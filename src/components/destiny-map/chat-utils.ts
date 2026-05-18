@@ -39,44 +39,6 @@ function cleanFollowupMarkers(text: string): string {
 }
 
 /**
- * Parse AI-generated follow-up questions from response
- * Returns [cleanContent, followUpQuestions]
- */
-function parseFollowUpQuestions(accumulated: string): {
-  cleanContent: string
-  followUps: string[]
-} {
-  const followUpMatch = accumulated.match(/\|\|FOLLOWUP\|\|\s*\[([^\]]+)\]/s)
-
-  if (!followUpMatch) {
-    return {
-      cleanContent: cleanFollowupMarkers(accumulated),
-      followUps: [],
-    }
-  }
-
-  try {
-    // Fix common AI mistakes: curly quotes -> straight quotes
-    let jsonStr = '[' + followUpMatch[1] + ']'
-    jsonStr = jsonStr
-      .replace(/[""]/g, '"') // Fix curly double quotes
-      .replace(/['']/g, "'") // Fix curly single quotes
-      .replace(/,\s*]/g, ']') // Fix trailing comma
-
-    const followUps = JSON.parse(jsonStr) as string[]
-    const cleanContent = accumulated.replace(/\|\|FOLLOWUP\|\|\s*\[[^\]]+\]/s, '').trim()
-
-    return { cleanContent, followUps }
-  } catch {
-    // If JSON parsing fails, just remove the marker
-    return {
-      cleanContent: accumulated.replace(/\|\|FOLLOWUP\|\|.*/s, '').trim(),
-      followUps: [],
-    }
-  }
-}
-
-/**
  * Determine connection status based on response time
  */
 export function getConnectionStatus(responseTimeMs: number): ConnectionStatus {
