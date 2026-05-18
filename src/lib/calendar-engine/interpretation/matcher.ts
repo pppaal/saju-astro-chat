@@ -34,8 +34,11 @@ export function buildInterpretation(args: {
   const unluckyDates = ranked.slice(-3).reverse().map((c) => c.datetime.slice(5, 10)).join(', ')
 
   // 룰 매칭 + 변수 컨텍스트 수집
-  // matched[].polarity는 도메인 통합 시 우호·주의 분리에 사용 — 매칭된
-  // 첫 시그널의 polarity를 픽업하거나, conditions의 min/max에서 추정.
+  // matched[].polarity는 룰 자체의 의도(intent) — 매칭 시그널 polarity가
+  // 아니라 룰 조건의 minPolarity/maxPolarity로 추정. 시그널 polarity는
+  // 룰의 의도(우호/주의)와 무관할 수 있어서 (정관 +3 시그널이 fire한 룰의
+  // 의도는 "신약+정관 = 책임 무거움"으로 negative) 룰 자체의 의도를 봐야
+  // 점수↔해석 동기화 정확.
   const matched: Array<{ rule: InterpretationRule; vars: TemplateVars; polarity: number }> = []
   for (const rule of RULES) {
     if (rule.scope !== scope) continue
@@ -49,7 +52,7 @@ export function buildInterpretation(args: {
         luckyDates,
         unluckyDates,
       },
-      polarity: matchSig.polarity,
+      polarity: ruleIntent(rule),
     })
   }
 
@@ -144,10 +147,43 @@ export function buildInterpretation(args: {
     .map((s) => `**[${s.title}]**\n${s.text}`)
     .join('\n\n')
 
+  // 도메인별 themeScores — 매칭된 룰들의 polarity 평균을 0-100 점수로.
+  // cell.themeScores는 모든 신호 평균(+공명 보너스)이라 narrative와 어긋날
+  // 수 있음. 여기 점수는 narrative 결정한 룰들의 polarity 그대로 반영해
+  // 점수↔해석 1:1 동기화.
+  //
+  // narrative와 score를 항상 같이 노출하는 UI(캘린더 도메인 카드)에서
+  // 이 점수를 우선 사용하면 "62점인데 부정 narrative" 같은 mismatch 해소.
+  const DOMAIN_TO_THEME: Record<string, keyof NonNullable<Interpretation['themeScores']>> = {
+    money: 'money',
+    work: 'career',
+    relations: 'love',
+    body: 'health',
+    growth: 'growth',
+  }
+  const themeScores: NonNullable<Interpretation['themeScores']> = {}
+  for (const [domain, list] of domainPicks) {
+    const themeKey = DOMAIN_TO_THEME[domain]
+    if (!themeKey) continue
+    // 모든 룰 polarity 포함 — 중립(0)은 50으로 끌어당기는 anchor 역할.
+    // 우호 룰만 있으면 +30 (80점), 주의 룰만 있으면 -30 (20점), 섞이면
+    // 양쪽 균형 → 50 근처.
+    const polarities = list.map((m) => m.polarity)
+    if (polarities.length === 0) {
+      themeScores[themeKey] = 50
+      continue
+    }
+    const avg = polarities.reduce((s, p) => s + p, 0) / polarities.length
+    // ruleIntent는 -1~+1 범위라 ×30으로 매핑하면 20~80 분포로 자연.
+    // 모든 도메인 룰이 같은 의도면 ±30 점수, 섞이면 가까운 50.
+    themeScores[themeKey] = Math.max(0, Math.min(100, Math.round(50 + avg * 30)))
+  }
+
   return {
     narrative,
     matchedRuleIds: picked.map((m) => m.rule.id),
     sections,
+    themeScores,
   }
 }
 
@@ -182,6 +218,55 @@ function findMatchContext(
   if (!matchingSignal) return null
 
   return extractSignalVars(matchingSignal, signals)
+}
+
+/**
+ * 룰 자체의 의도 추정 — narrative 톤과 동기화된 점수 계산에 사용.
+ *  +1: 우호 의도 (회복창·길성·신강 + 길운 등 — minPolarity ≥ 1 또는
+ *      길성 신살명을 조건에 가짐)
+ *  -1: 주의 의도 (체력·사고·분탈·위기 등 — maxPolarity ≤ -1 또는
+ *      흉살명을 조건에 가짐)
+ *   0: 중립 (본명 컨텍스트·패턴·일반 흐름)
+ *
+ * conditions만으로 추정 — 룰 ID 패턴은 fragile, 직접 룰에 intent 필드
+ * 추가하는 게 더 정확하지만 162개 룰 manual annotation은 큰 작업.
+ */
+function ruleIntent(rule: InterpretationRule): number {
+  const c = rule.conditions
+  if (c.minPolarity != null && c.minPolarity >= 1) return 1
+  if (c.maxPolarity != null && c.maxPolarity <= -1) return -1
+  // 길성·흉성 신살명으로 의도 추정
+  if (c.shinsalName) {
+    const benefic = ['천을귀인', '태극귀인', '천덕귀인', '월덕귀인', '천주귀인',
+                     '암록', '금여성', '천의성', '천문성', '문창', '문곡',
+                     '학당귀인', '건록', '제왕', '도화', '홍염살']
+    const malefic = ['겁살', '재살', '천살', '월살', '망신', '육해',
+                     '현침', '고신', '과숙', '괴강', '양인', '백호',
+                     '공망', '귀문관', '원진', '천라지망', '삼재']
+    const hasBene = c.shinsalName.some((n) => benefic.includes(n))
+    const hasMal = c.shinsalName.some((n) => malefic.includes(n))
+    if (hasBene && !hasMal) return 1
+    if (hasMal && !hasBene) return -1
+  }
+  // 명리 컨텍스트 — 신강·신약 × 십신 조합으로 의도 추정.
+  // 예: 신약 + 정관 = 압박(-1), 신약 + 인성 = 도움(+1), 신강 + 재성 = 실행(+1)
+  if (c.natalStrength && c.sibsin) {
+    const isWeak = c.natalStrength.includes('weak')
+    const isStrong = c.natalStrength.includes('strong')
+    const officer = c.sibsin.some((s) => s === '정관' || s === '편관')
+    const print = c.sibsin.some((s) => s === '정인' || s === '편인')
+    const wealth = c.sibsin.some((s) => s === '정재' || s === '편재')
+    const bigeop = c.sibsin.some((s) => s === '비견' || s === '겁재')
+    const siksang = c.sibsin.some((s) => s === '식신' || s === '상관')
+    if (isWeak && officer) return -1   // 신약+관성 = 책임 압박
+    if (isWeak && (print || bigeop)) return 1  // 신약+인비 = 받쳐줌
+    if (isWeak && wealth) return -1    // 신약+재성 = 분탈
+    if (isStrong && officer) return 1  // 신강+관성 = 자리 잡음
+    if (isStrong && wealth) return 1   // 신강+재성 = 실행력
+    if (isStrong && (print || bigeop)) return -1  // 신강+인비 = 과도·정체
+    if (isStrong && siksang) return 1  // 신강+식상 = 표현 발산
+  }
+  return 0
 }
 
 /**
