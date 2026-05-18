@@ -49,9 +49,9 @@ const RANGES: StageRange[] = [
     ageHigh: 20,
     titleKo: '초년기 (0–20세)',
     titleEn: 'Early years (0–20)',
-    pillarKo: '년주',
+    pillarKo: '뿌리와 환경의 자리',
     pillarEn: 'year pillar',
-    themeKo: '환경·뿌리·학습',
+    themeKo: '환경에 적응하고 처음 자기 결을 느끼는 시기',
     themeEn: 'environment, roots, learning',
   },
   {
@@ -61,9 +61,9 @@ const RANGES: StageRange[] = [
     ageHigh: 40,
     titleKo: '청년기 (20–40세)',
     titleEn: 'Young adulthood (20–40)',
-    pillarKo: '월주',
+    pillarKo: '독립과 진로의 자리',
     pillarEn: 'month pillar',
-    themeKo: '진로·독립·관계 형성',
+    themeKo: '진로와 관계의 토대를 짓는 시기',
     themeEn: 'career, independence, forming bonds',
   },
   {
@@ -73,9 +73,9 @@ const RANGES: StageRange[] = [
     ageHigh: 60,
     titleKo: '장년기 (40–60세)',
     titleEn: 'Middle years (40–60)',
-    pillarKo: '일주',
+    pillarKo: '본격적 자기 무대',
     pillarEn: 'day pillar',
-    themeKo: '본인 색깔·사회적 위치',
+    themeKo: '진짜 자기 색이 가장 진하게 드러나는 시기',
     themeEn: 'true self, social position',
   },
   {
@@ -85,9 +85,9 @@ const RANGES: StageRange[] = [
     ageHigh: 99,
     titleKo: '후반기 (60세 이후)',
     titleEn: 'Later years (60+)',
-    pillarKo: '시주',
+    pillarKo: '결실과 내면의 자리',
     pillarEn: 'time pillar',
-    themeKo: '결실·후대·내면',
+    themeKo: '결실을 거두고 남길 것을 정리하는 시기',
     themeEn: 'harvest, legacy, inner work',
   },
 ]
@@ -173,12 +173,12 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
 
   // ───────────────────── 文단 1: 큰 흐름
   const p1ko = paragraph([
-    `${range.titleKo}는 사주의 ${range.pillarKo}가 운명의 무게중심으로 작동하는 시기에요.`,
+    `${range.titleKo}는 ${range.pillarKo}가 무게중심이 되는 때에요.`,
     pillar?.stem || pillar?.branch
-      ? `${pillar.stem}${pillar.branch}의 결이 ${ELEMENT_TEXTURE_KO[dayEl] ?? '균형'}의 톤으로 ${range.themeKo}에 작용해요.`
+      ? `${ELEMENT_TEXTURE_KO[dayEl] ?? '균형'}의 톤이 ${range.themeKo}에 스며들어요.`
       : '',
     progSun && range.id !== 'early'
-      ? `점성의 진행 태양이 ${signLabel(progSun.sign, 'ko')}로 옮겨가며 정체성 톤을 천천히 바꿔요.`
+      ? `자아의 결이 ${signLabel(progSun.sign, 'ko')} 쪽으로 천천히 옮겨가며 색이 살짝 바뀌어요.`
       : '',
   ])
   const p1en = paragraph([
@@ -196,13 +196,12 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const eventLinesEn: string[] = []
   for (const d of stageDaeun.slice(0, 3)) {
     if (!d.age) continue
-    const ganji = d.ganji ? ` ${d.ganji}` : ''
-    eventLinesKo.push(`${d.age}세 대운${ganji}이 한 챕터를 여는 변곡이에요.`)
-    eventLinesEn.push(`Age ${d.age} opens a new daeun${ganji}, beginning a fresh chapter.`)
+    eventLinesKo.push(`${d.age}세 무렵엔 인생의 한 챕터가 새로 열려요.`)
+    eventLinesEn.push(`Age ${d.age} opens a new daeun${d.ganji ? ` ${d.ganji}` : ''}, beginning a fresh chapter.`)
   }
   for (const ev of lifecycleEvts.slice(0, 3)) {
     eventLinesKo.push(
-      `${ev.ageStart}~${ev.ageEnd}세 ${ev.labelKo}: ${ev.meaningKo}`
+      `${ev.ageStart}~${ev.ageEnd}세, ${ev.labelKo} — ${ev.meaningKo}`
     )
     eventLinesEn.push(
       `Ages ${ev.ageStart}–${ev.ageEnd}, ${ev.labelEn}: ${ev.meaningEn}`
@@ -211,7 +210,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const p2ko = paragraph(
     eventLinesKo.length > 0
       ? eventLinesKo
-      : ['이 시기에 떠오르는 결정적 사건은 큰 변곡 없이 잔잔하게 흘러요.']
+      : ['이 시기엔 큰 격동 없이 잔잔한 흐름이 이어져요.']
   )
   const p2en = paragraph(
     eventLinesEn.length > 0
@@ -223,7 +222,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const p3ko = paragraph([
     challengePieceKo(range.id, ilju12, geokguk, jong, lifecycleEvts),
     sun && range.id === 'middle'
-      ? `점성의 태양이 ${signLabel(sun.sign, 'ko')}에 자리해서 이 시기에 본인 색깔이 가장 진하게 드러나요.`
+      ? `${signLabel(sun.sign, 'ko')}의 자아 결이 이 시기에 가장 진하게 드러나요.`
       : '',
   ])
   const p3en = paragraph([

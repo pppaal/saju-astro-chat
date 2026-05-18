@@ -24,18 +24,18 @@ import {
 } from '../signals/astroSynthesis'
 import { planetLabel, signLabel } from '../templates/sentences'
 
-// 일간 한자 → 한글 라벨
+// 일간 한자 → 한글 라벨 (한자 표기는 빼고 자연스러운 한글 음만)
 const STEM_LABEL: Record<string, string> = {
-  甲: '갑목(甲木)',
-  乙: '을목(乙木)',
-  丙: '병화(丙火)',
-  丁: '정화(丁火)',
-  戊: '무토(戊土)',
-  己: '기토(己土)',
-  庚: '경금(庚金)',
-  辛: '신금(辛金)',
-  壬: '임수(壬水)',
-  癸: '계수(癸水)',
+  甲: '갑목',
+  乙: '을목',
+  丙: '병화',
+  丁: '정화',
+  戊: '무토',
+  己: '기토',
+  庚: '경금',
+  辛: '신금',
+  壬: '임수',
+  癸: '계수',
 }
 
 const STEM_LABEL_EN: Record<string, string> = {
@@ -52,11 +52,11 @@ const STEM_LABEL_EN: Record<string, string> = {
 }
 
 const STRENGTH_LABEL_KO: Record<string, string> = {
-  verystrong: '매우 강한',
-  strong: '강한',
-  balanced: '균형 잡힌',
-  weak: '여린',
-  veryweak: '매우 여린',
+  verystrong: '내면이 매우 단단한',
+  strong: '심지가 단단한',
+  balanced: '균형이 잘 잡힌',
+  weak: '섬세하고 여린',
+  veryweak: '아주 섬세한',
 }
 const STRENGTH_LABEL_EN: Record<string, string> = {
   verystrong: 'very strong',
@@ -67,10 +67,10 @@ const STRENGTH_LABEL_EN: Record<string, string> = {
 }
 
 const ELEMENT_FLAVOR_KO: Record<string, string> = {
-  fire: '불(화)',
-  earth: '흙(토)',
-  air: '바람(풍)',
-  water: '물(수)',
+  fire: '뜨겁고 빛나는 불',
+  earth: '단단히 받치는 흙',
+  air: '가볍게 흐르는 바람',
+  water: '깊이 흐르는 물',
 }
 const ELEMENT_FLAVOR_EN: Record<string, string> = {
   fire: 'Fire',
@@ -117,31 +117,33 @@ export function buildHeadline(input: BuilderInput): Headline {
   if (dom) astroUsed.push('synthesis.dominantPlanet')
 
   // ─ Sentence 1 — saju identity
-  const stemLabelKo = STEM_LABEL[dayStem] || dayStem || '일간'
+  const stemLabelKo = STEM_LABEL[dayStem] || dayStem || '본성'
   const stemLabelEn = STEM_LABEL_EN[dayStem] || dayStem || 'day master'
   const strengthKo = STRENGTH_LABEL_KO[strength] || ''
   const strengthEn = STRENGTH_LABEL_EN[strength] || ''
-  const geokgukKo = geokguk ? ` ${geokguk}` : ''
+  const geokgukKo = geokguk ? `, 삶의 큰 패턴은 ${geokgukFlavorKo(geokguk)}` : ''
   const geokgukEn = geokguk ? `, ${geokguk} pattern` : ''
-  const jongKo = jongType ? `(${jongType}으로 한 방향으로 흐르는 결)` : ''
+  const jongKo = jongType ? '한 방향으로 강하게 흐르는 결을 가지고 있고' : ''
   const jongEn = jongType ? ` (running as a single-direction ${jongType} chart)` : ''
 
   const s1ko =
-    `당신은 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo}${geokgukKo}${jongKo ? ' ' + jongKo : ''}` +
-    `${ilju ? `, ${ilju} 일주의 결` : ''}을 가진 사람이에요.`
+    `당신은 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo}의 결을 타고난 사람이에요${geokgukKo}.` +
+    `${jongKo ? ' ' + jongKo + '.' : ''}`
   const s1en =
     `You carry a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn}${geokgukEn}${jongEn}` +
     `${ilju ? `, an ${ilju} day-pillar` : ''}.`
 
   // ─ Sentence 2 — astrology identity
   const sunPart = sun
-    ? `${signLabel(sun.sign, 'ko')} 태양${sun.house ? ` ${sun.house}H` : ''}`
+    ? `자아의 별인 태양은 ${signLabel(sun.sign, 'ko')}의 결로 빛나고`
     : ''
   const moonPart = moon
-    ? `${signLabel(moon.sign, 'ko')} 달${moon.house ? ` ${moon.house}H` : ''}`
+    ? `감정의 별인 달은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르고`
     : ''
-  const ascPart = asc ? `${signLabel(asc.sign, 'ko')} ASC` : ''
-  const skyParts = [sunPart, moonPart, ascPart].filter(Boolean).join(' · ')
+  const ascPart = asc
+    ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 결이에요`
+    : ''
+  const skyParts = [sunPart, moonPart, ascPart].filter(Boolean).join(', ')
 
   const sunPartEn = sun
     ? `Sun in ${signLabel(sun.sign, 'en')}${sun.house ? ` (${sun.house}H)` : ''}`
@@ -153,7 +155,7 @@ export function buildHeadline(input: BuilderInput): Headline {
   const skyPartsEn = [sunPartEn, moonPartEn, ascPartEn].filter(Boolean).join(' · ')
 
   const s2ko = skyParts
-    ? `점성으로는 ${skyParts}의 결을 가진 운명이에요.`
+    ? `별의 결로 보면, ${skyParts}.`
     : ''
   const s2en = skyPartsEn
     ? `Astrologically, you are shaped by ${skyPartsEn}.`
@@ -164,7 +166,7 @@ export function buildHeadline(input: BuilderInput): Headline {
   const domModality = mod?.dominant
   const lackEl = el?.lacking
   const balanceFlavorKo = domEl
-    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 차트의 무게중심이고`
+    ? `${ELEMENT_FLAVOR_KO[domEl]}의 기운이 삶의 무게중심이고`
     : ''
   const balanceFlavorEn = domEl
     ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity`
@@ -175,12 +177,12 @@ export function buildHeadline(input: BuilderInput): Headline {
   const modFlavorEn = domModality
     ? `, with a ${domModality} cadence`
     : ''
-  const domPlanetKo = dom ? `${planetLabel(dom, 'ko')}이 차트를 이끄는 별이에요` : ''
+  const domPlanetKo = dom ? `${planetLabel(dom, 'ko')}이 인생을 이끄는 별이에요` : ''
   const domPlanetEn = dom ? `, led by ${planetLabel(dom, 'en')}` : ''
-  const lackKo = lackEl ? `, ${ELEMENT_FLAVOR_KO[lackEl]} 결은 비어 있어요` : ''
+  const lackKo = lackEl ? `, ${ELEMENT_FLAVOR_KO[lackEl]}의 결은 살짝 비어 있어요` : ''
   const lackEn = lackEl ? `, while ${ELEMENT_FLAVOR_EN[lackEl]} stays unfilled` : ''
 
-  const iljuCharShortKo = iljuChar ? `한 마디로 '${shortenKo(iljuChar)}' 결의 사람이에요.` : ''
+  const iljuCharShortKo = iljuChar ? `한 마디로 '${shortenKo(iljuChar)}' 결을 가진 사람이에요.` : ''
   const iljuCharShortEn = iljuChar ? `In one line: '${shortenEn(iljuChar)}'.` : ''
 
   const s3ko = paragraphJoin([
@@ -200,9 +202,24 @@ export function buildHeadline(input: BuilderInput): Headline {
 }
 
 function modalityKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
-  if (m === 'cardinal') return '시작을 여는 카디널 리듬으로'
-  if (m === 'fixed') return '버티며 응축하는 픽스드 리듬으로'
-  return '유연하게 변하는 뮤터블 리듬으로'
+  if (m === 'cardinal') return '새로 시작을 여는 리듬으로'
+  if (m === 'fixed') return '한 자리에서 깊이 다지는 리듬으로'
+  return '유연하게 변하는 리듬으로'
+}
+
+// 격국을 자연어 의미로 풀어쓰는 헬퍼
+function geokgukFlavorKo(g: string): string {
+  if (!g) return '본연의 결'
+  if (g.includes('편관')) return '도전과 책임이 무게로 다가오는 결'
+  if (g.includes('정관')) return '책임감으로 자리 잡는 결'
+  if (g.includes('편재')) return '기회를 잡는 감각이 빛나는 결'
+  if (g.includes('정재')) return '꾸준히 자원을 쌓아가는 결'
+  if (g.includes('식신')) return '여유롭게 표현하고 창조하는 결'
+  if (g.includes('상관')) return '재능을 자유롭게 발산하는 결'
+  if (g.includes('편인')) return '독특한 직관과 비주류 지혜의 결'
+  if (g.includes('정인')) return '배움과 돌봄으로 흐르는 결'
+  if (g.includes('비견') || g.includes('겁재')) return '동료와 함께 가는 결'
+  return '본연의 결'
 }
 
 function shortenKo(s: string): string {
