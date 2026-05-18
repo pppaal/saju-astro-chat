@@ -52,6 +52,14 @@ export interface CallClaudeOptions {
    * 같은 유저의 여러 호출에 걸쳐 재사용되면 cache_read 단가 (90% 할인) 적용.
    */
   cachedUserContext?: string
+  /**
+   * 이전 대화 턴 (user/assistant 번갈아). 제공되면 진짜 multi-turn으로 전송.
+   * 첫 user 턴에는 cachedUserContext가 cached block으로 prepend됨.
+   * userPrompt는 *마지막* user 턴으로 자동 append.
+   * Counselor 같은 대화형 엔드포인트에서 직전 답변을 assistant role로
+   * 정확히 인식시키기 위해 사용.
+   */
+  priorTurns?: Array<{ role: 'user' | 'assistant'; content: string }>
   /** 기본 1500. 큰 출력은 명시적으로 설정. */
   maxTokens?: number
   /** 기본 0.7. 분류 작업은 0.2-0.3, 창작은 0.7-0.8. */
@@ -95,6 +103,8 @@ type UserMessageContent =
       | { type: 'text'; text: string; cache_control: { type: 'ephemeral'; ttl?: '5m' | '1h' } }
     >
 
+type AnthropicMessage = { role: 'user' | 'assistant'; content: UserMessageContent }
+
 /**
  * userPrompt + 선택적인 cachedUserContext를 Anthropic messages content 형식으로 변환.
  * cachedUserContext가 있으면 두 블록 (cached + dynamic), 없으면 단순 string.
@@ -116,6 +126,52 @@ function buildUserMessageContent(
   ]
 }
 
+/**
+ * priorTurns + userPrompt + cachedUserContext를 Anthropic messages 배열로.
+ * - priorTurns가 비어있으면 기존처럼 단일 user 메시지 (snapshot + userPrompt).
+ * - priorTurns가 있으면 진짜 multi-turn: 첫 user 턴에 snapshot이 cached
+ *   block으로 prepend되고, 그 뒤로 alternation, 마지막에 userPrompt 추가.
+ *   (assistant 답변을 LLM이 자기 발화로 정확히 인식하게 됨)
+ */
+function buildMessages(
+  userPrompt: string,
+  cachedUserContext?: string,
+  priorTurns?: Array<{ role: 'user' | 'assistant'; content: string }>
+): AnthropicMessage[] {
+  if (!priorTurns || priorTurns.length === 0) {
+    return [
+      { role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) },
+    ]
+  }
+  const messages: AnthropicMessage[] = []
+  let snapshotAttached = false
+  for (const turn of priorTurns) {
+    if (!snapshotAttached && turn.role === 'user' && cachedUserContext?.trim()) {
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: cachedUserContext, cache_control: CACHE_CONTROL_1H },
+          { type: 'text', text: turn.content },
+        ],
+      })
+      snapshotAttached = true
+    } else {
+      messages.push({ role: turn.role, content: turn.content })
+    }
+  }
+  // Latest user question
+  if (!snapshotAttached && cachedUserContext?.trim()) {
+    // priorTurns에 user 턴이 없었으면 (희귀 케이스) 마지막 user에 붙임
+    messages.push({
+      role: 'user',
+      content: buildUserMessageContent(userPrompt, cachedUserContext),
+    })
+  } else {
+    messages.push({ role: 'user', content: userPrompt })
+  }
+  return messages
+}
+
 export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
@@ -126,6 +182,7 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
     systemPrompt,
     userPrompt,
     cachedUserContext,
+    priorTurns,
     maxTokens = 1500,
     temperature = 0.7,
     timeoutMs = 40000,
@@ -154,9 +211,7 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
             cache_control: CACHE_CONTROL_1H,
           },
         ],
-        messages: [
-          { role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) },
-        ],
+        messages: buildMessages(userPrompt, cachedUserContext, priorTurns),
       }),
     },
     {
@@ -268,6 +323,7 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
     systemPrompt,
     userPrompt,
     cachedUserContext,
+    priorTurns,
     maxTokens = 2000,
     temperature = 0.7,
     timeoutMs = 60000,
@@ -292,7 +348,7 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
       temperature,
       stream: true,
       system: [{ type: 'text', text: systemPrompt, cache_control: CACHE_CONTROL_1H }],
-      messages: [{ role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) }],
+      messages: buildMessages(userPrompt, cachedUserContext, priorTurns),
     }),
     signal: controller.signal,
   })

@@ -22,7 +22,6 @@ import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
-import { compactHistory } from './compactHistory'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -336,19 +335,22 @@ export async function POST(req: NextRequest) {
     // Don't block the user — observability over enforcement here.
   }
 
-  // 7) Build prompt and stream
+  // 7) Build prompt and stream — 진짜 multi-turn 구조.
+  // 직전 답변을 assistant role로 정확히 LLM에 전달해야 모델이 "내가 한
+  // 말"로 인식하고 새 질문에 깔끔히 답한다. 예전엔 history를 통째로
+  // string으로 박아서 직전 답 톤이 다음 답에 묻어 나왔음.
   const systemPrompt = lang === 'en' ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_KO
-  const history = compactHistory(body.messages)
   const cachedUserContext = contextText
-  const userPrompt =
-    lang === 'en'
-      ? `Conversation so far:\n${history}\n\nAnswer the latest question, drawing on the birth snapshot above.`
-      : `이전 대화:\n${history}\n\n위 birth snapshot을 바탕으로 마지막 질문에 답하세요.`
+  const priorTurns = body.messages
+    .slice(0, -1)
+    .map((m) => ({ role: m.role, content: m.content }))
+  const userPrompt = body.messages[body.messages.length - 1].content
 
   return streamClaudeAsSSE({
     systemPrompt,
     userPrompt,
     cachedUserContext,
+    priorTurns,
     maxTokens: 1500,
     temperature: 0.5,
     label: 'counselor.realtime',
