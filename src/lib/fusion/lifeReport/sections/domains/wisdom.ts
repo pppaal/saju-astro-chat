@@ -191,8 +191,8 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   })
   if (relKoWisdom) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    p3pieces.push(relKoWisdom.replace('흐름이 있어요.', '결이 있어서, 가르치는 사람이나 책과의 결합이 학습의 토대가 돼요.'))
-    if (relEnWisdom) p3piecesEn.push(relEnWisdom.replace(/\.$/, ' — pairing with teachers or books carries the learning foundation.'))
+    p3pieces.push(`${relKoWisdom} 가르치는 사람이나 책과의 결합이 학습의 토대가 돼요.`)
+    if (relEnWisdom) p3piecesEn.push(`${relEnWisdom} Pairing with teachers or books carries the learning foundation.`)
   }
   // Lot of Daimon — 영혼·천재의 점 (Spirit aliased)
   const daimon = calendarSignals?.arabicPartsExtra?.Daimon

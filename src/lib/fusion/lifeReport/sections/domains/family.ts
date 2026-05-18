@@ -189,8 +189,8 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   })
   if (relKoFamily) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepKo.push(relKoFamily.replace('흐름이 있어요.', '결이 있어서, 부모·조상 라인의 결이 본인 결에 한 겹 깊게 닿아 있어요.'))
-    if (relEnFamily) deepEn.push(relEnFamily.replace(/\.$/, ' — the parent/ancestor line touches your own grain a layer deep.'))
+    deepKo.push(`${relKoFamily} 부모·조상 라인의 결이 본인 결에 한 겹 깊게 닿아 있어요.`)
+    if (relEnFamily) deepEn.push(`${relEnFamily} The parent/ancestor line touches your own grain a layer deep.`)
   }
   // Lot of Basis — 가정 기반·뿌리의 점
   const basis = input.calendarSignals?.arabicPartsExtra?.Basis

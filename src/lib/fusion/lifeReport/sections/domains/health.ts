@@ -160,8 +160,8 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     })
   if (relKoHealth) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepKo.push(relKoHealth.replace('흐름이 있어요.', '결이 있어서, 무리가 쌓이면 그 자리부터 신호가 먼저 와요.'))
-    if (relEnHealth) deepEn.push(relEnHealth.replace(/\.$/, ' — overload signals tend to surface from that axis first.'))
+    deepKo.push(`${relKoHealth} 무리가 쌓이면 그 자리부터 신호가 먼저 와요.`)
+    if (relEnHealth) deepEn.push(`${relEnHealth} Overload signals tend to surface from that axis first.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '건강의 결은 극단보다는 일상의 작은 누적이 만들어요.'

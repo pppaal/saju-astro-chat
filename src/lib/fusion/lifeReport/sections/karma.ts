@@ -368,6 +368,13 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       }
     }
   }
+  // Lot of Captivity — 속박·제약의 점 → 카르마 매듭으로 자연 통합
+  const captivityLot = input.calendarSignals?.arabicPartsExtra?.Captivity
+  if (captivityLot) {
+    astroUsed.push('calendarSignals.arabicPartsExtra.Captivity')
+    p6pieces.push(`속박의 점이 ${signLabel(captivityLot.sign, 'ko')}의 결로 자리해서, 이번 생에 풀어내야 할 카르마 매듭의 색이 그 톤이에요.`)
+    p6piecesEn.push(`Your Lot of Captivity in ${signLabel(captivityLot.sign, 'en')} — the karmic knot to untie in this life carries that grain.`)
+  }
   const p6ko = paragraph(
     p6pieces.length ? p6pieces : ['명식 내부 합충 패턴은 잔잔하게 정렬돼 있어, 카르마가 격한 사건보다 일상의 결로 풀려요.'],
   )

@@ -47,6 +47,7 @@ import {
   toAnalyzeInputFromSaju,
 } from '@/lib/saju/relations'
 import type { RelationHit } from '@/lib/saju/types'
+import { getTwelveStage } from '@/lib/saju/shinsal'
 import { dignityOf, type DignityStatus } from '@/lib/astrology/foundation/dignities'
 import {
   analyzeHarmonic,
@@ -773,8 +774,10 @@ function pickPrimaryAxis(
     if (hit) {
       const a = hit.pillars[0]
       const b = hit.pillars[1]
+      const aKo = pillarsLabelKo[a] ?? a
+      const bKo = pillarsLabelKo[b] ?? b
       return {
-        ko: `${pillarsLabelKo[a] ?? a}이 ${pillarsLabelKo[b] ?? b}와 ${kindVerbKo[hit.kind]}`,
+        ko: `${aKo}${endsWithBatchimAdapter(aKo) ? '이' : '가'} ${bKo}${endsWithBatchimAdapter(bKo) ? '과' : '와'} ${kindVerbKo[hit.kind]}`,
         en: `the ${pillarsLabelEn[a] ?? a} ${kindVerbEn[hit.kind]} the ${pillarsLabelEn[b] ?? b}`,
       }
     }
@@ -784,12 +787,23 @@ function pickPrimaryAxis(
   if (fallback && fallback.pillars.length >= 2) {
     const a = fallback.pillars[0]
     const b = fallback.pillars[1]
+    const aKo = pillarsLabelKo[a] ?? a
+    const bKo = pillarsLabelKo[b] ?? b
     return {
-      ko: `${pillarsLabelKo[a] ?? a}이 ${pillarsLabelKo[b] ?? b}와 ${kindVerbKo[fallback.kind]}`,
+      ko: `${aKo}${endsWithBatchimAdapter(aKo) ? '이' : '가'} ${bKo}${endsWithBatchimAdapter(bKo) ? '과' : '와'} ${kindVerbKo[fallback.kind]}`,
       en: `the ${pillarsLabelEn[a] ?? a} ${kindVerbEn[fallback.kind]} the ${pillarsLabelEn[b] ?? b}`,
     }
   }
   return undefined
+}
+
+// 한글 받침 유무를 판별. 자음으로 끝나면 true (이/가 → 이, 과/와 → 과 선택).
+function endsWithBatchimAdapter(s: string): boolean {
+  if (!s) return false
+  const last = s[s.length - 1]
+  const code = last.charCodeAt(0)
+  if (code < 0xac00 || code > 0xd7a3) return false
+  return (code - 0xac00) % 28 !== 0
 }
 
 function safeGetTwelveStageAll(saju: MainSajuOutput): CalendarEngineSignals['twelveStageAll'] {
@@ -803,8 +817,24 @@ function safeGetTwelveStageAll(saju: MainSajuOutput): CalendarEngineSignals['twe
     }
   }
   const t = u?.twelveStage
-  if (t) {
+  if (t && (t.year || t.month || t.day || t.time)) {
     return { year: t.year, month: t.month, day: t.day, time: t.time }
+  }
+  // Compute all 4 from the saju.shinsal helper (read-only — no calendar-engine
+  // touch). Falls back to iljuDeep day-stage when stems/branches are absent.
+  const p = saju.pillars
+  if (p?.day?.stem) {
+    try {
+      const dayStem = p.day.stem
+      return {
+        year: p.year?.branch ? getTwelveStage(dayStem, p.year.branch) : undefined,
+        month: p.month?.branch ? getTwelveStage(dayStem, p.month.branch) : undefined,
+        day: p.day?.branch ? getTwelveStage(dayStem, p.day.branch) : undefined,
+        time: p.time?.branch ? getTwelveStage(dayStem, p.time.branch) : undefined,
+      }
+    } catch {
+      // fall through to legacy day-only fallback
+    }
   }
   const day = u?.iljuDeep?.twelveStage
   if (day) return { day }

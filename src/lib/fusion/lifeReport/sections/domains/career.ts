@@ -237,12 +237,8 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   })
   if (relKoCareer) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepPieces.push(
-      relKoCareer.replace('합충 패턴', '합충 패턴').replace('흐름이 있어요.', '흐름이 있어서, 만년에 직업 색이 한 번 다듬어지는 결이에요.'),
-    )
-    if (relEnCareer) deepPiecesEn.push(
-      relEnCareer.replace('relations,', 'relations,').replace(/\.$/, ' — the late-career colour gets re-tuned once.'),
-    )
+    deepPieces.push(`${relKoCareer} 만년에 직업 색이 한 번 다듬어지는 결이 있어요.`)
+    if (relEnCareer) deepPiecesEn.push(`${relEnCareer} The late-career colour gets re-tuned once.`)
   }
   // Lot of Courage — adds an extra deep-grain note about challenge appetite
   const courage = input.calendarSignals?.arabicParts?.Courage

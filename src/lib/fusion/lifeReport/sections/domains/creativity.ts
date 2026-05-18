@@ -184,8 +184,8 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     ?? relationPhraseEn(calendarSignals?.sajuRelations, { preferKind: '충' })
   if (relKoCreate) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    p3pieces.push(relKoCreate.replace('흐름이 있어요.', '결이 있어서, 그 마찰이 작품으로 풀려나오는 통로가 돼요.'))
-    if (relEnCreate) p3piecesEn.push(relEnCreate.replace(/\.$/, ' — that friction is where the work pushes out.'))
+    p3pieces.push(`${relKoCreate} 그 마찰이 작품으로 풀려나오는 통로가 돼요.`)
+    if (relEnCreate) p3piecesEn.push(`${relEnCreate} That friction is where the work pushes out.`)
   }
   const p3ko = paragraph(
     p3pieces.length ? p3pieces : ['지금 결은 창작 자체보다 정리·다듬기에 더 무게가 실려 있어요. 묵힌 작업을 끄집어내기 좋은 시기예요.'],

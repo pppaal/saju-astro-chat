@@ -181,8 +181,8 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   })
   if (relKoMoney) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepKo.push(relKoMoney.replace('흐름이 있어요.', '결이 있어서, 자원 흐름이 한 번 모이고 한 번 풀리는 사이클을 만들어요.'))
-    if (relEnMoney) deepEn.push(relEnMoney.replace(/\.$/, ' — resource flow runs as a gather/release cycle.'))
+    deepKo.push(`${relKoMoney} 자원 흐름이 한 번 모이고 한 번 풀리는 사이클을 만들어요.`)
+    if (relEnMoney) deepEn.push(`${relEnMoney} Resource flow runs as a gather/release cycle.`)
   }
   // Lot of Necessity — adds a 'where resources strain' note
   const necessityLot = input.calendarSignals?.arabicParts?.Necessity

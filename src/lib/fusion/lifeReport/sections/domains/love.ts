@@ -221,8 +221,8 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   })
   if (relKoLove) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepKo.push(relKoLove.replace('흐름이 있어요.', '결이 있어서, 한 사람과의 결합이 인생 결에 굵게 새겨져요.'))
-    if (relEnLove) deepEn.push(relEnLove.replace(/\.$/, ' — partnership leaves a strong imprint on the life grain.'))
+    deepKo.push(`${relKoLove} 한 사람과의 결합이 인생 결에 굵게 새겨져요.`)
+    if (relEnLove) deepEn.push(`${relEnLove} Partnership leaves a strong imprint on the life grain.`)
   }
   // Lot of Eros now adds 끌림 colour at P3 (separate from existing P4 timing line)
   const erosLot = input.calendarSignals?.arabicParts?.Eros

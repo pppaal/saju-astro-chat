@@ -319,8 +319,20 @@ export function relationPhraseKo(
   }
   const a = cand.pillars[0] ? pillarsKo[cand.pillars[0]] ?? cand.pillars[0] : '명식'
   const b = cand.pillars[1] ? pillarsKo[cand.pillars[1]] ?? cand.pillars[1] : '다른 자리'
+  const subjectParticle = endsWithBatchim(a) ? '이' : '가'
+  const objectParticle = endsWithBatchim(b) ? '과' : '와'
   const verb = kindVerbKo(cand.kind)
-  return `사주의 합충 패턴을 보면, ${a}이 ${b}와 ${verb} 흐름이 있어요.`
+  return `사주의 합충 패턴을 보면, ${a}${subjectParticle} ${b}${objectParticle} ${verb} 흐름이 있어요.`
+}
+
+// True when the last char of `s` carries a final consonant (받침) — used to
+// choose 이/가, 과/와 etc. Deterministic.
+function endsWithBatchim(s: string): boolean {
+  if (!s) return false
+  const lastChar = s[s.length - 1]
+  const code = lastChar.charCodeAt(0)
+  if (code < 0xac00 || code > 0xd7a3) return false
+  return (code - 0xac00) % 28 !== 0
 }
 
 export function relationPhraseEn(
@@ -351,14 +363,18 @@ export function pickRelationEntry(
   if (opts.preferKind === '해') buckets.push(rel.hae)
   if (opts.preferKind === '회') buckets.push(rel.hoe)
   buckets.push(rel.chung, rel.hap, rel.hyung, rel.hoe, rel.hae)
-  for (const bucket of buckets) {
-    if (!bucket || bucket.length === 0) continue
-    if (opts.preferPillar) {
+  // 1st pass: respect preferPillar.
+  if (opts.preferPillar) {
+    for (const bucket of buckets) {
+      if (!bucket || bucket.length === 0) continue
       const hit = bucket.find((e) => e.pillars.includes(opts.preferPillar!))
       if (hit) return hit
-    } else {
-      return bucket[0]
     }
+  }
+  // 2nd pass: any entry in priority order.
+  for (const bucket of buckets) {
+    if (!bucket || bucket.length === 0) continue
+    return bucket[0]
   }
   return undefined
 }

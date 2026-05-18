@@ -10,6 +10,8 @@ import {
   categoryCount,
   countSibsin,
   gongmangAffectedPillars,
+  relationPhraseEn,
+  relationPhraseKo,
 } from '../../signals/sajuSignals'
 import {
   chiron,
@@ -175,6 +177,36 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     p3piecesEn.push(
       `Chiron in ${signLabel(ch.sign, 'en')} — working with your own wound is itself the spiritual practice.`,
     )
+  }
+  // Saju relations — 해(misalignment) often opens the most spiritual material;
+  // bias toward 해 first, then any.
+  const relKoSpirit = relationPhraseKo(calendarSignals?.sajuRelations, {
+    preferKind: '해',
+  })
+    ?? relationPhraseKo(calendarSignals?.sajuRelations)
+  const relEnSpirit = relationPhraseEn(calendarSignals?.sajuRelations, {
+    preferKind: '해',
+  })
+    ?? relationPhraseEn(calendarSignals?.sajuRelations)
+  if (relKoSpirit) {
+    sajuUsed.push('calendarSignals.sajuRelations')
+    p3pieces.push(`${relKoSpirit} 그 어긋남이 영적 사유의 출발점이 돼요.`)
+    if (relEnSpirit) p3piecesEn.push(`${relEnSpirit} That misfit becomes the start of spiritual reflection.`)
+  }
+  // Part of Spirit (다이몬) — even when Spirit is already used elsewhere,
+  // surface it here as the soul-callout for the spirituality domain.
+  const spiritLot = calendarSignals?.arabicParts?.Spirit
+  if (spiritLot) {
+    fusionUsed.push('calendarSignals.arabicParts.Spirit')
+    p3pieces.push(`영혼·다이몬의 점이 ${signLabel(spiritLot.sign, 'ko')}의 결로 자리해서, 진짜 부름이 어느 방향으로 와 있는지 알려줘요.`)
+    p3piecesEn.push(`Your Lot of Spirit / Daimon in ${signLabel(spiritLot.sign, 'en')} marks the direction your true vocation calls from.`)
+  }
+  // Part of Captivity — 속박의 결 → 영적 매듭으로 풀어 해석
+  const captivity = calendarSignals?.arabicPartsExtra?.Captivity
+  if (captivity) {
+    fusionUsed.push('calendarSignals.arabicPartsExtra.Captivity')
+    p3pieces.push(`속박의 점이 ${signLabel(captivity.sign, 'ko')}의 결로 자리해서, 풀어야 할 영적 매듭이 그 자리에 한 번 모여 있어요.`)
+    p3piecesEn.push(`Your Lot of Captivity in ${signLabel(captivity.sign, 'en')} — the spiritual knot to untie gathers in that seat.`)
   }
   const p3ko = paragraph(
     p3pieces.length ? p3pieces : ['지금 신호들이 평이하게 정렬돼 있어, 특정 종교나 수행보다는 일상에 영성을 천천히 녹이는 결이 잘 맞아요.'],

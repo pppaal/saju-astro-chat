@@ -220,8 +220,8 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   })
   if (relKoChildren) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepKo.push(relKoChildren.replace('흐름이 있어요.', '결이 있어서, 자녀와의 인연 색이 일찍부터 정해져 있는 결이에요.'))
-    if (relEnChildren) deepEn.push(relEnChildren.replace(/\.$/, ' — the colour of the child-bond is pre-set early.'))
+    deepKo.push(`${relKoChildren} 자녀와의 인연 색이 일찍부터 정해져 있는 결이에요.`)
+    if (relEnChildren) deepEn.push(`${relEnChildren} The colour of the child-bond is pre-set early.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '자녀의 결은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.'
