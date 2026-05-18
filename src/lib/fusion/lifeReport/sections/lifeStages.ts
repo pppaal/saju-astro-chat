@@ -194,9 +194,12 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   // ───────────────────── 文단 2: 주요 사건 (대운 + 점성 lifecycle hits)
   const eventLinesKo: string[] = []
   const eventLinesEn: string[] = []
+  const daeunAges = stageDaeun.slice(0, 3).map((d) => d.age).filter((a): a is number => !!a)
+  if (daeunAges.length > 0) {
+    eventLinesKo.push(`${daeunAges.join('세, ')}세 무렵에 인생 흐름이 새로운 챕터로 갈아타요.`)
+  }
   for (const d of stageDaeun.slice(0, 3)) {
     if (!d.age) continue
-    eventLinesKo.push(`${d.age}세 무렵엔 인생의 한 챕터가 새로 열려요.`)
     eventLinesEn.push(`Age ${d.age} opens a new daeun${d.ganji ? ` ${d.ganji}` : ''}, beginning a fresh chapter.`)
   }
   for (const ev of lifecycleEvts.slice(0, 3)) {

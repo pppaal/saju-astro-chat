@@ -137,6 +137,15 @@ export function iGa(word: string): string {
   return final === 0 ? '가' : '이'
 }
 
+/** Korean object particle helper — pick 을/를 based on last syllable. */
+export function eulReul(word: string): string {
+  if (!word) return '를'
+  const last = word.charCodeAt(word.length - 1)
+  if (last < 0xac00 || last > 0xd7a3) return '를'
+  const final = (last - 0xac00) % 28
+  return final === 0 ? '를' : '을'
+}
+
 /** Join an array of strings with comma + final "and"/"및". */
 export function joinList(items: string[], lang: Lang): string {
   const xs = items.filter(Boolean)

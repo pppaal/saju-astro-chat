@@ -23,7 +23,7 @@ import {
   eventsInAgeRange,
   lifecycleEvents,
 } from '../signals/astroLifecycle'
-import { paragraph } from '../templates/sentences'
+import { iGa, paragraph } from '../templates/sentences'
 
 // Map daewoon position (index) → heuristic domain — mirrors the legacy
 // extendedAnalysis logic which used `i % 3 === 1` etc. We keep the same
@@ -166,8 +166,9 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const e30s = eventsInAgeRange(28, 39)
   const d30s = decisiveYears.filter((d) => d.age >= 28 && d.age < 40)
   if (e30s.length > 0) astroUsed.push('lifecycle.30s')
+  const e30sLabel = e30s.map((e) => e.labelKo).join('·') || '별의 큰 변곡 몇 가지'
   const p1ko = paragraph([
-    `30대는 인생 흐름이 한 번 크게 갈리는 때에, ${e30s.map((e) => e.labelKo).join('·') || '별의 큰 변곡 몇 가지'}가 겹쳐 들어와요.`,
+    `30대는 인생 흐름이 한 번 크게 갈리는 때에, ${e30sLabel}${iGa(e30sLabel)} 겹쳐 들어와요.`,
     d30s.length > 0
       ? `특히 ${d30s.map((d) => `${d.age}세(${labelKoDomain(d.domain)})`).join(', ')}가 인생의 첫 큰 매듭이 되는 해예요.`
       : '결혼과 전문성, 기반이 한 번에 결정되는 시기라 회피하지 말고 책임을 받아들이는 선택이 토대가 됩니다.',
@@ -182,8 +183,9 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   // P2 — 40대 변곡점
   const e40s = eventsInAgeRange(40, 49)
   const d40s = decisiveYears.filter((d) => d.age >= 40 && d.age < 50)
+  const e40sLabel = e40s.map((e) => e.labelKo).join('·') || '별의 큰 변곡들'
   const p2ko = paragraph([
-    `40대엔 ${e40s.map((e) => e.labelKo).join('·') || '별의 큰 변곡들'}이 한꺼번에 몰려와요.`,
+    `40대엔 ${e40sLabel}${iGa(e40sLabel)} 한꺼번에 몰려와요.`,
     d40s.length > 0
       ? `${d40s.map((d) => `${d.age}세(${labelKoDomain(d.domain)})`).join(', ')}가 진짜 자기와 맞지 않는 길을 깨고 다시 정렬해줘요.`
       : '자유의 각성과 의미의 시험이 동시에 와서, 안정을 빌미로 미뤘던 결정이 표면으로 올라와요.',
@@ -198,8 +200,9 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   // P3 — 50대+ 변곡점
   const e50s = eventsInAgeRange(50, 65)
   const d50s = decisiveYears.filter((d) => d.age >= 50)
+  const e50sLabel = e50s.map((e) => e.labelKo).join('·') || '치유의 회귀와 두 번째 어른됨의 통과의례'
   const p3ko = paragraph([
-    `50대 이후로는 ${e50s.map((e) => e.labelKo).join('·') || '치유의 회귀와 두 번째 어른됨의 통과의례'}가 핵심이에요.`,
+    `50대 이후로는 ${e50sLabel}${iGa(e50sLabel)} 핵심이에요.`,
     d50s.length > 0
       ? `${d50s.map((d) => `${d.age}세(${labelKoDomain(d.domain)})`).join(', ')}가 평생의 결을 결산해주는 변곡이에요.`
       : '결과보다 의미에 시간을 쓰는 쪽으로 무게추가 옮겨가요.',

@@ -26,7 +26,7 @@ import {
   planetsInHouse,
 } from '../signals/astroSignals'
 import { northNode, findPlanet } from '../signals/astroSynthesis'
-import { paragraph, planetLabel, signLabel } from '../templates/sentences'
+import { eulReul, paragraph, planetLabel, signLabel } from '../templates/sentences'
 
 // 행성명을 한국어로 (planetLabel은 동일 동작이지만 가독성을 위한 alias)
 function planetLabelKo(name: string): string {
@@ -178,7 +178,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const missionKo = ELEMENT_MISSION_KO[dayEl] || '균형'
   const missionEn = ELEMENT_MISSION_EN[dayEl] || 'balance'
   const p1ko = paragraph([
-    `이번 생의 결은 '${missionKo}'을(를) 통해 ${karmaGeokgukShortKo(geokguk)}을 완성해가는 흐름이에요.`,
+    `이번 생의 결은 '${missionKo}'${eulReul(missionKo)} 통해 ${karmaGeokgukShortKo(geokguk)}을 완성해가는 흐름이에요.`,
     nn
       ? `이번 생에 영혼이 향하고 싶은 방향은 ${signLabel(nn.sign, 'ko')}의 결, ${nn.house ? karmaHouseHintKo(nn.house) + ' 자리에 ' : ''}있어요.`
       : '',
@@ -257,7 +257,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     specialFormations.length > 0
       ? '평범한 흐름을 넘어서는 특별한 결이 잠재돼 있어요.'
       : '',
-    `한 줄로 정리하면: 이번 생은 ${missionKo}을(를) 통해 ${karmaType}의 결을 풀어가는 여정이에요.`,
+    `한 줄로 정리하면: 이번 생은 ${missionKo}${eulReul(missionKo)} 통해 ${karmaType}의 결을 풀어가는 여정이에요.`,
   ])
   const p4en = paragraph([
     jong
