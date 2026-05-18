@@ -5,7 +5,7 @@ import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import { expandNarrativeDeep } from './shared/longForm'
 import type { TabProps } from './types'
 import { getFullMatrixAnalysis } from '../analyzers'
-import { PremiumReportCTA } from '../components'
+import TimingTab from './TimingTab'
 
 import type { SajuDataExtended, PlanetData, CurrentFlow } from './fortune/types'
 import { findPlanetSign, findPlanetHouse } from './fortune/utils'
@@ -229,8 +229,19 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
       {/* Layer 10: Extra Points */}
       <ExtraPointsSection extraPoints={extraPoints} isKo={isKo} />
 
-      {/* AI Premium Report CTA */}
-      <PremiumReportCTA section="fortune" />
+      {/* ──── 타이밍 매트릭스 (옛 TimingTab 컨텐츠) ────
+          캘린더 엔진 5테마(love/money/career/health/growth)에 'timing'은
+          없으므로 별도 탭으로 두지 않고 fortune의 마지막 섹션으로 흡수.
+          내용 자체는 大運·transit·역행 등 시간 기반 분석이라 fortune과
+          자연스럽게 이어짐. */}
+      <TimingTab
+        saju={saju}
+        astro={astro}
+        lang={lang}
+        isKo={isKo}
+        data={data}
+        destinyNarrative={undefined}
+      />
     </div>
   )
 }

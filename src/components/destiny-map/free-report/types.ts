@@ -287,11 +287,14 @@ export interface TabProps {
   combinedLifeTheme?: (BilingualText & { detail?: BilingualText }) | null;
 }
 
-// 탭 ID 타입 — 5 theme + 1 timing utility.
-// 캘린더 엔진의 5테마(love/money/career/health/growth)와 1:1 정합.
-// fortune은 운세(money 도메인 + 흐름) 라벨, growth는 옛 personality·
-// karma·hidden을 합친 자기·내면 통합 탭.
-export type TabId = 'love' | 'career' | 'fortune' | 'health' | 'growth' | 'timing';
+// 탭 ID 타입 — 5개 strict. 캘린더 엔진의 5테마와 1:1 정합:
+//   love     ← 연애·관계
+//   money    ← (UI 라벨은 '운세'/fortune) 재물 + year/month/today 흐름 + 시기
+//   career   ← 커리어·학업·평판
+//   health   ← 건강·위기
+//   growth   ← 자기·그림자·카르마 (옛 personality·hidden·karma 머지)
+// 타이밍/시기 분석은 fortune 탭의 마지막 섹션으로 흡수.
+export type TabId = 'love' | 'career' | 'fortune' | 'health' | 'growth';
 
 // 탭 정의 타입
 export interface TabDefinition {
