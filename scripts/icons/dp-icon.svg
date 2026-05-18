@@ -30,11 +30,13 @@
 
   <!--
     Hex mark. The HexDPLogo source uses points (32,5) (59,21) (59,51) (32,67) (5,51) (5,21)
-    on a 64×72 canvas. Scaled to 512: factor 8x, then translated +96/+76 so the
-    hex sits visually centred in the safe zone (the maskable safe zone is the
-    inner 80% — we keep all hex strokes well inside).
+    on a 64×72 canvas, normalized here to local coords (-56,0)..(376,496) with center
+    (160, 248). Earlier translate(96 76) placed the bottom tip at y=572 — 60px *outside*
+    the 0..512 viewBox, so every render (favicon, PWA, Google site result) cut the
+    bottom point. Now: translate-to-center then scale 0.82 so the full hex sits within
+    the inner 80% maskable safe zone with symmetric margin on all sides.
   -->
-  <g transform="translate(96 76)">
+  <g transform="translate(256 256) scale(0.82) translate(-160 -248)">
     <!-- Outer gradient hex -->
     <polygon points="160,0 376,128 376,368 160,496 -56,368 -56,128"
              fill="url(#dp-grad)" />
