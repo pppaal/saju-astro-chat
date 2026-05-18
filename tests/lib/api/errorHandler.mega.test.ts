@@ -25,7 +25,6 @@ vi.mock('@/lib/logger', () => ({
 import {
   ErrorCodes,
   createErrorResponse,
-  withErrorHandler,
   createSuccessResponse,
   type ErrorCode,
   type APIErrorOptions,
@@ -569,19 +568,3 @@ describe('errorHandler MEGA - createSuccessResponse', () => {
   })
 })
 
-describe('errorHandler MEGA - withErrorHandler (deprecated)', () => {
-  it('should throw an error when called', () => {
-    const handler = vi.fn().mockResolvedValue(NextResponse.json({ success: true }))
-    expect(() => withErrorHandler(handler, '/api/test')).toThrow('withErrorHandler is deprecated')
-  })
-
-  it('should mention withApiMiddleware in the error message', () => {
-    const handler = vi.fn()
-    expect(() => withErrorHandler(handler, '/api/test')).toThrow('withApiMiddleware')
-  })
-
-  it('should throw regardless of handler or route arguments', () => {
-    expect(() => withErrorHandler(async () => new Response('OK'), '/any-route')).toThrow()
-    expect(() => withErrorHandler(async () => new Response(''), '')).toThrow()
-  })
-})
