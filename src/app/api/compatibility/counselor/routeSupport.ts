@@ -1427,14 +1427,36 @@ function formatTimingForPrompt(
 
   const renderSide = (label: string, side: Record<string, unknown>, sideAstro?: Record<string, unknown> | null) => {
     const lines: string[] = []
-    void side
-    // Saju daeun/saeun/wolun/ilun used to be printed here, but they're
-    // already in the cached saju table (see sajuTableFormatter) with
-    // the ← 현재 / ← 올해 / ← 이번달 / ← 오늘 markers. Re-emitting them
-    // here was duplicating ~250 chars per turn and the old build was
-    // also dropping `(undefined-undefined)` placeholders because the
-    // startAge/endAge fields aren't on side.daeunCurrent. Astro
-    // transits / returns below are kept — they aren't in the table.
+    // Saju timing — 운명상담사의 [현재 시기] 패턴 mirror. 옛 빌드는
+    // 여기서 daeun/saeun/wolun/ilun 을 출력했는데 "이미 cached saju
+    // table 에 있다" 가정으로 제거됐었다 — 하지만 그 cached table
+    // (sajuTableFormatter) 호출이 어디서도 안 일어나고 있어서 사주
+    // 측 시기 정보가 통째로 빠진 상태였다. 여기로 복구. 매일 바뀌는
+    // 데이터라 cached 가 아닌 dynamic timingBlock 에 emit 하는 게 맞음.
+    const sajuLine = (cur: Record<string, unknown> | null | undefined): string | null => {
+      const stem = cur?.heavenlyStem as string | undefined
+      const branch = cur?.earthlyBranch as string | undefined
+      if (!stem && !branch) return null
+      return `${stem ?? ''}${branch ?? ''}`
+    }
+    const sewoon = sajuLine(side.saeunCurrent as Record<string, unknown> | null)
+    const wolun = sajuLine(side.wolunCurrent as Record<string, unknown> | null)
+    const iljin = sajuLine(side.ilunCurrent as Record<string, unknown> | null)
+    if (sewoon || wolun || iljin) {
+      const sajuParts: string[] = []
+      if (sewoon) {
+        const yr = new Date().getFullYear()
+        sajuParts.push(`${isKo ? '세운' : 'sewoon'} ${yr}: ${sewoon}`)
+      }
+      if (wolun) sajuParts.push(`${isKo ? '월운' : 'wolun'}: ${wolun}`)
+      if (iljin) {
+        const d = new Date()
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        sajuParts.push(`${isKo ? '일진' : 'iljin'} (${dateStr}): ${iljin}`)
+      }
+      lines.push(`${isKo ? '사주 시기' : 'saju timing'}:`)
+      sajuParts.forEach((p) => lines.push(`  - ${p}`))
+    }
 
     // Astro side — surface currentTransits + returns from already-computed
     // buildAutoAstroContext output. No new calculation, just exposure.
