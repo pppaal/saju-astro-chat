@@ -406,7 +406,7 @@ export async function POST(req: NextRequest) {
             '- "A/B 시간 미상" 표시가 있으면 그쪽 시주/일진/ASC/MC/하우스 인용 금지.',
             '- AI/모델/상담사 정체 노출 금지.',
             '',
-            '★ jargon 절대 금지 — raw 텍스트 그대로 인용 X:',
+            '★ jargon 기본 금지 — 평소엔 raw 텍스트 그대로 인용 X:',
             '  - 한자 (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 등) 출력 X',
             '  - 용어 (일간, 십성, 대운, 천을귀인, 트랜짓, 어스펙트, 하우스, 합·충·형·해, Conjunction·Square·Trine 등) 출력 X',
             '  - 데이터를 일상 한국어로 *완전 번역*해서 답:',
@@ -414,7 +414,11 @@ export async function POST(req: NextRequest) {
             '    · "A 일간 辛 ↔ B 일간 甲, 금극목" → "A가 B를 정리·다듬는 결, B는 그게 따끔하게 느낄 수 있음"',
             '    · "Moon Conjunction Mars" → "감정과 욕망이 같은 결로 끌림"',
             '    · "천을귀인 발화" → "서로 보호해주는 흐름"',
-            '  - 답변에 한자나 영문 점성 용어가 *단 한 자도* 나오면 안 됨.',
+            '',
+            '★ 예외 — 사용자가 *직접 그 용어로 물으면* 답해도 됨:',
+            '  - "A 일간 뭐야?" / "우리 Sun synastry 어때?" / "Moon square Mars는?" 같이',
+            '    용어로 직접 물으면 그 용어 그대로 짧게 답. 회피하지 말 것.',
+            '  - 일상어로 물었으면 (예: "우리 잘 맞아?") 답도 일상어로.',
           ].join('\n')
         : [
             'Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.',
@@ -425,7 +429,8 @@ export async function POST(req: NextRequest) {
             '- No markdown headers (##) or numbered lists. Plain prose paragraphs.',
             '- If "A/B 시간 미상" is marked, do not cite that side\'s hour pillar / 일진 / ASC / MC / houses.',
             "- Never reveal you're an AI / model / counselor system.",
-            '- Avoid jargon (day master, ten gods, daeun, transit, aspect, house, etc.). Use the data as evidence but speak in plain, natural language. Only mention a technical term once with a short parenthetical when truly needed.',
+            '- Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.',
+            '- Exception: if the user asks *directly using a term* ("what\'s A\'s Sun sign?", "how about our Moon square?"), use the term and answer briefly. Don\'t dodge.',
           ].join('\n')
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:

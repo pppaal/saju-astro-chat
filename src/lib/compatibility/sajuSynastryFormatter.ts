@@ -122,6 +122,30 @@ const CHEONULGWIIN: Record<string, string[]> = {
   '壬': ['巳', '卯'], '癸': ['巳', '卯'],
 }
 
+const BRANCH_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+
+// 12신살 — 일지 기준, 상대 지지에 라벨 부여 (synastry: A의 일지 → B 4지지)
+const TWELVE_SHINSAL_LABELS = [
+  '겁살', '재살', '천살', '지살', '년살', '월살',
+  '망신', '장성', '반안', '역마', '육해', '화개',
+] as const
+const TWELVE_SHINSAL_START: Record<string, string> = {
+  '申': '巳', '子': '巳', '辰': '巳',
+  '亥': '申', '卯': '申', '未': '申',
+  '寅': '亥', '午': '亥', '戌': '亥',
+  '巳': '寅', '酉': '寅', '丑': '寅',
+}
+function twelveShinsalLabel(baseBranch: string, targetBranch: string): string | null {
+  const start = TWELVE_SHINSAL_START[baseBranch]
+  if (!start) return null
+  const startIdx = BRANCH_ORDER.indexOf(start)
+  const tIdx = BRANCH_ORDER.indexOf(targetBranch)
+  if (startIdx < 0 || tIdx < 0) return null
+  let offset = tIdx - startIdx
+  while (offset < 0) offset += 12
+  return TWELVE_SHINSAL_LABELS[offset % 12]
+}
+
 const PILLAR_LABELS = ['년', '월', '일', '시'] as const
 
 export interface SajuPillarInput {
@@ -246,6 +270,32 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (shinsalLines.length > 0) {
     out.push('[신살 cross — 천을귀인]')
     out.push(...shinsalLines)
+    out.push('')
+  }
+
+  // ── 12신살 cross — A의 일지 기준 B의 4지지, B의 일지 기준 A의 4지지 ──
+  const twelveLines: string[] = []
+  if (aDay.branch) {
+    for (let j = 0; j < 4; j++) {
+      if (!B[j].branch) continue
+      const lbl = twelveShinsalLabel(aDay.branch, B[j].branch)
+      if (lbl) {
+        twelveLines.push(`A's 일지 ${aDay.branch} 기준 → B ${PILLAR_LABELS[j]}지 ${B[j].branch} = ${lbl}`)
+      }
+    }
+  }
+  if (bDay.branch) {
+    for (let i = 0; i < 4; i++) {
+      if (!A[i].branch) continue
+      const lbl = twelveShinsalLabel(bDay.branch, A[i].branch)
+      if (lbl) {
+        twelveLines.push(`B's 일지 ${bDay.branch} 기준 → A ${PILLAR_LABELS[i]}지 ${A[i].branch} = ${lbl}`)
+      }
+    }
+  }
+  if (twelveLines.length > 0) {
+    out.push('[12신살 cross — 상대 지지가 내 일지 기준 어떤 신살로 잡히나]')
+    out.push(...twelveLines)
     out.push('')
   }
 
