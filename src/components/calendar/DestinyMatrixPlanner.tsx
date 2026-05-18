@@ -29,6 +29,7 @@ import DailyFlowCard from './DailyFlowCard'
 import DailyHourlyChart from './DailyHourlyChart'
 import WeeklyTimingChart from './WeeklyTimingChart'
 import { getGrade, computeGradeThresholds } from './scoreGrade'
+import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -755,7 +756,10 @@ export default function DestinyMatrixPlanner({
                       </div>
                       <ul className="space-y-2">
                         {dailyHourlySlots.best.length > 0 ? (
-                          dailyHourlySlots.best.slice(0, 4).map((s, i) => (
+                          dailyHourlySlots.best.slice(0, 4).map((s, i) => {
+                            const branch = branchFromHour(s.hour)
+                            const narrative = getHourNarrative(branch)
+                            return (
                             <li
                               key={`best-${i}`}
                               className="bg-emerald-900/10 border border-emerald-500/15 px-3 py-2 rounded-lg"
@@ -768,13 +772,19 @@ export default function DestinyMatrixPlanner({
                                   {Math.round(s.score)}점
                                 </span>
                               </div>
+                              {/* 시진 baseline narrative — 12지지 의미를 한 줄로.
+                                  best 슬롯이라 positiveKo 사용. */}
+                              <p className="text-xs text-emerald-100/85 mt-1 leading-snug">
+                                {narrative.positiveKo}
+                              </p>
                               {s.reason && (
-                                <p className="text-xs text-zinc-400 mt-1 leading-snug">
+                                <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
                                   {s.reason}
                                 </p>
                               )}
                             </li>
-                          ))
+                            )
+                          })
                         ) : (
                           <li className="text-xs text-zinc-500">신호 없음</li>
                         )}
@@ -786,7 +796,10 @@ export default function DestinyMatrixPlanner({
                       </div>
                       <ul className="space-y-2">
                         {dailyHourlySlots.worst.length > 0 ? (
-                          dailyHourlySlots.worst.slice(0, 2).map((s, i) => (
+                          dailyHourlySlots.worst.slice(0, 2).map((s, i) => {
+                            const branch = branchFromHour(s.hour)
+                            const narrative = getHourNarrative(branch)
+                            return (
                             <li
                               key={`worst-${i}`}
                               className="bg-rose-900/10 border border-rose-500/15 px-3 py-2 rounded-lg"
@@ -799,13 +812,18 @@ export default function DestinyMatrixPlanner({
                                   {Math.round(s.score)}점
                                 </span>
                               </div>
+                              {/* worst 슬롯이라 cautionKo 사용 */}
+                              <p className="text-xs text-rose-100/85 mt-1 leading-snug">
+                                {narrative.cautionKo}
+                              </p>
                               {s.reason && (
-                                <p className="text-xs text-zinc-400 mt-1 leading-snug">
+                                <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
                                   {s.reason}
                                 </p>
                               )}
                             </li>
-                          ))
+                            )
+                          })
                         ) : (
                           <li className="text-xs text-zinc-500">신호 없음</li>
                         )}

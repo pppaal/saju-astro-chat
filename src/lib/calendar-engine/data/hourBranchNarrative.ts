@@ -158,6 +158,26 @@ export function getHourNarrative(branch: Branch): HourBranchNarrative {
   return HOUR_BRANCH_NARRATIVE[branch]
 }
 
+/** 24h hour (0-23) → 12지지 branch. 자시(子)는 23-1시라 23·0 둘 다 자. */
+const HOUR_TO_BRANCH: Record<number, Branch> = {
+  23: '자', 0: '자',
+  1: '축', 2: '축',
+  3: '인', 4: '인',
+  5: '묘', 6: '묘',
+  7: '진', 8: '진',
+  9: '사', 10: '사',
+  11: '오', 12: '오',
+  13: '미', 14: '미',
+  15: '신', 16: '신',
+  17: '유', 18: '유',
+  19: '술', 20: '술',
+  21: '해', 22: '해',
+}
+
+export function branchFromHour(hour: number): Branch {
+  return HOUR_TO_BRANCH[hour] ?? '자'
+}
+
 /** Pick the narrative string matching a polarity value. */
 export function pickHourNarrative(
   branch: Branch,
