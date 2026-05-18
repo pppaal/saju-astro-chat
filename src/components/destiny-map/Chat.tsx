@@ -520,6 +520,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onKeyDown={onKeyDown}
               onSend={() => void handleSend()}
               onFileUpload={handleFileUpload}
+              onOpenTarot={goToTarot}
+              onOpenChart={() => setShowChartModal(true)}
               styles={styles}
               autoFocus={autoFocus}
             />

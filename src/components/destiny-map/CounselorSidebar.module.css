@@ -506,3 +506,56 @@
   background: #f5f5f4;
   color: #1c1917;
 }
+
+/* =====================================================================
+ * Light theme — additional surfaces (#286 사용자 보고: 모바일 드로어에서
+ * past chats 목록이 깨져 보인다는 피드백 대응).
+ * sessionItem 본인의 color 가 다크 글자 색으로 안 바뀌어서 자식들이
+ * 옅게 보이던 거 + renameInput 다크 / actionBtn 색감 정리.
+ * ===================================================================== */
+.lightTheme .sessionItem {
+  color: #44403c;
+}
+
+.lightTheme .sessionItem:hover {
+  background: #f5f5f4;
+}
+
+.lightTheme .sessionItemSwiped {
+  background: #f5f5f4;
+}
+
+.lightTheme .renameInput {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  color: #1c1917;
+}
+
+.lightTheme .renameInput:focus {
+  border-color: #a8a29e;
+}
+
+/* New chat 만 강조 (다크 stroke), 홈은 보조 액션. nth-of-type 으로
+   구분하던 거 backgroundless 패턴에 의존했는데 fragile. Link 컴포넌트가
+   button 사이에 끼면서 nth-of-type 가 어긋남. 명시적인 first-of-type 으로
+   가고 나머지는 일반 hover. */
+.lightTheme .actionBtn {
+  background: transparent;
+  color: #44403c;
+  border: 0;
+}
+
+.lightTheme .actionBtn:first-of-type {
+  background: #1c1917;
+  color: #fafaf9;
+}
+
+.lightTheme .actionBtn:first-of-type:hover {
+  background: #292524;
+  color: #fafaf9;
+}
+
+.lightTheme .actionBtn:not(:first-of-type):hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}
