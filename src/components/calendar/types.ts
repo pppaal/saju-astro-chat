@@ -41,26 +41,18 @@ export interface CalendarEvidence {
 export interface ImportantDate {
   date: string
   grade: ImportanceGrade
-  originalGrade?: ImportanceGrade
   displayGrade?: ImportanceGrade
   score: number
-  rawScore?: number
-  adjustedScore?: number
   displayScore?: number
   categories: EventCategory[]
   title: string
   description: string
   summary?: string
-  timingSignals?: string[]
   sajuFactors: string[]
   astroFactors: string[]
   recommendations: string[]
   warnings: string[]
   evidence?: CalendarEvidence
-  // 신규 분석 데이터 (확장)
-  ganzhi?: string // 일주 간지
-  transitSunSign?: string // 트랜짓 태양 별자리
-  crossVerified?: boolean // 사주+점성술 교차 검증
   /** 본명 사주 (date-detail 통해 주입). 행동플래너 시간 십신 계산용 */
   natalSaju?: {
     dayStem: string

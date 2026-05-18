@@ -18,11 +18,8 @@ export interface SajuPillarAccessor {
 export interface FormattedDate {
   date: string
   grade: ImportanceGrade
-  originalGrade?: ImportanceGrade
   displayGrade?: ImportanceGrade
   score: number
-  rawScore?: number
-  adjustedScore?: number
   displayScore?: number
   categories: EventCategory[]
   title: string
@@ -37,8 +34,6 @@ export interface FormattedDate {
   recommendations: string[]
   warnings: string[]
   evidence?: CalendarEvidence
-  /** 본문에 등장한 사주·점성 용어 → 한 줄 풀이 (프런트 툴팁용) */
-  glossary?: Record<string, string>
   /** 대운/세운/월운/일운 — 본명 일간 기준 십신까지 박은 풀 흐름 컨텍스트 */
   longCycleContext?: {
     daeun?: { ganji: string; ageStart: number; ageEnd: number; sibsinStem?: string }
@@ -52,15 +47,6 @@ export interface FormattedDate {
     kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
     blurb: string
   }>
-  /** 운 충합 narrative summary */
-  cycleNarrative?: string
-  /** 행성시 (요일 룰러) */
-  dayRuler?: {
-    planet: string
-    planetKo: string
-    themeKo: string
-    themeEn: string
-  }
   /**
    * 점수 = (사주축 + 점성축) / 2 — v3 signal-based 분해.
    * axisAgreement: 두 시스템이 같은 방향을 가리키는지 (점수 외 부가 표시).

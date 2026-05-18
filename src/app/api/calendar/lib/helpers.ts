@@ -620,7 +620,6 @@ export function formatDateForResponse(
   const effectiveGrade = hasPregradedDisplay
     ? (date.grade as ImportanceGrade)
     : getEffectiveGradeFromDisplayScore(displayScore)
-  const rawScore = date.rawScore ?? date.score
   const baseSummary = generateSummary(
     date.grade,
     uniqueCategories,
@@ -760,10 +759,7 @@ export function formatDateForResponse(
   return normalizeMojibakePayload({
     date: date.date,
     grade: alignedEffectiveGrade,
-    originalGrade: date.grade,
     score: alignedDisplayScore,
-    rawScore,
-    adjustedScore: alignedDisplayScore,
     displayScore: alignedDisplayScore,
     displayGrade: alignedEffectiveGrade,
     categories: uniqueCategories,
