@@ -1,10 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { User, Users, ChevronDown, Loader2 } from 'lucide-react'
+import { User, Users, ChevronDown, Loader2, Plus } from 'lucide-react'
 import { type PersonForm, type Relation } from '../../lib/types'
 import { useCitySearch } from '@/hooks/calendar/useCitySearch'
 import { formatCityForDropdown } from '@/lib/cities/formatter'
 import type { CirclePerson } from '@/hooks/useMyCircle'
 import type { CityResult } from '@/lib/cities/types'
+import DateTimePicker from '@/components/ui/DateTimePicker'
+import TimePicker from '@/components/ui/TimePicker'
+import { CircleAddModal } from '@/app/profile/components/CircleAddModal'
 
 interface PersonCardProps {
   person: PersonForm
@@ -19,6 +22,12 @@ interface PersonCardProps {
   onPickCity: (idx: number, city: CityResult) => void
   onToggleCircleDropdown: () => void
   onFillFromCircle: (idx: number, person: CirclePerson) => void
+  // After CircleAddModal saves a new person, the page should refetch the
+  // circle so the new entry shows up immediately in the dropdown
+  // (otherwise the user has to reload to use it). Optional — when the
+  // parent doesn't pass it, the modal still works but the local circle
+  // list won't refresh until next mount.
+  onCircleChanged?: () => void
 }
 
 /**
@@ -49,10 +58,13 @@ export const PersonCard = React.memo<PersonCardProps>(
     onPickCity,
     onToggleCircleDropdown,
     onFillFromCircle,
+    onCircleChanged,
   }) => {
     const idx = index
     const isKo = locale === 'ko' || locale.startsWith('ko')
+    const localeAsModalLocale: 'ko' | 'en' = isKo ? 'ko' : 'en'
     const [profileLoading, setProfileLoading] = useState(false)
+    const [showAddCircle, setShowAddCircle] = useState(false)
     const timeUnknown = person.timeUnknown ?? (!person.time || person.time === '00:00')
     const setTimeUnknown = useCallback(
       (value: boolean) => onUpdatePerson(idx, 'timeUnknown', value),
@@ -180,8 +192,14 @@ export const PersonCard = React.memo<PersonCardProps>(
                   {t('compatibilityPage.loadMyProfile', '내 프로필')}
                 </button>
               )}
-              {circlePeople.length > 0 && (
-                <div className="relative">
+              {/* `data-circle-dropdown` is required: useMyCircle attaches a
+                  document-level click listener that closes the dropdown
+                  unless the click target has this attribute as an ancestor.
+                  Without it the dropdown closed on the first item click and
+                  selection silently failed — felt like "the button isn't
+                  there". */}
+              {circlePeople.length > 0 ? (
+                <div className="relative" data-circle-dropdown>
                   <button
                     type="button"
                     onClick={onToggleCircleDropdown}
@@ -210,6 +228,19 @@ export const PersonCard = React.memo<PersonCardProps>(
                     </ul>
                   )}
                 </div>
+              ) : (
+                // Empty circle — show an inline CTA so the user can add
+                // someone without bouncing to /profile first. Especially
+                // important on Person 2 since the whole reason to use the
+                // circle is to pre-fill the partner's birth info.
+                <button
+                  type="button"
+                  onClick={() => setShowAddCircle(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-400/10 px-3 py-1 text-[11.5px] font-medium text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-400/15"
+                >
+                  <Plus className="h-3 w-3" />
+                  {t('compatibilityPage.addToCircle', '지인 추가')}
+                </button>
               )}
             </div>
           )}
@@ -228,14 +259,14 @@ export const PersonCard = React.memo<PersonCardProps>(
             />
           </Field>
 
-          {/* 생년월일 */}
+          {/* 생년월일 — 운명상담사 입장폼과 동일한 wheel picker로 통일.
+              type='date' native picker는 iOS Safari에서 회색 줄에 가까운
+              모양이라 "옛날 폼" 인상을 줬음. */}
           <Field label={t('compatibilityPage.dateOfBirth', '생년월일')} required>
-            <input
-              type="date"
+            <DateTimePicker
               value={person.date}
-              onChange={(e) => onUpdatePerson(idx, 'date', e.target.value)}
-              required
-              className={inputClass}
+              onChange={(date) => onUpdatePerson(idx, 'date', date)}
+              locale={isKo ? 'ko' : 'en'}
             />
           </Field>
 
@@ -259,14 +290,13 @@ export const PersonCard = React.memo<PersonCardProps>(
             </div>
           </Field>
 
-          {/* 시간 */}
+          {/* 시간 — 운명상담사와 동일한 12시간 wheel picker */}
           <Field label={t('compatibilityPage.timeOfBirth', '태어난 시간')}>
-            <input
-              type="time"
+            <TimePicker
               value={timeUnknown ? '' : person.time}
-              onChange={(e) => onUpdatePerson(idx, 'time', e.target.value)}
+              onChange={(time) => onUpdatePerson(idx, 'time', time)}
               disabled={timeUnknown}
-              className={inputClass + (timeUnknown ? ' opacity-50' : '')}
+              locale={isKo ? 'ko' : 'en'}
             />
             <label className="mt-2 flex cursor-pointer items-start gap-2 text-[12.5px] text-slate-400">
               <input
@@ -341,6 +371,20 @@ export const PersonCard = React.memo<PersonCardProps>(
             </>
           )}
         </div>
+
+        {/* Inline "add to circle" — only mounts when the user explicitly
+            opens it via the empty-state CTA above. Lives at the card root
+            (not inside the header) so the modal's full-viewport overlay
+            isn't constrained by the card's stacking context. */}
+        <CircleAddModal
+          open={showAddCircle}
+          onClose={() => setShowAddCircle(false)}
+          locale={localeAsModalLocale}
+          onAdded={() => {
+            setShowAddCircle(false)
+            onCircleChanged?.()
+          }}
+        />
       </div>
     )
   },

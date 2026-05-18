@@ -163,6 +163,11 @@ export interface ChatProps {
   // Auto-focus the chat input on mount (pops mobile keyboard where the
   // platform allows it, e.g. Android/desktop).
   autoFocus?: boolean
+  // When set, the chat resumes a past CounselorChatSession by id on
+  // mount — same effect as clicking the row in the sidebar's history
+  // modal. Used by the destiny counselor page to honor `?session=…` in
+  // the URL (e.g. when navigating from the sidebar's past-chats list).
+  initialSessionId?: string
 }
 
 // Chat API request payload

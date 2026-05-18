@@ -11,14 +11,11 @@ interface MessagesPanelProps {
   loading: boolean
   retryCount: number
   notice: string | null
-  showSuggestions: boolean
-  suggestedQs: string[]
   followUpQuestions: string[]
   feedback: Record<string, FeedbackType>
   effectiveLang: 'ko' | 'en'
   tr: Copy
   messagesEndRef: React.RefObject<HTMLDivElement | null>
-  onSuggestion: (question: string) => void
   onFeedback: (msgId: string, type: FeedbackType) => Promise<void>
   onFollowUp: (question: string) => void
   styles: Record<string, string>
@@ -29,14 +26,11 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   loading,
   retryCount,
   notice,
-  showSuggestions: _showSuggestions,
-  suggestedQs: _suggestedQs,
   followUpQuestions,
   feedback,
   effectiveLang,
   tr,
   messagesEndRef,
-  onSuggestion: _onSuggestion,
   onFeedback,
   onFollowUp,
   styles,

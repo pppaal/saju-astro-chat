@@ -3,10 +3,22 @@
 import React, { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/i18n/I18nProvider';
-import type { BirthInfo } from '@/components/common/BirthForm';
 import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage';
 import { localizeStoredCity } from '@/lib/cities/formatter';
 import BrandSplash from '@/components/branding/BrandSplash';
+
+// Inlined from the deleted UnifiedBirthForm. This was the only remaining
+// reference to that whole folder; keeping it here avoids a 500-line
+// re-export shim just to ship a 9-field interface.
+interface BirthInfo {
+  birthDate: string
+  birthTime: string
+  gender?: 'M' | 'F' | 'Male' | 'Female'
+  birthCity?: string
+  latitude?: number
+  longitude?: number
+  timezone?: string
+}
 
 /**
  * Free-report entry — used to render its own birth form, but every

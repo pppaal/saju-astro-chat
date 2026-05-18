@@ -11,7 +11,6 @@ import { logger } from '@/lib/logger'
 import { CHAT_I18N } from './chat-i18n'
 import { CHAT_TIMINGS } from './chat-constants'
 import { generateMessageId, buildReturningSummary } from './chat-utils'
-import { getSuggestedQuestions } from './chat-followups'
 import type { ChatProps } from './chat-types'
 import { useChatSession } from './hooks/useChatSession'
 import { useChatFeedback } from './hooks/useChatFeedback'
@@ -40,6 +39,7 @@ const Chat = memo(function Chat({
   ragSessionId,
   autoSendSeed = false,
   autoFocus = false,
+  initialSessionId,
 }: ChatProps) {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
@@ -62,7 +62,6 @@ const Chat = memo(function Chat({
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
   const [showTarotModal, setShowTarotModal] = React.useState(false)
-  const [showSuggestions, setShowSuggestions] = React.useState(true)
   const [showHistoryModal, setShowHistoryModal] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
@@ -113,7 +112,6 @@ const Chat = memo(function Chat({
         return
       }
       setInput('')
-      setShowSuggestions(false)
       await apiHandleSend(text)
     },
     [input, apiHandleSend]
@@ -132,11 +130,6 @@ const Chat = memo(function Chat({
     },
     [setFollowUpQuestions]
   )
-
-  const handleSuggestion = React.useCallback((question: string) => {
-    setInput(question)
-    setShowSuggestions(false)
-  }, [])
 
   const pendingSaveRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestSavePayloadRef = React.useRef<string | null>(null)
@@ -287,6 +280,19 @@ const Chat = memo(function Chat({
     void loadSessionHistory()
   }, [loadSessionHistory])
 
+  // Resume a past session when the page hands us an id (e.g. from
+  // /destiny-map/counselor?session=…). Guarded so we only hit the
+  // load endpoint once per id, even if the parent rerenders.
+  const resumedSessionIdRef = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    if (!initialSessionId) return
+    if (resumedSessionIdRef.current === initialSessionId) return
+    resumedSessionIdRef.current = initialSessionId
+    void loadSession(initialSessionId).then(() => {
+      setActiveSessionId(initialSessionId)
+    })
+  }, [initialSessionId, loadSession])
+
   const goToTarot = React.useCallback(() => setShowTarotModal(true), [])
 
   const handleTarotComplete = (result: TarotResultSummary) => {
@@ -350,7 +356,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
     setActiveSessionId(sessionIdRef.current)
     setShowHistoryModal(false)
     setFollowUpQuestions([])
-    setShowSuggestions(true)
   }
 
   const extractConcernFromMessages = React.useCallback(() => {
@@ -366,7 +371,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
   }
 
   const visibleMessages = messages.filter((m) => m.role !== 'system')
-  const suggestedQs = getSuggestedQuestions(lang)
   const railSessions = sessionHistory.slice(0, 8)
 
   return (
@@ -491,14 +495,11 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               loading={loading}
               retryCount={retryCount}
               notice={notice}
-              showSuggestions={showSuggestions}
-              suggestedQs={suggestedQs}
               followUpQuestions={followUpQuestions}
               feedback={feedback}
               effectiveLang={effectiveLang}
               tr={tr}
               messagesEndRef={messagesEndRef}
-              onSuggestion={handleSuggestion}
               onFeedback={handleFeedback}
               onFollowUp={handleFollowUp}
               styles={styles}

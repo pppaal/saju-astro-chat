@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { SavedPerson } from '@/app/compatibility/lib'
 import { logger } from '@/lib/logger'
 
@@ -8,6 +8,14 @@ export function useMyCircle(status: 'authenticated' | 'loading' | 'unauthenticat
   const [circlePeople, setCirclePeople] = useState<SavedPerson[]>([])
   const [showCircleDropdown, setShowCircleDropdown] = useState<number | null>(null)
   const [circleError, setCircleError] = useState<string | null>(null)
+  // Bumped to manually trigger a refetch after a CircleAddModal save —
+  // otherwise the new entry doesn't appear in the dropdown until the
+  // user reloads the page.
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const refreshCircle = useCallback(() => {
+    setRefreshKey((k) => k + 1)
+  }, [])
 
   // Load circle people when logged in
   useEffect(() => {
@@ -50,7 +58,7 @@ export function useMyCircle(status: 'authenticated' | 'loading' | 'unauthenticat
 
     // Cleanup: abort fetch on unmount or status change
     return () => controller.abort()
-  }, [status])
+  }, [status, refreshKey])
 
   // Close circle dropdown when clicking outside
   useEffect(() => {
@@ -71,5 +79,6 @@ export function useMyCircle(status: 'authenticated' | 'loading' | 'unauthenticat
     circleError,
     showCircleDropdown,
     setShowCircleDropdown,
+    refreshCircle,
   }
 }

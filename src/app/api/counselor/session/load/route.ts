@@ -48,11 +48,22 @@ export const GET = withApiMiddleware(
       return NextResponse.json({ messages: [] })
     }
 
+    // Two response shapes — older callers (destiny Chat / deprecated
+    // useChatSession) read the flat fields; compat counselor expects a
+    // nested `session` object with `meta` (couple snapshot). Return
+    // both so neither side has to change in lockstep.
     return NextResponse.json({
       sessionId: chatSession.id,
       messages: chatSession.messages,
       summary: chatSession.summary,
       keyTopics: chatSession.keyTopics,
+      session: {
+        id: chatSession.id,
+        messages: chatSession.messages,
+        summary: chatSession.summary,
+        keyTopics: chatSession.keyTopics,
+        meta: chatSession.meta,
+      },
     })
   },
   createAuthenticatedGuard({

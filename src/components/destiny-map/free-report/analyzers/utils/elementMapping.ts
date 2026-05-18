@@ -6,44 +6,6 @@ import type { WesternElement } from '@/lib/destiny-matrix/types'
 import type { FiveElement } from '@/lib/saju/types'
 
 /**
- * Maps Saju Five Element to Western Four Element system
- *
- * This function bridges the traditional East Asian Five Elements (오행: 목/화/토/금/수)
- * with the Western Four Elements (fire/earth/air/water) system used in astrology.
- *
- * Mapping logic:
- * - 목 (Wood) → air (growth, expansion, communication)
- * - 화 (Fire) → fire (direct correspondence)
- * - 토 (Earth) → earth (direct correspondence)
- * - 금 (Metal) → air (sharpness, clarity, decisiveness)
- * - 수 (Water) → water (direct correspondence)
- *
- * @param element - Saju element in Korean ('목', '화', '토', '금', '수') or English ('wood', 'fire', etc.)
- * @returns Western element as lowercase string ('fire', 'earth', 'air', or 'water')
- *
- * @example
- * ```typescript
- * mapSajuElementToWestern('목') // Returns: 'air'
- * mapSajuElementToWestern('fire') // Returns: 'fire'
- * ```
- */
-export function mapSajuElementToWestern(element: string): 'fire' | 'earth' | 'air' | 'water' {
-  const mapping: Record<string, 'fire' | 'earth' | 'air' | 'water'> = {
-    목: 'air', // Wood → Air (growth, expansion)
-    화: 'fire', // Fire → Fire
-    토: 'earth', // Earth → Earth
-    금: 'air', // Metal → Air (sharpness, decisiveness)
-    수: 'water', // Water → Water
-    wood: 'air',
-    fire: 'fire',
-    earth: 'earth',
-    metal: 'air',
-    water: 'water',
-  }
-  return mapping[element] || 'earth'
-}
-
-/**
  * Maps English element names to Korean Five Elements (Saju system)
  *
  * Converts lowercase English element names to their Korean equivalents used in Saju.

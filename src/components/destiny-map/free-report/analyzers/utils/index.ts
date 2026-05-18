@@ -1,7 +1,6 @@
 // Central export point for all matrix analyzer utilities
 
 export {
-  mapSajuElementToWestern,
   mapSajuElementToKo,
   getWestElementFromSign,
   elementNameKo,
