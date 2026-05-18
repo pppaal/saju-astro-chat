@@ -83,7 +83,7 @@ export default function DestinyMatrixPlannerClient() {
       setData(payload)
       logger.debug('[CalendarPlanner] payload received', {
         year: payload.year,
-        total: payload.summary?.total,
+        total: payload.allDates?.length ?? 0,
         phase: payload.matrixContract?.overallPhaseLabel,
       })
     } catch (err) {

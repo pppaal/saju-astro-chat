@@ -254,15 +254,11 @@ export default function DestinyMatrixPlanner({
     }
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
     const isToday = selectedDateStr === todayStr
-    const perDay = selectedImportantDate?.hourlyTimeSlots
-    if (perDay && (perDay.best.length > 0 || perDay.worst.length > 0)) {
-      return perDay
-    }
     if (isToday && data?.todayHourlyTimeSlots) {
       return data.todayHourlyTimeSlots
     }
     return null
-  }, [fusion, today, selectedDateStr, selectedImportantDate, data])
+  }, [fusion, today, selectedDateStr, data])
 
   const formatHour = (h: number): string => {
     if (h === 0) return '자정 12시'
@@ -515,6 +511,30 @@ export default function DestinyMatrixPlanner({
                   })}
                 </div>
               </div>
+
+              {/* ── 연애 / 일·돈 날씨 뱃지 (엔진 emit) ── */}
+              {(data?.relationshipWeather || data?.workMoneyWeather) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {data?.relationshipWeather && (
+                    <WeatherBadge
+                      icon={<Heart className="w-4 h-4 text-rose-400" />}
+                      label="연애 날씨"
+                      grade={data.relationshipWeather.grade}
+                      summary={data.relationshipWeather.summary}
+                      tone="rose"
+                    />
+                  )}
+                  {data?.workMoneyWeather && (
+                    <WeatherBadge
+                      icon={<Coins className="w-4 h-4 text-amber-400" />}
+                      label="일·돈 날씨"
+                      grade={data.workMoneyWeather.grade}
+                      summary={data.workMoneyWeather.summary}
+                      tone="amber"
+                    />
+                  )}
+                </div>
+              )}
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5 shadow-xl">
                 <h3 className="text-base font-bold text-zinc-200 flex items-center gap-2 mb-4">
@@ -938,6 +958,47 @@ export default function DestinyMatrixPlanner({
           </div>
         </Dialog>
       </Transition>
+    </div>
+  )
+}
+
+type WeatherGrade = 'strong' | 'good' | 'neutral' | 'caution'
+const WEATHER_LABEL: Record<WeatherGrade, string> = {
+  strong: '맑음',
+  good: '맑음 한때',
+  neutral: '평이',
+  caution: '주의',
+}
+function WeatherBadge({
+  icon,
+  label,
+  grade,
+  summary,
+  tone,
+}: {
+  icon: React.ReactNode
+  label: string
+  grade: WeatherGrade
+  summary: string
+  tone: 'rose' | 'amber'
+}) {
+  const accent =
+    grade === 'strong'
+      ? 'text-emerald-300'
+      : grade === 'good'
+      ? 'text-emerald-200'
+      : grade === 'caution'
+      ? 'text-rose-300'
+      : 'text-zinc-300'
+  const border = tone === 'rose' ? 'border-rose-500/15' : 'border-amber-500/15'
+  return (
+    <div className={`bg-zinc-900/40 p-4 rounded-2xl border ${border}`}>
+      <div className="flex items-center gap-2 mb-2">
+        {icon}
+        <span className="text-xs font-bold tracking-wider text-zinc-300 uppercase">{label}</span>
+        <span className={`ml-auto text-xs font-bold ${accent}`}>{WEATHER_LABEL[grade]}</span>
+      </div>
+      <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3">{summary}</p>
     </div>
   )
 }
