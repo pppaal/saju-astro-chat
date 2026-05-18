@@ -23,7 +23,24 @@ export function aspectQuality(type: string, lang: Lang): string {
 }
 
 export function houseLabel(house: number, lang: Lang): string {
-  if (lang === 'ko') return `${house}집`
+  // 한국어는 약자(예: 10H, 12집) 대신 자리의 의미로 풀어서 자연스럽게.
+  if (lang === 'ko') {
+    const map: Record<number, string> = {
+      1: '정체성의 자리',
+      2: '재물과 자원의 자리',
+      3: '소통과 학습의 자리',
+      4: '가정과 뿌리의 자리',
+      5: '창조와 자녀의 자리',
+      6: '일상과 건강의 자리',
+      7: '관계의 자리',
+      8: '변용과 깊이의 자리',
+      9: '확장과 신념의 자리',
+      10: '사회적 정점 자리',
+      11: '공동체와 친구의 자리',
+      12: '내면과 비밀의 자리',
+    }
+    return map[house] || `${house}번째 자리`
+  }
   return `${ordinal(house)} house`
 }
 
@@ -65,9 +82,9 @@ export function planetLabel(planet: string, lang: Lang): string {
     Uranus: '천왕성',
     Neptune: '해왕성',
     Pluto: '명왕성',
-    Chiron: '카이런',
-    Ascendant: 'ASC',
-    MC: 'MC',
+    Chiron: '키론',
+    Ascendant: '첫인상',
+    MC: '사회적 정점',
   }
   return KO[planet] ?? planet
 }

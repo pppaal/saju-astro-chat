@@ -210,16 +210,31 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
 }
 
 function wealthFlavorKo(total: number, jeong: number, pyen: number): string {
-  if (total >= 3) return '당신은 자원과 결과로 인생을 풀어내는 사람이에요. 사주 안 재성이 풍성해, 돈이 곧 표현 도구가 돼요.'
+  if (total >= 3) return '당신은 자원과 결과로 인생을 풀어내는 사람이에요. 풍성한 재물의 결이라 돈이 곧 표현의 도구가 돼요.'
   if (total === 2)
     return jeong >= pyen
-      ? '당신은 안정적 수입의 결로 자원을 쌓아가는 사람이에요.'
+      ? '당신은 안정적인 수입의 결로 자원을 쌓아가는 사람이에요.'
       : '당신은 다양한 수입 라인을 만들어내는 사람이에요.'
   if (total === 1)
     return jeong >= pyen
       ? '당신은 한 줄기 안정 수입을 깊이 만드는 결이에요.'
-      : '당신은 부수입·기회 포착에 더 강한 결이에요.'
-  return '재성이 잠잠해, 돈은 다른 신호들이 함께 짊어지는 구조에요. 직업·인성 라인이 자원의 통로가 돼요.'
+      : '당신은 부수입과 기회 포착에 더 강한 결이에요.'
+  return '재물의 결이 잔잔해서, 돈은 다른 결이 함께 짊어져요. 직업과 배움의 결이 자원의 통로가 돼요.'
+}
+
+// money 섹션 신살 자연어 변환
+function luckyShinsalReadableKo(items: string[]): string {
+  const map: Record<string, string> = {
+    천덕귀인: '귀인의 보호',
+    월덕귀인: '귀인의 보호',
+    문창: '학문과 창작의 별',
+    문창귀인: '학문과 창작의 별',
+    역마: '이동과 변화의 신호',
+    도화: '끌림과 매력의 신호',
+    화개: '예술과 고독의 별',
+    천을귀인: '귀인의 보호',
+  }
+  return items.slice(0, 3).map((s) => map[s] ?? s).join(', ')
 }
 function wealthFlavorEn(total: number, jeong: number, pyen: number): string {
   if (total >= 3) return 'You build life through resource and outcome. Rich 재성 makes money a literal medium of expression.'
@@ -235,18 +250,18 @@ function wealthFlavorEn(total: number, jeong: number, pyen: number): string {
 }
 
 const SECOND_SIGN_FLAVOR_KO: Record<string, string> = {
-  Aries: '빠른 결단',
-  Taurus: '꾸준한 축적',
-  Gemini: '여러 줄기 흐름',
-  Cancer: '저축과 보호',
-  Leo: '과감한 표현',
-  Virgo: '디테일한 관리',
-  Libra: '균형과 미감 소비',
-  Scorpio: '깊고 사적인 운용',
-  Sagittarius: '시야 넓은 투자',
-  Capricorn: '엄격한 축적',
-  Aquarius: '독특한 시스템',
-  Pisces: '직관적 흐름',
+  Aries: '빠른 결단으로 다루는',
+  Taurus: '꾸준히 쌓아가는',
+  Gemini: '여러 줄기로 운용하는',
+  Cancer: '저축하고 지키는',
+  Leo: '과감하게 표현하며 쓰는',
+  Virgo: '세심하게 관리하는',
+  Libra: '균형과 미감을 따라 쓰는',
+  Scorpio: '깊고 사적으로 다루는',
+  Sagittarius: '시야 넓게 굴리는',
+  Capricorn: '엄격하게 쌓아가는',
+  Aquarius: '독특한 시스템으로 다루는',
+  Pisces: '직관적으로 흐르는',
 }
 const SECOND_SIGN_FLAVOR_EN: Record<string, string> = {
   Aries: 'fast-decision',

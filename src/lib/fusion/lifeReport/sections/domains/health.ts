@@ -68,12 +68,12 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const weakLabels = weak.map((w) => elementLabel(w, 'ko'))
   const weakLabelsEn = weak.map((w) => elementLabel(w, 'en'))
   const p1ko = paragraph([
-    '건강의 큰 결은 오행 균형에서 출발해요.',
+    '건강의 큰 결은 다섯 가지 기운(목·화·토·금·수)의 균형에서 출발해요.',
     weak.length > 0
-      ? `${weakLabels.join('·')} 오행이 약해서 ${organKo(weak)} 쪽이 평소 보살핌이 필요해요.`
-      : '오행이 비교적 고르게 분포되어 있어, 한쪽으로 치우치는 약점은 적어요.',
+      ? `${weakLabels.join('·')}의 기운이 약해서 ${organKo(weak)} 쪽이 평소 보살핌이 필요해요.`
+      : '다섯 기운이 비교적 고르게 분포돼 있어, 한쪽으로 치우치는 약점은 적어요.',
     yongsin
-      ? `용신은 ${yongsin}이라, ${yongsinFlavorKo(yongsin)}이 일상의 보강 방향이에요.`
+      ? `삶의 균형추가 되는 결은 '${yongsin}'이라, ${yongsinFlavorKo(yongsin)}이 일상의 보강 방향이에요.`
       : '',
   ])
   const p1en = paragraph([
@@ -88,8 +88,8 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
 
   // ── Paragraph 2: 점성 — 일터 건강 + Mars/Saturn
   const sixthFlavor = sixthPlanets.length > 0
-    ? `${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join('·')}이 6집에 들어 있어 일상의 ${sixthHouseFlavorKo(sixthPlanets)}이 건강 신호를 만들어요.`
-    : '점성의 6집은 비어 있어, 건강은 다른 자리의 행성들이 함께 짊어져요.'
+    ? `일상과 건강의 자리에 ${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 자리해서, 일상의 ${sixthHouseFlavorKo(sixthPlanets)}이 건강 신호를 만들어요.`
+    : '일상과 건강의 자리는 비어 있어, 건강 신호는 다른 자리의 별들이 함께 짊어져요.'
   const sixthFlavorEn = sixthPlanets.length > 0
     ? `With ${sixthPlanets.map((p) => p.name).join(', ')} inside the 6th, daily ${sixthHouseFlavorEn(sixthPlanets)} carries your health signal.`
     : `Your 6th is empty — health is carried jointly by other placements.`
@@ -97,7 +97,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const p2ko = paragraph([
     sixthFlavor,
     marsSaturn
-      ? `화성·토성이 ${aspectQuality(marsSaturn.type, 'ko')} 스트레스가 ${marsSaturnFlavorKo(marsSaturn.type)} 결로 누적될 수 있어요.`
+      ? `행동의 별과 책임의 별이 ${aspectQuality(marsSaturn.type, 'ko')}, 스트레스가 ${marsSaturnFlavorKo(marsSaturn.type)} 결로 누적될 수 있어요.`
       : '',
   ])
   const p2en = paragraph([
@@ -112,7 +112,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const deepEn: string[] = []
   if (ch) {
     deepKo.push(
-      `Chiron이 ${signLabel(ch.sign, 'ko')}·${houseLabel(ch.house, 'ko')}에 있어 ${chironFlavorKo(ch.house)} 분야가 상처와 치유의 결로 묶여 있어요.`
+      `상처와 치유의 결이 ${signLabel(ch.sign, 'ko')}의 톤으로 자리해서, ${chironFlavorKo(ch.house)} 영역이 상처와 치유로 함께 묶여 있어요.`
     )
     deepEn.push(
       `Chiron in ${signLabel(ch.sign, 'en')} ${houseLabel(ch.house, 'en')} marks ${chironFlavorEn(ch.house)} as a wound-and-healing thread.`
@@ -120,18 +120,18 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   }
   if (oob.length > 0) {
     deepKo.push(
-      `또 ${oob.join('·')}이 declination 범위를 벗어나(out-of-bounds) 있어, 평균을 넘는 특이한 건강 패턴을 만들 수 있어요.`
+      `또 ${oob.map(planetLabelHealthKo).join(', ')}이 일반 궤도 밖으로 나가 있어서, 평균을 넘는 특이한 건강 패턴이 나올 수 있어요.`
     )
     deepEn.push(
       `Furthermore, ${oob.join(', ')} run out-of-bounds in declination, which can produce health patterns that exceed the average range.`
     )
   }
   if (eclipses?.degree !== undefined) {
-    deepKo.push(`출생 근처의 일식 흔적이 신체 리듬에 미세한 부하를 남기는 결이에요.`)
+    deepKo.push('태어난 시기 가까이 있던 일식·월식의 흔적이 신체 리듬에 미세한 부하를 남기는 결이에요.')
     deepEn.push(`A nearby natal eclipse leaves a subtle imprint on your body rhythms.`)
   }
   if (unlucky.length > 0) {
-    deepKo.push(`신살에 ${unlucky.slice(0, 3).join('·')}이 있어 무리가 누적되지 않도록 평소 회복 루틴이 필요해요.`)
+    deepKo.push('무리가 누적되지 않도록 평소 회복 루틴이 필요한 결이 함께 있어요.')
     deepEn.push(`Your 신살 includes ${unlucky.slice(0, 3).join(' / ')} — keep a recovery routine to prevent overload buildup.`)
   }
   if (healthConfirms.length > 0) {
@@ -139,7 +139,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     deepEn.push(`Additionally, ${healthConfirms[0].rule.meaning}.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
-    '왜냐하면 깊은 건강 신호들이 평탄히 정렬되어 있어, 극단보다는 일상의 작은 누적이 결을 만들어요.'
+    '건강의 결은 극단보다는 일상의 작은 누적이 만들어요.'
   ])
   const p3en = paragraph(deepEn.length ? deepEn : [
     'Because the deeper health signals sit in a calm alignment, your grain comes from small daily accumulation, not extremes.'
@@ -234,11 +234,11 @@ function yongsinFlavorEn(y: string): string {
 
 function sixthHouseFlavorKo(planets: Array<{ name: string }>): string {
   const names = planets.map((p) => p.name)
-  if (names.includes('Mars')) return '추진력·과로'
-  if (names.includes('Saturn')) return '책임·구조의 무게'
-  if (names.includes('Mercury')) return '신경·디테일'
-  if (names.includes('Moon')) return '감정·식습관'
-  if (names.includes('Sun')) return '활력·정체성'
+  if (names.includes('Mars')) return '추진력과 과로의 결'
+  if (names.includes('Saturn')) return '책임과 구조의 무게'
+  if (names.includes('Mercury')) return '신경과 디테일의 결'
+  if (names.includes('Moon')) return '감정과 식습관의 결'
+  if (names.includes('Sun')) return '활력과 정체성의 결'
   return '일상의 결'
 }
 function sixthHouseFlavorEn(planets: Array<{ name: string }>): string {
@@ -252,10 +252,18 @@ function sixthHouseFlavorEn(planets: Array<{ name: string }>): string {
 }
 
 function marsSaturnFlavorKo(type: string): string {
-  if (type === 'trine' || type === 'sextile') return '안정적 인내'
-  if (type === 'square' || type === 'opposition') return '근육·관절·과부하'
-  if (type === 'conjunction') return '깊고 농축된 노동'
+  if (type === 'trine' || type === 'sextile') return '안정적인 인내의'
+  if (type === 'square' || type === 'opposition') return '근육과 관절에 과부하가 쌓이는'
+  if (type === 'conjunction') return '깊고 농축된 노동의'
   return '미묘한'
+}
+
+function planetLabelHealthKo(name: string): string {
+  const map: Record<string, string> = {
+    Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
+    Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성',
+  }
+  return map[name] ?? name
 }
 function marsSaturnFlavorEn(type: string): string {
   if (type === 'trine' || type === 'sextile') return 'patient-stable'
