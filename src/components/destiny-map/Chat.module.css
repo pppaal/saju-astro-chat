@@ -2699,6 +2699,33 @@
 }
 
 /* =====================================================================
+ * Light-theme text overrides — Chat.tsx의 .lightTheme 적용 후에도 일부
+ * 텍스트가 다크 모드 기본값(흰색 rgba)으로 남아 라이트 배경에 안 보이던
+ * 케이스. emptyText/emptyIcon/thinkingText/followUpLabel 보강.
+ * ===================================================================== */
+.lightTheme .emptyText {
+  color: #44403c;
+}
+
+.lightTheme .thinkingText {
+  color: #57534e;
+}
+
+.lightTheme .followUpLabel {
+  color: #57534e;
+}
+
+.lightTheme .typingDot {
+  background: #a8a29e;
+}
+
+.lightTheme .noticeBar {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #78350f;
+}
+
+/* =====================================================================
  * Mobile-only tool buttons in the input toolbar (#286 후속 fix).
  * 데스크탑은 historyRail footer 에 chart/tarot 가 있어서 입력박스의 동일
  * 버튼은 중복. 모바일에서만 보이게.
