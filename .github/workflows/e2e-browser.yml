@@ -146,6 +146,16 @@ jobs:
         run: npm run test:e2e:wait
         timeout-minutes: 4
 
+      - name: Show dev server log on failure
+        if: failure()
+        run: |
+          echo "=== /tmp/next-server.log (last 200 lines) ==="
+          tail -n 200 /tmp/next-server.log || echo "(log file missing)"
+          echo "=== /tmp/next-server.pid ==="
+          cat /tmp/next-server.pid 2>/dev/null || echo "(no pid file)"
+          echo "=== curl test ==="
+          curl -v http://localhost:3000 2>&1 | head -30 || true
+
       - name: Run mobile-layout project
         run: npx playwright test --config=playwright.ci.config.ts --project=${{ matrix.project }}
         env:
