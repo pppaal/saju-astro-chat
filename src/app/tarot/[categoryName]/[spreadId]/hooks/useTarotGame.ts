@@ -167,14 +167,6 @@ export function useTarotGame(): UseTarotGameReturn {
       void sajuFromUrl
       void astroFromUrl
       return { includeSaju: false, includeAstrology: false }
-      // Unused but kept compiling so the surrounding signature stays
-      // identical for the storage-write effect a few lines down.
-      // eslint-disable-next-line no-unreachable
-      try {
-        return { includeSaju: false, includeAstrology: false }
-      } catch {
-        return { includeSaju: false, includeAstrology: false }
-      }
     }
   )
   const fetchTriggeredRef = useRef(false)
