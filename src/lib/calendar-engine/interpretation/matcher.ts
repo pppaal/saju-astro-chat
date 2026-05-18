@@ -259,41 +259,27 @@ function sectionTitle(section: string): string {
     transit: '주요 트랜짓',
     pattern: '매칭 패턴',
     shinsal: '신살',
-    // 5 도메인 통합 헤더
+    // 5 도메인 통합 헤더 (5테마 1:1)
     'domain-money': '돈·자산',
     'domain-work': '일·커리어',
     'domain-relations': '관계',
     'domain-body': '몸·내면',
-    'domain-expression': '표현·창작',
+    'domain-growth': '자기·성장',
   }
   return map[section] ?? section
 }
 
 // ────────────────────────────────────────────────────────────────────
-// 도메인 통합 — theme-* 룰 16종을 5도메인으로 묶어 narrative 풍부도 향상.
+// 도메인 통합 — 5테마(love/money/career/health/growth)를 5도메인으로
+// 1:1 매핑. 캘린더 엔진의 AstroThemeKey 통합(18→5) 결과 정합.
 // 같은 도메인 안에서 매칭된 룰들은 한 단락에 자연스럽게 합침.
 // ────────────────────────────────────────────────────────────────────
 const SECTION_TO_DOMAIN: Record<string, string> = {
-  // 일·커리어
-  'theme-career': 'work',
-  'theme-business': 'work',
-  'theme-reputation': 'work',
-  'theme-legal': 'work',
-  'theme-travel': 'work',     // 이직·이동도 일 흐름
-  // 관계
   'theme-love': 'relations',
-  'theme-family': 'relations',
-  'theme-social': 'relations',
-  // 돈·자산
   'theme-money': 'money',
-  // 몸·내면
+  'theme-career': 'work',
   'theme-health': 'body',
-  'theme-study': 'body',
-  'theme-spirituality': 'body',
-  // 표현·창작
-  'theme-creativity': 'expression',
-  'theme-children': 'expression',
-  'theme-karma': 'expression',
+  'theme-growth': 'growth',
 }
 
 const DOMAIN_TITLES: Record<string, string> = {
@@ -301,10 +287,10 @@ const DOMAIN_TITLES: Record<string, string> = {
   work: '일·커리어',
   relations: '관계',
   body: '몸·내면',
-  expression: '표현·창작',
+  growth: '자기·성장',
 }
 
-const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'expression']
+const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'growth']
 
 const MAX_RULES_PER_DOMAIN = 5
 
