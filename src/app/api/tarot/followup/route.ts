@@ -89,61 +89,30 @@ export const POST = withApiMiddleware(
         })
         .join('\n')
 
-      const historyBlock = (history || [])
-        .map((t) => `[${t.role}] ${t.content}`)
-        .join('\n')
-
       const systemPrompt = pickTarotFollowupRules(isKo ? 'ko' : 'en')
 
-      const userPrompt = isKo
+      // 카드·원래 리딩 정보 = 세션 내 안정 컨텍스트 (cached). question_by_question
+      // 동작 위해 history는 진짜 multi-turn (priorTurns)으로 전송.
+      const readingContext = isKo
         ? `# 원래 리딩
 스프레드: ${spreadTitle}
 원래 질문: ${originalQuestion || '-'}
 
 ## 펼친 카드
 ${cardList}
-
-${
-  overallMessage
-    ? `## 전체 해석 (참고)
-${overallMessage}
-`
-    : ''
-}${
-  historyBlock
-    ? `## 이전 대화
-${historyBlock}
-`
-    : ''
-}
-# 후속 질문
-${question}
-
-# 답변`
+${overallMessage ? `\n## 전체 해석 (참고)\n${overallMessage}` : ''}`
         : `# Original Reading
 Spread: ${spreadTitle}
 Original Question: ${originalQuestion || '-'}
 
 ## Cards on the table
 ${cardList}
+${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
 
-${
-  overallMessage
-    ? `## Overall reading (reference)
-${overallMessage}
-`
-    : ''
-}${
-  historyBlock
-    ? `## Previous turns
-${historyBlock}
-`
-    : ''
-}
-# Follow-up question
-${question}
-
-# Answer`
+      const priorTurns = (history || []).map((t) => ({ role: t.role, content: t.content }))
+      const userPrompt = isKo
+        ? `# 후속 질문\n${question}\n\n# 답변`
+        : `# Follow-up question\n${question}\n\n# Answer`
 
       if (!isClaudeAvailable()) {
         return NextResponse.json(
@@ -155,6 +124,8 @@ ${question}
       const result = await callClaude({
         systemPrompt,
         userPrompt,
+        cachedUserContext: readingContext,
+        priorTurns,
         maxTokens: 700,
         temperature: 0.7,
         timeoutMs: 30000,
