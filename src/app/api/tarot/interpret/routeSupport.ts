@@ -8,7 +8,10 @@ export interface CardInput {
   name: string
   nameKo?: string
   isReversed: boolean
-  position: string
+  // position은 LLM이 사용자 질문 맥락에 맞춰 직접 명명. 클라이언트는
+  // 더 이상 보내지 않으므로 server-side에서는 undefined일 수 있고
+  // LLM 응답 (cardData.position) 또는 fallback ("N번 카드")으로 채워진다.
+  position?: string
   positionKo?: string
   // What this seat means inside the spread (passed through from SpreadPosition).
   // Lets the LLM ground its per-card interpretation on the predefined role of
@@ -708,11 +711,12 @@ export function enforceInterpretationQuality(input: {
       ensureCardAnchoring(input.language, card, baseInterpretation, input.userQuestion)
     )
 
+    const fallbackPos = isKorean ? `${i + 1}번 카드` : `Card ${i + 1}`
     return {
       position:
         typeof rawInsight.position === 'string' && rawInsight.position.trim()
           ? rawInsight.position
-          : card.position,
+          : card.position || fallbackPos,
       card_name:
         typeof rawInsight.card_name === 'string' && rawInsight.card_name.trim()
           ? rawInsight.card_name
@@ -745,7 +749,10 @@ export function enforceInterpretationQuality(input: {
 
   const quality = evaluateTarotInterpretationQuality({
     language: input.language,
-    cards: input.cards.map((card) => ({ name: card.name, position: card.position })),
+    cards: input.cards.map((card, i) => ({
+      name: card.name,
+      position: card.position || (isKorean ? `${i + 1}번 카드` : `Card ${i + 1}`),
+    })),
     result: {
       overall_message: overall,
       card_insights: diversifiedInsights,
@@ -893,8 +900,9 @@ export function buildAnchoredCardInsights(
   language: string,
   userQuestion?: string
 ): TarotInsight[] {
-  return cards.map((card) => ({
-    position: card.position,
+  const isKorean = language === 'ko'
+  return cards.map((card, i) => ({
+    position: card.position || (isKorean ? `${i + 1}번 카드` : `Card ${i + 1}`),
     card_name: card.name,
     is_reversed: card.isReversed,
     interpretation: ensureActionAndTimeAnchor(

@@ -26,7 +26,9 @@ export const tarotCardSchema = z.object({
   name: z.string().min(1).max(120),
   nameKo: z.string().min(1).max(120).optional(),
   isReversed: z.boolean(),
-  position: z.string().min(1).max(80),
+  // position은 LLM이 사용자 질문 맥락에 맞춰 직접 명명. 클라이언트는
+  // 더 이상 보내지 않는다 (useTarotInterpretation.ts cardPayload 참고).
+  position: z.string().min(1).max(80).optional(),
   positionKo: z.string().max(80).optional(),
   positionMeaning: z.string().max(300).optional(),
   positionMeaningKo: z.string().max(300).optional(),
@@ -159,7 +161,8 @@ export const tarotInterpretStreamSchema = z.object({
         name: z.string().min(1).max(200),
         nameKo: z.string().max(200).optional(),
         isReversed: z.boolean(),
-        position: z.string().min(1).max(200),
+        // LLM이 직접 명명 — 클라가 안 보냄.
+        position: z.string().min(1).max(200).optional(),
         positionKo: z.string().max(200).optional(),
         positionMeaning: z.string().max(300).optional(),
         positionMeaningKo: z.string().max(300).optional(),

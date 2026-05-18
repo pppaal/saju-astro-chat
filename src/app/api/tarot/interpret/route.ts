@@ -770,8 +770,14 @@ ${schemaEn}`
       )
       const actionTipRaw =
         typeof cardData.actionTip === 'string' ? cardData.actionTip.trim() : ''
+      // position은 LLM이 사용자 질문 맥락에 맞춰 직접 명명해서 보내준다.
+      // 클라이언트는 더 이상 position을 보내지 않으므로 cardData에서 가져옴.
+      // LLM 응답에도 없으면 fallback ("1번 카드" / "Card 1").
+      const llmPosition = typeof cardData.position === 'string' ? cardData.position.trim() : ''
+      const fallbackPosition =
+        language === 'ko' ? `${chunkStart + j + 1}번 카드` : `Card ${chunkStart + j + 1}`
       return {
-        position: card.position,
+        position: llmPosition || card.position || fallbackPosition,
         card_name: card.name,
         is_reversed: card.isReversed,
         interpretation: anchored,
