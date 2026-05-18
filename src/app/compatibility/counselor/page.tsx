@@ -55,10 +55,7 @@ type PersonData = {
 }
 
 function CompatibilityCounselorContent() {
-  const { locale, setLocale } = useI18n()
-  const toggleLocale = useCallback(() => {
-    setLocale(locale === 'ko' ? 'en' : 'ko')
-  }, [locale, setLocale])
+  const { locale } = useI18n()
   const animatedPlaceholder = useTypewriterPlaceholder(
     locale === 'ko' ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
   )
@@ -521,7 +518,7 @@ function CompatibilityCounselorContent() {
   }
 
   return (
-    <main className={`${styles.page} ${styles.fadeIn}`}>
+    <main className={`${styles.page} ${styles.fadeIn} ${styles.lightTheme}`}>
       <CounselorSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -534,38 +531,44 @@ function CompatibilityCounselorContent() {
           setTimeout(() => inputRef.current?.focus(), 0)
         }}
         serviceType="compat"
+        desktopStatic
+        enableGrouping
+        lightTheme
+        footerSlot={
+          <button
+            type="button"
+            className={styles.sidebarFooterBtn}
+            onClick={handleQuickCoupleTarot}
+            disabled={isLoading || persons.length < 2}
+            title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
+          >
+            <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">{'🎴'}</span>
+            {isKo ? '둘 궁합 타로 뽑기' : 'Draw couple tarot'}
+          </button>
+        }
       />
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <button
-            type="button"
-            className={styles.backButton}
-            onClick={() => setSidebarOpen(true)}
-            aria-label={isKo ? '메뉴' : 'Menu'}
-          >
-            <span className={styles.backIcon}>{'☰'}</span>
-          </button>
-          <h1 className={styles.headerTitle}>
-            {isKo ? '궁합 상담사' : 'Compatibility Counselor'}
-          </h1>
-        </div>
-        <div className={styles.headerActions}>
-          {/* "+ 새 채팅" lives in the sidebar (CounselorSidebar) already.
-              The duplicate header button was just stacking with the
-              hamburger and EN toggle, eating real estate. */}
-          <button
-            type="button"
-            onClick={toggleLocale}
-            className={styles.localeToggle}
-            aria-label={isKo ? 'Switch to English' : '한국어로 전환'}
-            title={isKo ? 'Switch to English' : '한국어로 전환'}
-          >
-            {isKo ? 'EN' : 'KO'}
-          </button>
-          <CreditBadge variant="compact" />
-        </div>
-      </header>
+      <div className={styles.mainColumn}>
+        {/* Header — locale toggle removed (lives on main / entry page only).
+            Heart accent kept next to the title to preserve the page's tone. */}
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={() => setSidebarOpen(true)}
+              aria-label={isKo ? '메뉴' : 'Menu'}
+            >
+              <span className={styles.backIcon}>{'☰'}</span>
+            </button>
+            <h1 className={styles.headerTitle}>
+              <span className={styles.headerHeart} aria-hidden="true">{'💕'}</span>
+              {isKo ? '궁합 상담사' : 'Compatibility Counselor'}
+            </h1>
+          </div>
+          <div className={styles.headerActions}>
+            <CreditBadge variant="compact" />
+          </div>
+        </header>
 
       {/* Chat */}
       <div className={styles.chatWrapper}>
@@ -661,9 +664,6 @@ function CompatibilityCounselorContent() {
               <button
                 type="button"
                 onClick={() => {
-                  // File attach is a placeholder for the compat counselor
-                  // for now — destiny has CV upload, compat doesn't yet.
-                  // Hooking up the actual upload is a separate change.
                   alert(isKo ? '파일 첨부는 곧 지원돼요.' : 'File attach coming soon.')
                 }}
                 className={styles.toolButton}
@@ -671,16 +671,6 @@ function CompatibilityCounselorContent() {
                 title={isKo ? '파일 첨부 (준비 중)' : 'Attach file (coming soon)'}
               >
                 <span className={styles.toolButtonIcon}>📎</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleQuickCoupleTarot}
-                disabled={isLoading || persons.length < 2}
-                className={styles.toolButton}
-                aria-label={isKo ? '둘 궁합 타로' : 'Quick tarot'}
-                title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
-              >
-                <span className={styles.toolButtonIcon}>🎴</span>
               </button>
             </div>
             <button
@@ -700,6 +690,7 @@ function CompatibilityCounselorContent() {
             </button>
           </div>
         </div>
+      </div>
       </div>
     </main>
   )
