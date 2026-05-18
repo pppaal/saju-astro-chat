@@ -61,10 +61,37 @@ async function main() {
   }
   const cell = cells[0]
   console.log('cell.signals 수:', cell.signals.length)
-  for (const s of cell.signals.slice(0, 20)) {
-    console.log(`  [${s.source}/${s.layer}] ${s.kind} ${s.name} (polarity ${s.polarity})`)
+  console.log()
+
+  // 점수 ↔ 해석 동기화 검증
+  console.log('=== 점수 매트릭스 (오늘) ===')
+  console.log('derivedScore:', cell.derivedScore)
+  console.log('themeScores:')
+  for (const [theme, score] of Object.entries(cell.themeScores ?? {})) {
+    console.log(`  ${theme}: ${score}`)
   }
-  if (cell.signals.length > 20) console.log(`  ... +${cell.signals.length - 20}개`)
+  if (cell.topReasons?.length) {
+    console.log('topReasons:')
+    for (const r of cell.topReasons.slice(0, 5)) console.log(`  + ${r}`)
+  }
+  if (cell.cautions?.length) {
+    console.log('cautions:')
+    for (const c of cell.cautions.slice(0, 5)) console.log(`  - ${c}`)
+  }
+  console.log()
+
+  console.log('=== 신호 polarity 분포 ===')
+  const byLayer: Record<string, { pos: number; neu: number; neg: number }> = {}
+  for (const s of cell.signals) {
+    const k = s.layer ?? '?'
+    if (!byLayer[k]) byLayer[k] = { pos: 0, neu: 0, neg: 0 }
+    if (s.polarity >= 1) byLayer[k].pos++
+    else if (s.polarity <= -1) byLayer[k].neg++
+    else byLayer[k].neu++
+  }
+  for (const [k, v] of Object.entries(byLayer)) {
+    console.log(`  ${k}: 우호 ${v.pos}, 중립 ${v.neu}, 주의 ${v.neg}`)
+  }
   console.log()
 
   // 4. Build interpretation (monthly scope = 가장 풍부)
