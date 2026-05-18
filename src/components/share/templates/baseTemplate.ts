@@ -80,27 +80,6 @@ export function drawBranding(ctx: CanvasRenderingContext2D, width: number, heigh
   }
 }
 
-export function drawWrappedText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines = 3): number {
-  const words = text.split(' ');
-  let line = '';
-  let currentY = y;
-  let lineCount = 0;
-  for (const word of words) {
-    const testLine = line + word + ' ';
-    if (ctx.measureText(testLine).width > maxWidth && line !== '') {
-      ctx.fillText(line.trim(), x, currentY);
-      line = word + ' ';
-      currentY += lineHeight;
-      lineCount++;
-      if (lineCount >= maxLines) {break;}
-    } else {
-      line = testLine;
-    }
-  }
-  if (line && lineCount < maxLines) {ctx.fillText(line.trim(), x, currentY);}
-  return currentY;
-}
-
 export function drawScoreCircle(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, score: number, label?: string) {
   const startAngle = -Math.PI / 2;
   const endAngle = startAngle + (Math.PI * 2 * score) / 100;
@@ -135,37 +114,6 @@ export function drawScoreCircle(ctx: CanvasRenderingContext2D, x: number, y: num
   }
 }
 
-export function drawBar(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, value: number, maxValue: number, color: string, label?: string) {
-  const fillWidth = (width * value) / maxValue;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-  ctx.beginPath();
-  ctx.roundRect(x, y, width, height, height / 2);
-  ctx.fill();
-
-  if (fillWidth > 0) {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.roundRect(x, y, Math.max(fillWidth, height), height, height / 2);
-    ctx.fill();
-  }
-
-  if (label) {
-    ctx.font = '500 14px sans-serif';
-    ctx.fillStyle = COLORS.textSecondary;
-    ctx.textAlign = 'left';
-    ctx.fillText(label, x, y - 8);
-    ctx.textAlign = 'right';
-    ctx.fillText(`${Math.round(value)}`, x + width, y - 8);
-  }
-}
-
 export function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0));
-}
-
-export function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
-  const link = document.createElement('a');
-  link.download = filename;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
 }

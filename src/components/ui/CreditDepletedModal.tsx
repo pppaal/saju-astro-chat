@@ -235,34 +235,3 @@ export default function CreditDepletedModal({
   )
 }
 
-// Hook for managing credit modal state
-export function useCreditModal() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [modalType, setModalType] = useState<'depleted' | 'low'>('depleted')
-  const [remainingCredits, setRemainingCredits] = useState(0)
-
-  const showDepleted = useCallback(() => {
-    setModalType('depleted')
-    setRemainingCredits(0)
-    setIsOpen(true)
-  }, [])
-
-  const showLowCredits = useCallback((remaining: number) => {
-    setModalType('low')
-    setRemainingCredits(remaining)
-    setIsOpen(true)
-  }, [])
-
-  const close = useCallback(() => {
-    setIsOpen(false)
-  }, [])
-
-  return {
-    isOpen,
-    modalType,
-    remainingCredits,
-    showDepleted,
-    showLowCredits,
-    close,
-  }
-}
