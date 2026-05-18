@@ -47,15 +47,15 @@ const LIFECYCLE_TO_DOMAIN: Record<string, {
   ko: string
   en: string
 }> = {
-  saturn_return_1: { domain: 'career', ko: '커리어 토대 결정', en: 'career foundation' },
-  saturn_return_2: { domain: 'career', ko: '커리어 황혼 정리', en: 'late-career consolidation' },
-  jupiter_return_2: { domain: 'career', ko: '진로 큰 그림', en: 'career big picture' },
-  jupiter_return_5: { domain: 'wealth', ko: '환갑 결, 후반 인생 첫 사이클', en: '환갑-style turn' },
-  uranus_opposition: { domain: 'crisis', ko: '미드라이프 각성', en: 'midlife awakening' },
-  pluto_square_pluto: { domain: 'crisis', ko: '정체성 재구성 압력', en: 'identity rebuild pressure' },
-  chiron_return: { domain: 'health', ko: '치유의 변곡', en: 'healing turning point' },
-  neptune_square: { domain: 'crisis', ko: '의미의 시험', en: 'meaning test' },
-  progressed_lunar_1: { domain: 'love', ko: '정서·관계 사이클 졸업', en: 'emotional cycle graduation' },
+  saturn_return_1: { domain: 'career', ko: '커리어 토대가 굳어지는 때', en: 'career foundation' },
+  saturn_return_2: { domain: 'career', ko: '커리어 마지막 정리의 때', en: 'late-career consolidation' },
+  jupiter_return_2: { domain: 'career', ko: '진로 큰 그림이 잡히는 때', en: 'career big picture' },
+  jupiter_return_5: { domain: 'wealth', ko: '환갑의 결, 후반 인생 첫 사이클', en: '환갑-style turn' },
+  uranus_opposition: { domain: 'crisis', ko: '중년 자유의 각성', en: 'midlife awakening' },
+  pluto_square_pluto: { domain: 'crisis', ko: '정체성이 깊이 재구성되는 때', en: 'identity rebuild pressure' },
+  chiron_return: { domain: 'health', ko: '치유의 회귀', en: 'healing turning point' },
+  neptune_square: { domain: 'crisis', ko: '의미가 시험에 오르는 때', en: 'meaning test' },
+  progressed_lunar_1: { domain: 'love', ko: '감정 사이클의 졸업', en: 'emotional cycle graduation' },
 }
 
 export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
@@ -81,7 +81,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
         year: birthYear + c.age,
         domain: 'marriage',
         description: {
-          ko: `${c.age}세 대운 ${c.ganji ? c.ganji + ' ' : ''}— 결혼·동반자 흐름이 강해지는 구간이에요.`,
+          ko: `${c.age}세 무렵 — 결혼이나 동반자 흐름이 한 단계 강해지는 시기예요.`,
           en: `Age ${c.age} daewoon ${c.ganji ? c.ganji + ' ' : ''}— a window where marriage / partnership flow strengthens.`,
         },
         sources: { saju: `daewoon@${c.age}` },
@@ -94,7 +94,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
         year: birthYear + c.age,
         domain: rule.domain,
         description: {
-          ko: `${c.age}세 대운 ${c.ganji ? c.ganji + ' ' : ''}— ${rule.domainKo}의 결이 본격 발화하는 시기에요.`,
+          ko: `${c.age}세 무렵 — ${rule.domainKo}의 결이 본격적으로 피어나는 시기예요.`,
           en: `Age ${c.age} daewoon ${c.ganji ? c.ganji + ' ' : ''}— ${rule.domainEn} activates in earnest.`,
         },
         sources: { saju: `daewoon@${c.age}` },
@@ -114,7 +114,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       year: birthYear + e.ageStart,
       domain: mapping.domain,
       description: {
-        ko: `${e.ageStart}~${e.ageEnd}세 ${e.labelKo}: ${e.meaningKo}`,
+        ko: `${e.ageStart}~${e.ageEnd}세, ${e.labelKo} — ${e.meaningKo}`,
         en: `Ages ${e.ageStart}–${e.ageEnd}, ${e.labelEn}: ${e.meaningEn}`,
       },
       sources: { astro: e.kind },
@@ -137,7 +137,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
         year: a.year,
         domain: a.domain,
         description: {
-          ko: `${a.age}세 — 사주(${overlap.sources.saju}) 변곡과 점성(${a.sources.astro}) 변곡이 겹치는 결정적 해. ${a.description.ko.split(': ').slice(-1)[0]}`,
+          ko: `${a.age}세 — 인생 흐름의 변곡과 별의 큰 변곡이 같은 해에 만나는 결정적인 해예요. ${a.description.ko.split(' — ').slice(-1)[0]}`,
           en: `Age ${a.age} — a year where the saju (${overlap.sources.saju}) pivot meets the astro (${a.sources.astro}) pivot. ${a.description.en.split(': ').slice(-1)[0]}`,
         },
         sources: { saju: overlap.sources.saju, astro: a.sources.astro },
@@ -167,10 +167,10 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const d30s = decisiveYears.filter((d) => d.age >= 28 && d.age < 40)
   if (e30s.length > 0) astroUsed.push('lifecycle.30s')
   const p1ko = paragraph([
-    `30대는 사주의 대운 천간이 한 차례 결정적으로 바뀌고 점성의 ${e30s.map((e) => e.labelKo).join('·') || '몇몇 큰 변곡'}이 겹치는 구간이에요.`,
+    `30대는 인생 흐름이 한 번 크게 갈리는 때에, ${e30s.map((e) => e.labelKo).join('·') || '별의 큰 변곡 몇 가지'}가 겹쳐 들어와요.`,
     d30s.length > 0
-      ? `특히 ${d30s.map((d) => `${d.age}세(${labelKoDomain(d.domain)})`).join(', ')}가 인생의 첫 큰 매듭이 되는 해에요.`
-      : '결혼·전문성·기반이 한 번에 결정되는 시기라 회피하지 말고 책임을 받아들이는 결정이 토대가 됩니다.',
+      ? `특히 ${d30s.map((d) => `${d.age}세(${labelKoDomain(d.domain)})`).join(', ')}가 인생의 첫 큰 매듭이 되는 해예요.`
+      : '결혼과 전문성, 기반이 한 번에 결정되는 시기라 회피하지 말고 책임을 받아들이는 선택이 토대가 됩니다.',
   ])
   const p1en = paragraph([
     `Your 30s carry a decisive daewoon stem-shift on the saju side, and ${e30s.map((e) => e.labelEn).join(' / ') || 'several major astro pivots'} on the astrology side.`,
@@ -183,10 +183,10 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const e40s = eventsInAgeRange(40, 49)
   const d40s = decisiveYears.filter((d) => d.age >= 40 && d.age < 50)
   const p2ko = paragraph([
-    `40대는 ${e40s.map((e) => e.labelKo).join('·') || '점성의 큰 변곡들'}이 몰려오는 시기에요.`,
+    `40대엔 ${e40s.map((e) => e.labelKo).join('·') || '별의 큰 변곡들'}이 한꺼번에 몰려와요.`,
     d40s.length > 0
-      ? `${d40s.map((d) => `${d.age}세(${labelKoDomain(d.domain)})`).join(', ')}가 진짜 자기와 맞지 않는 길을 깨는 결을 만들어요.`
-      : '천왕성·해왕성이 동시에 흔들기 때문에 안정을 빌미로 미루던 결정이 표면으로 올라옵니다.',
+      ? `${d40s.map((d) => `${d.age}세(${labelKoDomain(d.domain)})`).join(', ')}가 진짜 자기와 맞지 않는 길을 깨고 다시 정렬해줘요.`
+      : '자유의 각성과 의미의 시험이 동시에 와서, 안정을 빌미로 미뤘던 결정이 표면으로 올라와요.',
   ])
   const p2en = paragraph([
     `The 40s gather ${e40s.map((e) => e.labelEn).join(' / ') || 'large astro pivots'} into a single decade.`,
@@ -199,10 +199,10 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const e50s = eventsInAgeRange(50, 65)
   const d50s = decisiveYears.filter((d) => d.age >= 50)
   const p3ko = paragraph([
-    `50대 이후로는 ${e50s.map((e) => e.labelKo).join('·') || '카이런 회귀와 두 번째 토성 회귀'}가 핵심이에요.`,
+    `50대 이후로는 ${e50s.map((e) => e.labelKo).join('·') || '치유의 회귀와 두 번째 어른됨의 통과의례'}가 핵심이에요.`,
     d50s.length > 0
-      ? `${d50s.map((d) => `${d.age}세(${labelKoDomain(d.domain)})`).join(', ')}가 평생의 결을 결산하는 변곡이에요.`
-      : '결과보다 의미에 시간을 쓰는 쪽으로 무게추가 옮겨갑니다.',
+      ? `${d50s.map((d) => `${d.age}세(${labelKoDomain(d.domain)})`).join(', ')}가 평생의 결을 결산해주는 변곡이에요.`
+      : '결과보다 의미에 시간을 쓰는 쪽으로 무게추가 옮겨가요.',
   ])
   const p3en = paragraph([
     `From your 50s onward, ${e50s.map((e) => e.labelEn).join(' / ') || 'the Chiron return and second Saturn return'} dominate.`,
@@ -215,12 +215,12 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const peak = merged[0] || decisiveYears[0]
   const p4ko = peak
     ? paragraph([
-        `가장 큰 변곡 한 해를 꼽자면 ${peak.age}세 (${peak.year}년 즈음)에요.`,
+        `가장 큰 변곡 한 해를 꼽자면 ${peak.age}세 (${peak.year}년 즈음)이에요.`,
         peak.sources.saju && peak.sources.astro
-          ? `사주의 ${peak.sources.saju} 변곡과 점성의 ${peak.sources.astro} 변곡이 같은 해에 겹쳐서, ${strength === 'strong' || strength === 'verystrong' ? '강한 일간이 추진력을 줘 한 번의 결정이 평생 흐름을 잡아요.' : '여린 결의 일간을 책임이 떠받쳐 새로운 정체성으로 도약하게 해줘요.'}`
-          : `${labelKoDomain(peak.domain)}의 결이 가장 진하게 표면화되는 시기에요.`,
+          ? `인생 흐름의 큰 변곡과 별의 큰 변곡이 같은 해에 겹쳐서, ${strength === 'strong' || strength === 'verystrong' ? '단단한 심지가 추진력을 줘서 한 번의 결정이 평생 흐름을 잡아요.' : '섬세한 심지를 책임이 떠받쳐 새로운 정체성으로 도약하게 해줘요.'}`
+          : `${labelKoDomain(peak.domain)}의 결이 가장 진하게 표면으로 올라오는 시기예요.`,
       ])
-    : '큰 변곡이 분산되어 있어, 한 해에 모든 게 몰리기보다 매 대운마다 조금씩 결을 갱신해요.'
+    : '큰 변곡이 골고루 분산돼 있어, 한 해에 모든 게 몰리기보다 시기마다 조금씩 결을 갱신해요.'
   const p4en = peak
     ? paragraph([
         `If you had to name the single most decisive year, it would be age ${peak.age} (≈ ${peak.year}).`,

@@ -260,21 +260,52 @@ function challengePieceKo(
   events: AstroLifecycleEvent[]
 ): string {
   const stagePiece = twelveStage
-    ? `사주 12운성으로 일주가 ${twelveStage}에 자리해서, `
+    ? `${twelveStageMeaningKo(twelveStage)} `
     : ''
   if (id === 'early') {
-    return `${stagePiece}어린 시절은 환경에 적응하며 자기 결을 처음 느끼는 시기에요. ${jong ? `${jong}이라 한 방향으로 강하게 흐르는 성향이 일찍부터 드러나요.` : geokguk ? `${geokguk}의 색이 가정·학교에서 일찍부터 보여요.` : ''}`
+    return `${stagePiece}어린 시절엔 환경에 적응하며 자기 결을 처음 느껴요. ${jong ? '한 방향으로 강하게 흐르는 성향이 일찍부터 드러나요.' : geokguk ? `${geokgukShortKo(geokguk)}의 색이 가정과 학교에서 일찍부터 보여요.` : ''}`
   }
   if (id === 'young') {
     const sat = events.find((e) => e.kind === 'saturn_return_1')
-    return `${stagePiece}청년기는 정체성을 시험하는 시기에요. ${sat ? `특히 ${sat.ageStart}세 전후 첫 토성 회귀에서 어른됨의 결정적 통과의례가 와요.` : '대운 천간이 바뀌는 지점마다 자기 검증의 결이 더해져요.'}`
+    return `${stagePiece}청년기는 진짜 자기를 시험하는 때예요. ${sat ? `특히 ${sat.ageStart}세 무렵엔 어른됨의 통과의례가 와요 — 책임과 전문성, 기반이 자리 잡는 시기예요.` : '인생 흐름이 바뀌는 지점마다 자기 검증의 결이 한 겹씩 쌓여요.'}`
   }
   if (id === 'middle') {
     const ura = events.find((e) => e.kind === 'uranus_opposition')
-    return `${stagePiece}장년기는 진짜 자기와 맞지 않는 길이 흔들리는 시기에요. ${ura ? `${ura.ageStart}~${ura.ageEnd}세 천왕성 어포지션에서 그 흔들림이 가장 격렬해요.` : '대운 변화가 사회적 위치의 재배열을 만들어요.'}`
+    return `${stagePiece}40대는 진짜 자기와 맞지 않는 길이 흔들리는 시기예요. ${ura ? `${ura.ageStart}~${ura.ageEnd}세 무렵 자유의 각성이 가장 격렬하게 와요.` : '인생 흐름이 바뀌면서 사회적 위치도 다시 정렬돼요.'}`
   }
   const chi = events.find((e) => e.kind === 'chiron_return')
-  return `${stagePiece}후반기는 평생 모아온 결을 결산하는 시기에요. ${chi ? `${chi.ageStart}세 카이런 회귀에서 상처가 치유 자원으로 전환돼요.` : '두 번째 토성 회귀가 진짜 남길 것을 결정해요.'}`
+  return `${stagePiece}후반기는 평생 모아온 결을 결산하는 시기예요. ${chi ? `${chi.ageStart}세 무렵 치유의 회귀가 와서, 오랜 상처가 다른 사람을 돕는 자원으로 바뀌어요.` : '두 번째 어른됨의 통과의례가 진짜 남길 것을 정해줘요.'}`
+}
+
+// 12운성을 의미로 풀어쓰는 헬퍼 (코드 로직 안 건드림 — narrative만)
+function twelveStageMeaningKo(stage: string): string {
+  if (!stage) return ''
+  if (stage.includes('생') || stage.includes('장생')) return '탄생의 결이 흐르는 시기라'
+  if (stage.includes('욕')) return '성장의 결이 흐르는 시기라'
+  if (stage.includes('관대')) return '성장기를 마무리하는 시기라'
+  if (stage.includes('임관') || stage.includes('건록')) return '공적 무대로 진입하는 시기라'
+  if (stage.includes('제왕') || stage.includes('왕지')) return '정점의 결이 흐르는 시기라'
+  if (stage.includes('쇠')) return '쇠퇴의 시작이라'
+  if (stage.includes('병')) return '천천히 내려오는 시기라'
+  if (stage.includes('사')) return '고요의 결이 흐르는 시기라'
+  if (stage.includes('묘')) return '휴식과 비움의 시기라'
+  if (stage.includes('절')) return '끝과 새로운 시작이 만나는 시기라'
+  if (stage.includes('태')) return '잉태의 결이 흐르는 시기라'
+  if (stage.includes('양')) return '키워지는 시기라'
+  return ''
+}
+
+function geokgukShortKo(g: string): string {
+  if (!g) return '본연의 결'
+  if (g.includes('편관')) return '도전을 동력으로 쓰는 결'
+  if (g.includes('정관')) return '책임감 있는 결'
+  if (g.includes('편재')) return '기회를 잡는 결'
+  if (g.includes('정재')) return '꾸준한 결'
+  if (g.includes('식신')) return '여유로운 표현의 결'
+  if (g.includes('상관')) return '재능을 발산하는 결'
+  if (g.includes('편인')) return '독특한 직관의 결'
+  if (g.includes('정인')) return '배움과 돌봄의 결'
+  return '본연의 결'
 }
 
 function challengePieceEn(
@@ -304,9 +335,9 @@ function challengePieceEn(
 
 function guideKo(id: LifeStageId): string {
   if (id === 'early')
-    return '한 줄 조언: 환경이 주는 결을 거부하지 말고 천천히 흡수하세요. 진짜 자기 색깔은 아직 다 드러나지 않아요.'
+    return '한 줄 조언: 환경이 주는 결을 거부하지 말고 천천히 흡수하세요. 진짜 자기 색은 아직 다 드러나지 않았어요.'
   if (id === 'young')
-    return '한 줄 조언: 회피하지 말고 책임을 한 단계씩 받아들이세요. 30세 전후의 선택이 평생의 토대가 됩니다.'
+    return '한 줄 조언: 회피하지 말고 책임을 한 단계씩 받아들이세요. 30세 무렵의 선택이 평생의 토대가 됩니다.'
   if (id === 'middle')
     return '한 줄 조언: 안정을 빌미로 미루지 마세요. 40대의 진짜 결정이 후반기 자유를 만들어요.'
   return '한 줄 조언: 결과보다 의미에 시간을 쓰세요. 남기는 결이 진짜 자산이에요.'
