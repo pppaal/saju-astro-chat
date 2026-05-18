@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Calendar,
   Clock,
@@ -270,9 +271,19 @@ function relationLabel(r: string, locale: Locale): string {
 
 export default function ProfilePage() {
   const { status } = useSession()
-  const { t, locale: rawLocale } = useI18n()
+  const { locale: rawLocale } = useI18n()
   const locale: Locale = rawLocale === 'en' ? 'en' : 'ko'
   const signInUrl = buildSignInUrl('/profile')
+  const router = useRouter()
+
+  // 비로그인 = 자동 sign-in 페이지로 redirect. AuthGate fallback 의 다크
+  // 로그인 wall 은 노출 안 됨 (잠깐 빈 화면만 보임). 로그인 끝나면
+  // signInUrl 의 callbackUrl(/profile) 로 돌아옴.
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace(signInUrl)
+    }
+  }, [status, router, signInUrl])
 
   const [profile, setProfile] = useState<MeProfile | null>(null)
   const [circle, setCircle] = useState<SavedPerson[]>([])
@@ -394,25 +405,9 @@ export default function ProfilePage() {
       statusOverride={status}
       callbackUrl="/profile"
       fallback={
-        <div className="relative min-h-[100svh] overflow-hidden bg-[#03060d] text-slate-100">
-          <div className="mx-auto flex min-h-[100svh] max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-            <h1 className="text-balance text-3xl font-semibold leading-[1.15] tracking-[-0.025em] text-white">
-              {t('profile.loginRequired', '로그인하면 나의 여정이 시작돼요')}
-            </h1>
-            <p className="text-[15px] leading-relaxed text-slate-400">
-              {t(
-                'profile.loginDesc',
-                '내 정보, 지인 목록, 최근 상담 기록을 한 곳에서 볼 수 있어요.',
-              )}
-            </p>
-            <Link
-              href={signInUrl}
-              className="mt-3 rounded-2xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] px-7 py-3 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(124,92,255,0.35)] transition hover:opacity-90"
-            >
-              {t('common.login', '로그인')}
-            </Link>
-          </div>
-        </div>
+        // 비로그인 fallback — 자동 redirect 가 거의 즉시 일어나므로 빈 화면.
+        // 깜빡임 줄이려고 배경색만 메인 다크와 맞춤.
+        <div className="min-h-[100svh] bg-[#03060d]" aria-hidden="true" />
       }
     >
       <div className="relative min-h-[100svh] overflow-hidden bg-[#03060d] text-slate-100">

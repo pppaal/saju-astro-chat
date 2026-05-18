@@ -18,11 +18,7 @@ import Chat from '@/components/destiny-map/Chat'
 type SearchParams = Record<string, string | string[] | undefined>
 
 export default function CounselorPage() {
-  const { t, locale, setLocale } = useI18n()
-  const isKo = locale === 'ko'
-  const toggleLocale = useCallback(() => {
-    setLocale(locale === 'ko' ? 'en' : 'ko')
-  }, [locale, setLocale])
+  const { t } = useI18n()
   const [chatResetKey, setChatResetKey] = useState(0)
   const rawSearchParams = useSearchParams()
   const sp = useMemo<SearchParams>(() => {
@@ -129,12 +125,14 @@ export default function CounselorPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} ${styles.lightTheme}`}>
       <BodyScrollLock />
       <CounselorSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onNewChat={handleChatReset}
+        lightTheme
+        enableGrouping
       />
       <header className={styles.header}>
         <div className={styles.headerLeft}>
@@ -153,15 +151,6 @@ export default function CounselorPage() {
         </div>
 
         <div className={styles.headerActions}>
-          <button
-            type="button"
-            onClick={toggleLocale}
-            className={styles.localeToggle}
-            aria-label={isKo ? 'Switch to English' : '한국어로 전환'}
-            title={isKo ? 'Switch to English' : '한국어로 전환'}
-          >
-            {isKo ? 'EN' : 'KO'}
-          </button>
           <div className={styles.creditBadgeWrap}>
             <CreditBadge variant="compact" />
           </div>

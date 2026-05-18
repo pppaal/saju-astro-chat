@@ -68,6 +68,14 @@ const TRI_HAP = [
   { branches: ['巳', '酉', '丑'], element: '금' },
 ]
 
+// 방합(方合) — 같은 계절·방위 3지지 모이면 그 오행 폭발 강화
+const BANG_HAP = [
+  { branches: ['寅', '卯', '辰'], element: '목', season: '봄·동방' },
+  { branches: ['巳', '午', '未'], element: '화', season: '여름·남방' },
+  { branches: ['申', '酉', '戌'], element: '금', season: '가을·서방' },
+  { branches: ['亥', '子', '丑'], element: '수', season: '겨울·북방' },
+]
+
 // 신살 — 천을귀인 (일간 → 지지 2개)
 const CHEONULGWIIN: Record<string, string[]> = {
   '甲': ['丑', '未'], '戊': ['丑', '未'], '庚': ['丑', '未'],
@@ -100,6 +108,35 @@ const HWAGAE: Record<string, string> = {
 // 양인 — 일간 기준
 const YANGIN: Record<string, string> = {
   '甲': '卯', '丙': '午', '戊': '午', '庚': '酉', '壬': '子',
+}
+
+// 12신살 — 년지(또는 일지) 기준, 12지지 각각에 라벨 부여.
+// 정통 표: 寅午戌년/일생 → 申=겁살, 酉=재살, 戌=천살, 亥=지살,
+// 子=년살(도화), 丑=월살, 寅=망신살, 卯=장성, 辰=반안, 巳=역마,
+// 午=육해, 未=화개. (TRI_HAP 4그룹에 맞춰 4 케이스)
+const TWELVE_SHINSAL_LABELS = [
+  '겁살', '재살', '천살', '지살', '년살', '월살',
+  '망신', '장성', '반안', '역마', '육해', '화개',
+] as const
+const TWELVE_SHINSAL_START: Record<string, string> = {
+  // 申子辰 → 巳부터 (寅午戌과 충 관계의 첫 지지)
+  '申': '巳', '子': '巳', '辰': '巳',
+  // 亥卯未 → 申부터
+  '亥': '申', '卯': '申', '未': '申',
+  // 寅午戌 → 亥부터
+  '寅': '亥', '午': '亥', '戌': '亥',
+  // 巳酉丑 → 寅부터
+  '巳': '寅', '酉': '寅', '丑': '寅',
+}
+function twelveShinsalLabel(baseBranch: string, targetBranch: string): string | null {
+  const start = TWELVE_SHINSAL_START[baseBranch]
+  if (!start) return null
+  const startIdx = BRANCH_ORDER.indexOf(start)
+  const tIdx = BRANCH_ORDER.indexOf(targetBranch)
+  if (startIdx < 0 || tIdx < 0) return null
+  let offset = tIdx - startIdx
+  while (offset < 0) offset += 12
+  return TWELVE_SHINSAL_LABELS[offset % 12]
 }
 
 // 괴강 — 일주 (일주가 이 4개 중 하나면 발동)
@@ -363,6 +400,14 @@ export function formatSajuSelf(input: SajuSelfInput): string {
       crossLines.push(`${positions.join(' + ')} — ${trio.branches.join('')}삼합 ${matched.length === 3 ? '완성' : '부분'} (→ ${trio.element})`)
     }
   }
+  // 방합 부분 — 계절·방위 3지지 모이면 그 오행 폭발 강화
+  for (const bang of BANG_HAP) {
+    const matched = P.filter((p) => bang.branches.includes(p.branch))
+    if (matched.length >= 2) {
+      const positions = P.map((p, i) => bang.branches.includes(p.branch) ? `${PILLAR_LABELS[i]}지 ${p.branch}` : null).filter(Boolean)
+      crossLines.push(`${positions.join(' + ')} — ${bang.branches.join('')}방합 ${matched.length === 3 ? '완성' : '부분'} (→ ${bang.element}, ${bang.season})`)
+    }
+  }
   if (crossLines.length > 0) {
     out.push('[4기둥 내부 cross]')
     out.push(...crossLines)
@@ -407,6 +452,24 @@ export function formatSajuSelf(input: SajuSelfInput): string {
       if (gong.includes(P[i].branch)) {
         shinsalLines.push(`${PILLAR_LABELS[i]}지 ${P[i].branch} — 공망 (작용 약화)`)
       }
+    }
+  }
+  // 12신살 풀셋 — 일지 기준 (정통: 년지·일지 둘 다 가능, 현대 명리는 일지 우선)
+  const yearBranch = P[0].branch
+  const dayBranch = day.branch
+  const baseBranch = dayBranch || yearBranch
+  if (baseBranch) {
+    const twelveLines: string[] = []
+    for (let i = 0; i < 4; i++) {
+      if (!P[i].branch) continue
+      const lbl = twelveShinsalLabel(baseBranch, P[i].branch)
+      if (lbl) {
+        twelveLines.push(`${PILLAR_LABELS[i]}지 ${P[i].branch} — ${lbl}`)
+      }
+    }
+    if (twelveLines.length > 0) {
+      shinsalLines.push(`[12신살 — 일지 ${baseBranch} 기준]`)
+      shinsalLines.push(...twelveLines)
     }
   }
   if (shinsalLines.length > 0) {

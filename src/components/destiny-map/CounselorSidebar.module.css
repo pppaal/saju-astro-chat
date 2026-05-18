@@ -297,3 +297,265 @@
 .authBtn:hover {
   background: rgba(99, 102, 241, 0.28);
 }
+
+/* =====================================================================
+ * Session grouping (Today / Previous 7 Days / Older). Only rendered
+ * when the parent passes enableGrouping=true.
+ * ===================================================================== */
+.sessionGroup {
+  margin-bottom: 1rem;
+}
+
+.sessionGroupLabel {
+  padding: 0.5rem 0.6rem 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(167, 139, 250, 0.62);
+}
+
+/* =====================================================================
+ * Footer action slot — chart / tarot triggers passed from the page.
+ * Sits between the past-chats list and the auth footer.
+ * ===================================================================== */
+.footerSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.footerSlotBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.88);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.footerSlotBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.98);
+}
+
+.footerSlotBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.footerSlotIcon {
+  font-size: 1rem;
+  width: 1.25rem;
+  display: inline-flex;
+  justify-content: center;
+}
+
+/* =====================================================================
+ * Desktop-static layout. When enabled (compat counselor page) the
+ * drawer becomes a permanent column on ≥1024px. Mobile keeps the
+ * drawer behavior unchanged.
+ * ===================================================================== */
+@media (min-width: 1024px) {
+  .drawerStaticDesktop {
+    position: relative;
+    transform: none;
+    height: 100dvh;
+    width: 280px;
+    box-shadow: none;
+    flex-shrink: 0;
+  }
+
+  .scrimDesktopHidden {
+    display: none;
+  }
+
+  .drawerStaticDesktop .closeBtn {
+    display: none;
+  }
+}
+
+/* =====================================================================
+ * Light theme — stone-50 / white palette. Used by counselor result
+ * pages. Drawer becomes an off-white card with stone borders.
+ * ===================================================================== */
+.lightTheme {
+  background: #ffffff;
+  border-right: 1px solid #e7e5e4;
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.04);
+  color: #1c1917;
+}
+
+.lightTheme .header {
+  border-bottom-color: #e7e5e4;
+}
+
+.lightTheme .brand {
+  color: #1c1917;
+}
+
+.lightTheme .closeBtn {
+  border-color: #e7e5e4;
+  color: #57534e;
+}
+
+.lightTheme .closeBtn:hover {
+  background: #f5f5f4;
+}
+
+.lightTheme .sectionLabel {
+  color: #a8a29e;
+}
+
+.lightTheme .actionBtn {
+  background: #1c1917;
+  color: #fafaf9;
+  border: 0;
+}
+
+.lightTheme .actionBtn:hover {
+  background: #292524;
+  color: #fafaf9;
+}
+
+.lightTheme .actionBtn:nth-of-type(n + 2) {
+  background: transparent;
+  color: #44403c;
+  border: 0;
+}
+
+.lightTheme .actionBtn:nth-of-type(n + 2):hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}
+
+.lightTheme .divider {
+  background: #e7e5e4;
+}
+
+.lightTheme .empty {
+  color: #a8a29e;
+}
+
+.lightTheme .sessionGroupLabel {
+  color: #a8a29e;
+}
+
+.lightTheme .sessionItem {
+  background: transparent;
+  border: 0;
+}
+
+.lightTheme .sessionItem:hover {
+  background: #f5f5f4;
+}
+
+.lightTheme .sessionTitle {
+  color: #1c1917;
+}
+
+.lightTheme .sessionDate {
+  color: #a8a29e;
+}
+
+.lightTheme .iconBtn {
+  color: #78716c;
+  background: transparent;
+  border: 0;
+}
+
+.lightTheme .iconBtn:hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}
+
+.lightTheme .iconBtnDanger:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.lightTheme .footerSlotBtn {
+  color: #44403c;
+}
+
+.lightTheme .footerSlotBtn:hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}
+
+.lightTheme .footer {
+  border-top-color: #e7e5e4;
+}
+
+.lightTheme .authBtn {
+  color: #44403c;
+  background: transparent;
+  border: 0;
+}
+
+.lightTheme .authBtn:hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}
+
+/* =====================================================================
+ * Light theme — additional surfaces (#286 사용자 보고: 모바일 드로어에서
+ * past chats 목록이 깨져 보인다는 피드백 대응).
+ * sessionItem 본인의 color 가 다크 글자 색으로 안 바뀌어서 자식들이
+ * 옅게 보이던 거 + renameInput 다크 / actionBtn 색감 정리.
+ * ===================================================================== */
+.lightTheme .sessionItem {
+  color: #44403c;
+}
+
+.lightTheme .sessionItem:hover {
+  background: #f5f5f4;
+}
+
+.lightTheme .sessionItemSwiped {
+  background: #f5f5f4;
+}
+
+.lightTheme .renameInput {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  color: #1c1917;
+}
+
+.lightTheme .renameInput:focus {
+  border-color: #a8a29e;
+}
+
+/* New chat 만 강조 (다크 stroke), 홈은 보조 액션. nth-of-type 으로
+   구분하던 거 backgroundless 패턴에 의존했는데 fragile. Link 컴포넌트가
+   button 사이에 끼면서 nth-of-type 가 어긋남. 명시적인 first-of-type 으로
+   가고 나머지는 일반 hover. */
+.lightTheme .actionBtn {
+  background: transparent;
+  color: #44403c;
+  border: 0;
+}
+
+.lightTheme .actionBtn:first-of-type {
+  background: #1c1917;
+  color: #fafaf9;
+}
+
+.lightTheme .actionBtn:first-of-type:hover {
+  background: #292524;
+  color: #fafaf9;
+}
+
+.lightTheme .actionBtn:not(:first-of-type):hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}

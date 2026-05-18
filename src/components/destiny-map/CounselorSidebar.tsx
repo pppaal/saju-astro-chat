@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -29,6 +29,19 @@ interface CounselorSidebarProps {
   serviceType?: ServiceType
   /** Where each past-chat row navigates. Defaults to the destiny path. */
   sessionHrefBase?: string
+  /**
+   * When true the drawer stays permanently visible on desktop widths
+   * (≥1024px) and only collapses to a drawer on mobile. The compat page
+   * uses this — destiny already has its own always-visible historyRail
+   * inside <Chat> and would double up.
+   */
+  desktopStatic?: boolean
+  /** When true, sessions are bucketed Today / Previous 7 Days / Older. */
+  enableGrouping?: boolean
+  /** Switch to the stone-50 / white palette used on counselor result pages. */
+  lightTheme?: boolean
+  /** Extra footer content (tarot / chart triggers) rendered above the auth button. */
+  footerSlot?: React.ReactNode
 }
 
 const SWIPE_REVEAL_PX = 60 // user must drag this far to lock the swipe-open state
@@ -40,6 +53,10 @@ export default function CounselorSidebar({
   onNewChat,
   serviceType = 'destiny',
   sessionHrefBase,
+  desktopStatic = false,
+  enableGrouping = false,
+  lightTheme = false,
+  footerSlot,
 }: CounselorSidebarProps) {
   const { t } = useI18n()
   const { data: session, status } = useSession()
@@ -56,7 +73,11 @@ export default function CounselorSidebar({
     (serviceType === 'compat' ? '/compatibility/counselor' : '/destiny-map/counselor')
 
   useEffect(() => {
-    if (!open || status !== 'authenticated') return
+    // When desktopStatic is on, the sidebar is permanently visible on
+    // desktop so we fetch regardless of the drawer "open" flag — that
+    // flag still controls the mobile slide-in but desktop users would
+    // otherwise see an empty list until the first hamburger click.
+    if ((!open && !desktopStatic) || status !== 'authenticated') return
     // Reset transient row state every time the drawer reopens. Without
     // this, a row left in swipe / rename mode from a previous open
     // stays mid-swipe — the title slides 72px off-screen and the user
@@ -85,7 +106,27 @@ export default function CounselorSidebar({
     return () => {
       cancelled = true
     }
-  }, [open, status, serviceType])
+  }, [open, status, serviceType, desktopStatic])
+
+  // History grouping — Today / Previous 7 Days / Older. Only used when
+  // enableGrouping is on (compat counselor page). The flat list path
+  // (default) keeps the destiny drawer's existing rendering intact.
+  const groupedSessions = useMemo(() => {
+    if (!enableGrouping) return null
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const sevenDaysAgo = startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000
+    const today: SessionItem[] = []
+    const week: SessionItem[] = []
+    const older: SessionItem[] = []
+    for (const s of sessions) {
+      const ts = s.updatedAt ? new Date(s.updatedAt).getTime() : 0
+      if (ts >= startOfToday.getTime()) today.push(s)
+      else if (ts >= sevenDaysAgo) week.push(s)
+      else older.push(s)
+    }
+    return { today, week, older }
+  }, [sessions, enableGrouping])
 
   const closeSwipe = useCallback(() => setSwipedId(null), [])
 
@@ -167,16 +208,138 @@ export default function CounselorSidebar({
     swipeRowIdRef.current = null
   }
 
+  const renderSessionRow = (s: SessionItem) => {
+    const isSwiped = swipedId === s.id
+    const isRenaming = renamingId === s.id
+    const displayName =
+      (s.title && s.title.trim()) ||
+      (s.preview && s.preview.trim()) ||
+      t('destinyMap.counselor.untitledChat', 'Untitled chat')
+    return (
+      <li
+        key={s.id}
+        className={styles.sessionRow}
+        onTouchStart={(e) => onTouchStart(e, s.id)}
+        onTouchMove={(e) => onTouchMove(e, s.id)}
+        onTouchEnd={onTouchEnd}
+      >
+        <div className={styles.swipeActions} aria-hidden={!isSwiped}>
+          <button
+            type="button"
+            className={styles.iconBtn}
+            onClick={() => startRename(s)}
+            aria-label={t('destinyMap.counselor.rename', 'Rename')}
+            title={t('destinyMap.counselor.rename', 'Rename')}
+          >
+            ✎
+          </button>
+          <button
+            type="button"
+            className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+            onClick={() => handleDelete(s.id)}
+            aria-label={t('destinyMap.counselor.delete', 'Delete')}
+            title={t('destinyMap.counselor.delete', 'Delete')}
+          >
+            🗑
+          </button>
+        </div>
+
+        {isRenaming ? (
+          <div className={styles.sessionItem}>
+            <input
+              autoFocus
+              className={styles.renameInput}
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  void commitRename()
+                } else if (e.key === 'Escape') {
+                  e.preventDefault()
+                  cancelRename()
+                }
+              }}
+              onBlur={() => void commitRename()}
+              maxLength={80}
+              placeholder={displayName}
+            />
+          </div>
+        ) : (
+          <Link
+            href={`${hrefBase}?session=${s.id}`}
+            className={`${styles.sessionItem} ${isSwiped ? styles.sessionItemSwiped : ''}`}
+            onClick={(e) => {
+              if (isSwiped) {
+                e.preventDefault()
+                closeSwipe()
+                return
+              }
+              onClose()
+            }}
+          >
+            <span className={styles.sessionTitle}>{displayName}</span>
+            {s.updatedAt && !enableGrouping && (
+              <span className={styles.sessionDate}>
+                {new Date(s.updatedAt).toLocaleDateString()}
+              </span>
+            )}
+          </Link>
+        )}
+
+        {!isRenaming && !isSwiped && (
+          <div className={styles.sessionActions}>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={() => startRename(s)}
+              aria-label={t('destinyMap.counselor.rename', 'Rename')}
+              title={t('destinyMap.counselor.rename', 'Rename')}
+            >
+              ✎
+            </button>
+            <button
+              type="button"
+              className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+              onClick={() => handleDelete(s.id)}
+              aria-label={t('destinyMap.counselor.delete', 'Delete')}
+              title={t('destinyMap.counselor.delete', 'Delete')}
+            >
+              🗑
+            </button>
+          </div>
+        )}
+      </li>
+    )
+  }
+
+  const scrimClass = [
+    styles.scrim,
+    open ? styles.scrimOpen : '',
+    desktopStatic ? styles.scrimDesktopHidden : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const drawerClass = [
+    styles.drawer,
+    open ? styles.drawerOpen : '',
+    desktopStatic ? styles.drawerStaticDesktop : '',
+    lightTheme ? styles.lightTheme : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <>
       <div
-        className={`${styles.scrim} ${open ? styles.scrimOpen : ''}`}
+        className={scrimClass}
         onClick={onClose}
         aria-hidden={!open}
       />
       <aside
-        className={`${styles.drawer} ${open ? styles.drawerOpen : ''}`}
-        aria-hidden={!open}
+        className={drawerClass}
+        aria-hidden={!open && !desktopStatic}
         aria-label={t('destinyMap.counselor.menu', 'Menu')}
       >
         <div className={styles.header}>
@@ -222,123 +385,38 @@ export default function CounselorSidebar({
             <p className={styles.empty}>
               {t('destinyMap.counselor.noPastChats', '아직 저장된 채팅이 없어요.')}
             </p>
-          ) : (
-            <ul className={styles.sessionList}>
-              {sessions.map((s) => {
-                const isSwiped = swipedId === s.id
-                const isRenaming = renamingId === s.id
-                // Old rows can land with title/preview both empty (saved
-                // before the auto-titler shipped). Falling back to an 8-
-                // char UUID slice rendered as faint white text — so the
-                // row looked empty and the user assumed past chats were
-                // missing. Show a labeled placeholder instead.
-                const displayName =
-                  (s.title && s.title.trim()) ||
-                  (s.preview && s.preview.trim()) ||
-                  t('destinyMap.counselor.untitledChat', 'Untitled chat')
+          ) : enableGrouping && groupedSessions ? (
+            <>
+              {(['today', 'week', 'older'] as const).map((bucket) => {
+                const items = groupedSessions[bucket]
+                if (items.length === 0) return null
+                const groupLabel =
+                  bucket === 'today'
+                    ? t('destinyMap.counselor.today', 'Today')
+                    : bucket === 'week'
+                      ? t('destinyMap.counselor.previous7Days', 'Previous 7 Days')
+                      : t('destinyMap.counselor.older', 'Older')
                 return (
-                  <li
-                    key={s.id}
-                    className={styles.sessionRow}
-                    onTouchStart={(e) => onTouchStart(e, s.id)}
-                    onTouchMove={(e) => onTouchMove(e, s.id)}
-                    onTouchEnd={onTouchEnd}
-                  >
-                    {/* Reveal layer (under the row, shown after swipe) */}
-                    <div className={styles.swipeActions} aria-hidden={!isSwiped}>
-                      <button
-                        type="button"
-                        className={styles.iconBtn}
-                        onClick={() => startRename(s)}
-                        aria-label={t('destinyMap.counselor.rename', 'Rename')}
-                        title={t('destinyMap.counselor.rename', 'Rename')}
-                      >
-                        ✎
-                      </button>
-                      <button
-                        type="button"
-                        className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                        onClick={() => handleDelete(s.id)}
-                        aria-label={t('destinyMap.counselor.delete', 'Delete')}
-                        title={t('destinyMap.counselor.delete', 'Delete')}
-                      >
-                        🗑
-                      </button>
-                    </div>
-
-                    {isRenaming ? (
-                      <div className={styles.sessionItem}>
-                        <input
-                          autoFocus
-                          className={styles.renameInput}
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              void commitRename()
-                            } else if (e.key === 'Escape') {
-                              e.preventDefault()
-                              cancelRename()
-                            }
-                          }}
-                          onBlur={() => void commitRename()}
-                          maxLength={80}
-                          placeholder={displayName}
-                        />
-                      </div>
-                    ) : (
-                      <Link
-                        href={`${hrefBase}?session=${s.id}`}
-                        className={`${styles.sessionItem} ${isSwiped ? styles.sessionItemSwiped : ''}`}
-                        onClick={(e) => {
-                          if (isSwiped) {
-                            // first tap closes the swipe instead of navigating
-                            e.preventDefault()
-                            closeSwipe()
-                            return
-                          }
-                          onClose()
-                        }}
-                      >
-                        <span className={styles.sessionTitle}>{displayName}</span>
-                        {s.updatedAt && (
-                          <span className={styles.sessionDate}>
-                            {new Date(s.updatedAt).toLocaleDateString()}
-                          </span>
-                        )}
-                      </Link>
-                    )}
-
-                    {/* Desktop hover actions (kebab cluster, top-right) */}
-                    {!isRenaming && !isSwiped && (
-                      <div className={styles.sessionActions}>
-                        <button
-                          type="button"
-                          className={styles.iconBtn}
-                          onClick={() => startRename(s)}
-                          aria-label={t('destinyMap.counselor.rename', 'Rename')}
-                          title={t('destinyMap.counselor.rename', 'Rename')}
-                        >
-                          ✎
-                        </button>
-                        <button
-                          type="button"
-                          className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                          onClick={() => handleDelete(s.id)}
-                          aria-label={t('destinyMap.counselor.delete', 'Delete')}
-                          title={t('destinyMap.counselor.delete', 'Delete')}
-                        >
-                          🗑
-                        </button>
-                      </div>
-                    )}
-                  </li>
+                  <div key={bucket} className={styles.sessionGroup}>
+                    <div className={styles.sessionGroupLabel}>{groupLabel}</div>
+                    <ul className={styles.sessionList}>
+                      {items.map(renderSessionRow)}
+                    </ul>
+                  </div>
                 )
               })}
-            </ul>
+            </>
+          ) : (
+            <ul className={styles.sessionList}>{sessions.map(renderSessionRow)}</ul>
           )}
         </div>
+
+        {footerSlot && (
+          <>
+            <div className={styles.divider} />
+            <div className={styles.footerSlot}>{footerSlot}</div>
+          </>
+        )}
 
         <div className={styles.footer}>
           {status === 'authenticated' ? (

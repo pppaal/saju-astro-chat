@@ -87,7 +87,10 @@ interface ChatInputAreaProps {
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
   onSend: () => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
-  onOpenTarot: () => void
+  /** Optional mobile-only chart/tarot triggers — the desktop sidebar
+   *  carries these, but mobile users have no other entry point. */
+  onOpenTarot?: () => void
+  onOpenChart?: () => void
   styles: Record<string, string>
   autoFocus?: boolean
 }
@@ -105,6 +108,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onSend,
   onFileUpload,
   onOpenTarot,
+  onOpenChart,
   styles,
   autoFocus = false,
 }: ChatInputAreaProps) {
@@ -139,40 +143,58 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           maxLength={2000}
         />
         <div className={styles.inputBoxActions}>
-          <label
-            className={styles.attachButton}
-            aria-label={tr.uploadCv}
-            title={tr.uploadCv}
-          >
-            <span aria-hidden="true">&#x1F4CE;</span>
-            <input
-              type="file"
-              accept=".txt,.md,.csv,.pdf"
-              className={styles.fileInput}
-              onChange={onFileUpload}
-            />
-          </label>
-          <button
-            type="button"
-            onClick={onOpenTarot}
-            className={styles.attachButton}
-            aria-label={tr.tarotButton}
-            title={tr.tarotButton}
-          >
-            <span aria-hidden="true">&#x1F0CF;</span>
-          </button>
-          {parsingPdf && (
-            <span className={styles.fileName}>
-              <span className={styles.loadingSpinner} />
-              {tr.parsingPdf}
-            </span>
-          )}
-          {cvName && !parsingPdf && (
-            <span className={styles.fileName}>
-              <span className={styles.fileIcon}>&#x2713;</span>
-              {cvName}
-            </span>
-          )}
+          <div className={styles.inputBoxActionsLeft}>
+            <label
+              className={styles.attachButton}
+              aria-label={tr.uploadCv}
+              title={tr.uploadCv}
+            >
+              <span aria-hidden="true">&#x1F4CE;</span>
+              <input
+                type="file"
+                accept=".txt,.md,.csv,.pdf"
+                className={styles.fileInput}
+                onChange={onFileUpload}
+              />
+            </label>
+            {/* Mobile-only chart/tarot entry — desktop has them in the
+                sidebar footer (.historyRailFooter). Hidden on ≥1024px via
+                .mobileOnlyTool to avoid double entry points. */}
+            {onOpenTarot && (
+              <button
+                type="button"
+                onClick={onOpenTarot}
+                className={`${styles.attachButton} ${styles.mobileOnlyTool}`}
+                aria-label={tr.tarotButton}
+                title={tr.tarotButton}
+              >
+                <span aria-hidden="true">&#x1F0CF;</span>
+              </button>
+            )}
+            {onOpenChart && (
+              <button
+                type="button"
+                onClick={onOpenChart}
+                className={`${styles.attachButton} ${styles.mobileOnlyTool}`}
+                aria-label={lang === 'ko' ? '내 차트' : 'My chart'}
+                title={lang === 'ko' ? '나의 운명 차트' : 'My destiny chart'}
+              >
+                <span aria-hidden="true">&#x2728;</span>
+              </button>
+            )}
+            {parsingPdf && (
+              <span className={styles.fileName}>
+                <span className={styles.loadingSpinner} />
+                {tr.parsingPdf}
+              </span>
+            )}
+            {cvName && !parsingPdf && (
+              <span className={styles.fileName}>
+                <span className={styles.fileIcon}>&#x2713;</span>
+                {cvName}
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={onSend}
@@ -181,7 +203,9 @@ export const ChatInputArea = React.memo(function ChatInputArea({
             aria-label={tr.send}
             title={tr.send}
           >
-            <span className={styles.sendIcon}>&#x2728;</span>
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
           </button>
         </div>
       </div>

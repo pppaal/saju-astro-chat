@@ -105,13 +105,10 @@ export default function CreditBadge({
     )
   }
 
-  // Error state
+  // Error state — render nothing instead of a confusing warning icon.
+  // Real failures show up in the actual purchase flow.
   if (error || !creditData || !creditData.credits) {
-    return (
-      <div className={`${styles.badge} ${styles.error} ${className}`}>
-        <span className={styles.icon}>⚠️</span>
-      </div>
-    )
+    return null
   }
 
   const { credits, plan } = creditData

@@ -294,7 +294,8 @@
   outline: none;
   resize: none;
   color: #fff;
-  font-size: 0.95rem;
+  /* iOS Safari zooms inputs <16px on focus, which breaks dvh viewport. */
+  font-size: 16px;
   line-height: 1.5;
   max-height: 6rem;
   min-height: 1.5rem;
@@ -439,4 +440,203 @@
 .toolButtonIcon {
   font-size: 18px;
   line-height: 1;
+}
+
+/* =====================================================================
+ * Main column layout — wraps <header> + chatWrapper so the desktop-
+ * static sidebar can sit beside it on ≥1024px.
+ * ===================================================================== */
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Heart accent kept on the title (user requested the heart stay). */
+.headerHeart {
+  display: inline-block;
+  margin-right: 0.4rem;
+  font-size: 0.95em;
+  vertical-align: -1px;
+}
+
+/* Sidebar footer button — passed into CounselorSidebar's footerSlot. */
+.sidebarFooterBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.sidebarFooterBtn:hover:not(:disabled) {
+  background: #f5f5f4;
+}
+
+.sidebarFooterBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sidebarFooterBtnIcon {
+  font-size: 1rem;
+  width: 1.25rem;
+  display: inline-flex;
+  justify-content: center;
+}
+
+/* =====================================================================
+ * Light theme — counselor result palette (stone-50 / white).
+ * Activated by appending .lightTheme to .page. Sidebar gets its own
+ * lightTheme class via its prop.
+ * ===================================================================== */
+.lightTheme {
+  background: #fafaf9;
+  color: #1c1917;
+}
+
+@media (min-width: 1024px) {
+  .lightTheme {
+    flex-direction: row;
+  }
+}
+
+.lightTheme .header {
+  background: #ffffff;
+  border-bottom: 1px solid #e7e5e4;
+  backdrop-filter: none;
+  color: #1c1917;
+}
+
+.lightTheme .headerTitle {
+  color: #1c1917;
+}
+
+.lightTheme .backButton {
+  background: transparent;
+  border: 0;
+  color: #57534e;
+}
+
+.lightTheme .backButton:hover {
+  background: #f5f5f4;
+}
+
+.lightTheme .backIcon {
+  color: #57534e;
+}
+
+@media (min-width: 1024px) {
+  /* Hamburger only makes sense on mobile once the sidebar is permanent. */
+  .lightTheme .backButton {
+    display: none;
+  }
+}
+
+.lightTheme .chatWrapper {
+  background: transparent;
+}
+
+.lightTheme .messagesContainer {
+  background: transparent;
+}
+
+.lightTheme .emptyText {
+  color: #57534e;
+}
+
+.lightTheme .message {
+  color: #292524;
+}
+
+.lightTheme .messageBubble {
+  background: transparent;
+  color: #292524;
+  border: 0;
+}
+
+.lightTheme .userMessage .messageBubble {
+  background: #292524;
+  color: #fafaf9;
+  border-radius: 16px 4px 16px 16px;
+  border: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.lightTheme .messageAvatar {
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  color: inherit;
+}
+
+.lightTheme .userMessage .messageAvatar {
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+}
+
+.lightTheme .inputContainer {
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  backdrop-filter: none;
+}
+
+.lightTheme .inputContainer:focus-within {
+  border-color: #a8a29e;
+  box-shadow: 0 0 0 1px #a8a29e, 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.lightTheme .input {
+  color: #1c1917;
+}
+
+.lightTheme .input::placeholder {
+  color: #a8a29e;
+}
+
+.lightTheme .toolButton {
+  color: #a8a29e;
+  background: transparent;
+}
+
+.lightTheme .toolButton:hover:not(:disabled) {
+  color: #57534e;
+  background: #f5f5f4;
+}
+
+.lightTheme .sendButton {
+  background: #1c1917;
+  color: #fafaf9;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.lightTheme .sendButton:hover:not(:disabled) {
+  background: #292524;
+}
+
+.lightTheme .sendButton:disabled {
+  background: #f5f5f4;
+  color: #a8a29e;
+  box-shadow: none;
+}
+
+.lightTheme .errorMessage {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.lightTheme .typing > span {
+  background: #a8a29e;
 }
