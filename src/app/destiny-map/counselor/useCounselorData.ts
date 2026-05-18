@@ -148,6 +148,52 @@ export function useCounselorData(sp: SearchParams) {
       advancedAstro: advancedAstro || undefined,
     })
 
+    // Base natal chart fetch — `astro`가 캐시에 없으면 NatalChart 위젯이
+    // "점성 데이터 없음"으로 뜬다. 이전엔 advanced astro만 fetch하고 base는
+    // 캐시 hit만 의존했다. 캐시 miss면 /api/astrology에서 chartData 받아와
+    // 즉시 채우자 — advanced fetch보다 빠르고 chart UI에 바로 반영됨.
+    if (!astro || !Array.isArray((astro as { planets?: unknown }).planets)) {
+      const fetchBaseNatal = async () => {
+        try {
+          const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
+          const res = await fetch('/api/astrology', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+            },
+            body: JSON.stringify({
+              date: birthDate,
+              time: birthTime,
+              latitude: resolvedLatitude,
+              longitude: resolvedLongitude,
+              timeZone: userTz,
+            }),
+          })
+          if (!res.ok) return
+          const json = (await res.json()) as { data?: { chartData?: unknown } }
+          const baseChart = json?.data?.chartData
+          if (!baseChart) return
+          setChartData((prev) => ({
+            saju: prev?.saju,
+            astro: baseChart as Record<string, unknown>,
+            advancedAstro: prev?.advancedAstro,
+          }))
+          // 캐시에 저장해서 다음 방문 때 즉시 hit
+          try {
+            saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
+              saju: (saju as Record<string, unknown>) || undefined,
+              astro: baseChart as Record<string, unknown>,
+              advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
+            })
+          } catch { /* ignore cache write error */ }
+        } catch (err) {
+          logger.warn('[CounselorPage] base natal fetch failed:', err)
+        }
+      }
+      void fetchBaseNatal()
+    }
+
     logger.warn('[CounselorPage] Cache check:', {
       hasAdvancedAstro: !!advancedAstro,
       hasFixedStars: advancedAstro ? 'fixedStars' in advancedAstro : false,
