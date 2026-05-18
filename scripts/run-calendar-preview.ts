@@ -45,21 +45,45 @@ async function main() {
   console.log('용신:', natal.saju.yongsin?.primary, natal.saju.yongsin?.avoid ? `(피할: ${natal.saju.yongsin.avoid})` : '')
   console.log()
 
-  // 3. Build calendar for today (full day, hourly granularity for richer signals)
-  const dayStart = `${TODAY}T00:00:00.000Z`
-  const dayEnd = `${TODAY}T23:59:59.000Z`
+  // 3. Build calendar for the whole month (1 year ideally but month for speed)
+  const monthStart = `${TODAY.slice(0, 7)}-01T00:00:00.000Z`
+  const monthEnd = `${TODAY.slice(0, 7)}-31T23:59:59.000Z`
   const cells = await buildCalendar(natal, {
-    start: dayStart,
-    end: dayEnd,
+    start: monthStart,
+    end: monthEnd,
     granularity: 'day',
   }, { includeEvidence: true })
 
-  console.log('=== 활성 신호 (오늘) ===')
+  console.log('=== 한 달 cells ===')
+  console.log(`총 ${cells.length}일`)
   if (cells.length === 0) {
     console.log('cells 없음')
     return
   }
-  const cell = cells[0]
+
+  // 좋은 날 TOP / 주의 날 TOP
+  const ranked = [...cells].sort((a, b) => b.derivedScore - a.derivedScore)
+  console.log()
+  console.log('=== 🌟 좋은 날 TOP 5 ===')
+  for (const c of ranked.slice(0, 5)) {
+    const date = c.datetime.slice(0, 10)
+    const top = c.topReasons?.slice(0, 2).join(' · ') ?? ''
+    console.log(`  ${date}  ${c.derivedScore}점  ${top}`)
+  }
+  console.log()
+  console.log('=== ⚠️ 주의 날 TOP 5 ===')
+  for (const c of ranked.slice(-5).reverse()) {
+    const date = c.datetime.slice(0, 10)
+    const cau = c.cautions?.slice(0, 2).join(' · ') ?? ''
+    console.log(`  ${date}  ${c.derivedScore}점  ${cau}`)
+  }
+  console.log()
+
+  // 도메인별 좋은 날 (themeScores 기준 — interp.themeScores로 overwrite 후 비교용)
+  // 일단 오늘 cell만 자세히 보고
+  const today = cells.find((c) => c.datetime.slice(0, 10) === TODAY) ?? cells[0]
+  const cell = today
+  console.log('=== 오늘 (' + cell.datetime.slice(0, 10) + ') 활성 신호 ===')
   console.log('cell.signals 수:', cell.signals.length)
   console.log()
 

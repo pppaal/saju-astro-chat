@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 
-const result = spawnSync('pnpm', ['-s', 'exec', 'tsc', '--noEmit'], {
+const result = spawnSync('npx', ['--no-install', 'tsc', '--noEmit'], {
   encoding: 'utf8',
   maxBuffer: 10 * 1024 * 1024,
 })

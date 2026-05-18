@@ -87,8 +87,9 @@ jobs:
 
       - name: Lint changed files
         run: |
-          # Only lint files changed in this PR
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')
+          # Only lint files changed in this PR. --diff-filter=d excludes
+          # deleted paths so eslint doesn't fail with "No files matching".
+          CHANGED_FILES=$(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')
           if [ -n "$CHANGED_FILES" ]; then
             npx eslint $CHANGED_FILES
           else
@@ -318,16 +319,20 @@ jobs:
 
       - name: Check for secrets
         run: |
-          # Check changed files for potential secrets
+          # Check changed files for potential secrets. Skip workflow files —
+          # they store the detection regex itself and would self-match.
           FOUND=0
           while IFS= read -r file; do
             if [ -f "$file" ]; then
+              case "$file" in
+                .github/workflows/*) continue ;;
+              esac
               if grep -rE "(sk-[a-zA-Z0-9]{20,}|AKIA[A-Z0-9]{16}|-----BEGIN.*PRIVATE KEY-----)" "$file"; then
                 echo "::error::Potential secret found in $file"
                 FOUND=1
               fi
             fi
-          done < <(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          done < <(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...HEAD)
           if [ $FOUND -eq 1 ]; then
             exit 1
           fi

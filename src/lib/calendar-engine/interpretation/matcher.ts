@@ -300,9 +300,19 @@ function findMatchContextWithSignal(
   }
   const matchingSignal = signals.find((s) => signalMatches(s, cond))
   if (!matchingSignal) {
-    // natal context만으로 매칭되는 룰 — 첫 saju 신호 polarity 추정
-    if (cond.natalStrength || cond.yongsin) {
-      return { ctx: extractSignalVars(signals[0] ?? matchingSignal!, signals), polarity: 0 }
+    // natal context만 있는 룰은 fallback 허용 (signal 차원 조건 0개일 때).
+    // sibsin/shinsalName/signalLayer 등 신호 조건이 있으면 매칭 안 됐을
+    // 때 룰 fire하면 안 됨 — 옛 버전은 natalStrength 있으면 그 외 조건
+    // 무시하고 fire해서 04월 비견월에도 "신약+관성" 룰이 fire되던 버그.
+    const hasSignalCondition =
+      !!(cond.signalSource || cond.signalKinds || cond.signalLayer ||
+         cond.sibsin || cond.shinsalName || cond.planet || cond.sign ||
+         cond.dignity) ||
+      cond.minPolarity != null || cond.maxPolarity != null
+    if (!hasSignalCondition && (cond.natalStrength || cond.yongsin)) {
+      const fallback = signals[0]
+      if (!fallback) return null
+      return { ctx: extractSignalVars(fallback, signals), polarity: 0 }
     }
     return null
   }

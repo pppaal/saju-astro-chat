@@ -171,12 +171,8 @@ const methodsCount = stats.reduce((acc, s) => {
   return acc
 }, {})
 
-const now = new Date().toISOString().replace('T', ' ').replace('Z', ' UTC')
-
 const lines = []
 lines.push(`# API Audit Report`)
-lines.push('')
-lines.push(`Generated: ${now}`)
 lines.push('')
 lines.push(`## Summary`)
 lines.push('')
@@ -235,5 +231,5 @@ if (!fs.existsSync(docsDir)) {
   fs.mkdirSync(docsDir, { recursive: true })
 }
 
-fs.writeFileSync(reportPath, lines.join('\n'), 'utf8')
+fs.writeFileSync(reportPath, lines.join('\n') + '\n', 'utf8')
 console.log(`Wrote ${path.relative(repoRoot, reportPath)}`)
