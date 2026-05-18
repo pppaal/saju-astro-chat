@@ -9,15 +9,15 @@ import { runMainSaju } from '@/lib/saju/main'
 import { buildExtendedAnalysisFromMain } from '@/lib/saju/extendedAnalysis'
 import ExtendedAnalysisSection from '@/components/reports/ExtendedAnalysisSection'
 
-// Import Tab Components — 5 theme + 1 timing utility (캘린더 엔진 5테마 정합).
+// Import Tab Components — 5 theme strict (캘린더 엔진 5테마와 1:1).
 // Growth = 옛 personality + karma + hidden 머지.
+// Timing은 FortuneTab의 마지막 섹션으로 inline 흡수 — 탭으로는 노출 안 함.
 import {
   LoveTab,
   CareerTab,
   FortuneTab,
   HealthTab,
   GrowthTab,
-  TimingTab,
   type TabId,
 } from './free-report/tabs'
 import type { TabData } from './free-report/types'
@@ -316,16 +316,17 @@ const FreeReport = memo(function FreeReport({
   // 탭 상태
   const [activeTab, setActiveTab] = useState<TabId>('love')
 
-  // 탭 정의 — 5 theme + timing. 캘린더 엔진의 5테마와 정합.
-  // 옛 8탭(성격·연애·커리어·운세·건강·카르마·타이밍·숨겨진나) →
-  // 6탭 (성격·카르마·숨겨진나 → "성장(Growth)" 하나로 머지).
+  // 탭 정의 — 5 theme strict. 캘린더 엔진의 5테마(love/money/career/
+  // health/growth)와 1:1 정합. 옛 8탭(성격·연애·커리어·운세·건강·
+  // 카르마·타이밍·숨겨진나) → 5탭으로 통합:
+  //   - 성격·카르마·숨겨진나 → 성장(Growth)
+  //   - 타이밍 → 운세(Fortune) 마지막 섹션으로 흡수
   const tabs: { id: TabId; label: string; emoji: string }[] = [
     { id: 'love', label: isKo ? '연애' : 'Love', emoji: '💕' },
     { id: 'career', label: isKo ? '커리어' : 'Career', emoji: '💼' },
     { id: 'fortune', label: isKo ? '운세' : 'Fortune', emoji: '🔮' },
     { id: 'health', label: isKo ? '건강' : 'Health', emoji: '💪' },
     { id: 'growth', label: isKo ? '성장' : 'Growth', emoji: '🌟' },
-    { id: 'timing', label: isKo ? '타이밍' : 'Timing', emoji: '⏰' },
   ]
 
   // combinedLifeTheme 계산
@@ -546,16 +547,6 @@ const FreeReport = memo(function FreeReport({
         />
       )}
 
-      {activeTab === 'timing' && (
-        <TimingTab
-          saju={normalizedSaju}
-          astro={normalizedAstro}
-          lang={lang}
-          isKo={isKo}
-          data={tabData}
-          destinyNarrative={destinyNarrative}
-        />
-      )}
 
       {/* 푸터 */}
       <p className="text-center text-xs text-gray-500 mt-6">
