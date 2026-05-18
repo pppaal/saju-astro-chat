@@ -90,16 +90,102 @@ jobs:
           path: test-results/
           retention-days: 7
 
+  # Cross-device layout regression — iPhone SE, Galaxy Z Fold 280px outer,
+  # iPhone 13 reduced-motion. Catches "chat bar clipped off-screen",
+  # "send button outside viewport", "no horizontal overflow" type bugs
+  # that don't reproduce on a desktop run.
+  mobile-layout:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [mobile-visibility, narrow-viewport, reduced-motion]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Setup environment
+        run: |
+          cp .env.example .env.local || echo "No .env.example found"
+        continue-on-error: true
+
+      - name: Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
+
+      - name: Start server in background
+        run: |
+          npm run start > /tmp/next-server.log 2>&1 &
+          echo $! > /tmp/next-server.pid
+        env:
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-test-secret-32-characters-long-test-secret' }}
+          NEXTAUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_BASE_URL: http://localhost:3000
+
+      - name: Wait for server to be ready
+        run: npm run test:e2e:wait
+        timeout-minutes: 3
+
+      - name: Run mobile-layout project
+        run: npx playwright test --config=playwright.ci.config.ts --project=${{ matrix.project }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          DEMO_TOKEN: ${{ secrets.DEMO_TOKEN || 'demo-test-token' }}
+          SUPPORT_EMAIL: ${{ secrets.SUPPORT_EMAIL || 'support@destinypal.com' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-test-secret-32-characters-long-test-secret' }}
+          NEXTAUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_BASE_URL: http://localhost:3000
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://user:pass@host/db' }}
+          ADMIN_API_TOKEN: ${{ secrets.ADMIN_API_TOKEN || 'ci-placeholder' }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET || 'ci-placeholder' }}
+          PUBLIC_METRICS_TOKEN: ${{ secrets.PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
+          NEXT_PUBLIC_PUBLIC_METRICS_TOKEN: ${{ secrets.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-layout-report-${{ matrix.project }}
+          path: tmp/playwright-report/ci/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-layout-results-${{ matrix.project }}
+          path: tmp/test-results/ci/
+          retention-days: 7
+
   report-status:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, mobile-layout]
     if: always()
     steps:
       - name: Check test status
         run: |
-          if [ "${{ needs.test.result }}" == "failure" ]; then
+          if [ "${{ needs.test.result }}" == "failure" ] || [ "${{ needs.mobile-layout.result }}" == "failure" ]; then
             echo "E2E tests failed"
             exit 1
-          elif [ "${{ needs.test.result }}" == "success" ]; then
+          elif [ "${{ needs.test.result }}" == "success" ] && [ "${{ needs.mobile-layout.result }}" == "success" ]; then
             echo "All E2E tests passed!"
           fi
