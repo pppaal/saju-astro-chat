@@ -396,10 +396,20 @@ export default function ProfilePage() {
       fallback={
         <div className="relative min-h-[100svh] overflow-hidden bg-[#03060d] text-slate-100">
           <div className="mx-auto flex min-h-[100svh] max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-            <h1 className="text-balance text-3xl font-semibold leading-[1.15] tracking-[-0.025em] text-white">
+            <h1
+              className="text-balance text-2xl font-semibold leading-[1.2] tracking-[-0.025em] text-white sm:text-3xl sm:leading-[1.15]"
+              /* `word-break: keep-all` keeps Korean phrases like "로그인하면"
+                 from breaking mid-word — mobile (≤360px) was wrapping the
+                 headline into 2 awkward lines. text-balance + smaller base
+                 size handles the rest. */
+              style={{ wordBreak: 'keep-all' }}
+            >
               {t('profile.loginRequired', '로그인하면 나의 여정이 시작돼요')}
             </h1>
-            <p className="text-[15px] leading-relaxed text-slate-400">
+            <p
+              className="text-[15px] leading-relaxed text-slate-400"
+              style={{ wordBreak: 'keep-all' }}
+            >
               {t(
                 'profile.loginDesc',
                 '내 정보, 지인 목록, 최근 상담 기록을 한 곳에서 볼 수 있어요.',
