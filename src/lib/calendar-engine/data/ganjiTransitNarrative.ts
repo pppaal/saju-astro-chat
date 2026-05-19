@@ -71,7 +71,17 @@ export function getGanjiTransitNarrative(
     return `${period} ${characterTrim}의 ${TAIL[layer]}. 강점: ${strengths}.`
   }
 
-  const characterEn = archetype.character
-  const strengths = archetype.strengths.join(', ')
-  return `${period} carries the signature of ${characterEn}. Strengths: ${strengths}.`
+  // ILJU_ARCHETYPES 는 character_en / strengths_en 영어 필드를 이미 보유
+  // 했으나, 이전엔 한국어 필드(character / strengths) 가 그대로 박혀
+  // "this month carries the signature of 창의적 리더형, 지혜와 결단" 같이
+  // 한·영 혼합으로 leak 됐음. _en 필드를 사용해 정상 영문 narrative 생성.
+  const characterEn = archetype.character_en.replace(/[.!?]\s*$/u, '')
+  const strengthsEn = archetype.strengths_en.join(', ')
+  const TAIL_EN: Record<GanjiTransitLayer, string> = {
+    daily: 'carries the signature of',
+    monthly: 'moves with the grain of',
+    yearly: 'wears the colour of',
+    decadal: 'unfolds along the long arc of',
+  }
+  return `${period} ${TAIL_EN[layer]} ${characterEn}. Strengths: ${strengthsEn}.`
 }
