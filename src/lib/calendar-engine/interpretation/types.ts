@@ -136,6 +136,9 @@ export interface TemplateVars {
   duration?: string
   sibsin?: string
   shinsalName?: string
+  /** 같은 shinsal name 이 활성화되는 모든 MM-DD ' · ' 로 묶음 (최대 5개) */
+  shinsalDates?: string
+  shinsalDatesCount?: string
   ganji?: string
 
   // 패턴/통계
