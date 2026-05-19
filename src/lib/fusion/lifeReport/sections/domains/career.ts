@@ -124,18 +124,22 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     planetSignPool('Sun', sun?.sign, 'career'),
     [`day_master:${dayMasterStem}`, `sun_sign:${sun?.sign ?? ''}`, `geokguk:${geokguk}`],
   )
+  // P1 base paragraph — opener + sibsin-category variation + MC + Sun.
+  // The pool variations are added via appendToPara below (single source of
+  // truth for period/spacing). Do NOT inline them into the array here, or
+  // the same line will be appended twice.
   let p1ko = paragraph([
     paragraphOpenerKo(dominantCategory, geokguk),
-    sibsinCatVar ?? '',
     mc
       ? `사회에 보여주는 모습은 ${signLabel(mc.sign, 'ko')}, ${mcSignFlavorKo(mc.sign)}이에요.`
       : '',
     sun
       ? `자아의 별은 ${signLabel(sun.sign, 'ko')}${sun.house === 10 ? '의 사회 정점에 머물러' : sun.house ? `의 ${karmaHouseHintForCareerKo(sun.house)} 영역에 머물러` : '에 머물러'}, ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
       : '',
-    sunSignVar ? `${sunSignVar}.` : '',
   ])
-  p1ko = appendToPara(p1ko, sibsinCatVar)
+  // Sun-sign pool goes to P1 (planet-level identity). Sibsin-category pool
+  // is reserved for P3 (deep-grain layer) so the same variation never
+  // doubles inside a single paragraph.
   p1ko = appendToPara(p1ko, sunSignVar)
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
@@ -250,6 +254,12 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     deepPiecesEn.push(
       `Your ilju (${iljuName}) naturally fits ${iljuAptitudes.slice(0, 3).join(' / ')}.`
     )
+  }
+  // Sibsin-category pool — deep-grain layer (P3, not P1) so the same line
+  // does not double inside paragraph 1.
+  if (sibsinCatVar) {
+    sajuUsed.push('pools.sibsinCategory.career')
+    deepPieces.push(/[.!?]$/.test(sibsinCatVar) ? sibsinCatVar : `${sibsinCatVar}.`)
   }
   // 12-stage variation — adds a stage-flavored career angle when the
   // day-pillar 12운성 signal is present.

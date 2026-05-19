@@ -23,9 +23,6 @@ import {
   findPlanet,
 } from '../signals/astroSynthesis'
 import { planetLabel, signLabel } from '../templates/sentences'
-import { ILJU_ARCHETYPES } from '@/lib/saju/iljuDictionary'
-import { jijangganLine } from '../pools/jijangganPool'
-import { stageHouseLine } from '../pools/stageHousePool'
 
 // 일간 한자 → 한글 라벨 (한자 표기는 빼고 자연스러운 한글 음만)
 const STEM_LABEL: Record<string, string> = {
@@ -137,9 +134,17 @@ export function buildHeadline(input: BuilderInput): Headline {
     `${ilju ? `, an ${ilju} day-pillar` : ''}.`
 
   // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
-  const sunPart = sun ? `자아의 별인 태양은 ${signLabel(sun.sign, 'ko')}에서 빛나고` : ''
-  const moonPart = moon ? `감정의 별인 달은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르며` : ''
-  const ascPart = asc ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 색감이에요` : ''
+  // "별" 단어를 한 문장 안에서 최대 1회로 제한 — 자아=태양, 감정=달은
+  // 본문에서 별 라벨 없이 바로 톤만 풀어쓰고, 첫인상은 ASC로 잇는다.
+  const sunPart = sun
+    ? `자아는 ${signLabel(sun.sign, 'ko')}에서 빛나고`
+    : ''
+  const moonPart = moon
+    ? `감정은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르며`
+    : ''
+  const ascPart = asc
+    ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 색감이에요`
+    : ''
   const skyParts = [sunPart, moonPart, ascPart].filter(Boolean).join(', ')
 
   const sunPartEn = sun
@@ -151,15 +156,23 @@ export function buildHeadline(input: BuilderInput): Headline {
   const ascPartEn = asc ? `${signLabel(asc.sign, 'en')} rising` : ''
   const skyPartsEn = [sunPartEn, moonPartEn, ascPartEn].filter(Boolean).join(' · ')
 
-  const s2ko = skyParts ? `별의 결로 보면 ${skyParts}.` : ''
-  const s2en = skyPartsEn ? `Astrologically, you are shaped by ${skyPartsEn}.` : ''
+  const s2ko = skyParts
+    ? `별의 결로 보면 ${skyParts}.`
+    : ''
+  const s2en = skyPartsEn
+    ? `Astrologically, you are shaped by ${skyPartsEn}.`
+    : ''
 
   // ─ Sentence 3 — fusion theme (짧게, iljuChar raw 제거)
   const domEl = el?.dominant
   const domModality = mod?.dominant
   const lackEl = el?.lacking
-  const balanceFlavorKo = domEl ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.` : ''
-  const balanceFlavorEn = domEl ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity` : ''
+  const balanceFlavorKo = domEl
+    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.`
+    : ''
+  const balanceFlavorEn = domEl
+    ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity`
+    : ''
   // 모달리티 + 인생 이끄는 별을 한 문장으로 묶어 짧은 문장 연속을 부드럽게 함
   const modPlanetKo = (() => {
     const modPart = domModality ? modalityKo(domModality) : ''
@@ -169,7 +182,9 @@ export function buildHeadline(input: BuilderInput): Headline {
     if (planetPart) return ` ${planetPart}.`
     return ''
   })()
-  const modFlavorEn = domModality ? `, with a ${domModality} cadence` : ''
+  const modFlavorEn = domModality
+    ? `, with a ${domModality} cadence`
+    : ''
   const domPlanetEn = dom ? `, led by ${planetLabel(dom, 'en')}` : ''
   const lackKo = lackEl ? ` 단 ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
   const lackEn = lackEl ? `, while ${ELEMENT_FLAVOR_EN[lackEl]} stays unfilled` : ''
@@ -177,52 +192,14 @@ export function buildHeadline(input: BuilderInput): Headline {
   // 한자 raw iljuCharacter는 영어에만 짧게 유지, 한국어에선 자연 어색해 제거
   const iljuCharShortEn = iljuChar ? `In one line: '${shortenEn(iljuChar)}'.` : ''
 
-  // ─ Sentence 4 — ilju archetype (60갑자 사전 DB 직접 활용)
-  //   기존: saju.ultraAdvanced?.iljuDeep?.iljuCharacter (선택적, 비어있을 수 있음)
-  //   추가: ILJU_ARCHETYPES (자평진전·적천수·명리정종 출처, 항상 채워져 있음)
-  //   같은 정보 두 출처 — ultraAdvanced 가 비어도 archetype DB 에서 fallback.
-  const archetype = ilju ? ILJU_ARCHETYPES[ilju] : undefined
-  if (archetype) sajuUsed.push('iljuArchetypes.character')
-  const archetypeKo = archetype
-    ? `당신의 일주 **${ilju}** 는 ${archetype.character}이에요. 강점은 ${archetype.strengths.join('·')} 이고, 주의할 결은 ${archetype.weaknesses.join('·')} 이에요.`
-    : ''
-  const archetypeEn = archetype
-    ? `Your day pillar **${ilju}** carries a ${archetype.character} signature — strengths: ${archetype.strengths.join(', ')}; watch-outs: ${archetype.weaknesses.join(', ')}.`
-    : ''
-
-  // ─ Sentence 5 — 지장간 deep root (60 ganji 가 보여주지 못하는 지지 안쪽 결)
-  //   일지 (day branch) 가 단순 글자 하나로만 노출되던 걸 안쪽 hidden stem
-  //   3개 (여기·중기·정기) 구조까지 펼침. saju 정통 layer 라 본명 묘사 진정성 ↑.
-  const jijangKo = jijangganLine(dayBr, 'ko')
-  const jijangEn = jijangganLine(dayBr, 'en')
-  if (jijangKo) sajuUsed.push('jijanggan.hiddenStems')
-
-  // ─ Sentence 6 — 12운성 × 태양 하우스 cross
-  //   destiny-matrix layer6 (TWELVE_STAGE_HOUSE_MATRIX) 가 144 entry 가지고 있는데
-  //   본명 cross 로 활용 못 하고 있었음. 일주 12-stage (saju) × 태양 house (astro)
-  //   pairing 한 줄 추가 — 사주 ↔ 점성 진짜 cross signal.
-  const stage = saju.ultraAdvanced?.iljuDeep?.twelveStage
-  const stageHouseKo = sun ? stageHouseLine(stage, sun.house, 'ko') : ''
-  const stageHouseEn = sun ? stageHouseLine(stage, sun.house, 'en') : ''
-  if (stageHouseKo) {
-    sajuUsed.push('ultraAdvanced.iljuDeep.twelveStage')
-    astroUsed.push('planets.sun.house')
-  }
-
   const s3ko = paragraphJoin([
     balanceFlavorKo,
     modPlanetKo,
     lackKo,
-    archetypeKo,
-    jijangKo,
-    stageHouseKo,
   ])
   const s3en = paragraphJoin([
     balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.',
     iljuCharShortEn,
-    archetypeEn,
-    jijangEn,
-    stageHouseEn,
   ])
 
   return {
