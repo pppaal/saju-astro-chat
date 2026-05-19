@@ -76,9 +76,9 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       : inseong === 0
         ? '어머니와 돌봄 라인의 인연은 의식적인 노력으로 자라요.'
         : '당신은 가족과의 인연을 차분하게 이어가는 사람이에요.',
-    `돌봄의 결은 ${familyCountFlavorKo(inseong)}, 동료의 결은 ${familyCountFlavorKo(bijeon)} 자리해요. ${familyShapeKo(inseong, bijeon)}.`,
+    `돌봄 기운은 ${familyCountFlavorKo(inseong)}, 동료 기운은 ${familyCountFlavorKo(bijeon)} 자리해요. ${familyShapeKo(inseong, bijeon)}.`,
     fourth
-      ? `가정 영역은 ${signLabel(fourth.sign, 'ko')}의 색감을 띠어, 집안 공기가 ${fourthSignFlavorKo(fourth.sign)}.`
+      ? `가정 영역은 ${signLabel(fourth.sign, 'ko')}의 분위기를 띠어, 집안 공기가 ${fourthSignFlavorKo(fourth.sign)}.`
       : '',
   ])
   const p1en = paragraph([
@@ -103,34 +103,35 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   const bijeonPos = findPillarOfSibsinCategory(positions, '비겁', { visibleOnly: true })
   const inseongLineKo = inseongPos
     ? inseongPos.pillarKey === 'month'
-      ? '청년 자리에 어머니·돌봄의 결이 놓여서, 어머니 인연이 삶의 무게중심에 와 있어요.'
-      : `${pillarKoNatural(inseongPos.pillarKey)}에 어머니·돌봄의 결이 놓여서, 어머니나 돌봄 라인의 결이 그 자리부터 흘러 들어와요.`
+      ? '청년 자리에 어머니·돌봄의 기운이 놓여서, 어머니 인연이 삶의 무게중심에 와 있어요.'
+      : `${pillarKoNatural(inseongPos.pillarKey)}에 어머니·돌봄의 기운이 놓여서, 어머니나 돌봄 라인이 그 자리부터 흘러 들어와요.`
     : ''
   const bijeonLineKo =
     bijeonPos && bijeon >= 2
-      ? `${pillarKoNatural(bijeonPos.pillarKey)}에 형제·동료의 결이 또렷이 자리잡아, 형제·동료 라인의 결이 인생 한 축으로 자리해요.`
+      ? `${pillarKoNatural(bijeonPos.pillarKey)}에 형제·동료의 기운이 또렷이 자리잡아, 형제·동료 라인이 인생 한 축으로 자리해요.`
       : ''
   const inseongLineEn = inseongPos
-    ? (inseongPos.pillarKey === 'month'
-        ? 'With the caregiver line sitting at your young-adulthood seat, the mother and caregiver line sit at the centre of your chart.'
-        : `Because the caregiver line sits at your ${familyPillarSeatEn(inseongPos.pillarKey)}, the mother and caregiver line enter from that seat.`)
+    ? inseongPos.pillarKey === 'month'
+      ? 'With the caregiver line sitting at your young-adulthood seat, the mother and caregiver line sit at the centre of your chart.'
+      : `Because the caregiver line sits at your ${familyPillarSeatEn(inseongPos.pillarKey)}, the mother and caregiver line enter from that seat.`
     : ''
-  const bijeonLineEn = bijeonPos && bijeon >= 2
-    ? `With the sibling-and-peer line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
-    : ''
+  const bijeonLineEn =
+    bijeonPos && bijeon >= 2
+      ? `With the sibling-and-peer line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
+      : ''
   const p2ko = paragraph([
     sun
       ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 사람이에요.`
       : '',
     moon
-      ? `어머니상은 ${signLabel(moon.sign, 'ko')}의 색감으로 흐르는 달처럼, ${parentSignFlavorKo(moon.sign)} 사람이에요.`
+      ? `어머니상은 ${signLabel(moon.sign, 'ko')}의 분위기로 흐르는 달처럼, ${parentSignFlavorKo(moon.sign)} 사람이에요.`
       : '',
     inseongLineKo,
     bijeonLineKo,
     bijeon >= 2
-      ? '동료의 결이 풍성해서, 형제와 동등한 관계가 인생에 큰 자리를 차지해요.'
+      ? '동료이 풍성해서, 형제와 동등한 관계가 인생에 큰 자리를 차지해요.'
       : bijeon === 0
-        ? '동료의 결이 잔잔해서, 동등한 관계는 의식적으로 만들어가는 흐름이에요.'
+        ? '동료이 잔잔해서, 동등한 관계는 의식적으로 만들어가는 흐름이에요.'
         : '',
   ])
   const p2en = paragraph([
@@ -239,7 +240,9 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoFamily} 부모·조상 라인의 인연이 본인의 인생에 한 층 깊게 닿아 있어요.`)
     if (relEnFamily)
-      deepEn.push(`${relEnFamily} The line of your parents and ancestors reaches into your own life one layer deeper than most.`)
+      deepEn.push(
+        `${relEnFamily} The line of your parents and ancestors reaches into your own life one layer deeper than most.`
+      )
   }
   // 12-stage × family variation pool.
   const dayMasterStemF = saju.pillars.day.stem || ''
@@ -307,7 +310,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   if (basis) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Basis')
     deepKo.push(
-      `가정 기반의 점이 ${signLabel(basis.sign, 'ko')}에 놓여, 뿌리 삼는 자리도 그 색을 따라요.`
+      `가정 기반의 점이 ${signLabel(basis.sign, 'ko')}에 놓여, 뿌리 삼는 자리도 같은 흐름을 따라요.`
     )
     deepEn.push(
       `Your Lot of Basis sits in ${signLabel(basis.sign, 'en')} — the foundation you root yourself in carries that same flavor.`
@@ -352,11 +355,11 @@ function familyShapeKo(inseong: number, bijeon: number): string {
   if (inseong >= 2) return '돌봄 라인이 두텁고, 형제 라인은 잔잔히 이어져요'
   if (bijeon >= 2) return '형제와 동료 라인이 두텁고, 돌봄은 잔잔히 이어져요'
   if (inseong === 0 && bijeon === 0)
-    return '가족의 결이 가벼워서, 본인이 새 가족을 만들어가는 자리예요'
+    return '가족 인연이 가벼워서, 본인이 새 가족을 만들어가는 자리예요'
   return '돌봄과 동등이 균형 있게 자리해요'
 }
 
-// 가족 결의 강도를 "겹" 없이 자연 한국어로
+// 가족 인연의 강도를 "겹" 없이 자연 한국어로
 function familyCountFlavorKo(n: number): string {
   if (n === 0) return '비어 있게'
   if (n === 1) return '한 갈래로 가볍게'
@@ -408,7 +411,7 @@ const FOURTH_SIGN_FLAVOR_EN: Record<string, string> = {
   Pisces: 'dreamy and empathic',
 }
 function fourthSignFlavorKo(s: string | undefined): string {
-  return (s && FOURTH_SIGN_FLAVOR_KO[s]) ?? '독특한 색감으로 흘러요'
+  return (s && FOURTH_SIGN_FLAVOR_KO[s]) ?? '독특한 분위기로 흘러요'
 }
 function fourthSignFlavorEn(s: string | undefined): string {
   return (s && FOURTH_SIGN_FLAVOR_EN[s]) ?? 'singular'
@@ -443,7 +446,7 @@ const PARENT_SIGN_FLAVOR_EN: Record<string, string> = {
   Pisces: 'empathic and emotional',
 }
 function parentSignFlavorKo(s: string): string {
-  return PARENT_SIGN_FLAVOR_KO[s] ?? '독특한 색감의'
+  return PARENT_SIGN_FLAVOR_KO[s] ?? '독특한 분위기의'
 }
 function parentSignFlavorEn(s: string): string {
   return PARENT_SIGN_FLAVOR_EN[s] ?? 'singular'
@@ -491,7 +494,7 @@ const CERES_MOM_HOUSE_FLAVOR_EN: Record<number, string> = {
   12: 'healing and inward',
 }
 function ceresMomFlavorKo(h: number): string {
-  return CERES_MOM_HOUSE_FLAVOR_KO[h] ?? '독특한 색감의'
+  return CERES_MOM_HOUSE_FLAVOR_KO[h] ?? '독특한 분위기의'
 }
 function ceresMomFlavorEn(h: number): string {
   return CERES_MOM_HOUSE_FLAVOR_EN[h] ?? 'singular'

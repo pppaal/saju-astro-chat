@@ -135,7 +135,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (iljuHealthVar) {
     sajuUsed.push('pools.ilju.health')
     deepKo.push(`${iljuHealthVar}.`)
-    deepEn.push(`Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) points to this particular constitutional pattern.`)
+    deepEn.push(
+      `Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) points to this particular constitutional pattern.`
+    )
   }
 
   if (ch) {
@@ -163,7 +165,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     const contra = decls.find((d) => d.kind === 'contraparallel')
     if (par) {
       deepKo.push(
-        `${planetLabelHealthKo(par.a)}과 ${planetLabelHealthKo(par.b)}이 평행 결의 만남을 이루어, 두 별의 흐름이 같은 결로 몸의 리듬을 만들어요.`
+        `${planetLabelHealthKo(par.a)}과 ${planetLabelHealthKo(par.b)}이 평행으로 만나, 두 별의 흐름이 같은 방향으로 몸의 리듬을 만들어요.`
       )
       deepEn.push(
         `${par.a} and ${par.b} share a parallel declination — their currents braid together into a single rhythm inside the body.`
@@ -171,7 +173,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     }
     if (contra) {
       deepKo.push(
-        `${planetLabelHealthKo(contra.a)}과 ${planetLabelHealthKo(contra.b)}이 마주보는 결의 긴장을 이루어, 두 흐름이 균형을 맞추기 위한 작은 부하가 몸에 새겨져요.`
+        `${planetLabelHealthKo(contra.a)}과 ${planetLabelHealthKo(contra.b)}이 마주보는 긴장을 이루어, 두 흐름이 균형을 맞추기 위한 작은 부하가 몸에 새겨져요.`
       )
       deepEn.push(
         `${contra.a} and ${contra.b} sit in contraparallel declination — a small balancing load is written into the body's natural rhythm.`
@@ -182,7 +184,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     deepKo.push(
       '태어난 시기 가까이 있던 일식·월식의 흔적이 신체 리듬에 미세한 부하를 남기는 흐름이에요.'
     )
-    deepEn.push(`An eclipse close to your birth leaves a subtle imprint on the rhythms of your body.`)
+    deepEn.push(
+      `An eclipse close to your birth leaves a subtle imprint on the rhythms of your body.`
+    )
   }
   if (unlucky.length > 0) {
     deepKo.push('무리가 누적되지 않도록 평소 회복 루틴이 필요한 흐름이 함께 있어요.')
@@ -214,7 +218,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoHealth} 무리가 쌓이면 그 자리부터 몸의 반응이 먼저 와요.`)
     if (relEnHealth)
-      deepEn.push(`${relEnHealth} When you push too hard, the strain tends to surface from that area first.`)
+      deepEn.push(
+        `${relEnHealth} When you push too hard, the strain tends to surface from that area first.`
+      )
   }
   // 12-stage × health + planet × sign × health variations — capped at 2
   // additional astro pool lines so the deep paragraph does not bloat.
@@ -309,27 +315,39 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const guideEn: string[] = ['Daily handle:']
   if (weak.includes('목') || weak.includes('wood')) {
     guideKo.push('간·담을 보호하세요. 분노·과로 누적이 가장 큰 부담이에요.')
-    guideEn.push('Protect your liver and gallbladder — anger and overwork are the heaviest loads for you.')
+    guideEn.push(
+      'Protect your liver and gallbladder — anger and overwork are the heaviest loads for you.'
+    )
   }
   if (weak.includes('화') || weak.includes('fire')) {
     guideKo.push('심장·혈류 관리에 신경 쓰세요. 휴식 부족이 곧바로 몸에 드러나요.')
-    guideEn.push('Mind your heart and circulation — too little rest shows up in the body very quickly.')
+    guideEn.push(
+      'Mind your heart and circulation — too little rest shows up in the body very quickly.'
+    )
   }
   if (weak.includes('토') || weak.includes('earth')) {
     guideKo.push('소화기 관리에 신경 쓰세요. 끼니 규칙이 곧 회복 루틴이에요.')
-    guideEn.push('Mind your digestion — keeping regular mealtimes is itself a form of recovery for you.')
+    guideEn.push(
+      'Mind your digestion — keeping regular mealtimes is itself a form of recovery for you.'
+    )
   }
   if (weak.includes('금') || weak.includes('metal')) {
     guideKo.push('호흡기·면역을 보호하세요. 환절기에 반응이 분명해요.')
-    guideEn.push('Protect your lungs and immune system — the shift between seasons is when symptoms tend to surface.')
+    guideEn.push(
+      'Protect your lungs and immune system — the shift between seasons is when symptoms tend to surface.'
+    )
   }
   if (weak.includes('수') || weak.includes('water')) {
     guideKo.push('신장·수분에 신경 쓰세요. 두려움 누적도 같은 라인을 따라요.')
-    guideEn.push('Mind your kidneys and hydration — accumulated fear tends to run down the same line in the body.')
+    guideEn.push(
+      'Mind your kidneys and hydration — accumulated fear tends to run down the same line in the body.'
+    )
   }
   if (guideKo.length === 1) {
     guideKo.push('오행이 균형이라, 한 가지 큰 관리보다 골고루 작은 루틴이 더 잘 맞아요.')
-    guideEn.push('Your elements sit in balance — several small daily routines suit you better than one heavy regimen.')
+    guideEn.push(
+      'Your elements sit in balance — several small daily routines suit you better than one heavy regimen.'
+    )
   }
   // Calendar-engine: Lot of Necessity (약함의 영역)
   const necessity = input.calendarSignals?.arabicParts?.Necessity
@@ -417,16 +435,30 @@ function yongsinElementEnHealth(y: string): string {
 
 // 60갑자 일주 → natural English (health 섹션).
 const HEALTH_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood', 乙: 'Yin Wood',
-  丙: 'Yang Fire', 丁: 'Yin Fire',
-  戊: 'Yang Earth', 己: 'Yin Earth',
-  庚: 'Yang Metal', 辛: 'Yin Metal',
-  壬: 'Yang Water', 癸: 'Yin Water',
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
 }
 const HEALTH_BRANCH_EN: Record<string, string> = {
-  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
-  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
-  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
 }
 function iljuLabelEnHealth(ilju: string | undefined): string {
   if (!ilju) return 'native day-pillar'

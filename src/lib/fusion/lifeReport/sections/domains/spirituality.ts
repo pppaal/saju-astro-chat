@@ -1,9 +1,9 @@
 // src/lib/fusion/lifeReport/sections/domains/spirituality.ts
 // Spirituality / 영성·내면 deterministic narrative builder.
 // Uses:
-//   • 사주: 공망, 화개, iljuDeep, 인성
-//   • 점성: 12집(내면·비밀), 해왕성, draconic Sun, 출생 일/월식, lilith,
-//          harmonics 7, 12집 행성
+// • 사주: 공망, 화개, iljuDeep, 인성
+// • 점성: 12집(내면·비밀), 해왕성, draconic Sun, 출생 일/월식, lilith,
+// harmonics 7, 12집 행성
 
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
 import {
@@ -149,7 +149,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
         ]
   )
 
-  // ── P3: 영혼의 결 (draconic + harmonics 7 + lilith + eclipse)
+  // ── P3: 영혼 (draconic + harmonics 7 + lilith + eclipse)
   const p3pieces: string[] = []
   const p3piecesEn: string[] = []
 
@@ -173,14 +173,14 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   }
   if (dra?.sunSign) {
     p3pieces.push(
-      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요.`
+      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 모습으로 왔어요.`
     )
     p3piecesEn.push(
       `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} suggests your soul arrived in this life already carrying ${signSoulEn(dra.sunSign)}.`
     )
   }
   if (dra?.archetype) {
-    p3pieces.push(`전생에서 들고 온 정체성은 '${dra.archetype}' 쪽 색이에요.`)
+    p3pieces.push(`전생에서 들고 온 정체성은 '${dra.archetype}' 쪽 분위기예요.`)
     // dra.archetype은 한국어 텍스트 → 영어 narrative에는 노출하지 않음.
   }
   if (h7 && h7.strength >= 40) {
@@ -192,7 +192,9 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     )
   } else if (h7) {
     p3pieces.push('영적 친밀감이 잔잔히 깔려 있어요. 깊은 침묵의 시간을 두면 자연스럽게 깨어나요.')
-    p3piecesEn.push('The 7th harmonic runs quietly beneath the surface — long stretches of silence are what will awaken it most naturally.')
+    p3piecesEn.push(
+      'The 7th harmonic runs quietly beneath the surface — long stretches of silence are what will awaken it most naturally.'
+    )
   }
   if (lilith) {
     p3pieces.push(
@@ -203,7 +205,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     )
   }
   if (nearestEclipse?.date) {
-    p3pieces.push('출생 가까이 일식의 흔적이 있어, 결정적 순간에 평소와 다른 영적 직관이 작동해요.')
+    p3pieces.push('출생 가까가 일식의 흔적이 있어, 결정적 순간에 평소와 다른 영적 직관이 작동해요.')
     p3piecesEn.push(
       'A solar eclipse falls close to your birth — at decisive moments, an unusually strong spiritual intuition tends to wake up in you.'
     )
@@ -230,7 +232,9 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     p3pieces.push(`${relKoSpirit} 그 어긋남이 영적 사유의 출발점이 돼요.`)
     if (relEnSpirit)
-      p3piecesEn.push(`${relEnSpirit} That very misalignment becomes the starting point for spiritual reflection.`)
+      p3piecesEn.push(
+        `${relEnSpirit} That very misalignment becomes the starting point for spiritual reflection.`
+      )
   }
   // Part of Spirit (다이몬) — even when Spirit is already used elsewhere,
   // surface it here as the soul-callout for the spirituality domain.
@@ -244,7 +248,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `Your Lot of Spirit, sometimes called the Daimon, sits in ${signLabel(spiritLot.sign, 'en')} — and it marks the direction from which your true calling speaks.`
     )
   }
-  // Part of Captivity — 속박의 결 → 영적 매듭으로 풀어 해석
+  // Part of Captivity — 속박 → 영적 매듭으로 풀어 해석
   const captivity = calendarSignals?.arabicPartsExtra?.Captivity
   if (captivity) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Captivity')
@@ -477,18 +481,36 @@ function iljuLabelEnSpirit(ilju: string | undefined): string {
 // raw iljuCharacter ("辛 일간의 未 지지 조합") 를 한국어 음으로 변환.
 // 한자가 없는 경우 그대로 반환.
 const HUMANIZE_STEM_KO_SPIRIT: Record<string, string> = {
-  甲: '갑목', 乙: '을목', 丙: '병화', 丁: '정화',
-  戊: '무토', 己: '기토', 庚: '경금', 辛: '신금',
-  壬: '임수', 癸: '계수',
+  甲: '갑목',
+  乙: '을목',
+  丙: '병화',
+  丁: '정화',
+  戊: '무토',
+  己: '기토',
+  庚: '경금',
+  辛: '신금',
+  壬: '임수',
+  癸: '계수',
 }
 const HUMANIZE_BRANCH_KO_SPIRIT: Record<string, string> = {
-  子: '자수', 丑: '축토', 寅: '인목', 卯: '묘목',
-  辰: '진토', 巳: '사화', 午: '오화', 未: '미토',
-  申: '신금', 酉: '유금', 戌: '술토', 亥: '해수',
+  子: '자수',
+  丑: '축토',
+  寅: '인목',
+  卯: '묘목',
+  辰: '진토',
+  巳: '사화',
+  午: '오화',
+  未: '미토',
+  申: '신금',
+  酉: '유금',
+  戌: '술토',
+  亥: '해수',
 }
 function humanizeIljuCharSpirit(raw: string): string {
   if (!raw) return ''
-  const m = raw.match(/^([甲乙丙丁戊己庚辛壬癸])\s*일간의\s*([子丑寅卯辰巳午未申酉戌亥])\s*지지\s*조합$/)
+  const m = raw.match(
+    /^([甲乙丙丁戊己庚辛壬癸])\s*일간의\s*([子丑寅卯辰巳午未申酉戌亥])\s*지지\s*조합$/
+  )
   if (m) {
     const stem = HUMANIZE_STEM_KO_SPIRIT[m[1]] ?? m[1]
     const branch = HUMANIZE_BRANCH_KO_SPIRIT[m[2]] ?? m[2]

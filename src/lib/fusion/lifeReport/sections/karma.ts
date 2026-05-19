@@ -52,22 +52,23 @@ function karmaHouseHintKo(h: number | undefined): string {
 
 // 격국을 자연어로 짧게 (karma 섹션에서 사용)
 function karmaGeokgukShortKo(g: string): string {
-  if (!g) return '본연의 흐름'
-  if (g.includes('편관')) return '도전과 책임으로 무게를 견디는 흐름'
+  if (!g) return '자기 본연의 길'
+  if (g.includes('편관')) return '도전과 책임으로 무게를 견디는 인생'
   if (g.includes('정관')) return '책임감 있게 자리 잡는 길'
   if (g.includes('편재')) return '기회를 잡아내는 감각'
-  if (g.includes('정재')) return '꾸준히 쌓아가는 흐름'
-  if (g.includes('식신')) return '여유롭게 창조하는 흐름'
-  if (g.includes('상관')) return '재능을 자유롭게 풀어내는 흐름'
+  if (g.includes('정재')) return '꾸준히 쌓아가는 인생'
+  if (g.includes('식신')) return '여유롭게 창조하는 인생'
+  if (g.includes('상관')) return '재능을 자유롭게 풀어내는 인생'
   if (g.includes('편인')) return '독특한 직관'
   if (g.includes('정인')) return '배움과 돌봄'
-  return '본연의 흐름'
+  return '자기 본연의 길'
 }
 
 // 격국 → natural English (raw 사주 용어 없이) — karma 섹션 전용.
 function karmaGeokgukShortEn(g: string): string {
   if (!g) return 'its native shape'
-  if (g.includes('편관')) return 'a pressure-as-fuel path that carries weight through challenge and responsibility'
+  if (g.includes('편관'))
+    return 'a pressure-as-fuel path that carries weight through challenge and responsibility'
   if (g.includes('정관')) return 'a steady-authority path, settling into responsibility'
   if (g.includes('편재')) return 'an opportunistic-resource sense, catching openings as they pass'
   if (g.includes('정재')) return 'a steady-resource path, building up patiently'
@@ -99,16 +100,30 @@ function ordinalShortKarma(n: number): string {
 // 60갑자 일주 (e.g. "庚辰") → natural English label without hanja.
 // Composes stem + branch English names so callers see e.g. "Yang Metal Dragon".
 const ILJU_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood', 乙: 'Yin Wood',
-  丙: 'Yang Fire', 丁: 'Yin Fire',
-  戊: 'Yang Earth', 己: 'Yin Earth',
-  庚: 'Yang Metal', 辛: 'Yin Metal',
-  壬: 'Yang Water', 癸: 'Yin Water',
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
 }
 const ILJU_BRANCH_EN: Record<string, string> = {
-  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
-  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
-  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
 }
 function iljuLabelEn(ilju: string): string {
   if (!ilju) return 'native day-pillar'
@@ -332,13 +347,13 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     iljuName && iljuCharKo
       ? `타고난 성향을 한 마디로 풀면 '${shorten(iljuCharKo)}'이고, 이게 치유와 성장의 시작점이에요.`
       : iljuName
-        ? `타고난 일주의 결이 치유와 성장의 시작점이에요.`
+        ? `타고난 일주의 특징이 치유와 성장의 시작점이에요.`
         : '',
     ch
-      ? `상처와 치유의 색은 ${signLabel(ch.sign, 'ko')}의 톤으로 자리잡고 있어서, ${chironHouseHintKo(ch.house)} 영역에서 평생의 상처가 다른 사람을 돕는 자원으로 바뀌어요.`
+      ? `상처와 치유의 분위기는 ${signLabel(ch.sign, 'ko')} 느낌으로 자리잡고 있어서, ${chironHouseHintKo(ch.house)} 영역에서 평생의 상처가 다른 사람을 돕는 자원으로 바뀌어요.`
       : '',
     lilith
-      ? `${signLabel(lilith.sign, 'ko')}의 색으로 내면에 어두운 자질이 있어, 사회적 기대 밖의 자기를 인정할 때 진짜 힘이 풀려요.`
+      ? `${signLabel(lilith.sign, 'ko')}의 분위기로 내면에 어두운 자질이 있어, 사회적 기대 밖의 자기를 인정할 때 진짜 힘이 풀려요.`
       : '',
   ])
   const p3en = paragraph([
@@ -385,7 +400,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     `In one line: this life is a journey of resolving ${KARMA_ARCHETYPE_NOUN_EN[karmaType]} karma through ${missionEn}.`,
   ])
 
-  // ──────── 文단 5: 영혼의 결 (draconic Sun + harmonics 7)
+  // ──────── 文단 5: 영혼 (draconic Sun + harmonics 7)
   const dra = input.calendarSignals?.draconicSummary
   const h7 = input.calendarSignals?.harmonics?.[7]
   if (dra) astroUsed.push('calendarSignals.draconicSummary')
@@ -394,7 +409,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const p5piecesEn: string[] = []
   if (dra?.sunSign) {
     p5pieces.push(
-      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요. 본명과 영혼이 같은 음을 낼 때 가장 평온해져요.`
+      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 모습으로 왔어요. 본명과 영혼이 같은 음을 낼 때 가장 평온해져요.`
     )
     p5piecesEn.push(
       `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} marks the soul-identity you bring into this life — ${signSoulEn(dra.sunSign)}. The deepest sense of peace comes when your natal and draconic charts sound the same note.`
@@ -425,14 +440,14 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       const signEn = ec.sign ? signLabel(ec.sign, 'en') : ''
       if (ec.type === 'solar') {
         p5pieces.push(
-          `운명의 시작에 일식의 그늘이 ${signKo ? signKo + ' 자리에 ' : ''}새겨져 있어, 정체성의 큰 굴곡이 평생의 카르마로 작동해요.`
+          `운명의 시작에 일식의 그늘이 ${signKo ? signKo + ' 자리에 ' : ''}새겨져 있어, 정체성의 큰 굴곡이 평생의 카르마로 작용해요.`
         )
         p5piecesEn.push(
           `A solar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} etches a karmic shadow into identity itself.`
         )
       } else {
         p5pieces.push(
-          `태어난 시기에 가까운 월식이 ${signKo ? signKo + ' 자리에서 ' : ''}감정의 변곡으로 새겨져, 카르마가 정서의 결을 따라 풀려요.`
+          `태어난 시기에 가까운 월식이 ${signKo ? signKo + ' 자리에서 ' : ''}감정의 변곡으로 새겨져, 카르마가 감정을 따라 풀려요.`
         )
         p5piecesEn.push(
           `A lunar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} marks an emotional bend — karma resolves through the feeling grain.`
@@ -469,26 +484,30 @@ export function buildKarma(input: BuilderInput): KarmaSection {
         `사주 안에 결합과 충돌의 흐름이 함께 ${total}회 일어나, 인생이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`
       )
       p6piecesEn.push(
-        `Inside your chart, both harmony and clash currents appear (${total} interactions in total) — this life resolves karma through simultaneous union and severance.`,
+        `Inside your chart, both harmony and clash currents appear (${total} interactions in total) — this life resolves karma through simultaneous union and severance.`
       )
     } else if (hc.hapCount > 0) {
       p6pieces.push(
         `사주 안 결합의 흐름이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`
       )
       p6piecesEn.push(
-        `Your chart shows ${hc.hapCount} harmony-joinings — karma resolves by joining people and currents.`,
+        `Your chart shows ${hc.hapCount} harmony-joinings — karma resolves by joining people and currents.`
       )
     } else if (hc.chungCount > 0) {
       p6pieces.push(
         `사주 안 충돌의 흐름이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`
       )
       p6piecesEn.push(
-        `Your chart shows ${hc.chungCount} clash-currents — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`,
+        `Your chart shows ${hc.chungCount} clash-currents — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`
       )
     }
     if (hc.hyungCount > 0) {
-      p6pieces.push('형벌의 흐름도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
-      p6piecesEn.push('A reshaping penalty-accent runs through your chart — refining an unbending sense of justice is one of this life\'s rites of passage.')
+      p6pieces.push(
+        '형벌의 흐름도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.'
+      )
+      p6piecesEn.push(
+        "A reshaping penalty-accent runs through your chart — refining an unbending sense of justice is one of this life's rites of passage."
+      )
     }
   }
   if (twelve) {
@@ -499,14 +518,26 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       ).length
       const weak = stages.filter((s) => ['병', '사', '묘', '절', '태'].includes(s)).length
       if (strong >= 2) {
-        p6pieces.push('4기둥의 12운성을 종합하면, 인생의 무게추가 발산과 자립 쪽으로 기울어 있어요. 카르마도 적극적으로 만들어가는 길이 맞아요.')
-        p6piecesEn.push('Across your four pillars, the life-cycle stages tilt toward emanation and self-standing — your karma is actively shaped, not merely received.')
+        p6pieces.push(
+          '4기둥의 12운성을 종합하면, 인생의 무게추가 발산과 자립 쪽으로 기울어 있어요. 카르마도 적극적으로 만들어가는 길이 맞아요.'
+        )
+        p6piecesEn.push(
+          'Across your four pillars, the life-cycle stages tilt toward emanation and self-standing — your karma is actively shaped, not merely received.'
+        )
       } else if (weak >= 2) {
-        p6pieces.push('4기둥의 12운성이 수렴과 마무리 쪽으로 기울어 있어요. 카르마는 정리와 결산으로 풀려요.')
-        p6piecesEn.push('The four-pillar life-cycle stages tilt toward closure and inwardness — karma resolves through completion and settling accounts.')
+        p6pieces.push(
+          '4기둥의 12운성이 수렴과 마무리 쪽으로 기울어 있어요. 카르마는 정리와 결산으로 풀려요.'
+        )
+        p6piecesEn.push(
+          'The four-pillar life-cycle stages tilt toward closure and inwardness — karma resolves through completion and settling accounts.'
+        )
       } else {
-        p6pieces.push('4기둥의 12운성이 강약 양쪽에 골고루 분포해서, 시기에 따라 발산과 수렴을 오가는 흐름이에요.')
-        p6piecesEn.push('Your four-pillar life-cycle stages spread evenly between strong and weak — you alternate between releasing and consolidating.')
+        p6pieces.push(
+          '4기둥의 12운성이 강약 양쪽에 골고루 분포해서, 시기에 따라 발산과 수렴을 오가는 흐름이에요.'
+        )
+        p6piecesEn.push(
+          'Your four-pillar life-cycle stages spread evenly between strong and weak — you alternate between releasing and consolidating.'
+        )
       }
     }
   }
@@ -515,7 +546,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   if (captivityLot) {
     astroUsed.push('calendarSignals.arabicPartsExtra.Captivity')
     p6pieces.push(
-      `속박의 점이 ${signLabel(captivityLot.sign, 'ko')}에 놓여, 이번 생에 풀어내야 할 카르마 매듭의 색이 같은 결을 따라요.`
+      `속박의 점이 ${signLabel(captivityLot.sign, 'ko')}에 놓여, 이번 생에 풀어내야 할 카르마 매듭의 분위기도 같은 흐름을 따라요.`
     )
     p6piecesEn.push(
       `Your Lot of Captivity sits in ${signLabel(captivityLot.sign, 'en')} — the karmic knot you came here to untie tends to carry that same flavor.`
@@ -529,7 +560,11 @@ export function buildKarma(input: BuilderInput): KarmaSection {
         ]
   )
   const p6en = paragraph(
-    p6piecesEn.length ? p6piecesEn : ['The patterns of harmony and clash inside your chart sit calmly arranged — your karma tends to work itself out through the texture of daily life rather than through dramatic events.'],
+    p6piecesEn.length
+      ? p6piecesEn
+      : [
+          'The patterns of harmony and clash inside your chart sit calmly arranged — your karma tends to work itself out through the texture of daily life rather than through dramatic events.',
+        ]
   )
 
   const paragraphs: Paragraph[] = [
@@ -594,19 +629,37 @@ function shorten(s: string): string {
 // 만든다. 예: "辛 일간의 未 지지 조합" → "신금 일간과 미토 지지의 조합".
 // 한자가 없는 경우 그대로 반환.
 const HANJA_STEM_KO: Record<string, string> = {
-  甲: '갑목', 乙: '을목', 丙: '병화', 丁: '정화',
-  戊: '무토', 己: '기토', 庚: '경금', 辛: '신금',
-  壬: '임수', 癸: '계수',
+  甲: '갑목',
+  乙: '을목',
+  丙: '병화',
+  丁: '정화',
+  戊: '무토',
+  己: '기토',
+  庚: '경금',
+  辛: '신금',
+  壬: '임수',
+  癸: '계수',
 }
 const HANJA_BRANCH_KO: Record<string, string> = {
-  子: '자수', 丑: '축토', 寅: '인목', 卯: '묘목',
-  辰: '진토', 巳: '사화', 午: '오화', 未: '미토',
-  申: '신금', 酉: '유금', 戌: '술토', 亥: '해수',
+  子: '자수',
+  丑: '축토',
+  寅: '인목',
+  卯: '묘목',
+  辰: '진토',
+  巳: '사화',
+  午: '오화',
+  未: '미토',
+  申: '신금',
+  酉: '유금',
+  戌: '술토',
+  亥: '해수',
 }
 function humanizeIljuCharKo(raw: string): string {
   if (!raw) return ''
   // raw 가 generic fallback ("X 일간의 Y 지지 조합") 인 경우 자연 한국어 재조합.
-  const m = raw.match(/^([甲乙丙丁戊己庚辛壬癸])\s*일간의\s*([子丑寅卯辰巳午未申酉戌亥])\s*지지\s*조합$/)
+  const m = raw.match(
+    /^([甲乙丙丁戊己庚辛壬癸])\s*일간의\s*([子丑寅卯辰巳午未申酉戌亥])\s*지지\s*조합$/
+  )
   if (m) {
     const stem = HANJA_STEM_KO[m[1]] ?? m[1]
     const branch = HANJA_BRANCH_KO[m[2]] ?? m[2]

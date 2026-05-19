@@ -3,15 +3,15 @@
 // 4 소행성 (Ceres / Pallas / Juno / Vesta) × 12궁 cross pool.
 //
 // Source: src/lib/destiny-matrix/data/layer9-asteroid-house.ts
-//   ASTEROID_HOUSE_MATRIX — 4 asteroids × 12 houses × { keyword, advice }
-//   = 48 entries. Already calculated for every natal chart but the
-//   matrix sat unused outside destiny-matrix/engine until now.
+// ASTEROID_HOUSE_MATRIX — 4 asteroids × 12 houses × { keyword, advice }
+// = 48 entries. Already calculated for every natal chart but the
+// matrix sat unused outside destiny-matrix/engine until now.
 //
 // Each asteroid has a natural domain:
-//   - Ceres → nurturing / motherhood / family
-//   - Pallas → intelligence / strategy / wisdom
-//   - Juno → partnership / loyalty / love
-//   - Vesta → devotion / spirituality
+// - Ceres → nurturing / motherhood / family
+// - Pallas → intelligence / strategy / wisdom
+// - Juno → partnership / loyalty / love
+// - Vesta → devotion / spirituality
 
 import { ASTEROID_HOUSE_MATRIX } from '@/lib/destiny-matrix/data/layer9-asteroid-house'
 

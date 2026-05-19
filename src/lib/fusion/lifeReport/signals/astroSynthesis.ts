@@ -90,9 +90,7 @@ export function elementBalance(astro: AstrologyLikeChart): ElementBalance | null
   return { fire, earth, air, water, dominant, lacking }
 }
 
-export function modalityBalance(
-  astro: AstrologyLikeChart
-): ModalityBalance | null {
+export function modalityBalance(astro: AstrologyLikeChart): ModalityBalance | null {
   const planets = astro.planets ?? []
   if (planets.length === 0) return null
   const counts: Record<AstroModality, number> = {
@@ -137,8 +135,7 @@ export function dominantPlanet(astro: AstrologyLikeChart): string | null {
       const fromName = a.from?.name
       const toName = a.to?.name
       if (fromName) counts[fromName] = (counts[fromName] || 0) + 1
-      if (toName && toName !== fromName)
-        counts[toName] = (counts[toName] || 0) + 1
+      if (toName && toName !== fromName) counts[toName] = (counts[toName] || 0) + 1
     }
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
     if (sorted.length > 0) return sorted[0][0]
@@ -149,13 +146,8 @@ export function dominantPlanet(astro: AstrologyLikeChart): string | null {
   return sun ? sun.name : null
 }
 
-export function findPlanet(
-  astro: AstrologyLikeChart,
-  name: string
-): PlanetBase | undefined {
-  return (astro.planets ?? []).find(
-    (p) => p.name.toLowerCase() === name.toLowerCase()
-  )
+export function findPlanet(astro: AstrologyLikeChart, name: string): PlanetBase | undefined {
+  return (astro.planets ?? []).find((p) => p.name.toLowerCase() === name.toLowerCase())
 }
 
 export function northNode(astro: AstrologyLikeChart): PlanetBase | undefined {

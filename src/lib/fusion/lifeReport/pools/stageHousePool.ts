@@ -4,8 +4,8 @@
 // natal house.
 //
 // Source: src/lib/destiny-matrix/data/layer6-stage-house.ts
-//   TWELVE_STAGE_HOUSE_MATRIX — 12 stages × 12 houses × { keyword, advice }
-//   = 144 entries. Until now only consumed inside destiny-matrix/engine.
+// TWELVE_STAGE_HOUSE_MATRIX — 12 stages × 12 houses × { keyword, advice }
+// = 144 entries. Until now only consumed inside destiny-matrix/engine.
 //
 // LifeReport surface gains one extra cross line: "the user's natal
 // 12-stage signature anchored at the house their Sun (or Moon) sits in."
