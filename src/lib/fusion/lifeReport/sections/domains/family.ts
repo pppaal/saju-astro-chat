@@ -23,6 +23,7 @@ import {
   paragraph,
   signLabel,
 } from '../../templates/sentences'
+import { pickVariation, twelveStagePool, sibsinCategoryPool } from '../../pools'
 
 export function buildFamily(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -191,6 +192,52 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoFamily} 부모·조상 라인의 인연이 본인의 인생에 한 층 깊게 닿아 있어요.`)
     if (relEnFamily) deepEn.push(`${relEnFamily} The parent/ancestor line touches your own grain a layer deep.`)
+  }
+  // 12-stage × family variation pool.
+  const dayMasterStemF = saju.pillars.day.stem || ''
+  const dayBranchF = saju.pillars.day.branch || ''
+  const stageF = saju.ultraAdvanced?.iljuDeep?.twelveStage
+  const stageFamilyVar = pickVariation(twelveStagePool(stageF, 'family'), [
+    `day_master:${dayMasterStemF}`,
+    `day_branch:${dayBranchF}`,
+    `stage:${stageF ?? ''}`,
+  ])
+  if (stageFamilyVar) {
+    sajuUsed.push('pools.twelveStage.family')
+    deepKo.push(`${stageFamilyVar}.`)
+  }
+  // Sibsin category × family
+  let dominantCatF = ''
+  {
+    let maxV = -1
+    const sibCat: Record<string, number> = {
+      비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0,
+    }
+    const stemSibsin = [saju.pillars.year.sibsin, saju.pillars.month.sibsin, saju.pillars.time.sibsin]
+    const toCat: Record<string, string> = {
+      비견: '비겁', 겁재: '비겁', 식신: '식상', 상관: '식상',
+      편재: '재성', 정재: '재성', 편관: '관성', 정관: '관성',
+      편인: '인성', 정인: '인성',
+    }
+    for (const s of stemSibsin) {
+      const c = s ? toCat[s] : undefined
+      if (c) sibCat[c]++
+    }
+    for (const [k, v] of Object.entries(sibCat)) {
+      if (v > maxV) {
+        maxV = v
+        dominantCatF = k
+      }
+    }
+  }
+  const familyCatVar = pickVariation(sibsinCategoryPool(dominantCatF, 'family'), [
+    `day_master:${dayMasterStemF}`,
+    `category:${dominantCatF}`,
+    `day_branch:${dayBranchF}`,
+  ])
+  if (familyCatVar) {
+    sajuUsed.push('pools.sibsinCategory.family')
+    deepKo.push(`${familyCatVar}.`)
   }
   // Lot of Basis — 가정 기반·뿌리의 점
   const basis = input.calendarSignals?.arabicPartsExtra?.Basis

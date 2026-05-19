@@ -29,6 +29,7 @@ import {
   paragraph,
   signLabel,
 } from '../../templates/sentences'
+import { pickVariation, sibsinCategoryPool, planetSignPool } from '../../pools'
 
 export function buildMoney(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -183,6 +184,38 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoMoney} 자원 흐름이 한 번 모이고 한 번 풀리는 사이클을 만들어요.`)
     if (relEnMoney) deepEn.push(`${relEnMoney} Resource flow runs as a gather/release cycle.`)
+  }
+  // Sibsin category × money + Sun × sign × money variation pools.
+  const dayMasterStemM = saju.pillars.day.stem || ''
+  const dayBranchM = saju.pillars.day.branch || ''
+  let dominantCatM = ''
+  {
+    let maxV = -1
+    for (const [k, v] of Object.entries(cat)) {
+      if (v > maxV) {
+        maxV = v
+        dominantCatM = k
+      }
+    }
+  }
+  const moneyCatVar = pickVariation(sibsinCategoryPool(dominantCatM, 'money'), [
+    `day_master:${dayMasterStemM}`,
+    `category:${dominantCatM}`,
+    `day_branch:${dayBranchM}`,
+  ])
+  if (moneyCatVar) {
+    sajuUsed.push('pools.sibsinCategory.money')
+    deepKo.push(`${moneyCatVar}.`)
+  }
+  const sunM = astro.planets?.find((p) => p.name === 'Sun')
+  const sunMoneyVar = pickVariation(planetSignPool('Sun', sunM?.sign, 'money'), [
+    `day_master:${dayMasterStemM}`,
+    `sun_sign:${sunM?.sign ?? ''}`,
+    `day_branch:${dayBranchM}`,
+  ])
+  if (sunMoneyVar) {
+    astroUsed.push('pools.planetSign.sun.money')
+    deepKo.push(`${sunMoneyVar}.`)
   }
   // Lot of Necessity — adds a 'where resources strain' note
   const necessityLot = input.calendarSignals?.arabicParts?.Necessity

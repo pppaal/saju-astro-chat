@@ -27,6 +27,7 @@ import {
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
+import { pickVariation, twelveStagePool, planetSignPool } from '../../pools'
 
 export function buildHealth(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -162,6 +163,29 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoHealth} 무리가 쌓이면 그 자리부터 몸의 반응이 먼저 와요.`)
     if (relEnHealth) deepEn.push(`${relEnHealth} Overload signals tend to surface from that axis first.`)
+  }
+  // 12-stage × health + Sun × sign × health variations.
+  const dayMasterStemH = saju.pillars.day.stem || ''
+  const dayBranchH = saju.pillars.day.branch || ''
+  const stageH = saju.ultraAdvanced?.iljuDeep?.twelveStage
+  const sunH = getPlanet(astro, 'Sun')
+  const stageHealthVar = pickVariation(twelveStagePool(stageH, 'health'), [
+    `day_master:${dayMasterStemH}`,
+    `day_branch:${dayBranchH}`,
+    `stage:${stageH ?? ''}`,
+  ])
+  if (stageHealthVar) {
+    sajuUsed.push('pools.twelveStage.health')
+    deepKo.push(`${stageHealthVar}.`)
+  }
+  const sunHealthVar = pickVariation(planetSignPool('Sun', sunH?.sign, 'health'), [
+    `day_master:${dayMasterStemH}`,
+    `sun_sign:${sunH?.sign ?? ''}`,
+    `day_branch:${dayBranchH}`,
+  ])
+  if (sunHealthVar) {
+    astroUsed.push('pools.planetSign.sun.health')
+    deepKo.push(`${sunHealthVar}.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '건강의 흐름은 극단보다는 일상의 작은 누적이 만들어요.'
