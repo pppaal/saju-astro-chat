@@ -11,12 +11,12 @@ import type { SignalLayer, SignalPattern } from '../types'
  */
 
 const LAYER_WEIGHT: Record<SignalLayer, number> = {
-  decadal:  1.0,
-  yearly:   0.85,
-  monthly:  0.7,
-  daily:    0.55,
-  hourly:   0.4,
-  instant:  0.5,
+  decadal: 1.0,
+  yearly: 0.85,
+  monthly: 0.7,
+  daily: 0.55,
+  hourly: 0.4,
+  instant: 0.5,
 }
 
 /**
@@ -50,7 +50,7 @@ export function deriveScore(signals: SignalForScore[], patterns: SignalPattern[]
 
   for (const [layer, acc] of byLayer) {
     if (acc.weight === 0) continue
-    const layerAvg = acc.sum / acc.weight     // -3 ~ +3
+    const layerAvg = acc.sum / acc.weight // -3 ~ +3
     const lw = LAYER_WEIGHT[layer] ?? 0.5
     weightedSum += layerAvg * lw
     totalWeight += lw
@@ -60,9 +60,9 @@ export function deriveScore(signals: SignalForScore[], patterns: SignalPattern[]
 
   if (totalWeight === 0) return 50
 
-  const grandAvg = weightedSum / totalWeight   // -3 ~ +3
-  let score = 50 + grandAvg * 16   // 분포 넓힘 (이전 ×12 → ×16)
-                                   // 이론적 max 98, min 2 — 실제로 20~85 정도
+  const grandAvg = weightedSum / totalWeight // -3 ~ +3
+  let score = 50 + grandAvg * 16 // 분포 넓힘 (이전 ×12 → ×16)
+  // 이론적 max 98, min 2 — 실제로 20~85 정도
 
   // 공명 보너스
   if (positiveLayers.length >= 3) score += 4
@@ -74,9 +74,25 @@ export function deriveScore(signals: SignalForScore[], patterns: SignalPattern[]
   const malefic = new Set(['crisis'])
   for (const p of patterns) {
     const isMalefic = p.themes.some((t) => malefic.has(t))
-    const delta = (p.strength / 100) * 12   // strength 95 → 11.4
+    const delta = (p.strength / 100) * 12 // strength 95 → 11.4
     score += isMalefic ? -delta : delta
   }
 
-  return Math.max(0, Math.min(100, Math.round(score)))
+  // 상한·하한 soft compression — raw score 가 layer + pattern bonus 로
+  // 110+ 까지 가던 게 hard cap 으로 100 으로 짜부라져 한 달에 5+ 일이
+  // 100점 동률로 묶이던 문제 해소.
+  //
+  //   raw ≤ 90 → 그대로
+  //   raw 90~130 → 90~98 로 압축 (5점씩 차이가 1점 차이로 변별 유지)
+  //   raw ≥ 130 → 98 cap
+  //
+  // 역방향도 동일 (raw ≤ 10 인 흉일도 변별 유지).
+  let final = Math.round(score)
+  if (final > 90) {
+    final = Math.min(98, 90 + Math.floor((final - 90) / 5))
+  } else if (final < 10) {
+    final = Math.max(2, 10 - Math.floor((10 - final) / 5))
+  }
+
+  return Math.max(0, Math.min(100, final))
 }
