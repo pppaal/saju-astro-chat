@@ -46,11 +46,29 @@ export const GET = withApiMiddleware(
 
       const { connectionId } = validationResult.data
 
+      // 차단/언매치된 connection 의 리딩은 결과에서 제외한다.
+      // TarotReading 에 matchConnection 관계가 정의돼 있지 않아 nested where 가
+      // 불가하므로 2-step 으로: (1) 이 사용자의 active connection 들의 id 를 모은 뒤
+      // (2) reading.matchConnectionId 가 그 안에 있을 때만 통과시킨다.
+      const activeConnections = await prisma.matchConnection.findMany({
+        where: {
+          status: 'active',
+          OR: [{ user1Profile: { userId } }, { user2Profile: { userId } }],
+          ...(connectionId ? { id: connectionId } : {}),
+        },
+        select: { id: true },
+      })
+      const activeConnectionIds = activeConnections.map((c) => c.id)
+
+      if (activeConnectionIds.length === 0) {
+        return apiSuccess({ readings: [] })
+      }
+
       const readings = await prisma.tarotReading.findMany({
         where: {
           isSharedReading: true,
           OR: [{ userId }, { sharedWithUserId: userId }],
-          ...(connectionId ? { matchConnectionId: connectionId } : {}),
+          matchConnectionId: { in: activeConnectionIds },
         },
         orderBy: { createdAt: 'desc' },
         take: 50,
@@ -143,6 +161,16 @@ export const POST = withApiMiddleware(
         return apiError(ErrorCodes.FORBIDDEN, '이 매치에 대한 권한이 없습니다')
       }
 
+      // 차단/언매치된 connection 에 새 리딩 만드는 것을 차단.
+      if (connection.status !== 'active') {
+        logger.warn('[Couple reading] POST blocked: inactive connection', {
+          userId,
+          connectionId,
+          status: connection.status,
+        })
+        return apiError(ErrorCodes.NOT_FOUND, '매치를 찾을 수 없습니다')
+      }
+
       const partnerId = isUser1 ? connection.user2Profile.userId : connection.user1Profile.userId
 
       const userCredits = await prisma.userCredits.findUnique({
@@ -160,46 +188,74 @@ export const POST = withApiMiddleware(
         return apiError(ErrorCodes.FORBIDDEN, '크레딧이 부족합니다. 크레딧을 충전해주세요.')
       }
 
-      const result = await prisma.$transaction(async (tx) => {
-        if (userCredits.compatibilityUsed < userCredits.compatibilityLimit) {
-          await tx.userCredits.update({
-            where: { userId },
-            data: { compatibilityUsed: { increment: 1 } },
-          })
-        } else {
-          await tx.userCredits.update({
-            where: { userId },
-            data: { bonusCredits: { decrement: 1 } },
-          })
+      // 크레딧 차감을 atomic conditional update 로 막아 race 와 음수 bonus 를 방지한다.
+      // 1) compat 한도 안에 있으면 compat 먼저 시도. updateMany 의 where 절에 잔량 조건을 박아 race 가 와도 한쪽만 통과한다.
+      // 2) compat 가 race 로 막히거나 한도 초과면 bonus 로 fallback. (옛 코드는 트랜잭션 밖 스냅샷으로 분기를 정해, race 로 compat 가 막히면 bonus 가 남아 있어도 403 으로 떨어지는 문제가 있었다.)
+      // 3) 둘 다 실패해야만 INSUFFICIENT 으로 롤백.
+      class InsufficientCreditsError extends Error {
+        constructor() {
+          super('INSUFFICIENT_CREDITS')
+          this.name = 'InsufficientCreditsError'
         }
+      }
+      let result
+      try {
+        result = await prisma.$transaction(async (tx) => {
+          let charged: 'compat' | 'bonus' | null = null
 
-        const reading = await tx.tarotReading.create({
-          data: {
-            userId,
-            question: question || '커플 타로',
-            spreadId,
-            spreadTitle: (spreadTitle || '커플 스프레드') as string,
-            cards: cards as Prisma.InputJsonValue,
-            overallMessage: overallMessage as string,
-            cardInsights: cardInsights ? (cardInsights as Prisma.InputJsonValue) : Prisma.DbNull,
-            guidance,
-            affirmation,
-            source: 'couple',
-            isSharedReading: true,
-            sharedWithUserId: partnerId,
-            matchConnectionId: connectionId,
-            paidByUserId: userId,
-            locale: 'ko',
-          },
+          if (userCredits.compatibilityUsed < userCredits.compatibilityLimit) {
+            const compatTry = await tx.userCredits.updateMany({
+              where: { userId, compatibilityUsed: { lt: userCredits.compatibilityLimit } },
+              data: { compatibilityUsed: { increment: 1 } },
+            })
+            if (compatTry.count > 0) charged = 'compat'
+          }
+
+          if (!charged) {
+            const bonusTry = await tx.userCredits.updateMany({
+              where: { userId, bonusCredits: { gt: 0 } },
+              data: { bonusCredits: { decrement: 1 } },
+            })
+            if (bonusTry.count > 0) charged = 'bonus'
+          }
+
+          if (!charged) throw new InsufficientCreditsError()
+
+          const reading = await tx.tarotReading.create({
+            data: {
+              userId,
+              question: question || '커플 타로',
+              spreadId,
+              spreadTitle: (spreadTitle || '커플 스프레드') as string,
+              cards: cards as Prisma.InputJsonValue,
+              overallMessage: overallMessage as string,
+              cardInsights: cardInsights
+                ? (cardInsights as Prisma.InputJsonValue)
+                : Prisma.DbNull,
+              guidance,
+              affirmation,
+              source: 'couple',
+              isSharedReading: true,
+              sharedWithUserId: partnerId,
+              matchConnectionId: connectionId,
+              paidByUserId: userId,
+              locale: 'ko',
+            },
+          })
+
+          await tx.matchConnection.update({
+            where: { id: connectionId },
+            data: { lastInteractionAt: new Date() },
+          })
+
+          return reading
         })
-
-        await tx.matchConnection.update({
-          where: { id: connectionId },
-          data: { lastInteractionAt: new Date() },
-        })
-
-        return reading
-      })
+      } catch (txErr) {
+        if (txErr instanceof InsufficientCreditsError) {
+          return apiError(ErrorCodes.FORBIDDEN, '크레딧이 부족합니다. 크레딧을 충전해주세요.')
+        }
+        throw txErr
+      }
 
       // 파트너에게 푸시 알림 보내기 (비동기로 처리)
       const user = await prisma.user.findUnique({

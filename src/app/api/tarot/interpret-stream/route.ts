@@ -11,27 +11,47 @@ import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
-import { TAROT_RULES_KO, TAROT_RULES_EN } from '@/lib/tarot/promptShared'
+import {
+  buildFallbackPayload,
+  buildInterpretStreamPrompts,
+  buildChunkUserPrompt as buildChunkUserPromptShared,
+} from '@/lib/tarot/promptBuild'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
   creditErrorResponse,
 } from '@/lib/credits/withCredits'
-
-interface CardInput {
-  name: string
-  nameKo?: string
-  isReversed: boolean
-  // LLM이 명명 — 클라가 안 보내므로 undefined 가능. line 69의 fallback 참고.
-  position?: string
-  positionKo?: string
-  positionMeaning?: string
-  positionMeaningKo?: string
-  keywords?: string[]
-  keywordsKo?: string[]
-}
+import { refundCredits } from '@/lib/credits/creditRefund'
 
 const OPENAI_TIMEOUT_MS = 30000
+
+// 두 LLM (Claude → OpenAI) 모두 실패해서 generic fallback 으로 떨어질 때 호출.
+// 로그인 사용자의 차감된 크레딧을 같은 counter (chargedAs) 로 복구한다.
+// guest (userId 없음) 는 cookie 카운터라 환불 대상에서 제외 — 별도 정책 필요 시 후속.
+async function refundOnAllLlmFailure(
+  creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null,
+  reason: string,
+  errorMessage?: string
+) {
+  if (!creditResult?.userId || !creditResult.chargedAs) return
+  try {
+    await refundCredits({
+      userId: creditResult.userId,
+      creditType: creditResult.chargedAs,
+      amount: 1,
+      reason,
+      apiRoute: '/api/tarot/interpret-stream',
+      errorMessage,
+    })
+  } catch (refundErr) {
+    // 환불 실패가 응답을 막아선 안 된다. 로그로만 남기고 사용자에게는 fallback 응답.
+    logger.error('[interpret-stream] refund failed', {
+      refundErr: refundErr instanceof Error ? refundErr.message : String(refundErr),
+      reason,
+      userId: creditResult.userId,
+    })
+  }
+}
 
 function withCreditCookies(
   response: Response,
@@ -51,38 +71,6 @@ function withCreditCookies(
 }
 
 // Use centralized sanitizeString from @/lib/api/sanitizers
-
-function buildFallbackPayload(
-  cards: CardInput[],
-  language: 'ko' | 'en'
-): { overall: string; cards: { position: string; interpretation: string }[]; advice: string } {
-  const isKorean = language === 'ko'
-  const overall = isKorean
-    ? '\uCE74\uB4DC\uC5D0\uC11C \uC804\uD574\uC9C0\uB294 \uD575\uC2EC \uBA54\uC2DC\uC9C0\uB97C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.'
-    : 'Here is the core message the cards are pointing to.'
-  const advice = isKorean
-    ? '\uC624\uB298 \uD560 \uC218 \uC788\uB294 \uC791\uC740 \uD589\uB3D9\uBD80\uD130 \uC2DC\uC791\uD574 \uBCF4\uC138\uC694.'
-    : 'Start with one small, concrete step you can take today.'
-
-  const cardsPayload = cards.map((card, index) => {
-    const position =
-      (isKorean && card.positionKo ? card.positionKo : card.position) || `Card ${index + 1}`
-    const name = (isKorean && card.nameKo ? card.nameKo : card.name) || `Card ${index + 1}`
-    const orientation = card.isReversed
-      ? isKorean
-        ? '\uC5ED\uBC29\uD5A5'
-        : 'reversed'
-      : isKorean
-        ? '\uC815\uBC29\uD5A5'
-        : 'upright'
-    const interpretation = isKorean
-      ? `${name} (${orientation}) \uCE74\uB4DC\uB294 \uD604\uC7AC \uC0C1\uD669\uC5D0\uC11C \uC911\uC694\uD55C \uD3EC\uC778\uD2B8\uB97C \uC9DA\uC5B4 \uC90D\uB2C8\uB2E4.`
-      : `${name} (${orientation}) highlights a key point in your current situation.`
-    return { position, interpretation }
-  })
-
-  return { overall, cards: cardsPayload, advice }
-}
 
 function streamJsonPayload(
   payload: {
@@ -182,85 +170,15 @@ export async function POST(req: NextRequest) {
       hasQuestion: Boolean(effectiveUserQuestion),
     })
 
-    const isKorean = language === 'ko'
-    // 자리명은 더 이상 클라이언트에서 안 보냄 — LLM 이 질문 맥락에서 명명.
-    // 카드 면(이름 + 정/역 + 키워드) 만 번호 매겨 전달.
-    const cardListText = rawCards
-      .map((c, i) => {
-        const name = isKorean && c.nameKo ? c.nameKo : c.name
-        const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || []
-        const kw = keywords.slice(0, 3).join(', ')
-        return `${i + 1}. ${name}${c.isReversed ? '(역방향)' : ''}${kw ? ` - ${kw}` : ''}`
-      })
-      .join('\n')
-
-    const q = effectiveUserQuestion || (isKorean ? '일반 운세' : 'general reading')
-
-    // 시스템 프롬프트 — 100% 정적 (페르소나 + 4단계 + 스키마).
-    // ${rawCards.length} 같은 인터폴레이션 *금지* — Anthropic prompt caching prefix 안정화.
-    // 카드 수·자리명 등 동적 부분은 모두 user prompt 에서 명시.
-    const systemPrompt = isKorean
-      ? `${TAROT_RULES_KO}
-
-자리(position) 명명:
-- 카드 자리 이름은 사용자 질문 맥락에 맞게 *네가 직접* 한국어 짧은 라벨로 명명 (예: 내 마음, 상대 마음, 막힘, 다음 행동, 가까운 결말).
-- 라벨 길이는 2-6자, 중복 금지, 사전적·일반 용어("과거"·"현재"·"미래") 보다 질문에 *밀착된 표현* 우선.
-- 카드 순서대로 흐름이 자연스럽게 이어지게.
-
-출력 — 정확히 이 JSON 스키마 (코드펜스/주석/머리말 X):
-{
-  "overall": "오프닝 + 시너지, 400-600자, 첫 문장에 사용자 질문 직접 언급",
-  "cards": [
-    { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함" }
-  ],
-  "advice": "구체 행동 1-3개, 150-200자"
-}`
-      : `${TAROT_RULES_EN}
-
-Naming each position:
-- Name each seat yourself in short English (2-4 words) based on the user's question (e.g. "My feelings", "Their feelings", "What's blocking", "Next move", "Likely outcome").
-- No duplicates, prefer question-specific labels over generic "Past"/"Present"/"Future".
-- The positions should flow naturally in the order the cards were drawn.
-
-Output — exactly this JSON schema (no code fences, no preamble, no comments):
-{
-  "overall": "Opening + synergy, 250-350 words, first sentence references the question",
-  "cards": [
-    { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, 180-280 words, with a time anchor" }
-  ],
-  "advice": "1-3 concrete actions, 90-130 words"
-}`
-
-    // 유저 프롬프트 — 질문을 맨 위, 가장 눈에 띄게 배치
-    const userPrompt = isKorean
-      ? `# 사용자의 질문
-"${q}"
-
-# 스프레드
-${spreadTitle} (${rawCards.length}장)
-
-# 뽑힌 카드 (순서대로)
-${cardListText}
-
-# 작성 지시
-- 모든 ${rawCards.length}장의 카드에 대해 cards[] 항목을 만드세요.
-- 각 카드의 position 은 사용자 질문 맥락에 맞춰 *네가 직접* 한국어 짧은 라벨로 명명 (2-6자, 중복 금지).
-- 각 카드는 위 질문 맥락 안에서 해석합니다. 카드를 보고 사전식 정의를 쓰지 마세요.
-- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.`
-      : `# User's Question
-"${q}"
-
-# Spread
-${spreadTitle} (${rawCards.length} cards)
-
-# Cards Drawn (in order)
-${cardListText}
-
-# Instructions
-- Produce cards[] entries for all ${rawCards.length} cards.
-- Name each card's position yourself, in short English (2-4 words), grounded in the user's question. No duplicates.
-- Interpret each card *inside the user's question above*. No textbook definitions.
-- The first sentence of overall must reference the user's question directly.`
+    // 프롬프트 — 시스템 (rules + position naming + JSON schema) + 유저 (질문 +
+    // 카드 리스트 + 지시) 모두 promptBuild 의 pure 빌더로 위임. 라우트 안에서는
+    // I/O 만 다루고, 프롬프트 shape 는 단위 테스트로 lock.
+    const { systemPrompt, userPrompt } = buildInterpretStreamPrompts({
+      language,
+      spreadTitle,
+      cards: rawCards,
+      userQuestion: effectiveUserQuestion,
+    })
 
     // Claude 우선.
     //  - <8장: 단일 호출, 응답 전체를 SSE 단일 청크로 emit (기존 흐름)
@@ -320,22 +238,16 @@ ${cardListText}
           startIdx: number,
           endIdx: number,
           includeMeta: boolean
-        ): string => {
-          const chunkInfo = isKorean
-            ? `(전체 ${rawCards.length}장 중 ${startIdx + 1}~${endIdx}번 카드만 해석)`
-            : `(interpret only cards ${startIdx + 1}-${endIdx} of ${rawCards.length})`
-          const task = includeMeta
-            ? isKorean
-              ? `# 작성 지시\n- 전체 카드 흐름을 보고 overall + advice 작성하고, ${chunkInfo} 의 카드별 cards[] 항목을 채우세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
-              : `# Instructions\n- Read the full ${rawCards.length}-card flow; write overall + advice, fill cards[] with per-card interpretations ${chunkInfo}.\n- cards[] length must be exactly ${endIdx - startIdx}.`
-            : isKorean
-              ? `# 작성 지시\n- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfo} 의 카드별 해석만 cards[] 에 채우세요. overall/advice 는 출력하지 마세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
-              : `# Instructions\n- Use the full ${rawCards.length}-card flow as context only. Output ONLY per-card interpretations ${chunkInfo} in cards[]. Do NOT include overall/advice.\n- cards[] length must be exactly ${endIdx - startIdx}.`
-          if (isKorean) {
-            return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${rawCards.length}장)\n\n# 뽑힌 카드 — 전체 (순서대로)\n${cardListText}\n\n${task}`
-          }
-          return `# User's Question\n"${q}"\n\n# Spread\n${spreadTitle} (${rawCards.length} cards)\n\n# Cards Drawn — full list (in order)\n${cardListText}\n\n${task}`
-        }
+        ): string =>
+          buildChunkUserPromptShared({
+            language,
+            spreadTitle,
+            cards: rawCards,
+            userQuestion: effectiveUserQuestion,
+            startIdx,
+            endIdx,
+            includeMeta,
+          })
 
         // Per-card token budget — 500 tokens / card + 500 base for chunks
         // carrying overall/advice. Previous 2400-flat ceiling left 15-card
@@ -406,13 +318,25 @@ ${cardListText}
         const cardsB = Array.isArray(chunkB.parsed?.cards)
           ? (chunkB.parsed!.cards as unknown[])
           : []
-        const mergedJson = {
-          overall: chunkA.parsed?.overall ?? '',
-          cards: [...cardsA, ...cardsB],
-          advice: chunkA.parsed?.advice ?? '',
+        const mergedCards = [...cardsA, ...cardsB]
+        // 카드 수 부족 (chunk retry 까지 실패) 시 서버 측에서 fallback 으로 채운다.
+        // 옛 흐름은 클라 parseStreamedInterpretation 이 부족분을 흡수했지만
+        // 카드 절반만 보여 주고 "성공" 으로 보이는 케이스가 생겼다.
+        let padded = false
+        if (mergedCards.length < rawCards.length) {
+          const fallback = buildFallbackPayload(rawCards, language)
+          while (mergedCards.length < rawCards.length) {
+            mergedCards.push(fallback.cards[mergedCards.length])
+          }
+          padded = true
         }
-        // 두 chunk 다 retry 까지 실패하면 cards 가 절반 또는 0 으로 남음.
-        // 클라이언트의 parseStreamedInterpretation 이 부족분을 fallback 으로 채움.
+        const mergedJson = {
+          overall:
+            chunkA.parsed?.overall || buildFallbackPayload(rawCards, language).overall,
+          cards: mergedCards,
+          advice:
+            chunkA.parsed?.advice || buildFallbackPayload(rawCards, language).advice,
+        }
         const mergedText = JSON.stringify(mergedJson)
         logger.info('Tarot stream parallel chunks merged', {
           cards: rawCards.length,
@@ -422,6 +346,7 @@ ${cardListText}
           bParsed: chunkB.parsed !== null,
           aRetried: chunkA.retried,
           bRetried: chunkB.retried,
+          padded,
         })
 
         const encoder = new TextEncoder()
@@ -458,6 +383,11 @@ ${cardListText}
     // OpenAI Streaming (fallback when Claude unavailable or failed)
     if (!process.env.OPENAI_API_KEY) {
       logger.warn('Tarot stream missing both ANTHROPIC_API_KEY and OPENAI_API_KEY, using fallback')
+      await refundOnAllLlmFailure(
+        creditResult,
+        'tarot_llm_unavailable',
+        'Both Claude and OpenAI keys missing'
+      )
       const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
@@ -496,6 +426,11 @@ ${cardListText}
       recordExternalCall('openai', 'gpt-4o-mini', 'error', Date.now() - openaiStartTime)
       logger.error('OpenAI stream fetch error:', { error })
       logger.warn('Tarot stream emergency fallback')
+      await refundOnAllLlmFailure(
+        creditResult,
+        'tarot_llm_unavailable',
+        `OpenAI fetch error: ${error instanceof Error ? error.message : String(error)}`
+      )
       const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
@@ -506,6 +441,11 @@ ${cardListText}
       const errorText = await openaiResponse.text()
       logger.error('OpenAI stream error:', { status: openaiResponse.status, error: errorText })
       logger.warn('Tarot stream emergency fallback')
+      await refundOnAllLlmFailure(
+        creditResult,
+        'tarot_llm_unavailable',
+        `OpenAI ${openaiResponse.status}: ${errorText.substring(0, 200)}`
+      )
       const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }

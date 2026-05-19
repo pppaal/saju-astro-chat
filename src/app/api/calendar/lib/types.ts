@@ -85,6 +85,12 @@ export interface FormattedDate {
     matchedRuleIds: string[]
     sections: Array<{ section: string; title: string; text: string }>
   }
+  /**
+   * 해당 날의 60갑자(일진) 한 줄 narrative — `getGanjiTransitNarrative` 출처.
+   * "오늘은 [archetype] 의 에너지가 흐르는 하루예요." 형식. 매일 다른 ganji 라
+   * 5/6 월 동일 텍스트 같은 문제는 layer='daily' 에서도 자연스럽게 분기.
+   */
+  dailyGanjiNarrative?: string
 }
 
 export interface CalendarDailyView {
