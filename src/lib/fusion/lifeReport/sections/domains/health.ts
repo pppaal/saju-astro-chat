@@ -208,6 +208,19 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     astroUsed.push('pools.planetSign.sun.health')
     deepKo.push(`${sunHealthVar}.`)
   }
+  // ASC × health — 첫인상 = 몸의 색깔 (점성 정통: ASC 의 sign 이 신체
+  // 구조와 활력 톤 결정). Big 3 의 마지막 축.
+  const ascH = astro.ascendant
+  if (ascH) astroUsed.push('ascendant')
+  const ascHealthVar = pickVariation(planetSignPool('Ascendant', ascH?.sign, 'health'), [
+    `day_master:${dayMasterStemH}`,
+    `asc_sign:${ascH?.sign ?? ''}`,
+    `day_branch:${dayBranchH}`,
+  ])
+  if (ascHealthVar) {
+    astroUsed.push('pools.planetSign.asc.health')
+    deepKo.push(`${ascHealthVar}.`)
+  }
   const p3ko = paragraph(
     deepKo.length ? deepKo : ['건강의 흐름은 극단보다는 일상의 작은 누적이 만들어요.']
   )
