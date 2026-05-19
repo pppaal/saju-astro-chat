@@ -181,7 +181,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       }
 
       try {
-        const res = await fetch('/api/tarot/interpret', {
+        const res = await fetch('/api/tarot/interpret-stream', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -195,27 +195,74 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           throw new Error('Interpretation failed')
         }
 
-        const data = await res.json()
-        const nextOverall =
-          typeof data.overall_message === 'string' && data.overall_message.trim()
-            ? data.overall_message
-            : defaultOverallMessage
-        const nextGuidance =
-          typeof data.guidance === 'string' && data.guidance.trim()
-            ? data.guidance
-            : defaultGuidance
-        const nextAffirmation =
-          typeof data.affirmation === 'string' && data.affirmation.trim() ? data.affirmation : ''
-        const nextInsights = Array.isArray(data.card_insights)
-          ? (data.card_insights as CardInsight[])
+        // SSE: accumulate `data: { content: "..." }` events into a single
+        // JSON blob, then parse once at the end. interpret-stream returns
+        // `{ overall, cards: [{ position, interpretation }], advice }`.
+        const reader = res.body?.getReader()
+        if (!reader) {
+          throw new Error('No response body')
+        }
+        const decoder = new TextDecoder()
+        let accumulated = ''
+        let buf = ''
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          buf += decoder.decode(value, { stream: true })
+          const lines = buf.split('\n')
+          buf = lines.pop() || ''
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue
+            const data = line.slice(6)
+            if (data === '[DONE]') continue
+            try {
+              const ev = JSON.parse(data) as { content?: string }
+              if (ev.content) accumulated += ev.content
+            } catch {
+              // ignore partial chunks
+            }
+          }
+        }
+
+        let parsed: Record<string, unknown> | null = null
+        try {
+          const match = accumulated.match(/\{[\s\S]*\}/)
+          if (match) parsed = JSON.parse(match[0]) as Record<string, unknown>
+        } catch {
+          parsed = null
+        }
+
+        const overallRaw = parsed && typeof parsed.overall === 'string' ? parsed.overall : ''
+        const adviceRaw = parsed && typeof parsed.advice === 'string' ? parsed.advice : ''
+        const streamedCards = Array.isArray(parsed?.cards)
+          ? (parsed.cards as Array<{ position?: string; interpretation?: string }>)
           : []
+
+        const nextOverall = overallRaw.trim() || defaultOverallMessage
+        const nextGuidance = adviceRaw.trim() || defaultGuidance
+        // interpret-stream emits `{ position, interpretation }`. Pair each
+        // streamed entry with the drawn card we already have to fill the
+        // card_name / is_reversed columns the consumer expects.
+        const nextInsights: CardInsight[] = cards.map((dc, idx) => {
+          const streamed = streamedCards[idx] || {}
+          return {
+            position:
+              streamed.position ||
+              (lang === 'ko'
+                ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
+                : selectedSpread.positions[idx]?.title) ||
+              `${idx + 1}`,
+            card_name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
+            is_reversed: dc.isReversed,
+            interpretation: streamed.interpretation || '',
+          }
+        })
 
         actions.setOverallMessage(nextOverall)
         actions.setCardInsights(nextInsights)
         actions.setGuidance(nextGuidance)
-        if (nextAffirmation) {
-          actions.setAffirmation(nextAffirmation)
-        }
+        // interpret-stream doesn't emit a dedicated `affirmation`. Leave
+        // whatever the previous reading left in state untouched.
 
         actions.setStep('result')
       } catch (err) {

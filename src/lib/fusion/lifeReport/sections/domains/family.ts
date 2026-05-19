@@ -83,7 +83,11 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
         : '당신은 가족과의 인연을 차분하게 이어가는 사람이에요.',
     `돌봄의 결은 ${familyCountFlavorKo(inseong)}, 동료의 결은 ${familyCountFlavorKo(bijeon)} 자리해요. ${familyShapeKo(inseong, bijeon)}.`,
     fourth
+<<<<<<< HEAD
       ? `가정 영역은 ${signLabel(fourth.sign, 'ko')}의 색감을 띠어, 집안 공기가 ${fourthSignFlavorKo(fourth.sign)}.`
+=======
+      ? `가정 자리는 ${signLabel(fourth.sign, 'ko')}의 색감을 띠어, 집안 공기가 ${fourthSignFlavorKo(fourth.sign)}.`
+>>>>>>> origin/main
       : '',
   ])
   const p1en = paragraph([

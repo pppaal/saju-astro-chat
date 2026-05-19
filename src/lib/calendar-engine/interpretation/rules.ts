@@ -10,7 +10,6 @@ import type { InterpretationRule } from './types'
  *   matcher가 fillTemplate()에서 변수 치환.
  */
 export const RULES: InterpretationRule[] = [
-
   // ═══════════════════════════════════════════════════════════
   // 大運 narrative (5종)
   // ═══════════════════════════════════════════════════════════
@@ -115,7 +114,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**{yearGanji}** 세운 — 올해는 본명을 우호적으로 받쳐주는 ` +
       `한 해예요. 큰 결정과 새 시도가 평소보다 매끄럽게 흘러요. ` +
-      `봄과 초여름이 운의 정점이에요.`,
+      `봄과 초여름이 운의 정점이에요. {yearGanjiText}`,
     themes: ['career', 'money'],
   },
   {
@@ -173,7 +172,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**{monthGanji}** 월 — 본명을 우호적으로 받쳐주는 한 달이에요. ` +
       `의사결정·관계·실행이 평소보다 매끄러워요. ` +
-      `미뤄둔 일을 처리하기 좋아요.`,
+      `미뤄둔 일을 처리하기 좋아요. {monthGanjiText}`,
     themes: ['career', 'money'],
   },
   {
@@ -594,7 +593,7 @@ export const RULES: InterpretationRule[] = [
     },
     template:
       `**{monthGanji}** 월 — 책임이나 외부 압박이 평소보다 무거워지는 흐름이에요. ` +
-      `완벽 다 하려 하지 말고 가장 중요한 한 건에만 집중해주세요.`,
+      `완벽 다 하려 하지 말고 가장 중요한 한 건에만 집중해주세요. {monthGanjiText}`,
     themes: ['career', 'health'],
   },
   {
@@ -610,7 +609,7 @@ export const RULES: InterpretationRule[] = [
     },
     template:
       `**{monthGanji}** 월 — 돈은 보이는데 챙기기 힘든 흐름이에요. 큰 투자보다 ` +
-      `현금흐름 안정과 건강 관리를 우선해주세요.`,
+      `현금흐름 안정과 건강 관리를 우선해주세요. {monthGanjiText}`,
     themes: ['money', 'health'],
   },
   {
@@ -626,7 +625,7 @@ export const RULES: InterpretationRule[] = [
     },
     template:
       `**{monthGanji}** 월 — 받쳐주는 큰 힘이 들어오는 흐름이에요. 학습이나 자격증, ` +
-      `전문성 다지기에 가장 좋고 멘토·선배의 조언이 잘 통해요.`,
+      `전문성 다지기에 가장 좋고 멘토·선배의 조언이 잘 통해요. {monthGanjiText}`,
     themes: ['career', 'love'],
   },
   {
@@ -642,7 +641,7 @@ export const RULES: InterpretationRule[] = [
     },
     template:
       `**{monthGanji}** 월 — 친구·동료·협업이 도움이 되는 흐름이에요. 혼자 ` +
-      `짊어지지 말고 함께 가는 사람과 나눠 보세요.`,
+      `짊어지지 말고 함께 가는 사람과 나눠 보세요. {monthGanjiText}`,
     themes: ['growth', 'love'],
   },
   {
@@ -658,7 +657,7 @@ export const RULES: InterpretationRule[] = [
     },
     template:
       `**{monthGanji}** 월 — 책임·자리·평가가 들어오는 흐름이에요. 평소 쌓아둔 ` +
-      `능력이 결과로 나오기 좋고, 승진이나 새 책임 부여가 자연스러워요.`,
+      `능력이 결과로 나오기 좋고, 승진이나 새 책임 부여가 자연스러워요. {monthGanjiText}`,
     themes: ['career', 'money'],
   },
   {
@@ -674,7 +673,7 @@ export const RULES: InterpretationRule[] = [
     },
     template:
       `**{monthGanji}** 월 — 실행력과 돈 흐름이 맞물려 가는 흐름이에요. 작은 ` +
-      `투자나 자산 정리, 새 거래 시작에 가장 좋은 시기예요.`,
+      `투자나 자산 정리, 새 거래 시작에 가장 좋은 시기예요. {monthGanjiText}`,
     themes: ['money', 'career'],
   },
   {
@@ -690,7 +689,7 @@ export const RULES: InterpretationRule[] = [
     },
     template:
       `**{monthGanji}** 월 — 머리와 자료가 가득 차는데 행동이 약해지는 흐름이에요. ` +
-      `짧은 실행 단위로 끊고 시작을 가볍게 만들면 잘 풀려요.`,
+      `짧은 실행 단위로 끊고 시작을 가볍게 만들면 잘 풀려요. {monthGanjiText}`,
     themes: ['career', 'growth'],
   },
   {
@@ -706,7 +705,7 @@ export const RULES: InterpretationRule[] = [
     },
     template:
       `**{monthGanji}** 월 — 표현과 아이디어 흐름이 강해지는 시기예요. 새 콘텐츠나 ` +
-      `창작, 기획이 잘 풀리고 안 쓰던 SNS·블로그를 다시 손보면 운이 따라요.`,
+      `창작, 기획이 잘 풀리고 안 쓰던 SNS·블로그를 다시 손보면 운이 따라요. {monthGanjiText}`,
     themes: ['growth', 'career'],
   },
 
@@ -831,8 +830,7 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['공망'],
     },
     template:
-      `❤️ **연애** — 진척 더딘 시기. 새 관계보다 기존 관계 ` +
-      `다지기에 집중하는 게 효율적이에요.`,
+      `❤️ **연애** — 진척 더딘 시기. 새 관계보다 기존 관계 ` + `다지기에 집중하는 게 효율적이에요.`,
     themes: ['love'],
   },
   {
@@ -874,8 +872,7 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `📚 **학업** — 학습·시험·자격증·전문성 다지기 시기. ` +
-      `깊이 있는 공부가 잘 들어와요.`,
+      `📚 **학업** — 학습·시험·자격증·전문성 다지기 시기. ` + `깊이 있는 공부가 잘 들어와요.`,
     themes: ['career'],
   },
   {
@@ -1327,9 +1324,7 @@ export const RULES: InterpretationRule[] = [
     section: 'shinsal',
     priority: 46,
     conditions: { shinsalName: ['금여성'] },
-    template:
-      `💎 **금여성** 발동 — 재물·결혼 운에 우호적. 안정적 ` +
-      `풍요를 만드는 시기예요.`,
+    template: `💎 **금여성** 발동 — 재물·결혼 운에 우호적. 안정적 ` + `풍요를 만드는 시기예요.`,
     themes: ['money', 'love'],
   },
   {
@@ -1339,8 +1334,7 @@ export const RULES: InterpretationRule[] = [
     priority: 46,
     conditions: { shinsalName: ['문곡'] },
     template:
-      `📖 **문곡** 발동 — 학문·문장·창작에 강한 보조. ` +
-      `글·작품·발표가 잘 풀리는 시기예요.`,
+      `📖 **문곡** 발동 — 학문·문장·창작에 강한 보조. ` + `글·작품·발표가 잘 풀리는 시기예요.`,
     themes: ['career', 'growth'],
   },
   {
@@ -1350,8 +1344,7 @@ export const RULES: InterpretationRule[] = [
     priority: 49,
     conditions: { shinsalName: ['태극귀인'] },
     template:
-      `☯️ **태극귀인** 발동 — 영성·종교·깨달음 영역에서 ` +
-      `보호받는 시기. 내적 균형이 잡혀요.`,
+      `☯️ **태극귀인** 발동 — 영성·종교·깨달음 영역에서 ` + `보호받는 시기. 내적 균형이 잡혀요.`,
     themes: ['growth'],
   },
 
@@ -1410,9 +1403,7 @@ export const RULES: InterpretationRule[] = [
       signalSource: 'saju',
       shinsalName: ['원진', '귀문관'],
     },
-    template:
-      `👨‍👩‍👧 **가족·관계** — 미묘한 긴장 가능. 평소보다 부드러운 ` +
-      `소통이 필요한 시기예요.`,
+    template: `👨‍👩‍👧 **가족·관계** — 미묘한 긴장 가능. 평소보다 부드러운 ` + `소통이 필요한 시기예요.`,
     themes: ['love'],
   },
   {
@@ -1424,9 +1415,7 @@ export const RULES: InterpretationRule[] = [
       signalSource: 'saju',
       shinsalName: ['화개', '천문성'],
     },
-    template:
-      `🧘 **영성·내면** — 화개·천문 활성으로 명상·종교·` +
-      `깊은 공부에 우호적인 시기예요.`,
+    template: `🧘 **영성·내면** — 화개·천문 활성으로 명상·종교·` + `깊은 공부에 우호적인 시기예요.`,
     themes: ['growth'],
   },
   {
@@ -1454,9 +1443,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['식신', '상관'],
       minPolarity: 1,
     },
-    template:
-      `🎨 **창의·표현** — 식상 활성으로 작품·콘텐츠·` +
-      `발표가 잘 풀리는 시기예요.`,
+    template: `🎨 **창의·표현** — 식상 활성으로 작품·콘텐츠·` + `발표가 잘 풀리는 시기예요.`,
     themes: ['growth'],
   },
   {
@@ -1469,9 +1456,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['식신'],
       minPolarity: 1,
     },
-    template:
-      `👶 **자녀** — 식신 활성. 자녀 관련 기쁨·소식· ` +
-      `임신·교육 진전에 우호적이에요.`,
+    template: `👶 **자녀** — 식신 활성. 자녀 관련 기쁨·소식· ` + `임신·교육 진전에 우호적이에요.`,
     themes: ['love'],
   },
   {
@@ -1484,8 +1469,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['비견', '겁재'],
     },
     template:
-      `🤝 **인맥·동료** — 비겁 활성으로 동료·친구·네트워크 ` +
-      `에너지가 강해지는 시기예요.`,
+      `🤝 **인맥·동료** — 비겁 활성으로 동료·친구·네트워크 ` + `에너지가 강해지는 시기예요.`,
     themes: ['growth'],
   },
   {
@@ -1593,8 +1577,7 @@ export const RULES: InterpretationRule[] = [
     priority: 72,
     conditions: { yongsin: ['금'], signalSource: 'saju', signalLayer: ['monthly'] },
     template:
-      `가을 月運은 본명 용신(금)에 우호적이에요. 결단·정리· ` +
-      `결과 만들기에 좋은 한 달이에요.`,
+      `가을 月運은 본명 용신(금)에 우호적이에요. 결단·정리· ` + `결과 만들기에 좋은 한 달이에요.`,
     themes: ['career'],
   },
   {
@@ -1847,7 +1830,7 @@ export const RULES: InterpretationRule[] = [
     section: 'theme-health',
     priority: 56,
     conditions: {
-      yongsin: ['수'],   // 수가 용신인 사주 = 화가 과한 사주
+      yongsin: ['수'], // 수가 용신인 사주 = 화가 과한 사주
       signalSource: 'saju',
       sibsin: ['편관', '정관'],
       maxPolarity: -1,
@@ -1864,7 +1847,7 @@ export const RULES: InterpretationRule[] = [
     section: 'theme-health',
     priority: 55,
     conditions: {
-      yongsin: ['화'],   // 화가 용신 = 수가 약하거나 차가운 결
+      yongsin: ['화'], // 화가 용신 = 수가 약하거나 차가운 결
       signalSource: 'saju',
       maxPolarity: -1,
     },
@@ -1937,7 +1920,7 @@ export const RULES: InterpretationRule[] = [
     template:
       `**{yearGanji}** 세운 — 재성이 들어오는 해예요. 돈·실물·실제 ` +
       `결과가 눈에 보이는 흐름이라 작년에 뿌린 씨앗이 현금흐름으로 ` +
-      `돌아오기 좋은 시기예요.`,
+      `돌아오기 좋은 시기예요. {yearGanjiText}`,
     themes: ['money'],
   },
   {
@@ -2177,7 +2160,7 @@ export const RULES: InterpretationRule[] = [
     section: 'seun',
     priority: 67,
     conditions: {
-      shinsalName: ['천의성'],   // 활인성은 천의성과 혼동, 별도 신살 아님
+      shinsalName: ['천의성'], // 활인성은 천의성과 혼동, 별도 신살 아님
     },
     template:
       `천의성이 작용하는 해예요. 치유·돌봄·의료·상담 분야가 잘 풀려서 ` +
@@ -2193,7 +2176,7 @@ export const RULES: InterpretationRule[] = [
     conditions: {
       signalSource: 'saju',
       signalLayer: ['yearly'],
-      signalKinds: ['hyeongchung', 'tonggeun-shift'],   // 실제 엔진 emit kind
+      signalKinds: ['hyeongchung', 'tonggeun-shift'], // 실제 엔진 emit kind
       maxPolarity: -1,
     },
     template:
@@ -2495,7 +2478,7 @@ export const RULES: InterpretationRule[] = [
     section: 'natal',
     priority: 50,
     conditions: {
-      yongsin: ['수'],   // 수가 용신 = 화 과한 사주
+      yongsin: ['수'], // 수가 용신 = 화 과한 사주
       signalSource: 'saju',
     },
     template:
@@ -2509,7 +2492,7 @@ export const RULES: InterpretationRule[] = [
     section: 'natal',
     priority: 48,
     conditions: {
-      yongsin: ['화'],   // 화가 용신 = 수 약함 또는 차가운 결
+      yongsin: ['화'], // 화가 용신 = 수 약함 또는 차가운 결
       signalSource: 'saju',
     },
     template:

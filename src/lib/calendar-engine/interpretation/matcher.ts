@@ -1,13 +1,9 @@
 import type { ActiveSignal, CalendarCell, SignalPattern } from '../types'
 import type { NatalContext } from '../context/types'
 import type { AstroThemeKey } from '@/lib/astrology/themes/types'
-import type {
-  Interpretation,
-  InterpretationRule,
-  RuleConditions,
-  TemplateVars,
-} from './types'
+import type { Interpretation, InterpretationRule, RuleConditions, TemplateVars } from './types'
 import { RULES } from './rules'
+import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -30,8 +26,15 @@ export function buildInterpretation(args: {
   const allPatterns = cells.flatMap((c) => c.matchedPatterns)
   // 길일/흉일 후보
   const ranked = [...cells].sort((a, b) => b.derivedScore - a.derivedScore)
-  const luckyDates = ranked.slice(0, 3).map((c) => c.datetime.slice(5, 10)).join(', ')
-  const unluckyDates = ranked.slice(-3).reverse().map((c) => c.datetime.slice(5, 10)).join(', ')
+  const luckyDates = ranked
+    .slice(0, 3)
+    .map((c) => c.datetime.slice(5, 10))
+    .join(', ')
+  const unluckyDates = ranked
+    .slice(-3)
+    .reverse()
+    .map((c) => c.datetime.slice(5, 10))
+    .join(', ')
 
   // 룰 매칭 + 변수 컨텍스트 수집
   // matched[].polarity는 룰 자체의 의도(intent) — 매칭 시그널 polarity가
@@ -106,11 +109,9 @@ export function buildInterpretation(args: {
     })
     const templates = sortedList.map((m) => fillTemplate(m.rule.template, m.vars))
     if (hasPositive && hasCaution) {
-      templates.unshift(
-        '복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:',
-      )
+      templates.unshift('복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:')
     }
-    const merged: typeof matched[number] = {
+    const merged: (typeof matched)[number] = {
       rule: {
         ...list[0].rule,
         id: `domain.${domain}`,
@@ -126,9 +127,18 @@ export function buildInterpretation(args: {
 
   // section별 정렬 (UI 순서) — context → trigger → 5 domain
   const SECTION_ORDER = [
-    'daeun', 'seun', 'wolun', 'natal',
-    'transit', 'pattern', 'shinsal',
-    'domain-money', 'domain-work', 'domain-relations', 'domain-body', 'domain-expression',
+    'daeun',
+    'seun',
+    'wolun',
+    'natal',
+    'transit',
+    'pattern',
+    'shinsal',
+    'domain-money',
+    'domain-work',
+    'domain-relations',
+    'domain-body',
+    'domain-expression',
   ]
   picked.sort((a, b) => {
     const ai = SECTION_ORDER.indexOf(a.rule.section)
@@ -143,9 +153,7 @@ export function buildInterpretation(args: {
     text: fillTemplate(m.rule.template, m.vars),
   }))
 
-  const narrative = sections
-    .map((s) => `**[${s.title}]**\n${s.text}`)
-    .join('\n\n')
+  const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
 
   // 도메인별 themeScores — 신호 평균 base + 룰 의도 adjustment.
   //
@@ -173,9 +181,7 @@ export function buildInterpretation(args: {
     const themeKey = DOMAIN_TO_THEME[domain]
     if (!themeKey) continue
     const intents = list.map((m) => m.polarity)
-    const intentAvg = intents.length > 0
-      ? intents.reduce((s, p) => s + p, 0) / intents.length
-      : 0
+    const intentAvg = intents.length > 0 ? intents.reduce((s, p) => s + p, 0) / intents.length : 0
     // base: 신호 평균
     const signalScore = cellThemeScores[themeKey] ?? 50
     // adjustment: ±30 swing
@@ -196,7 +202,7 @@ function findMatchContext(
   cond: RuleConditions,
   signals: ActiveSignal[],
   patterns: SignalPattern[],
-  natal: NatalContext,
+  natal: NatalContext
 ): TemplateVars | null {
   // 본명 조건
   if (cond.natalStrength && !cond.natalStrength.includes(natal.saju.strength)) {
@@ -241,12 +247,43 @@ function ruleIntent(rule: InterpretationRule): number {
   if (c.maxPolarity != null && c.maxPolarity <= -1) return -1
   // 길성·흉성 신살명으로 의도 추정
   if (c.shinsalName) {
-    const benefic = ['천을귀인', '태극귀인', '천덕귀인', '월덕귀인', '천주귀인',
-                     '암록', '금여성', '천의성', '천문성', '문창', '문곡',
-                     '학당귀인', '건록', '제왕', '도화', '홍염살']
-    const malefic = ['겁살', '재살', '천살', '월살', '망신', '육해',
-                     '현침', '고신', '과숙', '괴강', '양인', '백호',
-                     '공망', '귀문관', '원진', '천라지망', '삼재']
+    const benefic = [
+      '천을귀인',
+      '태극귀인',
+      '천덕귀인',
+      '월덕귀인',
+      '천주귀인',
+      '암록',
+      '금여성',
+      '천의성',
+      '천문성',
+      '문창',
+      '문곡',
+      '학당귀인',
+      '건록',
+      '제왕',
+      '도화',
+      '홍염살',
+    ]
+    const malefic = [
+      '겁살',
+      '재살',
+      '천살',
+      '월살',
+      '망신',
+      '육해',
+      '현침',
+      '고신',
+      '과숙',
+      '괴강',
+      '양인',
+      '백호',
+      '공망',
+      '귀문관',
+      '원진',
+      '천라지망',
+      '삼재',
+    ]
     const hasBene = c.shinsalName.some((n) => benefic.includes(n))
     const hasMal = c.shinsalName.some((n) => malefic.includes(n))
     if (hasBene && !hasMal) return 1
@@ -262,13 +299,13 @@ function ruleIntent(rule: InterpretationRule): number {
     const wealth = c.sibsin.some((s) => s === '정재' || s === '편재')
     const bigeop = c.sibsin.some((s) => s === '비견' || s === '겁재')
     const siksang = c.sibsin.some((s) => s === '식신' || s === '상관')
-    if (isWeak && officer) return -1   // 신약+관성 = 책임 압박
-    if (isWeak && (print || bigeop)) return 1  // 신약+인비 = 받쳐줌
-    if (isWeak && wealth) return -1    // 신약+재성 = 분탈
-    if (isStrong && officer) return 1  // 신강+관성 = 자리 잡음
-    if (isStrong && wealth) return 1   // 신강+재성 = 실행력
-    if (isStrong && (print || bigeop)) return -1  // 신강+인비 = 과도·정체
-    if (isStrong && siksang) return 1  // 신강+식상 = 표현 발산
+    if (isWeak && officer) return -1 // 신약+관성 = 책임 압박
+    if (isWeak && (print || bigeop)) return 1 // 신약+인비 = 받쳐줌
+    if (isWeak && wealth) return -1 // 신약+재성 = 분탈
+    if (isStrong && officer) return 1 // 신강+관성 = 자리 잡음
+    if (isStrong && wealth) return 1 // 신강+재성 = 실행력
+    if (isStrong && (print || bigeop)) return -1 // 신강+인비 = 과도·정체
+    if (isStrong && siksang) return 1 // 신강+식상 = 표현 발산
   }
   return 0
 }
@@ -283,7 +320,7 @@ function findMatchContextWithSignal(
   cond: RuleConditions,
   signals: ActiveSignal[],
   patterns: SignalPattern[],
-  natal: NatalContext,
+  natal: NatalContext
 ): { ctx: TemplateVars; polarity: number } | null {
   // 본명 조건
   if (cond.natalStrength && !cond.natalStrength.includes(natal.saju.strength)) {
@@ -305,10 +342,18 @@ function findMatchContextWithSignal(
     // 때 룰 fire하면 안 됨 — 옛 버전은 natalStrength 있으면 그 외 조건
     // 무시하고 fire해서 04월 비견월에도 "신약+관성" 룰이 fire되던 버그.
     const hasSignalCondition =
-      !!(cond.signalSource || cond.signalKinds || cond.signalLayer ||
-         cond.sibsin || cond.shinsalName || cond.planet || cond.sign ||
-         cond.dignity) ||
-      cond.minPolarity != null || cond.maxPolarity != null
+      !!(
+        cond.signalSource ||
+        cond.signalKinds ||
+        cond.signalLayer ||
+        cond.sibsin ||
+        cond.shinsalName ||
+        cond.planet ||
+        cond.sign ||
+        cond.dignity
+      ) ||
+      cond.minPolarity != null ||
+      cond.maxPolarity != null
     if (!hasSignalCondition && (cond.natalStrength || cond.yongsin)) {
       const fallback = signals[0]
       if (!fallback) return null
@@ -325,7 +370,11 @@ function findMatchContextWithSignal(
 function signalMatches(s: ActiveSignal, cond: RuleConditions): boolean {
   if (cond.signalSource && s.source !== cond.signalSource) return false
   if (cond.signalKinds && !cond.signalKinds.includes(s.kind)) return false
-  if (cond.signalLayer && !cond.signalLayer.includes(s.layer as 'decadal' | 'yearly' | 'monthly' | 'daily')) return false
+  if (
+    cond.signalLayer &&
+    !cond.signalLayer.includes(s.layer as 'decadal' | 'yearly' | 'monthly' | 'daily')
+  )
+    return false
   if (cond.minPolarity != null && s.polarity < cond.minPolarity) return false
   if (cond.maxPolarity != null && s.polarity > cond.maxPolarity) return false
 
@@ -362,9 +411,18 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
   const ganji = (s.evidence.pillars?.[0] ?? '').trim()
 
   if (ganji) vars.ganji = ganji
-  if (s.layer === 'decadal') vars.daeunGanji = ganji
-  if (s.layer === 'yearly') vars.yearGanji = ganji
-  if (s.layer === 'monthly') vars.monthGanji = ganji
+  if (s.layer === 'decadal') {
+    vars.daeunGanji = ganji
+    vars.daeunGanjiText = getGanjiTransitNarrative(ganji, 'decadal', 'ko')
+  }
+  if (s.layer === 'yearly') {
+    vars.yearGanji = ganji
+    vars.yearGanjiText = getGanjiTransitNarrative(ganji, 'yearly', 'ko')
+  }
+  if (s.layer === 'monthly') {
+    vars.monthGanji = ganji
+    vars.monthGanjiText = getGanjiTransitNarrative(ganji, 'monthly', 'ko')
+  }
 
   const sibsin = s.evidence.sibsin as string | undefined
   if (sibsin) {
@@ -400,7 +458,7 @@ function buildBaseVars(natal: NatalContext): TemplateVars {
 function fillTemplate(template: string, vars: TemplateVars): string {
   return template.replace(/\{(\w+)\}/g, (m, key) => {
     const v = vars[key as keyof TemplateVars]
-    if (v == null) return m   // 변수 없으면 원본 그대로 (디버그 용이)
+    if (v == null) return m // 변수 없으면 원본 그대로 (디버그 용이)
     return String(v)
   })
 }
@@ -464,7 +522,7 @@ const CONNECTORS = ['여기에', '한편', '추가로', '또한', '단,']
 function mergeDomainTemplates(
   texts: string[],
   topDates: string[] = [],
-  lowDates: string[] = [],
+  lowDates: string[] = []
 ): string {
   if (texts.length === 0) return ''
   const cleaned = texts.map((t) => t.trim()).filter(Boolean)
@@ -498,7 +556,7 @@ function pickDomainExtremeDates(
   cells: CalendarCell[],
   themeKeys: AstroThemeKey[],
   topN: number,
-  direction: 'high' | 'low',
+  direction: 'high' | 'low'
 ): string[] {
   if (themeKeys.length === 0) return []
   const scored = cells
@@ -525,7 +583,7 @@ function pickDomainExtremeDates(
 
   if (scored.length === 0) return []
   const sorted = scored.sort((a, b) =>
-    direction === 'high' ? b.score - a.score : a.score - b.score,
+    direction === 'high' ? b.score - a.score : a.score - b.score
   )
   const top = sorted.slice(0, topN)
   // 가장 극단값도 평이(high < 52 또는 low > 48)면 표시 안 함

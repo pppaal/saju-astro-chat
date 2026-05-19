@@ -52,6 +52,7 @@ export function pickVariationOr<T>(
 ): T {
   return pickVariation(pool, seedKeys) ?? fallback
 }
+<<<<<<< HEAD
 
 /**
  * Append a pool-selected variation to an existing paragraph string in
@@ -82,3 +83,5 @@ export function appendToPara(
   const tail = /[.!?]$/.test(add) ? add : `${add}.`
   return `${host}${hostEnder} ${tail}`
 }
+=======
+>>>>>>> origin/main

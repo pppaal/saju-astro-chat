@@ -11,11 +11,9 @@ import { useI18n } from '@/i18n/I18nProvider'
 import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 import { Spread, DrawnCard, DeckStyle } from '@/lib/tarot/tarot.types'
 import { buildTarotSaveRequest, flattenTarotGuidance } from '@/lib/tarot/tarot-save-request'
-import { getStoredBirthDate, fetchAndSyncUserProfile } from '@/lib/userProfile'
 import { saveReading, formatReadingForSave } from '@/lib/tarot/tarot-storage'
 import { apiFetch, type ApiFetchOptions } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
-import { isCasualQuestion } from '@/lib/tarot/casualQuestion'
 import type { InterpretationResult, ReadingResponse } from '../types'
 import type { TarotPersonalizationOptions } from './useTarotGame'
 
@@ -48,9 +46,6 @@ interface UseTarotInterpretationReturn {
   ) => Promise<void>
 }
 
-// The server route can legitimately spend much longer on backend_rag/GPT fallback.
-// Do not abort early on the client and force a local fallback while AI is still working.
-const PRIMARY_INTERPRET_TIMEOUT_MS = 70000
 const STREAM_INTERPRET_TIMEOUT_MS = 35000
 
 class RequestTimeoutError extends Error {
@@ -196,7 +191,8 @@ function extractPartialOverall(buffer: string): string | null {
       else if (next === '"') out += '"'
       else if (next === '\\') out += '\\'
       else if (next === '/') out += '/'
-      else if (next === undefined) break // 아직 도착 안 함
+      else if (next === undefined)
+        break // 아직 도착 안 함
       else out += next
       i += 2
       continue
@@ -305,17 +301,14 @@ function parseStreamedInterpretation(
           : dc.card.upright.meaning
       return {
         position:
-          (cardData?.position || '').trim() ||
-          (isKorean ? `${i + 1}번 카드` : `Card ${i + 1}`),
+          (cardData?.position || '').trim() || (isKorean ? `${i + 1}번 카드` : `Card ${i + 1}`),
         card_name: dc.card.name,
         is_reversed: dc.isReversed,
-        interpretation:
-          (cardData?.interpretation || '').trim() || fallbackMeaning || '',
+        interpretation: (cardData?.interpretation || '').trim() || fallbackMeaning || '',
       }
     }),
     guidance:
-      parsed.advice ||
-      (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
+      parsed.advice || (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
     affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
     fallback: false,
     interpretation_source: 'stream_sse_fallback',
@@ -446,23 +439,8 @@ export function useTarotInterpretation({
       options?: FetchInterpretationOptions
     ): Promise<InterpretationResult | null> => {
       const isKorean = (language || 'ko') === 'ko'
-      const includeAstrology = personalizationOptions.includeAstrology !== false
-      const includeSaju = personalizationOptions.includeSaju !== false
 
-      let birthdate = includeAstrology ? getStoredBirthDate() : undefined
-      if (session?.user && includeAstrology) {
-        try {
-          const syncedProfile = await fetchAndSyncUserProfile()
-          birthdate = syncedProfile.birthDate || birthdate
-        } catch (profileError) {
-          tarotLogger.error(
-            'Failed to refresh profile before tarot interpretation',
-            profileError instanceof Error ? profileError : undefined
-          )
-        }
-      }
-
-      const cardPayload = result.drawnCards.map((dc, _idx) => {
+      const cardPayload = result.drawnCards.map((dc) => {
         const meaning = dc.isReversed ? dc.card.reversed : dc.card.upright
         // position / positionKo / positionMeaning 은 더 이상 클라이언트에서
         // 보내지 않는다 — LLM 이 사용자 질문 맥락에 맞춰 직접 명명한다.
@@ -476,314 +454,6 @@ export function useTarotInterpretation({
         }
       })
 
-      let sajuContext: string | undefined
-      if (session?.user && includeSaju) {
-        try {
-          const sajuResponse = await apiFetch('/api/me/saju')
-          if (sajuResponse.ok) {
-            const sajuPayload = (await sajuResponse.json()) as Record<string, unknown>
-            const container =
-              typeof sajuPayload.data === 'object' && sajuPayload.data
-                ? (sajuPayload.data as Record<string, unknown>)
-                : sajuPayload
-            const hasSaju = container.hasSaju === true
-            const saju =
-              typeof container.saju === 'object' && container.saju
-                ? (container.saju as Record<string, unknown>)
-                : null
-
-            if (hasSaju && saju) {
-              const dayMaster = (saju.dayMaster as string) || ''
-              const dayMasterElement = (saju.dayMasterElement as string) || ''
-              const dayMasterYinYang = (saju.dayMasterYinYang as string) || ''
-              const pillars =
-                (saju.pillars as Record<string, { stem?: string; branch?: string }>) || {}
-              // 4기둥 전체는 LLM 이 거의 인용 안 함 — 일주(일간+일지)만 유지.
-              // 나머지 년/월/시주는 토큰 비용 대비 시그널 약함.
-              const dayPillarStr =
-                pillars.day?.stem && pillars.day?.branch
-                  ? `${pillars.day.stem}${pillars.day.branch}`
-                  : ''
-
-              if (dayMaster || dayMasterElement) {
-                const headLine = isKorean
-                  ? `사주 핵심: 일간 ${dayMaster}, 오행 ${dayMasterElement}${dayMasterYinYang ? `, 음양 ${dayMasterYinYang}` : ''}${dayPillarStr ? `, 일주 ${dayPillarStr}` : ''}`
-                  : `Saju core: Day master ${dayMaster}, element ${dayMasterElement}${dayMasterYinYang ? `, yin-yang ${dayMasterYinYang}` : ''}${dayPillarStr ? `, Day pillar ${dayPillarStr}` : ''}`
-                sajuContext = headLine
-              }
-            }
-          }
-        } catch (sajuError) {
-          tarotLogger.error(
-            'Failed to load saju context before tarot interpretation',
-            sajuError instanceof Error ? sajuError : undefined
-          )
-        }
-      }
-
-      // ───────────────────────────────────────────────────────────────────
-      // Fusion (사주 + 점성 cross) 컨텍스트 — 우리 fusion 엔진이 오늘자 18테마
-      // 점수와 트랜짓을 이미 계산하므로, 그 결과를 LLM에 컴팩트하게 넘겨
-      // 카드 해석을 *오늘의 사주·점성 흐름*에 자동 cross 시킨다.
-      // ───────────────────────────────────────────────────────────────────
-      let astroContext: string | undefined
-      if (birthdate && (includeSaju || includeAstrology)) {
-        try {
-          const today = new Date()
-          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-          const detailResp = await apiFetch(
-            `/api/calendar/date-detail?birthDate=${encodeURIComponent(birthdate)}&date=${todayStr}`
-          )
-          if (detailResp.ok) {
-            const detailPayload = (await detailResp.json()) as Record<string, unknown>
-            const detail =
-              typeof detailPayload.data === 'object' && detailPayload.data
-                ? (detailPayload.data as Record<string, unknown>)
-                : detailPayload
-            const fusion = (detail.fusion as Record<string, unknown> | undefined) || {}
-            const transit = (detail.transit as Record<string, unknown> | undefined) || {}
-            const natalContext =
-              (detail.natalContext as Record<string, unknown> | undefined) || {}
-            const yongsin =
-              ((natalContext.yongsin as Record<string, unknown> | undefined)?.primary as
-                | string
-                | undefined) || undefined
-            const strength = typeof natalContext.strength === 'string' ? natalContext.strength : ''
-            const currentDaeun = detail.currentDaeun as
-              | { label?: string; sibsinCheon?: string; sibsinJi?: string }
-              | undefined
-            const natalAngles = detail.natalAngles as
-              | {
-                  sun?: { sign?: string; formatted?: string }
-                  moon?: { sign?: string; formatted?: string }
-                  ascendant?: { sign?: string; formatted?: string }
-                  mercury?: { sign?: string; formatted?: string }
-                  venus?: { sign?: string; formatted?: string }
-                  mars?: { sign?: string; formatted?: string }
-                  jupiter?: { sign?: string; formatted?: string }
-                  saturn?: { sign?: string; formatted?: string }
-                  neptune?: { sign?: string; formatted?: string }
-                  northNode?: { sign?: string; formatted?: string }
-                  mc?: { sign?: string; formatted?: string }
-                  house2?: { sign?: string }
-                  house6?: { sign?: string }
-                  house7?: { sign?: string }
-                  house9?: { sign?: string }
-                  house10?: { sign?: string }
-                }
-              | undefined
-            const sajuExtras = detail.sajuExtras as
-              | {
-                  tenGodCounts?: Record<string, number>
-                  fiveElements?: { wood?: number; fire?: number; earth?: number; metal?: number; water?: number }
-                }
-              | undefined
-            const shinsalActive = (detail.shinsalActive as Array<{ name?: string }> | undefined) || []
-            const gongmangStatus = detail.gongmangStatus as
-              | { isAffected?: boolean; areas?: string[] }
-              | undefined
-
-            // ────────────────── 키워드 기반 카테고리 감지 (무료) ──────────────────
-            const qText = (userTopic || '').trim()
-            // 캐주얼이면 saju/astroContext 통째로 차단 (token + UX).
-            const isCasual = isCasualQuestion(qText)
-
-            const isLove = /연애|사랑|썸|짝사랑|이별|결혼|애인|남친|여친|관계|데이트|고백|재회|헤어|남자친구|여자친구|좋아해|마음|호감|호감|배우자/i.test(qText)
-            const isCareer = /이직|취업|면접|직장|커리어|승진|상사|동료|회사|일자리|직업|진로/i.test(qText)
-            const isMoney = /돈|재정|투자|주식|코인|매출|수입|지출|용돈|월급|급여|매입|매도|재물|재산|돈줄|매수/i.test(qText)
-            const isSpiritual = /자기|성장|영성|마음|내면|회의|의미|인생|길|소명|방향/i.test(qText)
-            const isHealth = /건강|몸|컨디션|스트레스|병원|아프|아픈|치료/i.test(qText)
-
-            // 캐주얼이면 — 사주 풍부화 / 점성 블록 전부 skip.
-            // 별자리는 system 단의 user prompt 에 zodiac 으로 가볍게 들어가니 유지.
-            // sajuContext 는 위에서 head line 만 세팅된 상태 — extra 푸쉬·astro 빌드 둘 다 가드.
-            if (isCasual) {
-              tarotLogger.info('Tarot: casual question detected — skipping saju/astro raw context')
-            }
-
-            const domainScores = (fusion.domainScores as Record<string, number> | undefined) || {}
-            // 사주축·점성축 분리 근거 — 점수 대신 "왜 강한지" 시그널 텍스트
-            const domainCross =
-              (fusion.domainCross as
-                | Array<{
-                    theme: string
-                    sajuScore: number
-                    astroScore: number
-                    sajuSummary: string
-                    astroSummary: string
-                  }>
-                | undefined) || []
-            const crossByTheme = new Map(domainCross.map((d) => [d.theme, d]))
-            // 점수 기준 top 3 → 각 테마의 사주축·점성축 시그널을 근거로 노출 (점수 숨김)
-            const topDomainLines = Object.entries(domainScores)
-              .sort(([, a], [, b]) => b - a)
-              .slice(0, 3)
-              .map(([theme]) => {
-                const basis = crossByTheme.get(theme)
-                if (!basis) return `- ${theme}`
-                return isKorean
-                  ? `- ${theme}: 사주 = ${basis.sajuSummary} / 점성 = ${basis.astroSummary}`
-                  : `- ${theme}: saju = ${basis.sajuSummary} / astro = ${basis.astroSummary}`
-              })
-
-            // sajuContext 풍부화
-            // 기본(일간) + 신강/신약 + 용신 + 대운 + 오늘 강한 영역
-            // + 유니버설 raw (십신 top 2, 오행 분포)
-            // + conditional raw (연애→도화/홍염, 직장→관성, 재물→재성, 영성→화개, 건강→공망)
-            if (!isCasual && includeSaju && sajuContext) {
-              const extra: string[] = []
-              if (strength)
-                extra.push(isKorean ? `신강/신약: ${strength}` : `Day master strength: ${strength}`)
-              if (yongsin) extra.push(isKorean ? `용신: ${yongsin}` : `Favorable element: ${yongsin}`)
-              if (currentDaeun?.label) {
-                const daeunSib = [currentDaeun.sibsinCheon, currentDaeun.sibsinJi]
-                  .filter(Boolean)
-                  .join('·')
-                extra.push(
-                  isKorean
-                    ? `현재 대운: ${currentDaeun.label}${daeunSib ? ` (${daeunSib})` : ''}`
-                    : `Current decadal: ${currentDaeun.label}${daeunSib ? ` (${daeunSib})` : ''}`
-                )
-              }
-              if (topDomainLines.length > 0) {
-                extra.push(
-                  isKorean
-                    ? `오늘 강한 영역 (사주·점성 교차 근거):\n${topDomainLines.join('\n')}`
-                    : `Top domains today (saju × astro cross basis):\n${topDomainLines.join('\n')}`
-                )
-              }
-
-              // [universal] 십신 분포 top 2
-              const tenGodCounts = sajuExtras?.tenGodCounts || {}
-              const topTenGods = Object.entries(tenGodCounts)
-                .sort(([, a], [, b]) => (b as number) - (a as number))
-                .slice(0, 2)
-                .map(([name, count]) => `${name} ${count}`)
-                .join(' · ')
-              if (topTenGods) extra.push(isKorean ? `십신: ${topTenGods}` : `Ten gods: ${topTenGods}`)
-
-              // [universal] 오행 분포
-              const fe = sajuExtras?.fiveElements
-              if (fe) {
-                extra.push(
-                  isKorean
-                    ? `오행: 목${fe.wood ?? 0}·화${fe.fire ?? 0}·토${fe.earth ?? 0}·금${fe.metal ?? 0}·수${fe.water ?? 0}`
-                    : `5 elements: wood${fe.wood ?? 0}/fire${fe.fire ?? 0}/earth${fe.earth ?? 0}/metal${fe.metal ?? 0}/water${fe.water ?? 0}`
-                )
-              }
-
-              // [universal] 천을귀인 — helper star, 어떤 질문에도 도움 받을 운 anchor
-              const hasCheoneul = shinsalActive.some(
-                (s) => (s?.name || '').includes('천을귀인')
-              )
-              if (hasCheoneul) {
-                extra.push(isKorean ? '천을귀인 활성' : 'Cheoneul Gwiin (helper star) active')
-              }
-
-              // [conditional] 연애 — 도화살 / 홍염살
-              if (isLove) {
-                const loveShinsals = shinsalActive
-                  .map((s) => s?.name || '')
-                  .filter((n) => n.includes('도화') || n.includes('홍염'))
-                if (loveShinsals.length > 0) {
-                  extra.push(isKorean ? `연애 신살: ${loveShinsals.join(', ')}` : `Love shinsals: ${loveShinsals.join(', ')}`)
-                }
-              }
-
-              // [conditional] 직장 — 관성 (정관+편관) 카운트
-              if (isCareer) {
-                const off = (tenGodCounts['정관'] || 0) + (tenGodCounts['편관'] || 0)
-                if (off > 0) {
-                  extra.push(isKorean ? `관성(공식권력): ${off}` : `Officer (authority): ${off}`)
-                }
-              }
-
-              // [conditional] 재물 — 재성 (정재+편재) 카운트
-              if (isMoney) {
-                const wealth = (tenGodCounts['정재'] || 0) + (tenGodCounts['편재'] || 0)
-                if (wealth > 0) {
-                  extra.push(isKorean ? `재성(돈): ${wealth}` : `Wealth gods: ${wealth}`)
-                }
-              }
-
-              // [conditional] 자기성장/영성 — 화개살
-              if (isSpiritual) {
-                const spiritual = shinsalActive
-                  .map((s) => s?.name || '')
-                  .filter((n) => n.includes('화개'))
-                if (spiritual.length > 0) {
-                  extra.push(isKorean ? `영성 신살: ${spiritual.join(', ')}` : `Spiritual shinsals: ${spiritual.join(', ')}`)
-                }
-              }
-
-              // [conditional] 건강 — 공망 (비어있는 영역)
-              if (isHealth && gongmangStatus?.isAffected && gongmangStatus.areas?.length) {
-                extra.push(
-                  isKorean
-                    ? `공망 영역: ${gongmangStatus.areas.join(', ')}`
-                    : `Gongmang areas: ${gongmangStatus.areas.join(', ')}`
-                )
-              }
-
-              if (extra.length > 0) sajuContext = `${sajuContext}\n${extra.join(' · ')}`
-            }
-
-            // astroContext — 사주와 동일한 깊이로 균형
-            // Universal: Sun/Moon/ASC + Mercury/Venus/Mars (6 identity planets) + 오늘 트랜짓 top 3
-            // Conditional (테마별): +1~2 추가 행성/하우스로 카테고리 anchor 강화
-            if (!isCasual && includeAstrology) {
-              const lines: string[] = []
-              const parts: string[] = []
-              // [universal] 정체성 + 일상 3 행성
-              if (natalAngles?.sun?.sign) parts.push(`태양 ${natalAngles.sun.sign}`)
-              if (natalAngles?.moon?.sign) parts.push(`달 ${natalAngles.moon.sign}`)
-              if (natalAngles?.ascendant?.sign) parts.push(`ASC ${natalAngles.ascendant.sign}`)
-              if (natalAngles?.mercury?.sign) parts.push(`Mercury ${natalAngles.mercury.sign}`)
-              if (natalAngles?.venus?.sign) parts.push(`Venus ${natalAngles.venus.sign}`)
-              if (natalAngles?.mars?.sign) parts.push(`Mars ${natalAngles.mars.sign}`)
-              // [universal] North Node — 영혼의 방향 (인생 큰 결정 anchor)
-              if (natalAngles?.northNode?.sign) parts.push(`North Node ${natalAngles.northNode.sign}`)
-              // [conditional] 연애 — 7th house ruler sign (관계 angle)
-              if (isLove && natalAngles?.house7?.sign) parts.push(`7H ${natalAngles.house7.sign}`)
-              // [conditional] 직장 — MC + Saturn (직업 angle + 구조)
-              if (isCareer && natalAngles?.mc?.sign) parts.push(`MC ${natalAngles.mc.sign}`)
-              if (isCareer && natalAngles?.saturn?.sign) parts.push(`Saturn ${natalAngles.saturn.sign}`)
-              // [conditional] 재물 — Jupiter + 2nd house (풍요 + 자산)
-              if (isMoney && natalAngles?.jupiter?.sign) parts.push(`Jupiter ${natalAngles.jupiter.sign}`)
-              if (isMoney && natalAngles?.house2?.sign) parts.push(`2H ${natalAngles.house2.sign}`)
-              // [conditional] 영성 — Neptune + 9th house (영성 + 의미)
-              if (isSpiritual && natalAngles?.neptune?.sign) parts.push(`Neptune ${natalAngles.neptune.sign}`)
-              if (isSpiritual && natalAngles?.house9?.sign) parts.push(`9H ${natalAngles.house9.sign}`)
-              // [conditional] 건강 — 6th house (건강 angle)
-              if (isHealth && natalAngles?.house6?.sign) parts.push(`6H ${natalAngles.house6.sign}`)
-              if (parts.length > 0)
-                lines.push(isKorean ? `본명: ${parts.join(' · ')}` : `Natal: ${parts.join(' · ')}`)
-
-              const aspects = transit.aspects as Array<Record<string, unknown>> | undefined
-              if (aspects && aspects.length > 0) {
-                const top = aspects
-                  .slice(0, 3)
-                  .map((a) => {
-                    const tp = String(a.transitPlanet || '')
-                    const np = String(a.natalPoint || '')
-                    const ty = String(a.aspect || '')
-                    const orb = typeof a.orb === 'number' ? a.orb.toFixed(1) : ''
-                    return `${tp} ${ty} natal ${np}${orb ? ` (orb ${orb}°)` : ''}`
-                  })
-                  .join(' · ')
-                lines.push(isKorean ? `오늘 트랜짓: ${top}` : `Today transits: ${top}`)
-              }
-              if (lines.length > 0) astroContext = lines.join('\n')
-            }
-          }
-        } catch (fusionError) {
-          tarotLogger.error(
-            'Failed to load fusion context before tarot interpretation',
-            fusionError instanceof Error ? fusionError : undefined
-          )
-        }
-      }
-
       // questionMeta / questionContext 메타라벨은 system prompt 의 0단계 가 동일 정보를
       // LLM 이 직접 추출하므로 중복. 보내지 않는다 (50-100 tokens / call 절감).
       const requestBody = {
@@ -793,31 +463,6 @@ export function useTarotInterpretation({
         cards: cardPayload,
         userQuestion: userTopic,
         language: language || 'ko',
-        birthdate: includeAstrology ? birthdate : undefined,
-        includeAstrology,
-        includeSaju,
-        sajuContext,
-        astroContext,
-      }
-
-      const requestNonStreamInterpretation = async (
-        timeoutMs: number
-      ): Promise<InterpretationResult | null> => {
-        const response = await apiFetchWithTimeout(
-          '/api/tarot/interpret',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody),
-          },
-          timeoutMs
-        )
-
-        if (!response.ok) {
-          return null
-        }
-
-        return await response.json()
       }
 
       // 1) 스트리밍 엔드포인트 우선 — 깨끗한 LLM 출력 (post-processor 템플릿 없음)
@@ -927,31 +572,19 @@ export function useTarotInterpretation({
         throw new Error('Stream interpretation failed')
       } catch (streamError) {
         tarotLogger.error(
-          'Streaming interpretation failed, trying non-stream interpret',
+          'Streaming interpretation failed, falling back to local copy',
           streamError instanceof Error ? streamError : undefined
         )
       }
 
-      // 2) Non-stream interpret 폴백 — 스트리밍이 죽었을 때만.
-      try {
-        const ragResult = await requestNonStreamInterpretation(PRIMARY_INTERPRET_TIMEOUT_MS)
-        if (ragResult) {
-          return {
-            ...ragResult,
-            interpretation_source: ragResult.interpretation_source || 'gpt_fallback',
-          }
-        }
-      } catch (nonStreamError) {
-        tarotLogger.error(
-          'Non-stream interpret failed, using local fallback',
-          nonStreamError instanceof Error ? nonStreamError : undefined
-        )
-      }
-
-      // 3) Final fallback with personalized renderable copy
+      // 2) Final fallback with personalized renderable copy. The legacy
+      // non-stream `/api/tarot/interpret` route was a second LLM round-trip
+      // through Claude — same model, different transport. The interpret-
+      // stream path above already retries once internally; if both fail we
+      // fall straight to the deterministic local copy below.
       return buildPersonalizedFallback(result, userTopic, isKorean, personalizationOptions)
     },
-    [categoryName, spreadId, language, session, userTopic, personalizationOptions]
+    [categoryName, spreadId, language, userTopic, personalizationOptions]
   )
 
   const handleSaveReading = useCallback(

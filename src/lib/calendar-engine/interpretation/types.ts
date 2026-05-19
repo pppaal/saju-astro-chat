@@ -117,11 +117,15 @@ export interface TemplateVars {
 
   // 시기
   daeunGanji?: string
+  /** 60갑자 본명 archetype 을 transit 어조로 변환한 한 줄 — getGanjiTransitNarrative 출처 */
+  daeunGanjiText?: string
   daeunSibsin?: string
   daeunStartYear?: number
   yearGanji?: string
+  yearGanjiText?: string
   yearSibsin?: string
   monthGanji?: string
+  monthGanjiText?: string
   monthSibsin?: string
   monthName?: string
 
