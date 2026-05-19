@@ -156,12 +156,18 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const mercuryHouseVar = planetHouseLine('Mercury', mercury?.house, 'ko')
   // Mars × house (this PR — 추진 무대)
   const marsHouseVar = planetHouseLine('Mars', mars?.house, 'ko')
+  // Saturn × house — 구조·책임의 무대 (career 핵심 외행성)
+  const saturnHouseVar = planetHouseLine('Saturn', saturn?.house, 'ko')
+  // Pluto × house — 권력·변혁의 무대 (career 깊이 외행성)
+  const plutoHouseVar = planetHouseLine('Pluto', pluto?.house, 'ko')
   if (ascCareerVar) astroUsed.push('pools.planetSign.asc.career')
   if (mercurySignVar) astroUsed.push('pools.planetSign.mercury.career')
   if (marsCareerVar) astroUsed.push('pools.planetSign.mars.career')
   if (sunHouseVar) astroUsed.push('pools.planetHouse.sun')
   if (mercuryHouseVar) astroUsed.push('pools.planetHouse.mercury')
   if (marsHouseVar) astroUsed.push('pools.planetHouse.mars')
+  if (saturnHouseVar) astroUsed.push('pools.planetHouse.saturn')
+  if (plutoHouseVar) astroUsed.push('pools.planetHouse.pluto')
   // P1 base paragraph — opener + sibsin-category variation + MC + Sun.
   // The pool variations are added via appendToPara below (single source of
   // truth for period/spacing). Do NOT inline them into the array here, or
@@ -184,6 +190,8 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   p1ko = appendToPara(p1ko, mercuryHouseVar)
   p1ko = appendToPara(p1ko, marsCareerVar)
   p1ko = appendToPara(p1ko, marsHouseVar)
+  p1ko = appendToPara(p1ko, saturnHouseVar)
+  p1ko = appendToPara(p1ko, plutoHouseVar)
   p1ko = appendToPara(p1ko, ascCareerVar)
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
@@ -295,9 +303,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (iljuAptitudes.length > 0 && iljuName) {
     deepPieces.push(`타고난 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽에 잘 맞아요.`)
-    deepPiecesEn.push(
-      `Your natural aptitudes lean toward ${aptitudeListEn(iljuAptitudes)}.`
-    )
+    deepPiecesEn.push(`Your natural aptitudes lean toward ${aptitudeListEn(iljuAptitudes)}.`)
   }
   // Sibsin-category pool — deep-grain layer (P3, not P1) so the same line
   // does not double inside paragraph 1.
@@ -611,41 +617,41 @@ function sibsinMeaningKo(sibsin: string): string {
 // 일주 careerAptitude는 한국어 라벨 ('다양한 분야', '예술', 등) → 자연 영어.
 const APTITUDE_EN: Record<string, string> = {
   '다양한 분야': 'multiple fields',
-  '예술': 'art',
-  '창작': 'creative work',
-  '디자인': 'design',
-  '음악': 'music',
-  '미술': 'fine art',
-  '문학': 'literature',
-  '연기': 'acting',
-  '공연': 'performance',
-  '교육': 'education',
-  '연구': 'research',
-  '학문': 'academic work',
-  '의료': 'healthcare',
-  '치유': 'healing',
-  '상담': 'counselling',
-  '복지': 'social work',
-  '경영': 'management',
-  '리더십': 'leadership',
-  '행정': 'administration',
-  '법조': 'law',
-  '정치': 'politics',
-  '군': 'military',
-  '경찰': 'police',
-  '엔지니어링': 'engineering',
-  '기술': 'technical work',
-  '과학': 'science',
-  '금융': 'finance',
-  '투자': 'investing',
-  '회계': 'accounting',
-  '무역': 'trade',
-  '영업': 'sales',
-  '서비스': 'service',
-  '미디어': 'media',
-  '방송': 'broadcasting',
-  '글쓰기': 'writing',
-  '언론': 'journalism',
+  예술: 'art',
+  창작: 'creative work',
+  디자인: 'design',
+  음악: 'music',
+  미술: 'fine art',
+  문학: 'literature',
+  연기: 'acting',
+  공연: 'performance',
+  교육: 'education',
+  연구: 'research',
+  학문: 'academic work',
+  의료: 'healthcare',
+  치유: 'healing',
+  상담: 'counselling',
+  복지: 'social work',
+  경영: 'management',
+  리더십: 'leadership',
+  행정: 'administration',
+  법조: 'law',
+  정치: 'politics',
+  군: 'military',
+  경찰: 'police',
+  엔지니어링: 'engineering',
+  기술: 'technical work',
+  과학: 'science',
+  금융: 'finance',
+  투자: 'investing',
+  회계: 'accounting',
+  무역: 'trade',
+  영업: 'sales',
+  서비스: 'service',
+  미디어: 'media',
+  방송: 'broadcasting',
+  글쓰기: 'writing',
+  언론: 'journalism',
 }
 function aptitudeListEn(items: string[]): string {
   const mapped = items.slice(0, 3).map((a) => APTITUDE_EN[a] ?? 'a singular field')

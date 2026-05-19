@@ -15,7 +15,7 @@ import {
 } from '../../signals/sajuSignals'
 import { chiron, getPlanet, houseCusp, planetsInHouse, vesta } from '../../signals/astroSignals'
 import { houseLabel, paragraph, planetLabel, signLabel } from '../../templates/sentences'
-import { asteroidHouseLine } from '../../pools'
+import { asteroidHouseLine, planetHouseLine } from '../../pools'
 
 export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const { saju, astro, calendarSignals } = input
@@ -43,7 +43,9 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   // ── Astro
   const neptune = getPlanet(astro, 'Neptune')
   const moon = getPlanet(astro, 'Moon')
+  const pluto = getPlanet(astro, 'Pluto')
   if (neptune) astroUsed.push('planets.neptune')
+  if (pluto) astroUsed.push('planets.pluto')
   const lilith = astro.lilith
   if (lilith) astroUsed.push('lilith')
   const ch = chiron(astro)
@@ -161,6 +163,12 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       p3pieces.push(vesCrossKo)
       p3piecesEn.push(vesCrossEn)
     }
+  }
+  // Pluto × house — 변혁·심층의 무대 (spirituality 깊이 외행성)
+  const plutoHouseS = planetHouseLine('Pluto', pluto?.house, 'ko')
+  if (plutoHouseS) {
+    astroUsed.push('pools.planetHouse.pluto')
+    p3pieces.push(`${plutoHouseS}.`)
   }
   if (dra?.sunSign) {
     p3pieces.push(
@@ -428,16 +436,30 @@ function signSoulEn(sign: string): string {
 
 // 60갑자 일주 (hanja) → natural English label (spirituality 섹션 전용).
 const SPIRIT_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood', 乙: 'Yin Wood',
-  丙: 'Yang Fire', 丁: 'Yin Fire',
-  戊: 'Yang Earth', 己: 'Yin Earth',
-  庚: 'Yang Metal', 辛: 'Yin Metal',
-  壬: 'Yang Water', 癸: 'Yin Water',
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
 }
 const SPIRIT_BRANCH_EN: Record<string, string> = {
-  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
-  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
-  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
 }
 function iljuLabelEnSpirit(ilju: string | undefined): string {
   if (!ilju) return 'native day-pillar'
