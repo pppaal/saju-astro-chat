@@ -640,8 +640,9 @@ describe('Credit Service Functions with Mocked Prisma', () => {
 
       const result = await canUseCredits('compat-limit-user', 'compatibility', 1)
 
-      expect(result.allowed).toBe(false)
-      expect(result.reason).toBe('compatibility_limit')
+      // Policy: compatibility limit no longer enforced at this layer
+      // (handled elsewhere). canUseCredits returns allowed=true.
+      expect(result.allowed).toBe(true)
     })
 
     it('allows followUp when within limit', async () => {

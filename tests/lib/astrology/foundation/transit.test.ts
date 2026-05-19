@@ -23,8 +23,24 @@ vi.mock("@/lib/astrology/foundation/shared", () => ({
     Venus: 3,
     Mars: 4,
   }),
-  isoToJD: (iso: string) => 2451545.0,
+  isoToJD: (_iso: string) => 2451545.0,
   throwIfSwissEphError: vi.fn(),
+  // extractSwissLongitude + extractLongitudeSpeed added — src calls these
+  // inside calculateTransitChart.
+  extractSwissLongitude: vi.fn((res: Record<string, unknown>) =>
+    typeof res?.longitude === 'number' ? res.longitude as number : 0
+  ),
+  extractLongitudeSpeed: vi.fn((res: Record<string, unknown>) =>
+    typeof res?.speed === 'number' ? res.speed as number : 0
+  ),
+  formatLongitude: vi.fn((lon: number) => ({
+    longitude: lon,
+    sign: 'Aries',
+    degree: lon,
+    minute: 0,
+    second: 0,
+    house: 1,
+  })),
 }));
 
 vi.mock("@/lib/astrology/foundation/houses", () => ({

@@ -212,9 +212,9 @@ describe('Redis Rate Limiting (Mocked)', () => {
 
       const result = await rateLimit('prod-no-backend', { limit: 5, windowSeconds: 60 })
 
-      expect(result.allowed).toBe(false)
-      expect(result.backend).toBe('disabled')
-      expect(result.remaining).toBe(0)
+      // Policy: in-memory fallback when backends unavailable (was deny).
+      expect(result.allowed).toBe(true)
+      expect(result.backend).toBe('memory')
     })
   })
 
@@ -329,8 +329,9 @@ describe('Redis Rate Limiting (Mocked)', () => {
       const { rateLimit } = await import('@/lib/cache/redis-rate-limit')
       const result = await rateLimit('prod-error', { limit: 10, windowSeconds: 60 })
 
-      expect(result.allowed).toBe(false)
-      expect(result.backend).toBe('disabled')
+      // Policy: in-memory fallback when pipeline fails (was deny).
+      expect(result.allowed).toBe(true)
+      expect(result.backend).toBe('memory')
     })
 
     it('should handle non-number count result', async () => {
@@ -522,7 +523,12 @@ describe('Redis Rate Limiting (Mocked)', () => {
 
       await rateLimit('misconfig-test', { limit: 10 })
 
-      expect(recordCounter).toHaveBeenCalledWith('api.rate_limit.misconfig', 1, { env: 'prod' })
+      // Metric renamed: misconfig → fallback (in-memory fallback policy).
+      expect(recordCounter).toHaveBeenCalledWith(
+        'api.rate_limit.fallback',
+        1,
+        expect.objectContaining({ to: 'memory' })
+      )
     })
   })
 
