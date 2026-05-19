@@ -59,11 +59,13 @@ describe("calculateGrade", () => {
     });
   });
 
-  describe("grade 1 (good day)", () => {
-    it("returns grade 1 for score 62-67", () => {
+  // GRADE_THRESHOLDS refined: grade0>=63, grade1>=57, grade2>=44, grade3>=34.
+  // 기존 score 들이 새 boundary 에 떨어져 expected grade 가 한 단계씩 떨어짐.
+  describe("grade 1 (good day) — new boundary 57-62", () => {
+    it("returns grade 0 for score 65 (>=63)", () => {
       const input: GradeInput = { ...baseInput, score: 65 };
       const result = calculateGrade(input);
-      expect(result.grade).toBe(1);
+      expect(result.grade).toBe(0);
     });
 
     it("returns grade 1 for score 62 exactly", () => {
@@ -72,44 +74,44 @@ describe("calculateGrade", () => {
       expect(result.grade).toBe(1);
     });
 
-    it("returns grade 1 for score 67 exactly", () => {
+    it("returns grade 0 for score 67 (>=63)", () => {
       const input: GradeInput = { ...baseInput, score: 67 };
       const result = calculateGrade(input);
-      expect(result.grade).toBe(1);
+      expect(result.grade).toBe(0);
     });
   });
 
-  describe("grade 2 (normal day)", () => {
-    it("returns grade 2 for score 42-61", () => {
+  describe("grade 2 (normal day) — new boundary 44-56", () => {
+    it("returns grade 2 for score 55", () => {
       const input: GradeInput = { ...baseInput, score: 55 };
       const result = calculateGrade(input);
       expect(result.grade).toBe(2);
     });
 
-    it("returns grade 2 for score 42 exactly", () => {
+    it("returns grade 3 for score 42 (<44)", () => {
       const input: GradeInput = { ...baseInput, score: 42 };
       const result = calculateGrade(input);
-      expect(result.grade).toBe(2);
+      expect(result.grade).toBe(3);
     });
 
-    it("returns grade 1 for score 64 exactly", () => {
+    it("returns grade 0 for score 64 (>=63)", () => {
       const input: GradeInput = { ...baseInput, score: 64 };
       const result = calculateGrade(input);
-      expect(result.grade).toBe(1);
+      expect(result.grade).toBe(0);
     });
   });
 
-  describe("grade 3 (bad day)", () => {
-    it("returns grade 3 for score 28-41", () => {
+  describe("grade 3 (bad day) — new boundary 34-43", () => {
+    it("returns grade 3 for score 35", () => {
       const input: GradeInput = { ...baseInput, score: 35 };
       const result = calculateGrade(input);
       expect(result.grade).toBe(3);
     });
 
-    it("returns grade 3 for score 28 exactly", () => {
+    it("returns grade 4 for score 28 (<34)", () => {
       const input: GradeInput = { ...baseInput, score: 28 };
       const result = calculateGrade(input);
-      expect(result.grade).toBe(3);
+      expect(result.grade).toBe(4);
     });
   });
 

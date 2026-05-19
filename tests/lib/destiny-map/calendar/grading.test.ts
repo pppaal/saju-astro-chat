@@ -88,11 +88,12 @@ describe('grading', () => {
         expect(result.grade).not.toBe(0);
       });
 
-      it('should return grade 1 for score 62-67', () => {
+      // Threshold refined: grade0>=63, grade1>=57, grade2>=44, grade3>=34.
+      it('should return grade 0 for score 64 (>=63)', () => {
         const input = createGradeInput({ score: 64 });
         const result = calculateGrade(input);
 
-        expect(result.grade).toBe(1);
+        expect(result.grade).toBe(0);
       });
 
       it('should return grade 2 for score 42-61', () => {
@@ -239,48 +240,37 @@ describe('grading', () => {
     });
 
     describe('grade boundaries', () => {
-      it('should correctly handle boundary at 68', () => {
-        const below = createGradeInput({ score: 67 });
-        const at = createGradeInput({ score: 68 });
+      // Boundaries updated to new thresholds (63/57/44/34).
+      it('should correctly handle boundary at 63', () => {
+        const below = createGradeInput({ score: 62 });
+        const at = createGradeInput({ score: 63 });
 
-        const resultBelow = calculateGrade(below);
-        const resultAt = calculateGrade(at);
-
-        expect(resultBelow.grade).toBe(1);
-        expect(resultAt.grade).toBe(0);
+        expect(calculateGrade(below).grade).toBe(1);
+        expect(calculateGrade(at).grade).toBe(0);
       });
 
-      it('should correctly handle boundary at 62', () => {
-        const below = createGradeInput({ score: 61 });
-        const at = createGradeInput({ score: 62 });
+      it('should correctly handle boundary at 57', () => {
+        const below = createGradeInput({ score: 56 });
+        const at = createGradeInput({ score: 57 });
 
-        const resultBelow = calculateGrade(below);
-        const resultAt = calculateGrade(at);
-
-        expect(resultBelow.grade).toBe(2);
-        expect(resultAt.grade).toBe(1);
+        expect(calculateGrade(below).grade).toBe(2);
+        expect(calculateGrade(at).grade).toBe(1);
       });
 
-      it('should correctly handle boundary at 42', () => {
-        const below = createGradeInput({ score: 41 });
-        const at = createGradeInput({ score: 42 });
+      it('should correctly handle boundary at 44', () => {
+        const below = createGradeInput({ score: 43 });
+        const at = createGradeInput({ score: 44 });
 
-        const resultBelow = calculateGrade(below);
-        const resultAt = calculateGrade(at);
-
-        expect(resultBelow.grade).toBe(3);
-        expect(resultAt.grade).toBe(2);
+        expect(calculateGrade(below).grade).toBe(3);
+        expect(calculateGrade(at).grade).toBe(2);
       });
 
-      it('should correctly handle boundary at 28', () => {
-        const below = createGradeInput({ score: 27 });
-        const at = createGradeInput({ score: 28 });
+      it('should correctly handle boundary at 34', () => {
+        const below = createGradeInput({ score: 33 });
+        const at = createGradeInput({ score: 34 });
 
-        const resultBelow = calculateGrade(below);
-        const resultAt = calculateGrade(at);
-
-        expect(resultBelow.grade).toBe(4);
-        expect(resultAt.grade).toBe(3);
+        expect(calculateGrade(below).grade).toBe(4);
+        expect(calculateGrade(at).grade).toBe(3);
       });
     });
   });
