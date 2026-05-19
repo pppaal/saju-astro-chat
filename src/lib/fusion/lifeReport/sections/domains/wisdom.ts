@@ -80,9 +80,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
 
   // ── Paragraph 1: 학문·지혜의 결
   const inseongFlavorKo = inseong >= 3
-    ? '지혜와 돌봄의 자질이 매우 진하게 흐르고 있어서, 배움 자체가 운의 통로예요.'
+    ? '지혜와 돌봄의 자질이 매우 진하게 깔려 있어서, 배움 자체가 운의 통로예요.'
     : inseong >= 1
-      ? '지혜와 돌봄의 자질이 잔잔히 흐르고 있어, 배움을 멈추지 않는 게 운의 출구가 돼요.'
+      ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운의 출구가 돼요.'
       : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
   const inseongFlavorEn = inseong >= 3
     ? 'A strong 인성 (wisdom-and-care line) runs through your saju — learning itself becomes the channel of luck.'
@@ -93,7 +93,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     inseongFlavorKo,
     mercury
-      ? `생각과 말의 별이 ${signLabel(mercury.sign, 'ko')}${mercury.house ? `, ${houseLabel(mercury.house, 'ko')}에` : ''} 놓여서, ${mercurySignFlavorKo(mercury.sign)}가 자연스럽게 펼쳐져요.`
+      ? `생각과 말의 별이 ${signLabel(mercury.sign, 'ko')}${mercury.house ? `의 ${houseLabel(mercury.house, 'ko')}에` : '에'} 놓여서, ${mercurySignFlavorKo(mercury.sign)}가 자연스럽게 펼쳐져요.`
       : '',
     ninth.length > 0
       ? `${houseLabel(9, 'ko')}에 ${ninth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 큰 그림과 신념이 학습의 동력이 돼요.`
@@ -157,7 +157,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p3piecesEn: string[] = []
   if (nn) {
     p3pieces.push(
-      `이번 생의 방향이 ${signLabel(nn.sign, 'ko')}${nn.house ? `, ${houseLabel(nn.house, 'ko')}` : ''}에 있어, 학습은 단순한 지식이 아니라 영혼의 ${signMissionKo(nn.sign)}을 따라가는 길이에요.`,
+      `이번 생의 방향이 ${signLabel(nn.sign, 'ko')}${nn.house ? `의 ${houseLabel(nn.house, 'ko')}` : ''}에 있어, 학습은 단순한 지식이 아니라 영혼의 ${signMissionKo(nn.sign)}을 따라가는 길이에요.`,
     )
     p3piecesEn.push(
       `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? ` (${houseLabel(nn.house, 'en')})` : ''}, so study is not data but a path toward ${signMissionEn(nn.sign)}.`,

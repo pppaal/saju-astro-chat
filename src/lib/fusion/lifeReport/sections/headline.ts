@@ -138,7 +138,7 @@ export function buildHeadline(input: BuilderInput): Headline {
     ? `자아의 별인 태양은 ${signLabel(sun.sign, 'ko')}에서 빛나고`
     : ''
   const moonPart = moon
-    ? `감정의 달은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르고`
+    ? `감정의 별인 달은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르며`
     : ''
   const ascPart = asc
     ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 색감이에요`
@@ -155,7 +155,7 @@ export function buildHeadline(input: BuilderInput): Headline {
   const skyPartsEn = [sunPartEn, moonPartEn, ascPartEn].filter(Boolean).join(' · ')
 
   const s2ko = skyParts
-    ? `별로 보면, ${skyParts}.`
+    ? `별의 결로 보면 ${skyParts}.`
     : ''
   const s2en = skyPartsEn
     ? `Astrologically, you are shaped by ${skyPartsEn}.`

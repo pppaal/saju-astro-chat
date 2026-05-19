@@ -80,9 +80,9 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       : inseong === 0
         ? '어머니와 돌봄 라인의 인연은 의식적인 노력으로 자라요.'
         : '당신은 가족과의 인연을 차분하게 이어가는 사람이에요.',
-    `돌봄의 결은 ${familyCountFlavorKo(inseong)}, 동료의 결은 ${familyCountFlavorKo(bijeon)} 흘러서 ${familyShapeKo(inseong, bijeon)}.`,
+    `돌봄의 결은 ${familyCountFlavorKo(inseong)}, 동료의 결은 ${familyCountFlavorKo(bijeon)} 자리해요. ${familyShapeKo(inseong, bijeon)}.`,
     fourth
-      ? `가정 영역은 ${signLabel(fourth.sign, 'ko')}의 색감으로 시작해서, 집안 공기가 ${fourthSignFlavorKo(fourth.sign)}.`
+      ? `가정 자리는 ${signLabel(fourth.sign, 'ko')}의 색감을 띠어, 집안 공기가 ${fourthSignFlavorKo(fourth.sign)}.`
       : '',
   ])
   const p1en = paragraph([
@@ -223,15 +223,15 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
 
 function familyShapeKo(inseong: number, bijeon: number): string {
   if (inseong >= 2 && bijeon >= 2) return '돌봄과 동료 라인이 둘 다 풍부한 그릇이에요'
-  if (inseong >= 2) return '돌봄 라인이 두텁고 형제 라인은 잔잔히 흘러요'
-  if (bijeon >= 2) return '형제와 동료 라인이 두텁고 돌봄은 잔잔히 흘러요'
-  if (inseong === 0 && bijeon === 0) return '가족의 결이 가벼워서, 본인이 새 가족을 만드는 흐름이에요'
-  return '돌봄과 동등이 균형 있게 흘러요'
+  if (inseong >= 2) return '돌봄 라인이 두텁고, 형제 라인은 잔잔히 이어져요'
+  if (bijeon >= 2) return '형제와 동료 라인이 두텁고, 돌봄은 잔잔히 이어져요'
+  if (inseong === 0 && bijeon === 0) return '가족의 결이 가벼워서, 본인이 새 가족을 만들어가는 자리예요'
+  return '돌봄과 동등이 균형 있게 자리해요'
 }
 
 // 가족 결의 강도를 "겹" 없이 자연 한국어로
 function familyCountFlavorKo(n: number): string {
-  if (n === 0) return '비어 있고'
+  if (n === 0) return '비어 있게'
   if (n === 1) return '한 갈래로 가볍게'
   if (n === 2) return '두 갈래로 또렷하게'
   return '풍성하게'

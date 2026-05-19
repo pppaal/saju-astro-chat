@@ -252,7 +252,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
 function childFlavorKo(n: number): string {
   if (n === 0) return '자녀운은 다른 기운들이 함께 받쳐줘요'
   if (n === 1) return '자녀와 안정적인 인연이 한 갈래로 이어져요'
-  if (n === 2) return '자녀와의 인연이 분명하게 자리잡아요'
+  if (n === 2) return '자녀와의 인연이 자연스럽게 자리잡아요'
   return '자녀 인연이 풍성하게 흘러요'
 }
 
