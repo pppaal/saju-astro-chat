@@ -271,6 +271,65 @@ describe('calendar-engine regression', () => {
       expect(getGanjiTransitNarrative('XYZ', 'yearly', 'ko')).toBe('')
     })
 
+    it('domain narratives do not use 여기에/한편/추가로 connector cycle (Patch 2)', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      // 도메인 단락 5개 모두 점검 — connector 사이클 ("여기에/한편/추가로/
+      // 또한/단,") 으로 시작하는 줄이 없어야 함. lifeReport 패턴 (줄바꿈 자체가
+      // 분리자) 으로 자연스럽게 합쳐졌는지 확인.
+      const domainSections = interp.sections.filter((s) => s.section.startsWith('domain-'))
+      expect(domainSections.length).toBeGreaterThanOrEqual(3)
+      const connectorRe = /^(여기에|한편|추가로|또한|단,)\s/m
+      for (const s of domainSections) {
+        const lines = s.text.split('\n')
+        for (const line of lines) {
+          expect(line, `connector leak in [${s.section}]: ${line}`).not.toMatch(connectorRe)
+        }
+      }
+    })
+
+    it('domain body section dedups overlapping wellness rules (Patch 3)', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const body = interp.sections.find((s) => s.section === 'domain-body')
+      if (!body) return // No body section means nothing to dedup, test trivially passes
+      // "회복·치유에 우호적" 핵심 문구는 한 단락 안에 한 번만 등장해야 함.
+      const occurrences = (body.text.match(/회복·치유에 우호적/g) ?? []).length
+      expect(occurrences).toBeLessThanOrEqual(1)
+    })
+
     it('consecutive days produce distinct daily ganji text (no 5월/6월 dup)', async () => {
       const { getGanjiTransitNarrative } =
         await import('@/lib/calendar-engine/data/ganjiTransitNarrative')

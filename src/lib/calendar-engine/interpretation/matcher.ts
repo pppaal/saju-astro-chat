@@ -139,7 +139,7 @@ export function buildInterpretation(args: {
         id: `domain.${domain}`,
         section: `domain-${domain}`,
         priority: list[0].rule.priority,
-        template: mergeDomainTemplates(templates, topDates, lowDates),
+        template: mergeDomainTemplates(templates, topDates, lowDates, domain),
       },
       vars: list[0].vars,
       polarity: list[0].polarity,
@@ -527,24 +527,74 @@ const DOMAIN_TITLES: Record<string, string> = {
 
 const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'growth']
 
-// 도메인 안에 룰이 5개까지 쌓이면 narrative 너무 길어지고 "여기에/한편/
-// 추가로/또한" 같은 연결사가 4번씩 반복됨. 사용자 audit 결과 3개가 최적
-// (긍정 1 + 주의 1 + 컨텍스트 1 정도). 잘려나간 룰은 다른 시기에 또
-// 매칭될 기회 있음.
+// 도메인 안에 룰이 5개까지 쌓이면 narrative 너무 길어짐. 사용자 audit
+// 결과 3개가 최적 (긍정 1 + 주의 1 + 컨텍스트 1 정도). 잘려나간 룰은
+// 다른 시기에 또 매칭될 기회 있음.
 const MAX_RULES_PER_DOMAIN = 3
 
 /**
+ * 도메인 안에서 의미 중복을 잡는 fingerprint group.
+ * 같은 group 의 키워드가 후보·이전 본문 양쪽에 있으면 후보는 skip.
+ * lifeReport 의 love.ts moonSignDedup 패턴을 룰 도메인용으로 일반화.
+ *
+ * 예) body 도메인에서 "회복·치유에 우호적..." 룰이 이미 들어왔는데
+ *     "건강·검진에 좋은 시기..." 룰을 또 붙이면 같은 결을 두 번 말함.
+ *     → 두 줄 다 ['회복', '치유', '검진'] group 을 건드리므로 후보 skip.
+ */
+// Fingerprint group 은 *구절* 단위 — 단일 단어("정리", "검진") 만으로 묶지
+// 않음. positive 의미("자산 정리") 와 negative 의미("구조 재정비") 가 한
+// 단어를 공유해도 다른 group 에 속하게 분리. 의미가 진짜 같은 두 룰만
+// dedup 되고, 보완적 룰 (e.g. "회복 우호" + "과로 주의") 은 둘 다 살림.
+const DOMAIN_THEME_GROUPS: Record<string, string[][]> = {
+  body: [
+    ['회복과 치유', '회복·치유에 우호적'],
+    ['무리·과로 주의', '과로 주의'],
+    ['수면', '잠'],
+    ['스트레스 누적', '긴장 누적'],
+  ],
+  money: [
+    ['확장 기회', '큰 흐름의 확장', '확장 기회 강함'],
+    ['진행 지연', '구조 재정비'],
+    ['투자·자산 정리', '큰 베팅'],
+    ['안정적 수입', '꾸준한 수입'],
+  ],
+  work: [
+    ['승진·자리', '공식 자리'],
+    ['공식 절차·서류 지연', '계약 지연'],
+    ['학업·연구', '자격증·전문 분야'],
+    ['창의·표현 발의', '발표·발의'],
+  ],
+  relations: [
+    ['인연·만남', '관계 진전이 자연스러운'],
+    ['진척 더딘', '기존 관계 다지기'],
+    ['가족·관계 긴장', '부드러운 소통이 필요'],
+  ],
+  growth: [
+    ['창의·표현', '작품·콘텐츠'],
+    ['이동·이직·이사', '여행 환경 변화'],
+    ['학습·배움 우호적'],
+  ],
+}
+
+function fingerprintMatches(text: string, group: string[]): boolean {
+  return group.some((kw) => text.includes(kw))
+}
+
+/**
  * 도메인 안 여러 룰 텍스트를 자연스럽게 한 단락으로.
- * 첫 줄 = 메인 헤드라인, 뒤따르는 룰은 자연 연결사로 이어붙임.
- * 마지막 줄 = 그 도메인이 가장 강한 날짜 top 3 (있을 때만).
+ * - 첫 줄 = 메인 헤드라인
+ * - 뒤따르는 룰은 줄바꿈만으로 이어붙임 (여기에/한편/추가로 연결사 제거 —
+ *   고정 순환이 list-archive 느낌을 만들었음, lifeReport 의
+ *   appendToPara 처럼 줄 자체가 분리자가 되게)
+ * - 후보가 host 와 같은 fingerprint group 을 건드리면 skip
+ * - 마지막 줄 = 그 도메인이 가장 강한 날짜 top 3 (있을 때만)
  * 룰 텍스트의 이모지 + 굵은 헤더는 제거하고 본문만 사용해 같은 톤 유지.
  */
-const CONNECTORS = ['여기에', '한편', '추가로', '또한', '단,']
-
 function mergeDomainTemplates(
   texts: string[],
   topDates: string[] = [],
-  lowDates: string[] = []
+  lowDates: string[] = [],
+  domain: string = ''
 ): string {
   if (texts.length === 0) return ''
   const cleaned = texts.map((t) => t.trim()).filter(Boolean)
@@ -553,12 +603,22 @@ function mergeDomainTemplates(
     body = cleaned[0]
   } else {
     const [head, ...rest] = cleaned
-    const tail = rest.map((t, i) => {
-      const stripped = t.replace(/^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u, '')
-      const connector = CONNECTORS[i % CONNECTORS.length]
-      return `\n${connector} ${stripped}`
-    })
-    body = head + tail.join('')
+    const accumulated = [head]
+    const groups = DOMAIN_THEME_GROUPS[domain] ?? []
+    for (const candidate of rest) {
+      const stripped = candidate.replace(
+        /^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u,
+        ''
+      )
+      // Patch 3 — fingerprint dedup
+      const hostSoFar = accumulated.join('\n')
+      const duplicates = groups.some(
+        (group) => fingerprintMatches(hostSoFar, group) && fingerprintMatches(stripped, group)
+      )
+      if (duplicates) continue
+      accumulated.push(stripped)
+    }
+    body = accumulated.join('\n')
   }
   if (topDates.length > 0) {
     body += `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
