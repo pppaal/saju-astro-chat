@@ -150,13 +150,19 @@ export function buildInterpretation(args: {
           : '복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:'
       )
     }
+    const mergedText = mergeDomainTemplates(templates, topDates, lowDates, domain, lang)
     const merged: (typeof matched)[number] = {
       rule: {
         ...list[0].rule,
         id: `domain.${domain}`,
         section: `domain-${domain}`,
         priority: list[0].rule.priority,
-        template: mergeDomainTemplates(templates, topDates, lowDates, domain, lang),
+        // 병합된 텍스트는 이미 lang 에 맞춰 합성됨 → template 한 쪽에만 박고
+        // templateEn 은 명시적으로 비워 둠. 그렇지 않으면 list[0].rule 의
+        // 원본 templateEn 이 spread 로 살아남아 pickRuleTemplate('en') 가
+        // 병합된 텍스트 대신 첫 룰의 원본 EN 만 반환 (Phase 2 EN 머지 버그).
+        template: mergedText,
+        templateEn: undefined,
       },
       vars: list[0].vars,
       polarity: list[0].polarity,
@@ -595,34 +601,50 @@ const MAX_RULES_PER_DOMAIN = 3
 // 않음. positive 의미("자산 정리") 와 negative 의미("구조 재정비") 가 한
 // 단어를 공유해도 다른 group 에 속하게 분리. 의미가 진짜 같은 두 룰만
 // dedup 되고, 보완적 룰 (e.g. "회복 우호" + "과로 주의") 은 둘 다 살림.
+//
+// 각 group 안에 한국어 + 영어 구절을 함께 — KO/EN 본문 양쪽에서 dedup
+// 동작 보장. dedup 조건은 "host 와 candidate 가 같은 group 내 *어느* 구절이든
+// 둘 다 포함" 이라 KO 룰 두 개끼리는 KO 키워드로, EN 두 개끼리는 EN 키워드로
+// 매치. KO ↔ EN 교차 매치는 발생 안 함 (애초에 같은 lang 안에서만 호출됨).
 const DOMAIN_THEME_GROUPS: Record<string, string[][]> = {
   body: [
-    ['회복과 치유', '회복·치유에 우호적'],
-    ['무리·과로 주의', '과로 주의'],
-    ['수면', '잠'],
-    ['스트레스 누적', '긴장 누적'],
+    ['회복과 치유', '회복·치유에 우호적', 'recovery and healing', 'favourable to recovery'],
+    ['무리·과로 주의', '과로 주의', 'overwork', 'pushing too hard'],
+    ['수면', '잠', 'sleep'],
+    ['스트레스 누적', '긴장 누적', 'stress', 'tension build-up'],
   ],
   money: [
-    ['확장 기회', '큰 흐름의 확장', '확장 기회 강함'],
-    ['진행 지연', '구조 재정비'],
-    ['투자·자산 정리', '큰 베팅'],
-    ['안정적 수입', '꾸준한 수입'],
+    ['확장 기회', '큰 흐름의 확장', '확장 기회 강함', 'expansion chances', 'expansion opportunity'],
+    ['진행 지연', '구조 재정비', 'delays', 'restructure', 'reshuffle'],
+    ['투자·자산 정리', '큰 베팅', 'tidying up existing assets', 'big bets'],
+    ['안정적 수입', '꾸준한 수입', 'steady income', 'stable income'],
   ],
   work: [
-    ['승진·자리', '공식 자리'],
-    ['공식 절차·서류 지연', '계약 지연'],
-    ['학업·연구', '자격증·전문 분야'],
-    ['창의·표현 발의', '발표·발의'],
+    ['승진·자리', '공식 자리', 'promotions', 'official positions', 'representative roles'],
+    ['공식 절차·서류 지연', '계약 지연', 'paperwork may stall', 'contract delays'],
+    ['학업·연구', '자격증·전문 분야', 'study, research', 'certifications', 'specialty fields'],
+    ['창의·표현 발의', '발표·발의', 'proposals', 'presentations'],
   ],
   relations: [
-    ['인연·만남', '관계 진전이 자연스러운'],
-    ['진척 더딘', '기존 관계 다지기'],
-    ['가족·관계 긴장', '부드러운 소통이 필요'],
+    [
+      '인연·만남',
+      '관계 진전이 자연스러운',
+      'connection, meetings',
+      'relationship progress flow naturally',
+    ],
+    ['진척 더딘', '기존 관계 다지기', 'progress is slow', 'deepening the ones you already have'],
+    ['가족·관계 긴장', '부드러운 소통이 필요', 'subtle tension', 'softer communication'],
   ],
   growth: [
-    ['창의·표현', '작품·콘텐츠'],
-    ['이동·이직·이사', '여행 환경 변화'],
-    ['학습·배움 우호적'],
+    [
+      '창의·표현',
+      '작품·콘텐츠',
+      'creativity and expression',
+      'work, content',
+      'expression, creation',
+    ],
+    ['이동·이직·이사', '여행 환경 변화', 'travel, job switches', 'environment changes'],
+    ['학습·배움 우호적', 'favourable for learning'],
   ],
 }
 
