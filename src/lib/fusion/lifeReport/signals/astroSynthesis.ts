@@ -149,20 +149,6 @@ export function dominantPlanet(astro: AstrologyLikeChart): string | null {
   return sun ? sun.name : null
 }
 
-/** Most-occupied house, ignoring counts < 2. */
-export function emphasizedHouse(astro: AstrologyLikeChart): number | null {
-  const planets = astro.planets ?? []
-  const counts: Record<number, number> = {}
-  for (const p of planets) {
-    const h = p.house
-    if (!h) continue
-    counts[h] = (counts[h] || 0) + 1
-  }
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
-  if (sorted.length === 0 || sorted[0][1] < 2) return null
-  return Number(sorted[0][0])
-}
-
 export function findPlanet(
   astro: AstrologyLikeChart,
   name: string

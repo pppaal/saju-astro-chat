@@ -20,7 +20,6 @@
 //   - astrology/foundation/electional            (today's window)
 //   - astrology/foundation/harmonics             (H5 / H7 / H9 strength)
 //   - astrology/foundation/draconic              (soul-line chart)
-//   - astrology/foundation/midpoints             (Sun/Moon, Venus/Mars, …)
 //   - saju ultraAdvanced.hyeongchung + iljuDeep  (saju side, via main output)
 
 import type { MainSajuOutput } from '@/lib/saju/main'
@@ -60,12 +59,6 @@ import {
   type DraconicChart,
   type DraconicSummary,
 } from '@/lib/astrology/foundation/draconic'
-import {
-  calculateMidpoints,
-  findMidpointActivations,
-  type Midpoint,
-  type MidpointActivation,
-} from '@/lib/astrology/foundation/midpoints'
 import { isNightChart } from '@/lib/astrology/foundation/extraPoints'
 
 // ─── Adapter result shape ────────────────────────────────────
@@ -103,20 +96,6 @@ export interface DraconicSummaryEntry {
   archetype?: string
   pastLife?: string
   purpose?: string
-}
-
-export interface MidpointEntry {
-  pair: string
-  nameKo: string
-  sign: string
-  keywords: string[]
-}
-
-export interface MidpointActivationEntry {
-  pair: string
-  activator: string
-  aspect: string
-  orb: number
 }
 
 /** Extra Arabic Parts computed inside the adapter (Hellenistic Bonatti
@@ -184,10 +163,6 @@ export interface CalendarEngineSignals {
   harmonics?: Partial<Record<5 | 7 | 9, HarmonicSummary>>
   /** Draconic-chart soul-summary (Sun in draconic, archetype, purpose, …). */
   draconicSummary?: DraconicSummaryEntry
-  /** Notable midpoints (Sun/Moon, Venus/Mars, …) — sign + keywords only. */
-  midpoints?: MidpointEntry[]
-  /** Outer-planet activations of those midpoints (current chart). */
-  midpointActivations?: MidpointActivationEntry[]
   /** Saju hyeongchung pattern summary — natal-pillar internal interactions. */
   sajuHyeongchung?: {
     hapCount: number
@@ -412,31 +387,6 @@ export function adaptCalendarEngineSignals(input: AdaptInput): CalendarEngineSig
           summary.purpose = cmp.summary.soulPurpose
         }
         out.draconicSummary = summary
-      }
-    }
-  }
-
-  // ── Midpoints (needs full chart)
-  if (isFull) {
-    const chart = toChart(astro)
-    const mps = safe<Midpoint[]>(() => calculateMidpoints(chart))
-    if (mps && mps.length > 0) {
-      out.midpoints = mps.slice(0, 6).map((m) => ({
-        pair: m.id,
-        nameKo: m.name_ko,
-        sign: m.sign,
-        keywords: m.keywords.slice(0, 3),
-      }))
-      const acts = safe<MidpointActivation[]>(() =>
-        findMidpointActivations(chart, 1.5),
-      )
-      if (acts && acts.length > 0) {
-        out.midpointActivations = acts.slice(0, 5).map((a) => ({
-          pair: a.midpoint.id,
-          activator: a.activator,
-          aspect: a.aspectType,
-          orb: Number(a.orb.toFixed(2)),
-        }))
       }
     }
   }
