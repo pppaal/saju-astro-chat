@@ -25,14 +25,36 @@ export function buildInterpretation(args: {
   const allSignals = cells.flatMap((c) => c.signals)
   const allPatterns = cells.flatMap((c) => c.matchedPatterns)
   // 길일/흉일 후보
-  const ranked = [...cells].sort((a, b) => b.derivedScore - a.derivedScore)
+  // Tie-breaker: 같은 derivedScore 일 때 signal 밀도 (|weight × polarity| 합)
+  // 가 높은 날을 우선. 점수 분포가 좁아질 때 5/11/20/21/26 처럼 5일이
+  // 동률 100점 으로 묶이던 문제 해소.
+  // 3단계: derivedScore desc → signal density desc → 날짜 asc (안정성)
+  const signalDensity = (c: CalendarCell): number => {
+    let sum = 0
+    for (const s of c.signals) {
+      sum += Math.abs(s.weight ?? 0) * Math.abs(s.polarity ?? 0)
+    }
+    return sum
+  }
+  const compareCells = (a: CalendarCell, b: CalendarCell, direction: 'high' | 'low'): number => {
+    const scoreDiff =
+      direction === 'high' ? b.derivedScore - a.derivedScore : a.derivedScore - b.derivedScore
+    if (scoreDiff !== 0) return scoreDiff
+    const densityDiff =
+      direction === 'high'
+        ? signalDensity(b) - signalDensity(a)
+        : signalDensity(a) - signalDensity(b)
+    if (densityDiff !== 0) return densityDiff
+    return a.datetime < b.datetime ? -1 : a.datetime > b.datetime ? 1 : 0
+  }
+  const ranked = [...cells].sort((a, b) => compareCells(a, b, 'high'))
   const luckyDates = ranked
     .slice(0, 3)
     .map((c) => c.datetime.slice(5, 10))
     .join(', ')
-  const unluckyDates = ranked
-    .slice(-3)
-    .reverse()
+  const unluckyRanked = [...cells].sort((a, b) => compareCells(a, b, 'low'))
+  const unluckyDates = unluckyRanked
+    .slice(0, 3)
     .map((c) => c.datetime.slice(5, 10))
     .join(', ')
 

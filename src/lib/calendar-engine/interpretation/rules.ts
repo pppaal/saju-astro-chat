@@ -1555,8 +1555,8 @@ export const RULES: InterpretationRule[] = [
     priority: 72,
     conditions: { yongsin: ['목'], signalSource: 'saju', signalLayer: ['monthly'] },
     template:
-      `봄 月運은 본명 용신(목)에 우호적인 시기로 들어가요. ` +
-      `새 시작·진출·확장에 좋은 한 달이에요.`,
+      `**{monthGanji}** 월 — 봄 흐름이 본명 용신(목)에 우호적인 시기로 들어가요. ` +
+      `새 시작·진출·확장에 좋은 한 달이에요. {monthGanjiText}`,
     themes: ['career', 'growth'],
   },
   {
@@ -1566,8 +1566,8 @@ export const RULES: InterpretationRule[] = [
     priority: 72,
     conditions: { yongsin: ['화'], signalSource: 'saju', signalLayer: ['monthly'] },
     template:
-      `여름 月運은 본명 용신(화)에 우호적이에요. 자기 표현· ` +
-      `대외 활동·인맥 확장이 잘 통하는 한 달이에요.`,
+      `**{monthGanji}** 월 — 여름 흐름이 본명 용신(화)에 우호적이에요. ` +
+      `자기 표현·대외 활동·인맥 확장이 잘 통하는 한 달이에요. {monthGanjiText}`,
     themes: ['career', 'growth'],
   },
   {
@@ -1577,7 +1577,8 @@ export const RULES: InterpretationRule[] = [
     priority: 72,
     conditions: { yongsin: ['금'], signalSource: 'saju', signalLayer: ['monthly'] },
     template:
-      `가을 月運은 본명 용신(금)에 우호적이에요. 결단·정리· ` + `결과 만들기에 좋은 한 달이에요.`,
+      `**{monthGanji}** 월 — 가을 흐름이 본명 용신(금)에 우호적이에요. ` +
+      `결단·정리·결과 만들기에 좋은 한 달이에요. {monthGanjiText}`,
     themes: ['career'],
   },
   {
@@ -1587,8 +1588,8 @@ export const RULES: InterpretationRule[] = [
     priority: 72,
     conditions: { yongsin: ['수'], signalSource: 'saju', signalLayer: ['monthly'] },
     template:
-      `겨울 月運은 본명 용신(수)에 우호적이에요. 연구·학습· ` +
-      `내실 다지기·계획에 좋은 한 달이에요.`,
+      `**{monthGanji}** 월 — 겨울 흐름이 본명 용신(수)에 우호적이에요. ` +
+      `연구·학습·내실 다지기·계획에 좋은 한 달이에요. {monthGanjiText}`,
     themes: ['career', 'growth'],
   },
 
