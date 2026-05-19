@@ -828,6 +828,853 @@ const ASPECT_LINES: Record<AspectKind, SignLine> = {
 }
 
 // ============================================================
+// Aspect × Planet Pair  — per-combination short read
+// Covers the most informative pairs for natal & transit work.
+// Order convention: planet1/planet2 follow the canonical
+// PLANET_ORDER list (Sun, Moon, Mercury, Venus, Mars, Jupiter,
+// Saturn, Uranus, Neptune, Pluto). Lookup is order-agnostic.
+// ============================================================
+
+export type AspectPairPlanet =
+  | 'Sun'
+  | 'Moon'
+  | 'Mercury'
+  | 'Venus'
+  | 'Mars'
+  | 'Jupiter'
+  | 'Saturn'
+  | 'Uranus'
+  | 'Neptune'
+  | 'Pluto'
+
+export interface AspectPairEntry {
+  planet1: AspectPairPlanet
+  planet2: AspectPairPlanet
+  aspect: AspectKind
+  ko: string
+  en: string
+  keywords_ko: [string, string, string]
+  keywords_en: [string, string, string]
+}
+
+const PLANET_ORDER: readonly AspectPairPlanet[] = [
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+]
+
+export const ASPECT_PAIR_DICTIONARY: AspectPairEntry[] = [
+  // ============================================================
+  // HIGH PRIORITY — Sun × {Moon, Venus, Mars, Jupiter, Saturn}
+  // ============================================================
+
+  // ---------- Sun × Moon (identity × emotion) ----------
+  {
+    planet1: 'Sun', planet2: 'Moon', aspect: 'conjunction',
+    ko: '자아와 감정이 한 자리에서 만나, 의식과 무의식이 한 톤으로 흐르는 결이에요. 의지와 감정이 자연스럽게 같은 방향을 보는 흐름.',
+    en: 'Identity and emotion meet in the same spot — conscious will and inner feeling flow in the same key. A natural alignment of intention and mood.',
+    keywords_ko: ['자아의 통합', '감정의 일치', '한 톤의 결'],
+    keywords_en: ['integrated self', 'aligned emotion', 'single-key flow'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Moon', aspect: 'sextile',
+    ko: '자아와 감정이 가볍게 손을 잡는 결이에요. 의지와 마음이 부드럽게 협력하지만, 의식적으로 쓸 때 더 살아나요.',
+    en: 'Will and feeling clasp hands gently. Intention and mood cooperate easily, but the gift only sparks when you use it on purpose.',
+    keywords_ko: ['의지-감정 협력', '부드러운 균형', '의식적 활용'],
+    keywords_en: ['willing cooperation', 'gentle balance', 'opt-in flow'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Moon', aspect: 'square',
+    ko: '의지가 가는 길과 마음이 원하는 자리가 어긋나는 결이에요. 자아와 감정 사이의 긴장이 성장의 엔진이 돼요.',
+    en: 'Where the will points and where the heart leans pull at different angles. The friction between identity and feeling becomes a growth engine.',
+    keywords_ko: ['내적 긴장', '성장의 마찰', '균형 찾기'],
+    keywords_en: ['inner friction', 'growth tension', 'finding balance'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Moon', aspect: 'trine',
+    ko: '의지와 감정이 같은 강물에 흐르는 결이에요. 자아 표현이 감정의 결과 잘 맞아 큰 노력 없이 자기다움이 나와요.',
+    en: 'Will and feeling ride the same current. Self-expression matches inner mood, so authenticity flows without strain.',
+    keywords_ko: ['타고난 자기다움', '내면 화합', '자연스런 흐름'],
+    keywords_en: ['innate authenticity', 'inner harmony', 'effortless flow'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Moon', aspect: 'opposition',
+    ko: '의지와 감정이 마주 보며 균형을 찾아가는 결이에요. 관계 안에서 자아와 마음의 두 축이 통합돼요.',
+    en: 'Identity and emotion face each other from opposite shores. Through relationships and mirroring, the two poles learn to balance.',
+    keywords_ko: ['양극의 통합', '관계의 거울', '의식-무의식 균형'],
+    keywords_en: ['polar integration', 'relational mirror', 'conscious-unconscious balance'],
+  },
+
+  // ---------- Sun × Venus (identity × love) ----------
+  {
+    planet1: 'Sun', planet2: 'Venus', aspect: 'conjunction',
+    ko: '자아의 별과 사랑의 별이 한 자리에 모여 빛나는 결이에요. 자기 표현 자체가 매력이 되고, 사랑이 정체성의 일부로 흘러요.',
+    en: 'Identity star and love star sit in the same spot. Self-expression itself becomes charm — love flows as part of who you are.',
+    keywords_ko: ['타고난 매력', '사랑과 자아', '빛나는 표현'],
+    keywords_en: ['natural charm', 'love-as-self', 'radiant expression'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Venus', aspect: 'sextile',
+    ko: '자아와 사랑이 가볍게 협력하는 결이에요. 사교, 예술, 관계에서 부드러운 기회가 자주 다가와요.',
+    en: 'Identity and affection collaborate at an easy angle. Social, artistic, and relational chances arrive gently and often.',
+    keywords_ko: ['사교의 흐름', '미감의 기회', '관계의 부드러움'],
+    keywords_en: ['social ease', 'aesthetic chance', 'gentle relating'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Venus', aspect: 'square',
+    ko: '자기 표현과 사랑의 결이 살짝 어긋나, 자존감과 관계 욕구 사이에서 갈등이 생기는 결이에요. 자기다움과 사랑의 균형을 배우게 돼요.',
+    en: 'Self-expression and love sit at a tight angle, creating push-pull between self-worth and the wish to be loved. The lesson is balancing authenticity with affection.',
+    keywords_ko: ['자존-사랑 긴장', '균형의 과제', '관계 학습'],
+    keywords_en: ['self-love tension', 'balance lesson', 'relational learning'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Venus', aspect: 'trine',
+    ko: '자아와 사랑이 같은 결로 흐르는 결이에요. 매력과 자기 표현이 자연스럽게 어울려, 호감과 미적 감각이 타고난 강점이 돼요.',
+    en: 'Identity and love flow in the same key. Charm and self-expression marry naturally — likeability and aesthetic sense become innate strengths.',
+    keywords_ko: ['타고난 호감', '미적 강점', '자연스런 사랑'],
+    keywords_en: ['innate likability', 'aesthetic gift', 'natural love-flow'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Venus', aspect: 'opposition',
+    ko: '자아와 사랑이 마주 서서 균형을 배우는 결이에요. 관계 안에서 자기다움과 상대 만족 사이를 오가며 통합점을 찾아요.',
+    en: 'Identity and love face each other across the chart. Inside relationships, you learn to swing between self-truth and pleasing others until a middle point emerges.',
+    keywords_ko: ['자아-관계 균형', '거울로서의 사랑', '통합점 찾기'],
+    keywords_en: ['self-other balance', 'love as mirror', 'finding middle ground'],
+  },
+
+  // ---------- Sun × Mars (identity × drive) ----------
+  {
+    planet1: 'Sun', planet2: 'Mars', aspect: 'conjunction',
+    ko: '자아의 별과 추진의 별이 한 자리에서 만나는 결이에요. 의지와 행동이 한 몸이 되어, 결정이 바로 움직임으로 바뀌어요.',
+    en: 'Identity and drive fuse in one place. Will and action become one body — decisions translate to motion almost instantly.',
+    keywords_ko: ['즉결의 추진력', '뜨거운 의지', '행동-자아 일치'],
+    keywords_en: ['decisive drive', 'hot will', 'action-self fusion'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Mars', aspect: 'sextile',
+    ko: '자아와 추진이 부드럽게 협력하는 결이에요. 목표를 정하면 행동이 따라오지만, 멈춰 있으면 발화되지 않아요.',
+    en: 'Identity and drive cooperate at an easy angle. Set a target and action follows — but the spark only ignites when you choose to engage.',
+    keywords_ko: ['협력적 추진', '의식적 행동', '깨우는 기회'],
+    keywords_en: ['cooperative drive', 'conscious action', 'spark-on-demand'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Mars', aspect: 'square',
+    ko: '자아와 행동이 어긋난 각도로 맞물려, 추진은 강하지만 자주 부딪치는 결이에요. 갈등 안에서 자기 의지를 다듬어가요.',
+    en: 'Identity and action meet at a sharp angle — strong drive that often collides with itself or others. The lesson is honing will through friction.',
+    keywords_ko: ['강한 추진과 마찰', '의지 다듬기', '갈등 통한 성장'],
+    keywords_en: ['driven friction', 'tempering will', 'growth-through-conflict'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Mars', aspect: 'trine',
+    ko: '자아와 추진이 같은 강물에 흐르는 결이에요. 행동이 자기다움을 그대로 표현해, 활력과 용기가 타고난 강점이 돼요.',
+    en: 'Identity and drive ride the same current. Action expresses authenticity directly — vitality and courage become innate strengths.',
+    keywords_ko: ['타고난 활력', '용기의 결', '행동의 자연스러움'],
+    keywords_en: ['innate vitality', 'natural courage', 'effortless action'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Mars', aspect: 'opposition',
+    ko: '자아와 행동이 마주 서서 부딪치는 결이에요. 내 의지와 타인의 추진 사이에서 충돌과 협력의 균형을 배우게 돼요.',
+    en: 'Identity and action face off across the chart. You learn the balance between your will and someone else’s drive — clash and collaboration both teach.',
+    keywords_ko: ['의지의 충돌', '추진의 균형', '관계 속 행동'],
+    keywords_en: ['willful clash', 'balanced drive', 'action in relating'],
+  },
+
+  // ---------- Sun × Jupiter (identity × expansion) ----------
+  {
+    planet1: 'Sun', planet2: 'Jupiter', aspect: 'conjunction',
+    ko: '자아의 별과 확장의 별이 한 자리에서 만나는 결이에요. 자기다움이 곧 성장과 행운의 입구가 돼요.',
+    en: 'Identity and expansion meet in one place. Being yourself becomes the doorway to growth and luck.',
+    keywords_ko: ['확장된 자아', '타고난 행운', '큰 그림의 결'],
+    keywords_en: ['expanded self', 'inborn luck', 'big-picture identity'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Jupiter', aspect: 'sextile',
+    ko: '자아와 확장이 부드럽게 협력하는 결이에요. 의식적으로 움직이면 기회와 시야가 자연스럽게 따라와요.',
+    en: 'Identity and expansion cooperate at an easy angle. When you actively step up, opportunity and perspective follow.',
+    keywords_ko: ['협력적 확장', '시야의 기회', '의식적 성장'],
+    keywords_en: ['cooperative growth', 'broadening chance', 'conscious expansion'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Jupiter', aspect: 'square',
+    ko: '자아와 확장이 어긋난 각도로 맞물려, 자신을 크게 펼치고 싶은 마음과 현실의 한계가 부딪치는 결이에요. 과한 자신감을 다듬는 과제예요.',
+    en: 'Identity and expansion clash at a tight angle — the wish to stretch big meets real limits. The lesson is tempering overreach into right-sized ambition.',
+    keywords_ko: ['과한 확장', '한계의 학습', '겸손의 과제'],
+    keywords_en: ['overreach tension', 'limits lesson', 'humility task'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Jupiter', aspect: 'trine',
+    ko: '자아와 확장이 같은 결로 흐르는 결이에요. 자기다움이 그대로 풍요와 신뢰로 이어지는 타고난 행운의 결.',
+    en: 'Identity and expansion flow in the same key. Authenticity translates straight into abundance and trust — a natural luck-line.',
+    keywords_ko: ['타고난 행운', '풍요의 흐름', '신뢰의 결'],
+    keywords_en: ['inborn fortune', 'abundance flow', 'trust-line'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Jupiter', aspect: 'opposition',
+    ko: '자아와 확장이 마주 서서 균형을 찾는 결이에요. 자기다움과 큰 그림 사이를 오가며, 과욕과 절제의 중심점을 배우게 돼요.',
+    en: 'Identity and expansion face each other across the chart. You learn the centerline between self and the bigger vision — between hunger and restraint.',
+    keywords_ko: ['자아-비전 균형', '절제의 학습', '큰 그림의 중심'],
+    keywords_en: ['self-vision balance', 'restraint lesson', 'big-picture center'],
+  },
+
+  // ---------- Sun × Saturn (identity × responsibility) ----------
+  {
+    planet1: 'Sun', planet2: 'Saturn', aspect: 'conjunction',
+    ko: '자아의 별과 책임의 별이 한 자리에서 만나는 결이에요. 자기다움이 구조와 함께 자라, 단단한 어른의 결을 일찍 입어요.',
+    en: 'Identity and responsibility meet in the same spot. Authenticity grows alongside structure — a sturdy, adult quality arrives early.',
+    keywords_ko: ['책임 있는 자아', '구조와 함께 자람', '일찍 든 어른'],
+    keywords_en: ['responsible self', 'structured identity', 'early maturity'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Saturn', aspect: 'sextile',
+    ko: '자아와 책임이 부드럽게 협력하는 결이에요. 꾸준한 노력이 자기다움을 단단하게 만들어, 의식적으로 쓸수록 강해져요.',
+    en: 'Identity and responsibility collaborate at an easy angle. Steady effort hardens authenticity — the gift grows the more you choose to use it.',
+    keywords_ko: ['꾸준함의 결', '구조의 협력', '의식적 단련'],
+    keywords_en: ['steady gift', 'structured cooperation', 'conscious discipline'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Saturn', aspect: 'square',
+    ko: '자아와 책임이 어긋난 각도로 맞물려, 자기 표현과 의무 사이에서 무게가 느껴지는 결이에요. 자기다움을 부정하지 않고 책임을 지는 법을 배워요.',
+    en: 'Identity and duty grind at a tight angle — self-expression feels weighed down. The lesson is carrying responsibility without erasing the self.',
+    keywords_ko: ['자아의 무게', '책임의 압박', '단련의 학습'],
+    keywords_en: ['weight on self', 'duty pressure', 'discipline lesson'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Saturn', aspect: 'trine',
+    ko: '자아와 책임이 같은 결로 흐르는 결이에요. 노력과 자기다움이 자연스럽게 맞물려, 어른스러움이 강점이 돼요.',
+    en: 'Identity and responsibility flow in the same key. Effort and self align easily — maturity becomes a built-in advantage.',
+    keywords_ko: ['타고난 어른스러움', '구조의 강점', '꾸준한 결'],
+    keywords_en: ['innate maturity', 'structural strength', 'steady-line'],
+  },
+  {
+    planet1: 'Sun', planet2: 'Saturn', aspect: 'opposition',
+    ko: '자아와 책임이 마주 서서 무게의 균형을 찾는 결이에요. 권위, 부모, 사회와의 관계 안에서 자기다움과 의무 사이를 통합해가요.',
+    en: 'Identity and responsibility face each other across the chart. Through authority, parental, and societal mirrors, you integrate self with duty.',
+    keywords_ko: ['권위와의 거울', '의무-자아 통합', '책임의 균형'],
+    keywords_en: ['authority mirror', 'duty-self integration', 'balanced burden'],
+  },
+
+  // ============================================================
+  // HIGH PRIORITY — Moon × {Mercury, Venus, Mars, Saturn}
+  // ============================================================
+
+  // ---------- Moon × Mercury (emotion × mind) ----------
+  {
+    planet1: 'Moon', planet2: 'Mercury', aspect: 'conjunction',
+    ko: '감정의 별과 생각의 별이 한 자리에서 만나는 결이에요. 느끼는 그대로 말이 되어 나와, 정서와 사고가 거의 동시에 움직여요.',
+    en: 'Emotion and mind meet in the same spot. Feelings translate straight into words — mood and thought move almost as one.',
+    keywords_ko: ['느낀 그대로 말함', '직관적 사고', '정서-언어 일치'],
+    keywords_en: ['speaking as you feel', 'intuitive mind', 'mood-to-words'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Mercury', aspect: 'sextile',
+    ko: '감정과 생각이 부드럽게 협력하는 결이에요. 마음을 말로 옮기는 일이 자연스러워, 표현하려 할수록 잘 풀려요.',
+    en: 'Feeling and thought cooperate at an easy angle. Putting the heart into words flows — and the more you choose to express, the better it works.',
+    keywords_ko: ['표현의 흐름', '정서적 언어', '의식적 소통'],
+    keywords_en: ['expressive flow', 'emotional language', 'conscious sharing'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Mercury', aspect: 'square',
+    ko: '감정과 생각이 어긋난 각도로 맞물려, 마음과 말이 자주 따로 노는 결이에요. 느낌을 적확히 옮기는 법을 배우는 과제예요.',
+    en: 'Feeling and thinking grind at a tight angle — mood and words often slip past each other. The lesson is naming what you feel precisely.',
+    keywords_ko: ['감정-언어 어긋남', '말의 마찰', '표현의 학습'],
+    keywords_en: ['feeling-words gap', 'verbal friction', 'expression lesson'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Mercury', aspect: 'trine',
+    ko: '감정과 생각이 같은 결로 흐르는 결이에요. 마음과 말이 자연스럽게 어울려, 공감과 소통이 타고난 강점이 돼요.',
+    en: 'Feeling and thinking flow in the same key. Heart and words align easily — empathy and communication become natural strengths.',
+    keywords_ko: ['공감의 결', '자연스런 소통', '정서적 지성'],
+    keywords_en: ['empathic flow', 'easy communication', 'emotional intelligence'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Mercury', aspect: 'opposition',
+    ko: '감정과 생각이 마주 서서 균형을 찾는 결이에요. 느낌과 논리 사이를 오가며, 관계 안에서 통합되는 표현법을 배워요.',
+    en: 'Feeling and thinking face each other across the chart. Between mood and logic, you learn an integrated voice through relating.',
+    keywords_ko: ['감정-논리 균형', '관계 속 표현', '통합된 목소리'],
+    keywords_en: ['heart-mind balance', 'relational expression', 'integrated voice'],
+  },
+
+  // ---------- Moon × Venus (emotion × love) ----------
+  {
+    planet1: 'Moon', planet2: 'Venus', aspect: 'conjunction',
+    ko: '감정의 별과 사랑의 별이 한 자리에 모이는 결이에요. 마음 그대로가 애정이 되어, 정서적 다정함이 매력이 돼요.',
+    en: 'Emotion and love meet in the same spot. Inner mood becomes affection itself — emotional tenderness becomes the charm.',
+    keywords_ko: ['정서적 다정함', '느낌의 매력', '사랑의 흐름'],
+    keywords_en: ['emotional warmth', 'mood-as-charm', 'love-flow'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Venus', aspect: 'sextile',
+    ko: '감정과 사랑이 부드럽게 협력하는 결이에요. 마음을 열수록 사랑과 미적 감각이 살아나는, 의식적 흐름의 결.',
+    en: 'Feeling and love cooperate at an easy angle. The more you choose to open the heart, the more love and aesthetic sense come alive.',
+    keywords_ko: ['협력적 다정함', '미적 흐름', '의식적 열림'],
+    keywords_en: ['cooperative warmth', 'aesthetic flow', 'opened heart'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Venus', aspect: 'square',
+    ko: '감정과 사랑이 어긋난 각도로 맞물려, 안정 욕구와 애정 표현 사이에서 갈등이 생기는 결이에요. 사랑 안에서 진짜 필요를 보는 학습.',
+    en: 'Feeling and love grind at a tight angle — the need for safety pulls against the wish to express affection. The lesson is seeing real needs inside love.',
+    keywords_ko: ['욕구-사랑 긴장', '안정의 갈등', '진짜 필요 보기'],
+    keywords_en: ['need-love tension', 'safety conflict', 'seeing-real-needs'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Venus', aspect: 'trine',
+    ko: '감정과 사랑이 같은 강물에 흐르는 결이에요. 다정함과 미적 감각이 타고난 강점이 되어, 관계가 자연스럽게 따뜻해요.',
+    en: 'Feeling and love ride the same current. Tenderness and aesthetic sense become innate strengths — relationships feel naturally warm.',
+    keywords_ko: ['타고난 다정함', '관계의 온도', '미적 흐름'],
+    keywords_en: ['innate tenderness', 'warm relating', 'aesthetic ease'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Venus', aspect: 'opposition',
+    ko: '감정과 사랑이 마주 서서 균형을 찾는 결이에요. 내 욕구와 상대의 애정 사이를 오가며, 관계의 거울을 통해 통합점을 찾아요.',
+    en: 'Feeling and love face each other across the chart. Between your needs and the other’s affection, the mirror of relating finds the middle point.',
+    keywords_ko: ['욕구-사랑 균형', '거울의 학습', '관계의 통합'],
+    keywords_en: ['need-love balance', 'mirror lesson', 'relational integration'],
+  },
+
+  // ---------- Moon × Mars (emotion × drive) ----------
+  {
+    planet1: 'Moon', planet2: 'Mars', aspect: 'conjunction',
+    ko: '감정의 별과 추진의 별이 한 자리에서 만나는 결이에요. 느끼는 그대로 바로 움직여, 정서가 곧 행동이 돼요.',
+    en: 'Emotion and drive meet in the same spot. Feelings turn into motion almost instantly — mood is action.',
+    keywords_ko: ['감정-행동 일치', '뜨거운 반응', '즉결의 정서'],
+    keywords_en: ['emotion-as-action', 'hot reactivity', 'immediate feeling'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Mars', aspect: 'sextile',
+    ko: '감정과 추진이 부드럽게 협력하는 결이에요. 마음이 움직이면 행동도 따라오지만, 멈춰 있으면 발화되지 않아요.',
+    en: 'Feeling and drive cooperate at an easy angle. When the mood moves, the action follows — but it has to be chosen, not coasted into.',
+    keywords_ko: ['협력적 반응', '의식적 추진', '깨우는 정서'],
+    keywords_en: ['cooperative reaction', 'conscious drive', 'mood-spark'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Mars', aspect: 'square',
+    ko: '감정과 행동이 어긋난 각도로 맞물려, 마음이 자주 욱하고 움직이는 결이에요. 정서적 반응을 다듬는 과제예요.',
+    en: 'Feeling and action grind at a tight angle — emotion fires off impulsively. The lesson is tempering reactive heat.',
+    keywords_ko: ['감정의 충동', '욱하는 결', '반응 다듬기'],
+    keywords_en: ['emotional impulse', 'hot-reaction', 'tempering reactivity'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Mars', aspect: 'trine',
+    ko: '감정과 추진이 같은 결로 흐르는 결이에요. 마음의 신호가 그대로 행동으로 살아나, 활력과 정서가 타고난 짝이 돼요.',
+    en: 'Feeling and drive flow in the same key. The heart’s signal becomes movement easily — vitality and mood pair naturally.',
+    keywords_ko: ['타고난 활력', '정서-행동 흐름', '에너지의 결'],
+    keywords_en: ['innate vitality', 'mood-action flow', 'energy-line'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Mars', aspect: 'opposition',
+    ko: '감정과 행동이 마주 서서 균형을 찾는 결이에요. 내 마음과 상대의 추진이 부딪치며, 관계 안에서 정서-행동의 통합을 배워요.',
+    en: 'Feeling and action face each other across the chart. Your mood meets another’s drive — relationships teach the integration of heart and motion.',
+    keywords_ko: ['감정-추진 균형', '관계의 마찰', '통합의 학습'],
+    keywords_en: ['mood-drive balance', 'relational friction', 'integration lesson'],
+  },
+
+  // ---------- Moon × Saturn (emotion × responsibility) ----------
+  {
+    planet1: 'Moon', planet2: 'Saturn', aspect: 'conjunction',
+    ko: '감정의 별과 책임의 별이 한 자리에서 만나는 결이에요. 마음이 늘 신중하고 무게가 있어, 정서적으로 일찍 어른이 돼요.',
+    en: 'Emotion and responsibility meet in the same spot. The heart carries weight from early on — emotional maturity arrives ahead of schedule.',
+    keywords_ko: ['무게 있는 마음', '정서적 어른', '신중한 감정'],
+    keywords_en: ['weighted heart', 'emotional maturity', 'cautious feeling'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Saturn', aspect: 'sextile',
+    ko: '감정과 책임이 부드럽게 협력하는 결이에요. 꾸준한 자기 돌봄이 마음의 토대를 단단하게 만들어요.',
+    en: 'Feeling and responsibility cooperate at an easy angle. Steady self-care lays a sturdy emotional foundation.',
+    keywords_ko: ['단단한 토대', '꾸준한 돌봄', '구조적 안정'],
+    keywords_en: ['steady foundation', 'consistent care', 'structured calm'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Saturn', aspect: 'square',
+    ko: '감정과 책임이 어긋난 각도로 맞물려, 마음이 무겁고 외로워지기 쉬운 결이에요. 자기 감정을 부정하지 않고 안아주는 학습.',
+    en: 'Feeling and responsibility grind at a tight angle — the heart often feels heavy or alone. The lesson is holding emotion without denying it.',
+    keywords_ko: ['감정의 무게', '외로움의 결', '자기 수용 학습'],
+    keywords_en: ['heavy heart', 'lonely-line', 'self-acceptance lesson'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Saturn', aspect: 'trine',
+    ko: '감정과 책임이 같은 결로 흐르는 결이에요. 마음의 깊이와 구조가 자연스럽게 어울려, 정서적 단단함이 타고난 강점이 돼요.',
+    en: 'Feeling and responsibility flow in the same key. Depth and structure marry naturally — emotional sturdiness becomes an innate strength.',
+    keywords_ko: ['타고난 정서적 깊이', '단단한 결', '구조와 마음'],
+    keywords_en: ['innate emotional depth', 'sturdy-line', 'heart-with-structure'],
+  },
+  {
+    planet1: 'Moon', planet2: 'Saturn', aspect: 'opposition',
+    ko: '감정과 책임이 마주 서서 균형을 찾는 결이에요. 가족, 부모, 권위와의 관계 안에서 마음의 무게와 자유 사이를 통합해요.',
+    en: 'Feeling and responsibility face each other across the chart. Family, parental, and authority mirrors teach the balance between heart-weight and freedom.',
+    keywords_ko: ['가족의 거울', '무게-자유 균형', '정서적 통합'],
+    keywords_en: ['family mirror', 'weight-freedom balance', 'emotional integration'],
+  },
+
+  // ============================================================
+  // HIGH PRIORITY — Venus × {Mars, Jupiter, Saturn, Pluto}
+  // ============================================================
+
+  // ---------- Venus × Mars (love × desire) ----------
+  {
+    planet1: 'Venus', planet2: 'Mars', aspect: 'conjunction',
+    ko: '사랑의 별과 추진의 별이 한 자리에서 만나는 결이에요. 끌림과 욕망이 한 몸이 되어, 사랑 안에서 행동이 빠르게 일어나요.',
+    en: 'Love and desire meet in the same spot. Attraction and drive fuse into one body — action moves quickly inside relationship.',
+    keywords_ko: ['끌림과 욕망', '뜨거운 사랑', '행동하는 애정'],
+    keywords_en: ['fused attraction', 'hot love', 'desire-in-motion'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Mars', aspect: 'sextile',
+    ko: '사랑과 추진이 부드럽게 협력하는 결이에요. 끌림이 있으면 행동도 자연스럽게 따라와, 의식적으로 다가갈수록 살아나요.',
+    en: 'Love and drive cooperate at an easy angle. Attraction translates into action naturally — the more you reach, the more it sparks.',
+    keywords_ko: ['협력적 끌림', '다가가는 결', '의식적 사랑'],
+    keywords_en: ['cooperative attraction', 'reaching-line', 'conscious love'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Mars', aspect: 'square',
+    ko: '사랑의 별과 추진의 별이 팽팽하게 만나는 결이에요. 끌림과 욕망 사이의 긴장이 강해, 사랑에서 빠른 결정과 갈등이 함께 일어나요.',
+    en: 'Love and desire meet at a tight angle. Strong tension between attraction and drive — quick decisions and friction both show up in your love life.',
+    keywords_ko: ['끌림의 긴장', '빠른 결정', '갈등의 결'],
+    keywords_en: ['attraction tension', 'quick decisions', 'friction in love'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Mars', aspect: 'trine',
+    ko: '사랑과 추진이 같은 결로 흐르는 결이에요. 끌림과 행동이 자연스럽게 어울려, 매력과 활력이 타고난 짝이 돼요.',
+    en: 'Love and drive flow in the same key. Attraction and action align easily — charm and vitality pair naturally.',
+    keywords_ko: ['타고난 매력', '끌림의 결', '활력 있는 사랑'],
+    keywords_en: ['innate charm', 'attraction-flow', 'vital love'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Mars', aspect: 'opposition',
+    ko: '사랑과 추진이 마주 서서 균형을 찾는 결이에요. 끌림과 욕망 사이를 오가며, 관계의 거울 안에서 사랑의 통합점을 배워요.',
+    en: 'Love and drive face each other across the chart. Between attraction and desire, the relational mirror teaches an integration point.',
+    keywords_ko: ['끌림-욕망 균형', '관계의 거울', '사랑의 통합'],
+    keywords_en: ['attraction-desire balance', 'relational mirror', 'love integration'],
+  },
+
+  // ---------- Venus × Jupiter (love × expansion) ----------
+  {
+    planet1: 'Venus', planet2: 'Jupiter', aspect: 'conjunction',
+    ko: '사랑의 별과 확장의 별이 한 자리에서 만나는 결이에요. 애정과 풍요가 함께 자라, 관계가 너그럽고 큰 결로 흘러요.',
+    en: 'Love and expansion meet in the same spot. Affection and abundance grow together — relationships flow generous and large.',
+    keywords_ko: ['관대한 사랑', '풍요의 결', '큰 마음'],
+    keywords_en: ['generous love', 'abundance-line', 'big-hearted'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Jupiter', aspect: 'sextile',
+    ko: '사랑과 확장이 부드럽게 협력하는 결이에요. 의식적으로 다가설수록 관계와 미적 기회가 함께 커져요.',
+    en: 'Love and expansion cooperate at an easy angle. The more you reach out, the more relationships and aesthetic chances grow alongside.',
+    keywords_ko: ['협력적 풍요', '관계의 확장', '의식적 너그러움'],
+    keywords_en: ['cooperative abundance', 'expanding relationships', 'chosen generosity'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Jupiter', aspect: 'square',
+    ko: '사랑과 확장이 어긋난 각도로 맞물려, 너그러움이 과해지거나 자기 가치를 놓치는 결이에요. 사랑 안에서 적정선을 찾는 학습.',
+    en: 'Love and expansion grind at a tight angle — generosity can overshoot or self-worth can slip. The lesson is finding the right scale of giving inside love.',
+    keywords_ko: ['과한 너그러움', '가치의 학습', '적정선 찾기'],
+    keywords_en: ['overgiving tension', 'worth lesson', 'right-size love'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Jupiter', aspect: 'trine',
+    ko: '사랑과 확장이 같은 결로 흐르는 결이에요. 너그러움과 매력이 자연스럽게 어울려, 행운과 사랑이 타고난 짝이 돼요.',
+    en: 'Love and expansion flow in the same key. Generosity and charm marry naturally — luck and affection become a born pair.',
+    keywords_ko: ['타고난 너그러움', '사랑의 행운', '풍요의 흐름'],
+    keywords_en: ['innate generosity', 'love-luck', 'abundance flow'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Jupiter', aspect: 'opposition',
+    ko: '사랑과 확장이 마주 서서 균형을 찾는 결이에요. 자기 가치와 너그러움 사이를 오가며, 관계 안에서 적정한 풍요를 배워요.',
+    en: 'Love and expansion face each other across the chart. Between self-worth and generosity, you learn right-sized abundance through relating.',
+    keywords_ko: ['가치-너그러움 균형', '풍요의 학습', '관계의 적정선'],
+    keywords_en: ['worth-generosity balance', 'abundance lesson', 'right-scaled relating'],
+  },
+
+  // ---------- Venus × Saturn (love × responsibility) ----------
+  {
+    planet1: 'Venus', planet2: 'Saturn', aspect: 'conjunction',
+    ko: '사랑의 별과 책임의 별이 한 자리에서 만나는 결이에요. 애정이 진지하고 무게가 있어, 관계가 약속과 구조 위에서 자라요.',
+    en: 'Love and responsibility meet in the same spot. Affection is serious and weighted — relationships grow on top of commitment and structure.',
+    keywords_ko: ['진지한 사랑', '약속의 결', '책임 있는 관계'],
+    keywords_en: ['serious love', 'commitment-line', 'responsible relating'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Saturn', aspect: 'sextile',
+    ko: '사랑과 책임이 부드럽게 협력하는 결이에요. 꾸준한 관계 노력이 단단한 애정을 만들어, 시간이 갈수록 깊어져요.',
+    en: 'Love and responsibility cooperate at an easy angle. Steady relational effort builds sturdy affection — depth grows with time.',
+    keywords_ko: ['꾸준한 사랑', '단단한 관계', '시간의 결'],
+    keywords_en: ['steady love', 'sturdy relating', 'time-deepens'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Saturn', aspect: 'square',
+    ko: '사랑과 책임이 어긋난 각도로 맞물려, 애정 안에서 거리감이나 두려움이 자주 일어나는 결이에요. 사랑의 무게를 안고 가는 학습.',
+    en: 'Love and responsibility grind at a tight angle — distance or fear often surfaces inside affection. The lesson is carrying love’s weight without freezing.',
+    keywords_ko: ['사랑의 거리감', '두려움의 결', '무게의 학습'],
+    keywords_en: ['love-distance', 'fear-line', 'weight lesson'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Saturn', aspect: 'trine',
+    ko: '사랑과 책임이 같은 결로 흐르는 결이에요. 진지함과 매력이 자연스럽게 어울려, 신뢰가 타고난 강점이 돼요.',
+    en: 'Love and responsibility flow in the same key. Seriousness and charm marry naturally — trust becomes an innate strength.',
+    keywords_ko: ['타고난 신뢰', '진지한 매력', '구조 있는 사랑'],
+    keywords_en: ['innate trust', 'serious charm', 'structured love'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Saturn', aspect: 'opposition',
+    ko: '사랑과 책임이 마주 서서 균형을 찾는 결이에요. 애정과 약속 사이를 오가며, 관계의 거울 안에서 통합점을 배워요.',
+    en: 'Love and responsibility face each other across the chart. Between affection and commitment, the relational mirror teaches an integration point.',
+    keywords_ko: ['애정-약속 균형', '거울의 학습', '관계의 무게'],
+    keywords_en: ['love-commitment balance', 'mirror lesson', 'weight of relating'],
+  },
+
+  // ---------- Venus × Pluto (love × transformation) ----------
+  {
+    planet1: 'Venus', planet2: 'Pluto', aspect: 'conjunction',
+    ko: '사랑의 별과 변용의 별이 한 자리에서 만나는 결이에요. 애정이 깊고 강해, 관계가 변화의 거울로 작동해요.',
+    en: 'Love and transformation meet in the same spot. Affection runs deep and intense — relationships work as mirrors of change.',
+    keywords_ko: ['깊은 사랑', '변용의 거울', '강한 끌림'],
+    keywords_en: ['deep love', 'transformative mirror', 'magnetic pull'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Pluto', aspect: 'sextile',
+    ko: '사랑과 변용이 부드럽게 협력하는 결이에요. 의식적으로 깊어질 때 관계가 진짜 변화를 만들어요.',
+    en: 'Love and transformation cooperate at an easy angle. When you choose to go deeper, relationships create real change.',
+    keywords_ko: ['협력적 깊이', '변화의 기회', '의식적 친밀감'],
+    keywords_en: ['cooperative depth', 'change-chance', 'chosen intimacy'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Pluto', aspect: 'square',
+    ko: '사랑과 변용이 어긋난 각도로 맞물려, 관계 안에서 강한 끌림과 통제의 긴장이 함께 일어나는 결이에요. 사랑의 힘을 다루는 학습.',
+    en: 'Love and transformation grind at a tight angle — intense attraction and control tension show up together in love. The lesson is learning to hold love’s power.',
+    keywords_ko: ['끌림과 통제', '강도의 학습', '관계의 변용'],
+    keywords_en: ['attraction-control', 'intensity lesson', 'love-transformation'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Pluto', aspect: 'trine',
+    ko: '사랑과 변용이 같은 결로 흐르는 결이에요. 깊이와 매력이 자연스럽게 어울려, 변화시키는 사랑이 타고난 강점이 돼요.',
+    en: 'Love and transformation flow in the same key. Depth and charm marry naturally — transformative love becomes an innate strength.',
+    keywords_ko: ['타고난 깊이', '변용의 사랑', '강한 결'],
+    keywords_en: ['innate depth', 'transformative love', 'magnetic-line'],
+  },
+  {
+    planet1: 'Venus', planet2: 'Pluto', aspect: 'opposition',
+    ko: '사랑과 변용이 마주 서서 균형을 찾는 결이에요. 깊은 끌림과 자기 보호 사이를 오가며, 관계의 거울 안에서 통합점을 배워요.',
+    en: 'Love and transformation face each other across the chart. Between deep pull and self-protection, the relational mirror teaches integration.',
+    keywords_ko: ['깊이-보호 균형', '거울의 학습', '변용의 사랑'],
+    keywords_en: ['depth-protection balance', 'mirror lesson', 'transformative relating'],
+  },
+
+  // ============================================================
+  // MEDIUM PRIORITY — Mars × {Jupiter, Saturn, Pluto}
+  // ============================================================
+
+  // ---------- Mars × Jupiter (drive × expansion) ----------
+  {
+    planet1: 'Mars', planet2: 'Jupiter', aspect: 'conjunction',
+    ko: '추진의 별과 확장의 별이 한 자리에서 만나는 결이에요. 행동이 크고 너그러워, 한번 움직이면 멀리 가요.',
+    en: 'Drive and expansion meet in the same spot. Action runs big and generous — once you move, the range carries far.',
+    keywords_ko: ['큰 추진력', '너그러운 행동', '멀리 가는 결'],
+    keywords_en: ['big drive', 'generous action', 'far-reaching move'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Jupiter', aspect: 'sextile',
+    ko: '추진과 확장이 부드럽게 협력하는 결이에요. 의식적으로 행동하면 기회와 시야가 함께 커져요.',
+    en: 'Drive and expansion cooperate at an easy angle. When you choose to move, opportunity and perspective grow with you.',
+    keywords_ko: ['협력적 추진', '시야의 결', '의식적 확장'],
+    keywords_en: ['cooperative drive', 'perspective-line', 'chosen growth'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Jupiter', aspect: 'square',
+    ko: '추진과 확장이 어긋난 각도로 맞물려, 너무 크게 벌이거나 무리하기 쉬운 결이에요. 행동의 적정 스케일을 배우는 학습.',
+    en: 'Drive and expansion grind at a tight angle — easy to start too big or overstretch. The lesson is finding right-sized action.',
+    keywords_ko: ['과한 추진', '오버 스케일', '적정선 학습'],
+    keywords_en: ['overdrive', 'oversized action', 'right-scale lesson'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Jupiter', aspect: 'trine',
+    ko: '추진과 확장이 같은 강물에 흐르는 결이에요. 행동과 시야가 자연스럽게 어울려, 자신 있게 멀리 가는 강점이 돼요.',
+    en: 'Drive and expansion ride the same current. Action and vision align easily — confident, far-reaching movement becomes innate strength.',
+    keywords_ko: ['타고난 자신감', '확장의 행동', '멀리 가는 결'],
+    keywords_en: ['innate confidence', 'expansive action', 'far-reaching-line'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Jupiter', aspect: 'opposition',
+    ko: '추진과 확장이 마주 서서 균형을 찾는 결이에요. 내 행동과 큰 그림 사이를 오가며, 관계의 거울 안에서 적정한 도전을 배워요.',
+    en: 'Drive and expansion face each other across the chart. Between action and the bigger vision, the relational mirror teaches right-sized challenge.',
+    keywords_ko: ['행동-비전 균형', '거울의 학습', '적정한 도전'],
+    keywords_en: ['action-vision balance', 'mirror lesson', 'right-sized challenge'],
+  },
+
+  // ---------- Mars × Saturn (drive × responsibility) ----------
+  {
+    planet1: 'Mars', planet2: 'Saturn', aspect: 'conjunction',
+    ko: '추진의 별과 책임의 별이 한 자리에서 만나는 결이에요. 행동이 신중하고 단단해, 한번 시작하면 끝까지 가는 결.',
+    en: 'Drive and responsibility meet in the same spot. Action runs careful and sturdy — once started, it tends to finish.',
+    keywords_ko: ['단단한 추진력', '끝까지 가는 결', '신중한 행동'],
+    keywords_en: ['sturdy drive', 'finishing-line', 'careful action'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Saturn', aspect: 'sextile',
+    ko: '추진과 책임이 부드럽게 협력하는 결이에요. 의식적으로 구조를 만들면 행동이 오래 지속되는 강점이 살아나요.',
+    en: 'Drive and responsibility cooperate at an easy angle. When you build structure consciously, action sustains over the long run.',
+    keywords_ko: ['지속하는 추진', '구조의 협력', '꾸준한 결'],
+    keywords_en: ['sustained drive', 'structural cooperation', 'steady-line'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Saturn', aspect: 'square',
+    ko: '추진과 책임이 어긋난 각도로 맞물려, 행동에 자주 제동이 걸리는 결이에요. 좌절과 인내 사이에서 단련되는 학습.',
+    en: 'Drive and responsibility grind at a tight angle — action keeps hitting brakes. The lesson is steeling through frustration into patience.',
+    keywords_ko: ['행동의 제동', '좌절의 결', '인내의 단련'],
+    keywords_en: ['braked action', 'frustration-line', 'forged patience'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Saturn', aspect: 'trine',
+    ko: '추진과 책임이 같은 결로 흐르는 결이에요. 행동과 구조가 자연스럽게 어울려, 꾸준함이 타고난 강점이 돼요.',
+    en: 'Drive and responsibility flow in the same key. Action and structure marry naturally — endurance becomes an innate strength.',
+    keywords_ko: ['타고난 꾸준함', '구조 있는 행동', '지속의 결'],
+    keywords_en: ['innate endurance', 'structured action', 'sustaining-line'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Saturn', aspect: 'opposition',
+    ko: '추진과 책임이 마주 서서 균형을 찾는 결이에요. 내 행동과 외부의 한계 사이를 오가며, 관계 안에서 인내와 도전의 통합점을 배워요.',
+    en: 'Drive and responsibility face each other across the chart. Between your push and outside limits, relating teaches the balance of patience and challenge.',
+    keywords_ko: ['추진-한계 균형', '거울의 학습', '인내의 결'],
+    keywords_en: ['drive-limit balance', 'mirror lesson', 'patience-line'],
+  },
+
+  // ---------- Mars × Pluto (drive × transformation) ----------
+  {
+    planet1: 'Mars', planet2: 'Pluto', aspect: 'conjunction',
+    ko: '추진의 별과 변용의 별이 한 자리에서 만나는 결이에요. 행동의 강도가 깊고 강해, 움직임이 큰 변화를 만들어요.',
+    en: 'Drive and transformation meet in the same spot. Action runs deep and intense — movement creates real change.',
+    keywords_ko: ['강한 추진력', '변용의 행동', '깊은 강도'],
+    keywords_en: ['intense drive', 'transformative action', 'deep force'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Pluto', aspect: 'sextile',
+    ko: '추진과 변용이 부드럽게 협력하는 결이에요. 의식적으로 행동할 때 변화의 깊이가 살아나요.',
+    en: 'Drive and transformation cooperate at an easy angle. When you choose to act, depth of change comes alive.',
+    keywords_ko: ['협력적 강도', '변화의 행동', '의식적 깊이'],
+    keywords_en: ['cooperative force', 'change-action', 'chosen depth'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Pluto', aspect: 'square',
+    ko: '추진과 변용이 어긋난 각도로 맞물려, 행동에 강한 압박과 통제 욕구가 따라오는 결이에요. 힘을 적절히 쓰는 학습.',
+    en: 'Drive and transformation grind at a tight angle — action carries strong pressure and a wish to control. The lesson is wielding power well.',
+    keywords_ko: ['강한 압박', '통제의 결', '힘의 학습'],
+    keywords_en: ['heavy pressure', 'control-line', 'power lesson'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Pluto', aspect: 'trine',
+    ko: '추진과 변용이 같은 결로 흐르는 결이에요. 행동과 깊이가 자연스럽게 어울려, 변화시키는 힘이 타고난 강점이 돼요.',
+    en: 'Drive and transformation flow in the same key. Action and depth marry naturally — transformative power becomes an innate strength.',
+    keywords_ko: ['타고난 강도', '변용의 결', '깊은 행동'],
+    keywords_en: ['innate intensity', 'transformative-line', 'deep action'],
+  },
+  {
+    planet1: 'Mars', planet2: 'Pluto', aspect: 'opposition',
+    ko: '추진과 변용이 마주 서서 균형을 찾는 결이에요. 내 행동과 깊은 변화 사이를 오가며, 관계의 거울 안에서 힘의 통합을 배워요.',
+    en: 'Drive and transformation face each other across the chart. Between action and deep change, the relational mirror teaches integration of power.',
+    keywords_ko: ['추진-깊이 균형', '거울의 학습', '힘의 통합'],
+    keywords_en: ['drive-depth balance', 'mirror lesson', 'power integration'],
+  },
+
+  // ============================================================
+  // MEDIUM PRIORITY — Saturn × {Uranus, Neptune, Pluto}
+  // (generational/structural pairs)
+  // ============================================================
+
+  // ---------- Saturn × Uranus (structure × innovation) ----------
+  {
+    planet1: 'Saturn', planet2: 'Uranus', aspect: 'conjunction',
+    ko: '책임의 별과 혁신의 별이 한 자리에서 만나는 결이에요. 구조와 자유가 한 몸으로 움직여, 옛 틀과 새 길을 동시에 짊어져요.',
+    en: 'Responsibility and innovation meet in the same spot. Structure and freedom move as one body — you carry both the old form and the new path.',
+    keywords_ko: ['구조-혁신 융합', '옛 틀과 새 길', '체계 있는 자유'],
+    keywords_en: ['structure-innovation fusion', 'old-form new-path', 'structured freedom'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Uranus', aspect: 'sextile',
+    ko: '책임과 혁신이 부드럽게 협력하는 결이에요. 의식적으로 새 것을 시도할 때 구조가 안전하게 지지해줘요.',
+    en: 'Responsibility and innovation cooperate at an easy angle. When you choose to try the new, structure safely backs it.',
+    keywords_ko: ['협력적 변화', '안전한 시도', '구조-혁신 흐름'],
+    keywords_en: ['cooperative change', 'safe experiment', 'structure-innovation flow'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Uranus', aspect: 'square',
+    ko: '책임과 혁신이 어긋난 각도로 맞물려, 구조와 자유 사이의 긴장이 강한 결이에요. 옛 것을 부수고 새 길을 내는 학습.',
+    en: 'Responsibility and innovation grind at a tight angle — strong tension between structure and freedom. The lesson is breaking the old to open the new.',
+    keywords_ko: ['구조-자유 긴장', '돌파의 결', '체계 갱신'],
+    keywords_en: ['structure-freedom tension', 'breakthrough-line', 'system update'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Uranus', aspect: 'trine',
+    ko: '책임과 혁신이 같은 결로 흐르는 결이에요. 구조 안에서 자유를 다루는 감각이 타고난 강점이 돼요.',
+    en: 'Responsibility and innovation flow in the same key. Holding freedom within structure becomes an innate strength.',
+    keywords_ko: ['타고난 균형 감각', '구조 안의 자유', '체계적 혁신'],
+    keywords_en: ['innate balance', 'freedom-in-structure', 'systemic innovation'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Uranus', aspect: 'opposition',
+    ko: '책임과 혁신이 마주 서서 균형을 찾는 결이에요. 옛 질서와 새 흐름 사이를 오가며, 관계 안에서 통합점을 배워요.',
+    en: 'Responsibility and innovation face each other across the chart. Between the old order and the new current, relating teaches the meeting point.',
+    keywords_ko: ['질서-변화 균형', '거울의 학습', '통합의 결'],
+    keywords_en: ['order-change balance', 'mirror lesson', 'integration-line'],
+  },
+
+  // ---------- Saturn × Neptune (structure × dissolution) ----------
+  {
+    planet1: 'Saturn', planet2: 'Neptune', aspect: 'conjunction',
+    ko: '책임의 별과 꿈의 별이 한 자리에서 만나는 결이에요. 구조와 직관이 한 몸으로 움직여, 현실에 영감을 짓는 결.',
+    en: 'Responsibility and dream meet in the same spot. Structure and intuition move as one body — building inspiration into reality.',
+    keywords_ko: ['구조 있는 꿈', '현실의 영감', '직관과 책임'],
+    keywords_en: ['structured dream', 'grounded inspiration', 'intuition-with-duty'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Neptune', aspect: 'sextile',
+    ko: '책임과 꿈이 부드럽게 협력하는 결이에요. 의식적으로 비전을 짚을 때 구조가 그것을 받쳐줘요.',
+    en: 'Responsibility and dream cooperate at an easy angle. When you actively name the vision, structure holds it up.',
+    keywords_ko: ['협력적 비전', '꿈의 구조화', '의식적 영감'],
+    keywords_en: ['cooperative vision', 'structuring dreams', 'chosen inspiration'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Neptune', aspect: 'square',
+    ko: '책임과 꿈이 어긋난 각도로 맞물려, 현실과 이상 사이의 갈등이 강한 결이에요. 환상을 다루며 구조를 짓는 학습.',
+    en: 'Responsibility and dream grind at a tight angle — strong tension between reality and ideal. The lesson is building structure while handling illusion.',
+    keywords_ko: ['현실-이상 긴장', '환상의 학습', '구조 짓기'],
+    keywords_en: ['reality-ideal tension', 'illusion lesson', 'structure-building'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Neptune', aspect: 'trine',
+    ko: '책임과 꿈이 같은 결로 흐르는 결이에요. 비전과 구조가 자연스럽게 어울려, 현실에 영감을 짓는 강점이 돼요.',
+    en: 'Responsibility and dream flow in the same key. Vision and structure marry naturally — grounding inspiration becomes an innate strength.',
+    keywords_ko: ['타고난 비전 실현', '꿈의 구조', '영감의 결'],
+    keywords_en: ['innate manifestation', 'dream-structure', 'inspiration-line'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Neptune', aspect: 'opposition',
+    ko: '책임과 꿈이 마주 서서 균형을 찾는 결이에요. 현실과 이상 사이를 오가며, 관계의 거울 안에서 통합점을 배워요.',
+    en: 'Responsibility and dream face each other across the chart. Between reality and ideal, the relational mirror teaches an integration point.',
+    keywords_ko: ['현실-이상 균형', '거울의 학습', '통합의 결'],
+    keywords_en: ['reality-ideal balance', 'mirror lesson', 'integration-line'],
+  },
+
+  // ---------- Saturn × Pluto (structure × transformation) ----------
+  {
+    planet1: 'Saturn', planet2: 'Pluto', aspect: 'conjunction',
+    ko: '책임의 별과 변용의 별이 한 자리에서 만나는 결이에요. 구조와 깊이가 한 몸이 되어, 큰 변화를 짓는 무게의 결.',
+    en: 'Responsibility and transformation meet in the same spot. Structure and depth fuse — a weighted line that builds large change.',
+    keywords_ko: ['무게 있는 변화', '구조의 변용', '깊은 책임'],
+    keywords_en: ['weighted change', 'structural transformation', 'deep responsibility'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Pluto', aspect: 'sextile',
+    ko: '책임과 변용이 부드럽게 협력하는 결이에요. 의식적으로 깊어질 때 구조가 변화를 안전하게 담아줘요.',
+    en: 'Responsibility and transformation cooperate at an easy angle. When you choose depth, structure safely holds the change.',
+    keywords_ko: ['협력적 변용', '구조 안의 깊이', '의식적 변화'],
+    keywords_en: ['cooperative transformation', 'depth-in-structure', 'chosen change'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Pluto', aspect: 'square',
+    ko: '책임과 변용이 어긋난 각도로 맞물려, 옛 구조와 깊은 변화 사이의 압박이 강한 결이에요. 권력과 인내를 함께 단련하는 학습.',
+    en: 'Responsibility and transformation grind at a tight angle — strong pressure between old structure and deep change. The lesson is forging power and patience together.',
+    keywords_ko: ['구조-변용 압박', '권력의 학습', '단련의 결'],
+    keywords_en: ['structure-change pressure', 'power lesson', 'forging-line'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Pluto', aspect: 'trine',
+    ko: '책임과 변용이 같은 결로 흐르는 결이에요. 깊이와 구조가 자연스럽게 어울려, 큰 변화를 견디고 짓는 강점이 돼요.',
+    en: 'Responsibility and transformation flow in the same key. Depth and structure marry naturally — enduring and building big change becomes an innate strength.',
+    keywords_ko: ['타고난 견딤', '깊은 구조', '변용의 결'],
+    keywords_en: ['innate endurance', 'deep structure', 'transformation-line'],
+  },
+  {
+    planet1: 'Saturn', planet2: 'Pluto', aspect: 'opposition',
+    ko: '책임과 변용이 마주 서서 균형을 찾는 결이에요. 옛 구조와 깊은 변화 사이를 오가며, 관계의 거울 안에서 권력의 통합을 배워요.',
+    en: 'Responsibility and transformation face each other across the chart. Between old structure and deep change, the relational mirror teaches the integration of power.',
+    keywords_ko: ['구조-변용 균형', '거울의 학습', '권력의 통합'],
+    keywords_en: ['structure-change balance', 'mirror lesson', 'power integration'],
+  },
+
+  // ============================================================
+  // MEDIUM PRIORITY — Jupiter × {Saturn, Pluto}
+  // ============================================================
+
+  // ---------- Jupiter × Saturn (expansion × responsibility) ----------
+  {
+    planet1: 'Jupiter', planet2: 'Saturn', aspect: 'conjunction',
+    ko: '확장의 별과 책임의 별이 한 자리에서 만나는 결이에요. 큰 그림과 구조가 한 몸으로 움직여, 장기적인 빌드의 결을 입어요.',
+    en: 'Expansion and responsibility meet in the same spot. Big vision and structure fuse — a long-build line where growth and grounding move together.',
+    keywords_ko: ['장기적 빌드', '구조 있는 확장', '큰 그림과 무게'],
+    keywords_en: ['long-build', 'structured growth', 'vision-with-weight'],
+  },
+  {
+    planet1: 'Jupiter', planet2: 'Saturn', aspect: 'sextile',
+    ko: '확장과 책임이 부드럽게 협력하는 결이에요. 의식적으로 시야를 키우면 구조가 그것을 단단히 받쳐줘요.',
+    en: 'Expansion and responsibility cooperate at an easy angle. When you actively grow perspective, structure firmly backs it.',
+    keywords_ko: ['협력적 빌드', '시야-구조 흐름', '의식적 확장'],
+    keywords_en: ['cooperative build', 'vision-structure flow', 'chosen growth'],
+  },
+  {
+    planet1: 'Jupiter', planet2: 'Saturn', aspect: 'square',
+    ko: '확장과 책임이 어긋난 각도로 맞물려, 성장의 야망과 현실의 한계가 부딪치는 결이에요. 적정한 스케일을 배우는 학습.',
+    en: 'Expansion and responsibility grind at a tight angle — growth-ambition meets real limits. The lesson is right-sizing the ambition.',
+    keywords_ko: ['야망-한계 긴장', '스케일 학습', '인내의 결'],
+    keywords_en: ['ambition-limit tension', 'scale lesson', 'patience-line'],
+  },
+  {
+    planet1: 'Jupiter', planet2: 'Saturn', aspect: 'trine',
+    ko: '확장과 책임이 같은 결로 흐르는 결이에요. 시야와 구조가 자연스럽게 어울려, 꾸준히 큰 그림을 짓는 강점이 돼요.',
+    en: 'Expansion and responsibility flow in the same key. Vision and structure marry naturally — steadily building the big picture becomes an innate strength.',
+    keywords_ko: ['타고난 빌드', '시야의 구조', '꾸준한 확장'],
+    keywords_en: ['innate building', 'structured vision', 'steady growth'],
+  },
+  {
+    planet1: 'Jupiter', planet2: 'Saturn', aspect: 'opposition',
+    ko: '확장과 책임이 마주 서서 균형을 찾는 결이에요. 야망과 현실 사이를 오가며, 관계의 거울 안에서 적정한 빌드의 통합점을 배워요.',
+    en: 'Expansion and responsibility face each other across the chart. Between ambition and reality, the relational mirror teaches a right-sized integration.',
+    keywords_ko: ['야망-현실 균형', '거울의 학습', '빌드의 통합'],
+    keywords_en: ['ambition-reality balance', 'mirror lesson', 'build integration'],
+  },
+
+  // ---------- Jupiter × Pluto (expansion × transformation) ----------
+  {
+    planet1: 'Jupiter', planet2: 'Pluto', aspect: 'conjunction',
+    ko: '확장의 별과 변용의 별이 한 자리에서 만나는 결이에요. 큰 그림과 깊은 변화가 한 몸이 되어, 강한 신념의 결을 입어요.',
+    en: 'Expansion and transformation meet in the same spot. Big vision and deep change fuse — a strong-belief line that reshapes the field.',
+    keywords_ko: ['강한 신념', '큰 변용', '깊은 확장'],
+    keywords_en: ['strong conviction', 'large transformation', 'deep growth'],
+  },
+  {
+    planet1: 'Jupiter', planet2: 'Pluto', aspect: 'sextile',
+    ko: '확장과 변용이 부드럽게 협력하는 결이에요. 의식적으로 깊이 들어갈 때 큰 그림이 살아나요.',
+    en: 'Expansion and transformation cooperate at an easy angle. When you choose to go deeper, the big picture comes alive.',
+    keywords_ko: ['협력적 깊이', '의식적 변용', '큰 그림의 결'],
+    keywords_en: ['cooperative depth', 'chosen transformation', 'big-picture-line'],
+  },
+  {
+    planet1: 'Jupiter', planet2: 'Pluto', aspect: 'square',
+    ko: '확장과 변용이 어긋난 각도로 맞물려, 신념의 강도와 통제 욕구가 부딪치는 결이에요. 힘을 적정한 신념으로 다루는 학습.',
+    en: 'Expansion and transformation grind at a tight angle — belief-intensity meets control. The lesson is wielding power with right-sized conviction.',
+    keywords_ko: ['신념-통제 긴장', '힘의 학습', '강도의 결'],
+    keywords_en: ['belief-control tension', 'power lesson', 'intensity-line'],
+  },
+  {
+    planet1: 'Jupiter', planet2: 'Pluto', aspect: 'trine',
+    ko: '확장과 변용이 같은 결로 흐르는 결이에요. 시야와 깊이가 자연스럽게 어울려, 큰 변화를 짓는 신념이 타고난 강점이 돼요.',
+    en: 'Expansion and transformation flow in the same key. Vision and depth marry naturally — conviction that builds large change becomes an innate strength.',
+    keywords_ko: ['타고난 신념', '큰 변용의 결', '깊은 시야'],
+    keywords_en: ['innate conviction', 'large-change-line', 'deep vision'],
+  },
+  {
+    planet1: 'Jupiter', planet2: 'Pluto', aspect: 'opposition',
+    ko: '확장과 변용이 마주 서서 균형을 찾는 결이에요. 큰 그림과 깊은 변화 사이를 오가며, 관계의 거울 안에서 통합점을 배워요.',
+    en: 'Expansion and transformation face each other across the chart. Between big vision and deep change, the relational mirror teaches an integration point.',
+    keywords_ko: ['시야-깊이 균형', '거울의 학습', '신념의 통합'],
+    keywords_en: ['vision-depth balance', 'mirror lesson', 'conviction integration'],
+  },
+]
+
+// ============================================================
 // Public API
 // ============================================================
 
@@ -865,6 +1712,93 @@ export function getAspectInterpretation(
 ): string {
   const entry = ASPECT_LINES[kind]
   return language === 'ko' ? entry.ko : entry.en
+}
+
+// ------------------------------------------------------------
+// Aspect × Pair lookup helpers
+// ------------------------------------------------------------
+
+function isAspectPairPlanet(name: AstroPlanetName): name is AspectPairPlanet {
+  return name !== 'Ascendant'
+}
+
+function planetOrderIndex(planet: AspectPairPlanet): number {
+  const idx = PLANET_ORDER.indexOf(planet)
+  return idx === -1 ? Number.MAX_SAFE_INTEGER : idx
+}
+
+/**
+ * Find a pair-aware aspect interpretation. Lookup is order-agnostic:
+ * passing (Sun, Moon) and (Moon, Sun) returns the same entry.
+ *
+ * Returns null when the requested combination isn't covered by the
+ * curated dictionary — callers should fall back to the generic
+ * `getAspectInterpretation` line in that case.
+ */
+export function findAspectPairEntry(
+  planetA: AstroPlanetName,
+  planetB: AstroPlanetName,
+  aspect: AspectKind,
+): AspectPairEntry | null {
+  if (!isAspectPairPlanet(planetA) || !isAspectPairPlanet(planetB)) return null
+  if (planetA === planetB) return null
+
+  // Canonical order: planet whose index in PLANET_ORDER is lower goes first.
+  const [p1, p2] =
+    planetOrderIndex(planetA) <= planetOrderIndex(planetB)
+      ? [planetA, planetB]
+      : [planetB, planetA]
+
+  return (
+    ASPECT_PAIR_DICTIONARY.find(
+      (entry) =>
+        entry.planet1 === p1 && entry.planet2 === p2 && entry.aspect === aspect,
+    ) ?? null
+  )
+}
+
+/**
+ * Convenience accessor that returns a localized prose string, falling
+ * back to the generic aspect line when the specific pair isn't in the
+ * dictionary.
+ */
+export function getAspectPairInterpretation(
+  planetA: AstroPlanetName,
+  planetB: AstroPlanetName,
+  aspect: AspectKind,
+  language: 'ko' | 'en' = 'ko',
+): string {
+  const entry = findAspectPairEntry(planetA, planetB, aspect)
+  if (entry) {
+    return language === 'ko' ? entry.ko : entry.en
+  }
+  return getAspectInterpretation(aspect, language)
+}
+
+/**
+ * Lookup keywords for a pair-aware aspect. Returns null when not covered.
+ */
+export function getAspectPairKeywords(
+  planetA: AstroPlanetName,
+  planetB: AstroPlanetName,
+  aspect: AspectKind,
+  language: 'ko' | 'en' = 'ko',
+): readonly string[] | null {
+  const entry = findAspectPairEntry(planetA, planetB, aspect)
+  if (!entry) return null
+  return language === 'ko' ? entry.keywords_ko : entry.keywords_en
+}
+
+/**
+ * List all aspect entries that involve a given planet (both positions).
+ */
+export function listAspectPairEntriesForPlanet(
+  planet: AstroPlanetName,
+): AspectPairEntry[] {
+  if (!isAspectPairPlanet(planet)) return []
+  return ASPECT_PAIR_DICTIONARY.filter(
+    (entry) => entry.planet1 === planet || entry.planet2 === planet,
+  )
 }
 
 export function getPlanetLabelKo(planet: AstroPlanetName): string {
