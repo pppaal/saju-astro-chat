@@ -210,7 +210,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     `카르마 유형은 ${karmaType}이에요. ${KARMA_DESC_KO[karmaType]}`,
     `약 ${Math.round(fixedRatio * 100)}%는 타고난 부분이고, ${Math.round(flexibleRatio * 100)}%는 선택과 노력으로 바꿀 수 있어요.`,
     gongmang.length > 0
-      ? `삶의 ${gongmang.join('·')} 영역에 비어 있는 자리가 있어서 채워지지 않는 감각이 들 수 있어요. 이게 바로 영혼이 다음 단계로 넘어가도록 미는 신호예요.`
+      ? `삶의 ${gongmang.join('·')} 영역에 비어 있는 자리가 있어서 채워지지 않는 감각이 들 수 있어요. 이게 바로 영혼이 다음 단계로 넘어가도록 미는 부름이에요.`
       : '',
     twelfthPlanets.length > 0
       ? `내면 영역에 ${twelfthPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 머물러 있어, 혼자 있는 시간 속에서 풀어야 할 과제가 함께 있어요.`
@@ -358,7 +358,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       )
     }
     if (hc.hyungCount > 0) {
-      p6pieces.push('형(刑)의 신호도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
+      p6pieces.push('형(刑)의 흐름도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
       p6piecesEn.push('A 형 (penalty) accent also runs through — refining your unbending sense of justice is one of this life\'s rites of passage.')
     }
   }
@@ -383,7 +383,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const captivityLot = input.calendarSignals?.arabicPartsExtra?.Captivity
   if (captivityLot) {
     astroUsed.push('calendarSignals.arabicPartsExtra.Captivity')
-    p6pieces.push(`속박의 점이 ${signLabel(captivityLot.sign, 'ko')}에 자리해서, 이번 생에 풀어내야 할 카르마 매듭의 색이 그 톤이에요.`)
+    p6pieces.push(`속박의 점이 ${signLabel(captivityLot.sign, 'ko')}에 놓여, 이번 생에 풀어내야 할 카르마 매듭의 색이 같은 결을 따라요.`)
     p6piecesEn.push(`Your Lot of Captivity in ${signLabel(captivityLot.sign, 'en')} — the karmic knot to untie in this life carries that grain.`)
   }
   const p6ko = paragraph(

@@ -126,7 +126,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const styleKo = pickLoveStyleKo(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
   const styleEn = pickLoveStyleEn(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
   const venusBlurb = venus
-    ? `사랑의 별인 금성이 ${signLabel(venus.sign, 'ko')}에 자리해서, ${venusFlavorKo(venus.sign, venus.house)}이 사랑의 색이에요.`
+    ? `사랑의 별인 금성이 ${signLabel(venus.sign, 'ko')}에 자리잡아, ${venusFlavorKo(venus.sign, venus.house)}이 사랑의 색이에요.`
     : ''
   const venusBlurbEn = venus
     ? `Venus in ${signLabel(venus.sign, 'en')} (${houseLabel(venus.house, 'en')}) gives love the flavor of ${venusFlavorEn(venus.sign, venus.house)}.`
@@ -146,7 +146,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       ? `관계 영역은 ${seventhSignKo}의 톤으로 시작해서, 파트너에게서 ${seventhSignFlavorKo(seventh.sign)}을 자연스럽게 바라게 돼요.`
       : '',
     seventhPlanets.length > 0
-      ? `관계 영역 안에 ${seventhPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 자리해서, 관계가 인생의 한가운데로 들어와요.`
+      ? `관계 영역 안에 ${seventhPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 머물러, 관계가 인생의 한가운데로 들어와요.`
       : '',
   ])
   const p2en = paragraph([
@@ -180,7 +180,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   if (j) {
     deepKo.push(
-      `결혼의 별은 ${signLabel(j.sign, 'ko')}에 자리해서, 결혼 자체에 ${junoFlavorKo(j.house)}이 흐르게 해요.`
+      `결혼의 별은 ${signLabel(j.sign, 'ko')}에 놓여, 결혼 자체에 ${junoFlavorKo(j.house)}이 흐르게 해요.`
     )
     deepEn.push(
       `Juno (marriage asteroid) sits in ${signLabel(j.sign, 'en')} ${houseLabel(j.house, 'en')}, so marriage carries the tone of ${junoFlavorEn(j.house)}.`
@@ -258,7 +258,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     timingEn.push(`This year's Solar Return Sun lands in the 7th — relationship becomes the center-of-mass for the year.`)
   }
   if (timingKo.length === 1) {
-    timingKo.push('인생 흐름이 점차 익어가는 구간이라, 한 해 한 해 신호가 모이고 있어요.')
+    timingKo.push('인생 흐름이 점차 익어가는 구간이라, 한 해 한 해 인연의 결이 모이고 있어요.')
     timingEn.push('Your daeun is in a ripening stretch — signals accumulate season by season.')
   }
   // Calendar-engine signals: Lot of Eros (사랑의 행운점) + Venus dignity
@@ -269,7 +269,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (eros) {
     fusionUsed.push('calendarSignals.arabicParts.Eros')
     timingKo.push(
-      `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}에 자리해서, ${erosSignFlavorKoLove(eros.sign)} 인연이 사랑의 운을 끌어와요.`,
+      `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}에 놓여, ${erosSignFlavorKoLove(eros.sign)} 인연이 사랑의 운을 끌어와요.`,
     )
     timingEn.push(
       `Your Lot of Eros in ${signLabel(eros.sign, 'en')} pulls love-luck through ${erosSignFlavorEnLove(eros.sign)}.`,
@@ -381,7 +381,7 @@ const VENUS_SIGN_FLAVOR_KO: Record<string, string> = {
   Cancer: '돌봄과 안전감',
   Leo: '드라마와 표현',
   Virgo: '섬세한 헌신',
-  Libra: '균형과 미감',
+  Libra: '균형과 우아함',
   Scorpio: '깊이와 강도',
   Sagittarius: '자유와 모험',
   Capricorn: '책임과 시간',
@@ -416,7 +416,7 @@ const SEVENTH_SIGN_FLAVOR_KO: Record<string, string> = {
   Cancer: '돌봄과 가족적 안전감',
   Leo: '드라마와 따뜻함',
   Virgo: '세심함과 도움',
-  Libra: '균형과 미감',
+  Libra: '균형과 우아함',
   Scorpio: '깊이와 진정성',
   Sagittarius: '시야와 자유',
   Capricorn: '책임과 무게',

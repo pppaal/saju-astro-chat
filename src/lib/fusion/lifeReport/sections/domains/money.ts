@@ -95,7 +95,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
       ? `재산 영역은 ${signLabel(second.sign, 'ko')}의 색감으로 시작해서, 돈을 ${secondSignFlavorKo(second.sign)} 방식으로 다뤄요.`
       : '',
     jupiter
-      ? `행운의 별이 ${signLabel(jupiter.sign, 'ko')}에 자리해서, ${jupiterFlavorKo(jupiter.house)} 영역으로 확장이 흘러요.`
+      ? `행운의 별이 ${signLabel(jupiter.sign, 'ko')}에 자리잡아, ${jupiterFlavorKo(jupiter.house)} 영역에서 재물의 확장이 일어나요.`
       : '',
   ])
   const p1en = paragraph([
@@ -152,7 +152,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     deepEn.push('Part of Fortune in the 8th — luck flows through shared resources, inheritance, investment.')
   }
   if (jupiterVenus) {
-    deepKo.push(`행운의 별과 사랑의 별이 ${aspectQuality(jupiterVenus.type, 'ko')}, 풍요와 미감이 손잡고 자원에 닿아요.`)
+    deepKo.push(`행운의 별과 사랑의 별이 ${aspectQuality(jupiterVenus.type, 'ko')}, 풍요와 아름다움이 손잡고 자원에 닿아요.`)
     deepEn.push(`Jupiter-Venus ${aspectQuality(jupiterVenus.type, 'en')} — abundance and beauty hold hands at your resources.`)
   }
   const jupHardSquare = jupiterAspects.find(
@@ -165,7 +165,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     )
   }
   if (lucky.length > 0) {
-    deepKo.push(`재물 흐름을 잔잔히 받쳐주는 ${luckyShinsalReadableKo(lucky)} 같은 신호가 함께 있어요.`)
+    deepKo.push(`재물 흐름을 잔잔히 받쳐주는 ${luckyShinsalReadableKo(lucky)} 같은 기운이 함께 있어요.`)
     deepEn.push(`Your saju 신살 includes ${lucky.slice(0, 3).join(' / ')}, quietly supporting the money flow.`)
   }
   if (moneyConfirms.length > 0) {
@@ -188,7 +188,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const necessityLot = input.calendarSignals?.arabicParts?.Necessity
   if (necessityLot) {
     fusionUsed.push('calendarSignals.arabicParts.Necessity')
-    deepKo.push(`필연의 행운점이 ${signLabel(necessityLot.sign, 'ko')}에 자리해서, 부담이 가장 자주 모이는 자원 영역도 그 톤으로 일관돼요.`)
+    deepKo.push(`필연의 행운점이 ${signLabel(necessityLot.sign, 'ko')}에 머물러, 부담이 가장 자주 모이는 자원 영역도 같은 결로 이어져요.`)
     deepEn.push(`Lot of Necessity in ${signLabel(necessityLot.sign, 'en')} — the resource-strain seat runs through that same grain.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
@@ -216,7 +216,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const fortune = input.calendarSignals?.arabicParts?.Fortune
   if (fortune) {
     fusionUsed.push('calendarSignals.arabicParts.Fortune')
-    guideKo.push(`재물의 행운점이 ${signKoMoney(fortune.sign)}에 자리해서, 이 톤을 일상에 들여올수록 운이 자기 자리로 돌아와요.`)
+    guideKo.push(`재물의 행운점이 ${signKoMoney(fortune.sign)}에 놓여, 이 결을 일상에 들여올수록 운이 자기 자리로 돌아와요.`)
     guideEn.push(`Your Lot of Fortune sits in ${fortune.sign} — bringing this grain into daily life pulls luck home.`)
   }
   const jupiterDignity = input.calendarSignals?.dignities?.find((d) => d.planet === 'Jupiter')
@@ -244,16 +244,16 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
 }
 
 function wealthFlavorKo(total: number, jeong: number, pyen: number): string {
-  if (total >= 3) return '당신은 자원과 결과로 인생을 풀어내는 사람이에요. 풍성한 재물 신호가 깔려서 돈이 곧 표현의 도구가 돼요.'
+  if (total >= 3) return '당신은 자원과 결과로 인생을 풀어내는 사람이에요. 풍성한 재물의 결이 깔려서 돈이 곧 표현의 도구가 돼요.'
   if (total === 2)
     return jeong >= pyen
       ? '당신은 안정적인 수입 라인으로 자원을 쌓아가는 사람이에요.'
       : '당신은 다양한 수입 라인을 만들어내는 사람이에요.'
   if (total === 1)
     return jeong >= pyen
-      ? '당신은 한 줄기 안정 수입을 깊이 만드는 사람이에요.'
+      ? '당신은 꾸준한 수입을 차곡차곡 쌓아가는 사람이에요.'
       : '당신은 부수입과 기회 포착에 더 강한 사람이에요.'
-  return '재물 신호가 잔잔해서, 돈은 다른 흐름이 함께 짊어져요. 직업과 배움이 자원의 통로가 돼요.'
+  return '재물의 결이 잔잔해서, 돈은 다른 흐름이 함께 받쳐줘요. 직업과 배움이 자원의 통로가 돼요.'
 }
 
 // money 섹션 신살 자연어 변환
@@ -263,8 +263,8 @@ function luckyShinsalReadableKo(items: string[]): string {
     월덕귀인: '귀인의 보호',
     문창: '학문과 창작의 별',
     문창귀인: '학문과 창작의 별',
-    역마: '이동과 변화의 신호',
-    도화: '끌림과 매력의 신호',
+    역마: '이동과 변화의 기운',
+    도화: '끌림과 매력의 기운',
     화개: '예술과 고독의 별',
     천을귀인: '귀인의 보호',
   }
@@ -290,7 +290,7 @@ const SECOND_SIGN_FLAVOR_KO: Record<string, string> = {
   Cancer: '저축하고 지키는',
   Leo: '과감하게 표현하며 쓰는',
   Virgo: '세심하게 관리하는',
-  Libra: '균형과 미감을 따라 쓰는',
+  Libra: '균형과 우아함을 따라 쓰는',
   Scorpio: '깊고 사적으로 다루는',
   Sagittarius: '시야 넓게 굴리는',
   Capricorn: '엄격하게 쌓아가는',

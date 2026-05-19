@@ -244,7 +244,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const courage = input.calendarSignals?.arabicParts?.Courage
   if (courage) {
     fusionUsed.push('calendarSignals.arabicParts.Courage')
-    deepPieces.push(`용기의 행운점이 ${karmaSignKoCareer(courage.sign)}에 자리해서, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`)
+    deepPieces.push(`용기의 행운점이 ${karmaSignKoCareer(courage.sign)}에 놓여, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`)
     deepPiecesEn.push(`Your Lot of Courage in ${courage.sign} pulls the strongest career luck through the place where you accept challenge.`)
   }
   // Fusion career confirms (top 2)
@@ -254,7 +254,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     deepPiecesEn.push(`Additionally, ${top.rule.meaning}.`)
   }
   const p3ko = paragraph(deepPieces.length ? deepPieces : [
-    '지금 신호들이 평탄하게 정렬돼 있어, 한쪽으로 치우치기보다 다양한 가능성이 함께 무르익는 시기예요.'
+    '지금 흐름이 평탄하게 정렬돼 있어, 한쪽으로 치우치기보다 다양한 가능성이 함께 무르익는 시기예요.'
   ])
   const p3en = paragraph(deepPiecesEn.length ? deepPiecesEn : [
     'Because current signals sit in a balanced array, no single direction dominates right now.'
@@ -278,7 +278,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const spirit = input.calendarSignals?.arabicParts?.Spirit
   if (spirit) {
     fusionUsed.push('calendarSignals.arabicParts.Spirit')
-    guideKo += ` 직업의 행운점이 ${spirit.sign === 'Aries' ? '양자리' : spirit.sign === 'Taurus' ? '황소자리' : spirit.sign === 'Gemini' ? '쌍둥이자리' : spirit.sign === 'Cancer' ? '게자리' : spirit.sign === 'Leo' ? '사자자리' : spirit.sign === 'Virgo' ? '처녀자리' : spirit.sign === 'Libra' ? '천칭자리' : spirit.sign === 'Scorpio' ? '전갈자리' : spirit.sign === 'Sagittarius' ? '사수자리' : spirit.sign === 'Capricorn' ? '염소자리' : spirit.sign === 'Aquarius' ? '물병자리' : '물고기자리'}에 자리해서, 이 톤을 일터에 가져갈수록 운이 자기 자리로 와요.`
+    guideKo += ` 직업의 행운점이 ${spirit.sign === 'Aries' ? '양자리' : spirit.sign === 'Taurus' ? '황소자리' : spirit.sign === 'Gemini' ? '쌍둥이자리' : spirit.sign === 'Cancer' ? '게자리' : spirit.sign === 'Leo' ? '사자자리' : spirit.sign === 'Virgo' ? '처녀자리' : spirit.sign === 'Libra' ? '천칭자리' : spirit.sign === 'Scorpio' ? '전갈자리' : spirit.sign === 'Sagittarius' ? '사수자리' : spirit.sign === 'Capricorn' ? '염소자리' : spirit.sign === 'Aquarius' ? '물병자리' : '물고기자리'}에 놓여, 이 결을 일터에 가져갈수록 운이 자기 자리로 와요.`
     guideEn += ` Your Lot of Spirit in ${spirit.sign} signals the grain to bring into the workplace — luck arrives when you carry it deliberately.`
   }
   // Profection — current-year lord & house

@@ -85,7 +85,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     twelfth.length > 0
       ? `${houseLabel(12, 'ko')}에 ${twelfth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 혼자 있는 시간이 영성의 통로가 돼요.`
       : twelfthCusp?.sign
-        ? `내면 영역은 ${signLabel(twelfthCusp.sign, 'ko')}의 톤으로 열려, ${twelfthSignFlavorKo(twelfthCusp.sign)} 방식의 내면 작업이 잘 맞아요.`
+        ? `내면 영역은 ${signLabel(twelfthCusp.sign, 'ko')}의 분위기로 열려, ${twelfthSignFlavorKo(twelfthCusp.sign)} 방식의 내면 작업이 잘 맞아요.`
         : '',
     neptune
       ? `해왕성이 ${signLabel(neptune.sign, 'ko')}${neptune.house ? `, ${houseLabel(neptune.house, 'ko')}` : ''}에 있어, 경계가 흐려지는 자리에서 영적 흐름이 풀려요.`
@@ -198,14 +198,14 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const spiritLot = calendarSignals?.arabicParts?.Spirit
   if (spiritLot) {
     fusionUsed.push('calendarSignals.arabicParts.Spirit')
-    p3pieces.push(`영혼·다이몬의 점이 ${signLabel(spiritLot.sign, 'ko')}에 자리해서, 진짜 부름이 어느 방향으로 와 있는지 알려줘요.`)
+    p3pieces.push(`영혼·다이몬의 점이 ${signLabel(spiritLot.sign, 'ko')}에 놓여, 진짜 부름이 어느 방향으로 와 있는지 알려줘요.`)
     p3piecesEn.push(`Your Lot of Spirit / Daimon in ${signLabel(spiritLot.sign, 'en')} marks the direction your true vocation calls from.`)
   }
   // Part of Captivity — 속박의 결 → 영적 매듭으로 풀어 해석
   const captivity = calendarSignals?.arabicPartsExtra?.Captivity
   if (captivity) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Captivity')
-    p3pieces.push(`속박의 점이 ${signLabel(captivity.sign, 'ko')}에 자리해서, 풀어야 할 영적 매듭이 그 자리에 한 번 모여 있어요.`)
+    p3pieces.push(`속박의 점이 ${signLabel(captivity.sign, 'ko')}에 머물러, 풀어야 할 영적 매듭이 그 자리에 한 번 모여 있어요.`)
     p3piecesEn.push(`Your Lot of Captivity in ${signLabel(captivity.sign, 'en')} — the spiritual knot to untie gathers in that seat.`)
   }
   const p3ko = paragraph(

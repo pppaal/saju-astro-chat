@@ -114,14 +114,14 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p2piecesEn: string[] = []
   if (third.length > 0) {
     p2pieces.push(
-      `학습 영역에 ${third.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 자리해서, 일상의 작은 학습과 짧은 대화 속에서 진짜 지혜가 쌓여요.`,
+      `학습 영역에 ${third.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 일상의 작은 학습과 짧은 대화 속에서 진짜 지혜가 쌓여요.`,
     )
     p2piecesEn.push(
       `Planets in the 3rd house (${third.map((p) => p.name).join(', ')}) gather wisdom through small daily learning and short conversations.`,
     )
   } else if (thirdCusp?.sign) {
     p2pieces.push(
-      `학습 영역은 ${signLabel(thirdCusp.sign, 'ko')}의 톤으로 열려서, ${thirdSignFlavorKo(thirdCusp.sign)} 방식으로 배우는 게 자연스러워요.`,
+      `학습 영역은 ${signLabel(thirdCusp.sign, 'ko')}의 분위기로 열려서, ${thirdSignFlavorKo(thirdCusp.sign)} 방식으로 배우는 게 자연스러워요.`,
     )
     p2piecesEn.push(
       `Your 3rd-house cusp in ${signLabel(thirdCusp.sign, 'en')} suggests learning via ${thirdSignFlavorEn(thirdCusp.sign)}.`,
@@ -198,7 +198,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const daimon = calendarSignals?.arabicPartsExtra?.Daimon
   if (daimon) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Daimon')
-    p3pieces.push(`영혼의 행운점이 ${signLabel(daimon.sign, 'ko')}에 자리해서, 진짜 지혜가 자라는 자리도 그 톤이에요.`)
+    p3pieces.push(`영혼의 행운점이 ${signLabel(daimon.sign, 'ko')}에 놓여, 진짜 지혜가 자라는 자리도 같은 결을 따라요.`)
     p3piecesEn.push(`Your Lot of Daimon in ${signLabel(daimon.sign, 'en')} — the seat where real wisdom grows shares that grain.`)
   }
   const p3ko = paragraph(
@@ -259,7 +259,7 @@ function collectShinsal(saju: BuilderInput['saju']): string[] {
 const MERC_SIGN_KO: Record<string, string> = {
   Aries: '빠르고 직진하는 사고',
   Taurus: '느긋하지만 단단한 사고',
-  Gemini: '명민하고 분기하는 사고',
+  Gemini: '명민하고 여러 갈래로 뻗는 사고',
   Cancer: '정서적으로 흡수하는 사고',
   Leo: '극적이고 표현 잘하는 사고',
   Virgo: '정밀하고 분석적인 사고',

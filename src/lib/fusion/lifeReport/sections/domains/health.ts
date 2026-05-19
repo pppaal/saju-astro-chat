@@ -93,9 +93,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const sixthFlavor = sixthPlanets.length > 0
     ? (() => {
         const flavor = sixthHouseFlavorKo(sixthPlanets)
-        return `일상 영역에 ${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 자리해서, 일상의 ${flavor}${iGa(flavor)} 건강 신호로 이어져요.`
+        return `일상 영역에 ${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 일상의 ${flavor}${iGa(flavor)} 건강의 흐름으로 이어져요.`
       })()
-    : '일상 영역은 비어 있어, 건강 신호는 다른 영역의 별들이 함께 짊어져요.'
+    : '일상 영역은 비어 있어, 건강의 흐름은 다른 영역의 별들이 함께 받쳐줘요.'
   const sixthFlavorEn = sixthPlanets.length > 0
     ? `With ${sixthPlanets.map((p) => p.name).join(', ')} inside the 6th, daily ${sixthHouseFlavorEn(sixthPlanets)} carries your health signal.`
     : `Your 6th is empty — health is carried jointly by other placements.`
@@ -118,7 +118,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const deepEn: string[] = []
   if (ch) {
     deepKo.push(
-      `상처와 치유의 색은 ${signLabel(ch.sign, 'ko')}의 톤으로 자리해서, ${chironFlavorKo(ch.house)} 영역이 상처와 치유로 함께 묶여 있어요.`
+      `상처와 치유의 색은 ${signLabel(ch.sign, 'ko')}의 분위기로 자리잡아, ${chironFlavorKo(ch.house)} 영역이 상처와 치유로 함께 묶여 있어요.`
     )
     deepEn.push(
       `Chiron in ${signLabel(ch.sign, 'en')} ${houseLabel(ch.house, 'en')} marks ${chironFlavorEn(ch.house)} as a wound-and-healing thread.`
@@ -137,7 +137,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     deepEn.push(`A nearby natal eclipse leaves a subtle imprint on your body rhythms.`)
   }
   if (unlucky.length > 0) {
-    deepKo.push('무리가 누적되지 않도록 평소 회복 루틴이 필요한 신호가 함께 있어요.')
+    deepKo.push('무리가 누적되지 않도록 평소 회복 루틴이 필요한 흐름이 함께 있어요.')
     deepEn.push(`Your 신살 includes ${unlucky.slice(0, 3).join(' / ')} — keep a recovery routine to prevent overload buildup.`)
   }
   if (healthConfirms.length > 0) {
@@ -160,7 +160,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     })
   if (relKoHealth) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepKo.push(`${relKoHealth} 무리가 쌓이면 그 자리부터 신호가 먼저 와요.`)
+    deepKo.push(`${relKoHealth} 무리가 쌓이면 그 자리부터 몸의 반응이 먼저 와요.`)
     if (relEnHealth) deepEn.push(`${relEnHealth} Overload signals tend to surface from that axis first.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
@@ -178,7 +178,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     guideEn.push('Protect the liver/gallbladder — anger and overwork are the heaviest loads.')
   }
   if (weak.includes('화') || weak.includes('fire')) {
-    guideKo.push('심장·혈류 관리에 신경 쓰세요. 휴식 부족이 직접 신호로 와요.')
+    guideKo.push('심장·혈류 관리에 신경 쓰세요. 휴식 부족이 곧바로 몸에 드러나요.')
     guideEn.push('Mind the heart and circulation — under-rest signals quickly.')
   }
   if (weak.includes('토') || weak.includes('earth')) {
@@ -186,7 +186,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     guideEn.push('Mind digestion — regular meals are themselves recovery.')
   }
   if (weak.includes('금') || weak.includes('metal')) {
-    guideKo.push('호흡기·면역을 보호하세요. 환절기에 신호가 분명해요.')
+    guideKo.push('호흡기·면역을 보호하세요. 환절기에 반응이 분명해요.')
     guideEn.push('Protect lungs and immunity — seasonal shifts surface the signal.')
   }
   if (weak.includes('수') || weak.includes('water')) {
@@ -202,7 +202,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (necessity) {
     fusionUsed.push('calendarSignals.arabicParts.Necessity')
     guideKo.push(
-      `약함의 영역(필연의 점)이 차트에 자리해서, 부담을 미루지 않고 작게 자주 풀어주는 흐름이 가장 무리가 없어요.`,
+      `약함의 영역(필연의 점)이 차트에 놓여 있어, 부담을 미루지 않고 작게 자주 풀어주는 흐름이 가장 무리가 없어요.`,
     )
     guideEn.push(
       `Your Lot of Necessity sits in the chart — releasing pressure little and often, rather than postponing it, is the gentlest path.`,

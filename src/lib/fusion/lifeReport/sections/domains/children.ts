@@ -137,10 +137,10 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       : sikSangTotal === 0
         ? '자녀와의 인연은 의식적으로 만들어가는 흐름이에요.'
         : '자녀와의 인연은 잔잔하고 안정적으로 흘러요.',
-    `표현과 창조의 신호가 ${childCountFlavorKo(sikSangTotal)} 자리해서, ${childFlavorKo(sikSangTotal)}.`,
+    `표현과 창조의 결이 ${childCountFlavorKo(sikSangTotal)} 흘러서, ${childFlavorKo(sikSangTotal)}.`,
     fifth.length > 0
-      ? `창조 영역에 ${fifth.map((p) => planetLabelChildrenKo(p.name)).join(', ')}이 자리해서, 자녀·창작·놀이의 색이 또렷하게 활성화돼 있어요.`
-      : '창조 영역이 비어 있어, 자녀운은 다른 신호가 함께 짊어져요.',
+      ? `창조 영역에 ${fifth.map((p) => planetLabelChildrenKo(p.name)).join(', ')}이 머물러, 자녀·창작·놀이의 색이 또렷하게 활성화돼 있어요.`
+      : '창조 영역이 비어 있어, 자녀운은 다른 기운이 함께 받쳐줘요.',
   ])
   const p1en = paragraph([
     sikSangTotal >= 2
@@ -157,9 +157,9 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   // ── Paragraph 2: 자녀 수 추정 + 시주 분석
   const p2ko = paragraph([
     `자녀 수 추정: ${est.min === est.max ? `${est.min}명 부근` : `${est.min}~${est.max}명`} (확신도 ${confLabelKo(est.confidence)}).`,
-    '표현과 창조의 신호, 그리고 별의 자녀 영역을 함께 보면 이 범위가 나와요.',
+    '표현과 창조의 결, 그리고 별의 자녀 영역을 함께 보면 이 범위가 나와요.',
     `시간의 기둥에 해당하는 자녀 영역은 ${stageFlavorKo(ts)}.`,
-    '한 가지 신호만으로 정확한 수가 결정되지 않으니 참고용으로 봐주세요.',
+    '한 가지 결만으로 정확한 수가 결정되지 않으니 참고용으로 봐주세요.',
   ])
   const p2en = paragraph([
     `Estimated count: ${est.min === est.max ? `around ${est.min}` : `${est.min}–${est.max}`} (confidence ${est.confidence}).`,
@@ -187,11 +187,11 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     deepEn.push('Moon in the 5th brings deep emotional attunement with children.')
   }
   if (pa) {
-    deepKo.push(`지혜로운 양육의 별이 ${signLabel(pa.sign, 'ko')}에 자리해서, 지혜롭게 키우는 성향이 있어요.`)
+    deepKo.push(`지혜로운 양육의 별이 ${signLabel(pa.sign, 'ko')}에 머물러, 지혜롭게 키우는 성향이 있어요.`)
     deepEn.push(`Pallas in ${signLabel(pa.sign, 'en')} ${houseLabel(pa.house, 'en')} gives a wise-nurturing grain.`)
   }
   if (ce) {
-    deepKo.push(`양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리해서, ${ceresFlavorKo(ce.house)} 양육 스타일이 흘러요.`)
+    deepKo.push(`양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리잡아, ${ceresFlavorKo(ce.house)} 양육 스타일이 흘러요.`)
     deepEn.push(`Ceres in ${signLabel(ce.sign, 'en')} ${houseLabel(ce.house, 'en')} brings ${ceresFlavorEn(ce.house)} nurturing.`)
   }
   if (gk.includes('식신')) {
@@ -250,17 +250,17 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
 }
 
 function childFlavorKo(n: number): string {
-  if (n === 0) return '자녀운은 다른 신호들이 함께 짊어져요'
-  if (n === 1) return '자녀와 안정적인 한 줄기 인연이 있어요'
+  if (n === 0) return '자녀운은 다른 기운들이 함께 받쳐줘요'
+  if (n === 1) return '자녀와 안정적인 인연이 한 갈래로 이어져요'
   if (n === 2) return '자녀와의 인연이 또렷하게 흘러요'
-  return '자녀 신호가 풍성하게 흘러요'
+  return '자녀 인연의 결이 풍성하게 흘러요'
 }
 
-// 표현·창조 신호 강도를 "겹" 없이 자연 한국어로
+// 표현·창조 결의 강도를 "겹" 없이 자연 한국어로
 function childCountFlavorKo(n: number): string {
-  if (n === 0) return '비어 있어'
+  if (n === 0) return '비어 있고'
   if (n === 1) return '한 갈래로 잔잔하게'
-  if (n === 2) return '두 갈래로 분명하게'
+  if (n === 2) return '두 갈래로 또렷하게'
   return '풍성하게'
 }
 function childFlavorEn(n: number): string {

@@ -166,20 +166,25 @@ export function buildHeadline(input: BuilderInput): Headline {
   const domModality = mod?.dominant
   const lackEl = el?.lacking
   const balanceFlavorKo = domEl
-    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 무게중심을 잡아요.`
+    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.`
     : ''
   const balanceFlavorEn = domEl
     ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity`
     : ''
-  const modFlavorKo = domModality
-    ? ` ${modalityKo(domModality)}.`
-    : ''
+  // 모달리티 + 인생 이끄는 별을 한 문장으로 묶어 짧은 문장 연속을 부드럽게 함
+  const modPlanetKo = (() => {
+    const modPart = domModality ? modalityKo(domModality) : ''
+    const planetPart = dom ? `${planetLabel(dom, 'ko')}이 인생을 이끌어요` : ''
+    if (modPart && planetPart) return ` ${modPart}, ${planetPart}.`
+    if (modPart) return ` ${modalityStandaloneKo(domModality!)}.`
+    if (planetPart) return ` ${planetPart}.`
+    return ''
+  })()
   const modFlavorEn = domModality
     ? `, with a ${domModality} cadence`
     : ''
-  const domPlanetKo = dom ? ` ${planetLabel(dom, 'ko')}이 인생을 이끄는 별이에요.` : ''
   const domPlanetEn = dom ? `, led by ${planetLabel(dom, 'en')}` : ''
-  const lackKo = lackEl ? ` ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
+  const lackKo = lackEl ? ` 단 ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
   const lackEn = lackEl ? `, while ${ELEMENT_FLAVOR_EN[lackEl]} stays unfilled` : ''
 
   // 한자 raw iljuCharacter는 영어에만 짧게 유지, 한국어에선 자연 어색해 제거
@@ -187,8 +192,7 @@ export function buildHeadline(input: BuilderInput): Headline {
 
   const s3ko = paragraphJoin([
     balanceFlavorKo,
-    modFlavorKo,
-    domPlanetKo,
+    modPlanetKo,
     lackKo,
   ])
   const s3en = paragraphJoin([
@@ -204,6 +208,12 @@ export function buildHeadline(input: BuilderInput): Headline {
 }
 
 function modalityKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
+  if (m === 'cardinal') return '새로 시작을 여는 리듬으로'
+  if (m === 'fixed') return '한 자리에서 깊이 다지는 리듬으로'
+  return '유연하게 변하는 리듬으로'
+}
+
+function modalityStandaloneKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
   if (m === 'cardinal') return '새로 시작을 여는 리듬이에요'
   if (m === 'fixed') return '한 자리에서 깊이 다지는 리듬이에요'
   return '유연하게 변하는 리듬이에요'

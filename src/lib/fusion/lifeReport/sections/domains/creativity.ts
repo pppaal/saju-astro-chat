@@ -94,7 +94,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     fifth.length > 0
       ? `${houseLabel(5, 'ko')}에 ${fifth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 노는 듯 만들어내는 흐름이 강해요.`
       : fifthCusp?.sign
-        ? `창조 영역이 ${signLabel(fifthCusp.sign, 'ko')}의 톤으로 열려, ${fifthSignFlavorKo(fifthCusp.sign)} 방식의 창작이 잘 맞아요.`
+        ? `창조 영역이 ${signLabel(fifthCusp.sign, 'ko')}의 분위기로 열려, ${fifthSignFlavorKo(fifthCusp.sign)} 방식의 창작이 잘 맞아요.`
         : '',
   ])
   const p1en = paragraph([
@@ -258,18 +258,18 @@ function openerEn(sangwan: number, sikshin: number, hasHwagae: boolean): string 
 }
 
 const VENUS_SIGN_KO: Record<string, string> = {
-  Aries: '직진하는 미감',
-  Taurus: '감각적이고 풍요로운 미감',
-  Gemini: '경쾌한 미감',
-  Cancer: '정서적이고 따뜻한 미감',
-  Leo: '화려하고 극적인 미감',
-  Virgo: '정밀하고 다듬어진 미감',
-  Libra: '균형 잡힌 우아한 미감',
-  Scorpio: '깊고 강렬한 미감',
-  Sagittarius: '먼 곳·이국의 미감',
-  Capricorn: '절제되고 클래식한 미감',
-  Aquarius: '낯설고 독창적인 미감',
-  Pisces: '몽환적이고 흐르는 미감',
+  Aries: '솔직하고 꾸밈없는 아름다움',
+  Taurus: '감각적이고 풍요로운 아름다움',
+  Gemini: '경쾌한 아름다움',
+  Cancer: '정서적이고 따뜻한 아름다움',
+  Leo: '화려하고 극적인 아름다움',
+  Virgo: '정밀하고 다듬어진 아름다움',
+  Libra: '균형 잡힌 우아한 아름다움',
+  Scorpio: '깊고 강렬한 아름다움',
+  Sagittarius: '먼 곳과 이국의 아름다움',
+  Capricorn: '절제되고 클래식한 아름다움',
+  Aquarius: '낯설고 독창적인 아름다움',
+  Pisces: '몽환적이고 흐르는 아름다움',
 }
 const VENUS_SIGN_EN: Record<string, string> = {
   Aries: 'a direct aesthetic',
@@ -286,7 +286,7 @@ const VENUS_SIGN_EN: Record<string, string> = {
   Pisces: 'a dreamy, flowing aesthetic',
 }
 function venusSignFlavorKo(sign: string): string {
-  return VENUS_SIGN_KO[sign] ?? '독자적인 미감'
+  return VENUS_SIGN_KO[sign] ?? '독자적인 아름다움'
 }
 function venusSignFlavorEn(sign: string): string {
   return VENUS_SIGN_EN[sign] ?? 'a singular aesthetic'
@@ -331,7 +331,7 @@ const VENUS_ASPECT_KO: Record<string, string> = {
   Sun: '존재감 있는 표현',
   Moon: '정서적 깊이',
   Mercury: '말과 미가 어우러진',
-  Mars: '강한 충동의 미감',
+  Mars: '강한 충동의 아름다움',
   Jupiter: '여유롭고 풍요로운 표현',
   Saturn: '클래식하고 절제된 표현',
   Uranus: '독창적이고 깜짝 놀라게 하는',
