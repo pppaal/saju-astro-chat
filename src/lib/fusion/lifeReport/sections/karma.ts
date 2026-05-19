@@ -52,16 +52,16 @@ function karmaHouseHintKo(h: number | undefined): string {
 
 // 격국을 자연어로 짧게 (karma 섹션에서 사용)
 function karmaGeokgukShortKo(g: string): string {
-  if (!g) return '자기 본연의 길'
-  if (g.includes('편관')) return '도전과 책임으로 무게를 견디는 인생'
+  if (!g) return '자기 본성 그대로 살아가는 길'
+  if (g.includes('편관')) return '도전과 책임으로 무게를 견디는 길'
   if (g.includes('정관')) return '책임감 있게 자리 잡는 길'
-  if (g.includes('편재')) return '기회를 잡아내는 감각'
-  if (g.includes('정재')) return '꾸준히 쌓아가는 인생'
-  if (g.includes('식신')) return '여유롭게 창조하는 인생'
-  if (g.includes('상관')) return '재능을 자유롭게 풀어내는 인생'
-  if (g.includes('편인')) return '독특한 직관'
-  if (g.includes('정인')) return '배움과 돌봄'
-  return '자기 본연의 길'
+  if (g.includes('편재')) return '기회를 잡아내는 감각으로 풀어가는 길'
+  if (g.includes('정재')) return '꾸준히 쌓아가는 길'
+  if (g.includes('식신')) return '여유롭게 창조하는 길'
+  if (g.includes('상관')) return '재능을 자유롭게 풀어내는 길'
+  if (g.includes('편인')) return '독특한 직관으로 풀어가는 길'
+  if (g.includes('정인')) return '배움과 돌봄으로 흐르는 길'
+  return '자기 본성 그대로 살아가는 길'
 }
 
 // 격국 → natural English (raw 사주 용어 없이) — karma 섹션 전용.

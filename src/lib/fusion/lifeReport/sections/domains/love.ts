@@ -130,10 +130,18 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
 
   // ── Paragraph 1
-  const styleKo = pickLoveStyleKo(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
+  const styleKo = pickLoveStyleKo(
+    cat,
+    jeongGwan,
+    pyenGwan,
+    jeongJae,
+    pyenJae,
+    isFemale,
+    saju.pillars.day.stem || ''
+  )
   const styleEn = pickLoveStyleEn(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
   const venusBlurb = venus
-    ? `사랑의 별인 금성이 ${signLabel(venus.sign, 'ko')}에 자리잡아, ${venusFlavorKo(venus.sign, venus.house)}이 사랑의 특징이에요.`
+    ? `사랑의 별인 금성이 ${signLabel(venus.sign, 'ko')}에 자리잡아, ${venusFlavorKo(venus.sign, venus.house)}이 당신 사랑의 색이에요.`
     : ''
   const venusBlurbEn = venus
     ? `Venus in ${signLabel(venus.sign, 'en')} (${houseLabel(venus.house, 'en')}) brings ${venusFlavorEn(venus.sign, venus.house)} to your love life.`
@@ -529,7 +537,8 @@ function pickLoveStyleKo(
   pg: number,
   jj: number,
   pj: number,
-  isFemale: boolean
+  isFemale: boolean,
+  dayStem: string
 ): string {
   if (isFemale && jg >= 1 && pg === 0)
     return '당신은 안정과 깊이를 중시하는 관계형이에요. 한 사람과의 진중한 관계 쪽으로 흐름이 자연스럽게 열려요.'
@@ -541,7 +550,14 @@ function pickLoveStyleKo(
     return '당신은 자유롭고 변화에 끌리는 사랑형이에요. 다양한 만남을 거치면서 자기 길을 찾아가요.'
   if (cat.관성 === 0 && isFemale) return '관계의 형식보다 자기 자신을 먼저 채우는 흐름이에요.'
   if (cat.재성 === 0 && !isFemale) return '관계의 형식보다 자기 작업을 먼저 채우는 흐름이에요.'
-  return '당신은 관계의 깊이와 가능성을 동시에 보는 사람이에요.'
+  // 균형형: 같은 분기에 떨어지는 사주들도 일간 코드로 변형되도록.
+  const seed = dayStem ? dayStem.charCodeAt(0) : 0
+  const fallback = [
+    '당신은 관계에서 깊이와 가능성을 둘 다 챙기는 스타일이에요.',
+    '당신의 사랑은 안정과 설렘 사이에서 균형을 잡아가는 결이에요.',
+    '관계의 무게와 새로움을 같은 비중으로 보는 스타일이에요.',
+  ]
+  return fallback[seed % fallback.length]!
 }
 
 // love 섹션용 십신 자연어

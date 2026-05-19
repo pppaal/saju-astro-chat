@@ -51,18 +51,18 @@ const CAREER_FRAMINGS: Array<(a: IljuArchetype) => string> = [
   (a) => `타고난 성격은 ${a.character}이라, ${formatList(a.career)} 분야에서 자질이 가장 잘 살아요`,
   (a) => `${a.character} 성격이라, ${formatList(a.career)} 쪽 일이 자연스럽게 풀려요`,
   (a) =>
-    `핵심 자질이 ${formatList(a.strengths)}이라, ${formatList(a.career)} 분야가 본인다움을 키워줘요`,
+    `핵심 자질이 ${formatList(a.strengths)}이라, ${formatList(a.career)} 분야가 당신의 색을 키워줘요`,
 ]
 
 const LOVE_FRAMINGS: Array<(a: IljuArchetype) => string> = [
   (a) => `관계 스타일은 ${a.relationship}한 분위기라, 서로를 존중할 때 가장 깊어져요`,
-  (a) => `사랑의 스타일이 ${a.relationship}이라, 본인다움을 지키며 다가갈 때 사이가 단단해져요`,
+  (a) => `사랑의 스타일이 ${a.relationship}이라, 자기 색을 지키며 다가갈 때 사이가 단단해져요`,
   (a) => `${a.character} 성격이라, 관계에선 ${a.relationship} 흐름이 자연스럽게 따라와요`,
 ]
 
 const HEADLINE_FRAMINGS: Array<(a: IljuArchetype) => string> = [
-  (a) => `${a.character} 성격을 타고난 사람이에요`,
-  (a) => `${formatList(a.strengths)}이 본인다움의 핵심이에요`,
+  (a) => `${a.character} 성격을 타고났어요`,
+  (a) => `${formatList(a.strengths)}이 당신 색의 핵심이에요`,
   (a) => `${a.character}이라는 큰 자질이 인생의 토대가 돼요`,
 ]
 
