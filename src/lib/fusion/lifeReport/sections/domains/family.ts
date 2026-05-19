@@ -86,8 +86,8 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       ? 'Your bond with the mother and caregiver line runs naturally deep.'
       : inseong === 0
         ? 'Your bond with the mother and caregiver line is built through conscious effort.'
-        : 'Your family grain runs as a quiet, steady undercurrent.',
-    `Your chart carries ${familyCountLabelEn(inseong)} of the caregiver line and ${familyCountLabelEn(bijeon)} of the sibling-and-peer line — ${familyShapeEn(inseong, bijeon)}.`,
+        : 'Your family line runs as a quiet, steady undercurrent.',
+    `Your chart shows ${familyShapeEn(inseong, bijeon)}.`,
     fourth
       ? `Your 4th house begins in ${signLabel(fourth.sign, 'en')}, so the feel of home is ${fourthSignFlavorEn(fourth.sign)}.`
       : '',
@@ -369,14 +369,6 @@ function familyShapeEn(inseong: number, bijeon: number): string {
   if (bijeon >= 2) return 'a thick sibling-and-peer line with a quieter caregiver line'
   if (inseong === 0 && bijeon === 0) return 'a light family signal — you build your own new family'
   return 'caregiving and peer bonds run in a balanced weave'
-}
-
-// 인성/비겁 count → natural English label ("two threads", "one quiet thread", etc.).
-function familyCountLabelEn(n: number): string {
-  if (n === 0) return 'no active thread'
-  if (n === 1) return 'one quiet thread'
-  if (n === 2) return 'two clear threads'
-  return 'many threads'
 }
 
 // 사주 raw 기둥 키 → natural English seat label (family 섹션 전용).

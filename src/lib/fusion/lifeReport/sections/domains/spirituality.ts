@@ -85,12 +85,12 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const p1en = paragraph([
     openerE,
     twelfth.length > 0
-      ? `${twelfth.map((p) => p.name).join(', ')} in the 12th — solitude becomes the channel of spirit.`
+      ? `With ${twelfth.map((p) => p.name).join(', ')} in the 12th, solitude becomes your channel to the spiritual.`
       : twelfthCusp?.sign
         ? `Your 12th-house cusp in ${signLabel(twelfthCusp.sign, 'en')} favours inner work that is ${twelfthSignFlavorEn(twelfthCusp.sign)}.`
         : '',
     neptune
-      ? `Neptune in ${signLabel(neptune.sign, 'en')}${neptune.house ? ` (${houseLabel(neptune.house, 'en')})` : ''} dissolves the boundary where spirit unfolds.`
+      ? `Neptune in ${signLabel(neptune.sign, 'en')}${neptune.house ? ` (${houseLabel(neptune.house, 'en')})` : ''} softens the boundary so the spiritual current can flow.`
       : '',
   ])
 

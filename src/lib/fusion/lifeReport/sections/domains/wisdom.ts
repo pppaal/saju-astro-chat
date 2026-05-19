@@ -80,9 +80,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
       ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 풀리는 길이에요.'
       : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
   const inseongFlavorEn = inseong >= 3
-    ? 'A strong wisdom-and-care pattern runs through your chart — learning itself becomes the channel of luck.'
+    ? 'A strong wisdom-and-care pattern runs through your chart — learning itself is how luck opens to you.'
     : inseong >= 1
-      ? 'A quiet wisdom-and-care pattern sits in your chart — continuous learning becomes your exit door.'
+      ? 'A quiet wisdom-and-care pattern sits in your chart — continuous learning opens your path forward.'
       : 'The learning current flows from initiative rather than inheritance.'
 
   const p1ko = paragraph([

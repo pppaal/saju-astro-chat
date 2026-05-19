@@ -290,7 +290,7 @@ function openerEn(sangwan: number, sikshin: number, hasHwagae: boolean): string 
   if (sangwan >= 3) return 'A very strong free creative streak means you feel suffocated if you do not make something.'
   if (sangwan >= 1 && hasHwagae) return 'Both a free creative streak and an art-and-solitude star sit in your chart — creation is unavoidable this life.'
   if (sikshin >= 2) return 'A strong, easeful expressive streak favours easy, enjoyment-led making.'
-  if (sangwan >= 1) return 'A free creative streak sits in your chart — work that lets you imprint your own grain flows best.'
+  if (sangwan >= 1) return 'A free creative streak sits in your chart — work that lets you leave your own mark flows best.'
   return 'Your creative grain matures inwardly, slowly, more from inner pressure than outer prompt.'
 }
 
@@ -352,7 +352,7 @@ const FIFTH_SIGN_EN: Record<string, string> = {
   Virgo: 'precise refinement',
   Libra: 'relational, beauty-led',
   Scorpio: 'depth-probing',
-  Sagittarius: 'far-vision framing',
+  Sagittarius: 'a broad, far-reaching perspective',
   Capricorn: 'structure-building',
   Aquarius: 're-framing with novelty',
   Pisces: 'boundary-blurring emotion',

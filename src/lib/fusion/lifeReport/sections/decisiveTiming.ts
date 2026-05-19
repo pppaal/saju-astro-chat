@@ -222,7 +222,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const p1en = paragraph([
     `Your 30s carry a decisive 10-year life-chapter shift, and ${e30s.map((e) => e.labelEn).join(' / ') || 'several major astrology pivots'} land on the same decade.`,
     d30s.length > 0
-      ? `In particular, ages ${d30s.map((d) => `${d.age} (${labelEnDomain(d.domain)})`).join(', ')} form the first great knot of your life.`
+      ? `In particular, ages ${d30s.map((d) => `${d.age} (${labelEnDomainNatural(d.domain)})`).join(', ')} mark the first major turning points of your life.`
       : 'Marriage, expertise and foundation often decide together here — accept responsibility rather than dodging it.',
   ])
 
@@ -239,7 +239,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const p2en = paragraph([
     `Your 40s gather ${e40s.map((e) => e.labelEn).join(' / ') || 'large astrology pivots'} into a single decade.`,
     d40s.length > 0
-      ? `Ages ${d40s.map((d) => `${d.age} (${labelEnDomain(d.domain)})`).join(', ')} crack the paths that are not truly yours.`
+      ? `Ages ${d40s.map((d) => `${d.age} (${labelEnDomainNatural(d.domain)})`).join(', ')} crack the paths that are not truly yours.`
       : 'Uranus and Neptune shake at once, surfacing the decisions you had postponed.',
   ])
 
@@ -257,7 +257,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const p3en = paragraph([
     `From your 50s onward, ${e50s.map((e) => e.labelEn).join(' / ') || 'the Chiron return and second Saturn return'} dominate.`,
     d50s.length > 0
-      ? `Ages ${d50s.map((d) => `${d.age} (${labelEnDomain(d.domain)})`).join(', ')} settle the long account of your life.`
+      ? `Ages ${d50s.map((d) => `${d.age} (${labelEnDomainNatural(d.domain)})`).join(', ')} settle the long account of your life.`
       : 'The weight shifts from outcomes toward meaning.',
   ])
 
@@ -276,7 +276,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
         `If you had to name the single most decisive year, it would be age ${peak.age} (≈ ${peak.year}).`,
         peak.sources.saju && peak.sources.astro
           ? `A fresh 10-year life-chapter and a large astrology pivot overlap on the same year, and ${strength === 'strong' || strength === 'verystrong' ? 'your strong core gives the drive — one decision can set the rest of the path.' : 'responsibility carries your tender core into a new identity.'}`
-          : `${labelEnDomain(peak.domain)} surfaces most strongly here.`,
+          : `${labelEnDomainNatural(peak.domain)} surfaces most strongly here.`,
       ])
     : 'Major pivots stay distributed — instead of one big year, each fresh 10-year life-chapter adds a small renewal.'
 
@@ -632,26 +632,28 @@ function ageFromBirthInline(saju: { input?: { birthDate?: string } }): number {
   return Math.max(0, age)
 }
 
-function labelEnDomain(d: string): string {
+// Domain mapping phrased naturally for inline English narrative —
+// e.g. "a career turn" / "a crisis turn" rather than the raw key.
+function labelEnDomainNatural(d: string): string {
   switch (d) {
     case 'marriage':
-      return 'marriage'
+      return 'a marriage turn'
     case 'job_change':
-      return 'career shift'
+      return 'a career shift'
     case 'business':
-      return 'business'
+      return 'a business opening'
     case 'move':
-      return 'relocation'
+      return 'a relocation'
     case 'health':
-      return 'health'
+      return 'a health turn'
     case 'wealth':
-      return 'wealth'
+      return 'a wealth peak'
     case 'crisis':
-      return 'crisis'
+      return 'a crisis turn'
     case 'career':
-      return 'career'
+      return 'a career turn'
     case 'love':
-      return 'relationship'
+      return 'a relationship turn'
     default:
       return d
   }

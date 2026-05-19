@@ -161,7 +161,7 @@ export function buildHeadline(input: BuilderInput): Headline {
     ? `별의 결로 보면 ${skyParts}.`
     : ''
   const s2en = skyPartsEn
-    ? `On the astrology side, ${skyPartsEn}.`
+    ? `Looking at the chart, ${skyPartsEn}.`
     : ''
 
   // ─ Sentence 3 — fusion theme (짧게, iljuChar raw 제거)
