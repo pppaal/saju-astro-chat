@@ -485,7 +485,7 @@ export const RULES: InterpretationRule[] = [
     priority: 46,
     conditions: { shinsalName: ['장성'] },
     template:
-      `🎖 **장성** 발동 — 리더십·명예·공적 자리. 발표·발의· ` +
+      `🎖 **장성** 발동 — 리더십·명예·공적 자리. 발표·발의·` +
       `대표 역할이 들어올 수 있는 시기예요.`,
     themes: ['career'],
   },
@@ -844,7 +844,7 @@ export const RULES: InterpretationRule[] = [
       maxPolarity: -1,
     },
     template:
-      `⚡ **건강** — 무리·과로 주의. 충분한 휴식·규칙적 운동· ` +
+      `⚡ **건강** — 무리·과로 주의. 충분한 휴식·규칙적 운동·` +
       `건강검진 권장. 작은 신호 놓치지 마세요.`,
     themes: ['health'],
   },
@@ -1151,7 +1151,7 @@ export const RULES: InterpretationRule[] = [
       maxPolarity: -1,
     },
     template:
-      `**Saturn Return** 진행 — 인생의 큰 통과의례 시기. 책임·구조· ` +
+      `**Saturn Return** 진행 — 인생의 큰 통과의례 시기. 책임·구조·` +
       `현실의 무게가 강해지는 2~3년. 도망보다 정면 통과가 ` +
       `이후 30년 토대를 만들어요.`,
     themes: ['career', 'health'],
@@ -1390,7 +1390,7 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['장성'],
     },
     template:
-      `🎖 **명예·평판** — 장성 활성. 공식 자리·대표 역할· ` +
+      `🎖 **명예·평판** — 장성 활성. 공식 자리·대표 역할·` +
       `발의에 우호적. 이름이 드러나는 시기예요.`,
     themes: ['career'],
   },
