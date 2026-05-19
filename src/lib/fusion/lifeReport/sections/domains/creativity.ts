@@ -132,7 +132,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     p2piecesEn.push('A Pisces emphasis (≥2 planets) favours boundary-dissolving emotional creation.')
   }
   if (neptune && neptune.house && [5, 9, 12].includes(neptune.house)) {
-    p2pieces.push(`해왕성이 ${houseLabel(neptune.house, 'ko')}에 자리해서, 꿈·이미지·상징이 창작 재료가 돼요.`)
+    p2pieces.push(`해왕성이 ${houseLabel(neptune.house, 'ko')}에 머물러, 꿈·이미지·상징이 창작 재료가 돼요.`)
     p2piecesEn.push(`Neptune in your ${neptune.house}H makes dreams, images and symbols your raw material.`)
   }
   if (moon && moon.house === 5) {
@@ -246,7 +246,7 @@ function openerKo(sangwan: number, sikshin: number, hasHwagae: boolean): string 
   if (sangwan >= 3) return '재능의 자유로운 발산이 매우 강해서, 만들지 않으면 답답해지는 사람이에요.'
   if (sangwan >= 1 && hasHwagae) return '재능과 예술의 별이 동시에 깔려 있어, 창작은 이번 생에서 피해갈 수 없는 길이에요.'
   if (sikshin >= 2) return '여유로운 표현의 자질이 강해서, 즐기듯 만드는 방식이 가장 잘 맞아요.'
-  if (sangwan >= 1) return '재능을 자유롭게 풀어내는 성향이 자리해서, 정해진 틀보단 자기 색을 입히는 작업이 잘 풀려요.'
+  if (sangwan >= 1) return '재능을 자유롭게 풀어내는 성향이 깔려 있어, 정해진 틀보단 자기 색을 입히는 작업이 잘 풀려요.'
   return '창작의 색은 외부 자극보다 안에서 천천히 익혀가는 쪽으로 자리잡고 있어요.'
 }
 function openerEn(sangwan: number, sikshin: number, hasHwagae: boolean): string {

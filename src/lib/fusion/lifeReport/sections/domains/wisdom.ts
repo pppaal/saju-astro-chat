@@ -82,7 +82,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const inseongFlavorKo = inseong >= 3
     ? '지혜와 돌봄의 자질이 매우 진하게 흐르고 있어서, 배움 자체가 운의 통로예요.'
     : inseong >= 1
-      ? '지혜와 돌봄의 자질이 잔잔히 자리해서, 배움을 멈추지 않는 게 운의 출구가 돼요.'
+      ? '지혜와 돌봄의 자질이 잔잔히 흐르고 있어, 배움을 멈추지 않는 게 운의 출구가 돼요.'
       : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
   const inseongFlavorEn = inseong >= 3
     ? 'A strong 인성 (wisdom-and-care line) runs through your saju — learning itself becomes the channel of luck.'
@@ -93,7 +93,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     inseongFlavorKo,
     mercury
-      ? `생각과 말의 별이 ${signLabel(mercury.sign, 'ko')}${mercury.house ? `, ${houseLabel(mercury.house, 'ko')}에` : ''} 있어서, ${mercurySignFlavorKo(mercury.sign)} 방향으로 흐르고 있어요.`
+      ? `생각과 말의 별이 ${signLabel(mercury.sign, 'ko')}${mercury.house ? `, ${houseLabel(mercury.house, 'ko')}에` : ''} 놓여서, ${mercurySignFlavorKo(mercury.sign)}가 자연스럽게 펼쳐져요.`
       : '',
     ninth.length > 0
       ? `${houseLabel(9, 'ko')}에 ${ninth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 큰 그림과 신념이 학습의 동력이 돼요.`

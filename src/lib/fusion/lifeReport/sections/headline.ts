@@ -234,12 +234,6 @@ function geokgukFlavorKo(g: string): string {
   return '본연의 모양'
 }
 
-function shortenKo(s: string): string {
-  // Drop tail after first period/comma so the headline stays tight.
-  const m = s.split(/[\.。,，]/)[0]
-  return m.trim().slice(0, 40)
-}
-
 function shortenEn(s: string): string {
   const m = s.split(/[\.。,，]/)[0]
   return m.trim().slice(0, 50)

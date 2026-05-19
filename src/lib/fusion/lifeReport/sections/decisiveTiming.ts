@@ -250,7 +250,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   }
   if (zrNext) {
     p5pieces.push(
-      `이 챕터가 끝나면 ${zrSignKo(zrNext.sign)}의 톤으로 넘어가요. 큰 흐름의 분기가 한 번 더 기다리고 있어요.`,
+      `이 챕터가 끝나면 ${zrSignKo(zrNext.sign)}의 분위기로 넘어가요. 큰 흐름의 갈림길이 한 번 더 기다리고 있어요.`,
     )
     p5piecesEn.push(
       `When the current chapter closes, you move into the ${zrNext.sign} chapter — another large bend in the river awaits.`,

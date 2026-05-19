@@ -209,7 +209,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     p3piecesEn.push(`Your Lot of Captivity in ${signLabel(captivity.sign, 'en')} — the spiritual knot to untie gathers in that seat.`)
   }
   const p3ko = paragraph(
-    p3pieces.length ? p3pieces : ['지금 신호들이 평이하게 정렬돼 있어, 특정 종교나 수행보다는 일상에 영성을 천천히 녹이는 길이 잘 맞아요.'],
+    p3pieces.length ? p3pieces : ['지금 흐름이 평이하게 정렬돼 있어, 특정 종교나 수행보다는 일상에 영성을 천천히 녹이는 길이 잘 맞아요.'],
   )
   const p3en = paragraph(
     p3piecesEn.length ? p3piecesEn : ['Current signals sit in a calm array — rather than one religion or method, slowly dissolving spirit into daily life fits best.'],
@@ -275,7 +275,7 @@ function openerKo(inseong: number, gongmangCount: number, hasHwagae: boolean): s
     return '삶 한쪽에 비어 있는 자리가 있어서, 그 빈 곳을 채우지 못하는 감각이 영적 사유로 이어져요.'
   }
   if (hasHwagae) {
-    return '예술과 고독의 별이 자리해서, 혼자 깊이 들어가는 시간이 영성의 주된 길이에요.'
+    return '예술과 고독의 별이 함께 있어, 혼자 깊이 들어가는 시간이 영성의 주된 길이에요.'
   }
   if (inseong >= 3) {
     return '지혜와 돌봄의 자질이 매우 강해서, 가르침을 통해 자기를 발견하는 흐름이 영성의 뿌리가 돼요.'
