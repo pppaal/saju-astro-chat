@@ -42,21 +42,21 @@ const assertNamedExports = (modulePath: string, exportNames: string[]) => {
 describe('Saju Core Integration', () => {
   describe('Core Saju Module Exports', () => {
     it('should expose core saju exports', () => {
-      assertNamedExports('lib/Saju/saju', ['calculateSajuData'])
-      assertNamedExports('lib/Saju/pillarLookup', [
+      assertNamedExports('lib/saju/saju', ['calculateSajuData'])
+      assertNamedExports('lib/saju/pillarLookup', [
         'getYearPillar',
         'getPillarInfo',
         'getPillarByIndex',
         'getGongmang',
       ])
-      assertNamedExports('lib/Saju/relations', ['analyzeRelations', 'toAnalyzeInputFromSaju'])
-      assertNamedExports('lib/Saju/strengthScore', ['calculateStrengthScore'])
-      assertNamedExports('lib/Saju/sibsinAnalysis', ['analyzeSibsinComprehensive'])
-      assertNamedExports('lib/Saju/unse', ['getDaeunCycles', 'getAnnualCycles', 'getMonthlyCycles'])
+      assertNamedExports('lib/saju/relations', ['analyzeRelations', 'toAnalyzeInputFromSaju'])
+      assertNamedExports('lib/saju/strengthScore', ['calculateStrengthScore'])
+      assertNamedExports('lib/saju/sibsinAnalysis', ['analyzeSibsinComprehensive'])
+      assertNamedExports('lib/saju/unse', ['getDaeunCycles', 'getAnnualCycles', 'getMonthlyCycles'])
     })
 
     it('should expose pillar lookup utilities', () => {
-      assertNamedExports('lib/Saju/pillarLookup', [
+      assertNamedExports('lib/saju/pillarLookup', [
         'getYearPillar',
         'getPillarInfo',
         'getPillarByIndex',
@@ -64,14 +64,14 @@ describe('Saju Core Integration', () => {
     })
 
     it('should expose unse analysis types', () => {
-      assertNamedExports('lib/Saju/unseAnalysis', ['UnseType', 'UnseInfo'])
+      assertNamedExports('lib/saju/unseAnalysis', ['UnseType', 'UnseInfo'])
     })
   })
 
   describe('Supporting Module Exports', () => {
     it('should expose supporting modules', async () => {
-      assertNamedExports('lib/Saju/textGenerator', ['generateFortuneText'])
-      assertNamedExports('lib/Saju/compatibility', ['analyzeComprehensiveCompatibility'])
+      assertNamedExports('lib/saju/textGenerator', ['generateFortuneText'])
+      assertNamedExports('lib/saju/compatibility', ['analyzeComprehensiveCompatibility'])
       const sajuCache = await import('@/lib/saju/cache')
       expect(sajuCache.getSajuFromCache).toBeDefined()
       expect(sajuCache.setSajuToCache).toBeDefined()
@@ -79,23 +79,23 @@ describe('Saju Core Integration', () => {
     })
 
     it('should expose geokguk analysis', () => {
-      assertNamedExports('lib/Saju/geokguk', ['determineGeokguk', 'getGeokgukDescription'])
+      assertNamedExports('lib/saju/geokguk', ['determineGeokguk', 'getGeokgukDescription'])
     })
 
     it('should expose tonggeun module', () => {
-      assertNamedExports('lib/Saju/tonggeun', ['calculateTonggeun', 'analyzeStrength'])
+      assertNamedExports('lib/saju/tonggeun', ['calculateTonggeun', 'analyzeStrength'])
     })
 
     it('should expose health and career analysis', () => {
-      assertNamedExports('lib/Saju/healthCareer', ['analyzeHealthCareer'])
+      assertNamedExports('lib/saju/healthCareer', ['analyzeHealthCareer'])
     })
 
     it('should expose family lineage analysis', () => {
-      assertNamedExports('lib/Saju/familyLineage', ['analyzeParentChild', 'analyzeFamilyDynamic'])
+      assertNamedExports('lib/saju/familyLineage', ['analyzeParentChild', 'analyzeFamilyDynamic'])
     })
 
     it('should expose pattern matcher', () => {
-      assertNamedExports('lib/Saju/patternMatcher', ['matchAllPatterns', 'analyzePatterns'])
+      assertNamedExports('lib/saju/patternMatcher', ['matchAllPatterns', 'analyzePatterns'])
     })
 
     // aiPromptGenerator — 미사용으로 삭제됨 (2025 정리)
@@ -211,23 +211,23 @@ describe('Saju Core Integration', () => {
   describe('Module File Existence', () => {
     it('should list all core module files', () => {
       const modules = [
-        'lib/Saju/saju',
-        'lib/Saju/pillarLookup',
-        'lib/Saju/relations',
-        'lib/Saju/strengthScore',
-        'lib/Saju/sibsinAnalysis',
-        'lib/Saju/unse',
-        'lib/Saju/unseAnalysis',
-        'lib/Saju/textGenerator',
-        'lib/Saju/compatibility',
-        'lib/Saju/cache',
-        'lib/Saju/geokguk',
-        'lib/Saju/tonggeun',
-        'lib/Saju/healthCareer',
-        'lib/Saju/familyLineage',
-        'lib/Saju/patternMatcher',
-        'lib/Saju/advancedSajuCore',
-        'lib/Saju/comprehensiveReport',
+        'lib/saju/saju',
+        'lib/saju/pillarLookup',
+        'lib/saju/relations',
+        'lib/saju/strengthScore',
+        'lib/saju/sibsinAnalysis',
+        'lib/saju/unse',
+        'lib/saju/unseAnalysis',
+        'lib/saju/textGenerator',
+        'lib/saju/compatibility',
+        'lib/saju/cache',
+        'lib/saju/geokguk',
+        'lib/saju/tonggeun',
+        'lib/saju/healthCareer',
+        'lib/saju/familyLineage',
+        'lib/saju/patternMatcher',
+        'lib/saju/advancedSajuCore',
+        'lib/saju/comprehensiveReport',
       ]
       // visualizationData / fortuneSimulator / aiPromptGenerator — 미사용으로 삭제됨
 
@@ -238,19 +238,19 @@ describe('Saju Core Integration', () => {
     })
 
     it('should verify core calculation module exists', () => {
-      const content = readModule('lib/Saju/saju')
+      const content = readModule('lib/saju/saju')
       expect(content).toBeDefined()
       expect(content.length).toBeGreaterThan(0)
     })
 
     it('should verify pillar lookup module exists', () => {
-      const content = readModule('lib/Saju/pillarLookup')
+      const content = readModule('lib/saju/pillarLookup')
       expect(content).toBeDefined()
       expect(content.length).toBeGreaterThan(0)
     })
 
     it('should verify relations module exists', () => {
-      const content = readModule('lib/Saju/relations')
+      const content = readModule('lib/saju/relations')
       expect(content).toBeDefined()
       expect(content.length).toBeGreaterThan(0)
     })
@@ -268,13 +268,13 @@ describe('Saju Core Integration', () => {
 
   describe('Advanced Analysis', () => {
     it('should expose comprehensive report generator', () => {
-      assertNamedExports('lib/Saju/comprehensiveReport', ['generateComprehensiveReport'])
+      assertNamedExports('lib/saju/comprehensiveReport', ['generateComprehensiveReport'])
     })
 
     // fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
 
     it('should expose advanced saju core', () => {
-      assertNamedExports('lib/Saju/advancedSajuCore', [
+      assertNamedExports('lib/saju/advancedSajuCore', [
         'analyzeJonggeok',
         'performUltraAdvancedAnalysis',
       ])
