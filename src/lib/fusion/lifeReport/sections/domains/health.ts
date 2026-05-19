@@ -27,7 +27,7 @@ import {
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
-import { pickVariation, twelveStagePool, planetSignPool } from '../../pools'
+import { pickVariation, twelveStagePool, planetSignPool, iljuPool } from '../../pools'
 
 export function buildHealth(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -53,8 +53,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
 
   const mars = getPlanet(astro, 'Mars')
   const saturn = getPlanet(astro, 'Saturn')
-  const marsSaturn =
-    mars && saturn ? aspectBetween(astro, 'Mars', 'Saturn') : undefined
+  const marsSaturn = mars && saturn ? aspectBetween(astro, 'Mars', 'Saturn') : undefined
   if (mars) astroUsed.push('planets.mars')
   if (saturn) astroUsed.push('planets.saturn')
 
@@ -91,15 +90,17 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   ])
 
   // ── Paragraph 2: 점성 — 일터 건강 + Mars/Saturn
-  const sixthFlavor = sixthPlanets.length > 0
-    ? (() => {
-        const flavor = sixthHouseFlavorKo(sixthPlanets)
-        return `일상 영역에 ${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 일상의 ${flavor}${iGa(flavor)} 건강의 흐름으로 이어져요.`
-      })()
-    : '일상 영역은 비어 있어, 건강의 흐름은 다른 영역의 별들이 함께 받쳐줘요.'
-  const sixthFlavorEn = sixthPlanets.length > 0
-    ? `With ${sixthPlanets.map((p) => p.name).join(', ')} inside the 6th, daily ${sixthHouseFlavorEn(sixthPlanets)} carries your health signal.`
-    : `Your 6th is empty — health is carried jointly by other placements.`
+  const sixthFlavor =
+    sixthPlanets.length > 0
+      ? (() => {
+          const flavor = sixthHouseFlavorKo(sixthPlanets)
+          return `일상 영역에 ${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 일상의 ${flavor}${iGa(flavor)} 건강의 흐름으로 이어져요.`
+        })()
+      : '일상 영역은 비어 있어, 건강의 흐름은 다른 영역의 별들이 함께 받쳐줘요.'
+  const sixthFlavorEn =
+    sixthPlanets.length > 0
+      ? `With ${sixthPlanets.map((p) => p.name).join(', ')} inside the 6th, daily ${sixthHouseFlavorEn(sixthPlanets)} carries your health signal.`
+      : `Your 6th is empty — health is carried jointly by other placements.`
 
   const p2ko = paragraph([
     sixthFlavor,
@@ -117,6 +118,19 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   // ── Paragraph 3: 심화 — Chiron, OOB, eclipse
   const deepKo: string[] = []
   const deepEn: string[] = []
+
+  // 일주 건강 결 — 60갑자 health narrative DB (orthodox 자평진전 출처)
+  const iljuNameH = saju.ultraAdvanced?.iljuDeep?.ilju
+  const iljuHealthVar = pickVariation(iljuPool(iljuNameH, 'health'), [
+    `ilju:${iljuNameH ?? ''}`,
+    'domain:health',
+  ])
+  if (iljuHealthVar) {
+    sajuUsed.push('pools.ilju.health')
+    deepKo.push(`${iljuHealthVar}.`)
+    deepEn.push(`Your 일주 ${iljuNameH} flags this constitutional pattern.`)
+  }
+
   if (ch) {
     deepKo.push(
       `상처와 치유의 색은 ${signLabel(ch.sign, 'ko')}의 분위기로 자리잡아, ${chironFlavorKo(ch.house)} 영역이 상처와 치유로 함께 묶여 있어요.`
@@ -134,12 +148,16 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     )
   }
   if (eclipses?.degree !== undefined) {
-    deepKo.push('태어난 시기 가까이 있던 일식·월식의 흔적이 신체 리듬에 미세한 부하를 남기는 흐름이에요.')
+    deepKo.push(
+      '태어난 시기 가까이 있던 일식·월식의 흔적이 신체 리듬에 미세한 부하를 남기는 흐름이에요.'
+    )
     deepEn.push(`A nearby natal eclipse leaves a subtle imprint on your body rhythms.`)
   }
   if (unlucky.length > 0) {
     deepKo.push('무리가 누적되지 않도록 평소 회복 루틴이 필요한 흐름이 함께 있어요.')
-    deepEn.push(`Your 신살 includes ${unlucky.slice(0, 3).join(' / ')} — keep a recovery routine to prevent overload buildup.`)
+    deepEn.push(
+      `Your 신살 includes ${unlucky.slice(0, 3).join(' / ')} — keep a recovery routine to prevent overload buildup.`
+    )
   }
   if (healthConfirms.length > 0) {
     deepKo.push(`그리고 ${healthConfirms[0].rule.narrative.confirm}`)
@@ -147,22 +165,25 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   }
   // Saju relations — 형(reshape) / 충(clash) often surface as body-stress
   // patterns. Bias the pick toward those kinds.
-  const relKoHealth = relationPhraseKo(input.calendarSignals?.sajuRelations, {
-    preferKind: '형',
-  })
-    ?? relationPhraseKo(input.calendarSignals?.sajuRelations, {
+  const relKoHealth =
+    relationPhraseKo(input.calendarSignals?.sajuRelations, {
+      preferKind: '형',
+    }) ??
+    relationPhraseKo(input.calendarSignals?.sajuRelations, {
       preferKind: '충',
     })
-  const relEnHealth = relationPhraseEn(input.calendarSignals?.sajuRelations, {
-    preferKind: '형',
-  })
-    ?? relationPhraseEn(input.calendarSignals?.sajuRelations, {
+  const relEnHealth =
+    relationPhraseEn(input.calendarSignals?.sajuRelations, {
+      preferKind: '형',
+    }) ??
+    relationPhraseEn(input.calendarSignals?.sajuRelations, {
       preferKind: '충',
     })
   if (relKoHealth) {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoHealth} 무리가 쌓이면 그 자리부터 몸의 반응이 먼저 와요.`)
-    if (relEnHealth) deepEn.push(`${relEnHealth} Overload signals tend to surface from that axis first.`)
+    if (relEnHealth)
+      deepEn.push(`${relEnHealth} Overload signals tend to surface from that axis first.`)
   }
   // 12-stage × health + Sun × sign × health variations.
   const dayMasterStemH = saju.pillars.day.stem || ''
@@ -187,12 +208,16 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     astroUsed.push('pools.planetSign.sun.health')
     deepKo.push(`${sunHealthVar}.`)
   }
-  const p3ko = paragraph(deepKo.length ? deepKo : [
-    '건강의 흐름은 극단보다는 일상의 작은 누적이 만들어요.'
-  ])
-  const p3en = paragraph(deepEn.length ? deepEn : [
-    'Because the deeper health signals sit in a calm alignment, your grain comes from small daily accumulation, not extremes.'
-  ])
+  const p3ko = paragraph(
+    deepKo.length ? deepKo : ['건강의 흐름은 극단보다는 일상의 작은 누적이 만들어요.']
+  )
+  const p3en = paragraph(
+    deepEn.length
+      ? deepEn
+      : [
+          'Because the deeper health signals sit in a calm alignment, your grain comes from small daily accumulation, not extremes.',
+        ]
+  )
 
   // ── Paragraph 4: 가이드
   const guideKo: string[] = ['일상 가이드 한 줄:']
@@ -226,10 +251,10 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (necessity) {
     fusionUsed.push('calendarSignals.arabicParts.Necessity')
     guideKo.push(
-      `약함의 영역(필연의 점)이 차트에 놓여 있어, 부담을 미루지 않고 작게 자주 풀어주는 흐름이 가장 무리가 없어요.`,
+      `약함의 영역(필연의 점)이 차트에 놓여 있어, 부담을 미루지 않고 작게 자주 풀어주는 흐름이 가장 무리가 없어요.`
     )
     guideEn.push(
-      `Your Lot of Necessity sits in the chart — releasing pressure little and often, rather than postponing it, is the gentlest path.`,
+      `Your Lot of Necessity sits in the chart — releasing pressure little and often, rather than postponing it, is the gentlest path.`
     )
   }
   const p4ko = paragraph(guideKo)
@@ -295,9 +320,11 @@ function yongsinElementKo(y: string): string {
   return '본연의 기운'
 }
 function yongsinFlavorEn(y: string): string {
-  if (y.includes('목') || y.includes('wood')) return 'liver-care and sprout-like activity (walks, plants)'
+  if (y.includes('목') || y.includes('wood'))
+    return 'liver-care and sprout-like activity (walks, plants)'
   if (y.includes('화') || y.includes('fire')) return 'heart-care and expressive activity (sun, art)'
-  if (y.includes('토') || y.includes('earth')) return 'digestion and stability (regular meals, roots)'
+  if (y.includes('토') || y.includes('earth'))
+    return 'digestion and stability (regular meals, roots)'
   if (y.includes('금') || y.includes('metal')) return 'lung-care and order (breathing, tidying)'
   if (y.includes('수') || y.includes('water')) return 'kidney-care and flow (hydration, rest)'
   return 'restoration of balance'
@@ -331,8 +358,16 @@ function marsSaturnFlavorKo(type: string): string {
 
 function planetLabelHealthKo(name: string): string {
   const map: Record<string, string> = {
-    Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
-    Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성',
+    Sun: '태양',
+    Moon: '달',
+    Mercury: '수성',
+    Venus: '금성',
+    Mars: '화성',
+    Jupiter: '목성',
+    Saturn: '토성',
+    Uranus: '천왕성',
+    Neptune: '해왕성',
+    Pluto: '명왕성',
   }
   return map[name] ?? name
 }

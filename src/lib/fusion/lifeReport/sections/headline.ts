@@ -23,6 +23,7 @@ import {
   findPlanet,
 } from '../signals/astroSynthesis'
 import { planetLabel, signLabel } from '../templates/sentences'
+import { ILJU_ARCHETYPES } from '@/lib/saju/iljuDictionary'
 
 // 일간 한자 → 한글 라벨 (한자 표기는 빼고 자연스러운 한글 음만)
 const STEM_LABEL: Record<string, string> = {
@@ -134,15 +135,9 @@ export function buildHeadline(input: BuilderInput): Headline {
     `${ilju ? `, an ${ilju} day-pillar` : ''}.`
 
   // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
-  const sunPart = sun
-    ? `자아의 별인 태양은 ${signLabel(sun.sign, 'ko')}에서 빛나고`
-    : ''
-  const moonPart = moon
-    ? `감정의 별인 달은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르며`
-    : ''
-  const ascPart = asc
-    ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 색감이에요`
-    : ''
+  const sunPart = sun ? `자아의 별인 태양은 ${signLabel(sun.sign, 'ko')}에서 빛나고` : ''
+  const moonPart = moon ? `감정의 별인 달은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르며` : ''
+  const ascPart = asc ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 색감이에요` : ''
   const skyParts = [sunPart, moonPart, ascPart].filter(Boolean).join(', ')
 
   const sunPartEn = sun
@@ -154,23 +149,15 @@ export function buildHeadline(input: BuilderInput): Headline {
   const ascPartEn = asc ? `${signLabel(asc.sign, 'en')} rising` : ''
   const skyPartsEn = [sunPartEn, moonPartEn, ascPartEn].filter(Boolean).join(' · ')
 
-  const s2ko = skyParts
-    ? `별의 결로 보면 ${skyParts}.`
-    : ''
-  const s2en = skyPartsEn
-    ? `Astrologically, you are shaped by ${skyPartsEn}.`
-    : ''
+  const s2ko = skyParts ? `별의 결로 보면 ${skyParts}.` : ''
+  const s2en = skyPartsEn ? `Astrologically, you are shaped by ${skyPartsEn}.` : ''
 
   // ─ Sentence 3 — fusion theme (짧게, iljuChar raw 제거)
   const domEl = el?.dominant
   const domModality = mod?.dominant
   const lackEl = el?.lacking
-  const balanceFlavorKo = domEl
-    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.`
-    : ''
-  const balanceFlavorEn = domEl
-    ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity`
-    : ''
+  const balanceFlavorKo = domEl ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.` : ''
+  const balanceFlavorEn = domEl ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity` : ''
   // 모달리티 + 인생 이끄는 별을 한 문장으로 묶어 짧은 문장 연속을 부드럽게 함
   const modPlanetKo = (() => {
     const modPart = domModality ? modalityKo(domModality) : ''
@@ -180,9 +167,7 @@ export function buildHeadline(input: BuilderInput): Headline {
     if (planetPart) return ` ${planetPart}.`
     return ''
   })()
-  const modFlavorEn = domModality
-    ? `, with a ${domModality} cadence`
-    : ''
+  const modFlavorEn = domModality ? `, with a ${domModality} cadence` : ''
   const domPlanetEn = dom ? `, led by ${planetLabel(dom, 'en')}` : ''
   const lackKo = lackEl ? ` 단 ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
   const lackEn = lackEl ? `, while ${ELEMENT_FLAVOR_EN[lackEl]} stays unfilled` : ''
@@ -190,14 +175,24 @@ export function buildHeadline(input: BuilderInput): Headline {
   // 한자 raw iljuCharacter는 영어에만 짧게 유지, 한국어에선 자연 어색해 제거
   const iljuCharShortEn = iljuChar ? `In one line: '${shortenEn(iljuChar)}'.` : ''
 
-  const s3ko = paragraphJoin([
-    balanceFlavorKo,
-    modPlanetKo,
-    lackKo,
-  ])
+  // ─ Sentence 4 — ilju archetype (60갑자 사전 DB 직접 활용)
+  //   기존: saju.ultraAdvanced?.iljuDeep?.iljuCharacter (선택적, 비어있을 수 있음)
+  //   추가: ILJU_ARCHETYPES (자평진전·적천수·명리정종 출처, 항상 채워져 있음)
+  //   같은 정보 두 출처 — ultraAdvanced 가 비어도 archetype DB 에서 fallback.
+  const archetype = ilju ? ILJU_ARCHETYPES[ilju] : undefined
+  if (archetype) sajuUsed.push('iljuArchetypes.character')
+  const archetypeKo = archetype
+    ? `당신의 일주 **${ilju}** 는 ${archetype.character}이에요. 강점은 ${archetype.strengths.join('·')} 이고, 주의할 결은 ${archetype.weaknesses.join('·')} 이에요.`
+    : ''
+  const archetypeEn = archetype
+    ? `Your day pillar **${ilju}** carries a ${archetype.character} signature — strengths: ${archetype.strengths.join(', ')}; watch-outs: ${archetype.weaknesses.join(', ')}.`
+    : ''
+
+  const s3ko = paragraphJoin([balanceFlavorKo, modPlanetKo, lackKo, archetypeKo])
   const s3en = paragraphJoin([
     balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.',
     iljuCharShortEn,
+    archetypeEn,
   ])
 
   return {
