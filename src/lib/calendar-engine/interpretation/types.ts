@@ -61,13 +61,18 @@ export interface InterpretationRule {
   /** 매칭 조건 */
   conditions: RuleConditions
   /**
-   * 텍스트 템플릿.
+   * 텍스트 템플릿 (한국어).
    * 변수: {daeunGanji} {primaryYongsin} {monthGanji} {natalDayMaster}
    *      {planet} {sign} {dignity} {duration} {count} {luckyDates}
    *      {sibsin} {shinsalName} {ganji} 등.
    * 자연스러운 문장 1~5개.
    */
   template: string
+  /**
+   * 텍스트 템플릿 (영어). 없으면 영어 빌드 시 한국어 template 으로 fallback.
+   * 변수 키는 한국어 template 과 동일.
+   */
+  templateEn?: string
   /**
    * 우선순위 — 매칭 룰 많을 때 상위 N개 선택.
    * 큰 흐름(大運) 90, 세운 80, 월운 70, 일진 60 등 차등 부여.
@@ -119,13 +124,17 @@ export interface TemplateVars {
   daeunGanji?: string
   /** 60갑자 본명 archetype 을 transit 어조로 변환한 한 줄 — getGanjiTransitNarrative 출처 */
   daeunGanjiText?: string
+  /** English variant — 영어 템플릿이 사용 */
+  daeunGanjiTextEn?: string
   daeunSibsin?: string
   daeunStartYear?: number
   yearGanji?: string
   yearGanjiText?: string
+  yearGanjiTextEn?: string
   yearSibsin?: string
   monthGanji?: string
   monthGanjiText?: string
+  monthGanjiTextEn?: string
   monthSibsin?: string
   monthName?: string
 
@@ -136,6 +145,9 @@ export interface TemplateVars {
   duration?: string
   sibsin?: string
   shinsalName?: string
+  /** 같은 shinsal name 이 활성화되는 모든 MM-DD ' · ' 로 묶음 (최대 5개) */
+  shinsalDates?: string
+  shinsalDatesCount?: string
   ganji?: string
 
   // 패턴/통계

@@ -10,7 +10,7 @@ import styles from '../policy.module.css'
 type Section = { title: string; titleKo: string; body: string; bodyKo: string; strict?: boolean }
 
 const PSP_NAME = 'Stripe'
-const EFFECTIVE_DATE = '2026-01-25'
+const EFFECTIVE_DATE = '2026-05-19'
 const MINI_PACK_PER_CREDIT_USD = CREDIT_PACKS.mini.perCreditUsd
 const MINI_PACK_RATE_EN = `₩${BASE_CREDIT_PRICE_KRW.toLocaleString()}/credit (≈ $${MINI_PACK_PER_CREDIT_USD.toFixed(2)}/credit)`
 const MINI_PACK_RATE_KO = `₩${BASE_CREDIT_PRICE_KRW.toLocaleString()}/크레딧 (약 $${MINI_PACK_PER_CREDIT_USD.toFixed(2)}/크레딧)`
@@ -59,8 +59,13 @@ C) Credit Validity and Expiration:
 
 D) Credit Usage Tracking:
 - Credits are consumed at the time of service request, not service completion
-- If a reading fails due to technical issues on our end, the credit will be automatically restored
-- Credits consumed due to user error (incomplete input, page refresh, etc.) are NOT restored`,
+- Automatic credit restoration — if a reading fails due to a system issue on our end, including:
+  • LLM provider unavailable or rate-limited
+  • Generation error or empty/invalid AI response
+  • Both participants' generations failing in a couple/compatibility reading (both deducted credits are restored)
+  the consumed credit(s) will be returned to your balance automatically. No support request needed.
+- Credits consumed due to user error (incomplete input, page refresh before submit, abandoning the session, etc.) are NOT restored
+- Credits used on a reading that you disagree with, find unsatisfactory, or interpret differently are NOT restored — see Section 4`,
     bodyKo: `크레딧 팩 종류: 미니, 스탠다드, 플러스, 메가, 얼티밋 등 다양한 수량과 가격의 크레딧 팩을 제공합니다.
 
 중요 - 크레딧 팩 환불 정책:
@@ -82,8 +87,12 @@ C) 크레딧 유효기간 및 만료:
 
 D) 크레딧 사용 추적:
 - 크레딧은 서비스 완료 시점이 아닌 요청 시점에 차감됨
-- 당사의 기술적 문제로 리딩이 실패한 경우 크레딧이 자동 복구됨
-- 사용자 오류(입력 미완료, 페이지 새로고침 등)로 소진된 크레딧은 복구되지 않음`,
+- 자동 크레딧 복구 — 다음과 같이 당사 시스템 측 문제로 리딩이 실패한 경우 차감된 크레딧이 자동으로 잔액에 복구되며 별도 문의가 필요하지 않습니다:
+  • LLM 공급자 비가용 또는 호출 제한
+  • 생성 오류 또는 빈/유효하지 않은 AI 응답
+  • 커플/궁합 리딩에서 양측 생성이 모두 실패한 경우 (차감된 두 크레딧 모두 복구)
+- 사용자 오류(입력 미완료, 제출 전 페이지 새로고침, 세션 이탈 등)로 소진된 크레딧은 복구되지 않음
+- 결과에 동의하지 않거나 만족하지 못한 리딩, 다르게 해석되는 리딩에 사용된 크레딧은 복구되지 않음 — 제4조 참조`,
   },
   {
     title: '3. Subscription Refund Policy',

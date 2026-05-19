@@ -9,7 +9,7 @@ import styles from '../policy.module.css'
 type Section = { title: string; titleKo: string; body: string; bodyKo: string }
 
 const CONTROLLER_NAME = 'Paul Rhee (individual)'
-const EFFECTIVE_DATE = '2026-01-25'
+const EFFECTIVE_DATE = '2026-05-19'
 
 const sections: Section[] = [
   {
@@ -22,9 +22,9 @@ const sections: Section[] = [
   {
     title: '2. Information We Collect',
     titleKo: '2. 수집하는 정보',
-    body: 'Account: email, password (hashed), display name, profile image.\nAuthentication: Social login profile data (Google OAuth) within your consent; OAuth tokens are revoked after login and not retained (or encrypted in transit).\nPayment: Transaction IDs and billing info processed by Stripe; we never store full card numbers.\nService Data: Birth date/time/location and inputs you provide for astrology, saju, tarot, and other readings.\nTechnical: IP, browser/device info, OS, cookies, logs.\nCommunications: Support tickets, feedback, correspondence.',
+    body: 'Account: email, password (hashed), display name, profile image.\nAuthentication: Social login profile data (Google OAuth) within your consent; OAuth tokens are revoked after login and not retained (or encrypted in transit).\nPayment: Transaction IDs and billing info processed by Stripe; we never store full card numbers.\nService Data: Birth date/time/location and inputs you provide for astrology, saju, tarot, and other readings. If you submit information about another person (e.g., birth information of a partner for compatibility or couple readings, or shared session data), you confirm that you have obtained their informed consent for us to receive and process such information.\nTechnical: IP, browser/device info, OS, cookies, logs.\nCommunications: Support tickets, feedback, correspondence.',
     bodyKo:
-      '계정: 이메일, 비밀번호(해시 처리), 표시 이름, 프로필 이미지.\n인증: 동의 범위 내 소셜 로그인 프로필 데이터(Google OAuth). OAuth 토큰은 로그인 후 폐기(또는 전송 시 암호화)되며 보관하지 않습니다.\n결제: Stripe가 처리하는 거래 ID 및 청구 정보. 카드 전체 번호는 저장하지 않습니다.\n서비스 데이터: 점성/사주/타로 등 리딩을 위한 생년월일·시간·장소 및 사용자가 입력한 정보.\n기술 정보: IP, 브라우저/디바이스 정보, OS, 쿠키, 로그.\n소통: 지원 문의, 피드백, 당사와의 교신 내용.',
+      '계정: 이메일, 비밀번호(해시 처리), 표시 이름, 프로필 이미지.\n인증: 동의 범위 내 소셜 로그인 프로필 데이터(Google OAuth). OAuth 토큰은 로그인 후 폐기(또는 전송 시 암호화)되며 보관하지 않습니다.\n결제: Stripe가 처리하는 거래 ID 및 청구 정보. 카드 전체 번호는 저장하지 않습니다.\n서비스 데이터: 점성/사주/타로 등 리딩을 위한 생년월일·시간·장소 및 사용자가 입력한 정보. 궁합·커플 리딩 등에서 타인의 정보(예: 상대방의 출생 정보)나 공유 세션 정보를 제공하는 경우, 귀하는 해당 정보의 수신·처리에 대해 본인의 명시적 동의를 사전에 받은 것임을 확인합니다.\n기술 정보: IP, 브라우저/디바이스 정보, OS, 쿠키, 로그.\n소통: 지원 문의, 피드백, 당사와의 교신 내용.',
   },
   {
     title: '3. How We Collect Information',

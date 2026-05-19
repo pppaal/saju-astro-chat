@@ -30,10 +30,10 @@ export type Lang = 'ko' | 'en'
 // 한국어 조사: '달'/'대운'/'오늘' 은 종성 있음 → '은', '해' 는 종성 없음 → '는'.
 // 라벨에 조사까지 묶어 자연어 처리.
 const PERIOD_LABEL: Record<GanjiTransitLayer, Record<Lang, string>> = {
-  daily: { ko: '오늘은', en: 'today' },
-  monthly: { ko: '이번 달은', en: 'this month' },
-  yearly: { ko: '이번 해는', en: 'this year' },
-  decadal: { ko: '이 대운은', en: 'this decade' },
+  daily: { ko: '오늘은', en: 'Today' },
+  monthly: { ko: '이번 달은', en: 'This month' },
+  yearly: { ko: '이번 해는', en: 'This year' },
+  decadal: { ko: '이 대운은', en: 'This decade' },
 }
 
 /**
@@ -71,7 +71,17 @@ export function getGanjiTransitNarrative(
     return `${period} ${characterTrim}의 ${TAIL[layer]}. 강점: ${strengths}.`
   }
 
-  const characterEn = archetype.character
-  const strengths = archetype.strengths.join(', ')
-  return `${period} carries the signature of ${characterEn}. Strengths: ${strengths}.`
+  // ILJU_ARCHETYPES 는 character_en / strengths_en 영어 필드를 이미 보유
+  // 했으나, 이전엔 한국어 필드(character / strengths) 가 그대로 박혀
+  // "this month carries the signature of 창의적 리더형, 지혜와 결단" 같이
+  // 한·영 혼합으로 leak 됐음. _en 필드를 사용해 정상 영문 narrative 생성.
+  const characterEn = archetype.character_en.replace(/[.!?]\s*$/u, '')
+  const strengthsEn = archetype.strengths_en.join(', ')
+  const TAIL_EN: Record<GanjiTransitLayer, string> = {
+    daily: 'carries the signature of',
+    monthly: 'moves with the grain of',
+    yearly: 'wears the colour of',
+    decadal: 'unfolds along the long arc of',
+  }
+  return `${period} ${TAIL_EN[layer]} ${characterEn}. Strengths: ${strengthsEn}.`
 }

@@ -1099,7 +1099,13 @@ export const GET = withApiMiddleware(
       // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
       try {
         const { buildInterpretation } = await import('@/lib/calendar-engine/interpretation')
-        const interp = buildInterpretation({ natal: ceNatal, cells: ceCells, scope: 'monthly' })
+        const interpLang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
+        const interp = buildInterpretation({
+          natal: ceNatal,
+          cells: ceCells,
+          scope: 'monthly',
+          lang: interpLang,
+        })
         ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
         // interpretation은 그 달 전체 단위라 셀별 부착 X.
         // 모든 셀에 동일 narrative 부착 — 클라가 어느 날짜든 같은 텍스트 사용.
@@ -1174,7 +1180,7 @@ export const GET = withApiMiddleware(
           const branch = computeDayBranch(probe)
           if (!stem || !branch) continue
           const ganji = `${stem}${branch}`
-          const text = getGanjiTransitNarrative(ganji, 'daily', 'ko')
+          const text = getGanjiTransitNarrative(ganji, 'daily', locale === 'en' ? 'en' : 'ko')
           if (text) d.dailyGanjiNarrative = text
         }
       } catch (err) {

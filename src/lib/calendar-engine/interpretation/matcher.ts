@@ -14,12 +14,25 @@ import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
  * 4. 템플릿 변수 치환
  * 5. section별로 합쳐서 narrative 출력
  */
+export type InterpretationLang = 'ko' | 'en'
+
+/**
+ * lang='en' 요청이고 룰에 templateEn 이 있으면 사용, 없으면 한국어 template
+ * 으로 fallback. 일진/대운 ganji 변수 (monthGanjiText 등) 도 영어 헬퍼
+ * 변수 (monthGanjiTextEn 등) 로 분기 — extractSignalVars 가 둘 다 채움.
+ */
+function pickRuleTemplate(rule: InterpretationRule, lang: InterpretationLang): string {
+  if (lang === 'en' && rule.templateEn) return rule.templateEn
+  return rule.template
+}
+
 export function buildInterpretation(args: {
   natal: NatalContext
   cells: CalendarCell[]
   scope?: 'monthly' | 'yearly' | 'daily' | 'lifetime'
+  lang?: InterpretationLang
 }): Interpretation {
-  const { natal, cells, scope = 'monthly' } = args
+  const { natal, cells, scope = 'monthly', lang = 'ko' } = args
 
   // 모든 셀에서 신호 + 패턴 합치기
   const allSignals = cells.flatMap((c) => c.signals)
@@ -129,17 +142,27 @@ export function buildInterpretation(args: {
       const pb = b.polarity >= 1 ? 0 : b.polarity <= -1 ? 1 : 0.5
       return pa - pb
     })
-    const templates = sortedList.map((m) => fillTemplate(m.rule.template, m.vars))
+    const templates = sortedList.map((m) => fillTemplate(pickRuleTemplate(m.rule, lang), m.vars))
     if (hasPositive && hasCaution) {
-      templates.unshift('복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:')
+      templates.unshift(
+        lang === 'en'
+          ? 'A mixed current — supportive signals run alongside cautious ones:'
+          : '복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:'
+      )
     }
+    const mergedText = mergeDomainTemplates(templates, topDates, lowDates, domain, lang)
     const merged: (typeof matched)[number] = {
       rule: {
         ...list[0].rule,
         id: `domain.${domain}`,
         section: `domain-${domain}`,
         priority: list[0].rule.priority,
-        template: mergeDomainTemplates(templates, topDates, lowDates),
+        // 병합된 텍스트는 이미 lang 에 맞춰 합성됨 → template 한 쪽에만 박고
+        // templateEn 은 명시적으로 비워 둠. 그렇지 않으면 list[0].rule 의
+        // 원본 templateEn 이 spread 로 살아남아 pickRuleTemplate('en') 가
+        // 병합된 텍스트 대신 첫 룰의 원본 EN 만 반환 (Phase 2 EN 머지 버그).
+        template: mergedText,
+        templateEn: undefined,
       },
       vars: list[0].vars,
       polarity: list[0].polarity,
@@ -171,8 +194,8 @@ export function buildInterpretation(args: {
   // 템플릿 채우기 (도메인 entry는 이미 합쳐진 텍스트라 fillTemplate 한 번 더 통과해도 안전)
   const sections = picked.map((m) => ({
     section: m.rule.section,
-    title: sectionTitle(m.rule.section),
-    text: fillTemplate(m.rule.template, m.vars),
+    title: sectionTitle(m.rule.section, lang),
+    text: fillTemplate(pickRuleTemplate(m.rule, lang), m.vars),
   }))
 
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
@@ -433,17 +456,22 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
   const ganji = (s.evidence.pillars?.[0] ?? '').trim()
 
   if (ganji) vars.ganji = ganji
+  // KO + EN 두 ganji text 를 동시에 채움 — 룰 템플릿이 자기 언어에 맞는
+  // placeholder ({monthGanjiText} vs {monthGanjiTextEn}) 를 선택해 사용.
   if (s.layer === 'decadal') {
     vars.daeunGanji = ganji
     vars.daeunGanjiText = getGanjiTransitNarrative(ganji, 'decadal', 'ko')
+    vars.daeunGanjiTextEn = getGanjiTransitNarrative(ganji, 'decadal', 'en')
   }
   if (s.layer === 'yearly') {
     vars.yearGanji = ganji
     vars.yearGanjiText = getGanjiTransitNarrative(ganji, 'yearly', 'ko')
+    vars.yearGanjiTextEn = getGanjiTransitNarrative(ganji, 'yearly', 'en')
   }
   if (s.layer === 'monthly') {
     vars.monthGanji = ganji
     vars.monthGanjiText = getGanjiTransitNarrative(ganji, 'monthly', 'ko')
+    vars.monthGanjiTextEn = getGanjiTransitNarrative(ganji, 'monthly', 'en')
   }
 
   const sibsin = s.evidence.sibsin as string | undefined
@@ -463,6 +491,19 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
   const sameKind = allSignals.filter((x) => x.id !== s.id && x.kind === s.kind && x.name === s.name)
   if (sameKind.length > 0 || s.active.start !== s.active.end) {
     vars.duration = `${s.active.start.slice(5, 10)} ~ ${s.active.end.slice(5, 10)}`
+  }
+
+  // Patch 3 (Phase 3) — 신살 단락의 vague "이번 달에 들어 있어요" 를 구체
+  // 날짜로. 같은 shinsal name 이 활성화되는 모든 날짜 (MM-DD) 를 모아 룰
+  // 본문에서 {shinsalDates} 로 호출. 1개일 땐 그 날짜, 여러 개면 ' · ' 로
+  // 묶어 최대 5개까지.
+  if (s.kind === 'shinsal') {
+    const allActive = [s, ...sameKind]
+    const dates = Array.from(new Set(allActive.map((x) => x.active.start.slice(5, 10)))).sort()
+    if (dates.length > 0) {
+      vars.shinsalDates = dates.slice(0, 5).join(' · ')
+      vars.shinsalDatesCount = String(dates.length)
+    }
   }
 
   return vars
@@ -485,8 +526,8 @@ function fillTemplate(template: string, vars: TemplateVars): string {
   })
 }
 
-function sectionTitle(section: string): string {
-  const map: Record<string, string> = {
+function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string {
+  const ko: Record<string, string> = {
     daeun: '대운 흐름',
     seun: '올해의 운',
     wolun: '이번 달',
@@ -501,6 +542,21 @@ function sectionTitle(section: string): string {
     'domain-body': '몸·내면',
     'domain-growth': '자기·성장',
   }
+  const en: Record<string, string> = {
+    daeun: '10-year Arc',
+    seun: 'This Year',
+    wolun: 'This Month',
+    natal: 'Your Chart',
+    transit: 'Active Transits',
+    pattern: 'Patterns',
+    shinsal: 'Lucky Stars',
+    'domain-money': 'Money',
+    'domain-work': 'Work & Career',
+    'domain-relations': 'Relationships',
+    'domain-body': 'Body & Inner Life',
+    'domain-growth': 'Self & Growth',
+  }
+  const map = lang === 'en' ? en : ko
   return map[section] ?? section
 }
 
@@ -527,24 +583,91 @@ const DOMAIN_TITLES: Record<string, string> = {
 
 const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'growth']
 
-// 도메인 안에 룰이 5개까지 쌓이면 narrative 너무 길어지고 "여기에/한편/
-// 추가로/또한" 같은 연결사가 4번씩 반복됨. 사용자 audit 결과 3개가 최적
-// (긍정 1 + 주의 1 + 컨텍스트 1 정도). 잘려나간 룰은 다른 시기에 또
-// 매칭될 기회 있음.
+// 도메인 안에 룰이 5개까지 쌓이면 narrative 너무 길어짐. 사용자 audit
+// 결과 3개가 최적 (긍정 1 + 주의 1 + 컨텍스트 1 정도). 잘려나간 룰은
+// 다른 시기에 또 매칭될 기회 있음.
 const MAX_RULES_PER_DOMAIN = 3
 
 /**
+ * 도메인 안에서 의미 중복을 잡는 fingerprint group.
+ * 같은 group 의 키워드가 후보·이전 본문 양쪽에 있으면 후보는 skip.
+ * lifeReport 의 love.ts moonSignDedup 패턴을 룰 도메인용으로 일반화.
+ *
+ * 예) body 도메인에서 "회복·치유에 우호적..." 룰이 이미 들어왔는데
+ *     "건강·검진에 좋은 시기..." 룰을 또 붙이면 같은 결을 두 번 말함.
+ *     → 두 줄 다 ['회복', '치유', '검진'] group 을 건드리므로 후보 skip.
+ */
+// Fingerprint group 은 *구절* 단위 — 단일 단어("정리", "검진") 만으로 묶지
+// 않음. positive 의미("자산 정리") 와 negative 의미("구조 재정비") 가 한
+// 단어를 공유해도 다른 group 에 속하게 분리. 의미가 진짜 같은 두 룰만
+// dedup 되고, 보완적 룰 (e.g. "회복 우호" + "과로 주의") 은 둘 다 살림.
+//
+// 각 group 안에 한국어 + 영어 구절을 함께 — KO/EN 본문 양쪽에서 dedup
+// 동작 보장. dedup 조건은 "host 와 candidate 가 같은 group 내 *어느* 구절이든
+// 둘 다 포함" 이라 KO 룰 두 개끼리는 KO 키워드로, EN 두 개끼리는 EN 키워드로
+// 매치. KO ↔ EN 교차 매치는 발생 안 함 (애초에 같은 lang 안에서만 호출됨).
+const DOMAIN_THEME_GROUPS: Record<string, string[][]> = {
+  body: [
+    ['회복과 치유', '회복·치유에 우호적', 'recovery and healing', 'favourable to recovery'],
+    ['무리·과로 주의', '과로 주의', 'overwork', 'pushing too hard'],
+    ['수면', '잠', 'sleep'],
+    ['스트레스 누적', '긴장 누적', 'stress', 'tension build-up'],
+  ],
+  money: [
+    ['확장 기회', '큰 흐름의 확장', '확장 기회 강함', 'expansion chances', 'expansion opportunity'],
+    ['진행 지연', '구조 재정비', 'delays', 'restructure', 'reshuffle'],
+    ['투자·자산 정리', '큰 베팅', 'tidying up existing assets', 'big bets'],
+    ['안정적 수입', '꾸준한 수입', 'steady income', 'stable income'],
+  ],
+  work: [
+    ['승진·자리', '공식 자리', 'promotions', 'official positions', 'representative roles'],
+    ['공식 절차·서류 지연', '계약 지연', 'paperwork may stall', 'contract delays'],
+    ['학업·연구', '자격증·전문 분야', 'study, research', 'certifications', 'specialty fields'],
+    ['창의·표현 발의', '발표·발의', 'proposals', 'presentations'],
+  ],
+  relations: [
+    [
+      '인연·만남',
+      '관계 진전이 자연스러운',
+      'connection, meetings',
+      'relationship progress flow naturally',
+    ],
+    ['진척 더딘', '기존 관계 다지기', 'progress is slow', 'deepening the ones you already have'],
+    ['가족·관계 긴장', '부드러운 소통이 필요', 'subtle tension', 'softer communication'],
+  ],
+  growth: [
+    [
+      '창의·표현',
+      '작품·콘텐츠',
+      'creativity and expression',
+      'work, content',
+      'expression, creation',
+    ],
+    ['이동·이직·이사', '여행 환경 변화', 'travel, job switches', 'environment changes'],
+    ['학습·배움 우호적', 'favourable for learning'],
+  ],
+}
+
+function fingerprintMatches(text: string, group: string[]): boolean {
+  return group.some((kw) => text.includes(kw))
+}
+
+/**
  * 도메인 안 여러 룰 텍스트를 자연스럽게 한 단락으로.
- * 첫 줄 = 메인 헤드라인, 뒤따르는 룰은 자연 연결사로 이어붙임.
- * 마지막 줄 = 그 도메인이 가장 강한 날짜 top 3 (있을 때만).
+ * - 첫 줄 = 메인 헤드라인
+ * - 뒤따르는 룰은 줄바꿈만으로 이어붙임 (여기에/한편/추가로 연결사 제거 —
+ *   고정 순환이 list-archive 느낌을 만들었음, lifeReport 의
+ *   appendToPara 처럼 줄 자체가 분리자가 되게)
+ * - 후보가 host 와 같은 fingerprint group 을 건드리면 skip
+ * - 마지막 줄 = 그 도메인이 가장 강한 날짜 top 3 (있을 때만)
  * 룰 텍스트의 이모지 + 굵은 헤더는 제거하고 본문만 사용해 같은 톤 유지.
  */
-const CONNECTORS = ['여기에', '한편', '추가로', '또한', '단,']
-
 function mergeDomainTemplates(
   texts: string[],
   topDates: string[] = [],
-  lowDates: string[] = []
+  lowDates: string[] = [],
+  domain: string = '',
+  lang: InterpretationLang = 'ko'
 ): string {
   if (texts.length === 0) return ''
   const cleaned = texts.map((t) => t.trim()).filter(Boolean)
@@ -553,18 +676,34 @@ function mergeDomainTemplates(
     body = cleaned[0]
   } else {
     const [head, ...rest] = cleaned
-    const tail = rest.map((t, i) => {
-      const stripped = t.replace(/^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u, '')
-      const connector = CONNECTORS[i % CONNECTORS.length]
-      return `\n${connector} ${stripped}`
-    })
-    body = head + tail.join('')
+    const accumulated = [head]
+    const groups = DOMAIN_THEME_GROUPS[domain] ?? []
+    for (const candidate of rest) {
+      const stripped = candidate.replace(
+        /^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u,
+        ''
+      )
+      // Patch 3 — fingerprint dedup
+      const hostSoFar = accumulated.join('\n')
+      const duplicates = groups.some(
+        (group) => fingerprintMatches(hostSoFar, group) && fingerprintMatches(stripped, group)
+      )
+      if (duplicates) continue
+      accumulated.push(stripped)
+    }
+    body = accumulated.join('\n')
   }
   if (topDates.length > 0) {
-    body += `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
+    body +=
+      lang === 'en'
+        ? `\n✨ Strong days: ${topDates.join(' · ')}`
+        : `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
   }
   if (lowDates.length > 0) {
-    body += `\n⚠️ 주의 날: ${lowDates.join(' · ')}`
+    body +=
+      lang === 'en'
+        ? `\n⚠️ Take care: ${lowDates.join(' · ')}`
+        : `\n⚠️ 주의 날: ${lowDates.join(' · ')}`
   }
   return body
 }
