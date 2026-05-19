@@ -161,7 +161,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     p3piecesEn.push('Harmonics 5 sits gently — deliberate personal-style work strengthens it over time.')
   }
   if (hwagae) {
-    p3pieces.push('예술·고독의 별이 명식에 들어와 있어, 혼자 깊이 들어가는 시간이 작품의 색을 만들어요.')
+    p3pieces.push('예술·고독의 별이 사주에 들어와 있어, 혼자 깊이 들어가는 시간이 작품의 색을 만들어요.')
     p3piecesEn.push('화개 (art-solitude star) sits in your saju — solo deep time shapes the grain of your work.')
   }
   if (spirit) {

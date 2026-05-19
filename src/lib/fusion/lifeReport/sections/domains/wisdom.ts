@@ -171,11 +171,11 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     p3piecesEn.push('Harmonics 9 sits quietly — deliberate reflection and meditation will strengthen it over time.')
   }
   if (geokguk && geokguk.includes('인')) {
-    p3pieces.push('인생의 큰 패턴 자체가 인성 격국이라, 가르치고 다루는 사람이 되는 길이 가장 본인답게 풀려요.')
+    p3pieces.push('인생의 큰 패턴 자체가 배움·돌봄의 결이라, 가르치고 다루는 사람이 되는 길이 가장 본인답게 풀려요.')
     p3piecesEn.push(`Your geokguk (${geokguk}) is in the 인성 family — the teacher/carrier path fits most natively.`)
   }
   if (munchang) {
-    p3pieces.push('학문과 창작의 별이 명식에 들어와 있어서, 글·이론·자료를 통해 성취가 빨라요.')
+    p3pieces.push('학문과 창작의 별이 사주에 들어와 있어서, 글·이론·자료를 통해 성취가 빨라요.')
     p3piecesEn.push(`A 문창 (literary star) lights your chart — writing, theory and material study accelerate your achievement.`)
   }
   if (hakdang) {

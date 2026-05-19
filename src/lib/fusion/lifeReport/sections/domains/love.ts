@@ -158,13 +158,19 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (moonSignVar) astroUsed.push('pools.planetSign.moon.love')
   let p1ko = paragraph([styleKo, venusBlurb])
   p1ko = appendToPara(p1ko, loveCategoryVar)
-  // 결정론 유지: 두 변이가 같은 결(친구 같은 / 꿈을 나누는 / 서로의 결을
-  // 존중)을 동시에 말하면 moonSign 쪽은 생략해 P1 안에서의 의미 중복을 막음.
+  // 결정론 유지: 두 변이가 의미상 같은 결을 동시에 말하거나, 이미 sibsin
+  // 변이가 "사이/관계가 ~한다" 톤을 끝맺어 P1에 충분히 사랑 색이 깔린
+  // 경우, moonSign 쪽은 생략해 P1 안에서의 cadence 중복을 막음.
   const moonSignDedup = (() => {
     if (!moonSignVar) return moonSignVar
-    const themes = ['친구 같은', '꿈을 나누는', '서로의 결을 존중', '서로의 결에 녹아', '독립적인 결']
+    const themes = ['친구 같은', '꿈을 나누', '서로의 결을 존중', '서로의 결에 녹아', '독립적인 결', '동등한 결', '깊은 공감', '편안한 사랑', '대화가 풍부', '균형 있는 사랑']
     const dup = themes.some((t) => p1ko.includes(t) && moonSignVar.includes(t))
-    return dup ? '' : moonSignVar
+    // sibsin 변이가 이미 P1 끝에 사랑 톤을 깔았으면 moonSign은 생략해
+    // "X한 사이가 ~. Y한 관계가 ~." 식 이중 구조를 막음.
+    const sibsinAlreadyClosesLoveTone = !!loveCategoryVar &&
+      /(사이|관계|사랑)[^.]{0,20}(어울려|풀려|편해|깊어|채워|살아)/.test(loveCategoryVar) &&
+      /(사이|관계|사랑)[^.]{0,20}(어울려|풀려|편해|깊어|채워|살아)/.test(moonSignVar)
+    return (dup || sibsinAlreadyClosesLoveTone) ? '' : moonSignVar
   })()
   p1ko = appendToPara(p1ko, moonSignDedup)
   const p1en = paragraph([styleEn, venusBlurbEn])
