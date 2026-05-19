@@ -263,6 +263,39 @@ describe('calendar-engine regression', () => {
       expect(present.length).toBeGreaterThanOrEqual(3)
     })
 
+    it('English ganji narrative is fully English (no KO leak)', async () => {
+      const { getGanjiTransitNarrative } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      const samples = ['甲子', '丙寅', '癸巳', '壬辰', '辛酉']
+      for (const g of samples) {
+        for (const layer of ['daily', 'monthly', 'yearly', 'decadal'] as const) {
+          const text = getGanjiTransitNarrative(g, layer, 'en')
+          if (!text) continue
+          // 한국어 단어가 영어 출력에 leak 되면 안 됨
+          expect(text, `KO leak in [${g}/${layer}]: ${text}`).not.toMatch(/[가-힯]/)
+          // 영어 narrative 의 표지어 (period label + "Strengths:" suffix)
+          // 가 제대로 합쳐졌는지 확인
+          expect(text).toMatch(/^(today|this month|this year|this decade) /)
+          expect(text).toMatch(/Strengths: /)
+        }
+      }
+    })
+
+    it('English ganji uses layer-distinct tails (cadence dup 차단)', async () => {
+      const { getGanjiTransitNarrative } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      const day = getGanjiTransitNarrative('甲子', 'daily', 'en')
+      const month = getGanjiTransitNarrative('甲子', 'monthly', 'en')
+      const year = getGanjiTransitNarrative('甲子', 'yearly', 'en')
+      const dec = getGanjiTransitNarrative('甲子', 'decadal', 'en')
+      // signature / grain / colour / long arc — 네 어미 모두 lexically distinct
+      const tailKeys = ['signature', 'grain', 'colour', 'long arc']
+      const present = tailKeys.filter((k) =>
+        [day, month, year, dec].some((t) => t.toLowerCase().includes(k))
+      )
+      expect(present.length).toBeGreaterThanOrEqual(3)
+    })
+
     it('returns "" for an unknown ganji on every layer', async () => {
       const { getGanjiTransitNarrative } =
         await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
