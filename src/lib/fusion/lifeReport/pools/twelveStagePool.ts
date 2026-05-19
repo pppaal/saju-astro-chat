@@ -44,7 +44,7 @@ const TWELVE_STAGE_POOLS: Record<StageKey, StagePool> = {
     ],
     love: [
       '관계의 첫 시작이 부드럽고 자연스럽게 흘러요',
-      '새 인연을 만나기 좋은 결을 타고났어요',
+      '새 인연을 만나기 좋은 분위기예요',
       '낯선 사이도 금세 마음을 열게 만드는 톤이에요',
     ],
     health: [
@@ -82,7 +82,7 @@ const TWELVE_STAGE_POOLS: Record<StageKey, StagePool> = {
     family: [
       '가족 안에서 감정의 깊이를 책임지는 역할이 자연스러워요',
       '집안 분위기를 부드럽게 풀어주는 자리에 있어요',
-      '식구의 정서를 조율하는 결을 타고났어요',
+      '식구의 정서를 조율하는 자리에 있어요',
     ],
     karma: [
       '정화와 다듬어짐의 카르마가 함께 흘러요',

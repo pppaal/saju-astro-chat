@@ -141,7 +141,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   )
   const styleEn = pickLoveStyleEn(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
   const venusBlurb = venus
-    ? `사랑의 별인 금성이 ${signLabel(venus.sign, 'ko')}에 자리잡아, ${venusFlavorKo(venus.sign, venus.house)}이 당신 사랑의 색이에요.`
+    ? `당신의 금성은 ${signLabel(venus.sign, 'ko')}에 있어서, ${venusFlavorKo(venus.sign, venus.house)}이 당신 사랑의 색이에요.`
     : ''
   const venusBlurbEn = venus
     ? `Venus in ${signLabel(venus.sign, 'en')} (${houseLabel(venus.house, 'en')}) brings ${venusFlavorEn(venus.sign, venus.house)} to your love life.`
@@ -273,7 +273,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   if (vertexVenus) {
     deepKo.push(
-      `운명적 만남의 점과 사랑의 별이 ${aspectQuality(vertexVenus.type, 'ko')}, 운명적인 한 번의 만남이 새겨져 있어요.`
+      `운명적 만남의 점과 금성이 ${aspectQuality(vertexVenus.type, 'ko')}, 운명적인 한 번의 만남이 새겨져 있어요.`
     )
     deepEn.push(
       `Your Vertex and Venus ${aspectQuality(vertexVenus.type, 'en')}, which writes one fated encounter into the chart.`
@@ -288,7 +288,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   if (j) {
     deepKo.push(
-      `결혼의 별은 ${signLabel(j.sign, 'ko')}에 놓여, 결혼 자체에 ${junoFlavorKo(j.house)}이 흐르게 해요.`
+      `주노(결혼)는 ${signLabel(j.sign, 'ko')}에 놓여, 결혼 자체에 ${junoFlavorKo(j.house)}이 흐르게 해요.`
     )
     deepEn.push(
       `Juno, the asteroid of marriage, sits in ${signLabel(j.sign, 'en')} (${houseLabel(j.house, 'en')}), so marriage itself carries the tone of ${junoFlavorEn(j.house)}.`
@@ -302,7 +302,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   if (venusSaturn) {
     deepKo.push(
-      `사랑의 별과 책임의 별이 ${aspectQuality(venusSaturn.type, 'ko')}, 성숙한 파트너와 시간이 갈수록 깊어지는 사랑을 만들어요.`
+      `당신의 금성과 토성이 ${aspectQuality(venusSaturn.type, 'ko')}, 성숙한 파트너와 시간이 갈수록 깊어지는 사랑을 만들어요.`
     )
     deepEn.push(
       `Your Venus and Saturn ${aspectQuality(venusSaturn.type, 'en')}, which tends to bring a mature partner and a love that grows deeper with time.`
@@ -310,7 +310,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   if (venusMars) {
     deepKo.push(
-      `사랑의 별과 행동의 별이 ${aspectQuality(venusMars.type, 'ko')} 있어, 끌림과 욕망의 톤이 또렷해요.`
+      `당신의 금성과 화성이 ${aspectQuality(venusMars.type, 'ko')} 있어, 끌림과 욕망의 톤이 또렷해요.`
     )
     deepEn.push(
       `Your Venus and Mars ${aspectQuality(venusMars.type, 'en')}, giving a clear character to the way attraction and desire show up in your life.`
@@ -397,7 +397,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       )
     } else if (top.name === '균형사주') {
       deepKo.push(
-        '사주 자질이 고르게 분포해서, 사랑도 한쪽으로 치우치지 않고 무난히 흐르는 스타일이에요.'
+        '사주 자질이 고르게 분포해서, 사랑도 한쪽으로 치우치지 않고 무난히 흐르는 편이에요.'
       )
       deepEn.push(
         'Your inner currents sit in balance, so love too tends to flow evenly without any single quality taking over.'
@@ -412,7 +412,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       venusMars.type === 'quintile')
   ) {
     deepKo.push(
-      `사랑의 별과 행동의 별이 ${aspectQuality(venusMars.type, 'ko')} 있어서, 끌림에 ${venusMarsMinorFlavorKo(venusMars.type)}이 함께해요.`
+      `당신의 금성과 화성이 ${aspectQuality(venusMars.type, 'ko')} 있어서, 끌림에 ${venusMarsMinorFlavorKo(venusMars.type)}이 함께해요.`
     )
     deepEn.push(
       `Venus and Mars ${aspectQuality(venusMars.type, 'en')}, adding ${venusMarsMinorFlavorEn(venusMars.type)} to the way attraction shows up for you.`
@@ -432,7 +432,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const p3ko = paragraph(
     deepKo.length
       ? deepKo
-      : ['사랑의 분위기는 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 흐름이에요.']
+      : ['사랑의 분위기는 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 편이에요.']
   )
   const p3en = paragraph(
     deepEn.length
@@ -486,13 +486,13 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (venusDignity) {
     fusionUsed.push('calendarSignals.dignities.Venus')
     if (venusDignity.status === 'domicile' || venusDignity.status === 'exaltation') {
-      timingKo.push('사랑의 별이 본인 자리에 있어, 일생 사랑이 다정하게 흐르는 배치예요.')
+      timingKo.push('금성이 본인 자리에 있어서, 일생 사랑이 다정하게 흐르는 배치예요.')
       timingEn.push(
         `Venus sits in ${venusDignity.status === 'domicile' ? 'its home sign' : 'a sign where it shines brightest'} — love tends to run warmly through your life by natural disposition.`
       )
     } else if (venusDignity.status === 'detriment' || venusDignity.status === 'fall') {
       timingKo.push(
-        '사랑의 별이 살짝 어색한 자리에 있어서, 첫 단계엔 시행착오가 있지만 결국 자기만의 방식을 찾는 흐름이에요.'
+        '금성이 살짝 어색한 자리에 있어서, 첫 단계엔 시행착오가 있지만 결국 자기만의 방식을 찾으시게 돼요.'
       )
       timingEn.push(
         `Venus sits in a ${venusDignity.status === 'detriment' ? 'less comfortable' : 'weakened'} placement — the early years of love bring some trial and error, but you eventually find your own way of loving.`
@@ -548,14 +548,14 @@ function pickLoveStyleKo(
     return '당신은 안정과 신뢰를 우선하는 사랑형이에요. 한 사람과 길게 가는 인연이 자연스럽게 깊어져요.'
   if (!isFemale && pj >= 2)
     return '당신은 자유롭고 변화에 끌리는 사랑형이에요. 다양한 만남을 거치면서 자기 길을 찾아가요.'
-  if (cat.관성 === 0 && isFemale) return '관계의 형식보다 자기 자신을 먼저 채우는 흐름이에요.'
-  if (cat.재성 === 0 && !isFemale) return '관계의 형식보다 자기 작업을 먼저 채우는 흐름이에요.'
+  if (cat.관성 === 0 && isFemale) return '관계의 형식보다 자기 자신을 먼저 챙기시는 편이에요.'
+  if (cat.재성 === 0 && !isFemale) return '관계의 형식보다 자기 일을 먼저 챙기시는 편이에요.'
   // 균형형: 같은 분기에 떨어지는 사주들도 일간 코드로 변형되도록.
   const seed = dayStem ? dayStem.charCodeAt(0) : 0
   const fallback = [
-    '당신은 관계에서 깊이와 가능성을 둘 다 챙기는 스타일이에요.',
-    '당신의 사랑은 안정과 설렘 사이에서 균형을 잡아가는 결이에요.',
-    '관계의 무게와 새로움을 같은 비중으로 보는 스타일이에요.',
+    '당신은 관계에서 깊이와 가능성을 둘 다 챙기시는 분이에요.',
+    '당신의 사랑은 안정과 설렘 사이에서 균형을 잡아가요.',
+    '관계의 무게와 새로움을 같은 비중으로 보시는 편이에요.',
   ]
   return fallback[seed % fallback.length]!
 }

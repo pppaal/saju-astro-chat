@@ -75,7 +75,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       ? '당신은 어머니와 돌봄 라인의 인연이 자연스럽게 깊은 결이에요.'
       : inseong === 0
         ? '어머니와 돌봄 라인의 인연은 의식적인 노력으로 자라요.'
-        : '당신은 가족과의 인연을 차분하게 이어가는 스타일이에요.',
+        : '당신은 가족과의 인연을 차분하게 이어가시는 분이에요.',
     `돌봄 기운은 ${familyCountFlavorKo(inseong)}, 동료 기운은 ${familyCountFlavorKo(bijeon)} 자리해요. ${familyShapeKo(inseong, bijeon)}.`,
     fourth
       ? `가정 영역은 ${signLabel(fourth.sign, 'ko')}의 분위기를 띠어, 집안 공기가 ${fourthSignFlavorKo(fourth.sign)}.`
@@ -163,7 +163,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   }
   if (moonSaturn) {
     deepKo.push(
-      `감정의 별과 책임의 별이 ${aspectQuality(moonSaturn.type, 'ko')}, 어머니나 정서 라인에 책임의 무게가 일찍 실린 흐름이에요.`
+      `당신의 달과 토성이 ${aspectQuality(moonSaturn.type, 'ko')}, 어머니나 정서 라인에 책임의 무게가 일찍부터 함께 있어요.`
     )
     deepEn.push(
       `Your Moon-Saturn ${aspectQuality(moonSaturn.type, 'en')} placed the weight of responsibility on your mother or your emotional life early on.`
@@ -178,14 +178,14 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     )
   }
   if (ves) {
-    deepKo.push(`헌신의 별이 ${signLabel(ves.sign, 'ko')}에 머물러, 가족에 헌신하는 성향이 있어요.`)
+    deepKo.push(`베스타가 ${signLabel(ves.sign, 'ko')}에 있어서, 가족에 헌신하는 성향이 있어요.`)
     deepEn.push(
       `Vesta in ${signLabel(ves.sign, 'en')} (${houseLabel(ves.house, 'en')}) weaves devotion to family through your life as a steady thread.`
     )
   }
   if (ce) {
     deepKo.push(
-      `양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리잡아, ${ceresMomFlavorKo(ce.house)} 양육의 색이 새겨져 있어요.`
+      `세레스(양육)가 ${signLabel(ce.sign, 'ko')}에 있어서, ${ceresMomFlavorKo(ce.house)} 양육의 색이 새겨져 있어요.`
     )
     deepEn.push(
       `Ceres in ${signLabel(ce.sign, 'en')} (${houseLabel(ce.house, 'en')}) leaves a ${ceresMomFlavorEn(ce.house)} mark on how you nurture.`

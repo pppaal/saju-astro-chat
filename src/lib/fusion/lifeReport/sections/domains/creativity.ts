@@ -80,7 +80,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     opener,
     venus
-      ? `미와 즐거움의 별이 ${signLabel(venus.sign, 'ko')}${venus.house ? `의 ${houseLabel(venus.house, 'ko')}` : ''}에 있어, ${venusSignFlavorKo(venus.sign)}이 작품의 특징이에요.`
+      ? `당신의 금성이 ${signLabel(venus.sign, 'ko')}${venus.house ? `의 ${houseLabel(venus.house, 'ko')}` : ''}에 있어서, ${venusSignFlavorKo(venus.sign)}이 작품의 특징이에요.`
       : '',
     fifth.length > 0
       ? `${houseLabel(5, 'ko')}에 ${fifth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 노는 듯 만들어내는 흐름이 강해요.`
@@ -108,7 +108,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
       topVenusAspect.from?.name === 'Venus' ? topVenusAspect.to?.name : topVenusAspect.from?.name
     if (other) {
       p2pieces.push(
-        `미의 별이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusAspectFlavorKo(other)}의 색이 표현에 새겨져 있어요.`
+        `당신의 금성이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusAspectFlavorKo(other)}의 색이 표현에 새겨져 있어요.`
       )
       p2piecesEn.push(
         `Venus ${aspectQuality(topVenusAspect.type, 'en')} ${other} — ${venusAspectFlavorEn(other)} marks the way you express.`
@@ -137,7 +137,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   }
   if (moon && moon.house === 5) {
     p2pieces.push(
-      '감정의 별이 창조 영역에 있어서, 마음의 흐름을 그대로 작품으로 옮기는 통로가 열려 있어요.'
+      '당신의 달이 창조 영역에 있어서, 마음의 흐름을 그대로 작품으로 옮기는 통로가 열려 있어요.'
     )
     p2piecesEn.push(
       'Moon in your 5th house opens a direct channel from emotion straight into the work you make.'

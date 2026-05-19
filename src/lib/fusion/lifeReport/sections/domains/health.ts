@@ -112,7 +112,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const p2ko = paragraph([
     sixthFlavor,
     marsSaturn
-      ? `행동의 별과 책임의 별이 ${aspectQuality(marsSaturn.type, 'ko')}, 스트레스가 ${marsSaturnFlavorKo(marsSaturn.type)} 모양으로 누적될 수 있어요.`
+      ? `당신의 화성과 토성이 ${aspectQuality(marsSaturn.type, 'ko')}, 스트레스가 ${marsSaturnFlavorKo(marsSaturn.type)} 모양으로 누적될 수 있어요.`
       : '',
   ])
   const p2en = paragraph([

@@ -183,13 +183,13 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   const deepKo: string[] = []
   const deepEn: string[] = []
   if (jupiter && jupiter.house === 5) {
-    deepKo.push('확장의 별이 창조 영역에 있어, 자녀가 행운과 확장의 통로가 되는 배치예요.')
+    deepKo.push('당신의 목성이 창조 영역에 있어서, 자녀가 행운과 확장의 통로가 되는 배치예요.')
     deepEn.push(
       'Jupiter in your 5th house makes children themselves a channel of luck and expansion.'
     )
   } else if (jupiter && jupiter.house) {
     deepKo.push(
-      `확장의 별이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`
+      `당신의 목성이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`
     )
     deepEn.push(
       `From your ${houseLabel(jupiter.house, 'en')}, Jupiter supports the area of children at an angle rather than directly.`
@@ -197,19 +197,19 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   }
   if (saturn && saturn.house === 5) {
     deepKo.push(
-      '책임의 별이 창조 영역에 있어, 자녀가 늦게 오거나 적은 수로 깊은 관계를 만드는 흐름이에요.'
+      '당신의 토성이 창조 영역에 있어서, 자녀가 늦게 오거나 적은 수로 깊은 관계를 만드는 편이에요.'
     )
     deepEn.push(
       'Saturn in your 5th house can delay children or keep the number smaller — but the bonds that form go deep.'
     )
   }
   if (moon && moon.house === 5) {
-    deepKo.push('감정의 별이 창조 영역에 있어, 자녀와의 정서 교감이 깊어요.')
+    deepKo.push('당신의 달이 창조 영역에 있어서, 자녀와의 정서 교감이 깊어요.')
     deepEn.push('Moon in your 5th house brings a deep emotional attunement with children.')
   }
   if (pa) {
     deepKo.push(
-      `지혜로운 양육의 별이 ${signLabel(pa.sign, 'ko')}에 머물러, 지혜롭게 키우는 성향이 있어요.`
+      `팔라스(지혜 양육)가 ${signLabel(pa.sign, 'ko')}에 있어서, 지혜롭게 키우는 성향이 있어요.`
     )
     deepEn.push(
       `Pallas in ${signLabel(pa.sign, 'en')} ${houseLabel(pa.house, 'en')} gives a wise-nurturing grain.`
@@ -217,7 +217,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   }
   if (ce) {
     deepKo.push(
-      `양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리잡아, ${ceresFlavorKo(ce.house)} 양육 스타일이 흘러요.`
+      `세레스(양육)가 ${signLabel(ce.sign, 'ko')}에 있어서, ${ceresFlavorKo(ce.house)} 양육 스타일이 흘러요.`
     )
     deepEn.push(
       `Ceres in ${signLabel(ce.sign, 'en')} ${houseLabel(ce.house, 'en')} brings ${ceresFlavorEn(ce.house)} nurturing.`

@@ -178,7 +178,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       ? `사회에 보여주는 모습은 ${signLabel(mc.sign, 'ko')}, ${mcSignFlavorKo(mc.sign)}이에요.`
       : '',
     sun
-      ? `자아의 별은 ${signLabel(sun.sign, 'ko')}${sun.house === 10 ? '의 사회 정점에 머물러' : sun.house ? `의 ${karmaHouseHintForCareerKo(sun.house)} 영역에 머물러` : '에 머물러'}, ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
+      ? `당신의 태양은 ${signLabel(sun.sign, 'ko')}${sun.house === 10 ? '의 사회 정점에 있어서' : sun.house ? `의 ${karmaHouseHintForCareerKo(sun.house)} 영역에 있어서` : '에 있어서'}, ${sunHouseFlavorKo(sun.house)}이 직업의 핵심이에요.`
       : '',
   ])
   // P1 — keep to max 2 pool variations (Sun sign + Sun house) so the basic
@@ -245,7 +245,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const deepPiecesEn: string[] = []
   if (marsSaturn) {
     deepPieces.push(
-      `행동의 별과 책임의 별이 ${aspectQuality(marsSaturn.type, 'ko')} 있어서, 추진력과 인내가 한 엔진처럼 같이 일해요.`
+      `당신의 화성과 토성이 ${aspectQuality(marsSaturn.type, 'ko')} 있어서, 추진력과 인내가 한 엔진처럼 같이 일해요.`
     )
     deepPiecesEn.push(
       `With Mars and Saturn ${aspectQuality(marsSaturn.type, 'en')} on the same axis, drive and endurance work together like a single engine.`
@@ -253,7 +253,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (sunMc) {
     deepPieces.push(
-      `자아의 빛과 사회 무대가 ${aspectQuality(sunMc.type, 'ko')}, 안과 밖이 어긋나지 않고 흘러요.`
+      `당신의 태양과 사회 무대(MC)가 ${aspectQuality(sunMc.type, 'ko')}, 안과 밖이 어긋나지 않고 흘러요.`
     )
     deepPiecesEn.push(
       `Your Sun and Midheaven ${aspectQuality(sunMc.type, 'en')}, which keeps your inner identity and your public role moving in the same direction.`
@@ -478,40 +478,40 @@ function paragraphOpenerKo(cat: string, geokguk: string, dayStem: string): strin
   const seed = dayStem ? dayStem.charCodeAt(0) : 0
   if (cat === '식상') {
     const variants = [
-      '당신은 표현하고 만들어내는 결을 타고났어요. 손으로 무언가를 풀어낼 때 가장 당신답게 흐를 수 있어요.',
+      '당신은 표현하고 만들어내는 분이에요. 손으로 무언가를 풀어낼 때 가장 당신다워요.',
       '당신의 직업은 만들고 표현하는 흐름이 중심이에요. 머릿속 그림이 결과물로 옮겨질 때 가장 살아나요.',
-      '창작과 표현이 직업 흐름의 무게추예요. 손끝과 입을 거쳐 풀려나갈 때 일이 잘 풀려요.',
+      '창작과 표현이 직업의 무게추예요. 손끝과 입을 거쳐 풀려나갈 때 일이 잘 풀려요.',
     ]
     return variants[seed % variants.length]!
   }
   if (cat === '관성') {
     const variants = [
-      '당신은 자리와 책임으로 자기를 증명하는 스타일이에요. 책임감 있는 흐름이 직업의 무게추로 작동해요.',
-      '직업의 무게중심은 책임과 자리에 있어요. 맡은 자리에서 흐름을 만들어낼 때 당신답게 빛나요.',
+      '당신은 자리와 책임으로 자기를 증명하시는 편이에요. 책임감 있게 움직일 때 직업이 잘 풀려요.',
+      '책임과 자리가 있을 때 직업이 가장 잘 풀려요. 맡은 자리에서 흐름을 만들 때 당신답게 빛나요.',
       '당신의 일은 권위와 역할로 색이 잡혀요. 책임을 짊어진 자리가 자기 증명의 무대가 돼요.',
     ]
     return variants[seed % variants.length]!
   }
   if (cat === '재성') {
     const variants = [
-      '당신은 실리와 결과로 움직이는 타입이에요. 재물과 자원이 직업적 목적을 손에 잡히게 끌어와요.',
+      '당신은 실리와 결과로 움직이시는 분이에요. 재물과 자원이 직업적 목적을 손에 잡히게 끌어와요.',
       '당신의 일은 실리와 자원에 닿을 때 가장 또렷해져요. 결과가 손에 잡히는 자리에서 본인 색이 살아요.',
-      '직업의 흐름은 자원을 굴리고 결과를 빚는 결로 잡혀요. 돈과 실리가 일의 무대를 넓혀줘요.',
+      '자원을 굴리고 결과를 빚어낼 때 직업 흐름이 잡혀요. 돈과 실리가 일의 무대를 넓혀줘요.',
     ]
     return variants[seed % variants.length]!
   }
   if (cat === '인성') {
     const variants = [
-      '당신은 배우고 정리해서 흐름을 만드는 결이에요. 지혜와 돌봄이 직업의 토대가 돼요.',
-      '직업의 무게는 배움과 정리하는 힘에 실려요. 익히고 다듬는 자리에서 흐름이 잘 풀려요.',
+      '당신은 배우고 정리해서 흐름을 만드시는 분이에요. 지혜와 돌봄이 직업의 토대가 돼요.',
+      '배움과 정리하는 힘이 있을 때 직업이 잘 풀려요. 익히고 다듬는 자리에서 흐름이 살아나요.',
       '당신의 일은 학습과 돌봄이 받쳐줘요. 지혜를 모으는 자리에서 직업이 단단해져요.',
     ]
     return variants[seed % variants.length]!
   }
   if (cat === '비겁') {
     const variants = [
-      '당신은 동등한 사람들과 함께 있을 때 가장 빛나는 스타일이에요. 함께 걷는 흐름 속에서 자기 주도성이 단단해져요.',
-      '직업의 무게중심은 동료와 함께 가는 호흡에 실려요. 같은 방향을 보는 사람들이 곁에 있을 때 일이 매끄러워져요.',
+      '당신은 동등한 사람들과 함께 있을 때 가장 빛나시는 분이에요. 함께 걷는 흐름 속에서 자기 주도성이 단단해져요.',
+      '동료와 함께 가는 일에서 직업이 가장 잘 풀려요. 같은 방향을 보는 사람들이 곁에 있을 때 일이 매끄러워져요.',
       '당신의 일은 협업과 선의의 경쟁 속에서 잘 풀려요. 어깨를 나란히 하는 자리가 자기 색을 키워줘요.',
     ]
     return variants[seed % variants.length]!
