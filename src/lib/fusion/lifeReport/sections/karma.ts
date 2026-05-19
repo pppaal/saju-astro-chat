@@ -67,8 +67,7 @@ function karmaGeokgukShortKo(g: string): string {
 // 격국 → natural English (raw 사주 용어 없이) — karma 섹션 전용.
 function karmaGeokgukShortEn(g: string): string {
   if (!g) return 'its native shape'
-  if (g.includes('편관'))
-    return 'a pressure-as-fuel path, carrying weight through challenge and responsibility'
+  if (g.includes('편관')) return 'a pressure-as-fuel path, carrying weight through challenge and responsibility'
   if (g.includes('정관')) return 'a steady-authority path, settling into responsibility'
   if (g.includes('편재')) return 'an opportunistic-resource sense, catching openings as they pass'
   if (g.includes('정재')) return 'a steady-resource path, building up patiently'
@@ -100,30 +99,16 @@ function ordinalShortKarma(n: number): string {
 // 60갑자 일주 (e.g. "庚辰") → natural English label without hanja.
 // Composes stem + branch English names so callers see e.g. "Yang Metal Dragon".
 const ILJU_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood',
-  乙: 'Yin Wood',
-  丙: 'Yang Fire',
-  丁: 'Yin Fire',
-  戊: 'Yang Earth',
-  己: 'Yin Earth',
-  庚: 'Yang Metal',
-  辛: 'Yin Metal',
-  壬: 'Yang Water',
-  癸: 'Yin Water',
+  甲: 'Yang Wood', 乙: 'Yin Wood',
+  丙: 'Yang Fire', 丁: 'Yin Fire',
+  戊: 'Yang Earth', 己: 'Yin Earth',
+  庚: 'Yang Metal', 辛: 'Yin Metal',
+  壬: 'Yang Water', 癸: 'Yin Water',
 }
 const ILJU_BRANCH_EN: Record<string, string> = {
-  子: 'Rat',
-  丑: 'Ox',
-  寅: 'Tiger',
-  卯: 'Rabbit',
-  辰: 'Dragon',
-  巳: 'Snake',
-  午: 'Horse',
-  未: 'Goat',
-  申: 'Monkey',
-  酉: 'Rooster',
-  戌: 'Dog',
-  亥: 'Pig',
+  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
+  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
+  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
 }
 function iljuLabelEn(ilju: string): string {
   if (!ilju) return 'native day-pillar'
@@ -307,7 +292,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       ? `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? `'s ${ordinalShortKarma(nn.house)} house` : ''} — the direction your soul wants to grow.`
       : '',
     ys
-      ? `Your balancing element is ${elementFlavorEn(ys)} — bringing it into daily life lets the soul unfold.`
+      ? `Your supportive element is ${elementFlavorEn(ys)} — weaving it into daily life lets the soul unfold.`
       : '',
   ])
 
@@ -328,7 +313,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       : '',
   ])
   const p2en = paragraph([
-    `Your karma archetype reads as ${KARMA_ARCHETYPE_EN[karmaType]} — ${KARMA_DESC_EN[karmaType]}`,
+    `Your karma archetype comes through as ${KARMA_ARCHETYPE_EN[karmaType]} — ${KARMA_DESC_EN[karmaType]}`,
     `Roughly ${Math.round(fixedRatio * 100)}% is the fated portion; ${Math.round(flexibleRatio * 100)}% is the flexible portion you reshape through choice.`,
     dmRoot ? dmRoot.phraseEn : '',
     gongmang.length > 0
@@ -477,30 +462,26 @@ export function buildKarma(input: BuilderInput): KarmaSection {
         `사주 안에 결합과 충돌의 흐름이 함께 ${total}회 일어나, 인생이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`
       )
       p6piecesEn.push(
-        `Inside your chart, both harmony and clash currents appear (${total} interactions in total) — this life resolves karma through simultaneous union and severance.`
+        `Inside your chart, both harmony and clash currents appear (${total} interactions in total) — this life resolves karma through simultaneous union and severance.`,
       )
     } else if (hc.hapCount > 0) {
       p6pieces.push(
         `사주 안 결합의 흐름이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`
       )
       p6piecesEn.push(
-        `Your chart shows ${hc.hapCount} harmony-joinings — karma resolves by joining people and currents.`
+        `Your chart shows ${hc.hapCount} harmony-joinings — karma resolves by joining people and currents.`,
       )
     } else if (hc.chungCount > 0) {
       p6pieces.push(
         `사주 안 충돌의 흐름이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`
       )
       p6piecesEn.push(
-        `Your chart shows ${hc.chungCount} clash-currents — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`
+        `Your chart shows ${hc.chungCount} clash-currents — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`,
       )
     }
     if (hc.hyungCount > 0) {
-      p6pieces.push(
-        '형벌의 흐름도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.'
-      )
-      p6piecesEn.push(
-        "A reshaping penalty-accent runs through your chart — refining an unbending sense of justice is one of this life's rites of passage."
-      )
+      p6pieces.push('형벌의 흐름도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
+      p6piecesEn.push('A reshaping penalty-accent runs through your chart — refining an unbending sense of justice is one of this life\'s rites of passage.')
     }
   }
   if (twelve) {
@@ -511,26 +492,14 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       ).length
       const weak = stages.filter((s) => ['병', '사', '묘', '절', '태'].includes(s)).length
       if (strong >= 2) {
-        p6pieces.push(
-          '4기둥의 12운성을 종합하면, 인생의 무게추가 발산과 자립 쪽으로 기울어 있어요. 카르마도 적극적으로 만들어가는 길이 맞아요.'
-        )
-        p6piecesEn.push(
-          'Across your four pillars, the life-cycle stages tilt toward emanation and self-standing — your karma is actively shaped, not merely received.'
-        )
+        p6pieces.push('4기둥의 12운성을 종합하면, 인생의 무게추가 발산과 자립 쪽으로 기울어 있어요. 카르마도 적극적으로 만들어가는 길이 맞아요.')
+        p6piecesEn.push('Across your four pillars, the life-cycle stages tilt toward emanation and self-standing — your karma is actively shaped, not merely received.')
       } else if (weak >= 2) {
-        p6pieces.push(
-          '4기둥의 12운성이 수렴과 마무리 쪽으로 기울어 있어요. 카르마는 정리와 결산으로 풀려요.'
-        )
-        p6piecesEn.push(
-          'The four-pillar life-cycle stages tilt toward closure and inwardness — karma resolves through completion and settling accounts.'
-        )
+        p6pieces.push('4기둥의 12운성이 수렴과 마무리 쪽으로 기울어 있어요. 카르마는 정리와 결산으로 풀려요.')
+        p6piecesEn.push('The four-pillar life-cycle stages tilt toward closure and inwardness — karma resolves through completion and settling accounts.')
       } else {
-        p6pieces.push(
-          '4기둥의 12운성이 강약 양쪽에 골고루 분포해서, 시기에 따라 발산과 수렴을 오가는 흐름이에요.'
-        )
-        p6piecesEn.push(
-          'Your four-pillar life-cycle stages spread evenly between strong and weak — you alternate between releasing and consolidating.'
-        )
+        p6pieces.push('4기둥의 12운성이 강약 양쪽에 골고루 분포해서, 시기에 따라 발산과 수렴을 오가는 흐름이에요.')
+        p6piecesEn.push('Your four-pillar life-cycle stages spread evenly between strong and weak — you alternate between releasing and consolidating.')
       }
     }
   }
@@ -553,11 +522,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
         ]
   )
   const p6en = paragraph(
-    p6piecesEn.length
-      ? p6piecesEn
-      : [
-          'Internal harmony and clash sit calmly arranged — your karma works through daily grain rather than dramatic events.',
-        ]
+    p6piecesEn.length ? p6piecesEn : ['Internal harmony and clash sit calmly arranged — your karma works through daily grain rather than dramatic events.'],
   )
 
   const paragraphs: Paragraph[] = [

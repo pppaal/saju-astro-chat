@@ -696,7 +696,7 @@ function pickPrimaryAxis(
     year: '년주', month: '월주', day: '일간', time: '시지',
   }
   const pillarsLabelEn: Record<string, string> = {
-    year: 'year pillar', month: 'month pillar', day: 'day master', time: 'hour pillar',
+    year: 'early-life pillar', month: 'young-adulthood pillar', day: 'core nature', time: 'late-life pillar',
   }
   const kindVerbKo: Record<SajuRelationEntry['kind'], string> = {
     합: '조화롭게 결합해서',

@@ -128,7 +128,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   if (inseong >= 2) {
     p2pieces.push('지혜와 돌봄의 자질이 강해서, 가르침을 받아 전하는 흐름이 영성의 뼈대가 돼요.')
     p2piecesEn.push(
-      'A strong wisdom-and-care current frames spirituality as receiving teaching and passing it on.'
+      'A strong wisdom-and-care pattern frames spirituality as receiving teaching and passing it on.'
     )
   }
   const p2ko = paragraph(
@@ -428,30 +428,16 @@ function signSoulEn(sign: string): string {
 
 // 60갑자 일주 (hanja) → natural English label (spirituality 섹션 전용).
 const SPIRIT_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood',
-  乙: 'Yin Wood',
-  丙: 'Yang Fire',
-  丁: 'Yin Fire',
-  戊: 'Yang Earth',
-  己: 'Yin Earth',
-  庚: 'Yang Metal',
-  辛: 'Yin Metal',
-  壬: 'Yang Water',
-  癸: 'Yin Water',
+  甲: 'Yang Wood', 乙: 'Yin Wood',
+  丙: 'Yang Fire', 丁: 'Yin Fire',
+  戊: 'Yang Earth', 己: 'Yin Earth',
+  庚: 'Yang Metal', 辛: 'Yin Metal',
+  壬: 'Yang Water', 癸: 'Yin Water',
 }
 const SPIRIT_BRANCH_EN: Record<string, string> = {
-  子: 'Rat',
-  丑: 'Ox',
-  寅: 'Tiger',
-  卯: 'Rabbit',
-  辰: 'Dragon',
-  巳: 'Snake',
-  午: 'Horse',
-  未: 'Goat',
-  申: 'Monkey',
-  酉: 'Rooster',
-  戌: 'Dog',
-  亥: 'Pig',
+  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
+  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
+  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
 }
 function iljuLabelEnSpirit(ilju: string | undefined): string {
   if (!ilju) return 'native day-pillar'

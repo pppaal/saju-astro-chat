@@ -87,12 +87,12 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       : '',
   ])
   const p1en = paragraph([
-    'The large grain of your health begins with five-element balance.',
+    'The big picture of your health starts with five-element balance.',
     weak.length > 0
       ? `Weak in ${weakLabelsEn.join('/')}, so ${organEn(weak)} need ongoing care.`
       : 'Your five elements sit relatively even, so no single weakness dominates.',
     yongsin
-      ? `Your balancing element is ${yongsinElementEnHealth(yongsin)}, so ${yongsinFlavorEn(yongsin)} is the daily reinforcement direction.`
+      ? `Your supportive element is ${yongsinElementEnHealth(yongsin)}, so ${yongsinFlavorEn(yongsin)} is the daily way to reinforce it.`
       : '',
   ])
 
@@ -135,9 +135,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (iljuHealthVar) {
     sajuUsed.push('pools.ilju.health')
     deepKo.push(`${iljuHealthVar}.`)
-    deepEn.push(
-      `Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) flags this constitutional pattern.`
-    )
+    deepEn.push(`Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) flags this constitutional pattern.`)
   }
 
   if (ch) {
@@ -418,30 +416,16 @@ function yongsinElementEnHealth(y: string): string {
 
 // 60갑자 일주 → natural English (health 섹션).
 const HEALTH_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood',
-  乙: 'Yin Wood',
-  丙: 'Yang Fire',
-  丁: 'Yin Fire',
-  戊: 'Yang Earth',
-  己: 'Yin Earth',
-  庚: 'Yang Metal',
-  辛: 'Yin Metal',
-  壬: 'Yang Water',
-  癸: 'Yin Water',
+  甲: 'Yang Wood', 乙: 'Yin Wood',
+  丙: 'Yang Fire', 丁: 'Yin Fire',
+  戊: 'Yang Earth', 己: 'Yin Earth',
+  庚: 'Yang Metal', 辛: 'Yin Metal',
+  壬: 'Yang Water', 癸: 'Yin Water',
 }
 const HEALTH_BRANCH_EN: Record<string, string> = {
-  子: 'Rat',
-  丑: 'Ox',
-  寅: 'Tiger',
-  卯: 'Rabbit',
-  辰: 'Dragon',
-  巳: 'Snake',
-  午: 'Horse',
-  未: 'Goat',
-  申: 'Monkey',
-  酉: 'Rooster',
-  戌: 'Dog',
-  亥: 'Pig',
+  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
+  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
+  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
 }
 function iljuLabelEnHealth(ilju: string | undefined): string {
   if (!ilju) return 'native day-pillar'

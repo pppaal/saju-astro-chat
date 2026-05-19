@@ -83,13 +83,13 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   ])
   const p1en = paragraph([
     inseong >= 2
-      ? 'Your bond with the mother and care-line runs naturally deep.'
+      ? 'Your bond with the mother and caregiver line runs naturally deep.'
       : inseong === 0
-        ? 'Your bond with the mother and care-line is built through conscious effort.'
+        ? 'Your bond with the mother and caregiver line is built through conscious effort.'
         : 'Your family grain runs as a quiet, steady undercurrent.',
-    `Your chart carries ${familyCountLabelEn(inseong)} of the care-line and ${familyCountLabelEn(bijeon)} of the peer-line — ${familyShapeEn(inseong, bijeon)}.`,
+    `Your chart carries ${familyCountLabelEn(inseong)} of the caregiver line and ${familyCountLabelEn(bijeon)} of the sibling-and-peer line — ${familyShapeEn(inseong, bijeon)}.`,
     fourth
-      ? `Your 4th house opens in ${signLabel(fourth.sign, 'en')}, so the grain of home is ${fourthSignFlavorEn(fourth.sign)}.`
+      ? `Your 4th house begins in ${signLabel(fourth.sign, 'en')}, so the feel of home is ${fourthSignFlavorEn(fourth.sign)}.`
       : '',
   ])
 
@@ -111,14 +111,13 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       ? `${pillarKoNatural(bijeonPos.pillarKey)}에 형제·동료의 결이 또렷이 자리잡아, 형제·동료 라인의 결이 인생 한 축으로 자리해요.`
       : ''
   const inseongLineEn = inseongPos
-    ? inseongPos.pillarKey === 'month'
-      ? 'With the care-line sitting at your young-adulthood seat, the mother and care-line sit at the centre of your chart.'
-      : `Because the care-line sits at your ${familyPillarSeatEn(inseongPos.pillarKey)}, the mother and care-line enter from that seat.`
+    ? (inseongPos.pillarKey === 'month'
+        ? 'With the caregiver line sitting at your young-adulthood seat, the mother and caregiver line sit at the centre of your chart.'
+        : `Because the caregiver line sits at your ${familyPillarSeatEn(inseongPos.pillarKey)}, the mother and caregiver line enter from that seat.`)
     : ''
-  const bijeonLineEn =
-    bijeonPos && bijeon >= 2
-      ? `With the peer-line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
-      : ''
+  const bijeonLineEn = bijeonPos && bijeon >= 2
+    ? `With the sibling-and-peer line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
+    : ''
   const p2ko = paragraph([
     sun
       ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 사람이에요.`
@@ -144,9 +143,9 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     inseongLineEn,
     bijeonLineEn,
     bijeon >= 2
-      ? 'A rich peer-line means siblings and equal-peers occupy a large seat in your life.'
+      ? 'A rich sibling-and-peer line means siblings and equal-peers occupy a large seat in your life.'
       : bijeon === 0
-        ? 'With the peer-line absent, peer-equal bonds form by conscious choice rather than default.'
+        ? 'With the sibling-and-peer line absent, peer-equal bonds form by conscious choice rather than default.'
         : '',
   ])
 
@@ -365,19 +364,19 @@ function familyCountFlavorKo(n: number): string {
   return '풍성하게'
 }
 function familyShapeEn(inseong: number, bijeon: number): string {
-  if (inseong >= 2 && bijeon >= 2) return 'both care and peer-bonds run rich'
-  if (inseong >= 2) return 'a thick care-line with a quieter sibling-line'
-  if (bijeon >= 2) return 'a thick peer-line with a quieter care-line'
-  if (inseong === 0 && bijeon === 0) return 'a light family-signal — you build your own new family'
-  return 'care and peer-bond run in a balanced grain'
+  if (inseong >= 2 && bijeon >= 2) return 'both caregiving and peer bonds run rich'
+  if (inseong >= 2) return 'a thick caregiver line with a quieter sibling bond'
+  if (bijeon >= 2) return 'a thick sibling-and-peer line with a quieter caregiver line'
+  if (inseong === 0 && bijeon === 0) return 'a light family signal — you build your own new family'
+  return 'caregiving and peer bonds run in a balanced weave'
 }
 
-// 인성/비겁 count → natural English label ("two strands", "one quiet strand", etc.).
+// 인성/비겁 count → natural English label ("two threads", "one quiet thread", etc.).
 function familyCountLabelEn(n: number): string {
-  if (n === 0) return 'no live strand'
-  if (n === 1) return 'one quiet strand'
-  if (n === 2) return 'two clear strands'
-  return 'many strands'
+  if (n === 0) return 'no active thread'
+  if (n === 1) return 'one quiet thread'
+  if (n === 2) return 'two clear threads'
+  return 'many threads'
 }
 
 // 사주 raw 기둥 키 → natural English seat label (family 섹션 전용).

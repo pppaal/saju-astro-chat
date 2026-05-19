@@ -87,11 +87,7 @@ const LIFECYCLE_TO_DOMAIN: Record<
     en: 'late-career consolidation',
   },
   jupiter_return_2: { domain: 'career', ko: '진로 큰 그림이 잡히는 때', en: 'career big picture' },
-  jupiter_return_5: {
-    domain: 'wealth',
-    ko: '환갑의 전환, 후반 인생 첫 사이클',
-    en: 'a 60-year turning point, the first cycle of the second half of life',
-  },
+  jupiter_return_5: { domain: 'wealth', ko: '환갑의 전환, 후반 인생 첫 사이클', en: 'a 60-year turning point, the first cycle of the second half of life' },
   uranus_opposition: { domain: 'crisis', ko: '중년 자유의 각성', en: 'midlife awakening' },
   pluto_square_pluto: {
     domain: 'crisis',
@@ -423,7 +419,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       `사주 안에 ${dominant}이 강해서, 이번 시기엔 ${hc.chungCount >= hc.hapCount ? '결정과 단절을 미루지 않을 때' : '함께하는 사람과의 결합'}이 운을 끌어와요.`
     )
     p6piecesEn.push(
-      `Your chart carries ${dominantEn} — this season ${hc.chungCount >= hc.hapCount ? 'decisions and clean breaks pull luck in' : 'partnerships pull luck in'}.`
+      `Your chart carries ${dominantEn} — this season ${hc.chungCount >= hc.hapCount ? 'decisions and clean breaks pull luck in' : 'partnerships pull luck in'}.`,
     )
   }
   const p6ko = p6pieces.length

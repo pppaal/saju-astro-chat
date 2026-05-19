@@ -121,7 +121,7 @@ export function buildHeadline(input: BuilderInput): Headline {
 
   // ─ Sentence 1 — saju identity (짧고 단단하게)
   const stemLabelKo = STEM_LABEL[dayStem] || dayStem || '본성'
-  const stemLabelEn = STEM_LABEL_EN[dayStem] || dayStem || 'day master'
+  const stemLabelEn = STEM_LABEL_EN[dayStem] || dayStem || 'core nature'
   const strengthKo = STRENGTH_LABEL_KO[strength] || ''
   const strengthEn = STRENGTH_LABEL_EN[strength] || ''
   const geokgukKo = geokguk ? ` 삶의 큰 흐름은 ${geokgukFlavorKo(geokguk)}이에요.` : ''
@@ -137,7 +137,8 @@ export function buildHeadline(input: BuilderInput): Headline {
   const s1ko =
     `당신은 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} 성향을 타고난 사람이에요.` +
     `${geokgukKo}${jongKo}${rootKo}`
-  const s1en = `You are born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEn}`
+  const s1en =
+    `You are born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEn}`
 
   // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
   // "별" 단어를 한 문장 안에서 최대 1회로 제한 — 자아=태양, 감정=달은
@@ -156,15 +157,23 @@ export function buildHeadline(input: BuilderInput): Headline {
   const ascPartEn = asc ? `the world first reads you as ${signLabel(asc.sign, 'en')} rising` : ''
   const skyPartsEn = [sunPartEn, moonPartEn, ascPartEn].filter(Boolean).join(' · ')
 
-  const s2ko = skyParts ? `별의 결로 보면 ${skyParts}.` : ''
-  const s2en = skyPartsEn ? `On the astrology side, ${skyPartsEn}.` : ''
+  const s2ko = skyParts
+    ? `별의 결로 보면 ${skyParts}.`
+    : ''
+  const s2en = skyPartsEn
+    ? `On the astrology side, ${skyPartsEn}.`
+    : ''
 
   // ─ Sentence 3 — fusion theme (짧게, iljuChar raw 제거)
   const domEl = el?.dominant
   const domModality = mod?.dominant
   const lackEl = el?.lacking
-  const balanceFlavorKo = domEl ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.` : ''
-  const balanceFlavorEn = domEl ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity` : ''
+  const balanceFlavorKo = domEl
+    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.`
+    : ''
+  const balanceFlavorEn = domEl
+    ? `${ELEMENT_FLAVOR_EN[domEl]} anchors your chart`
+    : ''
   // 모달리티 + 인생 이끄는 별을 한 문장으로 묶어 짧은 문장 연속을 부드럽게 함
   const modPlanetKo = (() => {
     const modPart = domModality ? modalityKo(domModality) : ''
@@ -182,8 +191,14 @@ export function buildHeadline(input: BuilderInput): Headline {
   // iljuCharacter는 한국어 텍스트라 영어 narrative에는 노출하지 않음.
   void iljuChar
 
-  const s3ko = paragraphJoin([balanceFlavorKo, modPlanetKo, lackKo])
-  const s3en = paragraphJoin([balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.'])
+  const s3ko = paragraphJoin([
+    balanceFlavorKo,
+    modPlanetKo,
+    lackKo,
+  ])
+  const s3en = paragraphJoin([
+    balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.',
+  ])
 
   return {
     ko: paragraphJoin([s1ko, s2ko, s3ko]),
@@ -222,8 +237,7 @@ function geokgukFlavorKo(g: string): string {
 // 격국 → 자연 영어 (raw 사주 용어 제거).
 function geokgukFlavorEn(g: string): string {
   if (!g) return 'its own native shape'
-  if (g.includes('편관'))
-    return 'a pressure-as-fuel pattern, where challenge and responsibility press in as weight'
+  if (g.includes('편관')) return 'a pressure-as-fuel pattern, where challenge and responsibility press in as weight'
   if (g.includes('정관')) return 'a steady-authority pattern, settling into role and responsibility'
   if (g.includes('편재')) return 'an opportunistic-resource pattern, with a quick eye for openings'
   if (g.includes('정재')) return 'a steady-resource pattern, building wealth slowly and surely'
@@ -231,8 +245,7 @@ function geokgukFlavorEn(g: string): string {
   if (g.includes('상관')) return 'a free-talent pattern, releasing skill without strict form'
   if (g.includes('편인')) return 'an unconventional-wisdom pattern, with a singular intuition'
   if (g.includes('정인')) return 'an orthodox-wisdom pattern, flowing through learning and care'
-  if (g.includes('비견') || g.includes('겁재'))
-    return 'a peer-driven pattern, walking forward together with equals'
+  if (g.includes('비견') || g.includes('겁재')) return 'a peer-driven pattern, walking forward together with equals'
   return 'its own native shape'
 }
 
