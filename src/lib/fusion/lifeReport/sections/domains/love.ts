@@ -7,12 +7,16 @@ import {
   countSibsin,
   currentDaeun,
   dayBranch,
+  extractSibsinPatterns,
   findDaeunByCategory,
   relationPhraseEn,
   relationPhraseKo,
+  sibsinPatternsForDomain,
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
+  aspectsOf,
+  fixedStarOn,
   getPlanet,
   houseCusp,
   juno,
@@ -267,6 +271,53 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (iljuLoveVar) {
     sajuUsed.push('pools.ilju.love')
     deepKo.push(`${iljuLoveVar}.`)
+  }
+  // Fixed stars near Venus / Mars — 사랑의 결에 별빛이 더해지는 결.
+  const fxOnVenus = venus ? fixedStarOn(astro, 'Venus') : []
+  if (fxOnVenus.length > 0) {
+    astroUsed.push('fixedStars(Venus)')
+    deepKo.push(
+      `금성과 함께 자리한 별 ${fxOnVenus.join('·')}이(가) 사랑에 특별한 결을 더해요.`
+    )
+    deepEn.push(
+      `Fixed star(s) ${fxOnVenus.join(', ')} sit alongside your Venus, etching a distinct grain into love.`
+    )
+  }
+  const fxOnMars = mars ? fixedStarOn(astro, 'Mars') : []
+  if (fxOnMars.length > 0) {
+    astroUsed.push('fixedStars(Mars)')
+    deepKo.push(
+      `화성에 닿는 별빛 ${fxOnMars.join('·')}이(가) 끌림의 톤을 한층 진하게 만들어요.`
+    )
+    deepEn.push(
+      `Fixed star(s) ${fxOnMars.join(', ')} touch your Mars, deepening the grain of attraction.`
+    )
+  }
+  // Sibsin combination patterns relevant to love (재성/관성 grouping).
+  const patternsLove = extractSibsinPatterns(saju)
+  const loveSibsinPatterns = sibsinPatternsForDomain(patternsLove, 'love')
+  if (loveSibsinPatterns.length > 0) {
+    sajuUsed.push('sibsin.patterns')
+    const top = loveSibsinPatterns[0]
+    if (top.name === '재성과다') {
+      deepKo.push('재성의 결이 강하게 몰려서, 사랑에서도 손에 잡히는 결과·약속의 색을 선호하게 돼요.')
+      deepEn.push('A heavy 재성 grain — in love too you favour tangible commitments and outcomes.')
+    } else if (top.name === '관살혼잡') {
+      deepKo.push('관의 결이 두 갈래로 흘러, 사랑에서도 두 방향의 끌림이 같이 살아 있을 수 있어요.')
+      deepEn.push('Two strands of 관 grain — two directions of attraction can coexist in love.')
+    } else if (top.name === '균형사주') {
+      deepKo.push('십신이 고르게 분포해서, 사랑의 결도 한쪽으로 치우치지 않고 무난히 흐르는 자리예요.')
+      deepEn.push('Sibsin is balanced — love also runs without a single dominating grain.')
+    }
+  }
+  // Minor aspect — Venus-Mars quincunx/semisextile colours the attraction grain.
+  if (venusMars && (venusMars.type === 'quincunx' || venusMars.type === 'semisextile' || venusMars.type === 'quintile')) {
+    deepKo.push(
+      `사랑의 별과 행동의 별이 ${aspectQuality(venusMars.type, 'ko')} 있어서, 끌림의 결에 ${venusMarsMinorFlavorKo(venusMars.type)}이 함께해요.`
+    )
+    deepEn.push(
+      `Venus and Mars ${aspectQuality(venusMars.type, 'en')}, adding ${venusMarsMinorFlavorEn(venusMars.type)} to the attraction grain.`
+    )
   }
   // Lot of Eros now adds 끌림 colour at P3 (separate from existing P4 timing line)
   const erosLot = input.calendarSignals?.arabicParts?.Eros
@@ -569,4 +620,19 @@ function erosSignFlavorKoLove(sign: string): string {
 }
 function erosSignFlavorEnLove(sign: string): string {
   return EROS_SIGN_EN[sign] ?? 'singular'
+}
+
+
+// Venus-Mars minor aspect flavour (love P3).
+function venusMarsMinorFlavorKo(type: string): string {
+  if (type === 'quincunx') return '어색한 조정의 결'
+  if (type === 'semisextile') return '은근한 자극'
+  if (type === 'quintile') return '창의적 연결'
+  return '미묘한 결'
+}
+function venusMarsMinorFlavorEn(type: string): string {
+  if (type === 'quincunx') return 'an awkward-adjustment grain'
+  if (type === 'semisextile') return 'a quiet nudge'
+  if (type === 'quintile') return 'a creative connection'
+  return 'a subtle grain'
 }

@@ -19,6 +19,13 @@ export function aspectQuality(type: string, lang: Lang): string {
     return lang === 'ko' ? '양극을 마주 보게 하고' : 'forces a confrontation of poles'
   if (type === 'conjunction')
     return lang === 'ko' ? '한 점으로 응축되고' : 'concentrates into one point'
+  // ── Minor aspects — naturalized (no jargon/한자/약자 0).
+  if (type === 'quincunx')
+    return lang === 'ko' ? '어색한 각도로 만나고' : 'meets at an awkward angle'
+  if (type === 'semisextile')
+    return lang === 'ko' ? '은근한 자극을 주고받고' : 'exchanges a quiet nudge'
+  if (type === 'quintile' || type === 'biquintile')
+    return lang === 'ko' ? '창의적 결로 이어지고' : 'connects in a creative grain'
   return lang === 'ko' ? '미묘한 결을 만들고' : 'forms a subtle resonance'
 }
 

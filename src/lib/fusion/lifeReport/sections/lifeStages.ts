@@ -22,6 +22,7 @@ import {
   jonggeokType,
 } from '../signals/sajuSignals'
 import { findPlanet } from '../signals/astroSynthesis'
+import { nearestEclipses } from '../signals/astroSignals'
 import {
   eventsInAgeRange,
   type AstroLifecycleEvent,
@@ -235,17 +236,41 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   )
 
   // ───────────────────── 文단 3: 도전·성취
+  // Early stage(초년기)에는 출생 직전·직후 일식·월식이 이 시기의 결을 새깁니다.
+  let earlyEclipseKo = ''
+  let earlyEclipseEn = ''
+  if (range.id === 'early') {
+    const eclipses = nearestEclipses(astro)
+    if (eclipses.length > 0) {
+      astroUsed.push('eclipses.nearest')
+      const solar = eclipses.find((e) => e.type === 'solar')
+      const lunar = eclipses.find((e) => e.type === 'lunar')
+      if (solar) {
+        const signKo = solar.sign ? signLabel(solar.sign, 'ko') : ''
+        earlyEclipseKo = `출생 즈음 ${signKo ? signKo + ' 자리의 ' : ''}일식의 영향으로, 초년기의 정체성에 큰 결이 한 번 새겨져요.`
+        const signEn = solar.sign ? signLabel(solar.sign, 'en') : ''
+        earlyEclipseEn = `A solar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} stamps an identity-marker into the early years.`
+      } else if (lunar) {
+        const signKo = lunar.sign ? signLabel(lunar.sign, 'ko') : ''
+        earlyEclipseKo = `출생 즈음 ${signKo ? signKo + ' 자리의 ' : ''}월식의 영향으로, 초년기의 감정 결에 깊은 변곡이 한 번 새겨져요.`
+        const signEn = lunar.sign ? signLabel(lunar.sign, 'en') : ''
+        earlyEclipseEn = `A lunar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} sets a deep emotional bend through the early years.`
+      }
+    }
+  }
   const p3ko = paragraph([
     challengePieceKo(range.id, stageTwelve, geokguk, jong, lifecycleEvts),
     sun && range.id === 'middle'
       ? `${signLabel(sun.sign, 'ko')}의 자아 색깔이 이 시기에 가장 진하게 드러나요.`
       : '',
+    earlyEclipseKo,
   ])
   const p3en = paragraph([
     challengePieceEn(range.id, stageTwelve, geokguk, jong, lifecycleEvts),
     sun && range.id === 'middle'
       ? `Your ${signLabel(sun.sign, 'en')} Sun shows its truest colour through this window.`
       : '',
+    earlyEclipseEn,
   ])
 
   // ───────────────────── 文단 4: 한 줄 조언

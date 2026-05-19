@@ -14,6 +14,7 @@ import {
   aspectBetween,
   aspectsOf,
   chiron,
+  declinationAspects,
   getPlanet,
   outOfBoundsPlanets,
   planetsInHouse,
@@ -146,6 +147,30 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     deepEn.push(
       `Furthermore, ${oob.join(', ')} run out-of-bounds in declination, which can produce health patterns that exceed the average range.`
     )
+  }
+  // Declination aspects — parallel(같은 결) / contraparallel(마주보는 결)
+  // 행성 결합으로 본 신체 리듬의 결.
+  const decls = declinationAspects(astro)
+  if (decls.length > 0) {
+    astroUsed.push('declinations.aspects')
+    const par = decls.find((d) => d.kind === 'parallel')
+    const contra = decls.find((d) => d.kind === 'contraparallel')
+    if (par) {
+      deepKo.push(
+        `${planetLabelHealthKo(par.a)}과 ${planetLabelHealthKo(par.b)}이 평행 결의 만남을 이루어, 두 별의 흐름이 같은 결로 몸의 리듬을 만들어요.`
+      )
+      deepEn.push(
+        `${par.a} and ${par.b} share a parallel declination — their currents braid into a single grain in the body rhythm.`
+      )
+    }
+    if (contra) {
+      deepKo.push(
+        `${planetLabelHealthKo(contra.a)}과 ${planetLabelHealthKo(contra.b)}이 마주보는 결의 긴장을 이루어, 두 흐름이 균형을 맞추기 위한 작은 부하가 몸에 새겨져요.`
+      )
+      deepEn.push(
+        `${contra.a} and ${contra.b} sit in contraparallel declination — a small balancing load is etched into the body grain.`
+      )
+    }
   }
   if (eclipses?.degree !== undefined) {
     deepKo.push(

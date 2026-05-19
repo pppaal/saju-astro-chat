@@ -11,6 +11,7 @@
 
 import type { BuilderInput, KarmaSection, Paragraph } from '../types'
 import {
+  dayMasterRoot,
   fiveElements,
   geokgukType,
   gongmangAffectedPillars,
@@ -22,6 +23,7 @@ import {
 } from '../signals/sajuSignals'
 import {
   chiron,
+  nearestEclipses,
   partOfFortune,
   planetsInHouse,
 } from '../signals/astroSignals'
@@ -205,10 +207,15 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       : '',
   ])
 
-  // ──────── 文단 2: 카르마 패턴 (공망 + 12집 + South Node 영역)
+  // ──────── 文단 2: 카르마 패턴 (공망 + 12집 + South Node 영역 + 통근)
+  // 일간의 통근 — 카르마가 자기 안에서 풀리는지(strong root) 외부에서
+  // 풀리는지(weak/none) 결정하는 신호로 자연 통합.
+  const dmRoot = dayMasterRoot(saju)
+  if (dmRoot) sajuUsed.push('tonggeun.dayMasterRoot')
   const p2ko = paragraph([
     `카르마 유형은 ${karmaType}이에요. ${KARMA_DESC_KO[karmaType]}`,
     `약 ${Math.round(fixedRatio * 100)}%는 타고난 부분이고, ${Math.round(flexibleRatio * 100)}%는 선택과 노력으로 바꿀 수 있어요.`,
+    dmRoot ? dmRoot.phraseKo : '',
     gongmang.length > 0
       ? `삶의 ${gongmang.join('·')} 영역에 비어 있는 자리가 있어서 채워지지 않는 감각이 들 수 있어요. 이게 바로 영혼이 다음 단계로 넘어가도록 미는 부름이에요.`
       : '',
@@ -219,6 +226,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const p2en = paragraph([
     `Your karma archetype is ${karmaType} — ${KARMA_DESC_EN[karmaType]}`,
     `Roughly ${Math.round(fixedRatio * 100)}% is the fated portion; ${Math.round(flexibleRatio * 100)}% is the flexible portion you reshape through choice.`,
+    dmRoot ? dmRoot.phraseEn : '',
     gongmang.length > 0
       ? `The gongmang (${gongmangBranches.join('·')}) inside your saju leaves an 'unfillable' sensation in ${gongmang.join(' / ')} — this very gap is what pushes the soul into the next stage.`
       : '',
@@ -318,6 +326,31 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     p5piecesEn.push(
       'Harmonics 7 sits quietly — silence and meditation awaken this grain.',
     )
+  }
+  // Nearest eclipses around birth (solar + lunar) — 카르마의 시작점에 새겨진
+  // 일식/월식의 그늘 / 감정 변곡을 자연 한국어로 통합.
+  const natalEclipses = nearestEclipses(astro)
+  if (natalEclipses.length > 0) {
+    astroUsed.push('eclipses.nearest')
+    for (const ec of natalEclipses) {
+      const signKo = ec.sign ? signLabel(ec.sign, 'ko') : ''
+      const signEn = ec.sign ? signLabel(ec.sign, 'en') : ''
+      if (ec.type === 'solar') {
+        p5pieces.push(
+          `운명의 시작에 일식의 그늘이 ${signKo ? signKo + ' 자리에 ' : ''}새겨져 있어, 정체성의 큰 굴곡이 평생의 카르마로 작동해요.`,
+        )
+        p5piecesEn.push(
+          `A solar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} etches a karmic shadow into identity itself.`,
+        )
+      } else {
+        p5pieces.push(
+          `태어난 시기에 가까운 월식이 ${signKo ? signKo + ' 자리에서 ' : ''}감정의 변곡으로 새겨져, 카르마가 정서의 결을 따라 풀려요.`,
+        )
+        p5piecesEn.push(
+          `A lunar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} marks an emotional bend — karma resolves through the feeling grain.`,
+        )
+      }
+    }
   }
   const p5ko = paragraph(
     p5pieces.length ? p5pieces : ['영혼의 색은 본명과 큰 충돌 없이 정렬돼 있어, 큰 깨달음보다 매일의 작은 흐름을 따라가는 길이 잘 맞아요.'],
