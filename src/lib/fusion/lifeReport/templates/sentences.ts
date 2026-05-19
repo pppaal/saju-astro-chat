@@ -73,7 +73,7 @@ export function signLabel(sign: string | undefined, lang: Lang): string {
     Aquarius: '물병자리',
     Pisces: '물고기자리',
   }
-  return lang === 'ko' ? KO[sign] ?? sign : sign
+  return lang === 'ko' ? (KO[sign] ?? sign) : sign
 }
 
 export function planetLabel(planet: string, lang: Lang): string {

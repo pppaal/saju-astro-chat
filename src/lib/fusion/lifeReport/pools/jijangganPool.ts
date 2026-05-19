@@ -3,7 +3,7 @@
 // 지장간 (hidden stems inside a branch) variation pool.
 //
 // Source: src/lib/saju/constants.ts → JIJANGGAN
-//   12 branches → 1-3 hidden stems each (여기 / 중기 / 정기).
+// 12 branches → 1-3 hidden stems each (여기 / 중기 / 정기).
 //
 // The 정기 (main qi) is what's "officially" represented by the branch;
 // 여기 (residual qi) is the energy carried over from the previous month;
@@ -68,8 +68,8 @@ export function getJijanggan(branch: string | undefined): JijangganPart[] {
 /**
  * Format a branch's hidden-stem structure as one Korean / English line.
  *
- *   "당신의 일지 卯 깊은 곳엔 정기 乙(을목)의 결 — 여린 풀의 에너지가
- *    중심에 자리해요."
+ * "당신의 일지 卯 깊은 곳엔 정기 乙(을목)의 결 — 여린 풀의 에너지가
+ * 중심에 자리해요."
  *
  * Returns empty string when the branch is unknown.
  */

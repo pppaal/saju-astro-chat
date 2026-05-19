@@ -41,10 +41,7 @@ import {
   type ArabicLot,
   type ArabicLotName,
 } from '@/lib/astrology/foundation/arabicParts'
-import {
-  analyzeRelations,
-  toAnalyzeInputFromSaju,
-} from '@/lib/saju/relations'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import type { RelationHit } from '@/lib/saju/types'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { dignityOf, type DignityStatus } from '@/lib/astrology/foundation/dignities'
@@ -277,7 +274,7 @@ export function adaptCalendarEngineSignals(input: AdaptInput): CalendarEngineSig
       }
     }
     const timeline = safe<ProfectionResult[]>(() =>
-      calculateProfectionTimeline(minimalChart, age, age + 10),
+      calculateProfectionTimeline(minimalChart, age, age + 10)
     )
     if (timeline && timeline.length > 0) {
       out.profectionTimeline = timeline.map((p) => ({
@@ -359,9 +356,7 @@ export function adaptCalendarEngineSignals(input: AdaptInput): CalendarEngineSig
         hm[h] = {
           harmonic: h,
           strength: Math.round(a.strength),
-          topConjunctions: a.conjunctions
-            .slice(0, 3)
-            .map((c) => c.planets.join('-')),
+          topConjunctions: a.conjunctions.slice(0, 3).map((c) => c.planets.join('-')),
         }
       }
     }
@@ -464,8 +459,18 @@ function safeGetHyeongchung(saju: MainSajuOutput): CalendarEngineSignals['sajuHy
 
 // ─── Extra Arabic Parts (Bonatti formulas) — Basis / Captivity / Daimon ──
 const ZODIAC_ORDER: ZodiacKo[] = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
 ]
 
 function normDeg(deg: number): number {
@@ -493,7 +498,7 @@ function planetLongitude(chart: Chart, name: string): number | undefined {
 function computeExtraArabicParts(
   chart: Chart,
   isDayChart: boolean,
-  lots: ArabicLot[] | undefined,
+  lots: ArabicLot[] | undefined
 ): Partial<Record<'Basis' | 'Captivity' | 'Daimon', ExtraArabicPartEntry>> {
   const out: Partial<Record<'Basis' | 'Captivity' | 'Daimon', ExtraArabicPartEntry>> = {}
   const asc = chart.ascendant.longitude
@@ -518,9 +523,7 @@ function computeExtraArabicParts(
   //   day  : ASC + Saturn - Mars
   //   night: ASC + Mars - Saturn
   if (typeof mars === 'number' && typeof saturn === 'number') {
-    const captivityLon = isDayChart
-      ? normDeg(asc + saturn - mars)
-      : normDeg(asc + mars - saturn)
+    const captivityLon = isDayChart ? normDeg(asc + saturn - mars) : normDeg(asc + mars - saturn)
     out.Captivity = {
       name: 'Captivity',
       ...positionOf(captivityLon),
@@ -549,13 +552,27 @@ function computeExtraArabicParts(
 // from the L1 sign, with each sub-sign's ruler holding its own planet-years
 // — proportionally compressed to fit inside the L1 chapter's total duration.
 const SIGN_RULERS: Record<ZodiacKo, string> = {
-  Aries: 'Mars', Taurus: 'Venus', Gemini: 'Mercury', Cancer: 'Moon',
-  Leo: 'Sun', Virgo: 'Mercury', Libra: 'Venus', Scorpio: 'Mars',
-  Sagittarius: 'Jupiter', Capricorn: 'Saturn', Aquarius: 'Saturn', Pisces: 'Jupiter',
+  Aries: 'Mars',
+  Taurus: 'Venus',
+  Gemini: 'Mercury',
+  Cancer: 'Moon',
+  Leo: 'Sun',
+  Virgo: 'Mercury',
+  Libra: 'Venus',
+  Scorpio: 'Mars',
+  Sagittarius: 'Jupiter',
+  Capricorn: 'Saturn',
+  Aquarius: 'Saturn',
+  Pisces: 'Jupiter',
 }
 const PLANET_YEARS_L2: Record<string, number> = {
-  Sun: 19, Moon: 25, Mercury: 20, Venus: 8,
-  Mars: 15, Jupiter: 12, Saturn: 27,
+  Sun: 19,
+  Moon: 25,
+  Mercury: 20,
+  Venus: 8,
+  Mars: 15,
+  Jupiter: 12,
+  Saturn: 27,
 }
 
 function computeZRSubPeriods(l1: ZRPeriod): ZRSubEntry[] {
@@ -609,7 +626,7 @@ function safeGetSajuRelations(saju: MainSajuOutput): SajuRelationsSummary | unde
       day: { heavenlyStem: { name: p.day.stem }, earthlyBranch: { name: p.day.branch } },
       time: { heavenlyStem: { name: p.time.stem }, earthlyBranch: { name: p.time.branch } },
     },
-    p.day.stem,
+    p.day.stem
   )
   let hits: RelationHit[] = []
   try {
@@ -680,9 +697,7 @@ function classifyRelationKind(k: RelationHit['kind']): SajuRelationEntry['kind']
   return '해'
 }
 
-function pickPrimaryAxis(
-  s: SajuRelationsSummary,
-): { ko: string; en: string } | undefined {
+function pickPrimaryAxis(s: SajuRelationsSummary): { ko: string; en: string } | undefined {
   // Prefer day-time chung (most personally felt), then day-month, then year-month.
   const order: Array<{ kind: SajuRelationEntry['kind']; pair: [string, string] }> = [
     { kind: '충', pair: ['day', 'time'] },
@@ -693,10 +708,16 @@ function pickPrimaryAxis(
     { kind: '충', pair: ['year', 'month'] },
   ]
   const pillarsLabelKo: Record<string, string> = {
-    year: '년주', month: '월주', day: '일간', time: '시지',
+    year: '년주',
+    month: '월주',
+    day: '일간',
+    time: '시지',
   }
   const pillarsLabelEn: Record<string, string> = {
-    year: 'early-life pillar', month: 'young-adulthood pillar', day: 'core nature', time: 'late-life pillar',
+    year: 'early-life pillar',
+    month: 'young-adulthood pillar',
+    day: 'core nature',
+    time: 'late-life pillar',
   }
   const kindVerbKo: Record<SajuRelationEntry['kind'], string> = {
     합: '조화롭게 결합해서',
@@ -714,13 +735,21 @@ function pickPrimaryAxis(
   }
   for (const cand of order) {
     const bucket =
-      cand.kind === '합' ? s.hap :
-      cand.kind === '충' ? s.chung :
-      cand.kind === '형' ? s.hyung :
-      cand.kind === '해' ? s.hae : s.hoe
-    const hit = bucket.find((e) => e.pillars.length >= 2
-      && cand.pair.includes(e.pillars[0])
-      && cand.pair.includes(e.pillars[1]))
+      cand.kind === '합'
+        ? s.hap
+        : cand.kind === '충'
+          ? s.chung
+          : cand.kind === '형'
+            ? s.hyung
+            : cand.kind === '해'
+              ? s.hae
+              : s.hoe
+    const hit = bucket.find(
+      (e) =>
+        e.pillars.length >= 2 &&
+        cand.pair.includes(e.pillars[0]) &&
+        cand.pair.includes(e.pillars[1])
+    )
     if (hit) {
       const a = hit.pillars[0]
       const b = hit.pillars[1]

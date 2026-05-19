@@ -1,8 +1,8 @@
 // src/lib/fusion/lifeReport/sections/domains/wisdom.ts
 // Wisdom / 학업·지혜 deterministic narrative builder.
 // Uses:
-//   • 사주: 인성(정인+편인), 식상 중 상관, 사주 patterns, 문창귀인(있을 때)
-//   • 점성: 9집(확장·신념), 3집(학습), 수성 + aspects, North Node, harmonics 9
+// • 사주: 인성(정인+편인), 식상 중 상관, 사주 patterns, 문창귀인(있을 때)
+// • 점성: 9집(확장·신념), 3집(학습), 수성 + aspects, North Node, harmonics 9
 
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
 import {
@@ -74,16 +74,18 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   if (profIsLearning) fusionUsed.push('calendarSignals.profections')
 
   // ── Paragraph 1: 학문·지혜의 결
-  const inseongFlavorKo = inseong >= 3
-    ? '지혜와 돌봄의 자질이 매우 진하게 깔려 있어서, 배움 자체가 운의 통로예요.'
-    : inseong >= 1
-      ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 풀리는 길이에요.'
-      : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
-  const inseongFlavorEn = inseong >= 3
-    ? 'A strong wisdom-and-care pattern runs through your chart — learning itself is how luck opens to you.'
-    : inseong >= 1
-      ? 'A quiet wisdom-and-care pattern sits in your chart — continuous learning opens your path forward.'
-      : 'The learning current flows from initiative rather than inheritance.'
+  const inseongFlavorKo =
+    inseong >= 3
+      ? '지혜와 돌봄의 자질이 매우 진하게 깔려 있어서, 배움 자체가 운의 통로예요.'
+      : inseong >= 1
+        ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 풀리는 길이에요.'
+        : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
+  const inseongFlavorEn =
+    inseong >= 3
+      ? 'A strong wisdom-and-care pattern runs through your chart — learning itself is how luck opens to you.'
+      : inseong >= 1
+        ? 'A quiet wisdom-and-care pattern sits in your chart — continuous learning opens your path forward.'
+        : 'The learning current flows from initiative rather than inheritance.'
 
   const p1ko = paragraph([
     inseongFlavorKo,
@@ -123,11 +125,17 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     )
   }
   if (sangwan >= 2) {
-    p2pieces.push('재능의 자유로운 발산이 강해서, 받아들이기만 하는 학습보다 가르치고 표현할 때 지혜가 더 단단해져요.')
-    p2piecesEn.push('A strong free-creative streak means your wisdom solidifies most when you teach and express it, not only when you absorb it.')
+    p2pieces.push(
+      '재능의 자유로운 발산이 강해서, 받아들이기만 하는 학습보다 가르치고 표현할 때 지혜가 더 단단해져요.'
+    )
+    p2piecesEn.push(
+      'A strong free-creative streak means your wisdom solidifies most when you teach and express it, not only when you absorb it.'
+    )
   } else if (sikshin >= 2) {
     p2pieces.push('여유로운 표현의 자질이 깔려 있어, 즐기듯 배우는 방식이 잘 맞아요.')
-    p2piecesEn.push('An easeful, expressive streak puts ease at the center for you — learning works best when it doubles as something you enjoy.')
+    p2piecesEn.push(
+      'An easeful, expressive streak puts ease at the center for you — learning works best when it doubles as something you enjoy.'
+    )
   }
   if (topMercAspect && mercury) {
     const other =
@@ -183,16 +191,24 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     )
   }
   if (geokguk && geokguk.includes('인')) {
-    p3pieces.push('인생의 큰 패턴 자체가 배움·돌봄의 결이라, 가르치고 다루는 사람이 되는 길이 가장 본인답게 풀려요.')
-    p3piecesEn.push('Your life-pattern sits in the wisdom-and-care family — the path of the teacher and the keeper of knowledge fits you most naturally.')
+    p3pieces.push(
+      '인생의 큰 패턴 자체가 배움·돌봄이라, 가르치고 다루는 사람이 되는 길이 가장 본인답게 풀려요.'
+    )
+    p3piecesEn.push(
+      'Your life-pattern sits in the wisdom-and-care family — the path of the teacher and the keeper of knowledge fits you most naturally.'
+    )
   }
   if (munchang) {
     p3pieces.push('학문과 창작의 별이 사주에 들어와 있어서, 글·이론·자료를 통해 성취가 빨라요.')
-    p3piecesEn.push('A literary star lights your chart — writing, theory, and study of source material all accelerate what you can achieve.')
+    p3piecesEn.push(
+      'A literary star lights your chart — writing, theory, and study of source material all accelerate what you can achieve.'
+    )
   }
   if (hakdang) {
     p3pieces.push('학당의 별도 함께 있어, 공식적인 교육과 자격 과정에서 운이 잘 풀려요.')
-    p3piecesEn.push('An academy star also sits in your chart — formal education and credentialed tracks tend to suit you well.')
+    p3piecesEn.push(
+      'An academy star also sits in your chart — formal education and credentialed tracks tend to suit you well.'
+    )
   }
   // Saju relations — 합(joining) often supports learning lineage / mentor
   const relKoWisdom = relationPhraseKo(calendarSignals?.sajuRelations, {
@@ -203,7 +219,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   })
   if (relKoWisdom) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    p3pieces.push(`${relKoWisdom} 가르치는 사람이나 책과의 결합이 학습의 토대가 돼요.`)
+    p3pieces.push(`${relKoWisdom} 가르치는 사람이나 책과의 만남이 학습의 토대가 돼요.`)
     if (relEnWisdom)
       p3piecesEn.push(
         `${relEnWisdom} The pairing with teachers or with the right books becomes the foundation of your learning.`
@@ -214,7 +230,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   if (daimon) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Daimon')
     p3pieces.push(
-      `영혼의 행운점이 ${signLabel(daimon.sign, 'ko')}에 놓여, 진짜 지혜가 자라는 자리도 같은 결을 따라요.`
+      `영혼의 행운점이 ${signLabel(daimon.sign, 'ko')}에 놓여, 진짜 지혜가 자라는 자리도 같은 흐름을 따라요.`
     )
     p3piecesEn.push(
       `Your Lot of Daimon sits in ${signLabel(daimon.sign, 'en')} — the place where real wisdom grows in you shares that same flavor.`
@@ -228,7 +244,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p3en = paragraph(
     p3piecesEn.length
       ? p3piecesEn
-      : ['Your current signals favor deepening what you already know rather than chasing new fields.']
+      : [
+          'Your current signals favor deepening what you already know rather than chasing new fields.',
+        ]
   )
 
   // ── Paragraph 4: 가이드
@@ -236,7 +254,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const guidePiecesEn: string[] = ['Daily handle:']
   if (inseong >= 2) {
     guidePiecesKo.push('하루에 단 한 가지라도 정리해서 남겨두세요. 인성의 자질은 기록으로 자라요.')
-    guidePiecesEn.push('Record one thing each day — your wisdom-and-care pattern grows through the steady practice of taking notes.')
+    guidePiecesEn.push(
+      'Record one thing each day — your wisdom-and-care pattern grows through the steady practice of taking notes.'
+    )
   } else if (sangwan >= 2) {
     guidePiecesKo.push('배운 것을 즉시 누군가에게 풀어보세요. 가르치는 순간 진짜 지혜가 돼요.')
     guidePiecesEn.push(
@@ -244,7 +264,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     )
   } else {
     guidePiecesKo.push('주제를 좁히고 한 분야에 머무는 시간을 늘려보세요. 깊이가 운을 끌어옵니다.')
-    guidePiecesEn.push('Narrow your topic and stay longer in one field — depth is what attracts luck toward you.')
+    guidePiecesEn.push(
+      'Narrow your topic and stay longer in one field — depth is what attracts luck toward you.'
+    )
   }
   if (profIsLearning && prof) {
     guidePiecesKo.push(
@@ -314,7 +336,7 @@ const MERC_SIGN_EN: Record<string, string> = {
   Pisces: 'intuitive and fusional',
 }
 function mercurySignFlavorKo(sign: string): string {
-  return MERC_SIGN_KO[sign] ?? '독특한 색감의 사고'
+  return MERC_SIGN_KO[sign] ?? '독특한 분위기의 사고'
 }
 function mercurySignFlavorEn(sign: string): string {
   return MERC_SIGN_EN[sign] ?? 'a singular grain of thinking'
@@ -378,7 +400,7 @@ const MERC_ASPECT_EN: Record<string, string> = {
   Venus: 'aesthetic sense',
 }
 function mercAspectFlavorKo(planet: string): string {
-  return MERC_ASPECT_KO[planet] ?? '독특한 색감'
+  return MERC_ASPECT_KO[planet] ?? '독특한 분위기'
 }
 function mercAspectFlavorEn(planet: string): string {
   return MERC_ASPECT_EN[planet] ?? 'a singular grain'

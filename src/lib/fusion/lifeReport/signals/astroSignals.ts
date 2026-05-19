@@ -5,26 +5,15 @@
 import type { PlanetBase, AspectHit } from '@/lib/astrology/foundation/types'
 import type { AstrologyLikeChart } from '../types'
 
-export function getPlanet(
-  astro: AstrologyLikeChart,
-  name: string
-): PlanetBase | undefined {
-  return (astro.planets ?? []).find(
-    (p) => p.name.toLowerCase() === name.toLowerCase()
-  )
+export function getPlanet(astro: AstrologyLikeChart, name: string): PlanetBase | undefined {
+  return (astro.planets ?? []).find((p) => p.name.toLowerCase() === name.toLowerCase())
 }
 
-export function planetsInHouse(
-  astro: AstrologyLikeChart,
-  house: number
-): PlanetBase[] {
+export function planetsInHouse(astro: AstrologyLikeChart, house: number): PlanetBase[] {
   return (astro.planets ?? []).filter((p) => p.house === house)
 }
 
-export function houseCusp(
-  astro: AstrologyLikeChart,
-  index: number
-): { sign?: string } | undefined {
+export function houseCusp(astro: AstrologyLikeChart, index: number): { sign?: string } | undefined {
   const houses = astro.houses ?? []
   return houses[index - 1]
 }
@@ -32,9 +21,7 @@ export function houseCusp(
 /**
  * Aspect type → tonal category.
  */
-export function aspectTone(
-  type: string
-): 'harmonious' | 'tense' | 'intense' | 'neutral' {
+export function aspectTone(type: string): 'harmonious' | 'tense' | 'intense' | 'neutral' {
   if (type === 'trine' || type === 'sextile') return 'harmonious'
   if (type === 'square' || type === 'opposition') return 'tense'
   if (type === 'conjunction') return 'intense'
@@ -42,16 +29,11 @@ export function aspectTone(
 }
 
 /** Aspects involving a given planet name (case-insensitive). */
-export function aspectsOf(
-  astro: AstrologyLikeChart,
-  planet: string
-): AspectHit[] {
+export function aspectsOf(astro: AstrologyLikeChart, planet: string): AspectHit[] {
   const aspects = astro.aspects ?? []
   const target = planet.toLowerCase()
   return aspects.filter(
-    (a) =>
-      a.from?.name?.toLowerCase() === target ||
-      a.to?.name?.toLowerCase() === target
+    (a) => a.from?.name?.toLowerCase() === target || a.to?.name?.toLowerCase() === target
   )
 }
 
@@ -66,8 +48,7 @@ export function aspectBetween(
   const bb = b.toLowerCase()
   return aspects.find(
     (h) =>
-      (h.from?.name?.toLowerCase() === aa &&
-        h.to?.name?.toLowerCase() === bb) ||
+      (h.from?.name?.toLowerCase() === aa && h.to?.name?.toLowerCase() === bb) ||
       (h.from?.name?.toLowerCase() === bb && h.to?.name?.toLowerCase() === aa)
   )
 }
@@ -96,15 +77,10 @@ export function chiron(astro: AstrologyLikeChart) {
 }
 
 /** Whether a fixed-star conjunction touches a given planet. */
-export function fixedStarOn(
-  astro: AstrologyLikeChart,
-  planet: string
-): string[] {
+export function fixedStarOn(astro: AstrologyLikeChart, planet: string): string[] {
   const stars = astro.fixedStars ?? []
   const target = planet.toLowerCase()
-  return stars
-    .filter((s) => s.planet?.toLowerCase() === target && s.orb < 2)
-    .map((s) => s.star)
+  return stars.filter((s) => s.planet?.toLowerCase() === target && s.orb < 2).map((s) => s.star)
 }
 
 export function outOfBoundsPlanets(astro: AstrologyLikeChart): string[] {
@@ -124,9 +100,7 @@ export interface DeclinationAspect {
  * Astrology-engine populates these under `declinations`. Returns [] when
  * missing — health P3 simply skips the line.
  */
-export function declinationAspects(
-  astro: AstrologyLikeChart
-): DeclinationAspect[] {
+export function declinationAspects(astro: AstrologyLikeChart): DeclinationAspect[] {
   const d = astro.declinations
   if (!d) return []
   const out: DeclinationAspect[] = []
@@ -153,9 +127,7 @@ export interface NearestEclipseEntry {
  * Prefers the `list` (multi) when present, else falls back to
  * nearestSolar / nearestLunar. Result order: solar first, lunar second.
  */
-export function nearestEclipses(
-  astro: AstrologyLikeChart
-): NearestEclipseEntry[] {
+export function nearestEclipses(astro: AstrologyLikeChart): NearestEclipseEntry[] {
   const e = astro.eclipses
   if (!e) return []
   const out: NearestEclipseEntry[] = []
@@ -215,9 +187,7 @@ export interface SolarArcSummary {
   upcomingIngress?: { planet: string; sign?: string; ingressAge: number }
 }
 
-export function solarArcSummary(
-  astro: AstrologyLikeChart
-): SolarArcSummary | undefined {
+export function solarArcSummary(astro: AstrologyLikeChart): SolarArcSummary | undefined {
   const sa = astro.progressions?.solarArc
   if (!sa) return undefined
   const planets = sa.planets ?? []
@@ -261,21 +231,14 @@ export function solarReturnAsc(astro: AstrologyLikeChart): string | undefined {
 }
 
 /** Solar return planets in a given house. */
-export function solarReturnPlanetsInHouse(
-  astro: AstrologyLikeChart,
-  house: number
-): string[] {
+export function solarReturnPlanetsInHouse(astro: AstrologyLikeChart, house: number): string[] {
   const chart = astro.solarReturn?.chart
   if (!chart) return []
-  return (chart.planets ?? [])
-    .filter((p) => p.house === house)
-    .map((p) => p.name)
+  return (chart.planets ?? []).filter((p) => p.house === house).map((p) => p.name)
 }
 
 /** Element dominant signature from the natal planets. */
-export function elementDominance(
-  astro: AstrologyLikeChart
-): { dominant?: string; weak?: string } {
+export function elementDominance(astro: AstrologyLikeChart): { dominant?: string; weak?: string } {
   const planets = astro.planets ?? []
   if (planets.length === 0) return {}
   const els: Record<string, number> = { fire: 0, earth: 0, air: 0, water: 0 }
@@ -299,8 +262,6 @@ export function elementDominance(
   }
   const sorted = Object.entries(els).sort((a, b) => b[1] - a[1])
   const dominant = sorted[0]?.[1] > 0 ? sorted[0][0] : undefined
-  const weak = sorted[sorted.length - 1]?.[1] === 0
-    ? sorted[sorted.length - 1][0]
-    : undefined
+  const weak = sorted[sorted.length - 1]?.[1] === 0 ? sorted[sorted.length - 1][0] : undefined
   return { dominant, weak }
 }

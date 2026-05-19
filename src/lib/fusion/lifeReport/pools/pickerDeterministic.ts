@@ -17,12 +17,12 @@
  * codebase — it is intentionally simple and stable across Node/browsers.
  *
  * - Empty pool returns `undefined` (callers should treat that as "no
- *   variation available" and fall back to their default sentence).
+ * variation available" and fall back to their default sentence).
  * - Single-element pool short-circuits and returns that element.
  */
 export function pickVariation<T>(
   pool: readonly T[] | undefined,
-  seedKeys: ReadonlyArray<string | number | undefined | null>,
+  seedKeys: ReadonlyArray<string | number | undefined | null>
 ): T | undefined {
   if (!pool || pool.length === 0) return undefined
   if (pool.length === 1) return pool[0]
@@ -48,7 +48,7 @@ export function pickVariation<T>(
 export function pickVariationOr<T>(
   pool: readonly T[] | undefined,
   seedKeys: ReadonlyArray<string | number | undefined | null>,
-  fallback: T,
+  fallback: T
 ): T {
   return pickVariation(pool, seedKeys) ?? fallback
 }
@@ -57,20 +57,17 @@ export function pickVariationOr<T>(
  * Append a pool-selected variation to an existing paragraph string in
  * a typographically clean way:
  *
- *   - Trims trailing whitespace on the host paragraph.
- *   - Adds a period if the host did not already end in '.', '!', or '?'.
- *   - Inserts a single space between the two pieces.
- *   - Trims the variation itself and ensures it ends with a period.
- *   - Returns the host unchanged when the variation is null/undefined/empty.
+ * - Trims trailing whitespace on the host paragraph.
+ * - Adds a period if the host did not already end in '.', '!', or '?'.
+ * - Inserts a single space between the two pieces.
+ * - Trims the variation itself and ensures it ends with a period.
+ * - Returns the host unchanged when the variation is null/undefined/empty.
  *
  * Used by domain builders to glue 5차 자연화 variation pools onto
  * generated paragraphs without the marker double-space / no-period
  * artefacts that the 4차 paragraph() helper introduced.
  */
-export function appendToPara(
-  paraKo: string,
-  addKo: string | null | undefined,
-): string {
+export function appendToPara(paraKo: string, addKo: string | null | undefined): string {
   if (!addKo) return paraKo
   const add = addKo.trim()
   if (add.length === 0) return paraKo

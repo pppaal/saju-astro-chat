@@ -3,14 +3,14 @@
 // 60갑자 일주 (day pillar) variation pools.
 //
 // Sources (no content duplication — both DBs already exist in src/lib/saju):
-//   1. src/lib/saju/iljuDictionary.ts → ILJU_ARCHETYPES
-//      Broken-out trait fields (character / strengths / weaknesses /
-//      career[] / relationship). Good for composing variations on the
-//      fly because the lists slot into different framings.
-//   2. src/lib/saju/pillar-lookup/ilju-data.ts → ILJU_DATA
-//      Pre-written narrative sentences per domain (personality / career
-//      / love / wealth / health / famousPeople). Good as a single rich
-//      sentence the LifeReport can drop in verbatim.
+// 1. src/lib/saju/iljuDictionary.ts → ILJU_ARCHETYPES
+// Broken-out trait fields (character / strengths / weaknesses /
+// career[] / relationship). Good for composing variations on the
+// fly because the lists slot into different framings.
+// 2. src/lib/saju/pillar-lookup/ilju-data.ts → ILJU_DATA
+// Pre-written narrative sentences per domain (personality / career
+// / love / wealth / health / famousPeople). Good as a single rich
+// sentence the LifeReport can drop in verbatim.
 //
 // The two DBs are *complementary*, not duplicate: ARCHETYPES gives
 // structured traits, ILJU_DATA gives finished narrative prose. The pool
@@ -48,21 +48,21 @@ export function getIljuData(ilju: string | undefined): IljuInfo | undefined {
  * iljus yields 540 distinct sentences without us hand-writing each one.
  */
 const CAREER_FRAMINGS: Array<(a: IljuArchetype) => string> = [
-  (a) => `타고난 결은 ${a.character}이라, ${formatList(a.career)} 분야에서 자질이 가장 잘 살아요`,
-  (a) => `${a.character}의 결을 가진 사람이라, ${formatList(a.career)} 쪽 일이 자연스럽게 풀려요`,
+  (a) => `타고난 성격은 ${a.character}이라, ${formatList(a.career)} 분야에서 자질이 가장 잘 살아요`,
+  (a) => `${a.character} 성격이라, ${formatList(a.career)} 쪽 일이 자연스럽게 풀려요`,
   (a) =>
     `핵심 자질이 ${formatList(a.strengths)}이라, ${formatList(a.career)} 분야가 본인다움을 키워줘요`,
 ]
 
 const LOVE_FRAMINGS: Array<(a: IljuArchetype) => string> = [
-  (a) => `관계의 결은 ${a.relationship}한 톤이라, 서로의 결을 존중할 때 가장 깊어져요`,
-  (a) => `사랑의 결이 ${a.relationship}이라, 본인다움을 지키며 다가갈 때 사이가 단단해져요`,
-  (a) => `${a.character}의 결이라, 관계에선 ${a.relationship} 흐름이 자연스럽게 따라와요`,
+  (a) => `관계 스타일은 ${a.relationship}한 분위기라, 서로를 존중할 때 가장 깊어져요`,
+  (a) => `사랑의 스타일이 ${a.relationship}이라, 본인다움을 지키며 다가갈 때 사이가 단단해져요`,
+  (a) => `${a.character} 성격이라, 관계에선 ${a.relationship} 흐름이 자연스럽게 따라와요`,
 ]
 
 const HEADLINE_FRAMINGS: Array<(a: IljuArchetype) => string> = [
-  (a) => `${a.character}의 결을 타고난 사람이에요`,
-  (a) => `${formatList(a.strengths)}이 본인다움의 핵심 결이에요`,
+  (a) => `${a.character} 성격을 타고난 사람이에요`,
+  (a) => `${formatList(a.strengths)}이 본인다움의 핵심이에요`,
   (a) => `${a.character}이라는 큰 자질이 인생의 토대가 돼요`,
 ]
 
@@ -90,24 +90,24 @@ const ILJU_DATA_FIELD_BY_DOMAIN: Record<
 }
 
 function formatList(items: readonly string[] | undefined): string {
-  if (!items || items.length === 0) return '본연의 결'
+  if (!items || items.length === 0) return '자기 본연의 특징'
   return items.slice(0, 3).join('·')
 }
 
 /**
  * Returns variation strings for a given (ilju, domain). Combines:
- *   • ILJU_DATA orthodox one-liner (when the field exists for the
- *     domain) — first entry, deterministic
- *   • ILJU_ARCHETYPES synthesised framings — 3 entries
+ * • ILJU_DATA orthodox one-liner (when the field exists for the
+ * domain) — first entry, deterministic
+ * • ILJU_ARCHETYPES synthesised framings — 3 entries
  *
  * Empty when the ilju is unknown.
  *
  * Domain → ILJU_DATA field mapping:
- *   - career → ILJU_DATA.career
- *   - love → ILJU_DATA.love
- *   - money, wealth → ILJU_DATA.wealth
- *   - health → ILJU_DATA.health
- *   - headline → archetype-only (no ILJU_DATA equivalent)
+ * - career → ILJU_DATA.career
+ * - love → ILJU_DATA.love
+ * - money, wealth → ILJU_DATA.wealth
+ * - health → ILJU_DATA.health
+ * - headline → archetype-only (no ILJU_DATA equivalent)
  */
 export function iljuPool(ilju: string | undefined, domain: IljuDomain): readonly string[] {
   const archetype = getIljuArchetype(ilju)

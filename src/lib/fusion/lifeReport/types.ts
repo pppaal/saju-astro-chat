@@ -2,11 +2,7 @@
 // Deterministic, LLM-free life-report types. 100% data-driven.
 
 import type { MainSajuOutput } from '@/lib/saju/main'
-import type {
-  Chart,
-  AspectHit,
-  ExtraPoint,
-} from '@/lib/astrology/foundation/types'
+import type { Chart, AspectHit, ExtraPoint } from '@/lib/astrology/foundation/types'
 import type { Asteroid } from '@/lib/astrology/foundation/asteroids'
 import type { FortuneReport } from '@/lib/fusion/types'
 import type { CalendarEngineSignals } from './adapters/fromCalendarEngine'

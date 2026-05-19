@@ -23,10 +23,7 @@ import {
 } from '../signals/sajuSignals'
 import { findPlanet } from '../signals/astroSynthesis'
 import { nearestEclipses } from '../signals/astroSignals'
-import {
-  eventsInAgeRange,
-  type AstroLifecycleEvent,
-} from '../signals/astroLifecycle'
+import { eventsInAgeRange, type AstroLifecycleEvent } from '../signals/astroLifecycle'
 import { signLabel, paragraph } from '../templates/sentences'
 
 interface StageRange {
@@ -140,7 +137,10 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
     late: saju.pillars.time,
   }
   const pillar = pillarMap[range.id]
-  if (pillar) sajuUsed.push(`pillars.${range.id === 'early' ? 'year' : range.id === 'young' ? 'month' : range.id === 'middle' ? 'day' : 'time'}`)
+  if (pillar)
+    sajuUsed.push(
+      `pillars.${range.id === 'early' ? 'year' : range.id === 'young' ? 'month' : range.id === 'middle' ? 'day' : 'time'}`
+    )
   const dayEl = dayElement(saju)
   if (dayEl) sajuUsed.push('pillars.day.element')
 
@@ -165,12 +165,15 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const twelveAll = input.calendarSignals?.twelveStageAll
   const ilju12 = saju.ultraAdvanced?.iljuDeep?.twelveStage
   const pillarKey: 'year' | 'month' | 'day' | 'time' =
-    range.id === 'early' ? 'year' :
-    range.id === 'young' ? 'month' :
-    range.id === 'middle' ? 'day' : 'time'
+    range.id === 'early'
+      ? 'year'
+      : range.id === 'young'
+        ? 'month'
+        : range.id === 'middle'
+          ? 'day'
+          : 'time'
   const stageTwelve =
-    (twelveAll && twelveAll[pillarKey]) ||
-    (pillarKey === 'day' ? ilju12 : undefined)
+    (twelveAll && twelveAll[pillarKey]) || (pillarKey === 'day' ? ilju12 : undefined)
   if (stageTwelve) {
     sajuUsed.push(`calendarSignals.twelveStageAll.${pillarKey}`)
   } else if (ilju12 && pillarKey === 'day') {
@@ -185,14 +188,14 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const sun = findPlanet(astro, 'Sun')
   if (sun) astroUsed.push('planets.sun')
 
-  // ───────────────────── 文단 1: 큰 흐름
+  // ───────────────────── 文단 1: 인생 패턴
   const p1ko = paragraph([
-    `${range.titleKo}는 ${range.pillarKo}${iGaForBatchim(range.pillarKo)} 무게중심이 되는 때에요.`,
+    `${range.titleKo}는 ${range.pillarKo}${iGaForBatchim(range.pillarKo)} 인생의 중심이 되는 때에요.`,
     pillar?.stem || pillar?.branch
-      ? `${ELEMENT_TEXTURE_KO[dayEl] ?? '균형'}의 톤이 ${range.themeKo}에 스며들어요.`
+      ? `${ELEMENT_TEXTURE_KO[dayEl] ?? '균형'}의 분위기가 ${range.themeKo}에 스며들어요.`
       : '',
     progSun && range.id !== 'early'
-      ? `자아의 색이 ${signLabel(progSun.sign, 'ko')} 쪽으로 천천히 옮겨가며 톤이 살짝 바뀌어요.`
+      ? `자아의 색깔이 ${signLabel(progSun.sign, 'ko')} 쪽으로 천천히 옮겨가며 분위기가 살짝 바뀌어요.`
       : '',
   ])
   const p1en = paragraph([
@@ -208,22 +211,21 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   // ───────────────────── 文단 2: 주요 사건 (대운 + 점성 lifecycle hits)
   const eventLinesKo: string[] = []
   const eventLinesEn: string[] = []
-  const daeunAges = stageDaeun.slice(0, 3).map((d) => d.age).filter((a): a is number => !!a)
+  const daeunAges = stageDaeun
+    .slice(0, 3)
+    .map((d) => d.age)
+    .filter((a): a is number => !!a)
   if (daeunAges.length > 0) {
     eventLinesKo.push(`${daeunAges.join('세, ')}세 무렵에 인생 흐름이 새로운 챕터로 갈아타요.`)
   }
   const daeunSentenceEn = daeunAgesSentenceEn(daeunAges)
   if (daeunSentenceEn) eventLinesEn.push(daeunSentenceEn)
   lifecycleEvts.slice(0, 3).forEach((ev, idx) => {
-    eventLinesKo.push(
-      `${ev.ageStart}~${ev.ageEnd}세, ${ev.labelKo} — ${ev.meaningKo}`
-    )
+    eventLinesKo.push(`${ev.ageStart}~${ev.ageEnd}세, ${ev.labelKo} — ${ev.meaningKo}`)
     eventLinesEn.push(lifecycleSentenceEn(ev, idx))
   })
   const p2ko = paragraph(
-    eventLinesKo.length > 0
-      ? eventLinesKo
-      : ['이 시기엔 큰 격동 없이 잔잔한 흐름이 이어져요.']
+    eventLinesKo.length > 0 ? eventLinesKo : ['이 시기엔 큰 격동 없이 잔잔한 흐름이 이어져요.']
   )
   const p2en = paragraph(
     eventLinesEn.length > 0
@@ -232,7 +234,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   )
 
   // ───────────────────── 文단 3: 도전·성취
-  // Early stage(초년기)에는 출생 직전·직후 일식·월식이 이 시기의 결을 새깁니다.
+  // Early stage(초년기)에는 출생 직전·직후 일식·월식이 이 시기의 특징을 새깁니다.
   let earlyEclipseKo = ''
   let earlyEclipseEn = ''
   if (range.id === 'early') {
@@ -243,12 +245,12 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
       const lunar = eclipses.find((e) => e.type === 'lunar')
       if (solar) {
         const signKo = solar.sign ? signLabel(solar.sign, 'ko') : ''
-        earlyEclipseKo = `출생 즈음 ${signKo ? signKo + ' 자리의 ' : ''}일식의 영향으로, 초년기의 정체성에 큰 결이 한 번 새겨져요.`
+        earlyEclipseKo = `출생 즈음 ${signKo ? signKo + ' 자리의 ' : ''}일식의 영향으로, 초년기의 정체성에 큰 흔적이 한 번 새겨져요.`
         const signEn = solar.sign ? signLabel(solar.sign, 'en') : ''
         earlyEclipseEn = `A solar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} stamps an identity-marker into the early years.`
       } else if (lunar) {
         const signKo = lunar.sign ? signLabel(lunar.sign, 'ko') : ''
-        earlyEclipseKo = `출생 즈음 ${signKo ? signKo + ' 자리의 ' : ''}월식의 영향으로, 초년기의 감정 결에 깊은 변곡이 한 번 새겨져요.`
+        earlyEclipseKo = `출생 즈음 ${signKo ? signKo + ' 자리의 ' : ''}월식의 영향으로, 초년기 감정에 깊은 변곡이 한 번 새겨져요.`
         const signEn = lunar.sign ? signLabel(lunar.sign, 'en') : ''
         earlyEclipseEn = `A lunar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} sets a deep emotional bend through the early years.`
       }
@@ -257,7 +259,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const p3ko = paragraph([
     challengePieceKo(range.id, stageTwelve, geokguk, jong, lifecycleEvts),
     sun && range.id === 'middle'
-      ? `${signLabel(sun.sign, 'ko')}의 자아 색깔이 이 시기에 가장 진하게 드러나요.`
+      ? `${signLabel(sun.sign, 'ko')} 자아 색깔이 이 시기에 가장 진하게 드러나요.`
       : '',
     earlyEclipseKo,
   ])
@@ -296,11 +298,9 @@ function challengePieceKo(
   jong: string,
   events: AstroLifecycleEvent[]
 ): string {
-  const stagePiece = twelveStage
-    ? `${twelveStageMeaningKo(twelveStage)} `
-    : ''
+  const stagePiece = twelveStage ? `${twelveStageMeaningKo(twelveStage)} ` : ''
   if (id === 'early') {
-    return `${stagePiece}어린 시절엔 환경에 적응하며 자기 색을 처음 느껴요. ${jong ? '한 방향으로 강하게 흐르는 성향이 일찍부터 드러나요.' : geokguk ? `${geokgukShortKo(geokguk)}의 색이 가정과 학교에서 일찍부터 보여요.` : ''}`
+    return `${stagePiece}어린 시절엔 환경에 적응하며 자기 모습을 처음 느껴요. ${jong ? '한 방향으로 강하게 흐르는 성향이 일찍부터 드러나요.' : geokguk ? `${geokgukShortKo(geokguk)} 특징이 가정과 학교에서 일찍부터 보여요.` : ''}`
   }
   if (id === 'young') {
     const sat = events.find((e) => e.kind === 'saturn_return_1')
@@ -350,16 +350,16 @@ function twelveStageMeaningEn(stage: string): string {
 }
 
 function geokgukShortKo(g: string): string {
-  if (!g) return '본연의 색'
+  if (!g) return '타고난'
   if (g.includes('편관')) return '도전을 동력으로 쓰는 성향'
-  if (g.includes('정관')) return '책임감 있는 흐름'
-  if (g.includes('편재')) return '기회를 잡는 감각'
-  if (g.includes('정재')) return '꾸준한 흐름'
-  if (g.includes('식신')) return '여유로운 표현'
-  if (g.includes('상관')) return '재능을 발산하는 자질'
-  if (g.includes('편인')) return '독특한 직관'
-  if (g.includes('정인')) return '배움과 돌봄'
-  return '본연의 색'
+  if (g.includes('정관')) return '책임감 있는'
+  if (g.includes('편재')) return '기회를 잡는 감각이 있는'
+  if (g.includes('정재')) return '꾸준한'
+  if (g.includes('식신')) return '여유롭게 표현하는'
+  if (g.includes('상관')) return '재능을 발산하는'
+  if (g.includes('편인')) return '독특한 직관이 있는'
+  if (g.includes('정인')) return '배움과 돌봄을 중시하는'
+  return '타고난'
 }
 
 function challengePieceEn(
@@ -409,16 +409,30 @@ function geokgukShortEn(g: string): string {
 
 // 기둥의 천간+지지 (hanja) → 자연 영어 grain label (e.g. "Yang Metal Dragon").
 const PILLAR_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood', 乙: 'Yin Wood',
-  丙: 'Yang Fire', 丁: 'Yin Fire',
-  戊: 'Yang Earth', 己: 'Yin Earth',
-  庚: 'Yang Metal', 辛: 'Yin Metal',
-  壬: 'Yang Water', 癸: 'Yin Water',
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
 }
 const PILLAR_BRANCH_EN: Record<string, string> = {
-  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
-  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
-  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
 }
 function pillarGrainEn(stem: string | undefined, branch: string | undefined): string {
   const s = stem ? (PILLAR_STEM_EN[stem] ?? '') : ''
@@ -449,8 +463,7 @@ function daeunAgesSentenceEn(ages: number[]): string {
 // Each kind has a hand-tuned natural-English variant; idx is used to
 // rotate opening connectors (Around / Then at / —) when no variant exists.
 function lifecycleSentenceEn(ev: AstroLifecycleEvent, idx: number): string {
-  const variant = LIFECYCLE_EN_VARIANTS[ev.kind]?.[idx]
-    ?? LIFECYCLE_EN_VARIANTS[ev.kind]?.[0]
+  const variant = LIFECYCLE_EN_VARIANTS[ev.kind]?.[idx] ?? LIFECYCLE_EN_VARIANTS[ev.kind]?.[0]
   if (variant) return variant
   // Fallback to the generic "Ages X–Y, EVENT: meaning" form.
   return `Ages ${ev.ageStart}–${ev.ageEnd}, ${ev.labelEn}: ${ev.meaningEn}`
@@ -461,9 +474,7 @@ function lifecycleSentenceEn(ev: AstroLifecycleEvent, idx: number): string {
 // the available index fall back to variant[0]. Each line is self-contained
 // and avoids the "<label>: <sentence>" colon pattern.
 const LIFECYCLE_EN_VARIANTS: Partial<Record<AstroLifecycleEvent['kind'], string[]>> = {
-  jupiter_return_1: [
-    'Ages 11–13 bring the first Jupiter return — your worldview expands a step.',
-  ],
+  jupiter_return_1: ['Ages 11–13 bring the first Jupiter return — your worldview expands a step.'],
   jupiter_return_2: [
     'Around ages 23–25, your second Jupiter return helps you first grasp the bigger picture of your career.',
     'Ages 23–25 then bring a second Jupiter return, sharpening the bigger picture of your career.',
@@ -514,12 +525,12 @@ const LIFECYCLE_EN_VARIANTS: Partial<Record<AstroLifecycleEvent['kind'], string[
 
 function guideKo(id: LifeStageId): string {
   if (id === 'early')
-    return '한 줄 조언: 환경이 주는 결을 거부하지 말고 천천히 흡수하세요. 진짜 자기 색은 아직 다 드러나지 않았어요.'
+    return '한 줄 조언: 환경이 주는 영향을 거부하지 말고 천천히 흡수하세요. 진짜 자기 모습은 아직 다 드러나지 않았어요.'
   if (id === 'young')
     return '한 줄 조언: 회피하지 말고 책임을 한 단계씩 받아들이세요. 30세 무렵의 선택이 평생의 토대가 됩니다.'
   if (id === 'middle')
     return '한 줄 조언: 안정을 빌미로 미루지 마세요. 40대의 진짜 결정이 후반기 자유를 만들어요.'
-  return '한 줄 조언: 결과보다 의미에 시간을 쓰세요. 남기는 결이 진짜 자산이에요.'
+  return '한 줄 조언: 결과보다 의미에 시간을 쓰세요. 남기는 것이 진짜 자산이에요.'
 }
 
 function guideEn(id: LifeStageId): string {

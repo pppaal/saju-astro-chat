@@ -131,7 +131,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     `sun_sign:${sun?.sign ?? ''}`,
     `geokguk:${geokguk}`,
   ])
-  // ASC × career (PR #345 — 첫인상이 직업의 결로 어떻게)
+  // ASC × career (PR #345 — 첫인상이 직업로 어떻게)
   const asc = astro.ascendant
   const ascCareerVar = pickVariation(planetSignPool('Ascendant', asc?.sign, 'career'), [
     `day_master:${dayMasterStem}`,
@@ -201,7 +201,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const timingPiecesEn: string[] = []
   if (cur) {
     timingPieces.push(
-      `지금의 인생 흐름(${cur.age}세부터)에는 ${cur.sibsin ? sibsinMeaningKo(cur.sibsin) : '잔잔한 톤'}이 함께해서, 직업의 색이 다듬어지고 있어요.`
+      `지금의 인생 흐름(${cur.age}세부터)에는 ${cur.sibsin ? sibsinMeaningKo(cur.sibsin) : '잔잔한 톤'}이 함께해서, 직업 분위기가 다듬어지고 있어요.`
     )
     timingPiecesEn.push(
       `Your current 10-year life-chapter (from age ${cur.age})${cur.sibsin ? ` runs on ${sibsinMeaningEn(cur.sibsin)}` : ''}, and it is slowly reshaping the tone of your career.`
@@ -282,7 +282,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     )
   } else if (geokguk) {
     deepPieces.push(
-      `인생의 큰 패턴이 ${geokgukShortKoForCareer(geokguk)}이라, 직업 색이 이미 명확하게 잡혀 있어요.`
+      `인생의 큰 패턴이 ${geokgukShortKoForCareer(geokguk)}이라, 직업 방향이 이미 명확하게 잡혀 있어요.`
     )
     deepPiecesEn.push(
       `Your life-pattern is ${geokgukShortEnForCareer(geokguk)}, so the basic shape of your career is already set into the chart from the start.`
@@ -308,7 +308,15 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // but capped at 2 lines max to keep the paragraph readable. We pick the
   // first 2 non-empty signals deterministically from a priority list.
   const extraP3: string[] = []
-  for (const v of [mercurySignVar, marsCareerVar, ascCareerVar, mercuryHouseVar, marsHouseVar, saturnHouseVar, plutoHouseVar]) {
+  for (const v of [
+    mercurySignVar,
+    marsCareerVar,
+    ascCareerVar,
+    mercuryHouseVar,
+    marsHouseVar,
+    saturnHouseVar,
+    plutoHouseVar,
+  ]) {
     if (!v) continue
     if (extraP3.length >= 2) break
     extraP3.push(/[.!?]$/.test(v) ? v : `${v}.`)
@@ -369,8 +377,11 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   })
   if (relKoCareer) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepPieces.push(`${relKoCareer} 만년에 직업 색이 한 번 다듬어지는 시기가 있어요.`)
-    if (relEnCareer) deepPiecesEn.push(`${relEnCareer} The color of your late-stage career gets retuned once before it settles.`)
+    deepPieces.push(`${relKoCareer} 만년에 직업 방향이 한 번 다듬어지는 시기가 있어요.`)
+    if (relEnCareer)
+      deepPiecesEn.push(
+        `${relEnCareer} The color of your late-stage career gets retuned once before it settles.`
+      )
   }
   // Lot of Courage — adds an extra deep-grain note about challenge appetite
   const courage = input.calendarSignals?.arabicParts?.Courage
@@ -422,7 +433,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const spirit = input.calendarSignals?.arabicParts?.Spirit
   if (spirit) {
     fusionUsed.push('calendarSignals.arabicParts.Spirit')
-    guideKo += ` 직업의 행운점이 ${spirit.sign === 'Aries' ? '양자리' : spirit.sign === 'Taurus' ? '황소자리' : spirit.sign === 'Gemini' ? '쌍둥이자리' : spirit.sign === 'Cancer' ? '게자리' : spirit.sign === 'Leo' ? '사자자리' : spirit.sign === 'Virgo' ? '처녀자리' : spirit.sign === 'Libra' ? '천칭자리' : spirit.sign === 'Scorpio' ? '전갈자리' : spirit.sign === 'Sagittarius' ? '사수자리' : spirit.sign === 'Capricorn' ? '염소자리' : spirit.sign === 'Aquarius' ? '물병자리' : '물고기자리'}에 놓여, 이 결을 일터에 가져갈수록 운이 자기 자리로 와요.`
+    guideKo += ` 직업의 행운점이 ${spirit.sign === 'Aries' ? '양자리' : spirit.sign === 'Taurus' ? '황소자리' : spirit.sign === 'Gemini' ? '쌍둥이자리' : spirit.sign === 'Cancer' ? '게자리' : spirit.sign === 'Leo' ? '사자자리' : spirit.sign === 'Virgo' ? '처녀자리' : spirit.sign === 'Libra' ? '천칭자리' : spirit.sign === 'Scorpio' ? '전갈자리' : spirit.sign === 'Sagittarius' ? '사수자리' : spirit.sign === 'Capricorn' ? '염소자리' : spirit.sign === 'Aquarius' ? '물병자리' : '물고기자리'}에 놓여, 이 분위기를 일터에 가져갈수록 운이 자기 자리로 와요.`
     guideEn += ` Your Lot of Spirit sits in ${signLabel(spirit.sign, 'en')} — luck arrives at work when you consciously carry this flavor with you.`
   }
   // Profection — current-year lord & house
@@ -536,7 +547,7 @@ const MC_SIGN_FLAVOR_EN: Record<string, string> = {
   Pisces: 'empathic and artistic',
 }
 function mcSignFlavorKo(sign: string): string {
-  return MC_SIGN_FLAVOR_KO[sign] ?? '독특한 색감의 인상'
+  return MC_SIGN_FLAVOR_KO[sign] ?? '독특한 분위기의 인상'
 }
 function mcSignFlavorEn(sign: string): string {
   return MC_SIGN_FLAVOR_EN[sign] ?? 'a singular grain'
@@ -744,11 +755,17 @@ function buildCareerGuideEn(args: {
       'Do not duck titles and positions — accept them one step at a time. Luck arrives for you through the position itself.'
     )
   else if (args.dominantCategory === '재성')
-    pieces.push('Close out every effort with numbers. Completing the resource side is what unlocks the flow.')
+    pieces.push(
+      'Close out every effort with numbers. Completing the resource side is what unlocks the flow.'
+    )
   else if (args.dominantCategory === '인성')
-    pieces.push('Keep learning and keep organizing what you learn. Study is your professional capital.')
+    pieces.push(
+      'Keep learning and keep organizing what you learn. Study is your professional capital.'
+    )
   else if (args.dominantCategory === '비겁')
-    pieces.push('Do not cut off your peer connections. Your luck scales when you choose not to walk alone.')
+    pieces.push(
+      'Do not cut off your peer connections. Your luck scales when you choose not to walk alone.'
+    )
   if (args.officialAge)
     pieces.push(
       `Stretch your responsibilities just a little just before age ${args.officialAge} — the cycle then catches up to you gracefully.`
@@ -763,21 +780,21 @@ function buildCareerGuideEn(args: {
 // ─── Sibsin pattern → career line (natural language only) ────────
 function careerPatternLineKo(name: string): string {
   if (name === '관살혼잡')
-    return '관의 결이 동시에 두 갈래로 몰려서, 책임과 권위 사이를 오가는 압박이 한 번 거쳐가요.'
+    return '관이 동시에 두 갈래로 몰려서, 책임과 권위 사이를 오가는 압박이 한 번 거쳐가요.'
   if (name === '식신제살')
     return '표현과 자기절제가 한 쌍처럼 움직여서, 위기 상황일수록 직업 운이 오히려 풀려요.'
   if (name === '관살혼잡' || name === '관성과다')
-    return '책임의 결이 한쪽으로 강하게 몰려서, 자리와 무게를 받아들이는 자리부터 운이 잡혀요.'
+    return '책임이 한쪽으로 강하게 몰려서, 자리와 무게를 받아들이는 자리부터 운이 잡혀요.'
   if (name === '식상과다')
-    return '표현과 창작의 결이 한쪽으로 강하게 몰려서, 자기 결과물을 끊임없이 바깥으로 내보내는 결이 직업의 동력이에요.'
+    return '표현과 창작이 한쪽으로 강하게 몰려서, 자기 결과물을 끊임없이 바깥으로 내보내는 결이 직업의 동력이에요.'
   if (name === '재성과다')
-    return '재성의 결이 강하게 몰려서, 손에 잡히는 결과로 끝맺는 직업 흐름이 가장 잘 풀려요.'
+    return '재성이 강하게 몰려서, 손에 잡히는 결과로 끝맺는 직업 흐름이 가장 잘 풀려요.'
   if (name === '인성과다')
-    return '배움과 돌봄의 결이 강해서, 공부·정리·돌봄을 직업의 기둥으로 쓰는 길이 잘 맞아요.'
+    return '배움과 돌봄이 강해서, 공부·정리·돌봄을 직업의 기둥으로 쓰는 길이 잘 맞아요.'
   if (name === '신강사주')
-    return '사주가 강하게 자기로 돌아오는 결이라, 자기 결정으로 움직이는 직업이 운을 키워요.'
+    return '사주가 강하게 자기로 돌아오는 흐름이라, 자기 결정으로 움직이는 직업이 운을 키워요.'
   if (name === '균형사주')
-    return '사주 자질이 고르게 분포해서, 한 분야에 갇히지 않고 여러 결을 함께 끌고 가는 길이 자연스러워요.'
+    return '사주 자질이 고르게 분포해서, 한 분야에 갇히지 않고 여러 방향을 함께 끌고 가는 길이 자연스러워요.'
   return ''
 }
 
@@ -816,17 +833,17 @@ function careerSibsinPositionLineKo(
           : '만년 자리'
   if (cat === '관성') {
     if (pillar === 'month')
-      return '청년 자리에 책임과 권위의 결이 놓여서, 사회적 자리와 책임이 직업 운의 가장 큰 축이 돼요.'
+      return '청년 자리에 책임과 권위가 놓여서, 사회적 자리와 책임이 직업 운의 가장 큰 축이 돼요.'
     if (pillar === 'time')
-      return '만년 자리에 책임과 권위의 결이 놓여서, 후반 인생에서 자리와 책임의 무게가 가장 크게 잡혀요.'
-    return `${pillarKo}에 책임과 권위의 결이 놓여서, 책임과 자리가 직업 운의 기둥으로 작용해요.`
+      return '만년 자리에 책임과 권위가 놓여서, 후반 인생에서 자리와 책임의 무게가 가장 크게 잡혀요.'
+    return `${pillarKo}에 책임과 권위가 놓여서, 책임과 자리가 직업 운의 기둥으로 작용해요.`
   }
   if (cat === '식상') {
     if (pillar === 'month')
-      return '청년 자리에 표현과 창작의 결이 놓여서, 만들고 표현하는 결이 직업 운의 가장 큰 축이 돼요.'
+      return '청년 자리에 표현과 창작이 놓여서, 만들고 표현하는 일이 직업 운의 가장 큰 축이 돼요.'
     if (pillar === 'time')
-      return '만년 자리에 표현과 창작의 결이 놓여서, 후반 인생일수록 표현·창작의 결이 직업의 색을 정해요.'
-    return `${pillarKo}에 표현과 창작의 결이 놓여서, 표현과 창작이 직업 운을 끌어와요.`
+      return '만년 자리에 표현과 창작이 놓여서, 후반 인생일수록 표현·창작이 직업의 방향을 정해요.'
+    return `${pillarKo}에 표현과 창작이 놓여서, 표현과 창작이 직업 운을 끌어와요.`
   }
   return ''
 }

@@ -147,8 +147,8 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
         : '자녀와의 인연은 잔잔하고 안정적으로 흘러요.',
     // sikSangTotal === 0 일 때는 "흘러서" 가 모순되므로 별도 표현 사용.
     sikSangTotal === 0
-      ? `표현과 창조의 결이 ${childCountFlavorKo(sikSangTotal)}, ${childFlavorKo(sikSangTotal)}.`
-      : `표현과 창조의 결이 ${childCountFlavorKo(sikSangTotal)} 흘러서, ${childFlavorKo(sikSangTotal)}.`,
+      ? `표현과 창조이 ${childCountFlavorKo(sikSangTotal)}, ${childFlavorKo(sikSangTotal)}.`
+      : `표현과 창조이 ${childCountFlavorKo(sikSangTotal)} 흘러서, ${childFlavorKo(sikSangTotal)}.`,
     fifth.length > 0
       ? `창조 영역에 ${fifth.map((p) => planetLabelChildrenKo(p.name)).join(', ')}이 머물러, 자녀·창작·놀이의 색이 또렷하게 활성화돼 있어요.`
       : '창조 영역이 비어 있어, 자녀운은 다른 기운이 함께 받쳐줘요.',
@@ -168,9 +168,9 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   // ── Paragraph 2: 자녀 수 추정 + 시주 분석
   const p2ko = paragraph([
     `자녀 수 추정: ${est.min === est.max ? `${est.min}명 부근` : `${est.min}~${est.max}명`} (확신도 ${confLabelKo(est.confidence)}).`,
-    '표현과 창조의 결, 그리고 별의 자녀 영역을 함께 보면 이 범위가 나와요.',
+    '표현과 창조의 기운, 그리고 별의 자녀 영역을 함께 보면 이 범위가 나와요.',
     `시간의 기둥에 해당하는 자녀 영역은 ${stageFlavorKo(ts)}.`,
-    '한 가지 결만으로 정확한 수가 결정되지 않으니 참고용으로 봐주세요.',
+    '한 가지 기준만으로 정확한 수가 결정되지 않으니 참고용으로 봐주세요.',
   ])
   const p2en = paragraph([
     `Estimated count: ${est.min === est.max ? `around ${est.min}` : `${est.min}–${est.max}`} (confidence ${est.confidence}).`,
@@ -179,21 +179,29 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     'No chart fixes an exact number — please treat this as guidance, not a verdict.',
   ])
 
-  // ── Paragraph 3: 자녀 관계의 결 (advanced)
+  // ── Paragraph 3: 자녀 관계 (advanced)
   const deepKo: string[] = []
   const deepEn: string[] = []
   if (jupiter && jupiter.house === 5) {
     deepKo.push('확장의 별이 창조 영역에 있어, 자녀가 행운과 확장의 통로가 되는 배치예요.')
-    deepEn.push('Jupiter in your 5th house makes children themselves a channel of luck and expansion.')
+    deepEn.push(
+      'Jupiter in your 5th house makes children themselves a channel of luck and expansion.'
+    )
   } else if (jupiter && jupiter.house) {
-    deepKo.push(`확장의 별이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`)
-    deepEn.push(`From your ${houseLabel(jupiter.house, 'en')}, Jupiter supports the area of children at an angle rather than directly.`)
+    deepKo.push(
+      `확장의 별이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`
+    )
+    deepEn.push(
+      `From your ${houseLabel(jupiter.house, 'en')}, Jupiter supports the area of children at an angle rather than directly.`
+    )
   }
   if (saturn && saturn.house === 5) {
     deepKo.push(
       '책임의 별이 창조 영역에 있어, 자녀가 늦게 오거나 적은 수로 깊은 관계를 만드는 흐름이에요.'
     )
-    deepEn.push('Saturn in your 5th house can delay children or keep the number smaller — but the bonds that form go deep.')
+    deepEn.push(
+      'Saturn in your 5th house can delay children or keep the number smaller — but the bonds that form go deep.'
+    )
   }
   if (moon && moon.house === 5) {
     deepKo.push('감정의 별이 창조 영역에 있어, 자녀와의 정서 교감이 깊어요.')
@@ -216,8 +224,12 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     )
   }
   if (gk.includes('식신')) {
-    deepKo.push('인생의 큰 패턴이 여유로운 표현과 창조의 흐름이라, 자녀를 키우는 일 자체가 자기 표현의 연장이에요.')
-    deepEn.push('Your life-pattern flows through easeful expression and creation — raising children becomes a natural extension of that same self-expression.')
+    deepKo.push(
+      '인생의 큰 패턴이 여유로운 표현과 창조의 흐름이라, 자녀를 키우는 일 자체가 자기 표현의 연장이에요.'
+    )
+    deepEn.push(
+      'Your life-pattern flows through easeful expression and creation — raising children becomes a natural extension of that same self-expression.'
+    )
   }
   // Calendar-engine: 5th-house profection year (자녀의 행운점 활성) + harmonics 5 (창조의 결)
   const prof = input.calendarSignals?.profectionCurrent
@@ -249,16 +261,24 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   })
   if (relKoChildren) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepKo.push(`${relKoChildren} 자녀와의 인연 색이 일찍부터 정해져 있는 흐름이에요.`)
+    deepKo.push(`${relKoChildren} 자녀와의 인연이 일찍부터 정해져 있는 흐름이에요.`)
     if (relEnChildren)
       deepEn.push(`${relEnChildren} The tone of the bond with your child is set early.`)
   }
-  const p3ko = paragraph(deepKo.length ? deepKo : [
-    '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.'
-  ])
-  const p3en = paragraph(deepEn.length ? deepEn : [
-    'Because your 5th-house and creative-expression signals sit in a steady alignment, your bond with children follows the calm rhythm of everyday life rather than big dramatic turns.'
-  ])
+  const p3ko = paragraph(
+    deepKo.length
+      ? deepKo
+      : [
+          '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.',
+        ]
+  )
+  const p3en = paragraph(
+    deepEn.length
+      ? deepEn
+      : [
+          'Because your 5th-house and creative-expression signals sit in a steady alignment, your bond with children follows the calm rhythm of everyday life rather than big dramatic turns.',
+        ]
+  )
 
   const paragraphs: Paragraph[] = [
     { ko: p1ko, en: p1en },
@@ -302,7 +322,19 @@ function childFlavorEn(n: number): string {
 
 // 숫자를 자연 영어 단어로 (1~10 까지; 그 외엔 숫자 그대로).
 function sikSangCountWordEn(n: number): string {
-  const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
+  const words = [
+    'zero',
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+  ]
   if (n >= 0 && n <= 10) return words[n]
   return String(n)
 }

@@ -95,7 +95,11 @@ const LIFECYCLE_TO_DOMAIN: Record<
     en: 'late-career consolidation',
   },
   jupiter_return_2: { domain: 'career', ko: '진로 큰 그림이 잡히는 때', en: 'career big picture' },
-  jupiter_return_5: { domain: 'wealth', ko: '환갑의 전환, 후반 인생 첫 사이클', en: 'a 60-year turning point, the first cycle of the second half of life' },
+  jupiter_return_5: {
+    domain: 'wealth',
+    ko: '환갑의 전환, 후반 인생 첫 사이클',
+    en: 'a 60-year turning point, the first cycle of the second half of life',
+  },
   uranus_opposition: { domain: 'crisis', ko: '중년 자유의 각성', en: 'midlife awakening' },
   pluto_square_pluto: {
     domain: 'crisis',
@@ -297,7 +301,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   if (zr) {
     astroUsed.push('calendarSignals.zrCurrent')
     p5pieces.push(
-      `다음 5~10년의 인생 분위기는 ${zrSignKo(zr.sign)}의 색, ${planetName(zr.ruler, 'ko')}이 다스리는 챕터예요. 큰 톤은 ${zrThemeKo(zr.sign)}으로 흘러요.`
+      `다음 5~10년의 인생 분위기는 ${zrSignKo(zr.sign)}의 느낌, ${planetName(zr.ruler, 'ko')}이 다스리는 챕터예요. 전체 분위기는 ${zrThemeKo(zr.sign)}으로 흘러요.`
     )
     p5piecesEn.push(
       `Over the next 5–10 years, the life-tone is the ${zr.sign} chapter ruled by ${zr.ruler} — the broad theme is ${zrThemeEn(zr.sign)}.`
@@ -305,7 +309,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   }
   if (zrNext) {
     p5pieces.push(
-      `이 챕터가 끝나면 ${zrSignKo(zrNext.sign)}의 분위기로 넘어가요. 큰 흐름의 갈림길이 한 번 더 기다리고 있어요.`
+      `이 챕터가 끝나면 ${zrSignKo(zrNext.sign)}의 분위기로 넘어가요. 인생의 큰 갈림길이 한 번 더 기다리고 있어요.`
     )
     p5piecesEn.push(
       `When the current chapter closes, you move into the ${zrNext.sign} chapter — another large bend in the river awaits.`
@@ -321,7 +325,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     const endAge = Math.round(zrSubCurrent.endYear)
     const endYearAbsolute = birthYearForSub + endAge
     p5pieces.push(
-      `그 안의 작은 시기로 보면, 지금은 ${zrSignKo(zrSubCurrent.sign)}의 색을 ${planetName(zrSubCurrent.ruler, 'ko')}이 다스리는 sub-period 안에 있어요. 이 작은 시기는 ${endAge}세(${endYearAbsolute}년) 무렵 닫히면서 작은 변곡이 한 번 와요.`
+      `그 안의 작은 시기로 보면, 지금은 ${zrSignKo(zrSubCurrent.sign)}의 느낌을 ${planetName(zrSubCurrent.ruler, 'ko')}이 다스리는 sub-period 안에 있어요. 이 작은 시기는 ${endAge}세(${endYearAbsolute}년) 무렵 닫히면서 작은 변곡이 한 번 와요.`
     )
     p5piecesEn.push(
       `Inside the chapter, you sit in a smaller ${zrSubCurrent.sign} sub-period ruled by ${zrSubCurrent.ruler}; it closes around age ${endAge} (≈ ${endYearAbsolute}), bringing one minor pivot.`
@@ -344,7 +348,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
         (u) => `age ${Math.round(u.startYear)} (≈ ${birthYearForSub + Math.round(u.startYear)})`
       )
       p5pieces.push(
-        `다음 작은 변곡은 ${labelsKo.join(', ')} 즈음이에요. 인생 큰 챕터 안에서 흐름의 톤이 한 번씩 바뀌어요.`
+        `다음 작은 변곡은 ${labelsKo.join(', ')} 즈음이에요. 인생의 큰 챕터 안에서 분위기가 한 번씩 바뀌어요.`
       )
       p5piecesEn.push(
         `The next small pivots fall near ${labelsEn.join(', ')} — the tone of the chapter shifts a notch each time.`
@@ -392,7 +396,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     const planetParticle = iGa(planetKo)
     const signParticle = signKo ? euroLoFromBatchim(signKo) : ''
     p5pieces.push(
-      `${ing.ingressAge}세 무렵엔 진행된 결 안에서 ${planetKo}${planetParticle}${signKo ? ' ' + signKo + signParticle : ''} 들어가, 인생 색의 변곡이 한 번 또렷이 잡혀요.`
+      `${ing.ingressAge}세 무렵엔 진행 차트 안에서 ${planetKo}${planetParticle}${signKo ? ' ' + signKo + signParticle : ''} 들어가, 인생 분위기의 변곡이 한 번 또렷이 잡혀요.`
     )
     p5piecesEn.push(
       `Around age ${ing.ingressAge}, solar-arc directed ${ing.planet}${signEn ? ' enters ' + signEn : ' changes sign'}, marking a clear inflection of life-tone.`
@@ -400,7 +404,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   }
   const p5ko = p5pieces.length
     ? paragraph(p5pieces)
-    : '다음 5~10년의 흐름은 잔잔히 정렬돼 있어, 큰 굴곡보다 매 시기마다 작은 톤을 갱신해가는 길이에요.'
+    : '다음 5~10년의 흐름은 잔잔히 정렬돼 있어, 큰 굴곡보다 매 시기마다 작은 변화가 이어지는 시기예요.'
   const p5en = p5piecesEn.length
     ? paragraph(p5piecesEn)
     : 'The 5–10 year horizon sits calmly arranged — many small renewals rather than a single dramatic bend.'
@@ -427,12 +431,12 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       `사주 안에 ${dominant}이 강해서, 이번 시기엔 ${hc.chungCount >= hc.hapCount ? '결정과 단절을 미루지 않을 때' : '함께하는 사람과의 결합'}이 운을 끌어와요.`
     )
     p6piecesEn.push(
-      `Your chart carries ${dominantEn} — this season ${hc.chungCount >= hc.hapCount ? 'decisions and clean breaks pull luck in' : 'partnerships pull luck in'}.`,
+      `Your chart carries ${dominantEn} — this season ${hc.chungCount >= hc.hapCount ? 'decisions and clean breaks pull luck in' : 'partnerships pull luck in'}.`
     )
   }
   const p6ko = p6pieces.length
     ? paragraph(p6pieces)
-    : '오늘과 이번 달의 흐름은 평이해요. 큰 결정을 서두르기보단 일상의 톤을 다듬는 시기가 맞아요.'
+    : '오늘과 이번 달의 흐름은 평이해요. 큰 결정을 서두르기보단 일상을 다듬는 시기가 맞아요.'
   const p6en = p6piecesEn.length
     ? paragraph(p6piecesEn)
     : 'Today and this month sit calmly — refine daily grain rather than rushing big decisions.'
@@ -443,7 +447,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const p5p6ko =
     p5pieces.length > 0 || p6pieces.length > 0
       ? paragraph([...p5pieces, ...p6pieces])
-      : '다음 5~10년의 흐름은 잔잔히 정렬돼 있어, 큰 굴곡보다 매 시기마다 작은 톤을 갱신해가는 길이에요.'
+      : '다음 5~10년의 흐름은 잔잔히 정렬돼 있어, 큰 굴곡보다 매 시기마다 작은 변화가 이어지는 시기예요.'
   const p5p6en =
     p5piecesEn.length > 0 || p6piecesEn.length > 0
       ? paragraph([...p5piecesEn, ...p6piecesEn])
