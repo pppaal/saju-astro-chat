@@ -27,7 +27,7 @@ const TYPEWRITER_PROMPTS_KO = [
 const TYPEWRITER_PROMPTS_EN = [
   'What is our bond about?',
   'How do we handle conflict?',
-  "Where is this heading?",
+  'Where is this heading?',
   'What are our strengths?',
   'Where do we differ?',
 ] as const
@@ -119,20 +119,15 @@ function CompatibilityCounselorContent() {
                 if (Array.isArray(s.messages)) {
                   setMessages(
                     s.messages.filter(
-                      (m): m is ChatMessage =>
-                        !!m && (m.role === 'user' || m.role === 'assistant')
+                      (m): m is ChatMessage => !!m && (m.role === 'user' || m.role === 'assistant')
                     )
                   )
                 }
                 if (s.meta?.persons) setPersons(s.meta.persons)
-                if (s.meta?.person1Saju !== undefined)
-                  setPerson1Saju(s.meta.person1Saju ?? null)
-                if (s.meta?.person2Saju !== undefined)
-                  setPerson2Saju(s.meta.person2Saju ?? null)
-                if (s.meta?.person1Astro !== undefined)
-                  setPerson1Astro(s.meta.person1Astro ?? null)
-                if (s.meta?.person2Astro !== undefined)
-                  setPerson2Astro(s.meta.person2Astro ?? null)
+                if (s.meta?.person1Saju !== undefined) setPerson1Saju(s.meta.person1Saju ?? null)
+                if (s.meta?.person2Saju !== undefined) setPerson2Saju(s.meta.person2Saju ?? null)
+                if (s.meta?.person1Astro !== undefined) setPerson1Astro(s.meta.person1Astro ?? null)
+                if (s.meta?.person2Astro !== undefined) setPerson2Astro(s.meta.person2Astro ?? null)
                 return // skip fresh-start path
               }
             }
@@ -280,176 +275,185 @@ function CompatibilityCounselorContent() {
     }
   }, [isInitializing])
 
-  const sendMessage = useCallback(async (textOverride?: string) => {
-    const text = (textOverride ?? input).trim()
-    if (!text || isLoading) {
-      return
-    }
-
-    const userMessage: ChatMessage = { role: 'user', content: text }
-    setMessages((prev) => [...prev, userMessage])
-    if (!textOverride) setInput('')
-    setFollowUpQuestions([])
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      // Send only the most recent turns. The server already clamps to
-      // 8 via `clampMessages`, but uploading the full history every
-      // turn wastes the user's mobile data + adds round-trip latency
-      // for long conversations.
-      const recentHistory = [...messages, userMessage].slice(-10)
-      const response = await fetch('/api/compatibility/counselor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          persons,
-          person1Saju,
-          person2Saju,
-          person1Astro,
-          person2Astro,
-          lang: locale,
-          messages: recentHistory,
-          useRag: true,
-        }),
-      })
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('login_required')
-        }
-        // 402 Payment Required — credit exhausted. The middleware
-        // returns { error, code: 'INSUFFICIENT_CREDITS', upgradeUrl,
-        // remaining }. We want a user-friendly bubble + pricing link
-        // instead of a generic "오류 발생", which is what every user
-        // (and three rounds of debugging) had been seeing.
-        if (response.status === 402) {
-          throw new Error('payment_required')
-        }
-        // Pull the route's short errorTag so the chat bubble shows
-        // *why* the request failed instead of a generic "오류 발생".
-        // The route returns { error, errorTag } as JSON for non-2xx.
-        let detail = ''
-        try {
-          const body = (await response.clone().json()) as { errorTag?: string; error?: string }
-          detail = body.errorTag || body.error || ''
-        } catch {
-          /* response wasn't JSON — fall through to plain status */
-        }
-        throw new Error(detail ? `Failed (${response.status}): ${detail}` : `Failed (${response.status})`)
+  const sendMessage = useCallback(
+    async (textOverride?: string) => {
+      const text = (textOverride ?? input).trim()
+      if (!text || isLoading) {
+        return
       }
 
-      // 서버는 `data: {"content":"...","done":false}\n\n` 형식의 JSON SSE를
-      // 보낸다. 이전엔 `data:` 라인 뒤의 *JSON 문자열 전체*를 그대로
-      // 누적해서 화면에 `{"content":"안","done":false}{"content":"녕"...}`
-      // 식의 깨진 텍스트가 나왔다. 운명 상담사가 이미 쓰던 streamProcessor
-      // 로 통일 — `content` 필드만 추출해 누적한다.
-      setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
+      const userMessage: ChatMessage = { role: 'user', content: text }
+      setMessages((prev) => [...prev, userMessage])
+      if (!textOverride) setInput('')
+      setFollowUpQuestions([])
+      setIsLoading(true)
+      setError(null)
 
-      let finalAssistantContent = ''
-      const result = await streamProcessor.process(response, {
-        onChunk: (_accumulated, cleaned) => {
-          finalAssistantContent = cleaned
-          setMessages((prev) => {
-            const updated = [...prev]
-            if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
-              updated[updated.length - 1] = {
-                role: 'assistant',
-                content: cleaned,
-              }
-            }
-            return updated
-          })
-        },
-        onError: (err) => {
-          logger.warn('[CompatCounselor] stream error', { error: err })
-        },
-      })
-      // LLM-generated follow-up chips. Only set when we got the
-      // expected 2 — otherwise leave empty (no hardcoded fallback on
-      // compat side; destiny has one, compat keeps it clean).
-      if (result.followUps.length >= 2) {
-        setFollowUpQuestions(result.followUps.slice(0, 2))
-      }
-
-      // Persist the exchange so it shows up in the past-chats sidebar
-      // next visit. Fire-and-forget; save failure must not block UX.
-      if (finalAssistantContent) {
-        const isFirstSave = !chatSessionId
-        const body: Record<string, unknown> = {
-          sessionId: chatSessionId,
-          locale: locale === 'ko' ? 'ko' : 'en',
-          userMessage: userMessage.content,
-          assistantMessage: finalAssistantContent,
-          type: 'compat',
-        }
-        // On the *first* save attach the couple snapshot so a future
-        // re-open can restore the chart without recomputing.
-        if (isFirstSave) {
-          body.meta = {
+      try {
+        // Send only the most recent turns. The server already clamps to
+        // 8 via `clampMessages`, but uploading the full history every
+        // turn wastes the user's mobile data + adds round-trip latency
+        // for long conversations.
+        const recentHistory = [...messages, userMessage].slice(-10)
+        const response = await fetch('/api/compatibility/counselor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             persons,
             person1Saju,
             person2Saju,
             person1Astro,
             person2Astro,
-          }
-        }
-        fetch('/api/counselor/chat-history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+            lang: locale,
+            messages: recentHistory,
+            useRag: true,
+          }),
         })
-          .then((r) => (r.ok ? r.json() : null))
-          .then((data: { success?: boolean; session?: { id: string } } | null) => {
-            if (data?.success && data.session?.id && !chatSessionId) {
-              setChatSessionId(data.session.id)
-            }
-          })
-          .catch((err) =>
-            logger.warn('[CompatCounselor] chat-history save failed', { error: err })
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('login_required')
+          }
+          // 402 Payment Required — credit exhausted. The middleware
+          // returns { error, code: 'INSUFFICIENT_CREDITS', upgradeUrl,
+          // remaining }. We want a user-friendly bubble + pricing link
+          // instead of a generic "오류 발생", which is what every user
+          // (and three rounds of debugging) had been seeing.
+          if (response.status === 402) {
+            throw new Error('payment_required')
+          }
+          // Pull the route's short errorTag so the chat bubble shows
+          // *why* the request failed instead of a generic "오류 발생".
+          // The route returns { error, errorTag } as JSON for non-2xx.
+          let detail = ''
+          try {
+            const body = (await response.clone().json()) as { errorTag?: string; error?: string }
+            detail = body.errorTag || body.error || ''
+          } catch {
+            /* response wasn't JSON — fall through to plain status */
+          }
+          throw new Error(
+            detail ? `Failed (${response.status}): ${detail}` : `Failed (${response.status})`
           )
+        }
+
+        // 서버는 `data: {"content":"...","done":false}\n\n` 형식의 JSON SSE를
+        // 보낸다. 이전엔 `data:` 라인 뒤의 *JSON 문자열 전체*를 그대로
+        // 누적해서 화면에 `{"content":"안","done":false}{"content":"녕"...}`
+        // 식의 깨진 텍스트가 나왔다. 운명 상담사가 이미 쓰던 streamProcessor
+        // 로 통일 — `content` 필드만 추출해 누적한다.
+        setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
+
+        let finalAssistantContent = ''
+        const result = await streamProcessor.process(response, {
+          onChunk: (_accumulated, cleaned) => {
+            finalAssistantContent = cleaned
+            setMessages((prev) => {
+              const updated = [...prev]
+              if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
+                updated[updated.length - 1] = {
+                  role: 'assistant',
+                  content: cleaned,
+                }
+              }
+              return updated
+            })
+          },
+          onError: (err) => {
+            logger.warn('[CompatCounselor] stream error', { error: err })
+          },
+        })
+        // LLM-generated follow-up chips. Only set when we got the
+        // expected 2 — otherwise leave empty (no hardcoded fallback on
+        // compat side; destiny has one, compat keeps it clean).
+        if (result.followUps.length >= 2) {
+          setFollowUpQuestions(result.followUps.slice(0, 2))
+        }
+
+        // Persist the exchange so it shows up in the past-chats sidebar
+        // next visit. Fire-and-forget; save failure must not block UX.
+        if (finalAssistantContent) {
+          const isFirstSave = !chatSessionId
+          const body: Record<string, unknown> = {
+            sessionId: chatSessionId,
+            locale: locale === 'ko' ? 'ko' : 'en',
+            userMessage: userMessage.content,
+            assistantMessage: finalAssistantContent,
+            type: 'compat',
+          }
+          // On the *first* save attach the couple snapshot so a future
+          // re-open can restore the chart without recomputing.
+          if (isFirstSave) {
+            body.meta = {
+              persons,
+              person1Saju,
+              person2Saju,
+              person1Astro,
+              person2Astro,
+            }
+          }
+          fetch('/api/counselor/chat-history', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data: { success?: boolean; session?: { id: string } } | null) => {
+              if (data?.success && data.session?.id && !chatSessionId) {
+                setChatSessionId(data.session.id)
+              }
+            })
+            .catch((err) =>
+              logger.warn('[CompatCounselor] chat-history save failed', { error: err })
+            )
+        }
+      } catch (e) {
+        logger.error('Chat error:', { error: e })
+        const errMsg = (e as Error).message || ''
+        if (errMsg === 'login_required') {
+          setError(
+            isKo
+              ? '로그인이 필요한 프리미엄 기능입니다.'
+              : 'Login required for this premium feature.'
+          )
+        } else if (errMsg === 'payment_required') {
+          // Friendly credit-exhausted message + flip a flag so the error
+          // bubble renders a tappable "플랜 보기" button alongside the
+          // text. setError on its own can only emit plain text.
+          setError(
+            isKo
+              ? '이번 달 무료 궁합 분석 횟수를 모두 사용했어요.'
+              : "You've used all free compatibility readings this month."
+          )
+          setCreditExhausted(true)
+        } else {
+          // Append the route's errorTag (set above from response body) so
+          // the user-visible bubble points at the actual failure mode
+          // instead of a generic message. The Error here is either our
+          // "Failed (500): ErrorName: message…" string or a network error.
+          const base = isKo
+            ? '오류가 발생했습니다. 다시 시도해 주세요.'
+            : 'An error occurred. Please try again.'
+          setError(errMsg && errMsg !== 'Failed to get response' ? `${base}\n[${errMsg}]` : base)
+        }
+      } finally {
+        setIsLoading(false)
       }
-    } catch (e) {
-      logger.error('Chat error:', { error: e })
-      const errMsg = (e as Error).message || ''
-      if (errMsg === 'login_required') {
-        setError(
-          isKo ? '로그인이 필요한 프리미엄 기능입니다.' : 'Login required for this premium feature.'
-        )
-      } else if (errMsg === 'payment_required') {
-        // Friendly credit-exhausted message + flip a flag so the error
-        // bubble renders a tappable "플랜 보기" button alongside the
-        // text. setError on its own can only emit plain text.
-        setError(
-          isKo
-            ? '이번 달 무료 궁합 분석 횟수를 모두 사용했어요.'
-            : "You've used all free compatibility readings this month."
-        )
-        setCreditExhausted(true)
-      } else {
-        // Append the route's errorTag (set above from response body) so
-        // the user-visible bubble points at the actual failure mode
-        // instead of a generic message. The Error here is either our
-        // "Failed (500): ErrorName: message…" string or a network error.
-        const base = isKo ? '오류가 발생했습니다. 다시 시도해 주세요.' : 'An error occurred. Please try again.'
-        setError(errMsg && errMsg !== 'Failed to get response' ? `${base}\n[${errMsg}]` : base)
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }, [
-    input,
-    isLoading,
-    messages,
-    persons,
-    person1Saju,
-    person2Saju,
-    person1Astro,
-    person2Astro,
-    locale,
-    isKo,
-    chatSessionId,
-  ])
+    },
+    [
+      input,
+      isLoading,
+      messages,
+      persons,
+      person1Saju,
+      person2Saju,
+      person1Astro,
+      person2Astro,
+      locale,
+      isKo,
+      chatSessionId,
+    ]
+  )
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -471,10 +475,6 @@ function CompatibilityCounselorContent() {
     try {
       const { markdown } = await runQuickCoupleTarot({
         persons,
-        person1Saju,
-        person2Saju,
-        person1Astro,
-        person2Astro,
         language: isKo ? 'ko' : 'en',
         onChunk: (partial) => {
           setMessages((prev) => {
@@ -514,15 +514,7 @@ function CompatibilityCounselorContent() {
     } finally {
       setIsLoading(false)
     }
-  }, [
-    isLoading,
-    persons,
-    person1Saju,
-    person2Saju,
-    person1Astro,
-    person2Astro,
-    isKo,
-  ])
+  }, [isLoading, persons, isKo])
 
   if (isInitializing) {
     return <CounselorLoading />
@@ -553,7 +545,9 @@ function CompatibilityCounselorContent() {
             disabled={isLoading || persons.length < 2}
             title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
           >
-            <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">{'🎴'}</span>
+            <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+              {'🎴'}
+            </span>
             {isKo ? '둘 궁합 타로 뽑기' : 'Draw couple tarot'}
           </button>
         }
@@ -572,7 +566,9 @@ function CompatibilityCounselorContent() {
               <span className={styles.backIcon}>{'☰'}</span>
             </button>
             <h1 className={styles.headerTitle}>
-              <span className={styles.headerHeart} aria-hidden="true">{'💕'}</span>
+              <span className={styles.headerHeart} aria-hidden="true">
+                {'💕'}
+              </span>
               {isKo ? '궁합 상담사' : 'Compatibility Counselor'}
             </h1>
           </div>
@@ -581,148 +577,145 @@ function CompatibilityCounselorContent() {
           </div>
         </header>
 
-      {/* Chat */}
-      <div className={styles.chatWrapper}>
-        <div className={styles.messagesContainer}>
-          {messages.length === 0 && (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>{'\u{1F495}'}</div>
-              <p className={styles.emptyText}>
-                {isKo ? '두 사람에 대해서 물어보세요' : 'Ask about the two of you'}
-              </p>
-            </div>
-          )}
-
-          {messages.map((msg, idx) => {
-            const isUser = msg.role === 'user'
-            const isLastAssistant = !isUser && idx === messages.length - 1
-            const showTyping = isLastAssistant && isLoading && !msg.content
-            return (
-              <div
-                key={idx}
-                className={`${styles.message} ${isUser ? styles.userMessage : ''}`}
-              >
-                <div className={styles.messageAvatar} aria-hidden="true">
-                  {isUser ? '\u{1F464}' : '\u{1F495}'}
-                </div>
-                <div className={styles.messageBubble}>
-                  {showTyping ? (
-                    <span className={styles.typing}>
-                      <span />
-                      <span />
-                      <span />
-                    </span>
-                  ) : isUser ? (
-                    msg.content
-                  ) : (
-                    <MarkdownMessage content={msg.content} />
-                  )}
-                </div>
+        {/* Chat */}
+        <div className={styles.chatWrapper}>
+          <div className={styles.messagesContainer}>
+            {messages.length === 0 && (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>{'\u{1F495}'}</div>
+                <p className={styles.emptyText}>
+                  {isKo ? '두 사람에 대해서 물어보세요' : 'Ask about the two of you'}
+                </p>
               </div>
-            )
-          })}
+            )}
 
-          {error && (
-            <div className={styles.errorMessage}>
-              {error}
-              {creditExhausted && (
-                <a
-                  href="/pricing"
-                  style={{
-                    display: 'inline-block',
-                    marginTop: 10,
-                    padding: '8px 14px',
-                    borderRadius: 999,
-                    background:
-                      'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%)',
-                    color: '#3a1f3a',
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {isKo ? '플랜 보기' : 'View plans'}
-                </a>
-              )}
-            </div>
-          )}
+            {messages.map((msg, idx) => {
+              const isUser = msg.role === 'user'
+              const isLastAssistant = !isUser && idx === messages.length - 1
+              const showTyping = isLastAssistant && isLoading && !msg.content
+              return (
+                <div key={idx} className={`${styles.message} ${isUser ? styles.userMessage : ''}`}>
+                  <div className={styles.messageAvatar} aria-hidden="true">
+                    {isUser ? '\u{1F464}' : '\u{1F495}'}
+                  </div>
+                  <div className={styles.messageBubble}>
+                    {showTyping ? (
+                      <span className={styles.typing}>
+                        <span />
+                        <span />
+                        <span />
+                      </span>
+                    ) : isUser ? (
+                      msg.content
+                    ) : (
+                      <MarkdownMessage content={msg.content} />
+                    )}
+                  </div>
+                </div>
+              )
+            })}
 
-          {!isLoading && followUpQuestions.length > 0 && messages.length > 0 && (
-            <div className={styles.followUpContainer}>
-              <span className={styles.followUpLabel}>
-                {isKo ? '이어서 물어보기' : 'Continue asking'}
-              </span>
-              <div className={styles.followUpButtons}>
-                {followUpQuestions.map((q, idx) => (
-                  <button
-                    key={`${idx}-${q}`}
-                    type="button"
-                    className={styles.followUpChip}
-                    onClick={() => sendMessage(q)}
+            {error && (
+              <div className={styles.errorMessage}>
+                {error}
+                {creditExhausted && (
+                  <a
+                    href="/pricing"
+                    style={{
+                      display: 'inline-block',
+                      marginTop: 10,
+                      padding: '8px 14px',
+                      borderRadius: 999,
+                      background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%)',
+                      color: '#3a1f3a',
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      textDecoration: 'none',
+                    }}
                   >
-                    <span className={styles.followUpIcon}>{'\u{1F4AC}'}</span>
-                    {q}
-                  </button>
-                ))}
+                    {isKo ? '플랜 보기' : 'View plans'}
+                  </a>
+                )}
               </div>
-            </div>
-          )}
+            )}
 
-          <div ref={messagesEndRef} />
-        </div>
+            {!isLoading && followUpQuestions.length > 0 && messages.length > 0 && (
+              <div className={styles.followUpContainer}>
+                <span className={styles.followUpLabel}>
+                  {isKo ? '이어서 물어보기' : 'Continue asking'}
+                </span>
+                <div className={styles.followUpButtons}>
+                  {followUpQuestions.map((q, idx) => (
+                    <button
+                      key={`${idx}-${q}`}
+                      type="button"
+                      className={styles.followUpChip}
+                      onClick={() => sendMessage(q)}
+                    >
+                      <span className={styles.followUpIcon}>{'\u{1F4AC}'}</span>
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* The standalone "둘 궁합 타로 즉시 보기" pill above the input
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* The standalone "둘 궁합 타로 즉시 보기" pill above the input
             was merged into the input toolbar below (Claude-style) so
             the textarea gets the full width and the three actions
             (📎 / 🎴 / ▶) share one row underneath. */}
-        <div style={{ display: 'none' }}>
-        </div>
+          <div style={{ display: 'none' }}></div>
 
-        {/* Input — Claude-style: textarea on top, action row below.
+          {/* Input — Claude-style: textarea on top, action row below.
             Three actions: 📎 attach (placeholder), 🎴 quick tarot, ▶ send. */}
-        <div className={styles.inputContainer}>
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={animatedPlaceholder || (isKo ? '질문을 입력하세요…' : 'Type a question…')}
-            className={styles.input}
-            rows={3}
-            disabled={isLoading}
-          />
-          <div className={styles.inputToolbar}>
-            <div className={styles.inputToolbarLeft}>
+          <div className={styles.inputContainer}>
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                animatedPlaceholder || (isKo ? '질문을 입력하세요…' : 'Type a question…')
+              }
+              className={styles.input}
+              rows={3}
+              disabled={isLoading}
+            />
+            <div className={styles.inputToolbar}>
+              <div className={styles.inputToolbarLeft}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    alert(isKo ? '파일 첨부는 곧 지원돼요.' : 'File attach coming soon.')
+                  }}
+                  className={styles.toolButton}
+                  aria-label={isKo ? '파일 첨부' : 'Attach file'}
+                  title={isKo ? '파일 첨부 (준비 중)' : 'Attach file (coming soon)'}
+                >
+                  <span className={styles.toolButtonIcon}>📎</span>
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => {
-                  alert(isKo ? '파일 첨부는 곧 지원돼요.' : 'File attach coming soon.')
-                }}
-                className={styles.toolButton}
-                aria-label={isKo ? '파일 첨부' : 'Attach file'}
-                title={isKo ? '파일 첨부 (준비 중)' : 'Attach file (coming soon)'}
+                onClick={() => sendMessage()}
+                disabled={!input.trim() || isLoading}
+                className={styles.sendButton}
+                aria-label={isKo ? '전송' : 'Send'}
               >
-                <span className={styles.toolButtonIcon}>📎</span>
+                {isLoading ? (
+                  <span className={styles.loadingSpinner} />
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
+                )}
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || isLoading}
-              className={styles.sendButton}
-              aria-label={isKo ? '전송' : 'Send'}
-            >
-              {isLoading ? (
-                <span className={styles.loadingSpinner} />
-              ) : (
-                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                </svg>
-              )}
-            </button>
           </div>
         </div>
-      </div>
       </div>
     </main>
   )

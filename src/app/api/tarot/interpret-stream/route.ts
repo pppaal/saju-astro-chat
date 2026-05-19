@@ -12,7 +12,6 @@ import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
 import { TAROT_RULES_KO, TAROT_RULES_EN } from '@/lib/tarot/promptShared'
-import { getZodiacSign } from '@/lib/tarot/zodiacSign'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
@@ -113,9 +112,6 @@ function streamJsonPayload(
   })
 }
 
-// 별자리 계산 함수
-// getZodiacSign / parseBirthMonthDay 는 @/lib/tarot/zodiacSign 으로 이전 (테스트 + 재사용).
-
 // 옛 analyzeQuestionMood / previousReadings 는 system prompt 의 Step 0 가 이미
 // subject/object/timeframe/intent 를 추출하므로 중복 noise — 제거됨.
 
@@ -177,11 +173,6 @@ export async function POST(req: NextRequest) {
     const rawCards = body.cards
     const userQuestion = (body.userQuestion || '').trim()
     const effectiveUserQuestion = userQuestion
-    const includeAstrology = body.includeAstrology !== false
-    const includeSaju = body.includeSaju !== false
-    const birthdate = includeAstrology ? body.birthdate || '' : ''
-    const sajuContext = includeSaju ? (body.sajuContext || '').trim() : ''
-    const astroContext = includeAstrology ? (body.astroContext || '').trim() : ''
 
     logger.info('Tarot stream payload', {
       categoryId,
@@ -189,11 +180,6 @@ export async function POST(req: NextRequest) {
       language,
       cards: rawCards.length,
       hasQuestion: Boolean(effectiveUserQuestion),
-      hasBirthdate: Boolean(birthdate),
-      includeAstrology,
-      includeSaju,
-      hasSajuContext: Boolean(sajuContext),
-      hasAstroContext: Boolean(astroContext),
     })
 
     const isKorean = language === 'ko'
@@ -209,15 +195,6 @@ export async function POST(req: NextRequest) {
       .join('\n')
 
     const q = effectiveUserQuestion || (isKorean ? '일반 운세' : 'general reading')
-
-    // Pure tarot — no saju / astrology / zodiac cross. Variables
-    // remain in scope to keep the existing logging payload typed; we
-    // just don't surface any of them to the LLM.
-    void getZodiacSign
-    void birthdate
-    void sajuContext
-    void astroContext
-    const personalizationContext = ''
 
     // 시스템 프롬프트 — 100% 정적 (페르소나 + 4단계 + 스키마).
     // ${rawCards.length} 같은 인터폴레이션 *금지* — Anthropic prompt caching prefix 안정화.
@@ -254,7 +231,6 @@ Output — exactly this JSON schema (no code fences, no preamble, no comments):
   "advice": "1-3 concrete actions, 90-130 words"
 }`
 
-
     // 유저 프롬프트 — 질문을 맨 위, 가장 눈에 띄게 배치
     const userPrompt = isKorean
       ? `# 사용자의 질문
@@ -265,7 +241,7 @@ ${spreadTitle} (${rawCards.length}장)
 
 # 뽑힌 카드 (순서대로)
 ${cardListText}
-${personalizationContext}
+
 # 작성 지시
 - 모든 ${rawCards.length}장의 카드에 대해 cards[] 항목을 만드세요.
 - 각 카드의 position 은 사용자 질문 맥락에 맞춰 *네가 직접* 한국어 짧은 라벨로 명명 (2-6자, 중복 금지).
@@ -279,7 +255,7 @@ ${spreadTitle} (${rawCards.length} cards)
 
 # Cards Drawn (in order)
 ${cardListText}
-${personalizationContext}
+
 # Instructions
 - Produce cards[] entries for all ${rawCards.length} cards.
 - Name each card's position yourself, in short English (2-4 words), grounded in the user's question. No duplicates.
@@ -355,11 +331,10 @@ ${personalizationContext}
             : isKorean
               ? `# 작성 지시\n- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfo} 의 카드별 해석만 cards[] 에 채우세요. overall/advice 는 출력하지 마세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
               : `# Instructions\n- Use the full ${rawCards.length}-card flow as context only. Output ONLY per-card interpretations ${chunkInfo} in cards[]. Do NOT include overall/advice.\n- cards[] length must be exactly ${endIdx - startIdx}.`
-          const personalizationLine = ''
           if (isKorean) {
-            return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${rawCards.length}장)\n\n# 뽑힌 카드 — 전체 (순서대로)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
+            return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${rawCards.length}장)\n\n# 뽑힌 카드 — 전체 (순서대로)\n${cardListText}\n\n${task}`
           }
-          return `# User's Question\n"${q}"\n\n# Spread\n${spreadTitle} (${rawCards.length} cards)\n\n# Cards Drawn — full list (in order)\n${cardListText}\n${personalizationContext}\n${task}${personalizationLine}`
+          return `# User's Question\n"${q}"\n\n# Spread\n${spreadTitle} (${rawCards.length} cards)\n\n# Cards Drawn — full list (in order)\n${cardListText}\n\n${task}`
         }
 
         logger.info('Tarot stream Claude request (parallel chunks)', {
@@ -385,12 +360,7 @@ ${personalizationContext}
             label: 'tarot-stream-chunkB',
           }),
         ])
-        recordExternalCall(
-          'anthropic',
-          'claude-haiku-4-5',
-          'success',
-          Date.now() - claudeStartTime
-        )
+        recordExternalCall('anthropic', 'claude-haiku-4-5', 'success', Date.now() - claudeStartTime)
 
         // JSON 머지 — chunk A 의 overall/advice + chunk A.cards + chunk B.cards 를 합쳐 단일 JSON.
         const safeParse = (raw: string): Record<string, unknown> | null => {

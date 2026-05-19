@@ -53,49 +53,6 @@ export type TarotInterpretResult = {
   fallback: boolean
 }
 
-export function parseStructuredContextFromString(
-  raw: string | undefined,
-  label: 'saju_context' | 'astro_context'
-): Record<string, unknown> | undefined {
-  if (!raw) return undefined
-  const trimmed = raw.trim()
-  if (!trimmed) return undefined
-  if (!(trimmed.startsWith('{') || trimmed.startsWith('['))) {
-    return undefined
-  }
-
-  try {
-    const parsed = JSON.parse(trimmed) as unknown
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>
-    }
-    logger.warn('[Tarot interpret] context payload is not an object; dropping for backend', {
-      label,
-      parsedType: Array.isArray(parsed) ? 'array' : typeof parsed,
-    })
-    return undefined
-  } catch (error) {
-    logger.warn('[Tarot interpret] failed to parse context JSON; dropping for backend', {
-      label,
-      error: error instanceof Error ? error.message : String(error),
-    })
-    return undefined
-  }
-}
-
-export function contextForPrompt(
-  raw: string | undefined,
-  parsed: Record<string, unknown> | undefined
-): string | undefined {
-  if (raw && raw.trim().length > 0) return raw
-  if (!parsed) return undefined
-  try {
-    return JSON.stringify(parsed)
-  } catch {
-    return undefined
-  }
-}
-
 export function normalizeQuestionContext(
   value: unknown
 ): TarotQuestionAnalysisSnapshot | undefined {

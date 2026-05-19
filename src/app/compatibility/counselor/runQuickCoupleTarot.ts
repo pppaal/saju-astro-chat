@@ -17,10 +17,6 @@ type PersonData = {
 
 interface QuickCoupleTarotInput {
   persons: PersonData[]
-  person1Saju: Record<string, unknown> | null
-  person2Saju: Record<string, unknown> | null
-  person1Astro: Record<string, unknown> | null
-  person2Astro: Record<string, unknown> | null
   language: 'ko' | 'en'
   onChunk?: (markdown: string) => void
 }
@@ -38,54 +34,10 @@ function drawRandomCards(count: number) {
   }))
 }
 
-// 두 사람의 사주 데이터를 짧은 텍스트로 압축 (LLM 에 cross 컨텍스트로 전달).
-function compactPersonSaju(
-  name: string,
-  saju: Record<string, unknown> | null,
-  isKorean: boolean
-): string {
-  if (!saju) return ''
-  const root = (saju.data as Record<string, unknown> | undefined) || saju
-  const dayMaster = (root.dayMaster as string) || ''
-  const dayElement = (root.dayMasterElement as string) || ''
-  const pillars = (root.pillars as Record<string, { stem?: string; branch?: string }>) || {}
-  const pillarStr = ['year', 'month', 'day', 'time']
-    .map((k) => {
-      const p = pillars[k]
-      return p?.stem && p?.branch ? `${p.stem}${p.branch}` : ''
-    })
-    .filter(Boolean)
-    .join('·')
-  return isKorean
-    ? `${name}: 일간 ${dayMaster}(${dayElement})${pillarStr ? `, 4기둥 ${pillarStr}` : ''}`
-    : `${name}: day master ${dayMaster}(${dayElement})${pillarStr ? `, pillars ${pillarStr}` : ''}`
-}
-
-function compactPersonAstro(
-  name: string,
-  astro: Record<string, unknown> | null,
-  isKorean: boolean
-): string {
-  if (!astro) return ''
-  const root = (astro.data as Record<string, unknown> | undefined) || astro
-  const planets = (root.planets as Array<Record<string, unknown>>) || []
-  const sun = planets.find((p) => p.name === 'Sun')
-  const moon = planets.find((p) => p.name === 'Moon')
-  const asc = (root.ascendant as Record<string, unknown> | undefined) || null
-  const sunSign = sun ? String(sun.sign || '') : ''
-  const moonSign = moon ? String(moon.sign || '') : ''
-  const ascSign = asc ? String(asc.sign || '') : ''
-  const parts = [sunSign && `태양 ${sunSign}`, moonSign && `달 ${moonSign}`, ascSign && `ASC ${ascSign}`].filter(
-    Boolean
-  )
-  if (parts.length === 0) return ''
-  return isKorean ? `${name}: ${parts.join(' · ')}` : `${name}: ${parts.join(' · ')}`
-}
-
 export async function runQuickCoupleTarot(
   input: QuickCoupleTarotInput
 ): Promise<QuickCoupleTarotResult> {
-  const { persons, person1Saju, person2Saju, person1Astro, person2Astro, language, onChunk } = input
+  const { persons, language, onChunk } = input
   const isKorean = language === 'ko'
 
   // 5장 크로스 — 정통 스프레드로 두 사람의 관계 결을 풀어냄
@@ -111,27 +63,6 @@ export async function runQuickCoupleTarot(
 
   const p1 = persons[0]
   const p2 = persons[1]
-  const sajuLines = [
-    compactPersonSaju(p1?.name || 'A', person1Saju, isKorean),
-    compactPersonSaju(p2?.name || 'B', person2Saju, isKorean),
-  ].filter(Boolean)
-  const astroLines = [
-    compactPersonAstro(p1?.name || 'A', person1Astro, isKorean),
-    compactPersonAstro(p2?.name || 'B', person2Astro, isKorean),
-  ].filter(Boolean)
-
-  const sajuContext =
-    sajuLines.length > 0
-      ? isKorean
-        ? `두 사람의 사주\n${sajuLines.join('\n')}`
-        : `Two saju charts\n${sajuLines.join('\n')}`
-      : undefined
-  const astroContext =
-    astroLines.length > 0
-      ? isKorean
-        ? `두 사람의 본명 차트\n${astroLines.join('\n')}`
-        : `Two natal charts\n${astroLines.join('\n')}`
-      : undefined
 
   const userQuestion = isKorean
     ? `${p1?.name || 'A'}와 ${p2?.name || 'B'} 두 사람의 관계 — 지금 어떤 결인지, 어디로 갈지 짚어줘.`
@@ -147,10 +78,6 @@ export async function runQuickCoupleTarot(
       cards: cardsPayload,
       userQuestion,
       language,
-      includeAstrology: true,
-      includeSaju: true,
-      sajuContext,
-      astroContext,
     }),
   })
 
@@ -249,7 +176,9 @@ export async function runQuickCoupleTarot(
   }
 
   const overall = (parsed?.overall as string) || ''
-  const cardsParsed = Array.isArray(parsed?.cards) ? (parsed!.cards as Array<Record<string, unknown>>) : []
+  const cardsParsed = Array.isArray(parsed?.cards)
+    ? (parsed!.cards as Array<Record<string, unknown>>)
+    : []
   const advice = (parsed?.advice as string) || ''
 
   const perCardSection = drawn
