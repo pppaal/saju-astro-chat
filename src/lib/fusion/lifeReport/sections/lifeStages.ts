@@ -49,9 +49,9 @@ const RANGES: StageRange[] = [
     ageHigh: 20,
     titleKo: '초년기 (0–20세)',
     titleEn: 'Early years (0–20)',
-    pillarKo: '뿌리와 환경의 자리',
+    pillarKo: '뿌리와 환경',
     pillarEn: 'year pillar',
-    themeKo: '환경에 적응하고 처음 자기 결을 느끼는 시기',
+    themeKo: '환경에 적응하고 처음 자기 색을 느끼는 시기',
     themeEn: 'environment, roots, learning',
   },
   {
@@ -61,7 +61,7 @@ const RANGES: StageRange[] = [
     ageHigh: 40,
     titleKo: '청년기 (20–40세)',
     titleEn: 'Young adulthood (20–40)',
-    pillarKo: '독립과 진로의 자리',
+    pillarKo: '독립과 진로',
     pillarEn: 'month pillar',
     themeKo: '진로와 관계의 토대를 짓는 시기',
     themeEn: 'career, independence, forming bonds',
@@ -85,7 +85,7 @@ const RANGES: StageRange[] = [
     ageHigh: 99,
     titleKo: '후반기 (60세 이후)',
     titleEn: 'Later years (60+)',
-    pillarKo: '결실과 내면의 자리',
+    pillarKo: '결실과 내면',
     pillarEn: 'time pillar',
     themeKo: '결실을 거두고 남길 것을 정리하는 시기',
     themeEn: 'harvest, legacy, inner work',
@@ -191,7 +191,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
       ? `${ELEMENT_TEXTURE_KO[dayEl] ?? '균형'}의 톤이 ${range.themeKo}에 스며들어요.`
       : '',
     progSun && range.id !== 'early'
-      ? `자아의 결이 ${signLabel(progSun.sign, 'ko')} 쪽으로 천천히 옮겨가며 색이 살짝 바뀌어요.`
+      ? `자아의 색이 ${signLabel(progSun.sign, 'ko')} 쪽으로 천천히 옮겨가며 톤이 살짝 바뀌어요.`
       : '',
   ])
   const p1en = paragraph([
@@ -238,7 +238,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const p3ko = paragraph([
     challengePieceKo(range.id, stageTwelve, geokguk, jong, lifecycleEvts),
     sun && range.id === 'middle'
-      ? `${signLabel(sun.sign, 'ko')}의 자아 결이 이 시기에 가장 진하게 드러나요.`
+      ? `${signLabel(sun.sign, 'ko')}의 자아 색깔이 이 시기에 가장 진하게 드러나요.`
       : '',
   ])
   const p3en = paragraph([
@@ -279,34 +279,34 @@ function challengePieceKo(
     ? `${twelveStageMeaningKo(twelveStage)} `
     : ''
   if (id === 'early') {
-    return `${stagePiece}어린 시절엔 환경에 적응하며 자기 결을 처음 느껴요. ${jong ? '한 방향으로 강하게 흐르는 성향이 일찍부터 드러나요.' : geokguk ? `${geokgukShortKo(geokguk)}의 색이 가정과 학교에서 일찍부터 보여요.` : ''}`
+    return `${stagePiece}어린 시절엔 환경에 적응하며 자기 색을 처음 느껴요. ${jong ? '한 방향으로 강하게 흐르는 성향이 일찍부터 드러나요.' : geokguk ? `${geokgukShortKo(geokguk)}의 색이 가정과 학교에서 일찍부터 보여요.` : ''}`
   }
   if (id === 'young') {
     const sat = events.find((e) => e.kind === 'saturn_return_1')
-    return `${stagePiece}청년기는 진짜 자기를 시험하는 때예요. ${sat ? `특히 ${sat.ageStart}세 무렵엔 어른됨의 통과의례가 와요 — 책임과 전문성, 기반이 자리 잡는 시기예요.` : '인생 흐름이 바뀌는 지점마다 자기 검증의 결이 한 겹씩 쌓여요.'}`
+    return `${stagePiece}청년기는 진짜 자기를 시험하는 때예요. ${sat ? `특히 ${sat.ageStart}세 무렵엔 어른됨의 통과의례가 와요 — 책임과 전문성, 기반이 자리 잡는 시기예요.` : '인생 흐름이 바뀌는 지점마다 자기 검증의 층이 한 겹씩 쌓여요.'}`
   }
   if (id === 'middle') {
     const ura = events.find((e) => e.kind === 'uranus_opposition')
     return `${stagePiece}40대는 진짜 자기와 맞지 않는 길이 흔들리는 시기예요. ${ura ? `${ura.ageStart}~${ura.ageEnd}세 무렵 자유의 각성이 가장 격렬하게 와요.` : '인생 흐름이 바뀌면서 사회적 위치도 다시 정렬돼요.'}`
   }
   const chi = events.find((e) => e.kind === 'chiron_return')
-  return `${stagePiece}후반기는 평생 모아온 결을 결산하는 시기예요. ${chi ? `${chi.ageStart}세 무렵 치유의 회귀가 와서, 오랜 상처가 다른 사람을 돕는 자원으로 바뀌어요.` : '두 번째 어른됨의 통과의례가 진짜 남길 것을 정해줘요.'}`
+  return `${stagePiece}후반기는 평생 모아온 흐름을 결산하는 시기예요. ${chi ? `${chi.ageStart}세 무렵 치유의 회귀가 와서, 오랜 상처가 다른 사람을 돕는 자원으로 바뀌어요.` : '두 번째 어른됨의 통과의례가 진짜 남길 것을 정해줘요.'}`
 }
 
 // 12운성을 의미로 풀어쓰는 헬퍼 (코드 로직 안 건드림 — narrative만)
 function twelveStageMeaningKo(stage: string): string {
   if (!stage) return ''
-  if (stage.includes('생') || stage.includes('장생')) return '탄생의 결이 흐르는 시기라'
-  if (stage.includes('욕')) return '성장의 결이 흐르는 시기라'
+  if (stage.includes('생') || stage.includes('장생')) return '탄생의 기운이 흐르는 시기라'
+  if (stage.includes('욕')) return '성장의 기운이 흐르는 시기라'
   if (stage.includes('관대')) return '성장기를 마무리하는 시기라'
   if (stage.includes('임관') || stage.includes('건록')) return '공적 무대로 진입하는 시기라'
-  if (stage.includes('제왕') || stage.includes('왕지')) return '정점의 결이 흐르는 시기라'
+  if (stage.includes('제왕') || stage.includes('왕지')) return '정점의 기운이 흐르는 시기라'
   if (stage.includes('쇠')) return '쇠퇴의 시작이라'
   if (stage.includes('병')) return '천천히 내려오는 시기라'
-  if (stage.includes('사')) return '고요의 결이 흐르는 시기라'
+  if (stage.includes('사')) return '고요한 기운이 흐르는 시기라'
   if (stage.includes('묘')) return '휴식과 비움의 시기라'
   if (stage.includes('절')) return '끝과 새로운 시작이 만나는 시기라'
-  if (stage.includes('태')) return '잉태의 결이 흐르는 시기라'
+  if (stage.includes('태')) return '잉태의 기운이 흐르는 시기라'
   if (stage.includes('양')) return '키워지는 시기라'
   return ''
 }
@@ -329,16 +329,16 @@ function twelveStageMeaningEn(stage: string): string {
 }
 
 function geokgukShortKo(g: string): string {
-  if (!g) return '본연의 결'
-  if (g.includes('편관')) return '도전을 동력으로 쓰는 결'
-  if (g.includes('정관')) return '책임감 있는 결'
-  if (g.includes('편재')) return '기회를 잡는 결'
-  if (g.includes('정재')) return '꾸준한 결'
-  if (g.includes('식신')) return '여유로운 표현의 결'
-  if (g.includes('상관')) return '재능을 발산하는 결'
-  if (g.includes('편인')) return '독특한 직관의 결'
-  if (g.includes('정인')) return '배움과 돌봄의 결'
-  return '본연의 결'
+  if (!g) return '본연의 색'
+  if (g.includes('편관')) return '도전을 동력으로 쓰는 성향'
+  if (g.includes('정관')) return '책임감 있는 흐름'
+  if (g.includes('편재')) return '기회를 잡는 감각'
+  if (g.includes('정재')) return '꾸준한 흐름'
+  if (g.includes('식신')) return '여유로운 표현'
+  if (g.includes('상관')) return '재능을 발산하는 자질'
+  if (g.includes('편인')) return '독특한 직관'
+  if (g.includes('정인')) return '배움과 돌봄'
+  return '본연의 색'
 }
 
 function challengePieceEn(

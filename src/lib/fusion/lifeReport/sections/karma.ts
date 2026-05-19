@@ -37,34 +37,45 @@ function planetLabelKo(name: string): string {
 function karmaHouseHintKo(h: number | undefined): string {
   if (!h) return ''
   const map: Record<number, string> = {
-    1: '정체성의',
-    2: '재물과 자원의',
-    3: '소통과 학습의',
-    4: '가정과 뿌리의',
-    5: '창조와 자녀의',
-    6: '일상과 건강의',
-    7: '관계의',
-    8: '변용과 깊이의',
-    9: '확장과 신념의',
-    10: '사회적 정점의',
-    11: '공동체와 친구의',
-    12: '내면과 비밀의',
+    1: '정체성',
+    2: '재산',
+    3: '학습과 소통',
+    4: '가정과 뿌리',
+    5: '창조와 자녀',
+    6: '일상과 건강',
+    7: '관계',
+    8: '심층 변용',
+    9: '확장과 신념',
+    10: '사회 무대',
+    11: '공동체와 친구',
+    12: '내면과 비밀',
   }
   return map[h] || ''
 }
 
 // 격국을 자연어로 짧게 (karma 섹션에서 사용)
 function karmaGeokgukShortKo(g: string): string {
-  if (!g) return '본연의 삶의 결'
-  if (g.includes('편관')) return '도전과 책임으로 무게를 견디는 결'
-  if (g.includes('정관')) return '책임감 있게 자리 잡는 결'
-  if (g.includes('편재')) return '기회를 잡아내는 결'
-  if (g.includes('정재')) return '꾸준히 쌓아가는 결'
-  if (g.includes('식신')) return '여유롭게 창조하는 결'
-  if (g.includes('상관')) return '재능을 자유롭게 풀어내는 결'
-  if (g.includes('편인')) return '독특한 직관의 결'
-  if (g.includes('정인')) return '배움과 돌봄의 결'
-  return '본연의 삶의 결'
+  if (!g) return '본연의 흐름'
+  if (g.includes('편관')) return '도전과 책임으로 무게를 견디는 흐름'
+  if (g.includes('정관')) return '책임감 있게 자리 잡는 길'
+  if (g.includes('편재')) return '기회를 잡아내는 감각'
+  if (g.includes('정재')) return '꾸준히 쌓아가는 흐름'
+  if (g.includes('식신')) return '여유롭게 창조하는 흐름'
+  if (g.includes('상관')) return '재능을 자유롭게 풀어내는 흐름'
+  if (g.includes('편인')) return '독특한 직관'
+  if (g.includes('정인')) return '배움과 돌봄'
+  return '본연의 흐름'
+}
+
+// 오행 음을 자연 한글 표현으로
+function elementFlavorKo(y: string): string {
+  if (!y) return '본연의 기운'
+  if (y.includes('목')) return '나무 기운'
+  if (y.includes('화')) return '불의 기운'
+  if (y.includes('토')) return '흙의 기운'
+  if (y.includes('금')) return '쇠의 기운'
+  if (y.includes('수')) return '물의 기운'
+  return '본연의 기운'
 }
 
 const ELEMENT_MISSION_KO: Record<string, string> = {
@@ -178,11 +189,11 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const missionKo = ELEMENT_MISSION_KO[dayEl] || '균형'
   const missionEn = ELEMENT_MISSION_EN[dayEl] || 'balance'
   const p1ko = paragraph([
-    `이번 생의 결은 '${missionKo}'${eulReul(missionKo)} 통해 ${karmaGeokgukShortKo(geokguk)}을 완성해가는 흐름이에요.`,
+    `이번 생의 큰 그림은 '${missionKo}'${eulReul(missionKo)} 통해 ${karmaGeokgukShortKo(geokguk)}을 완성해가는 여정이에요.`,
     nn
-      ? `이번 생에 영혼이 향하고 싶은 방향은 ${signLabel(nn.sign, 'ko')}의 결, ${nn.house ? karmaHouseHintKo(nn.house) + ' 자리에 ' : ''}있어요.`
+      ? `이번 생에 영혼이 향하고 싶은 방향은 ${signLabel(nn.sign, 'ko')}, ${nn.house ? karmaHouseHintKo(nn.house) + ' 영역에 ' : ''}있어요.`
       : '',
-    ys ? `삶의 균형추가 되는 결은 '${ys}'의 기운이라, 이 결을 일상에 들여올수록 마음이 풀어져요.` : '',
+    ys ? `삶의 균형추가 되는 기운은 ${elementFlavorKo(ys)}이라, 이걸 일상에 들여올수록 마음이 풀어져요.` : '',
   ])
   const p1en = paragraph([
     `Your soul-line in this life completes its ${geokguk || 'native pattern'} through ${missionEn}.`,
@@ -197,12 +208,12 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   // ──────── 文단 2: 카르마 패턴 (공망 + 12집 + South Node 영역)
   const p2ko = paragraph([
     `카르마 유형은 ${karmaType}이에요. ${KARMA_DESC_KO[karmaType]}`,
-    `약 ${Math.round(fixedRatio * 100)}%는 타고난 결이고, ${Math.round(flexibleRatio * 100)}%는 선택과 노력으로 바꿀 수 있어요.`,
+    `약 ${Math.round(fixedRatio * 100)}%는 타고난 부분이고, ${Math.round(flexibleRatio * 100)}%는 선택과 노력으로 바꿀 수 있어요.`,
     gongmang.length > 0
-      ? `삶의 결 중에 ${gongmang.join('·')} 영역엔 '비어 있는 자리'가 있어서 채워지지 않는 감각이 들 수 있어요. 이게 바로 영혼이 다음 단계로 넘어가도록 미는 결이에요.`
+      ? `삶의 ${gongmang.join('·')} 영역에 비어 있는 자리가 있어서 채워지지 않는 감각이 들 수 있어요. 이게 바로 영혼이 다음 단계로 넘어가도록 미는 신호예요.`
       : '',
     twelfthPlanets.length > 0
-      ? `내면과 비밀의 자리에 ${twelfthPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 머물러 있어, 혼자 있는 시간 속에서 풀어야 할 결이 함께 있어요.`
+      ? `내면 영역에 ${twelfthPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 머물러 있어, 혼자 있는 시간 속에서 풀어야 할 과제가 함께 있어요.`
       : '',
   ])
   const p2en = paragraph([
@@ -216,16 +227,16 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       : '',
   ])
 
-  // ──────── 文단 3: 치유의 자리 (일주 심화 + Chiron + Lilith)
+  // ──────── 文단 3: 치유 (일주 심화 + Chiron + Lilith)
   const p3ko = paragraph([
     iljuName
-      ? `타고난 결을 한 마디로 말하면 '${shorten(iljuChar)}'이고, 이게 치유와 성장의 시작점이에요.`
+      ? `타고난 성향을 한 마디로 풀면 '${shorten(iljuChar)}'이고, 이게 치유와 성장의 시작점이에요.`
       : '',
     ch
-      ? `상처와 치유의 결은 ${signLabel(ch.sign, 'ko')}의 톤으로 자리잡고 있어서, ${chironHouseHintKo(ch.house)} 영역에서 평생의 상처가 다른 사람을 돕는 자원으로 바뀌어요.`
+      ? `상처와 치유의 색은 ${signLabel(ch.sign, 'ko')}의 톤으로 자리잡고 있어서, ${chironHouseHintKo(ch.house)} 영역에서 평생의 상처가 다른 사람을 돕는 자원으로 바뀌어요.`
       : '',
     lilith
-      ? `${signLabel(lilith.sign, 'ko')}의 결로 내면에 어두운 결이 있어, 사회적 기대 밖의 자기를 인정할 때 진짜 힘이 풀려요.`
+      ? `${signLabel(lilith.sign, 'ko')}의 색으로 내면에 어두운 자질이 있어, 사회적 기대 밖의 자기를 인정할 때 진짜 힘이 풀려요.`
       : '',
   ])
   const p3en = paragraph([
@@ -243,7 +254,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   // ──────── 文단 4: 잠재력 (특수 격국 + Part of Fortune)
   const p4ko = paragraph([
     jong
-      ? '삶의 결이 한 방향으로 강하게 응축돼서, 한 분야로 깊이 들어갈 때 가장 강한 잠재력이 풀려요.'
+      ? '삶이 한 방향으로 강하게 응축돼서, 한 분야로 깊이 들어갈 때 가장 강한 잠재력이 풀려요.'
       : '',
     hwagyeok?.isHwagyeok
       ? '결정적인 순간에 한 번 더 자기를 바꿀 변화의 자유가 깔려 있어요.'
@@ -252,12 +263,12 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       ? '큰 무대에서 인정받을 특별한 자질이 깔려 있어요.'
       : '',
     pof
-      ? `행운의 점이 ${signLabel(pof.sign, 'ko')}의 결로 ${pof.house ? karmaHouseHintKo(pof.house) + ' 자리에 ' : ''}있어서, 이 영역을 가꿀수록 운이 자기 자리로 돌아와요.`
+      ? `행운의 점이 ${signLabel(pof.sign, 'ko')}, ${pof.house ? karmaHouseHintKo(pof.house) + ' 영역에 ' : ''}있어서, 이 영역을 가꿀수록 운이 자기 자리로 돌아와요.`
       : '',
     specialFormations.length > 0
-      ? '평범한 흐름을 넘어서는 특별한 결이 잠재돼 있어요.'
+      ? '평범한 흐름을 넘어서는 특별한 자질이 잠재돼 있어요.'
       : '',
-    `한 줄로 정리하면: 이번 생은 ${missionKo}${eulReul(missionKo)} 통해 ${karmaType}의 결을 풀어가는 여정이에요.`,
+    `한 줄로 정리하면: 이번 생은 ${missionKo}${eulReul(missionKo)} 통해 ${karmaType} 카르마를 풀어가는 여정이에요.`,
   ])
   const p4en = paragraph([
     jong
@@ -287,7 +298,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const p5piecesEn: string[] = []
   if (dra?.sunSign) {
     p5pieces.push(
-      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}의 결, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요. 본명과 영혼이 같은 음을 낼 때 가장 평온해져요.`,
+      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요. 본명과 영혼이 같은 음을 낼 때 가장 평온해져요.`,
     )
     p5piecesEn.push(
       `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} marks the soul-identity carried in — ${signSoulEn(dra.sunSign)}. The most settled feeling comes when natal and draconic resonate.`,
@@ -295,21 +306,21 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   }
   if (h7 && h7.strength >= 40) {
     p5pieces.push(
-      '영적 친밀의 결이 차트 안에서 분명하게 울리고 있어, 신비적 체험·꿈·직관이 평소에도 가까이 있어요.',
+      '영적 친밀감이 차트 안에서 분명하게 울리고 있어, 신비적 체험·꿈·직관이 평소에도 가까이 있어요.',
     )
     p5piecesEn.push(
       'Harmonics 7 resonates clearly — mystical experience, dreams and intuition remain close in ordinary life.',
     )
   } else if (h7) {
     p5pieces.push(
-      '영적 친밀의 결은 잔잔히 깔려 있어요. 깊은 침묵과 명상의 시간이 이 결을 깨우는 길이에요.',
+      '영적 친밀감은 잔잔히 깔려 있어요. 깊은 침묵과 명상의 시간이 이 감각을 깨우는 길이에요.',
     )
     p5piecesEn.push(
       'Harmonics 7 sits quietly — silence and meditation awaken this grain.',
     )
   }
   const p5ko = paragraph(
-    p5pieces.length ? p5pieces : ['영혼의 결은 본명과 큰 충돌 없이 정렬돼 있어, 큰 깨달음보다 매일의 작은 결을 따라가는 길이 잘 맞아요.'],
+    p5pieces.length ? p5pieces : ['영혼의 색은 본명과 큰 충돌 없이 정렬돼 있어, 큰 깨달음보다 매일의 작은 흐름을 따라가는 길이 잘 맞아요.'],
   )
   const p5en = paragraph(
     p5piecesEn.length ? p5piecesEn : ['Your soul-line aligns calmly with the natal — small daily attentions, not grand awakenings, fit best.'],
@@ -326,28 +337,28 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     const total = hc.hapCount + hc.chungCount + hc.hyungCount + hc.haeCount
     if (hc.hapCount > 0 && hc.chungCount > 0) {
       p6pieces.push(
-        `명식 안에 합(合)과 충(沖)이 함께 ${total}회 일어나, 인생의 결이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`,
+        `명식 안에 합(合)과 충(沖)이 함께 ${total}회 일어나, 인생이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`,
       )
       p6piecesEn.push(
         `Inside your saju, both 합 (harmony) and 충 (clash) appear (${total} interactions total) — this life resolves karma through simultaneous union and severance. Patterns: ${hc.summary.slice(0, 3).join(' · ')}.`,
       )
     } else if (hc.hapCount > 0) {
       p6pieces.push(
-        `명식 안 합(合)의 결이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`,
+        `명식 안 합(合)의 흐름이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`,
       )
       p6piecesEn.push(
         `Your saju shows ${hc.hapCount} 합 (harmony) interactions — your karma resolves by joining people and currents. Patterns: ${hc.summary.slice(0, 2).join(' · ')}.`,
       )
     } else if (hc.chungCount > 0) {
       p6pieces.push(
-        `명식 안 충(沖)의 결이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`,
+        `명식 안 충(沖)의 흐름이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`,
       )
       p6piecesEn.push(
         `Your saju shows ${hc.chungCount} 충 (clash) interactions — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`,
       )
     }
     if (hc.hyungCount > 0) {
-      p6pieces.push('형(刑)의 결도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
+      p6pieces.push('형(刑)의 신호도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
       p6piecesEn.push('A 형 (penalty) accent also runs through — refining your unbending sense of justice is one of this life\'s rites of passage.')
     }
   }
@@ -357,13 +368,13 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       const strong = stages.filter((s) => ['장생', '관대', '임관', '건록', '왕지', '제왕'].includes(s)).length
       const weak = stages.filter((s) => ['병', '사', '묘', '절', '태'].includes(s)).length
       if (strong >= 2) {
-        p6pieces.push('4기둥의 12운성을 종합하면, 인생의 무게추가 발산과 자립 쪽으로 기울어 있어요. 카르마도 적극적으로 만들어가는 결이 맞아요.')
+        p6pieces.push('4기둥의 12운성을 종합하면, 인생의 무게추가 발산과 자립 쪽으로 기울어 있어요. 카르마도 적극적으로 만들어가는 길이 맞아요.')
         p6piecesEn.push('Across the four pillars, the 12운성 stages tilt toward emanation and self-standing — your karma is actively shaped, not merely received.')
       } else if (weak >= 2) {
         p6pieces.push('4기둥의 12운성이 수렴과 마무리 쪽으로 기울어 있어요. 카르마는 정리와 결산으로 풀려요.')
         p6piecesEn.push('The four-pillar 12운성 stages tilt toward closure and inwardness — karma resolves through completion and settling accounts.')
       } else {
-        p6pieces.push('4기둥의 12운성이 강약 양쪽에 골고루 분포해서, 시기에 따라 발산과 수렴을 오가는 결이에요.')
+        p6pieces.push('4기둥의 12운성이 강약 양쪽에 골고루 분포해서, 시기에 따라 발산과 수렴을 오가는 흐름이에요.')
         p6piecesEn.push('Your four-pillar 12운성 stages spread evenly between strong and weak — you alternate between releasing and consolidating.')
       }
     }
@@ -372,11 +383,11 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const captivityLot = input.calendarSignals?.arabicPartsExtra?.Captivity
   if (captivityLot) {
     astroUsed.push('calendarSignals.arabicPartsExtra.Captivity')
-    p6pieces.push(`속박의 점이 ${signLabel(captivityLot.sign, 'ko')}의 결로 자리해서, 이번 생에 풀어내야 할 카르마 매듭의 색이 그 톤이에요.`)
+    p6pieces.push(`속박의 점이 ${signLabel(captivityLot.sign, 'ko')}에 자리해서, 이번 생에 풀어내야 할 카르마 매듭의 색이 그 톤이에요.`)
     p6piecesEn.push(`Your Lot of Captivity in ${signLabel(captivityLot.sign, 'en')} — the karmic knot to untie in this life carries that grain.`)
   }
   const p6ko = paragraph(
-    p6pieces.length ? p6pieces : ['명식 내부 합충 패턴은 잔잔하게 정렬돼 있어, 카르마가 격한 사건보다 일상의 결로 풀려요.'],
+    p6pieces.length ? p6pieces : ['명식 내부 합충 패턴은 잔잔하게 정렬돼 있어, 카르마가 격한 사건보다 일상의 흐름으로 풀려요.'],
   )
   const p6en = paragraph(
     p6piecesEn.length ? p6piecesEn : ['Internal saju 합/충 sits calmly arranged — your karma works through daily grain rather than dramatic events.'],
@@ -424,18 +435,18 @@ function shorten(s: string): string {
 function chironHouseHintKo(h: number | undefined): string {
   if (!h) return '평생 가장 예민하게 반응하는'
   const map: Record<number, string> = {
-    1: '자기 정체성의',
-    2: '가치와 자원의',
-    3: '소통과 학습의',
-    4: '뿌리와 가정의',
-    5: '창작과 자녀의',
-    6: '일과 몸의',
-    7: '관계의',
-    8: '깊이와 공동 자원의',
-    9: '신념과 가르침의',
-    10: '사회적 자리의',
-    11: '동료와 미래 비전의',
-    12: '내면과 은둔의',
+    1: '자기 정체성',
+    2: '가치와 자원',
+    3: '소통과 학습',
+    4: '뿌리와 가정',
+    5: '창작과 자녀',
+    6: '일과 몸',
+    7: '관계',
+    8: '깊이와 공동 자원',
+    9: '신념과 가르침',
+    10: '사회 무대',
+    11: '동료와 미래 비전',
+    12: '내면과 은둔',
   }
   return map[h] || '평생 가장 예민하게 반응하는'
 }

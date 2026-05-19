@@ -116,32 +116,32 @@ export function buildHeadline(input: BuilderInput): Headline {
   const dom = dominantPlanet(astro)
   if (dom) astroUsed.push('synthesis.dominantPlanet')
 
-  // ─ Sentence 1 — saju identity
+  // ─ Sentence 1 — saju identity (짧고 단단하게)
   const stemLabelKo = STEM_LABEL[dayStem] || dayStem || '본성'
   const stemLabelEn = STEM_LABEL_EN[dayStem] || dayStem || 'day master'
   const strengthKo = STRENGTH_LABEL_KO[strength] || ''
   const strengthEn = STRENGTH_LABEL_EN[strength] || ''
-  const geokgukKo = geokguk ? `, 삶의 큰 패턴은 ${geokgukFlavorKo(geokguk)}` : ''
+  const geokgukKo = geokguk ? ` 삶의 큰 흐름은 ${geokgukFlavorKo(geokguk)}예요.` : ''
   const geokgukEn = geokguk ? `, ${geokguk} pattern` : ''
-  const jongKo = jongType ? '한 방향으로 강하게 흐르는 결을 가지고 있고' : ''
+  const jongKo = jongType ? ' 한 방향으로 강하게 흐르는 성향도 함께 있어요.' : ''
   const jongEn = jongType ? ` (running as a single-direction ${jongType} chart)` : ''
 
   const s1ko =
-    `당신은 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo}의 결을 타고난 사람이에요${geokgukKo}.` +
-    `${jongKo ? ' ' + jongKo + '.' : ''}`
+    `당신은 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} 성향을 타고난 사람이에요.` +
+    `${geokgukKo}${jongKo}`
   const s1en =
     `You carry a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn}${geokgukEn}${jongEn}` +
     `${ilju ? `, an ${ilju} day-pillar` : ''}.`
 
-  // ─ Sentence 2 — astrology identity
+  // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
   const sunPart = sun
-    ? `자아의 별인 태양은 ${signLabel(sun.sign, 'ko')}의 결로 빛나고`
+    ? `자아의 별인 태양은 ${signLabel(sun.sign, 'ko')}에서 빛나고`
     : ''
   const moonPart = moon
-    ? `감정의 별인 달은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르고`
+    ? `감정의 달은 ${signLabel(moon.sign, 'ko')}의 색감으로 흐르고`
     : ''
   const ascPart = asc
-    ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 결이에요`
+    ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 모양이에요`
     : ''
   const skyParts = [sunPart, moonPart, ascPart].filter(Boolean).join(', ')
 
@@ -155,39 +155,40 @@ export function buildHeadline(input: BuilderInput): Headline {
   const skyPartsEn = [sunPartEn, moonPartEn, ascPartEn].filter(Boolean).join(' · ')
 
   const s2ko = skyParts
-    ? `별의 결로 보면, ${skyParts}.`
+    ? `별로 보면, ${skyParts}.`
     : ''
   const s2en = skyPartsEn
     ? `Astrologically, you are shaped by ${skyPartsEn}.`
     : ''
 
-  // ─ Sentence 3 — fusion theme (dominant element + dominant planet + ilju soul)
+  // ─ Sentence 3 — fusion theme (짧게, iljuChar raw 제거)
   const domEl = el?.dominant
   const domModality = mod?.dominant
   const lackEl = el?.lacking
   const balanceFlavorKo = domEl
-    ? `${ELEMENT_FLAVOR_KO[domEl]}의 기운이 삶의 무게중심이고`
+    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 무게중심이에요`
     : ''
   const balanceFlavorEn = domEl
     ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity`
     : ''
   const modFlavorKo = domModality
-    ? ` ${modalityKo(domModality)}`
+    ? `, ${modalityKo(domModality)}`
     : ''
   const modFlavorEn = domModality
     ? `, with a ${domModality} cadence`
     : ''
-  const domPlanetKo = dom ? `${planetLabel(dom, 'ko')}이 인생을 이끄는 별이에요` : ''
+  const domPlanetKo = dom ? ` ${planetLabel(dom, 'ko')}이 인생을 이끄는 별이에요.` : ''
   const domPlanetEn = dom ? `, led by ${planetLabel(dom, 'en')}` : ''
-  const lackKo = lackEl ? `, ${ELEMENT_FLAVOR_KO[lackEl]}의 결은 살짝 비어 있어요` : ''
+  const lackKo = lackEl ? ` ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
   const lackEn = lackEl ? `, while ${ELEMENT_FLAVOR_EN[lackEl]} stays unfilled` : ''
 
-  const iljuCharShortKo = iljuChar ? `한 마디로 '${shortenKo(iljuChar)}' 결을 가진 사람이에요.` : ''
+  // 한자 raw iljuCharacter는 영어에만 짧게 유지, 한국어에선 자연 어색해 제거
   const iljuCharShortEn = iljuChar ? `In one line: '${shortenEn(iljuChar)}'.` : ''
 
   const s3ko = paragraphJoin([
-    balanceFlavorKo + modFlavorKo + (domPlanetKo ? `, ${domPlanetKo}` : '') + lackKo + '.',
-    iljuCharShortKo,
+    balanceFlavorKo + modFlavorKo + '.',
+    domPlanetKo,
+    lackKo,
   ])
   const s3en = paragraphJoin([
     balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.',
@@ -209,17 +210,17 @@ function modalityKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
 
 // 격국을 자연어 의미로 풀어쓰는 헬퍼
 function geokgukFlavorKo(g: string): string {
-  if (!g) return '본연의 결'
-  if (g.includes('편관')) return '도전과 책임이 무게로 다가오는 결'
-  if (g.includes('정관')) return '책임감으로 자리 잡는 결'
-  if (g.includes('편재')) return '기회를 잡는 감각이 빛나는 결'
-  if (g.includes('정재')) return '꾸준히 자원을 쌓아가는 결'
-  if (g.includes('식신')) return '여유롭게 표현하고 창조하는 결'
-  if (g.includes('상관')) return '재능을 자유롭게 발산하는 결'
-  if (g.includes('편인')) return '독특한 직관과 비주류 지혜의 결'
-  if (g.includes('정인')) return '배움과 돌봄으로 흐르는 결'
-  if (g.includes('비견') || g.includes('겁재')) return '동료와 함께 가는 결'
-  return '본연의 결'
+  if (!g) return '본연의 흐름'
+  if (g.includes('편관')) return '도전과 책임이 무게로 다가오는 흐름'
+  if (g.includes('정관')) return '책임감으로 자리 잡는 흐름'
+  if (g.includes('편재')) return '기회를 잡는 감각이 빛나는 흐름'
+  if (g.includes('정재')) return '꾸준히 자원을 쌓아가는 흐름'
+  if (g.includes('식신')) return '여유롭게 표현하고 창조하는 흐름'
+  if (g.includes('상관')) return '재능을 자유롭게 발산하는 흐름'
+  if (g.includes('편인')) return '독특한 직관과 비주류 지혜의 흐름'
+  if (g.includes('정인')) return '배움과 돌봄으로 흐르는 길'
+  if (g.includes('비견') || g.includes('겁재')) return '동료와 함께 가는 길'
+  return '본연의 흐름'
 }
 
 function shortenKo(s: string): string {

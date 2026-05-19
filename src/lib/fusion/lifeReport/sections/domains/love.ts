@@ -126,7 +126,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const styleKo = pickLoveStyleKo(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
   const styleEn = pickLoveStyleEn(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
   const venusBlurb = venus
-    ? `사랑의 별인 금성이 ${signLabel(venus.sign, 'ko')}의 결로 자리해서, ${venusFlavorKo(venus.sign, venus.house)}이 사랑의 색이에요.`
+    ? `사랑의 별인 금성이 ${signLabel(venus.sign, 'ko')}에 자리해서, ${venusFlavorKo(venus.sign, venus.house)}이 사랑의 색이에요.`
     : ''
   const venusBlurbEn = venus
     ? `Venus in ${signLabel(venus.sign, 'en')} (${houseLabel(venus.house, 'en')}) gives love the flavor of ${venusFlavorEn(venus.sign, venus.house)}.`
@@ -143,10 +143,10 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const p2ko = paragraph([
     `당신을 향해 다가오는 동반자는 ${branchFlavor} 사람이에요.`,
     seventh
-      ? `관계의 자리는 ${seventhSignKo}의 결로 시작해서, 파트너에게서 ${seventhSignFlavorKo(seventh.sign)}을 자연스럽게 바라게 돼요.`
+      ? `관계 영역은 ${seventhSignKo}의 톤으로 시작해서, 파트너에게서 ${seventhSignFlavorKo(seventh.sign)}을 자연스럽게 바라게 돼요.`
       : '',
     seventhPlanets.length > 0
-      ? `관계의 자리 안에 ${seventhPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 자리해서, 관계가 인생의 한가운데로 들어와요.`
+      ? `관계 영역 안에 ${seventhPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 자리해서, 관계가 인생의 한가운데로 들어와요.`
       : '',
   ])
   const p2en = paragraph([
@@ -172,7 +172,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     )
   } else if (vx) {
     deepKo.push(
-      `운명적 만남의 점이 ${signLabel(vx.sign, 'ko')}의 결로 있어, 그 결을 따라가는 만남이 한 번 와요.`
+      `운명적 만남의 점이 ${signLabel(vx.sign, 'ko')}에 있어, 그 색을 따라가는 만남이 한 번 와요.`
     )
     deepEn.push(
       `Your Vertex sits in ${signLabel(vx.sign, 'en')} ${houseLabel(vx.house, 'en')}, marking the coordinate of fated encounter.`
@@ -180,14 +180,14 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   if (j) {
     deepKo.push(
-      `결혼의 별은 ${signLabel(j.sign, 'ko')}의 결로, 결혼 자체에 ${junoFlavorKo(j.house)}이 흐르게 해요.`
+      `결혼의 별은 ${signLabel(j.sign, 'ko')}에 자리해서, 결혼 자체에 ${junoFlavorKo(j.house)}이 흐르게 해요.`
     )
     deepEn.push(
       `Juno (marriage asteroid) sits in ${signLabel(j.sign, 'en')} ${houseLabel(j.house, 'en')}, so marriage carries the tone of ${junoFlavorEn(j.house)}.`
     )
   }
   if (pofInSeventh) {
-    deepKo.push('행운의 점이 관계의 자리에 있어, 파트너십이 곧 행운의 통로가 되는 배치예요.')
+    deepKo.push('행운의 점이 관계 영역에 있어, 파트너십이 곧 행운의 통로가 되는 배치예요.')
     deepEn.push(`Part of Fortune sits in the 7th — partnership is itself the channel of luck.`)
   }
   if (venusSaturn) {
@@ -200,7 +200,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   if (venusMars) {
     deepKo.push(
-      `사랑의 별과 행동의 별이 ${aspectQuality(venusMars.type, 'ko')} 있어, 끌림과 욕망의 결이 또렷해요.`
+      `사랑의 별과 행동의 별이 ${aspectQuality(venusMars.type, 'ko')} 있어, 끌림과 욕망의 톤이 또렷해요.`
     )
     deepEn.push(
       `Venus-Mars ${aspectQuality(venusMars.type, 'en')}, defining the grain of attraction and desire.`
@@ -221,18 +221,18 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   })
   if (relKoLove) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepKo.push(`${relKoLove} 한 사람과의 결합이 인생 결에 굵게 새겨져요.`)
+    deepKo.push(`${relKoLove} 한 사람과의 결합이 인생 흐름에 굵게 새겨져요.`)
     if (relEnLove) deepEn.push(`${relEnLove} Partnership leaves a strong imprint on the life grain.`)
   }
   // Lot of Eros now adds 끌림 colour at P3 (separate from existing P4 timing line)
   const erosLot = input.calendarSignals?.arabicParts?.Eros
   if (erosLot) {
     fusionUsed.push('calendarSignals.arabicParts.Eros')
-    deepKo.push(`사랑의 끌림이 모이는 자리는 ${signLabel(erosLot.sign, 'ko')}의 결이라, 본인을 매료시키는 결도 그 톤으로 일관돼요.`)
+    deepKo.push(`사랑의 끌림이 모이는 곳은 ${signLabel(erosLot.sign, 'ko')}이라, 본인을 매료시키는 색감도 그 톤으로 일관돼요.`)
     deepEn.push(`Your Eros sits in ${signLabel(erosLot.sign, 'en')} — the colour that catches your attention runs through that grain.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
-    '사랑의 결은 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 흐름이에요.'
+    '사랑의 톤은 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 흐름이에요.'
   ])
   const p3en = paragraph(deepEn.length ? deepEn : [
     'Because the deeper love signals sit in a calm alignment, this lifetime favors a slow deepening over a fated lightning-strike.'
@@ -250,7 +250,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     )
   }
   if (cur && cur.sibsin) {
-    timingKo.push(`지금의 인생 흐름에는 ${sibsinMeaningKoLove(cur.sibsin)}이 함께해서, 관계의 결을 천천히 다듬어주고 있어요.`)
+    timingKo.push(`지금의 인생 흐름에는 ${sibsinMeaningKoLove(cur.sibsin)}이 함께해서, 관계의 톤을 천천히 다듬어주고 있어요.`)
     timingEn.push(`Your current ${cur.sibsin} daeun is also tuning the relational grain.`)
   }
   if (srSunInSeventh) {
@@ -269,7 +269,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (eros) {
     fusionUsed.push('calendarSignals.arabicParts.Eros')
     timingKo.push(
-      `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}의 결로 자리해서, ${erosSignFlavorKoLove(eros.sign)} 결의 인연이 사랑의 운을 끌어와요.`,
+      `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}에 자리해서, ${erosSignFlavorKoLove(eros.sign)} 인연이 사랑의 운을 끌어와요.`,
     )
     timingEn.push(
       `Your Lot of Eros in ${signLabel(eros.sign, 'en')} pulls love-luck through ${erosSignFlavorEnLove(eros.sign)}.`,
@@ -278,10 +278,10 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (venusDignity) {
     fusionUsed.push('calendarSignals.dignities.Venus')
     if (venusDignity.status === 'domicile' || venusDignity.status === 'exaltation') {
-      timingKo.push('사랑의 별이 본인 자리에 있어, 일생 사랑의 결이 다정하게 흐르는 배치예요.')
+      timingKo.push('사랑의 별이 본인 자리에 있어, 일생 사랑이 다정하게 흐르는 배치예요.')
       timingEn.push(`Venus is in ${venusDignity.status} — love runs warmly through your life by native disposition.`)
     } else if (venusDignity.status === 'detriment' || venusDignity.status === 'fall') {
-      timingKo.push('사랑의 별이 살짝 어색한 자리에 있어서, 첫 단계엔 시행착오가 있지만 결국 자기만의 방식을 찾는 결이에요.')
+      timingKo.push('사랑의 별이 살짝 어색한 자리에 있어서, 첫 단계엔 시행착오가 있지만 결국 자기만의 방식을 찾는 흐름이에요.')
       timingEn.push(`Venus sits in ${venusDignity.status} — early love has trial-and-error, but you eventually find your own form.`)
     }
   }
@@ -330,17 +330,17 @@ function pickLoveStyleKo(
 
 // love 섹션용 십신 자연어
 function sibsinMeaningKoLove(sibsin: string): string {
-  if (!sibsin) return '잔잔한 결'
-  if (sibsin.includes('편관')) return '도전과 책임이 무겁게 다가오는 결'
-  if (sibsin.includes('정관')) return '책임감 있게 자리를 잡는 결'
-  if (sibsin.includes('편재')) return '기회를 잡는 결'
-  if (sibsin.includes('정재')) return '꾸준히 쌓아가는 결'
-  if (sibsin.includes('식신')) return '여유롭게 표현하는 결'
-  if (sibsin.includes('상관')) return '재능을 자유롭게 풀어내는 결'
-  if (sibsin.includes('편인')) return '독특한 직관의 결'
-  if (sibsin.includes('정인')) return '배움과 돌봄의 결'
-  if (sibsin.includes('비견') || sibsin.includes('겁재')) return '동료와 함께 가는 결'
-  return '잔잔한 결'
+  if (!sibsin) return '잔잔한 흐름'
+  if (sibsin.includes('편관')) return '도전과 책임이 무겁게 다가오는 흐름'
+  if (sibsin.includes('정관')) return '책임감 있게 자리를 잡는 흐름'
+  if (sibsin.includes('편재')) return '기회를 잡는 감각'
+  if (sibsin.includes('정재')) return '꾸준히 쌓아가는 흐름'
+  if (sibsin.includes('식신')) return '여유로운 표현'
+  if (sibsin.includes('상관')) return '재능을 자유롭게 풀어내는 성향'
+  if (sibsin.includes('편인')) return '독특한 직관'
+  if (sibsin.includes('정인')) return '배움과 돌봄'
+  if (sibsin.includes('비견') || sibsin.includes('겁재')) return '동료와 함께 가는 분위기'
+  return '잔잔한 흐름'
 }
 
 // love 섹션 안에서 planetLabel 사용
@@ -403,7 +403,7 @@ const VENUS_SIGN_FLAVOR_EN: Record<string, string> = {
   Pisces: 'fantasy and merging',
 }
 function venusFlavorKo(sign: string, _h: number): string {
-  return VENUS_SIGN_FLAVOR_KO[sign] ?? '독특한 결'
+  return VENUS_SIGN_FLAVOR_KO[sign] ?? '독특한 색감'
 }
 function venusFlavorEn(sign: string, _h: number): string {
   return VENUS_SIGN_FLAVOR_EN[sign] ?? 'a singular note'
@@ -438,7 +438,7 @@ const SEVENTH_SIGN_FLAVOR_EN: Record<string, string> = {
   Pisces: 'empathy and softness',
 }
 function seventhSignFlavorKo(sign: string | undefined): string {
-  return (sign && SEVENTH_SIGN_FLAVOR_KO[sign]) ?? '독특한 결'
+  return (sign && SEVENTH_SIGN_FLAVOR_KO[sign]) ?? '독특한 색감'
 }
 function seventhSignFlavorEn(sign: string | undefined): string {
   return (sign && SEVENTH_SIGN_FLAVOR_EN[sign]) ?? 'a singular grain'
@@ -473,7 +473,7 @@ const JUNO_HOUSE_FLAVOR_EN: Record<number, string> = {
   12: 'inward, healing-centered marriage',
 }
 function junoFlavorKo(h: number): string {
-  return JUNO_HOUSE_FLAVOR_KO[h] ?? '독자적인 결혼의 결'
+  return JUNO_HOUSE_FLAVOR_KO[h] ?? '독자적인 결혼의 색'
 }
 function junoFlavorEn(h: number): string {
   return JUNO_HOUSE_FLAVOR_EN[h] ?? 'a singular marital grain'

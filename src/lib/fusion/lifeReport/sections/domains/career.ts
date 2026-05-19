@@ -107,10 +107,10 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     paragraphOpenerKo(dominantCategory, geokguk),
     mc
-      ? `사회에 보여주는 얼굴은 ${signLabel(mc.sign, 'ko')}의 결, ${mcSignFlavorKo(mc.sign)}이에요.`
+      ? `사회에 보여주는 모습은 ${signLabel(mc.sign, 'ko')}, ${mcSignFlavorKo(mc.sign)}이에요.`
       : '',
     sun
-      ? `자아의 별은 ${signLabel(sun.sign, 'ko')}에 있고${sun.house === 10 ? ', 사회적 정점에 자리해서' : sun.house ? `, ${karmaHouseHintForCareerKo(sun.house)} 자리에 있어` : ''} ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
+      ? `자아의 별은 ${signLabel(sun.sign, 'ko')}에 있고${sun.house === 10 ? ', 사회 무대에 놓여서' : sun.house ? `, ${karmaHouseHintForCareerKo(sun.house)} 영역에 있어` : ''} ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
       : '',
   ])
   const p1en = paragraph([
@@ -128,7 +128,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const timingPiecesEn: string[] = []
   if (cur) {
     timingPieces.push(
-      `지금의 인생 흐름(${cur.age}세부터)에는 ${cur.sibsin ? sibsinMeaningKo(cur.sibsin) : '잔잔한 결'}이 함께해서, 직업의 결이 다듬어지고 있어요.`
+      `지금의 인생 흐름(${cur.age}세부터)에는 ${cur.sibsin ? sibsinMeaningKo(cur.sibsin) : '잔잔한 톤'}이 함께해서, 직업의 색이 다듬어지고 있어요.`
     )
     timingPiecesEn.push(
       `Your current daeun (from age ${cur.age}, ${cur.stem}${cur.branch})${cur.sibsin ? ` carries ${cur.sibsin} energy and` : ''} is reshaping your career grain.`
@@ -152,14 +152,14 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (progSun) {
     timingPieces.push(
-      `자아의 결이 ${signLabel(progSun.sign, 'ko')}의 톤으로 옮겨가는 단계라, 직업 정체성도 천천히 색이 바뀌고 있어요.`
+      `자아의 빛이 ${signLabel(progSun.sign, 'ko')}의 톤으로 옮겨가는 단계라, 직업 정체성도 천천히 색이 바뀌고 있어요.`
     )
     timingPiecesEn.push(
       `Your progressed Sun has moved into ${signLabel(progSun.sign, 'en')}${progSun.house ? ` (${houseLabel(progSun.house, 'en')})` : ''}, slowly retuning your professional identity.`
     )
   }
   const p2ko = paragraph(timingPieces.length ? timingPieces : [
-    '지금 흐름은 안정 구간이라, 큰 전환보다는 결을 다듬는 시기예요.'
+    '지금 흐름은 안정 구간이라, 큰 전환보다는 톤을 다듬는 시기예요.'
   ])
   const p2en = paragraph(timingPiecesEn.length ? timingPiecesEn : [
     'For now your daeun and progression sit in a steady stretch — a season for refining rather than overhauling.'
@@ -178,7 +178,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (sunMc) {
     deepPieces.push(
-      `자아의 결과 사회적 자리가 ${aspectQuality(sunMc.type, 'ko')}, 안과 밖이 어긋나지 않고 흘러요.`
+      `자아의 빛과 사회 무대가 ${aspectQuality(sunMc.type, 'ko')}, 안과 밖이 어긋나지 않고 흘러요.`
     )
     deepPiecesEn.push(
       `Sun-MC ${aspectQuality(sunMc.type, 'en')}, keeping inner identity and public role aligned.`
@@ -186,7 +186,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (pofInTenth) {
     deepPieces.push(
-      `행운의 점이 사회적 정점 자리에 있어, 직업 자체가 행운의 통로가 되는 드문 배치예요.`
+      `행운의 점이 사회 무대에 있어, 직업 자체가 행운의 통로가 되는 드문 배치예요.`
     )
     deepPiecesEn.push(
       `Part of Fortune in the 10th — a rare placement where the career itself becomes the door to luck.`
@@ -194,7 +194,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (fxOnMc.length > 0) {
     deepPieces.push(
-      `사회적 자리에 특별한 별빛(${fxOnMc.join(', ')})이 닿아 있어서, 인상에 남다른 결이 새겨져 있어요.`
+      `사회 무대에 특별한 별빛(${fxOnMc.join(', ')})이 닿아 있어서, 인상에 남다른 빛이 새겨져 있어요.`
     )
     deepPiecesEn.push(
       `Fixed star(s) ${fxOnMc.join(', ')} contact your MC, etching a distinct grain into how the world reads you.`
@@ -202,7 +202,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   if (jong) {
     deepPieces.push(
-      '삶의 결이 한 방향으로 강하게 흐르는 구조라, 두루 넓히기보다 한 분야로 깊이 들어가는 길이 맞아요.'
+      '삶이 한 방향으로 강하게 흐르는 구조라, 두루 넓히기보다 한 분야로 깊이 들어가는 길이 맞아요.'
     )
     deepPiecesEn.push(
       `Saju runs as ${jong} — a strong one-direction current that favors specialization over breadth.`
@@ -244,7 +244,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const courage = input.calendarSignals?.arabicParts?.Courage
   if (courage) {
     fusionUsed.push('calendarSignals.arabicParts.Courage')
-    deepPieces.push(`용기의 행운점이 ${karmaSignKoCareer(courage.sign)}의 결로 자리해서, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`)
+    deepPieces.push(`용기의 행운점이 ${karmaSignKoCareer(courage.sign)}에 자리해서, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`)
     deepPiecesEn.push(`Your Lot of Courage in ${courage.sign} pulls the strongest career luck through the place where you accept challenge.`)
   }
   // Fusion career confirms (top 2)
@@ -278,14 +278,14 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const spirit = input.calendarSignals?.arabicParts?.Spirit
   if (spirit) {
     fusionUsed.push('calendarSignals.arabicParts.Spirit')
-    guideKo += ` 직업의 행운점이 ${spirit.sign === 'Aries' ? '양자리' : spirit.sign === 'Taurus' ? '황소자리' : spirit.sign === 'Gemini' ? '쌍둥이자리' : spirit.sign === 'Cancer' ? '게자리' : spirit.sign === 'Leo' ? '사자자리' : spirit.sign === 'Virgo' ? '처녀자리' : spirit.sign === 'Libra' ? '천칭자리' : spirit.sign === 'Scorpio' ? '전갈자리' : spirit.sign === 'Sagittarius' ? '사수자리' : spirit.sign === 'Capricorn' ? '염소자리' : spirit.sign === 'Aquarius' ? '물병자리' : '물고기자리'}의 결로 자리해서, 이 결을 일터에 가져갈수록 운이 자기 자리로 와요.`
+    guideKo += ` 직업의 행운점이 ${spirit.sign === 'Aries' ? '양자리' : spirit.sign === 'Taurus' ? '황소자리' : spirit.sign === 'Gemini' ? '쌍둥이자리' : spirit.sign === 'Cancer' ? '게자리' : spirit.sign === 'Leo' ? '사자자리' : spirit.sign === 'Virgo' ? '처녀자리' : spirit.sign === 'Libra' ? '천칭자리' : spirit.sign === 'Scorpio' ? '전갈자리' : spirit.sign === 'Sagittarius' ? '사수자리' : spirit.sign === 'Capricorn' ? '염소자리' : spirit.sign === 'Aquarius' ? '물병자리' : '물고기자리'}에 자리해서, 이 톤을 일터에 가져갈수록 운이 자기 자리로 와요.`
     guideEn += ` Your Lot of Spirit in ${spirit.sign} signals the grain to bring into the workplace — luck arrives when you carry it deliberately.`
   }
   // Profection — current-year lord & house
   const prof = input.calendarSignals?.profectionCurrent
   if (prof && (prof.house === 10 || prof.house === 6 || prof.house === 2)) {
     fusionUsed.push('calendarSignals.profections')
-    guideKo += ` 올해는 ${prof.house}궁(${prof.house === 10 ? '사회적 정점' : prof.house === 6 ? '일터·실무' : '재물·자원'})이 활성돼서, 직업의 결이 손에 잡히는 결과로 이어지는 한 해예요.`
+    guideKo += ` 올해는 ${prof.house}궁(${prof.house === 10 ? '사회 무대' : prof.house === 6 ? '일터·실무' : '재산'})이 활성돼서, 직업의 흐름이 손에 잡히는 결과로 이어지는 한 해예요.`
     guideEn += ` This year activates house ${prof.house} — career outcomes translate into tangible result.`
   }
 
@@ -325,12 +325,12 @@ function paragraphOpenerKo(cat: string, geokguk: string): string {
   if (cat === '재성')
     return '당신은 실리와 결과로 움직이는 사람이에요. 재물과 자원이 직업적 목적을 손에 잡히게 끌어와요.'
   if (cat === '인성')
-    return '당신은 배우고 정리해서 흐름을 만드는 사람이에요. 지혜와 돌봄의 결이 직업의 토대가 돼요.'
+    return '당신은 배우고 정리해서 흐름을 만드는 사람이에요. 지혜와 돌봄이 직업의 토대가 돼요.'
   if (cat === '비겁')
-    return '당신은 동등한 사람들과 함께 있을 때 가장 빛나는 사람이에요. 함께 가는 결이 협업과 자기 주도성을 키워줘요.'
+    return '당신은 동등한 사람들과 함께 있을 때 가장 빛나는 사람이에요. 함께 가는 성향이 협업과 자기 주도성을 키워줘요.'
   return geokguk
     ? `당신의 직업 색은 ${geokgukShortKoForCareer(geokguk)}에서 출발해요.`
-    : '당신의 직업적 결은 차분히 잘 잡혀 있어요.'
+    : '당신의 직업적 톤은 차분히 잘 잡혀 있어요.'
 }
 
 function paragraphOpenerEn(cat: string, geokguk: string): string {
@@ -354,7 +354,7 @@ const MC_SIGN_FLAVOR_KO: Record<string, string> = {
   Taurus: '안정과 신뢰의 인상',
   Gemini: '명민함과 다재함의 인상',
   Cancer: '돌봄과 가까움의 인상',
-  Leo: '존재감과 빛의 인상',
+  Leo: '존재감 있는 빛의 인상',
   Virgo: '정확함과 헌신의 인상',
   Libra: '균형과 조정자의 인상',
   Scorpio: '깊이와 변혁의 인상',
@@ -378,7 +378,7 @@ const MC_SIGN_FLAVOR_EN: Record<string, string> = {
   Pisces: 'empathic and artistic',
 }
 function mcSignFlavorKo(sign: string): string {
-  return MC_SIGN_FLAVOR_KO[sign] ?? '독특한 결'
+  return MC_SIGN_FLAVOR_KO[sign] ?? '독특한 색감의 인상'
 }
 function mcSignFlavorEn(sign: string): string {
   return MC_SIGN_FLAVOR_EN[sign] ?? 'a singular grain'
@@ -394,7 +394,7 @@ const SUN_HOUSE_FLAVOR_KO: Record<number, string> = {
   7: '파트너십과 거래의 일',
   8: '깊이·재생·공동 자원의 일',
   9: '시야·여행·가르침의 일',
-  10: '공적 자리에서 빛나는 일',
+  10: '공적 무대에서 빛나는 일',
   11: '동료·네트워크와 비전의 일',
   12: '은둔·치유·내적 작업',
 }
@@ -413,7 +413,7 @@ const SUN_HOUSE_FLAVOR_EN: Record<number, string> = {
   12: 'solitude, healing, inner work',
 }
 function sunHouseFlavorKo(h: number): string {
-  return SUN_HOUSE_FLAVOR_KO[h] ?? '독자적 직업의 결'
+  return SUN_HOUSE_FLAVOR_KO[h] ?? '독자적 직업의 영역'
 }
 function sunHouseFlavorEn(h: number): string {
   return SUN_HOUSE_FLAVOR_EN[h] ?? 'a singular professional grain'
@@ -445,32 +445,32 @@ function buildCareerGuideKo(args: {
 
 // 십신 의미 자연어
 function sibsinMeaningKo(sibsin: string): string {
-  if (!sibsin) return '잔잔한 결'
-  if (sibsin.includes('편관')) return '도전과 책임이 무겁게 다가오는 결'
-  if (sibsin.includes('정관')) return '책임감 있게 자리를 잡는 결'
-  if (sibsin.includes('편재')) return '기회를 잡아내는 결'
-  if (sibsin.includes('정재')) return '꾸준히 쌓아가는 결'
-  if (sibsin.includes('식신')) return '여유롭게 표현하는 결'
-  if (sibsin.includes('상관')) return '재능을 자유롭게 풀어내는 결'
-  if (sibsin.includes('편인')) return '독특한 직관의 결'
-  if (sibsin.includes('정인')) return '배움과 돌봄의 결'
-  if (sibsin.includes('비견')) return '동등한 동료의 결'
-  if (sibsin.includes('겁재')) return '치열한 경쟁심의 결'
-  return '잔잔한 결'
+  if (!sibsin) return '잔잔한 흐름'
+  if (sibsin.includes('편관')) return '도전과 책임이 무겁게 다가오는 흐름'
+  if (sibsin.includes('정관')) return '책임감 있게 자리를 잡는 흐름'
+  if (sibsin.includes('편재')) return '기회를 잡아내는 감각'
+  if (sibsin.includes('정재')) return '꾸준히 쌓아가는 흐름'
+  if (sibsin.includes('식신')) return '여유로운 표현'
+  if (sibsin.includes('상관')) return '재능을 자유롭게 풀어내는 흐름'
+  if (sibsin.includes('편인')) return '독특한 직관'
+  if (sibsin.includes('정인')) return '배움과 돌봄'
+  if (sibsin.includes('비견')) return '동등한 동료 분위기'
+  if (sibsin.includes('겁재')) return '치열한 경쟁심'
+  return '잔잔한 흐름'
 }
 
 // career 섹션용 격국 짧은 자연어
 function geokgukShortKoForCareer(g: string): string {
-  if (!g) return '본연의 결'
-  if (g.includes('편관')) return '도전과 책임을 동력으로 쓰는 결'
-  if (g.includes('정관')) return '책임감 있는 정통의 결'
-  if (g.includes('편재')) return '기회를 잡는 감각의 결'
-  if (g.includes('정재')) return '꾸준히 자원을 쌓는 결'
-  if (g.includes('식신')) return '여유로운 표현과 창조의 결'
-  if (g.includes('상관')) return '재능을 자유롭게 발산하는 결'
-  if (g.includes('편인')) return '독특한 직관의 결'
-  if (g.includes('정인')) return '배움과 돌봄의 결'
-  return '본연의 결'
+  if (!g) return '본연의 색'
+  if (g.includes('편관')) return '도전과 책임을 동력으로 쓰는 성향'
+  if (g.includes('정관')) return '책임감 있는 정통의 흐름'
+  if (g.includes('편재')) return '기회를 잡는 감각'
+  if (g.includes('정재')) return '꾸준히 자원을 쌓는 흐름'
+  if (g.includes('식신')) return '여유로운 표현과 창조'
+  if (g.includes('상관')) return '재능을 자유롭게 발산하는 성향'
+  if (g.includes('편인')) return '독특한 직관'
+  if (g.includes('정인')) return '배움과 돌봄'
+  return '본연의 색'
 }
 
 function karmaSignKoCareer(sign: string): string {
@@ -485,18 +485,18 @@ function karmaSignKoCareer(sign: string): string {
 // career 섹션용 하우스 의미 자연어
 function karmaHouseHintForCareerKo(h: number): string {
   const map: Record<number, string> = {
-    1: '정체성의',
-    2: '재물의',
-    3: '소통의',
-    4: '가정의',
-    5: '창조의',
-    6: '일상의',
-    7: '관계의',
-    8: '깊이의',
-    9: '확장의',
-    10: '사회적 정점의',
-    11: '공동체의',
-    12: '내면의',
+    1: '정체성',
+    2: '재산',
+    3: '소통',
+    4: '가정',
+    5: '창조',
+    6: '일상',
+    7: '관계',
+    8: '깊이',
+    9: '확장',
+    10: '사회 무대',
+    11: '공동체',
+    12: '내면',
   }
   return map[h] || ''
 }
