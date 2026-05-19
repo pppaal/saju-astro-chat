@@ -44,8 +44,10 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   const venus = getPlanet(astro, 'Venus')
   const moon = getPlanet(astro, 'Moon')
   const neptune = getPlanet(astro, 'Neptune')
+  const uranus = getPlanet(astro, 'Uranus')
   if (venus) astroUsed.push('planets.venus')
   if (neptune) astroUsed.push('planets.neptune')
+  if (uranus) astroUsed.push('planets.uranus')
   const fifth = planetsInHouse(astro, 5)
   if (fifth.length > 0) astroUsed.push('houses.5.planets')
   const fifthCusp = houseCusp(astro, 5)
@@ -101,10 +103,16 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   ])
   // Venus × house — 창작 무대
   const venusHouseVar = planetHouseLine('Venus', venus?.house, 'ko')
+  // Uranus × house — 혁신·자유 (창작의 파격 결)
+  const uranusHouseVar = planetHouseLine('Uranus', uranus?.house, 'ko')
+  // Neptune × house — 영감·환상 (창작의 꿈결)
+  const neptuneHouseVar = planetHouseLine('Neptune', neptune?.house, 'ko')
   if (venusCreativeVar) astroUsed.push('pools.planetSign.venus.creativity')
   if (sunCreativeVar) astroUsed.push('pools.planetSign.sun.creativity')
   if (mercuryCreativeVar) astroUsed.push('pools.planetSign.mercury.creativity')
   if (venusHouseVar) astroUsed.push('pools.planetHouse.venus.creativity')
+  if (uranusHouseVar) astroUsed.push('pools.planetHouse.uranus.creativity')
+  if (neptuneHouseVar) astroUsed.push('pools.planetHouse.neptune.creativity')
   let p1ko = paragraph([
     opener,
     venus
@@ -120,6 +128,8 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   p1ko = appendToPara(p1ko, venusHouseVar)
   p1ko = appendToPara(p1ko, sunCreativeVar)
   p1ko = appendToPara(p1ko, mercuryCreativeVar)
+  p1ko = appendToPara(p1ko, uranusHouseVar)
+  p1ko = appendToPara(p1ko, neptuneHouseVar)
   const p1en = paragraph([
     openerE,
     venus
@@ -332,7 +342,8 @@ function openerEn(sangwan: number, sikshin: number, hasHwagae: boolean): string 
   if (sangwan >= 1 && hasHwagae)
     return 'Both a free creative streak and an art-and-solitude star sit in your chart — creation is unavoidable this life.'
   if (sikshin >= 2) return 'A strong, easeful expressive streak favours easy, enjoyment-led making.'
-  if (sangwan >= 1) return 'A free creative streak sits in your chart — work that lets you leave your own mark flows best.'
+  if (sangwan >= 1)
+    return 'A free creative streak sits in your chart — work that lets you leave your own mark flows best.'
   return 'Your creative grain matures inwardly, slowly, more from inner pressure than outer prompt.'
 }
 

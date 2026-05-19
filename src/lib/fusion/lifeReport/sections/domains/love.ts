@@ -86,9 +86,13 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const venus = getPlanet(astro, 'Venus')
   const mars = getPlanet(astro, 'Mars')
   const moon = getPlanet(astro, 'Moon')
+  const pluto = getPlanet(astro, 'Pluto')
+  const neptune = getPlanet(astro, 'Neptune')
   if (venus) astroUsed.push('planets.venus')
   if (mars) astroUsed.push('planets.mars')
   if (moon) astroUsed.push('planets.moon')
+  if (pluto) astroUsed.push('planets.pluto')
+  if (neptune) astroUsed.push('planets.neptune')
 
   const seventh = houseCusp(astro, 7)
   if (seventh) astroUsed.push('houses.7')
@@ -175,6 +179,10 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const venusHouseVar = planetHouseLine('Venus', venus?.house, 'ko')
   // Mars × house — 욕망이 어느 무대에서 분출되는지 (this PR)
   const marsHouseVar = planetHouseLine('Mars', mars?.house, 'ko')
+  // Pluto × house — 깊은 결합·강렬함의 무대 (love 깊이 외행성)
+  const plutoHouseVar = planetHouseLine('Pluto', pluto?.house, 'ko')
+  // Neptune × house — 환상·녹임의 무대 (love 꿈결 외행성)
+  const neptuneHouseVar = planetHouseLine('Neptune', neptune?.house, 'ko')
   if (loveCategoryVar) sajuUsed.push('pools.sibsinCategory.love')
   if (moonSignVar) astroUsed.push('pools.planetSign.moon.love')
   if (ascSignVar) astroUsed.push('pools.planetSign.asc.love')
@@ -183,6 +191,8 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (moonHouseVar) astroUsed.push('pools.planetHouse.moon')
   if (venusHouseVar) astroUsed.push('pools.planetHouse.venus')
   if (marsHouseVar) astroUsed.push('pools.planetHouse.mars')
+  if (plutoHouseVar) astroUsed.push('pools.planetHouse.pluto')
+  if (neptuneHouseVar) astroUsed.push('pools.planetHouse.neptune')
   let p1ko = paragraph([styleKo, venusBlurb])
   p1ko = appendToPara(p1ko, loveCategoryVar)
   // 결정론 유지: 두 변이가 의미상 같은 결을 동시에 말하거나, 이미 sibsin
@@ -218,6 +228,8 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   p1ko = appendToPara(p1ko, moonHouseVar)
   p1ko = appendToPara(p1ko, venusHouseVar)
   p1ko = appendToPara(p1ko, marsHouseVar)
+  p1ko = appendToPara(p1ko, plutoHouseVar)
+  p1ko = appendToPara(p1ko, neptuneHouseVar)
   const p1en = paragraph([styleEn, venusBlurbEn])
 
   // ── Paragraph 2: 배우자 인상
@@ -356,14 +368,24 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     sajuUsed.push('sibsin.patterns')
     const top = loveSibsinPatterns[0]
     if (top.name === '재성과다') {
-      deepKo.push('재성의 결이 강하게 몰려서, 사랑에서도 손에 잡히는 결과·약속의 색을 선호하게 돼요.')
-      deepEn.push('A heavy resource current — in love too you favour tangible commitments and outcomes.')
+      deepKo.push(
+        '재성의 결이 강하게 몰려서, 사랑에서도 손에 잡히는 결과·약속의 색을 선호하게 돼요.'
+      )
+      deepEn.push(
+        'A heavy resource current — in love too you favour tangible commitments and outcomes.'
+      )
     } else if (top.name === '관살혼잡') {
       deepKo.push('관의 결이 두 갈래로 흘러, 사랑에서도 두 방향의 끌림이 같이 살아 있을 수 있어요.')
-      deepEn.push('Two threads of the authority dynamic run together — two directions of attraction can coexist in love.')
+      deepEn.push(
+        'Two threads of the authority dynamic run together — two directions of attraction can coexist in love.'
+      )
     } else if (top.name === '균형사주') {
-      deepKo.push('사주 자질이 고르게 분포해서, 사랑의 결도 한쪽으로 치우치지 않고 무난히 흐르는 자리예요.')
-      deepEn.push('Your inner currents are balanced — love too runs without a single dominating grain.')
+      deepKo.push(
+        '사주 자질이 고르게 분포해서, 사랑의 결도 한쪽으로 치우치지 않고 무난히 흐르는 자리예요.'
+      )
+      deepEn.push(
+        'Your inner currents are balanced — love too runs without a single dominating grain.'
+      )
     }
   }
   // Minor aspect — Venus-Mars quincunx/semisextile colours the attraction grain.
@@ -416,7 +438,9 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     )
   }
   if (cur && cur.sibsin) {
-    timingKo.push(`지금의 인생 흐름에는 ${sibsinMeaningKoLove(cur.sibsin)}이 함께해서, 관계의 톤을 천천히 다듬어주고 있어요.`)
+    timingKo.push(
+      `지금의 인생 흐름에는 ${sibsinMeaningKoLove(cur.sibsin)}이 함께해서, 관계의 톤을 천천히 다듬어주고 있어요.`
+    )
     timingEn.push('Your current life-chapter is also tuning the relational grain.')
   }
   if (srSunInSeventh) {
@@ -438,7 +462,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}에 놓여, ${erosSignFlavorKoLove(eros.sign)} 인연이 사랑의 운을 끌어와요.`
     )
     timingEn.push(
-      `Your Lot of Eros sits in ${signLabel(eros.sign, 'en')} — love-luck arrives through ${erosSignFlavorEnLove(eros.sign)} bonds.`,
+      `Your Lot of Eros sits in ${signLabel(eros.sign, 'en')} — love-luck arrives through ${erosSignFlavorEnLove(eros.sign)} bonds.`
     )
   }
   if (venusDignity) {
