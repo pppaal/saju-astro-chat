@@ -30,10 +30,10 @@ export type Lang = 'ko' | 'en'
 // 한국어 조사: '달'/'대운'/'오늘' 은 종성 있음 → '은', '해' 는 종성 없음 → '는'.
 // 라벨에 조사까지 묶어 자연어 처리.
 const PERIOD_LABEL: Record<GanjiTransitLayer, Record<Lang, string>> = {
-  daily: { ko: '오늘은', en: 'today' },
-  monthly: { ko: '이번 달은', en: 'this month' },
-  yearly: { ko: '이번 해는', en: 'this year' },
-  decadal: { ko: '이 대운은', en: 'this decade' },
+  daily: { ko: '오늘은', en: 'Today' },
+  monthly: { ko: '이번 달은', en: 'This month' },
+  yearly: { ko: '이번 해는', en: 'This year' },
+  decadal: { ko: '이 대운은', en: 'This decade' },
 }
 
 /**
