@@ -204,4 +204,72 @@ describe('calendar-engine regression', () => {
       }
     })
   })
+
+  // ────────────────────────────────────────────────────────────────────
+  // Daily ganji (일진) narrative — getGanjiTransitNarrative('daily').
+  // 매일 다른 60갑자 → 매일 다른 텍스트. 같은 달 안에서 동일 narrative
+  // 가 반복되면 4월/5월 동일 텍스트 같은 회귀가 발생.
+  describe('daily ganji narrative', () => {
+    it('produces a Korean one-liner for every well-known ganji', async () => {
+      const { getGanjiTransitNarrative } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      // 두 갑자 sample — 매 ganji 모두 ILJU_ARCHETYPES 에 있을 필요는 없고
+      // 핵심은 daily layer 가 "하루예요" 어미로 닫히는지 확인.
+      // ILJU_ARCHETYPES 의 키는 한자 (甲子 / 丙寅 …) 라 한자 사용.
+      const samples = ['甲子', '丙寅', '庚午', '丁亥']
+      let nonEmpty = 0
+      for (const g of samples) {
+        const text = getGanjiTransitNarrative(g, 'daily', 'ko')
+        if (!text) continue
+        nonEmpty += 1
+        expect(text).toMatch(/오늘은/)
+        expect(text).toMatch(/하루예요/)
+        expect(text).not.toMatch(/시기예요/)
+      }
+      expect(nonEmpty).toBeGreaterThanOrEqual(2)
+    })
+
+    it('uses a "시기예요" tail for monthly and "하루예요" for daily', async () => {
+      const { getGanjiTransitNarrative } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      const month = getGanjiTransitNarrative('甲子', 'monthly', 'ko')
+      const day = getGanjiTransitNarrative('甲子', 'daily', 'ko')
+      if (month) {
+        expect(month).toMatch(/이번 달은/)
+        expect(month).toMatch(/시기예요/)
+      }
+      if (day) {
+        expect(day).toMatch(/오늘은/)
+        expect(day).toMatch(/하루예요/)
+      }
+    })
+
+    it('returns "" for an unknown ganji on every layer', async () => {
+      const { getGanjiTransitNarrative } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      expect(getGanjiTransitNarrative('XYZ', 'daily', 'ko')).toBe('')
+      expect(getGanjiTransitNarrative('XYZ', 'monthly', 'ko')).toBe('')
+      expect(getGanjiTransitNarrative('XYZ', 'yearly', 'ko')).toBe('')
+    })
+
+    it('consecutive days produce distinct daily ganji text (no 5월/6월 dup)', async () => {
+      const { getGanjiTransitNarrative } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      const { computeDayStem, computeDayBranch } =
+        await import('@/lib/calendar-engine/extractors/saju-shinsal')
+      // 60일 sample — 60갑자 한 cycle 안에서 unique text > 50 expected.
+      const seen = new Set<string>()
+      const base = Date.UTC(2026, 4, 1, 12, 0, 0) // 2026-05-01 noon UTC
+      for (let i = 0; i < 60; i += 1) {
+        const probe = new Date(base + i * 86400_000)
+        const stem = computeDayStem(probe)
+        const branch = computeDayBranch(probe)
+        if (!stem || !branch) continue
+        const text = getGanjiTransitNarrative(`${stem}${branch}`, 'daily', 'ko')
+        if (text) seen.add(text)
+      }
+      // 60 일 안에서 최소 50종 이상 서로 다른 텍스트 (60갑자 cycle 보장).
+      expect(seen.size).toBeGreaterThanOrEqual(50)
+    })
+  })
 })

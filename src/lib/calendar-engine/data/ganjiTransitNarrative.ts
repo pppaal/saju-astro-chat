@@ -24,12 +24,13 @@
 
 import { ILJU_ARCHETYPES } from '@/lib/saju/iljuDictionary'
 
-export type GanjiTransitLayer = 'monthly' | 'yearly' | 'decadal'
+export type GanjiTransitLayer = 'daily' | 'monthly' | 'yearly' | 'decadal'
 export type Lang = 'ko' | 'en'
 
-// 한국어 조사: '달'/'대운' 은 종성 있음 → '은', '해' 는 종성 없음 → '는'.
+// 한국어 조사: '달'/'대운'/'오늘' 은 종성 있음 → '은', '해' 는 종성 없음 → '는'.
 // 라벨에 조사까지 묶어 자연어 처리.
 const PERIOD_LABEL: Record<GanjiTransitLayer, Record<Lang, string>> = {
+  daily: { ko: '오늘은', en: 'today' },
   monthly: { ko: '이번 달은', en: 'this month' },
   yearly: { ko: '이번 해는', en: 'this year' },
   decadal: { ko: '이 대운은', en: 'this decade' },
@@ -57,7 +58,9 @@ export function getGanjiTransitNarrative(
     // 조사 처리를 깔끔하게 하기 위해 끝 마침표만 떼고 그대로 임베드.
     const characterTrim = archetype.character.replace(/[.,。、]\s*$/u, '')
     const strengths = archetype.strengths.join('·')
-    return `${period} ${characterTrim}의 에너지가 흐르는 시기예요. 강점: ${strengths}.`
+    // 일진은 한 줄 짧게 ("하루예요"), 더 긴 구간은 "시기예요".
+    const noun = layer === 'daily' ? '하루' : '시기'
+    return `${period} ${characterTrim}의 에너지가 흐르는 ${noun}예요. 강점: ${strengths}.`
   }
 
   const characterEn = archetype.character
