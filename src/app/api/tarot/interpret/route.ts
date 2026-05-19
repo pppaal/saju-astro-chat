@@ -26,7 +26,6 @@ import {
   buildAnchoredCardInsights,
   buildEmergencyFallbackResult,
   buildMinimumInsight,
-  contextForPrompt,
   enforceInterpretationQuality,
   ensureActionAndTimeAnchor,
   ensureCardAnchoring,
@@ -34,7 +33,6 @@ import {
   normalizeCombinations,
   normalizeInterpretRequestBody,
   normalizeQuestionContext,
-  parseStructuredContextFromString,
   tryParseJsonCandidate,
 } from './routeSupport'
 
@@ -108,10 +106,6 @@ export const POST = withApiMiddleware(
         cards: validatedCards,
         userQuestion,
         language = 'ko',
-        includeAstrology = true,
-        includeSaju = true,
-        sajuContext,
-        astroContext,
         questionContext,
         questionMeta,
       } = validationResult.data
@@ -134,21 +128,6 @@ export const POST = withApiMiddleware(
         language
       )
       fallbackQuestion = enrichedUserQuestion
-
-      const parsedSajuContext =
-        includeSaju && sajuContext
-          ? parseStructuredContextFromString(sajuContext, 'saju_context')
-          : undefined
-      const parsedAstroContext =
-        includeAstrology && astroContext
-          ? parseStructuredContextFromString(astroContext, 'astro_context')
-          : undefined
-      const promptSajuContext = includeSaju
-        ? contextForPrompt(sajuContext, parsedSajuContext)
-        : undefined
-      const promptAstroContext = includeAstrology
-        ? contextForPrompt(astroContext, parsedAstroContext)
-        : undefined
 
       creditResult = await checkAndConsumeCredits('reading', 1, req)
       if (!creditResult.allowed) {
@@ -173,8 +152,6 @@ export const POST = withApiMiddleware(
             spreadTitle,
             language,
             enrichedUserQuestion,
-            promptSajuContext,
-            promptAstroContext,
             questionMeta
           )
           interpretationSource = 'gpt_fallback'
@@ -511,13 +488,6 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
       }
 }
 
-function truncatePromptContext(input: string | undefined, maxLength = 1200): string {
-  if (!input) return ''
-  const normalized = input.trim()
-  if (normalized.length <= maxLength) return normalized
-  return `${normalized.slice(0, maxLength)}\n...[truncated]`
-}
-
 type QuestionMetaShape = {
   intent?: string
   subject?: string
@@ -535,8 +505,6 @@ async function generateGPTInterpretation(
   spreadTitle: string,
   language: string,
   userQuestion?: string,
-  sajuContext?: string,
-  astroContext?: string,
   questionMeta?: QuestionMetaShape
 ) {
   const isKorean = language === 'ko'
@@ -555,16 +523,6 @@ async function generateGPTInterpretation(
     .join('\n')
 
   const q = userQuestion || (isKorean ? '일반 상담' : 'general reading')
-  // Pure tarot — saju / astro cross removed per user request. The
-  // parameters stay on the function signature so existing callers
-  // compile without a cascade of plumbing changes; the values are
-  // intentionally ignored.
-  void truncatePromptContext
-  void sajuContext
-  void astroContext
-  const sajuBlock = ''
-  const astroBlock = ''
-  const hasContext = false
 
   // chunk 별 카드 예시 + JSON 스키마 빌더 — position 은 LLM 이 직접
   // 명명하므로 스키마에 placeholder 만 박아둔다.
@@ -636,7 +594,7 @@ ${cardExamples}
     pickTarotRules(isKorean ? 'ko' : 'en') +
     (isKorean
       ? '\n\n자리(position) 명명: 각 카드의 자리 라벨은 사용자 질문 맥락에 맞춰 *네가 직접* 한국어 짧은 라벨로 명명 (2-6자, 중복 X, 사전적 용어보다 질문 밀착 표현 우선).\n\n출력 JSON 스키마는 user prompt 에서 지정한다. 코드펜스/주석/머리말 절대 X.'
-      : '\n\nNaming positions: name each seat yourself in 2-4 English words, grounded in the user\'s question. No duplicates, prefer question-specific over generic labels.\n\nOutput JSON schema is supplied in the user prompt. No code fences, no preamble, no comments.')
+      : "\n\nNaming positions: name each seat yourself in 2-4 English words, grounded in the user's question. No duplicates, prefer question-specific over generic labels.\n\nOutput JSON schema is supplied in the user prompt. No code fences, no preamble, no comments.")
 
   // chunk 별 user 프롬프트 빌더
   const buildChunkUserPrompt = (
@@ -675,17 +633,13 @@ ${cardExamples}
 - subject: ${questionMeta.subject || '-'} | focus: ${questionMeta.focus || '-'}
 - timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
             : ''
-        }${sajuBlock}${astroBlock}
+        }
 ## 뽑힌 카드 (순서대로 — 자리 라벨은 네가 명명)
 ${cardListText}
 
 # 출력 지시
 ${taskKo}
-- overall ${budget.overallGuide}, 카드별 ${budget.perCardGuide}, advice ${budget.adviceGuide}.${
-          hasContext
-            ? '\n- 사주/점성 컨텍스트가 입력됐으니 cross-only 모드: 모든 카드별 해석에 카드 ↔ 사주/점성 anchor 1회 이상, synergy/overall 첫 문장도 cross로 시작.'
-            : ''
-        }
+- overall ${budget.overallGuide}, 카드별 ${budget.perCardGuide}, advice ${budget.adviceGuide}.
 
 # 출력 형식 (JSON)
 ${schemaKo}`
@@ -699,17 +653,13 @@ ${schemaKo}`
 - subject: ${questionMeta.subject || '-'} | focus: ${questionMeta.focus || '-'}
 - timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
             : ''
-        }${sajuBlock}${astroBlock}
+        }
 ## Cards Drawn (in order — name each seat yourself)
 ${cardListText}
 
 # Output instructions
 ${taskEn}
-- Length: overall ${budget.overallGuide}, per-card ${budget.perCardGuide}, advice ${budget.adviceGuide}.${
-          hasContext
-            ? '\n- Saju/Astrology context provided: enter cross-only mode. Each card interpretation must anchor to saju OR astro at least once. Synergy and opening lines must start with a cross.'
-            : ''
-        }
+- Length: overall ${budget.overallGuide}, per-card ${budget.perCardGuide}, advice ${budget.adviceGuide}.
 
 # Output Format (JSON)
 ${schemaEn}`
@@ -733,11 +683,7 @@ ${schemaEn}`
           chunk: `${chunkStart}-${chunkEnd}`,
         })
         recordCounter('tarot.interpret.fallback_total', 1, { from: 'claude', to: 'gpt' })
-        raw = await callGPT(
-          `${systemPrompt}\n\n${userPrompt}`,
-          budget.maxTokens,
-          budget.timeoutMs
-        )
+        raw = await callGPT(`${systemPrompt}\n\n${userPrompt}`, budget.maxTokens, budget.timeoutMs)
       }
     } else {
       raw = await callGPT(`${systemPrompt}\n\n${userPrompt}`, budget.maxTokens, budget.timeoutMs)
@@ -746,11 +692,7 @@ ${schemaEn}`
   }
 
   // 파싱된 cards[] 를 우리 CardInsight 구조로 변환 (앵커링 + 시간/행동 보강)
-  const assembleChunkInsights = (
-    parsedCardsArr: unknown,
-    chunkStart: number,
-    chunkEnd: number
-  ) => {
+  const assembleChunkInsights = (parsedCardsArr: unknown, chunkStart: number, chunkEnd: number) => {
     const parsedCards = Array.isArray(parsedCardsArr) ? parsedCardsArr : []
     return cards.slice(chunkStart, chunkEnd).map((card, j) => {
       const cardData = asRecord(parsedCards[j])
@@ -768,8 +710,7 @@ ${schemaEn}`
         language,
         ensureCardAnchoring(language, card, interpretation, userQuestion)
       )
-      const actionTipRaw =
-        typeof cardData.actionTip === 'string' ? cardData.actionTip.trim() : ''
+      const actionTipRaw = typeof cardData.actionTip === 'string' ? cardData.actionTip.trim() : ''
       // position은 LLM이 사용자 질문 맥락에 맞춰 직접 명명해서 보내준다.
       // 클라이언트는 더 이상 position을 보내지 않으므로 cardData에서 가져옴.
       // LLM 응답에도 없으면 fallback ("1번 카드" / "Card 1").
@@ -846,8 +787,7 @@ ${schemaEn}`
     if (!chunkA.parsed) return textFallback(chunkA.raw)
 
     const overall = typeof chunkA.parsed.overall === 'string' ? chunkA.parsed.overall : ''
-    const synergy =
-      typeof chunkA.parsed.synergy === 'string' ? chunkA.parsed.synergy.trim() : ''
+    const synergy = typeof chunkA.parsed.synergy === 'string' ? chunkA.parsed.synergy.trim() : ''
     const insightsA = assembleChunkInsights(chunkA.parsed.cards, 0, mid)
     // chunk B 가 파싱 실패하면 후반 카드들은 정적 앵커 fallback
     const insightsB = chunkB.parsed
