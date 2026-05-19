@@ -80,10 +80,10 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
 
   // ── Paragraph 1: 학문·지혜의 결
   const inseongFlavorKo = inseong >= 3
-    ? '지혜와 돌봄의 결이 매우 진하게 흐르고 있어서, 배움 자체가 운의 통로예요.'
+    ? '지혜와 돌봄의 자질이 매우 진하게 흐르고 있어서, 배움 자체가 운의 통로예요.'
     : inseong >= 1
-      ? '지혜와 돌봄의 결이 잔잔히 자리해서, 배움을 멈추지 않는 게 운의 출구가 돼요.'
-      : '배움의 결은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
+      ? '지혜와 돌봄의 자질이 잔잔히 자리해서, 배움을 멈추지 않는 게 운의 출구가 돼요.'
+      : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
   const inseongFlavorEn = inseong >= 3
     ? 'A strong 인성 (wisdom-and-care line) runs through your saju — learning itself becomes the channel of luck.'
     : inseong >= 1
@@ -93,7 +93,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     inseongFlavorKo,
     mercury
-      ? `생각과 말의 별이 ${signLabel(mercury.sign, 'ko')}에 있고${mercury.house ? `, ${houseLabel(mercury.house, 'ko')}` : ''}, ${mercurySignFlavorKo(mercury.sign)}이에요.`
+      ? `생각과 말의 별이 ${signLabel(mercury.sign, 'ko')}${mercury.house ? `, ${houseLabel(mercury.house, 'ko')}에` : ''} 있어서, ${mercurySignFlavorKo(mercury.sign)} 방향으로 흐르고 있어요.`
       : '',
     ninth.length > 0
       ? `${houseLabel(9, 'ko')}에 ${ninth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 큰 그림과 신념이 학습의 동력이 돼요.`
@@ -114,14 +114,14 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p2piecesEn: string[] = []
   if (third.length > 0) {
     p2pieces.push(
-      `소통과 학습의 자리에 ${third.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 자리해서, 일상의 작은 학습과 짧은 대화 속에서 진짜 지혜가 쌓여요.`,
+      `학습 영역에 ${third.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 자리해서, 일상의 작은 학습과 짧은 대화 속에서 진짜 지혜가 쌓여요.`,
     )
     p2piecesEn.push(
       `Planets in the 3rd house (${third.map((p) => p.name).join(', ')}) gather wisdom through small daily learning and short conversations.`,
     )
   } else if (thirdCusp?.sign) {
     p2pieces.push(
-      `소통과 학습의 자리는 ${signLabel(thirdCusp.sign, 'ko')}의 결로 열려서, ${thirdSignFlavorKo(thirdCusp.sign)} 방식으로 배우는 게 자연스러워요.`,
+      `학습 영역은 ${signLabel(thirdCusp.sign, 'ko')}의 톤으로 열려서, ${thirdSignFlavorKo(thirdCusp.sign)} 방식으로 배우는 게 자연스러워요.`,
     )
     p2piecesEn.push(
       `Your 3rd-house cusp in ${signLabel(thirdCusp.sign, 'en')} suggests learning via ${thirdSignFlavorEn(thirdCusp.sign)}.`,
@@ -131,14 +131,14 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     p2pieces.push('재능의 자유로운 발산이 강해서, 받아들이기만 하는 학습보다 가르치고 표현할 때 지혜가 더 단단해져요.')
     p2piecesEn.push('Strong 상관 means wisdom hardens when you teach and express, not only when you absorb.')
   } else if (sikshin >= 2) {
-    p2pieces.push('여유로운 표현의 결이 깔려 있어, 즐기듯 배우는 방식이 잘 맞아요.')
+    p2pieces.push('여유로운 표현의 자질이 깔려 있어, 즐기듯 배우는 방식이 잘 맞아요.')
     p2piecesEn.push('식신 places ease at the centre — learning works best when it doubles as enjoyment.')
   }
   if (topMercAspect && mercury) {
     const other = topMercAspect.from?.name === 'Mercury' ? topMercAspect.to?.name : topMercAspect.from?.name
     if (other) {
       p2pieces.push(
-        `생각의 별이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topMercAspect.type, 'ko')}, ${mercAspectFlavorKo(other)}의 결이 사고 방식에 새겨져 있어요.`,
+        `생각의 별이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topMercAspect.type, 'ko')}, ${mercAspectFlavorKo(other)}의 색이 사고 방식에 새겨져 있어요.`,
       )
       p2piecesEn.push(
         `Mercury ${aspectQuality(topMercAspect.type, 'en')} ${other}, etching a ${mercAspectFlavorEn(other)} grain into how you think.`,
@@ -146,7 +146,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     }
   }
   const p2ko = paragraph(
-    p2pieces.length ? p2pieces : ['학습의 결은 평탄하게 정렬돼 있어, 한 가지 방식보다 여러 통로를 열어두면 운이 더 잘 흘러요.'],
+    p2pieces.length ? p2pieces : ['학습의 흐름은 평탄하게 정렬돼 있어, 한 가지 방식보다 여러 통로를 열어두면 운이 더 잘 흘러요.'],
   )
   const p2en = paragraph(
     p2piecesEn.length ? p2piecesEn : ['Your learning grain is evenly distributed — keeping multiple channels open lets luck flow more naturally.'],
@@ -157,17 +157,17 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p3piecesEn: string[] = []
   if (nn) {
     p3pieces.push(
-      `이번 생의 방향이 ${signLabel(nn.sign, 'ko')}${nn.house ? ` ${houseLabel(nn.house, 'ko')}` : ''}에 있어, 학습은 단순한 지식이 아니라 영혼의 ${signMissionKo(nn.sign)}을 따라가는 길이에요.`,
+      `이번 생의 방향이 ${signLabel(nn.sign, 'ko')}${nn.house ? `, ${houseLabel(nn.house, 'ko')}` : ''}에 있어, 학습은 단순한 지식이 아니라 영혼의 ${signMissionKo(nn.sign)}을 따라가는 길이에요.`,
     )
     p3piecesEn.push(
       `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? ` (${houseLabel(nn.house, 'en')})` : ''}, so study is not data but a path toward ${signMissionEn(nn.sign)}.`,
     )
   }
   if (h9 && h9.strength >= 40) {
-    p3pieces.push('지혜의 깊은 결이 차트 안에서 분명하게 울리고 있어요. 한 분야를 끝까지 파고들면 평범한 학습 너머의 통찰이 열려요.')
+    p3pieces.push('지혜의 깊은 자질이 차트 안에서 분명하게 울리고 있어요. 한 분야를 끝까지 파고들면 평범한 학습 너머의 통찰이 열려요.')
     p3piecesEn.push('Harmonics 9 resonates clearly in your chart — pushing one field to its bottom unlocks insight beyond ordinary study.')
   } else if (h9) {
-    p3pieces.push('지혜의 깊은 결은 잔잔하게 깔려 있어요. 의식적으로 사유와 명상의 시간을 두면 자연스럽게 강해져요.')
+    p3pieces.push('지혜의 깊은 자질은 잔잔하게 깔려 있어요. 의식적으로 사유와 명상의 시간을 두면 자연스럽게 강해져요.')
     p3piecesEn.push('Harmonics 9 sits quietly — deliberate reflection and meditation will strengthen it over time.')
   }
   if (geokguk && geokguk.includes('인')) {
@@ -198,7 +198,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const daimon = calendarSignals?.arabicPartsExtra?.Daimon
   if (daimon) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Daimon')
-    p3pieces.push(`영혼의 행운점이 ${signLabel(daimon.sign, 'ko')}의 결로 자리해서, 진짜 지혜가 자라는 자리도 그 톤이에요.`)
+    p3pieces.push(`영혼의 행운점이 ${signLabel(daimon.sign, 'ko')}에 자리해서, 진짜 지혜가 자라는 자리도 그 톤이에요.`)
     p3piecesEn.push(`Your Lot of Daimon in ${signLabel(daimon.sign, 'en')} — the seat where real wisdom grows shares that grain.`)
   }
   const p3ko = paragraph(
@@ -212,7 +212,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const guidePiecesKo: string[] = ['일상 가이드 한 줄:']
   const guidePiecesEn: string[] = ['Daily handle:']
   if (inseong >= 2) {
-    guidePiecesKo.push('하루에 단 한 가지라도 정리해서 남겨두세요. 인성의 결은 기록으로 자라요.')
+    guidePiecesKo.push('하루에 단 한 가지라도 정리해서 남겨두세요. 인성의 자질은 기록으로 자라요.')
     guidePiecesEn.push('Record one thing each day — your 인성 line grows through notes.')
   } else if (sangwan >= 2) {
     guidePiecesKo.push('배운 것을 즉시 누군가에게 풀어보세요. 가르치는 순간 진짜 지혜가 돼요.')
@@ -285,7 +285,7 @@ const MERC_SIGN_EN: Record<string, string> = {
   Pisces: 'intuitive and fusional',
 }
 function mercurySignFlavorKo(sign: string): string {
-  return MERC_SIGN_KO[sign] ?? '독특한 결의 사고'
+  return MERC_SIGN_KO[sign] ?? '독특한 색감의 사고'
 }
 function mercurySignFlavorEn(sign: string): string {
   return MERC_SIGN_EN[sign] ?? 'a singular grain of thinking'
@@ -320,7 +320,7 @@ const THIRD_SIGN_EN: Record<string, string> = {
   Pisces: 'feeling and drifting through',
 }
 function thirdSignFlavorKo(sign: string): string {
-  return THIRD_SIGN_KO[sign] ?? '독자적인 결'
+  return THIRD_SIGN_KO[sign] ?? '독자적인 방식'
 }
 function thirdSignFlavorEn(sign: string): string {
   return THIRD_SIGN_EN[sign] ?? 'a singular grain'
@@ -349,7 +349,7 @@ const MERC_ASPECT_EN: Record<string, string> = {
   Venus: 'aesthetic sense',
 }
 function mercAspectFlavorKo(planet: string): string {
-  return MERC_ASPECT_KO[planet] ?? '독특한 결'
+  return MERC_ASPECT_KO[planet] ?? '독특한 색감'
 }
 function mercAspectFlavorEn(planet: string): string {
   return MERC_ASPECT_EN[planet] ?? 'a singular grain'
@@ -384,7 +384,7 @@ const SIGN_MISSION_EN: Record<string, string> = {
   Pisces: 'compassion beyond boundaries',
 }
 function signMissionKo(sign: string): string {
-  return SIGN_MISSION_KO[sign] ?? '본연의 결'
+  return SIGN_MISSION_KO[sign] ?? '본연의 길'
 }
 function signMissionEn(sign: string): string {
   return SIGN_MISSION_EN[sign] ?? 'its native grain'

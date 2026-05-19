@@ -71,12 +71,12 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const weakLabels = weak.map((w) => elementLabel(w, 'ko'))
   const weakLabelsEn = weak.map((w) => elementLabel(w, 'en'))
   const p1ko = paragraph([
-    '건강의 큰 결은 다섯 가지 기운(목·화·토·금·수)의 균형에서 출발해요.',
+    '건강의 큰 그림은 다섯 가지 기운(목·화·토·금·수)의 균형에서 출발해요.',
     weak.length > 0
       ? `${weakLabels.join('·')}의 기운이 약해서 ${organKo(weak)} 쪽이 평소 보살핌이 필요해요.`
       : '다섯 기운이 비교적 고르게 분포돼 있어, 한쪽으로 치우치는 약점은 적어요.',
     yongsin
-      ? `삶의 균형추가 되는 결은 '${yongsin}'이라, ${yongsinFlavorKo(yongsin)}이 일상의 보강 방향이에요.`
+      ? `삶의 균형추가 되는 기운은 ${yongsinElementKo(yongsin)}이라, ${yongsinFlavorKo(yongsin)}이 일상의 보강 방향이에요.`
       : '',
   ])
   const p1en = paragraph([
@@ -93,9 +93,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const sixthFlavor = sixthPlanets.length > 0
     ? (() => {
         const flavor = sixthHouseFlavorKo(sixthPlanets)
-        return `일상과 건강의 자리에 ${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 자리해서, 일상의 ${flavor}${iGa(flavor)} 건강 신호로 이어져요.`
+        return `일상 영역에 ${sixthPlanets.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 자리해서, 일상의 ${flavor}${iGa(flavor)} 건강 신호로 이어져요.`
       })()
-    : '일상과 건강의 자리는 비어 있어, 건강 신호는 다른 자리의 별들이 함께 짊어져요.'
+    : '일상 영역은 비어 있어, 건강 신호는 다른 영역의 별들이 함께 짊어져요.'
   const sixthFlavorEn = sixthPlanets.length > 0
     ? `With ${sixthPlanets.map((p) => p.name).join(', ')} inside the 6th, daily ${sixthHouseFlavorEn(sixthPlanets)} carries your health signal.`
     : `Your 6th is empty — health is carried jointly by other placements.`
@@ -103,7 +103,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const p2ko = paragraph([
     sixthFlavor,
     marsSaturn
-      ? `행동의 별과 책임의 별이 ${aspectQuality(marsSaturn.type, 'ko')}, 스트레스가 ${marsSaturnFlavorKo(marsSaturn.type)} 결로 누적될 수 있어요.`
+      ? `행동의 별과 책임의 별이 ${aspectQuality(marsSaturn.type, 'ko')}, 스트레스가 ${marsSaturnFlavorKo(marsSaturn.type)} 모양으로 누적될 수 있어요.`
       : '',
   ])
   const p2en = paragraph([
@@ -118,7 +118,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const deepEn: string[] = []
   if (ch) {
     deepKo.push(
-      `상처와 치유의 결이 ${signLabel(ch.sign, 'ko')}의 톤으로 자리해서, ${chironFlavorKo(ch.house)} 영역이 상처와 치유로 함께 묶여 있어요.`
+      `상처와 치유의 색은 ${signLabel(ch.sign, 'ko')}의 톤으로 자리해서, ${chironFlavorKo(ch.house)} 영역이 상처와 치유로 함께 묶여 있어요.`
     )
     deepEn.push(
       `Chiron in ${signLabel(ch.sign, 'en')} ${houseLabel(ch.house, 'en')} marks ${chironFlavorEn(ch.house)} as a wound-and-healing thread.`
@@ -133,11 +133,11 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     )
   }
   if (eclipses?.degree !== undefined) {
-    deepKo.push('태어난 시기 가까이 있던 일식·월식의 흔적이 신체 리듬에 미세한 부하를 남기는 결이에요.')
+    deepKo.push('태어난 시기 가까이 있던 일식·월식의 흔적이 신체 리듬에 미세한 부하를 남기는 흐름이에요.')
     deepEn.push(`A nearby natal eclipse leaves a subtle imprint on your body rhythms.`)
   }
   if (unlucky.length > 0) {
-    deepKo.push('무리가 누적되지 않도록 평소 회복 루틴이 필요한 결이 함께 있어요.')
+    deepKo.push('무리가 누적되지 않도록 평소 회복 루틴이 필요한 신호가 함께 있어요.')
     deepEn.push(`Your 신살 includes ${unlucky.slice(0, 3).join(' / ')} — keep a recovery routine to prevent overload buildup.`)
   }
   if (healthConfirms.length > 0) {
@@ -164,7 +164,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     if (relEnHealth) deepEn.push(`${relEnHealth} Overload signals tend to surface from that axis first.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
-    '건강의 결은 극단보다는 일상의 작은 누적이 만들어요.'
+    '건강의 흐름은 극단보다는 일상의 작은 누적이 만들어요.'
   ])
   const p3en = paragraph(deepEn.length ? deepEn : [
     'Because the deeper health signals sit in a calm alignment, your grain comes from small daily accumulation, not extremes.'
@@ -197,12 +197,12 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     guideKo.push('오행이 균형이라, 한 가지 큰 관리보다 골고루 작은 루틴이 더 잘 맞아요.')
     guideEn.push('Your elements are even — many small routines fit better than one heavy regimen.')
   }
-  // Calendar-engine: Lot of Necessity (약함의 자리)
+  // Calendar-engine: Lot of Necessity (약함의 영역)
   const necessity = input.calendarSignals?.arabicParts?.Necessity
   if (necessity) {
     fusionUsed.push('calendarSignals.arabicParts.Necessity')
     guideKo.push(
-      `약함의 자리(필연의 점)가 차트에 자리해서, 부담을 미루지 않고 작게 자주 풀어주는 흐름이 가장 무리가 없어요.`,
+      `약함의 영역(필연의 점)이 차트에 자리해서, 부담을 미루지 않고 작게 자주 풀어주는 흐름이 가장 무리가 없어요.`,
     )
     guideEn.push(
       `Your Lot of Necessity sits in the chart — releasing pressure little and often, rather than postponing it, is the gentlest path.`,
@@ -259,6 +259,17 @@ function yongsinFlavorKo(y: string): string {
   if (y.includes('수')) return '신장 보호와 흐름 (수분·휴식)'
   return '평형의 회복'
 }
+
+// 용신 (목/화/토/금/수) 한 글자를 따옴표 없이 자연 한국어로
+function yongsinElementKo(y: string): string {
+  if (!y) return '본연의 기운'
+  if (y.includes('목')) return '나무의 기운'
+  if (y.includes('화')) return '불의 기운'
+  if (y.includes('토')) return '흙의 기운'
+  if (y.includes('금')) return '쇠의 기운'
+  if (y.includes('수')) return '물의 기운'
+  return '본연의 기운'
+}
 function yongsinFlavorEn(y: string): string {
   if (y.includes('목') || y.includes('wood')) return 'liver-care and sprout-like activity (walks, plants)'
   if (y.includes('화') || y.includes('fire')) return 'heart-care and expressive activity (sun, art)'
@@ -270,12 +281,12 @@ function yongsinFlavorEn(y: string): string {
 
 function sixthHouseFlavorKo(planets: Array<{ name: string }>): string {
   const names = planets.map((p) => p.name)
-  if (names.includes('Mars')) return '추진력과 과로의 결'
+  if (names.includes('Mars')) return '추진력과 과로의 흐름'
   if (names.includes('Saturn')) return '책임과 구조의 무게'
-  if (names.includes('Mercury')) return '신경과 디테일의 결'
-  if (names.includes('Moon')) return '감정과 식습관의 결'
-  if (names.includes('Sun')) return '활력과 정체성의 결'
-  return '일상의 결'
+  if (names.includes('Mercury')) return '신경과 디테일'
+  if (names.includes('Moon')) return '감정과 식습관'
+  if (names.includes('Sun')) return '활력과 정체성'
+  return '일상의 흐름'
 }
 function sixthHouseFlavorEn(planets: Array<{ name: string }>): string {
   const names = planets.map((p) => p.name)

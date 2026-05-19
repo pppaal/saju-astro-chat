@@ -252,7 +252,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
 function childFlavorKo(n: number): string {
   if (n === 0) return '자녀운은 다른 신호들이 함께 짊어져요'
   if (n === 1) return '자녀와 안정적인 한 줄기 인연이 있어요'
-  if (n === 2) return '자녀와의 인연이 두 갈래로 분명하게 흘러요'
+  if (n === 2) return '자녀와의 인연이 또렷하게 흘러요'
   return '자녀 신호가 풍성하게 흘러요'
 }
 
@@ -322,7 +322,7 @@ const CERES_HOUSE_FLAVOR_EN: Record<number, string> = {
   12: 'inward and healing',
 }
 function ceresFlavorKo(h: number): string {
-  return CERES_HOUSE_FLAVOR_KO[h] ?? '독자적인 결의'
+  return CERES_HOUSE_FLAVOR_KO[h] ?? '독자적인 색의'
 }
 function ceresFlavorEn(h: number): string {
   return CERES_HOUSE_FLAVOR_EN[h] ?? 'a singular style of'
@@ -340,18 +340,18 @@ function planetLabelChildrenKo(name: string): string {
 // children 섹션 하우스 의미
 function childrenHouseHintKo(h: number): string {
   const map: Record<number, string> = {
-    1: '정체성의',
-    2: '재물의',
-    3: '소통의',
-    4: '가정의',
-    5: '창조의',
-    6: '일상의',
-    7: '관계의',
-    8: '깊이의',
-    9: '확장의',
-    10: '사회적 정점의',
-    11: '공동체의',
-    12: '내면의',
+    1: '정체성',
+    2: '재산',
+    3: '소통',
+    4: '가정',
+    5: '창조',
+    6: '일상',
+    7: '관계',
+    8: '심층',
+    9: '확장',
+    10: '사회 무대',
+    11: '공동체',
+    12: '내면',
   }
   return map[h] || '독자적인'
 }

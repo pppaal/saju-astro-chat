@@ -79,10 +79,10 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       ? '당신은 어머니와 돌봄 라인의 인연이 자연스럽게 깊은 사람이에요.'
       : inseong === 0
         ? '어머니와 돌봄 라인의 인연은 의식적인 노력으로 자라요.'
-        : '당신은 가족과의 결을 잔잔하게 가져가는 사람이에요.',
-    `돌봄의 결은 ${inseong}겹, 동료의 결은 ${bijeon}겹으로 ${familyShapeKo(inseong, bijeon)}.`,
+        : '당신은 가족과의 인연을 잔잔하게 가져가는 사람이에요.',
+    `돌봄 신호는 ${familyCountFlavorKo(inseong)}, 동료 신호는 ${familyCountFlavorKo(bijeon)} 자리해서 ${familyShapeKo(inseong, bijeon)}.`,
     fourth
-      ? `가정과 뿌리의 자리는 ${signLabel(fourth.sign, 'ko')}의 결로 시작해서, 가정 분위기가 ${fourthSignFlavorKo(fourth.sign)}이에요.`
+      ? `가정 영역은 ${signLabel(fourth.sign, 'ko')}의 색감으로 시작해서, 가정 분위기가 ${fourthSignFlavorKo(fourth.sign)}예요.`
       : '',
   ])
   const p1en = paragraph([
@@ -100,15 +100,15 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   // ── Paragraph 2: 부모상·형제
   const p2ko = paragraph([
     sun
-      ? `아버지상은 ${signLabel(sun.sign, 'ko')}의 결로 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 사람이에요.`
+      ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 사람이에요.`
       : '',
     moon
-      ? `어머니상은 ${signLabel(moon.sign, 'ko')}의 결로 흐르는 달처럼, ${parentSignFlavorKo(moon.sign)} 사람이에요.`
+      ? `어머니상은 ${signLabel(moon.sign, 'ko')}의 색감으로 흐르는 달처럼, ${parentSignFlavorKo(moon.sign)} 사람이에요.`
       : '',
     bijeon >= 2
-      ? '동료의 결이 풍성해서, 형제와 동등한 관계가 인생에 큰 자리를 차지해요.'
+      ? '동료 신호가 풍성해서, 형제와 동등한 관계가 인생에 큰 자리를 차지해요.'
       : bijeon === 0
-        ? '동료의 결이 잔잔해서, 동등한 관계는 의식적으로 만들어가는 결이에요.'
+        ? '동료 신호가 잔잔해서, 동등한 관계는 의식적으로 만들어가는 흐름이에요.'
         : '',
   ])
   const p2en = paragraph([
@@ -138,22 +138,22 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   }
   if (moonSaturn) {
     deepKo.push(
-      `감정의 별과 책임의 별이 ${aspectQuality(moonSaturn.type, 'ko')}, 어머니나 정서 라인에 책임의 무게가 일찍 실린 결이에요.`
+      `감정의 별과 책임의 별이 ${aspectQuality(moonSaturn.type, 'ko')}, 어머니나 정서 라인에 책임의 무게가 일찍 실린 흐름이에요.`
     )
     deepEn.push(
       `Moon-Saturn ${aspectQuality(moonSaturn.type, 'en')} placed responsibility-weight on the mother/emotion line early.`
     )
   }
   if (yearOrMonthGongmang) {
-    deepKo.push('조상과 부모의 자리에 비어 있는 결이 있어, 조부모와 부모 라인 인연이 얇거나 일찍 떨어지는 결이 있을 수 있어요.')
+    deepKo.push('조상과 부모의 자리에 비어 있는 영역이 있어, 조부모와 부모 라인 인연이 얇거나 일찍 떨어지는 흐름이 있을 수 있어요.')
     deepEn.push('A 공망 (void) sits on the year or month pillar — ancestor / parent line can feel thinner or separates earlier.')
   }
   if (ves) {
-    deepKo.push(`헌신의 별이 ${signLabel(ves.sign, 'ko')}의 결로 자리해서, 가족에 헌신하는 결이 있어요.`)
+    deepKo.push(`헌신의 별이 ${signLabel(ves.sign, 'ko')}에 자리해서, 가족에 헌신하는 성향이 있어요.`)
     deepEn.push(`Vesta in ${signLabel(ves.sign, 'en')} ${houseLabel(ves.house, 'en')} brings family-devotion as a thread.`)
   }
   if (ce) {
-    deepKo.push(`양육의 별이 ${signLabel(ce.sign, 'ko')}의 결로 자리해서, ${ceresMomFlavorKo(ce.house)} 양육의 결이 새겨져 있어요.`)
+    deepKo.push(`양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리해서, ${ceresMomFlavorKo(ce.house)} 양육의 색이 새겨져 있어요.`)
     deepEn.push(`Ceres in ${signLabel(ce.sign, 'en')} ${houseLabel(ce.house, 'en')} sets a ${ceresMomFlavorEn(ce.house)} nurturing imprint.`)
   }
   if (familyConfirms.length > 0) {
@@ -172,8 +172,8 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   if (hc?.hasInteractions && hc.hapCount + hc.chungCount > 0) {
     fusionUsed.push('calendarSignals.sajuHyeongchung')
     const tone = hc.hapCount > hc.chungCount
-      ? '명식 안에 결합의 결이 강해서, 가족 결이 갈수록 단단해지는 결이에요.'
-      : '명식 안에 단절·결정의 결이 강해서, 가족과의 거리감을 인정한 뒤에야 진짜 연결이 풀려요.'
+      ? '명식 안에 결합의 흐름이 강해서, 가족 인연이 갈수록 단단해지는 분위기예요.'
+      : '명식 안에 단절·결정의 흐름이 강해서, 가족과의 거리감을 인정한 뒤에야 진짜 연결이 풀려요.'
     const toneEn = hc.hapCount > hc.chungCount
       ? 'A 합 (joining) accent runs through your saju — family bonds harden over time.'
       : 'A 충 (severance) accent runs through your saju — real connection unlocks after you acknowledge distance.'
@@ -189,19 +189,19 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   })
   if (relKoFamily) {
     sajuUsed.push('calendarSignals.sajuRelations')
-    deepKo.push(`${relKoFamily} 부모·조상 라인의 결이 본인 결에 한 겹 깊게 닿아 있어요.`)
+    deepKo.push(`${relKoFamily} 부모·조상 라인의 인연이 본인의 인생에 한 층 깊게 닿아 있어요.`)
     if (relEnFamily) deepEn.push(`${relEnFamily} The parent/ancestor line touches your own grain a layer deep.`)
   }
   // Lot of Basis — 가정 기반·뿌리의 점
   const basis = input.calendarSignals?.arabicPartsExtra?.Basis
   if (basis) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Basis')
-    deepKo.push(`가정 기반의 점이 ${signLabel(basis.sign, 'ko')}의 결로 자리해서, 뿌리 삼는 자리도 그 톤이에요.`)
+    deepKo.push(`가정 기반의 점이 ${signLabel(basis.sign, 'ko')}에 자리해서, 뿌리 삼는 자리도 그 톤이에요.`)
     deepEn.push(`Your Lot of Basis in ${signLabel(basis.sign, 'en')} — the seat you root yourself in carries that same grain.`)
   }
 
   const p3ko = paragraph(deepKo.length ? deepKo : [
-    '이번 생의 가족 결은 큰 드라마보다 잔잔한 누적으로 빚어져요.'
+    '이번 생의 가족 분위기는 큰 드라마보다 잔잔한 누적으로 빚어져요.'
   ])
   const p3en = paragraph(deepEn.length ? deepEn : [
     'Because family signals sit in a calm array, this life favors a quiet continuity over high drama.'
@@ -222,11 +222,19 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
 }
 
 function familyShapeKo(inseong: number, bijeon: number): string {
-  if (inseong >= 2 && bijeon >= 2) return '돌봄의 결과 동료의 결이 둘 다 풍부한 그릇이에요'
+  if (inseong >= 2 && bijeon >= 2) return '돌봄과 동료 라인이 둘 다 풍부한 그릇이에요'
   if (inseong >= 2) return '돌봄 라인이 두텁고 형제 라인은 잔잔해요'
   if (bijeon >= 2) return '형제와 동료 라인이 두텁고 돌봄은 잔잔해요'
-  if (inseong === 0 && bijeon === 0) return '가족 신호가 가벼워서, 본인이 새 가족을 만드는 결이에요'
-  return '돌봄과 동등의 결이 균형 있게 흘러요'
+  if (inseong === 0 && bijeon === 0) return '가족 신호가 가벼워서, 본인이 새 가족을 만드는 흐름이에요'
+  return '돌봄과 동등의 분위기가 균형 있게 흘러요'
+}
+
+// 가족 신호 강도를 "겹" 없이 자연 한국어로
+function familyCountFlavorKo(n: number): string {
+  if (n === 0) return '비어 있게'
+  if (n === 1) return '한 갈래로 잔잔히'
+  if (n === 2) return '두 갈래로 분명하게'
+  return '풍성하게'
 }
 function familyShapeEn(inseong: number, bijeon: number): string {
   if (inseong >= 2 && bijeon >= 2) return 'both care and peer-bonds run rich'
@@ -237,18 +245,18 @@ function familyShapeEn(inseong: number, bijeon: number): string {
 }
 
 const FOURTH_SIGN_FLAVOR_KO: Record<string, string> = {
-  Aries: '직접적이고 자율적인 결',
-  Taurus: '안정과 풍요의 결',
-  Gemini: '대화가 흐르는 결',
-  Cancer: '정서적으로 깊은 결',
-  Leo: '드라마가 살아 있는 결',
-  Virgo: '세심하게 정리된 결',
-  Libra: '균형과 미감의 결',
-  Scorpio: '깊고 비밀스러운 결',
-  Sagittarius: '시야가 열린 결',
-  Capricorn: '책임과 구조의 결',
-  Aquarius: '독립적인 결',
-  Pisces: '꿈과 공감의 결',
+  Aries: '직접적이고 자율적인 분위기',
+  Taurus: '안정과 풍요의 분위기',
+  Gemini: '대화가 흐르는 분위기',
+  Cancer: '정서적으로 깊은 분위기',
+  Leo: '드라마가 살아 있는 분위기',
+  Virgo: '세심하게 정리된 분위기',
+  Libra: '균형과 미감의 분위기',
+  Scorpio: '깊고 비밀스러운 분위기',
+  Sagittarius: '시야가 열린 분위기',
+  Capricorn: '책임과 구조의 분위기',
+  Aquarius: '독립적인 분위기',
+  Pisces: '꿈과 공감의 분위기',
 }
 const FOURTH_SIGN_FLAVOR_EN: Record<string, string> = {
   Aries: 'direct and autonomous',
@@ -265,7 +273,7 @@ const FOURTH_SIGN_FLAVOR_EN: Record<string, string> = {
   Pisces: 'dreamy and empathic',
 }
 function fourthSignFlavorKo(s: string | undefined): string {
-  return (s && FOURTH_SIGN_FLAVOR_KO[s]) ?? '독특한 결의 가정'
+  return (s && FOURTH_SIGN_FLAVOR_KO[s]) ?? '독특한 색감의 가정'
 }
 function fourthSignFlavorEn(s: string | undefined): string {
   return (s && FOURTH_SIGN_FLAVOR_EN[s]) ?? 'singular'
@@ -300,7 +308,7 @@ const PARENT_SIGN_FLAVOR_EN: Record<string, string> = {
   Pisces: 'empathic and emotional',
 }
 function parentSignFlavorKo(s: string): string {
-  return PARENT_SIGN_FLAVOR_KO[s] ?? '독특한 결의'
+  return PARENT_SIGN_FLAVOR_KO[s] ?? '독특한 색감의'
 }
 function parentSignFlavorEn(s: string): string {
   return PARENT_SIGN_FLAVOR_EN[s] ?? 'singular'
@@ -348,7 +356,7 @@ const CERES_MOM_HOUSE_FLAVOR_EN: Record<number, string> = {
   12: 'healing and inward',
 }
 function ceresMomFlavorKo(h: number): string {
-  return CERES_MOM_HOUSE_FLAVOR_KO[h] ?? '독특한 결의'
+  return CERES_MOM_HOUSE_FLAVOR_KO[h] ?? '독특한 색감의'
 }
 function ceresMomFlavorEn(h: number): string {
   return CERES_MOM_HOUSE_FLAVOR_EN[h] ?? 'singular'

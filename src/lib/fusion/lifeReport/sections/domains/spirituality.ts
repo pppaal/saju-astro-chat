@@ -85,10 +85,10 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     twelfth.length > 0
       ? `${houseLabel(12, 'ko')}에 ${twelfth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 혼자 있는 시간이 영성의 통로가 돼요.`
       : twelfthCusp?.sign
-        ? `내면과 비밀의 자리는 ${signLabel(twelfthCusp.sign, 'ko')}의 결로 열려, ${twelfthSignFlavorKo(twelfthCusp.sign)} 방식의 내면 작업이 잘 맞아요.`
+        ? `내면 영역은 ${signLabel(twelfthCusp.sign, 'ko')}의 톤으로 열려, ${twelfthSignFlavorKo(twelfthCusp.sign)} 방식의 내면 작업이 잘 맞아요.`
         : '',
     neptune
-      ? `해왕성이 ${signLabel(neptune.sign, 'ko')}${neptune.house ? ` ${houseLabel(neptune.house, 'ko')}` : ''}에 있어, 경계가 흐려지는 자리에서 영적 결이 풀려요.`
+      ? `해왕성이 ${signLabel(neptune.sign, 'ko')}${neptune.house ? `, ${houseLabel(neptune.house, 'ko')}` : ''}에 있어, 경계가 흐려지는 자리에서 영적 흐름이 풀려요.`
       : '',
   ])
   const p1en = paragraph([
@@ -115,22 +115,22 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     )
   }
   if (hwagae) {
-    p2pieces.push('예술·고독의 별이 들어와 있어, 종교·예술·치유 어느 길로 가도 깊이 들어가는 결이 강해요.')
+    p2pieces.push('예술·고독의 별이 들어와 있어, 종교·예술·치유 어느 길로 가도 깊이 들어가는 성향이 강해요.')
     p2piecesEn.push('화개 (art-solitude star) sits in your saju — religion, art and healing all open deep paths.')
   }
   if (iljuName) {
     const short = (iljuChar || '').split(/[.,。，]/)[0].trim().slice(0, 40)
     if (short) {
-      p2pieces.push(`타고난 결을 한 마디로 말하면 '${short}'이고, 이것이 영적 사유의 출발점이에요.`)
+      p2pieces.push(`타고난 성향을 한 마디로 풀면 '${short}'이고, 이것이 영적 사유의 출발점이에요.`)
       p2piecesEn.push(`Your ilju (${iljuName}) carries '${short}' as its core note — the starting point for spiritual reflection.`)
     }
   }
   if (inseong >= 2) {
-    p2pieces.push('지혜와 돌봄의 결이 강해서, 가르침을 받아 전하는 흐름이 영성의 뼈대가 돼요.')
+    p2pieces.push('지혜와 돌봄의 자질이 강해서, 가르침을 받아 전하는 흐름이 영성의 뼈대가 돼요.')
     p2piecesEn.push('A strong 인성 line frames spirituality as receiving teaching and passing it on.')
   }
   const p2ko = paragraph(
-    p2pieces.length ? p2pieces : ['영성의 결은 평이하게 정렬돼 있어, 의식적인 명상·기도 같은 일상의 작은 의식이 가장 잘 작동해요.'],
+    p2pieces.length ? p2pieces : ['영성의 흐름은 평이하게 정렬돼 있어, 의식적인 명상·기도 같은 일상의 작은 의식이 가장 잘 작동해요.'],
   )
   const p2en = paragraph(
     p2piecesEn.length ? p2piecesEn : ['Your spiritual grain is evenly distributed — small daily rituals like meditation and prayer work best.'],
@@ -141,26 +141,26 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const p3piecesEn: string[] = []
   if (dra?.sunSign) {
     p3pieces.push(
-      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}의 결, ${signSoulKo(dra.sunSign)}의 결을 입고 왔어요.`,
+      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요.`,
     )
     p3piecesEn.push(
       `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} suggests the soul arrived wearing ${signSoulEn(dra.sunSign)}.`,
     )
   }
   if (dra?.archetype) {
-    p3pieces.push(`전생의 결로 들고 온 정체성은 '${dra.archetype}' 쪽 색이에요.`)
+    p3pieces.push(`전생에서 들고 온 정체성은 '${dra.archetype}' 쪽 색이에요.`)
     p3piecesEn.push(`The soul-identity you carried in resembles: "${dra.archetype}".`)
   }
   if (h7 && h7.strength >= 40) {
-    p3pieces.push('영적 친밀의 결이 차트 안에서 강하게 울려요. 신비적 체험·직관·꿈이 자주 일상에 들어와요.')
+    p3pieces.push('영적 친밀감이 차트 안에서 강하게 울려요. 신비적 체험·직관·꿈이 자주 일상에 들어와요.')
     p3piecesEn.push('Harmonics 7 resonates strongly — mystical experience, intuition and dreams enter daily life often.')
   } else if (h7) {
-    p3pieces.push('영적 친밀의 결이 잔잔히 깔려 있어요. 깊은 침묵의 시간을 두면 자연스럽게 깨어나요.')
+    p3pieces.push('영적 친밀감이 잔잔히 깔려 있어요. 깊은 침묵의 시간을 두면 자연스럽게 깨어나요.')
     p3piecesEn.push('Harmonics 7 sits quietly — extended silence will awaken it naturally.')
   }
   if (lilith) {
     p3pieces.push(
-      `${signLabel(lilith.sign, 'ko')}의 결로 사회적 기대 밖의 내면이 자리잡고 있어, 이 어두운 결을 인정할 때 진짜 힘이 풀려요.`,
+      `${signLabel(lilith.sign, 'ko')}의 색으로 사회적 기대 밖의 내면이 자리잡고 있어, 이 어두운 자질을 인정할 때 진짜 힘이 풀려요.`,
     )
     p3piecesEn.push(
       `Lilith in ${signLabel(lilith.sign, 'en')} — acknowledging the part of yourself outside social approval unlocks real force.`,
@@ -172,7 +172,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   }
   if (ch) {
     p3pieces.push(
-      `상처와 치유의 결이 ${signLabel(ch.sign, 'ko')}의 톤으로 자리잡고 있어, 자신의 상처를 다루는 과정 자체가 영적 작업이 돼요.`,
+      `상처와 치유의 색이 ${signLabel(ch.sign, 'ko')}의 톤으로 자리잡고 있어, 자신의 상처를 다루는 과정 자체가 영적 작업이 돼요.`,
     )
     p3piecesEn.push(
       `Chiron in ${signLabel(ch.sign, 'en')} — working with your own wound is itself the spiritual practice.`,
@@ -198,18 +198,18 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const spiritLot = calendarSignals?.arabicParts?.Spirit
   if (spiritLot) {
     fusionUsed.push('calendarSignals.arabicParts.Spirit')
-    p3pieces.push(`영혼·다이몬의 점이 ${signLabel(spiritLot.sign, 'ko')}의 결로 자리해서, 진짜 부름이 어느 방향으로 와 있는지 알려줘요.`)
+    p3pieces.push(`영혼·다이몬의 점이 ${signLabel(spiritLot.sign, 'ko')}에 자리해서, 진짜 부름이 어느 방향으로 와 있는지 알려줘요.`)
     p3piecesEn.push(`Your Lot of Spirit / Daimon in ${signLabel(spiritLot.sign, 'en')} marks the direction your true vocation calls from.`)
   }
   // Part of Captivity — 속박의 결 → 영적 매듭으로 풀어 해석
   const captivity = calendarSignals?.arabicPartsExtra?.Captivity
   if (captivity) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Captivity')
-    p3pieces.push(`속박의 점이 ${signLabel(captivity.sign, 'ko')}의 결로 자리해서, 풀어야 할 영적 매듭이 그 자리에 한 번 모여 있어요.`)
+    p3pieces.push(`속박의 점이 ${signLabel(captivity.sign, 'ko')}에 자리해서, 풀어야 할 영적 매듭이 그 자리에 한 번 모여 있어요.`)
     p3piecesEn.push(`Your Lot of Captivity in ${signLabel(captivity.sign, 'en')} — the spiritual knot to untie gathers in that seat.`)
   }
   const p3ko = paragraph(
-    p3pieces.length ? p3pieces : ['지금 신호들이 평이하게 정렬돼 있어, 특정 종교나 수행보다는 일상에 영성을 천천히 녹이는 결이 잘 맞아요.'],
+    p3pieces.length ? p3pieces : ['지금 신호들이 평이하게 정렬돼 있어, 특정 종교나 수행보다는 일상에 영성을 천천히 녹이는 길이 잘 맞아요.'],
   )
   const p3en = paragraph(
     p3piecesEn.length ? p3piecesEn : ['Current signals sit in a calm array — rather than one religion or method, slowly dissolving spirit into daily life fits best.'],
@@ -222,7 +222,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     guidePiecesKo.push('하루에 한 번은 혼자 있는 시간을 일정에 박아두세요. 12집의 행성이 거기서 풀려요.')
     guidePiecesEn.push('Hard-schedule one solitary block each day — your 12th-house planets release there.')
   } else if (hwagae) {
-    guidePiecesKo.push('한 가지 영적 실천(명상·필사·기도·산책)을 의식적으로 반복하세요. 화개의 결이 의식 안에서 익어요.')
+    guidePiecesKo.push('한 가지 영적 실천(명상·필사·기도·산책)을 의식적으로 반복하세요. 화개의 자질이 의식 안에서 익어요.')
     guidePiecesEn.push('Repeat one spiritual practice (meditation, copying, prayer, walking) deliberately — 화개 matures inside ritual.')
   } else {
     guidePiecesKo.push('일상에서 잠시 멈추는 의식 하나를 만들어보세요. 큰 행위보다 작은 의식이 영성을 안정시켜요.')
@@ -230,7 +230,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   }
   if (zr) {
     guidePiecesKo.push(
-      `지금은 ${signLabel(zr.sign, 'ko')}의 결로 ${planetLabel(zr.ruler, 'ko')}이 다스리는 인생 챕터에 있어요. ${zrSignFlavorKo(zr.sign)}이 영적 결의 큰 주제예요.`,
+      `지금은 ${signLabel(zr.sign, 'ko')}의 톤으로 ${planetLabel(zr.ruler, 'ko')}이 다스리는 인생 챕터에 있어요. ${zrSignFlavorKo(zr.sign)}이 영적 흐름의 큰 주제예요.`,
     )
     guidePiecesEn.push(
       `You are currently in a ${signLabel(zr.sign, 'en')} chapter ruled by ${zr.ruler} — ${zrSignFlavorEn(zr.sign)} forms the broad spiritual theme.`,
@@ -269,7 +269,7 @@ function collectShinsal(saju: BuilderInput['saju']): string[] {
 
 function openerKo(inseong: number, gongmangCount: number, hasHwagae: boolean): string {
   if (hasHwagae && gongmangCount > 0) {
-    return '예술과 고독의 별, 그리고 비어 있는 자리가 함께 깔려 있어서, 영성은 우회로가 아니라 이번 생의 중심 결 중 하나예요.'
+    return '예술과 고독의 별, 그리고 비어 있는 자리가 함께 깔려 있어서, 영성은 우회로가 아니라 이번 생의 중심 주제 중 하나예요.'
   }
   if (gongmangCount > 0) {
     return '삶 한쪽에 비어 있는 자리가 있어서, 그 빈 곳을 채우지 못하는 감각이 영적 사유로 이어져요.'
@@ -278,9 +278,9 @@ function openerKo(inseong: number, gongmangCount: number, hasHwagae: boolean): s
     return '예술과 고독의 별이 자리해서, 혼자 깊이 들어가는 시간이 영성의 주된 길이에요.'
   }
   if (inseong >= 3) {
-    return '지혜와 돌봄의 결이 매우 강해서, 가르침을 통해 자기를 발견하는 흐름이 영성의 뿌리가 돼요.'
+    return '지혜와 돌봄의 자질이 매우 강해서, 가르침을 통해 자기를 발견하는 흐름이 영성의 뿌리가 돼요.'
   }
-  return '영성의 결은 외부 종교나 사상보다, 일상의 작은 사유와 내면 관찰에서 자라나는 쪽이에요.'
+  return '영성의 길은 외부 종교나 사상보다, 일상의 작은 사유와 내면 관찰에서 자라나는 쪽이에요.'
 }
 function openerEn(inseong: number, gongmangCount: number, hasHwagae: boolean): string {
   if (hasHwagae && gongmangCount > 0) {
@@ -299,7 +299,7 @@ function openerEn(inseong: number, gongmangCount: number, hasHwagae: boolean): s
 }
 
 const TWELFTH_SIGN_KO: Record<string, string> = {
-  Aries: '도전과 직진의 결로 푸는',
+  Aries: '도전과 직진으로 푸는',
   Taurus: '느리고 감각적으로 가라앉는',
   Gemini: '글과 사유로 풀어내는',
   Cancer: '눈물과 정서로 풀어내는',
@@ -327,7 +327,7 @@ const TWELFTH_SIGN_EN: Record<string, string> = {
   Pisces: 'surrender to dissolution and flow',
 }
 function twelfthSignFlavorKo(sign: string): string {
-  return TWELFTH_SIGN_KO[sign] ?? '독자적인 결'
+  return TWELFTH_SIGN_KO[sign] ?? '독자적인 길'
 }
 function twelfthSignFlavorEn(sign: string): string {
   return TWELFTH_SIGN_EN[sign] ?? 'a singular grain'
@@ -397,7 +397,7 @@ const ZR_SIGN_EN: Record<string, string> = {
   Pisces: 'dissolution and compassion',
 }
 function zrSignFlavorKo(sign: string): string {
-  return ZR_SIGN_KO[sign] ?? '본연의 결'
+  return ZR_SIGN_KO[sign] ?? '본연의 톤'
 }
 function zrSignFlavorEn(sign: string): string {
   return ZR_SIGN_EN[sign] ?? 'its native grain'

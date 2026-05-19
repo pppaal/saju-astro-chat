@@ -89,12 +89,12 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     opener,
     venus
-      ? `미와 즐거움의 별이 ${signLabel(venus.sign, 'ko')}${venus.house ? ` ${houseLabel(venus.house, 'ko')}` : ''}에 있어, ${venusSignFlavorKo(venus.sign)}이 창작의 톤이에요.`
+      ? `미와 즐거움의 별이 ${signLabel(venus.sign, 'ko')}${venus.house ? `, ${houseLabel(venus.house, 'ko')}` : ''}에 있어, ${venusSignFlavorKo(venus.sign)}이 창작의 톤이에요.`
       : '',
     fifth.length > 0
-      ? `${houseLabel(5, 'ko')}에 ${fifth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 노는 듯 만들어내는 결이 강해요.`
+      ? `${houseLabel(5, 'ko')}에 ${fifth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 노는 듯 만들어내는 흐름이 강해요.`
       : fifthCusp?.sign
-        ? `창조의 자리가 ${signLabel(fifthCusp.sign, 'ko')}의 결로 열려, ${fifthSignFlavorKo(fifthCusp.sign)} 방식의 창작이 잘 맞아요.`
+        ? `창조 영역이 ${signLabel(fifthCusp.sign, 'ko')}의 톤으로 열려, ${fifthSignFlavorKo(fifthCusp.sign)} 방식의 창작이 잘 맞아요.`
         : '',
   ])
   const p1en = paragraph([
@@ -116,7 +116,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     const other = topVenusAspect.from?.name === 'Venus' ? topVenusAspect.to?.name : topVenusAspect.from?.name
     if (other) {
       p2pieces.push(
-        `미의 별이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusAspectFlavorKo(other)}의 결이 표현에 새겨져 있어요.`,
+        `미의 별이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusAspectFlavorKo(other)}의 색이 표현에 새겨져 있어요.`,
       )
       p2piecesEn.push(
         `Venus ${aspectQuality(topVenusAspect.type, 'en')} ${other} — ${venusAspectFlavorEn(other)} marks the way you express.`,
@@ -124,7 +124,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     }
   }
   if (leoCount >= 2) {
-    p2pieces.push('사자자리 쪽 행성이 모여 있어서, 무대 위에서 빛나는 결이 자연스럽게 풀려요.')
+    p2pieces.push('사자자리 쪽 행성이 모여 있어서, 무대 위에서 빛나는 모습이 자연스럽게 풀려요.')
     p2piecesEn.push('A Leo emphasis (≥2 planets) means stage-light creation unfolds naturally.')
   }
   if (piscesCount >= 2) {
@@ -136,7 +136,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     p2piecesEn.push(`Neptune in your ${neptune.house}H makes dreams, images and symbols your raw material.`)
   }
   if (moon && moon.house === 5) {
-    p2pieces.push('감정의 별이 창조의 자리에 있어서, 마음 결을 그대로 작품으로 옮기는 통로가 열려 있어요.')
+    p2pieces.push('감정의 별이 창조 영역에 있어서, 마음의 흐름을 그대로 작품으로 옮기는 통로가 열려 있어요.')
     p2piecesEn.push('Moon in your 5th opens a direct channel from emotion to artefact.')
   }
   if (artisticAptitudes.length > 0 && iljuName) {
@@ -144,7 +144,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     p2piecesEn.push(`Your ilju (${iljuName}) leans toward ${artisticAptitudes.slice(0, 3).join(' / ')}.`)
   }
   const p2ko = paragraph(
-    p2pieces.length ? p2pieces : ['표현의 결은 평이하게 잘 잡혀 있어, 무엇이든 꾸준히 만들어내면 결과가 따라와요.'],
+    p2pieces.length ? p2pieces : ['표현의 흐름은 평이하게 잘 잡혀 있어, 무엇이든 꾸준히 만들어내면 결과가 따라와요.'],
   )
   const p2en = paragraph(
     p2piecesEn.length ? p2piecesEn : ['Your expressive grain is calmly tuned — steady output translates into result.'],
@@ -154,18 +154,18 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   const p3pieces: string[] = []
   const p3piecesEn: string[] = []
   if (h5 && h5.strength >= 40) {
-    p3pieces.push('창의의 깊은 결이 차트 안에서 또렷하게 울리고 있어요. 독자적인 스타일 자체가 운의 통로예요.')
+    p3pieces.push('창의의 깊은 자질이 차트 안에서 또렷하게 울리고 있어요. 독자적인 스타일 자체가 운의 통로예요.')
     p3piecesEn.push('Harmonics 5 resonates clearly — your personal style itself becomes the channel of luck.')
   } else if (h5) {
-    p3pieces.push('창의의 깊은 결은 잔잔히 깔려 있어요. 의식적으로 자기만의 결을 다듬을 때 강해져요.')
+    p3pieces.push('창의의 깊은 자질은 잔잔히 깔려 있어요. 의식적으로 자기만의 색을 다듬을 때 강해져요.')
     p3piecesEn.push('Harmonics 5 sits gently — deliberate personal-style work strengthens it over time.')
   }
   if (hwagae) {
-    p3pieces.push('예술·고독의 별이 명식에 들어와 있어, 혼자 깊이 들어가는 시간이 작품의 결을 만들어요.')
+    p3pieces.push('예술·고독의 별이 명식에 들어와 있어, 혼자 깊이 들어가는 시간이 작품의 색을 만들어요.')
     p3piecesEn.push('화개 (art-solitude star) sits in your saju — solo deep time shapes the grain of your work.')
   }
   if (spirit) {
-    p3pieces.push(`행적과 영감의 점이 ${signLabel(spirit.sign, 'ko')}의 결로 있어, 창작의 출발점은 ${spiritSignFlavorKo(spirit.sign)}이에요.`)
+    p3pieces.push(`행적과 영감의 점이 ${signLabel(spirit.sign, 'ko')}에 있어, 창작의 출발점은 ${spiritSignFlavorKo(spirit.sign)}이에요.`)
     p3piecesEn.push(`Your Lot of Spirit in ${signLabel(spirit.sign, 'en')} starts each creation from ${spiritSignFlavorEn(spirit.sign)}.`)
   }
   if (eros && !spirit) {
@@ -188,7 +188,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     if (relEnCreate) p3piecesEn.push(`${relEnCreate} That friction is where the work pushes out.`)
   }
   const p3ko = paragraph(
-    p3pieces.length ? p3pieces : ['지금 결은 창작 자체보다 정리·다듬기에 더 무게가 실려 있어요. 묵힌 작업을 끄집어내기 좋은 시기예요.'],
+    p3pieces.length ? p3pieces : ['지금 흐름은 창작 자체보다 정리·다듬기에 더 무게가 실려 있어요. 묵힌 작업을 끄집어내기 좋은 시기예요.'],
   )
   const p3en = paragraph(
     p3piecesEn.length ? p3piecesEn : ['Current signals favour curation and refinement over fresh creation — a good window for retrieving older work.'],
@@ -201,14 +201,14 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     guidePiecesKo.push('만든 결과를 즉시 바깥에 내보내세요. 묵혀둔 작품은 운을 못 끌어와요.')
     guidePiecesEn.push('Publish what you make right away — hidden output cannot attract luck.')
   } else if (sikshin >= 2) {
-    guidePiecesKo.push('즐기듯이 매일 짧게라도 만들어보세요. 식신의 결은 여유에서 자라요.')
+    guidePiecesKo.push('즐기듯이 매일 짧게라도 만들어보세요. 식신의 자질은 여유에서 자라요.')
     guidePiecesEn.push('Make something briefly every day, with ease — your 식신 line grows in relaxed regularity.')
   } else {
     guidePiecesKo.push('형식 안에서 한 가지 제약을 두고 만들어보세요. 제약이 오히려 독자성을 만들어줘요.')
     guidePiecesEn.push('Set one tight constraint and create inside it — constraint paradoxically builds originality.')
   }
   if (profIsCreative && prof) {
-    guidePiecesKo.push('올해 창조의 자리가 활성화돼서, 시작한 작업이 손에 잡히는 결과로 이어져요.')
+    guidePiecesKo.push('올해 창조 영역이 활성화돼서, 시작한 작업이 손에 잡히는 결과로 이어져요.')
     guidePiecesEn.push('This year activates the 5th — work begun now will translate into tangible results.')
   }
   const guideKo = paragraph(guidePiecesKo)
@@ -243,11 +243,11 @@ function collectShinsal(saju: BuilderInput['saju']): string[] {
 }
 
 function openerKo(sangwan: number, sikshin: number, hasHwagae: boolean): string {
-  if (sangwan >= 3) return '재능의 자유로운 발산이 매우 강해서, 만들지 않으면 답답해지는 결이에요.'
-  if (sangwan >= 1 && hasHwagae) return '재능의 결과 예술의 별이 동시에 깔려 있어, 창작은 이번 생에서 피해갈 수 없는 길이에요.'
-  if (sikshin >= 2) return '여유로운 표현의 결이 강해서, 즐기듯 만드는 방식이 가장 잘 맞아요.'
-  if (sangwan >= 1) return '재능을 자유롭게 풀어내는 결이 자리해서, 정해진 틀보단 자기 색을 입히는 작업이 잘 풀려요.'
-  return '창작의 결은 외부 자극보다 안에서 천천히 익혀가는 쪽으로 자리잡고 있어요.'
+  if (sangwan >= 3) return '재능의 자유로운 발산이 매우 강해서, 만들지 않으면 답답해지는 사람이에요.'
+  if (sangwan >= 1 && hasHwagae) return '재능과 예술의 별이 동시에 깔려 있어, 창작은 이번 생에서 피해갈 수 없는 길이에요.'
+  if (sikshin >= 2) return '여유로운 표현의 자질이 강해서, 즐기듯 만드는 방식이 가장 잘 맞아요.'
+  if (sangwan >= 1) return '재능을 자유롭게 풀어내는 성향이 자리해서, 정해진 틀보단 자기 색을 입히는 작업이 잘 풀려요.'
+  return '창작의 색은 외부 자극보다 안에서 천천히 익혀가는 쪽으로 자리잡고 있어요.'
 }
 function openerEn(sangwan: number, sikshin: number, hasHwagae: boolean): string {
   if (sangwan >= 3) return 'A very strong 상관 line means you feel suffocated if you do not make something.'
@@ -321,7 +321,7 @@ const FIFTH_SIGN_EN: Record<string, string> = {
   Pisces: 'boundary-blurring emotion',
 }
 function fifthSignFlavorKo(sign: string): string {
-  return FIFTH_SIGN_KO[sign] ?? '독자적인 결'
+  return FIFTH_SIGN_KO[sign] ?? '독자적인 색감'
 }
 function fifthSignFlavorEn(sign: string): string {
   return FIFTH_SIGN_EN[sign] ?? 'a singular grain'
@@ -350,7 +350,7 @@ const VENUS_ASPECT_EN: Record<string, string> = {
   Pluto: 'intensely transformative',
 }
 function venusAspectFlavorKo(planet: string): string {
-  return VENUS_ASPECT_KO[planet] ?? '독자적인 결'
+  return VENUS_ASPECT_KO[planet] ?? '독자적인 색감'
 }
 function venusAspectFlavorEn(planet: string): string {
   return VENUS_ASPECT_EN[planet] ?? 'a singular grain'
@@ -385,7 +385,7 @@ const SPIRIT_SIGN_EN: Record<string, string> = {
   Pisces: 'compassion beyond boundaries',
 }
 function spiritSignFlavorKo(sign: string): string {
-  return SPIRIT_SIGN_KO[sign] ?? '본연의 결'
+  return SPIRIT_SIGN_KO[sign] ?? '본연의 색'
 }
 function spiritSignFlavorEn(sign: string): string {
   return SPIRIT_SIGN_EN[sign] ?? 'its native grain'

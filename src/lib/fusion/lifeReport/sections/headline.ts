@@ -121,7 +121,7 @@ export function buildHeadline(input: BuilderInput): Headline {
   const stemLabelEn = STEM_LABEL_EN[dayStem] || dayStem || 'day master'
   const strengthKo = STRENGTH_LABEL_KO[strength] || ''
   const strengthEn = STRENGTH_LABEL_EN[strength] || ''
-  const geokgukKo = geokguk ? ` 삶의 큰 흐름은 ${geokgukFlavorKo(geokguk)}예요.` : ''
+  const geokgukKo = geokguk ? ` 삶의 큰 흐름은 ${geokgukFlavorKo(geokguk)}이에요.` : ''
   const geokgukEn = geokguk ? `, ${geokguk} pattern` : ''
   const jongKo = jongType ? ' 한 방향으로 강하게 흐르는 성향도 함께 있어요.' : ''
   const jongEn = jongType ? ` (running as a single-direction ${jongType} chart)` : ''
@@ -138,10 +138,10 @@ export function buildHeadline(input: BuilderInput): Headline {
     ? `자아의 별인 태양은 ${signLabel(sun.sign, 'ko')}에서 빛나고`
     : ''
   const moonPart = moon
-    ? `감정의 달은 ${signLabel(moon.sign, 'ko')}의 색감으로 흐르고`
+    ? `감정의 달은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르고`
     : ''
   const ascPart = asc
-    ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 모양이에요`
+    ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 색감이에요`
     : ''
   const skyParts = [sunPart, moonPart, ascPart].filter(Boolean).join(', ')
 
@@ -166,13 +166,13 @@ export function buildHeadline(input: BuilderInput): Headline {
   const domModality = mod?.dominant
   const lackEl = el?.lacking
   const balanceFlavorKo = domEl
-    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 무게중심이에요`
+    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 무게중심을 잡아요.`
     : ''
   const balanceFlavorEn = domEl
     ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity`
     : ''
   const modFlavorKo = domModality
-    ? `, ${modalityKo(domModality)}`
+    ? ` ${modalityKo(domModality)}.`
     : ''
   const modFlavorEn = domModality
     ? `, with a ${domModality} cadence`
@@ -186,7 +186,8 @@ export function buildHeadline(input: BuilderInput): Headline {
   const iljuCharShortEn = iljuChar ? `In one line: '${shortenEn(iljuChar)}'.` : ''
 
   const s3ko = paragraphJoin([
-    balanceFlavorKo + modFlavorKo + '.',
+    balanceFlavorKo,
+    modFlavorKo,
     domPlanetKo,
     lackKo,
   ])
@@ -203,24 +204,24 @@ export function buildHeadline(input: BuilderInput): Headline {
 }
 
 function modalityKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
-  if (m === 'cardinal') return '새로 시작을 여는 리듬으로'
-  if (m === 'fixed') return '한 자리에서 깊이 다지는 리듬으로'
-  return '유연하게 변하는 리듬으로'
+  if (m === 'cardinal') return '새로 시작을 여는 리듬이에요'
+  if (m === 'fixed') return '한 자리에서 깊이 다지는 리듬이에요'
+  return '유연하게 변하는 리듬이에요'
 }
 
 // 격국을 자연어 의미로 풀어쓰는 헬퍼
 function geokgukFlavorKo(g: string): string {
-  if (!g) return '본연의 흐름'
-  if (g.includes('편관')) return '도전과 책임이 무게로 다가오는 흐름'
-  if (g.includes('정관')) return '책임감으로 자리 잡는 흐름'
-  if (g.includes('편재')) return '기회를 잡는 감각이 빛나는 흐름'
-  if (g.includes('정재')) return '꾸준히 자원을 쌓아가는 흐름'
-  if (g.includes('식신')) return '여유롭게 표현하고 창조하는 흐름'
-  if (g.includes('상관')) return '재능을 자유롭게 발산하는 흐름'
-  if (g.includes('편인')) return '독특한 직관과 비주류 지혜의 흐름'
+  if (!g) return '본연의 모양'
+  if (g.includes('편관')) return '도전과 책임이 무게로 다가오는 모양'
+  if (g.includes('정관')) return '책임감으로 자리 잡는 모양'
+  if (g.includes('편재')) return '기회를 잡는 감각이 빛나는 모양'
+  if (g.includes('정재')) return '꾸준히 자원을 쌓아가는 모양'
+  if (g.includes('식신')) return '여유롭게 표현하고 창조하는 모양'
+  if (g.includes('상관')) return '재능을 자유롭게 발산하는 모양'
+  if (g.includes('편인')) return '독특한 직관과 비주류 지혜의 모양'
   if (g.includes('정인')) return '배움과 돌봄으로 흐르는 길'
   if (g.includes('비견') || g.includes('겁재')) return '동료와 함께 가는 길'
-  return '본연의 흐름'
+  return '본연의 모양'
 }
 
 function shortenKo(s: string): string {
