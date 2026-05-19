@@ -314,13 +314,13 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   ])
   const p2en = paragraph([
     `Your karma archetype comes through as ${KARMA_ARCHETYPE_EN[karmaType]} — ${KARMA_DESC_EN[karmaType]}`,
-    `Roughly ${Math.round(fixedRatio * 100)}% is the fated portion; ${Math.round(flexibleRatio * 100)}% is the flexible portion you reshape through choice.`,
+    `Roughly ${Math.round(fixedRatio * 100)}% is fated; the other ${Math.round(flexibleRatio * 100)}% you reshape through choice.`,
     dmRoot ? dmRoot.phraseEn : '',
     gongmang.length > 0
       ? `An unfillable 'empty seat' sits in your chart around ${gongmangAreasEn(gongmang)} — and that very gap is what pushes the soul into its next stage.`
       : '',
     twelfthPlanets.length > 0
-      ? `${twelfthPlanets.map((p) => p.name).join(', ')} ${twelfthPlanets.length === 1 ? 'sits' : 'sit'} in your 12th house, so part of the karma must be worked through solitude and the subconscious.`
+      ? `${twelfthPlanets.map((p) => p.name).join(', ')} ${twelfthPlanets.length === 1 ? 'sits' : 'sit'} in your 12th house, so part of the karma is worked out through solitude and the subconscious.`
       : '',
   ])
 

@@ -44,7 +44,7 @@ const TABLE: AstroLifecycleEvent[] = [
     labelKo: '첫 목성 회귀 — 확장의 한 사이클',
     labelEn: 'First Jupiter return',
     meaningKo: '12년 만의 첫 회귀로 세계관이 한 번 크게 확장돼요.',
-    meaningEn: 'A first 12-year return — your worldview expands one tier.',
+    meaningEn: 'Your worldview expands a step on this first 12-year return.',
     adviceKo: '새로운 분야에 호기심을 활짝 열어두세요.',
     adviceEn: 'Keep your curiosity wide open to new fields.',
   },

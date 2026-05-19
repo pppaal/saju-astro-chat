@@ -198,7 +198,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const p1en = paragraph([
     `${range.titleEn} is ruled by the ${range.pillarEn} — the anchor for ${range.themeEn}.`,
     pillar?.stem || pillar?.branch
-      ? `Its ${pillarGrainEn(pillar.stem, pillar.branch)} character brings ${ELEMENT_TEXTURE_EN[dayEl] ?? 'balance'} to this season.`
+      ? `Its ${pillarGrainEn(pillar.stem, pillar.branch)} essence brings ${ELEMENT_TEXTURE_EN[dayEl] ?? 'balance'} to this season.`
       : '',
     progSun && range.id !== 'early'
       ? `Your progressed Sun has moved into ${signLabel(progSun.sign, 'en')}, slowly retuning identity.`
@@ -212,18 +212,14 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   if (daeunAges.length > 0) {
     eventLinesKo.push(`${daeunAges.join('세, ')}세 무렵에 인생 흐름이 새로운 챕터로 갈아타요.`)
   }
-  for (const d of stageDaeun.slice(0, 3)) {
-    if (!d.age) continue
-    eventLinesEn.push(`Age ${d.age} opens a fresh 10-year life-chapter.`)
-  }
-  for (const ev of lifecycleEvts.slice(0, 3)) {
+  const daeunSentenceEn = daeunAgesSentenceEn(daeunAges)
+  if (daeunSentenceEn) eventLinesEn.push(daeunSentenceEn)
+  lifecycleEvts.slice(0, 3).forEach((ev, idx) => {
     eventLinesKo.push(
       `${ev.ageStart}~${ev.ageEnd}세, ${ev.labelKo} — ${ev.meaningKo}`
     )
-    eventLinesEn.push(
-      `Ages ${ev.ageStart}–${ev.ageEnd}, ${ev.labelEn}: ${ev.meaningEn}`
-    )
-  }
+    eventLinesEn.push(lifecycleSentenceEn(ev, idx))
+  })
   const p2ko = paragraph(
     eventLinesKo.length > 0
       ? eventLinesKo
@@ -431,6 +427,89 @@ function pillarGrainEn(stem: string | undefined, branch: string | undefined): st
   if (s) return s
   if (b) return b
   return 'native'
+}
+
+// Collapse multiple daewoon ages into one natural English sentence
+// (avoids the repetitive "Age X opens... Age Y opens..." pattern).
+function daeunAgesSentenceEn(ages: number[]): string {
+  if (ages.length === 0) return ''
+  if (ages.length === 1) {
+    return `Age ${ages[0]} opens a fresh 10-year life-chapter.`
+  }
+  if (ages.length === 2) {
+    return `Ages ${ages[0]} and ${ages[1]} each open a fresh 10-year life-chapter.`
+  }
+  const head = ages.slice(0, -1).join(', ')
+  const tail = ages[ages.length - 1]
+  return `Ages ${head}, and ${tail} each open a fresh 10-year life-chapter.`
+}
+
+// Vary the sentence structure used to introduce lifecycle events so we
+// don't repeat "Ages X–Y, EVENT: explanation" three times in a row.
+// Each kind has a hand-tuned natural-English variant; idx is used to
+// rotate opening connectors (Around / Then at / —) when no variant exists.
+function lifecycleSentenceEn(ev: AstroLifecycleEvent, idx: number): string {
+  const variant = LIFECYCLE_EN_VARIANTS[ev.kind]?.[idx]
+    ?? LIFECYCLE_EN_VARIANTS[ev.kind]?.[0]
+  if (variant) return variant
+  // Fallback to the generic "Ages X–Y, EVENT: meaning" form.
+  return `Ages ${ev.ageStart}–${ev.ageEnd}, ${ev.labelEn}: ${ev.meaningEn}`
+}
+
+// Per-event natural English variants, indexed by the order the event
+// appears in the stage (0 = first, 1 = second, 2 = third). Variants beyond
+// the available index fall back to variant[0]. Each line is self-contained
+// and avoids the "<label>: <sentence>" colon pattern.
+const LIFECYCLE_EN_VARIANTS: Partial<Record<AstroLifecycleEvent['kind'], string[]>> = {
+  jupiter_return_1: [
+    'Ages 11–13 bring the first Jupiter return — your worldview expands a step.',
+  ],
+  jupiter_return_2: [
+    'Around ages 23–25, your second Jupiter return helps you first grasp the bigger picture of your career.',
+    'Ages 23–25 then bring a second Jupiter return, sharpening the bigger picture of your career.',
+  ],
+  progressed_lunar_1: [
+    'At ages 27–29, the Progressed Moon return graduates one full emotional and relational cycle.',
+    'Then at ages 27–29, a Progressed Moon return brings one full emotional cycle to graduation.',
+  ],
+  saturn_return_1: [
+    'The first Saturn return between 28–31 marks the rite of adulthood — responsibility, craft and foundation lock in.',
+    'Between 28–31, the first Saturn return arrives as the rite of adulthood — responsibility, craft and foundation lock in.',
+    'The first Saturn return at 28–31 marks the rite of adulthood — responsibility, craft and foundation lock in.',
+  ],
+  jupiter_return_3: [
+    'Around ages 35–37, a third Jupiter return opens the last big expansion window before midlife.',
+    'Ages 35–37 then bring the last big expansion window before midlife, via the third Jupiter return.',
+  ],
+  pluto_square_pluto: [
+    'Between 36 and 40, Pluto squares its natal place — identity and the deep self are forcibly reorganised.',
+    'Then between 36 and 40, the Pluto square reorganises identity and the deep self from the ground up.',
+    'Ages 36–40 bring a Pluto square that reorganises identity and the deep self from the ground up.',
+  ],
+  uranus_opposition: [
+    'Around ages 40–43, the Uranus opposition cracks open whatever in your life is not truly yours.',
+    'Then at ages 40–43, the Uranus opposition cracks open what in your life is not truly yours.',
+  ],
+  neptune_square: [
+    'Ages 41–43 put meaning and illusion on trial through the Neptune square.',
+    'Then at 41–43, the Neptune square puts meaning and illusion on trial.',
+    'The Neptune square at 41–43 puts meaning and illusion on trial.',
+  ],
+  chiron_return: [
+    'Around ages 49–51, the Chiron return turns your lifelong wound into healing capacity.',
+    'Then at 49–51, the Chiron return converts the lifelong wound into healing capacity.',
+  ],
+  saturn_return_2: [
+    'Ages 57–60 bring the second Saturn return — the last great social pivot, deciding what you leave behind.',
+    'Then between 57 and 60, the second Saturn return becomes the last great social pivot, deciding what you leave behind.',
+  ],
+  jupiter_return_5: [
+    'At ages 59–61, a fifth Jupiter return marks a 60-year turning point — the second half of life opens its first cycle.',
+    'Then at 59–61, a fifth Jupiter return opens the first cycle of the second half of life.',
+  ],
+  uranus_return: [
+    'Ages 83–85 bring the Uranus return — a lifetime of freedom and originality finishes its full circle.',
+  ],
 }
 
 function guideKo(id: LifeStageId): string {
