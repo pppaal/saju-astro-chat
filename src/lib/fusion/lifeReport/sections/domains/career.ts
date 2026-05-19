@@ -181,18 +181,11 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       ? `자아의 별은 ${signLabel(sun.sign, 'ko')}${sun.house === 10 ? '의 사회 정점에 머물러' : sun.house ? `의 ${karmaHouseHintForCareerKo(sun.house)} 영역에 머물러` : '에 머물러'}, ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
       : '',
   ])
-  // Sun-sign pool goes to P1 (planet-level identity). Sibsin-category pool
-  // is reserved for P3 (deep-grain layer) so the same variation never
-  // doubles inside a single paragraph.
+  // P1 — keep to max 2 pool variations (Sun sign + Sun house) so the basic
+  // identity paragraph stays short and readable. The remaining pool lines
+  // (Mercury, Mars, Saturn, Pluto, ASC) move into P3 as deep-grain layer.
   p1ko = appendToPara(p1ko, sunSignVar)
   p1ko = appendToPara(p1ko, sunHouseVar)
-  p1ko = appendToPara(p1ko, mercurySignVar)
-  p1ko = appendToPara(p1ko, mercuryHouseVar)
-  p1ko = appendToPara(p1ko, marsCareerVar)
-  p1ko = appendToPara(p1ko, marsHouseVar)
-  p1ko = appendToPara(p1ko, saturnHouseVar)
-  p1ko = appendToPara(p1ko, plutoHouseVar)
-  p1ko = appendToPara(p1ko, ascCareerVar)
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
     mc
@@ -311,6 +304,16 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     sajuUsed.push('pools.sibsinCategory.career')
     deepPieces.push(/[.!?]$/.test(sibsinCatVar) ? sibsinCatVar : `${sibsinCatVar}.`)
   }
+  // Mercury / Mars / ASC / outer-planet house variations live in P3 too,
+  // but capped at 2 lines max to keep the paragraph readable. We pick the
+  // first 2 non-empty signals deterministically from a priority list.
+  const extraP3: string[] = []
+  for (const v of [mercurySignVar, marsCareerVar, ascCareerVar, mercuryHouseVar, marsHouseVar, saturnHouseVar, plutoHouseVar]) {
+    if (!v) continue
+    if (extraP3.length >= 2) break
+    extraP3.push(/[.!?]$/.test(v) ? v : `${v}.`)
+  }
+  for (const line of extraP3) deepPieces.push(line)
   // 12-stage variation — adds a stage-flavored career angle when the
   // day-pillar 12운성 signal is present.
   const stageVar = pickVariation(twelveStagePool(timeStageVal, 'career'), [

@@ -145,7 +145,10 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       : sikSangTotal === 0
         ? '자녀와의 인연은 의식적으로 만들어가는 흐름이에요.'
         : '자녀와의 인연은 잔잔하고 안정적으로 흘러요.',
-    `표현과 창조의 결이 ${childCountFlavorKo(sikSangTotal)} 흘러서, ${childFlavorKo(sikSangTotal)}.`,
+    // sikSangTotal === 0 일 때는 "흘러서" 가 모순되므로 별도 표현 사용.
+    sikSangTotal === 0
+      ? `표현과 창조의 결이 ${childCountFlavorKo(sikSangTotal)}, ${childFlavorKo(sikSangTotal)}.`
+      : `표현과 창조의 결이 ${childCountFlavorKo(sikSangTotal)} 흘러서, ${childFlavorKo(sikSangTotal)}.`,
     fifth.length > 0
       ? `창조 영역에 ${fifth.map((p) => planetLabelChildrenKo(p.name)).join(', ')}이 머물러, 자녀·창작·놀이의 색이 또렷하게 활성화돼 있어요.`
       : '창조 영역이 비어 있어, 자녀운은 다른 기운이 함께 받쳐줘요.',
@@ -285,7 +288,7 @@ function childFlavorKo(n: number): string {
 
 // 표현·창조 결의 강도를 "겹" 없이 자연 한국어로
 function childCountFlavorKo(n: number): string {
-  if (n === 0) return '비어 있고'
+  if (n === 0) return '비어 있어'
   if (n === 1) return '한 갈래로 잔잔하게'
   if (n === 2) return '두 갈래로 또렷하게'
   return '풍성하게'

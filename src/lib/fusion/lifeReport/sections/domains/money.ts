@@ -231,26 +231,14 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     `category:${dominantCatM}`,
     `day_branch:${dayBranchM}`,
   ])
-  if (moneyCatVar) {
-    sajuUsed.push('pools.sibsinCategory.money')
-    deepKo.push(`${moneyCatVar}.`)
-  }
   const sunM = astro.planets?.find((p) => p.name === 'Sun')
   const sunMoneyVar = pickVariation(planetSignPool('Sun', sunM?.sign, 'money'), [
     `day_master:${dayMasterStemM}`,
     `sun_sign:${sunM?.sign ?? ''}`,
     `day_branch:${dayBranchM}`,
   ])
-  if (sunMoneyVar) {
-    astroUsed.push('pools.planetSign.sun.money')
-    deepKo.push(`${sunMoneyVar}.`)
-  }
   // Sun × house — 자아 표현이 자원 흐름과 만나는 무대
   const sunHouseM = planetHouseLine('Sun', sunM?.house, 'ko')
-  if (sunHouseM) {
-    astroUsed.push('pools.planetHouse.sun')
-    deepKo.push(`${sunHouseM}.`)
-  }
   // Venus × sign — 자원의 가치관 (money 도메인의 핵심 행성)
   const venusM = astro.planets?.find((p) => p.name === 'Venus')
   const venusMoneyVar = pickVariation(planetSignPool('Venus', venusM?.sign, 'money'), [
@@ -258,10 +246,6 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     `venus_sign:${venusM?.sign ?? ''}`,
     `day_branch:${dayBranchM}`,
   ])
-  if (venusMoneyVar) {
-    astroUsed.push('pools.planetSign.venus.money')
-    deepKo.push(`${venusMoneyVar}.`)
-  }
   // Mercury × sign — 자원 분석·계산
   const mercuryM = astro.planets?.find((p) => p.name === 'Mercury')
   const mercuryMoneyVar = pickVariation(planetSignPool('Mercury', mercuryM?.sign, 'money'), [
@@ -269,22 +253,10 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     `mercury_sign:${mercuryM?.sign ?? ''}`,
     `day_branch:${dayBranchM}`,
   ])
-  if (mercuryMoneyVar) {
-    astroUsed.push('pools.planetSign.mercury.money')
-    deepKo.push(`${mercuryMoneyVar}.`)
-  }
   // Venus × house (this PR — 매력·미감이 자원과 만나는 무대)
   const venusHouseM = planetHouseLine('Venus', venusM?.house, 'ko')
-  if (venusHouseM) {
-    astroUsed.push('pools.planetHouse.venus')
-    deepKo.push(`${venusHouseM}.`)
-  }
   // Mercury × house (this PR — 사고가 자원 분석으로 풀리는 무대)
   const mercuryHouseM = planetHouseLine('Mercury', mercuryM?.house, 'ko')
-  if (mercuryHouseM) {
-    astroUsed.push('pools.planetHouse.mercury')
-    deepKo.push(`${mercuryHouseM}.`)
-  }
   // ASC × money — 첫인상의 결이 자원 흐름에 어떻게 통하는지.
   const ascM = astro.ascendant
   const ascMoneyVar = pickVariation(planetSignPool('Ascendant', ascM?.sign, 'money'), [
@@ -292,9 +264,29 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     `asc_sign:${ascM?.sign ?? ''}`,
     `day_branch:${dayBranchM}`,
   ])
-  if (ascMoneyVar) {
-    astroUsed.push('pools.planetSign.asc.money')
-    deepKo.push(`${ascMoneyVar}.`)
+  // Sibsin category pool always lands first (saju-grain anchor); after that
+  // we keep at most 2 astro pool lines so P3 stays readable.
+  if (moneyCatVar) {
+    sajuUsed.push('pools.sibsinCategory.money')
+    deepKo.push(`${moneyCatVar}.`)
+  }
+  {
+    const moneyAstroPool: Array<[string, string | undefined, string]> = [
+      ['pools.planetSign.sun.money', sunMoneyVar, ''],
+      ['pools.planetSign.venus.money', venusMoneyVar, ''],
+      ['pools.planetSign.mercury.money', mercuryMoneyVar, ''],
+      ['pools.planetHouse.sun', sunHouseM, ''],
+      ['pools.planetHouse.venus', venusHouseM, ''],
+      ['pools.planetHouse.mercury', mercuryHouseM, ''],
+      ['pools.planetSign.asc.money', ascMoneyVar, ''],
+    ]
+    let added = 0
+    for (const [tag, v] of moneyAstroPool) {
+      if (!v || added >= 2) continue
+      astroUsed.push(tag)
+      deepKo.push(`${v}.`)
+      added++
+    }
   }
   // Lot of Necessity — adds a 'where resources strain' note
   const necessityLot = input.calendarSignals?.arabicParts?.Necessity

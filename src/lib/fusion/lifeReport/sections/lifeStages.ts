@@ -187,7 +187,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
 
   // ───────────────────── 文단 1: 큰 흐름
   const p1ko = paragraph([
-    `${range.titleKo}는 ${range.pillarKo}가 무게중심이 되는 때에요.`,
+    `${range.titleKo}는 ${range.pillarKo}${iGaForBatchim(range.pillarKo)} 무게중심이 되는 때에요.`,
     pillar?.stem || pillar?.branch
       ? `${ELEMENT_TEXTURE_KO[dayEl] ?? '균형'}의 톤이 ${range.themeKo}에 스며들어요.`
       : '',
@@ -530,4 +530,15 @@ function guideEn(id: LifeStageId): string {
   if (id === 'middle')
     return 'One-line guide: Do not postpone the real decisions in the name of stability. What you choose in your 40s shapes the freedom of your 60s.'
   return 'One-line guide: Spend time on meaning rather than results. What you leave behind is your real wealth.'
+}
+
+// 받침 유무에 따라 이/가 선택 (한국어 자연 조사).
+// 마지막 글자가 한글이고 종성(받침)이 있으면 '이', 없으면 '가'.
+function iGaForBatchim(s: string): string {
+  if (!s) return '가'
+  const last = s[s.length - 1]
+  const code = last.charCodeAt(0)
+  if (code < 0xac00 || code > 0xd7a3) return '가'
+  const final = (code - 0xac00) % 28
+  return final === 0 ? '가' : '이'
 }
