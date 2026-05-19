@@ -198,7 +198,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const p1en = paragraph([
     `${range.titleEn} is ruled by the ${range.pillarEn} — the anchor for ${range.themeEn}.`,
     pillar?.stem || pillar?.branch
-      ? `Its ${pillarGrainEn(pillar.stem, pillar.branch)} grain works the ${ELEMENT_TEXTURE_EN[dayEl] ?? 'balance'} note into this season.`
+      ? `Its ${pillarGrainEn(pillar.stem, pillar.branch)} character brings ${ELEMENT_TEXTURE_EN[dayEl] ?? 'balance'} to this season.`
       : '',
     progSun && range.id !== 'early'
       ? `Your progressed Sun has moved into ${signLabel(progSun.sign, 'en')}, slowly retuning identity.`
