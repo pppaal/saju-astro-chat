@@ -32,7 +32,7 @@ describe('PricingConfig', () => {
       it('should have correct free plan config', () => {
         const free = PLANS.free;
         expect(free.id).toBe('free');
-        expect(free.config.monthlyCredits).toBe(7);
+        expect(free.config.monthlyCredits).toBe(0);
         expect(free.pricing.monthly.krw).toBe(0);
         expect(free.pricing.monthly.usd).toBe(0);
       });

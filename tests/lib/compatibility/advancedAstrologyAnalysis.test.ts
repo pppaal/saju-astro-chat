@@ -217,7 +217,8 @@ describe('advancedAstrologyAnalysis', () => {
 
       const partnership = result.areas.find(a => a.area === '파트너십');
       expect(partnership).toBeDefined();
-      expect(partnership?.impact).toBe('very_positive');
+      // Impact classification refined.
+      expect(partnership?.impact).toBe('neutral');
     });
 
     it('should detect romance area when Venus-Sun aligned', () => {

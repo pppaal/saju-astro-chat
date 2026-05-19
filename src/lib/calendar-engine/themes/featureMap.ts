@@ -13,10 +13,13 @@ export const ASTRO_THEME_MAP: Record<AstroThemeKey, {
   houses: number[]
   arabicLots?: string[]
 }> = {
-  // love ← love + family + children + parents
+  // love — 정통 점성에서 연애·관계 핵심: Venus(사랑·가치), Mars(욕망),
+  // Moon(정서·돌봄). 옛 매핑에 있던 Sun·Jupiter는 자기·확장이라
+  // 너무 broad — love 점수를 인플레이트시켜 narrative와 어긋남.
+  // 10궁(사회·공적)도 love 핵심이 아니라 career — 제거.
   love:    {
-    planets: ['Venus', 'Mars', 'Moon', 'Sun', 'Jupiter'],
-    houses: [4, 5, 7, 8, 10],
+    planets: ['Venus', 'Mars', 'Moon'],
+    houses: [4, 5, 7, 8],
     arabicLots: ['Eros'],
   },
   // money ← money + business
@@ -47,77 +50,75 @@ export const ASTRO_THEME_MAP: Record<AstroThemeKey, {
  * 사주 십신 → 테마 매핑.
  * pillar-sibsin 신호가 어떤 십신을 띄웠는지에 따라 테마 부여.
  */
+// 매핑 narrowing: love는 '연애·인연' 사용자 멘탈 모델에 맞게 직접 관련만.
+// 식신(자녀·표현)·정인(어머니·학습)이 옛 family→love 매핑으로 같이
+// 들어가던 게 narrative와 점수 불일치를 만들었음. love는 정재(배우자)
+// 단일로 좁힘. 다른 sibsin은 자기 핵심 도메인 위주.
 export const SIBSIN_THEME_MAP: Record<SibsinKind, AstroThemeKey[]> = {
-  '비견': ['growth'],                     // social, personality → growth
-  '겁재': ['money', 'health', 'growth'],  // money + crisis(→health) + social(→growth)
-  '식신': ['growth', 'health', 'love'],   // creativity(→growth) + health + children(→love)
-  '상관': ['growth', 'career'],           // creativity(→growth) + reputation(→career) + study(→career)
-  '편재': ['money'],                      // money + business(→money)
-  '정재': ['money', 'love'],              // money + family(→love)
-  '편관': ['career', 'health'],           // career + crisis(→health)
-  '정관': ['career'],                     // career + reputation(→career) + legal(→career)
-  '편인': ['career', 'growth'],           // study(→career) + spirituality(→growth)
-  '정인': ['career', 'love'],             // study(→career) + family(→love) + reputation(→career)
+  '비견': ['growth'],                     // 자기·동료
+  '겁재': ['money', 'health', 'growth'],  // 분탈·경쟁
+  '식신': ['growth', 'health'],           // 자녀·표현·먹는 즐거움 (love 빼기)
+  '상관': ['growth', 'career'],           // 창의·표현
+  '편재': ['money'],                      // 큰 돈·기회
+  '정재': ['money', 'love'],              // 안정 수입 + 배우자(전통)
+  '편관': ['career', 'health'],           // 책임·압박
+  '정관': ['career'],                     // 자리·평판
+  '편인': ['career', 'growth'],           // 학문·영성
+  '정인': ['career'],                     // 학습·어머니 (love 빼기 — 어머니는 love보다 career 영역에 더 가까운 받침)
 }
 
 /**
  * 사주 신살 → 테마 매핑.
- * 신살명을 키로 사용 (한글 그대로).
- * 자주 등장하는 핵심 신살 위주 — 누락된 건 'growth'로 폴백.
+ * extractor가 실제로 emit하는 hit.kind 이름만. 누락된 신살은
+ * tagger가 'growth'로 폴백.
  */
 export const SHINSAL_THEME_MAP: Record<string, AstroThemeKey[]> = {
   // ─── 12신살 ───
-  장성:  ['career'],                     장성살: ['career'],
-  반안:  ['love', 'growth'],             반안살: ['love', 'growth'],
-  역마:  ['growth', 'career'],           역마살: ['growth', 'career'],
-  육해:  ['health'],                     육해살: ['health'],
-  화개:  ['growth', 'career'],           화개살: ['growth', 'career'],
+  장성:  ['career'],
+  반안:  ['love', 'growth'],
+  역마:  ['growth', 'career'],
+  육해:  ['health'],
+  화개:  ['growth', 'career'],
   겁살:  ['health', 'money'],
   재살:  ['health', 'career'],
   천살:  ['health'],
   월살:  ['money', 'health'],
-  망신:  ['career', 'health'],           망신살: ['career', 'health'],
+  망신:  ['career', 'health'],
   지살:  ['growth', 'money'],
   년살:  ['love', 'growth'],
 
   // ─── 길성 ───
-  천을귀인: ['career', 'health'],         천을: ['career', 'health'],
+  천을귀인: ['career', 'health'],
   태극귀인: ['growth', 'career'],
-  천덕귀인: ['health', 'love'],           천덕: ['health', 'love'],
-  월덕귀인: ['health', 'love'],           월덕: ['health', 'love'],
+  천덕귀인: ['health', 'love'],
+  월덕귀인: ['health', 'love'],
   천주귀인: ['love', 'money'],
   암록:     ['money', 'career'],
-  금여성:   ['love', 'money'],            금여: ['love', 'money'],
+  금여성:   ['love', 'money'],
   천의성:   ['health', 'career'],
   천문성:   ['career', 'growth'],
-  문창:     ['career'],                   문창귀인: ['career'],
+  문창:     ['career'],
   문곡:     ['career', 'growth'],
-  학당귀인: ['career'],                   학당: ['career'],
-  관귀학관: ['career'],
+  학당귀인: ['career'],
   건록:     ['career', 'money'],
   제왕:     ['career'],
-  길성:     ['growth'],
 
   // ─── 도화·홍염 (애정·매력) ───
-  도화:   ['love', 'growth'],             도화살: ['love', 'growth'],
-  홍염:   ['love'],                       홍염살: ['love'],
+  도화:   ['love', 'growth'],
+  홍염살: ['love'],
 
   // ─── 흉살 ───
-  현침:   ['health'],                     현침살: ['health'],
-  고신:   ['growth', 'health'],           고신살: ['growth', 'health'],
-  과숙:   ['love', 'health'],             과숙살: ['love', 'health'],
-  괴강:   ['career', 'health'],           괴강살: ['career', 'health'],
-  양인:   ['career', 'health'],           양인살: ['career', 'health'],
-  백호:   ['health'],                     백호살: ['health'],
+  현침:   ['health'],
+  고신:   ['growth', 'health'],
+  과숙:   ['love', 'health'],
+  괴강:   ['career', 'health'],
+  양인:   ['career', 'health'],
+  백호:   ['health'],
   공망:   ['health', 'growth'],
-  귀문관: ['health', 'growth'],           귀문: ['health', 'growth'],
-  귀문관살: ['health', 'growth'],
+  귀문관: ['health', 'growth'],
   원진:   ['love', 'health'],
   천라지망: ['health', 'career'],
   삼재:   ['health'],
-  화해:   ['love', 'health'],             화해살: ['love', 'health'],
-  괘살:   ['health'],
-  흉성:   ['health'],
 }
 
 /**

@@ -14,51 +14,16 @@ describe('lib/api/index - Module Exports', () => {
       expect(typeof apiIndex.createSuccessResponse).toBe('function');
     });
 
-    it('should export withErrorHandler function', () => {
-      expect(apiIndex.withErrorHandler).toBeDefined();
-      expect(typeof apiIndex.withErrorHandler).toBe('function');
-    });
+    // Removed exports (refactored or deprecated):
+    //   withErrorHandler, validateFields, validateDestinyMapInput,
+    //   validateTarotInput, validateDreamInput, parseJsonBody,
+    //   Patterns, CommonValidators
+    // Tests for these were removed; remaining describe blocks cover
+    // the live exports.
 
     it('should export ErrorCodes constant', () => {
       expect(apiIndex.ErrorCodes).toBeDefined();
       expect(typeof apiIndex.ErrorCodes).toBe('object');
-    });
-  });
-
-  describe('Validation Exports', () => {
-    it('should export validateFields function', () => {
-      expect(apiIndex.validateFields).toBeDefined();
-      expect(typeof apiIndex.validateFields).toBe('function');
-    });
-
-    it('should export validateDestinyMapInput function', () => {
-      expect(apiIndex.validateDestinyMapInput).toBeDefined();
-      expect(typeof apiIndex.validateDestinyMapInput).toBe('function');
-    });
-
-    it('should export validateTarotInput function', () => {
-      expect(apiIndex.validateTarotInput).toBeDefined();
-      expect(typeof apiIndex.validateTarotInput).toBe('function');
-    });
-
-    it('should export validateDreamInput function', () => {
-      expect(apiIndex.validateDreamInput).toBeDefined();
-      expect(typeof apiIndex.validateDreamInput).toBe('function');
-    });
-
-    it('should export parseJsonBody function', () => {
-      expect(apiIndex.parseJsonBody).toBeDefined();
-      expect(typeof apiIndex.parseJsonBody).toBe('function');
-    });
-
-    it('should export Patterns constant', () => {
-      expect(apiIndex.Patterns).toBeDefined();
-      expect(typeof apiIndex.Patterns).toBe('object');
-    });
-
-    it('should export CommonValidators constant', () => {
-      expect(apiIndex.CommonValidators).toBeDefined();
-      expect(typeof apiIndex.CommonValidators).toBe('object');
     });
   });
 

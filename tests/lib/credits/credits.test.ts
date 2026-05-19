@@ -24,8 +24,8 @@ describe('PLAN_CONFIG', () => {
   describe('free plan', () => {
     const plan = PLAN_CONFIG.free
 
-    it('has 7 monthly credits', () => {
-      expect(plan.monthlyCredits).toBe(7)
+    it('has 0 monthly credits (was 7)', () => {
+      expect(plan.monthlyCredits).toBe(0)
     })
 
     it('has no compatibility limit', () => {

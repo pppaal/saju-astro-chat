@@ -116,12 +116,6 @@ export const tarotInterpretRequestSchema = z.object({
   cards: z.array(tarotCardSchema).min(1).max(15),
   userQuestion: z.string().max(600).optional(),
   language: z.enum(['ko', 'en']).default('ko'),
-  birthdate: dateSchema.optional(),
-  moonPhase: z.string().min(2).max(40).optional(),
-  includeAstrology: z.boolean().optional(),
-  includeSaju: z.boolean().optional(),
-  sajuContext: z.string().max(1000).optional(),
-  astroContext: z.string().max(1000).optional(),
   questionContext: tarotQuestionContextSchema.optional(),
   questionMeta: tarotQuestionMetaSchema.optional(),
 })
@@ -174,13 +168,7 @@ export const tarotInterpretStreamSchema = z.object({
     .max(15),
   userQuestion: z.string().max(600).trim().optional(),
   language: z.enum(['ko', 'en']).optional(),
-  birthdate: z.string().max(12).optional(),
-  includeAstrology: z.boolean().optional(),
-  includeSaju: z.boolean().optional(),
-  sajuContext: z.string().max(1000).optional(),
-  astroContext: z.string().max(1000).optional(),
   questionContext: tarotQuestionContextSchema.optional(),
-  zodiacSign: z.string().max(50).optional(),
 })
 
 export type TarotInterpretStreamValidated = z.infer<typeof tarotInterpretStreamSchema>

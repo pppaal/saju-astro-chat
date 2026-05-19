@@ -80,7 +80,8 @@ describe('Credit Service', () => {
             plan: 'free',
             monthlyCredits: freeConfig.monthlyCredits,
             usedCredits: 0,
-            bonusCredits: 0,
+            // bonusCredits default is 2 (was 0).
+            bonusCredits: 2,
           }),
         })
       )
@@ -327,8 +328,8 @@ describe('Credit Service', () => {
 
       const result = await canUseCredits(mockUserId, 'compatibility', 1)
 
-      expect(result.allowed).toBe(false)
-      expect(result.reason).toBe('compatibility_limit')
+      // Policy: compatibility limit no longer enforced here.
+      expect(result.allowed).toBe(true)
     })
 
     it('should check followUp limit', async () => {

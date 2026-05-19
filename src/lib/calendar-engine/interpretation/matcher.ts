@@ -34,19 +34,25 @@ export function buildInterpretation(args: {
   const unluckyDates = ranked.slice(-3).reverse().map((c) => c.datetime.slice(5, 10)).join(', ')
 
   // 룰 매칭 + 변수 컨텍스트 수집
-  const matched: Array<{ rule: InterpretationRule; vars: TemplateVars }> = []
+  // matched[].polarity는 룰 자체의 의도(intent) — 매칭 시그널 polarity가
+  // 아니라 룰 조건의 minPolarity/maxPolarity로 추정. 시그널 polarity는
+  // 룰의 의도(우호/주의)와 무관할 수 있어서 (정관 +3 시그널이 fire한 룰의
+  // 의도는 "신약+정관 = 책임 무거움"으로 negative) 룰 자체의 의도를 봐야
+  // 점수↔해석 동기화 정확.
+  const matched: Array<{ rule: InterpretationRule; vars: TemplateVars; polarity: number }> = []
   for (const rule of RULES) {
     if (rule.scope !== scope) continue
-    const ctx = findMatchContext(rule.conditions, allSignals, allPatterns, natal)
-    if (!ctx) continue
+    const matchSig = findMatchContextWithSignal(rule.conditions, allSignals, allPatterns, natal)
+    if (!matchSig) continue
     matched.push({
       rule,
       vars: {
         ...buildBaseVars(natal),
-        ...ctx,
+        ...matchSig.ctx,
         luckyDates,
         unluckyDates,
       },
+      polarity: ruleIntent(rule),
     })
   }
 
@@ -87,19 +93,33 @@ export function buildInterpretation(args: {
     const themes = DOMAIN_THEMES[domain] ?? []
     const topDates = pickDomainExtremeDates(cells, themes, 3, 'high')
     const lowDates = pickDomainExtremeDates(cells, themes, 2, 'low')
+    // 도메인 안에서 우호(polarity > 0)와 주의(polarity < 0) 둘 다 있으면
+    // 통합 헤더 한 줄 prepend — 사용자가 "그래서 좋다는 거야 나쁘다는
+    // 거야?" 헷갈리는 케이스 정리. polarity ≥ 1 → 우호, ≤ -1 → 주의.
+    const hasPositive = list.some((m) => m.polarity >= 1)
+    const hasCaution = list.some((m) => m.polarity <= -1)
+    // 우호 먼저, 주의 나중 순서로 sort (priority desc 내에서)
+    const sortedList = [...list].sort((a, b) => {
+      const pa = a.polarity >= 1 ? 0 : a.polarity <= -1 ? 1 : 0.5
+      const pb = b.polarity >= 1 ? 0 : b.polarity <= -1 ? 1 : 0.5
+      return pa - pb
+    })
+    const templates = sortedList.map((m) => fillTemplate(m.rule.template, m.vars))
+    if (hasPositive && hasCaution) {
+      templates.unshift(
+        '복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:',
+      )
+    }
     const merged: typeof matched[number] = {
       rule: {
         ...list[0].rule,
         id: `domain.${domain}`,
         section: `domain-${domain}`,
         priority: list[0].rule.priority,
-        template: mergeDomainTemplates(
-          list.map((m) => fillTemplate(m.rule.template, m.vars)),
-          topDates,
-          lowDates,
-        ),
+        template: mergeDomainTemplates(templates, topDates, lowDates),
       },
       vars: list[0].vars,
+      polarity: list[0].polarity,
     }
     picked.push(merged)
   }
@@ -127,10 +147,47 @@ export function buildInterpretation(args: {
     .map((s) => `**[${s.title}]**\n${s.text}`)
     .join('\n\n')
 
+  // 도메인별 themeScores — 신호 평균 base + 룰 의도 adjustment.
+  //
+  // 점수 모델: final = signalAvg + ruleIntentAvg × 30
+  //
+  // - 신호 평균(cell.themeScores)이 base — 사용자 멘탈 모델(80=좋음,
+  //   50=보통, 20=주의)을 따라감.
+  // - 룰 의도 평균이 ±30 adjustment — narrative 톤이 양/음 쪽으로 끌어당김.
+  //   우호 룰 일관(+1) 시 +30, 주의 룰 일관(-1) 시 -30, 섞이면 0.
+  //
+  // 결과 분포 가능 범위: 20-90+ 자유롭게.
+  //  - 신호 우호(80) + 룰 우호(+1) → 110 → cap 100 (매우 좋은 날)
+  //  - 신호 평균(55) + 룰 주의(-1) → 25 (주의 날)
+  //  - 신호 평균(50) + 룰 중립(0) → 50 (보통)
+  const DOMAIN_TO_THEME: Record<string, keyof NonNullable<Interpretation['themeScores']>> = {
+    money: 'money',
+    work: 'career',
+    relations: 'love',
+    body: 'health',
+    growth: 'growth',
+  }
+  const cellThemeScores = cells[0]?.themeScores ?? {}
+  const themeScores: NonNullable<Interpretation['themeScores']> = {}
+  for (const [domain, list] of domainPicks) {
+    const themeKey = DOMAIN_TO_THEME[domain]
+    if (!themeKey) continue
+    const intents = list.map((m) => m.polarity)
+    const intentAvg = intents.length > 0
+      ? intents.reduce((s, p) => s + p, 0) / intents.length
+      : 0
+    // base: 신호 평균
+    const signalScore = cellThemeScores[themeKey] ?? 50
+    // adjustment: ±30 swing
+    const final = signalScore + intentAvg * 30
+    themeScores[themeKey] = Math.max(0, Math.min(100, Math.round(final)))
+  }
+
   return {
     narrative,
     matchedRuleIds: picked.map((m) => m.rule.id),
     sections,
+    themeScores,
   }
 }
 
@@ -165,6 +222,104 @@ function findMatchContext(
   if (!matchingSignal) return null
 
   return extractSignalVars(matchingSignal, signals)
+}
+
+/**
+ * 룰 자체의 의도 추정 — narrative 톤과 동기화된 점수 계산에 사용.
+ *  +1: 우호 의도 (회복창·길성·신강 + 길운 등 — minPolarity ≥ 1 또는
+ *      길성 신살명을 조건에 가짐)
+ *  -1: 주의 의도 (체력·사고·분탈·위기 등 — maxPolarity ≤ -1 또는
+ *      흉살명을 조건에 가짐)
+ *   0: 중립 (본명 컨텍스트·패턴·일반 흐름)
+ *
+ * conditions만으로 추정 — 룰 ID 패턴은 fragile, 직접 룰에 intent 필드
+ * 추가하는 게 더 정확하지만 162개 룰 manual annotation은 큰 작업.
+ */
+function ruleIntent(rule: InterpretationRule): number {
+  const c = rule.conditions
+  if (c.minPolarity != null && c.minPolarity >= 1) return 1
+  if (c.maxPolarity != null && c.maxPolarity <= -1) return -1
+  // 길성·흉성 신살명으로 의도 추정
+  if (c.shinsalName) {
+    const benefic = ['천을귀인', '태극귀인', '천덕귀인', '월덕귀인', '천주귀인',
+                     '암록', '금여성', '천의성', '천문성', '문창', '문곡',
+                     '학당귀인', '건록', '제왕', '도화', '홍염살']
+    const malefic = ['겁살', '재살', '천살', '월살', '망신', '육해',
+                     '현침', '고신', '과숙', '괴강', '양인', '백호',
+                     '공망', '귀문관', '원진', '천라지망', '삼재']
+    const hasBene = c.shinsalName.some((n) => benefic.includes(n))
+    const hasMal = c.shinsalName.some((n) => malefic.includes(n))
+    if (hasBene && !hasMal) return 1
+    if (hasMal && !hasBene) return -1
+  }
+  // 명리 컨텍스트 — 신강·신약 × 십신 조합으로 의도 추정.
+  // 예: 신약 + 정관 = 압박(-1), 신약 + 인성 = 도움(+1), 신강 + 재성 = 실행(+1)
+  if (c.natalStrength && c.sibsin) {
+    const isWeak = c.natalStrength.includes('weak')
+    const isStrong = c.natalStrength.includes('strong')
+    const officer = c.sibsin.some((s) => s === '정관' || s === '편관')
+    const print = c.sibsin.some((s) => s === '정인' || s === '편인')
+    const wealth = c.sibsin.some((s) => s === '정재' || s === '편재')
+    const bigeop = c.sibsin.some((s) => s === '비견' || s === '겁재')
+    const siksang = c.sibsin.some((s) => s === '식신' || s === '상관')
+    if (isWeak && officer) return -1   // 신약+관성 = 책임 압박
+    if (isWeak && (print || bigeop)) return 1  // 신약+인비 = 받쳐줌
+    if (isWeak && wealth) return -1    // 신약+재성 = 분탈
+    if (isStrong && officer) return 1  // 신강+관성 = 자리 잡음
+    if (isStrong && wealth) return 1   // 신강+재성 = 실행력
+    if (isStrong && (print || bigeop)) return -1  // 신강+인비 = 과도·정체
+    if (isStrong && siksang) return 1  // 신강+식상 = 표현 발산
+  }
+  return 0
+}
+
+/**
+ * findMatchContext + 매칭된 시그널의 polarity를 같이 반환.
+ * 도메인 통합 시 우호(polarity > 0)·주의(polarity < 0) 분리에 사용.
+ * 시그널 없이 natal 컨텍스트만 매칭하는 룰(natalStrength·yongsin only)은
+ * polarity 추정 불가 → 0(중립) 반환.
+ */
+function findMatchContextWithSignal(
+  cond: RuleConditions,
+  signals: ActiveSignal[],
+  patterns: SignalPattern[],
+  natal: NatalContext,
+): { ctx: TemplateVars; polarity: number } | null {
+  // 본명 조건
+  if (cond.natalStrength && !cond.natalStrength.includes(natal.saju.strength)) {
+    return null
+  }
+  if (cond.yongsin && !cond.yongsin.includes(natal.saju.yongsin.primary)) {
+    return null
+  }
+  if (cond.patternId) {
+    const pat = patterns.find((p) => cond.patternId!.includes(p.id))
+    if (!pat) return null
+    const count = patterns.filter((p) => p.id === pat.id).length
+    return { ctx: { patternName: pat.name, count }, polarity: 0 }
+  }
+  const matchingSignal = signals.find((s) => signalMatches(s, cond))
+  if (!matchingSignal) {
+    // natal context만 있는 룰은 fallback 허용 (signal 차원 조건 0개일 때).
+    // sibsin/shinsalName/signalLayer 등 신호 조건이 있으면 매칭 안 됐을
+    // 때 룰 fire하면 안 됨 — 옛 버전은 natalStrength 있으면 그 외 조건
+    // 무시하고 fire해서 04월 비견월에도 "신약+관성" 룰이 fire되던 버그.
+    const hasSignalCondition =
+      !!(cond.signalSource || cond.signalKinds || cond.signalLayer ||
+         cond.sibsin || cond.shinsalName || cond.planet || cond.sign ||
+         cond.dignity) ||
+      cond.minPolarity != null || cond.maxPolarity != null
+    if (!hasSignalCondition && (cond.natalStrength || cond.yongsin)) {
+      const fallback = signals[0]
+      if (!fallback) return null
+      return { ctx: extractSignalVars(fallback, signals), polarity: 0 }
+    }
+    return null
+  }
+  return {
+    ctx: extractSignalVars(matchingSignal, signals),
+    polarity: matchingSignal.polarity,
+  }
 }
 
 function signalMatches(s: ActiveSignal, cond: RuleConditions): boolean {
@@ -259,41 +414,27 @@ function sectionTitle(section: string): string {
     transit: '주요 트랜짓',
     pattern: '매칭 패턴',
     shinsal: '신살',
-    // 5 도메인 통합 헤더
+    // 5 도메인 통합 헤더 (5테마 1:1)
     'domain-money': '돈·자산',
     'domain-work': '일·커리어',
     'domain-relations': '관계',
     'domain-body': '몸·내면',
-    'domain-expression': '표현·창작',
+    'domain-growth': '자기·성장',
   }
   return map[section] ?? section
 }
 
 // ────────────────────────────────────────────────────────────────────
-// 도메인 통합 — theme-* 룰 16종을 5도메인으로 묶어 narrative 풍부도 향상.
+// 도메인 통합 — 5테마(love/money/career/health/growth)를 5도메인으로
+// 1:1 매핑. 캘린더 엔진의 AstroThemeKey 통합(18→5) 결과 정합.
 // 같은 도메인 안에서 매칭된 룰들은 한 단락에 자연스럽게 합침.
 // ────────────────────────────────────────────────────────────────────
 const SECTION_TO_DOMAIN: Record<string, string> = {
-  // 일·커리어
-  'theme-career': 'work',
-  'theme-business': 'work',
-  'theme-reputation': 'work',
-  'theme-legal': 'work',
-  'theme-travel': 'work',     // 이직·이동도 일 흐름
-  // 관계
   'theme-love': 'relations',
-  'theme-family': 'relations',
-  'theme-social': 'relations',
-  // 돈·자산
   'theme-money': 'money',
-  // 몸·내면
+  'theme-career': 'work',
   'theme-health': 'body',
-  'theme-study': 'body',
-  'theme-spirituality': 'body',
-  // 표현·창작
-  'theme-creativity': 'expression',
-  'theme-children': 'expression',
-  'theme-karma': 'expression',
+  'theme-growth': 'growth',
 }
 
 const DOMAIN_TITLES: Record<string, string> = {
@@ -301,12 +442,16 @@ const DOMAIN_TITLES: Record<string, string> = {
   work: '일·커리어',
   relations: '관계',
   body: '몸·내면',
-  expression: '표현·창작',
+  growth: '자기·성장',
 }
 
-const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'expression']
+const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'growth']
 
-const MAX_RULES_PER_DOMAIN = 5
+// 도메인 안에 룰이 5개까지 쌓이면 narrative 너무 길어지고 "여기에/한편/
+// 추가로/또한" 같은 연결사가 4번씩 반복됨. 사용자 audit 결과 3개가 최적
+// (긍정 1 + 주의 1 + 컨텍스트 1 정도). 잘려나간 룰은 다른 시기에 또
+// 매칭될 기회 있음.
+const MAX_RULES_PER_DOMAIN = 3
 
 /**
  * 도메인 안 여러 룰 텍스트를 자연스럽게 한 단락으로.

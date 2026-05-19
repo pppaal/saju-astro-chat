@@ -1107,36 +1107,126 @@ export function pickTwelveSingle(
 export function getShinsalHitsForDailyTarget(
   natalDayStem: string,
   natalDayBranch: string,
-  targetBranch: string
+  targetBranch: string,
+  // 확장 파라미터 — 기존 호출자는 그대로 동작하도록 optional.
+  // 본명 월지와 일진 천간이 있어야 추가 12개 신살을 계산할 수 있음.
+  natalMonthBranch?: string,
+  targetStem?: string,
 ): Array<{ kind: ShinsalHit['kind']; basis: string }> {
   const hits: Array<{ kind: ShinsalHit['kind']; basis: string }> = []
-  // 12신살 (일지 기준)
+
+  // ─── 12신살 (일지 기준) ───
   const twelve = pickTwelveSingle(natalDayBranch, targetBranch)
   if (twelve) {
     hits.push({ kind: twelve, basis: `일지(${natalDayBranch})` })
   }
-  // 도화 (자오묘유 중 본인 일지의 三合 도화 자리에 target 들어옴)
+
+  // ─── 도화 (자오묘유 중 본인 일지의 三合 도화 자리) ───
   if (DOHWA_SET.has(targetBranch)) {
     hits.push({ kind: '도화', basis: `target=${targetBranch}` })
   }
-  // 천을귀인
-  if (isCheonjuGwiin(natalDayStem, targetBranch)) {
+
+  // ─── 일간 기준 길성·흉성 ───
+  // 천을귀인 — CHEONEUL_BY_DAY_STEM 테이블
+  // (옛 코드가 isCheonjuGwiin을 호출해 천을귀인으로 emit하던 버그였음 —
+  //  isCheonjuGwiin은 CHEONJU 테이블이라 사실 천주귀인을 emit하던 셈)
+  const cheoneul = CHEONEUL_BY_DAY_STEM[natalDayStem] || []
+  if (cheoneul.includes(targetBranch)) {
     hits.push({ kind: '천을귀인', basis: `일간(${natalDayStem})` })
+  }
+  // 태극귀인 (정신·영성·인생 큰 흐름)
+  const taegeuk = TAEGEUK_BY_DAY_STEM[natalDayStem] || []
+  if (taegeuk.includes(targetBranch)) {
+    hits.push({ kind: '태극귀인', basis: `일간(${natalDayStem})` })
   }
   // 양인
   if (YANGIN_BY_DAY_STEM[natalDayStem] === targetBranch) {
     hits.push({ kind: '양인', basis: `일간(${natalDayStem})` })
   }
-  // 백호 (일주가 백호 갑자에 들어가는 경우는 birth-only — skip for daily)
   // 현침
   if (isHyeonchim(natalDayStem, targetBranch)) {
     hits.push({ kind: '현침', basis: `일간(${natalDayStem})` })
   }
-  // 공망
+  // 홍염살 (매력·인기)
+  if (isHongyeomsal(natalDayStem, targetBranch)) {
+    hits.push({ kind: '홍염살', basis: `일간(${natalDayStem})` })
+  }
+  // 문창·문곡 (학업·표현)
+  if (isMunChang(natalDayStem, targetBranch)) {
+    hits.push({ kind: '문창', basis: `일간(${natalDayStem})` })
+  }
+  if (isMunGok(natalDayStem, targetBranch)) {
+    hits.push({ kind: '문곡', basis: `일간(${natalDayStem})` })
+  }
+  // 학당귀인 (학업)
+  if (isHakdangGwiin(natalDayStem, targetBranch)) {
+    hits.push({ kind: '학당귀인', basis: `일간(${natalDayStem})` })
+  }
+  // 암록 (보이지 않는 도움)
+  if (isAmnok(natalDayStem, targetBranch)) {
+    hits.push({ kind: '암록', basis: `일간(${natalDayStem})` })
+  }
+  // 건록 (일간 본력 활용)
+  if (isGeonrok(natalDayStem, targetBranch)) {
+    hits.push({ kind: '건록', basis: `일간(${natalDayStem})` })
+  }
+  // 제왕 (자기 절정)
+  if (isJewang(natalDayStem, targetBranch)) {
+    hits.push({ kind: '제왕', basis: `일간(${natalDayStem})` })
+  }
+  // 천주귀인 (관계·재물 보호)
+  if (isCheonjuGwiin(natalDayStem, targetBranch)) {
+    hits.push({ kind: '천주귀인', basis: `일간(${natalDayStem})` })
+  }
+
+  // ─── target branch 단독 기준 ───
+  // 금여성 (안정·풍요)
+  if (isGeumYeoseong(targetBranch)) {
+    hits.push({ kind: '금여성', basis: `target=${targetBranch}` })
+  }
+  // 천문성 (영성·종교·예지)
+  if (isCheonMunSeong(targetBranch)) {
+    hits.push({ kind: '천문성', basis: `target=${targetBranch}` })
+  }
+
+  // ─── 본명 일지 ↔ target branch ───
+  // 원진 (감정·신경 예민)
+  if (isWonjin(natalDayBranch, targetBranch)) {
+    hits.push({ kind: '원진', basis: `일지(${natalDayBranch})` })
+  }
+  // 괴강 (추진력·강한 결단)
+  if (checkGwaegang(natalDayStem, natalDayBranch, targetBranch)) {
+    hits.push({ kind: '괴강', basis: `일주(${natalDayStem}${natalDayBranch})` })
+  }
+
+  // ─── 월지 기반 신살 (월지 정보 있을 때만) ───
+  if (natalMonthBranch) {
+    // 천의성 (치유·돌봄)
+    if (isCheonuiseong(natalMonthBranch, targetBranch)) {
+      hits.push({ kind: '천의성', basis: `월지(${natalMonthBranch})` })
+    }
+    // 귀문관 (예민·직관·꿈)
+    if (getGwimunOn(natalMonthBranch, targetBranch, undefined)) {
+      hits.push({ kind: '귀문관', basis: `월지(${natalMonthBranch})` })
+    }
+  }
+
+  // ─── 천간 기반: 천덕귀인·월덕귀인 (월지 + target 일간) ───
+  if (natalMonthBranch && targetStem) {
+    if (isCheondeokGwiin(natalMonthBranch, targetStem)) {
+      hits.push({ kind: '천덕귀인', basis: `월지(${natalMonthBranch}) ↔ 일간(${targetStem})` })
+    }
+    if (isWoldeokGwiin(natalMonthBranch, targetStem)) {
+      hits.push({ kind: '월덕귀인', basis: `월지(${natalMonthBranch}) ↔ 일간(${targetStem})` })
+    }
+  }
+
+  // ─── 공망 (일주 기준) ───
   const gongmangList = getGongmang(natalDayStem, natalDayBranch)
   if (gongmangList.includes(targetBranch)) {
     hits.push({ kind: '공망', basis: `일주(${natalDayStem}${natalDayBranch})` })
   }
+
   return hits
 }
 

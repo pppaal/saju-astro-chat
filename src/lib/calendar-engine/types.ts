@@ -91,7 +91,8 @@ export interface CalendarCell {
   derivedScore: number                                // 0~100 — polarity 가중합
   themeScores: Partial<Record<AstroThemeKey, number>> // 테마별 강도 0~100
   matchedPatterns: SignalPattern[]                    // 신호 조합 → 명명 패턴
-  topReasons: string[]                                // 상위 3~5개 사유 텍스트
+  topReasons: string[]                                // 상위 3~5개 우호 사유 텍스트
+  cautions: string[]                                  // 상위 3~5개 주의 사유 텍스트 (topReasons mirror)
 }
 
 export interface SignalPattern {

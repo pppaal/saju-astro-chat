@@ -21,8 +21,9 @@ describe('Astrology Options', () => {
       expect(presets.western.houseSystem).toBe('Placidus');
     });
 
-    it('should have saju preset with WholeSign', () => {
-      expect(presets.saju.houseSystem).toBe('WholeSign');
+    it('should have saju preset with Placidus', () => {
+      // saju preset house system 변경: WholeSign → Placidus.
+      expect(presets.saju.houseSystem).toBe('Placidus');
     });
 
     it('should enable bodies in western preset', () => {
@@ -43,7 +44,7 @@ describe('Astrology Options', () => {
 
     it('should apply saju preset', () => {
       const result = resolveOptions({ theme: 'saju' });
-      expect(result.houseSystem).toBe('WholeSign');
+      expect(result.houseSystem).toBe('Placidus');
     });
 
     it('should override preset with input', () => {

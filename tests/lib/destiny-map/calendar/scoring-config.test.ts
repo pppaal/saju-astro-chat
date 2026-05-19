@@ -15,7 +15,6 @@ import {
   GRADE_THRESHOLDS,
   DISPLAY_SCORE_LABEL_THRESHOLDS,
   getDisplayGradeFromScore,
-  getDisplayLabelFromScore,
   normalizeToCategory,
   sumAndNormalize,
   calculateAdjustedScore,
@@ -27,8 +26,8 @@ describe('scoring-config', () => {
       expect(CATEGORY_MAX_SCORES.saju.daeun).toBe(8)
       expect(CATEGORY_MAX_SCORES.saju.seun).toBe(10)
       expect(CATEGORY_MAX_SCORES.saju.wolun).toBe(7)
-      expect(CATEGORY_MAX_SCORES.saju.iljin).toBe(20)
-      expect(CATEGORY_MAX_SCORES.saju.yongsin).toBe(5)
+      expect(CATEGORY_MAX_SCORES.saju.iljin).toBe(15)
+      expect(CATEGORY_MAX_SCORES.saju.yongsin).toBe(10)
       expect(CATEGORY_MAX_SCORES.saju.total).toBe(50)
     })
 
@@ -66,7 +65,7 @@ describe('scoring-config', () => {
     })
 
     it('should have cross bonus within reasonable range', () => {
-      expect(CATEGORY_MAX_SCORES.crossBonus).toBe(3)
+      expect(CATEGORY_MAX_SCORES.crossBonus).toBe(5)
       expect(CATEGORY_MAX_SCORES.crossBonus).toBeLessThan(10)
     })
   })
@@ -388,12 +387,13 @@ describe('scoring-config', () => {
       expect(GRADE_THRESHOLDS.grade2).toBeGreaterThan(GRADE_THRESHOLDS.grade3)
     })
 
+    // GRADE_THRESHOLDS refined: 68→63, 28→34 (etc.).
     it('should have grade0 as highest threshold', () => {
-      expect(GRADE_THRESHOLDS.grade0).toBe(68)
+      expect(GRADE_THRESHOLDS.grade0).toBe(63)
     })
 
     it('should have grade3 as lowest threshold', () => {
-      expect(GRADE_THRESHOLDS.grade3).toBe(28)
+      expect(GRADE_THRESHOLDS.grade3).toBe(34)
     })
 
     it('should have realistic threshold values', () => {
@@ -409,16 +409,12 @@ describe('scoring-config', () => {
       expect(DISPLAY_SCORE_LABEL_THRESHOLDS.neutral).toBe(GRADE_THRESHOLDS.grade2)
     })
 
-    it('should keep label and badge grade consistent on 68~70 boundary', () => {
-      const cases = [
-        { score: 68, grade: 0, labelKo: '최고' },
-        { score: 69, grade: 0, labelKo: '최고' },
-        { score: 70, grade: 0, labelKo: '최고' },
-      ]
-
-      for (const c of cases) {
-        expect(getDisplayGradeFromScore(c.score)).toBe(c.grade)
-        expect(getDisplayLabelFromScore(c.score, 'ko')).toBe(c.labelKo)
+    it('should keep grade consistent on 63~70 boundary', () => {
+      // getDisplayLabelFromScore removed; verify grade only.
+      // GRADE_THRESHOLDS refined so 63+ is now grade 0.
+      const cases = [63, 64, 65, 68, 69, 70]
+      for (const score of cases) {
+        expect(getDisplayGradeFromScore(score)).toBe(0)
       }
     })
   })

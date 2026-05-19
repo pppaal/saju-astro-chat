@@ -1,52 +1,49 @@
 # API Audit Report
 
-Generated: 2026-04-01 09:15:19.543 UTC
-
 ## Summary
 
-- Total Next.js API routes: 140
-- Uses middleware/guards: 138 (98.6%)
-- Has validation signals: 114 (81.4%)
-- Rate limited (guard or option): 131 (93.6%)
-- Credit consumption configured: 14 (10.0%)
-- Requires auth: 71 (50.7%)
-- Requires token: 45 (32.1%)
-- skipCsrf enabled: 2 (1.4%)
+- Total Next.js API routes: 91
+- Uses middleware/guards: 88 (96.7%)
+- Has validation signals: 68 (74.7%)
+- Rate limited (guard or option): 83 (91.2%)
+- Credit consumption configured: 7 (7.7%)
+- Requires auth: 45 (49.5%)
+- Requires token: 27 (29.7%)
+- skipCsrf enabled: 2 (2.2%)
 
 ## Method Distribution
 
-- GET: 73
-- POST: 105
+- GET: 48
+- POST: 63
 - PUT: 0
-- PATCH: 3
-- DELETE: 16
+- PATCH: 4
+- DELETE: 11
 
-## Missing Middleware (2)
+## Missing Middleware (3)
 
-- src\app\api\auth\[...nextauth]\route.ts [GET,POST]
-- src\app\api\review\assessment\route.ts [GET,POST]
+- src/app/api/auth/[...nextauth]/route.ts [GET,POST]
+- src/app/api/counselor/realtime/route.ts [POST]
+- src/app/api/review/assessment/route.ts [GET,POST]
 
-## Missing Validation (4)
+## Missing Validation (3)
 
-- src\app\api\destiny-feedback\route.ts [POST]
-- src\app\api\icp\analytics\route.ts [POST]
-- src\app\api\review\assessment\route.ts [GET,POST]
-- src\app\api\webhook\stripe\route.ts [POST]
+- src/app/api/counselor/realtime/route.ts [POST]
+- src/app/api/review/assessment/route.ts [GET,POST]
+- src/app/api/webhook/stripe/route.ts [POST]
 
-## Public Mutations (No Auth/Token) (12)
+## Public Mutations (No Auth/Token) (11)
 
-- src\app\api\auth\register\route.ts [POST]
-- src\app\api\auth\[...nextauth]\route.ts [GET,POST]
-- src\app\api\cron\daily-fortune-post\route.ts [GET,POST]
-- src\app\api\cron\notifications\route.ts [GET,POST]
-- src\app\api\cron\reset-credits\route.ts [GET,POST]
-- src\app\api\cron\weekly-fortune\route.ts [GET,POST]
-- src\app\api\csp-report\route.ts [POST,GET]
-- src\app\api\destiny-map\route.ts [POST]
-- src\app\api\icp\analytics\route.ts [POST]
-- src\app\api\metrics\track\route.ts [POST]
-- src\app\api\review\assessment\route.ts [GET,POST]
-- src\app\api\webhook\stripe\route.ts [POST]
+- src/app/api/auth/[...nextauth]/route.ts [GET,POST]
+- src/app/api/auth/register/route.ts [POST]
+- src/app/api/counselor/realtime/route.ts [POST]
+- src/app/api/cron/daily-fortune-post/route.ts [GET,POST]
+- src/app/api/cron/notifications/route.ts [GET,POST]
+- src/app/api/cron/reset-credits/route.ts [GET,POST]
+- src/app/api/csp-report/route.ts [POST,GET]
+- src/app/api/destiny-map/route.ts [POST]
+- src/app/api/metrics/track/route.ts [POST]
+- src/app/api/review/assessment/route.ts [GET,POST]
+- src/app/api/webhook/stripe/route.ts [POST]
 
 ## Notes
 

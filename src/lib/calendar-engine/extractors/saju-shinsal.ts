@@ -12,6 +12,8 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  * 활성 윈도우: 해당 일진 1일 (00:00 ~ 23:59), peak는 정오.
  */
 
+// 신살 polarity 테이블. 키는 extractor가 실제 emit하는 hit.kind 이름.
+// '괘살'/'길성'/'흉성'/'화해' 같은 막연한 분류명은 명리적 근거가 없어 제거.
 const SHINSAL_POLARITY: Record<string, Polarity> = {
   // ─── 12신살 (일지 기준 12개) ───
   장성:  2,   장성살: 2,
@@ -28,40 +30,35 @@ const SHINSAL_POLARITY: Record<string, Polarity> = {
   년살:  0,
 
   // ─── 길성 (귀인·문창류) ───
-  천을귀인: 3,  천을: 3,
+  천을귀인: 3,
   태극귀인: 2,
-  천덕귀인: 2,  천덕: 2,
-  월덕귀인: 2,  월덕: 2,
+  천덕귀인: 2,
+  월덕귀인: 2,
   천주귀인: 2,
   암록:    2,
-  금여성:  2,   금여: 2,
+  금여성:  2,
   천의성:  2,
   천문성:  2,
-  문창:    2,   문창귀인: 2,
+  문창:    2,
   문곡:    2,
-  학당귀인: 2,  학당: 2,
-  관귀학관: 2,
+  학당귀인: 2,
   건록:    2,
   제왕:    1,
-  길성:    2,
 
-  // ─── 흉신·살 (도화 포함, 도화는 테마 강함) ───
-  도화:    1,   도화살: 1,
-  홍염:    1,   홍염살: 1,
-  현침:   -1,   현침살: -1,
-  고신:   -1,   고신살: -1,
-  과숙:   -1,   과숙살: -1,
-  괴강:   -1,   괴강살: -1,
-  양인:   -2,   양인살: -2,
-  백호:   -2,   백호살: -2,
+  // ─── 흉신·살 ───
+  도화:    1,
+  홍염살:  1,
+  현침:   -1,
+  고신:   -1,
+  과숙:   -1,
+  괴강:   -1,
+  양인:   -2,
+  백호:   -2,
   공망:   -1,
-  귀문관: -1,   귀문: -1,  귀문관살: -1,
+  귀문관: -1,
   원진:   -2,
   천라지망: -2,
   삼재:   -2,
-  화해:   -1,   화해살: -1,
-  괘살:   -1,
-  흉성:   -2,
 }
 
 const sajuShinsalExtractor: SignalExtractor = {
@@ -71,8 +68,11 @@ const sajuShinsalExtractor: SignalExtractor = {
     const signals: ActiveSignal[] = []
     const { natal, range } = ctx
     const dayPillar = natal.saju.pillars.day
+    const monthPillar = natal.saju.pillars.month
     const natalDayStem = dayPillar.heavenlyStem?.name ?? ''
     const natalDayBranch = dayPillar.earthlyBranch?.name ?? ''
+    // 본명 월지 — 천의성·귀문관·천덕귀인·월덕귀인 계산에 필요.
+    const natalMonthBranch = monthPillar?.earthlyBranch?.name ?? undefined
 
     if (!natalDayStem || !natalDayBranch) return signals
 
@@ -82,8 +82,16 @@ const sajuShinsalExtractor: SignalExtractor = {
       const date = new Date(t)
       const targetBranch = computeDayBranch(date)
       if (!targetBranch) continue
+      // 천덕귀인·월덕귀인은 target 일간(stem)이 있어야 매칭됨.
+      const targetStem = computeDayStem(date) ?? undefined
 
-      const hits = getShinsalHitsForDailyTarget(natalDayStem, natalDayBranch, targetBranch)
+      const hits = getShinsalHitsForDailyTarget(
+        natalDayStem,
+        natalDayBranch,
+        targetBranch,
+        natalMonthBranch,
+        targetStem,
+      )
       const dayIso = date.toISOString().slice(0, 10)
       const peakIso = `${dayIso}T12:00:00.000Z`
       const startIso = `${dayIso}T00:00:00.000Z`

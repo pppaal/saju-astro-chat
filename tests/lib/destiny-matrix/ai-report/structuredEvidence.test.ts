@@ -41,7 +41,7 @@ describe('structuredEvidence quality guardrail', () => {
     }
 
     const prompt = formatStructuredEvidenceForPrompt(evidence, 'en')
-    expect(prompt).toContain('Each section must include')
+    expect(prompt).toContain('Use the Evidence anchors')
     expect(prompt).toContain('set X')
     expect(prompt).toContain('angle=')
     expect(prompt).toContain('orb=')

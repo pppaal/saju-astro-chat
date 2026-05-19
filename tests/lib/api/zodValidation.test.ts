@@ -18,11 +18,8 @@ import {
   sajuRequestSchema,
   tarotCardSchema,
   tarotInterpretRequestSchema,
-  dreamAnalysisSchema,
   compatibilityRequestSchema,
-  iChingRequestSchema,
   chatMessageRequestSchema,
-  paginationParamsSchema,
   sanitizeInput,
 } from '@/lib/api/zodValidation'
 
@@ -340,39 +337,7 @@ describe('ZodValidation', () => {
     })
   })
 
-  describe('dreamAnalysisSchema', () => {
-    it('should accept valid dream description', () => {
-      const valid = { dream: 'I dreamed about flying over mountains' }
-      expect(dreamAnalysisSchema.safeParse(valid).success).toBe(true)
-    })
-
-    it('should reject too short dream', () => {
-      const tooShort = { dream: 'short' }
-      expect(dreamAnalysisSchema.safeParse(tooShort).success).toBe(false)
-    })
-
-    it('should trim whitespace', () => {
-      const withWhitespace = { dream: '   I dreamed about flying   ' }
-      const result = dreamAnalysisSchema.safeParse(withWhitespace)
-      if (result.success) {
-        expect(result.data.dream).toBe('I dreamed about flying')
-      }
-    })
-
-    it('should accept optional birthInfo', () => {
-      const withBirthInfo = {
-        dream: 'I dreamed about flying over mountains',
-        birthInfo: {
-          birthDate: '1990-05-15',
-          birthTime: '10:30',
-          latitude: 37.5665,
-          longitude: 126.978,
-          timezone: 'Asia/Seoul',
-        },
-      }
-      expect(dreamAnalysisSchema.safeParse(withBirthInfo).success).toBe(true)
-    })
-  })
+  // dreamAnalysisSchema removed from src (dream service deprecated).
 
   describe('compatibilityRequestSchema', () => {
     const validPerson1 = {
@@ -414,46 +379,7 @@ describe('ZodValidation', () => {
     })
   })
 
-  describe('iChingRequestSchema', () => {
-    it('should accept valid I Ching request', () => {
-      const valid = { question: 'What should I focus on?' }
-      expect(iChingRequestSchema.safeParse(valid).success).toBe(true)
-    })
-
-    it('should accept hexagram number 1-64', () => {
-      expect(iChingRequestSchema.safeParse({ question: 'Test', hexagramNumber: 1 }).success).toBe(
-        true
-      )
-      expect(iChingRequestSchema.safeParse({ question: 'Test', hexagramNumber: 64 }).success).toBe(
-        true
-      )
-    })
-
-    it('should reject hexagram number out of range', () => {
-      expect(iChingRequestSchema.safeParse({ question: 'Test', hexagramNumber: 0 }).success).toBe(
-        false
-      )
-      expect(iChingRequestSchema.safeParse({ question: 'Test', hexagramNumber: 65 }).success).toBe(
-        false
-      )
-    })
-
-    it('should accept changing lines 1-6', () => {
-      const withLines = {
-        question: 'Test',
-        changingLines: [1, 3, 6],
-      }
-      expect(iChingRequestSchema.safeParse(withLines).success).toBe(true)
-    })
-
-    it('should trim question whitespace', () => {
-      const withWhitespace = { question: '  What should I do?  ' }
-      const result = iChingRequestSchema.safeParse(withWhitespace)
-      if (result.success) {
-        expect(result.data.question).toBe('What should I do?')
-      }
-    })
-  })
+  // iChingRequestSchema removed from src.
 
   describe('chatMessageRequestSchema', () => {
     it('should accept valid chat message', () => {
@@ -491,33 +417,7 @@ describe('ZodValidation', () => {
     })
   })
 
-  describe('paginationParamsSchema', () => {
-    it('should use default values', () => {
-      const result = paginationParamsSchema.safeParse({})
-      if (result.success) {
-        expect(result.data.limit).toBe(20)
-        expect(result.data.offset).toBe(0)
-      }
-    })
-
-    it('should accept custom values', () => {
-      const custom = { limit: 50, offset: 10, sortBy: 'createdAt', sortOrder: 'asc' as const }
-      const result = paginationParamsSchema.safeParse(custom)
-      expect(result.success).toBe(true)
-      if (result.success) {
-        expect(result.data.limit).toBe(50)
-        expect(result.data.offset).toBe(10)
-      }
-    })
-
-    it('should reject offset less than 0', () => {
-      expect(paginationParamsSchema.safeParse({ offset: -1 }).success).toBe(false)
-    })
-
-    it('should reject limit greater than 100', () => {
-      expect(paginationParamsSchema.safeParse({ limit: 101 }).success).toBe(false)
-    })
-  })
+  // paginationParamsSchema removed from src.
 
   describe('sanitizeInput', () => {
     it('should trim whitespace', () => {

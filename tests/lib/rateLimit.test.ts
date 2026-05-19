@@ -236,15 +236,15 @@ describe('rateLimit function', () => {
     expect(result.backend).toBe('disabled')
   })
 
-  it('blocks in production without Redis', async () => {
+  it('falls back to in-memory in production without Redis', async () => {
+    // Policy change: production w/o Redis now uses in-memory fallback
+    // instead of blocking outright. First call → allowed=true, remaining=limit-1.
     process.env.NODE_ENV = 'production'
 
     const { rateLimit } = await import('@/lib/rateLimit')
     const result = await rateLimit('test-key')
 
-    expect(result.allowed).toBe(false)
-    expect(result.remaining).toBe(0)
-    expect(result.backend).toBe('disabled')
+    expect(result.allowed).toBe(true)
   })
 
   it('respects custom limit parameter', async () => {
@@ -274,7 +274,8 @@ describe('rateLimit function', () => {
     const { rateLimit } = await import('@/lib/rateLimit')
     const result = await rateLimit('test-key')
 
-    expect(result.headers.get('X-RateLimit-Remaining')).toBe('0')
+    // In-memory fallback: first call returns limit-1 (= 59) remaining.
+    expect(result.headers.get('X-RateLimit-Remaining')).toBe('59')
   })
 })
 

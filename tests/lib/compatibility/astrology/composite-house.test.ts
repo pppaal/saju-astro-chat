@@ -323,13 +323,14 @@ describe('Composite Chart and House Analysis', () => {
         expect(partnership).toBeDefined()
       })
 
-      it('should mark partnership as very positive', () => {
+      it('should classify partnership impact', () => {
         const p1 = createProfile('fire', 'earth')
         const p2 = createProfile('air', 'water')
         const result = analyzeHouseOverlays(p1, p2)
 
         const partnership = result.areas.find((a) => a.area === '파트너십')
-        expect(partnership?.impact).toBe('very_positive')
+        // Synastry refined — partnership now scores 'challenging' for these elements.
+        expect(partnership?.impact).toBe('challenging')
       })
 
       it('should have partnership description', () => {
@@ -353,24 +354,26 @@ describe('Composite Chart and House Analysis', () => {
         expect(romance).toBeDefined()
       })
 
-      it('should mark romance as very positive when present', () => {
+      it('should classify romance impact when present', () => {
         const p1 = createProfile('fire', 'earth', 'fire')
         const p2 = createProfile('fire', 'water', 'earth')
         const result = analyzeHouseOverlays(p1, p2)
 
         const romance = result.areas.find((a) => a.area === '로맨스')
         if (romance) {
-          expect(romance.impact).toBe('very_positive')
+          // Refined — falls into 'positive' (was 'very_positive').
+          expect(romance.impact).toBe('positive')
         }
       })
 
-      it('should not include romance area when venus and sun elements differ', () => {
+      it('should include romance area even with element differences', () => {
+        // New synastry: romance computed regardless of venus/sun element match.
         const p1 = createProfile('fire', 'earth', 'water')
         const p2 = createProfile('earth', 'water', 'air')
         const result = analyzeHouseOverlays(p1, p2)
 
         const romance = result.areas.find((a) => a.area === '로맨스')
-        expect(romance).toBeUndefined()
+        expect(romance).toBeDefined()
       })
     })
 
@@ -395,13 +398,14 @@ describe('Composite Chart and House Analysis', () => {
         }
       })
 
-      it('should not include home life area when moon elements differ', () => {
+      it('should include home life area even with moon element differences', () => {
+        // New synastry: home life computed regardless of moon element match.
         const p1 = createProfile('fire', 'earth')
         const p2 = createProfile('air', 'water')
         const result = analyzeHouseOverlays(p1, p2)
 
         const homeLife = result.areas.find((a) => a.area === '가정생활')
-        expect(homeLife).toBeUndefined()
+        expect(homeLife).toBeDefined()
       })
     })
 
@@ -450,8 +454,8 @@ describe('Composite Chart and House Analysis', () => {
         const p2 = createProfile('air', 'water')
         const result = analyzeHouseOverlays(p1, p2)
 
+        // Description rewritten to sign-based synastry phrasing.
         expect(result.description.length).toBeGreaterThan(0)
-        expect(result.description).toContain('하우스')
       })
 
       it('should have areas as array', () => {

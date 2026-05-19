@@ -1103,6 +1103,16 @@ export const GET = withApiMiddleware(
         for (const d of formattedDates) {
           d.monthlyInterpretation = interp
         }
+        // ★ themeScores 동기화 — interp.themeScores(룰 의도 기반)를
+        //   cells에 overwrite. UI 그래프(love/wealth/health 바)가
+        //   cell.themeScores 읽으므로, narrative와 점수가 같은 모델로
+        //   계산됨. cell의 신호 기반 themeScores와 narrative 톤 사이
+        //   mismatch 해소.
+        if (interp.themeScores) {
+          for (const cell of ceCells) {
+            cell.themeScores = { ...cell.themeScores, ...interp.themeScores }
+          }
+        }
       } catch (err) {
         logger.warn?.('[interpretation] skipped:', err instanceof Error ? err.message : String(err))
       }

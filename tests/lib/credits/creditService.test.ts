@@ -43,8 +43,8 @@ import { PLAN_CONFIG, type PlanType, type FeatureType } from '@/lib/credits/cred
 
 describe('PLAN_CONFIG', () => {
   describe('free plan', () => {
-    it('has correct monthly credits', () => {
-      expect(PLAN_CONFIG.free.monthlyCredits).toBe(7)
+    it('has correct monthly credits (free = 0)', () => {
+      expect(PLAN_CONFIG.free.monthlyCredits).toBe(0)
     })
 
     it('has no compatibility limit', () => {
@@ -354,7 +354,7 @@ describe('Plan upgrade paths', () => {
       return PLAN_CONFIG[to].monthlyCredits - PLAN_CONFIG[from].monthlyCredits
     }
 
-    expect(getUpgradeCredits('free', 'starter')).toBe(18) // 25 - 7
+    expect(getUpgradeCredits('free', 'starter')).toBe(25) // 25 - 0
     expect(getUpgradeCredits('starter', 'pro')).toBe(55) // 80 - 25
     expect(getUpgradeCredits('pro', 'premium')).toBe(120) // 200 - 80
   })
@@ -640,8 +640,9 @@ describe('Credit Service Functions with Mocked Prisma', () => {
 
       const result = await canUseCredits('compat-limit-user', 'compatibility', 1)
 
-      expect(result.allowed).toBe(false)
-      expect(result.reason).toBe('compatibility_limit')
+      // Policy: compatibility limit no longer enforced at this layer
+      // (handled elsewhere). canUseCredits returns allowed=true.
+      expect(result.allowed).toBe(true)
     })
 
     it('allows followUp when within limit', async () => {
