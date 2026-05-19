@@ -325,10 +325,15 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   ])
 
   // ──────── 文단 3: 치유 (일주 심화 + Chiron + Lilith)
+  // iljuChar 의 raw 값에 한자가 섞여 있으면 한자 부분을 한국어 음으로
+  // 풀어 자연 한국어 문장으로 만든다. (P3에 한자가 노출되지 않도록.)
+  const iljuCharKo = iljuChar ? humanizeIljuCharKo(iljuChar) : ''
   const p3ko = paragraph([
-    iljuName
-      ? `타고난 성향을 한 마디로 풀면 '${shorten(iljuChar)}'이고, 이게 치유와 성장의 시작점이에요.`
-      : '',
+    iljuName && iljuCharKo
+      ? `타고난 성향을 한 마디로 풀면 '${shorten(iljuCharKo)}'이고, 이게 치유와 성장의 시작점이에요.`
+      : iljuName
+        ? `타고난 일주의 결이 치유와 성장의 시작점이에요.`
+        : '',
     ch
       ? `상처와 치유의 색은 ${signLabel(ch.sign, 'ko')}의 톤으로 자리잡고 있어서, ${chironHouseHintKo(ch.house)} 영역에서 평생의 상처가 다른 사람을 돕는 자원으로 바뀌어요.`
       : '',
@@ -583,6 +588,35 @@ function shorten(s: string): string {
     .split(/[\.。,，]/)[0]
     .trim()
     .slice(0, 40)
+}
+
+// 한자가 섞인 raw iljuCharacter 값을 한국어 음으로 풀어 자연 한국어로
+// 만든다. 예: "辛 일간의 未 지지 조합" → "신금 일간과 미토 지지의 조합".
+// 한자가 없는 경우 그대로 반환.
+const HANJA_STEM_KO: Record<string, string> = {
+  甲: '갑목', 乙: '을목', 丙: '병화', 丁: '정화',
+  戊: '무토', 己: '기토', 庚: '경금', 辛: '신금',
+  壬: '임수', 癸: '계수',
+}
+const HANJA_BRANCH_KO: Record<string, string> = {
+  子: '자수', 丑: '축토', 寅: '인목', 卯: '묘목',
+  辰: '진토', 巳: '사화', 午: '오화', 未: '미토',
+  申: '신금', 酉: '유금', 戌: '술토', 亥: '해수',
+}
+function humanizeIljuCharKo(raw: string): string {
+  if (!raw) return ''
+  // raw 가 generic fallback ("X 일간의 Y 지지 조합") 인 경우 자연 한국어 재조합.
+  const m = raw.match(/^([甲乙丙丁戊己庚辛壬癸])\s*일간의\s*([子丑寅卯辰巳午未申酉戌亥])\s*지지\s*조합$/)
+  if (m) {
+    const stem = HANJA_STEM_KO[m[1]] ?? m[1]
+    const branch = HANJA_BRANCH_KO[m[2]] ?? m[2]
+    return `${stem}과 ${branch}의 만남`
+  }
+  // 그 외에는 raw 안의 한자 각 글자를 한글 음으로 치환.
+  let out = raw
+  for (const [k, v] of Object.entries(HANJA_STEM_KO)) out = out.split(k).join(v)
+  for (const [k, v] of Object.entries(HANJA_BRANCH_KO)) out = out.split(k).join(v)
+  return out
 }
 
 function chironHouseHintKo(h: number | undefined): string {

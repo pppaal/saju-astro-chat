@@ -216,7 +216,8 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     if (relEnHealth)
       deepEn.push(`${relEnHealth} When you push too hard, the strain tends to surface from that area first.`)
   }
-  // 12-stage × health + Sun × sign × health variations.
+  // 12-stage × health + planet × sign × health variations — capped at 2
+  // additional astro pool lines so the deep paragraph does not bloat.
   const dayMasterStemH = saju.pillars.day.stem || ''
   const dayBranchH = saju.pillars.day.branch || ''
   const stageH = saju.ultraAdvanced?.iljuDeep?.twelveStage
@@ -235,52 +236,21 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     `sun_sign:${sunH?.sign ?? ''}`,
     `day_branch:${dayBranchH}`,
   ])
-  if (sunHealthVar) {
-    astroUsed.push('pools.planetSign.sun.health')
-    deepKo.push(`${sunHealthVar}.`)
-  }
-  // Sun × house — 활력이 어느 인생 무대에서 풀리는지
   const sunHouseH = planetHouseLine('Sun', sunH?.house, 'ko')
-  if (sunHouseH) {
-    astroUsed.push('pools.planetHouse.sun')
-    deepKo.push(`${sunHouseH}.`)
-  }
-  // Mars × sign — 활력·염증·운동 (health 의 추진 행성)
   const marsH = getPlanet(astro, 'Mars')
   const marsHealthVar = pickVariation(planetSignPool('Mars', marsH?.sign, 'health'), [
     `day_master:${dayMasterStemH}`,
     `mars_sign:${marsH?.sign ?? ''}`,
     `day_branch:${dayBranchH}`,
   ])
-  if (marsHealthVar) {
-    astroUsed.push('pools.planetSign.mars.health')
-    deepKo.push(`${marsHealthVar}.`)
-  }
-  // Mercury × sign — 신경계·스트레스 (health 의 정신 축)
   const mercuryH = getPlanet(astro, 'Mercury')
   const mercuryHealthVar = pickVariation(planetSignPool('Mercury', mercuryH?.sign, 'health'), [
     `day_master:${dayMasterStemH}`,
     `mercury_sign:${mercuryH?.sign ?? ''}`,
     `day_branch:${dayBranchH}`,
   ])
-  if (mercuryHealthVar) {
-    astroUsed.push('pools.planetSign.mercury.health')
-    deepKo.push(`${mercuryHealthVar}.`)
-  }
-  // Mars × house (this PR — 활력·운동이 풀리는 무대)
   const marsHouseH = planetHouseLine('Mars', marsH?.house, 'ko')
-  if (marsHouseH) {
-    astroUsed.push('pools.planetHouse.mars')
-    deepKo.push(`${marsHouseH}.`)
-  }
-  // Mercury × house (this PR — 신경계·스트레스 풀리는 무대)
   const mercuryHouseH = planetHouseLine('Mercury', mercuryH?.house, 'ko')
-  if (mercuryHouseH) {
-    astroUsed.push('pools.planetHouse.mercury')
-    deepKo.push(`${mercuryHouseH}.`)
-  }
-  // ASC × health — 첫인상 = 몸의 색깔 (점성 정통: ASC 의 sign 이 신체
-  // 구조와 활력 톤 결정). Big 3 의 마지막 축.
   const ascH = astro.ascendant
   if (ascH) astroUsed.push('ascendant')
   const ascHealthVar = pickVariation(planetSignPool('Ascendant', ascH?.sign, 'health'), [
@@ -288,9 +258,40 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     `asc_sign:${ascH?.sign ?? ''}`,
     `day_branch:${dayBranchH}`,
   ])
-  if (ascHealthVar) {
-    astroUsed.push('pools.planetSign.asc.health')
-    deepKo.push(`${ascHealthVar}.`)
+  // Cap astro pool lines at 2 — priority: Sun sign → Mars sign → Mercury
+  // sign → ASC sign → planet-house. We also dedup any line whose key phrase
+  // is already inside deepKo so repeat themes (e.g. "비전통적 케어") never
+  // surface twice.
+  {
+    const healthPool: Array<[string, string | undefined]> = [
+      ['pools.planetSign.sun.health', sunHealthVar],
+      ['pools.planetSign.mars.health', marsHealthVar],
+      ['pools.planetSign.mercury.health', mercuryHealthVar],
+      ['pools.planetSign.asc.health', ascHealthVar],
+      ['pools.planetHouse.sun', sunHouseH],
+      ['pools.planetHouse.mars', marsHouseH],
+      ['pools.planetHouse.mercury', mercuryHouseH],
+    ]
+    let added = 0
+    const already = deepKo.join(' ')
+    const seenKeys = new Set<string>()
+    for (const [tag, v] of healthPool) {
+      if (!v || added >= 2) continue
+      // dedup by content phrase (strip punctuation/spacing for robust match)
+      const norm = v.replace(/[.!?\s]/g, '')
+      // signature: first 8 chars + last 8 chars after norm (covers both
+      // "비전통적 케어가 회복의 약이에요" and "비전통적인 케어가 회복의 약이에요").
+      const head = norm.slice(0, 6)
+      const tail = norm.slice(-6)
+      const sig = `${head}__${tail}`
+      if (seenKeys.has(sig)) continue
+      const alreadyNorm = already.replace(/[.!?\s]/g, '')
+      if (alreadyNorm.includes(head) && alreadyNorm.includes(tail)) continue
+      seenKeys.add(sig)
+      astroUsed.push(tag)
+      deepKo.push(`${v}.`)
+      added++
+    }
   }
   const p3ko = paragraph(
     deepKo.length ? deepKo : ['건강의 흐름은 극단보다는 일상의 작은 누적이 만들어요.']

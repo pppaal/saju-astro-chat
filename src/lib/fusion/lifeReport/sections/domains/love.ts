@@ -211,13 +211,10 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       /(사이|관계|사랑)[^.]{0,20}(어울려|풀려|편해|깊어|채워|살아)/.test(moonSignVar)
     return dup || sibsinAlreadyClosesLoveTone ? '' : moonSignVar
   })()
+  // P1 — keep to max 2 pool variations (sibsin category + Moon sign) so
+  // the basic identity paragraph stays short. The remaining pool lines
+  // (Venus, Mars, ASC, planet-house) move into P3 as deep-grain layer.
   p1ko = appendToPara(p1ko, moonSignDedup)
-  p1ko = appendToPara(p1ko, venusSignVar)
-  p1ko = appendToPara(p1ko, marsSignVar)
-  p1ko = appendToPara(p1ko, ascSignVar)
-  p1ko = appendToPara(p1ko, moonHouseVar)
-  p1ko = appendToPara(p1ko, venusHouseVar)
-  p1ko = appendToPara(p1ko, marsHouseVar)
   const p1en = paragraph([styleEn, venusBlurbEn])
 
   // ── Paragraph 2: 배우자 인상
@@ -248,6 +245,17 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   // ── Paragraph 3: 고급 지표 (vertex, juno, PoF, aspects)
   const deepKo: string[] = []
   const deepEn: string[] = []
+  // Pool variations displaced from P1 — capped at 2 lines max so P3 does
+  // not bloat. Priority: Venus sign → Mars sign → ASC sign → planet-house.
+  {
+    const extraLove: string[] = []
+    for (const v of [venusSignVar, marsSignVar, ascSignVar, venusHouseVar, marsHouseVar, moonHouseVar]) {
+      if (!v) continue
+      if (extraLove.length >= 2) break
+      extraLove.push(/[.!?]$/.test(v) ? v : `${v}.`)
+    }
+    for (const line of extraLove) deepKo.push(line)
+  }
   if (vertexVenus) {
     deepKo.push(
       `운명적 만남의 점과 사랑의 별이 ${aspectQuality(vertexVenus.type, 'ko')}, 운명적인 한 번의 만남이 새겨져 있어요.`

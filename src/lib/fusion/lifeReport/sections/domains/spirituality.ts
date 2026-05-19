@@ -116,7 +116,8 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     )
   }
   if (iljuName) {
-    const short = (iljuChar || '')
+    // iljuChar 의 raw 값에 한자가 있으면 한국어 음으로 변환 (P 안에 한자 노출 X).
+    const short = humanizeIljuCharSpirit(iljuChar || '')
       .split(/[.,。，]/)[0]
       .trim()
       .slice(0, 40)
@@ -471,6 +472,32 @@ function iljuLabelEnSpirit(ilju: string | undefined): string {
   if (stem) return stem
   if (branch) return branch
   return 'native day-pillar'
+}
+
+// raw iljuCharacter ("辛 일간의 未 지지 조합") 를 한국어 음으로 변환.
+// 한자가 없는 경우 그대로 반환.
+const HUMANIZE_STEM_KO_SPIRIT: Record<string, string> = {
+  甲: '갑목', 乙: '을목', 丙: '병화', 丁: '정화',
+  戊: '무토', 己: '기토', 庚: '경금', 辛: '신금',
+  壬: '임수', 癸: '계수',
+}
+const HUMANIZE_BRANCH_KO_SPIRIT: Record<string, string> = {
+  子: '자수', 丑: '축토', 寅: '인목', 卯: '묘목',
+  辰: '진토', 巳: '사화', 午: '오화', 未: '미토',
+  申: '신금', 酉: '유금', 戌: '술토', 亥: '해수',
+}
+function humanizeIljuCharSpirit(raw: string): string {
+  if (!raw) return ''
+  const m = raw.match(/^([甲乙丙丁戊己庚辛壬癸])\s*일간의\s*([子丑寅卯辰巳午未申酉戌亥])\s*지지\s*조합$/)
+  if (m) {
+    const stem = HUMANIZE_STEM_KO_SPIRIT[m[1]] ?? m[1]
+    const branch = HUMANIZE_BRANCH_KO_SPIRIT[m[2]] ?? m[2]
+    return `${stem}과 ${branch}의 만남`
+  }
+  let out = raw
+  for (const [k, v] of Object.entries(HUMANIZE_STEM_KO_SPIRIT)) out = out.split(k).join(v)
+  for (const [k, v] of Object.entries(HUMANIZE_BRANCH_KO_SPIRIT)) out = out.split(k).join(v)
+  return out
 }
 
 const ZR_SIGN_KO: Record<string, string> = {

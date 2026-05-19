@@ -437,13 +437,30 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     ? paragraph(p6piecesEn)
     : 'Today and this month sit calmly — refine daily grain rather than rushing big decisions.'
 
+  // P5 (5–10년 윈도우) 와 P6 (올해·이번 달) 는 모두 "근거리 타이밍" 결이라
+  // 한 문단으로 합쳐 narrative 길이를 줄인다. 문단 안에서는 5–10년 라인이
+  // 먼저, 올해/이번 달 라인이 뒤따라오도록 한국어 자연 순서를 유지.
+  const p5p6ko =
+    p5pieces.length > 0 || p6pieces.length > 0
+      ? paragraph([...p5pieces, ...p6pieces])
+      : '다음 5~10년의 흐름은 잔잔히 정렬돼 있어, 큰 굴곡보다 매 시기마다 작은 톤을 갱신해가는 길이에요.'
+  const p5p6en =
+    p5piecesEn.length > 0 || p6piecesEn.length > 0
+      ? paragraph([...p5piecesEn, ...p6piecesEn])
+      : 'The 5–10 year horizon sits calmly arranged — many small renewals rather than a single dramatic bend.'
+  // 위에서 만든 p5ko/p5en/p6ko/p6en 도 호환을 위해 유지하지만 paragraph 배열엔
+  // 합쳐진 p5p6 만 넣어 최종 paragraph 수가 5 개로 줄어든다.
+  void p5ko
+  void p5en
+  void p6ko
+  void p6en
+
   const paragraphs: Paragraph[] = [
     { ko: p1ko, en: p1en },
     { ko: p2ko, en: p2en },
     { ko: p3ko, en: p3en },
     { ko: p4ko, en: p4en },
-    { ko: p5ko, en: p5en },
-    { ko: p6ko, en: p6en },
+    { ko: p5p6ko, en: p5p6en },
   ]
 
   return {

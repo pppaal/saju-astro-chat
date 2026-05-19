@@ -134,11 +134,19 @@ export function buildHeadline(input: BuilderInput): Headline {
   // 부담되지 않아 그대로 노출.
   const rootKo = rootSummary ? ` ${rootSummary.phraseKo}` : ''
   const rootEn = rootSummary ? ` ${rootSummary.phraseEn}` : ''
+  // S1: 본명 핵심 — 일간 + 격국 + (선택적) 종격/통근. 길어지지 않도록 통근은
+  // 'none' 인 경우에만 헤드라인에 노출하고, 충분히 강한 통근은 본문에 맡긴다.
+  const rootKoSlim = rootSummary && rootSummary.level === 'none' ? ` ${rootSummary.phraseKo}` : ''
+  const rootEnSlim = rootSummary && rootSummary.level === 'none' ? ` ${rootSummary.phraseEn}` : ''
   const s1ko =
     `당신은 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} 성향을 타고난 사람이에요.` +
-    `${geokgukKo}${jongKo}${rootKo}`
+    `${geokgukKo}${jongKo}${rootKoSlim}`
   const s1en =
-    `You were born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEn}`
+    `You were born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEnSlim}`
+  // mark rootSummary as used regardless (signal hook), keeps Korean rootKo
+  // / rootEn variables alive for callers that want the full phrase.
+  void rootKo
+  void rootEn
 
   // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
   // "별" 단어를 한 문장 안에서 최대 1회로 제한 — 자아=태양, 감정=달은
@@ -174,13 +182,20 @@ export function buildHeadline(input: BuilderInput): Headline {
   const balanceFlavorEn = domEl
     ? `${ELEMENT_FLAVOR_EN[domEl]} anchors your chart`
     : ''
-  // 모달리티 + 인생 이끄는 별을 한 문장으로 묶어 짧은 문장 연속을 부드럽게 함
+  // 모달리티 + 인생 이끄는 별 + 지배 원소를 한 문장으로 묶어 헤드라인이
+  // 4–5 문장 길이를 유지하도록 함. 별도의 balanceFlavor 줄을 분리하지 않고
+  // 한 문장에 통합해 짧고 또렷한 결로.
   const modPlanetKo = (() => {
     const modPart = domModality ? modalityKo(domModality) : ''
     const planetPart = dom ? `${planetLabel(dom, 'ko')}이 인생을 이끌어요` : ''
-    if (modPart && planetPart) return ` ${modPart}, ${planetPart}.`
-    if (modPart) return ` ${modalityStandaloneKo(domModality!)}.`
-    if (planetPart) return ` ${planetPart}.`
+    const elPart = domEl ? `${ELEMENT_FLAVOR_KO[domEl]}의 기운이 중심에 자리하고` : ''
+    if (elPart && modPart && planetPart) return `${elPart}, ${modPart}, ${planetPart}.`
+    if (elPart && planetPart) return `${elPart}, ${planetPart}.`
+    if (elPart && modPart) return `${elPart}, ${modalityStandaloneKo(domModality!)}.`
+    if (modPart && planetPart) return `${modPart}, ${planetPart}.`
+    if (modPart) return `${modalityStandaloneKo(domModality!)}.`
+    if (planetPart) return `${planetPart}.`
+    if (elPart) return `${balanceFlavorKo}`
     return ''
   })()
   const modFlavorEn = domModality ? `, with ${modalityFlavorEn(domModality)}` : ''
@@ -190,12 +205,10 @@ export function buildHeadline(input: BuilderInput): Headline {
 
   // iljuCharacter는 한국어 텍스트라 영어 narrative에는 노출하지 않음.
   void iljuChar
+  // balanceFlavorKo 는 이제 modPlanetKo 안에 흡수돼 별도 노출하지 않음.
+  void balanceFlavorKo
 
-  const s3ko = paragraphJoin([
-    balanceFlavorKo,
-    modPlanetKo,
-    lackKo,
-  ])
+  const s3ko = paragraphJoin([modPlanetKo, lackKo])
   const s3en = paragraphJoin([
     balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.',
   ])
