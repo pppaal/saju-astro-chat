@@ -51,7 +51,7 @@ const RANGES: StageRange[] = [
     titleKo: '초년기 (0–20세)',
     titleEn: 'Early years (0–20)',
     pillarKo: '뿌리와 환경',
-    pillarEn: 'year pillar',
+    pillarEn: 'early-life pillar',
     themeKo: '환경에 적응하고 처음 자기 색을 느끼는 시기',
     themeEn: 'environment, roots, learning',
   },
@@ -63,7 +63,7 @@ const RANGES: StageRange[] = [
     titleKo: '청년기 (20–40세)',
     titleEn: 'Young adulthood (20–40)',
     pillarKo: '독립과 진로',
-    pillarEn: 'month pillar',
+    pillarEn: 'young-adulthood pillar',
     themeKo: '진로와 관계의 토대를 짓는 시기',
     themeEn: 'career, independence, forming bonds',
   },
@@ -75,7 +75,7 @@ const RANGES: StageRange[] = [
     titleKo: '장년기 (40–60세)',
     titleEn: 'Middle years (40–60)',
     pillarKo: '본격적 자기 무대',
-    pillarEn: 'day pillar',
+    pillarEn: 'middle-life pillar',
     themeKo: '진짜 자기 색이 가장 진하게 드러나는 시기',
     themeEn: 'true self, social position',
   },
@@ -87,7 +87,7 @@ const RANGES: StageRange[] = [
     titleKo: '후반기 (60세 이후)',
     titleEn: 'Later years (60+)',
     pillarKo: '결실과 내면',
-    pillarEn: 'time pillar',
+    pillarEn: 'late-life pillar',
     themeKo: '결실을 거두고 남길 것을 정리하는 시기',
     themeEn: 'harvest, legacy, inner work',
   },
@@ -196,7 +196,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
       : '',
   ])
   const p1en = paragraph([
-    `${range.titleEn} is ruled by the ${range.pillarEn} — the centre of gravity for ${range.themeEn}.`,
+    `${range.titleEn} is ruled by the ${range.pillarEn} — the anchor for ${range.themeEn}.`,
     pillar?.stem || pillar?.branch
       ? `Its ${pillarGrainEn(pillar.stem, pillar.branch)} grain works the ${ELEMENT_TEXTURE_EN[dayEl] ?? 'balance'} note into this season.`
       : '',
@@ -374,10 +374,10 @@ function challengePieceEn(
   events: AstroLifecycleEvent[]
 ): string {
   const pillarLabel: Record<LifeStageId, string> = {
-    early: 'year pillar',
-    young: 'month pillar',
-    middle: 'day pillar',
-    late: 'hour pillar',
+    early: 'early-life pillar',
+    young: 'young-adulthood pillar',
+    middle: 'middle-life pillar',
+    late: 'late-life pillar',
   }
   const stagePiece = twelveStage
     ? `Because ${twelveStageMeaningEn(twelveStage)} runs on the ${pillarLabel[id]}, `

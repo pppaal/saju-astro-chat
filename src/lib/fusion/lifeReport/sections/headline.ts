@@ -121,7 +121,7 @@ export function buildHeadline(input: BuilderInput): Headline {
 
   // ─ Sentence 1 — saju identity (짧고 단단하게)
   const stemLabelKo = STEM_LABEL[dayStem] || dayStem || '본성'
-  const stemLabelEn = STEM_LABEL_EN[dayStem] || dayStem || 'day master'
+  const stemLabelEn = STEM_LABEL_EN[dayStem] || dayStem || 'core nature'
   const strengthKo = STRENGTH_LABEL_KO[strength] || ''
   const strengthEn = STRENGTH_LABEL_EN[strength] || ''
   const geokgukKo = geokguk ? ` 삶의 큰 흐름은 ${geokgukFlavorKo(geokguk)}이에요.` : ''
@@ -178,7 +178,7 @@ export function buildHeadline(input: BuilderInput): Headline {
     ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.`
     : ''
   const balanceFlavorEn = domEl
-    ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity`
+    ? `${ELEMENT_FLAVOR_EN[domEl]} anchors your chart`
     : ''
   // 모달리티 + 인생 이끄는 별을 한 문장으로 묶어 짧은 문장 연속을 부드럽게 함
   const modPlanetKo = (() => {

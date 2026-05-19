@@ -101,7 +101,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const p1en = paragraph([
     wealthFlavorEn(wealthTotal, sib.정재, sib.편재),
     second && second.sign
-      ? `Your 2nd house opens in ${signLabel(second.sign, 'en')}, so you handle money in a ${secondSignFlavorEn(second.sign)} way.`
+      ? `Your 2nd house begins in ${signLabel(second.sign, 'en')}, so you handle money in a ${secondSignFlavorEn(second.sign)} way.`
       : '',
     jupiter
       ? `Jupiter, the planet of luck, sits in ${signLabel(jupiter.sign, 'en')}'s ${houseLabel(jupiter.house, 'en')}, expanding ${jupiterFlavorEn(jupiter.house)}.`
@@ -314,7 +314,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     guideEn.push('Lock the stable income line first, then expand on top of it.')
   } else {
     guideKo.push('한 곳에 묶지 말고 분산된 자원 흐름을 만드세요. 다채로움이 운을 부르는 길이에요.')
-    guideEn.push('Do not pin everything to one source — spread the flow. An opportunistic-resource current likes variety.')
+    guideEn.push('Do not pin everything to one source — spread the flow. An opportunistic-resource pattern thrives on variety.')
   }
   if (wealthDaeun) {
     guideKo.push(`${wealthDaeun.age}세 직전에 자원 그릇을 키워두면 흐름이 자연스럽게 따라와요.`)
@@ -402,9 +402,9 @@ function wealthFlavorEn(total: number, jeong: number, pyen: number): string {
       : 'You build resources by spinning up multiple income lines.'
   if (total === 1)
     return jeong >= pyen
-      ? 'You deepen a single steady income line.'
+      ? 'You build one steady stream of income over time.'
       : 'You shine at side-income and opportunistic capture.'
-  return 'With the resource current quiet, money is carried by other signals — career and the wisdom current act as the resource channel.'
+  return 'With the resource dynamic quiet, money is carried by other signals — career and the wisdom-and-care pattern act as the resource channel.'
 }
 
 // 60갑자 일주 (hanja) → natural English label.
@@ -470,7 +470,7 @@ const SECOND_SIGN_FLAVOR_EN: Record<string, string> = {
   Gemini: 'multi-channel',
   Cancer: 'savings-and-protection',
   Leo: 'bold-expressive',
-  Virgo: 'detail-managed',
+  Virgo: 'meticulous, detail-oriented',
   Libra: 'balance-and-aesthetic',
   Scorpio: 'deep-private',
   Sagittarius: 'wide-vision',

@@ -87,12 +87,12 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       : '',
   ])
   const p1en = paragraph([
-    'The large grain of your health begins with five-element balance.',
+    'The big picture of your health starts with five-element balance.',
     weak.length > 0
       ? `Weak in ${weakLabelsEn.join('/')}, so ${organEn(weak)} need ongoing care.`
       : 'Your five elements sit relatively even, so no single weakness dominates.',
     yongsin
-      ? `Your balancing element is ${yongsinElementEnHealth(yongsin)}, so ${yongsinFlavorEn(yongsin)} is the daily reinforcement direction.`
+      ? `Your supportive element is ${yongsinElementEnHealth(yongsin)}, so ${yongsinFlavorEn(yongsin)} is the daily way to reinforce it.`
       : '',
   ])
 

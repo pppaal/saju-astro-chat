@@ -128,7 +128,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   if (inseong >= 2) {
     p2pieces.push('지혜와 돌봄의 자질이 강해서, 가르침을 받아 전하는 흐름이 영성의 뼈대가 돼요.')
     p2piecesEn.push(
-      'A strong wisdom-and-care current frames spirituality as receiving teaching and passing it on.'
+      'A strong wisdom-and-care pattern frames spirituality as receiving teaching and passing it on.'
     )
   }
   const p2ko = paragraph(

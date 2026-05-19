@@ -295,7 +295,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       ? `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? `'s ${ordinalShortKarma(nn.house)} house` : ''} — the direction your soul wants to grow.`
       : '',
     ys
-      ? `Your balancing element is ${elementFlavorEn(ys)} — bringing it into daily life lets the soul unfold.`
+      ? `Your supportive element is ${elementFlavorEn(ys)} — weaving it into daily life lets the soul unfold.`
       : '',
   ])
 
@@ -316,7 +316,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       : '',
   ])
   const p2en = paragraph([
-    `Your karma archetype reads as ${KARMA_ARCHETYPE_EN[karmaType]} — ${KARMA_DESC_EN[karmaType]}`,
+    `Your karma archetype comes through as ${KARMA_ARCHETYPE_EN[karmaType]} — ${KARMA_DESC_EN[karmaType]}`,
     `Roughly ${Math.round(fixedRatio * 100)}% is the fated portion; ${Math.round(flexibleRatio * 100)}% is the flexible portion you reshape through choice.`,
     dmRoot ? dmRoot.phraseEn : '',
     gongmang.length > 0

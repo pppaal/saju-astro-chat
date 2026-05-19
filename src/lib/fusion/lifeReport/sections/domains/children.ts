@@ -148,10 +148,10 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       : sikSangTotal === 0
         ? 'Your bond with children grows through conscious choice.'
         : 'Your bond with children runs calm and stable.',
-    `Your creative-output current reads as ${sikSangTotal} live strand${sikSangTotal === 1 ? '' : 's'} — ${childFlavorEn(sikSangTotal)}.`,
+    `Your creative-expression dynamic comes through as ${sikSangTotal} strong stream${sikSangTotal === 1 ? '' : 's'} — ${childFlavorEn(sikSangTotal)}.`,
     fifth.length > 0
       ? `With ${fifth.map((p) => p.name).join(', ')} inside the 5th house, the seat of children, creation and play is fully active.`
-      : 'With an empty 5th house, the children-signal is carried by other markers.',
+      : 'With an empty 5th house, the children-related markers are carried by other placements.',
   ])
 
   // ── Paragraph 2: 자녀 수 추정 + 시주 분석
@@ -163,8 +163,8 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   ])
   const p2en = paragraph([
     `Estimated count: ${est.min === est.max ? `around ${est.min}` : `${est.min}–${est.max}`} (confidence ${est.confidence}).`,
-    'Combining your creative-output current with the natal 5th house gives this range.',
-    `Your late-life pillar is the children seat itself; ${stageFlavorEn(ts)}.`,
+    'Combining your creative-expression dynamic with the natal 5th house gives this range.',
+    `Your late-life pillar marks the area of children itself; ${stageFlavorEn(ts)}.`,
     'The chart alone cannot fix an exact number — treat this as guidance, not a verdict.',
   ])
 
@@ -176,7 +176,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     deepEn.push('Jupiter in the 5th places children at the channel of luck and expansion.')
   } else if (jupiter && jupiter.house) {
     deepKo.push(`확장의 별이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`)
-    deepEn.push(`Jupiter supports the children-signal indirectly from your ${houseLabel(jupiter.house, 'en')}.`)
+    deepEn.push(`Jupiter supports your child-related markers indirectly from your ${houseLabel(jupiter.house, 'en')}.`)
   }
   if (saturn && saturn.house === 5) {
     deepKo.push('책임의 별이 창조 영역에 있어, 자녀가 늦게 오거나 적은 수로 깊은 관계를 만드는 흐름이에요.')
@@ -227,7 +227,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.'
   ])
   const p3en = paragraph(deepEn.length ? deepEn : [
-    'Because the 5th-house and creative-output signals sit in a steady alignment, your children-signal follows the calm grain of daily life.'
+    'Because the 5th-house and creative-expression signals sit in a steady alignment, your child-related markers follow the calm grain of daily life.'
   ])
 
   const paragraphs: Paragraph[] = [
@@ -264,9 +264,9 @@ function childCountFlavorKo(n: number): string {
   return '풍성하게'
 }
 function childFlavorEn(n: number): string {
-  if (n === 0) return 'other signals carry the children-thread'
-  if (n === 1) return 'a single stable thread of bond'
-  if (n === 2) return 'a clear flowing bond'
+  if (n === 0) return 'other signals carry the child-related thread'
+  if (n === 1) return 'a single, stable thread of bond'
+  if (n === 2) return 'a clear, flowing bond'
   return 'a rich, abundant signal'
 }
 
@@ -285,12 +285,12 @@ function stageFlavorKo(stage: string | undefined): string {
   return '잔잔한 기운이 흘러요'
 }
 function stageFlavorEn(stage: string | undefined): string {
-  if (!stage) return 'the children-bond settles naturally into daily life'
+  if (!stage) return 'the bond with children settles naturally into daily life'
   if (['장생', '관대', '임관', '왕지', '건록', '제왕'].includes(stage))
-    return 'the children-seat carries strong, alive energy'
+    return 'this house of children carries strong, alive energy'
   if (['병', '사', '묘', '절', '태'].includes(stage))
-    return 'the children-seat carries rest and emptying energy'
-  return 'a calm energy fills the children-seat'
+    return 'this house of children carries rest and emptying energy'
+  return 'a calm energy fills this house of children'
 }
 
 const CERES_HOUSE_FLAVOR_KO: Record<number, string> = {

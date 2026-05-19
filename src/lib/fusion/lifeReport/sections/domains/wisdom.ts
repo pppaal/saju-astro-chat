@@ -85,9 +85,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
       ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 풀리는 길이에요.'
       : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
   const inseongFlavorEn = inseong >= 3
-    ? 'A strong wisdom-and-care current runs through your chart — learning itself becomes the channel of luck.'
+    ? 'A strong wisdom-and-care pattern runs through your chart — learning itself becomes the channel of luck.'
     : inseong >= 1
-      ? 'A quiet wisdom-and-care current sits in your chart — continuous learning becomes your exit door.'
+      ? 'A quiet wisdom-and-care pattern sits in your chart — continuous learning becomes your exit door.'
       : 'The learning current flows from initiative rather than inheritance.'
 
   const p1ko = paragraph([
@@ -129,10 +129,10 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   }
   if (sangwan >= 2) {
     p2pieces.push('재능의 자유로운 발산이 강해서, 받아들이기만 하는 학습보다 가르치고 표현할 때 지혜가 더 단단해져요.')
-    p2piecesEn.push('A strong free-talent current means wisdom hardens when you teach and express, not only when you absorb.')
+    p2piecesEn.push('A strong free creative streak means wisdom hardens when you teach and express, not only when you absorb.')
   } else if (sikshin >= 2) {
     p2pieces.push('여유로운 표현의 자질이 깔려 있어, 즐기듯 배우는 방식이 잘 맞아요.')
-    p2piecesEn.push('An easeful-expression current places ease at the centre — learning works best when it doubles as enjoyment.')
+    p2piecesEn.push('An easeful, expressive streak places ease at the centre — learning works best when it doubles as enjoyment.')
   }
   if (topMercAspect && mercury) {
     const other = topMercAspect.from?.name === 'Mercury' ? topMercAspect.to?.name : topMercAspect.from?.name
@@ -213,7 +213,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const guidePiecesEn: string[] = ['Daily handle:']
   if (inseong >= 2) {
     guidePiecesKo.push('하루에 단 한 가지라도 정리해서 남겨두세요. 인성의 자질은 기록으로 자라요.')
-    guidePiecesEn.push('Record one thing each day — your wisdom-and-care current grows through notes.')
+    guidePiecesEn.push('Record one thing each day — your wisdom-and-care pattern grows through notes.')
   } else if (sangwan >= 2) {
     guidePiecesKo.push('배운 것을 즉시 누군가에게 풀어보세요. 가르치는 순간 진짜 지혜가 돼요.')
     guidePiecesEn.push('Explain what you learn to someone right away — teaching is when knowledge becomes wisdom.')

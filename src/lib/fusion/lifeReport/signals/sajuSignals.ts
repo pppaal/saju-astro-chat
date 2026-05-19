@@ -637,23 +637,23 @@ function dayMasterRootPhraseEn(
   level: DayMasterRootSummary['level'],
   pillar?: 'year' | 'month' | 'day' | 'time',
 ): string {
-  const pillarEn = pillar === 'month' ? 'month branch'
-    : pillar === 'day' ? 'day branch'
-    : pillar === 'time' ? 'hour branch'
-    : pillar === 'year' ? 'year branch'
+  const pillarEn = pillar === 'month' ? 'heart of your life'
+    : pillar === 'day' ? 'middle of your life'
+    : pillar === 'time' ? 'later years of your life'
+    : pillar === 'year' ? 'early years of your life'
     : ''
   if (level === 'strong') {
     return pillarEn
-      ? `Your day master roots deeply in the ${pillarEn} — a stable inner weight.`
-      : `Your day master roots deeply in the chart — a stable inner weight.`
+      ? `Your core nature roots deeply at the ${pillarEn} — a stable inner weight.`
+      : `Your core nature roots deeply in the chart — a stable inner weight.`
   }
   if (level === 'moderate') {
     return pillarEn
-      ? `Your day master holds a steady root in the ${pillarEn}.`
-      : 'Your day master holds a steady root in the chart.'
+      ? `Your core nature stays steadily rooted at the ${pillarEn}.`
+      : 'Your core nature holds a steady root through the chart.'
   }
   if (level === 'weak') {
-    return 'Your day master keeps a thin root — environment tone shapes you visibly.'
+    return 'Your core nature keeps only a thin root — the surrounding environment visibly shapes you.'
   }
-  return 'Your day master carries no fixed root — you tune yourself to the surrounding current.'
+  return 'Your core nature carries no fixed root — you tune yourself to the surrounding current.'
 }

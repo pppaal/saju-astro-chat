@@ -202,7 +202,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     guidePiecesEn.push('Publish what you make right away — hidden output cannot attract luck.')
   } else if (sikshin >= 2) {
     guidePiecesKo.push('즐기듯이 매일 짧게라도 만들어보세요. 식신의 자질은 여유에서 자라요.')
-    guidePiecesEn.push('Make something briefly every day, with ease — your easeful-expression current grows in relaxed regularity.')
+    guidePiecesEn.push('Make something briefly every day, with ease — your easeful, expressive streak grows in relaxed regularity.')
   } else {
     guidePiecesKo.push('형식 안에서 한 가지 제약을 두고 만들어보세요. 제약이 오히려 독자성을 만들어줘요.')
     guidePiecesEn.push('Set one tight constraint and create inside it — constraint paradoxically builds originality.')
@@ -250,10 +250,10 @@ function openerKo(sangwan: number, sikshin: number, hasHwagae: boolean): string 
   return '창작의 색은 외부 자극보다 안에서 천천히 익혀가는 쪽으로 자리잡고 있어요.'
 }
 function openerEn(sangwan: number, sikshin: number, hasHwagae: boolean): string {
-  if (sangwan >= 3) return 'A very strong free-talent current means you feel suffocated if you do not make something.'
-  if (sangwan >= 1 && hasHwagae) return 'Both a free-talent current and an art-and-solitude star sit in your chart — creation is unavoidable this life.'
-  if (sikshin >= 2) return 'A strong easeful-expression current favours easy, enjoyment-led making.'
-  if (sangwan >= 1) return 'A free-talent current sits in your chart — work that lets you imprint your own grain flows best.'
+  if (sangwan >= 3) return 'A very strong free creative streak means you feel suffocated if you do not make something.'
+  if (sangwan >= 1 && hasHwagae) return 'Both a free creative streak and an art-and-solitude star sit in your chart — creation is unavoidable this life.'
+  if (sikshin >= 2) return 'A strong, easeful expressive streak favours easy, enjoyment-led making.'
+  if (sangwan >= 1) return 'A free creative streak sits in your chart — work that lets you imprint your own grain flows best.'
   return 'Your creative grain matures inwardly, slowly, more from inner pressure than outer prompt.'
 }
 
