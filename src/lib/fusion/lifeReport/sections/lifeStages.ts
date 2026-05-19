@@ -334,18 +334,18 @@ function twelveStageMeaningKo(stage: string): string {
 
 function twelveStageMeaningEn(stage: string): string {
   if (!stage) return ''
-  if (stage.includes('장생') || stage === '생') return 'a birth-grain flows'
-  if (stage.includes('욕')) return 'a growth-grain flows'
+  if (stage.includes('장생') || stage === '생') return 'a current of birth'
+  if (stage.includes('욕')) return 'a current of growth'
   if (stage.includes('관대')) return 'the closing of a growth phase'
   if (stage.includes('임관') || stage.includes('건록')) return 'an entry into the public stage'
-  if (stage.includes('제왕') || stage.includes('왕지')) return 'the peak grain flows'
-  if (stage.includes('쇠')) return 'the first softening begins'
-  if (stage.includes('병')) return 'a slow descent flows'
-  if (stage.includes('사')) return 'a stillness-grain flows'
+  if (stage.includes('제왕') || stage.includes('왕지')) return 'a current at its peak'
+  if (stage.includes('쇠')) return 'the first softening'
+  if (stage.includes('병')) return 'a slow descent'
+  if (stage.includes('사')) return 'a current of stillness'
   if (stage.includes('묘')) return 'a phase of rest and emptying'
-  if (stage.includes('절')) return 'an ending meets a new beginning'
-  if (stage.includes('태')) return 'a conception-grain flows'
-  if (stage.includes('양')) return 'a being-nurtured phase'
+  if (stage.includes('절')) return 'an ending meeting a new beginning'
+  if (stage.includes('태')) return 'a current of conception'
+  if (stage.includes('양')) return 'a phase of being nurtured'
   return ''
 }
 

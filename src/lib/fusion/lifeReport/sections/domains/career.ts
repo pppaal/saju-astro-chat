@@ -191,7 +191,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       ? `Your Midheaven (MC) sits in ${signLabel(mc.sign, 'en')}, so the face you bring to the world is ${mcSignFlavorEn(mc.sign)}.`
       : '',
     sun
-      ? `With the Sun in ${signLabel(sun.sign, 'en')}'s ${houseLabel(sun.house, 'en')}, your core professional energy is ${sunHouseFlavorEn(sun.house)}.`
+      ? `With your Sun in ${signLabel(sun.sign, 'en')} (${houseLabel(sun.house, 'en')}), the core energy of your professional life is ${sunHouseFlavorEn(sun.house)}.`
       : '',
   ])
 
@@ -203,19 +203,19 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `지금의 인생 흐름(${cur.age}세부터)에는 ${cur.sibsin ? sibsinMeaningKo(cur.sibsin) : '잔잔한 톤'}이 함께해서, 직업의 색이 다듬어지고 있어요.`
     )
     timingPiecesEn.push(
-      `Your current 10-year life-chapter (from age ${cur.age})${cur.sibsin ? ` carries ${sibsinMeaningEn(cur.sibsin)} as its current` : ''} and is reshaping your career grain.`
+      `Your current 10-year life-chapter (from age ${cur.age})${cur.sibsin ? ` runs on ${sibsinMeaningEn(cur.sibsin)}` : ''}, and it is slowly reshaping the tone of your career.`
     )
   }
   if (officialDaeun && (!cur || officialDaeun.age !== cur.age)) {
     timingPieces.push(`${officialDaeun.age}세 무렵엔 책임과 자리가 한 단계 올라가는 흐름이 와요.`)
     timingPiecesEn.push(
-      `Around age ${officialDaeun.age}, an authority chapter lifts your standing and responsibility.`
+      `Around age ${officialDaeun.age}, a chapter of authority arrives and lifts both your standing and your responsibility a step higher.`
     )
   }
   if (outputDaeun && (!cur || outputDaeun.age !== cur.age)) {
     timingPieces.push(`${outputDaeun.age}세 무렵엔 표현과 창조, 실행력이 폭발하는 구간이에요.`)
     timingPiecesEn.push(
-      `Near age ${outputDaeun.age}, a creative-expression chapter bursts open expression, creation and execution.`
+      `Around age ${outputDaeun.age}, a chapter of creative output opens up — expression, making, and follow-through all surge at once.`
     )
   }
   if (progSun) {
@@ -223,7 +223,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `자아의 빛이 ${signLabel(progSun.sign, 'ko')}의 톤으로 옮겨가는 단계라, 직업 정체성도 천천히 색이 바뀌고 있어요.`
     )
     timingPiecesEn.push(
-      `Your progressed Sun has moved into ${signLabel(progSun.sign, 'en')}${progSun.house ? ` (${houseLabel(progSun.house, 'en')})` : ''}, slowly retuning your professional identity.`
+      `Your progressed Sun has moved into ${signLabel(progSun.sign, 'en')}${progSun.house ? ` (${houseLabel(progSun.house, 'en')})` : ''}, slowly retuning the color of your professional identity.`
     )
   }
   const p2ko = paragraph(
@@ -235,7 +235,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     timingPiecesEn.length
       ? timingPiecesEn
       : [
-          'For now your daeun and progression sit in a steady stretch — a season for refining rather than overhauling.',
+          'For now your daeun and progressions sit in a steady stretch — a season for refining what you have rather than overhauling it.',
         ]
   )
 
@@ -247,7 +247,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `행동의 별과 책임의 별이 ${aspectQuality(marsSaturn.type, 'ko')} 있어서, 추진력과 인내가 한 엔진처럼 같이 일해요.`
     )
     deepPiecesEn.push(
-      `Because Mars and Saturn ${aspectQuality(marsSaturn.type, 'en')} on the same axis, drive (Mars) and endurance (Saturn) cooperate as one engine.`
+      `With Mars and Saturn ${aspectQuality(marsSaturn.type, 'en')} on the same axis, drive and endurance work together like a single engine.`
     )
   }
   if (sunMc) {
@@ -255,13 +255,13 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `자아의 빛과 사회 무대가 ${aspectQuality(sunMc.type, 'ko')}, 안과 밖이 어긋나지 않고 흘러요.`
     )
     deepPiecesEn.push(
-      `Sun-MC ${aspectQuality(sunMc.type, 'en')}, keeping inner identity and public role aligned.`
+      `Your Sun and Midheaven ${aspectQuality(sunMc.type, 'en')}, which keeps your inner identity and your public role moving in the same direction.`
     )
   }
   if (pofInTenth) {
     deepPieces.push(`행운의 점이 사회 무대에 있어, 직업 자체가 행운의 통로가 되는 드문 배치예요.`)
     deepPiecesEn.push(
-      `Part of Fortune in the 10th — a rare placement where the career itself becomes the door to luck.`
+      `Your Part of Fortune sits in the 10th — a rare placement in which your career itself becomes the door through which luck arrives.`
     )
   }
   if (fxOnMc.length > 0) {
@@ -269,7 +269,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `사회 무대에 특별한 별빛(${fxOnMc.join(', ')})이 닿아 있어서, 인상에 남다른 빛이 새겨져 있어요.`
     )
     deepPiecesEn.push(
-      `Fixed star(s) ${fxOnMc.join(', ')} contact your MC, etching a distinct grain into how the world reads you.`
+      `The fixed star${fxOnMc.length > 1 ? 's' : ''} ${fxOnMc.join(', ')} touch${fxOnMc.length > 1 ? '' : 'es'} your Midheaven, leaving a distinctive mark on how the world reads you.`
     )
   }
   if (jong) {
@@ -277,20 +277,20 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       '삶이 한 방향으로 강하게 흐르는 구조라, 두루 넓히기보다 한 분야로 깊이 들어가는 길이 맞아요.'
     )
     deepPiecesEn.push(
-      'Your chart runs as a single-direction current — a structure that favours deep specialization over wide spread.'
+      'Your chart flows as a single, focused current — a structure that rewards deep specialization rather than spreading wide.'
     )
   } else if (geokguk) {
     deepPieces.push(
       `인생의 큰 패턴이 ${geokgukShortKoForCareer(geokguk)}이라, 직업 색이 이미 명확하게 잡혀 있어요.`
     )
     deepPiecesEn.push(
-      `Your life-pattern is ${geokgukShortEnForCareer(geokguk)}, so the basic shape of your career is already pre-tuned.`
+      `Your life-pattern is ${geokgukShortEnForCareer(geokguk)}, so the basic shape of your career is already set into the chart from the start.`
     )
   }
   if (samgi.hasSamgi) {
     deepPieces.push('큰 무대에서 인정받을 특별한 자질이 함께 깔려 있어요.')
     deepPiecesEn.push(
-      'A rare nobility pattern is present, hinting at a latent capacity for recognition on a larger stage.'
+      'A rare nobility pattern sits in your chart, hinting at a latent capacity to be recognized on a larger stage.'
     )
   }
   if (iljuAptitudes.length > 0 && iljuName) {
@@ -361,7 +361,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   if (relKoCareer) {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepPieces.push(`${relKoCareer} 만년에 직업 색이 한 번 다듬어지는 시기가 있어요.`)
-    if (relEnCareer) deepPiecesEn.push(`${relEnCareer} The late-career colour gets re-tuned once.`)
+    if (relEnCareer) deepPiecesEn.push(`${relEnCareer} The color of your late-stage career gets retuned once before it settles.`)
   }
   // Lot of Courage — adds an extra deep-grain note about challenge appetite
   const courage = input.calendarSignals?.arabicParts?.Courage
@@ -371,7 +371,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `용기의 행운점이 ${karmaSignKoCareer(courage.sign)}에 놓여, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`
     )
     deepPiecesEn.push(
-      `Your Lot of Courage in ${courage.sign} pulls the strongest career luck through the place where you accept challenge.`
+      `Your Lot of Courage sits in ${signLabel(courage.sign, 'en')} — your strongest career luck opens at the point where you step into challenge.`
     )
   }
   // Fusion career confirms (top 2)
@@ -414,14 +414,14 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   if (spirit) {
     fusionUsed.push('calendarSignals.arabicParts.Spirit')
     guideKo += ` 직업의 행운점이 ${spirit.sign === 'Aries' ? '양자리' : spirit.sign === 'Taurus' ? '황소자리' : spirit.sign === 'Gemini' ? '쌍둥이자리' : spirit.sign === 'Cancer' ? '게자리' : spirit.sign === 'Leo' ? '사자자리' : spirit.sign === 'Virgo' ? '처녀자리' : spirit.sign === 'Libra' ? '천칭자리' : spirit.sign === 'Scorpio' ? '전갈자리' : spirit.sign === 'Sagittarius' ? '사수자리' : spirit.sign === 'Capricorn' ? '염소자리' : spirit.sign === 'Aquarius' ? '물병자리' : '물고기자리'}에 놓여, 이 결을 일터에 가져갈수록 운이 자기 자리로 와요.`
-    guideEn += ` Your Lot of Spirit in ${spirit.sign} signals the grain to bring into the workplace — luck arrives when you carry it deliberately.`
+    guideEn += ` Your Lot of Spirit sits in ${signLabel(spirit.sign, 'en')} — luck arrives at work when you consciously carry this flavor with you.`
   }
   // Profection — current-year lord & house
   const prof = input.calendarSignals?.profectionCurrent
   if (prof && (prof.house === 10 || prof.house === 6 || prof.house === 2)) {
     fusionUsed.push('calendarSignals.profections')
     guideKo += ` 올해는 ${prof.house}궁(${prof.house === 10 ? '사회 무대' : prof.house === 6 ? '일터·실무' : '재산'})이 활성돼서, 직업의 흐름이 손에 잡히는 결과로 이어지는 한 해예요.`
-    guideEn += ` This year activates house ${prof.house} — career outcomes translate into tangible result.`
+    guideEn += ` This year activates your ${houseLabel(prof.house, 'en')} — career outcomes will translate into tangible results this year.`
   }
 
   const paragraphs: Paragraph[] = [
@@ -729,24 +729,24 @@ function buildCareerGuideEn(args: {
 }): string {
   const pieces: string[] = ['Daily handle:']
   if (args.dominantCategory === '식상')
-    pieces.push('Keep publishing what you make. Hidden output cannot attract luck.')
+    pieces.push('Keep publishing what you make. Work you keep hidden cannot attract luck to you.')
   else if (args.dominantCategory === '관성')
     pieces.push(
-      'Do not duck titles and seats — accept them one step at a time. Luck arrives through the seat.'
+      'Do not duck titles and positions — accept them one step at a time. Luck arrives for you through the position itself.'
     )
   else if (args.dominantCategory === '재성')
-    pieces.push('Close every effort with numbers. Resource-completion unlocks the flow.')
+    pieces.push('Close out every effort with numbers. Completing the resource side is what unlocks the flow.')
   else if (args.dominantCategory === '인성')
-    pieces.push('Keep learning and organizing. Study is your professional capital.')
+    pieces.push('Keep learning and keep organizing what you learn. Study is your professional capital.')
   else if (args.dominantCategory === '비겁')
-    pieces.push('Do not sever your peer links. Luck scales when you do not walk alone.')
+    pieces.push('Do not cut off your peer connections. Your luck scales when you choose not to walk alone.')
   if (args.officialAge)
     pieces.push(
-      `Slightly enlarge your responsibilities just before age ${args.officialAge} — the cycle catches up gracefully.`
+      `Stretch your responsibilities just a little just before age ${args.officialAge} — the cycle then catches up to you gracefully.`
     )
   if (args.wealthAge && (!args.officialAge || args.wealthAge !== args.officialAge))
     pieces.push(
-      `Around age ${args.wealthAge}, the wealth cycle opens a side-income / expansion window.`
+      `Around age ${args.wealthAge}, the wealth cycle opens a window for side income and expansion.`
     )
   return paragraph(pieces)
 }
@@ -774,21 +774,21 @@ function careerPatternLineKo(name: string): string {
 
 function careerPatternLineEn(name: string): string {
   if (name === '관살혼잡')
-    return 'Two threads of authority crowd in at once — you pass through pressure between responsibility and power.'
+    return 'Two threads of authority crowd in at once — you pass through a season of pressure between responsibility and raw power.'
   if (name === '식신제살')
-    return 'Expression and self-restraint move as a pair — career luck opens precisely when the crisis arrives.'
+    return 'Expression and self-restraint move together as a pair — your career luck tends to open precisely when a crisis arrives.'
   if (name === '관성과다')
-    return 'The authority dynamic runs heavily — luck only catches once you accept the seat and the weight.'
+    return 'The authority dynamic runs heavily through your chart — luck only takes hold once you accept the position and the weight that comes with it.'
   if (name === '식상과다')
-    return 'The creative-expression dynamic runs heavily — career power comes from constantly publishing what you make.'
+    return 'The creative-expression dynamic runs heavily through your chart — career power comes from constantly putting what you make out into the world.'
   if (name === '재성과다')
-    return 'The wealth-and-resource pattern runs heavily — careers that finish in tangible result run smoothest.'
+    return 'The wealth-and-resource pattern runs heavily through your chart — careers that close in tangible results tend to run the smoothest for you.'
   if (name === '인성과다')
-    return 'The study-and-care pattern runs heavily — using study, curation and care as the career spine fits best.'
+    return 'The study-and-care pattern runs heavily through your chart — using study, curation, and care as the spine of your career fits you best.'
   if (name === '신강사주')
-    return 'Your chart loops strongly back to self — self-directed work scales the largest fortune.'
+    return 'Your chart loops strongly back to the self — self-directed work is what scales the largest fortune for you.'
   if (name === '균형사주')
-    return 'Your inner threads spread evenly — multiple directions can run side by side without locking into one.'
+    return 'Your inner threads spread evenly — multiple directions can run side by side without any one of them locking you in.'
   return ''
 }
 

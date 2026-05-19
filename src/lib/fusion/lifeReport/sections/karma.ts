@@ -392,7 +392,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요. 본명과 영혼이 같은 음을 낼 때 가장 평온해져요.`
     )
     p5piecesEn.push(
-      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} marks the soul-identity carried in — ${signSoulEn(dra.sunSign)}. The most settled feeling comes when natal and draconic resonate.`
+      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} marks the soul-identity you bring into this life — ${signSoulEn(dra.sunSign)}. The deepest sense of peace comes when your natal and draconic charts sound the same note.`
     )
   }
   if (h7 && h7.strength >= 40) {
@@ -400,13 +400,15 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       '영적 친밀감이 차트 안에서 분명하게 울리고 있어, 신비적 체험·꿈·직관이 평소에도 가까이 있어요.'
     )
     p5piecesEn.push(
-      'Harmonics 7 resonates clearly — mystical experience, dreams and intuition remain close in ordinary life.'
+      'The 7th harmonic resonates clearly in your chart — mystical experience, dreams and intuition stay close to daily life.'
     )
   } else if (h7) {
     p5pieces.push(
       '영적 친밀감은 잔잔히 깔려 있어요. 깊은 침묵과 명상의 시간이 이 감각을 깨우는 길이에요.'
     )
-    p5piecesEn.push('Harmonics 7 sits quietly — silence and meditation awaken this grain.')
+    p5piecesEn.push(
+      'The 7th harmonic runs quietly beneath the surface — silence and meditation are what awaken it.'
+    )
   }
   // Nearest eclipses around birth (solar + lunar) — 카르마의 시작점에 새겨진
   // 일식/월식의 그늘 / 감정 변곡을 자연 한국어로 통합.
@@ -511,7 +513,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       `속박의 점이 ${signLabel(captivityLot.sign, 'ko')}에 놓여, 이번 생에 풀어내야 할 카르마 매듭의 색이 같은 결을 따라요.`
     )
     p6piecesEn.push(
-      `Your Lot of Captivity in ${signLabel(captivityLot.sign, 'en')} — the karmic knot to untie in this life carries that grain.`
+      `Your Lot of Captivity sits in ${signLabel(captivityLot.sign, 'en')} — the karmic knot you came here to untie tends to carry that same flavor.`
     )
   }
   const p6ko = paragraph(
@@ -522,7 +524,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
         ]
   )
   const p6en = paragraph(
-    p6piecesEn.length ? p6piecesEn : ['Internal harmony and clash sit calmly arranged — your karma works through daily grain rather than dramatic events.'],
+    p6piecesEn.length ? p6piecesEn : ['The patterns of harmony and clash inside your chart sit calmly arranged — your karma tends to work itself out through the texture of daily life rather than through dramatic events.'],
   )
 
   const paragraphs: Paragraph[] = [

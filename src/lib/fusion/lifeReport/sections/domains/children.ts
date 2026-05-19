@@ -171,9 +171,9 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   ])
   const p2en = paragraph([
     `Estimated count: ${est.min === est.max ? `around ${est.min}` : `${est.min}–${est.max}`} (confidence ${est.confidence}).`,
-    'Combining your creative-expression dynamic with the natal 5th house gives this range.',
-    `Your late-life pillar marks the area of children itself; ${stageFlavorEn(ts)}.`,
-    'The chart alone cannot fix an exact number — treat this as guidance, not a verdict.',
+    'Reading your creative-expression signals alongside the natal 5th house yields this range.',
+    `The time pillar carries the seat of children itself; ${stageFlavorEn(ts)}.`,
+    'No chart fixes an exact number — please treat this as guidance, not a verdict.',
   ])
 
   // ── Paragraph 3: 자녀 관계의 결 (advanced)
@@ -181,20 +181,20 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   const deepEn: string[] = []
   if (jupiter && jupiter.house === 5) {
     deepKo.push('확장의 별이 창조 영역에 있어, 자녀가 행운과 확장의 통로가 되는 배치예요.')
-    deepEn.push('Jupiter in the 5th places children at the channel of luck and expansion.')
+    deepEn.push('Jupiter in your 5th house makes children themselves a channel of luck and expansion.')
   } else if (jupiter && jupiter.house) {
     deepKo.push(`확장의 별이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`)
-    deepEn.push(`Jupiter supports your child-related markers indirectly from your ${houseLabel(jupiter.house, 'en')}.`)
+    deepEn.push(`From your ${houseLabel(jupiter.house, 'en')}, Jupiter supports the area of children at an angle rather than directly.`)
   }
   if (saturn && saturn.house === 5) {
     deepKo.push(
       '책임의 별이 창조 영역에 있어, 자녀가 늦게 오거나 적은 수로 깊은 관계를 만드는 흐름이에요.'
     )
-    deepEn.push('Saturn in the 5th delays or condenses children — fewer in number, deeper in bond.')
+    deepEn.push('Saturn in your 5th house can delay children or keep the number smaller — but the bonds that form go deep.')
   }
   if (moon && moon.house === 5) {
     deepKo.push('감정의 별이 창조 영역에 있어, 자녀와의 정서 교감이 깊어요.')
-    deepEn.push('Moon in the 5th brings deep emotional attunement with children.')
+    deepEn.push('Moon in your 5th house brings a deep emotional attunement with children.')
   }
   if (pa) {
     deepKo.push(
@@ -214,7 +214,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   }
   if (gk.includes('식신')) {
     deepKo.push('인생의 큰 패턴이 여유로운 표현과 창조의 흐름이라, 자녀를 키우는 일 자체가 자기 표현의 연장이에요.')
-    deepEn.push('Your life-pattern is one of easeful expression and creation — raising children is itself an extension of self-expression.')
+    deepEn.push('Your life-pattern flows through easeful expression and creation — raising children becomes a natural extension of that same self-expression.')
   }
   // Calendar-engine: 5th-house profection year (자녀의 행운점 활성) + harmonics 5 (창조의 결)
   const prof = input.calendarSignals?.profectionCurrent
@@ -224,7 +224,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       '올해는 창조 영역이 활성돼 있어, 임신·출산·자녀와의 결합 흐름이 다른 어느 해보다 가까이 와 있어요.'
     )
     deepEn.push(
-      'This year activates house 5 — conception, birth and child-bonding flows are closer than in any other year.'
+      'This year activates your 5th house — conception, birth, and bonding with a child come closer than in most other years.'
     )
   }
   const h5 = input.calendarSignals?.harmonics?.[5]
@@ -234,7 +234,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       '창의의 깊은 자질이 강하게 깔려 있어, 자녀가 있든 없든 ‘다음 세대로 무엇을 흘려보낼지’가 평생의 과제로 묻혀 있어요.'
     )
     deepEn.push(
-      'Harmonics 5 runs strongly — whether or not biological children appear, "what you pass to the next generation" remains a lifelong grain.'
+      'The 5th harmonic runs strongly in your chart — whether or not biological children appear, the question of what you pass on to the next generation stays with you for life.'
     )
   }
   // Saju relations — time pillar weighted (자녀 자리 = 시주)
@@ -248,13 +248,13 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoChildren} 자녀와의 인연 색이 일찍부터 정해져 있는 흐름이에요.`)
     if (relEnChildren)
-      deepEn.push(`${relEnChildren} The colour of the child-bond is pre-set early.`)
+      deepEn.push(`${relEnChildren} The tone of the bond with your child is set early.`)
   }
   const p3ko = paragraph(deepKo.length ? deepKo : [
     '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.'
   ])
   const p3en = paragraph(deepEn.length ? deepEn : [
-    'Because the 5th-house and creative-expression signals sit in a steady alignment, your child-related markers follow the calm grain of daily life.'
+    'Because your 5th-house and creative-expression signals sit in a steady alignment, your bond with children follows the calm rhythm of everyday life rather than big dramatic turns.'
   ])
 
   const paragraphs: Paragraph[] = [

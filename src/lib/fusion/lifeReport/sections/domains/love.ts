@@ -236,13 +236,12 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       : '',
   ])
   const p2en = paragraph([
-    `Your spouse archetype comes through as ${branchFlavorEn}.`,
-    `Your core nature draws in a ${branchFlavorEn} companion.`,
+    `Your core nature tends to draw in a ${branchFlavorEn} kind of companion.`,
     seventh
-      ? `Your 7th house begins in ${seventhSignEn}, so you ask for ${seventhSignFlavorEn(seventh.sign)} from a partner.`
+      ? `Your 7th house begins in ${seventhSignEn}, so you naturally ask for ${seventhSignFlavorEn(seventh.sign)} from a partner.`
       : '',
     seventhPlanets.length > 0
-      ? `With ${seventhPlanets.map((p) => p.name).join(', ')} inside the 7th, relationships sit at the centre of your life.`
+      ? `With ${seventhPlanets.map((p) => p.name).join(', ')} sitting in your 7th house, relationships sit right at the center of your life.`
       : '',
   ])
 
@@ -254,14 +253,14 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `운명적 만남의 점과 사랑의 별이 ${aspectQuality(vertexVenus.type, 'ko')}, 운명적인 한 번의 만남이 새겨져 있어요.`
     )
     deepEn.push(
-      `Vertex and Venus ${aspectQuality(vertexVenus.type, 'en')}, marking one fated encounter into the chart.`
+      `Your Vertex and Venus ${aspectQuality(vertexVenus.type, 'en')}, which writes one fated encounter into the chart.`
     )
   } else if (vx) {
     deepKo.push(
       `운명적 만남의 점이 ${signLabel(vx.sign, 'ko')}에 있어, 그 색을 따라가는 만남이 한 번 와요.`
     )
     deepEn.push(
-      `Your Vertex sits in ${signLabel(vx.sign, 'en')} ${houseLabel(vx.house, 'en')}, marking the coordinate of fated encounter.`
+      `Your Vertex sits in ${signLabel(vx.sign, 'en')} (${houseLabel(vx.house, 'en')}), marking the point where a fated encounter is most likely to enter.`
     )
   }
   if (j) {
@@ -269,19 +268,19 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `결혼의 별은 ${signLabel(j.sign, 'ko')}에 놓여, 결혼 자체에 ${junoFlavorKo(j.house)}이 흐르게 해요.`
     )
     deepEn.push(
-      `Juno (marriage asteroid) sits in ${signLabel(j.sign, 'en')} ${houseLabel(j.house, 'en')}, so marriage carries the tone of ${junoFlavorEn(j.house)}.`
+      `Juno, the asteroid of marriage, sits in ${signLabel(j.sign, 'en')} (${houseLabel(j.house, 'en')}), so marriage itself carries the tone of ${junoFlavorEn(j.house)}.`
     )
   }
   if (pofInSeventh) {
     deepKo.push('행운의 점이 관계 영역에 있어, 파트너십이 곧 행운의 통로가 되는 배치예요.')
-    deepEn.push(`Part of Fortune sits in the 7th — partnership is itself the channel of luck.`)
+    deepEn.push(`Your Part of Fortune sits in the 7th house — partnership is itself the channel through which luck arrives.`)
   }
   if (venusSaturn) {
     deepKo.push(
       `사랑의 별과 책임의 별이 ${aspectQuality(venusSaturn.type, 'ko')}, 성숙한 파트너와 시간이 갈수록 깊어지는 사랑을 만들어요.`
     )
     deepEn.push(
-      `Venus-Saturn ${aspectQuality(venusSaturn.type, 'en')}, producing a mature partner and love that deepens with time.`
+      `Your Venus and Saturn ${aspectQuality(venusSaturn.type, 'en')}, which tends to bring a mature partner and a love that grows deeper with time.`
     )
   }
   if (venusMars) {
@@ -289,7 +288,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `사랑의 별과 행동의 별이 ${aspectQuality(venusMars.type, 'ko')} 있어, 끌림과 욕망의 톤이 또렷해요.`
     )
     deepEn.push(
-      `Venus-Mars ${aspectQuality(venusMars.type, 'en')}, defining the grain of attraction and desire.`
+      `Your Venus and Mars ${aspectQuality(venusMars.type, 'en')}, giving a clear character to the way attraction and desire show up in your life.`
     )
   }
   if (loveConfirms.length > 0) {
@@ -309,7 +308,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoLove} 한 사람과의 결합이 인생 흐름에 굵게 새겨져요.`)
     if (relEnLove)
-      deepEn.push(`${relEnLove} Partnership leaves a strong imprint on the life grain.`)
+      deepEn.push(`${relEnLove} Partnership leaves a strong imprint on the larger arc of your life.`)
   }
   // 12-stage × love + 60갑자 일주 × love variations.
   const iljuNameLove = saju.ultraAdvanced?.iljuDeep?.ilju
@@ -338,7 +337,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     astroUsed.push('fixedStars(Venus)')
     deepKo.push(`금성과 함께 자리한 별 ${fxOnVenus.join('·')}이(가) 사랑에 특별한 결을 더해요.`)
     deepEn.push(
-      `Fixed star(s) ${fxOnVenus.join(', ')} sit alongside your Venus, etching a distinct grain into love.`
+      `The fixed star${fxOnVenus.length > 1 ? 's' : ''} ${fxOnVenus.join(', ')} sit${fxOnVenus.length > 1 ? '' : 's'} alongside your Venus, etching a distinctive quality into how you love.`
     )
   }
   const fxOnMars = mars ? fixedStarOn(astro, 'Mars') : []
@@ -346,7 +345,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     astroUsed.push('fixedStars(Mars)')
     deepKo.push(`화성에 닿는 별빛 ${fxOnMars.join('·')}이(가) 끌림의 톤을 한층 진하게 만들어요.`)
     deepEn.push(
-      `Fixed star(s) ${fxOnMars.join(', ')} touch your Mars, deepening the grain of attraction.`
+      `The fixed star${fxOnMars.length > 1 ? 's' : ''} ${fxOnMars.join(', ')} touch${fxOnMars.length > 1 ? '' : 'es'} your Mars, making the pull of attraction richer and more intense.`
     )
   }
   // Sibsin combination patterns relevant to love (재성/관성 grouping).
@@ -357,13 +356,13 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     const top = loveSibsinPatterns[0]
     if (top.name === '재성과다') {
       deepKo.push('재성의 결이 강하게 몰려서, 사랑에서도 손에 잡히는 결과·약속의 색을 선호하게 돼요.')
-      deepEn.push('A heavy resource current — in love too you favour tangible commitments and outcomes.')
+      deepEn.push('A heavy current of resource-seeking runs through your chart — in love too, you tend to favor tangible commitments and concrete outcomes.')
     } else if (top.name === '관살혼잡') {
       deepKo.push('관의 결이 두 갈래로 흘러, 사랑에서도 두 방향의 끌림이 같이 살아 있을 수 있어요.')
-      deepEn.push('Two threads of the authority dynamic run together — two directions of attraction can coexist in love.')
+      deepEn.push('Two threads of the authority current run together in your chart — in love, two directions of attraction can coexist at the same time.')
     } else if (top.name === '균형사주') {
       deepKo.push('사주 자질이 고르게 분포해서, 사랑의 결도 한쪽으로 치우치지 않고 무난히 흐르는 자리예요.')
-      deepEn.push('Your inner currents are balanced — love too runs without a single dominating grain.')
+      deepEn.push('Your inner currents sit in balance, so love too tends to flow evenly without any single quality taking over.')
     }
   }
   // Minor aspect — Venus-Mars quincunx/semisextile colours the attraction grain.
@@ -377,7 +376,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `사랑의 별과 행동의 별이 ${aspectQuality(venusMars.type, 'ko')} 있어서, 끌림의 결에 ${venusMarsMinorFlavorKo(venusMars.type)}이 함께해요.`
     )
     deepEn.push(
-      `Venus and Mars ${aspectQuality(venusMars.type, 'en')}, adding ${venusMarsMinorFlavorEn(venusMars.type)} to the attraction grain.`
+      `Venus and Mars ${aspectQuality(venusMars.type, 'en')}, adding ${venusMarsMinorFlavorEn(venusMars.type)} to the way attraction shows up for you.`
     )
   }
   // Lot of Eros now adds 끌림 colour at P3 (separate from existing P4 timing line)
@@ -388,7 +387,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `사랑의 끌림이 모이는 곳은 ${signLabel(erosLot.sign, 'ko')}이라, 본인을 매료시키는 색감도 그 톤으로 일관돼요.`
     )
     deepEn.push(
-      `Your Eros sits in ${signLabel(erosLot.sign, 'en')} — the colour that catches your attention runs through that grain.`
+      `Your Lot of Eros sits in ${signLabel(erosLot.sign, 'en')} — the kind of person who catches your attention tends to carry that same flavor.`
     )
   }
   const p3ko = paragraph(
@@ -400,7 +399,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     deepEn.length
       ? deepEn
       : [
-          'Because the deeper love signals sit in a calm alignment, this lifetime favors a slow deepening over a fated lightning-strike.',
+          'Because your deeper love signals sit in a calm arrangement, this lifetime favors love that deepens slowly over time rather than a single fated lightning-strike.',
         ]
   )
 
@@ -412,22 +411,22 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `${partnerDaeun.age}세 무렵 인생 흐름이 ${isFemale ? '배우자' : '인연'}의 문을 정식으로 열어줘요.`
     )
     timingEn.push(
-      `Age ${partnerDaeun.age} opens a 10-year life-chapter that formally widens the door to ${isFemale ? 'spouse' : 'partnership'}.`
+      `Age ${partnerDaeun.age} opens a ten-year life-chapter that formally widens the door to ${isFemale ? 'a spouse' : 'partnership'}.`
     )
   }
   if (cur && cur.sibsin) {
     timingKo.push(`지금의 인생 흐름에는 ${sibsinMeaningKoLove(cur.sibsin)}이 함께해서, 관계의 톤을 천천히 다듬어주고 있어요.`)
-    timingEn.push('Your current life-chapter is also tuning the relational grain.')
+    timingEn.push('Your current life-chapter is also slowly tuning the tone of your relationships.')
   }
   if (srSunInSeventh) {
     timingKo.push('올해 한 해 동안 관계가 무게중심을 잡아주는 시기예요.')
     timingEn.push(
-      `This year's Solar Return Sun lands in the 7th — relationship becomes the center-of-mass for the year.`
+      `This year's Solar Return Sun lands in your 7th house — relationship becomes the center of gravity for the year.`
     )
   }
   if (timingKo.length === 1) {
     timingKo.push('인생 흐름이 점차 익어가는 구간이라, 한 해 한 해 인연의 결이 모이고 있어요.')
-    timingEn.push('Your daeun is in a ripening stretch — signals accumulate season by season.')
+    timingEn.push('Your daeun is in a ripening stretch — the signals quietly accumulate season by season.')
   }
   // Calendar-engine signals: Lot of Eros (사랑의 행운점) + Venus dignity
   const eros = input.calendarSignals?.arabicParts?.Eros
@@ -438,7 +437,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}에 놓여, ${erosSignFlavorKoLove(eros.sign)} 인연이 사랑의 운을 끌어와요.`
     )
     timingEn.push(
-      `Your Lot of Eros sits in ${signLabel(eros.sign, 'en')} — love-luck arrives through ${erosSignFlavorEnLove(eros.sign)} bonds.`,
+      `Your Lot of Eros sits in ${signLabel(eros.sign, 'en')} — love-luck tends to arrive through ${erosSignFlavorEnLove(eros.sign)} bonds.`,
     )
   }
   if (venusDignity) {
@@ -446,14 +445,14 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     if (venusDignity.status === 'domicile' || venusDignity.status === 'exaltation') {
       timingKo.push('사랑의 별이 본인 자리에 있어, 일생 사랑이 다정하게 흐르는 배치예요.')
       timingEn.push(
-        `Venus is in ${venusDignity.status} — love runs warmly through your life by native disposition.`
+        `Venus sits in ${venusDignity.status === 'domicile' ? 'its home sign' : 'a sign where it shines brightest'} — love tends to run warmly through your life by natural disposition.`
       )
     } else if (venusDignity.status === 'detriment' || venusDignity.status === 'fall') {
       timingKo.push(
         '사랑의 별이 살짝 어색한 자리에 있어서, 첫 단계엔 시행착오가 있지만 결국 자기만의 방식을 찾는 흐름이에요.'
       )
       timingEn.push(
-        `Venus sits in ${venusDignity.status} — early love has trial-and-error, but you eventually find your own form.`
+        `Venus sits in a ${venusDignity.status === 'detriment' ? 'less comfortable' : 'weakened'} placement — the early years of love bring some trial and error, but you eventually find your own way of loving.`
       )
     }
   }

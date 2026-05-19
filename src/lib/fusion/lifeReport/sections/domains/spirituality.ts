@@ -102,7 +102,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `삶의 ${gongmang.join('·')} 영역에 '비어 있는 자리'(${gongmangBranches.join('·')})가 있어요. 이 빈 자리가 의외로 영적인 출구가 돼요 — 채울 수 없는 것이 가장 깊은 사유를 만들어요.`
     )
     p2piecesEn.push(
-      'An unfillable empty seat leaves a permanent gap in your chart — and this very space becomes a spiritual exit.'
+      'There is an empty space in your chart that no outer thing can quite fill — and that very gap turns out to be one of the deepest doorways into your spiritual life.'
     )
   }
   if (hwagae) {
@@ -110,7 +110,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       '예술·고독의 별이 들어와 있어, 종교·예술·치유 어느 길로 가도 깊이 들어가는 성향이 강해요.'
     )
     p2piecesEn.push(
-      'An art-and-solitude star sits in your chart — religion, art and healing all open deep paths.'
+      'A star of art-and-solitude sits in your chart — whether you turn toward religion, art, or healing, each of these paths opens deeply for you.'
     )
   }
   if (iljuName) {
@@ -121,14 +121,14 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     if (short) {
       p2pieces.push(`타고난 성향을 한 마디로 풀면 '${short}'이고, 이것이 영적 사유의 출발점이에요.`)
       p2piecesEn.push(
-        `Your day-pillar archetype (${iljuLabelEnSpirit(iljuName)}) sets the core note — the starting point for spiritual reflection.`
+        `Your day-pillar archetype (${iljuLabelEnSpirit(iljuName)}) sets the keynote — this is where your spiritual reflection naturally begins.`
       )
     }
   }
   if (inseong >= 2) {
     p2pieces.push('지혜와 돌봄의 자질이 강해서, 가르침을 받아 전하는 흐름이 영성의 뼈대가 돼요.')
     p2piecesEn.push(
-      'A strong wisdom-and-care pattern frames spirituality as receiving teaching and passing it on.'
+      'A strong wisdom-and-care pattern shapes your spiritual life around receiving teaching and passing it on to others.'
     )
   }
   const p2ko = paragraph(
@@ -142,7 +142,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     p2piecesEn.length
       ? p2piecesEn
       : [
-          'Your spiritual grain is evenly distributed — small daily rituals like meditation and prayer work best.',
+          'Your spiritual signals sit in an even balance — small daily rituals like meditation and prayer tend to work best for you.',
         ]
   )
 
@@ -167,7 +167,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요.`
     )
     p3piecesEn.push(
-      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} suggests the soul arrived wearing ${signSoulEn(dra.sunSign)}.`
+      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} suggests your soul arrived in this life already carrying ${signSoulEn(dra.sunSign)}.`
     )
   }
   if (dra?.archetype) {
@@ -179,24 +179,24 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       '영적 친밀감이 차트 안에서 강하게 울려요. 신비적 체험·직관·꿈이 자주 일상에 들어와요.'
     )
     p3piecesEn.push(
-      'Harmonics 7 resonates strongly — mystical experience, intuition and dreams enter daily life often.'
+      'The 7th harmonic resonates strongly in your chart — mystical experience, intuition, and dreams enter your daily life often.'
     )
   } else if (h7) {
     p3pieces.push('영적 친밀감이 잔잔히 깔려 있어요. 깊은 침묵의 시간을 두면 자연스럽게 깨어나요.')
-    p3piecesEn.push('Harmonics 7 sits quietly — extended silence will awaken it naturally.')
+    p3piecesEn.push('The 7th harmonic runs quietly beneath the surface — long stretches of silence are what will awaken it most naturally.')
   }
   if (lilith) {
     p3pieces.push(
       `${signLabel(lilith.sign, 'ko')}의 색으로 사회적 기대 밖의 내면이 자리잡고 있어, 이 어두운 자질을 인정할 때 진짜 힘이 풀려요.`
     )
     p3piecesEn.push(
-      `Lilith in ${signLabel(lilith.sign, 'en')} — acknowledging the part of yourself outside social approval unlocks real force.`
+      `With Lilith in ${signLabel(lilith.sign, 'en')}, real power becomes available to you when you can acknowledge the parts of yourself that live outside social approval.`
     )
   }
   if (nearestEclipse?.date) {
     p3pieces.push('출생 가까이 일식의 흔적이 있어, 결정적 순간에 평소와 다른 영적 직관이 작동해요.')
     p3piecesEn.push(
-      'A solar eclipse sits near your birth — at decisive moments an unusual spiritual intuition activates.'
+      'A solar eclipse falls close to your birth — at decisive moments, an unusually strong spiritual intuition tends to wake up in you.'
     )
   }
   if (ch) {
@@ -204,7 +204,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `상처와 치유의 색이 ${signLabel(ch.sign, 'ko')}의 톤으로 자리잡고 있어, 자신의 상처를 다루는 과정 자체가 영적 작업이 돼요.`
     )
     p3piecesEn.push(
-      `Chiron in ${signLabel(ch.sign, 'en')} — working with your own wound is itself the spiritual practice.`
+      `With Chiron in ${signLabel(ch.sign, 'en')}, working with your own wound becomes itself the spiritual practice.`
     )
   }
   // Saju relations — 해(misalignment) often opens the most spiritual material;
@@ -221,7 +221,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     p3pieces.push(`${relKoSpirit} 그 어긋남이 영적 사유의 출발점이 돼요.`)
     if (relEnSpirit)
-      p3piecesEn.push(`${relEnSpirit} That misfit becomes the start of spiritual reflection.`)
+      p3piecesEn.push(`${relEnSpirit} That very misalignment becomes the starting point for spiritual reflection.`)
   }
   // Part of Spirit (다이몬) — even when Spirit is already used elsewhere,
   // surface it here as the soul-callout for the spirituality domain.
@@ -232,7 +232,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `영혼·다이몬의 점이 ${signLabel(spiritLot.sign, 'ko')}에 놓여, 진짜 부름이 어느 방향으로 와 있는지 알려줘요.`
     )
     p3piecesEn.push(
-      `Your Lot of Spirit / Daimon in ${signLabel(spiritLot.sign, 'en')} marks the direction your true vocation calls from.`
+      `Your Lot of Spirit, sometimes called the Daimon, sits in ${signLabel(spiritLot.sign, 'en')} — and it marks the direction from which your true calling speaks.`
     )
   }
   // Part of Captivity — 속박의 결 → 영적 매듭으로 풀어 해석
@@ -243,7 +243,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `속박의 점이 ${signLabel(captivity.sign, 'ko')}에 머물러, 풀어야 할 영적 매듭이 그 자리에 한 번 모여 있어요.`
     )
     p3piecesEn.push(
-      `Your Lot of Captivity in ${signLabel(captivity.sign, 'en')} — the spiritual knot to untie gathers in that seat.`
+      `Your Lot of Captivity sits in ${signLabel(captivity.sign, 'en')} — that is the place where the spiritual knot you came here to untie tends to gather.`
     )
   }
   const p3ko = paragraph(
@@ -257,7 +257,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     p3piecesEn.length
       ? p3piecesEn
       : [
-          'Current signals sit in a calm array — rather than one religion or method, slowly dissolving spirit into daily life fits best.',
+          'Your current signals sit in a calm arrangement — rather than one religion or one method, what fits you best is slowly letting spirit dissolve into the texture of daily life.',
         ]
   )
 
@@ -269,21 +269,21 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       '하루에 한 번은 혼자 있는 시간을 일정에 박아두세요. 12집의 행성이 거기서 풀려요.'
     )
     guidePiecesEn.push(
-      'Hard-schedule one solitary block each day — your 12th-house planets release there.'
+      'Put one solitary block on your calendar each day and keep it — your 12th-house planets unwind in that quiet space.'
     )
   } else if (hwagae) {
     guidePiecesKo.push(
       '한 가지 영적 실천(명상·필사·기도·산책)을 의식적으로 반복하세요. 화개의 자질이 의식 안에서 익어요.'
     )
     guidePiecesEn.push(
-      'Repeat one spiritual practice (meditation, copying, prayer, walking) deliberately — 화개 matures inside ritual.'
+      'Choose one spiritual practice — meditation, copying texts by hand, prayer, or walking — and repeat it deliberately, because this art-and-solitude streak ripens inside steady ritual.'
     )
   } else {
     guidePiecesKo.push(
       '일상에서 잠시 멈추는 의식 하나를 만들어보세요. 큰 행위보다 작은 의식이 영성을 안정시켜요.'
     )
     guidePiecesEn.push(
-      'Build one small pause-ritual into your day — small rituals settle spirit more than grand acts.'
+      'Build one small pause-ritual into your day — small rituals settle the spirit more reliably than grand gestures do.'
     )
   }
   if (zr) {

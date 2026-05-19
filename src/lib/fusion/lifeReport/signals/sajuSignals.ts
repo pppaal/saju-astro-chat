@@ -400,10 +400,10 @@ function kindVerbKo(k: SajuRelationEntry['kind']): string {
   return '한자리에 모이는'
 }
 function kindVerbEn(k: SajuRelationEntry['kind']): string {
-  if (k === '합') return 'harmoniously joins with'
+  if (k === '합') return 'joins harmoniously with'
   if (k === '충') return 'stands in tense opposition to'
   if (k === '형') return 'reshapes against'
-  if (k === '해') return 'subtly misaligns with'
+  if (k === '해') return 'sits subtly out of alignment with'
   return 'gathers together with'
 }
 
