@@ -380,8 +380,8 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['천을귀인'],
     },
     template:
-      `🌟 **도움 받기 좋은 날**이 이번 달에 들어 있어요. ` +
-      `어려운 부탁·결정적 조언이 필요한 일은 그 날에 잡으세요.`,
+      `🌟 **도움 받기 좋은 날** — {shinsalDates} 에 자리잡고 있어요. ` +
+      `어려운 부탁·결정적 조언이 필요한 일은 이 날들에 맞춰 잡으세요.`,
     themes: ['career', 'health'],
   },
   {

@@ -465,6 +465,19 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
     vars.duration = `${s.active.start.slice(5, 10)} ~ ${s.active.end.slice(5, 10)}`
   }
 
+  // Patch 3 (Phase 3) — 신살 단락의 vague "이번 달에 들어 있어요" 를 구체
+  // 날짜로. 같은 shinsal name 이 활성화되는 모든 날짜 (MM-DD) 를 모아 룰
+  // 본문에서 {shinsalDates} 로 호출. 1개일 땐 그 날짜, 여러 개면 ' · ' 로
+  // 묶어 최대 5개까지.
+  if (s.kind === 'shinsal') {
+    const allActive = [s, ...sameKind]
+    const dates = Array.from(new Set(allActive.map((x) => x.active.start.slice(5, 10)))).sort()
+    if (dates.length > 0) {
+      vars.shinsalDates = dates.slice(0, 5).join(' · ')
+      vars.shinsalDatesCount = String(dates.length)
+    }
+  }
+
   return vars
 }
 

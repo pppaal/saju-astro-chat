@@ -304,6 +304,35 @@ describe('calendar-engine regression', () => {
       }
     })
 
+    it('shinsal cheoneul section names specific MM-DD dates (Phase 3)', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const shinsal = interp.sections.find((s) => s.section === 'shinsal')
+      if (!shinsal) return // 천을귀인이 안 활성화되는 사주는 trivially pass
+      // vague "이번 달에 들어 있어요" 가 더 이상 나오면 안 됨
+      expect(shinsal.text).not.toMatch(/이번 달에 들어 있어요/)
+      // 구체 날짜 MM-DD 가 최소 1개 포함되어야 함
+      expect(shinsal.text).toMatch(/\d{2}-\d{2}/)
+      // {shinsalDates} placeholder 가 fillTemplate 안 되고 그대로 leak 되면 안 됨
+      expect(shinsal.text).not.toMatch(/\{shinsalDates\}/)
+    })
+
     it('domain body section dedups overlapping wellness rules (Patch 3)', async () => {
       const saju = calculateSajuData(
         SEOUL_MALE_1995.birthDate,
