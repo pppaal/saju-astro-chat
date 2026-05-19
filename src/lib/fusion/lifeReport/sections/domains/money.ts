@@ -161,7 +161,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   }
 
   if (jong === '종재격') {
-    deepKo.push('삶이 재물 쪽으로 강하게 응축돼 있어, 큰 재물 그릇을 타고난 사람이에요.')
+    deepKo.push('삶이 재물 쪽으로 강하게 응축돼 있어, 큰 재물 그릇을 타고났어요.')
     deepEn.push(
       'Your chart condenses strongly around wealth — a wealth-following pattern that gathers all of your energy into a large money vessel.'
     )
@@ -381,15 +381,15 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
 
 function wealthFlavorKo(total: number, jeong: number, pyen: number): string {
   if (total >= 3)
-    return '당신은 자원과 결과로 인생을 풀어내는 사람이에요. 풍성한 재물이 깔려서 돈이 곧 표현의 도구가 돼요.'
+    return '당신은 자원과 결과로 인생을 풀어내는 결이에요. 풍성한 재물이 깔려서 돈이 곧 표현의 도구가 돼요.'
   if (total === 2)
     return jeong >= pyen
-      ? '당신은 안정적인 수입 라인으로 자원을 쌓아가는 사람이에요.'
-      : '당신은 다양한 수입 라인을 만들어내는 사람이에요.'
+      ? '당신은 안정적인 수입 라인으로 자원을 쌓아가는 스타일이에요.'
+      : '당신은 다양한 수입 라인을 만들어내는 스타일이에요.'
   if (total === 1)
     return jeong >= pyen
-      ? '당신은 꾸준한 수입을 차곡차곡 쌓아가는 사람이에요.'
-      : '당신은 부수입과 기회 포착에 더 강한 사람이에요.'
+      ? '당신은 꾸준한 수입을 차곡차곡 쌓아가는 타입이에요.'
+      : '당신은 부수입과 기회 포착에 더 강한 타입이에요.'
   return '재물이 잔잔해서, 돈은 다른 흐름이 함께 받쳐줘요. 직업과 배움이 자원의 통로가 돼요.'
 }
 

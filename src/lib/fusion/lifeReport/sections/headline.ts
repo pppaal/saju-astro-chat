@@ -125,7 +125,7 @@ export function buildHeadline(input: BuilderInput): Headline {
   const strengthKo = STRENGTH_LABEL_KO[strength] || ''
   const strengthEn = STRENGTH_LABEL_EN[strength] || ''
   const geokgukKo = geokguk ? ` 인생 패턴은 ${geokgukFlavorKo(geokguk)}이에요.` : ''
-  const geokgukEn = geokguk ? ` The shape of your life runs as ${geokgukFlavorEn(geokguk)}.` : ''
+  const geokgukEn = geokguk ? ` Your life runs as ${geokgukFlavorEn(geokguk)}.` : ''
   const jongKo = jongType ? ' 한 방향으로 강하게 흐르는 성향도 함께 있어요.' : ''
   const jongEn = jongType ? ' A single-direction current also runs strongly through you.' : ''
 
@@ -138,8 +138,14 @@ export function buildHeadline(input: BuilderInput): Headline {
   // 'none' 인 경우에만 헤드라인에 노출하고, 충분히 강한 통근은 본문에 맡긴다.
   const rootKoSlim = rootSummary && rootSummary.level === 'none' ? ` ${rootSummary.phraseKo}` : ''
   const rootEnSlim = rootSummary && rootSummary.level === 'none' ? ` ${rootSummary.phraseEn}` : ''
+  // 어미 다양화 — "~ 사람이에요" 반복을 줄이기 위해 일간 한자 코드포인트로
+  // 결정론적으로 두 어미 중 하나 선택 (사람이에요 / 스타일이에요)
+  const s1Suffix = (() => {
+    const code = dayStem ? dayStem.charCodeAt(0) : 0
+    return code % 2 === 0 ? '일주로 태어난 사람이에요' : '일주의 결을 타고났어요'
+  })()
   const s1ko =
-    `당신은 사주로는 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} 일주로 태어난 사람이에요.` +
+    `당신은 사주로는 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} ${s1Suffix}.` +
     `${geokgukKo}${jongKo}${rootKoSlim}`
   const s1en = `You were born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEnSlim}`
   // mark rootSummary as used regardless (signal hook), keeps Korean rootKo
@@ -177,21 +183,28 @@ export function buildHeadline(input: BuilderInput): Headline {
   // 4–5 문장 길이를 유지하도록 함. 별도의 balanceFlavor 줄을 분리하지 않고
   // 한 문장에 통합해 짧고 또렷한 결로.
   const modPlanetKo = (() => {
-    const modPart = domModality ? modalityKo(domModality) : ''
+    // 어순을 짧게 쪼개기 — 3 절을 한 문장에 묶지 않고, 원소(가장 강한 기운)
+    // 는 한 문장으로 끊고 모달리티+행성을 다음 문장으로 잇는다.
+    const elPart = domEl ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 가장 강해요.` : ''
+    const modStandalone = domModality ? `${modalityStandaloneKo(domModality)}` : ''
     const planetPart = dom ? `${planetLabel(dom, 'ko')}이 인생을 이끌어요` : ''
-    const elPart = domEl ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 가장 강하고` : ''
-    if (elPart && modPart && planetPart) return `${elPart}, ${modPart}, ${planetPart}.`
-    if (elPart && planetPart) return `${elPart}, ${planetPart}.`
-    if (elPart && modPart) return `${elPart}, ${modalityStandaloneKo(domModality!)}.`
-    if (modPart && planetPart) return `${modPart}, ${planetPart}.`
-    if (modPart) return `${modalityStandaloneKo(domModality!)}.`
-    if (planetPart) return `${planetPart}.`
-    if (elPart) return `${balanceFlavorKo}`
-    return ''
+    // 모달리티 + 행성 = "한 분야를 오래 파는 스타일이고, 태양이 인생을 이끌어요"
+    let tail = ''
+    if (modStandalone && planetPart) {
+      // 모달리티 standalone 어미 "~ 스타일이에요" 의 마침표를 빼고 "~ 스타일이고"
+      // 로 잇는다.
+      const modJoin = modStandalone.replace(/이에요$/, '이고')
+      tail = `${modJoin}, ${planetPart}.`
+    } else if (modStandalone) {
+      tail = `${modStandalone}.`
+    } else if (planetPart) {
+      tail = `${planetPart}.`
+    }
+    return [elPart, tail].filter(Boolean).join(' ')
   })()
   const modFlavorEn = domModality ? `, with ${modalityFlavorEn(domModality)}` : ''
   const domPlanetEn = dom ? `, led by ${planetLabel(dom, 'en')}` : ''
-  const lackKo = lackEl ? ` 단 ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
+  const lackKo = lackEl ? ` 다만 ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
   const lackEn = lackEl ? `, with little ${ELEMENT_FLAVOR_EN[lackEl]} energy` : ''
 
   // iljuCharacter는 한국어 텍스트라 영어 narrative에는 노출하지 않음.
@@ -229,17 +242,17 @@ function modalityStandaloneKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
 
 // 격국을 자연어 의미로 풀어쓰는 헬퍼
 function geokgukFlavorKo(g: string): string {
-  if (!g) return '본연의 모양'
-  if (g.includes('편관')) return '도전과 책임이 무게로 다가오는 모양'
-  if (g.includes('정관')) return '책임감으로 자리 잡는 모양'
-  if (g.includes('편재')) return '기회를 잡는 감각이 빛나는 모양'
-  if (g.includes('정재')) return '꾸준히 자원을 쌓아가는 모양'
-  if (g.includes('식신')) return '여유롭게 표현하고 창조하는 모양'
-  if (g.includes('상관')) return '재능을 자유롭게 발산하는 모양'
-  if (g.includes('편인')) return '독특한 직관과 비주류 지혜의 모양'
-  if (g.includes('정인')) return '배움과 돌봄으로 흐르는 길'
-  if (g.includes('비견') || g.includes('겁재')) return '동료와 함께 가는 길'
-  return '본연의 모양'
+  if (!g) return '자기 본성 그대로 살아가는 스타일'
+  if (g.includes('편관')) return '도전과 책임을 무게로 받아내는 스타일'
+  if (g.includes('정관')) return '책임감 있게 자리 잡는 스타일'
+  if (g.includes('편재')) return '기회를 잡는 감각이 빛나는 스타일'
+  if (g.includes('정재')) return '꾸준히 자원을 쌓아가는 스타일'
+  if (g.includes('식신')) return '여유롭게 표현하고 창조하는 스타일'
+  if (g.includes('상관')) return '재능을 자유롭게 발산하는 스타일'
+  if (g.includes('편인')) return '독특한 직관과 비주류 지혜의 결'
+  if (g.includes('정인')) return '배움과 돌봄으로 흐르는 결'
+  if (g.includes('비견') || g.includes('겁재')) return '동료와 함께 가는 결'
+  return '자기 본성 그대로 살아가는 스타일'
 }
 
 // 격국 → 자연 영어 (raw 사주 용어 제거).

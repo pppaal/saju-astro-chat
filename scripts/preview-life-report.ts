@@ -2,66 +2,72 @@ import { runMainSaju } from '../src/lib/saju/main'
 import { calculateNatalChart } from '../src/lib/astrology/foundation/astrologyService'
 import { buildLifeReport } from '../src/lib/fusion/lifeReport'
 
-async function main() {
-  // 1995-02-09 06:40 AM Seoul
-  const saju = runMainSaju({
-    birthDate: '1995-02-09',
-    birthTime: '06:40',
+interface BirthCase {
+  label: string
+  birthDate: string
+  birthTime: string
+  gender: 'male' | 'female'
+  date: { year: number; month: number; day: number; hour: number; minute: number }
+}
+
+const cases: BirthCase[] = [
+  {
+    label: '1990-01-01 12:00 (대조)',
+    birthDate: '1990-01-01',
+    birthTime: '12:00',
     gender: 'male',
-    timezone: 'Asia/Seoul',
-  })
+    date: { year: 1990, month: 1, day: 1, hour: 12, minute: 0 },
+  },
+  {
+    label: '1985-06-15 18:30 (중년 여)',
+    birthDate: '1985-06-15',
+    birthTime: '18:30',
+    gender: 'female',
+    date: { year: 1985, month: 6, day: 15, hour: 18, minute: 30 },
+  },
+  {
+    label: '2000-12-25 03:00 (밤)',
+    birthDate: '2000-12-25',
+    birthTime: '03:00',
+    gender: 'male',
+    date: { year: 2000, month: 12, day: 25, hour: 3, minute: 0 },
+  },
+]
 
-  const astro = await calculateNatalChart({
-    year: 1995, month: 2, date: 9,
-    hour: 6, minute: 40,
-    latitude: 37.5665, longitude: 126.978,
-    timeZone: 'Asia/Seoul',
-  })
+async function main() {
+  for (const c of cases) {
+    console.log(`\n${'═'.repeat(60)}`)
+    console.log(`  ${c.label}`)
+    console.log(`${'═'.repeat(60)}\n`)
 
-  const report = buildLifeReport({ saju, astro: astro as never })
-
-  console.log('═══════════════════════════════════════════════════════')
-  console.log('  1995-02-09 06:40 AM Seoul — 실제 엔진 출력')
-  console.log('═══════════════════════════════════════════════════════\n')
-
-  console.log('■ 한 줄 정의\n')
-  console.log(report.headline.ko)
-  console.log('')
-
-  console.log('■ 4 생애 단계\n')
-  for (const k of ['early', 'young', 'middle', 'late'] as const) {
-    const s = report.lifeStages[k]
-    console.log(`── ${s.title.ko} ──`)
-    s.paragraphs.forEach((p) => console.log(p.ko))
-    console.log('')
-  }
-
-  console.log('■ 결정적 타이밍\n')
-  report.decisiveTiming.paragraphs.forEach((p) => {
-    console.log(p.ko); console.log()
-  })
-  if (report.decisiveTiming.decisiveYears.length > 0) {
-    console.log('  결정적 해:')
-    report.decisiveTiming.decisiveYears.slice(0, 5).forEach((y) => {
-      console.log(`    ${y.age}세 (${y.year}) [${y.domain}] — ${y.description.ko}`)
+    const saju = runMainSaju({
+      birthDate: c.birthDate,
+      birthTime: c.birthTime,
+      gender: c.gender,
+      timezone: 'Asia/Seoul',
     })
-  }
-  console.log('')
 
-  console.log('■ 카르마/잠재력\n')
-  report.karma.paragraphs.forEach((p) => {
-    console.log(p.ko); console.log()
-  })
+    const astro = await calculateNatalChart({
+      year: c.date.year,
+      month: c.date.month,
+      date: c.date.day,
+      hour: c.date.hour,
+      minute: c.date.minute,
+      latitude: 37.5665,
+      longitude: 126.978,
+      timeZone: 'Asia/Seoul',
+    })
 
-  console.log('■ 9 도메인\n')
-  for (const d of report.domains) {
-    console.log(`── ${d.title.ko} ──`)
-    d.paragraphs.forEach((p) => console.log(p.ko))
-    if (d.estimatedChildCount) {
-      const e = d.estimatedChildCount
-      console.log(`  → 추정 자녀: ${e.min}-${e.max}명 (${e.confidence})`)
-    }
-    console.log('')
+    const report = buildLifeReport({ saju, astro: astro as never })
+
+    console.log('■ Headline\n')
+    console.log(report.headline.ko)
+    console.log('\n■ Career P1\n')
+    console.log(report.domains.find((d) => d.id === 'career')?.paragraphs[0]?.ko)
+    console.log('\n■ Love P1\n')
+    console.log(report.domains.find((d) => d.id === 'love')?.paragraphs[0]?.ko)
+    console.log('\n■ Karma P2\n')
+    console.log(report.karma.paragraphs[1]?.ko)
   }
 }
 

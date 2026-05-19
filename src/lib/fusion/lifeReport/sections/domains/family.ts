@@ -72,10 +72,10 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   // ── Paragraph 1
   const p1ko = paragraph([
     inseong >= 2
-      ? '당신은 어머니와 돌봄 라인의 인연이 자연스럽게 깊은 사람이에요.'
+      ? '당신은 어머니와 돌봄 라인의 인연이 자연스럽게 깊은 결이에요.'
       : inseong === 0
         ? '어머니와 돌봄 라인의 인연은 의식적인 노력으로 자라요.'
-        : '당신은 가족과의 인연을 차분하게 이어가는 사람이에요.',
+        : '당신은 가족과의 인연을 차분하게 이어가는 스타일이에요.',
     `돌봄 기운은 ${familyCountFlavorKo(inseong)}, 동료 기운은 ${familyCountFlavorKo(bijeon)} 자리해요. ${familyShapeKo(inseong, bijeon)}.`,
     fourth
       ? `가정 영역은 ${signLabel(fourth.sign, 'ko')}의 분위기를 띠어, 집안 공기가 ${fourthSignFlavorKo(fourth.sign)}.`
@@ -121,10 +121,10 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       : ''
   const p2ko = paragraph([
     sun
-      ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 사람이에요.`
+      ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 결이에요.`
       : '',
     moon
-      ? `어머니상은 ${signLabel(moon.sign, 'ko')}의 분위기로 흐르는 달처럼, ${parentSignFlavorKo(moon.sign)} 사람이에요.`
+      ? `어머니상은 ${signLabel(moon.sign, 'ko')}의 분위기로 흐르는 달처럼, ${parentSignFlavorKo(moon.sign)} 분이에요.`
       : '',
     inseongLineKo,
     bijeonLineKo,
