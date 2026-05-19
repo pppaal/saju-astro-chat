@@ -161,24 +161,37 @@ export const POST = withApiMiddleware(
       }
 
       // 크레딧 차감을 atomic conditional update 로 막아 race 와 음수 bonus 를 방지한다.
-      // updateMany 의 where 절에 잔량 조건을 박고, count === 0 이면 트랜잭션을 롤백한다.
-      const INSUFFICIENT = 'INSUFFICIENT_CREDITS' as const
+      // 1) compat 한도 안에 있으면 compat 먼저 시도. updateMany 의 where 절에 잔량 조건을 박아 race 가 와도 한쪽만 통과한다.
+      // 2) compat 가 race 로 막히거나 한도 초과면 bonus 로 fallback. (옛 코드는 트랜잭션 밖 스냅샷으로 분기를 정해, race 로 compat 가 막히면 bonus 가 남아 있어도 403 으로 떨어지는 문제가 있었다.)
+      // 3) 둘 다 실패해야만 INSUFFICIENT 으로 롤백.
+      class InsufficientCreditsError extends Error {
+        constructor() {
+          super('INSUFFICIENT_CREDITS')
+          this.name = 'InsufficientCreditsError'
+        }
+      }
       let result
       try {
         result = await prisma.$transaction(async (tx) => {
+          let charged: 'compat' | 'bonus' | null = null
+
           if (userCredits.compatibilityUsed < userCredits.compatibilityLimit) {
-            const updated = await tx.userCredits.updateMany({
+            const compatTry = await tx.userCredits.updateMany({
               where: { userId, compatibilityUsed: { lt: userCredits.compatibilityLimit } },
               data: { compatibilityUsed: { increment: 1 } },
             })
-            if (updated.count === 0) throw new Error(INSUFFICIENT)
-          } else {
-            const updated = await tx.userCredits.updateMany({
+            if (compatTry.count > 0) charged = 'compat'
+          }
+
+          if (!charged) {
+            const bonusTry = await tx.userCredits.updateMany({
               where: { userId, bonusCredits: { gt: 0 } },
               data: { bonusCredits: { decrement: 1 } },
             })
-            if (updated.count === 0) throw new Error(INSUFFICIENT)
+            if (bonusTry.count > 0) charged = 'bonus'
           }
+
+          if (!charged) throw new InsufficientCreditsError()
 
           const reading = await tx.tarotReading.create({
             data: {
@@ -210,8 +223,7 @@ export const POST = withApiMiddleware(
           return reading
         })
       } catch (txErr) {
-        const msg = txErr instanceof Error ? txErr.message : ''
-        if (msg === INSUFFICIENT) {
+        if (txErr instanceof InsufficientCreditsError) {
           return apiError(ErrorCodes.FORBIDDEN, '크레딧이 부족합니다. 크레딧을 충전해주세요.')
         }
         throw txErr

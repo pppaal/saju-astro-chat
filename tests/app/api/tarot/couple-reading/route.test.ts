@@ -873,6 +873,90 @@ describe('/api/tarot/couple-reading', () => {
         expect(response.status).toBe(200)
       })
 
+      it('should fall back to bonus credits when compat update races to 0 rows', async () => {
+        // Snapshot says compat has room (9/10) but a concurrent request beat us
+        // to the last slot — the conditional updateMany returns count: 0. We
+        // must NOT 403 the user if bonus is still available.
+        const { prisma } = await import('@/lib/db/prisma')
+        ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+          userId: mockUserId,
+          compatibilityLimit: 10,
+          compatibilityUsed: 9,
+          bonusCredits: 5,
+        })
+
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback: any) => {
+          const mockTx = {
+            userCredits: {
+              update: vi.fn().mockResolvedValue({}),
+              updateMany: vi
+                .fn()
+                .mockResolvedValueOnce({ count: 0 }) // compat race lost
+                .mockResolvedValueOnce({ count: 1 }), // bonus fallback wins
+            },
+            tarotReading: {
+              create: vi.fn().mockResolvedValue({ id: 'reading-123' }),
+            },
+            matchConnection: {
+              update: vi.fn().mockResolvedValue({}),
+            },
+          }
+          return callback(mockTx)
+        })
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/couple-reading', {
+          method: 'POST',
+          body: JSON.stringify(validCoupleReadingData),
+        })
+
+        const { POST } = await import('@/app/api/tarot/couple-reading/route')
+        const response = await POST(req)
+
+        expect(response.status).toBe(200)
+      })
+
+      it('should 403 when both compat and bonus updateMany race to 0 rows', async () => {
+        const { prisma } = await import('@/lib/db/prisma')
+        ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+          userId: mockUserId,
+          compatibilityLimit: 10,
+          compatibilityUsed: 9,
+          bonusCredits: 1,
+        })
+
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback: any) => {
+          const mockTx = {
+            userCredits: {
+              update: vi.fn().mockResolvedValue({}),
+              updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+            },
+            tarotReading: {
+              create: vi.fn().mockResolvedValue({ id: 'reading-123' }),
+            },
+            matchConnection: {
+              update: vi.fn().mockResolvedValue({}),
+            },
+          }
+          try {
+            return await callback(mockTx)
+          } catch (err) {
+            throw err
+          }
+        })
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/couple-reading', {
+          method: 'POST',
+          body: JSON.stringify(validCoupleReadingData),
+        })
+
+        const { POST } = await import('@/app/api/tarot/couple-reading/route')
+        const response = await POST(req)
+        const data = await response.json()
+
+        expect(response.status).toBe(403)
+        expect(data.error.message).toContain('크레딧이 부족합니다')
+      })
+
       it('should accept optional fields as undefined', async () => {
         const minimalData = {
           connectionId: mockConnectionId,
