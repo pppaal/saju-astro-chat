@@ -85,9 +85,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
       ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 풀리는 길이에요.'
       : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
   const inseongFlavorEn = inseong >= 3
-    ? 'A strong 인성 (wisdom-and-care line) runs through your saju — learning itself becomes the channel of luck.'
+    ? 'A strong wisdom-and-care current runs through your chart — learning itself becomes the channel of luck.'
     : inseong >= 1
-      ? 'A quiet 인성 line sits in the saju — continuous learning becomes your exit door.'
+      ? 'A quiet wisdom-and-care current sits in your chart — continuous learning becomes your exit door.'
       : 'The learning current flows from initiative rather than inheritance.'
 
   const p1ko = paragraph([
@@ -102,7 +102,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p1en = paragraph([
     inseongFlavorEn,
     mercury
-      ? `Mercury sits in ${signLabel(mercury.sign, 'en')}${mercury.house ? ` (${houseLabel(mercury.house, 'en')})` : ''}, lending a ${mercurySignFlavorEn(mercury.sign)} tone to your thinking.`
+      ? `Mercury sits in ${signLabel(mercury.sign, 'en')}${mercury.house ? ` (${houseLabel(mercury.house, 'en')})` : ''}, lending ${enArticle(mercurySignFlavorEn(mercury.sign))} ${mercurySignFlavorEn(mercury.sign)} tone to your thinking.`
       : '',
     ninth.length > 0
       ? `With ${ninth.map((p) => p.name).join(', ')} in the 9th, broad meaning and belief drive your study.`
@@ -129,10 +129,10 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   }
   if (sangwan >= 2) {
     p2pieces.push('재능의 자유로운 발산이 강해서, 받아들이기만 하는 학습보다 가르치고 표현할 때 지혜가 더 단단해져요.')
-    p2piecesEn.push('Strong 상관 means wisdom hardens when you teach and express, not only when you absorb.')
+    p2piecesEn.push('A strong free-talent current means wisdom hardens when you teach and express, not only when you absorb.')
   } else if (sikshin >= 2) {
     p2pieces.push('여유로운 표현의 자질이 깔려 있어, 즐기듯 배우는 방식이 잘 맞아요.')
-    p2piecesEn.push('식신 places ease at the centre — learning works best when it doubles as enjoyment.')
+    p2piecesEn.push('An easeful-expression current places ease at the centre — learning works best when it doubles as enjoyment.')
   }
   if (topMercAspect && mercury) {
     const other = topMercAspect.from?.name === 'Mercury' ? topMercAspect.to?.name : topMercAspect.from?.name
@@ -172,15 +172,15 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   }
   if (geokguk && geokguk.includes('인')) {
     p3pieces.push('인생의 큰 패턴 자체가 배움·돌봄의 결이라, 가르치고 다루는 사람이 되는 길이 가장 본인답게 풀려요.')
-    p3piecesEn.push(`Your geokguk (${geokguk}) is in the 인성 family — the teacher/carrier path fits most natively.`)
+    p3piecesEn.push('Your life-pattern sits in the wisdom-and-care family — the teacher and carrier path fits most natively.')
   }
   if (munchang) {
     p3pieces.push('학문과 창작의 별이 사주에 들어와 있어서, 글·이론·자료를 통해 성취가 빨라요.')
-    p3piecesEn.push(`A 문창 (literary star) lights your chart — writing, theory and material study accelerate your achievement.`)
+    p3piecesEn.push('A literary star lights your chart — writing, theory and material study accelerate your achievement.')
   }
   if (hakdang) {
     p3pieces.push('학당의 별도 함께 있어, 공식적인 교육과 자격 과정에서 운이 잘 풀려요.')
-    p3piecesEn.push(`A 학당 (academy) star also sits in your chart — formal education and accreditation tracks suit you.`)
+    p3piecesEn.push('An academy star also sits in your chart — formal education and accreditation tracks suit you.')
   }
   // Saju relations — 합(joining) often supports learning lineage / mentor
   const relKoWisdom = relationPhraseKo(calendarSignals?.sajuRelations, {
@@ -213,7 +213,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const guidePiecesEn: string[] = ['Daily handle:']
   if (inseong >= 2) {
     guidePiecesKo.push('하루에 단 한 가지라도 정리해서 남겨두세요. 인성의 자질은 기록으로 자라요.')
-    guidePiecesEn.push('Record one thing each day — your 인성 line grows through notes.')
+    guidePiecesEn.push('Record one thing each day — your wisdom-and-care current grows through notes.')
   } else if (sangwan >= 2) {
     guidePiecesKo.push('배운 것을 즉시 누군가에게 풀어보세요. 가르치는 순간 진짜 지혜가 돼요.')
     guidePiecesEn.push('Explain what you learn to someone right away — teaching is when knowledge becomes wisdom.')
@@ -388,4 +388,11 @@ function signMissionKo(sign: string): string {
 }
 function signMissionEn(sign: string): string {
   return SIGN_MISSION_EN[sign] ?? 'its native grain'
+}
+
+// "a" or "an" picker for English (front-vowel-sound heuristic).
+function enArticle(word: string): string {
+  const w = (word || '').trim().toLowerCase()
+  if (!w) return 'a'
+  return /^[aeiou]/.test(w) ? 'an' : 'a'
 }

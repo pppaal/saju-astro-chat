@@ -154,7 +154,7 @@ const TABLE: AstroLifecycleEvent[] = [
     labelKo: '다섯 번째 목성 회귀 — 환갑의 전환',
     labelEn: 'Fifth Jupiter return',
     meaningKo: '환갑의 전환, 후반 인생의 첫 사이클이 열리는 시기예요.',
-    meaningEn: 'A 환갑-style turn — the second half of life opens its first cycle.',
+    meaningEn: 'A 60-year turning point — the second half of life opens its first cycle.',
     adviceKo: '지금 새로 시작해도 정말 괜찮습니다.',
     adviceEn: 'Starting something new right now is genuinely fine.',
   },

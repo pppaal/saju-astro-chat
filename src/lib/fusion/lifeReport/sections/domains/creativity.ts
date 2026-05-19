@@ -141,7 +141,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   }
   if (artisticAptitudes.length > 0 && iljuName) {
     p2pieces.push(`타고난 자질이 ${artisticAptitudes.slice(0, 3).join('·')} 쪽으로 풀려 있어요.`)
-    p2piecesEn.push(`Your ilju (${iljuName}) leans toward ${artisticAptitudes.slice(0, 3).join(' / ')}.`)
+    p2piecesEn.push(`Your natural aptitudes lean toward ${creativityAptitudeListEn(artisticAptitudes)}.`)
   }
   const p2ko = paragraph(
     p2pieces.length ? p2pieces : ['표현의 흐름은 평이하게 잘 잡혀 있어, 무엇이든 꾸준히 만들어내면 결과가 따라와요.'],
@@ -162,7 +162,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   }
   if (hwagae) {
     p3pieces.push('예술·고독의 별이 사주에 들어와 있어, 혼자 깊이 들어가는 시간이 작품의 색을 만들어요.')
-    p3piecesEn.push('화개 (art-solitude star) sits in your saju — solo deep time shapes the grain of your work.')
+    p3piecesEn.push('An art-and-solitude star sits in your chart — solo deep time shapes the grain of your work.')
   }
   if (spirit) {
     p3pieces.push(`행적과 영감의 점이 ${signLabel(spirit.sign, 'ko')}에 있어, 창작의 출발점은 ${spiritSignFlavorKo(spirit.sign)}이에요.`)
@@ -202,7 +202,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     guidePiecesEn.push('Publish what you make right away — hidden output cannot attract luck.')
   } else if (sikshin >= 2) {
     guidePiecesKo.push('즐기듯이 매일 짧게라도 만들어보세요. 식신의 자질은 여유에서 자라요.')
-    guidePiecesEn.push('Make something briefly every day, with ease — your 식신 line grows in relaxed regularity.')
+    guidePiecesEn.push('Make something briefly every day, with ease — your easeful-expression current grows in relaxed regularity.')
   } else {
     guidePiecesKo.push('형식 안에서 한 가지 제약을 두고 만들어보세요. 제약이 오히려 독자성을 만들어줘요.')
     guidePiecesEn.push('Set one tight constraint and create inside it — constraint paradoxically builds originality.')
@@ -250,10 +250,10 @@ function openerKo(sangwan: number, sikshin: number, hasHwagae: boolean): string 
   return '창작의 색은 외부 자극보다 안에서 천천히 익혀가는 쪽으로 자리잡고 있어요.'
 }
 function openerEn(sangwan: number, sikshin: number, hasHwagae: boolean): string {
-  if (sangwan >= 3) return 'A very strong 상관 line means you feel suffocated if you do not make something.'
-  if (sangwan >= 1 && hasHwagae) return 'Both 상관 (talent release) and 화개 (art-solitude star) sit in your saju — creation is unavoidable this life.'
-  if (sikshin >= 2) return 'A strong 식신 line favours easy, enjoyment-led making.'
-  if (sangwan >= 1) return 'A 상관 line sits in your saju — work that lets you imprint your own grain flows best.'
+  if (sangwan >= 3) return 'A very strong free-talent current means you feel suffocated if you do not make something.'
+  if (sangwan >= 1 && hasHwagae) return 'Both a free-talent current and an art-and-solitude star sit in your chart — creation is unavoidable this life.'
+  if (sikshin >= 2) return 'A strong easeful-expression current favours easy, enjoyment-led making.'
+  if (sangwan >= 1) return 'A free-talent current sits in your chart — work that lets you imprint your own grain flows best.'
   return 'Your creative grain matures inwardly, slowly, more from inner pressure than outer prompt.'
 }
 
@@ -389,4 +389,22 @@ function spiritSignFlavorKo(sign: string): string {
 }
 function spiritSignFlavorEn(sign: string): string {
   return SPIRIT_SIGN_EN[sign] ?? 'its native grain'
+}
+
+// 한국어 자질 라벨 → natural English (creativity 섹션 전용).
+const CREATIVITY_APTITUDE_EN: Record<string, string> = {
+  '예술': 'art',
+  '창작': 'creative work',
+  '디자인': 'design',
+  '음악': 'music',
+  '미술': 'fine art',
+  '문학': 'literature',
+  '연기': 'acting',
+  '공연': 'performance',
+}
+function creativityAptitudeListEn(items: string[]): string {
+  const mapped = items.slice(0, 3).map((a) => CREATIVITY_APTITUDE_EN[a] ?? 'a singular craft')
+  if (mapped.length === 0) return 'a singular craft'
+  if (mapped.length === 1) return mapped[0]
+  return mapped.slice(0, -1).join(', ') + ' and ' + mapped[mapped.length - 1]
 }
