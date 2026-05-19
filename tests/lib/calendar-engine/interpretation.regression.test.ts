@@ -229,19 +229,38 @@ describe('calendar-engine regression', () => {
       expect(nonEmpty).toBeGreaterThanOrEqual(2)
     })
 
-    it('uses a "시기예요" tail for monthly and "하루예요" for daily', async () => {
+    it('uses distinct lexical tails per layer (no cadence dup with rule body)', async () => {
       const { getGanjiTransitNarrative } =
         await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
-      const month = getGanjiTransitNarrative('甲子', 'monthly', 'ko')
       const day = getGanjiTransitNarrative('甲子', 'daily', 'ko')
-      if (month) {
-        expect(month).toMatch(/이번 달은/)
-        expect(month).toMatch(/시기예요/)
-      }
+      const month = getGanjiTransitNarrative('甲子', 'monthly', 'ko')
+      const year = getGanjiTransitNarrative('甲子', 'yearly', 'ko')
+      const dec = getGanjiTransitNarrative('甲子', 'decadal', 'ko')
       if (day) {
         expect(day).toMatch(/오늘은/)
         expect(day).toMatch(/하루예요/)
       }
+      // Patch 1 — monthly 가 더 이상 "시기예요" 로 닫지 않음 (wolun 룰 본문
+      // 의 "...시기예요." 와 cadence 중복되던 문제 차단).
+      if (month) {
+        expect(month).toMatch(/이번 달은/)
+        expect(month).not.toMatch(/시기예요/)
+        expect(month).toMatch(/흘러요/)
+      }
+      if (year) {
+        expect(year).toMatch(/이번 해는/)
+        expect(year).not.toMatch(/시기예요/)
+      }
+      if (dec) {
+        expect(dec).toMatch(/이 대운은/)
+        expect(dec).not.toMatch(/시기예요/)
+      }
+      // 네 layer 의 어미 키워드는 lexically distinct 해야 함 (한 layer 의
+      // 어미가 다른 layer 에 그대로 들어가면 cadence dup 다시 살아남).
+      const tailKeys = ['하루예요', '흘러요', '띠어요', '펼쳐져요']
+      const present = tailKeys.filter((k) => [day, month, year, dec].some((t) => t?.includes(k)))
+      // 네 layer 의 어미가 서로 다른 키워드를 써야 함.
+      expect(present.length).toBeGreaterThanOrEqual(3)
     })
 
     it('returns "" for an unknown ganji on every layer', async () => {
