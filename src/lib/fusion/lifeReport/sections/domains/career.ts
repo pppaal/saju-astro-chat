@@ -6,13 +6,17 @@ import {
   categoryCount,
   countSibsin,
   currentDaeun,
+  extractSibsinPatterns,
+  extractSibsinPositions,
   findDaeunByCategory,
+  findPillarOfSibsinCategory,
   geokgukType,
   isJonggeok,
   jonggeokType,
   relationPhraseEn,
   relationPhraseKo,
   samgiInfo,
+  sibsinPatternsForDomain,
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
@@ -282,6 +286,29 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   if (iljuVar) {
     sajuUsed.push('pools.ilju.career')
     deepPieces.push(/[.!?]$/.test(iljuVar) ? iljuVar : `${iljuVar}.`)
+  }
+  // Sibsin combination patterns (관성/식상/재성 grouping) — 직업 결.
+  const patterns = extractSibsinPatterns(saju)
+  const careerPatterns = sibsinPatternsForDomain(patterns, 'career')
+  if (careerPatterns.length > 0) {
+    sajuUsed.push('sibsin.patterns')
+    const top = careerPatterns[0]
+    deepPieces.push(careerPatternLineKo(top.name))
+    deepPiecesEn.push(careerPatternLineEn(top.name))
+  }
+  // Sibsin positions — 관성/식상이 어느 기둥에 놓이는지 확인.
+  const positions = extractSibsinPositions(saju)
+  if (positions.length > 0) sajuUsed.push('sibsin.positions')
+  const gwanseongPos = findPillarOfSibsinCategory(positions, '관성', { visibleOnly: true })
+  if (gwanseongPos) {
+    deepPieces.push(careerSibsinPositionLineKo(gwanseongPos.pillarKey, '관성'))
+    deepPiecesEn.push(careerSibsinPositionLineEn(gwanseongPos.pillarKey, 'authority'))
+  } else {
+    const siksangPos = findPillarOfSibsinCategory(positions, '식상', { visibleOnly: true })
+    if (siksangPos) {
+      deepPieces.push(careerSibsinPositionLineKo(siksangPos.pillarKey, '식상'))
+      deepPiecesEn.push(careerSibsinPositionLineEn(siksangPos.pillarKey, 'output'))
+    }
   }
   // Saju relations — day master in tension/harmony with another pillar
   // shows the deepest professional pivot baked into the chart.
@@ -579,4 +606,93 @@ function buildCareerGuideEn(args: {
   if (args.wealthAge && (!args.officialAge || args.wealthAge !== args.officialAge))
     pieces.push(`Around age ${args.wealthAge}, the wealth cycle opens a side-income / expansion window.`)
   return paragraph(pieces)
+}
+
+// ─── Sibsin pattern → career line (natural language only) ────────
+function careerPatternLineKo(name: string): string {
+  if (name === '관살혼잡')
+    return '관의 결이 동시에 두 갈래로 몰려서, 책임과 권위 사이를 오가는 압박이 한 번 거쳐가요.'
+  if (name === '식신제살')
+    return '표현과 자기절제가 한 쌍처럼 움직여서, 위기 상황일수록 직업 운이 오히려 풀려요.'
+  if (name === '관살혼잡' || name === '관성과다')
+    return '책임의 결이 한쪽으로 강하게 몰려서, 자리와 무게를 받아들이는 자리부터 운이 잡혀요.'
+  if (name === '식상과다')
+    return '표현과 창작의 결이 한쪽으로 강하게 몰려서, 자기 결과물을 끊임없이 바깥으로 내보내는 결이 직업의 동력이에요.'
+  if (name === '재성과다')
+    return '재성의 결이 강하게 몰려서, 손에 잡히는 결과로 끝맺는 직업 흐름이 가장 잘 풀려요.'
+  if (name === '인성과다')
+    return '배움과 돌봄의 결이 강해서, 공부·정리·돌봄을 직업의 기둥으로 쓰는 길이 잘 맞아요.'
+  if (name === '신강사주')
+    return '명식 자체가 강하게 자기로 돌아오는 결이라, 자기 결정으로 움직이는 직업이 운을 키워요.'
+  if (name === '균형사주')
+    return '십신이 고르게 분포해서, 한 분야에 갇히지 않고 여러 결을 함께 끌고 가는 길이 자연스러워요.'
+  return ''
+}
+
+function careerPatternLineEn(name: string): string {
+  if (name === '관살혼잡')
+    return 'Two strands of authority crowd in at once — you pass through pressure between responsibility and power.'
+  if (name === '식신제살')
+    return 'Expression and self-restraint move as a pair — career luck opens precisely when the crisis arrives.'
+  if (name === '관성과다')
+    return 'The authority grain crowds in heavily — luck only catches once you accept seat and weight.'
+  if (name === '식상과다')
+    return 'The output grain runs heavily — career power comes from constantly publishing what you make.'
+  if (name === '재성과다')
+    return 'The wealth grain runs heavily — careers that finish in tangible result run smoothest.'
+  if (name === '인성과다')
+    return 'The study / care grain runs heavily — using study, curation and care as the career spine fits best.'
+  if (name === '신강사주')
+    return 'The chart loops strongly back to self — self-directed work scales the largest fortune.'
+  if (name === '균형사주')
+    return 'Sibsin spread evenly — multiple grains can run side by side without locking into one.'
+  return ''
+}
+
+// ─── Sibsin position → career line ───────────────────────────────
+function careerSibsinPositionLineKo(
+  pillar: 'year' | 'month' | 'day' | 'time',
+  cat: '관성' | '식상',
+): string {
+  const pillarKo = pillar === 'month' ? '월주'
+    : pillar === 'year' ? '년주'
+    : pillar === 'day' ? '일주'
+    : '시주'
+  if (cat === '관성') {
+    if (pillar === 'month')
+      return '월주에 관성이 자리해서, 사회적 자리와 책임이 직업 운의 가장 큰 축이 돼요.'
+    if (pillar === 'time')
+      return '시주에 관성이 자리해서, 후반 인생에서 자리와 책임의 무게가 가장 크게 잡혀요.'
+    return `${pillarKo}에 관성이 자리해서, 책임과 자리가 직업 운의 기둥으로 작용해요.`
+  }
+  if (cat === '식상') {
+    if (pillar === 'month')
+      return '월주에 식상이 자리해서, 만들고 표현하는 결이 직업 운의 가장 큰 축이 돼요.'
+    if (pillar === 'time')
+      return '시주에 식상이 자리해서, 후반 인생일수록 표현·창작의 결이 직업의 색을 정해요.'
+    return `${pillarKo}에 식상이 자리해서, 표현과 창작이 직업 운을 끌어와요.`
+  }
+  return ''
+}
+
+function careerSibsinPositionLineEn(
+  pillar: 'year' | 'month' | 'day' | 'time',
+  cat: 'authority' | 'output',
+): string {
+  const pillarEn = pillar === 'month' ? 'month pillar'
+    : pillar === 'year' ? 'year pillar'
+    : pillar === 'day' ? 'day pillar'
+    : 'hour pillar'
+  if (cat === 'authority') {
+    if (pillar === 'month')
+      return 'With 관성 in the month pillar, role and responsibility form the strongest axis of your career.'
+    if (pillar === 'time')
+      return 'With 관성 in the hour pillar, the weight of position lands hardest in late career.'
+    return `With 관성 in the ${pillarEn}, role and responsibility act as the spine of work.`
+  }
+  if (pillar === 'month')
+    return 'With 식상 in the month pillar, making and expressing form the strongest axis of your career.'
+  if (pillar === 'time')
+    return 'With 식상 in the hour pillar, late-career colour is set by expression and creation.'
+  return `With 식상 in the ${pillarEn}, expression and creation pull your career luck in.`
 }

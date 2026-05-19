@@ -151,6 +151,22 @@ export interface AstrologyLikeChart {
       progressedMoon?: { sign?: string; house?: number }
       progressedAscendant?: { sign?: string }
     }
+    /** Solar Arc Direction — every natal point advanced by the same arc
+     *  (≈ 1° per year of life). Optional; defensive.
+     */
+    solarArc?: {
+      /** Solar-arc advanced planet positions (subset). Sign-change ages let
+       *  decisiveTiming describe a planet's solar-arc ingress.
+       */
+      planets?: Array<{
+        name: string
+        sign?: string
+        ingressAge?: number // age when this planet enters the listed sign
+      }>
+      /** Solar-arc MC / ASC if available. */
+      mc?: { sign?: string; ingressAge?: number }
+      asc?: { sign?: string; ingressAge?: number }
+    }
   }
   fixedStars?: Array<{
     star: string
@@ -159,9 +175,25 @@ export interface AstrologyLikeChart {
   }>
   declinations?: {
     outOfBounds?: string[]
+    /** Declination aspects — parallel (same declination ±1°) /
+     *  contraparallel (opposite ±1°). Defensive: may be empty/undefined. */
+    parallel?: Array<{ a: string; b: string; orb?: number }>
+    contraparallel?: Array<{ a: string; b: string; orb?: number }>
   }
   eclipses?: {
-    nearestSolar?: { date?: string; degree?: number }
+    nearestSolar?: { date?: string; degree?: number; sign?: string }
+    /** Closest lunar eclipse around birth — date/degree/sign. */
+    nearestLunar?: { date?: string; degree?: number; sign?: string }
+    /** Multi-year window (before + after birth) — used by karma P5 /
+     *  lifeStages early P3. Optional. */
+    list?: Array<{
+      type?: 'solar' | 'lunar'
+      date?: string
+      sign?: string
+      degree?: number
+      // 'before' = pre-birth, 'after' = post-birth (within window)
+      relativeToBirth?: 'before' | 'after'
+    }>
   }
   // Misc passthrough — builders may probe these defensively.
   extraPoints?: {

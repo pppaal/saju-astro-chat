@@ -5,6 +5,8 @@ import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
 import {
   categoryCount,
   countSibsin,
+  extractSibsinPositions,
+  findPillarOfSibsinCategory,
   gongmangAffectedPillars,
   relationPhraseEn,
   relationPhraseKo,
@@ -92,6 +94,29 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   ])
 
   // ── Paragraph 2: 부모상·형제
+  // 십신 위치 — 인성/비겁이 어느 기둥에 있는지 확인해서, 어머니/형제 인연의
+  // 깊이를 본명 기둥 자리로 자연 통합.
+  const positions = extractSibsinPositions(saju)
+  if (positions.length > 0) sajuUsed.push('sibsin.positions')
+  // 인성이 월주에 (천간 기준) 있으면 어머니 인연이 명식의 무게중심에 와요.
+  const inseongPos = findPillarOfSibsinCategory(positions, '인성', { visibleOnly: true })
+  const bijeonPos = findPillarOfSibsinCategory(positions, '비겁', { visibleOnly: true })
+  const inseongLineKo = inseongPos
+    ? (inseongPos.pillarKey === 'month'
+        ? '월주에 인성이 자리해서 어머니 인연이 명식의 무게중심에 와 있어요.'
+        : `${inseongPos.pillarKo}에 인성이 자리해서, 어머니나 돌봄 라인의 결이 그 자리부터 흘러 들어와요.`)
+    : ''
+  const bijeonLineKo = bijeonPos && bijeon >= 2
+    ? `${bijeonPos.pillarKo}에 비겁이 또렷이 자리잡아, 형제·동료 라인의 결이 인생 한 축으로 자리해요.`
+    : ''
+  const inseongLineEn = inseongPos
+    ? (inseongPos.pillarKey === 'month'
+        ? 'With 인성 in the month pillar, the mother / care-line sits at the centre of the chart.'
+        : `Because 인성 sits in the ${inseongPos.pillarKo}, the mother / care-line enters from that seat.`)
+    : ''
+  const bijeonLineEn = bijeonPos && bijeon >= 2
+    ? `With 비겁 in the ${bijeonPos.pillarKo}, sibling / peer ties hold a whole axis of your life.`
+    : ''
   const p2ko = paragraph([
     sun
       ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 사람이에요.`
@@ -99,6 +124,8 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     moon
       ? `어머니상은 ${signLabel(moon.sign, 'ko')}의 색감으로 흐르는 달처럼, ${parentSignFlavorKo(moon.sign)} 사람이에요.`
       : '',
+    inseongLineKo,
+    bijeonLineKo,
     bijeon >= 2
       ? '동료의 결이 풍성해서, 형제와 동등한 관계가 인생에 큰 자리를 차지해요.'
       : bijeon === 0
@@ -112,6 +139,8 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     moon
       ? `Your mother-image reads like the Moon in ${signLabel(moon.sign, 'en')} ${houseLabel(moon.house, 'en')}: ${parentSignFlavorEn(moon.sign)}.`
       : '',
+    inseongLineEn,
+    bijeonLineEn,
     bijeon >= 2
       ? 'Rich 비겁 means siblings and peer-equals occupy a large seat in your life.'
       : bijeon === 0

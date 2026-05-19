@@ -7,6 +7,19 @@ import type {
   SajuRelationsSummary,
   SajuRelationEntry,
 } from '../adapters/fromCalendarEngine'
+import {
+  analyzeSibsinPositions,
+  analyzeSibsinPatterns,
+  countSibsin as comprehensiveCountSibsin,
+  countSibsinByCategory,
+  type SibsinPattern,
+  type SibsinPosition,
+  type SibsinType,
+} from '@/lib/saju/sibsinAnalysis'
+import {
+  calculateTonggeun,
+  type TonggeunResult,
+} from '@/lib/saju/tonggeun'
 
 type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
 
@@ -392,4 +405,255 @@ function kindVerbEn(k: SajuRelationEntry['kind']): string {
   if (k === '형') return 'reshapes against'
   if (k === '해') return 'subtly misaligns with'
   return 'gathers together with'
+}
+
+// ─── Sibsin patterns / positions — read raw from sibsinAnalysis ─────
+// These helpers wrap the read-only saju/sibsinAnalysis engine so domain
+// builders can reach 십신 patterns (e.g. 관성과다, 식신제살) and
+// positions (월간에 정관 등) without touching saju internals.
+
+/** Per-position sibsin entry — natural-language friendly. */
+export interface SibsinPositionEntry {
+  /** Pillar key with a friendly Korean label baked in. */
+  pillarKo: '년주' | '월주' | '일주' | '시주' | '년주 지장간' | '월주 지장간' | '일주 지장간' | '시주 지장간'
+  pillarKey: 'year' | 'month' | 'day' | 'time'
+  /** True when sourced from 지장간 (hidden), false when from 천간 (visible). */
+  hidden: boolean
+  sibsin: SibsinType
+  /** Sibsin category (비겁/식상/재성/관성/인성) for downstream domain mapping. */
+  category: '비겁' | '식상' | '재성' | '관성' | '인성'
+}
+
+const SIBSIN_TO_CATEGORY: Record<SibsinType, SibsinPositionEntry['category']> = {
+  비견: '비겁',
+  겁재: '비겁',
+  식신: '식상',
+  상관: '식상',
+  편재: '재성',
+  정재: '재성',
+  편관: '관성',
+  정관: '관성',
+  편인: '인성',
+  정인: '인성',
+}
+
+const POSITION_TO_PILLAR: Record<SibsinPosition['position'], { ko: SibsinPositionEntry['pillarKo']; key: SibsinPositionEntry['pillarKey'] }> = {
+  년간: { ko: '년주', key: 'year' },
+  월간: { ko: '월주', key: 'month' },
+  시간: { ko: '시주', key: 'time' },
+  년지장간: { ko: '년주 지장간', key: 'year' },
+  월지장간: { ko: '월주 지장간', key: 'month' },
+  일지장간: { ko: '일주 지장간', key: 'day' },
+  시지장간: { ko: '시주 지장간', key: 'time' },
+}
+
+/**
+ * Per-position 십신 entries (천간 + 지장간). Wraps analyzeSibsinPositions
+ * from saju/sibsinAnalysis. Defensive: returns [] when pillars are missing.
+ */
+export function extractSibsinPositions(saju: MainSajuOutput): SibsinPositionEntry[] {
+  try {
+    const p = saju.pillars
+    if (!p?.year?.stem || !p.month?.stem || !p.day?.stem || !p.time?.stem) return []
+    const positions = analyzeSibsinPositions({
+      year: { stem: p.year.stem, branch: p.year.branch },
+      month: { stem: p.month.stem, branch: p.month.branch },
+      day: { stem: p.day.stem, branch: p.day.branch },
+      // sibsinAnalysis interface uses `hour` (not `time`).
+      hour: { stem: p.time.stem, branch: p.time.branch },
+    })
+    return positions.map((pos) => ({
+      pillarKo: POSITION_TO_PILLAR[pos.position].ko,
+      pillarKey: POSITION_TO_PILLAR[pos.position].key,
+      hidden: !!pos.hidden,
+      sibsin: pos.sibsin,
+      category: SIBSIN_TO_CATEGORY[pos.sibsin],
+    }))
+  } catch {
+    return []
+  }
+}
+
+/** Find the dominant pillar for a given sibsin category. */
+export function findPillarOfSibsinCategory(
+  positions: SibsinPositionEntry[],
+  category: SibsinPositionEntry['category'],
+  options: { visibleOnly?: boolean } = {},
+): SibsinPositionEntry | undefined {
+  const filtered = options.visibleOnly
+    ? positions.filter((p) => !p.hidden)
+    : positions
+  return filtered.find((p) => p.category === category)
+}
+
+/**
+ * Sibsin combination patterns (e.g. 관살혼잡, 식신제살, 균형사주).
+ * Wraps analyzeSibsinPatterns from saju/sibsinAnalysis. Defensive.
+ */
+export interface SibsinPatternEntry {
+  /** Original pattern name from the saju engine (e.g. 관살혼잡). */
+  name: string
+  /** Tonal strength — 'strong' | 'moderate' | 'weak'. */
+  strength: 'strong' | 'moderate' | 'weak'
+  /** Plain implications (already natural language). */
+  implications: string[]
+  /** Domain hints based on which sibsin category drives the pattern. */
+  domains: Array<'career' | 'love' | 'family' | 'money' | 'health' | 'creativity' | 'wisdom' | 'spirituality' | 'children'>
+}
+
+const PATTERN_TO_DOMAINS: Record<string, SibsinPatternEntry['domains']> = {
+  비겁과다: ['career', 'family', 'money'],
+  식상과다: ['creativity', 'children', 'career'],
+  재성과다: ['money', 'love', 'family'],
+  관살혼잡: ['career', 'health'],
+  인성과다: ['wisdom', 'family'],
+  신강사주: ['career', 'wisdom'],
+  신약사주: ['health', 'family'],
+  식신제살: ['career', 'wisdom'],
+  균형사주: ['career', 'love', 'family', 'health'],
+}
+
+export function extractSibsinPatterns(saju: MainSajuOutput): SibsinPatternEntry[] {
+  try {
+    const positions = analyzeSibsinPositions({
+      year: { stem: saju.pillars.year.stem, branch: saju.pillars.year.branch },
+      month: { stem: saju.pillars.month.stem, branch: saju.pillars.month.branch },
+      day: { stem: saju.pillars.day.stem, branch: saju.pillars.day.branch },
+      hour: { stem: saju.pillars.time.stem, branch: saju.pillars.time.branch },
+    })
+    const count = comprehensiveCountSibsin(positions)
+    const catCount = countSibsinByCategory(count)
+    const patterns: SibsinPattern[] = analyzeSibsinPatterns(count, catCount)
+    return patterns.map((p) => ({
+      name: p.name,
+      strength: p.strength,
+      implications: p.implications,
+      domains: PATTERN_TO_DOMAINS[p.name] ?? ['career'],
+    }))
+  } catch {
+    return []
+  }
+}
+
+/** Filter patterns whose target domain matches. */
+export function sibsinPatternsForDomain(
+  patterns: SibsinPatternEntry[],
+  domain: SibsinPatternEntry['domains'][number],
+): SibsinPatternEntry[] {
+  return patterns.filter((p) => p.domains.includes(domain))
+}
+
+// ─── Tonggeun — day-master root in earthly branches ─────────────
+// Wraps calculateTonggeun from saju/tonggeun. The day master's root in
+// the four earthly branches (특히 월지) drives the headline "단단히 뿌리"
+// signal. Strong root → "깊이 뿌리내려" wording; weak → "뿌리가 옅어".
+
+export interface DayMasterRootSummary {
+  hasRoot: boolean
+  /** 0-200 totalStrength from tonggeun engine. */
+  totalStrength: number
+  /** 'strong' (>=80) | 'moderate' (>=40) | 'weak' (>0) | 'none' (0). */
+  level: 'strong' | 'moderate' | 'weak' | 'none'
+  /** The single deepest root (정기 in day/month pillar preferred). */
+  primaryRoot?: {
+    pillar: 'year' | 'month' | 'day' | 'time'
+    branch: string
+    type: '정기' | '중기' | '여기'
+    strength: number
+  }
+  /** All pillars the day-master roots in. */
+  pillars: Array<'year' | 'month' | 'day' | 'time'>
+  /** Korean natural-language phrase ready to splice into headline / karma. */
+  phraseKo: string
+  /** English-side phrase. */
+  phraseEn: string
+}
+
+export function dayMasterRoot(saju: MainSajuOutput): DayMasterRootSummary | undefined {
+  try {
+    const p = saju.pillars
+    if (!p?.day?.stem) return undefined
+    const tg: TonggeunResult = calculateTonggeun(p.day.stem, {
+      year: { stem: p.year.stem, branch: p.year.branch },
+      month: { stem: p.month.stem, branch: p.month.branch },
+      day: { stem: p.day.stem, branch: p.day.branch },
+      time: { stem: p.time.stem, branch: p.time.branch },
+    })
+    const level: DayMasterRootSummary['level'] =
+      tg.totalStrength === 0 ? 'none' :
+      tg.totalStrength >= 80 ? 'strong' :
+      tg.totalStrength >= 40 ? 'moderate' : 'weak'
+    // Pick the strongest root (prefer 정기 > 중기 > 여기 in pillar weight order).
+    const sorted = [...tg.roots].sort((a, b) => b.strength - a.strength)
+    const top = sorted[0]
+    const pillars = Array.from(new Set(tg.roots.map((r) => r.pillar)))
+    return {
+      hasRoot: tg.hasRoot,
+      totalStrength: tg.totalStrength,
+      level,
+      primaryRoot: top
+        ? {
+            pillar: top.pillar,
+            branch: top.branch,
+            type: top.type,
+            strength: top.strength,
+          }
+        : undefined,
+      pillars,
+      phraseKo: dayMasterRootPhraseKo(level, top?.pillar),
+      phraseEn: dayMasterRootPhraseEn(level, top?.pillar),
+    }
+  } catch {
+    return undefined
+  }
+}
+
+function dayMasterRootPhraseKo(
+  level: DayMasterRootSummary['level'],
+  pillar?: 'year' | 'month' | 'day' | 'time',
+): string {
+  const pillarKo = pillar === 'month' ? '월지'
+    : pillar === 'day' ? '일지'
+    : pillar === 'time' ? '시지'
+    : pillar === 'year' ? '년지'
+    : ''
+  if (level === 'strong') {
+    return pillarKo
+      ? `일간이 ${pillarKo}에 깊이 뿌리내려 안정적인 자기 무게가 있어요.`
+      : '일간이 명식에 깊이 뿌리내려 안정적인 자기 무게가 있어요.'
+  }
+  if (level === 'moderate') {
+    return pillarKo
+      ? `일간이 ${pillarKo}에 무난히 뿌리내려, 자기 색을 차분히 지켜가요.`
+      : '일간이 무난히 뿌리내려, 자기 색을 차분히 지켜가요.'
+  }
+  if (level === 'weak') {
+    return '일간의 뿌리가 옅어, 환경의 톤이 자기에게 크게 영향을 줘요.'
+  }
+  return '일간이 뿌리를 두지 못해, 흐름을 따라 자기를 조율하는 자리예요.'
+}
+
+function dayMasterRootPhraseEn(
+  level: DayMasterRootSummary['level'],
+  pillar?: 'year' | 'month' | 'day' | 'time',
+): string {
+  const pillarEn = pillar === 'month' ? 'month branch'
+    : pillar === 'day' ? 'day branch'
+    : pillar === 'time' ? 'hour branch'
+    : pillar === 'year' ? 'year branch'
+    : ''
+  if (level === 'strong') {
+    return pillarEn
+      ? `Your day master roots deeply in the ${pillarEn} — a stable inner weight.`
+      : `Your day master roots deeply in the chart — a stable inner weight.`
+  }
+  if (level === 'moderate') {
+    return pillarEn
+      ? `Your day master holds a steady root in the ${pillarEn}.`
+      : 'Your day master holds a steady root in the chart.'
+  }
+  if (level === 'weak') {
+    return 'Your day master keeps a thin root — environment tone shapes you visibly.'
+  }
+  return 'Your day master carries no fixed root — you tune yourself to the surrounding current.'
 }

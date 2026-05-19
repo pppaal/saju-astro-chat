@@ -23,7 +23,20 @@ import {
   eventsInAgeRange,
   lifecycleEvents,
 } from '../signals/astroLifecycle'
-import { iGa, paragraph } from '../templates/sentences'
+import { solarArcSummary } from '../signals/astroSignals'
+import { iGa, paragraph, signLabel } from '../templates/sentences'
+
+// 받침 유무에 따라 으로/로 선택 (사인명 + 으로/로).
+function euroLoFromBatchim(s: string): string {
+  if (!s) return '로'
+  const last = s[s.length - 1]
+  const code = last.charCodeAt(0)
+  if (code < 0xac00 || code > 0xd7a3) return '로'
+  const final = (code - 0xac00) % 28
+  // 리을(ㄹ, final=8) 종성도 '로' 사용
+  if (final === 0 || final === 8) return '로'
+  return '으로'
+}
 
 // Map daewoon position (index) → heuristic domain — mirrors the legacy
 // extendedAnalysis logic which used `i % 3 === 1` etc. We keep the same
@@ -310,6 +323,30 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
         `Year by year the focus is clear — at age ${focus.age}, the ${profHouseEn(focus.house)} carries the year's weight.`,
       )
     }
+  }
+  // Solar Arc — 진행된 결. 각 행성이 새로운 사인에 들어가는 시점이 큰 변곡을
+  // 만든다. astro.progressions.solarArc 가 있을 때만 등장.
+  const sa = solarArcSummary(astro)
+  if (sa?.upcomingIngress) {
+    astroUsed.push('progressions.solarArc')
+    const ing = sa.upcomingIngress
+    const planetKoMap: Record<string, string> = {
+      Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
+      Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성',
+      Pluto: '명왕성', MC: '사회 무대', ASC: '첫인상',
+    }
+    const planetKo = planetKoMap[ing.planet] ?? ing.planet
+    const signKo = ing.sign ? signLabel(ing.sign, 'ko') : ''
+    const signEn = ing.sign ? signLabel(ing.sign, 'en') : ''
+    // 받침 유무에 따라 이/가, 으로/로 선택 (자연 한국어).
+    const planetParticle = iGa(planetKo)
+    const signParticle = signKo ? euroLoFromBatchim(signKo) : ''
+    p5pieces.push(
+      `${ing.ingressAge}세 무렵엔 진행된 결 안에서 ${planetKo}${planetParticle}${signKo ? ' ' + signKo + signParticle : ''} 들어가, 인생 색의 변곡이 한 번 또렷이 잡혀요.`,
+    )
+    p5piecesEn.push(
+      `Around age ${ing.ingressAge}, solar-arc directed ${ing.planet}${signEn ? ' enters ' + signEn : ' changes sign'}, marking a clear inflection of life-tone.`,
+    )
   }
   const p5ko = p5pieces.length
     ? paragraph(p5pieces)

@@ -11,6 +11,7 @@ import type { BuilderInput, Headline } from '../types'
 import {
   dayElement,
   dayBranch,
+  dayMasterRoot,
   geokgukType,
   dayStrength,
   jonggeokType,
@@ -101,6 +102,8 @@ export function buildHeadline(input: BuilderInput): Headline {
   if (strength) sajuUsed.push('advanced.strength.level')
   if (jongType) sajuUsed.push('ultraAdvanced.jonggeok.type')
   if (ilju) sajuUsed.push('ultraAdvanced.iljuDeep.ilju')
+  const rootSummary = dayMasterRoot(saju)
+  if (rootSummary) sajuUsed.push('tonggeun.dayMasterRoot')
 
   // ─ astro side
   const sun = findPlanet(astro, 'Sun')
@@ -126,12 +129,17 @@ export function buildHeadline(input: BuilderInput): Headline {
   const jongKo = jongType ? ' 한 방향으로 강하게 흐르는 성향도 함께 있어요.' : ''
   const jongEn = jongType ? ` (running as a single-direction ${jongType} chart)` : ''
 
+  // 통근 — 일간이 어디에 뿌리내리는지 한 줄 추가. 모든 레벨(strong/moderate/
+  // weak/none)에서 phrase가 자연 한국어로 짧게 표현돼 헤드라인에 무게가
+  // 부담되지 않아 그대로 노출.
+  const rootKo = rootSummary ? ` ${rootSummary.phraseKo}` : ''
+  const rootEn = rootSummary ? ` ${rootSummary.phraseEn}` : ''
   const s1ko =
     `당신은 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} 성향을 타고난 사람이에요.` +
-    `${geokgukKo}${jongKo}`
+    `${geokgukKo}${jongKo}${rootKo}`
   const s1en =
     `You carry a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn}${geokgukEn}${jongEn}` +
-    `${ilju ? `, an ${ilju} day-pillar` : ''}.`
+    `${ilju ? `, an ${ilju} day-pillar` : ''}.${rootEn}`
 
   // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
   // "별" 단어를 한 문장 안에서 최대 1회로 제한 — 자아=태양, 감정=달은
