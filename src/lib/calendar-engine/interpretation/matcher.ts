@@ -14,12 +14,25 @@ import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
  * 4. 템플릿 변수 치환
  * 5. section별로 합쳐서 narrative 출력
  */
+export type InterpretationLang = 'ko' | 'en'
+
+/**
+ * lang='en' 요청이고 룰에 templateEn 이 있으면 사용, 없으면 한국어 template
+ * 으로 fallback. 일진/대운 ganji 변수 (monthGanjiText 등) 도 영어 헬퍼
+ * 변수 (monthGanjiTextEn 등) 로 분기 — extractSignalVars 가 둘 다 채움.
+ */
+function pickRuleTemplate(rule: InterpretationRule, lang: InterpretationLang): string {
+  if (lang === 'en' && rule.templateEn) return rule.templateEn
+  return rule.template
+}
+
 export function buildInterpretation(args: {
   natal: NatalContext
   cells: CalendarCell[]
   scope?: 'monthly' | 'yearly' | 'daily' | 'lifetime'
+  lang?: InterpretationLang
 }): Interpretation {
-  const { natal, cells, scope = 'monthly' } = args
+  const { natal, cells, scope = 'monthly', lang = 'ko' } = args
 
   // 모든 셀에서 신호 + 패턴 합치기
   const allSignals = cells.flatMap((c) => c.signals)
@@ -129,9 +142,13 @@ export function buildInterpretation(args: {
       const pb = b.polarity >= 1 ? 0 : b.polarity <= -1 ? 1 : 0.5
       return pa - pb
     })
-    const templates = sortedList.map((m) => fillTemplate(m.rule.template, m.vars))
+    const templates = sortedList.map((m) => fillTemplate(pickRuleTemplate(m.rule, lang), m.vars))
     if (hasPositive && hasCaution) {
-      templates.unshift('복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:')
+      templates.unshift(
+        lang === 'en'
+          ? 'A mixed current — supportive signals run alongside cautious ones:'
+          : '복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:'
+      )
     }
     const merged: (typeof matched)[number] = {
       rule: {
@@ -139,7 +156,7 @@ export function buildInterpretation(args: {
         id: `domain.${domain}`,
         section: `domain-${domain}`,
         priority: list[0].rule.priority,
-        template: mergeDomainTemplates(templates, topDates, lowDates, domain),
+        template: mergeDomainTemplates(templates, topDates, lowDates, domain, lang),
       },
       vars: list[0].vars,
       polarity: list[0].polarity,
@@ -171,8 +188,8 @@ export function buildInterpretation(args: {
   // 템플릿 채우기 (도메인 entry는 이미 합쳐진 텍스트라 fillTemplate 한 번 더 통과해도 안전)
   const sections = picked.map((m) => ({
     section: m.rule.section,
-    title: sectionTitle(m.rule.section),
-    text: fillTemplate(m.rule.template, m.vars),
+    title: sectionTitle(m.rule.section, lang),
+    text: fillTemplate(pickRuleTemplate(m.rule, lang), m.vars),
   }))
 
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
@@ -433,17 +450,22 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
   const ganji = (s.evidence.pillars?.[0] ?? '').trim()
 
   if (ganji) vars.ganji = ganji
+  // KO + EN 두 ganji text 를 동시에 채움 — 룰 템플릿이 자기 언어에 맞는
+  // placeholder ({monthGanjiText} vs {monthGanjiTextEn}) 를 선택해 사용.
   if (s.layer === 'decadal') {
     vars.daeunGanji = ganji
     vars.daeunGanjiText = getGanjiTransitNarrative(ganji, 'decadal', 'ko')
+    vars.daeunGanjiTextEn = getGanjiTransitNarrative(ganji, 'decadal', 'en')
   }
   if (s.layer === 'yearly') {
     vars.yearGanji = ganji
     vars.yearGanjiText = getGanjiTransitNarrative(ganji, 'yearly', 'ko')
+    vars.yearGanjiTextEn = getGanjiTransitNarrative(ganji, 'yearly', 'en')
   }
   if (s.layer === 'monthly') {
     vars.monthGanji = ganji
     vars.monthGanjiText = getGanjiTransitNarrative(ganji, 'monthly', 'ko')
+    vars.monthGanjiTextEn = getGanjiTransitNarrative(ganji, 'monthly', 'en')
   }
 
   const sibsin = s.evidence.sibsin as string | undefined
@@ -498,8 +520,8 @@ function fillTemplate(template: string, vars: TemplateVars): string {
   })
 }
 
-function sectionTitle(section: string): string {
-  const map: Record<string, string> = {
+function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string {
+  const ko: Record<string, string> = {
     daeun: '대운 흐름',
     seun: '올해의 운',
     wolun: '이번 달',
@@ -514,6 +536,21 @@ function sectionTitle(section: string): string {
     'domain-body': '몸·내면',
     'domain-growth': '자기·성장',
   }
+  const en: Record<string, string> = {
+    daeun: '10-year Arc',
+    seun: 'This Year',
+    wolun: 'This Month',
+    natal: 'Your Chart',
+    transit: 'Active Transits',
+    pattern: 'Patterns',
+    shinsal: 'Lucky Stars',
+    'domain-money': 'Money',
+    'domain-work': 'Work & Career',
+    'domain-relations': 'Relationships',
+    'domain-body': 'Body & Inner Life',
+    'domain-growth': 'Self & Growth',
+  }
+  const map = lang === 'en' ? en : ko
   return map[section] ?? section
 }
 
@@ -607,7 +644,8 @@ function mergeDomainTemplates(
   texts: string[],
   topDates: string[] = [],
   lowDates: string[] = [],
-  domain: string = ''
+  domain: string = '',
+  lang: InterpretationLang = 'ko'
 ): string {
   if (texts.length === 0) return ''
   const cleaned = texts.map((t) => t.trim()).filter(Boolean)
@@ -634,10 +672,16 @@ function mergeDomainTemplates(
     body = accumulated.join('\n')
   }
   if (topDates.length > 0) {
-    body += `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
+    body +=
+      lang === 'en'
+        ? `\n✨ Strong days: ${topDates.join(' · ')}`
+        : `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
   }
   if (lowDates.length > 0) {
-    body += `\n⚠️ 주의 날: ${lowDates.join(' · ')}`
+    body +=
+      lang === 'en'
+        ? `\n⚠️ Take care: ${lowDates.join(' · ')}`
+        : `\n⚠️ 주의 날: ${lowDates.join(' · ')}`
   }
   return body
 }
