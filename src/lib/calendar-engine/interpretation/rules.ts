@@ -136,7 +136,7 @@ export const RULES: InterpretationRule[] = [
       `한 해예요. 큰 결정과 새 시도가 평소보다 매끄럽게 흘러요. ` +
       `봄과 초여름이 운의 정점이에요. {yearGanjiText}`,
     templateEn:
-      `**{yearGanji}** year — this is a year that supports your chart in a friendly way. ` +
+      `**{yearGanjiEn}** year — this is a year that supports your chart in a friendly way. ` +
       `Big decisions and new attempts flow more smoothly than usual. ` +
       `Spring and early summer are the peak of the wave. {yearGanjiTextEn}`,
     themes: ['career', 'money'],
@@ -205,7 +205,7 @@ export const RULES: InterpretationRule[] = [
       `의사결정·관계·실행이 평소보다 매끄러워요. ` +
       `미뤄둔 일을 처리하기 좋아요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — a month that supports your chart in a friendly way. ` +
+      `**{monthGanjiEn}** month — a month that supports your chart in a friendly way. ` +
       `Decisions, relationships, and execution flow more smoothly than usual. ` +
       `Good for clearing things you have been putting off. {monthGanjiTextEn}`,
     themes: ['career', 'money'],
@@ -718,7 +718,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 책임이나 외부 압박이 평소보다 무거워지는 흐름이에요. ` +
       `완벽 다 하려 하지 말고 가장 중요한 한 건에만 집중해주세요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — responsibility and outside pressure run heavier than usual. ` +
+      `**{monthGanjiEn}** month — responsibility and outside pressure run heavier than usual. ` +
       `Do not try to be perfect on everything; focus on the single most important thing. {monthGanjiTextEn}`,
     themes: ['career', 'health'],
   },
@@ -737,7 +737,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 돈은 보이는데 챙기기 힘든 흐름이에요. 큰 투자보다 ` +
       `현금흐름 안정과 건강 관리를 우선해주세요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — money is visible but hard to actually hold on to. Rather than big investments, ` +
+      `**{monthGanjiEn}** month — money is visible but hard to actually hold on to. Rather than big investments, ` +
       `prioritise steady cash flow and looking after your health. {monthGanjiTextEn}`,
     themes: ['money', 'health'],
   },
@@ -756,7 +756,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 받쳐주는 큰 힘이 들어오는 흐름이에요. 학습이나 자격증, ` +
       `전문성 다지기에 가장 좋고 멘토·선배의 조언이 잘 통해요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — a current where strong support flows in. It is the best time for learning, ` +
+      `**{monthGanjiEn}** month — a current where strong support flows in. It is the best time for learning, ` +
       `certifications, or sharpening expertise, and advice from mentors and elders lands well. {monthGanjiTextEn}`,
     themes: ['career', 'love'],
   },
@@ -775,7 +775,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 친구·동료·협업이 도움이 되는 흐름이에요. 혼자 ` +
       `짊어지지 말고 함께 가는 사람과 나눠 보세요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — a current where friends, peers, and collaboration help. Do not carry it alone — ` +
+      `**{monthGanjiEn}** month — a current where friends, peers, and collaboration help. Do not carry it alone — ` +
       `share the load with the people walking alongside you. {monthGanjiTextEn}`,
     themes: ['growth', 'love'],
   },
@@ -794,7 +794,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 책임·자리·평가가 들어오는 흐름이에요. 평소 쌓아둔 ` +
       `능력이 결과로 나오기 좋고, 승진이나 새 책임 부여가 자연스러워요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — a current where responsibility, position, and evaluation flow in. The ability ` +
+      `**{monthGanjiEn}** month — a current where responsibility, position, and evaluation flow in. The ability ` +
       `you have been building turns into results, and promotions or new duties land naturally. {monthGanjiTextEn}`,
     themes: ['career', 'money'],
   },
@@ -813,7 +813,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 실행력과 돈 흐름이 맞물려 가는 흐름이에요. 작은 ` +
       `투자나 자산 정리, 새 거래 시작에 가장 좋은 시기예요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — execution power and cash flow lock into the same gear. It is the best time for ` +
+      `**{monthGanjiEn}** month — execution power and cash flow lock into the same gear. It is the best time for ` +
       `small investments, organising assets, or starting new deals. {monthGanjiTextEn}`,
     themes: ['money', 'career'],
   },
@@ -832,7 +832,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 머리와 자료가 가득 차는데 행동이 약해지는 흐름이에요. ` +
       `짧은 실행 단위로 끊고 시작을 가볍게 만들면 잘 풀려요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — your head and notes fill up but action weakens. Break things into short ` +
+      `**{monthGanjiEn}** month — your head and notes fill up but action weakens. Break things into short ` +
       `execution units and make the starting step light — that is how it flows. {monthGanjiTextEn}`,
     themes: ['career', 'growth'],
   },
@@ -851,7 +851,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 표현과 아이디어 흐름이 강해지는 시기예요. 새 콘텐츠나 ` +
       `창작, 기획이 잘 풀리고 안 쓰던 SNS·블로그를 다시 손보면 운이 따라요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — expression and idea flow run strong. New content, creation, ` +
+      `**{monthGanjiEn}** month — expression and idea flow run strong. New content, creation, ` +
       `and planning all click; dusting off an unused social account or blog brings luck along. {monthGanjiTextEn}`,
     themes: ['growth', 'career'],
   },
@@ -1916,7 +1916,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 봄 흐름이 본명 용신(목)에 우호적인 시기로 들어가요. ` +
       `새 시작·진출·확장에 좋은 한 달이에요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — the spring current moves into a stretch that favours your yongsin (Wood). ` +
+      `**{monthGanjiEn}** month — the spring current moves into a stretch that favours your yongsin (Wood). ` +
       `A great month for new beginnings, stepping out, and expansion. {monthGanjiTextEn}`,
     themes: ['career', 'growth'],
   },
@@ -1930,7 +1930,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 여름 흐름이 본명 용신(화)에 우호적이에요. ` +
       `자기 표현·대외 활동·인맥 확장이 잘 통하는 한 달이에요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — the summer current favours your yongsin (Fire). ` +
+      `**{monthGanjiEn}** month — the summer current favours your yongsin (Fire). ` +
       `Self-expression, outward activity, and expanding your network all land well. {monthGanjiTextEn}`,
     themes: ['career', 'growth'],
   },
@@ -1944,7 +1944,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 가을 흐름이 본명 용신(금)에 우호적이에요. ` +
       `결단·정리·결과 만들기에 좋은 한 달이에요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — the autumn current favours your yongsin (Metal). ` +
+      `**{monthGanjiEn}** month — the autumn current favours your yongsin (Metal). ` +
       `A great month for decisions, tidying up, and producing results. {monthGanjiTextEn}`,
     themes: ['career'],
   },
@@ -1958,7 +1958,7 @@ export const RULES: InterpretationRule[] = [
       `**{monthGanji}** 월 — 겨울 흐름이 본명 용신(수)에 우호적이에요. ` +
       `연구·학습·내실 다지기·계획에 좋은 한 달이에요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanji}** month — the winter current favours your yongsin (Water). ` +
+      `**{monthGanjiEn}** month — the winter current favours your yongsin (Water). ` +
       `A great month for research, learning, building inner depth, and planning. {monthGanjiTextEn}`,
     themes: ['career', 'growth'],
   },
@@ -2039,10 +2039,10 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `본인 힘이 충분한데 관성도 강 — 공식 자리·승진·새 책임 ` +
+      `본인 힘이 충분한데 책임·자리도 강 — 공식 자리·승진·새 책임 ` +
       `다 받아낼 수 있는 시기. 적극적인 도전 가능.`,
     templateEn:
-      `You have enough strength and authority-and-responsibility is strong too — you can take on ` +
+      `You have enough strength and responsibility and standing is strong too — you can take on ` +
       `official positions, promotions, and new duties. An active push is on the table.`,
     themes: ['career'],
   },
@@ -2077,10 +2077,10 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `식상 활성 + 본인 힘 충분 — 표현·기획·창업·외주 일에 강한 ` +
+      `표현·창작의 별이 활성 + 본인 힘 충분 — 표현·기획·창업·외주 일에 강한 ` +
       `시기. 새 분야 진출에 우호적이에요.`,
     templateEn:
-      `Expression-and-output is active and you have enough strength — a strong time for ` +
+      `Creative expression is active and you have enough strength — a strong time for ` +
       `expression, planning, starting ventures, and freelance work. Favourable for entering new fields.`,
     themes: ['money', 'growth'],
   },
@@ -2095,10 +2095,10 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `비겁 활성 — 동료·파트너십·공동 사업 흐름. 같이 일하는 ` +
+      `형제·동료의 별이 활성 — 동료·파트너십·공동 사업 흐름. 같이 일하는 ` +
       `사람들과 호흡이 잘 맞는 시기예요.`,
     templateEn:
-      `Peer-and-rival is active — a current of peers, partnerships, and shared ventures. ` +
+      `Peers and rivals is active — a current of peers, partnerships, and shared ventures. ` +
       `The people you work with are in rhythm with you.`,
     themes: ['growth', 'money'],
   },
@@ -2115,10 +2115,10 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['식신', '상관'],
     },
     template:
-      `식상 + 본인 힘 충분 — 매력·표현이 자연스럽게 발산되는 시기. ` +
+      `표현·창작 + 본인 힘 충분 — 매력·표현이 자연스럽게 발산되는 시기. ` +
       `새로운 만남에 적극 나서볼 만해요.`,
     templateEn:
-      `Expression-and-output plus enough chart strength — charm and expression flow out naturally. ` +
+      `Creative expression plus enough chart strength — charm and expression flow out naturally. ` +
       `It is worth being active about new meetings.`,
     themes: ['love', 'growth'],
   },
@@ -2171,10 +2171,10 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정인', '편인'],
     },
     template:
-      `인성 + 본인 힘 충분 — 학업·연구·자기성장에 깊이 들어가기 ` +
+      `배움·돌봄 + 본인 힘 충분 — 학업·연구·자기성장에 깊이 들어가기 ` +
       `좋은 시기. 자격증·전문 분야 다지기에 우호적이에요.`,
     templateEn:
-      `Wisdom-and-care plus enough chart strength — a good time to go deep into study, ` +
+      `Learning and care plus enough chart strength — a good time to go deep into study, ` +
       `research, and self-growth. Favourable for certifications and shoring up specialty fields.`,
     themes: ['career', 'growth'],
   },
@@ -2191,10 +2191,10 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `식상 활성 — 표현·창작·아이디어 발산이 잘 들어오는 시기. ` +
+      `표현·창작의 별이 활성 — 표현·창작·아이디어 발산이 잘 들어오는 시기. ` +
       `글·영상·기획 같은 결과물 만들기 우호적이에요.`,
     templateEn:
-      `Expression-and-output is active — expression, creation, and idea flow all land well. ` +
+      `Creative expression is active — expression, creation, and idea flow all land well. ` +
       `Favourable for producing writing, video, or planning work.`,
     themes: ['growth', 'money'],
   },
@@ -2209,10 +2209,10 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `식상 활성 — 자녀·후배·새 작품과의 시간이 잘 흐르는 시기. ` +
+      `표현·창작의 별이 활성 — 자녀·후배·새 작품과의 시간이 잘 흐르는 시기. ` +
       `돌봄·교육·전수에 우호적이에요.`,
     templateEn:
-      `Expression-and-output is active — time with children, juniors, and new work flows well. ` +
+      `Creative expression is active — time with children, juniors, and new work flows well. ` +
       `Favourable for caretaking, teaching, and passing things on.`,
     themes: ['love'],
   },
@@ -2226,10 +2226,10 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['화개', '천문성', '문곡'],
     },
     template:
-      `화개·천문 활성 — 카르마·인연·깊은 흐름을 정리할 시기. ` +
+      `예술·고독의 별과 천문 활성 — 카르마·인연·깊은 흐름을 정리할 시기. ` +
       `명상·기록·내면 작업이 의외로 큰 변화를 만들어요.`,
     templateEn:
-      `Hwagae and Cheonmun are active — a time to clear karma, ties, and deep currents. ` +
+      `The art-and-solitude star and Cheonmun are active — a time to clear karma, ties, and deep currents. ` +
       `Meditation, journaling, and inner work make surprisingly big shifts.`,
     themes: ['growth'],
   },
@@ -2249,11 +2249,11 @@ export const RULES: InterpretationRule[] = [
       maxPolarity: -1,
     },
     template:
-      `화(火) 기운이 과한 결에 관성 압박까지 걸리는 흐름이에요. 화상이나 ` +
+      `화(火) 기운이 과한 결에 책임·자리 압박까지 걸리는 흐름이에요. 화상이나 ` +
       `염증, 심혈관, 불면에 유의해야 하는 시기라 매운 음식과 과로를 ` +
       `자제하고, 차가운 물·휴식·녹지 산책으로 식혀주세요.`,
     templateEn:
-      `Your Fire energy is excessive and authority-and-responsibility pressure is layered on top. ` +
+      `Your Fire energy is excessive and responsibility and standing pressure is layered on top. ` +
       `Watch for burns, inflammation, cardiovascular issues, and insomnia — cut back on spicy food ` +
       `and overwork, and cool yourself with cold water, rest, and walks in greenery.`,
     themes: ['health'],
@@ -2325,11 +2325,11 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['백호', '현침', '귀문관'],
     },
     template:
-      `흉살(백호·현침·귀문 등)이 작용하는 시기예요. 갑작스러운 증상이나 ` +
+      `흉살(격동·전환의 별·현침·귀문 등)이 작용하는 시기예요. 갑작스러운 증상이나 ` +
       `소화기, 신경 예민함에 유의하면서 무리한 일정을 줄이고 매운 음식과 ` +
       `자극적인 음료는 피해주세요.`,
     templateEn:
-      `Harsh shinsal (Baekho, Hyeonchim, Gwimun, and the like) are at work. Watch for sudden symptoms, ` +
+      `Harsh shinsal (the upheaval star, Hyeonchim, Gwimun, and the like) are at work. Watch for sudden symptoms, ` +
       `digestive issues, and a sensitive nervous system — trim back any overloaded schedule and ` +
       `avoid spicy food and stimulating drinks.`,
     themes: ['health'],
@@ -2349,11 +2349,11 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정재', '편재'],
     },
     template:
-      `**{yearGanji}** 세운 — 재성이 들어오는 해예요. 돈·실물·실제 ` +
+      `**{yearGanji}** 세운 — 재물의 별이 들어오는 해예요. 돈·실물·실제 ` +
       `결과가 눈에 보이는 흐름이라 작년에 뿌린 씨앗이 현금흐름으로 ` +
       `돌아오기 좋은 시기예요. {yearGanjiText}`,
     templateEn:
-      `**{yearGanji}** year — wealth-and-resources flows in. Money, tangibles, and real-world results ` +
+      `**{yearGanjiEn}** year — wealth and resources flows in. Money, tangibles, and real-world results ` +
       `become visible — the seeds you planted last year come back as cash flow this year. {yearGanjiTextEn}`,
     themes: ['money'],
   },
@@ -2507,11 +2507,11 @@ export const RULES: InterpretationRule[] = [
       // 매칭하려면 separate 룰 필요. 여기는 천을귀인 단독으로 가용.
     },
     template:
-      `천을귀인이 작용하는 해예요. 1년에 몇 번 안 오는 우호적인 ` +
+      `귀한 도움의 별이 작용하는 해예요. 1년에 몇 번 안 오는 우호적인 ` +
       `흐름이라 계약·결혼·이직·창업 같은 중요한 시작을 잡아두면 결과가 ` +
       `잘 풀려요.`,
     templateEn:
-      `Cheoneul Guin is at work this year. It is one of those friendly currents that only comes a few ` +
+      `A benefactor star is at work this year. It is one of those friendly currents that only comes a few ` +
       `times — lock in important beginnings like contracts, marriage, job changes, or starting a venture ` +
       `and the results tend to come through.`,
     themes: ['career', 'love', 'money'],
@@ -2525,11 +2525,11 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['양인', '괴강'],
     },
     template:
-      `양인이나 괴강이 작용하는 해예요. 추진력은 강해지지만 충돌도 ` +
+      `양인이나 강한 의지의 별이 작용하는 해예요. 추진력은 강해지지만 충돌도 ` +
       `함께 늘어나니, 결단은 빠르게 가더라도 사람을 대할 때는 한 박자 ` +
       `천천히 가주세요.`,
     templateEn:
-      `Yangin or Gwaegang is at work this year. Your drive runs stronger but clashes grow alongside it — ` +
+      `Yangin or the strong-will star is at work this year. Your drive runs stronger but clashes grow alongside it — ` +
       `move fast on decisions but take a beat slower when dealing with people.`,
     themes: ['career', 'health'],
   },
@@ -2542,11 +2542,11 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['역마', '지살'],
     },
     template:
-      `역마나 지살이 작용하는 해예요. 이동·이사·해외·환경 변화가 ` +
+      `이동·변화의 별이나 지살이 작용하는 해예요. 이동·이사·해외·환경 변화가 ` +
       `자연스럽게 따라오니, 한곳에 자리잡으려 애쓰기보다 흐름을 타는 ` +
       `편이 맞아요.`,
     templateEn:
-      `Yeokma or Jisal is at work this year. Movement, moving house, going abroad, and environment ` +
+      `The movement star or Jisal is at work this year. Movement, moving house, going abroad, and environment ` +
       `changes follow naturally — rather than forcing yourself to settle in one place, ride the current.`,
     themes: ['growth', 'career'],
   },
@@ -2559,11 +2559,11 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['도화', '홍염살'],
     },
     template:
-      `도화나 홍염이 작용하는 해예요. 매력·인기·인연 흐름이 강해져서 ` +
+      `매력·끌림의 별이나 홍염이 작용하는 해예요. 매력·인기·인연 흐름이 강해져서 ` +
       `연애나 인지도, 노출은 잘 풀리지만 가벼운 인연도 함께 늘어나니 ` +
       `선택은 신중하게 가주세요.`,
     templateEn:
-      `Dohwa or Hongyeom is at work this year. Charm, popularity, and connection energy run strong — ` +
+      `The charm-and-attraction star or Hongyeom is at work this year. Charm, popularity, and connection energy run strong — ` +
       `love, visibility, and exposure all click, but casual ties pile up too. Be careful with your choices.`,
     themes: ['love', 'growth'],
   },
@@ -2576,11 +2576,11 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['백호', '현침'],
     },
     template:
-      `백호나 현침이 작용하는 해예요. 갑작스러운 변화나 사고, 건강 신호에 ` +
+      `격동·전환의 별이나 현침이 작용하는 해예요. 갑작스러운 변화나 사고, 건강 신호에 ` +
       `유의해야 하는 흐름이라 안전·검진·휴식 우선순위를 올리고 위험한 ` +
       `활동은 미루는 편이 안전해요.`,
     templateEn:
-      `Baekho or Hyeonchim is at work this year. Watch for sudden changes, accidents, and health signals — ` +
+      `The upheaval star or Hyeonchim is at work this year. Watch for sudden changes, accidents, and health signals — ` +
       `bump safety, check-ups, and rest higher on your priority list and put off risky activity.`,
     themes: ['health'],
   },
@@ -2629,11 +2629,11 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['문창', '학당귀인'],
     },
     template:
-      `문창이나 학당이 작용하는 해예요. 학업·시험·자격증·연구 흐름이 ` +
+      `학문의 별이나 학당이 작용하는 해예요. 학업·시험·자격증·연구 흐름이 ` +
       `가장 잘 풀리는 때라, 오래 미뤘던 공부나 자격증 도전을 시작하기에 ` +
       `가장 좋아요.`,
     templateEn:
-      `Munchang or Hakdang is at work this year. The currents around study, exams, certifications, and ` +
+      `The literary star or Hakdang is at work this year. The currents around study, exams, certifications, and ` +
       `research run best — the best time to start the studying or certification you have been putting off.`,
     themes: ['career', 'growth'],
   },
@@ -2702,11 +2702,11 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['암록', '태극귀인'],
     },
     template:
-      `암록이나 태극귀인이 작용하는 해예요. 보이지 않는 도움이 들어와서 ` +
+      `보이지 않는 도움의 별이나 행운의 도움 별이 작용하는 해예요. 보이지 않는 도움이 들어와서 ` +
       `평소 도와줬던 사람이나 오래된 인연이 결정적인 순간에 등장해요. ` +
       `자존심 세우지 말고 필요할 때 도움을 요청하세요.`,
     templateEn:
-      `Amlok or Taegeuk Guin is at work this year. Unseen help flows in — people you have helped before ` +
+      `A hidden-support star or a guiding star is at work this year. Unseen help flows in — people you have helped before ` +
       `or old connections show up at decisive moments. Drop the pride and ask for help when you need it.`,
     themes: ['love', 'money', 'career'],
   },
@@ -2749,10 +2749,10 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정재', '편재'],
     },
     template:
-      `이 10년은 재성이 들어오는 결이라 결혼·연애·동거 같은 관계 사건이 ` +
+      `이 10년은 재물의 별이 들어오는 결이라 결혼·연애·동거 같은 관계 사건이 ` +
       `자연스럽게 자리잡혀요. 인연이 결과로 이어지기 좋은 큰 시기예요.`,
     templateEn:
-      `This decade carries the wealth-and-resources current, so relationship events like marriage, ` +
+      `This decade carries the wealth and resources current, so relationship events like marriage, ` +
       `partnership, or moving in together settle in naturally. A big stretch where connection turns into results.`,
     themes: ['love', 'money'],
   },
@@ -2935,10 +2935,10 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['식신', '상관'],
     },
     template:
-      `이번 달은 식상이 받쳐주는 흐름이라 컨디션 회복과 식욕·소화에 우호적이에요. ` +
+      `이번 달은 표현·창작이 받쳐주는 흐름이라 컨디션 회복과 식욕·소화에 우호적이에요. ` +
       `식습관·수면 리듬을 다시 잡기에 가장 좋은 시기예요.`,
     templateEn:
-      `Expression-and-output backs you up this month, so your condition recovers and appetite and digestion ` +
+      `Creative expression backs you up this month, so your condition recovers and appetite and digestion ` +
       `run well. The best time to reset eating habits and sleep rhythm.`,
     themes: ['health'],
   },
@@ -2953,10 +2953,10 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['도화'],
     },
     template:
-      `본명에 도화가 자리잡은 사주예요. 매력과 인연 끌림이 평생 강한 ` +
+      `본명에 매력·끌림의 별이 자리잡은 사주예요. 매력과 인연 끌림이 평생 강한 ` +
       `결이라, 어디서든 사람이 잘 따르고 첫인상으로 기억되기 쉬워요.`,
     templateEn:
-      `Your chart has Dohwa built in. Charm and the pull of connection run strong for life — ` +
+      `Your chart has the charm-and-attraction star built in. Charm and the pull of connection run strong for life — ` +
       `people gravitate to you wherever you are, and your first impression sticks.`,
     themes: ['love', 'growth'],
   },
@@ -2971,10 +2971,10 @@ export const RULES: InterpretationRule[] = [
       natalStrength: ['strong'],
     },
     template:
-      `재성을 충분히 다룰 수 있는 신강 사주예요. 결혼과 가정을 안정적으로 ` +
+      `재물의 별을 충분히 다룰 수 있는 본인 기운이 강한 사주예요. 결혼과 가정을 안정적으로 ` +
       `꾸리는 결이라 관계를 길게 가져가는 데 강점이 있어요.`,
     templateEn:
-      `Your chart is strong enough to handle wealth-and-resources. You build marriage and home life ` +
+      `Your chart is strong enough to handle wealth and resources. You build marriage and home life ` +
       `steadily — your strength is in carrying relationships for the long haul.`,
     themes: ['love', 'money'],
   },
@@ -2991,10 +2991,10 @@ export const RULES: InterpretationRule[] = [
       natalStrength: ['strong'],
     },
     template:
-      `재성을 감당할 힘이 있는 본명이에요. 큰 돈을 다루는 일이나 자기 ` +
+      `재물의 별을 감당할 힘이 있는 본명이에요. 큰 돈을 다루는 일이나 자기 ` +
       `사업, 자산 운용에 강점이 있어 평생 풍요로운 결이에요.`,
     templateEn:
-      `Your chart has the strength to carry wealth-and-resources. You have an edge in handling big money, ` +
+      `Your chart has the strength to carry wealth and resources. You have an edge in handling big money, ` +
       `running your own business, and managing assets — a chart that stays abundant for life.`,
     themes: ['money', 'career'],
   },
@@ -3011,7 +3011,7 @@ export const RULES: InterpretationRule[] = [
       `본명에 비견·겁재가 강한 사주예요. 혼자 모으기보다 함께 벌고 나누는 ` +
       `결이라, 동업·공동투자·팀 단위 수익이 잘 맞아요.`,
     templateEn:
-      `Peer-and-rival runs strong in your chart. Rather than saving alone, you earn and share together — ` +
+      `Peers and rivals run strong in your chart. Rather than saving alone, you earn and share together — ` +
       `partnerships, joint investments, and team-based income suit you well.`,
     themes: ['money', 'growth'],
   },
@@ -3061,10 +3061,10 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['양인', '괴강', '백호'],
     },
     template:
-      `본명에 양인·괴강·백호가 있는 사주예요. 추진력이 강한 결인 만큼 ` +
+      `본명에 양인·강한 의지의 별·격동·전환의 별이 있는 사주예요. 추진력이 강한 결인 만큼 ` +
       `사고·부상·수술 같은 갑작스러운 신호에도 평생 유의해야 해요.`,
     templateEn:
-      `Your chart carries Yangin, Gwaegang, or Baekho. The drive runs strong — and the trade-off is that ` +
+      `Your chart carries Yangin, the strong-will star, or the upheaval star. The drive runs strong — and the trade-off is that ` +
       `you have to watch for sudden signals like accidents, injuries, and surgery throughout life.`,
     themes: ['health', 'career'],
   },
