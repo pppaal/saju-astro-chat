@@ -8,16 +8,8 @@
 //   • fusion/lifeReport/signals/astroLifecycle.ts → Saturn/Jupiter/Uranus/Chiron returns
 //   • saju/orthodoxInterpretation.ts → pillar position rule (for ages 30/40/50)
 
-import type {
-  BuilderInput,
-  DecisiveTiming,
-  DecisiveYear,
-  Paragraph,
-} from '../types'
-import {
-  daeunCycles,
-  dayStrength,
-} from '../signals/sajuSignals'
+import type { BuilderInput, DecisiveTiming, DecisiveYear, Paragraph } from '../types'
+import { daeunCycles, dayStrength } from '../signals/sajuSignals'
 import {
   birthYearFromBirthDate,
   eventsInAgeRange,
@@ -47,28 +39,68 @@ const DAEUN_HEURISTIC: Array<{
   domainEn: string
   match: (i: number) => boolean
 }> = [
-  { domain: 'job_change', domainKo: '이직·전환', domainEn: 'career shift', match: (i) => i % 3 === 1 },
-  { domain: 'business', domainKo: '사업·창업', domainEn: 'business launch', match: (i) => i >= 2 && i <= 4 },
-  { domain: 'move', domainKo: '이사·이동', domainEn: 'move / relocation', match: (i) => i === 1 || i === 3 },
-  { domain: 'health', domainKo: '건강 주의', domainEn: 'health caution', match: (i) => i === 4 || i === 6 },
-  { domain: 'wealth', domainKo: '재물 호황', domainEn: 'wealth peak', match: (i) => i === 2 || i === 5 },
+  {
+    domain: 'job_change',
+    domainKo: '이직·전환',
+    domainEn: 'career shift',
+    match: (i) => i % 3 === 1,
+  },
+  {
+    domain: 'business',
+    domainKo: '사업·창업',
+    domainEn: 'business launch',
+    match: (i) => i >= 2 && i <= 4,
+  },
+  {
+    domain: 'move',
+    domainKo: '이사·이동',
+    domainEn: 'move / relocation',
+    match: (i) => i === 1 || i === 3,
+  },
+  {
+    domain: 'health',
+    domainKo: '건강 주의',
+    domainEn: 'health caution',
+    match: (i) => i === 4 || i === 6,
+  },
+  {
+    domain: 'wealth',
+    domainKo: '재물 호황',
+    domainEn: 'wealth peak',
+    match: (i) => i === 2 || i === 5,
+  },
   { domain: 'crisis', domainKo: '위기·시련', domainEn: 'crisis', match: (i) => i === 5 || i === 7 },
 ]
 
-const LIFECYCLE_TO_DOMAIN: Record<string, {
-  domain: DecisiveYear['domain']
-  ko: string
-  en: string
-}> = {
+const LIFECYCLE_TO_DOMAIN: Record<
+  string,
+  {
+    domain: DecisiveYear['domain']
+    ko: string
+    en: string
+  }
+> = {
   saturn_return_1: { domain: 'career', ko: '커리어 토대가 굳어지는 때', en: 'career foundation' },
-  saturn_return_2: { domain: 'career', ko: '커리어 마지막 정리의 때', en: 'late-career consolidation' },
+  saturn_return_2: {
+    domain: 'career',
+    ko: '커리어 마지막 정리의 때',
+    en: 'late-career consolidation',
+  },
   jupiter_return_2: { domain: 'career', ko: '진로 큰 그림이 잡히는 때', en: 'career big picture' },
   jupiter_return_5: { domain: 'wealth', ko: '환갑의 전환, 후반 인생 첫 사이클', en: 'a 60-year turning point, the first cycle of the second half of life' },
   uranus_opposition: { domain: 'crisis', ko: '중년 자유의 각성', en: 'midlife awakening' },
-  pluto_square_pluto: { domain: 'crisis', ko: '정체성이 깊이 재구성되는 때', en: 'identity rebuild pressure' },
+  pluto_square_pluto: {
+    domain: 'crisis',
+    ko: '정체성이 깊이 재구성되는 때',
+    en: 'identity rebuild pressure',
+  },
   chiron_return: { domain: 'health', ko: '치유의 회귀', en: 'healing turning point' },
   neptune_square: { domain: 'crisis', ko: '의미가 시험에 오르는 때', en: 'meaning test' },
-  progressed_lunar_1: { domain: 'love', ko: '감정 사이클의 졸업', en: 'emotional cycle graduation' },
+  progressed_lunar_1: {
+    domain: 'love',
+    ko: '감정 사이클의 졸업',
+    en: 'emotional cycle graduation',
+  },
 }
 
 export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
@@ -77,8 +109,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const astroUsed: string[] = []
 
   // ─ Resolve birth year (used only to compute calendar year for each age)
-  const birthYear =
-    birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
+  const birthYear = birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
 
   const cycles = daeunCycles(saju)
   if (cycles.length > 0) sajuUsed.push('cycles.daeunCycles')
@@ -138,9 +169,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const merged: DecisiveYear[] = []
   const seen = new Set<string>()
   for (const a of astroPicks) {
-    const overlap = sajuPicks.find(
-      (s) => Math.abs(s.age - a.age) <= 2 && s.domain !== 'marriage'
-    )
+    const overlap = sajuPicks.find((s) => Math.abs(s.age - a.age) <= 2 && s.domain !== 'marriage')
     if (overlap) {
       const key = `dual@${a.age}`
       if (seen.has(key)) continue
@@ -163,7 +192,11 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   //   → top astro Saturn/Uranus/Chiron windows → cap at 8 entries.
   const decisiveYears: DecisiveYear[] = []
   const usedAges = new Set<number>()
-  for (const y of [...merged, ...filterRepresentativeSaju(sajuPicks), ...representativeAstro(astroPicks)]) {
+  for (const y of [
+    ...merged,
+    ...filterRepresentativeSaju(sajuPicks),
+    ...representativeAstro(astroPicks),
+  ]) {
     if (usedAges.has(y.age)) continue
     decisiveYears.push(y)
     usedAges.add(y.age)
@@ -213,7 +246,8 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   // P3 — 50대+ 변곡점
   const e50s = eventsInAgeRange(50, 65)
   const d50s = decisiveYears.filter((d) => d.age >= 50)
-  const e50sLabel = e50s.map((e) => e.labelKo).join('·') || '치유의 회귀와 두 번째 어른됨의 통과의례'
+  const e50sLabel =
+    e50s.map((e) => e.labelKo).join('·') || '치유의 회귀와 두 번째 어른됨의 통과의례'
   const p3ko = paragraph([
     `50대 이후로는 ${e50sLabel}${iGa(e50sLabel)} 핵심이에요.`,
     d50s.length > 0
@@ -255,18 +289,18 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   if (zr) {
     astroUsed.push('calendarSignals.zrCurrent')
     p5pieces.push(
-      `다음 5~10년의 인생 분위기는 ${zrSignKo(zr.sign)}의 색, ${planetName(zr.ruler, 'ko')}이 다스리는 챕터예요. 큰 톤은 ${zrThemeKo(zr.sign)}으로 흘러요.`,
+      `다음 5~10년의 인생 분위기는 ${zrSignKo(zr.sign)}의 색, ${planetName(zr.ruler, 'ko')}이 다스리는 챕터예요. 큰 톤은 ${zrThemeKo(zr.sign)}으로 흘러요.`
     )
     p5piecesEn.push(
-      `Over the next 5–10 years, the life-tone is the ${zr.sign} chapter ruled by ${zr.ruler} — the broad theme is ${zrThemeEn(zr.sign)}.`,
+      `Over the next 5–10 years, the life-tone is the ${zr.sign} chapter ruled by ${zr.ruler} — the broad theme is ${zrThemeEn(zr.sign)}.`
     )
   }
   if (zrNext) {
     p5pieces.push(
-      `이 챕터가 끝나면 ${zrSignKo(zrNext.sign)}의 분위기로 넘어가요. 큰 흐름의 갈림길이 한 번 더 기다리고 있어요.`,
+      `이 챕터가 끝나면 ${zrSignKo(zrNext.sign)}의 분위기로 넘어가요. 큰 흐름의 갈림길이 한 번 더 기다리고 있어요.`
     )
     p5piecesEn.push(
-      `When the current chapter closes, you move into the ${zrNext.sign} chapter — another large bend in the river awaits.`,
+      `When the current chapter closes, you move into the ${zrNext.sign} chapter — another large bend in the river awaits.`
     )
   }
   // ZR L2: the smaller sub-period inside the current L1 chapter — adds 1-2
@@ -275,15 +309,14 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const zrSubPeriods = input.calendarSignals?.zrSubPeriods
   if (zrSubCurrent) {
     astroUsed.push('calendarSignals.zrSubCurrent')
-    const birthYearForSub =
-      birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
+    const birthYearForSub = birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
     const endAge = Math.round(zrSubCurrent.endYear)
     const endYearAbsolute = birthYearForSub + endAge
     p5pieces.push(
-      `그 안의 작은 시기로 보면, 지금은 ${zrSignKo(zrSubCurrent.sign)}의 색을 ${planetName(zrSubCurrent.ruler, 'ko')}이 다스리는 sub-period 안에 있어요. 이 작은 시기는 ${endAge}세(${endYearAbsolute}년) 무렵 닫히면서 작은 변곡이 한 번 와요.`,
+      `그 안의 작은 시기로 보면, 지금은 ${zrSignKo(zrSubCurrent.sign)}의 색을 ${planetName(zrSubCurrent.ruler, 'ko')}이 다스리는 sub-period 안에 있어요. 이 작은 시기는 ${endAge}세(${endYearAbsolute}년) 무렵 닫히면서 작은 변곡이 한 번 와요.`
     )
     p5piecesEn.push(
-      `Inside the chapter, you sit in a smaller ${zrSubCurrent.sign} sub-period ruled by ${zrSubCurrent.ruler}; it closes around age ${endAge} (≈ ${endYearAbsolute}), bringing one minor pivot.`,
+      `Inside the chapter, you sit in a smaller ${zrSubCurrent.sign} sub-period ruled by ${zrSubCurrent.ruler}; it closes around age ${endAge} (≈ ${endYearAbsolute}), bringing one minor pivot.`
     )
   }
   if (zrSubPeriods && zrSubPeriods.length > 0) {
@@ -297,16 +330,16 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       const birthYearForSub =
         birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
       const labelsKo = upcoming.map(
-        (u) => `${Math.round(u.startYear)}세(${birthYearForSub + Math.round(u.startYear)}년)`,
+        (u) => `${Math.round(u.startYear)}세(${birthYearForSub + Math.round(u.startYear)}년)`
       )
       const labelsEn = upcoming.map(
-        (u) => `age ${Math.round(u.startYear)} (≈ ${birthYearForSub + Math.round(u.startYear)})`,
+        (u) => `age ${Math.round(u.startYear)} (≈ ${birthYearForSub + Math.round(u.startYear)})`
       )
       p5pieces.push(
-        `다음 작은 변곡은 ${labelsKo.join(', ')} 즈음이에요. 인생 큰 챕터 안에서 흐름의 톤이 한 번씩 바뀌어요.`,
+        `다음 작은 변곡은 ${labelsKo.join(', ')} 즈음이에요. 인생 큰 챕터 안에서 흐름의 톤이 한 번씩 바뀌어요.`
       )
       p5piecesEn.push(
-        `The next small pivots fall near ${labelsEn.join(', ')} — the tone of the chapter shifts a notch each time.`,
+        `The next small pivots fall near ${labelsEn.join(', ')} — the tone of the chapter shifts a notch each time.`
       )
     }
   }
@@ -317,10 +350,10 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     const focus = next5.find((p) => [10, 7, 5, 9, 2].includes(p.house)) ?? next5[0]
     if (focus) {
       p5pieces.push(
-        `매년의 포커스도 또렷해서, ${focus.age}세에는 ${profHouseKo(focus.house)} 영역이 한 해의 무게추가 돼요.`,
+        `매년의 포커스도 또렷해서, ${focus.age}세에는 ${profHouseKo(focus.house)} 영역이 한 해의 무게추가 돼요.`
       )
       p5piecesEn.push(
-        `Year by year the focus is clear — at age ${focus.age}, the ${profHouseEn(focus.house)} carries the year's weight.`,
+        `Year by year the focus is clear — at age ${focus.age}, the ${profHouseEn(focus.house)} carries the year's weight.`
       )
     }
   }
@@ -331,9 +364,18 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     astroUsed.push('progressions.solarArc')
     const ing = sa.upcomingIngress
     const planetKoMap: Record<string, string> = {
-      Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
-      Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성',
-      Pluto: '명왕성', MC: '사회 무대', ASC: '첫인상',
+      Sun: '태양',
+      Moon: '달',
+      Mercury: '수성',
+      Venus: '금성',
+      Mars: '화성',
+      Jupiter: '목성',
+      Saturn: '토성',
+      Uranus: '천왕성',
+      Neptune: '해왕성',
+      Pluto: '명왕성',
+      MC: '사회 무대',
+      ASC: '첫인상',
     }
     const planetKo = planetKoMap[ing.planet] ?? ing.planet
     const signKo = ing.sign ? signLabel(ing.sign, 'ko') : ''
@@ -342,10 +384,10 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     const planetParticle = iGa(planetKo)
     const signParticle = signKo ? euroLoFromBatchim(signKo) : ''
     p5pieces.push(
-      `${ing.ingressAge}세 무렵엔 진행된 결 안에서 ${planetKo}${planetParticle}${signKo ? ' ' + signKo + signParticle : ''} 들어가, 인생 색의 변곡이 한 번 또렷이 잡혀요.`,
+      `${ing.ingressAge}세 무렵엔 진행된 결 안에서 ${planetKo}${planetParticle}${signKo ? ' ' + signKo + signParticle : ''} 들어가, 인생 색의 변곡이 한 번 또렷이 잡혀요.`
     )
     p5piecesEn.push(
-      `Around age ${ing.ingressAge}, solar-arc directed ${ing.planet}${signEn ? ' enters ' + signEn : ' changes sign'}, marking a clear inflection of life-tone.`,
+      `Around age ${ing.ingressAge}, solar-arc directed ${ing.planet}${signEn ? ' enters ' + signEn : ' changes sign'}, marking a clear inflection of life-tone.`
     )
   }
   const p5ko = p5pieces.length
@@ -363,10 +405,10 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   if (profCur) {
     astroUsed.push('calendarSignals.profectionCurrent')
     p6pieces.push(
-      `올해는 ${profCur.house}궁(${profHouseKo(profCur.house)})이 활성돼서, ${profPracticalKo(profCur.house)}에 결과가 잘 맺혀요.`,
+      `올해는 ${profCur.house}궁(${profHouseKo(profCur.house)})이 활성돼서, ${profPracticalKo(profCur.house)}에 결과가 잘 맺혀요.`
     )
     p6piecesEn.push(
-      `This year activates house ${profCur.house} (${profHouseEn(profCur.house)}) — outcomes ripen most clearly in ${profPracticalEn(profCur.house)}.`,
+      `This year activates house ${profCur.house} (${profHouseEn(profCur.house)}) — outcomes ripen most clearly in ${profPracticalEn(profCur.house)}.`
     )
   }
   if (hc && hc.hasInteractions) {
@@ -374,7 +416,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     const dominant = hc.chungCount >= hc.hapCount ? '충돌의 흐름' : '결합의 흐름'
     const dominantEn = hc.chungCount >= hc.hapCount ? 'a clash accent' : 'a harmony accent'
     p6pieces.push(
-      `사주 안에 ${dominant}이 강해서, 이번 시기엔 ${hc.chungCount >= hc.hapCount ? '결정과 단절을 미루지 않을 때' : '함께하는 사람과의 결합'}이 운을 끌어와요.`,
+      `사주 안에 ${dominant}이 강해서, 이번 시기엔 ${hc.chungCount >= hc.hapCount ? '결정과 단절을 미루지 않을 때' : '함께하는 사람과의 결합'}이 운을 끌어와요.`
     )
     p6piecesEn.push(
       `Your chart carries ${dominantEn} — this season ${hc.chungCount >= hc.hapCount ? 'decisions and clean breaks pull luck in' : 'partnerships pull luck in'}.`,
@@ -405,18 +447,32 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
 
 // ─── helpers for P5/P6 (calendar-engine adapter consumers) ────────────
 const ZR_SIGN_KO: Record<string, string> = {
-  Aries: '시작과 자기 발견', Taurus: '안정과 뿌리내림', Gemini: '연결과 학습',
-  Cancer: '돌봄과 정서', Leo: '자기 표현과 창조', Virgo: '정밀과 헌신',
-  Libra: '관계와 조화', Scorpio: '심층 변형', Sagittarius: '확장과 진리',
-  Capricorn: '구조와 성취', Aquarius: '혁신과 공동체', Pisces: '용해와 연민',
+  Aries: '시작과 자기 발견',
+  Taurus: '안정과 뿌리내림',
+  Gemini: '연결과 학습',
+  Cancer: '돌봄과 정서',
+  Leo: '자기 표현과 창조',
+  Virgo: '정밀과 헌신',
+  Libra: '관계와 조화',
+  Scorpio: '심층 변형',
+  Sagittarius: '확장과 진리',
+  Capricorn: '구조와 성취',
+  Aquarius: '혁신과 공동체',
+  Pisces: '용해와 연민',
 }
 const ZR_SIGN_EN: Record<string, string> = {
-  Aries: 'beginning and self-discovery', Taurus: 'stability and rooting',
-  Gemini: 'connection and learning', Cancer: 'care and emotion',
-  Leo: 'self-expression and creation', Virgo: 'precision and devotion',
-  Libra: 'relationship and harmony', Scorpio: 'deep transformation',
-  Sagittarius: 'expansion and truth', Capricorn: 'structure and achievement',
-  Aquarius: 'innovation and community', Pisces: 'dissolution and compassion',
+  Aries: 'beginning and self-discovery',
+  Taurus: 'stability and rooting',
+  Gemini: 'connection and learning',
+  Cancer: 'care and emotion',
+  Leo: 'self-expression and creation',
+  Virgo: 'precision and devotion',
+  Libra: 'relationship and harmony',
+  Scorpio: 'deep transformation',
+  Sagittarius: 'expansion and truth',
+  Capricorn: 'structure and achievement',
+  Aquarius: 'innovation and community',
+  Pisces: 'dissolution and compassion',
 }
 function zrSignKo(sign: string): string {
   return ZR_SIGN_KO[sign] ?? '본연의 톤'
@@ -430,50 +486,83 @@ function zrThemeEn(sign: string): string {
 function planetName(p: string, lang: 'ko' | 'en'): string {
   if (lang === 'en') return p
   const ko: Record<string, string> = {
-    Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성',
-    Mars: '화성', Jupiter: '목성', Saturn: '토성',
+    Sun: '태양',
+    Moon: '달',
+    Mercury: '수성',
+    Venus: '금성',
+    Mars: '화성',
+    Jupiter: '목성',
+    Saturn: '토성',
   }
   return ko[p] ?? p
 }
 function profHouseKo(h: number): string {
   const map: Record<number, string> = {
-    1: '정체성', 2: '재산', 3: '소통과 학습',
-    4: '가정과 뿌리', 5: '창조와 자녀', 6: '일상과 건강',
-    7: '관계와 동반자', 8: '깊이와 공동 자원', 9: '확장과 신념',
-    10: '사회 무대', 11: '동료와 비전', 12: '내면과 마무리',
+    1: '정체성',
+    2: '재산',
+    3: '소통과 학습',
+    4: '가정과 뿌리',
+    5: '창조와 자녀',
+    6: '일상과 건강',
+    7: '관계와 동반자',
+    8: '깊이와 공동 자원',
+    9: '확장과 신념',
+    10: '사회 무대',
+    11: '동료와 비전',
+    12: '내면과 마무리',
   }
   return map[h] ?? `${h}궁`
 }
 function profHouseEn(h: number): string {
   const map: Record<number, string> = {
-    1: 'identity', 2: 'resources and value', 3: 'speech and learning',
-    4: 'home and roots', 5: 'creation and children', 6: 'daily work and health',
-    7: 'partnership', 8: 'depth and shared resource', 9: 'expansion and belief',
-    10: 'public standing', 11: 'community and vision', 12: 'inner closure',
+    1: 'identity',
+    2: 'resources and value',
+    3: 'speech and learning',
+    4: 'home and roots',
+    5: 'creation and children',
+    6: 'daily work and health',
+    7: 'partnership',
+    8: 'depth and shared resource',
+    9: 'expansion and belief',
+    10: 'public standing',
+    11: 'community and vision',
+    12: 'inner closure',
   }
   return map[h] ?? `house ${h}`
 }
 function profPracticalKo(h: number): string {
   const map: Record<number, string> = {
-    1: '자기 표현과 새 시작', 2: '돈과 자원의 정리',
-    3: '학습·짧은 이동·이웃 일', 4: '가정·부동산·뿌리 일',
-    5: '창작·자녀·연애', 6: '건강·일상 루틴',
-    7: '결혼·계약·공식 관계', 8: '공동 자원·심리적 변환',
-    9: '여행·교육·확장', 10: '커리어·공적 성취',
-    11: '동료·이상·후원', 12: '마무리·은둔·치유',
+    1: '자기 표현과 새 시작',
+    2: '돈과 자원의 정리',
+    3: '학습·짧은 이동·이웃 일',
+    4: '가정·부동산·뿌리 일',
+    5: '창작·자녀·연애',
+    6: '건강·일상 루틴',
+    7: '결혼·계약·공식 관계',
+    8: '공동 자원·심리적 변환',
+    9: '여행·교육·확장',
+    10: '커리어·공적 성취',
+    11: '동료·이상·후원',
+    12: '마무리·은둔·치유',
   }
   return map[h] ?? '한 해의 핵심 영역'
 }
 function profPracticalEn(h: number): string {
   const map: Record<number, string> = {
-    1: 'self-expression and new beginnings', 2: 'money and value organisation',
-    3: 'study, short travel, neighbourhood', 4: 'home, property, roots',
-    5: 'creation, children, romance', 6: 'health and daily routine',
-    7: 'marriage, contract, formal relationship', 8: 'shared resources, psychological transformation',
-    9: 'travel, education, expansion', 10: 'career and public achievement',
-    11: 'peers, ideals, sponsorship', 12: 'closure, retreat, healing',
+    1: 'self-expression and new beginnings',
+    2: 'money and value organisation',
+    3: 'study, short travel, neighbourhood',
+    4: 'home, property, roots',
+    5: 'creation, children, romance',
+    6: 'health and daily routine',
+    7: 'marriage, contract, formal relationship',
+    8: 'shared resources, psychological transformation',
+    9: 'travel, education, expansion',
+    10: 'career and public achievement',
+    11: 'peers, ideals, sponsorship',
+    12: 'closure, retreat, healing',
   }
-  return map[h] ?? 'the year\'s central area'
+  return map[h] ?? "the year's central area"
 }
 
 // Pick representative saju entries — one per domain, earliest age first.

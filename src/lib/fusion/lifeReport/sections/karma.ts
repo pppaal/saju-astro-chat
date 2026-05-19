@@ -21,12 +21,7 @@ import {
   dayElement,
   yongsinPrimary,
 } from '../signals/sajuSignals'
-import {
-  chiron,
-  nearestEclipses,
-  partOfFortune,
-  planetsInHouse,
-} from '../signals/astroSignals'
+import { chiron, nearestEclipses, partOfFortune, planetsInHouse } from '../signals/astroSignals'
 import { northNode, findPlanet } from '../signals/astroSynthesis'
 import { eulReul, paragraph, planetLabel, signLabel } from '../templates/sentences'
 
@@ -287,7 +282,9 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     nn
       ? `이번 생에 영혼이 향하고 싶은 방향은 ${signLabel(nn.sign, 'ko')}, ${nn.house ? karmaHouseHintKo(nn.house) + ' 영역에 ' : ''}있어요.`
       : '',
-    ys ? `삶의 균형추가 되는 기운은 ${elementFlavorKo(ys)}이라, 이걸 일상에 들여올수록 마음이 풀어져요.` : '',
+    ys
+      ? `삶의 균형추가 되는 기운은 ${elementFlavorKo(ys)}이라, 이걸 일상에 들여올수록 마음이 풀어져요.`
+      : '',
   ])
   const p1en = paragraph([
     `In this life your soul-line works out ${karmaGeokgukShortEn(geokguk)}, completed through ${missionEn}.`,
@@ -356,18 +353,12 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     jong
       ? '삶이 한 방향으로 강하게 응축돼서, 한 분야로 깊이 들어갈 때 가장 강한 잠재력이 풀려요.'
       : '',
-    hwagyeok?.isHwagyeok
-      ? '결정적인 순간에 한 번 더 자기를 바꿀 변화의 자유가 깔려 있어요.'
-      : '',
-    samgi.hasSamgi
-      ? '큰 무대에서 인정받을 특별한 자질이 깔려 있어요.'
-      : '',
+    hwagyeok?.isHwagyeok ? '결정적인 순간에 한 번 더 자기를 바꿀 변화의 자유가 깔려 있어요.' : '',
+    samgi.hasSamgi ? '큰 무대에서 인정받을 특별한 자질이 깔려 있어요.' : '',
     pof
       ? `행운의 점이 ${signLabel(pof.sign, 'ko')}, ${pof.house ? karmaHouseHintKo(pof.house) + ' 영역에 ' : ''}있어서, 이 영역을 가꿀수록 운이 자기 자리로 돌아와요.`
       : '',
-    specialFormations.length > 0
-      ? '평범한 흐름을 넘어서는 특별한 자질이 잠재돼 있어요.'
-      : '',
+    specialFormations.length > 0 ? '평범한 흐름을 넘어서는 특별한 자질이 잠재돼 있어요.' : '',
     `한 줄로 정리하면: 이번 생은 ${missionKo}${eulReul(missionKo)} 통해 ${karmaType} 카르마를 풀어가는 여정이에요.`,
   ])
   const p4en = paragraph([
@@ -398,26 +389,24 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const p5piecesEn: string[] = []
   if (dra?.sunSign) {
     p5pieces.push(
-      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요. 본명과 영혼이 같은 음을 낼 때 가장 평온해져요.`,
+      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요. 본명과 영혼이 같은 음을 낼 때 가장 평온해져요.`
     )
     p5piecesEn.push(
-      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} marks the soul-identity carried in — ${signSoulEn(dra.sunSign)}. The most settled feeling comes when natal and draconic resonate.`,
+      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} marks the soul-identity carried in — ${signSoulEn(dra.sunSign)}. The most settled feeling comes when natal and draconic resonate.`
     )
   }
   if (h7 && h7.strength >= 40) {
     p5pieces.push(
-      '영적 친밀감이 차트 안에서 분명하게 울리고 있어, 신비적 체험·꿈·직관이 평소에도 가까이 있어요.',
+      '영적 친밀감이 차트 안에서 분명하게 울리고 있어, 신비적 체험·꿈·직관이 평소에도 가까이 있어요.'
     )
     p5piecesEn.push(
-      'Harmonics 7 resonates clearly — mystical experience, dreams and intuition remain close in ordinary life.',
+      'Harmonics 7 resonates clearly — mystical experience, dreams and intuition remain close in ordinary life.'
     )
   } else if (h7) {
     p5pieces.push(
-      '영적 친밀감은 잔잔히 깔려 있어요. 깊은 침묵과 명상의 시간이 이 감각을 깨우는 길이에요.',
+      '영적 친밀감은 잔잔히 깔려 있어요. 깊은 침묵과 명상의 시간이 이 감각을 깨우는 길이에요.'
     )
-    p5piecesEn.push(
-      'Harmonics 7 sits quietly — silence and meditation awaken this grain.',
-    )
+    p5piecesEn.push('Harmonics 7 sits quietly — silence and meditation awaken this grain.')
   }
   // Nearest eclipses around birth (solar + lunar) — 카르마의 시작점에 새겨진
   // 일식/월식의 그늘 / 감정 변곡을 자연 한국어로 통합.
@@ -429,26 +418,34 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       const signEn = ec.sign ? signLabel(ec.sign, 'en') : ''
       if (ec.type === 'solar') {
         p5pieces.push(
-          `운명의 시작에 일식의 그늘이 ${signKo ? signKo + ' 자리에 ' : ''}새겨져 있어, 정체성의 큰 굴곡이 평생의 카르마로 작동해요.`,
+          `운명의 시작에 일식의 그늘이 ${signKo ? signKo + ' 자리에 ' : ''}새겨져 있어, 정체성의 큰 굴곡이 평생의 카르마로 작동해요.`
         )
         p5piecesEn.push(
-          `A solar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} etches a karmic shadow into identity itself.`,
+          `A solar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} etches a karmic shadow into identity itself.`
         )
       } else {
         p5pieces.push(
-          `태어난 시기에 가까운 월식이 ${signKo ? signKo + ' 자리에서 ' : ''}감정의 변곡으로 새겨져, 카르마가 정서의 결을 따라 풀려요.`,
+          `태어난 시기에 가까운 월식이 ${signKo ? signKo + ' 자리에서 ' : ''}감정의 변곡으로 새겨져, 카르마가 정서의 결을 따라 풀려요.`
         )
         p5piecesEn.push(
-          `A lunar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} marks an emotional bend — karma resolves through the feeling grain.`,
+          `A lunar eclipse near birth${signEn ? ' (in ' + signEn + ')' : ''} marks an emotional bend — karma resolves through the feeling grain.`
         )
       }
     }
   }
   const p5ko = paragraph(
-    p5pieces.length ? p5pieces : ['영혼의 색은 본명과 큰 충돌 없이 정렬돼 있어, 큰 깨달음보다 매일의 작은 흐름을 따라가는 길이 잘 맞아요.'],
+    p5pieces.length
+      ? p5pieces
+      : [
+          '영혼의 색은 본명과 큰 충돌 없이 정렬돼 있어, 큰 깨달음보다 매일의 작은 흐름을 따라가는 길이 잘 맞아요.',
+        ]
   )
   const p5en = paragraph(
-    p5piecesEn.length ? p5piecesEn : ['Your soul-line aligns calmly with the natal — small daily attentions, not grand awakenings, fit best.'],
+    p5piecesEn.length
+      ? p5piecesEn
+      : [
+          'Your soul-line aligns calmly with the natal — small daily attentions, not grand awakenings, fit best.',
+        ]
   )
 
   // ──────── 文단 6: 사주 합충 패턴 (hyeongchung) + 4기둥 12운성
@@ -462,21 +459,21 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     const total = hc.hapCount + hc.chungCount + hc.hyungCount + hc.haeCount
     if (hc.hapCount > 0 && hc.chungCount > 0) {
       p6pieces.push(
-        `사주 안에 결합과 충돌의 흐름이 함께 ${total}회 일어나, 인생이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`,
+        `사주 안에 결합과 충돌의 흐름이 함께 ${total}회 일어나, 인생이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`
       )
       p6piecesEn.push(
         `Inside your chart, both harmony and clash currents appear (${total} interactions in total) — this life resolves karma through simultaneous union and severance.`,
       )
     } else if (hc.hapCount > 0) {
       p6pieces.push(
-        `사주 안 결합의 흐름이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`,
+        `사주 안 결합의 흐름이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`
       )
       p6piecesEn.push(
         `Your chart shows ${hc.hapCount} harmony-joinings — karma resolves by joining people and currents.`,
       )
     } else if (hc.chungCount > 0) {
       p6pieces.push(
-        `사주 안 충돌의 흐름이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`,
+        `사주 안 충돌의 흐름이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`
       )
       p6piecesEn.push(
         `Your chart shows ${hc.chungCount} clash-currents — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`,
@@ -490,7 +487,9 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   if (twelve) {
     const stages = [twelve.year, twelve.month, twelve.day, twelve.time].filter(Boolean) as string[]
     if (stages.length >= 2) {
-      const strong = stages.filter((s) => ['장생', '관대', '임관', '건록', '왕지', '제왕'].includes(s)).length
+      const strong = stages.filter((s) =>
+        ['장생', '관대', '임관', '건록', '왕지', '제왕'].includes(s)
+      ).length
       const weak = stages.filter((s) => ['병', '사', '묘', '절', '태'].includes(s)).length
       if (strong >= 2) {
         p6pieces.push('4기둥의 12운성을 종합하면, 인생의 무게추가 발산과 자립 쪽으로 기울어 있어요. 카르마도 적극적으로 만들어가는 길이 맞아요.')
@@ -508,11 +507,19 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const captivityLot = input.calendarSignals?.arabicPartsExtra?.Captivity
   if (captivityLot) {
     astroUsed.push('calendarSignals.arabicPartsExtra.Captivity')
-    p6pieces.push(`속박의 점이 ${signLabel(captivityLot.sign, 'ko')}에 놓여, 이번 생에 풀어내야 할 카르마 매듭의 색이 같은 결을 따라요.`)
-    p6piecesEn.push(`Your Lot of Captivity in ${signLabel(captivityLot.sign, 'en')} — the karmic knot to untie in this life carries that grain.`)
+    p6pieces.push(
+      `속박의 점이 ${signLabel(captivityLot.sign, 'ko')}에 놓여, 이번 생에 풀어내야 할 카르마 매듭의 색이 같은 결을 따라요.`
+    )
+    p6piecesEn.push(
+      `Your Lot of Captivity in ${signLabel(captivityLot.sign, 'en')} — the karmic knot to untie in this life carries that grain.`
+    )
   }
   const p6ko = paragraph(
-    p6pieces.length ? p6pieces : ['사주 내부 결합·충돌 패턴은 잔잔하게 정렬돼 있어, 카르마가 격한 사건보다 일상의 흐름으로 풀려요.'],
+    p6pieces.length
+      ? p6pieces
+      : [
+          '사주 내부 결합·충돌 패턴은 잔잔하게 정렬돼 있어, 카르마가 격한 사건보다 일상의 흐름으로 풀려요.',
+        ]
   )
   const p6en = paragraph(
     p6piecesEn.length ? p6piecesEn : ['Internal harmony and clash sit calmly arranged — your karma works through daily grain rather than dramatic events.'],
@@ -535,16 +542,32 @@ export function buildKarma(input: BuilderInput): KarmaSection {
 
 // ─── helpers for P5 (draconic Sun, harmonics 7) ───────────────
 const SIGN_SOUL_KO: Record<string, string> = {
-  Aries: '개척자 영혼', Taurus: '건설자 영혼', Gemini: '메신저 영혼',
-  Cancer: '양육자 영혼', Leo: '창조자 영혼', Virgo: '치유자 영혼',
-  Libra: '조화자 영혼', Scorpio: '변형자 영혼', Sagittarius: '탐험가 영혼',
-  Capricorn: '성취자 영혼', Aquarius: '혁신가 영혼', Pisces: '신비주의자 영혼',
+  Aries: '개척자 영혼',
+  Taurus: '건설자 영혼',
+  Gemini: '메신저 영혼',
+  Cancer: '양육자 영혼',
+  Leo: '창조자 영혼',
+  Virgo: '치유자 영혼',
+  Libra: '조화자 영혼',
+  Scorpio: '변형자 영혼',
+  Sagittarius: '탐험가 영혼',
+  Capricorn: '성취자 영혼',
+  Aquarius: '혁신가 영혼',
+  Pisces: '신비주의자 영혼',
 }
 const SIGN_SOUL_EN: Record<string, string> = {
-  Aries: 'a pioneer soul', Taurus: 'a builder soul', Gemini: 'a messenger soul',
-  Cancer: 'a nurturer soul', Leo: 'a creator soul', Virgo: 'a healer soul',
-  Libra: 'a harmoniser soul', Scorpio: 'a transformer soul', Sagittarius: 'an explorer soul',
-  Capricorn: 'an achiever soul', Aquarius: 'an innovator soul', Pisces: 'a mystic soul',
+  Aries: 'a pioneer soul',
+  Taurus: 'a builder soul',
+  Gemini: 'a messenger soul',
+  Cancer: 'a nurturer soul',
+  Leo: 'a creator soul',
+  Virgo: 'a healer soul',
+  Libra: 'a harmoniser soul',
+  Scorpio: 'a transformer soul',
+  Sagittarius: 'an explorer soul',
+  Capricorn: 'an achiever soul',
+  Aquarius: 'an innovator soul',
+  Pisces: 'a mystic soul',
 }
 function signSoulKo(sign: string): string {
   return SIGN_SOUL_KO[sign] ?? '본연의 영혼'
@@ -554,7 +577,10 @@ function signSoulEn(sign: string): string {
 }
 
 function shorten(s: string): string {
-  return s.split(/[\.。,，]/)[0].trim().slice(0, 40)
+  return s
+    .split(/[\.。,，]/)[0]
+    .trim()
+    .slice(0, 40)
 }
 
 function chironHouseHintKo(h: number | undefined): string {

@@ -102,13 +102,14 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   const inseongPos = findPillarOfSibsinCategory(positions, '인성', { visibleOnly: true })
   const bijeonPos = findPillarOfSibsinCategory(positions, '비겁', { visibleOnly: true })
   const inseongLineKo = inseongPos
-    ? (inseongPos.pillarKey === 'month'
-        ? '청년 자리에 어머니·돌봄의 결이 놓여서, 어머니 인연이 삶의 무게중심에 와 있어요.'
-        : `${pillarKoNatural(inseongPos.pillarKey)}에 어머니·돌봄의 결이 놓여서, 어머니나 돌봄 라인의 결이 그 자리부터 흘러 들어와요.`)
+    ? inseongPos.pillarKey === 'month'
+      ? '청년 자리에 어머니·돌봄의 결이 놓여서, 어머니 인연이 삶의 무게중심에 와 있어요.'
+      : `${pillarKoNatural(inseongPos.pillarKey)}에 어머니·돌봄의 결이 놓여서, 어머니나 돌봄 라인의 결이 그 자리부터 흘러 들어와요.`
     : ''
-  const bijeonLineKo = bijeonPos && bijeon >= 2
-    ? `${pillarKoNatural(bijeonPos.pillarKey)}에 형제·동료의 결이 또렷이 자리잡아, 형제·동료 라인의 결이 인생 한 축으로 자리해요.`
-    : ''
+  const bijeonLineKo =
+    bijeonPos && bijeon >= 2
+      ? `${pillarKoNatural(bijeonPos.pillarKey)}에 형제·동료의 결이 또렷이 자리잡아, 형제·동료 라인의 결이 인생 한 축으로 자리해요.`
+      : ''
   const inseongLineEn = inseongPos
     ? (inseongPos.pillarKey === 'month'
         ? 'With the caregiver line sitting at your young-adulthood seat, the mother and caregiver line sit at the centre of your chart.'
@@ -117,6 +118,10 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   const bijeonLineEn = bijeonPos && bijeon >= 2
     ? `With the sibling-and-peer line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
     : ''
+  const bijeonLineEn =
+    bijeonPos && bijeon >= 2
+      ? `With the peer-line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
+      : ''
   const p2ko = paragraph([
     sun
       ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 사람이에요.`
@@ -376,6 +381,22 @@ function familyCountLabelEn(n: number): string {
   if (n === 1) return 'one quiet thread'
   if (n === 2) return 'two clear threads'
   return 'many threads'
+}
+
+// 사주 raw 기둥 키 → natural English seat label (family 섹션 전용).
+function familyPillarSeatEn(key: 'year' | 'month' | 'day' | 'time'): string {
+  if (key === 'year') return 'early-life seat'
+  if (key === 'month') return 'young-adulthood seat'
+  if (key === 'day') return 'middle-life seat'
+  return 'late-life seat'
+}
+
+// 인성/비겁 count → natural English label ("two strands", "one quiet strand", etc.).
+function familyCountLabelEn(n: number): string {
+  if (n === 0) return 'no live strand'
+  if (n === 1) return 'one quiet strand'
+  if (n === 2) return 'two clear strands'
+  return 'many strands'
 }
 
 // 사주 raw 기둥 키 → natural English seat label (family 섹션 전용).
