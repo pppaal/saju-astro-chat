@@ -31,6 +31,13 @@ import {
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
+import {
+  pickVariation,
+  twelveStagePool,
+  sibsinCategoryPool,
+  planetSignPool,
+  iljuPool,
+} from '../../pools'
 
 export function buildCareer(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -98,20 +105,34 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const samgi = samgiInfo(saju)
   if (samgi.hasSamgi) sajuUsed.push('ultraAdvanced.samgi')
 
-  const iljuName = saju.ultraAdvanced?.iljuDeep?.ilju
   const iljuAptitudes = saju.ultraAdvanced?.iljuDeep?.careerAptitude ?? []
   if (iljuAptitudes.length > 0) sajuUsed.push('ultraAdvanced.iljuDeep.careerAptitude')
 
   // ── Paragraph 1: 기본 신호 (사주 + 점성 큰 그림)
   const dominantCategory = pickDominantSibsinCategory(cat)
+  // Variation pools — same input always returns the same line.
+  const dayMasterStem = saju.pillars.day.stem || ''
+  const dayBranchStr = saju.pillars.day.branch || ''
+  const iljuName = saju.ultraAdvanced?.iljuDeep?.ilju
+  const timeStageVal = saju.ultraAdvanced?.iljuDeep?.twelveStage
+  const sibsinCatVar = pickVariation(
+    sibsinCategoryPool(dominantCategory, 'career'),
+    [`day_master:${dayMasterStem}`, `geokguk:${geokguk}`, `category:${dominantCategory}`],
+  )
+  const sunSignVar = pickVariation(
+    planetSignPool('Sun', sun?.sign, 'career'),
+    [`day_master:${dayMasterStem}`, `sun_sign:${sun?.sign ?? ''}`, `geokguk:${geokguk}`],
+  )
   const p1ko = paragraph([
     paragraphOpenerKo(dominantCategory, geokguk),
+    sibsinCatVar ?? '',
     mc
       ? `사회에 보여주는 모습은 ${signLabel(mc.sign, 'ko')}, ${mcSignFlavorKo(mc.sign)}이에요.`
       : '',
     sun
       ? `자아의 별은 ${signLabel(sun.sign, 'ko')}에 자리하고${sun.house === 10 ? ' 사회 정점에 놓여서' : sun.house ? ` ${karmaHouseHintForCareerKo(sun.house)} 자리에 있어` : ''}, ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
       : '',
+    sunSignVar ? `${sunSignVar}.` : '',
   ])
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
@@ -226,6 +247,28 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     deepPiecesEn.push(
       `Your ilju (${iljuName}) naturally fits ${iljuAptitudes.slice(0, 3).join(' / ')}.`
     )
+  }
+  // 12-stage variation — adds a stage-flavored career angle when the
+  // day-pillar 12운성 signal is present.
+  const stageVar = pickVariation(twelveStagePool(timeStageVal, 'career'), [
+    `day_master:${dayMasterStem}`,
+    `day_branch:${dayBranchStr}`,
+    `stage:${timeStageVal ?? ''}`,
+  ])
+  if (stageVar) {
+    sajuUsed.push('pools.twelveStage.career')
+    deepPieces.push(`${stageVar}.`)
+  }
+  // 60갑자 일주 variation — wraps the dictionary archetype into a
+  // career framing.
+  const iljuVar = pickVariation(iljuPool(iljuName, 'career'), [
+    `ilju:${iljuName ?? ''}`,
+    `day_master:${dayMasterStem}`,
+    `day_branch:${dayBranchStr}`,
+  ])
+  if (iljuVar) {
+    sajuUsed.push('pools.ilju.career')
+    deepPieces.push(`${iljuVar}.`)
   }
   // Saju relations — day master in tension/harmony with another pillar
   // shows the deepest professional pivot baked into the chart.

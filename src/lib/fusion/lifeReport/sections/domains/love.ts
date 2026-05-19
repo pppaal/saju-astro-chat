@@ -26,6 +26,13 @@ import {
   paragraph,
   signLabel,
 } from '../../templates/sentences'
+import {
+  pickVariation,
+  twelveStagePool,
+  sibsinCategoryPool,
+  planetSignPool,
+  iljuPool,
+} from '../../pools'
 
 const BRANCH_FLAVOR_KO: Record<string, string> = {
   子: '예민하고 깊은',
@@ -131,7 +138,20 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const venusBlurbEn = venus
     ? `Venus in ${signLabel(venus.sign, 'en')} (${houseLabel(venus.house, 'en')}) gives love the flavor of ${venusFlavorEn(venus.sign, venus.house)}.`
     : ''
-  const p1ko = paragraph([styleKo, venusBlurb])
+  // Variation pools — dominant sibsin category × love + Moon × sign × love.
+  const dayMasterStem = saju.pillars.day.stem || ''
+  const dominantCat = pickDominantCategoryLove(cat)
+  const loveCategoryVar = pickVariation(
+    sibsinCategoryPool(dominantCat, 'love'),
+    [`day_master:${dayMasterStem}`, `category:${dominantCat}`, `gender:${isFemale ? 'f' : 'm'}`],
+  )
+  const moonSignVar = pickVariation(
+    planetSignPool('Moon', moon?.sign, 'love'),
+    [`day_master:${dayMasterStem}`, `moon_sign:${moon?.sign ?? ''}`, `day_branch:${dBranch}`],
+  )
+  if (loveCategoryVar) sajuUsed.push('pools.sibsinCategory.love')
+  if (moonSignVar) astroUsed.push('pools.planetSign.moon.love')
+  const p1ko = paragraph([styleKo, loveCategoryVar ?? '', venusBlurb, moonSignVar ? `${moonSignVar}.` : ''])
   const p1en = paragraph([styleEn, venusBlurbEn])
 
   // ── Paragraph 2: 배우자 인상
@@ -224,6 +244,27 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     deepKo.push(`${relKoLove} 한 사람과의 결합이 인생 흐름에 굵게 새겨져요.`)
     if (relEnLove) deepEn.push(`${relEnLove} Partnership leaves a strong imprint on the life grain.`)
   }
+  // 12-stage × love + 60갑자 일주 × love variations.
+  const iljuNameLove = saju.ultraAdvanced?.iljuDeep?.ilju
+  const stageLove = saju.ultraAdvanced?.iljuDeep?.twelveStage
+  const stageLoveVar = pickVariation(twelveStagePool(stageLove, 'love'), [
+    `day_master:${dayMasterStem}`,
+    `day_branch:${dBranch}`,
+    `stage:${stageLove ?? ''}`,
+  ])
+  if (stageLoveVar) {
+    sajuUsed.push('pools.twelveStage.love')
+    deepKo.push(`${stageLoveVar}.`)
+  }
+  const iljuLoveVar = pickVariation(iljuPool(iljuNameLove, 'love'), [
+    `ilju:${iljuNameLove ?? ''}`,
+    `day_master:${dayMasterStem}`,
+    `day_branch:${dBranch}`,
+  ])
+  if (iljuLoveVar) {
+    sajuUsed.push('pools.ilju.love')
+    deepKo.push(`${iljuLoveVar}.`)
+  }
   // Lot of Eros now adds 끌림 colour at P3 (separate from existing P4 timing line)
   const erosLot = input.calendarSignals?.arabicParts?.Eros
   if (erosLot) {
@@ -305,6 +346,18 @@ export function buildLove(input: BuilderInput): DomainNarrative {
 }
 
 // ── helpers
+function pickDominantCategoryLove(cat: Record<string, number>): string {
+  let best = ''
+  let max = -1
+  for (const [k, v] of Object.entries(cat)) {
+    if (v > max) {
+      max = v
+      best = k
+    }
+  }
+  return best
+}
+
 function pickLoveStyleKo(
   cat: Record<string, number>,
   jg: number,
