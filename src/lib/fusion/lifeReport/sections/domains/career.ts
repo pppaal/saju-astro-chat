@@ -121,14 +121,47 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const dayBranchStr = saju.pillars.day.branch || ''
   const iljuName = saju.ultraAdvanced?.iljuDeep?.ilju
   const timeStageVal = saju.ultraAdvanced?.iljuDeep?.twelveStage
-  const sibsinCatVar = pickVariation(
-    sibsinCategoryPool(dominantCategory, 'career'),
-    [`day_master:${dayMasterStem}`, `geokguk:${geokguk}`, `category:${dominantCategory}`],
-  )
-  const sunSignVar = pickVariation(
-    planetSignPool('Sun', sun?.sign, 'career'),
-    [`day_master:${dayMasterStem}`, `sun_sign:${sun?.sign ?? ''}`, `geokguk:${geokguk}`],
-  )
+  const sibsinCatVar = pickVariation(sibsinCategoryPool(dominantCategory, 'career'), [
+    `day_master:${dayMasterStem}`,
+    `geokguk:${geokguk}`,
+    `category:${dominantCategory}`,
+  ])
+  const sunSignVar = pickVariation(planetSignPool('Sun', sun?.sign, 'career'), [
+    `day_master:${dayMasterStem}`,
+    `sun_sign:${sun?.sign ?? ''}`,
+    `geokguk:${geokguk}`,
+  ])
+  // ASC × career (PR #345 — 첫인상이 직업의 결로 어떻게)
+  const asc = astro.ascendant
+  const ascCareerVar = pickVariation(planetSignPool('Ascendant', asc?.sign, 'career'), [
+    `day_master:${dayMasterStem}`,
+    `asc_sign:${asc?.sign ?? ''}`,
+    `geokguk:${geokguk}`,
+  ])
+  // Mercury × career (PR #347 — 사고)
+  const mercurySignVar = pickVariation(planetSignPool('Mercury', mercury?.sign, 'career'), [
+    `day_master:${dayMasterStem}`,
+    `mercury_sign:${mercury?.sign ?? ''}`,
+    `geokguk:${geokguk}`,
+  ])
+  // Mars × career (PR #347 — 추진력)
+  const marsCareerVar = pickVariation(planetSignPool('Mars', mars?.sign, 'career'), [
+    `day_master:${dayMasterStem}`,
+    `mars_sign:${mars?.sign ?? ''}`,
+    `geokguk:${geokguk}`,
+  ])
+  // Sun × house (PR #346 — 자아 표현 무대)
+  const sunHouseVar = planetHouseLine('Sun', sun?.house, 'ko')
+  // Mercury × house (this PR — 사고 무대)
+  const mercuryHouseVar = planetHouseLine('Mercury', mercury?.house, 'ko')
+  // Mars × house (this PR — 추진 무대)
+  const marsHouseVar = planetHouseLine('Mars', mars?.house, 'ko')
+  if (ascCareerVar) astroUsed.push('pools.planetSign.asc.career')
+  if (mercurySignVar) astroUsed.push('pools.planetSign.mercury.career')
+  if (marsCareerVar) astroUsed.push('pools.planetSign.mars.career')
+  if (sunHouseVar) astroUsed.push('pools.planetHouse.sun')
+  if (mercuryHouseVar) astroUsed.push('pools.planetHouse.mercury')
+  if (marsHouseVar) astroUsed.push('pools.planetHouse.mars')
   // P1 base paragraph — opener + sibsin-category variation + MC + Sun.
   // The pool variations are added via appendToPara below (single source of
   // truth for period/spacing). Do NOT inline them into the array here, or
@@ -146,6 +179,12 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // is reserved for P3 (deep-grain layer) so the same variation never
   // doubles inside a single paragraph.
   p1ko = appendToPara(p1ko, sunSignVar)
+  p1ko = appendToPara(p1ko, sunHouseVar)
+  p1ko = appendToPara(p1ko, mercurySignVar)
+  p1ko = appendToPara(p1ko, mercuryHouseVar)
+  p1ko = appendToPara(p1ko, marsCareerVar)
+  p1ko = appendToPara(p1ko, marsHouseVar)
+  p1ko = appendToPara(p1ko, ascCareerVar)
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
     mc
@@ -680,12 +719,16 @@ function careerPatternLineEn(name: string): string {
 // ─── Sibsin position → career line ───────────────────────────────
 function careerSibsinPositionLineKo(
   pillar: 'year' | 'month' | 'day' | 'time',
-  cat: '관성' | '식상',
+  cat: '관성' | '식상'
 ): string {
-  const pillarKo = pillar === 'month' ? '청년 자리'
-    : pillar === 'year' ? '초년 자리'
-    : pillar === 'day' ? '중년 자리'
-    : '만년 자리'
+  const pillarKo =
+    pillar === 'month'
+      ? '청년 자리'
+      : pillar === 'year'
+        ? '초년 자리'
+        : pillar === 'day'
+          ? '중년 자리'
+          : '만년 자리'
   if (cat === '관성') {
     if (pillar === 'month')
       return '청년 자리에 책임과 권위의 결이 놓여서, 사회적 자리와 책임이 직업 운의 가장 큰 축이 돼요.'
@@ -705,12 +748,16 @@ function careerSibsinPositionLineKo(
 
 function careerSibsinPositionLineEn(
   pillar: 'year' | 'month' | 'day' | 'time',
-  cat: 'authority' | 'output',
+  cat: 'authority' | 'output'
 ): string {
-  const pillarEn = pillar === 'month' ? 'month pillar'
-    : pillar === 'year' ? 'year pillar'
-    : pillar === 'day' ? 'day pillar'
-    : 'hour pillar'
+  const pillarEn =
+    pillar === 'month'
+      ? 'month pillar'
+      : pillar === 'year'
+        ? 'year pillar'
+        : pillar === 'day'
+          ? 'day pillar'
+          : 'hour pillar'
   if (cat === 'authority') {
     if (pillar === 'month')
       return 'With 관성 in the month pillar, role and responsibility form the strongest axis of your career.'

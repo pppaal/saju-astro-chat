@@ -273,6 +273,18 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     astroUsed.push('pools.planetSign.mercury.money')
     deepKo.push(`${mercuryMoneyVar}.`)
   }
+  // Venus × house (this PR — 매력·미감이 자원과 만나는 무대)
+  const venusHouseM = planetHouseLine('Venus', venusM?.house, 'ko')
+  if (venusHouseM) {
+    astroUsed.push('pools.planetHouse.venus')
+    deepKo.push(`${venusHouseM}.`)
+  }
+  // Mercury × house (this PR — 사고가 자원 분석으로 풀리는 무대)
+  const mercuryHouseM = planetHouseLine('Mercury', mercuryM?.house, 'ko')
+  if (mercuryHouseM) {
+    astroUsed.push('pools.planetHouse.mercury')
+    deepKo.push(`${mercuryHouseM}.`)
+  }
   // ASC × money — 첫인상의 결이 자원 흐름에 어떻게 통하는지.
   const ascM = astro.ascendant
   const ascMoneyVar = pickVariation(planetSignPool('Ascendant', ascM?.sign, 'money'), [
