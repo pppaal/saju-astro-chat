@@ -21,8 +21,37 @@ import {
   checkAndConsumeCredits,
   creditErrorResponse,
 } from '@/lib/credits/withCredits'
+import { refundCredits } from '@/lib/credits/creditRefund'
 
 const OPENAI_TIMEOUT_MS = 30000
+
+// 두 LLM (Claude → OpenAI) 모두 실패해서 generic fallback 으로 떨어질 때 호출.
+// 로그인 사용자의 차감된 크레딧을 같은 counter (chargedAs) 로 복구한다.
+// guest (userId 없음) 는 cookie 카운터라 환불 대상에서 제외 — 별도 정책 필요 시 후속.
+async function refundOnAllLlmFailure(
+  creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null,
+  reason: string,
+  errorMessage?: string
+) {
+  if (!creditResult?.userId || !creditResult.chargedAs) return
+  try {
+    await refundCredits({
+      userId: creditResult.userId,
+      creditType: creditResult.chargedAs,
+      amount: 1,
+      reason,
+      apiRoute: '/api/tarot/interpret-stream',
+      errorMessage,
+    })
+  } catch (refundErr) {
+    // 환불 실패가 응답을 막아선 안 된다. 로그로만 남기고 사용자에게는 fallback 응답.
+    logger.error('[interpret-stream] refund failed', {
+      refundErr: refundErr instanceof Error ? refundErr.message : String(refundErr),
+      reason,
+      userId: creditResult.userId,
+    })
+  }
+}
 
 function withCreditCookies(
   response: Response,
@@ -354,6 +383,11 @@ export async function POST(req: NextRequest) {
     // OpenAI Streaming (fallback when Claude unavailable or failed)
     if (!process.env.OPENAI_API_KEY) {
       logger.warn('Tarot stream missing both ANTHROPIC_API_KEY and OPENAI_API_KEY, using fallback')
+      await refundOnAllLlmFailure(
+        creditResult,
+        'tarot_llm_unavailable',
+        'Both Claude and OpenAI keys missing'
+      )
       const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
@@ -392,6 +426,11 @@ export async function POST(req: NextRequest) {
       recordExternalCall('openai', 'gpt-4o-mini', 'error', Date.now() - openaiStartTime)
       logger.error('OpenAI stream fetch error:', { error })
       logger.warn('Tarot stream emergency fallback')
+      await refundOnAllLlmFailure(
+        creditResult,
+        'tarot_llm_unavailable',
+        `OpenAI fetch error: ${error instanceof Error ? error.message : String(error)}`
+      )
       const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
@@ -402,6 +441,11 @@ export async function POST(req: NextRequest) {
       const errorText = await openaiResponse.text()
       logger.error('OpenAI stream error:', { status: openaiResponse.status, error: errorText })
       logger.warn('Tarot stream emergency fallback')
+      await refundOnAllLlmFailure(
+        creditResult,
+        'tarot_llm_unavailable',
+        `OpenAI ${openaiResponse.status}: ${errorText.substring(0, 200)}`
+      )
       const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
