@@ -141,7 +141,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   }
   if (artisticAptitudes.length > 0 && iljuName) {
     p2pieces.push(`타고난 자질이 ${artisticAptitudes.slice(0, 3).join('·')} 쪽으로 풀려 있어요.`)
-    p2piecesEn.push(`Your ilju (${iljuName}) leans toward ${artisticAptitudes.slice(0, 3).join(' / ')}.`)
+    p2piecesEn.push(`Your natural aptitudes lean toward ${creativityAptitudeListEn(artisticAptitudes)}.`)
   }
   const p2ko = paragraph(
     p2pieces.length ? p2pieces : ['표현의 흐름은 평이하게 잘 잡혀 있어, 무엇이든 꾸준히 만들어내면 결과가 따라와요.'],
@@ -389,4 +389,22 @@ function spiritSignFlavorKo(sign: string): string {
 }
 function spiritSignFlavorEn(sign: string): string {
   return SPIRIT_SIGN_EN[sign] ?? 'its native grain'
+}
+
+// 한국어 자질 라벨 → natural English (creativity 섹션 전용).
+const CREATIVITY_APTITUDE_EN: Record<string, string> = {
+  '예술': 'art',
+  '창작': 'creative work',
+  '디자인': 'design',
+  '음악': 'music',
+  '미술': 'fine art',
+  '문학': 'literature',
+  '연기': 'acting',
+  '공연': 'performance',
+}
+function creativityAptitudeListEn(items: string[]): string {
+  const mapped = items.slice(0, 3).map((a) => CREATIVITY_APTITUDE_EN[a] ?? 'a singular craft')
+  if (mapped.length === 0) return 'a singular craft'
+  if (mapped.length === 1) return mapped[0]
+  return mapped.slice(0, -1).join(', ') + ' and ' + mapped[mapped.length - 1]
 }

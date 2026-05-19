@@ -290,7 +290,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     ys ? `삶의 균형추가 되는 기운은 ${elementFlavorKo(ys)}이라, 이걸 일상에 들여올수록 마음이 풀어져요.` : '',
   ])
   const p1en = paragraph([
-    `In this life your soul-line completes ${karmaGeokgukShortEn(geokguk)} through ${missionEn}.`,
+    `In this life your soul-line works out ${karmaGeokgukShortEn(geokguk)}, completed through ${missionEn}.`,
     nn
       ? `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? `'s ${ordinalShortKarma(nn.house)} house` : ''} — the direction your soul wants to grow.`
       : '',
