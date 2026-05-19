@@ -9,7 +9,6 @@ import {
   buildProfileInfo,
   buildMatrixSummary,
   buildAIPrompt,
-  buildThemedAIPrompt,
 } from '@/lib/destiny-matrix/ai-report/promptBuilders'
 import type { InsightDomain, FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
@@ -470,40 +469,5 @@ describe('PromptBuilders', () => {
     })
   })
 
-  describe('buildThemedAIPrompt', () => {
-    const mockInput: MatrixCalculationInput = {
-      dayMasterElement: '화',
-    }
-
-    const mockReport: FusionReport = {
-      overallScore: { total: 80, grade: 'A' },
-      topInsights: [],
-      domainAnalysis: [],
-    }
-
-    it('should include profile info', () => {
-      const result = buildThemedAIPrompt(mockInput, mockReport, 'love', { lang: 'ko' })
-      expect(result).toContain('프로필')
-    })
-
-    it('should include matrix summary', () => {
-      const result = buildThemedAIPrompt(mockInput, mockReport, 'love', { lang: 'ko' })
-      expect(result).toContain('매트릭스 분석 결과')
-    })
-
-    it('should include section instructions for Korean', () => {
-      const result = buildThemedAIPrompt(mockInput, mockReport, 'love', { lang: 'ko' })
-      expect(result).toContain('섹션들을 각각 작성')
-    })
-
-    it('should include section instructions for English', () => {
-      const result = buildThemedAIPrompt(mockInput, mockReport, 'love', { lang: 'en' })
-      expect(result).toContain('Write each of the following sections')
-    })
-
-    it('should default to Korean language', () => {
-      const result = buildThemedAIPrompt(mockInput, mockReport, 'career', {})
-      expect(result).toContain('프로필')
-    })
-  })
+  // buildThemedAIPrompt removed from src; describe block deleted.
 })
