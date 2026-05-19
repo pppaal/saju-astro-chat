@@ -275,7 +275,7 @@ describe('calendar-engine regression', () => {
           expect(text, `KO leak in [${g}/${layer}]: ${text}`).not.toMatch(/[가-힯]/)
           // 영어 narrative 의 표지어 (period label + "Strengths:" suffix)
           // 가 제대로 합쳐졌는지 확인
-          expect(text).toMatch(/^(today|this month|this year|this decade) /)
+          expect(text).toMatch(/^(Today|This month|This year|This decade) /)
           expect(text).toMatch(/Strengths: /)
         }
       }
