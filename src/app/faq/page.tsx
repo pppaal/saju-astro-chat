@@ -60,6 +60,22 @@ const faqs: FaqItem[] = [
   },
   {
     category: 'services',
+    icon: '🃏',
+    q: 'How does tarot reading work in DestinyPal?',
+    qKo: 'DestinyPal의 타로 리딩은 어떻게 작동하나요?',
+    a: 'Choose a spread (single card, three-card past/present/future, Celtic Cross, or our couple spread), set your intention, then draw. Our AI interprets each card in context — considering its position, neighboring cards, your Saju/astrology profile, and the question you asked. You can ask follow-up questions on the same reading to deepen the interpretation without redrawing.',
+    aKo: '스프레드를 선택하고(한 장, 과거/현재/미래 3장, 켈틱 크로스, 또는 커플 전용 스프레드) 의도를 설정한 뒤 카드를 뽑습니다. AI 가 각 카드를 위치·인접 카드·귀하의 사주/점성 프로필·질문 맥락에 따라 해석합니다. 같은 리딩에 대해 후속 질문을 이어가며 해석을 더 깊이 파고들 수 있고, 다시 뽑지 않아도 됩니다.',
+  },
+  {
+    category: 'services',
+    icon: '👫',
+    q: 'What is a couple tarot reading?',
+    qKo: '커플 타로 리딩이 무엇인가요?',
+    a: "A couple reading interprets the cards through the lens of a specific relationship — drawing from both partners' charts and the dynamic between them. You and your matched partner each draw, and the AI integrates both perspectives into one shared interpretation. Both partners need an active connection on DestinyPal; if a partner has disconnected or blocked the connection, the couple reading is no longer available.",
+    aKo: "커플 리딩은 특정 관계의 관점에서 카드를 해석합니다. 두 사람의 차트와 관계 역학을 함께 반영하며, 매칭된 상대와 각자 카드를 뽑으면 AI 가 두 시점을 하나의 공유 해석으로 통합합니다. DestinyPal 내에서 연결된 상태여야 하며, 상대가 연결을 해제하거나 차단한 경우 커플 리딩은 더 이상 이용할 수 없습니다.",
+  },
+  {
+    category: 'services',
     icon: '💕',
     q: 'How does compatibility analysis work?',
     qKo: '궁합 분석은 어떻게 작동하나요?',
@@ -131,6 +147,14 @@ const faqs: FaqItem[] = [
     qKo: '환불받을 수 있나요?',
     a: 'Credit packs are refundable within 7 days if completely unused. Subscriptions have a 7-day guarantee for first-time subscribers. AI readings are non-refundable once generated. See our Refund Policy for details.',
     aKo: '크레딧 팩은 완전히 미사용 상태로 7일 이내 환불 가능합니다. 구독은 최초 가입자에게 7일 보장이 있습니다. AI 리딩은 생성 후 환불 불가입니다. 자세한 내용은 환불 정책을 참조하세요.',
+  },
+  {
+    category: 'payment',
+    icon: '↩️',
+    q: 'What happens to my credit if a reading fails?',
+    qKo: '리딩이 실패하면 크레딧은 어떻게 되나요?',
+    a: 'If a reading fails because of a system issue on our end — the AI provider is temporarily unavailable, the generation errors out, or the response comes back empty/invalid — the consumed credit is automatically restored to your balance. For couple readings, if both sides fail, both credits are returned. You do not need to contact support; just refresh and try again.',
+    aKo: '당사 시스템 측 문제로 리딩이 실패한 경우(AI 공급자 일시 비가용, 생성 오류, 빈/유효하지 않은 응답 반환 등) 차감된 크레딧이 자동으로 잔액에 복구됩니다. 커플 리딩에서 양측 모두 실패하면 두 크레딧 모두 환불됩니다. 별도 문의는 불필요하며, 새로고침 후 다시 시도하시면 됩니다.',
   },
   {
     category: 'payment',

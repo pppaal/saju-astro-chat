@@ -8,7 +8,7 @@ import styles from '../policy.module.css'
 
 type Section = { title: string; titleKo: string; body: string; bodyKo: string }
 const OPERATOR = 'Operator: Paul Rhee (individual)'
-const EFFECTIVE_DATE = '2026-01-25'
+const EFFECTIVE_DATE = '2026-05-19'
 
 const sections: Section[] = [
   {
@@ -40,9 +40,9 @@ const sections: Section[] = [
   {
     title: '5. Acceptable Use Policy',
     titleKo: '5. 이용 제한',
-    body: 'Do NOT: break laws; infringe IP; harass/abuse; impersonate; run bots/scrapers without permission; gain unauthorized access; disrupt the Service; upload malware; collect data without consent; reverse engineer; use commercially without authorization; share/resell readings; bypass paywalls/rate limits.\nContent: no illegal, defamatory, obscene, hateful, violent, or discriminatory material; no spam.\nViolations may lead to suspension/termination and legal action.',
+    body: "Do NOT: break laws; infringe IP; harass/abuse; impersonate; run bots/scrapers without permission; gain unauthorized access; disrupt the Service; upload malware; collect data without consent; reverse engineer; use commercially without authorization; share/resell readings; bypass paywalls/rate limits.\nThird-party data: Do NOT submit another person's birth information, photo, or personal data (e.g., for compatibility, couple readings, or shared sessions) without their informed consent. You are solely responsible for obtaining such consent and remain liable for any claims arising from unauthorized submissions.\nContent: no illegal, defamatory, obscene, hateful, violent, or discriminatory material; no spam.\nViolations may lead to suspension/termination and legal action.",
     bodyKo:
-      '다음 행위는 금지됩니다: 법령 위반, 지식재산권 침해, 괴롭힘/남용, 사칭, 무단 봇·크롤러 사용, 무단 접근 시도, 서비스 방해, 악성코드 업로드, 동의 없는 정보 수집, 역설계/분해, 무단 상업 이용, 리딩 공유·재판매, 유료 장벽·속도 제한 우회.\n콘텐츠 제한: 불법/비방/음란/증오/폭력/차별/스팸 금지.\n위반 시 계정 정지·해지 및 법적 조치가 가능합니다.',
+      '다음 행위는 금지됩니다: 법령 위반, 지식재산권 침해, 괴롭힘/남용, 사칭, 무단 봇·크롤러 사용, 무단 접근 시도, 서비스 방해, 악성코드 업로드, 동의 없는 정보 수집, 역설계/분해, 무단 상업 이용, 리딩 공유·재판매, 유료 장벽·속도 제한 우회.\n타인 정보: 궁합·커플 리딩·공유 세션 등에서 타인의 출생 정보·사진·개인 정보를 본인의 명시적 동의 없이 입력해서는 안 됩니다. 동의 확보 책임은 전적으로 귀하에게 있으며, 무단 제공으로 발생하는 청구·분쟁에 대한 책임도 귀하가 부담합니다.\n콘텐츠 제한: 불법/비방/음란/증오/폭력/차별/스팸 금지.\n위반 시 계정 정지·해지 및 법적 조치가 가능합니다.',
   },
   {
     title: '6. Intellectual Property Rights',
@@ -54,9 +54,9 @@ const sections: Section[] = [
   {
     title: '7. Paid Services and Billing',
     titleKo: '7. 유료 서비스 및 결제',
-    body: 'Payment Processing: All payments are handled via Stripe (PCI-DSS Level 1). We do not store full card numbers.\n\nPricing: Displayed at checkout; may change with 30 days’ notice to existing subscribers.\n\nSubscriptions: Monthly/annual plans auto-renew until canceled. Cancel at least 24 hours before renewal in account settings.\n\nRefunds (see Refund Policy):\n- Credit packs: refundable within 7 days only if 0 credits used; partially used packs are non-refundable. Purchased credit packs are valid for 3 months from purchase date.\n- Subscriptions: first-time subscribers have a 7-day guarantee (used monthly credits deducted at Mini-pack rate); renewals are non-refundable.\n- AI readings: non-refundable once generated.\n- Duplicates/unauthorized/complete service failure follow Refund Policy exceptions.\n\nFree Trials: Trials auto-convert unless canceled before expiry.\n\nPayment Failures: Failed renewals may suspend access; repeated failures may cancel the account.\n\nTaxes: You are responsible for applicable taxes added at checkout.',
+    body: 'Payment Processing: All payments are handled via Stripe (PCI-DSS Level 1). We do not store full card numbers.\n\nPricing: Displayed at checkout; may change with 30 days’ notice to existing subscribers.\n\nSubscriptions: Monthly/annual plans auto-renew until canceled. Cancel at least 24 hours before renewal in account settings.\n\nRefunds (see Refund Policy):\n- Credit packs: refundable within 7 days only if 0 credits used; partially used packs are non-refundable. Purchased credit packs are valid for 3 months from purchase date.\n- Subscriptions: first-time subscribers have a 7-day guarantee (used monthly credits deducted at Mini-pack rate); renewals are non-refundable.\n- AI readings: non-refundable once generated. Exception: if our system fails to deliver (LLM provider unavailable, generation error, empty/invalid response), the consumed credit is automatically restored to your balance — no support request needed. Couple readings restore both deducted credits when both sides fail.\n- Duplicates/unauthorized/complete service failure follow Refund Policy exceptions.\n\nFree Trials: Trials auto-convert unless canceled before expiry.\n\nPayment Failures: Failed renewals may suspend access; repeated failures may cancel the account.\n\nTaxes: You are responsible for applicable taxes added at checkout.',
     bodyKo:
-      '결제: 모든 결제는 Stripe(PCI-DSS 1레벨)로 처리되며, 카드 전체 정보는 저장하지 않습니다.\n\n가격: 결제 시 표시되며 기존 구독자는 30일 전에 변경을 안내할 수 있습니다.\n\n구독: 월간/연간 구독은 해지 전까지 자동 갱신되며, 갱신 24시간 전까지 계정 설정에서 취소해야 합니다.\n\n환불(환불 정책 준수):\n- 크레딧 팩: 구매 후 7일 이내, 0크레딧 사용 시에만 환불 가능. 일부라도 사용하면 환불 불가. 구매한 크레딧 팩은 구매일로부터 3개월간 유효합니다.\n- 구독: 최초 가입자에게 7일 보장(사용한 월간 크레딧은 Mini 팩 단가로 차감). 갱신분은 환불되지 않습니다.\n- AI 리딩: 생성 즉시 환불 불가.\n- 중복 결제/무단 결제/완전한 서비스 실패는 환불 정책 예외 절차를 따릅니다.\n\n무료 체험: 기간 만료 전 취소하지 않으면 자동 유료 전환됩니다.\n\n결제 실패: 갱신 실패 시 유료 기능이 중단될 수 있으며, 반복 실패 시 계정이 취소될 수 있습니다.\n\n세금: 적용 세금은 결제 시 부과되며, 납부 책임은 사용자에게 있습니다.',
+      '결제: 모든 결제는 Stripe(PCI-DSS 1레벨)로 처리되며, 카드 전체 정보는 저장하지 않습니다.\n\n가격: 결제 시 표시되며 기존 구독자는 30일 전에 변경을 안내할 수 있습니다.\n\n구독: 월간/연간 구독은 해지 전까지 자동 갱신되며, 갱신 24시간 전까지 계정 설정에서 취소해야 합니다.\n\n환불(환불 정책 준수):\n- 크레딧 팩: 구매 후 7일 이내, 0크레딧 사용 시에만 환불 가능. 일부라도 사용하면 환불 불가. 구매한 크레딧 팩은 구매일로부터 3개월간 유효합니다.\n- 구독: 최초 가입자에게 7일 보장(사용한 월간 크레딧은 Mini 팩 단가로 차감). 갱신분은 환불되지 않습니다.\n- AI 리딩: 생성 즉시 환불 불가. 예외: 당사 시스템 장애(LLM 공급자 비가용, 생성 오류, 빈/유효하지 않은 응답 등)로 결과를 제공하지 못한 경우 차감된 크레딧이 자동으로 잔액에 복구되며 별도 문의는 불필요합니다. 커플 리딩에서 양측 모두 실패한 경우 차감된 크레딧 두 개가 모두 복구됩니다.\n- 중복 결제/무단 결제/완전한 서비스 실패는 환불 정책 예외 절차를 따릅니다.\n\n무료 체험: 기간 만료 전 취소하지 않으면 자동 유료 전환됩니다.\n\n결제 실패: 갱신 실패 시 유료 기능이 중단될 수 있으며, 반복 실패 시 계정이 취소될 수 있습니다.\n\n세금: 적용 세금은 결제 시 부과되며, 납부 책임은 사용자에게 있습니다.',
   },
   {
     title: '8. Disclaimers and Limitation of Liability',
