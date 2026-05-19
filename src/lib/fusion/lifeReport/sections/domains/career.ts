@@ -42,6 +42,7 @@ import {
   sibsinCategoryPool,
   planetSignPool,
   iljuPool,
+  planetHouseLine,
 } from '../../pools'
 
 export function buildCareer(input: BuilderInput): DomainNarrative {
@@ -153,7 +154,11 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // Sun-sign pool goes to P1 (planet-level identity). Sibsin-category pool
   // is reserved for P3 (deep-grain layer) so the same variation never
   // doubles inside a single paragraph.
+  // Sun × house — 자아 표현이 어느 인생 무대에서 빛나는지
+  const sunHouseVar = planetHouseLine('Sun', sun?.house, 'ko')
+  if (sunHouseVar) astroUsed.push('pools.planetHouse.sun')
   p1ko = appendToPara(p1ko, sunSignVar)
+  p1ko = appendToPara(p1ko, sunHouseVar)
   p1ko = appendToPara(p1ko, ascCareerVar)
   if (ascCareerVar) astroUsed.push('pools.planetSign.asc.career')
   const p1en = paragraph([
@@ -690,12 +695,10 @@ function careerPatternLineEn(name: string): string {
 // ─── Sibsin position → career line ───────────────────────────────
 function careerSibsinPositionLineKo(
   pillar: 'year' | 'month' | 'day' | 'time',
-  cat: '관성' | '식상',
+  cat: '관성' | '식상'
 ): string {
-  const pillarKo = pillar === 'month' ? '월주'
-    : pillar === 'year' ? '년주'
-    : pillar === 'day' ? '일주'
-    : '시주'
+  const pillarKo =
+    pillar === 'month' ? '월주' : pillar === 'year' ? '년주' : pillar === 'day' ? '일주' : '시주'
   if (cat === '관성') {
     if (pillar === 'month')
       return '월주에 관성이 자리해서, 사회적 자리와 책임이 직업 운의 가장 큰 축이 돼요.'
@@ -715,12 +718,16 @@ function careerSibsinPositionLineKo(
 
 function careerSibsinPositionLineEn(
   pillar: 'year' | 'month' | 'day' | 'time',
-  cat: 'authority' | 'output',
+  cat: 'authority' | 'output'
 ): string {
-  const pillarEn = pillar === 'month' ? 'month pillar'
-    : pillar === 'year' ? 'year pillar'
-    : pillar === 'day' ? 'day pillar'
-    : 'hour pillar'
+  const pillarEn =
+    pillar === 'month'
+      ? 'month pillar'
+      : pillar === 'year'
+        ? 'year pillar'
+        : pillar === 'day'
+          ? 'day pillar'
+          : 'hour pillar'
   if (cat === 'authority') {
     if (pillar === 'month')
       return 'With 관성 in the month pillar, role and responsibility form the strongest axis of your career.'
