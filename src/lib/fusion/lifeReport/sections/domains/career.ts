@@ -146,8 +146,6 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // is reserved for P3 (deep-grain layer) so the same variation never
   // doubles inside a single paragraph.
   p1ko = appendToPara(p1ko, sunSignVar)
-  p1ko = appendToPara(p1ko, ascCareerVar)
-  if (ascCareerVar) astroUsed.push('pools.planetSign.asc.career')
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
     mc
