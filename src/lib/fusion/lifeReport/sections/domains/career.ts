@@ -157,8 +157,24 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // Sun × house — 자아 표현이 어느 인생 무대에서 빛나는지
   const sunHouseVar = planetHouseLine('Sun', sun?.house, 'ko')
   if (sunHouseVar) astroUsed.push('pools.planetHouse.sun')
+  // Mercury × sign — 사고·소통의 결 (직업의 thinking 축)
+  const mercurySignVar = pickVariation(planetSignPool('Mercury', mercury?.sign, 'career'), [
+    `day_master:${dayMasterStem}`,
+    `mercury_sign:${mercury?.sign ?? ''}`,
+    `geokguk:${geokguk}`,
+  ])
+  if (mercurySignVar) astroUsed.push('pools.planetSign.mercury.career')
+  // Mars × sign — 추진력 (직업의 drive 축)
+  const marsCareerVar = pickVariation(planetSignPool('Mars', mars?.sign, 'career'), [
+    `day_master:${dayMasterStem}`,
+    `mars_sign:${mars?.sign ?? ''}`,
+    `geokguk:${geokguk}`,
+  ])
+  if (marsCareerVar) astroUsed.push('pools.planetSign.mars.career')
   p1ko = appendToPara(p1ko, sunSignVar)
   p1ko = appendToPara(p1ko, sunHouseVar)
+  p1ko = appendToPara(p1ko, mercurySignVar)
+  p1ko = appendToPara(p1ko, marsCareerVar)
   p1ko = appendToPara(p1ko, ascCareerVar)
   if (ascCareerVar) astroUsed.push('pools.planetSign.asc.career')
   const p1en = paragraph([

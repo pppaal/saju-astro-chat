@@ -161,6 +161,20 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   // Moon × house — 정서가 어느 인생 무대에서 풀리는지
   const moonHouseVar = planetHouseLine('Moon', moon?.house, 'ko')
   if (moonHouseVar) astroUsed.push('pools.planetHouse.moon')
+  // Venus × sign — 사랑·끌림의 결 (love 도메인의 핵심 행성)
+  const venusSignVar = pickVariation(planetSignPool('Venus', venus?.sign, 'love'), [
+    `day_master:${dayMasterStem}`,
+    `venus_sign:${venus?.sign ?? ''}`,
+    `day_branch:${dBranch}`,
+  ])
+  if (venusSignVar) astroUsed.push('pools.planetSign.venus.love')
+  // Mars × sign — 욕망과 행동의 결 (love 의 동력)
+  const marsSignVar = pickVariation(planetSignPool('Mars', mars?.sign, 'love'), [
+    `day_master:${dayMasterStem}`,
+    `mars_sign:${mars?.sign ?? ''}`,
+    `day_branch:${dBranch}`,
+  ])
+  if (marsSignVar) astroUsed.push('pools.planetSign.mars.love')
   if (loveCategoryVar) sajuUsed.push('pools.sibsinCategory.love')
   if (moonSignVar) astroUsed.push('pools.planetSign.moon.love')
   if (ascSignVar) astroUsed.push('pools.planetSign.asc.love')
@@ -168,6 +182,8 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   p1ko = appendToPara(p1ko, loveCategoryVar)
   p1ko = appendToPara(p1ko, moonSignVar)
   p1ko = appendToPara(p1ko, moonHouseVar)
+  p1ko = appendToPara(p1ko, venusSignVar)
+  p1ko = appendToPara(p1ko, marsSignVar)
   p1ko = appendToPara(p1ko, ascSignVar)
   const p1en = paragraph([styleEn, venusBlurbEn])
 

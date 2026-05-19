@@ -245,6 +245,28 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     astroUsed.push('pools.planetHouse.sun')
     deepKo.push(`${sunHouseH}.`)
   }
+  // Mars × sign — 활력·염증·운동 (health 의 추진 행성)
+  const marsH = getPlanet(astro, 'Mars')
+  const marsHealthVar = pickVariation(planetSignPool('Mars', marsH?.sign, 'health'), [
+    `day_master:${dayMasterStemH}`,
+    `mars_sign:${marsH?.sign ?? ''}`,
+    `day_branch:${dayBranchH}`,
+  ])
+  if (marsHealthVar) {
+    astroUsed.push('pools.planetSign.mars.health')
+    deepKo.push(`${marsHealthVar}.`)
+  }
+  // Mercury × sign — 신경계·스트레스 (health 의 정신 축)
+  const mercuryH = getPlanet(astro, 'Mercury')
+  const mercuryHealthVar = pickVariation(planetSignPool('Mercury', mercuryH?.sign, 'health'), [
+    `day_master:${dayMasterStemH}`,
+    `mercury_sign:${mercuryH?.sign ?? ''}`,
+    `day_branch:${dayBranchH}`,
+  ])
+  if (mercuryHealthVar) {
+    astroUsed.push('pools.planetSign.mercury.health')
+    deepKo.push(`${mercuryHealthVar}.`)
+  }
   // ASC × health — 첫인상 = 몸의 색깔 (점성 정통: ASC 의 sign 이 신체
   // 구조와 활력 톤 결정). Big 3 의 마지막 축.
   const ascH = astro.ascendant
