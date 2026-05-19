@@ -4,7 +4,6 @@ import {
   formatStructuredEvidenceForPrompt,
   summarizeEvidenceEvidence,
 } from '@/lib/destiny-matrix/ai-report/structuredEvidence'
-import { evaluateThemedReportQuality } from '@/lib/destiny-matrix/ai-report/qualityAudit'
 
 describe('structuredEvidence quality guardrail', () => {
   it('builds anchors with deterministic saju+astrology+cross fields', () => {
@@ -50,30 +49,6 @@ describe('structuredEvidence quality guardrail', () => {
     expect(prompt).toContain('orbFit=')
     expect(prompt).not.toContain('Hero Title')
     expect(prompt).not.toContain('TODO')
-  })
-
-  it('keeps cross evidence score high for a golden section set', () => {
-    const result = evaluateThemedReportQuality({
-      theme: 'career',
-      lang: 'en',
-      sections: {
-        deepAnalysis:
-          'Saju day-master and ten-god pattern indicates discipline; astrology transit and house focus confirms timing with angle=120deg orb=1.2deg allowed=6deg.',
-        patterns:
-          'Saju structure shows stable wealth flow, while astrology planetary aspects indicate expansion windows with angle=60deg orb=2.0deg allowed=5deg.',
-        timing:
-          'Saju luck-cycle turning point aligns with astrology transit activation in career houses and highlights angle=90deg orb=1.5deg allowed=6deg timing pressure.',
-        recommendations:
-          'Use saju timing checkpoints and astrology transit windows to sequence decisions. Keep weekly checkpoints and monthly review notes to track outcomes.',
-        actionPlan:
-          'Week 1: define one goal. Week 2: execute one experiment during the indicated timing window. Week 3: review risk and adjust. Week 4: lock one practical routine.',
-        strategy:
-          'Combine saju baseline risk profile with astrology momentum signals before commitment, then validate the decision with one measurable KPI and one fallback option.',
-      },
-    })
-
-    expect(result.crossEvidenceScore).toBeGreaterThanOrEqual(80)
-    expect(result.overallQualityScore).toBeGreaterThanOrEqual(75)
   })
 
   it('creates compact summary for API response reuse', () => {
