@@ -24,6 +24,8 @@ import {
 } from '../signals/astroSynthesis'
 import { planetLabel, signLabel } from '../templates/sentences'
 import { ILJU_ARCHETYPES } from '@/lib/saju/iljuDictionary'
+import { jijangganLine } from '../pools/jijangganPool'
+import { stageHouseLine } from '../pools/stageHousePool'
 
 // 일간 한자 → 한글 라벨 (한자 표기는 빼고 자연스러운 한글 음만)
 const STEM_LABEL: Record<string, string> = {
@@ -188,11 +190,39 @@ export function buildHeadline(input: BuilderInput): Headline {
     ? `Your day pillar **${ilju}** carries a ${archetype.character} signature — strengths: ${archetype.strengths.join(', ')}; watch-outs: ${archetype.weaknesses.join(', ')}.`
     : ''
 
-  const s3ko = paragraphJoin([balanceFlavorKo, modPlanetKo, lackKo, archetypeKo])
+  // ─ Sentence 5 — 지장간 deep root (60 ganji 가 보여주지 못하는 지지 안쪽 결)
+  //   일지 (day branch) 가 단순 글자 하나로만 노출되던 걸 안쪽 hidden stem
+  //   3개 (여기·중기·정기) 구조까지 펼침. saju 정통 layer 라 본명 묘사 진정성 ↑.
+  const jijangKo = jijangganLine(dayBr, 'ko')
+  const jijangEn = jijangganLine(dayBr, 'en')
+  if (jijangKo) sajuUsed.push('jijanggan.hiddenStems')
+
+  // ─ Sentence 6 — 12운성 × 태양 하우스 cross
+  //   destiny-matrix layer6 (TWELVE_STAGE_HOUSE_MATRIX) 가 144 entry 가지고 있는데
+  //   본명 cross 로 활용 못 하고 있었음. 일주 12-stage (saju) × 태양 house (astro)
+  //   pairing 한 줄 추가 — 사주 ↔ 점성 진짜 cross signal.
+  const stage = saju.ultraAdvanced?.iljuDeep?.twelveStage
+  const stageHouseKo = sun ? stageHouseLine(stage, sun.house, 'ko') : ''
+  const stageHouseEn = sun ? stageHouseLine(stage, sun.house, 'en') : ''
+  if (stageHouseKo) {
+    sajuUsed.push('ultraAdvanced.iljuDeep.twelveStage')
+    astroUsed.push('planets.sun.house')
+  }
+
+  const s3ko = paragraphJoin([
+    balanceFlavorKo,
+    modPlanetKo,
+    lackKo,
+    archetypeKo,
+    jijangKo,
+    stageHouseKo,
+  ])
   const s3en = paragraphJoin([
     balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.',
     iljuCharShortEn,
     archetypeEn,
+    jijangEn,
+    stageHouseEn,
   ])
 
   return {

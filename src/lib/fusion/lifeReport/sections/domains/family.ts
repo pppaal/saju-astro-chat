@@ -17,13 +17,8 @@ import {
   houseCusp,
   vesta,
 } from '../../signals/astroSignals'
-import {
-  aspectQuality,
-  houseLabel,
-  paragraph,
-  signLabel,
-} from '../../templates/sentences'
-import { pickVariation, twelveStagePool, sibsinCategoryPool } from '../../pools'
+import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
+import { pickVariation, twelveStagePool, sibsinCategoryPool, asteroidHouseLine } from '../../pools'
 
 export function buildFamily(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -46,8 +41,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   if (monthStem || monthBranch) sajuUsed.push('pillars.month')
 
   const gongmangPillars = gongmangAffectedPillars(saju)
-  const yearOrMonthGongmang =
-    gongmangPillars.includes('year') || gongmangPillars.includes('month')
+  const yearOrMonthGongmang = gongmangPillars.includes('year') || gongmangPillars.includes('month')
   if (gongmangPillars.length > 0) sajuUsed.push('ultraAdvanced.gongmang')
 
   const sun = getPlanet(astro, 'Sun') // 아버지
@@ -66,8 +60,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   if (ves) astroUsed.push('asteroids.vesta')
 
   const moonAspects = moon ? aspectsOf(astro, 'Moon') : []
-  const sunMoon =
-    sun && moon ? aspectBetween(astro, 'Sun', 'Moon') : undefined
+  const sunMoon = sun && moon ? aspectBetween(astro, 'Sun', 'Moon') : undefined
   const moonSaturn = moon ? aspectBetween(astro, 'Moon', 'Saturn') : undefined
 
   const familyConfirms = fusion?.byDomain?.family?.confirms ?? []
@@ -146,16 +139,34 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     )
   }
   if (yearOrMonthGongmang) {
-    deepKo.push('조상과 부모의 자리에 비어 있는 영역이 있어, 조부모와 부모 라인 인연이 얇거나 일찍 떨어지는 흐름이 있을 수 있어요.')
-    deepEn.push('A 공망 (void) sits on the year or month pillar — ancestor / parent line can feel thinner or separates earlier.')
+    deepKo.push(
+      '조상과 부모의 자리에 비어 있는 영역이 있어, 조부모와 부모 라인 인연이 얇거나 일찍 떨어지는 흐름이 있을 수 있어요.'
+    )
+    deepEn.push(
+      'A 공망 (void) sits on the year or month pillar — ancestor / parent line can feel thinner or separates earlier.'
+    )
   }
   if (ves) {
     deepKo.push(`헌신의 별이 ${signLabel(ves.sign, 'ko')}에 머물러, 가족에 헌신하는 성향이 있어요.`)
-    deepEn.push(`Vesta in ${signLabel(ves.sign, 'en')} ${houseLabel(ves.house, 'en')} brings family-devotion as a thread.`)
+    deepEn.push(
+      `Vesta in ${signLabel(ves.sign, 'en')} ${houseLabel(ves.house, 'en')} brings family-devotion as a thread.`
+    )
   }
   if (ce) {
-    deepKo.push(`양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리잡아, ${ceresMomFlavorKo(ce.house)} 양육의 색이 새겨져 있어요.`)
-    deepEn.push(`Ceres in ${signLabel(ce.sign, 'en')} ${houseLabel(ce.house, 'en')} sets a ${ceresMomFlavorEn(ce.house)} nurturing imprint.`)
+    deepKo.push(
+      `양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리잡아, ${ceresMomFlavorKo(ce.house)} 양육의 색이 새겨져 있어요.`
+    )
+    deepEn.push(
+      `Ceres in ${signLabel(ce.sign, 'en')} ${houseLabel(ce.house, 'en')} sets a ${ceresMomFlavorEn(ce.house)} nurturing imprint.`
+    )
+    // 소행성-하우스 cross (destiny-matrix layer9 활용)
+    const ceresCrossKo = asteroidHouseLine('Ceres', ce.house, 'ko')
+    const ceresCrossEn = asteroidHouseLine('Ceres', ce.house, 'en')
+    if (ceresCrossKo) {
+      astroUsed.push('pools.asteroid.ceres.house')
+      deepKo.push(ceresCrossKo)
+      deepEn.push(ceresCrossEn)
+    }
   }
   if (familyConfirms.length > 0) {
     deepKo.push(`그리고 ${familyConfirms[0].rule.narrative.confirm}`)
@@ -165,19 +176,25 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   const victory = input.calendarSignals?.arabicParts?.Victory
   if (victory) {
     fusionUsed.push('calendarSignals.arabicParts.Victory')
-    deepKo.push('인연의 행운점이 차트에 들어와, 가족 너머의 ‘제 2의 가족’ 인연이 평생의 자원이 돼요.')
-    deepEn.push(`Your Lot of Victory sits in the chart — chosen-family ties beyond blood become a lifetime resource.`)
+    deepKo.push(
+      '인연의 행운점이 차트에 들어와, 가족 너머의 ‘제 2의 가족’ 인연이 평생의 자원이 돼요.'
+    )
+    deepEn.push(
+      `Your Lot of Victory sits in the chart — chosen-family ties beyond blood become a lifetime resource.`
+    )
   }
   // Saju hyeongchung — 가족 갈등·결합 패턴
   const hc = input.calendarSignals?.sajuHyeongchung
   if (hc?.hasInteractions && hc.hapCount + hc.chungCount > 0) {
     fusionUsed.push('calendarSignals.sajuHyeongchung')
-    const tone = hc.hapCount > hc.chungCount
-      ? '명식 안에 결합의 흐름이 강해서, 가족 인연이 갈수록 단단해지는 분위기예요.'
-      : '명식 안에 단절·결정의 흐름이 강해서, 가족과의 거리감을 인정한 뒤에야 진짜 연결이 풀려요.'
-    const toneEn = hc.hapCount > hc.chungCount
-      ? 'A 합 (joining) accent runs through your saju — family bonds harden over time.'
-      : 'A 충 (severance) accent runs through your saju — real connection unlocks after you acknowledge distance.'
+    const tone =
+      hc.hapCount > hc.chungCount
+        ? '명식 안에 결합의 흐름이 강해서, 가족 인연이 갈수록 단단해지는 분위기예요.'
+        : '명식 안에 단절·결정의 흐름이 강해서, 가족과의 거리감을 인정한 뒤에야 진짜 연결이 풀려요.'
+    const toneEn =
+      hc.hapCount > hc.chungCount
+        ? 'A 합 (joining) accent runs through your saju — family bonds harden over time.'
+        : 'A 충 (severance) accent runs through your saju — real connection unlocks after you acknowledge distance.'
     deepKo.push(tone)
     deepEn.push(toneEn)
   }
@@ -191,7 +208,8 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   if (relKoFamily) {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoFamily} 부모·조상 라인의 인연이 본인의 인생에 한 층 깊게 닿아 있어요.`)
-    if (relEnFamily) deepEn.push(`${relEnFamily} The parent/ancestor line touches your own grain a layer deep.`)
+    if (relEnFamily)
+      deepEn.push(`${relEnFamily} The parent/ancestor line touches your own grain a layer deep.`)
   }
   // 12-stage × family variation pool.
   const dayMasterStemF = saju.pillars.day.stem || ''
@@ -211,13 +229,28 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   {
     let maxV = -1
     const sibCat: Record<string, number> = {
-      비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0,
+      비겁: 0,
+      식상: 0,
+      재성: 0,
+      관성: 0,
+      인성: 0,
     }
-    const stemSibsin = [saju.pillars.year.sibsin, saju.pillars.month.sibsin, saju.pillars.time.sibsin]
+    const stemSibsin = [
+      saju.pillars.year.sibsin,
+      saju.pillars.month.sibsin,
+      saju.pillars.time.sibsin,
+    ]
     const toCat: Record<string, string> = {
-      비견: '비겁', 겁재: '비겁', 식신: '식상', 상관: '식상',
-      편재: '재성', 정재: '재성', 편관: '관성', 정관: '관성',
-      편인: '인성', 정인: '인성',
+      비견: '비겁',
+      겁재: '비겁',
+      식신: '식상',
+      상관: '식상',
+      편재: '재성',
+      정재: '재성',
+      편관: '관성',
+      정관: '관성',
+      편인: '인성',
+      정인: '인성',
     }
     for (const s of stemSibsin) {
       const c = s ? toCat[s] : undefined
@@ -243,16 +276,24 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   const basis = input.calendarSignals?.arabicPartsExtra?.Basis
   if (basis) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Basis')
-    deepKo.push(`가정 기반의 점이 ${signLabel(basis.sign, 'ko')}에 놓여, 뿌리 삼는 자리도 그 색을 따라요.`)
-    deepEn.push(`Your Lot of Basis in ${signLabel(basis.sign, 'en')} — the seat you root yourself in carries that same grain.`)
+    deepKo.push(
+      `가정 기반의 점이 ${signLabel(basis.sign, 'ko')}에 놓여, 뿌리 삼는 자리도 그 색을 따라요.`
+    )
+    deepEn.push(
+      `Your Lot of Basis in ${signLabel(basis.sign, 'en')} — the seat you root yourself in carries that same grain.`
+    )
   }
 
-  const p3ko = paragraph(deepKo.length ? deepKo : [
-    '이번 생의 가족 분위기는 큰 드라마보다 잔잔한 누적으로 빚어져요.'
-  ])
-  const p3en = paragraph(deepEn.length ? deepEn : [
-    'Because family signals sit in a calm array, this life favors a quiet continuity over high drama.'
-  ])
+  const p3ko = paragraph(
+    deepKo.length ? deepKo : ['이번 생의 가족 분위기는 큰 드라마보다 잔잔한 누적으로 빚어져요.']
+  )
+  const p3en = paragraph(
+    deepEn.length
+      ? deepEn
+      : [
+          'Because family signals sit in a calm array, this life favors a quiet continuity over high drama.',
+        ]
+  )
 
   const paragraphs: Paragraph[] = [
     { ko: p1ko, en: p1en },
@@ -272,7 +313,8 @@ function familyShapeKo(inseong: number, bijeon: number): string {
   if (inseong >= 2 && bijeon >= 2) return '돌봄과 동료 라인이 둘 다 풍부한 그릇이에요'
   if (inseong >= 2) return '돌봄 라인이 두텁고, 형제 라인은 잔잔히 이어져요'
   if (bijeon >= 2) return '형제와 동료 라인이 두텁고, 돌봄은 잔잔히 이어져요'
-  if (inseong === 0 && bijeon === 0) return '가족의 결이 가벼워서, 본인이 새 가족을 만들어가는 자리예요'
+  if (inseong === 0 && bijeon === 0)
+    return '가족의 결이 가벼워서, 본인이 새 가족을 만들어가는 자리예요'
   return '돌봄과 동등이 균형 있게 자리해요'
 }
 
