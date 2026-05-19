@@ -82,7 +82,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const inseongFlavorKo = inseong >= 3
     ? '지혜와 돌봄의 자질이 매우 진하게 깔려 있어서, 배움 자체가 운의 통로예요.'
     : inseong >= 1
-      ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 열리는 통로가 돼요.'
+      ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 풀리는 길이에요.'
       : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
   const inseongFlavorEn = inseong >= 3
     ? 'A strong 인성 (wisdom-and-care line) runs through your saju — learning itself becomes the channel of luck.'

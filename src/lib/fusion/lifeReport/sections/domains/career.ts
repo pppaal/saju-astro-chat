@@ -623,9 +623,9 @@ function careerPatternLineKo(name: string): string {
   if (name === '인성과다')
     return '배움과 돌봄의 결이 강해서, 공부·정리·돌봄을 직업의 기둥으로 쓰는 길이 잘 맞아요.'
   if (name === '신강사주')
-    return '명식 자체가 강하게 자기로 돌아오는 결이라, 자기 결정으로 움직이는 직업이 운을 키워요.'
+    return '사주가 강하게 자기로 돌아오는 결이라, 자기 결정으로 움직이는 직업이 운을 키워요.'
   if (name === '균형사주')
-    return '십신이 고르게 분포해서, 한 분야에 갇히지 않고 여러 결을 함께 끌고 가는 길이 자연스러워요.'
+    return '사주 자질이 고르게 분포해서, 한 분야에 갇히지 않고 여러 결을 함께 끌고 가는 길이 자연스러워요.'
   return ''
 }
 
@@ -654,23 +654,23 @@ function careerSibsinPositionLineKo(
   pillar: 'year' | 'month' | 'day' | 'time',
   cat: '관성' | '식상',
 ): string {
-  const pillarKo = pillar === 'month' ? '월주'
-    : pillar === 'year' ? '년주'
-    : pillar === 'day' ? '일주'
-    : '시주'
+  const pillarKo = pillar === 'month' ? '청년 자리'
+    : pillar === 'year' ? '초년 자리'
+    : pillar === 'day' ? '중년 자리'
+    : '만년 자리'
   if (cat === '관성') {
     if (pillar === 'month')
-      return '월주에 관성이 자리해서, 사회적 자리와 책임이 직업 운의 가장 큰 축이 돼요.'
+      return '청년 자리에 책임과 권위의 결이 놓여서, 사회적 자리와 책임이 직업 운의 가장 큰 축이 돼요.'
     if (pillar === 'time')
-      return '시주에 관성이 자리해서, 후반 인생에서 자리와 책임의 무게가 가장 크게 잡혀요.'
-    return `${pillarKo}에 관성이 자리해서, 책임과 자리가 직업 운의 기둥으로 작용해요.`
+      return '만년 자리에 책임과 권위의 결이 놓여서, 후반 인생에서 자리와 책임의 무게가 가장 크게 잡혀요.'
+    return `${pillarKo}에 책임과 권위의 결이 놓여서, 책임과 자리가 직업 운의 기둥으로 작용해요.`
   }
   if (cat === '식상') {
     if (pillar === 'month')
-      return '월주에 식상이 자리해서, 만들고 표현하는 결이 직업 운의 가장 큰 축이 돼요.'
+      return '청년 자리에 표현과 창작의 결이 놓여서, 만들고 표현하는 결이 직업 운의 가장 큰 축이 돼요.'
     if (pillar === 'time')
-      return '시주에 식상이 자리해서, 후반 인생일수록 표현·창작의 결이 직업의 색을 정해요.'
-    return `${pillarKo}에 식상이 자리해서, 표현과 창작이 직업 운을 끌어와요.`
+      return '만년 자리에 표현과 창작의 결이 놓여서, 후반 인생일수록 표현·창작의 결이 직업의 색을 정해요.'
+    return `${pillarKo}에 표현과 창작의 결이 놓여서, 표현과 창작이 직업 운을 끌어와요.`
   }
   return ''
 }

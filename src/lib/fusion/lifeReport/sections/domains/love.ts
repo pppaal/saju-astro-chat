@@ -158,7 +158,15 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (moonSignVar) astroUsed.push('pools.planetSign.moon.love')
   let p1ko = paragraph([styleKo, venusBlurb])
   p1ko = appendToPara(p1ko, loveCategoryVar)
-  p1ko = appendToPara(p1ko, moonSignVar)
+  // 결정론 유지: 두 변이가 같은 결(친구 같은 / 꿈을 나누는 / 서로의 결을
+  // 존중)을 동시에 말하면 moonSign 쪽은 생략해 P1 안에서의 의미 중복을 막음.
+  const moonSignDedup = (() => {
+    if (!moonSignVar) return moonSignVar
+    const themes = ['친구 같은', '꿈을 나누는', '서로의 결을 존중', '서로의 결에 녹아', '독립적인 결']
+    const dup = themes.some((t) => p1ko.includes(t) && moonSignVar.includes(t))
+    return dup ? '' : moonSignVar
+  })()
+  p1ko = appendToPara(p1ko, moonSignDedup)
   const p1en = paragraph([styleEn, venusBlurbEn])
 
   // ── Paragraph 2: 배우자 인상
@@ -306,7 +314,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       deepKo.push('관의 결이 두 갈래로 흘러, 사랑에서도 두 방향의 끌림이 같이 살아 있을 수 있어요.')
       deepEn.push('Two strands of 관 grain — two directions of attraction can coexist in love.')
     } else if (top.name === '균형사주') {
-      deepKo.push('십신이 고르게 분포해서, 사랑의 결도 한쪽으로 치우치지 않고 무난히 흐르는 자리예요.')
+      deepKo.push('사주 자질이 고르게 분포해서, 사랑의 결도 한쪽으로 치우치지 않고 무난히 흐르는 자리예요.')
       deepEn.push('Sibsin is balanced — love also runs without a single dominating grain.')
     }
   }
