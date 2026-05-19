@@ -3,10 +3,9 @@
 
 export { pickVariation, pickVariationOr, appendToPara } from './pickerDeterministic'
 export { twelveStagePool, type TwelveStageDomain } from './twelveStagePool'
-export {
-  sibsinPool,
-  sibsinCategoryPool,
-  type SibsinDomain,
-} from './sibsinPool'
+export { sibsinPool, sibsinCategoryPool, type SibsinDomain } from './sibsinPool'
 export { planetSignPool, type PlanetSignDomain } from './planetSignPool'
-export { iljuPool, getIljuArchetype, type IljuDomain } from './iljuPool'
+export { iljuPool, getIljuArchetype, getIljuData, type IljuDomain } from './iljuPool'
+export { jijangganLine, getJijanggan, type JijangganPart } from './jijangganPool'
+export { stageHouseLine, getStageHouseEntry } from './stageHousePool'
+export { asteroidHouseLine, type AsteroidName } from './asteroidPool'
