@@ -89,12 +89,12 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     opener,
     venus
-      ? `미와 즐거움의 별이 ${signLabel(venus.sign, 'ko')}${venus.house ? `의 ${houseLabel(venus.house, 'ko')}` : ''}에 있어, ${venusSignFlavorKo(venus.sign)}이 창작의 톤이에요.`
+      ? `미와 즐거움의 별이 ${signLabel(venus.sign, 'ko')}${venus.house ? `의 ${houseLabel(venus.house, 'ko')}` : ''}에 있어, ${venusSignFlavorKo(venus.sign)}이 작품의 색이에요.`
       : '',
     fifth.length > 0
       ? `${houseLabel(5, 'ko')}에 ${fifth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 노는 듯 만들어내는 흐름이 강해요.`
       : fifthCusp?.sign
-        ? `창조 영역이 ${signLabel(fifthCusp.sign, 'ko')}의 분위기로 열려, ${fifthSignFlavorKo(fifthCusp.sign)} 방식의 창작이 잘 맞아요.`
+        ? `창조 영역이 ${signLabel(fifthCusp.sign, 'ko')}의 분위기로 열려, ${fifthSignFlavorKo(fifthCusp.sign)} 방식의 표현이 잘 맞아요.`
         : '',
   ])
   const p1en = paragraph([

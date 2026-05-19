@@ -134,11 +134,13 @@ export function buildHeadline(input: BuilderInput): Headline {
     `${ilju ? `, an ${ilju} day-pillar` : ''}.`
 
   // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
+  // "별" 단어를 한 문장 안에서 최대 1회로 제한 — 자아=태양, 감정=달은
+  // 본문에서 별 라벨 없이 바로 톤만 풀어쓰고, 첫인상은 ASC로 잇는다.
   const sunPart = sun
-    ? `자아의 별인 태양은 ${signLabel(sun.sign, 'ko')}에서 빛나고`
+    ? `자아는 ${signLabel(sun.sign, 'ko')}에서 빛나고`
     : ''
   const moonPart = moon
-    ? `감정의 별인 달은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르며`
+    ? `감정은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르며`
     : ''
   const ascPart = asc
     ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 색감이에요`

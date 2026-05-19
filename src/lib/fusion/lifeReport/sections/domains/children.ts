@@ -133,7 +133,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   const sikSangTotal = cat.식상
   const p1ko = paragraph([
     sikSangTotal >= 2
-      ? '당신은 자녀와의 인연이 자연스럽게 깊은 사람이에요.'
+      ? '당신은 자녀와의 인연이 깊이 있는 사람이에요.'
       : sikSangTotal === 0
         ? '자녀와의 인연은 의식적으로 만들어가는 흐름이에요.'
         : '자녀와의 인연은 잔잔하고 안정적으로 흘러요.',
