@@ -355,6 +355,7 @@ describe('/api/tarot/couple-reading', () => {
       const mockTx = {
         userCredits: {
           update: vi.fn().mockResolvedValue({}),
+          updateMany: vi.fn().mockResolvedValue({ count: 1 }),
         },
         tarotReading: {
           create: vi.fn().mockResolvedValue({ id: 'reading-123' }),

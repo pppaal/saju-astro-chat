@@ -160,46 +160,62 @@ export const POST = withApiMiddleware(
         return apiError(ErrorCodes.FORBIDDEN, '크레딧이 부족합니다. 크레딧을 충전해주세요.')
       }
 
-      const result = await prisma.$transaction(async (tx) => {
-        if (userCredits.compatibilityUsed < userCredits.compatibilityLimit) {
-          await tx.userCredits.update({
-            where: { userId },
-            data: { compatibilityUsed: { increment: 1 } },
+      // 크레딧 차감을 atomic conditional update 로 막아 race 와 음수 bonus 를 방지한다.
+      // updateMany 의 where 절에 잔량 조건을 박고, count === 0 이면 트랜잭션을 롤백한다.
+      const INSUFFICIENT = 'INSUFFICIENT_CREDITS' as const
+      let result
+      try {
+        result = await prisma.$transaction(async (tx) => {
+          if (userCredits.compatibilityUsed < userCredits.compatibilityLimit) {
+            const updated = await tx.userCredits.updateMany({
+              where: { userId, compatibilityUsed: { lt: userCredits.compatibilityLimit } },
+              data: { compatibilityUsed: { increment: 1 } },
+            })
+            if (updated.count === 0) throw new Error(INSUFFICIENT)
+          } else {
+            const updated = await tx.userCredits.updateMany({
+              where: { userId, bonusCredits: { gt: 0 } },
+              data: { bonusCredits: { decrement: 1 } },
+            })
+            if (updated.count === 0) throw new Error(INSUFFICIENT)
+          }
+
+          const reading = await tx.tarotReading.create({
+            data: {
+              userId,
+              question: question || '커플 타로',
+              spreadId,
+              spreadTitle: (spreadTitle || '커플 스프레드') as string,
+              cards: cards as Prisma.InputJsonValue,
+              overallMessage: overallMessage as string,
+              cardInsights: cardInsights
+                ? (cardInsights as Prisma.InputJsonValue)
+                : Prisma.DbNull,
+              guidance,
+              affirmation,
+              source: 'couple',
+              isSharedReading: true,
+              sharedWithUserId: partnerId,
+              matchConnectionId: connectionId,
+              paidByUserId: userId,
+              locale: 'ko',
+            },
           })
-        } else {
-          await tx.userCredits.update({
-            where: { userId },
-            data: { bonusCredits: { decrement: 1 } },
+
+          await tx.matchConnection.update({
+            where: { id: connectionId },
+            data: { lastInteractionAt: new Date() },
           })
+
+          return reading
+        })
+      } catch (txErr) {
+        const msg = txErr instanceof Error ? txErr.message : ''
+        if (msg === INSUFFICIENT) {
+          return apiError(ErrorCodes.FORBIDDEN, '크레딧이 부족합니다. 크레딧을 충전해주세요.')
         }
-
-        const reading = await tx.tarotReading.create({
-          data: {
-            userId,
-            question: question || '커플 타로',
-            spreadId,
-            spreadTitle: (spreadTitle || '커플 스프레드') as string,
-            cards: cards as Prisma.InputJsonValue,
-            overallMessage: overallMessage as string,
-            cardInsights: cardInsights ? (cardInsights as Prisma.InputJsonValue) : Prisma.DbNull,
-            guidance,
-            affirmation,
-            source: 'couple',
-            isSharedReading: true,
-            sharedWithUserId: partnerId,
-            matchConnectionId: connectionId,
-            paidByUserId: userId,
-            locale: 'ko',
-          },
-        })
-
-        await tx.matchConnection.update({
-          where: { id: connectionId },
-          data: { lastInteractionAt: new Date() },
-        })
-
-        return reading
-      })
+        throw txErr
+      }
 
       // 파트너에게 푸시 알림 보내기 (비동기로 처리)
       const user = await prisma.user.findUnique({

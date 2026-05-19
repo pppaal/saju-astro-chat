@@ -406,13 +406,25 @@ ${cardListText}
         const cardsB = Array.isArray(chunkB.parsed?.cards)
           ? (chunkB.parsed!.cards as unknown[])
           : []
-        const mergedJson = {
-          overall: chunkA.parsed?.overall ?? '',
-          cards: [...cardsA, ...cardsB],
-          advice: chunkA.parsed?.advice ?? '',
+        const mergedCards = [...cardsA, ...cardsB]
+        // 카드 수 부족 (chunk retry 까지 실패) 시 서버 측에서 fallback 으로 채운다.
+        // 옛 흐름은 클라 parseStreamedInterpretation 이 부족분을 흡수했지만
+        // 카드 절반만 보여 주고 "성공" 으로 보이는 케이스가 생겼다.
+        let padded = false
+        if (mergedCards.length < rawCards.length) {
+          const fallback = buildFallbackPayload(rawCards, language)
+          while (mergedCards.length < rawCards.length) {
+            mergedCards.push(fallback.cards[mergedCards.length])
+          }
+          padded = true
         }
-        // 두 chunk 다 retry 까지 실패하면 cards 가 절반 또는 0 으로 남음.
-        // 클라이언트의 parseStreamedInterpretation 이 부족분을 fallback 으로 채움.
+        const mergedJson = {
+          overall:
+            chunkA.parsed?.overall || buildFallbackPayload(rawCards, language).overall,
+          cards: mergedCards,
+          advice:
+            chunkA.parsed?.advice || buildFallbackPayload(rawCards, language).advice,
+        }
         const mergedText = JSON.stringify(mergedJson)
         logger.info('Tarot stream parallel chunks merged', {
           cards: rawCards.length,
@@ -422,6 +434,7 @@ ${cardListText}
           bParsed: chunkB.parsed !== null,
           aRetried: chunkA.retried,
           bRetried: chunkB.retried,
+          padded,
         })
 
         const encoder = new TextEncoder()
