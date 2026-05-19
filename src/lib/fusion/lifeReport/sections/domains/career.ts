@@ -110,7 +110,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       ? `사회에 보여주는 모습은 ${signLabel(mc.sign, 'ko')}, ${mcSignFlavorKo(mc.sign)}이에요.`
       : '',
     sun
-      ? `자아의 별은 ${signLabel(sun.sign, 'ko')}에 있고${sun.house === 10 ? ', 사회 무대에 놓여서' : sun.house ? `, ${karmaHouseHintForCareerKo(sun.house)} 영역에 있어` : ''} ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
+      ? `자아의 별은 ${signLabel(sun.sign, 'ko')}에 자리하고${sun.house === 10 ? ' 사회 정점에 놓여서' : sun.house ? ` ${karmaHouseHintForCareerKo(sun.house)} 자리에 있어` : ''}, ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
       : '',
   ])
   const p1en = paragraph([
@@ -327,7 +327,7 @@ function paragraphOpenerKo(cat: string, geokguk: string): string {
   if (cat === '인성')
     return '당신은 배우고 정리해서 흐름을 만드는 사람이에요. 지혜와 돌봄이 직업의 토대가 돼요.'
   if (cat === '비겁')
-    return '당신은 동등한 사람들과 함께 있을 때 가장 빛나는 사람이에요. 함께 가는 성향이 협업과 자기 주도성을 키워줘요.'
+    return '당신은 동등한 사람들과 함께 있을 때 가장 빛나는 사람이에요. 함께 가는 흐름이 협업과 자기 주도성을 길러줘요.'
   return geokguk
     ? `당신의 직업 색은 ${geokgukShortKoForCareer(geokguk)}에서 출발해요.`
     : '당신의 직업적 톤은 차분히 잘 잡혀 있어요.'
@@ -394,7 +394,7 @@ const SUN_HOUSE_FLAVOR_KO: Record<number, string> = {
   7: '파트너십과 거래의 일',
   8: '깊이·재생·공동 자원의 일',
   9: '시야·여행·가르침의 일',
-  10: '공적 무대에서 빛나는 일',
+  10: '공적인 자리에서 빛나는 일',
   11: '동료·네트워크와 비전의 일',
   12: '은둔·치유·내적 작업',
 }
