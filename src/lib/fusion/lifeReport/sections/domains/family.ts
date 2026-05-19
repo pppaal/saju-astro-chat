@@ -118,10 +118,6 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   const bijeonLineEn = bijeonPos && bijeon >= 2
     ? `With the sibling-and-peer line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
     : ''
-  const bijeonLineEn =
-    bijeonPos && bijeon >= 2
-      ? `With the peer-line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
-      : ''
   const p2ko = paragraph([
     sun
       ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 사람이에요.`
@@ -381,22 +377,6 @@ function familyCountLabelEn(n: number): string {
   if (n === 1) return 'one quiet thread'
   if (n === 2) return 'two clear threads'
   return 'many threads'
-}
-
-// 사주 raw 기둥 키 → natural English seat label (family 섹션 전용).
-function familyPillarSeatEn(key: 'year' | 'month' | 'day' | 'time'): string {
-  if (key === 'year') return 'early-life seat'
-  if (key === 'month') return 'young-adulthood seat'
-  if (key === 'day') return 'middle-life seat'
-  return 'late-life seat'
-}
-
-// 인성/비겁 count → natural English label ("two strands", "one quiet strand", etc.).
-function familyCountLabelEn(n: number): string {
-  if (n === 0) return 'no live strand'
-  if (n === 1) return 'one quiet strand'
-  if (n === 2) return 'two clear strands'
-  return 'many strands'
 }
 
 // 사주 raw 기둥 키 → natural English seat label (family 섹션 전용).
