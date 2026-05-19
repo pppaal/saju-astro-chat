@@ -39,6 +39,7 @@ vi.mock('@/lib/db/prisma', () => ({
       update: vi.fn(),
     },
     matchConnection: {
+      findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
     },
@@ -326,6 +327,7 @@ describe('/api/tarot/couple-reading', () => {
 
   const mockMatchConnection = {
     id: mockConnectionId,
+    status: 'active',
     user1Profile: { userId: mockUserId },
     user2Profile: { userId: mockPartnerId },
     lastInteractionAt: new Date(),
@@ -347,6 +349,7 @@ describe('/api/tarot/couple-reading', () => {
 
     const { prisma } = await import('@/lib/db/prisma')
     ;(prisma.matchConnection.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockMatchConnection)
+    ;(prisma.matchConnection.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: mockConnectionId }])
     ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUserCredits)
     ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ id: mockUserId, name: 'Test User' })
     ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
@@ -541,10 +544,17 @@ describe('/api/tarot/couple-reading', () => {
         const { GET } = await import('@/app/api/tarot/couple-reading/route')
         await GET(req)
 
+        // connectionId 가 matchConnection.findMany 의 where 에 들어가고,
+        // tarotReading.findMany 에는 active 한 connection ids 의 `in` 배열로 들어간다.
+        expect(prisma.matchConnection.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: expect.objectContaining({ status: 'active', id: mockConnectionId }),
+          })
+        )
         expect(prisma.tarotReading.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
             where: expect.objectContaining({
-              matchConnectionId: mockConnectionId,
+              matchConnectionId: { in: [mockConnectionId] },
             }),
           })
         )
@@ -570,6 +580,24 @@ describe('/api/tarot/couple-reading', () => {
         const response = await GET(req)
 
         expect(response.status).toBe(500)
+      })
+    })
+
+    describe('Connection Status Filtering', () => {
+      it('should exclude readings from blocked/unmatched connections', async () => {
+        // 차단/언매치된 connection 은 active connection 목록에서 빠지므로
+        // tarotReading.findMany 자체를 호출하지 않고 빈 결과를 반환해야 한다.
+        const { prisma } = await import('@/lib/db/prisma')
+        ;(prisma.matchConnection.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/couple-reading')
+        const { GET } = await import('@/app/api/tarot/couple-reading/route')
+        const response = await GET(req)
+        const data = await response.json()
+
+        expect(response.status).toBe(200)
+        expect(data.data.readings).toEqual([])
+        expect(prisma.tarotReading.findMany).not.toHaveBeenCalled()
       })
     })
   })
@@ -772,6 +800,48 @@ describe('/api/tarot/couple-reading', () => {
 
         expect(response.status).toBe(403)
         expect(data.error.message).toContain('이 매치에 대한 권한이 없습니다')
+      })
+
+      it('should reject creating reading on a blocked connection', async () => {
+        const { prisma } = await import('@/lib/db/prisma')
+        ;(prisma.matchConnection.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+          ...mockMatchConnection,
+          status: 'blocked',
+        })
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/couple-reading', {
+          method: 'POST',
+          body: JSON.stringify(validCoupleReadingData),
+        })
+
+        const { POST } = await import('@/app/api/tarot/couple-reading/route')
+        const response = await POST(req)
+        const data = await response.json()
+
+        // 정보 누설 줄이기 위해 NOT_FOUND 로 응답 (FORBIDDEN 아님)
+        expect(response.status).toBe(404)
+        expect(data.error.message).toContain('매치를 찾을 수 없습니다')
+        // 차단된 connection 에는 reading 이 절대 생성되면 안 된다.
+        expect(prisma.$transaction).not.toHaveBeenCalled()
+      })
+
+      it('should reject creating reading on an unmatched connection', async () => {
+        const { prisma } = await import('@/lib/db/prisma')
+        ;(prisma.matchConnection.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+          ...mockMatchConnection,
+          status: 'unmatched',
+        })
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/couple-reading', {
+          method: 'POST',
+          body: JSON.stringify(validCoupleReadingData),
+        })
+
+        const { POST } = await import('@/app/api/tarot/couple-reading/route')
+        const response = await POST(req)
+
+        expect(response.status).toBe(404)
+        expect(prisma.$transaction).not.toHaveBeenCalled()
       })
     })
 
@@ -1126,6 +1196,7 @@ describe('/api/tarot/couple-reading', () => {
       const { prisma } = await import('@/lib/db/prisma')
       ;(prisma.matchConnection.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockConnectionId,
+        status: 'active',
         user1Profile: { userId: mockPartnerId },
         user2Profile: { userId: mockUserId },
       })

@@ -216,6 +216,7 @@ const mockPartnerInfo = {
 
 const mockConnectionInfo = {
   id: 'connection-789',
+  status: 'active',
   compatibilityScore: 85,
   isSuperLikeMatch: true,
   createdAt: new Date('2025-06-01T00:00:00Z'),
@@ -467,6 +468,71 @@ describe('Couple Tarot Reading [readingId] API - GET', () => {
       expect(data.success).toBe(true)
       expect(data.data.reading.isMyReading).toBe(false)
     })
+
+    it('should return 404 when match connection is blocked', async () => {
+      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
+      vi.mocked(prisma.tarotReading.findUnique).mockResolvedValue(mockTarotReading as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockPartnerInfo as any)
+      vi.mocked(prisma.matchConnection.findUnique).mockResolvedValue({
+        ...mockConnectionInfo,
+        status: 'blocked',
+      } as any)
+
+      const request = new Request('http://localhost/api/tarot/couple-reading/reading-123', {
+        method: 'GET',
+      })
+
+      const response = await GET(request, createRouteContext('reading-123'))
+      const data = await response.json()
+
+      // 정보 누설 줄이기 위해 NOT_FOUND 로 응답 (FORBIDDEN 아님)
+      expect(response.status).toBe(404)
+      expect(data.success).toBe(false)
+    })
+
+    it('should return 404 when match connection is unmatched', async () => {
+      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
+      vi.mocked(prisma.tarotReading.findUnique).mockResolvedValue(mockTarotReading as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockPartnerInfo as any)
+      vi.mocked(prisma.matchConnection.findUnique).mockResolvedValue({
+        ...mockConnectionInfo,
+        status: 'unmatched',
+      } as any)
+
+      const request = new Request('http://localhost/api/tarot/couple-reading/reading-123', {
+        method: 'GET',
+      })
+
+      const response = await GET(request, createRouteContext('reading-123'))
+      expect(response.status).toBe(404)
+    })
+
+    it('should return 404 to the shared-with partner once the connection is blocked', async () => {
+      // 핵심 시나리오: 파트너가 차단된 뒤에도 과거 리딩을 보던 버그 회귀.
+      const sessionAsPartner = {
+        user: { id: 'partner-456', email: 'partner@example.com' },
+        expires: '2025-12-31',
+      }
+      vi.mocked(getServerSession).mockResolvedValue(sessionAsPartner as any)
+
+      vi.mocked(prisma.tarotReading.findUnique).mockResolvedValue(mockTarotReading as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-123',
+        name: 'Test User',
+        image: 'https://example.com/avatar.jpg',
+      } as any)
+      vi.mocked(prisma.matchConnection.findUnique).mockResolvedValue({
+        ...mockConnectionInfo,
+        status: 'blocked',
+      } as any)
+
+      const request = new Request('http://localhost/api/tarot/couple-reading/reading-123', {
+        method: 'GET',
+      })
+
+      const response = await GET(request, createRouteContext('reading-123'))
+      expect(response.status).toBe(404)
+    })
   })
 
   // ---- Successful Retrieval ----
@@ -651,18 +717,24 @@ describe('Couple Tarot Reading [readingId] API - GET', () => {
       expect(data.data.reading.connection.isSuperLikeMatch).toBe(mockConnectionInfo.isSuperLikeMatch)
       expect(data.data.reading.connection.createdAt).toBe('2025-06-01T00:00:00.000Z')
 
+      // select 에 status 가 포함된다 — 응답 shape 에서는 빼지만 권한 검증에 필요.
       expect(prisma.matchConnection.findUnique).toHaveBeenCalledWith({
         where: { id: 'connection-789' },
         select: {
           id: true,
+          status: true,
           compatibilityScore: true,
           isSuperLikeMatch: true,
           createdAt: true,
         },
       })
+      // 응답 shape 에는 status 가 노출되지 않아야 한다.
+      expect(data.data.reading.connection.status).toBeUndefined()
     })
 
-    it('should handle connection that returns null (deleted connection)', async () => {
+    it('should return 404 when connection is missing (deleted/orphan reading)', async () => {
+      // 옛 동작은 stale matchConnectionId 에 대해 connection=null 그대로 200 응답이었으나,
+      // P0 보안 fix 로 inactive(누락 포함) connection 은 NOT_FOUND. orphan 권한 잔존 방지.
       vi.mocked(prisma.tarotReading.findUnique).mockResolvedValue(mockTarotReading as any)
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockPartnerInfo as any)
       vi.mocked(prisma.matchConnection.findUnique).mockResolvedValue(null)
@@ -674,8 +746,8 @@ describe('Couple Tarot Reading [readingId] API - GET', () => {
       const response = await GET(request, createRouteContext('reading-123'))
       const data = await response.json()
 
-      expect(response.status).toBe(200)
-      expect(data.data.reading.connection).toBe(null)
+      expect(response.status).toBe(404)
+      expect(data.success).toBe(false)
     })
   })
 
