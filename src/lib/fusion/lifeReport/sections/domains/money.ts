@@ -153,7 +153,9 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   if (iljuMoneyVar) {
     sajuUsed.push('pools.ilju.money')
     deepKo.push(`${iljuMoneyVar}.`)
-    deepEn.push(`Your day-pillar archetype (${iljuLabelEnMoney(iljuName)}) carries this money pattern.`)
+    deepEn.push(
+      `Your day-pillar archetype (${iljuLabelEnMoney(iljuName)}) carries this money pattern.`
+    )
   }
 
   if (jong === '종재격') {
@@ -285,6 +287,19 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     astroUsed.push('pools.planetHouse.mercury')
     deepKo.push(`${mercuryHouseM}.`)
   }
+  // Jupiter × house — 확장·기회가 자원 무대에 닿는 자리 (money 핵심 외행성)
+  const jupiterHouseM = planetHouseLine('Jupiter', jupiter?.house, 'ko')
+  if (jupiterHouseM) {
+    astroUsed.push('pools.planetHouse.jupiter')
+    deepKo.push(`${jupiterHouseM}.`)
+  }
+  // Pluto × house — 깊은 변혁·권력이 자원 무대에 닿는 자리
+  const plutoM = astro.planets?.find((p) => p.name === 'Pluto')
+  const plutoHouseM = planetHouseLine('Pluto', plutoM?.house, 'ko')
+  if (plutoHouseM) {
+    astroUsed.push('pools.planetHouse.pluto')
+    deepKo.push(`${plutoHouseM}.`)
+  }
   // ASC × money — 첫인상의 결이 자원 흐름에 어떻게 통하는지.
   const ascM = astro.ascendant
   const ascMoneyVar = pickVariation(planetSignPool('Ascendant', ascM?.sign, 'money'), [
@@ -326,7 +341,9 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     guideEn.push('Lock the stable income line first, then expand on top of it.')
   } else {
     guideKo.push('한 곳에 묶지 말고 분산된 자원 흐름을 만드세요. 다채로움이 운을 부르는 길이에요.')
-    guideEn.push('Do not pin everything to one source — spread the flow. An opportunistic-resource pattern thrives on variety.')
+    guideEn.push(
+      'Do not pin everything to one source — spread the flow. An opportunistic-resource pattern thrives on variety.'
+    )
   }
   if (wealthDaeun) {
     guideKo.push(`${wealthDaeun.age}세 직전에 자원 그릇을 키워두면 흐름이 자연스럽게 따라와요.`)
@@ -421,16 +438,30 @@ function wealthFlavorEn(total: number, jeong: number, pyen: number): string {
 
 // 60갑자 일주 (hanja) → natural English label.
 const MONEY_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood', 乙: 'Yin Wood',
-  丙: 'Yang Fire', 丁: 'Yin Fire',
-  戊: 'Yang Earth', 己: 'Yin Earth',
-  庚: 'Yang Metal', 辛: 'Yin Metal',
-  壬: 'Yang Water', 癸: 'Yin Water',
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
 }
 const MONEY_BRANCH_EN: Record<string, string> = {
-  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
-  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
-  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
 }
 function iljuLabelEnMoney(ilju: string | undefined): string {
   if (!ilju) return 'native day-pillar'

@@ -135,7 +135,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (iljuHealthVar) {
     sajuUsed.push('pools.ilju.health')
     deepKo.push(`${iljuHealthVar}.`)
-    deepEn.push(`Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) flags this constitutional pattern.`)
+    deepEn.push(
+      `Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) flags this constitutional pattern.`
+    )
   }
 
   if (ch) {
@@ -279,6 +281,19 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     astroUsed.push('pools.planetHouse.mercury')
     deepKo.push(`${mercuryHouseH}.`)
   }
+  // Saturn × house — 단련·뼈대의 무대 (health 핵심 외행성)
+  const saturnHouseH = planetHouseLine('Saturn', saturn?.house, 'ko')
+  if (saturnHouseH) {
+    astroUsed.push('pools.planetHouse.saturn')
+    deepKo.push(`${saturnHouseH}.`)
+  }
+  // Pluto × house — 깊은 변혁·세포 단위 재생의 무대
+  const plutoH = getPlanet(astro, 'Pluto')
+  const plutoHouseH = planetHouseLine('Pluto', plutoH?.house, 'ko')
+  if (plutoHouseH) {
+    astroUsed.push('pools.planetHouse.pluto')
+    deepKo.push(`${plutoHouseH}.`)
+  }
   // ASC × health — 첫인상 = 몸의 색깔 (점성 정통: ASC 의 sign 이 신체
   // 구조와 활력 톤 결정). Big 3 의 마지막 축.
   const ascH = astro.ascendant
@@ -416,16 +431,30 @@ function yongsinElementEnHealth(y: string): string {
 
 // 60갑자 일주 → natural English (health 섹션).
 const HEALTH_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood', 乙: 'Yin Wood',
-  丙: 'Yang Fire', 丁: 'Yin Fire',
-  戊: 'Yang Earth', 己: 'Yin Earth',
-  庚: 'Yang Metal', 辛: 'Yin Metal',
-  壬: 'Yang Water', 癸: 'Yin Water',
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
 }
 const HEALTH_BRANCH_EN: Record<string, string> = {
-  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
-  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
-  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
 }
 function iljuLabelEnHealth(ilju: string | undefined): string {
   if (!ilju) return 'native day-pillar'
