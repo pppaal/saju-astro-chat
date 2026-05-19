@@ -612,25 +612,25 @@ function dayMasterRootPhraseKo(
   level: DayMasterRootSummary['level'],
   pillar?: 'year' | 'month' | 'day' | 'time',
 ): string {
-  const pillarKo = pillar === 'month' ? '월지'
-    : pillar === 'day' ? '일지'
-    : pillar === 'time' ? '시지'
-    : pillar === 'year' ? '년지'
+  const pillarKo = pillar === 'month' ? '삶의 중심'
+    : pillar === 'day' ? '자기 자리'
+    : pillar === 'time' ? '만년의 자리'
+    : pillar === 'year' ? '초년의 자리'
     : ''
   if (level === 'strong') {
     return pillarKo
-      ? `일간이 ${pillarKo}에 깊이 뿌리내려 안정적인 자기 무게가 있어요.`
-      : '일간이 명식에 깊이 뿌리내려 안정적인 자기 무게가 있어요.'
+      ? `타고난 결이 ${pillarKo}에 깊이 뿌리내려 안정적인 자기 무게가 있어요.`
+      : '타고난 결이 삶 안에 깊이 뿌리내려 안정적인 자기 무게가 있어요.'
   }
   if (level === 'moderate') {
     return pillarKo
-      ? `일간이 ${pillarKo}에 무난히 뿌리내려, 자기 색을 차분히 지켜가요.`
-      : '일간이 무난히 뿌리내려, 자기 색을 차분히 지켜가요.'
+      ? `타고난 결이 ${pillarKo}에 무난히 뿌리내려, 자기 색을 차분히 지켜가요.`
+      : '타고난 결이 무난히 뿌리내려, 자기 색을 차분히 지켜가요.'
   }
   if (level === 'weak') {
-    return '일간의 뿌리가 옅어, 환경의 톤이 자기에게 크게 영향을 줘요.'
+    return '타고난 결의 뿌리가 옅어, 환경의 톤이 자기에게 크게 영향을 줘요.'
   }
-  return '일간이 뿌리를 두지 못해, 흐름을 따라 자기를 조율하는 자리예요.'
+  return '타고난 결이 뿌리를 두지 못해, 흐름을 따라 자기를 조율하는 자리예요.'
 }
 
 function dayMasterRootPhraseEn(

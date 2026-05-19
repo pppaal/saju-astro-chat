@@ -82,7 +82,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const inseongFlavorKo = inseong >= 3
     ? '지혜와 돌봄의 자질이 매우 진하게 깔려 있어서, 배움 자체가 운의 통로예요.'
     : inseong >= 1
-      ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 열리는 통로가 돼요.'
+      ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 풀리는 길이에요.'
       : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
   const inseongFlavorEn = inseong >= 3
     ? 'A strong 인성 (wisdom-and-care line) runs through your saju — learning itself becomes the channel of luck.'
@@ -171,11 +171,11 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     p3piecesEn.push('Harmonics 9 sits quietly — deliberate reflection and meditation will strengthen it over time.')
   }
   if (geokguk && geokguk.includes('인')) {
-    p3pieces.push('인생의 큰 패턴 자체가 인성 격국이라, 가르치고 다루는 사람이 되는 길이 가장 본인답게 풀려요.')
+    p3pieces.push('인생의 큰 패턴 자체가 배움·돌봄의 결이라, 가르치고 다루는 사람이 되는 길이 가장 본인답게 풀려요.')
     p3piecesEn.push(`Your geokguk (${geokguk}) is in the 인성 family — the teacher/carrier path fits most natively.`)
   }
   if (munchang) {
-    p3pieces.push('학문과 창작의 별이 명식에 들어와 있어서, 글·이론·자료를 통해 성취가 빨라요.')
+    p3pieces.push('학문과 창작의 별이 사주에 들어와 있어서, 글·이론·자료를 통해 성취가 빨라요.')
     p3piecesEn.push(`A 문창 (literary star) lights your chart — writing, theory and material study accelerate your achievement.`)
   }
   if (hakdang) {

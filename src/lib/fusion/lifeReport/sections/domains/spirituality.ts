@@ -79,7 +79,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
         ? `내면 영역은 ${signLabel(twelfthCusp.sign, 'ko')}의 분위기로 열려, ${twelfthSignFlavorKo(twelfthCusp.sign)} 방식의 내면 작업이 잘 맞아요.`
         : '',
     neptune
-      ? `해왕성이 ${signLabel(neptune.sign, 'ko')}${neptune.house ? `의 ${houseLabel(neptune.house, 'ko')}` : ''}에 있어, 경계가 흐려지는 자리에서 영적 흐름이 풀려요.`
+      ? `해왕성이 ${signLabel(neptune.sign, 'ko')}${neptune.house ? `의 ${houseLabel(neptune.house, 'ko')}` : ''}에 있어, 현실과 꿈의 경계가 옅어지는 자리에서 영적 흐름이 풀려요.`
       : '',
   ])
   const p1en = paragraph([

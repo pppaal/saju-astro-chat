@@ -371,10 +371,10 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   }
   if (hc && hc.hasInteractions) {
     sajuUsed.push('calendarSignals.sajuHyeongchung')
-    const dominant = hc.chungCount >= hc.hapCount ? '충(沖) 흐름' : '합(合) 흐름'
+    const dominant = hc.chungCount >= hc.hapCount ? '충돌의 흐름' : '결합의 흐름'
     const dominantEn = hc.chungCount >= hc.hapCount ? 'a 충(clash) accent' : 'a 합(harmony) accent'
     p6pieces.push(
-      `명식 안에 ${dominant}이 강해서, 이번 시기엔 ${hc.chungCount >= hc.hapCount ? '결정과 단절을 미루지 않을 때' : '함께하는 사람과의 결합'}이 운을 끌어와요.`,
+      `사주 안에 ${dominant}이 강해서, 이번 시기엔 ${hc.chungCount >= hc.hapCount ? '결정과 단절을 미루지 않을 때' : '함께하는 사람과의 결합'}이 운을 끌어와요.`,
     )
     p6piecesEn.push(
       `Your saju carries ${dominantEn} — this season ${hc.chungCount >= hc.hapCount ? 'decisions and clean breaks pull luck in' : 'partnerships pull luck in'}.`,

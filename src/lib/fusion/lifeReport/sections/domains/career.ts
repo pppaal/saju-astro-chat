@@ -121,23 +121,14 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const dayBranchStr = saju.pillars.day.branch || ''
   const iljuName = saju.ultraAdvanced?.iljuDeep?.ilju
   const timeStageVal = saju.ultraAdvanced?.iljuDeep?.twelveStage
-  const sibsinCatVar = pickVariation(sibsinCategoryPool(dominantCategory, 'career'), [
-    `day_master:${dayMasterStem}`,
-    `geokguk:${geokguk}`,
-    `category:${dominantCategory}`,
-  ])
-  const sunSignVar = pickVariation(planetSignPool('Sun', sun?.sign, 'career'), [
-    `day_master:${dayMasterStem}`,
-    `sun_sign:${sun?.sign ?? ''}`,
-    `geokguk:${geokguk}`,
-  ])
-  // ASC × career — 사회에 처음 보이는 인상이 직업의 결로 어떻게 통하는지.
-  const ascC = astro.ascendant
-  const ascCareerVar = pickVariation(planetSignPool('Ascendant', ascC?.sign, 'career'), [
-    `day_master:${dayMasterStem}`,
-    `asc_sign:${ascC?.sign ?? ''}`,
-    `geokguk:${geokguk}`,
-  ])
+  const sibsinCatVar = pickVariation(
+    sibsinCategoryPool(dominantCategory, 'career'),
+    [`day_master:${dayMasterStem}`, `geokguk:${geokguk}`, `category:${dominantCategory}`],
+  )
+  const sunSignVar = pickVariation(
+    planetSignPool('Sun', sun?.sign, 'career'),
+    [`day_master:${dayMasterStem}`, `sun_sign:${sun?.sign ?? ''}`, `geokguk:${geokguk}`],
+  )
   // P1 base paragraph — opener + sibsin-category variation + MC + Sun.
   // The pool variations are added via appendToPara below (single source of
   // truth for period/spacing). Do NOT inline them into the array here, or
@@ -154,29 +145,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // Sun-sign pool goes to P1 (planet-level identity). Sibsin-category pool
   // is reserved for P3 (deep-grain layer) so the same variation never
   // doubles inside a single paragraph.
-  // Sun × house — 자아 표현이 어느 인생 무대에서 빛나는지
-  const sunHouseVar = planetHouseLine('Sun', sun?.house, 'ko')
-  if (sunHouseVar) astroUsed.push('pools.planetHouse.sun')
-  // Mercury × sign — 사고·소통의 결 (직업의 thinking 축)
-  const mercurySignVar = pickVariation(planetSignPool('Mercury', mercury?.sign, 'career'), [
-    `day_master:${dayMasterStem}`,
-    `mercury_sign:${mercury?.sign ?? ''}`,
-    `geokguk:${geokguk}`,
-  ])
-  if (mercurySignVar) astroUsed.push('pools.planetSign.mercury.career')
-  // Mars × sign — 추진력 (직업의 drive 축)
-  const marsCareerVar = pickVariation(planetSignPool('Mars', mars?.sign, 'career'), [
-    `day_master:${dayMasterStem}`,
-    `mars_sign:${mars?.sign ?? ''}`,
-    `geokguk:${geokguk}`,
-  ])
-  if (marsCareerVar) astroUsed.push('pools.planetSign.mars.career')
   p1ko = appendToPara(p1ko, sunSignVar)
-  p1ko = appendToPara(p1ko, sunHouseVar)
-  p1ko = appendToPara(p1ko, mercurySignVar)
-  p1ko = appendToPara(p1ko, marsCareerVar)
-  p1ko = appendToPara(p1ko, ascCareerVar)
-  if (ascCareerVar) astroUsed.push('pools.planetSign.asc.career')
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
     mc
@@ -682,9 +651,9 @@ function careerPatternLineKo(name: string): string {
   if (name === '인성과다')
     return '배움과 돌봄의 결이 강해서, 공부·정리·돌봄을 직업의 기둥으로 쓰는 길이 잘 맞아요.'
   if (name === '신강사주')
-    return '명식 자체가 강하게 자기로 돌아오는 결이라, 자기 결정으로 움직이는 직업이 운을 키워요.'
+    return '사주가 강하게 자기로 돌아오는 결이라, 자기 결정으로 움직이는 직업이 운을 키워요.'
   if (name === '균형사주')
-    return '십신이 고르게 분포해서, 한 분야에 갇히지 않고 여러 결을 함께 끌고 가는 길이 자연스러워요.'
+    return '사주 자질이 고르게 분포해서, 한 분야에 갇히지 않고 여러 결을 함께 끌고 가는 길이 자연스러워요.'
   return ''
 }
 
@@ -711,39 +680,37 @@ function careerPatternLineEn(name: string): string {
 // ─── Sibsin position → career line ───────────────────────────────
 function careerSibsinPositionLineKo(
   pillar: 'year' | 'month' | 'day' | 'time',
-  cat: '관성' | '식상'
+  cat: '관성' | '식상',
 ): string {
-  const pillarKo =
-    pillar === 'month' ? '월주' : pillar === 'year' ? '년주' : pillar === 'day' ? '일주' : '시주'
+  const pillarKo = pillar === 'month' ? '청년 자리'
+    : pillar === 'year' ? '초년 자리'
+    : pillar === 'day' ? '중년 자리'
+    : '만년 자리'
   if (cat === '관성') {
     if (pillar === 'month')
-      return '월주에 관성이 자리해서, 사회적 자리와 책임이 직업 운의 가장 큰 축이 돼요.'
+      return '청년 자리에 책임과 권위의 결이 놓여서, 사회적 자리와 책임이 직업 운의 가장 큰 축이 돼요.'
     if (pillar === 'time')
-      return '시주에 관성이 자리해서, 후반 인생에서 자리와 책임의 무게가 가장 크게 잡혀요.'
-    return `${pillarKo}에 관성이 자리해서, 책임과 자리가 직업 운의 기둥으로 작용해요.`
+      return '만년 자리에 책임과 권위의 결이 놓여서, 후반 인생에서 자리와 책임의 무게가 가장 크게 잡혀요.'
+    return `${pillarKo}에 책임과 권위의 결이 놓여서, 책임과 자리가 직업 운의 기둥으로 작용해요.`
   }
   if (cat === '식상') {
     if (pillar === 'month')
-      return '월주에 식상이 자리해서, 만들고 표현하는 결이 직업 운의 가장 큰 축이 돼요.'
+      return '청년 자리에 표현과 창작의 결이 놓여서, 만들고 표현하는 결이 직업 운의 가장 큰 축이 돼요.'
     if (pillar === 'time')
-      return '시주에 식상이 자리해서, 후반 인생일수록 표현·창작의 결이 직업의 색을 정해요.'
-    return `${pillarKo}에 식상이 자리해서, 표현과 창작이 직업 운을 끌어와요.`
+      return '만년 자리에 표현과 창작의 결이 놓여서, 후반 인생일수록 표현·창작의 결이 직업의 색을 정해요.'
+    return `${pillarKo}에 표현과 창작의 결이 놓여서, 표현과 창작이 직업 운을 끌어와요.`
   }
   return ''
 }
 
 function careerSibsinPositionLineEn(
   pillar: 'year' | 'month' | 'day' | 'time',
-  cat: 'authority' | 'output'
+  cat: 'authority' | 'output',
 ): string {
-  const pillarEn =
-    pillar === 'month'
-      ? 'month pillar'
-      : pillar === 'year'
-        ? 'year pillar'
-        : pillar === 'day'
-          ? 'day pillar'
-          : 'hour pillar'
+  const pillarEn = pillar === 'month' ? 'month pillar'
+    : pillar === 'year' ? 'year pillar'
+    : pillar === 'day' ? 'day pillar'
+    : 'hour pillar'
   if (cat === 'authority') {
     if (pillar === 'month')
       return 'With 관성 in the month pillar, role and responsibility form the strongest axis of your career.'

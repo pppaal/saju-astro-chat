@@ -103,11 +103,11 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   const bijeonPos = findPillarOfSibsinCategory(positions, '비겁', { visibleOnly: true })
   const inseongLineKo = inseongPos
     ? (inseongPos.pillarKey === 'month'
-        ? '월주에 인성이 자리해서 어머니 인연이 명식의 무게중심에 와 있어요.'
-        : `${inseongPos.pillarKo}에 인성이 자리해서, 어머니나 돌봄 라인의 결이 그 자리부터 흘러 들어와요.`)
+        ? '청년 자리에 어머니·돌봄의 결이 놓여서, 어머니 인연이 삶의 무게중심에 와 있어요.'
+        : `${pillarKoNatural(inseongPos.pillarKey)}에 어머니·돌봄의 결이 놓여서, 어머니나 돌봄 라인의 결이 그 자리부터 흘러 들어와요.`)
     : ''
   const bijeonLineKo = bijeonPos && bijeon >= 2
-    ? `${bijeonPos.pillarKo}에 비겁이 또렷이 자리잡아, 형제·동료 라인의 결이 인생 한 축으로 자리해요.`
+    ? `${pillarKoNatural(bijeonPos.pillarKey)}에 형제·동료의 결이 또렷이 자리잡아, 형제·동료 라인의 결이 인생 한 축으로 자리해요.`
     : ''
   const inseongLineEn = inseongPos
     ? (inseongPos.pillarKey === 'month'
@@ -218,8 +218,8 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     fusionUsed.push('calendarSignals.sajuHyeongchung')
     const tone =
       hc.hapCount > hc.chungCount
-        ? '명식 안에 결합의 흐름이 강해서, 가족 인연이 갈수록 단단해지는 분위기예요.'
-        : '명식 안에 단절·결정의 흐름이 강해서, 가족과의 거리감을 인정한 뒤에야 진짜 연결이 풀려요.'
+        ? '사주 안에 결합의 흐름이 강해서, 가족 인연이 갈수록 단단해지는 분위기예요.'
+        : '사주 안에 단절·결정의 흐름이 강해서, 가족과의 거리감을 인정한 뒤에야 진짜 연결이 풀려요.'
     const toneEn =
       hc.hapCount > hc.chungCount
         ? 'A 합 (joining) accent runs through your saju — family bonds harden over time.'
@@ -336,6 +336,14 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     paragraphs,
     signals: { saju: sajuUsed, astro: astroUsed, fusion: fusionUsed },
   }
+}
+
+// 사주 raw 기둥명 대신 인생 시기 라벨로 자연 한국어화.
+function pillarKoNatural(key: 'year' | 'month' | 'day' | 'time'): string {
+  if (key === 'year') return '초년 자리'
+  if (key === 'month') return '청년 자리'
+  if (key === 'day') return '중년 자리'
+  return '만년 자리'
 }
 
 function familyShapeKo(inseong: number, bijeon: number): string {

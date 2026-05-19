@@ -370,28 +370,28 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     const total = hc.hapCount + hc.chungCount + hc.hyungCount + hc.haeCount
     if (hc.hapCount > 0 && hc.chungCount > 0) {
       p6pieces.push(
-        `명식 안에 합(合)과 충(沖)이 함께 ${total}회 일어나, 인생이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`,
+        `사주 안에 결합과 충돌의 흐름이 함께 ${total}회 일어나, 인생이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`,
       )
       p6piecesEn.push(
         `Inside your saju, both 합 (harmony) and 충 (clash) appear (${total} interactions total) — this life resolves karma through simultaneous union and severance. Patterns: ${hc.summary.slice(0, 3).join(' · ')}.`,
       )
     } else if (hc.hapCount > 0) {
       p6pieces.push(
-        `명식 안 합(合)의 흐름이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`,
+        `사주 안 결합의 흐름이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`,
       )
       p6piecesEn.push(
         `Your saju shows ${hc.hapCount} 합 (harmony) interactions — your karma resolves by joining people and currents. Patterns: ${hc.summary.slice(0, 2).join(' · ')}.`,
       )
     } else if (hc.chungCount > 0) {
       p6pieces.push(
-        `명식 안 충(沖)의 흐름이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`,
+        `사주 안 충돌의 흐름이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`,
       )
       p6piecesEn.push(
         `Your saju shows ${hc.chungCount} 충 (clash) interactions — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`,
       )
     }
     if (hc.hyungCount > 0) {
-      p6pieces.push('형(刑)의 흐름도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
+      p6pieces.push('형벌의 흐름도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
       p6piecesEn.push('A 형 (penalty) accent also runs through — refining your unbending sense of justice is one of this life\'s rites of passage.')
     }
   }
@@ -420,7 +420,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     p6piecesEn.push(`Your Lot of Captivity in ${signLabel(captivityLot.sign, 'en')} — the karmic knot to untie in this life carries that grain.`)
   }
   const p6ko = paragraph(
-    p6pieces.length ? p6pieces : ['명식 내부 합충 패턴은 잔잔하게 정렬돼 있어, 카르마가 격한 사건보다 일상의 흐름으로 풀려요.'],
+    p6pieces.length ? p6pieces : ['사주 내부 결합·충돌 패턴은 잔잔하게 정렬돼 있어, 카르마가 격한 사건보다 일상의 흐름으로 풀려요.'],
   )
   const p6en = paragraph(
     p6piecesEn.length ? p6piecesEn : ['Internal saju 합/충 sits calmly arranged — your karma works through daily grain rather than dramatic events.'],
