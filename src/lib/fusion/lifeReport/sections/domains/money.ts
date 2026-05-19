@@ -24,7 +24,13 @@ import {
   solarReturnPlanetsInHouse,
 } from '../../signals/astroSignals'
 import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
-import { pickVariation, sibsinCategoryPool, planetSignPool, iljuPool } from '../../pools'
+import {
+  pickVariation,
+  sibsinCategoryPool,
+  planetSignPool,
+  iljuPool,
+  planetHouseLine,
+} from '../../pools'
 
 export function buildMoney(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -238,6 +244,12 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   if (sunMoneyVar) {
     astroUsed.push('pools.planetSign.sun.money')
     deepKo.push(`${sunMoneyVar}.`)
+  }
+  // Sun × house — 자아 표현이 자원 흐름과 만나는 무대
+  const sunHouseM = planetHouseLine('Sun', sunM?.house, 'ko')
+  if (sunHouseM) {
+    astroUsed.push('pools.planetHouse.sun')
+    deepKo.push(`${sunHouseM}.`)
   }
   // ASC × money — 첫인상의 결이 자원 흐름에 어떻게 통하는지.
   const ascM = astro.ascendant

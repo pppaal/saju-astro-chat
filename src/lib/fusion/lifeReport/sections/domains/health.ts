@@ -28,7 +28,13 @@ import {
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
-import { pickVariation, twelveStagePool, planetSignPool, iljuPool } from '../../pools'
+import {
+  pickVariation,
+  twelveStagePool,
+  planetSignPool,
+  iljuPool,
+  planetHouseLine,
+} from '../../pools'
 
 export function buildHealth(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -232,6 +238,12 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (sunHealthVar) {
     astroUsed.push('pools.planetSign.sun.health')
     deepKo.push(`${sunHealthVar}.`)
+  }
+  // Sun × house — 활력이 어느 인생 무대에서 풀리는지
+  const sunHouseH = planetHouseLine('Sun', sunH?.house, 'ko')
+  if (sunHouseH) {
+    astroUsed.push('pools.planetHouse.sun')
+    deepKo.push(`${sunHouseH}.`)
   }
   // ASC × health — 첫인상 = 몸의 색깔 (점성 정통: ASC 의 sign 이 신체
   // 구조와 활력 톤 결정). Big 3 의 마지막 축.
