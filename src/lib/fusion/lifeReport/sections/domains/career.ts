@@ -191,7 +191,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       ? `Your MC sits in ${signLabel(mc.sign, 'en')}, so the face you bring to the world is ${mcSignFlavorEn(mc.sign)}.`
       : '',
     sun
-      ? `With the Sun in ${signLabel(sun.sign, 'en')} ${houseLabel(sun.house, 'en')}, your core professional energy is ${sunHouseFlavorEn(sun.house)}.`
+      ? `With the Sun in ${signLabel(sun.sign, 'en')}'s ${houseLabel(sun.house, 'en')}, your core professional energy is ${sunHouseFlavorEn(sun.house)}.`
       : '',
   ])
 
@@ -203,19 +203,19 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `지금의 인생 흐름(${cur.age}세부터)에는 ${cur.sibsin ? sibsinMeaningKo(cur.sibsin) : '잔잔한 톤'}이 함께해서, 직업의 색이 다듬어지고 있어요.`
     )
     timingPiecesEn.push(
-      `Your current daeun (from age ${cur.age}, ${cur.stem}${cur.branch})${cur.sibsin ? ` carries ${cur.sibsin} energy and` : ''} is reshaping your career grain.`
+      `Your current 10-year life-chapter (from age ${cur.age})${cur.sibsin ? ` carries ${sibsinMeaningEn(cur.sibsin)} as its current` : ''} and is reshaping your career grain.`
     )
   }
   if (officialDaeun && (!cur || officialDaeun.age !== cur.age)) {
     timingPieces.push(`${officialDaeun.age}세 무렵엔 책임과 자리가 한 단계 올라가는 흐름이 와요.`)
     timingPiecesEn.push(
-      `Around age ${officialDaeun.age}, an authority-cycle (관성 daeun) lifts your standing and responsibility.`
+      `Around age ${officialDaeun.age}, an authority chapter lifts your standing and responsibility.`
     )
   }
   if (outputDaeun && (!cur || outputDaeun.age !== cur.age)) {
     timingPieces.push(`${outputDaeun.age}세 무렵엔 표현과 창조, 실행력이 폭발하는 구간이에요.`)
     timingPiecesEn.push(
-      `Near age ${outputDaeun.age}, the 식상 daeun bursts open expression, creation and output.`
+      `Near age ${outputDaeun.age}, a creative-output chapter bursts open expression, creation and execution.`
     )
   }
   if (progSun) {
@@ -277,27 +277,25 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       '삶이 한 방향으로 강하게 흐르는 구조라, 두루 넓히기보다 한 분야로 깊이 들어가는 길이 맞아요.'
     )
     deepPiecesEn.push(
-      `Saju runs as ${jong} — a strong one-direction current that favors specialization over breadth.`
+      'Your chart runs as a single-direction current — a structure that favours deep specialization over wide spread.'
     )
   } else if (geokguk) {
     deepPieces.push(
       `인생의 큰 패턴이 ${geokgukShortKoForCareer(geokguk)}이라, 직업 색이 이미 명확하게 잡혀 있어요.`
     )
     deepPiecesEn.push(
-      `Your geokguk is ${geokguk}, so the basic shape of your career is already pre-tuned.`
+      `Your life-pattern is ${geokgukShortEnForCareer(geokguk)}, so the basic shape of your career is already pre-tuned.`
     )
   }
   if (samgi.hasSamgi) {
     deepPieces.push('큰 무대에서 인정받을 특별한 자질이 함께 깔려 있어요.')
     deepPiecesEn.push(
-      `A ${samgi.type ?? 'samgi'} pattern is present — a latent capacity for recognition on a larger stage.`
+      'A rare nobility pattern is present, hinting at a latent capacity for recognition on a larger stage.'
     )
   }
   if (iljuAptitudes.length > 0 && iljuName) {
     deepPieces.push(`타고난 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽에 잘 맞아요.`)
-    deepPiecesEn.push(
-      `Your ilju (${iljuName}) naturally fits ${iljuAptitudes.slice(0, 3).join(' / ')}.`
-    )
+    deepPiecesEn.push(`Your natural aptitudes lean toward ${aptitudeListEn(iljuAptitudes)}.`)
   }
   // Sibsin-category pool — deep-grain layer (P3, not P1) so the same line
   // does not double inside paragraph 1.
@@ -470,18 +468,32 @@ function paragraphOpenerKo(cat: string, geokguk: string): string {
 
 function paragraphOpenerEn(cat: string, geokguk: string): string {
   if (cat === '식상')
-    return 'You are a maker. 식상 sits at the heart of your saju, so you feel most yourself when you channel something out through your hands.'
+    return 'You are a maker at heart — a steady creative current runs through you, so you feel most yourself when you channel something out through your hands.'
   if (cat === '관성')
-    return 'You prove yourself through role and responsibility. 관성 acts as the gravitational axis of your professional life.'
+    return 'You prove yourself through role and responsibility — the authority current acts as the gravitational axis of your professional life.'
   if (cat === '재성')
-    return 'You move by outcome and resource. 재성 pulls your professional purpose toward tangible returns.'
+    return 'You move by outcome and resource — the resource current pulls your professional purpose toward tangible returns.'
   if (cat === '인성')
-    return 'You build flow by learning and organizing. 인성 forms the foundation of how you work.'
+    return 'You build flow by learning and organizing — the wisdom current forms the foundation of how you work.'
   if (cat === '비겁')
-    return 'You thrive among peers and equals. 비겁 strengthens collaboration and self-direction.'
+    return 'You thrive among peers and equals — the peer current strengthens collaboration and self-direction.'
   return geokguk
-    ? `Your career grain starts from the ${geokguk} pattern.`
-    : 'Your professional grain is quietly settled inside the saju.'
+    ? `Your career grain starts from ${geokgukShortEnForCareer(geokguk)}.`
+    : 'Your professional grain is quietly settled inside you.'
+}
+
+// 격국 → natural English (career 섹션 전용).
+function geokgukShortEnForCareer(g: string): string {
+  if (!g) return 'a native shape'
+  if (g.includes('편관')) return 'a pressure-as-fuel pattern, using challenge as the engine'
+  if (g.includes('정관')) return 'a steady-authority pattern of orthodox role-taking'
+  if (g.includes('편재')) return 'an opportunistic-resource sense'
+  if (g.includes('정재')) return 'a steady-resource pattern of patient accumulation'
+  if (g.includes('식신')) return 'an easeful-expression pattern'
+  if (g.includes('상관')) return 'a free-talent pattern of free release'
+  if (g.includes('편인')) return 'an unconventional-wisdom pattern'
+  if (g.includes('정인')) return 'a learning-and-care pattern'
+  return 'a native shape'
 }
 
 const MC_SIGN_FLAVOR_KO: Record<string, string> = {
@@ -594,6 +606,68 @@ function sibsinMeaningKo(sibsin: string): string {
   return '잔잔한 흐름'
 }
 
+// 일주 careerAptitude는 한국어 라벨 ('다양한 분야', '예술', 등) → 자연 영어.
+const APTITUDE_EN: Record<string, string> = {
+  '다양한 분야': 'multiple fields',
+  예술: 'art',
+  창작: 'creative work',
+  디자인: 'design',
+  음악: 'music',
+  미술: 'fine art',
+  문학: 'literature',
+  연기: 'acting',
+  공연: 'performance',
+  교육: 'education',
+  연구: 'research',
+  학문: 'academic work',
+  의료: 'healthcare',
+  치유: 'healing',
+  상담: 'counselling',
+  복지: 'social work',
+  경영: 'management',
+  리더십: 'leadership',
+  행정: 'administration',
+  법조: 'law',
+  정치: 'politics',
+  군: 'military',
+  경찰: 'police',
+  엔지니어링: 'engineering',
+  기술: 'technical work',
+  과학: 'science',
+  금융: 'finance',
+  투자: 'investing',
+  회계: 'accounting',
+  무역: 'trade',
+  영업: 'sales',
+  서비스: 'service',
+  미디어: 'media',
+  방송: 'broadcasting',
+  글쓰기: 'writing',
+  언론: 'journalism',
+}
+function aptitudeListEn(items: string[]): string {
+  const mapped = items.slice(0, 3).map((a) => APTITUDE_EN[a] ?? 'a singular field')
+  if (mapped.length === 0) return 'a singular field'
+  if (mapped.length === 1) return mapped[0]
+  return mapped.slice(0, -1).join(', ') + ' and ' + mapped[mapped.length - 1]
+}
+
+// 십신 → natural English (career 섹션 전용).
+function sibsinMeaningEn(sibsin: string): string {
+  if (!sibsin) return 'a quiet current'
+  if (sibsin.includes('편관')) return 'a pressure-as-fuel current of challenge and weight'
+  if (sibsin.includes('정관')) return 'a steady-authority current'
+  if (sibsin.includes('편재')) return 'a quick eye for opportunity'
+  if (sibsin.includes('정재')) return 'a patient accumulation current'
+  if (sibsin.includes('식신')) return 'an easeful-expression current'
+  if (sibsin.includes('상관')) return 'a free-talent release current'
+  if (sibsin.includes('편인')) return 'an unconventional-wisdom current'
+  if (sibsin.includes('정인')) return 'a learning-and-care current'
+  if (sibsin.includes('비견')) return 'an equal-peer current'
+  if (sibsin.includes('겁재')) return 'a fierce-rival current'
+  return 'a quiet current'
+}
+
 // career 섹션용 격국 짧은 자연어
 function geokgukShortKoForCareer(g: string): string {
   if (!g) return '본연의 색'
@@ -702,17 +776,17 @@ function careerPatternLineEn(name: string): string {
   if (name === '식신제살')
     return 'Expression and self-restraint move as a pair — career luck opens precisely when the crisis arrives.'
   if (name === '관성과다')
-    return 'The authority grain crowds in heavily — luck only catches once you accept seat and weight.'
+    return 'The authority current crowds in heavily — luck only catches once you accept seat and weight.'
   if (name === '식상과다')
-    return 'The output grain runs heavily — career power comes from constantly publishing what you make.'
+    return 'The creative-output current runs heavily — career power comes from constantly publishing what you make.'
   if (name === '재성과다')
-    return 'The wealth grain runs heavily — careers that finish in tangible result run smoothest.'
+    return 'The wealth-and-resource current runs heavily — careers that finish in tangible result run smoothest.'
   if (name === '인성과다')
-    return 'The study / care grain runs heavily — using study, curation and care as the career spine fits best.'
+    return 'The study-and-care current runs heavily — using study, curation and care as the career spine fits best.'
   if (name === '신강사주')
-    return 'The chart loops strongly back to self — self-directed work scales the largest fortune.'
+    return 'Your chart loops strongly back to self — self-directed work scales the largest fortune.'
   if (name === '균형사주')
-    return 'Sibsin spread evenly — multiple grains can run side by side without locking into one.'
+    return 'Your inner currents spread evenly — multiple grains can run side by side without locking into one.'
   return ''
 }
 
@@ -750,24 +824,22 @@ function careerSibsinPositionLineEn(
   pillar: 'year' | 'month' | 'day' | 'time',
   cat: 'authority' | 'output'
 ): string {
-  const pillarEn =
-    pillar === 'month'
-      ? 'month pillar'
-      : pillar === 'year'
-        ? 'year pillar'
-        : pillar === 'day'
-          ? 'day pillar'
-          : 'hour pillar'
+  const seatEn: Record<'year' | 'month' | 'day' | 'time', string> = {
+    year: 'early-life seat',
+    month: 'young-adulthood seat',
+    day: 'middle-life seat',
+    time: 'late-life seat',
+  }
   if (cat === 'authority') {
     if (pillar === 'month')
-      return 'With 관성 in the month pillar, role and responsibility form the strongest axis of your career.'
+      return 'With the authority current at your young-adulthood seat, role and responsibility form the strongest axis of your career.'
     if (pillar === 'time')
-      return 'With 관성 in the hour pillar, the weight of position lands hardest in late career.'
-    return `With 관성 in the ${pillarEn}, role and responsibility act as the spine of work.`
+      return 'With the authority current at your late-life seat, the weight of position lands hardest in late career.'
+    return `With the authority current at your ${seatEn[pillar]}, role and responsibility act as the spine of your work.`
   }
   if (pillar === 'month')
-    return 'With 식상 in the month pillar, making and expressing form the strongest axis of your career.'
+    return 'With the creative-output current at your young-adulthood seat, making and expressing form the strongest axis of your career.'
   if (pillar === 'time')
-    return 'With 식상 in the hour pillar, late-career colour is set by expression and creation.'
-  return `With 식상 in the ${pillarEn}, expression and creation pull your career luck in.`
+    return 'With the creative-output current at your late-life seat, late-career colour is set by expression and creation.'
+  return `With the creative-output current at your ${seatEn[pillar]}, expression and creation pull your career luck in.`
 }

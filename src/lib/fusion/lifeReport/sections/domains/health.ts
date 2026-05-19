@@ -92,7 +92,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       ? `Weak in ${weakLabelsEn.join('/')}, so ${organEn(weak)} need ongoing care.`
       : 'Your five elements sit relatively even, so no single weakness dominates.',
     yongsin
-      ? `Your yongsin is ${yongsin}, so ${yongsinFlavorEn(yongsin)} is the daily reinforcement direction.`
+      ? `Your balancing element is ${yongsinElementEnHealth(yongsin)}, so ${yongsinFlavorEn(yongsin)} is the daily reinforcement direction.`
       : '',
   ])
 
@@ -135,7 +135,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (iljuHealthVar) {
     sajuUsed.push('pools.ilju.health')
     deepKo.push(`${iljuHealthVar}.`)
-    deepEn.push(`Your 일주 ${iljuNameH} flags this constitutional pattern.`)
+    deepEn.push(
+      `Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) flags this constitutional pattern.`
+    )
   }
 
   if (ch) {
@@ -187,7 +189,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (unlucky.length > 0) {
     deepKo.push('무리가 누적되지 않도록 평소 회복 루틴이 필요한 흐름이 함께 있어요.')
     deepEn.push(
-      `Your 신살 includes ${unlucky.slice(0, 3).join(' / ')} — keep a recovery routine to prevent overload buildup.`
+      'Strain-prone signals run through your chart — keep a steady recovery routine to prevent overload buildup.'
     )
   }
   if (healthConfirms.length > 0) {
@@ -403,6 +405,56 @@ function yongsinElementKo(y: string): string {
   if (y.includes('수')) return '물의 기운'
   return '본연의 기운'
 }
+// 용신 한자 → natural English element label (health 섹션 전용).
+function yongsinElementEnHealth(y: string): string {
+  if (!y) return 'your native element'
+  if (y.includes('목') || y.includes('wood')) return 'Wood'
+  if (y.includes('화') || y.includes('fire')) return 'Fire'
+  if (y.includes('토') || y.includes('earth')) return 'Earth'
+  if (y.includes('금') || y.includes('metal')) return 'Metal'
+  if (y.includes('수') || y.includes('water')) return 'Water'
+  return 'your native element'
+}
+
+// 60갑자 일주 → natural English (health 섹션).
+const HEALTH_STEM_EN: Record<string, string> = {
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
+}
+const HEALTH_BRANCH_EN: Record<string, string> = {
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
+}
+function iljuLabelEnHealth(ilju: string | undefined): string {
+  if (!ilju) return 'native day-pillar'
+  const chars = Array.from(ilju)
+  if (chars.length < 2) return 'native day-pillar'
+  const stem = HEALTH_STEM_EN[chars[0]] ?? ''
+  const branch = HEALTH_BRANCH_EN[chars[1]] ?? ''
+  if (stem && branch) return `${stem} ${branch}`
+  if (stem) return stem
+  if (branch) return branch
+  return 'native day-pillar'
+}
+
 function yongsinFlavorEn(y: string): string {
   if (y.includes('목') || y.includes('wood'))
     return 'liver-care and sprout-like activity (walks, plants)'

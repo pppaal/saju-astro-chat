@@ -102,7 +102,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `삶의 ${gongmang.join('·')} 영역에 '비어 있는 자리'(${gongmangBranches.join('·')})가 있어요. 이 빈 자리가 의외로 영적인 출구가 돼요 — 채울 수 없는 것이 가장 깊은 사유를 만들어요.`
     )
     p2piecesEn.push(
-      `Your gongmang (${gongmangBranches.join('·')}) leaves a permanent gap in ${gongmang.join(' / ')} — this very unfillable space becomes a spiritual exit.`
+      'An unfillable empty seat leaves a permanent gap in your chart — and this very space becomes a spiritual exit.'
     )
   }
   if (hwagae) {
@@ -110,7 +110,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       '예술·고독의 별이 들어와 있어, 종교·예술·치유 어느 길로 가도 깊이 들어가는 성향이 강해요.'
     )
     p2piecesEn.push(
-      '화개 (art-solitude star) sits in your saju — religion, art and healing all open deep paths.'
+      'An art-and-solitude star sits in your chart — religion, art and healing all open deep paths.'
     )
   }
   if (iljuName) {
@@ -121,14 +121,14 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     if (short) {
       p2pieces.push(`타고난 성향을 한 마디로 풀면 '${short}'이고, 이것이 영적 사유의 출발점이에요.`)
       p2piecesEn.push(
-        `Your ilju (${iljuName}) carries '${short}' as its core note — the starting point for spiritual reflection.`
+        `Your day-pillar archetype (${iljuLabelEnSpirit(iljuName)}) sets the core note — the starting point for spiritual reflection.`
       )
     }
   }
   if (inseong >= 2) {
     p2pieces.push('지혜와 돌봄의 자질이 강해서, 가르침을 받아 전하는 흐름이 영성의 뼈대가 돼요.')
     p2piecesEn.push(
-      'A strong 인성 line frames spirituality as receiving teaching and passing it on.'
+      'A strong wisdom-and-care current frames spirituality as receiving teaching and passing it on.'
     )
   }
   const p2ko = paragraph(
@@ -172,7 +172,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   }
   if (dra?.archetype) {
     p3pieces.push(`전생에서 들고 온 정체성은 '${dra.archetype}' 쪽 색이에요.`)
-    p3piecesEn.push(`The soul-identity you carried in resembles: "${dra.archetype}".`)
+    // dra.archetype은 한국어 텍스트 → 영어 narrative에는 노출하지 않음.
   }
   if (h7 && h7.strength >= 40) {
     p3pieces.push(
@@ -424,6 +424,45 @@ function signSoulKo(sign: string): string {
 }
 function signSoulEn(sign: string): string {
   return SIGN_SOUL_EN[sign] ?? 'a native soul-grain'
+}
+
+// 60갑자 일주 (hanja) → natural English label (spirituality 섹션 전용).
+const SPIRIT_STEM_EN: Record<string, string> = {
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
+}
+const SPIRIT_BRANCH_EN: Record<string, string> = {
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
+}
+function iljuLabelEnSpirit(ilju: string | undefined): string {
+  if (!ilju) return 'native day-pillar'
+  const chars = Array.from(ilju)
+  if (chars.length < 2) return 'native day-pillar'
+  const stem = SPIRIT_STEM_EN[chars[0]] ?? ''
+  const branch = SPIRIT_BRANCH_EN[chars[1]] ?? ''
+  if (stem && branch) return `${stem} ${branch}`
+  if (stem) return stem
+  if (branch) return branch
+  return 'native day-pillar'
 }
 
 const ZR_SIGN_KO: Record<string, string> = {

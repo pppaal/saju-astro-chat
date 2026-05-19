@@ -40,16 +40,16 @@ const STEM_LABEL: Record<string, string> = {
 }
 
 const STEM_LABEL_EN: Record<string, string> = {
-  甲: 'Yang Wood (甲)',
-  乙: 'Yin Wood (乙)',
-  丙: 'Yang Fire (丙)',
-  丁: 'Yin Fire (丁)',
-  戊: 'Yang Earth (戊)',
-  己: 'Yin Earth (己)',
-  庚: 'Yang Metal (庚)',
-  辛: 'Yin Metal (辛)',
-  壬: 'Yang Water (壬)',
-  癸: 'Yin Water (癸)',
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
 }
 
 const STRENGTH_LABEL_KO: Record<string, string> = {
@@ -125,9 +125,9 @@ export function buildHeadline(input: BuilderInput): Headline {
   const strengthKo = STRENGTH_LABEL_KO[strength] || ''
   const strengthEn = STRENGTH_LABEL_EN[strength] || ''
   const geokgukKo = geokguk ? ` 삶의 큰 흐름은 ${geokgukFlavorKo(geokguk)}이에요.` : ''
-  const geokgukEn = geokguk ? `, ${geokguk} pattern` : ''
+  const geokgukEn = geokguk ? ` Your life-shape runs as ${geokgukFlavorEn(geokguk)}.` : ''
   const jongKo = jongType ? ' 한 방향으로 강하게 흐르는 성향도 함께 있어요.' : ''
-  const jongEn = jongType ? ` (running as a single-direction ${jongType} chart)` : ''
+  const jongEn = jongType ? ' A single-direction current also runs strongly through you.' : ''
 
   // 통근 — 일간이 어디에 뿌리내리는지 한 줄 추가. 모든 레벨(strong/moderate/
   // weak/none)에서 phrase가 자연 한국어로 짧게 표현돼 헤드라인에 무게가
@@ -137,50 +137,34 @@ export function buildHeadline(input: BuilderInput): Headline {
   const s1ko =
     `당신은 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} 성향을 타고난 사람이에요.` +
     `${geokgukKo}${jongKo}${rootKo}`
-  const s1en =
-    `You carry a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn}${geokgukEn}${jongEn}` +
-    `${ilju ? `, an ${ilju} day-pillar` : ''}.${rootEn}`
+  const s1en = `You are born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEn}`
 
   // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
   // "별" 단어를 한 문장 안에서 최대 1회로 제한 — 자아=태양, 감정=달은
   // 본문에서 별 라벨 없이 바로 톤만 풀어쓰고, 첫인상은 ASC로 잇는다.
-  const sunPart = sun
-    ? `자아는 ${signLabel(sun.sign, 'ko')}에서 빛나고`
-    : ''
-  const moonPart = moon
-    ? `감정은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르며`
-    : ''
-  const ascPart = asc
-    ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 색감이에요`
-    : ''
+  const sunPart = sun ? `자아는 ${signLabel(sun.sign, 'ko')}에서 빛나고` : ''
+  const moonPart = moon ? `감정은 ${signLabel(moon.sign, 'ko')}의 톤으로 흐르며` : ''
+  const ascPart = asc ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 색감이에요` : ''
   const skyParts = [sunPart, moonPart, ascPart].filter(Boolean).join(', ')
 
   const sunPartEn = sun
-    ? `Sun in ${signLabel(sun.sign, 'en')}${sun.house ? ` (${sun.house}H)` : ''}`
+    ? `your Sun shines in ${signLabel(sun.sign, 'en')}${sun.house ? `'s ${ordinalShort(sun.house)} house` : ''}`
     : ''
   const moonPartEn = moon
-    ? `Moon in ${signLabel(moon.sign, 'en')}${moon.house ? ` (${moon.house}H)` : ''}`
+    ? `your Moon flows through ${signLabel(moon.sign, 'en')}${moon.house ? `'s ${ordinalShort(moon.house)} house` : ''}`
     : ''
-  const ascPartEn = asc ? `${signLabel(asc.sign, 'en')} rising` : ''
+  const ascPartEn = asc ? `the world first reads you as ${signLabel(asc.sign, 'en')} rising` : ''
   const skyPartsEn = [sunPartEn, moonPartEn, ascPartEn].filter(Boolean).join(' · ')
 
-  const s2ko = skyParts
-    ? `별의 결로 보면 ${skyParts}.`
-    : ''
-  const s2en = skyPartsEn
-    ? `Astrologically, you are shaped by ${skyPartsEn}.`
-    : ''
+  const s2ko = skyParts ? `별의 결로 보면 ${skyParts}.` : ''
+  const s2en = skyPartsEn ? `On the astrology side, ${skyPartsEn}.` : ''
 
   // ─ Sentence 3 — fusion theme (짧게, iljuChar raw 제거)
   const domEl = el?.dominant
   const domModality = mod?.dominant
   const lackEl = el?.lacking
-  const balanceFlavorKo = domEl
-    ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.`
-    : ''
-  const balanceFlavorEn = domEl
-    ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity`
-    : ''
+  const balanceFlavorKo = domEl ? `${ELEMENT_FLAVOR_KO[domEl]} 기운이 삶의 중심에 자리해요.` : ''
+  const balanceFlavorEn = domEl ? `${ELEMENT_FLAVOR_EN[domEl]} carries the centre of gravity` : ''
   // 모달리티 + 인생 이끄는 별을 한 문장으로 묶어 짧은 문장 연속을 부드럽게 함
   const modPlanetKo = (() => {
     const modPart = domModality ? modalityKo(domModality) : ''
@@ -190,25 +174,16 @@ export function buildHeadline(input: BuilderInput): Headline {
     if (planetPart) return ` ${planetPart}.`
     return ''
   })()
-  const modFlavorEn = domModality
-    ? `, with a ${domModality} cadence`
-    : ''
+  const modFlavorEn = domModality ? `, with a ${domModality} cadence` : ''
   const domPlanetEn = dom ? `, led by ${planetLabel(dom, 'en')}` : ''
   const lackKo = lackEl ? ` 단 ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
   const lackEn = lackEl ? `, while ${ELEMENT_FLAVOR_EN[lackEl]} stays unfilled` : ''
 
-  // 한자 raw iljuCharacter는 영어에만 짧게 유지, 한국어에선 자연 어색해 제거
-  const iljuCharShortEn = iljuChar ? `In one line: '${shortenEn(iljuChar)}'.` : ''
+  // iljuCharacter는 한국어 텍스트라 영어 narrative에는 노출하지 않음.
+  void iljuChar
 
-  const s3ko = paragraphJoin([
-    balanceFlavorKo,
-    modPlanetKo,
-    lackKo,
-  ])
-  const s3en = paragraphJoin([
-    balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.',
-    iljuCharShortEn,
-  ])
+  const s3ko = paragraphJoin([balanceFlavorKo, modPlanetKo, lackKo])
+  const s3en = paragraphJoin([balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.'])
 
   return {
     ko: paragraphJoin([s1ko, s2ko, s3ko]),
@@ -244,9 +219,28 @@ function geokgukFlavorKo(g: string): string {
   return '본연의 모양'
 }
 
-function shortenEn(s: string): string {
-  const m = s.split(/[\.。,，]/)[0]
-  return m.trim().slice(0, 50)
+// 격국 → 자연 영어 (raw 사주 용어 제거).
+function geokgukFlavorEn(g: string): string {
+  if (!g) return 'its own native shape'
+  if (g.includes('편관'))
+    return 'a pressure-as-fuel pattern, where challenge and responsibility press in as weight'
+  if (g.includes('정관')) return 'a steady-authority pattern, settling into role and responsibility'
+  if (g.includes('편재')) return 'an opportunistic-resource pattern, with a quick eye for openings'
+  if (g.includes('정재')) return 'a steady-resource pattern, building wealth slowly and surely'
+  if (g.includes('식신')) return 'an easeful-expression pattern, creating with relaxed grace'
+  if (g.includes('상관')) return 'a free-talent pattern, releasing skill without strict form'
+  if (g.includes('편인')) return 'an unconventional-wisdom pattern, with a singular intuition'
+  if (g.includes('정인')) return 'an orthodox-wisdom pattern, flowing through learning and care'
+  if (g.includes('비견') || g.includes('겁재'))
+    return 'a peer-driven pattern, walking forward together with equals'
+  return 'its own native shape'
+}
+
+// English "1st / 2nd / 3rd ..." short ordinal used inline in narrative.
+function ordinalShort(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] || s[v] || s[0])
 }
 
 function paragraphJoin(parts: string[]): string {

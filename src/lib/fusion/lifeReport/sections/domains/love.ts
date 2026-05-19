@@ -237,12 +237,12 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   ])
   const p2en = paragraph([
     `Your spouse archetype reads as ${branchFlavorEn}.`,
-    `The day branch ${dBranch} draws in a ${branchFlavorEn} companion.`,
+    `Your core day-pillar draws in a ${branchFlavorEn} companion.`,
     seventh
       ? `Your 7th house opens in ${seventhSignEn}, so you ask for ${seventhSignFlavorEn(seventh.sign)} from a partner.`
       : '',
     seventhPlanets.length > 0
-      ? `With ${seventhPlanets.map((p) => p.name).join(', ')} inside the 7th, relationships sit at the center of your life-stage.`
+      ? `With ${seventhPlanets.map((p) => p.name).join(', ')} inside the 7th, relationships sit at the centre of your life-stage.`
       : '',
   ])
 
@@ -359,15 +359,21 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       deepKo.push(
         '재성의 결이 강하게 몰려서, 사랑에서도 손에 잡히는 결과·약속의 색을 선호하게 돼요.'
       )
-      deepEn.push('A heavy 재성 grain — in love too you favour tangible commitments and outcomes.')
+      deepEn.push(
+        'A heavy resource current — in love too you favour tangible commitments and outcomes.'
+      )
     } else if (top.name === '관살혼잡') {
       deepKo.push('관의 결이 두 갈래로 흘러, 사랑에서도 두 방향의 끌림이 같이 살아 있을 수 있어요.')
-      deepEn.push('Two strands of 관 grain — two directions of attraction can coexist in love.')
+      deepEn.push(
+        'Two strands of authority current run together — two directions of attraction can coexist in love.'
+      )
     } else if (top.name === '균형사주') {
       deepKo.push(
         '사주 자질이 고르게 분포해서, 사랑의 결도 한쪽으로 치우치지 않고 무난히 흐르는 자리예요.'
       )
-      deepEn.push('Sibsin is balanced — love also runs without a single dominating grain.')
+      deepEn.push(
+        'Your inner currents are balanced — love too runs without a single dominating grain.'
+      )
     }
   }
   // Minor aspect — Venus-Mars quincunx/semisextile colours the attraction grain.
@@ -416,14 +422,14 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `${partnerDaeun.age}세 무렵 인생 흐름이 ${isFemale ? '배우자' : '인연'}의 문을 정식으로 열어줘요.`
     )
     timingEn.push(
-      `Age ${partnerDaeun.age} daeun (${partnerCat} cycle) formally opens the door to ${isFemale ? 'spouse' : 'partnership'}.`
+      `Age ${partnerDaeun.age} opens a 10-year life-chapter that formally widens the door to ${isFemale ? 'spouse' : 'partnership'}.`
     )
   }
   if (cur && cur.sibsin) {
     timingKo.push(
       `지금의 인생 흐름에는 ${sibsinMeaningKoLove(cur.sibsin)}이 함께해서, 관계의 톤을 천천히 다듬어주고 있어요.`
     )
-    timingEn.push(`Your current ${cur.sibsin} daeun is also tuning the relational grain.`)
+    timingEn.push('Your current life-chapter is also tuning the relational grain.')
   }
   if (srSunInSeventh) {
     timingKo.push('올해 한 해 동안 관계가 무게중심을 잡아주는 시기예요.')
@@ -444,7 +450,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}에 놓여, ${erosSignFlavorKoLove(eros.sign)} 인연이 사랑의 운을 끌어와요.`
     )
     timingEn.push(
-      `Your Lot of Eros in ${signLabel(eros.sign, 'en')} pulls love-luck through ${erosSignFlavorEnLove(eros.sign)}.`
+      `Your Lot of Eros sits in ${signLabel(eros.sign, 'en')} — love-luck arrives through ${erosSignFlavorEnLove(eros.sign)} bonds.`
     )
   }
   if (venusDignity) {
@@ -556,17 +562,17 @@ function pickLoveStyleEn(
   isFemale: boolean
 ): string {
   if (isFemale && jg >= 1 && pg === 0)
-    return 'You value steadiness and depth in love. A single 정관 keeps your luck running toward one serious bond.'
+    return 'You value steadiness and depth in love. A steady-authority current keeps your luck running toward one serious bond.'
   if (isFemale && pg >= 2)
-    return 'You respond to intense, instinctive attraction. Strong 편관 brings stimulating encounters but you need a separate steady zone.'
+    return 'You respond to intense, instinctive attraction. A strong pressure-as-fuel current brings stimulating encounters but you need a separate steady zone.'
   if (!isFemale && jj >= 1 && pj === 0)
-    return 'You favor stability and trust in love. A single 정재 fits a long, steady bond.'
+    return 'You favour stability and trust in love. A single steady-resource current fits a long, lasting bond.'
   if (!isFemale && pj >= 2)
-    return 'You move toward freedom and variety. Strong 편재 lets you find your grain through many meetings.'
+    return 'You move toward freedom and variety. A strong opportunistic-resource current lets you find your grain through many meetings.'
   if (cat.관성 === 0 && isFemale)
-    return 'With 관성 quiet, this season prioritizes filling yourself before the form of partnership.'
+    return 'With the authority current quiet, this season prioritises filling yourself before the form of partnership.'
   if (cat.재성 === 0 && !isFemale)
-    return 'With 재성 quiet, this season prioritizes your own work before the form of partnership.'
+    return 'With the resource current quiet, this season prioritises your own work before the form of partnership.'
   return 'You hold depth and possibility in love at once.'
 }
 
