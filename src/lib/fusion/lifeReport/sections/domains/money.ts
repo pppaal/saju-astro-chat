@@ -24,7 +24,13 @@ import {
   solarReturnPlanetsInHouse,
 } from '../../signals/astroSignals'
 import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
-import { pickVariation, sibsinCategoryPool, planetSignPool, iljuPool } from '../../pools'
+import {
+  pickVariation,
+  sibsinCategoryPool,
+  planetSignPool,
+  iljuPool,
+  planetHouseLine,
+} from '../../pools'
 
 export function buildMoney(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -238,6 +244,45 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   if (sunMoneyVar) {
     astroUsed.push('pools.planetSign.sun.money')
     deepKo.push(`${sunMoneyVar}.`)
+  }
+  // Sun × house — 자아 표현이 자원 흐름과 만나는 무대
+  const sunHouseM = planetHouseLine('Sun', sunM?.house, 'ko')
+  if (sunHouseM) {
+    astroUsed.push('pools.planetHouse.sun')
+    deepKo.push(`${sunHouseM}.`)
+  }
+  // Venus × sign — 자원의 가치관 (money 도메인의 핵심 행성)
+  const venusM = astro.planets?.find((p) => p.name === 'Venus')
+  const venusMoneyVar = pickVariation(planetSignPool('Venus', venusM?.sign, 'money'), [
+    `day_master:${dayMasterStemM}`,
+    `venus_sign:${venusM?.sign ?? ''}`,
+    `day_branch:${dayBranchM}`,
+  ])
+  if (venusMoneyVar) {
+    astroUsed.push('pools.planetSign.venus.money')
+    deepKo.push(`${venusMoneyVar}.`)
+  }
+  // Mercury × sign — 자원 분석·계산
+  const mercuryM = astro.planets?.find((p) => p.name === 'Mercury')
+  const mercuryMoneyVar = pickVariation(planetSignPool('Mercury', mercuryM?.sign, 'money'), [
+    `day_master:${dayMasterStemM}`,
+    `mercury_sign:${mercuryM?.sign ?? ''}`,
+    `day_branch:${dayBranchM}`,
+  ])
+  if (mercuryMoneyVar) {
+    astroUsed.push('pools.planetSign.mercury.money')
+    deepKo.push(`${mercuryMoneyVar}.`)
+  }
+  // ASC × money — 첫인상의 결이 자원 흐름에 어떻게 통하는지.
+  const ascM = astro.ascendant
+  const ascMoneyVar = pickVariation(planetSignPool('Ascendant', ascM?.sign, 'money'), [
+    `day_master:${dayMasterStemM}`,
+    `asc_sign:${ascM?.sign ?? ''}`,
+    `day_branch:${dayBranchM}`,
+  ])
+  if (ascMoneyVar) {
+    astroUsed.push('pools.planetSign.asc.money')
+    deepKo.push(`${ascMoneyVar}.`)
   }
   // Lot of Necessity — adds a 'where resources strain' note
   const necessityLot = input.calendarSignals?.arabicParts?.Necessity

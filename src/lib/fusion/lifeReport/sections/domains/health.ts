@@ -28,7 +28,13 @@ import {
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
-import { pickVariation, twelveStagePool, planetSignPool, iljuPool } from '../../pools'
+import {
+  pickVariation,
+  twelveStagePool,
+  planetSignPool,
+  iljuPool,
+  planetHouseLine,
+} from '../../pools'
 
 export function buildHealth(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -232,6 +238,47 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (sunHealthVar) {
     astroUsed.push('pools.planetSign.sun.health')
     deepKo.push(`${sunHealthVar}.`)
+  }
+  // Sun × house — 활력이 어느 인생 무대에서 풀리는지
+  const sunHouseH = planetHouseLine('Sun', sunH?.house, 'ko')
+  if (sunHouseH) {
+    astroUsed.push('pools.planetHouse.sun')
+    deepKo.push(`${sunHouseH}.`)
+  }
+  // Mars × sign — 활력·염증·운동 (health 의 추진 행성)
+  const marsH = getPlanet(astro, 'Mars')
+  const marsHealthVar = pickVariation(planetSignPool('Mars', marsH?.sign, 'health'), [
+    `day_master:${dayMasterStemH}`,
+    `mars_sign:${marsH?.sign ?? ''}`,
+    `day_branch:${dayBranchH}`,
+  ])
+  if (marsHealthVar) {
+    astroUsed.push('pools.planetSign.mars.health')
+    deepKo.push(`${marsHealthVar}.`)
+  }
+  // Mercury × sign — 신경계·스트레스 (health 의 정신 축)
+  const mercuryH = getPlanet(astro, 'Mercury')
+  const mercuryHealthVar = pickVariation(planetSignPool('Mercury', mercuryH?.sign, 'health'), [
+    `day_master:${dayMasterStemH}`,
+    `mercury_sign:${mercuryH?.sign ?? ''}`,
+    `day_branch:${dayBranchH}`,
+  ])
+  if (mercuryHealthVar) {
+    astroUsed.push('pools.planetSign.mercury.health')
+    deepKo.push(`${mercuryHealthVar}.`)
+  }
+  // ASC × health — 첫인상 = 몸의 색깔 (점성 정통: ASC 의 sign 이 신체
+  // 구조와 활력 톤 결정). Big 3 의 마지막 축.
+  const ascH = astro.ascendant
+  if (ascH) astroUsed.push('ascendant')
+  const ascHealthVar = pickVariation(planetSignPool('Ascendant', ascH?.sign, 'health'), [
+    `day_master:${dayMasterStemH}`,
+    `asc_sign:${ascH?.sign ?? ''}`,
+    `day_branch:${dayBranchH}`,
+  ])
+  if (ascHealthVar) {
+    astroUsed.push('pools.planetSign.asc.health')
+    deepKo.push(`${ascHealthVar}.`)
   }
   const p3ko = paragraph(
     deepKo.length ? deepKo : ['건강의 흐름은 극단보다는 일상의 작은 누적이 만들어요.']

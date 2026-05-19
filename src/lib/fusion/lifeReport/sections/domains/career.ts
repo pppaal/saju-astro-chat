@@ -42,6 +42,7 @@ import {
   sibsinCategoryPool,
   planetSignPool,
   iljuPool,
+  planetHouseLine,
 } from '../../pools'
 
 export function buildCareer(input: BuilderInput): DomainNarrative {
@@ -145,6 +146,11 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // is reserved for P3 (deep-grain layer) so the same variation never
   // doubles inside a single paragraph.
   p1ko = appendToPara(p1ko, sunSignVar)
+  p1ko = appendToPara(p1ko, sunHouseVar)
+  p1ko = appendToPara(p1ko, mercurySignVar)
+  p1ko = appendToPara(p1ko, marsCareerVar)
+  p1ko = appendToPara(p1ko, ascCareerVar)
+  if (ascCareerVar) astroUsed.push('pools.planetSign.asc.career')
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
     mc
@@ -167,17 +173,13 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     )
   }
   if (officialDaeun && (!cur || officialDaeun.age !== cur.age)) {
-    timingPieces.push(
-      `${officialDaeun.age}세 무렵엔 책임과 자리가 한 단계 올라가는 흐름이 와요.`
-    )
+    timingPieces.push(`${officialDaeun.age}세 무렵엔 책임과 자리가 한 단계 올라가는 흐름이 와요.`)
     timingPiecesEn.push(
       `Around age ${officialDaeun.age}, an authority-cycle (관성 daeun) lifts your standing and responsibility.`
     )
   }
   if (outputDaeun && (!cur || outputDaeun.age !== cur.age)) {
-    timingPieces.push(
-      `${outputDaeun.age}세 무렵엔 표현과 창조, 실행력이 폭발하는 구간이에요.`
-    )
+    timingPieces.push(`${outputDaeun.age}세 무렵엔 표현과 창조, 실행력이 폭발하는 구간이에요.`)
     timingPiecesEn.push(
       `Near age ${outputDaeun.age}, the 식상 daeun bursts open expression, creation and output.`
     )
@@ -190,12 +192,18 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `Your progressed Sun has moved into ${signLabel(progSun.sign, 'en')}${progSun.house ? ` (${houseLabel(progSun.house, 'en')})` : ''}, slowly retuning your professional identity.`
     )
   }
-  const p2ko = paragraph(timingPieces.length ? timingPieces : [
-    '지금 흐름은 안정 구간이라, 큰 전환보다는 톤을 다듬는 시기예요.'
-  ])
-  const p2en = paragraph(timingPiecesEn.length ? timingPiecesEn : [
-    'For now your daeun and progression sit in a steady stretch — a season for refining rather than overhauling.'
-  ])
+  const p2ko = paragraph(
+    timingPieces.length
+      ? timingPieces
+      : ['지금 흐름은 안정 구간이라, 큰 전환보다는 톤을 다듬는 시기예요.']
+  )
+  const p2en = paragraph(
+    timingPiecesEn.length
+      ? timingPiecesEn
+      : [
+          'For now your daeun and progression sit in a steady stretch — a season for refining rather than overhauling.',
+        ]
+  )
 
   // ── Paragraph 3: 심화 통찰 (고급 지표 자연스럽게)
   const deepPieces: string[] = []
@@ -217,9 +225,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     )
   }
   if (pofInTenth) {
-    deepPieces.push(
-      `행운의 점이 사회 무대에 있어, 직업 자체가 행운의 통로가 되는 드문 배치예요.`
-    )
+    deepPieces.push(`행운의 점이 사회 무대에 있어, 직업 자체가 행운의 통로가 되는 드문 배치예요.`)
     deepPiecesEn.push(
       `Part of Fortune in the 10th — a rare placement where the career itself becomes the door to luck.`
     )
@@ -240,21 +246,21 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `Saju runs as ${jong} — a strong one-direction current that favors specialization over breadth.`
     )
   } else if (geokguk) {
-    deepPieces.push(`인생의 큰 패턴이 ${geokgukShortKoForCareer(geokguk)}이라, 직업 색이 이미 명확하게 잡혀 있어요.`)
-    deepPiecesEn.push(`Your geokguk is ${geokguk}, so the basic shape of your career is already pre-tuned.`)
+    deepPieces.push(
+      `인생의 큰 패턴이 ${geokgukShortKoForCareer(geokguk)}이라, 직업 색이 이미 명확하게 잡혀 있어요.`
+    )
+    deepPiecesEn.push(
+      `Your geokguk is ${geokguk}, so the basic shape of your career is already pre-tuned.`
+    )
   }
   if (samgi.hasSamgi) {
-    deepPieces.push(
-      '큰 무대에서 인정받을 특별한 자질이 함께 깔려 있어요.'
-    )
+    deepPieces.push('큰 무대에서 인정받을 특별한 자질이 함께 깔려 있어요.')
     deepPiecesEn.push(
       `A ${samgi.type ?? 'samgi'} pattern is present — a latent capacity for recognition on a larger stage.`
     )
   }
   if (iljuAptitudes.length > 0 && iljuName) {
-    deepPieces.push(
-      `타고난 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽에 잘 맞아요.`
-    )
+    deepPieces.push(`타고난 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽에 잘 맞아요.`)
     deepPiecesEn.push(
       `Your ilju (${iljuName}) naturally fits ${iljuAptitudes.slice(0, 3).join(' / ')}.`
     )
@@ -327,8 +333,12 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const courage = input.calendarSignals?.arabicParts?.Courage
   if (courage) {
     fusionUsed.push('calendarSignals.arabicParts.Courage')
-    deepPieces.push(`용기의 행운점이 ${karmaSignKoCareer(courage.sign)}에 놓여, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`)
-    deepPiecesEn.push(`Your Lot of Courage in ${courage.sign} pulls the strongest career luck through the place where you accept challenge.`)
+    deepPieces.push(
+      `용기의 행운점이 ${karmaSignKoCareer(courage.sign)}에 놓여, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`
+    )
+    deepPiecesEn.push(
+      `Your Lot of Courage in ${courage.sign} pulls the strongest career luck through the place where you accept challenge.`
+    )
   }
   // Fusion career confirms (top 2)
   if (careerConfirms.length > 0) {
@@ -336,12 +346,20 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     deepPieces.push(`그리고 ${top.rule.narrative.confirm}`)
     deepPiecesEn.push(`Additionally, ${top.rule.meaning}.`)
   }
-  const p3ko = paragraph(deepPieces.length ? deepPieces : [
-    '지금 흐름이 평탄하게 정렬돼 있어, 한쪽으로 치우치기보다 다양한 가능성이 함께 무르익는 시기예요.'
-  ])
-  const p3en = paragraph(deepPiecesEn.length ? deepPiecesEn : [
-    'Because current signals sit in a balanced array, no single direction dominates right now.'
-  ])
+  const p3ko = paragraph(
+    deepPieces.length
+      ? deepPieces
+      : [
+          '지금 흐름이 평탄하게 정렬돼 있어, 한쪽으로 치우치기보다 다양한 가능성이 함께 무르익는 시기예요.',
+        ]
+  )
+  const p3en = paragraph(
+    deepPiecesEn.length
+      ? deepPiecesEn
+      : [
+          'Because current signals sit in a balanced array, no single direction dominates right now.',
+        ]
+  )
 
   // ── Paragraph 4: 실행 가이드
   let guideKo = buildCareerGuideKo({
@@ -558,9 +576,18 @@ function geokgukShortKoForCareer(g: string): string {
 
 function karmaSignKoCareer(sign: string): string {
   const map: Record<string, string> = {
-    Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
-    Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
-    Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
+    Aries: '양자리',
+    Taurus: '황소자리',
+    Gemini: '쌍둥이자리',
+    Cancer: '게자리',
+    Leo: '사자자리',
+    Virgo: '처녀자리',
+    Libra: '천칭자리',
+    Scorpio: '전갈자리',
+    Sagittarius: '사수자리',
+    Capricorn: '염소자리',
+    Aquarius: '물병자리',
+    Pisces: '물고기자리',
   }
   return map[sign] ?? sign
 }
@@ -594,7 +621,9 @@ function buildCareerGuideEn(args: {
   if (args.dominantCategory === '식상')
     pieces.push('Keep publishing what you make. Hidden output cannot attract luck.')
   else if (args.dominantCategory === '관성')
-    pieces.push('Do not duck titles and seats — accept them one step at a time. Luck arrives through the seat.')
+    pieces.push(
+      'Do not duck titles and seats — accept them one step at a time. Luck arrives through the seat.'
+    )
   else if (args.dominantCategory === '재성')
     pieces.push('Close every effort with numbers. Resource-completion unlocks the flow.')
   else if (args.dominantCategory === '인성')
@@ -602,9 +631,13 @@ function buildCareerGuideEn(args: {
   else if (args.dominantCategory === '비겁')
     pieces.push('Do not sever your peer links. Luck scales when you do not walk alone.')
   if (args.officialAge)
-    pieces.push(`Slightly enlarge your responsibilities just before age ${args.officialAge} — the cycle catches up gracefully.`)
+    pieces.push(
+      `Slightly enlarge your responsibilities just before age ${args.officialAge} — the cycle catches up gracefully.`
+    )
   if (args.wealthAge && (!args.officialAge || args.wealthAge !== args.officialAge))
-    pieces.push(`Around age ${args.wealthAge}, the wealth cycle opens a side-income / expansion window.`)
+    pieces.push(
+      `Around age ${args.wealthAge}, the wealth cycle opens a side-income / expansion window.`
+    )
   return paragraph(pieces)
 }
 

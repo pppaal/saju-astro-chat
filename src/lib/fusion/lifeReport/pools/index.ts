@@ -9,3 +9,4 @@ export { iljuPool, getIljuArchetype, getIljuData, type IljuDomain } from './ilju
 export { jijangganLine, getJijanggan, type JijangganPart } from './jijangganPool'
 export { stageHouseLine, getStageHouseEntry } from './stageHousePool'
 export { asteroidHouseLine, type AsteroidName } from './asteroidPool'
+export { planetHouseLine, type PlanetHouseKey } from './planetHousePool'
