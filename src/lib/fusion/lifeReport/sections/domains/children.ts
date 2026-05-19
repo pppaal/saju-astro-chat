@@ -25,6 +25,7 @@ import {
   planetsInHouse,
 } from '../../signals/astroSignals'
 import { houseLabel, paragraph, signLabel } from '../../templates/sentences'
+import { pickVariation, planetSignPool, planetHouseLine, asteroidHouseLine } from '../../pools'
 
 interface ChildEstimate {
   min: number
@@ -179,12 +180,54 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   // ── Paragraph 3: 자녀 관계의 결 (advanced)
   const deepKo: string[] = []
   const deepEn: string[] = []
+
+  // Planet pools — Moon(돌봄·정서) × love + Venus(즐거움) × love
+  // 자녀 관계의 핵심 행성 결을 추가. domain key 는 가장 가까운 'love'.
+  const dayMasterStem = saju.pillars.day.stem || ''
+  const moonChildrenVar = pickVariation(planetSignPool('Moon', moon?.sign, 'love'), [
+    `day_master:${dayMasterStem}`,
+    `moon_sign:${moon?.sign ?? ''}`,
+    'domain:children',
+  ])
+  if (moonChildrenVar) {
+    astroUsed.push('pools.planetSign.moon.children')
+    deepKo.push(`${moonChildrenVar}.`)
+  }
+  const venus = getPlanet(astro, 'Venus')
+  const venusChildrenVar = pickVariation(planetSignPool('Venus', venus?.sign, 'love'), [
+    `day_master:${dayMasterStem}`,
+    `venus_sign:${venus?.sign ?? ''}`,
+    'domain:children',
+  ])
+  if (venusChildrenVar) {
+    astroUsed.push('pools.planetSign.venus.children')
+    deepKo.push(`${venusChildrenVar}.`)
+  }
+  // Moon × house — 정서가 자녀 관계에서 어디로 흘러가는지
+  const moonHouseVar = planetHouseLine('Moon', moon?.house, 'ko')
+  if (moonHouseVar) {
+    astroUsed.push('pools.planetHouse.moon.children')
+    deepKo.push(`${moonHouseVar}.`)
+  }
+  // Ceres × house — 양육의 색 (destiny-matrix layer9 활용 — family.ts 와 같은 패턴)
+  if (ce) {
+    const ceresCrossKo = asteroidHouseLine('Ceres', ce.house, 'ko')
+    if (ceresCrossKo) {
+      astroUsed.push('pools.asteroid.ceres.children')
+      deepKo.push(ceresCrossKo)
+    }
+  }
+
   if (jupiter && jupiter.house === 5) {
     deepKo.push('확장의 별이 창조 영역에 있어, 자녀가 행운과 확장의 통로가 되는 배치예요.')
     deepEn.push('Jupiter in the 5th places children at the channel of luck and expansion.')
   } else if (jupiter && jupiter.house) {
-    deepKo.push(`확장의 별이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`)
-    deepEn.push(`Jupiter supports your child-related markers indirectly from your ${houseLabel(jupiter.house, 'en')}.`)
+    deepKo.push(
+      `확장의 별이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`
+    )
+    deepEn.push(
+      `Jupiter supports your child-related markers indirectly from your ${houseLabel(jupiter.house, 'en')}.`
+    )
   }
   if (saturn && saturn.house === 5) {
     deepKo.push(
@@ -213,8 +256,12 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     )
   }
   if (gk.includes('식신')) {
-    deepKo.push('인생의 큰 패턴이 여유로운 표현과 창조의 흐름이라, 자녀를 키우는 일 자체가 자기 표현의 연장이에요.')
-    deepEn.push('Your life-pattern is one of easeful expression and creation — raising children is itself an extension of self-expression.')
+    deepKo.push(
+      '인생의 큰 패턴이 여유로운 표현과 창조의 흐름이라, 자녀를 키우는 일 자체가 자기 표현의 연장이에요.'
+    )
+    deepEn.push(
+      'Your life-pattern is one of easeful expression and creation — raising children is itself an extension of self-expression.'
+    )
   }
   // Calendar-engine: 5th-house profection year (자녀의 행운점 활성) + harmonics 5 (창조의 결)
   const prof = input.calendarSignals?.profectionCurrent
@@ -250,12 +297,20 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     if (relEnChildren)
       deepEn.push(`${relEnChildren} The colour of the child-bond is pre-set early.`)
   }
-  const p3ko = paragraph(deepKo.length ? deepKo : [
-    '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.'
-  ])
-  const p3en = paragraph(deepEn.length ? deepEn : [
-    'Because the 5th-house and creative-expression signals sit in a steady alignment, your child-related markers follow the calm grain of daily life.'
-  ])
+  const p3ko = paragraph(
+    deepKo.length
+      ? deepKo
+      : [
+          '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.',
+        ]
+  )
+  const p3en = paragraph(
+    deepEn.length
+      ? deepEn
+      : [
+          'Because the 5th-house and creative-expression signals sit in a steady alignment, your child-related markers follow the calm grain of daily life.',
+        ]
+  )
 
   const paragraphs: Paragraph[] = [
     { ko: p1ko, en: p1en },
@@ -299,7 +354,19 @@ function childFlavorEn(n: number): string {
 
 // 숫자를 자연 영어 단어로 (1~10 까지; 그 외엔 숫자 그대로).
 function sikSangCountWordEn(n: number): string {
-  const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
+  const words = [
+    'zero',
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+  ]
   if (n >= 0 && n <= 10) return words[n]
   return String(n)
 }
