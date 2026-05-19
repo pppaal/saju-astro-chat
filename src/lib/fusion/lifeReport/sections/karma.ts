@@ -69,6 +69,82 @@ function karmaGeokgukShortKo(g: string): string {
   return '본연의 흐름'
 }
 
+// 격국 → natural English (raw 사주 용어 없이) — karma 섹션 전용.
+function karmaGeokgukShortEn(g: string): string {
+  if (!g) return 'its native shape'
+  if (g.includes('편관')) return 'a pressure-as-fuel path, carrying weight through challenge and responsibility'
+  if (g.includes('정관')) return 'a steady-authority path, settling into responsibility'
+  if (g.includes('편재')) return 'an opportunistic-resource sense, catching openings as they pass'
+  if (g.includes('정재')) return 'a steady-resource path, building up patiently'
+  if (g.includes('식신')) return 'an easeful-creation flow, expressing with grace'
+  if (g.includes('상관')) return 'a free-talent flow, releasing skill without strict form'
+  if (g.includes('편인')) return 'an unconventional-wisdom path'
+  if (g.includes('정인')) return 'a learning-and-care path'
+  return 'its native shape'
+}
+
+// 오행 영어 자연어
+function elementFlavorEn(y: string): string {
+  if (!y) return 'a native element'
+  if (y.includes('목') || y.includes('wood')) return 'Wood (growth, sprouting)'
+  if (y.includes('화') || y.includes('fire')) return 'Fire (warmth, expression)'
+  if (y.includes('토') || y.includes('earth')) return 'Earth (steadiness, rooting)'
+  if (y.includes('금') || y.includes('metal')) return 'Metal (clarity, refinement)'
+  if (y.includes('수') || y.includes('water')) return 'Water (depth, flow)'
+  return 'a native element'
+}
+
+// English short ordinal used inline (karma 섹션 전용).
+function ordinalShortKarma(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] || s[v] || s[0])
+}
+
+// 60갑자 일주 (e.g. "庚辰") → natural English label without hanja.
+// Composes stem + branch English names so callers see e.g. "Yang Metal Dragon".
+const ILJU_STEM_EN: Record<string, string> = {
+  甲: 'Yang Wood', 乙: 'Yin Wood',
+  丙: 'Yang Fire', 丁: 'Yin Fire',
+  戊: 'Yang Earth', 己: 'Yin Earth',
+  庚: 'Yang Metal', 辛: 'Yin Metal',
+  壬: 'Yang Water', 癸: 'Yin Water',
+}
+const ILJU_BRANCH_EN: Record<string, string> = {
+  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
+  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
+  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
+}
+function iljuLabelEn(ilju: string): string {
+  if (!ilju) return 'native day-pillar'
+  const chars = Array.from(ilju)
+  if (chars.length < 2) return 'native day-pillar'
+  const stem = ILJU_STEM_EN[chars[0]] ?? ''
+  const branch = ILJU_BRANCH_EN[chars[1]] ?? ''
+  if (stem && branch) return `${stem} ${branch}`
+  if (stem) return stem
+  if (branch) return branch
+  return 'native day-pillar'
+}
+
+// Gongmang affected pillars (raw 사주 라벨: '초년' 등) → natural English areas.
+function gongmangAreasEn(areas: string[]): string {
+  const map: Record<string, string> = {
+    초년: 'early life',
+    청년: 'young adulthood',
+    중년: 'middle life',
+    만년: 'later life',
+    year: 'early life',
+    month: 'young adulthood',
+    day: 'middle life',
+    time: 'later life',
+  }
+  const mapped = areas.map((a) => map[a] ?? a).filter(Boolean)
+  if (mapped.length === 0) return 'one of your life-stages'
+  if (mapped.length === 1) return mapped[0]
+  return mapped.slice(0, -1).join(', ') + ' and ' + mapped[mapped.length - 1]
+}
+
 // 오행 음을 자연 한글 표현으로
 function elementFlavorKo(y: string): string {
   if (!y) return '본연의 기운'
@@ -123,11 +199,27 @@ const KARMA_DESC_KO: Record<KarmaType, string> = {
   균형형: '극단을 피하고 중도를 지키는 카르마. 꾸준함이 결과를 만들어요.',
 }
 const KARMA_DESC_EN: Record<KarmaType, string> = {
-  창조형: 'A creative-line karma — luck opens through what you try first.',
-  조화형: 'A harmony-line karma — answers come from doing things together.',
-  시련형: 'A trial-line karma — you toughen through deep curves; the leap after the crisis is large.',
-  치유형: 'A healing-line karma — care and counsel are your native channel.',
-  균형형: 'A balance-line karma — steadiness, not extremes, produces the result.',
+  창조형: 'luck opens through what you try first.',
+  조화형: 'answers come from doing things together.',
+  시련형: 'you toughen through deep curves and leap after the crisis.',
+  치유형: 'care and counsel are your native channel.',
+  균형형: 'steadiness, not extremes, produces the result.',
+}
+// Karma archetype → English label (no Korean leaks in narrative).
+const KARMA_ARCHETYPE_EN: Record<KarmaType, string> = {
+  창조형: 'a creator-line karma',
+  조화형: 'a harmonizer-line karma',
+  시련형: 'a trial-line karma',
+  치유형: 'a healer-line karma',
+  균형형: 'a balance-line karma',
+}
+// Karma archetype → noun used inside the "this life resolves X karma" line.
+const KARMA_ARCHETYPE_NOUN_EN: Record<KarmaType, string> = {
+  창조형: 'creator-line',
+  조화형: 'harmonizer-line',
+  시련형: 'trial-line',
+  치유형: 'healer-line',
+  균형형: 'balance-line',
 }
 
 function variance(fe: Record<string, number>): number {
@@ -198,12 +290,12 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     ys ? `삶의 균형추가 되는 기운은 ${elementFlavorKo(ys)}이라, 이걸 일상에 들여올수록 마음이 풀어져요.` : '',
   ])
   const p1en = paragraph([
-    `Your soul-line in this life completes its ${geokguk || 'native pattern'} through ${missionEn}.`,
+    `In this life your soul-line completes ${karmaGeokgukShortEn(geokguk)} through ${missionEn}.`,
     nn
-      ? `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? ` (${nn.house}H)` : ''} — the direction your soul wants to grow.`
+      ? `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? `'s ${ordinalShortKarma(nn.house)} house` : ''} — the direction your soul wants to grow.`
       : '',
     ys
-      ? `Your primary yongsin is ${ys} — when you bring this element into your environment, the soul unfolds.`
+      ? `Your balancing element is ${elementFlavorEn(ys)} — bringing it into daily life lets the soul unfold.`
       : '',
   ])
 
@@ -224,14 +316,14 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       : '',
   ])
   const p2en = paragraph([
-    `Your karma archetype is ${karmaType} — ${KARMA_DESC_EN[karmaType]}`,
+    `Your karma archetype reads as ${KARMA_ARCHETYPE_EN[karmaType]} — ${KARMA_DESC_EN[karmaType]}`,
     `Roughly ${Math.round(fixedRatio * 100)}% is the fated portion; ${Math.round(flexibleRatio * 100)}% is the flexible portion you reshape through choice.`,
     dmRoot ? dmRoot.phraseEn : '',
     gongmang.length > 0
-      ? `The gongmang (${gongmangBranches.join('·')}) inside your saju leaves an 'unfillable' sensation in ${gongmang.join(' / ')} — this very gap is what pushes the soul into the next stage.`
+      ? `An unfillable 'empty seat' sits in your chart around ${gongmangAreasEn(gongmang)} — and that very gap is what pushes the soul into its next stage.`
       : '',
     twelfthPlanets.length > 0
-      ? `${twelfthPlanets.map((p) => p.name).join(', ')} sit in your 12th house, so part of the karma must be worked through solitude and the subconscious.`
+      ? `${twelfthPlanets.map((p) => p.name).join(', ')} ${twelfthPlanets.length === 1 ? 'sits' : 'sit'} in your 12th house, so part of the karma must be worked through solitude and the subconscious.`
       : '',
   ])
 
@@ -249,10 +341,10 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   ])
   const p3en = paragraph([
     iljuName
-      ? `Your ilju (${iljuName}) carries '${shorten(iljuChar)}' as its core note — the starting point for both healing and growth.`
+      ? `Your day-pillar archetype (${iljuLabelEn(iljuName)}) sets the core note — the starting point for both healing and growth.`
       : '',
     ch
-      ? `Chiron in ${signLabel(ch.sign, 'en')}${ch.house ? ` (${ch.house}H)` : ''} means ${chironHouseHintEn(ch.house)} is where the lifelong wound converts itself into healing power.`
+      ? `Chiron in ${signLabel(ch.sign, 'en')}${ch.house ? `, the ${ordinalShortKarma(ch.house)}-house seat,` : ''} means ${chironHouseHintEn(ch.house)} is where the lifelong wound converts itself into healing power.`
       : '',
     lilith
       ? `Lilith in ${signLabel(lilith.sign, 'en')} — owning the part of yourself that lies outside social approval unlocks real force.`
@@ -280,21 +372,21 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   ])
   const p4en = paragraph([
     jong
-      ? `Your saju condenses strongly into one direction (${jong}), so deep specialisation unlocks the largest potential.`
+      ? 'Your chart condenses strongly into a single direction, so deep specialisation unlocks the largest potential.'
       : '',
     hwagyeok?.isHwagyeok
-      ? `A ${hwagyeok.type} transformation pattern sits in the stems — at decisive moments it grants you the freedom to remake yourself.`
+      ? 'A transformation pattern sits in the chart — at decisive moments it grants you the freedom to remake yourself.'
       : '',
     samgi.hasSamgi
-      ? `A ${samgi.type ?? 'samgi'} pattern is present — latent capacity for recognition on a larger stage.`
+      ? 'A rare nobility pattern is present, hinting at a latent capacity for recognition on a larger stage.'
       : '',
     pof
-      ? `Part of Fortune in ${signLabel(pof.sign, 'en')}${pof.house ? ` (${pof.house}H)` : ''} — tending this area is where luck comes home.`
+      ? `Part of Fortune sits in ${signLabel(pof.sign, 'en')}${pof.house ? `, in the ${ordinalShortKarma(pof.house)} house` : ''} — tending this area is where luck comes home.`
       : '',
     specialFormations.length > 0
-      ? `Special formations (${specialFormations.join(', ')}) suggest your grain reaches past the ordinary flow.`
+      ? 'Rare formations sit in your chart, hinting that your grain can reach past the ordinary flow.'
       : '',
-    `In one line: this life is a journey of resolving ${karmaType}-style karma through ${missionEn}.`,
+    `In one line: this life is a journey of resolving ${KARMA_ARCHETYPE_NOUN_EN[karmaType]} karma through ${missionEn}.`,
   ])
 
   // ──────── 文단 5: 영혼의 결 (draconic Sun + harmonics 7)
@@ -373,26 +465,26 @@ export function buildKarma(input: BuilderInput): KarmaSection {
         `사주 안에 결합과 충돌의 흐름이 함께 ${total}회 일어나, 인생이 결합과 단절을 동시에 풀어가는 카르마예요. ${hc.summary.slice(0, 3).join(' · ')}.`,
       )
       p6piecesEn.push(
-        `Inside your saju, both 합 (harmony) and 충 (clash) appear (${total} interactions total) — this life resolves karma through simultaneous union and severance. Patterns: ${hc.summary.slice(0, 3).join(' · ')}.`,
+        `Inside your chart, both harmony and clash currents appear (${total} interactions in total) — this life resolves karma through simultaneous union and severance.`,
       )
     } else if (hc.hapCount > 0) {
       p6pieces.push(
         `사주 안 결합의 흐름이 ${hc.hapCount}회 일어나, 인생의 카르마가 사람과 사람을 잇는 쪽으로 풀려요. ${hc.summary.slice(0, 2).join(' · ')}.`,
       )
       p6piecesEn.push(
-        `Your saju shows ${hc.hapCount} 합 (harmony) interactions — your karma resolves by joining people and currents. Patterns: ${hc.summary.slice(0, 2).join(' · ')}.`,
+        `Your chart shows ${hc.hapCount} harmony-joinings — karma resolves by joining people and currents.`,
       )
     } else if (hc.chungCount > 0) {
       p6pieces.push(
         `사주 안 충돌의 흐름이 ${hc.chungCount}회 일어나, 카르마가 단절과 결정을 통해 풀려요. 깨끗하게 끊는 능력이 운을 만들어요.`,
       )
       p6piecesEn.push(
-        `Your saju shows ${hc.chungCount} 충 (clash) interactions — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`,
+        `Your chart shows ${hc.chungCount} clash-currents — karma resolves through severance and clean decision. Cutting cleanly attracts luck.`,
       )
     }
     if (hc.hyungCount > 0) {
       p6pieces.push('형벌의 흐름도 함께 있어, 정의롭게 굽히지 않는 자기를 다듬는 과정이 이번 생의 통과의례 중 하나예요.')
-      p6piecesEn.push('A 형 (penalty) accent also runs through — refining your unbending sense of justice is one of this life\'s rites of passage.')
+      p6piecesEn.push('A reshaping penalty-accent runs through your chart — refining an unbending sense of justice is one of this life\'s rites of passage.')
     }
   }
   if (twelve) {
@@ -402,13 +494,13 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       const weak = stages.filter((s) => ['병', '사', '묘', '절', '태'].includes(s)).length
       if (strong >= 2) {
         p6pieces.push('4기둥의 12운성을 종합하면, 인생의 무게추가 발산과 자립 쪽으로 기울어 있어요. 카르마도 적극적으로 만들어가는 길이 맞아요.')
-        p6piecesEn.push('Across the four pillars, the 12운성 stages tilt toward emanation and self-standing — your karma is actively shaped, not merely received.')
+        p6piecesEn.push('Across your four pillars, the life-cycle stages tilt toward emanation and self-standing — your karma is actively shaped, not merely received.')
       } else if (weak >= 2) {
         p6pieces.push('4기둥의 12운성이 수렴과 마무리 쪽으로 기울어 있어요. 카르마는 정리와 결산으로 풀려요.')
-        p6piecesEn.push('The four-pillar 12운성 stages tilt toward closure and inwardness — karma resolves through completion and settling accounts.')
+        p6piecesEn.push('The four-pillar life-cycle stages tilt toward closure and inwardness — karma resolves through completion and settling accounts.')
       } else {
         p6pieces.push('4기둥의 12운성이 강약 양쪽에 골고루 분포해서, 시기에 따라 발산과 수렴을 오가는 흐름이에요.')
-        p6piecesEn.push('Your four-pillar 12운성 stages spread evenly between strong and weak — you alternate between releasing and consolidating.')
+        p6piecesEn.push('Your four-pillar life-cycle stages spread evenly between strong and weak — you alternate between releasing and consolidating.')
       }
     }
   }
@@ -423,7 +515,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     p6pieces.length ? p6pieces : ['사주 내부 결합·충돌 패턴은 잔잔하게 정렬돼 있어, 카르마가 격한 사건보다 일상의 흐름으로 풀려요.'],
   )
   const p6en = paragraph(
-    p6piecesEn.length ? p6piecesEn : ['Internal saju 합/충 sits calmly arranged — your karma works through daily grain rather than dramatic events.'],
+    p6piecesEn.length ? p6piecesEn : ['Internal harmony and clash sit calmly arranged — your karma works through daily grain rather than dramatic events.'],
   )
 
   const paragraphs: Paragraph[] = [

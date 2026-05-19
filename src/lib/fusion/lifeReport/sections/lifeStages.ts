@@ -198,7 +198,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const p1en = paragraph([
     `${range.titleEn} is ruled by the ${range.pillarEn} — the centre of gravity for ${range.themeEn}.`,
     pillar?.stem || pillar?.branch
-      ? `Its ${pillar.stem}${pillar.branch} grain works the ${ELEMENT_TEXTURE_EN[dayEl] ?? 'balance'} note into this season.`
+      ? `Its ${pillarGrainEn(pillar.stem, pillar.branch)} grain works the ${ELEMENT_TEXTURE_EN[dayEl] ?? 'balance'} note into this season.`
       : '',
     progSun && range.id !== 'early'
       ? `Your progressed Sun has moved into ${signLabel(progSun.sign, 'en')}, slowly retuning identity.`
@@ -214,7 +214,7 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   }
   for (const d of stageDaeun.slice(0, 3)) {
     if (!d.age) continue
-    eventLinesEn.push(`Age ${d.age} opens a new daeun${d.ganji ? ` ${d.ganji}` : ''}, beginning a fresh chapter.`)
+    eventLinesEn.push(`Age ${d.age} opens a fresh 10-year life-chapter.`)
   }
   for (const ev of lifecycleEvts.slice(0, 3)) {
     eventLinesKo.push(
@@ -380,21 +380,57 @@ function challengePieceEn(
     late: 'hour pillar',
   }
   const stagePiece = twelveStage
-    ? `${twelveStageMeaningEn(twelveStage)} (the ${pillarLabel[id]} sits at this 12-stage phase), so `
+    ? `Because ${twelveStageMeaningEn(twelveStage)} runs on the ${pillarLabel[id]}, `
     : ''
   if (id === 'early') {
-    return `${stagePiece}childhood is the first felt-sense of your grain. ${jong ? `Because you carry a ${jong}, that one-direction current shows up early.` : geokguk ? `Your ${geokguk} colour appears at school and home from the start.` : ''}`
+    return `${stagePiece}childhood is the first felt-sense of your own grain. ${jong ? 'A single-direction current shows up early on, pulling life toward one focus.' : geokguk ? `Your ${geokgukShortEn(geokguk)} shows up at school and at home from the very start.` : ''}`
   }
   if (id === 'young') {
     const sat = events.find((e) => e.kind === 'saturn_return_1')
-    return `${stagePiece}young adulthood tests identity head-on. ${sat ? `The decisive rite arrives around age ${sat.ageStart} — the first Saturn return.` : 'Each daewoon stem flip adds a layer of self-verification.'}`
+    return `${stagePiece}young adulthood tests identity head-on. ${sat ? `The decisive rite arrives around age ${sat.ageStart} — the first Saturn return.` : 'Each 10-year life-chapter adds a fresh layer of self-verification.'}`
   }
   if (id === 'middle') {
     const ura = events.find((e) => e.kind === 'uranus_opposition')
-    return `${stagePiece}middle adulthood is when paths that are not truly yours start to crack. ${ura ? `Ages ${ura.ageStart}–${ura.ageEnd}, the Uranus opposition, drives the loudest shaking.` : 'Daewoon shifts realign your social position.'}`
+    return `${stagePiece}middle adulthood is when paths that are not truly yours start to crack. ${ura ? `Ages ${ura.ageStart}–${ura.ageEnd}, the Uranus opposition, drives the loudest shaking.` : 'Fresh life-chapters realign your social position.'}`
   }
   const chi = events.find((e) => e.kind === 'chiron_return')
   return `${stagePiece}later life harvests everything you've gathered. ${chi ? `The Chiron return at age ${chi.ageStart} converts old wounds into healing capacity.` : 'A second Saturn return finalises what you choose to leave behind.'}`
+}
+
+// 격국 → natural English (lifeStages 섹션 전용 — raw 사주 라벨 없이).
+function geokgukShortEn(g: string): string {
+  if (!g) return 'native colour'
+  if (g.includes('편관')) return 'pressure-as-fuel colour'
+  if (g.includes('정관')) return 'steady-authority colour'
+  if (g.includes('편재')) return 'opportunistic-resource colour'
+  if (g.includes('정재')) return 'steady-resource colour'
+  if (g.includes('식신')) return 'easeful-expression colour'
+  if (g.includes('상관')) return 'free-talent colour'
+  if (g.includes('편인')) return 'unconventional-wisdom colour'
+  if (g.includes('정인')) return 'learning-and-care colour'
+  return 'native colour'
+}
+
+// 기둥의 천간+지지 (hanja) → 자연 영어 grain label (e.g. "Yang Metal Dragon").
+const PILLAR_STEM_EN: Record<string, string> = {
+  甲: 'Yang Wood', 乙: 'Yin Wood',
+  丙: 'Yang Fire', 丁: 'Yin Fire',
+  戊: 'Yang Earth', 己: 'Yin Earth',
+  庚: 'Yang Metal', 辛: 'Yin Metal',
+  壬: 'Yang Water', 癸: 'Yin Water',
+}
+const PILLAR_BRANCH_EN: Record<string, string> = {
+  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
+  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
+  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
+}
+function pillarGrainEn(stem: string | undefined, branch: string | undefined): string {
+  const s = stem ? (PILLAR_STEM_EN[stem] ?? '') : ''
+  const b = branch ? (PILLAR_BRANCH_EN[branch] ?? '') : ''
+  if (s && b) return `${s} ${b}`
+  if (s) return s
+  if (b) return b
+  return 'native'
 }
 
 function guideKo(id: LifeStageId): string {

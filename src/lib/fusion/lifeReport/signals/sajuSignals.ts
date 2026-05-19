@@ -354,14 +354,14 @@ export function relationPhraseEn(
 ): string | undefined {
   if (!rel || rel.total === 0) return undefined
   const cand = pickRelationEntry(rel, opts)
-  if (!cand) return rel.primaryAxisEn ? `In the saju relations, ${rel.primaryAxisEn} runs as a heavy single grain through the chart.` : undefined
+  if (!cand) return rel.primaryAxisEn ? `Looking at the chart's inner relations, ${rel.primaryAxisEn} runs as a heavy single grain.` : undefined
   const pillarsEn: Record<string, string> = {
-    year: 'year pillar', month: 'month pillar', day: 'day master', time: 'hour pillar',
+    year: 'early-life seat', month: 'young-adulthood seat', day: 'core day-pillar', time: 'late-life seat',
   }
-  const a = cand.pillars[0] ? pillarsEn[cand.pillars[0]] ?? cand.pillars[0] : 'the chart'
+  const a = cand.pillars[0] ? pillarsEn[cand.pillars[0]] ?? cand.pillars[0] : 'one seat'
   const b = cand.pillars[1] ? pillarsEn[cand.pillars[1]] ?? cand.pillars[1] : 'another seat'
   const verb = kindVerbEn(cand.kind)
-  return `Looking at the saju relations, the ${a} ${verb} the ${b}.`
+  return `Inside your chart, your ${a} ${verb} your ${b}.`
 }
 
 /** Return the underlying entry (so callers can read kind / pillars). */

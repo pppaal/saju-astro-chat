@@ -148,7 +148,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       : sikSangTotal === 0
         ? 'Your bond with children grows through conscious choice.'
         : 'Your bond with children runs calm and stable.',
-    `Your saju 식상 reads as ${sikSangTotal} — ${childFlavorEn(sikSangTotal)}.`,
+    `Your creative-output current reads as ${sikSangTotal} live strand${sikSangTotal === 1 ? '' : 's'} — ${childFlavorEn(sikSangTotal)}.`,
     fifth.length > 0
       ? `With ${fifth.map((p) => p.name).join(', ')} inside the 5th house, the seat of children, creation and play is fully active.`
       : 'With an empty 5th house, the children-signal is carried by other markers.',
@@ -163,9 +163,9 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   ])
   const p2en = paragraph([
     `Estimated count: ${est.min === est.max ? `around ${est.min}` : `${est.min}–${est.max}`} (confidence ${est.confidence}).`,
-    `Combining saju 식상 with the natal 5th house gives this range.`,
-    `Your time pillar ${tStem}${tBranch} is the children palace itself${ts ? `, with ${ts} as its life-stage` : ''}; ${stageFlavorEn(ts)}.`,
-    'Saju alone cannot fix an exact number — treat this as guidance, not a verdict.',
+    'Combining your creative-output current with the natal 5th house gives this range.',
+    `Your late-life pillar is the children seat itself; ${stageFlavorEn(ts)}.`,
+    'The chart alone cannot fix an exact number — treat this as guidance, not a verdict.',
   ])
 
   // ── Paragraph 3: 자녀 관계의 결 (advanced)
@@ -196,7 +196,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   }
   if (gk.includes('식신')) {
     deepKo.push('인생의 큰 패턴이 여유로운 표현과 창조의 흐름이라, 자녀를 키우는 일 자체가 자기 표현의 연장이에요.')
-    deepEn.push('Your geokguk is 식신격 — raising children is an extension of self-expression.')
+    deepEn.push('Your life-pattern is one of easeful expression and creation — raising children is itself an extension of self-expression.')
   }
   // Calendar-engine: 5th-house profection year (자녀의 행운점 활성) + harmonics 5 (창조의 결)
   const prof = input.calendarSignals?.profectionCurrent
@@ -227,7 +227,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.'
   ])
   const p3en = paragraph(deepEn.length ? deepEn : [
-    'Because 5th-house and 식상 signals sit in a steady alignment, your children-signal follows the calm grain of daily life.'
+    'Because the 5th-house and creative-output signals sit in a steady alignment, your children-signal follows the calm grain of daily life.'
   ])
 
   const paragraphs: Paragraph[] = [

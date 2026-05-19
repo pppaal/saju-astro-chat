@@ -63,7 +63,7 @@ const LIFECYCLE_TO_DOMAIN: Record<string, {
   saturn_return_1: { domain: 'career', ko: '커리어 토대가 굳어지는 때', en: 'career foundation' },
   saturn_return_2: { domain: 'career', ko: '커리어 마지막 정리의 때', en: 'late-career consolidation' },
   jupiter_return_2: { domain: 'career', ko: '진로 큰 그림이 잡히는 때', en: 'career big picture' },
-  jupiter_return_5: { domain: 'wealth', ko: '환갑의 전환, 후반 인생 첫 사이클', en: '환갑-style turn' },
+  jupiter_return_5: { domain: 'wealth', ko: '환갑의 전환, 후반 인생 첫 사이클', en: 'a 60-year turning point, the first cycle of the second half of life' },
   uranus_opposition: { domain: 'crisis', ko: '중년 자유의 각성', en: 'midlife awakening' },
   pluto_square_pluto: { domain: 'crisis', ko: '정체성이 깊이 재구성되는 때', en: 'identity rebuild pressure' },
   chiron_return: { domain: 'health', ko: '치유의 회귀', en: 'healing turning point' },
@@ -95,7 +95,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
         domain: 'marriage',
         description: {
           ko: `${c.age}세 무렵 — 결혼이나 동반자 흐름이 한 단계 강해지는 시기예요.`,
-          en: `Age ${c.age} daewoon ${c.ganji ? c.ganji + ' ' : ''}— a window where marriage / partnership flow strengthens.`,
+          en: `Around age ${c.age} — a window where marriage and partnership flow grow stronger.`,
         },
         sources: { saju: `daewoon@${c.age}` },
       })
@@ -108,7 +108,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
         domain: rule.domain,
         description: {
           ko: `${c.age}세 무렵 — ${rule.domainKo} 흐름이 본격적으로 피어나는 시기예요.`,
-          en: `Age ${c.age} daewoon ${c.ganji ? c.ganji + ' ' : ''}— ${rule.domainEn} activates in earnest.`,
+          en: `Around age ${c.age} — ${rule.domainEn} comes into its own.`,
         },
         sources: { saju: `daewoon@${c.age}` },
       })
@@ -151,7 +151,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
         domain: a.domain,
         description: {
           ko: `${a.age}세 — 인생 흐름의 변곡과 별의 큰 변곡이 같은 해에 만나는 결정적인 해예요. ${a.description.ko.split(' — ').slice(-1)[0]}`,
-          en: `Age ${a.age} — a year where the saju (${overlap.sources.saju}) pivot meets the astro (${a.sources.astro}) pivot. ${a.description.en.split(': ').slice(-1)[0]}`,
+          en: `Age ${a.age} — a decisive year where a fresh 10-year life-chapter and a large astrology pivot land together. ${a.description.en.split(': ').slice(-1)[0]}`,
         },
         sources: { saju: overlap.sources.saju, astro: a.sources.astro },
       })
@@ -187,7 +187,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       : '결혼과 전문성, 기반이 한 번에 결정되는 시기라 회피하지 말고 책임을 받아들이는 선택이 토대가 됩니다.',
   ])
   const p1en = paragraph([
-    `Your 30s carry a decisive daewoon stem-shift on the saju side, and ${e30s.map((e) => e.labelEn).join(' / ') || 'several major astro pivots'} on the astrology side.`,
+    `Your 30s carry a decisive 10-year life-chapter shift, and ${e30s.map((e) => e.labelEn).join(' / ') || 'several major astrology pivots'} land on the same decade.`,
     d30s.length > 0
       ? `In particular, ages ${d30s.map((d) => `${d.age} (${labelEnDomain(d.domain)})`).join(', ')} form the first great knot of your life.`
       : 'Marriage, expertise and foundation often decide together here — accept responsibility rather than dodging it.',
@@ -204,7 +204,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       : '자유의 각성과 의미의 시험이 동시에 와서, 안정을 빌미로 미뤘던 결정이 표면으로 올라와요.',
   ])
   const p2en = paragraph([
-    `The 40s gather ${e40s.map((e) => e.labelEn).join(' / ') || 'large astro pivots'} into a single decade.`,
+    `Your 40s gather ${e40s.map((e) => e.labelEn).join(' / ') || 'large astrology pivots'} into a single decade.`,
     d40s.length > 0
       ? `Ages ${d40s.map((d) => `${d.age} (${labelEnDomain(d.domain)})`).join(', ')} crack the paths that are not truly yours.`
       : 'Uranus and Neptune shake at once, surfacing the decisions you had postponed.',
@@ -241,10 +241,10 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     ? paragraph([
         `If you had to name the single most decisive year, it would be age ${peak.age} (≈ ${peak.year}).`,
         peak.sources.saju && peak.sources.astro
-          ? `The saju (${peak.sources.saju}) and astro (${peak.sources.astro}) pivots overlap in the same year, and ${strength === 'strong' || strength === 'verystrong' ? 'your strong day master gives the drive — one decision can set the rest of the path.' : 'responsibility carries the tender day master into a new identity.'}`
+          ? `A fresh 10-year life-chapter and a large astrology pivot overlap on the same year, and ${strength === 'strong' || strength === 'verystrong' ? 'your strong core gives the drive — one decision can set the rest of the path.' : 'responsibility carries your tender core into a new identity.'}`
           : `${labelEnDomain(peak.domain)} surfaces most strongly here.`,
       ])
-    : 'Major pivots stay distributed — instead of one big year, each daewoon adds a small renewal.'
+    : 'Major pivots stay distributed — instead of one big year, each fresh 10-year life-chapter adds a small renewal.'
 
   // P5 — 5-10년 윈도우: ZR + multi-year solar return view
   const zr = input.calendarSignals?.zrCurrent
@@ -372,12 +372,12 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   if (hc && hc.hasInteractions) {
     sajuUsed.push('calendarSignals.sajuHyeongchung')
     const dominant = hc.chungCount >= hc.hapCount ? '충돌의 흐름' : '결합의 흐름'
-    const dominantEn = hc.chungCount >= hc.hapCount ? 'a 충(clash) accent' : 'a 합(harmony) accent'
+    const dominantEn = hc.chungCount >= hc.hapCount ? 'a clash accent' : 'a harmony accent'
     p6pieces.push(
       `사주 안에 ${dominant}이 강해서, 이번 시기엔 ${hc.chungCount >= hc.hapCount ? '결정과 단절을 미루지 않을 때' : '함께하는 사람과의 결합'}이 운을 끌어와요.`,
     )
     p6piecesEn.push(
-      `Your saju carries ${dominantEn} — this season ${hc.chungCount >= hc.hapCount ? 'decisions and clean breaks pull luck in' : 'partnerships pull luck in'}.`,
+      `Your chart carries ${dominantEn} — this season ${hc.chungCount >= hc.hapCount ? 'decisions and clean breaks pull luck in' : 'partnerships pull luck in'}.`,
     )
   }
   const p6ko = p6pieces.length

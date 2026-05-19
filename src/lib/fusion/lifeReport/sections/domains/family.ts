@@ -83,11 +83,11 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   ])
   const p1en = paragraph([
     inseong >= 2
-      ? 'Your bond with the mother / care-line runs naturally deep.'
+      ? 'Your bond with the mother and care-line runs naturally deep.'
       : inseong === 0
-        ? 'Your bond with the mother / care-line is built through conscious effort.'
+        ? 'Your bond with the mother and care-line is built through conscious effort.'
         : 'Your family grain runs as a quiet, steady undercurrent.',
-    `Saju shows 인성=${inseong}, 비겁=${bijeon} — ${familyShapeEn(inseong, bijeon)}.`,
+    `Your chart carries ${familyCountLabelEn(inseong)} of the care-line and ${familyCountLabelEn(bijeon)} of the peer-line — ${familyShapeEn(inseong, bijeon)}.`,
     fourth
       ? `Your 4th house opens in ${signLabel(fourth.sign, 'en')}, so the grain of home is ${fourthSignFlavorEn(fourth.sign)}.`
       : '',
@@ -111,11 +111,11 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     : ''
   const inseongLineEn = inseongPos
     ? (inseongPos.pillarKey === 'month'
-        ? 'With 인성 in the month pillar, the mother / care-line sits at the centre of the chart.'
-        : `Because 인성 sits in the ${inseongPos.pillarKo}, the mother / care-line enters from that seat.`)
+        ? 'With the care-line sitting at your young-adulthood seat, the mother and care-line sit at the centre of your chart.'
+        : `Because the care-line sits at your ${familyPillarSeatEn(inseongPos.pillarKey)}, the mother and care-line enter from that seat.`)
     : ''
   const bijeonLineEn = bijeonPos && bijeon >= 2
-    ? `With 비겁 in the ${bijeonPos.pillarKo}, sibling / peer ties hold a whole axis of your life.`
+    ? `With the peer-line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
     : ''
   const p2ko = paragraph([
     sun
@@ -134,17 +134,17 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   ])
   const p2en = paragraph([
     sun
-      ? `Your father-image reads like the Sun in ${signLabel(sun.sign, 'en')} ${houseLabel(sun.house, 'en')}: ${parentSignFlavorEn(sun.sign)}.`
+      ? `Your father-image reads like the Sun in ${signLabel(sun.sign, 'en')}'s ${houseLabel(sun.house, 'en')}: ${parentSignFlavorEn(sun.sign)}.`
       : '',
     moon
-      ? `Your mother-image reads like the Moon in ${signLabel(moon.sign, 'en')} ${houseLabel(moon.house, 'en')}: ${parentSignFlavorEn(moon.sign)}.`
+      ? `Your mother-image reads like the Moon in ${signLabel(moon.sign, 'en')}'s ${houseLabel(moon.house, 'en')}: ${parentSignFlavorEn(moon.sign)}.`
       : '',
     inseongLineEn,
     bijeonLineEn,
     bijeon >= 2
-      ? 'Rich 비겁 means siblings and peer-equals occupy a large seat in your life.'
+      ? 'A rich peer-line means siblings and equal-peers occupy a large seat in your life.'
       : bijeon === 0
-        ? 'With no 비겁, peer-equal bonds form by conscious choice rather than default.'
+        ? 'With the peer-line absent, peer-equal bonds form by conscious choice rather than default.'
         : '',
   ])
 
@@ -172,7 +172,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       '조상과 부모의 자리에 비어 있는 영역이 있어, 조부모와 부모 라인 인연이 얇거나 일찍 떨어지는 흐름이 있을 수 있어요.'
     )
     deepEn.push(
-      'A 공망 (void) sits on the year or month pillar — ancestor / parent line can feel thinner or separates earlier.'
+      'An empty seat sits in your early-life or young-adulthood pillar — the ancestor and parent line can feel thinner or separate earlier than most.'
     )
   }
   if (ves) {
@@ -222,8 +222,8 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
         : '사주 안에 단절·결정의 흐름이 강해서, 가족과의 거리감을 인정한 뒤에야 진짜 연결이 풀려요.'
     const toneEn =
       hc.hapCount > hc.chungCount
-        ? 'A 합 (joining) accent runs through your saju — family bonds harden over time.'
-        : 'A 충 (severance) accent runs through your saju — real connection unlocks after you acknowledge distance.'
+        ? 'A joining-accent runs through your chart — family bonds harden over time.'
+        : 'A severance-accent runs through your chart — real connection unlocks after you acknowledge distance.'
     deepKo.push(tone)
     deepEn.push(toneEn)
   }
@@ -366,8 +366,24 @@ function familyShapeEn(inseong: number, bijeon: number): string {
   if (inseong >= 2 && bijeon >= 2) return 'both care and peer-bonds run rich'
   if (inseong >= 2) return 'a thick care-line with a quieter sibling-line'
   if (bijeon >= 2) return 'a thick peer-line with a quieter care-line'
-  if (inseong === 0 && bijeon === 0) return 'light family-signal — you build your own new family'
+  if (inseong === 0 && bijeon === 0) return 'a light family-signal — you build your own new family'
   return 'care and peer-bond run in a balanced grain'
+}
+
+// 인성/비겁 count → natural English label ("two strands", "one quiet strand", etc.).
+function familyCountLabelEn(n: number): string {
+  if (n === 0) return 'no live strand'
+  if (n === 1) return 'one quiet strand'
+  if (n === 2) return 'two clear strands'
+  return 'many strands'
+}
+
+// 사주 raw 기둥 키 → natural English seat label (family 섹션 전용).
+function familyPillarSeatEn(key: 'year' | 'month' | 'day' | 'time'): string {
+  if (key === 'year') return 'early-life seat'
+  if (key === 'month') return 'young-adulthood seat'
+  if (key === 'day') return 'middle-life seat'
+  return 'late-life seat'
 }
 
 const FOURTH_SIGN_FLAVOR_KO: Record<string, string> = {
