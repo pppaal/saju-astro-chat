@@ -32,6 +32,7 @@ import {
   signLabel,
 } from '../../templates/sentences'
 import {
+  appendToPara,
   pickVariation,
   twelveStagePool,
   sibsinCategoryPool,
@@ -123,17 +124,17 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     planetSignPool('Sun', sun?.sign, 'career'),
     [`day_master:${dayMasterStem}`, `sun_sign:${sun?.sign ?? ''}`, `geokguk:${geokguk}`],
   )
-  const p1ko = paragraph([
+  let p1ko = paragraph([
     paragraphOpenerKo(dominantCategory, geokguk),
-    sibsinCatVar ?? '',
     mc
       ? `사회에 보여주는 모습은 ${signLabel(mc.sign, 'ko')}, ${mcSignFlavorKo(mc.sign)}이에요.`
       : '',
     sun
-      ? `자아의 별은 ${signLabel(sun.sign, 'ko')}에 자리하고${sun.house === 10 ? ' 사회 정점에 놓여서' : sun.house ? ` ${karmaHouseHintForCareerKo(sun.house)} 자리에 있어` : ''}, ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
+      ? `자아의 별은 ${signLabel(sun.sign, 'ko')}${sun.house === 10 ? '의 사회 정점에 머물러' : sun.house ? `의 ${karmaHouseHintForCareerKo(sun.house)} 영역에 머물러` : '에 머물러'}, ${sunHouseFlavorKo(sun.house)}이 직업의 핵심 에너지예요.`
       : '',
-    sunSignVar ? `${sunSignVar}.` : '',
   ])
+  p1ko = appendToPara(p1ko, sibsinCatVar)
+  p1ko = appendToPara(p1ko, sunSignVar)
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
     mc
@@ -257,7 +258,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   ])
   if (stageVar) {
     sajuUsed.push('pools.twelveStage.career')
-    deepPieces.push(`${stageVar}.`)
+    deepPieces.push(/[.!?]$/.test(stageVar) ? stageVar : `${stageVar}.`)
   }
   // 60갑자 일주 variation — wraps the dictionary archetype into a
   // career framing.
@@ -268,7 +269,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   ])
   if (iljuVar) {
     sajuUsed.push('pools.ilju.career')
-    deepPieces.push(`${iljuVar}.`)
+    deepPieces.push(/[.!?]$/.test(iljuVar) ? iljuVar : `${iljuVar}.`)
   }
   // Saju relations — day master in tension/harmony with another pillar
   // shows the deepest professional pivot baked into the chart.
@@ -370,7 +371,7 @@ function paragraphOpenerKo(cat: string, geokguk: string): string {
   if (cat === '인성')
     return '당신은 배우고 정리해서 흐름을 만드는 사람이에요. 지혜와 돌봄이 직업의 토대가 돼요.'
   if (cat === '비겁')
-    return '당신은 동등한 사람들과 함께 있을 때 가장 빛나는 사람이에요. 함께 가는 흐름이 협업과 자기 주도성을 길러줘요.'
+    return '당신은 동등한 사람들과 함께 있을 때 가장 빛나는 사람이에요. 함께 가는 흐름이 자기 주도성을 단단하게 길러줘요.'
   return geokguk
     ? `당신의 직업 색은 ${geokgukShortKoForCareer(geokguk)}에서 출발해요.`
     : '당신의 직업적 톤은 차분히 잘 잡혀 있어요.'

@@ -27,6 +27,7 @@ import {
   signLabel,
 } from '../../templates/sentences'
 import {
+  appendToPara,
   pickVariation,
   twelveStagePool,
   sibsinCategoryPool,
@@ -151,7 +152,9 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   )
   if (loveCategoryVar) sajuUsed.push('pools.sibsinCategory.love')
   if (moonSignVar) astroUsed.push('pools.planetSign.moon.love')
-  const p1ko = paragraph([styleKo, loveCategoryVar ?? '', venusBlurb, moonSignVar ? `${moonSignVar}.` : ''])
+  let p1ko = paragraph([styleKo, venusBlurb])
+  p1ko = appendToPara(p1ko, loveCategoryVar)
+  p1ko = appendToPara(p1ko, moonSignVar)
   const p1en = paragraph([styleEn, venusBlurbEn])
 
   // ── Paragraph 2: 배우자 인상
