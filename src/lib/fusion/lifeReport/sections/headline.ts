@@ -186,7 +186,7 @@ export function buildHeadline(input: BuilderInput): Headline {
   const modFlavorEn = domModality ? `, with ${modalityFlavorEn(domModality)}` : ''
   const domPlanetEn = dom ? `, led by ${planetLabel(dom, 'en')}` : ''
   const lackKo = lackEl ? ` 단 ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
-  const lackEn = lackEl ? `, though ${ELEMENT_FLAVOR_EN[lackEl]} is missing` : ''
+  const lackEn = lackEl ? `, with little ${ELEMENT_FLAVOR_EN[lackEl]} energy` : ''
 
   // iljuCharacter는 한국어 텍스트라 영어 narrative에는 노출하지 않음.
   void iljuChar
