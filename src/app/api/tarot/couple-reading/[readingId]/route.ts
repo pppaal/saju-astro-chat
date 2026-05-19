@@ -71,19 +71,36 @@ export async function GET(request: Request, routeContext: RouteContext) {
           partnerInfo = partner
         }
 
-        // 매치 연결 정보
+        // 매치 연결 정보 — status 가 active 가 아니면 (blocked/unmatched)
+        // 양쪽 모두 접근 차단. 정보 누설을 줄이기 위해 NOT_FOUND 로 응답한다.
         let connectionInfo = null
         if (reading.matchConnectionId) {
           const connection = await prisma.matchConnection.findUnique({
             where: { id: reading.matchConnectionId },
             select: {
               id: true,
+              status: true,
               compatibilityScore: true,
               isSuperLikeMatch: true,
               createdAt: true,
             },
           })
-          connectionInfo = connection
+          if (!connection || connection.status !== 'active') {
+            logger.warn('[couple-reading/[id]] GET blocked: inactive connection', {
+              userId,
+              readingId,
+              connectionId: reading.matchConnectionId,
+              status: connection?.status ?? 'missing',
+            })
+            return apiError(ErrorCodes.NOT_FOUND, '리딩을 찾을 수 없습니다')
+          }
+          // status 는 응답에서 제외 (옛 select 와 동일한 shape 유지)
+          connectionInfo = {
+            id: connection.id,
+            compatibilityScore: connection.compatibilityScore,
+            isSuperLikeMatch: connection.isSuperLikeMatch,
+            createdAt: connection.createdAt,
+          }
         }
 
         return apiSuccess({

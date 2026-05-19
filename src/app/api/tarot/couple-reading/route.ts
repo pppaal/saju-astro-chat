@@ -46,11 +46,29 @@ export const GET = withApiMiddleware(
 
       const { connectionId } = validationResult.data
 
+      // 차단/언매치된 connection 의 리딩은 결과에서 제외한다.
+      // TarotReading 에 matchConnection 관계가 정의돼 있지 않아 nested where 가
+      // 불가하므로 2-step 으로: (1) 이 사용자의 active connection 들의 id 를 모은 뒤
+      // (2) reading.matchConnectionId 가 그 안에 있을 때만 통과시킨다.
+      const activeConnections = await prisma.matchConnection.findMany({
+        where: {
+          status: 'active',
+          OR: [{ user1Profile: { userId } }, { user2Profile: { userId } }],
+          ...(connectionId ? { id: connectionId } : {}),
+        },
+        select: { id: true },
+      })
+      const activeConnectionIds = activeConnections.map((c) => c.id)
+
+      if (activeConnectionIds.length === 0) {
+        return apiSuccess({ readings: [] })
+      }
+
       const readings = await prisma.tarotReading.findMany({
         where: {
           isSharedReading: true,
           OR: [{ userId }, { sharedWithUserId: userId }],
-          ...(connectionId ? { matchConnectionId: connectionId } : {}),
+          matchConnectionId: { in: activeConnectionIds },
         },
         orderBy: { createdAt: 'desc' },
         take: 50,
@@ -141,6 +159,16 @@ export const POST = withApiMiddleware(
 
       if (!isUser1 && !isUser2) {
         return apiError(ErrorCodes.FORBIDDEN, '이 매치에 대한 권한이 없습니다')
+      }
+
+      // 차단/언매치된 connection 에 새 리딩 만드는 것을 차단.
+      if (connection.status !== 'active') {
+        logger.warn('[Couple reading] POST blocked: inactive connection', {
+          userId,
+          connectionId,
+          status: connection.status,
+        })
+        return apiError(ErrorCodes.NOT_FOUND, '매치를 찾을 수 없습니다')
       }
 
       const partnerId = isUser1 ? connection.user2Profile.userId : connection.user1Profile.userId
