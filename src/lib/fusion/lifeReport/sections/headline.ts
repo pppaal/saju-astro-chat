@@ -124,7 +124,7 @@ export function buildHeadline(input: BuilderInput): Headline {
   const stemLabelEn = STEM_LABEL_EN[dayStem] || dayStem || 'core nature'
   const strengthKo = STRENGTH_LABEL_KO[strength] || ''
   const strengthEn = STRENGTH_LABEL_EN[strength] || ''
-  const geokgukKo = geokguk ? ` 인생 패턴은 ${geokgukFlavorKo(geokguk)}이에요.` : ''
+  const geokgukKo = geokguk ? ` ${geokgukFlavorKo(geokguk)}.` : ''
   const geokgukEn = geokguk ? ` Your life runs as ${geokgukFlavorEn(geokguk)}.` : ''
   const jongKo = jongType ? ' 한 방향으로 강하게 흐르는 성향도 함께 있어요.' : ''
   const jongEn = jongType ? ' A single-direction current also runs strongly through you.' : ''
@@ -138,11 +138,13 @@ export function buildHeadline(input: BuilderInput): Headline {
   // 'none' 인 경우에만 헤드라인에 노출하고, 충분히 강한 통근은 본문에 맡긴다.
   const rootKoSlim = rootSummary && rootSummary.level === 'none' ? ` ${rootSummary.phraseKo}` : ''
   const rootEnSlim = rootSummary && rootSummary.level === 'none' ? ` ${rootSummary.phraseEn}` : ''
-  // 어미 다양화 — "~ 사람이에요" 반복을 줄이기 위해 일간 한자 코드포인트로
-  // 결정론적으로 두 어미 중 하나 선택 (사람이에요 / 스타일이에요)
+  // 어미 다양화 — "~ 사람이에요/스타일이에요/결을 타고났어요" 반복을 줄이기 위해
+  // 일간 한자 코드포인트로 결정론적으로 세 어미 중 하나 선택. "결" 어휘는
+  // 10차 자연화에서 제거하고 직접적인 한국어로 풀어냄.
   const s1Suffix = (() => {
     const code = dayStem ? dayStem.charCodeAt(0) : 0
-    return code % 2 === 0 ? '일주로 태어난 사람이에요' : '일주의 결을 타고났어요'
+    const variants = ['일주로 태어났어요', '일주예요', '일주 사람이에요']
+    return variants[code % variants.length]!
   })()
   const s1ko =
     `당신은 사주로는 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} ${s1Suffix}.` +
@@ -156,10 +158,20 @@ export function buildHeadline(input: BuilderInput): Headline {
   // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
   // "별" 단어를 한 문장 안에서 최대 1회로 제한 — 자아=태양, 감정=달은
   // 본문에서 별 라벨 없이 바로 톤만 풀어쓰고, 첫인상은 ASC로 잇는다.
-  const sunPart = sun ? `자아는 ${signLabel(sun.sign, 'ko')}에서 빛나고` : ''
-  const moonPart = moon ? `감정은 ${signLabel(moon.sign, 'ko')}의 분위기로 흐르며` : ''
-  const ascPart = asc ? `세상에 비치는 첫인상은 ${signLabel(asc.sign, 'ko')}의 느낌이에요` : ''
-  const skyParts = [sunPart, moonPart, ascPart].filter(Boolean).join(', ')
+  // 10차 자연화: 시적 묘사 ("빛나고/분위기로 흐르며/느낌이에요")는 줄이고
+  // "태양은 X, 달은 Y, 첫인상은 Z" 식 간결한 직접 표현으로.
+  // 10차 자연화: 마지막 sky part 에만 종결 어미 "예요"를 붙여 자연스럽게.
+  // (앞 part 들은 명사구로 두고 마지막에 한 번만 종결 어미 등장)
+  const sunPartRaw = sun ? `태양은 ${signLabel(sun.sign, 'ko')}` : ''
+  const moonPartRaw = moon ? `달은 ${signLabel(moon.sign, 'ko')}` : ''
+  const ascPartRaw = asc ? `첫인상은 ${signLabel(asc.sign, 'ko')}` : ''
+  const skyOrder = [sunPartRaw, moonPartRaw, ascPartRaw].filter(Boolean)
+  const skyParts =
+    skyOrder.length > 0
+      ? skyOrder
+          .map((p, i) => (i === skyOrder.length - 1 ? `${p}예요` : p))
+          .join(', ')
+      : ''
 
   const sunPartEn = sun
     ? `your Sun shines in ${signLabel(sun.sign, 'en')}${sun.house ? `'s ${ordinalShort(sun.house)} house` : ''}`
@@ -229,30 +241,31 @@ function modalityFlavorEn(m: 'cardinal' | 'fixed' | 'mutable'): string {
 }
 
 function modalityKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
-  if (m === 'cardinal') return '새로운 일을 시작하는 스타일로'
-  if (m === 'fixed') return '한 분야를 오래 파는 스타일로'
-  return '상황에 따라 유연하게 바뀌는 스타일로'
+  if (m === 'cardinal') return '새로운 일을 시작하는 편으로'
+  if (m === 'fixed') return '한 분야를 오래 파는 편으로'
+  return '상황에 따라 유연하게 바뀌는 편으로'
 }
 
 function modalityStandaloneKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
-  if (m === 'cardinal') return '새로운 일을 시작하는 스타일이에요'
-  if (m === 'fixed') return '한 분야를 오래 파는 스타일이에요'
-  return '상황에 따라 유연하게 바뀌는 스타일이에요'
+  if (m === 'cardinal') return '새로운 일을 시작하시는 편이에요'
+  if (m === 'fixed') return '한 분야를 오래 파시는 편이에요'
+  return '상황에 따라 유연하게 바뀌시는 편이에요'
 }
 
-// 격국을 자연어 의미로 풀어쓰는 헬퍼
+// 격국을 자연어 의미로 풀어쓰는 헬퍼 — 10차 자연화: "~ 스타일/~ 결" 패턴 제거,
+// 친구가 말하듯 직접 표현으로.
 function geokgukFlavorKo(g: string): string {
-  if (!g) return '자기 본성 그대로 살아가는 스타일'
-  if (g.includes('편관')) return '도전과 책임을 무게로 받아내는 스타일'
-  if (g.includes('정관')) return '책임감 있게 자리 잡는 스타일'
-  if (g.includes('편재')) return '기회를 잡는 감각이 빛나는 스타일'
-  if (g.includes('정재')) return '꾸준히 자원을 쌓아가는 스타일'
-  if (g.includes('식신')) return '여유롭게 표현하고 창조하는 스타일'
-  if (g.includes('상관')) return '재능을 자유롭게 발산하는 스타일'
-  if (g.includes('편인')) return '독특한 직관과 비주류 지혜의 결'
-  if (g.includes('정인')) return '배움과 돌봄으로 흐르는 결'
-  if (g.includes('비견') || g.includes('겁재')) return '동료와 함께 가는 결'
-  return '자기 본성 그대로 살아가는 스타일'
+  if (!g) return '자기 본성 그대로 살아가시는 분이에요'
+  if (g.includes('편관')) return '도전과 책임을 무게로 받아내시는 편이에요'
+  if (g.includes('정관')) return '책임감 있게 자기 자리를 잡아가시는 편이에요'
+  if (g.includes('편재')) return '기회를 잡는 감각이 빛나요'
+  if (g.includes('정재')) return '꾸준히 자원을 쌓아가시는 편이에요'
+  if (g.includes('식신')) return '여유롭게 표현하고 만들어내시는 편이에요'
+  if (g.includes('상관')) return '재능을 자유롭게 발산하시는 편이에요'
+  if (g.includes('편인')) return '독특한 직관과 비주류 지혜가 있어요'
+  if (g.includes('정인')) return '배움과 돌봄으로 흐르는 분이에요'
+  if (g.includes('비견') || g.includes('겁재')) return '동료와 함께 가시는 분이에요'
+  return '자기 본성 그대로 살아가시는 분이에요'
 }
 
 // 격국 → 자연 영어 (raw 사주 용어 제거).

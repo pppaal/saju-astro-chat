@@ -304,7 +304,7 @@ function challengePieceKo(
   }
   if (id === 'young') {
     const sat = events.find((e) => e.kind === 'saturn_return_1')
-    return `${stagePiece}청년기는 진짜 자기를 시험하는 때예요. ${sat ? `특히 ${sat.ageStart}세 무렵엔 어른됨의 통과의례가 와요 — 책임과 전문성, 기반이 자리 잡는 시기예요.` : '인생 흐름이 바뀌는 지점마다 자기 검증의 층이 한 겹씩 쌓여요.'}`
+    return `${stagePiece}청년기는 진짜 자기를 시험하는 때예요. ${sat ? `특히 ${sat.ageStart}세 무렵엔 어른됨의 통과의례가 와요 — 책임과 전문성, 기반이 자리잡는 시기예요.` : '인생 흐름이 바뀌는 지점마다 자기 검증의 층이 한 겹씩 쌓여요.'}`
   }
   if (id === 'middle') {
     const ura = events.find((e) => e.kind === 'uranus_opposition')

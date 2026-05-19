@@ -95,7 +95,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
       ? `재산 영역이 ${signLabel(second.sign, 'ko')}의 분위기를 띠고 있어, 돈을 ${secondSignFlavorKo(second.sign)} 방식으로 다뤄요.`
       : '',
     jupiter
-      ? `행운의 별이 ${signLabel(jupiter.sign, 'ko')}에 자리잡아, ${jupiterFlavorKo(jupiter.house)} 영역에서 재물의 흐름이 한 단계 깊어져요.`
+      ? `당신의 목성은 ${signLabel(jupiter.sign, 'ko')}에 있어서, ${jupiterFlavorKo(jupiter.house)} 영역에서 재물의 흐름이 한 단계 깊어져요.`
       : '',
   ])
   const p1en = paragraph([
@@ -184,7 +184,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   }
   if (jupiterVenus) {
     deepKo.push(
-      `행운의 별과 사랑의 별이 ${aspectQuality(jupiterVenus.type, 'ko')}, 풍요와 아름다움이 손잡고 자원에 닿아요.`
+      `당신의 목성과 금성이 ${aspectQuality(jupiterVenus.type, 'ko')}, 풍요와 아름다움이 손잡고 자원에 닿아요.`
     )
     deepEn.push(
       `Your Jupiter and Venus ${aspectQuality(jupiterVenus.type, 'en')} — abundance and beauty walk hand in hand through the way you build your resources.`
@@ -192,7 +192,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   }
   const jupHardSquare = jupiterAspects.find((a) => a.type === 'square' || a.type === 'opposition')
   if (jupHardSquare) {
-    deepKo.push('행운의 별이 다른 별과 팽팽하게 마주 있어, 과한 확장은 조절이 필요해요.')
+    deepKo.push('목성이 다른 별과 팽팽하게 마주 있어서, 과한 확장은 조절이 필요해요.')
     deepEn.push(
       `Jupiter ${aspectQuality(jupHardSquare.type, 'en')} with another planet, so over-expansion is something you need to temper rather than indulge.`
     )
@@ -356,7 +356,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     (jupiterDignity.status === 'domicile' || jupiterDignity.status === 'exaltation')
   ) {
     fusionUsed.push('calendarSignals.dignities.Jupiter')
-    guideKo.push('확장의 별이 본인 자리에 있어, 큰 흐름을 탈 때 풍요가 자연스럽게 따라와요.')
+    guideKo.push('목성이 본인 자리에 있어서, 큰 흐름을 탈 때 풍요가 자연스럽게 따라와요.')
     guideEn.push(
       `Jupiter sits in ${jupiterDignity.status === 'domicile' ? 'its home sign' : 'a sign where it shines brightest'} — riding the larger currents tends to draw abundance toward you naturally.`
     )
@@ -384,8 +384,8 @@ function wealthFlavorKo(total: number, jeong: number, pyen: number): string {
     return '당신은 자원과 결과로 인생을 풀어내는 결이에요. 풍성한 재물이 깔려서 돈이 곧 표현의 도구가 돼요.'
   if (total === 2)
     return jeong >= pyen
-      ? '당신은 안정적인 수입 라인으로 자원을 쌓아가는 스타일이에요.'
-      : '당신은 다양한 수입 라인을 만들어내는 스타일이에요.'
+      ? '당신은 안정적인 수입 라인으로 자원을 쌓아가시는 편이에요.'
+      : '당신은 다양한 수입 라인을 만들어내시는 분이에요.'
   if (total === 1)
     return jeong >= pyen
       ? '당신은 꾸준한 수입을 차곡차곡 쌓아가는 타입이에요.'
