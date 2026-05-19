@@ -46,7 +46,6 @@ function GlobalHeaderContent() {
   const hasCustomPageHeader = Boolean(
     pathname &&
     [
-      '/destiny-counselor/chat',
       '/destiny-map/counselor',
       '/destiny-map/result',
       '/astrology/counselor',

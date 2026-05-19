@@ -141,7 +141,7 @@ function DestinyMapContent({
     params.set('userTz', QUICK_MODE_DEFAULT_CITY.timezone || 'Asia/Seoul')
     params.set('theme', 'life')
     if (initialQuestion) params.set('initialQuestion', initialQuestion)
-    router.replace(`/destiny-counselor/chat?${params.toString()}`)
+    router.replace(`/destiny-map/counselor?${params.toString()}`)
   }, [router, locale])
 
   useEffect(() => {
@@ -349,7 +349,7 @@ function DestinyMapContent({
 
       // Skip extra step and open counselor chat directly
       params.set('theme', 'life')
-      router.push(`/destiny-counselor/chat?${params.toString()}`)
+      router.push(`/destiny-map/counselor?${params.toString()}`)
     },
     [form, safeT, locale, router, isKo]
   )

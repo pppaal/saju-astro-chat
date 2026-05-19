@@ -170,14 +170,6 @@ export {
   type ElementInterpretation,
 } from './interpretations'
 
-// 종합 해석 리포트 모듈
-export {
-  generateComprehensiveReport,
-  generateQuickSummary,
-  type ComprehensiveReport,
-  type ComprehensiveReportSection,
-} from './comprehensiveReport'
-
 // ============================================================
 // 200% 급 고급 모듈들
 // ============================================================
@@ -236,22 +228,6 @@ export {
   type UnseHarmonyScore,
   type ComprehensiveScore,
 } from './strengthScore'
-
-// 운세 해석 문장 생성기
-export {
-  generateElementText,
-  generateSibsinText,
-  generateTwelveStageText,
-  generateFortuneText,
-  generateChungText,
-  generateHapText,
-  generateStrengthAdvice,
-  generateComprehensiveText,
-  type TextStyle,
-  type TextContext,
-  type GeneratedText,
-  type FortuneInput,
-} from './textGenerator'
 
 // ============================================================
 // 500% 급 고급 모듈들
@@ -320,37 +296,7 @@ export {
   type UltraAdvancedAnalysis,
 } from './advancedSajuCore'
 
-// 세대간/가족 분석 엔진
-export {
-  analyzeElementHarmony,
-  analyzeStemRelation,
-  analyzeBranchRelation,
-  analyzeRoleHarmony,
-  analyzeInheritedTraits,
-  analyzeConflictPoints,
-  analyzeGenerationalPatterns,
-  analyzeParentChild,
-  analyzeSiblings,
-  analyzeSpouse,
-  analyzeFamilyDynamic,
-  performCompleteFamilyAnalysis,
-  type FamilyRole,
-  type RelationType,
-  type FamilyMember,
-  type FamilyRelation,
-  type FamilyCompatibilityAnalysis,
-  type ElementHarmonyResult,
-  type StemRelationResult,
-  type BranchRelationResult,
-  type RoleHarmonyResult,
-  type InheritedTrait,
-  type ConflictPoint,
-  type GenerationalPattern,
-  type FamilyDynamic,
-  type SiblingAnalysis,
-  type ParentChildAnalysis,
-  type SpouseAnalysis,
-} from './familyLineage'
+// 세대간/가족 분석 엔진 — 미사용으로 삭제됨 (2025 정리)
 
 // 성능 최적화/캐싱 시스템
 export {

@@ -33,7 +33,7 @@ export const ROUTES = {
   COMPATIBILITY: '/compatibility',
   DESTINY_MATCH: '/destiny-match',
   PERSONALITY: '/personality',
-  DESTINY_MAP: '/destiny-counselor',
+  DESTINY_MAP: '/destiny-map',
   COUNSELOR: '/counselor',
   PROFILE: '/profile',
   SETTINGS: '/settings',

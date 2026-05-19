@@ -15,7 +15,6 @@ import { calculateTonggeun, calculateDeukryeong } from '@/lib/saju/tonggeun'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { analyzeSibsinComprehensive } from '@/lib/saju/sibsinAnalysis'
 import { analyzeHealth, analyzeCareer } from '@/lib/saju/healthCareer'
-import { generateComprehensiveReport } from '@/lib/saju/comprehensiveReport'
 import { calculateComprehensiveScore } from '@/lib/saju/strengthScore'
 import { getTwelveStageInterpretation, getElementInterpretation } from '@/lib/saju/interpretations'
 import type { SajuPillars, FiveElement } from '@/lib/saju/types'
@@ -54,7 +53,6 @@ export interface AdvancedAnalysisResult {
   health: ReturnType<typeof analyzeHealth> | null
   career: ReturnType<typeof analyzeCareer> | null
   score: ReturnType<typeof calculateComprehensiveScore> | null
-  report: ReturnType<typeof generateComprehensiveReport> | null
   interpretations: {
     twelveStages: Record<string, ReturnType<typeof getTwelveStageInterpretation>>
     elements: Record<string, ReturnType<typeof getElementInterpretation>>
@@ -84,7 +82,6 @@ export function performAdvancedAnalysis(
     health: null,
     career: null,
     score: null,
-    report: null,
     interpretations: { twelveStages: {}, elements: {} },
   }
 
@@ -181,15 +178,6 @@ export function performAdvancedAnalysis(
   } catch (e) {
     if (process.env.NODE_ENV !== 'production') {
       logger.warn('[Saju API] Comprehensive score failed:', e)
-    }
-  }
-
-  // 10. 종합 리포트
-  try {
-    result.report = generateComprehensiveReport(pillarsWithHour)
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] Comprehensive report failed:', e)
     }
   }
 

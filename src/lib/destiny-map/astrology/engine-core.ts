@@ -29,7 +29,7 @@ import {
   getNowInTimezone,
 } from './helpers';
 
-import { isNightChart, type Chart } from '@/lib/astrology';
+import { isNightChart, calculateTransitChart, findTransitAspects, type Chart } from '@/lib/astrology';
 import { logger } from '@/lib/logger';
 
 import type { CombinedInput, CombinedResult, DateComponents } from './types';
@@ -378,6 +378,34 @@ export async function computeDestinyMapRefactored(
       },
     });
 
+    // Current transit aspects to natal — uses user's "now" in their tz.
+    // Previously hard-coded to [], leaving the UI without a way to surface
+    // active transits. We now compute the current transit chart and find
+    // aspects against the natal chart.
+    let transits: unknown[] = [];
+    try {
+      const transitIso = new Date(
+        Date.UTC(
+          userNow.year,
+          userNow.month - 1,
+          userNow.day,
+          userNow.hour,
+          userNow.minute,
+        ),
+      ).toISOString();
+      const transitChart = await calculateTransitChart({
+        iso: transitIso,
+        latitude,
+        longitude,
+        timeZone: resolvedTz,
+      });
+      transits = findTransitAspects(transitChart, natalChart);
+    } catch (transitErr) {
+      if (enableDebugLogs) {
+        logger.debug('[Transits] Skipped', transitErr);
+      }
+    }
+
     // Assemble complete result
     const result: CombinedResult = {
       meta: {
@@ -395,7 +423,7 @@ export async function computeDestinyMapRefactored(
         aspects,
         meta: natalChart.meta,
         options: {},
-        transits: [],
+        transits,
       },
       saju: sajuData,
       summary,

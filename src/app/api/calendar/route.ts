@@ -46,7 +46,6 @@ import {
   deriveSibsinDistributionFromSaju,
 } from '@/lib/destiny-matrix/derived'
 import type { CalculateSajuDataResult } from '@/lib/saju/types'
-import { buildOrthodoxInterpretation } from '@/lib/saju/orthodoxInterpretation'
 
 export const dynamic = 'force-dynamic'
 
@@ -515,22 +514,7 @@ async function buildCalendarMatrixInput(params: {
     asteroidHouses,
     extraPointSigns,
     advancedAstroSignals,
-    sajuSnapshot: (() => {
-      // Augment the saju snapshot with the orthodox interpretation so
-      // calendar consumers (matrix evidence, AI prompt) see pillar
-      // positions, stem combinations, same-element pillars, and the
-      // aggregated advanced analyses.
-      const koreanAge = new Date().getFullYear() - new Date(params.birthDate).getFullYear() + 1
-      try {
-        const orthodox = buildOrthodoxInterpretation(sajuFull, { koreanAge })
-        return {
-          ...(params.sajuResult as Record<string, unknown>),
-          orthodoxInterpretation: orthodox,
-        }
-      } catch {
-        return params.sajuResult
-      }
-    })(),
+    sajuSnapshot: params.sajuResult,
     astrologySnapshot: {
       natalChart: astroProfile.natalChart || undefined,
       natalAspects: astroProfile.natalAspects || undefined,
