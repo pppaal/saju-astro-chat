@@ -337,32 +337,15 @@ ${cardListText}
           return `# User's Question\n"${q}"\n\n# Spread\n${spreadTitle} (${rawCards.length} cards)\n\n# Cards Drawn — full list (in order)\n${cardListText}\n\n${task}`
         }
 
-        logger.info('Tarot stream Claude request (parallel chunks)', {
-          cards: rawCards.length,
-          chunkA: `0-${mid}`,
-          chunkB: `${mid}-${rawCards.length}`,
-        })
-        const [chunkA, chunkB] = await Promise.all([
-          callSharedClaude({
-            systemPrompt,
-            userPrompt: buildChunkUserPrompt(0, mid, true),
-            maxTokens: 2400,
-            temperature: 0.7,
-            timeoutMs: OPENAI_TIMEOUT_MS,
-            label: 'tarot-stream-chunkA',
-          }),
-          callSharedClaude({
-            systemPrompt,
-            userPrompt: buildChunkUserPrompt(mid, rawCards.length, false),
-            maxTokens: 2400,
-            temperature: 0.7,
-            timeoutMs: OPENAI_TIMEOUT_MS,
-            label: 'tarot-stream-chunkB',
-          }),
-        ])
-        recordExternalCall('anthropic', 'claude-haiku-4-5', 'success', Date.now() - claudeStartTime)
+        // Per-card token budget — 500 tokens / card + 500 base for chunks
+        // carrying overall/advice. Previous 2400-flat ceiling left 15-card
+        // spreads at ~244 tok/card on chunk A; Haiku 4.5 supports much
+        // more headroom so cap at 6000 per chunk.
+        const chunkAcards = mid
+        const chunkBcards = rawCards.length - mid
+        const chunkAmaxTokens = Math.min(6000, 500 + chunkAcards * 500)
+        const chunkBmaxTokens = Math.min(6000, chunkBcards * 500 + 200)
 
-        // JSON 머지 — chunk A 의 overall/advice + chunk A.cards + chunk B.cards 를 합쳐 단일 JSON.
         const safeParse = (raw: string): Record<string, unknown> | null => {
           const match = raw.match(/\{[\s\S]*\}/)
           if (!match) return null
@@ -372,24 +355,73 @@ ${cardListText}
             return null
           }
         }
-        const parsedA = safeParse(chunkA.text)
-        const parsedB = safeParse(chunkB.text)
-        const cardsA = Array.isArray(parsedA?.cards) ? (parsedA!.cards as unknown[]) : []
-        const cardsB = Array.isArray(parsedB?.cards) ? (parsedB!.cards as unknown[]) : []
-        const mergedJson = {
-          overall: parsedA?.overall ?? '',
-          cards: [...cardsA, ...cardsB],
-          advice: parsedA?.advice ?? '',
+
+        // Run one chunk; if the JSON doesn't parse, retry once. Chunk B's
+        // failure used to silently drop half the cards into a static
+        // fallback. Single retry keeps the same LLM path symmetric with
+        // chunk A and avoids the "second half is canned text" surprise.
+        const runChunkWithRetry = async (
+          startIdx: number,
+          endIdx: number,
+          includeMeta: boolean,
+          maxTokens: number,
+          label: 'tarot-stream-chunkA' | 'tarot-stream-chunkB'
+        ): Promise<{ text: string; parsed: Record<string, unknown> | null; retried: boolean }> => {
+          const callOnce = () =>
+            callSharedClaude({
+              systemPrompt,
+              userPrompt: buildChunkUserPrompt(startIdx, endIdx, includeMeta),
+              maxTokens,
+              temperature: 0.7,
+              timeoutMs: OPENAI_TIMEOUT_MS,
+              label,
+            })
+          const first = await callOnce()
+          const parsedFirst = safeParse(first.text)
+          if (parsedFirst && (!includeMeta || Array.isArray(parsedFirst.cards))) {
+            return { text: first.text, parsed: parsedFirst, retried: false }
+          }
+          logger.warn('Tarot stream chunk parse failed, retrying once', { label })
+          const second = await callOnce()
+          return { text: second.text, parsed: safeParse(second.text), retried: true }
         }
-        // 만약 chunk B 파싱 실패 → mergedJson.cards 가 절반만 남음.
-        // buildFallbackPayload 가 길이 맞춰 부족분 채우도록 클라이언트 측 parseStreamedInterpretation 이 처리함.
+
+        logger.info('Tarot stream Claude request (parallel chunks)', {
+          cards: rawCards.length,
+          chunkA: `0-${mid}`,
+          chunkB: `${mid}-${rawCards.length}`,
+          chunkAmaxTokens,
+          chunkBmaxTokens,
+        })
+        const [chunkA, chunkB] = await Promise.all([
+          runChunkWithRetry(0, mid, true, chunkAmaxTokens, 'tarot-stream-chunkA'),
+          runChunkWithRetry(mid, rawCards.length, false, chunkBmaxTokens, 'tarot-stream-chunkB'),
+        ])
+        recordExternalCall('anthropic', 'claude-haiku-4-5', 'success', Date.now() - claudeStartTime)
+
+        // JSON 머지 — chunk A 의 overall/advice + chunk A.cards + chunk B.cards 를 합쳐 단일 JSON.
+        const cardsA = Array.isArray(chunkA.parsed?.cards)
+          ? (chunkA.parsed!.cards as unknown[])
+          : []
+        const cardsB = Array.isArray(chunkB.parsed?.cards)
+          ? (chunkB.parsed!.cards as unknown[])
+          : []
+        const mergedJson = {
+          overall: chunkA.parsed?.overall ?? '',
+          cards: [...cardsA, ...cardsB],
+          advice: chunkA.parsed?.advice ?? '',
+        }
+        // 두 chunk 다 retry 까지 실패하면 cards 가 절반 또는 0 으로 남음.
+        // 클라이언트의 parseStreamedInterpretation 이 부족분을 fallback 으로 채움.
         const mergedText = JSON.stringify(mergedJson)
         logger.info('Tarot stream parallel chunks merged', {
           cards: rawCards.length,
           aCards: cardsA.length,
           bCards: cardsB.length,
-          aParsed: parsedA !== null,
-          bParsed: parsedB !== null,
+          aParsed: chunkA.parsed !== null,
+          bParsed: chunkB.parsed !== null,
+          aRetried: chunkA.retried,
+          bRetried: chunkB.retried,
         })
 
         const encoder = new TextEncoder()
