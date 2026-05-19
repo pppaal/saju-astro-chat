@@ -523,7 +523,7 @@ const JUPITER_HOUSE_FLAVOR_EN: Record<number, string> = {
   9: 'vision and travel',
   10: 'the public seat',
   11: 'allies and future vision',
-  12: 'inner life and secrets',
+  12: 'your inner life and private world',
 }
 function jupiterFlavorKo(h: number): string {
   return JUPITER_HOUSE_FLAVOR_KO[h] ?? '독자적 영역'

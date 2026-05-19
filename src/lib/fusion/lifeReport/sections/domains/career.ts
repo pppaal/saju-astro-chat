@@ -478,7 +478,7 @@ function paragraphOpenerEn(cat: string, geokguk: string): string {
   if (cat === '인성')
     return 'You build flow by learning and organizing — a wisdom-and-care dynamic forms the foundation of how you work.'
   if (cat === '비겁')
-    return 'You thrive among peers and equals — the collective drive strengthens collaboration and self-direction.'
+    return 'You thrive among peers and equals — this team energy strengthens both collaboration and self-direction.'
   return geokguk
     ? `Your career grain starts from ${geokgukShortEnForCareer(geokguk)}.`
     : 'Your professional grain is quietly settled inside you.'
