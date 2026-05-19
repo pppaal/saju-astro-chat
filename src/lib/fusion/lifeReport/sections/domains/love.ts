@@ -24,12 +24,7 @@ import {
   planetsInHouse,
   vertex,
 } from '../../signals/astroSignals'
-import {
-  aspectQuality,
-  houseLabel,
-  paragraph,
-  signLabel,
-} from '../../templates/sentences'
+import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
 import {
   appendToPara,
   pickVariation,
@@ -110,9 +105,8 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const pofInSeventh = pof?.house === 7
   if (pof) astroUsed.push('partOfFortune')
 
-  const venusSaturn = venus && getPlanet(astro, 'Saturn')
-    ? aspectBetween(astro, 'Venus', 'Saturn')
-    : undefined
+  const venusSaturn =
+    venus && getPlanet(astro, 'Saturn') ? aspectBetween(astro, 'Venus', 'Saturn') : undefined
   const venusMars = venus && mars ? aspectBetween(astro, 'Venus', 'Mars') : undefined
   const vertexVenus = vx && venus ? aspectBetween(astro, 'Vertex', 'Venus') : undefined
 
@@ -146,19 +140,30 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   // Variation pools — dominant sibsin category × love + Moon × sign × love.
   const dayMasterStem = saju.pillars.day.stem || ''
   const dominantCat = pickDominantCategoryLove(cat)
-  const loveCategoryVar = pickVariation(
-    sibsinCategoryPool(dominantCat, 'love'),
-    [`day_master:${dayMasterStem}`, `category:${dominantCat}`, `gender:${isFemale ? 'f' : 'm'}`],
-  )
-  const moonSignVar = pickVariation(
-    planetSignPool('Moon', moon?.sign, 'love'),
-    [`day_master:${dayMasterStem}`, `moon_sign:${moon?.sign ?? ''}`, `day_branch:${dBranch}`],
-  )
+  const loveCategoryVar = pickVariation(sibsinCategoryPool(dominantCat, 'love'), [
+    `day_master:${dayMasterStem}`,
+    `category:${dominantCat}`,
+    `gender:${isFemale ? 'f' : 'm'}`,
+  ])
+  const moonSignVar = pickVariation(planetSignPool('Moon', moon?.sign, 'love'), [
+    `day_master:${dayMasterStem}`,
+    `moon_sign:${moon?.sign ?? ''}`,
+    `day_branch:${dBranch}`,
+  ])
+  // Big 3 완성 — ASC (Ascendant) × love: 첫인상이 사랑에 어떻게
+  // 작용하는지. PR 이전엔 ASC 가 raw sign label 로만 노출됐음.
+  const ascSignVar = pickVariation(planetSignPool('Ascendant', asc?.sign, 'love'), [
+    `day_master:${dayMasterStem}`,
+    `asc_sign:${asc?.sign ?? ''}`,
+    `day_branch:${dBranch}`,
+  ])
   if (loveCategoryVar) sajuUsed.push('pools.sibsinCategory.love')
   if (moonSignVar) astroUsed.push('pools.planetSign.moon.love')
+  if (ascSignVar) astroUsed.push('pools.planetSign.asc.love')
   let p1ko = paragraph([styleKo, venusBlurb])
   p1ko = appendToPara(p1ko, loveCategoryVar)
   p1ko = appendToPara(p1ko, moonSignVar)
+  p1ko = appendToPara(p1ko, ascSignVar)
   const p1en = paragraph([styleEn, venusBlurbEn])
 
   // ── Paragraph 2: 배우자 인상
@@ -249,7 +254,8 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (relKoLove) {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoLove} 한 사람과의 결합이 인생 흐름에 굵게 새겨져요.`)
-    if (relEnLove) deepEn.push(`${relEnLove} Partnership leaves a strong imprint on the life grain.`)
+    if (relEnLove)
+      deepEn.push(`${relEnLove} Partnership leaves a strong imprint on the life grain.`)
   }
   // 12-stage × love + 60갑자 일주 × love variations.
   const iljuNameLove = saju.ultraAdvanced?.iljuDeep?.ilju
@@ -323,15 +329,25 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const erosLot = input.calendarSignals?.arabicParts?.Eros
   if (erosLot) {
     fusionUsed.push('calendarSignals.arabicParts.Eros')
-    deepKo.push(`사랑의 끌림이 모이는 곳은 ${signLabel(erosLot.sign, 'ko')}이라, 본인을 매료시키는 색감도 그 톤으로 일관돼요.`)
-    deepEn.push(`Your Eros sits in ${signLabel(erosLot.sign, 'en')} — the colour that catches your attention runs through that grain.`)
+    deepKo.push(
+      `사랑의 끌림이 모이는 곳은 ${signLabel(erosLot.sign, 'ko')}이라, 본인을 매료시키는 색감도 그 톤으로 일관돼요.`
+    )
+    deepEn.push(
+      `Your Eros sits in ${signLabel(erosLot.sign, 'en')} — the colour that catches your attention runs through that grain.`
+    )
   }
-  const p3ko = paragraph(deepKo.length ? deepKo : [
-    '사랑의 톤은 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 흐름이에요.'
-  ])
-  const p3en = paragraph(deepEn.length ? deepEn : [
-    'Because the deeper love signals sit in a calm alignment, this lifetime favors a slow deepening over a fated lightning-strike.'
-  ])
+  const p3ko = paragraph(
+    deepKo.length
+      ? deepKo
+      : ['사랑의 톤은 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 흐름이에요.']
+  )
+  const p3en = paragraph(
+    deepEn.length
+      ? deepEn
+      : [
+          'Because the deeper love signals sit in a calm alignment, this lifetime favors a slow deepening over a fated lightning-strike.',
+        ]
+  )
 
   // ── Paragraph 4: 타이밍
   const timingKo: string[] = ['결정적 시기:']
@@ -345,12 +361,16 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     )
   }
   if (cur && cur.sibsin) {
-    timingKo.push(`지금의 인생 흐름에는 ${sibsinMeaningKoLove(cur.sibsin)}이 함께해서, 관계의 톤을 천천히 다듬어주고 있어요.`)
+    timingKo.push(
+      `지금의 인생 흐름에는 ${sibsinMeaningKoLove(cur.sibsin)}이 함께해서, 관계의 톤을 천천히 다듬어주고 있어요.`
+    )
     timingEn.push(`Your current ${cur.sibsin} daeun is also tuning the relational grain.`)
   }
   if (srSunInSeventh) {
     timingKo.push('올해 한 해 동안 관계가 무게중심을 잡아주는 시기예요.')
-    timingEn.push(`This year's Solar Return Sun lands in the 7th — relationship becomes the center-of-mass for the year.`)
+    timingEn.push(
+      `This year's Solar Return Sun lands in the 7th — relationship becomes the center-of-mass for the year.`
+    )
   }
   if (timingKo.length === 1) {
     timingKo.push('인생 흐름이 점차 익어가는 구간이라, 한 해 한 해 인연의 결이 모이고 있어요.')
@@ -358,26 +378,30 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   // Calendar-engine signals: Lot of Eros (사랑의 행운점) + Venus dignity
   const eros = input.calendarSignals?.arabicParts?.Eros
-  const venusDignity = input.calendarSignals?.dignities?.find(
-    (d) => d.planet === 'Venus',
-  )
+  const venusDignity = input.calendarSignals?.dignities?.find((d) => d.planet === 'Venus')
   if (eros) {
     fusionUsed.push('calendarSignals.arabicParts.Eros')
     timingKo.push(
-      `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}에 놓여, ${erosSignFlavorKoLove(eros.sign)} 인연이 사랑의 운을 끌어와요.`,
+      `사랑의 행운점은 ${signLabel(eros.sign, 'ko')}에 놓여, ${erosSignFlavorKoLove(eros.sign)} 인연이 사랑의 운을 끌어와요.`
     )
     timingEn.push(
-      `Your Lot of Eros in ${signLabel(eros.sign, 'en')} pulls love-luck through ${erosSignFlavorEnLove(eros.sign)}.`,
+      `Your Lot of Eros in ${signLabel(eros.sign, 'en')} pulls love-luck through ${erosSignFlavorEnLove(eros.sign)}.`
     )
   }
   if (venusDignity) {
     fusionUsed.push('calendarSignals.dignities.Venus')
     if (venusDignity.status === 'domicile' || venusDignity.status === 'exaltation') {
       timingKo.push('사랑의 별이 본인 자리에 있어, 일생 사랑이 다정하게 흐르는 배치예요.')
-      timingEn.push(`Venus is in ${venusDignity.status} — love runs warmly through your life by native disposition.`)
+      timingEn.push(
+        `Venus is in ${venusDignity.status} — love runs warmly through your life by native disposition.`
+      )
     } else if (venusDignity.status === 'detriment' || venusDignity.status === 'fall') {
-      timingKo.push('사랑의 별이 살짝 어색한 자리에 있어서, 첫 단계엔 시행착오가 있지만 결국 자기만의 방식을 찾는 흐름이에요.')
-      timingEn.push(`Venus sits in ${venusDignity.status} — early love has trial-and-error, but you eventually find your own form.`)
+      timingKo.push(
+        '사랑의 별이 살짝 어색한 자리에 있어서, 첫 단계엔 시행착오가 있지만 결국 자기만의 방식을 찾는 흐름이에요.'
+      )
+      timingEn.push(
+        `Venus sits in ${venusDignity.status} — early love has trial-and-error, but you eventually find your own form.`
+      )
     }
   }
 
@@ -428,10 +452,8 @@ function pickLoveStyleKo(
     return '당신은 안정과 신뢰를 우선하는 사랑형이에요. 한 사람과 길게 가는 인연이 자연스럽게 깊어져요.'
   if (!isFemale && pj >= 2)
     return '당신은 자유롭고 변화에 끌리는 사랑형이에요. 다양한 만남을 거치면서 자기 결을 찾아가요.'
-  if (cat.관성 === 0 && isFemale)
-    return '관계의 형식보다 자기 자신을 먼저 채우는 흐름이에요.'
-  if (cat.재성 === 0 && !isFemale)
-    return '관계의 형식보다 자기 작업을 먼저 채우는 흐름이에요.'
+  if (cat.관성 === 0 && isFemale) return '관계의 형식보다 자기 자신을 먼저 채우는 흐름이에요.'
+  if (cat.재성 === 0 && !isFemale) return '관계의 형식보다 자기 작업을 먼저 채우는 흐름이에요.'
   return '당신은 관계의 깊이와 가능성을 동시에 보는 사람이에요.'
 }
 
@@ -453,8 +475,16 @@ function sibsinMeaningKoLove(sibsin: string): string {
 // love 섹션 안에서 planetLabel 사용
 function planetLabelKo(name: string): string {
   const map: Record<string, string> = {
-    Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
-    Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성',
+    Sun: '태양',
+    Moon: '달',
+    Mercury: '수성',
+    Venus: '금성',
+    Mars: '화성',
+    Jupiter: '목성',
+    Saturn: '토성',
+    Uranus: '천왕성',
+    Neptune: '해왕성',
+    Pluto: '명왕성',
   }
   return map[name] ?? name
 }

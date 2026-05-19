@@ -239,6 +239,17 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     astroUsed.push('pools.planetSign.sun.money')
     deepKo.push(`${sunMoneyVar}.`)
   }
+  // ASC × money — 첫인상의 결이 자원 흐름에 어떻게 통하는지.
+  const ascM = astro.ascendant
+  const ascMoneyVar = pickVariation(planetSignPool('Ascendant', ascM?.sign, 'money'), [
+    `day_master:${dayMasterStemM}`,
+    `asc_sign:${ascM?.sign ?? ''}`,
+    `day_branch:${dayBranchM}`,
+  ])
+  if (ascMoneyVar) {
+    astroUsed.push('pools.planetSign.asc.money')
+    deepKo.push(`${ascMoneyVar}.`)
+  }
   // Lot of Necessity — adds a 'where resources strain' note
   const necessityLot = input.calendarSignals?.arabicParts?.Necessity
   if (necessityLot) {
