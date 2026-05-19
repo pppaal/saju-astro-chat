@@ -41,9 +41,9 @@ const assertNamedExports = (modulePath: string, exportNames: string[]) => {
 
 describe('Destiny Map Integration', () => {
   it('should expose core destiny map exports', () => {
+    // `lib/destiny-map/astrologyengine` module removed.
     assertNamedExports('lib/destiny-map/destinyCalendar', ['calculateYearlyImportantDates']);
     assertNamedExports('lib/destiny-map/reportService', ['generateReport']);
-    assertNamedExports('lib/destiny-map/astrologyengine', ['computeDestinyMap']);
   });
 
   it('should expose destiny matrix exports', () => {
@@ -77,10 +77,11 @@ describe('Destiny Map Integration', () => {
   it('should calculate grade from score', async () => {
     const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading');
 
+    // GRADE_THRESHOLDS refined: grade0>=63, grade1>=57, grade2>=44, grade3>=34.
     expect(calculateGrade(80)).toBe(0);
-    expect(calculateGrade(65)).toBe(1);
+    expect(calculateGrade(65)).toBe(0);
     expect(calculateGrade(45)).toBe(2);
-    expect(calculateGrade(30)).toBe(3);
+    expect(calculateGrade(30)).toBe(4);
     expect(calculateGrade(20)).toBe(4);
   });
 });
