@@ -52,3 +52,33 @@ export function pickVariationOr<T>(
 ): T {
   return pickVariation(pool, seedKeys) ?? fallback
 }
+
+/**
+ * Append a pool-selected variation to an existing paragraph string in
+ * a typographically clean way:
+ *
+ *   - Trims trailing whitespace on the host paragraph.
+ *   - Adds a period if the host did not already end in '.', '!', or '?'.
+ *   - Inserts a single space between the two pieces.
+ *   - Trims the variation itself and ensures it ends with a period.
+ *   - Returns the host unchanged when the variation is null/undefined/empty.
+ *
+ * Used by domain builders to glue 5차 자연화 variation pools onto
+ * generated paragraphs without the marker double-space / no-period
+ * artefacts that the 4차 paragraph() helper introduced.
+ */
+export function appendToPara(
+  paraKo: string,
+  addKo: string | null | undefined,
+): string {
+  if (!addKo) return paraKo
+  const add = addKo.trim()
+  if (add.length === 0) return paraKo
+  const host = paraKo.trimEnd()
+  if (host.length === 0) {
+    return /[.!?]$/.test(add) ? add : `${add}.`
+  }
+  const hostEnder = /[.!?]$/.test(host) ? '' : '.'
+  const tail = /[.!?]$/.test(add) ? add : `${add}.`
+  return `${host}${hostEnder} ${tail}`
+}

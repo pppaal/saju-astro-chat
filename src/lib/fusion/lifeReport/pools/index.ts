@@ -1,7 +1,7 @@
 // src/lib/fusion/lifeReport/pools/index.ts
 // Barrel — see each pool file for design notes.
 
-export { pickVariation, pickVariationOr } from './pickerDeterministic'
+export { pickVariation, pickVariationOr, appendToPara } from './pickerDeterministic'
 export { twelveStagePool, type TwelveStageDomain } from './twelveStagePool'
 export {
   sibsinPool,
