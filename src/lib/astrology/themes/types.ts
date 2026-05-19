@@ -12,10 +12,14 @@
 //                (자기·확장)
 //
 // 18테마 시절 themes 배열은 dedupe해서 5테마 안에 들어가도록 매핑됨.
+//
+// LifeReport 의 9 챕터 (career/love/children/money/health/family/wisdom/
+// creativity/spirituality) 와의 대응 — 캘린더는 데일리 점수 5축, 리포트는
+// 깊이 9챕터로 의도적으로 다름:
+//   - love (calendar) ⇄ love + children + family (report) — 가까운 인연
+//   - money           ⇄ money
+//   - career          ⇄ career
+//   - health          ⇄ health
+//   - growth          ⇄ wisdom + creativity + spirituality (자기 성장 축)
 
-export type AstroThemeKey =
-  | 'love'
-  | 'money'
-  | 'career'
-  | 'health'
-  | 'growth'
+export type AstroThemeKey = 'love' | 'money' | 'career' | 'health' | 'growth'
