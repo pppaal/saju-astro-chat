@@ -78,8 +78,10 @@ const TABLE: AstroLifecycleEvent[] = [
     labelEn: 'First Saturn return',
     meaningKo: '책임과 전문성, 기반이 자리 잡는 시기예요.',
     meaningEn: 'The rite of adulthood — responsibility, craft and foundation lock in.',
-    adviceKo: '회피하지 말고 책임을 한 단계씩 받아들이세요. 30세 전후의 선택이 평생의 토대가 됩니다.',
-    adviceEn: 'Take responsibility step by step rather than avoiding it — choices around 30 become a lifelong foundation.',
+    adviceKo:
+      '회피하지 말고 책임을 한 단계씩 받아들이세요. 30세 전후의 선택이 평생의 토대가 됩니다.',
+    adviceEn:
+      'Take responsibility step by step rather than avoiding it — choices around 30 become a lifelong foundation.',
   },
   {
     kind: 'jupiter_return_3',
@@ -101,7 +103,8 @@ const TABLE: AstroLifecycleEvent[] = [
     meaningKo: '정체성과 내면 깊은 곳이 강하게 재구성되는 시기예요.',
     meaningEn: 'Identity and the deep self are forcibly reorganised.',
     adviceKo: '저항하기보다 흘려보내세요. 통제 욕구를 내려놓을수록 결과가 커집니다.',
-    adviceEn: 'Let it move through you rather than resisting — the more you release control, the larger the result.',
+    adviceEn:
+      'Let it move through you rather than resisting — the more you release control, the larger the result.',
   },
   {
     kind: 'uranus_opposition',
@@ -134,7 +137,8 @@ const TABLE: AstroLifecycleEvent[] = [
     meaningKo: '평생의 상처를 본격적으로 치유로 바꾸는 시기예요.',
     meaningEn: 'The lifelong wound now converts itself into healing capacity.',
     adviceKo: '오래된 상처를 외면하지 말고, 그것을 누군가에게 도움이 되는 형태로 바꿔 보세요.',
-    adviceEn: 'Stop looking away from the old wound — translate it into something that helps others.',
+    adviceEn:
+      'Stop looking away from the old wound — translate it into something that helps others.',
   },
   {
     kind: 'saturn_return_2',
@@ -167,7 +171,7 @@ const TABLE: AstroLifecycleEvent[] = [
     meaningKo: '평생의 자유와 독창성이 한 바퀴를 마감하는 결산기예요.',
     meaningEn: 'A lifetime of freedom and originality finishes its full circle.',
     adviceKo: '마지막까지 자기다움을 잃지 마세요.',
-    adviceEn: "Hold on to your own voice all the way to the end.",
+    adviceEn: 'Hold on to your own voice all the way to the end.',
   },
 ]
 
@@ -176,10 +180,7 @@ export function lifecycleEvents(): AstroLifecycleEvent[] {
 }
 
 /** Events whose age window overlaps [ageLow, ageHigh]. */
-export function eventsInAgeRange(
-  ageLow: number,
-  ageHigh: number
-): AstroLifecycleEvent[] {
+export function eventsInAgeRange(ageLow: number, ageHigh: number): AstroLifecycleEvent[] {
   return TABLE.filter((e) => e.ageEnd >= ageLow && e.ageStart <= ageHigh)
 }
 
@@ -232,7 +233,7 @@ export interface LifecycleTimingResult {
 export function buildLifecycleTiming(
   birthYear: number,
   endYear: number,
-  isKo: boolean = true,
+  isKo: boolean = true
 ): LifecycleTimingResult {
   const currentYear = new Date().getUTCFullYear()
   const events: LifecycleEntry[] = TABLE.map((evt) => {

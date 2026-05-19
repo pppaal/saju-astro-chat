@@ -58,20 +58,28 @@ function estimateChildCount(input: BuilderInput): ChildEstimate {
   // Jupiter contact with 5th (+1) — sit in 5th or rule 5th
   const jupiter = getPlanet(astro, 'Jupiter')
   if (jupiter && jupiter.house === 5) score += 1.5
-  else if (jupiter && aspectsOf(astro, 'Jupiter').some(
-    (a) =>
-      (a.type === 'trine' || a.type === 'sextile' || a.type === 'conjunction') &&
-      (a.from?.house === 5 || a.to?.house === 5)
-  )) score += 1
+  else if (
+    jupiter &&
+    aspectsOf(astro, 'Jupiter').some(
+      (a) =>
+        (a.type === 'trine' || a.type === 'sextile' || a.type === 'conjunction') &&
+        (a.from?.house === 5 || a.to?.house === 5)
+    )
+  )
+    score += 1
 
   // Saturn contact with 5th (-1) — sit in 5th or hard aspect
   const saturn = getPlanet(astro, 'Saturn')
   if (saturn && saturn.house === 5) score -= 1.5
-  else if (saturn && aspectsOf(astro, 'Saturn').some(
-    (a) =>
-      (a.type === 'square' || a.type === 'opposition') &&
-      (a.from?.house === 5 || a.to?.house === 5)
-  )) score -= 1
+  else if (
+    saturn &&
+    aspectsOf(astro, 'Saturn').some(
+      (a) =>
+        (a.type === 'square' || a.type === 'opposition') &&
+        (a.from?.house === 5 || a.to?.house === 5)
+    )
+  )
+    score -= 1
 
   // Pallas (wise nurturing) +0.5
   if (pallas(astro)?.house === 5) score += 0.5
@@ -175,11 +183,17 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     deepKo.push('확장의 별이 창조 영역에 있어, 자녀가 행운과 확장의 통로가 되는 배치예요.')
     deepEn.push('Jupiter in the 5th places children at the channel of luck and expansion.')
   } else if (jupiter && jupiter.house) {
-    deepKo.push(`확장의 별이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`)
-    deepEn.push(`Jupiter supports the children-signal indirectly from your ${houseLabel(jupiter.house, 'en')}.`)
+    deepKo.push(
+      `확장의 별이 ${childrenHouseHintKo(jupiter.house)} 영역에서 자녀운을 간접적으로 받쳐줘요.`
+    )
+    deepEn.push(
+      `Jupiter supports the children-signal indirectly from your ${houseLabel(jupiter.house, 'en')}.`
+    )
   }
   if (saturn && saturn.house === 5) {
-    deepKo.push('책임의 별이 창조 영역에 있어, 자녀가 늦게 오거나 적은 수로 깊은 관계를 만드는 흐름이에요.')
+    deepKo.push(
+      '책임의 별이 창조 영역에 있어, 자녀가 늦게 오거나 적은 수로 깊은 관계를 만드는 흐름이에요.'
+    )
     deepEn.push('Saturn in the 5th delays or condenses children — fewer in number, deeper in bond.')
   }
   if (moon && moon.house === 5) {
@@ -187,29 +201,49 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     deepEn.push('Moon in the 5th brings deep emotional attunement with children.')
   }
   if (pa) {
-    deepKo.push(`지혜로운 양육의 별이 ${signLabel(pa.sign, 'ko')}에 머물러, 지혜롭게 키우는 성향이 있어요.`)
-    deepEn.push(`Pallas in ${signLabel(pa.sign, 'en')} ${houseLabel(pa.house, 'en')} gives a wise-nurturing grain.`)
+    deepKo.push(
+      `지혜로운 양육의 별이 ${signLabel(pa.sign, 'ko')}에 머물러, 지혜롭게 키우는 성향이 있어요.`
+    )
+    deepEn.push(
+      `Pallas in ${signLabel(pa.sign, 'en')} ${houseLabel(pa.house, 'en')} gives a wise-nurturing grain.`
+    )
   }
   if (ce) {
-    deepKo.push(`양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리잡아, ${ceresFlavorKo(ce.house)} 양육 스타일이 흘러요.`)
-    deepEn.push(`Ceres in ${signLabel(ce.sign, 'en')} ${houseLabel(ce.house, 'en')} brings ${ceresFlavorEn(ce.house)} nurturing.`)
+    deepKo.push(
+      `양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리잡아, ${ceresFlavorKo(ce.house)} 양육 스타일이 흘러요.`
+    )
+    deepEn.push(
+      `Ceres in ${signLabel(ce.sign, 'en')} ${houseLabel(ce.house, 'en')} brings ${ceresFlavorEn(ce.house)} nurturing.`
+    )
   }
   if (gk.includes('식신')) {
-    deepKo.push('인생의 큰 패턴이 여유로운 표현과 창조의 흐름이라, 자녀를 키우는 일 자체가 자기 표현의 연장이에요.')
-    deepEn.push('Your life-pattern is one of easeful expression and creation — raising children is itself an extension of self-expression.')
+    deepKo.push(
+      '인생의 큰 패턴이 여유로운 표현과 창조의 흐름이라, 자녀를 키우는 일 자체가 자기 표현의 연장이에요.'
+    )
+    deepEn.push(
+      'Your life-pattern is one of easeful expression and creation — raising children is itself an extension of self-expression.'
+    )
   }
   // Calendar-engine: 5th-house profection year (자녀의 행운점 활성) + harmonics 5 (창조의 결)
   const prof = input.calendarSignals?.profectionCurrent
   if (prof?.house === 5) {
     fusionUsed.push('calendarSignals.profections')
-    deepKo.push('올해는 창조 영역이 활성돼 있어, 임신·출산·자녀와의 결합 흐름이 다른 어느 해보다 가까이 와 있어요.')
-    deepEn.push('This year activates house 5 — conception, birth and child-bonding flows are closer than in any other year.')
+    deepKo.push(
+      '올해는 창조 영역이 활성돼 있어, 임신·출산·자녀와의 결합 흐름이 다른 어느 해보다 가까이 와 있어요.'
+    )
+    deepEn.push(
+      'This year activates house 5 — conception, birth and child-bonding flows are closer than in any other year.'
+    )
   }
   const h5 = input.calendarSignals?.harmonics?.[5]
   if (h5 && h5.strength >= 40) {
     fusionUsed.push('calendarSignals.harmonics.5')
-    deepKo.push('창의의 깊은 자질이 강하게 깔려 있어, 자녀가 있든 없든 ‘다음 세대로 무엇을 흘려보낼지’가 평생의 과제로 묻혀 있어요.')
-    deepEn.push('Harmonics 5 runs strongly — whether or not biological children appear, "what you pass to the next generation" remains a lifelong grain.')
+    deepKo.push(
+      '창의의 깊은 자질이 강하게 깔려 있어, 자녀가 있든 없든 ‘다음 세대로 무엇을 흘려보낼지’가 평생의 과제로 묻혀 있어요.'
+    )
+    deepEn.push(
+      'Harmonics 5 runs strongly — whether or not biological children appear, "what you pass to the next generation" remains a lifelong grain.'
+    )
   }
   // Saju relations — time pillar weighted (자녀 자리 = 시주)
   const relKoChildren = relationPhraseKo(input.calendarSignals?.sajuRelations, {
@@ -221,14 +255,23 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   if (relKoChildren) {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoChildren} 자녀와의 인연 색이 일찍부터 정해져 있는 흐름이에요.`)
-    if (relEnChildren) deepEn.push(`${relEnChildren} The colour of the child-bond is pre-set early.`)
+    if (relEnChildren)
+      deepEn.push(`${relEnChildren} The colour of the child-bond is pre-set early.`)
   }
-  const p3ko = paragraph(deepKo.length ? deepKo : [
-    '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.'
-  ])
-  const p3en = paragraph(deepEn.length ? deepEn : [
-    'Because the 5th-house and creative-output signals sit in a steady alignment, your children-signal follows the calm grain of daily life.'
-  ])
+  const p3ko = paragraph(
+    deepKo.length
+      ? deepKo
+      : [
+          '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.',
+        ]
+  )
+  const p3en = paragraph(
+    deepEn.length
+      ? deepEn
+      : [
+          'Because the 5th-house and creative-output signals sit in a steady alignment, your children-signal follows the calm grain of daily life.',
+        ]
+  )
 
   const paragraphs: Paragraph[] = [
     { ko: p1ko, en: p1en },
@@ -280,8 +323,7 @@ function stageFlavorKo(stage: string | undefined): string {
   if (!stage) return '일상에 자연스럽게 자리잡는 분위기예요'
   if (['장생', '관대', '임관', '왕지', '건록', '제왕'].includes(stage))
     return '강하게 살아 있는 기운이에요'
-  if (['병', '사', '묘', '절', '태'].includes(stage))
-    return '휴식과 비움의 흐름이 있어요'
+  if (['병', '사', '묘', '절', '태'].includes(stage)) return '휴식과 비움의 흐름이 있어요'
   return '잔잔한 기운이 흘러요'
 }
 function stageFlavorEn(stage: string | undefined): string {
@@ -331,8 +373,16 @@ function ceresFlavorEn(h: number): string {
 // children 섹션에서 사용하는 행성명 자연어
 function planetLabelChildrenKo(name: string): string {
   const map: Record<string, string> = {
-    Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
-    Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성',
+    Sun: '태양',
+    Moon: '달',
+    Mercury: '수성',
+    Venus: '금성',
+    Mars: '화성',
+    Jupiter: '목성',
+    Saturn: '토성',
+    Uranus: '천왕성',
+    Neptune: '해왕성',
+    Pluto: '명왕성',
   }
   return map[name] ?? name
 }

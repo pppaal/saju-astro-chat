@@ -3,10 +3,7 @@
 // All helpers are defensive — missing fields silently return undefined/[].
 
 import type { MainSajuOutput } from '@/lib/saju/main'
-import type {
-  SajuRelationsSummary,
-  SajuRelationEntry,
-} from '../adapters/fromCalendarEngine'
+import type { SajuRelationsSummary, SajuRelationEntry } from '../adapters/fromCalendarEngine'
 import {
   analyzeSibsinPositions,
   analyzeSibsinPatterns,
@@ -16,10 +13,7 @@ import {
   type SibsinPosition,
   type SibsinType,
 } from '@/lib/saju/sibsinAnalysis'
-import {
-  calculateTonggeun,
-  type TonggeunResult,
-} from '@/lib/saju/tonggeun'
+import { calculateTonggeun, type TonggeunResult } from '@/lib/saju/tonggeun'
 
 type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
 
@@ -70,11 +64,7 @@ export function countSibsin(saju: MainSajuOutput): SibsinCount {
     정인: 0,
   }
   // Stems on year/month/time (day stem = self, not counted)
-  const stemSibsin = [
-    saju.pillars.year.sibsin,
-    saju.pillars.month.sibsin,
-    saju.pillars.time.sibsin,
-  ]
+  const stemSibsin = [saju.pillars.year.sibsin, saju.pillars.month.sibsin, saju.pillars.time.sibsin]
   for (const s of stemSibsin) {
     if (s && s in out) out[s as keyof SibsinCount]++
   }
@@ -157,9 +147,7 @@ export function gongmangAffectedPillars(saju: MainSajuOutput): string[] {
   return (saju.ultraAdvanced?.gongmang?.affectedPillars ?? []) as string[]
 }
 
-export function samgiInfo(
-  saju: MainSajuOutput
-): { hasSamgi: boolean; type?: string } {
+export function samgiInfo(saju: MainSajuOutput): { hasSamgi: boolean; type?: string } {
   const s = saju.ultraAdvanced?.samgi
   if (!s) return { hasSamgi: false }
   return { hasSamgi: !!s.hasSamgi, type: s.type }
@@ -197,8 +185,7 @@ export function currentDaeun(
   const cd = saju.cycles?.currentDaeun
   if (!cd) return undefined
   const sib = cd.sibsin as { cheon?: string } | string | undefined
-  const sibCheon =
-    typeof sib === 'object' && sib && 'cheon' in sib ? sib.cheon : undefined
+  const sibCheon = typeof sib === 'object' && sib && 'cheon' in sib ? sib.cheon : undefined
   return {
     age: cd.age,
     stem: cd.heavenlyStem,
@@ -208,9 +195,7 @@ export function currentDaeun(
 }
 
 /** All daeun cycles. */
-export function daeunCycles(
-  saju: MainSajuOutput
-): Array<{ age: number; ganji?: string }> {
+export function daeunCycles(saju: MainSajuOutput): Array<{ age: number; ganji?: string }> {
   return saju.cycles?.daeunCycles ?? []
 }
 
@@ -322,16 +307,22 @@ interface RelationPhraseOpts {
 
 export function relationPhraseKo(
   rel: SajuRelationsSummary | undefined,
-  opts: RelationPhraseOpts = {},
+  opts: RelationPhraseOpts = {}
 ): string | undefined {
   if (!rel || rel.total === 0) return undefined
   const cand = pickRelationEntry(rel, opts)
-  if (!cand) return rel.primaryAxisKo ? `사주의 합충 패턴을 보면, ${rel.primaryAxisKo} 흐름이 인생 결에 한 번 굵게 작용해요.` : undefined
+  if (!cand)
+    return rel.primaryAxisKo
+      ? `사주의 합충 패턴을 보면, ${rel.primaryAxisKo} 흐름이 인생 결에 한 번 굵게 작용해요.`
+      : undefined
   const pillarsKo: Record<string, string> = {
-    year: '년주', month: '월주', day: '일간', time: '시지',
+    year: '년주',
+    month: '월주',
+    day: '일간',
+    time: '시지',
   }
-  const a = cand.pillars[0] ? pillarsKo[cand.pillars[0]] ?? cand.pillars[0] : '명식'
-  const b = cand.pillars[1] ? pillarsKo[cand.pillars[1]] ?? cand.pillars[1] : '다른 자리'
+  const a = cand.pillars[0] ? (pillarsKo[cand.pillars[0]] ?? cand.pillars[0]) : '명식'
+  const b = cand.pillars[1] ? (pillarsKo[cand.pillars[1]] ?? cand.pillars[1]) : '다른 자리'
   const subjectParticle = endsWithBatchim(a) ? '이' : '가'
   const objectParticle = endsWithBatchim(b) ? '과' : '와'
   const verb = kindVerbKo(cand.kind)
@@ -350,16 +341,22 @@ function endsWithBatchim(s: string): boolean {
 
 export function relationPhraseEn(
   rel: SajuRelationsSummary | undefined,
-  opts: RelationPhraseOpts = {},
+  opts: RelationPhraseOpts = {}
 ): string | undefined {
   if (!rel || rel.total === 0) return undefined
   const cand = pickRelationEntry(rel, opts)
-  if (!cand) return rel.primaryAxisEn ? `Looking at the chart's inner relations, ${rel.primaryAxisEn} runs as a heavy single grain.` : undefined
+  if (!cand)
+    return rel.primaryAxisEn
+      ? `Looking at the chart's inner relations, ${rel.primaryAxisEn} runs as a heavy single grain.`
+      : undefined
   const pillarsEn: Record<string, string> = {
-    year: 'early-life seat', month: 'young-adulthood seat', day: 'core day-pillar', time: 'late-life seat',
+    year: 'early-life seat',
+    month: 'young-adulthood seat',
+    day: 'core day-pillar',
+    time: 'late-life seat',
   }
-  const a = cand.pillars[0] ? pillarsEn[cand.pillars[0]] ?? cand.pillars[0] : 'one seat'
-  const b = cand.pillars[1] ? pillarsEn[cand.pillars[1]] ?? cand.pillars[1] : 'another seat'
+  const a = cand.pillars[0] ? (pillarsEn[cand.pillars[0]] ?? cand.pillars[0]) : 'one seat'
+  const b = cand.pillars[1] ? (pillarsEn[cand.pillars[1]] ?? cand.pillars[1]) : 'another seat'
   const verb = kindVerbEn(cand.kind)
   return `Inside your chart, your ${a} ${verb} your ${b}.`
 }
@@ -367,7 +364,7 @@ export function relationPhraseEn(
 /** Return the underlying entry (so callers can read kind / pillars). */
 export function pickRelationEntry(
   rel: SajuRelationsSummary,
-  opts: RelationPhraseOpts = {},
+  opts: RelationPhraseOpts = {}
 ): SajuRelationEntry | undefined {
   const buckets: SajuRelationEntry[][] = []
   if (opts.preferKind === '합') buckets.push(rel.hap)
@@ -415,7 +412,15 @@ function kindVerbEn(k: SajuRelationEntry['kind']): string {
 /** Per-position sibsin entry — natural-language friendly. */
 export interface SibsinPositionEntry {
   /** Pillar key with a friendly Korean label baked in. */
-  pillarKo: '년주' | '월주' | '일주' | '시주' | '년주 지장간' | '월주 지장간' | '일주 지장간' | '시주 지장간'
+  pillarKo:
+    | '년주'
+    | '월주'
+    | '일주'
+    | '시주'
+    | '년주 지장간'
+    | '월주 지장간'
+    | '일주 지장간'
+    | '시주 지장간'
   pillarKey: 'year' | 'month' | 'day' | 'time'
   /** True when sourced from 지장간 (hidden), false when from 천간 (visible). */
   hidden: boolean
@@ -437,7 +442,10 @@ const SIBSIN_TO_CATEGORY: Record<SibsinType, SibsinPositionEntry['category']> = 
   정인: '인성',
 }
 
-const POSITION_TO_PILLAR: Record<SibsinPosition['position'], { ko: SibsinPositionEntry['pillarKo']; key: SibsinPositionEntry['pillarKey'] }> = {
+const POSITION_TO_PILLAR: Record<
+  SibsinPosition['position'],
+  { ko: SibsinPositionEntry['pillarKo']; key: SibsinPositionEntry['pillarKey'] }
+> = {
   년간: { ko: '년주', key: 'year' },
   월간: { ko: '월주', key: 'month' },
   시간: { ko: '시주', key: 'time' },
@@ -478,11 +486,9 @@ export function extractSibsinPositions(saju: MainSajuOutput): SibsinPositionEntr
 export function findPillarOfSibsinCategory(
   positions: SibsinPositionEntry[],
   category: SibsinPositionEntry['category'],
-  options: { visibleOnly?: boolean } = {},
+  options: { visibleOnly?: boolean } = {}
 ): SibsinPositionEntry | undefined {
-  const filtered = options.visibleOnly
-    ? positions.filter((p) => !p.hidden)
-    : positions
+  const filtered = options.visibleOnly ? positions.filter((p) => !p.hidden) : positions
   return filtered.find((p) => p.category === category)
 }
 
@@ -498,7 +504,17 @@ export interface SibsinPatternEntry {
   /** Plain implications (already natural language). */
   implications: string[]
   /** Domain hints based on which sibsin category drives the pattern. */
-  domains: Array<'career' | 'love' | 'family' | 'money' | 'health' | 'creativity' | 'wisdom' | 'spirituality' | 'children'>
+  domains: Array<
+    | 'career'
+    | 'love'
+    | 'family'
+    | 'money'
+    | 'health'
+    | 'creativity'
+    | 'wisdom'
+    | 'spirituality'
+    | 'children'
+  >
 }
 
 const PATTERN_TO_DOMAINS: Record<string, SibsinPatternEntry['domains']> = {
@@ -538,7 +554,7 @@ export function extractSibsinPatterns(saju: MainSajuOutput): SibsinPatternEntry[
 /** Filter patterns whose target domain matches. */
 export function sibsinPatternsForDomain(
   patterns: SibsinPatternEntry[],
-  domain: SibsinPatternEntry['domains'][number],
+  domain: SibsinPatternEntry['domains'][number]
 ): SibsinPatternEntry[] {
   return patterns.filter((p) => p.domains.includes(domain))
 }
@@ -580,9 +596,13 @@ export function dayMasterRoot(saju: MainSajuOutput): DayMasterRootSummary | unde
       time: { stem: p.time.stem, branch: p.time.branch },
     })
     const level: DayMasterRootSummary['level'] =
-      tg.totalStrength === 0 ? 'none' :
-      tg.totalStrength >= 80 ? 'strong' :
-      tg.totalStrength >= 40 ? 'moderate' : 'weak'
+      tg.totalStrength === 0
+        ? 'none'
+        : tg.totalStrength >= 80
+          ? 'strong'
+          : tg.totalStrength >= 40
+            ? 'moderate'
+            : 'weak'
     // Pick the strongest root (prefer 정기 > 중기 > 여기 in pillar weight order).
     const sorted = [...tg.roots].sort((a, b) => b.strength - a.strength)
     const top = sorted[0]
@@ -610,13 +630,18 @@ export function dayMasterRoot(saju: MainSajuOutput): DayMasterRootSummary | unde
 
 function dayMasterRootPhraseKo(
   level: DayMasterRootSummary['level'],
-  pillar?: 'year' | 'month' | 'day' | 'time',
+  pillar?: 'year' | 'month' | 'day' | 'time'
 ): string {
-  const pillarKo = pillar === 'month' ? '삶의 중심'
-    : pillar === 'day' ? '자기 자리'
-    : pillar === 'time' ? '만년의 자리'
-    : pillar === 'year' ? '초년의 자리'
-    : ''
+  const pillarKo =
+    pillar === 'month'
+      ? '삶의 중심'
+      : pillar === 'day'
+        ? '자기 자리'
+        : pillar === 'time'
+          ? '만년의 자리'
+          : pillar === 'year'
+            ? '초년의 자리'
+            : ''
   if (level === 'strong') {
     return pillarKo
       ? `타고난 결이 ${pillarKo}에 깊이 뿌리내려 안정적인 자기 무게가 있어요.`
@@ -635,13 +660,18 @@ function dayMasterRootPhraseKo(
 
 function dayMasterRootPhraseEn(
   level: DayMasterRootSummary['level'],
-  pillar?: 'year' | 'month' | 'day' | 'time',
+  pillar?: 'year' | 'month' | 'day' | 'time'
 ): string {
-  const pillarEn = pillar === 'month' ? 'month branch'
-    : pillar === 'day' ? 'day branch'
-    : pillar === 'time' ? 'hour branch'
-    : pillar === 'year' ? 'year branch'
-    : ''
+  const pillarEn =
+    pillar === 'month'
+      ? 'month branch'
+      : pillar === 'day'
+        ? 'day branch'
+        : pillar === 'time'
+          ? 'hour branch'
+          : pillar === 'year'
+            ? 'year branch'
+            : ''
   if (level === 'strong') {
     return pillarEn
       ? `Your day master roots deeply in the ${pillarEn} — a stable inner weight.`

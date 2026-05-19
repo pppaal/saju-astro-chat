@@ -102,21 +102,23 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   const inseongPos = findPillarOfSibsinCategory(positions, '인성', { visibleOnly: true })
   const bijeonPos = findPillarOfSibsinCategory(positions, '비겁', { visibleOnly: true })
   const inseongLineKo = inseongPos
-    ? (inseongPos.pillarKey === 'month'
-        ? '청년 자리에 어머니·돌봄의 결이 놓여서, 어머니 인연이 삶의 무게중심에 와 있어요.'
-        : `${pillarKoNatural(inseongPos.pillarKey)}에 어머니·돌봄의 결이 놓여서, 어머니나 돌봄 라인의 결이 그 자리부터 흘러 들어와요.`)
+    ? inseongPos.pillarKey === 'month'
+      ? '청년 자리에 어머니·돌봄의 결이 놓여서, 어머니 인연이 삶의 무게중심에 와 있어요.'
+      : `${pillarKoNatural(inseongPos.pillarKey)}에 어머니·돌봄의 결이 놓여서, 어머니나 돌봄 라인의 결이 그 자리부터 흘러 들어와요.`
     : ''
-  const bijeonLineKo = bijeonPos && bijeon >= 2
-    ? `${pillarKoNatural(bijeonPos.pillarKey)}에 형제·동료의 결이 또렷이 자리잡아, 형제·동료 라인의 결이 인생 한 축으로 자리해요.`
-    : ''
+  const bijeonLineKo =
+    bijeonPos && bijeon >= 2
+      ? `${pillarKoNatural(bijeonPos.pillarKey)}에 형제·동료의 결이 또렷이 자리잡아, 형제·동료 라인의 결이 인생 한 축으로 자리해요.`
+      : ''
   const inseongLineEn = inseongPos
-    ? (inseongPos.pillarKey === 'month'
-        ? 'With the care-line sitting at your young-adulthood seat, the mother and care-line sit at the centre of your chart.'
-        : `Because the care-line sits at your ${familyPillarSeatEn(inseongPos.pillarKey)}, the mother and care-line enter from that seat.`)
+    ? inseongPos.pillarKey === 'month'
+      ? 'With the care-line sitting at your young-adulthood seat, the mother and care-line sit at the centre of your chart.'
+      : `Because the care-line sits at your ${familyPillarSeatEn(inseongPos.pillarKey)}, the mother and care-line enter from that seat.`
     : ''
-  const bijeonLineEn = bijeonPos && bijeon >= 2
-    ? `With the peer-line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
-    : ''
+  const bijeonLineEn =
+    bijeonPos && bijeon >= 2
+      ? `With the peer-line sitting at your ${familyPillarSeatEn(bijeonPos.pillarKey)}, sibling and peer ties hold a whole axis of your life.`
+      : ''
   const p2ko = paragraph([
     sun
       ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 사람이에요.`

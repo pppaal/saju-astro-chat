@@ -23,10 +23,7 @@ import {
 } from '../signals/sajuSignals'
 import { findPlanet } from '../signals/astroSynthesis'
 import { nearestEclipses } from '../signals/astroSignals'
-import {
-  eventsInAgeRange,
-  type AstroLifecycleEvent,
-} from '../signals/astroLifecycle'
+import { eventsInAgeRange, type AstroLifecycleEvent } from '../signals/astroLifecycle'
 import { signLabel, paragraph } from '../templates/sentences'
 
 interface StageRange {
@@ -140,7 +137,10 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
     late: saju.pillars.time,
   }
   const pillar = pillarMap[range.id]
-  if (pillar) sajuUsed.push(`pillars.${range.id === 'early' ? 'year' : range.id === 'young' ? 'month' : range.id === 'middle' ? 'day' : 'time'}`)
+  if (pillar)
+    sajuUsed.push(
+      `pillars.${range.id === 'early' ? 'year' : range.id === 'young' ? 'month' : range.id === 'middle' ? 'day' : 'time'}`
+    )
   const dayEl = dayElement(saju)
   if (dayEl) sajuUsed.push('pillars.day.element')
 
@@ -165,12 +165,15 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   const twelveAll = input.calendarSignals?.twelveStageAll
   const ilju12 = saju.ultraAdvanced?.iljuDeep?.twelveStage
   const pillarKey: 'year' | 'month' | 'day' | 'time' =
-    range.id === 'early' ? 'year' :
-    range.id === 'young' ? 'month' :
-    range.id === 'middle' ? 'day' : 'time'
+    range.id === 'early'
+      ? 'year'
+      : range.id === 'young'
+        ? 'month'
+        : range.id === 'middle'
+          ? 'day'
+          : 'time'
   const stageTwelve =
-    (twelveAll && twelveAll[pillarKey]) ||
-    (pillarKey === 'day' ? ilju12 : undefined)
+    (twelveAll && twelveAll[pillarKey]) || (pillarKey === 'day' ? ilju12 : undefined)
   if (stageTwelve) {
     sajuUsed.push(`calendarSignals.twelveStageAll.${pillarKey}`)
   } else if (ilju12 && pillarKey === 'day') {
@@ -208,7 +211,10 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
   // ───────────────────── 文단 2: 주요 사건 (대운 + 점성 lifecycle hits)
   const eventLinesKo: string[] = []
   const eventLinesEn: string[] = []
-  const daeunAges = stageDaeun.slice(0, 3).map((d) => d.age).filter((a): a is number => !!a)
+  const daeunAges = stageDaeun
+    .slice(0, 3)
+    .map((d) => d.age)
+    .filter((a): a is number => !!a)
   if (daeunAges.length > 0) {
     eventLinesKo.push(`${daeunAges.join('세, ')}세 무렵에 인생 흐름이 새로운 챕터로 갈아타요.`)
   }
@@ -217,17 +223,11 @@ function buildOne(input: BuilderInput, range: StageRange): LifeStage {
     eventLinesEn.push(`Age ${d.age} opens a fresh 10-year life-chapter.`)
   }
   for (const ev of lifecycleEvts.slice(0, 3)) {
-    eventLinesKo.push(
-      `${ev.ageStart}~${ev.ageEnd}세, ${ev.labelKo} — ${ev.meaningKo}`
-    )
-    eventLinesEn.push(
-      `Ages ${ev.ageStart}–${ev.ageEnd}, ${ev.labelEn}: ${ev.meaningEn}`
-    )
+    eventLinesKo.push(`${ev.ageStart}~${ev.ageEnd}세, ${ev.labelKo} — ${ev.meaningKo}`)
+    eventLinesEn.push(`Ages ${ev.ageStart}–${ev.ageEnd}, ${ev.labelEn}: ${ev.meaningEn}`)
   }
   const p2ko = paragraph(
-    eventLinesKo.length > 0
-      ? eventLinesKo
-      : ['이 시기엔 큰 격동 없이 잔잔한 흐름이 이어져요.']
+    eventLinesKo.length > 0 ? eventLinesKo : ['이 시기엔 큰 격동 없이 잔잔한 흐름이 이어져요.']
   )
   const p2en = paragraph(
     eventLinesEn.length > 0
@@ -300,9 +300,7 @@ function challengePieceKo(
   jong: string,
   events: AstroLifecycleEvent[]
 ): string {
-  const stagePiece = twelveStage
-    ? `${twelveStageMeaningKo(twelveStage)} `
-    : ''
+  const stagePiece = twelveStage ? `${twelveStageMeaningKo(twelveStage)} ` : ''
   if (id === 'early') {
     return `${stagePiece}어린 시절엔 환경에 적응하며 자기 색을 처음 느껴요. ${jong ? '한 방향으로 강하게 흐르는 성향이 일찍부터 드러나요.' : geokguk ? `${geokgukShortKo(geokguk)}의 색이 가정과 학교에서 일찍부터 보여요.` : ''}`
   }
@@ -413,16 +411,30 @@ function geokgukShortEn(g: string): string {
 
 // 기둥의 천간+지지 (hanja) → 자연 영어 grain label (e.g. "Yang Metal Dragon").
 const PILLAR_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood', 乙: 'Yin Wood',
-  丙: 'Yang Fire', 丁: 'Yin Fire',
-  戊: 'Yang Earth', 己: 'Yin Earth',
-  庚: 'Yang Metal', 辛: 'Yin Metal',
-  壬: 'Yang Water', 癸: 'Yin Water',
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
 }
 const PILLAR_BRANCH_EN: Record<string, string> = {
-  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
-  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
-  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
 }
 function pillarGrainEn(stem: string | undefined, branch: string | undefined): string {
   const s = stem ? (PILLAR_STEM_EN[stem] ?? '') : ''
