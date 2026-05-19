@@ -135,17 +135,17 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   ])
   const p2en = paragraph([
     sun
-      ? `Your father-image reads like the Sun in ${signLabel(sun.sign, 'en')}'s ${houseLabel(sun.house, 'en')}: ${parentSignFlavorEn(sun.sign)}.`
+      ? `Your father-image reads through your Sun in ${signLabel(sun.sign, 'en')} (${houseLabel(sun.house, 'en')}) — ${parentSignFlavorEn(sun.sign)}.`
       : '',
     moon
-      ? `Your mother-image reads like the Moon in ${signLabel(moon.sign, 'en')}'s ${houseLabel(moon.house, 'en')}: ${parentSignFlavorEn(moon.sign)}.`
+      ? `Your mother-image reads through your Moon in ${signLabel(moon.sign, 'en')} (${houseLabel(moon.house, 'en')}) — ${parentSignFlavorEn(moon.sign)}.`
       : '',
     inseongLineEn,
     bijeonLineEn,
     bijeon >= 2
-      ? 'A rich sibling-and-peer line means siblings and equal-peers occupy a large seat in your life.'
+      ? 'A rich sibling-and-peer line means brothers, sisters, and close friends hold a large place in your life.'
       : bijeon === 0
-        ? 'With the sibling-and-peer line absent, peer-equal bonds form by conscious choice rather than default.'
+        ? 'With the sibling-and-peer line quiet, equal-footed bonds form by conscious choice rather than by default.'
         : '',
   ])
 
@@ -157,7 +157,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       `부모의 두 축이 되는 태양과 달이 ${aspectQuality(sunMoon.type, 'ko')}, ${sunMoonFlavorKo(sunMoon.type)} 가정 분위기가 일찍 만들어져 있었어요.`
     )
     deepEn.push(
-      `Because the parental axis (Sun-Moon) ${aspectQuality(sunMoon.type, 'en')}, a ${sunMoonFlavorEn(sunMoon.type)} family atmosphere was set early.`
+      `Because your parental axis (Sun-Moon) ${aspectQuality(sunMoon.type, 'en')}, a ${sunMoonFlavorEn(sunMoon.type)} family atmosphere took shape early.`
     )
   }
   if (moonSaturn) {
@@ -165,7 +165,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       `감정의 별과 책임의 별이 ${aspectQuality(moonSaturn.type, 'ko')}, 어머니나 정서 라인에 책임의 무게가 일찍 실린 흐름이에요.`
     )
     deepEn.push(
-      `Moon-Saturn ${aspectQuality(moonSaturn.type, 'en')} placed responsibility-weight on the mother/emotion line early.`
+      `Your Moon-Saturn ${aspectQuality(moonSaturn.type, 'en')} placed the weight of responsibility on your mother or your emotional life early on.`
     )
   }
   if (yearOrMonthGongmang) {
@@ -173,13 +173,13 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       '조상과 부모의 자리에 비어 있는 영역이 있어, 조부모와 부모 라인 인연이 얇거나 일찍 떨어지는 흐름이 있을 수 있어요.'
     )
     deepEn.push(
-      'An empty seat sits in your early-life or young-adulthood pillar — the ancestor and parent line can feel thinner or separate earlier than most.'
+      'An empty space sits in your year or month pillar — your ties to ancestors and parents may feel thinner than most, or separate earlier in life.'
     )
   }
   if (ves) {
     deepKo.push(`헌신의 별이 ${signLabel(ves.sign, 'ko')}에 머물러, 가족에 헌신하는 성향이 있어요.`)
     deepEn.push(
-      `Vesta in ${signLabel(ves.sign, 'en')} ${houseLabel(ves.house, 'en')} brings family-devotion as a thread.`
+      `Vesta in ${signLabel(ves.sign, 'en')} (${houseLabel(ves.house, 'en')}) weaves devotion to family through your life as a steady thread.`
     )
   }
   if (ce) {
@@ -187,7 +187,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       `양육의 별이 ${signLabel(ce.sign, 'ko')}에 자리잡아, ${ceresMomFlavorKo(ce.house)} 양육의 색이 새겨져 있어요.`
     )
     deepEn.push(
-      `Ceres in ${signLabel(ce.sign, 'en')} ${houseLabel(ce.house, 'en')} sets a ${ceresMomFlavorEn(ce.house)} nurturing imprint.`
+      `Ceres in ${signLabel(ce.sign, 'en')} (${houseLabel(ce.house, 'en')}) leaves a ${ceresMomFlavorEn(ce.house)} mark on how you nurture.`
     )
     // 소행성-하우스 cross (destiny-matrix layer9 활용)
     const ceresCrossKo = asteroidHouseLine('Ceres', ce.house, 'ko')
@@ -210,7 +210,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       '인연의 행운점이 차트에 들어와, 가족 너머의 ‘제 2의 가족’ 인연이 평생의 자원이 돼요.'
     )
     deepEn.push(
-      `Your Lot of Victory sits in the chart — chosen-family ties beyond blood become a lifetime resource.`
+      `Your Lot of Victory is active — the chosen family you build beyond blood becomes a resource for the rest of your life.`
     )
   }
   // Saju hyeongchung — 가족 갈등·결합 패턴
@@ -223,8 +223,8 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
         : '사주 안에 단절·결정의 흐름이 강해서, 가족과의 거리감을 인정한 뒤에야 진짜 연결이 풀려요.'
     const toneEn =
       hc.hapCount > hc.chungCount
-        ? 'A joining-accent runs through your chart — family bonds harden over time.'
-        : 'A severance-accent runs through your chart — real connection unlocks after you acknowledge distance.'
+        ? 'A note of union runs through your chart — family bonds grow firmer over time.'
+        : 'A note of separation runs through your chart — real connection opens only after you acknowledge the distance.'
     deepKo.push(tone)
     deepEn.push(toneEn)
   }
@@ -239,7 +239,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoFamily} 부모·조상 라인의 인연이 본인의 인생에 한 층 깊게 닿아 있어요.`)
     if (relEnFamily)
-      deepEn.push(`${relEnFamily} The parent/ancestor line touches your own grain a layer deep.`)
+      deepEn.push(`${relEnFamily} The line of your parents and ancestors reaches into your own life one layer deeper than most.`)
   }
   // 12-stage × family variation pool.
   const dayMasterStemF = saju.pillars.day.stem || ''
@@ -310,7 +310,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       `가정 기반의 점이 ${signLabel(basis.sign, 'ko')}에 놓여, 뿌리 삼는 자리도 그 색을 따라요.`
     )
     deepEn.push(
-      `Your Lot of Basis in ${signLabel(basis.sign, 'en')} — the seat you root yourself in carries that same grain.`
+      `Your Lot of Basis sits in ${signLabel(basis.sign, 'en')} — the foundation you root yourself in carries that same flavor.`
     )
   }
 
@@ -321,7 +321,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     deepEn.length
       ? deepEn
       : [
-          'Because family signals sit in a calm array, this life favors a quiet continuity over high drama.',
+          'Because your family signals sit in a calm arrangement, this lifetime favors a quiet continuity over high drama.',
         ]
   )
 

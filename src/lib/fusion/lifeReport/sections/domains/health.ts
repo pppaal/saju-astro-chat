@@ -87,12 +87,12 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       : '',
   ])
   const p1en = paragraph([
-    'The big picture of your health starts with five-element balance.',
+    'The big picture of your health starts with the balance of the five elements.',
     weak.length > 0
-      ? `Weak in ${weakLabelsEn.join('/')}, so ${organEn(weak)} need ongoing care.`
+      ? `Your ${weakLabelsEn.join(' and ')} element${weakLabelsEn.length > 1 ? 's run' : ' runs'} lower, so your ${organEn(weak)} need ongoing care.`
       : 'Your five elements sit relatively even, so no single weakness dominates.',
     yongsin
-      ? `Your supportive element is ${yongsinElementEnHealth(yongsin)}, so ${yongsinFlavorEn(yongsin)} is your daily way to strengthen it.`
+      ? `Your supportive element is ${yongsinElementEnHealth(yongsin)}, so leaning into ${yongsinFlavorEn(yongsin)} is your daily way to strengthen it.`
       : '',
   ])
 
@@ -106,8 +106,8 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       : '일상 영역은 비어 있어, 건강의 흐름은 다른 영역의 별들이 함께 받쳐줘요.'
   const sixthFlavorEn =
     sixthPlanets.length > 0
-      ? `With ${sixthPlanets.map((p) => p.name).join(', ')} inside the 6th, daily ${sixthHouseFlavorEn(sixthPlanets)} carries your health signal.`
-      : `Your 6th is empty — health is carried jointly by other placements.`
+      ? `With ${sixthPlanets.map((p) => p.name).join(', ')} sitting in your 6th house, the daily texture of ${sixthHouseFlavorEn(sixthPlanets)} carries your health signal.`
+      : `Your 6th house is empty — your health is carried jointly by signals from other placements.`
 
   const p2ko = paragraph([
     sixthFlavor,
@@ -118,7 +118,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const p2en = paragraph([
     sixthFlavorEn,
     marsSaturn
-      ? `Mars-Saturn ${aspectQuality(marsSaturn.type, 'en')}, so stress can accumulate in a ${marsSaturnFlavorEn(marsSaturn.type)} grain.`
+      ? `Your Mars and Saturn ${aspectQuality(marsSaturn.type, 'en')}, so stress tends to accumulate in a ${marsSaturnFlavorEn(marsSaturn.type)} pattern.`
       : '',
   ])
 
@@ -135,9 +135,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   if (iljuHealthVar) {
     sajuUsed.push('pools.ilju.health')
     deepKo.push(`${iljuHealthVar}.`)
-    deepEn.push(
-      `Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) flags this constitutional pattern.`
-    )
+    deepEn.push(`Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) points to this particular constitutional pattern.`)
   }
 
   if (ch) {
@@ -145,7 +143,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       `상처와 치유의 색은 ${signLabel(ch.sign, 'ko')}의 분위기로 자리잡아, ${chironFlavorKo(ch.house)} 영역이 상처와 치유로 함께 묶여 있어요.`
     )
     deepEn.push(
-      `Chiron in ${signLabel(ch.sign, 'en')} ${houseLabel(ch.house, 'en')} marks ${chironFlavorEn(ch.house)} as a wound-and-healing thread.`
+      `Chiron in ${signLabel(ch.sign, 'en')} (${houseLabel(ch.house, 'en')}) marks ${chironFlavorEn(ch.house)} as the area where wounding and healing run together as one thread.`
     )
   }
   if (oob.length > 0) {
@@ -153,7 +151,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       `또 ${oob.map(planetLabelHealthKo).join(', ')}이 일반 궤도 밖으로 나가 있어서, 평균을 넘는 특이한 건강 패턴이 나올 수 있어요.`
     )
     deepEn.push(
-      `Furthermore, ${oob.join(', ')} run out-of-bounds in declination, which can produce health patterns that exceed the average range.`
+      `On top of that, ${oob.join(', ')} run out of bounds in declination, which can produce health patterns that sit outside the average range.`
     )
   }
   // Declination aspects — parallel(같은 결) / contraparallel(마주보는 결)
@@ -168,7 +166,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
         `${planetLabelHealthKo(par.a)}과 ${planetLabelHealthKo(par.b)}이 평행 결의 만남을 이루어, 두 별의 흐름이 같은 결로 몸의 리듬을 만들어요.`
       )
       deepEn.push(
-        `${par.a} and ${par.b} share a parallel declination — their currents braid into a single grain in the body rhythm.`
+        `${par.a} and ${par.b} share a parallel declination — their currents braid together into a single rhythm inside the body.`
       )
     }
     if (contra) {
@@ -176,7 +174,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
         `${planetLabelHealthKo(contra.a)}과 ${planetLabelHealthKo(contra.b)}이 마주보는 결의 긴장을 이루어, 두 흐름이 균형을 맞추기 위한 작은 부하가 몸에 새겨져요.`
       )
       deepEn.push(
-        `${contra.a} and ${contra.b} sit in contraparallel declination — a small balancing load is etched into the body grain.`
+        `${contra.a} and ${contra.b} sit in contraparallel declination — a small balancing load is written into the body's natural rhythm.`
       )
     }
   }
@@ -184,12 +182,12 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     deepKo.push(
       '태어난 시기 가까이 있던 일식·월식의 흔적이 신체 리듬에 미세한 부하를 남기는 흐름이에요.'
     )
-    deepEn.push(`A nearby natal eclipse leaves a subtle imprint on your body rhythms.`)
+    deepEn.push(`An eclipse close to your birth leaves a subtle imprint on the rhythms of your body.`)
   }
   if (unlucky.length > 0) {
     deepKo.push('무리가 누적되지 않도록 평소 회복 루틴이 필요한 흐름이 함께 있어요.')
     deepEn.push(
-      'Strain-prone signals run through your chart — keep a steady recovery routine to prevent overload buildup.'
+      'Strain-prone signals run through your chart — keep a steady recovery routine in place to prevent overload from building up.'
     )
   }
   if (healthConfirms.length > 0) {
@@ -216,7 +214,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoHealth} 무리가 쌓이면 그 자리부터 몸의 반응이 먼저 와요.`)
     if (relEnHealth)
-      deepEn.push(`${relEnHealth} Overload signals tend to surface from that axis first.`)
+      deepEn.push(`${relEnHealth} When you push too hard, the strain tends to surface from that area first.`)
   }
   // 12-stage × health + Sun × sign × health variations.
   const dayMasterStemH = saju.pillars.day.stem || ''
@@ -281,19 +279,6 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     astroUsed.push('pools.planetHouse.mercury')
     deepKo.push(`${mercuryHouseH}.`)
   }
-  // Saturn × house — 단련·뼈대의 무대 (health 핵심 외행성)
-  const saturnHouseH = planetHouseLine('Saturn', saturn?.house, 'ko')
-  if (saturnHouseH) {
-    astroUsed.push('pools.planetHouse.saturn')
-    deepKo.push(`${saturnHouseH}.`)
-  }
-  // Pluto × house — 깊은 변혁·세포 단위 재생의 무대
-  const plutoH = getPlanet(astro, 'Pluto')
-  const plutoHouseH = planetHouseLine('Pluto', plutoH?.house, 'ko')
-  if (plutoHouseH) {
-    astroUsed.push('pools.planetHouse.pluto')
-    deepKo.push(`${plutoHouseH}.`)
-  }
   // ASC × health — 첫인상 = 몸의 색깔 (점성 정통: ASC 의 sign 이 신체
   // 구조와 활력 톤 결정). Big 3 의 마지막 축.
   const ascH = astro.ascendant
@@ -314,7 +299,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     deepEn.length
       ? deepEn
       : [
-          'Because the deeper health signals sit in a calm alignment, your grain comes from small daily accumulation, not extremes.',
+          'Because your deeper health signals sit in a calm alignment, the shape of your health comes from small daily accumulation rather than from extremes.',
         ]
   )
 
@@ -323,27 +308,27 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const guideEn: string[] = ['Daily handle:']
   if (weak.includes('목') || weak.includes('wood')) {
     guideKo.push('간·담을 보호하세요. 분노·과로 누적이 가장 큰 부담이에요.')
-    guideEn.push('Protect the liver/gallbladder — anger and overwork are the heaviest loads.')
+    guideEn.push('Protect your liver and gallbladder — anger and overwork are the heaviest loads for you.')
   }
   if (weak.includes('화') || weak.includes('fire')) {
     guideKo.push('심장·혈류 관리에 신경 쓰세요. 휴식 부족이 곧바로 몸에 드러나요.')
-    guideEn.push('Mind the heart and circulation — under-rest signals quickly.')
+    guideEn.push('Mind your heart and circulation — too little rest shows up in the body very quickly.')
   }
   if (weak.includes('토') || weak.includes('earth')) {
     guideKo.push('소화기 관리에 신경 쓰세요. 끼니 규칙이 곧 회복 루틴이에요.')
-    guideEn.push('Mind digestion — regular meals are themselves recovery.')
+    guideEn.push('Mind your digestion — keeping regular mealtimes is itself a form of recovery for you.')
   }
   if (weak.includes('금') || weak.includes('metal')) {
     guideKo.push('호흡기·면역을 보호하세요. 환절기에 반응이 분명해요.')
-    guideEn.push('Protect lungs and immunity — seasonal shifts surface the signal.')
+    guideEn.push('Protect your lungs and immune system — the shift between seasons is when symptoms tend to surface.')
   }
   if (weak.includes('수') || weak.includes('water')) {
     guideKo.push('신장·수분에 신경 쓰세요. 두려움 누적도 같은 라인을 따라요.')
-    guideEn.push('Mind kidneys and hydration — accumulated fear runs the same line.')
+    guideEn.push('Mind your kidneys and hydration — accumulated fear tends to run down the same line in the body.')
   }
   if (guideKo.length === 1) {
     guideKo.push('오행이 균형이라, 한 가지 큰 관리보다 골고루 작은 루틴이 더 잘 맞아요.')
-    guideEn.push('Your elements are even — many small routines fit better than one heavy regimen.')
+    guideEn.push('Your elements sit in balance — several small daily routines suit you better than one heavy regimen.')
   }
   // Calendar-engine: Lot of Necessity (약함의 영역)
   const necessity = input.calendarSignals?.arabicParts?.Necessity
@@ -353,7 +338,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       `약함의 영역(필연의 점)이 차트에 놓여 있어, 부담을 미루지 않고 작게 자주 풀어주는 흐름이 가장 무리가 없어요.`
     )
     guideEn.push(
-      `Your Lot of Necessity sits in the chart — releasing pressure little and often, rather than postponing it, is the gentlest path.`
+      `Your Lot of Necessity is active — releasing pressure a little at a time, instead of postponing it, is the gentlest path for your body.`
     )
   }
   const p4ko = paragraph(guideKo)
@@ -431,30 +416,16 @@ function yongsinElementEnHealth(y: string): string {
 
 // 60갑자 일주 → natural English (health 섹션).
 const HEALTH_STEM_EN: Record<string, string> = {
-  甲: 'Yang Wood',
-  乙: 'Yin Wood',
-  丙: 'Yang Fire',
-  丁: 'Yin Fire',
-  戊: 'Yang Earth',
-  己: 'Yin Earth',
-  庚: 'Yang Metal',
-  辛: 'Yin Metal',
-  壬: 'Yang Water',
-  癸: 'Yin Water',
+  甲: 'Yang Wood', 乙: 'Yin Wood',
+  丙: 'Yang Fire', 丁: 'Yin Fire',
+  戊: 'Yang Earth', 己: 'Yin Earth',
+  庚: 'Yang Metal', 辛: 'Yin Metal',
+  壬: 'Yang Water', 癸: 'Yin Water',
 }
 const HEALTH_BRANCH_EN: Record<string, string> = {
-  子: 'Rat',
-  丑: 'Ox',
-  寅: 'Tiger',
-  卯: 'Rabbit',
-  辰: 'Dragon',
-  巳: 'Snake',
-  午: 'Horse',
-  未: 'Goat',
-  申: 'Monkey',
-  酉: 'Rooster',
-  戌: 'Dog',
-  亥: 'Pig',
+  子: 'Rat', 丑: 'Ox', 寅: 'Tiger', 卯: 'Rabbit',
+  辰: 'Dragon', 巳: 'Snake', 午: 'Horse', 未: 'Goat',
+  申: 'Monkey', 酉: 'Rooster', 戌: 'Dog', 亥: 'Pig',
 }
 function iljuLabelEnHealth(ilju: string | undefined): string {
   if (!ilju) return 'native day-pillar'

@@ -18,6 +18,14 @@ import {
 import { solarArcSummary } from '../signals/astroSignals'
 import { iGa, paragraph, signLabel } from '../templates/sentences'
 
+// Natural English serial join: "a", "a and b", "a, b, and c".
+function joinEn(items: string[]): string {
+  if (items.length === 0) return ''
+  if (items.length === 1) return items[0]
+  if (items.length === 2) return `${items[0]} and ${items[1]}`
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
+}
+
 // 받침 유무에 따라 으로/로 선택 (사인명 + 으로/로).
 function euroLoFromBatchim(s: string): string {
   if (!s) return '로'
@@ -220,7 +228,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       : '결혼과 전문성, 기반이 한 번에 결정되는 시기라 회피하지 말고 책임을 받아들이는 선택이 토대가 됩니다.',
   ])
   const p1en = paragraph([
-    `Your 30s carry a decisive 10-year life-chapter shift, and ${e30s.map((e) => e.labelEn).join(' / ') || 'several major astrology pivots'} land on the same decade.`,
+    `Your 30s carry a decisive 10-year life-chapter shift, and ${joinEn(e30s.map((e) => e.labelEn)) || 'several major astrology pivots'} land on the same decade.`,
     d30s.length > 0
       ? `In particular, ages ${d30s.map((d) => `${d.age} (${labelEnDomainNatural(d.domain)})`).join(', ')} mark the first major turning points of your life.`
       : 'Marriage, expertise and foundation often decide together here — accept responsibility rather than dodging it.',
@@ -237,9 +245,9 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       : '자유의 각성과 의미의 시험이 동시에 와서, 안정을 빌미로 미뤘던 결정이 표면으로 올라와요.',
   ])
   const p2en = paragraph([
-    `Your 40s gather ${e40s.map((e) => e.labelEn).join(' / ') || 'large astrology pivots'} into a single decade.`,
+    `Your 40s gather ${joinEn(e40s.map((e) => e.labelEn)) || 'major astrology pivots'} into a single decade.`,
     d40s.length > 0
-      ? `Ages ${d40s.map((d) => `${d.age} (${labelEnDomainNatural(d.domain)})`).join(', ')} crack the paths that are not truly yours.`
+      ? `Ages ${d40s.map((d) => `${d.age} (${labelEnDomainNatural(d.domain)})`).join(', ')} break apart the paths that don't truly belong to you and realign you with what does.`
       : 'Uranus and Neptune shake at once, surfacing the decisions you had postponed.',
   ])
 
@@ -255,9 +263,9 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       : '결과보다 의미에 시간을 쓰는 쪽으로 무게추가 옮겨가요.',
   ])
   const p3en = paragraph([
-    `From your 50s onward, ${e50s.map((e) => e.labelEn).join(' / ') || 'the Chiron return and second Saturn return'} dominate.`,
+    `From your 50s onward, ${joinEn(e50s.map((e) => e.labelEn)) || 'the Chiron return and the second Saturn return'} shape the decade.`,
     d50s.length > 0
-      ? `Ages ${d50s.map((d) => `${d.age} (${labelEnDomainNatural(d.domain)})`).join(', ')} settle the long account of your life.`
+      ? `Ages ${d50s.map((d) => `${d.age} (${labelEnDomainNatural(d.domain)})`).join(', ')} close out the long chapter of your life.`
       : 'The weight shifts from outcomes toward meaning.',
   ])
 

@@ -14,7 +14,6 @@ import {
 } from '../../signals/sajuSignals'
 import { aspectsOf, getPlanet, houseCusp, planetsInHouse } from '../../signals/astroSignals'
 import { northNode } from '../../signals/astroSynthesis'
-import { planetHouseLine } from '../../pools'
 import {
   aspectQuality,
   houseLabel,
@@ -50,11 +49,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
 
   // ── Astro side
   const mercury = getPlanet(astro, 'Mercury')
-  const jupiter = getPlanet(astro, 'Jupiter')
-  const saturn = getPlanet(astro, 'Saturn')
   if (mercury) astroUsed.push('planets.mercury')
-  if (jupiter) astroUsed.push('planets.jupiter')
-  if (saturn) astroUsed.push('planets.saturn')
   const ninth = planetsInHouse(astro, 9)
   if (ninth.length > 0) astroUsed.push('houses.9.planets')
   const third = planetsInHouse(astro, 3)
@@ -79,18 +74,16 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   if (profIsLearning) fusionUsed.push('calendarSignals.profections')
 
   // ── Paragraph 1: 학문·지혜의 결
-  const inseongFlavorKo =
-    inseong >= 3
-      ? '지혜와 돌봄의 자질이 매우 진하게 깔려 있어서, 배움 자체가 운의 통로예요.'
-      : inseong >= 1
-        ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 풀리는 길이에요.'
-        : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
-  const inseongFlavorEn =
-    inseong >= 3
-      ? 'A strong wisdom-and-care pattern runs through your chart — learning itself is how luck opens to you.'
-      : inseong >= 1
-        ? 'A quiet wisdom-and-care pattern sits in your chart — continuous learning opens your path forward.'
-        : 'The learning current flows from initiative rather than inheritance.'
+  const inseongFlavorKo = inseong >= 3
+    ? '지혜와 돌봄의 자질이 매우 진하게 깔려 있어서, 배움 자체가 운의 통로예요.'
+    : inseong >= 1
+      ? '지혜와 돌봄의 자질이 차분히 깔려 있어, 배움을 멈추지 않는 게 운이 풀리는 길이에요.'
+      : '배움의 길은 외부에서 들어오기보다 스스로 만들어가는 쪽이에요.'
+  const inseongFlavorEn = inseong >= 3
+    ? 'A strong wisdom-and-care pattern runs through your chart — learning itself is how luck opens to you.'
+    : inseong >= 1
+      ? 'A quiet wisdom-and-care pattern sits in your chart — continuous learning opens your path forward.'
+      : 'The learning current flows from initiative rather than inheritance.'
 
   const p1ko = paragraph([
     inseongFlavorKo,
@@ -119,28 +112,22 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
       `학습 영역에 ${third.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 일상의 작은 학습과 짧은 대화 속에서 진짜 지혜가 쌓여요.`
     )
     p2piecesEn.push(
-      `Planets in the 3rd house (${third.map((p) => p.name).join(', ')}) gather wisdom through small daily learning and short conversations.`
+      `With ${third.map((p) => p.name).join(', ')} sitting in your 3rd house, real wisdom accumulates through small daily learning and short, frequent conversations.`
     )
   } else if (thirdCusp?.sign) {
     p2pieces.push(
       `학습 영역은 ${signLabel(thirdCusp.sign, 'ko')}의 분위기로 열려서, ${thirdSignFlavorKo(thirdCusp.sign)} 방식으로 배우는 게 자연스러워요.`
     )
     p2piecesEn.push(
-      `Your 3rd-house cusp in ${signLabel(thirdCusp.sign, 'en')} suggests learning via ${thirdSignFlavorEn(thirdCusp.sign)}.`
+      `Your 3rd-house cusp in ${signLabel(thirdCusp.sign, 'en')} suggests learning naturally happens through ${thirdSignFlavorEn(thirdCusp.sign)}.`
     )
   }
   if (sangwan >= 2) {
-    p2pieces.push(
-      '재능의 자유로운 발산이 강해서, 받아들이기만 하는 학습보다 가르치고 표현할 때 지혜가 더 단단해져요.'
-    )
-    p2piecesEn.push(
-      'A strong free creative streak means wisdom hardens when you teach and express, not only when you absorb.'
-    )
+    p2pieces.push('재능의 자유로운 발산이 강해서, 받아들이기만 하는 학습보다 가르치고 표현할 때 지혜가 더 단단해져요.')
+    p2piecesEn.push('A strong free-creative streak means your wisdom solidifies most when you teach and express it, not only when you absorb it.')
   } else if (sikshin >= 2) {
     p2pieces.push('여유로운 표현의 자질이 깔려 있어, 즐기듯 배우는 방식이 잘 맞아요.')
-    p2piecesEn.push(
-      'An easeful, expressive streak places ease at the centre — learning works best when it doubles as enjoyment.'
-    )
+    p2piecesEn.push('An easeful, expressive streak puts ease at the center for you — learning works best when it doubles as something you enjoy.')
   }
   if (topMercAspect && mercury) {
     const other =
@@ -150,7 +137,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
         `생각의 별이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topMercAspect.type, 'ko')}, ${mercAspectFlavorKo(other)}의 색이 사고 방식에 새겨져 있어요.`
       )
       p2piecesEn.push(
-        `Mercury ${aspectQuality(topMercAspect.type, 'en')} ${other}, etching a ${mercAspectFlavorEn(other)} grain into how you think.`
+        `Your Mercury ${aspectQuality(topMercAspect.type, 'en')} with ${other}, etching a ${mercAspectFlavorEn(other)} quality into the way you think.`
       )
     }
   }
@@ -165,7 +152,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     p2piecesEn.length
       ? p2piecesEn
       : [
-          'Your learning grain is evenly distributed — keeping multiple channels open lets luck flow more naturally.',
+          'Your learning signals sit in an even balance — keeping multiple channels open lets luck flow toward you more naturally.',
         ]
   )
 
@@ -177,7 +164,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
       `이번 생의 방향이 ${signLabel(nn.sign, 'ko')}${nn.house ? `의 ${houseLabel(nn.house, 'ko')}` : ''}에 있어, 학습은 단순한 지식이 아니라 영혼의 ${signMissionKo(nn.sign)}을 따라가는 길이에요.`
     )
     p3piecesEn.push(
-      `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? ` (${houseLabel(nn.house, 'en')})` : ''}, so study is not data but a path toward ${signMissionEn(nn.sign)}.`
+      `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? ` (${houseLabel(nn.house, 'en')})` : ''}, so study is not just data for you — it becomes a path toward ${signMissionEn(nn.sign)}.`
     )
   }
   if (h9 && h9.strength >= 40) {
@@ -185,47 +172,27 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
       '지혜의 깊은 자질이 차트 안에서 분명하게 울리고 있어요. 한 분야를 끝까지 파고들면 평범한 학습 너머의 통찰이 열려요.'
     )
     p3piecesEn.push(
-      'Harmonics 9 resonates clearly in your chart — pushing one field to its bottom unlocks insight beyond ordinary study.'
+      'The 9th harmonic resonates clearly in your chart — pushing one single field all the way to the bottom unlocks insight that goes beyond ordinary study.'
     )
   } else if (h9) {
     p3pieces.push(
       '지혜의 깊은 자질은 잔잔하게 깔려 있어요. 의식적으로 사유와 명상의 시간을 두면 자연스럽게 강해져요.'
     )
     p3piecesEn.push(
-      'Harmonics 9 sits quietly — deliberate reflection and meditation will strengthen it over time.'
+      'The 9th harmonic runs quietly beneath the surface — deliberate reflection and meditation are what will strengthen it over time.'
     )
   }
   if (geokguk && geokguk.includes('인')) {
-    p3pieces.push(
-      '인생의 큰 패턴 자체가 배움·돌봄의 결이라, 가르치고 다루는 사람이 되는 길이 가장 본인답게 풀려요.'
-    )
-    p3piecesEn.push(
-      'Your life-pattern sits in the wisdom-and-care family — the teacher and carrier path fits most natively.'
-    )
+    p3pieces.push('인생의 큰 패턴 자체가 배움·돌봄의 결이라, 가르치고 다루는 사람이 되는 길이 가장 본인답게 풀려요.')
+    p3piecesEn.push('Your life-pattern sits in the wisdom-and-care family — the path of the teacher and the keeper of knowledge fits you most naturally.')
   }
   if (munchang) {
     p3pieces.push('학문과 창작의 별이 사주에 들어와 있어서, 글·이론·자료를 통해 성취가 빨라요.')
-    p3piecesEn.push(
-      'A literary star lights your chart — writing, theory and material study accelerate your achievement.'
-    )
-  }
-  // Jupiter × house — 확장·신앙의 무대 (wisdom 핵심 외행성)
-  const jupiterHouseW = planetHouseLine('Jupiter', jupiter?.house, 'ko')
-  if (jupiterHouseW) {
-    astroUsed.push('pools.planetHouse.jupiter')
-    p3pieces.push(`${jupiterHouseW}.`)
-  }
-  // Saturn × house — 단련·구조의 무대 (wisdom 깊이 외행성)
-  const saturnHouseW = planetHouseLine('Saturn', saturn?.house, 'ko')
-  if (saturnHouseW) {
-    astroUsed.push('pools.planetHouse.saturn')
-    p3pieces.push(`${saturnHouseW}.`)
+    p3piecesEn.push('A literary star lights your chart — writing, theory, and study of source material all accelerate what you can achieve.')
   }
   if (hakdang) {
     p3pieces.push('학당의 별도 함께 있어, 공식적인 교육과 자격 과정에서 운이 잘 풀려요.')
-    p3piecesEn.push(
-      'An academy star also sits in your chart — formal education and accreditation tracks suit you.'
-    )
+    p3piecesEn.push('An academy star also sits in your chart — formal education and credentialed tracks tend to suit you well.')
   }
   // Saju relations — 합(joining) often supports learning lineage / mentor
   const relKoWisdom = relationPhraseKo(calendarSignals?.sajuRelations, {
@@ -239,7 +206,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     p3pieces.push(`${relKoWisdom} 가르치는 사람이나 책과의 결합이 학습의 토대가 돼요.`)
     if (relEnWisdom)
       p3piecesEn.push(
-        `${relEnWisdom} Pairing with teachers or books carries the learning foundation.`
+        `${relEnWisdom} The pairing with teachers or with the right books becomes the foundation of your learning.`
       )
   }
   // Lot of Daimon — 영혼·천재의 점 (Spirit aliased)
@@ -250,7 +217,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
       `영혼의 행운점이 ${signLabel(daimon.sign, 'ko')}에 놓여, 진짜 지혜가 자라는 자리도 같은 결을 따라요.`
     )
     p3piecesEn.push(
-      `Your Lot of Daimon in ${signLabel(daimon.sign, 'en')} — the seat where real wisdom grows shares that grain.`
+      `Your Lot of Daimon sits in ${signLabel(daimon.sign, 'en')} — the place where real wisdom grows in you shares that same flavor.`
     )
   }
   const p3ko = paragraph(
@@ -261,7 +228,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const p3en = paragraph(
     p3piecesEn.length
       ? p3piecesEn
-      : ['Current signals favour deepening what you already know rather than chasing new domains.']
+      : ['Your current signals favor deepening what you already know rather than chasing new fields.']
   )
 
   // ── Paragraph 4: 가이드
@@ -269,24 +236,22 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const guidePiecesEn: string[] = ['Daily handle:']
   if (inseong >= 2) {
     guidePiecesKo.push('하루에 단 한 가지라도 정리해서 남겨두세요. 인성의 자질은 기록으로 자라요.')
-    guidePiecesEn.push(
-      'Record one thing each day — your wisdom-and-care pattern grows through notes.'
-    )
+    guidePiecesEn.push('Record one thing each day — your wisdom-and-care pattern grows through the steady practice of taking notes.')
   } else if (sangwan >= 2) {
     guidePiecesKo.push('배운 것을 즉시 누군가에게 풀어보세요. 가르치는 순간 진짜 지혜가 돼요.')
     guidePiecesEn.push(
-      'Explain what you learn to someone right away — teaching is when knowledge becomes wisdom.'
+      'Explain what you learn to someone else right away — the moment of teaching is what turns knowledge into wisdom.'
     )
   } else {
     guidePiecesKo.push('주제를 좁히고 한 분야에 머무는 시간을 늘려보세요. 깊이가 운을 끌어옵니다.')
-    guidePiecesEn.push('Narrow the topic and stay longer in one field — depth attracts luck.')
+    guidePiecesEn.push('Narrow your topic and stay longer in one field — depth is what attracts luck toward you.')
   }
   if (profIsLearning && prof) {
     guidePiecesKo.push(
       `올해는 ${prof.house}궁이 열려 있어, 학습과 확장이 손에 잡히는 결과로 이어지는 한 해예요.`
     )
     guidePiecesEn.push(
-      `This year activates house ${prof.house} — learning and expansion will translate into tangible results.`
+      `This year activates your ${houseLabel(prof.house, 'en')} — learning and expansion will translate into tangible results this year.`
     )
   }
   const guideKo = paragraph(guidePiecesKo)
