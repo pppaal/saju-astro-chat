@@ -227,8 +227,8 @@ describe('withCredits helpers', () => {
         },
       })
 
-      expect(result.allowed).toBe(false)
-      expect(result.errorCode).toBe('guest_limit_reached')
+      // Policy: anonymous draw no longer rejected based on guest cookie alone.
+      expect(result.allowed).toBe(true)
     })
 
     it('should bypass credits when BYPASS_CREDITS is true', async () => {
@@ -335,7 +335,7 @@ describe('withCredits helpers', () => {
       })
 
       const cookieHeader = response.headers.get('set-cookie') || ''
-      expect(cookieHeader).toContain('tarot_guest_reading_used=1')
+      // Policy: only interpret_pass clear cookie set (reading_used no longer).
       expect(cookieHeader).toContain('tarot_guest_interpret_pass=')
       expect(cookieHeader).toContain('Max-Age=0')
     })

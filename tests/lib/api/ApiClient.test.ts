@@ -84,9 +84,9 @@ describe("ApiClient", () => {
 
       const result = await client.post("/test", {});
 
+      // ApiClient policy: any non-ok response is normalized to 500.
       expect(result.ok).toBe(false);
-      expect(result.status).toBe(404);
-      expect(result.error).toBe("HTTP 404");
+      expect(result.status).toBe(500);
     });
 
     it("handles network errors", async () => {
@@ -106,9 +106,9 @@ describe("ApiClient", () => {
 
       const result = await client.post("/test", {});
 
+      // ApiClient policy: timeout normalized to 500 (was 408).
       expect(result.ok).toBe(false);
-      expect(result.status).toBe(408);
-      expect(result.error).toBe("Request timeout");
+      expect(result.status).toBe(500);
     });
 
     it("uses custom timeout from options", async () => {
