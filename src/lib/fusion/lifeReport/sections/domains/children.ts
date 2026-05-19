@@ -156,10 +156,10 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       : sikSangTotal === 0
         ? 'Your bond with children grows through conscious choice.'
         : 'Your bond with children runs calm and stable.',
-    `Your creative-expression dynamic comes through as ${sikSangTotal} strong stream${sikSangTotal === 1 ? '' : 's'} — ${childFlavorEn(sikSangTotal)}.`,
+    `Creative expression comes through as ${sikSangCountWordEn(sikSangTotal)} strong stream${sikSangTotal === 1 ? '' : 's'} — ${childFlavorEn(sikSangTotal)}.`,
     fifth.length > 0
       ? `With ${fifth.map((p) => p.name).join(', ')} inside the 5th house, the seat of children, creation and play is fully active.`
-      : 'With an empty 5th house, the children-related markers are carried by other placements.',
+      : 'With an empty 5th house, the signs of children come from other placements.',
   ])
 
   // ── Paragraph 2: 자녀 수 추정 + 시주 분석
@@ -293,8 +293,15 @@ function childCountFlavorKo(n: number): string {
 function childFlavorEn(n: number): string {
   if (n === 0) return 'other signals carry the child-related thread'
   if (n === 1) return 'a single, stable thread of bond'
-  if (n === 2) return 'a clear, flowing bond'
+  if (n === 2) return 'a clear, easy bond'
   return 'a rich, abundant signal'
+}
+
+// 숫자를 자연 영어 단어로 (1~10 까지; 그 외엔 숫자 그대로).
+function sikSangCountWordEn(n: number): string {
+  const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
+  if (n >= 0 && n <= 10) return words[n]
+  return String(n)
 }
 
 function confLabelKo(c: 'high' | 'medium' | 'low'): string {

@@ -92,7 +92,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       ? `Weak in ${weakLabelsEn.join('/')}, so ${organEn(weak)} need ongoing care.`
       : 'Your five elements sit relatively even, so no single weakness dominates.',
     yongsin
-      ? `Your supportive element is ${yongsinElementEnHealth(yongsin)}, so ${yongsinFlavorEn(yongsin)} is the daily way to reinforce it.`
+      ? `Your supportive element is ${yongsinElementEnHealth(yongsin)}, so ${yongsinFlavorEn(yongsin)} is your daily way to strengthen it.`
       : '',
   ])
 

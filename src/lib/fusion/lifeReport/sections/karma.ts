@@ -67,7 +67,7 @@ function karmaGeokgukShortKo(g: string): string {
 // 격국 → natural English (raw 사주 용어 없이) — karma 섹션 전용.
 function karmaGeokgukShortEn(g: string): string {
   if (!g) return 'its native shape'
-  if (g.includes('편관')) return 'a pressure-as-fuel path, carrying weight through challenge and responsibility'
+  if (g.includes('편관')) return 'a pressure-as-fuel path that carries weight through challenge and responsibility'
   if (g.includes('정관')) return 'a steady-authority path, settling into responsibility'
   if (g.includes('편재')) return 'an opportunistic-resource sense, catching openings as they pass'
   if (g.includes('정재')) return 'a steady-resource path, building up patiently'
@@ -287,7 +287,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       : '',
   ])
   const p1en = paragraph([
-    `In this life your soul-line works out ${karmaGeokgukShortEn(geokguk)}, completed through ${missionEn}.`,
+    `In this life your soul walks ${karmaGeokgukShortEn(geokguk)}, finding its completion in ${missionEn}.`,
     nn
       ? `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? `'s ${ordinalShortKarma(nn.house)} house` : ''} — the direction your soul wants to grow.`
       : '',
@@ -444,7 +444,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     p5piecesEn.length
       ? p5piecesEn
       : [
-          'Your soul-line aligns calmly with the natal — small daily attentions, not grand awakenings, fit best.',
+          'Your soul aligns calmly with the natal chart — small daily attentions, not grand awakenings, fit best.',
         ]
   )
 

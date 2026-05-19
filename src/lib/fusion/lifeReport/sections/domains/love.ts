@@ -136,7 +136,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     ? `사랑의 별인 금성이 ${signLabel(venus.sign, 'ko')}에 자리잡아, ${venusFlavorKo(venus.sign, venus.house)}이 사랑의 색이에요.`
     : ''
   const venusBlurbEn = venus
-    ? `Venus in ${signLabel(venus.sign, 'en')} (${houseLabel(venus.house, 'en')}) gives love the flavor of ${venusFlavorEn(venus.sign, venus.house)}.`
+    ? `Venus in ${signLabel(venus.sign, 'en')} (${houseLabel(venus.house, 'en')}) brings ${venusFlavorEn(venus.sign, venus.house)} to your love life.`
     : ''
   // Variation pools — dominant sibsin category × love + Moon × sign × love.
   const dayMasterStem = saju.pillars.day.stem || ''
@@ -554,7 +554,7 @@ function pickLoveStyleEn(
   if (isFemale && pg >= 2)
     return 'You respond to intense, instinctive attraction. A strong pressure-as-fuel pattern brings stimulating encounters, but you need a separate steady zone.'
   if (!isFemale && jj >= 1 && pj === 0)
-    return 'You favour stability and trust in love. A steady, anchored-resource pattern fits a long, lasting bond.'
+    return 'You favour stability and trust in love. A steady, grounded streak fits a long, lasting bond.'
   if (!isFemale && pj >= 2)
     return 'You move toward freedom and variety. A strong opportunistic-resource pattern lets you find your grain through many meetings.'
   if (cat.관성 === 0 && isFemale)

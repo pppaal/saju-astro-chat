@@ -125,7 +125,7 @@ export function buildHeadline(input: BuilderInput): Headline {
   const strengthKo = STRENGTH_LABEL_KO[strength] || ''
   const strengthEn = STRENGTH_LABEL_EN[strength] || ''
   const geokgukKo = geokguk ? ` 삶의 큰 흐름은 ${geokgukFlavorKo(geokguk)}이에요.` : ''
-  const geokgukEn = geokguk ? ` Your life-shape runs as ${geokgukFlavorEn(geokguk)}.` : ''
+  const geokgukEn = geokguk ? ` The shape of your life runs as ${geokgukFlavorEn(geokguk)}.` : ''
   const jongKo = jongType ? ' 한 방향으로 강하게 흐르는 성향도 함께 있어요.' : ''
   const jongEn = jongType ? ' A single-direction current also runs strongly through you.' : ''
 
@@ -138,7 +138,7 @@ export function buildHeadline(input: BuilderInput): Headline {
     `당신은 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} 성향을 타고난 사람이에요.` +
     `${geokgukKo}${jongKo}${rootKo}`
   const s1en =
-    `You are born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEn}`
+    `You were born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEn}`
 
   // ─ Sentence 2 — astrology identity (자연스러운 분리 문장)
   // "별" 단어를 한 문장 안에서 최대 1회로 제한 — 자아=태양, 감정=달은
@@ -183,10 +183,10 @@ export function buildHeadline(input: BuilderInput): Headline {
     if (planetPart) return ` ${planetPart}.`
     return ''
   })()
-  const modFlavorEn = domModality ? `, with a ${domModality} cadence` : ''
+  const modFlavorEn = domModality ? `, with ${modalityFlavorEn(domModality)}` : ''
   const domPlanetEn = dom ? `, led by ${planetLabel(dom, 'en')}` : ''
   const lackKo = lackEl ? ` 단 ${ELEMENT_FLAVOR_KO[lackEl]} 기운은 살짝 비어 있어요.` : ''
-  const lackEn = lackEl ? `, while ${ELEMENT_FLAVOR_EN[lackEl]} stays unfilled` : ''
+  const lackEn = lackEl ? `, though ${ELEMENT_FLAVOR_EN[lackEl]} is missing` : ''
 
   // iljuCharacter는 한국어 텍스트라 영어 narrative에는 노출하지 않음.
   void iljuChar
@@ -205,6 +205,12 @@ export function buildHeadline(input: BuilderInput): Headline {
     en: paragraphJoin([s1en, s2en, s3en]),
     signals: { saju: sajuUsed, astro: astroUsed },
   }
+}
+
+function modalityFlavorEn(m: 'cardinal' | 'fixed' | 'mutable'): string {
+  if (m === 'cardinal') return 'a rhythm of starting things'
+  if (m === 'fixed') return 'a rhythm of holding steady'
+  return 'a rhythm of flowing change'
 }
 
 function modalityKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
