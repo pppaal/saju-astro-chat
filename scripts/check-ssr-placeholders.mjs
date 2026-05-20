@@ -18,7 +18,17 @@ function extractVisibleText(html) {
 }
 
 async function fetchPage(path, options = {}) {
-  const response = await fetch(`${BASE_URL}${path}`, options)
+  // Mimic a real browser navigation: the locale middleware only sets the
+  // x-locale header (used for SSR language) when the request accepts
+  // text/html. Without this, requests fall through as `*/*` and the page
+  // renders in the default locale, which would falsely fail the KO checks.
+  const response = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      ...options.headers,
+    },
+  })
   return {
     status: response.status,
     html: await response.text(),
