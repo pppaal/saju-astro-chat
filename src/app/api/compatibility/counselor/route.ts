@@ -85,6 +85,36 @@ import {
   formatTimingForPrompt,
 } from './routeSupport'
 
+// 개별(self) 신살 — 각자 타고난 백호·괴강·양인·도화·역마·천을귀인 등.
+// buildAutoSajuContext가 이미 계산하지만(extras.shinsal) self 블록이 voided라
+// 궁합 프롬프트엔 안 들어가던 신호. 한 사람당 1줄로 압축해 surface한다.
+const PILLAR_KO: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
+// 일반 버킷·cross에서 이미 다루는 것은 개별 줄에서 제외(중복 방지).
+// 12신살(자리 기준)은 synastry [12신살] 블록이 cross로 이미 다루므로 빼고,
+// 백호·괴강·양인·도화·천을귀인 같은 *특수* 신살만 남긴다.
+const PERSONAL_SHINSAL_SKIP = new Set([
+  '길성', '흉성',
+  '장성', '반안', '재살', '천살', '월살', '망신', '역마', '화개', '겁살', '육해', '지살', '년살', '화해', '괘살',
+  '삼재',
+])
+
+function formatPersonalShinsal(label: string, shinsal: unknown): string | null {
+  if (!Array.isArray(shinsal) || shinsal.length === 0) return null
+  const byKind = new Map<string, Set<string>>()
+  for (const raw of shinsal) {
+    const h = raw as { kind?: string; pillars?: string[] }
+    if (!h?.kind || PERSONAL_SHINSAL_SKIP.has(h.kind)) continue
+    const set = byKind.get(h.kind) ?? new Set<string>()
+    for (const p of h.pillars ?? []) set.add(PILLAR_KO[p] ?? p)
+    byKind.set(h.kind, set)
+  }
+  if (byKind.size === 0) return null
+  const parts = [...byKind.entries()].map(([kind, ps]) =>
+    ps.size > 0 ? `${kind}(${[...ps].join('·')})` : kind
+  )
+  return `${label}: ${parts.join(', ')}`
+}
+
 export async function POST(req: NextRequest) {
   try {
     // Apply middleware: prefer authenticated guard (with credits) but fall
@@ -638,10 +668,30 @@ export async function POST(req: NextRequest) {
     })
     const metaBlock = metaLines.join('\n')
 
+    // 개별 신살 — 각자 타고난 self 신살(백호·괴강·양인·도화 등)을 1인 1줄로.
+    const personalShinsalLines = [
+      formatPersonalShinsal(
+        (persons?.[0] as { name?: string } | undefined)?.name
+          ? `A(${(persons[0] as { name?: string }).name})`
+          : 'A',
+        (effectivePerson1Saju as { extras?: { shinsal?: unknown } } | null)?.extras?.shinsal
+      ),
+      formatPersonalShinsal(
+        (persons?.[1] as { name?: string } | undefined)?.name
+          ? `B(${(persons[1] as { name?: string }).name})`
+          : 'B',
+        (effectivePerson2Saju as { extras?: { shinsal?: unknown } } | null)?.extras?.shinsal
+      ),
+    ].filter(Boolean)
+    const personalShinsalBlock = personalShinsalLines.length
+      ? `[개별 신살 — 각자 타고난 것 (self)]\n${personalShinsalLines.join('\n')}`
+      : ''
+
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
       metaBlock,
+      personalShinsalBlock ? `\n${personalShinsalBlock}` : '',
       sajuSynastryBlock ? `\n${sajuSynastryBlock}` : '',
       astroSynastryBlock ? `\n${astroSynastryBlock}` : '',
       // legacy fullContext 또는 시간 미상 안내
