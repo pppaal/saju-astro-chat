@@ -23,6 +23,7 @@ import {
 import { northNode } from '../../signals/astroSynthesis'
 import {
   aspectQuality,
+  gwaWa,
   houseLabel,
   paragraph,
   planetLabel,
@@ -160,8 +161,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
         p2pieces.push(firstSentenceWisdom(mercEntry.ko))
         p2piecesEn.push(firstSentenceWisdom(mercEntry.en))
       } else {
+        const otherKo = planetLabel(other, 'ko')
         p2pieces.push(
-          `생각의 별이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topMercAspect.type, 'ko')}, ${mercAspectFlavorKo(other)}의 색이 사고 방식에 새겨져 있어요.`
+          `생각의 별이 ${otherKo}${gwaWa(otherKo)} ${aspectQuality(topMercAspect.type, 'ko')}, ${mercAspectFlavorKo(other)}의 색이 사고 방식에 새겨져 있어요.`
         )
         p2piecesEn.push(
           `Your Mercury ${aspectQuality(topMercAspect.type, 'en')} with ${other}, etching a ${mercAspectFlavorEn(other)} quality into the way you think.`

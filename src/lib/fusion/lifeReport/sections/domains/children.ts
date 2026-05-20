@@ -209,7 +209,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   }
   if (pa) {
     deepKo.push(
-      `팔라스(지혜 양육)가 ${signLabel(pa.sign, 'ko')}에 있어서, 지혜롭게 키우는 성향이 있어요.`
+      `지혜의 별 팔라스가 ${signLabel(pa.sign, 'ko')}에 있어서, 지혜롭게 키우는 성향이 있어요.`
     )
     deepEn.push(
       `Pallas in ${signLabel(pa.sign, 'en')} ${houseLabel(pa.house, 'en')} gives a wise-nurturing grain.`
@@ -217,7 +217,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   }
   if (ce) {
     deepKo.push(
-      `세레스(양육)가 ${signLabel(ce.sign, 'ko')}에 있어서, ${ceresFlavorKo(ce.house)} 양육 스타일이 흘러요.`
+      `양육의 별 케레스가 ${signLabel(ce.sign, 'ko')}에 있어서, ${ceresFlavorKo(ce.house)} 양육 스타일이 흘러요.`
     )
     deepEn.push(
       `Ceres in ${signLabel(ce.sign, 'en')} ${houseLabel(ce.house, 'en')} brings ${ceresFlavorEn(ce.house)} nurturing.`

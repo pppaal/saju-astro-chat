@@ -61,9 +61,36 @@ export function planetsInHouse(astro: AstrologyLikeChart, house: number): Planet
   return (astro.planets ?? []).filter((p) => p.house === house)
 }
 
-export function houseCusp(astro: AstrologyLikeChart, index: number): { sign?: string } | undefined {
+const SIGNS_BY_LONGITUDE = [
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
+]
+
+export function houseCusp(
+  astro: AstrologyLikeChart,
+  index: number
+): { sign?: string; cusp?: number } | undefined {
   const houses = astro.houses ?? []
-  return houses[index - 1]
+  const h = houses[index - 1] as { sign?: string; cusp?: number } | undefined
+  if (!h) return undefined
+  if (h.sign) return h
+  // API 경로의 house 객체는 cusp(경도)만 있고 sign이 없을 수 있다 — 경도로
+  // 별자리를 파생해 signLabel 이 '하늘'로 떨어지는 걸 막는다.
+  if (typeof h.cusp === 'number' && Number.isFinite(h.cusp)) {
+    const sign = SIGNS_BY_LONGITUDE[Math.floor((((h.cusp % 360) + 360) % 360) / 30)]
+    return { ...h, sign }
+  }
+  return h
 }
 
 /**
