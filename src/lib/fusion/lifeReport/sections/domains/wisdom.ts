@@ -12,7 +12,14 @@ import {
   relationPhraseEn,
   relationPhraseKo,
 } from '../../signals/sajuSignals'
-import { aspectsOf, getPlanet, houseCusp, pallas, planetsInHouse } from '../../signals/astroSignals'
+import {
+  aspectPairEntryMajor,
+  aspectsOf,
+  getPlanet,
+  houseCusp,
+  pallas,
+  planetsInHouse,
+} from '../../signals/astroSignals'
 import { northNode } from '../../signals/astroSynthesis'
 import {
   aspectQuality,
@@ -145,12 +152,21 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     const other =
       topMercAspect.from?.name === 'Mercury' ? topMercAspect.to?.name : topMercAspect.from?.name
     if (other) {
-      p2pieces.push(
-        `생각의 별이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topMercAspect.type, 'ko')}, ${mercAspectFlavorKo(other)}의 색이 사고 방식에 새겨져 있어요.`
-      )
-      p2piecesEn.push(
-        `Your Mercury ${aspectQuality(topMercAspect.type, 'en')} with ${other}, etching a ${mercAspectFlavorEn(other)} quality into the way you think.`
-      )
+      // Mercury × other 각의 구체 narrative를 aspectPair DB에서 우선 사용,
+      // 미수록(minor 각 등)이면 기존 일반 문구로 fallback.
+      const mercEntry = aspectPairEntryMajor('Mercury', other, topMercAspect.type)
+      if (mercEntry) {
+        astroUsed.push('aspectPairDictionary.mercury')
+        p2pieces.push(firstSentenceWisdom(mercEntry.ko))
+        p2piecesEn.push(firstSentenceWisdom(mercEntry.en))
+      } else {
+        p2pieces.push(
+          `생각의 별이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topMercAspect.type, 'ko')}, ${mercAspectFlavorKo(other)}의 색이 사고 방식에 새겨져 있어요.`
+        )
+        p2piecesEn.push(
+          `Your Mercury ${aspectQuality(topMercAspect.type, 'en')} with ${other}, etching a ${mercAspectFlavorEn(other)} quality into the way you think.`
+        )
+      }
     }
   }
   const p2ko = paragraph(

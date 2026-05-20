@@ -4,6 +4,33 @@
 
 import type { PlanetBase, AspectHit } from '@/lib/astrology/foundation/types'
 import type { AstrologyLikeChart } from '../types'
+import {
+  findAspectPairEntry,
+  type AspectKind,
+  type AspectPairEntry,
+} from '@/lib/astrology/interpretations'
+
+// 5대 주요 각(conjunction/sextile/square/trine/opposition)일 때만 aspectPair
+// DB(ASPECT_PAIR_DICTIONARY) entry를 조회. minor 각(quincunx 등)은 DB 미수록.
+const MAJOR_ASPECTS = new Set<AspectKind>([
+  'conjunction',
+  'sextile',
+  'square',
+  'trine',
+  'opposition',
+])
+export function aspectPairEntryMajor(
+  planetA: string,
+  planetB: string,
+  type: string
+): AspectPairEntry | null {
+  if (!MAJOR_ASPECTS.has(type as AspectKind)) return null
+  return findAspectPairEntry(
+    planetA as Parameters<typeof findAspectPairEntry>[0],
+    planetB as Parameters<typeof findAspectPairEntry>[1],
+    type as AspectKind
+  )
+}
 
 export function getPlanet(astro: AstrologyLikeChart, name: string): PlanetBase | undefined {
   return (astro.planets ?? []).find((p) => p.name.toLowerCase() === name.toLowerCase())

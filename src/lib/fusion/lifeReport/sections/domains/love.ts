@@ -15,6 +15,7 @@ import {
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
+  aspectPairEntryMajor,
   aspectsOf,
   fixedStarOn,
   getPlanet,
@@ -27,11 +28,7 @@ import {
 import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
 import { findSignCombination } from '@/lib/astrology/signCombinations'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
-import {
-  findAspectPairEntry,
-  type AspectKind,
-  type ZodiacName,
-} from '@/lib/astrology/interpretations'
+import type { ZodiacName } from '@/lib/astrology/interpretations'
 import {
   appendToPara,
   pickVariation,
@@ -578,24 +575,6 @@ function firstSentenceLove(text: string): string {
 // 영어 문장을 다른 절 뒤에 이어붙일 때 첫 글자를 소문자로.
 function lowerFirst(s: string): string {
   return s ? s.charAt(0).toLowerCase() + s.slice(1) : s
-}
-
-// 5대 주요 각(conjunction/sextile/square/trine/opposition)일 때만 aspectPair
-// DB entry를 조회. minor aspect(quincunx 등)는 DB 미수록이라 null.
-const MAJOR_ASPECTS = new Set<AspectKind>([
-  'conjunction',
-  'sextile',
-  'square',
-  'trine',
-  'opposition',
-])
-function aspectPairEntryMajor(planetA: string, planetB: string, type: string) {
-  if (!MAJOR_ASPECTS.has(type as AspectKind)) return null
-  return findAspectPairEntry(
-    planetA as Parameters<typeof findAspectPairEntry>[0],
-    planetB as Parameters<typeof findAspectPairEntry>[1],
-    type as AspectKind
-  )
 }
 
 function pickDominantCategoryLove(cat: Record<string, number>): string {
