@@ -560,7 +560,6 @@ describe('Couple Tarot Reading [readingId] API - GET', () => {
       const reading = data.data.reading
       expect(reading.id).toBe(mockTarotReading.id)
       expect(reading.question).toBe(mockTarotReading.question)
-      expect(reading.theme).toBe(mockTarotReading.theme)
       expect(reading.spreadId).toBe(mockTarotReading.spreadId)
       expect(reading.spreadTitle).toBe(mockTarotReading.spreadTitle)
       expect(reading.cards).toEqual(mockTarotReading.cards)

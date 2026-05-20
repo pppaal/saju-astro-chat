@@ -501,7 +501,6 @@ describe('/api/tarot/save/[id]', () => {
         expect(result.data.reading).toBeDefined()
         expect(result.data.reading.id).toBe(mockReadingId)
         expect(result.data.reading.question).toBe('What does my future hold?')
-        expect(result.data.reading.theme).toBe('Future')
         expect(result.data.reading.spreadId).toBe('three-card')
         expect(result.data.reading.spreadTitle).toBe('Three Card Spread')
       })
@@ -864,7 +863,7 @@ describe('/api/tarot/save/[id]', () => {
       const result = await response.json()
 
       expect(response.status).toBe(200)
-      expect(result.data.reading.theme).toBeNull()
+      // theme은 더 이상 별도 컬럼으로 반환되지 않음(cards payload로 이동).
       expect(result.data.reading.overallMessage).toBeNull()
     })
 
