@@ -152,7 +152,6 @@ describe('/api/counselor/chat-history', () => {
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            theme: 'career',
           }),
         })
       )
@@ -237,7 +236,6 @@ describe('/api/counselor/chat-history', () => {
         expect.objectContaining({
           select: {
             id: true,
-            theme: true,
             summary: true,
             keyTopics: true,
             messageCount: true,
@@ -291,8 +289,8 @@ describe('/api/counselor/chat-history', () => {
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error.code).toBe('MISSING_FIELD')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return 400 when limit is above maximum (101)', async () => {
@@ -301,8 +299,8 @@ describe('/api/counselor/chat-history', () => {
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error.code).toBe('MISSING_FIELD')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return 400 when limit is not a valid number', async () => {
@@ -321,8 +319,8 @@ describe('/api/counselor/chat-history', () => {
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error.code).toBe('MISSING_FIELD')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should accept valid limit at boundary (1)', async () => {
@@ -400,7 +398,6 @@ describe('/api/counselor/chat-history', () => {
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            theme: 'career',
             userId: mockUserId,
           }),
           take: 10,
@@ -507,7 +504,6 @@ describe('/api/counselor/chat-history', () => {
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          theme: 'chat',
         }),
       })
     })

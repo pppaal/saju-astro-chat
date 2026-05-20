@@ -251,7 +251,6 @@ describe('/api/counselor/session/load', () => {
       expect(mockFindFirst).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
-          theme: 'chat',
         },
         orderBy: {
           updatedAt: 'desc',
@@ -269,7 +268,6 @@ describe('/api/counselor/session/load', () => {
       expect(mockFindFirst).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
-          theme: 'career',
         },
         orderBy: {
           updatedAt: 'desc',
@@ -306,13 +304,7 @@ describe('/api/counselor/session/load', () => {
       expect(data.details).toBeDefined()
     })
 
-    it('should reject theme exceeding 50 characters', async () => {
-      const response = await GET(makeRequest({ theme: 'a'.repeat(51) }))
-      const data = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
-    })
+    // 'reject theme exceeding 50 characters' 제거 — theme 검증/쿼리 제거됨.
 
     it('should reject sessionId exceeding 100 characters', async () => {
       const response = await GET(makeRequest({ sessionId: 'a'.repeat(101) }))
@@ -457,7 +449,6 @@ describe('/api/counselor/session/load', () => {
       expect(mockFindFirst).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
-          theme: 'love',
         },
         orderBy: {
           updatedAt: 'desc',
@@ -473,7 +464,6 @@ describe('/api/counselor/session/load', () => {
       expect(mockFindFirst).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
-          theme: 'chat',
         },
         orderBy: {
           updatedAt: 'desc',
@@ -525,6 +515,12 @@ describe('/api/counselor/session/load', () => {
         messages: mockChatSession.messages,
         summary: 'A conversation about various topics',
         keyTopics: ['topic1', 'topic2', 'topic3'],
+        session: {
+          id: 'session-full',
+          messages: mockChatSession.messages,
+          summary: 'A conversation about various topics',
+          keyTopics: ['topic1', 'topic2', 'topic3'],
+        },
       })
     })
 
@@ -612,7 +608,6 @@ describe('/api/counselor/session/load', () => {
         expect(mockFindFirst).toHaveBeenCalledWith({
           where: {
             userId: mockUserId,
-            theme,
           },
           orderBy: {
             updatedAt: 'desc',
@@ -630,7 +625,6 @@ describe('/api/counselor/session/load', () => {
       expect(mockFindFirst).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
-          theme: 'custom-user-theme',
         },
         orderBy: {
           updatedAt: 'desc',
@@ -716,7 +710,6 @@ describe('/api/counselor/session/load', () => {
       expect(mockFindFirst).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
-          theme: 'love-relationship',
         },
         orderBy: {
           updatedAt: 'desc',
@@ -733,7 +726,6 @@ describe('/api/counselor/session/load', () => {
       expect(mockFindFirst).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
-          theme: 'focus_career',
         },
         orderBy: {
           updatedAt: 'desc',
@@ -991,7 +983,6 @@ describe('/api/counselor/session/load', () => {
       expect(mockFindFirst).toHaveBeenCalledWith({
         where: {
           userId: 'different-user-123',
-          theme: 'career',
         },
         orderBy: {
           updatedAt: 'desc',

@@ -452,7 +452,6 @@ describe('/api/counselor/session/save', () => {
         data: expect.objectContaining({
           id: 'session-123',
           userId: mockUserId,
-          theme: 'career',
           locale: 'ko',
           messages: validSessionData.messages,
           messageCount: 2,
@@ -483,7 +482,6 @@ describe('/api/counselor/session/save', () => {
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          theme: 'chat',
         }),
       })
     })
@@ -985,7 +983,6 @@ describe('/api/counselor/session/save', () => {
       expect(response.status).toBe(200)
       expect(mockCreate).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          theme: 'love-relationship',
         }),
       })
     })

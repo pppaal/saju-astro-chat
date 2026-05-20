@@ -234,20 +234,6 @@ describe('/api/counselor/session/list', () => {
   })
 
   describe('GET - Query Parameter Validation', () => {
-    it('should return 422 when theme exceeds 50 characters', async () => {
-      const longTheme = 'a'.repeat(51)
-      const req = new NextRequest(
-        `http://localhost:3000/api/counselor/session/list?theme=${longTheme}`,
-        { method: 'GET' }
-      )
-
-      const { GET } = await import('@/app/api/counselor/session/list/route')
-      const response = await GET(req)
-      const result = await response.json()
-
-      expect(response.status).toBe(422)
-      expect(result.error.code).toBe('VALIDATION_ERROR')
-    })
 
     it('should return 422 when limit is not a valid number', async () => {
       mockListSafeParse.mockReturnValue({
@@ -320,7 +306,6 @@ describe('/api/counselor/session/list', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             userId: mockUserId,
-            theme: 'career',
           }),
         })
       )
@@ -443,11 +428,13 @@ describe('/api/counselor/session/list', () => {
         expect.objectContaining({
           select: {
             id: true,
-            theme: true,
+            type: true,
+            title: true,
             locale: true,
             messageCount: true,
             summary: true,
             keyTopics: true,
+            messages: true,
             createdAt: true,
             updatedAt: true,
             lastMessageAt: true,
@@ -550,7 +537,6 @@ describe('/api/counselor/session/list', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             userId: mockUserId,
-            theme: 'career',
           }),
           take: 1,
         })
