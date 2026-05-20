@@ -107,10 +107,15 @@ export function buildInterpretation(args: {
   // domain별 picked — context/trigger는 section당 1개, 도메인은 최대 N개
   // (도메인 안에서는 section 중복 허용 — 같은 section의 다른 conditions 분기 룰
   //  여러 개 매칭 시 다 추가되어 narrative 풍부도 ↑)
-  const usedSectionsOutsideDomain = new Set<string>()
+  const sectionCount = new Map<string, number>()
   const usedRuleIds = new Set<string>()
   const domainPicks = new Map<string, typeof matched>()
   const picked: typeof matched = []
+
+  // 시간 cycle 섹션은 2줄까지 허용 (대운/세운/월운) — 룰은 이미 12/24/29개
+  // 있는데 1줄만 표출돼 얇았음. 두 번째 룰(다른 조건 분기)까지 풀어 깊이 ↑.
+  // natal/transit/pattern/shinsal 은 1줄 유지 (헤드라인 성격).
+  const SECTION_CAP: Record<string, number> = { daeun: 2, seun: 2, wolun: 2 }
 
   for (const m of matched) {
     if (usedRuleIds.has(m.rule.id)) continue
@@ -124,10 +129,11 @@ export function buildInterpretation(args: {
       domainPicks.set(domain, list)
       usedRuleIds.add(m.rule.id)
     } else {
-      // context (daeun/seun/wolun/natal) + trigger (transit/pattern/shinsal) — section당 1개
-      if (usedSectionsOutsideDomain.has(m.rule.section)) continue
+      const cap = SECTION_CAP[m.rule.section] ?? 1
+      const cur = sectionCount.get(m.rule.section) ?? 0
+      if (cur >= cap) continue
       picked.push(m)
-      usedSectionsOutsideDomain.add(m.rule.section)
+      sectionCount.set(m.rule.section, cur + 1)
       usedRuleIds.add(m.rule.id)
     }
   }
@@ -229,11 +235,35 @@ export function buildInterpretation(args: {
   })
 
   // 템플릿 채우기 (도메인 entry는 이미 합쳐진 텍스트라 fillTemplate 한 번 더 통과해도 안전)
-  const sections = picked.map((m) => ({
-    section: m.rule.section,
-    title: sectionTitle(m.rule.section, lang),
-    text: fillTemplate(pickRuleTemplate(m.rule, lang), m.vars),
-  }))
+  // 같은 section 이 2줄(대운/세운/월운 cap=2)이면 제목 한 번 + 본문 줄바꿈
+  // 으로 병합 — "[10년 큰 흐름]" 제목이 두 번 나오지 않게.
+  const sectionsRaw: Array<{ section: string; title: string; text: string }> = []
+  const sectionIndex = new Map<string, number>()
+  for (const m of picked) {
+    const text = fillTemplate(pickRuleTemplate(m.rule, lang), m.vars)
+    const idx = sectionIndex.get(m.rule.section)
+    if (idx != null) {
+      sectionsRaw[idx].text += `\n${text}`
+    } else {
+      sectionIndex.set(m.rule.section, sectionsRaw.length)
+      sectionsRaw.push({ section: m.rule.section, title: sectionTitle(m.rule.section, lang), text })
+    }
+  }
+  const sections = sectionsRaw
+
+  // ── Lever 2: 구조 추가 — 대운 위치/예고 + 월운 주간 분해 ──
+  // 대운: 지금 이 10년의 초/중/후반 + 다음 대운 한 줄 예고
+  const daeunSec = sections.find((s) => s.section === 'daeun')
+  if (daeunSec) {
+    const posLine = buildDaeunPositionLine(natal, cells, lang)
+    if (posLine) daeunSec.text += `\n${posLine}`
+  }
+  // 월운: 한 달을 주 단위로 끊어 각 주 키워드 한 줄 (scope=monthly 일 때만)
+  const wolunSec = sections.find((s) => s.section === 'wolun')
+  if (wolunSec && scope === 'monthly') {
+    const weekLine = buildWeeklyBreakdownLine(cells, lang)
+    if (weekLine) wolunSec.text += `\n${weekLine}`
+  }
 
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
 
@@ -632,6 +662,73 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
   }
 
   return vars
+}
+
+// 대운 위치 한 줄 — 지금 이 10년의 초/중/후반 + 다음 대운 예고.
+// natal.saju.daeun(startYear) + cells 의 대상 연도로 현재 대운 위치 계산.
+function buildDaeunPositionLine(
+  natal: NatalContext,
+  cells: CalendarCell[],
+  lang: InterpretationLang
+): string {
+  const daeun = natal.saju.daeun
+  if (!daeun || daeun.length === 0) return ''
+  const targetYear = Number(cells[0]?.datetime?.slice(0, 4))
+  if (!targetYear) return ''
+  const sorted = [...daeun].sort((a, b) => a.startYear - b.startYear)
+  let idx = -1
+  for (let i = 0; i < sorted.length; i++) {
+    if (sorted[i].startYear <= targetYear) idx = i
+    else break
+  }
+  if (idx < 0) return ''
+  const cur = sorted[idx]
+  const next = sorted[idx + 1]
+  const within = targetYear - cur.startYear // 0~9
+  const age = cur.startAge + within
+  const phaseKo = within <= 3 ? '초반' : within <= 6 ? '중반' : '후반'
+  const phaseEn = within <= 3 ? 'early' : within <= 6 ? 'mid' : 'late'
+  if (lang === 'en') {
+    let s = `Right now you're in the ${phaseEn} stretch of this 10-year arc (around age ${age}).`
+    if (next) s += ` The next arc opens around age ${next.startAge}.`
+    return s
+  }
+  let s = `지금은 이 10년의 **${phaseKo}** (${age}세 무렵)이에요.`
+  if (next) s += ` 다음 10년 흐름은 ${next.startAge}세 무렵 열려요.`
+  return s
+}
+
+// 월운 주간 분해 한 줄 — 한 달을 주 단위로 끊어 각 주의 평균 점수로
+// 강·평·주의 키워드. "왜 이 달이 굴곡지는지" 를 주차로 보여줌.
+function buildWeeklyBreakdownLine(cells: CalendarCell[], lang: InterpretationLang): string {
+  const dated = cells
+    .map((c) => ({ day: Number(c.datetime.slice(8, 10)), score: c.derivedScore }))
+    .filter((x) => x.day >= 1 && x.day <= 31)
+  if (dated.length < 14) return ''
+  const weeks: Array<{ lo: number; hi: number; scores: number[] }> = [
+    { lo: 1, hi: 7, scores: [] },
+    { lo: 8, hi: 14, scores: [] },
+    { lo: 15, hi: 21, scores: [] },
+    { lo: 22, hi: 31, scores: [] },
+  ]
+  for (const d of dated) {
+    const w = weeks.find((w) => d.day >= w.lo && d.day <= w.hi)
+    if (w) w.scores.push(d.score)
+  }
+  const labelKo = (avg: number) =>
+    avg >= 75 ? '강한 주' : avg >= 60 ? '순한 주' : avg >= 45 ? '평이한 주' : '조심할 주'
+  const labelEn = (avg: number) =>
+    avg >= 75 ? 'strong' : avg >= 60 ? 'smooth' : avg >= 45 ? 'steady' : 'careful'
+  const parts: string[] = []
+  weeks.forEach((w, i) => {
+    if (w.scores.length === 0) return
+    const avg = Math.round(w.scores.reduce((a, b) => a + b, 0) / w.scores.length)
+    parts.push(
+      lang === 'en' ? `W${i + 1} ${labelEn(avg)}(${avg})` : `${i + 1}주 ${labelKo(avg)}(${avg})`
+    )
+  })
+  if (parts.length === 0) return ''
+  return lang === 'en' ? `By week: ${parts.join(' · ')}.` : `주차별 흐름: ${parts.join(' · ')}.`
 }
 
 function buildBaseVars(natal: NatalContext): TemplateVars {
