@@ -769,11 +769,11 @@ const DOMAIN_THEME_GROUPS: Record<string, string[][]> = {
     ['학습·배움 우호적', '배우고 깊이 파고드는', 'favourable for learning', 'going deep'],
     [
       '예술·고독의 별',
-      '천문 활성',
+      '하늘 지혜의 별',
       '명상',
       'art-and-solitude',
+      'heaven-wisdom star',
       'meditation, religion',
-      'inner work',
     ],
   ],
 }
