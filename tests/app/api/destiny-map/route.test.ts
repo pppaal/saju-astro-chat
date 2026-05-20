@@ -728,8 +728,9 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       expect(mockSaveConsultation).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-abc-123',
-          theme: 'life',
           locale: 'ko',
+          fullReport: expect.any(String),
+          summary: expect.any(String),
         })
       )
     })
