@@ -53,14 +53,15 @@ export function getGanjiTransitNarrative(
   const period = PERIOD_LABEL[layer][lang]
 
   if (lang === 'ko') {
-    // 자연 어순: "이번 달은 [character] 의 에너지가 흐르는 시기예요."
-    // character 가 이미 한국어 명사구 ("창의적 리더형, 지혜와 결단") 라
-    // 조사 처리를 깔끔하게 하기 위해 끝 마침표만 떼고 그대로 임베드.
-    // 어미는 layer 별로 분리해 wolun/sewoon 룰 body 의 "시기예요" 와 cadence
-    // 중복되지 않게 함. (e.g. wolun rule body 가 "...강해지는 시기예요." 로
-    // 닫고 곧장 monthGanjiText 가 "...시기예요. 강점:..." 로 또 닫으면 시기예요
-    // 두 번 — Patch 1.)
-    const characterTrim = archetype.character.replace(/[.,。、]\s*$/u, '')
+    // 자연 어순: "이번 달은 [character] 의 결이 함께 흘러요."
+    // archetype.character 가 이미 "…의 결" 로 끝나면 "…의 결의 결이" 처럼
+    // 결 두 번 박힘. trim 단계에서 끝 마침표/공백 + 종성 "의 결" 도 떼어내고
+    // wrapper 가 깨끗하게 다시 붙임.
+    const characterTrim = archetype.character
+      .replace(/[.,。、]\s*$/u, '')
+      .replace(/\s*의\s*결\s*$/u, '')
+      .replace(/\s*결\s*$/u, '')
+      .trim()
     const strengths = archetype.strengths.join('·')
     const TAIL: Record<GanjiTransitLayer, string> = {
       daily: '에너지가 흐르는 하루예요',
@@ -75,7 +76,12 @@ export function getGanjiTransitNarrative(
   // 했으나, 이전엔 한국어 필드(character / strengths) 가 그대로 박혀
   // "this month carries the signature of 창의적 리더형, 지혜와 결단" 같이
   // 한·영 혼합으로 leak 됐음. _en 필드를 사용해 정상 영문 narrative 생성.
-  const characterEn = archetype.character_en.replace(/[.!?]\s*$/u, '')
+  // archetype.character_en 이 "The broad..." 처럼 article 로 시작하거나
+  // 첫 글자가 대문자면 wrapper 의 "the grain of The broad..." 처럼 대소문자
+  // 충돌 + double article. 첫 article 떼고 첫 글자 lowercase.
+  let characterEn = archetype.character_en.replace(/[.!?]\s*$/u, '')
+  characterEn = characterEn.replace(/^(The|A|An)\s+/, '')
+  characterEn = characterEn.charAt(0).toLowerCase() + characterEn.slice(1)
   const strengthsEn = archetype.strengths_en.join(', ')
   const TAIL_EN: Record<GanjiTransitLayer, string> = {
     daily: 'carries the signature of',

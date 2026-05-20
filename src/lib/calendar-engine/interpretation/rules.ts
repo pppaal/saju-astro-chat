@@ -87,7 +87,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정관', '편관'],
     },
     template:
-      `이 10년은 **사회적 위치·책임·공식 평가가 핵심 주제**로 떠올라요. ` +
+      `이 10년은 **사회적 위치·책임·공식 평가가 중심**에 떠올라요. ` +
       `승진·자리 잡기·중요한 책임이 들어올 수 있는 시기. ` +
       `자기 자리를 사회에서 명확히 정의하는 10년이에요.`,
     templateEn:
@@ -631,7 +631,7 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `이번 달은 **사회적 평가·책임·공식 자리**가 핵심 주제. ` +
+      `이번 달은 **사회적 평가·책임·공식 자리**가 중심에 떠올라요. ` +
       `승진·발탁·중요 책임 부여가 들어올 수 있어요.`,
     templateEn:
       `This month, **social recognition, responsibility, and formal positions** are the core theme. ` +
@@ -848,8 +848,8 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['식신', '상관'],
     },
     template:
-      `**{monthGanji}** 월 — 표현과 아이디어 흐름이 강해지는 시기예요. 새 콘텐츠나 ` +
-      `창작, 기획이 잘 풀리고 안 쓰던 SNS·블로그를 다시 손보면 운이 따라요. {monthGanjiText}`,
+      `**{monthGanji}** 월이에요. 표현과 아이디어가 살아나는 시기 — 새 콘텐츠나 ` +
+      `창작, 기획이 잘 풀리고 안 쓰던 SNS·블로그를 다시 손보면 운이 따라와요. {monthGanjiText}`,
     templateEn:
       `**{monthGanjiEn}** month — expression and idea flow run strong. New content, creation, ` +
       `and planning all click; dusting off an unused social account or blog brings luck along. {monthGanjiTextEn}`,
@@ -1266,11 +1266,11 @@ export const RULES: InterpretationRule[] = [
     priority: 65,
     conditions: { natalStrength: ['strong'] },
     template:
-      `본명은 **본인 기운이 강함** — 자기 주장과 추진력이 자연스러운 사주예요. ` +
+      `본명은 **기운이 강한 사주** — 자기 주장과 추진력이 자연스러워요. ` +
       `표현·창작·재물·책임·자리 운에 결과가 잘 나오는 타입이에요.`,
     templateEn:
       `Your chart is **strong** — self-assertion and drive come naturally. ` +
-      `You are the type whose results show up well in creative expression, wealth and resources, and responsibility and standing cycles.`,
+      `Results show up best in creative output, financial gain, and roles of responsibility.`,
     themes: ['growth'],
   },
   {
@@ -1280,11 +1280,11 @@ export const RULES: InterpretationRule[] = [
     priority: 65,
     conditions: { natalStrength: ['weak'] },
     template:
-      `본명은 **본인 기운이 약함** — 배움·돌봄·형제·동료의 도움이 들어올 때 결과가 따라와요. ` +
+      `본명은 **기운이 잔잔한 사주** — 배움·돌봄·형제·동료의 도움이 들어올 때 결과가 따라와요. ` +
       `무리한 확장보다 협력·정리·내실 다지기가 어울리는 시기에 ` +
       `이 사주는 빛나요.`,
     templateEn:
-      `Your chart is **weak** — results come when learning and care and peers and rivals support arrive. ` +
+      `Your chart is **weak** — results come when learning, care, and peers and rivals lend support. ` +
       `Rather than over-expanding, this chart shines in periods suited to collaboration, tidying up, ` +
       `and building inner depth.`,
     themes: ['growth'],
@@ -1598,7 +1598,7 @@ export const RULES: InterpretationRule[] = [
     priority: 43,
     conditions: { shinsalName: ['귀문관'] },
     template:
-      `🌑 **귀문** 발동 — 정신적 예민함·직관·꿈이 활성. ` +
+      `🌑 **귀문** 발동 — 정신적 예민함·직관·꿈이 켜져 있어요. ` +
       `명상·내적 작업에 좋고, 큰 결정은 신중히 가주세요.`,
     templateEn:
       `🌑 **Gwimun** is active — mental sensitivity, intuition, and dreams light up. ` +
@@ -1707,10 +1707,10 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['장성'],
     },
     template:
-      `🎖 **명예·평판** — 명예·자리의 별이 활성. 공식 자리·대표 역할·` +
-      `발의에 우호적. 이름이 드러나는 시기예요.`,
+      `🎖 **명예·평판** — 명예·자리의 별이 켜져 있어요. 공식 자리·대표 역할·` +
+      `발의에 우호적이라 이름이 드러나는 시기예요.`,
     templateEn:
-      `🎖 **Reputation** — the honour-and-position star is active. Favourable for official positions, representative roles, ` +
+      `🎖 **Reputation** — the honour-and-position star is shining. Favourable for official positions, representative roles, ` +
       `and proposals. Your name comes into view.`,
     themes: ['career'],
   },
@@ -1775,10 +1775,10 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `🎨 **창의·표현** — 표현·창작의 별이 활성으로 작품·콘텐츠·` + `발표가 잘 풀리는 시기예요.`,
+      `🎨 **창의·표현** — 표현·창작의 별이 켜져서 작품·콘텐츠·` + `발표가 잘 풀리는 시기예요.`,
     templateEn:
-      `🎨 **Creativity and expression** — creative expression is active, ` +
-      `so work, content, and presentations all click.`,
+      `🎨 **Creativity and expression** — creative expression is alive, ` +
+      `and work, content, and presentations all land well.`,
     themes: ['growth'],
   },
   {
@@ -1792,10 +1792,10 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `👶 **자녀** — 표현·창작의 별이 활성. 자녀 관련 기쁨·소식· ` +
+      `👶 **자녀** — 표현·창작의 별이 켜져 있어요. 자녀 관련 기쁨·소식· ` +
       `임신·교육 진전에 우호적이에요.`,
     templateEn:
-      `👶 **Children** — creative expression is active. Favourable for joy and news around children, ` +
+      `👶 **Children** — creative expression is alive. Favourable for joy and news around children, ` +
       `pregnancy, and educational progress.`,
     themes: ['love'],
   },
@@ -1809,7 +1809,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['비견', '겁재'],
     },
     template:
-      `🤝 **인맥·동료** — 형제·동료의 별이 활성으로 동료·친구·네트워크 ` +
+      `🤝 **인맥·동료** — 형제·동료의 별이 켜져서 동료·친구·네트워크 ` +
       `에너지가 강해지는 시기예요.`,
     templateEn:
       `🤝 **Network and peers** — peers and rivals is active, so peers, friends, ` +
@@ -2018,8 +2018,8 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `책임·자리의 별이 활성으로 부동산·계약·공식 자산 강세. 명의·서류 정리, ` +
-      `구조화된 자산 형성에 우호적인 흐름이에요.`,
+      `책임·자리의 별이 켜져서 부동산·계약·공식 자산이 강해지는 흐름이에요. 명의·서류 정리, ` +
+      `구조화된 자산 형성에 우호적이에요.`,
     templateEn:
       `Responsibility and standing is active, so real estate, contracts, and formal assets run strong. ` +
       `Favourable for sorting titles and paperwork and building structured wealth.`,
@@ -2077,8 +2077,8 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `표현·창작의 별이 활성 + 본인 힘 충분 — 표현·기획·창업·외주 일에 강한 ` +
-      `시기. 새 분야 진출에 우호적이에요.`,
+      `표현·창작의 별이 켜져 있고 본인 힘도 충분해요 — 표현·기획·창업·외주 일에 강한 ` +
+      `시기로 새 분야 진출에 우호적이에요.`,
     templateEn:
       `Creative expression is active and you have enough strength — a strong time for ` +
       `expression, planning, starting ventures, and freelance work. Favourable for entering new fields.`,
@@ -2095,8 +2095,8 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `형제·동료의 별이 활성 — 동료·파트너십·공동 사업 흐름. 같이 일하는 ` +
-      `사람들과 호흡이 잘 맞는 시기예요.`,
+      `형제·동료의 별이 켜져 있어요 — 동료·파트너십·공동 사업이 잘 흐르고, ` +
+      `같이 일하는 사람들과 호흡이 잘 맞는 시기예요.`,
     templateEn:
       `Peers and rivals is active — a current of peers, partnerships, and shared ventures. ` +
       `The people you work with are in rhythm with you.`,
@@ -2174,7 +2174,7 @@ export const RULES: InterpretationRule[] = [
       `배움·돌봄 + 본인 힘 충분 — 학업·연구·자기성장에 깊이 들어가기 ` +
       `좋은 시기. 자격증·전문 분야 다지기에 우호적이에요.`,
     templateEn:
-      `Learning and care plus enough chart strength — a good time to go deep into study, ` +
+      `Learning, care, and enough personal strength — a good time to go deep into study, ` +
       `research, and self-growth. Favourable for certifications and shoring up specialty fields.`,
     themes: ['career', 'growth'],
   },
@@ -2191,8 +2191,8 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `표현·창작의 별이 활성 — 표현·창작·아이디어 발산이 잘 들어오는 시기. ` +
-      `글·영상·기획 같은 결과물 만들기 우호적이에요.`,
+      `표현·창작의 별이 켜져 있어요 — 표현·창작·아이디어 발산이 잘 들어오는 결이라 ` +
+      `글·영상·기획 같은 결과물 만들기에 우호적이에요.`,
     templateEn:
       `Creative expression is active — expression, creation, and idea flow all land well. ` +
       `Favourable for producing writing, video, or planning work.`,
@@ -2209,8 +2209,8 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `표현·창작의 별이 활성 — 자녀·후배·새 작품과의 시간이 잘 흐르는 시기. ` +
-      `돌봄·교육·전수에 우호적이에요.`,
+      `표현·창작의 별이 켜져 있어요 — 자녀·후배·새 작품과의 시간이 잘 흐르고, ` +
+      `돌봄·교육·전수에 우호적인 결이에요.`,
     templateEn:
       `Creative expression is active — time with children, juniors, and new work flows well. ` +
       `Favourable for caretaking, teaching, and passing things on.`,
@@ -2702,8 +2702,8 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['암록', '태극귀인'],
     },
     template:
-      `보이지 않는 도움의 별이나 행운의 도움 별이 작용하는 해예요. 보이지 않는 도움이 들어와서 ` +
-      `평소 도와줬던 사람이나 오래된 인연이 결정적인 순간에 등장해요. ` +
+      `보이지 않는 도움이 깃든 해예요. 평소 챙겨주던 사람이나 오래된 인연이 ` +
+      `결정적인 순간에 손을 내밀어요. ` +
       `자존심 세우지 말고 필요할 때 도움을 요청하세요.`,
     templateEn:
       `A hidden-support star or a guiding star is at work this year. Unseen help flows in — people you have helped before ` +
