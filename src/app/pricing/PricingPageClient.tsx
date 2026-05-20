@@ -19,16 +19,7 @@ interface CreditPackDisplay {
   price: number
   priceEn: number
   readings: number
-  gradient: string
   popular?: boolean
-}
-
-const CREDIT_PACK_GRADIENTS: Record<CreditPackType, string> = {
-  mini: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-  standard: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-  plus: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-  mega: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  ultimate: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
 }
 
 const creditPacks: CreditPackDisplay[] = (
@@ -39,7 +30,6 @@ const creditPacks: CreditPackDisplay[] = (
   price: CREDIT_PACKS[packId].pricing.krw,
   priceEn: CREDIT_PACKS[packId].pricing.usd,
   readings: CREDIT_PACKS[packId].credits,
-  gradient: CREDIT_PACK_GRADIENTS[packId],
   popular: CREDIT_PACKS[packId].popular,
 }))
 
@@ -233,10 +223,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                   {pack.popular && (
                     <div className={styles.popularCreditBadge}>{pt('bestValue')}</div>
                   )}
-                  {discountPercent > 0 && (
-                    <div className={styles.discountBadge}>-{discountPercent}%</div>
-                  )}
-                  <div className={styles.creditHeader} style={{ background: pack.gradient }}>
+                  <div className={styles.creditHeader}>
                     <h3 className={styles.creditName}>{pt(`creditPackNames.${pack.nameKey}`)}</h3>
                     <div className={styles.creditPrice}>
                       {isKo ? formatKrw(pack.price) : formatUsd(pack.priceEn)}
@@ -250,8 +237,11 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                     <div className={styles.perReading}>
                       {pt('perReading')}{' '}
                       {isKo
-                        ? `${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)} (≈ ${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)})`
-                        : `${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)} (≈ ${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)})`}
+                        ? `${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)}`
+                        : `${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)}`}
+                      {discountPercent > 0 && (
+                        <span className={styles.discountInline}> · -{discountPercent}%</span>
+                      )}
                     </div>
                     <button
                       className={`${styles.creditButton} ${pack.popular ? styles.creditButtonPopular : ''}`}
