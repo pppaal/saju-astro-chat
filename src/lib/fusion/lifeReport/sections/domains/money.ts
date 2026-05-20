@@ -113,7 +113,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const timingKo: string[] = []
   const timingEn: string[] = []
   if (cur && cur.sibsin) {
-    timingKo.push(`지금의 인생 흐름이 돈의 흐름에 ${daeunMoneyFlavorKo(cur.sibsin)}을 만들어줘요.`)
+    timingKo.push(`지금 시기는 돈 쪽으로 ${daeunMoneyFlavorKo(cur.sibsin)}을 만들어줘요.`)
     timingEn.push(`For money, your current life-chapter ${daeunMoneyFlavorEn(cur.sibsin)}.`)
   }
   if (wealthDaeun && (!cur || cur.age !== wealthDaeun.age)) {

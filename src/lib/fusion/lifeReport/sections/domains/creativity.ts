@@ -9,6 +9,7 @@ import { countSibsin, relationPhraseEn, relationPhraseKo } from '../../signals/s
 import { aspectsOf, getPlanet, houseCusp, planetsInHouse } from '../../signals/astroSignals'
 import {
   aspectQuality,
+  gwaWa,
   houseLabel,
   paragraph,
   planetLabel,
@@ -107,8 +108,9 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     const other =
       topVenusAspect.from?.name === 'Venus' ? topVenusAspect.to?.name : topVenusAspect.from?.name
     if (other) {
+      const otherKoC = planetLabel(other, 'ko')
       p2pieces.push(
-        `당신의 금성이 ${planetLabel(other, 'ko')}와 ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusAspectFlavorKo(other)}의 색이 표현에 새겨져 있어요.`
+        `당신의 금성이 ${otherKoC}${gwaWa(otherKoC)} ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusAspectFlavorKo(other)}의 색이 표현에 새겨져 있어요.`
       )
       p2piecesEn.push(
         `Venus ${aspectQuality(topVenusAspect.type, 'en')} ${other} — ${venusAspectFlavorEn(other)} marks the way you express.`
