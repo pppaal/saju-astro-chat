@@ -17,6 +17,8 @@ import {
   gongmangAffectedPillars,
   isJonggeok,
   jonggeokType,
+  pickRelationEntry,
+  relationDictionaryEntry,
   samgiInfo,
   dayElement,
   yongsinPrimary,
@@ -521,6 +523,16 @@ export function buildKarma(input: BuilderInput): KarmaSection {
         "A reshaping penalty-accent runs through your chart — refining an unbending sense of justice is one of this life's rites of passage."
       )
     }
+  }
+  // 합충 DB — 가장 두드러진 관계 한 쌍의 구체적 결을 한 문장으로 그라운딩.
+  const primaryRelation = input.calendarSignals?.sajuRelations
+    ? pickRelationEntry(input.calendarSignals.sajuRelations)
+    : undefined
+  const relationEntry = relationDictionaryEntry(primaryRelation)
+  if (relationEntry) {
+    sajuUsed.push('relationsDictionary.entry')
+    p6pieces.push(firstSentenceKarma(relationEntry.ko))
+    p6piecesEn.push(firstSentenceKarma(relationEntry.en))
   }
   if (twelve) {
     const stages = [twelve.year, twelve.month, twelve.day, twelve.time].filter(Boolean) as string[]

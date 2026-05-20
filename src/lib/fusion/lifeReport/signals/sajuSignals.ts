@@ -14,6 +14,11 @@ import {
   type SibsinType,
 } from '@/lib/saju/sibsinAnalysis'
 import { calculateTonggeun, type TonggeunResult } from '@/lib/saju/tonggeun'
+import {
+  listRelationsByKind,
+  type RelationEntry,
+  type RelationKind,
+} from '@/lib/saju/relationsDictionary'
 
 type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
 
@@ -402,6 +407,49 @@ function kindVerbEn(k: SajuRelationEntry['kind']): string {
   if (k === '형') return 'reshapes against'
   if (k === '해') return 'sits subtly out of alignment with'
   return 'gathers together with'
+}
+
+// raw 사주 관계 종류(천간합 등) → relationsDictionary 의 RelationKind.
+const RAW_KIND_TO_RELATION_KIND: Record<string, RelationKind> = {
+  천간합: 'cheongan_hap',
+  천간충: 'cheongan_chung',
+  지지육합: 'jiji_yukhap',
+  지지삼합: 'jiji_samhap',
+  지지방합: 'jiji_banghap',
+  지지충: 'jiji_chung',
+  지지형: 'jiji_hyeong',
+  지지파: 'jiji_pa',
+  지지해: 'jiji_hae',
+}
+
+// detail 문자열(예: "甲-己 합화토")에서 한자(천간/지지)만 추출.
+// 한글 설명(합화토 등)은 CJK 한자 범위 밖이라 자연히 걸러진다.
+function extractHanChars(detail: string | undefined): string[] {
+  if (!detail) return []
+  return detail.match(/[㐀-鿿]/g) ?? []
+}
+
+/**
+ * 명식의 합/충/형/해 관계 entry 하나를 relationsDictionary 의 풍부한
+ * narrative entry로 매핑한다. detail의 한자 쌍을 종류별 후보와 글자 집합으로
+ * 비교(순서 무관)해 매칭한다. 매칭 실패 시 null. 결정론적.
+ */
+export function relationDictionaryEntry(
+  entry: SajuRelationEntry | undefined
+): RelationEntry | null {
+  if (!entry) return null
+  const kind = RAW_KIND_TO_RELATION_KIND[entry.rawKind]
+  if (!kind) return null
+  const chars = extractHanChars(entry.detail)
+  if (chars.length === 0) return null
+  const charSet = new Set(chars)
+  for (const cand of listRelationsByKind(kind)) {
+    const candSet = new Set(cand.pair.split(''))
+    if (candSet.size === charSet.size && [...charSet].every((c) => candSet.has(c))) {
+      return cand
+    }
+  }
+  return null
 }
 
 // ─── Sibsin patterns / positions — read raw from sibsinAnalysis ─────
