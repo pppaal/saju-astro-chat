@@ -40,7 +40,6 @@ describe('useInlineTarotState', () => {
   const defaultOptions = {
     isOpen: true,
     initialConcern: 'What should I focus on?',
-    theme: 'life',
   }
 
   beforeEach(() => {
@@ -77,29 +76,17 @@ describe('useInlineTarotState', () => {
 
       expect(result.current.state.concern).toBe('My specific question')
     })
-  })
 
-  describe('default category', () => {
-    // The hook no longer derives a category from theme — it always starts
-    // from the general-insight default and relies on AI-suggested spreads.
-    it('should default selectedCategory to general-insight', () => {
+    it('should initialize selectedCategory to the default general-insight category', () => {
       const { result } = renderHook(() => useInlineTarotState(defaultOptions))
-
-      expect(result.current.state.selectedCategory).toBe('general-insight')
-    })
-
-    it('should default to general-insight regardless of theme', () => {
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'focus_love' })
-      )
 
       expect(result.current.state.selectedCategory).toBe('general-insight')
     })
   })
 
   describe('recommendedSpreads', () => {
-    it('should return spreads sorted by card count', () => {
-      const { result } = renderHook(() => useInlineTarotState({ ...defaultOptions, theme: 'life' }))
+    it('should return the default-category spreads sorted by card count', () => {
+      const { result } = renderHook(() => useInlineTarotState(defaultOptions))
 
       const spreads = result.current.recommendedSpreads
       expect(spreads.length).toBe(3)
@@ -108,23 +95,26 @@ describe('useInlineTarotState', () => {
       expect(spreads[2].cardCount).toBe(10)
     })
 
-    it('should return default general-insight spreads regardless of theme', () => {
-      const { result } = renderHook(() => useInlineTarotState({ ...defaultOptions, theme: 'love' }))
+    it('should fall back to default-category spreads when no suggestions are set', () => {
+      const { result } = renderHook(() => useInlineTarotState(defaultOptions))
 
-      const spreads = result.current.recommendedSpreads
-      // theme no longer selects a category; always the general-insight default
-      expect(spreads.length).toBe(3)
-      expect(spreads.some((s) => s.id === 'single-card')).toBe(true)
+      // suggestedSpreads is empty by default, so recommendedSpreads comes
+      // from the general-insight category.
+      expect(result.current.recommendedSpreads.length).toBe(3)
     })
 
-    it('should return empty array for theme without category', () => {
-      // Mock tarotThemes to return empty
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'nonexistent' })
-      )
+    it('should prefer AI-suggested spreads when present', () => {
+      const { result } = renderHook(() => useInlineTarotState(defaultOptions))
 
-      // Should fall back to general-insight
-      expect(result.current.recommendedSpreads.length).toBe(3)
+      const suggested = [
+        { id: 'relationship-spread', title: 'Relationship', cardCount: 5 },
+      ] as Spread[]
+
+      act(() => {
+        result.current.actions.setSuggestedSpreads(suggested)
+      })
+
+      expect(result.current.recommendedSpreads).toEqual(suggested)
     })
   })
 
@@ -507,21 +497,6 @@ describe('useInlineTarotState', () => {
       })
 
       expect(result.current.state.concern).toBe('New question')
-    })
-  })
-
-  describe('theme change effect', () => {
-    it('should keep general-insight category when theme changes', () => {
-      const { result, rerender } = renderHook((props) => useInlineTarotState(props), {
-        initialProps: defaultOptions,
-      })
-
-      expect(result.current.state.selectedCategory).toBe('general-insight')
-
-      rerender({ ...defaultOptions, theme: 'love' })
-
-      // theme is no longer mapped to a category
-      expect(result.current.state.selectedCategory).toBe('general-insight')
     })
   })
 

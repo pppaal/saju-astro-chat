@@ -863,7 +863,6 @@ describe('/api/tarot/save/[id]', () => {
       const result = await response.json()
 
       expect(response.status).toBe(200)
-      // theme은 더 이상 별도 컬럼으로 반환되지 않음(cards payload로 이동).
       expect(result.data.reading.overallMessage).toBeNull()
     })
 

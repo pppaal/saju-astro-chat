@@ -860,10 +860,11 @@ describe('Astrology Chat Stream API - System Prompt', () => {
         VALID_RAW_BODY
       )
 
+      expect(result.body.prompt).toContain('점성 카운슬러')
       expect(result.body.prompt).toContain('점성술 단독 상담')
     })
 
-    it('should include Korean astrology domain rules', async () => {
+    it('should reference the Korean astro data fields it may draw on', async () => {
       const req = makePostRequest(VALID_RAW_BODY)
       const result = await buildPayload(
         { ...VALID_ASTROLOGY_CHAT_BODY, locale: 'ko' },
@@ -872,9 +873,11 @@ describe('Astrology Chat Stream API - System Prompt', () => {
         VALID_RAW_BODY
       )
 
-      expect(result.body.prompt).toContain('[점성 카운슬러 도메인 규칙]')
+      // The astro domain layer references the provided chart data:
+      // 트랜짓 / 아스펙트 / 라이징.
       expect(result.body.prompt).toContain('트랜짓')
       expect(result.body.prompt).toContain('아스펙트')
+      expect(result.body.prompt).toContain('라이징')
     })
 
     it('should include no-greeting rule in Korean', async () => {
@@ -904,7 +907,7 @@ describe('Astrology Chat Stream API - System Prompt', () => {
       expect(result.body.prompt).toContain('Western astrology only')
     })
 
-    it('should include English astrology domain rules', async () => {
+    it('should reference the English astro data fields it may draw on', async () => {
       const enRawBody = { ...VALID_RAW_BODY, locale: 'en' }
       const req = makePostRequest(enRawBody)
       const result = await buildPayload(
@@ -914,9 +917,11 @@ describe('Astrology Chat Stream API - System Prompt', () => {
         enRawBody
       )
 
-      expect(result.body.prompt).toContain('Astrology-only counselor domain rules')
+      // The astro domain layer references the provided chart data:
+      // transits / aspects / Rising.
       expect(result.body.prompt).toContain('transits')
       expect(result.body.prompt).toContain('aspects')
+      expect(result.body.prompt).toContain('Rising')
     })
 
     it('should include no-greeting rule in English', async () => {

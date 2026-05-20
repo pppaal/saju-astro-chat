@@ -28,55 +28,56 @@ const assertPages = (modulePaths: string[]) => {
 }
 
 describe('Pages Smoke Tests', () => {
-  describe('Main Pages', () => {
+  describe('Main Pages (3)', () => {
     it('should have main pages', () => {
-      assertPages(['app/(main)/page', 'app/about/page', 'app/about/features/page'])
+      assertPages([
+        'app/(main)/page',
+        'app/about/page',
+        'app/about/features/page',
+      ])
     })
   })
 
-  describe('Admin Pages', () => {
+  describe('Admin Pages (2)', () => {
     it('should have admin pages', () => {
-      assertPages(['app/admin/dashboard/page', 'app/admin/feedback/page', 'app/admin/refunds/page'])
+      assertPages(['app/admin/feedback/page', 'app/admin/refunds/page'])
     })
   })
 
-  describe('Auth Pages', () => {
+  describe('Auth Pages (1)', () => {
     it('should have auth pages', () => {
       assertPages(['app/auth/signin/page'])
     })
   })
 
-  describe('Blog Pages', () => {
+  describe('Blog Pages (2)', () => {
     it('should have blog pages', () => {
       assertPages(['app/blog/page', 'app/blog/[slug]/page'])
     })
   })
 
-  describe('Calendar Pages', () => {
-    it('should have calendar pages', () => {
-      assertPages(['app/calendar/page', 'app/calendar/preview/page'])
+  describe('Calendar Pages (1)', () => {
+    it('should have calendar page', () => {
+      assertPages(['app/calendar/page'])
     })
   })
 
-  describe('Compatibility Pages', () => {
+  describe('Compatibility Pages (2)', () => {
     it('should have compatibility pages', () => {
-      assertPages(['app/compatibility/page', 'app/compatibility/counselor/page'])
+      assertPages([
+        'app/compatibility/page',
+        'app/compatibility/counselor/page',
+      ])
     })
   })
 
-  describe('Contact Pages', () => {
+  describe('Contact Pages (1)', () => {
     it('should have contact page', () => {
       assertPages(['app/contact/page'])
     })
   })
 
-  describe('Destiny Counselor Pages', () => {
-    it('should have destiny counselor page', () => {
-      assertPages(['app/destiny-counselor/page'])
-    })
-  })
-
-  describe('Destiny Map Pages', () => {
+  describe('Destiny Map Pages (4)', () => {
     it('should have destiny map pages', () => {
       assertPages([
         'app/destiny-map/page',
@@ -87,7 +88,7 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Destiny Match Pages', () => {
+  describe('Destiny Match Pages (4)', () => {
     it('should have destiny match pages', () => {
       assertPages([
         'app/destiny-match/page',
@@ -98,77 +99,67 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('FAQ Pages', () => {
+  describe('FAQ Pages (1)', () => {
     it('should have faq page', () => {
       assertPages(['app/faq/page'])
     })
   })
 
-  describe('ICP Pages', () => {
+  describe('ICP Pages (3)', () => {
     it('should have icp pages', () => {
       assertPages(['app/icp/page', 'app/icp/quiz/page', 'app/icp/result/page'])
     })
   })
 
-  describe('Notifications Pages', () => {
+  describe('Notifications Pages (1)', () => {
     it('should have notifications page', () => {
       assertPages(['app/notifications/page'])
     })
   })
 
-  describe('Personality Pages', () => {
+  describe('Personality Pages (3)', () => {
     it('should have personality pages', () => {
       assertPages([
         'app/personality/page',
         'app/personality/quiz/page',
         'app/personality/result/page',
-        'app/personality/combined/page',
-        'app/personality/compatibility/page',
-        'app/personality/select/page',
       ])
     })
   })
 
-  describe('Policy Pages', () => {
+  describe('Policy Pages (3)', () => {
     it('should have policy pages', () => {
       assertPages(['app/policy/privacy/page', 'app/policy/refund/page', 'app/policy/terms/page'])
     })
   })
 
-  describe('Pricing Pages', () => {
+  describe('Pricing Pages (1)', () => {
     it('should have pricing page', () => {
       assertPages(['app/pricing/page'])
     })
   })
 
-  describe('Profile Pages', () => {
-    it('should have profile pages', () => {
-      assertPages(['app/profile/page', 'app/profile/decisions/page'])
+  describe('Profile Pages (1)', () => {
+    it('should have profile page', () => {
+      assertPages(['app/profile/page'])
     })
   })
 
-  describe('Success Pages', () => {
+  describe('Success Pages (1)', () => {
     it('should have success page', () => {
       assertPages(['app/success/page'])
     })
   })
 
-  describe('Tarot Pages', () => {
+  describe('Tarot Pages (5)', () => {
     it('should have tarot pages', () => {
       assertPages([
         'app/tarot/page',
         'app/tarot/couple/page',
         'app/tarot/history/page',
-        'app/tarot/[categoryName]/page',
         'app/tarot/[categoryName]/[spreadId]/page',
         'app/tarot/couple/[readingId]/page',
       ])
-    })
-  })
-
-  describe('Utility Pages', () => {
-    it('should have utility pages', () => {
-      assertPages(['app/api-docs/page', 'app/offline/page', 'app/report/page', 'app/shared/[id]/page'])
     })
   })
 
@@ -182,7 +173,6 @@ describe('Pages Smoke Tests', () => {
         'calendar',
         'compatibility',
         'contact',
-        'destiny-counselor',
         'destiny-map',
         'destiny-match',
         'faq',
@@ -194,10 +184,9 @@ describe('Pages Smoke Tests', () => {
         'profile',
         'success',
         'tarot',
-        'utility',
       ]
 
-      expect(categories.length).toBe(20)
+      expect(categories.length).toBe(18)
     })
   })
 })

@@ -207,8 +207,6 @@ describe('GET /api/feedback/records', () => {
     )
   })
 
-  // ---- Test 3 제거: theme 필터 파라미터는 라우트에서 제거됨 (where=service/helpful만) ----
-
   // ---- Test 4: Filters by helpful=true (positive feedback) ----
   it('should filter feedback records by helpful=true status', async () => {
     const filteredRecords = MOCK_FEEDBACK_RECORDS.filter((r) => r.helpful === true)
@@ -268,14 +266,13 @@ describe('GET /api/feedback/records', () => {
     )
   })
 
-  // ---- Test 7: Combination of multiple filters (theme 제외) ----
+  // ---- Test 7: Combination of multiple filters ----
   it('should apply multiple filters together (service, helpful)', async () => {
     const filteredRecords = [MOCK_FEEDBACK_RECORDS[0]]
     vi.mocked(prisma.sectionFeedback.findMany).mockResolvedValue(filteredRecords as any)
 
     const req = createGetRequest({
       service: 'destiny-map',
-      theme: 'career',
       helpful: 'true',
       limit: '10',
     })

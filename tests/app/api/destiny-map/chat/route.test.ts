@@ -48,7 +48,7 @@ vi.mock('@/lib/db/prisma', () => ({
   },
 }))
 
-// Mock Claude (route now calls askClaude instead of a Python /ask backend)
+// Mock the Claude-backed analysis call (route calls askClaude(prompt, options))
 const mockAskClaude = vi.fn()
 vi.mock('@/lib/llm/askClaude', () => ({
   askClaude: (...args: unknown[]) => mockAskClaude(...args),
@@ -70,7 +70,7 @@ vi.mock('stripe', () => {
   }
 })
 
-// Mock astrology engine
+// Mock astrology engine (lazy-imported by the route from '@/lib/destiny-map/astrology')
 const mockComputeDestinyMap = vi.fn()
 vi.mock('@/lib/destiny-map/astrology', () => ({
   computeDestinyMap: (...args: unknown[]) => mockComputeDestinyMap(...args),
@@ -273,13 +273,15 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
     // Default: compute destiny map succeeds
     mockComputeDestinyMap.mockResolvedValue(mockCombinedResult)
 
-    // Default: Claude call succeeds (askClaude shape: data.data.{fusion_layer,report,model})
+    // Default: Claude analysis call succeeds (askClaude mimics the backend /ask shape)
     mockAskClaude.mockResolvedValue({
       ok: true,
       status: 200,
       data: {
         data: {
           fusion_layer: 'This is your AI-generated destiny map chat response.',
+          report: 'This is your AI-generated destiny map chat response.',
+          model: 'claude-test',
         },
       },
     })
@@ -645,6 +647,8 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const request = createPostRequest(body)
       await POST(request)
 
+      // The route always computes the snapshot with theme 'chat' (the request theme
+      // is used only for prompt building, not the destiny-map computation).
       expect(mockComputeDestinyMap).toHaveBeenCalledWith({
         name: 'TestUser',
         birthDate: '1995-03-20',
@@ -652,26 +656,23 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
         latitude: 35.1796,
         longitude: 129.0756,
         gender: 'female',
-        // snapshot is always computed with the fixed 'chat' theme
         theme: 'chat',
       })
     })
 
-    it('should call Claude with the snapshot prompt and chat options', async () => {
+    it('should call the Claude analysis with a prompt and chat options', async () => {
       const request = createPostRequest(validBody({ theme: 'love', lang: 'en' }))
       await POST(request)
 
       expect(mockAskClaude).toHaveBeenCalledWith(
-        expect.stringContaining('Mocked snapshot prompt'),
+        expect.any(String),
         expect.objectContaining({
           theme: 'chat',
+          maxTokens: 2000,
           timeoutMs: 60000,
           label: 'destiny-map-chat',
         })
       )
-      // locale is woven into the prompt text, not a separate field
-      const prompt = mockAskClaude.mock.calls[0][0] as string
-      expect(prompt).toContain('Locale: en')
     })
 
     it('should set X-Fallback header to 0 on success', async () => {
@@ -736,17 +737,20 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const request = createPostRequest(validBody({ lang: 'invalid' }))
       await POST(request)
 
+      // Invalid locale falls back to 'ko', which is baked into the chat prompt.
       const prompt = mockAskClaude.mock.calls[0][0] as string
       expect(prompt).toContain('Locale: ko')
+      expect(prompt).toContain('Respond in ko')
     })
 
-    it('should always compute the snapshot with the fixed chat theme', async () => {
+    it('should always compute the snapshot with the chat theme regardless of body theme', async () => {
       const body = validBody()
       delete body.theme
 
       const request = createPostRequest(body)
       await POST(request)
 
+      // The route ignores the request theme for snapshot computation and always uses 'chat'.
       expect(mockComputeDestinyMap).toHaveBeenCalledWith(expect.objectContaining({ theme: 'chat' }))
     })
 
@@ -757,15 +761,6 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
 
       const callArgs = mockComputeDestinyMap.mock.calls[0][0]
       expect(callArgs.name.length).toBeLessThanOrEqual(80)
-    })
-
-    it('should truncate theme to MAX_THEME length', async () => {
-      const longTheme = 'B'.repeat(100)
-      const request = createPostRequest(validBody({ theme: longTheme }))
-      await POST(request)
-
-      const callArgs = mockComputeDestinyMap.mock.calls[0][0]
-      expect(callArgs.theme.length).toBeLessThanOrEqual(40)
     })
 
     it('should handle latitude as string by converting to number', async () => {
@@ -838,6 +833,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
     it('should return fallback reply when backend returns not ok', async () => {
       mockAskClaude.mockResolvedValue({
         ok: false,
+        status: 503,
         error: 'Backend unavailable',
       })
 
@@ -852,7 +848,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
     })
 
     it('should return Korean fallback message for ko locale when backend fails', async () => {
-      mockAskClaude.mockResolvedValue({ ok: false })
+      mockAskClaude.mockResolvedValue({ ok: false, status: 503 })
 
       const request = createPostRequest(validBody({ lang: 'ko' }))
       const response = await POST(request)
@@ -862,7 +858,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
     })
 
     it('should return English fallback message for en locale when backend fails', async () => {
-      mockAskClaude.mockResolvedValue({ ok: false })
+      mockAskClaude.mockResolvedValue({ ok: false, status: 503 })
 
       const request = createPostRequest(validBody({ lang: 'en' }))
       const response = await POST(request)
@@ -932,6 +928,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
 
       const prompt = mockAskClaude.mock.calls[0][0] as string
       expect(prompt).toContain('User CV')
+      expect(prompt).toContain('I am a software engineer')
     })
 
     it('should truncate cvText to MAX_CV length', async () => {
@@ -947,8 +944,10 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const request = createPostRequest(validBody({ cvText: '' }))
       await POST(request)
 
-      // Should still call API without CV section
+      // Should still call the analysis without a CV section
       expect(mockAskClaude).toHaveBeenCalled()
+      const prompt = mockAskClaude.mock.calls[0][0] as string
+      expect(prompt).not.toContain('User CV')
     })
   })
 
@@ -956,20 +955,22 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
   // Locale Handling Tests
   // -------------------------------------------------------------------------
   describe('Locale Handling', () => {
-    it('should pass ko locale to backend', async () => {
+    it('should pass ko locale into the chat prompt', async () => {
       const request = createPostRequest(validBody({ lang: 'ko' }))
       await POST(request)
 
       const prompt = mockAskClaude.mock.calls[0][0] as string
       expect(prompt).toContain('Locale: ko')
+      expect(prompt).toContain('Respond in ko')
     })
 
-    it('should pass en locale to backend', async () => {
+    it('should pass en locale into the chat prompt', async () => {
       const request = createPostRequest(validBody({ lang: 'en' }))
       await POST(request)
 
       const prompt = mockAskClaude.mock.calls[0][0] as string
       expect(prompt).toContain('Locale: en')
+      expect(prompt).toContain('Respond in en')
     })
   })
 

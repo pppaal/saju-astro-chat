@@ -851,26 +851,6 @@ describe('/api/tarot/save', () => {
       })
     })
 
-    describe('Filtering', () => {
-      // theme 필터 제거됨(where = { userId }만, theme는 cards payload에 저장) →
-      // 'should filter by theme' / 'reject theme >100' 테스트 삭제.
-
-      it('should handle empty theme parameter', async () => {
-        ;(prisma.tarotReading.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
-        ;(prisma.tarotReading.count as ReturnType<typeof vi.fn>).mockResolvedValue(0)
-
-        const req = new NextRequest('http://localhost:3000/api/tarot/save?theme=')
-        const { GET } = await import('@/app/api/tarot/save/route')
-        await GET(req)
-
-        expect(prisma.tarotReading.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            where: { userId: mockUserId },
-          })
-        )
-      })
-    })
-
     describe('Error Handling', () => {
       it('should handle database query errors', async () => {
         ;(prisma.tarotReading.findMany as ReturnType<typeof vi.fn>).mockRejectedValue(

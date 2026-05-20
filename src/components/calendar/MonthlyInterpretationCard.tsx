@@ -35,6 +35,12 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
         이번 달 흐름
       </h3>
 
+      {/* 키 이벤트 3 — 베스트 날 / 강한 구간 / 피할 날 (한눈에 스캔) */}
+      <KeyEventsBlock keyEvents={interp.keyEvents} />
+
+      {/* 지난달 대비 — 변화 체감 (retention hook) */}
+      <MonthComparisonBlock comparison={interp.monthComparison} />
+
       {/* 핵심 포인트 — bullet 형태로 한눈에 */}
       {headlines.length > 0 && (
         <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
@@ -88,6 +94,103 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
           <WhyCard interp={interp} />
         </div>
       )}
+    </div>
+  )
+}
+
+type KeyEvents = NonNullable<Interpretation['keyEvents']>
+
+/** "MM-DD" → "M월 D일" (앞 0 제거) */
+function fmtDate(mmdd: string): string {
+  const [m, d] = mmdd.split('-')
+  if (!m || !d) return mmdd
+  return `${Number(m)}월 ${Number(d)}일`
+}
+
+/**
+ * 이번 달 키 이벤트 3 카드 — 본문에 흩어진 날짜 정보를 한눈에.
+ *  🎯 베스트 날 / 💫 강한 구간 / ⚠️ 피할 날
+ */
+function KeyEventsBlock({ keyEvents }: { keyEvents: KeyEvents | undefined }) {
+  if (!keyEvents) return null
+  const { best, window, avoid } = keyEvents
+  const hasAvoid = avoid && avoid.dates.length > 0
+  if (!best && !window && !hasAvoid) return null
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+      {best && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3.5">
+          <div className="text-[11px] font-bold text-emerald-300 mb-1 flex items-center gap-1 tracking-wide">
+            <span aria-hidden>🎯</span> 베스트 날
+          </div>
+          <div className="text-base font-bold text-zinc-100">{fmtDate(best.date)}</div>
+          <div className="text-[11px] text-emerald-200/70 mt-0.5">
+            {best.score}점 · 큰 결정·시작에 좋음
+          </div>
+        </div>
+      )}
+      {window && (
+        <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3.5">
+          <div className="text-[11px] font-bold text-indigo-300 mb-1 flex items-center gap-1 tracking-wide">
+            <span aria-hidden>💫</span> 강한 구간
+          </div>
+          <div className="text-base font-bold text-zinc-100">
+            {fmtDate(window.start)}–{fmtDate(window.end)}
+          </div>
+          <div className="text-[11px] text-indigo-200/70 mt-0.5">
+            평균 {window.avg}점 · 집중 추진
+          </div>
+        </div>
+      )}
+      {hasAvoid && (
+        <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3.5">
+          <div className="text-[11px] font-bold text-rose-300 mb-1 flex items-center gap-1 tracking-wide">
+            <span aria-hidden>⚠️</span> 피할 날
+          </div>
+          <div className="text-base font-bold text-zinc-100">
+            {avoid.dates.map(fmtDate).join(' · ')}
+          </div>
+          <div className="text-[11px] text-rose-200/70 mt-0.5">무리한 결정은 미루기</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+type MonthComparison = NonNullable<Interpretation['monthComparison']>
+
+/**
+ * 지난달 대비 변화 — "전체 흐름 +6 · 재물 +14 · 직업 −5".
+ * 이번 달만 보면 좋아진 건지 모름 → 변화를 보여줘 재방문 동기 부여.
+ */
+function MonthComparisonBlock({ comparison }: { comparison: MonthComparison | undefined }) {
+  if (!comparison) return null
+  const { overallDelta, themes } = comparison
+  if (overallDelta === 0 && themes.length === 0) return null
+
+  const sign = (n: number) => (n >= 0 ? `+${n}` : `−${Math.abs(n)}`)
+  const color = (dir: 'up' | 'down') => (dir === 'up' ? 'text-emerald-400' : 'text-rose-400')
+
+  return (
+    <div className="bg-zinc-950/40 border border-white/5 rounded-xl px-4 py-3">
+      <div className="text-[11px] font-bold text-zinc-400 mb-2 tracking-wide">지난달 대비</div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        {overallDelta !== 0 && (
+          <span className="text-sm">
+            <span className="text-zinc-300">전체 흐름 </span>
+            <span className={`font-bold ${color(overallDelta >= 0 ? 'up' : 'down')}`}>
+              {sign(overallDelta)}
+            </span>
+          </span>
+        )}
+        {themes.map((t) => (
+          <span key={t.theme} className="text-sm">
+            <span className="text-zinc-300">{THEME_LABEL[t.theme] ?? t.theme} </span>
+            <span className={`font-bold ${color(t.dir)}`}>{sign(t.delta)}</span>
+          </span>
+        ))}
+      </div>
     </div>
   )
 }

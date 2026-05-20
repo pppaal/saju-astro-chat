@@ -508,6 +508,7 @@ describe('/api/tarot/save', () => {
           data: {
             userId: mockUserId,
             question: 'What does my future hold?',
+            theme: undefined,
             spreadId: 'single-card',
             spreadTitle: 'Single Card Draw',
             cards: buildStoredCardsPayload([validCard]),
@@ -1072,9 +1073,6 @@ describe('/api/tarot/save', () => {
           })
         )
       })
-
-      // 'should filter readings by theme' 제거 — 라우트가 theme 필터를 더 이상
-      // 지원하지 않음(where = { userId }만, theme는 cards payload에 저장).
 
       it('should return empty array when no readings exist', async () => {
         const mockQuerySchema = tarotQuerySchema as { safeParse: ReturnType<typeof vi.fn> }

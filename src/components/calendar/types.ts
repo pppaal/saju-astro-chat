@@ -131,6 +131,21 @@ export interface ImportantDate {
         Array<{ label: string; delta: number; dir: 'up' | 'down' }>
       >
     >
+    /** 이번 달 키 이벤트 — 베스트 날 / 강한 구간 / 피할 날 */
+    keyEvents?: {
+      best?: { date: string; score: number }
+      window?: { start: string; end: string; avg: number }
+      avoid?: { dates: string[] }
+    }
+    /** 지난달 대비 — 전체 흐름/테마별 점수 변화 */
+    monthComparison?: {
+      overallDelta: number
+      themes: Array<{
+        theme: 'love' | 'money' | 'career' | 'health' | 'growth'
+        delta: number
+        dir: 'up' | 'down'
+      }>
+    }
   }
   /** 그 날 60갑자(일진) + 본명 일간 십신 개인화 한 줄 (API 가 일별 부착) */
   dailyGanjiNarrative?: string

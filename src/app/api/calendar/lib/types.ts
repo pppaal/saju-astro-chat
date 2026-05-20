@@ -92,6 +92,21 @@ export interface FormattedDate {
         Array<{ label: string; delta: number; dir: 'up' | 'down' }>
       >
     >
+    /** 이번 달 키 이벤트 — 베스트 날 / 강한 구간 / 피할 날 */
+    keyEvents?: {
+      best?: { date: string; score: number }
+      window?: { start: string; end: string; avg: number }
+      avoid?: { dates: string[] }
+    }
+    /** 지난달 대비 — 전체 흐름/테마별 점수 변화 */
+    monthComparison?: {
+      overallDelta: number
+      themes: Array<{
+        theme: 'love' | 'money' | 'career' | 'health' | 'growth'
+        delta: number
+        dir: 'up' | 'down'
+      }>
+    }
   }
   /**
    * 해당 날의 60갑자(일진) 한 줄 narrative — `getGanjiTransitNarrative` 출처.

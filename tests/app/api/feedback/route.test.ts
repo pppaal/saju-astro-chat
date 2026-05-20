@@ -400,8 +400,8 @@ describe('GET /api/feedback', () => {
     )
   })
 
-  // ---- Test 11: Filters by service (theme 필터 제거됨) ----
-  it('should filter stats by service query parameter', async () => {
+  // ---- Test 11: Filters by service; unsupported theme param is ignored ----
+  it('should filter stats by service and ignore the unsupported theme query parameter', async () => {
     vi.mocked(prisma.sectionFeedback.count)
       .mockResolvedValueOnce(10 as any)
       .mockResolvedValueOnce(8 as any)
@@ -422,12 +422,16 @@ describe('GET /api/feedback', () => {
     expect(json.total).toBe(10)
     expect(json.satisfactionRate).toBe(80)
 
-    // groupBy where should carry service (theme 필터는 제거됨)
+    // groupBy carries the service filter; theme filtering is no longer supported
     expect(prisma.sectionFeedback.groupBy).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ service: 'destiny-map' }),
       }),
     )
+    const groupByCalls = vi.mocked(prisma.sectionFeedback.groupBy).mock.calls
+    for (const [arg] of groupByCalls) {
+      expect((arg as any).where).not.toHaveProperty('theme')
+    }
   })
 
   // ---- Test 12: Empty results ----

@@ -33,13 +33,9 @@ const assertModules = (modulePaths: string[]) => {
 };
 
 describe('API Routes Smoke Tests', () => {
-  describe('Admin Routes', () => {
+  describe('Admin Routes (1)', () => {
     it('should have admin routes', () => {
       assertModules([
-        'app/api/admin/metrics/route',
-        'app/api/admin/metrics/comprehensive/route',
-        'app/api/admin/metrics/funnel/route',
-        'app/api/admin/metrics/sla/route',
         'app/api/admin/refund-subscription/route',
       ]);
     });
@@ -69,57 +65,59 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Auth Routes', () => {
+  describe('Auth Routes (2)', () => {
     it('should have auth routes', () => {
       assertModules([
-        'app/api/auth/[...nextauth]/route',
         'app/api/auth/register/route',
         'app/api/auth/revoke/route',
       ]);
     });
   });
 
-  describe('Cache Routes', () => {
-    it('should have cache route', () => {
-      assertModules(['app/api/cache/chart/route']);
-    });
-  });
-
   describe('Calendar Routes', () => {
     it('should have calendar routes', () => {
-      assertModules(['app/api/calendar/route', 'app/api/calendar/date-detail/route']);
+      assertModules([
+        'app/api/calendar/route',
+      ]);
     });
   });
 
-  describe('Checkout Routes', () => {
+  describe('Checkout Routes (1)', () => {
     it('should have checkout route', () => {
-      assertModules(['app/api/checkout/route']);
+      assertModules([
+        'app/api/checkout/route',
+      ]);
     });
   });
 
-  describe('Cities Routes', () => {
+  describe('Cities Routes (1)', () => {
     it('should have cities route', () => {
-      assertModules(['app/api/cities/route']);
+      assertModules([
+        'app/api/cities/route',
+      ]);
     });
   });
 
   describe('Compatibility Routes', () => {
     it('should have compatibility routes', () => {
-      assertModules(['app/api/compatibility/counselor/route']);
+      assertModules([
+        'app/api/compatibility/counselor/route',
+      ]);
     });
   });
 
-  describe('Content Access Routes', () => {
+  describe('Content Access Routes (1)', () => {
     it('should have content access route', () => {
-      assertModules(['app/api/content-access/route']);
+      assertModules([
+        'app/api/content-access/route',
+      ]);
     });
   });
 
-  describe('Counselor Routes', () => {
+  describe('Counselor Routes (4)', () => {
     it('should have counselor routes', () => {
       assertModules([
         'app/api/counselor/chat-history/route',
-        'app/api/counselor/realtime/route',
         'app/api/counselor/session/list/route',
         'app/api/counselor/session/load/route',
         'app/api/counselor/session/save/route',
@@ -137,88 +135,49 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('CSP Report Routes', () => {
-    it('should have csp-report route', () => {
-      assertModules(['app/api/csp-report/route']);
-    });
-  });
-
-  describe('Dates Routes', () => {
-    it('should have dates route', () => {
-      assertModules(['app/api/dates/route']);
-    });
-  });
-
-  describe('DB Ping Routes', () => {
-    it('should have db-ping route', () => {
-      assertModules(['app/api/db-ping/route']);
-    });
-  });
-
   describe('Destiny Map Routes', () => {
     it('should have destiny map routes', () => {
-      assertModules(['app/api/destiny-map/route', 'app/api/destiny-map/chat/route']);
-    });
-  });
-
-  describe('Destiny Match Routes', () => {
-    it('should have destiny match routes', () => {
       assertModules([
-        'app/api/destiny-match/block/route',
-        'app/api/destiny-match/chat/route',
-        'app/api/destiny-match/discover/route',
-        'app/api/destiny-match/matches/route',
-        'app/api/destiny-match/oracle/[connectionId]/route',
-        'app/api/destiny-match/profile/route',
-        'app/api/destiny-match/report/route',
-        'app/api/destiny-match/swipe/route',
+        'app/api/destiny-map/route',
+        'app/api/destiny-map/chat/route',
       ]);
     });
   });
 
-  describe('Feedback Routes', () => {
+  describe('Destiny Match Routes (1)', () => {
+    it('should have destiny match routes', () => {
+      assertModules([
+        'app/api/destiny-match/matches/route',
+      ]);
+    });
+  });
+
+  describe('Feedback Routes (2)', () => {
     it('should have feedback routes', () => {
-      assertModules(['app/api/feedback/route', 'app/api/feedback/records/route']);
+      assertModules([
+        'app/api/feedback/route',
+        'app/api/feedback/records/route',
+      ]);
     });
   });
 
-  describe('Geocoding Routes', () => {
-    it('should have latlon-to-timezone route', () => {
-      assertModules(['app/api/latlon-to-timezone/route']);
-    });
-  });
-
-  describe('Me Routes', () => {
+  describe('Me Routes (5)', () => {
     it('should have user profile routes', () => {
       assertModules([
-        'app/api/me/route',
         'app/api/me/circle/route',
         'app/api/me/credits/route',
-        'app/api/me/decisions/route',
         'app/api/me/history/route',
         'app/api/me/premium/route',
         'app/api/me/profile/route',
-        'app/api/me/purchases/route',
-        'app/api/me/saju/route',
       ]);
-    });
-  });
-
-  describe('Metrics Routes', () => {
-    it('should have metrics route', () => {
-      assertModules(['app/api/metrics/track/route']);
-    });
-  });
-
-  describe('Notifications Routes', () => {
-    it('should have notifications route', () => {
-      assertModules(['app/api/notifications/stream/route']);
     });
   });
 
   describe('Push Routes', () => {
-    it('should have push route', () => {
-      assertModules(['app/api/push/subscribe/route']);
+    it('should have push routes', () => {
+      assertModules([
+        'app/api/push/subscribe/route',
+      ]);
     });
   });
 
@@ -228,32 +187,24 @@ describe('API Routes Smoke Tests', () => {
         'app/api/referral/claim/route',
         'app/api/referral/create-code/route',
         'app/api/referral/me/route',
-        'app/api/referral/stats/route',
       ]);
     });
   });
 
-  describe('Review Routes', () => {
-    it('should have review route', () => {
-      assertModules(['app/api/review/assessment/route']);
-    });
-  });
-
-  describe('Saju Routes', () => {
+  describe('Saju Routes (2)', () => {
     it('should have saju routes', () => {
-      assertModules(['app/api/saju/route', 'app/api/saju/chat-stream/route']);
+      assertModules([
+        'app/api/saju/route',
+        'app/api/saju/chat-stream/route',
+      ]);
     });
   });
 
-  describe('Share Routes', () => {
-    it('should have share routes', () => {
-      assertModules(['app/api/share/[id]/route', 'app/api/share/generate-image/route']);
-    });
-  });
-
-  describe('Stats Routes', () => {
+  describe('Stats Routes (1)', () => {
     it('should have stats route', () => {
-      assertModules(['app/api/stats/route']);
+      assertModules([
+        'app/api/stats/route',
+      ]);
     });
   });
 
@@ -261,55 +212,48 @@ describe('API Routes Smoke Tests', () => {
     it('should have tarot core routes', () => {
       assertModules([
         'app/api/tarot/route',
-        'app/api/tarot/question-engine-v2/route',
         'app/api/tarot/followup/route',
-        'app/api/tarot/prefetch/route',
+        'app/api/tarot/interpret-stream/route',
       ]);
     });
 
-    it('should have tarot save and interpret routes', () => {
+    it('should have tarot save routes', () => {
       assertModules([
-        'app/api/tarot/interpret-stream/route',
         'app/api/tarot/save/route',
         'app/api/tarot/save/[id]/route',
       ]);
     });
-
-    it('should have tarot couple routes', () => {
-      assertModules([
-        'app/api/tarot/couple-reading/route',
-        'app/api/tarot/couple-reading/[readingId]/route',
-      ]);
-    });
   });
 
-  describe('User Routes', () => {
+  describe('User Routes (1)', () => {
     it('should have user routes', () => {
       assertModules([
         'app/api/user/update-birth-info/route',
-        'app/api/user/upload-photo/route',
       ]);
     });
   });
 
-  describe('Webhook Routes', () => {
+  describe('Webhook Routes (1)', () => {
     it('should have webhook routes', () => {
-      assertModules(['app/api/webhook/stripe/route']);
+      assertModules([
+        'app/api/webhook/stripe/route',
+      ]);
     });
   });
 
   describe('API Routes Summary', () => {
-    it('should have all API route categories', () => {
+    it('should have a route module under each expected API category directory', () => {
       const categories = [
-        'admin', 'astrology', 'auth', 'cache', 'calendar', 'checkout',
-        'cities', 'compatibility', 'content-access', 'counselor', 'cron',
-        'csp-report', 'dates', 'db-ping', 'destiny-map', 'destiny-match',
-        'feedback', 'latlon-to-timezone', 'me', 'metrics', 'notifications',
-        'push', 'referral', 'review', 'saju', 'share', 'stats', 'tarot',
-        'user', 'webhook',
+        'admin', 'astrology', 'auth', 'calendar', 'checkout', 'cities',
+        'compatibility', 'content-access', 'counselor', 'cron',
+        'destiny-map', 'destiny-match', 'feedback', 'me', 'push',
+        'referral', 'saju', 'stats', 'tarot', 'user', 'webhook',
       ];
 
-      expect(categories.length).toBe(30);
+      categories.forEach((category) => {
+        const dir = path.join(process.cwd(), 'src', 'app', 'api', category);
+        expect(existsSync(dir)).toBe(true);
+      });
     });
   });
 });

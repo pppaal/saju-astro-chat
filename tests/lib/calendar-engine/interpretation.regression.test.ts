@@ -3,6 +3,9 @@ import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildInterpretation } from '@/lib/calendar-engine/interpretation/matcher'
+import { deriveKeyEvents } from '@/lib/calendar-engine/derivers/keyEvents'
+import { deriveMonthComparison } from '@/lib/calendar-engine/derivers/monthComparison'
+import type { CalendarCell } from '@/lib/calendar-engine/types'
 
 /**
  * Regression suite — guards the cross-dimensional invariants the
@@ -164,6 +167,226 @@ describe('calendar-engine regression', () => {
       )
       const max = Math.max(...cells.map((c) => c.derivedScore))
       expect(max).toBeLessThanOrEqual(98)
+    })
+  })
+
+  describe('key events 3 (deriveKeyEvents)', () => {
+    // 최소 필드만 채운 합성 셀 — deriveKeyEvents 는 datetime/derivedScore 만 읽음.
+    const cell = (day: number, score: number): CalendarCell =>
+      ({
+        datetime: `2026-05-${String(day).padStart(2, '0')}T00:00:00.000Z`,
+        derivedScore: score,
+      }) as unknown as CalendarCell
+
+    it('returns undefined when fewer than 7 dated cells', () => {
+      const few = [1, 2, 3, 4, 5, 6].map((d) => cell(d, 70))
+      expect(deriveKeyEvents(few)).toBeUndefined()
+    })
+
+    it('best = highest score, avoid filtered to <65, window = longest consecutive strong run', () => {
+      // avg of these = (60+58+90+88+86+62+40+59) / 8 = 542/8 = 67.75 → thr ≈ 72.75
+      // strong consecutive run: days 3,4,5 (90,88,86) → len 3
+      const cells = [
+        cell(1, 60),
+        cell(2, 58),
+        cell(3, 90),
+        cell(4, 88),
+        cell(5, 86),
+        cell(6, 62),
+        cell(7, 40),
+        cell(8, 59),
+      ]
+      const ev = deriveKeyEvents(cells)
+      expect(ev).toBeDefined()
+      expect(ev!.best).toEqual({ date: '05-03', score: 90 })
+      // avoid = bottom 2 by score (<65): day 7 (40), day 2 (58)
+      expect(ev!.avoid?.dates).toEqual(['05-07', '05-02'])
+      // window = 05-03..05-05, avg round((90+88+86)/3)=88
+      expect(ev!.window).toEqual({ start: '05-03', end: '05-05', avg: 88 })
+    })
+
+    it('omits avoid entirely when every day is >= 65', () => {
+      const cells = [70, 72, 74, 76, 78, 80, 82, 84].map((s, i) => cell(i + 1, s))
+      const ev = deriveKeyEvents(cells)
+      expect(ev?.avoid).toBeUndefined()
+    })
+
+    it('does not flag a window when no 3-day consecutive strong run exists', () => {
+      // strong days are non-adjacent → no run of 3
+      const cells = [50, 90, 50, 90, 50, 90, 50, 90].map((s, i) => cell(i + 1, s))
+      const ev = deriveKeyEvents(cells)
+      expect(ev?.window).toBeUndefined()
+    })
+
+    it('monthly buildInterpretation attaches keyEvents consistent with cell scores', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      expect(interp.keyEvents).toBeDefined()
+      // best.score must equal the actual max derivedScore of the month
+      const maxScore = Math.max(...cells.map((c) => c.derivedScore))
+      expect(interp.keyEvents!.best?.score).toBe(maxScore)
+      // any avoid date must really be a sub-65 day
+      for (const d of interp.keyEvents!.avoid?.dates ?? []) {
+        const match = cells.find((c) => c.datetime.slice(5, 10) === d)
+        expect(match!.derivedScore).toBeLessThan(65)
+      }
+    })
+
+    it('keyEvents is omitted for non-monthly scope', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'daily' })
+      expect(interp.keyEvents).toBeUndefined()
+    })
+  })
+
+  describe('month-over-month comparison (deriveMonthComparison)', () => {
+    const cell = (day: number, score: number): CalendarCell =>
+      ({
+        datetime: `2026-05-${String(day).padStart(2, '0')}T00:00:00.000Z`,
+        derivedScore: score,
+      }) as unknown as CalendarCell
+
+    const month = (base: number) => Array.from({ length: 10 }, (_, i) => cell(i + 1, base + i))
+
+    it('returns undefined when either month has < 7 dated cells', () => {
+      const few = [1, 2, 3].map((d) => cell(d, 70))
+      expect(deriveMonthComparison({ currCells: few, prevCells: month(50) })).toBeUndefined()
+      expect(deriveMonthComparison({ currCells: month(50), prevCells: few })).toBeUndefined()
+    })
+
+    it('computes overall avg delta and per-theme deltas (|delta|>=3, top 3)', () => {
+      const cmp = deriveMonthComparison({
+        currCells: month(60), // avg 64.5
+        prevCells: month(50), // avg 54.5
+        currScores: { money: 70, career: 55, love: 50, health: 48, growth: 60 },
+        prevScores: { money: 56, career: 60, love: 49, health: 40, growth: 30 },
+      })
+      expect(cmp).toBeDefined()
+      expect(cmp!.overallDelta).toBe(10) // 64.5 - 54.5
+      // deltas: money +14, growth +30, health +8, career -5, love +1(<3 dropped)
+      // top 3 by |delta|: growth +30, money +14, health +8
+      expect(cmp!.themes.map((t) => t.theme)).toEqual(['growth', 'money', 'health'])
+      expect(cmp!.themes.find((t) => t.theme === 'career')).toBeUndefined() // -5 is in top? no, only 3
+      const growth = cmp!.themes.find((t) => t.theme === 'growth')!
+      expect(growth.delta).toBe(30)
+      expect(growth.dir).toBe('up')
+    })
+
+    it('marks down direction for negative deltas', () => {
+      const cmp = deriveMonthComparison({
+        currCells: month(50),
+        prevCells: month(50),
+        currScores: { money: 40 },
+        prevScores: { money: 70 },
+      })
+      expect(cmp!.themes[0]).toEqual({ theme: 'money', delta: -30, dir: 'down' })
+    })
+
+    it('drops theme when only one month has a score for it', () => {
+      const cmp = deriveMonthComparison({
+        currCells: month(50),
+        prevCells: month(50),
+        currScores: { money: 80 },
+        prevScores: {},
+      })
+      // no comparable theme + zero overall delta → undefined
+      expect(cmp).toBeUndefined()
+    })
+
+    it('buildInterpretation attaches monthComparison only when prevCells given (monthly)', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const may = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const apr = await buildCalendar(
+        natal,
+        {
+          start: '2026-04-01T00:00:00.000Z',
+          end: '2026-04-30T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const withPrev = buildInterpretation({ natal, cells: may, scope: 'monthly', prevCells: apr })
+      const withoutPrev = buildInterpretation({ natal, cells: may, scope: 'monthly' })
+      expect(withoutPrev.monthComparison).toBeUndefined()
+      expect(withPrev.monthComparison).toBeDefined()
+      // overallDelta must equal rounded(avg(may) - avg(apr))
+      const avg = (cs: typeof may) => cs.reduce((a, c) => a + c.derivedScore, 0) / cs.length
+      expect(withPrev.monthComparison!.overallDelta).toBe(Math.round(avg(may) - avg(apr)))
+    })
+  })
+
+  describe('cycle depth — context 2줄 + 구조 라인', () => {
+    it('daeun/seun/wolun 섹션이 2줄까지 표출 + 대운 위치/월운 주차 라인', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.000Z', granularity: 'day' },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const daeun = interp.sections.find((s) => s.section === 'daeun')
+      const wolun = interp.sections.find((s) => s.section === 'wolun')
+      // 대운: 위치 라인 (초/중/후반 + 나이) 포함
+      expect(daeun?.text).toMatch(/(초반|중반|후반).*세 무렵/)
+      // 같은 섹션 제목이 narrative 에 두 번 안 나옴 (병합 확인)
+      const daeunHeaderCount = (interp.narrative.match(/\[10년 큰 흐름\]/g) ?? []).length
+      expect(daeunHeaderCount).toBe(1)
+      // 월운: 주차별 흐름 라인
+      expect(wolun?.text).toMatch(/주차별 흐름:/)
     })
   })
 

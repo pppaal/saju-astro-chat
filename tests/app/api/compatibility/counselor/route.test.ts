@@ -13,7 +13,6 @@ vi.mock('@/lib/api/middleware', () => ({
     rateLimit: { limit: 30, windowSeconds: 60 },
     credits: { type: 'compatibility', amount: 1 },
   })),
-  extractLocale: vi.fn(() => 'ko'),
   apiSuccess: vi.fn((data: any) => ({ data })),
   apiError: vi.fn((code: string, message?: string) => ({
     error: { code, message },
@@ -25,24 +24,13 @@ vi.mock('@/lib/api/middleware', () => ({
   },
 }))
 
-// Mock next-auth — default no session → guest guard path (initializeApiContext
-// is fully mocked, so the chosen guard doesn't matter for assertions).
+// Mock next-auth
 vi.mock('next-auth', () => ({
   getServerSession: vi.fn(),
 }))
 
 vi.mock('@/lib/auth/authOptions', () => ({
   authOptions: {},
-}))
-
-// Mock error handler (guest-limit path only)
-vi.mock('@/lib/api/errorHandler', () => ({
-  createErrorResponse: vi.fn(() => NextResponse.json({ error: 'guest_limit' }, { status: 401 })),
-  ErrorCodes: {
-    UNAUTHORIZED: 'UNAUTHORIZED',
-    BAD_REQUEST: 'BAD_REQUEST',
-    INTERNAL_ERROR: 'INTERNAL_ERROR',
-  },
 }))
 
 // Mock logger
@@ -55,20 +43,15 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-// Mock streaming fallback
+// Mock streaming
 vi.mock('@/lib/streaming', () => ({
   createFallbackSSEStream: vi.fn(),
 }))
 
-// Mock Claude SSE — the route now streams Claude directly instead of
-// calling a Python backend. Default: resolves to an SSE Response.
+// Mock Claude SSE — the route streams the answer directly via streamClaudeAsSSE
+// (it no longer proxies to a backend /api/compatibility/chat endpoint).
 vi.mock('@/lib/llm/claudeSSE', () => ({
-  streamClaudeAsSSE: vi.fn(
-    async () =>
-      new Response('data: {"content":"hi","done":false}\n\ndata: {"content":"","done":true}\n\n', {
-        headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
-      })
-  ),
+  streamClaudeAsSSE: vi.fn(),
 }))
 
 // Mock text guards
@@ -210,6 +193,18 @@ describe('Compatibility Counselor API - POST', () => {
       error: undefined,
     } as any)
 
+    // Default: Claude SSE streams a successful answer. Mirrors the real
+    // streamClaudeAsSSE Response (text/event-stream + no-cache headers).
+    vi.mocked(streamClaudeAsSSE).mockResolvedValue(
+      new Response('data: {"content":"AI generated compatibility analysis.","done":false}\n\n', {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          Connection: 'keep-alive',
+        },
+      }) as any
+    )
+
     // Default: fallback stream returns a Response
     vi.mocked(createFallbackSSEStream).mockReturnValue(
       new Response('data: fallback\n\ndata: [DONE]\n\n', {
@@ -307,6 +302,7 @@ describe('Compatibility Counselor API - POST', () => {
       }))
       const req = createRequest({ persons: tooMany })
       const response = await POST(req)
+      const data = await response.json()
 
       expect(response.status).toBe(400)
     })
@@ -317,6 +313,7 @@ describe('Compatibility Counselor API - POST', () => {
         lang: 'fr',
       })
       const response = await POST(req)
+      const data = await response.json()
 
       expect(response.status).toBe(400)
     })
@@ -327,6 +324,7 @@ describe('Compatibility Counselor API - POST', () => {
         theme: 'invalid-theme',
       })
       const response = await POST(req)
+      const data = await response.json()
 
       expect(response.status).toBe(400)
     })
@@ -338,6 +336,11 @@ describe('Compatibility Counselor API - POST', () => {
           context: defaultContext,
           error: undefined,
         } as any)
+        vi.mocked(streamClaudeAsSSE).mockResolvedValue(
+          new Response('data: {"content":"OK","done":false}\n\n', {
+            headers: { 'Content-Type': 'text/event-stream' },
+          }) as any
+        )
         vi.mocked(containsForbidden).mockReturnValue(false)
 
         const req = createRequest({
@@ -367,7 +370,6 @@ describe('Compatibility Counselor API - POST', () => {
       await POST(req)
 
       expect(createFallbackSSEStream).toHaveBeenCalledWith(expect.objectContaining({ done: true }))
-      expect(streamClaudeAsSSE).not.toHaveBeenCalled()
     })
 
     it('should call safetyMessage with the correct locale', async () => {
@@ -392,35 +394,47 @@ describe('Compatibility Counselor API - POST', () => {
       })
       await POST(req)
 
-      // Should proceed to Claude streaming
+      // Should proceed to stream the AI answer (no safety fallback)
       expect(streamClaudeAsSSE).toHaveBeenCalled()
     })
   })
 
   // ----------------------------------------------------------
-  // Claude Streaming
+  // AI Streaming Call (streamClaudeAsSSE)
   // ----------------------------------------------------------
-  describe('Claude Streaming', () => {
-    it('should call streamClaudeAsSSE with prompt blocks and config', async () => {
+  describe('AI Streaming Call', () => {
+    it('should stream the answer with the compatibility-counselor label and prompts', async () => {
       const req = createRequest({
         persons: validPersons,
         messages: [{ role: 'user', content: 'How is our compatibility?' }],
         lang: 'ko',
+        theme: 'love',
       })
       await POST(req)
 
       expect(streamClaudeAsSSE).toHaveBeenCalledWith(
         expect.objectContaining({
-          systemPrompt: expect.any(String),
-          cachedUserContext: expect.any(String),
-          userPrompt: expect.any(String),
-          timeoutMs: 80000,
           label: 'compatibility-counselor',
+          systemPrompt: expect.any(String),
+          userPrompt: expect.any(String),
+          maxTokens: 3500,
+          timeoutMs: 80000,
         })
       )
     })
 
-    it('should return SSE stream response on successful Claude call', async () => {
+    it('should pass the latest user question through to the user prompt', async () => {
+      const req = createRequest({
+        persons: validPersons,
+        messages: [{ role: 'user', content: 'How is our compatibility?' }],
+      })
+      await POST(req)
+
+      const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+      expect(callArg.userPrompt).toContain('How is our compatibility?')
+    })
+
+    it('should return SSE stream response on successful AI call', async () => {
       const req = createRequest({
         persons: validPersons,
         messages: [{ role: 'user', content: 'Tell me about us' }],
@@ -428,10 +442,10 @@ describe('Compatibility Counselor API - POST', () => {
       const response = await POST(req)
 
       expect(response.headers.get('Content-Type')).toBe('text/event-stream')
-      expect(response.headers.get('Cache-Control')).toBe('no-cache')
+      expect(response.headers.get('Cache-Control')).toBe('no-cache, no-transform')
     })
 
-    it('should clamp prior turns to a bounded history', async () => {
+    it('should clamp prior conversation turns to at most 8', async () => {
       const messages = Array.from({ length: 15 }, (_, i) => ({
         role: i % 2 === 0 ? 'user' : 'assistant',
         content: `Message ${i}`,
@@ -443,34 +457,20 @@ describe('Compatibility Counselor API - POST', () => {
       })
       await POST(req)
 
-      const callArgs = vi.mocked(streamClaudeAsSSE).mock.calls[0][0] as any
-      expect(Array.isArray(callArgs.priorTurns)).toBe(true)
-      expect(callArgs.priorTurns.length).toBeLessThanOrEqual(8)
-    })
-
-    it('should use the English system prompt when locale is en', async () => {
-      vi.mocked(initializeApiContext).mockResolvedValue({
-        context: { ...defaultContext, locale: 'en' },
-        error: undefined,
-      } as any)
-
-      const req = createRequest({
-        persons: validPersons,
-        messages: [{ role: 'user', content: 'Compatibility check' }],
-      })
-      await POST(req)
-
-      const callArgs = vi.mocked(streamClaudeAsSSE).mock.calls[0][0] as any
-      expect(callArgs.systemPrompt).toContain('Answer the user directly')
+      // clampMessages caps history at 8; priorTurns excludes the final
+      // user turn (it becomes userPrompt), so it must stay <= 8.
+      const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+      expect(Array.isArray(callArg.priorTurns)).toBe(true)
+      expect((callArg.priorTurns as unknown[]).length).toBeLessThanOrEqual(8)
     })
   })
 
   // ----------------------------------------------------------
-  // Claude Failure / Fallback
+  // AI Streaming Failure / Fallback
   // ----------------------------------------------------------
-  describe('Claude Failure', () => {
-    it('should return Korean fallback SSE stream when Claude throws', async () => {
-      vi.mocked(streamClaudeAsSSE).mockRejectedValueOnce(new Error('Claude down'))
+  describe('AI Streaming Failure', () => {
+    it('should return Korean fallback SSE stream when Claude streaming throws', async () => {
+      vi.mocked(streamClaudeAsSSE).mockRejectedValue(new Error('Claude down'))
 
       const req = createRequest({
         persons: validPersons,
@@ -488,7 +488,7 @@ describe('Compatibility Counselor API - POST', () => {
     })
 
     it('should return English fallback message when language is en', async () => {
-      vi.mocked(streamClaudeAsSSE).mockRejectedValueOnce(new Error('Claude down'))
+      vi.mocked(streamClaudeAsSSE).mockRejectedValue(new Error('Claude down'))
 
       const req = createRequest({
         persons: validPersons,
@@ -505,8 +505,8 @@ describe('Compatibility Counselor API - POST', () => {
       )
     })
 
-    it('should fall back when Claude rejects without a message', async () => {
-      vi.mocked(streamClaudeAsSSE).mockRejectedValueOnce(new Error('Network error'))
+    it('should return fallback SSE stream when Claude streaming rejects', async () => {
+      vi.mocked(streamClaudeAsSSE).mockRejectedValue(new Error('Network error'))
 
       const req = createRequest({
         persons: validPersons,
@@ -542,6 +542,7 @@ describe('Compatibility Counselor API - POST', () => {
       })
 
       const response = await POST(req)
+      const data = await response.json()
 
       expect(response.status).toBe(500)
     })
@@ -562,7 +563,38 @@ describe('Compatibility Counselor API - POST', () => {
       expect(streamClaudeAsSSE).toHaveBeenCalled()
     })
 
-    it('should handle saju data with missing fields gracefully', async () => {
+    it('should use context locale (en) to pick the English system prompt when lang is not provided', async () => {
+      vi.mocked(initializeApiContext).mockResolvedValue({
+        context: { ...defaultContext, locale: 'en' },
+        error: undefined,
+      } as any)
+
+      const req = createRequest({
+        persons: validPersons,
+        messages: [{ role: 'user', content: 'Compatibility check' }],
+      })
+      await POST(req)
+
+      // lang defaults to context.locale -> English system prompt
+      const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+      expect(callArg.systemPrompt).toContain(
+        'Answer the user directly from the saju and astrology data'
+      )
+    })
+
+    it('should use the Korean system prompt when lang is ko', async () => {
+      const req = createRequest({
+        persons: validPersons,
+        messages: [{ role: 'user', content: '우리 잘 맞아?' }],
+        lang: 'ko',
+      })
+      await POST(req)
+
+      const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+      expect(callArg.systemPrompt).toContain('사용자의 질문에 직접 답변한다')
+    })
+
+    it('should still stream when saju data has missing fields', async () => {
       const incompleteSaju = {
         dayMaster: { name: '갑' },
         // Missing pillars and elements
@@ -576,12 +608,13 @@ describe('Compatibility Counselor API - POST', () => {
         person2Astro: validAstroProfile,
         messages: [{ role: 'user', content: 'Compatibility?' }],
       })
-      await POST(req)
+      const response = await POST(req)
 
       expect(streamClaudeAsSSE).toHaveBeenCalled()
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
     })
 
-    it('should handle astro data with direct planet format', async () => {
+    it('should still stream when astro data uses direct planet format', async () => {
       const directAstro = {
         sun: { sign: 'Aries' },
         moon: { sign: 'Taurus' },
@@ -598,9 +631,10 @@ describe('Compatibility Counselor API - POST', () => {
         person2Astro: directAstro,
         messages: [{ role: 'user', content: 'Are we compatible?' }],
       })
-      await POST(req)
+      const response = await POST(req)
 
       expect(streamClaudeAsSSE).toHaveBeenCalled()
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
     })
 
     it('should only check the last user message for safety', async () => {

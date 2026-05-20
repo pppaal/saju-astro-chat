@@ -574,8 +574,13 @@ describe('POST /api/tarot/interpret-stream', () => {
       expect(text).toContain('upright')
     })
 
-    // 'should log warning when OPENAI_API_KEY is missing' 제거 — Claude Haiku가
-    // 1차 LLM이라 해당 경고 메시지는 더 이상 출력되지 않음.
+    it('should log warning when OPENAI_API_KEY is missing', async () => {
+      await POST(makePostRequest(VALID_REQUEST_BODY))
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        'Tarot stream missing both ANTHROPIC_API_KEY and OPENAI_API_KEY, using fallback'
+      )
+    })
   })
 
   // -----------------------------------------------------------------
@@ -702,12 +707,90 @@ describe('POST /api/tarot/interpret-stream', () => {
   })
 
   // -----------------------------------------------------------------
-  // Backend Fallback
+  // OpenAI static fallback (backend fallback removed)
   // -----------------------------------------------------------------
+  describe('OpenAI Static Fallback', () => {
+    beforeEach(() => {
+      process.env.OPENAI_API_KEY = 'test-api-key'
+    })
+
+    afterEach(() => {
+      delete process.env.OPENAI_API_KEY
+    })
+
+    it('should use base fallback when OpenAI fails', async () => {
+      global.fetch = vi.fn().mockRejectedValue(new Error('OpenAI down'))
+
+      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
+
+      // Should still return a fallback stream
+      expect(response.headers.get('X-Fallback')).toBe('1')
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
+    })
+  })
 
   // -----------------------------------------------------------------
   // Personalization Features
   // -----------------------------------------------------------------
+  describe('Personalization Features', () => {
+    beforeEach(() => {
+      process.env.OPENAI_API_KEY = 'test-api-key'
+      mockApiClientPost.mockResolvedValue({
+        ok: false,
+        status: 500,
+        error: 'Backend error',
+      })
+    })
+
+    afterEach(() => {
+      delete process.env.OPENAI_API_KEY
+    })
+
+    it('should ignore impossible YYYY-MM-DD birthdate values', async () => {
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
+      global.fetch = mockFetch
+
+      mockTarotInterpretStreamSafeParse.mockReturnValue({
+        success: true,
+        data: {
+          ...VALID_REQUEST_BODY,
+          language: 'en',
+          birthdate: '1990-02-31',
+        },
+      })
+
+      await POST(
+        makePostRequest({
+          ...VALID_REQUEST_BODY,
+          language: 'en',
+          birthdate: '1990-02-31',
+        })
+      )
+
+      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
+      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
+      expect(userMessage.content).not.toContain('Zodiac:')
+    })
+    it('should analyze question mood for worried patterns', async () => {
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
+      global.fetch = mockFetch
+
+      mockTarotInterpretStreamSafeParse.mockReturnValue({
+        success: true,
+        data: { ...VALID_REQUEST_BODY, userQuestion: '너무 걱정되고 불안해요' },
+      })
+
+      await POST(makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '너무 걱정되고 불안해요' }))
+
+      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
+      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
+      expect(userMessage.content).toContain('걱정')
+    })
+  })
 
   // -----------------------------------------------------------------
   // Error Handling
@@ -1047,13 +1130,6 @@ describe('Tarot Stream - Internal Function Behavior', () => {
     })
   })
 
-  // -----------------------------------------------------------------
-  // Question Mood Analysis
-  // -----------------------------------------------------------------
-
-  // -----------------------------------------------------------------
-  // Normalize Advice Function
-  // -----------------------------------------------------------------
 })
 
 // ===================================================================

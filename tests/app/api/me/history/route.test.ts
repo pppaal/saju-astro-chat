@@ -490,7 +490,6 @@ describe('History API – GET /api/me/history', () => {
           id: 'tarot-1',
           createdAt: fakeDate('2025-06-10'),
           question: 'Will I get the job?',
-          theme: 'career',
           spreadTitle: null,
         },
       ] as any)
@@ -501,7 +500,6 @@ describe('History API – GET /api/me/history', () => {
       const record = data.data.history[0].records[0]
       expect(record.id).toBe('tarot-1')
       expect(record.service).toBe('tarot')
-      expect(record.theme).toBeUndefined()
       expect(record.summary).toBe('Will I get the job?')
       expect(record.type).toBe('tarot-reading')
     })
@@ -549,15 +547,14 @@ describe('History API – GET /api/me/history', () => {
       mockAllPrismaEmpty()
     })
 
-    it('should map dream consultation correctly', async () => {
+    it('should map consultation correctly with summary', async () => {
       vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([
-        { id: 'con-1', createdAt: fakeDate('2025-06-08'), theme: 'dream', summary: 'Flying dream' },
+        { id: 'con-1', createdAt: fakeDate('2025-06-08'), summary: 'Flying dream' },
       ] as any)
 
       const response = await GET(makeRequest())
       const data = await response.json()
 
-      // 상담 기록은 일괄 'destiny-map'으로 매핑됨 (dream/life-prediction 서비스 제거).
       const record = data.data.history[0].records[0]
       expect(record.service).toBe('destiny-map')
       expect(record.theme).toBeUndefined()
@@ -565,89 +562,9 @@ describe('History API – GET /api/me/history', () => {
       expect(record.type).toBe('consultation')
     })
 
-    it('should default dream summary when null', async () => {
+    it('should default consultation summary when null', async () => {
       vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([
-        { id: 'con-1b', createdAt: fakeDate('2025-06-08'), theme: 'dream', summary: null },
-      ] as any)
-
-      const response = await GET(makeRequest())
-      const data = await response.json()
-
-      const record = data.data.history[0].records[0]
-      expect(record.summary).toBe('Destiny Map 분석을 이용했습니다')
-    })
-
-    it('should map life-prediction consultation', async () => {
-      vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([
-        {
-          id: 'con-2',
-          createdAt: fakeDate('2025-06-07'),
-          theme: 'life-prediction',
-          summary: 'Future insight',
-        },
-      ] as any)
-
-      const response = await GET(makeRequest())
-      const data = await response.json()
-
-      const record = data.data.history[0].records[0]
-      expect(record.service).toBe('destiny-map')
-      expect(record.summary).toBe('Future insight')
-    })
-
-    it('should map life-prediction-timing consultation', async () => {
-      vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([
-        {
-          id: 'con-3',
-          createdAt: fakeDate('2025-06-06'),
-          theme: 'life-prediction-timing',
-          summary: null,
-        },
-      ] as any)
-
-      const response = await GET(makeRequest())
-      const data = await response.json()
-
-      const record = data.data.history[0].records[0]
-      expect(record.service).toBe('destiny-map')
-      expect(record.summary).toBe('Destiny Map 분석을 이용했습니다')
-    })
-
-    it('should map destiny-map consultation with known theme', async () => {
-      vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([
-        {
-          id: 'con-4',
-          createdAt: fakeDate('2025-06-05'),
-          theme: 'focus_love',
-          summary: 'Love analysis',
-        },
-      ] as any)
-
-      const response = await GET(makeRequest())
-      const data = await response.json()
-
-      const record = data.data.history[0].records[0]
-      expect(record.service).toBe('destiny-map')
-      expect(record.theme).toBeUndefined()
-      expect(record.summary).toBe('Love analysis')
-    })
-
-    it('should map destiny-map consultation with unknown theme label', async () => {
-      vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([
-        { id: 'con-5', createdAt: fakeDate('2025-06-04'), theme: 'custom_theme', summary: null },
-      ] as any)
-
-      const response = await GET(makeRequest())
-      const data = await response.json()
-
-      const record = data.data.history[0].records[0]
-      expect(record.service).toBe('destiny-map')
-      expect(record.summary).toBe('Destiny Map 분석을 이용했습니다')
-    })
-
-    it('should map destiny-map with null theme', async () => {
-      vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([
-        { id: 'con-6', createdAt: fakeDate('2025-06-03'), theme: null, summary: null },
+        { id: 'con-6', createdAt: fakeDate('2025-06-03'), summary: null },
       ] as any)
 
       const response = await GET(makeRequest())
@@ -658,7 +575,6 @@ describe('History API – GET /api/me/history', () => {
       expect(record.summary).toBe('Destiny Map 분석을 이용했습니다')
     })
   })
-
 
   describe('Record Mapping – User Interactions', () => {
     beforeEach(() => {
@@ -673,7 +589,6 @@ describe('History API – GET /api/me/history', () => {
           createdAt: fakeDate('2025-06-12'),
           type: 'complete',
           service: 'tarot',
-          theme: 'love',
         },
       ] as any)
 
@@ -926,7 +841,7 @@ describe('History API – GET /api/me/history', () => {
       mockAllPrismaEmpty()
     })
 
-    it('should map timing report as premium-reports', async () => {
+    it('should map timing report as destiny-map', async () => {
       vi.mocked(prisma.destinyMatrixReport.findMany).mockResolvedValue([
         {
           id: 'mx-1',
@@ -951,7 +866,7 @@ describe('History API – GET /api/me/history', () => {
       expect(record.type).toBe('destiny-matrix-report')
     })
 
-    it('should map themed report as premium-reports', async () => {
+    it('should map themed report as destiny-map', async () => {
       vi.mocked(prisma.destinyMatrixReport.findMany).mockResolvedValue([
         {
           id: 'mx-2',
@@ -975,7 +890,7 @@ describe('History API – GET /api/me/history', () => {
       expect(record.summary).toBe('Love Report') // falls back to title
     })
 
-    it('should map comprehensive report as premium-reports', async () => {
+    it('should map comprehensive report as destiny-map', async () => {
       vi.mocked(prisma.destinyMatrixReport.findMany).mockResolvedValue([
         {
           id: 'mx-3',

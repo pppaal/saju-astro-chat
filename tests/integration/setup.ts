@@ -90,8 +90,6 @@ export async function cleanupTestUser(userId: string) {
     await testPrisma.userPreferences.deleteMany({ where: { userId } });
     await testPrisma.userInteraction.deleteMany({ where: { userId } });
     await testPrisma.dailyFortune.deleteMany({ where: { userId } });
-    await testPrisma.destinySnapshot.deleteMany({ where: { userId } });
-    await testPrisma.fortune.deleteMany({ where: { userId } });
     await testPrisma.reading.deleteMany({ where: { userId } });
     await testPrisma.session.deleteMany({ where: { userId } });
     await testPrisma.account.deleteMany({ where: { userId } });

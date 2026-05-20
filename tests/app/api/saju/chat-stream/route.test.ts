@@ -885,7 +885,7 @@ describe('Saju Chat Stream API - System Prompt', () => {
       const result = await buildPayload(validated, MOCK_CONTEXT, req, MOCK_RAW_BODY)
 
       expect(result.body.prompt).toContain('사주')
-      expect(result.body.prompt).toContain('서양 점성술')
+      expect(result.body.prompt).toContain('카운슬러')
     })
 
     it('should include no-greeting rule in Korean', async () => {
@@ -897,13 +897,17 @@ describe('Saju Chat Stream API - System Prompt', () => {
       expect(result.body.prompt).toContain('인사·자기소개 금지')
     })
 
-    it('should include saju domain rules in Korean', async () => {
+    it('should reference the Korean saju data fields it may draw on', async () => {
       const req = makePostRequest(VALID_CHAT_STREAM_BODY)
       const validated = { ...VALID_CHAT_STREAM_BODY, locale: 'ko' }
 
       const result = await buildPayload(validated, MOCK_CONTEXT, req, MOCK_RAW_BODY)
 
-      expect(result.body.prompt).toContain('[사주 카운슬러 도메인 규칙]')
+      // The saju domain layer tells the model which provided data to use:
+      // 대운 / 세운 / 일간 / 용신.
+      expect(result.body.prompt).toContain('대운')
+      expect(result.body.prompt).toContain('세운')
+      expect(result.body.prompt).toContain('일간')
       expect(result.body.prompt).toContain('용신')
     })
   })
@@ -915,8 +919,8 @@ describe('Saju Chat Stream API - System Prompt', () => {
 
       const result = await buildPayload(validated, { ...MOCK_CONTEXT, locale: 'en' }, req, MOCK_RAW_BODY)
 
-      expect(result.body.prompt).toContain('Saju')
-      expect(result.body.prompt).toContain('Western astrology')
+      expect(result.body.prompt).toContain('Saju-only')
+      expect(result.body.prompt).toContain('counselor')
     })
 
     it('should include no-greeting rule in English', async () => {
@@ -928,13 +932,16 @@ describe('Saju Chat Stream API - System Prompt', () => {
       expect(result.body.prompt).toContain('No greetings')
     })
 
-    it('should include saju domain rules in English', async () => {
+    it('should reference the English saju data fields it may draw on', async () => {
       const req = makePostRequest(VALID_CHAT_STREAM_BODY)
       const validated = { ...VALID_CHAT_STREAM_BODY, locale: 'en' }
 
       const result = await buildPayload(validated, { ...MOCK_CONTEXT, locale: 'en' }, req, MOCK_RAW_BODY)
 
-      expect(result.body.prompt).toContain('day master')
+      // The saju domain layer references the provided day-master / daeun / seun / yongsin data.
+      expect(result.body.prompt).toContain('day-master')
+      expect(result.body.prompt).toContain('daeun')
+      expect(result.body.prompt).toContain('yongsin')
     })
   })
 })

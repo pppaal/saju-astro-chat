@@ -130,15 +130,10 @@ const mockSession = {
   expires: '2025-12-31',
 }
 
-/** Create a valid Zod safeParse implementation */
+/** Create a valid Zod safeParse implementation (mirrors counselorSessionLoadQuerySchema: only sessionId) */
 function createValidSafeParse() {
   return (data: any) => {
     const errors: any[] = []
-
-    // Validate theme - optional, max 50 characters
-    if (data.theme !== undefined && typeof data.theme === 'string' && data.theme.length > 50) {
-      errors.push({ path: ['theme'], message: 'theme must be at most 50 characters' })
-    }
 
     // Validate sessionId - optional, max 100 characters
     if (
@@ -159,7 +154,6 @@ function createValidSafeParse() {
     return {
       success: true,
       data: {
-        theme: data.theme || 'chat',
         sessionId: data.sessionId,
       },
     }
@@ -241,27 +235,10 @@ describe('/api/counselor/session/load', () => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
     })
 
-    it('should accept request with no query params (defaults theme to "chat")', async () => {
+    it('should accept request with no query params (loads most recent session for user)', async () => {
       mockFindFirst.mockResolvedValue(null)
 
       const response = await GET(makeRequest())
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(mockFindFirst).toHaveBeenCalledWith({
-        where: {
-          userId: mockUserId,
-        },
-        orderBy: {
-          updatedAt: 'desc',
-        },
-      })
-    })
-
-    it('should accept valid theme parameter', async () => {
-      mockFindFirst.mockResolvedValue(null)
-
-      const response = await GET(makeRequest({ theme: 'career' }))
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -293,10 +270,10 @@ describe('/api/counselor/session/load', () => {
     it('should return 400 when validation fails', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
-        error: { issues: [{ path: ['theme'], message: 'Invalid theme' }] },
+        error: { issues: [{ path: ['sessionId'], message: 'Invalid sessionId' }] },
       })
 
-      const response = await GET(makeRequest({ theme: 'a'.repeat(51) }))
+      const response = await GET(makeRequest({ sessionId: 'a'.repeat(101) }))
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -304,22 +281,12 @@ describe('/api/counselor/session/load', () => {
       expect(data.details).toBeDefined()
     })
 
-    // 'reject theme exceeding 50 characters' 제거 — theme 검증/쿼리 제거됨.
-
     it('should reject sessionId exceeding 100 characters', async () => {
       const response = await GET(makeRequest({ sessionId: 'a'.repeat(101) }))
       const data = await response.json()
 
       expect(response.status).toBe(400)
       expect(data.error).toBe('validation_failed')
-    })
-
-    it('should accept theme at exactly 50 characters', async () => {
-      mockFindFirst.mockResolvedValue(null)
-
-      const response = await GET(makeRequest({ theme: 'a'.repeat(50) }))
-
-      expect(response.status).toBe(200)
     })
 
     it('should accept sessionId at exactly 100 characters', async () => {
@@ -417,18 +384,17 @@ describe('/api/counselor/session/load', () => {
   })
 
   // -------------------------------------------------------------------------
-  // Session Loading - By Theme (Most Recent)
+  // Session Loading - Most Recent (no sessionId)
   // -------------------------------------------------------------------------
-  describe('Load Session by Theme', () => {
+  describe('Load Most Recent Session', () => {
     beforeEach(() => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
     })
 
-    it('should load most recent session for theme when sessionId is not provided', async () => {
+    it('should load most recent session when sessionId is not provided', async () => {
       const mockChatSession = {
         id: 'recent-session',
         userId: mockUserId,
-        theme: 'love',
         messages: [
           { role: 'user', content: 'Tell me about love' },
           { role: 'assistant', content: 'Love is...' },
@@ -439,7 +405,7 @@ describe('/api/counselor/session/load', () => {
       }
       mockFindFirst.mockResolvedValue(mockChatSession)
 
-      const response = await GET(makeRequest({ theme: 'love' }))
+      const response = await GET(makeRequest())
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -456,25 +422,10 @@ describe('/api/counselor/session/load', () => {
       })
     })
 
-    it('should use default theme "chat" when no theme provided', async () => {
+    it('should return empty messages when no recent session exists', async () => {
       mockFindFirst.mockResolvedValue(null)
 
       const response = await GET(makeRequest())
-
-      expect(mockFindFirst).toHaveBeenCalledWith({
-        where: {
-          userId: mockUserId,
-        },
-        orderBy: {
-          updatedAt: 'desc',
-        },
-      })
-    })
-
-    it('should return empty messages when no session exists for theme', async () => {
-      mockFindFirst.mockResolvedValue(null)
-
-      const response = await GET(makeRequest({ theme: 'nonexistent-theme' }))
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -510,6 +461,9 @@ describe('/api/counselor/session/load', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
+      // The route returns both flat fields (legacy callers) and a nested
+      // `session` object (compat counselor). `meta` is absent on this mock,
+      // so it serializes away.
       expect(data).toEqual({
         sessionId: 'session-full',
         messages: mockChatSession.messages,
@@ -589,51 +543,6 @@ describe('/api/counselor/session/load', () => {
   })
 
   // -------------------------------------------------------------------------
-  // Different Themes
-  // -------------------------------------------------------------------------
-  describe('Different Themes', () => {
-    beforeEach(() => {
-      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
-    })
-
-    const themes = ['career', 'love', 'health', 'money', 'family', 'general', 'chat']
-
-    themes.forEach((theme) => {
-      it(`should accept theme "${theme}"`, async () => {
-        mockFindFirst.mockResolvedValue(null)
-
-        const response = await GET(makeRequest({ theme }))
-
-        expect(response.status).toBe(200)
-        expect(mockFindFirst).toHaveBeenCalledWith({
-          where: {
-            userId: mockUserId,
-          },
-          orderBy: {
-            updatedAt: 'desc',
-          },
-        })
-      })
-    })
-
-    it('should accept custom theme names', async () => {
-      mockFindFirst.mockResolvedValue(null)
-
-      const response = await GET(makeRequest({ theme: 'custom-user-theme' }))
-
-      expect(response.status).toBe(200)
-      expect(mockFindFirst).toHaveBeenCalledWith({
-        where: {
-          userId: mockUserId,
-        },
-        orderBy: {
-          updatedAt: 'desc',
-        },
-      })
-    })
-  })
-
-  // -------------------------------------------------------------------------
   // Error Handling
   // -------------------------------------------------------------------------
   describe('Error Handling', () => {
@@ -697,38 +606,6 @@ describe('/api/counselor/session/load', () => {
         where: {
           id: uuid,
           userId: mockUserId,
-        },
-      })
-    })
-
-    it('should handle theme with hyphens', async () => {
-      mockFindFirst.mockResolvedValue(null)
-
-      const response = await GET(makeRequest({ theme: 'love-relationship' }))
-
-      expect(response.status).toBe(200)
-      expect(mockFindFirst).toHaveBeenCalledWith({
-        where: {
-          userId: mockUserId,
-        },
-        orderBy: {
-          updatedAt: 'desc',
-        },
-      })
-    })
-
-    it('should handle theme with underscores', async () => {
-      mockFindFirst.mockResolvedValue(null)
-
-      const response = await GET(makeRequest({ theme: 'focus_career' }))
-
-      expect(response.status).toBe(200)
-      expect(mockFindFirst).toHaveBeenCalledWith({
-        where: {
-          userId: mockUserId,
-        },
-        orderBy: {
-          updatedAt: 'desc',
         },
       })
     })
@@ -978,7 +855,7 @@ describe('/api/counselor/session/load', () => {
       vi.mocked(getServerSession).mockResolvedValue(differentUserSession as any)
       mockFindFirst.mockResolvedValue(null)
 
-      await GET(makeRequest({ theme: 'career' }))
+      await GET(makeRequest())
 
       expect(mockFindFirst).toHaveBeenCalledWith({
         where: {

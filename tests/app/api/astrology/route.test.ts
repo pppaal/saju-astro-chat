@@ -115,7 +115,9 @@ vi.mock('@/lib/db/prisma', () => ({
   },
 }))
 
-// Mock Claude (route now calls askClaude instead of a Python backend)
+// Mock ApiClient
+// The route generates its AI interpretation via askClaude (mimicking the
+// old Python /ask backend shape), not via apiClient.post.
 vi.mock('@/lib/llm/askClaude', () => ({
   askClaude: vi.fn(),
 }))
@@ -295,6 +297,7 @@ function setupSuccessfulCalculation() {
     data: {
       data: {
         fusion_layer: 'AI generated interpretation for your natal chart.',
+        report: '',
         model: 'gpt-4o',
       },
     },
@@ -522,16 +525,22 @@ describe('Astrology API - POST /api/astrology', () => {
       setupSuccessfulCalculation()
     })
 
-    it('should call Claude with the natal-chart prompt and options', async () => {
+    it('should call askClaude with the astrology theme and a chart prompt', async () => {
       await POST(makeRequest(validBody))
 
       expect(askClaude).toHaveBeenCalledWith(
         expect.stringContaining('natal chart'),
         expect.objectContaining({
           theme: 'astrology',
+          maxTokens: 2500,
           timeoutMs: 60000,
+          label: 'astrology-route',
         })
       )
+      // The prompt should embed the computed chart (ascendant / MC / planets).
+      const promptArg = vi.mocked(askClaude).mock.calls[0][0]
+      expect(promptArg).toContain('Ascendant:')
+      expect(promptArg).toContain('MC:')
     })
 
     it('should return AI interpretation when backend call succeeds', async () => {
@@ -548,6 +557,7 @@ describe('Astrology API - POST /api/astrology', () => {
         status: 200,
         data: {
           data: {
+            fusion_layer: '',
             report: 'Fallback report content.',
             model: 'gpt-3.5-turbo',
           },
@@ -564,9 +574,11 @@ describe('Astrology API - POST /api/astrology', () => {
     it('should default model to gpt-4o when not provided', async () => {
       vi.mocked(askClaude).mockResolvedValue({
         ok: true,
+        status: 200,
         data: {
           data: {
             fusion_layer: 'Some interpretation',
+            report: '',
           },
         },
       } as any)
@@ -592,7 +604,8 @@ describe('Astrology API - POST /api/astrology', () => {
     it('should use local interpretation as fallback when AI returns empty', async () => {
       vi.mocked(askClaude).mockResolvedValue({
         ok: false,
-        data: null,
+        status: 502,
+        data: undefined,
       } as any)
 
       const response = await POST(makeRequest(validBody))
@@ -826,6 +839,7 @@ describe('Astrology API - POST /api/astrology', () => {
     it('should handle AI response with empty data object', async () => {
       vi.mocked(askClaude).mockResolvedValue({
         ok: true,
+        status: 200,
         data: { data: {} },
       } as any)
 

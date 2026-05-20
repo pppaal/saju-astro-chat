@@ -40,12 +40,17 @@ vi.mock('@/lib/tarot/tarot-spreads-data', () => ({
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
-// Build a fake SSE streaming Response for /api/tarot/interpret-stream.
-// The hook accumulates `data: { content }` events, then JSON-parses the
-// concatenated content into `{ overall, cards, advice }`.
-function sseStreamResponse(obj: Record<string, unknown>) {
-  const text = `data: ${JSON.stringify({ content: JSON.stringify(obj) })}\n\ndata: [DONE]\n\n`
-  const bytes = new TextEncoder().encode(text)
+// Build a mock streaming Response for /api/tarot/interpret-stream. The hook
+// reads `res.body.getReader()` and accumulates SSE `data: { content }` events
+// into a single JSON blob shaped `{ overall, cards, advice }`.
+function createInterpretStreamResponse(payload: {
+  overall?: string
+  cards?: Array<{ position?: string; interpretation?: string }>
+  advice?: string
+}) {
+  const json = JSON.stringify(payload)
+  const sse = `data: ${JSON.stringify({ content: json })}\n\ndata: [DONE]\n\n`
+  const bytes = new TextEncoder().encode(sse)
   let sent = false
   return {
     ok: true,
@@ -56,8 +61,6 @@ function sseStreamResponse(obj: Record<string, unknown>) {
           sent = true
           return { done: false, value: bytes }
         },
-        releaseLock: () => {},
-        cancel: () => {},
       }),
     },
   }
@@ -817,7 +820,11 @@ describe('useInlineTarotAPI', () => {
           json: async () => ({ drawnCards: [] }),
         })
         .mockResolvedValueOnce(
-          sseStreamResponse({ overall: 'Hello World', cards: [], advice: 'Your guidance' })
+          createInterpretStreamResponse({
+            overall: 'Hello World',
+            cards: [],
+            advice: 'Your guidance',
+          })
         )
 
       const { result } = renderHook(() =>
@@ -853,7 +860,7 @@ describe('useInlineTarotAPI', () => {
           json: async () => ({ drawnCards: [mockDrawnCards[0]] }),
         })
         .mockResolvedValueOnce(
-          sseStreamResponse({
+          createInterpretStreamResponse({
             overall: 'Hello World',
             cards: [{ position: 'Past', interpretation: 'First card insight' }],
             advice: 'Your guidance',
@@ -873,15 +880,19 @@ describe('useInlineTarotAPI', () => {
       })
 
       expect(stateManager.actions.setOverallMessage).toHaveBeenCalledWith('Hello World')
+      // interpret-stream pairs each streamed { position, interpretation } with
+      // the drawn card to fill card_name / is_reversed.
       expect(stateManager.actions.setCardInsights).toHaveBeenCalledWith([
-        expect.objectContaining({
+        {
           position: 'Past',
-          interpretation: 'First card insight',
           card_name: 'The Fool',
           is_reversed: false,
-        }),
+          interpretation: 'First card insight',
+        },
       ])
       expect(stateManager.actions.setGuidance).toHaveBeenCalledWith('Your guidance')
+      // interpret-stream does not emit a dedicated affirmation, so it is left untouched.
+      expect(stateManager.actions.setAffirmation).not.toHaveBeenCalled()
     })
 
     it('should use default copy when interpretation payload is sparse', async () => {
