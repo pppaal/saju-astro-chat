@@ -1,5 +1,5 @@
 // Test 10 different couples to verify compatibility analysis produces unique results
-import { calculateSajuData } from '../src/lib/Saju/saju';
+import { calculateSajuData } from '../src/lib/saju/saju';
 import {
   performComprehensiveSajuAnalysis,
   analyzeTenGods,
