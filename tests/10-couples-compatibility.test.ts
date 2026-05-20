@@ -164,13 +164,8 @@ describe('10 Couples Compatibility Analysis', () => {
       dayMasters.add(p1Saju.dayMaster.name);
       dayMasters.add(p2Saju.dayMaster.name);
 
-      console.log(`[${couple.name}]`);
-      console.log(`  ${couple.person1.name}: 일간=${p1Saju.dayMaster.name}(${p1Saju.dayMaster.element}), 일주=${p1DayPillar}`);
-      console.log(`  ${couple.person2.name}: 일간=${p2Saju.dayMaster.name}(${p2Saju.dayMaster.element}), 일주=${p2DayPillar}`);
     }
 
-    console.log(`\n고유한 일주: ${dayPillars.size}개`);
-    console.log(`고유한 일간: ${dayMasters.size}종류: ${[...dayMasters].join(', ')}`);
 
     // Most day pillars should be unique
     expect(dayPillars.size).toBeGreaterThanOrEqual(10);
@@ -213,10 +208,6 @@ describe('10 Couples Compatibility Analysis', () => {
         summary: analysis.summary,
       });
 
-      console.log(`\n[${couple.name}] ${couple.person1.name} ♥ ${couple.person2.name}`);
-      console.log(`  점수: ${analysis.overallScore}점, 등급: ${analysis.grade}`);
-      console.log(`  요약: ${analysis.summary}`);
-      console.log(`  인사이트: ${analysis.detailedInsights.slice(0, 2).join(' / ')}`);
     }
 
     // Verify all couples have valid scores
@@ -228,7 +219,6 @@ describe('10 Couples Compatibility Analysis', () => {
 
     // Verify scores are varied (not all the same)
     const uniqueScores = new Set(analysisResults.map(r => r.score));
-    console.log(`\n고유한 점수: ${uniqueScores.size}개`);
     expect(uniqueScores.size).toBeGreaterThanOrEqual(3);
   });
 
@@ -256,12 +246,6 @@ describe('10 Couples Compatibility Analysis', () => {
 
     const tenGods = analyzeTenGods(p1Profile, p2Profile);
 
-    console.log('\n[십성 분석]');
-    console.log(`Person1 주요 십성: ${tenGods.person1Primary.join(', ')}`);
-    console.log(`Person2 주요 십성: ${tenGods.person2Primary.join(', ')}`);
-    console.log(`관계 역학: ${tenGods.relationshipDynamics}`);
-    console.log(`도움 관계: ${tenGods.interaction.supports.join(' / ')}`);
-    console.log(`충돌 관계: ${tenGods.interaction.conflicts.join(' / ')}`);
 
     // Verify personalized names in relationship dynamics
     expect(tenGods.relationshipDynamics.length).toBeGreaterThan(0);
@@ -294,12 +278,6 @@ describe('10 Couples Compatibility Analysis', () => {
 
     const shinsals = analyzeShinsals(p1Profile, p2Profile);
 
-    console.log('\n[신살 분석]');
-    console.log(`${couple.person1.name} 신살: ${shinsals.person1Shinsals.join(', ') || '없음'}`);
-    console.log(`${couple.person2.name} 신살: ${shinsals.person2Shinsals.join(', ') || '없음'}`);
-    console.log(`길한 상호작용: ${shinsals.luckyInteractions.join(' / ') || '없음'}`);
-    console.log(`흉한 상호작용: ${shinsals.unluckyInteractions.join(' / ') || '없음'}`);
-    console.log(`전체 영향: ${shinsals.overallImpact}`);
 
     expect(['very_positive', 'positive', 'neutral', 'challenging']).toContain(shinsals.overallImpact);
   });
@@ -329,18 +307,7 @@ describe('10 Couples Compatibility Analysis', () => {
     const harmonies = analyzeHap(p1Profile, p2Profile);
     const conflicts = analyzeConflicts(p1Profile, p2Profile);
 
-    console.log('\n[합 분석]');
-    console.log(`육합: ${harmonies.yukhap.join(' / ') || '없음'}`);
-    console.log(`삼합: ${harmonies.samhap.join(' / ') || '없음'}`);
-    console.log(`방합: ${harmonies.banghap.join(' / ') || '없음'}`);
-    console.log(`합 점수: ${harmonies.score}점`);
 
-    console.log('\n[충형파해 분석]');
-    console.log(`충: ${conflicts.chung.join(' / ') || '없음'}`);
-    console.log(`형: ${conflicts.hyeong.join(' / ') || '없음'}`);
-    console.log(`파: ${conflicts.pa.join(' / ') || '없음'}`);
-    console.log(`해: ${conflicts.hae.join(' / ') || '없음'}`);
-    console.log(`심각도: ${conflicts.severity}`);
 
     expect(harmonies.score).toBeGreaterThanOrEqual(0);
     expect(['severe', 'moderate', 'mild', 'minimal']).toContain(conflicts.severity);
@@ -370,12 +337,6 @@ describe('10 Couples Compatibility Analysis', () => {
 
     const yongsin = analyzeYongsinCompatibility(p1Profile, p2Profile);
 
-    console.log('\n[용신/희신 분석]');
-    console.log(`${couple.person1.name} 용신: ${yongsin.person1Yongsin}, 희신: ${yongsin.person1Huisin}`);
-    console.log(`${couple.person2.name} 용신: ${yongsin.person2Yongsin}, 희신: ${yongsin.person2Huisin}`);
-    console.log(`상호 보완: ${yongsin.mutualSupport ? '예' : '아니오'}`);
-    console.log(`궁합도: ${yongsin.compatibility}점`);
-    console.log(`해석: ${yongsin.interpretation.join(' / ')}`);
 
     expect(yongsin.compatibility).toBeGreaterThanOrEqual(0);
     expect(yongsin.compatibility).toBeLessThanOrEqual(100);
@@ -411,28 +372,9 @@ describe('10 Couples Compatibility Analysis', () => {
     const gyeokguk = analyzeGyeokguk(p1Profile, p2Profile);
     const twelveStates = analyzeTwelveStates(p1Profile, p2Profile);
 
-    console.log('\n[공망 분석]');
-    console.log(`${couple.person1.name} 공망: ${gongmang.person1Gongmang.join(', ')}`);
-    console.log(`${couple.person2.name} 공망: ${gongmang.person2Gongmang.join(', ')}`);
-    console.log(`영향: ${gongmang.impact}`);
-    console.log(`해석: ${gongmang.interpretation.join(' / ')}`);
 
-    console.log('\n[천간합 분석]');
-    console.log(`천간합 수: ${ganHap.combinations.length}개`);
-    console.log(`총 조화: ${ganHap.totalHarmony}점`);
-    console.log(`의미: ${ganHap.significance}`);
 
-    console.log('\n[격국 분석]');
-    console.log(`${couple.person1.name} 격국: ${gyeokguk.person1Gyeokguk}`);
-    console.log(`${couple.person2.name} 격국: ${gyeokguk.person2Gyeokguk}`);
-    console.log(`궁합: ${gyeokguk.compatibility}`);
-    console.log(`역학: ${gyeokguk.dynamics}`);
 
-    console.log('\n[12운성 분석]');
-    console.log(`${couple.person1.name} 일지 운성: ${p1Profile.pillars.day.branch} → ${twelveStates.person1States.find(s => s.pillar === 'day')?.state}`);
-    console.log(`${couple.person2.name} 일지 운성: ${p2Profile.pillars.day.branch} → ${twelveStates.person2States.find(s => s.pillar === 'day')?.state}`);
-    console.log(`에너지 궁합: ${twelveStates.energyCompatibility}점`);
-    console.log(`해석: ${twelveStates.interpretation.join(' / ')}`);
 
     expect(['positive', 'neutral', 'negative']).toContain(gongmang.impact);
     expect(ganHap.totalHarmony).toBeGreaterThanOrEqual(0);
@@ -469,15 +411,10 @@ describe('10 Couples Compatibility Analysis', () => {
       allGrades.push(analysis.grade);
     }
 
-    console.log('\n[전체 결과 비교]');
-    console.log('점수 분포:', allScores.join(', '));
-    console.log('등급 분포:', allGrades.join(', '));
 
     const uniqueScores = new Set(allScores);
     const uniqueGrades = new Set(allGrades);
 
-    console.log(`고유 점수: ${uniqueScores.size}개`);
-    console.log(`고유 등급: ${uniqueGrades.size}종류`);
 
     // At least 3 different scores to ensure variety
     expect(uniqueScores.size).toBeGreaterThanOrEqual(3);

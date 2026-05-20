@@ -24,7 +24,7 @@ describe("Credit Service: Plan Configuration", () => {
   it("free plan has correct limits", () => {
     const free = PLAN_CONFIG.free;
 
-    expect(free.monthlyCredits).toBe(7);
+    expect(free.monthlyCredits).toBe(0);
     expect(free.compatibilityLimit).toBe(0);
     expect(free.followUpLimit).toBe(0);
     expect(free.historyRetention).toBe(7);
@@ -40,8 +40,9 @@ describe("Credit Service: Plan Configuration", () => {
   });
 
   it("plans have increasing credit amounts", () => {
+    // Free is now 0 credits; each higher tier must strictly increase.
     const plans: PlanType[] = ["free", "starter", "pro", "premium"];
-    let prevCredits = 0;
+    let prevCredits = -1;
 
     plans.forEach((plan) => {
       const credits = PLAN_CONFIG[plan].monthlyCredits;
@@ -421,7 +422,7 @@ describe("Credit Service: Plan Upgrade Logic", () => {
   it("allows downgrade (same logic)", () => {
     const result = calculateUpgrade("premium", "free");
     expect(result?.newPlan).toBe("free");
-    expect(result?.newMonthlyCredits).toBe(7);
+    expect(result?.newMonthlyCredits).toBe(0);
   });
 
   it("handles invalid plan", () => {

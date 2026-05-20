@@ -5,7 +5,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   getTranslation,
-  validateBackendUrl,
   getPillarStemName,
   getPillarBranchName,
   parseBirthDate,
@@ -14,12 +13,9 @@ import {
   gateRecommendations,
   applyMatrixPreformatRegrade,
   formatDateForResponse,
-  fetchAIDates,
-  __resetAIDatesCircuitStateForTests,
   LOCATION_COORDS,
 } from '@/app/api/calendar/lib/helpers'
 import { apiClient } from '@/lib/api/ApiClient'
-import { logger } from '@/lib/logger'
 
 // Mock dependencies
 vi.mock('@/lib/logger', () => ({
@@ -83,14 +79,6 @@ describe('Calendar Helpers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(apiClient).post.mockReset()
-    __resetAIDatesCircuitStateForTests()
-    delete process.env.CALENDAR_AI_ENRICHMENT_DISABLED
-    delete process.env.CALENDAR_AI_ENRICHMENT_CIRCUIT_ENABLED
-    delete process.env.CALENDAR_AI_ENRICHMENT_TIMEOUT_MS
-    delete process.env.CALENDAR_AI_ENRICHMENT_RETRIES
-    delete process.env.CALENDAR_AI_ENRICHMENT_RETRY_DELAY_MS
-    delete process.env.CALENDAR_AI_ENRICHMENT_FAILURE_THRESHOLD
-    delete process.env.CALENDAR_AI_ENRICHMENT_COOLDOWN_MS
   })
 
   describe('getTranslation', () => {
@@ -117,41 +105,6 @@ describe('Calendar Helpers', () => {
     it('should return key for undefined result', () => {
       const translations = {}
       expect(getTranslation('any.key', translations as any)).toBe('any.key')
-    })
-  })
-
-  describe('validateBackendUrl', () => {
-    const originalEnv = process.env
-
-    beforeEach(() => {
-      process.env = { ...originalEnv }
-    })
-
-    it('should warn for non-HTTPS in production', () => {
-      process.env.NODE_ENV = 'production'
-
-      validateBackendUrl('http://example.com')
-
-      expect(vi.mocked(logger).warn).toHaveBeenCalledWith(expect.stringContaining('non-HTTPS'))
-    })
-
-    it('should not warn for HTTPS in production', () => {
-      process.env.NODE_ENV = 'production'
-
-      validateBackendUrl('https://example.com')
-
-      expect(vi.mocked(logger).warn).not.toHaveBeenCalledWith(expect.stringContaining('non-HTTPS'))
-    })
-
-    it('should warn when NEXT_PUBLIC_AI_BACKEND is set without AI_BACKEND_URL', () => {
-      process.env.NEXT_PUBLIC_AI_BACKEND = 'http://public'
-      delete process.env.AI_BACKEND_URL
-
-      validateBackendUrl('https://example.com')
-
-      expect(vi.mocked(logger).warn).toHaveBeenCalledWith(
-        expect.stringContaining('NEXT_PUBLIC_AI_BACKEND')
-      )
     })
   })
 
@@ -372,8 +325,15 @@ describe('Calendar Helpers', () => {
         irreversibleKeyPresent: true,
       })
 
-      expect(result.some((line) => /sign|finalize|contract/i.test(line))).toBe(false)
-      expect(result.some((line) => /review|reconfirm|draft/i.test(line))).toBe(true)
+      // The original irreversible/commit recommendations must be dropped...
+      expect(result).not.toContain('Sign now')
+      expect(result).not.toContain('Finalize contract today')
+      expect(result).not.toContain('Review details with your team')
+      // ...and replaced with conservative caution guidance from the safety pool.
+      expect(result.length).toBeGreaterThan(0)
+      expect(result.some((line) => /don.t sign|push anything|reversing within 24 hours/i.test(line))).toBe(
+        true
+      )
     })
 
     it('removes irreversible recommendations when communication warning exists', () => {
@@ -434,100 +394,6 @@ describe('Calendar Helpers', () => {
     it('should have alternate name entries (Seoul, KR)', () => {
       expect(LOCATION_COORDS['Seoul, KR']).toBeDefined()
       expect(LOCATION_COORDS['Seoul, KR'].lat).toBe(LOCATION_COORDS.Seoul.lat)
-    })
-  })
-
-  describe('fetchAIDates', () => {
-    it('should return parsed dates on success', async () => {
-      vi.mocked(apiClient).post.mockResolvedValueOnce({
-        ok: true,
-        data: {
-          auspicious_dates: ['2025-03-01', '2025-03-15'],
-          caution_dates: ['2025-03-10'],
-        },
-      } as any)
-
-      const result = await fetchAIDates({}, {}, 'overall')
-
-      expect(result).toBeDefined()
-      expect(result!.auspicious).toHaveLength(2)
-      expect(result!.auspicious[0].is_auspicious).toBe(true)
-      expect(result!.caution).toHaveLength(1)
-      expect(result!.caution[0].is_auspicious).toBe(false)
-    })
-
-    it('should return null on API failure', async () => {
-      vi.mocked(apiClient).post.mockRejectedValueOnce(new Error('Network error'))
-
-      const result = await fetchAIDates({}, {})
-
-      expect(result).toBeNull()
-    })
-
-    it('should return null when response not ok', async () => {
-      vi.mocked(apiClient).post.mockResolvedValueOnce({ ok: false, data: null } as any)
-
-      const result = await fetchAIDates({}, {})
-
-      expect(result).toBeNull()
-    })
-
-    it('should handle missing date arrays', async () => {
-      vi.mocked(apiClient).post.mockResolvedValueOnce({
-        ok: true,
-        data: {},
-      } as any)
-
-      const result = await fetchAIDates({}, {})
-
-      expect(result).toBeDefined()
-      expect(result!.auspicious).toHaveLength(0)
-      expect(result!.caution).toHaveLength(0)
-    })
-
-    it('should skip API call when enrichment is disabled by env', async () => {
-      process.env.CALENDAR_AI_ENRICHMENT_DISABLED = 'true'
-      vi.mocked(apiClient).post.mockResolvedValueOnce({
-        ok: true,
-        data: { auspicious_dates: ['2025-03-01'], caution_dates: [] },
-      } as any)
-
-      const result = await fetchAIDates({}, {})
-
-      expect(result).toBeNull()
-      expect(vi.mocked(apiClient).post).not.toHaveBeenCalled()
-    })
-
-    it('should open circuit after repeated failures and skip subsequent calls during cooldown', async () => {
-      process.env.CALENDAR_AI_ENRICHMENT_CIRCUIT_ENABLED = 'true'
-      process.env.CALENDAR_AI_ENRICHMENT_FAILURE_THRESHOLD = '2'
-      process.env.CALENDAR_AI_ENRICHMENT_COOLDOWN_MS = '60000'
-      const nowSpy = vi.spyOn(Date, 'now')
-      nowSpy.mockReturnValue(1000)
-
-      vi.mocked(apiClient)
-        .post.mockRejectedValueOnce(new Error('Network error 1'))
-        .mockRejectedValueOnce(new Error('Network error 2'))
-        .mockResolvedValueOnce({
-          ok: true,
-          data: { auspicious_dates: ['2025-03-01'], caution_dates: [] },
-        } as any)
-
-      const first = await fetchAIDates({}, {})
-      const second = await fetchAIDates({}, {})
-      const third = await fetchAIDates({}, {})
-
-      expect(first).toBeNull()
-      expect(second).toBeNull()
-      expect(third).toBeNull()
-      expect(vi.mocked(apiClient).post).toHaveBeenCalledTimes(2)
-
-      nowSpy.mockReturnValue(62001)
-      const afterCooldown = await fetchAIDates({}, {})
-      expect(afterCooldown).not.toBeNull()
-      expect(vi.mocked(apiClient).post).toHaveBeenCalledTimes(3)
-
-      nowSpy.mockRestore()
     })
   })
 
@@ -700,9 +566,11 @@ describe('Calendar Helpers', () => {
         } as any
       )
 
-      expect(result.summary).toContain('Matrix verdict')
-      expect(result.summary).toContain('Top claim')
+      // Matrix narrative drives the copy: the legacy summary template must not surface,
+      // and the matrix verdict/claim/anchor texts are carried in the description.
       expect(result.summary).not.toContain('Best career day!')
+      expect(result.description).toContain('Matrix verdict')
+      expect(result.description).toContain('Top claim')
       expect(result.description).toContain('Anchor summary')
       expect(result.description).not.toBe('Good description')
     })
@@ -771,9 +639,9 @@ describe('Calendar Helpers', () => {
         enTranslations as any
       )
 
+      // The response surfaces the pre-graded display score; raw/adjusted debug
+      // fields are no longer echoed back in the formatted payload.
       expect(result.score).toBe(69)
-      expect(result.rawScore).toBe(67)
-      expect(result.adjustedScore).toBe(69)
       expect(result.displayScore).toBe(69)
     })
 
@@ -790,9 +658,14 @@ describe('Calendar Helpers', () => {
         enTranslations as any
       )
 
-      expect(result.recommendations.some((r) => r.includes('wedding'))).toBe(false)
-      expect(result.recommendations.some((r) => r.includes('contract'))).toBe(false)
-      expect(result.recommendations).toContain('Review and reconfirm before committing.')
+      // The user's irreversible recommendation actions (wedding/contract keys) are
+      // dropped and replaced with conservative caution guidance from the safety pool.
+      expect(result.recommendations.length).toBeGreaterThan(0)
+      expect(
+        result.recommendations.some((r) =>
+          /don.t sign|push anything|reversing within 24 hours|recheck|re-check/i.test(r)
+        )
+      ).toBe(true)
     })
 
     it('should switch to mixed-signals mode when cross agreement is very low on top grades', () => {
@@ -812,7 +685,13 @@ describe('Calendar Helpers', () => {
 
       expect(result.title).toBe('Mixed signals')
       expect(result.description).toContain('Signals are mixed')
-      expect(result.recommendations.some((r) => /wedding|contract/i.test(r))).toBe(false)
+      // Original wedding/contract action recommendations are gated and replaced
+      // with conservative caution guidance from the safety pool.
+      expect(
+        result.recommendations.some((r) =>
+          /don.t sign|push anything|reversing within 24 hours|recheck|re-check/i.test(r)
+        )
+      ).toBe(true)
       expect(result.warnings.some((w) => /communication errors/i.test(w))).toBe(true)
     })
 
@@ -838,29 +717,6 @@ describe('Calendar Helpers', () => {
       expect(result.evidence?.crossAgreementPercent).toBe(78)
     })
 
-    it('should include timing signals and action summary from timing evidence', () => {
-      const result = formatDateForResponse(
-        {
-          ...baseDateData,
-          sajuFactorKeys: ['daeun_flow', 'seun_flow', 'iljin_signal'],
-          astroFactorKeys: ['transit_mercury'],
-          bestHours: [
-            { hour: 9, quality: 'excellent' },
-            { hour: 14, quality: 'good' },
-          ],
-        } as any,
-        'en',
-        koTranslations as any,
-        enTranslations as any
-      )
-
-      expect(result.bestTimes.length).toBeGreaterThan(0)
-      expect(result.bestTimes[0]).toContain('09:00-11:00')
-      expect((result.timingSignals || []).length).toBeGreaterThan(0)
-      expect((result.timingSignals || []).join(' ')).toContain('Daeun active')
-      expect(result.actionSummary).toContain('Do:')
-      expect(result.actionSummary).toContain('Timing:')
-    })
   })
 
   describe('applyMatrixPreformatRegrade', () => {
@@ -900,7 +756,7 @@ describe('Calendar Helpers', () => {
       )
 
       expect(result.grade).toBe(1)
-      expect(result.displayScore).toBe(67)
+      expect(result.displayScore).toBe(62)
     })
   })
 })

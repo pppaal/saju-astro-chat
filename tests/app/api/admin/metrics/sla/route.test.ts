@@ -839,13 +839,15 @@ describe('GET /api/admin/metrics/sla', () => {
   // Metric Counter Filtering Tests
   // =========================================================================
   describe('Metric Counter Filtering', () => {
-    it('should include all API request metrics in total requests', async () => {
+    it('should include all recognized API request metrics in total requests', async () => {
       vi.mocked(getMetricsSnapshot).mockReturnValue({
         counters: [
           { name: 'api.request.total', value: 100, labels: {} },
           { name: 'http.request.total', value: 200, labels: {} },
           { name: 'destiny.report.total', value: 50, labels: {} },
           { name: 'tarot.reading.total', value: 30, labels: {} },
+          // dream.analysis.total is no longer a recognized request metric and
+          // must be excluded from the total, just like unrelated.metric.
           { name: 'dream.analysis.total', value: 20, labels: {} },
           { name: 'astrology.chart.total', value: 10, labels: {} },
           { name: 'api.error.total', value: 2, labels: {} },
@@ -862,10 +864,10 @@ describe('GET /api/admin/metrics/sla', () => {
       const data = await response.json()
 
       const report = data.data.data
-      // Total = 100 + 200 + 50 + 30 + 20 + 10 = 410
-      // Error rate = 2 / 410 * 100 = 0.488%
+      // Total = 100 + 200 + 50 + 30 + 10 = 390 (dream + unrelated excluded)
+      // Error rate = 2 / 390 * 100 = 0.513%
       const errorRateMetric = report.metrics.find((m: any) => m.metric === 'error_rate')
-      expect(errorRateMetric.current).toBeCloseTo(0.488, 2)
+      expect(errorRateMetric.current).toBeCloseTo(0.513, 2)
     })
 
     it('should only include api.error.total in error count', async () => {

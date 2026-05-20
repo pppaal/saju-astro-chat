@@ -728,10 +728,14 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       expect(mockSaveConsultation).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-abc-123',
-          theme: 'life',
           locale: 'ko',
+          fullReport: expect.any(String),
+          summary: expect.any(String),
         })
       )
+      // `theme` was dropped from the consultation save payload.
+      const savePayload = mockSaveConsultation.mock.calls[0][0]
+      expect(savePayload).not.toHaveProperty('theme')
     })
 
     it('should NOT save consultation when user is anonymous (session has no id)', async () => {

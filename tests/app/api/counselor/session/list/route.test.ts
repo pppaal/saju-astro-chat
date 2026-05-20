@@ -84,9 +84,9 @@ function createValidListSafeParse() {
   return (data: any) => {
     const errors: any[] = []
 
-    // Validate theme - optional, max 50 characters
-    if (data.theme !== undefined && typeof data.theme === 'string' && data.theme.length > 50) {
-      errors.push({ path: ['theme'], message: 'theme must be at most 50 characters' })
+    // Validate type - optional service filter, enum: 'destiny' | 'compat'
+    if (data.type !== undefined && data.type !== 'destiny' && data.type !== 'compat') {
+      errors.push({ path: ['type'], message: "type must be 'destiny' or 'compat'" })
     }
 
     // Validate limit - optional, coerced number, min 1, max 50, default 20
@@ -112,7 +112,7 @@ function createValidListSafeParse() {
     return {
       success: true,
       data: {
-        theme: data.theme,
+        type: data.type,
         limit,
       },
     }
@@ -157,33 +157,39 @@ describe('/api/counselor/session/list', () => {
   const mockSessionData = [
     {
       id: 'session-1',
-      theme: 'career',
+      type: 'destiny',
+      title: 'Career counseling',
       locale: 'ko',
       messageCount: 5,
       summary: 'Career counseling session',
       keyTopics: ['job', 'interview'],
+      messages: [],
       createdAt: new Date('2024-01-15T10:00:00Z'),
       updatedAt: new Date('2024-01-15T12:00:00Z'),
       lastMessageAt: new Date('2024-01-15T11:30:00Z'),
     },
     {
       id: 'session-2',
-      theme: 'love',
+      type: 'compat',
+      title: 'Relationship advice',
       locale: 'en',
       messageCount: 10,
       summary: 'Relationship advice',
       keyTopics: ['dating', 'communication'],
+      messages: [],
       createdAt: new Date('2024-01-14T08:00:00Z'),
       updatedAt: new Date('2024-01-14T10:00:00Z'),
       lastMessageAt: new Date('2024-01-14T09:45:00Z'),
     },
     {
       id: 'session-3',
-      theme: 'career',
+      type: 'destiny',
+      title: 'Salary negotiation tips',
       locale: 'ko',
       messageCount: 3,
       summary: 'Salary negotiation tips',
       keyTopics: ['salary', 'negotiation'],
+      messages: [],
       createdAt: new Date('2024-01-13T14:00:00Z'),
       updatedAt: new Date('2024-01-13T15:00:00Z'),
       lastMessageAt: new Date('2024-01-13T14:50:00Z'),
@@ -234,10 +240,9 @@ describe('/api/counselor/session/list', () => {
   })
 
   describe('GET - Query Parameter Validation', () => {
-    it('should return 422 when theme exceeds 50 characters', async () => {
-      const longTheme = 'a'.repeat(51)
+    it('should return 422 when type is not a valid service value', async () => {
       const req = new NextRequest(
-        `http://localhost:3000/api/counselor/session/list?theme=${longTheme}`,
+        'http://localhost:3000/api/counselor/session/list?type=bogus',
         { method: 'GET' }
       )
 
@@ -304,11 +309,11 @@ describe('/api/counselor/session/list', () => {
       expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should accept valid theme parameter', async () => {
+    it('should accept valid type parameter', async () => {
       mockFindMany.mockResolvedValue([mockSessionData[0], mockSessionData[2]])
 
       const req = new NextRequest(
-        'http://localhost:3000/api/counselor/session/list?theme=career',
+        'http://localhost:3000/api/counselor/session/list?type=destiny',
         { method: 'GET' }
       )
 
@@ -320,7 +325,7 @@ describe('/api/counselor/session/list', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             userId: mockUserId,
-            theme: 'career',
+            type: 'destiny',
           }),
         })
       )
@@ -377,12 +382,12 @@ describe('/api/counselor/session/list', () => {
       expect(result.sessions[0].id).toBe('session-1')
     })
 
-    it('should filter sessions by theme', async () => {
-      const careerSessions = mockSessionData.filter((s) => s.theme === 'career')
-      mockFindMany.mockResolvedValue(careerSessions)
+    it('should filter sessions by type', async () => {
+      const destinySessions = mockSessionData.filter((s) => s.type === 'destiny')
+      mockFindMany.mockResolvedValue(destinySessions)
 
       const req = new NextRequest(
-        'http://localhost:3000/api/counselor/session/list?theme=career',
+        'http://localhost:3000/api/counselor/session/list?type=destiny',
         { method: 'GET' }
       )
 
@@ -392,7 +397,7 @@ describe('/api/counselor/session/list', () => {
 
       expect(response.status).toBe(200)
       expect(result.sessions).toHaveLength(2)
-      expect(result.sessions.every((s: any) => s.theme === 'career')).toBe(true)
+      expect(result.sessions.every((s: any) => s.type === 'destiny')).toBe(true)
     })
 
     it('should order sessions by updatedAt descending', async () => {
@@ -443,11 +448,13 @@ describe('/api/counselor/session/list', () => {
         expect.objectContaining({
           select: {
             id: true,
-            theme: true,
+            type: true,
+            title: true,
             locale: true,
             messageCount: true,
             summary: true,
             keyTopics: true,
+            messages: true,
             createdAt: true,
             updatedAt: true,
             lastMessageAt: true,
@@ -534,11 +541,11 @@ describe('/api/counselor/session/list', () => {
   })
 
   describe('GET - Combined Filtering', () => {
-    it('should apply both theme and limit filters', async () => {
+    it('should apply both type and limit filters', async () => {
       mockFindMany.mockResolvedValue([mockSessionData[0]])
 
       const req = new NextRequest(
-        'http://localhost:3000/api/counselor/session/list?theme=career&limit=1',
+        'http://localhost:3000/api/counselor/session/list?type=destiny&limit=1',
         { method: 'GET' }
       )
 
@@ -550,7 +557,7 @@ describe('/api/counselor/session/list', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             userId: mockUserId,
-            theme: 'career',
+            type: 'destiny',
           }),
           take: 1,
         })
@@ -842,7 +849,8 @@ describe('/api/counselor/session/list', () => {
 
       expect(response.status).toBe(200)
       expect(result.sessions[0]).toHaveProperty('id')
-      expect(result.sessions[0]).toHaveProperty('theme')
+      expect(result.sessions[0]).toHaveProperty('type')
+      expect(result.sessions[0]).toHaveProperty('title')
       expect(result.sessions[0]).toHaveProperty('locale')
       expect(result.sessions[0]).toHaveProperty('messageCount')
       expect(result.sessions[0]).toHaveProperty('summary')
@@ -850,6 +858,8 @@ describe('/api/counselor/session/list', () => {
       expect(result.sessions[0]).toHaveProperty('createdAt')
       expect(result.sessions[0]).toHaveProperty('updatedAt')
       expect(result.sessions[0]).toHaveProperty('lastMessageAt')
+      // messages are fetched for fallback title derivation but stripped from output
+      expect(result.sessions[0]).not.toHaveProperty('messages')
     })
 
     it('should return sessions in wrapper object', async () => {
@@ -868,8 +878,8 @@ describe('/api/counselor/session/list', () => {
     })
   })
 
-  describe('GET - Theme Filtering Edge Cases', () => {
-    it('should not filter by theme when undefined', async () => {
+  describe('GET - Type Filtering Edge Cases', () => {
+    it('should not filter by type when undefined', async () => {
       mockFindMany.mockResolvedValue(mockSessionData)
 
       const req = new NextRequest('http://localhost:3000/api/counselor/session/list', {
@@ -879,7 +889,7 @@ describe('/api/counselor/session/list', () => {
       const { GET } = await import('@/app/api/counselor/session/list/route')
       await GET(req)
 
-      // When theme is undefined, it should not be included in where clause
+      // When type is undefined, it should not be included in where clause
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
@@ -889,29 +899,14 @@ describe('/api/counselor/session/list', () => {
       )
     })
 
-    it('should accept valid theme at maximum length (50 chars)', async () => {
-      const maxTheme = 'a'.repeat(50)
-      mockFindMany.mockResolvedValue([])
+    it('should handle each valid service type value', async () => {
+      const types = ['destiny', 'compat']
 
-      const req = new NextRequest(
-        `http://localhost:3000/api/counselor/session/list?theme=${maxTheme}`,
-        { method: 'GET' }
-      )
-
-      const { GET } = await import('@/app/api/counselor/session/list/route')
-      const response = await GET(req)
-
-      expect(response.status).toBe(200)
-    })
-
-    it('should handle different theme values', async () => {
-      const themes = ['career', 'love', 'health', 'money', 'family', 'chat']
-
-      for (const theme of themes) {
+      for (const type of types) {
         mockFindMany.mockResolvedValue([])
 
         const req = new NextRequest(
-          `http://localhost:3000/api/counselor/session/list?theme=${theme}`,
+          `http://localhost:3000/api/counselor/session/list?type=${type}`,
           { method: 'GET' }
         )
 

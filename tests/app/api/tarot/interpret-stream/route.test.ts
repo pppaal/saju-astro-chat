@@ -578,7 +578,7 @@ describe('POST /api/tarot/interpret-stream', () => {
       await POST(makePostRequest(VALID_REQUEST_BODY))
 
       expect(logger.warn).toHaveBeenCalledWith(
-        'Tarot stream missing OPENAI_API_KEY, using fallback'
+        'Tarot stream missing both ANTHROPIC_API_KEY and OPENAI_API_KEY, using fallback'
       )
     })
   })
@@ -707,9 +707,9 @@ describe('POST /api/tarot/interpret-stream', () => {
   })
 
   // -----------------------------------------------------------------
-  // Backend Fallback
+  // OpenAI static fallback (backend fallback removed)
   // -----------------------------------------------------------------
-  describe('Backend Fallback', () => {
+  describe('OpenAI Static Fallback', () => {
     beforeEach(() => {
       process.env.OPENAI_API_KEY = 'test-api-key'
     })
@@ -718,68 +718,14 @@ describe('POST /api/tarot/interpret-stream', () => {
       delete process.env.OPENAI_API_KEY
     })
 
-    it('should call backend API on OpenAI failure', async () => {
+    it('should use base fallback when OpenAI fails', async () => {
       global.fetch = vi.fn().mockRejectedValue(new Error('OpenAI down'))
-
-      await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      expect(mockApiClientPost).toHaveBeenCalledWith(
-        '/api/tarot/interpret',
-        expect.objectContaining({
-          category: 'love',
-          spread_id: 'three-card',
-          cards: expect.any(Array),
-        }),
-        { timeout: 20000 }
-      )
-    })
-
-    it('should use backend payload when backend succeeds', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('OpenAI down'))
-      mockApiClientPost.mockResolvedValue({
-        ok: true,
-        data: {
-          overall_message: 'Backend interpretation',
-          card_insights: [{ position: 'Past', interpretation: 'Card meaning' }],
-          guidance: 'Take action',
-        },
-      })
-
-      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-      const text = await response.text()
-
-      expect(text).toContain('Backend interpretation')
-    })
-
-    it('should use base fallback when backend also fails', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('OpenAI down'))
-      mockApiClientPost.mockResolvedValue({
-        ok: false,
-        status: 500,
-        error: 'Backend error',
-      })
 
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
       // Should still return a fallback stream
       expect(response.headers.get('X-Fallback')).toBe('1')
       expect(response.headers.get('Content-Type')).toBe('text/event-stream')
-    })
-
-    it('should log backend fallback errors', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('OpenAI down'))
-      mockApiClientPost.mockResolvedValue({
-        ok: false,
-        status: 500,
-        error: 'Backend error',
-      })
-
-      await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      expect(logger.error).toHaveBeenCalledWith(
-        'Tarot stream backend fallback error:',
-        expect.objectContaining({ status: 500 })
-      )
     })
   })
 
@@ -798,25 +744,6 @@ describe('POST /api/tarot/interpret-stream', () => {
 
     afterEach(() => {
       delete process.env.OPENAI_API_KEY
-    })
-
-    it('should include zodiac sign context when birthdate provided', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      mockTarotInterpretStreamSafeParse.mockReturnValue({
-        success: true,
-        data: { ...VALID_REQUEST_BODY, birthdate: '1990-05-15' }, // Taurus
-      })
-
-      await POST(makePostRequest({ ...VALID_REQUEST_BODY, birthdate: '1990-05-15' }))
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      // Should include zodiac info for May 15 (Taurus)
-      expect(userMessage.content).toContain('황소자리')
     })
 
     it('should ignore impossible YYYY-MM-DD birthdate values', async () => {
@@ -846,32 +773,6 @@ describe('POST /api/tarot/interpret-stream', () => {
       const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
       expect(userMessage.content).not.toContain('Zodiac:')
     })
-    it('should include previous readings context when provided', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      mockTarotInterpretStreamSafeParse.mockReturnValue({
-        success: true,
-        data: {
-          ...VALID_REQUEST_BODY,
-          previousReadings: ['Previous reading about love'],
-        },
-      })
-
-      await POST(
-        makePostRequest({
-          ...VALID_REQUEST_BODY,
-          previousReadings: ['Previous reading about love'],
-        })
-      )
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('Previous reading about love')
-    })
-
     it('should analyze question mood for worried patterns', async () => {
       const mockFetch = vi
         .fn()
@@ -1229,183 +1130,6 @@ describe('Tarot Stream - Internal Function Behavior', () => {
     })
   })
 
-  // -----------------------------------------------------------------
-  // Question Mood Analysis
-  // -----------------------------------------------------------------
-  describe('Question Mood Analysis', () => {
-    beforeEach(() => {
-      process.env.OPENAI_API_KEY = 'test-api-key'
-      mockApiClientPost.mockResolvedValue({
-        ok: false,
-        status: 500,
-        error: 'Backend error',
-      })
-    })
-
-    afterEach(() => {
-      delete process.env.OPENAI_API_KEY
-    })
-
-    it('should detect worried mood patterns in Korean', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      mockTarotInterpretStreamSafeParse.mockReturnValue({
-        success: true,
-        data: { ...VALID_REQUEST_BODY, userQuestion: '실패할까봐 두렵고 걱정돼요' },
-      })
-
-      await POST(
-        makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '실패할까봐 두렵고 걱정돼요' })
-      )
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('안심')
-    })
-
-    it('should detect urgent mood patterns', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      mockTarotInterpretStreamSafeParse.mockReturnValue({
-        success: true,
-        data: { ...VALID_REQUEST_BODY, userQuestion: '급해요! 지금 당장 알려주세요' },
-      })
-
-      await POST(
-        makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '급해요! 지금 당장 알려주세요' })
-      )
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('핵심')
-    })
-
-    it('should detect hopeful mood patterns', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      mockTarotInterpretStreamSafeParse.mockReturnValue({
-        success: true,
-        data: { ...VALID_REQUEST_BODY, userQuestion: '성공할 수 있을까요? 희망이 있나요?' },
-      })
-
-      await POST(
-        makePostRequest({
-          ...VALID_REQUEST_BODY,
-          userQuestion: '성공할 수 있을까요? 희망이 있나요?',
-        })
-      )
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('긍정')
-    })
-
-    it('should detect curious mood patterns', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      mockTarotInterpretStreamSafeParse.mockReturnValue({
-        success: true,
-        data: { ...VALID_REQUEST_BODY, userQuestion: '궁금해요! 어떻게 될지 알고 싶어요' },
-      })
-
-      await POST(
-        makePostRequest({
-          ...VALID_REQUEST_BODY,
-          userQuestion: '궁금해요! 어떻게 될지 알고 싶어요',
-        })
-      )
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('흥미')
-    })
-
-    it('should detect English mood patterns', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      mockTarotInterpretStreamSafeParse.mockReturnValue({
-        success: true,
-        data: { ...VALID_REQUEST_BODY, language: 'en', userQuestion: 'I am worried and anxious' },
-      })
-
-      await POST(
-        makePostRequest({
-          ...VALID_REQUEST_BODY,
-          language: 'en',
-          userQuestion: 'I am worried and anxious',
-        })
-      )
-
-      // For English, mood hints may not be included (implementation specific)
-      expect(mockFetch).toHaveBeenCalled()
-    })
-  })
-
-  // -----------------------------------------------------------------
-  // Normalize Advice Function
-  // -----------------------------------------------------------------
-  describe('Normalize Advice (via backend fallback)', () => {
-    beforeEach(() => {
-      process.env.OPENAI_API_KEY = 'test-api-key'
-    })
-
-    afterEach(() => {
-      delete process.env.OPENAI_API_KEY
-    })
-
-    it('should handle string advice', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('OpenAI down'))
-      mockApiClientPost.mockResolvedValue({
-        ok: true,
-        data: {
-          overall_message: 'Test',
-          card_insights: [],
-          guidance: 'Simple string advice',
-        },
-      })
-
-      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-      const text = await response.text()
-
-      expect(text).toContain('Simple string advice')
-    })
-
-    it('should handle array advice with title and detail', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('OpenAI down'))
-      mockApiClientPost.mockResolvedValue({
-        ok: true,
-        data: {
-          overall_message: 'Test',
-          card_insights: [],
-          guidance: [
-            { title: 'Step 1', detail: 'Do this first' },
-            { title: 'Step 2', detail: 'Then do this' },
-          ],
-        },
-      })
-
-      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-      const text = await response.text()
-
-      expect(text).toContain('Step 1')
-      expect(text).toContain('Do this first')
-    })
-  })
 })
 
 // ===================================================================

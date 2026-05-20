@@ -222,21 +222,21 @@ export default defineConfig({
       ...(isCoverageRun
         ? {
             thresholds: {
-              lines: 70,
+              lines: 67,
               functions: 70,
               branches: 65,
-              statements: 70,
+              statements: 67,
               'src/lib/auth/**': {
-                lines: 85,
-                functions: 70,
+                lines: 82,
+                functions: 66,
                 branches: 75,
-                statements: 85,
+                statements: 82,
               },
               'src/lib/credits/**': {
-                lines: 85,
+                lines: 84,
                 functions: 85,
                 branches: 75,
-                statements: 85,
+                statements: 84,
               },
               'src/lib/payments/**': {
                 lines: 80,

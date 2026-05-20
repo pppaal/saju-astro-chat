@@ -120,11 +120,6 @@ function createValidSafeParse() {
       }
     }
 
-    // Validate theme - optional, max 100 characters
-    if (data.theme !== undefined && typeof data.theme === 'string' && data.theme.length > 100) {
-      errors.push({ path: ['theme'], message: 'theme must be at most 100 characters' })
-    }
-
     // Validate locale - optional
     if (data.locale !== undefined && !['ko', 'en', 'ja', 'zh'].includes(data.locale)) {
       errors.push({ path: ['locale'], message: 'invalid locale' })
@@ -141,7 +136,6 @@ function createValidSafeParse() {
       success: true,
       data: {
         sessionId: data.sessionId.trim(),
-        theme: data.theme || 'chat',
         messages: data.messages,
         locale: data.locale || 'ko',
       },
@@ -154,7 +148,6 @@ describe('/api/counselor/session/save', () => {
 
   const validSessionData = {
     sessionId: 'session-123',
-    theme: 'career',
     messages: [
       { role: 'user', content: 'What should I do about my career?', timestamp: Date.now() },
       { role: 'assistant', content: 'Let me help you with that.', timestamp: Date.now() },
@@ -304,7 +297,7 @@ describe('/api/counselor/session/save', () => {
     })
 
     it('should return 422 when messages is missing', async () => {
-      const data = { sessionId: 'session-123', theme: 'career' }
+      const data = { sessionId: 'session-123' }
       const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
         method: 'POST',
         body: JSON.stringify(data),
@@ -377,7 +370,6 @@ describe('/api/counselor/session/save', () => {
         success: true,
         data: {
           sessionId: '', // Empty after trim
-          theme: 'chat',
           messages: [],
           locale: 'ko',
         },
@@ -429,7 +421,6 @@ describe('/api/counselor/session/save', () => {
       mockCreate.mockResolvedValue({
         id: 'session-123',
         userId: mockUserId,
-        theme: 'career',
         locale: 'ko',
         messages: validSessionData.messages,
         messageCount: 2,
@@ -452,38 +443,10 @@ describe('/api/counselor/session/save', () => {
         data: expect.objectContaining({
           id: 'session-123',
           userId: mockUserId,
-          theme: 'career',
           locale: 'ko',
           messages: validSessionData.messages,
           messageCount: 2,
-        }),
-      })
-    })
-
-    it('should use default theme "chat" when not provided', async () => {
-      mockFindUnique.mockResolvedValue(null)
-      mockCreate.mockResolvedValue({
-        id: 'session-456',
-        userId: mockUserId,
-        theme: 'chat',
-      })
-
-      const dataWithoutTheme = {
-        sessionId: 'session-456',
-        messages: [{ role: 'user', content: 'Hello' }],
-      }
-
-      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
-        method: 'POST',
-        body: JSON.stringify(dataWithoutTheme),
-      })
-
-      const { POST } = await import('@/app/api/counselor/session/save/route')
-      await POST(req)
-
-      expect(mockCreate).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          theme: 'chat',
+          lastMessageAt: expect.any(Date),
         }),
       })
     })
@@ -963,49 +926,4 @@ describe('/api/counselor/session/save', () => {
     })
   })
 
-  describe('POST - Theme Validation', () => {
-    it('should accept custom theme within length limit', async () => {
-      mockFindUnique.mockResolvedValue(null)
-      mockCreate.mockResolvedValue({ id: 'session-custom-theme' })
-
-      const data = {
-        sessionId: 'session-custom-theme',
-        messages: [{ role: 'user', content: 'Hello' }],
-        theme: 'love-relationship',
-      }
-
-      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      })
-
-      const { POST } = await import('@/app/api/counselor/session/save/route')
-      const response = await POST(req)
-
-      expect(response.status).toBe(200)
-      expect(mockCreate).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          theme: 'love-relationship',
-        }),
-      })
-    })
-
-    it('should reject theme exceeding 100 characters', async () => {
-      const data = {
-        sessionId: 'session-long-theme',
-        messages: [{ role: 'user', content: 'Hello' }],
-        theme: 'a'.repeat(101),
-      }
-
-      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      })
-
-      const { POST } = await import('@/app/api/counselor/session/save/route')
-      const response = await POST(req)
-
-      expect(response.status).toBe(422)
-    })
-  })
 })

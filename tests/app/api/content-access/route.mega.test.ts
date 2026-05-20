@@ -206,7 +206,6 @@ describe('POST /api/content-access', () => {
       'astrology',
       'saju',
       'tarot',
-      'dream',
       'destiny-map',
       'numerology',
       'iching',

@@ -41,7 +41,7 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Astrology Routes (14)', () => {
+  describe('Astrology Routes', () => {
     it('should have astrology core routes', () => {
       assertModules([
         'app/api/astrology/route',
@@ -55,13 +55,11 @@ describe('API Routes Smoke Tests', () => {
         'app/api/astrology/advanced/asteroids/route',
         'app/api/astrology/advanced/draconic/route',
         'app/api/astrology/advanced/eclipses/route',
-        'app/api/astrology/advanced/electional/route',
         'app/api/astrology/advanced/fixed-stars/route',
         'app/api/astrology/advanced/harmonics/route',
         'app/api/astrology/advanced/lunar-return/route',
         'app/api/astrology/advanced/midpoints/route',
         'app/api/astrology/advanced/progressions/route',
-        'app/api/astrology/advanced/rectification/route',
         'app/api/astrology/advanced/solar-return/route',
       ]);
     });
@@ -76,12 +74,10 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Calendar Routes (3)', () => {
+  describe('Calendar Routes', () => {
     it('should have calendar routes', () => {
       assertModules([
         'app/api/calendar/route',
-        'app/api/calendar/save/route',
-        'app/api/calendar/save/[id]/route',
       ]);
     });
   });
@@ -102,21 +98,10 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Compatibility Routes (3)', () => {
+  describe('Compatibility Routes', () => {
     it('should have compatibility routes', () => {
       assertModules([
-        'app/api/compatibility/route',
-        'app/api/compatibility/chat/route',
         'app/api/compatibility/counselor/route',
-      ]);
-    });
-  });
-
-  describe('Consultation Routes (2)', () => {
-    it('should have consultation routes', () => {
-      assertModules([
-        'app/api/consultation/route',
-        'app/api/consultation/[id]/route',
       ]);
     });
   });
@@ -140,31 +125,21 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Cron Routes (4)', () => {
+  describe('Cron Routes', () => {
     it('should have cron routes', () => {
       assertModules([
         'app/api/cron/daily-fortune-post/route',
         'app/api/cron/notifications/route',
         'app/api/cron/reset-credits/route',
-        'app/api/cron/weekly-fortune/route',
       ]);
     });
   });
 
-  describe('Daily Fortune Routes (1)', () => {
-    it('should have daily fortune route', () => {
-      assertModules([
-        'app/api/daily-fortune/route',
-      ]);
-    });
-  });
-
-  describe('Destiny Map Routes (3)', () => {
+  describe('Destiny Map Routes', () => {
     it('should have destiny map routes', () => {
       assertModules([
         'app/api/destiny-map/route',
         'app/api/destiny-map/chat/route',
-        'app/api/destiny-map/chat-stream/route',
       ]);
     });
   });
@@ -177,76 +152,11 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Destiny Matrix Routes (2)', () => {
-    it('should have destiny matrix routes', () => {
-      assertModules([
-        'app/api/destiny-matrix/route',
-        'app/api/destiny-matrix/report/route',
-      ]);
-    });
-  });
-
-  describe('Dream Routes (5)', () => {
-    it('should have dream routes', () => {
-      assertModules([
-        'app/api/dream/route',
-        'app/api/dream/chat/route',
-        'app/api/dream/chat/save/route',
-        'app/api/dream/history/route',
-        'app/api/dream/stream/route',
-      ]);
-    });
-  });
-
   describe('Feedback Routes (2)', () => {
     it('should have feedback routes', () => {
       assertModules([
         'app/api/feedback/route',
         'app/api/feedback/records/route',
-      ]);
-    });
-  });
-
-  describe('Fortune Routes (1)', () => {
-    it('should have fortune route', () => {
-      assertModules([
-        'app/api/fortune/route',
-      ]);
-    });
-  });
-
-  describe('iChing Routes (2)', () => {
-    it('should have iching routes', () => {
-      assertModules([
-        'app/api/iching/changing-line/route',
-        'app/api/iching/stream/route',
-      ]);
-    });
-  });
-
-  describe('ICP Routes (1)', () => {
-    it('should have icp route', () => {
-      assertModules([
-        'app/api/icp/route',
-      ]);
-    });
-  });
-
-  describe('Life Prediction Routes (5)', () => {
-    it('should have life prediction routes', () => {
-      assertModules([
-        'app/api/life-prediction/route',
-        'app/api/life-prediction/advisor-chat/route',
-        'app/api/life-prediction/analyze-question/route',
-        'app/api/life-prediction/backend-predict/route',
-        'app/api/life-prediction/explain-results/route',
-      ]);
-    });
-
-    it('should have life prediction save routes', () => {
-      assertModules([
-        'app/api/life-prediction/save/route',
-        'app/api/life-prediction/save-timing/route',
       ]);
     });
   });
@@ -263,73 +173,20 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Notifications Routes (1)', () => {
-    it('should have notifications route', () => {
-      assertModules([
-        'app/api/notifications/send/route',
-      ]);
-    });
-  });
-
-  describe('Numerology Routes (1)', () => {
-    it('should have numerology route', () => {
-      assertModules([
-        'app/api/numerology/route',
-      ]);
-    });
-  });
-
-  describe('Persona Memory Routes (2)', () => {
-    it('should have persona memory routes', () => {
-      assertModules([
-        'app/api/persona-memory/route',
-        'app/api/persona-memory/update-from-chat/route',
-      ]);
-    });
-  });
-
-  describe('Personality Routes (1)', () => {
-    it('should have personality route', () => {
-      assertModules([
-        'app/api/personality/route',
-      ]);
-    });
-  });
-
-  describe('Precompute Routes (1)', () => {
-    it('should have precompute route', () => {
-      assertModules([
-        'app/api/precompute-chart/route',
-      ]);
-    });
-  });
-
-  describe('Push Routes (2)', () => {
+  describe('Push Routes', () => {
     it('should have push routes', () => {
       assertModules([
-        'app/api/push/send/route',
         'app/api/push/subscribe/route',
       ]);
     });
   });
 
-  describe('Readings Routes (2)', () => {
-    it('should have readings routes', () => {
-      assertModules([
-        'app/api/readings/route',
-        'app/api/readings/[id]/route',
-      ]);
-    });
-  });
-
-  describe('Referral Routes (5)', () => {
+  describe('Referral Routes', () => {
     it('should have referral routes', () => {
       assertModules([
         'app/api/referral/claim/route',
         'app/api/referral/create-code/route',
-        'app/api/referral/link/route',
         'app/api/referral/me/route',
-        'app/api/referral/validate/route',
       ]);
     });
   });
@@ -351,19 +208,17 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Tarot Routes (5)', () => {
+  describe('Tarot Routes', () => {
     it('should have tarot core routes', () => {
       assertModules([
-        'app/api/tarot/analyze-question/route',
-        'app/api/tarot/chat/route',
-        'app/api/tarot/chat/stream/route',
+        'app/api/tarot/route',
+        'app/api/tarot/followup/route',
+        'app/api/tarot/interpret-stream/route',
       ]);
     });
 
-    it('should have tarot save and interpret routes', () => {
+    it('should have tarot save routes', () => {
       assertModules([
-        'app/api/tarot/interpret/route',
-        'app/api/tarot/interpret/stream/route',
         'app/api/tarot/save/route',
         'app/api/tarot/save/[id]/route',
       ]);
@@ -378,14 +233,6 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Visitors Routes (1)', () => {
-    it('should have visitors route', () => {
-      assertModules([
-        'app/api/visitors-today/route',
-      ]);
-    });
-  });
-
   describe('Webhook Routes (1)', () => {
     it('should have webhook routes', () => {
       assertModules([
@@ -394,28 +241,19 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Weekly Fortune Routes (1)', () => {
-    it('should have weekly fortune route', () => {
-      assertModules([
-        'app/api/weekly-fortune/route',
-      ]);
-    });
-  });
-
   describe('API Routes Summary', () => {
-    it('should have all API route categories', () => {
+    it('should have a route module under each expected API category directory', () => {
       const categories = [
         'admin', 'astrology', 'auth', 'calendar', 'checkout', 'cities',
-        'compatibility', 'consultation', 'content-access', 'counselor',
-        'cron', 'daily-fortune', 'destiny-map', 'destiny-match',
-        'destiny-matrix', 'dream', 'feedback', 'fortune', 'iching', 'icp',
-        'life-prediction', 'me', 'notifications', 'numerology',
-        'persona-memory', 'personality', 'precompute-chart', 'push',
-        'readings', 'referral', 'saju', 'stats', 'tarot', 'user',
-        'visitors-today', 'webhook', 'weekly-fortune',
+        'compatibility', 'content-access', 'counselor', 'cron',
+        'destiny-map', 'destiny-match', 'feedback', 'me', 'push',
+        'referral', 'saju', 'stats', 'tarot', 'user', 'webhook',
       ];
 
-      expect(categories.length).toBe(37);
+      categories.forEach((category) => {
+        const dir = path.join(process.cwd(), 'src', 'app', 'api', category);
+        expect(existsSync(dir)).toBe(true);
+      });
     });
   });
 });
