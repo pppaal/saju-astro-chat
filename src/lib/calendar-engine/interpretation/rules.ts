@@ -1612,10 +1612,10 @@ export const RULES: InterpretationRule[] = [
     priority: 44,
     conditions: { shinsalName: ['천문성'] },
     template:
-      `🔮 **천문성** 발동 — 영적 통찰·고차원 학문·신비주의 ` +
-      `영역에 우호적. 깊은 공부와 명상에 적합한 시기예요.`,
+      `🔮 **하늘 지혜의 별** 발동 — 영적 통찰·깊은 학문·신비로운 ` +
+      `분야에 우호적. 깊은 공부와 명상에 잘 맞는 시기예요.`,
     templateEn:
-      `🔮 **Cheonmunseong** is active — favourable for spiritual insight, advanced learning, ` +
+      `🔮 **The heaven-wisdom star** is active — favourable for spiritual insight, deep learning, ` +
       `and mystical fields. A fitting time for deep study and meditation.`,
     themes: ['growth', 'career'],
   },
@@ -1739,10 +1739,10 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['화개', '천문성'],
     },
     template:
-      `🧘 **영성·내면** — 예술·고독의 별과 천문 활성으로 명상·종교·` +
+      `🧘 **영성·내면** — 예술·고독의 별과 하늘 지혜의 별이 켜져, 명상·종교·` +
       `깊은 공부에 우호적인 시기예요.`,
     templateEn:
-      `🧘 **Spirituality and inner life** — the art-and-solitude star and Cheonmun are active, ` +
+      `🧘 **Spirituality and inner life** — the art-and-solitude star and the heaven-wisdom star are active, ` +
       `making it a favourable time for meditation, religion, and deep study.`,
     themes: ['growth'],
   },
@@ -2226,10 +2226,10 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['화개', '천문성', '문곡'],
     },
     template:
-      `예술·고독의 별과 천문 활성 — 카르마·인연·깊은 흐름을 정리할 시기. ` +
+      `예술·고독의 별과 하늘 지혜의 별이 켜져 — 묵은 인연·깊은 흐름을 정리할 시기. ` +
       `명상·기록·내면 작업이 의외로 큰 변화를 만들어요.`,
     templateEn:
-      `The art-and-solitude star and Cheonmun are active — a time to clear karma, ties, and deep currents. ` +
+      `The art-and-solitude star and the heaven-wisdom star are active — a time to clear old ties and deep currents. ` +
       `Meditation, journaling, and inner work make surprisingly big shifts.`,
     themes: ['growth'],
   },
