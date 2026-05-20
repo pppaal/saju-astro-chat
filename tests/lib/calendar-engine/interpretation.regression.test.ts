@@ -4,6 +4,7 @@ import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildInterpretation } from '@/lib/calendar-engine/interpretation/matcher'
 import { deriveKeyEvents } from '@/lib/calendar-engine/derivers/keyEvents'
+import { deriveMonthComparison } from '@/lib/calendar-engine/derivers/monthComparison'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 
 /**
@@ -267,6 +268,97 @@ describe('calendar-engine regression', () => {
       )
       const interp = buildInterpretation({ natal, cells, scope: 'daily' })
       expect(interp.keyEvents).toBeUndefined()
+    })
+  })
+
+  describe('month-over-month comparison (deriveMonthComparison)', () => {
+    const cell = (day: number, score: number): CalendarCell =>
+      ({
+        datetime: `2026-05-${String(day).padStart(2, '0')}T00:00:00.000Z`,
+        derivedScore: score,
+      }) as unknown as CalendarCell
+
+    const month = (base: number) => Array.from({ length: 10 }, (_, i) => cell(i + 1, base + i))
+
+    it('returns undefined when either month has < 7 dated cells', () => {
+      const few = [1, 2, 3].map((d) => cell(d, 70))
+      expect(deriveMonthComparison({ currCells: few, prevCells: month(50) })).toBeUndefined()
+      expect(deriveMonthComparison({ currCells: month(50), prevCells: few })).toBeUndefined()
+    })
+
+    it('computes overall avg delta and per-theme deltas (|delta|>=3, top 3)', () => {
+      const cmp = deriveMonthComparison({
+        currCells: month(60), // avg 64.5
+        prevCells: month(50), // avg 54.5
+        currScores: { money: 70, career: 55, love: 50, health: 48, growth: 60 },
+        prevScores: { money: 56, career: 60, love: 49, health: 40, growth: 30 },
+      })
+      expect(cmp).toBeDefined()
+      expect(cmp!.overallDelta).toBe(10) // 64.5 - 54.5
+      // deltas: money +14, growth +30, health +8, career -5, love +1(<3 dropped)
+      // top 3 by |delta|: growth +30, money +14, health +8
+      expect(cmp!.themes.map((t) => t.theme)).toEqual(['growth', 'money', 'health'])
+      expect(cmp!.themes.find((t) => t.theme === 'career')).toBeUndefined() // -5 is in top? no, only 3
+      const growth = cmp!.themes.find((t) => t.theme === 'growth')!
+      expect(growth.delta).toBe(30)
+      expect(growth.dir).toBe('up')
+    })
+
+    it('marks down direction for negative deltas', () => {
+      const cmp = deriveMonthComparison({
+        currCells: month(50),
+        prevCells: month(50),
+        currScores: { money: 40 },
+        prevScores: { money: 70 },
+      })
+      expect(cmp!.themes[0]).toEqual({ theme: 'money', delta: -30, dir: 'down' })
+    })
+
+    it('drops theme when only one month has a score for it', () => {
+      const cmp = deriveMonthComparison({
+        currCells: month(50),
+        prevCells: month(50),
+        currScores: { money: 80 },
+        prevScores: {},
+      })
+      // no comparable theme + zero overall delta → undefined
+      expect(cmp).toBeUndefined()
+    })
+
+    it('buildInterpretation attaches monthComparison only when prevCells given (monthly)', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const may = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const apr = await buildCalendar(
+        natal,
+        {
+          start: '2026-04-01T00:00:00.000Z',
+          end: '2026-04-30T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const withPrev = buildInterpretation({ natal, cells: may, scope: 'monthly', prevCells: apr })
+      const withoutPrev = buildInterpretation({ natal, cells: may, scope: 'monthly' })
+      expect(withoutPrev.monthComparison).toBeUndefined()
+      expect(withPrev.monthComparison).toBeDefined()
+      // overallDelta must equal rounded(avg(may) - avg(apr))
+      const avg = (cs: typeof may) => cs.reduce((a, c) => a + c.derivedScore, 0) / cs.length
+      expect(withPrev.monthComparison!.overallDelta).toBe(Math.round(avg(may) - avg(apr)))
     })
   })
 
