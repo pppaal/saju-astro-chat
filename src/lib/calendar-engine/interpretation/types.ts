@@ -122,6 +122,8 @@ export interface TemplateVars {
 
   // 시기
   daeunGanji?: string
+  /** 한자 ganji 의 영어 로마자 변형 — 영어 템플릿이 사용 (Imjin, Gapja, ...) */
+  daeunGanjiEn?: string
   /** 60갑자 본명 archetype 을 transit 어조로 변환한 한 줄 — getGanjiTransitNarrative 출처 */
   daeunGanjiText?: string
   /** English variant — 영어 템플릿이 사용 */
@@ -129,10 +131,12 @@ export interface TemplateVars {
   daeunSibsin?: string
   daeunStartYear?: number
   yearGanji?: string
+  yearGanjiEn?: string
   yearGanjiText?: string
   yearGanjiTextEn?: string
   yearSibsin?: string
   monthGanji?: string
+  monthGanjiEn?: string
   monthGanjiText?: string
   monthGanjiTextEn?: string
   monthSibsin?: string

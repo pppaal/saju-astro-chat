@@ -450,26 +450,100 @@ function signalMatches(s: ActiveSignal, cond: RuleConditions): boolean {
   return true
 }
 
+// 한자 갑자 → 한국어 음 표기 (壬辰 → 임진) / 로마자 (Imjin). 한자가
+// 그대로 출력되면 일반 사용자에겐 읽히지 않으므로 룰 본문에 들어가는
+// {monthGanji}/{yearGanji}/{daeunGanji} 변수는 한글 음으로, 영어 변형
+// {*GanjiEn} 변수는 capitalized 로마자로 노출.
+const STEM_KR: Record<string, string> = {
+  甲: '갑',
+  乙: '을',
+  丙: '병',
+  丁: '정',
+  戊: '무',
+  己: '기',
+  庚: '경',
+  辛: '신',
+  壬: '임',
+  癸: '계',
+}
+const BRANCH_KR: Record<string, string> = {
+  子: '자',
+  丑: '축',
+  寅: '인',
+  卯: '묘',
+  辰: '진',
+  巳: '사',
+  午: '오',
+  未: '미',
+  申: '신',
+  酉: '유',
+  戌: '술',
+  亥: '해',
+}
+const STEM_ROMAN: Record<string, string> = {
+  甲: 'Gap',
+  乙: 'Eul',
+  丙: 'Byeong',
+  丁: 'Jeong',
+  戊: 'Mu',
+  己: 'Gi',
+  庚: 'Gyeong',
+  辛: 'Sin',
+  壬: 'Im',
+  癸: 'Gye',
+}
+const BRANCH_ROMAN: Record<string, string> = {
+  子: 'ja',
+  丑: 'chuk',
+  寅: 'in',
+  卯: 'myo',
+  辰: 'jin',
+  巳: 'sa',
+  午: 'o',
+  未: 'mi',
+  申: 'sin',
+  酉: 'yu',
+  戌: 'sul',
+  亥: 'hae',
+}
+function ganjiToKoreanReading(ganji: string): string {
+  if (!ganji || ganji.length < 2) return ganji
+  const stem = STEM_KR[ganji[0]] ?? ganji[0]
+  const branch = BRANCH_KR[ganji[1]] ?? ganji[1]
+  return `${stem}${branch}`
+}
+function ganjiToRoman(ganji: string): string {
+  if (!ganji || ganji.length < 2) return ganji
+  const stem = STEM_ROMAN[ganji[0]] ?? ganji[0]
+  const branch = BRANCH_ROMAN[ganji[1]] ?? ganji[1]
+  return `${stem}${branch}`
+}
+
 function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): TemplateVars {
   const vars: TemplateVars = {}
   const detail = s.evidence.detail as Record<string, unknown> | undefined
   const ganji = (s.evidence.pillars?.[0] ?? '').trim()
+  const ganjiKr = ganjiToKoreanReading(ganji)
+  const ganjiEn = ganjiToRoman(ganji)
 
-  if (ganji) vars.ganji = ganji
+  if (ganji) vars.ganji = ganjiKr
   // KO + EN 두 ganji text 를 동시에 채움 — 룰 템플릿이 자기 언어에 맞는
   // placeholder ({monthGanjiText} vs {monthGanjiTextEn}) 를 선택해 사용.
   if (s.layer === 'decadal') {
-    vars.daeunGanji = ganji
+    vars.daeunGanji = ganjiKr
+    vars.daeunGanjiEn = ganjiEn
     vars.daeunGanjiText = getGanjiTransitNarrative(ganji, 'decadal', 'ko')
     vars.daeunGanjiTextEn = getGanjiTransitNarrative(ganji, 'decadal', 'en')
   }
   if (s.layer === 'yearly') {
-    vars.yearGanji = ganji
+    vars.yearGanji = ganjiKr
+    vars.yearGanjiEn = ganjiEn
     vars.yearGanjiText = getGanjiTransitNarrative(ganji, 'yearly', 'ko')
     vars.yearGanjiTextEn = getGanjiTransitNarrative(ganji, 'yearly', 'en')
   }
   if (s.layer === 'monthly') {
-    vars.monthGanji = ganji
+    vars.monthGanji = ganjiKr
+    vars.monthGanjiEn = ganjiEn
     vars.monthGanjiText = getGanjiTransitNarrative(ganji, 'monthly', 'ko')
     vars.monthGanjiTextEn = getGanjiTransitNarrative(ganji, 'monthly', 'en')
   }
@@ -528,13 +602,13 @@ function fillTemplate(template: string, vars: TemplateVars): string {
 
 function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string {
   const ko: Record<string, string> = {
-    daeun: '대운 흐름',
+    daeun: '10년 큰 흐름',
     seun: '올해의 운',
     wolun: '이번 달',
-    natal: '본명 컨텍스트',
-    transit: '주요 트랜짓',
-    pattern: '매칭 패턴',
-    shinsal: '신살',
+    natal: '타고난 결',
+    transit: '주요 흐름',
+    pattern: '주요 패턴',
+    shinsal: '행운 별',
     // 5 도메인 통합 헤더 (5테마 1:1)
     'domain-money': '돈·자산',
     'domain-work': '일·커리어',
