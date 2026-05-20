@@ -16,10 +16,7 @@ describe('GitHub Workflows Smoke Tests', () => {
       expect(existsSync(filePath)).toBe(true);
     });
 
-    it('should have deploy preview workflow', () => {
-      const filePath = resolve(workflowsDir, 'deploy-preview.yml');
-      expect(existsSync(filePath)).toBe(true);
-    });
+    // deploy-preview.yml removed — preview deploys handled by Vercel directly.
 
     it('should have deploy production workflow', () => {
       const filePath = resolve(workflowsDir, 'deploy-production.yml');
@@ -66,7 +63,7 @@ describe('GitHub Workflows Smoke Tests', () => {
     it('should have all essential workflow files', () => {
       const workflows = [
         'ci.yml',
-        'deploy-preview.yml',
+        // 'deploy-preview.yml' removed - Vercel handles preview deploys
         'deploy-production.yml',
         'e2e-browser.yml',
         'performance-tests.yml',
@@ -81,7 +78,7 @@ describe('GitHub Workflows Smoke Tests', () => {
         expect(existsSync(filePath)).toBe(true);
       });
 
-      expect(workflows.length).toBe(8);
+      expect(workflows.length).toBe(7);
     });
   });
 });

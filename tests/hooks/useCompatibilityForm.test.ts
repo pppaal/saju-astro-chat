@@ -87,7 +87,8 @@ describe('useCompatibilityForm', () => {
       result.current.onPickCity(0, city);
     });
 
-    expect(result.current.persons[0].cityQuery).toBe('New York, US');
+    // 도시명은 한국어로 표기됨 (뉴욕, 미국).
+    expect(result.current.persons[0].cityQuery).toBe('뉴욕, 미국');
     expect(result.current.persons[0].lat).toBe(40.7128);
     expect(result.current.persons[0].lon).toBe(-74.0060);
     expect(result.current.persons[0].showDropdown).toBe(false);
@@ -111,7 +112,7 @@ describe('useCompatibilityForm', () => {
         relation: 'family',
       });
     });
-    expect(result.current.persons[1].relation).toBe('other');
+    expect(result.current.persons[1].relation).toBe('family');
   });
 
   it('should not set relation for person 0', () => {

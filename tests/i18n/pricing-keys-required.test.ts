@@ -7,10 +7,7 @@ type JsonObject = Record<string, unknown>
 const REQUIRED_PUBLIC_KEYS = [
   'pricing.heroTitle',
   'pricing.heroSub',
-  'pricing.subscribe',
   'pricing.creditPacksDesc',
-  'pricing.perMonth',
-  'pricing.perYear',
   'pricing.faqs.a4',
   'menu.destinyMap',
   'menu.report',

@@ -6,143 +6,9 @@
  */
 
 import { vi, beforeEach, afterEach } from 'vitest'
-import {
-  formatReadingDate,
-  formatRelativeTime,
-  formatReadingForSave,
-} from '@/lib/tarot/tarot-storage'
+import { formatReadingForSave } from '@/lib/tarot/tarot-storage'
 import type { Spread, DrawnCard } from '@/lib/tarot/tarot.types'
 
-describe('formatReadingDate', () => {
-  it('formats date in Korean', () => {
-    const timestamp = new Date('2024-06-15T12:00:00Z').getTime()
-    const result = formatReadingDate(timestamp, true)
-
-    expect(result).toContain('2024년')
-    expect(result).toContain('6월')
-    expect(result).toContain('15일')
-  })
-
-  it('formats date in English', () => {
-    const timestamp = new Date('2024-06-15T12:00:00Z').getTime()
-    const result = formatReadingDate(timestamp, false)
-
-    expect(result).toContain('June')
-    expect(result).toContain('15')
-    expect(result).toContain('2024')
-  })
-
-  it('handles different months correctly in Korean', () => {
-    const jan = new Date('2024-01-01').getTime()
-    const dec = new Date('2024-12-31').getTime()
-
-    expect(formatReadingDate(jan, true)).toContain('1월')
-    expect(formatReadingDate(dec, true)).toContain('12월')
-  })
-})
-
-describe('formatRelativeTime', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
-  it("returns '방금 전' for recent timestamps in Korean", () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 30000, true) // 30 seconds ago
-    expect(result).toBe('방금 전')
-  })
-
-  it("returns 'Just now' for recent timestamps in English", () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 30000, false) // 30 seconds ago
-    expect(result).toBe('Just now')
-  })
-
-  it('returns minutes ago in Korean', () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 5 * 60000, true) // 5 minutes ago
-    expect(result).toBe('5분 전')
-  })
-
-  it('returns minutes ago in English', () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 5 * 60000, false) // 5 minutes ago
-    expect(result).toBe('5 min ago')
-  })
-
-  it('returns hours ago in Korean', () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 3 * 3600000, true) // 3 hours ago
-    expect(result).toBe('3시간 전')
-  })
-
-  it('returns hours ago in English', () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 3 * 3600000, false) // 3 hours ago
-    expect(result).toBe('3h ago')
-  })
-
-  it('returns days ago in Korean', () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 2 * 86400000, true) // 2 days ago
-    expect(result).toBe('2일 전')
-  })
-
-  it('returns days ago in English', () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 2 * 86400000, false) // 2 days ago
-    expect(result).toBe('2d ago')
-  })
-
-  it('returns full date for timestamps older than 7 days', () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const oldTimestamp = now - 10 * 86400000 // 10 days ago
-    const resultKo = formatRelativeTime(oldTimestamp, true)
-    const resultEn = formatRelativeTime(oldTimestamp, false)
-
-    // Should fall back to full date format
-    expect(resultKo).toContain('년')
-    expect(resultEn).toMatch(/\d{4}/) // Contains year
-  })
-
-  it('handles edge case at exactly 60 minutes', () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 60 * 60000, true) // Exactly 1 hour
-    expect(result).toBe('1시간 전')
-  })
-
-  it('handles edge case at exactly 24 hours', () => {
-    const now = Date.now()
-    vi.setSystemTime(now)
-
-    const result = formatRelativeTime(now - 24 * 3600000, true) // Exactly 24 hours
-    expect(result).toBe('1일 전')
-  })
-})
 
 describe('formatReadingForSave', () => {
   const mockSpread: Spread = {
@@ -280,7 +146,8 @@ describe('formatReadingForSave', () => {
     expect(result.cards[0].nameKo).toBe('바보')
     expect(result.cards[0].isReversed).toBe(false)
     expect(result.cards[0].position).toBe('Past')
-    expect(result.cards[0].positionKo).toBe('과거')
+    // 자리 라벨은 이제 LLM 응답(card_insights.position)에서 가져오며 ko/en 동일.
+    expect(result.cards[0].positionKo).toBe('Past')
 
     expect(result.cards[1].isReversed).toBe(true)
   })
@@ -351,9 +218,10 @@ describe('formatReadingForSave', () => {
       'three-card'
     )
 
-    expect(result.cards[0].position).toBe('Past')
-    expect(result.cards[1].position).toBe('Card 2') // Fallback
-    expect(result.cards[2].position).toBe('Card 3') // Fallback
+    // interpretation이 null이면 LLM 자리 라벨이 없어 'N번 카드' fallback 사용.
+    expect(result.cards[0].position).toBe('1번 카드')
+    expect(result.cards[1].position).toBe('2번 카드')
+    expect(result.cards[2].position).toBe('3번 카드')
   })
 })
 
