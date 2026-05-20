@@ -83,7 +83,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const pyenGwan = sib.편관
   const jeongJae = sib.정재
   const pyenJae = sib.편재
-  const isFemale = saju.input.gender === 'female'
+  const isFemale = saju.input?.gender === 'female'
 
   const dBranch = dayBranch(saju)
   if (dBranch) sajuUsed.push('pillars.day.branch')

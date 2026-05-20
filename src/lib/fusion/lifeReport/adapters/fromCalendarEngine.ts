@@ -210,7 +210,12 @@ function toChart(astro: AstrologyLikeChart): Chart {
 
 function ageFromBirth(saju: MainSajuOutput): number {
   // Try main.input.year / month / date or birthDate string.
-  const input = saju.input as { birthDate?: string; year?: number; month?: number; date?: number }
+  const input = (saju.input ?? {}) as {
+    birthDate?: string
+    year?: number
+    month?: number
+    date?: number
+  }
   let birthYear = 0
   let birthMonth = 1
   let birthDay = 1
