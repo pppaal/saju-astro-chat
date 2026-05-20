@@ -47,6 +47,13 @@ vi.mock('@/lib/cities/formatter', () => ({
     }
     return map[name] || null
   }),
+  COUNTRY_FULL_NAME: {
+    KR: 'South Korea',
+    JP: 'Japan',
+    GB: 'United Kingdom',
+    FR: 'France',
+    US: 'United States',
+  },
 }))
 
 import { logger } from '@/lib/logger'
