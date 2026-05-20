@@ -53,7 +53,7 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Passionate and devoted.',
   },
   甲辰: {
-    character: '큰 그릇·포용형 거목',
+    character: '너른 그릇으로 품는 거목의 결',
     character_en: 'A large, embracing presence — a great tree of a person.',
     strengths: ['포용', '안목', '신뢰'],
     strengths_en: ['big-heartedness', 'good judgment', 'trustworthiness'],
@@ -65,7 +65,7 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Steady and protective.',
   },
   甲午: {
-    character: '활발한 표현가, 빛나는 곧고 큰 나무 기운',
+    character: '활발한 표현가, 곧고 큰 나무처럼 빛나는 결',
     character_en: 'A lively expressive type — bright, outgoing energy.',
     strengths: ['표현력', '에너지', '인기'],
     strengths_en: ['expression', 'energy', 'popularity'],
@@ -201,7 +201,7 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Powerfully magnetic.',
   },
   丙辰: {
-    character: '큰 무대 지향의 따뜻한 타오르는 불 기운',
+    character: '큰 무대를 지향하는 따뜻한 태양형 결',
     character_en: 'Warm, big-stage energy.',
     strengths: ['포용', '에너지', '비전'],
     strengths_en: ['inclusiveness', 'energy', 'vision'],
@@ -225,8 +225,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Intense, sometimes turbulent.',
   },
   丙申: {
-    character: '강건한 행동가, 결단의 타오르는 불 기운',
-    character_en: 'A sturdy doer — blazing fire energy decisiveness.',
+    character: '결단력이 빛나는 강건한 행동가',
+    character_en: 'A sturdy doer with the decisiveness of blazing fire.',
     strengths: ['실행', '결단', '의지'],
     strengths_en: ['execution', 'decisiveness', 'willpower'],
     weaknesses: ['거침', '대립'],
@@ -237,8 +237,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Direct and forthright.',
   },
   丙戌: {
-    character: '근면한 타오르는 불 기운, 실속과 책임',
-    character_en: 'Hardworking blazing fire energy — substance and responsibility.',
+    character: '실속과 책임을 갖춘 근면한 불의 결',
+    character_en: 'Hardworking blazing fire — substance and responsibility.',
     strengths: ['책임감', '근면', '의리'],
     strengths_en: ['responsibility', 'diligence', 'loyalty'],
     weaknesses: ['고집', '걱정'],
@@ -263,8 +263,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Deeply felt affection.',
   },
   丁卯: {
-    character: '예술적 감각의 따뜻한 등불 기운',
-    character_en: 'Artistic candle-flame fire energy with a refined eye.',
+    character: '예술적 감각이 빛나는 따뜻한 등불의 결',
+    character_en: 'Artistic candle-flame energy with a refined eye.',
     strengths: ['미감', '직관', '센스'],
     strengths_en: ['aesthetic sense', 'intuition', 'taste'],
     weaknesses: ['변덕', '예민'],
@@ -287,8 +287,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Witty and passionate.',
   },
   丁未: {
-    character: '헌신적인 따뜻한 등불 기운',
-    character_en: 'Warm and devoted candle-flame fire energy.',
+    character: '헌신적이고 따뜻한 등불의 결',
+    character_en: 'Warm and devoted candle-flame energy.',
     strengths: ['배려', '인내', '예술성'],
     strengths_en: ['thoughtfulness', 'patience', 'artistry'],
     weaknesses: ['걱정', '소극'],
@@ -299,8 +299,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Devoted and steady.',
   },
   丁酉: {
-    character: '예리하고 정제된 따뜻한 등불 기운',
-    character_en: 'Sharp and refined candle-flame fire energy.',
+    character: '예리하고 정제된 등불의 결',
+    character_en: 'Sharp and refined candle-flame energy.',
     strengths: ['분석', '센스', '단호'],
     strengths_en: ['analysis', 'good taste', 'firmness'],
     weaknesses: ['차가움', '예민'],
@@ -325,8 +325,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
 
   // ── 戊(토양) ──
   戊子: {
-    character: '안정 추구의 든든한 큰 흙·산 기운',
-    character_en: 'Solid mountain and earth energy that seeks stability.',
+    character: '안정을 추구하는 든든한 산처럼 단단한 결',
+    character_en: 'Solid mountain energy that seeks stability.',
     strengths: ['신중', '안정', '책임'],
     strengths_en: ['caution', 'stability', 'responsibility'],
     weaknesses: ['고집', '느림'],
@@ -337,8 +337,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Trustworthy and steady.',
   },
   戊寅: {
-    character: '진취적이고 강건한 큰 흙·산 기운',
-    character_en: 'Forward-driving, robust mountain and earth energy.',
+    character: '진취적이고 강건한 산의 결',
+    character_en: 'Forward-driving, robust mountain energy.',
     strengths: ['추진', '결단', '의리'],
     strengths_en: ['drive', 'decisiveness', 'loyalty'],
     weaknesses: ['고집', '거침'],
@@ -349,8 +349,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Direct and faithful.',
   },
   戊辰: {
-    character: '대지 같은 포용의 큰 흙·산 기운',
-    character_en: 'Earth-like mountain and earth energy — broad and embracing.',
+    character: '대지처럼 너른 포용을 지닌 결',
+    character_en: 'Earth-like energy — broad and embracing.',
     strengths: ['포용', '신뢰', '안정'],
     strengths_en: ['inclusiveness', 'trust', 'stability'],
     weaknesses: ['보수', '느린 변화'],
@@ -399,8 +399,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
 
   // ── 己(토음) ──
   己丑: {
-    character: '온화하고 인내하는 부드러운 흙·논 기운',
-    character_en: 'Gentle, patient field and soil earth energy.',
+    character: '온화하고 인내하는 너른 논처럼 부드러운 결',
+    character_en: 'Gentle, patient field-soil energy.',
     strengths: ['인내', '성실', '배려'],
     strengths_en: ['patience', 'sincerity', 'thoughtfulness'],
     weaknesses: ['소극', '느림'],
@@ -411,8 +411,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Devoted and steady.',
   },
   己卯: {
-    character: '섬세하고 부드러운 흙·논 기운',
-    character_en: 'Refined and gentle field and soil earth energy.',
+    character: '섬세하고 부드러운 논의 결',
+    character_en: 'Refined and gentle field-soil energy.',
     strengths: ['배려', '협조', '미감'],
     strengths_en: ['thoughtfulness', 'cooperation', 'aesthetic sense'],
     weaknesses: ['우유부단', '예민'],
@@ -423,8 +423,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Devoted and warm.',
   },
   己巳: {
-    character: '재치 있는 사교적 부드러운 흙·논 기운',
-    character_en: 'Witty, sociable field and soil earth energy.',
+    character: '재치 있고 사교적인 부드러운 논의 결',
+    character_en: 'Witty, sociable field-soil energy.',
     strengths: ['언변', '적응', '인맥'],
     strengths_en: ['eloquence', 'adaptability', 'connections'],
     weaknesses: ['변덕', '피로'],
@@ -435,8 +435,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Warm-hearted with a wide social circle.',
   },
   己未: {
-    character: '인정 많고 헌신적인 부드러운 흙·논 기운',
-    character_en: 'Warm-hearted and devoted field and soil earth energy.',
+    character: '인정 많고 헌신적인 논의 결',
+    character_en: 'Warm-hearted and devoted field-soil energy.',
     strengths: ['배려', '인내', '안정'],
     strengths_en: ['thoughtfulness', 'patience', 'stability'],
     weaknesses: ['걱정', '소극'],
@@ -447,8 +447,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Devoted and steady.',
   },
   己酉: {
-    character: '분석적이고 정확한 부드러운 흙·논 기운',
-    character_en: 'Analytical and precise field and soil earth energy.',
+    character: '분석적이고 정확한 논의 결',
+    character_en: 'Analytical and precise field-soil energy.',
     strengths: ['분석', '꼼꼼', '협조'],
     strengths_en: ['analysis', 'attention to detail', 'cooperation'],
     weaknesses: ['예민', '비판'],
@@ -459,8 +459,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Careful — keeps some distance.',
   },
   己亥: {
-    character: '직관과 인정의 부드러운 흙·논 기운',
-    character_en: 'Field and soil earth energy ruled by intuition and warmth.',
+    character: '직관과 인정이 어우러진 논의 결',
+    character_en: 'Field-soil energy ruled by intuition and warmth.',
     strengths: ['감수성', '인내', '직관'],
     strengths_en: ['sensitivity', 'patience', 'intuition'],
     weaknesses: ['걱정', '현실 회피'],
@@ -473,8 +473,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
 
   // ── 庚(금양) ──
   庚子: {
-    character: '날카롭고 결단력 있는 단단한 금 기운',
-    character_en: 'Sharp, decisive solid metal energy.',
+    character: '날카롭고 결단력 있는 단단한 금의 결',
+    character_en: 'Sharp, decisive solid-metal energy.',
     strengths: ['결단', '추진', '의지'],
     strengths_en: ['decisiveness', 'drive', 'willpower'],
     weaknesses: ['거침', '독단'],
@@ -485,8 +485,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Direct and forceful.',
   },
   庚寅: {
-    character: '강건한 행동가의 단단한 금 기운',
-    character_en: 'A sturdy doer in solid metal energy.',
+    character: '강건한 행동가의 금속 같은 결',
+    character_en: 'A sturdy doer carrying solid-metal energy.',
     strengths: ['추진', '결단', '용기'],
     strengths_en: ['drive', 'decisiveness', 'courage'],
     weaknesses: ['충동', '거침'],
@@ -497,8 +497,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Straight-ahead and passionate.',
   },
   庚辰: {
-    character: '신뢰·책임의 단단한 금 기운',
-    character_en: 'Trustworthy, responsible solid metal energy.',
+    character: '신뢰와 책임이 묵직한 금의 결',
+    character_en: 'Trustworthy, responsible solid-metal energy.',
     strengths: ['책임', '신뢰', '결단'],
     strengths_en: ['responsibility', 'trust', 'decisiveness'],
     weaknesses: ['고집', '강압'],
@@ -509,8 +509,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Faithful and conservative.',
   },
   庚午: {
-    character: '강렬한 의지의 단단한 금 기운',
-    character_en: 'Intense, willful solid metal energy.',
+    character: '강렬한 의지를 품은 금의 결',
+    character_en: 'Intense, willful solid-metal energy.',
     strengths: ['결단', '의지', '카리스마'],
     strengths_en: ['decisiveness', 'willpower', 'charisma'],
     weaknesses: ['독단', '강함'],
@@ -521,8 +521,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'A strong magnetic pull.',
   },
   庚申: {
-    character: '극강의 단단한 금 기운 — 의지와 칼날',
-    character_en: 'Pure solid metal energy — pure will, like a blade.',
+    character: '극강의 금처럼 단단한 결 — 의지와 칼날',
+    character_en: 'Pure solid-metal energy — pure will, like a blade.',
     strengths: ['결단', '의지', '실행'],
     strengths_en: ['decisiveness', 'willpower', 'execution'],
     weaknesses: ['강함', '대립'],
@@ -533,8 +533,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Direct and faithful.',
   },
   庚戌: {
-    character: '근면하고 의리 있는 단단한 금 기운',
-    character_en: 'Hardworking and loyal solid metal energy.',
+    character: '근면하고 의리 있는 금의 결',
+    character_en: 'Hardworking and loyal solid-metal energy.',
     strengths: ['책임', '근면', '의리'],
     strengths_en: ['responsibility', 'diligence', 'loyalty'],
     weaknesses: ['고집', '걱정'],
@@ -547,8 +547,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
 
   // ── 辛(금음) ──
   辛丑: {
-    character: '정제되고 인내하는 다듬어진 쇠·보석 기운',
-    character_en: 'Refined, patient polished jewel-metal energy.',
+    character: '정제되고 인내하는 보석 같은 결',
+    character_en: 'Refined, patient jewel-metal energy.',
     strengths: ['정확', '인내', '단정'],
     strengths_en: ['precision', 'patience', 'composure'],
     weaknesses: ['차가움', '예민'],
@@ -559,8 +559,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Careful — keeps some distance.',
   },
   辛卯: {
-    character: '예리하고 섬세한 다듬어진 쇠·보석 기운',
-    character_en: 'Sharp and refined polished jewel-metal energy.',
+    character: '예리하고 섬세한 보석의 결',
+    character_en: 'Sharp and refined jewel-metal energy.',
     strengths: ['미감', '예리', '분석'],
     strengths_en: ['aesthetic sense', 'sharpness', 'analysis'],
     weaknesses: ['예민', '비판'],
@@ -571,8 +571,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Deeply felt affection.',
   },
   辛巳: {
-    character: '재치와 결단의 다듬어진 쇠·보석 기운',
-    character_en: 'Witty, decisive polished jewel-metal energy.',
+    character: '재치와 결단을 지닌 보석의 결',
+    character_en: 'Witty, decisive jewel-metal energy.',
     strengths: ['언변', '결단', '센스'],
     strengths_en: ['eloquence', 'decisiveness', 'good taste'],
     weaknesses: ['변덕', '날카로움'],
@@ -583,8 +583,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Witty with a cutting edge.',
   },
   辛未: {
-    character: '온화하면서도 단정한 다듬어진 쇠·보석 기운 — 외유내강',
-    character_en: 'Gentle outside, firm inside — warm yet composed polished jewel-metal energy.',
+    character: '온화하면서도 단정한 보석의 결 — 외유내강',
+    character_en: 'Gentle outside, firm inside — warm yet composed jewel-metal energy.',
     strengths: ['단정', '책임', '예술성'],
     strengths_en: ['composure', 'responsibility', 'artistry'],
     weaknesses: ['예민', '걱정'],
@@ -595,8 +595,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Careful and devoted.',
   },
   辛酉: {
-    character: '극강의 다듬어진 쇠·보석 기운 — 칼날 같은 정확함',
-    character_en: 'Pure polished jewel-metal energy — blade-like precision.',
+    character: '극강의 보석 같은 결 — 칼날 같은 정확함',
+    character_en: 'Pure jewel-metal energy — blade-like precision.',
     strengths: ['정확', '결단', '센스'],
     strengths_en: ['precision', 'decisiveness', 'good taste'],
     weaknesses: ['차가움', '비판'],
@@ -607,8 +607,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Careful — keeps some distance.',
   },
   辛亥: {
-    character: '깊은 감성의 다듬어진 쇠·보석 기운',
-    character_en: 'Deeply feeling polished jewel-metal energy.',
+    character: '깊은 감성을 품은 보석의 결',
+    character_en: 'Deeply feeling jewel-metal energy.',
     strengths: ['감수성', '직관', '예술성'],
     strengths_en: ['sensitivity', 'intuition', 'artistry'],
     weaknesses: ['현실 회피', '예민'],
@@ -621,8 +621,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
 
   // ── 壬(수양) ──
   壬子: {
-    character: '극강의 활달한 물 기운 — 큰 흐름',
-    character_en: 'Pure expansive water energy — a great flowing current.',
+    character: '활달하게 흐르는 큰 물의 결',
+    character_en: 'The broad, flowing energy of a great water current.',
     strengths: ['지혜', '추진', '리더십'],
     strengths_en: ['wisdom', 'drive', 'leadership'],
     weaknesses: ['변덕', '강함'],
@@ -633,8 +633,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Deep but ever-changing.',
   },
   壬寅: {
-    character: '진취적인 활달한 물 기운',
-    character_en: 'Forward-driving expansive water energy.',
+    character: '진취적으로 흐르는 큰 물의 결',
+    character_en: 'Forward-driving water energy.',
     strengths: ['추진', '지혜', '결단'],
     strengths_en: ['drive', 'wisdom', 'decisiveness'],
     weaknesses: ['성급', '거침'],
@@ -645,8 +645,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Active and passionate.',
   },
   壬辰: {
-    character: '큰 그릇의 포용형 활달한 물 기운',
-    character_en: 'Big-vessel expansive water energy — broadly embracing.',
+    character: '너른 그릇으로 흐르는 큰 물의 결',
+    character_en: 'The broad, flowing energy of a big-vessel water type.',
     strengths: ['포용', '비전', '지혜'],
     strengths_en: ['inclusiveness', 'vision', 'wisdom'],
     weaknesses: ['고민', '느림'],
@@ -657,8 +657,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Steady and trustworthy.',
   },
   壬午: {
-    character: '활달한 물 기운, 빠른 흐름',
-    character_en: 'Lively expansive water energy — a quick current.',
+    character: '활달하고 빠르게 흐르는 물의 결',
+    character_en: 'Lively water energy — a quick current.',
     strengths: ['활력', '추진', '센스'],
     strengths_en: ['vitality', 'drive', 'good taste'],
     weaknesses: ['감정 기복', '소진'],
@@ -669,8 +669,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Hot — and shifting.',
   },
   壬申: {
-    character: '강건한 행동가의 활달한 물 기운',
-    character_en: 'A sturdy doer in expansive water energy.',
+    character: '강건한 행동가의 활달한 물의 결',
+    character_en: 'A sturdy doer carrying expansive water energy.',
     strengths: ['결단', '추진', '의지'],
     strengths_en: ['decisiveness', 'drive', 'willpower'],
     weaknesses: ['거침', '직설'],
@@ -681,8 +681,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Direct and faithful.',
   },
   壬戌: {
-    character: '근면한 활달한 물 기운, 안정 추구',
-    character_en: 'Hardworking expansive water energy — drawn to stability.',
+    character: '근면하게 흐르며 안정을 추구하는 물의 결',
+    character_en: 'Hardworking water energy — drawn to stability.',
     strengths: ['책임', '근면', '신뢰'],
     strengths_en: ['responsibility', 'diligence', 'trust'],
     weaknesses: ['고집', '걱정'],
@@ -695,8 +695,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
 
   // ── 癸(수음) ──
   癸丑: {
-    character: '깊은 지혜의 차분한 물 기운',
-    character_en: 'Deeply wise still water energy.',
+    character: '깊은 지혜를 품은 차분한 물의 결',
+    character_en: 'Deeply wise still-water energy.',
     strengths: ['지혜', '인내', '직관'],
     strengths_en: ['wisdom', 'patience', 'intuition'],
     weaknesses: ['걱정', '소극'],
@@ -707,8 +707,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Devoted and careful.',
   },
   癸卯: {
-    character: '섬세하고 직관적인 차분한 물 기운',
-    character_en: 'Refined and intuitive still water energy.',
+    character: '섬세하고 직관적인 차분한 물의 결',
+    character_en: 'Refined and intuitive still-water energy.',
     strengths: ['감수성', '미감', '직관'],
     strengths_en: ['sensitivity', 'aesthetic sense', 'intuition'],
     weaknesses: ['예민', '의존'],
@@ -719,8 +719,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Romantic and finely tuned.',
   },
   癸巳: {
-    character: '재치 있는 차분한 물 기운, 빠른 두뇌',
-    character_en: 'Witty still water energy with a quick mind.',
+    character: '재치 있고 두뇌가 빠른 차분한 물의 결',
+    character_en: 'Witty still-water energy with a quick mind.',
     strengths: ['언변', '재치', '직관'],
     strengths_en: ['eloquence', 'wit', 'intuition'],
     weaknesses: ['변덕', '얕음'],
@@ -731,8 +731,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Sociable and warm-hearted.',
   },
   癸未: {
-    character: '인정 깊은 차분한 물 기운',
-    character_en: 'Warm-hearted still water energy.',
+    character: '인정 깊은 차분한 물의 결',
+    character_en: 'Warm-hearted still-water energy.',
     strengths: ['배려', '직관', '예술성'],
     strengths_en: ['thoughtfulness', 'intuition', 'artistry'],
     weaknesses: ['걱정', '소극'],
@@ -743,8 +743,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Devoted and romantic.',
   },
   癸酉: {
-    character: '분석적이고 정제된 차분한 물 기운',
-    character_en: 'Analytical and refined still water energy.',
+    character: '분석적이고 정제된 차분한 물의 결',
+    character_en: 'Analytical and refined still-water energy.',
     strengths: ['분석', '직관', '단호'],
     strengths_en: ['analysis', 'intuition', 'firmness'],
     weaknesses: ['예민', '비판'],
@@ -755,8 +755,8 @@ export const ILJU_ARCHETYPES: Record<string, IljuArchetype> = {
     relationship_en: 'Careful — keeps some distance.',
   },
   癸亥: {
-    character: '극강의 차분한 물 기운 — 깊은 바다',
-    character_en: 'Pure still water energy — like the deep sea.',
+    character: '극강의 차분한 물의 결 — 깊은 바다',
+    character_en: 'Pure still-water energy — like the deep sea.',
     strengths: ['직관', '연민', '지혜'],
     strengths_en: ['intuition', 'compassion', 'wisdom'],
     weaknesses: ['현실 회피', '소극'],
