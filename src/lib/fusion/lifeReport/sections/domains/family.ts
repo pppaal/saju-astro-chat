@@ -20,7 +20,13 @@ import {
   houseCusp,
   vesta,
 } from '../../signals/astroSignals'
-import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
+import {
+  aspectQuality,
+  houseLabel,
+  paragraph,
+  signLabel,
+  varyRepeatedEndings,
+} from '../../templates/sentences'
 import { pickVariation, twelveStagePool, sibsinCategoryPool } from '../../pools'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
@@ -324,7 +330,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   }
 
   const p3ko = paragraph(
-    deepKo.length ? deepKo : ['이번 생의 가족 분위기는 큰 드라마보다 잔잔한 누적으로 빚어져요.']
+    deepKo.length ? varyRepeatedEndings(deepKo) : ['이번 생의 가족 분위기는 큰 드라마보다 잔잔한 누적으로 빚어져요.']
   )
   const p3en = paragraph(
     deepEn.length

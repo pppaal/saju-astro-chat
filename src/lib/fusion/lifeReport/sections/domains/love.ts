@@ -26,7 +26,14 @@ import {
   planetsInHouse,
   vertex,
 } from '../../signals/astroSignals'
-import { aspectQuality, eulReul, houseLabel, paragraph, signLabel } from '../../templates/sentences'
+import {
+  aspectQuality,
+  eulReul,
+  houseLabel,
+  paragraph,
+  signLabel,
+  varyRepeatedEndings,
+} from '../../templates/sentences'
 import { findSignCombination } from '@/lib/astrology/signCombinations'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
@@ -496,7 +503,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   const p3ko = paragraph(
     deepKo.length
-      ? deepKo
+      ? varyRepeatedEndings(deepKo)
       : ['사랑의 분위기는 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 편이에요.']
   )
   const p3en = paragraph(
