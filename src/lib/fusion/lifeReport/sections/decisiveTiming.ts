@@ -121,7 +121,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const astroUsed: string[] = []
 
   // ─ Resolve birth year (used only to compute calendar year for each age)
-  const birthYear = birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
+  const birthYear = birthYearFromBirthDate(saju.input?.birthDate) ?? new Date().getFullYear()
 
   const cycles = daeunCycles(saju)
   if (cycles.length > 0) sajuUsed.push('cycles.daeunCycles')
@@ -321,7 +321,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   const zrSubPeriods = input.calendarSignals?.zrSubPeriods
   if (zrSubCurrent) {
     astroUsed.push('calendarSignals.zrSubCurrent')
-    const birthYearForSub = birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
+    const birthYearForSub = birthYearFromBirthDate(saju.input?.birthDate) ?? new Date().getFullYear()
     const endAge = Math.round(zrSubCurrent.endYear)
     const endYearAbsolute = birthYearForSub + endAge
     p5pieces.push(
@@ -340,7 +340,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       .slice(0, 2)
     if (upcoming.length > 0) {
       const birthYearForSub =
-        birthYearFromBirthDate(saju.input.birthDate) ?? new Date().getFullYear()
+        birthYearFromBirthDate(saju.input?.birthDate) ?? new Date().getFullYear()
       const labelsKo = upcoming.map(
         (u) => `${Math.round(u.startYear)}세(${birthYearForSub + Math.round(u.startYear)}년)`
       )
