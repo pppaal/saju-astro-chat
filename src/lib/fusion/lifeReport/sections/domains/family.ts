@@ -21,6 +21,8 @@ import {
 } from '../../signals/astroSignals'
 import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
 import { pickVariation, twelveStagePool, sibsinCategoryPool, asteroidHouseLine } from '../../pools'
+import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
+import type { ZodiacName } from '@/lib/astrology/interpretations'
 
 export function buildFamily(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -199,6 +201,18 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       deepEn.push(ceresCrossEn)
     }
   }
+  // 소행성 DB narrative — 양육(Ceres)/헌신(Vesta)의 결을 한 문장으로 그라운딩.
+  // 절제를 위해 둘 중 하나만(Ceres 우선) 한 문장 추가.
+  const familyAsteroidEntry = ce?.sign
+    ? findAsteroidEntry('Ceres', ce.sign as ZodiacName)
+    : ves?.sign
+      ? findAsteroidEntry('Vesta', ves.sign as ZodiacName)
+      : null
+  if (familyAsteroidEntry) {
+    astroUsed.push(`asteroidDictionary.${familyAsteroidEntry.asteroid.toLowerCase()}`)
+    deepKo.push(firstSentenceFamily(familyAsteroidEntry.ko))
+    deepEn.push(firstSentenceFamily(familyAsteroidEntry.en))
+  }
   if (familyConfirms.length > 0) {
     deepKo.push(`그리고 ${familyConfirms[0].rule.narrative.confirm}`)
     deepEn.push(`Additionally, ${familyConfirms[0].rule.meaning}.`)
@@ -340,6 +354,13 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     paragraphs,
     signals: { saju: sajuUsed, astro: astroUsed, fusion: fusionUsed },
   }
+}
+
+// DB 텍스트(2-3문장)에서 첫 문장만 추출 — 섹션 절제를 위해 1문장으로 한정.
+function firstSentenceFamily(text: string): string {
+  const trimmed = text.trim()
+  const m = trimmed.match(/^[^.!?]*[.!?]/)
+  return (m ? m[0] : trimmed).trim()
 }
 
 // 사주 raw 기둥명 대신 인생 시기 라벨로 자연 한국어화.

@@ -24,6 +24,8 @@ import {
   findPlanet,
 } from '../signals/astroSynthesis'
 import { planetLabel, signLabel } from '../templates/sentences'
+import { findSignCombination } from '@/lib/astrology/signCombinations'
+import type { ZodiacName } from '@/lib/astrology/interpretations'
 
 // 일간 한자 → 한글 라벨 (한자 표기는 빼고 자연스러운 한글 음만)
 const STEM_LABEL: Record<string, string> = {
@@ -182,8 +184,20 @@ export function buildHeadline(input: BuilderInput): Headline {
   const ascPartEn = asc ? `the world first reads you as ${signLabel(asc.sign, 'en')} rising` : ''
   const skyPartsEn = [sunPartEn, moonPartEn, ascPartEn].filter(Boolean).join(' · ')
 
-  const s2ko = skyParts ? `별자리로 보면 ${skyParts}.` : ''
-  const s2en = skyPartsEn ? `Looking at the chart, ${skyPartsEn}.` : ''
+  // Sun × Moon 조합 DB — 자아(태양) × 감정(달)의 결을 한 문장으로 그라운딩.
+  // 별자리 라벨 문장(태양 X · 달 Y) 바로 다음에 그 조합의 의미만 1문장 덧붙임.
+  const sunMoonCombo =
+    sun?.sign && moon?.sign
+      ? findSignCombination('sun_moon', sun.sign as ZodiacName, moon.sign as ZodiacName)
+      : null
+  if (sunMoonCombo) astroUsed.push('signCombinations.sun_moon')
+  const comboKo = sunMoonCombo ? firstSentence(sunMoonCombo.ko) : ''
+  const comboEn = sunMoonCombo ? firstSentence(sunMoonCombo.en) : ''
+
+  const s2ko = skyParts ? `별자리로 보면 ${skyParts}.${comboKo ? ` ${comboKo}` : ''}` : ''
+  const s2en = skyPartsEn
+    ? `Looking at the chart, ${skyPartsEn}.${comboEn ? ` ${comboEn}` : ''}`
+    : ''
 
   // ─ Sentence 3 — fusion theme (짧게, iljuChar raw 제거)
   const domEl = el?.dominant
@@ -294,6 +308,14 @@ function ordinalShort(n: number): string {
 
 function paragraphJoin(parts: string[]): string {
   return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+}
+
+// DB 텍스트(2-3문장)에서 첫 문장만 추출 — 헤드라인 절제를 위해 1문장으로 한정.
+// 한국어/영어 모두 문장부호(. ! ?)로 끊고, 끝의 종결부호를 보존한다.
+function firstSentence(text: string): string {
+  const trimmed = text.trim()
+  const m = trimmed.match(/^[^.!?]*[.!?]/)
+  return (m ? m[0] : trimmed).trim()
 }
 
 // Re-export for tests / parameter type consumers
