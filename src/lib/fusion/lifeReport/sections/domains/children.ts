@@ -147,11 +147,11 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
         : '자녀와의 인연은 잔잔하고 안정적으로 흘러요.',
     // sikSangTotal === 0 일 때는 "흘러서" 가 모순되므로 별도 표현 사용.
     sikSangTotal === 0
-      ? `표현과 창조이 ${childCountFlavorKo(sikSangTotal)}, ${childFlavorKo(sikSangTotal)}.`
-      : `표현과 창조이 ${childCountFlavorKo(sikSangTotal)} 흘러서, ${childFlavorKo(sikSangTotal)}.`,
+      ? `표현과 창조의 기운이 ${childCountFlavorKo(sikSangTotal)}, ${childFlavorKo(sikSangTotal)}.`
+      : `표현과 창조의 기운이 ${childCountFlavorKo(sikSangTotal)} 흘러서, ${childFlavorKo(sikSangTotal)}.`,
     fifth.length > 0
       ? `창조 영역에 ${fifth.map((p) => planetLabelChildrenKo(p.name)).join(', ')}이 머물러, 자녀·창작·놀이의 색이 또렷하게 활성화돼 있어요.`
-      : '창조 영역이 비어 있어, 자녀운은 다른 기운이 함께 받쳐줘요.',
+      : '별자리로 본 자녀 자리도 차분히 비어 있어, 자녀 인연은 서두르지 않고 천천히 그려가는 흐름이에요.',
   ])
   const p1en = paragraph([
     sikSangTotal >= 2

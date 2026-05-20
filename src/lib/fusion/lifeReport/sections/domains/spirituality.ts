@@ -14,8 +14,7 @@ import {
   relationPhraseKo,
 } from '../../signals/sajuSignals'
 import { chiron, getPlanet, houseCusp, planetsInHouse, vesta } from '../../signals/astroSignals'
-import { houseLabel, paragraph, planetLabel, signLabel } from '../../templates/sentences'
-import { planetHouseLine } from '../../pools'
+import { houseLabel, iGa, paragraph, planetLabel, signLabel } from '../../templates/sentences'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 
@@ -165,12 +164,6 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       p3piecesEn.push(firstSentenceSpirit(vesEntry.en))
     }
   }
-  // Pluto × house — 변혁·심층의 무대 (spirituality 깊이 외행성)
-  const plutoHouseS = planetHouseLine('Pluto', pluto?.house, 'ko')
-  if (plutoHouseS) {
-    astroUsed.push('pools.planetHouse.pluto')
-    p3pieces.push(/[.!?]$/.test(plutoHouseS) ? plutoHouseS : `${plutoHouseS}.`)
-  }
   if (dra?.sunSign) {
     p3pieces.push(
       `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 모습으로 왔어요.`
@@ -300,8 +293,10 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     )
   }
   if (zr) {
+    const zrRulerKo = planetLabel(zr.ruler, 'ko')
+    const zrFlavorKo = zrSignFlavorKo(zr.sign)
     guidePiecesKo.push(
-      `지금은 ${signLabel(zr.sign, 'ko')}의 톤으로 ${planetLabel(zr.ruler, 'ko')}이 다스리는 인생 챕터에 있어요. ${zrSignFlavorKo(zr.sign)}이 영적 흐름의 큰 주제예요.`
+      `지금은 ${signLabel(zr.sign, 'ko')}의 톤으로 ${zrRulerKo}${iGa(zrRulerKo)} 다스리는 인생 챕터에 있어요. ${zrFlavorKo}${iGa(zrFlavorKo)} 영적 흐름의 큰 주제예요.`
     )
     guidePiecesEn.push(
       `You are currently in a ${signLabel(zr.sign, 'en')} chapter ruled by ${zr.ruler} — ${zrSignFlavorEn(zr.sign)} forms the broad spiritual theme.`

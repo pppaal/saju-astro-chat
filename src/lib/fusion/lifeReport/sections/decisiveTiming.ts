@@ -301,7 +301,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   if (zr) {
     astroUsed.push('calendarSignals.zrCurrent')
     p5pieces.push(
-      `다음 5~10년의 인생 분위기는 ${zrSignKo(zr.sign)}의 느낌, ${planetName(zr.ruler, 'ko')}이 다스리는 챕터예요. 전체 분위기는 ${zrThemeKo(zr.sign)}으로 흘러요.`
+      `다음 5~10년의 인생 분위기는 ${zrSignKo(zr.sign)}의 느낌, ${planetName(zr.ruler, 'ko')}이 다스리는 챕터예요. 전체 분위기는 ${zrThemeKo(zr.sign)}${euroLoFromBatchim(zrThemeKo(zr.sign))} 흘러요.`
     )
     p5piecesEn.push(
       `Over the next 5–10 years, the life-tone is the ${zr.sign} chapter ruled by ${zr.ruler} — the broad theme is ${zrThemeEn(zr.sign)}.`

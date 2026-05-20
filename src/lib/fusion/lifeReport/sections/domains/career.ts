@@ -181,7 +181,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       ? `사회에 보여주는 모습은 ${signLabel(mc.sign, 'ko')}, ${mcSignFlavorKo(mc.sign)}이에요.`
       : '',
     sun
-      ? `당신의 태양은 ${signLabel(sun.sign, 'ko')}${sun.house === 10 ? '의 사회 정점에 있어서' : sun.house ? `의 ${karmaHouseHintForCareerKo(sun.house)} 영역에 있어서` : '에 있어서'}, ${sun.house === 10 ? '여기서 빛나는 일이 직업의 핵심이에요' : `${sunHouseFlavorKo(sun.house)}이 직업의 핵심이에요`}.`
+      ? `당신의 태양은 ${signLabel(sun.sign, 'ko')}${sun.house === 10 ? '의 사회 정점에 있어서' : sun.house ? `의 ${karmaHouseHintForCareerKo(sun.house)} 영역에 있어서` : '에 있어서'}, ${sun.house === 10 ? '여기서 빛나는 일이 직업의 중심이에요' : `${sunHouseFlavorKo(sun.house)}이 직업의 중심이에요`}.`
       : '',
   ])
   // P1 — keep to max 2 pool variations (Sun sign + Sun house) so the basic
@@ -204,7 +204,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const timingPiecesEn: string[] = []
   if (cur) {
     timingPieces.push(
-      `지금의 인생 흐름(${cur.age}세부터)에는 ${cur.sibsin ? sibsinMeaningKo(cur.sibsin) : '잔잔한 톤'}이 함께해서, 직업 분위기가 다듬어지고 있어요.`
+      `지금 시기(${cur.age}세부터)에는 ${cur.sibsin ? sibsinMeaningKo(cur.sibsin) : '잔잔한 톤'}이 함께해서, 직업 분위기가 다듬어지고 있어요.`
     )
     timingPiecesEn.push(
       `Your current 10-year life-chapter (from age ${cur.age})${cur.sibsin ? ` runs on ${sibsinMeaningEn(cur.sibsin)}` : ''}, and it is slowly reshaping the tone of your career.`
