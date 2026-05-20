@@ -1164,13 +1164,14 @@ export const GET = withApiMiddleware(
         }
       }
 
-      // 일진 (60갑자) 한 줄 narrative — 매일 다른 ganji 라 매일 다른 텍스트.
-      // 룰 DB 무관 (LLM 0번), getGanjiTransitNarrative('daily', ...) 직결.
+      // 일진 (60갑자) 한 줄 narrative — 매일 다른 ganji + 본명 일간 기준
+      // 십신 개인화. 룰 DB 무관 (LLM 0번).
       try {
         const { computeDayStem, computeDayBranch } =
           await import('@/lib/calendar-engine/extractors/saju-shinsal')
-        const { getGanjiTransitNarrative } =
+        const { getGanjiTransitNarrative, dailyIljinSibsinLine } =
           await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+        const lang = locale === 'en' ? 'en' : 'ko'
         for (const d of formattedDates) {
           // d.date 는 ISO (YYYY-MM-DDTHH:mm:ss±) — UTC noon 으로 정규화해 ganji 안정.
           const dateOnly = d.date.slice(0, 10)
@@ -1180,8 +1181,18 @@ export const GET = withApiMiddleware(
           const branch = computeDayBranch(probe)
           if (!stem || !branch) continue
           const ganji = `${stem}${branch}`
-          const text = getGanjiTransitNarrative(ganji, 'daily', locale === 'en' ? 'en' : 'ko')
-          if (text) d.dailyGanjiNarrative = text
+          const ganjiText = getGanjiTransitNarrative(ganji, 'daily', lang)
+          // 그 날 cell 의 일진 십신 신호 (pillar-sibsin, layer=daily) → 개인화 한 줄
+          const cell = cellByDate.get(dateOnly)
+          const sibsinSig = cell?.signals.find(
+            (s) => s.layer === 'daily' && s.kind === 'pillar-sibsin' && s.evidence?.sibsin
+          )
+          const sibsinLine = dailyIljinSibsinLine(
+            sibsinSig?.evidence?.sibsin as string | undefined,
+            lang
+          )
+          const combined = [ganjiText, sibsinLine].filter(Boolean).join(' ')
+          if (combined) d.dailyGanjiNarrative = combined
         }
       } catch (err) {
         logger.warn?.(

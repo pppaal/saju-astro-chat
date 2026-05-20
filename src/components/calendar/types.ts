@@ -125,6 +125,8 @@ export interface ImportantDate {
     matchedRuleIds: string[]
     sections: Array<{ section: string; title: string; text: string }>
   }
+  /** 그 날 60갑자(일진) + 본명 일간 십신 개인화 한 줄 (API 가 일별 부착) */
+  dailyGanjiNarrative?: string
 }
 
 export interface CalendarData {
