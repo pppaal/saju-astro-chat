@@ -25,6 +25,9 @@ import {
   vertex,
 } from '../../signals/astroSignals'
 import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
+import { findSignCombination } from '@/lib/astrology/signCombinations'
+import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
+import type { ZodiacName } from '@/lib/astrology/interpretations'
 import {
   appendToPara,
   pickVariation,
@@ -270,6 +273,23 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       extraLove.push(/[.!?]$/.test(v) ? v : `${v}.`)
     }
     for (const line of extraLove) deepKo.push(line)
+  }
+  // Venus × Mars 조합 DB (사랑 × 욕망) — 끌림의 결을 한 문장으로 그라운딩.
+  const venusMarsCombo =
+    venus?.sign && mars?.sign
+      ? findSignCombination('venus_mars', venus.sign as ZodiacName, mars.sign as ZodiacName)
+      : null
+  if (venusMarsCombo) {
+    astroUsed.push('signCombinations.venus_mars')
+    deepKo.push(firstSentenceLove(venusMarsCombo.ko))
+    deepEn.push(firstSentenceLove(venusMarsCombo.en))
+  }
+  // Juno(결혼의 별) × sign DB — 원하는 결합의 결을 한 문장으로.
+  const junoEntry = j?.sign ? findAsteroidEntry('Juno', j.sign as ZodiacName) : null
+  if (junoEntry) {
+    astroUsed.push('asteroidDictionary.juno')
+    deepKo.push(firstSentenceLove(junoEntry.ko))
+    deepEn.push(firstSentenceLove(junoEntry.en))
   }
   if (vertexVenus) {
     deepKo.push(
@@ -519,6 +539,13 @@ export function buildLove(input: BuilderInput): DomainNarrative {
 }
 
 // ── helpers
+// DB 텍스트(2-3문장)에서 첫 문장만 추출 — 섹션 절제를 위해 1문장으로 한정.
+function firstSentenceLove(text: string): string {
+  const trimmed = text.trim()
+  const m = trimmed.match(/^[^.!?]*[.!?]/)
+  return (m ? m[0] : trimmed).trim()
+}
+
 function pickDominantCategoryLove(cat: Record<string, number>): string {
   let best = ''
   let max = -1
