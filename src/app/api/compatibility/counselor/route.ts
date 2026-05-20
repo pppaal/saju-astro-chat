@@ -402,6 +402,7 @@ export async function POST(req: NextRequest) {
             '말투: 다정하고 공감 능력 있는 따뜻한 멘토. 자연스러운 경어체 (해요체 기본, 필요시 합쇼체 섞기). 분석가 톤·진단서 X.',
             '',
             '규칙:',
+            '- ★사실 고정: 각 사람의 일간 오행과 극(통제) 방향은 == 시너스트리 == 의 [고정 매핑]·[일간 cross] 줄에 적힌 그대로 쓴다. 누가 어떤 오행인지, 누가 누구를 정리·통제하는지 절대 반대로 바꾸지 말 것. (예: 데이터가 "준영 辛(금) → 차연 甲(목)"이면 준영이 금, 차연이 목, 준영이 차연을 정리하는 방향이다 — 거꾸로 쓰면 오답.)',
             '- 두 사람의 관계 역학에 답한다. 한 명만 분석하지 말 것.',
             '- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.',
             '- 두 데이터가 같은 방향을 가리킬 때 (예: A 사주 목 기운 강함 + A 점성 목성 확장기) 하나의 비유/스토리로 엮는다. 양쪽 따로 나열 X.',
@@ -435,6 +436,7 @@ export async function POST(req: NextRequest) {
             'Tone: warm, empathetic mentor. Conversational, not analytical or clinical.',
             '',
             'Rules:',
+            '- ★Fixed facts: each person\'s day-master element and the control (극) direction must match exactly what the == 시너스트리 == [고정 매핑] / [일간 cross] lines state. Never swap who has which element, or who controls/refines whom. Reversing it is a factual error.',
             '- Answer about the relationship dynamic. Never analyze only one person.',
             '- Fuse saju and astrology in one flow. No system-split.',
             '- When the two systems point the same way for one side (e.g. A saju wood-growth + A Jupiter expansion), weave them into one metaphor/story, not parallel listings.',
@@ -485,6 +487,8 @@ export async function POST(req: NextRequest) {
           pillarsB: [toPair(bP.year), toPair(bP.month), toPair(bP.day), toPair(bP.time)],
           currentDaeunA: aDae ? { stem: aDae.heavenlyStem ?? '', branch: aDae.earthlyBranch ?? '', age: aDae.age } : null,
           currentDaeunB: bDae ? { stem: bDae.heavenlyStem ?? '', branch: bDae.earthlyBranch ?? '', age: bDae.age } : null,
+          nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
+          nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
         })
       }
     } catch (err) {

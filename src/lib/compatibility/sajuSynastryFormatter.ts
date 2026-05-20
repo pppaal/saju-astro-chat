@@ -159,6 +159,9 @@ export interface SajuSynastryInput {
   pillarsB: SajuPillarInput[]
   currentDaeunA?: { stem: string; branch: string; age?: number } | null
   currentDaeunB?: { stem: string; branch: string; age?: number } | null
+  /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
+  nameA?: string | null
+  nameB?: string | null
 }
 
 /**
@@ -173,21 +176,43 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const bDay = B[2]
   if (!aDay.stem || !bDay.stem) return ''
 
-  const out: string[] = ['== 시너스트리 (사주 cross) ==', '']
+  // 라벨에 실명을 고정한다. "A", "B"만 주면 모델이 어느 쪽이 누구인지,
+  // 辛→금 같은 오행 매핑까지 머릿속으로 다시 풀다가 통째로 뒤집는 사고가
+  // 난다(준영 辛금을 "목"이라 부르는 등). 이름·오행을 데이터에 박아둔다.
+  const nmA = (input.nameA || '').trim()
+  const nmB = (input.nameB || '').trim()
+  const labelA = nmA ? `A(${nmA})` : 'A'
+  const labelB = nmB ? `B(${nmB})` : 'B'
+  const elA = STEM_EL[aDay.stem]
+  const elB = STEM_EL[bDay.stem]
+
+  const out: string[] = ['== 시너스트리 (사주 cross) ==']
+  // 앵커 — 라벨↔이름↔일간↔오행을 한 번 못 박는다. 아래 모든 cross 줄이
+  // 이 매핑을 기준으로 읽히도록. (가장 자주 뒤집히던 지점)
+  if (elA && elB) {
+    out.push(
+      `[고정 매핑 — 절대 바꾸지 말 것] ${labelA} 일간 ${aDay.stem}(${elA}) · ${labelB} 일간 ${bDay.stem}(${elB})`
+    )
+  }
+  out.push('')
 
   // ── 1. 일간 cross ────────────────────────────────────────
   out.push('[일간 cross]')
-  const elA = STEM_EL[aDay.stem]
-  const elB = STEM_EL[bDay.stem]
   if (elA && elB) {
     if (elA === elB) {
-      out.push(`A 일간 ${aDay.stem}(${elA}) ↔ B 일간 ${bDay.stem}(${elB}) — 같은 오행 (비견)`)
+      out.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — 같은 오행 (비견)`)
     } else if (EL_CONTROLS[elA] === elB) {
-      out.push(`A 일간 ${aDay.stem}(${elA}) ↔ B 일간 ${bDay.stem}(${elB}) — ${elA}극${elB} (A가 B를 통제)`)
+      const a = nmA || 'A', b = nmB || 'B'
+      out.push(
+        `${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`
+      )
     } else if (EL_CONTROLS[elB] === elA) {
-      out.push(`A 일간 ${aDay.stem}(${elA}) ↔ B 일간 ${bDay.stem}(${elB}) — ${elB}극${elA} (B가 A를 통제)`)
+      const a = nmA || 'A', b = nmB || 'B'
+      out.push(
+        `${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`
+      )
     } else {
-      out.push(`A 일간 ${aDay.stem}(${elA}) ↔ B 일간 ${bDay.stem}(${elB}) — 상생 (서로 보완)`)
+      out.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — 상생 (서로 보완)`)
     }
   }
   out.push('')
