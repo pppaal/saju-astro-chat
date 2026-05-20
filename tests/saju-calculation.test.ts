@@ -6,8 +6,8 @@
  * - 오행 분석
  */
 
-import { calculateSajuData, getAnnualCycles, getMonthlyCycles } from "../src/lib/Saju/saju";
-import type { CalculateSajuDataResult } from "../src/lib/Saju/types";
+import { calculateSajuData, getAnnualCycles, getMonthlyCycles } from "../src/lib/saju/saju";
+import type { CalculateSajuDataResult } from "../src/lib/saju/types";
 
 describe("Saju Calculation: Basic Pillar Calculation", () => {
   it("calculates correct pillars for a known date", () => {
