@@ -34,7 +34,8 @@ export default function DailyFlowCard({ importantDate }: Props) {
     shinsalActive.length === 0 &&
     signals.length === 0 &&
     !cycle &&
-    interactions.length === 0
+    interactions.length === 0 &&
+    !importantDate.dailyGanjiNarrative
   ) {
     return null
   }
@@ -52,6 +53,9 @@ export default function DailyFlowCard({ importantDate }: Props) {
   if (cycle?.iljin) {
     cycleRow.push({ label: '일진', ganji: cycle.iljin.ganji, sibsin: cycle.iljin.sibsinStem })
   }
+
+  // 0. 일진(60갑자) 한 줄 — 그 날 ganji archetype + 본명 일간 십신 개인화
+  const dailyGanji = importantDate.dailyGanjiNarrative
 
   // 1. 핵심 헤드라인 (매칭 패턴 1번째)
   const lead = patterns[0]?.headline
@@ -83,10 +87,15 @@ export default function DailyFlowCard({ importantDate }: Props) {
       </h3>
 
       <div className="text-base text-zinc-200 leading-relaxed space-y-3">
-        {/* 핵심 한 줄 */}
-        {lead && (
-          <p className="text-amber-200 font-bold text-base">{lead}.</p>
+        {/* 일진(60갑자) 한 줄 — 그 날의 ganji 결 + 본명 십신 개인화 */}
+        {dailyGanji && (
+          <p className="text-indigo-200/90 text-sm bg-zinc-950/40 border border-white/5 rounded-xl px-3 py-2">
+            {dailyGanji}
+          </p>
         )}
+
+        {/* 핵심 한 줄 */}
+        {lead && <p className="text-amber-200 font-bold text-base">{lead}.</p>}
 
         {/* 대운/세운/월운/일진 흐름 한 줄 */}
         {cycleRow.length > 0 && (
@@ -108,7 +117,11 @@ export default function DailyFlowCard({ importantDate }: Props) {
         {interactions.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {interactions.slice(0, 6).map((it, i) => {
-              const isClash = it.kind.includes('충') || it.kind.includes('형') || it.kind.includes('파') || it.kind.includes('해')
+              const isClash =
+                it.kind.includes('충') ||
+                it.kind.includes('형') ||
+                it.kind.includes('파') ||
+                it.kind.includes('해')
               const tone = isClash
                 ? 'bg-rose-900/30 border-rose-500/30 text-rose-200'
                 : 'bg-emerald-900/30 border-emerald-500/30 text-emerald-200'
@@ -152,8 +165,8 @@ export default function DailyFlowCard({ importantDate }: Props) {
                     </span>
                     {i < dailyDetail.length - 1 ? ', ' : ''}
                   </span>
-                ))}
-                {' '}이(가) 두드러집니다.
+                ))}{' '}
+                이(가) 두드러집니다.
               </>
             )}
           </p>
@@ -165,27 +178,21 @@ export default function DailyFlowCard({ importantDate }: Props) {
             {luckyShinsal.length > 0 && (
               <>
                 길성 발동:{' '}
-                <span className="text-emerald-300 font-medium">
-                  {luckyShinsal.join(', ')}
-                </span>
-                {(unluckyShinsal.length > 0 || neutralShinsal.length > 0) ? ' · ' : ''}
+                <span className="text-emerald-300 font-medium">{luckyShinsal.join(', ')}</span>
+                {unluckyShinsal.length > 0 || neutralShinsal.length > 0 ? ' · ' : ''}
               </>
             )}
             {unluckyShinsal.length > 0 && (
               <>
                 흉살 발동:{' '}
-                <span className="text-rose-300 font-medium">
-                  {unluckyShinsal.join(', ')}
-                </span>
+                <span className="text-rose-300 font-medium">{unluckyShinsal.join(', ')}</span>
                 {neutralShinsal.length > 0 ? ' · ' : ''}
               </>
             )}
             {neutralShinsal.length > 0 && (
               <>
                 도화·역마 등:{' '}
-                <span className="text-amber-300 font-medium">
-                  {neutralShinsal.join(', ')}
-                </span>
+                <span className="text-amber-300 font-medium">{neutralShinsal.join(', ')}</span>
               </>
             )}
           </p>
