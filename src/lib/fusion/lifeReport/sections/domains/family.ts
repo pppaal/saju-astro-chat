@@ -269,7 +269,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   ])
   if (stageFamilyVar) {
     sajuUsed.push('pools.twelveStage.family')
-    deepKo.push(`${stageFamilyVar}.`)
+    deepKo.push(/[.!?]$/.test(stageFamilyVar) ? stageFamilyVar : `${stageFamilyVar}.`)
   }
   // Sibsin category × family
   let dominantCatF = ''
@@ -317,7 +317,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   ])
   if (familyCatVar) {
     sajuUsed.push('pools.sibsinCategory.family')
-    deepKo.push(`${familyCatVar}.`)
+    deepKo.push(/[.!?]$/.test(familyCatVar) ? familyCatVar : `${familyCatVar}.`)
   }
   // Lot of Basis — 가정 기반·뿌리의 점
   const basis = input.calendarSignals?.arabicPartsExtra?.Basis

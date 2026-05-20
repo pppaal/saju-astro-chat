@@ -27,7 +27,11 @@ import {
 import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
 import { findSignCombination } from '@/lib/astrology/signCombinations'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
-import type { ZodiacName } from '@/lib/astrology/interpretations'
+import {
+  findAspectPairEntry,
+  type AspectKind,
+  type ZodiacName,
+} from '@/lib/astrology/interpretations'
 import {
   appendToPara,
   pickVariation,
@@ -321,20 +325,34 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     )
   }
   if (venusSaturn) {
-    deepKo.push(
-      `당신의 금성과 토성이 ${aspectQuality(venusSaturn.type, 'ko')}, 성숙한 파트너와 시간이 갈수록 깊어지는 사랑을 만들어요.`
-    )
-    deepEn.push(
-      `Your Venus and Saturn ${aspectQuality(venusSaturn.type, 'en')}, which tends to bring a mature partner and a love that grows deeper with time.`
-    )
+    const vsEntry = aspectPairEntryMajor('Venus', 'Saturn', venusSaturn.type)
+    if (vsEntry) {
+      astroUsed.push('aspectPairDictionary.venus_saturn')
+      deepKo.push(firstSentenceLove(vsEntry.ko))
+      deepEn.push(firstSentenceLove(vsEntry.en))
+    } else {
+      deepKo.push(
+        `당신의 금성과 토성이 ${aspectQuality(venusSaturn.type, 'ko')}, 성숙한 파트너와 시간이 갈수록 깊어지는 사랑을 만들어요.`
+      )
+      deepEn.push(
+        `Your Venus and Saturn ${aspectQuality(venusSaturn.type, 'en')}, which tends to bring a mature partner and a love that grows deeper with time.`
+      )
+    }
   }
   if (venusMars) {
-    deepKo.push(
-      `당신의 금성과 화성이 ${aspectQuality(venusMars.type, 'ko')} 있어, 끌림과 욕망의 톤이 또렷해요.`
-    )
-    deepEn.push(
-      `Your Venus and Mars ${aspectQuality(venusMars.type, 'en')}, giving a clear character to the way attraction and desire show up in your life.`
-    )
+    const vmEntry = aspectPairEntryMajor('Venus', 'Mars', venusMars.type)
+    if (vmEntry) {
+      astroUsed.push('aspectPairDictionary.venus_mars')
+      deepKo.push(firstSentenceLove(vmEntry.ko))
+      deepEn.push(firstSentenceLove(vmEntry.en))
+    } else {
+      deepKo.push(
+        `당신의 금성과 화성이 ${aspectQuality(venusMars.type, 'ko')} 있어, 끌림과 욕망의 톤이 또렷해요.`
+      )
+      deepEn.push(
+        `Your Venus and Mars ${aspectQuality(venusMars.type, 'en')}, giving a clear character to the way attraction and desire show up in your life.`
+      )
+    }
   }
   if (loveConfirms.length > 0) {
     deepKo.push(`그리고 ${loveConfirms[0].rule.narrative.confirm}`)
@@ -367,7 +385,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   ])
   if (stageLoveVar) {
     sajuUsed.push('pools.twelveStage.love')
-    deepKo.push(`${stageLoveVar}.`)
+    deepKo.push(/[.!?]$/.test(stageLoveVar) ? stageLoveVar : `${stageLoveVar}.`)
   }
   const iljuLoveVar = pickVariation(iljuPool(iljuNameLove, 'love'), [
     `ilju:${iljuNameLove ?? ''}`,
@@ -376,7 +394,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   ])
   if (iljuLoveVar) {
     sajuUsed.push('pools.ilju.love')
-    deepKo.push(`${iljuLoveVar}.`)
+    deepKo.push(/[.!?]$/.test(iljuLoveVar) ? iljuLoveVar : `${iljuLoveVar}.`)
   }
   // Fixed stars near Venus / Mars — 사랑에 별빛이 더해지는 결.
   const fxOnVenus = venus ? fixedStarOn(astro, 'Venus') : []
@@ -544,6 +562,24 @@ function firstSentenceLove(text: string): string {
   const trimmed = text.trim()
   const m = trimmed.match(/^[^.!?]*[.!?]/)
   return (m ? m[0] : trimmed).trim()
+}
+
+// 5대 주요 각(conjunction/sextile/square/trine/opposition)일 때만 aspectPair
+// DB entry를 조회. minor aspect(quincunx 등)는 DB 미수록이라 null.
+const MAJOR_ASPECTS = new Set<AspectKind>([
+  'conjunction',
+  'sextile',
+  'square',
+  'trine',
+  'opposition',
+])
+function aspectPairEntryMajor(planetA: string, planetB: string, type: string) {
+  if (!MAJOR_ASPECTS.has(type as AspectKind)) return null
+  return findAspectPairEntry(
+    planetA as Parameters<typeof findAspectPairEntry>[0],
+    planetB as Parameters<typeof findAspectPairEntry>[1],
+    type as AspectKind
+  )
 }
 
 function pickDominantCategoryLove(cat: Record<string, number>): string {

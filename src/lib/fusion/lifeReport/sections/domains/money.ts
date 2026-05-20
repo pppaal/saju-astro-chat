@@ -154,7 +154,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   ])
   if (iljuMoneyVar) {
     sajuUsed.push('pools.ilju.money')
-    deepKo.push(`${iljuMoneyVar}.`)
+    deepKo.push(/[.!?]$/.test(iljuMoneyVar) ? iljuMoneyVar : `${iljuMoneyVar}.`)
     deepEn.push(
       `Your day-pillar archetype (${iljuLabelEnMoney(iljuName)}) carries this money pattern.`
     )
@@ -279,7 +279,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   // we keep at most 2 astro pool lines so P3 stays readable.
   if (moneyCatVar) {
     sajuUsed.push('pools.sibsinCategory.money')
-    deepKo.push(`${moneyCatVar}.`)
+    deepKo.push(/[.!?]$/.test(moneyCatVar) ? moneyCatVar : `${moneyCatVar}.`)
   }
   {
     const moneyAstroPool: Array<[string, string | undefined, string]> = [
@@ -295,7 +295,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     for (const [tag, v] of moneyAstroPool) {
       if (!v || added >= 2) continue
       astroUsed.push(tag)
-      deepKo.push(`${v}.`)
+      deepKo.push(/[.!?]$/.test(v) ? v : `${v}.`)
       added++
     }
   }
