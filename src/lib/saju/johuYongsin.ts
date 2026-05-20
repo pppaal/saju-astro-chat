@@ -1,6 +1,10 @@
 // src/lib/Saju/johuYongsin.ts
 // 궁통보감(窮通寶鑑) 기반 조후용신 데이터베이스
 // 일간 10개 × 월령 12개 = 120개 케이스
+//
+// English counterparts (`*_en` fields) are kept alongside the Korean
+// originals so English-speaking users receive a natural rendering when
+// the counselor or calendar surfaces this raw data.
 
 import { FiveElement } from './types'
 
@@ -11,10 +15,13 @@ export interface JohuYongsinInfo {
   daymaster: string // 일간 (甲~癸)
   month: string // 월지 (子~亥)
   climate: '한' | '습' | '조' | '열' | '온화' // 기후 특성
+  climate_en: 'cold' | 'damp' | 'dry' | 'hot' | 'mild'
   primaryYongsin: FiveElement // 주 조후용신
   secondaryYongsin?: FiveElement // 보조 조후용신
   reasoning: string // 조후용신 선정 이유
+  reasoning_en: string
   caution?: string // 주의사항
+  caution_en?: string
   rating: 1 | 2 | 3 | 4 | 5 // 조후 필요도 (5가 가장 급함)
 }
 
@@ -23,20 +30,111 @@ export interface JohuYongsinInfo {
  */
 export const MONTH_CLIMATE: Record<
   string,
-  { season: string; climate: string; temperature: string }
+  {
+    season: string
+    season_en: string
+    climate: string
+    climate_en: string
+    temperature: string
+    temperature_en: string
+  }
 > = {
-  寅: { season: '초봄', climate: '한습', temperature: '추위가 남음' },
-  卯: { season: '중봄', climate: '온화', temperature: '따뜻해짐' },
-  辰: { season: '늦봄', climate: '습', temperature: '습기 있음' },
-  巳: { season: '초여름', climate: '열', temperature: '더워짐' },
-  午: { season: '한여름', climate: '조열', temperature: '가장 덥고 건조' },
-  未: { season: '늦여름', climate: '습열', temperature: '덥고 습함' },
-  申: { season: '초가을', climate: '조', temperature: '선선해짐' },
-  酉: { season: '중가을', climate: '조', temperature: '건조함' },
-  戌: { season: '늦가을', climate: '조한', temperature: '건조하고 쌀쌀' },
-  亥: { season: '초겨울', climate: '한습', temperature: '추워짐' },
-  子: { season: '한겨울', climate: '한', temperature: '가장 춥고 습함' },
-  丑: { season: '늦겨울', climate: '한습', temperature: '춥고 습함' },
+  寅: {
+    season: '초봄',
+    season_en: 'early spring',
+    climate: '한습',
+    climate_en: 'cold and damp',
+    temperature: '추위가 남음',
+    temperature_en: 'still cold at the edges',
+  },
+  卯: {
+    season: '중봄',
+    season_en: 'mid spring',
+    climate: '온화',
+    climate_en: 'mild',
+    temperature: '따뜻해짐',
+    temperature_en: 'warming up',
+  },
+  辰: {
+    season: '늦봄',
+    season_en: 'late spring',
+    climate: '습',
+    climate_en: 'damp',
+    temperature: '습기 있음',
+    temperature_en: 'humid',
+  },
+  巳: {
+    season: '초여름',
+    season_en: 'early summer',
+    climate: '열',
+    climate_en: 'hot',
+    temperature: '더워짐',
+    temperature_en: 'getting hot',
+  },
+  午: {
+    season: '한여름',
+    season_en: 'midsummer',
+    climate: '조열',
+    climate_en: 'hot and dry',
+    temperature: '가장 덥고 건조',
+    temperature_en: 'the hottest and driest stretch',
+  },
+  未: {
+    season: '늦여름',
+    season_en: 'late summer',
+    climate: '습열',
+    climate_en: 'hot and humid',
+    temperature: '덥고 습함',
+    temperature_en: 'hot and muggy',
+  },
+  申: {
+    season: '초가을',
+    season_en: 'early autumn',
+    climate: '조',
+    climate_en: 'dry',
+    temperature: '선선해짐',
+    temperature_en: 'cooling down',
+  },
+  酉: {
+    season: '중가을',
+    season_en: 'mid autumn',
+    climate: '조',
+    climate_en: 'dry',
+    temperature: '건조함',
+    temperature_en: 'dry air',
+  },
+  戌: {
+    season: '늦가을',
+    season_en: 'late autumn',
+    climate: '조한',
+    climate_en: 'dry and chilly',
+    temperature: '건조하고 쌀쌀',
+    temperature_en: 'dry and crisp',
+  },
+  亥: {
+    season: '초겨울',
+    season_en: 'early winter',
+    climate: '한습',
+    climate_en: 'cold and damp',
+    temperature: '추워짐',
+    temperature_en: 'turning cold',
+  },
+  子: {
+    season: '한겨울',
+    season_en: 'deep winter',
+    climate: '한',
+    climate_en: 'cold',
+    temperature: '가장 춥고 습함',
+    temperature_en: 'the coldest, dampest stretch',
+  },
+  丑: {
+    season: '늦겨울',
+    season_en: 'late winter',
+    climate: '한습',
+    climate_en: 'cold and damp',
+    temperature: '춥고 습함',
+    temperature_en: 'cold and damp',
+  },
 }
 
 /**
@@ -48,108 +146,144 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '甲',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '초봄 갑목은 아직 추위가 남아 병화로 따뜻하게 해야. 계수로 뿌리 보양.',
+    reasoning_en:
+      'In early spring, 갑목 (yang wood) still feels the chill — fire is needed to warm it, with water to nourish the roots.',
     rating: 4,
   },
   {
     daymaster: '甲',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '중봄 갑목은 왕성하니 병화로 발산하고 경금으로 조각해야 쓸모있음.',
+    reasoning_en:
+      'Mid-spring yang wood is vigorous — fire lets it shine, while metal carves it into something useful.',
     rating: 3,
   },
   {
     daymaster: '甲',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '늦봄 습토월, 갑목 뿌리 튼튼하니 병화 설기하고 경금으로 제련.',
     rating: 3,
+    reasoning_en:
+      'In the damp late-spring earth month the roots are strong — fire releases excess energy and metal refines it.',
   },
   {
     daymaster: '甲',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '화',
     reasoning: '초여름 갑목은 열기에 마르니 계수로 윤택하게, 병화는 보조.',
+    reasoning_en:
+      'In early summer the wood dries out from the heat — water moistens it, with fire only as a support.',
     rating: 4,
   },
   {
     daymaster: '甲',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '한여름 극열, 갑목 고갈되니 임계수 급히 필요. 경금으로 수원 생성.',
+    reasoning_en:
+      'Midsummer is extreme — the wood is drained, so water is urgently needed, with metal generating that water source.',
     rating: 5,
   },
   {
     daymaster: '甲',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '늦여름 습열, 아직 더우니 계수로 해갈하고 경신금으로 수생.',
+    reasoning_en:
+      'Late summer is still hot and humid — water relieves the thirst, and metal generates more water.',
     rating: 4,
   },
   {
     daymaster: '甲',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '수',
     secondaryYongsin: '화',
     reasoning: '초가을 금왕, 갑목 극받으니 임수로 통관하고 병정화로 금제어.',
+    reasoning_en:
+      'In early autumn metal is strong and pressures the wood — water bridges the two while fire keeps the metal in check.',
     rating: 4,
   },
   {
     daymaster: '甲',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '중가을 금왕지, 정화로 금을 제련하고 임계수로 목을 보양.',
+    reasoning_en:
+      'In mid-autumn metal dominates — fire refines the metal while water nourishes the wood.',
     rating: 4,
   },
   {
     daymaster: '甲',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '수',
     secondaryYongsin: '화',
     reasoning: '늦가을 건조, 갑목 마르니 임계수로 윤택, 병화로 따뜻하게.',
+    reasoning_en:
+      'Late autumn is dry — the wood withers, so water moistens it and fire keeps it warm.',
     rating: 3,
   },
   {
     daymaster: '甲',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초겨울 갑목은 수왕지에서 병화가 급함. 무토로 수 제어.',
+    reasoning_en:
+      'In early winter, with water surging, fire is urgently needed — and earth keeps the water under control.',
     rating: 5,
   },
   {
     daymaster: '甲',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '한겨울 갑목은 얼어붙으니 병정화 필수. 무기토로 수 막음.',
+    reasoning_en:
+      'In deep winter the wood freezes — fire is essential, and earth holds back the water.',
     rating: 5,
   },
   {
     daymaster: '甲',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '늦겨울 갑목은 아직 추우니 병화로 해동. 경금으로 조각.',
+    reasoning_en:
+      'In late winter the wood is still cold — fire thaws it and metal carves it.',
     rating: 4,
   },
 
@@ -158,108 +292,143 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '乙',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '초봄 을목은 추위 남아 병화로 해동. 계수로 뿌리 보양.',
+    reasoning_en:
+      'In early spring 을목 (yin wood) still feels cold — fire thaws it while water nourishes its roots.',
     rating: 4,
   },
   {
     daymaster: '乙',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '중봄 을목 왕지, 병화로 꽃피우고 계수로 뿌리 보양.',
+    reasoning_en:
+      'In mid-spring the yin wood is at its peak — fire helps it bloom and water nourishes the roots.',
     rating: 3,
   },
   {
     daymaster: '乙',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '늦봄 을목은 병화로 습기 말리고, 신금으로 다듬어야.',
+    reasoning_en:
+      'In late spring fire dries out the damp and yin metal trims and refines the wood.',
     rating: 3,
   },
   {
     daymaster: '乙',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '초여름 을목은 열에 시드니 계수로 적시고 신금으로 수원.',
+    reasoning_en:
+      'In early summer the yin wood wilts in the heat — water hydrates it, with metal generating the source.',
     rating: 4,
   },
   {
     daymaster: '乙',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '한여름 을목 고갈, 임계수 급히 필요하고 경신금 수원 필수.',
+    reasoning_en:
+      'In midsummer the yin wood is drained — water is urgently needed, with metal essential as the water source.',
     rating: 5,
   },
   {
     daymaster: '乙',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '늦여름 을목은 습열에 지치니 계수로 해갈.',
+    reasoning_en:
+      'In late summer the yin wood tires from the humid heat — water relieves it.',
     rating: 4,
   },
   {
     daymaster: '乙',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '초가을 을목은 금에 극받으니 병정화로 금 제어.',
+    reasoning_en:
+      'In early autumn metal pressures the yin wood — fire keeps the metal in check.',
     rating: 4,
   },
   {
     daymaster: '乙',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '중가을 을목은 신금에 극심, 정화로 금 녹이고 계수 보양.',
+    reasoning_en:
+      'In mid-autumn yin metal presses hard on the yin wood — fire melts the metal while water nourishes the wood.',
     rating: 5,
   },
   {
     daymaster: '乙',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '수',
     secondaryYongsin: '화',
     reasoning: '늦가을 건조, 을목 마르니 계수로 윤택하게.',
+    reasoning_en:
+      'In late autumn the dry air dries out the yin wood — water moistens it.',
     rating: 3,
   },
   {
     daymaster: '乙',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초겨울 을목은 수다하니 병화가 급함.',
+    reasoning_en:
+      'In early winter there is too much water — fire is urgently needed.',
     rating: 5,
   },
   {
     daymaster: '乙',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '한겨울 을목은 얼어붙으니 병화 필수.',
+    reasoning_en: 'In deep winter the yin wood freezes — fire is essential.',
     rating: 5,
   },
   {
     daymaster: '乙',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '늦겨울 을목은 병화로 해동하고 계수로 뿌리 보양.',
+    reasoning_en:
+      'In late winter fire thaws the yin wood and water nourishes the roots.',
     rating: 4,
   },
 
@@ -268,108 +437,144 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '丙',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '초봄 병화는 목생화로 기운 얻어야. 갑을목이 좋음.',
+    reasoning_en:
+      'In early spring 병화 (yang fire) gathers strength from wood — both yang and yin wood help.',
     rating: 3,
   },
   {
     daymaster: '丙',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '목',
     secondaryYongsin: '토',
     reasoning: '중봄 병화는 목의 생조 받아 빛남. 무기토로 설기.',
+    reasoning_en:
+      'In mid-spring the yang fire shines from the support of wood, and earth lets off any excess.',
     rating: 2,
   },
   {
     daymaster: '丙',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '목',
     secondaryYongsin: '금',
     reasoning: '늦봄 습토월, 갑목으로 병화 생조하고 경금으로 갑목 조각.',
+    reasoning_en:
+      'In the damp late-spring earth month, yang wood fuels the fire while metal trims the wood.',
     rating: 3,
   },
   {
     daymaster: '丙',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '초여름 병화 왕성, 임수로 제어하고 경금으로 수원 생성.',
+    reasoning_en:
+      'In early summer the yang fire is strong — water restrains it and metal generates the water source.',
     rating: 4,
   },
   {
     daymaster: '丙',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '한여름 병화 극왕, 임수 필수로 조열 해소.',
+    reasoning_en:
+      'In midsummer the yang fire peaks — water is essential to relieve the dry heat.',
     rating: 5,
   },
   {
     daymaster: '丙',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '늦여름 병화 아직 강하니 임계수로 식히고 경신금 보조.',
+    reasoning_en:
+      'In late summer the fire is still strong — water cools it, with metal supporting.',
     rating: 4,
   },
   {
     daymaster: '丙',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '목',
     secondaryYongsin: '수',
     reasoning: '초가을 금왕, 병화 쇠하니 갑목으로 생조하고 임수 통관.',
+    reasoning_en:
+      'In early autumn metal is strong and fire weakens — wood feeds the fire while water bridges them.',
     rating: 3,
   },
   {
     daymaster: '丙',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '중가을 병화 쇠약, 갑을목으로 생조 필요.',
+    reasoning_en:
+      'In mid-autumn the yang fire is weak — wood is needed to feed it.',
     rating: 4,
   },
   {
     daymaster: '丙',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '목',
     secondaryYongsin: '수',
     reasoning: '늦가을 건조, 갑목으로 병화 살리고 임수로 건조 해소.',
+    reasoning_en:
+      'In late autumn the dry air persists — wood revives the fire and water relieves the dryness.',
     rating: 3,
   },
   {
     daymaster: '丙',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '초겨울 병화는 갑목의 생조 급히 필요.',
+    reasoning_en:
+      'In early winter the yang fire urgently needs wood to feed it.',
     rating: 4,
   },
   {
     daymaster: '丙',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '목',
     secondaryYongsin: '토',
     reasoning: '한겨울 병화 쇠약, 갑을목 생조 필수. 무토로 수 막음.',
+    reasoning_en:
+      'In deep winter the yang fire is faint — wood is essential to feed it, and earth holds back the water.',
     rating: 5,
   },
   {
     daymaster: '丙',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '늦겨울 병화는 갑목으로 생조받아야 빛남.',
+    reasoning_en:
+      'In late winter the yang fire shines only when fed by yang wood.',
     rating: 4,
   },
 
@@ -378,108 +583,142 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '丁',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '초봄 정화는 갑을목 생조로 따뜻하게.',
+    reasoning_en:
+      'In early spring 정화 (yin fire) is warmed by the support of wood.',
     rating: 3,
   },
   {
     daymaster: '丁',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '목',
     secondaryYongsin: '금',
     reasoning: '중봄 정화는 을목 생조 좋고, 경금으로 갑목 조각.',
+    reasoning_en:
+      'In mid-spring yin wood feeds the yin fire nicely, and metal trims the larger wood.',
     rating: 2,
   },
   {
     daymaster: '丁',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '늦봄 정화는 갑목 생조 필요. 병화 도움.',
+    reasoning_en:
+      'In late spring the yin fire needs wood to feed it, with yang fire as support.',
     rating: 3,
   },
   {
     daymaster: '丁',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '목',
     secondaryYongsin: '수',
     reasoning: '초여름 정화는 갑목 있어야 빛남. 임수로 과열 방지.',
+    reasoning_en:
+      'In early summer the yin fire shines best with wood, while water keeps it from overheating.',
     rating: 3,
   },
   {
     daymaster: '丁',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '목',
     secondaryYongsin: '수',
     reasoning: '한여름 정화는 갑목 필수. 임수로 조열 해소.',
+    reasoning_en:
+      'In midsummer wood is essential and water relieves the dry heat.',
     rating: 4,
   },
   {
     daymaster: '丁',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '목',
     secondaryYongsin: '수',
     reasoning: '늦여름 정화는 갑목으로 빛내고 계수로 습열 조절.',
+    reasoning_en:
+      'In late summer wood brightens the fire and water regulates the muggy heat.',
     rating: 3,
   },
   {
     daymaster: '丁',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '초가을 정화 쇠하니 갑을목 생조 필요.',
+    reasoning_en:
+      'In early autumn the yin fire weakens — wood is needed to feed it.',
     rating: 4,
   },
   {
     daymaster: '丁',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '중가을 정화 쇠약, 갑목 생조 급함.',
+    reasoning_en:
+      'In mid-autumn the yin fire is faint — wood is urgently needed to feed it.',
     rating: 4,
   },
   {
     daymaster: '丁',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '목',
     secondaryYongsin: '수',
     reasoning: '늦가을 정화는 갑목으로 살리고 임수로 건조 해소.',
+    reasoning_en:
+      'In late autumn wood revives the yin fire and water relieves the dryness.',
     rating: 3,
   },
   {
     daymaster: '丁',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '초겨울 정화는 갑목 생조 필수.',
+    reasoning_en: 'In early winter wood is essential to feed the yin fire.',
     rating: 5,
   },
   {
     daymaster: '丁',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '목',
     secondaryYongsin: '토',
     reasoning: '한겨울 정화 꺼지기 쉬우니 갑목 생조 급함. 무토로 수 막음.',
+    reasoning_en:
+      'In deep winter the yin fire is easily extinguished — wood urgently feeds it and earth holds back the water.',
     rating: 5,
   },
   {
     daymaster: '丁',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '목',
     secondaryYongsin: '화',
     reasoning: '늦겨울 정화는 갑을목 생조로 살려야.',
+    reasoning_en: 'In late winter wood must feed the yin fire to revive it.',
     rating: 4,
   },
 
@@ -488,108 +727,144 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '戊',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초봄 무토는 병화로 따뜻하게. 목왕절이라 화 필수.',
+    reasoning_en:
+      'In early spring 무토 (yang earth) needs fire to warm it — and since wood is strong this season, fire is essential.',
     rating: 4,
   },
   {
     daymaster: '戊',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '중봄 무토는 병화로 생조받고 경금으로 설기.',
+    reasoning_en:
+      'In mid-spring fire feeds the yang earth, with metal letting off any excess.',
     rating: 3,
   },
   {
     daymaster: '戊',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '화',
     secondaryYongsin: '목',
     reasoning: '늦봄 무토는 병화로 습기 말리고 갑목으로 소토.',
+    reasoning_en:
+      'In late spring fire dries out the damp and wood loosens the heavy earth.',
     rating: 3,
   },
   {
     daymaster: '戊',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '초여름 무토는 화다하니 임수로 식히고 경금 수원.',
+    reasoning_en:
+      'In early summer there is too much fire — water cools the yang earth, with metal generating the water source.',
     rating: 4,
   },
   {
     daymaster: '戊',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '한여름 무토 건조, 임수 급히 필요. 갑목 소토.',
+    reasoning_en:
+      'In midsummer the yang earth is parched — water is urgently needed and wood loosens the soil.',
     rating: 5,
   },
   {
     daymaster: '戊',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '목',
     reasoning: '늦여름 무토는 임계수로 습윤하게, 갑목 소토.',
+    reasoning_en:
+      'In late summer water moistens the yang earth and wood loosens the soil.',
     rating: 4,
   },
   {
     daymaster: '戊',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '초가을 무토는 병화로 생조하고 임수로 건조 해소.',
+    reasoning_en:
+      'In early autumn fire feeds the yang earth while water relieves the dryness.',
     rating: 3,
   },
   {
     daymaster: '戊',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '중가을 무토 설기 심하니 병화 생조 필요.',
+    reasoning_en:
+      'In mid-autumn the yang earth is heavily drained — fire is needed to feed it.',
     rating: 4,
   },
   {
     daymaster: '戊',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '수',
     secondaryYongsin: '목',
     reasoning: '늦가을 무토 건조, 임계수로 윤택하게. 갑목 소토.',
+    reasoning_en:
+      'In late autumn the yang earth is dry — water moistens it and wood loosens the soil.',
     rating: 4,
   },
   {
     daymaster: '戊',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초겨울 무토는 수다하니 병화 급함.',
+    reasoning_en:
+      'In early winter there is too much water — fire is urgently needed for the yang earth.',
     rating: 5,
   },
   {
     daymaster: '戊',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '한겨울 무토는 수에 잠기니 병화 필수.',
+    reasoning_en:
+      'In deep winter the yang earth is submerged in water — fire is essential.',
     rating: 5,
   },
   {
     daymaster: '戊',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '목',
     reasoning: '늦겨울 무토는 병화로 해동하고 갑목으로 소토.',
+    reasoning_en:
+      'In late winter fire thaws the yang earth and wood loosens the soil.',
     rating: 4,
   },
 
@@ -598,108 +873,139 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '己',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '초봄 기토는 병정화로 따뜻하게 해야 만물 생육.',
+    reasoning_en:
+      'In early spring 기토 (yin earth) needs fire to warm it so that life can grow.',
     rating: 4,
   },
   {
     daymaster: '己',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '중봄 기토는 병화 생조받고 신금으로 설기.',
+    reasoning_en:
+      'In mid-spring fire feeds the yin earth, with yin metal letting off any excess.',
     rating: 3,
   },
   {
     daymaster: '己',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '늦봄 기토는 병화로 습기 말리고 신금 설기.',
+    reasoning_en:
+      'In late spring fire dries out the damp and yin metal lets off any excess.',
     rating: 3,
   },
   {
     daymaster: '己',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '초여름 기토는 계수로 식히고 신금 수원.',
+    reasoning_en:
+      'In early summer water cools the yin earth and yin metal supplies the water source.',
     rating: 4,
   },
   {
     daymaster: '己',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '한여름 기토 건조, 계수 급히 필요.',
+    reasoning_en:
+      'In midsummer the yin earth is parched — water is urgently needed.',
     rating: 5,
   },
   {
     daymaster: '己',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '금',
     reasoning: '늦여름 기토는 계수로 습윤하게.',
+    reasoning_en: 'In late summer water moistens the yin earth.',
     rating: 4,
   },
   {
     daymaster: '己',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '초가을 기토는 병정화 생조 필요.',
+    reasoning_en: 'In early autumn fire is needed to feed the yin earth.',
     rating: 3,
   },
   {
     daymaster: '己',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '중가을 기토 설기 심하니 병화 생조.',
+    reasoning_en:
+      'In mid-autumn the yin earth is heavily drained — fire feeds it.',
     rating: 4,
   },
   {
     daymaster: '己',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '수',
     secondaryYongsin: '화',
     reasoning: '늦가을 기토 건조, 계수로 윤택하게.',
+    reasoning_en: 'In late autumn the yin earth is dry — water moistens it.',
     rating: 3,
   },
   {
     daymaster: '己',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초겨울 기토는 수다하니 병화 급함.',
+    reasoning_en:
+      'In early winter there is too much water — fire is urgently needed for the yin earth.',
     rating: 5,
   },
   {
     daymaster: '己',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '한겨울 기토는 병화 필수.',
+    reasoning_en: 'In deep winter fire is essential for the yin earth.',
     rating: 5,
   },
   {
     daymaster: '己',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '늦겨울 기토는 병화로 해동.',
+    reasoning_en: 'In late winter fire thaws the yin earth.',
     rating: 4,
   },
 
@@ -708,108 +1014,144 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '庚',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초봄 경금은 병정화로 제련해야 쓸모있음.',
+    reasoning_en:
+      'In early spring 경금 (yang metal) must be refined by fire to be useful.',
     rating: 4,
   },
   {
     daymaster: '庚',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '중봄 경금은 정화로 제련하고 무토 생조.',
+    reasoning_en:
+      'In mid-spring yin fire refines the yang metal and earth feeds it.',
     rating: 3,
   },
   {
     daymaster: '庚',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '화',
     secondaryYongsin: '목',
     reasoning: '늦봄 경금은 병화로 제련하고 갑목 보조.',
+    reasoning_en:
+      'In late spring fire refines the yang metal, with wood in a supporting role.',
     rating: 3,
   },
   {
     daymaster: '庚',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '토',
     reasoning: '초여름 경금은 임수로 식히고 무토 생조.',
+    reasoning_en:
+      'In early summer water cools the yang metal and earth feeds it.',
     rating: 4,
   },
   {
     daymaster: '庚',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '토',
     reasoning: '한여름 경금 녹으니 임수 급히 필요. 무토 생조.',
+    reasoning_en:
+      'In midsummer the yang metal melts — water is urgently needed and earth feeds it.',
     rating: 5,
   },
   {
     daymaster: '庚',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '토',
     reasoning: '늦여름 경금은 임수로 식히고 무기토 생조.',
+    reasoning_en:
+      'In late summer water cools the yang metal and earth feeds it.',
     rating: 4,
   },
   {
     daymaster: '庚',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '초가을 경금 왕성, 정화로 제련해야 그릇됨.',
+    reasoning_en:
+      'In early autumn the yang metal is strong — yin fire refines it into something useful.',
     rating: 3,
   },
   {
     daymaster: '庚',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '중가을 경금 극왕, 정화 제련 필수. 임수 설기.',
+    reasoning_en:
+      'In mid-autumn the yang metal peaks — fire is essential to refine it, and water lets off any excess.',
     rating: 4,
   },
   {
     daymaster: '庚',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '늦가을 경금은 정화로 제련하고 임수 윤택.',
+    reasoning_en:
+      'In late autumn yin fire refines the yang metal and water moistens it.',
     rating: 3,
   },
   {
     daymaster: '庚',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초겨울 경금은 병정화로 제련. 무토 생조.',
+    reasoning_en:
+      'In early winter fire refines the yang metal and earth feeds it.',
     rating: 4,
   },
   {
     daymaster: '庚',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '한겨울 경금은 병정화 필수. 무토로 수 막음.',
+    reasoning_en:
+      'In deep winter fire is essential for the yang metal, and earth holds back the water.',
     rating: 5,
   },
   {
     daymaster: '庚',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '목',
     reasoning: '늦겨울 경금은 병정화로 제련. 갑목 보조.',
+    reasoning_en:
+      'In late winter fire refines the yang metal, with wood in a supporting role.',
     rating: 4,
   },
 
@@ -818,108 +1160,143 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '辛',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '토',
     secondaryYongsin: '화',
     reasoning: '초봄 신금은 무기토 생조 필요. 병화로 따뜻하게.',
+    reasoning_en:
+      'In early spring 신금 (yin metal) needs earth to feed it, with fire to warm things up.',
     rating: 4,
   },
   {
     daymaster: '辛',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '토',
     secondaryYongsin: '수',
     reasoning: '중봄 신금은 무기토 생조하고 임수로 씻어야 빛남.',
+    reasoning_en:
+      'In mid-spring earth feeds the yin metal, and water washes it clean so it can shine.',
     rating: 3,
   },
   {
     daymaster: '辛',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '수',
     secondaryYongsin: '화',
     reasoning: '늦봄 신금은 임수로 씻어 빛내고 병화로 건조.',
+    reasoning_en:
+      'In late spring water washes the yin metal to make it shine, and fire dries it.',
     rating: 3,
   },
   {
     daymaster: '辛',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '토',
     reasoning: '초여름 신금은 임계수로 씻고 무기토 생조.',
+    reasoning_en:
+      'In early summer water washes the yin metal and earth feeds it.',
     rating: 4,
   },
   {
     daymaster: '辛',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '토',
     reasoning: '한여름 신금 녹으니 임계수 급히 필요. 기토 생조.',
+    reasoning_en:
+      'In midsummer the yin metal melts — water is urgently needed and yin earth feeds it.',
     rating: 5,
   },
   {
     daymaster: '辛',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '수',
     secondaryYongsin: '토',
     reasoning: '늦여름 신금은 임수로 씻고 기토 생조.',
+    reasoning_en:
+      'In late summer water washes the yin metal and yin earth feeds it.',
     rating: 4,
   },
   {
     daymaster: '辛',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '수',
     secondaryYongsin: '토',
     reasoning: '초가을 신금은 임수로 씻어야 보석처럼 빛남.',
+    reasoning_en:
+      'In early autumn water must wash the yin metal so it shines like a gemstone.',
     rating: 3,
   },
   {
     daymaster: '辛',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '수',
     secondaryYongsin: '화',
     reasoning: '중가을 신금 왕지, 임수로 씻어 빛내야.',
+    reasoning_en:
+      'In mid-autumn the yin metal peaks — water washes it so it can shine.',
     rating: 4,
   },
   {
     daymaster: '辛',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '수',
     secondaryYongsin: '토',
     reasoning: '늦가을 신금은 임수로 윤택하게.',
+    reasoning_en: 'In late autumn water moistens the yin metal.',
     rating: 3,
   },
   {
     daymaster: '辛',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '토',
     secondaryYongsin: '화',
     reasoning: '초겨울 신금은 무기토 생조하고 병화로 따뜻하게.',
+    reasoning_en:
+      'In early winter earth feeds the yin metal and fire warms things up.',
     rating: 4,
   },
   {
     daymaster: '辛',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '토',
     secondaryYongsin: '화',
     reasoning: '한겨울 신금은 무기토 생조 필수. 병화로 해동.',
+    reasoning_en:
+      'In deep winter earth is essential to feed the yin metal, and fire thaws it.',
     rating: 5,
   },
   {
     daymaster: '辛',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '수',
     reasoning: '늦겨울 신금은 병화로 따뜻하게 하고 임수로 씻음.',
+    reasoning_en:
+      'In late winter fire warms the yin metal and water washes it.',
     rating: 4,
   },
 
@@ -928,108 +1305,144 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '壬',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '초봄 임수는 병화로 따뜻하게. 경금 수원.',
+    reasoning_en:
+      'In early spring 임수 (yang water) needs fire to warm it, with metal as the water source.',
     rating: 4,
   },
   {
     daymaster: '壬',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '금',
     secondaryYongsin: '화',
     reasoning: '중봄 임수는 경신금 수원 필요. 병화 보조.',
+    reasoning_en:
+      'In mid-spring the yang water needs metal as its source, with fire in support.',
     rating: 3,
   },
   {
     daymaster: '壬',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '금',
     secondaryYongsin: '화',
     reasoning: '늦봄 임수는 경금 수원하고 병화로 설기.',
+    reasoning_en:
+      'In late spring metal supplies the yang water and fire lets off any excess.',
     rating: 3,
   },
   {
     daymaster: '壬',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '금',
     secondaryYongsin: '수',
     reasoning: '초여름 임수 말라가니 경신금 수원 급함.',
+    reasoning_en:
+      'In early summer the yang water is drying out — metal urgently supplies the source.',
     rating: 4,
   },
   {
     daymaster: '壬',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '금',
     secondaryYongsin: '수',
     reasoning: '한여름 임수 고갈, 경신금 수원 필수. 계수 보조.',
+    reasoning_en:
+      'In midsummer the yang water is drained — metal is essential as the source, with yin water in support.',
     rating: 5,
   },
   {
     daymaster: '壬',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '금',
     secondaryYongsin: '수',
     reasoning: '늦여름 임수는 경신금 수원 필요.',
+    reasoning_en:
+      'In late summer the yang water needs metal as its source.',
     rating: 4,
   },
   {
     daymaster: '壬',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초가을 임수 득령, 병화로 따뜻하게. 무토 제수.',
+    reasoning_en:
+      'In early autumn the yang water comes into its own — fire warms it and earth controls it.',
     rating: 3,
   },
   {
     daymaster: '壬',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '중가을 임수 왕성, 병화로 설기하고 무토 제수.',
+    reasoning_en:
+      'In mid-autumn the yang water is strong — fire lets off any excess and earth controls it.',
     rating: 3,
   },
   {
     daymaster: '壬',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '금',
     secondaryYongsin: '화',
     reasoning: '늦가을 임수는 경금 수원하고 병화로 건조 해소.',
+    reasoning_en:
+      'In late autumn metal supplies the yang water and fire relieves the dryness.',
     rating: 3,
   },
   {
     daymaster: '壬',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초겨울 임수 왕지, 병화 필수로 한기 해소.',
+    reasoning_en:
+      'In early winter the yang water peaks — fire is essential to relieve the cold.',
     rating: 5,
   },
   {
     daymaster: '壬',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '한겨울 임수 극왕, 병화 급함. 무토 제수.',
+    reasoning_en:
+      'In deep winter the yang water peaks hard — fire is urgently needed and earth controls it.',
     rating: 5,
   },
   {
     daymaster: '壬',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '늦겨울 임수는 병화로 해동하고 경금 수원.',
+    reasoning_en:
+      'In late winter fire thaws the yang water and metal supplies the source.',
     rating: 4,
   },
 
@@ -1038,108 +1451,144 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     daymaster: '癸',
     month: '寅',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '초봄 계수는 병정화로 따뜻하게. 신금 수원.',
+    reasoning_en:
+      'In early spring 계수 (yin water) needs fire to warm it, with yin metal as the source.',
     rating: 4,
   },
   {
     daymaster: '癸',
     month: '卯',
     climate: '온화',
+    climate_en: 'mild',
     primaryYongsin: '금',
     secondaryYongsin: '화',
     reasoning: '중봄 계수는 신금 수원 필요. 정화 보조.',
+    reasoning_en:
+      'In mid-spring the yin water needs yin metal as its source, with yin fire in support.',
     rating: 3,
   },
   {
     daymaster: '癸',
     month: '辰',
     climate: '습',
+    climate_en: 'damp',
     primaryYongsin: '금',
     secondaryYongsin: '화',
     reasoning: '늦봄 계수는 신금 수원하고 정화로 설기.',
+    reasoning_en:
+      'In late spring yin metal supplies the yin water and yin fire lets off any excess.',
     rating: 3,
   },
   {
     daymaster: '癸',
     month: '巳',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '금',
     secondaryYongsin: '수',
     reasoning: '초여름 계수 마르니 신금 수원 급함.',
+    reasoning_en:
+      'In early summer the yin water dries out — yin metal urgently supplies the source.',
     rating: 4,
   },
   {
     daymaster: '癸',
     month: '午',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '금',
     secondaryYongsin: '수',
     reasoning: '한여름 계수 고갈, 신금 수원 필수. 임수 보조.',
+    reasoning_en:
+      'In midsummer the yin water is drained — yin metal is essential as the source, with yang water in support.',
     rating: 5,
   },
   {
     daymaster: '癸',
     month: '未',
     climate: '열',
+    climate_en: 'hot',
     primaryYongsin: '금',
     secondaryYongsin: '수',
     reasoning: '늦여름 계수는 신금 수원 필요.',
+    reasoning_en:
+      'In late summer the yin water needs yin metal as its source.',
     rating: 4,
   },
   {
     daymaster: '癸',
     month: '申',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초가을 계수 득령, 정화로 따뜻하게.',
+    reasoning_en:
+      'In early autumn the yin water comes into its own — yin fire warms it.',
     rating: 3,
   },
   {
     daymaster: '癸',
     month: '酉',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '중가을 계수 왕성, 정화로 설기하고 기토 제수.',
+    reasoning_en:
+      'In mid-autumn the yin water is strong — yin fire lets off any excess and yin earth controls it.',
     rating: 3,
   },
   {
     daymaster: '癸',
     month: '戌',
     climate: '조',
+    climate_en: 'dry',
     primaryYongsin: '금',
     secondaryYongsin: '화',
     reasoning: '늦가을 계수는 신금 수원하고 정화로 건조 해소.',
+    reasoning_en:
+      'In late autumn yin metal supplies the yin water and yin fire relieves the dryness.',
     rating: 3,
   },
   {
     daymaster: '癸',
     month: '亥',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '초겨울 계수 왕, 정화 필수.',
+    reasoning_en:
+      'In early winter the yin water is strong — yin fire is essential.',
     rating: 5,
   },
   {
     daymaster: '癸',
     month: '子',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '토',
     reasoning: '한겨울 계수 극왕, 정화 급함. 기토 제수.',
+    reasoning_en:
+      'In deep winter the yin water peaks hard — yin fire is urgently needed and yin earth controls it.',
     rating: 5,
   },
   {
     daymaster: '癸',
     month: '丑',
     climate: '한',
+    climate_en: 'cold',
     primaryYongsin: '화',
     secondaryYongsin: '금',
     reasoning: '늦겨울 계수는 정화로 해동하고 신금 수원.',
+    reasoning_en:
+      'In late winter yin fire thaws the yin water and yin metal supplies the source.',
     rating: 4,
   },
 ]
@@ -1163,11 +1612,17 @@ export function evaluateJohuNeed(
 ): {
   rating: number
   description: string
+  description_en: string
   urgent: boolean
 } {
   const info = getJohuYongsin(daymaster, monthBranch)
   if (!info) {
-    return { rating: 0, description: '조후 정보 없음', urgent: false }
+    return {
+      rating: 0,
+      description: '조후 정보 없음',
+      description_en: 'No climate-balance information available.',
+      urgent: false,
+    }
   }
 
   const ratingDesc: Record<number, string> = {
@@ -1178,9 +1633,18 @@ export function evaluateJohuNeed(
     5: '조후 필요 급함 - 조후용신 필수',
   }
 
+  const ratingDescEn: Record<number, string> = {
+    1: 'Climate-balance need is low — the climate is mild.',
+    2: 'Climate-balance need is moderate — a small adjustment would help.',
+    3: 'Climate-balance need is medium — a balancing element is good to have.',
+    4: 'Climate-balance need is high — a balancing element matters here.',
+    5: 'Climate-balance need is urgent — a balancing element is essential.',
+  }
+
   return {
     rating: info.rating,
     description: ratingDesc[info.rating] || '',
+    description_en: ratingDescEn[info.rating] || '',
     urgent: info.rating >= 4,
   }
 }
@@ -1197,6 +1661,7 @@ export function harmonizeYongsin(
   secondary: FiveElement
   harmony: 'excellent' | 'good' | 'conflict'
   recommendation: string
+  recommendation_en: string
 } {
   // 같으면 최상
   if (johuYongsin === eokbuYongsin) {
@@ -1205,6 +1670,8 @@ export function harmonizeYongsin(
       secondary: johuYongsin,
       harmony: 'excellent',
       recommendation: '조후용신과 억부용신이 일치하여 최상의 조합',
+      recommendation_en:
+        'The climate-balancing and strength-balancing elements line up — the best possible match.',
     }
   }
 
@@ -1215,6 +1682,8 @@ export function harmonizeYongsin(
       secondary: eokbuYongsin,
       harmony: 'good',
       recommendation: '조후가 급하므로 조후용신 우선, 억부용신 보조',
+      recommendation_en:
+        'Climate balance is urgent, so prioritize the climate-balancing element with the strength-balancing one as support.',
     }
   }
 
@@ -1224,5 +1693,7 @@ export function harmonizeYongsin(
     secondary: johuYongsin,
     harmony: 'good',
     recommendation: '조후 필요가 낮으므로 억부용신 우선, 조후용신 보조',
+    recommendation_en:
+      'The climate-balance need is low, so prioritize the strength-balancing element with the climate-balancing one as support.',
   }
 }

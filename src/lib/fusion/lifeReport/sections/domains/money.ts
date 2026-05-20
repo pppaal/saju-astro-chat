@@ -16,6 +16,7 @@ import {
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
+  aspectPairEntriesForPairs,
   aspectsOf,
   getPlanet,
   houseCusp,
@@ -92,19 +93,19 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const p1ko = paragraph([
     wealthFlavorKo(wealthTotal, sib.정재, sib.편재),
     second && second.sign
-      ? `재산 영역이 ${signLabel(second.sign, 'ko')}의 색감을 띠고 있어, 돈을 ${secondSignFlavorKo(second.sign)} 방식으로 다뤄요.`
+      ? `재산 영역이 ${signLabel(second.sign, 'ko')}의 분위기를 띠고 있어, 돈을 ${secondSignFlavorKo(second.sign)} 방식으로 다뤄요.`
       : '',
     jupiter
-      ? `행운의 별이 ${signLabel(jupiter.sign, 'ko')}에 자리잡아, ${jupiterFlavorKo(jupiter.house)} 영역에서 재물의 흐름이 한 단계 깊어져요.`
+      ? `당신의 목성은 ${signLabel(jupiter.sign, 'ko')}에 있어서, ${jupiterFlavorKo(jupiter.house)} 영역에서 재물의 흐름이 한 단계 깊어져요.`
       : '',
   ])
   const p1en = paragraph([
     wealthFlavorEn(wealthTotal, sib.정재, sib.편재),
     second && second.sign
-      ? `Your 2nd house opens in ${signLabel(second.sign, 'en')}, so you handle money in a ${secondSignFlavorEn(second.sign)} way.`
+      ? `Your 2nd house begins in ${signLabel(second.sign, 'en')}, so you handle money in a ${secondSignFlavorEn(second.sign)} way.`
       : '',
     jupiter
-      ? `Jupiter, the planet of luck, sits in ${signLabel(jupiter.sign, 'en')} ${houseLabel(jupiter.house, 'en')}, expanding ${jupiterFlavorEn(jupiter.house)}.`
+      ? `Jupiter, the planet of luck, sits in ${signLabel(jupiter.sign, 'en')} (${houseLabel(jupiter.house, 'en')}), expanding ${jupiterFlavorEn(jupiter.house)}.`
       : '',
   ])
 
@@ -112,30 +113,32 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const timingKo: string[] = []
   const timingEn: string[] = []
   if (cur && cur.sibsin) {
-    timingKo.push(`지금의 인생 흐름이 돈의 톤에 ${daeunMoneyFlavorKo(cur.sibsin)}을 만들어줘요.`)
-    timingEn.push(`Your current ${cur.sibsin} daeun ${daeunMoneyFlavorEn(cur.sibsin)} for money.`)
+    timingKo.push(`지금 시기는 돈 쪽으로 ${daeunMoneyFlavorKo(cur.sibsin)}을 만들어줘요.`)
+    timingEn.push(`For money, your current life-chapter ${daeunMoneyFlavorEn(cur.sibsin)}.`)
   }
   if (wealthDaeun && (!cur || cur.age !== wealthDaeun.age)) {
     timingKo.push(`${wealthDaeun.age}세 무렵엔 돈의 큰 흐름이 열리는 구간이에요.`)
     timingEn.push(
-      `Around age ${wealthDaeun.age}, the wealth (재성) daeun opens the larger money flow.`
+      `Around age ${wealthDaeun.age}, a wealth-focused ten-year life-chapter opens up the larger flow of money.`
     )
   }
   if (sr2.length > 0) {
     timingKo.push('올해는 자기 자원의 해예요. 본인 손에 들어오는 흐름이 또렷해져요.')
     timingEn.push(
-      `This year's Solar Return puts ${sr2.join(', ')} in the 2nd — a year of personal resource.`
+      `This year's Solar Return places ${sr2.join(', ')} in your 2nd house — a year of personal resources.`
     )
   }
   if (sr8.length > 0) {
     timingKo.push('함께 다루는 자원과 투자의 문도 같은 해에 열려 있어요.')
     timingEn.push(
-      `SR 8th carries ${sr8.join(', ')} as well — shared resources and investment are active.`
+      `The Solar Return 8th house also carries ${sr8.join(', ')} — shared resources and investment open up at the same time.`
     )
   }
   if (timingKo.length === 0) {
     timingKo.push('지금은 잔잔하게 자원이 쌓이는 구간이에요.')
-    timingEn.push('Your daeun and progressions sit in a quiet accumulation stretch.')
+    timingEn.push(
+      'Your current life-chapter and progressions sit in a quiet stretch of slow accumulation.'
+    )
   }
   const p2ko = paragraph(timingKo)
   const p2en = paragraph(timingEn)
@@ -152,41 +155,47 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   ])
   if (iljuMoneyVar) {
     sajuUsed.push('pools.ilju.money')
-    deepKo.push(`${iljuMoneyVar}.`)
-    deepEn.push(`Your 일주 ${iljuName} carries this money pattern.`)
+    deepKo.push(/[.!?]$/.test(iljuMoneyVar) ? iljuMoneyVar : `${iljuMoneyVar}.`)
+    deepEn.push(
+      `Your day-pillar archetype (${iljuLabelEnMoney(iljuName)}) carries this money pattern.`
+    )
   }
 
   if (jong === '종재격') {
-    deepKo.push('삶이 재물 쪽으로 강하게 응축돼 있어, 큰 재물 그릇을 타고난 사람이에요.')
+    deepKo.push('삶이 재물 쪽으로 강하게 응축돼 있어, 큰 재물 그릇을 타고났어요.')
     deepEn.push(
-      'Your saju runs as 종재격 (following-wealth) — all energy converges into a large money vessel.'
+      'Your chart condenses strongly around wealth — a wealth-following pattern that gathers all of your energy into a large money vessel.'
     )
   } else if (gk.includes('재격')) {
     deepKo.push('인생의 큰 패턴이 돈을 직업과 자기 자리로 연결시키는 흐름이에요.')
-    deepEn.push(`Your geokguk is ${gk}, fusing money into career and seat.`)
+    deepEn.push(
+      'Your life-pattern braids money into both your career and your sense of who you are.'
+    )
   }
   if (pofIn2nd) {
     deepKo.push('행운의 점이 재산 영역에 있어, 자기 자원이 곧 행운의 통로예요.')
-    deepEn.push('Part of Fortune in the 2nd — personal resource is the literal channel of luck.')
+    deepEn.push(
+      'Your Part of Fortune sits in the 2nd house — your own personal resources are quite literally the channel through which luck arrives.'
+    )
   } else if (pofIn8th) {
     deepKo.push('행운의 점이 심층 영역에 있어, 함께 다루는 자원이나 유산, 투자로 행운이 열려요.')
     deepEn.push(
-      'Part of Fortune in the 8th — luck flows through shared resources, inheritance, investment.'
+      'Your Part of Fortune sits in the 8th house — luck tends to flow through shared resources, inheritance, and investment.'
     )
   }
   if (jupiterVenus) {
     deepKo.push(
-      `행운의 별과 사랑의 별이 ${aspectQuality(jupiterVenus.type, 'ko')}, 풍요와 아름다움이 손잡고 자원에 닿아요.`
+      `당신의 목성과 금성이 ${aspectQuality(jupiterVenus.type, 'ko')}, 풍요와 아름다움이 손잡고 자원에 닿아요.`
     )
     deepEn.push(
-      `Jupiter-Venus ${aspectQuality(jupiterVenus.type, 'en')} — abundance and beauty hold hands at your resources.`
+      `Your Jupiter and Venus ${aspectQuality(jupiterVenus.type, 'en')} — abundance and beauty walk hand in hand through the way you build your resources.`
     )
   }
   const jupHardSquare = jupiterAspects.find((a) => a.type === 'square' || a.type === 'opposition')
   if (jupHardSquare) {
-    deepKo.push('행운의 별이 다른 별과 팽팽하게 마주 있어, 과한 확장은 조절이 필요해요.')
+    deepKo.push('목성이 다른 별과 팽팽하게 마주 있어서, 과한 확장은 조절이 필요해요.')
     deepEn.push(
-      `Jupiter ${aspectQuality(jupHardSquare.type, 'en')} the other point, so over-expansion needs tempering.`
+      `Jupiter ${aspectQuality(jupHardSquare.type, 'en')} with another planet, so over-expansion is something you need to temper rather than indulge.`
     )
   }
   if (lucky.length > 0) {
@@ -194,7 +203,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
       `재물 흐름을 잔잔히 받쳐주는 ${luckyShinsalReadableKo(lucky)} 같은 기운이 함께 있어요.`
     )
     deepEn.push(
-      `Your saju 신살 includes ${lucky.slice(0, 3).join(' / ')}, quietly supporting the money flow.`
+      `Auspicious supporting stars (${luckyShinsalReadableEn(lucky)}) quietly back the money flow.`
     )
   }
   if (moneyConfirms.length > 0) {
@@ -211,7 +220,10 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   if (relKoMoney) {
     sajuUsed.push('calendarSignals.sajuRelations')
     deepKo.push(`${relKoMoney} 자원 흐름이 한 번 모이고 한 번 풀리는 사이클을 만들어요.`)
-    if (relEnMoney) deepEn.push(`${relEnMoney} Resource flow runs as a gather/release cycle.`)
+    if (relEnMoney)
+      deepEn.push(
+        `${relEnMoney} The flow of your resources runs in cycles of gathering and releasing.`
+      )
   }
   // Sibsin category × money + Sun × sign × money variation pools.
   const dayMasterStemM = saju.pillars.day.stem || ''
@@ -231,47 +243,88 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     `category:${dominantCatM}`,
     `day_branch:${dayBranchM}`,
   ])
-  if (moneyCatVar) {
-    sajuUsed.push('pools.sibsinCategory.money')
-    deepKo.push(`${moneyCatVar}.`)
-  }
   const sunM = astro.planets?.find((p) => p.name === 'Sun')
   const sunMoneyVar = pickVariation(planetSignPool('Sun', sunM?.sign, 'money'), [
     `day_master:${dayMasterStemM}`,
     `sun_sign:${sunM?.sign ?? ''}`,
     `day_branch:${dayBranchM}`,
   ])
-  if (sunMoneyVar) {
-    astroUsed.push('pools.planetSign.sun.money')
-    deepKo.push(`${sunMoneyVar}.`)
-  }
   // Sun × house — 자아 표현이 자원 흐름과 만나는 무대
   const sunHouseM = planetHouseLine('Sun', sunM?.house, 'ko')
-  if (sunHouseM) {
-    astroUsed.push('pools.planetHouse.sun')
-    deepKo.push(`${sunHouseM}.`)
-  }
-  // ASC × money — 첫인상의 결이 자원 흐름에 어떻게 통하는지.
+  // Venus × sign — 자원의 가치관 (money 도메인의 핵심 행성)
+  const venusM = astro.planets?.find((p) => p.name === 'Venus')
+  const venusMoneyVar = pickVariation(planetSignPool('Venus', venusM?.sign, 'money'), [
+    `day_master:${dayMasterStemM}`,
+    `venus_sign:${venusM?.sign ?? ''}`,
+    `day_branch:${dayBranchM}`,
+  ])
+  // Mercury × sign — 자원 분석·계산
+  const mercuryM = astro.planets?.find((p) => p.name === 'Mercury')
+  const mercuryMoneyVar = pickVariation(planetSignPool('Mercury', mercuryM?.sign, 'money'), [
+    `day_master:${dayMasterStemM}`,
+    `mercury_sign:${mercuryM?.sign ?? ''}`,
+    `day_branch:${dayBranchM}`,
+  ])
+  // Venus × house (this PR — 매력·미감이 자원과 만나는 무대)
+  const venusHouseM = planetHouseLine('Venus', venusM?.house, 'ko')
+  // Mercury × house (this PR — 사고가 자원 분석으로 풀리는 무대)
+  const mercuryHouseM = planetHouseLine('Mercury', mercuryM?.house, 'ko')
+  // ASC × money — 첫인상이 자원 흐름에 어떻게 통하는지.
   const ascM = astro.ascendant
   const ascMoneyVar = pickVariation(planetSignPool('Ascendant', ascM?.sign, 'money'), [
     `day_master:${dayMasterStemM}`,
     `asc_sign:${ascM?.sign ?? ''}`,
     `day_branch:${dayBranchM}`,
   ])
-  if (ascMoneyVar) {
-    astroUsed.push('pools.planetSign.asc.money')
-    deepKo.push(`${ascMoneyVar}.`)
+  // Sibsin category pool always lands first (saju-grain anchor); after that
+  // we keep at most 2 astro pool lines so P3 stays readable.
+  if (moneyCatVar) {
+    sajuUsed.push('pools.sibsinCategory.money')
+    deepKo.push(/[.!?]$/.test(moneyCatVar) ? moneyCatVar : `${moneyCatVar}.`)
+  }
+  {
+    const moneyAstroPool: Array<[string, string | undefined, string]> = [
+      ['pools.planetSign.sun.money', sunMoneyVar, ''],
+      ['pools.planetSign.venus.money', venusMoneyVar, ''],
+      ['pools.planetSign.mercury.money', mercuryMoneyVar, ''],
+      ['pools.planetHouse.sun', sunHouseM, ''],
+      ['pools.planetHouse.venus', venusHouseM, ''],
+      ['pools.planetHouse.mercury', mercuryHouseM, ''],
+      ['pools.planetSign.asc.money', ascMoneyVar, ''],
+    ]
+    let added = 0
+    for (const [tag, v] of moneyAstroPool) {
+      if (!v || added >= 2) continue
+      astroUsed.push(tag)
+      deepKo.push(/[.!?]$/.test(v) ? v : `${v}.`)
+      added++
+    }
   }
   // Lot of Necessity — adds a 'where resources strain' note
   const necessityLot = input.calendarSignals?.arabicParts?.Necessity
   if (necessityLot) {
     fusionUsed.push('calendarSignals.arabicParts.Necessity')
     deepKo.push(
-      `필연의 행운점이 ${signLabel(necessityLot.sign, 'ko')}에 머물러, 부담이 가장 자주 모이는 자원 영역도 같은 결로 이어져요.`
+      `필연의 행운점이 ${signLabel(necessityLot.sign, 'ko')}에 머물러, 부담이 가장 자주 모이는 자원 영역도 같은 흐름으로 이어져요.`
     )
     deepEn.push(
-      `Lot of Necessity in ${signLabel(necessityLot.sign, 'en')} — the resource-strain seat runs through that same grain.`
+      `Your Lot of Necessity sits in ${signLabel(necessityLot.sign, 'en')} — the area where your resources feel the most strain follows that same flavor.`
     )
+  }
+  // aspectPair DB — 풍요·자원 축의 각(태양-목성/목성-토성/목성-명왕). 가장 좁은 1개.
+  const moneyAspect = aspectPairEntriesForPairs(
+    astro,
+    [
+      ['Sun', 'Jupiter'],
+      ['Jupiter', 'Saturn'],
+      ['Jupiter', 'Pluto'],
+    ],
+    1
+  )[0]
+  if (moneyAspect) {
+    astroUsed.push('aspectPairDictionary.money')
+    deepKo.push(firstSentenceMoney(moneyAspect.ko))
+    deepEn.push(firstSentenceMoney(moneyAspect.en))
   }
   const p3ko = paragraph(
     deepKo.length ? deepKo : ['재물의 흐름은 큰 폭의 변동보다 꾸준한 누적의 길이 더 잘 어울려요.']
@@ -280,7 +333,7 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     deepEn.length
       ? deepEn
       : [
-          'Because the wealth signals sit in a balanced array, steady accumulation fits better than wide swings.',
+          'Because your wealth signals sit in a balanced arrangement, steady accumulation suits you better than wide swings.',
         ]
   )
 
@@ -289,15 +342,17 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   const guideEn: string[] = ['Daily handle:']
   if (sib.정재 >= sib.편재) {
     guideKo.push('정기적인 수입의 안정 라인을 먼저 굳히고, 그 위에서 확장하세요.')
-    guideEn.push('Lock the stable income line first, then expand on top of it.')
+    guideEn.push('Lock in a stable income line first, and then expand on top of that foundation.')
   } else {
     guideKo.push('한 곳에 묶지 말고 분산된 자원 흐름을 만드세요. 다채로움이 운을 부르는 길이에요.')
-    guideEn.push('Do not pin everything to one source — spread the flow. 편재 likes variety.')
+    guideEn.push(
+      'Avoid pinning everything to a single source — let the flow spread out. Your opportunistic-resource pattern thrives on variety.'
+    )
   }
   if (wealthDaeun) {
     guideKo.push(`${wealthDaeun.age}세 직전에 자원 그릇을 키워두면 흐름이 자연스럽게 따라와요.`)
     guideEn.push(
-      `Enlarge the resource vessel just before age ${wealthDaeun.age} — the flow follows.`
+      `Expand the size of your resource container just before age ${wealthDaeun.age} — the wealth that follows will fill it naturally.`
     )
   }
   // Calendar-engine: Lot of Fortune (재물의 행운점)
@@ -305,10 +360,10 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   if (fortune) {
     fusionUsed.push('calendarSignals.arabicParts.Fortune')
     guideKo.push(
-      `재물의 행운점이 ${signKoMoney(fortune.sign)}에 놓여, 이 결을 일상에 들여올수록 운이 자기 자리로 돌아와요.`
+      `재물의 행운점이 ${signKoMoney(fortune.sign)}에 놓여, 이 분위기를 일상에 들여올수록 운이 자기 자리로 돌아와요.`
     )
     guideEn.push(
-      `Your Lot of Fortune sits in ${fortune.sign} — bringing this grain into daily life pulls luck home.`
+      `Your Lot of Fortune sits in ${signLabel(fortune.sign, 'en')} — bringing this flavor into your daily life pulls luck back home to you.`
     )
   }
   const jupiterDignity = input.calendarSignals?.dignities?.find((d) => d.planet === 'Jupiter')
@@ -317,9 +372,9 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     (jupiterDignity.status === 'domicile' || jupiterDignity.status === 'exaltation')
   ) {
     fusionUsed.push('calendarSignals.dignities.Jupiter')
-    guideKo.push('확장의 별이 본인 자리에 있어, 큰 흐름을 탈 때 풍요가 자연스럽게 따라와요.')
+    guideKo.push('목성이 본인 자리에 있어서, 큰 흐름을 탈 때 풍요가 자연스럽게 따라와요.')
     guideEn.push(
-      `Jupiter is in ${jupiterDignity.status} — riding large flows draws abundance naturally.`
+      `Jupiter sits in ${jupiterDignity.status === 'domicile' ? 'its home sign' : 'a sign where it shines brightest'} — riding the larger currents tends to draw abundance toward you naturally.`
     )
   }
   const p4ko = paragraph(guideKo)
@@ -340,18 +395,25 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   }
 }
 
+// DB 텍스트(2-3문장)에서 첫 문장만 추출 — 섹션 절제를 위해 1문장으로 한정.
+function firstSentenceMoney(text: string): string {
+  const trimmed = text.trim()
+  const m = trimmed.match(/^[^.!?]*[.!?]/)
+  return (m ? m[0] : trimmed).trim()
+}
+
 function wealthFlavorKo(total: number, jeong: number, pyen: number): string {
   if (total >= 3)
-    return '당신은 자원과 결과로 인생을 풀어내는 사람이에요. 풍성한 재물의 결이 깔려서 돈이 곧 표현의 도구가 돼요.'
+    return '당신은 자원과 결과로 인생을 풀어내는 결이에요. 풍성한 재물이 깔려서 돈이 곧 표현의 도구가 돼요.'
   if (total === 2)
     return jeong >= pyen
-      ? '당신은 안정적인 수입 라인으로 자원을 쌓아가는 사람이에요.'
-      : '당신은 다양한 수입 라인을 만들어내는 사람이에요.'
+      ? '당신은 안정적인 수입 라인으로 자원을 쌓아가시는 편이에요.'
+      : '당신은 다양한 수입 라인을 만들어내시는 분이에요.'
   if (total === 1)
     return jeong >= pyen
-      ? '당신은 꾸준한 수입을 차곡차곡 쌓아가는 사람이에요.'
-      : '당신은 부수입과 기회 포착에 더 강한 사람이에요.'
-  return '재물의 결이 잔잔해서, 돈은 다른 흐름이 함께 받쳐줘요. 직업과 배움이 자원의 통로가 돼요.'
+      ? '당신은 꾸준한 수입을 차곡차곡 쌓아가는 타입이에요.'
+      : '당신은 부수입과 기회 포착에 더 강한 타입이에요.'
+  return '재물이 잔잔해서, 돈은 다른 흐름이 함께 받쳐줘요. 직업과 배움이 자원의 통로가 돼요.'
 }
 
 // money 섹션 신살 자연어 변환
@@ -373,16 +435,73 @@ function luckyShinsalReadableKo(items: string[]): string {
 }
 function wealthFlavorEn(total: number, jeong: number, pyen: number): string {
   if (total >= 3)
-    return 'You build life through resource and outcome. Rich 재성 makes money a literal medium of expression.'
+    return 'You build life through resource and outcome — a rich resource current makes money a literal medium of expression.'
   if (total === 2)
     return jeong >= pyen
       ? 'You build resources through stable, recurring income.'
       : 'You build resources by spinning up multiple income lines.'
   if (total === 1)
     return jeong >= pyen
-      ? 'You deepen a single steady income line.'
+      ? 'You build one steady stream of income over time.'
       : 'You shine at side-income and opportunistic capture.'
-  return 'With 재성 quiet, money is carried by other signals — career and 인성 act as the resource channel.'
+  return 'With the resource dynamic quiet, money is carried by other signals — career and the wisdom-and-care pattern act as the resource channel.'
+}
+
+// 60갑자 일주 (hanja) → natural English label.
+const MONEY_STEM_EN: Record<string, string> = {
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
+}
+const MONEY_BRANCH_EN: Record<string, string> = {
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
+}
+function iljuLabelEnMoney(ilju: string | undefined): string {
+  if (!ilju) return 'native day-pillar'
+  const chars = Array.from(ilju)
+  if (chars.length < 2) return 'native day-pillar'
+  const stem = MONEY_STEM_EN[chars[0]] ?? ''
+  const branch = MONEY_BRANCH_EN[chars[1]] ?? ''
+  if (stem && branch) return `${stem} ${branch}`
+  if (stem) return stem
+  if (branch) return branch
+  return 'native day-pillar'
+}
+
+// 럭키 신살 영어 풀이 (raw Korean 라벨 제거).
+function luckyShinsalReadableEn(items: string[]): string {
+  const map: Record<string, string> = {
+    천덕귀인: 'noble-protector star',
+    월덕귀인: 'noble-protector star',
+    문창: 'literary star',
+    문창귀인: 'literary star',
+    역마: 'travel-and-change star',
+    도화: 'attraction-and-charm star',
+    화개: 'art-and-solitude star',
+    천을귀인: 'noble-protector star',
+  }
+  return items
+    .slice(0, 3)
+    .map((s) => map[s] ?? 'a supporting star')
+    .join(', ')
 }
 
 const SECOND_SIGN_FLAVOR_KO: Record<string, string> = {
@@ -405,7 +524,7 @@ const SECOND_SIGN_FLAVOR_EN: Record<string, string> = {
   Gemini: 'multi-channel',
   Cancer: 'savings-and-protection',
   Leo: 'bold-expressive',
-  Virgo: 'detail-managed',
+  Virgo: 'meticulous, detail-oriented',
   Libra: 'balance-and-aesthetic',
   Scorpio: 'deep-private',
   Sagittarius: 'wide-vision',
@@ -446,7 +565,7 @@ const JUPITER_HOUSE_FLAVOR_EN: Record<number, string> = {
   9: 'vision and travel',
   10: 'the public seat',
   11: 'allies and future vision',
-  12: 'inner life and secrets',
+  12: 'your inner life and private world',
 }
 function jupiterFlavorKo(h: number): string {
   return JUPITER_HOUSE_FLAVOR_KO[h] ?? '독자적 영역'

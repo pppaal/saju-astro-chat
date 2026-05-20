@@ -73,7 +73,7 @@ export function signLabel(sign: string | undefined, lang: Lang): string {
     Aquarius: '물병자리',
     Pisces: '물고기자리',
   }
-  return lang === 'ko' ? KO[sign] ?? sign : sign
+  return lang === 'ko' ? (KO[sign] ?? sign) : sign
 }
 
 export function planetLabel(planet: string, lang: Lang): string {
@@ -92,6 +92,12 @@ export function planetLabel(planet: string, lang: Lang): string {
     Chiron: '키론',
     Ascendant: '첫인상',
     MC: '사회적 정점',
+    'True Node': '북쪽 교점',
+    'North Node': '북쪽 교점',
+    'Mean Node': '북쪽 교점',
+    'South Node': '남쪽 교점',
+    Lilith: '릴리스',
+    Vertex: '운명점',
   }
   return KO[planet] ?? planet
 }
@@ -151,6 +157,15 @@ export function eulReul(word: string): string {
   if (last < 0xac00 || last > 0xd7a3) return '를'
   const final = (last - 0xac00) % 28
   return final === 0 ? '를' : '을'
+}
+
+/** Korean connective particle helper — pick 과/와 based on last syllable. */
+export function gwaWa(word: string): string {
+  if (!word) return '와'
+  const last = word.charCodeAt(word.length - 1)
+  if (last < 0xac00 || last > 0xd7a3) return '와'
+  const final = (last - 0xac00) % 28
+  return final === 0 ? '와' : '과'
 }
 
 /** Join an array of strings with comma + final "and"/"및". */

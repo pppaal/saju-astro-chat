@@ -2,11 +2,7 @@
 // Deterministic, LLM-free life-report types. 100% data-driven.
 
 import type { MainSajuOutput } from '@/lib/saju/main'
-import type {
-  Chart,
-  AspectHit,
-  ExtraPoint,
-} from '@/lib/astrology/foundation/types'
+import type { Chart, AspectHit, ExtraPoint } from '@/lib/astrology/foundation/types'
 import type { Asteroid } from '@/lib/astrology/foundation/asteroids'
 import type { FortuneReport } from '@/lib/fusion/types'
 import type { CalendarEngineSignals } from './adapters/fromCalendarEngine'
@@ -138,8 +134,13 @@ export interface AstrologyLikeChart {
   lilith?: ExtraPoint
   partOfFortune?: ExtraPoint
   vertex?: ExtraPoint
-  // Asteroids
-  asteroids?: Partial<Record<'Ceres' | 'Pallas' | 'Juno' | 'Vesta', Asteroid>>
+  // Asteroids — 키 케이싱이 경로마다 다름(foundation=대문자, destiny-map=소문자).
+  asteroids?: Partial<
+    Record<
+      'Ceres' | 'Pallas' | 'Juno' | 'Vesta' | 'ceres' | 'pallas' | 'juno' | 'vesta',
+      Asteroid
+    >
+  >
   // Returns / progressions / fixedStars / declinations / eclipses
   solarReturn?: {
     chart?: Chart

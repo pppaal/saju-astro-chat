@@ -4,26 +4,22 @@ import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import { SUPPORT_EMAIL } from '@/lib/config/contact'
-import { BASE_CREDIT_PRICE_KRW, CREDIT_PACKS } from '@/lib/config/pricing'
 import styles from '../policy.module.css'
 
 type Section = { title: string; titleKo: string; body: string; bodyKo: string; strict?: boolean }
 
 const PSP_NAME = 'Stripe'
-const EFFECTIVE_DATE = '2026-01-25'
-const MINI_PACK_PER_CREDIT_USD = CREDIT_PACKS.mini.perCreditUsd
-const MINI_PACK_RATE_EN = `₩${BASE_CREDIT_PRICE_KRW.toLocaleString()}/credit (≈ $${MINI_PACK_PER_CREDIT_USD.toFixed(2)}/credit)`
-const MINI_PACK_RATE_KO = `₩${BASE_CREDIT_PRICE_KRW.toLocaleString()}/크레딧 (약 $${MINI_PACK_PER_CREDIT_USD.toFixed(2)}/크레딧)`
+const EFFECTIVE_DATE = '2026-05-19'
 
 const QUICK_SUMMARY = {
   en: [
-    'First-time subscriptions are covered by a 7-day guarantee.',
-    'Unused credit packs are refundable within 7 days from purchase.',
+    'Unused credit packs (0 credits used) are fully refundable within 7 days from purchase.',
+    'Once any credit is consumed, the credit pack is non-refundable.',
     'If we fail to deliver due to our technical issue, we restore credits first and support you quickly.',
   ],
   ko: [
-    '최초 구독은 7일 보장 정책이 적용됩니다.',
-    '미사용 크레딧 팩은 구매 후 7일 이내 환불 가능합니다.',
+    '미사용 크레딧 팩(0크레딧 사용)은 구매 후 7일 이내 전액 환불 가능합니다.',
+    '1크레딧이라도 사용한 경우 해당 크레딧 팩은 환불 불가입니다.',
     '당사 기술 이슈로 제공 실패 시, 크레딧을 먼저 복구하고 빠르게 지원합니다.',
   ],
 }
@@ -32,8 +28,8 @@ const sections: Section[] = [
   {
     title: '1. Overview',
     titleKo: '1. 개요',
-    body: `This Refund and Payment Policy governs all purchases made through DestinyPal, including subscriptions and credit packs. By making a purchase, you agree to these terms. All payments are processed securely through ${PSP_NAME}, a PCI-DSS Level 1 certified payment processor.`,
-    bodyKo: `본 환불 및 결제 정책은 구독 및 크레딧 팩을 포함하여 DestinyPal을 통해 이루어지는 모든 구매에 적용됩니다. 구매를 완료함으로써 귀하는 본 약관에 동의하게 됩니다. 모든 결제는 PCI-DSS Level 1 인증 결제 처리업체인 ${PSP_NAME}을 통해 안전하게 처리됩니다.`,
+    body: `This Refund and Payment Policy governs all credit pack purchases made through DestinyPal. By making a purchase, you agree to these terms. All payments are processed securely through ${PSP_NAME}, a PCI-DSS Level 1 certified payment processor. DestinyPal does not offer recurring subscriptions; all purchases are one-time credit packs.`,
+    bodyKo: `본 환불 및 결제 정책은 DestinyPal에서 이루어지는 모든 크레딧 팩 구매에 적용됩니다. 구매를 완료함으로써 귀하는 본 약관에 동의하게 됩니다. 모든 결제는 PCI-DSS Level 1 인증 결제 처리업체인 ${PSP_NAME}을 통해 안전하게 처리됩니다. DestinyPal은 정기 구독을 제공하지 않으며, 모든 결제는 일회성 크레딧 팩 구매입니다.`,
   },
   {
     title: '2. Credit Pack Purchases',
@@ -59,8 +55,13 @@ C) Credit Validity and Expiration:
 
 D) Credit Usage Tracking:
 - Credits are consumed at the time of service request, not service completion
-- If a reading fails due to technical issues on our end, the credit will be automatically restored
-- Credits consumed due to user error (incomplete input, page refresh, etc.) are NOT restored`,
+- Automatic credit restoration — if a reading fails due to a system issue on our end, including:
+  • LLM provider unavailable or rate-limited
+  • Generation error or empty/invalid AI response
+  • Both participants' generations failing in a couple/compatibility reading (both deducted credits are restored)
+  the consumed credit(s) will be returned to your balance automatically. No support request needed.
+- Credits consumed due to user error (incomplete input, page refresh before submit, abandoning the session, etc.) are NOT restored
+- Credits used on a reading that you disagree with, find unsatisfactory, or interpret differently are NOT restored — see Section 3`,
     bodyKo: `크레딧 팩 종류: 미니, 스탠다드, 플러스, 메가, 얼티밋 등 다양한 수량과 가격의 크레딧 팩을 제공합니다.
 
 중요 - 크레딧 팩 환불 정책:
@@ -82,62 +83,16 @@ C) 크레딧 유효기간 및 만료:
 
 D) 크레딧 사용 추적:
 - 크레딧은 서비스 완료 시점이 아닌 요청 시점에 차감됨
-- 당사의 기술적 문제로 리딩이 실패한 경우 크레딧이 자동 복구됨
-- 사용자 오류(입력 미완료, 페이지 새로고침 등)로 소진된 크레딧은 복구되지 않음`,
+- 자동 크레딧 복구 — 다음과 같이 당사 시스템 측 문제로 리딩이 실패한 경우 차감된 크레딧이 자동으로 잔액에 복구되며 별도 문의가 필요하지 않습니다:
+  • LLM 공급자 비가용 또는 호출 제한
+  • 생성 오류 또는 빈/유효하지 않은 AI 응답
+  • 커플/궁합 리딩에서 양측 생성이 모두 실패한 경우 (차감된 두 크레딧 모두 복구)
+- 사용자 오류(입력 미완료, 제출 전 페이지 새로고침, 세션 이탈 등)로 소진된 크레딧은 복구되지 않음
+- 결과에 동의하지 않거나 만족하지 못한 리딩, 다르게 해석되는 리딩에 사용된 크레딧은 복구되지 않음 — 제3조 참조`,
   },
   {
-    title: '3. Subscription Refund Policy',
-    titleKo: '3. 구독 환불 정책',
-    body: `Subscription Plans: We offer Starter, Pro, and Premium subscription plans with monthly and annual billing options.
-
-A) New Subscription - 7 Day Guarantee:
-- Full refund available within 7 days of initial subscription purchase
-- This applies ONLY to first-time subscribers
-- If you've used any premium features during this period, refund amount may be prorated
-- Monthly credits used will be deducted at the Mini Pack rate (${MINI_PACK_RATE_EN}) from the refund
-
-B) Subscription Renewal:
-- Renewal charges are NON-REFUNDABLE
-- Cancel at least 24 hours before renewal to avoid charges
-- Once renewed, you must wait until the end of the billing period
-
-C) Subscription Cancellation:
-- You may cancel anytime through account settings
-- No refund for remaining period after cancellation
-- Access continues until the end of the paid billing period
-- Monthly credits do not carry over after cancellation
-
-D) Annual Subscription Early Termination:
-- No partial refunds for annual subscriptions
-- By choosing annual billing, you commit to the full year
-- Cancellation stops future renewal but does not refund remaining months`,
-    bodyKo: `구독 플랜: 스타터, 프로, 프리미엄 구독 플랜을 월간 및 연간 결제 옵션으로 제공합니다.
-
-A) 신규 구독 - 7일 보장:
-- 최초 구독 구매 후 7일 이내 전액 환불 가능
-- 이는 최초 구독자에게만 적용됨
-- 이 기간 동안 프리미엄 기능을 사용한 경우 환불액이 비례 차감될 수 있음
-- 사용한 월간 크레딧은 미니팩 기준 가격(${MINI_PACK_RATE_KO})으로 환불액에서 차감됨
-
-B) 구독 갱신:
-- 갱신 결제는 환불 불가
-- 요금 청구를 피하려면 갱신 최소 24시간 전에 취소해야 함
-- 갱신된 후에는 결제 기간 종료까지 기다려야 함
-
-C) 구독 취소:
-- 계정 설정에서 언제든지 취소 가능
-- 취소 후 남은 기간에 대한 환불 없음
-- 결제된 청구 기간이 끝날 때까지 접근 유지
-- 취소 후 월간 크레딧은 이월되지 않음
-
-D) 연간 구독 조기 해지:
-- 연간 구독에 대한 부분 환불 없음
-- 연간 결제를 선택하면 1년 전체에 대한 약정임
-- 취소는 향후 갱신을 중지하지만 남은 개월에 대한 환불은 없음`,
-  },
-  {
-    title: '4. AI Reading Services - No Refunds',
-    titleKo: '4. AI 리딩 서비스 - 환불 불가',
+    title: '3. AI Reading Services - No Refunds',
+    titleKo: '3. AI 리딩 서비스 - 환불 불가',
     body: `IMPORTANT: AI reading outputs are FINAL and NON-REFUNDABLE once generated.
 
 This applies to AI-generated outcomes across our main products, including Destiny Map, Tarot, Premium Reports, Destiny Calendar insights, and Compatibility analysis.
@@ -174,8 +129,8 @@ By using our reading services, you acknowledge:
 3. 생성 시 리딩을 있는 그대로 수락함`,
   },
   {
-    title: '5. Limited Refund Exceptions',
-    titleKo: '5. 제한적 환불 예외 사항',
+    title: '4. Limited Refund Exceptions',
+    titleKo: '4. 제한적 환불 예외 사항',
     body: `Refunds will ONLY be considered in these exceptional cases:
 
 A) Duplicate Charges:
@@ -242,8 +197,8 @@ D) 처리 시간:
 위 기준을 충족하지 않는 요청은 거부될 수 있습니다.`,
   },
   {
-    title: '6. Chargebacks and Fraud Prevention',
-    titleKo: '6. 지불거절(차지백) 및 사기 방지',
+    title: '5. Chargebacks and Fraud Prevention',
+    titleKo: '5. 지불거절(차지백) 및 사기 방지',
     strict: true,
     body: `IMPORTANT: Contact us before disputing charges with your bank.
 
@@ -301,20 +256,18 @@ We are committed to fair resolution. Most issues can be resolved through direct 
 당사는 공정한 해결을 위해 노력합니다. 대부분의 문제는 은행이나 법적 조치 없이 직접 소통을 통해 해결할 수 있습니다.`,
   },
   {
-    title: '7. Account Termination and Forfeiture',
-    titleKo: '7. 계정 해지 및 권리 상실',
+    title: '6. Account Termination and Forfeiture',
+    titleKo: '6. 계정 해지 및 권리 상실',
     strict: true,
     body: `Voluntary Account Deletion:
 - Unused credits are forfeited upon account deletion
-- Active subscriptions must be canceled before deletion
-- No refund for remaining credits or subscription time
+- No refund for remaining credits
 - This action is irreversible
 
 Termination by DestinyPal:
 If your account is terminated for policy violation:
 - All credits are immediately forfeited
 - No refund of any kind will be issued
-- Active subscriptions are terminated without refund
 
 Inactivity:
 - Accounts inactive for 2+ years may be deleted
@@ -322,15 +275,13 @@ Inactivity:
 - We recommend using all credits before extended absence`,
     bodyKo: `자발적 계정 삭제:
 - 미사용 크레딧은 계정 삭제 시 소멸됨
-- 활성 구독은 삭제 전에 취소해야 함
-- 남은 크레딧이나 구독 기간에 대한 환불 없음
+- 남은 크레딧에 대한 환불 없음
 - 이 작업은 되돌릴 수 없음
 
 DestinyPal에 의한 해지:
 정책 위반으로 계정이 해지된 경우:
 - 모든 크레딧이 즉시 소멸됨
 - 어떠한 종류의 환불도 이루어지지 않음
-- 활성 구독이 환불 없이 해지됨
 
 비활성:
 - 2년 이상 비활성 계정은 삭제될 수 있음
@@ -338,38 +289,28 @@ DestinyPal에 의한 해지:
 - 장기 부재 전 모든 크레딧 사용 권장`,
   },
   {
-    title: '8. Price Changes and Grandfathering',
-    titleKo: '8. 가격 변경 및 기존 가격 유지',
+    title: '7. Price Changes',
+    titleKo: '7. 가격 변경',
     body: `Price Modifications:
 - We may change prices at any time
-- New prices apply immediately to new purchases
-- Existing subscribers: 30 days advance notice
+- New prices apply only to purchases made after the change takes effect
 
 No Price Protection:
-- Credit packs purchased are based on pricing at time of purchase
+- Credit packs are billed at the price shown at checkout
 - No refund or additional credits if prices drop later
-- No retroactive discounts
-
-Annual Subscription Lock:
-- Annual subscribers keep their rate until renewal
-- Price changes apply at next renewal date`,
+- No retroactive discounts on previously purchased packs`,
     bodyKo: `가격 변경:
 - 당사는 언제든지 가격을 변경할 수 있음
-- 새 가격은 신규 구매에 즉시 적용됨
-- 기존 구독자: 30일 전 사전 통지
+- 새 가격은 변경 발효 이후의 구매에만 적용됨
 
 가격 보호 없음:
-- 구매한 크레딧 팩은 구매 시점의 가격 기준
+- 크레딧 팩은 결제 시점에 표시된 가격으로 청구됨
 - 이후 가격 인하 시 환불이나 추가 크레딧 없음
-- 소급 할인 없음
-
-연간 구독 가격 고정:
-- 연간 구독자는 갱신 시까지 현재 가격 유지
-- 가격 변경은 다음 갱신일에 적용됨`,
+- 이미 구매한 팩에 대한 소급 할인 없음`,
   },
   {
-    title: '9. Consumer Rights by Region',
-    titleKo: '9. 지역별 소비자 권리',
+    title: '8. Consumer Rights by Region',
+    titleKo: '8. 지역별 소비자 권리',
     body: `Korean Consumers (대한민국):
 - 전자상거래법에 따라 디지털 콘텐츠는 제공 시작 후 청약철회가 제한됩니다
 - 콘텐츠 제공 시작 전: 7일 이내 청약철회 가능
@@ -408,8 +349,8 @@ EU 소비자:
 - 본 정책은 귀하의 법적 권리를 제한하지 않음`,
   },
   {
-    title: '10. Contact Information',
-    titleKo: '10. 연락처',
+    title: '9. Contact Information',
+    titleKo: '9. 연락처',
     body: `For refund requests and billing inquiries:
 
 Email: ${SUPPORT_EMAIL}

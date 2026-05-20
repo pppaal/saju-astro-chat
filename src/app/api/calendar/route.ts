@@ -707,7 +707,8 @@ export const GET = withApiMiddleware(
         }
       | undefined
     try {
-      const { analyzeDayTimeSlots } = await import('@/lib/calendar-engine/timing-helpers/ultra-precision-minute')
+      const { analyzeDayTimeSlots } =
+        await import('@/lib/calendar-engine/timing-helpers/ultra-precision-minute')
       const slots = analyzeDayTimeSlots(new Date(), pillars.day.stem, pillars.day.branch)
       if (slots.best.length > 0 || slots.worst.length > 0) {
         todayHourlyTimeSlots = {
@@ -1010,7 +1011,7 @@ export const GET = withApiMiddleware(
         koTranslations as unknown as TranslationData,
         enTranslations as unknown as TranslationData,
         matrixCalendarContext,
-        matrixEvidencePackets || undefined,
+        matrixEvidencePackets || undefined
       )
 
     const formattedDatesBase = matrixRegradedDates.map((d) => formatCalendarDate(d))
@@ -1039,7 +1040,7 @@ export const GET = withApiMiddleware(
           astroChart: isNatalChartData(astroProfile.natalChart)
             ? astroProfile.natalChart
             : undefined,
-        },
+        }
       )
       // 사용자가 보고 있는 달만 빌드 — 1년 365일 다 돌리면 너무 비쌈.
       // 엔진 자체는 1년 능력 유지 (range만 좁힘). 클라가 ?month=YYYY-MM 보내면 그 달,
@@ -1086,7 +1087,9 @@ export const GET = withApiMiddleware(
           },
           options: { includeEvidence: true },
         })
-        logger.info?.(`[calendar-engine v2] ${cached ? 'cache HIT' : 'cache MISS'} for ${m.monthKey}, cells=${cells.length}`)
+        logger.info?.(
+          `[calendar-engine v2] ${cached ? 'cache HIT' : 'cache MISS'} for ${m.monthKey}, cells=${cells.length}`
+        )
         allCells.push(...cells)
         if (m.month === targetMonth && m.year === targetYear) {
           ceCells = cells // narrative는 current month 기준
@@ -1096,7 +1099,13 @@ export const GET = withApiMiddleware(
       // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
       try {
         const { buildInterpretation } = await import('@/lib/calendar-engine/interpretation')
-        const interp = buildInterpretation({ natal: ceNatal, cells: ceCells, scope: 'monthly' })
+        const interpLang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
+        const interp = buildInterpretation({
+          natal: ceNatal,
+          cells: ceCells,
+          scope: 'monthly',
+          lang: interpLang,
+        })
         ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
         // interpretation은 그 달 전체 단위라 셀별 부착 X.
         // 모든 셀에 동일 narrative 부착 — 클라가 어느 날짜든 같은 텍스트 사용.
@@ -1154,8 +1163,37 @@ export const GET = withApiMiddleware(
           d.themeScores = cell.themeScores
         }
       }
+
+      // 일진 (60갑자) 한 줄 narrative — 매일 다른 ganji 라 매일 다른 텍스트.
+      // 룰 DB 무관 (LLM 0번), getGanjiTransitNarrative('daily', ...) 직결.
+      try {
+        const { computeDayStem, computeDayBranch } =
+          await import('@/lib/calendar-engine/extractors/saju-shinsal')
+        const { getGanjiTransitNarrative } =
+          await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+        for (const d of formattedDates) {
+          // d.date 는 ISO (YYYY-MM-DDTHH:mm:ss±) — UTC noon 으로 정규화해 ganji 안정.
+          const dateOnly = d.date.slice(0, 10)
+          const probe = new Date(`${dateOnly}T12:00:00.000Z`)
+          if (Number.isNaN(probe.valueOf())) continue
+          const stem = computeDayStem(probe)
+          const branch = computeDayBranch(probe)
+          if (!stem || !branch) continue
+          const ganji = `${stem}${branch}`
+          const text = getGanjiTransitNarrative(ganji, 'daily', locale === 'en' ? 'en' : 'ko')
+          if (text) d.dailyGanjiNarrative = text
+        }
+      } catch (err) {
+        logger.warn?.(
+          '[calendar-engine daily ganji] skipped:',
+          err instanceof Error ? err.message : String(err)
+        )
+      }
     } catch (err) {
-      logger.warn?.('[calendar-engine v2 augment] skipped:', err instanceof Error ? err.message : String(err))
+      logger.warn?.(
+        '[calendar-engine v2 augment] skipped:',
+        err instanceof Error ? err.message : String(err)
+      )
     }
 
     const presentationDomainMap = {

@@ -14,12 +14,25 @@ import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
  * 4. 템플릿 변수 치환
  * 5. section별로 합쳐서 narrative 출력
  */
+export type InterpretationLang = 'ko' | 'en'
+
+/**
+ * lang='en' 요청이고 룰에 templateEn 이 있으면 사용, 없으면 한국어 template
+ * 으로 fallback. 일진/대운 ganji 변수 (monthGanjiText 등) 도 영어 헬퍼
+ * 변수 (monthGanjiTextEn 등) 로 분기 — extractSignalVars 가 둘 다 채움.
+ */
+function pickRuleTemplate(rule: InterpretationRule, lang: InterpretationLang): string {
+  if (lang === 'en' && rule.templateEn) return rule.templateEn
+  return rule.template
+}
+
 export function buildInterpretation(args: {
   natal: NatalContext
   cells: CalendarCell[]
   scope?: 'monthly' | 'yearly' | 'daily' | 'lifetime'
+  lang?: InterpretationLang
 }): Interpretation {
-  const { natal, cells, scope = 'monthly' } = args
+  const { natal, cells, scope = 'monthly', lang = 'ko' } = args
 
   // 모든 셀에서 신호 + 패턴 합치기
   const allSignals = cells.flatMap((c) => c.signals)
@@ -64,7 +77,12 @@ export function buildInterpretation(args: {
   // 룰의 의도(우호/주의)와 무관할 수 있어서 (정관 +3 시그널이 fire한 룰의
   // 의도는 "신약+정관 = 책임 무거움"으로 negative) 룰 자체의 의도를 봐야
   // 점수↔해석 동기화 정확.
-  const matched: Array<{ rule: InterpretationRule; vars: TemplateVars; polarity: number }> = []
+  const matched: Array<{
+    rule: InterpretationRule
+    vars: TemplateVars
+    polarity: number
+    strength: number
+  }> = []
   for (const rule of RULES) {
     if (rule.scope !== scope) continue
     const matchSig = findMatchContextWithSignal(rule.conditions, allSignals, allPatterns, natal)
@@ -78,6 +96,7 @@ export function buildInterpretation(args: {
         unluckyDates,
       },
       polarity: ruleIntent(rule),
+      strength: matchSig.strength,
     })
   }
 
@@ -96,8 +115,10 @@ export function buildInterpretation(args: {
     if (usedRuleIds.has(m.rule.id)) continue
     const domain = SECTION_TO_DOMAIN[m.rule.section]
     if (domain && DOMAIN_TITLES[domain]) {
+      // 도메인은 후보를 다 모으고 (cap 없이) 나중에 신호 강도 기준으로
+      // 추려냄 — 고정 우선순위만으로 자르면 항상 같은 룰만 표출되던 문제
+      // 해소. 사주마다 신호가 강한 룰이 달라 조합이 풍부해짐.
       const list = domainPicks.get(domain) ?? []
-      if (list.length >= MAX_RULES_PER_DOMAIN) continue
       list.push(m)
       domainPicks.set(domain, list)
       usedRuleIds.add(m.rule.id)
@@ -112,9 +133,37 @@ export function buildInterpretation(args: {
 
   // 도메인 묶음을 단일 가상 entry로 합쳐 picked에 추가
   // — 도메인별 cells에서 top/bottom dates 추출 → narrative 끝에 추가
+  // 표출된 룰(top-N) 만 따로 보관 — themeScores 가 narrative 와 같은 룰로
+  // 점수를 내야 점수↔해석 동기화가 깨지지 않음.
+  const domainShown = new Map<string, typeof matched>()
   for (const domain of DOMAIN_ORDER) {
-    const list = domainPicks.get(domain)
-    if (!list || list.length === 0) continue
+    const allCandidates = domainPicks.get(domain)
+    if (!allCandidates || allCandidates.length === 0) continue
+    // 후보가 MAX 보다 많으면 (그 사주 신호 강도 우선 + priority 보조) 로
+    // 추려냄. 신호가 강한 룰이 먼저 표출 → 사주마다 조합이 확연히 달라짐.
+    // 고정 priority 가 1차였을 땐 항상 같은 룰만 떴음 (변별 약함). 강도를
+    // 1차로 올려 chart-driven 변별 확보. 우호/주의 한쪽 쏠림은 긍정 1개·
+    // 주의 1개 보장으로 방지.
+    const list = (() => {
+      if (allCandidates.length <= MAX_RULES_PER_DOMAIN) return allCandidates
+      const ranked = [...allCandidates].sort((a, b) => {
+        if (b.strength !== a.strength) return b.strength - a.strength
+        return b.rule.priority - a.rule.priority
+      })
+      const pos = ranked.filter((m) => m.polarity >= 1)
+      const neg = ranked.filter((m) => m.polarity <= -1)
+      const picks: typeof ranked = []
+      // 균형 확보: 긍정 1 + 주의 1 먼저 (있으면), 나머지는 ranked 순서로 채움
+      if (pos[0]) picks.push(pos[0])
+      if (neg[0]) picks.push(neg[0])
+      for (const m of ranked) {
+        if (picks.length >= MAX_RULES_PER_DOMAIN) break
+        if (!picks.includes(m)) picks.push(m)
+      }
+      // narrative 순서 안정화 — 원래 ranked(priority/strength) 순서 유지
+      return ranked.filter((m) => picks.includes(m))
+    })()
+    domainShown.set(domain, list)
     const themes = DOMAIN_THEMES[domain] ?? []
     const topDates = pickDomainExtremeDates(cells, themes, 3, 'high')
     const lowDates = pickDomainExtremeDates(cells, themes, 2, 'low')
@@ -129,20 +178,31 @@ export function buildInterpretation(args: {
       const pb = b.polarity >= 1 ? 0 : b.polarity <= -1 ? 1 : 0.5
       return pa - pb
     })
-    const templates = sortedList.map((m) => fillTemplate(m.rule.template, m.vars))
+    const templates = sortedList.map((m) => fillTemplate(pickRuleTemplate(m.rule, lang), m.vars))
     if (hasPositive && hasCaution) {
-      templates.unshift('복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:')
+      templates.unshift(
+        lang === 'en'
+          ? 'A mixed current — supportive notes run alongside cautious ones:'
+          : '좋은 흐름과 조심할 흐름이 같이 들어와요:'
+      )
     }
+    const mergedText = mergeDomainTemplates(templates, topDates, lowDates, domain, lang)
     const merged: (typeof matched)[number] = {
       rule: {
         ...list[0].rule,
         id: `domain.${domain}`,
         section: `domain-${domain}`,
         priority: list[0].rule.priority,
-        template: mergeDomainTemplates(templates, topDates, lowDates),
+        // 병합된 텍스트는 이미 lang 에 맞춰 합성됨 → template 한 쪽에만 박고
+        // templateEn 은 명시적으로 비워 둠. 그렇지 않으면 list[0].rule 의
+        // 원본 templateEn 이 spread 로 살아남아 pickRuleTemplate('en') 가
+        // 병합된 텍스트 대신 첫 룰의 원본 EN 만 반환 (Phase 2 EN 머지 버그).
+        template: mergedText,
+        templateEn: undefined,
       },
       vars: list[0].vars,
       polarity: list[0].polarity,
+      strength: list[0].strength,
     }
     picked.push(merged)
   }
@@ -171,8 +231,8 @@ export function buildInterpretation(args: {
   // 템플릿 채우기 (도메인 entry는 이미 합쳐진 텍스트라 fillTemplate 한 번 더 통과해도 안전)
   const sections = picked.map((m) => ({
     section: m.rule.section,
-    title: sectionTitle(m.rule.section),
-    text: fillTemplate(m.rule.template, m.vars),
+    title: sectionTitle(m.rule.section, lang),
+    text: fillTemplate(pickRuleTemplate(m.rule, lang), m.vars),
   }))
 
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
@@ -199,7 +259,9 @@ export function buildInterpretation(args: {
   }
   const cellThemeScores = cells[0]?.themeScores ?? {}
   const themeScores: NonNullable<Interpretation['themeScores']> = {}
-  for (const [domain, list] of domainPicks) {
+  // narrative 에 실제 표출된 룰(domainShown) 로 점수 산출 — 전체 후보
+  // (domainPicks) 가 아니라 사용자가 읽는 4개로 평균내야 점수↔해석 동기화.
+  for (const [domain, list] of domainShown) {
     const themeKey = DOMAIN_TO_THEME[domain]
     if (!themeKey) continue
     const intents = list.map((m) => m.polarity)
@@ -343,7 +405,7 @@ function findMatchContextWithSignal(
   signals: ActiveSignal[],
   patterns: SignalPattern[],
   natal: NatalContext
-): { ctx: TemplateVars; polarity: number } | null {
+): { ctx: TemplateVars; polarity: number; strength: number } | null {
   // 본명 조건
   if (cond.natalStrength && !cond.natalStrength.includes(natal.saju.strength)) {
     return null
@@ -355,7 +417,11 @@ function findMatchContextWithSignal(
     const pat = patterns.find((p) => cond.patternId!.includes(p.id))
     if (!pat) return null
     const count = patterns.filter((p) => p.id === pat.id).length
-    return { ctx: { patternName: pat.name, count }, polarity: 0 }
+    return {
+      ctx: { patternName: pat.name, count },
+      polarity: 0,
+      strength: (pat.strength ?? 50) / 50,
+    }
   }
   const matchingSignal = signals.find((s) => signalMatches(s, cond))
   if (!matchingSignal) {
@@ -379,13 +445,17 @@ function findMatchContextWithSignal(
     if (!hasSignalCondition && (cond.natalStrength || cond.yongsin)) {
       const fallback = signals[0]
       if (!fallback) return null
-      return { ctx: extractSignalVars(fallback, signals), polarity: 0 }
+      return { ctx: extractSignalVars(fallback, signals), polarity: 0, strength: 0 }
     }
     return null
   }
   return {
     ctx: extractSignalVars(matchingSignal, signals),
     polarity: matchingSignal.polarity,
+    // 그 사주에서 이 신호가 얼마나 강하게 떴는지 (weight × |polarity|).
+    // 도메인 룰 선택의 2차 정렬 키 — 같은 우선순위면 신호가 강한 룰이
+    // 먼저 표출돼 사주마다 다른 조합이 나옴.
+    strength: Math.abs((matchingSignal.weight ?? 0) * (matchingSignal.polarity ?? 0)),
   }
 }
 
@@ -427,23 +497,102 @@ function signalMatches(s: ActiveSignal, cond: RuleConditions): boolean {
   return true
 }
 
+// 한자 갑자 → 한국어 음 표기 (壬辰 → 임진) / 로마자 (Imjin). 한자가
+// 그대로 출력되면 일반 사용자에겐 읽히지 않으므로 룰 본문에 들어가는
+// {monthGanji}/{yearGanji}/{daeunGanji} 변수는 한글 음으로, 영어 변형
+// {*GanjiEn} 변수는 capitalized 로마자로 노출.
+const STEM_KR: Record<string, string> = {
+  甲: '갑',
+  乙: '을',
+  丙: '병',
+  丁: '정',
+  戊: '무',
+  己: '기',
+  庚: '경',
+  辛: '신',
+  壬: '임',
+  癸: '계',
+}
+const BRANCH_KR: Record<string, string> = {
+  子: '자',
+  丑: '축',
+  寅: '인',
+  卯: '묘',
+  辰: '진',
+  巳: '사',
+  午: '오',
+  未: '미',
+  申: '신',
+  酉: '유',
+  戌: '술',
+  亥: '해',
+}
+const STEM_ROMAN: Record<string, string> = {
+  甲: 'Gap',
+  乙: 'Eul',
+  丙: 'Byeong',
+  丁: 'Jeong',
+  戊: 'Mu',
+  己: 'Gi',
+  庚: 'Gyeong',
+  辛: 'Sin',
+  壬: 'Im',
+  癸: 'Gye',
+}
+const BRANCH_ROMAN: Record<string, string> = {
+  子: 'ja',
+  丑: 'chuk',
+  寅: 'in',
+  卯: 'myo',
+  辰: 'jin',
+  巳: 'sa',
+  午: 'o',
+  未: 'mi',
+  申: 'sin',
+  酉: 'yu',
+  戌: 'sul',
+  亥: 'hae',
+}
+function ganjiToKoreanReading(ganji: string): string {
+  if (!ganji || ganji.length < 2) return ganji
+  const stem = STEM_KR[ganji[0]] ?? ganji[0]
+  const branch = BRANCH_KR[ganji[1]] ?? ganji[1]
+  return `${stem}${branch}`
+}
+function ganjiToRoman(ganji: string): string {
+  if (!ganji || ganji.length < 2) return ganji
+  const stem = STEM_ROMAN[ganji[0]] ?? ganji[0]
+  const branch = BRANCH_ROMAN[ganji[1]] ?? ganji[1]
+  return `${stem}${branch}`
+}
+
 function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): TemplateVars {
   const vars: TemplateVars = {}
   const detail = s.evidence.detail as Record<string, unknown> | undefined
   const ganji = (s.evidence.pillars?.[0] ?? '').trim()
+  const ganjiKr = ganjiToKoreanReading(ganji)
+  const ganjiEn = ganjiToRoman(ganji)
 
-  if (ganji) vars.ganji = ganji
+  if (ganji) vars.ganji = ganjiKr
+  // KO + EN 두 ganji text 를 동시에 채움 — 룰 템플릿이 자기 언어에 맞는
+  // placeholder ({monthGanjiText} vs {monthGanjiTextEn}) 를 선택해 사용.
   if (s.layer === 'decadal') {
-    vars.daeunGanji = ganji
+    vars.daeunGanji = ganjiKr
+    vars.daeunGanjiEn = ganjiEn
     vars.daeunGanjiText = getGanjiTransitNarrative(ganji, 'decadal', 'ko')
+    vars.daeunGanjiTextEn = getGanjiTransitNarrative(ganji, 'decadal', 'en')
   }
   if (s.layer === 'yearly') {
-    vars.yearGanji = ganji
+    vars.yearGanji = ganjiKr
+    vars.yearGanjiEn = ganjiEn
     vars.yearGanjiText = getGanjiTransitNarrative(ganji, 'yearly', 'ko')
+    vars.yearGanjiTextEn = getGanjiTransitNarrative(ganji, 'yearly', 'en')
   }
   if (s.layer === 'monthly') {
-    vars.monthGanji = ganji
+    vars.monthGanji = ganjiKr
+    vars.monthGanjiEn = ganjiEn
     vars.monthGanjiText = getGanjiTransitNarrative(ganji, 'monthly', 'ko')
+    vars.monthGanjiTextEn = getGanjiTransitNarrative(ganji, 'monthly', 'en')
   }
 
   const sibsin = s.evidence.sibsin as string | undefined
@@ -463,6 +612,19 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
   const sameKind = allSignals.filter((x) => x.id !== s.id && x.kind === s.kind && x.name === s.name)
   if (sameKind.length > 0 || s.active.start !== s.active.end) {
     vars.duration = `${s.active.start.slice(5, 10)} ~ ${s.active.end.slice(5, 10)}`
+  }
+
+  // Patch 3 (Phase 3) — 신살 단락의 vague "이번 달에 들어 있어요" 를 구체
+  // 날짜로. 같은 shinsal name 이 활성화되는 모든 날짜 (MM-DD) 를 모아 룰
+  // 본문에서 {shinsalDates} 로 호출. 1개일 땐 그 날짜, 여러 개면 ' · ' 로
+  // 묶어 최대 5개까지.
+  if (s.kind === 'shinsal') {
+    const allActive = [s, ...sameKind]
+    const dates = Array.from(new Set(allActive.map((x) => x.active.start.slice(5, 10)))).sort()
+    if (dates.length > 0) {
+      vars.shinsalDates = dates.slice(0, 5).join(' · ')
+      vars.shinsalDatesCount = String(dates.length)
+    }
   }
 
   return vars
@@ -485,15 +647,15 @@ function fillTemplate(template: string, vars: TemplateVars): string {
   })
 }
 
-function sectionTitle(section: string): string {
-  const map: Record<string, string> = {
-    daeun: '대운 흐름',
+function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string {
+  const ko: Record<string, string> = {
+    daeun: '10년 큰 흐름',
     seun: '올해의 운',
     wolun: '이번 달',
-    natal: '본명 컨텍스트',
-    transit: '주요 트랜짓',
-    pattern: '매칭 패턴',
-    shinsal: '신살',
+    natal: '타고난 결',
+    transit: '주요 흐름',
+    pattern: '주요 패턴',
+    shinsal: '행운 별',
     // 5 도메인 통합 헤더 (5테마 1:1)
     'domain-money': '돈·자산',
     'domain-work': '일·커리어',
@@ -501,6 +663,21 @@ function sectionTitle(section: string): string {
     'domain-body': '몸·내면',
     'domain-growth': '자기·성장',
   }
+  const en: Record<string, string> = {
+    daeun: '10-year Arc',
+    seun: 'This Year',
+    wolun: 'This Month',
+    natal: 'Your Chart',
+    transit: 'Active Transits',
+    pattern: 'Patterns',
+    shinsal: 'Lucky Stars',
+    'domain-money': 'Money',
+    'domain-work': 'Work & Career',
+    'domain-relations': 'Relationships',
+    'domain-body': 'Body & Inner Life',
+    'domain-growth': 'Self & Growth',
+  }
+  const map = lang === 'en' ? en : ko
   return map[section] ?? section
 }
 
@@ -527,24 +704,100 @@ const DOMAIN_TITLES: Record<string, string> = {
 
 const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'growth']
 
-// 도메인 안에 룰이 5개까지 쌓이면 narrative 너무 길어지고 "여기에/한편/
-// 추가로/또한" 같은 연결사가 4번씩 반복됨. 사용자 audit 결과 3개가 최적
-// (긍정 1 + 주의 1 + 컨텍스트 1 정도). 잘려나간 룰은 다른 시기에 또
-// 매칭될 기회 있음.
-const MAX_RULES_PER_DOMAIN = 3
+// 도메인 안에 룰이 너무 많이 쌓이면 narrative 가 길어짐. 4개가 균형점 —
+// 긍정 1~2 + 주의 1 + 컨텍스트 1 정도로 풍부하되 안 늘어짐. (v2 에서 도메인
+// 룰 풀을 8→11 로 늘렸으므로 슬롯도 3→4 로 확대해 변별이 실제 표출되게.)
+// fingerprint dedup 이 의미 중복은 따로 잘라내므로 4개여도 같은 말 반복 X.
+const MAX_RULES_PER_DOMAIN = 4
+
+/**
+ * 도메인 안에서 의미 중복을 잡는 fingerprint group.
+ * 같은 group 의 키워드가 후보·이전 본문 양쪽에 있으면 후보는 skip.
+ * lifeReport 의 love.ts moonSignDedup 패턴을 룰 도메인용으로 일반화.
+ *
+ * 예) body 도메인에서 "회복·치유에 우호적..." 룰이 이미 들어왔는데
+ *     "건강·검진에 좋은 시기..." 룰을 또 붙이면 같은 결을 두 번 말함.
+ *     → 두 줄 다 ['회복', '치유', '검진'] group 을 건드리므로 후보 skip.
+ */
+// Fingerprint group 은 *구절* 단위 — 단일 단어("정리", "검진") 만으로 묶지
+// 않음. positive 의미("자산 정리") 와 negative 의미("구조 재정비") 가 한
+// 단어를 공유해도 다른 group 에 속하게 분리. 의미가 진짜 같은 두 룰만
+// dedup 되고, 보완적 룰 (e.g. "회복 우호" + "과로 주의") 은 둘 다 살림.
+//
+// 각 group 안에 한국어 + 영어 구절을 함께 — KO/EN 본문 양쪽에서 dedup
+// 동작 보장. dedup 조건은 "host 와 candidate 가 같은 group 내 *어느* 구절이든
+// 둘 다 포함" 이라 KO 룰 두 개끼리는 KO 키워드로, EN 두 개끼리는 EN 키워드로
+// 매치. KO ↔ EN 교차 매치는 발생 안 함 (애초에 같은 lang 안에서만 호출됨).
+const DOMAIN_THEME_GROUPS: Record<string, string[][]> = {
+  body: [
+    ['회복과 치유', '회복·치유에 우호적', 'recovery and healing', 'favourable to recovery'],
+    ['무리·과로 주의', '과로 주의', 'overwork', 'pushing too hard'],
+    ['수면', '잠', 'sleep'],
+    ['스트레스 누적', '긴장 누적', 'stress', 'tension build-up'],
+  ],
+  money: [
+    ['확장 기회', '큰 흐름의 확장', '확장 기회 강함', 'expansion chances', 'expansion opportunity'],
+    ['진행 지연', '구조 재정비', 'delays', 'restructure', 'reshuffle'],
+    ['투자·자산 정리', '큰 베팅', 'tidying up existing assets', 'big bets'],
+    ['안정적 수입', '꾸준한 수입', 'steady income', 'stable income'],
+  ],
+  work: [
+    ['승진·자리', '공식 자리', 'promotions', 'official positions', 'representative roles'],
+    ['공식 절차·서류 지연', '계약 지연', 'paperwork may stall', 'contract delays'],
+    ['학업·연구', '자격증·전문 분야', 'study, research', 'certifications', 'specialty fields'],
+    ['창의·표현 발의', '발표·발의', 'proposals', 'presentations'],
+  ],
+  relations: [
+    [
+      '인연·만남',
+      '관계 진전이 자연스러운',
+      'connection, meetings',
+      'relationship progress flow naturally',
+    ],
+    ['진척 더딘', '기존 관계 다지기', 'progress is slow', 'deepening the ones you already have'],
+    ['가족·관계 긴장', '부드러운 소통이 필요', 'subtle tension', 'softer communication'],
+  ],
+  growth: [
+    [
+      '창의·표현',
+      '작품·콘텐츠',
+      'creativity and expression',
+      'work, content',
+      'expression, creation',
+    ],
+    ['이동·이직·이사', '여행 환경 변화', 'travel, job switches', 'environment changes'],
+    ['학습·배움 우호적', '배우고 깊이 파고드는', 'favourable for learning', 'going deep'],
+    [
+      '예술·고독의 별',
+      '하늘 지혜의 별',
+      '명상',
+      'art-and-solitude',
+      'heaven-wisdom star',
+      'meditation, religion',
+    ],
+  ],
+}
+
+function fingerprintMatches(text: string, group: string[]): boolean {
+  return group.some((kw) => text.includes(kw))
+}
 
 /**
  * 도메인 안 여러 룰 텍스트를 자연스럽게 한 단락으로.
- * 첫 줄 = 메인 헤드라인, 뒤따르는 룰은 자연 연결사로 이어붙임.
- * 마지막 줄 = 그 도메인이 가장 강한 날짜 top 3 (있을 때만).
+ * - 첫 줄 = 메인 헤드라인
+ * - 뒤따르는 룰은 줄바꿈만으로 이어붙임 (여기에/한편/추가로 연결사 제거 —
+ *   고정 순환이 list-archive 느낌을 만들었음, lifeReport 의
+ *   appendToPara 처럼 줄 자체가 분리자가 되게)
+ * - 후보가 host 와 같은 fingerprint group 을 건드리면 skip
+ * - 마지막 줄 = 그 도메인이 가장 강한 날짜 top 3 (있을 때만)
  * 룰 텍스트의 이모지 + 굵은 헤더는 제거하고 본문만 사용해 같은 톤 유지.
  */
-const CONNECTORS = ['여기에', '한편', '추가로', '또한', '단,']
-
 function mergeDomainTemplates(
   texts: string[],
   topDates: string[] = [],
-  lowDates: string[] = []
+  lowDates: string[] = [],
+  domain: string = '',
+  lang: InterpretationLang = 'ko'
 ): string {
   if (texts.length === 0) return ''
   const cleaned = texts.map((t) => t.trim()).filter(Boolean)
@@ -553,18 +806,34 @@ function mergeDomainTemplates(
     body = cleaned[0]
   } else {
     const [head, ...rest] = cleaned
-    const tail = rest.map((t, i) => {
-      const stripped = t.replace(/^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u, '')
-      const connector = CONNECTORS[i % CONNECTORS.length]
-      return `\n${connector} ${stripped}`
-    })
-    body = head + tail.join('')
+    const accumulated = [head]
+    const groups = DOMAIN_THEME_GROUPS[domain] ?? []
+    for (const candidate of rest) {
+      const stripped = candidate.replace(
+        /^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u,
+        ''
+      )
+      // Patch 3 — fingerprint dedup
+      const hostSoFar = accumulated.join('\n')
+      const duplicates = groups.some(
+        (group) => fingerprintMatches(hostSoFar, group) && fingerprintMatches(stripped, group)
+      )
+      if (duplicates) continue
+      accumulated.push(stripped)
+    }
+    body = accumulated.join('\n')
   }
   if (topDates.length > 0) {
-    body += `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
+    body +=
+      lang === 'en'
+        ? `\n✨ Strong days: ${topDates.join(' · ')}`
+        : `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
   }
   if (lowDates.length > 0) {
-    body += `\n⚠️ 주의 날: ${lowDates.join(' · ')}`
+    body +=
+      lang === 'en'
+        ? `\n⚠️ Take care: ${lowDates.join(' · ')}`
+        : `\n⚠️ 주의 날: ${lowDates.join(' · ')}`
   }
   return body
 }

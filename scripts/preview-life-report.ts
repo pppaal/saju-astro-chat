@@ -1,61 +1,77 @@
 import { runMainSaju } from '../src/lib/saju/main'
+import { calculateNatalChart } from '../src/lib/astrology/foundation/astrologyService'
 import { buildLifeReport } from '../src/lib/fusion/lifeReport'
 
-const saju = runMainSaju({
-  birthDate: '1990-05-15',
-  birthTime: '14:30',
-  gender: 'male',
-  timezone: 'Asia/Seoul',
+interface BirthCase {
+  label: string
+  birthDate: string
+  birthTime: string
+  gender: 'male' | 'female'
+  date: { year: number; month: number; day: number; hour: number; minute: number }
+}
+
+const cases: BirthCase[] = [
+  {
+    label: '1990-01-01 12:00 (대조)',
+    birthDate: '1990-01-01',
+    birthTime: '12:00',
+    gender: 'male',
+    date: { year: 1990, month: 1, day: 1, hour: 12, minute: 0 },
+  },
+  {
+    label: '1985-06-15 18:30 (중년 여)',
+    birthDate: '1985-06-15',
+    birthTime: '18:30',
+    gender: 'female',
+    date: { year: 1985, month: 6, day: 15, hour: 18, minute: 30 },
+  },
+  {
+    label: '2000-12-25 03:00 (밤)',
+    birthDate: '2000-12-25',
+    birthTime: '03:00',
+    gender: 'male',
+    date: { year: 2000, month: 12, day: 25, hour: 3, minute: 0 },
+  },
+]
+
+async function main() {
+  for (const c of cases) {
+    console.log(`\n${'═'.repeat(60)}`)
+    console.log(`  ${c.label}`)
+    console.log(`${'═'.repeat(60)}\n`)
+
+    const saju = runMainSaju({
+      birthDate: c.birthDate,
+      birthTime: c.birthTime,
+      gender: c.gender,
+      timezone: 'Asia/Seoul',
+    })
+
+    const astro = await calculateNatalChart({
+      year: c.date.year,
+      month: c.date.month,
+      date: c.date.day,
+      hour: c.date.hour,
+      minute: c.date.minute,
+      latitude: 37.5665,
+      longitude: 126.978,
+      timeZone: 'Asia/Seoul',
+    })
+
+    const report = buildLifeReport({ saju, astro: astro as never })
+
+    console.log('■ Headline\n')
+    console.log(report.headline.ko)
+    console.log('\n■ Career P1\n')
+    console.log(report.domains.find((d) => d.id === 'career')?.paragraphs[0]?.ko)
+    console.log('\n■ Love P1\n')
+    console.log(report.domains.find((d) => d.id === 'love')?.paragraphs[0]?.ko)
+    console.log('\n■ Karma P2\n')
+    console.log(report.karma.paragraphs[1]?.ko)
+  }
+}
+
+main().catch((e) => {
+  console.error('Error:', e.message)
+  console.error(e.stack)
 })
-
-const astro = {
-  planets: [
-    { name: 'Sun', sign: 'Taurus', house: 10, longitude: 54, degree: 24 },
-    { name: 'Moon', sign: 'Pisces', house: 8, longitude: 350, degree: 20 },
-    { name: 'Mercury', sign: 'Gemini', house: 11, longitude: 75, degree: 15 },
-    { name: 'Venus', sign: 'Aries', house: 9, longitude: 15, degree: 15 },
-    { name: 'Mars', sign: 'Aquarius', house: 7, longitude: 320, degree: 20 },
-    { name: 'Jupiter', sign: 'Cancer', house: 12, longitude: 95, degree: 5 },
-    { name: 'Saturn', sign: 'Capricorn', house: 6, longitude: 285, degree: 15 },
-    { name: 'Uranus', sign: 'Capricorn', house: 6, longitude: 278, degree: 8 },
-    { name: 'Neptune', sign: 'Capricorn', house: 6, longitude: 284, degree: 14 },
-    { name: 'Pluto', sign: 'Scorpio', house: 4, longitude: 226, degree: 16 },
-    { name: 'True Node', sign: 'Aquarius', house: 7, longitude: 315, degree: 15 },
-  ] as never,
-  ascendant: { sign: 'Leo', degree: 15, longitude: 135 } as never,
-  mc: { sign: 'Taurus', degree: 24, longitude: 54 } as never,
-  houses: [
-    { index: 1, sign: 'Leo', cusp: 135 }, { index: 2, sign: 'Virgo', cusp: 165 },
-    { index: 3, sign: 'Libra', cusp: 195 }, { index: 4, sign: 'Scorpio', cusp: 225 },
-    { index: 5, sign: 'Sagittarius', cusp: 255 }, { index: 6, sign: 'Capricorn', cusp: 285 },
-    { index: 7, sign: 'Aquarius', cusp: 315 }, { index: 8, sign: 'Pisces', cusp: 345 },
-    { index: 9, sign: 'Aries', cusp: 15 }, { index: 10, sign: 'Taurus', cusp: 45 },
-    { index: 11, sign: 'Gemini', cusp: 75 }, { index: 12, sign: 'Cancer', cusp: 105 },
-  ] as never,
-}
-
-const report = buildLifeReport({ saju, astro: astro as never })
-
-// ── Print summary stats first
-console.log('Generator:', report.generator)
-console.log('Headline (ko):', report.headline.ko)
-console.log('Decisive timing paragraphs:', report.decisiveTiming.paragraphs.length)
-console.log('Karma paragraphs:', report.karma.paragraphs.length)
-console.log('Domain count:', report.domains.length)
-console.log('Domain ids:', report.domains.map((d) => d.id).join(', '))
-console.log('')
-
-// ── Print each domain header + first paragraph
-for (const domain of report.domains) {
-  const headerKo = domain.title.ko
-  const firstKo = domain.paragraphs[0]?.ko ?? ''
-  console.log(`── ${domain.id.toUpperCase()} — ${headerKo} (${domain.paragraphs.length} paragraphs) ──`)
-  console.log(firstKo.slice(0, 280))
-  console.log('Signals — saju:', domain.signals.saju.length, '| astro:', domain.signals.astro.length, '| fusion:', domain.signals.fusion.length)
-  console.log('')
-}
-
-// ── Print full report JSON last (useful for piping/inspection)
-if (process.argv.includes('--json')) {
-  console.log(JSON.stringify(report, null, 2))
-}

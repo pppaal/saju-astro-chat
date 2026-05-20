@@ -1,9 +1,9 @@
 // src/lib/fusion/lifeReport/sections/domains/spirituality.ts
 // Spirituality / 영성·내면 deterministic narrative builder.
 // Uses:
-//   • 사주: 공망, 화개, iljuDeep, 인성
-//   • 점성: 12집(내면·비밀), 해왕성, draconic Sun, 출생 일/월식, lilith,
-//          harmonics 7, 12집 행성
+// • 사주: 공망, 화개, iljuDeep, 인성
+// • 점성: 12집(내면·비밀), 해왕성, draconic Sun, 출생 일/월식, lilith,
+// harmonics 7, 12집 행성
 
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
 import {
@@ -14,8 +14,9 @@ import {
   relationPhraseKo,
 } from '../../signals/sajuSignals'
 import { chiron, getPlanet, houseCusp, planetsInHouse, vesta } from '../../signals/astroSignals'
-import { houseLabel, paragraph, planetLabel, signLabel } from '../../templates/sentences'
-import { asteroidHouseLine } from '../../pools'
+import { houseLabel, iGa, paragraph, planetLabel, signLabel } from '../../templates/sentences'
+import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
+import type { ZodiacName } from '@/lib/astrology/interpretations'
 
 export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const { saju, astro, calendarSignals } = input
@@ -43,7 +44,9 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   // ── Astro
   const neptune = getPlanet(astro, 'Neptune')
   const moon = getPlanet(astro, 'Moon')
+  const pluto = getPlanet(astro, 'Pluto')
   if (neptune) astroUsed.push('planets.neptune')
+  if (pluto) astroUsed.push('planets.pluto')
   const lilith = astro.lilith
   if (lilith) astroUsed.push('lilith')
   const ch = chiron(astro)
@@ -79,18 +82,18 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
         ? `내면 영역은 ${signLabel(twelfthCusp.sign, 'ko')}의 분위기로 열려, ${twelfthSignFlavorKo(twelfthCusp.sign)} 방식의 내면 작업이 잘 맞아요.`
         : '',
     neptune
-      ? `해왕성이 ${signLabel(neptune.sign, 'ko')}${neptune.house ? `의 ${houseLabel(neptune.house, 'ko')}` : ''}에 있어, 경계가 흐려지는 자리에서 영적 흐름이 풀려요.`
+      ? `해왕성이 ${signLabel(neptune.sign, 'ko')}${neptune.house ? `의 ${houseLabel(neptune.house, 'ko')}` : ''}에 있어, 현실과 꿈의 경계가 옅어지는 자리에서 영적 흐름이 풀려요.`
       : '',
   ])
   const p1en = paragraph([
     openerE,
     twelfth.length > 0
-      ? `${twelfth.map((p) => p.name).join(', ')} in the 12th — solitude becomes the channel of spirit.`
+      ? `With ${twelfth.map((p) => p.name).join(', ')} in the 12th, solitude becomes your channel to the spiritual.`
       : twelfthCusp?.sign
         ? `Your 12th-house cusp in ${signLabel(twelfthCusp.sign, 'en')} favours inner work that is ${twelfthSignFlavorEn(twelfthCusp.sign)}.`
         : '',
     neptune
-      ? `Neptune in ${signLabel(neptune.sign, 'en')}${neptune.house ? ` (${houseLabel(neptune.house, 'en')})` : ''} dissolves the boundary where spirit unfolds.`
+      ? `Neptune in ${signLabel(neptune.sign, 'en')}${neptune.house ? ` (${houseLabel(neptune.house, 'en')})` : ''} softens the boundary so the spiritual current can flow.`
       : '',
   ])
 
@@ -102,7 +105,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `삶의 ${gongmang.join('·')} 영역에 '비어 있는 자리'(${gongmangBranches.join('·')})가 있어요. 이 빈 자리가 의외로 영적인 출구가 돼요 — 채울 수 없는 것이 가장 깊은 사유를 만들어요.`
     )
     p2piecesEn.push(
-      `Your gongmang (${gongmangBranches.join('·')}) leaves a permanent gap in ${gongmang.join(' / ')} — this very unfillable space becomes a spiritual exit.`
+      'There is an empty space in your chart that no outer thing can quite fill — and that very gap turns out to be one of the deepest doorways into your spiritual life.'
     )
   }
   if (hwagae) {
@@ -110,25 +113,26 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       '예술·고독의 별이 들어와 있어, 종교·예술·치유 어느 길로 가도 깊이 들어가는 성향이 강해요.'
     )
     p2piecesEn.push(
-      '화개 (art-solitude star) sits in your saju — religion, art and healing all open deep paths.'
+      'A star of art-and-solitude sits in your chart — whether you turn toward religion, art, or healing, each of these paths opens deeply for you.'
     )
   }
   if (iljuName) {
-    const short = (iljuChar || '')
+    // iljuChar 의 raw 값에 한자가 있으면 한국어 음으로 변환 (P 안에 한자 노출 X).
+    const short = humanizeIljuCharSpirit(iljuChar || '')
       .split(/[.,。，]/)[0]
       .trim()
       .slice(0, 40)
     if (short) {
       p2pieces.push(`타고난 성향을 한 마디로 풀면 '${short}'이고, 이것이 영적 사유의 출발점이에요.`)
       p2piecesEn.push(
-        `Your ilju (${iljuName}) carries '${short}' as its core note — the starting point for spiritual reflection.`
+        `Your day-pillar archetype (${iljuLabelEnSpirit(iljuName)}) sets the keynote — this is where your spiritual reflection naturally begins.`
       )
     }
   }
   if (inseong >= 2) {
     p2pieces.push('지혜와 돌봄의 자질이 강해서, 가르침을 받아 전하는 흐름이 영성의 뼈대가 돼요.')
     p2piecesEn.push(
-      'A strong 인성 line frames spirituality as receiving teaching and passing it on.'
+      'A strong wisdom-and-care pattern shapes your spiritual life around receiving teaching and passing it on to others.'
     )
   }
   const p2ko = paragraph(
@@ -142,61 +146,61 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     p2piecesEn.length
       ? p2piecesEn
       : [
-          'Your spiritual grain is evenly distributed — small daily rituals like meditation and prayer work best.',
+          'Your spiritual signals sit in an even balance — small daily rituals like meditation and prayer tend to work best for you.',
         ]
   )
 
-  // ── P3: 영혼의 결 (draconic + harmonics 7 + lilith + eclipse)
+  // ── P3: 영혼 (draconic + harmonics 7 + lilith + eclipse)
   const p3pieces: string[] = []
   const p3piecesEn: string[] = []
 
-  // Vesta × house — 헌신·신성 소행성 (destiny-matrix layer9 활용)
+  // 헌신의 별 베스타(Vesta) — 신성·집중의 결을 DB 사전 한 문장으로.
   const ves = vesta(astro)
-  if (ves) {
-    astroUsed.push('asteroids.vesta')
-    const vesCrossKo = asteroidHouseLine('Vesta', ves.house, 'ko')
-    const vesCrossEn = asteroidHouseLine('Vesta', ves.house, 'en')
-    if (vesCrossKo) {
-      astroUsed.push('pools.asteroid.vesta.house')
-      p3pieces.push(vesCrossKo)
-      p3piecesEn.push(vesCrossEn)
+  if (ves?.sign) {
+    const vesEntry = findAsteroidEntry('Vesta', ves.sign as ZodiacName)
+    if (vesEntry) {
+      astroUsed.push('asteroidDictionary.vesta')
+      p3pieces.push(firstSentenceSpirit(vesEntry.ko))
+      p3piecesEn.push(firstSentenceSpirit(vesEntry.en))
     }
   }
   if (dra?.sunSign) {
     p3pieces.push(
-      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 색을 입고 왔어요.`
+      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 모습으로 왔어요.`
     )
     p3piecesEn.push(
-      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} suggests the soul arrived wearing ${signSoulEn(dra.sunSign)}.`
+      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} suggests your soul arrived in this life already carrying ${signSoulEn(dra.sunSign)}.`
     )
   }
   if (dra?.archetype) {
-    p3pieces.push(`전생에서 들고 온 정체성은 '${dra.archetype}' 쪽 색이에요.`)
-    p3piecesEn.push(`The soul-identity you carried in resembles: "${dra.archetype}".`)
+    p3pieces.push(`전생에서 들고 온 정체성은 '${dra.archetype}' 쪽 분위기예요.`)
+    // dra.archetype은 한국어 텍스트 → 영어 narrative에는 노출하지 않음.
   }
   if (h7 && h7.strength >= 40) {
     p3pieces.push(
       '영적 친밀감이 차트 안에서 강하게 울려요. 신비적 체험·직관·꿈이 자주 일상에 들어와요.'
     )
     p3piecesEn.push(
-      'Harmonics 7 resonates strongly — mystical experience, intuition and dreams enter daily life often.'
+      'The 7th harmonic resonates strongly in your chart — mystical experience, intuition, and dreams enter your daily life often.'
     )
   } else if (h7) {
     p3pieces.push('영적 친밀감이 잔잔히 깔려 있어요. 깊은 침묵의 시간을 두면 자연스럽게 깨어나요.')
-    p3piecesEn.push('Harmonics 7 sits quietly — extended silence will awaken it naturally.')
+    p3piecesEn.push(
+      'The 7th harmonic runs quietly beneath the surface — long stretches of silence are what will awaken it most naturally.'
+    )
   }
   if (lilith) {
     p3pieces.push(
       `${signLabel(lilith.sign, 'ko')}의 색으로 사회적 기대 밖의 내면이 자리잡고 있어, 이 어두운 자질을 인정할 때 진짜 힘이 풀려요.`
     )
     p3piecesEn.push(
-      `Lilith in ${signLabel(lilith.sign, 'en')} — acknowledging the part of yourself outside social approval unlocks real force.`
+      `With Lilith in ${signLabel(lilith.sign, 'en')}, real power becomes available to you when you can acknowledge the parts of yourself that live outside social approval.`
     )
   }
   if (nearestEclipse?.date) {
-    p3pieces.push('출생 가까이 일식의 흔적이 있어, 결정적 순간에 평소와 다른 영적 직관이 작동해요.')
+    p3pieces.push('출생 가까가 일식의 흔적이 있어, 결정적 순간에 평소와 다른 영적 직관이 작동해요.')
     p3piecesEn.push(
-      'A solar eclipse sits near your birth — at decisive moments an unusual spiritual intuition activates.'
+      'A solar eclipse falls close to your birth — at decisive moments, an unusually strong spiritual intuition tends to wake up in you.'
     )
   }
   if (ch) {
@@ -204,7 +208,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `상처와 치유의 색이 ${signLabel(ch.sign, 'ko')}의 톤으로 자리잡고 있어, 자신의 상처를 다루는 과정 자체가 영적 작업이 돼요.`
     )
     p3piecesEn.push(
-      `Chiron in ${signLabel(ch.sign, 'en')} — working with your own wound is itself the spiritual practice.`
+      `With Chiron in ${signLabel(ch.sign, 'en')}, working with your own wound becomes itself the spiritual practice.`
     )
   }
   // Saju relations — 해(misalignment) often opens the most spiritual material;
@@ -221,7 +225,9 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     sajuUsed.push('calendarSignals.sajuRelations')
     p3pieces.push(`${relKoSpirit} 그 어긋남이 영적 사유의 출발점이 돼요.`)
     if (relEnSpirit)
-      p3piecesEn.push(`${relEnSpirit} That misfit becomes the start of spiritual reflection.`)
+      p3piecesEn.push(
+        `${relEnSpirit} That very misalignment becomes the starting point for spiritual reflection.`
+      )
   }
   // Part of Spirit (다이몬) — even when Spirit is already used elsewhere,
   // surface it here as the soul-callout for the spirituality domain.
@@ -232,10 +238,10 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `영혼·다이몬의 점이 ${signLabel(spiritLot.sign, 'ko')}에 놓여, 진짜 부름이 어느 방향으로 와 있는지 알려줘요.`
     )
     p3piecesEn.push(
-      `Your Lot of Spirit / Daimon in ${signLabel(spiritLot.sign, 'en')} marks the direction your true vocation calls from.`
+      `Your Lot of Spirit, sometimes called the Daimon, sits in ${signLabel(spiritLot.sign, 'en')} — and it marks the direction from which your true calling speaks.`
     )
   }
-  // Part of Captivity — 속박의 결 → 영적 매듭으로 풀어 해석
+  // Part of Captivity — 속박 → 영적 매듭으로 풀어 해석
   const captivity = calendarSignals?.arabicPartsExtra?.Captivity
   if (captivity) {
     fusionUsed.push('calendarSignals.arabicPartsExtra.Captivity')
@@ -243,7 +249,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `속박의 점이 ${signLabel(captivity.sign, 'ko')}에 머물러, 풀어야 할 영적 매듭이 그 자리에 한 번 모여 있어요.`
     )
     p3piecesEn.push(
-      `Your Lot of Captivity in ${signLabel(captivity.sign, 'en')} — the spiritual knot to untie gathers in that seat.`
+      `Your Lot of Captivity sits in ${signLabel(captivity.sign, 'en')} — that is the place where the spiritual knot you came here to untie tends to gather.`
     )
   }
   const p3ko = paragraph(
@@ -257,7 +263,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     p3piecesEn.length
       ? p3piecesEn
       : [
-          'Current signals sit in a calm array — rather than one religion or method, slowly dissolving spirit into daily life fits best.',
+          'Your current signals sit in a calm arrangement — rather than one religion or one method, what fits you best is slowly letting spirit dissolve into the texture of daily life.',
         ]
   )
 
@@ -269,26 +275,28 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       '하루에 한 번은 혼자 있는 시간을 일정에 박아두세요. 12집의 행성이 거기서 풀려요.'
     )
     guidePiecesEn.push(
-      'Hard-schedule one solitary block each day — your 12th-house planets release there.'
+      'Put one solitary block on your calendar each day and keep it — your 12th-house planets unwind in that quiet space.'
     )
   } else if (hwagae) {
     guidePiecesKo.push(
       '한 가지 영적 실천(명상·필사·기도·산책)을 의식적으로 반복하세요. 화개의 자질이 의식 안에서 익어요.'
     )
     guidePiecesEn.push(
-      'Repeat one spiritual practice (meditation, copying, prayer, walking) deliberately — 화개 matures inside ritual.'
+      'Choose one spiritual practice — meditation, copying texts by hand, prayer, or walking — and repeat it deliberately, because this art-and-solitude streak ripens inside steady ritual.'
     )
   } else {
     guidePiecesKo.push(
       '일상에서 잠시 멈추는 의식 하나를 만들어보세요. 큰 행위보다 작은 의식이 영성을 안정시켜요.'
     )
     guidePiecesEn.push(
-      'Build one small pause-ritual into your day — small rituals settle spirit more than grand acts.'
+      'Build one small pause-ritual into your day — small rituals settle the spirit more reliably than grand gestures do.'
     )
   }
   if (zr) {
+    const zrRulerKo = planetLabel(zr.ruler, 'ko')
+    const zrFlavorKo = zrSignFlavorKo(zr.sign)
     guidePiecesKo.push(
-      `지금은 ${signLabel(zr.sign, 'ko')}의 톤으로 ${planetLabel(zr.ruler, 'ko')}이 다스리는 인생 챕터에 있어요. ${zrSignFlavorKo(zr.sign)}이 영적 흐름의 큰 주제예요.`
+      `지금은 ${signLabel(zr.sign, 'ko')}의 톤으로 ${zrRulerKo}${iGa(zrRulerKo)} 다스리는 인생 챕터에 있어요. ${zrFlavorKo}${iGa(zrFlavorKo)} 영적 흐름의 큰 주제예요.`
     )
     guidePiecesEn.push(
       `You are currently in a ${signLabel(zr.sign, 'en')} chapter ruled by ${zr.ruler} — ${zrSignFlavorEn(zr.sign)} forms the broad spiritual theme.`
@@ -426,6 +434,89 @@ function signSoulEn(sign: string): string {
   return SIGN_SOUL_EN[sign] ?? 'a native soul-grain'
 }
 
+// 60갑자 일주 (hanja) → natural English label (spirituality 섹션 전용).
+const SPIRIT_STEM_EN: Record<string, string> = {
+  甲: 'Yang Wood',
+  乙: 'Yin Wood',
+  丙: 'Yang Fire',
+  丁: 'Yin Fire',
+  戊: 'Yang Earth',
+  己: 'Yin Earth',
+  庚: 'Yang Metal',
+  辛: 'Yin Metal',
+  壬: 'Yang Water',
+  癸: 'Yin Water',
+}
+const SPIRIT_BRANCH_EN: Record<string, string> = {
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
+}
+function iljuLabelEnSpirit(ilju: string | undefined): string {
+  if (!ilju) return 'native day-pillar'
+  const chars = Array.from(ilju)
+  if (chars.length < 2) return 'native day-pillar'
+  const stem = SPIRIT_STEM_EN[chars[0]] ?? ''
+  const branch = SPIRIT_BRANCH_EN[chars[1]] ?? ''
+  if (stem && branch) return `${stem} ${branch}`
+  if (stem) return stem
+  if (branch) return branch
+  return 'native day-pillar'
+}
+
+// raw iljuCharacter ("辛 일간의 未 지지 조합") 를 한국어 음으로 변환.
+// 한자가 없는 경우 그대로 반환.
+const HUMANIZE_STEM_KO_SPIRIT: Record<string, string> = {
+  甲: '갑목',
+  乙: '을목',
+  丙: '병화',
+  丁: '정화',
+  戊: '무토',
+  己: '기토',
+  庚: '경금',
+  辛: '신금',
+  壬: '임수',
+  癸: '계수',
+}
+const HUMANIZE_BRANCH_KO_SPIRIT: Record<string, string> = {
+  子: '자수',
+  丑: '축토',
+  寅: '인목',
+  卯: '묘목',
+  辰: '진토',
+  巳: '사화',
+  午: '오화',
+  未: '미토',
+  申: '신금',
+  酉: '유금',
+  戌: '술토',
+  亥: '해수',
+}
+function humanizeIljuCharSpirit(raw: string): string {
+  if (!raw) return ''
+  const m = raw.match(
+    /^([甲乙丙丁戊己庚辛壬癸])\s*일간의\s*([子丑寅卯辰巳午未申酉戌亥])\s*지지\s*조합$/
+  )
+  if (m) {
+    const stem = HUMANIZE_STEM_KO_SPIRIT[m[1]] ?? m[1]
+    const branch = HUMANIZE_BRANCH_KO_SPIRIT[m[2]] ?? m[2]
+    return `${stem}과 ${branch}의 만남`
+  }
+  let out = raw
+  for (const [k, v] of Object.entries(HUMANIZE_STEM_KO_SPIRIT)) out = out.split(k).join(v)
+  for (const [k, v] of Object.entries(HUMANIZE_BRANCH_KO_SPIRIT)) out = out.split(k).join(v)
+  return out
+}
+
 const ZR_SIGN_KO: Record<string, string> = {
   Aries: '시작과 자기 발견',
   Taurus: '안정과 뿌리내림',
@@ -459,4 +550,11 @@ function zrSignFlavorKo(sign: string): string {
 }
 function zrSignFlavorEn(sign: string): string {
   return ZR_SIGN_EN[sign] ?? 'its native grain'
+}
+
+// DB 텍스트(2-3문장)에서 첫 문장만 추출 — 섹션 절제를 위해 1문장으로 한정.
+function firstSentenceSpirit(text: string): string {
+  const trimmed = text.trim()
+  const m = trimmed.match(/^[^.!?]*[.!?]/)
+  return (m ? m[0] : trimmed).trim()
 }

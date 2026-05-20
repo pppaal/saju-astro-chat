@@ -69,6 +69,7 @@ const FreeReport = memo(function FreeReport({
   astro,
   lang = 'ko',
   className = '',
+  birthInfo,
   fusionFragments,
 }: Props) {
   const isKo = lang === 'ko'
@@ -76,8 +77,26 @@ const FreeReport = memo(function FreeReport({
   const report = useMemo<LifeReport | null>(() => {
     if (!saju || !astro) return null
     try {
+      // API 응답의 saju 는 직렬화 과정에서 `input`(생년월일·성별 등)을 잃는다.
+      // 빌더가 saju.input 을 읽으므로(타이밍·성별별 연애 등), birthInfo 로
+      // input 을 복원해 넣는다. 누락 시 빌더가 throw → 리포트 전체가 비는 걸 방지.
+      const s = saju as Record<string, unknown>
+      let sajuForBuild = saju
+      if (!s.input) {
+        const [y, m, d] = (birthInfo?.birthDate ?? '').split('-').map((n: string) => Number(n))
+        sajuForBuild = {
+          ...s,
+          input: {
+            birthDate: birthInfo?.birthDate,
+            birthTime: birthInfo?.birthTime,
+            gender: birthInfo?.gender,
+            timezone: birthInfo?.timezone,
+            ...(Number.isFinite(y) ? { year: y, month: m, date: d } : {}),
+          },
+        } as SajuData
+      }
       const built = buildLifeReport({
-        saju: saju as never,
+        saju: sajuForBuild as never,
         astro: astro as never,
         fusion: (fusionFragments ?? undefined) as never,
       })
@@ -85,7 +104,7 @@ const FreeReport = memo(function FreeReport({
     } catch {
       return null
     }
-  }, [saju, astro, fusionFragments])
+  }, [saju, astro, fusionFragments, birthInfo])
 
   if (!report) return null
 

@@ -14,6 +14,7 @@ import {
   checkAndConsumeCredits,
   creditErrorResponse,
 } from '@/lib/credits/withCredits'
+import { refundCredits } from '@/lib/credits/creditRefund'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { callClaude, isClaudeAvailable } from '@/lib/llm/claude'
@@ -41,6 +42,32 @@ const followupRequestSchema = z.object({
   question: z.string().min(1).max(600),
   language: z.enum(['ko', 'en']).default('ko'),
 })
+
+// 차감 후 LLM 호출이 실패해서 사용자가 의미있는 답변을 받지 못한 경우 호출.
+// 로그인 사용자만 환불 (guest 는 cookie 카운터라 후속에서 별도 정책 필요).
+async function refundOnLlmFailure(
+  creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null,
+  reason: string,
+  errorMessage?: string
+) {
+  if (!creditResult?.userId || !creditResult.chargedAs) return
+  try {
+    await refundCredits({
+      userId: creditResult.userId,
+      creditType: creditResult.chargedAs,
+      amount: 1,
+      reason,
+      apiRoute: '/api/tarot/followup',
+      errorMessage,
+    })
+  } catch (refundErr) {
+    logger.error('[followup] refund failed', {
+      refundErr: refundErr instanceof Error ? refundErr.message : String(refundErr),
+      reason,
+      userId: creditResult.userId,
+    })
+  }
+}
 
 export const POST = withApiMiddleware(
   async (req: NextRequest) => {
@@ -115,6 +142,7 @@ ${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
         : `# Follow-up question\n${question}\n\n# Answer`
 
       if (!isClaudeAvailable()) {
+        await refundOnLlmFailure(creditResult, 'tarot_llm_unavailable', 'ANTHROPIC_API_KEY missing')
         return NextResponse.json(
           { error: 'llm_unavailable' },
           { status: HTTP_STATUS.SERVICE_UNAVAILABLE }
@@ -135,6 +163,15 @@ ${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
       const response = NextResponse.json({ answer: result.text.trim() })
       return applyCreditResultCookies(response, creditResult)
     } catch (err: unknown) {
+      // 차감 *후* 발생한 모든 실패 (LLM 호출 throw 포함) 에서 환불.
+      // creditResult 가 null 이면 아직 차감 전이라 환불 대상 아님.
+      if (creditResult) {
+        await refundOnLlmFailure(
+          creditResult,
+          'tarot_followup_error',
+          err instanceof Error ? err.message : String(err)
+        )
+      }
       captureServerError(err as Error, { route: '/api/tarot/followup' })
       logger.error('Tarot followup error:', err)
       return NextResponse.json(

@@ -7,31 +7,11 @@ import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
 import styles from './pricing.module.css'
 import {
-  PLANS,
   CREDIT_PACKS,
   BASE_CREDIT_PRICE_KRW,
-  YEARLY_DISCOUNT_PERCENT,
-  YEARLY_DISCOUNT_MULTIPLIER,
-  type PlanType,
   type CreditPackType,
 } from '@/lib/config/pricing'
 import { fetchWithRetry } from '@/lib/http'
-
-interface PlanFeature {
-  textKey: string
-  included: boolean
-}
-
-interface PlanDisplay {
-  id: string
-  nameKey: string
-  price: number
-  priceEn: number
-  readings: number
-  features: PlanFeature[]
-  popular?: boolean
-  gradient: string
-}
 
 interface CreditPackDisplay {
   id: CreditPackType
@@ -39,73 +19,9 @@ interface CreditPackDisplay {
   price: number
   priceEn: number
   readings: number
-  gradient: string
   popular?: boolean
 }
 
-// Plan display configuration derived from centralized pricing config
-const PLAN_GRADIENTS: Record<PlanType, string> = {
-  free: 'linear-gradient(135deg, #3a3f5c 0%, #2a2f4c 100%)',
-  starter: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-  pro: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  premium: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-}
-
-const PLAN_FEATURES: Record<PlanType, PlanFeature[]> = {
-  free: [
-    { textKey: 'aiChat7', included: true },
-    { textKey: 'calendarThisMonth', included: true },
-    { textKey: 'personalityFree', included: true },
-    { textKey: 'compatibility2', included: false },
-    { textKey: 'premiumReports', included: false },
-  ],
-  starter: [
-    { textKey: 'aiChat25', included: true },
-    { textKey: 'compatibility2', included: true },
-    { textKey: 'calendar3months', included: true },
-    { textKey: 'tarotUnlimited', included: true },
-    { textKey: 'adFree', included: true },
-  ],
-  pro: [
-    { textKey: 'aiChat80', included: true },
-    { textKey: 'compatibility5', included: true },
-    { textKey: 'calendar1year', included: true },
-    { textKey: 'tarotUnlimited', included: true },
-    { textKey: 'premiumReports', included: true },
-  ],
-  premium: [
-    { textKey: 'aiChat200', included: true },
-    { textKey: 'compatibility10', included: true },
-    { textKey: 'calendar2years', included: true },
-    { textKey: 'premiumReports', included: true },
-    { textKey: 'prioritySupport', included: true },
-  ],
-}
-
-// Build plans array from centralized config
-const plans: PlanDisplay[] = (['free', 'starter', 'pro', 'premium'] as PlanType[]).map(
-  (planId) => ({
-    id: planId,
-    nameKey: planId,
-    price: PLANS[planId].pricing.monthly.krw,
-    priceEn: PLANS[planId].pricing.monthly.usd,
-    readings: PLANS[planId].config.monthlyCredits,
-    features: PLAN_FEATURES[planId],
-    popular: planId === 'pro',
-    gradient: PLAN_GRADIENTS[planId],
-  })
-)
-
-// Credit pack display configuration
-const CREDIT_PACK_GRADIENTS: Record<CreditPackType, string> = {
-  mini: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-  standard: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-  plus: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-  mega: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  ultimate: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-}
-
-// Build credit packs array from centralized config
 const creditPacks: CreditPackDisplay[] = (
   ['mini', 'standard', 'plus', 'mega', 'ultimate'] as CreditPackType[]
 ).map((packId) => ({
@@ -114,7 +30,6 @@ const creditPacks: CreditPackDisplay[] = (
   price: CREDIT_PACKS[packId].pricing.krw,
   priceEn: CREDIT_PACKS[packId].pricing.usd,
   readings: CREDIT_PACKS[packId].credits,
-  gradient: CREDIT_PACK_GRADIENTS[packId],
   popular: CREDIT_PACKS[packId].popular,
 }))
 
@@ -125,19 +40,10 @@ const PRICING_FALLBACKS: Record<string, string> = {
   paymentError: 'Payment service temporarily unavailable',
 }
 const SSR_PRICING_KEYS = [
-  'free',
-  'perYear',
-  'perMonth',
   'paymentError',
   'eyebrow',
   'heroTitle',
   'heroSub',
-  'monthly',
-  'yearly',
-  'mostPopular',
-  'readingsPerMonth',
-  'getStarted',
-  'subscribe',
   'creditPacks',
   'creditPacksDesc',
   'bestValue',
@@ -149,8 +55,8 @@ const SSR_PRICING_KEYS = [
   'oneReadingDesc',
   'freeFeature',
   'freeFeatureDesc',
-  'monthlyReset',
-  'monthlyResetDesc',
+  'validity',
+  'validityDesc',
   'faq',
   'faqs.q1',
   'faqs.a1',
@@ -168,22 +74,6 @@ const SSR_PRICING_KEYS = [
   'ctaSub',
   'startFree',
   'learnMore',
-  'features.aiChat7',
-  'features.calendarThisMonth',
-  'features.personalityFree',
-  'features.calendar3months',
-  'features.adFree',
-  'features.aiChat25',
-  'features.calendar1year',
-  'features.aiChat80',
-  'features.calendar2years',
-  'features.aiChat200',
-  'features.prioritySupport',
-  'features.compatibility2',
-  'features.compatibility5',
-  'features.compatibility10',
-  'features.tarotUnlimited',
-  'features.premiumReports',
 ] as const
 const SSR_PRICING_INDEX: Record<string, number> = SSR_PRICING_KEYS.reduce(
   (acc, key, idx) => {
@@ -204,35 +94,28 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = activeLocale || initialLocale
   const isKo = locale === 'ko'
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [loadingCredit, setLoadingCredit] = useState<string | null>(null)
   const baseCreditPriceUsd = CREDIT_PACKS.mini.perCreditUsd
 
-  // 결제 후 돌아갈 URL 저장 (referrer 또는 이전에 저장된 값 유지)
   useEffect(() => {
     if (typeof window === 'undefined') {
       return
     }
 
-    // 이미 저장된 returnUrl이 있으면 유지
     const existingReturnUrl = localStorage.getItem('checkout_return_url')
     if (existingReturnUrl) {
       return
     }
 
-    // referrer에서 같은 도메인의 경로 추출
     try {
       const referrer = document.referrer
       if (referrer) {
         const referrerUrl = new URL(referrer)
         const currentHost = window.location.host
 
-        // 같은 도메인에서 온 경우에만 저장
         if (referrerUrl.host === currentHost) {
           const path = referrerUrl.pathname
-          // pricing, success, auth 페이지 제외
           if (path !== '/pricing' && path !== '/success' && !path.startsWith('/auth')) {
             localStorage.setItem('checkout_return_url', path)
           }
@@ -272,76 +155,8 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
     [activeLocale, hydrated, initialCopy, initialLocale, t]
   )
 
-  const getFeatureText = useCallback(
-    (textKey: string) => {
-      return pt(`features.${textKey}`)
-    },
-    [pt]
-  )
-
   const formatKrw = (value: number) => `₩${value.toLocaleString('ko-KR')}`
   const formatUsd = (value: number) => `$${value.toFixed(2)}`
-
-  const formatPrice = (price: number, priceEn: number) => {
-    if (price === 0) {
-      return pt('free')
-    }
-    if (isKo) {
-      if (billingCycle === 'yearly') {
-        const yearly = Math.floor(price * YEARLY_DISCOUNT_MULTIPLIER)
-        return formatKrw(yearly)
-      }
-      return formatKrw(price)
-    }
-    if (billingCycle === 'yearly') {
-      const yearly = Math.floor(priceEn * YEARLY_DISCOUNT_MULTIPLIER * 100) / 100
-      return formatUsd(yearly)
-    }
-    return formatUsd(priceEn)
-  }
-
-  const getPeriod = () => {
-    if (billingCycle === 'yearly') {
-      return pt('perYear')
-    }
-    return pt('perMonth')
-  }
-
-  async function handleSelectPlan(planId: string) {
-    if (planId === 'free') {
-      window.location.href = '/destiny-map'
-      return
-    }
-
-    setLoadingPlan(planId)
-    try {
-      const res = await fetchWithRetry(
-        '/api/checkout',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            plan: planId,
-            billingCycle: billingCycle === 'yearly' ? 'yearly' : 'monthly',
-          }),
-        },
-        {
-          maxRetries: 2,
-          timeoutMs: 15000,
-        }
-      )
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        alert(data.error || pt('paymentError'))
-      }
-    } catch {
-      alert(pt('paymentError'))
-    } finally {
-      setLoadingPlan(null)
-    }
-  }
 
   async function handleBuyCredit(packId: string) {
     setLoadingCredit(packId)
@@ -385,83 +200,6 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           <p className={styles.eyebrow}>{pt('eyebrow')}</p>
           <h1 className={styles.mainTitle}>{pt('heroTitle')}</h1>
           <p className={styles.mainSubtitle}>{pt('heroSub')}</p>
-
-          {/* Billing Toggle */}
-          <div className={styles.billingToggle}>
-            <button
-              className={`${styles.toggleBtn} ${billingCycle === 'monthly' ? styles.active : ''}`}
-              onClick={() => setBillingCycle('monthly')}
-              type="button"
-              aria-pressed={billingCycle === 'monthly'}
-            >
-              {pt('monthly')}
-            </button>
-            <button
-              className={`${styles.toggleBtn} ${billingCycle === 'yearly' ? styles.active : ''}`}
-              onClick={() => setBillingCycle('yearly')}
-              type="button"
-              aria-pressed={billingCycle === 'yearly'}
-            >
-              {pt('yearly')}
-              <span className={styles.discount}>-{YEARLY_DISCOUNT_PERCENT}%</span>
-            </button>
-          </div>
-        </section>
-
-        {/* Pricing Cards */}
-        <section className={styles.pricingSection}>
-          <div className={styles.pricingGrid}>
-            {plans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`${styles.planCard} ${plan.popular ? styles.popular : ''}`}
-              >
-                {plan.popular && <div className={styles.popularBadge}>{pt('mostPopular')}</div>}
-                <div className={styles.cardHeader} style={{ background: plan.gradient }}>
-                  <h3 className={styles.planName}>{pt(`plans.${plan.nameKey}`)}</h3>
-                  <div className={styles.planPrice}>
-                    <span className={styles.price}>{formatPrice(plan.price, plan.priceEn)}</span>
-                    {plan.price > 0 && <span className={styles.period}>{getPeriod()}</span>}
-                  </div>
-                  <div className={styles.readingsBadge}>
-                    <span className={styles.readingsIcon}>*</span>
-                    {plan.readings} {pt('readingsPerMonth')}
-                  </div>
-                </div>
-
-                <div className={styles.cardBody}>
-                  <ul className={styles.featureList}>
-                    {plan.features.map((feature, idx) => (
-                      <li
-                        key={idx}
-                        className={
-                          feature.included ? styles.featureItem : styles.featureItemDisabled
-                        }
-                      >
-                        <span className={feature.included ? styles.checkIcon : styles.xIcon}>
-                          {feature.included ? 'OK' : 'X'}
-                        </span>
-                        {getFeatureText(feature.textKey)}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    className={`${styles.ctaButton} ${plan.popular ? styles.ctaPopular : ''}`}
-                    style={!plan.popular ? { background: plan.gradient } : {}}
-                    onClick={() => handleSelectPlan(plan.id)}
-                    disabled={loadingPlan !== null}
-                  >
-                    {loadingPlan === plan.id
-                      ? '...'
-                      : plan.id === 'free'
-                        ? pt('getStarted')
-                        : pt('subscribe')}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* Credit Packs */}
@@ -473,7 +211,6 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
 
           <div className={styles.creditGrid}>
             {creditPacks.map((pack) => {
-              // Calculate discount percentage (base: mini pack rate)
               const basePrice = CREDIT_PACKS.mini.perCreditKrw
               const currentPrice = pack.price / pack.readings
               const discountPercent = Math.round((1 - currentPrice / basePrice) * 100)
@@ -486,10 +223,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                   {pack.popular && (
                     <div className={styles.popularCreditBadge}>{pt('bestValue')}</div>
                   )}
-                  {discountPercent > 0 && (
-                    <div className={styles.discountBadge}>-{discountPercent}%</div>
-                  )}
-                  <div className={styles.creditHeader} style={{ background: pack.gradient }}>
+                  <div className={styles.creditHeader}>
                     <h3 className={styles.creditName}>{pt(`creditPackNames.${pack.nameKey}`)}</h3>
                     <div className={styles.creditPrice}>
                       {isKo ? formatKrw(pack.price) : formatUsd(pack.priceEn)}
@@ -503,8 +237,11 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                     <div className={styles.perReading}>
                       {pt('perReading')}{' '}
                       {isKo
-                        ? `${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)} (≈ ${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)})`
-                        : `${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)} (≈ ${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)})`}
+                        ? `${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)}`
+                        : `${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)}`}
+                      {discountPercent > 0 && (
+                        <span className={styles.discountInline}> · -{discountPercent}%</span>
+                      )}
                     </div>
                     <button
                       className={`${styles.creditButton} ${pack.popular ? styles.creditButtonPopular : ''}`}
@@ -537,9 +274,9 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
               <p>{pt('freeFeatureDesc')}</p>
             </div>
             <div className={styles.howItWorksCard}>
-              <div className={styles.howIcon}>CYCLE</div>
-              <h4>{pt('monthlyReset')}</h4>
-              <p>{pt('monthlyResetDesc')}</p>
+              <div className={styles.howIcon}>3M</div>
+              <h4>{pt('validity')}</h4>
+              <p>{pt('validityDesc')}</p>
             </div>
           </div>
         </section>

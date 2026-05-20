@@ -168,8 +168,20 @@ const nextConfig = {
     ], // Tree-shake large packages
   },
 
-  // Empty turbopack config to silence Next.js 16 warning
-  turbopack: {},
+  // Turbopack: alias swisseph to a browser stub on the client bundle.
+  // serverExternalPackages + the webpack() externals above handle server &
+  // legacy-webpack builds, but Turbopack ignores the webpack() function and
+  // still statically traces require('swisseph') in ephe.ts into client
+  // graphs (FreeReport → lifeReport builder → extraPoints → ephe). The
+  // `browser` condition swaps in a Proxy stub for client targets only;
+  // server builds keep the real native binding via serverExternalPackages.
+  turbopack: {
+    resolveAlias: {
+      swisseph: {
+        browser: './src/lib/astrology/foundation/swisseph.client-stub.ts',
+      },
+    },
+  },
 
   // Security and cache headers
   async headers() {
