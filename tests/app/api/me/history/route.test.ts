@@ -376,7 +376,7 @@ describe('History API – GET /api/me/history', () => {
       expect(cacheSet).toHaveBeenCalledWith(
         expect.stringContaining('user:user-123:history:'),
         expect.any(Array),
-        300
+        30
       )
     })
 
@@ -501,7 +501,7 @@ describe('History API – GET /api/me/history', () => {
       const record = data.data.history[0].records[0]
       expect(record.id).toBe('tarot-1')
       expect(record.service).toBe('tarot')
-      expect(record.theme).toBe('career')
+      expect(record.theme).toBeUndefined()
       expect(record.summary).toBe('Will I get the job?')
       expect(record.type).toBe('tarot-reading')
     })
@@ -557,8 +557,9 @@ describe('History API – GET /api/me/history', () => {
       const response = await GET(makeRequest())
       const data = await response.json()
 
+      // 상담 기록은 일괄 'destiny-map'으로 매핑됨 (dream/life-prediction 서비스 제거).
       const record = data.data.history[0].records[0]
-      expect(record.service).toBe('dream')
+      expect(record.service).toBe('destiny-map')
       expect(record.theme).toBeUndefined()
       expect(record.summary).toBe('Flying dream')
       expect(record.type).toBe('consultation')
@@ -573,7 +574,7 @@ describe('History API – GET /api/me/history', () => {
       const data = await response.json()
 
       const record = data.data.history[0].records[0]
-      expect(record.summary).toBe('꿈 해석')
+      expect(record.summary).toBe('Destiny Map 분석을 이용했습니다')
     })
 
     it('should map life-prediction consultation', async () => {
@@ -590,7 +591,7 @@ describe('History API – GET /api/me/history', () => {
       const data = await response.json()
 
       const record = data.data.history[0].records[0]
-      expect(record.service).toBe('life-prediction')
+      expect(record.service).toBe('destiny-map')
       expect(record.summary).toBe('Future insight')
     })
 
@@ -608,8 +609,8 @@ describe('History API – GET /api/me/history', () => {
       const data = await response.json()
 
       const record = data.data.history[0].records[0]
-      expect(record.service).toBe('life-prediction-timing')
-      expect(record.summary).toBe('인생 예측')
+      expect(record.service).toBe('destiny-map')
+      expect(record.summary).toBe('Destiny Map 분석을 이용했습니다')
     })
 
     it('should map destiny-map consultation with known theme', async () => {
@@ -627,8 +628,8 @@ describe('History API – GET /api/me/history', () => {
 
       const record = data.data.history[0].records[0]
       expect(record.service).toBe('destiny-map')
-      expect(record.theme).toBe('focus_love')
-      expect(record.summary).toBe('연애운 분석을 이용했습니다')
+      expect(record.theme).toBeUndefined()
+      expect(record.summary).toBe('Love analysis')
     })
 
     it('should map destiny-map consultation with unknown theme label', async () => {
@@ -641,7 +642,7 @@ describe('History API – GET /api/me/history', () => {
 
       const record = data.data.history[0].records[0]
       expect(record.service).toBe('destiny-map')
-      expect(record.summary).toBe('custom_theme 분석을 이용했습니다')
+      expect(record.summary).toBe('Destiny Map 분석을 이용했습니다')
     })
 
     it('should map destiny-map with null theme', async () => {
@@ -658,42 +659,6 @@ describe('History API – GET /api/me/history', () => {
     })
   })
 
-  describe('Record Mapping – formatDestinyMapSummary themes', () => {
-    beforeEach(() => {
-      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
-      mockAllPrismaEmpty()
-    })
-
-    const themeExpectations: Array<[string, string]> = [
-      ['focus_overall', '종합 운세 분석을 이용했습니다'],
-      ['focus_love', '연애운 분석을 이용했습니다'],
-      ['focus_career', '직장/사업운 분석을 이용했습니다'],
-      ['focus_money', '재물운 분석을 이용했습니다'],
-      ['focus_health', '건강운 분석을 이용했습니다'],
-      ['dream', '꿈 해석 분석을 이용했습니다'],
-    ]
-
-    for (const [theme, expected] of themeExpectations) {
-      it(`should produce correct label for theme "${theme}"`, async () => {
-        vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([
-          { id: `theme-${theme}`, createdAt: fakeDate('2025-01-01'), theme, summary: null },
-        ] as any)
-
-        const response = await GET(makeRequest())
-        const data = await response.json()
-
-        // For 'dream' theme the service is 'dream', not destiny-map, so summary path differs
-        const record = data.data.history[0].records[0]
-        if (theme === 'dream') {
-          // dream consultations go through the dream branch
-          expect(record.service).toBe('dream')
-          expect(record.summary).toBe('꿈 해석')
-        } else {
-          expect(record.summary).toBe(expected)
-        }
-      })
-    }
-  })
 
   describe('Record Mapping – User Interactions', () => {
     beforeEach(() => {
@@ -718,7 +683,7 @@ describe('History API – GET /api/me/history', () => {
       const record = data.data.history[0].records[0]
       expect(record.id).toBe('int-1')
       expect(record.service).toBe('tarot')
-      expect(record.theme).toBe('love')
+      expect(record.theme).toBeUndefined()
       expect(record.type).toBe('interaction')
       expect(record.summary).toBeUndefined()
     })
@@ -980,7 +945,7 @@ describe('History API – GET /api/me/history', () => {
       const data = await response.json()
 
       const record = data.data.history[0].records[0]
-      expect(record.service).toBe('premium-reports')
+      expect(record.service).toBe('destiny-map')
       expect(record.theme).toBe('2025-Q3') // timing uses period
       expect(record.summary).toBe('Good quarter')
       expect(record.type).toBe('destiny-matrix-report')
@@ -1005,7 +970,7 @@ describe('History API – GET /api/me/history', () => {
       const data = await response.json()
 
       const record = data.data.history[0].records[0]
-      expect(record.service).toBe('premium-reports')
+      expect(record.service).toBe('destiny-map')
       expect(record.theme).toBe('love') // non-timing uses theme
       expect(record.summary).toBe('Love Report') // falls back to title
     })
@@ -1029,7 +994,7 @@ describe('History API – GET /api/me/history', () => {
       const data = await response.json()
 
       const record = data.data.history[0].records[0]
-      expect(record.service).toBe('premium-reports')
+      expect(record.service).toBe('destiny-map')
       // When both summary and title are null, falls back to grade+score
       expect(record.summary).toBe('C 75점')
     })
