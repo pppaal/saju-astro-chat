@@ -178,7 +178,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
 
   // 라벨에 실명을 고정한다. "A", "B"만 주면 모델이 어느 쪽이 누구인지,
   // 辛→금 같은 오행 매핑까지 머릿속으로 다시 풀다가 통째로 뒤집는 사고가
-  // 난다(준영 辛금을 "목"이라 부르는 등). 이름·오행을 데이터에 박아둔다.
+  // 난다(辛(금) 일간을 "목"이라 부르는 등). 이름·오행을 데이터에 박아둔다.
   const nmA = (input.nameA || '').trim()
   const nmB = (input.nameB || '').trim()
   const labelA = nmA ? `A(${nmA})` : 'A'
