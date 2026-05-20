@@ -10,11 +10,13 @@ import { resolve } from 'path';
 describe('GitHub Workflows Smoke Tests', () => {
   const workflowsDir = resolve(process.cwd(), '.github/workflows');
 
-  describe('CI/CD Workflows (2)', () => {
+  describe('CI/CD Workflows (3)', () => {
     it('should have ci workflow', () => {
       const filePath = resolve(workflowsDir, 'ci.yml');
       expect(existsSync(filePath)).toBe(true);
     });
+
+    // deploy-preview.yml removed — preview deploys handled by Vercel directly.
 
     it('should have deploy production workflow', () => {
       const filePath = resolve(workflowsDir, 'deploy-production.yml');
@@ -61,7 +63,7 @@ describe('GitHub Workflows Smoke Tests', () => {
     it('should have all essential workflow files', () => {
       const workflows = [
         'ci.yml',
-        // 'deploy-preview.yml' removed
+        // 'deploy-preview.yml' removed - Vercel handles preview deploys
         'deploy-production.yml',
         'e2e-browser.yml',
         'performance-tests.yml',

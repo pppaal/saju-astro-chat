@@ -5,10 +5,10 @@
  * - 상대 시간 포맷
  */
 
-import {
-  formatReadingForSave,
-} from '@/lib/tarot/tarot-storage'
+import { vi, beforeEach, afterEach } from 'vitest'
+import { formatReadingForSave } from '@/lib/tarot/tarot-storage'
 import type { Spread, DrawnCard } from '@/lib/tarot/tarot.types'
+
 
 describe('formatReadingForSave', () => {
   const mockSpread: Spread = {
@@ -145,9 +145,8 @@ describe('formatReadingForSave', () => {
     expect(result.cards[0].name).toBe('The Fool')
     expect(result.cards[0].nameKo).toBe('바보')
     expect(result.cards[0].isReversed).toBe(false)
-    // Position labels come from the LLM interpretation's card_insights[idx].position
-    // (used for both position and positionKo), not from the spread definition.
     expect(result.cards[0].position).toBe('Past')
+    // 자리 라벨은 이제 LLM 응답(card_insights.position)에서 가져오며 ko/en 동일.
     expect(result.cards[0].positionKo).toBe('Past')
 
     expect(result.cards[1].isReversed).toBe(true)
@@ -204,7 +203,7 @@ describe('formatReadingForSave', () => {
     expect(result.interpretation.cardInsights).toEqual([])
   })
 
-  it('falls back to ordinal position labels when interpretation is missing', () => {
+  it('handles missing position info gracefully', () => {
     const shortSpread: Spread = {
       ...mockSpread,
       positions: [mockSpread.positions[0]], // Only one position
@@ -219,7 +218,7 @@ describe('formatReadingForSave', () => {
       'three-card'
     )
 
-    // With no interpretation, position labels fall back to "{idx+1}번 카드".
+    // interpretation이 null이면 LLM 자리 라벨이 없어 'N번 카드' fallback 사용.
     expect(result.cards[0].position).toBe('1번 카드')
     expect(result.cards[1].position).toBe('2번 카드')
     expect(result.cards[2].position).toBe('3번 카드')

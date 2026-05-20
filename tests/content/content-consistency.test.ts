@@ -62,6 +62,7 @@ describe('content consistency guardrails', () => {
   })
 
   it('pricing entry copy remains conversion-ready', () => {
+    // premium-reports 페이지는 제거됨 → pricing 카피만 검증.
     const pricingClient = readUtf8('src/app/pricing/PricingPageClient.tsx')
 
     expect(pricingClient).toContain('startFree')

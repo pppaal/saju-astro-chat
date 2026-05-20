@@ -7,8 +7,6 @@ type JsonObject = Record<string, unknown>
 const REQUIRED_PUBLIC_KEYS = [
   'pricing.heroTitle',
   'pricing.heroSub',
-  // 'pricing.subscribe', 'pricing.perMonth', 'pricing.perYear' removed:
-  // subscription/recurring-billing was dropped (pay-per-credit only).
   'pricing.creditPacksDesc',
   'pricing.faqs.a4',
   'menu.destinyMap',

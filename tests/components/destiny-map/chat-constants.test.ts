@@ -426,9 +426,9 @@ describe('chat-constants', () => {
     })
 
     describe('Value ranges', () => {
-      it('should have all timing values under 2 minutes', () => {
+      it('should have all timing values under 1.5 minutes', () => {
         Object.values(CHAT_TIMINGS).forEach((timing) => {
-          expect(timing).toBeLessThanOrEqual(120000)
+          expect(timing).toBeLessThanOrEqual(90000)
         })
       })
 

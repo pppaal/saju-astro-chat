@@ -60,13 +60,11 @@ describe('CreditBadge', () => {
       } as any);
     });
 
-    // The component no longer renders a login pill/link when unauthenticated;
-    // the global hamburger drawer provides the login entry. It now renders
-    // nothing for all variants when not logged in.
-    it('should render nothing when not authenticated (default variant)', () => {
+    it('should render nothing when not authenticated', () => {
+      // 로그아웃 상태에선 좌상단 햄버거 드로어가 로그인 진입을 제공하므로
+      // 코너 배지는 아무것도 렌더하지 않는다.
       const { container } = render(<CreditBadge />);
       expect(container.firstChild).toBeNull();
-      expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
     it('should return null for minimal variant when not logged in', () => {
@@ -256,9 +254,8 @@ describe('CreditBadge', () => {
       } as any);
     });
 
-    // The component no longer shows a ⚠️ warning icon on error; it renders
-    // nothing so failures only surface in the real purchase flow.
     it('should render nothing when API fails', async () => {
+      // 에러 시 혼란스러운 경고 아이콘 대신 아무것도 렌더하지 않는다.
       (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
 
       const { container } = render(<CreditBadge />);
@@ -266,7 +263,6 @@ describe('CreditBadge', () => {
       await waitFor(() => {
         expect(container.firstChild).toBeNull();
       });
-      expect(screen.queryByText('⚠️')).not.toBeInTheDocument();
     });
 
     it('should render nothing when API returns not ok', async () => {
@@ -280,7 +276,6 @@ describe('CreditBadge', () => {
       await waitFor(() => {
         expect(container.firstChild).toBeNull();
       });
-      expect(screen.queryByText('⚠️')).not.toBeInTheDocument();
     });
   });
 

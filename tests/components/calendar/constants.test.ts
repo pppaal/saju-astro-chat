@@ -394,9 +394,8 @@ describe('calendar constants', () => {
         expect(GRADE_EMOJI[0]).toMatch(/[🌟✨⭐]/)
       })
 
-      it('should have a distinct emoji for grade 4 (worst day)', () => {
+      it('should have negative emoji for grade 4', () => {
         expect(GRADE_EMOJI[4]).toBe('🛡️')
-        expect(GRADE_EMOJI[4]).not.toBe(GRADE_EMOJI[0])
       })
     })
 

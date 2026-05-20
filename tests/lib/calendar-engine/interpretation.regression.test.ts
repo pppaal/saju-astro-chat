@@ -167,6 +167,34 @@ describe('calendar-engine regression', () => {
     })
   })
 
+  describe('cycle depth — context 2줄 + 구조 라인', () => {
+    it('daeun/seun/wolun 섹션이 2줄까지 표출 + 대운 위치/월운 주차 라인', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.000Z', granularity: 'day' },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const daeun = interp.sections.find((s) => s.section === 'daeun')
+      const wolun = interp.sections.find((s) => s.section === 'wolun')
+      // 대운: 위치 라인 (초/중/후반 + 나이) 포함
+      expect(daeun?.text).toMatch(/(초반|중반|후반).*세 무렵/)
+      // 같은 섹션 제목이 narrative 에 두 번 안 나옴 (병합 확인)
+      const daeunHeaderCount = (interp.narrative.match(/\[10년 큰 흐름\]/g) ?? []).length
+      expect(daeunHeaderCount).toBe(1)
+      // 월운: 주차별 흐름 라인
+      expect(wolun?.text).toMatch(/주차별 흐름:/)
+    })
+  })
+
   describe('score / themeScores synchronisation', () => {
     it('monthly buildInterpretation produces themeScores for all 5 themes', async () => {
       const { interp } = await buildForDate(SEOUL_MALE_1995, '2026-05-15')
