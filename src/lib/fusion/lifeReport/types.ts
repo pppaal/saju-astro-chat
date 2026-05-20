@@ -134,8 +134,13 @@ export interface AstrologyLikeChart {
   lilith?: ExtraPoint
   partOfFortune?: ExtraPoint
   vertex?: ExtraPoint
-  // Asteroids
-  asteroids?: Partial<Record<'Ceres' | 'Pallas' | 'Juno' | 'Vesta', Asteroid>>
+  // Asteroids — 키 케이싱이 경로마다 다름(foundation=대문자, destiny-map=소문자).
+  asteroids?: Partial<
+    Record<
+      'Ceres' | 'Pallas' | 'Juno' | 'Vesta' | 'ceres' | 'pallas' | 'juno' | 'vesta',
+      Asteroid
+    >
+  >
   // Returns / progressions / fixedStars / declinations / eclipses
   solarReturn?: {
     chart?: Chart

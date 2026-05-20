@@ -21,7 +21,7 @@ import {
   vesta,
 } from '../../signals/astroSignals'
 import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
-import { pickVariation, twelveStagePool, sibsinCategoryPool, asteroidHouseLine } from '../../pools'
+import { pickVariation, twelveStagePool, sibsinCategoryPool } from '../../pools'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 
@@ -180,39 +180,16 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       'An empty space sits in your year or month pillar — your ties to ancestors and parents may feel thinner than most, or separate earlier in life.'
     )
   }
-  if (ves) {
-    deepKo.push(`베스타가 ${signLabel(ves.sign, 'ko')}에 있어서, 가족에 헌신하는 성향이 있어요.`)
-    deepEn.push(
-      `Vesta in ${signLabel(ves.sign, 'en')} (${houseLabel(ves.house, 'en')}) weaves devotion to family through your life as a steady thread.`
-    )
-  }
-  if (ce) {
-    deepKo.push(
-      `세레스(양육)가 ${signLabel(ce.sign, 'ko')}에 있어서, ${ceresMomFlavorKo(ce.house)} 양육의 색이 새겨져 있어요.`
-    )
-    deepEn.push(
-      `Ceres in ${signLabel(ce.sign, 'en')} (${houseLabel(ce.house, 'en')}) leaves a ${ceresMomFlavorEn(ce.house)} mark on how you nurture.`
-    )
-    // 소행성-하우스 cross (destiny-matrix layer9 활용)
-    const ceresCrossKo = asteroidHouseLine('Ceres', ce.house, 'ko')
-    const ceresCrossEn = asteroidHouseLine('Ceres', ce.house, 'en')
-    if (ceresCrossKo) {
-      astroUsed.push('pools.asteroid.ceres.house')
-      deepKo.push(ceresCrossKo)
-      deepEn.push(ceresCrossEn)
+  // 소행성 양육(Ceres) — 가족 도메인엔 양육의 별 한 문장만 DB 사전으로.
+  // 헌신(Vesta)은 신성 의미가 강해 spirituality 도메인에서 사용. raw 하우스
+  // jargon(asteroidHouseLine)·중복 inline 묘사는 제거해 절제.
+  if (ce?.sign) {
+    const ceEntry = findAsteroidEntry('Ceres', ce.sign as ZodiacName)
+    if (ceEntry) {
+      astroUsed.push('asteroidDictionary.ceres')
+      deepKo.push(firstSentenceFamily(ceEntry.ko))
+      deepEn.push(firstSentenceFamily(ceEntry.en))
     }
-  }
-  // 소행성 DB narrative — 양육(Ceres)/헌신(Vesta)의 결을 한 문장으로 그라운딩.
-  // 절제를 위해 둘 중 하나만(Ceres 우선) 한 문장 추가.
-  const familyAsteroidEntry = ce?.sign
-    ? findAsteroidEntry('Ceres', ce.sign as ZodiacName)
-    : ves?.sign
-      ? findAsteroidEntry('Vesta', ves.sign as ZodiacName)
-      : null
-  if (familyAsteroidEntry) {
-    astroUsed.push(`asteroidDictionary.${familyAsteroidEntry.asteroid.toLowerCase()}`)
-    deepKo.push(firstSentenceFamily(familyAsteroidEntry.ko))
-    deepEn.push(firstSentenceFamily(familyAsteroidEntry.en))
   }
   if (familyConfirms.length > 0) {
     deepKo.push(`그리고 ${familyConfirms[0].rule.narrative.confirm}`)
@@ -501,37 +478,3 @@ function sunMoonFlavorEn(type: string): string {
   return 'subtle'
 }
 
-const CERES_MOM_HOUSE_FLAVOR_KO: Record<number, string> = {
-  1: '자기 자신을 드러내는',
-  2: '안정·자원으로의',
-  3: '대화 중심의',
-  4: '뿌리·정 중심의',
-  5: '놀이·창작 중심의',
-  6: '돌봄·헌신의',
-  7: '동반자와 같이 하는',
-  8: '깊은 변화 속의',
-  9: '시야·가르침의',
-  10: '공적 무게가 있는',
-  11: '동료감 있는',
-  12: '치유·내면의',
-}
-const CERES_MOM_HOUSE_FLAVOR_EN: Record<number, string> = {
-  1: 'self-expressive',
-  2: 'stability- and resource-rooted',
-  3: 'conversation-centered',
-  4: 'rooted in home and affection',
-  5: 'play- and creation-centered',
-  6: 'service-and-devotion',
-  7: 'partner-paired',
-  8: 'transformative',
-  9: 'horizon- and teaching-based',
-  10: 'public-weighted',
-  11: 'friend-feel',
-  12: 'healing and inward',
-}
-function ceresMomFlavorKo(h: number): string {
-  return CERES_MOM_HOUSE_FLAVOR_KO[h] ?? '독특한 분위기의'
-}
-function ceresMomFlavorEn(h: number): string {
-  return CERES_MOM_HOUSE_FLAVOR_EN[h] ?? 'singular'
-}

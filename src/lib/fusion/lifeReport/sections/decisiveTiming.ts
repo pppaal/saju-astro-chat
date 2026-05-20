@@ -417,10 +417,10 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
   if (profCur) {
     astroUsed.push('calendarSignals.profectionCurrent')
     p6pieces.push(
-      `올해는 ${profCur.house}궁(${profHouseKo(profCur.house)})이 활성돼서, ${profPracticalKo(profCur.house)}에 결과가 잘 맺혀요.`
+      `올해는 ${profHouseKo(profCur.house)} 영역이 활성돼서, ${profPracticalKo(profCur.house)}에 결과가 잘 맺혀요.`
     )
     p6piecesEn.push(
-      `This year activates house ${profCur.house} (${profHouseEn(profCur.house)}) — outcomes ripen most clearly in ${profPracticalEn(profCur.house)}.`
+      `This year activates the area of ${profHouseEn(profCur.house)} — outcomes ripen most clearly in ${profPracticalEn(profCur.house)}.`
     )
   }
   if (hc && hc.hasInteractions) {
