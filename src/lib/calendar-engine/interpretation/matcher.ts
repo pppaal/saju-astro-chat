@@ -5,6 +5,7 @@ import type { Interpretation, InterpretationRule, RuleConditions, TemplateVars }
 import { RULES } from './rules'
 import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
 import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
+import { deriveKeyEvents } from '../derivers/keyEvents'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -306,12 +307,16 @@ export function buildInterpretation(args: {
   // Why-card — 테마별 점수 인과 추적 (그 점수에 기여한 신호 top N).
   const themeBreakdown = deriveThemeBreakdown(allSignals)
 
+  // 키 이벤트 3 — 월간일 때만 (일별 셀에서 베스트/강한구간/피할날 추출).
+  const keyEvents = scope === 'monthly' ? deriveKeyEvents(cells) : undefined
+
   return {
     narrative,
     matchedRuleIds: picked.map((m) => m.rule.id),
     sections,
     themeScores,
     themeBreakdown,
+    keyEvents,
   }
 }
 

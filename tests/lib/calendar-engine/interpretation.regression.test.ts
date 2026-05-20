@@ -3,6 +3,8 @@ import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildInterpretation } from '@/lib/calendar-engine/interpretation/matcher'
+import { deriveKeyEvents } from '@/lib/calendar-engine/derivers/keyEvents'
+import type { CalendarCell } from '@/lib/calendar-engine/types'
 
 /**
  * Regression suite — guards the cross-dimensional invariants the
@@ -164,6 +166,107 @@ describe('calendar-engine regression', () => {
       )
       const max = Math.max(...cells.map((c) => c.derivedScore))
       expect(max).toBeLessThanOrEqual(98)
+    })
+  })
+
+  describe('key events 3 (deriveKeyEvents)', () => {
+    // 최소 필드만 채운 합성 셀 — deriveKeyEvents 는 datetime/derivedScore 만 읽음.
+    const cell = (day: number, score: number): CalendarCell =>
+      ({
+        datetime: `2026-05-${String(day).padStart(2, '0')}T00:00:00.000Z`,
+        derivedScore: score,
+      }) as unknown as CalendarCell
+
+    it('returns undefined when fewer than 7 dated cells', () => {
+      const few = [1, 2, 3, 4, 5, 6].map((d) => cell(d, 70))
+      expect(deriveKeyEvents(few)).toBeUndefined()
+    })
+
+    it('best = highest score, avoid filtered to <65, window = longest consecutive strong run', () => {
+      // avg of these = (60+58+90+88+86+62+40+59) / 8 = 542/8 = 67.75 → thr ≈ 72.75
+      // strong consecutive run: days 3,4,5 (90,88,86) → len 3
+      const cells = [
+        cell(1, 60),
+        cell(2, 58),
+        cell(3, 90),
+        cell(4, 88),
+        cell(5, 86),
+        cell(6, 62),
+        cell(7, 40),
+        cell(8, 59),
+      ]
+      const ev = deriveKeyEvents(cells)
+      expect(ev).toBeDefined()
+      expect(ev!.best).toEqual({ date: '05-03', score: 90 })
+      // avoid = bottom 2 by score (<65): day 7 (40), day 2 (58)
+      expect(ev!.avoid?.dates).toEqual(['05-07', '05-02'])
+      // window = 05-03..05-05, avg round((90+88+86)/3)=88
+      expect(ev!.window).toEqual({ start: '05-03', end: '05-05', avg: 88 })
+    })
+
+    it('omits avoid entirely when every day is >= 65', () => {
+      const cells = [70, 72, 74, 76, 78, 80, 82, 84].map((s, i) => cell(i + 1, s))
+      const ev = deriveKeyEvents(cells)
+      expect(ev?.avoid).toBeUndefined()
+    })
+
+    it('does not flag a window when no 3-day consecutive strong run exists', () => {
+      // strong days are non-adjacent → no run of 3
+      const cells = [50, 90, 50, 90, 50, 90, 50, 90].map((s, i) => cell(i + 1, s))
+      const ev = deriveKeyEvents(cells)
+      expect(ev?.window).toBeUndefined()
+    })
+
+    it('monthly buildInterpretation attaches keyEvents consistent with cell scores', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      expect(interp.keyEvents).toBeDefined()
+      // best.score must equal the actual max derivedScore of the month
+      const maxScore = Math.max(...cells.map((c) => c.derivedScore))
+      expect(interp.keyEvents!.best?.score).toBe(maxScore)
+      // any avoid date must really be a sub-65 day
+      for (const d of interp.keyEvents!.avoid?.dates ?? []) {
+        const match = cells.find((c) => c.datetime.slice(5, 10) === d)
+        expect(match!.derivedScore).toBeLessThan(65)
+      }
+    })
+
+    it('keyEvents is omitted for non-monthly scope', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'daily' })
+      expect(interp.keyEvents).toBeUndefined()
     })
   })
 

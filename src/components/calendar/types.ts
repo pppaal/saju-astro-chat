@@ -131,6 +131,12 @@ export interface ImportantDate {
         Array<{ label: string; delta: number; dir: 'up' | 'down' }>
       >
     >
+    /** 이번 달 키 이벤트 — 베스트 날 / 강한 구간 / 피할 날 */
+    keyEvents?: {
+      best?: { date: string; score: number }
+      window?: { start: string; end: string; avg: number }
+      avoid?: { dates: string[] }
+    }
   }
   /** 그 날 60갑자(일진) + 본명 일간 십신 개인화 한 줄 (API 가 일별 부착) */
   dailyGanjiNarrative?: string

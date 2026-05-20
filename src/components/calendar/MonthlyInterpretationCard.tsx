@@ -35,6 +35,9 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
         이번 달 흐름
       </h3>
 
+      {/* 키 이벤트 3 — 베스트 날 / 강한 구간 / 피할 날 (한눈에 스캔) */}
+      <KeyEventsBlock keyEvents={interp.keyEvents} />
+
       {/* 핵심 포인트 — bullet 형태로 한눈에 */}
       {headlines.length > 0 && (
         <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
@@ -86,6 +89,66 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
 
           {/* Why-card — 테마별 점수 인과 추적 ("왜 그 점수인지") */}
           <WhyCard interp={interp} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+type KeyEvents = NonNullable<Interpretation['keyEvents']>
+
+/** "MM-DD" → "M월 D일" (앞 0 제거) */
+function fmtDate(mmdd: string): string {
+  const [m, d] = mmdd.split('-')
+  if (!m || !d) return mmdd
+  return `${Number(m)}월 ${Number(d)}일`
+}
+
+/**
+ * 이번 달 키 이벤트 3 카드 — 본문에 흩어진 날짜 정보를 한눈에.
+ *  🎯 베스트 날 / 💫 강한 구간 / ⚠️ 피할 날
+ */
+function KeyEventsBlock({ keyEvents }: { keyEvents: KeyEvents | undefined }) {
+  if (!keyEvents) return null
+  const { best, window, avoid } = keyEvents
+  const hasAvoid = avoid && avoid.dates.length > 0
+  if (!best && !window && !hasAvoid) return null
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+      {best && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3.5">
+          <div className="text-[11px] font-bold text-emerald-300 mb-1 flex items-center gap-1 tracking-wide">
+            <span aria-hidden>🎯</span> 베스트 날
+          </div>
+          <div className="text-base font-bold text-zinc-100">{fmtDate(best.date)}</div>
+          <div className="text-[11px] text-emerald-200/70 mt-0.5">
+            {best.score}점 · 큰 결정·시작에 좋음
+          </div>
+        </div>
+      )}
+      {window && (
+        <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3.5">
+          <div className="text-[11px] font-bold text-indigo-300 mb-1 flex items-center gap-1 tracking-wide">
+            <span aria-hidden>💫</span> 강한 구간
+          </div>
+          <div className="text-base font-bold text-zinc-100">
+            {fmtDate(window.start)}–{fmtDate(window.end)}
+          </div>
+          <div className="text-[11px] text-indigo-200/70 mt-0.5">
+            평균 {window.avg}점 · 집중 추진
+          </div>
+        </div>
+      )}
+      {hasAvoid && (
+        <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3.5">
+          <div className="text-[11px] font-bold text-rose-300 mb-1 flex items-center gap-1 tracking-wide">
+            <span aria-hidden>⚠️</span> 피할 날
+          </div>
+          <div className="text-base font-bold text-zinc-100">
+            {avoid.dates.map(fmtDate).join(' · ')}
+          </div>
+          <div className="text-[11px] text-rose-200/70 mt-0.5">무리한 결정은 미루기</div>
         </div>
       )}
     </div>
