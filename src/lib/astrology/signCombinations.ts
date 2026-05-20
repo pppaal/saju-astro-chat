@@ -46,7 +46,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aries', sign2: 'Aries',
-    ko: '의지와 감정이 한 방향으로 달리는 결이에요. 망설임이 적고, 원하는 게 분명하면 그대로 움직여요.',
+    ko: '의지와 감정이 한 방향으로 달리는 스타일이에요. 망설임이 적고, 원하는 게 분명하면 그대로 움직여요.',
     en: 'Will and feeling pull in the same direction. Little hesitation, and once the want is clear the move follows.',
     keywords_ko: ['단호함', '즉결', '뜨거운 추진력'],
     keywords_en: ['decisiveness', 'immediacy', 'hot drive'],
@@ -110,7 +110,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aries', sign2: 'Sagittarius',
-    ko: '의지도 감정도 멀리 보는 결이에요. 새 길, 새 풍경에 반응이 빠르고 답답한 자리를 못 견뎌요.',
+    ko: '의지도 감정도 멀리 보는 모습이에요. 새 길, 새 풍경에 반응이 빠르고 답답한 자리를 못 견뎌요.',
     en: 'Both the will and the mood look toward the horizon. New paths and wider views light it up fast, and tight spaces are hard.',
     keywords_ko: ['모험심', '확장 감각', '시원함'],
     keywords_en: ['adventure', 'expansive mood', 'open air'],
@@ -152,7 +152,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Taurus', sign2: 'Taurus',
-    ko: '안정과 감각이 두 겹으로 깔린 결이에요. 좋아하는 것이 분명하고, 바꿔야 할 이유가 분명할 때만 바꿔요.',
+    ko: '안정과 감각이 두 겹으로 깔린 느낌이에요. 좋아하는 것이 분명하고, 바꿔야 할 이유가 분명할 때만 바꿔요.',
     en: 'Stability and sensuality run in a double layer. The likes are clear, and change happens only when the reason is clear too.',
     keywords_ko: ['안정감', '확고한 취향', '느린 변화'],
     keywords_en: ['stability', 'firm taste', 'slow change'],
@@ -168,7 +168,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Taurus', sign2: 'Cancer',
-    ko: '안정과 돌봄이 자연스럽게 어울리는 결이에요. 좋은 공간, 따뜻한 사람을 만들고 지키는 데 마음을 다해요.',
+    ko: '안정과 돌봄이 자연스럽게 어울리는 스타일이에요. 좋은 공간, 따뜻한 사람을 만들고 지키는 데 마음을 다해요.',
     en: 'Stability and care fit together naturally. Making and protecting a warm space and people gets full attention.',
     keywords_ko: ['따뜻한 안정', '돌봄', '집의 감각'],
     keywords_en: ['warm stability', 'nurturing', 'sense of home'],
@@ -184,7 +184,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Taurus', sign2: 'Virgo',
-    ko: '차분하게 쌓고, 차분하게 다듬는 결이에요. 큰 소리 없이 결과를 만드는 사람에 가까워요.',
+    ko: '차분하게 쌓고, 차분하게 다듬는 모습이에요. 큰 소리 없이 결과를 만드는 사람에 가까워요.',
     en: 'Build quietly, refine quietly. The kind of person who gets to the result without making noise.',
     keywords_ko: ['실속', '꾸준한 다듬기', '조용한 성취'],
     keywords_en: ['substance', 'steady refining', 'quiet achievement'],
@@ -216,7 +216,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Taurus', sign2: 'Capricorn',
-    ko: '안정과 책임이 단단하게 결합된 결이에요. 시간이 걸려도 무너지지 않는 구조를 만들어요.',
+    ko: '안정과 책임이 단단하게 결합된 느낌이에요. 시간이 걸려도 무너지지 않는 구조를 만들어요.',
     en: 'Stability and responsibility lock together tightly. It takes time, but what gets built does not fall.',
     keywords_ko: ['단단함', '책임감', '오래 가는 구조'],
     keywords_en: ['solidity', 'responsibility', 'lasting structure'],
@@ -224,7 +224,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Taurus', sign2: 'Aquarius',
-    ko: '겉은 보수적인데 안엔 자기만의 시각이 분명해요. 일상은 안정적으로, 생각은 자유롭게 두는 결이에요.',
+    ko: '겉은 보수적인데 안엔 자기만의 시각이 분명해요. 일상은 안정적으로, 생각은 자유롭게 두는 스타일이에요.',
     en: 'Conservative on the outside, with a distinct inner viewpoint. Routine stays steady while thinking stays free.',
     keywords_ko: ['안정 속 독창성', '자기 관점', '느린 변화'],
     keywords_en: ['original within stable', 'own view', 'slow change'],
@@ -232,7 +232,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Taurus', sign2: 'Pisces',
-    ko: '안정적 토양에 감성의 물이 스며드는 결이에요. 겉으론 단단하지만 내면은 따뜻하고 공감 어린 결.',
+    ko: '안정적 토양에 감성의 물이 스며드는 모습이에요. 겉으론 단단하지만 내면은 따뜻하고 공감 어린 느낌이에요.',
     en: 'Stable earth with a layer of soft emotional water beneath. Solid on the surface, warm and empathic within.',
     keywords_ko: ['안정과 공감', '내면의 부드러움', '실용적 감수성'],
     keywords_en: ['stable empathy', 'soft interior', 'practical sensitivity'],
@@ -242,7 +242,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Gemini', sign2: 'Aries',
-    ko: '말과 생각이 빠른데, 감정도 즉시 반응해요. 흥미가 생기면 곧장 시도하는 결이에요.',
+    ko: '말과 생각이 빠른데, 감정도 즉시 반응해요. 흥미가 생기면 곧장 시도하는 스타일이에요.',
     en: 'Quick mind and speech, with feelings that respond just as fast. Interest turns into trying almost instantly.',
     keywords_ko: ['민첩한 호기심', '즉각 시도', '경쾌함'],
     keywords_en: ['quick curiosity', 'fast trial', 'lightness'],
@@ -258,7 +258,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Gemini', sign2: 'Gemini',
-    ko: '호기심과 다양성이 두 겹으로 깔린 결이에요. 한 가지에 묶이는 걸 가장 싫어하고, 늘 새 정보를 찾아요.',
+    ko: '호기심과 다양성이 두 겹으로 깔린 모습이에요. 한 가지에 묶이는 걸 가장 싫어하고, 늘 새 정보를 찾아요.',
     en: 'Curiosity and variety in a double layer. Being tied to one thing is the worst, and new information is always pulling.',
     keywords_ko: ['다재다능', '경쾌함', '정보의 흐름'],
     keywords_en: ['versatility', 'lightness', 'flow of information'],
@@ -274,7 +274,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Gemini', sign2: 'Leo',
-    ko: '재치와 자기 표현이 자연스럽게 어울리는 결이에요. 사람들 사이에서 환해지고 이야기로 자기를 보여줘요.',
+    ko: '재치와 자기 표현이 자연스럽게 어울리는 느낌이에요. 사람들 사이에서 환해지고 이야기로 자기를 보여줘요.',
     en: 'Wit and self-expression sit easily together. The light goes up around people, and stories carry the self forward.',
     keywords_ko: ['재치', '환한 표현', '말의 무대'],
     keywords_en: ['wit', 'bright expression', 'stage of words'],
@@ -290,7 +290,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Gemini', sign2: 'Libra',
-    ko: '말과 균형 감각이 잘 맞아 사람들 사이에서 편해요. 분위기를 부드럽게 만드는 결이 자연스러워요.',
+    ko: '말과 균형 감각이 잘 맞아 사람들 사이에서 편해요. 분위기를 부드럽게 만드는 면이 자연스러워요.',
     en: 'Conversation and balance fit, so being among people feels easy. Smoothing the room comes without effort.',
     keywords_ko: ['사교성', '부드러운 분위기', '말의 균형'],
     keywords_en: ['sociability', 'smooth mood', 'balanced talk'],
@@ -322,7 +322,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Gemini', sign2: 'Aquarius',
-    ko: '생각과 감정 모두 자유롭고 자기 색이 분명해요. 새 아이디어를 가지고 무언가 만들어보는 결을 좋아해요.',
+    ko: '생각과 감정 모두 자유롭고 자기 색이 분명해요. 새 아이디어를 가지고 무언가 만들어보는 면을 좋아해요.',
     en: 'Both thought and feeling run free, with a clear own color. Building something new from a fresh idea feels right.',
     keywords_ko: ['자유로운 사고', '독창성', '아이디어'],
     keywords_en: ['free thinking', 'originality', 'idea play'],
@@ -330,7 +330,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Gemini', sign2: 'Pisces',
-    ko: '말은 명료한데 마음은 자주 흐릿하고 잘 스며들어요. 분위기에 따라 색이 자주 바뀌는 결.',
+    ko: '말은 명료한데 마음은 자주 흐릿하고 잘 스며들어요. 분위기에 따라 색이 자주 바뀌는 스타일이에요.',
     en: 'Clear speech with a mood that often softens and seeps. The color shifts with the room.',
     keywords_ko: ['감수성', '분위기에 민감', '말과 꿈의 사이'],
     keywords_en: ['sensitivity', 'mood-responsive', 'between word and dream'],
@@ -348,7 +348,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Cancer', sign2: 'Taurus',
-    ko: '따뜻함과 안정감이 자연스럽게 어울리는 결이에요. 익숙하고 편안한 자리에서 가장 자기다워요.',
+    ko: '따뜻함과 안정감이 자연스럽게 어울리는 모습이에요. 익숙하고 편안한 자리에서 가장 자기다워요.',
     en: 'Warmth and stability fit together easily. Most itself in familiar, comfortable settings.',
     keywords_ko: ['편안함', '따뜻함', '익숙함'],
     keywords_en: ['comfort', 'warmth', 'familiarity'],
@@ -356,7 +356,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Cancer', sign2: 'Gemini',
-    ko: '마음은 따뜻한데 생각은 빠르고 가벼워요. 사람을 챙기면서도 가볍게 말 거는 결이에요.',
+    ko: '마음은 따뜻한데 생각은 빠르고 가벼워요. 사람을 챙기면서도 가볍게 말 거는 느낌이에요.',
     en: 'A warm heart with a quick, light mind. Cares about people, but checks in with a casual touch.',
     keywords_ko: ['따뜻한 사교', '잔잔한 말', '챙기는 호기심'],
     keywords_en: ['warm sociability', 'gentle talk', 'caring curiosity'],
@@ -364,7 +364,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Cancer', sign2: 'Cancer',
-    ko: '감정과 돌봄이 두 겹으로 깔린 결이에요. 사람들의 분위기에 매우 민감하고, 안전한 자리를 무엇보다 중요하게 여겨요.',
+    ko: '감정과 돌봄이 두 겹으로 깔린 스타일이에요. 사람들의 분위기에 매우 민감하고, 안전한 자리를 무엇보다 중요하게 여겨요.',
     en: 'Feeling and care in a double layer. Very tuned to the mood of others, with safety valued above almost anything.',
     keywords_ko: ['깊은 감수성', '돌봄', '안전감'],
     keywords_en: ['deep sensitivity', 'nurturing', 'sense of safety'],
@@ -380,7 +380,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Cancer', sign2: 'Virgo',
-    ko: '돌봄을 구체적인 행동으로 옮기는 결이에요. 작은 도움과 정돈이 곧 애정의 표현이 돼요.',
+    ko: '돌봄을 구체적인 행동으로 옮기는 모습이에요. 작은 도움과 정돈이 곧 애정의 표현이 돼요.',
     en: 'Care translated into specific small actions. Tidying and small helps become the language of affection.',
     keywords_ko: ['세심한 돌봄', '실용적 애정', '챙김의 손'],
     keywords_en: ['careful nurturing', 'practical affection', 'helping hand'],
@@ -388,7 +388,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Cancer', sign2: 'Libra',
-    ko: '돌봄과 균형이 어울리는 결이에요. 갈등을 부드럽게 풀어주고 사람 사이를 잘 이어요.',
+    ko: '돌봄과 균형이 어울리는 느낌이에요. 갈등을 부드럽게 풀어주고 사람 사이를 잘 이어요.',
     en: 'Care meets balance. Smooths conflict gently and stitches people together with ease.',
     keywords_ko: ['중재', '부드러움', '관계의 다리'],
     keywords_en: ['mediation', 'softness', 'bridge between people'],
@@ -396,7 +396,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Cancer', sign2: 'Scorpio',
-    ko: '감정의 두께가 두 겹으로 강한 결이에요. 사랑도 신뢰도 한번 형성되면 깊고 오래 가요.',
+    ko: '감정의 두께가 두 겹으로 강한 스타일이에요. 사랑도 신뢰도 한번 형성되면 깊고 오래 가요.',
     en: 'Emotion doubled in thickness. Love and trust, once formed, run deep and last.',
     keywords_ko: ['깊은 정', '강한 신뢰', '오래 가는 마음'],
     keywords_en: ['deep bond', 'strong trust', 'lasting heart'],
@@ -412,7 +412,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Cancer', sign2: 'Capricorn',
-    ko: '따뜻한 본성과 단단한 책임이 같이 있어요. 가족·소속을 지키는 일에 깊이 헌신하는 결이에요.',
+    ko: '따뜻한 본성과 단단한 책임이 같이 있어요. 가족·소속을 지키는 일에 깊이 헌신하는 모습이에요.',
     en: 'A warm nature paired with solid responsibility. Deeply committed to protecting family and belonging.',
     keywords_ko: ['헌신', '책임감 있는 돌봄', '내·외부의 균형'],
     keywords_en: ['devotion', 'responsible care', 'balance inside and out'],
@@ -428,7 +428,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Cancer', sign2: 'Pisces',
-    ko: '감정과 공감이 두 겹으로 깊은 결이에요. 사람과 분위기에 자연스럽게 녹아들고 잘 흔들려요.',
+    ko: '감정과 공감이 두 겹으로 깊은 느낌이에요. 사람과 분위기에 자연스럽게 녹아들고 잘 흔들려요.',
     en: 'Feeling and empathy in a deep double layer. Easily blends into people and atmosphere, easily moved.',
     keywords_ko: ['깊은 공감', '감수성', '스며드는 마음'],
     keywords_en: ['deep empathy', 'sensitivity', 'merging heart'],
@@ -438,7 +438,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Aries',
-    ko: '자기 표현과 의지가 두 겹으로 환해요. 좋아하는 일에 망설임 없이 자기를 던지는 결이에요.',
+    ko: '자기 표현과 의지가 두 겹으로 환해요. 좋아하는 일에 망설임 없이 자기를 던지는 스타일이에요.',
     en: 'Self-expression and will both turned up bright. Throws itself in without hesitation when something matters.',
     keywords_ko: ['뜨거운 자기 표현', '용기', '거침없는 빛'],
     keywords_en: ['bold expression', 'courage', 'unguarded brightness'],
@@ -446,7 +446,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Taurus',
-    ko: '환한 자존심에 안정과 풍요로움이 더해진 결이에요. 좋아하는 것을 오래 즐기고 싶어해요.',
+    ko: '환한 자존심에 안정과 풍요로움이 더해진 모습이에요. 좋아하는 것을 오래 즐기고 싶어해요.',
     en: 'A bright pride with added stability and abundance. Wants to enjoy the things it loves for a long time.',
     keywords_ko: ['풍요로움', '따뜻한 자존심', '오래 가는 즐거움'],
     keywords_en: ['abundance', 'warm pride', 'lasting enjoyment'],
@@ -454,7 +454,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Gemini',
-    ko: '환한 표현에 재치와 호기심이 더해져요. 사람들 사이에서 자연스럽게 무대를 만드는 결이에요.',
+    ko: '환한 표현에 재치와 호기심이 더해져요. 사람들 사이에서 자연스럽게 무대를 만드는 느낌이에요.',
     en: 'Bright expression with added wit and curiosity. Builds a small stage among people without trying.',
     keywords_ko: ['재치 있는 무대', '환한 사교', '이야기로 빛남'],
     keywords_en: ['witty stage', 'bright sociability', 'shining through stories'],
@@ -462,7 +462,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Cancer',
-    ko: '환한 빛 아래 따뜻한 돌봄이 흐르는 결이에요. 사랑하는 사람을 빛나게 해주는 일에 마음을 다해요.',
+    ko: '환한 빛 아래 따뜻한 돌봄이 흐르는 스타일이에요. 사랑하는 사람을 빛나게 해주는 일에 마음을 다해요.',
     en: 'Warm care running under the bright light. Puts heart into making the people it loves shine.',
     keywords_ko: ['빛나는 애정', '돌봄의 빛', '따뜻한 환함'],
     keywords_en: ['shining affection', 'caring light', 'warm brightness'],
@@ -470,7 +470,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Leo',
-    ko: '자기 표현과 자존심이 두 겹으로 환한 결이에요. 무대가 분명할 때 가장 자기다워요.',
+    ko: '자기 표현과 자존심이 두 겹으로 환한 모습이에요. 무대가 분명할 때 가장 자기다워요.',
     en: 'Self-expression and pride doubled into a bright signal. Most itself when there is a clear stage.',
     keywords_ko: ['무대 본능', '환한 자기', '큰 마음'],
     keywords_en: ['stage instinct', 'radiant self', 'big heart'],
@@ -478,7 +478,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Virgo',
-    ko: '환한 표현 뒤에 꼼꼼한 점검이 자리해요. 보여주기 전에 한번 더 다듬어두는 결이에요.',
+    ko: '환한 표현 뒤에 꼼꼼한 점검이 자리해요. 보여주기 전에 한번 더 다듬어두는 느낌이에요.',
     en: 'Quiet attention to detail behind the bright expression. Trims and polishes once more before showing.',
     keywords_ko: ['다듬어진 표현', '실속 있는 빛', '준비된 무대'],
     keywords_en: ['polished expression', 'substantial light', 'prepared stage'],
@@ -494,7 +494,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Scorpio',
-    ko: '환한 자기 표현 아래 강한 감정이 흘러요. 좋아하는 것에 전부를 거는 결이에요.',
+    ko: '환한 자기 표현 아래 강한 감정이 흘러요. 좋아하는 것에 전부를 거는 스타일이에요.',
     en: 'Strong feeling running under the bright expression. Goes all in on what it loves.',
     keywords_ko: ['전부를 거는 마음', '뜨거운 집중', '깊은 환함'],
     keywords_en: ['all-in heart', 'intense focus', 'deep brightness'],
@@ -502,7 +502,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Sagittarius',
-    ko: '환함과 모험심이 같이 가는 결이에요. 큰 풍경에서 자기를 표현하는 일에 자연스럽게 끌려요.',
+    ko: '환함과 모험심이 같이 가는 모습이에요. 큰 풍경에서 자기를 표현하는 일에 자연스럽게 끌려요.',
     en: 'Brightness and adventure run together. Drawn to expressing the self in wider scenes.',
     keywords_ko: ['넓은 무대', '환한 모험', '시원한 자기'],
     keywords_en: ['big stage', 'bright adventure', 'expansive self'],
@@ -510,7 +510,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Capricorn',
-    ko: '환한 자존심과 단단한 책임이 같이 있어요. 빛을 내되 결과로 증명하는 결.',
+    ko: '환한 자존심과 단단한 책임이 같이 있어요. 빛을 내되 결과로 증명하는 느낌이에요.',
     en: 'Bright pride and solid responsibility together. Shines, but proves it with results.',
     keywords_ko: ['결과로 빛남', '책임감 있는 자존심', '단단한 표현'],
     keywords_en: ['result-backed shine', 'responsible pride', 'solid expression'],
@@ -518,7 +518,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Leo', sign2: 'Aquarius',
-    ko: '환한 자기 표현에 독자적 관점이 더해진 결이에요. 빛을 내되 흐름에 휩쓸리진 않아요.',
+    ko: '환한 자기 표현에 독자적 관점이 더해진 스타일이에요. 빛을 내되 흐름에 휩쓸리진 않아요.',
     en: 'Bright expression with an added independent view. Shines, but never carried by the current.',
     keywords_ko: ['독창적 빛', '자기 색', '자유로운 무대'],
     keywords_en: ['original light', 'own color', 'free stage'],
@@ -536,7 +536,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Aries',
-    ko: '꼼꼼한 본성에 의외의 추진력이 깔린 결이에요. 정리해두면 단번에 움직이는 사람이에요.',
+    ko: '꼼꼼한 본성에 의외의 추진력이 깔린 모습이에요. 정리해두면 단번에 움직이는 사람이에요.',
     en: 'A careful base with a surprising forward push underneath. Once things are tidied, the move is decisive.',
     keywords_ko: ['단호한 정돈', '실속 있는 추진', '준비된 행동'],
     keywords_en: ['decisive tidying', 'practical drive', 'prepared action'],
@@ -544,7 +544,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Taurus',
-    ko: '실용적이고 차분한 결이 두 겹으로 깔려 있어요. 작고 단단한 결과를 꾸준히 쌓는 사람이에요.',
+    ko: '실용적이고 차분한 면이 두 겹으로 깔려 있어요. 작고 단단한 결과를 꾸준히 쌓는 사람이에요.',
     en: 'A practical, calm base in a double layer. Builds small, solid results steadily over time.',
     keywords_ko: ['실속', '꾸준함', '단단한 일상'],
     keywords_en: ['substance', 'steadiness', 'solid everyday'],
@@ -560,7 +560,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Cancer',
-    ko: '꼼꼼함과 돌봄이 어울리는 결이에요. 작은 챙김으로 사람을 편안하게 만드는 사람이에요.',
+    ko: '꼼꼼함과 돌봄이 어울리는 느낌이에요. 작은 챙김으로 사람을 편안하게 만드는 사람이에요.',
     en: 'Care and detail fit together. Small acts of attention make people comfortable.',
     keywords_ko: ['세심한 챙김', '돌봄의 손', '편안함을 만드는 사람'],
     keywords_en: ['careful attention', 'helping hand', 'comfort-maker'],
@@ -568,7 +568,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Leo',
-    ko: '꼼꼼한 본성 위에 환한 자존심이 얹혀 있어요. 잘 다듬은 결과를 떳떳하게 보여주는 결이에요.',
+    ko: '꼼꼼한 본성 위에 환한 자존심이 얹혀 있어요. 잘 다듬은 결과를 떳떳하게 보여주는 스타일이에요.',
     en: 'Bright pride on top of a careful base. Shows polished work openly, with quiet confidence.',
     keywords_ko: ['다듬어진 자부심', '실속 있는 빛', '준비된 무대'],
     keywords_en: ['polished pride', 'substantial light', 'prepared stage'],
@@ -576,7 +576,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Virgo',
-    ko: '분석과 정돈이 두 겹으로 강한 결이에요. 작은 차이를 보는 눈이 매우 예민해요.',
+    ko: '분석과 정돈이 두 겹으로 강한 모습이에요. 작은 차이를 보는 눈이 매우 예민해요.',
     en: 'Analysis and order in a double layer. The eye for small differences is very fine.',
     keywords_ko: ['예민한 관찰', '꼼꼼함', '정돈 본능'],
     keywords_en: ['fine observation', 'meticulousness', 'order instinct'],
@@ -584,7 +584,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Libra',
-    ko: '실용성과 균형이 같이 있어요. 사람과 일을 보기 좋고 쓸모 있게 정돈하는 결이에요.',
+    ko: '실용성과 균형이 같이 있어요. 사람과 일을 보기 좋고 쓸모 있게 정돈하는 느낌이에요.',
     en: 'Practicality and balance together. Arranges people and tasks to look right and work well.',
     keywords_ko: ['균형 잡힌 정돈', '쓸모 있는 아름다움', '관계의 정리'],
     keywords_en: ['balanced order', 'useful beauty', 'relational tidying'],
@@ -592,7 +592,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Scorpio',
-    ko: '분석과 깊이 있는 감정이 같이 가는 결이에요. 한번 파고들면 끝까지 들여다보는 사람이에요.',
+    ko: '분석과 깊이 있는 감정이 같이 가는 스타일이에요. 한번 파고들면 끝까지 들여다보는 사람이에요.',
     en: 'Analysis paired with deep emotion. Once it digs in, it looks all the way down.',
     keywords_ko: ['깊은 분석', '집중', '본질 추구'],
     keywords_en: ['deep analysis', 'focus', 'getting to the root'],
@@ -600,7 +600,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Sagittarius',
-    ko: '꼼꼼한 손에 큰 시야가 더해진 결이에요. 작은 일을 살피면서도 의미와 큰 그림을 잊지 않아요.',
+    ko: '꼼꼼한 손에 큰 시야가 더해진 모습이에요. 작은 일을 살피면서도 의미와 큰 그림을 잊지 않아요.',
     en: 'A careful hand with a wider view added. Looks at small things while keeping meaning and the big picture in mind.',
     keywords_ko: ['디테일과 의미', '큰 그림', '실용적 비전'],
     keywords_en: ['detail and meaning', 'big picture', 'practical vision'],
@@ -608,7 +608,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Capricorn',
-    ko: '실용성과 책임감이 두 겹으로 단단한 결이에요. 시간을 들여 단단한 구조를 만들어요.',
+    ko: '실용성과 책임감이 두 겹으로 단단한 느낌이에요. 시간을 들여 단단한 구조를 만들어요.',
     en: 'Practicality and responsibility in a solid double layer. Builds a sturdy structure over time.',
     keywords_ko: ['끈기', '책임감', '오래 가는 결과'],
     keywords_en: ['perseverance', 'responsibility', 'lasting result'],
@@ -616,7 +616,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Aquarius',
-    ko: '꼼꼼함에 독자적 관점이 더해진 결이에요. 시스템을 분석하고 새로 짜는 일을 좋아해요.',
+    ko: '꼼꼼함에 독자적 관점이 더해진 스타일이에요. 시스템을 분석하고 새로 짜는 일을 좋아해요.',
     en: 'Careful detail with an independent view. Enjoys analyzing systems and rebuilding them differently.',
     keywords_ko: ['시스템 사고', '독창성', '분석적 자유'],
     keywords_en: ['systems thinking', 'originality', 'analytic freedom'],
@@ -624,7 +624,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Virgo', sign2: 'Pisces',
-    ko: '분석과 감수성이 같이 있는 결이에요. 작은 디테일을 챙기면서도 사람의 분위기를 부드럽게 읽어요.',
+    ko: '분석과 감수성이 같이 있는 모습이에요. 작은 디테일을 챙기면서도 사람의 분위기를 부드럽게 읽어요.',
     en: 'Analysis and sensitivity together. Takes care of fine detail while reading the mood softly.',
     keywords_ko: ['디테일과 공감', '부드러운 정돈', '섬세한 감수성'],
     keywords_en: ['detail with empathy', 'soft tidying', 'delicate sensitivity'],
@@ -650,7 +650,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Libra', sign2: 'Gemini',
-    ko: '관계와 사고가 가볍고 부드러운 결이에요. 사람들 사이의 분위기를 자연스럽게 읽고 풀어줘요.',
+    ko: '관계와 사고가 가볍고 부드러운 느낌이에요. 사람들 사이의 분위기를 자연스럽게 읽고 풀어줘요.',
     en: 'Light, smooth relations and thinking. Reads the mood among people and eases it without effort.',
     keywords_ko: ['사교성', '부드러운 사고', '관계의 흐름'],
     keywords_en: ['sociability', 'smooth thinking', 'flow in relations'],
@@ -658,7 +658,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Libra', sign2: 'Cancer',
-    ko: '관계의 균형에 따뜻한 돌봄이 더해진 결이에요. 사람 사이를 부드럽게 잇는 일에 마음을 다해요.',
+    ko: '관계의 균형에 따뜻한 돌봄이 더해진 스타일이에요. 사람 사이를 부드럽게 잇는 일에 마음을 다해요.',
     en: 'Relational balance with warm care added. Puts heart into gently connecting people.',
     keywords_ko: ['따뜻한 균형', '관계의 다리', '돌봄의 사교'],
     keywords_en: ['warm balance', 'bridge between people', 'caring sociability'],
@@ -666,7 +666,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Libra', sign2: 'Leo',
-    ko: '균형 감각에 환한 자기 표현이 더해진 결이에요. 사람들 사이에서 보기 좋게 빛나는 결.',
+    ko: '균형 감각에 환한 자기 표현이 더해진 모습이에요. 사람들 사이에서 보기 좋게 빛나는 느낌이에요.',
     en: 'Balance plus bright self-expression. Shines well in company.',
     keywords_ko: ['우아한 무대', '관계 속 빛', '보기 좋은 자기'],
     keywords_en: ['graceful stage', 'shine in company', 'well-presented self'],
@@ -674,7 +674,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Libra', sign2: 'Virgo',
-    ko: '균형과 실용성이 같이 가는 결이에요. 보기 좋은 것을 쓸모 있게 정돈하는 일에 끌려요.',
+    ko: '균형과 실용성이 같이 가는 스타일이에요. 보기 좋은 것을 쓸모 있게 정돈하는 일에 끌려요.',
     en: 'Balance and practicality together. Drawn to arranging good-looking things so they actually work.',
     keywords_ko: ['실용적 미감', '정돈된 균형', '쓸모 있는 아름다움'],
     keywords_en: ['practical aesthetic', 'ordered balance', 'useful beauty'],
@@ -682,7 +682,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Libra', sign2: 'Libra',
-    ko: '균형 감각이 두 겹으로 강한 결이에요. 관계와 분위기를 매끄럽게 만드는 데 매우 능숙해요.',
+    ko: '균형 감각이 두 겹으로 강한 모습이에요. 관계와 분위기를 매끄럽게 만드는 데 매우 능숙해요.',
     en: 'Balance doubled. Very skilled at smoothing both relations and atmosphere.',
     keywords_ko: ['우아함', '관계의 흐름', '깊은 균형 감각'],
     keywords_en: ['grace', 'relational flow', 'deep balance'],
@@ -690,7 +690,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Libra', sign2: 'Scorpio',
-    ko: '겉은 부드러운데 속은 깊고 진지해요. 관계도 좋아하지만 한 사람에게 진심을 다하는 결이에요.',
+    ko: '겉은 부드러운데 속은 깊고 진지해요. 관계도 좋아하지만 한 사람에게 진심을 다하는 느낌이에요.',
     en: 'Soft on the outside, deep and serious within. Likes relationships, but pours everything into one.',
     keywords_ko: ['부드러운 깊이', '진심의 관계', '겉유내강'],
     keywords_en: ['soft depth', 'sincere relation', 'gentle outside, strong inside'],
@@ -698,7 +698,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Libra', sign2: 'Sagittarius',
-    ko: '균형 감각에 자유로움이 더해진 결이에요. 관계를 즐기면서도 넓은 풍경을 잊지 않아요.',
+    ko: '균형 감각에 자유로움이 더해진 스타일이에요. 관계를 즐기면서도 넓은 풍경을 잊지 않아요.',
     en: 'Balance with added freedom. Enjoys relationships while keeping the wider view in sight.',
     keywords_ko: ['관계와 자유', '시원한 사교', '넓은 균형'],
     keywords_en: ['relations and freedom', 'open sociability', 'wide balance'],
@@ -706,7 +706,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Libra', sign2: 'Capricorn',
-    ko: '관계의 균형에 책임감이 더해진 결이에요. 부드러운 표현 뒤에 약속을 끝까지 지키는 사람이에요.',
+    ko: '관계의 균형에 책임감이 더해진 모습이에요. 부드러운 표현 뒤에 약속을 끝까지 지키는 사람이에요.',
     en: 'Relational balance with added responsibility. Behind the soft tone is someone who keeps promises all the way.',
     keywords_ko: ['책임감 있는 관계', '단단한 부드러움', '약속을 지킴'],
     keywords_en: ['responsible relation', 'solid softness', 'keeps promises'],
@@ -714,7 +714,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Libra', sign2: 'Aquarius',
-    ko: '균형 감각에 독자적 관점이 더해진 결이에요. 사람들 사이에 어울리면서도 자기 색을 분명히 지켜요.',
+    ko: '균형 감각에 독자적 관점이 더해진 느낌이에요. 사람들 사이에 어울리면서도 자기 색을 분명히 지켜요.',
     en: 'Balance with an independent view. Fits in among people while keeping its own color clear.',
     keywords_ko: ['자유로운 사교', '자기 색', '여유로운 균형'],
     keywords_en: ['free sociability', 'own color', 'easy balance'],
@@ -724,7 +724,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
     sign1: 'Libra', sign2: 'Pisces',
     ko: '관계의 균형과 깊은 공감이 같이 있어요. 분위기를 부드럽게 만들고 사람의 마음에 자연스럽게 닿아요.',
     en: 'Balance and deep empathy together. Softens the room and reaches the heart of others naturally.',
-    keywords_ko: ['공감하는 균형', '부드러운 사람', '분위기의 결'],
+    keywords_ko: ['공감하는 균형', '부드러운 사람', '분위기의 느낌'],
     keywords_en: ['empathic balance', 'gentle person', 'sense of mood'],
   },
 
@@ -732,7 +732,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Aries',
-    ko: '깊은 본성에 즉결의 의지가 더해진 결이에요. 마음에 꽂힌 일에 전부를 거는 사람이에요.',
+    ko: '깊은 본성에 즉결의 의지가 더해진 스타일이에요. 마음에 꽂힌 일에 전부를 거는 사람이에요.',
     en: 'Deep nature with a decisive will added. Goes all in on whatever has hooked the heart.',
     keywords_ko: ['뜨거운 집중', '깊은 추진', '강한 의지'],
     keywords_en: ['intense focus', 'deep drive', 'strong will'],
@@ -740,7 +740,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Taurus',
-    ko: '깊고 강한 마음에 안정된 본능이 더해진 결이에요. 좋아하는 사람과 자리를 끝까지 지켜요.',
+    ko: '깊고 강한 마음에 안정된 본능이 더해진 모습이에요. 좋아하는 사람과 자리를 끝까지 지켜요.',
     en: 'Deep intensity with steady instincts. Holds on to its people and places all the way.',
     keywords_ko: ['끝까지 지키는 마음', '강한 충성심', '단단한 욕망'],
     keywords_en: ['unwavering loyalty', 'firm holding', 'solid desire'],
@@ -756,7 +756,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Cancer',
-    ko: '감정의 깊이가 두 겹으로 흐르는 결이에요. 한번 정이 들면 잘 떼어지지 않아요.',
+    ko: '감정의 깊이가 두 겹으로 흐르는 느낌이에요. 한번 정이 들면 잘 떼어지지 않아요.',
     en: 'Emotional depth in a double layer. Once attached, hard to let go.',
     keywords_ko: ['깊은 정', '강한 애착', '오래 가는 마음'],
     keywords_en: ['deep bond', 'strong attachment', 'long-held heart'],
@@ -764,7 +764,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Leo',
-    ko: '깊은 본성에 환한 자존심이 더해진 결이에요. 평소엔 조용해도 자기 자리를 분명히 지켜요.',
+    ko: '깊은 본성에 환한 자존심이 더해진 스타일이에요. 평소엔 조용해도 자기 자리를 분명히 지켜요.',
     en: 'Depth with added bright pride. Quiet most of the time, but very clear about its own place.',
     keywords_ko: ['조용한 자존심', '깊은 빛', '단호한 자기'],
     keywords_en: ['quiet pride', 'deep light', 'firm self'],
@@ -772,7 +772,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Virgo',
-    ko: '깊이와 분석이 같이 가는 결이에요. 한번 들여다보면 본질까지 파헤치는 사람이에요.',
+    ko: '깊이와 분석이 같이 가는 모습이에요. 한번 들여다보면 본질까지 파헤치는 사람이에요.',
     en: 'Depth and analysis together. Once it looks, it goes all the way down to the essence.',
     keywords_ko: ['예리함', '본질 추구', '깊은 분석'],
     keywords_en: ['sharpness', 'getting to the root', 'deep analysis'],
@@ -780,7 +780,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Libra',
-    ko: '깊은 마음에 균형 감각이 더해진 결이에요. 강한 감정을 우아하게 풀어내는 결이에요.',
+    ko: '깊은 마음에 균형 감각이 더해진 느낌이에요. 강한 감정을 우아하게 풀어내는 스타일이에요.',
     en: 'Depth paired with balance. Carries strong feeling with grace.',
     keywords_ko: ['우아한 깊이', '균형 잡힌 강도', '품격'],
     keywords_en: ['graceful depth', 'balanced intensity', 'quiet dignity'],
@@ -788,7 +788,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Scorpio',
-    ko: '깊이와 강도가 두 겹으로 흐르는 결이에요. 한번 꽂히면 끝까지, 본질까지 파고들어요.',
+    ko: '깊이와 강도가 두 겹으로 흐르는 모습이에요. 한번 꽂히면 끝까지, 본질까지 파고들어요.',
     en: 'Depth and intensity in a double layer. Once committed, it goes all the way and to the bone.',
     keywords_ko: ['전부를 거는 마음', '강한 집중', '깊은 변용'],
     keywords_en: ['all-in heart', 'strong focus', 'deep transformation'],
@@ -796,7 +796,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Sagittarius',
-    ko: '깊은 본성에 의미를 찾는 욕구가 더해진 결이에요. 사소한 일에 만족하지 못해요.',
+    ko: '깊은 본성에 의미를 찾는 욕구가 더해진 느낌이에요. 사소한 일에 만족하지 못해요.',
     en: 'Depth with a hunger for meaning added. Small things rarely satisfy.',
     keywords_ko: ['진실 추구', '의미 있는 깊이', '큰 시야'],
     keywords_en: ['truth-seeking', 'meaningful depth', 'wider view'],
@@ -804,7 +804,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Capricorn',
-    ko: '깊이와 책임감이 두 겹으로 단단한 결이에요. 시간을 들여 진짜 가치 있는 것을 만드는 사람이에요.',
+    ko: '깊이와 책임감이 두 겹으로 단단한 스타일이에요. 시간을 들여 진짜 가치 있는 것을 만드는 사람이에요.',
     en: 'Depth and responsibility in a solid double layer. Builds something truly valuable over time.',
     keywords_ko: ['단단한 깊이', '책임감 있는 강도', '진짜 결과'],
     keywords_en: ['solid depth', 'responsible intensity', 'real result'],
@@ -812,7 +812,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Aquarius',
-    ko: '깊은 본성에 독자적 관점이 더해진 결이에요. 흐름에 휩쓸리지 않고 본질을 자기 식으로 봐요.',
+    ko: '깊은 본성에 독자적 관점이 더해진 모습이에요. 흐름에 휩쓸리지 않고 본질을 자기 식으로 봐요.',
     en: 'Depth with an independent view. Reads the essence its own way, never carried by the crowd.',
     keywords_ko: ['독자적 통찰', '거리감 있는 깊이', '자기 시각'],
     keywords_en: ['independent insight', 'depth with distance', 'own lens'],
@@ -820,7 +820,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Scorpio', sign2: 'Pisces',
-    ko: '깊이와 공감이 같이 흐르는 결이에요. 말하지 않은 마음까지 자연스럽게 읽어요.',
+    ko: '깊이와 공감이 같이 흐르는 느낌이에요. 말하지 않은 마음까지 자연스럽게 읽어요.',
     en: 'Depth and empathy flowing together. Reads the unspoken naturally.',
     keywords_ko: ['깊은 공감', '말 없는 이해', '강한 감수성'],
     keywords_en: ['deep empathy', 'unspoken understanding', 'strong sensitivity'],
@@ -830,7 +830,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Sagittarius', sign2: 'Aries',
-    ko: '자유와 추진력이 같은 방향으로 흐르는 결이에요. 새 길이 보이면 망설임 없이 나서는 사람이에요.',
+    ko: '자유와 추진력이 같은 방향으로 흐르는 스타일이에요. 새 길이 보이면 망설임 없이 나서는 사람이에요.',
     en: 'Freedom and drive flow the same way. Steps onto a new path without hesitation when it appears.',
     keywords_ko: ['모험심', '거침없는 시도', '시원한 자유'],
     keywords_en: ['adventure', 'unhesitating try', 'open freedom'],
@@ -846,7 +846,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Sagittarius', sign2: 'Gemini',
-    ko: '호기심과 모험심이 두 겹으로 강한 결이에요. 새로운 것 앞에서 가장 환해져요.',
+    ko: '호기심과 모험심이 두 겹으로 강한 모습이에요. 새로운 것 앞에서 가장 환해져요.',
     en: 'Curiosity and adventure doubled. Brightest when faced with the new.',
     keywords_ko: ['넓은 호기심', '경쾌한 모험', '여행과 정보'],
     keywords_en: ['wide curiosity', 'light adventure', 'travel and information'],
@@ -862,7 +862,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Sagittarius', sign2: 'Leo',
-    ko: '자유와 환한 자기 표현이 같이 가는 결이에요. 큰 풍경에서 가장 자기다워져요.',
+    ko: '자유와 환한 자기 표현이 같이 가는 느낌이에요. 큰 풍경에서 가장 자기다워져요.',
     en: 'Freedom and bright expression together. Most itself in wider scenes.',
     keywords_ko: ['넓은 무대', '환한 자유', '시원한 자기'],
     keywords_en: ['big stage', 'bright freedom', 'expansive self'],
@@ -886,7 +886,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Sagittarius', sign2: 'Scorpio',
-    ko: '큰 시야에 깊은 마음이 더해진 결이에요. 의미 있는 일 앞에서는 끝까지 파고들어요.',
+    ko: '큰 시야에 깊은 마음이 더해진 스타일이에요. 의미 있는 일 앞에서는 끝까지 파고들어요.',
     en: 'Wide view with depth added. Goes all the way when the thing matters.',
     keywords_ko: ['의미 있는 깊이', '진실 추구', '뜨거운 집중'],
     keywords_en: ['meaningful depth', 'truth-seeking', 'intense focus'],
@@ -894,7 +894,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Sagittarius', sign2: 'Sagittarius',
-    ko: '자유와 모험심이 두 겹으로 흐르는 결이에요. 한곳에 묶이는 것을 가장 답답해해요.',
+    ko: '자유와 모험심이 두 겹으로 흐르는 모습이에요. 한곳에 묶이는 것을 가장 답답해해요.',
     en: 'Freedom and adventure doubled. Being tied to one place feels the most suffocating.',
     keywords_ko: ['모험심', '큰 시야', '시원함'],
     keywords_en: ['adventure', 'wide view', 'openness'],
@@ -902,7 +902,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Sagittarius', sign2: 'Capricorn',
-    ko: '큰 시야와 단단한 책임이 같이 있어요. 자유롭게 움직이면서도 끝을 보는 결이에요.',
+    ko: '큰 시야와 단단한 책임이 같이 있어요. 자유롭게 움직이면서도 끝을 보는 느낌이에요.',
     en: 'A wide view with solid responsibility. Moves freely, yet always sees through to the finish.',
     keywords_ko: ['책임감 있는 모험', '큰 그림의 끝맺음', '단단한 자유'],
     keywords_en: ['responsible adventure', 'finished big picture', 'solid freedom'],
@@ -910,7 +910,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Sagittarius', sign2: 'Aquarius',
-    ko: '자유와 독자적 관점이 같이 흐르는 결이에요. 다양한 시각을 즐기면서도 자기 색을 잃지 않아요.',
+    ko: '자유와 독자적 관점이 같이 흐르는 스타일이에요. 다양한 시각을 즐기면서도 자기 색을 잃지 않아요.',
     en: 'Freedom and an independent view together. Enjoys many lenses without losing its own color.',
     keywords_ko: ['넓은 시각', '자유로운 사고', '자기 관점'],
     keywords_en: ['wide perspective', 'free thinking', 'own view'],
@@ -918,7 +918,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Sagittarius', sign2: 'Pisces',
-    ko: '큰 시야와 깊은 공감이 같이 있어요. 의미와 감정을 동시에 좇는 결이에요.',
+    ko: '큰 시야와 깊은 공감이 같이 있어요. 의미와 감정을 동시에 좇는 모습이에요.',
     en: 'A wide view paired with deep empathy. Chases meaning and feeling at the same time.',
     keywords_ko: ['의미와 감정', '공감하는 비전', '부드러운 모험'],
     keywords_en: ['meaning and feeling', 'empathic vision', 'gentle adventure'],
@@ -928,7 +928,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Aries',
-    ko: '단단한 책임감에 즉결의 의지가 더해진 결이에요. 차분하지만 결정적인 순간엔 빠르게 움직여요.',
+    ko: '단단한 책임감에 즉결의 의지가 더해진 느낌이에요. 차분하지만 결정적인 순간엔 빠르게 움직여요.',
     en: 'Solid responsibility with decisive will added. Calm overall, fast at the moments that count.',
     keywords_ko: ['책임감 있는 추진', '결정적 행동', '단단한 의지'],
     keywords_en: ['responsible drive', 'key-moment action', 'solid will'],
@@ -936,7 +936,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Taurus',
-    ko: '단단함과 안정이 두 겹으로 깔린 결이에요. 시간이 걸려도 흔들리지 않는 결과를 만들어요.',
+    ko: '단단함과 안정이 두 겹으로 깔린 스타일이에요. 시간이 걸려도 흔들리지 않는 결과를 만들어요.',
     en: 'Solidity and stability in a double layer. Builds results that do not waver, even if it takes time.',
     keywords_ko: ['단단함', '꾸준함', '오래 가는 가치'],
     keywords_en: ['solidity', 'steadiness', 'lasting value'],
@@ -944,7 +944,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Gemini',
-    ko: '책임감에 가벼운 사고가 더해진 결이에요. 일은 단단히 챙기면서 말은 부드럽게 해요.',
+    ko: '책임감에 가벼운 사고가 더해진 모습이에요. 일은 단단히 챙기면서 말은 부드럽게 해요.',
     en: 'Responsibility with a lighter mind added. Holds the work firmly while speaking softly.',
     keywords_ko: ['단단한 일, 가벼운 말', '실용적 사고', '책임감 있는 호기심'],
     keywords_en: ['solid work, light talk', 'practical thought', 'responsible curiosity'],
@@ -952,7 +952,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Cancer',
-    ko: '단단한 외면과 따뜻한 마음이 함께 있는 결이에요. 책임지는 자리에서 진심으로 사람을 챙겨요.',
+    ko: '단단한 외면과 따뜻한 마음이 함께 있는 느낌이에요. 책임지는 자리에서 진심으로 사람을 챙겨요.',
     en: 'A solid outside with a warm heart inside. Cares for people sincerely from a responsible position.',
     keywords_ko: ['책임감 있는 돌봄', '따뜻한 단단함', '믿음직한 마음'],
     keywords_en: ['responsible care', 'warm solidity', 'reliable heart'],
@@ -960,7 +960,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Leo',
-    ko: '책임감에 환한 자존심이 더해진 결이에요. 결과로 자기를 분명히 보여주는 결.',
+    ko: '책임감에 환한 자존심이 더해진 스타일이에요. 결과로 자기를 분명히 보여주는 모습이에요.',
     en: 'Responsibility with bright pride added. Lets results speak for itself.',
     keywords_ko: ['결과로 빛남', '단단한 자존심', '책임감 있는 표현'],
     keywords_en: ['result-backed shine', 'solid pride', 'responsible expression'],
@@ -968,7 +968,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Virgo',
-    ko: '단단함과 실용성이 두 겹으로 강한 결이에요. 작은 일도 정확하게 마무리하는 사람이에요.',
+    ko: '단단함과 실용성이 두 겹으로 강한 느낌이에요. 작은 일도 정확하게 마무리하는 사람이에요.',
     en: 'Solidity and practicality in a double layer. Finishes even small things accurately.',
     keywords_ko: ['정확성', '실속', '오래 가는 결과'],
     keywords_en: ['precision', 'substance', 'lasting result'],
@@ -976,7 +976,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Libra',
-    ko: '책임감에 균형 감각이 더해진 결이에요. 단단하게 일하면서도 사람을 부드럽게 대해요.',
+    ko: '책임감에 균형 감각이 더해진 스타일이에요. 단단하게 일하면서도 사람을 부드럽게 대해요.',
     en: 'Responsibility with added balance. Works solidly while staying gentle with people.',
     keywords_ko: ['책임감 있는 관계', '단단한 부드러움', '신뢰의 흐름'],
     keywords_en: ['responsible relation', 'solid softness', 'trust in motion'],
@@ -984,7 +984,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Scorpio',
-    ko: '단단함에 깊은 집중이 더해진 결이에요. 시간을 들여 진짜 본질을 만드는 사람이에요.',
+    ko: '단단함에 깊은 집중이 더해진 모습이에요. 시간을 들여 진짜 본질을 만드는 사람이에요.',
     en: 'Solidity with deep focus added. Builds the real thing over time.',
     keywords_ko: ['깊은 끈기', '본질적 결과', '강한 집중'],
     keywords_en: ['deep perseverance', 'essential result', 'strong focus'],
@@ -992,7 +992,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Sagittarius',
-    ko: '책임감에 큰 시야가 더해진 결이에요. 단단하게 일하면서도 멀리 보는 결이에요.',
+    ko: '책임감에 큰 시야가 더해진 느낌이에요. 단단하게 일하면서도 멀리 보는 스타일이에요.',
     en: 'Responsibility with a wide view added. Works solidly while keeping the horizon in mind.',
     keywords_ko: ['큰 그림의 책임', '책임감 있는 비전', '단단한 자유'],
     keywords_en: ['big-picture responsibility', 'responsible vision', 'solid freedom'],
@@ -1000,7 +1000,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Capricorn',
-    ko: '책임감과 끈기가 두 겹으로 강한 결이에요. 시간이 들수록 단단해지는 사람이에요.',
+    ko: '책임감과 끈기가 두 겹으로 강한 모습이에요. 시간이 들수록 단단해지는 사람이에요.',
     en: 'Responsibility and perseverance doubled. Gets sturdier the longer it goes.',
     keywords_ko: ['끈기', '책임감', '오래 가는 구조'],
     keywords_en: ['perseverance', 'responsibility', 'enduring structure'],
@@ -1008,7 +1008,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Aquarius',
-    ko: '책임감에 독자적 관점이 더해진 결이에요. 단단한 일을 자기 식으로 다시 짜는 결.',
+    ko: '책임감에 독자적 관점이 더해진 느낌이에요. 단단한 일을 자기 식으로 다시 짜는 스타일이에요.',
     en: 'Responsibility with an independent view added. Rebuilds solid work in its own way.',
     keywords_ko: ['단단한 독창성', '실용적 자유', '책임감 있는 관점'],
     keywords_en: ['solid originality', 'practical freedom', 'responsible view'],
@@ -1016,7 +1016,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Capricorn', sign2: 'Pisces',
-    ko: '단단한 외면과 부드러운 마음이 같이 있는 결이에요. 책임을 다하면서도 사람을 깊게 이해해요.',
+    ko: '단단한 외면과 부드러운 마음이 같이 있는 모습이에요. 책임을 다하면서도 사람을 깊게 이해해요.',
     en: 'A solid outside with a soft heart inside. Fulfills duty while understanding people deeply.',
     keywords_ko: ['책임감 있는 공감', '단단한 부드러움', '믿음직한 감수성'],
     keywords_en: ['responsible empathy', 'solid softness', 'reliable sensitivity'],
@@ -1026,7 +1026,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Aries',
-    ko: '자기 색이 분명한 본성에 즉결의 의지가 더해진 결이에요. 자기 길을 가는 데 망설임이 없어요.',
+    ko: '자기 색이 분명한 본성에 즉결의 의지가 더해진 느낌이에요. 자기 길을 가는 데 망설임이 없어요.',
     en: 'A distinct own color with a decisive will added. No hesitation in walking the own path.',
     keywords_ko: ['독립성', '자기 길', '거침없는 자유'],
     keywords_en: ['independence', 'own path', 'unguarded freedom'],
@@ -1034,7 +1034,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Taurus',
-    ko: '독창성에 안정된 본능이 더해진 결이에요. 새로운 생각을 가지면서도 일상은 단단하게 둬요.',
+    ko: '독창성에 안정된 본능이 더해진 스타일이에요. 새로운 생각을 가지면서도 일상은 단단하게 둬요.',
     en: 'Originality with steady instincts added. Holds new ideas while keeping the everyday solid.',
     keywords_ko: ['안정된 독창성', '실용적 자유', '단단한 자기 색'],
     keywords_en: ['stable originality', 'practical freedom', 'solid own color'],
@@ -1042,7 +1042,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Gemini',
-    ko: '독자적 사고와 호기심이 두 겹으로 강한 결이에요. 새로운 아이디어를 가지고 노는 일을 즐겨요.',
+    ko: '독자적 사고와 호기심이 두 겹으로 강한 모습이에요. 새로운 아이디어를 가지고 노는 일을 즐겨요.',
     en: 'Independent thinking and curiosity doubled. Enjoys playing with new ideas.',
     keywords_ko: ['자유로운 사고', '아이디어', '경쾌한 자유'],
     keywords_en: ['free thinking', 'idea play', 'light freedom'],
@@ -1050,7 +1050,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Cancer',
-    ko: '거리감 있는 사고에 따뜻한 마음이 같이 있는 결이에요. 사람을 챙기되 자기 자리를 분명히 지켜요.',
+    ko: '거리감 있는 사고에 따뜻한 마음이 같이 있는 느낌이에요. 사람을 챙기되 자기 자리를 분명히 지켜요.',
     en: 'A view-from-distance mind paired with a warm heart. Cares for people while keeping its own space.',
     keywords_ko: ['거리감 있는 돌봄', '따뜻한 자유', '자기 자리'],
     keywords_en: ['caring with distance', 'warm freedom', 'kept space'],
@@ -1058,7 +1058,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Leo',
-    ko: '자기 색에 환한 자존심이 더해진 결이에요. 흐름에 휩쓸리지 않고 자기 식으로 빛나요.',
+    ko: '자기 색에 환한 자존심이 더해진 스타일이에요. 흐름에 휩쓸리지 않고 자기 식으로 빛나요.',
     en: 'Own color with bright pride added. Shines its own way, never carried by the current.',
     keywords_ko: ['독창적 빛', '자기 식의 자존심', '자유로운 무대'],
     keywords_en: ['original light', 'own-style pride', 'free stage'],
@@ -1066,7 +1066,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Virgo',
-    ko: '독자적 사고에 분석적 손이 더해진 결이에요. 시스템을 자기 식으로 짜고 정돈하는 결.',
+    ko: '독자적 사고에 분석적 손이 더해진 모습이에요. 시스템을 자기 식으로 짜고 정돈하는 느낌이에요.',
     en: 'Independent thinking with an analytical hand. Builds and tidies systems its own way.',
     keywords_ko: ['시스템 사고', '실용적 독창성', '분석적 자유'],
     keywords_en: ['systems thinking', 'practical originality', 'analytic freedom'],
@@ -1074,7 +1074,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Libra',
-    ko: '자기 색에 균형 감각이 더해진 결이에요. 사람들과 어울리면서도 자기 시각을 분명히 유지해요.',
+    ko: '자기 색에 균형 감각이 더해진 스타일이에요. 사람들과 어울리면서도 자기 시각을 분명히 유지해요.',
     en: 'Own color with balance added. Mixes with people while keeping a clear own view.',
     keywords_ko: ['균형 있는 자유', '자기 시각', '여유로운 사교'],
     keywords_en: ['balanced freedom', 'own view', 'easy sociability'],
@@ -1082,7 +1082,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Scorpio',
-    ko: '거리감 있는 사고에 깊은 집중이 더해진 결이에요. 자기 식으로 본질을 파고드는 결.',
+    ko: '거리감 있는 사고에 깊은 집중이 더해진 모습이에요. 자기 식으로 본질을 파고드는 느낌이에요.',
     en: 'A distanced view with deep focus added. Digs into the essence in its own way.',
     keywords_ko: ['독자적 통찰', '깊은 자유', '본질 추구'],
     keywords_en: ['independent insight', 'deep freedom', 'getting to the root'],
@@ -1090,7 +1090,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Sagittarius',
-    ko: '자기 색과 큰 시야가 같이 흐르는 결이에요. 어디에서도 자기 자리를 만들 수 있어요.',
+    ko: '자기 색과 큰 시야가 같이 흐르는 스타일이에요. 어디에서도 자기 자리를 만들 수 있어요.',
     en: 'Own color and a wide view flowing together. Can build its own place anywhere.',
     keywords_ko: ['넓은 자유', '자기 식 비전', '넉넉한 거리감'],
     keywords_en: ['wide freedom', 'own-style vision', 'easy distance'],
@@ -1098,7 +1098,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Capricorn',
-    ko: '독자적 사고에 책임감이 더해진 결이에요. 자기 식의 일을 끝까지 책임지는 사람이에요.',
+    ko: '독자적 사고에 책임감이 더해진 모습이에요. 자기 식의 일을 끝까지 책임지는 사람이에요.',
     en: 'Independent thinking with responsibility added. Owns its own-way work all the way through.',
     keywords_ko: ['책임감 있는 독창성', '단단한 자유', '약속을 지킴'],
     keywords_en: ['responsible originality', 'solid freedom', 'keeps promises'],
@@ -1106,7 +1106,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Aquarius',
-    ko: '자기 색과 독자성이 두 겹으로 강한 결이에요. 흐름에 휩쓸리는 것을 가장 싫어해요.',
+    ko: '자기 색과 독자성이 두 겹으로 강한 느낌이에요. 흐름에 휩쓸리는 것을 가장 싫어해요.',
     en: 'Own color and independence doubled. Being swept along is the worst.',
     keywords_ko: ['독립성', '자기 시각', '자유로운 사고'],
     keywords_en: ['independence', 'own view', 'free thinking'],
@@ -1114,7 +1114,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Aquarius', sign2: 'Pisces',
-    ko: '거리감 있는 사고에 깊은 공감이 더해진 결이에요. 자기 식으로 보면서도 사람의 마음을 부드럽게 읽어요.',
+    ko: '거리감 있는 사고에 깊은 공감이 더해진 스타일이에요. 자기 식으로 보면서도 사람의 마음을 부드럽게 읽어요.',
     en: 'A distanced view with deep empathy added. Sees in its own way while reading hearts gently.',
     keywords_ko: ['자유로운 공감', '거리감과 부드러움', '자기 식의 감수성'],
     keywords_en: ['free empathy', 'distance with softness', 'own-style sensitivity'],
@@ -1132,7 +1132,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Taurus',
-    ko: '감수성과 안정된 본능이 같이 있는 결이에요. 부드러운 마음이지만 일상은 단단하게 잡아요.',
+    ko: '감수성과 안정된 본능이 같이 있는 모습이에요. 부드러운 마음이지만 일상은 단단하게 잡아요.',
     en: 'Sensitivity with steady instincts. A soft heart, but the everyday stays solid.',
     keywords_ko: ['부드러운 안정', '실용적 감수성', '편안한 마음'],
     keywords_en: ['soft stability', 'practical sensitivity', 'easy heart'],
@@ -1140,7 +1140,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Gemini',
-    ko: '감수성에 가벼운 사고가 더해진 결이에요. 분위기를 빠르게 읽고 가볍게 풀어줘요.',
+    ko: '감수성에 가벼운 사고가 더해진 느낌이에요. 분위기를 빠르게 읽고 가볍게 풀어줘요.',
     en: 'Sensitivity with a lighter mind added. Reads the mood quickly and eases it without weight.',
     keywords_ko: ['민감한 사교', '가벼운 공감', '분위기 읽기'],
     keywords_en: ['sensitive sociability', 'light empathy', 'reading the room'],
@@ -1148,7 +1148,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Cancer',
-    ko: '공감과 돌봄이 두 겹으로 흐르는 결이에요. 사람과 분위기에 자연스럽게 녹아들어요.',
+    ko: '공감과 돌봄이 두 겹으로 흐르는 스타일이에요. 사람과 분위기에 자연스럽게 녹아들어요.',
     en: 'Empathy and care doubled. Blends into people and atmosphere without trying.',
     keywords_ko: ['깊은 공감', '돌봄', '스며드는 마음'],
     keywords_en: ['deep empathy', 'nurturing', 'merging heart'],
@@ -1156,7 +1156,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Leo',
-    ko: '부드러운 본성에 환한 표현이 더해진 결이에요. 감성적이지만 사람들 앞에서는 빛을 내는 결.',
+    ko: '부드러운 본성에 환한 표현이 더해진 모습이에요. 감성적이지만 사람들 앞에서는 빛을 내는 느낌이에요.',
     en: 'A soft nature with bright expression added. Emotional inside, lights up in front of people.',
     keywords_ko: ['감성적 빛', '부드러운 무대', '공감 어린 환함'],
     keywords_en: ['emotional shine', 'soft stage', 'empathic brightness'],
@@ -1164,7 +1164,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Virgo',
-    ko: '감수성과 꼼꼼한 손이 같이 있는 결이에요. 분위기는 부드럽게, 일은 정확하게 처리해요.',
+    ko: '감수성과 꼼꼼한 손이 같이 있는 스타일이에요. 분위기는 부드럽게, 일은 정확하게 처리해요.',
     en: 'Sensitivity paired with a careful hand. Soft with mood, precise with work.',
     keywords_ko: ['부드러운 정확성', '공감하는 정돈', '실용적 감수성'],
     keywords_en: ['soft precision', 'empathic order', 'practical sensitivity'],
@@ -1172,15 +1172,15 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Libra',
-    ko: '공감과 균형 감각이 같이 흐르는 결이에요. 부드럽게 사람과 분위기를 이어주는 사람이에요.',
+    ko: '공감과 균형 감각이 같이 흐르는 모습이에요. 부드럽게 사람과 분위기를 이어주는 사람이에요.',
     en: 'Empathy and balance flowing together. Connects people and mood gently.',
-    keywords_ko: ['부드러운 사교', '공감하는 균형', '관계의 결'],
+    keywords_ko: ['부드러운 사교', '공감하는 균형', '관계의 느낌'],
     keywords_en: ['gentle sociability', 'empathic balance', 'sense of relation'],
   },
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Scorpio',
-    ko: '공감과 깊은 감정이 두 겹으로 흐르는 결이에요. 말 없이도 사람의 진짜 마음을 알아채요.',
+    ko: '공감과 깊은 감정이 두 겹으로 흐르는 느낌이에요. 말 없이도 사람의 진짜 마음을 알아채요.',
     en: 'Empathy and deep feeling doubled. Senses the real heart of others without words.',
     keywords_ko: ['깊은 공감', '말 없는 이해', '진심의 마음'],
     keywords_en: ['deep empathy', 'unspoken understanding', 'sincere heart'],
@@ -1188,7 +1188,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Sagittarius',
-    ko: '감수성에 큰 시야가 더해진 결이에요. 의미를 좇으면서 사람을 따뜻하게 이해해요.',
+    ko: '감수성에 큰 시야가 더해진 스타일이에요. 의미를 좇으면서 사람을 따뜻하게 이해해요.',
     en: 'Sensitivity with a wide view added. Chases meaning while understanding people warmly.',
     keywords_ko: ['의미와 공감', '부드러운 비전', '따뜻한 시야'],
     keywords_en: ['meaning and empathy', 'gentle vision', 'warm horizon'],
@@ -1196,7 +1196,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Capricorn',
-    ko: '부드러운 마음에 단단한 책임감이 더해진 결이에요. 감수성을 가지면서도 약속은 끝까지 지켜요.',
+    ko: '부드러운 마음에 단단한 책임감이 더해진 모습이에요. 감수성을 가지면서도 약속은 끝까지 지켜요.',
     en: 'A soft heart with solid responsibility added. Sensitive, yet keeps promises all the way.',
     keywords_ko: ['책임감 있는 감수성', '단단한 부드러움', '믿음직한 마음'],
     keywords_en: ['responsible sensitivity', 'solid softness', 'reliable heart'],
@@ -1204,7 +1204,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Aquarius',
-    ko: '공감에 거리감 있는 사고가 같이 있는 결이에요. 따뜻하지만 휩쓸리지 않고 자기 시각을 지켜요.',
+    ko: '공감에 거리감 있는 사고가 같이 있는 느낌이에요. 따뜻하지만 휩쓸리지 않고 자기 시각을 지켜요.',
     en: 'Empathy with a distanced mind together. Warm, yet keeps its own view from being carried away.',
     keywords_ko: ['거리감 있는 공감', '자유로운 감수성', '자기 시각'],
     keywords_en: ['empathy with space', 'free sensitivity', 'own view'],
@@ -1212,7 +1212,7 @@ const SUN_MOON_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_moon',
     sign1: 'Pisces', sign2: 'Pisces',
-    ko: '공감과 감수성이 두 겹으로 흐르는 결이에요. 사람과 세상에 자연스럽게 스며드는 결.',
+    ko: '공감과 감수성이 두 겹으로 흐르는 스타일이에요. 사람과 세상에 자연스럽게 스며드는 모습이에요.',
     en: 'Empathy and sensitivity doubled. Seeps into people and the world without trying.',
     keywords_ko: ['깊은 공감', '스며드는 마음', '깊은 감수성'],
     keywords_en: ['deep empathy', 'merging heart', 'deep sensitivity'],
@@ -1229,7 +1229,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aries', sign2: 'Aries',
-    ko: '직진하는 끌림과 직진하는 욕망이 한 방향으로 흐르는 결이에요. 마음이 가면 곧장 다가가고 망설임이 거의 없어요.',
+    ko: '직진하는 끌림과 직진하는 욕망이 한 방향으로 흐르는 느낌이에요. 마음이 가면 곧장 다가가고 망설임이 거의 없어요.',
     en: 'Direct attraction and direct desire flow the same way. When the heart leans in, the move follows almost at once.',
     keywords_ko: ['즉각적 끌림', '뜨거운 추진', '망설임 없음'],
     keywords_en: ['instant attraction', 'hot pursuit', 'no hesitation'],
@@ -1237,7 +1237,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aries', sign2: 'Taurus',
-    ko: '빠르게 마음이 가는데, 행동은 천천히 안정된 방식으로 풀어가요. 끌림은 즉각, 다가감은 차분한 결이에요.',
+    ko: '빠르게 마음이 가는데, 행동은 천천히 안정된 방식으로 풀어가요. 끌림은 즉각, 다가감은 차분한 스타일이에요.',
     en: 'Quick to feel drawn, with steady, unhurried steps once moving. The spark is instant, the approach is grounded.',
     keywords_ko: ['빠른 끌림', '차분한 다가감', '안정된 열정'],
     keywords_en: ['quick spark', 'steady approach', 'grounded heat'],
@@ -1245,7 +1245,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aries', sign2: 'Gemini',
-    ko: '끌림은 단도직입인데 다가가는 방식은 가볍고 말이 많아요. 호기심과 직진이 같이 움직이는 결이에요.',
+    ko: '끌림은 단도직입인데 다가가는 방식은 가볍고 말이 많아요. 호기심과 직진이 같이 움직이는 모습이에요.',
     en: 'A direct pull paired with a light, talkative approach. Curiosity and forward motion move together.',
     keywords_ko: ['빠른 끌림', '말 많은 접근', '경쾌한 추진'],
     keywords_en: ['quick spark', 'chatty approach', 'light drive'],
@@ -1253,7 +1253,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aries', sign2: 'Cancer',
-    ko: '직진하는 끌림과 따뜻한 보호 본능이 만나는 결이에요. 사랑할 땐 빠르게 다가가지만, 행동은 조심스럽게 둘러 살피는 흐름.',
+    ko: '직진하는 끌림과 따뜻한 보호 본능이 만나는 느낌이에요. 사랑할 땐 빠르게 다가가지만, 행동은 조심스럽게 둘러 살피는 흐름.',
     en: 'Bold attraction meets a protective, caring drive. You move toward love quickly, then act with gentle, careful steps.',
     keywords_ko: ['빠른 끌림', '돌봄의 행동', '용기와 보호'],
     keywords_en: ['quick attraction', 'protective action', 'courage with care'],
@@ -1261,7 +1261,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aries', sign2: 'Leo',
-    ko: '환하게 끌리고 환하게 행동하는 결이에요. 좋아하는 마음과 표현이 한 박자로 빛나요.',
+    ko: '환하게 끌리고 환하게 행동하는 스타일이에요. 좋아하는 마음과 표현이 한 박자로 빛나요.',
     en: 'Bright in attraction, bright in action. The feeling and the showing shine in one beat.',
     keywords_ko: ['환한 끌림', '당당한 행동', '뜨거운 표현'],
     keywords_en: ['bright spark', 'proud move', 'warm display'],
@@ -1277,7 +1277,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aries', sign2: 'Libra',
-    ko: '솔직하게 끌리는데 행동은 상대의 결을 살피며 균형을 맞춰요. 직진과 조율이 함께 가는 결이에요.',
+    ko: '솔직하게 끌리는데 행동은 상대의 면을 살피며 균형을 맞춰요. 직진과 조율이 함께 가는 모습이에요.',
     en: 'Honest attraction balanced by a thoughtful, considerate approach. Going straight and adjusting at the same time.',
     keywords_ko: ['솔직한 끌림', '조율된 행동', '균형의 추진'],
     keywords_en: ['honest pull', 'tuned move', 'balanced drive'],
@@ -1293,7 +1293,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aries', sign2: 'Sagittarius',
-    ko: '시원하게 끌리고 멀리 보는 행동력이 더해진 결이에요. 새로운 사람, 새 풍경에 반응이 빠르고 자유롭게 움직여요.',
+    ko: '시원하게 끌리고 멀리 보는 행동력이 더해진 느낌이에요. 새로운 사람, 새 풍경에 반응이 빠르고 자유롭게 움직여요.',
     en: 'Open attraction paired with a wide, adventurous drive. New people and new scenery light it up fast.',
     keywords_ko: ['시원한 끌림', '모험심', '자유로운 추진'],
     keywords_en: ['open spark', 'adventure', 'free drive'],
@@ -1309,7 +1309,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aries', sign2: 'Aquarius',
-    ko: '솔직한 끌림에 자기만의 거리감 있는 행동이 더해진 결이에요. 좋아하면서도 자기 자유를 지키는 결.',
+    ko: '솔직한 끌림에 자기만의 거리감 있는 행동이 더해진 스타일이에요. 좋아하면서도 자기 자유를 지키는 모습이에요.',
     en: 'A direct pull paired with a cool, independent way of moving. Loves close but keeps its own room.',
     keywords_ko: ['솔직한 끌림', '자유로운 행동', '거리감 있는 추진'],
     keywords_en: ['honest pull', 'free move', 'spacious drive'],
@@ -1317,7 +1317,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aries', sign2: 'Pisces',
-    ko: '뜨겁게 끌리지만 행동은 부드럽고 분위기에 잘 스며들어요. 직진과 흐름이 함께 가는 결이에요.',
+    ko: '뜨겁게 끌리지만 행동은 부드럽고 분위기에 잘 스며들어요. 직진과 흐름이 함께 가는 느낌이에요.',
     en: 'Hot attraction with a soft, mood-led approach. Forwardness and flow move side by side.',
     keywords_ko: ['뜨거운 끌림', '부드러운 행동', '흐름 있는 추진'],
     keywords_en: ['hot spark', 'soft move', 'flowing drive'],
@@ -1327,7 +1327,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Aries',
-    ko: '천천히 끌리는데 행동은 의외로 빠르고 시원해요. 마음은 무게가 있고, 다가감은 단호한 결이에요.',
+    ko: '천천히 끌리는데 행동은 의외로 빠르고 시원해요. 마음은 무게가 있고, 다가감은 단호한 스타일이에요.',
     en: 'Slow to feel drawn, with surprisingly quick and clear action. Heavy in heart, decisive in move.',
     keywords_ko: ['느린 끌림', '단호한 행동', '단단한 추진'],
     keywords_en: ['slow pull', 'decisive move', 'firm drive'],
@@ -1335,7 +1335,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Taurus',
-    ko: '편안하고 감각적인 끌림과 안정적인 행동이 두 겹으로 깔린 결이에요. 좋아하면 오래, 깊이 누리는 사람이에요.',
+    ko: '편안하고 감각적인 끌림과 안정적인 행동이 두 겹으로 깔린 모습이에요. 좋아하면 오래, 깊이 누리는 사람이에요.',
     en: 'Sensual, comfortable attraction with a steady, unhurried drive doubled. What it loves, it enjoys long and deeply.',
     keywords_ko: ['감각적 끌림', '느긋한 행동', '깊은 향유'],
     keywords_en: ['sensual pull', 'unhurried move', 'deep enjoying'],
@@ -1343,7 +1343,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Gemini',
-    ko: '감각적으로 끌리지만 행동은 가볍고 말이 많아요. 편안한 마음에 호기심 어린 접근이 더해진 결이에요.',
+    ko: '감각적으로 끌리지만 행동은 가볍고 말이 많아요. 편안한 마음에 호기심 어린 접근이 더해진 느낌이에요.',
     en: 'A sensual pull with a light, talkative way of moving. Comfortable in feeling, curious in approach.',
     keywords_ko: ['감각적 끌림', '가벼운 접근', '말 많은 행동'],
     keywords_en: ['sensual pull', 'light approach', 'chatty move'],
@@ -1351,7 +1351,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Cancer',
-    ko: '따뜻하고 편안한 끌림에 보호 본능 어린 행동이 어울리는 결이에요. 가까운 사람을 안정적으로 돌보는 결.',
+    ko: '따뜻하고 편안한 끌림에 보호 본능 어린 행동이 어울리는 스타일이에요. 가까운 사람을 안정적으로 돌보는 모습이에요.',
     en: 'Warm, comfortable attraction with a protective, caring drive. Steady nurturing for the people close by.',
     keywords_ko: ['편안한 끌림', '돌봄의 행동', '따뜻한 안정'],
     keywords_en: ['cozy pull', 'caring move', 'warm steadiness'],
@@ -1359,7 +1359,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Leo',
-    ko: '감각적인 끌림에 환한 자기 표현이 더해진 결이에요. 마음에 든 사람에게 풍요롭게 베푸는 결.',
+    ko: '감각적인 끌림에 환한 자기 표현이 더해진 느낌이에요. 마음에 든 사람에게 풍요롭게 베푸는 스타일이에요.',
     en: 'A sensual pull paired with a bright, generous way of moving. Gives abundantly to the one it has chosen.',
     keywords_ko: ['풍요로운 끌림', '환한 행동', '관대한 추진'],
     keywords_en: ['abundant pull', 'bright move', 'generous drive'],
@@ -1367,7 +1367,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Virgo',
-    ko: '편안한 끌림과 꼼꼼한 행동이 잘 맞는 결이에요. 마음은 차분하고, 다가감은 정성스럽고 실용적이에요.',
+    ko: '편안한 끌림과 꼼꼼한 행동이 잘 맞는 모습이에요. 마음은 차분하고, 다가감은 정성스럽고 실용적이에요.',
     en: 'Comfortable attraction with a careful, practical drive. Calm in heart, considerate and useful in action.',
     keywords_ko: ['차분한 끌림', '꼼꼼한 행동', '실용적 다정'],
     keywords_en: ['calm pull', 'careful move', 'practical warmth'],
@@ -1375,7 +1375,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Libra',
-    ko: '아름다운 것에 끌리는 마음과 조화로운 행동이 어울리는 결이에요. 관계의 결을 부드럽게 다듬는 사람이에요.',
+    ko: '아름다운 것에 끌리는 마음과 조화로운 행동이 어울리는 느낌이에요. 관계의 면을 부드럽게 다듬는 사람이에요.',
     en: 'A pull toward beauty with a graceful, balanced drive. Smooths and shapes a relationship gently.',
     keywords_ko: ['미적 끌림', '조화로운 행동', '부드러운 추진'],
     keywords_en: ['aesthetic pull', 'graceful move', 'smooth drive'],
@@ -1383,7 +1383,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Scorpio',
-    ko: '감각적 끌림 아래 깊고 진한 욕망이 흘러요. 마음에 든 사람을 오래, 깊이 지키는 결이에요.',
+    ko: '감각적 끌림 아래 깊고 진한 욕망이 흘러요. 마음에 든 사람을 오래, 깊이 지키는 스타일이에요.',
     en: 'Sensual attraction with deep, intense desire underneath. Holds the chosen one long and deeply.',
     keywords_ko: ['감각적 끌림', '깊은 욕망', '오래 지키는 마음'],
     keywords_en: ['sensual pull', 'deep desire', 'long holding'],
@@ -1391,7 +1391,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Sagittarius',
-    ko: '편안한 끌림에 멀리 보는 행동력이 더해진 결이에요. 일상은 안정적으로, 만남은 풍경처럼 넓혀가는 결.',
+    ko: '편안한 끌림에 멀리 보는 행동력이 더해진 모습이에요. 일상은 안정적으로, 만남은 풍경처럼 넓혀가는 느낌이에요.',
     en: 'A cozy pull paired with a wide, adventurous drive. Daily life stays settled, while connections open into wider views.',
     keywords_ko: ['편안한 끌림', '확장하는 행동', '여유로운 추진'],
     keywords_en: ['cozy pull', 'expansive move', 'easy drive'],
@@ -1399,7 +1399,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Capricorn',
-    ko: '안정과 책임이 끌림과 행동 양쪽에 깔린 결이에요. 단단하고 오래 가는 관계를 자연스럽게 만들어요.',
+    ko: '안정과 책임이 끌림과 행동 양쪽에 깔린 스타일이에요. 단단하고 오래 가는 관계를 자연스럽게 만들어요.',
     en: 'Stability and responsibility line both the attraction and the drive. Builds lasting bonds without forcing.',
     keywords_ko: ['단단한 끌림', '책임 있는 행동', '오래 가는 관계'],
     keywords_en: ['solid pull', 'responsible move', 'lasting bond'],
@@ -1407,7 +1407,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Aquarius',
-    ko: '편안한 취향에 자기만의 시각이 있는 행동이 더해진 결이에요. 익숙함을 좋아하면서도 자유로운 방식으로 다가가요.',
+    ko: '편안한 취향에 자기만의 시각이 있는 행동이 더해진 모습이에요. 익숙함을 좋아하면서도 자유로운 방식으로 다가가요.',
     en: 'A comfortable taste with an original, independent way of moving. Loves the familiar, approaches in its own style.',
     keywords_ko: ['편안한 끌림', '독창적 행동', '자유로운 추진'],
     keywords_en: ['cozy pull', 'original move', 'free drive'],
@@ -1415,7 +1415,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Taurus', sign2: 'Pisces',
-    ko: '감각적이면서 따뜻한 끌림에 부드러운 행동이 어울리는 결이에요. 분위기를 천천히, 깊이 만드는 결.',
+    ko: '감각적이면서 따뜻한 끌림에 부드러운 행동이 어울리는 느낌이에요. 분위기를 천천히, 깊이 만드는 스타일이에요.',
     en: 'Sensual, warm attraction with a soft, flowing drive. Creates the mood slowly and deeply.',
     keywords_ko: ['따뜻한 끌림', '부드러운 행동', '깊은 분위기'],
     keywords_en: ['warm pull', 'soft move', 'deep atmosphere'],
@@ -1425,7 +1425,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Gemini', sign2: 'Aries',
-    ko: '말과 호기심으로 끌리고, 행동은 직진해요. 대화가 통하면 망설임 없이 다가가는 결이에요.',
+    ko: '말과 호기심으로 끌리고, 행동은 직진해요. 대화가 통하면 망설임 없이 다가가는 모습이에요.',
     en: 'Drawn by talk and curiosity, with a straight-ahead drive. If the conversation clicks, the move follows fast.',
     keywords_ko: ['말의 끌림', '직진 행동', '경쾌한 추진'],
     keywords_en: ['talk-led pull', 'direct move', 'light drive'],
@@ -1441,7 +1441,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Gemini', sign2: 'Gemini',
-    ko: '말과 다양함의 끌림, 가볍고 빠른 행동이 두 겹으로 깔린 결이에요. 한 사람과의 대화가 깊으면 마음이 가장 잘 움직여요.',
+    ko: '말과 다양함의 끌림, 가볍고 빠른 행동이 두 겹으로 깔린 느낌이에요. 한 사람과의 대화가 깊으면 마음이 가장 잘 움직여요.',
     en: 'A talk-led pull with quick, varied moves doubled. The heart moves best when a conversation runs deep.',
     keywords_ko: ['호기심 끌림', '경쾌한 행동', '말의 흐름'],
     keywords_en: ['curiosity pull', 'lively move', 'flow of talk'],
@@ -1449,7 +1449,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Gemini', sign2: 'Cancer',
-    ko: '말로 끌리지만 행동은 따뜻하고 보호하는 결이에요. 사교적이지만 진짜 가까운 사람은 정성껏 돌봐요.',
+    ko: '말로 끌리지만 행동은 따뜻하고 보호하는 스타일이에요. 사교적이지만 진짜 가까운 사람은 정성껏 돌봐요.',
     en: 'A talk-led pull with a warm, protective drive. Sociable on the surface, deeply caring for the close ones.',
     keywords_ko: ['말의 끌림', '돌봄의 행동', '따뜻한 친근함'],
     keywords_en: ['talk pull', 'caring move', 'warm closeness'],
@@ -1457,7 +1457,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Gemini', sign2: 'Leo',
-    ko: '재치와 호기심으로 끌리고, 행동은 환하고 당당해요. 분위기를 가볍게 끌어올리는 결이에요.',
+    ko: '재치와 호기심으로 끌리고, 행동은 환하고 당당해요. 분위기를 가볍게 끌어올리는 모습이에요.',
     en: 'Drawn by wit and curiosity, moving with bright confidence. Lifts the room without effort.',
     keywords_ko: ['재치 끌림', '환한 행동', '밝은 분위기'],
     keywords_en: ['wit pull', 'bright move', 'lit-up mood'],
@@ -1465,7 +1465,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Gemini', sign2: 'Virgo',
-    ko: '말과 정보로 끌리고, 행동은 꼼꼼하고 실용적이에요. 대화 끝에 작은 호의를 자연스럽게 보여주는 결이에요.',
+    ko: '말과 정보로 끌리고, 행동은 꼼꼼하고 실용적이에요. 대화 끝에 작은 호의를 자연스럽게 보여주는 느낌이에요.',
     en: 'A pull through talk and information with a careful, practical drive. Small considerate acts follow naturally.',
     keywords_ko: ['정보의 끌림', '실용적 행동', '세심한 다정'],
     keywords_en: ['info pull', 'practical move', 'careful warmth'],
@@ -1473,7 +1473,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Gemini', sign2: 'Libra',
-    ko: '대화와 매너로 끌리고, 행동도 균형 있고 부드러워요. 관계의 분위기를 부드럽게 다듬는 결이에요.',
+    ko: '대화와 매너로 끌리고, 행동도 균형 있고 부드러워요. 관계의 분위기를 부드럽게 다듬는 스타일이에요.',
     en: 'Drawn by talk and manners, moving with balance and grace. Smooths the relationship mood with ease.',
     keywords_ko: ['대화의 끌림', '균형 있는 행동', '매끄러운 관계'],
     keywords_en: ['talk pull', 'balanced move', 'smooth relating'],
@@ -1489,7 +1489,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Gemini', sign2: 'Sagittarius',
-    ko: '대화와 새로움에 끌리고, 행동도 멀리 보고 자유로워요. 함께 배우고 함께 떠나는 결이에요.',
+    ko: '대화와 새로움에 끌리고, 행동도 멀리 보고 자유로워요. 함께 배우고 함께 떠나는 모습이에요.',
     en: 'Drawn by talk and novelty, with a wide and free drive. Learning together and traveling together fit naturally.',
     keywords_ko: ['새로움의 끌림', '자유로운 행동', '함께 배우기'],
     keywords_en: ['novelty pull', 'free move', 'shared learning'],
@@ -1497,7 +1497,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Gemini', sign2: 'Capricorn',
-    ko: '말로 끌리지만 행동은 신중하고 책임감 있어요. 가볍게 시작해도 약속은 끝까지 지키는 결이에요.',
+    ko: '말로 끌리지만 행동은 신중하고 책임감 있어요. 가볍게 시작해도 약속은 끝까지 지키는 느낌이에요.',
     en: 'A talk-led pull with a careful, responsible drive. Starts light, keeps every promise to the end.',
     keywords_ko: ['말의 끌림', '신중한 행동', '약속을 지킴'],
     keywords_en: ['talk pull', 'careful move', 'kept promises'],
@@ -1513,7 +1513,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Gemini', sign2: 'Pisces',
-    ko: '대화에 끌리지만 행동은 분위기와 마음의 결에 따라 흘러요. 가벼우면서도 잘 스며드는 결.',
+    ko: '대화에 끌리지만 행동은 분위기와 마음의 결에 따라 흘러요. 가벼우면서도 잘 스며드는 스타일이에요.',
     en: 'A talk-led pull with a mood-led, flowing drive. Light on the surface, soaked into the atmosphere.',
     keywords_ko: ['말의 끌림', '흐름 있는 행동', '분위기 친근함'],
     keywords_en: ['talk pull', 'flowing move', 'mood-led closeness'],
@@ -1523,7 +1523,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Aries',
-    ko: '따뜻한 끌림 아래 직진하는 행동이 깔린 결이에요. 가까운 사람 일에 가장 빠르고 적극적으로 움직여요.',
+    ko: '따뜻한 끌림 아래 직진하는 행동이 깔린 모습이에요. 가까운 사람 일에 가장 빠르고 적극적으로 움직여요.',
     en: 'Warm attraction with a direct drive underneath. Moves fastest when those close are involved.',
     keywords_ko: ['따뜻한 끌림', '직진 행동', '보호의 추진'],
     keywords_en: ['warm pull', 'direct move', 'protective drive'],
@@ -1531,7 +1531,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Taurus',
-    ko: '따뜻함과 안정감이 끌림과 행동 모두에 흐르는 결이에요. 익숙하고 편안한 자리에서 마음을 가장 잘 보여줘요.',
+    ko: '따뜻함과 안정감이 끌림과 행동 모두에 흐르는 느낌이에요. 익숙하고 편안한 자리에서 마음을 가장 잘 보여줘요.',
     en: 'Warmth and stability run through both the pull and the drive. Shows the heart best in familiar comfort.',
     keywords_ko: ['포근한 끌림', '안정된 행동', '편안한 다정'],
     keywords_en: ['cozy pull', 'steady move', 'easy warmth'],
@@ -1539,7 +1539,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Gemini',
-    ko: '따뜻하게 끌리지만 행동은 가볍고 말이 많아요. 사람을 챙기면서도 부담 없이 다가가는 결이에요.',
+    ko: '따뜻하게 끌리지만 행동은 가볍고 말이 많아요. 사람을 챙기면서도 부담 없이 다가가는 스타일이에요.',
     en: 'A warm pull with a light, talkative drive. Caring approach that does not feel heavy.',
     keywords_ko: ['따뜻한 끌림', '가벼운 행동', '편한 다가감'],
     keywords_en: ['warm pull', 'light move', 'easy approach'],
@@ -1547,7 +1547,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Cancer',
-    ko: '돌봄과 보호 본능이 끌림과 행동에 두 겹으로 흐르는 결이에요. 가까운 사람에게 매우 정성스럽고 깊어요.',
+    ko: '돌봄과 보호 본능이 끌림과 행동에 두 겹으로 흐르는 모습이에요. 가까운 사람에게 매우 정성스럽고 깊어요.',
     en: 'Care and protection doubled in both pull and drive. Deeply attentive to those close by.',
     keywords_ko: ['깊은 돌봄', '보호의 행동', '진한 다정'],
     keywords_en: ['deep care', 'protective move', 'rich warmth'],
@@ -1555,7 +1555,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Leo',
-    ko: '따뜻한 끌림 위에 환한 자기 표현이 더해진 결이에요. 사랑하는 사람을 빛나게 해주고 싶어해요.',
+    ko: '따뜻한 끌림 위에 환한 자기 표현이 더해진 느낌이에요. 사랑하는 사람을 빛나게 해주고 싶어해요.',
     en: 'Warm attraction with bright self-expression on top. Wants to light up the people it loves.',
     keywords_ko: ['따뜻한 끌림', '환한 애정', '돌봄의 빛'],
     keywords_en: ['warm pull', 'bright affection', 'caring light'],
@@ -1563,7 +1563,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Virgo',
-    ko: '따뜻한 마음과 정성스러운 행동이 잘 맞는 결이에요. 작은 일을 잘 챙기는 다정함이 깊어요.',
+    ko: '따뜻한 마음과 정성스러운 행동이 잘 맞는 스타일이에요. 작은 일을 잘 챙기는 다정함이 깊어요.',
     en: 'A warm heart fits a careful, attentive drive. Deep warmth shown through small, thoughtful gestures.',
     keywords_ko: ['따뜻한 끌림', '정성스러운 행동', '깊은 다정'],
     keywords_en: ['warm pull', 'attentive move', 'deep warmth'],
@@ -1571,7 +1571,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Libra',
-    ko: '따뜻함과 균형 감각이 끌림과 행동 양쪽에 흐르는 결이에요. 관계의 결을 부드럽고 정성스럽게 다듬어요.',
+    ko: '따뜻함과 균형 감각이 끌림과 행동 양쪽에 흐르는 모습이에요. 관계의 면을 부드럽고 정성스럽게 다듬어요.',
     en: 'Warmth and balance run through both pull and drive. Shapes a relationship softly and thoughtfully.',
     keywords_ko: ['따뜻한 끌림', '균형 있는 행동', '부드러운 관계'],
     keywords_en: ['warm pull', 'balanced move', 'soft relating'],
@@ -1579,7 +1579,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Scorpio',
-    ko: '따뜻한 끌림 아래 깊고 강한 감정과 욕망이 흘러요. 한번 마음을 주면 그 깊이를 다해 지키는 결이에요.',
+    ko: '따뜻한 끌림 아래 깊고 강한 감정과 욕망이 흘러요. 한번 마음을 주면 그 깊이를 다해 지키는 느낌이에요.',
     en: 'Warm attraction with deep, intense feeling and desire beneath. Once the heart is given, it is kept fully.',
     keywords_ko: ['깊은 끌림', '강한 욕망', '오래 지키는 마음'],
     keywords_en: ['deep pull', 'intense desire', 'long holding'],
@@ -1587,7 +1587,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Sagittarius',
-    ko: '따뜻한 끌림에 멀리 보는 자유로운 행동이 더해진 결이에요. 가까운 사람을 챙기면서도 자기 풍경을 잃지 않아요.',
+    ko: '따뜻한 끌림에 멀리 보는 자유로운 행동이 더해진 스타일이에요. 가까운 사람을 챙기면서도 자기 풍경을 잃지 않아요.',
     en: 'Warm attraction with a wide, free-spirited drive. Cares for those close while keeping its own horizon.',
     keywords_ko: ['따뜻한 끌림', '자유로운 행동', '시야 있는 다정'],
     keywords_en: ['warm pull', 'free move', 'wider warmth'],
@@ -1595,7 +1595,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Capricorn',
-    ko: '따뜻한 마음과 책임감 있는 행동이 만나는 결이에요. 사랑하면 약속을 끝까지 지키고 단단한 자리를 만들어요.',
+    ko: '따뜻한 마음과 책임감 있는 행동이 만나는 모습이에요. 사랑하면 약속을 끝까지 지키고 단단한 자리를 만들어요.',
     en: 'A warm heart meets a responsible drive. Once committed, promises are kept and a steady place is built.',
     keywords_ko: ['따뜻한 끌림', '책임 있는 행동', '단단한 자리'],
     keywords_en: ['warm pull', 'responsible move', 'solid place'],
@@ -1603,7 +1603,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Aquarius',
-    ko: '따뜻하게 끌리지만 행동은 자기만의 시각으로 움직여요. 정은 깊지만 휩쓸리지 않는 결이에요.',
+    ko: '따뜻하게 끌리지만 행동은 자기만의 시각으로 움직여요. 정은 깊지만 휩쓸리지 않는 느낌이에요.',
     en: 'A warm pull with an independent, original drive. Deep in care, yet not swept away.',
     keywords_ko: ['따뜻한 끌림', '독자적 행동', '거리감 있는 다정'],
     keywords_en: ['warm pull', 'independent move', 'spacious warmth'],
@@ -1611,7 +1611,7 @@ const VENUS_MARS_COMBINATIONS: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Cancer', sign2: 'Pisces',
-    ko: '깊은 공감과 부드러운 행동이 두 겹으로 흐르는 결이에요. 사랑은 분위기처럼 자연스럽게 스며들어요.',
+    ko: '깊은 공감과 부드러운 행동이 두 겹으로 흐르는 스타일이에요. 사랑은 분위기처럼 자연스럽게 스며들어요.',
     en: 'Deep empathy and a soft drive doubled. Love seeps in like atmosphere.',
     keywords_ko: ['공감의 끌림', '부드러운 행동', '스며드는 다정'],
     keywords_en: ['empathic pull', 'soft move', 'seeping warmth'],
@@ -1627,7 +1627,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Aries',
-    ko: '환한 끌림과 직진하는 행동이 같은 박자로 움직이는 결이에요. 좋아하면 환하게 다가가요.',
+    ko: '환한 끌림과 직진하는 행동이 같은 박자로 움직이는 모습이에요. 좋아하면 환하게 다가가요.',
     en: 'Bright attraction with a direct drive in the same beat. Once it likes, it shines toward you.',
     keywords_ko: ['환한 끌림', '직진 행동', '뜨거운 표현'],
     keywords_en: ['bright pull', 'direct move', 'warm display'],
@@ -1635,7 +1635,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Taurus',
-    ko: '환하고 풍요로운 끌림에 차분한 행동이 어울리는 결이에요. 사랑할 땐 안정적으로, 표현은 따뜻하게.',
+    ko: '환하고 풍요로운 끌림에 차분한 행동이 어울리는 느낌이에요. 사랑할 땐 안정적으로, 표현은 따뜻하게.',
     en: 'Bright, abundant attraction with a steady drive. Loves with stability, expresses with warmth.',
     keywords_ko: ['풍요로운 끌림', '안정된 행동', '따뜻한 표현'],
     keywords_en: ['abundant pull', 'steady move', 'warm display'],
@@ -1643,7 +1643,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Gemini',
-    ko: '환한 끌림과 재치 있는 행동이 잘 맞는 결이에요. 말로 분위기를 자연스럽게 살리는 결.',
+    ko: '환한 끌림과 재치 있는 행동이 잘 맞는 스타일이에요. 말로 분위기를 자연스럽게 살리는 모습이에요.',
     en: 'Bright attraction with a quick, witty drive. Brings the mood up through easy, playful talk.',
     keywords_ko: ['환한 끌림', '재치 있는 행동', '밝은 분위기'],
     keywords_en: ['bright pull', 'witty move', 'lit-up mood'],
@@ -1651,7 +1651,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Cancer',
-    ko: '환한 끌림 아래 따뜻한 보호 본능이 흐르는 결이에요. 사랑하는 사람을 빛내면서도 깊이 챙기는 결.',
+    ko: '환한 끌림 아래 따뜻한 보호 본능이 흐르는 느낌이에요. 사랑하는 사람을 빛내면서도 깊이 챙기는 스타일이에요.',
     en: 'Bright attraction with warm protection underneath. Lights up loved ones while caring for them deeply.',
     keywords_ko: ['환한 끌림', '따뜻한 행동', '깊은 다정'],
     keywords_en: ['bright pull', 'warm move', 'deep care'],
@@ -1659,7 +1659,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Leo',
-    ko: '환하고 당당한 끌림과 표현이 두 겹으로 깔린 결이에요. 사랑할 땐 망설임 없이 전부를 보여줘요.',
+    ko: '환하고 당당한 끌림과 표현이 두 겹으로 깔린 모습이에요. 사랑할 땐 망설임 없이 전부를 보여줘요.',
     en: 'Bright, proud attraction and expression doubled. When in love, all of it shows up without hesitation.',
     keywords_ko: ['환한 끌림', '당당한 행동', '뜨거운 자기 표현'],
     keywords_en: ['bright pull', 'proud move', 'full expression'],
@@ -1667,7 +1667,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Virgo',
-    ko: '환한 끌림에 꼼꼼한 행동이 더해진 결이에요. 환하게 보여주면서도 작은 일을 정성껏 챙겨요.',
+    ko: '환한 끌림에 꼼꼼한 행동이 더해진 느낌이에요. 환하게 보여주면서도 작은 일을 정성껏 챙겨요.',
     en: 'Bright attraction with a careful, attentive drive. Shines outwardly while tending to small details.',
     keywords_ko: ['환한 끌림', '정성스러운 행동', '실속 있는 다정'],
     keywords_en: ['bright pull', 'attentive move', 'practical warmth'],
@@ -1675,7 +1675,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Libra',
-    ko: '환한 끌림과 균형 있는 행동이 잘 맞는 결이에요. 관계의 분위기를 환하고 매끄럽게 만드는 결.',
+    ko: '환한 끌림과 균형 있는 행동이 잘 맞는 스타일이에요. 관계의 분위기를 환하고 매끄럽게 만드는 모습이에요.',
     en: 'Bright attraction with a balanced, graceful drive. Lights up a relationship while keeping it smooth.',
     keywords_ko: ['환한 끌림', '균형 있는 행동', '매끄러운 분위기'],
     keywords_en: ['bright pull', 'balanced move', 'smooth mood'],
@@ -1683,7 +1683,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Scorpio',
-    ko: '환한 끌림 아래 깊고 강한 욕망이 흐르는 결이에요. 사랑하면 환하게 보이지만 마음은 끝까지 진해요.',
+    ko: '환한 끌림 아래 깊고 강한 욕망이 흐르는 느낌이에요. 사랑하면 환하게 보이지만 마음은 끝까지 진해요.',
     en: 'Bright attraction with deep, intense desire underneath. Bright on the outside, fully committed within.',
     keywords_ko: ['환한 끌림', '깊은 욕망', '진한 헌신'],
     keywords_en: ['bright pull', 'deep desire', 'full devotion'],
@@ -1691,7 +1691,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Sagittarius',
-    ko: '환한 끌림과 멀리 보는 자유로운 행동이 같은 결이에요. 함께 큰 풍경으로 나가는 사랑이에요.',
+    ko: '환한 끌림과 멀리 보는 자유로운 행동이 같은 스타일이에요. 함께 큰 풍경으로 나가는 사랑이에요.',
     en: 'Bright attraction with a wide, free-spirited drive in the same line. Love that opens into bigger views together.',
     keywords_ko: ['환한 끌림', '자유로운 행동', '확장하는 사랑'],
     keywords_en: ['bright pull', 'free move', 'expansive love'],
@@ -1699,7 +1699,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Capricorn',
-    ko: '환한 끌림과 책임감 있는 행동이 어울리는 결이에요. 사랑하면 끝까지 책임지고 환하게 표현해요.',
+    ko: '환한 끌림과 책임감 있는 행동이 어울리는 모습이에요. 사랑하면 끝까지 책임지고 환하게 표현해요.',
     en: 'Bright attraction with a responsible drive. Once in love, commitment and expression go all the way.',
     keywords_ko: ['환한 끌림', '책임 있는 행동', '단단한 표현'],
     keywords_en: ['bright pull', 'responsible move', 'solid expression'],
@@ -1707,7 +1707,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Aquarius',
-    ko: '환한 끌림에 자기만의 시각이 있는 행동이 더해진 결이에요. 화려하면서도 휩쓸리지 않는 결이에요.',
+    ko: '환한 끌림에 자기만의 시각이 있는 행동이 더해진 느낌이에요. 화려하면서도 휩쓸리지 않는 스타일이에요.',
     en: 'Bright attraction with an original, independent drive. Vibrant yet not carried away.',
     keywords_ko: ['환한 끌림', '독창적 행동', '자유로운 표현'],
     keywords_en: ['bright pull', 'original move', 'free expression'],
@@ -1715,7 +1715,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Leo', sign2: 'Pisces',
-    ko: '환한 끌림 아래 깊은 공감이 흐르는 결이에요. 보여주는 사랑과 스며드는 사랑이 함께 있어요.',
+    ko: '환한 끌림 아래 깊은 공감이 흐르는 모습이에요. 보여주는 사랑과 스며드는 사랑이 함께 있어요.',
     en: 'Bright attraction with deep empathy beneath. Love that both shines and seeps in.',
     keywords_ko: ['환한 끌림', '공감의 행동', '부드러운 표현'],
     keywords_en: ['bright pull', 'empathic move', 'soft display'],
@@ -1725,7 +1725,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Aries',
-    ko: '꼼꼼하고 실용적인 끌림에 직진하는 행동이 더해진 결이에요. 마음에 들면 망설임 없이 행동에 옮겨요.',
+    ko: '꼼꼼하고 실용적인 끌림에 직진하는 행동이 더해진 느낌이에요. 마음에 들면 망설임 없이 행동에 옮겨요.',
     en: 'A careful, practical pull with a direct drive. Once decided, action follows without hesitation.',
     keywords_ko: ['꼼꼼한 끌림', '직진 행동', '실용적 추진'],
     keywords_en: ['careful pull', 'direct move', 'practical drive'],
@@ -1733,7 +1733,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Taurus',
-    ko: '꼼꼼한 끌림과 차분한 행동이 잘 맞는 결이에요. 작은 정성을 오래 쌓아가는 사랑이에요.',
+    ko: '꼼꼼한 끌림과 차분한 행동이 잘 맞는 스타일이에요. 작은 정성을 오래 쌓아가는 사랑이에요.',
     en: 'A careful pull and a steady drive fit together. Love built through long, small acts of care.',
     keywords_ko: ['세심한 끌림', '차분한 행동', '오래 쌓는 사랑'],
     keywords_en: ['careful pull', 'steady move', 'built love'],
@@ -1741,7 +1741,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Gemini',
-    ko: '실용적이고 정돈된 끌림에 가벼운 행동이 더해진 결이에요. 정보와 작은 챙김으로 마음을 전해요.',
+    ko: '실용적이고 정돈된 끌림에 가벼운 행동이 더해진 모습이에요. 정보와 작은 챙김으로 마음을 전해요.',
     en: 'A practical, tidy pull with a light, talkative drive. Conveys feelings through info and small care.',
     keywords_ko: ['실용적 끌림', '가벼운 행동', '세심한 대화'],
     keywords_en: ['practical pull', 'light move', 'careful talk'],
@@ -1749,7 +1749,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Cancer',
-    ko: '꼼꼼한 끌림과 따뜻한 보호 본능이 어울리는 결이에요. 작은 일도 빠짐없이 챙기는 깊은 다정.',
+    ko: '꼼꼼한 끌림과 따뜻한 보호 본능이 어울리는 느낌이에요. 작은 일도 빠짐없이 챙기는 깊은 다정.',
     en: 'A careful pull with a warm, protective drive. Deep warmth shown through small, complete acts of care.',
     keywords_ko: ['꼼꼼한 끌림', '따뜻한 행동', '깊은 다정'],
     keywords_en: ['careful pull', 'warm move', 'deep warmth'],
@@ -1757,7 +1757,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Leo',
-    ko: '꼼꼼한 끌림에 환한 행동이 더해진 결이에요. 마음은 차분하고, 표현은 따뜻하게 빛나요.',
+    ko: '꼼꼼한 끌림에 환한 행동이 더해진 스타일이에요. 마음은 차분하고, 표현은 따뜻하게 빛나요.',
     en: 'A careful pull with a bright, generous drive. Calm in heart, warm and shining in expression.',
     keywords_ko: ['꼼꼼한 끌림', '환한 행동', '따뜻한 표현'],
     keywords_en: ['careful pull', 'bright move', 'warm display'],
@@ -1765,7 +1765,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Virgo',
-    ko: '꼼꼼한 끌림과 정성스러운 행동이 두 겹으로 깔린 결이에요. 사랑이 작은 약속과 챙김으로 이뤄져요.',
+    ko: '꼼꼼한 끌림과 정성스러운 행동이 두 겹으로 깔린 모습이에요. 사랑이 작은 약속과 챙김으로 이뤄져요.',
     en: 'A careful pull and an attentive drive doubled. Love made of small promises and kept attentions.',
     keywords_ko: ['세심한 끌림', '정성스러운 행동', '실속 있는 사랑'],
     keywords_en: ['careful pull', 'attentive move', 'practical love'],
@@ -1773,7 +1773,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Libra',
-    ko: '꼼꼼한 끌림과 매끄러운 행동이 어울리는 결이에요. 관계를 정돈하면서도 분위기를 부드럽게 만들어요.',
+    ko: '꼼꼼한 끌림과 매끄러운 행동이 어울리는 느낌이에요. 관계를 정돈하면서도 분위기를 부드럽게 만들어요.',
     en: 'A careful pull with a smooth, balanced drive. Tidies the relationship while keeping the mood soft.',
     keywords_ko: ['세심한 끌림', '매끄러운 행동', '균형의 다정'],
     keywords_en: ['careful pull', 'smooth move', 'balanced warmth'],
@@ -1781,7 +1781,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Scorpio',
-    ko: '꼼꼼한 끌림 아래 깊은 욕망과 집중이 흐르는 결이에요. 사랑하면 깊이, 끝까지 헌신하는 결.',
+    ko: '꼼꼼한 끌림 아래 깊은 욕망과 집중이 흐르는 스타일이에요. 사랑하면 깊이, 끝까지 헌신하는 모습이에요.',
     en: 'A careful pull with deep desire and focus underneath. When in love, the commitment runs all the way.',
     keywords_ko: ['세심한 끌림', '깊은 욕망', '깊은 헌신'],
     keywords_en: ['careful pull', 'deep desire', 'full devotion'],
@@ -1789,7 +1789,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Sagittarius',
-    ko: '꼼꼼한 끌림에 멀리 보는 행동이 더해진 결이에요. 일상은 잘 다듬고, 만남에는 큰 시야를 가져와요.',
+    ko: '꼼꼼한 끌림에 멀리 보는 행동이 더해진 느낌이에요. 일상은 잘 다듬고, 만남에는 큰 시야를 가져와요.',
     en: 'A careful pull with a wide, adventurous drive. Tidies the everyday, brings a wider view into the bond.',
     keywords_ko: ['세심한 끌림', '확장하는 행동', '시야 있는 다정'],
     keywords_en: ['careful pull', 'expansive move', 'wider warmth'],
@@ -1797,7 +1797,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Capricorn',
-    ko: '실용과 책임이 끌림과 행동 양쪽에 흐르는 결이에요. 차분하지만 약속은 끝까지 지키는 사랑이에요.',
+    ko: '실용과 책임이 끌림과 행동 양쪽에 흐르는 스타일이에요. 차분하지만 약속은 끝까지 지키는 사랑이에요.',
     en: 'Practicality and responsibility run through both pull and drive. Quiet love that keeps every promise.',
     keywords_ko: ['실용적 끌림', '책임 있는 행동', '단단한 사랑'],
     keywords_en: ['practical pull', 'responsible move', 'solid love'],
@@ -1805,7 +1805,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Aquarius',
-    ko: '꼼꼼한 끌림에 자기만의 시각이 있는 행동이 더해진 결이에요. 정성스러우면서도 자유로운 결.',
+    ko: '꼼꼼한 끌림에 자기만의 시각이 있는 행동이 더해진 모습이에요. 정성스러우면서도 자유로운 느낌이에요.',
     en: 'A careful pull with an original, independent drive. Attentive yet free.',
     keywords_ko: ['세심한 끌림', '독창적 행동', '자유로운 다정'],
     keywords_en: ['careful pull', 'original move', 'free warmth'],
@@ -1813,7 +1813,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Virgo', sign2: 'Pisces',
-    ko: '꼼꼼한 끌림 아래 깊은 공감이 흐르는 결이에요. 작은 챙김과 분위기의 다정이 함께 있어요.',
+    ko: '꼼꼼한 끌림 아래 깊은 공감이 흐르는 스타일이에요. 작은 챙김과 분위기의 다정이 함께 있어요.',
     en: 'A careful pull with deep empathy beneath. Small acts of care and atmospheric warmth side by side.',
     keywords_ko: ['세심한 끌림', '공감의 행동', '부드러운 정성'],
     keywords_en: ['careful pull', 'empathic move', 'soft attentiveness'],
@@ -1823,7 +1823,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Aries',
-    ko: '균형 있는 끌림에 직진하는 행동이 더해진 결이에요. 결정엔 시간이 걸려도 마음먹으면 시원하게 움직여요.',
+    ko: '균형 있는 끌림에 직진하는 행동이 더해진 모습이에요. 결정엔 시간이 걸려도 마음먹으면 시원하게 움직여요.',
     en: 'A balanced pull with a direct drive. Choosing takes time, but the move is clear once decided.',
     keywords_ko: ['균형의 끌림', '직진 행동', '시원한 추진'],
     keywords_en: ['balanced pull', 'direct move', 'clear drive'],
@@ -1831,7 +1831,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Taurus',
-    ko: '아름다움과 편안함의 끌림에 차분한 행동이 어울리는 결이에요. 관계의 결을 안정적으로 다듬는 사랑.',
+    ko: '아름다움과 편안함의 끌림에 차분한 행동이 어울리는 느낌이에요. 관계의 면을 안정적으로 다듬는 사랑.',
     en: 'A pull toward beauty and comfort with a steady drive. Shapes a relationship into something stable.',
     keywords_ko: ['미적 끌림', '안정된 행동', '편안한 사랑'],
     keywords_en: ['aesthetic pull', 'steady move', 'easy love'],
@@ -1839,7 +1839,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Gemini',
-    ko: '대화와 매너에 끌리고, 행동도 가볍고 재치 있어요. 분위기를 자연스럽게 매끄럽게 만드는 결이에요.',
+    ko: '대화와 매너에 끌리고, 행동도 가볍고 재치 있어요. 분위기를 자연스럽게 매끄럽게 만드는 스타일이에요.',
     en: 'Drawn by talk and manners, moving with light wit. Naturally smooths the mood around.',
     keywords_ko: ['대화의 끌림', '재치 있는 행동', '매끄러운 분위기'],
     keywords_en: ['talk pull', 'witty move', 'smooth mood'],
@@ -1847,7 +1847,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Cancer',
-    ko: '균형 있는 끌림에 따뜻한 보호의 행동이 더해진 결이에요. 관계의 결을 부드럽고 정성스럽게 챙겨요.',
+    ko: '균형 있는 끌림에 따뜻한 보호의 행동이 더해진 모습이에요. 관계의 면을 부드럽고 정성스럽게 챙겨요.',
     en: 'A balanced pull with a warm, protective drive. Tends a relationship softly and attentively.',
     keywords_ko: ['균형의 끌림', '따뜻한 행동', '정성스러운 관계'],
     keywords_en: ['balanced pull', 'warm move', 'attentive relating'],
@@ -1855,7 +1855,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Leo',
-    ko: '매너 있는 끌림과 환한 행동이 잘 맞는 결이에요. 관계를 환하고 우아하게 만드는 결.',
+    ko: '매너 있는 끌림과 환한 행동이 잘 맞는 느낌이에요. 관계를 환하고 우아하게 만드는 스타일이에요.',
     en: 'A graceful pull with a bright drive. Makes a relationship both elegant and luminous.',
     keywords_ko: ['우아한 끌림', '환한 행동', '빛나는 관계'],
     keywords_en: ['graceful pull', 'bright move', 'shining relating'],
@@ -1863,7 +1863,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Virgo',
-    ko: '균형 있는 끌림과 꼼꼼한 행동이 어울리는 결이에요. 관계의 결을 매끄럽게 다듬고 작은 일을 잘 챙겨요.',
+    ko: '균형 있는 끌림과 꼼꼼한 행동이 어울리는 모습이에요. 관계의 면을 매끄럽게 다듬고 작은 일을 잘 챙겨요.',
     en: 'A balanced pull with a careful drive. Smooths the relationship and tends to small things well.',
     keywords_ko: ['균형의 끌림', '꼼꼼한 행동', '매끄러운 정성'],
     keywords_en: ['balanced pull', 'careful move', 'smooth attentiveness'],
@@ -1871,7 +1871,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Libra',
-    ko: '균형과 매너의 끌림과 행동이 두 겹으로 깔린 결이에요. 분위기를 우아하게 유지하는 사람이에요.',
+    ko: '균형과 매너의 끌림과 행동이 두 겹으로 깔린 느낌이에요. 분위기를 우아하게 유지하는 사람이에요.',
     en: 'Balance and grace in both pull and drive doubled. Keeps the mood elegant and even.',
     keywords_ko: ['우아한 끌림', '매끄러운 행동', '균형 잡힌 관계'],
     keywords_en: ['graceful pull', 'smooth move', 'balanced relating'],
@@ -1879,7 +1879,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Scorpio',
-    ko: '매끄러운 끌림 아래 깊고 강한 욕망이 흐르는 결이에요. 우아하게 보이지만 마음은 한 사람에게 깊이 집중돼요.',
+    ko: '매끄러운 끌림 아래 깊고 강한 욕망이 흐르는 스타일이에요. 우아하게 보이지만 마음은 한 사람에게 깊이 집중돼요.',
     en: 'A smooth pull with deep, intense desire beneath. Looks graceful, focuses deeply on one person.',
     keywords_ko: ['우아한 끌림', '깊은 욕망', '진한 집중'],
     keywords_en: ['graceful pull', 'deep desire', 'rich focus'],
@@ -1887,7 +1887,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Sagittarius',
-    ko: '균형 있는 끌림에 자유로운 행동이 더해진 결이에요. 우아하면서도 함께 새 풍경으로 나아가는 결.',
+    ko: '균형 있는 끌림에 자유로운 행동이 더해진 모습이에요. 우아하면서도 함께 새 풍경으로 나아가는 느낌이에요.',
     en: 'A balanced pull with a free, adventurous drive. Graceful yet ready to step into new scenery together.',
     keywords_ko: ['우아한 끌림', '자유로운 행동', '함께 가는 모험'],
     keywords_en: ['graceful pull', 'free move', 'shared adventure'],
@@ -1895,7 +1895,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Capricorn',
-    ko: '매끄러운 끌림과 책임감 있는 행동이 어울리는 결이에요. 단단한 관계를 우아하게 만드는 사랑이에요.',
+    ko: '매끄러운 끌림과 책임감 있는 행동이 어울리는 스타일이에요. 단단한 관계를 우아하게 만드는 사랑이에요.',
     en: 'A smooth pull with a responsible drive. Builds a solid relationship while keeping it graceful.',
     keywords_ko: ['우아한 끌림', '책임 있는 행동', '단단한 관계'],
     keywords_en: ['graceful pull', 'responsible move', 'solid relating'],
@@ -1903,7 +1903,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Aquarius',
-    ko: '균형 있는 끌림에 자기만의 시각이 있는 행동이 더해진 결이에요. 우아하면서도 자유로운 관계를 좋아해요.',
+    ko: '균형 있는 끌림에 자기만의 시각이 있는 행동이 더해진 모습이에요. 우아하면서도 자유로운 관계를 좋아해요.',
     en: 'A balanced pull with an original, independent drive. Loves relationships that are graceful yet free.',
     keywords_ko: ['우아한 끌림', '독창적 행동', '자유로운 관계'],
     keywords_en: ['graceful pull', 'original move', 'free relating'],
@@ -1911,7 +1911,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Libra', sign2: 'Pisces',
-    ko: '매끄러운 끌림 아래 깊은 공감이 흐르는 결이에요. 분위기를 우아하게 만들면서 마음으로 스며들어요.',
+    ko: '매끄러운 끌림 아래 깊은 공감이 흐르는 느낌이에요. 분위기를 우아하게 만들면서 마음으로 스며들어요.',
     en: 'A smooth pull with deep empathy beneath. Keeps the mood elegant while seeping into the heart.',
     keywords_ko: ['우아한 끌림', '공감의 행동', '부드러운 관계'],
     keywords_en: ['graceful pull', 'empathic move', 'soft relating'],
@@ -1921,7 +1921,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Aries',
-    ko: '깊고 진한 끌림에 직진하는 행동이 더해진 결이에요. 마음에 들면 망설임 없이 끝까지 가는 결.',
+    ko: '깊고 진한 끌림에 직진하는 행동이 더해진 스타일이에요. 마음에 들면 망설임 없이 끝까지 가는 모습이에요.',
     en: 'A deep, intense pull with a direct drive. Once chosen, goes all the way without hesitation.',
     keywords_ko: ['진한 끌림', '직진 행동', '끝까지 가는 추진'],
     keywords_en: ['intense pull', 'direct move', 'all-the-way drive'],
@@ -1929,7 +1929,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Taurus',
-    ko: '진한 끌림에 차분하고 안정적인 행동이 어울리는 결이에요. 깊고 오래 가는 사랑을 만들어요.',
+    ko: '진한 끌림에 차분하고 안정적인 행동이 어울리는 느낌이에요. 깊고 오래 가는 사랑을 만들어요.',
     en: 'An intense pull with a steady, grounded drive. Builds a deep, long-lasting love.',
     keywords_ko: ['진한 끌림', '안정된 행동', '오래 가는 사랑'],
     keywords_en: ['intense pull', 'steady move', 'lasting love'],
@@ -1937,7 +1937,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Gemini',
-    ko: '깊은 끌림에 가볍고 빠른 행동이 더해진 결이에요. 마음은 진한데 다가감은 가볍고 유연해요.',
+    ko: '깊은 끌림에 가볍고 빠른 행동이 더해진 스타일이에요. 마음은 진한데 다가감은 가볍고 유연해요.',
     en: 'A deep pull with a light, quick drive. Intense in feeling, light and flexible in approach.',
     keywords_ko: ['진한 끌림', '가벼운 행동', '유연한 접근'],
     keywords_en: ['intense pull', 'light move', 'flexible approach'],
@@ -1945,7 +1945,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Cancer',
-    ko: '깊은 끌림과 따뜻한 보호 본능이 잘 어울리는 결이에요. 사랑하는 사람을 끝까지 지키는 결.',
+    ko: '깊은 끌림과 따뜻한 보호 본능이 잘 어울리는 모습이에요. 사랑하는 사람을 끝까지 지키는 느낌이에요.',
     en: 'A deep pull with a warm, protective drive. Holds onto loved ones all the way through.',
     keywords_ko: ['진한 끌림', '보호의 행동', '오래 지키는 마음'],
     keywords_en: ['intense pull', 'protective move', 'long holding'],
@@ -1953,7 +1953,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Leo',
-    ko: '깊은 끌림에 환한 자기 표현이 더해진 결이에요. 마음은 진하고, 표현은 당당하고 뜨거워요.',
+    ko: '깊은 끌림에 환한 자기 표현이 더해진 스타일이에요. 마음은 진하고, 표현은 당당하고 뜨거워요.',
     en: 'A deep pull with bright self-expression. Intense in heart, proud and warm in showing.',
     keywords_ko: ['진한 끌림', '당당한 행동', '뜨거운 표현'],
     keywords_en: ['intense pull', 'proud move', 'warm display'],
@@ -1961,7 +1961,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Virgo',
-    ko: '깊은 끌림에 꼼꼼한 행동이 어울리는 결이에요. 마음은 진하고, 다가감은 정성스럽고 신중해요.',
+    ko: '깊은 끌림에 꼼꼼한 행동이 어울리는 모습이에요. 마음은 진하고, 다가감은 정성스럽고 신중해요.',
     en: 'A deep pull with a careful, attentive drive. Intense in heart, considerate and careful in move.',
     keywords_ko: ['진한 끌림', '정성스러운 행동', '신중한 접근'],
     keywords_en: ['intense pull', 'attentive move', 'careful approach'],
@@ -1969,7 +1969,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Libra',
-    ko: '깊은 끌림에 매끄러운 행동이 더해진 결이에요. 마음은 진하지만 관계의 분위기는 우아하게 유지해요.',
+    ko: '깊은 끌림에 매끄러운 행동이 더해진 느낌이에요. 마음은 진하지만 관계의 분위기는 우아하게 유지해요.',
     en: 'A deep pull with a smooth, balanced drive. Intense in heart, graceful in keeping the mood.',
     keywords_ko: ['진한 끌림', '매끄러운 행동', '우아한 관계'],
     keywords_en: ['intense pull', 'smooth move', 'graceful relating'],
@@ -1977,7 +1977,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Scorpio',
-    ko: '깊고 진한 끌림과 욕망이 두 겹으로 흐르는 결이에요. 한 사람에게 집중하면 거의 모든 에너지가 그쪽으로 가요.',
+    ko: '깊고 진한 끌림과 욕망이 두 겹으로 흐르는 스타일이에요. 한 사람에게 집중하면 거의 모든 에너지가 그쪽으로 가요.',
     en: 'Deep, intense pull and desire doubled. Almost all the energy flows toward the chosen one.',
     keywords_ko: ['깊은 끌림', '집요한 욕망', '깊은 헌신'],
     keywords_en: ['deep pull', 'intense desire', 'full devotion'],
@@ -1985,7 +1985,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Sagittarius',
-    ko: '깊은 끌림에 멀리 보는 자유로운 행동이 더해진 결이에요. 깊이 사랑하면서도 시야를 잃지 않아요.',
+    ko: '깊은 끌림에 멀리 보는 자유로운 행동이 더해진 모습이에요. 깊이 사랑하면서도 시야를 잃지 않아요.',
     en: 'A deep pull with a wide, free-spirited drive. Loves intensely without losing the wider view.',
     keywords_ko: ['진한 끌림', '자유로운 행동', '시야 있는 사랑'],
     keywords_en: ['intense pull', 'free move', 'wider love'],
@@ -1993,7 +1993,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Capricorn',
-    ko: '깊은 끌림과 책임감 있는 행동이 만나는 결이에요. 사랑하면 단단하고 진하게, 끝까지 가는 결.',
+    ko: '깊은 끌림과 책임감 있는 행동이 만나는 느낌이에요. 사랑하면 단단하고 진하게, 끝까지 가는 스타일이에요.',
     en: 'A deep pull meets a responsible drive. Loves solidly and intensely, all the way through.',
     keywords_ko: ['진한 끌림', '책임 있는 행동', '오래 가는 사랑'],
     keywords_en: ['intense pull', 'responsible move', 'lasting love'],
@@ -2001,7 +2001,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Aquarius',
-    ko: '깊은 끌림에 자기만의 시각이 있는 행동이 더해진 결이에요. 진하면서도 자기 자유를 지키는 결.',
+    ko: '깊은 끌림에 자기만의 시각이 있는 행동이 더해진 모습이에요. 진하면서도 자기 자유를 지키는 느낌이에요.',
     en: 'A deep pull with an original, independent drive. Intense yet keeps its own space.',
     keywords_ko: ['진한 끌림', '독창적 행동', '자유로운 헌신'],
     keywords_en: ['intense pull', 'original move', 'free devotion'],
@@ -2009,7 +2009,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Scorpio', sign2: 'Pisces',
-    ko: '깊고 공감 어린 끌림과 부드러운 행동이 두 겹으로 흐르는 결이에요. 사랑이 분위기처럼 스며들어요.',
+    ko: '깊고 공감 어린 끌림과 부드러운 행동이 두 겹으로 흐르는 스타일이에요. 사랑이 분위기처럼 스며들어요.',
     en: 'Deep, empathic pull and a soft drive doubled. Love seeps in like atmosphere.',
     keywords_ko: ['공감의 끌림', '부드러운 행동', '스며드는 사랑'],
     keywords_en: ['empathic pull', 'soft move', 'seeping love'],
@@ -2019,7 +2019,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Aries',
-    ko: '자유로운 끌림에 직진하는 행동이 더해진 결이에요. 새로운 사람·풍경에 빠르게 반응하는 사랑이에요.',
+    ko: '자유로운 끌림에 직진하는 행동이 더해진 모습이에요. 새로운 사람·풍경에 빠르게 반응하는 사랑이에요.',
     en: 'A free pull with a direct drive. Quick response to new people and new scenery.',
     keywords_ko: ['자유로운 끌림', '직진 행동', '경쾌한 추진'],
     keywords_en: ['free pull', 'direct move', 'light drive'],
@@ -2027,7 +2027,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Taurus',
-    ko: '시원한 끌림에 차분한 행동이 어울리는 결이에요. 멀리 보면서도 일상은 안정적으로 챙기는 사랑.',
+    ko: '시원한 끌림에 차분한 행동이 어울리는 느낌이에요. 멀리 보면서도 일상은 안정적으로 챙기는 사랑.',
     en: 'An open pull with a steady drive. Looks far while keeping the everyday solid.',
     keywords_ko: ['시원한 끌림', '안정된 행동', '여유로운 사랑'],
     keywords_en: ['open pull', 'steady move', 'easy love'],
@@ -2035,7 +2035,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Gemini',
-    ko: '새로움에 끌리고 행동도 가볍고 빠른 결이에요. 함께 배우고 함께 떠나는 사랑이에요.',
+    ko: '새로움에 끌리고 행동도 가볍고 빠른 스타일이에요. 함께 배우고 함께 떠나는 사랑이에요.',
     en: 'Drawn by novelty with a quick, light drive. Learning together and traveling together.',
     keywords_ko: ['새로움의 끌림', '가벼운 행동', '함께 배우기'],
     keywords_en: ['novelty pull', 'light move', 'shared learning'],
@@ -2043,7 +2043,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Cancer',
-    ko: '자유로운 끌림에 따뜻한 보호의 행동이 더해진 결이에요. 멀리 보면서도 가까운 사람을 챙기는 결.',
+    ko: '자유로운 끌림에 따뜻한 보호의 행동이 더해진 모습이에요. 멀리 보면서도 가까운 사람을 챙기는 느낌이에요.',
     en: 'A free pull with a warm, protective drive. Looks far while caring for those close.',
     keywords_ko: ['자유로운 끌림', '따뜻한 행동', '시야 있는 다정'],
     keywords_en: ['free pull', 'warm move', 'wider warmth'],
@@ -2051,7 +2051,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Leo',
-    ko: '시원한 끌림과 환한 행동이 잘 맞는 결이에요. 함께 큰 풍경으로 환하게 나아가는 사랑이에요.',
+    ko: '시원한 끌림과 환한 행동이 잘 맞는 스타일이에요. 함께 큰 풍경으로 환하게 나아가는 사랑이에요.',
     en: 'An open pull with a bright drive. Love that moves brightly into bigger views together.',
     keywords_ko: ['시원한 끌림', '환한 행동', '확장하는 사랑'],
     keywords_en: ['open pull', 'bright move', 'expansive love'],
@@ -2059,7 +2059,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Virgo',
-    ko: '자유로운 끌림에 꼼꼼한 행동이 더해진 결이에요. 멀리 보면서 일상은 정성껏 다듬는 결.',
+    ko: '자유로운 끌림에 꼼꼼한 행동이 더해진 모습이에요. 멀리 보면서 일상은 정성껏 다듬는 느낌이에요.',
     en: 'A free pull with a careful drive. Looks far while tending the everyday with care.',
     keywords_ko: ['자유로운 끌림', '꼼꼼한 행동', '정성스러운 일상'],
     keywords_en: ['free pull', 'careful move', 'attentive routine'],
@@ -2067,7 +2067,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Libra',
-    ko: '시원한 끌림과 매끄러운 행동이 어울리는 결이에요. 우아하게, 자유롭게 관계를 만들어가는 결.',
+    ko: '시원한 끌림과 매끄러운 행동이 어울리는 스타일이에요. 우아하게, 자유롭게 관계를 만들어가는 모습이에요.',
     en: 'An open pull with a smooth, graceful drive. Builds a relationship gracefully and freely.',
     keywords_ko: ['시원한 끌림', '매끄러운 행동', '자유로운 관계'],
     keywords_en: ['open pull', 'smooth move', 'free relating'],
@@ -2075,7 +2075,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Scorpio',
-    ko: '자유로운 끌림 아래 깊고 진한 욕망이 흐르는 결이에요. 시원해 보여도 마음 둔 사람에겐 깊게 머물러요.',
+    ko: '자유로운 끌림 아래 깊고 진한 욕망이 흐르는 느낌이에요. 시원해 보여도 마음 둔 사람에겐 깊게 머물러요.',
     en: 'A free pull with deep, intense desire beneath. Looks open, stays deeply with the chosen one.',
     keywords_ko: ['시원한 끌림', '깊은 욕망', '진한 머묾'],
     keywords_en: ['open pull', 'deep desire', 'deep staying'],
@@ -2083,7 +2083,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Sagittarius',
-    ko: '자유로운 끌림과 자유로운 행동이 두 겹으로 흐르는 결이에요. 함께 모험하고 멀리 보는 사랑이에요.',
+    ko: '자유로운 끌림과 자유로운 행동이 두 겹으로 흐르는 스타일이에요. 함께 모험하고 멀리 보는 사랑이에요.',
     en: 'Free pull and free drive doubled. Love built on shared adventure and a wide horizon.',
     keywords_ko: ['자유로운 끌림', '자유로운 행동', '함께 가는 모험'],
     keywords_en: ['free pull', 'free move', 'shared adventure'],
@@ -2091,7 +2091,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Capricorn',
-    ko: '시원한 끌림에 책임감 있는 행동이 더해진 결이에요. 자유로우면서도 끝까지 가는 약속을 지켜요.',
+    ko: '시원한 끌림에 책임감 있는 행동이 더해진 모습이에요. 자유로우면서도 끝까지 가는 약속을 지켜요.',
     en: 'An open pull with a responsible drive. Free in feeling, fully committed to promises.',
     keywords_ko: ['시원한 끌림', '책임 있는 행동', '단단한 자유'],
     keywords_en: ['open pull', 'responsible move', 'solid freedom'],
@@ -2099,7 +2099,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Aquarius',
-    ko: '자유로운 끌림과 자기만의 시각이 있는 행동이 잘 맞는 결이에요. 새로운 길을 함께 만드는 사랑.',
+    ko: '자유로운 끌림과 자기만의 시각이 있는 행동이 잘 맞는 느낌이에요. 새로운 길을 함께 만드는 사랑.',
     en: 'A free pull with an original, independent drive. Love that creates new paths together.',
     keywords_ko: ['자유로운 끌림', '독창적 행동', '새 길의 사랑'],
     keywords_en: ['free pull', 'original move', 'new-path love'],
@@ -2107,7 +2107,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Sagittarius', sign2: 'Pisces',
-    ko: '자유로운 끌림에 부드럽고 분위기 있는 행동이 더해진 결이에요. 큰 시야와 깊은 공감이 함께 가요.',
+    ko: '자유로운 끌림에 부드럽고 분위기 있는 행동이 더해진 스타일이에요. 큰 시야와 깊은 공감이 함께 가요.',
     en: 'A free pull with a soft, mood-led drive. Wide vision and deep empathy walk together.',
     keywords_ko: ['자유로운 끌림', '부드러운 행동', '시야 있는 공감'],
     keywords_en: ['free pull', 'soft move', 'wider empathy'],
@@ -2117,7 +2117,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Aries',
-    ko: '신중한 끌림에 직진하는 행동이 더해진 결이에요. 마음은 차분하지만 다가감은 단호한 결이에요.',
+    ko: '신중한 끌림에 직진하는 행동이 더해진 모습이에요. 마음은 차분하지만 다가감은 단호한 느낌이에요.',
     en: 'A careful pull with a direct drive. Quiet in heart, decisive in move.',
     keywords_ko: ['신중한 끌림', '단호한 행동', '책임감 있는 추진'],
     keywords_en: ['careful pull', 'decisive move', 'responsible drive'],
@@ -2125,7 +2125,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Taurus',
-    ko: '신중한 끌림과 차분한 행동이 두 겹으로 깔린 결이에요. 시간이 걸려도 단단한 사랑을 만드는 결.',
+    ko: '신중한 끌림과 차분한 행동이 두 겹으로 깔린 스타일이에요. 시간이 걸려도 단단한 사랑을 만드는 모습이에요.',
     en: 'A careful pull with a steady drive doubled. Takes time, builds love that holds.',
     keywords_ko: ['신중한 끌림', '안정된 행동', '단단한 사랑'],
     keywords_en: ['careful pull', 'steady move', 'solid love'],
@@ -2133,7 +2133,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Gemini',
-    ko: '신중한 끌림에 가벼운 행동이 더해진 결이에요. 책임감은 있지만 다가감은 부드럽고 말로 풀어내요.',
+    ko: '신중한 끌림에 가벼운 행동이 더해진 느낌이에요. 책임감은 있지만 다가감은 부드럽고 말로 풀어내요.',
     en: 'A careful pull with a light, talkative drive. Responsible inside, soft and conversational outside.',
     keywords_ko: ['신중한 끌림', '가벼운 행동', '말로 푸는 책임'],
     keywords_en: ['careful pull', 'light move', 'talk-led responsibility'],
@@ -2141,7 +2141,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Cancer',
-    ko: '신중한 끌림에 따뜻한 보호의 행동이 어울리는 결이에요. 사랑하면 끝까지 책임지고 정성껏 챙기는 결.',
+    ko: '신중한 끌림에 따뜻한 보호의 행동이 어울리는 스타일이에요. 사랑하면 끝까지 책임지고 정성껏 챙기는 모습이에요.',
     en: 'A careful pull with a warm, protective drive. Once committed, the care is full and lasting.',
     keywords_ko: ['신중한 끌림', '따뜻한 행동', '오래 가는 다정'],
     keywords_en: ['careful pull', 'warm move', 'lasting warmth'],
@@ -2149,7 +2149,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Leo',
-    ko: '신중한 끌림에 환한 자기 표현이 더해진 결이에요. 마음은 단단하고, 표현은 따뜻하고 당당해요.',
+    ko: '신중한 끌림에 환한 자기 표현이 더해진 느낌이에요. 마음은 단단하고, 표현은 따뜻하고 당당해요.',
     en: 'A careful pull with bright self-expression. Solid in heart, warm and proud in showing.',
     keywords_ko: ['신중한 끌림', '환한 행동', '당당한 표현'],
     keywords_en: ['careful pull', 'bright move', 'proud display'],
@@ -2157,7 +2157,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Virgo',
-    ko: '실용과 책임이 끌림과 행동에 깊게 깔린 결이에요. 작은 약속을 끝까지 지키며 사랑을 쌓아요.',
+    ko: '실용과 책임이 끌림과 행동에 깊게 깔린 스타일이에요. 작은 약속을 끝까지 지키며 사랑을 쌓아요.',
     en: 'Practicality and responsibility deep in both pull and drive. Builds love by keeping small promises.',
     keywords_ko: ['실용적 끌림', '꼼꼼한 행동', '쌓아 가는 사랑'],
     keywords_en: ['practical pull', 'careful move', 'built love'],
@@ -2165,7 +2165,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Libra',
-    ko: '신중한 끌림에 매끄러운 행동이 어울리는 결이에요. 단단하면서도 우아하게 관계를 만들어가요.',
+    ko: '신중한 끌림에 매끄러운 행동이 어울리는 모습이에요. 단단하면서도 우아하게 관계를 만들어가요.',
     en: 'A careful pull with a smooth, balanced drive. Builds a relationship solidly yet gracefully.',
     keywords_ko: ['신중한 끌림', '매끄러운 행동', '우아한 책임'],
     keywords_en: ['careful pull', 'smooth move', 'graceful responsibility'],
@@ -2173,7 +2173,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Scorpio',
-    ko: '신중한 끌림 아래 깊고 진한 욕망이 흐르는 결이에요. 단단한 마음으로 한 사람에게 끝까지 가는 결.',
+    ko: '신중한 끌림 아래 깊고 진한 욕망이 흐르는 느낌이에요. 단단한 마음으로 한 사람에게 끝까지 가는 스타일이에요.',
     en: 'A careful pull with deep, intense desire beneath. Solid heart, going all the way to one person.',
     keywords_ko: ['신중한 끌림', '깊은 욕망', '끝까지 가는 헌신'],
     keywords_en: ['careful pull', 'deep desire', 'full devotion'],
@@ -2181,7 +2181,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Sagittarius',
-    ko: '신중한 끌림에 멀리 보는 자유로운 행동이 더해진 결이에요. 단단하면서도 함께 큰 풍경으로 나아가는 결.',
+    ko: '신중한 끌림에 멀리 보는 자유로운 행동이 더해진 모습이에요. 단단하면서도 함께 큰 풍경으로 나아가는 느낌이에요.',
     en: 'A careful pull with a wide, adventurous drive. Solid yet stepping into bigger views together.',
     keywords_ko: ['신중한 끌림', '자유로운 행동', '확장하는 책임'],
     keywords_en: ['careful pull', 'free move', 'expansive responsibility'],
@@ -2189,7 +2189,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Capricorn',
-    ko: '신중과 책임이 끌림과 행동에 두 겹으로 깔린 결이에요. 흔들리지 않는 사랑을 천천히 만들어요.',
+    ko: '신중과 책임이 끌림과 행동에 두 겹으로 깔린 스타일이에요. 흔들리지 않는 사랑을 천천히 만들어요.',
     en: 'Care and responsibility doubled in both pull and drive. Builds an unwavering love, slowly.',
     keywords_ko: ['신중한 끌림', '단단한 행동', '오래 가는 사랑'],
     keywords_en: ['careful pull', 'solid move', 'lasting love'],
@@ -2197,7 +2197,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Aquarius',
-    ko: '신중한 끌림에 자기만의 시각이 있는 행동이 더해진 결이에요. 단단하면서도 자기 자유를 지키는 결.',
+    ko: '신중한 끌림에 자기만의 시각이 있는 행동이 더해진 모습이에요. 단단하면서도 자기 자유를 지키는 느낌이에요.',
     en: 'A careful pull with an original, independent drive. Solid yet keeps its own room.',
     keywords_ko: ['신중한 끌림', '독창적 행동', '자유로운 책임'],
     keywords_en: ['careful pull', 'original move', 'free responsibility'],
@@ -2205,7 +2205,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Capricorn', sign2: 'Pisces',
-    ko: '신중한 끌림 아래 깊은 공감이 흐르는 결이에요. 단단한 책임감 위에 부드러운 마음이 얹혀 있어요.',
+    ko: '신중한 끌림 아래 깊은 공감이 흐르는 스타일이에요. 단단한 책임감 위에 부드러운 마음이 얹혀 있어요.',
     en: 'A careful pull with deep empathy beneath. Soft heart sitting on solid responsibility.',
     keywords_ko: ['신중한 끌림', '공감의 행동', '부드러운 책임'],
     keywords_en: ['careful pull', 'empathic move', 'soft responsibility'],
@@ -2215,7 +2215,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Aries',
-    ko: '자유로운 끌림에 직진하는 행동이 더해진 결이에요. 자기 색이 분명한 사랑을 망설임 없이 풀어가요.',
+    ko: '자유로운 끌림에 직진하는 행동이 더해진 모습이에요. 자기 색이 분명한 사랑을 망설임 없이 풀어가요.',
     en: 'A free pull with a direct drive. Loves with a clear own color, without hesitation.',
     keywords_ko: ['자유로운 끌림', '직진 행동', '자기 색의 사랑'],
     keywords_en: ['free pull', 'direct move', 'own-color love'],
@@ -2223,7 +2223,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Taurus',
-    ko: '자유로운 끌림에 차분한 행동이 어울리는 결이에요. 거리감 있는 마음에 안정적인 다가감이 더해진 결.',
+    ko: '자유로운 끌림에 차분한 행동이 어울리는 느낌이에요. 거리감 있는 마음에 안정적인 다가감이 더해진 스타일이에요.',
     en: 'A free pull with a steady drive. Spacious in heart, grounded in approach.',
     keywords_ko: ['자유로운 끌림', '안정된 행동', '거리감 있는 사랑'],
     keywords_en: ['free pull', 'steady move', 'spacious love'],
@@ -2231,7 +2231,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Gemini',
-    ko: '아이디어와 자유로움에 끌리고 행동도 가볍고 재치 있어요. 통하는 사람과 빠르게 가까워지는 결.',
+    ko: '아이디어와 자유로움에 끌리고 행동도 가볍고 재치 있어요. 통하는 사람과 빠르게 가까워지는 모습이에요.',
     en: 'Drawn by ideas and freedom, moving with light wit. Quick closeness with kindred minds.',
     keywords_ko: ['아이디어 끌림', '가벼운 행동', '재치 있는 친근함'],
     keywords_en: ['idea pull', 'light move', 'witty closeness'],
@@ -2239,7 +2239,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Cancer',
-    ko: '자유로운 끌림에 따뜻한 보호의 행동이 더해진 결이에요. 거리감을 가지면서도 가까운 사람을 챙기는 결.',
+    ko: '자유로운 끌림에 따뜻한 보호의 행동이 더해진 느낌이에요. 거리감을 가지면서도 가까운 사람을 챙기는 스타일이에요.',
     en: 'A free pull with a warm, protective drive. Keeps space yet still tends to those close.',
     keywords_ko: ['자유로운 끌림', '따뜻한 행동', '거리감 있는 다정'],
     keywords_en: ['free pull', 'warm move', 'spacious warmth'],
@@ -2247,7 +2247,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Leo',
-    ko: '자유로운 끌림에 환한 자기 표현이 더해진 결이에요. 거리감 있으면서도 환하게 빛나는 사랑.',
+    ko: '자유로운 끌림에 환한 자기 표현이 더해진 모습이에요. 거리감 있으면서도 환하게 빛나는 사랑.',
     en: 'A free pull with bright self-expression. Spacious yet shining brightly.',
     keywords_ko: ['자유로운 끌림', '환한 행동', '독창적 표현'],
     keywords_en: ['free pull', 'bright move', 'original display'],
@@ -2255,7 +2255,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Virgo',
-    ko: '자유로운 끌림에 꼼꼼한 행동이 더해진 결이에요. 자기 색을 지키면서도 작은 일을 정성껏 챙겨요.',
+    ko: '자유로운 끌림에 꼼꼼한 행동이 더해진 느낌이에요. 자기 색을 지키면서도 작은 일을 정성껏 챙겨요.',
     en: 'A free pull with a careful drive. Keeps its own color while tending to small things.',
     keywords_ko: ['자유로운 끌림', '꼼꼼한 행동', '독창적 다정'],
     keywords_en: ['free pull', 'careful move', 'original warmth'],
@@ -2263,7 +2263,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Libra',
-    ko: '자유로운 끌림에 매끄러운 행동이 어울리는 결이에요. 거리감 있으면서도 우아한 관계를 만들어요.',
+    ko: '자유로운 끌림에 매끄러운 행동이 어울리는 스타일이에요. 거리감 있으면서도 우아한 관계를 만들어요.',
     en: 'A free pull with a smooth, graceful drive. Builds a relationship that is spacious yet elegant.',
     keywords_ko: ['자유로운 끌림', '매끄러운 행동', '우아한 자유'],
     keywords_en: ['free pull', 'smooth move', 'graceful freedom'],
@@ -2271,7 +2271,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Scorpio',
-    ko: '자유로운 끌림 아래 깊고 진한 욕망이 흐르는 결이에요. 거리감 있어 보이지만 마음은 깊게 머물러요.',
+    ko: '자유로운 끌림 아래 깊고 진한 욕망이 흐르는 모습이에요. 거리감 있어 보이지만 마음은 깊게 머물러요.',
     en: 'A free pull with deep, intense desire beneath. Looks spacious, stays deeply with one person.',
     keywords_ko: ['자유로운 끌림', '깊은 욕망', '거리감 있는 헌신'],
     keywords_en: ['free pull', 'deep desire', 'spacious devotion'],
@@ -2279,7 +2279,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Sagittarius',
-    ko: '자유로운 끌림과 멀리 보는 자유로운 행동이 잘 맞는 결이에요. 함께 새 길로 나아가는 사랑이에요.',
+    ko: '자유로운 끌림과 멀리 보는 자유로운 행동이 잘 맞는 느낌이에요. 함께 새 길로 나아가는 사랑이에요.',
     en: 'A free pull with a wide, free-spirited drive. Love that moves toward new paths together.',
     keywords_ko: ['자유로운 끌림', '자유로운 행동', '새 길의 사랑'],
     keywords_en: ['free pull', 'free move', 'new-path love'],
@@ -2287,7 +2287,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Capricorn',
-    ko: '자유로운 끌림에 책임감 있는 행동이 더해진 결이에요. 자기 색을 지키면서도 약속은 끝까지 챙기는 결.',
+    ko: '자유로운 끌림에 책임감 있는 행동이 더해진 스타일이에요. 자기 색을 지키면서도 약속은 끝까지 챙기는 모습이에요.',
     en: 'A free pull with a responsible drive. Keeps own color while keeping every promise.',
     keywords_ko: ['자유로운 끌림', '책임 있는 행동', '단단한 자유'],
     keywords_en: ['free pull', 'responsible move', 'solid freedom'],
@@ -2295,7 +2295,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Aquarius',
-    ko: '자유와 독창성이 끌림과 행동에 두 겹으로 깔린 결이에요. 함께 자유롭게 새 길을 가는 사랑이에요.',
+    ko: '자유와 독창성이 끌림과 행동에 두 겹으로 깔린 느낌이에요. 함께 자유롭게 새 길을 가는 사랑이에요.',
     en: 'Freedom and originality doubled in both pull and drive. Love that walks new paths freely, together.',
     keywords_ko: ['자유로운 끌림', '독창적 행동', '자유로운 동행'],
     keywords_en: ['free pull', 'original move', 'free company'],
@@ -2303,7 +2303,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Aquarius', sign2: 'Pisces',
-    ko: '자유로운 끌림에 부드럽고 분위기 있는 행동이 더해진 결이에요. 거리감과 공감이 함께 있는 사랑이에요.',
+    ko: '자유로운 끌림에 부드럽고 분위기 있는 행동이 더해진 스타일이에요. 거리감과 공감이 함께 있는 사랑이에요.',
     en: 'A free pull with a soft, mood-led drive. Love that holds both space and empathy.',
     keywords_ko: ['자유로운 끌림', '부드러운 행동', '거리감 있는 공감'],
     keywords_en: ['free pull', 'soft move', 'spacious empathy'],
@@ -2313,7 +2313,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Aries',
-    ko: '공감 어린 끌림에 직진하는 행동이 더해진 결이에요. 마음은 부드럽고, 다가감은 시원하고 빠른 결.',
+    ko: '공감 어린 끌림에 직진하는 행동이 더해진 모습이에요. 마음은 부드럽고, 다가감은 시원하고 빠른 느낌이에요.',
     en: 'An empathic pull with a direct drive. Soft in heart, clear and quick in move.',
     keywords_ko: ['공감의 끌림', '직진 행동', '부드러운 추진'],
     keywords_en: ['empathic pull', 'direct move', 'soft drive'],
@@ -2321,7 +2321,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Taurus',
-    ko: '공감 어린 끌림과 차분한 행동이 어울리는 결이에요. 부드러운 마음이 안정적인 다가감과 잘 맞아요.',
+    ko: '공감 어린 끌림과 차분한 행동이 어울리는 스타일이에요. 부드러운 마음이 안정적인 다가감과 잘 맞아요.',
     en: 'An empathic pull with a steady drive. Soft heart paired with grounded action.',
     keywords_ko: ['공감의 끌림', '안정된 행동', '편안한 다정'],
     keywords_en: ['empathic pull', 'steady move', 'easy warmth'],
@@ -2329,7 +2329,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Gemini',
-    ko: '공감 어린 끌림에 가벼운 행동이 더해진 결이에요. 분위기에 따라 흐르면서도 말로 자연스럽게 풀어가요.',
+    ko: '공감 어린 끌림에 가벼운 행동이 더해진 모습이에요. 분위기에 따라 흐르면서도 말로 자연스럽게 풀어가요.',
     en: 'An empathic pull with a light, talkative drive. Flows with the mood while talking it out gently.',
     keywords_ko: ['공감의 끌림', '가벼운 행동', '흐름 있는 대화'],
     keywords_en: ['empathic pull', 'light move', 'flowing talk'],
@@ -2337,7 +2337,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Cancer',
-    ko: '공감과 돌봄이 끌림과 행동에 두 겹으로 흐르는 결이에요. 사랑이 분위기처럼 스며들고 깊이 머물러요.',
+    ko: '공감과 돌봄이 끌림과 행동에 두 겹으로 흐르는 느낌이에요. 사랑이 분위기처럼 스며들고 깊이 머물러요.',
     en: 'Empathy and care doubled in both pull and drive. Love seeps in and stays deep.',
     keywords_ko: ['공감의 끌림', '돌봄의 행동', '깊은 머묾'],
     keywords_en: ['empathic pull', 'caring move', 'deep staying'],
@@ -2345,7 +2345,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Leo',
-    ko: '공감 어린 끌림에 환한 자기 표현이 더해진 결이에요. 마음은 부드럽고, 표현은 따뜻하고 환해요.',
+    ko: '공감 어린 끌림에 환한 자기 표현이 더해진 스타일이에요. 마음은 부드럽고, 표현은 따뜻하고 환해요.',
     en: 'An empathic pull with bright self-expression. Soft in heart, warm and shining in show.',
     keywords_ko: ['공감의 끌림', '환한 행동', '따뜻한 표현'],
     keywords_en: ['empathic pull', 'bright move', 'warm display'],
@@ -2353,7 +2353,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Virgo',
-    ko: '공감 어린 끌림에 꼼꼼한 행동이 어울리는 결이에요. 부드러운 마음이 작은 정성으로 표현돼요.',
+    ko: '공감 어린 끌림에 꼼꼼한 행동이 어울리는 모습이에요. 부드러운 마음이 작은 정성으로 표현돼요.',
     en: 'An empathic pull with a careful drive. Soft heart shown through small, attentive acts.',
     keywords_ko: ['공감의 끌림', '꼼꼼한 행동', '정성스러운 다정'],
     keywords_en: ['empathic pull', 'careful move', 'attentive warmth'],
@@ -2361,7 +2361,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Libra',
-    ko: '공감 어린 끌림에 매끄러운 행동이 더해진 결이에요. 관계의 분위기를 부드럽게, 우아하게 만드는 결.',
+    ko: '공감 어린 끌림에 매끄러운 행동이 더해진 느낌이에요. 관계의 분위기를 부드럽게, 우아하게 만드는 스타일이에요.',
     en: 'An empathic pull with a smooth, graceful drive. Keeps a relationship soft and elegant.',
     keywords_ko: ['공감의 끌림', '매끄러운 행동', '부드러운 관계'],
     keywords_en: ['empathic pull', 'smooth move', 'soft relating'],
@@ -2369,7 +2369,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Scorpio',
-    ko: '공감 어린 끌림 아래 깊고 강한 욕망이 흐르는 결이에요. 마음은 부드럽고, 사랑은 끝까지 깊어요.',
+    ko: '공감 어린 끌림 아래 깊고 강한 욕망이 흐르는 모습이에요. 마음은 부드럽고, 사랑은 끝까지 깊어요.',
     en: 'An empathic pull with deep, intense desire beneath. Soft in heart, full and deep in love.',
     keywords_ko: ['공감의 끌림', '깊은 욕망', '깊은 사랑'],
     keywords_en: ['empathic pull', 'deep desire', 'deep love'],
@@ -2377,7 +2377,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Sagittarius',
-    ko: '공감 어린 끌림에 멀리 보는 자유로운 행동이 더해진 결이에요. 부드러운 마음이 큰 풍경으로 흘러요.',
+    ko: '공감 어린 끌림에 멀리 보는 자유로운 행동이 더해진 느낌이에요. 부드러운 마음이 큰 풍경으로 흘러요.',
     en: 'An empathic pull with a wide, free-spirited drive. A soft heart that flows toward bigger views.',
     keywords_ko: ['공감의 끌림', '자유로운 행동', '확장하는 다정'],
     keywords_en: ['empathic pull', 'free move', 'expansive warmth'],
@@ -2385,7 +2385,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Capricorn',
-    ko: '공감 어린 끌림에 책임감 있는 행동이 더해진 결이에요. 부드러운 마음이 단단한 약속과 함께 가요.',
+    ko: '공감 어린 끌림에 책임감 있는 행동이 더해진 스타일이에요. 부드러운 마음이 단단한 약속과 함께 가요.',
     en: 'An empathic pull with a responsible drive. Soft heart walking with solid promises.',
     keywords_ko: ['공감의 끌림', '책임 있는 행동', '단단한 다정'],
     keywords_en: ['empathic pull', 'responsible move', 'solid warmth'],
@@ -2393,7 +2393,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Aquarius',
-    ko: '공감 어린 끌림에 자기만의 시각이 있는 행동이 더해진 결이에요. 부드럽지만 휩쓸리지 않는 사랑.',
+    ko: '공감 어린 끌림에 자기만의 시각이 있는 행동이 더해진 모습이에요. 부드럽지만 휩쓸리지 않는 사랑.',
     en: 'An empathic pull with an original, independent drive. Soft yet not swept away.',
     keywords_ko: ['공감의 끌림', '독창적 행동', '거리감 있는 사랑'],
     keywords_en: ['empathic pull', 'original move', 'spacious love'],
@@ -2401,7 +2401,7 @@ const VENUS_MARS_COMBINATIONS_B: SignCombination[] = [
   {
     pair: 'venus_mars',
     sign1: 'Pisces', sign2: 'Pisces',
-    ko: '공감과 부드러움이 끌림과 행동에 두 겹으로 흐르는 결이에요. 사랑이 분위기처럼 자연스럽게 스며들어요.',
+    ko: '공감과 부드러움이 끌림과 행동에 두 겹으로 흐르는 느낌이에요. 사랑이 분위기처럼 자연스럽게 스며들어요.',
     en: 'Empathy and softness doubled in both pull and drive. Love seeps in like atmosphere.',
     keywords_ko: ['공감의 끌림', '부드러운 행동', '스며드는 사랑'],
     keywords_en: ['empathic pull', 'soft move', 'seeping love'],
@@ -2418,7 +2418,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Aries',
-    ko: '의지와 첫인상이 한 방향으로 시원하게 흐르는 결이에요. 안과 밖이 같이 빠르고 단호한 결.',
+    ko: '의지와 첫인상이 한 방향으로 시원하게 흐르는 스타일이에요. 안과 밖이 같이 빠르고 단호한 모습이에요.',
     en: 'Inner will and first impression run the same clear direction. Inside and outside both move fast and decisively.',
     keywords_ko: ['단호한 인상', '시원한 표현', '안팎의 일치'],
     keywords_en: ['decisive impression', 'clear expression', 'aligned inside-out'],
@@ -2434,7 +2434,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Gemini',
-    ko: '의지가 분명한 사람이 가볍고 호기심 많은 인상으로 비치는 결이에요. 말로 추진력을 풀어내는 결.',
+    ko: '의지가 분명한 사람이 가볍고 호기심 많은 인상으로 비치는 느낌이에요. 말로 추진력을 풀어내는 스타일이에요.',
     en: 'A clear inner will shown as a light, curious first impression. Drive comes out through talk.',
     keywords_ko: ['가벼운 인상', '말의 추진력', '경쾌한 외관'],
     keywords_en: ['light impression', 'talk-led drive', 'lively outside'],
@@ -2442,7 +2442,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Cancer',
-    ko: '의지가 강한 사람이 따뜻하고 조심스러운 인상으로 비치는 결이에요. 처음엔 부드러워 보여도 핵심은 단단해요.',
+    ko: '의지가 강한 사람이 따뜻하고 조심스러운 인상으로 비치는 모습이에요. 처음엔 부드러워 보여도 핵심은 단단해요.',
     en: 'A strong inner will shown as a warm, careful first impression. Soft outside, solid at the core.',
     keywords_ko: ['따뜻한 인상', '돌봄의 외관', '단단한 안쪽'],
     keywords_en: ['warm impression', 'caring outside', 'solid core'],
@@ -2450,7 +2450,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Leo',
-    ko: '추진력 있는 본성이 환하고 당당한 인상으로 빛나는 결이에요. 들어선 자리에서 곧장 존재감이 보여요.',
+    ko: '추진력 있는 본성이 환하고 당당한 인상으로 빛나는 느낌이에요. 들어선 자리에서 곧장 존재감이 보여요.',
     en: 'A driven nature shines as a bright, confident first impression. Presence shows the moment it enters.',
     keywords_ko: ['환한 인상', '당당한 외관', '뚜렷한 존재감'],
     keywords_en: ['bright impression', 'confident outside', 'clear presence'],
@@ -2458,7 +2458,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Virgo',
-    ko: '추진력 있는 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 침착해 보이지만 결정은 빠른 사람이에요.',
+    ko: '추진력 있는 본성이 단정하고 꼼꼼한 인상으로 비치는 스타일이에요. 침착해 보이지만 결정은 빠른 사람이에요.',
     en: 'A driven nature shown as a tidy, careful first impression. Looks composed, decides quickly underneath.',
     keywords_ko: ['단정한 인상', '꼼꼼한 외관', '숨은 결단력'],
     keywords_en: ['tidy impression', 'careful outside', 'hidden decisiveness'],
@@ -2466,7 +2466,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Libra',
-    ko: '강한 의지가 부드럽고 매너 있는 인상으로 비치는 결이에요. 단호함이 우아함과 함께 가요.',
+    ko: '강한 의지가 부드럽고 매너 있는 인상으로 비치는 모습이에요. 단호함이 우아함과 함께 가요.',
     en: 'A strong will shown as a graceful, well-mannered first impression. Firmness paired with elegance.',
     keywords_ko: ['우아한 인상', '부드러운 외관', '단호한 안쪽'],
     keywords_en: ['graceful impression', 'smooth outside', 'firm core'],
@@ -2474,7 +2474,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Scorpio',
-    ko: '추진력 있는 본성이 깊고 강한 인상으로 비치는 결이에요. 가볍지 않은 무게가 첫 만남부터 느껴져요.',
+    ko: '추진력 있는 본성이 깊고 강한 인상으로 비치는 느낌이에요. 가볍지 않은 무게가 첫 만남부터 느껴져요.',
     en: 'A driven nature shown as a deep, intense first impression. A weight that registers from the first meeting.',
     keywords_ko: ['깊은 인상', '강한 외관', '무게감 있는 존재'],
     keywords_en: ['deep impression', 'intense outside', 'weighted presence'],
@@ -2490,7 +2490,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Capricorn',
-    ko: '추진력 있는 본성이 차분하고 책임감 있는 인상으로 비치는 결이에요. 단호함이 무게감과 함께 가요.',
+    ko: '추진력 있는 본성이 차분하고 책임감 있는 인상으로 비치는 스타일이에요. 단호함이 무게감과 함께 가요.',
     en: 'A driven nature shown as a calm, responsible first impression. Firmness paired with weight.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '신뢰의 존재감'],
     keywords_en: ['solid impression', 'responsible outside', 'trusted presence'],
@@ -2498,7 +2498,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Aquarius',
-    ko: '추진력 있는 본성이 자기만의 색이 있는 인상으로 비치는 결이에요. 시원하면서도 독창적인 외관이에요.',
+    ko: '추진력 있는 본성이 자기만의 색이 있는 인상으로 비치는 모습이에요. 시원하면서도 독창적인 외관이에요.',
     en: 'A driven nature shown as an original, distinctive first impression. Open yet uniquely styled.',
     keywords_ko: ['독창적 인상', '시원한 외관', '자기 색의 존재감'],
     keywords_en: ['original impression', 'open outside', 'own-color presence'],
@@ -2506,7 +2506,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aries', sign2: 'Pisces',
-    ko: '추진력 있는 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 안과 밖이 다른 결로 어울려요.',
+    ko: '추진력 있는 본성이 부드럽고 분위기 있는 인상으로 비치는 느낌이에요. 안과 밖이 다른 식으로 어울려요.',
     en: 'A driven nature shown as a soft, atmospheric first impression. Inside and outside in different but matching textures.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '안팎의 대비'],
     keywords_en: ['soft impression', 'atmospheric outside', 'inside-outside contrast'],
@@ -2516,7 +2516,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Aries',
-    ko: '안정적인 내면이 추진력 있는 첫인상으로 비치는 결이에요. 단호해 보이지만 본질은 천천히 가는 결.',
+    ko: '안정적인 내면이 추진력 있는 첫인상으로 비치는 스타일이에요. 단호해 보이지만 본질은 천천히 가는 모습이에요.',
     en: 'A stable inner core shown as a driven first impression. Looks decisive, moves slowly at the root.',
     keywords_ko: ['단호한 인상', '안정된 본성', '겉의 속도'],
     keywords_en: ['decisive impression', 'steady nature', 'pace on the surface'],
@@ -2524,7 +2524,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Taurus',
-    ko: '안정적인 본성이 차분한 첫인상과 잘 맞아 안팎이 같은 결이에요. 편안하고 무게감 있는 존재감이에요.',
+    ko: '안정적인 본성이 차분한 첫인상과 잘 맞아 안팎이 같은 느낌이에요. 편안하고 무게감 있는 존재감이에요.',
     en: 'Stable nature and a calm first impression align inside and out. A comfortable, grounded presence.',
     keywords_ko: ['차분한 인상', '안정된 외관', '편안한 존재감'],
     keywords_en: ['calm impression', 'steady outside', 'easy presence'],
@@ -2532,7 +2532,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Leo',
-    ko: '단단한 내면이 따뜻한 빛으로 비치는 결이에요. 단단한 본성이지만 사회에서는 따뜻하고 너그러운 인상으로 보여요.',
+    ko: '단단한 내면이 따뜻한 빛으로 비치는 스타일이에요. 단단한 본성이지만 사회에서는 따뜻하고 너그러운 인상으로 보여요.',
     en: 'A stable inner core shines as warm presence outward. Solid at heart, you come across as warm and generous in the world.',
     keywords_ko: ['단단한 내면', '따뜻한 외관', '신뢰의 빛'],
     keywords_en: ['solid core', 'warm presence', 'trusted radiance'],
@@ -2540,7 +2540,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Gemini',
-    ko: '안정적인 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 무거워 보이지 않지만 결국엔 단단한 사람이에요.',
+    ko: '안정적인 본성이 가볍고 사교적인 인상으로 비치는 모습이에요. 무거워 보이지 않지만 결국엔 단단한 사람이에요.',
     en: 'A stable nature shown as a light, sociable first impression. Looks easygoing, stays solid at the root.',
     keywords_ko: ['가벼운 인상', '사교적인 외관', '단단한 안쪽'],
     keywords_en: ['light impression', 'sociable outside', 'solid core'],
@@ -2548,7 +2548,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Cancer',
-    ko: '안정적인 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 보호받고 싶은 느낌을 주는 외관이에요.',
+    ko: '안정적인 본성이 따뜻하고 친근한 인상으로 비치는 느낌이에요. 보호받고 싶은 느낌을 주는 외관이에요.',
     en: 'A stable nature shown as a warm, friendly first impression. The outside invites protection.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '안정된 다정'],
     keywords_en: ['warm impression', 'friendly outside', 'steady warmth'],
@@ -2556,7 +2556,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Virgo',
-    ko: '안정적인 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 신뢰감을 주는 차분한 외관이에요.',
+    ko: '안정적인 본성이 단정하고 꼼꼼한 인상으로 비치는 스타일이에요. 신뢰감을 주는 차분한 외관이에요.',
     en: 'A stable nature shown as a tidy, careful first impression. A calm outside that earns trust.',
     keywords_ko: ['단정한 인상', '신뢰의 외관', '차분한 존재감'],
     keywords_en: ['tidy impression', 'trusted outside', 'calm presence'],
@@ -2564,7 +2564,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Libra',
-    ko: '안정적인 본성이 우아하고 매너 있는 인상으로 비치는 결이에요. 편안하면서도 매끄러운 외관이에요.',
+    ko: '안정적인 본성이 우아하고 매너 있는 인상으로 비치는 모습이에요. 편안하면서도 매끄러운 외관이에요.',
     en: 'A stable nature shown as a graceful, well-mannered first impression. Comfortable and smooth on the outside.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '편안한 매너'],
     keywords_en: ['graceful impression', 'smooth outside', 'easy manners'],
@@ -2572,7 +2572,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Scorpio',
-    ko: '안정적인 본성이 깊고 강한 인상으로 비치는 결이에요. 차분해 보이지만 안에는 무게가 있어요.',
+    ko: '안정적인 본성이 깊고 강한 인상으로 비치는 느낌이에요. 차분해 보이지만 안에는 무게가 있어요.',
     en: 'A stable nature shown as a deep, intense first impression. Looks calm, carries weight inside.',
     keywords_ko: ['깊은 인상', '강한 외관', '무게감 있는 존재'],
     keywords_en: ['deep impression', 'intense outside', 'weighted presence'],
@@ -2580,7 +2580,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Sagittarius',
-    ko: '안정적인 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 멀리 다니는 듯하지만 뿌리는 단단해요.',
+    ko: '안정적인 본성이 시원하고 자유로운 인상으로 비치는 스타일이에요. 멀리 다니는 듯하지만 뿌리는 단단해요.',
     en: 'A stable nature shown as an open, free first impression. Looks far-roaming, stays rooted at home.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '단단한 뿌리'],
     keywords_en: ['open impression', 'free outside', 'solid roots'],
@@ -2588,7 +2588,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Capricorn',
-    ko: '안정과 책임이 안팎으로 같은 결로 흐르는 결이에요. 신뢰감을 주는 무게 있는 존재감이에요.',
+    ko: '안정과 책임이 안팎으로 같은 식으로 흐르는 모습이에요. 신뢰감을 주는 무게 있는 존재감이에요.',
     en: 'Stability and responsibility flow the same inside and out. A weighted, trustworthy presence.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '신뢰의 존재감'],
     keywords_en: ['solid impression', 'responsible outside', 'trusted presence'],
@@ -2596,7 +2596,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Aquarius',
-    ko: '안정적인 본성이 자기만의 색이 있는 인상으로 비치는 결이에요. 차분하면서도 독창적인 외관이에요.',
+    ko: '안정적인 본성이 자기만의 색이 있는 인상으로 비치는 느낌이에요. 차분하면서도 독창적인 외관이에요.',
     en: 'A stable nature shown as an original first impression. Calm yet uniquely styled.',
     keywords_ko: ['독창적 인상', '차분한 외관', '자기 색의 존재감'],
     keywords_en: ['original impression', 'calm outside', 'own-color presence'],
@@ -2604,7 +2604,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Taurus', sign2: 'Pisces',
-    ko: '안정적인 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 편안하고 잘 스며드는 외관이에요.',
+    ko: '안정적인 본성이 부드럽고 분위기 있는 인상으로 비치는 스타일이에요. 편안하고 잘 스며드는 외관이에요.',
     en: 'A stable nature shown as a soft, atmospheric first impression. Comfortable and seeping outside.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '편안한 존재감'],
     keywords_en: ['soft impression', 'atmospheric outside', 'easy presence'],
@@ -2614,7 +2614,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Aries',
-    ko: '호기심 많은 본성이 시원하고 단호한 인상으로 비치는 결이에요. 빠르고 자유로운 외관이에요.',
+    ko: '호기심 많은 본성이 시원하고 단호한 인상으로 비치는 모습이에요. 빠르고 자유로운 외관이에요.',
     en: 'A curious nature shown as a clear, decisive first impression. Quick and free on the outside.',
     keywords_ko: ['시원한 인상', '빠른 외관', '경쾌한 존재감'],
     keywords_en: ['clear impression', 'quick outside', 'lively presence'],
@@ -2622,7 +2622,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Taurus',
-    ko: '호기심 많은 본성이 차분한 인상으로 비치는 결이에요. 가벼운 마음이 안정된 외관 뒤에 살아 있어요.',
+    ko: '호기심 많은 본성이 차분한 인상으로 비치는 느낌이에요. 가벼운 마음이 안정된 외관 뒤에 살아 있어요.',
     en: 'A curious nature shown as a calm first impression. A light mind alive behind a steady outside.',
     keywords_ko: ['차분한 인상', '안정된 외관', '가벼운 안쪽'],
     keywords_en: ['calm impression', 'steady outside', 'light core'],
@@ -2630,7 +2630,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Gemini',
-    ko: '호기심 많은 본성과 가벼운 인상이 두 겹으로 빛나는 결이에요. 말과 호기심이 외관에 그대로 드러나요.',
+    ko: '호기심 많은 본성과 가벼운 인상이 두 겹으로 빛나는 스타일이에요. 말과 호기심이 외관에 그대로 드러나요.',
     en: 'Curious nature and a light first impression doubled. Talk and curiosity show on the outside.',
     keywords_ko: ['가벼운 인상', '말의 외관', '호기심 있는 존재감'],
     keywords_en: ['light impression', 'talk-led outside', 'curious presence'],
@@ -2638,7 +2638,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Cancer',
-    ko: '호기심 많은 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 가볍게 말하면서도 챙기는 외관이에요.',
+    ko: '호기심 많은 본성이 따뜻하고 친근한 인상으로 비치는 모습이에요. 가볍게 말하면서도 챙기는 외관이에요.',
     en: 'A curious nature shown as a warm, friendly first impression. Light in talk, caring on the outside.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '챙기는 존재감'],
     keywords_en: ['warm impression', 'friendly outside', 'caring presence'],
@@ -2646,7 +2646,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Leo',
-    ko: '호기심 많은 본성이 환하고 당당한 인상으로 비치는 결이에요. 분위기를 살리는 사교적 존재감이에요.',
+    ko: '호기심 많은 본성이 환하고 당당한 인상으로 비치는 느낌이에요. 분위기를 살리는 사교적 존재감이에요.',
     en: 'A curious nature shown as a bright, confident first impression. A sociable presence that lifts the room.',
     keywords_ko: ['환한 인상', '사교적 외관', '밝은 존재감'],
     keywords_en: ['bright impression', 'sociable outside', 'lit-up presence'],
@@ -2654,7 +2654,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Virgo',
-    ko: '호기심 많은 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 가벼우면서도 정돈된 외관이에요.',
+    ko: '호기심 많은 본성이 단정하고 꼼꼼한 인상으로 비치는 스타일이에요. 가벼우면서도 정돈된 외관이에요.',
     en: 'A curious nature shown as a tidy, careful first impression. Light yet well-arranged outside.',
     keywords_ko: ['단정한 인상', '정돈된 외관', '실속 있는 존재감'],
     keywords_en: ['tidy impression', 'arranged outside', 'practical presence'],
@@ -2662,7 +2662,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Libra',
-    ko: '호기심 많은 본성이 우아하고 매끄러운 인상으로 비치는 결이에요. 분위기를 부드럽게 만드는 외관이에요.',
+    ko: '호기심 많은 본성이 우아하고 매끄러운 인상으로 비치는 모습이에요. 분위기를 부드럽게 만드는 외관이에요.',
     en: 'A curious nature shown as a graceful, smooth first impression. An outside that softens the room.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '사교적 존재감'],
     keywords_en: ['graceful impression', 'smooth outside', 'sociable presence'],
@@ -2670,7 +2670,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Scorpio',
-    ko: '호기심 많은 본성이 깊고 강한 인상으로 비치는 결이에요. 가볍게 말해도 외관엔 무게가 있어요.',
+    ko: '호기심 많은 본성이 깊고 강한 인상으로 비치는 느낌이에요. 가볍게 말해도 외관엔 무게가 있어요.',
     en: 'A curious nature shown as a deep, intense first impression. Light in talk, weighted on the outside.',
     keywords_ko: ['깊은 인상', '강한 외관', '말 뒤의 무게'],
     keywords_en: ['deep impression', 'intense outside', 'weight behind words'],
@@ -2678,7 +2678,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Sagittarius',
-    ko: '호기심 많은 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 말과 모험이 함께 외관에 드러나요.',
+    ko: '호기심 많은 본성이 시원하고 자유로운 인상으로 비치는 스타일이에요. 말과 모험이 함께 외관에 드러나요.',
     en: 'A curious nature shown as an open, free first impression. Talk and adventure visible on the outside.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '경쾌한 존재감'],
     keywords_en: ['open impression', 'free outside', 'lively presence'],
@@ -2686,7 +2686,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Capricorn',
-    ko: '호기심 많은 본성이 차분하고 책임감 있는 인상으로 비치는 결이에요. 가벼운 안쪽이 단단한 외관과 만나요.',
+    ko: '호기심 많은 본성이 차분하고 책임감 있는 인상으로 비치는 모습이에요. 가벼운 안쪽이 단단한 외관과 만나요.',
     en: 'A curious nature shown as a calm, responsible first impression. A light core meeting a solid outside.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '가벼운 안쪽'],
     keywords_en: ['solid impression', 'responsible outside', 'light core'],
@@ -2694,7 +2694,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Aquarius',
-    ko: '호기심 많은 본성이 자기만의 시각이 있는 인상으로 비치는 결이에요. 자유롭고 독창적인 외관이에요.',
+    ko: '호기심 많은 본성이 자기만의 시각이 있는 인상으로 비치는 느낌이에요. 자유롭고 독창적인 외관이에요.',
     en: 'A curious nature shown as an original first impression. Free and uniquely styled on the outside.',
     keywords_ko: ['독창적 인상', '자유로운 외관', '아이디어의 존재감'],
     keywords_en: ['original impression', 'free outside', 'idea-led presence'],
@@ -2702,7 +2702,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Gemini', sign2: 'Pisces',
-    ko: '호기심 많은 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 말이 가볍고 외관은 잘 스며들어요.',
+    ko: '호기심 많은 본성이 부드럽고 분위기 있는 인상으로 비치는 스타일이에요. 말이 가볍고 외관은 잘 스며들어요.',
     en: 'A curious nature shown as a soft, atmospheric first impression. Light in talk, seeping on the outside.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '말과 흐름'],
     keywords_en: ['soft impression', 'atmospheric outside', 'talk and flow'],
@@ -2712,7 +2712,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Aries',
-    ko: '따뜻한 본성이 시원하고 단호한 인상으로 비치는 결이에요. 부드러운 안쪽이 빠른 외관 뒤에 있어요.',
+    ko: '따뜻한 본성이 시원하고 단호한 인상으로 비치는 모습이에요. 부드러운 안쪽이 빠른 외관 뒤에 있어요.',
     en: 'A warm nature shown as a clear, decisive first impression. A soft inside behind a quick outside.',
     keywords_ko: ['시원한 인상', '단호한 외관', '부드러운 안쪽'],
     keywords_en: ['clear impression', 'decisive outside', 'soft core'],
@@ -2720,7 +2720,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Taurus',
-    ko: '따뜻한 본성이 차분하고 안정된 인상으로 비치는 결이에요. 보기에도 편안하고 안에서도 다정한 결.',
+    ko: '따뜻한 본성이 차분하고 안정된 인상으로 비치는 느낌이에요. 보기에도 편안하고 안에서도 다정한 스타일이에요.',
     en: 'A warm nature shown as a calm, steady first impression. Comfortable to see, warm at the core.',
     keywords_ko: ['차분한 인상', '안정된 외관', '편안한 다정'],
     keywords_en: ['calm impression', 'steady outside', 'easy warmth'],
@@ -2728,7 +2728,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Gemini',
-    ko: '따뜻한 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 챙김이 부담 없는 외관으로 표현돼요.',
+    ko: '따뜻한 본성이 가볍고 사교적인 인상으로 비치는 모습이에요. 챙김이 부담 없는 외관으로 표현돼요.',
     en: 'A warm nature shown as a light, sociable first impression. Care expressed in an easy outside.',
     keywords_ko: ['가벼운 인상', '사교적 외관', '챙기는 본성'],
     keywords_en: ['light impression', 'sociable outside', 'caring core'],
@@ -2736,7 +2736,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Cancer',
-    ko: '따뜻함과 돌봄이 안팎으로 두 겹으로 흐르는 결이에요. 친근하고 보호받고 싶은 존재감이에요.',
+    ko: '따뜻함과 돌봄이 안팎으로 두 겹으로 흐르는 느낌이에요. 친근하고 보호받고 싶은 존재감이에요.',
     en: 'Warmth and care doubled inside and out. A friendly, protective presence.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '깊은 다정'],
     keywords_en: ['warm impression', 'friendly outside', 'deep warmth'],
@@ -2744,7 +2744,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Leo',
-    ko: '따뜻한 본성이 환하고 당당한 인상으로 비치는 결이에요. 챙기는 마음이 빛나는 외관으로 표현돼요.',
+    ko: '따뜻한 본성이 환하고 당당한 인상으로 비치는 스타일이에요. 챙기는 마음이 빛나는 외관으로 표현돼요.',
     en: 'A warm nature shown as a bright, confident first impression. Care expressed as visible glow.',
     keywords_ko: ['환한 인상', '따뜻한 외관', '빛나는 다정'],
     keywords_en: ['bright impression', 'warm outside', 'shining care'],
@@ -2752,7 +2752,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Virgo',
-    ko: '따뜻한 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 다정함이 작은 정성으로 외관에 드러나요.',
+    ko: '따뜻한 본성이 단정하고 꼼꼼한 인상으로 비치는 모습이에요. 다정함이 작은 정성으로 외관에 드러나요.',
     en: 'A warm nature shown as a tidy, careful first impression. Warmth shown in small attentive acts.',
     keywords_ko: ['단정한 인상', '정성스러운 외관', '실속 있는 다정'],
     keywords_en: ['tidy impression', 'attentive outside', 'practical warmth'],
@@ -2760,7 +2760,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Libra',
-    ko: '따뜻한 본성이 우아하고 부드러운 인상으로 비치는 결이에요. 분위기를 다정하게 만드는 외관이에요.',
+    ko: '따뜻한 본성이 우아하고 부드러운 인상으로 비치는 느낌이에요. 분위기를 다정하게 만드는 외관이에요.',
     en: 'A warm nature shown as a graceful, soft first impression. An outside that warms the room.',
     keywords_ko: ['우아한 인상', '부드러운 외관', '따뜻한 분위기'],
     keywords_en: ['graceful impression', 'soft outside', 'warm mood'],
@@ -2768,7 +2768,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Scorpio',
-    ko: '따뜻한 본성이 깊고 강한 인상으로 비치는 결이에요. 부드러운 안쪽에 진한 외관이 더해진 결.',
+    ko: '따뜻한 본성이 깊고 강한 인상으로 비치는 스타일이에요. 부드러운 안쪽에 진한 외관이 더해진 모습이에요.',
     en: 'A warm nature shown as a deep, intense first impression. A soft core wrapped in deeper outside.',
     keywords_ko: ['깊은 인상', '진한 외관', '따뜻한 안쪽'],
     keywords_en: ['deep impression', 'intense outside', 'warm core'],
@@ -2776,7 +2776,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Sagittarius',
-    ko: '따뜻한 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 챙기는 마음이 넓은 외관으로 드러나요.',
+    ko: '따뜻한 본성이 시원하고 자유로운 인상으로 비치는 느낌이에요. 챙기는 마음이 넓은 외관으로 드러나요.',
     en: 'A warm nature shown as an open, free first impression. Care expressed through a wide outside.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '시야 있는 다정'],
     keywords_en: ['open impression', 'free outside', 'wider warmth'],
@@ -2784,7 +2784,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Capricorn',
-    ko: '따뜻한 본성이 차분하고 책임감 있는 인상으로 비치는 결이에요. 부드러운 안쪽과 단단한 외관이 같이 있어요.',
+    ko: '따뜻한 본성이 차분하고 책임감 있는 인상으로 비치는 스타일이에요. 부드러운 안쪽과 단단한 외관이 같이 있어요.',
     en: 'A warm nature shown as a calm, responsible first impression. Soft inside, solid outside.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '따뜻한 안쪽'],
     keywords_en: ['solid impression', 'responsible outside', 'warm core'],
@@ -2792,7 +2792,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Aquarius',
-    ko: '따뜻한 본성이 자기만의 색이 있는 인상으로 비치는 결이에요. 다정하면서도 거리감 있는 외관이에요.',
+    ko: '따뜻한 본성이 자기만의 색이 있는 인상으로 비치는 모습이에요. 다정하면서도 거리감 있는 외관이에요.',
     en: 'A warm nature shown as an original first impression. Caring yet spacious on the outside.',
     keywords_ko: ['독창적 인상', '거리감 있는 외관', '따뜻한 안쪽'],
     keywords_en: ['original impression', 'spacious outside', 'warm core'],
@@ -2800,7 +2800,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Cancer', sign2: 'Pisces',
-    ko: '따뜻한 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 안과 밖이 같은 다정한 결로 흘러요.',
+    ko: '따뜻한 본성이 부드럽고 분위기 있는 인상으로 비치는 느낌이에요. 안과 밖이 같은 다정한 식으로 흘러요.',
     en: 'A warm nature shown as a soft, atmospheric first impression. Inside and outside flow the same warmth.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '깊은 다정'],
     keywords_en: ['soft impression', 'atmospheric outside', 'deep warmth'],
@@ -2810,7 +2810,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Aries',
-    ko: '환한 본성이 단호하고 시원한 인상으로 비치는 결이에요. 들어선 자리에서 곧장 존재감이 보여요.',
+    ko: '환한 본성이 단호하고 시원한 인상으로 비치는 스타일이에요. 들어선 자리에서 곧장 존재감이 보여요.',
     en: 'A bright nature shown as a decisive, clear first impression. Presence shows immediately on entry.',
     keywords_ko: ['단호한 인상', '환한 외관', '뚜렷한 존재감'],
     keywords_en: ['decisive impression', 'bright outside', 'clear presence'],
@@ -2818,7 +2818,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Taurus',
-    ko: '환한 본성이 차분하고 풍요로운 인상으로 비치는 결이에요. 빛나면서도 안정된 외관이에요.',
+    ko: '환한 본성이 차분하고 풍요로운 인상으로 비치는 모습이에요. 빛나면서도 안정된 외관이에요.',
     en: 'A bright nature shown as a calm, abundant first impression. Radiant yet steady on the outside.',
     keywords_ko: ['풍요로운 인상', '안정된 외관', '따뜻한 존재감'],
     keywords_en: ['abundant impression', 'steady outside', 'warm presence'],
@@ -2826,7 +2826,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Gemini',
-    ko: '환한 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 말과 빛이 함께 분위기를 살리는 외관이에요.',
+    ko: '환한 본성이 가볍고 사교적인 인상으로 비치는 느낌이에요. 말과 빛이 함께 분위기를 살리는 외관이에요.',
     en: 'A bright nature shown as a light, sociable first impression. Talk and glow lifting the room together.',
     keywords_ko: ['환한 인상', '사교적 외관', '말의 빛'],
     keywords_en: ['bright impression', 'sociable outside', 'shining talk'],
@@ -2834,7 +2834,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Cancer',
-    ko: '환한 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 빛나면서도 챙기는 외관이 인상적이에요.',
+    ko: '환한 본성이 따뜻하고 친근한 인상으로 비치는 스타일이에요. 빛나면서도 챙기는 외관이 인상적이에요.',
     en: 'A bright nature shown as a warm, friendly first impression. Glow paired with care on the outside.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '환한 다정'],
     keywords_en: ['warm impression', 'friendly outside', 'shining care'],
@@ -2842,7 +2842,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Leo',
-    ko: '환함과 자존심이 안팎으로 두 겹으로 빛나는 결이에요. 한 번 보면 잊히지 않는 존재감이에요.',
+    ko: '환함과 자존심이 안팎으로 두 겹으로 빛나는 모습이에요. 한 번 보면 잊히지 않는 존재감이에요.',
     en: 'Brightness and pride doubled inside and out. A presence that does not fade after one look.',
     keywords_ko: ['환한 인상', '당당한 외관', '뚜렷한 존재감'],
     keywords_en: ['bright impression', 'proud outside', 'clear presence'],
@@ -2850,7 +2850,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Virgo',
-    ko: '환한 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 빛나면서도 정돈된 외관이에요.',
+    ko: '환한 본성이 단정하고 꼼꼼한 인상으로 비치는 느낌이에요. 빛나면서도 정돈된 외관이에요.',
     en: 'A bright nature shown as a tidy, careful first impression. Radiant yet well-arranged outside.',
     keywords_ko: ['단정한 인상', '정돈된 외관', '실속 있는 빛'],
     keywords_en: ['tidy impression', 'arranged outside', 'practical glow'],
@@ -2858,7 +2858,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Libra',
-    ko: '환한 본성이 우아하고 매끄러운 인상으로 비치는 결이에요. 빛과 매너가 같이 외관에 드러나요.',
+    ko: '환한 본성이 우아하고 매끄러운 인상으로 비치는 스타일이에요. 빛과 매너가 같이 외관에 드러나요.',
     en: 'A bright nature shown as a graceful, smooth first impression. Glow paired with manners outside.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '빛나는 매너'],
     keywords_en: ['graceful impression', 'smooth outside', 'shining manners'],
@@ -2866,7 +2866,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Scorpio',
-    ko: '환한 본성이 깊고 강한 인상으로 비치는 결이에요. 빛 아래 무게가 함께 보이는 결.',
+    ko: '환한 본성이 깊고 강한 인상으로 비치는 모습이에요. 빛 아래 무게가 함께 보이는 느낌이에요.',
     en: 'A bright nature shown as a deep, intense first impression. Weight visible underneath the glow.',
     keywords_ko: ['강한 인상', '진한 외관', '무게감 있는 빛'],
     keywords_en: ['intense impression', 'deep outside', 'weighted glow'],
@@ -2874,7 +2874,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Sagittarius',
-    ko: '환한 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 빛이 넓게 퍼지는 외관이에요.',
+    ko: '환한 본성이 시원하고 자유로운 인상으로 비치는 스타일이에요. 빛이 넓게 퍼지는 외관이에요.',
     en: 'A bright nature shown as an open, free first impression. Glow spreading widely on the outside.',
     keywords_ko: ['환한 인상', '자유로운 외관', '확장하는 존재감'],
     keywords_en: ['bright impression', 'free outside', 'expansive presence'],
@@ -2882,7 +2882,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Capricorn',
-    ko: '환한 본성이 차분하고 책임감 있는 인상으로 비치는 결이에요. 빛이 단단한 무게를 가진 결.',
+    ko: '환한 본성이 차분하고 책임감 있는 인상으로 비치는 모습이에요. 빛이 단단한 무게를 가진 느낌이에요.',
     en: 'A bright nature shown as a calm, responsible first impression. A glow carrying solid weight.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '신뢰의 빛'],
     keywords_en: ['solid impression', 'responsible outside', 'trusted glow'],
@@ -2890,7 +2890,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Aquarius',
-    ko: '환한 본성이 자기만의 색이 있는 인상으로 비치는 결이에요. 빛나면서도 독창적인 외관이에요.',
+    ko: '환한 본성이 자기만의 색이 있는 인상으로 비치는 스타일이에요. 빛나면서도 독창적인 외관이에요.',
     en: 'A bright nature shown as an original first impression. Radiant yet uniquely styled outside.',
     keywords_ko: ['독창적 인상', '환한 외관', '자기 색의 빛'],
     keywords_en: ['original impression', 'bright outside', 'own-color glow'],
@@ -2898,7 +2898,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Leo', sign2: 'Pisces',
-    ko: '환한 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 빛이 부드럽게 스며드는 결.',
+    ko: '환한 본성이 부드럽고 분위기 있는 인상으로 비치는 모습이에요. 빛이 부드럽게 스며드는 느낌이에요.',
     en: 'A bright nature shown as a soft, atmospheric first impression. A glow that seeps in gently.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '스며드는 빛'],
     keywords_en: ['soft impression', 'atmospheric outside', 'seeping glow'],
@@ -2908,7 +2908,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Aries',
-    ko: '꼼꼼한 본성이 단호하고 시원한 인상으로 비치는 결이에요. 정돈된 안쪽이 빠른 외관 뒤에 있어요.',
+    ko: '꼼꼼한 본성이 단호하고 시원한 인상으로 비치는 스타일이에요. 정돈된 안쪽이 빠른 외관 뒤에 있어요.',
     en: 'A careful nature shown as a decisive, clear first impression. A tidy core behind a quick outside.',
     keywords_ko: ['단호한 인상', '시원한 외관', '정돈된 안쪽'],
     keywords_en: ['decisive impression', 'clear outside', 'tidy core'],
@@ -2916,7 +2916,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Taurus',
-    ko: '꼼꼼한 본성이 차분하고 안정된 인상으로 비치는 결이에요. 정돈된 안쪽과 편안한 외관이 잘 맞아요.',
+    ko: '꼼꼼한 본성이 차분하고 안정된 인상으로 비치는 모습이에요. 정돈된 안쪽과 편안한 외관이 잘 맞아요.',
     en: 'A careful nature shown as a calm, steady first impression. A tidy core paired with a comfortable outside.',
     keywords_ko: ['차분한 인상', '안정된 외관', '실속 있는 존재감'],
     keywords_en: ['calm impression', 'steady outside', 'practical presence'],
@@ -2924,7 +2924,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Gemini',
-    ko: '꼼꼼한 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 정돈된 안쪽과 말이 많은 외관이 함께 있어요.',
+    ko: '꼼꼼한 본성이 가볍고 사교적인 인상으로 비치는 느낌이에요. 정돈된 안쪽과 말이 많은 외관이 함께 있어요.',
     en: 'A careful nature shown as a light, sociable first impression. A tidy core with a talkative outside.',
     keywords_ko: ['가벼운 인상', '사교적 외관', '정돈된 안쪽'],
     keywords_en: ['light impression', 'sociable outside', 'tidy core'],
@@ -2932,7 +2932,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Cancer',
-    ko: '꼼꼼한 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 챙김과 정성이 외관에 자연스럽게 드러나요.',
+    ko: '꼼꼼한 본성이 따뜻하고 친근한 인상으로 비치는 스타일이에요. 챙김과 정성이 외관에 자연스럽게 드러나요.',
     en: 'A careful nature shown as a warm, friendly first impression. Care and attentiveness visible outside.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '정성스러운 존재감'],
     keywords_en: ['warm impression', 'friendly outside', 'attentive presence'],
@@ -2940,7 +2940,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Leo',
-    ko: '꼼꼼한 본성이 환하고 당당한 인상으로 비치는 결이에요. 정돈된 안쪽이 따뜻한 외관과 만나요.',
+    ko: '꼼꼼한 본성이 환하고 당당한 인상으로 비치는 모습이에요. 정돈된 안쪽이 따뜻한 외관과 만나요.',
     en: 'A careful nature shown as a bright, confident first impression. A tidy core meeting a warm outside.',
     keywords_ko: ['환한 인상', '당당한 외관', '실속 있는 빛'],
     keywords_en: ['bright impression', 'proud outside', 'practical glow'],
@@ -2948,7 +2948,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Virgo',
-    ko: '꼼꼼함과 단정함이 안팎으로 두 겹으로 흐르는 결이에요. 신뢰감을 주는 정돈된 존재감이에요.',
+    ko: '꼼꼼함과 단정함이 안팎으로 두 겹으로 흐르는 느낌이에요. 신뢰감을 주는 정돈된 존재감이에요.',
     en: 'Care and tidiness doubled inside and out. A trustworthy, well-arranged presence.',
     keywords_ko: ['단정한 인상', '정돈된 외관', '신뢰의 존재감'],
     keywords_en: ['tidy impression', 'arranged outside', 'trusted presence'],
@@ -2956,7 +2956,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Libra',
-    ko: '꼼꼼한 본성이 우아하고 매끄러운 인상으로 비치는 결이에요. 정돈된 안쪽이 매너 있는 외관과 어울려요.',
+    ko: '꼼꼼한 본성이 우아하고 매끄러운 인상으로 비치는 스타일이에요. 정돈된 안쪽이 매너 있는 외관과 어울려요.',
     en: 'A careful nature shown as a graceful, smooth first impression. A tidy core with well-mannered outside.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '단정한 존재감'],
     keywords_en: ['graceful impression', 'smooth outside', 'tidy presence'],
@@ -2964,7 +2964,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Scorpio',
-    ko: '꼼꼼한 본성이 깊고 강한 인상으로 비치는 결이에요. 정돈된 안쪽에 진한 외관이 얹혀 있어요.',
+    ko: '꼼꼼한 본성이 깊고 강한 인상으로 비치는 모습이에요. 정돈된 안쪽에 진한 외관이 얹혀 있어요.',
     en: 'A careful nature shown as a deep, intense first impression. A tidy core wrapped in deeper outside.',
     keywords_ko: ['깊은 인상', '진한 외관', '정돈된 안쪽'],
     keywords_en: ['deep impression', 'intense outside', 'tidy core'],
@@ -2972,7 +2972,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Sagittarius',
-    ko: '꼼꼼한 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 정돈된 안쪽과 넓은 외관이 함께 있어요.',
+    ko: '꼼꼼한 본성이 시원하고 자유로운 인상으로 비치는 느낌이에요. 정돈된 안쪽과 넓은 외관이 함께 있어요.',
     en: 'A careful nature shown as an open, free first impression. A tidy core with a wide outside.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '실속 있는 존재감'],
     keywords_en: ['open impression', 'free outside', 'practical presence'],
@@ -2980,7 +2980,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Capricorn',
-    ko: '꼼꼼함과 책임감이 안팎으로 같은 결로 흐르는 결이에요. 신뢰감을 주는 단단한 존재감이에요.',
+    ko: '꼼꼼함과 책임감이 안팎으로 같은 식으로 흐르는 스타일이에요. 신뢰감을 주는 단단한 존재감이에요.',
     en: 'Care and responsibility flow the same inside and out. A solid, trustworthy presence.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '신뢰의 존재감'],
     keywords_en: ['solid impression', 'responsible outside', 'trusted presence'],
@@ -2988,7 +2988,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Aquarius',
-    ko: '꼼꼼한 본성이 자기만의 시각이 있는 인상으로 비치는 결이에요. 정돈된 안쪽과 독창적인 외관이 함께 있어요.',
+    ko: '꼼꼼한 본성이 자기만의 시각이 있는 인상으로 비치는 모습이에요. 정돈된 안쪽과 독창적인 외관이 함께 있어요.',
     en: 'A careful nature shown as an original first impression. A tidy core with uniquely styled outside.',
     keywords_ko: ['독창적 인상', '단정한 외관', '자기 색의 존재감'],
     keywords_en: ['original impression', 'tidy outside', 'own-color presence'],
@@ -2996,7 +2996,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Virgo', sign2: 'Pisces',
-    ko: '꼼꼼한 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 정돈된 안쪽이 따뜻한 외관과 만나요.',
+    ko: '꼼꼼한 본성이 부드럽고 분위기 있는 인상으로 비치는 느낌이에요. 정돈된 안쪽이 따뜻한 외관과 만나요.',
     en: 'A careful nature shown as a soft, atmospheric first impression. A tidy core meeting a warm outside.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '실속 있는 다정'],
     keywords_en: ['soft impression', 'atmospheric outside', 'practical warmth'],
@@ -3006,7 +3006,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Aries',
-    ko: '균형 있는 본성이 단호하고 시원한 인상으로 비치는 결이에요. 안은 신중하고 밖은 빠른 결.',
+    ko: '균형 있는 본성이 단호하고 시원한 인상으로 비치는 스타일이에요. 안은 신중하고 밖은 빠른 모습이에요.',
     en: 'A balanced nature shown as a decisive, clear first impression. Careful inside, quick outside.',
     keywords_ko: ['단호한 인상', '시원한 외관', '균형 잡힌 안쪽'],
     keywords_en: ['decisive impression', 'clear outside', 'balanced core'],
@@ -3014,7 +3014,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Taurus',
-    ko: '균형 있는 본성이 차분하고 편안한 인상으로 비치는 결이에요. 안과 밖이 안정된 결로 흘러요.',
+    ko: '균형 있는 본성이 차분하고 편안한 인상으로 비치는 느낌이에요. 안과 밖이 안정된 식으로 흘러요.',
     en: 'A balanced nature shown as a calm, comfortable first impression. Inside and outside flow steadily.',
     keywords_ko: ['차분한 인상', '편안한 외관', '안정된 매너'],
     keywords_en: ['calm impression', 'easy outside', 'steady manners'],
@@ -3022,7 +3022,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Gemini',
-    ko: '균형 있는 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 매너와 말이 잘 어울리는 외관이에요.',
+    ko: '균형 있는 본성이 가볍고 사교적인 인상으로 비치는 스타일이에요. 매너와 말이 잘 어울리는 외관이에요.',
     en: 'A balanced nature shown as a light, sociable first impression. Manners and talk well matched outside.',
     keywords_ko: ['가벼운 인상', '사교적 외관', '매끄러운 매너'],
     keywords_en: ['light impression', 'sociable outside', 'smooth manners'],
@@ -3030,7 +3030,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Cancer',
-    ko: '균형 있는 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 매너 있는 안쪽이 다정한 외관과 만나요.',
+    ko: '균형 있는 본성이 따뜻하고 친근한 인상으로 비치는 모습이에요. 매너 있는 안쪽이 다정한 외관과 만나요.',
     en: 'A balanced nature shown as a warm, friendly first impression. Manners meeting warmth outside.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '우아한 다정'],
     keywords_en: ['warm impression', 'friendly outside', 'graceful warmth'],
@@ -3038,7 +3038,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Leo',
-    ko: '균형 있는 본성이 환하고 당당한 인상으로 비치는 결이에요. 우아하고 빛나는 외관이 자연스러워요.',
+    ko: '균형 있는 본성이 환하고 당당한 인상으로 비치는 느낌이에요. 우아하고 빛나는 외관이 자연스러워요.',
     en: 'A balanced nature shown as a bright, confident first impression. Graceful and shining outside.',
     keywords_ko: ['환한 인상', '우아한 외관', '빛나는 매너'],
     keywords_en: ['bright impression', 'graceful outside', 'shining manners'],
@@ -3046,7 +3046,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Virgo',
-    ko: '균형 있는 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 매너 있는 안쪽이 정돈된 외관과 어울려요.',
+    ko: '균형 있는 본성이 단정하고 꼼꼼한 인상으로 비치는 스타일이에요. 매너 있는 안쪽이 정돈된 외관과 어울려요.',
     en: 'A balanced nature shown as a tidy, careful first impression. Manners paired with a well-arranged outside.',
     keywords_ko: ['단정한 인상', '정돈된 외관', '우아한 실속'],
     keywords_en: ['tidy impression', 'arranged outside', 'graceful practicality'],
@@ -3054,7 +3054,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Libra',
-    ko: '균형과 매너가 안팎으로 두 겹으로 흐르는 결이에요. 분위기를 우아하게 유지하는 존재감이에요.',
+    ko: '균형과 매너가 안팎으로 두 겹으로 흐르는 모습이에요. 분위기를 우아하게 유지하는 존재감이에요.',
     en: 'Balance and grace doubled inside and out. A presence that keeps the mood elegant.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '균형 잡힌 존재감'],
     keywords_en: ['graceful impression', 'smooth outside', 'balanced presence'],
@@ -3062,7 +3062,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Scorpio',
-    ko: '균형 있는 본성이 깊고 강한 인상으로 비치는 결이에요. 우아한 안쪽에 무게가 있는 외관이에요.',
+    ko: '균형 있는 본성이 깊고 강한 인상으로 비치는 느낌이에요. 우아한 안쪽에 무게가 있는 외관이에요.',
     en: 'A balanced nature shown as a deep, intense first impression. Grace with weight outside.',
     keywords_ko: ['깊은 인상', '진한 외관', '우아한 무게'],
     keywords_en: ['deep impression', 'intense outside', 'graceful weight'],
@@ -3070,7 +3070,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Sagittarius',
-    ko: '균형 있는 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 우아하면서도 넓은 외관이에요.',
+    ko: '균형 있는 본성이 시원하고 자유로운 인상으로 비치는 스타일이에요. 우아하면서도 넓은 외관이에요.',
     en: 'A balanced nature shown as an open, free first impression. Graceful and wide on the outside.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '우아한 시야'],
     keywords_en: ['open impression', 'free outside', 'graceful horizon'],
@@ -3078,7 +3078,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Capricorn',
-    ko: '균형 있는 본성이 차분하고 책임감 있는 인상으로 비치는 결이에요. 우아함과 단단함이 같이 있어요.',
+    ko: '균형 있는 본성이 차분하고 책임감 있는 인상으로 비치는 모습이에요. 우아함과 단단함이 같이 있어요.',
     en: 'A balanced nature shown as a calm, responsible first impression. Grace paired with solidity.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '우아한 무게'],
     keywords_en: ['solid impression', 'responsible outside', 'graceful weight'],
@@ -3086,7 +3086,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Aquarius',
-    ko: '균형 있는 본성이 자기만의 색이 있는 인상으로 비치는 결이에요. 우아하면서도 독창적인 외관이에요.',
+    ko: '균형 있는 본성이 자기만의 색이 있는 인상으로 비치는 느낌이에요. 우아하면서도 독창적인 외관이에요.',
     en: 'A balanced nature shown as an original first impression. Graceful yet uniquely styled outside.',
     keywords_ko: ['독창적 인상', '우아한 외관', '자유로운 매너'],
     keywords_en: ['original impression', 'graceful outside', 'free manners'],
@@ -3094,7 +3094,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Libra', sign2: 'Pisces',
-    ko: '균형 있는 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 우아함이 부드럽게 흘러요.',
+    ko: '균형 있는 본성이 부드럽고 분위기 있는 인상으로 비치는 스타일이에요. 우아함이 부드럽게 흘러요.',
     en: 'A balanced nature shown as a soft, atmospheric first impression. Grace flowing softly outside.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '우아한 흐름'],
     keywords_en: ['soft impression', 'atmospheric outside', 'graceful flow'],
@@ -3104,7 +3104,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Aries',
-    ko: '깊은 본성이 단호하고 시원한 인상으로 비치는 결이에요. 무게 있는 안쪽이 빠른 외관과 함께 있어요.',
+    ko: '깊은 본성이 단호하고 시원한 인상으로 비치는 모습이에요. 무게 있는 안쪽이 빠른 외관과 함께 있어요.',
     en: 'A deep nature shown as a decisive, clear first impression. Inner weight paired with a quick outside.',
     keywords_ko: ['단호한 인상', '시원한 외관', '깊은 안쪽'],
     keywords_en: ['decisive impression', 'clear outside', 'deep core'],
@@ -3112,7 +3112,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Taurus',
-    ko: '깊은 본성이 차분하고 안정된 인상으로 비치는 결이에요. 진한 안쪽이 편안한 외관 뒤에 살아 있어요.',
+    ko: '깊은 본성이 차분하고 안정된 인상으로 비치는 느낌이에요. 진한 안쪽이 편안한 외관 뒤에 살아 있어요.',
     en: 'A deep nature shown as a calm, steady first impression. Intense core alive behind a comfortable outside.',
     keywords_ko: ['차분한 인상', '안정된 외관', '깊은 안쪽'],
     keywords_en: ['calm impression', 'steady outside', 'deep core'],
@@ -3120,7 +3120,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Gemini',
-    ko: '깊은 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 가벼운 말 뒤에 무게가 있는 결.',
+    ko: '깊은 본성이 가볍고 사교적인 인상으로 비치는 스타일이에요. 가벼운 말 뒤에 무게가 있는 모습이에요.',
     en: 'A deep nature shown as a light, sociable first impression. Weight behind the light talk.',
     keywords_ko: ['가벼운 인상', '사교적 외관', '말 뒤의 무게'],
     keywords_en: ['light impression', 'sociable outside', 'weight behind words'],
@@ -3128,7 +3128,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Cancer',
-    ko: '깊은 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 부드러운 외관과 진한 안쪽이 함께 있어요.',
+    ko: '깊은 본성이 따뜻하고 친근한 인상으로 비치는 느낌이에요. 부드러운 외관과 진한 안쪽이 함께 있어요.',
     en: 'A deep nature shown as a warm, friendly first impression. A soft outside with an intense core.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '진한 안쪽'],
     keywords_en: ['warm impression', 'friendly outside', 'intense core'],
@@ -3136,7 +3136,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Leo',
-    ko: '깊은 본성이 환하고 당당한 인상으로 비치는 결이에요. 빛 아래 무게가 함께 보이는 결.',
+    ko: '깊은 본성이 환하고 당당한 인상으로 비치는 스타일이에요. 빛 아래 무게가 함께 보이는 모습이에요.',
     en: 'A deep nature shown as a bright, confident first impression. Weight visible underneath the glow.',
     keywords_ko: ['환한 인상', '당당한 외관', '무게감 있는 빛'],
     keywords_en: ['bright impression', 'proud outside', 'weighted glow'],
@@ -3144,7 +3144,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Virgo',
-    ko: '깊은 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 진한 안쪽과 정돈된 외관이 함께 있어요.',
+    ko: '깊은 본성이 단정하고 꼼꼼한 인상으로 비치는 느낌이에요. 진한 안쪽과 정돈된 외관이 함께 있어요.',
     en: 'A deep nature shown as a tidy, careful first impression. Intense core with a well-arranged outside.',
     keywords_ko: ['단정한 인상', '정돈된 외관', '진한 안쪽'],
     keywords_en: ['tidy impression', 'arranged outside', 'intense core'],
@@ -3152,7 +3152,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Libra',
-    ko: '깊은 본성이 우아하고 매끄러운 인상으로 비치는 결이에요. 매너 뒤에 무게가 살아 있어요.',
+    ko: '깊은 본성이 우아하고 매끄러운 인상으로 비치는 스타일이에요. 매너 뒤에 무게가 살아 있어요.',
     en: 'A deep nature shown as a graceful, smooth first impression. Weight alive behind the manners.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '무게감 있는 매너'],
     keywords_en: ['graceful impression', 'smooth outside', 'weighted manners'],
@@ -3160,7 +3160,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Scorpio',
-    ko: '깊고 강함이 안팎으로 두 겹으로 흐르는 결이에요. 한 번 보면 무게가 깊게 남는 존재감이에요.',
+    ko: '깊고 강함이 안팎으로 두 겹으로 흐르는 모습이에요. 한 번 보면 무게가 깊게 남는 존재감이에요.',
     en: 'Depth and intensity doubled inside and out. A presence whose weight lingers after one look.',
     keywords_ko: ['깊은 인상', '진한 외관', '무게감 있는 존재'],
     keywords_en: ['deep impression', 'intense outside', 'weighted presence'],
@@ -3168,7 +3168,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Sagittarius',
-    ko: '깊은 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 무게가 있으면서도 시야가 넓은 외관이에요.',
+    ko: '깊은 본성이 시원하고 자유로운 인상으로 비치는 느낌이에요. 무게가 있으면서도 시야가 넓은 외관이에요.',
     en: 'A deep nature shown as an open, free first impression. Weight with a wide outside.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '깊은 시야'],
     keywords_en: ['open impression', 'free outside', 'deep horizon'],
@@ -3176,7 +3176,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Capricorn',
-    ko: '깊은 본성이 차분하고 책임감 있는 인상으로 비치는 결이에요. 무게와 단단함이 같이 있는 결.',
+    ko: '깊은 본성이 차분하고 책임감 있는 인상으로 비치는 스타일이에요. 무게와 단단함이 같이 있는 모습이에요.',
     en: 'A deep nature shown as a calm, responsible first impression. Weight paired with solidity.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '깊은 무게'],
     keywords_en: ['solid impression', 'responsible outside', 'deep weight'],
@@ -3184,7 +3184,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Aquarius',
-    ko: '깊은 본성이 자기만의 시각이 있는 인상으로 비치는 결이에요. 진하면서도 독창적인 외관이에요.',
+    ko: '깊은 본성이 자기만의 시각이 있는 인상으로 비치는 느낌이에요. 진하면서도 독창적인 외관이에요.',
     en: 'A deep nature shown as an original first impression. Intense yet uniquely styled outside.',
     keywords_ko: ['독창적 인상', '진한 외관', '자기 색의 무게'],
     keywords_en: ['original impression', 'intense outside', 'own-color weight'],
@@ -3192,7 +3192,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Scorpio', sign2: 'Pisces',
-    ko: '깊은 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 무게가 부드럽게 스며드는 결.',
+    ko: '깊은 본성이 부드럽고 분위기 있는 인상으로 비치는 스타일이에요. 무게가 부드럽게 스며드는 모습이에요.',
     en: 'A deep nature shown as a soft, atmospheric first impression. Weight seeping in softly.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '스며드는 무게'],
     keywords_en: ['soft impression', 'atmospheric outside', 'seeping weight'],
@@ -3202,7 +3202,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Aries',
-    ko: '자유로운 본성이 단호하고 시원한 인상으로 비치는 결이에요. 빠른 외관에 시야가 더해진 결.',
+    ko: '자유로운 본성이 단호하고 시원한 인상으로 비치는 느낌이에요. 빠른 외관에 시야가 더해진 스타일이에요.',
     en: 'A free nature shown as a decisive, clear first impression. A quick outside with a wider view added.',
     keywords_ko: ['단호한 인상', '시원한 외관', '확장하는 추진'],
     keywords_en: ['decisive impression', 'clear outside', 'expansive drive'],
@@ -3210,7 +3210,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Taurus',
-    ko: '자유로운 본성이 차분하고 안정된 인상으로 비치는 결이에요. 멀리 보는 마음이 단단한 외관과 함께 있어요.',
+    ko: '자유로운 본성이 차분하고 안정된 인상으로 비치는 모습이에요. 멀리 보는 마음이 단단한 외관과 함께 있어요.',
     en: 'A free nature shown as a calm, steady first impression. A far-seeing heart paired with a grounded outside.',
     keywords_ko: ['차분한 인상', '안정된 외관', '시야 있는 안쪽'],
     keywords_en: ['calm impression', 'steady outside', 'wider core'],
@@ -3218,7 +3218,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Gemini',
-    ko: '자유로운 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 호기심과 모험이 외관에 잘 드러나요.',
+    ko: '자유로운 본성이 가볍고 사교적인 인상으로 비치는 느낌이에요. 호기심과 모험이 외관에 잘 드러나요.',
     en: 'A free nature shown as a light, sociable first impression. Curiosity and adventure visible outside.',
     keywords_ko: ['가벼운 인상', '사교적 외관', '호기심 있는 존재감'],
     keywords_en: ['light impression', 'sociable outside', 'curious presence'],
@@ -3226,7 +3226,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Cancer',
-    ko: '자유로운 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 시야 있는 안쪽과 다정한 외관이 함께 있어요.',
+    ko: '자유로운 본성이 따뜻하고 친근한 인상으로 비치는 스타일이에요. 시야 있는 안쪽과 다정한 외관이 함께 있어요.',
     en: 'A free nature shown as a warm, friendly first impression. A wider core meeting a caring outside.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '시야 있는 다정'],
     keywords_en: ['warm impression', 'friendly outside', 'wider warmth'],
@@ -3234,7 +3234,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Leo',
-    ko: '자유로운 본성이 환하고 당당한 인상으로 비치는 결이에요. 시야와 빛이 함께 외관에 드러나요.',
+    ko: '자유로운 본성이 환하고 당당한 인상으로 비치는 모습이에요. 시야와 빛이 함께 외관에 드러나요.',
     en: 'A free nature shown as a bright, confident first impression. Horizon and glow visible together outside.',
     keywords_ko: ['환한 인상', '당당한 외관', '확장하는 존재감'],
     keywords_en: ['bright impression', 'proud outside', 'expansive presence'],
@@ -3242,7 +3242,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Virgo',
-    ko: '자유로운 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 시야 있는 안쪽이 정돈된 외관과 어울려요.',
+    ko: '자유로운 본성이 단정하고 꼼꼼한 인상으로 비치는 느낌이에요. 시야 있는 안쪽이 정돈된 외관과 어울려요.',
     en: 'A free nature shown as a tidy, careful first impression. A wider core paired with a well-arranged outside.',
     keywords_ko: ['단정한 인상', '정돈된 외관', '시야 있는 실속'],
     keywords_en: ['tidy impression', 'arranged outside', 'wider practicality'],
@@ -3250,7 +3250,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Libra',
-    ko: '자유로운 본성이 우아하고 매끄러운 인상으로 비치는 결이에요. 매너와 시야가 같이 외관에 드러나요.',
+    ko: '자유로운 본성이 우아하고 매끄러운 인상으로 비치는 스타일이에요. 매너와 시야가 같이 외관에 드러나요.',
     en: 'A free nature shown as a graceful, smooth first impression. Manners paired with horizon outside.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '시야 있는 매너'],
     keywords_en: ['graceful impression', 'smooth outside', 'wider manners'],
@@ -3258,7 +3258,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Scorpio',
-    ko: '자유로운 본성이 깊고 강한 인상으로 비치는 결이에요. 시야 있는 안쪽이 무게 있는 외관과 함께 있어요.',
+    ko: '자유로운 본성이 깊고 강한 인상으로 비치는 모습이에요. 시야 있는 안쪽이 무게 있는 외관과 함께 있어요.',
     en: 'A free nature shown as a deep, intense first impression. A wider core paired with a weighted outside.',
     keywords_ko: ['깊은 인상', '진한 외관', '시야 있는 무게'],
     keywords_en: ['deep impression', 'intense outside', 'wider weight'],
@@ -3266,7 +3266,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Sagittarius',
-    ko: '자유로움과 시야가 안팎으로 두 겹으로 흐르는 결이에요. 멀리 보고 시원한 존재감이 있는 결.',
+    ko: '자유로움과 시야가 안팎으로 두 겹으로 흐르는 느낌이에요. 멀리 보고 시원한 존재감이 있는 스타일이에요.',
     en: 'Freedom and horizon doubled inside and out. A presence that looks far and feels open.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '확장하는 존재감'],
     keywords_en: ['open impression', 'free outside', 'expansive presence'],
@@ -3274,7 +3274,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Capricorn',
-    ko: '자유로운 본성이 차분하고 책임감 있는 인상으로 비치는 결이에요. 시야 있는 안쪽이 단단한 외관과 만나요.',
+    ko: '자유로운 본성이 차분하고 책임감 있는 인상으로 비치는 모습이에요. 시야 있는 안쪽이 단단한 외관과 만나요.',
     en: 'A free nature shown as a calm, responsible first impression. A wider core meeting a solid outside.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '시야 있는 무게'],
     keywords_en: ['solid impression', 'responsible outside', 'wider weight'],
@@ -3282,7 +3282,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Aquarius',
-    ko: '자유로운 본성이 자기만의 색이 있는 인상으로 비치는 결이에요. 시야와 독창성이 함께 외관에 드러나요.',
+    ko: '자유로운 본성이 자기만의 색이 있는 인상으로 비치는 느낌이에요. 시야와 독창성이 함께 외관에 드러나요.',
     en: 'A free nature shown as an original first impression. Horizon and originality visible together outside.',
     keywords_ko: ['독창적 인상', '자유로운 외관', '새 길의 존재감'],
     keywords_en: ['original impression', 'free outside', 'new-path presence'],
@@ -3290,7 +3290,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Sagittarius', sign2: 'Pisces',
-    ko: '자유로운 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 시야와 공감이 함께 외관에 드러나요.',
+    ko: '자유로운 본성이 부드럽고 분위기 있는 인상으로 비치는 스타일이에요. 시야와 공감이 함께 외관에 드러나요.',
     en: 'A free nature shown as a soft, atmospheric first impression. Horizon and empathy visible together outside.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '시야 있는 공감'],
     keywords_en: ['soft impression', 'atmospheric outside', 'wider empathy'],
@@ -3300,7 +3300,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Aries',
-    ko: '책임감 있는 본성이 단호하고 시원한 인상으로 비치는 결이에요. 단단한 안쪽이 빠른 외관과 함께 있어요.',
+    ko: '책임감 있는 본성이 단호하고 시원한 인상으로 비치는 모습이에요. 단단한 안쪽이 빠른 외관과 함께 있어요.',
     en: 'A responsible nature shown as a decisive, clear first impression. A solid core paired with a quick outside.',
     keywords_ko: ['단호한 인상', '시원한 외관', '단단한 안쪽'],
     keywords_en: ['decisive impression', 'clear outside', 'solid core'],
@@ -3308,7 +3308,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Taurus',
-    ko: '책임감 있는 본성이 차분하고 안정된 인상으로 비치는 결이에요. 신뢰감을 주는 외관과 안쪽이 잘 맞아요.',
+    ko: '책임감 있는 본성이 차분하고 안정된 인상으로 비치는 느낌이에요. 신뢰감을 주는 외관과 안쪽이 잘 맞아요.',
     en: 'A responsible nature shown as a calm, steady first impression. A trustworthy outside that fits the inside.',
     keywords_ko: ['차분한 인상', '안정된 외관', '신뢰의 존재감'],
     keywords_en: ['calm impression', 'steady outside', 'trusted presence'],
@@ -3316,7 +3316,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Gemini',
-    ko: '책임감 있는 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 단단한 안쪽이 부드러운 외관과 함께 있어요.',
+    ko: '책임감 있는 본성이 가볍고 사교적인 인상으로 비치는 스타일이에요. 단단한 안쪽이 부드러운 외관과 함께 있어요.',
     en: 'A responsible nature shown as a light, sociable first impression. A solid core with an easy outside.',
     keywords_ko: ['가벼운 인상', '사교적 외관', '단단한 안쪽'],
     keywords_en: ['light impression', 'sociable outside', 'solid core'],
@@ -3324,7 +3324,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Cancer',
-    ko: '책임감 있는 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 단단한 안쪽과 다정한 외관이 함께 있어요.',
+    ko: '책임감 있는 본성이 따뜻하고 친근한 인상으로 비치는 모습이에요. 단단한 안쪽과 다정한 외관이 함께 있어요.',
     en: 'A responsible nature shown as a warm, friendly first impression. A solid core meeting a caring outside.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '단단한 다정'],
     keywords_en: ['warm impression', 'friendly outside', 'solid warmth'],
@@ -3332,7 +3332,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Leo',
-    ko: '책임감 있는 본성이 환하고 당당한 인상으로 비치는 결이에요. 단단한 안쪽이 따뜻하게 빛나는 외관과 만나요.',
+    ko: '책임감 있는 본성이 환하고 당당한 인상으로 비치는 느낌이에요. 단단한 안쪽이 따뜻하게 빛나는 외관과 만나요.',
     en: 'A responsible nature shown as a bright, confident first impression. A solid core meeting a warm glow.',
     keywords_ko: ['환한 인상', '당당한 외관', '신뢰의 빛'],
     keywords_en: ['bright impression', 'proud outside', 'trusted glow'],
@@ -3340,7 +3340,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Virgo',
-    ko: '책임감과 단정함이 안팎으로 같은 결로 흐르는 결이에요. 신뢰감을 주는 단단한 존재감이에요.',
+    ko: '책임감과 단정함이 안팎으로 같은 식으로 흐르는 스타일이에요. 신뢰감을 주는 단단한 존재감이에요.',
     en: 'Responsibility and tidiness flow the same inside and out. A solid, trustworthy presence.',
     keywords_ko: ['단정한 인상', '정돈된 외관', '신뢰의 존재감'],
     keywords_en: ['tidy impression', 'arranged outside', 'trusted presence'],
@@ -3348,7 +3348,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Libra',
-    ko: '책임감 있는 본성이 우아하고 매끄러운 인상으로 비치는 결이에요. 단단한 안쪽과 우아한 외관이 함께 있어요.',
+    ko: '책임감 있는 본성이 우아하고 매끄러운 인상으로 비치는 모습이에요. 단단한 안쪽과 우아한 외관이 함께 있어요.',
     en: 'A responsible nature shown as a graceful, smooth first impression. A solid core paired with a graceful outside.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '단단한 매너'],
     keywords_en: ['graceful impression', 'smooth outside', 'solid manners'],
@@ -3356,7 +3356,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Scorpio',
-    ko: '책임감 있는 본성이 깊고 강한 인상으로 비치는 결이에요. 단단함과 무게가 같이 있는 외관이에요.',
+    ko: '책임감 있는 본성이 깊고 강한 인상으로 비치는 느낌이에요. 단단함과 무게가 같이 있는 외관이에요.',
     en: 'A responsible nature shown as a deep, intense first impression. Solidity paired with weight outside.',
     keywords_ko: ['깊은 인상', '진한 외관', '단단한 무게'],
     keywords_en: ['deep impression', 'intense outside', 'solid weight'],
@@ -3364,7 +3364,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Sagittarius',
-    ko: '책임감 있는 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 단단한 안쪽이 넓은 외관과 함께 있어요.',
+    ko: '책임감 있는 본성이 시원하고 자유로운 인상으로 비치는 스타일이에요. 단단한 안쪽이 넓은 외관과 함께 있어요.',
     en: 'A responsible nature shown as an open, free first impression. A solid core paired with a wide outside.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '단단한 시야'],
     keywords_en: ['open impression', 'free outside', 'solid horizon'],
@@ -3372,7 +3372,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Capricorn',
-    ko: '책임감과 무게가 안팎으로 두 겹으로 흐르는 결이에요. 흔들리지 않는 신뢰의 존재감이에요.',
+    ko: '책임감과 무게가 안팎으로 두 겹으로 흐르는 모습이에요. 흔들리지 않는 신뢰의 존재감이에요.',
     en: 'Responsibility and weight doubled inside and out. An unwavering, trustworthy presence.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '신뢰의 존재감'],
     keywords_en: ['solid impression', 'responsible outside', 'trusted presence'],
@@ -3380,7 +3380,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Aquarius',
-    ko: '책임감 있는 본성이 자기만의 색이 있는 인상으로 비치는 결이에요. 단단함과 독창성이 함께 있어요.',
+    ko: '책임감 있는 본성이 자기만의 색이 있는 인상으로 비치는 느낌이에요. 단단함과 독창성이 함께 있어요.',
     en: 'A responsible nature shown as an original first impression. Solidity paired with originality.',
     keywords_ko: ['독창적 인상', '단단한 외관', '자기 색의 무게'],
     keywords_en: ['original impression', 'solid outside', 'own-color weight'],
@@ -3388,7 +3388,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Capricorn', sign2: 'Pisces',
-    ko: '책임감 있는 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 단단함이 부드럽게 표현되는 결.',
+    ko: '책임감 있는 본성이 부드럽고 분위기 있는 인상으로 비치는 스타일이에요. 단단함이 부드럽게 표현되는 모습이에요.',
     en: 'A responsible nature shown as a soft, atmospheric first impression. Solidity expressed softly outside.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '단단한 안쪽'],
     keywords_en: ['soft impression', 'atmospheric outside', 'solid core'],
@@ -3398,7 +3398,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Aries',
-    ko: '독창적인 본성이 단호하고 시원한 인상으로 비치는 결이에요. 자기 색과 빠른 외관이 함께 있어요.',
+    ko: '독창적인 본성이 단호하고 시원한 인상으로 비치는 느낌이에요. 자기 색과 빠른 외관이 함께 있어요.',
     en: 'An original nature shown as a decisive, clear first impression. Own color paired with a quick outside.',
     keywords_ko: ['단호한 인상', '시원한 외관', '자기 색의 추진'],
     keywords_en: ['decisive impression', 'clear outside', 'own-color drive'],
@@ -3406,7 +3406,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Taurus',
-    ko: '독창적인 본성이 차분하고 안정된 인상으로 비치는 결이에요. 자기 색이 안정된 외관 뒤에 살아 있어요.',
+    ko: '독창적인 본성이 차분하고 안정된 인상으로 비치는 스타일이에요. 자기 색이 안정된 외관 뒤에 살아 있어요.',
     en: 'An original nature shown as a calm, steady first impression. Own color alive behind a stable outside.',
     keywords_ko: ['차분한 인상', '안정된 외관', '자기 색의 안쪽'],
     keywords_en: ['calm impression', 'steady outside', 'own-color core'],
@@ -3414,7 +3414,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Gemini',
-    ko: '독창적인 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 아이디어와 말이 외관에 잘 드러나요.',
+    ko: '독창적인 본성이 가볍고 사교적인 인상으로 비치는 모습이에요. 아이디어와 말이 외관에 잘 드러나요.',
     en: 'An original nature shown as a light, sociable first impression. Ideas and talk visible outside.',
     keywords_ko: ['가벼운 인상', '사교적 외관', '아이디어의 존재감'],
     keywords_en: ['light impression', 'sociable outside', 'idea-led presence'],
@@ -3422,7 +3422,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Cancer',
-    ko: '독창적인 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 자기 색이 다정한 외관과 함께 있어요.',
+    ko: '독창적인 본성이 따뜻하고 친근한 인상으로 비치는 느낌이에요. 자기 색이 다정한 외관과 함께 있어요.',
     en: 'An original nature shown as a warm, friendly first impression. Own color paired with a caring outside.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '거리감 있는 다정'],
     keywords_en: ['warm impression', 'friendly outside', 'spacious warmth'],
@@ -3430,7 +3430,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Leo',
-    ko: '독창적인 본성이 환하고 당당한 인상으로 비치는 결이에요. 자기 색이 환한 외관과 함께 빛나는 결.',
+    ko: '독창적인 본성이 환하고 당당한 인상으로 비치는 스타일이에요. 자기 색이 환한 외관과 함께 빛나는 모습이에요.',
     en: 'An original nature shown as a bright, confident first impression. Own color shining together with a bright outside.',
     keywords_ko: ['환한 인상', '당당한 외관', '자기 색의 빛'],
     keywords_en: ['bright impression', 'proud outside', 'own-color glow'],
@@ -3438,7 +3438,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Virgo',
-    ko: '독창적인 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 자기 색과 정돈된 외관이 함께 있어요.',
+    ko: '독창적인 본성이 단정하고 꼼꼼한 인상으로 비치는 느낌이에요. 자기 색과 정돈된 외관이 함께 있어요.',
     en: 'An original nature shown as a tidy, careful first impression. Own color paired with a well-arranged outside.',
     keywords_ko: ['단정한 인상', '정돈된 외관', '자기 색의 실속'],
     keywords_en: ['tidy impression', 'arranged outside', 'own-color practicality'],
@@ -3446,7 +3446,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Libra',
-    ko: '독창적인 본성이 우아하고 매끄러운 인상으로 비치는 결이에요. 자기 색과 우아한 외관이 잘 어울려요.',
+    ko: '독창적인 본성이 우아하고 매끄러운 인상으로 비치는 스타일이에요. 자기 색과 우아한 외관이 잘 어울려요.',
     en: 'An original nature shown as a graceful, smooth first impression. Own color paired with a graceful outside.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '자기 색의 매너'],
     keywords_en: ['graceful impression', 'smooth outside', 'own-color manners'],
@@ -3454,7 +3454,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Scorpio',
-    ko: '독창적인 본성이 깊고 강한 인상으로 비치는 결이에요. 자기 색이 무게 있는 외관과 함께 있어요.',
+    ko: '독창적인 본성이 깊고 강한 인상으로 비치는 모습이에요. 자기 색이 무게 있는 외관과 함께 있어요.',
     en: 'An original nature shown as a deep, intense first impression. Own color paired with a weighted outside.',
     keywords_ko: ['깊은 인상', '진한 외관', '자기 색의 무게'],
     keywords_en: ['deep impression', 'intense outside', 'own-color weight'],
@@ -3462,7 +3462,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Sagittarius',
-    ko: '독창적인 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 자기 색과 넓은 시야가 함께 외관에 드러나요.',
+    ko: '독창적인 본성이 시원하고 자유로운 인상으로 비치는 느낌이에요. 자기 색과 넓은 시야가 함께 외관에 드러나요.',
     en: 'An original nature shown as an open, free first impression. Own color paired with a wide horizon outside.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '자기 색의 시야'],
     keywords_en: ['open impression', 'free outside', 'own-color horizon'],
@@ -3470,7 +3470,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Capricorn',
-    ko: '독창적인 본성이 차분하고 책임감 있는 인상으로 비치는 결이에요. 자기 색과 단단한 외관이 함께 있어요.',
+    ko: '독창적인 본성이 차분하고 책임감 있는 인상으로 비치는 스타일이에요. 자기 색과 단단한 외관이 함께 있어요.',
     en: 'An original nature shown as a calm, responsible first impression. Own color paired with a solid outside.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '자기 색의 무게'],
     keywords_en: ['solid impression', 'responsible outside', 'own-color weight'],
@@ -3478,7 +3478,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Aquarius',
-    ko: '독창성과 자유로움이 안팎으로 두 겹으로 흐르는 결이에요. 자기 색이 분명한 존재감이에요.',
+    ko: '독창성과 자유로움이 안팎으로 두 겹으로 흐르는 모습이에요. 자기 색이 분명한 존재감이에요.',
     en: 'Originality and freedom doubled inside and out. A presence with a clear own color.',
     keywords_ko: ['독창적 인상', '자유로운 외관', '자기 색의 존재감'],
     keywords_en: ['original impression', 'free outside', 'own-color presence'],
@@ -3486,7 +3486,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Aquarius', sign2: 'Pisces',
-    ko: '독창적인 본성이 부드럽고 분위기 있는 인상으로 비치는 결이에요. 자기 색과 공감이 함께 외관에 드러나요.',
+    ko: '독창적인 본성이 부드럽고 분위기 있는 인상으로 비치는 느낌이에요. 자기 색과 공감이 함께 외관에 드러나요.',
     en: 'An original nature shown as a soft, atmospheric first impression. Own color paired with empathy outside.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '자기 색의 공감'],
     keywords_en: ['soft impression', 'atmospheric outside', 'own-color empathy'],
@@ -3496,7 +3496,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Aries',
-    ko: '공감 어린 본성이 단호하고 시원한 인상으로 비치는 결이에요. 부드러운 안쪽과 빠른 외관이 함께 있어요.',
+    ko: '공감 어린 본성이 단호하고 시원한 인상으로 비치는 스타일이에요. 부드러운 안쪽과 빠른 외관이 함께 있어요.',
     en: 'An empathic nature shown as a decisive, clear first impression. A soft core paired with a quick outside.',
     keywords_ko: ['단호한 인상', '시원한 외관', '부드러운 안쪽'],
     keywords_en: ['decisive impression', 'clear outside', 'soft core'],
@@ -3504,7 +3504,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Taurus',
-    ko: '공감 어린 본성이 차분하고 안정된 인상으로 비치는 결이에요. 부드러운 안쪽과 편안한 외관이 잘 맞아요.',
+    ko: '공감 어린 본성이 차분하고 안정된 인상으로 비치는 모습이에요. 부드러운 안쪽과 편안한 외관이 잘 맞아요.',
     en: 'An empathic nature shown as a calm, steady first impression. A soft core paired with a comfortable outside.',
     keywords_ko: ['차분한 인상', '편안한 외관', '부드러운 안쪽'],
     keywords_en: ['calm impression', 'easy outside', 'soft core'],
@@ -3512,7 +3512,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Gemini',
-    ko: '공감 어린 본성이 가볍고 사교적인 인상으로 비치는 결이에요. 부드러운 안쪽이 말 많은 외관과 함께 있어요.',
+    ko: '공감 어린 본성이 가볍고 사교적인 인상으로 비치는 느낌이에요. 부드러운 안쪽이 말 많은 외관과 함께 있어요.',
     en: 'An empathic nature shown as a light, sociable first impression. A soft core paired with a talkative outside.',
     keywords_ko: ['가벼운 인상', '사교적 외관', '부드러운 안쪽'],
     keywords_en: ['light impression', 'sociable outside', 'soft core'],
@@ -3520,7 +3520,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Cancer',
-    ko: '공감 어린 본성이 따뜻하고 친근한 인상으로 비치는 결이에요. 안과 밖이 같은 부드러운 결로 흘러요.',
+    ko: '공감 어린 본성이 따뜻하고 친근한 인상으로 비치는 스타일이에요. 안과 밖이 같은 부드러운 식으로 흘러요.',
     en: 'An empathic nature shown as a warm, friendly first impression. Inside and outside flow the same softness.',
     keywords_ko: ['따뜻한 인상', '친근한 외관', '깊은 다정'],
     keywords_en: ['warm impression', 'friendly outside', 'deep warmth'],
@@ -3528,7 +3528,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Leo',
-    ko: '깊고 공감 어린 감정이 따뜻한 빛으로 표현되는 결이에요. 속은 부드럽지만 겉은 따뜻하고 열려 있어요.',
+    ko: '깊고 공감 어린 감정이 따뜻한 빛으로 표현되는 모습이에요. 속은 부드럽지만 겉은 따뜻하고 열려 있어요.',
     en: 'Deep, empathic emotions express themselves as warm radiance. Soft inside, warm and open outside.',
     keywords_ko: ['부드러운 감정', '따뜻한 표현', '공감의 빛'],
     keywords_en: ['soft feeling', 'warm expression', 'empathic glow'],
@@ -3536,7 +3536,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Virgo',
-    ko: '공감 어린 본성이 단정하고 꼼꼼한 인상으로 비치는 결이에요. 부드러운 안쪽이 정돈된 외관과 만나요.',
+    ko: '공감 어린 본성이 단정하고 꼼꼼한 인상으로 비치는 느낌이에요. 부드러운 안쪽이 정돈된 외관과 만나요.',
     en: 'An empathic nature shown as a tidy, careful first impression. A soft core meeting a well-arranged outside.',
     keywords_ko: ['단정한 인상', '정돈된 외관', '부드러운 안쪽'],
     keywords_en: ['tidy impression', 'arranged outside', 'soft core'],
@@ -3544,7 +3544,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Libra',
-    ko: '공감 어린 본성이 우아하고 매끄러운 인상으로 비치는 결이에요. 부드러움과 매너가 함께 흘러요.',
+    ko: '공감 어린 본성이 우아하고 매끄러운 인상으로 비치는 스타일이에요. 부드러움과 매너가 함께 흘러요.',
     en: 'An empathic nature shown as a graceful, smooth first impression. Softness and manners flowing together.',
     keywords_ko: ['우아한 인상', '매끄러운 외관', '부드러운 매너'],
     keywords_en: ['graceful impression', 'smooth outside', 'soft manners'],
@@ -3552,7 +3552,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Scorpio',
-    ko: '공감 어린 본성이 깊고 강한 인상으로 비치는 결이에요. 부드러운 안쪽과 진한 외관이 같이 있어요.',
+    ko: '공감 어린 본성이 깊고 강한 인상으로 비치는 모습이에요. 부드러운 안쪽과 진한 외관이 같이 있어요.',
     en: 'An empathic nature shown as a deep, intense first impression. A soft core paired with a weighted outside.',
     keywords_ko: ['깊은 인상', '진한 외관', '부드러운 안쪽'],
     keywords_en: ['deep impression', 'intense outside', 'soft core'],
@@ -3560,7 +3560,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Sagittarius',
-    ko: '공감 어린 본성이 시원하고 자유로운 인상으로 비치는 결이에요. 부드러움과 시야가 함께 외관에 드러나요.',
+    ko: '공감 어린 본성이 시원하고 자유로운 인상으로 비치는 느낌이에요. 부드러움과 시야가 함께 외관에 드러나요.',
     en: 'An empathic nature shown as an open, free first impression. Softness and horizon visible together outside.',
     keywords_ko: ['시원한 인상', '자유로운 외관', '시야 있는 공감'],
     keywords_en: ['open impression', 'free outside', 'wider empathy'],
@@ -3568,7 +3568,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Capricorn',
-    ko: '공감 어린 본성이 차분하고 책임감 있는 인상으로 비치는 결이에요. 부드러움이 단단한 외관과 만나요.',
+    ko: '공감 어린 본성이 차분하고 책임감 있는 인상으로 비치는 스타일이에요. 부드러움이 단단한 외관과 만나요.',
     en: 'An empathic nature shown as a calm, responsible first impression. Softness meeting a solid outside.',
     keywords_ko: ['단단한 인상', '책임 있는 외관', '부드러운 안쪽'],
     keywords_en: ['solid impression', 'responsible outside', 'soft core'],
@@ -3576,7 +3576,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Aquarius',
-    ko: '공감 어린 본성이 자기만의 색이 있는 인상으로 비치는 결이에요. 부드러움과 독창성이 함께 있어요.',
+    ko: '공감 어린 본성이 자기만의 색이 있는 인상으로 비치는 모습이에요. 부드러움과 독창성이 함께 있어요.',
     en: 'An empathic nature shown as an original first impression. Softness paired with originality.',
     keywords_ko: ['독창적 인상', '자유로운 외관', '부드러운 자기 색'],
     keywords_en: ['original impression', 'free outside', 'soft own-color'],
@@ -3584,7 +3584,7 @@ const SUN_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'sun_asc',
     sign1: 'Pisces', sign2: 'Pisces',
-    ko: '공감과 부드러움이 안팎으로 두 겹으로 흐르는 결이에요. 분위기처럼 자연스럽게 스며드는 존재감이에요.',
+    ko: '공감과 부드러움이 안팎으로 두 겹으로 흐르는 느낌이에요. 분위기처럼 자연스럽게 스며드는 존재감이에요.',
     en: 'Empathy and softness doubled inside and out. A presence that seeps in like atmosphere.',
     keywords_ko: ['부드러운 인상', '분위기 있는 외관', '스며드는 존재감'],
     keywords_en: ['soft impression', 'atmospheric outside', 'seeping presence'],
@@ -3601,7 +3601,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Aries',
-    ko: '빠른 감정이 빠른 외관으로 그대로 드러나는 결이에요. 마음의 결이 즉시 표정과 행동에 보여요.',
+    ko: '빠른 감정이 빠른 외관으로 그대로 드러나는 스타일이에요. 마음의 면이 즉시 표정과 행동에 보여요.',
     en: 'Quick feelings shown straight through a quick first impression. The mood lands on the face and action at once.',
     keywords_ko: ['즉각적 감정', '빠른 표현', '솔직한 외관'],
     keywords_en: ['quick feeling', 'fast expression', 'honest outside'],
@@ -3609,7 +3609,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Taurus',
-    ko: '빠른 감정이 차분한 외관으로 표현되는 결이에요. 안은 뜨거워도 겉으로는 부드럽게 가라앉는 결.',
+    ko: '빠른 감정이 차분한 외관으로 표현되는 모습이에요. 안은 뜨거워도 겉으로는 부드럽게 가라앉는 느낌이에요.',
     en: 'Quick feelings expressed through a calm outside. Hot inside, quieted gently on the surface.',
     keywords_ko: ['빠른 감정', '차분한 표현', '안정된 외관'],
     keywords_en: ['quick feeling', 'calm expression', 'steady outside'],
@@ -3617,7 +3617,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Gemini',
-    ko: '빠른 감정이 가벼운 말로 표현되는 결이에요. 마음의 결이 곧장 대화로 풀려나오는 결.',
+    ko: '빠른 감정이 가벼운 말로 표현되는 스타일이에요. 마음의 면이 곧장 대화로 풀려나오는 모습이에요.',
     en: 'Quick feelings expressed through light talk. The mood turns into conversation almost at once.',
     keywords_ko: ['빠른 감정', '말로 푸는 표현', '경쾌한 외관'],
     keywords_en: ['quick feeling', 'talk-led expression', 'lively outside'],
@@ -3625,7 +3625,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Cancer',
-    ko: '빠른 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 뜨거운 마음이 다정하게 비치는 결.',
+    ko: '빠른 감정이 따뜻하고 친근한 외관으로 표현되는 느낌이에요. 뜨거운 마음이 다정하게 비치는 스타일이에요.',
     en: 'Quick feelings expressed through a warm, friendly outside. A hot heart shown as caring presence.',
     keywords_ko: ['빠른 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['quick feeling', 'warm expression', 'friendly outside'],
@@ -3633,7 +3633,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Leo',
-    ko: '빠른 감정이 환하고 당당한 외관으로 표현되는 결이에요. 좋아하면 환하게, 싫으면 분명히 보여요.',
+    ko: '빠른 감정이 환하고 당당한 외관으로 표현되는 모습이에요. 좋아하면 환하게, 싫으면 분명히 보여요.',
     en: 'Quick feelings expressed through a bright, confident outside. Joy shines, dislike shows clearly.',
     keywords_ko: ['빠른 감정', '환한 표현', '당당한 외관'],
     keywords_en: ['quick feeling', 'bright expression', 'proud outside'],
@@ -3641,7 +3641,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Virgo',
-    ko: '빠른 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 마음은 뜨거워도 표현은 다듬어진 결.',
+    ko: '빠른 감정이 단정하고 꼼꼼한 외관으로 표현되는 느낌이에요. 마음은 뜨거워도 표현은 다듬어진 스타일이에요.',
     en: 'Quick feelings expressed through a tidy, careful outside. Hot inside, refined in show.',
     keywords_ko: ['빠른 감정', '다듬어진 표현', '정돈된 외관'],
     keywords_en: ['quick feeling', 'refined expression', 'tidy outside'],
@@ -3649,7 +3649,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Libra',
-    ko: '빠른 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 솔직함이 매너 있게 드러나는 결.',
+    ko: '빠른 감정이 우아하고 매끄러운 외관으로 표현되는 모습이에요. 솔직함이 매너 있게 드러나는 느낌이에요.',
     en: 'Quick feelings expressed through a graceful, smooth outside. Honesty shown with manners.',
     keywords_ko: ['빠른 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['quick feeling', 'graceful expression', 'smooth outside'],
@@ -3657,7 +3657,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Scorpio',
-    ko: '빠른 감정이 깊고 강한 외관으로 표현되는 결이에요. 뜨거운 마음에 무게가 더해진 결.',
+    ko: '빠른 감정이 깊고 강한 외관으로 표현되는 스타일이에요. 뜨거운 마음에 무게가 더해진 모습이에요.',
     en: 'Quick feelings expressed through a deep, intense outside. A hot heart given weight on the outside.',
     keywords_ko: ['빠른 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['quick feeling', 'intense expression', 'weighted outside'],
@@ -3665,7 +3665,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Sagittarius',
-    ko: '빠른 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 뜨거운 마음이 넓은 외관으로 드러나는 결.',
+    ko: '빠른 감정이 시원하고 자유로운 외관으로 표현되는 느낌이에요. 뜨거운 마음이 넓은 외관으로 드러나는 스타일이에요.',
     en: 'Quick feelings expressed through an open, free outside. A hot heart shown through a wide presence.',
     keywords_ko: ['빠른 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['quick feeling', 'open expression', 'free outside'],
@@ -3673,7 +3673,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Capricorn',
-    ko: '빠른 감정이 차분하고 책임감 있는 외관으로 표현되는 결이에요. 안은 뜨거워도 밖은 단단한 결.',
+    ko: '빠른 감정이 차분하고 책임감 있는 외관으로 표현되는 모습이에요. 안은 뜨거워도 밖은 단단한 느낌이에요.',
     en: 'Quick feelings expressed through a calm, responsible outside. Hot inside, solid outside.',
     keywords_ko: ['빠른 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['quick feeling', 'solid expression', 'responsible outside'],
@@ -3681,7 +3681,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Aquarius',
-    ko: '빠른 감정이 자기만의 색이 있는 외관으로 표현되는 결이에요. 솔직하면서도 독창적인 결.',
+    ko: '빠른 감정이 자기만의 색이 있는 외관으로 표현되는 스타일이에요. 솔직하면서도 독창적인 모습이에요.',
     en: 'Quick feelings expressed through an original outside. Honest yet uniquely styled.',
     keywords_ko: ['빠른 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['quick feeling', 'original expression', 'free outside'],
@@ -3689,7 +3689,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aries', sign2: 'Pisces',
-    ko: '빠른 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 뜨거움이 부드럽게 흘러나오는 결.',
+    ko: '빠른 감정이 부드럽고 분위기 있는 외관으로 표현되는 느낌이에요. 뜨거움이 부드럽게 흘러나오는 스타일이에요.',
     en: 'Quick feelings expressed through a soft, atmospheric outside. Heat flowing out softly.',
     keywords_ko: ['빠른 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['quick feeling', 'soft expression', 'atmospheric outside'],
@@ -3699,7 +3699,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Aries',
-    ko: '안정적인 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 차분한 안쪽이 빠른 외관과 함께 있어요.',
+    ko: '안정적인 감정이 단호하고 시원한 외관으로 표현되는 모습이에요. 차분한 안쪽이 빠른 외관과 함께 있어요.',
     en: 'Stable feelings expressed through a decisive, clear outside. A calm core paired with a quick outside.',
     keywords_ko: ['안정된 감정', '단호한 표현', '시원한 외관'],
     keywords_en: ['stable feeling', 'decisive expression', 'clear outside'],
@@ -3707,7 +3707,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Taurus',
-    ko: '안정적인 감정과 차분한 외관이 안팎으로 같은 결이에요. 편안하고 무게감 있는 분위기의 표현이에요.',
+    ko: '안정적인 감정과 차분한 외관이 안팎으로 같은 느낌이에요. 편안하고 무게감 있는 분위기의 표현이에요.',
     en: 'Stable feelings and a calm outside flow the same. A comfortable, grounded expression.',
     keywords_ko: ['안정된 감정', '차분한 표현', '편안한 외관'],
     keywords_en: ['stable feeling', 'calm expression', 'easy outside'],
@@ -3715,7 +3715,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Gemini',
-    ko: '안정적인 감정이 가벼운 외관으로 표현되는 결이에요. 차분한 안쪽이 사교적인 외관과 함께 있어요.',
+    ko: '안정적인 감정이 가벼운 외관으로 표현되는 스타일이에요. 차분한 안쪽이 사교적인 외관과 함께 있어요.',
     en: 'Stable feelings expressed through a light outside. A calm core paired with a sociable outside.',
     keywords_ko: ['안정된 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['stable feeling', 'light expression', 'sociable outside'],
@@ -3723,7 +3723,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Cancer',
-    ko: '안정적인 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 편안한 다정함이 자연스럽게 흘러요.',
+    ko: '안정적인 감정이 따뜻하고 친근한 외관으로 표현되는 모습이에요. 편안한 다정함이 자연스럽게 흘러요.',
     en: 'Stable feelings expressed through a warm, friendly outside. Easy warmth flowing naturally.',
     keywords_ko: ['안정된 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['stable feeling', 'warm expression', 'friendly outside'],
@@ -3731,7 +3731,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Leo',
-    ko: '안정적인 감정이 환하고 당당한 외관으로 표현되는 결이에요. 차분함이 따뜻한 빛으로 드러나는 결.',
+    ko: '안정적인 감정이 환하고 당당한 외관으로 표현되는 느낌이에요. 차분함이 따뜻한 빛으로 드러나는 스타일이에요.',
     en: 'Stable feelings expressed through a bright, confident outside. Calm shown as warm glow.',
     keywords_ko: ['안정된 감정', '환한 표현', '따뜻한 외관'],
     keywords_en: ['stable feeling', 'bright expression', 'warm outside'],
@@ -3739,7 +3739,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Virgo',
-    ko: '안정적인 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 차분함과 정돈이 잘 어울려요.',
+    ko: '안정적인 감정이 단정하고 꼼꼼한 외관으로 표현되는 모습이에요. 차분함과 정돈이 잘 어울려요.',
     en: 'Stable feelings expressed through a tidy, careful outside. Calm and tidiness fit naturally.',
     keywords_ko: ['안정된 감정', '단정한 표현', '정돈된 외관'],
     keywords_en: ['stable feeling', 'tidy expression', 'arranged outside'],
@@ -3747,7 +3747,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Libra',
-    ko: '안정적인 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 편안함과 매너가 함께 흘러요.',
+    ko: '안정적인 감정이 우아하고 매끄러운 외관으로 표현되는 느낌이에요. 편안함과 매너가 함께 흘러요.',
     en: 'Stable feelings expressed through a graceful, smooth outside. Comfort and manners flowing together.',
     keywords_ko: ['안정된 감정', '우아한 표현', '편안한 매너'],
     keywords_en: ['stable feeling', 'graceful expression', 'easy manners'],
@@ -3755,7 +3755,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Scorpio',
-    ko: '안정적인 감정이 깊고 강한 외관으로 표현되는 결이에요. 차분함과 무게가 같이 있는 결.',
+    ko: '안정적인 감정이 깊고 강한 외관으로 표현되는 스타일이에요. 차분함과 무게가 같이 있는 모습이에요.',
     en: 'Stable feelings expressed through a deep, intense outside. Calm paired with weight.',
     keywords_ko: ['안정된 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['stable feeling', 'intense expression', 'weighted outside'],
@@ -3763,7 +3763,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Sagittarius',
-    ko: '안정적인 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 차분함과 시야가 같이 있는 결.',
+    ko: '안정적인 감정이 시원하고 자유로운 외관으로 표현되는 느낌이에요. 차분함과 시야가 같이 있는 스타일이에요.',
     en: 'Stable feelings expressed through an open, free outside. Calm paired with horizon.',
     keywords_ko: ['안정된 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['stable feeling', 'open expression', 'free outside'],
@@ -3771,7 +3771,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Capricorn',
-    ko: '안정과 책임이 안팎으로 같은 결로 흐르는 결이에요. 흔들리지 않는 단단한 표현이에요.',
+    ko: '안정과 책임이 안팎으로 같은 식으로 흐르는 모습이에요. 흔들리지 않는 단단한 표현이에요.',
     en: 'Stability and responsibility flow the same inside and out. An unwavering, solid expression.',
     keywords_ko: ['안정된 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['stable feeling', 'solid expression', 'responsible outside'],
@@ -3779,7 +3779,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Aquarius',
-    ko: '안정적인 감정이 자기만의 색이 있는 외관으로 표현되는 결이에요. 차분함과 독창성이 함께 있어요.',
+    ko: '안정적인 감정이 자기만의 색이 있는 외관으로 표현되는 느낌이에요. 차분함과 독창성이 함께 있어요.',
     en: 'Stable feelings expressed through an original outside. Calm paired with originality.',
     keywords_ko: ['안정된 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['stable feeling', 'original expression', 'free outside'],
@@ -3787,7 +3787,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Taurus', sign2: 'Pisces',
-    ko: '안정적인 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 편안함과 부드러움이 함께 흘러요.',
+    ko: '안정적인 감정이 부드럽고 분위기 있는 외관으로 표현되는 스타일이에요. 편안함과 부드러움이 함께 흘러요.',
     en: 'Stable feelings expressed through a soft, atmospheric outside. Comfort and softness flowing together.',
     keywords_ko: ['안정된 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['stable feeling', 'soft expression', 'atmospheric outside'],
@@ -3797,7 +3797,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Aries',
-    ko: '가벼운 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 마음과 외관이 모두 빠르게 움직여요.',
+    ko: '가벼운 감정이 단호하고 시원한 외관으로 표현되는 모습이에요. 마음과 외관이 모두 빠르게 움직여요.',
     en: 'Light feelings expressed through a decisive, clear outside. Mood and outside both move quickly.',
     keywords_ko: ['가벼운 감정', '시원한 표현', '빠른 외관'],
     keywords_en: ['light feeling', 'clear expression', 'quick outside'],
@@ -3805,7 +3805,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Taurus',
-    ko: '가벼운 감정이 차분한 외관으로 표현되는 결이에요. 안쪽은 분주해도 외관은 편안하게 가라앉아요.',
+    ko: '가벼운 감정이 차분한 외관으로 표현되는 느낌이에요. 안쪽은 분주해도 외관은 편안하게 가라앉아요.',
     en: 'Light feelings expressed through a calm outside. Busy inside, quieted comfortably on the surface.',
     keywords_ko: ['가벼운 감정', '차분한 표현', '편안한 외관'],
     keywords_en: ['light feeling', 'calm expression', 'easy outside'],
@@ -3813,7 +3813,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Gemini',
-    ko: '가벼운 감정과 사교적인 외관이 두 겹으로 흐르는 결이에요. 말과 호기심이 안팎으로 다 보여요.',
+    ko: '가벼운 감정과 사교적인 외관이 두 겹으로 흐르는 스타일이에요. 말과 호기심이 안팎으로 다 보여요.',
     en: 'Light feelings and a sociable outside doubled. Talk and curiosity visible inside and out.',
     keywords_ko: ['가벼운 감정', '사교적 표현', '호기심 있는 외관'],
     keywords_en: ['light feeling', 'sociable expression', 'curious outside'],
@@ -3821,7 +3821,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Cancer',
-    ko: '가벼운 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 호기심이 챙김 어린 외관으로 비치는 결.',
+    ko: '가벼운 감정이 따뜻하고 친근한 외관으로 표현되는 모습이에요. 호기심이 챙김 어린 외관으로 비치는 느낌이에요.',
     en: 'Light feelings expressed through a warm, friendly outside. Curiosity shown as caring presence.',
     keywords_ko: ['가벼운 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['light feeling', 'warm expression', 'friendly outside'],
@@ -3829,7 +3829,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Leo',
-    ko: '가벼운 감정이 환하고 당당한 외관으로 표현되는 결이에요. 분위기를 자연스럽게 살리는 결.',
+    ko: '가벼운 감정이 환하고 당당한 외관으로 표현되는 스타일이에요. 분위기를 자연스럽게 살리는 모습이에요.',
     en: 'Light feelings expressed through a bright, confident outside. Naturally lifts the mood.',
     keywords_ko: ['가벼운 감정', '환한 표현', '밝은 외관'],
     keywords_en: ['light feeling', 'bright expression', 'lit-up outside'],
@@ -3837,7 +3837,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Virgo',
-    ko: '가벼운 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 말은 가벼우면서도 정돈되어 있어요.',
+    ko: '가벼운 감정이 단정하고 꼼꼼한 외관으로 표현되는 느낌이에요. 말은 가벼우면서도 정돈되어 있어요.',
     en: 'Light feelings expressed through a tidy, careful outside. Talk that is light yet well-arranged.',
     keywords_ko: ['가벼운 감정', '단정한 표현', '정돈된 외관'],
     keywords_en: ['light feeling', 'tidy expression', 'arranged outside'],
@@ -3845,7 +3845,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Libra',
-    ko: '가벼운 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 말과 매너가 분위기를 부드럽게 만들어요.',
+    ko: '가벼운 감정이 우아하고 매끄러운 외관으로 표현되는 스타일이에요. 말과 매너가 분위기를 부드럽게 만들어요.',
     en: 'Light feelings expressed through a graceful, smooth outside. Talk and manners softening the mood.',
     keywords_ko: ['가벼운 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['light feeling', 'graceful expression', 'smooth outside'],
@@ -3853,7 +3853,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Scorpio',
-    ko: '가벼운 감정이 깊고 강한 외관으로 표현되는 결이에요. 말은 가볍지만 외관엔 무게가 있어요.',
+    ko: '가벼운 감정이 깊고 강한 외관으로 표현되는 모습이에요. 말은 가볍지만 외관엔 무게가 있어요.',
     en: 'Light feelings expressed through a deep, intense outside. Light in talk, weighted in presence.',
     keywords_ko: ['가벼운 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['light feeling', 'intense expression', 'weighted outside'],
@@ -3861,7 +3861,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Sagittarius',
-    ko: '가벼운 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 호기심과 모험이 함께 외관에 드러나요.',
+    ko: '가벼운 감정이 시원하고 자유로운 외관으로 표현되는 느낌이에요. 호기심과 모험이 함께 외관에 드러나요.',
     en: 'Light feelings expressed through an open, free outside. Curiosity and adventure visible together.',
     keywords_ko: ['가벼운 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['light feeling', 'open expression', 'free outside'],
@@ -3869,7 +3869,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Capricorn',
-    ko: '가벼운 감정이 차분하고 책임감 있는 외관으로 표현되는 결이에요. 안은 분주해도 밖은 단단해 보여요.',
+    ko: '가벼운 감정이 차분하고 책임감 있는 외관으로 표현되는 스타일이에요. 안은 분주해도 밖은 단단해 보여요.',
     en: 'Light feelings expressed through a calm, responsible outside. Busy inside, solid in appearance.',
     keywords_ko: ['가벼운 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['light feeling', 'solid expression', 'responsible outside'],
@@ -3877,7 +3877,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Aquarius',
-    ko: '가벼운 감정이 자기만의 시각이 있는 외관으로 표현되는 결이에요. 호기심과 독창성이 함께 있어요.',
+    ko: '가벼운 감정이 자기만의 시각이 있는 외관으로 표현되는 모습이에요. 호기심과 독창성이 함께 있어요.',
     en: 'Light feelings expressed through an original outside. Curiosity paired with originality.',
     keywords_ko: ['가벼운 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['light feeling', 'original expression', 'free outside'],
@@ -3885,7 +3885,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Gemini', sign2: 'Pisces',
-    ko: '가벼운 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 말과 흐름이 함께 외관에 드러나요.',
+    ko: '가벼운 감정이 부드럽고 분위기 있는 외관으로 표현되는 느낌이에요. 말과 흐름이 함께 외관에 드러나요.',
     en: 'Light feelings expressed through a soft, atmospheric outside. Talk and flow visible together.',
     keywords_ko: ['가벼운 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['light feeling', 'soft expression', 'atmospheric outside'],
@@ -3895,7 +3895,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Aries',
-    ko: '따뜻한 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 부드러운 안쪽이 빠른 외관 뒤에 있어요.',
+    ko: '따뜻한 감정이 단호하고 시원한 외관으로 표현되는 스타일이에요. 부드러운 안쪽이 빠른 외관 뒤에 있어요.',
     en: 'Warm feelings expressed through a decisive, clear outside. A soft core behind a quick outside.',
     keywords_ko: ['따뜻한 감정', '단호한 표현', '빠른 외관'],
     keywords_en: ['warm feeling', 'decisive expression', 'quick outside'],
@@ -3903,7 +3903,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Taurus',
-    ko: '따뜻한 감정이 차분한 외관으로 표현되는 결이에요. 다정함이 안정된 분위기로 자연스럽게 흘러요.',
+    ko: '따뜻한 감정이 차분한 외관으로 표현되는 모습이에요. 다정함이 안정된 분위기로 자연스럽게 흘러요.',
     en: 'Warm feelings expressed through a calm outside. Warmth flowing naturally as a steady mood.',
     keywords_ko: ['따뜻한 감정', '차분한 표현', '안정된 외관'],
     keywords_en: ['warm feeling', 'calm expression', 'steady outside'],
@@ -3911,7 +3911,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Gemini',
-    ko: '따뜻한 감정이 가벼운 외관으로 표현되는 결이에요. 챙김이 가벼운 말로 자연스럽게 풀려나오는 결.',
+    ko: '따뜻한 감정이 가벼운 외관으로 표현되는 느낌이에요. 챙김이 가벼운 말로 자연스럽게 풀려나오는 스타일이에요.',
     en: 'Warm feelings expressed through a light outside. Care turning into easy talk on its own.',
     keywords_ko: ['따뜻한 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['warm feeling', 'light expression', 'sociable outside'],
@@ -3919,7 +3919,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Cancer',
-    ko: '따뜻함과 다정함이 안팎으로 두 겹으로 흐르는 결이에요. 깊은 다정의 분위기가 자연스럽게 드러나요.',
+    ko: '따뜻함과 다정함이 안팎으로 두 겹으로 흐르는 모습이에요. 깊은 다정의 분위기가 자연스럽게 드러나요.',
     en: 'Warmth and care doubled inside and out. A deeply caring mood that simply shows.',
     keywords_ko: ['따뜻한 감정', '친근한 표현', '깊은 다정'],
     keywords_en: ['warm feeling', 'friendly expression', 'deep warmth'],
@@ -3927,7 +3927,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Leo',
-    ko: '따뜻한 감정이 환하고 당당한 외관으로 표현되는 결이에요. 다정함이 빛으로 드러나는 결.',
+    ko: '따뜻한 감정이 환하고 당당한 외관으로 표현되는 느낌이에요. 다정함이 빛으로 드러나는 스타일이에요.',
     en: 'Warm feelings expressed through a bright, confident outside. Warmth shown as glow.',
     keywords_ko: ['따뜻한 감정', '환한 표현', '빛나는 외관'],
     keywords_en: ['warm feeling', 'bright expression', 'shining outside'],
@@ -3935,7 +3935,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Virgo',
-    ko: '따뜻한 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 챙김이 정성스럽게 드러나는 결.',
+    ko: '따뜻한 감정이 단정하고 꼼꼼한 외관으로 표현되는 모습이에요. 챙김이 정성스럽게 드러나는 느낌이에요.',
     en: 'Warm feelings expressed through a tidy, careful outside. Care shown through small attentive acts.',
     keywords_ko: ['따뜻한 감정', '정성스러운 표현', '단정한 외관'],
     keywords_en: ['warm feeling', 'attentive expression', 'tidy outside'],
@@ -3943,7 +3943,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Libra',
-    ko: '따뜻한 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 다정함과 매너가 같이 흘러요.',
+    ko: '따뜻한 감정이 우아하고 매끄러운 외관으로 표현되는 스타일이에요. 다정함과 매너가 같이 흘러요.',
     en: 'Warm feelings expressed through a graceful, smooth outside. Warmth and manners flowing together.',
     keywords_ko: ['따뜻한 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['warm feeling', 'graceful expression', 'smooth outside'],
@@ -3951,7 +3951,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Scorpio',
-    ko: '따뜻한 감정이 깊고 강한 외관으로 표현되는 결이에요. 다정함에 무게가 더해진 결.',
+    ko: '따뜻한 감정이 깊고 강한 외관으로 표현되는 모습이에요. 다정함에 무게가 더해진 느낌이에요.',
     en: 'Warm feelings expressed through a deep, intense outside. Warmth given weight on the outside.',
     keywords_ko: ['따뜻한 감정', '진한 표현', '깊은 외관'],
     keywords_en: ['warm feeling', 'intense expression', 'deep outside'],
@@ -3959,7 +3959,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Sagittarius',
-    ko: '따뜻한 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 다정함이 넓은 외관으로 드러나는 결.',
+    ko: '따뜻한 감정이 시원하고 자유로운 외관으로 표현되는 스타일이에요. 다정함이 넓은 외관으로 드러나는 모습이에요.',
     en: 'Warm feelings expressed through an open, free outside. Warmth shown through a wide presence.',
     keywords_ko: ['따뜻한 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['warm feeling', 'open expression', 'free outside'],
@@ -3967,7 +3967,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Capricorn',
-    ko: '따뜻한 감정이 차분하고 책임감 있는 외관으로 표현되는 결이에요. 다정함이 단단한 외관과 만나요.',
+    ko: '따뜻한 감정이 차분하고 책임감 있는 외관으로 표현되는 느낌이에요. 다정함이 단단한 외관과 만나요.',
     en: 'Warm feelings expressed through a calm, responsible outside. Warmth meeting a solid outside.',
     keywords_ko: ['따뜻한 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['warm feeling', 'solid expression', 'responsible outside'],
@@ -3975,7 +3975,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Aquarius',
-    ko: '따뜻한 감정이 자기만의 색이 있는 외관으로 표현되는 결이에요. 다정함과 거리감이 함께 있어요.',
+    ko: '따뜻한 감정이 자기만의 색이 있는 외관으로 표현되는 스타일이에요. 다정함과 거리감이 함께 있어요.',
     en: 'Warm feelings expressed through an original outside. Warmth paired with space.',
     keywords_ko: ['따뜻한 감정', '독창적 표현', '거리감 있는 외관'],
     keywords_en: ['warm feeling', 'original expression', 'spacious outside'],
@@ -3983,7 +3983,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Cancer', sign2: 'Pisces',
-    ko: '따뜻한 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 다정함이 분위기처럼 자연스럽게 흘러요.',
+    ko: '따뜻한 감정이 부드럽고 분위기 있는 외관으로 표현되는 모습이에요. 다정함이 분위기처럼 자연스럽게 흘러요.',
     en: 'Warm feelings expressed through a soft, atmospheric outside. Warmth flowing like atmosphere.',
     keywords_ko: ['따뜻한 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['warm feeling', 'soft expression', 'atmospheric outside'],
@@ -3993,7 +3993,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Aries',
-    ko: '환한 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 마음의 빛이 즉시 외관에 드러나요.',
+    ko: '환한 감정이 단호하고 시원한 외관으로 표현되는 느낌이에요. 마음의 빛이 즉시 외관에 드러나요.',
     en: 'Bright feelings expressed through a decisive, clear outside. The inner glow lands on the surface at once.',
     keywords_ko: ['환한 감정', '단호한 표현', '빠른 외관'],
     keywords_en: ['bright feeling', 'decisive expression', 'quick outside'],
@@ -4001,7 +4001,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Taurus',
-    ko: '환한 감정이 차분하고 안정된 외관으로 표현되는 결이에요. 따뜻한 빛이 편안한 분위기로 흘러요.',
+    ko: '환한 감정이 차분하고 안정된 외관으로 표현되는 스타일이에요. 따뜻한 빛이 편안한 분위기로 흘러요.',
     en: 'Bright feelings expressed through a calm, steady outside. A warm glow flowing as a comfortable mood.',
     keywords_ko: ['환한 감정', '차분한 표현', '편안한 외관'],
     keywords_en: ['bright feeling', 'calm expression', 'easy outside'],
@@ -4009,7 +4009,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Gemini',
-    ko: '환한 감정이 가볍고 사교적인 외관으로 표현되는 결이에요. 빛과 말이 함께 분위기를 살려요.',
+    ko: '환한 감정이 가볍고 사교적인 외관으로 표현되는 모습이에요. 빛과 말이 함께 분위기를 살려요.',
     en: 'Bright feelings expressed through a light, sociable outside. Glow and talk lifting the room together.',
     keywords_ko: ['환한 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['bright feeling', 'light expression', 'sociable outside'],
@@ -4017,7 +4017,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Cancer',
-    ko: '환한 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 빛과 다정함이 함께 흘러요.',
+    ko: '환한 감정이 따뜻하고 친근한 외관으로 표현되는 느낌이에요. 빛과 다정함이 함께 흘러요.',
     en: 'Bright feelings expressed through a warm, friendly outside. Glow and warmth flowing together.',
     keywords_ko: ['환한 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['bright feeling', 'warm expression', 'friendly outside'],
@@ -4025,7 +4025,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Leo',
-    ko: '환함과 자존심이 안팎으로 두 겹으로 빛나는 결이에요. 좋아하는 마음이 표정에 그대로 드러나요.',
+    ko: '환함과 자존심이 안팎으로 두 겹으로 빛나는 스타일이에요. 좋아하는 마음이 표정에 그대로 드러나요.',
     en: 'Brightness and pride doubled inside and out. Joy lands clearly on the face.',
     keywords_ko: ['환한 감정', '당당한 표현', '빛나는 외관'],
     keywords_en: ['bright feeling', 'proud expression', 'shining outside'],
@@ -4033,7 +4033,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Virgo',
-    ko: '환한 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 빛이 정돈된 모습으로 드러나는 결.',
+    ko: '환한 감정이 단정하고 꼼꼼한 외관으로 표현되는 모습이에요. 빛이 정돈된 모습으로 드러나는 느낌이에요.',
     en: 'Bright feelings expressed through a tidy, careful outside. Glow shown in a well-arranged way.',
     keywords_ko: ['환한 감정', '단정한 표현', '정돈된 외관'],
     keywords_en: ['bright feeling', 'tidy expression', 'arranged outside'],
@@ -4041,7 +4041,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Libra',
-    ko: '환한 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 빛과 매너가 같이 흘러요.',
+    ko: '환한 감정이 우아하고 매끄러운 외관으로 표현되는 스타일이에요. 빛과 매너가 같이 흘러요.',
     en: 'Bright feelings expressed through a graceful, smooth outside. Glow and manners flowing together.',
     keywords_ko: ['환한 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['bright feeling', 'graceful expression', 'smooth outside'],
@@ -4049,7 +4049,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Scorpio',
-    ko: '환한 감정이 깊고 강한 외관으로 표현되는 결이에요. 빛 아래 무게가 함께 보이는 결.',
+    ko: '환한 감정이 깊고 강한 외관으로 표현되는 모습이에요. 빛 아래 무게가 함께 보이는 느낌이에요.',
     en: 'Bright feelings expressed through a deep, intense outside. Weight visible underneath the glow.',
     keywords_ko: ['환한 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['bright feeling', 'intense expression', 'weighted outside'],
@@ -4057,7 +4057,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Sagittarius',
-    ko: '환한 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 빛이 넓게 퍼지는 결.',
+    ko: '환한 감정이 시원하고 자유로운 외관으로 표현되는 스타일이에요. 빛이 넓게 퍼지는 모습이에요.',
     en: 'Bright feelings expressed through an open, free outside. A glow spreading widely.',
     keywords_ko: ['환한 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['bright feeling', 'open expression', 'free outside'],
@@ -4065,7 +4065,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Capricorn',
-    ko: '환한 감정이 차분하고 책임감 있는 외관으로 표현되는 결이에요. 빛이 단단한 무게를 가진 결.',
+    ko: '환한 감정이 차분하고 책임감 있는 외관으로 표현되는 느낌이에요. 빛이 단단한 무게를 가진 스타일이에요.',
     en: 'Bright feelings expressed through a calm, responsible outside. A glow carrying solid weight.',
     keywords_ko: ['환한 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['bright feeling', 'solid expression', 'responsible outside'],
@@ -4073,7 +4073,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Aquarius',
-    ko: '환한 감정이 자기만의 색이 있는 외관으로 표현되는 결이에요. 빛과 독창성이 함께 있어요.',
+    ko: '환한 감정이 자기만의 색이 있는 외관으로 표현되는 모습이에요. 빛과 독창성이 함께 있어요.',
     en: 'Bright feelings expressed through an original outside. Glow paired with originality.',
     keywords_ko: ['환한 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['bright feeling', 'original expression', 'free outside'],
@@ -4081,7 +4081,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Leo', sign2: 'Pisces',
-    ko: '환한 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 빛이 부드럽게 스며드는 결.',
+    ko: '환한 감정이 부드럽고 분위기 있는 외관으로 표현되는 느낌이에요. 빛이 부드럽게 스며드는 스타일이에요.',
     en: 'Bright feelings expressed through a soft, atmospheric outside. A glow that seeps in gently.',
     keywords_ko: ['환한 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['bright feeling', 'soft expression', 'atmospheric outside'],
@@ -4091,7 +4091,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Aries',
-    ko: '꼼꼼한 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 정돈된 안쪽이 빠른 외관과 함께 있어요.',
+    ko: '꼼꼼한 감정이 단호하고 시원한 외관으로 표현되는 모습이에요. 정돈된 안쪽이 빠른 외관과 함께 있어요.',
     en: 'Careful feelings expressed through a decisive, clear outside. A tidy core paired with a quick outside.',
     keywords_ko: ['꼼꼼한 감정', '단호한 표현', '빠른 외관'],
     keywords_en: ['careful feeling', 'decisive expression', 'quick outside'],
@@ -4099,7 +4099,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Taurus',
-    ko: '꼼꼼한 감정이 차분하고 안정된 외관으로 표현되는 결이에요. 정돈과 편안함이 잘 맞는 결.',
+    ko: '꼼꼼한 감정이 차분하고 안정된 외관으로 표현되는 느낌이에요. 정돈과 편안함이 잘 맞는 스타일이에요.',
     en: 'Careful feelings expressed through a calm, steady outside. Tidiness and comfort fitting well.',
     keywords_ko: ['꼼꼼한 감정', '차분한 표현', '편안한 외관'],
     keywords_en: ['careful feeling', 'calm expression', 'easy outside'],
@@ -4107,7 +4107,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Gemini',
-    ko: '꼼꼼한 감정이 가벼운 외관으로 표현되는 결이에요. 정돈된 안쪽이 사교적인 외관과 함께 있어요.',
+    ko: '꼼꼼한 감정이 가벼운 외관으로 표현되는 모습이에요. 정돈된 안쪽이 사교적인 외관과 함께 있어요.',
     en: 'Careful feelings expressed through a light outside. A tidy core paired with a sociable outside.',
     keywords_ko: ['꼼꼼한 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['careful feeling', 'light expression', 'sociable outside'],
@@ -4115,7 +4115,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Cancer',
-    ko: '꼼꼼한 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 정성과 다정함이 같이 흘러요.',
+    ko: '꼼꼼한 감정이 따뜻하고 친근한 외관으로 표현되는 느낌이에요. 정성과 다정함이 같이 흘러요.',
     en: 'Careful feelings expressed through a warm, friendly outside. Attentiveness and warmth flowing together.',
     keywords_ko: ['꼼꼼한 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['careful feeling', 'warm expression', 'friendly outside'],
@@ -4123,7 +4123,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Leo',
-    ko: '꼼꼼한 감정이 환하고 당당한 외관으로 표현되는 결이에요. 정돈된 안쪽이 따뜻한 빛으로 드러나는 결.',
+    ko: '꼼꼼한 감정이 환하고 당당한 외관으로 표현되는 스타일이에요. 정돈된 안쪽이 따뜻한 빛으로 드러나는 모습이에요.',
     en: 'Careful feelings expressed through a bright, confident outside. A tidy core shown as warm glow.',
     keywords_ko: ['꼼꼼한 감정', '환한 표현', '빛나는 외관'],
     keywords_en: ['careful feeling', 'bright expression', 'shining outside'],
@@ -4131,7 +4131,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Virgo',
-    ko: '꼼꼼함과 단정함이 안팎으로 두 겹으로 흐르는 결이에요. 신뢰감을 주는 정돈된 표현이에요.',
+    ko: '꼼꼼함과 단정함이 안팎으로 두 겹으로 흐르는 느낌이에요. 신뢰감을 주는 정돈된 표현이에요.',
     en: 'Care and tidiness doubled inside and out. A trustworthy, well-arranged expression.',
     keywords_ko: ['꼼꼼한 감정', '단정한 표현', '정돈된 외관'],
     keywords_en: ['careful feeling', 'tidy expression', 'arranged outside'],
@@ -4139,7 +4139,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Libra',
-    ko: '꼼꼼한 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 정돈과 매너가 같이 흘러요.',
+    ko: '꼼꼼한 감정이 우아하고 매끄러운 외관으로 표현되는 스타일이에요. 정돈과 매너가 같이 흘러요.',
     en: 'Careful feelings expressed through a graceful, smooth outside. Tidiness and manners flowing together.',
     keywords_ko: ['꼼꼼한 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['careful feeling', 'graceful expression', 'smooth outside'],
@@ -4147,7 +4147,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Scorpio',
-    ko: '꼼꼼한 감정이 깊고 강한 외관으로 표현되는 결이에요. 정돈된 안쪽에 무게가 더해진 결.',
+    ko: '꼼꼼한 감정이 깊고 강한 외관으로 표현되는 모습이에요. 정돈된 안쪽에 무게가 더해진 느낌이에요.',
     en: 'Careful feelings expressed through a deep, intense outside. A tidy core given weight on the outside.',
     keywords_ko: ['꼼꼼한 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['careful feeling', 'intense expression', 'weighted outside'],
@@ -4155,7 +4155,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Sagittarius',
-    ko: '꼼꼼한 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 정돈과 시야가 함께 있는 결.',
+    ko: '꼼꼼한 감정이 시원하고 자유로운 외관으로 표현되는 스타일이에요. 정돈과 시야가 함께 있는 모습이에요.',
     en: 'Careful feelings expressed through an open, free outside. Tidiness paired with horizon.',
     keywords_ko: ['꼼꼼한 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['careful feeling', 'open expression', 'free outside'],
@@ -4163,7 +4163,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Capricorn',
-    ko: '꼼꼼함과 책임감이 안팎으로 같은 결로 흐르는 결이에요. 신뢰감을 주는 단단한 표현이에요.',
+    ko: '꼼꼼함과 책임감이 안팎으로 같은 식으로 흐르는 느낌이에요. 신뢰감을 주는 단단한 표현이에요.',
     en: 'Care and responsibility flow the same inside and out. A solid, trustworthy expression.',
     keywords_ko: ['꼼꼼한 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['careful feeling', 'solid expression', 'responsible outside'],
@@ -4171,7 +4171,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Aquarius',
-    ko: '꼼꼼한 감정이 자기만의 색이 있는 외관으로 표현되는 결이에요. 정돈과 독창성이 함께 있어요.',
+    ko: '꼼꼼한 감정이 자기만의 색이 있는 외관으로 표현되는 스타일이에요. 정돈과 독창성이 함께 있어요.',
     en: 'Careful feelings expressed through an original outside. Tidiness paired with originality.',
     keywords_ko: ['꼼꼼한 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['careful feeling', 'original expression', 'free outside'],
@@ -4179,7 +4179,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Virgo', sign2: 'Pisces',
-    ko: '꼼꼼한 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 정성과 부드러움이 함께 있어요.',
+    ko: '꼼꼼한 감정이 부드럽고 분위기 있는 외관으로 표현되는 모습이에요. 정성과 부드러움이 함께 있어요.',
     en: 'Careful feelings expressed through a soft, atmospheric outside. Attentiveness paired with softness.',
     keywords_ko: ['꼼꼼한 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['careful feeling', 'soft expression', 'atmospheric outside'],
@@ -4189,7 +4189,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Aries',
-    ko: '균형 있는 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 안쪽의 매너가 빠른 외관과 함께 있어요.',
+    ko: '균형 있는 감정이 단호하고 시원한 외관으로 표현되는 느낌이에요. 안쪽의 매너가 빠른 외관과 함께 있어요.',
     en: 'Balanced feelings expressed through a decisive, clear outside. Inner manners paired with a quick outside.',
     keywords_ko: ['균형 있는 감정', '단호한 표현', '빠른 외관'],
     keywords_en: ['balanced feeling', 'decisive expression', 'quick outside'],
@@ -4197,7 +4197,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Taurus',
-    ko: '균형 있는 감정이 차분하고 안정된 외관으로 표현되는 결이에요. 매너와 편안함이 자연스럽게 흘러요.',
+    ko: '균형 있는 감정이 차분하고 안정된 외관으로 표현되는 스타일이에요. 매너와 편안함이 자연스럽게 흘러요.',
     en: 'Balanced feelings expressed through a calm, steady outside. Manners and comfort flowing naturally.',
     keywords_ko: ['균형 있는 감정', '차분한 표현', '편안한 외관'],
     keywords_en: ['balanced feeling', 'calm expression', 'easy outside'],
@@ -4205,7 +4205,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Gemini',
-    ko: '균형 있는 감정이 가볍고 사교적인 외관으로 표현되는 결이에요. 매너와 말이 분위기를 매끄럽게 만들어요.',
+    ko: '균형 있는 감정이 가볍고 사교적인 외관으로 표현되는 모습이에요. 매너와 말이 분위기를 매끄럽게 만들어요.',
     en: 'Balanced feelings expressed through a light, sociable outside. Manners and talk smoothing the mood.',
     keywords_ko: ['균형 있는 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['balanced feeling', 'light expression', 'sociable outside'],
@@ -4213,7 +4213,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Cancer',
-    ko: '균형 있는 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 매너와 다정함이 함께 흘러요.',
+    ko: '균형 있는 감정이 따뜻하고 친근한 외관으로 표현되는 느낌이에요. 매너와 다정함이 함께 흘러요.',
     en: 'Balanced feelings expressed through a warm, friendly outside. Manners and warmth flowing together.',
     keywords_ko: ['균형 있는 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['balanced feeling', 'warm expression', 'friendly outside'],
@@ -4221,7 +4221,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Leo',
-    ko: '균형 있는 감정이 환하고 당당한 외관으로 표현되는 결이에요. 매너와 빛이 함께 외관에 드러나요.',
+    ko: '균형 있는 감정이 환하고 당당한 외관으로 표현되는 스타일이에요. 매너와 빛이 함께 외관에 드러나요.',
     en: 'Balanced feelings expressed through a bright, confident outside. Manners and glow visible together.',
     keywords_ko: ['균형 있는 감정', '환한 표현', '빛나는 외관'],
     keywords_en: ['balanced feeling', 'bright expression', 'shining outside'],
@@ -4229,7 +4229,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Virgo',
-    ko: '균형 있는 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 매너와 정돈이 잘 어울려요.',
+    ko: '균형 있는 감정이 단정하고 꼼꼼한 외관으로 표현되는 모습이에요. 매너와 정돈이 잘 어울려요.',
     en: 'Balanced feelings expressed through a tidy, careful outside. Manners and tidiness fitting well.',
     keywords_ko: ['균형 있는 감정', '단정한 표현', '정돈된 외관'],
     keywords_en: ['balanced feeling', 'tidy expression', 'arranged outside'],
@@ -4237,7 +4237,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Libra',
-    ko: '균형과 매너가 안팎으로 두 겹으로 흐르는 결이에요. 우아한 분위기의 표현이에요.',
+    ko: '균형과 매너가 안팎으로 두 겹으로 흐르는 느낌이에요. 우아한 분위기의 표현이에요.',
     en: 'Balance and manners doubled inside and out. An elegant mood expression.',
     keywords_ko: ['균형 있는 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['balanced feeling', 'graceful expression', 'smooth outside'],
@@ -4245,7 +4245,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Scorpio',
-    ko: '균형 있는 감정이 깊고 강한 외관으로 표현되는 결이에요. 매너 뒤에 무게가 살아 있는 결.',
+    ko: '균형 있는 감정이 깊고 강한 외관으로 표현되는 스타일이에요. 매너 뒤에 무게가 살아 있는 모습이에요.',
     en: 'Balanced feelings expressed through a deep, intense outside. Weight alive behind the manners.',
     keywords_ko: ['균형 있는 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['balanced feeling', 'intense expression', 'weighted outside'],
@@ -4253,7 +4253,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Sagittarius',
-    ko: '균형 있는 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 매너와 시야가 같이 외관에 드러나요.',
+    ko: '균형 있는 감정이 시원하고 자유로운 외관으로 표현되는 느낌이에요. 매너와 시야가 같이 외관에 드러나요.',
     en: 'Balanced feelings expressed through an open, free outside. Manners and horizon visible together.',
     keywords_ko: ['균형 있는 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['balanced feeling', 'open expression', 'free outside'],
@@ -4261,7 +4261,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Capricorn',
-    ko: '균형 있는 감정이 차분하고 책임감 있는 외관으로 표현되는 결이에요. 매너와 단단함이 함께 있어요.',
+    ko: '균형 있는 감정이 차분하고 책임감 있는 외관으로 표현되는 스타일이에요. 매너와 단단함이 함께 있어요.',
     en: 'Balanced feelings expressed through a calm, responsible outside. Manners paired with solidity.',
     keywords_ko: ['균형 있는 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['balanced feeling', 'solid expression', 'responsible outside'],
@@ -4269,7 +4269,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Aquarius',
-    ko: '균형 있는 감정이 자기만의 색이 있는 외관으로 표현되는 결이에요. 매너와 독창성이 함께 있어요.',
+    ko: '균형 있는 감정이 자기만의 색이 있는 외관으로 표현되는 모습이에요. 매너와 독창성이 함께 있어요.',
     en: 'Balanced feelings expressed through an original outside. Manners paired with originality.',
     keywords_ko: ['균형 있는 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['balanced feeling', 'original expression', 'free outside'],
@@ -4277,7 +4277,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Libra', sign2: 'Pisces',
-    ko: '균형 있는 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 매너와 부드러움이 함께 흘러요.',
+    ko: '균형 있는 감정이 부드럽고 분위기 있는 외관으로 표현되는 느낌이에요. 매너와 부드러움이 함께 흘러요.',
     en: 'Balanced feelings expressed through a soft, atmospheric outside. Manners and softness flowing together.',
     keywords_ko: ['균형 있는 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['balanced feeling', 'soft expression', 'atmospheric outside'],
@@ -4287,7 +4287,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Aries',
-    ko: '깊은 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 진한 안쪽이 빠른 외관 뒤에 있어요.',
+    ko: '깊은 감정이 단호하고 시원한 외관으로 표현되는 스타일이에요. 진한 안쪽이 빠른 외관 뒤에 있어요.',
     en: 'Deep feelings expressed through a decisive, clear outside. An intense core behind a quick outside.',
     keywords_ko: ['깊은 감정', '단호한 표현', '빠른 외관'],
     keywords_en: ['deep feeling', 'decisive expression', 'quick outside'],
@@ -4295,7 +4295,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Taurus',
-    ko: '깊은 감정이 차분하고 안정된 외관으로 표현되는 결이에요. 진한 안쪽이 편안한 외관 뒤에 살아 있어요.',
+    ko: '깊은 감정이 차분하고 안정된 외관으로 표현되는 모습이에요. 진한 안쪽이 편안한 외관 뒤에 살아 있어요.',
     en: 'Deep feelings expressed through a calm, steady outside. An intense core alive behind a comfortable outside.',
     keywords_ko: ['깊은 감정', '차분한 표현', '안정된 외관'],
     keywords_en: ['deep feeling', 'calm expression', 'steady outside'],
@@ -4303,7 +4303,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Gemini',
-    ko: '깊은 감정이 가벼운 외관으로 표현되는 결이에요. 무게 있는 안쪽이 사교적인 외관과 함께 있어요.',
+    ko: '깊은 감정이 가벼운 외관으로 표현되는 느낌이에요. 무게 있는 안쪽이 사교적인 외관과 함께 있어요.',
     en: 'Deep feelings expressed through a light outside. A weighted core paired with a sociable outside.',
     keywords_ko: ['깊은 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['deep feeling', 'light expression', 'sociable outside'],
@@ -4311,7 +4311,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Cancer',
-    ko: '깊은 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 진한 안쪽과 다정한 외관이 잘 어울려요.',
+    ko: '깊은 감정이 따뜻하고 친근한 외관으로 표현되는 스타일이에요. 진한 안쪽과 다정한 외관이 잘 어울려요.',
     en: 'Deep feelings expressed through a warm, friendly outside. An intense core fitting a caring outside.',
     keywords_ko: ['깊은 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['deep feeling', 'warm expression', 'friendly outside'],
@@ -4319,7 +4319,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Leo',
-    ko: '깊은 감정이 환하고 당당한 외관으로 표현되는 결이에요. 무게 있는 안쪽이 빛나는 외관과 만나요.',
+    ko: '깊은 감정이 환하고 당당한 외관으로 표현되는 모습이에요. 무게 있는 안쪽이 빛나는 외관과 만나요.',
     en: 'Deep feelings expressed through a bright, confident outside. A weighted core meeting a shining outside.',
     keywords_ko: ['깊은 감정', '환한 표현', '빛나는 외관'],
     keywords_en: ['deep feeling', 'bright expression', 'shining outside'],
@@ -4327,7 +4327,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Virgo',
-    ko: '깊은 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 진한 안쪽이 정돈된 외관과 함께 있어요.',
+    ko: '깊은 감정이 단정하고 꼼꼼한 외관으로 표현되는 느낌이에요. 진한 안쪽이 정돈된 외관과 함께 있어요.',
     en: 'Deep feelings expressed through a tidy, careful outside. An intense core paired with a well-arranged outside.',
     keywords_ko: ['깊은 감정', '단정한 표현', '정돈된 외관'],
     keywords_en: ['deep feeling', 'tidy expression', 'arranged outside'],
@@ -4335,7 +4335,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Libra',
-    ko: '깊은 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 무게 있는 안쪽이 매너 있는 외관과 함께 있어요.',
+    ko: '깊은 감정이 우아하고 매끄러운 외관으로 표현되는 스타일이에요. 무게 있는 안쪽이 매너 있는 외관과 함께 있어요.',
     en: 'Deep feelings expressed through a graceful, smooth outside. A weighted core paired with a well-mannered outside.',
     keywords_ko: ['깊은 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['deep feeling', 'graceful expression', 'smooth outside'],
@@ -4343,7 +4343,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Scorpio',
-    ko: '깊고 강함이 안팎으로 두 겹으로 흐르는 결이에요. 무게가 깊게 남는 분위기의 표현이에요.',
+    ko: '깊고 강함이 안팎으로 두 겹으로 흐르는 모습이에요. 무게가 깊게 남는 분위기의 표현이에요.',
     en: 'Depth and intensity doubled inside and out. A mood expression whose weight lingers.',
     keywords_ko: ['깊은 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['deep feeling', 'intense expression', 'weighted outside'],
@@ -4351,7 +4351,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Sagittarius',
-    ko: '깊은 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 무게와 시야가 같이 있는 결.',
+    ko: '깊은 감정이 시원하고 자유로운 외관으로 표현되는 느낌이에요. 무게와 시야가 같이 있는 스타일이에요.',
     en: 'Deep feelings expressed through an open, free outside. Weight paired with horizon.',
     keywords_ko: ['깊은 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['deep feeling', 'open expression', 'free outside'],
@@ -4359,7 +4359,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Capricorn',
-    ko: '깊은 감정이 차분하고 책임감 있는 외관으로 표현되는 결이에요. 무게와 단단함이 같이 있는 결.',
+    ko: '깊은 감정이 차분하고 책임감 있는 외관으로 표현되는 모습이에요. 무게와 단단함이 같이 있는 느낌이에요.',
     en: 'Deep feelings expressed through a calm, responsible outside. Weight paired with solidity.',
     keywords_ko: ['깊은 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['deep feeling', 'solid expression', 'responsible outside'],
@@ -4367,7 +4367,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Aquarius',
-    ko: '깊은 감정이 자기만의 시각이 있는 외관으로 표현되는 결이에요. 진하면서도 독창적인 외관이에요.',
+    ko: '깊은 감정이 자기만의 시각이 있는 외관으로 표현되는 스타일이에요. 진하면서도 독창적인 외관이에요.',
     en: 'Deep feelings expressed through an original outside. Intense yet uniquely styled.',
     keywords_ko: ['깊은 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['deep feeling', 'original expression', 'free outside'],
@@ -4375,7 +4375,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Scorpio', sign2: 'Pisces',
-    ko: '깊은 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 무게가 부드럽게 스며드는 결.',
+    ko: '깊은 감정이 부드럽고 분위기 있는 외관으로 표현되는 모습이에요. 무게가 부드럽게 스며드는 느낌이에요.',
     en: 'Deep feelings expressed through a soft, atmospheric outside. Weight seeping in softly.',
     keywords_ko: ['깊은 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['deep feeling', 'soft expression', 'atmospheric outside'],
@@ -4385,7 +4385,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Aries',
-    ko: '자유로운 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 시야 있는 안쪽이 빠른 외관과 함께 있어요.',
+    ko: '자유로운 감정이 단호하고 시원한 외관으로 표현되는 스타일이에요. 시야 있는 안쪽이 빠른 외관과 함께 있어요.',
     en: 'Free feelings expressed through a decisive, clear outside. A wider core paired with a quick outside.',
     keywords_ko: ['자유로운 감정', '단호한 표현', '빠른 외관'],
     keywords_en: ['free feeling', 'decisive expression', 'quick outside'],
@@ -4393,7 +4393,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Taurus',
-    ko: '자유로운 감정이 차분하고 안정된 외관으로 표현되는 결이에요. 멀리 보는 마음이 단단한 외관과 함께 있어요.',
+    ko: '자유로운 감정이 차분하고 안정된 외관으로 표현되는 모습이에요. 멀리 보는 마음이 단단한 외관과 함께 있어요.',
     en: 'Free feelings expressed through a calm, steady outside. A far-seeing heart paired with a grounded outside.',
     keywords_ko: ['자유로운 감정', '차분한 표현', '안정된 외관'],
     keywords_en: ['free feeling', 'calm expression', 'steady outside'],
@@ -4401,7 +4401,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Gemini',
-    ko: '자유로운 감정이 가볍고 사교적인 외관으로 표현되는 결이에요. 호기심과 모험이 외관에 잘 드러나요.',
+    ko: '자유로운 감정이 가볍고 사교적인 외관으로 표현되는 느낌이에요. 호기심과 모험이 외관에 잘 드러나요.',
     en: 'Free feelings expressed through a light, sociable outside. Curiosity and adventure visible outside.',
     keywords_ko: ['자유로운 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['free feeling', 'light expression', 'sociable outside'],
@@ -4409,7 +4409,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Cancer',
-    ko: '자유로운 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 시야와 다정함이 함께 흘러요.',
+    ko: '자유로운 감정이 따뜻하고 친근한 외관으로 표현되는 스타일이에요. 시야와 다정함이 함께 흘러요.',
     en: 'Free feelings expressed through a warm, friendly outside. Horizon and warmth flowing together.',
     keywords_ko: ['자유로운 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['free feeling', 'warm expression', 'friendly outside'],
@@ -4417,7 +4417,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Leo',
-    ko: '자유로운 감정이 환하고 당당한 외관으로 표현되는 결이에요. 시야와 빛이 함께 외관에 드러나요.',
+    ko: '자유로운 감정이 환하고 당당한 외관으로 표현되는 모습이에요. 시야와 빛이 함께 외관에 드러나요.',
     en: 'Free feelings expressed through a bright, confident outside. Horizon and glow visible together.',
     keywords_ko: ['자유로운 감정', '환한 표현', '빛나는 외관'],
     keywords_en: ['free feeling', 'bright expression', 'shining outside'],
@@ -4425,7 +4425,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Virgo',
-    ko: '자유로운 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 시야 있는 안쪽이 정돈된 외관과 함께 있어요.',
+    ko: '자유로운 감정이 단정하고 꼼꼼한 외관으로 표현되는 느낌이에요. 시야 있는 안쪽이 정돈된 외관과 함께 있어요.',
     en: 'Free feelings expressed through a tidy, careful outside. A wider core paired with a well-arranged outside.',
     keywords_ko: ['자유로운 감정', '단정한 표현', '정돈된 외관'],
     keywords_en: ['free feeling', 'tidy expression', 'arranged outside'],
@@ -4433,7 +4433,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Libra',
-    ko: '자유로운 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 시야와 매너가 같이 흘러요.',
+    ko: '자유로운 감정이 우아하고 매끄러운 외관으로 표현되는 스타일이에요. 시야와 매너가 같이 흘러요.',
     en: 'Free feelings expressed through a graceful, smooth outside. Horizon and manners flowing together.',
     keywords_ko: ['자유로운 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['free feeling', 'graceful expression', 'smooth outside'],
@@ -4441,7 +4441,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Scorpio',
-    ko: '자유로운 감정이 깊고 강한 외관으로 표현되는 결이에요. 시야와 무게가 같이 있는 결.',
+    ko: '자유로운 감정이 깊고 강한 외관으로 표현되는 모습이에요. 시야와 무게가 같이 있는 느낌이에요.',
     en: 'Free feelings expressed through a deep, intense outside. Horizon paired with weight.',
     keywords_ko: ['자유로운 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['free feeling', 'intense expression', 'weighted outside'],
@@ -4449,7 +4449,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Sagittarius',
-    ko: '자유로움과 시야가 안팎으로 두 겹으로 흐르는 결이에요. 시원하게 멀리 보는 분위기의 표현이에요.',
+    ko: '자유로움과 시야가 안팎으로 두 겹으로 흐르는 스타일이에요. 시원하게 멀리 보는 분위기의 표현이에요.',
     en: 'Freedom and horizon doubled inside and out. An open, far-seeing mood expression.',
     keywords_ko: ['자유로운 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['free feeling', 'open expression', 'free outside'],
@@ -4457,7 +4457,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Capricorn',
-    ko: '자유로운 감정이 차분하고 책임감 있는 외관으로 표현되는 결이에요. 시야와 단단함이 같이 있는 결.',
+    ko: '자유로운 감정이 차분하고 책임감 있는 외관으로 표현되는 모습이에요. 시야와 단단함이 같이 있는 느낌이에요.',
     en: 'Free feelings expressed through a calm, responsible outside. Horizon paired with solidity.',
     keywords_ko: ['자유로운 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['free feeling', 'solid expression', 'responsible outside'],
@@ -4465,7 +4465,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Aquarius',
-    ko: '자유로운 감정이 자기만의 색이 있는 외관으로 표현되는 결이에요. 시야와 독창성이 함께 있어요.',
+    ko: '자유로운 감정이 자기만의 색이 있는 외관으로 표현되는 스타일이에요. 시야와 독창성이 함께 있어요.',
     en: 'Free feelings expressed through an original outside. Horizon paired with originality.',
     keywords_ko: ['자유로운 감정', '독창적 표현', '새 길의 외관'],
     keywords_en: ['free feeling', 'original expression', 'new-path outside'],
@@ -4473,7 +4473,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Sagittarius', sign2: 'Pisces',
-    ko: '자유로운 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 시야와 공감이 함께 흘러요.',
+    ko: '자유로운 감정이 부드럽고 분위기 있는 외관으로 표현되는 모습이에요. 시야와 공감이 함께 흘러요.',
     en: 'Free feelings expressed through a soft, atmospheric outside. Horizon and empathy flowing together.',
     keywords_ko: ['자유로운 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['free feeling', 'soft expression', 'atmospheric outside'],
@@ -4483,7 +4483,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Aries',
-    ko: '책임감 있는 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 단단한 안쪽과 빠른 외관이 함께 있어요.',
+    ko: '책임감 있는 감정이 단호하고 시원한 외관으로 표현되는 느낌이에요. 단단한 안쪽과 빠른 외관이 함께 있어요.',
     en: 'Responsible feelings expressed through a decisive, clear outside. A solid core paired with a quick outside.',
     keywords_ko: ['책임감 있는 감정', '단호한 표현', '빠른 외관'],
     keywords_en: ['responsible feeling', 'decisive expression', 'quick outside'],
@@ -4491,7 +4491,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Taurus',
-    ko: '책임감 있는 감정이 차분하고 안정된 외관으로 표현되는 결이에요. 단단함과 편안함이 잘 어울려요.',
+    ko: '책임감 있는 감정이 차분하고 안정된 외관으로 표현되는 스타일이에요. 단단함과 편안함이 잘 어울려요.',
     en: 'Responsible feelings expressed through a calm, steady outside. Solidity and comfort fitting well.',
     keywords_ko: ['책임감 있는 감정', '차분한 표현', '안정된 외관'],
     keywords_en: ['responsible feeling', 'calm expression', 'steady outside'],
@@ -4499,7 +4499,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Gemini',
-    ko: '책임감 있는 감정이 가벼운 외관으로 표현되는 결이에요. 단단한 안쪽이 사교적인 외관과 함께 있어요.',
+    ko: '책임감 있는 감정이 가벼운 외관으로 표현되는 모습이에요. 단단한 안쪽이 사교적인 외관과 함께 있어요.',
     en: 'Responsible feelings expressed through a light outside. A solid core paired with a sociable outside.',
     keywords_ko: ['책임감 있는 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['responsible feeling', 'light expression', 'sociable outside'],
@@ -4507,7 +4507,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Cancer',
-    ko: '책임감 있는 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 단단함과 다정함이 함께 흘러요.',
+    ko: '책임감 있는 감정이 따뜻하고 친근한 외관으로 표현되는 느낌이에요. 단단함과 다정함이 함께 흘러요.',
     en: 'Responsible feelings expressed through a warm, friendly outside. Solidity and warmth flowing together.',
     keywords_ko: ['책임감 있는 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['responsible feeling', 'warm expression', 'friendly outside'],
@@ -4515,7 +4515,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Leo',
-    ko: '책임감 있는 감정이 환하고 당당한 외관으로 표현되는 결이에요. 단단함이 따뜻한 빛으로 드러나는 결.',
+    ko: '책임감 있는 감정이 환하고 당당한 외관으로 표현되는 스타일이에요. 단단함이 따뜻한 빛으로 드러나는 모습이에요.',
     en: 'Responsible feelings expressed through a bright, confident outside. Solidity shown as warm glow.',
     keywords_ko: ['책임감 있는 감정', '환한 표현', '빛나는 외관'],
     keywords_en: ['responsible feeling', 'bright expression', 'shining outside'],
@@ -4523,7 +4523,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Virgo',
-    ko: '책임감과 단정함이 안팎으로 같은 결로 흐르는 결이에요. 신뢰감을 주는 단단한 표현이에요.',
+    ko: '책임감과 단정함이 안팎으로 같은 식으로 흐르는 느낌이에요. 신뢰감을 주는 단단한 표현이에요.',
     en: 'Responsibility and tidiness flow the same inside and out. A solid, trustworthy expression.',
     keywords_ko: ['책임감 있는 감정', '단정한 표현', '신뢰의 외관'],
     keywords_en: ['responsible feeling', 'tidy expression', 'trusted outside'],
@@ -4531,7 +4531,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Libra',
-    ko: '책임감 있는 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 단단함과 매너가 함께 있어요.',
+    ko: '책임감 있는 감정이 우아하고 매끄러운 외관으로 표현되는 스타일이에요. 단단함과 매너가 함께 있어요.',
     en: 'Responsible feelings expressed through a graceful, smooth outside. Solidity paired with manners.',
     keywords_ko: ['책임감 있는 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['responsible feeling', 'graceful expression', 'smooth outside'],
@@ -4539,7 +4539,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Scorpio',
-    ko: '책임감 있는 감정이 깊고 강한 외관으로 표현되는 결이에요. 단단함과 무게가 함께 있는 결.',
+    ko: '책임감 있는 감정이 깊고 강한 외관으로 표현되는 모습이에요. 단단함과 무게가 함께 있는 느낌이에요.',
     en: 'Responsible feelings expressed through a deep, intense outside. Solidity paired with weight.',
     keywords_ko: ['책임감 있는 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['responsible feeling', 'intense expression', 'weighted outside'],
@@ -4547,7 +4547,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Sagittarius',
-    ko: '책임감 있는 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 단단함과 시야가 같이 있는 결.',
+    ko: '책임감 있는 감정이 시원하고 자유로운 외관으로 표현되는 스타일이에요. 단단함과 시야가 같이 있는 모습이에요.',
     en: 'Responsible feelings expressed through an open, free outside. Solidity paired with horizon.',
     keywords_ko: ['책임감 있는 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['responsible feeling', 'open expression', 'free outside'],
@@ -4555,7 +4555,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Capricorn',
-    ko: '책임감과 무게가 안팎으로 두 겹으로 흐르는 결이에요. 흔들리지 않는 신뢰의 표현이에요.',
+    ko: '책임감과 무게가 안팎으로 두 겹으로 흐르는 느낌이에요. 흔들리지 않는 신뢰의 표현이에요.',
     en: 'Responsibility and weight doubled inside and out. An unwavering, trustworthy expression.',
     keywords_ko: ['책임감 있는 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['responsible feeling', 'solid expression', 'responsible outside'],
@@ -4563,7 +4563,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Aquarius',
-    ko: '책임감 있는 감정이 자기만의 색이 있는 외관으로 표현되는 결이에요. 단단함과 독창성이 함께 있어요.',
+    ko: '책임감 있는 감정이 자기만의 색이 있는 외관으로 표현되는 스타일이에요. 단단함과 독창성이 함께 있어요.',
     en: 'Responsible feelings expressed through an original outside. Solidity paired with originality.',
     keywords_ko: ['책임감 있는 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['responsible feeling', 'original expression', 'free outside'],
@@ -4571,7 +4571,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Capricorn', sign2: 'Pisces',
-    ko: '책임감 있는 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 단단함이 부드럽게 드러나는 결.',
+    ko: '책임감 있는 감정이 부드럽고 분위기 있는 외관으로 표현되는 모습이에요. 단단함이 부드럽게 드러나는 느낌이에요.',
     en: 'Responsible feelings expressed through a soft, atmospheric outside. Solidity shown softly.',
     keywords_ko: ['책임감 있는 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['responsible feeling', 'soft expression', 'atmospheric outside'],
@@ -4581,7 +4581,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Aries',
-    ko: '독창적인 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 자기 색과 빠른 외관이 함께 있어요.',
+    ko: '독창적인 감정이 단호하고 시원한 외관으로 표현되는 스타일이에요. 자기 색과 빠른 외관이 함께 있어요.',
     en: 'Original feelings expressed through a decisive, clear outside. Own color paired with a quick outside.',
     keywords_ko: ['독창적 감정', '단호한 표현', '빠른 외관'],
     keywords_en: ['original feeling', 'decisive expression', 'quick outside'],
@@ -4589,7 +4589,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Taurus',
-    ko: '독창적인 감정이 차분하고 안정된 외관으로 표현되는 결이에요. 자기 색이 편안한 외관 뒤에 살아 있어요.',
+    ko: '독창적인 감정이 차분하고 안정된 외관으로 표현되는 모습이에요. 자기 색이 편안한 외관 뒤에 살아 있어요.',
     en: 'Original feelings expressed through a calm, steady outside. Own color alive behind a comfortable outside.',
     keywords_ko: ['독창적 감정', '차분한 표현', '안정된 외관'],
     keywords_en: ['original feeling', 'calm expression', 'steady outside'],
@@ -4597,7 +4597,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Gemini',
-    ko: '독창적인 감정이 가볍고 사교적인 외관으로 표현되는 결이에요. 아이디어와 말이 잘 어울려요.',
+    ko: '독창적인 감정이 가볍고 사교적인 외관으로 표현되는 느낌이에요. 아이디어와 말이 잘 어울려요.',
     en: 'Original feelings expressed through a light, sociable outside. Ideas and talk fitting well.',
     keywords_ko: ['독창적 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['original feeling', 'light expression', 'sociable outside'],
@@ -4605,7 +4605,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Cancer',
-    ko: '독창적인 감정이 따뜻하고 친근한 외관으로 표현되는 결이에요. 자기 색과 다정함이 함께 있어요.',
+    ko: '독창적인 감정이 따뜻하고 친근한 외관으로 표현되는 스타일이에요. 자기 색과 다정함이 함께 있어요.',
     en: 'Original feelings expressed through a warm, friendly outside. Own color paired with warmth.',
     keywords_ko: ['독창적 감정', '따뜻한 표현', '친근한 외관'],
     keywords_en: ['original feeling', 'warm expression', 'friendly outside'],
@@ -4613,7 +4613,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Leo',
-    ko: '독창적인 감정이 환하고 당당한 외관으로 표현되는 결이에요. 자기 색이 환하게 빛나는 결.',
+    ko: '독창적인 감정이 환하고 당당한 외관으로 표현되는 모습이에요. 자기 색이 환하게 빛나는 느낌이에요.',
     en: 'Original feelings expressed through a bright, confident outside. Own color shining bright.',
     keywords_ko: ['독창적 감정', '환한 표현', '빛나는 외관'],
     keywords_en: ['original feeling', 'bright expression', 'shining outside'],
@@ -4621,7 +4621,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Virgo',
-    ko: '독창적인 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 자기 색과 정돈이 함께 있어요.',
+    ko: '독창적인 감정이 단정하고 꼼꼼한 외관으로 표현되는 스타일이에요. 자기 색과 정돈이 함께 있어요.',
     en: 'Original feelings expressed through a tidy, careful outside. Own color paired with tidiness.',
     keywords_ko: ['독창적 감정', '단정한 표현', '정돈된 외관'],
     keywords_en: ['original feeling', 'tidy expression', 'arranged outside'],
@@ -4629,7 +4629,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Libra',
-    ko: '독창적인 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 자기 색과 매너가 함께 있어요.',
+    ko: '독창적인 감정이 우아하고 매끄러운 외관으로 표현되는 모습이에요. 자기 색과 매너가 함께 있어요.',
     en: 'Original feelings expressed through a graceful, smooth outside. Own color paired with manners.',
     keywords_ko: ['독창적 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['original feeling', 'graceful expression', 'smooth outside'],
@@ -4637,7 +4637,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Scorpio',
-    ko: '독창적인 감정이 깊고 강한 외관으로 표현되는 결이에요. 자기 색이 무게 있는 외관과 함께 있어요.',
+    ko: '독창적인 감정이 깊고 강한 외관으로 표현되는 느낌이에요. 자기 색이 무게 있는 외관과 함께 있어요.',
     en: 'Original feelings expressed through a deep, intense outside. Own color paired with weight.',
     keywords_ko: ['독창적 감정', '진한 표현', '무게감 있는 외관'],
     keywords_en: ['original feeling', 'intense expression', 'weighted outside'],
@@ -4645,7 +4645,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Sagittarius',
-    ko: '독창적인 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 자기 색과 시야가 함께 외관에 드러나요.',
+    ko: '독창적인 감정이 시원하고 자유로운 외관으로 표현되는 스타일이에요. 자기 색과 시야가 함께 외관에 드러나요.',
     en: 'Original feelings expressed through an open, free outside. Own color paired with horizon.',
     keywords_ko: ['독창적 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['original feeling', 'open expression', 'free outside'],
@@ -4653,7 +4653,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Capricorn',
-    ko: '독창적인 감정이 차분하고 책임감 있는 외관으로 표현되는 결이에요. 자기 색과 단단함이 함께 있어요.',
+    ko: '독창적인 감정이 차분하고 책임감 있는 외관으로 표현되는 모습이에요. 자기 색과 단단함이 함께 있어요.',
     en: 'Original feelings expressed through a calm, responsible outside. Own color paired with solidity.',
     keywords_ko: ['독창적 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['original feeling', 'solid expression', 'responsible outside'],
@@ -4661,7 +4661,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Aquarius',
-    ko: '독창성과 자유로움이 안팎으로 두 겹으로 흐르는 결이에요. 자기 색이 분명한 표현이에요.',
+    ko: '독창성과 자유로움이 안팎으로 두 겹으로 흐르는 느낌이에요. 자기 색이 분명한 표현이에요.',
     en: 'Originality and freedom doubled inside and out. An expression with a clear own color.',
     keywords_ko: ['독창적 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['original feeling', 'original expression', 'free outside'],
@@ -4669,7 +4669,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Aquarius', sign2: 'Pisces',
-    ko: '독창적인 감정이 부드럽고 분위기 있는 외관으로 표현되는 결이에요. 자기 색과 공감이 함께 흘러요.',
+    ko: '독창적인 감정이 부드럽고 분위기 있는 외관으로 표현되는 스타일이에요. 자기 색과 공감이 함께 흘러요.',
     en: 'Original feelings expressed through a soft, atmospheric outside. Own color paired with empathy.',
     keywords_ko: ['독창적 감정', '부드러운 표현', '분위기 있는 외관'],
     keywords_en: ['original feeling', 'soft expression', 'atmospheric outside'],
@@ -4679,7 +4679,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Aries',
-    ko: '공감 어린 감정이 단호하고 시원한 외관으로 표현되는 결이에요. 부드러운 안쪽이 빠른 외관 뒤에 있어요.',
+    ko: '공감 어린 감정이 단호하고 시원한 외관으로 표현되는 모습이에요. 부드러운 안쪽이 빠른 외관 뒤에 있어요.',
     en: 'Empathic feelings expressed through a decisive, clear outside. A soft core behind a quick outside.',
     keywords_ko: ['공감의 감정', '단호한 표현', '빠른 외관'],
     keywords_en: ['empathic feeling', 'decisive expression', 'quick outside'],
@@ -4687,7 +4687,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Taurus',
-    ko: '공감 어린 감정이 차분하고 안정된 외관으로 표현되는 결이에요. 부드러움과 편안함이 함께 흘러요.',
+    ko: '공감 어린 감정이 차분하고 안정된 외관으로 표현되는 느낌이에요. 부드러움과 편안함이 함께 흘러요.',
     en: 'Empathic feelings expressed through a calm, steady outside. Softness and comfort flowing together.',
     keywords_ko: ['공감의 감정', '차분한 표현', '편안한 외관'],
     keywords_en: ['empathic feeling', 'calm expression', 'easy outside'],
@@ -4695,7 +4695,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Gemini',
-    ko: '공감 어린 감정이 가볍고 사교적인 외관으로 표현되는 결이에요. 부드러움과 말이 잘 어울려요.',
+    ko: '공감 어린 감정이 가볍고 사교적인 외관으로 표현되는 스타일이에요. 부드러움과 말이 잘 어울려요.',
     en: 'Empathic feelings expressed through a light, sociable outside. Softness and talk fitting well.',
     keywords_ko: ['공감의 감정', '가벼운 표현', '사교적 외관'],
     keywords_en: ['empathic feeling', 'light expression', 'sociable outside'],
@@ -4703,7 +4703,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Cancer',
-    ko: '공감과 다정함이 안팎으로 같은 결로 흐르는 결이에요. 깊은 다정의 분위기가 자연스럽게 드러나요.',
+    ko: '공감과 다정함이 안팎으로 같은 식으로 흐르는 모습이에요. 깊은 다정의 분위기가 자연스럽게 드러나요.',
     en: 'Empathy and warmth flow the same inside and out. A deeply caring mood that simply shows.',
     keywords_ko: ['공감의 감정', '따뜻한 표현', '깊은 다정'],
     keywords_en: ['empathic feeling', 'warm expression', 'deep warmth'],
@@ -4711,7 +4711,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Leo',
-    ko: '깊고 공감 어린 감정이 따뜻한 빛으로 표현되는 결이에요. 속은 부드럽지만 겉은 따뜻하고 열려 있어요.',
+    ko: '깊고 공감 어린 감정이 따뜻한 빛으로 표현되는 느낌이에요. 속은 부드럽지만 겉은 따뜻하고 열려 있어요.',
     en: 'Deep, empathic emotions express themselves as warm radiance. Soft inside, warm and open outside.',
     keywords_ko: ['부드러운 감정', '따뜻한 표현', '공감의 빛'],
     keywords_en: ['soft feeling', 'warm expression', 'empathic glow'],
@@ -4719,7 +4719,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Virgo',
-    ko: '공감 어린 감정이 단정하고 꼼꼼한 외관으로 표현되는 결이에요. 부드러움이 정성으로 드러나는 결.',
+    ko: '공감 어린 감정이 단정하고 꼼꼼한 외관으로 표현되는 스타일이에요. 부드러움이 정성으로 드러나는 모습이에요.',
     en: 'Empathic feelings expressed through a tidy, careful outside. Softness shown through attentive acts.',
     keywords_ko: ['공감의 감정', '단정한 표현', '정성스러운 외관'],
     keywords_en: ['empathic feeling', 'tidy expression', 'attentive outside'],
@@ -4727,7 +4727,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Libra',
-    ko: '공감 어린 감정이 우아하고 매끄러운 외관으로 표현되는 결이에요. 부드러움과 매너가 함께 흘러요.',
+    ko: '공감 어린 감정이 우아하고 매끄러운 외관으로 표현되는 느낌이에요. 부드러움과 매너가 함께 흘러요.',
     en: 'Empathic feelings expressed through a graceful, smooth outside. Softness and manners flowing together.',
     keywords_ko: ['공감의 감정', '우아한 표현', '매끄러운 외관'],
     keywords_en: ['empathic feeling', 'graceful expression', 'smooth outside'],
@@ -4735,7 +4735,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Scorpio',
-    ko: '공감 어린 감정이 깊고 강한 외관으로 표현되는 결이에요. 부드러움과 무게가 같이 있는 결.',
+    ko: '공감 어린 감정이 깊고 강한 외관으로 표현되는 스타일이에요. 부드러움과 무게가 같이 있는 모습이에요.',
     en: 'Empathic feelings expressed through a deep, intense outside. Softness paired with weight.',
     keywords_ko: ['공감의 감정', '진한 표현', '깊은 외관'],
     keywords_en: ['empathic feeling', 'intense expression', 'deep outside'],
@@ -4743,7 +4743,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Sagittarius',
-    ko: '공감 어린 감정이 시원하고 자유로운 외관으로 표현되는 결이에요. 부드러움과 시야가 함께 흘러요.',
+    ko: '공감 어린 감정이 시원하고 자유로운 외관으로 표현되는 느낌이에요. 부드러움과 시야가 함께 흘러요.',
     en: 'Empathic feelings expressed through an open, free outside. Softness and horizon flowing together.',
     keywords_ko: ['공감의 감정', '시원한 표현', '자유로운 외관'],
     keywords_en: ['empathic feeling', 'open expression', 'free outside'],
@@ -4751,7 +4751,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Capricorn',
-    ko: '공감 어린 감정이 차분하고 책임감 있는 외관으로 표현되는 결이에요. 부드러움이 단단한 외관과 만나요.',
+    ko: '공감 어린 감정이 차분하고 책임감 있는 외관으로 표현되는 스타일이에요. 부드러움이 단단한 외관과 만나요.',
     en: 'Empathic feelings expressed through a calm, responsible outside. Softness meeting a solid outside.',
     keywords_ko: ['공감의 감정', '단단한 표현', '책임 있는 외관'],
     keywords_en: ['empathic feeling', 'solid expression', 'responsible outside'],
@@ -4759,7 +4759,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Aquarius',
-    ko: '공감 어린 감정이 자기만의 색이 있는 외관으로 표현되는 결이에요. 부드러움과 독창성이 함께 있어요.',
+    ko: '공감 어린 감정이 자기만의 색이 있는 외관으로 표현되는 모습이에요. 부드러움과 독창성이 함께 있어요.',
     en: 'Empathic feelings expressed through an original outside. Softness paired with originality.',
     keywords_ko: ['공감의 감정', '독창적 표현', '자유로운 외관'],
     keywords_en: ['empathic feeling', 'original expression', 'free outside'],
@@ -4767,7 +4767,7 @@ const MOON_ASC_COMBINATIONS: SignCombination[] = [
   {
     pair: 'moon_asc',
     sign1: 'Pisces', sign2: 'Pisces',
-    ko: '공감과 부드러움이 안팎으로 두 겹으로 흐르는 결이에요. 분위기처럼 자연스럽게 스며드는 표현이에요.',
+    ko: '공감과 부드러움이 안팎으로 두 겹으로 흐르는 느낌이에요. 분위기처럼 자연스럽게 스며드는 표현이에요.',
     en: 'Empathy and softness doubled inside and out. An expression that seeps in like atmosphere.',
     keywords_ko: ['공감의 감정', '부드러운 표현', '스며드는 외관'],
     keywords_en: ['empathic feeling', 'soft expression', 'seeping outside'],

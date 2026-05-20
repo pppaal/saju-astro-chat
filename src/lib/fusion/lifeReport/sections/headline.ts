@@ -23,7 +23,7 @@ import {
   dominantPlanet,
   findPlanet,
 } from '../signals/astroSynthesis'
-import { planetLabel, signLabel } from '../templates/sentences'
+import { planetLabel, signLabel, varyRepeatedEndings } from '../templates/sentences'
 import { findSignCombination } from '@/lib/astrology/signCombinations'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 
@@ -205,8 +205,11 @@ export function buildHeadline(input: BuilderInput): Headline {
   const sunAscKo = sunAscCombo ? firstSentence(sunAscCombo.ko) : ''
   const sunAscEn = sunAscCombo ? firstSentence(sunAscCombo.en) : ''
 
+  // 자아×감정(sun_moon)·본성×첫인상(sun_asc) 두 페르소나 문장이 같은 종결구로
+  // 끝나는 단조로움을 줄인다.
+  const [comboKoV, sunAscKoV] = varyRepeatedEndings([comboKo, sunAscKo])
   const s2ko = skyParts
-    ? `별자리로 보면 ${skyParts}.${comboKo ? ` ${comboKo}` : ''}${sunAscKo ? ` ${sunAscKo}` : ''}`
+    ? `별자리로 보면 ${skyParts}.${comboKoV ? ` ${comboKoV}` : ''}${sunAscKoV ? ` ${sunAscKoV}` : ''}`
     : ''
   const s2en = skyPartsEn
     ? `Looking at the chart, ${skyPartsEn}.${comboEn ? ` ${comboEn}` : ''}${sunAscEn ? ` ${sunAscEn}` : ''}`
