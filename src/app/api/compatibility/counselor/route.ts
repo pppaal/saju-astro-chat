@@ -85,34 +85,42 @@ import {
   formatTimingForPrompt,
 } from './routeSupport'
 
-// 개별(self) 신살 — 각자 타고난 백호·괴강·양인·도화·역마·천을귀인 등.
-// buildAutoSajuContext가 이미 계산하지만(extras.shinsal) self 블록이 voided라
-// 궁합 프롬프트엔 안 들어가던 신호. 한 사람당 1줄로 압축해 surface한다.
+// 개별(self) 신살 — 각자 타고난 신살은 extras.shinsal에 이미 계산돼 있으나
+// self 블록이 voided라 궁합 프롬프트엔 안 들어가던 신호. 단, 전부 쏟으면
+// 다시 노이즈가 되므로 *관계 해석에 유효한 특수 신살만* 화이트리스트로
+// 큐레이션 + 짧은 뜻을 붙인다. 12신살(자리)은 synastry [12신살] cross가
+// 다루고, 재능·재물·건강·삼재 신살은 궁합과 무관하므로 전부 제외.
 const PILLAR_KO: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
-// 일반 버킷·cross에서 이미 다루는 것은 개별 줄에서 제외(중복 방지).
-// 12신살(자리 기준)은 synastry [12신살] 블록이 cross로 이미 다루므로 빼고,
-// 백호·괴강·양인·도화·천을귀인 같은 *특수* 신살만 남긴다.
-const PERSONAL_SHINSAL_SKIP = new Set([
-  '길성', '흉성',
-  '장성', '반안', '재살', '천살', '월살', '망신', '역마', '화개', '겁살', '육해', '지살', '년살', '화해', '괘살',
-  '삼재',
-])
+const PERSONAL_SHINSAL_KEEP: Record<string, string> = {
+  도화: '매력·이성 끌림',
+  홍염살: '색기·끌림(외도 주의)',
+  백호: '강렬·격정',
+  괴강: '강한 카리스마·고집',
+  양인: '날카로움·과격',
+  귀문관: '집착·예민',
+  원진: '미묘한 반감',
+  고신: '고독 기질',
+  금여성: '배우자 복·기품',
+  천덕귀인: '보호·덕',
+  월덕귀인: '보호·덕',
+}
 
 function formatPersonalShinsal(label: string, shinsal: unknown): string | null {
   if (!Array.isArray(shinsal) || shinsal.length === 0) return null
   const byKind = new Map<string, Set<string>>()
   for (const raw of shinsal) {
     const h = raw as { kind?: string; pillars?: string[] }
-    if (!h?.kind || PERSONAL_SHINSAL_SKIP.has(h.kind)) continue
+    if (!h?.kind || !(h.kind in PERSONAL_SHINSAL_KEEP)) continue
     const set = byKind.get(h.kind) ?? new Set<string>()
     for (const p of h.pillars ?? []) set.add(PILLAR_KO[p] ?? p)
     byKind.set(h.kind, set)
   }
   if (byKind.size === 0) return null
-  const parts = [...byKind.entries()].map(([kind, ps]) =>
-    ps.size > 0 ? `${kind}(${[...ps].join('·')})` : kind
-  )
-  return `${label}: ${parts.join(', ')}`
+  const parts = [...byKind.entries()].map(([kind, ps]) => {
+    const loc = [...ps].join('·')
+    return `${kind}(${loc ? `${loc}, ` : ''}${PERSONAL_SHINSAL_KEEP[kind]})`
+  })
+  return `${label}: ${parts.join(' · ')}`
 }
 
 export async function POST(req: NextRequest) {
