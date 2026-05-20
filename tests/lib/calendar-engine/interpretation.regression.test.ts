@@ -5,6 +5,7 @@ import { buildCalendar } from '@/lib/calendar-engine'
 import { buildInterpretation } from '@/lib/calendar-engine/interpretation/matcher'
 import { deriveKeyEvents } from '@/lib/calendar-engine/derivers/keyEvents'
 import { deriveMonthComparison } from '@/lib/calendar-engine/derivers/monthComparison'
+import { RULES } from '@/lib/calendar-engine/interpretation/rules'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 
 /**
@@ -701,6 +702,63 @@ describe('calendar-engine regression', () => {
       }
       // 60 일 안에서 최소 50종 이상 서로 다른 텍스트 (60갑자 cycle 보장).
       expect(seen.size).toBeGreaterThanOrEqual(50)
+    })
+  })
+
+  describe('outer-planet & lifecycle rules (DB expansion)', () => {
+    const SEOUL = { latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }
+    const profile = (birthDate: string): Profile => ({
+      birthDate,
+      birthTime: '06:40',
+      gender: 'male',
+      ...SEOUL,
+    })
+
+    it('every lifecycle rule carries a planet condition (prevents cross-fire)', () => {
+      const lifecycleRules = RULES.filter((r) => r.conditions.signalKinds?.includes('lifecycle'))
+      expect(lifecycleRules.length).toBeGreaterThanOrEqual(2)
+      for (const r of lifecycleRules) {
+        expect(r.conditions.planet, `rule ${r.id} must scope by planet`).toBeDefined()
+        expect(r.conditions.planet!.length).toBeGreaterThan(0)
+      }
+    })
+
+    it('new Neptune/Pluto + midlife lifecycle rules exist with KO+EN templates', () => {
+      const ids = [
+        'transit-neptune-harmonious',
+        'transit-neptune-hard',
+        'transit-pluto-harmonious',
+        'transit-pluto-hard',
+        'astro-lifecycle-pluto-square',
+        'astro-lifecycle-uranus-opposition',
+        'astro-lifecycle-neptune-square',
+        'astro-lifecycle-chiron-return',
+      ]
+      for (const id of ids) {
+        const rule = RULES.find((r) => r.id === id)
+        expect(rule, `missing rule ${id}`).toBeDefined()
+        expect(rule!.template.length).toBeGreaterThan(10)
+        expect(rule!.templateEn && rule!.templateEn.length).toBeGreaterThan(10)
+      }
+    })
+
+    it('saturn-return rule is scoped to Saturn so it no longer fires for Pluto/Uranus/Neptune', () => {
+      const saturn = RULES.find((r) => r.id === 'astro-lifecycle-saturn-return')!
+      expect(saturn.conditions.planet).toEqual(['Saturn'])
+    })
+
+    it('age-29 chart renders Saturn Return (not a different planet)', async () => {
+      // 1996 birth → saturn_return_1 active in 2026
+      const { interp } = await buildForDate(profile('1996-05-10'), '2026-05-15')
+      expect(interp.narrative).toContain('Saturn Return')
+      expect(interp.narrative).not.toContain('Pluto Square')
+    })
+
+    it('age-39 chart renders Pluto Square — the old Saturn-Return mismatch is gone', async () => {
+      // 1987 birth → pluto_square_pluto active in 2026 (was wrongly showing Saturn Return)
+      const { interp } = await buildForDate(profile('1987-05-10'), '2026-05-15')
+      expect(interp.narrative).toContain('Pluto Square')
+      expect(interp.narrative).not.toContain('Saturn Return')
     })
   })
 })

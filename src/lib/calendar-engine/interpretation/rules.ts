@@ -320,6 +320,7 @@ export const RULES: InterpretationRule[] = [
     priority: 75,
     conditions: {
       signalSource: 'astro',
+      signalKinds: ['transit'],
       planet: ['Uranus'],
       maxPolarity: -1,
     },
@@ -332,6 +333,95 @@ export const RULES: InterpretationRule[] = [
       `Rather than clinging to stability, honestly accepting change ` +
       `gets you through faster.`,
     themes: ['health', 'growth'],
+  },
+  {
+    id: 'transit-neptune-harmonious',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 73,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['transit'],
+      planet: ['Neptune'],
+      minPolarity: 2,
+    },
+    template:
+      `**영감·직관·감수성이 평소보다 깊게 열리는 시기**예요. ` +
+      `예술·치유·영적 작업, 누군가를 향한 연민이 자연스럽게 흘러요. ` +
+      `다만 경계가 흐려지기 쉬우니 큰 계약·돈 약속은 또렷할 때 ` +
+      `다시 확인하세요. 흐름은 {duration} 동안 이어져요.`,
+    templateEn:
+      `**Inspiration, intuition, and sensitivity open up more deeply than usual**. ` +
+      `Art, healing, spiritual work, and compassion for others flow naturally. ` +
+      `Just note that boundaries blur easily — re-check big contracts or money ` +
+      `promises when your head is clear. The current runs for {duration}.`,
+    themes: ['growth', 'love'],
+  },
+  {
+    id: 'transit-neptune-hard',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 74,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['transit'],
+      planet: ['Neptune'],
+      maxPolarity: -1,
+    },
+    template:
+      `**안개가 낀 듯 방향이 흐려지기 쉬운 시기**예요. ` +
+      `피로·혼란·이상화가 판단을 흔들 수 있어요. 과장된 약속이나 ` +
+      `'너무 좋은' 제안은 한 박자 늦춰 확인하고, 큰 결정은 또렷한 ` +
+      `날로 미루는 게 안전해요. 흐름은 {duration} 동안 이어져요.`,
+    templateEn:
+      `**Direction blurs as if fog has rolled in**. ` +
+      `Fatigue, confusion, and idealisation can sway judgement. Slow down before ` +
+      `trusting inflated promises or "too good to be true" offers, and push big ` +
+      `decisions to a clearer day. The current runs for {duration}.`,
+    themes: ['health', 'money'],
+  },
+  {
+    id: 'transit-pluto-harmonious',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 74,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['transit'],
+      planet: ['Pluto'],
+      minPolarity: 2,
+    },
+    template:
+      `**깊은 재구성과 진짜 영향력이 자라는 시기**예요. ` +
+      `표면을 정리하고 핵심을 다시 세우는 힘이 강해져요. 한 가지에 ` +
+      `집중하면 보통 때보다 훨씬 멀리 갈 수 있어요. 흐름은 {duration} 동안 이어져요.`,
+    templateEn:
+      `**Deep restructuring and real influence are growing**. ` +
+      `The power to clear the surface and rebuild from the core intensifies. ` +
+      `Focus on one thing and you can go much further than usual. ` +
+      `The current runs for {duration}.`,
+    themes: ['career', 'growth'],
+  },
+  {
+    id: 'transit-pluto-hard',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 75,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['transit'],
+      planet: ['Pluto'],
+      maxPolarity: -1,
+    },
+    template:
+      `**힘겨루기·통제·집착이 드러나기 쉬운 시기**예요. ` +
+      `붙잡으려 할수록 더 조여드는 흐름 — 끝낼 것을 끝내고 놓아줄 때 ` +
+      `오히려 더 큰 힘이 돌아와요. 흐름은 {duration} 동안 이어져요.`,
+    templateEn:
+      `**Power struggles, control, and obsession surface more easily**. ` +
+      `The harder you grip, the tighter it binds — ending what is over and ` +
+      `letting go is what brings real power back. The current runs for {duration}.`,
+    themes: ['love', 'health'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -1403,6 +1493,7 @@ export const RULES: InterpretationRule[] = [
     conditions: {
       signalSource: 'astro',
       signalKinds: ['lifecycle'],
+      planet: ['Saturn'],
       maxPolarity: -1,
     },
     template:
@@ -1416,6 +1507,96 @@ export const RULES: InterpretationRule[] = [
     themes: ['career', 'health'],
   },
   {
+    id: 'astro-lifecycle-pluto-square',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 86,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      planet: ['Pluto'],
+      maxPolarity: -1,
+    },
+    template:
+      `**Pluto Square Pluto** 진행 — 중년의 깊은 변환기예요. ` +
+      `더 이상 맞지 않는 정체성·관계·일이 뿌리째 흔들려요. 억지로 ` +
+      `붙들기보다, 무엇이 진짜 내 것인지 가려내고 나머지를 놓아주는 ` +
+      `2~3년. 통과하면 훨씬 단단한 '나'로 다시 서요.`,
+    templateEn:
+      `**Pluto Square Pluto** is in progress — a deep midlife transformation. ` +
+      `Identities, relationships, and work that no longer fit get shaken to the root. ` +
+      `These 2-3 years are for sorting what is truly yours and releasing the rest, ` +
+      `rather than forcing things to stay. Come through it and you stand as a far solider self.`,
+    themes: ['growth', 'career', 'health'],
+  },
+  {
+    id: 'astro-lifecycle-uranus-opposition',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 84,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      planet: ['Uranus'],
+      maxPolarity: -1,
+    },
+    template:
+      `**Uranus Opposition** 진행 — 흔히 말하는 '중년의 각성' 시기예요. ` +
+      `눌러둔 자유·진짜 하고 싶던 것이 강하게 올라와요. 충동적으로 ` +
+      `다 엎기보다, 정말 답답했던 한 곳을 정직하게 바꾸면 이후가 ` +
+      `훨씬 가벼워져요.`,
+    templateEn:
+      `**Uranus Opposition** is in progress — the classic "midlife awakening." ` +
+      `Suppressed freedom and what you truly wanted rise up strongly. Rather than ` +
+      `impulsively overturning everything, honestly changing the one place that felt ` +
+      `most stifling makes the years ahead far lighter.`,
+    themes: ['growth', 'love'],
+  },
+  {
+    id: 'astro-lifecycle-neptune-square',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 83,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      planet: ['Neptune'],
+      maxPolarity: -1,
+    },
+    template:
+      `**Neptune Square Neptune** 진행 — 그동안 믿어온 것에 안개가 ` +
+      `끼는 시기예요. 의미·방향이 흐려지고 환멸이 올 수 있어요. ` +
+      `이건 길을 잃은 게 아니라 더 깊은 의미를 찾으라는 신호 — ` +
+      `조용히 내면을 돌보는 시간이 약이 돼요.`,
+    templateEn:
+      `**Neptune Square Neptune** is in progress — fog settles over what you ` +
+      `once believed. Meaning and direction blur, and disillusionment can come. ` +
+      `This is not losing your way but a call to find deeper meaning — quietly ` +
+      `tending your inner life is the medicine.`,
+    themes: ['growth', 'health'],
+  },
+  {
+    id: 'astro-lifecycle-chiron-return',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 80,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      planet: ['Chiron'],
+    },
+    template:
+      `**Chiron Return** 진행 — 오래된 상처를 다시 마주하고 ` +
+      `매듭짓는 시기예요(약 50세). 같은 자리에서 아팠던 일이 ` +
+      `한 번 더 떠오를 수 있지만, 이번엔 그걸 지혜로 바꿔 ` +
+      `누군가를 도울 힘으로 만들 수 있어요.`,
+    templateEn:
+      `**Chiron Return** is in progress — a time (around age 50) to face an old ` +
+      `wound once more and finally close it. The same sore spot may resurface, but ` +
+      `this time you can turn it into wisdom and the power to help someone else.`,
+    themes: ['health', 'growth'],
+  },
+  {
     id: 'astro-lifecycle-jupiter-return',
     scope: 'monthly',
     section: 'transit',
@@ -1423,6 +1604,7 @@ export const RULES: InterpretationRule[] = [
     conditions: {
       signalSource: 'astro',
       signalKinds: ['lifecycle'],
+      planet: ['Jupiter'],
       minPolarity: 1,
     },
     template:
