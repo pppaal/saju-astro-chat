@@ -12,7 +12,7 @@ import {
   relationPhraseEn,
   relationPhraseKo,
 } from '../../signals/sajuSignals'
-import { aspectsOf, getPlanet, houseCusp, planetsInHouse } from '../../signals/astroSignals'
+import { aspectsOf, getPlanet, houseCusp, pallas, planetsInHouse } from '../../signals/astroSignals'
 import { northNode } from '../../signals/astroSynthesis'
 import {
   aspectQuality,
@@ -21,6 +21,8 @@ import {
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
+import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
+import type { ZodiacName } from '@/lib/astrology/interpretations'
 
 export function buildWisdom(input: BuilderInput): DomainNarrative {
   const { saju, astro, calendarSignals } = input
@@ -58,6 +60,8 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   const thirdCusp = houseCusp(astro, 3)
   const nn = northNode(astro)
   if (nn) astroUsed.push('planets.true_node')
+  const pal = pallas(astro)
+  if (pal?.sign) astroUsed.push('asteroids.pallas')
 
   const mercAspects = mercury ? aspectsOf(astro, 'Mercury') : []
   const topMercAspect = mercAspects
@@ -174,6 +178,13 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     p3piecesEn.push(
       `Your North Node sits in ${signLabel(nn.sign, 'en')}${nn.house ? ` (${houseLabel(nn.house, 'en')})` : ''}, so study is not just data for you — it becomes a path toward ${signMissionEn(nn.sign)}.`
     )
+  }
+  // 지혜의 별 팔라스 — 문제 해결·전략의 결을 한 문장으로 그라운딩.
+  const pallasEntry = pal?.sign ? findAsteroidEntry('Pallas', pal.sign as ZodiacName) : null
+  if (pallasEntry) {
+    astroUsed.push('asteroidDictionary.pallas')
+    p3pieces.push(firstSentenceWisdom(pallasEntry.ko))
+    p3piecesEn.push(firstSentenceWisdom(pallasEntry.en))
   }
   if (h9 && h9.strength >= 40) {
     p3pieces.push(
@@ -439,6 +450,13 @@ function signMissionKo(sign: string): string {
 }
 function signMissionEn(sign: string): string {
   return SIGN_MISSION_EN[sign] ?? 'its native grain'
+}
+
+function firstSentenceWisdom(text: string): string {
+  const trimmed = text.trim()
+  if (!trimmed) return ''
+  const m = trimmed.match(/^[^.!?。]*[.!?。]/)
+  return (m ? m[0] : trimmed).trim()
 }
 
 // "a" or "an" picker for English (front-vowel-sound heuristic).
