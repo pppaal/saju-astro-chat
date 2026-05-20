@@ -295,6 +295,17 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     deepKo.push(firstSentenceLove(junoEntry.ko))
     deepEn.push(firstSentenceLove(junoEntry.en))
   }
+  // Moon × ASC (감정 × 외관) 조합 DB — 감정이 겉으로 드러나는 방식은 관계의
+  // 첫 분위기를 좌우하므로 love 도메인에서 한 문장 사용.
+  const moonAscCombo =
+    moon?.sign && asc?.sign
+      ? findSignCombination('moon_asc', moon.sign as ZodiacName, asc.sign as ZodiacName)
+      : null
+  if (moonAscCombo) {
+    astroUsed.push('signCombinations.moon_asc')
+    deepKo.push(`사랑할 때는 ${firstSentenceLove(moonAscCombo.ko)}`)
+    deepEn.push(`In love, ${lowerFirst(firstSentenceLove(moonAscCombo.en))}`)
+  }
   if (vertexVenus) {
     deepKo.push(
       `운명적 만남의 점과 금성이 ${aspectQuality(vertexVenus.type, 'ko')}, 운명적인 한 번의 만남이 새겨져 있어요.`
@@ -562,6 +573,11 @@ function firstSentenceLove(text: string): string {
   const trimmed = text.trim()
   const m = trimmed.match(/^[^.!?]*[.!?]/)
   return (m ? m[0] : trimmed).trim()
+}
+
+// 영어 문장을 다른 절 뒤에 이어붙일 때 첫 글자를 소문자로.
+function lowerFirst(s: string): string {
+  return s ? s.charAt(0).toLowerCase() + s.slice(1) : s
 }
 
 // 5대 주요 각(conjunction/sextile/square/trine/opposition)일 때만 aspectPair
