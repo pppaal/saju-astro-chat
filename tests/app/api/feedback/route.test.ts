@@ -142,7 +142,6 @@ describe('POST /api/feedback', () => {
     expect(prisma.sectionFeedback.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         service: 'destiny-map',
-        theme: 'career',
         sectionId: 'overview-career',
         helpful: true,
         locale: 'ko',
@@ -158,7 +157,6 @@ describe('POST /api/feedback', () => {
         user_id: 'anonymous',
         consultation_data: expect.objectContaining({
           record_id: 'fb-001',
-          theme: 'career',
           locale: 'ko',
         }),
       }),
@@ -402,8 +400,8 @@ describe('GET /api/feedback', () => {
     )
   })
 
-  // ---- Test 11: Filters by both service and theme ----
-  it('should filter stats by both service and theme query parameters', async () => {
+  // ---- Test 11: Filters by service (theme 필터 제거됨) ----
+  it('should filter stats by service query parameter', async () => {
     vi.mocked(prisma.sectionFeedback.count)
       .mockResolvedValueOnce(10 as any)
       .mockResolvedValueOnce(8 as any)
@@ -424,10 +422,10 @@ describe('GET /api/feedback', () => {
     expect(json.total).toBe(10)
     expect(json.satisfactionRate).toBe(80)
 
-    // Both groupBy calls should carry service + theme
+    // groupBy where should carry service (theme 필터는 제거됨)
     expect(prisma.sectionFeedback.groupBy).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ service: 'destiny-map', theme: 'career' }),
+        where: expect.objectContaining({ service: 'destiny-map' }),
       }),
     )
   })
