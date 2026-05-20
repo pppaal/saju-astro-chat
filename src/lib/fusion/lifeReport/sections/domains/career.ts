@@ -20,6 +20,7 @@ import {
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
+  aspectPairEntryMajor,
   aspectsOf,
   fixedStarOn,
   getPlanet,
@@ -245,12 +246,20 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const deepPieces: string[] = []
   const deepPiecesEn: string[] = []
   if (marsSaturn) {
-    deepPieces.push(
-      `당신의 화성과 토성이 ${aspectQuality(marsSaturn.type, 'ko')} 있어서, 추진력과 인내가 한 엔진처럼 같이 일해요.`
-    )
-    deepPiecesEn.push(
-      `With Mars and Saturn ${aspectQuality(marsSaturn.type, 'en')} on the same axis, drive and endurance work together like a single engine.`
-    )
+    // 화성-토성(추진×인내) 각의 구체 narrative를 aspectPair DB에서 우선 사용.
+    const msEntry = aspectPairEntryMajor('Mars', 'Saturn', marsSaturn.type)
+    if (msEntry) {
+      astroUsed.push('aspectPairDictionary.mars_saturn')
+      deepPieces.push(firstSentence(msEntry.ko))
+      deepPiecesEn.push(firstSentence(msEntry.en))
+    } else {
+      deepPieces.push(
+        `당신의 화성과 토성이 ${aspectQuality(marsSaturn.type, 'ko')} 있어서, 추진력과 인내가 한 엔진처럼 같이 일해요.`
+      )
+      deepPiecesEn.push(
+        `With Mars and Saturn ${aspectQuality(marsSaturn.type, 'en')} on the same axis, drive and endurance work together like a single engine.`
+      )
+    }
   }
   if (sunMc) {
     deepPieces.push(
