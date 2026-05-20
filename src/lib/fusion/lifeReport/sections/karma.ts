@@ -24,6 +24,8 @@ import {
 import { chiron, nearestEclipses, partOfFortune, planetsInHouse } from '../signals/astroSignals'
 import { northNode, findPlanet } from '../signals/astroSynthesis'
 import { eulReul, paragraph, planetLabel, signLabel } from '../templates/sentences'
+import { findGeokgukEntry } from '@/lib/saju/geokgukDictionary'
+import { findUltraAdvancedEntry } from '@/lib/saju/ultraAdvancedDictionary'
 
 // 행성명을 한국어로 (planetLabel은 동일 동작이지만 가독성을 위한 alias)
 function planetLabelKo(name: string): string {
@@ -273,6 +275,12 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   const specialFormations = saju.ultraAdvanced?.specialFormations ?? []
   if (specialFormations.length > 0) sajuUsed.push('ultraAdvanced.specialFormations')
 
+  // 격국/종격 DB 깊이 — 정적 사전에서 핵심 한 문장을 P4에 통합.
+  const geokgukEntry = geokguk ? findGeokgukEntry(geokguk) : null
+  if (geokgukEntry) sajuUsed.push('geokgukDictionary.entry')
+  const jongEntry = jong ? findUltraAdvancedEntry('종격', jong) : null
+  if (jongEntry) sajuUsed.push('ultraAdvancedDictionary.jonggeok.entry')
+
   // ─ astro signals
   const nn = northNode(astro)
   if (nn) astroUsed.push('planets.true_node')
@@ -370,9 +378,11 @@ export function buildKarma(input: BuilderInput): KarmaSection {
 
   // ──────── 文단 4: 잠재력 (특수 격국 + Part of Fortune)
   const p4ko = paragraph([
+    geokgukEntry ? firstSentenceKarma(geokgukEntry.ko) : '',
     jong
       ? '삶이 한 방향으로 강하게 응축돼서, 한 분야로 깊이 들어갈 때 가장 강한 잠재력이 풀려요.'
       : '',
+    jongEntry ? firstSentenceKarma(jongEntry.ko) : '',
     hwagyeok?.isHwagyeok ? '결정적인 순간에 한 번 더 자기를 바꿀 변화의 자유가 깔려 있어요.' : '',
     samgi.hasSamgi ? '큰 무대에서 인정받을 특별한 자질이 깔려 있어요.' : '',
     pof
@@ -382,9 +392,11 @@ export function buildKarma(input: BuilderInput): KarmaSection {
     `한 줄로 정리하면: 이번 생은 ${missionKo}${eulReul(missionKo)} 통해 ${karmaType} 카르마를 풀어가는 여정이에요.`,
   ])
   const p4en = paragraph([
+    geokgukEntry ? firstSentenceKarma(geokgukEntry.en) : '',
     jong
       ? 'Your chart condenses strongly into a single direction, so deep specialisation unlocks the largest potential.'
       : '',
+    jongEntry ? firstSentenceKarma(jongEntry.en) : '',
     hwagyeok?.isHwagyeok
       ? 'A transformation pattern sits in the chart — at decisive moments it grants you the freedom to remake yourself.'
       : '',
@@ -623,6 +635,14 @@ function shorten(s: string): string {
     .split(/[\.。,，]/)[0]
     .trim()
     .slice(0, 40)
+}
+
+// 격국/종격 사전 narrative의 첫 문장만 뽑아 P4가 길어지지 않게 한다.
+function firstSentenceKarma(s: string): string {
+  const trimmed = s.trim()
+  if (!trimmed) return ''
+  const m = trimmed.match(/^[^.!?。]*[.!?。]/)
+  return (m ? m[0] : trimmed).trim()
 }
 
 // 한자가 섞인 raw iljuCharacter 값을 한국어 음으로 풀어 자연 한국어로
