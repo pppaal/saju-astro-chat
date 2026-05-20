@@ -194,9 +194,22 @@ export function buildHeadline(input: BuilderInput): Headline {
   const comboKo = sunMoonCombo ? firstSentence(sunMoonCombo.ko) : ''
   const comboEn = sunMoonCombo ? firstSentence(sunMoonCombo.en) : ''
 
-  const s2ko = skyParts ? `별자리로 보면 ${skyParts}.${comboKo ? ` ${comboKo}` : ''}` : ''
+  // Sun × ASC (본성 × 첫인상) 조합 DB — 페르소나의 결을 한 문장 그라운딩.
+  // 첫인상(ASC)은 위 별자리 문장에서 이미 호명됨. Moon × ASC 는 첫인상을
+  // 또 한 번 묘사해 중복되므로 headline 에는 넣지 않고 love 도메인에서 사용.
+  const sunAscCombo =
+    sun?.sign && asc?.sign
+      ? findSignCombination('sun_asc', sun.sign as ZodiacName, asc.sign as ZodiacName)
+      : null
+  if (sunAscCombo) astroUsed.push('signCombinations.sun_asc')
+  const sunAscKo = sunAscCombo ? firstSentence(sunAscCombo.ko) : ''
+  const sunAscEn = sunAscCombo ? firstSentence(sunAscCombo.en) : ''
+
+  const s2ko = skyParts
+    ? `별자리로 보면 ${skyParts}.${comboKo ? ` ${comboKo}` : ''}${sunAscKo ? ` ${sunAscKo}` : ''}`
+    : ''
   const s2en = skyPartsEn
-    ? `Looking at the chart, ${skyPartsEn}.${comboEn ? ` ${comboEn}` : ''}`
+    ? `Looking at the chart, ${skyPartsEn}.${comboEn ? ` ${comboEn}` : ''}${sunAscEn ? ` ${sunAscEn}` : ''}`
     : ''
 
   // ─ Sentence 3 — fusion theme (짧게, iljuChar raw 제거)
