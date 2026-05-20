@@ -60,16 +60,11 @@ describe('CreditBadge', () => {
       } as any);
     });
 
-    it('should show login button when not authenticated', () => {
-      render(<CreditBadge />);
-      expect(screen.getByText('Login')).toBeInTheDocument();
-      expect(screen.getByText('🔑')).toBeInTheDocument();
-    });
-
-    it('should link to sign in URL', () => {
-      render(<CreditBadge />);
-      const link = screen.getByRole('link');
-      expect(link).toHaveAttribute('href', '/api/auth/signin');
+    it('should render nothing when not authenticated', () => {
+      // 로그아웃 상태에선 좌상단 햄버거 드로어가 로그인 진입을 제공하므로
+      // 코너 배지는 아무것도 렌더하지 않는다.
+      const { container } = render(<CreditBadge />);
+      expect(container.firstChild).toBeNull();
     });
 
     it('should return null for minimal variant when not logged in', () => {
@@ -259,26 +254,27 @@ describe('CreditBadge', () => {
       } as any);
     });
 
-    it('should show error state when API fails', async () => {
+    it('should render nothing when API fails', async () => {
+      // 에러 시 혼란스러운 경고 아이콘 대신 아무것도 렌더하지 않는다.
       (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
 
-      render(<CreditBadge />);
+      const { container } = render(<CreditBadge />);
 
       await waitFor(() => {
-        expect(screen.getByText('⚠️')).toBeInTheDocument();
+        expect(container.firstChild).toBeNull();
       });
     });
 
-    it('should show error state when API returns not ok', async () => {
+    it('should render nothing when API returns not ok', async () => {
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: false,
         status: 500,
       });
 
-      render(<CreditBadge />);
+      const { container } = render(<CreditBadge />);
 
       await waitFor(() => {
-        expect(screen.getByText('⚠️')).toBeInTheDocument();
+        expect(container.firstChild).toBeNull();
       });
     });
   });
