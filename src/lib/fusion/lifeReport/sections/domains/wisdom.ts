@@ -297,10 +297,10 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   }
   if (profIsLearning && prof) {
     guidePiecesKo.push(
-      `올해는 ${prof.house}궁이 열려 있어, 학습과 확장이 손에 잡히는 결과로 이어지는 한 해예요.`
+      '올해는 배움과 확장의 흐름이 열려 있어, 학습이 손에 잡히는 결과로 이어지는 한 해예요.'
     )
     guidePiecesEn.push(
-      `This year activates your ${houseLabel(prof.house, 'en')} — learning and expansion will translate into tangible results this year.`
+      'This year opens a learning-and-expansion current — study will translate into tangible results this year.'
     )
   }
   const guideKo = paragraph(guidePiecesKo)

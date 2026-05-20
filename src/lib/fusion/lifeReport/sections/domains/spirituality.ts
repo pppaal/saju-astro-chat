@@ -15,7 +15,9 @@ import {
 } from '../../signals/sajuSignals'
 import { chiron, getPlanet, houseCusp, planetsInHouse, vesta } from '../../signals/astroSignals'
 import { houseLabel, paragraph, planetLabel, signLabel } from '../../templates/sentences'
-import { asteroidHouseLine, planetHouseLine } from '../../pools'
+import { planetHouseLine } from '../../pools'
+import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
+import type { ZodiacName } from '@/lib/astrology/interpretations'
 
 export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const { saju, astro, calendarSignals } = input
@@ -153,16 +155,14 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const p3pieces: string[] = []
   const p3piecesEn: string[] = []
 
-  // Vesta × house — 헌신·신성 소행성 (destiny-matrix layer9 활용)
+  // 헌신의 별 베스타(Vesta) — 신성·집중의 결을 DB 사전 한 문장으로.
   const ves = vesta(astro)
-  if (ves) {
-    astroUsed.push('asteroids.vesta')
-    const vesCrossKo = asteroidHouseLine('Vesta', ves.house, 'ko')
-    const vesCrossEn = asteroidHouseLine('Vesta', ves.house, 'en')
-    if (vesCrossKo) {
-      astroUsed.push('pools.asteroid.vesta.house')
-      p3pieces.push(vesCrossKo)
-      p3piecesEn.push(vesCrossEn)
+  if (ves?.sign) {
+    const vesEntry = findAsteroidEntry('Vesta', ves.sign as ZodiacName)
+    if (vesEntry) {
+      astroUsed.push('asteroidDictionary.vesta')
+      p3pieces.push(firstSentenceSpirit(vesEntry.ko))
+      p3piecesEn.push(firstSentenceSpirit(vesEntry.en))
     }
   }
   // Pluto × house — 변혁·심층의 무대 (spirituality 깊이 외행성)
@@ -555,4 +555,11 @@ function zrSignFlavorKo(sign: string): string {
 }
 function zrSignFlavorEn(sign: string): string {
   return ZR_SIGN_EN[sign] ?? 'its native grain'
+}
+
+// DB 텍스트(2-3문장)에서 첫 문장만 추출 — 섹션 절제를 위해 1문장으로 한정.
+function firstSentenceSpirit(text: string): string {
+  const trimmed = text.trim()
+  const m = trimmed.match(/^[^.!?]*[.!?]/)
+  return (m ? m[0] : trimmed).trim()
 }

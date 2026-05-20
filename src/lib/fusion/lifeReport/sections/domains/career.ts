@@ -486,8 +486,8 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const prof = input.calendarSignals?.profectionCurrent
   if (prof && (prof.house === 10 || prof.house === 6 || prof.house === 2)) {
     fusionUsed.push('calendarSignals.profections')
-    guideKo += ` 올해는 ${prof.house}궁(${prof.house === 10 ? '사회 무대' : prof.house === 6 ? '일터·실무' : '재산'})이 활성돼서, 직업의 흐름이 손에 잡히는 결과로 이어지는 한 해예요.`
-    guideEn += ` This year activates your ${houseLabel(prof.house, 'en')} — career outcomes will translate into tangible results this year.`
+    guideKo += ` 올해는 ${prof.house === 10 ? '사회 무대' : prof.house === 6 ? '일터·실무' : '재산'} 영역이 활성돼서, 직업의 흐름이 손에 잡히는 결과로 이어지는 한 해예요.`
+    guideEn += ` This year activates the area of ${prof.house === 10 ? 'public standing' : prof.house === 6 ? 'work and craft' : 'personal resources'} — career outcomes will translate into tangible results this year.`
   }
 
   // careerDictionary 추천 직업 — 구체적인 분야 1-2 문장으로 마무리.

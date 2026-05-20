@@ -101,9 +101,12 @@ export function aspectBetween(
   )
 }
 
-/** Returns Juno extra point either via asteroids or extraPoints. */
+// 소행성 키 케이싱은 경로마다 다르다 — foundation engine은 대문자(Juno),
+// destiny-map 실엔진(asteroids-stars)은 소문자(juno)를 보낸다. 두 케이싱과
+// extraPoints fallback을 모두 허용해 실제 앱 경로에서 항상 발화하도록 한다.
+/** Returns Juno via asteroids (either casing) or extraPoints. */
 export function juno(astro: AstrologyLikeChart) {
-  return astro.asteroids?.Juno || astro.extraPoints?.juno
+  return astro.asteroids?.Juno || astro.asteroids?.juno || astro.extraPoints?.juno
 }
 export function vertex(astro: AstrologyLikeChart) {
   return astro.vertex || astro.extraPoints?.vertex
@@ -112,13 +115,13 @@ export function partOfFortune(astro: AstrologyLikeChart) {
   return astro.partOfFortune || astro.extraPoints?.partOfFortune
 }
 export function ceres(astro: AstrologyLikeChart) {
-  return astro.asteroids?.Ceres || astro.extraPoints?.ceres
+  return astro.asteroids?.Ceres || astro.asteroids?.ceres || astro.extraPoints?.ceres
 }
 export function pallas(astro: AstrologyLikeChart) {
-  return astro.asteroids?.Pallas
+  return astro.asteroids?.Pallas || astro.asteroids?.pallas
 }
 export function vesta(astro: AstrologyLikeChart) {
-  return astro.asteroids?.Vesta
+  return astro.asteroids?.Vesta || astro.asteroids?.vesta
 }
 export function chiron(astro: AstrologyLikeChart) {
   return astro.chiron
