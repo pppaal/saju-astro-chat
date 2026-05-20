@@ -141,7 +141,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   )
   const styleEn = pickLoveStyleEn(cat, jeongGwan, pyenGwan, jeongJae, pyenJae, isFemale)
   const venusBlurb = venus
-    ? `당신의 금성은 ${signLabel(venus.sign, 'ko')}에 있어서, ${venusFlavorKo(venus.sign, venus.house)}이 당신 사랑의 색이에요.`
+    ? `당신의 금성은 ${signLabel(venus.sign, 'ko')}에 있어서, ${venusFlavorKo(venus.sign, venus.house)}이 당신의 사랑 색이에요.`
     : ''
   const venusBlurbEn = venus
     ? `Venus in ${signLabel(venus.sign, 'en')} (${houseLabel(venus.house, 'en')}) brings ${venusFlavorEn(venus.sign, venus.house)} to your love life.`

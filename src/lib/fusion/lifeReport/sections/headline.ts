@@ -68,10 +68,10 @@ const STRENGTH_LABEL_EN: Record<string, string> = {
 }
 
 const ELEMENT_FLAVOR_KO: Record<string, string> = {
-  fire: '뜨겁고 빛나는 불',
-  earth: '단단히 받치는 흙',
-  air: '가볍게 흐르는 바람',
-  water: '깊이 흐르는 물',
+  fire: '불',
+  earth: '흙',
+  air: '바람',
+  water: '물',
 }
 const ELEMENT_FLAVOR_EN: Record<string, string> = {
   fire: 'Fire',
@@ -255,7 +255,7 @@ function modalityStandaloneKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
 // 격국을 자연어 의미로 풀어쓰는 헬퍼 — 10차 자연화: "~ 스타일/~ 결" 패턴 제거,
 // 친구가 말하듯 직접 표현으로.
 function geokgukFlavorKo(g: string): string {
-  if (!g) return '자기 본성 그대로 살아가시는 분이에요'
+  if (!g) return '본성대로 사시는 편이에요'
   if (g.includes('편관')) return '도전과 책임을 무게로 받아내시는 편이에요'
   if (g.includes('정관')) return '책임감 있게 자기 자리를 잡아가시는 편이에요'
   if (g.includes('편재')) return '기회를 잡는 감각이 빛나요'
@@ -265,7 +265,7 @@ function geokgukFlavorKo(g: string): string {
   if (g.includes('편인')) return '독특한 직관과 비주류 지혜가 있어요'
   if (g.includes('정인')) return '배움과 돌봄으로 흐르는 분이에요'
   if (g.includes('비견') || g.includes('겁재')) return '동료와 함께 가시는 분이에요'
-  return '자기 본성 그대로 살아가시는 분이에요'
+  return '본성대로 사시는 편이에요'
 }
 
 // 격국 → 자연 영어 (raw 사주 용어 제거).
