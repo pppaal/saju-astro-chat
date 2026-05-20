@@ -77,57 +77,20 @@ describe('useInlineTarotState', () => {
 
       expect(result.current.state.concern).toBe('My specific question')
     })
-
-    it('should return themeToCategory mapping', () => {
-      const { result } = renderHook(() => useInlineTarotState(defaultOptions))
-
-      expect(result.current.themeToCategory).toBeDefined()
-      expect(result.current.themeToCategory.focus_love).toBe('love-relationships')
-      expect(result.current.themeToCategory.career).toBe('career-work')
-      expect(result.current.themeToCategory.life).toBe('general-insight')
-    })
   })
 
-  describe('theme to category mapping', () => {
-    it('should map focus_love to love-relationships', () => {
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'focus_love' })
-      )
-
-      expect(result.current.state.selectedCategory).toBe('love-relationships')
-    })
-
-    it('should map love to love-relationships', () => {
-      const { result } = renderHook(() => useInlineTarotState({ ...defaultOptions, theme: 'love' }))
-
-      expect(result.current.state.selectedCategory).toBe('love-relationships')
-    })
-
-    it('should map focus_career to career-work', () => {
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'focus_career' })
-      )
-
-      expect(result.current.state.selectedCategory).toBe('career-work')
-    })
-
-    it('should map career to career-work', () => {
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'career' })
-      )
-
-      expect(result.current.state.selectedCategory).toBe('career-work')
-    })
-
-    it('should map life to general-insight', () => {
-      const { result } = renderHook(() => useInlineTarotState({ ...defaultOptions, theme: 'life' }))
+  describe('default category', () => {
+    // The hook no longer derives a category from theme — it always starts
+    // from the general-insight default and relies on AI-suggested spreads.
+    it('should default selectedCategory to general-insight', () => {
+      const { result } = renderHook(() => useInlineTarotState(defaultOptions))
 
       expect(result.current.state.selectedCategory).toBe('general-insight')
     })
 
-    it('should default to general-insight for unknown theme', () => {
+    it('should default to general-insight regardless of theme', () => {
       const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'unknown_theme' })
+        useInlineTarotState({ ...defaultOptions, theme: 'focus_love' })
       )
 
       expect(result.current.state.selectedCategory).toBe('general-insight')
@@ -145,12 +108,13 @@ describe('useInlineTarotState', () => {
       expect(spreads[2].cardCount).toBe(10)
     })
 
-    it('should return spreads for love theme', () => {
+    it('should return default general-insight spreads regardless of theme', () => {
       const { result } = renderHook(() => useInlineTarotState({ ...defaultOptions, theme: 'love' }))
 
       const spreads = result.current.recommendedSpreads
-      expect(spreads.length).toBe(2)
-      expect(spreads.some((s) => s.id === 'relationship-spread')).toBe(true)
+      // theme no longer selects a category; always the general-insight default
+      expect(spreads.length).toBe(3)
+      expect(spreads.some((s) => s.id === 'single-card')).toBe(true)
     })
 
     it('should return empty array for theme without category', () => {
@@ -547,7 +511,7 @@ describe('useInlineTarotState', () => {
   })
 
   describe('theme change effect', () => {
-    it('should update category when theme changes', () => {
+    it('should keep general-insight category when theme changes', () => {
       const { result, rerender } = renderHook((props) => useInlineTarotState(props), {
         initialProps: defaultOptions,
       })
@@ -556,7 +520,8 @@ describe('useInlineTarotState', () => {
 
       rerender({ ...defaultOptions, theme: 'love' })
 
-      expect(result.current.state.selectedCategory).toBe('love-relationships')
+      // theme is no longer mapped to a category
+      expect(result.current.state.selectedCategory).toBe('general-insight')
     })
   })
 
