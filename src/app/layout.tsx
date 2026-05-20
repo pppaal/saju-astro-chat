@@ -19,44 +19,60 @@ import ScrollRestoration from '@/components/ui/ScrollRestoration'
 import GlobalHeader from '@/components/ui/GlobalHeader'
 import { WebVitalsReporter } from '@/components/performance/WebVitalsReporter'
 import { ReactNode, Suspense } from 'react'
-import { Montserrat, Noto_Sans_KR, Cinzel, Lora, Merriweather } from 'next/font/google'
+import localFont from 'next/font/local'
 import { headers } from 'next/headers'
 import { ClientProviders } from './ClientProviders'
 
+// Fonts are self-hosted (next/font/local) instead of next/font/google so the
+// production build never has to reach fonts.googleapis.com at build time —
+// that network fetch was failing in CI/sandboxed builds and breaking the
+// whole build. Files live in ./fonts (latin subset, sourced from @fontsource).
+
 // Primary fonts with optimized loading
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  weight: ['400', '700', '800'],
+const montserrat = localFont({
+  src: [
+    { path: './fonts/montserrat-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/montserrat-latin-700-normal.woff2', weight: '700', style: 'normal' },
+    { path: './fonts/montserrat-latin-800-normal.woff2', weight: '800', style: 'normal' },
+  ],
   display: 'swap',
   variable: '--font-montserrat',
 })
 
-const notoKr = Noto_Sans_KR({
-  subsets: ['latin'],
-  weight: ['400', '700'],
+const notoKr = localFont({
+  src: [
+    { path: './fonts/noto-sans-kr-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/noto-sans-kr-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
   display: 'swap',
   variable: '--font-noto-kr',
 })
 
 // Secondary fonts for specific pages
-const cinzel = Cinzel({
-  subsets: ['latin'],
-  weight: ['400', '700'],
+const cinzel = localFont({
+  src: [
+    { path: './fonts/cinzel-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/cinzel-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
   display: 'swap',
   variable: '--font-cinzel',
 })
 
-const lora = Lora({
-  subsets: ['latin'],
-  weight: ['400', '700'],
+const lora = localFont({
+  src: [
+    { path: './fonts/lora-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/lora-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
   display: 'swap',
   variable: '--font-lora',
   preload: false,
 })
 
-const merriweather = Merriweather({
-  subsets: ['latin'],
-  weight: ['400', '700'],
+const merriweather = localFont({
+  src: [
+    { path: './fonts/merriweather-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/merriweather-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
   display: 'swap',
   variable: '--font-merriweather',
   preload: false,
