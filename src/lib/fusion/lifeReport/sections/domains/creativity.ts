@@ -11,6 +11,7 @@ import {
   aspectQuality,
   gwaWa,
   houseLabel,
+  iGa,
   paragraph,
   planetLabel,
   signLabel,
@@ -109,8 +110,9 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
       topVenusAspect.from?.name === 'Venus' ? topVenusAspect.to?.name : topVenusAspect.from?.name
     if (other) {
       const otherKoC = planetLabel(other, 'ko')
+      const venusFlavorC = venusAspectFlavorKo(other)
       p2pieces.push(
-        `당신의 금성이 ${otherKoC}${gwaWa(otherKoC)} ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusAspectFlavorKo(other)}의 색이 표현에 새겨져 있어요.`
+        `당신의 금성이 ${otherKoC}${gwaWa(otherKoC)} ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusFlavorC}${iGa(venusFlavorC)} 표현에 묻어나요.`
       )
       p2piecesEn.push(
         `Venus ${aspectQuality(topVenusAspect.type, 'en')} ${other} — ${venusAspectFlavorEn(other)} marks the way you express.`

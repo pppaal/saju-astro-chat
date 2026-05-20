@@ -178,6 +178,27 @@ export function joinList(items: string[], lang: Lang): string {
   return lang === 'ko' ? `${head}와 ${tail}` : `${head} and ${tail}`
 }
 
+// 한 문단 안에서 같은 종결구가 반복되면(결이에요/잘 맞아요) 2번째부터 자연스러운
+// 동의 표현으로 바꿔 단조로움을 줄인다. 입력 순서 기반이라 결정론적.
+const ENDING_VARIANTS: Array<{ re: RegExp; alts: string[] }> = [
+  { re: /결이에요\.?$/, alts: ['느낌이에요.', '모습이에요.'] },
+  { re: /잘 맞아요\.?$/, alts: ['잘 어울려요.', '잘 맞는 편이에요.'] },
+]
+export function varyRepeatedEndings(parts: string[]): string[] {
+  const counts: Record<string, number> = {}
+  return parts.map((p) => {
+    if (!p) return p
+    const t = p.trim()
+    for (const { re, alts } of ENDING_VARIANTS) {
+      if (re.test(t)) {
+        const n = (counts[re.source] = (counts[re.source] || 0) + 1)
+        return n >= 2 ? t.replace(re, alts[(n - 2) % alts.length]) : p
+      }
+    }
+    return p
+  })
+}
+
 /** Build a paragraph from sentence-fragments, joining w/ proper spacing. */
 export function paragraph(parts: string[]): string {
   return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()

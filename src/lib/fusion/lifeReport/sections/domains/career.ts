@@ -36,6 +36,7 @@ import {
   paragraph,
   planetLabel,
   signLabel,
+  varyRepeatedEndings,
 } from '../../templates/sentences'
 import {
   appendToPara,
@@ -187,8 +188,10 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // P1 — keep to max 2 pool variations (Sun sign + Sun house) so the basic
   // identity paragraph stays short and readable. The remaining pool lines
   // (Mercury, Mars, Saturn, Pluto, ASC) move into P3 as deep-grain layer.
-  p1ko = appendToPara(p1ko, sunSignVar)
-  p1ko = appendToPara(p1ko, sunHouseVar)
+  // 두 pool 변주가 같은 종결("잘 맞아요")로 끝나는 단조로움을 줄인다.
+  const [vSunSign, vSunHouse] = varyRepeatedEndings([sunSignVar ?? '', sunHouseVar ?? ''])
+  p1ko = appendToPara(p1ko, vSunSign)
+  p1ko = appendToPara(p1ko, vSunHouse)
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
     mc
@@ -323,7 +326,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     )
   }
   if (iljuAptitudes.length > 0 && iljuName) {
-    deepPieces.push(`타고난 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽에 잘 맞아요.`)
+    deepPieces.push(`타고난 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽으로 기울어 있어요.`)
     deepPiecesEn.push(`Your natural aptitudes lean toward ${aptitudeListEn(iljuAptitudes)}.`)
   }
   // Sibsin-category pool — deep-grain layer (P3, not P1) so the same line
@@ -430,7 +433,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   const p3ko = paragraph(
     deepPieces.length
-      ? deepPieces
+      ? varyRepeatedEndings(deepPieces)
       : [
           '지금 흐름이 평탄하게 정렬돼 있어, 한쪽으로 치우치기보다 다양한 가능성이 함께 무르익는 시기예요.',
         ]
