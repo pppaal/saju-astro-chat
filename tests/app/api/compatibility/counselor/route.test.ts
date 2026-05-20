@@ -13,6 +13,7 @@ vi.mock('@/lib/api/middleware', () => ({
     rateLimit: { limit: 30, windowSeconds: 60 },
     credits: { type: 'compatibility', amount: 1 },
   })),
+  extractLocale: vi.fn(() => 'ko'),
   apiSuccess: vi.fn((data: any) => ({ data })),
   apiError: vi.fn((code: string, message?: string) => ({
     error: { code, message },
@@ -24,13 +25,24 @@ vi.mock('@/lib/api/middleware', () => ({
   },
 }))
 
-// Mock next-auth
+// Mock next-auth — default no session → guest guard path (initializeApiContext
+// is fully mocked, so the chosen guard doesn't matter for assertions).
 vi.mock('next-auth', () => ({
   getServerSession: vi.fn(),
 }))
 
 vi.mock('@/lib/auth/authOptions', () => ({
   authOptions: {},
+}))
+
+// Mock error handler (guest-limit path only)
+vi.mock('@/lib/api/errorHandler', () => ({
+  createErrorResponse: vi.fn(() => NextResponse.json({ error: 'guest_limit' }, { status: 401 })),
+  ErrorCodes: {
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    BAD_REQUEST: 'BAD_REQUEST',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+  },
 }))
 
 // Mock logger
@@ -43,16 +55,20 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-// Mock streaming
+// Mock streaming fallback
 vi.mock('@/lib/streaming', () => ({
   createFallbackSSEStream: vi.fn(),
 }))
 
-// Mock ApiClient
-vi.mock('@/lib/api/ApiClient', () => ({
-  apiClient: {
-    post: vi.fn(),
-  },
+// Mock Claude SSE — the route now streams Claude directly instead of
+// calling a Python backend. Default: resolves to an SSE Response.
+vi.mock('@/lib/llm/claudeSSE', () => ({
+  streamClaudeAsSSE: vi.fn(
+    async () =>
+      new Response('data: {"content":"hi","done":false}\n\ndata: {"content":"","done":true}\n\n', {
+        headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
+      })
+  ),
 }))
 
 // Mock text guards
@@ -64,12 +80,6 @@ vi.mock('@/lib/textGuards', () => ({
       ? '규제/민감 주제로 답변이 제한됩니다.'
       : 'Response restricted due to sensitive topics.'
   ),
-}))
-
-// Mock compatibility fusion
-vi.mock('@/lib/compatibility/compatibilityFusion', () => ({
-  calculateFusionCompatibility: vi.fn(),
-  interpretCompatibilityScore: vi.fn(),
 }))
 
 // Mock Zod validation
@@ -138,12 +148,8 @@ vi.mock('@/lib/constants/http', () => ({
 import { POST } from '@/app/api/compatibility/counselor/route'
 import { initializeApiContext } from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
+import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
-import {
-  calculateFusionCompatibility,
-  interpretCompatibilityScore,
-} from '@/lib/compatibility/compatibilityFusion'
 
 // ============================================================
 // Helpers
@@ -183,35 +189,6 @@ const validAstroProfile = {
   },
 }
 
-const mockFusionResult = {
-  overallScore: 78,
-  aiInsights: {
-    deepAnalysis: 'Strong complementary energy between the two',
-    hiddenPatterns: ['Pattern 1'],
-    synergySources: ['Synergy 1'],
-    growthOpportunities: ['Growth 1'],
-  },
-  relationshipDynamics: {
-    emotionalIntensity: 75,
-    intellectualAlignment: 80,
-    spiritualConnection: 70,
-    conflictResolutionStyle: 'Collaborative',
-  },
-  futureGuidance: {
-    shortTerm: 'Focus on communication',
-    mediumTerm: 'Strengthen trust',
-    longTerm: 'Build together',
-  },
-  recommendedActions: [
-    {
-      priority: 'high',
-      category: 'communication',
-      action: 'Have weekly date nights',
-      reasoning: 'Strengthens emotional bond',
-    },
-  ],
-}
-
 function createRequest(body: Record<string, unknown>): NextRequest {
   return new NextRequest('http://localhost/api/compatibility/counselor', {
     method: 'POST',
@@ -231,25 +208,6 @@ describe('Compatibility Counselor API - POST', () => {
     vi.mocked(initializeApiContext).mockResolvedValue({
       context: defaultContext,
       error: undefined,
-    } as any)
-
-    // Default: fusion calculation succeeds
-    vi.mocked(calculateFusionCompatibility).mockReturnValue(mockFusionResult as any)
-    vi.mocked(interpretCompatibilityScore).mockReturnValue({
-      grade: 'A',
-      emoji: '💕',
-      title: 'Excellent Match',
-    } as any)
-
-    // Default: backend AI responds successfully
-    vi.mocked(apiClient.post).mockResolvedValue({
-      ok: true,
-      status: 200,
-      data: {
-        data: {
-          response: 'AI generated compatibility analysis response.',
-        },
-      },
     } as any)
 
     // Default: fallback stream returns a Response
@@ -349,7 +307,6 @@ describe('Compatibility Counselor API - POST', () => {
       }))
       const req = createRequest({ persons: tooMany })
       const response = await POST(req)
-      const data = await response.json()
 
       expect(response.status).toBe(400)
     })
@@ -360,7 +317,6 @@ describe('Compatibility Counselor API - POST', () => {
         lang: 'fr',
       })
       const response = await POST(req)
-      const data = await response.json()
 
       expect(response.status).toBe(400)
     })
@@ -371,7 +327,6 @@ describe('Compatibility Counselor API - POST', () => {
         theme: 'invalid-theme',
       })
       const response = await POST(req)
-      const data = await response.json()
 
       expect(response.status).toBe(400)
     })
@@ -382,11 +337,6 @@ describe('Compatibility Counselor API - POST', () => {
         vi.mocked(initializeApiContext).mockResolvedValue({
           context: defaultContext,
           error: undefined,
-        } as any)
-        vi.mocked(apiClient.post).mockResolvedValue({
-          ok: true,
-          status: 200,
-          data: { data: { response: 'OK' } },
         } as any)
         vi.mocked(containsForbidden).mockReturnValue(false)
 
@@ -417,6 +367,7 @@ describe('Compatibility Counselor API - POST', () => {
       await POST(req)
 
       expect(createFallbackSSEStream).toHaveBeenCalledWith(expect.objectContaining({ done: true }))
+      expect(streamClaudeAsSSE).not.toHaveBeenCalled()
     })
 
     it('should call safetyMessage with the correct locale', async () => {
@@ -441,117 +392,35 @@ describe('Compatibility Counselor API - POST', () => {
       })
       await POST(req)
 
-      // Should proceed to backend AI call
-      expect(apiClient.post).toHaveBeenCalled()
+      // Should proceed to Claude streaming
+      expect(streamClaudeAsSSE).toHaveBeenCalled()
     })
   })
 
   // ----------------------------------------------------------
-  // Fusion Compatibility Analysis
+  // Claude Streaming
   // ----------------------------------------------------------
-  describe('Fusion Compatibility Analysis', () => {
-    it('should calculate fusion when all saju and astro profiles provided', async () => {
+  describe('Claude Streaming', () => {
+    it('should call streamClaudeAsSSE with prompt blocks and config', async () => {
       const req = createRequest({
         persons: validPersons,
-        person1Saju: validSajuProfile,
-        person2Saju: validSajuProfile,
-        person1Astro: validAstroProfile,
-        person2Astro: validAstroProfile,
-        messages: [{ role: 'user', content: 'How compatible are we?' }],
-      })
-      await POST(req)
-
-      expect(calculateFusionCompatibility).toHaveBeenCalled()
-      expect(interpretCompatibilityScore).toHaveBeenCalledWith(78)
-    })
-
-    it('should skip fusion when person1Saju is null', async () => {
-      const req = createRequest({
-        persons: validPersons,
-        person1Saju: null,
-        person2Saju: validSajuProfile,
-        person1Astro: validAstroProfile,
-        person2Astro: validAstroProfile,
-        messages: [{ role: 'user', content: 'Check compatibility' }],
-      })
-      await POST(req)
-
-      expect(calculateFusionCompatibility).not.toHaveBeenCalled()
-    })
-
-    it('should skip fusion when person2Astro is null', async () => {
-      const req = createRequest({
-        persons: validPersons,
-        person1Saju: validSajuProfile,
-        person2Saju: validSajuProfile,
-        person1Astro: validAstroProfile,
-        person2Astro: null,
-        messages: [{ role: 'user', content: 'Check compatibility' }],
-      })
-      await POST(req)
-
-      expect(calculateFusionCompatibility).not.toHaveBeenCalled()
-    })
-
-    it('should handle fusion calculation errors gracefully', async () => {
-      vi.mocked(calculateFusionCompatibility).mockImplementation(() => {
-        throw new Error('Fusion calculation failed')
-      })
-
-      const req = createRequest({
-        persons: validPersons,
-        person1Saju: validSajuProfile,
-        person2Saju: validSajuProfile,
-        person1Astro: validAstroProfile,
-        person2Astro: validAstroProfile,
-        messages: [{ role: 'user', content: 'Compatibility check' }],
-      })
-      const response = await POST(req)
-
-      // Should still proceed to backend AI call, just without fusion context
-      expect(apiClient.post).toHaveBeenCalled()
-      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
-    })
-
-    it('should not run fusion when no saju/astro data is provided', async () => {
-      const req = createRequest({
-        persons: validPersons,
-        messages: [{ role: 'user', content: 'General compatibility question' }],
-      })
-      await POST(req)
-
-      expect(calculateFusionCompatibility).not.toHaveBeenCalled()
-    })
-  })
-
-  // ----------------------------------------------------------
-  // Backend AI Call
-  // ----------------------------------------------------------
-  describe('Backend AI Call', () => {
-    it('should send correct parameters to backend', async () => {
-      const messages = [{ role: 'user', content: 'How is our compatibility?' }]
-
-      const req = createRequest({
-        persons: validPersons,
-        messages,
+        messages: [{ role: 'user', content: 'How is our compatibility?' }],
         lang: 'ko',
-        theme: 'love',
       })
       await POST(req)
 
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/api/compatibility/chat',
+      expect(streamClaudeAsSSE).toHaveBeenCalledWith(
         expect.objectContaining({
-          persons: validPersons,
-          locale: 'ko',
-          theme: 'love',
-          is_premium: true,
-        }),
-        expect.objectContaining({ timeout: 80000 })
+          systemPrompt: expect.any(String),
+          cachedUserContext: expect.any(String),
+          userPrompt: expect.any(String),
+          timeoutMs: 80000,
+          label: 'compatibility-counselor',
+        })
       )
     })
 
-    it('should return SSE stream response on successful AI call', async () => {
+    it('should return SSE stream response on successful Claude call', async () => {
       const req = createRequest({
         persons: validPersons,
         messages: [{ role: 'user', content: 'Tell me about us' }],
@@ -562,26 +431,7 @@ describe('Compatibility Counselor API - POST', () => {
       expect(response.headers.get('Cache-Control')).toBe('no-cache')
     })
 
-    it('should handle AI response with various data shapes', async () => {
-      // Test fallback when data.response is missing but aiData.interpretation exists
-      vi.mocked(apiClient.post).mockResolvedValue({
-        ok: true,
-        status: 200,
-        data: {
-          interpretation: 'Interpretation text here',
-        },
-      } as any)
-
-      const req = createRequest({
-        persons: validPersons,
-        messages: [{ role: 'user', content: 'Compatibility?' }],
-      })
-      const response = await POST(req)
-
-      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
-    })
-
-    it('should clamp messages to maximum of 8', async () => {
+    it('should clamp prior turns to a bounded history', async () => {
       const messages = Array.from({ length: 15 }, (_, i) => ({
         role: i % 2 === 0 ? 'user' : 'assistant',
         content: `Message ${i}`,
@@ -593,29 +443,34 @@ describe('Compatibility Counselor API - POST', () => {
       })
       await POST(req)
 
-      // The handler uses clampMessages(messages, 8), passing at most 8 to the backend
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/api/compatibility/chat',
-        expect.objectContaining({
-          history: expect.any(Array),
-        }),
-        expect.anything()
-      )
-      const callArgs = vi.mocked(apiClient.post).mock.calls[0][1] as any
-      expect(callArgs.history.length).toBeLessThanOrEqual(8)
+      const callArgs = vi.mocked(streamClaudeAsSSE).mock.calls[0][0] as any
+      expect(Array.isArray(callArgs.priorTurns)).toBe(true)
+      expect(callArgs.priorTurns.length).toBeLessThanOrEqual(8)
+    })
+
+    it('should use the English system prompt when locale is en', async () => {
+      vi.mocked(initializeApiContext).mockResolvedValue({
+        context: { ...defaultContext, locale: 'en' },
+        error: undefined,
+      } as any)
+
+      const req = createRequest({
+        persons: validPersons,
+        messages: [{ role: 'user', content: 'Compatibility check' }],
+      })
+      await POST(req)
+
+      const callArgs = vi.mocked(streamClaudeAsSSE).mock.calls[0][0] as any
+      expect(callArgs.systemPrompt).toContain('Answer the user directly')
     })
   })
 
   // ----------------------------------------------------------
-  // Backend AI Failure / Fallback
+  // Claude Failure / Fallback
   // ----------------------------------------------------------
-  describe('Backend AI Failure', () => {
-    it('should return fallback SSE stream when backend returns non-ok status', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({
-        ok: false,
-        status: 502,
-        data: null,
-      } as any)
+  describe('Claude Failure', () => {
+    it('should return Korean fallback SSE stream when Claude throws', async () => {
+      vi.mocked(streamClaudeAsSSE).mockRejectedValueOnce(new Error('Claude down'))
 
       const req = createRequest({
         persons: validPersons,
@@ -633,11 +488,7 @@ describe('Compatibility Counselor API - POST', () => {
     })
 
     it('should return English fallback message when language is en', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({
-        ok: false,
-        status: 500,
-        data: null,
-      } as any)
+      vi.mocked(streamClaudeAsSSE).mockRejectedValueOnce(new Error('Claude down'))
 
       const req = createRequest({
         persons: validPersons,
@@ -654,8 +505,8 @@ describe('Compatibility Counselor API - POST', () => {
       )
     })
 
-    it('should return fallback SSE stream when fetch throws', async () => {
-      vi.mocked(apiClient.post).mockRejectedValue(new Error('Network error'))
+    it('should fall back when Claude rejects without a message', async () => {
+      vi.mocked(streamClaudeAsSSE).mockRejectedValueOnce(new Error('Network error'))
 
       const req = createRequest({
         persons: validPersons,
@@ -691,7 +542,6 @@ describe('Compatibility Counselor API - POST', () => {
       })
 
       const response = await POST(req)
-      const data = await response.json()
 
       expect(response.status).toBe(500)
     })
@@ -709,45 +559,7 @@ describe('Compatibility Counselor API - POST', () => {
       await POST(req)
 
       // Should proceed (no safety check since no user message)
-      expect(apiClient.post).toHaveBeenCalled()
-    })
-
-    it('should use context locale when lang is not provided', async () => {
-      vi.mocked(initializeApiContext).mockResolvedValue({
-        context: { ...defaultContext, locale: 'en' },
-        error: undefined,
-      } as any)
-
-      const req = createRequest({
-        persons: validPersons,
-        messages: [{ role: 'user', content: 'Compatibility check' }],
-      })
-      await POST(req)
-
-      // lang defaults to context.locale
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/api/compatibility/chat',
-        expect.objectContaining({
-          locale: 'en',
-        }),
-        expect.anything()
-      )
-    })
-
-    it('should default theme to general', async () => {
-      const req = createRequest({
-        persons: validPersons,
-        messages: [{ role: 'user', content: 'Check' }],
-      })
-      await POST(req)
-
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/api/compatibility/chat',
-        expect.objectContaining({
-          theme: 'general',
-        }),
-        expect.anything()
-      )
+      expect(streamClaudeAsSSE).toHaveBeenCalled()
     })
 
     it('should handle saju data with missing fields gracefully', async () => {
@@ -766,8 +578,7 @@ describe('Compatibility Counselor API - POST', () => {
       })
       await POST(req)
 
-      // Should still work - buildSajuProfile fills defaults
-      expect(calculateFusionCompatibility).toHaveBeenCalled()
+      expect(streamClaudeAsSSE).toHaveBeenCalled()
     })
 
     it('should handle astro data with direct planet format', async () => {
@@ -789,27 +600,7 @@ describe('Compatibility Counselor API - POST', () => {
       })
       await POST(req)
 
-      expect(calculateFusionCompatibility).toHaveBeenCalled()
-    })
-
-    it('should handle AI response with empty response field', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({
-        ok: true,
-        status: 200,
-        data: {
-          data: { response: '' },
-        },
-      } as any)
-
-      const req = createRequest({
-        persons: validPersons,
-        messages: [{ role: 'user', content: 'Compatibility' }],
-        lang: 'ko',
-      })
-      const response = await POST(req)
-
-      // The handler falls back to a default message when response is falsy
-      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
+      expect(streamClaudeAsSSE).toHaveBeenCalled()
     })
 
     it('should only check the last user message for safety', async () => {
@@ -844,7 +635,7 @@ describe('Compatibility Counselor API - POST', () => {
       })
       await POST(req)
 
-      expect(apiClient.post).toHaveBeenCalled()
+      expect(streamClaudeAsSSE).toHaveBeenCalled()
     })
   })
 })
