@@ -1,173 +1,60 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
-import TarotHomePage from '@/app/tarot/page'
+import { render, screen } from '@testing-library/react'
+import TarotPage from '@/app/tarot/page'
+
+// The tarot home page was rewritten from a question-analysis routing flow
+// into a chat-style entry screen (TarotChatScreen). These tests cover the
+// new surface: it mounts and shows the question input + deck/spread chips.
 
 const mockPush = vi.fn()
-const mockHandleStartReading = vi.fn()
-const mockAddRecentQuestion = vi.fn()
-const mockStoreQuestionAnalysisSnapshot = vi.fn(() => 'analysis-key')
-const mockBuildStableEntryPath = vi.fn(
-  () => '/tarot/general-insight/quick-reading?question=%EC%95%88%EC%A0%95'
-)
-const mockAppendQuestionContextToPath = vi.fn(
-  (path: string, question: string, analysisKey?: string | null) =>
-    `${path}${path.includes('?') ? '&' : '?'}question=${encodeURIComponent(question)}${analysisKey ? `&analysisKey=${analysisKey}` : ''}`
-)
-
-const baseAnalysisResult = {
-  themeId: 'decisions-crossroads',
-  spreadId: 'yes-no-why',
-  spreadTitle: '할까 말까',
-  cardCount: 3,
-  userFriendlyExplanation: '질문에 가장 가까운 스프레드입니다.',
-  question_summary: '질문을 직접 해석했습니다.',
-  question_profile: {
-    type: { code: 'meeting_likelihood', label: '연락 가능성' },
-    subject: { code: 'other_person', label: '상대방' },
-    focus: { code: 'reply', label: '연락/반응' },
-    timeframe: { code: 'near_term', label: '단기' },
-    tone: { code: 'prediction', label: '예측 중심' },
-  },
-  direct_answer: '곧 반응 여부가 드러날 수 있습니다.',
-  intent_label: '연락 가능성',
-  recommended_spreads: [],
-  path: '/tarot/decisions-crossroads/yes-no-why?question=%EA%B1%94%20%EC%97%B0%EB%9D%BD%EC%98%B4%3F',
-  source: 'llm' as const,
-  fallback_reason: null,
-}
-
-const mockUseQuestionAnalysis = vi.fn(() => ({
-  analysisResult: baseAnalysisResult,
-  dangerWarning: null,
-  isAnalyzing: false,
-  isLoadingPreview: false,
-  fallbackReason: null,
-  fallbackNotice: null,
-  handleStartReading: mockHandleStartReading,
-}))
+const mockPrefetch = vi.fn()
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, prefetch: mockPrefetch }),
 }))
 
 vi.mock('@/i18n/I18nProvider', () => ({
-  useI18n: () => ({ language: 'ko' }),
+  useI18n: () => ({ locale: 'ko', language: 'ko' }),
 }))
 
 vi.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-      <div {...props}>{children}</div>
-    ),
-  },
+  motion: new Proxy(
+    {},
+    {
+      get: () =>
+        ({ children, ...props }: React.HTMLAttributes<HTMLElement>) => <div {...props}>{children}</div>,
+    }
+  ),
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
-vi.mock('@/components/ui/BackButton', () => ({
-  default: () => <div data-testid="back-button" />,
+vi.mock('next/image', () => ({
+  default: ({ alt = '', ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img alt={alt} {...props} />
+  ),
 }))
 
-vi.mock('@/app/tarot/hooks', () => ({
-  useCanvasAnimation: () => ({ current: null }),
-  useRecentQuestions: () => ({
-    recentQuestions: [],
-    addRecentQuestion: mockAddRecentQuestion,
-    removeRecentQuestion: vi.fn(),
-  }),
-  useQuestionAnalysis: () => mockUseQuestionAnalysis(),
-}))
-
-vi.mock('@/hooks/useMobileEnhancements', () => ({
-  useTapFeedback: () => vi.fn(),
-  useHapticFeedback: () => vi.fn(),
-}))
-
-vi.mock('@/app/tarot/utils/recommendations', () => ({
-  getQuickRecommendation: () => ({
-    path: '/tarot/general-insight/quick-reading',
-    spreadTitle: '빠른 리딩',
-    cardCount: 1,
-  }),
-}))
-
-vi.mock('@/lib/tarot/questionFlow', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/tarot/questionFlow')>(
-    '@/lib/tarot/questionFlow'
-  )
-  return {
-    ...actual,
-    storeQuestionAnalysisSnapshot: (
-      ...args: Parameters<typeof actual.storeQuestionAnalysisSnapshot>
-    ) => mockStoreQuestionAnalysisSnapshot(...args),
-    buildStableEntryPath: (...args: Parameters<typeof actual.buildStableEntryPath>) =>
-      mockBuildStableEntryPath(...args),
-    appendQuestionContextToPath: (...args: Parameters<typeof actual.appendQuestionContextToPath>) =>
-      mockAppendQuestionContextToPath(...args),
-  }
-})
-
-describe('TarotHomePage primary entry routing', () => {
+describe('TarotPage (chat-style entry screen)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseQuestionAnalysis.mockReturnValue({
-      analysisResult: baseAnalysisResult,
-      dangerWarning: null,
-      isAnalyzing: false,
-      isLoadingPreview: false,
-      fallbackReason: null,
-      fallbackNotice: null,
-      handleStartReading: mockHandleStartReading,
-    })
   })
 
-  it('uses analysisResult.path for the primary CTA when analysis is valid', () => {
-    render(<TarotHomePage />)
+  it('renders the question input', () => {
+    render(<TarotPage />)
 
-    fireEvent.change(screen.getByLabelText('타로 질문 입력'), {
-      target: { value: '걔 연락옴?' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: '이 추천으로 시작' }))
-
-    expect(mockAppendQuestionContextToPath).toHaveBeenCalledWith(
-      baseAnalysisResult.path,
-      '걔 연락옴?',
-      'analysis-key'
-    )
-    expect(mockBuildStableEntryPath).not.toHaveBeenCalled()
-    expect(mockPush).toHaveBeenCalledWith(
-      '/tarot/decisions-crossroads/yes-no-why?question=%EA%B1%94%20%EC%97%B0%EB%9D%BD%EC%98%B4%3F&question=%EA%B1%94%20%EC%97%B0%EB%9D%BD%EC%98%B4%3F&analysisKey=analysis-key'
-    )
+    expect(screen.getByPlaceholderText('어떤 고민이 있으신가요?')).toBeInTheDocument()
   })
 
-  it('falls back to a stable path when analysis source is fallback', () => {
-    mockUseQuestionAnalysis.mockReturnValue({
-      analysisResult: {
-        ...baseAnalysisResult,
-        source: 'fallback' as const,
-      },
-      dangerWarning: null,
-      isAnalyzing: false,
-      isLoadingPreview: false,
-      fallbackReason: null,
-      fallbackNotice: null,
-      handleStartReading: mockHandleStartReading,
-    })
+  it('renders the send button', () => {
+    render(<TarotPage />)
 
-    render(<TarotHomePage />)
+    expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument()
+  })
 
-    fireEvent.change(screen.getByLabelText('타로 질문 입력'), {
-      target: { value: '걔 연락옴?' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: '이 추천으로 시작' }))
+  it('shows the tarot master heading', () => {
+    render(<TarotPage />)
 
-    expect(mockBuildStableEntryPath).toHaveBeenCalled()
-    expect(mockAppendQuestionContextToPath).not.toHaveBeenCalledWith(
-      baseAnalysisResult.path,
-      '걔 연락옴?',
-      'analysis-key'
-    )
-    expect(mockPush).toHaveBeenCalledWith(
-      '/tarot/general-insight/quick-reading?question=%EC%95%88%EC%A0%95'
-    )
+    expect(screen.getByText('타로 마스터가 기다리고 있습니다')).toBeInTheDocument()
   })
 })
