@@ -128,8 +128,8 @@ const faqs: FaqItem[] = [
     icon: '🗑️',
     q: 'How do I delete my account?',
     qKo: '계정을 삭제하려면 어떻게 하나요?',
-    a: "Go to Settings > Account > Delete Account. You'll be asked to confirm. Note that this action is permanent and will erase all your data, readings, and history. Active subscriptions will be cancelled automatically.",
-    aKo: '설정 > 계정 > 계정 삭제로 이동하세요. 확인이 요청됩니다. 이 작업은 영구적이며 모든 데이터, 리딩, 기록이 삭제됩니다. 활성 구독은 자동으로 취소됩니다.',
+    a: "Go to Settings > Account > Delete Account. You'll be asked to confirm. Note that this action is permanent and will erase all your data, readings, and history. Any remaining credits are forfeited and cannot be refunded.",
+    aKo: '설정 > 계정 > 계정 삭제로 이동하세요. 확인이 요청됩니다. 이 작업은 영구적이며 모든 데이터, 리딩, 기록이 삭제됩니다. 남은 크레딧은 소멸되며 환불되지 않습니다.',
   },
   // Payment
   {
@@ -145,8 +145,8 @@ const faqs: FaqItem[] = [
     icon: '🔄',
     q: 'Can I get a refund?',
     qKo: '환불받을 수 있나요?',
-    a: 'Credit packs are refundable within 7 days if completely unused. Subscriptions have a 7-day guarantee for first-time subscribers. AI readings are non-refundable once generated. See our Refund Policy for details.',
-    aKo: '크레딧 팩은 완전히 미사용 상태로 7일 이내 환불 가능합니다. 구독은 최초 가입자에게 7일 보장이 있습니다. AI 리딩은 생성 후 환불 불가입니다. 자세한 내용은 환불 정책을 참조하세요.',
+    a: 'Credit packs are fully refundable within 7 days only if 0 credits have been used. Once any credit is consumed, the pack is non-refundable. AI readings are non-refundable once generated. See our Refund Policy for details.',
+    aKo: '크레딧 팩은 0크레딧 사용 상태로 구매 후 7일 이내에만 전액 환불 가능합니다. 1크레딧이라도 사용하면 환불 불가입니다. AI 리딩은 생성 후 환불 불가입니다. 자세한 내용은 환불 정책을 참조하세요.',
   },
   {
     category: 'payment',
@@ -159,26 +159,26 @@ const faqs: FaqItem[] = [
   {
     category: 'payment',
     icon: '🌟',
-    q: "What's the difference between free and premium?",
-    qKo: '무료와 프리미엄의 차이는 무엇인가요?',
-    a: 'Free users get limited daily access. Premium plans provide higher monthly credits, advanced Destiny Map analysis, priority AI responses, longer history storage, and exclusive features like compatibility reports.',
-    aKo: '무료 사용자는 일일 이용량이 제한됩니다. 프리미엄 플랜은 더 높은 월간 크레딧, 고급 Destiny Map 분석, 우선 AI 응답, 더 긴 기록 저장, 궁합 리포트 같은 전용 기능을 제공합니다.',
+    q: 'What can I use without paying?',
+    qKo: '무료로 사용할 수 있는 기능은 무엇인가요?',
+    a: 'Core onboarding tools and the current month of the Fortune Calendar are free. Paid AI features — chat, Tarot, Destiny Map readings, premium reports, compatibility analysis, extended calendar — each cost credits, which you buy as a one-time pack.',
+    aKo: '핵심 온보딩 도구와 운세 달력의 당월 일정은 무료입니다. 유료 AI 기능 — 상담, 타로, Destiny Map 리딩, 프리미엄 리포트, 궁합 분석, 확장 달력 — 은 각각 크레딧을 소모하며, 크레딧은 일회성 팩으로 구매합니다.',
   },
   {
     category: 'payment',
     icon: '💎',
     q: 'How do credits work?',
     qKo: '크레딧은 어떻게 작동하나요?',
-    a: 'Credits are used for premium AI readings and detailed reports. Each service shows its credit cost before use. Credit packs are valid for 3 months from purchase date, and monthly plan credits reset each billing cycle.',
-    aKo: '크레딧은 프리미엄 AI 리딩 및 상세 리포트에 사용됩니다. 각 서비스는 이용 전에 크레딧 비용을 표시합니다. 크레딧 팩은 구매일로부터 3개월간 유효하며, 월정액 플랜 크레딧은 결제 주기마다 초기화됩니다.',
+    a: 'Buy a credit pack once — no subscription, no auto-renewal. Each service shows its credit cost before use. Purchased credits are valid for 3 months from the purchase date.',
+    aKo: '크레딧 팩을 한 번 구매하시면 됩니다 — 구독 없음, 자동 결제 없음. 각 서비스는 이용 전에 소모 크레딧을 표시합니다. 구매한 크레딧은 구매일로부터 3개월간 유효합니다.',
   },
   {
     category: 'payment',
     icon: '🔁',
-    q: 'Can I cancel my subscription anytime?',
-    qKo: '언제든지 구독을 취소할 수 있나요?',
-    a: "Yes! You can cancel anytime from your account settings. You'll retain premium access until the end of your billing period. No cancellation fees or hidden charges.",
-    aKo: '네! 계정 설정에서 언제든지 취소할 수 있습니다. 결제 기간이 끝날 때까지 프리미엄 액세스가 유지됩니다. 취소 수수료나 숨겨진 요금이 없습니다.',
+    q: 'Will I be charged automatically?',
+    qKo: '자동으로 결제가 되나요?',
+    a: "No. DestinyPal does not offer recurring subscriptions. Every purchase is a one-time credit pack — your card is charged only when you actively buy more credits. There is no auto-renewal.",
+    aKo: '아닙니다. DestinyPal은 정기 구독을 제공하지 않습니다. 모든 결제는 일회성 크레딧 팩 구매이며, 사용자가 직접 추가 구매할 때만 결제됩니다. 자동 갱신은 없습니다.',
   },
   // Technical
   {

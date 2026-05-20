@@ -14,25 +14,36 @@ describe('content consistency guardrails', () => {
 
   it('keeps pricing FAQ/refund phrasing aligned in English copy', () => {
     const enMisc = JSON.parse(readUtf8('src/i18n/locales/en/misc.json')) as {
-      pricing: { monthlyResetDesc: string; guaranteeDesc: string; faqs: { a2: string; a5: string } }
+      pricing: {
+        validityDesc: string
+        guaranteeDesc: string
+        faqs: { a2: string; a5: string }
+      }
     }
 
-    expect(enMisc.pricing.monthlyResetDesc.toLowerCase()).toContain('billing cycle')
-    expect(enMisc.pricing.faqs.a2.toLowerCase()).toContain('billing cycle')
-    expect(enMisc.pricing.faqs.a5.toLowerCase()).toContain('unused credit packs')
+    // Credit-pack only: no subscriptions, no billing cycles.
+    expect(enMisc.pricing.validityDesc.toLowerCase()).toContain('3 months')
+    expect(enMisc.pricing.faqs.a2.toLowerCase()).toContain('3 months')
+    expect(enMisc.pricing.faqs.a5.toLowerCase()).toContain('credit pack')
     expect(enMisc.pricing.faqs.a5.toLowerCase()).toContain('7 days')
-    expect(enMisc.pricing.guaranteeDesc.toLowerCase()).toContain('first-time')
+    expect(enMisc.pricing.guaranteeDesc.toLowerCase()).toContain('unused credit packs')
+    expect(enMisc.pricing.guaranteeDesc.toLowerCase()).not.toContain('subscription')
   })
 
   it('keeps pricing FAQ/refund phrasing aligned in Korean copy', () => {
     const koMisc = JSON.parse(readUtf8('src/i18n/locales/ko/misc.json')) as {
-      pricing: { monthlyResetDesc: string; guaranteeDesc: string; faqs: { a2: string; a5: string } }
+      pricing: {
+        validityDesc: string
+        guaranteeDesc: string
+        faqs: { a2: string; a5: string }
+      }
     }
 
-    expect(koMisc.pricing.monthlyResetDesc).toContain('결제 주기')
+    expect(koMisc.pricing.validityDesc).toContain('3개월')
     expect(koMisc.pricing.faqs.a2).toContain('3개월')
     expect(koMisc.pricing.faqs.a5).toContain('7일')
-    expect(koMisc.pricing.guaranteeDesc).toContain('최초 구독')
+    expect(koMisc.pricing.guaranteeDesc).toContain('미사용 크레딧 팩')
+    expect(koMisc.pricing.guaranteeDesc).not.toContain('구독')
   })
 
   it('avoids unlimited-reading claim on FAQ page', () => {
