@@ -325,7 +325,7 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     const endAge = Math.round(zrSubCurrent.endYear)
     const endYearAbsolute = birthYearForSub + endAge
     p5pieces.push(
-      `그 안의 작은 시기로 보면, 지금은 ${zrSignKo(zrSubCurrent.sign)}의 느낌을 ${planetName(zrSubCurrent.ruler, 'ko')}이 다스리는 sub-period 안에 있어요. 이 작은 시기는 ${endAge}세(${endYearAbsolute}년) 무렵 닫히면서 작은 변곡이 한 번 와요.`
+      `그 안의 작은 시기로 보면, 지금은 ${zrSignKo(zrSubCurrent.sign)}의 느낌을 ${planetName(zrSubCurrent.ruler, 'ko')}이 다스리는 흐름 안에 있어요. 이 작은 시기는 ${endAge}세(${endYearAbsolute}년) 무렵 닫히면서 작은 변곡이 한 번 와요.`
     )
     p5piecesEn.push(
       `Inside the chapter, you sit in a smaller ${zrSubCurrent.sign} sub-period ruled by ${zrSubCurrent.ruler}; it closes around age ${endAge} (≈ ${endYearAbsolute}), bringing one minor pivot.`

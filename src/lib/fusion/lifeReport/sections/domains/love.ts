@@ -26,7 +26,7 @@ import {
   planetsInHouse,
   vertex,
 } from '../../signals/astroSignals'
-import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
+import { aspectQuality, eulReul, houseLabel, paragraph, signLabel } from '../../templates/sentences'
 import { findSignCombination } from '@/lib/astrology/signCombinations'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
@@ -233,13 +233,14 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   // ── Paragraph 2: 배우자 인상
   const branchFlavor = BRANCH_FLAVOR_KO[dBranch] || '독특한'
   const branchFlavorEn = BRANCH_FLAVOR_EN[dBranch] || 'distinctive'
-  const seventhSignKo = seventh?.sign ? signLabel(seventh.sign, 'ko') : '하늘'
-  const seventhSignEn = seventh?.sign ? signLabel(seventh.sign, 'en') : 'the sky'
+  const seventhSignKo = seventh?.sign ? signLabel(seventh.sign, 'ko') : ''
+  const seventhSignEn = seventh?.sign ? signLabel(seventh.sign, 'en') : ''
+  const seventhFlavorKo = seventh?.sign ? seventhSignFlavorKo(seventh.sign) : ''
 
   const p2ko = paragraph([
     `당신을 향해 다가오는 동반자는 ${branchFlavor} 사람이에요.`,
-    seventh
-      ? `관계 영역은 ${seventhSignKo}의 분위기로 시작해서, 파트너에게서 ${seventhSignFlavorKo(seventh.sign)}을 자연스럽게 바라게 돼요.`
+    seventh && seventhSignKo
+      ? `관계 영역은 ${seventhSignKo}의 분위기로 시작해서, 파트너에게서 ${seventhFlavorKo}${eulReul(seventhFlavorKo)} 자연스럽게 바라게 돼요.`
       : '',
     seventhPlanets.length > 0
       ? `관계 영역 안에 ${seventhPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 머물러, 관계가 인생의 한가운데로 들어와요.`
@@ -247,7 +248,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   ])
   const p2en = paragraph([
     `Your core nature tends to draw in a ${branchFlavorEn} kind of companion.`,
-    seventh
+    seventh && seventhSignEn
       ? `Your 7th house begins in ${seventhSignEn}, so you naturally ask for ${seventhSignFlavorEn(seventh.sign)} from a partner.`
       : '',
     seventhPlanets.length > 0
