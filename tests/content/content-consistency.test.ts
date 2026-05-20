@@ -61,12 +61,11 @@ describe('content consistency guardrails', () => {
     expect(refund).not.toContain('gmail.com')
   })
 
-  it('pricing and premium reports entry copy remain conversion-ready', () => {
+  it('pricing entry copy remains conversion-ready', () => {
+    // premium-reports 페이지는 제거됨 → pricing 카피만 검증.
     const pricingClient = readUtf8('src/app/pricing/PricingPageClient.tsx')
-    const premiumReportsPage = readUtf8('src/app/premium-reports/page.tsx')
 
     expect(pricingClient).toContain('startFree')
     expect(pricingClient.toLowerCase()).not.toContain('unlimited readings')
-    expect(premiumReportsPage).toContain('premium-reports')
   })
 })
