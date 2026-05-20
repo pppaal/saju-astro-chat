@@ -20,6 +20,7 @@ import {
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
+  aspectPairEntriesForPairs,
   aspectPairEntryMajor,
   aspectsOf,
   fixedStarOn,
@@ -268,6 +269,23 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     deepPiecesEn.push(
       `Your Sun and Midheaven ${aspectQuality(sunMc.type, 'en')}, which keeps your inner identity and your public role moving in the same direction.`
     )
+  }
+  // aspectPair DB — 야망·추진 축의 각(태양-토성/태양-화성/화성-목성/화성-명왕).
+  // 화성-토성은 위에서 별도 처리하므로 제외. 가장 좁은 각 1개만.
+  const careerAspect = aspectPairEntriesForPairs(
+    astro,
+    [
+      ['Sun', 'Saturn'],
+      ['Sun', 'Mars'],
+      ['Mars', 'Jupiter'],
+      ['Mars', 'Pluto'],
+    ],
+    1
+  )[0]
+  if (careerAspect) {
+    astroUsed.push('aspectPairDictionary.career')
+    deepPieces.push(firstSentence(careerAspect.ko))
+    deepPiecesEn.push(firstSentence(careerAspect.en))
   }
   if (pofInTenth) {
     deepPieces.push(`행운의 점이 사회 무대에 있어, 직업 자체가 행운의 통로가 되는 드문 배치예요.`)

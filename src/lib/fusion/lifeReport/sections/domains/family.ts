@@ -13,6 +13,7 @@ import {
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
+  aspectPairEntriesForPairs,
   aspectsOf,
   ceres,
   getPlanet,
@@ -257,6 +258,20 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       deepEn.push(
         `${relEnFamily} The line of your parents and ancestors reaches into your own life one layer deeper than most.`
       )
+  }
+  // aspectPair DB — 정서 축의 각(달-토성/달-화성). 가정 정서 분위기에 한 문장.
+  const familyAspect = aspectPairEntriesForPairs(
+    astro,
+    [
+      ['Moon', 'Saturn'],
+      ['Moon', 'Mars'],
+    ],
+    1
+  )[0]
+  if (familyAspect) {
+    astroUsed.push('aspectPairDictionary.family')
+    deepKo.push(firstSentenceFamily(familyAspect.ko))
+    deepEn.push(firstSentenceFamily(familyAspect.en))
   }
   // 12-stage × family variation pool.
   const dayMasterStemF = saju.pillars.day.stem || ''
