@@ -1075,6 +1075,10 @@ export const GET = withApiMiddleware(
 
       const allCells: typeof ceCells = []
       let ceCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
+      let prevMonthCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
+      const prevDate = new Date(targetYear, targetMonth - 1, 1)
+      const prevYear = prevDate.getFullYear()
+      const prevMonth = prevDate.getMonth()
       for (const m of monthsToBuild) {
         const { cells, cached } = await getOrBuildMonth({
           birthKey,
@@ -1094,6 +1098,9 @@ export const GET = withApiMiddleware(
         if (m.month === targetMonth && m.year === targetYear) {
           ceCells = cells // narrative는 current month 기준
         }
+        if (m.month === prevMonth && m.year === prevYear) {
+          prevMonthCells = cells // "지난달 대비" 비교 기준
+        }
       }
 
       // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
@@ -1105,6 +1112,7 @@ export const GET = withApiMiddleware(
           cells: ceCells,
           scope: 'monthly',
           lang: interpLang,
+          prevCells: prevMonthCells,
         })
         ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
         // interpretation은 그 달 전체 단위라 셀별 부착 X.

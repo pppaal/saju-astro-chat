@@ -38,6 +38,9 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
       {/* 키 이벤트 3 — 베스트 날 / 강한 구간 / 피할 날 (한눈에 스캔) */}
       <KeyEventsBlock keyEvents={interp.keyEvents} />
 
+      {/* 지난달 대비 — 변화 체감 (retention hook) */}
+      <MonthComparisonBlock comparison={interp.monthComparison} />
+
       {/* 핵심 포인트 — bullet 형태로 한눈에 */}
       {headlines.length > 0 && (
         <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
@@ -151,6 +154,43 @@ function KeyEventsBlock({ keyEvents }: { keyEvents: KeyEvents | undefined }) {
           <div className="text-[11px] text-rose-200/70 mt-0.5">무리한 결정은 미루기</div>
         </div>
       )}
+    </div>
+  )
+}
+
+type MonthComparison = NonNullable<Interpretation['monthComparison']>
+
+/**
+ * 지난달 대비 변화 — "전체 흐름 +6 · 재물 +14 · 직업 −5".
+ * 이번 달만 보면 좋아진 건지 모름 → 변화를 보여줘 재방문 동기 부여.
+ */
+function MonthComparisonBlock({ comparison }: { comparison: MonthComparison | undefined }) {
+  if (!comparison) return null
+  const { overallDelta, themes } = comparison
+  if (overallDelta === 0 && themes.length === 0) return null
+
+  const sign = (n: number) => (n >= 0 ? `+${n}` : `−${Math.abs(n)}`)
+  const color = (dir: 'up' | 'down') => (dir === 'up' ? 'text-emerald-400' : 'text-rose-400')
+
+  return (
+    <div className="bg-zinc-950/40 border border-white/5 rounded-xl px-4 py-3">
+      <div className="text-[11px] font-bold text-zinc-400 mb-2 tracking-wide">지난달 대비</div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        {overallDelta !== 0 && (
+          <span className="text-sm">
+            <span className="text-zinc-300">전체 흐름 </span>
+            <span className={`font-bold ${color(overallDelta >= 0 ? 'up' : 'down')}`}>
+              {sign(overallDelta)}
+            </span>
+          </span>
+        )}
+        {themes.map((t) => (
+          <span key={t.theme} className="text-sm">
+            <span className="text-zinc-300">{THEME_LABEL[t.theme] ?? t.theme} </span>
+            <span className={`font-bold ${color(t.dir)}`}>{sign(t.delta)}</span>
+          </span>
+        ))}
+      </div>
     </div>
   )
 }
