@@ -178,7 +178,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       ? `사회에 보여주는 모습은 ${signLabel(mc.sign, 'ko')}, ${mcSignFlavorKo(mc.sign)}이에요.`
       : '',
     sun
-      ? `당신의 태양은 ${signLabel(sun.sign, 'ko')}${sun.house === 10 ? '의 사회 정점에 있어서' : sun.house ? `의 ${karmaHouseHintForCareerKo(sun.house)} 영역에 있어서` : '에 있어서'}, ${sunHouseFlavorKo(sun.house)}이 직업의 핵심이에요.`
+      ? `당신의 태양은 ${signLabel(sun.sign, 'ko')}${sun.house === 10 ? '의 사회 정점에 있어서' : sun.house ? `의 ${karmaHouseHintForCareerKo(sun.house)} 영역에 있어서` : '에 있어서'}, ${sun.house === 10 ? '여기서 빛나는 일이 직업의 핵심이에요' : `${sunHouseFlavorKo(sun.house)}이 직업의 핵심이에요`}.`
       : '',
   ])
   // P1 — keep to max 2 pool variations (Sun sign + Sun house) so the basic
@@ -512,7 +512,7 @@ function paragraphOpenerKo(cat: string, geokguk: string, dayStem: string): strin
     const variants = [
       '당신은 동등한 사람들과 함께 있을 때 가장 빛나시는 분이에요. 함께 걷는 흐름 속에서 자기 주도성이 단단해져요.',
       '동료와 함께 가는 일에서 직업이 가장 잘 풀려요. 같은 방향을 보는 사람들이 곁에 있을 때 일이 매끄러워져요.',
-      '당신의 일은 협업과 선의의 경쟁 속에서 잘 풀려요. 어깨를 나란히 하는 자리가 자기 색을 키워줘요.',
+      '당신의 일은 협업과 건강한 경쟁 속에서 잘 풀려요. 어깨를 나란히 하는 자리가 자기 색을 키워줘요.',
     ]
     return variants[seed % variants.length]!
   }

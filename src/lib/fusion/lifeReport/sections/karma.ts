@@ -318,13 +318,13 @@ export function buildKarma(input: BuilderInput): KarmaSection {
   if (dmRoot) sajuUsed.push('tonggeun.dayMasterRoot')
   const p2ko = paragraph([
     `카르마 유형은 ${karmaType}이에요. ${KARMA_DESC_KO[karmaType]}`,
-    `약 ${Math.round(fixedRatio * 100)}%는 타고난 부분이고, ${Math.round(flexibleRatio * 100)}%는 선택과 노력으로 바꿀 수 있어요.`,
+    `약 ${Math.round(fixedRatio * 100)}% 정도는 타고난 거고, ${Math.round(flexibleRatio * 100)}%는 선택과 노력으로 바꿀 수 있어요.`,
     dmRoot ? dmRoot.phraseKo : '',
     gongmang.length > 0
       ? `삶의 ${gongmang.join('·')} 영역에 비어 있는 자리가 있어서 채워지지 않는 감각이 들 수 있어요. 이게 바로 영혼이 다음 단계로 넘어가도록 미는 부름이에요.`
       : '',
     twelfthPlanets.length > 0
-      ? `내면 영역에 ${twelfthPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 머물러 있어, 혼자 있는 시간 속에서 풀어야 할 과제가 함께 있어요.`
+      ? `${twelfthPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 내면 영역(12집)에 있어서, 혼자 있는 시간이 풀어야 할 과제예요.`
       : '',
   ])
   const p2en = paragraph([
