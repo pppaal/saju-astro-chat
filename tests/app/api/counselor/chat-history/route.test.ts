@@ -142,9 +142,9 @@ describe('/api/counselor/chat-history', () => {
       expect(result.isReturningUser).toBe(true)
     })
 
-    it('should filter sessions by theme when provided', async () => {
+    it('should scope sessions to the authenticated user', async () => {
       const req = new NextRequest(
-        'http://localhost:3000/api/counselor/chat-history?theme=career&limit=5'
+        'http://localhost:3000/api/counselor/chat-history?limit=5'
       )
 
       await GET(req)
@@ -152,7 +152,7 @@ describe('/api/counselor/chat-history', () => {
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            theme: 'career',
+            userId: mockUserId,
           }),
         })
       )
@@ -237,7 +237,6 @@ describe('/api/counselor/chat-history', () => {
         expect.objectContaining({
           select: {
             id: true,
-            theme: true,
             summary: true,
             keyTopics: true,
             messageCount: true,
@@ -285,24 +284,26 @@ describe('/api/counselor/chat-history', () => {
   })
 
   describe('GET - Validation Errors', () => {
-    it('should return 400 when limit is below minimum (0)', async () => {
+    it('should return 422 when limit is below minimum (0)', async () => {
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?limit=0')
 
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error.code).toBe('MISSING_FIELD')
+      // Out-of-range (too_small) maps to VALIDATION_ERROR -> 422.
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when limit is above maximum (101)', async () => {
+    it('should return 422 when limit is above maximum (101)', async () => {
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?limit=101')
 
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error.code).toBe('MISSING_FIELD')
+      // Out-of-range (too_big) maps to VALIDATION_ERROR -> 422.
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return 400 when limit is not a valid number', async () => {
@@ -315,14 +316,15 @@ describe('/api/counselor/chat-history', () => {
       expect(result.error.code).toBe('MISSING_FIELD')
     })
 
-    it('should return 400 when limit is negative', async () => {
+    it('should return 422 when limit is negative', async () => {
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?limit=-5')
 
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error.code).toBe('MISSING_FIELD')
+      // Negative (too_small) maps to VALIDATION_ERROR -> 422.
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should accept valid limit at boundary (1)', async () => {
@@ -390,9 +392,9 @@ describe('/api/counselor/chat-history', () => {
       }
     })
 
-    it('should handle theme filter combined with limit', async () => {
+    it('should combine user scoping with the limit', async () => {
       const req = new NextRequest(
-        'http://localhost:3000/api/counselor/chat-history?theme=career&limit=10'
+        'http://localhost:3000/api/counselor/chat-history?limit=10'
       )
 
       await GET(req)
@@ -400,7 +402,6 @@ describe('/api/counselor/chat-history', () => {
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            theme: 'career',
             userId: mockUserId,
           }),
           take: 10,
@@ -493,8 +494,8 @@ describe('/api/counselor/chat-history', () => {
       })
     })
 
-    it('should use default theme "chat" when not specified', async () => {
-      mockCreate.mockResolvedValue({ id: 'new-session', theme: 'chat' })
+    it('should use default session type "destiny" when not specified', async () => {
+      mockCreate.mockResolvedValue({ id: 'new-session', type: 'destiny' })
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
@@ -505,9 +506,11 @@ describe('/api/counselor/chat-history', () => {
 
       await POST(req)
 
+      // The route discriminates sessions by `type`, defaulting to 'destiny'
+      // when the client omits it (legacy destiny clients).
       expect(mockCreate).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          theme: 'chat',
+          type: 'destiny',
         }),
       })
     })

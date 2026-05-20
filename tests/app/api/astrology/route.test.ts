@@ -116,11 +116,10 @@ vi.mock('@/lib/db/prisma', () => ({
 }))
 
 // Mock ApiClient
-vi.mock('@/lib/api/ApiClient', () => ({
-  apiClient: {
-    post: vi.fn(),
-    get: vi.fn(),
-  },
+// The route generates its AI interpretation via askClaude (mimicking the
+// old Python /ask backend shape), not via apiClient.post.
+vi.mock('@/lib/llm/askClaude', () => ({
+  askClaude: vi.fn(),
 }))
 
 // Mock cache
@@ -238,7 +237,7 @@ import {
 } from '@/lib/astrology'
 import { validateRequestBody } from '@/lib/api/zodValidation'
 import { prisma } from '@/lib/db/prisma'
-import { apiClient } from '@/lib/api/ApiClient'
+import { askClaude } from '@/lib/llm/askClaude'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 
@@ -292,11 +291,13 @@ function setupSuccessfulCalculation() {
   vi.mocked(findNatalAspectsPlus).mockReturnValue(mockAspectsPlus as any)
   vi.mocked(buildEngineMeta).mockReturnValue(mockEngineMeta as any)
   vi.mocked(cacheGet).mockResolvedValue(null)
-  vi.mocked(apiClient.post).mockResolvedValue({
+  vi.mocked(askClaude).mockResolvedValue({
     ok: true,
+    status: 200,
     data: {
       data: {
         fusion_layer: 'AI generated interpretation for your natal chart.',
+        report: '',
         model: 'gpt-4o',
       },
     },
@@ -524,21 +525,22 @@ describe('Astrology API - POST /api/astrology', () => {
       setupSuccessfulCalculation()
     })
 
-    it('should call AI backend with correct payload', async () => {
+    it('should call askClaude with the astrology theme and a chart prompt', async () => {
       await POST(makeRequest(validBody))
 
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/ask',
+      expect(askClaude).toHaveBeenCalledWith(
+        expect.stringContaining('natal chart'),
         expect.objectContaining({
           theme: 'astrology',
-          locale: 'en',
-          astro: expect.objectContaining({
-            ascendant: mockNatalResult.ascendant,
-            mc: mockNatalResult.mc,
-          }),
-        }),
-        { timeout: 60000 }
+          maxTokens: 2500,
+          timeoutMs: 60000,
+          label: 'astrology-route',
+        })
       )
+      // The prompt should embed the computed chart (ascendant / MC / planets).
+      const promptArg = vi.mocked(askClaude).mock.calls[0][0]
+      expect(promptArg).toContain('Ascendant:')
+      expect(promptArg).toContain('MC:')
     })
 
     it('should return AI interpretation when backend call succeeds', async () => {
@@ -550,10 +552,12 @@ describe('Astrology API - POST /api/astrology', () => {
     })
 
     it('should fall back to report field when fusion_layer is missing', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({
+      vi.mocked(askClaude).mockResolvedValue({
         ok: true,
+        status: 200,
         data: {
           data: {
+            fusion_layer: '',
             report: 'Fallback report content.',
             model: 'gpt-3.5-turbo',
           },
@@ -568,11 +572,13 @@ describe('Astrology API - POST /api/astrology', () => {
     })
 
     it('should default model to gpt-4o when not provided', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({
+      vi.mocked(askClaude).mockResolvedValue({
         ok: true,
+        status: 200,
         data: {
           data: {
             fusion_layer: 'Some interpretation',
+            report: '',
           },
         },
       } as any)
@@ -584,7 +590,7 @@ describe('Astrology API - POST /api/astrology', () => {
     })
 
     it('should handle AI backend failure gracefully', async () => {
-      vi.mocked(apiClient.post).mockRejectedValue(new Error('Backend timeout'))
+      vi.mocked(askClaude).mockRejectedValue(new Error('Backend timeout'))
 
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
@@ -596,9 +602,10 @@ describe('Astrology API - POST /api/astrology', () => {
     })
 
     it('should use local interpretation as fallback when AI returns empty', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({
+      vi.mocked(askClaude).mockResolvedValue({
         ok: false,
-        data: null,
+        status: 502,
+        data: undefined,
       } as any)
 
       const response = await POST(makeRequest(validBody))
@@ -629,7 +636,7 @@ describe('Astrology API - POST /api/astrology', () => {
       expect(data.data.aiInterpretation).toBe('Cached AI interpretation')
       expect(data.data.aiModelUsed).toBe('gpt-4o-cached')
       // Should NOT call the AI backend when cache hit
-      expect(apiClient.post).not.toHaveBeenCalled()
+      expect(askClaude).not.toHaveBeenCalled()
     })
 
     it('should call AI backend and cache result when cache misses', async () => {
@@ -637,7 +644,7 @@ describe('Astrology API - POST /api/astrology', () => {
 
       await POST(makeRequest(validBody))
 
-      expect(apiClient.post).toHaveBeenCalled()
+      expect(askClaude).toHaveBeenCalled()
       expect(cacheSet).toHaveBeenCalledWith(
         expect.stringContaining('astrology:ai:v1:'),
         expect.objectContaining({
@@ -830,8 +837,9 @@ describe('Astrology API - POST /api/astrology', () => {
     })
 
     it('should handle AI response with empty data object', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({
+      vi.mocked(askClaude).mockResolvedValue({
         ok: true,
+        status: 200,
         data: { data: {} },
       } as any)
 
