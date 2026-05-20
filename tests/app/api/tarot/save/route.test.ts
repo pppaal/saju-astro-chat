@@ -458,7 +458,6 @@ describe('/api/tarot/save', () => {
           data: {
             userId: mockUserId,
             question: 'What does my career hold?',
-            theme: 'career',
             spreadId: 'three-card',
             spreadTitle: 'Three Card Spread',
             cards: buildStoredCardsPayload([validCard]),
@@ -509,7 +508,6 @@ describe('/api/tarot/save', () => {
           data: {
             userId: mockUserId,
             question: 'What does my future hold?',
-            theme: undefined,
             spreadId: 'single-card',
             spreadTitle: 'Single Card Draw',
             cards: buildStoredCardsPayload([validCard]),
@@ -987,7 +985,6 @@ describe('/api/tarot/save', () => {
             id: true,
             createdAt: true,
             question: true,
-            theme: true,
             spreadId: true,
             spreadTitle: true,
             cards: true,
@@ -1076,36 +1073,8 @@ describe('/api/tarot/save', () => {
         )
       })
 
-      it('should filter readings by theme', async () => {
-        const mockQuerySchema = tarotQuerySchema as { safeParse: ReturnType<typeof vi.fn> }
-        mockQuerySchema.safeParse.mockReturnValue({
-          success: true,
-          data: { limit: 10, offset: 0, theme: 'career' },
-        })
-
-        const mockPrisma = prisma.tarotReading as {
-          create: ReturnType<typeof vi.fn>
-          findMany: ReturnType<typeof vi.fn>
-          count: ReturnType<typeof vi.fn>
-        }
-        mockPrisma.findMany.mockResolvedValue([])
-        mockPrisma.count.mockResolvedValue(0)
-
-        const req = new NextRequest('http://localhost:3000/api/tarot/save?theme=career')
-
-        const { GET } = await import('@/app/api/tarot/save/route')
-        const response = await GET(req)
-
-        expect(response.status).toBe(200)
-        expect(prisma.tarotReading.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            where: { userId: mockUserId, theme: 'career' },
-          })
-        )
-        expect(prisma.tarotReading.count).toHaveBeenCalledWith({
-          where: { userId: mockUserId, theme: 'career' },
-        })
-      })
+      // 'should filter readings by theme' 제거 — 라우트가 theme 필터를 더 이상
+      // 지원하지 않음(where = { userId }만, theme는 cards payload에 저장).
 
       it('should return empty array when no readings exist', async () => {
         const mockQuerySchema = tarotQuerySchema as { safeParse: ReturnType<typeof vi.fn> }
@@ -1264,7 +1233,6 @@ describe('/api/tarot/save', () => {
               id: true,
               createdAt: true,
               question: true,
-              theme: true,
               spreadId: true,
               spreadTitle: true,
               cards: true,
