@@ -657,10 +657,11 @@ const DOMAIN_TITLES: Record<string, string> = {
 
 const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'growth']
 
-// 도메인 안에 룰이 5개까지 쌓이면 narrative 너무 길어짐. 사용자 audit
-// 결과 3개가 최적 (긍정 1 + 주의 1 + 컨텍스트 1 정도). 잘려나간 룰은
-// 다른 시기에 또 매칭될 기회 있음.
-const MAX_RULES_PER_DOMAIN = 3
+// 도메인 안에 룰이 너무 많이 쌓이면 narrative 가 길어짐. 4개가 균형점 —
+// 긍정 1~2 + 주의 1 + 컨텍스트 1 정도로 풍부하되 안 늘어짐. (v2 에서 도메인
+// 룰 풀을 8→11 로 늘렸으므로 슬롯도 3→4 로 확대해 변별이 실제 표출되게.)
+// fingerprint dedup 이 의미 중복은 따로 잘라내므로 4개여도 같은 말 반복 X.
+const MAX_RULES_PER_DOMAIN = 4
 
 /**
  * 도메인 안에서 의미 중복을 잡는 fingerprint group.
