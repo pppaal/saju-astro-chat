@@ -169,7 +169,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const plutoHouseS = planetHouseLine('Pluto', pluto?.house, 'ko')
   if (plutoHouseS) {
     astroUsed.push('pools.planetHouse.pluto')
-    p3pieces.push(`${plutoHouseS}.`)
+    p3pieces.push(/[.!?]$/.test(plutoHouseS) ? plutoHouseS : `${plutoHouseS}.`)
   }
   if (dra?.sunSign) {
     p3pieces.push(

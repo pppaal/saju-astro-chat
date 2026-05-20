@@ -134,7 +134,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   ])
   if (iljuHealthVar) {
     sajuUsed.push('pools.ilju.health')
-    deepKo.push(`${iljuHealthVar}.`)
+    deepKo.push(/[.!?]$/.test(iljuHealthVar) ? iljuHealthVar : `${iljuHealthVar}.`)
     deepEn.push(
       `Your day-pillar archetype (${iljuLabelEnHealth(iljuNameH)}) points to this particular constitutional pattern.`
     )
@@ -235,7 +235,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   ])
   if (stageHealthVar) {
     sajuUsed.push('pools.twelveStage.health')
-    deepKo.push(`${stageHealthVar}.`)
+    deepKo.push(/[.!?]$/.test(stageHealthVar) ? stageHealthVar : `${stageHealthVar}.`)
   }
   const sunHealthVar = pickVariation(planetSignPool('Sun', sunH?.sign, 'health'), [
     `day_master:${dayMasterStemH}`,
@@ -295,7 +295,7 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       if (alreadyNorm.includes(head) && alreadyNorm.includes(tail)) continue
       seenKeys.add(sig)
       astroUsed.push(tag)
-      deepKo.push(`${v}.`)
+      deepKo.push(/[.!?]$/.test(v) ? v : `${v}.`)
       added++
     }
   }
