@@ -180,11 +180,10 @@ export function buildInterpretation(args: {
     })
     const templates = sortedList.map((m) => fillTemplate(pickRuleTemplate(m.rule, lang), m.vars))
     if (hasPositive && hasCaution) {
-      templates.unshift(
-        lang === 'en'
-          ? 'A mixed current — supportive notes run alongside cautious ones:'
-          : '좋은 흐름과 조심할 흐름이 같이 들어와요:'
-      )
+      // 도메인마다 다른 "모순" 리드 — 4개 섹션이 같은 문장으로 시작하면
+      // 사용자가 스킵함. 각 영역의 우호↔주의 긴장을 한 줄로 압축.
+      const lead = MIXED_LEAD[domain]?.[lang] ?? MIXED_LEAD._default[lang]
+      templates.unshift(lead)
     }
     const mergedText = mergeDomainTemplates(templates, topDates, lowDates, domain, lang)
     const merged: (typeof matched)[number] = {
@@ -703,6 +702,35 @@ const DOMAIN_TITLES: Record<string, string> = {
 }
 
 const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'growth']
+
+// 도메인별 "모순" 리드 — 우호 신호와 주의 신호가 같이 떴을 때, 그 영역의
+// 긴장을 한 줄로. 4개 섹션이 같은 문장으로 시작하던 단조로움 해소.
+const MIXED_LEAD: Record<string, { ko: string; en: string }> = {
+  money: {
+    ko: '돈은 들어오는데, 새는 구멍도 같이 있어요:',
+    en: 'Money is coming in — but so are the leaks:',
+  },
+  work: {
+    ko: '자리는 커지는데, 어깨도 같이 무거워지는 달이에요:',
+    en: 'The role grows — and so does the weight on your shoulders:',
+  },
+  relations: {
+    ko: '먼저 다가가도 좋은 시기예요. 단, 가족 쪽은 결이 달라요:',
+    en: 'A good time to reach out first — family, though, runs on a different grain:',
+  },
+  body: {
+    ko: '회복은 되는데, 정작 회복할 시간이 빠듯해요:',
+    en: 'Recovery is favoured — but the time to actually rest runs short:',
+  },
+  growth: {
+    ko: '배우고 나아가긴 좋은데, 한 번에 다 잡으려다 흩어지기 쉬워요:',
+    en: 'Good for learning and moving forward — just easy to scatter by grabbing it all at once:',
+  },
+  _default: {
+    ko: '좋은 흐름과 조심할 흐름이 같이 들어와요:',
+    en: 'A mixed current — supportive notes run alongside cautious ones:',
+  },
+}
 
 // 도메인 안에 룰이 너무 많이 쌓이면 narrative 가 길어짐. 4개가 균형점 —
 // 긍정 1~2 + 주의 1 + 컨텍스트 1 정도로 풍부하되 안 늘어짐. (v2 에서 도메인
