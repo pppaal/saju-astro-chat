@@ -862,10 +862,11 @@ describe('GET /api/admin/metrics/sla', () => {
       const data = await response.json()
 
       const report = data.data.data
-      // Total = 100 + 200 + 50 + 30 + 20 + 10 = 410
-      // Error rate = 2 / 410 * 100 = 0.488%
+      // dream 서비스 제거로 dream.analysis.total(20)은 총 요청에서 제외됨.
+      // Total = 100 + 200 + 50 + 30 + 10 = 390
+      // Error rate = 2 / 390 * 100 = 0.513%
       const errorRateMetric = report.metrics.find((m: any) => m.metric === 'error_rate')
-      expect(errorRateMetric.current).toBeCloseTo(0.488, 2)
+      expect(errorRateMetric.current).toBeCloseTo(0.513, 2)
     })
 
     it('should only include api.error.total in error count', async () => {
