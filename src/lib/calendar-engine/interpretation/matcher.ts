@@ -146,8 +146,8 @@ export function buildInterpretation(args: {
     if (hasPositive && hasCaution) {
       templates.unshift(
         lang === 'en'
-          ? 'A mixed current — supportive signals run alongside cautious ones:'
-          : '복합 흐름이에요. 우호적인 신호와 주의 신호가 같이 들어와요:'
+          ? 'A mixed current — supportive notes run alongside cautious ones:'
+          : '좋은 흐름과 조심할 흐름이 같이 들어와요:'
       )
     }
     const mergedText = mergeDomainTemplates(templates, topDates, lowDates, domain, lang)
