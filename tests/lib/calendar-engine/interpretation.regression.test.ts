@@ -263,6 +263,35 @@ describe('calendar-engine regression', () => {
       expect(present.length).toBeGreaterThanOrEqual(3)
     })
 
+    it('archetype ending in 결 does not produce dangling 형용사 (己丑 case)', async () => {
+      const { getGanjiTransitNarrative } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      // 己丑 character 가 "…부드러운 결" 로 끝남 — wrapper 가 "결" 강제 strip
+      // 하면 "부드러운의" 댕글링 발생했던 회귀. "결의 에너지/기운" 으로 정상.
+      const day = getGanjiTransitNarrative('己丑', 'daily', 'ko')
+      const month = getGanjiTransitNarrative('己丑', 'monthly', 'ko')
+      expect(day).not.toMatch(/[가-힣]운의 /) // "부드러운의" 같은 형용사+의 금지
+      expect(day).not.toMatch(/결의 결/) // 결 이중 금지
+      expect(month).not.toMatch(/결의 결/)
+    })
+
+    it('dailyIljinSibsinLine personalizes by natal day-master sibsin', async () => {
+      const { dailyIljinSibsinLine } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      // 같은 날짜라도 본명 일간이 달라 십신이 다르면 다른 한 줄
+      const a = dailyIljinSibsinLine('편인', 'ko')
+      const b = dailyIljinSibsinLine('편재', 'ko')
+      expect(a).not.toBe('')
+      expect(b).not.toBe('')
+      expect(a).not.toBe(b)
+      expect(a).toMatch(/당신에게는/)
+      // 영어도 동작
+      expect(dailyIljinSibsinLine('편인', 'en')).toMatch(/^For you it is a day/)
+      // 미지/빈 값은 "" (안전)
+      expect(dailyIljinSibsinLine(undefined, 'ko')).toBe('')
+      expect(dailyIljinSibsinLine('xxx', 'ko')).toBe('')
+    })
+
     it('English ganji narrative is fully English (no KO leak)', async () => {
       const { getGanjiTransitNarrative } =
         await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
