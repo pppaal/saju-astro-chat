@@ -180,6 +180,45 @@ describe('calendar-engine regression', () => {
       expect(themesPopulated.length).toBeGreaterThanOrEqual(3)
     })
 
+    it('themeBreakdown (Why-card) exposes contributors with sane magnitude + no raw hanja', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const bd = interp.themeBreakdown ?? {}
+      const themes = (['love', 'money', 'career', 'health', 'growth'] as const).filter(
+        (k) => (bd[k]?.length ?? 0) > 0
+      )
+      // 적어도 한 테마는 인과 추적이 나와야 함
+      expect(themes.length).toBeGreaterThanOrEqual(1)
+      for (const k of themes) {
+        for (const c of bd[k]!) {
+          // delta 는 합리적 크기 (월 합산 폭주 방지 — 평균 기반)
+          expect(Math.abs(c.delta)).toBeLessThanOrEqual(60)
+          expect(Math.abs(c.delta)).toBeGreaterThan(0)
+          expect(c.dir === 'up' || c.dir === 'down').toBe(true)
+          // 라벨에 raw 한자 갑자(丙午 등)가 남으면 안 됨
+          expect(c.label, `hanja ganji leak: ${c.label}`).not.toMatch(
+            /[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]/
+          )
+        }
+      }
+    })
+
     it('every cell has a cell.themeScores object (UI 그래프 contract)', async () => {
       const saju = calculateSajuData(
         SEOUL_MALE_1995.birthDate,

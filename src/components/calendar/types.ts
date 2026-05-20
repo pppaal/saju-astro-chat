@@ -124,6 +124,13 @@ export interface ImportantDate {
     narrative: string
     matchedRuleIds: string[]
     sections: Array<{ section: string; title: string; text: string }>
+    themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
+    themeBreakdown?: Partial<
+      Record<
+        'love' | 'money' | 'career' | 'health' | 'growth',
+        Array<{ label: string; delta: number; dir: 'up' | 'down' }>
+      >
+    >
   }
   /** 그 날 60갑자(일진) + 본명 일간 십신 개인화 한 줄 (API 가 일별 부착) */
   dailyGanjiNarrative?: string
