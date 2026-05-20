@@ -132,7 +132,7 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 2,
     },
     template:
-      `**{yearGanji}** 세운 — 올해는 본명을 우호적으로 받쳐주는 ` +
+      `**{yearGanji}** 올해 흐름 — 올해는 당신을 우호적으로 받쳐주는 ` +
       `한 해예요. 큰 결정과 새 시도가 평소보다 매끄럽게 흘러요. ` +
       `봄과 초여름이 운의 정점이에요. {yearGanjiText}`,
     templateEn:
@@ -201,7 +201,7 @@ export const RULES: InterpretationRule[] = [
       minPolarity: 2,
     },
     template:
-      `**{monthGanji}** 월 — 본명을 우호적으로 받쳐주는 한 달이에요. ` +
+      `**{monthGanji}** 월 — 당신을 우호적으로 받쳐주는 한 달이에요. ` +
       `의사결정·관계·실행이 평소보다 매끄러워요. ` +
       `미뤄둔 일을 처리하기 좋아요. {monthGanjiText}`,
     templateEn:
@@ -533,10 +533,10 @@ export const RULES: InterpretationRule[] = [
     priority: 42,
     conditions: { shinsalName: ['양인'] },
     template:
-      `⚔️ **양인** 발동 — 강력한 추진력. 단, 충돌·다툼 주의. ` +
+      `⚔️ **강한 의지의 별** 발동 — 강력한 추진력. 단, 충돌·다툼 주의. ` +
       `결단력 필요한 일에 좋고, 인내가 필요한 일은 조심해주세요.`,
     templateEn:
-      `⚔️ **Yangin** is active — powerful drive. Watch out for clashes and fights though. ` +
+      `⚔️ **The strong-will star** is active — powerful drive. Watch out for clashes and fights though. ` +
       `Good for anything that needs decisiveness; be careful with anything that needs patience.`,
     themes: ['career', 'health'],
   },
@@ -1090,7 +1090,7 @@ export const RULES: InterpretationRule[] = [
     conditions: { patternId: ['five-layer-resonance'] },
     template:
       `이번 달 **사주·점성이 동시에 5층 정렬되는 날이 {count}번** ` +
-      `있어요. 명리 다섯 시간축(대운·세운·월운·일진·시진)과 점성의 ` +
+      `있어요. 사주의 다섯 시간축(10년 흐름·올해 흐름·이번 달 흐름·하루 흐름·시간 흐름)과 점성의 ` +
       `5층 흐름이 모두 같은 방향으로 가는 드문 순간 — 동서양 두 ` +
       `시스템이 동시에 같은 답을 주는 시기예요. 큰 결정·새 시작· ` +
       `계약·고백에 가장 좋은 날이에요.`,
@@ -1109,7 +1109,7 @@ export const RULES: InterpretationRule[] = [
     conditions: { patternId: ['saju-five-layer'] },
     template:
       `이번 달 **사주 5층 정렬일이 {count}번** 있어요. ` +
-      `대운부터 시진까지 명리적 흐름이 모두 같은 방향 — 본명의 ` +
+      `10년 흐름부터 시간 흐름까지 사주 흐름이 모두 같은 방향 — 당신의 ` +
       `리듬이 가장 자연스럽게 흘러가는 날들. 사주적으로 결정이 ` +
       `매끄러운 시기예요.`,
     templateEn:
@@ -1126,12 +1126,12 @@ export const RULES: InterpretationRule[] = [
     conditions: { patternId: ['astro-five-layer'] },
     template:
       `이번 달 **점성 5층 정렬일이 {count}번** 있어요. ` +
-      `행성 챕터·세운 흐름·월간 트랜짓·일진 어스펙트·행성시까지 모두 ` +
+      `행성 챕터·올해 흐름·월간 트랜짓·하루 흐름의 결·행성시까지 모두 ` +
       `같은 방향. 외부 환경·타이밍이 받쳐주는 시기 — 새 만남·` +
       `이동·확장에 우호적이에요.`,
     templateEn:
       `This month there are **{count} days when all 5 astrology layers align**. ` +
-      `Planetary chapter, yearly flow, monthly transits, daily aspects, and planetary hours all point the same way. ` +
+      `Planetary chapter, yearly flow, monthly transits, daily alignments, and planetary hours all point the same way. ` +
       `External environment and timing back you up — favourable for new meetings, moves, and expansion.`,
     themes: ['money', 'growth'],
   },
@@ -1266,7 +1266,7 @@ export const RULES: InterpretationRule[] = [
     priority: 65,
     conditions: { natalStrength: ['strong'] },
     template:
-      `본명은 **기운이 강한 사주** — 자기 주장과 추진력이 자연스러워요. ` +
+      `당신은 **기운이 강한 사주** — 자기 주장과 추진력이 자연스러워요. ` +
       `표현·창작·재물·책임·자리 운에 결과가 잘 나오는 타입이에요.`,
     templateEn:
       `Your chart is **strong** — self-assertion and drive come naturally. ` +
@@ -1280,7 +1280,7 @@ export const RULES: InterpretationRule[] = [
     priority: 65,
     conditions: { natalStrength: ['weak'] },
     template:
-      `본명은 **기운이 잔잔한 사주** — 배움·돌봄·형제·동료의 도움이 들어올 때 결과가 따라와요. ` +
+      `당신은 **기운이 잔잔한 사주** — 배움·돌봄·형제·동료의 도움이 들어올 때 결과가 따라와요. ` +
       `무리한 확장보다 협력·정리·내실 다지기가 어울리는 시기에 ` +
       `이 사주는 빛나요.`,
     templateEn:
@@ -1296,10 +1296,10 @@ export const RULES: InterpretationRule[] = [
     priority: 60,
     conditions: { yongsin: ['화'] },
     template:
-      `본명 용신은 **화(火)** — 표현·열정·확장의 에너지가 ` +
-      `흐름의 핵심. 火 활성기에 가장 활발해져요.`,
+      `당신을 살리는 핵심 기운은 **불 기운** — 표현·열정·확장의 에너지가 ` +
+      `흐름의 핵심. 불 기운이 강해지는 시기에 가장 활발해져요.`,
     templateEn:
-      `Your yongsin is **Fire** — expression, passion, and expansion energy ` +
+      `The element that brings you most alive is **Fire** — expression, passion, and expansion energy ` +
       `are at the core of your flow. You come most alive when Fire is active.`,
     themes: ['growth', 'career'],
   },
@@ -1310,10 +1310,10 @@ export const RULES: InterpretationRule[] = [
     priority: 60,
     conditions: { yongsin: ['목'] },
     template:
-      `본명 용신은 **목(木)** — 성장·시작·학습의 에너지가 ` +
-      `흐름의 핵심. 木 활성기(봄·초여름)에 큰 결과.`,
+      `당신을 살리는 핵심 기운은 **나무 기운** — 성장·시작·학습의 에너지가 ` +
+      `흐름의 핵심. 나무 기운이 강해지는 시기(봄·초여름)에 큰 결과.`,
     templateEn:
-      `Your yongsin is **Wood** — growth, beginnings, and learning energy ` +
+      `The element that brings you most alive is **Wood** — growth, beginnings, and learning energy ` +
       `are at the core. Big results when Wood is active (spring and early summer).`,
     themes: ['career', 'growth'],
   },
@@ -1324,10 +1324,10 @@ export const RULES: InterpretationRule[] = [
     priority: 60,
     conditions: { yongsin: ['금'] },
     template:
-      `본명 용신은 **금(金)** — 결단·정리·실행의 에너지가 ` +
-      `핵심. 金 활성기(가을)에 결과가 모아져요.`,
+      `당신을 살리는 핵심 기운은 **금속 기운** — 결단·정리·실행의 에너지가 ` +
+      `핵심. 금속 기운이 강해지는 시기(가을)에 결과가 모아져요.`,
     templateEn:
-      `Your yongsin is **Metal** — decisiveness, tidying up, and execution energy ` +
+      `The element that brings you most alive is **Metal** — decisiveness, tidying up, and execution energy ` +
       `are at the core. Results gather when Metal is active (autumn).`,
     themes: ['career'],
   },
@@ -1338,10 +1338,10 @@ export const RULES: InterpretationRule[] = [
     priority: 60,
     conditions: { yongsin: ['수'] },
     template:
-      `본명 용신은 **수(水)** — 지혜·연구·축적의 에너지가 ` +
-      `핵심. 水 활성기(겨울)에 깊이가 만들어져요.`,
+      `당신을 살리는 핵심 기운은 **물 기운** — 지혜·연구·축적의 에너지가 ` +
+      `핵심. 물 기운이 강해지는 시기(겨울)에 깊이가 만들어져요.`,
     templateEn:
-      `Your yongsin is **Water** — wisdom, research, and accumulation energy ` +
+      `The element that brings you most alive is **Water** — wisdom, research, and accumulation energy ` +
       `are at the core. Depth is built when Water is active (winter).`,
     themes: ['career', 'growth'],
   },
@@ -1352,10 +1352,10 @@ export const RULES: InterpretationRule[] = [
     priority: 60,
     conditions: { yongsin: ['토'] },
     template:
-      `본명 용신은 **토(土)** — 안정·중재·축적의 에너지가 ` +
-      `핵심. 土 활성기에 관계·재산·뿌리가 단단해져요.`,
+      `당신을 살리는 핵심 기운은 **흙 기운** — 안정·중재·축적의 에너지가 ` +
+      `핵심. 흙 기운이 강해지는 시기에 관계·재산·뿌리가 단단해져요.`,
     templateEn:
-      `Your yongsin is **Earth** — stability, mediation, and accumulation energy ` +
+      `The element that brings you most alive is **Earth** — stability, mediation, and accumulation energy ` +
       `are at the core. When Earth is active, your relationships, finances, and roots get sturdier.`,
     themes: ['love', 'growth'],
   },
@@ -1482,10 +1482,10 @@ export const RULES: InterpretationRule[] = [
     priority: 70,
     conditions: { signalSource: 'astro', signalKinds: ['progressed-moon'] },
     template:
-      `**진행 달 어스펙트** — 28년 정서 사이클에서 본명에 ` +
+      `**진행 달 흐름의 결** — 28년 정서 사이클에서 당신에게 ` +
       `걸리는 시기. 정서·내면 변화가 자연스럽게 일어나요.`,
     templateEn:
-      `**Progressed Moon aspect** — a stretch of the 28-year emotional cycle ` +
+      `**Progressed Moon phase** — a stretch of the 28-year emotional cycle ` +
       `that lands on your chart. Emotional and inner shifts happen naturally.`,
     themes: ['love', 'growth'],
   },
@@ -1847,12 +1847,12 @@ export const RULES: InterpretationRule[] = [
       signalKinds: ['pillar-sibsin'],
     },
     template:
-      `이 달 **조후용신** — 본명 일간과 月支의 기후 균형에 ` +
+      `이 달 **계절 균형 기운** — 당신의 타고난 중심 기운과 태어난 달의 기후 균형에 ` +
       `필요한 오행이 들어와요. 그 오행이 강한 날들이 ` +
       `이번 달의 진짜 길일.`,
     templateEn:
-      `This month's **climate-balancing yongsin** — the element needed for the climate balance ` +
-      `between your day master and the month's branch comes in. The days when that element runs strong ` +
+      `This month's **seasonal balancing element** — the element needed for the climate balance ` +
+      `between your core energy and the season comes in. The days when that element runs strong ` +
       `are this month's true auspicious days.`,
     themes: ['growth'],
   },
@@ -1893,7 +1893,7 @@ export const RULES: InterpretationRule[] = [
       signalKinds: ['pillar-sibsin'],
     },
     template:
-      `오늘 **일진 오행 흐름** — 본명에 도움이 들어오는 ` +
+      `오늘 **일진 오행 흐름** — 당신에게 도움이 들어오는 ` +
       `날·받쳐주는 날·중립인 날이 매일 다르게 흘러가요. ` +
       `상생 받는 날을 골라 결정하면 자연스러워요.`,
     templateEn:
@@ -1913,10 +1913,10 @@ export const RULES: InterpretationRule[] = [
     priority: 72,
     conditions: { yongsin: ['목'], signalSource: 'saju', signalLayer: ['monthly'] },
     template:
-      `**{monthGanji}** 월 — 봄 흐름이 본명 용신(목)에 우호적인 시기로 들어가요. ` +
+      `**{monthGanji}** 월 — 봄 흐름이 당신을 살리는 기운(나무)에 우호적인 시기로 들어가요. ` +
       `새 시작·진출·확장에 좋은 한 달이에요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanjiEn}** month — the spring current moves into a stretch that favours your yongsin (Wood). ` +
+      `**{monthGanjiEn}** month — the spring current moves into a stretch that favours the element that supports you (Wood). ` +
       `A great month for new beginnings, stepping out, and expansion. {monthGanjiTextEn}`,
     themes: ['career', 'growth'],
   },
@@ -1927,10 +1927,10 @@ export const RULES: InterpretationRule[] = [
     priority: 72,
     conditions: { yongsin: ['화'], signalSource: 'saju', signalLayer: ['monthly'] },
     template:
-      `**{monthGanji}** 월 — 여름 흐름이 본명 용신(화)에 우호적이에요. ` +
+      `**{monthGanji}** 월 — 여름 흐름이 당신을 살리는 기운(불)에 우호적이에요. ` +
       `자기 표현·대외 활동·인맥 확장이 잘 통하는 한 달이에요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanjiEn}** month — the summer current favours your yongsin (Fire). ` +
+      `**{monthGanjiEn}** month — the summer current favours the element that supports you (Fire). ` +
       `Self-expression, outward activity, and expanding your network all land well. {monthGanjiTextEn}`,
     themes: ['career', 'growth'],
   },
@@ -1941,10 +1941,10 @@ export const RULES: InterpretationRule[] = [
     priority: 72,
     conditions: { yongsin: ['금'], signalSource: 'saju', signalLayer: ['monthly'] },
     template:
-      `**{monthGanji}** 월 — 가을 흐름이 본명 용신(금)에 우호적이에요. ` +
+      `**{monthGanji}** 월 — 가을 흐름이 당신을 살리는 기운(금속)에 우호적이에요. ` +
       `결단·정리·결과 만들기에 좋은 한 달이에요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanjiEn}** month — the autumn current favours your yongsin (Metal). ` +
+      `**{monthGanjiEn}** month — the autumn current favours the element that supports you (Metal). ` +
       `A great month for decisions, tidying up, and producing results. {monthGanjiTextEn}`,
     themes: ['career'],
   },
@@ -1955,10 +1955,10 @@ export const RULES: InterpretationRule[] = [
     priority: 72,
     conditions: { yongsin: ['수'], signalSource: 'saju', signalLayer: ['monthly'] },
     template:
-      `**{monthGanji}** 월 — 겨울 흐름이 본명 용신(수)에 우호적이에요. ` +
+      `**{monthGanji}** 월 — 겨울 흐름이 당신을 살리는 기운(물)에 우호적이에요. ` +
       `연구·학습·내실 다지기·계획에 좋은 한 달이에요. {monthGanjiText}`,
     templateEn:
-      `**{monthGanjiEn}** month — the winter current favours your yongsin (Water). ` +
+      `**{monthGanjiEn}** month — the winter current favours the element that supports you (Water). ` +
       `A great month for research, learning, building inner depth, and planning. {monthGanjiTextEn}`,
     themes: ['career', 'growth'],
   },
@@ -2249,7 +2249,7 @@ export const RULES: InterpretationRule[] = [
       maxPolarity: -1,
     },
     template:
-      `화(火) 기운이 과한 결에 책임·자리 압박까지 걸리는 흐름이에요. 화상이나 ` +
+      `불 기운이 과한 결에 책임·자리 압박까지 걸리는 흐름이에요. 화상이나 ` +
       `염증, 심혈관, 불면에 유의해야 하는 시기라 매운 음식과 과로를 ` +
       `자제하고, 차가운 물·휴식·녹지 산책으로 식혀주세요.`,
     templateEn:
@@ -2269,7 +2269,7 @@ export const RULES: InterpretationRule[] = [
       maxPolarity: -1,
     },
     template:
-      `수(水)가 약하고 차가운 결이 강해지는 흐름이에요. 신장·요통·우울감· ` +
+      `물 기운이 약하고 차가운 결이 강해지는 흐름이에요. 신장·요통·우울감· ` +
       `하체 냉증에 유의하면서 따뜻한 물을 자주 마시고, 허리와 하체 보온, ` +
       `충분한 수면을 챙겨주세요.`,
     templateEn:
@@ -2349,7 +2349,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['정재', '편재'],
     },
     template:
-      `**{yearGanji}** 세운 — 재물의 별이 들어오는 해예요. 돈·실물·실제 ` +
+      `**{yearGanji}** 올해 흐름 — 재물의 별이 들어오는 해예요. 돈·실물·실제 ` +
       `결과가 눈에 보이는 흐름이라 작년에 뿌린 씨앗이 현금흐름으로 ` +
       `돌아오기 좋은 시기예요. {yearGanjiText}`,
     templateEn:
@@ -2525,11 +2525,11 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['양인', '괴강'],
     },
     template:
-      `양인이나 강한 의지의 별이 작용하는 해예요. 추진력은 강해지지만 충돌도 ` +
+      `강한 의지의 별이 작용하는 해예요. 추진력은 강해지지만 충돌도 ` +
       `함께 늘어나니, 결단은 빠르게 가더라도 사람을 대할 때는 한 박자 ` +
       `천천히 가주세요.`,
     templateEn:
-      `Yangin or the strong-will star is at work this year. Your drive runs stronger but clashes grow alongside it — ` +
+      `The strong-will star is at work this year. Your drive runs stronger but clashes grow alongside it — ` +
       `move fast on decisions but take a beat slower when dealing with people.`,
     themes: ['career', 'health'],
   },
@@ -2667,7 +2667,7 @@ export const RULES: InterpretationRule[] = [
       maxPolarity: -1,
     },
     template:
-      `본명과 부딪히는 결의 해예요. 큰 변동이나 이별, 정리가 자연스럽게 ` +
+      `당신과 부딪히는 결의 해예요. 큰 변동이나 이별, 정리가 자연스럽게 ` +
       `나오는 시기라 거스르기보다 흐름을 받아들이는 편이 잘 풀려요.`,
     templateEn:
       `A year that clashes with your chart. Big changes, partings, and clearings come naturally — ` +
@@ -2953,7 +2953,7 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['도화'],
     },
     template:
-      `본명에 매력·끌림의 별이 자리잡은 사주예요. 매력과 인연 끌림이 평생 강한 ` +
+      `당신에게 매력·끌림의 별이 자리잡은 사주예요. 매력과 인연 끌림이 평생 강한 ` +
       `결이라, 어디서든 사람이 잘 따르고 첫인상으로 기억되기 쉬워요.`,
     templateEn:
       `Your chart has the charm-and-attraction star built in. Charm and the pull of connection run strong for life — ` +
@@ -2991,7 +2991,7 @@ export const RULES: InterpretationRule[] = [
       natalStrength: ['strong'],
     },
     template:
-      `재물의 별을 감당할 힘이 있는 본명이에요. 큰 돈을 다루는 일이나 자기 ` +
+      `재물의 별을 감당할 힘이 있는 사주예요. 큰 돈을 다루는 일이나 자기 ` +
       `사업, 자산 운용에 강점이 있어 평생 풍요로운 결이에요.`,
     templateEn:
       `Your chart has the strength to carry wealth and resources. You have an edge in handling big money, ` +
@@ -3008,7 +3008,7 @@ export const RULES: InterpretationRule[] = [
       sibsin: ['비견', '겁재'],
     },
     template:
-      `본명에 비견·겁재가 강한 사주예요. 혼자 모으기보다 함께 벌고 나누는 ` +
+      `당신에게 형제·동료·경쟁의 기운이 강한 사주예요. 혼자 모으기보다 함께 벌고 나누는 ` +
       `결이라, 동업·공동투자·팀 단위 수익이 잘 맞아요.`,
     templateEn:
       `Peers and rivals run strong in your chart. Rather than saving alone, you earn and share together — ` +
@@ -3027,7 +3027,7 @@ export const RULES: InterpretationRule[] = [
       signalSource: 'saju',
     },
     template:
-      `본명에 화 기운이 강한 결이에요. 평소에 심혈관·염증·불면을 평생 ` +
+      `당신에게 불 기운이 강한 결이에요. 평소에 심혈관·염증·불면을 평생 ` +
       `유의해야 하고, 매운 음식과 과로를 자제하는 습관이 건강을 지켜줘요.`,
     templateEn:
       `Fire runs strong in your chart. Watch for cardiovascular issues, inflammation, and insomnia ` +
@@ -3044,7 +3044,7 @@ export const RULES: InterpretationRule[] = [
       signalSource: 'saju',
     },
     template:
-      `본명에 수 기운이 약하거나 차가운 결이에요. 평생 신장·요통·하체 ` +
+      `당신에게 물 기운이 약하거나 차가운 결이에요. 평생 신장·요통·하체 ` +
       `냉증·우울감에 유의해야 하고, 따뜻한 음식과 하체 보온이 ` +
       `체질에 큰 도움이 돼요.`,
     templateEn:
@@ -3061,10 +3061,10 @@ export const RULES: InterpretationRule[] = [
       shinsalName: ['양인', '괴강', '백호'],
     },
     template:
-      `본명에 양인·강한 의지의 별·격동·전환의 별이 있는 사주예요. 추진력이 강한 결인 만큼 ` +
+      `당신에게 강한 의지의 별·격동·전환의 별이 있는 사주예요. 추진력이 강한 결인 만큼 ` +
       `사고·부상·수술 같은 갑작스러운 신호에도 평생 유의해야 해요.`,
     templateEn:
-      `Your chart carries Yangin, the strong-will star, or the upheaval star. The drive runs strong — and the trade-off is that ` +
+      `Your chart carries the strong-will star or the upheaval star. The drive runs strong — and the trade-off is that ` +
       `you have to watch for sudden signals like accidents, injuries, and surgery throughout life.`,
     themes: ['health', 'career'],
   },
