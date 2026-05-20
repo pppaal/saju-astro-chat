@@ -24,7 +24,8 @@ describe("Credit Service: Plan Configuration", () => {
   it("free plan has correct limits", () => {
     const free = PLAN_CONFIG.free;
 
-    expect(free.monthlyCredits).toBe(7);
+    // free 플랜은 월 0 크레딧 + 가입 보너스 2 모델로 변경됨.
+    expect(free.monthlyCredits).toBe(0);
     expect(free.compatibilityLimit).toBe(0);
     expect(free.followUpLimit).toBe(0);
     expect(free.historyRetention).toBe(7);
@@ -40,8 +41,9 @@ describe("Credit Service: Plan Configuration", () => {
   });
 
   it("plans have increasing credit amounts", () => {
+    // free=0 (가입 보너스 모델)에서 시작하므로 -1을 기준으로 단조 증가 확인.
     const plans: PlanType[] = ["free", "starter", "pro", "premium"];
-    let prevCredits = 0;
+    let prevCredits = -1;
 
     plans.forEach((plan) => {
       const credits = PLAN_CONFIG[plan].monthlyCredits;
@@ -421,7 +423,7 @@ describe("Credit Service: Plan Upgrade Logic", () => {
   it("allows downgrade (same logic)", () => {
     const result = calculateUpgrade("premium", "free");
     expect(result?.newPlan).toBe("free");
-    expect(result?.newMonthlyCredits).toBe(7);
+    expect(result?.newMonthlyCredits).toBe(0);
   });
 
   it("handles invalid plan", () => {
