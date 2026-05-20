@@ -77,7 +77,12 @@ export function buildInterpretation(args: {
   // 룰의 의도(우호/주의)와 무관할 수 있어서 (정관 +3 시그널이 fire한 룰의
   // 의도는 "신약+정관 = 책임 무거움"으로 negative) 룰 자체의 의도를 봐야
   // 점수↔해석 동기화 정확.
-  const matched: Array<{ rule: InterpretationRule; vars: TemplateVars; polarity: number }> = []
+  const matched: Array<{
+    rule: InterpretationRule
+    vars: TemplateVars
+    polarity: number
+    strength: number
+  }> = []
   for (const rule of RULES) {
     if (rule.scope !== scope) continue
     const matchSig = findMatchContextWithSignal(rule.conditions, allSignals, allPatterns, natal)
@@ -91,6 +96,7 @@ export function buildInterpretation(args: {
         unluckyDates,
       },
       polarity: ruleIntent(rule),
+      strength: matchSig.strength,
     })
   }
 
@@ -109,8 +115,10 @@ export function buildInterpretation(args: {
     if (usedRuleIds.has(m.rule.id)) continue
     const domain = SECTION_TO_DOMAIN[m.rule.section]
     if (domain && DOMAIN_TITLES[domain]) {
+      // 도메인은 후보를 다 모으고 (cap 없이) 나중에 신호 강도 기준으로
+      // 추려냄 — 고정 우선순위만으로 자르면 항상 같은 룰만 표출되던 문제
+      // 해소. 사주마다 신호가 강한 룰이 달라 조합이 풍부해짐.
       const list = domainPicks.get(domain) ?? []
-      if (list.length >= MAX_RULES_PER_DOMAIN) continue
       list.push(m)
       domainPicks.set(domain, list)
       usedRuleIds.add(m.rule.id)
@@ -125,9 +133,37 @@ export function buildInterpretation(args: {
 
   // 도메인 묶음을 단일 가상 entry로 합쳐 picked에 추가
   // — 도메인별 cells에서 top/bottom dates 추출 → narrative 끝에 추가
+  // 표출된 룰(top-N) 만 따로 보관 — themeScores 가 narrative 와 같은 룰로
+  // 점수를 내야 점수↔해석 동기화가 깨지지 않음.
+  const domainShown = new Map<string, typeof matched>()
   for (const domain of DOMAIN_ORDER) {
-    const list = domainPicks.get(domain)
-    if (!list || list.length === 0) continue
+    const allCandidates = domainPicks.get(domain)
+    if (!allCandidates || allCandidates.length === 0) continue
+    // 후보가 MAX 보다 많으면 (그 사주 신호 강도 우선 + priority 보조) 로
+    // 추려냄. 신호가 강한 룰이 먼저 표출 → 사주마다 조합이 확연히 달라짐.
+    // 고정 priority 가 1차였을 땐 항상 같은 룰만 떴음 (변별 약함). 강도를
+    // 1차로 올려 chart-driven 변별 확보. 우호/주의 한쪽 쏠림은 긍정 1개·
+    // 주의 1개 보장으로 방지.
+    const list = (() => {
+      if (allCandidates.length <= MAX_RULES_PER_DOMAIN) return allCandidates
+      const ranked = [...allCandidates].sort((a, b) => {
+        if (b.strength !== a.strength) return b.strength - a.strength
+        return b.rule.priority - a.rule.priority
+      })
+      const pos = ranked.filter((m) => m.polarity >= 1)
+      const neg = ranked.filter((m) => m.polarity <= -1)
+      const picks: typeof ranked = []
+      // 균형 확보: 긍정 1 + 주의 1 먼저 (있으면), 나머지는 ranked 순서로 채움
+      if (pos[0]) picks.push(pos[0])
+      if (neg[0]) picks.push(neg[0])
+      for (const m of ranked) {
+        if (picks.length >= MAX_RULES_PER_DOMAIN) break
+        if (!picks.includes(m)) picks.push(m)
+      }
+      // narrative 순서 안정화 — 원래 ranked(priority/strength) 순서 유지
+      return ranked.filter((m) => picks.includes(m))
+    })()
+    domainShown.set(domain, list)
     const themes = DOMAIN_THEMES[domain] ?? []
     const topDates = pickDomainExtremeDates(cells, themes, 3, 'high')
     const lowDates = pickDomainExtremeDates(cells, themes, 2, 'low')
@@ -166,6 +202,7 @@ export function buildInterpretation(args: {
       },
       vars: list[0].vars,
       polarity: list[0].polarity,
+      strength: list[0].strength,
     }
     picked.push(merged)
   }
@@ -222,7 +259,9 @@ export function buildInterpretation(args: {
   }
   const cellThemeScores = cells[0]?.themeScores ?? {}
   const themeScores: NonNullable<Interpretation['themeScores']> = {}
-  for (const [domain, list] of domainPicks) {
+  // narrative 에 실제 표출된 룰(domainShown) 로 점수 산출 — 전체 후보
+  // (domainPicks) 가 아니라 사용자가 읽는 4개로 평균내야 점수↔해석 동기화.
+  for (const [domain, list] of domainShown) {
     const themeKey = DOMAIN_TO_THEME[domain]
     if (!themeKey) continue
     const intents = list.map((m) => m.polarity)
@@ -366,7 +405,7 @@ function findMatchContextWithSignal(
   signals: ActiveSignal[],
   patterns: SignalPattern[],
   natal: NatalContext
-): { ctx: TemplateVars; polarity: number } | null {
+): { ctx: TemplateVars; polarity: number; strength: number } | null {
   // 본명 조건
   if (cond.natalStrength && !cond.natalStrength.includes(natal.saju.strength)) {
     return null
@@ -378,7 +417,11 @@ function findMatchContextWithSignal(
     const pat = patterns.find((p) => cond.patternId!.includes(p.id))
     if (!pat) return null
     const count = patterns.filter((p) => p.id === pat.id).length
-    return { ctx: { patternName: pat.name, count }, polarity: 0 }
+    return {
+      ctx: { patternName: pat.name, count },
+      polarity: 0,
+      strength: (pat.strength ?? 50) / 50,
+    }
   }
   const matchingSignal = signals.find((s) => signalMatches(s, cond))
   if (!matchingSignal) {
@@ -402,13 +445,17 @@ function findMatchContextWithSignal(
     if (!hasSignalCondition && (cond.natalStrength || cond.yongsin)) {
       const fallback = signals[0]
       if (!fallback) return null
-      return { ctx: extractSignalVars(fallback, signals), polarity: 0 }
+      return { ctx: extractSignalVars(fallback, signals), polarity: 0, strength: 0 }
     }
     return null
   }
   return {
     ctx: extractSignalVars(matchingSignal, signals),
     polarity: matchingSignal.polarity,
+    // 그 사주에서 이 신호가 얼마나 강하게 떴는지 (weight × |polarity|).
+    // 도메인 룰 선택의 2차 정렬 키 — 같은 우선순위면 신호가 강한 룰이
+    // 먼저 표출돼 사주마다 다른 조합이 나옴.
+    strength: Math.abs((matchingSignal.weight ?? 0) * (matchingSignal.polarity ?? 0)),
   }
 }
 
@@ -719,7 +766,15 @@ const DOMAIN_THEME_GROUPS: Record<string, string[][]> = {
       'expression, creation',
     ],
     ['이동·이직·이사', '여행 환경 변화', 'travel, job switches', 'environment changes'],
-    ['학습·배움 우호적', 'favourable for learning'],
+    ['학습·배움 우호적', '배우고 깊이 파고드는', 'favourable for learning', 'going deep'],
+    [
+      '예술·고독의 별',
+      '천문 활성',
+      '명상',
+      'art-and-solitude',
+      'meditation, religion',
+      'inner work',
+    ],
   ],
 }
 
