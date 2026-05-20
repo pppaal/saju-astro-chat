@@ -62,20 +62,16 @@ describe('Saju Core Integration', () => {
         'getPillarByIndex',
       ])
     })
-
-    it('should expose unse analysis types', () => {
-      assertNamedExports('lib/saju/unseAnalysis', ['UnseType', 'UnseInfo'])
-    })
   })
 
   describe('Supporting Module Exports', () => {
     it('should expose supporting modules', async () => {
-      assertNamedExports('lib/saju/textGenerator', ['generateFortuneText'])
       assertNamedExports('lib/saju/compatibility', ['analyzeComprehensiveCompatibility'])
       const sajuCache = await import('@/lib/saju/cache')
       expect(sajuCache.getSajuFromCache).toBeDefined()
       expect(sajuCache.setSajuToCache).toBeDefined()
       // visualizationData / fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
+      // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
     })
 
     it('should expose geokguk analysis', () => {
@@ -88,10 +84,6 @@ describe('Saju Core Integration', () => {
 
     it('should expose health and career analysis', () => {
       assertNamedExports('lib/saju/healthCareer', ['analyzeHealthCareer'])
-    })
-
-    it('should expose family lineage analysis', () => {
-      assertNamedExports('lib/saju/familyLineage', ['analyzeParentChild', 'analyzeFamilyDynamic'])
     })
 
     it('should expose pattern matcher', () => {
@@ -217,21 +209,18 @@ describe('Saju Core Integration', () => {
         'lib/saju/strengthScore',
         'lib/saju/sibsinAnalysis',
         'lib/saju/unse',
-        'lib/saju/unseAnalysis',
-        'lib/saju/textGenerator',
         'lib/saju/compatibility',
         'lib/saju/cache',
         'lib/saju/geokguk',
         'lib/saju/tonggeun',
         'lib/saju/healthCareer',
-        'lib/saju/familyLineage',
         'lib/saju/patternMatcher',
         'lib/saju/advancedSajuCore',
-        'lib/saju/comprehensiveReport',
       ]
       // visualizationData / fortuneSimulator / aiPromptGenerator — 미사용으로 삭제됨
+      // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
 
-      expect(modules.length).toBe(17)
+      expect(modules.length).toBe(13)
       modules.forEach((modulePath) => {
         readModule(modulePath)
       })
@@ -267,11 +256,7 @@ describe('Saju Core Integration', () => {
   // Visualization Data — 미사용으로 삭제됨 (2025 정리)
 
   describe('Advanced Analysis', () => {
-    it('should expose comprehensive report generator', () => {
-      assertNamedExports('lib/saju/comprehensiveReport', ['generateComprehensiveReport'])
-    })
-
-    // fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
+    // comprehensiveReport / fortuneSimulator — 미사용으로 삭제됨 (DEAD 정리)
 
     it('should expose advanced saju core', () => {
       assertNamedExports('lib/saju/advancedSajuCore', [
