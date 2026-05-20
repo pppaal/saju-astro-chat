@@ -299,18 +299,6 @@ describe('Astrology Chat Stream API - buildPayload Function', () => {
       expect(result.endpoint).toBe('/astrology/ask-stream')
     })
 
-    it('should include theme in body', async () => {
-      const req = makePostRequest(VALID_RAW_BODY)
-      const result = await buildPayload(
-        VALID_ASTROLOGY_CHAT_BODY,
-        MOCK_CONTEXT,
-        req,
-        VALID_RAW_BODY
-      )
-
-      expect(result.body.theme).toBe('career')
-    })
-
     it('should include locale from validated data', async () => {
       const req = makePostRequest(VALID_RAW_BODY)
       const result = await buildPayload(
@@ -705,21 +693,6 @@ describe('Astrology Chat Stream API - buildPayload Function', () => {
       expect(result.status).toBe(400)
     })
 
-    it('should truncate theme to 100 characters', async () => {
-      const longTheme = 'A'.repeat(200)
-      const rawBodyLongTheme = { ...VALID_RAW_BODY, theme: longTheme }
-
-      const req = makePostRequest(rawBodyLongTheme)
-      const result = await buildPayload(
-        VALID_ASTROLOGY_CHAT_BODY,
-        MOCK_CONTEXT,
-        req,
-        rawBodyLongTheme
-      )
-
-      expect(result.body.theme.length).toBeLessThanOrEqual(100)
-    })
-
     it('should truncate userContext to 1000 characters', async () => {
       const longContext = 'A'.repeat(2000)
       const rawBodyLongContext = { ...VALID_RAW_BODY, userContext: longContext }
@@ -750,21 +723,6 @@ describe('Astrology Chat Stream API - buildPayload Function', () => {
       )
 
       expect(result.body.birth.gender).toBe('male')
-    })
-
-    it('should use default theme when not provided', async () => {
-      const rawBodyWithoutTheme = { ...VALID_RAW_BODY }
-      delete (rawBodyWithoutTheme as any).theme
-
-      const req = makePostRequest(rawBodyWithoutTheme)
-      const result = await buildPayload(
-        VALID_ASTROLOGY_CHAT_BODY,
-        MOCK_CONTEXT,
-        req,
-        rawBodyWithoutTheme
-      )
-
-      expect(result.body.theme).toBe('life')
     })
 
     it('should have undefined astro when not provided as object', async () => {
@@ -902,10 +860,10 @@ describe('Astrology Chat Stream API - System Prompt', () => {
         VALID_RAW_BODY
       )
 
-      expect(result.body.prompt).toContain('서양 점성술 전문 상담사')
+      expect(result.body.prompt).toContain('점성술 단독 상담')
     })
 
-    it('should include Korean response format instructions', async () => {
+    it('should include Korean astrology domain rules', async () => {
       const req = makePostRequest(VALID_RAW_BODY)
       const result = await buildPayload(
         { ...VALID_ASTROLOGY_CHAT_BODY, locale: 'ko' },
@@ -914,9 +872,9 @@ describe('Astrology Chat Stream API - System Prompt', () => {
         VALID_RAW_BODY
       )
 
-      expect(result.body.prompt).toContain('【태양/달】')
-      expect(result.body.prompt).toContain('【상승궁】')
-      expect(result.body.prompt).toContain('【트랜짓】')
+      expect(result.body.prompt).toContain('[점성 카운슬러 도메인 규칙]')
+      expect(result.body.prompt).toContain('트랜짓')
+      expect(result.body.prompt).toContain('아스펙트')
     })
 
     it('should include no-greeting rule in Korean', async () => {
@@ -928,7 +886,7 @@ describe('Astrology Chat Stream API - System Prompt', () => {
         VALID_RAW_BODY
       )
 
-      expect(result.body.prompt).toContain('인사 금지')
+      expect(result.body.prompt).toContain('인사·자기소개 금지')
     })
   })
 
@@ -943,10 +901,10 @@ describe('Astrology Chat Stream API - System Prompt', () => {
         enRawBody
       )
 
-      expect(result.body.prompt).toContain('Western Astrology counselor')
+      expect(result.body.prompt).toContain('Western astrology only')
     })
 
-    it('should include English response format instructions', async () => {
+    it('should include English astrology domain rules', async () => {
       const enRawBody = { ...VALID_RAW_BODY, locale: 'en' }
       const req = makePostRequest(enRawBody)
       const result = await buildPayload(
@@ -956,9 +914,9 @@ describe('Astrology Chat Stream API - System Prompt', () => {
         enRawBody
       )
 
-      expect(result.body.prompt).toContain('【Sun/Moon】')
-      expect(result.body.prompt).toContain('【Rising】')
-      expect(result.body.prompt).toContain('【Transits】')
+      expect(result.body.prompt).toContain('Astrology-only counselor domain rules')
+      expect(result.body.prompt).toContain('transits')
+      expect(result.body.prompt).toContain('aspects')
     })
 
     it('should include no-greeting rule in English', async () => {
@@ -971,7 +929,7 @@ describe('Astrology Chat Stream API - System Prompt', () => {
         enRawBody
       )
 
-      expect(result.body.prompt).toContain('NO GREETING')
+      expect(result.body.prompt).toContain('No greetings')
     })
   })
 })

@@ -337,33 +337,6 @@ describe('Saju Chat Stream API - buildPayload Function', () => {
       expect(result.endpoint).toBe('/saju/ask-stream')
     })
 
-    it('should include theme from rawBody', async () => {
-      const req = makePostRequest(VALID_CHAT_STREAM_BODY)
-      const rawBody = { ...MOCK_RAW_BODY, theme: 'career' }
-
-      const result = await buildPayload(VALID_CHAT_STREAM_BODY, MOCK_CONTEXT, req, rawBody)
-
-      expect(result.body.theme).toBe('career')
-    })
-
-    it('should default theme to life when not provided', async () => {
-      const req = makePostRequest(VALID_CHAT_STREAM_BODY)
-      const rawBody = { ...MOCK_RAW_BODY, theme: undefined }
-
-      const result = await buildPayload(VALID_CHAT_STREAM_BODY, MOCK_CONTEXT, req, rawBody)
-
-      expect(result.body.theme).toBe('life')
-    })
-
-    it('should truncate theme to 100 characters', async () => {
-      const req = makePostRequest(VALID_CHAT_STREAM_BODY)
-      const rawBody = { ...MOCK_RAW_BODY, theme: 'A'.repeat(200) }
-
-      const result = await buildPayload(VALID_CHAT_STREAM_BODY, MOCK_CONTEXT, req, rawBody)
-
-      expect(result.body.theme.length).toBeLessThanOrEqual(100)
-    })
-
     it('should include locale from validated data', async () => {
       const req = makePostRequest(VALID_CHAT_STREAM_BODY)
 
@@ -497,7 +470,6 @@ describe('Saju Chat Stream API - buildPayload Function', () => {
       expect(result.body.prompt).toContain('Name:')
       expect(result.body.prompt).toContain('Birth:')
       expect(result.body.prompt).toContain('Gender:')
-      expect(result.body.prompt).toContain('Theme:')
     })
 
     it('should include user question in prompt', async () => {
@@ -913,7 +885,7 @@ describe('Saju Chat Stream API - System Prompt', () => {
       const result = await buildPayload(validated, MOCK_CONTEXT, req, MOCK_RAW_BODY)
 
       expect(result.body.prompt).toContain('사주')
-      expect(result.body.prompt).toContain('전문')
+      expect(result.body.prompt).toContain('서양 점성술')
     })
 
     it('should include no-greeting rule in Korean', async () => {
@@ -922,20 +894,17 @@ describe('Saju Chat Stream API - System Prompt', () => {
 
       const result = await buildPayload(validated, MOCK_CONTEXT, req, MOCK_RAW_BODY)
 
-      expect(result.body.prompt).toContain('인사 금지')
+      expect(result.body.prompt).toContain('인사·자기소개 금지')
     })
 
-    it('should include response format sections in Korean', async () => {
+    it('should include saju domain rules in Korean', async () => {
       const req = makePostRequest(VALID_CHAT_STREAM_BODY)
       const validated = { ...VALID_CHAT_STREAM_BODY, locale: 'ko' }
 
       const result = await buildPayload(validated, MOCK_CONTEXT, req, MOCK_RAW_BODY)
 
-      expect(result.body.prompt).toContain('【일간】')
-      expect(result.body.prompt).toContain('【대운】')
-      expect(result.body.prompt).toContain('【세운】')
-      expect(result.body.prompt).toContain('【오행】')
-      expect(result.body.prompt).toContain('【조언】')
+      expect(result.body.prompt).toContain('[사주 카운슬러 도메인 규칙]')
+      expect(result.body.prompt).toContain('용신')
     })
   })
 
@@ -947,7 +916,7 @@ describe('Saju Chat Stream API - System Prompt', () => {
       const result = await buildPayload(validated, { ...MOCK_CONTEXT, locale: 'en' }, req, MOCK_RAW_BODY)
 
       expect(result.body.prompt).toContain('Saju')
-      expect(result.body.prompt).toContain('Four Pillars')
+      expect(result.body.prompt).toContain('Western astrology')
     })
 
     it('should include no-greeting rule in English', async () => {
@@ -956,17 +925,16 @@ describe('Saju Chat Stream API - System Prompt', () => {
 
       const result = await buildPayload(validated, { ...MOCK_CONTEXT, locale: 'en' }, req, MOCK_RAW_BODY)
 
-      expect(result.body.prompt).toContain('NO GREETING')
+      expect(result.body.prompt).toContain('No greetings')
     })
 
-    it('should include response format sections in English', async () => {
+    it('should include saju domain rules in English', async () => {
       const req = makePostRequest(VALID_CHAT_STREAM_BODY)
       const validated = { ...VALID_CHAT_STREAM_BODY, locale: 'en' }
 
       const result = await buildPayload(validated, { ...MOCK_CONTEXT, locale: 'en' }, req, MOCK_RAW_BODY)
 
-      // English uses the same section markers
-      expect(result.body.prompt).toContain('Day master')
+      expect(result.body.prompt).toContain('day master')
     })
   })
 })
@@ -1007,7 +975,6 @@ describe('Saju Chat Stream API - Integration', () => {
 
     // Verify payload structure
     expect(result.endpoint).toBe('/saju/ask-stream')
-    expect(result.body).toHaveProperty('theme')
     expect(result.body).toHaveProperty('prompt')
     expect(result.body).toHaveProperty('locale')
     expect(result.body).toHaveProperty('birth')
