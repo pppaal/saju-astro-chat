@@ -163,7 +163,7 @@ export const CAREER_DICTIONARY: CareerEntry[] = [
     emoji: '🎨',
     sajuSignals: ['상관 강', '식신 강', '재성 받침', '화기 강'],
     astroSignals: ['Venus in 5th', 'Libra/Taurus emphasis', 'Venus–MC aspect'],
-    ko: '눈으로 보는 세계를 새롭게 만들어 주시는 분이에요. 색과 모양에 민감하고, 일상의 작은 결을 발견하는 일이 본업이에요.',
+    ko: '눈으로 보는 세계를 새롭게 만들어 주시는 분이에요. 색과 모양에 민감하고, 일상의 작은 면을 발견하는 일이 본업이에요.',
     en: 'You re-make the visual world. You’re sensitive to color and form, and noticing the small textures of daily life is your real job.',
     strengths_ko: ['미감', '창의력', '디테일'],
     strengths_en: ['aesthetic sense', 'creativity', 'attention to detail'],

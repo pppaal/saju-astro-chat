@@ -25,8 +25,8 @@ export function aspectQuality(type: string, lang: Lang): string {
   if (type === 'semisextile')
     return lang === 'ko' ? '은근한 자극을 주고받고' : 'exchanges a quiet nudge'
   if (type === 'quintile' || type === 'biquintile')
-    return lang === 'ko' ? '창의적 결로 이어지고' : 'connects in a creative grain'
-  return lang === 'ko' ? '미묘한 결을 만들고' : 'forms a subtle resonance'
+    return lang === 'ko' ? '창의적 식으로 이어지고' : 'connects in a creative grain'
+  return lang === 'ko' ? '미묘한 면을 만들고' : 'forms a subtle resonance'
 }
 
 export function houseLabel(house: number, lang: Lang): string {
@@ -178,22 +178,25 @@ export function joinList(items: string[], lang: Lang): string {
   return lang === 'ko' ? `${head}와 ${tail}` : `${head} and ${tail}`
 }
 
-// 한 문단 안에서 같은 종결구가 반복되면(결이에요/잘 맞아요) 2번째부터 자연스러운
-// 동의 표현으로 바꿔 단조로움을 줄인다. 입력 순서 기반이라 결정론적.
-const ENDING_VARIANTS: Array<{ re: RegExp; alts: string[] }> = [
-  { re: /결이에요\.?$/, alts: ['느낌이에요.', '모습이에요.'] },
-  { re: /잘 맞아요\.?$/, alts: ['잘 어울려요.', '잘 맞는 편이에요.'] },
-]
+// 한 문단 안에서 같은 종결구가 반복되면(느낌/모습/스타일이에요·잘 맞아요) 2번째부터
+// 동의 표현으로 돌려가며 단조로움을 줄인다. 입력 순서 기반이라 결정론적.
+const SENT_ENDINGS = ['느낌이에요.', '모습이에요.', '스타일이에요.']
+const SENT_RE = /(?:느낌|모습|스타일)이에요\.?$/
+const JAL_RE = /잘 맞아요\.?$/
+const JAL_ALTS = ['잘 어울려요.', '잘 맞는 편이에요.']
 export function varyRepeatedEndings(parts: string[]): string[] {
-  const counts: Record<string, number> = {}
+  let sent = 0
+  let jal = 0
   return parts.map((p) => {
     if (!p) return p
     const t = p.trim()
-    for (const { re, alts } of ENDING_VARIANTS) {
-      if (re.test(t)) {
-        const n = (counts[re.source] = (counts[re.source] || 0) + 1)
-        return n >= 2 ? t.replace(re, alts[(n - 2) % alts.length]) : p
-      }
+    if (SENT_RE.test(t)) {
+      sent += 1
+      return sent >= 2 ? t.replace(SENT_RE, SENT_ENDINGS[(sent - 1) % SENT_ENDINGS.length]) : p
+    }
+    if (JAL_RE.test(t)) {
+      jal += 1
+      return jal >= 2 ? t.replace(JAL_RE, JAL_ALTS[(jal - 2) % JAL_ALTS.length]) : p
     }
     return p
   })
