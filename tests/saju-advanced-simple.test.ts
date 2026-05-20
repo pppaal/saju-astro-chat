@@ -5,7 +5,7 @@
 
 describe("사주 데이터 구조 확인", { timeout: 30000 }, () => {
   it("pillar 구조 확인", async () => {
-    const { calculateSajuData } = await import("../src/lib/Saju/saju");
+    const { calculateSajuData } = await import("../src/lib/saju/saju");
 
     const saju = calculateSajuData(
       "1990-05-15",
@@ -29,8 +29,8 @@ describe("사주 데이터 구조 확인", { timeout: 30000 }, () => {
   });
 
   it("격국 분석용 pillar 변환 테스트", async () => {
-    const { calculateSajuData } = await import("../src/lib/Saju/saju");
-    const { determineGeokguk } = await import("../src/lib/Saju/geokguk");
+    const { calculateSajuData } = await import("../src/lib/saju/saju");
+    const { determineGeokguk } = await import("../src/lib/saju/geokguk");
 
     const saju = calculateSajuData(
       "1990-05-15",
@@ -91,11 +91,11 @@ describe("사주 데이터 구조 확인", { timeout: 30000 }, () => {
   });
 
   it("모든 고급분석 종합 테스트", async () => {
-    const { calculateSajuData } = await import("../src/lib/Saju/saju");
-    const { determineGeokguk } = await import("../src/lib/Saju/geokguk");
-    const { determineYongsin } = await import("../src/lib/Saju/yongsin");
-    const { calculateTonggeun } = await import("../src/lib/Saju/tonggeun");
-    const { analyzeHyeongchung } = await import("../src/lib/Saju/hyeongchung");
+    const { calculateSajuData } = await import("../src/lib/saju/saju");
+    const { determineGeokguk } = await import("../src/lib/saju/geokguk");
+    const { determineYongsin } = await import("../src/lib/saju/yongsin");
+    const { calculateTonggeun } = await import("../src/lib/saju/tonggeun");
+    const { analyzeHyeongchung } = await import("../src/lib/saju/hyeongchung");
 
     const saju = calculateSajuData(
       "1990-05-15",
