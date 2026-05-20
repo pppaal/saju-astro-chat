@@ -62,18 +62,16 @@ describe('Saju Core Integration', () => {
         'getPillarByIndex',
       ])
     })
-
-    // unseAnalysis (UnseType/UnseInfo) — 미사용으로 삭제됨 (dead-code cleanup)
   })
 
   describe('Supporting Module Exports', () => {
     it('should expose supporting modules', async () => {
-      // textGenerator (generateFortuneText) — 미사용으로 삭제됨 (dead-code cleanup)
       assertNamedExports('lib/saju/compatibility', ['analyzeComprehensiveCompatibility'])
       const sajuCache = await import('@/lib/saju/cache')
       expect(sajuCache.getSajuFromCache).toBeDefined()
       expect(sajuCache.setSajuToCache).toBeDefined()
       // visualizationData / fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
+      // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
     })
 
     it('should expose geokguk analysis', () => {
@@ -87,8 +85,6 @@ describe('Saju Core Integration', () => {
     it('should expose health and career analysis', () => {
       assertNamedExports('lib/saju/healthCareer', ['analyzeHealthCareer'])
     })
-
-    // familyLineage (analyzeParentChild/analyzeFamilyDynamic) — 미사용으로 삭제됨 (dead-code cleanup)
 
     it('should expose pattern matcher', () => {
       assertNamedExports('lib/saju/patternMatcher', ['matchAllPatterns', 'analyzePatterns'])
@@ -221,8 +217,8 @@ describe('Saju Core Integration', () => {
         'lib/saju/patternMatcher',
         'lib/saju/advancedSajuCore',
       ]
-      // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — 미사용으로 삭제됨 (dead-code cleanup)
       // visualizationData / fortuneSimulator / aiPromptGenerator — 미사용으로 삭제됨
+      // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
 
       expect(modules.length).toBe(13)
       modules.forEach((modulePath) => {
@@ -260,8 +256,7 @@ describe('Saju Core Integration', () => {
   // Visualization Data — 미사용으로 삭제됨 (2025 정리)
 
   describe('Advanced Analysis', () => {
-    // comprehensiveReport (generateComprehensiveReport) — 미사용으로 삭제됨 (dead-code cleanup)
-    // fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
+    // comprehensiveReport / fortuneSimulator — 미사용으로 삭제됨 (DEAD 정리)
 
     it('should expose advanced saju core', () => {
       assertNamedExports('lib/saju/advancedSajuCore', [

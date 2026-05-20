@@ -404,7 +404,7 @@ function firstSentenceMoney(text: string): string {
 
 function wealthFlavorKo(total: number, jeong: number, pyen: number): string {
   if (total >= 3)
-    return '당신은 자원과 결과로 인생을 풀어내는 결이에요. 풍성한 재물이 깔려서 돈이 곧 표현의 도구가 돼요.'
+    return '당신은 자원과 결과로 인생을 풀어내는 모습이에요. 풍성한 재물이 깔려서 돈이 곧 표현의 도구가 돼요.'
   if (total === 2)
     return jeong >= pyen
       ? '당신은 안정적인 수입 라인으로 자원을 쌓아가시는 편이에요.'
@@ -580,7 +580,7 @@ function daeunMoneyFlavorKo(sibsin: string): string {
   if (sibsin.includes('관')) return '책임을 통한 안정의 흐름'
   if (sibsin.includes('인')) return '학습 투자가 자원이 되는 흐름'
   if (sibsin.includes('비') || sibsin.includes('겁')) return '협업·동업의 흐름'
-  return '잔잔한 결'
+  return '잔잔한 느낌'
 }
 function daeunMoneyFlavorEn(sibsin: string): string {
   if (sibsin.includes('재')) return 'opens an expansion line'

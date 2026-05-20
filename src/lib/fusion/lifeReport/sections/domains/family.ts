@@ -20,8 +20,14 @@ import {
   houseCusp,
   vesta,
 } from '../../signals/astroSignals'
-import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
-import { pickVariation, twelveStagePool, sibsinCategoryPool } from '../../pools'
+import {
+  aspectQuality,
+  houseLabel,
+  paragraph,
+  signLabel,
+  varyRepeatedEndings,
+} from '../../templates/sentences'
+import { pickVariation, twelveStagePool, sibsinCategoryPool, sibsinPool } from '../../pools'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 
@@ -75,7 +81,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   // ── Paragraph 1
   const p1ko = paragraph([
     inseong >= 2
-      ? '당신은 어머니와 돌봄 라인의 인연이 자연스럽게 깊은 결이에요.'
+      ? '당신은 어머니와 돌봄 라인의 인연이 자연스럽게 깊은 느낌이에요.'
       : inseong === 0
         ? '어머니와 돌봄 라인의 인연은 의식적인 노력으로 자라요.'
         : '당신은 가족과의 인연을 차분하게 이어가시는 분이에요.',
@@ -124,7 +130,7 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       : ''
   const p2ko = paragraph([
     sun
-      ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 결이에요.`
+      ? `아버지상은 ${signLabel(sun.sign, 'ko')}에 자리한 태양처럼, ${parentSignFlavorKo(sun.sign)} 스타일이에요.`
       : '',
     moon
       ? `어머니상은 ${signLabel(moon.sign, 'ko')}의 분위기로 흐르는 달처럼, ${parentSignFlavorKo(moon.sign)} 분이에요.`
@@ -311,6 +317,20 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     sajuUsed.push('pools.sibsinCategory.family')
     deepKo.push(/[.!?]$/.test(familyCatVar) ? familyCatVar : `${familyCatVar}.`)
   }
+  // 정밀 십신 — category(재성/인성…) 보다 한 단계 좁은 개별 십신(정인/편인…)
+  // 으로 family 도메인 한 줄 추가. 가장 많이 깔린 개별 십신 기준.
+  const dominantSibsinF = (Object.entries(sib) as Array<[string, number]>)
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1])[0]?.[0]
+  const familySibsinVar = pickVariation(sibsinPool(dominantSibsinF, 'family'), [
+    `day_master:${dayMasterStemF}`,
+    `sibsin:${dominantSibsinF ?? ''}`,
+    `day_branch:${dayBranchF}`,
+  ])
+  if (familySibsinVar) {
+    sajuUsed.push('pools.sibsin.family')
+    deepKo.push(/[.!?]$/.test(familySibsinVar) ? familySibsinVar : `${familySibsinVar}.`)
+  }
   // Lot of Basis — 가정 기반·뿌리의 점
   const basis = input.calendarSignals?.arabicPartsExtra?.Basis
   if (basis) {
@@ -324,7 +344,9 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   }
 
   const p3ko = paragraph(
-    deepKo.length ? deepKo : ['이번 생의 가족 분위기는 큰 드라마보다 잔잔한 누적으로 빚어져요.']
+    deepKo.length
+      ? varyRepeatedEndings(deepKo)
+      : ['이번 생의 가족 분위기는 큰 드라마보다 잔잔한 누적으로 빚어져요.']
   )
   const p3en = paragraph(
     deepEn.length
@@ -477,4 +499,3 @@ function sunMoonFlavorEn(type: string): string {
   if (type === 'conjunction') return 'tightly fused'
   return 'subtle'
 }
-

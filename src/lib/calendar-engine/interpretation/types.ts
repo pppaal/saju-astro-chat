@@ -108,6 +108,17 @@ export interface Interpretation {
    * 사용 우선순위: 이 필드 > cell.themeScores (UI 표시용).
    */
   themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
+  /**
+   * 테마별 점수 "인과 추적" (Why-card). 그 점수에 기여한 신호 top N 을
+   * +/- 기여도와 함께 노출 — "재물 68 ← 정재 월지 +12 / 천을귀인 +8 /
+   * 겁재 분탈 −7" 식. 점수만 던지지 않고 *근거* 를 보여줘 신뢰도 ↑.
+   */
+  themeBreakdown?: Partial<
+    Record<
+      'love' | 'money' | 'career' | 'health' | 'growth',
+      Array<{ label: string; delta: number; dir: 'up' | 'down' }>
+    >
+  >
 }
 
 /**

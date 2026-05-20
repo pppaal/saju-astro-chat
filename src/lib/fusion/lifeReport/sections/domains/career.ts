@@ -36,6 +36,7 @@ import {
   paragraph,
   planetLabel,
   signLabel,
+  varyRepeatedEndings,
 } from '../../templates/sentences'
 import {
   appendToPara,
@@ -45,6 +46,7 @@ import {
   planetSignPool,
   iljuPool,
   planetHouseLine,
+  stageHouseLine,
 } from '../../pools'
 import { matchTopCareers } from '@/lib/saju/careerDictionary'
 
@@ -187,8 +189,10 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // P1 — keep to max 2 pool variations (Sun sign + Sun house) so the basic
   // identity paragraph stays short and readable. The remaining pool lines
   // (Mercury, Mars, Saturn, Pluto, ASC) move into P3 as deep-grain layer.
-  p1ko = appendToPara(p1ko, sunSignVar)
-  p1ko = appendToPara(p1ko, sunHouseVar)
+  // 두 pool 변주가 같은 종결("잘 맞아요")로 끝나는 단조로움을 줄인다.
+  const [vSunSign, vSunHouse] = varyRepeatedEndings([sunSignVar ?? '', sunHouseVar ?? ''])
+  p1ko = appendToPara(p1ko, vSunSign)
+  p1ko = appendToPara(p1ko, vSunHouse)
   const p1en = paragraph([
     paragraphOpenerEn(dominantCategory, geokguk),
     mc
@@ -323,7 +327,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     )
   }
   if (iljuAptitudes.length > 0 && iljuName) {
-    deepPieces.push(`타고난 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽에 잘 맞아요.`)
+    deepPieces.push(`타고난 자질은 ${iljuAptitudes.slice(0, 3).join('·')} 쪽으로 기울어 있어요.`)
     deepPiecesEn.push(`Your natural aptitudes lean toward ${aptitudeListEn(iljuAptitudes)}.`)
   }
   // Sibsin-category pool — deep-grain layer (P3, not P1) so the same line
@@ -360,6 +364,13 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   if (stageVar) {
     sajuUsed.push('pools.twelveStage.career')
     deepPieces.push(/[.!?]$/.test(stageVar) ? stageVar : `${stageVar}.`)
+  }
+  // 12운성 단계 × 태양 하우스 — 삶의 에너지 단계가 어느 무대에서 펼쳐지는지.
+  // (saju 12운성 ↔ astro house cross)
+  const stageHouseKo = stageHouseLine(timeStageVal, sun?.house, 'ko')
+  if (stageHouseKo) {
+    sajuUsed.push('pools.stageHouse.career')
+    deepPieces.push(/[.!?]$/.test(stageHouseKo) ? stageHouseKo : `${stageHouseKo}.`)
   }
   // 60갑자 일주 variation — wraps the dictionary archetype into a
   // career framing.
@@ -430,7 +441,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   }
   const p3ko = paragraph(
     deepPieces.length
-      ? deepPieces
+      ? varyRepeatedEndings(deepPieces)
       : [
           '지금 흐름이 평탄하게 정렬돼 있어, 한쪽으로 치우치기보다 다양한 가능성이 함께 무르익는 시기예요.',
         ]
@@ -883,7 +894,7 @@ function careerPatternLineKo(name: string): string {
   if (name === '관살혼잡' || name === '관성과다')
     return '책임이 한쪽으로 강하게 몰려서, 자리와 무게를 받아들이는 자리부터 운이 잡혀요.'
   if (name === '식상과다')
-    return '표현과 창작이 한쪽으로 강하게 몰려서, 자기 결과물을 끊임없이 바깥으로 내보내는 결이 직업의 동력이에요.'
+    return '표현과 창작이 한쪽으로 강하게 몰려서, 자기 결과물을 끊임없이 바깥으로 내보내는 면이 직업의 동력이에요.'
   if (name === '재성과다')
     return '재성이 강하게 몰려서, 손에 잡히는 결과로 끝맺는 직업 흐름이 가장 잘 풀려요.'
   if (name === '인성과다')

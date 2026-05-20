@@ -84,6 +84,14 @@ export interface FormattedDate {
     narrative: string
     matchedRuleIds: string[]
     sections: Array<{ section: string; title: string; text: string }>
+    themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
+    /** 테마별 점수 인과 추적 (Why-card) */
+    themeBreakdown?: Partial<
+      Record<
+        'love' | 'money' | 'career' | 'health' | 'growth',
+        Array<{ label: string; delta: number; dir: 'up' | 'down' }>
+      >
+    >
   }
   /**
    * 해당 날의 60갑자(일진) 한 줄 narrative — `getGanjiTransitNarrative` 출처.

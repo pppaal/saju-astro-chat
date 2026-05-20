@@ -25,6 +25,7 @@ import {
   aspectQuality,
   gwaWa,
   houseLabel,
+  iGa,
   paragraph,
   planetLabel,
   signLabel,
@@ -162,8 +163,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
         p2piecesEn.push(firstSentenceWisdom(mercEntry.en))
       } else {
         const otherKo = planetLabel(other, 'ko')
+        const mercFlavor = mercAspectFlavorKo(other)
         p2pieces.push(
-          `생각의 별이 ${otherKo}${gwaWa(otherKo)} ${aspectQuality(topMercAspect.type, 'ko')}, ${mercAspectFlavorKo(other)}의 색이 사고 방식에 새겨져 있어요.`
+          `생각의 별이 ${otherKo}${gwaWa(otherKo)} ${aspectQuality(topMercAspect.type, 'ko')}, ${mercFlavor}${iGa(mercFlavor)} 사고 방식에 묻어나요.`
         )
         p2piecesEn.push(
           `Your Mercury ${aspectQuality(topMercAspect.type, 'en')} with ${other}, etching a ${mercAspectFlavorEn(other)} quality into the way you think.`

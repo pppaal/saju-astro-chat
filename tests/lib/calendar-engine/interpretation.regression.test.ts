@@ -180,6 +180,45 @@ describe('calendar-engine regression', () => {
       expect(themesPopulated.length).toBeGreaterThanOrEqual(3)
     })
 
+    it('themeBreakdown (Why-card) exposes contributors with sane magnitude + no raw hanja', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const bd = interp.themeBreakdown ?? {}
+      const themes = (['love', 'money', 'career', 'health', 'growth'] as const).filter(
+        (k) => (bd[k]?.length ?? 0) > 0
+      )
+      // 적어도 한 테마는 인과 추적이 나와야 함
+      expect(themes.length).toBeGreaterThanOrEqual(1)
+      for (const k of themes) {
+        for (const c of bd[k]!) {
+          // delta 는 합리적 크기 (월 합산 폭주 방지 — 평균 기반)
+          expect(Math.abs(c.delta)).toBeLessThanOrEqual(60)
+          expect(Math.abs(c.delta)).toBeGreaterThan(0)
+          expect(c.dir === 'up' || c.dir === 'down').toBe(true)
+          // 라벨에 raw 한자 갑자(丙午 등)가 남으면 안 됨
+          expect(c.label, `hanja ganji leak: ${c.label}`).not.toMatch(
+            /[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]/
+          )
+        }
+      }
+    })
+
     it('every cell has a cell.themeScores object (UI 그래프 contract)', async () => {
       const saju = calculateSajuData(
         SEOUL_MALE_1995.birthDate,
@@ -261,6 +300,35 @@ describe('calendar-engine regression', () => {
       const present = tailKeys.filter((k) => [day, month, year, dec].some((t) => t?.includes(k)))
       // 네 layer 의 어미가 서로 다른 키워드를 써야 함.
       expect(present.length).toBeGreaterThanOrEqual(3)
+    })
+
+    it('archetype ending in 결 does not produce dangling 형용사 (己丑 case)', async () => {
+      const { getGanjiTransitNarrative } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      // 己丑 character 가 "…부드러운 결" 로 끝남 — wrapper 가 "결" 강제 strip
+      // 하면 "부드러운의" 댕글링 발생했던 회귀. "결의 에너지/기운" 으로 정상.
+      const day = getGanjiTransitNarrative('己丑', 'daily', 'ko')
+      const month = getGanjiTransitNarrative('己丑', 'monthly', 'ko')
+      expect(day).not.toMatch(/[가-힣]운의 /) // "부드러운의" 같은 형용사+의 금지
+      expect(day).not.toMatch(/결의 결/) // 결 이중 금지
+      expect(month).not.toMatch(/결의 결/)
+    })
+
+    it('dailyIljinSibsinLine personalizes by natal day-master sibsin', async () => {
+      const { dailyIljinSibsinLine } =
+        await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+      // 같은 날짜라도 본명 일간이 달라 십신이 다르면 다른 한 줄
+      const a = dailyIljinSibsinLine('편인', 'ko')
+      const b = dailyIljinSibsinLine('편재', 'ko')
+      expect(a).not.toBe('')
+      expect(b).not.toBe('')
+      expect(a).not.toBe(b)
+      expect(a).toMatch(/당신에게는/)
+      // 영어도 동작
+      expect(dailyIljinSibsinLine('편인', 'en')).toMatch(/^For you it is a day/)
+      // 미지/빈 값은 "" (안전)
+      expect(dailyIljinSibsinLine(undefined, 'ko')).toBe('')
+      expect(dailyIljinSibsinLine('xxx', 'ko')).toBe('')
     })
 
     it('English ganji narrative is fully English (no KO leak)', async () => {

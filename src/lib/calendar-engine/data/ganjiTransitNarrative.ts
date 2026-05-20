@@ -53,23 +53,23 @@ export function getGanjiTransitNarrative(
   const period = PERIOD_LABEL[layer][lang]
 
   if (lang === 'ko') {
-    // 자연 어순: "이번 달은 [character] 의 결이 함께 흘러요."
-    // archetype.character 가 이미 "…의 결" 로 끝나면 "…의 결의 결이" 처럼
-    // 결 두 번 박힘. trim 단계에서 끝 마침표/공백 + 종성 "의 결" 도 떼어내고
-    // wrapper 가 깨끗하게 다시 붙임.
-    const characterTrim = archetype.character
-      .replace(/[.,。、]\s*$/u, '')
-      .replace(/\s*의\s*결\s*$/u, '')
-      .replace(/\s*결\s*$/u, '')
-      .trim()
+    // character 는 두 형태가 섞여 있음:
+    //  (a) 명사 끝 — "창의적 리더형, 지혜와 결단"
+    //  (b) 관형형(형용사) 끝 — "재치 있고 두뇌가 빠른 차분한 물 같은"
+    // TAIL 이 "기운"(명사)으로 시작하게 통일하고, character 가 명사로 끝나면
+    // "의 기운", 관형형으로 끝나면 (의 없이) " 기운" 으로 이어 자연스럽게 함.
+    // ("부드러운의 기운" 댕글링 / "결의 결" 이중 결 둘 다 회피.)
+    const characterTrim = archetype.character.replace(/[.,。、]\s*$/u, '').trim()
+    const attributive = /(같은|운|은|는|ㄴ|한|던|린|난|른|큰|긴)$/.test(characterTrim)
+    const link = attributive ? '' : '의'
     const strengths = archetype.strengths.join('·')
     const TAIL: Record<GanjiTransitLayer, string> = {
-      daily: '에너지가 흐르는 하루예요',
-      monthly: '결이 함께 흘러요',
-      yearly: '흐름을 띠어요',
-      decadal: '결로 길게 펼쳐져요',
+      daily: '기운이 흐르는 하루예요',
+      monthly: '기운이 함께 흘러요',
+      yearly: '기운을 띠어요',
+      decadal: '기운으로 길게 펼쳐져요',
     }
-    return `${period} ${characterTrim}의 ${TAIL[layer]}. 강점: ${strengths}.`
+    return `${period} ${characterTrim}${link} ${TAIL[layer]}. 강점: ${strengths}.`
   }
 
   // ILJU_ARCHETYPES 는 character_en / strengths_en 영어 필드를 이미 보유
@@ -90,4 +90,62 @@ export function getGanjiTransitNarrative(
     decadal: 'unfolds along the long arc of',
   }
   return `${period} ${TAIL_EN[layer]} ${characterEn}. Strengths: ${strengthsEn}.`
+}
+
+// 일진(그 날 60갑자)의 천간이 본명 일간과 만나 만드는 십신 관계를 자연어
+// 한 줄로. 60갑자 archetype 은 그 날 모두에게 같지만, 이 줄은 *본명 일간
+// 기준* 이라 사람마다 달라짐 — 일진 narrative 의 개인화 축.
+// 십신 raw 용어는 노출하지 않고 의미만 풀어씀.
+const DAY_SIBSIN_LINE: Record<string, { ko: string; en: string }> = {
+  비견: {
+    ko: '당신에게는 내 힘과 동료의 기운이 강해지는 하루라, 주도적으로 움직이기 좋아요.',
+    en: 'For you it is a day when your own strength and your allies run strong — a good day to take the lead.',
+  },
+  겁재: {
+    ko: '당신에게는 경쟁심과 추진력이 올라오는 하루라, 함께 겨루거나 나누는 일이 잘 풀려요.',
+    en: 'For you it is a day when drive and a competitive edge rise — sharing or competing alongside others goes well.',
+  },
+  식신: {
+    ko: '당신에게는 표현과 아이디어가 잘 나오는 하루라, 만들고 풀어내는 일에 좋아요.',
+    en: 'For you it is a day when expression and ideas flow easily — good for making and putting things out.',
+  },
+  상관: {
+    ko: '당신에게는 재치와 표현력이 살아나는 하루라, 본인 색을 드러내는 일이 잘 통해요.',
+    en: 'For you it is a day when wit and expression come alive — showing your own colour lands well.',
+  },
+  정재: {
+    ko: '당신에게는 실속과 안정 감각이 살아나는 하루라, 차곡차곡 챙기는 일에 좋아요.',
+    en: 'For you it is a day when a sense for substance and stability comes alive — good for steady, careful gains.',
+  },
+  편재: {
+    ko: '당신에게는 재물 감각과 기회 포착이 빨라지는 하루라, 흐름을 타기 좋아요.',
+    en: 'For you it is a day when your sense for money and opportunity sharpens — a good day to ride the flow.',
+  },
+  정관: {
+    ko: '당신에게는 책임과 자리가 또렷해지는 하루라, 공적인 일·약속에 좋아요.',
+    en: 'For you it is a day when responsibility and standing come into focus — good for official matters and commitments.',
+  },
+  편관: {
+    ko: '당신에게는 압박과 추진력이 동시에 커지는 하루라, 정면 돌파에 어울려요.',
+    en: 'For you it is a day when pressure and drive both rise — suited to meeting things head-on.',
+  },
+  정인: {
+    ko: '당신에게는 배움과 도움이 들어오는 하루라, 공부·정리·기대기에 좋아요.',
+    en: 'For you it is a day when learning and support come in — good for study, tidying up, and leaning on others.',
+  },
+  편인: {
+    ko: '당신에게는 직관과 깊은 사유가 살아나는 하루라, 혼자 파고드는 일에 좋아요.',
+    en: 'For you it is a day when intuition and deep thought come alive — good for going deep on your own.',
+  },
+}
+
+/**
+ * 일진 천간 × 본명 일간 = 십신 한 줄 (개인화). sibsin 이 없거나 미지면 "".
+ * 호출 측에서 getGanjiTransitNarrative('daily') 뒤에 이어붙여 사용.
+ */
+export function dailyIljinSibsinLine(sibsin: string | undefined, lang: Lang = 'ko'): string {
+  if (!sibsin) return ''
+  const entry = DAY_SIBSIN_LINE[sibsin]
+  if (!entry) return ''
+  return entry[lang]
 }

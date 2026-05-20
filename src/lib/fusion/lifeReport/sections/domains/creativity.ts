@@ -11,6 +11,7 @@ import {
   aspectQuality,
   gwaWa,
   houseLabel,
+  iGa,
   paragraph,
   planetLabel,
   signLabel,
@@ -109,8 +110,9 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
       topVenusAspect.from?.name === 'Venus' ? topVenusAspect.to?.name : topVenusAspect.from?.name
     if (other) {
       const otherKoC = planetLabel(other, 'ko')
+      const venusFlavorC = venusAspectFlavorKo(other)
       p2pieces.push(
-        `당신의 금성이 ${otherKoC}${gwaWa(otherKoC)} ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusAspectFlavorKo(other)}의 색이 표현에 새겨져 있어요.`
+        `당신의 금성이 ${otherKoC}${gwaWa(otherKoC)} ${aspectQuality(topVenusAspect.type, 'ko')}, ${venusFlavorC}${iGa(venusFlavorC)} 표현에 묻어나요.`
       )
       p2piecesEn.push(
         `Venus ${aspectQuality(topVenusAspect.type, 'en')} ${other} — ${venusAspectFlavorEn(other)} marks the way you express.`
@@ -295,7 +297,7 @@ function collectShinsal(saju: BuilderInput['saju']): string[] {
 
 function openerKo(sangwan: number, sikshin: number, hasHwagae: boolean): string {
   if (sangwan >= 3)
-    return '재능의 자유로운 발산이 매우 강해서, 만들지 않으면 답답해지는 결이에요.'
+    return '재능의 자유로운 발산이 매우 강해서, 만들지 않으면 답답해지는 모습이에요.'
   if (sangwan >= 1 && hasHwagae)
     return '재능과 예술의 별이 동시에 깔려 있어, 창작은 이번 생에서 피해갈 수 없는 길이에요.'
   if (sikshin >= 2) return '여유로운 표현의 자질이 강해서, 즐기듯 만드는 방식이 가장 잘 맞아요.'
