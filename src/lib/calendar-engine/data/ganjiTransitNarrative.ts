@@ -53,19 +53,23 @@ export function getGanjiTransitNarrative(
   const period = PERIOD_LABEL[layer][lang]
 
   if (lang === 'ko') {
-    // 자연 어순: "이번 달은 [character]의 기운이 함께 흘러요."
-    // character 는 명사구로 끝남 (예: "…부드러운 결"). TAIL 이 "결"로
-    // 시작하지 않게 ("기운/흐름") 하여 character 가 결로 끝나도 "결의 기운"
-    // 처럼 자연스럽게 이어짐 — 끝 형용사/결 강제 strip (댕글링 유발) 제거.
+    // character 는 두 형태가 섞여 있음:
+    //  (a) 명사 끝 — "창의적 리더형, 지혜와 결단"
+    //  (b) 관형형(형용사) 끝 — "재치 있고 두뇌가 빠른 차분한 물 같은"
+    // TAIL 이 "기운"(명사)으로 시작하게 통일하고, character 가 명사로 끝나면
+    // "의 기운", 관형형으로 끝나면 (의 없이) " 기운" 으로 이어 자연스럽게 함.
+    // ("부드러운의 기운" 댕글링 / "결의 결" 이중 결 둘 다 회피.)
     const characterTrim = archetype.character.replace(/[.,。、]\s*$/u, '').trim()
+    const attributive = /(같은|운|은|는|ㄴ|한|던|린|난|른|큰|긴)$/.test(characterTrim)
+    const link = attributive ? '' : '의'
     const strengths = archetype.strengths.join('·')
     const TAIL: Record<GanjiTransitLayer, string> = {
-      daily: '에너지가 흐르는 하루예요',
+      daily: '기운이 흐르는 하루예요',
       monthly: '기운이 함께 흘러요',
-      yearly: '흐름을 띠어요',
+      yearly: '기운을 띠어요',
       decadal: '기운으로 길게 펼쳐져요',
     }
-    return `${period} ${characterTrim}의 ${TAIL[layer]}. 강점: ${strengths}.`
+    return `${period} ${characterTrim}${link} ${TAIL[layer]}. 강점: ${strengths}.`
   }
 
   // ILJU_ARCHETYPES 는 character_en / strengths_en 영어 필드를 이미 보유

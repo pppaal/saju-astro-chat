@@ -17,6 +17,7 @@ import { chiron, getPlanet, houseCusp, planetsInHouse, vesta } from '../../signa
 import { houseLabel, iGa, paragraph, planetLabel, signLabel } from '../../templates/sentences'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
+import { jijangganLine } from '../../pools'
 
 export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const { saju, astro, calendarSignals } = input
@@ -134,6 +135,16 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     p2piecesEn.push(
       'A strong wisdom-and-care pattern shapes your spiritual life around receiving teaching and passing it on to others.'
     )
+  }
+  // 지장간 — 일지 깊은 곳의 숨은 기운 = 겉으로 안 드러나는 내면 자아.
+  // 영성 챕터의 "숨은 나" 축에 자연스럽게 연결.
+  const dayBranchName = saju.pillars.day.branch
+  const jijangganKo = jijangganLine(dayBranchName, 'ko')
+  const jijangganEn = jijangganLine(dayBranchName, 'en')
+  if (jijangganKo) {
+    sajuUsed.push('pools.jijanggan')
+    p2pieces.push(jijangganKo)
+    p2piecesEn.push(jijangganEn)
   }
   const p2ko = paragraph(
     p2pieces.length

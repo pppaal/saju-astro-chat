@@ -46,6 +46,7 @@ import {
   planetSignPool,
   iljuPool,
   planetHouseLine,
+  stageHouseLine,
 } from '../../pools'
 import { matchTopCareers } from '@/lib/saju/careerDictionary'
 
@@ -363,6 +364,13 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   if (stageVar) {
     sajuUsed.push('pools.twelveStage.career')
     deepPieces.push(/[.!?]$/.test(stageVar) ? stageVar : `${stageVar}.`)
+  }
+  // 12운성 단계 × 태양 하우스 — 삶의 에너지 단계가 어느 무대에서 펼쳐지는지.
+  // (saju 12운성 ↔ astro house cross)
+  const stageHouseKo = stageHouseLine(timeStageVal, sun?.house, 'ko')
+  if (stageHouseKo) {
+    sajuUsed.push('pools.stageHouse.career')
+    deepPieces.push(/[.!?]$/.test(stageHouseKo) ? stageHouseKo : `${stageHouseKo}.`)
   }
   // 60갑자 일주 variation — wraps the dictionary archetype into a
   // career framing.

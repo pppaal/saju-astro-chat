@@ -18,25 +18,19 @@
 
 import { JIJANGGAN } from '@/lib/saju/constants'
 
-// 천간 → 한글 음 + 오행 라벨 (헤드라인 STEM_LABEL 과 같은 표기를
-// 의도적으로 따라가 — 다른 챕터와 voice 일관)
-const STEM_VOICE: Record<string, { ko: string; element: string }> = {
-  甲: { ko: '갑목', element: '큰 나무' },
-  乙: { ko: '을목', element: '여린 풀' },
-  丙: { ko: '병화', element: '태양' },
-  丁: { ko: '정화', element: '촛불' },
-  戊: { ko: '무토', element: '넓은 땅' },
-  己: { ko: '기토', element: '밭의 흙' },
-  庚: { ko: '경금', element: '큰 쇠' },
-  辛: { ko: '신금', element: '보석' },
-  壬: { ko: '임수', element: '큰 물' },
-  癸: { ko: '계수', element: '이슬' },
-}
-
-const POSITION_LABEL: Record<string, { ko: string; en: string }> = {
-  여기: { ko: '여기(전월 잔기)', en: 'residual qi' },
-  중기: { ko: '중기(전이기)', en: 'middle qi' },
-  정기: { ko: '정기(본기)', en: 'main qi' },
+// 천간 → 한글 음 + 오행 자연 descriptor (ko/en). jijangganLine 은 raw 한자
+// 대신 자연어 element 만 노출 — 일반 사용자도 읽히게.
+const STEM_VOICE: Record<string, { ko: string; element: string; elementEn: string }> = {
+  甲: { ko: '갑목', element: '큰 나무', elementEn: 'a great tree' },
+  乙: { ko: '을목', element: '여린 풀', elementEn: 'tender grass' },
+  丙: { ko: '병화', element: '태양', elementEn: 'the sun' },
+  丁: { ko: '정화', element: '촛불', elementEn: 'a candle flame' },
+  戊: { ko: '무토', element: '넓은 땅', elementEn: 'broad earth' },
+  己: { ko: '기토', element: '밭의 흙', elementEn: 'field soil' },
+  庚: { ko: '경금', element: '큰 쇠', elementEn: 'strong metal' },
+  辛: { ko: '신금', element: '보석', elementEn: 'a jewel' },
+  壬: { ko: '임수', element: '큰 물', elementEn: 'a great water' },
+  癸: { ko: '계수', element: '이슬', elementEn: 'morning dew' },
 }
 
 export interface JijangganPart {
@@ -44,6 +38,7 @@ export interface JijangganPart {
   stem: string
   stemKo: string
   flavor: string
+  flavorEn: string
 }
 
 /**
@@ -60,7 +55,13 @@ export function getJijanggan(branch: string | undefined): JijangganPart[] {
     if (!stem) continue
     const voice = STEM_VOICE[stem]
     if (!voice) continue
-    out.push({ position: pos, stem, stemKo: voice.ko, flavor: voice.element })
+    out.push({
+      position: pos,
+      stem,
+      stemKo: voice.ko,
+      flavor: voice.element,
+      flavorEn: voice.elementEn,
+    })
   }
   return out
 }
@@ -80,19 +81,17 @@ export function jijangganLine(branch: string | undefined, lang: 'ko' | 'en'): st
   if (!main) return ''
   const others = parts.filter((p) => p.position !== '정기')
   if (lang === 'ko') {
-    const mainLine = `정기 **${main.stem}**(${main.stemKo}) — ${main.flavor}의 에너지가 중심에 자리해요`
+    const mainLine = `겉으론 잘 안 드러나지만 **${main.flavor}**의 기운이 중심에 자리해요`
     if (others.length === 0) {
-      return `당신의 일지 ${branch} 깊은 곳엔 ${mainLine}.`
+      return `당신 안쪽 깊은 곳엔 ${mainLine}.`
     }
-    const otherLine = others
-      .map((p) => `${POSITION_LABEL[p.position].ko} ${p.stem}(${p.stemKo})`)
-      .join(' · ')
-    return `당신의 일지 ${branch} 깊은 곳엔 ${mainLine}. 함께 흐르는 결: ${otherLine}.`
+    const otherLine = others.map((p) => p.flavor).join(' · ')
+    return `당신 안쪽 깊은 곳엔 ${mainLine}. 그 곁엔 ${otherLine}의 결도 함께 흘러요.`
   }
-  const mainLine = `the main qi is **${main.stem}** (${main.stemKo})`
+  const mainLine = `**${main.flavorEn}** sits quietly at the centre, beneath the surface`
   if (others.length === 0) {
-    return `Deep inside your day branch ${branch}, ${mainLine}.`
+    return `Deep inside you, ${mainLine}.`
   }
-  const otherLine = others.map((p) => `${POSITION_LABEL[p.position].en} ${p.stem}`).join(' · ')
-  return `Deep inside your day branch ${branch}, ${mainLine}. Also threading through: ${otherLine}.`
+  const otherLine = others.map((p) => p.flavorEn).join(' · ')
+  return `Deep inside you, ${mainLine}. Alongside it run ${otherLine}.`
 }
