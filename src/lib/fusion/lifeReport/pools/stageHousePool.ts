@@ -38,6 +38,22 @@ function asStandardStage(raw: string | undefined): TwelveStageStandard | undefin
   return STAGE_STANDARD_SET.has(normalised) ? (normalised as TwelveStageStandard) : undefined
 }
 
+// 12운성 → 자연 descriptor (raw 단계명 노출 X). 삶의 에너지 사이클 단계.
+const STAGE_NATURAL: Record<TwelveStageStandard, { ko: string; en: string }> = {
+  장생: { ko: '갓 자라나는 새싹 같은', en: 'a fresh, sprouting' },
+  목욕: { ko: '다듬어지며 시행착오를 겪는', en: 'a refining, trial-and-error' },
+  관대: { ko: '자리를 갖춰 가는', en: 'a coming-into-shape' },
+  임관: { ko: '무르익어 힘이 붙는', en: 'a maturing, strengthening' },
+  왕지: { ko: '정점에 올라 가장 왕성한', en: 'a peak, fullest-strength' },
+  쇠: { ko: '기세가 한풀 누그러지는', en: 'a softening, easing' },
+  병: { ko: '잠시 쉬어가며 돌아보는', en: 'a resting, reflective' },
+  사: { ko: '마무리하고 정리하는', en: 'a winding-down, tidying' },
+  묘: { ko: '갈무리해 안으로 저장하는', en: 'a storing-inward' },
+  절: { ko: '비우고 끊어내 새로 준비하는', en: 'an emptying, resetting' },
+  태: { ko: '새로 잉태되는', en: 'a newly-conceived' },
+  양: { ko: '조용히 길러지는', en: 'a quietly-nurtured' },
+}
+
 const HOUSE_LABEL_KO: Record<HouseNumber, string> = {
   1: '자아',
   2: '자원',
@@ -87,12 +103,13 @@ export function stageHouseLine(
   if (!entry) return ''
   const keyword = lang === 'ko' ? entry.keyword : entry.keywordEn
   const houseLabel = lang === 'ko' ? HOUSE_LABEL_KO[houseN] : HOUSE_LABEL_EN[houseN]
+  const stageNatural = lang === 'ko' ? STAGE_NATURAL[normalised].ko : STAGE_NATURAL[normalised].en
+  // advice 필드는 destiny-matrix 원본이라 "왕지·10하우스" 같은 raw jargon 이
+  // 섞여 있어 lifeReport 자연어 톤과 안 맞음 → keyword 만 사용.
   if (lang === 'ko') {
-    return `12운성 ${normalised} × ${houseLabel} 영역 — ${keyword}. ${
-      'advice' in entry && typeof entry.advice === 'string' ? entry.advice : ''
-    }`.trim()
+    return `타고난 에너지는 ${stageNatural} 단계라, ${houseLabel} 영역에서 — ${keyword}.`
   }
-  return `12-stage ${normalised} × ${houseLabel} — ${keyword}.`
+  return `Your energy runs at ${stageNatural} stage, and in your ${houseLabel} it shows up as ${keyword}.`
 }
 
 /**
