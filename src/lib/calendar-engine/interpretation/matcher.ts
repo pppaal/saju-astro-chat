@@ -5,6 +5,8 @@ import type { Interpretation, InterpretationRule, RuleConditions, TemplateVars }
 import { RULES } from './rules'
 import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
 import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
+import { deriveKeyEvents } from '../derivers/keyEvents'
+import { deriveMonthComparison } from '../derivers/monthComparison'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -32,8 +34,10 @@ export function buildInterpretation(args: {
   cells: CalendarCell[]
   scope?: 'monthly' | 'yearly' | 'daily' | 'lifetime'
   lang?: InterpretationLang
+  /** 전월 셀 — 주어지면 "지난달 대비" 비교를 monthly scope 에서 계산 */
+  prevCells?: CalendarCell[]
 }): Interpretation {
-  const { natal, cells, scope = 'monthly', lang = 'ko' } = args
+  const { natal, cells, scope = 'monthly', lang = 'ko', prevCells } = args
 
   // 모든 셀에서 신호 + 패턴 합치기
   const allSignals = cells.flatMap((c) => c.signals)
@@ -306,12 +310,30 @@ export function buildInterpretation(args: {
   // Why-card — 테마별 점수 인과 추적 (그 점수에 기여한 신호 top N).
   const themeBreakdown = deriveThemeBreakdown(allSignals)
 
+  // 키 이벤트 3 — 월간일 때만 (일별 셀에서 베스트/강한구간/피할날 추출).
+  const keyEvents = scope === 'monthly' ? deriveKeyEvents(cells) : undefined
+
+  // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전월 themeScore 를 같은
+  // 모델로 얻기 위해 재귀 호출(단, prevCells 미전달 → 무한재귀 없음).
+  let monthComparison
+  if (scope === 'monthly' && prevCells && prevCells.length > 0) {
+    const prev = buildInterpretation({ natal, cells: prevCells, scope: 'monthly', lang })
+    monthComparison = deriveMonthComparison({
+      currCells: cells,
+      prevCells,
+      currScores: themeScores,
+      prevScores: prev.themeScores,
+    })
+  }
+
   return {
     narrative,
     matchedRuleIds: picked.map((m) => m.rule.id),
     sections,
     themeScores,
     themeBreakdown,
+    keyEvents,
+    monthComparison,
   }
 }
 
