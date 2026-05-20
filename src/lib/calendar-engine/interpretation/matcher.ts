@@ -4,6 +4,7 @@ import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { Interpretation, InterpretationRule, RuleConditions, TemplateVars } from './types'
 import { RULES } from './rules'
 import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
+import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -272,11 +273,15 @@ export function buildInterpretation(args: {
     themeScores[themeKey] = Math.max(0, Math.min(100, Math.round(final)))
   }
 
+  // Why-card — 테마별 점수 인과 추적 (그 점수에 기여한 신호 top N).
+  const themeBreakdown = deriveThemeBreakdown(allSignals)
+
   return {
     narrative,
     matchedRuleIds: picked.map((m) => m.rule.id),
     sections,
     themeScores,
+    themeBreakdown,
   }
 }
 
