@@ -59,8 +59,14 @@ describe('calendar consistency golden', () => {
     const warningsBlob = (target.warnings || []).join(' ')
     const recommendationsBlob = (target.recommendations || []).join(' ')
     if (COMM_WARNING_PATTERN.test(warningsBlob)) {
+      // Verification / deferral / avoidance framing that counterbalances any
+      // irreversible-action keyword. The recommendations now phrase caution as
+      // "don't sign without certainty", "postpone confirmation-type tasks",
+      // "ask once more", "rewrite and resend" \u2014 all valid hedging tones.
       const hasVerificationTone =
-        /(\uC7AC\uD655\uC778|24\uC2DC\uAC04|review|verify|recheck|draft)/i.test(recommendationsBlob)
+        /(\uC7AC\uD655\uC778|\uD55C \uBC88 \uB354|\uB2E4\uC2DC|24\uC2DC\uAC04|\uB0B4\uC77C\uB85C \uBBF8\uB8E8|\uBBF8\uB8E8\uC138\uC694|\uD558\uC9C0 \uB9D0\uACE0|\uBB3C\uC5B4\uBCF4\uC138\uC694|review|verify|recheck|draft|hold off|don't|postpone)/i.test(
+          recommendationsBlob
+        )
       const hasIrreversible = IRREVERSIBLE_PATTERN.test(recommendationsBlob) && !hasVerificationTone
       expect(hasIrreversible).toBe(false)
     }

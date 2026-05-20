@@ -218,7 +218,7 @@ describe('궁합 follow-up UI (page.tsx) — chip render + sendMessage refactor 
   })
 
   it('sendMessage 가 (textOverride?: string) signature', () => {
-    expect(page).toMatch(/sendMessage = useCallback\(async \(textOverride\?: string\)/)
+    expect(page).toMatch(/sendMessage = useCallback\(\s*async \(textOverride\?: string\)/)
   })
 
   it('streamProcessor result 에서 followUps 받음', () => {

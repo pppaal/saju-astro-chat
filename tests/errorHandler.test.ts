@@ -11,7 +11,6 @@ import {
   ErrorCodes,
   createErrorResponse,
   createSuccessResponse,
-  withErrorHandler,
   jsonErrorResponse,
   type ErrorCode,
 } from '@/lib/api/errorHandler'
@@ -312,15 +311,6 @@ describe('createSuccessResponse', () => {
     const body = await response.json()
 
     expect(body.meta).toBeUndefined()
-  })
-})
-
-describe('withErrorHandler (deprecated)', () => {
-  it('throws deprecation error when called', () => {
-    const mockHandler = vi.fn()
-    expect(() => withErrorHandler(mockHandler, '/api/test')).toThrow(
-      'withErrorHandler is deprecated'
-    )
   })
 })
 

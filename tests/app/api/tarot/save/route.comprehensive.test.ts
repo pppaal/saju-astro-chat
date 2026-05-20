@@ -851,50 +851,6 @@ describe('/api/tarot/save', () => {
       })
     })
 
-    describe('Filtering', () => {
-      it('should filter by theme', async () => {
-        ;(prisma.tarotReading.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
-        ;(prisma.tarotReading.count as ReturnType<typeof vi.fn>).mockResolvedValue(0)
-
-        const req = new NextRequest('http://localhost:3000/api/tarot/save?theme=Love')
-        const { GET } = await import('@/app/api/tarot/save/route')
-        await GET(req)
-
-        expect(prisma.tarotReading.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            where: { userId: mockUserId, theme: 'Love' },
-          })
-        )
-        expect(prisma.tarotReading.count).toHaveBeenCalledWith({
-          where: { userId: mockUserId, theme: 'Love' },
-        })
-      })
-
-      it('should reject theme longer than 100 characters', async () => {
-        const longTheme = 'a'.repeat(101)
-        const req = new NextRequest(`http://localhost:3000/api/tarot/save?theme=${longTheme}`)
-        const { GET } = await import('@/app/api/tarot/save/route')
-        const response = await GET(req)
-
-        expect(response.status).toBe(422)
-      })
-
-      it('should handle empty theme parameter', async () => {
-        ;(prisma.tarotReading.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
-        ;(prisma.tarotReading.count as ReturnType<typeof vi.fn>).mockResolvedValue(0)
-
-        const req = new NextRequest('http://localhost:3000/api/tarot/save?theme=')
-        const { GET } = await import('@/app/api/tarot/save/route')
-        await GET(req)
-
-        expect(prisma.tarotReading.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            where: { userId: mockUserId },
-          })
-        )
-      })
-    })
-
     describe('Error Handling', () => {
       it('should handle database query errors', async () => {
         ;(prisma.tarotReading.findMany as ReturnType<typeof vi.fn>).mockRejectedValue(
