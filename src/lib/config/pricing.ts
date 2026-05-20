@@ -2,42 +2,6 @@
 // Centralized pricing configuration - Single source of truth for all pricing-related constants
 
 // ============================================================================
-// A/B TEST FEATURE FLAGS
-// ============================================================================
-
-/**
- * Pricing A/B test variants
- * Use environment variable or default to 'control'
- */
-export type PricingVariant = 'control' | 'variant_a' | 'variant_b';
-
-const PRICING_VARIANT: PricingVariant =
-  (process.env.NEXT_PUBLIC_PRICING_VARIANT as PricingVariant) || 'control';
-
-/**
- * Get pricing variant for a user (for server-side A/B testing)
- * Uses userId hash for consistent assignment
- */
-export function getPricingVariantForUser(userId: string): PricingVariant {
-  // If no A/B test is active, return control
-  if (!process.env.PRICING_AB_TEST_ENABLED) {
-    return 'control';
-  }
-
-  // Simple hash-based assignment for consistent user experience
-  const hash = userId.split('').reduce((acc, char) => {
-    return ((acc << 5) - acc) + char.charCodeAt(0);
-  }, 0);
-
-  const bucket = Math.abs(hash) % 100;
-
-  // 33% control, 33% variant_a, 34% variant_b
-  if (bucket < 33) {return 'control';}
-  if (bucket < 66) {return 'variant_a';}
-  return 'variant_b';
-}
-
-// ============================================================================
 // CURRENCY & LOCALE
 // ============================================================================
 
@@ -90,12 +54,6 @@ export interface Plan {
   config: PlanConfig;
   pricing: PlanPricing;
 }
-
-/**
- * Yearly discount multiplier (10 months = 17% discount)
- */
-export const YEARLY_DISCOUNT_MULTIPLIER = 10;
-export const YEARLY_DISCOUNT_PERCENT = 17;
 
 /**
  * Plan configurations with pricing
@@ -275,40 +233,12 @@ export const BONUS_CREDIT_EXPIRATION_MONTHS = 3;
 // ============================================================================
 
 /**
- * Get plan config by plan type
- */
-export function getPlanConfig(plan: PlanType): PlanConfig {
-  return PLANS[plan].config;
-}
-
-/**
- * Get plan pricing by plan type
- */
-export function getPlanPricing(plan: PlanType): PlanPricing {
-  return PLANS[plan].pricing;
-}
-
-/**
- * Calculate yearly price from monthly (with discount)
- */
-export function calculateYearlyPrice(monthlyPrice: number): number {
-  return monthlyPrice * YEARLY_DISCOUNT_MULTIPLIER;
-}
-
-/**
  * Get credit pack discount percentage compared to mini pack
  */
 export function getCreditPackDiscount(packId: CreditPackType): number {
   const pack = CREDIT_PACKS[packId];
   const miniRate = CREDIT_PACKS.mini.perCreditKrw;
   return Math.round((1 - pack.perCreditKrw / miniRate) * 100);
-}
-
-/**
- * Get all plan IDs
- */
-export function getAllPlanIds(): PlanType[] {
-  return Object.keys(PLANS) as PlanType[];
 }
 
 /**
@@ -350,40 +280,3 @@ export const PLAN_CONFIG = {
   pro: PLANS.pro.config,
   premium: PLANS.premium.config,
 } as const;
-
-// ============================================================================
-// A/B TEST VARIANT OVERRIDES
-// ============================================================================
-
-/**
- * Variant-specific pricing overrides
- * Use these for A/B testing different price points
- */
-const PRICING_VARIANTS: Record<PricingVariant, Partial<Record<PlanType, Partial<PlanPricing>>>> = {
-  control: {}, // No overrides - use default PLANS
-  variant_a: {
-    // Example: Test lower Pro price
-    pro: {
-      monthly: { krw: 7900, usd: 7.99 },
-      yearly: { krw: 79000, usd: 79.99 },
-    },
-  },
-  variant_b: {
-    // Example: Test higher Premium value with more credits
-    // (handled via config override, not pricing)
-  },
-};
-
-/**
- * Get pricing for a specific variant
- */
-export function getVariantPricing(plan: PlanType, variant: PricingVariant = 'control'): PlanPricing {
-  const override = PRICING_VARIANTS[variant]?.[plan];
-  if (override) {
-    return {
-      monthly: { ...PLANS[plan].pricing.monthly, ...override.monthly },
-      yearly: { ...PLANS[plan].pricing.yearly, ...override.yearly },
-    };
-  }
-  return PLANS[plan].pricing;
-}

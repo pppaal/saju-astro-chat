@@ -128,9 +128,15 @@ export const POST = withApiMiddleware(
         return apiSuccess({ url: checkout.url })
       }
 
-      // Handle subscription purchase
-      const selectedPlan = (plan || 'premium') as PlanKey
-      const selectedBilling = (billingCycle || 'monthly') as BillingCycle
+      // Handle subscription purchase.
+      // The request schema guarantees that exactly one of `plan` / `creditPack`
+      // is present and that `billingCycle` is set whenever `plan` is — so by the
+      // time we get here both are defined (no default fallbacks needed).
+      if (!plan || !billingCycle) {
+        return apiError(ErrorCodes.BAD_REQUEST, 'invalid_request')
+      }
+      const selectedPlan = plan as PlanKey
+      const selectedBilling = billingCycle as BillingCycle
       const price = getPriceId(selectedPlan, selectedBilling)
       if (!price || !allowedPriceIds().includes(price)) {
         logger.error('[checkout] price not allowed', {
