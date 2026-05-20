@@ -3068,6 +3068,231 @@ export const RULES: InterpretationRule[] = [
       `you have to watch for sudden signals like accidents, injuries, and surgery throughout life.`,
     themes: ['health', 'career'],
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // 도메인 변별 확대 (v2) — 기존에 안 잡히던 조건 조합으로
+  // 도메인당 룰 다양성 ↑. 같은 사주라도 달마다 다른 룰이 fire 되게.
+  // ═══════════════════════════════════════════════════════════
+
+  // ── 돈·자산 (theme-money) 추가 ──
+  {
+    id: 'theme-money-print-support',
+    scope: 'monthly',
+    section: 'theme-money',
+    priority: 53,
+    conditions: { signalSource: 'saju', sibsin: ['정인', '편인'], minPolarity: 1 },
+    template:
+      `💰 **재물** — 직접 버는 돈보다 도움·지원·계약·문서로 들어오는 돈이 ` +
+      `유리한 흐름. 보증·서류·자격을 챙기면 자산이 안정돼요.`,
+    templateEn:
+      `💰 **Money** — money that arrives through support, contracts, and paperwork flows more easily ` +
+      `than money you chase directly. Keeping documents and credentials in order steadies your assets.`,
+    themes: ['money'],
+  },
+  {
+    id: 'theme-money-venus-flow',
+    scope: 'monthly',
+    section: 'theme-money',
+    priority: 52,
+    conditions: { signalSource: 'astro', planet: ['Venus'], minPolarity: 1 },
+    template:
+      `💸 **재물** — 사람·취향·아름다움과 엮인 돈이 잘 풀리는 흐름. ` +
+      `협업, 좋아하는 일, 보기 좋은 결과물에 돈이 따라와요.`,
+    templateEn:
+      `💸 **Money** — money tied to people, taste, and beauty flows well. ` +
+      `Collaboration, work you enjoy, and well-crafted results bring income along with them.`,
+    themes: ['money'],
+  },
+  {
+    id: 'theme-money-peer-cooperative',
+    scope: 'monthly',
+    section: 'theme-money',
+    priority: 51,
+    conditions: { signalSource: 'saju', sibsin: ['비견', '겁재'], minPolarity: 1 },
+    template:
+      `💰 **재물** — 혼자보다 함께 벌 때 더 커지는 흐름. 동업·공동 투자· ` +
+      `나눠 받는 구조가 유리하고, 단독 큰 베팅은 한 박자 늦춰주세요.`,
+    templateEn:
+      `💰 **Money** — earnings grow more when shared than when chased alone. Partnerships, joint ` +
+      `investment, and split structures work in your favour; hold off on solo big bets for now.`,
+    themes: ['money'],
+  },
+
+  // ── 연애·관계 (theme-love) 추가 ──
+  {
+    id: 'theme-love-venus-warm',
+    scope: 'monthly',
+    section: 'theme-love',
+    priority: 53,
+    conditions: { signalSource: 'astro', planet: ['Venus'], minPolarity: 1 },
+    template:
+      `❤️ **연애** — 끌림과 다정함이 살아나는 흐름. 표현을 미루지 말고 ` +
+      `먼저 다가가면 사이가 한 뼘 가까워져요.`,
+    templateEn:
+      `❤️ **Love** — attraction and warmth come alive. Don't put off saying what you feel — ` +
+      `reaching out first closes the distance noticeably.`,
+    themes: ['love'],
+  },
+  {
+    id: 'theme-love-commitment',
+    scope: 'monthly',
+    section: 'theme-love',
+    priority: 52,
+    conditions: { signalSource: 'saju', sibsin: ['정관', '편관'], minPolarity: 1 },
+    template:
+      `❤️ **연애** — 가벼운 만남보다 진지한 약속·관계 정의가 어울리는 흐름. ` +
+      `책임을 나눌 상대와의 진전에 좋은 시기예요.`,
+    templateEn:
+      `❤️ **Love** — this stretch favours serious commitment and defining the relationship over ` +
+      `casual dating. A good window to move forward with someone you can share responsibility with.`,
+    themes: ['love'],
+  },
+  {
+    id: 'theme-love-moon-emotion',
+    scope: 'monthly',
+    section: 'theme-love',
+    priority: 51,
+    conditions: { signalSource: 'astro', planet: ['Moon'], maxPolarity: -1 },
+    template:
+      `❤️ **연애** — 감정 기복이 커지기 쉬운 흐름. 서운함을 쌓기보다 ` +
+      `그때그때 부드럽게 말로 풀면 오해가 줄어요.`,
+    templateEn:
+      `❤️ **Love** — moods swing more easily now. Rather than letting little hurts pile up, ` +
+      `airing them gently as they come keeps misunderstandings small.`,
+    themes: ['love'],
+  },
+
+  // ── 일·커리어 (theme-career) 추가 ──
+  {
+    id: 'theme-career-output-shine',
+    scope: 'monthly',
+    section: 'theme-career',
+    priority: 53,
+    conditions: { signalSource: 'saju', sibsin: ['식신', '상관'], minPolarity: 1 },
+    template:
+      `🎯 **일·커리어** — 정해진 틀을 지키기보다 본인 색을 드러내는 일에서 ` +
+      `결과가 나오는 흐름. 기획·발표·새 시도가 잘 통해요.`,
+    templateEn:
+      `🎯 **Work & Career** — results come from showing your own colour rather than keeping to a fixed mould. ` +
+      `Planning, presenting, and new attempts all land well.`,
+    themes: ['career'],
+  },
+  {
+    id: 'theme-career-sun-visibility',
+    scope: 'monthly',
+    section: 'theme-career',
+    priority: 52,
+    conditions: { signalSource: 'astro', planet: ['Sun'], minPolarity: 1 },
+    template:
+      `🎯 **일·커리어** — 드러나는 자리에서 빛나는 흐름. 발표·대표·리드 역할을 ` +
+      `맡으면 평소보다 인정이 빨리 따라와요.`,
+    templateEn:
+      `🎯 **Work & Career** — you shine in visible roles now. Taking the lead, presenting, or representing ` +
+      `brings recognition faster than usual.`,
+    themes: ['career'],
+  },
+  {
+    id: 'theme-career-mars-drive',
+    scope: 'monthly',
+    section: 'theme-career',
+    priority: 51,
+    conditions: { signalSource: 'astro', planet: ['Mars'], minPolarity: 1 },
+    template:
+      `🎯 **일·커리어** — 추진력이 붙는 흐름. 미뤄둔 일을 밀어붙이기 좋지만, ` +
+      `급하게 부딪히기보다 한 번에 하나씩 끝내는 게 효율적이에요.`,
+    templateEn:
+      `🎯 **Work & Career** — drive picks up. A good time to push stalled tasks forward — but finishing ` +
+      `one thing at a time beats charging at everything at once.`,
+    themes: ['career'],
+  },
+
+  // ── 몸·내면 (theme-health) 추가 ──
+  {
+    id: 'theme-health-wood-nerves',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 50,
+    conditions: { yongsin: ['목'], signalSource: 'saju', maxPolarity: -1 },
+    template:
+      `⚡ **건강** — 긴장·스트레스가 간·신경·눈에 먼저 쌓이는 결이에요. ` +
+      `가벼운 산책과 충분한 수면, 화 다스리기가 가장 잘 듣는 보강이에요.`,
+    templateEn:
+      `⚡ **Health** — tension and stress settle first in your liver, nerves, and eyes. ` +
+      `Light walks, enough sleep, and keeping your temper cool are the repairs that work best.`,
+    themes: ['health'],
+  },
+  {
+    id: 'theme-health-earth-digest',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 50,
+    conditions: { yongsin: ['토'], signalSource: 'saju', maxPolarity: -1 },
+    template:
+      `⚡ **건강** — 소화·위장·생각 과부하가 약점이 되기 쉬운 흐름. ` +
+      `규칙적인 식사와 생각 끊고 쉬는 시간이 몸을 받쳐줘요.`,
+    templateEn:
+      `⚡ **Health** — digestion, the stomach, and an overloaded mind are the weak points now. ` +
+      `Regular meals and time to switch your thoughts off support the body.`,
+    themes: ['health'],
+  },
+  {
+    id: 'theme-health-food-vitality',
+    scope: 'monthly',
+    section: 'theme-health',
+    priority: 49,
+    conditions: { signalSource: 'saju', sibsin: ['식신'], minPolarity: 1 },
+    template:
+      `🌿 **건강** — 기운과 입맛이 살아나는 회복 흐름. 미뤄둔 운동 루틴을 ` +
+      `다시 시작하기 좋고, 잘 먹고 잘 자는 기본이 큰 효과를 내요.`,
+    templateEn:
+      `🌿 **Health** — energy and appetite come back in a recovery stretch. A good time to restart a ` +
+      `workout routine you let slide; eating and sleeping well pay off more than usual.`,
+    themes: ['health'],
+  },
+
+  // ── 자기·성장 (theme-growth) 추가 ──
+  {
+    id: 'theme-growth-print-study',
+    scope: 'monthly',
+    section: 'theme-growth',
+    priority: 53,
+    conditions: { signalSource: 'saju', sibsin: ['정인', '편인'], minPolarity: 1 },
+    template:
+      `📚 **자기·성장** — 배우고 깊이 파고드는 일에 운이 붙는 흐름. ` +
+      `자격증·전문 공부·읽기·정리에 들이는 시간이 그대로 자산이 돼요.`,
+    templateEn:
+      `📚 **Self & Growth** — luck gathers around learning and going deep. Time spent on ` +
+      `certifications, focused study, reading, and organising turns straight into an asset.`,
+    themes: ['growth'],
+  },
+  {
+    id: 'theme-growth-mercury-learning',
+    scope: 'monthly',
+    section: 'theme-growth',
+    priority: 52,
+    conditions: { signalSource: 'astro', planet: ['Mercury'], minPolarity: 1 },
+    template:
+      `📚 **자기·성장** — 생각·말·글이 잘 통하는 흐름. 새 분야 학습, 글쓰기, ` +
+      `대화로 풀어가는 일이 평소보다 빠르게 손에 잡혀요.`,
+    templateEn:
+      `📚 **Self & Growth** — thinking, speaking, and writing flow well. Learning a new field, writing, ` +
+      `and anything you work out through conversation come together faster than usual.`,
+    themes: ['growth'],
+  },
+  {
+    id: 'theme-growth-uranus-breakthrough',
+    scope: 'monthly',
+    section: 'theme-growth',
+    priority: 51,
+    conditions: { signalSource: 'astro', planet: ['Uranus'], minPolarity: 1 },
+    template:
+      `✨ **자기·성장** — 익숙한 틀을 깨는 변화가 어울리는 흐름. 갑자기 떠오른 ` +
+      `아이디어나 새로운 방식이 의외로 잘 풀리니, 한 번 시도해보세요.`,
+    templateEn:
+      `✨ **Self & Growth** — a stretch that suits breaking out of the familiar mould. A sudden idea or ` +
+      `a new way of doing things works surprisingly well — give it a try.`,
+    themes: ['growth'],
+  },
 ]
 
 /** 룰 매핑 — id로 빠른 조회 */
