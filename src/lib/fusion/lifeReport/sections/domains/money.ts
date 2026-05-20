@@ -16,6 +16,7 @@ import {
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
+  aspectPairEntriesForPairs,
   aspectsOf,
   getPlanet,
   houseCusp,
@@ -310,6 +311,21 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
       `Your Lot of Necessity sits in ${signLabel(necessityLot.sign, 'en')} — the area where your resources feel the most strain follows that same flavor.`
     )
   }
+  // aspectPair DB — 풍요·자원 축의 각(태양-목성/목성-토성/목성-명왕). 가장 좁은 1개.
+  const moneyAspect = aspectPairEntriesForPairs(
+    astro,
+    [
+      ['Sun', 'Jupiter'],
+      ['Jupiter', 'Saturn'],
+      ['Jupiter', 'Pluto'],
+    ],
+    1
+  )[0]
+  if (moneyAspect) {
+    astroUsed.push('aspectPairDictionary.money')
+    deepKo.push(firstSentenceMoney(moneyAspect.ko))
+    deepEn.push(firstSentenceMoney(moneyAspect.en))
+  }
   const p3ko = paragraph(
     deepKo.length ? deepKo : ['재물의 흐름은 큰 폭의 변동보다 꾸준한 누적의 길이 더 잘 어울려요.']
   )
@@ -377,6 +393,13 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     paragraphs,
     signals: { saju: sajuUsed, astro: astroUsed, fusion: fusionUsed },
   }
+}
+
+// DB 텍스트(2-3문장)에서 첫 문장만 추출 — 섹션 절제를 위해 1문장으로 한정.
+function firstSentenceMoney(text: string): string {
+  const trimmed = text.trim()
+  const m = trimmed.match(/^[^.!?]*[.!?]/)
+  return (m ? m[0] : trimmed).trim()
 }
 
 function wealthFlavorKo(total: number, jeong: number, pyen: number): string {

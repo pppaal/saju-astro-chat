@@ -32,6 +32,27 @@ export function aspectPairEntryMajor(
   )
 }
 
+/**
+ * 주어진 행성 쌍 목록 중 차트에 실제로 존재하는 주요 각의 aspectPair DB
+ * entry들을 orb(좁은 순) → 입력 순서 tiebreaker로 정렬해 반환. 결정론적.
+ * 도메인 builder가 limit으로 narrative 과적을 방지한다.
+ */
+export function aspectPairEntriesForPairs(
+  astro: AstrologyLikeChart,
+  pairs: ReadonlyArray<readonly [string, string]>,
+  limit = 1
+): AspectPairEntry[] {
+  const hits: Array<{ entry: AspectPairEntry; orb: number; idx: number }> = []
+  pairs.forEach(([a, b], idx) => {
+    const asp = aspectBetween(astro, a, b)
+    if (!asp) return
+    const entry = aspectPairEntryMajor(a, b, asp.type)
+    if (entry) hits.push({ entry, orb: asp.orb ?? 99, idx })
+  })
+  hits.sort((x, y) => x.orb - y.orb || x.idx - y.idx)
+  return hits.slice(0, Math.max(0, limit)).map((h) => h.entry)
+}
+
 export function getPlanet(astro: AstrologyLikeChart, name: string): PlanetBase | undefined {
   return (astro.planets ?? []).find((p) => p.name.toLowerCase() === name.toLowerCase())
 }

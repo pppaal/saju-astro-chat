@@ -23,7 +23,13 @@ import {
   dayElement,
   yongsinPrimary,
 } from '../signals/sajuSignals'
-import { chiron, nearestEclipses, partOfFortune, planetsInHouse } from '../signals/astroSignals'
+import {
+  aspectPairEntriesForPairs,
+  chiron,
+  nearestEclipses,
+  partOfFortune,
+  planetsInHouse,
+} from '../signals/astroSignals'
 import { northNode, findPlanet } from '../signals/astroSynthesis'
 import { eulReul, paragraph, planetLabel, signLabel } from '../templates/sentences'
 import { findGeokgukEntry } from '@/lib/saju/geokgukDictionary'
@@ -468,6 +474,23 @@ export function buildKarma(input: BuilderInput): KarmaSection {
         )
       }
     }
+  }
+  // aspectPair DB — 정체성·변용 축의 각(태양-달 / 토성-천왕·해왕·명왕)을
+  // 영혼 섹션에 한 문장 그라운딩. 차트에 존재하는 가장 좁은 각 1개만.
+  const karmaAspect = aspectPairEntriesForPairs(
+    astro,
+    [
+      ['Sun', 'Moon'],
+      ['Saturn', 'Pluto'],
+      ['Saturn', 'Uranus'],
+      ['Saturn', 'Neptune'],
+    ],
+    1
+  )[0]
+  if (karmaAspect) {
+    astroUsed.push('aspectPairDictionary.karma')
+    p5pieces.push(firstSentenceKarma(karmaAspect.ko))
+    p5piecesEn.push(firstSentenceKarma(karmaAspect.en))
   }
   const p5ko = paragraph(
     p5pieces.length

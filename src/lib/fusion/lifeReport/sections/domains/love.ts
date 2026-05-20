@@ -15,6 +15,7 @@ import {
 } from '../../signals/sajuSignals'
 import {
   aspectBetween,
+  aspectPairEntriesForPairs,
   aspectPairEntryMajor,
   aspectsOf,
   fixedStarOn,
@@ -361,6 +362,23 @@ export function buildLove(input: BuilderInput): DomainNarrative {
         `Your Venus and Mars ${aspectQuality(venusMars.type, 'en')}, giving a clear character to the way attraction and desire show up in your life.`
       )
     }
+  }
+  // aspectPair DB — 애정 축의 각(태양-금성/달-금성/금성-목성/금성-명왕).
+  // 금성-토성·금성-화성은 위에서 별도 처리하므로 제외. 가장 좁은 각 1개만.
+  const loveAspect = aspectPairEntriesForPairs(
+    astro,
+    [
+      ['Sun', 'Venus'],
+      ['Moon', 'Venus'],
+      ['Venus', 'Jupiter'],
+      ['Venus', 'Pluto'],
+    ],
+    1
+  )[0]
+  if (loveAspect) {
+    astroUsed.push('aspectPairDictionary.love')
+    deepKo.push(firstSentenceLove(loveAspect.ko))
+    deepEn.push(firstSentenceLove(loveAspect.en))
   }
   if (loveConfirms.length > 0) {
     deepKo.push(`그리고 ${loveConfirms[0].rule.narrative.confirm}`)
