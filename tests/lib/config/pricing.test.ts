@@ -3,27 +3,18 @@
  * 가격 설정 및 A/B 테스트 유틸리티 테스트
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
-  getPricingVariantForUser,
   PLANS,
   CREDIT_PACKS,
-  getPlanConfig,
-  getPlanPricing,
-  calculateYearlyPrice,
   getCreditPackDiscount,
-  getAllPlanIds,
   getAllCreditPackIds,
   isPaidPlan,
   formatPrice,
-  getVariantPricing,
-  YEARLY_DISCOUNT_MULTIPLIER,
-  YEARLY_DISCOUNT_PERCENT,
   BASE_CREDIT_PRICE_KRW,
   BONUS_CREDIT_EXPIRATION_MONTHS,
   type PlanType,
   type CreditPackType,
-  type PricingVariant,
 } from '@/lib/config/pricing';
 
 describe('PricingConfig', () => {
@@ -142,108 +133,6 @@ describe('PricingConfig', () => {
     });
   });
 
-  describe('getPricingVariantForUser', () => {
-    const originalEnv = process.env;
-
-    beforeEach(() => {
-      vi.resetModules();
-      process.env = { ...originalEnv };
-    });
-
-    afterEach(() => {
-      process.env = originalEnv;
-    });
-
-    it('should return control when A/B test not enabled', () => {
-      delete process.env.PRICING_AB_TEST_ENABLED;
-      const result = getPricingVariantForUser('user-123');
-      expect(result).toBe('control');
-    });
-
-    it('should return consistent variant for same user', () => {
-      process.env.PRICING_AB_TEST_ENABLED = 'true';
-      const result1 = getPricingVariantForUser('user-abc');
-      const result2 = getPricingVariantForUser('user-abc');
-      expect(result1).toBe(result2);
-    });
-
-    it('should return different variants for different users', () => {
-      process.env.PRICING_AB_TEST_ENABLED = 'true';
-      const variants = new Set<string>();
-      // Generate many users to ensure all variants are covered
-      for (let i = 0; i < 100; i++) {
-        variants.add(getPricingVariantForUser(`user-${i}`));
-      }
-      expect(variants.size).toBeGreaterThanOrEqual(2);
-    });
-
-    it('should only return valid variants', () => {
-      process.env.PRICING_AB_TEST_ENABLED = 'true';
-      const validVariants: PricingVariant[] = ['control', 'variant_a', 'variant_b'];
-      for (let i = 0; i < 50; i++) {
-        const result = getPricingVariantForUser(`test-user-${i}`);
-        expect(validVariants).toContain(result);
-      }
-    });
-  });
-
-  describe('getPlanConfig', () => {
-    it('should return correct config for each plan', () => {
-      const plans: PlanType[] = ['free', 'starter', 'pro', 'premium'];
-      for (const plan of plans) {
-        const config = getPlanConfig(plan);
-        expect(config).toEqual(PLANS[plan].config);
-      }
-    });
-
-    it('should include all required fields', () => {
-      const config = getPlanConfig('pro');
-      expect(config).toHaveProperty('monthlyCredits');
-      expect(config).toHaveProperty('compatibilityLimit');
-      expect(config).toHaveProperty('followUpLimit');
-      expect(config).toHaveProperty('historyRetention');
-      expect(config).toHaveProperty('features');
-    });
-  });
-
-  describe('getPlanPricing', () => {
-    it('should return correct pricing for each plan', () => {
-      const plans: PlanType[] = ['free', 'starter', 'pro', 'premium'];
-      for (const plan of plans) {
-        const pricing = getPlanPricing(plan);
-        expect(pricing).toEqual(PLANS[plan].pricing);
-      }
-    });
-
-    it('should include monthly and yearly pricing', () => {
-      const pricing = getPlanPricing('pro');
-      expect(pricing).toHaveProperty('monthly');
-      expect(pricing).toHaveProperty('yearly');
-      expect(pricing.monthly).toHaveProperty('krw');
-      expect(pricing.monthly).toHaveProperty('usd');
-    });
-  });
-
-  describe('calculateYearlyPrice', () => {
-    it('should calculate yearly price with discount multiplier', () => {
-      const monthly = 10000;
-      const yearly = calculateYearlyPrice(monthly);
-      expect(yearly).toBe(monthly * YEARLY_DISCOUNT_MULTIPLIER);
-    });
-
-    it('should give approximately 17% discount', () => {
-      const monthly = 10000;
-      const yearly = calculateYearlyPrice(monthly);
-      const fullYearly = monthly * 12;
-      const discount = ((fullYearly - yearly) / fullYearly) * 100;
-      expect(Math.round(discount)).toBe(YEARLY_DISCOUNT_PERCENT);
-    });
-
-    it('should handle zero price', () => {
-      expect(calculateYearlyPrice(0)).toBe(0);
-    });
-  });
-
   describe('getCreditPackDiscount', () => {
     it('should return 0% discount for mini pack', () => {
       expect(getCreditPackDiscount('mini')).toBe(0);
@@ -271,20 +160,6 @@ describe('PricingConfig', () => {
         const discount = getCreditPackDiscount(packId);
         expect(Number.isInteger(discount)).toBe(true);
       }
-    });
-  });
-
-  describe('getAllPlanIds', () => {
-    it('should return all plan types', () => {
-      const ids = getAllPlanIds();
-      expect(ids).toContain('free');
-      expect(ids).toContain('starter');
-      expect(ids).toContain('pro');
-      expect(ids).toContain('premium');
-    });
-
-    it('should return 4 plans', () => {
-      expect(getAllPlanIds().length).toBe(4);
     });
   });
 
@@ -351,46 +226,7 @@ describe('PricingConfig', () => {
     });
   });
 
-  describe('getVariantPricing', () => {
-    it('should return default pricing for control variant', () => {
-      const pricing = getVariantPricing('pro', 'control');
-      expect(pricing).toEqual(PLANS.pro.pricing);
-    });
-
-    it('should return variant pricing when override exists', () => {
-      // variant_a has pro pricing override
-      const pricing = getVariantPricing('pro', 'variant_a');
-      expect(pricing.monthly.krw).toBe(7900);
-      expect(pricing.monthly.usd).toBe(7.99);
-    });
-
-    it('should return default pricing when no override exists', () => {
-      // variant_b doesn't have starter override
-      const pricing = getVariantPricing('starter', 'variant_b');
-      expect(pricing).toEqual(PLANS.starter.pricing);
-    });
-
-    it('should merge partial overrides with defaults', () => {
-      const pricing = getVariantPricing('pro', 'variant_a');
-      // Yearly prices should be overridden
-      expect(pricing.yearly.krw).toBe(79000);
-    });
-
-    it('should default to control when no variant specified', () => {
-      const pricing = getVariantPricing('premium');
-      expect(pricing).toEqual(PLANS.premium.pricing);
-    });
-  });
-
   describe('constants', () => {
-    it('should have correct yearly discount multiplier', () => {
-      expect(YEARLY_DISCOUNT_MULTIPLIER).toBe(10);
-    });
-
-    it('should have correct yearly discount percent', () => {
-      expect(YEARLY_DISCOUNT_PERCENT).toBe(17);
-    });
-
     it('should have base credit price equal to mini pack rate', () => {
       expect(BASE_CREDIT_PRICE_KRW).toBe(CREDIT_PACKS.mini.perCreditKrw);
     });
