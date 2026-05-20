@@ -284,12 +284,12 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const bCheonul = CHEONULGWIIN[bDay.stem] ?? []
   for (let j = 0; j < 4; j++) {
     if (aCheonul.includes(B[j].branch)) {
-      shinsalLines.push(`A's 천을귀인 (${aCheonul.join('·')}, 일간 ${aDay.stem} 기준) activates B's ${PILLAR_LABELS[j]}지 ${B[j].branch} → 길성 보호`)
+      shinsalLines.push(`${labelA}'s 천을귀인 (${aCheonul.join('·')}, 일간 ${aDay.stem} 기준) activates ${labelB}'s ${PILLAR_LABELS[j]}지 ${B[j].branch} → 길성 보호`)
     }
   }
   for (let i = 0; i < 4; i++) {
     if (bCheonul.includes(A[i].branch)) {
-      shinsalLines.push(`B's 천을귀인 (${bCheonul.join('·')}, 일간 ${bDay.stem} 기준) activates A's ${PILLAR_LABELS[i]}지 ${A[i].branch} → 길성 보호`)
+      shinsalLines.push(`${labelB}'s 천을귀인 (${bCheonul.join('·')}, 일간 ${bDay.stem} 기준) activates ${labelA}'s ${PILLAR_LABELS[i]}지 ${A[i].branch} → 길성 보호`)
     }
   }
   if (shinsalLines.length > 0) {
@@ -305,7 +305,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       if (!B[j].branch) continue
       const lbl = twelveShinsalLabel(aDay.branch, B[j].branch)
       if (lbl) {
-        twelveLines.push(`A's 일지 ${aDay.branch} 기준 → B ${PILLAR_LABELS[j]}지 ${B[j].branch} = ${lbl}`)
+        twelveLines.push(`${labelA}'s 일지 ${aDay.branch} 기준 → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch} = ${lbl}`)
       }
     }
   }
@@ -314,7 +314,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       if (!A[i].branch) continue
       const lbl = twelveShinsalLabel(bDay.branch, A[i].branch)
       if (lbl) {
-        twelveLines.push(`B's 일지 ${bDay.branch} 기준 → A ${PILLAR_LABELS[i]}지 ${A[i].branch} = ${lbl}`)
+        twelveLines.push(`${labelB}'s 일지 ${bDay.branch} 기준 → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch} = ${lbl}`)
       }
     }
   }

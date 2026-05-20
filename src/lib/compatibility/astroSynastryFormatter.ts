@@ -124,6 +124,9 @@ export interface AstroSynastryInput {
   lonA: number
   latB: number
   lonB: number
+  /** A/B 실명. 있으면 행성 소유(누구의 달·화성인지)를 이름에 고정한다. */
+  nameA?: string | null
+  nameB?: string | null
 }
 
 /**
@@ -137,24 +140,36 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const chartB = expandChart(input.chartB, input.latB, input.lonB)
   const synastry = calculateSynastry({ chartA, chartB })
 
-  const out: string[] = ['== 시너스트리 (점성 cross) ==', '']
-  out.push('[Cross aspects — A의 행성 ↔ B의 행성·포인트]')
+  // 행성 소유를 이름에 고정한다. 예전 aspect 줄은 "Moon Square Mars"처럼
+  // 누구의 달·화성인지 라벨이 아예 없어서, 모델이 소유·방향을 멋대로
+  // 추측(상대방 것이라 단정)하는 사고가 났다. from=A, to=B로 명시한다.
+  const nmA = (input.nameA || '').trim()
+  const nmB = (input.nameB || '').trim()
+  const labelA = nmA ? `A(${nmA})` : 'A'
+  const labelB = nmB ? `B(${nmB})` : 'B'
+
+  const out: string[] = ['== 시너스트리 (점성 cross) ==']
+  out.push(
+    `[고정 매핑 — 절대 바꾸지 말 것] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄의 앞쪽 행성 = ${labelA} 것, 뒤쪽 행성 = ${labelB} 것)`
+  )
+  out.push('')
+  out.push(`[Cross aspects — ${labelA}의 행성 ↔ ${labelB}의 행성·포인트]`)
   for (const asp of synastry.aspects) {
     const fromSign = asp.from.sign ? sign(asp.from.sign) : '?'
     const toSign = asp.to.sign ? sign(asp.to.sign) : '?'
     out.push(
-      `${label(asp.from.name)} in ${fromSign} ${ASPECT_TITLE[asp.type] ?? asp.type} ${label(asp.to.name)} in ${toSign} (Orb: ${orbToDegMin(asp.orb)})`,
+      `${labelA}'s ${label(asp.from.name)} in ${fromSign} ${ASPECT_TITLE[asp.type] ?? asp.type} ${labelB}'s ${label(asp.to.name)} in ${toSign} (Orb: ${orbToDegMin(asp.orb)})`,
     )
   }
   out.push('')
-  out.push("[House overlay — A의 행성이 B의 어느 house에]")
+  out.push(`[House overlay — ${labelA}의 행성이 ${labelB}의 어느 house에]`)
   for (const o of synastry.houseOverlaysAtoB) {
-    out.push(`Partner A's ${label(o.planet)} in the ${ordinal(o.inHouse)} Partner B's house`)
+    out.push(`${labelA}'s ${label(o.planet)} in ${labelB}'s ${ordinal(o.inHouse)} house`)
   }
   out.push('')
-  out.push("[House overlay — B의 행성이 A의 어느 house에]")
+  out.push(`[House overlay — ${labelB}의 행성이 ${labelA}의 어느 house에]`)
   for (const o of synastry.houseOverlaysBtoA) {
-    out.push(`Partner B's ${label(o.planet)} in the ${ordinal(o.inHouse)} Partner A's house`)
+    out.push(`${labelB}'s ${label(o.planet)} in ${labelA}'s ${ordinal(o.inHouse)} house`)
   }
 
   return out.join('\n')
