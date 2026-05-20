@@ -60,16 +60,13 @@ describe('CreditBadge', () => {
       } as any);
     });
 
-    it('should show login button when not authenticated', () => {
-      render(<CreditBadge />);
-      expect(screen.getByText('Login')).toBeInTheDocument();
-      expect(screen.getByText('🔑')).toBeInTheDocument();
-    });
-
-    it('should link to sign in URL', () => {
-      render(<CreditBadge />);
-      const link = screen.getByRole('link');
-      expect(link).toHaveAttribute('href', '/api/auth/signin');
+    // The component no longer renders a login pill/link when unauthenticated;
+    // the global hamburger drawer provides the login entry. It now renders
+    // nothing for all variants when not logged in.
+    it('should render nothing when not authenticated (default variant)', () => {
+      const { container } = render(<CreditBadge />);
+      expect(container.firstChild).toBeNull();
+      expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
     it('should return null for minimal variant when not logged in', () => {
@@ -259,27 +256,31 @@ describe('CreditBadge', () => {
       } as any);
     });
 
-    it('should show error state when API fails', async () => {
+    // The component no longer shows a ⚠️ warning icon on error; it renders
+    // nothing so failures only surface in the real purchase flow.
+    it('should render nothing when API fails', async () => {
       (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
 
-      render(<CreditBadge />);
+      const { container } = render(<CreditBadge />);
 
       await waitFor(() => {
-        expect(screen.getByText('⚠️')).toBeInTheDocument();
+        expect(container.firstChild).toBeNull();
       });
+      expect(screen.queryByText('⚠️')).not.toBeInTheDocument();
     });
 
-    it('should show error state when API returns not ok', async () => {
+    it('should render nothing when API returns not ok', async () => {
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: false,
         status: 500,
       });
 
-      render(<CreditBadge />);
+      const { container } = render(<CreditBadge />);
 
       await waitFor(() => {
-        expect(screen.getByText('⚠️')).toBeInTheDocument();
+        expect(container.firstChild).toBeNull();
       });
+      expect(screen.queryByText('⚠️')).not.toBeInTheDocument();
     });
   });
 
