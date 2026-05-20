@@ -44,6 +44,7 @@ import {
   iljuPool,
   planetHouseLine,
 } from '../../pools'
+import { matchTopCareers } from '@/lib/saju/careerDictionary'
 
 export function buildCareer(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -415,6 +416,24 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
         ]
   )
 
+  // ── careerDictionary 매칭 — 사주/점성 신호로 구체적 직업 추천 (P4에 1-2 문장)
+  const sajuCareerSignals: string[] = []
+  if (cat.관성 >= 1) sajuCareerSignals.push('정관 강')
+  if (cat.식상 >= 1) sajuCareerSignals.push('식상 강')
+  if (cat.재성 >= 1) sajuCareerSignals.push('재성 강')
+  if (cat.인성 >= 1) sajuCareerSignals.push('정인 강', '정인 받침')
+  if (cat.비겁 >= 2) sajuCareerSignals.push('비겁 강')
+  if (geokguk) sajuCareerSignals.push(geokguk)
+
+  const astroCareerSignals: string[] = []
+  if (mc?.sign) astroCareerSignals.push(`MC in ${mc.sign}`)
+  if (sun?.house) astroCareerSignals.push(`Sun in ${sun.house}th`)
+  if (saturn?.house) astroCareerSignals.push(`Saturn in ${saturn.house}th`)
+  if (mercury?.house) astroCareerSignals.push(`Mercury in ${mercury.house}th`)
+
+  const topCareers = matchTopCareers(sajuCareerSignals, astroCareerSignals, 3)
+  if (topCareers.length > 0) sajuUsed.push('careerDictionary.matchTopCareers')
+
   // ── Paragraph 4: 실행 가이드
   let guideKo = buildCareerGuideKo({
     dominantCategory,
@@ -444,6 +463,16 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     guideEn += ` This year activates your ${houseLabel(prof.house, 'en')} — career outcomes will translate into tangible results this year.`
   }
 
+  // careerDictionary 추천 직업 — 구체적인 분야 1-2 문장으로 마무리.
+  if (topCareers.length > 0) {
+    const namesKo = topCareers.map((c) => `${c.emoji} ${c.name}`).join(', ')
+    const namesEn = topCareers.map((c) => `${c.emoji} ${c.name_en}`).join(', ')
+    const firstKo = firstSentence(topCareers[0]!.ko)
+    const firstEn = firstSentence(topCareers[0]!.en)
+    guideKo += ` 구체적으로는 ${namesKo} 분야가 잘 맞아요. ${firstKo}`
+    guideEn += ` Concretely, ${namesEn} suit you well. ${firstEn}`
+  }
+
   const paragraphs: Paragraph[] = [
     { ko: p1ko, en: p1en },
     { ko: p2ko, en: p2en },
@@ -460,6 +489,14 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
 }
 
 // ─── helpers (deterministic) ────────────────────────────────
+// careerDictionary narrative 첫 문장만 뽑아 P4가 길어지지 않게 한다.
+function firstSentence(s: string): string {
+  const trimmed = s.trim()
+  if (!trimmed) return ''
+  const m = trimmed.match(/^[^.!?。]*[.!?。]/)
+  return (m ? m[0] : trimmed).trim()
+}
+
 function pickDominantSibsinCategory(cat: Record<string, number>): string {
   let best = ''
   let max = -1
