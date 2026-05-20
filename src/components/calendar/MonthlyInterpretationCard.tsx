@@ -74,10 +74,7 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
       {expanded && (
         <div className="space-y-3">
           {interp.sections.map((s) => (
-            <div
-              key={s.section}
-              className="bg-zinc-950/40 rounded-xl p-4 border border-white/5"
-            >
+            <div key={s.section} className="bg-zinc-950/40 rounded-xl p-4 border border-white/5">
               <div className="text-xs font-bold text-indigo-300 mb-2 tracking-wider uppercase">
                 {s.title}
               </div>
@@ -86,8 +83,60 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
               </p>
             </div>
           ))}
+
+          {/* Why-card — 테마별 점수 인과 추적 ("왜 그 점수인지") */}
+          <WhyCard interp={interp} />
         </div>
       )}
+    </div>
+  )
+}
+
+const THEME_LABEL: Record<string, string> = {
+  money: '재물',
+  career: '직업',
+  love: '연애',
+  health: '건강',
+  growth: '성장',
+}
+
+function WhyCard({ interp }: { interp: Interpretation }) {
+  const breakdown = interp.themeBreakdown
+  const scores = interp.themeScores
+  if (!breakdown) return null
+  const themes = (['money', 'career', 'love', 'health', 'growth'] as const).filter(
+    (k) => (breakdown[k]?.length ?? 0) > 0
+  )
+  if (themes.length === 0) return null
+  return (
+    <div className="bg-zinc-950/40 rounded-xl p-4 border border-white/5">
+      <div className="text-xs font-bold text-indigo-300 mb-3 tracking-wider uppercase">
+        왜 이 점수인지
+      </div>
+      <div className="space-y-3">
+        {themes.map((k) => (
+          <div key={k}>
+            <div className="text-sm font-bold text-zinc-200 mb-1">
+              {THEME_LABEL[k]} {typeof scores?.[k] === 'number' ? scores[k] : ''}
+            </div>
+            <ul className="space-y-0.5">
+              {breakdown[k]!.map((c, i) => (
+                <li key={i} className="text-xs flex items-baseline gap-2 leading-snug">
+                  <span
+                    className={`shrink-0 font-mono font-bold ${
+                      c.dir === 'up' ? 'text-emerald-400' : 'text-rose-400'
+                    }`}
+                  >
+                    {c.dir === 'up' ? '+' : '−'}
+                    {Math.abs(c.delta)}
+                  </span>
+                  <span className="text-zinc-400">{c.label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -102,7 +151,7 @@ function renderMarkdownBold(text: string): React.ReactNode[] {
       </strong>
     ) : (
       <span key={i}>{part}</span>
-    ),
+    )
   )
 }
 
