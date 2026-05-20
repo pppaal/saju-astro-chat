@@ -30,6 +30,24 @@ import DailyHourlyChart from './DailyHourlyChart'
 import WeeklyTimingChart from './WeeklyTimingChart'
 import { getGrade, computeGradeThresholds } from './scoreGrade'
 import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
+import { getHourThemeNarrative } from '@/lib/calendar-engine/data/hourThemeNarrative'
+
+// 그 날 themeScores 중 최고 테마 → 시진별 테마 한 줄 선택용
+type HourTheme = 'love' | 'money' | 'career' | 'health' | 'growth'
+const HOUR_THEME_KEYS: HourTheme[] = ['love', 'money', 'career', 'health', 'growth']
+function topHourTheme(themeScores: Partial<Record<string, number>> | undefined): HourTheme {
+  if (!themeScores) return 'growth'
+  let best: HourTheme = 'growth'
+  let bestV = -Infinity
+  for (const k of HOUR_THEME_KEYS) {
+    const v = themeScores[k]
+    if (typeof v === 'number' && v > bestV) {
+      bestV = v
+      best = k
+    }
+  }
+  return best
+}
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -50,10 +68,7 @@ function pickFinalScore(d: ImportantDate): number {
   return d.displayScore ?? d.score
 }
 
-export default function DestinyMatrixPlanner({
-  data,
-  birthInfo,
-}: DestinyMatrixPlannerProps = {}) {
+export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixPlannerProps = {}) {
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
@@ -63,7 +78,9 @@ export default function DestinyMatrixPlanner({
   // "외부 캘린더 연동 추후 추가 예정" 안내도 그래서 무력화돼 있었다.
   // API는 year 단위로 1년치 allDates를 한 번에 받으니 month 전환은 client-only.
   const today = useMemo(() => new Date(), [])
-  const [viewDate, setViewDate] = useState<Date>(() => new Date(today.getFullYear(), today.getMonth(), 1))
+  const [viewDate, setViewDate] = useState<Date>(
+    () => new Date(today.getFullYear(), today.getMonth(), 1)
+  )
   const viewYear = viewDate.getFullYear()
   const viewMonth = viewDate.getMonth() // 0-indexed
 
@@ -84,25 +101,35 @@ export default function DestinyMatrixPlanner({
 
   const monthLabel = useMemo(() => {
     const labels = [
-      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
     ]
     return `${labels[viewMonth]} ${viewYear}`
   }, [viewMonth, viewYear])
 
   const daysInMonth = useMemo(
     () => new Date(viewYear, viewMonth + 1, 0).getDate(),
-    [viewYear, viewMonth],
+    [viewYear, viewMonth]
   )
   const leadingBlanks = useMemo(
     () => new Date(viewYear, viewMonth, 1).getDay(),
-    [viewYear, viewMonth],
+    [viewYear, viewMonth]
   )
 
   // --- Engine-derived: natal day pillar (header badge) ----------------
   const natalSaju = useMemo(
     () => data?.allDates?.find((d) => d.natalSaju)?.natalSaju ?? null,
-    [data],
+    [data]
   )
   const natalDayPillar = useMemo(() => {
     if (!natalSaju) return null
@@ -137,7 +164,7 @@ export default function DestinyMatrixPlanner({
   // allDates 없으면 fallback 임계값으로 자동 폴백.
   const gradeThresholds = useMemo(
     () => computeGradeThresholds((data?.allDates ?? []).map(pickFinalScore)),
-    [data?.allDates],
+    [data?.allDates]
   )
 
   const phaseLabel =
@@ -147,7 +174,7 @@ export default function DestinyMatrixPlanner({
   const selectedDateStr = useMemo(
     () =>
       `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`,
-    [viewYear, viewMonth, currentDay],
+    [viewYear, viewMonth, currentDay]
   )
 
   const selectedImportantDate = useMemo(() => {
@@ -158,7 +185,7 @@ export default function DestinyMatrixPlanner({
   // ── fusion 엔진 (date-detail) — 선택 날짜 1번만 호출 ──
   const selectedDayDate = useMemo(
     () => new Date(viewYear, viewMonth, currentDay),
-    [viewYear, viewMonth, currentDay],
+    [viewYear, viewMonth, currentDay]
   )
   const { detail: dateDetail } = useDateDetail({
     selectedDay: selectedDayDate,
@@ -180,9 +207,13 @@ export default function DestinyMatrixPlanner({
       const ts = selectedImportantDate.themeScores ?? {}
       return {
         score: Math.round(selectedImportantDate.displayScore ?? selectedImportantDate.score),
-        love:   typeof ts.love   === 'number' ? Math.round(ts.love)   : (fusion?.domainScores.love   ?? 50),
-        wealth: typeof ts.money  === 'number' ? Math.round(ts.money)  : (fusion?.domainScores.money  ?? 50),
-        health: typeof ts.health === 'number' ? Math.round(ts.health) : (fusion?.domainScores.health ?? 50),
+        love: typeof ts.love === 'number' ? Math.round(ts.love) : (fusion?.domainScores.love ?? 50),
+        wealth:
+          typeof ts.money === 'number' ? Math.round(ts.money) : (fusion?.domainScores.money ?? 50),
+        health:
+          typeof ts.health === 'number'
+            ? Math.round(ts.health)
+            : (fusion?.domainScores.health ?? 50),
       }
     }
     // fusion 우선 — 18테마 점수 정밀
@@ -232,15 +263,16 @@ export default function DestinyMatrixPlanner({
             s.topDomain ?? '',
             s.hourPillar ? `시주 ${s.hourPillar}` : '',
             s.planetaryHour ?? '',
-          ].filter(Boolean).join(' · '),
+          ]
+            .filter(Boolean)
+            .join(' · '),
         })),
         worst: fusion.hourly.worstHours.slice(0, 2).map((s) => ({
           hour: s.hour,
           score: s.score,
-          reason: [
-            s.hourPillar ? `시주 ${s.hourPillar}` : '',
-            s.planetaryHour ?? '',
-          ].filter(Boolean).join(' · '),
+          reason: [s.hourPillar ? `시주 ${s.hourPillar}` : '', s.planetaryHour ?? '']
+            .filter(Boolean)
+            .join(' · '),
         })),
       }
     }
@@ -271,7 +303,8 @@ export default function DestinyMatrixPlanner({
   }, [fusion, selectedImportantDate])
 
   const dailyDonts = useMemo(() => {
-    if (fusion?.advice?.avoid && fusion.advice.avoid.length > 0) return fusion.advice.avoid.slice(0, 2)
+    if (fusion?.advice?.avoid && fusion.advice.avoid.length > 0)
+      return fusion.advice.avoid.slice(0, 2)
     const warns = selectedImportantDate?.warnings
     if (warns && warns.length > 0) return warns.slice(0, 2)
     return []
@@ -289,7 +322,8 @@ export default function DestinyMatrixPlanner({
     // fusion 사람말 신호 (legacy 없을 때만 fallback — 이미 다른 곳에 narrative 있으면 중복 피함)
     if (fusion && !selectedImportantDate?.summary) {
       const { agreement, confidence, overallScore } = fusion
-      if (agreement < 55) return confidence > 40 ? '사주와 점성이 갈리는 날 — 분별 필요' : '신호가 흐릿한 날'
+      if (agreement < 55)
+        return confidence > 40 ? '사주와 점성이 갈리는 날 — 분별 필요' : '신호가 흐릿한 날'
       if (overallScore >= 70 && confidence >= 45) return '강한 길일 — 사주·점성 모두 우호'
       if (overallScore >= 60) return '잔잔하게 우호적인 흐름'
       if (overallScore <= 30 && confidence >= 45) return '주의일 — 사주·점성 모두 신중'
@@ -436,7 +470,9 @@ export default function DestinyMatrixPlanner({
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <h2 className="text-2xl font-black text-zinc-100 tracking-widest flex-1 text-center">{monthLabel}</h2>
+                  <h2 className="text-2xl font-black text-zinc-100 tracking-widest flex-1 text-center">
+                    {monthLabel}
+                  </h2>
                   <button
                     onClick={goToNextMonth}
                     className="p-2 rounded-lg bg-zinc-950/70 hover:bg-zinc-800 border border-white/5 text-zinc-300 transition shrink-0"
@@ -556,23 +592,26 @@ export default function DestinyMatrixPlanner({
                   {(() => {
                     const g = getGrade(monthScore, gradeThresholds)
                     return (
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${g.colorClass} ${g.borderClass}`}>
+                      <span
+                        className={`text-xs font-bold px-2.5 py-1 rounded-full border ${g.colorClass} ${g.borderClass}`}
+                      >
                         {g.label} · {g.sub}
                       </span>
                     )
                   })()}
                 </div>
                 {monthlySummaryText && (
-                  <p className="text-sm text-zinc-300 leading-relaxed">
-                    {monthlySummaryText}
-                  </p>
+                  <p className="text-sm text-zinc-300 leading-relaxed">{monthlySummaryText}</p>
                 )}
               </div>
 
               {/* ── calendar-engine v2: 월간 narrative 해석 ── */}
               <MonthlyInterpretationCard
-                interp={monthDates[0]?.monthlyInterpretation
-                        ?? selectedImportantDate?.monthlyInterpretation} />
+                interp={
+                  monthDates[0]?.monthlyInterpretation ??
+                  selectedImportantDate?.monthlyInterpretation
+                }
+              />
 
               {/* ── 주간 타이밍 그래프 (saju × astro) ── */}
               <WeeklyTimingChart monthDates={monthDates} />
@@ -639,7 +678,9 @@ export default function DestinyMatrixPlanner({
                     <div
                       className={`col-span-2 p-4 rounded-2xl border flex flex-col items-center justify-center text-center shadow-lg ${todayGrade.bgClass} ${todayGrade.borderClass}`}
                     >
-                      <span className="text-[11px] font-bold text-zinc-400 mb-1 tracking-widest">오늘의 흐름</span>
+                      <span className="text-[11px] font-bold text-zinc-400 mb-1 tracking-widest">
+                        오늘의 흐름
+                      </span>
                       <span className={`text-5xl font-black ${todayGrade.colorClass} leading-none`}>
                         {todayGrade.label}
                       </span>
@@ -647,58 +688,59 @@ export default function DestinyMatrixPlanner({
                       <span className="text-[11px] text-zinc-500 mt-1">{dailyIndices.score}점</span>
                     </div>
 
-                <div className="col-span-3 bg-zinc-900/60 p-4 rounded-2xl border border-white/5 flex flex-col justify-center space-y-3">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
-                        <Heart className="w-3 h-3 text-rose-400" /> 연애 지수
-                      </span>
-                      <span className="text-xs text-rose-400">{dailyIndices.love}%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
-                      <motion.div
-                        key={`love-${currentDay}-${dailyIndices.love}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${dailyIndices.love}%` }}
-                        className="h-full bg-rose-500 rounded-full"
-                      />
+                    <div className="col-span-3 bg-zinc-900/60 p-4 rounded-2xl border border-white/5 flex flex-col justify-center space-y-3">
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
+                            <Heart className="w-3 h-3 text-rose-400" /> 연애 지수
+                          </span>
+                          <span className="text-xs text-rose-400">{dailyIndices.love}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
+                          <motion.div
+                            key={`love-${currentDay}-${dailyIndices.love}`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${dailyIndices.love}%` }}
+                            className="h-full bg-rose-500 rounded-full"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
+                            <Coins className="w-3 h-3 text-amber-400" /> 재물 지수
+                          </span>
+                          <span className="text-xs text-amber-400">{dailyIndices.wealth}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
+                          <motion.div
+                            key={`wealth-${currentDay}-${dailyIndices.wealth}`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${dailyIndices.wealth}%` }}
+                            className="h-full bg-amber-500 rounded-full"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
+                            <Activity className="w-3 h-3 text-emerald-400" /> 건강 지수
+                          </span>
+                          <span className="text-xs text-emerald-400">{dailyIndices.health}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
+                          <motion.div
+                            key={`health-${currentDay}-${dailyIndices.health}`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${dailyIndices.health}%` }}
+                            className="h-full bg-emerald-500 rounded-full"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
-                        <Coins className="w-3 h-3 text-amber-400" /> 재물 지수
-                      </span>
-                      <span className="text-xs text-amber-400">{dailyIndices.wealth}%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
-                      <motion.div
-                        key={`wealth-${currentDay}-${dailyIndices.wealth}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${dailyIndices.wealth}%` }}
-                        className="h-full bg-amber-500 rounded-full"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
-                        <Activity className="w-3 h-3 text-emerald-400" /> 건강 지수
-                      </span>
-                      <span className="text-xs text-emerald-400">{dailyIndices.health}%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
-                      <motion.div
-                        key={`health-${currentDay}-${dailyIndices.health}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${dailyIndices.health}%` }}
-                        className="h-full bg-emerald-500 rounded-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              )})()}
+                )
+              })()}
 
               {/* Engine self-diagnostic */}
               {dailyEngineSignal && (
@@ -759,30 +801,40 @@ export default function DestinyMatrixPlanner({
                           dailyHourlySlots.best.slice(0, 4).map((s, i) => {
                             const branch = branchFromHour(s.hour)
                             const narrative = getHourNarrative(branch)
+                            const themeLine = getHourThemeNarrative(
+                              branch,
+                              topHourTheme(selectedImportantDate?.themeScores),
+                              'ko'
+                            )
                             return (
-                            <li
-                              key={`best-${i}`}
-                              className="bg-emerald-900/10 border border-emerald-500/15 px-3 py-2 rounded-lg"
-                            >
-                              <div className="flex items-baseline justify-between gap-2">
-                                <span className="text-base font-bold text-emerald-200">
-                                  {formatHour(s.hour)}
-                                </span>
-                                <span className="text-xs font-bold text-emerald-400">
-                                  {Math.round(s.score)}점
-                                </span>
-                              </div>
-                              {/* 시진 baseline narrative — 12지지 의미를 한 줄로.
+                              <li
+                                key={`best-${i}`}
+                                className="bg-emerald-900/10 border border-emerald-500/15 px-3 py-2 rounded-lg"
+                              >
+                                <div className="flex items-baseline justify-between gap-2">
+                                  <span className="text-base font-bold text-emerald-200">
+                                    {formatHour(s.hour)}
+                                  </span>
+                                  <span className="text-xs font-bold text-emerald-400">
+                                    {Math.round(s.score)}점
+                                  </span>
+                                </div>
+                                {/* 시진 baseline narrative — 12지지 의미를 한 줄로.
                                   best 슬롯이라 positiveKo 사용. */}
-                              <p className="text-xs text-emerald-100/85 mt-1 leading-snug">
-                                {narrative.positiveKo}
-                              </p>
-                              {s.reason && (
-                                <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
-                                  {s.reason}
+                                <p className="text-xs text-emerald-100/85 mt-1 leading-snug">
+                                  {narrative.positiveKo}
                                 </p>
-                              )}
-                            </li>
+                                {themeLine && (
+                                  <p className="text-[11px] text-emerald-200/70 mt-1 leading-snug">
+                                    {themeLine}
+                                  </p>
+                                )}
+                                {s.reason && (
+                                  <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
+                                    {s.reason}
+                                  </p>
+                                )}
+                              </li>
                             )
                           })
                         ) : (
@@ -800,28 +852,28 @@ export default function DestinyMatrixPlanner({
                             const branch = branchFromHour(s.hour)
                             const narrative = getHourNarrative(branch)
                             return (
-                            <li
-                              key={`worst-${i}`}
-                              className="bg-rose-900/10 border border-rose-500/15 px-3 py-2 rounded-lg"
-                            >
-                              <div className="flex items-baseline justify-between gap-2">
-                                <span className="text-base font-bold text-rose-200">
-                                  {formatHour(s.hour)}
-                                </span>
-                                <span className="text-xs font-bold text-rose-400">
-                                  {Math.round(s.score)}점
-                                </span>
-                              </div>
-                              {/* worst 슬롯이라 cautionKo 사용 */}
-                              <p className="text-xs text-rose-100/85 mt-1 leading-snug">
-                                {narrative.cautionKo}
-                              </p>
-                              {s.reason && (
-                                <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
-                                  {s.reason}
+                              <li
+                                key={`worst-${i}`}
+                                className="bg-rose-900/10 border border-rose-500/15 px-3 py-2 rounded-lg"
+                              >
+                                <div className="flex items-baseline justify-between gap-2">
+                                  <span className="text-base font-bold text-rose-200">
+                                    {formatHour(s.hour)}
+                                  </span>
+                                  <span className="text-xs font-bold text-rose-400">
+                                    {Math.round(s.score)}점
+                                  </span>
+                                </div>
+                                {/* worst 슬롯이라 cautionKo 사용 */}
+                                <p className="text-xs text-rose-100/85 mt-1 leading-snug">
+                                  {narrative.cautionKo}
                                 </p>
-                              )}
-                            </li>
+                                {s.reason && (
+                                  <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
+                                    {s.reason}
+                                  </p>
+                                )}
+                              </li>
                             )
                           })
                         ) : (
@@ -840,46 +892,45 @@ export default function DestinyMatrixPlanner({
               </div>
 
               {(dailyDos.length > 0 || dailyDonts.length > 0) && (
-              <div className="grid grid-cols-2 gap-4">
-                {dailyDos.length > 0 && (
-                <div className="bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-2xl">
-                  <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-2 mb-3">
-                    <ThumbsUp className="w-4 h-4" /> 권장 행동 패턴
-                  </h4>
-                  <ul className="space-y-2">
-                    {dailyDos.map((item, idx) => (
-                      <li
-                        key={idx}
-                        className="text-xs text-emerald-100/80 flex items-start gap-1.5 leading-relaxed"
-                      >
-                        <span className="text-emerald-500 mt-0.5">•</span> {item}
-                      </li>
-                    ))}
-                  </ul>
+                <div className="grid grid-cols-2 gap-4">
+                  {dailyDos.length > 0 && (
+                    <div className="bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-2xl">
+                      <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-2 mb-3">
+                        <ThumbsUp className="w-4 h-4" /> 권장 행동 패턴
+                      </h4>
+                      <ul className="space-y-2">
+                        {dailyDos.map((item, idx) => (
+                          <li
+                            key={idx}
+                            className="text-xs text-emerald-100/80 flex items-start gap-1.5 leading-relaxed"
+                          >
+                            <span className="text-emerald-500 mt-0.5">•</span> {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {dailyDonts.length > 0 && (
+                    <div className="bg-rose-900/10 border border-rose-500/20 p-4 rounded-2xl">
+                      <h4 className="text-sm font-bold text-rose-400 flex items-center gap-2 mb-3">
+                        <ThumbsDown className="w-4 h-4" /> 주의 행동 패턴
+                      </h4>
+                      <ul className="space-y-2">
+                        {dailyDonts.map((item, idx) => (
+                          <li
+                            key={idx}
+                            className="text-xs text-rose-100/80 flex items-start gap-1.5 leading-relaxed"
+                          >
+                            <span className="text-rose-500 mt-0.5">•</span> {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-                )}
-                {dailyDonts.length > 0 && (
-                <div className="bg-rose-900/10 border border-rose-500/20 p-4 rounded-2xl">
-                  <h4 className="text-sm font-bold text-rose-400 flex items-center gap-2 mb-3">
-                    <ThumbsDown className="w-4 h-4" /> 주의 행동 패턴
-                  </h4>
-                  <ul className="space-y-2">
-                    {dailyDonts.map((item, idx) => (
-                      <li
-                        key={idx}
-                        className="text-xs text-rose-100/80 flex items-start gap-1.5 leading-relaxed"
-                      >
-                        <span className="text-rose-500 mt-0.5">•</span> {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                )}
-              </div>
               )}
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
 
@@ -915,8 +966,7 @@ export default function DestinyMatrixPlanner({
                       as="h3"
                       className="text-lg font-bold text-white flex items-center gap-2"
                     >
-                      <Calendar className="w-5 h-5 text-indigo-400" />
-                      월 이동
+                      <Calendar className="w-5 h-5 text-indigo-400" />월 이동
                     </Dialog.Title>
                     <button
                       onClick={() => setIsCalendarModalOpen(false)}
@@ -941,8 +991,12 @@ export default function DestinyMatrixPlanner({
                         <ChevronLeft className="w-5 h-5" />
                       </button>
                       <div className="text-center">
-                        <div className="text-[11px] text-zinc-500 tracking-widest uppercase mb-1">보는 달</div>
-                        <div className="text-xl font-black text-white tracking-wide">{monthLabel}</div>
+                        <div className="text-[11px] text-zinc-500 tracking-widest uppercase mb-1">
+                          보는 달
+                        </div>
+                        <div className="text-xl font-black text-white tracking-wide">
+                          {monthLabel}
+                        </div>
                       </div>
                       <button
                         onClick={() => {
@@ -1007,10 +1061,10 @@ function WeatherBadge({
     grade === 'strong'
       ? 'text-emerald-300'
       : grade === 'good'
-      ? 'text-emerald-200'
-      : grade === 'caution'
-      ? 'text-rose-300'
-      : 'text-zinc-300'
+        ? 'text-emerald-200'
+        : grade === 'caution'
+          ? 'text-rose-300'
+          : 'text-zinc-300'
   const border = tone === 'rose' ? 'border-rose-500/15' : 'border-amber-500/15'
   return (
     <div className={`bg-zinc-900/40 p-4 rounded-2xl border ${border}`}>

@@ -27,7 +27,7 @@ import {
   signLabel,
   varyRepeatedEndings,
 } from '../../templates/sentences'
-import { pickVariation, twelveStagePool, sibsinCategoryPool } from '../../pools'
+import { pickVariation, twelveStagePool, sibsinCategoryPool, sibsinPool } from '../../pools'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 
@@ -317,6 +317,20 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     sajuUsed.push('pools.sibsinCategory.family')
     deepKo.push(/[.!?]$/.test(familyCatVar) ? familyCatVar : `${familyCatVar}.`)
   }
+  // 정밀 십신 — category(재성/인성…) 보다 한 단계 좁은 개별 십신(정인/편인…)
+  // 으로 family 도메인 한 줄 추가. 가장 많이 깔린 개별 십신 기준.
+  const dominantSibsinF = (Object.entries(sib) as Array<[string, number]>)
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1])[0]?.[0]
+  const familySibsinVar = pickVariation(sibsinPool(dominantSibsinF, 'family'), [
+    `day_master:${dayMasterStemF}`,
+    `sibsin:${dominantSibsinF ?? ''}`,
+    `day_branch:${dayBranchF}`,
+  ])
+  if (familySibsinVar) {
+    sajuUsed.push('pools.sibsin.family')
+    deepKo.push(/[.!?]$/.test(familySibsinVar) ? familySibsinVar : `${familySibsinVar}.`)
+  }
   // Lot of Basis — 가정 기반·뿌리의 점
   const basis = input.calendarSignals?.arabicPartsExtra?.Basis
   if (basis) {
@@ -330,7 +344,9 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   }
 
   const p3ko = paragraph(
-    deepKo.length ? varyRepeatedEndings(deepKo) : ['이번 생의 가족 분위기는 큰 드라마보다 잔잔한 누적으로 빚어져요.']
+    deepKo.length
+      ? varyRepeatedEndings(deepKo)
+      : ['이번 생의 가족 분위기는 큰 드라마보다 잔잔한 누적으로 빚어져요.']
   )
   const p3en = paragraph(
     deepEn.length
@@ -483,4 +499,3 @@ function sunMoonFlavorEn(type: string): string {
   if (type === 'conjunction') return 'tightly fused'
   return 'subtle'
 }
-
