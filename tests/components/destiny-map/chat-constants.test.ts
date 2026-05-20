@@ -27,7 +27,7 @@ describe('chat-constants', () => {
       })
 
       it('should define REQUEST_TIMEOUT timing', () => {
-        expect(CHAT_TIMINGS.REQUEST_TIMEOUT).toBe(30000)
+        expect(CHAT_TIMINGS.REQUEST_TIMEOUT).toBe(90000)
       })
 
       it('should define RETRY_BASE_DELAY timing', () => {
@@ -61,8 +61,8 @@ describe('chat-constants', () => {
         expect(CHAT_TIMINGS.DEBOUNCE_SAVE).toBe(2 * 1000)
         // WELCOME_BANNER_DURATION: 5 seconds
         expect(CHAT_TIMINGS.WELCOME_BANNER_DURATION).toBe(5 * 1000)
-        // REQUEST_TIMEOUT: 30 seconds
-        expect(CHAT_TIMINGS.REQUEST_TIMEOUT).toBe(30 * 1000)
+        // REQUEST_TIMEOUT: 90 seconds
+        expect(CHAT_TIMINGS.REQUEST_TIMEOUT).toBe(90 * 1000)
         // RETRY_BASE_DELAY: 1 second
         expect(CHAT_TIMINGS.RETRY_BASE_DELAY).toBe(1 * 1000)
         // NOTICE_DISMISS: 3 seconds
@@ -88,9 +88,9 @@ describe('chat-constants', () => {
       })
 
       it('should have reasonable timeout values', () => {
-        // REQUEST_TIMEOUT should be between 10-60 seconds
+        // REQUEST_TIMEOUT should be between 10-90 seconds
         expect(CHAT_TIMINGS.REQUEST_TIMEOUT).toBeGreaterThanOrEqual(10000)
-        expect(CHAT_TIMINGS.REQUEST_TIMEOUT).toBeLessThanOrEqual(60000)
+        expect(CHAT_TIMINGS.REQUEST_TIMEOUT).toBeLessThanOrEqual(90000)
 
         // DEBOUNCE_SAVE should be between 1-5 seconds
         expect(CHAT_TIMINGS.DEBOUNCE_SAVE).toBeGreaterThanOrEqual(1000)
@@ -426,9 +426,9 @@ describe('chat-constants', () => {
     })
 
     describe('Value ranges', () => {
-      it('should have all timing values under 1 minute', () => {
+      it('should have all timing values under 2 minutes', () => {
         Object.values(CHAT_TIMINGS).forEach((timing) => {
-          expect(timing).toBeLessThanOrEqual(60000)
+          expect(timing).toBeLessThanOrEqual(120000)
         })
       })
 

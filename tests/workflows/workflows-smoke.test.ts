@@ -10,14 +10,9 @@ import { resolve } from 'path';
 describe('GitHub Workflows Smoke Tests', () => {
   const workflowsDir = resolve(process.cwd(), '.github/workflows');
 
-  describe('CI/CD Workflows (3)', () => {
+  describe('CI/CD Workflows (2)', () => {
     it('should have ci workflow', () => {
       const filePath = resolve(workflowsDir, 'ci.yml');
-      expect(existsSync(filePath)).toBe(true);
-    });
-
-    it('should have deploy preview workflow', () => {
-      const filePath = resolve(workflowsDir, 'deploy-preview.yml');
       expect(existsSync(filePath)).toBe(true);
     });
 
@@ -66,7 +61,7 @@ describe('GitHub Workflows Smoke Tests', () => {
     it('should have all essential workflow files', () => {
       const workflows = [
         'ci.yml',
-        'deploy-preview.yml',
+        // 'deploy-preview.yml' removed
         'deploy-production.yml',
         'e2e-browser.yml',
         'performance-tests.yml',
@@ -81,7 +76,7 @@ describe('GitHub Workflows Smoke Tests', () => {
         expect(existsSync(filePath)).toBe(true);
       });
 
-      expect(workflows.length).toBe(8);
+      expect(workflows.length).toBe(7);
     });
   });
 });

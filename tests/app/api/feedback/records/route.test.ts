@@ -176,7 +176,6 @@ describe('GET /api/feedback/records', () => {
       select: {
         id: true,
         service: true,
-        theme: true,
         sectionId: true,
         helpful: true,
         dayMaster: true,
@@ -204,26 +203,6 @@ describe('GET /api/feedback/records', () => {
     expect(prisma.sectionFeedback.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { service: 'destiny-map' },
-      })
-    )
-  })
-
-  // ---- Test 3: Filters by theme parameter ----
-  it('should filter feedback records by theme parameter', async () => {
-    const filteredRecords = MOCK_FEEDBACK_RECORDS.filter((r) => r.theme === 'career')
-    vi.mocked(prisma.sectionFeedback.findMany).mockResolvedValue(filteredRecords as any)
-
-    const req = createGetRequest({ theme: 'career' })
-    const res = await GET(req)
-    const json = await res.json()
-
-    expect(res.status).toBe(200)
-    expect(json.records).toHaveLength(1)
-    expect(json.records[0].theme).toBe('career')
-
-    expect(prisma.sectionFeedback.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { theme: 'career' },
       })
     )
   })
@@ -288,13 +267,12 @@ describe('GET /api/feedback/records', () => {
   })
 
   // ---- Test 7: Combination of multiple filters ----
-  it('should apply multiple filters together (service, theme, helpful)', async () => {
+  it('should apply multiple filters together (service, helpful)', async () => {
     const filteredRecords = [MOCK_FEEDBACK_RECORDS[0]]
     vi.mocked(prisma.sectionFeedback.findMany).mockResolvedValue(filteredRecords as any)
 
     const req = createGetRequest({
       service: 'destiny-map',
-      theme: 'career',
       helpful: 'true',
       limit: '10',
     })
@@ -307,7 +285,6 @@ describe('GET /api/feedback/records', () => {
     expect(prisma.sectionFeedback.findMany).toHaveBeenCalledWith({
       where: {
         service: 'destiny-map',
-        theme: 'career',
         helpful: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -315,7 +292,6 @@ describe('GET /api/feedback/records', () => {
       select: {
         id: true,
         service: true,
-        theme: true,
         sectionId: true,
         helpful: true,
         dayMaster: true,

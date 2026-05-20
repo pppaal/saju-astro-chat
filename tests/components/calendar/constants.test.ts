@@ -202,7 +202,7 @@ describe('calendar constants', () => {
     })
 
     it('should define grade 2 emoji (normal day)', () => {
-      expect(GRADE_EMOJI[2]).toBe('⭐')
+      expect(GRADE_EMOJI[2]).toBe('🌿')
     })
 
     it('should define grade 3 emoji (bad day)', () => {
@@ -210,7 +210,7 @@ describe('calendar constants', () => {
     })
 
     it('should define grade 4 emoji (worst day)', () => {
-      expect(GRADE_EMOJI[4]).toBe('☠️')
+      expect(GRADE_EMOJI[4]).toBe('🛡️')
     })
 
     it('should have all values as non-empty strings', () => {
@@ -394,8 +394,9 @@ describe('calendar constants', () => {
         expect(GRADE_EMOJI[0]).toMatch(/[🌟✨⭐]/)
       })
 
-      it('should have negative emoji for grade 4', () => {
-        expect(GRADE_EMOJI[4]).toBe('☠️')
+      it('should have a distinct emoji for grade 4 (worst day)', () => {
+        expect(GRADE_EMOJI[4]).toBe('🛡️')
+        expect(GRADE_EMOJI[4]).not.toBe(GRADE_EMOJI[0])
       })
     })
 

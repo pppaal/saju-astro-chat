@@ -74,7 +74,8 @@ describe('useCompatibilityForm', () => {
   });
 
   it('should pick city and set coordinates', () => {
-    const { result } = renderHook(() => useCompatibilityForm());
+    // Render with the 'en' locale so the city is formatted in English.
+    const { result } = renderHook(() => useCompatibilityForm(2, 'en'));
 
     const city = {
       name: 'New York',
@@ -87,7 +88,7 @@ describe('useCompatibilityForm', () => {
       result.current.onPickCity(0, city);
     });
 
-    expect(result.current.persons[0].cityQuery).toBe('New York, US');
+    expect(result.current.persons[0].cityQuery).toBe('New York, United States');
     expect(result.current.persons[0].lat).toBe(40.7128);
     expect(result.current.persons[0].lon).toBe(-74.0060);
     expect(result.current.persons[0].showDropdown).toBe(false);
@@ -109,6 +110,15 @@ describe('useCompatibilityForm', () => {
       result.current.fillFromCircle(1, {
         name: 'Charlie',
         relation: 'family',
+      });
+    });
+    expect(result.current.persons[1].relation).toBe('family');
+
+    // Unknown relations fall back to 'other'.
+    act(() => {
+      result.current.fillFromCircle(1, {
+        name: 'Dana',
+        relation: 'mentor',
       });
     });
     expect(result.current.persons[1].relation).toBe('other');
