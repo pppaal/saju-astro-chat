@@ -9,7 +9,12 @@ import type { ActiveSignal, SignalLayer } from '../types'
  */
 
 const LAYER_WEIGHT: Record<SignalLayer, number> = {
-  decadal: 1.0, yearly: 0.85, monthly: 0.7, daily: 0.55, hourly: 0.4, instant: 0.5,
+  decadal: 1.0,
+  yearly: 0.85,
+  monthly: 0.7,
+  daily: 0.55,
+  hourly: 0.4,
+  instant: 0.5,
 }
 
 export function deriveThemeScores(signals: ActiveSignal[]): Partial<Record<AstroThemeKey, number>> {
@@ -31,8 +36,10 @@ export function deriveThemeScores(signals: ActiveSignal[]): Partial<Record<Astro
   for (const [theme, b] of buckets) {
     if (b.weight === 0) continue
     const avg = b.sum / b.weight
-    // 분포 넓힘 — score deriver와 동일한 ×16 매핑
-    result[theme] = Math.max(0, Math.min(100, Math.round(50 + avg * 16)))
+    // 분포 넓힘 — ×24. 신호가 부분 상쇄돼 avg 가 작아 ×16 에선 테마 점수가
+    // 사람마다 40~65 로 뭉쳐(=영역별 바가 다 비슷) 변별력이 약했음
+    // (1000인 시뮬 확인). ×24 로 펴서 ~25~80 분포 확보(클리핑 거의 없음).
+    result[theme] = Math.max(0, Math.min(100, Math.round(50 + avg * 24)))
   }
   return result
 }
