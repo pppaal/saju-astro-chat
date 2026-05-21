@@ -90,6 +90,35 @@ function isHeader(s: string): boolean {
   return /^\[.*\]$/.test(s)
 }
 
+const ZODIAC = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
+const ANGLE_ASPECTS: Array<{ deg: number; name: string; orb: number }> = [
+  { deg: 0, name: 'Conjunction', orb: 8 }, { deg: 60, name: 'Sextile', orb: 5 },
+  { deg: 90, name: 'Square', orb: 6 }, { deg: 120, name: 'Trine', orb: 6 }, { deg: 180, name: 'Opposition', orb: 7 },
+]
+/** aspects from each planet to ASC/MC, computed from longitudes (the engine's
+ * natal-aspect list omits angles, but a 1st-house stellium conjunct ASC is core
+ * to character). Sorted by orb. */
+function angleAspects(bodies: Array<{ name: string; lon: number }>, l: SlimLocale): string[] {
+  const angles = bodies.filter((b) => b.name === 'Ascendant' || b.name === 'MC')
+  const planets = bodies.filter((b) => b.name !== 'Ascendant' && b.name !== 'MC')
+  const hits: Array<{ orb: number; line: string }> = []
+  for (const a of angles) {
+    for (const p of planets) {
+      let d = Math.abs(a.lon - p.lon)
+      if (d > 180) d = 360 - d
+      for (const asp of ANGLE_ASPECTS) {
+        const orb = Math.abs(d - asp.deg)
+        if (orb <= asp.orb) {
+          const pg = l === 'ko' && PLANET_GLOSS_KO[p.name] ? `${pko(p.name, l)}(${PLANET_GLOSS_KO[p.name]})` : pko(p.name, l)
+          hits.push({ orb, line: `${pg} ${ako(asp.name, l)} ${pko(a.name, l)} (${orb.toFixed(1)}°)` })
+          break
+        }
+      }
+    }
+  }
+  return hits.sort((x, y) => x.orb - y.orb).map((h) => h.line)
+}
+
 /** localize a misc line (eclipses / profection / positions fallback). ko only. */
 function kz(s: string, l: SlimLocale): string {
   if (l !== 'ko') return s
@@ -236,6 +265,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       out.push(l === 'ko'
         ? (withAngle ? '[행성 위치 (사인·하우스)]' : '[행성 위치 (사인)]')
         : (withAngle ? '[Positions (sign · house)]' : '[Positions (sign)]'))
+      const bodies: Array<{ name: string; lon: number }> = []
       for (const b of body) {
         const m = POS.exec(b)
         if (m) {
@@ -247,11 +277,19 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
           const digKo = (l === 'ko' ? DIGNITY_KO : DIGNITY_EN)[dignityOf(m[1], m[2])]
           const dig = digKo ? ` [${digKo}]` : ''
           out.push(`${planet} ${sko(m[2], l)} ${m[3]}°${house}${retro}${dig}`)
+          const zi = ZODIAC.indexOf(m[2])
+          if (zi >= 0) bodies.push({ name: m[1], lon: zi * 30 + Number(m[3]) })
         } else if (b.trim()) {
           out.push(kz(b, l))
         }
       }
       out.push('')
+      // ASC/MC aspects — the engine's natal-aspect list omits angles, but a
+      // 1st-house stellium conjunct ASC is core to character. Compute here.
+      const angleLines = angleAspects(bodies, l)
+      if (angleLines.length) {
+        out.push(l === 'ko' ? '[ASC·MC 각 (성격·태도 핵심)]' : '[ASC/MC aspects]', ...angleLines, '')
+      }
       i = j; continue
     }
 
