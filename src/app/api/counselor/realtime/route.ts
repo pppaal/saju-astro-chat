@@ -270,11 +270,22 @@ export async function POST(req: NextRequest) {
       //    (raw→refined) + reading rules. Replaces the old formatSajuSelf /
       //    formatAstroSelf + slim chain here; compat counselor keeps those.
       try {
+        const sn = saju as unknown as {
+          currentSeun?: { heavenlyStem?: string; earthlyBranch?: string } | null
+          currentWolun?: { heavenlyStem?: string; earthlyBranch?: string } | null
+          currentIljin?: { heavenlyStem?: string; earthlyBranch?: string } | null
+          unseRelations?: Array<{ source: string; relation: { kind: string; detail?: string; pillars?: string[] } }>
+        }
+        const un = (u?: { heavenlyStem?: string; earthlyBranch?: string } | null) =>
+          u ? { stem: u.heavenlyStem ?? '', branch: u.earthlyBranch ?? '' } : null
         const ctx = await buildDestinyContext({
           birthDate, birthTime, gender,
           timezone: tz, latitude, longitude,
           birthTimeUnknown: hourUnknown, birthCityUnknown: cityUnknown,
-        }, queryDate, lang)
+        }, queryDate, lang, {
+          seun: un(sn.currentSeun), wolun: un(sn.currentWolun), iljin: un(sn.currentIljin),
+          relations: sn.unseRelations,
+        })
         parts.push('', ctx)
       } catch (err) {
         logger.warn('[counselor/realtime] destiny context build failed', { err: err instanceof Error ? err.message : String(err) })
