@@ -67,40 +67,6 @@ const ELEMENT_KEYWORDS: Record<string, { ko: string[]; en: string[] }> = {
   water: { ko: ['직관', '유연', '깊이'], en: ['intuition', 'adaptability', 'depth'] },
 }
 
-const ARCHETYPES: Record<string, { ko: string; en: string; taglineKo: string; taglineEn: string }> =
-  {
-    wood: {
-      ko: '새싹 개척자',
-      en: 'Verdant Pioneer',
-      taglineKo: '성장과 확장의 서사를 이끄는 인물',
-      taglineEn: 'A protagonist of growth and exploration',
-    },
-    fire: {
-      ko: '불꽃 선도자',
-      en: 'Flame Vanguard',
-      taglineKo: '열정과 표현으로 판을 여는 인물',
-      taglineEn: 'A catalyst who ignites bold expression',
-    },
-    earth: {
-      ko: '대지 설계자',
-      en: 'Earth Architect',
-      taglineKo: '안정과 조율로 기반을 만드는 인물',
-      taglineEn: 'A builder who stabilizes the world around them',
-    },
-    metal: {
-      ko: '칼날 전략가',
-      en: 'Steel Strategist',
-      taglineKo: '원칙과 결단으로 길을 여는 인물',
-      taglineEn: 'A strategist who cuts a clear path',
-    },
-    water: {
-      ko: '심해 현자',
-      en: 'Deepwater Sage',
-      taglineKo: '직관과 통찰로 흐름을 읽는 인물',
-      taglineEn: 'A sage who navigates with deep insight',
-    },
-  }
-
 // ============================================================
 // Data Extraction Helpers
 // ============================================================
@@ -377,7 +343,6 @@ function buildCharacterBuilder(
   const dayElement = normalizeElementKey(saju.dayMasterElement || saju.dominantElement)
   const weakest = normalizeElementKey(saju.weakestElement || dayElement)
   const support = ELEMENT_RELATIONS[dayElement]?.generatedBy || dayElement
-  const archetype = ARCHETYPES[dayElement] || ARCHETYPES.wood
 
   const sunElement = getZodiacElement(astro.sunSign)
   const moonElement = getZodiacElement(astro.moonSign)
@@ -422,8 +387,6 @@ function buildCharacterBuilder(
     : `Early on, you focus on ${getElementName(dayElement, false)}-driven ${dayKeywords[0]} to find direction.\nMidway, you consciously strengthen ${getElementName(weakest, false)} to regain balance.\nLater, you leverage ${getElementName(support, false)} energy to expand impact and complete your story.`
 
   return {
-    archetype: isKo ? archetype.ko : archetype.en,
-    tagline: isKo ? archetype.taglineKo : archetype.taglineEn,
     personality,
     conflict,
     growthArc,
