@@ -346,6 +346,23 @@ describe('POST /api/tarot/interpret-stream', () => {
       expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1, req)
     })
 
+    it('should charge 2 credits for a large spread (>= 8 cards)', async () => {
+      const largeSpread = {
+        ...VALID_REQUEST_BODY,
+        cards: Array.from({ length: 8 }, (_, i) => ({
+          ...VALID_CARD,
+          name: `Card ${i}`,
+          position: `Position ${i}`,
+        })),
+      }
+      mockTarotInterpretStreamSafeParse.mockReturnValue({ success: true, data: largeSpread })
+      const req = makePostRequest(largeSpread)
+
+      await POST(req)
+
+      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 2, req)
+    })
+
     it('should return credit error response when guest/session access is denied', async () => {
       mockCheckAndConsumeCredits.mockResolvedValue({
         allowed: false,

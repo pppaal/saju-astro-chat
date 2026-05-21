@@ -25,12 +25,23 @@ import { refundCredits } from '@/lib/credits/creditRefund'
 
 const OPENAI_TIMEOUT_MS = 30000
 
+// Spreads with >= this many cards fan out to two parallel Claude calls
+// (chunk A + chunk B), so they cost ~2x compute and are charged 2 credits.
+const LARGE_SPREAD_THRESHOLD = 8
+
+// Credit cost for a reading: large spreads cost 2, everything else 1.
+// Guests use a free cookie counter where this amount is ignored.
+function readingCreditCost(cardCount: number): number {
+  return cardCount >= LARGE_SPREAD_THRESHOLD ? 2 : 1
+}
+
 // 두 LLM (Claude → OpenAI) 모두 실패해서 generic fallback 으로 떨어질 때 호출.
 // 로그인 사용자의 차감된 크레딧을 같은 counter (chargedAs) 로 복구한다.
 // guest (userId 없음) 는 cookie 카운터라 환불 대상에서 제외 — 별도 정책 필요 시 후속.
 async function refundOnAllLlmFailure(
   creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null,
   reason: string,
+  amount: number,
   errorMessage?: string
 ) {
   if (!creditResult?.userId || !creditResult.chargedAs) return
@@ -38,7 +49,7 @@ async function refundOnAllLlmFailure(
     await refundCredits({
       userId: creditResult.userId,
       creditType: creditResult.chargedAs,
-      amount: 1,
+      amount,
       reason,
       apiRoute: '/api/tarot/interpret-stream',
       errorMessage,
@@ -105,6 +116,7 @@ function streamJsonPayload(
 
 export async function POST(req: NextRequest) {
   let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
+  let creditCost = 1
 
   try {
     // Apply middleware: rate limiting + public token auth
@@ -121,14 +133,12 @@ export async function POST(req: NextRequest) {
 
     logger.info('Tarot stream request', { ip: context.ip })
 
-    creditResult = await checkAndConsumeCredits('reading', 1, req)
-    if (!creditResult.allowed) {
-      return creditErrorResponse(creditResult)
-    }
-
+    // Parse and validate the body BEFORE charging credits so the credit
+    // cost can reflect the spread size (and so invalid/oversized requests
+    // never consume credits).
     const oversized = enforceBodySize(req, 256 * 1024)
     if (oversized) {
-      return withCreditCookies(oversized, creditResult)
+      return oversized
     }
 
     const rawBody = await req.json()
@@ -146,6 +156,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body = validationResult.data
+
+    creditCost = readingCreditCost(Array.isArray(body.cards) ? body.cards.length : 0)
+    creditResult = await checkAndConsumeCredits('reading', creditCost, req)
+    if (!creditResult.allowed) {
+      return creditErrorResponse(creditResult)
+    }
+
     const categoryId = body.categoryId
     const spreadId = body.spreadId || ''
     const spreadTitle = body.spreadTitle || ''
@@ -184,7 +201,6 @@ export async function POST(req: NextRequest) {
     //  - <8장: 단일 호출, 응답 전체를 SSE 단일 청크로 emit (기존 흐름)
     //  - >=8장: 카드를 둘로 나눠 병렬 2회 호출 후 JSON 머지 → 단일 청크 emit
     //          token 한계로 후반 카드 잘리던 문제 해결 + 같은 system prompt 재사용해 cache hit
-    const LARGE_SPREAD_THRESHOLD = 8
     if (isClaudeAvailable()) {
       const claudeStartTime = Date.now()
       const isLargeSpread = rawCards.length >= LARGE_SPREAD_THRESHOLD
@@ -386,6 +402,7 @@ export async function POST(req: NextRequest) {
       await refundOnAllLlmFailure(
         creditResult,
         'tarot_llm_unavailable',
+        creditCost,
         'Both Claude and OpenAI keys missing'
       )
       const fallback = buildFallbackPayload(rawCards, language)
@@ -429,6 +446,7 @@ export async function POST(req: NextRequest) {
       await refundOnAllLlmFailure(
         creditResult,
         'tarot_llm_unavailable',
+        creditCost,
         `OpenAI fetch error: ${error instanceof Error ? error.message : String(error)}`
       )
       const fallback = buildFallbackPayload(rawCards, language)
@@ -444,6 +462,7 @@ export async function POST(req: NextRequest) {
       await refundOnAllLlmFailure(
         creditResult,
         'tarot_llm_unavailable',
+        creditCost,
         `OpenAI ${openaiResponse.status}: ${errorText.substring(0, 200)}`
       )
       const fallback = buildFallbackPayload(rawCards, language)
