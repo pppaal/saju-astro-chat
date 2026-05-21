@@ -22,7 +22,8 @@ import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
-import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { refundCredits } from '@/lib/credits/creditRefund'
+import { cacheGet, cacheSet, cacheDel, CACHE_TTL } from '@/lib/cache/redis-cache'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -428,9 +429,11 @@ export async function POST(req: NextRequest) {
   // stream starts. New session → consume 1 credit and open the window.
   // Continuing session → free; just bump the turn counter while keeping the
   // original window (fixed, not sliding).
+  let chargedThisTurn = false
   if (isNewSession) {
     try {
-      await consumeCredits(userId, 'reading', CREDIT_PER_SESSION)
+      const res = await consumeCredits(userId, 'reading', CREDIT_PER_SESSION)
+      chargedThisTurn = res.success
     } catch (err) {
       logger.warn('[counselor/realtime] credit deduction failed', { err })
       // Don't block the user — observability over enforcement here.
@@ -465,6 +468,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
   }
 
+  // If we charged for a new session but the stream delivers nothing (backend
+  // error or empty completion), refund the credit and drop the session marker
+  // so the user isn't billed for an empty response or left inside a paid
+  // window they never got to use. Continuing turns weren't charged → no-op.
+  const onFailure = chargedThisTurn
+    ? async () => {
+        try {
+          await refundCredits({
+            userId,
+            creditType: 'reading',
+            amount: CREDIT_PER_SESSION,
+            reason: 'counselor_stream_empty',
+            apiRoute: '/api/counselor/realtime',
+          })
+          await cacheDel(sessionKey)
+        } catch (err) {
+          logger.warn('[counselor/realtime] stream-failure refund failed', { err })
+        }
+      }
+    : undefined
+
   return streamClaudeAsSSE({
     systemPrompt,
     userPrompt,
@@ -473,6 +497,7 @@ export async function POST(req: NextRequest) {
     maxTokens: 1500,
     temperature: 0.5,
     label: 'counselor.realtime',
+    onFailure,
     additionalHeaders: {
       'X-RateLimit-Limit': rl.headers.get('X-RateLimit-Limit') ?? '',
       'X-RateLimit-Remaining': rl.headers.get('X-RateLimit-Remaining') ?? '',
