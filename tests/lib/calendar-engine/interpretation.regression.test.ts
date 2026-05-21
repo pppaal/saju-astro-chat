@@ -831,4 +831,74 @@ describe('calendar-engine regression', () => {
       expect(seen.size).toBeGreaterThanOrEqual(2)
     })
   })
+
+  describe('Void-of-Course Moon timing rule', () => {
+    // 주의: 테스트 환경은 swisseph 를 목킹(고정 위치)해 달이 안 움직임 → VoC 가
+    // 실제로 발생하지 않음. 그래서 ephemeris 경유 대신 합성 VoC 신호를 직접
+    // 넣어 룰→matcher 배선만 검증한다. 프로덕션(실 ephemeris)에선 신호가 발생.
+    function cellWithVoc(day: number): CalendarCell {
+      const dayIso = `2026-05-${String(day).padStart(2, '0')}`
+      return {
+        datetime: `${dayIso}T00:00:00.000Z`,
+        derivedScore: 50,
+        themeScores: {},
+        matchedPatterns: [],
+        topReasons: [],
+        cautions: [],
+        signals: [
+          {
+            id: `astro.voc.${dayIso}`,
+            source: 'astro',
+            kind: 'void-of-course',
+            name: `Moon VoC (Aries)`,
+            korean: `달 공전 — Aries`,
+            themes: [],
+            polarity: -1,
+            layer: 'daily',
+            active: {
+              start: `${dayIso}T00:00:00.000Z`,
+              peak: `${dayIso}T12:00:00.000Z`,
+              end: `${dayIso}T18:00:00.000Z`,
+            },
+            weight: 0.45,
+            evidence: { module: 'astro-planetary-hour', planets: ['Moon'], detail: {} },
+          },
+        ],
+      } as unknown as CalendarCell
+    }
+
+    it('rule exists with KO+EN templates + void-of-course condition', () => {
+      const rule = RULES.find((r) => r.id === 'timing-void-of-course-moon')
+      expect(rule).toBeDefined()
+      expect(rule!.conditions.signalKinds).toEqual(['void-of-course'])
+      expect(rule!.template.length).toBeGreaterThan(10)
+      expect(rule!.templateEn && rule!.templateEn.length).toBeGreaterThan(10)
+    })
+
+    it('renders a timing section naming the VoC dates when VoC signals exist', async () => {
+      const saju = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
+      const natal = await buildNatalContext(
+        {
+          birthDate: '1995-02-09',
+          birthTime: '06:40',
+          gender: 'male',
+          latitude: 37.5665,
+          longitude: 126.978,
+          timeZone: 'Asia/Seoul',
+        } as Profile,
+        { saju }
+      )
+      const cells = [cellWithVoc(4), cellWithVoc(17)]
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const timing = interp.sections.find((s) => s.section === 'timing')
+      expect(timing).toBeDefined()
+      expect(timing!.text).toContain('05-04')
+      expect(timing!.text).toContain('05-17')
+      expect(timing!.text).toContain('2') // vocDatesCount
+      // EN variant resolves too
+      const interpEn = buildInterpretation({ natal, cells, scope: 'monthly', lang: 'en' })
+      const timingEn = interpEn.sections.find((s) => s.section === 'timing')
+      expect(timingEn!.text.toLowerCase()).toContain('void of course')
+    })
+  })
 })

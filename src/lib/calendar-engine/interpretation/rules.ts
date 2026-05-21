@@ -1829,6 +1829,24 @@ export const RULES: InterpretationRule[] = [
     themes: ['health', 'growth'],
   },
   {
+    id: 'timing-void-of-course-moon',
+    scope: 'monthly',
+    section: 'timing',
+    priority: 60,
+    conditions: { signalSource: 'astro', signalKinds: ['void-of-course'] },
+    template:
+      `이번 달엔 **달이 잠시 힘을 잃는 '공전(空轉)' 구간**이 {vocDatesCount}번 있어요 ` +
+      `({vocDates}). 그 시간대엔 새 시작·계약·중요한 연락·큰 구매 결정이 흐지부지되기 ` +
+      `쉬워요. 급하지 않다면 한 박자 미루고, 마무리·정리·휴식·연습처럼 ‘이미 하던 일’에 ` +
+      `쓰면 잘 맞아요.`,
+    templateEn:
+      `This month the **Moon goes "void of course"** {vocDatesCount} times ({vocDates}). ` +
+      `During those windows new starts, contracts, important messages, and big purchase ` +
+      `decisions tend to fizzle out. If it is not urgent, wait a beat — these hours suit ` +
+      `wrapping up, tidying, rest, and practising things you are already doing.`,
+    themes: [],
+  },
+  {
     id: 'astro-solar-return',
     scope: 'monthly',
     section: 'transit',

@@ -226,6 +226,7 @@ export function buildInterpretation(args: {
     'transit',
     'pattern',
     'shinsal',
+    'timing',
     'domain-money',
     'domain-work',
     'domain-relations',
@@ -683,6 +684,17 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
     }
   }
 
+  // Void-of-Course 달 — 그 달 무력 구간 날짜를 모아 {vocDates}/{vocDatesCount}.
+  // VoC 신호명은 날짜·사인마다 달라 sameKind 로 안 묶이므로 kind 로 직접 수집.
+  if (s.kind === 'void-of-course') {
+    const allVoc = allSignals.filter((x) => x.kind === 'void-of-course')
+    const dates = Array.from(new Set(allVoc.map((x) => x.active.start.slice(5, 10)))).sort()
+    if (dates.length > 0) {
+      vars.vocDates = dates.slice(0, 6).join(' · ')
+      vars.vocDatesCount = String(dates.length)
+    }
+  }
+
   return vars
 }
 
@@ -779,6 +791,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     transit: '주요 흐름',
     pattern: '주요 패턴',
     shinsal: '행운 별',
+    timing: '타이밍 팁',
     // 5 도메인 통합 헤더 (5테마 1:1)
     'domain-money': '돈·자산',
     'domain-work': '일·커리어',
@@ -794,6 +807,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     transit: 'Active Transits',
     pattern: 'Patterns',
     shinsal: 'Lucky Stars',
+    timing: 'Timing Tips',
     'domain-money': 'Money',
     'domain-work': 'Work & Career',
     'domain-relations': 'Relationships',
