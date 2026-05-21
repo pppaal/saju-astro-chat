@@ -30,7 +30,7 @@ import astroArabicPartExtractor from './extractors/astro-arabic-part'
 import astroFixedStarExtractor from './extractors/astro-fixed-star'
 import astroReturnExtractor from './extractors/astro-return'
 import astroProgressionExtractor from './extractors/astro-progression'
-import astroPlanetaryHourExtractor from './extractors/astro-planetary-hour'
+import astroMoonPhaseVocExtractor from './extractors/astro-moon-phase-voc'
 import astroElectionalExtractor from './extractors/astro-electional'
 import astroDignityExtractor from './extractors/astro-dignity'
 import astroMoonNodesExtractor from './extractors/astro-moon-nodes'
@@ -54,7 +54,7 @@ import { derivePatterns } from './derivers/patterns'
 export async function buildCalendar(
   natal: NatalContext,
   range: CalendarRange,
-  options: CalendarBuildOptions = {},
+  options: CalendarBuildOptions = {}
 ): Promise<CalendarCell[]> {
   const cache = createCache()
   const ctx = { natal, range, cache }
@@ -109,7 +109,7 @@ function getRegisteredExtractors(): SignalExtractor[] {
     astroFixedStarExtractor,
     astroReturnExtractor,
     astroProgressionExtractor,
-    astroPlanetaryHourExtractor,
+    astroMoonPhaseVocExtractor,
     astroElectionalExtractor,
     astroDignityExtractor,
     astroMoonNodesExtractor,
@@ -123,11 +123,13 @@ function getRegisteredExtractors(): SignalExtractor[] {
 function groupIntoCells(
   signals: ActiveSignal[],
   range: CalendarRange,
-  options: CalendarBuildOptions,
+  options: CalendarBuildOptions
 ): CalendarCell[] {
   const cells = new Map<string, CalendarCell>()
   const isoForCell = (iso: string) =>
-    range.granularity === 'hour' ? iso.slice(0, 13) + ':00:00.000Z' : iso.slice(0, 10) + 'T00:00:00.000Z'
+    range.granularity === 'hour'
+      ? iso.slice(0, 13) + ':00:00.000Z'
+      : iso.slice(0, 10) + 'T00:00:00.000Z'
 
   // 각 셀 timestamp 초기화
   for (const day of iterateRange(range)) {
@@ -178,7 +180,7 @@ function* iterateRange(range: CalendarRange): Generator<string> {
 function* cellsBetween(
   startIso: string,
   endIso: string,
-  granularity: 'day' | 'hour',
+  granularity: 'day' | 'hour'
 ): Generator<string> {
   const start = new Date(startIso).getTime()
   const end = new Date(endIso).getTime()
