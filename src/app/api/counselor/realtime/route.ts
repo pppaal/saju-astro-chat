@@ -14,7 +14,7 @@ import { authOptions } from '@/lib/auth/authOptions'
 import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
 import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
 import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
-import { slimSajuSelf } from '@/lib/destiny/sajuSlim'
+import { slimSajuSelf, type YongsinInfo } from '@/lib/destiny/sajuSlim'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
@@ -348,11 +348,14 @@ export async function POST(req: NextRequest) {
             } : null,
           })
           if (sajuBlock) {
-            // Slim the saju block (destiny counselor only — compat keeps raw).
-            // Cuts calc-scaffolding (지장간/통근) + folk verdict-overlays
-            // (신살/12신살) + 일진, glosses 12운성, completes 천간합 化.
+            // Make the saju block legible (destiny counselor only — compat keeps
+            // raw). Glosses 신살/12신살/12운성/십성/격국/지장간, completes 천간합 化,
+            // and injects engine-computed 용신/희신/기신 (dropped upstream by a
+            // field-name mismatch) so the model doesn't guess favorable elements.
             parts.push('')
-            parts.push(slimSajuSelf(sajuBlock))
+            parts.push(slimSajuSelf(sajuBlock, {
+              yongsin: sajuLoose.extras?.yongsin as unknown as YongsinInfo | null,
+            }))
           }
         }
       } catch (err) {

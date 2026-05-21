@@ -92,7 +92,22 @@ function glossTrailing(line: string, dict: Record<string, string>): string {
   return m && dict[m[2]] ? `${m[1]}${m[2]}(${dict[m[2]]})` : line
 }
 
-export function slimSajuSelf(block: string): string {
+const ELEM_GLOSS: Record<string, string> = {
+  목: '성장·확장', 화: '열정·표현', 토: '안정·중심', 금: '결단·정제', 수: '지혜·유연',
+}
+// engine's YongsinResult (note: fields are primaryYongsin etc., not primary)
+export interface YongsinInfo {
+  primaryYongsin?: string
+  secondaryYongsin?: string
+  yongsinType?: string
+  daymasterStrength?: string
+  kibsin?: string
+  gusin?: string
+  reasoning?: string
+}
+const elem = (e?: string) => (e ? (ELEM_GLOSS[e] ? `${e}(${ELEM_GLOSS[e]})` : e) : '')
+
+export function slimSajuSelf(block: string, opts?: { yongsin?: YongsinInfo | null }): string {
   const lines = block.split('\n')
   // find 일간 stem for 지장간 십성
   const dayStem = (() => {
@@ -133,6 +148,18 @@ export function slimSajuSelf(block: string): string {
     if (name.includes('격국')) {
       out.push(header)
       for (const b of body) out.push(glossLine(b, GYEOKGUK))
+      // 용신/희신/기신 — engine computes these but a field-name mismatch dropped
+      // them; inject here so the model doesn't guess (the 신약 self needs an
+      // explicit favorable-element line for consistent readings).
+      const y = opts?.yongsin
+      if (y?.primaryYongsin) {
+        if (y.daymasterStrength) out.push(`일간 강약: ${y.daymasterStrength}`)
+        const why = y.reasoning ? ` — ${y.reasoning}` : ''
+        out.push(`용신(도움 되는 기운): ${elem(y.primaryYongsin)}${y.yongsinType ? ` [${y.yongsinType}]` : ''}${why}`)
+        if (y.secondaryYongsin) out.push(`희신(보조): ${elem(y.secondaryYongsin)}`)
+        const avoid = [y.kibsin, y.gusin].filter(Boolean).map((e) => elem(e as string)).join(' · ')
+        if (avoid) out.push(`기신·구신(꺼리는 기운): ${avoid}`)
+      }
       out.push('')
       i = j; continue
     }

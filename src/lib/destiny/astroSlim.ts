@@ -16,7 +16,17 @@
  *    keeps English. Saju block is never passed here.
  */
 
+import { dignityOf } from '@/lib/astrology/foundation/dignities'
+
 export type SlimLocale = 'ko' | 'en'
+
+// essential dignity → how the planet "operates" in that sign (디그니티)
+const DIGNITY_KO: Record<string, string> = {
+  domicile: '제자리·강함', exaltation: '고양·매우 강함', detriment: '불리·약함', fall: '쇠약·매우 약함',
+}
+const DIGNITY_EN: Record<string, string> = {
+  domicile: 'domicile', exaltation: 'exalted', detriment: 'detriment', fall: 'fall',
+}
 
 const PLANET_KO: Record<string, string> = {
   Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
@@ -233,7 +243,10 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
           const retro = m[5] ? (l === 'ko' ? ' 역행' : ' R') : ''
           const g = l === 'ko' ? PLANET_GLOSS_KO[m[1]] : undefined
           const planet = g ? `${pko(m[1], l)}(${g})` : pko(m[1], l)
-          out.push(`${planet} ${sko(m[2], l)} ${m[3]}°${house}${retro}`)
+          // essential dignity — only show when notable (skip peregrine/angles)
+          const digKo = (l === 'ko' ? DIGNITY_KO : DIGNITY_EN)[dignityOf(m[1], m[2])]
+          const dig = digKo ? ` [${digKo}]` : ''
+          out.push(`${planet} ${sko(m[2], l)} ${m[3]}°${house}${retro}${dig}`)
         } else if (b.trim()) {
           out.push(kz(b, l))
         }
