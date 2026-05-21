@@ -227,6 +227,53 @@ describe('calendar-engine regression', () => {
       // 일진 십신은 매일 있으므로 모든 날 최소 1줄
       expect(daysWithActions).toBe(cells.length)
     })
+
+    it('expanded daily grid rules actually fire across a month (no dead rules)', async () => {
+      // 그리드 보강(주의/전환/상승) 룰은 daily 레이어에 실재하는 신살/십신만
+      // 트리거로 씀. 작성만 하고 안 켜지는 죽은 룰이 없는지 가드.
+      // saju 기반이라 날짜 결정론적(swisseph 목킹과 무관).
+      const newRuleIds = [
+        'today-geopsal',
+        'today-mangsin',
+        'today-wonjin',
+        'today-yangin',
+        'today-gwimun',
+        'today-yukhae',
+        'today-gongmang',
+        'today-geumyeo',
+        'today-taegeuk',
+        'today-hakdang',
+        'today-cheonui',
+        'today-wangji',
+        'today-pyeongwan',
+      ]
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const fired = new Set<string>()
+      for (const mo of [5, 9]) {
+        const cells = await buildCalendar(
+          natal,
+          {
+            start: new Date(Date.UTC(2026, mo - 1, 1)).toISOString(),
+            end: new Date(Date.UTC(2026, mo, 0, 23, 59, 59)).toISOString(),
+            granularity: 'day',
+          },
+          { includeEvidence: true }
+        )
+        for (const c of cells) {
+          const di = buildInterpretation({ natal, cells: [c], scope: 'daily', debug: true })
+          for (const id of di.allMatchedRuleIds ?? []) if (newRuleIds.includes(id)) fired.add(id)
+        }
+      }
+      // 한 차트 × 두 달이면 그리드 대다수(≥9/13)가 발동해야 살아있는 룰셋
+      expect(fired.size).toBeGreaterThanOrEqual(9)
+    })
   })
 
   describe('month-wide score distribution', () => {
