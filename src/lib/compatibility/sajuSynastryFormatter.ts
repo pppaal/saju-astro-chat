@@ -76,10 +76,10 @@ const BRANCH_PA: Record<string, string> = {
   '戌': '未', '未': '戌',
 }
 
-const BRANCH_HYEONG_3 = [
-  ['寅', '巳', '申'],
-  ['丑', '戌', '未'],
-]
+// 삼형(寅巳申·丑戌未)의 실제 "형" 쌍만. 두 글자만 만났을 땐 형으로 보되,
+// trio 중 충에 해당하는 쌍(寅申·丑未)은 제외(그건 충이지 형이 아님).
+// 옛 코드는 trio에 2지만 있어도 "3형"으로 격상해 丑未(충)까지 형으로 잘못 잡음.
+const HYEONG_PAIR_TRIO = new Set(['寅巳', '巳寅', '巳申', '申巳', '丑戌', '戌丑', '戌未', '未戌'])
 const BRANCH_HYEONG_PAIR: Record<string, string> = {
   '子': '卯', '卯': '子',
 }
@@ -114,6 +114,19 @@ const EL_CONTROLS: Record<string, string> = {
   '목': '토', '토': '수', '수': '화', '화': '금', '금': '목',
 }
 
+const EL_GENERATES: Record<string, string> = {
+  '목': '화', '화': '토', '토': '금', '금': '수', '수': '목',
+}
+
+// 십성 짧은 글로싱 — 관계의 질감을 LLM이 곧장 읽게.
+const SIBSIN_GLOSS: Record<string, string> = {
+  '비견': '대등·동지', '겁재': '경쟁·협력',
+  '식신': '표현·여유', '상관': '재능·자유분방',
+  '편재': '활동·욕망', '정재': '안정·성실',
+  '편관': '압박·도전', '정관': '책임·규범',
+  '편인': '보호·배움', '정인': '후원·안정',
+}
+
 const CHEONULGWIIN: Record<string, string[]> = {
   '甲': ['丑', '未'], '戊': ['丑', '未'], '庚': ['丑', '未'],
   '乙': ['子', '申'], '己': ['子', '申'],
@@ -123,6 +136,48 @@ const CHEONULGWIIN: Record<string, string[]> = {
 }
 
 const BRANCH_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+const STEM_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+
+// 현재 연도의 세운 간지 (입춘 근사: 2/4 이전은 전년). 두 사람 공통 시기축.
+function currentSeun(now: Date): { stem: string; branch: string; year: number } {
+  let y = now.getFullYear()
+  const m = now.getMonth() + 1
+  if (m < 2 || (m === 2 && now.getDate() < 4)) y -= 1
+  return {
+    stem: STEM_ORDER[(((y - 4) % 10) + 10) % 10],
+    branch: BRANCH_ORDER[(((y - 4) % 12) + 12) % 12],
+    year: y,
+  }
+}
+
+// 십성(十星) — 일간(day) 입장에서 상대 천간(other)이 무슨 십성인가.
+// 같은 오행 비견/겁재 · 일간生상대 식신/상관 · 상대生일간 편인/정인 ·
+// 일간克상대 편재/정재 · 상대克일간 편관/정관. 음양 같으면 편(식신 포함),
+// 다르면 정(겁재·상관 포함).
+function sibsinOf(dayStem: string, otherStem: string): string | null {
+  const dayEl = STEM_EL[dayStem], otherEl = STEM_EL[otherStem]
+  if (!dayEl || !otherEl) return null
+  const dayPol = STEM_ORDER.indexOf(dayStem) % 2
+  const otherPol = STEM_ORDER.indexOf(otherStem) % 2
+  if (dayPol < 0 || otherPol < 0) return null
+  const samePol = dayPol === otherPol
+  if (dayEl === otherEl) return samePol ? '비견' : '겁재'
+  if (EL_GENERATES[dayEl] === otherEl) return samePol ? '식신' : '상관'
+  if (EL_GENERATES[otherEl] === dayEl) return samePol ? '편인' : '정인'
+  if (EL_CONTROLS[dayEl] === otherEl) return samePol ? '편재' : '정재'
+  if (EL_CONTROLS[otherEl] === dayEl) return samePol ? '편관' : '정관'
+  return null
+}
+
+// 공망(空亡) — 일주 기준 비어 있는 2지지. 旬首=(지지-천간)에서 시작, 마지막
+// 두 칸이 공망. synastry: 한 쪽 공망이 상대 지지에 걸리면 그 영역이 공허·초연.
+function gongmangOf(stem: string, branch: string): string[] {
+  const s = STEM_ORDER.indexOf(stem)
+  const b = BRANCH_ORDER.indexOf(branch)
+  if (s < 0 || b < 0) return []
+  const start = (((b - s) % 12) + 12) % 12
+  return [BRANCH_ORDER[(start + 10) % 12], BRANCH_ORDER[(start + 11) % 12]]
+}
 
 // 12신살 — 일지 기준, 상대 지지에 라벨 부여 (synastry: A의 일지 → B 4지지)
 const TWELVE_SHINSAL_LABELS = [
@@ -148,6 +203,16 @@ function twelveShinsalLabel(baseBranch: string, targetBranch: string): string | 
 
 const PILLAR_LABELS = ['년', '월', '일', '시'] as const
 
+// 한자 천간·지지(+合化)를 한글 발음으로 — 辛→신, 乙庚合化금→을경합화금.
+// 출력만 읽기 쉽게 바꾸는 후처리(계산·로직 불변). 일간의 (금)/(목) 오행
+// 글로싱은 그대로 남아 앵커 역할.
+const HANJA_KO: Record<string, string> = {
+  甲: '갑', 乙: '을', 丙: '병', 丁: '정', 戊: '무', 己: '기', 庚: '경', 辛: '신', 壬: '임', 癸: '계',
+  子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사', 午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
+  合: '합', 化: '화',
+}
+const koreanize = (s: string) => s.replace(/[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥合化]/g, (c) => HANJA_KO[c] ?? c)
+
 export interface SajuPillarInput {
   stem: string
   branch: string
@@ -159,6 +224,8 @@ export interface SajuSynastryInput {
   pillarsB: SajuPillarInput[]
   currentDaeunA?: { stem: string; branch: string; age?: number } | null
   currentDaeunB?: { stem: string; branch: string; age?: number } | null
+  /** 세운 계산 기준 시각 (기본 now). 올해 세운↔두 사람 본명·대운 cross에 씀. */
+  now?: Date
   /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
   nameA?: string | null
   nameB?: string | null
@@ -206,6 +273,18 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     }
   }
 
+  // 1-2. 십성 cross — 상대 일간이 내 사주에서 무슨 십성인가. 오행 상생/극만으론
+  // 정관 vs 편관 같은 관계의 질감이 안 잡힌다 → 양방향 십성으로 보강.
+  {
+    const aSeesB = sibsinOf(aDay.stem, bDay.stem) // A 일간 입장에서 B 일간은
+    const bSeesA = sibsinOf(bDay.stem, aDay.stem) // B 일간 입장에서 A 일간은
+    if (aSeesB && bSeesA) {
+      critical.push(
+        `십성 cross — ${labelA} 입장에서 ${labelB}는 ${aSeesB}(${SIBSIN_GLOSS[aSeesB] ?? ''}), ${labelB} 입장에서 ${labelA}는 ${bSeesA}(${SIBSIN_GLOSS[bSeesA] ?? ''})`
+      )
+    }
+  }
+
   // 2. 천간합(끌림)=CRITICAL, 천간충=IMPORTANT
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
@@ -237,9 +316,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       if (BRANCH_HAP[aBr]?.other === bBr) addTag(i, j, aBr, bBr, '합')
       if (BRANCH_CHUNG[aBr] === bBr) addTag(i, j, aBr, bBr, '충')
       if (BRANCH_HYEONG_PAIR[aBr] === bBr) addTag(i, j, aBr, bBr, '형')
-      for (const trio of BRANCH_HYEONG_3) {
-        if (trio.includes(aBr) && trio.includes(bBr) && aBr !== bBr) addTag(i, j, aBr, bBr, '3형')
-      }
+      if (HYEONG_PAIR_TRIO.has(aBr + bBr)) addTag(i, j, aBr, bBr, '형')
       if (SELF_HYEONG.has(aBr) && aBr === bBr) addTag(i, j, aBr, bBr, '자형')
       if (BRANCH_HAE[aBr] === bBr) addTag(i, j, aBr, bBr, '해')
       if (BRANCH_PA[aBr] === bBr) addTag(i, j, aBr, bBr, '파')
@@ -262,18 +339,27 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     else important.push(line)
   }
 
-  // 삼합·방합 부분(3지 중 2지) → 참고로 묶음. 잘게 쪼개 반복하던 "큰 결속" 제거.
-  const sbHap: string[] = []
+  // 삼합·방합 cross — 두 사람 지지를 합쳐 trio가 형성되는지. 양쪽이 서로
+  // 없는 글자를 보태야 진짜 cross(union이 각자보다 커야 함). 한 사람이 이미
+  // 다 갖고 있으면 본명 신호라 제외. 옛 코드는 각자 1지만 잡아 "2지" 라벨을
+  // 붙여, 한 쪽이 3지 다 가진 경우(본명)나 cross로 3지 완성된 경우를 오분류.
+  const sbComplete: string[] = [] // 3/3 교차 완성
+  const sbPartial: string[] = []  // 2/3 부분
   for (const trio of [...TRI_HAP, ...BANG_HAP]) {
-    const aIdx = A.findIndex((p) => trio.branches.includes(p.branch))
-    const bIdx = B.findIndex((p) => trio.branches.includes(p.branch))
-    if (aIdx >= 0 && bIdx >= 0 && A[aIdx].branch !== B[bIdx].branch) {
+    const setA = new Set(A.map((p) => p.branch).filter((b) => trio.branches.includes(b)))
+    const setB = new Set(B.map((p) => p.branch).filter((b) => trio.branches.includes(b)))
+    const union = new Set([...setA, ...setB])
+    if (union.size >= 2 && union.size > setA.size && union.size > setB.size) {
       const tag = TRI_HAP.includes(trio) ? '삼합' : '방합'
-      sbHap.push(`${trio.branches.join('')}${tag}(→${trio.element})`)
+      const label = `${trio.branches.join('')}${tag}(→${trio.element})`
+      ;(union.size === 3 ? sbComplete : sbPartial).push(label)
     }
   }
-  if (sbHap.length > 0) {
-    chamgo.push(`삼합/방합 부분 ${sbHap.length}건: ${sbHap.join(' · ')} — 3지 중 2지만 성립, 결속 잠재(비중 낮음)`)
+  if (sbComplete.length > 0) {
+    important.push(`삼합/방합 교차 완성 ${sbComplete.length}건: ${sbComplete.join(' · ')} — 두 사람 지지가 3지 모두 채워 국(局) 형성 (강한 결속 잠재)`)
+  }
+  if (sbPartial.length > 0) {
+    chamgo.push(`삼합/방합 부분 ${sbPartial.length}건: ${sbPartial.join(' · ')} — 3지 중 2지 교차 성립 (결속 잠재, 비중 낮음)`)
   }
 
   // 4. 천을귀인 → IMPORTANT
@@ -321,6 +407,35 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     if (dA.branch === dB.branch) important.push(`대운 지지 ${dA.branch} 일치 (강한 시기 공명)`)
   }
 
+  // 6-2. 세운(올해) cross — 올해 세운 간지가 두 사람 일주·대운을 합/충/형으로
+  // 건드리는지. "올해 우리 어때 / 언제" 질문의 시기 해상도. (월운·일진은 과잉)
+  {
+    const seun = currentSeun(input.now ?? new Date())
+    const ss = seun.stem, sb = seun.branch
+    const isHyeong = (a: string, b: string) =>
+      BRANCH_HYEONG_PAIR[a] === b || HYEONG_PAIR_TRIO.has(a + b) || (SELF_HYEONG.has(a) && a === b)
+    const seunLines: string[] = []
+    const crossNatal = (lbl: string, day: SajuPillarInput) => {
+      if (STEM_HAP[ss]?.other === day.stem) seunLines.push(`세운천간 ${ss} + ${lbl} 일간 ${day.stem} — ${ss}${day.stem}合化${STEM_HAP[ss]!.element} (올해 끌림·기회)`)
+      if (STEM_CHUNG[ss] === day.stem) seunLines.push(`세운천간 ${ss} ↔ ${lbl} 일간 ${day.stem} — 충 (올해 압박·결정)`)
+      if (BRANCH_HAP[sb]?.other === day.branch) seunLines.push(`세운지지 ${sb} + ${lbl} 일지 ${day.branch} — 합 (올해 결속·안정)`)
+      if (BRANCH_CHUNG[sb] === day.branch) seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 충 (올해 이동·변동)`)
+      else if (isHyeong(sb, day.branch)) seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 형 (올해 갈등·구설)`)
+    }
+    crossNatal(labelA, aDay)
+    crossNatal(labelB, bDay)
+    const crossDaeun = (lbl: string, dae?: { stem: string; branch: string } | null) => {
+      if (!dae) return
+      if (STEM_CHUNG[ss] === dae.stem) seunLines.push(`세운 ↔ ${lbl} 대운천간 ${dae.stem} — 충 (올해와 대운 흐름 충돌)`)
+      if (BRANCH_CHUNG[sb] === dae.branch) seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 충 (올해와 대운 흐름 충돌)`)
+      if (BRANCH_HAP[sb]?.other === dae.branch) seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 합 (올해 대운과 결속)`)
+    }
+    crossDaeun(labelA, input.currentDaeunA)
+    crossDaeun(labelB, input.currentDaeunB)
+    important.push(`올해 세운 ${seun.year}년 ${ss}${sb} cross${seunLines.length ? ':' : ' — 두 사람 본명·대운과 직접 합·충 없음 (올해 큰 변동 신호 약함)'}`)
+    for (const l of seunLines) important.push(`  ${l}`)
+  }
+
   // 7. 오행 균형 → IMPORTANT (1줄)
   const els = ['목', '화', '토', '금', '수'] as const
   const countsA: Record<string, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
@@ -344,6 +459,31 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     `오행 합산 ${els.map((e) => `${e}${merged[e]}`).join(' ')} (A ${els.map((e) => `${e}${countsA[e]}`).join('')} / B ${els.map((e) => `${e}${countsB[e]}`).join('')}) → ${balNote}`
   )
 
+  // 8. 공망 cross — 한 쪽 공망이 상대 지지에 걸리면 그 영역이 공허·초연.
+  // 일지(2)에 걸리면 가장 강한 신호.
+  {
+    const aGong = gongmangOf(aDay.stem, aDay.branch)
+    const bGong = gongmangOf(bDay.stem, bDay.branch)
+    const hits: string[] = []
+    for (let j = 0; j < 4; j++) {
+      if (B[j].branch && aGong.includes(B[j].branch)) {
+        hits.push(`${labelA}공망 → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch}${j === 2 ? '(일지·강)' : ''}`)
+      }
+    }
+    for (let i = 0; i < 4; i++) {
+      if (A[i].branch && bGong.includes(A[i].branch)) {
+        hits.push(`${labelB}공망 → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch}${i === 2 ? '(일지·강)' : ''}`)
+      }
+    }
+    if (hits.length) {
+      important.push(
+        `공망 cross (${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')}): ${hits.join(' · ')} — 적중 영역은 서로 공허·초연·집착 약함`
+      )
+    } else {
+      chamgo.push(`공망 cross: ${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')} — 서로 적중 없음 (공허 신호 약함)`)
+    }
+  }
+
   // ── 조립: 우선순위 티어 ──────────────────────────────────
   const out: string[] = ['== 시너스트리 (사주 cross) ==']
   if (elA && elB) {
@@ -360,5 +500,5 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     out.push('[참고 — 비중 낮음]')
     out.push(...chamgo)
   }
-  return out.join('\n')
+  return koreanize(out.join('\n'))
 }
