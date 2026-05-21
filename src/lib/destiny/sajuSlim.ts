@@ -144,7 +144,13 @@ export function slimSajuSelf(block: string): string {
     }
     if (name.includes('신살')) { // [신살] (천을귀인 등) — must come after 12신살 check
       out.push(header)
-      for (const b of body) out.push(glossLine(b.replace(/ activates /g, ' → '), SINSAL))
+      for (const b of body) {
+        // 공망 is "released/recovered" when the branch joins a 합/충 — note it
+        // so the model doesn't contradict itself across turns (亥 is both 공망
+        // and the anchor of 亥卯未 삼합).
+        const withNote = b.replace(/공망 \(작용 약화\)/, '공망 (작용 약화; 합·충 들면 회복·변동)')
+        out.push(glossLine(withNote.replace(/ activates /g, ' → '), SINSAL))
+      }
       out.push('')
       i = j; continue
     }

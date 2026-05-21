@@ -50,6 +50,14 @@ const DROP = ['Fixed Stars', 'Lunar Return', 'Secondary Progression', '현재 �
 const ASP_GLOSS_KO: Record<string, string> = {
   Conjunction: '결합', Opposition: '대립', Trine: '조화', Square: '긴장', Sextile: '협력',
 }
+// what each planet/point governs — glossed once in the positions block so
+// non-flow questions (연애/돈/직업…) have a handle. Keyed by English name.
+const PLANET_GLOSS_KO: Record<string, string> = {
+  Sun: '자아·생명력', Moon: '감정·내면', Mercury: '소통·사고', Venus: '연애·돈·매력',
+  Mars: '추진력·욕망', Jupiter: '확장·행운', Saturn: '책임·시련', Uranus: '변화·독창',
+  Neptune: '이상·환상', Pluto: '변형·집착', Node: '인생 방향·인연',
+  Ascendant: '첫인상·태도', MC: '사회적 위치·직업',
+}
 
 const pko = (p: string, l: SlimLocale) => (l === 'ko' ? PLANET_KO[p] ?? p : p)
 const sko = (s: string, l: SlimLocale) => (l === 'ko' ? SIGN_KO[s] ?? s : s)
@@ -203,7 +211,9 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
         if (m) {
           const house = m[4] ? (l === 'ko' ? `, ${m[4]}하우스` : `, House ${m[4]}`) : ''
           const retro = m[5] ? (l === 'ko' ? ' 역행' : ' R') : ''
-          out.push(`${pko(m[1], l)} ${sko(m[2], l)} ${m[3]}°${house}${retro}`)
+          const g = l === 'ko' ? PLANET_GLOSS_KO[m[1]] : undefined
+          const planet = g ? `${pko(m[1], l)}(${g})` : pko(m[1], l)
+          out.push(`${planet} ${sko(m[2], l)} ${m[3]}°${house}${retro}`)
         } else if (b.trim()) {
           out.push(kz(b, l))
         }
