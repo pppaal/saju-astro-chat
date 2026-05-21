@@ -119,7 +119,7 @@ export function buildInterpretation(args: {
   // 시간 cycle 섹션은 2줄까지 허용 (대운/세운/월운) — 룰은 이미 12/24/29개
   // 있는데 1줄만 표출돼 얇았음. 두 번째 룰(다른 조건 분기)까지 풀어 깊이 ↑.
   // natal/transit/pattern/shinsal 은 1줄 유지 (헤드라인 성격).
-  const SECTION_CAP: Record<string, number> = { daeun: 2, seun: 2, wolun: 2, today: 4 }
+  const SECTION_CAP: Record<string, number> = { daeun: 2, seun: 2, wolun: 2, today: 4, flow: 2 }
 
   for (const m of matched) {
     if (usedRuleIds.has(m.rule.id)) continue
@@ -221,6 +221,7 @@ export function buildInterpretation(args: {
     'wolun',
     'natal',
     'transit',
+    'flow',
     'pattern',
     'shinsal',
     'timing',
@@ -698,6 +699,15 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
     }
   }
 
+  // 하우스 오버레이 / ASC·MC 컨택 — 추출기가 만든 완성 문장을 그대로 출력.
+  // KO/EN 둘 다 vars 에 박고 룰 template/templateEn 이 각각 사용.
+  if (s.kind === 'house-transit' || s.kind === 'angle-contact') {
+    const ko = (detail?.lineKo as string | undefined) ?? s.korean
+    const en = (detail?.lineEn as string | undefined) ?? s.korean
+    if (ko) vars.flowLine = ko
+    if (en) vars.flowLineEn = en
+  }
+
   return vars
 }
 
@@ -826,6 +836,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     pattern: '주요 패턴',
     shinsal: '행운 별',
     timing: '타이밍 팁',
+    flow: '하우스 흐름',
     // 5 도메인 통합 헤더 (5테마 1:1)
     'domain-money': '돈·자산',
     'domain-work': '일·커리어',
@@ -843,6 +854,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     pattern: 'Patterns',
     shinsal: 'Lucky Stars',
     timing: 'Timing Tips',
+    flow: 'House Transits',
     'domain-money': 'Money',
     'domain-work': 'Work & Career',
     'domain-relations': 'Relationships',
