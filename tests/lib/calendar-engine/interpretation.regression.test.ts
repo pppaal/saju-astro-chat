@@ -97,6 +97,29 @@ describe('calendar-engine regression', () => {
     })
   })
 
+  describe('cycle boundaries — 입춘(세운) / 생일(대운) anchoring', () => {
+    it('세운 flips at 입춘, not Jan 1 (Jan-before-입춘 = prior saju year)', async () => {
+      // 2026 입춘 ≈ 2/3. 2026 세운 = 丙午, 2025 세운 = 乙巳 (연주는 만인 공통).
+      const jan = await buildForDate(SEOUL_MALE_1995, '2026-01-20')
+      const mar = await buildForDate(SEOUL_MALE_1995, '2026-03-10')
+      const seun = (cells: { signals: Array<{ id: string; name: string }> }[]) =>
+        cells[0]?.signals.find((s) => s.id.includes('seun'))?.name ?? ''
+      const janSeun = seun(jan.cells)
+      const marSeun = seun(mar.cells)
+      expect(marSeun).toContain('丙午') // 입춘 후 = 2026 丙午
+      expect(janSeun).toContain('乙巳') // 입춘 전 = 2025 乙巳 (Jan-1 경계였다면 丙午로 잘못 나옴)
+      expect(janSeun).not.toBe(marSeun)
+    })
+
+    it('대운 window is anchored to birthday (month-date), not Jan 1', async () => {
+      // SEOUL_MALE_1995 birth 02-09 → 대운 신호 active.start 의 MM-DD = 02-09
+      const { cells } = await buildForDate(SEOUL_MALE_1995, '2026-05-15')
+      const daeun = cells[0]?.signals.find((s) => s.id.includes('daeun'))
+      expect(daeun).toBeDefined()
+      expect(daeun!.active.start.slice(5, 10)).toBe('02-09')
+    })
+  })
+
   describe('month-wide score distribution', () => {
     it('a full month has no 5+ day tie at the same score', async () => {
       const saju = calculateSajuData(
