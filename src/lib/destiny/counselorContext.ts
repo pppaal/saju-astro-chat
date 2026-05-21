@@ -401,15 +401,18 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   } else if (cur) {
     timing.push(`${L('대운', 'daeun')} ${cur.age ?? '?'}: ${cur.heavenlyStem ?? ''}${cur.earthlyBranch ?? ''} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`)
   }
-  if (current?.seun) {
-    const v = current.seun
+  // 세운 / 월운 / 일진 lines (세운 carries the year)
+  const periodLine = (label: string, v: { stem: string; branch: string }, withYear?: number) => {
     const s = sibsinOf(day, v.stem), b = sibsinOf(day, BRANCH_MAINQI[v.branch] ?? '')
     const honjap = (s === '정관' || s === '편관') && (b === '정관' || b === '편관') && s !== b
     const hj = honjap ? (locale === 'en' ? ' = Officer-Killings Mix' : ' = 관살혼잡') : ''
     const pair = (s || b) ? ` (${sib1(s)}/${sib1(b)}${hj})` : ''
-    timing.push(`${L('세운', 'Annual')} ${year ?? ''} ${v.stem}${v.branch}${pair}`.replace(/\s{2,}/g, ' '))
+    return `${label}${withYear ? ` ${withYear}` : ''} ${v.stem}${v.branch}${pair}`.replace(/\s{2,}/g, ' ')
   }
-  // 교차 — 대운·세운, flat, kind-after
+  if (current?.seun) timing.push(periodLine(L('세운', 'Annual'), current.seun, year))
+  if (current?.wolun) timing.push(periodLine(L('월운', 'Monthly'), current.wolun))
+  if (current?.iljin) timing.push(periodLine(L('일진', 'Daily'), current.iljin))
+  // 교차 — 대운·세운·월운·일진, flat, kind-after
   {
     const relsBy = (src: string) => (current?.relations ?? []).filter((r) => r.source === src)
     const natalBr: Array<[string, string]> = [['년', P.year.earthlyBranch.name], ['월', P.month.earthlyBranch.name], ['일', P.day.earthlyBranch.name], ['시', P.time.earthlyBranch.name]]
@@ -430,8 +433,8 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     const shortK = (kind: string) => (locale === 'en' ? (RELKIND_EN[kind] ?? kind) : kind.replace(/^(지지|천간)/, ''))
     const hyeongTag = (a: string, b: string) => (locale === 'en' ? `(${a}${b}刑 / ${BRANCH_PY[a] ?? a}-${BRANCH_PY[b] ?? b} Punishment)` : `(${a}${b}刑)`)
     const crossLines: string[] = []
-    const pBranch: Record<string, string | undefined> = { 대운: cur?.earthlyBranch ?? undefined, 세운: current?.seun?.branch }
-    for (const [k, src] of [['대운', 'daeun'], ['세운', 'seun']] as const) {
+    const pBranch: Record<string, string | undefined> = { 대운: cur?.earthlyBranch ?? undefined, 세운: current?.seun?.branch, 월운: current?.wolun?.branch, 일진: current?.iljin?.branch }
+    for (const [k, src] of [['대운', 'daeun'], ['세운', 'seun'], ['월운', 'wolun'], ['일진', 'iljin']] as const) {
       const pfx = locale === 'en' ? (PERIOD_EN[k] ?? k) : k
       const br = pBranch[k]
       if (br) for (const [lab, nb] of natalBr) if (hyeongPair(br, nb)) {
