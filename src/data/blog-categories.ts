@@ -1,4 +1,4 @@
-﻿export const categories = [
+export const categories = [
   { id: 'all', name: 'All', nameKo: '전체' },
   { id: 'Saju', name: 'Saju', nameKo: '사주' },
   { id: 'Astrology', name: 'Astrology', nameKo: '점성술' },

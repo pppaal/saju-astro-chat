@@ -1,4 +1,4 @@
-﻿export type ICPQuizAnswers = Record<string, string>
+export type ICPQuizAnswers = Record<string, string>
 
 export type ICPOctantCode = 'PA' | 'BC' | 'DE' | 'FG' | 'HI' | 'JK' | 'LM' | 'NO'
 

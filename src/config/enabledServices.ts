@@ -1,4 +1,4 @@
-﻿export type EnabledServiceId =
+export type EnabledServiceId =
   | 'destinyMap'
   | 'tarot'
   | 'report'

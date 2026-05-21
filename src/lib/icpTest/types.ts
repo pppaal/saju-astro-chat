@@ -1,4 +1,4 @@
-﻿export type IcpAxisKey = 'agency' | 'warmth' | 'boundary' | 'resilience'
+export type IcpAxisKey = 'agency' | 'warmth' | 'boundary' | 'resilience'
 
 export type IcpLikertValue = 1 | 2 | 3 | 4 | 5
 

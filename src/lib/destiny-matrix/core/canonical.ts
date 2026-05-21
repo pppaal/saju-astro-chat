@@ -1,4 +1,4 @@
-﻿import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
+import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
 import { eunNeun, waGwa } from '@/lib/i18n/koParticle'
 import type {

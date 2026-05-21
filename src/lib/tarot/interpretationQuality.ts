@@ -1,4 +1,4 @@
-﻿type SupportedLanguage = 'ko' | 'en'
+type SupportedLanguage = 'ko' | 'en'
 
 export interface TarotInterpretationQualityCard {
   name: string
