@@ -72,6 +72,17 @@
   gap: 0.25rem;
 }
 
+/* Past-chats section is the one scroll container: it grows to fill the
+   remaining drawer height and scrolls as a whole. Without flex:1 + min-height:0
+   the list had nowhere to go on short mobile screens, so the flex rows
+   compressed and the titles overlapped. */
+.historySection {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .sectionLabel {
   font-size: 0.72rem;
   text-transform: uppercase;
@@ -133,14 +144,13 @@
   flex-direction: column;
   gap: 0.125rem;
   overflow-x: hidden;
-  overflow-y: auto;
-  max-height: 50dvh;
 }
 
 .sessionRow {
   position: relative;
   overflow: hidden;
   border-radius: 8px;
+  flex-shrink: 0; /* never compress rows — caused overlapping titles on mobile */
 }
 
 .sessionItem {
