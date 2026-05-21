@@ -1,5 +1,6 @@
 import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ActiveSignal, SignalLayer } from '../types'
+import { normalizeAvgToScore } from './score'
 
 /**
  * 테마별 점수 (0~100).
@@ -16,6 +17,10 @@ const LAYER_WEIGHT: Record<SignalLayer, number> = {
   hourly: 0.4,
   instant: 0.5,
 }
+
+// TODO(calibration): 임시 경험값. 영역바 변별력용 — 96차트 시뮬(테마 분포
+// ~25~80, 클리핑 0) 확인해 정함. 룰 대량 추가/삭제 시 재측정해 조정할 것.
+const THEME_SCORE_SCALE = 24
 
 export function deriveThemeScores(signals: ActiveSignal[]): Partial<Record<AstroThemeKey, number>> {
   const buckets = new Map<AstroThemeKey, { sum: number; weight: number }>()
@@ -36,10 +41,13 @@ export function deriveThemeScores(signals: ActiveSignal[]): Partial<Record<Astro
   for (const [theme, b] of buckets) {
     if (b.weight === 0) continue
     const avg = b.sum / b.weight
-    // 분포 넓힘 — ×24. 신호가 부분 상쇄돼 avg 가 작아 ×16 에선 테마 점수가
-    // 사람마다 40~65 로 뭉쳐(=영역별 바가 다 비슷) 변별력이 약했음
-    // (1000인 시뮬 확인). ×24 로 펴서 ~25~80 분포 확보(클리핑 거의 없음).
-    result[theme] = Math.max(0, Math.min(100, Math.round(50 + avg * 24)))
+    // derivedScore 와 동일한 normalizeAvgToScore 공식 사용 — 차이는 입력
+    // 신호(테마 필터)와 bias/scale 뿐. per-theme avg 는 +-가 상쇄돼 ~0 중심이라
+    // bias=0; scale=THEME_SCORE_SCALE 로 영역바 변별력 확보.
+    result[theme] = Math.max(
+      0,
+      Math.min(100, Math.round(normalizeAvgToScore(avg, 0, THEME_SCORE_SCALE)))
+    )
   }
   return result
 }
