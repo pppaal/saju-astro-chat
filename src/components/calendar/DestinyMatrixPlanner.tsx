@@ -325,7 +325,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
       const { agreement, confidence, overallScore } = fusion
       if (agreement < 55)
         return confidence > 40 ? '사주와 점성이 갈리는 날 — 분별 필요' : '신호가 흐릿한 날'
-      if (overallScore >= 70 && confidence >= 45) return '강한 길일 — 사주·점성 모두 우호'
+      if (overallScore >= 70 && confidence >= 45) return '아주 좋은 날 — 사주·점성 모두 우호'
       if (overallScore >= 60) return '잔잔하게 우호적인 흐름'
       if (overallScore <= 30 && confidence >= 45) return '주의일 — 사주·점성 모두 신중'
       if (overallScore <= 40) return '조금 부담되는 결'
@@ -578,23 +578,18 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                 <h3 className="text-base font-bold text-zinc-200 flex items-center gap-2 mb-4">
                   <Activity className="w-5 h-5 text-indigo-400" /> 월간 종합 분석 리포트
                 </h3>
-                {/* Score row — 가로 배치. 이전엔 좁은 세로 칼럼에 점수+
-                    grade pill을 우겨넣어서 "길 · 받쳐주는 흐름"이 두 줄로
-                    꺾이고 79가 답답해 보였음. 가로로 펴서 narrative는
-                    아래에 풀폭. */}
+                {/* 종합은 절대 점수("79/100") 대신 상대 밴드로 — 하루를 한
+                    숫자로 단정하지 않고 "그 사람 기준 어느 정도인지"만 보여줌.
+                    구체 점수는 영역별 바·근거카드에서 드러남. */}
                 <div className="flex items-baseline gap-3 flex-wrap mb-3">
                   <span className="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">
-                    월 평균
+                    이번 달 흐름
                   </span>
-                  <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 leading-none">
-                    {monthScore}
-                  </span>
-                  <span className="text-xs text-zinc-600 font-medium">/ 100</span>
                   {(() => {
                     const g = getGrade(monthScore, gradeThresholds)
                     return (
                       <span
-                        className={`text-xs font-bold px-2.5 py-1 rounded-full border ${g.colorClass} ${g.borderClass}`}
+                        className={`text-sm font-bold px-2.5 py-1 rounded-full border ${g.colorClass} ${g.borderClass}`}
                       >
                         {g.label} · {g.sub}
                       </span>
@@ -617,7 +612,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
               {/* ── 주간 타이밍 그래프 (saju × astro) ── */}
               <WeeklyTimingChart monthDates={monthDates} />
 
-              {/* ── calendar-engine v2: 길일/흉일 TOP 5 ── */}
+              {/* ── calendar-engine v2: 좋은 날/조심할 날 TOP 5 ── */}
               <MonthHighlightsCard
                 monthDates={monthDates}
                 onDayClick={handleDayClick}
@@ -682,11 +677,12 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                       <span className="text-[11px] font-bold text-zinc-400 mb-1 tracking-widest">
                         오늘의 흐름
                       </span>
-                      <span className={`text-5xl font-black ${todayGrade.colorClass} leading-none`}>
+                      <span
+                        className={`text-2xl font-black ${todayGrade.colorClass} leading-tight`}
+                      >
                         {todayGrade.label}
                       </span>
                       <span className="text-xs text-zinc-400 mt-2">{todayGrade.sub}</span>
-                      <span className="text-[11px] text-zinc-500 mt-1">{dailyIndices.score}점</span>
                     </div>
 
                     <div className="col-span-3 bg-zinc-900/60 p-4 rounded-2xl border border-white/5 flex flex-col justify-center space-y-3">
@@ -816,9 +812,6 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                                   <span className="text-base font-bold text-emerald-200">
                                     {formatHour(s.hour)}
                                   </span>
-                                  <span className="text-xs font-bold text-emerald-400">
-                                    {Math.round(s.score)}점
-                                  </span>
                                 </div>
                                 {/* 시진 baseline narrative — 12지지 의미를 한 줄로.
                                   best 슬롯이라 positiveKo 사용. */}
@@ -860,9 +853,6 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                                 <div className="flex items-baseline justify-between gap-2">
                                   <span className="text-base font-bold text-rose-200">
                                     {formatHour(s.hour)}
-                                  </span>
-                                  <span className="text-xs font-bold text-rose-400">
-                                    {Math.round(s.score)}점
                                   </span>
                                 </div>
                                 {/* worst 슬롯이라 cautionKo 사용 */}
