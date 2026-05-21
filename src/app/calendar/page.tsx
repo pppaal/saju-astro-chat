@@ -41,6 +41,16 @@ export async function generateMetadata(): Promise<Metadata> {
   )
 }
 
-export default function CalendarPage() {
-  return <DestinyMatrixPlannerClient />
+export default async function CalendarPage() {
+  // The planner is a full-screen client app that renders no heading of its own,
+  // leaving the page with no h1 (an a11y/SEO gap, and a public-smoke failure).
+  // Provide an accessible page title without altering the visual layout.
+  const locale = await getServerLocale()
+  const heading = locale === 'ko' ? '데스티니 캘린더' : 'Destiny Calendar'
+  return (
+    <>
+      <h1 className="sr-only">{heading}</h1>
+      <DestinyMatrixPlannerClient />
+    </>
+  )
 }
