@@ -120,6 +120,41 @@ describe('calendar-engine regression', () => {
     })
   })
 
+  describe('natal 용신 노출 (P0)', () => {
+    it('natal section leads with 용신/희신/기신 line (KO)', async () => {
+      const { interp } = await buildForDate(SEOUL_MALE_1995, '2026-05-15')
+      const natalSec = interp.sections.find((s) => s.section === 'natal')
+      expect(natalSec).toBeDefined()
+      const firstLine = natalSec!.text.split('\n')[0]
+      expect(firstLine).toContain('용신')
+      // 오행 한 글자 (목/화/토/금/수) 가 들어가야
+      expect(firstLine).toMatch(/[목화토금수]/)
+    })
+
+    it('English variant exposes yongsin', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly', lang: 'en' })
+      const natalSec = interp.sections.find((s) => s.section === 'natal')
+      expect(natalSec?.text.toLowerCase()).toContain('yongsin')
+    })
+  })
+
   describe('daily-scope rules (오늘 한 줄)', () => {
     it('daily ruleset exists (scope daily, section today) with KO+EN', () => {
       const daily = RULES.filter((r) => r.scope === 'daily' && r.section === 'today')
