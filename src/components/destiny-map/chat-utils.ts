@@ -1,4 +1,4 @@
-﻿// src/components/destiny-map/chat-utils.ts
+// src/components/destiny-map/chat-utils.ts
 // Utility functions extracted from Chat component
 
 import type { ConnectionStatus } from './chat-constants'

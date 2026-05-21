@@ -1,4 +1,4 @@
-﻿export type {
+export type {
   CounselorEvidencePacket,
   CounselorEvidencePacketLike,
   CounselorProjectionBlock,

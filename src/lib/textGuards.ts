@@ -1,4 +1,4 @@
-﻿export const FORBIDDEN_PATTERNS: RegExp[] = [
+export const FORBIDDEN_PATTERNS: RegExp[] = [
   // PII
   /\b(ssn|social security|passport|driver.?s license|phone number|contact number|address|email)\b/gi,
   // Finance / investment

@@ -1,4 +1,4 @@
-﻿import type { IcpHybridResult, IcpResult } from './types'
+import type { IcpHybridResult, IcpResult } from './types'
 import type { PersonaAnalysis } from '@/lib/persona/types'
 
 const HYBRID_CATALOG: Record<string, Omit<IcpHybridResult, 'fallback'>> = {

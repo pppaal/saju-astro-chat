@@ -1,4 +1,4 @@
-﻿import type { MatrixCalculationInput } from '../types'
+import type { MatrixCalculationInput } from '../types'
 import type { TimingData, UnifiedClaim, UnifiedParaEvidenceRef, UnifiedReportScope, UnifiedScenarioBundle, UnifiedScores, UnifiedSelectedSignal, UnifiedTimelineEvent, UnifiedTimeWindow } from './types'
 import type { SectionEvidenceRefs } from './evidenceRefs'
 import type { EvidenceBundle } from './structuredEvidence'

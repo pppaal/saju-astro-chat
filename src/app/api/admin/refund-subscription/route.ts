@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { isAdminUser } from '@/lib/auth/admin'
 import { prisma } from '@/lib/db/prisma'

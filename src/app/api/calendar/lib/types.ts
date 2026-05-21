@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Calendar API types
  * Extracted from route.ts for modularity
  */

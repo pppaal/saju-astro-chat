@@ -1,4 +1,4 @@
-﻿// src/app/api/tarot/prefetch/route.ts
+// src/app/api/tarot/prefetch/route.ts
 // Prefetch RAG context while user is selecting cards
 
 import { NextRequest, NextResponse } from 'next/server'
