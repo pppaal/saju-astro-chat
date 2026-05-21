@@ -148,7 +148,8 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
   const timeTag = birth.birthTimeUnknown ? '??:??' : (birth.birthTime || '')
   const header = `# ${birth.birthDate} ${timeTag} ${locTag} ${gH} / ${age}${L('세', 'y')} / ${today}`
 
-  let astro = ''
+  let astroNatal = ''   // ## 점성 (static natal chart)
+  let astroTiming = ''  // moves under ## 타이밍 (transits/eclipses/SR/progression/profection)
   try {
     const [Y, M, D] = birth.birthDate.split('-').map(Number)
     const [h, mi] = (birth.birthTime || '12:00').split(':').map(Number)
@@ -196,20 +197,23 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
       `Profection age ${kAge}: H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]}), Lord ${prof.lordOfYear}${lordRes}`,
     )
 
-    const natalSec = [
+    astroNatal = [
       L('## 점성', '## ASTRO'), '',
       L('행성 (사인·하우스·디그니티):', 'planets (sign·house·dignity):'), ...posLines, '',
       ...(strong.length ? [L('본명 강한각 (0-2°):', 'natal strong (0-2°):'), ...strong] : []),
       ...(mid.length ? [L('본명 중간각 (2-5°):', 'natal mid (2-5°):'), ...mid] : []),
     ].join('\n')
-    const curSec = [L(`## 점성 현재 (${today})`, `## ASTRO NOW (${today})`), '', cur, profLine].filter(Boolean).join('\n')
-    astro = natalSec + '\n\n' + curSec
+    astroTiming = [cur, profLine].filter(Boolean).join('\n')
   } catch { /* astro optional */ }
 
-  return [header, saju, astro, buildInstructions(locale)].filter(Boolean).join('\n\n').trim() + '\n'
+  // unified ## 타이밍 — saju (대운/세운/교차) + astro (트랜짓/일월식/솔라리턴/진행/프로펙션)
+  const timingBody = [saju.timing, astroTiming].filter(Boolean).join('\n')
+  const timing = timingBody ? `${L(`## 타이밍 (${today})`, `## TIMING (${today})`)}\n\n${timingBody}` : ''
+
+  return [header, saju.natal, astroNatal, timing, buildInstructions(locale)].filter(Boolean).join('\n\n').trim() + '\n'
 }
 
-export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', current?: CurrentPeriod, year?: number): string {
+export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', current?: CurrentPeriod, year?: number): { natal: string; timing: string } {
   const tz = birth.timezone ?? 'Asia/Seoul'
   const saju = calculateSajuData(birth.birthDate, birth.birthTime, birth.gender, 'solar', tz) as unknown as {
     pillars: Record<'year' | 'month' | 'day' | 'time', {
@@ -219,7 +223,10 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     }>
     dayMaster: { name: string; element?: string; yin_yang?: string }
     fiveElements: Record<string, number>
-    daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number; sibsin?: { cheon?: string; ji?: string } } | null }
+    daeWoon?: {
+      current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number; sibsin?: { cheon?: string; ji?: string } } | null
+      list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }>
+    }
     shinsal?: string[]
   }
   const P = saju.pillars
@@ -378,21 +385,32 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     if (hits.length) out.push(`${L('신살', 'sinsal')}: ${hits.join(' / ')}`)
   } catch { /* */ }
 
-  // 사주 현재
+  // ── timing (대운 흐름 + 세운 + 교차) — returned separately for the ## 타이밍 block
+  const timing: string[] = []
   const cur = saju.daeWoon?.current
-  if (cur || current?.seun) {
-    out.push('', L('## 사주 현재', '## SAJU NOW'))
-    const sib1 = (s?: string) => (locale === 'en' ? sibEN(s) : (s || '-'))
-    if (cur) out.push(`${L('대운', 'Decade')} ${cur.age ?? '?'}: ${cur.heavenlyStem ?? ''}${cur.earthlyBranch ?? ''} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`)
-    if (current?.seun) {
-      const v = current.seun
-      const s = sibsinOf(day, v.stem), b = sibsinOf(day, BRANCH_MAINQI[v.branch] ?? '')
-      const honjap = (s === '정관' || s === '편관') && (b === '정관' || b === '편관') && s !== b
-      const hj = honjap ? (locale === 'en' ? ' = Officer-Killings Mix' : ' = 관살혼잡') : ''
-      const pair = (s || b) ? ` (${sib1(s)}/${sib1(b)}${hj})` : ''
-      out.push(`${L('세운', 'Annual')} ${year ?? ''} ${v.stem}${v.branch}${pair}`.replace(/\s{2,}/g, ' '))
-    }
-    // 교차 — 대운·세운만, flat, kind-after
+  const dlist = saju.daeWoon?.list ?? []
+  const sib1 = (s?: string) => (locale === 'en' ? sibEN(s) : (s || '-'))
+  // 대운 흐름 (full timeline, current marked with its 십성) — prevents the LLM
+  // from inventing past/future 대운 ages it can't see.
+  if (dlist.length) {
+    const tl = dlist.map((d) => {
+      const gz = `${d.age ?? '?'}${d.heavenlyStem ?? ''}${d.earthlyBranch ?? ''}`
+      return cur && d.age === cur.age ? `${gz}(${L('현재 ', 'now ')}${sib1(d.sibsin?.cheon)}/${sib1(d.sibsin?.ji)})` : gz
+    })
+    timing.push(`${L('대운', 'daeun')}: ${tl.join(' / ')}`)
+  } else if (cur) {
+    timing.push(`${L('대운', 'daeun')} ${cur.age ?? '?'}: ${cur.heavenlyStem ?? ''}${cur.earthlyBranch ?? ''} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`)
+  }
+  if (current?.seun) {
+    const v = current.seun
+    const s = sibsinOf(day, v.stem), b = sibsinOf(day, BRANCH_MAINQI[v.branch] ?? '')
+    const honjap = (s === '정관' || s === '편관') && (b === '정관' || b === '편관') && s !== b
+    const hj = honjap ? (locale === 'en' ? ' = Officer-Killings Mix' : ' = 관살혼잡') : ''
+    const pair = (s || b) ? ` (${sib1(s)}/${sib1(b)}${hj})` : ''
+    timing.push(`${L('세운', 'Annual')} ${year ?? ''} ${v.stem}${v.branch}${pair}`.replace(/\s{2,}/g, ' '))
+  }
+  // 교차 — 대운·세운, flat, kind-after
+  {
     const relsBy = (src: string) => (current?.relations ?? []).filter((r) => r.source === src)
     const natalBr: Array<[string, string]> = [['년', P.year.earthlyBranch.name], ['월', P.month.earthlyBranch.name], ['일', P.day.earthlyBranch.name], ['시', P.time.earthlyBranch.name]]
     const sp = locale === 'en' ? ' ' : ''
@@ -431,8 +449,11 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
       }
       for (const g of grp.values()) crossLines.push(`  ${pfx}${sp}${g.luck} ↔ ${g.pills.join('·')}${sp}${g.nat} ${g.word}${g.note}`)
     }
-    if (crossLines.length) { out.push('', L('교차:', 'cross:')); out.push(...crossLines) }
+    if (crossLines.length) { timing.push(L('교차:', 'cross:')); timing.push(...crossLines) }
   }
 
-  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n'
+  return {
+    natal: out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n',
+    timing: timing.join('\n').replace(/\n{3,}/g, '\n\n').trim(),
+  }
 }
