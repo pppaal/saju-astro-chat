@@ -148,6 +148,16 @@ function twelveShinsalLabel(baseBranch: string, targetBranch: string): string | 
 
 const PILLAR_LABELS = ['년', '월', '일', '시'] as const
 
+// 한자 천간·지지(+合化)를 한글 발음으로 — 辛→신, 乙庚合化금→을경합화금.
+// 출력만 읽기 쉽게 바꾸는 후처리(계산·로직 불변). 일간의 (금)/(목) 오행
+// 글로싱은 그대로 남아 앵커 역할.
+const HANJA_KO: Record<string, string> = {
+  甲: '갑', 乙: '을', 丙: '병', 丁: '정', 戊: '무', 己: '기', 庚: '경', 辛: '신', 壬: '임', 癸: '계',
+  子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사', 午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
+  合: '합', 化: '화',
+}
+const koreanize = (s: string) => s.replace(/[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥合化]/g, (c) => HANJA_KO[c] ?? c)
+
 export interface SajuPillarInput {
   stem: string
   branch: string
@@ -360,5 +370,5 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     out.push('[참고 — 비중 낮음]')
     out.push(...chamgo)
   }
-  return out.join('\n')
+  return koreanize(out.join('\n'))
 }
