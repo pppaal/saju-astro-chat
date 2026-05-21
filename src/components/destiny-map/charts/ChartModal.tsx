@@ -5,7 +5,7 @@ import { X } from 'lucide-react'
 import { SajuChart } from './SajuChart'
 import { ElementRadar } from './ElementRadar'
 import { NatalChart } from './NatalChart'
-import { chartInterpretation } from './interpretation'
+import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
 
 interface ChartModalProps {
   open: boolean
@@ -29,7 +29,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
 
   if (!open) return null
 
-  const readLine = chartInterpretation(saju, astro, isKo)
+  const readLine = generateChartSummary(saju, astro, lang)
 
   return (
     <div

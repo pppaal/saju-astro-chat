@@ -3,6 +3,7 @@
 
 import type { CombinedResult } from './astrology'
 import { logger } from '@/lib/logger'
+import { getIljuArchetype } from '@/lib/saju/iljuDictionary'
 import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from './calendar/constants'
 import { normalizeElement } from './calendar/utils'
 
@@ -678,4 +679,67 @@ Strengthening ${weakestName} brings more balance.`,
   }
 
   return JSON.stringify(structured, null, 2)
+}
+
+// ============================================================
+// Chart header summary — a short, natural narrative read built from the
+// same engine content (archetype + element trait + 일주 + Sun/Moon), for
+// the "내 운명 차트" modal. Deterministic, client-safe.
+// ============================================================
+const SUMMARY_ZODIAC_KEYS = [
+  'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
+  'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces',
+]
+function summarySignKey(lon?: number): string | null {
+  if (typeof lon !== 'number' || !Number.isFinite(lon)) return null
+  return SUMMARY_ZODIAC_KEYS[Math.floor((((lon % 360) + 360) % 360) / 30)] ?? null
+}
+function summaryHasJong(s: string): boolean {
+  const ch = s.trim().slice(-1)
+  const code = ch.charCodeAt(0)
+  if (code < 0xac00 || code > 0xd7a3) return false
+  return (code - 0xac00) % 28 !== 0
+}
+const summaryIeyo = (s: string) => `${s}${summaryHasJong(s) ? '이에요' : '예요'}`
+
+export function generateChartSummary(saju: unknown, astro: unknown, lang: string = 'ko'): string {
+  const isKo = lang === 'ko'
+  const sj = extractSajuData(saju as CombinedResult['saju'])
+  const domKey = normalizeElementKey(sj.dominantElement)
+  const arch = ARCHETYPES[domKey] || ARCHETYPES.wood
+  const trait = getElementTrait(domKey, isKo)
+
+  // 일주 archetype (day stem + branch)
+  const s = saju as Record<string, unknown> | undefined
+  const dayPillar = (s?.dayPillar ?? (s?.pillars as Record<string, unknown> | undefined)?.day) as
+    | { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
+    | undefined
+  const dStem = dayPillar?.heavenlyStem?.name
+  const dBranch = dayPillar?.earthlyBranch?.name
+  const ilju = dStem && dBranch ? getIljuArchetype(dStem, dBranch) : null
+  const iljuChar = ilju ? (isKo ? ilju.character : ilju.character_en) : ''
+
+  // Sun / Moon sign from longitude (planets may not carry .sign)
+  const a = astro as Record<string, unknown> | undefined
+  const planets = Array.isArray(a?.planets) ? (a!.planets as Array<{ name?: string; longitude?: number }>) : []
+  const lonOf = (n: string) => planets.find((p) => String(p?.name).toLowerCase() === n)?.longitude
+  const sunName = (() => { const k = summarySignKey(lonOf('sun')); return k ? getSignName(k, isKo) : '' })()
+  const moonName = (() => { const k = summarySignKey(lonOf('moon')); return k ? getSignName(k, isKo) : '' })()
+
+  if (isKo) {
+    const s1 = `당신은 '${arch.ko}' 유형이에요.${trait ? ` ${trait}.` : ''}`
+    const parts: string[] = []
+    if (iljuChar) parts.push(`사주는 ${iljuChar}`)
+    if (sunName && moonName) parts.push(`점성은 태양 ${sunName}·달 ${moonName}`)
+    else if (sunName) parts.push(`점성은 태양 ${sunName}`)
+    const s2 = parts.length ? `${summaryIeyo(parts.join(', '))}.` : ''
+    return [s1, s2].filter(Boolean).join(' ')
+  }
+  const lower = (t: string) => (t ? t.charAt(0).toLowerCase() + t.slice(1) : t)
+  const s1 = `You're the '${arch.en}' type — ${arch.taglineEn}.${trait ? ` ${trait}.` : ''}`
+  const bits: string[] = []
+  if (iljuChar) bits.push(`At the core, ${lower(iljuChar)}`)
+  if (sunName && moonName) bits.push(`Sun in ${sunName}, Moon in ${moonName}.`)
+  else if (sunName) bits.push(`Sun in ${sunName}.`)
+  return [s1, ...bits].filter(Boolean).join(' ')
 }
