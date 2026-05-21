@@ -26,6 +26,8 @@ export type AstroSignalKind =
   | 'void-of-course' // VoC
   | 'fixed-star' // 항성 컨정션
   | 'arabic-part' // 아라빅 파츠 활성
+  | 'house-transit' // 트랜짓 행성의 본명 하우스 오버레이
+  | 'angle-contact' // 느린 행성의 ASC/MC 컨택
   | 'midpoint' // 중점 활성
 
 export type SignalKind = SajuSignalKind | AstroSignalKind

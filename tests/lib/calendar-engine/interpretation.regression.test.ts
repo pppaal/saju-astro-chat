@@ -120,6 +120,39 @@ describe('calendar-engine regression', () => {
     })
   })
 
+  describe('하우스 오버레이 / ASC·MC 컨택 (#4)', () => {
+    it('house-transit signals emit + flow section renders a 하우스 line', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const houseSigs = cells.flatMap((c) => c.signals).filter((s) => s.kind === 'house-transit')
+      expect(houseSigs.length).toBeGreaterThan(0)
+      // 하우스 신호엔 evidence.houses + 완성 문장(detail.lineKo) 이 있어야
+      const sample = houseSigs[0]
+      expect(sample.evidence.houses?.[0]).toBeGreaterThanOrEqual(1)
+      expect(String((sample.evidence.detail as { lineKo?: string }).lineKo)).toContain('집')
+
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const flow = interp.sections.find((s) => s.section === 'flow')
+      expect(flow).toBeDefined()
+      expect(flow!.text).toContain('집') // "n번째 집" 한 줄
+    })
+  })
+
   describe('natal 용신 노출 (P0)', () => {
     it('natal section leads with 용신/희신/기신 line (KO)', async () => {
       const { interp } = await buildForDate(SEOUL_MALE_1995, '2026-05-15')
