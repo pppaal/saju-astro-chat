@@ -22,6 +22,10 @@ const HOUSE_THEME_KO: Record<number, string> = {
   1: '자아·몸', 2: '재물·소유', 3: '소통·이동', 4: '가정·뿌리', 5: '연애·창작', 6: '일·건강',
   7: '관계·파트너', 8: '위기·변형', 9: '해외·학문·확장', 10: '직업·명예', 11: '인맥·소망', 12: '내면·고독',
 }
+const HOUSE_THEME_EN: Record<number, string> = {
+  1: 'self·body', 2: 'wealth·assets', 3: 'communication·travel', 4: 'home·roots', 5: 'romance·creativity', 6: 'work·health',
+  7: 'partnership', 8: 'crisis·transformation', 9: 'travel·study·expansion', 10: 'career·status', 11: 'network·hopes', 12: 'inner·solitude',
+}
 
 export type Locale = 'ko' | 'en'
 
@@ -58,10 +62,48 @@ const SINSAL12_G: Record<string, string> = {
   역마: '이동·해외', 역마살: '이동·해외', 육해: '질병·방해', 육해살: '질병·방해', 화개: '예술·종교·고독', 화개살: '예술·종교·고독',
 }
 const ELEMG: Record<string, string> = { 목: '성장·확장', 화: '열정·표현', 토: '안정·중심', 금: '결단·정제', 수: '지혜·유연' }
-const gl = (term: string | undefined, dict: Record<string, string>, locale: Locale): string => {
-  if (!term || term === '-' || term === '일간') return term ?? '-'
-  const g = dict[term]
-  return locale === 'ko' && g ? `${term}(${g})` : term
+// English saju term maps (EN locale renders the saju side in English too).
+const SIBSIN_EN: Record<string, string> = {
+  비견: 'Peer', 겁재: 'Rival', 식신: 'Output', 상관: 'Hurting Officer', 편재: 'Indirect Wealth',
+  정재: 'Direct Wealth', 편관: 'Seven Killings', 정관: 'Direct Officer', 편인: 'Indirect Resource', 정인: 'Direct Resource', 일간: 'Self',
+}
+const ELEM_EN: Record<string, string> = { 목: 'Wood', 화: 'Fire', 토: 'Earth', 금: 'Metal', 수: 'Water' }
+const UNSEONG_EN: Record<string, string> = {
+  장생: 'Growth', 목욕: 'Bath', 관대: 'Maturity', 건록: 'Prime', 제왕: 'Peak', 쇠: 'Decline',
+  병: 'Weakening', 사: 'Dormant', 묘: 'Storage', 절: 'Void', 태: 'Conception', 양: 'Nurture',
+}
+const SINSAL12_EN: Record<string, string> = {
+  지살: 'Travel', 망신: 'Disgrace', 장성: 'General', 반안: 'Advancement', 역마: 'Horse(move)', 화개: 'Canopy',
+  겁살: 'Robbery', 재살: 'Prison', 천살: 'Heaven', 월살: 'Moon', 연살: 'Peach', 육해: 'Harm', 도화: 'Peach',
+}
+const STRENGTH_EN: Record<string, string> = { 신강: 'strong', 신약: 'weak', 극강: 'very strong', 강: 'strong', 중강: 'mod. strong', 중약: 'mod. weak', 약: 'weak', 극약: 'very weak' }
+const YTYPE_EN: Record<string, string> = { 조후용신: 'Climatic', 병약용신: 'Remedial', 억부용신: 'Balancing', 통관용신: 'Mediating', 전왕용신: 'Dominant' }
+const PERIOD_EN: Record<string, string> = { 대운: 'Decade', 세운: 'Annual', 월운: 'Monthly', 일진: 'Daily' }
+const GILSIN_EN: Record<string, string> = { 천을귀인: 'Nobleman(helper)', 화개: 'Canopy(art/solitude)', 공망: 'Void' }
+const RELKIND_EN: Record<string, string> = {
+  천간합: 'Stem combine', 천간충: 'Stem clash', 지지육합: 'Branch union', 지지삼합: 'Branch trine',
+  지지방합: 'Branch dir.combine', 지지충: 'Branch clash', 지지형: 'Branch punishment', 지지파: 'Branch break', 지지해: 'Branch harm', 원진: 'Resentment', 공망: 'Void',
+}
+const rk = (k: string, locale: Locale) => (locale === 'en' ? RELKIND_EN[k] ?? k : k)
+const sibEN = (s?: string) => (s ? SIBSIN_EN[s] ?? s : '-')
+// translate a Korean relation/element detail string to English (keeps Hanja).
+function enDetail(s: string): string {
+  return s
+    .replace(/지지삼합/g, 'Branch trine').replace(/지지방합/g, 'Branch dir.combine').replace(/지지육합/g, 'Branch union')
+    .replace(/지지충/g, 'Branch clash').replace(/지지형/g, 'Branch punishment').replace(/지지파/g, 'Branch break').replace(/지지해/g, 'Branch harm')
+    .replace(/천간합/g, 'Stem combine').replace(/천간충/g, 'Stem clash')
+    .replace(/삼합/g, 'trine').replace(/방합/g, 'directional combine').replace(/육합/g, 'union')
+    .replace(/합화/g, 'combine→').replace(/합/g, 'combine').replace(/충/g, 'clash').replace(/형/g, 'punishment')
+    .replace(/파/g, 'break').replace(/해/g, 'harm').replace(/원진/g, 'resentment').replace(/공망/g, 'Void')
+    .replace(/완성/g, '(complete)').replace(/부분/g, '(partial)').replace(/운\s/g, 'luck ').replace(/운$/g, 'luck')
+    .replace(/목/g, 'Wood').replace(/화/g, 'Fire').replace(/토/g, 'Earth').replace(/금/g, 'Metal').replace(/수/g, 'Water')
+    .replace(/ ↔ 년/g, ' ↔ Y').replace(/ ↔ 월/g, ' ↔ M').replace(/ ↔ 일/g, ' ↔ D').replace(/ ↔ 시/g, ' ↔ H')
+}
+const gl = (term: string | undefined, koGloss: Record<string, string>, enMap: Record<string, string>, locale: Locale): string => {
+  if (!term || term === '-') return term ?? '-'
+  if (locale === 'en') return enMap[term] ?? term
+  if (term === '일간') return term
+  return koGloss[term] ? `${term}(${koGloss[term]})` : term
 }
 const pkA = (n: string, l: Locale) => (l === 'ko' ? PLANET_KO_A[n] ?? n : n)
 const aspG = (t: string, l: Locale) => (ASP_FULL[t] ? (l === 'ko' ? ASP_FULL[t].ko : ASP_FULL[t].en) : t)
@@ -154,6 +196,7 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
       skipAngles: birth.birthCityUnknown,
     })
     astro = slimAstroSelf(block, { locale, year: now.getFullYear() })
+    if (locale === 'en') astro = astro.replace(/^== 점성 ==/m, '== Astro ==')
     // enrich: A/S markers on natal aspects + minor points (from raw chart)
     try {
       const chart = toChart(natal)
@@ -196,7 +239,7 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
       const lordResEn = lp?.sign ? ` (in ${lp.sign}${lp.house ? `, H${lp.house}` : ''})` : ''
       const profBlock = L(
         `[프로펙션 ${kAge}세]\n활성 하우스: ${prof.activatedHouse}하우스 (${HOUSE_THEME_KO[prof.activatedHouse]})\n올해의 지배성(Lord of Year): ${lordKo}${lordResKo}`,
-        `[Profection age ${kAge}]\nactivated house: ${prof.activatedHouse} (${HOUSE_THEME_KO[prof.activatedHouse]})\nLord of the Year: ${prof.lordOfYear}${lordResEn}`,
+        `[Profection age ${kAge}]\nactivated house: ${prof.activatedHouse} (${HOUSE_THEME_EN[prof.activatedHouse]})\nLord of the Year: ${prof.lordOfYear}${lordResEn}`,
       ) + '\n\n'
       astro = astro.replace(/\[(?:프로펙션|Profection)[\s\S]*?\n\n/, profBlock)
       if (!/프로펙션|Profection age/.test(astro)) astro = astro.trimEnd() + '\n\n' + profBlock
@@ -256,7 +299,9 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   const dm = saju.dayMaster
   const dmEl = dm.element ? ELEM[dm.element] ?? dm.element : ''
   const yinyang = dm.yin_yang === '음' ? L('음', 'yin') : L('양', 'yang')
-  out.push(`day_master: ${dm.name}(${yinyang}${dmEl}) | strength: ${strengthLabel}${strengthLevel ? `(${strengthLevel})` : ''}`)
+  const strLab = locale === 'en' ? (STRENGTH_EN[strengthLabel] ?? strengthLabel) : strengthLabel
+  const strLv = strengthLevel ? `(${locale === 'en' ? (STRENGTH_EN[strengthLevel] ?? strengthLevel) : strengthLevel})` : ''
+  out.push(`day_master: ${dm.name}(${yinyang}${dmEl}) | strength: ${strLab}${strLv}`)
   const fe = saju.fiveElements
   out.push(`elements: 木${fe.wood} 火${fe.fire} 土${fe.earth} 金${fe.metal} 水${fe.water}`)
   out.push('')
@@ -265,8 +310,8 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   const lab: Record<string, string> = { year: 'Y', month: 'M', day: 'D', time: 'H' }
   for (const k of ['year', 'month', 'day', 'time'] as const) {
     const st = P[k].heavenlyStem, br = P[k].earthlyBranch
-    const stemSib = k === 'day' ? '일간' : gl(st.sibsin, SIBSIN_G, locale)
-    out.push(`  ${lab[k]} ${st.name}${br.name} | ${stemSib}/${gl(br.sibsin, SIBSIN_G, locale)}`)
+    const stemSib = k === 'day' ? (locale === 'en' ? 'Self' : '일간') : gl(st.sibsin, SIBSIN_G, SIBSIN_EN, locale)
+    out.push(`  ${lab[k]} ${st.name}${br.name} | ${stemSib}/${gl(br.sibsin, SIBSIN_G, SIBSIN_EN, locale)}`)
   }
   out.push('')
 
@@ -274,17 +319,21 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   for (const k of ['year', 'month', 'day', 'time'] as const) {
     const jg = P[k].jijanggan
     const stems = [jg?.chogi?.name, jg?.junggi?.name, jg?.jeonggi?.name].filter(Boolean) as string[]
-    if (stems.length) out.push(`  ${P[k].earthlyBranch.name}: ${stems.map((s) => `${s}${sibsinOf(day, s)}`).join('·')}`)
+    if (stems.length) out.push(`  ${P[k].earthlyBranch.name}: ${stems.map((s) => `${s}${locale === 'en' ? `(${sibEN(sibsinOf(day, s))})` : sibsinOf(day, s)}`).join('·')}`)
   }
   out.push('')
 
-  if (geok) out.push(`geokguk: ${geok}`)
-  if (y?.primaryYongsin) {
-    const ge = (e?: string) => (e ? (locale === 'ko' && ELEMG[e] ? `${e}(${ELEMG[e]})` : (ELEM[e] ?? e)) : '')
-    out.push(`yongsin: ${ge(y.primaryYongsin)}${y.yongsinType ? ` [${y.yongsinType}]` : ''}${y.secondaryYongsin ? ` | 喜:${ge(y.secondaryYongsin)}` : ''}${y.kibsin ? ` | 忌:${ge(y.kibsin)}` : ''}${y.gusin ? ` | 仇:${ge(y.gusin)}` : ''}`)
-    if (y.reasoning) out.push(`yongsin_reason: ${y.reasoning}`)
+  if (geok) {
+    const geokEn = `${SIBSIN_EN[geok.replace(/격$/, '')] ?? geok.replace(/격$/, '')} structure`
+    out.push(`geokguk: ${locale === 'en' ? geokEn : geok}`)
   }
-  if (gwansalHonjap) out.push(L('note: 官殺混雜 (정관+편관 동존)', 'note: 官殺混雜 (both 정관+편관 present)'))
+  if (y?.primaryYongsin) {
+    const ge = (e?: string) => (e ? (locale === 'en' ? (ELEM_EN[e] ?? e) : (ELEMG[e] ? `${e}(${ELEMG[e]})` : (ELEM[e] ?? e))) : '')
+    const yt = y.yongsinType ? ` [${locale === 'en' ? (YTYPE_EN[y.yongsinType] ?? y.yongsinType) : y.yongsinType}]` : ''
+    out.push(`yongsin: ${ge(y.primaryYongsin)}${yt}${y.secondaryYongsin ? ` | ${L('喜', 'fav')}:${ge(y.secondaryYongsin)}` : ''}${y.kibsin ? ` | ${L('忌', 'avoid')}:${ge(y.kibsin)}` : ''}${y.gusin ? ` | ${L('仇', 'foe')}:${ge(y.gusin)}` : ''}`)
+    if (y.reasoning && locale === 'ko') out.push(`yongsin_reason: ${y.reasoning}`)
+  }
+  if (gwansalHonjap) out.push(L('note: 官殺混雜 (정관+편관 동존)', 'note: mixed authority (Direct Officer + Seven Killings)'))
   out.push('')
 
   // branches that join a 합/삼합/육합 → a 공망 there is partly released
@@ -295,17 +344,18 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   const shown = rel.filter((r) => r.kind !== '지지파') // 파 = weakest/contested, drop
   if (shown.length) {
     out.push('internal_combos:')
-    const PLAB: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
+    const PLAB: Record<string, string> = locale === 'en' ? { year: 'Y', month: 'M', day: 'D', time: 'H' } : { year: '년', month: '월', day: '일', time: '시' }
     // group identical relations (same kind+detail) so a 충/합 hitting two pillar
     // pairs becomes one line with merged tags, not a duplicate.
     const groups = new Map<string, { base: string; tags: string[]; note: string }>()
     for (const r of shown) {
-      const base = r.detail && r.detail.includes(r.kind) ? r.detail : `${r.kind}${r.detail ? ` ${r.detail}` : ''}`
+      let base = r.detail && r.detail.includes(r.kind) ? r.detail : `${r.kind}${r.detail ? ` ${r.detail}` : ''}`
+      if (locale === 'en') base = enDetail(base)
       const tag = Array.isArray(r.pillars) && r.pillars.length ? r.pillars.map((p) => PLAB[p] ?? p).join('·') : ''
       let note = ''
       if (r.kind === '공망') {
         const b = r.detail?.match(/[子丑寅卯辰巳午未申酉戌亥]/)?.[0]
-        if (b && combinedBranches.has(b)) note = locale === 'ko' ? ' — 합/삼합 동시 참여로 작용 일부 회복' : ' — partly released (joins a 합/삼합)'
+        if (b && combinedBranches.has(b)) note = locale === 'ko' ? ' — 합/삼합 동시 참여로 작용 일부 회복' : ' — partly released (joins a combine/trine)'
       }
       const g = groups.get(base) ?? { base, tags: [], note }
       if (tag) g.tags.push(tag)
@@ -322,41 +372,52 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   if (saju.shinsal?.length) out.push(`sinsal: ${saju.shinsal.join(' · ')}`)
   try {
     const st = getTwelveStagesForPillars(P as never)
-    out.push(`12운성: ${(['year', 'month', 'day', 'time'] as const).map((k) => `${P[k].earthlyBranch.name}${gl(st[k], UNSEONG_G, locale)}`).join(' / ')}`)
+    out.push(`${locale === 'en' ? '12-stages' : '12운성'}: ${(['year', 'month', 'day', 'time'] as const).map((k) => `${P[k].earthlyBranch.name}${gl(st[k], UNSEONG_G, UNSEONG_EN, locale)}`).join(' / ')}`)
   } catch { /* */ }
   try {
     const ss = getTwelveShinsalSingleByPillar(P as never)
-    out.push(`12신살: ${(['year', 'month', 'day', 'time'] as const).map((k) => `${P[k].earthlyBranch.name}${gl((ss[k] || '-').replace(/살살$/, '살'), SINSAL12_G, locale)}`).join(' / ')}`)
+    out.push(`${locale === 'en' ? '12-sinsal' : '12신살'}: ${(['year', 'month', 'day', 'time'] as const).map((k) => {
+      const raw = (ss[k] || '-').replace(/살살$/, '살')
+      const bare = raw.replace(/살$/, '')
+      const term = locale === 'en' ? (SINSAL12_EN[raw] ?? SINSAL12_EN[bare] ?? raw)
+        : (SINSAL12_G[raw] ? `${raw}(${SINSAL12_G[raw]})` : raw)
+      return `${P[k].earthlyBranch.name}${term}`
+    }).join(' / ')}`)
   } catch { /* */ }
   // 길신/주요 신살 — 천을귀인(귀인복), 화개(예술·종교·고독)
   try {
-    const PLAB2: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
+    const PLAB2: Record<string, string> = locale === 'en' ? { year: 'Y', month: 'M', day: 'D', time: 'H' } : { year: '년', month: '월', day: '일', time: '시' }
     const dayBranch = P.day.earthlyBranch.name
     const cheon = CHEONEUL[day] ?? []
     const hwagae = HWAGAE_OF[dayBranch]
+    const cheonLab = locale === 'en' ? GILSIN_EN['천을귀인'] : '천을귀인(귀인·도움복)'
+    const hwagaeLab = locale === 'en' ? GILSIN_EN['화개'] : '화개(예술·종교·고독)'
     const hits: string[] = []
     for (const k of ['year', 'month', 'day', 'time'] as const) {
       const b = P[k].earthlyBranch.name
-      if (cheon.includes(b)) hits.push(`천을귀인(${b})${locale === 'ko' ? '(귀인·도움복)' : ''} [${PLAB2[k]}]`)
+      if (cheon.includes(b)) hits.push(`${cheonLab}(${b}) [${PLAB2[k]}]`)
     }
     for (const k of ['year', 'month', 'day', 'time'] as const) {
-      if (P[k].earthlyBranch.name === hwagae) hits.push(`화개(${hwagae})${locale === 'ko' ? '(예술·종교·고독)' : ''} [${PLAB2[k]}]`)
+      if (P[k].earthlyBranch.name === hwagae) hits.push(`${hwagaeLab}(${hwagae}) [${PLAB2[k]}]`)
     }
-    if (hits.length) out.push(`주요신살: ${hits.join(' / ')}`)
+    if (hits.length) out.push(`${locale === 'en' ? 'key-sinsal' : '주요신살'}: ${hits.join(' / ')}`)
   } catch { /* */ }
 
   // current
   const cur = saju.daeWoon?.current
   if (cur || current?.seun || current?.wolun || current?.iljin) {
     out.push('', L('## 사주_현재', '## SAJU_CURRENT'))
-    if (cur) out.push(`대운 ${cur.age ?? '?'}: ${cur.heavenlyStem ?? ''}${cur.earthlyBranch ?? ''} | ${cur.sibsin?.cheon ?? ''}/${cur.sibsin?.ji ?? ''}`)
+    const PLBL = (k: string) => (locale === 'en' ? PERIOD_EN[k] ?? k : k)
+    const sib1 = (s: string) => (locale === 'en' ? sibEN(s) : (s || '-'))
+    if (cur) out.push(`${PLBL('대운')} ${cur.age ?? '?'}: ${cur.heavenlyStem ?? ''}${cur.earthlyBranch ?? ''} | ${sib1(cur.sibsin?.cheon ?? '')}/${sib1(cur.sibsin?.ji ?? '')}`)
     const periods: Array<[string, { stem: string; branch: string } | null | undefined]> = [['세운', current?.seun], ['월운', current?.wolun], ['일진', current?.iljin]]
     const sibPair = (v: { stem: string; branch: string }) => {
       const s = sibsinOf(day, v.stem), b = sibsinOf(day, BRANCH_MAINQI[v.branch] ?? '')
       const honjap = (s === '정관' || s === '편관') && (b === '정관' || b === '편관') && s !== b
-      return `${v.stem}${v.branch}${s || b ? ` (${s || '-'}/${b || '-'}${honjap ? ' = 관살혼잡' : ''})` : ''}`
+      const hj = honjap ? (locale === 'en' ? ' = mixed authority' : ' = 관살혼잡') : ''
+      return `${v.stem}${v.branch}${s || b ? ` (${sib1(s)}/${sib1(b)}${hj})` : ''}`
     }
-    const pline = periods.filter(([, v]) => v).map(([k, v]) => `${k}: ${sibPair(v!)}`).join(' / ')
+    const pline = periods.filter(([, v]) => v).map(([k, v]) => `${PLBL(k)}: ${sibPair(v!)}`).join(' / ')
     if (pline) out.push(pline)
     const relsBy = (src: string) => (current?.relations ?? []).filter((r) => r.source === src)
     const fe = saju.fiveElements
@@ -368,31 +429,37 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
       const el = STEM_HAP_EL[stems.sort().join('')]
       if (!el) return ''
       const cnt = (fe as Record<string, number>)[EL2KEY[el]] ?? 0
-      return cnt <= 1 ? ` (合${el}, 단 지지${el} 약→化 미완 가능)` : ` (合化${el})`
+      const elT = locale === 'en' ? (ELEM_EN[el] ?? el) : el
+      if (cnt <= 1) return locale === 'en' ? ` (combine→${elT}, but weak ${elT} branch → may not complete)` : ` (合${el}, 단 지지${el} 약→化 미완 가능)`
+      return locale === 'en' ? ` (combine→${elT})` : ` (合化${el})`
     }
+    const LU = locale === 'en' ? 'luck' : '운'
+    const arrow = (s: string) => locale === 'en'
+      ? s.replace(/ - year/g, ' ↔ Y').replace(/ - month/g, ' ↔ M').replace(/ - day/g, ' ↔ D').replace(/ - time/g, ' ↔ H').replace(/^운 /, 'luck ')
+      : s.replace(/ - year/g, ' ↔ 년').replace(/ - month/g, ' ↔ 월').replace(/ - day/g, ' ↔ 일').replace(/ - time/g, ' ↔ 시')
+    const PMAP: Record<string, string> = locale === 'en' ? { 년: 'Y', 월: 'M', 일: 'D', 시: 'H' } : { 년: '년', 월: '월', 일: '일', 시: '시' }
     // 형(刑): engine이 운-본명 형을 안 잡으므로 직접 계산해 보강
     const hyeongOf = (branch?: string): string[] =>
-      branch ? natalBr.filter(([, nb]) => hyeongPair(branch, nb)).map(([lab, nb]) => `지지형 운 ${branch} ↔ ${lab} ${nb} (${branch}${nb}刑)`) : []
+      branch ? natalBr.filter(([, nb]) => hyeongPair(branch, nb)).map(([lab, nb]) => `${rk('지지형', locale)} ${LU} ${branch} ↔ ${locale === 'en' ? (PMAP[lab] ?? lab) : lab} ${nb} (${branch}${nb}刑)`) : []
     const crossLines: string[] = []
     const periodBranch: Record<string, string | undefined> = { 세운: current?.seun?.branch, 월운: current?.wolun?.branch, 일진: current?.iljin?.branch, 대운: cur?.earthlyBranch ?? undefined }
     for (const [k, src] of [['세운', 'seun'], ['월운', 'wolun'], ['일진', 'iljin'], ['대운', 'daeun']] as const) {
-      // group same relation hitting two natal pillars (운 丙↔일 辛 + 운 丙↔시 辛)
-      // into one (운 丙 ↔ 일·시 辛) — token save, no dup.
+      // group same relation hitting two natal pillars → one line (token save)
       const grp = new Map<string, { line: string; pills: string[] }>()
       const plain: string[] = []
       for (const r of relsBy(src)) {
-        const d = (r.relation.detail || '').replace(/ - year/g, ' ↔ 년').replace(/ - month/g, ' ↔ 월').replace(/ - day/g, ' ↔ 일').replace(/ - time/g, ' ↔ 시')
+        const d = arrow(r.relation.detail || '')
         const note = r.relation.kind === '천간합' ? hwaNote(r.relation.detail || '') : ''
-        const m = d.match(/^운 (\S+) ↔ (년|월|일|시) (\S+)$/)
+        const m = d.match(/^(?:운|luck) (\S+) ↔ (Y|M|D|H|년|월|일|시) (\S+)$/)
         if (m) {
           const key = `${r.relation.kind}|${m[1]}|${m[3]}|${note}`
-          const g = grp.get(key) ?? { line: `${r.relation.kind} 운 ${m[1]} ↔ @ ${m[3]}${note}`, pills: [] }
+          const g = grp.get(key) ?? { line: `${rk(r.relation.kind, locale)} ${LU} ${m[1]} ↔ @ ${m[3]}${note}`, pills: [] }
           g.pills.push(m[2]); grp.set(key, g)
-        } else plain.push((d ? `${r.relation.kind} ${d}` : r.relation.kind) + note)
+        } else plain.push((d ? `${rk(r.relation.kind, locale)} ${d}` : rk(r.relation.kind, locale)) + note)
       }
       const parts2: string[] = [...plain, ...[...grp.values()].map((g) => g.line.replace('@', g.pills.join('·')))]
       parts2.push(...hyeongOf(periodBranch[k]))
-      if (parts2.length) crossLines.push(`  ${k}: ${parts2.join(' / ')}`)
+      if (parts2.length) crossLines.push(`  ${PLBL(k)}: ${parts2.join(' / ')}`)
     }
     if (crossLines.length) { out.push(L('current_cross (운↔본명 합/충/형):', 'current_cross (luck↔natal):')); out.push(...crossLines) }
   }
