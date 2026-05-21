@@ -761,4 +761,68 @@ describe('calendar-engine regression', () => {
       expect(interp.narrative).not.toContain('Saturn Return')
     })
   })
+
+  describe('multi-signal interaction patterns (십신 조합)', () => {
+    const COMBOS: Array<[ruleId: string, patternId: string]> = [
+      ['pattern-gwan-in-flow', 'gwan-in-flow'],
+      ['pattern-siksang-wealth', 'siksang-wealth'],
+      ['pattern-wealth-to-status', 'wealth-to-status'],
+      ['pattern-wealth-rivalry', 'wealth-rivalry'],
+      ['pattern-output-vs-authority', 'output-vs-authority'],
+    ]
+
+    const SEOUL = { latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }
+    async function monthPatternIds(
+      birthDate: string,
+      gender: 'male' | 'female',
+      year: number,
+      month: number
+    ): Promise<Set<string>> {
+      const saju = calculateSajuData(birthDate, '06:40', gender, 'solar', SEOUL.timeZone)
+      const natal = await buildNatalContext(
+        { birthDate, birthTime: '06:40', gender, ...SEOUL } as Profile,
+        { saju }
+      )
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: new Date(Date.UTC(year, month - 1, 1)).toISOString(),
+          end: new Date(Date.UTC(year, month, 0, 23, 59, 59)).toISOString(),
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const ids = new Set<string>()
+      for (const c of cells) for (const p of c.matchedPatterns) ids.add(p.id)
+      return ids
+    }
+
+    it('each combo rule exists with KO+EN templates + patternId condition', () => {
+      for (const [ruleId, patternId] of COMBOS) {
+        const rule = RULES.find((r) => r.id === ruleId)
+        expect(rule, `missing rule ${ruleId}`).toBeDefined()
+        expect(rule!.conditions.patternId).toEqual([patternId])
+        expect(rule!.template.length).toBeGreaterThan(10)
+        expect(rule!.templateEn && rule!.templateEn.length).toBeGreaterThan(10)
+      }
+    })
+
+    it('combos actually fire for real charts (not dead rules)', async () => {
+      const comboIds = new Set(COMBOS.map(([, p]) => p))
+      const seen = new Set<string>()
+      // 두 차트 × 일부 달 — 십신 조합은 흔하게 발동 (1년 스캔 불필요)
+      for (const m of [3, 7, 11]) {
+        for (const id of await monthPatternIds('1995-02-09', 'male', 2026, m)) {
+          if (comboIds.has(id)) seen.add(id)
+        }
+      }
+      for (const m of [5, 9]) {
+        for (const id of await monthPatternIds('1976-09-21', 'female', 2026, m)) {
+          if (comboIds.has(id)) seen.add(id)
+        }
+      }
+      // 최소 2종 이상 발동해야 "살아있는" 패턴군
+      expect(seen.size).toBeGreaterThanOrEqual(2)
+    })
+  })
 })
