@@ -1,15 +1,26 @@
-import { checkVoidOfCourse, getMoonPhase, getMoonPhaseName } from '@/lib/astrology/foundation/electional'
+import {
+  checkVoidOfCourse,
+  getMoonPhase,
+  getMoonPhaseName,
+} from '@/lib/astrology/foundation/electional'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { getCachedTransitChart } from '../ephe-cache'
 
 /**
- * 행성시 + 달 위상 (Moon Phase) + Void of Course 추출기.
+ * 달 위상(Moon Phase) + 보이드 오브 코스(Void of Course) 추출기.
  *
- * 단순화 접근:
- *  - 매일 정오 트랜짓 차트로 달 위상 분류 (new/waxing/full/waning)
- *  - 매일 VoC 여부
- *  - hourly granularity면 추가로 24시간 행성시 신호도 생성 (선택)
+ * 이름의 'planetary-hour' kind 는 역사적 잔재 — 실제로 행성시(planetary hour)는
+ * 계산하지 않는다. 매일 정오(natal TZ) 트랜짓 차트 1개로:
+ *  - 달 위상 분류 (삭/상현/보름/하현) — 위상 변경 시점에 monthly 신호
+ *  - 그날 VoC 여부 — daily 신호 (timing-void-of-course-moon 룰이 사용)
+ *
+ * 주의(알려진 한계):
+ *  - 노이즈/위상은 정오 1회 샘플 — 시간 단위 정밀도 아님. VoC 의
+ *    hoursRemaining 도 정오 스냅샷 기준 근사치.
+ *  - PHASE_POLARITY 키가 snake_case getMoonPhase 결과(new_moon 등)와
+ *    불일치(camelCase)라 달 위상 polarity 는 현재 항상 0(사실상 비활성).
+ *    의도적으로 점수에 반영하려면 키를 맞춰야 함 — 지금은 VoC 만 실효.
  *
  * 활성 윈도우:
  *  - Moon Phase: 그 단계 동안 (보통 3~4일)
@@ -17,13 +28,13 @@ import { getCachedTransitChart } from '../ephe-cache'
  */
 
 const PHASE_POLARITY: Record<string, -1 | 0 | 1> = {
-  newMoon:        1,    // 시작에 좋음
+  newMoon: 1, // 시작에 좋음
   waxingCrescent: 1,
-  firstQuarter:   0,
-  waxingGibbous:  1,
-  fullMoon:      -1,    // 절정·과부하·관계 폭발
-  waningGibbous:  0,
-  lastQuarter:    0,
+  firstQuarter: 0,
+  waxingGibbous: 1,
+  fullMoon: -1, // 절정·과부하·관계 폭발
+  waningGibbous: 0,
+  lastQuarter: 0,
   waningCrescent: 0,
 }
 
@@ -73,7 +84,7 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
             korean: `달 위상 ${getMoonPhaseName(lastPhase as never)}`,
             themes: [],
             polarity: PHASE_POLARITY[lastPhase] ?? 0,
-            layer: 'monthly',   // 한 위상이 약 3~4일이지만 "월" 사이클의 일부
+            layer: 'monthly', // 한 위상이 약 3~4일이지만 "월" 사이클의 일부
             active: {
               start: phaseStartIso,
               peak: new Date((new Date(phaseStartIso).getTime() + t) / 2).toISOString(),
@@ -107,7 +118,9 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
           active: {
             start: `${dayIso}T00:00:00.000Z`,
             peak: `${dayIso}T12:00:00.000Z`,
-            end: new Date(new Date(`${dayIso}T00:00:00.000Z`).getTime() + hoursRemaining * 3600_000).toISOString(),
+            end: new Date(
+              new Date(`${dayIso}T00:00:00.000Z`).getTime() + hoursRemaining * 3600_000
+            ).toISOString(),
           },
           weight: 0.45,
           evidence: {
