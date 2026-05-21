@@ -53,8 +53,9 @@ describe('Destiny Map Integration', () => {
     assertNamedExports('lib/destiny-matrix/interpreter/insight-generator', ['generateInsights']);
   });
 
-  it('should expose report helpers', () => {
+  it('should expose report helpers and local generator', () => {
     readModule('lib/destiny-map/report-helpers');
+    assertNamedExports('lib/destiny-map/local-report-generator', ['generateLocalReport']);
   });
 
   it('should expose fortune prompt modules', () => {

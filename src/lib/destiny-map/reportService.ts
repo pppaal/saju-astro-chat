@@ -10,11 +10,12 @@ import { logger } from '@/lib/logger'
 
 // Import from centralized modules
 import { hashName, maskDisplayName, maskTextWithName } from '@/lib/security'
-import { buildLifeReport } from '@/lib/fusion/lifeReport'
+import { generateLocalReport, generateLocalStructuredReport } from './local-report-generator'
 import {
   cleanseText,
   getDateInTimezone,
   extractDefaultElements,
+  hasBrokenPlaceholderArtifacts,
   validateSections,
 } from './report-helpers'
 
@@ -129,24 +130,39 @@ export async function generateReport({
   result.userTimezone = userTimezone
   result.analysisDate = analysisDate // 이미 위에서 계산됨
 
-  // 2) Single source of truth: the lifeReport engine. This narrative text
-  // is not rendered (the free report builds lifeReport on the client from
-  // fusionFragments); we keep a lifeReport-derived payload here so there is
-  // one report engine, with a chart-summary fallback that never throws.
-  let aiText = result.summary || ''
-  const modelUsed: string = 'local-template'
+  // 2) 템플릿 모드 - AI 없이 계산 데이터로 즉시 리포트 생성
+  // extraPrompt가 있으면 상담사 모드로 AI 사용
+  const useAI = Boolean(safeExtra)
+
+  // 3) Local fusion generation — Python AI backend was removed.
+  // Counselor / detailed AI flows now go through @anthropic-ai/sdk directly
+  // (see askClaude / callClaude / aiBackend.ts), not through this fallback.
+  let aiText = useAI
+    ? generateLocalReport(result, theme, lang, name)
+    : generateLocalStructuredReport(result, theme, lang, name)
+  let modelUsed = 'local-template'
   const backendAvailable = false
-  try {
-    const built = buildLifeReport({
-      saju: {
-        ...(result.saju as unknown as Record<string, unknown>),
-        input: { birthDate, birthTime, gender },
-      } as never,
-      astro: (result.astrology ?? {}) as never,
-    })
-    aiText = JSON.stringify(built)
-  } catch (err) {
-    logger.warn('[DestinyMap] lifeReport narrative build failed; using chart summary', { err })
+
+  // Template mode must stay readable/structured. If backend output is broken, regenerate locally.
+  if (!useAI) {
+    const hasStructuredShape =
+      aiText.trim().startsWith('{') ||
+      aiText.includes('"lifeTimeline"') ||
+      aiText.includes('"categoryAnalysis"')
+    const hasBrokenPlaceholders = hasBrokenPlaceholderArtifacts(aiText)
+
+    if (!hasStructuredShape || hasBrokenPlaceholders) {
+      logger.warn(
+        '[DestinyMap] Broken/non-structured template response detected; falling back to local structured report',
+        {
+          modelUsed,
+          hasStructuredShape,
+          hasBrokenPlaceholders,
+        }
+      )
+      aiText = generateLocalStructuredReport(result, theme, lang, name)
+      modelUsed = 'local-template-repair'
+    }
   }
 
   // 3.5) Validate required sections / cross evidence
