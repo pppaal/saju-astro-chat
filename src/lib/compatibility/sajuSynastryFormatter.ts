@@ -114,6 +114,19 @@ const EL_CONTROLS: Record<string, string> = {
   '목': '토', '토': '수', '수': '화', '화': '금', '금': '목',
 }
 
+const EL_GENERATES: Record<string, string> = {
+  '목': '화', '화': '토', '토': '금', '금': '수', '수': '목',
+}
+
+// 십성 짧은 글로싱 — 관계의 질감을 LLM이 곧장 읽게.
+const SIBSIN_GLOSS: Record<string, string> = {
+  '비견': '대등·동지', '겁재': '경쟁·협력',
+  '식신': '표현·여유', '상관': '재능·자유분방',
+  '편재': '활동·욕망', '정재': '안정·성실',
+  '편관': '압박·도전', '정관': '책임·규범',
+  '편인': '보호·배움', '정인': '후원·안정',
+}
+
 const CHEONULGWIIN: Record<string, string[]> = {
   '甲': ['丑', '未'], '戊': ['丑', '未'], '庚': ['丑', '未'],
   '乙': ['子', '申'], '己': ['子', '申'],
@@ -135,6 +148,35 @@ function currentSeun(now: Date): { stem: string; branch: string; year: number } 
     branch: BRANCH_ORDER[(((y - 4) % 12) + 12) % 12],
     year: y,
   }
+}
+
+// 십성(十星) — 일간(day) 입장에서 상대 천간(other)이 무슨 십성인가.
+// 같은 오행 비견/겁재 · 일간生상대 식신/상관 · 상대生일간 편인/정인 ·
+// 일간克상대 편재/정재 · 상대克일간 편관/정관. 음양 같으면 편(식신 포함),
+// 다르면 정(겁재·상관 포함).
+function sibsinOf(dayStem: string, otherStem: string): string | null {
+  const dayEl = STEM_EL[dayStem], otherEl = STEM_EL[otherStem]
+  if (!dayEl || !otherEl) return null
+  const dayPol = STEM_ORDER.indexOf(dayStem) % 2
+  const otherPol = STEM_ORDER.indexOf(otherStem) % 2
+  if (dayPol < 0 || otherPol < 0) return null
+  const samePol = dayPol === otherPol
+  if (dayEl === otherEl) return samePol ? '비견' : '겁재'
+  if (EL_GENERATES[dayEl] === otherEl) return samePol ? '식신' : '상관'
+  if (EL_GENERATES[otherEl] === dayEl) return samePol ? '편인' : '정인'
+  if (EL_CONTROLS[dayEl] === otherEl) return samePol ? '편재' : '정재'
+  if (EL_CONTROLS[otherEl] === dayEl) return samePol ? '편관' : '정관'
+  return null
+}
+
+// 공망(空亡) — 일주 기준 비어 있는 2지지. 旬首=(지지-천간)에서 시작, 마지막
+// 두 칸이 공망. synastry: 한 쪽 공망이 상대 지지에 걸리면 그 영역이 공허·초연.
+function gongmangOf(stem: string, branch: string): string[] {
+  const s = STEM_ORDER.indexOf(stem)
+  const b = BRANCH_ORDER.indexOf(branch)
+  if (s < 0 || b < 0) return []
+  const start = (((b - s) % 12) + 12) % 12
+  return [BRANCH_ORDER[(start + 10) % 12], BRANCH_ORDER[(start + 11) % 12]]
 }
 
 // 12신살 — 일지 기준, 상대 지지에 라벨 부여 (synastry: A의 일지 → B 4지지)
@@ -228,6 +270,18 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
     } else {
       important.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — 상생 (서로 보완)`)
+    }
+  }
+
+  // 1-2. 십성 cross — 상대 일간이 내 사주에서 무슨 십성인가. 오행 상생/극만으론
+  // 정관 vs 편관 같은 관계의 질감이 안 잡힌다 → 양방향 십성으로 보강.
+  {
+    const aSeesB = sibsinOf(aDay.stem, bDay.stem) // A 일간 입장에서 B 일간은
+    const bSeesA = sibsinOf(bDay.stem, aDay.stem) // B 일간 입장에서 A 일간은
+    if (aSeesB && bSeesA) {
+      critical.push(
+        `십성 cross — ${labelA} 입장에서 ${labelB}는 ${aSeesB}(${SIBSIN_GLOSS[aSeesB] ?? ''}), ${labelB} 입장에서 ${labelA}는 ${bSeesA}(${SIBSIN_GLOSS[bSeesA] ?? ''})`
+      )
     }
   }
 
@@ -395,6 +449,31 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   important.push(
     `오행 합산 ${els.map((e) => `${e}${merged[e]}`).join(' ')} (A ${els.map((e) => `${e}${countsA[e]}`).join('')} / B ${els.map((e) => `${e}${countsB[e]}`).join('')}) → ${balNote}`
   )
+
+  // 8. 공망 cross — 한 쪽 공망이 상대 지지에 걸리면 그 영역이 공허·초연.
+  // 일지(2)에 걸리면 가장 강한 신호.
+  {
+    const aGong = gongmangOf(aDay.stem, aDay.branch)
+    const bGong = gongmangOf(bDay.stem, bDay.branch)
+    const hits: string[] = []
+    for (let j = 0; j < 4; j++) {
+      if (B[j].branch && aGong.includes(B[j].branch)) {
+        hits.push(`${labelA}공망 → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch}${j === 2 ? '(일지·강)' : ''}`)
+      }
+    }
+    for (let i = 0; i < 4; i++) {
+      if (A[i].branch && bGong.includes(A[i].branch)) {
+        hits.push(`${labelB}공망 → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch}${i === 2 ? '(일지·강)' : ''}`)
+      }
+    }
+    if (hits.length) {
+      important.push(
+        `공망 cross (${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')}): ${hits.join(' · ')} — 적중 영역은 서로 공허·초연·집착 약함`
+      )
+    } else {
+      chamgo.push(`공망 cross: ${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')} — 서로 적중 없음 (공허 신호 약함)`)
+    }
+  }
 
   // ── 조립: 우선순위 티어 ──────────────────────────────────
   const out: string[] = ['== 시너스트리 (사주 cross) ==']
