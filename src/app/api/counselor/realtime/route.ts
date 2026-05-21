@@ -13,11 +13,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
 import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
-import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
-import { slimSajuSelf, type YongsinInfo } from '@/lib/destiny/sajuSlim'
-import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
-import { slimAstroSelf } from '@/lib/destiny/astroSlim'
-import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
+import { buildDestinyContext } from '@/lib/destiny/counselorContext'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -270,124 +266,18 @@ export async function POST(req: NextRequest) {
       if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
         parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
       }
-      // ── 사주 (raw + cross 통합) ────────────────────────────
+      // ── Destiny counselor layer: SAJU (from raw) + ASTRO/CURRENT
+      //    (raw→refined) + reading rules. Replaces the old formatSajuSelf /
+      //    formatAstroSelf + slim chain here; compat counselor keeps those.
       try {
-        interface PillarSlot {
-          heavenlyStem?: { name?: string; sibsin?: string }
-          earthlyBranch?: { name?: string; sibsin?: string }
-          jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } }
-        }
-        const sajuLoose = saju as unknown as {
-          saju?: {
-            pillars?: { year?: PillarSlot; month?: PillarSlot; day?: PillarSlot; time?: PillarSlot }
-            dayMaster?: { name?: string; element?: string; yin_yang?: string }
-            daeWoon?: {
-              current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null
-              list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }>
-            } | null
-          }
-          // buildSajuNormalizerInput 가 반환하는 UnseData shape 그대로.
-          // 이전엔 잘못된 type 정의 (.stem/.branch + currentSaeun 오타) 로
-          // formatSajuSelf 에 빈 값이 들어가서 [현재 시기] 의 월운/일진/
-          // 세운이 항상 비어 있었음. 일일·월 운세 분석이 데이터 없이
-          // 돌고 있던 셈. adapter 가 currentSeun (Seun) 으로 주는 거랑
-          // field 이름까지 정확히 맞춤.
-          currentSeun?: { heavenlyStem?: string; earthlyBranch?: string } | null
-          currentWolun?: { heavenlyStem?: string; earthlyBranch?: string } | null
-          currentIljin?: { heavenlyStem?: string; earthlyBranch?: string } | null
-          extras?: {
-            geokguk?: { primary?: string } | null
-            yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null
-          } | null
-        }
-        const sajuP = sajuLoose.saju?.pillars
-        if (sajuP) {
-          const toP = (slot?: PillarSlot) => ({
-            stem: slot?.heavenlyStem?.name ?? '',
-            branch: slot?.earthlyBranch?.name ?? '',
-            stemSibsin: slot?.heavenlyStem?.sibsin,
-            branchSibsin: slot?.earthlyBranch?.sibsin,
-            jijanggan: [
-              slot?.jijanggan?.chogi?.name,
-              slot?.jijanggan?.junggi?.name,
-              slot?.jijanggan?.jeonggi?.name,
-            ].filter((s): s is string => Boolean(s)),
-          })
-          const cur = sajuLoose.saju?.daeWoon?.current
-          const extras = sajuLoose.extras
-          const daeunList = (sajuLoose.saju?.daeWoon?.list ?? []).map((d) => ({
-            age: d.age ?? 0,
-            stem: d.heavenlyStem ?? '',
-            branch: d.earthlyBranch ?? '',
-            sibsinStem: d.sibsin?.cheon,
-            sibsinBranch: d.sibsin?.ji,
-          }))
-          const dm = sajuLoose.saju?.dayMaster
-          const sajuBlock = formatSajuSelf({
-            pillars: [toP(sajuP.year), toP(sajuP.month), toP(sajuP.day), toP(sajuP.time)],
-            dayMaster: dm?.name ? { name: dm.name, element: dm.element ?? '', yinYang: dm.yin_yang } : null,
-            geokguk: extras?.geokguk?.primary ?? null,
-            yongsin: extras?.yongsin ?? null,
-            daeunList,
-            currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
-            // year / date 는 adapter UnseData 에 없음 → queryDate 로 채움.
-            // 이게 있어야 LLM 이 "이번 달 / 오늘" 같은 시점 reasoning 가능.
-            currentSewoon: sajuLoose.currentSeun ? {
-              stem: sajuLoose.currentSeun.heavenlyStem ?? '',
-              branch: sajuLoose.currentSeun.earthlyBranch ?? '',
-              year: queryDate.getFullYear(),
-            } : null,
-            currentWolwoon: sajuLoose.currentWolun ? {
-              stem: sajuLoose.currentWolun.heavenlyStem ?? '',
-              branch: sajuLoose.currentWolun.earthlyBranch ?? '',
-            } : null,
-            currentIljin: sajuLoose.currentIljin ? {
-              stem: sajuLoose.currentIljin.heavenlyStem ?? '',
-              branch: sajuLoose.currentIljin.earthlyBranch ?? '',
-              date: `${queryDate.getFullYear()}-${String(queryDate.getMonth() + 1).padStart(2, '0')}-${String(queryDate.getDate()).padStart(2, '0')}`,
-            } : null,
-          })
-          if (sajuBlock) {
-            // Make the saju block legible (destiny counselor only — compat keeps
-            // raw). Glosses 신살/12신살/12운성/십성/격국/지장간, completes 천간합 化,
-            // and injects engine-computed 용신/희신/기신 (dropped upstream by a
-            // field-name mismatch) so the model doesn't guess favorable elements.
-            parts.push('')
-            parts.push(slimSajuSelf(sajuBlock, {
-              yongsin: sajuLoose.extras?.yongsin as unknown as YongsinInfo | null,
-            }))
-          }
-        }
+        const ctx = await buildDestinyContext({
+          birthDate, birthTime, gender,
+          timezone: tz, latitude, longitude,
+          birthTimeUnknown: hourUnknown, birthCityUnknown: cityUnknown,
+        }, queryDate, lang)
+        parts.push('', ctx)
       } catch (err) {
-        logger.warn('[counselor/realtime] sajuSelf format failed', { err: err instanceof Error ? err.message : String(err) })
-      }
-
-      // ── 점성 (raw + cross 통합 — natal/aspects/transits/SR/LR/profection) ──
-      try {
-        const natal = await calculateNatalChart({
-          year: y, month: m, date: d, hour: hh, minute: mm,
-          latitude, longitude, timeZone: tz,
-        })
-        const astroSelfBlock = await formatAstroSelf({
-          chart: toChart(natal),
-          latitude, longitude, timeZone: tz,
-          koreanAge: typeof ageYears === 'number' ? ageYears + 1 : undefined,
-          now: queryDate,
-          natalInput: { year: y, month: m, date: d, hour: hh, minute: mm, latitude, longitude, timeZone: tz },
-          // 출생지 미상이면 ASC/MC/houses 모두 default Seoul 좌표 기반 계산
-          // 이라 의미 없음. 출력 자체를 생략해서 "위치 의존 결론 금지" 룰과
-          // 데이터의 모순 제거.
-          skipAngles: birthCityUnknown,
-        })
-        if (astroSelfBlock) {
-          // Slim + localize the astro block (destiny counselor only — compat
-          // keeps the raw formatAstroSelf output). Filters weak aspects, drops
-          // solo/esoteric blocks, this-year eclipses, decimal orbs, KO/EN terms.
-          parts.push('')
-          parts.push(slimAstroSelf(astroSelfBlock, { locale: lang, year: queryDate.getFullYear() }))
-        }
-      } catch (err) {
-        logger.warn('[counselor/realtime] astroSelf format failed', { err: err instanceof Error ? err.message : String(err) })
+        logger.warn('[counselor/realtime] destiny context build failed', { err: err instanceof Error ? err.message : String(err) })
       }
 
       // Wrap in <birth_data> tags so Claude treats this as injected

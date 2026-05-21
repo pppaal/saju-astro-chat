@@ -10,6 +10,9 @@ import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
 import { calculateStrengthScore } from '@/lib/saju/strengthScore'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
+import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
+import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 
 export type Locale = 'ko' | 'en'
 
@@ -34,7 +37,51 @@ function sibsinOf(day: string, other: string): string {
 }
 
 export interface DestinyBirth {
-  birthDate: string; birthTime: string; gender: 'male' | 'female'; timezone?: string
+  birthDate: string; birthTime: string; gender: 'male' | 'female'
+  timezone?: string; latitude?: number; longitude?: number
+  birthTimeUnknown?: boolean; birthCityUnknown?: boolean
+}
+
+function buildInstructions(locale: Locale): string {
+  if (locale === 'en') {
+    return [
+      '## READING RULES',
+      '- saju and astrology are separate systems: read each section on its own; integrate only as shared themes at the end.',
+      "- never mix vocabulary across systems (e.g. \"yongsin activates Mars\" is wrong).",
+      '- orb weight: 0-2°=strong / 3-4°=mid / 5-6°=weak.',
+      '- dignity = how well the planet functions in that sign.',
+      '- a value marked inferred may be overridden if other evidence conflicts.',
+    ].join('\n')
+  }
+  return [
+    '## 읽기 규칙',
+    '- 사주와 점성은 별개 체계: 각 섹션을 따로 읽고, 공통 테마만 마지막에 통합한다.',
+    '- 두 체계 용어를 섞지 말 것 (예: "용신이 화성을 활성화" ✗).',
+    '- orb 가중치: 0-2°=강 / 3-4°=중 / 5-6°=약.',
+    '- 디그니티 = 행성이 그 사인에서 얼마나 잘 작동하는지.',
+    '- inferred로 표시된 값은 다른 근거와 충돌하면 재판단 가능.',
+  ].join('\n')
+}
+
+/** Full counselor context: SAJU (raw) + ASTRO/CURRENT (raw→refined) + rules. */
+export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale: Locale = 'ko'): Promise<string> {
+  const saju = buildSajuSection(birth, locale)
+  let astro = ''
+  try {
+    const [Y, M, D] = birth.birthDate.split('-').map(Number)
+    const [h, mi] = (birth.birthTime || '12:00').split(':').map(Number)
+    const lat = birth.latitude ?? 37.5665
+    const lon = birth.longitude ?? 126.978
+    const tz = birth.timezone ?? 'Asia/Seoul'
+    const natal = await calculateNatalChart({ year: Y, month: M, date: D, hour: h, minute: mi, latitude: lat, longitude: lon, timeZone: tz })
+    const block = await formatAstroSelf({
+      chart: toChart(natal), latitude: lat, longitude: lon, timeZone: tz, now,
+      natalInput: { year: Y, month: M, date: D, hour: h, minute: mi, latitude: lat, longitude: lon, timeZone: tz },
+      skipAngles: birth.birthCityUnknown,
+    })
+    astro = slimAstroSelf(block, { locale, year: now.getFullYear() })
+  } catch { /* astro optional */ }
+  return [saju, astro, buildInstructions(locale)].filter(Boolean).join('\n\n').trim() + '\n'
 }
 
 export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko'): string {
@@ -97,7 +144,8 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko'): st
   const lab: Record<string, string> = { year: 'Y', month: 'M', day: 'D', time: 'H' }
   for (const k of ['year', 'month', 'day', 'time'] as const) {
     const st = P[k].heavenlyStem, br = P[k].earthlyBranch
-    out.push(`  ${lab[k]} ${st.name}${br.name} | ${st.sibsin ?? '-'}/${br.sibsin ?? '-'}`)
+    const stemSib = k === 'day' ? '일간' : (st.sibsin ?? '-') // day stem = the reference itself
+    out.push(`  ${lab[k]} ${st.name}${br.name} | ${stemSib}/${br.sibsin ?? '-'}`)
   }
   out.push('')
 
@@ -119,7 +167,10 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko'): st
 
   if (rel.length) {
     out.push('internal_combos:')
-    for (const r of rel) out.push(`  ${r.kind}${r.detail ? ` ${r.detail}` : ''}`)
+    for (const r of rel) {
+      const line = r.detail && r.detail.includes(r.kind) ? r.detail : `${r.kind}${r.detail ? ` ${r.detail}` : ''}`
+      out.push(`  ${line}`)
+    }
     out.push('')
   }
 
