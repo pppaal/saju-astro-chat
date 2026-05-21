@@ -8,6 +8,7 @@ interface SessionItem {
   messageCount: number;
   updatedAt: string;
   summary?: string;
+  title?: string;
 }
 
 interface HistoryModalProps {

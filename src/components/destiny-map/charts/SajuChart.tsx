@@ -36,6 +36,17 @@ const ELEMENT_STYLE: Record<string, { text: string; bg: string }> = {
 
 const DEFAULT_STYLE = { text: 'text-slate-300', bg: 'bg-slate-800/50' }
 
+// Hanja → Korean reading, so the pillar cells read "신금 / 을목 / 해수" instead
+// of bare 辛 / 乙 / 亥 (which most users can't read).
+const STEM_READING: Record<string, string> = {
+  甲: '갑', 乙: '을', 丙: '병', 丁: '정', 戊: '무', 己: '기', 庚: '경', 辛: '신', 壬: '임', 癸: '계',
+}
+const BRANCH_READING: Record<string, string> = {
+  子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사', 午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
+}
+const readingOf = (name?: string) =>
+  (name ? (STEM_READING[name] ?? BRANCH_READING[name] ?? name) : '')
+
 function pickPillars(saju: SajuChartProps['saju']) {
   if (!saju) return null
   const year = saju.yearPillar || saju.pillars?.year
@@ -68,6 +79,14 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
     { key: 'year', pillar: pillars.year, isMe: false },
   ]
 
+  // KO: "신금 / 을목 / 해수" (reading + element); EN keeps the Hanja glyph.
+  const cellText = (cell?: GanjiCell) => {
+    if (!cell?.name) return '·'
+    if (!isKo) return cell.name
+    const r = readingOf(cell.name)
+    return cell.element ? `${r}${cell.element}` : r
+  }
+
   return (
     <div className="flex justify-between gap-2 rounded-xl border border-stone-800 bg-stone-950/80 p-4 shadow-inner">
       {order.map(({ key, pillar, isMe }) => {
@@ -86,17 +105,17 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
               )}
             </div>
             <div
-              className={`flex h-10 w-10 items-center justify-center rounded-lg border border-stone-700/50 shadow-sm ${stemStyle.bg}`}
+              className={`flex h-10 w-12 items-center justify-center rounded-lg border border-stone-700/50 shadow-sm ${stemStyle.bg}`}
             >
-              <span className={`font-serif text-lg font-bold ${stemStyle.text}`}>
-                {stem?.name || '·'}
+              <span className={`${isKo ? 'text-sm' : 'font-serif text-lg'} font-bold ${stemStyle.text}`}>
+                {cellText(stem)}
               </span>
             </div>
             <div
-              className={`flex h-10 w-10 items-center justify-center rounded-lg border border-stone-700/50 shadow-sm ${branchStyle.bg}`}
+              className={`flex h-10 w-12 items-center justify-center rounded-lg border border-stone-700/50 shadow-sm ${branchStyle.bg}`}
             >
-              <span className={`font-serif text-lg font-bold ${branchStyle.text}`}>
-                {branch?.name || '·'}
+              <span className={`${isKo ? 'text-sm' : 'font-serif text-lg'} font-bold ${branchStyle.text}`}>
+                {cellText(branch)}
               </span>
             </div>
           </div>

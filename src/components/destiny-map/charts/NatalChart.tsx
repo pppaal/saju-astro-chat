@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
 
 interface PlanetInput {
   name: string
@@ -16,114 +15,105 @@ interface NatalChartProps {
   lang?: 'ko' | 'en'
 }
 
-const ZODIAC_SIGNS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'] as const
+const ZODIAC_GLYPHS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'] as const
+const SIGN_KO = ['양', '황소', '쌍둥이', '게', '사자', '처녀', '천칭', '전갈', '궁수', '염소', '물병', '물고기'] as const
 
 const PLANET_GLYPHS: Record<string, string> = {
-  Sun: '☉',
-  Moon: '☽',
-  Mercury: '☿',
-  Venus: '♀',
-  Mars: '♂',
-  Jupiter: '♃',
-  Saturn: '♄',
-  Uranus: '♅',
-  Neptune: '♆',
-  Pluto: '♇',
+  Sun: '☉', Moon: '☽', Mercury: '☿', Venus: '♀', Mars: '♂', Jupiter: '♃',
+  Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇', Node: '☊', 'True Node': '☊', 'North Node': '☊',
 }
+const PLANET_ORDER = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Node', 'True Node', 'North Node']
 
-const VISIBLE_PLANETS = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn']
+const SIZE = 240
+const CX = SIZE / 2
+const CY = SIZE / 2
 
-function polarToCartesian(cx: number, cy: number, r: number, deg: number) {
-  const rad = ((deg - 90) * Math.PI) / 180
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) }
+// ASC fixed at the left (9 o'clock); ecliptic longitude increases counter-clockwise.
+const screenDeg = (lon: number, asc: number) => 180 + (lon - asc)
+const pt = (r: number, deg: number) => {
+  const rad = (deg * Math.PI) / 180
+  return { x: CX + r * Math.cos(rad), y: CY - r * Math.sin(rad) }
 }
 
 export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
   const isKo = lang === 'ko'
   const planets = Array.isArray(astro?.planets) ? astro!.planets! : []
-  const ascLongitude = astro?.ascendant?.longitude ?? 0
-  const visible = VISIBLE_PLANETS
+  const asc = astro?.ascendant?.longitude ?? 0
+  const ascSign = Math.floor((((asc % 360) + 360) % 360) / 30)
+
+  const visible = PLANET_ORDER
     .map((name) => planets.find((p) => p.name === name))
-    .filter((p): p is PlanetInput => Boolean(p))
+    .filter((p): p is PlanetInput => Boolean(p) && Number.isFinite(p!.longitude))
+    // de-dupe Node/True Node if both present
+    .filter((p, i, arr) => arr.findIndex((q) => PLANET_GLYPHS[q.name] === PLANET_GLYPHS[p.name]) === i)
+
+  const ringOuter = 104
+  const ringInner = 80
+  const glyphR = 92
+
+  // stagger planet radius by draw order to reduce label collisions
+  const sortedByLon = [...visible].sort((a, b) => a.longitude - b.longitude)
+  const radiusOf = (name: string) => 50 + (sortedByLon.findIndex((p) => p.name === name) % 2) * 13
 
   return (
-    <div className="relative flex flex-col items-center overflow-hidden rounded-xl border border-indigo-500/30 bg-slate-950/80 p-4 shadow-inner">
-      <div className="mb-2 flex w-full items-center gap-1.5 text-left">
-        <span className="text-indigo-400">✦</span>
-        <span className="font-serif text-xs tracking-wider text-indigo-300">
-          {isKo ? '네이탈 차트' : 'NATAL CHART'}
-        </span>
-      </div>
+    <div className="relative flex flex-col items-center overflow-hidden rounded-xl border border-indigo-500/30 bg-slate-950/80 p-3 shadow-inner">
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="h-auto w-full">
+        <circle cx={CX} cy={CY} r={ringOuter} fill="none" stroke="rgba(99,102,241,0.45)" strokeWidth="1.5" />
+        <circle cx={CX} cy={CY} r={ringInner} fill="none" stroke="rgba(99,102,241,0.22)" strokeWidth="1" />
 
-      <div className="relative mx-auto my-2 h-40 w-40">
-        <motion.svg
-          viewBox="0 0 200 200"
-          className="absolute inset-0 h-full w-full drop-shadow-md"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
-        >
-          <circle cx="100" cy="100" r="95" fill="none" stroke="rgba(99, 102, 241, 0.4)" strokeWidth="2" />
-          <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(99, 102, 241, 0.2)" strokeWidth="1" />
+        {/* 12 sign sectors + glyphs + whole-sign house numbers */}
+        {ZODIAC_GLYPHS.map((glyph, s) => {
+          const boundary = screenDeg(s * 30, asc)
+          const bp1 = pt(ringInner, boundary)
+          const bp2 = pt(ringOuter, boundary)
+          const mid = screenDeg(s * 30 + 15, asc)
+          const gp = pt(glyphR, mid)
+          const houseNum = ((s - ascSign + 12) % 12) + 1
+          const hp = pt(ringInner - 9, mid)
+          return (
+            <g key={s}>
+              <line x1={bp1.x} y1={bp1.y} x2={bp2.x} y2={bp2.y} stroke="rgba(99,102,241,0.22)" strokeWidth="1" />
+              <text x={gp.x} y={gp.y} fill="#a5b4fc" fontSize="13" textAnchor="middle" dominantBaseline="middle">{glyph}</text>
+              <text x={hp.x} y={hp.y} fill="rgba(148,163,184,0.5)" fontSize="8" textAnchor="middle" dominantBaseline="middle">{houseNum}</text>
+            </g>
+          )
+        })}
 
-          {ZODIAC_SIGNS.map((sign, i) => {
-            const angle = (i * 30 + 15) * (Math.PI / 180)
-            const textX = 100 + 82 * Math.cos(angle - Math.PI / 2)
-            const textY = 100 + 82 * Math.sin(angle - Math.PI / 2)
+        {/* ASC marker (left) */}
+        <line x1={CX} y1={CY} x2={pt(ringOuter, 180).x} y2={pt(ringOuter, 180).y} stroke="rgba(251,191,36,0.7)" strokeWidth="1.5" />
+        <text x={pt(ringOuter + 10, 180).x} y={pt(ringOuter + 10, 180).y} fill="#fbbf24" fontSize="10" textAnchor="middle" dominantBaseline="middle">ASC</text>
+
+        {/* planets at true longitude */}
+        {visible.length > 0 ? (
+          visible.map((p) => {
+            const deg = screenDeg(p.longitude, asc)
+            const pos = pt(radiusOf(p.name), deg)
             return (
-              <text
-                key={sign}
-                x={textX}
-                y={textY}
-                fill="#a5b4fc"
-                fontSize="16"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                transform={`rotate(${i * 30 + 15}, ${textX}, ${textY})`}
-              >
-                {sign}
+              <text key={p.name} x={pos.x} y={pos.y} fill="#fde047" fontSize="15" textAnchor="middle" dominantBaseline="middle" className="drop-shadow">
+                {PLANET_GLYPHS[p.name] || '·'}
               </text>
             )
-          })}
-        </motion.svg>
+          })
+        ) : (
+          <text x={CX} y={CY} fill="#94a3b8" fontSize="11" textAnchor="middle">{isKo ? '점성 데이터 없음' : 'No astro data'}</text>
+        )}
+        <circle cx={CX} cy={CY} r="2.5" fill="#818cf8" />
+      </svg>
 
-        <svg viewBox="0 0 200 200" className="absolute inset-0 h-full w-full">
-          {visible.length > 0 ? (
-            visible.map((planet, i) => {
-              const glyph = PLANET_GLYPHS[planet.name] || '·'
-              const adjusted = ((planet.longitude - ascLongitude) % 360 + 360) % 360
-              const radius = 45 + (i % 2) * 12
-              const pos = polarToCartesian(100, 100, radius, adjusted)
-              return (
-                <text
-                  key={planet.name}
-                  x={pos.x}
-                  y={pos.y}
-                  fill="#fde047"
-                  fontSize="18"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="drop-shadow-lg"
-                >
-                  {glyph}
-                </text>
-              )
-            })
-          ) : (
-            <text x="100" y="105" fill="#94a3b8" fontSize="11" textAnchor="middle">
-              {isKo ? '점성 데이터 없음' : 'No astro data'}
-            </text>
-          )}
-          <circle cx="100" cy="100" r="3" fill="#818cf8" />
-        </svg>
-      </div>
-
+      {/* legend: planet → sign degree */}
       {visible.length > 0 && (
-        <div className="mt-1 flex flex-wrap justify-center gap-2 text-[11px] text-indigo-200/80">
-          {visible.slice(0, 5).map((p) => (
-            <span key={p.name}>
-              {PLANET_GLYPHS[p.name]} {Math.round(p.longitude)}°
-            </span>
-          ))}
+        <div className="mt-1 grid w-full grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] text-indigo-200/80">
+          {visible.map((p) => {
+            const lon = (((p.longitude % 360) + 360) % 360)
+            const sign = Math.floor(lon / 30)
+            const deg = Math.floor(lon % 30)
+            return (
+              <span key={p.name} className="flex items-center gap-1">
+                <span className="text-yellow-200">{PLANET_GLYPHS[p.name]}</span>
+                <span>{isKo ? SIGN_KO[sign] : ZODIAC_GLYPHS[sign]} {deg}°</span>
+              </span>
+            )
+          })}
         </div>
       )}
     </div>
