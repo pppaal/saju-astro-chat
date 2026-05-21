@@ -6,6 +6,7 @@ import { getPlanFromPriceId } from '@/lib/payments/prices'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { upgradePlan, addBonusCredits, type PlanType } from '@/lib/credits/creditService'
+import { CREDIT_PACKS } from '@/lib/config/pricing'
 import {
   sendPaymentReceiptEmail,
   sendSubscriptionConfirmEmail,
@@ -277,20 +278,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return
   }
 
-  // 크레딧 수량 매핑
-  const CREDIT_PACK_AMOUNTS: Record<string, number> = {
-    mini: 5,
-    standard: 15,
-    plus: 40,
-    mega: 100,
-    ultimate: 250,
-  }
-
-  const creditAmount = CREDIT_PACK_AMOUNTS[creditPack]
-  if (!creditAmount) {
+  // 크레딧 수량 — 단일 진실원(CREDIT_PACKS)에서 파생. webhook 에 별도
+  // 하드코딩하면 가격표와 어긋나 잘못된 크레딧이 지급될 수 있음.
+  const pack = CREDIT_PACKS[creditPack]
+  if (!pack) {
     logger.error(`[Stripe Webhook] Unknown credit pack: ${creditPack}`)
     return
   }
+  const creditAmount = pack.credits
 
   // 사용자 확인
   const user = await prisma.user.findUnique({
@@ -315,18 +310,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // 결제 완료 이메일 발송
   if (user.email) {
-    const packNames: Record<string, string> = {
-      mini: 'Mini (5 Credits)',
-      standard: 'Standard (15 Credits)',
-      plus: 'Plus (40 Credits)',
-      mega: 'Mega (100 Credits)',
-      ultimate: 'Ultimate (250 Credits)',
-    }
+    const productName = `${creditPack.charAt(0).toUpperCase()}${creditPack.slice(1)} (${creditAmount} Credits)`
     sendPaymentReceiptEmail(userId, user.email, {
       userName: user.name || undefined,
       amount: session.amount_total || 0,
       currency: session.currency || 'krw',
-      productName: packNames[creditPack] || `${creditPack} Credit Pack`,
+      productName,
       transactionId: session.id,
     }).catch((err) => {
       logger.error('[Stripe Webhook] Failed to send payment receipt email:', err)
