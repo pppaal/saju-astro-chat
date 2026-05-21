@@ -8,6 +8,7 @@
 
 import type { FiveElement, SibsinKind } from '@/lib/saju/types'
 import type { KeyEvents } from '../derivers/keyEvents'
+import type { MonthComparison } from '../derivers/monthComparison'
 
 /** 룰이 매칭되는 시점 */
 export type RuleScope = 'monthly' | 'yearly' | 'daily' | 'lifetime'
@@ -125,6 +126,11 @@ export interface Interpretation {
    * / 피할 날). cells.derivedScore 에서 결정적으로 뽑음. monthly scope 에서만.
    */
   keyEvents?: KeyEvents
+  /**
+   * "지난달 대비" — 전월 themeScore / 전체 흐름 점수와의 차이. prevCells 가
+   * 주어진 monthly scope 에서만 채워짐 (retention hook).
+   */
+  monthComparison?: MonthComparison
 }
 
 /**

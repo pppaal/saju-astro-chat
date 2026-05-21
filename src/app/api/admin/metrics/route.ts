@@ -23,28 +23,7 @@ import {
   type DashboardTimeRange,
 } from '@/lib/metrics/index'
 import { logger } from '@/lib/logger'
-
-// Helper to check if user is admin (via database role + env fallback)
-async function isUserAdmin(userId: string, email: string): Promise<boolean> {
-  try {
-    const { prisma } = await import('@/lib/db/prisma')
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    })
-
-    if (user?.role === 'admin' || user?.role === 'superadmin') {
-      return true
-    }
-
-    const adminEmails =
-      process.env.ADMIN_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || []
-    return adminEmails.includes(email.toLowerCase())
-  } catch (error) {
-    logger.error('[Metrics] Failed to check admin status', { error, userId })
-    return false
-  }
-}
+import { isAdminUser } from '@/lib/auth/admin'
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
@@ -54,7 +33,7 @@ export const GET = withApiMiddleware(
         return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
       }
 
-      const adminCheck = await isUserAdmin(context.userId, userEmail)
+      const adminCheck = await isAdminUser(context.userId)
       if (!adminCheck) {
         logger.warn('[Metrics] Unauthorized access attempt', {
           email: userEmail,

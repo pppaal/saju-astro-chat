@@ -2,19 +2,20 @@
  * 점수 → 3단계 등급 매핑.
  *
  * 절대 점수가 아니라 그 사용자 분포의 백분위 기반 임계값.
- *   상위 20% → 길
- *   중간 60% → 평
- *   하위 20% → 흉
+ *   상위 20% → 좋은 날
+ *   중간 60% → 보통
+ *   하위 20% → 조심할 날
  *
- * 매달 보장: 길 ~6일 + 평 ~18일 + 흉 ~6일.
- * 사용자마다 임계값 다름 (자기 분포에 맞춤).
+ * 매달 보장: 좋은 날 ~6일 + 보통 ~18일 + 조심할 날 ~6일.
+ * 사용자마다 임계값 다름 (자기 분포에 맞춤) — "절대적으로 좋은 날"이 아니라
+ * "그 사람 기준 상대적으로 강한/약한 날".
  */
 
 export type GradeKey = 'lucky' | 'neutral' | 'unlucky'
 
 export interface GradeInfo {
   key: GradeKey
-  label: '길' | '평' | '흉'
+  label: '좋은 날' | '보통' | '조심할 날'
   sub: string
   colorClass: string
   bgClass: string
@@ -49,7 +50,7 @@ export function computeGradeThresholds(scores: number[]): GradeThresholds {
 
 const LUCKY: GradeInfo = {
   key: 'lucky',
-  label: '길',
+  label: '좋은 날',
   sub: '받쳐주는 흐름',
   colorClass: 'text-emerald-300',
   bgClass: 'bg-gradient-to-br from-emerald-900/40 to-cyan-900/20',
@@ -57,16 +58,16 @@ const LUCKY: GradeInfo = {
 }
 const NEUTRAL: GradeInfo = {
   key: 'neutral',
-  label: '평',
-  sub: '보통',
+  label: '보통',
+  sub: '잔잔한 흐름',
   colorClass: 'text-zinc-300',
   bgClass: 'bg-gradient-to-br from-indigo-950/40 to-zinc-900/40',
   borderClass: 'border-indigo-500/20',
 }
 const UNLUCKY: GradeInfo = {
   key: 'unlucky',
-  label: '흉',
-  sub: '신중하게',
+  label: '조심할 날',
+  sub: '무리하지 않기',
   colorClass: 'text-rose-300',
   bgClass: 'bg-gradient-to-br from-rose-900/40 to-zinc-900/40',
   borderClass: 'border-rose-500/40',
@@ -81,4 +82,3 @@ export function getGrade(score: number, thresholds: GradeThresholds = FALLBACK):
   if (score <= thresholds.unluckyMax) return UNLUCKY
   return NEUTRAL
 }
-

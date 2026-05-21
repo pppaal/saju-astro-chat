@@ -352,7 +352,8 @@ describe('POST /api/latlon-to-timezone', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error).toBe('Timezone database error')
+    // 내부 에러 메시지는 클라이언트에 노출하지 않음(서버에서만 기록)
+    expect(data.error).toBe('server error')
     expect(mockCaptureServerError).toHaveBeenCalled()
   })
 
@@ -366,7 +367,8 @@ describe('POST /api/latlon-to-timezone', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error).toContain('Unexpected token')
+    // raw 파서 에러 메시지를 노출하지 않음
+    expect(data.error).toBe('server error')
   })
 
   it('should handle missing lat field', async () => {

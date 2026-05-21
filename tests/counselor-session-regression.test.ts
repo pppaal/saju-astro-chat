@@ -62,6 +62,22 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
     // 운명상담사는 client 가 alread cap). 운명만, 궁합과 구분.
     expect(route).not.toMatch(/clampMessages/)
   })
+
+  it('세션당 과금 — 턴당 과금으로 되돌아가지 않게 (session billing)', () => {
+    // 1 크레딧 = 세션 1개 (window/turn cap 내 무료). Redis 로 서버측
+    // 추적해 client 가 history 잘라 보내 회피 못 함.
+    expect(route).toMatch(/CREDIT_PER_SESSION/)
+    expect(route).toMatch(/counselor:session:/)
+    expect(route).toMatch(/isNewSession/)
+    expect(route).not.toMatch(/CREDIT_PER_TURN/)
+  })
+
+  it('스트림 빈 응답 시 크레딧 환불 배선 (stream refund)', () => {
+    // 차감했는데 스트림이 빈 응답이면 refundCredits + 세션키 삭제로 원복.
+    expect(route).toMatch(/refundCredits/)
+    expect(route).toMatch(/onFailure/)
+    expect(route).toMatch(/cacheDel\(sessionKey\)/)
+  })
 })
 
 describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () => {

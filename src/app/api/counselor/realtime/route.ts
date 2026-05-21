@@ -19,7 +19,8 @@ import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
-import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { refundCredits } from '@/lib/credits/creditRefund'
+import { cacheGet, cacheSet, cacheDel, CACHE_TTL } from '@/lib/cache/redis-cache'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -46,7 +47,21 @@ interface RealtimeBody {
 }
 
 const RATE_LIMIT_PER_MIN = 12
-const CREDIT_PER_TURN = 1
+
+// Session-based billing: 1 credit opens a counselling *session*; every turn
+// within SESSION_WINDOW_SECONDS (and up to TURNS_PER_SESSION) is then free.
+// Replaces the old per-turn charge so a chatty sitting no longer drains
+// credits message-by-message. Session state lives in Redis keyed by user, so
+// a client can't replay a truncated history to dodge the charge.
+const CREDIT_PER_SESSION = 1
+const SESSION_WINDOW_SECONDS = 30 * 60
+const TURNS_PER_SESSION = 20
+const counselorSessionKey = (userId: string) => `counselor:session:${userId}`
+
+interface CounselorSession {
+  startedAt: number
+  turns: number
+}
 
 // DestinyPal warm-counselor system prompts.
 //
@@ -176,13 +191,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: safetyMessage(lang) }, { status: 200 })
   }
 
-  // 4) Credit pre-check
-  const credit = await canUseCredits(userId, 'reading', CREDIT_PER_TURN)
-  if (!credit.allowed) {
-    return NextResponse.json(
-      { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
-      { status: 402 }
-    )
+  // 4) Resolve session + credit pre-check. A credit is only required to start
+  // a *new* session — no active session, the window elapsed, or the turn cap
+  // was reached. Continuing an active session costs nothing.
+  const sessionKey = counselorSessionKey(userId)
+  const nowMs = Date.now()
+  const existingSession = await cacheGet<CounselorSession>(sessionKey)
+  const sessionActive =
+    !!existingSession &&
+    nowMs - existingSession.startedAt < SESSION_WINDOW_SECONDS * 1000 &&
+    existingSession.turns < TURNS_PER_SESSION
+  const isNewSession = !sessionActive
+
+  if (isNewSession) {
+    const credit = await canUseCredits(userId, 'reading', CREDIT_PER_SESSION)
+    if (!credit.allowed) {
+      return NextResponse.json(
+        { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
+        { status: 402 }
+      )
+    }
   }
 
   // 5) Compute (or fetch cached) birth snapshot
@@ -305,14 +333,28 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 6) Deduct credits AFTER all validation passed but BEFORE the stream starts.
-  // If the stream itself errors mid-way, we still consider the turn paid for —
-  // mirrors how every other LLM endpoint in the codebase bills.
-  try {
-    await consumeCredits(userId, 'reading', CREDIT_PER_TURN)
-  } catch (err) {
-    logger.warn('[counselor/realtime] credit deduction failed', { err })
-    // Don't block the user — observability over enforcement here.
+  // 6) Charge + advance the session marker AFTER validation but BEFORE the
+  // stream starts. New session → consume 1 credit and open the window.
+  // Continuing session → free; just bump the turn counter while keeping the
+  // original window (fixed, not sliding).
+  let chargedThisTurn = false
+  if (isNewSession) {
+    try {
+      const res = await consumeCredits(userId, 'reading', CREDIT_PER_SESSION)
+      chargedThisTurn = res.success
+    } catch (err) {
+      logger.warn('[counselor/realtime] credit deduction failed', { err })
+      // Don't block the user — observability over enforcement here.
+    }
+    await cacheSet(sessionKey, { startedAt: nowMs, turns: 1 }, SESSION_WINDOW_SECONDS)
+  } else {
+    const startedAt = existingSession?.startedAt ?? nowMs
+    const turns = (existingSession?.turns ?? 0) + 1
+    const remainingSec = Math.max(
+      1,
+      Math.ceil((SESSION_WINDOW_SECONDS * 1000 - (nowMs - startedAt)) / 1000)
+    )
+    await cacheSet(sessionKey, { startedAt, turns }, remainingSec)
   }
 
   // 7) Build prompt and stream — 진짜 multi-turn 구조.
@@ -334,6 +376,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
   }
 
+  // If we charged for a new session but the stream delivers nothing (backend
+  // error or empty completion), refund the credit and drop the session marker
+  // so the user isn't billed for an empty response or left inside a paid
+  // window they never got to use. Continuing turns weren't charged → no-op.
+  const onFailure = chargedThisTurn
+    ? async () => {
+        try {
+          await refundCredits({
+            userId,
+            creditType: 'reading',
+            amount: CREDIT_PER_SESSION,
+            reason: 'counselor_stream_empty',
+            apiRoute: '/api/counselor/realtime',
+          })
+          await cacheDel(sessionKey)
+        } catch (err) {
+          logger.warn('[counselor/realtime] stream-failure refund failed', { err })
+        }
+      }
+    : undefined
+
   return streamClaudeAsSSE({
     systemPrompt,
     userPrompt,
@@ -342,6 +405,7 @@ export async function POST(req: NextRequest) {
     maxTokens: 1500,
     temperature: 0.5,
     label: 'counselor.realtime',
+    onFailure,
     additionalHeaders: {
       'X-RateLimit-Limit': rl.headers.get('X-RateLimit-Limit') ?? '',
       'X-RateLimit-Remaining': rl.headers.get('X-RateLimit-Remaining') ?? '',

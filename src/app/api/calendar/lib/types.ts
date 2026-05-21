@@ -98,6 +98,15 @@ export interface FormattedDate {
       window?: { start: string; end: string; avg: number }
       avoid?: { dates: string[] }
     }
+    /** 지난달 대비 — 전체 흐름/테마별 점수 변화 */
+    monthComparison?: {
+      overallDelta: number
+      themes: Array<{
+        theme: 'love' | 'money' | 'career' | 'health' | 'growth'
+        delta: number
+        dir: 'up' | 'down'
+      }>
+    }
   }
   /**
    * 해당 날의 60갑자(일진) 한 줄 narrative — `getGanjiTransitNarrative` 출처.
@@ -105,6 +114,8 @@ export interface FormattedDate {
    * 5/6 월 동일 텍스트 같은 문제는 layer='daily' 에서도 자연스럽게 분기.
    */
   dailyGanjiNarrative?: string
+  /** 일진 scope 룰 결과 — "오늘 한 줄" 액션 (최대 4) */
+  dailyActions?: string[]
 }
 
 export interface CalendarDailyView {

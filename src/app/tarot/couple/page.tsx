@@ -54,6 +54,12 @@ export default function CoupleTarotPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  // 크레딧 비용 — 8장 이상 스프레드는 2크레딧 (interpret-stream 의
+  // LARGE_SPREAD_THRESHOLD 와 일치), 그 외 1크레딧.
+  const selectedSpreadCards =
+    COUPLE_SPREADS.find((s) => s.id === selectedSpread)?.cards ?? 0
+  const creditCost = selectedSpreadCards >= 8 ? 2 : 1
+
   useEffect(() => {
     if (status === 'loading') {
       return
@@ -292,7 +298,7 @@ export default function CoupleTarotPage() {
                 {submitting ? '준비 중...' : '커플 타로 시작하기'}
               </button>
               <p className={styles.creditInfo}>
-                1 크레딧 사용 · <span>파트너도 결과를 볼 수 있어요</span>
+                {creditCost} 크레딧 사용 · <span>파트너도 결과를 볼 수 있어요</span>
               </p>
             </section>
           </>

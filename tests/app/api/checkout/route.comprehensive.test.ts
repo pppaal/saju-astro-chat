@@ -30,9 +30,7 @@ vi.mock('@/lib/security/csrf', () => ({
 }))
 
 vi.mock('@/lib/payments/prices', () => ({
-  getPriceId: vi.fn(() => 'price_123'),
   getCreditPackPriceId: vi.fn(() => 'price_credit_456'),
-  allowedPriceIds: vi.fn(() => ['price_123']),
   allowedCreditPackIds: vi.fn(() => ['price_credit_456']),
 }))
 
@@ -82,9 +80,7 @@ import { POST } from '@/app/api/checkout/route'
 import { getServerSession } from 'next-auth'
 import { rateLimit } from '@/lib/rateLimit'
 import {
-  getPriceId,
   getCreditPackPriceId,
-  allowedPriceIds,
   allowedCreditPackIds,
 } from '@/lib/payments/prices'
 
@@ -118,9 +114,7 @@ describe('/api/checkout', () => {
     } as any)
 
     // Default: prices
-    vi.mocked(getPriceId).mockReturnValue('price_123')
     vi.mocked(getCreditPackPriceId).mockReturnValue('price_credit_456')
-    vi.mocked(allowedPriceIds).mockReturnValue(['price_123'])
     vi.mocked(allowedCreditPackIds).mockReturnValue(['price_credit_456'])
 
     // Default: Stripe success
@@ -321,40 +315,8 @@ describe('/api/checkout', () => {
     })
   })
 
-  describe('Subscription Checkout', () => {
-    it('should create subscription checkout session', async () => {
-      const req = new NextRequest('http://localhost:3000/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
-        }),
-      })
-
-      const response = await POST(req)
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.data?.url || data.url).toBe('https://checkout.stripe.com/session-123')
-      expect(mockStripeCheckoutCreate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          mode: 'subscription',
-          line_items: [{ price: 'price_123', quantity: 1 }],
-          customer_email: 'test@example.com',
-          metadata: expect.objectContaining({
-            type: 'subscription',
-            plan: 'premium',
-            billingCycle: 'monthly',
-          }),
-        }),
-        expect.any(Object)
-      )
-    })
-
-    it('should validate subscription price is allowed', async () => {
-      vi.mocked(allowedPriceIds).mockReturnValue([])
-
+  describe('Subscriptions Retired', () => {
+    it('should reject subscription (plan) requests now that only credit packs are sold', async () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -365,20 +327,8 @@ describe('/api/checkout', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(extractErrorMessage(data)).toContain('invalid_price')
-    })
-
-    it('should allow promotion codes for subscriptions', async () => {
-      const req = new NextRequest('http://localhost:3000/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'pro', billingCycle: 'yearly' }),
-      })
-
-      await POST(req)
-
-      const createCall = mockStripeCheckoutCreate.mock.calls[0][0]
-      expect(createCall.allow_promotion_codes).toBe(true)
+      expect(extractErrorMessage(data)).toContain('invalid_request')
+      expect(mockStripeCheckoutCreate).not.toHaveBeenCalled()
     })
 
     it('should return error when Stripe returns no URL', async () => {
@@ -387,7 +337,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -466,7 +416,7 @@ describe('/api/checkout', () => {
           'Content-Type': 'application/json',
           'x-idempotency-key': 'client-key-123',
         },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)
@@ -480,7 +430,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)
@@ -499,7 +449,7 @@ describe('/api/checkout', () => {
           'Content-Type': 'application/json',
           'x-idempotency-key': longKey,
         },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)
@@ -516,7 +466,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -545,7 +495,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)
@@ -558,7 +508,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)
@@ -573,7 +523,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)
@@ -588,7 +538,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)

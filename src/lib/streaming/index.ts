@@ -21,10 +21,3 @@ export {
   type StreamProxyOptions,
   type StreamTransformOptions,
 } from './serverStreamProxy'
-
-// Streaming route factory
-export {
-  createStreamRoute,
-  type StreamRouteConfig,
-  type StreamPayloadResult,
-} from './createStreamRoute'

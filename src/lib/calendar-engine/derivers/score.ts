@@ -30,6 +30,26 @@ export interface SignalForScore {
   weight: number
 }
 
+/**
+ * 가중평균 polarity(avg, -3~+3) → 0~100 점수. derivedScore·themeScore 공용 정규화.
+ *   score = 50 + (avg - bias) × scale   (unclamped — caller 가 보너스/클램프 처리)
+ *
+ * - bias: 그 신호 풀의 구조적 polarity 편향 보정. derivedScore 는 전체 신호 2단
+ *   평균이 +쏠림(~+1.75)이라 recenter 필요, themeScore 는 per-theme 라 ~0.
+ * - scale: 분포 폭.
+ *
+ * TODO(calibration): bias/scale 은 96차트×1년 시뮬 기반 경험값. 룰을 대량
+ *   추가/삭제하면 scripts/score-distribution 류로 재측정해 조정할 것.
+ */
+export function normalizeAvgToScore(avg: number, bias: number, scale: number): number {
+  return 50 + (avg - bias) * scale
+}
+
+/** derivedScore recenter 상수 (전체 신호 polarity 양 편향 보정) */
+export const DERIVED_SCORE_BIAS = 1.75
+/** derivedScore 분포 스케일 */
+export const DERIVED_SCORE_SCALE = 16
+
 export function deriveScore(signals: SignalForScore[], patterns: SignalPattern[] = []): number {
   if (signals.length === 0) return 50
 
@@ -61,8 +81,12 @@ export function deriveScore(signals: SignalForScore[], patterns: SignalPattern[]
   if (totalWeight === 0) return 50
 
   const grandAvg = weightedSum / totalWeight // -3 ~ +3
-  let score = 50 + grandAvg * 16 // 분포 넓힘 (이전 ×12 → ×16)
-  // 이론적 max 98, min 2 — 실제로 20~85 정도
+  // 신호 polarity 가 구조적으로 양(+)에 쏠려(용신부합 십신 다수) grandAvg
+  // 중앙값이 ~+2.25 → recenter 전엔 86 으로 떠 대부분 날이 soft-compression
+  // (>90) 구간에 박혀 "좋은날" 변별이 3.7점밖에 안 됐음 (96차트×1년 시뮬).
+  // DERIVED_SCORE_BIAS 로 recenter → 보통날 ~58, 좋은날 밴드 14.9점으로 넓어짐.
+  // 상대 등급(percentile)은 균일 이동이라 불변.
+  let score = normalizeAvgToScore(grandAvg, DERIVED_SCORE_BIAS, DERIVED_SCORE_SCALE)
 
   // 공명 보너스
   if (positiveLayers.length >= 3) score += 4

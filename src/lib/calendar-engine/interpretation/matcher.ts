@@ -6,6 +6,7 @@ import { RULES } from './rules'
 import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
 import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
 import { deriveKeyEvents } from '../derivers/keyEvents'
+import { deriveMonthComparison } from '../derivers/monthComparison'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -33,8 +34,10 @@ export function buildInterpretation(args: {
   cells: CalendarCell[]
   scope?: 'monthly' | 'yearly' | 'daily' | 'lifetime'
   lang?: InterpretationLang
+  /** 전월 셀 — 주어지면 "지난달 대비" 비교를 monthly scope 에서 계산 */
+  prevCells?: CalendarCell[]
 }): Interpretation {
-  const { natal, cells, scope = 'monthly', lang = 'ko' } = args
+  const { natal, cells, scope = 'monthly', lang = 'ko', prevCells } = args
 
   // 모든 셀에서 신호 + 패턴 합치기
   const allSignals = cells.flatMap((c) => c.signals)
@@ -116,7 +119,7 @@ export function buildInterpretation(args: {
   // 시간 cycle 섹션은 2줄까지 허용 (대운/세운/월운) — 룰은 이미 12/24/29개
   // 있는데 1줄만 표출돼 얇았음. 두 번째 룰(다른 조건 분기)까지 풀어 깊이 ↑.
   // natal/transit/pattern/shinsal 은 1줄 유지 (헤드라인 성격).
-  const SECTION_CAP: Record<string, number> = { daeun: 2, seun: 2, wolun: 2 }
+  const SECTION_CAP: Record<string, number> = { daeun: 2, seun: 2, wolun: 2, today: 4 }
 
   for (const m of matched) {
     if (usedRuleIds.has(m.rule.id)) continue
@@ -141,9 +144,6 @@ export function buildInterpretation(args: {
 
   // 도메인 묶음을 단일 가상 entry로 합쳐 picked에 추가
   // — 도메인별 cells에서 top/bottom dates 추출 → narrative 끝에 추가
-  // 표출된 룰(top-N) 만 따로 보관 — themeScores 가 narrative 와 같은 룰로
-  // 점수를 내야 점수↔해석 동기화가 깨지지 않음.
-  const domainShown = new Map<string, typeof matched>()
   for (const domain of DOMAIN_ORDER) {
     const allCandidates = domainPicks.get(domain)
     if (!allCandidates || allCandidates.length === 0) continue
@@ -171,7 +171,6 @@ export function buildInterpretation(args: {
       // narrative 순서 안정화 — 원래 ranked(priority/strength) 순서 유지
       return ranked.filter((m) => picks.includes(m))
     })()
-    domainShown.set(domain, list)
     const themes = DOMAIN_THEMES[domain] ?? []
     const topDates = pickDomainExtremeDates(cells, themes, 3, 'high')
     const lowDates = pickDomainExtremeDates(cells, themes, 2, 'low')
@@ -216,6 +215,7 @@ export function buildInterpretation(args: {
 
   // section별 정렬 (UI 순서) — context → trigger → 5 domain
   const SECTION_ORDER = [
+    'today',
     'daeun',
     'seun',
     'wolun',
@@ -223,6 +223,7 @@ export function buildInterpretation(args: {
     'transit',
     'pattern',
     'shinsal',
+    'timing',
     'domain-money',
     'domain-work',
     'domain-relations',
@@ -266,42 +267,48 @@ export function buildInterpretation(args: {
     if (weekLine) wolunSec.text += `\n${weekLine}`
   }
 
+  // ── P0: natal 섹션 맨 앞에 "용신" 한 줄 ──
+  // 사주 유저가 가장 먼저 묻는 게 "내 용신". 계산은 natal 에 이미 있으니 노출.
+  const yongsinLine = buildYongsinLine(natal, lang)
+  if (yongsinLine) {
+    const natalSec = sections.find((s) => s.section === 'natal')
+    if (natalSec) {
+      natalSec.text = `${yongsinLine}\n${natalSec.text}`
+    } else {
+      // natal 룰이 안 떴어도(예: medium 강약) 용신 줄은 보장 — 순서 맞춰 삽입.
+      const insertAt = sections.findIndex(
+        (s) => SECTION_ORDER.indexOf(s.section) > SECTION_ORDER.indexOf('natal')
+      )
+      const sec = { section: 'natal', title: sectionTitle('natal', lang), text: yongsinLine }
+      if (insertAt === -1) sections.push(sec)
+      else sections.splice(insertAt, 0, sec)
+    }
+  }
+
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
 
-  // 도메인별 themeScores — 신호 평균 base + 룰 의도 adjustment.
+  // 테마 점수 — 신호 기반(셀별 themeScores)의 월 평균.
   //
-  // 점수 모델: final = signalAvg + ruleIntentAvg × 30
+  // Why-card(themeBreakdown)와 *같은* polarity×weight×layerWeight 모델이라
+  // 숫자와 근거 카드의 방향이 항상 일치한다. 또 cell[0](1일) 한 칸이 아니라
+  // 그 달 전체를 평균해 day-1 편향도 없앤다.
   //
-  // - 신호 평균(cell.themeScores)이 base — 사용자 멘탈 모델(80=좋음,
-  //   50=보통, 20=주의)을 따라감.
-  // - 룰 의도 평균이 ±30 adjustment — narrative 톤이 양/음 쪽으로 끌어당김.
-  //   우호 룰 일관(+1) 시 +30, 주의 룰 일관(-1) 시 -30, 섞이면 0.
-  //
-  // 결과 분포 가능 범위: 20-90+ 자유롭게.
-  //  - 신호 우호(80) + 룰 우호(+1) → 110 → cap 100 (매우 좋은 날)
-  //  - 신호 평균(55) + 룰 주의(-1) → 25 (주의 날)
-  //  - 신호 평균(50) + 룰 중립(0) → 50 (보통)
-  const DOMAIN_TO_THEME: Record<string, keyof NonNullable<Interpretation['themeScores']>> = {
-    money: 'money',
-    work: 'career',
-    relations: 'love',
-    body: 'health',
-    growth: 'growth',
-  }
-  const cellThemeScores = cells[0]?.themeScores ?? {}
+  // (이전 모델 'cell[0] 신호평균 + 표출 룰 의도 ×30' 은, 표출된 룰이 신호
+  //  전체와 반대 방향일 때 점수(예: 건강 60)와 근거카드(예: −47)가 모순되는
+  //  문제가 있었음 → opt1: 신호 기반으로 통일.)
+  const THEME_SCORE_KEYS = ['love', 'money', 'career', 'health', 'growth'] as const
   const themeScores: NonNullable<Interpretation['themeScores']> = {}
-  // narrative 에 실제 표출된 룰(domainShown) 로 점수 산출 — 전체 후보
-  // (domainPicks) 가 아니라 사용자가 읽는 4개로 평균내야 점수↔해석 동기화.
-  for (const [domain, list] of domainShown) {
-    const themeKey = DOMAIN_TO_THEME[domain]
-    if (!themeKey) continue
-    const intents = list.map((m) => m.polarity)
-    const intentAvg = intents.length > 0 ? intents.reduce((s, p) => s + p, 0) / intents.length : 0
-    // base: 신호 평균
-    const signalScore = cellThemeScores[themeKey] ?? 50
-    // adjustment: ±30 swing
-    const final = signalScore + intentAvg * 30
-    themeScores[themeKey] = Math.max(0, Math.min(100, Math.round(final)))
+  for (const key of THEME_SCORE_KEYS) {
+    let sum = 0
+    let n = 0
+    for (const c of cells) {
+      const v = c.themeScores?.[key]
+      if (typeof v === 'number') {
+        sum += v
+        n += 1
+      }
+    }
+    if (n > 0) themeScores[key] = Math.round(sum / n)
   }
 
   // Why-card — 테마별 점수 인과 추적 (그 점수에 기여한 신호 top N).
@@ -310,6 +317,19 @@ export function buildInterpretation(args: {
   // 키 이벤트 3 — 월간일 때만 (일별 셀에서 베스트/강한구간/피할날 추출).
   const keyEvents = scope === 'monthly' ? deriveKeyEvents(cells) : undefined
 
+  // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전월 themeScore 를 같은
+  // 모델로 얻기 위해 재귀 호출(단, prevCells 미전달 → 무한재귀 없음).
+  let monthComparison
+  if (scope === 'monthly' && prevCells && prevCells.length > 0) {
+    const prev = buildInterpretation({ natal, cells: prevCells, scope: 'monthly', lang })
+    monthComparison = deriveMonthComparison({
+      currCells: cells,
+      prevCells,
+      currScores: themeScores,
+      prevScores: prev.themeScores,
+    })
+  }
+
   return {
     narrative,
     matchedRuleIds: picked.map((m) => m.rule.id),
@@ -317,6 +337,7 @@ export function buildInterpretation(args: {
     themeScores,
     themeBreakdown,
     keyEvents,
+    monthComparison,
   }
 }
 
@@ -666,7 +687,48 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
     }
   }
 
+  // Void-of-Course 달 — 그 달 무력 구간 날짜를 모아 {vocDates}/{vocDatesCount}.
+  // VoC 신호명은 날짜·사인마다 달라 sameKind 로 안 묶이므로 kind 로 직접 수집.
+  if (s.kind === 'void-of-course') {
+    const allVoc = allSignals.filter((x) => x.kind === 'void-of-course')
+    const dates = Array.from(new Set(allVoc.map((x) => x.active.start.slice(5, 10)))).sort()
+    if (dates.length > 0) {
+      vars.vocDates = dates.slice(0, 6).join(' · ')
+      vars.vocDatesCount = String(dates.length)
+    }
+  }
+
   return vars
+}
+
+// 용신/희신/기신 한 줄 — natal.saju.yongsin 그대로 노출 (P0).
+// 사주 유저 최우선 정보. 오행은 이미 한글(목/화/토/금/수)이라 한자는 괄호 보조.
+const EL_HANJA: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
+const EL_EN: Record<string, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+function buildYongsinLine(natal: NatalContext, lang: InterpretationLang): string {
+  const y = natal.saju.yongsin
+  const primary = y?.primary
+  if (!primary) return ''
+  const secondary = y.secondary
+  const avoid = (y.avoid ?? []).filter(Boolean)
+  if (lang === 'en') {
+    const pen = EL_EN[primary] ?? primary
+    const sen = secondary ? (EL_EN[secondary] ?? secondary) : ''
+    let s = `Your key element (yongsin) is **${pen}**${sen ? ` (supporting: ${sen})` : ''} — environments, colours, people, and activities that nourish ${pen}${sen ? ` and ${sen}` : ''} lift your fortune.`
+    if (avoid.length) s += ` Ease off on ${avoid.map((a) => EL_EN[a] ?? a).join(', ')}.`
+    return s
+  }
+  const ph = `${primary}(${EL_HANJA[primary] ?? ''})`
+  const sh = secondary ? `${secondary}(${EL_HANJA[secondary] ?? ''})` : ''
+  let s = `타고난 용신은 **${ph}** 기운${sh ? ` (희신 ${sh})` : ''} — ${primary}${secondary ? `·${secondary}` : ''} 를 키우는 환경·색·사람·활동이 운을 끌어올려요.`
+  if (avoid.length) s += ` 멀리할 기운: ${avoid.join('·')}.`
+  return s
 }
 
 // 대운 위치 한 줄 — 지금 이 10년의 초/중/후반 + 다음 대운 예고.
@@ -755,6 +817,7 @@ function fillTemplate(template: string, vars: TemplateVars): string {
 
 function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string {
   const ko: Record<string, string> = {
+    today: '오늘 한 줄',
     daeun: '10년 큰 흐름',
     seun: '올해의 운',
     wolun: '이번 달',
@@ -762,6 +825,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     transit: '주요 흐름',
     pattern: '주요 패턴',
     shinsal: '행운 별',
+    timing: '타이밍 팁',
     // 5 도메인 통합 헤더 (5테마 1:1)
     'domain-money': '돈·자산',
     'domain-work': '일·커리어',
@@ -770,6 +834,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     'domain-growth': '자기·성장',
   }
   const en: Record<string, string> = {
+    today: 'Today',
     daeun: '10-year Arc',
     seun: 'This Year',
     wolun: 'This Month',
@@ -777,6 +842,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     transit: 'Active Transits',
     pattern: 'Patterns',
     shinsal: 'Lucky Stars',
+    timing: 'Timing Tips',
     'domain-money': 'Money',
     'domain-work': 'Work & Career',
     'domain-relations': 'Relationships',
@@ -1023,5 +1089,8 @@ const DOMAIN_THEMES: Record<string, AstroThemeKey[]> = {
   work: ['career'],
   relations: ['love'],
   body: ['health'],
-  expression: ['growth'],
+  // key must match DOMAIN_ORDER / SECTION_TO_DOMAIN ('growth'); was 'expression'
+  // which left DOMAIN_THEMES['growth'] undefined → 자기·성장 도메인의 강한날/
+  // 주의날 라인이 조용히 누락되던 버그.
+  growth: ['growth'],
 }
