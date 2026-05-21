@@ -89,6 +89,7 @@
 }
 
 .historyRailItem {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -106,6 +107,120 @@
     border-color 0.2s ease,
     background 0.2s ease,
     box-shadow 0.2s ease;
+}
+
+/* load button fills the card; the row is the relatively-positioned shell */
+.historyRailItemMain {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* rename / delete — hover-reveal on desktop, always shown on touch */
+.historyRailItemActions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.historyRailItem:hover .historyRailItemActions,
+.historyRailItem:focus-within .historyRailItemActions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .historyRailItemActions {
+    opacity: 1;
+  }
+}
+
+.historyRailItemAction {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(15, 12, 33, 0.6);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  color: rgba(245, 243, 255, 0.85);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.historyRailItemAction:hover {
+  background: rgba(167, 139, 250, 0.2);
+}
+
+.historyRailItemActionDanger {
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fca5a5;
+}
+
+.historyRailItemActionDanger:hover {
+  background: rgba(248, 113, 113, 0.18);
+}
+
+.historyRailRenameInput {
+  width: 100%;
+  background: rgba(15, 12, 33, 0.85);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  border-radius: 8px;
+  color: #f5f3ff;
+  padding: 0.45rem 0.5rem;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.historyRailRenameInput:focus {
+  border-color: rgba(167, 139, 250, 0.7);
+}
+
+.historyRailConfirm {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.historyRailConfirmText {
+  flex: 1;
+  font-size: 0.8rem;
+  color: rgba(245, 243, 255, 0.85);
+}
+
+.historyRailConfirmYes,
+.historyRailConfirmNo {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.historyRailConfirmYes {
+  background: rgba(248, 113, 113, 0.2);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #fca5a5;
+}
+
+.historyRailConfirmNo {
+  background: transparent;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  color: rgba(245, 243, 255, 0.7);
 }
 
 .historyRailItem:hover {
@@ -2563,6 +2678,41 @@
 
 .lightTheme .historyRailItemDate {
   color: #44403c;
+}
+
+.lightTheme .historyRailItemAction {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  color: #78716c;
+}
+
+.lightTheme .historyRailItemAction:hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}
+
+.lightTheme .historyRailItemActionDanger {
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.lightTheme .historyRailItemActionDanger:hover {
+  background: #fef2f2;
+}
+
+.lightTheme .historyRailRenameInput {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  color: #1c1917;
+}
+
+.lightTheme .historyRailConfirmText {
+  color: #44403c;
+}
+
+.lightTheme .historyRailConfirmNo {
+  border-color: #e7e5e4;
+  color: #57534e;
 }
 
 .lightTheme .historyRailEmpty {

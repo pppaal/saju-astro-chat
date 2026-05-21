@@ -212,6 +212,18 @@
   opacity: 1;
 }
 
+/* Touch devices have no hover, so the rename/delete icons never appeared
+   (and swipe-to-reveal isn't discoverable). Show them always on touch and
+   reserve room so the title doesn't run under the buttons. */
+@media (hover: none) {
+  .sessionActions {
+    opacity: 1;
+  }
+  .sessionItem {
+    padding-right: 66px;
+  }
+}
+
 .iconBtn {
   width: 28px;
   height: 28px;

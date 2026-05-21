@@ -28,6 +28,7 @@ interface UseChatSessionReturn {
   loadSessionHistory: () => Promise<void>
   loadSession: (sessionId: string) => Promise<void>
   deleteSession: (sessionId: string) => Promise<void>
+  renameSession: (sessionId: string, title: string) => Promise<void>
   startNewChat: () => void
 }
 
@@ -182,6 +183,24 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
     }
   }, [])
 
+  // Rename a session (PATCH title); optimistic so the rail updates instantly.
+  const renameSession = React.useCallback(async (sessionId: string, title: string) => {
+    const next = title.trim()
+    if (!next) return
+    try {
+      const res = await fetch('/api/counselor/session/list', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, title: next }),
+      })
+      if (res.ok) {
+        setSessionHistory((prev) => prev.map((s) => (s.id === sessionId ? { ...s, title: next } : s)))
+      }
+    } catch (e) {
+      logger.warn('[Chat] Failed to rename session:', e)
+    }
+  }, [])
+
   // Start new chat
   const startNewChat = React.useCallback(() => {
     setMessages(initialContext ? [{ role: 'system', content: initialContext }] : [])
@@ -200,6 +219,7 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
     loadSessionHistory,
     loadSession,
     deleteSession,
+    renameSession,
     startNewChat,
   }
 }

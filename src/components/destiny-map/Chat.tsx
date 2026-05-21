@@ -53,8 +53,15 @@ const Chat = memo(function Chat({
     historyLoading,
     loadSessionHistory,
     loadSession,
+    deleteSession,
+    renameSession,
+    deleteConfirmId,
+    setDeleteConfirmId,
     startNewChat: hookStartNewChat,
   } = useChatSession({ lang, initialContext, saju, astro })
+
+  const [renamingId, setRenamingId] = React.useState<string | null>(null)
+  const [renameValue, setRenameValue] = React.useState('')
 
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
@@ -331,6 +338,39 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
     setFollowUpQuestions([])
   }
 
+  // ---- Rename / delete a past chat (desktop rail) ----
+  const sessionLabel = (s: { title?: string; summary?: string }) =>
+    s.title?.trim() ||
+    s.summary?.slice(0, 60) ||
+    (effectiveLang === 'ko' ? '저장된 상담 기록' : 'Saved conversation')
+
+  const startRename = (s: { id: string; title?: string; summary?: string }) => {
+    setRenamingId(s.id)
+    setRenameValue(s.title?.trim() || s.summary?.slice(0, 60) || '')
+    setDeleteConfirmId(null)
+  }
+  const cancelRename = () => {
+    setRenamingId(null)
+    setRenameValue('')
+  }
+  const commitRename = async () => {
+    const id = renamingId
+    if (!id) {
+      return
+    }
+    const next = renameValue.trim()
+    if (next) {
+      await renameSession(id, next)
+    }
+    cancelRename()
+  }
+  const handleDeleteSession = async (id: string) => {
+    await deleteSession(id)
+    if (activeSessionId === id) {
+      startNewChat()
+    }
+  }
+
   // History grouping for sidebar — Today / Previous 7 Days / Older.
   // Buckets stay tight to the mockup: a session that hasn't been touched
   // since yesterday-midnight falls into "Previous 7 Days".
@@ -430,26 +470,94 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                   return (
                     <div key={bucket} className={styles.historyRailGroup}>
                       <h3 className={styles.historyRailGroupLabel}>{groupLabel}</h3>
-                      {items.map((session) => (
-                        <button
-                          key={session.id}
-                          type="button"
-                          className={`${styles.historyRailItem} ${
-                            activeSessionId === session.id ? styles.historyRailItemActive : ''
-                          }`}
-                          onClick={() => void handleLoadSession(session.id)}
-                        >
-                          <span className={styles.historyRailItemSummary}>
-                            {session.summary?.slice(0, 60) ||
-                              (effectiveLang === 'ko'
-                                ? '\uC800\uC7A5\uB41C \uC0C1\uB2F4 \uAE30\uB85D'
-                                : 'Saved conversation')}
-                          </span>
-                          <span className={styles.historyRailItemMeta}>
-                            {session.messageCount} {tr.messages}
-                          </span>
-                        </button>
-                      ))}
+                      {items.map((session) => {
+                        const isRenaming = renamingId === session.id
+                        const isConfirming = deleteConfirmId === session.id
+                        return (
+                          <div
+                            key={session.id}
+                            className={`${styles.historyRailItem} ${
+                              activeSessionId === session.id ? styles.historyRailItemActive : ''
+                            }`}
+                          >
+                            {isRenaming ? (
+                              <input
+                                autoFocus
+                                className={styles.historyRailRenameInput}
+                                value={renameValue}
+                                onChange={(e) => setRenameValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    void commitRename()
+                                  } else if (e.key === 'Escape') {
+                                    e.preventDefault()
+                                    cancelRename()
+                                  }
+                                }}
+                                onBlur={() => void commitRename()}
+                                maxLength={80}
+                                placeholder={sessionLabel(session)}
+                              />
+                            ) : isConfirming ? (
+                              <div className={styles.historyRailConfirm}>
+                                <span className={styles.historyRailConfirmText}>
+                                  {effectiveLang === 'ko' ? '\uC0AD\uC81C\uD560\uAE4C\uC694?' : 'Delete?'}
+                                </span>
+                                <button
+                                  type="button"
+                                  className={styles.historyRailConfirmYes}
+                                  onClick={() => void handleDeleteSession(session.id)}
+                                >
+                                  {effectiveLang === 'ko' ? '\uC0AD\uC81C' : 'Delete'}
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.historyRailConfirmNo}
+                                  onClick={() => setDeleteConfirmId(null)}
+                                >
+                                  {effectiveLang === 'ko' ? '\uCDE8\uC18C' : 'Cancel'}
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className={styles.historyRailItemMain}
+                                  onClick={() => void handleLoadSession(session.id)}
+                                >
+                                  <span className={styles.historyRailItemSummary}>
+                                    {sessionLabel(session)}
+                                  </span>
+                                  <span className={styles.historyRailItemMeta}>
+                                    {session.messageCount} {tr.messages}
+                                  </span>
+                                </button>
+                                <div className={styles.historyRailItemActions}>
+                                  <button
+                                    type="button"
+                                    className={styles.historyRailItemAction}
+                                    onClick={() => startRename(session)}
+                                    aria-label={effectiveLang === 'ko' ? '\uC774\uB984 \uBCC0\uACBD' : 'Rename'}
+                                    title={effectiveLang === 'ko' ? '\uC774\uB984 \uBCC0\uACBD' : 'Rename'}
+                                  >
+                                    \u270E
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={`${styles.historyRailItemAction} ${styles.historyRailItemActionDanger}`}
+                                    onClick={() => setDeleteConfirmId(session.id)}
+                                    aria-label={effectiveLang === 'ko' ? '\uC0AD\uC81C' : 'Delete'}
+                                    title={effectiveLang === 'ko' ? '\uC0AD\uC81C' : 'Delete'}
+                                  >
+                                    \uD83D\uDDD1
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
                   )
                 })}
