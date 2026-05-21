@@ -769,6 +769,12 @@ describe('calendar-engine regression', () => {
       ['pattern-wealth-to-status', 'wealth-to-status'],
       ['pattern-wealth-rivalry', 'wealth-rivalry'],
       ['pattern-output-vs-authority', 'output-vs-authority'],
+      ['pattern-siksin-controls-pressure', 'siksin-controls-pressure'],
+      ['pattern-expression-with-restraint', 'expression-with-restraint'],
+      ['pattern-authority-mixed', 'authority-mixed'],
+      ['pattern-wealth-erodes-resource', 'wealth-erodes-resource'],
+      ['pattern-energy-into-output', 'energy-into-output'],
+      ['pattern-support-reinforcement', 'support-reinforcement'],
     ]
 
     const SEOUL = { latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }

@@ -535,6 +535,114 @@ export const RULES: InterpretationRule[] = [
     themes: ['career'],
   },
   {
+    id: 'pattern-siksin-controls-pressure',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 83,
+    conditions: {
+      patternId: ['siksin-controls-pressure'],
+    },
+    template:
+      `**식신제살(食神制殺)** 흐름 — 버겁던 압박·경쟁을 실력과 ` +
+      `꾸준함으로 눌러 돌파하는 달이에요. 잔재주보다 정공법, ` +
+      `매일의 루틴이 큰 부담을 이겨내요.`,
+    templateEn:
+      `A **"skill tames pressure" (食神制殺)** current — you push through daunting pressure ` +
+      `and competition with steady competence this month. Straight methods over shortcuts; ` +
+      `a daily routine is what beats the bigger load.`,
+    themes: ['career', 'growth'],
+  },
+  {
+    id: 'pattern-expression-with-restraint',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 82,
+    conditions: {
+      patternId: ['expression-with-restraint'],
+    },
+    template:
+      `**상관패인(傷官佩印)** 흐름 — 톡톡 튀는 재능에 절제와 깊이가 ` +
+      `더해지는 달이에요. 창작·기획·발표를 공부로 다듬으면 ` +
+      `완성도가 한 단계 올라가요.`,
+    templateEn:
+      `An **"talent tempered by depth" (傷官佩印)** current — sparkling ideas gain restraint ` +
+      `and depth this month. Refine creative work, planning, and presentations with study, ` +
+      `and the finish quality jumps a level.`,
+    themes: ['growth', 'career'],
+  },
+  {
+    id: 'pattern-authority-mixed',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 84,
+    conditions: {
+      patternId: ['authority-mixed'],
+    },
+    template:
+      `**관살혼잡(官殺混雜)** 주의 — 권위·기준 신호가 뒤섞여 결정이 ` +
+      `산만해지기 쉬운 달이에요. 여러 윗선·요청이 충돌하면, 라인을 ` +
+      `한 곳으로 정리하고 곁가지는 잠시 보류하세요.`,
+    templateEn:
+      `Caution for **"mixed authority" (官殺混雜)** — signals of authority and standards ` +
+      `get tangled, scattering decisions this month. When several superiors or requests ` +
+      `collide, consolidate to one line and shelve the side branches for now.`,
+    themes: ['career'],
+  },
+  {
+    id: 'pattern-wealth-erodes-resource',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 84,
+    conditions: {
+      patternId: ['wealth-erodes-resource'],
+    },
+    template:
+      `**탐재괴인(貪財壞印)** 주의 — 눈앞의 이익을 좇다 신뢰·명예·` +
+      `배움을 갉아먹기 쉬운 달이에요. 단기 이득을 위해 원칙·평판을 ` +
+      `내주는 선택은 길게 봐 손해. 신뢰를 택하세요.`,
+    templateEn:
+      `Caution for **"greed erodes integrity" (貪財壞印)** — chasing quick gains can eat ` +
+      `into trust, reputation, and learning this month. Trading principles or standing for ` +
+      `short-term profit costs more in the long run — choose trust.`,
+    themes: ['growth', 'money'],
+  },
+  {
+    id: 'pattern-energy-into-output',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 81,
+    conditions: {
+      patternId: ['energy-into-output'],
+    },
+    template:
+      `**토수(吐秀)** 흐름 — 넘치는 기운이 결과물로 시원하게 터져 ` +
+      `나오는 달이에요. 협업·발표·창작·운동처럼 에너지를 밖으로 ` +
+      `쏟는 활동에 우호적이에요.`,
+    templateEn:
+      `An **"energy bursts into output" (吐秀)** current — abundant drive pours out as ` +
+      `tangible results this month. Favourable for collaboration, presenting, creating, ` +
+      `and exercise — anything that channels energy outward.`,
+    themes: ['growth', 'career'],
+  },
+  {
+    id: 'pattern-support-reinforcement',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 80,
+    conditions: {
+      patternId: ['support-reinforcement'],
+    },
+    template:
+      `**인비방조(印比幇助)** 흐름 — 후원과 동료가 기운을 받쳐주는 ` +
+      `달이에요. 혼자 다 떠안기보다 도움·협력·휴식을 적극 쓰면 ` +
+      `좋아요. 재충전과 기초 다지기에 우호적.`,
+    templateEn:
+      `A **"support reinforces you" (印比幇助)** current — backing and allies prop up your ` +
+      `energy this month. Lean on help, cooperation, and rest rather than carrying it all ` +
+      `alone. Favourable for recharging and shoring up foundations.`,
+    themes: ['health', 'growth'],
+  },
+  {
     id: 'pattern-noble-fortune',
     scope: 'monthly',
     section: 'pattern',
