@@ -65,10 +65,9 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Auth Routes (2)', () => {
+  describe('Auth Routes (1)', () => {
     it('should have auth routes', () => {
       assertModules([
-        'app/api/auth/register/route',
         'app/api/auth/revoke/route',
       ]);
     });
