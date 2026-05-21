@@ -14,6 +14,7 @@ import { authOptions } from '@/lib/auth/authOptions'
 import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
 import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
 import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
+import { slimSajuSelf } from '@/lib/destiny/sajuSlim'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
@@ -347,8 +348,11 @@ export async function POST(req: NextRequest) {
             } : null,
           })
           if (sajuBlock) {
+            // Slim the saju block (destiny counselor only — compat keeps raw).
+            // Cuts calc-scaffolding (지장간/통근) + folk verdict-overlays
+            // (신살/12신살) + 일진, glosses 12운성, completes 천간합 化.
             parts.push('')
-            parts.push(sajuBlock)
+            parts.push(slimSajuSelf(sajuBlock))
           }
         }
       } catch (err) {
