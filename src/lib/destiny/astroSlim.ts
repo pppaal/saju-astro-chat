@@ -16,7 +16,17 @@
  *    keeps English. Saju block is never passed here.
  */
 
+import { dignityOf } from '@/lib/astrology/foundation/dignities'
+
 export type SlimLocale = 'ko' | 'en'
+
+// essential dignity → how the planet "operates" in that sign (디그니티)
+const DIGNITY_KO: Record<string, string> = {
+  domicile: '제자리·강함', exaltation: '고양·매우 강함', detriment: '불리·약함', fall: '쇠약·매우 약함',
+}
+const DIGNITY_EN: Record<string, string> = {
+  domicile: 'domicile', exaltation: 'exalted', detriment: 'detriment', fall: 'fall',
+}
 
 const PLANET_KO: Record<string, string> = {
   Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
@@ -45,11 +55,28 @@ const NATAL_LIMIT = 6.0
 const NATAL_TOP = 10
 const TRANSIT_LIMIT = 3.0
 const TRANSIT_TOP = 10
-const DROP = ['Fixed Stars', 'Lunar Return', 'Secondary Progression', '현재 시점 행성 신호']
+const DROP = ['Fixed Stars', 'Lunar Return', '현재 시점 행성 신호']
+
+const ASP_GLOSS_KO: Record<string, string> = {
+  Conjunction: '결합', Opposition: '대립', Trine: '조화', Square: '긴장', Sextile: '협력',
+}
+// what each planet/point governs — glossed once in the positions block so
+// non-flow questions (연애/돈/직업…) have a handle. Keyed by English name.
+const PLANET_GLOSS_KO: Record<string, string> = {
+  Sun: '자아·생명력', Moon: '감정·내면', Mercury: '소통·사고', Venus: '연애·돈·매력',
+  Mars: '추진력·욕망', Jupiter: '확장·행운', Saturn: '책임·시련', Uranus: '변화·독창',
+  Neptune: '이상·환상', Pluto: '변형·집착', Node: '인생 방향·인연',
+  Ascendant: '첫인상·태도', MC: '사회적 위치·직업',
+}
 
 const pko = (p: string, l: SlimLocale) => (l === 'ko' ? PLANET_KO[p] ?? p : p)
 const sko = (s: string, l: SlimLocale) => (l === 'ko' ? SIGN_KO[s] ?? s : s)
-const ako = (a: string, l: SlimLocale) => (l === 'ko' ? ASP_KO[a] ?? a : a)
+const ako = (a: string, l: SlimLocale) => {
+  if (l !== 'ko') return a // EN keeps the standard term (the LLM reads it)
+  const term = ASP_KO[a] ?? a
+  const gloss = ASP_GLOSS_KO[a]
+  return gloss ? `${term}(${gloss})` : term
+}
 
 function orbDeg(line: string): number | null {
   const m = ORB.exec(line)
@@ -61,6 +88,35 @@ function orbStr(line: string): string {
 }
 function isHeader(s: string): boolean {
   return /^\[.*\]$/.test(s)
+}
+
+const ZODIAC = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
+const ANGLE_ASPECTS: Array<{ deg: number; name: string; orb: number }> = [
+  { deg: 0, name: 'Conjunction', orb: 8 }, { deg: 60, name: 'Sextile', orb: 5 },
+  { deg: 90, name: 'Square', orb: 6 }, { deg: 120, name: 'Trine', orb: 6 }, { deg: 180, name: 'Opposition', orb: 7 },
+]
+/** aspects from each planet to ASC/MC, computed from longitudes (the engine's
+ * natal-aspect list omits angles, but a 1st-house stellium conjunct ASC is core
+ * to character). Sorted by orb. */
+function angleAspects(bodies: Array<{ name: string; lon: number }>, l: SlimLocale): string[] {
+  const angles = bodies.filter((b) => b.name === 'Ascendant' || b.name === 'MC')
+  const planets = bodies.filter((b) => b.name !== 'Ascendant' && b.name !== 'MC')
+  const hits: Array<{ orb: number; line: string }> = []
+  for (const a of angles) {
+    for (const p of planets) {
+      let d = Math.abs(a.lon - p.lon)
+      if (d > 180) d = 360 - d
+      for (const asp of ANGLE_ASPECTS) {
+        const orb = Math.abs(d - asp.deg)
+        if (orb <= asp.orb) {
+          const pg = l === 'ko' && PLANET_GLOSS_KO[p.name] ? `${pko(p.name, l)}(${PLANET_GLOSS_KO[p.name]})` : pko(p.name, l)
+          hits.push({ orb, line: `${pg} ${ako(asp.name, l)} ${pko(a.name, l)} (${orb.toFixed(1)}°)` })
+          break
+        }
+      }
+    }
+  }
+  return hits.sort((x, y) => x.orb - y.orb).map((h) => h.line)
 }
 
 /** localize a misc line (eclipses / profection / positions fallback). ko only. */
@@ -147,16 +203,51 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
     }
 
     if (name.includes('Solar Return')) {
+      out.push(l === 'ko' ? '[올해 테마 (솔라리턴)]' : '[Solar Return — year theme]')
+      // Asc (the year's persona)
+      const asc = body.find((b) => b.startsWith('Asc:'))
+      const am = asc?.match(/Asc:\s*([A-Za-z]+)\s*(\d+)/)
+      if (am) out.push(l === 'ko' ? `상승점 ${sko(am[1], l)} ${am[2]}°` : `Asc ${am[1]} ${am[2]}°`)
+      // Sun (the year's core)
       const sun = body.find((b) => b.startsWith('Sun '))
-      if (sun) {
-        const m = POS.exec(sun.replace(/(\d+)°\d+'/, '$1°'))
-        if (m) {
-          const house = m[4] ? (l === 'ko' ? ` ${m[4]}하우스` : `, House ${m[4]}`) : ''
-          out.push(l === 'ko' ? '[올해 테마 (솔라리턴)]' : '[Solar Return — year theme]')
-          out.push(l === 'ko' ? `태양 ${sko(m[2], l)}${house}` : `Sun ${m[2]}${house}`)
-          out.push('')
-        }
+      const sm = sun && POS.exec(sun.replace(/(\d+)°\d+'/, '$1°'))
+      if (sm) {
+        const house = sm[4] ? (l === 'ko' ? ` ${sm[4]}하우스` : `, House ${sm[4]}`) : ''
+        out.push(l === 'ko' ? `태양 ${sko(sm[2], l)}${house}` : `Sun ${sm[2]}${house}`)
       }
+      // stacked house (≥3 planets sharing a house = the year's emphasis)
+      const byHouse: Record<string, string[]> = {}
+      for (const b of body) {
+        const pm = b.match(/^([A-Za-z]+) in [A-Za-z]+ \d+°(?:\d+')?, House (\d+)/)
+        if (pm) (byHouse[pm[2]] ||= []).push(pm[1])
+      }
+      let topH = '', topN = 0
+      for (const [h, ps] of Object.entries(byHouse)) if (ps.length > topN) { topN = ps.length; topH = h }
+      if (topN >= 3) {
+        const ps = byHouse[topH].map((p) => pko(p, l)).join('·')
+        out.push(l === 'ko' ? `행성 몰림: ${topH}하우스 (${ps})` : `Stellium: House ${topH} (${ps})`)
+      }
+      // SR Saturn house — the year's responsibility/test area (관계·구조 등)
+      const sat = body.find((b) => b.startsWith('Saturn '))
+      const stm = sat && POS.exec(sat.replace(/(\d+)°\d+'/, '$1°'))
+      if (stm && stm[4]) {
+        out.push(l === 'ko'
+          ? `토성(책임·시련) ${sko(stm[2], l)} ${stm[4]}하우스`
+          : `Saturn (responsibility/test) ${stm[2]}, House ${stm[4]}`)
+      }
+      out.push('')
+      i = j; continue
+    }
+
+    if (name.includes('Secondary Progression')) {
+      out.push(l === 'ko' ? '[2차 진행 — 인생 내면 흐름]' : '[Secondary Progression — inner timing]')
+      for (const b of body) {
+        const m = b.match(/^Progressed (Sun|Moon):\s*([A-Za-z]+)\s*(\d+)/)
+        if (!m) continue
+        const ko = m[1] === 'Sun' ? '진행 태양(인생 계절·자아 성숙)' : '진행 달(요즘 감정 흐름)'
+        out.push(l === 'ko' ? `${ko}: ${sko(m[2], l)} ${m[3]}°` : `Progressed ${m[1]}: ${m[2]} ${m[3]}°`)
+      }
+      out.push('')
       i = j; continue
     }
 
@@ -174,17 +265,31 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       out.push(l === 'ko'
         ? (withAngle ? '[행성 위치 (사인·하우스)]' : '[행성 위치 (사인)]')
         : (withAngle ? '[Positions (sign · house)]' : '[Positions (sign)]'))
+      const bodies: Array<{ name: string; lon: number }> = []
       for (const b of body) {
         const m = POS.exec(b)
         if (m) {
           const house = m[4] ? (l === 'ko' ? `, ${m[4]}하우스` : `, House ${m[4]}`) : ''
           const retro = m[5] ? (l === 'ko' ? ' 역행' : ' R') : ''
-          out.push(`${pko(m[1], l)} ${sko(m[2], l)} ${m[3]}°${house}${retro}`)
+          const g = l === 'ko' ? PLANET_GLOSS_KO[m[1]] : undefined
+          const planet = g ? `${pko(m[1], l)}(${g})` : pko(m[1], l)
+          // essential dignity — only show when notable (skip peregrine/angles)
+          const digKo = (l === 'ko' ? DIGNITY_KO : DIGNITY_EN)[dignityOf(m[1], m[2])]
+          const dig = digKo ? ` [${digKo}]` : ''
+          out.push(`${planet} ${sko(m[2], l)} ${m[3]}°${house}${retro}${dig}`)
+          const zi = ZODIAC.indexOf(m[2])
+          if (zi >= 0) bodies.push({ name: m[1], lon: zi * 30 + Number(m[3]) })
         } else if (b.trim()) {
           out.push(kz(b, l))
         }
       }
       out.push('')
+      // ASC/MC aspects — the engine's natal-aspect list omits angles, but a
+      // 1st-house stellium conjunct ASC is core to character. Compute here.
+      const angleLines = angleAspects(bodies, l)
+      if (angleLines.length) {
+        out.push(l === 'ko' ? '[ASC·MC 각 (성격·태도 핵심)]' : '[ASC/MC aspects]', ...angleLines, '')
+      }
       i = j; continue
     }
 
