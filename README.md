@@ -1,38 +1,31 @@
 # DestinyPal
 
-Last audited: 2026-05-17 (Asia/Hong_Kong)
+Last updated: 2026-05-21 (Asia/Seoul)
 
-DestinyPal is a Next.js App Router application for saju, astrology, tarot, counseling, calendar guidance, and premium reporting. AI calls go through `@anthropic-ai/sdk` directly from Next.js routes.
+DestinyPal is a Next.js (App Router) application for **Saju (사주, Korean four‑pillars), Western astrology, Tarot, and AI counseling**, with a calendar/timing layer on top of a deterministic destiny engine. AI calls go directly through `@anthropic-ai/sdk` (Claude) from Next.js route handlers and are streamed to the client over SSE.
 
-## Quick Start
+## Tech stack
 
-1. Install dependencies.
+- **Framework:** Next.js 16 (App Router) + React 19 + TypeScript
+- **AI:** Claude via `@anthropic-ai/sdk`, streamed as SSE
+- **Auth:** NextAuth (Google OAuth, JWT sessions) — OAuth is the only sign‑in method
+- **Payments:** Stripe one‑time **credit packs** (no subscriptions sold)
+- **Data:** Prisma (42 models)
+- **Cache / rate limit:** Upstash Redis with an in‑memory fallback
+- **Tests:** Vitest
 
-```bash
-npm ci
-```
-
-2. Create local env file.
-
-```bash
-cp .env.example .env.local
-```
-
-3. Run database migrations.
+## Quick start
 
 ```bash
-npm run db:migrate
+npm ci                       # install
+cp .env.example .env.local   # configure environment
+npm run db:migrate           # apply Prisma migrations
+npm run dev                  # start the app
 ```
 
-4. Start web app.
+## Required environment variables
 
-```bash
-npm run dev
-```
-
-## Required Environment Variables
-
-Minimum local setup:
+Minimum for local development:
 
 - `DATABASE_URL`
 - `NEXTAUTH_SECRET`
@@ -44,85 +37,64 @@ Minimum local setup:
 - `CRON_SECRET`
 - `ANTHROPIC_API_KEY`
 
-Production also needs Stripe, Redis, and webhook configuration. See `BUILD_INSTRUCTIONS.md` and `.env.example`.
+Production additionally needs Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, credit‑pack price IDs), Upstash Redis (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), and Google OAuth credentials. Optional hardening: set `RATE_LIMIT_FAIL_CLOSED=true` to deny (instead of using the per‑instance in‑memory fallback) when Redis is unavailable — recommended for multi‑instance/serverless deployments. See `.env.example` for the full list.
 
-## Repository Snapshot
+## Architecture
 
-Measured with `npm run docs:stats` on 2026-04-01:
+The deterministic core produces a judgment, and thin presentation adapters render it per surface:
 
-- API routes: `140`
-- App pages: `82`
-- Component files: `608`
-- Prisma models: `42`
-- Test files (`*.test|*.spec`): `1157`
-- Markdown docs: `327`
-- `.env.example` variables: `78`
+```
+Raw input → Feature → Rule → Pattern → Scenario → Verdict → Evaluation
+```
 
-## Current Destiny Engine Status
-
-The deterministic destiny stack is now organized as:
-
-- `Raw Input -> Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation`
 - Core judgment entry: `src/lib/destiny-matrix/core/runDestinyCore.ts`
-- Evidence/audit sidecar: `src/lib/destiny-matrix/core/nextGenPipeline.ts`
-- Presentation adapters:
-  - `adaptCoreToCalendar(...)`
-  - `adaptCoreToCounselor(...)`
-  - `adaptCoreToReport(...)`
+- Presentation adapters (calendar / counselor / report) live under `src/lib/destiny-matrix/core/`
+- Role split: the core makes timing/judgment decisions; calendar, counselor, and report layers are presentation only.
 
-Role split:
+## Auth & payments
 
-- Core: judgment and timing decisions
-- GraphRAG: evidence alignment and cross-source grounding
-- Calendar / Counselor / Report: presentation only
+- **Sign‑in:** Google OAuth only. There is no password/credentials login.
+- **Credits:** one‑time credit packs purchased via Stripe Checkout — `mini` (5), `standard` (15), `plus` (40), `mega` (100), `ultimate` (250). Pack definitions live in `src/lib/config/pricing.ts` (single source of truth, also used by the Stripe webhook).
+- **What costs credits (the paid surfaces):**
+  - **Tarot** — `POST /api/tarot/interpret-stream` (large spreads of 8+ cards cost 2 credits)
+  - **운명 (Destiny) counselor** — `POST /api/counselor/realtime`, billed **per session** (1 credit opens a session; turns within the session window are free)
+  - **궁합 (Compatibility) counselor** — `POST /api/compatibility/counselor`
+- **Refunds:** if a counselor SSE stream fails or returns empty, the charged credit is auto‑refunded.
+- Subscription billing is **not** sold; webhook/reset plumbing is retained only for any pre‑existing subscribers.
 
-Runtime logging strategy:
+## Repository snapshot
 
-- Use `UserInteraction` with a normalized destiny metadata envelope
-- Shared metadata builder: `src/lib/destiny-matrix/core/logging.ts`
+Measured with `npm run docs:stats` on 2026-05-21:
 
-Honest technical assessment:
+- API routes: `81`
+- App pages: `51`
+- Component files: `112`
+- Prisma models: `42`
+- Test files: `648`
+- Markdown docs: `144`
+- `.env.example` variables: `60`
 
-- This is no longer a prototype or prompt wrapper. It has a real deterministic judgment core, shared service adapters, and product-level QA.
-- The strongest technical asset is the common destiny-core surface reused by calendar, counselor, and premium reports.
-- The largest remaining weaknesses are output-layer consistency, release hygiene, and keeping orchestration files from growing back.
-- Current position: strong builder-grade product and strong portfolio project. Not yet an operationally mature "unicorn-grade" codebase.
+API route audit (`npm run audit:api`, 2026-05-21):
 
-## Current QA Snapshot
+- Total routes: `81`
+- Uses middleware/guards: `78` (96.3%)
+- Has validation signals: `60` (74.1%)
+- Rate limited: `73` (90.1%)
 
-Verified in the current workspace on 2026-05-18:
+## Quality checks
 
-- `npx tsc -p tsconfig.json --noEmit`: **passed** (0 errors)
-- `npm run lint`: **passed** (0 errors) — recovered from 88 errors via PR #271 (unused-vars / dead exports cleanup)
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=ko`: `PASS=21 WARN=0 FAIL=0`
-- `npm run docs:check-links`: **passed** (8 files)
-- `npm run test:destiny:release`: **16 of 88 tests fail** across 7 of 8 files. Pre-existing — exposed when this snapshot was rerun. Tracked as a follow-up.
-- `npx tsx scripts/ops/qa-destiny-three-services.ts`: **script broken** — imports `aiReportService.ts` (`generateAIPremiumReport`, `generateThemedReport`), which PR #245 removed. The previous `PASS=10` claim was unreproducible at the time it was recorded. Tracked as a follow-up: either restore the entry points or rewrite the script against `runDestinyCore` + adapters.
+Run before pushing:
 
-Practical release command:
+```bash
+npm run typecheck   # tsc --noEmit
+npm run lint        # eslint
+npm test            # vitest run
+```
 
-- `npm run ops:destiny:release` — **currently fails on its final step** because of the broken QA script above. Until that script is repaired, run `typecheck`, `lint`, `docs:check-links`, and the counselor-regression QA individually.
+## Documentation
 
-Important nuance:
-
-- The repo is green on `tsc`, `lint`, `docs:check-links`, and counselor-regression QA.
-- Vitest destiny:release suite and the destiny-three-services QA script are **not** green right now — see follow-ups above.
-- Do not claim "full-suite green" unless the entire Vitest matrix has been rerun in the same revision window.
-
-## Documentation Map
-
-Start with:
-
-- `docs/README.md`: canonical documentation hub
-- `docs/DESTINY_MATRIX.md`: current destiny engine architecture and service wiring
-- `docs/RAG_AND_GRAPHRAG.md`: GraphRAG role, domains, and evidence flow
-- `docs/TESTING_AND_GUARDRAILS.md`: required checks and destiny QA scripts
-- `docs/CALCULATION_SPEC.md`: code-derived current calculation spec for the modern pipeline
-- `docs/TAROT_OVERVIEW.md`: tarot routes, shared prompt rules, result typography, card asset sizing
-
-API route audit snapshot from `npm run audit:api` on 2026-04-01:
-
-- Total routes: `140`
-- Uses middleware/guards: `138` (98.6%)
-- Validation signals: `114` (81.4%)
-- Rate limited: `131` (93.6%)
+- `docs/README.md` — documentation hub
+- `docs/DESTINY_MATRIX.md` — destiny engine architecture and service wiring
+- `docs/CALCULATION_SPEC.md` — calculation spec for the pipeline
+- `docs/TAROT_OVERVIEW.md` — tarot routes, prompt rules, and assets
+- `docs/API_AUDIT_REPORT.md` — generated per‑route middleware/validation/rate‑limit audit
