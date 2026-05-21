@@ -832,6 +832,38 @@ describe('calendar-engine regression', () => {
     })
   })
 
+  describe('domain date-line coverage (growth key fix)', () => {
+    it('자기·성장(domain-growth) section emits 강한 날 date lines like other domains', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      let checked = 0
+      for (const mo of [3, 5, 7]) {
+        const cells = await buildCalendar(
+          natal,
+          {
+            start: new Date(Date.UTC(2026, mo - 1, 1)).toISOString(),
+            end: new Date(Date.UTC(2026, mo, 0, 23, 59, 59)).toISOString(),
+            granularity: 'day',
+          },
+          { includeEvidence: true }
+        )
+        const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+        const growth = interp.sections.find((s) => s.section === 'domain-growth')
+        if (!growth) continue
+        checked += 1
+        // 버그(키 'expression') 일 땐 themes=[] → 날짜 라인이 전혀 안 붙음.
+        expect(growth.text).toMatch(/특히 강한 날|주의 날/)
+      }
+      expect(checked).toBeGreaterThan(0)
+    })
+  })
+
   describe('Void-of-Course Moon timing rule', () => {
     // 주의: 테스트 환경은 swisseph 를 목킹(고정 위치)해 달이 안 움직임 → VoC 가
     // 실제로 발생하지 않음. 그래서 ephemeris 경유 대신 합성 VoC 신호를 직접

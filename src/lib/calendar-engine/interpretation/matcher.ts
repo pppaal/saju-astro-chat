@@ -1054,5 +1054,8 @@ const DOMAIN_THEMES: Record<string, AstroThemeKey[]> = {
   work: ['career'],
   relations: ['love'],
   body: ['health'],
-  expression: ['growth'],
+  // key must match DOMAIN_ORDER / SECTION_TO_DOMAIN ('growth'); was 'expression'
+  // which left DOMAIN_THEMES['growth'] undefined → 자기·성장 도메인의 강한날/
+  // 주의날 라인이 조용히 누락되던 버그.
+  growth: ['growth'],
 }

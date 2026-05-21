@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 
 import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
+import { ganjiToKorean } from '@/lib/saju/ganjiKo'
 import { useDateDetail } from './useDateDetail'
 import MatchedPatternsCard from './MatchedPatternsCard'
 import MonthHighlightsCard from './MonthHighlightsCard'
@@ -406,7 +407,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-zinc-900 bg-amber-500 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
-                <Sun className="w-3 h-3" /> {natalDayPillar ?? '辛未'} 일주
+                <Sun className="w-3 h-3" /> {ganjiToKorean(natalDayPillar ?? '辛未')} 일주
               </span>
               {astroBadge ? (
                 <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
