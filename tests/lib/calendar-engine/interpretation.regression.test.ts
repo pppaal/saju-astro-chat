@@ -120,6 +120,47 @@ describe('calendar-engine regression', () => {
     })
   })
 
+  describe('daily-scope rules (오늘 한 줄)', () => {
+    it('daily ruleset exists (scope daily, section today) with KO+EN', () => {
+      const daily = RULES.filter((r) => r.scope === 'daily' && r.section === 'today')
+      expect(daily.length).toBeGreaterThanOrEqual(8)
+      for (const r of daily) {
+        expect(r.template.length).toBeGreaterThan(8)
+        expect(r.templateEn && r.templateEn.length).toBeGreaterThan(8)
+      }
+    })
+
+    it('every day produces ≥1 "today" action line (일진 십신 baseline)', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-10T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      let daysWithActions = 0
+      for (const c of cells) {
+        const di = buildInterpretation({ natal, cells: [c], scope: 'daily' })
+        const today = di.sections.find((s) => s.section === 'today')
+        const lines = today?.text.split('\n').filter(Boolean) ?? []
+        if (lines.length > 0) daysWithActions += 1
+        expect(lines.length).toBeLessThanOrEqual(4) // section cap
+      }
+      // 일진 십신은 매일 있으므로 모든 날 최소 1줄
+      expect(daysWithActions).toBe(cells.length)
+    })
+  })
+
   describe('month-wide score distribution', () => {
     it('a full month has no 5+ day tie at the same score', async () => {
       const saju = calculateSajuData(

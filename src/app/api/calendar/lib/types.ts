@@ -114,6 +114,8 @@ export interface FormattedDate {
    * 5/6 월 동일 텍스트 같은 문제는 layer='daily' 에서도 자연스럽게 분기.
    */
   dailyGanjiNarrative?: string
+  /** 일진 scope 룰 결과 — "오늘 한 줄" 액션 (최대 4) */
+  dailyActions?: string[]
 }
 
 export interface CalendarDailyView {
