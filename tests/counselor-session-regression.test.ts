@@ -71,6 +71,13 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
     expect(route).toMatch(/isNewSession/)
     expect(route).not.toMatch(/CREDIT_PER_TURN/)
   })
+
+  it('스트림 빈 응답 시 크레딧 환불 배선 (stream refund)', () => {
+    // 차감했는데 스트림이 빈 응답이면 refundCredits + 세션키 삭제로 원복.
+    expect(route).toMatch(/refundCredits/)
+    expect(route).toMatch(/onFailure/)
+    expect(route).toMatch(/cacheDel\(sessionKey\)/)
+  })
 })
 
 describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () => {
