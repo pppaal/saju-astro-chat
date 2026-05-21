@@ -446,6 +446,96 @@ const RULES: PatternRule[] = [
       )
     },
   },
+
+  // ─── 12. 식신제살 (食神制殺) — 식신이 압박·경쟁을 다스림 ───
+  {
+    id: 'siksin-controls-pressure',
+    name: '식신제살',
+    themes: ['career', 'growth'],
+    headline: '압박을 실력으로 눌러 돌파하는 흐름',
+    description: '식신(꾸준한 생산) + 편관(압박·경쟁)이 제압 방향으로 작동',
+    action: '버겁던 일·경쟁을 정공법·실력으로 풀기 좋음. 꾸준한 루틴이 압박을 이겨요.',
+    match(signals) {
+      return comboMatch(
+        sibsinSignals(signals, ['식신']),
+        sibsinSignals(signals, ['편관']),
+        'favorable'
+      )
+    },
+  },
+
+  // ─── 13. 상관패인 (傷官佩印) — 표현 + 절제의 균형 ───
+  {
+    id: 'expression-with-restraint',
+    name: '상관패인',
+    themes: ['growth', 'career'],
+    headline: '재기와 절제가 함께 가는 창의의 흐름',
+    description: '상관(자유로운 재능) + 인성(절제·학습)이 균형 방향으로 작동',
+    action: '창작·기획·발표에 깊이를 더하기 좋음. 톡톡 튀는 아이디어를 공부로 다듬어 완성도↑.',
+    match(signals) {
+      return comboMatch(sibsinSignals(signals, ['상관']), sibsinSignals(signals, IN), 'favorable')
+    },
+  },
+
+  // ─── 14. 관살혼잡 (官殺混雜) — 정관·편관 혼재 ───
+  {
+    id: 'authority-mixed',
+    name: '관살혼잡',
+    themes: ['career'],
+    headline: '권위 신호가 뒤섞여 산만해지기 쉬운 흐름',
+    description: '정관 + 편관이 동시에 떠 결정·라인이 흐려짐',
+    action: '여러 윗선·기준이 충돌하기 쉬움. 한 곳에 라인을 정리하고 곁가지 요청은 보류.',
+    match(signals) {
+      return comboMatch(
+        sibsinSignals(signals, ['정관']),
+        sibsinSignals(signals, ['편관']),
+        'caution'
+      )
+    },
+  },
+
+  // ─── 15. 탐재괴인 (貪財壞印) — 재물 욕심이 명예·학업을 흔듦 ───
+  {
+    id: 'wealth-erodes-resource',
+    name: '탐재괴인',
+    themes: ['growth', 'money'],
+    headline: '눈앞의 이익이 신뢰·배움을 갉을 수 있는 흐름',
+    description: '재성 + 인성이 상극 방향으로 작동 (재가 인을 깸)',
+    action: '단기 이익 위해 명예·원칙·공부를 희생하는 선택 주의. 길게 봐 신뢰를 택하기.',
+    match(signals) {
+      return comboMatch(sibsinSignals(signals, JAE), sibsinSignals(signals, IN), 'caution')
+    },
+  },
+
+  // ─── 16. 토수 (吐秀) — 비겁 에너지가 표현으로 분출 ───
+  {
+    id: 'energy-into-output',
+    name: '토수(吐秀)',
+    themes: ['growth', 'career'],
+    headline: '넘치는 기운이 결과물로 터져 나오는 흐름',
+    description: '비겁(자기 에너지) + 식상(표현·생산)이 분출 방향으로 작동',
+    action: '협업·발표·창작·운동 등 에너지를 밖으로 쏟는 활동에 우호적.',
+    match(signals) {
+      return comboMatch(
+        sibsinSignals(signals, BIGYEOP),
+        sibsinSignals(signals, SIKSANG),
+        'favorable'
+      )
+    },
+  },
+
+  // ─── 17. 인비방조 (印比幇助) — 후원·동료가 약한 일간을 받침 ───
+  {
+    id: 'support-reinforcement',
+    name: '인비방조',
+    themes: ['health', 'growth'],
+    headline: '주변의 받침으로 기운이 차오르는 흐름',
+    description: '인성(후원) + 비겁(동료·자기)이 보강 방향으로 작동 (약한 기운에 힘이 됨)',
+    action: '혼자 떠안기보다 도움·동료·휴식을 적극 활용하기 좋음. 재충전·기초 다지기에 우호적.',
+    match(signals) {
+      return comboMatch(sibsinSignals(signals, IN), sibsinSignals(signals, BIGYEOP), 'favorable')
+    },
+  },
 ]
 
 export function derivePatterns(signals: ActiveSignal[]): SignalPattern[] {
