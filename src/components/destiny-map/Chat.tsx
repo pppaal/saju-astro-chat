@@ -71,6 +71,14 @@ const Chat = memo(function Chat({
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
 
+  // Jump to the newest message once a loaded conversation has painted
+  // (past-chat open should land at the latest message, not the top).
+  const scrollToLatest = React.useCallback(() => {
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }))
+    )
+  }, [])
+
   const { cvText, cvName, parsingPdf, handleFileUpload } = useFileUpload({ lang, setNotice })
 
   const {
@@ -294,8 +302,9 @@ const Chat = memo(function Chat({
     resumedSessionIdRef.current = initialSessionId
     void loadSession(initialSessionId).then(() => {
       setActiveSessionId(initialSessionId)
+      scrollToLatest()
     })
-  }, [initialSessionId, loadSession])
+  }, [initialSessionId, loadSession, scrollToLatest])
 
   const goToTarot = React.useCallback(() => setShowTarotModal(true), [])
 
@@ -330,6 +339,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
   const handleLoadSession = async (sessionId: string) => {
     await loadSession(sessionId)
     setActiveSessionId(sessionId)
+    scrollToLatest()
   }
 
   const startNewChat = () => {

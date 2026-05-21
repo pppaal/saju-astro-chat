@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { SajuChart } from './SajuChart'
 import { ElementRadar } from './ElementRadar'
 import { NatalChart } from './NatalChart'
+import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
 
 interface ChartModalProps {
   open: boolean
@@ -27,6 +28,8 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
   }, [open, onClose])
 
   if (!open) return null
+
+  const readLine = generateChartSummary(saju, astro, lang)
 
   return (
     <div
@@ -57,6 +60,15 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
             {isKo ? '사주팔자와 네이탈 차트' : 'Saju Pillars & Natal Chart'}
           </p>
         </div>
+
+        {readLine && (
+          <div className="mb-5 rounded-2xl border border-stone-700 bg-stone-800/60 p-4">
+            <div className="mb-1.5 text-xs font-semibold tracking-wide text-stone-400">
+              {isKo ? '한 줄 해석' : 'Quick read'}
+            </div>
+            <p className="text-sm leading-relaxed text-stone-200">{readLine}</p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <div className="space-y-2">
