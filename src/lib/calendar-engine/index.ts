@@ -71,9 +71,11 @@ export async function buildCalendar(
   const signalArrays = await Promise.all(extractors.map((ex) => ex.extract(ctx)))
   const allSignals = signalArrays.flat()
 
-  // 3) 테마 라벨 보강
+  // 3) 테마 라벨 + 기여 가중 보강
   for (const signal of allSignals) {
-    signal.themes = tagSignalWithThemes(signal)
+    const tagged = tagSignalWithThemes(signal)
+    signal.themes = tagged.themes
+    signal.themeWeights = tagged.weights
   }
 
   // 4) 시점별 그룹핑 + derivers

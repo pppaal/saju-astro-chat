@@ -78,12 +78,18 @@ export function deriveThemeBreakdown(
     if (!s.themes || s.themes.length === 0) continue
     if (s.polarity === 0) continue
     const lw = LAYER_WEIGHT[s.layer] ?? 0.5
-    const contribution = s.polarity * (s.weight ?? 0) * lw
-    if (contribution === 0) continue
+    const base = s.polarity * (s.weight ?? 0) * lw
+    if (base === 0) continue
     const label = naturalizeLabel((s.korean && s.korean.trim()) || s.name)
     if (!label) continue
     for (const theme of s.themes) {
       if (!THEME_KEYS.includes(theme)) continue
+      // themeScore 와 동일한 테마 가중 — Why-card 도 본령 테마엔 크게, 보조엔
+      // 작게(목성 회귀가 일/재물/성장에 똑같이 박히던 중복 해소). 가중을 양쪽에
+      // 같이 곱해야 score↔근거 부호 정합(회귀 테스트) 유지.
+      const tw = s.themeWeights?.[theme] ?? 1
+      const contribution = base * tw
+      if (contribution === 0) continue
       const bucket = byTheme.get(theme) ?? new Map<string, { sum: number; count: number }>()
       const cur = bucket.get(label) ?? { sum: 0, count: 0 }
       cur.sum += contribution

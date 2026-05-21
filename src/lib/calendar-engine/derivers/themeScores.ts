@@ -23,8 +23,12 @@ const LAYER_WEIGHT: Record<SignalLayer, number> = {
 //
 // 측정(scripts/calendar-theme-calibration.mts, 18차트 × 2026 전년 = 32,850 셀,
 // 실제 천체력): per-theme avg 의 GLOBAL median ≈ 0.06 → 글로벌 bias=0 이 맞음.
-// scale=24 에서 클리핑 0%(0/100 에 안 부딪힘), 테마별 밴드 14~31점. 룰 대량
-// 추가/삭제 시 위 스크립트로 재측정·갱신.
+// scale=24 에서 클리핑 0%(0/100 에 안 부딪힘). 룰 대량 추가/삭제 시 재측정·갱신.
+//
+// signal.themeWeights(태거 부여) 적용 후 측정(100차트×12달=1200달): 5테마
+// 표준편차 평균 8.99, 비-health 4테마 5.29(가중 전 4.80 → 변별 ↑), 점수
+// 범위 17~80(클리핑 0%) → scale=24 유지. 가중은 한 신호(예: 목성 회귀)가
+// 모든 테마에 동일 기여하던 동률 수렴을 깬다(featureMap.PLANET_THEME_WEIGHT).
 //
 // ── 테마별 bias(median) recenter 는 일부러 안 함 ──
 // health(median −0.53)·growth(+0.32)·career(+0.25)처럼 테마마다 baseline 이
@@ -42,8 +46,11 @@ export function deriveThemeScores(signals: ActiveSignal[]): Partial<Record<Astro
   for (const s of signals) {
     if (s.themes.length === 0) continue
     const lw = LAYER_WEIGHT[s.layer] ?? 0.5
-    const w = s.weight * lw
     for (const theme of s.themes) {
+      // 테마별 기여 가중 — 본령 테마 1.0, 보조 테마 <1. 한 신호가 모든
+      // 테마에 동일 기여하던 변별력 저하 해소. 없으면 1.0 (하위호환).
+      const tw = s.themeWeights?.[theme] ?? 1
+      const w = s.weight * lw * tw
       const b = buckets.get(theme) ?? { sum: 0, weight: 0 }
       b.sum += s.polarity * w
       b.weight += w

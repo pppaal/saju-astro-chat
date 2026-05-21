@@ -117,6 +117,16 @@ export interface Interpretation {
    */
   themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
   /**
+   * 테마 순위 — themeScores 를 점수 내림차순 정렬. 5개 바가 비슷할 때
+   * (비-health 4테마 std ~5점) 절대값 대신 "이번 달 가장 활발: 성장 > 일,
+   * 약한 축: 건강" 식 상대 표시를 UI 가 안전하게 그릴 수 있게 함.
+   */
+  themeRanking?: Array<{
+    theme: 'love' | 'money' | 'career' | 'health' | 'growth'
+    score: number
+    rank: number
+  }>
+  /**
    * 테마별 점수 "인과 추적" (Why-card). 그 점수에 기여한 신호 top N 을
    * +/- 기여도와 함께 노출 — "재물 68 ← 정재 월지 +12 / 천을귀인 +8 /
    * 겁재 분탈 −7" 식. 점수만 던지지 않고 *근거* 를 보여줘 신뢰도 ↑.

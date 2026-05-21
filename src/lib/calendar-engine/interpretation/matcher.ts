@@ -364,6 +364,13 @@ export function buildInterpretation(args: {
     if (n > 0) themeScores[key] = Math.round(sum / n)
   }
 
+  // 테마 순위 — 바 동률 시 UI 가 상대 표시("가장 활발 > … > 약한 축")에 쓰도록.
+  const themeRanking = (THEME_SCORE_KEYS as readonly (keyof typeof themeScores)[])
+    .filter((k) => typeof themeScores[k] === 'number')
+    .map((k) => ({ theme: k, score: themeScores[k] as number }))
+    .sort((a, b) => b.score - a.score)
+    .map((o, i) => ({ ...o, rank: i + 1 }))
+
   // Why-card — 테마별 점수 인과 추적 (그 점수에 기여한 신호 top N).
   const themeBreakdown = deriveThemeBreakdown(allSignals)
 
@@ -389,6 +396,7 @@ export function buildInterpretation(args: {
     allMatchedRuleIds: debug ? matched.map((m) => m.rule.id) : undefined,
     sections,
     themeScores,
+    themeRanking,
     themeBreakdown,
     keyEvents,
     monthComparison,

@@ -6,7 +6,8 @@ import { buildInterpretation } from '@/lib/calendar-engine/interpretation/matche
 import { deriveKeyEvents } from '@/lib/calendar-engine/derivers/keyEvents'
 import { deriveMonthComparison } from '@/lib/calendar-engine/derivers/monthComparison'
 import { RULES } from '@/lib/calendar-engine/interpretation/rules'
-import type { CalendarCell } from '@/lib/calendar-engine/types'
+import { tagSignalWithThemes } from '@/lib/calendar-engine/themes/tagger'
+import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 
 /**
  * Regression suite — guards the cross-dimensional invariants the
@@ -1152,6 +1153,74 @@ describe('calendar-engine regression', () => {
       const interpEn = buildInterpretation({ natal, cells, scope: 'monthly', lang: 'en' })
       const timingEn = interpEn.sections.find((s) => s.section === 'timing')
       expect(timingEn!.text.toLowerCase()).toContain('void of course')
+    })
+  })
+
+  describe('theme weighting + ranking (영역바 변별)', () => {
+    const mkSignal = (over: Partial<ActiveSignal>): ActiveSignal =>
+      ({
+        id: 't',
+        source: 'astro',
+        kind: 'transit',
+        name: 'test',
+        themes: [],
+        polarity: 2,
+        layer: 'yearly',
+        active: { start: '2026-01-01', end: '2026-12-31' },
+        weight: 1,
+        evidence: { module: 'test' },
+        ...over,
+      }) as ActiveSignal
+
+    it('tagger weights a signal by theme 본령 (목성=일 본령 > 재물/성장 보조)', () => {
+      const { themes, weights } = tagSignalWithThemes(
+        mkSignal({ evidence: { module: 'test', planets: ['Jupiter'] } })
+      )
+      // 멤버십은 보존 (일/재물/성장 모두 포함)
+      expect(themes).toEqual(expect.arrayContaining(['career', 'money', 'growth']))
+      // 본령(career)이 보조(money/growth)보다 큰 가중 — 한 신호가 모든 테마에
+      // 동일 기여하던 동률 수렴 방지.
+      expect(weights.career).toBe(1)
+      expect(weights.career!).toBeGreaterThan(weights.money!)
+      expect(weights.career!).toBeGreaterThan(weights.growth!)
+    })
+
+    it('순서 있는 사주 매핑은 첫 테마가 primary(1.0), 이후 보조(<1)', () => {
+      // 정재 → ['money','love'] : money primary
+      const { weights } = tagSignalWithThemes(
+        mkSignal({ source: 'saju', evidence: { module: 'test', sibsin: '정재' } })
+      )
+      expect(weights.money).toBe(1)
+      expect(weights.love!).toBeLessThan(weights.money!)
+    })
+
+    it('themeRanking 은 점수 내림차순 정렬로 노출 (UI 상대표시용)', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const ranking = interp.themeRanking ?? []
+      expect(ranking.length).toBeGreaterThanOrEqual(5)
+      for (let i = 1; i < ranking.length; i++) {
+        expect(ranking[i - 1].score).toBeGreaterThanOrEqual(ranking[i].score)
+        expect(ranking[i].rank).toBe(i + 1)
+      }
+      // 점수와 정합
+      for (const r of ranking) expect(interp.themeScores?.[r.theme]).toBe(r.score)
     })
   })
 })
