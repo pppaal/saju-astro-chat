@@ -125,9 +125,7 @@ function KeyEventsBlock({ keyEvents }: { keyEvents: KeyEvents | undefined }) {
             <span aria-hidden>🎯</span> 베스트 날
           </div>
           <div className="text-base font-bold text-zinc-100">{fmtDate(best.date)}</div>
-          <div className="text-[11px] text-emerald-200/70 mt-0.5">
-            {best.score}점 · 큰 결정·시작에 좋음
-          </div>
+          <div className="text-[11px] text-emerald-200/70 mt-0.5">큰 결정·시작에 좋은 날</div>
         </div>
       )}
       {window && (
@@ -138,9 +136,7 @@ function KeyEventsBlock({ keyEvents }: { keyEvents: KeyEvents | undefined }) {
           <div className="text-base font-bold text-zinc-100">
             {fmtDate(window.start)}–{fmtDate(window.end)}
           </div>
-          <div className="text-[11px] text-indigo-200/70 mt-0.5">
-            평균 {window.avg}점 · 집중 추진
-          </div>
+          <div className="text-[11px] text-indigo-200/70 mt-0.5">집중 추진하기 좋은 구간</div>
         </div>
       )}
       {hasAvoid && (
