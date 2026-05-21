@@ -76,10 +76,10 @@ const BRANCH_PA: Record<string, string> = {
   '戌': '未', '未': '戌',
 }
 
-const BRANCH_HYEONG_3 = [
-  ['寅', '巳', '申'],
-  ['丑', '戌', '未'],
-]
+// 삼형(寅巳申·丑戌未)의 실제 "형" 쌍만. 두 글자만 만났을 땐 형으로 보되,
+// trio 중 충에 해당하는 쌍(寅申·丑未)은 제외(그건 충이지 형이 아님).
+// 옛 코드는 trio에 2지만 있어도 "3형"으로 격상해 丑未(충)까지 형으로 잘못 잡음.
+const HYEONG_PAIR_TRIO = new Set(['寅巳', '巳寅', '巳申', '申巳', '丑戌', '戌丑', '戌未', '未戌'])
 const BRANCH_HYEONG_PAIR: Record<string, string> = {
   '子': '卯', '卯': '子',
 }
@@ -247,9 +247,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       if (BRANCH_HAP[aBr]?.other === bBr) addTag(i, j, aBr, bBr, '합')
       if (BRANCH_CHUNG[aBr] === bBr) addTag(i, j, aBr, bBr, '충')
       if (BRANCH_HYEONG_PAIR[aBr] === bBr) addTag(i, j, aBr, bBr, '형')
-      for (const trio of BRANCH_HYEONG_3) {
-        if (trio.includes(aBr) && trio.includes(bBr) && aBr !== bBr) addTag(i, j, aBr, bBr, '3형')
-      }
+      if (HYEONG_PAIR_TRIO.has(aBr + bBr)) addTag(i, j, aBr, bBr, '형')
       if (SELF_HYEONG.has(aBr) && aBr === bBr) addTag(i, j, aBr, bBr, '자형')
       if (BRANCH_HAE[aBr] === bBr) addTag(i, j, aBr, bBr, '해')
       if (BRANCH_PA[aBr] === bBr) addTag(i, j, aBr, bBr, '파')
