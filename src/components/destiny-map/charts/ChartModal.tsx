@@ -5,7 +5,7 @@ import { X } from 'lucide-react'
 import { SajuChart } from './SajuChart'
 import { ElementRadar } from './ElementRadar'
 import { NatalChart } from './NatalChart'
-import { sajuInterpretation, astroInterpretation } from './interpretation'
+import { chartInterpretation } from './interpretation'
 
 interface ChartModalProps {
   open: boolean
@@ -29,8 +29,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
 
   if (!open) return null
 
-  const sajuLine = sajuInterpretation(saju, isKo)
-  const astroLine = astroInterpretation(astro, isKo)
+  const readLine = chartInterpretation(saju, astro, isKo)
 
   return (
     <div
@@ -62,23 +61,12 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
           </p>
         </div>
 
-        {(sajuLine || astroLine) && (
-          <div className="mb-5 space-y-2 rounded-2xl border border-stone-700 bg-stone-800/60 p-4">
-            <div className="text-xs font-semibold tracking-wide text-stone-400">
+        {readLine && (
+          <div className="mb-5 rounded-2xl border border-stone-700 bg-stone-800/60 p-4">
+            <div className="mb-1.5 text-xs font-semibold tracking-wide text-stone-400">
               {isKo ? '한 줄 해석' : 'Quick read'}
             </div>
-            {sajuLine && (
-              <p className="flex gap-2 text-sm leading-relaxed text-stone-300">
-                <span className="shrink-0 font-semibold text-rose-400">{isKo ? '동양' : 'East'}</span>
-                <span>{sajuLine}</span>
-              </p>
-            )}
-            {astroLine && (
-              <p className="flex gap-2 text-sm leading-relaxed text-stone-300">
-                <span className="shrink-0 font-semibold text-indigo-400">{isKo ? '서양' : 'West'}</span>
-                <span>{astroLine}</span>
-              </p>
-            )}
+            <p className="text-sm leading-relaxed text-stone-200">{readLine}</p>
           </div>
         )}
 
