@@ -22,30 +22,43 @@ interface SajuChartProps {
     timePillar?: PillarShape
     hourPillar?: PillarShape
     pillars?: { year?: PillarShape; month?: PillarShape; day?: PillarShape; time?: PillarShape }
+    dayMaster?: { name?: string; element?: string }
+    fiveElements?: Record<string, number>
   }
   lang?: 'ko' | 'en'
 }
 
 const ELEMENT_STYLE: Record<string, { text: string; bg: string }> = {
-  목: { text: 'text-emerald-300', bg: 'bg-emerald-950/60' },
-  화: { text: 'text-rose-300', bg: 'bg-rose-950/60' },
-  토: { text: 'text-amber-300', bg: 'bg-amber-950/60' },
-  금: { text: 'text-slate-200', bg: 'bg-slate-800/70' },
-  수: { text: 'text-sky-300', bg: 'bg-sky-950/60' },
+  목: { text: 'text-emerald-300', bg: 'bg-emerald-950/50' },
+  화: { text: 'text-rose-300', bg: 'bg-rose-950/50' },
+  토: { text: 'text-amber-300', bg: 'bg-amber-950/50' },
+  금: { text: 'text-slate-200', bg: 'bg-slate-800/60' },
+  수: { text: 'text-sky-300', bg: 'bg-sky-950/50' },
 }
-
 const DEFAULT_STYLE = { text: 'text-slate-300', bg: 'bg-slate-800/50' }
 
-// Hanja → Korean reading, so the pillar cells read "신금 / 을목 / 해수" instead
-// of bare 辛 / 乙 / 亥 (which most users can't read).
+// Hanja → Korean reading (신금 / 을목 / 해수)
 const STEM_READING: Record<string, string> = {
   甲: '갑', 乙: '을', 丙: '병', 丁: '정', 戊: '무', 己: '기', 庚: '경', 辛: '신', 壬: '임', 癸: '계',
 }
 const BRANCH_READING: Record<string, string> = {
   子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사', 午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
 }
-const readingOf = (name?: string) =>
-  (name ? (STEM_READING[name] ?? BRANCH_READING[name] ?? name) : '')
+const readingOf = (name?: string) => (name ? (STEM_READING[name] ?? BRANCH_READING[name] ?? name) : '')
+
+// 물상(物像) — each character's everyday image, so users grasp it at a glance.
+const STEM_IMAGE: Record<string, string> = {
+  甲: '큰 나무', 乙: '유연한 풀', 丙: '태양', 丁: '촛불·등불', 戊: '넓은 산',
+  己: '기름진 밭', 庚: '큰 바위', 辛: '빛나는 보석', 壬: '큰 바다', 癸: '이슬·비',
+}
+const BRANCH_IMAGE: Record<string, string> = {
+  子: '깊은 물', 丑: '언 땅', 寅: '큰 나무', 卯: '여린 화초', 辰: '촉촉한 흙', 巳: '큰 불',
+  午: '한낮 태양', 未: '건조한 흙', 申: '단단한 금속', 酉: '예리한 칼', 戌: '마른 흙', 亥: '깊은 바다',
+}
+const imageOf = (name?: string) => (name ? (STEM_IMAGE[name] ?? BRANCH_IMAGE[name] ?? '') : '')
+
+const TRAIT_KO: Record<string, string> = { 목: '창의력', 화: '추진력', 토: '안정성', 금: '결단력', 수: '유연성' }
+const EL_FROM_KEY: Record<string, string> = { wood: '목', fire: '화', earth: '토', metal: '금', water: '수', 목: '목', 화: '화', 토: '토', 금: '금', 수: '수' }
 
 function pickPillars(saju: SajuChartProps['saju']) {
   if (!saju) return null
@@ -57,12 +70,21 @@ function pickPillars(saju: SajuChartProps['saju']) {
   return { year, month, day, time }
 }
 
+function dominantElement(saju: SajuChartProps['saju']): string | null {
+  const fe = saju?.fiveElements
+  if (!fe || typeof fe !== 'object') return null
+  let best: string | null = null
+  let bestV = -1
+  for (const [k, v] of Object.entries(fe)) {
+    const el = EL_FROM_KEY[k]
+    if (el && typeof v === 'number' && v > bestV) { bestV = v; best = el }
+  }
+  return best
+}
+
 export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
   const pillars = pickPillars(saju)
   const isKo = lang === 'ko'
-  const labels = isKo
-    ? { time: '시주', day: '일주', month: '월주', year: '년주', me: '나' }
-    : { time: 'Hour', day: 'Day', month: 'Month', year: 'Year', me: 'Me' }
 
   if (!pillars) {
     return (
@@ -72,14 +94,14 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
     )
   }
 
-  const order: Array<{ key: 'time' | 'day' | 'month' | 'year'; pillar: PillarShape; isMe: boolean }> = [
-    { key: 'time', pillar: pillars.time, isMe: false },
-    { key: 'day', pillar: pillars.day, isMe: true },
-    { key: 'month', pillar: pillars.month, isMe: false },
-    { key: 'year', pillar: pillars.year, isMe: false },
+  // 시주 leftmost → time, day(나), month, year
+  const order: Array<{ key: 'time' | 'day' | 'month' | 'year'; pillar: PillarShape; isMe: boolean; posKo: string; posEn: string }> = [
+    { key: 'time', pillar: pillars.time, isMe: false, posKo: '미래·말년', posEn: 'Future' },
+    { key: 'day', pillar: pillars.day, isMe: true, posKo: '나', posEn: 'Me' },
+    { key: 'month', pillar: pillars.month, isMe: false, posKo: '직업·청년', posEn: 'Career' },
+    { key: 'year', pillar: pillars.year, isMe: false, posKo: '사회·초년', posEn: 'Early' },
   ]
 
-  // KO: "신금 / 을목 / 해수" (reading + element); EN keeps the Hanja glyph.
   const cellText = (cell?: GanjiCell) => {
     if (!cell?.name) return '·'
     if (!isKo) return cell.name
@@ -87,40 +109,58 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
     return cell.element ? `${r}${cell.element}` : r
   }
 
+  // persona one-liner (KO): day-master image + dominant element trait
+  const dayStem = pillars.day.heavenlyStem
+  const dom = dominantElement(saju)
+  const personaKo =
+    dayStem?.name
+      ? `본질은 ${imageOf(dayStem.name)}(${cellText(dayStem)}) 같은 사람이에요.${dom ? ` 타고난 기운은 ${TRAIT_KO[dom] ?? ''}(${dom})이 가장 강해요.` : ''}`
+      : ''
+
   return (
-    <div className="flex justify-between gap-2 rounded-xl border border-stone-800 bg-stone-950/80 p-4 shadow-inner">
-      {order.map(({ key, pillar, isMe }) => {
-        const stem = pillar.heavenlyStem
-        const branch = pillar.earthlyBranch
-        const stemStyle = ELEMENT_STYLE[stem?.element || ''] || DEFAULT_STYLE
-        const branchStyle = ELEMENT_STYLE[branch?.element || ''] || DEFAULT_STYLE
-        return (
-          <div key={key} className="flex flex-1 flex-col items-center gap-1.5">
-            <div className="flex h-5 items-center justify-center gap-1">
-              <span className="text-xs font-medium text-stone-400">{labels[key]}</span>
-              {isMe && (
-                <span className="rounded bg-rose-600 px-1.5 py-0.5 text-xs leading-none text-white shadow-sm">
-                  {labels.me}
-                </span>
-              )}
+    <div className="space-y-3">
+      {isKo && personaKo && (
+        <div className="rounded-2xl border border-stone-700 bg-stone-800/60 p-3">
+          <p className="text-sm leading-relaxed text-stone-300">{personaKo}</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-4 gap-2 rounded-xl border border-stone-800 bg-stone-950/80 p-3 shadow-inner">
+        {order.map(({ key, pillar, isMe, posKo, posEn }) => {
+          const stem = pillar.heavenlyStem
+          const branch = pillar.earthlyBranch
+          const stemStyle = ELEMENT_STYLE[stem?.element || ''] || DEFAULT_STYLE
+          const branchStyle = ELEMENT_STYLE[branch?.element || ''] || DEFAULT_STYLE
+          return (
+            <div key={key} className="flex flex-col items-center gap-1.5">
+              <div className="flex h-5 items-center justify-center">
+                {isMe ? (
+                  <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-bold text-rose-400">
+                    {isKo ? posKo : posEn}
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-stone-500">{isKo ? posKo : posEn}</span>
+                )}
+              </div>
+              {[{ cell: stem, style: stemStyle }, { cell: branch, style: branchStyle }].map((c, idx) => (
+                <div
+                  key={idx}
+                  className={`flex h-16 w-full flex-col items-center justify-center rounded-xl border p-1 shadow-sm ${c.style.bg} ${
+                    isMe ? 'border-rose-500/40' : 'border-stone-700/50'
+                  }`}
+                >
+                  <span className={`${isKo ? 'text-base' : 'font-serif text-lg'} font-bold ${c.style.text}`}>
+                    {cellText(c.cell)}
+                  </span>
+                  {isKo && imageOf(c.cell?.name) && (
+                    <span className="mt-0.5 text-[10px] leading-none text-stone-400">{imageOf(c.cell?.name)}</span>
+                  )}
+                </div>
+              ))}
             </div>
-            <div
-              className={`flex h-10 w-12 items-center justify-center rounded-lg border border-stone-700/50 shadow-sm ${stemStyle.bg}`}
-            >
-              <span className={`${isKo ? 'text-sm' : 'font-serif text-lg'} font-bold ${stemStyle.text}`}>
-                {cellText(stem)}
-              </span>
-            </div>
-            <div
-              className={`flex h-10 w-12 items-center justify-center rounded-lg border border-stone-700/50 shadow-sm ${branchStyle.bg}`}
-            >
-              <span className={`${isKo ? 'text-sm' : 'font-serif text-lg'} font-bold ${branchStyle.text}`}>
-                {cellText(branch)}
-              </span>
-            </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }
