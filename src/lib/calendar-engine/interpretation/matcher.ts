@@ -267,6 +267,24 @@ export function buildInterpretation(args: {
     if (weekLine) wolunSec.text += `\n${weekLine}`
   }
 
+  // ── P0: natal 섹션 맨 앞에 "용신" 한 줄 ──
+  // 사주 유저가 가장 먼저 묻는 게 "내 용신". 계산은 natal 에 이미 있으니 노출.
+  const yongsinLine = buildYongsinLine(natal, lang)
+  if (yongsinLine) {
+    const natalSec = sections.find((s) => s.section === 'natal')
+    if (natalSec) {
+      natalSec.text = `${yongsinLine}\n${natalSec.text}`
+    } else {
+      // natal 룰이 안 떴어도(예: medium 강약) 용신 줄은 보장 — 순서 맞춰 삽입.
+      const insertAt = sections.findIndex(
+        (s) => SECTION_ORDER.indexOf(s.section) > SECTION_ORDER.indexOf('natal')
+      )
+      const sec = { section: 'natal', title: sectionTitle('natal', lang), text: yongsinLine }
+      if (insertAt === -1) sections.push(sec)
+      else sections.splice(insertAt, 0, sec)
+    }
+  }
+
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
 
   // 테마 점수 — 신호 기반(셀별 themeScores)의 월 평균.
@@ -681,6 +699,36 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
   }
 
   return vars
+}
+
+// 용신/희신/기신 한 줄 — natal.saju.yongsin 그대로 노출 (P0).
+// 사주 유저 최우선 정보. 오행은 이미 한글(목/화/토/금/수)이라 한자는 괄호 보조.
+const EL_HANJA: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
+const EL_EN: Record<string, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+function buildYongsinLine(natal: NatalContext, lang: InterpretationLang): string {
+  const y = natal.saju.yongsin
+  const primary = y?.primary
+  if (!primary) return ''
+  const secondary = y.secondary
+  const avoid = (y.avoid ?? []).filter(Boolean)
+  if (lang === 'en') {
+    const pen = EL_EN[primary] ?? primary
+    const sen = secondary ? (EL_EN[secondary] ?? secondary) : ''
+    let s = `Your key element (yongsin) is **${pen}**${sen ? ` (supporting: ${sen})` : ''} — environments, colours, people, and activities that nourish ${pen}${sen ? ` and ${sen}` : ''} lift your fortune.`
+    if (avoid.length) s += ` Ease off on ${avoid.map((a) => EL_EN[a] ?? a).join(', ')}.`
+    return s
+  }
+  const ph = `${primary}(${EL_HANJA[primary] ?? ''})`
+  const sh = secondary ? `${secondary}(${EL_HANJA[secondary] ?? ''})` : ''
+  let s = `타고난 용신은 **${ph}** 기운${sh ? ` (희신 ${sh})` : ''} — ${primary}${secondary ? `·${secondary}` : ''} 를 키우는 환경·색·사람·활동이 운을 끌어올려요.`
+  if (avoid.length) s += ` 멀리할 기운: ${avoid.join('·')}.`
+  return s
 }
 
 // 대운 위치 한 줄 — 지금 이 10년의 초/중/후반 + 다음 대운 예고.
