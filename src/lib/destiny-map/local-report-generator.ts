@@ -694,20 +694,16 @@ function summarySignKey(lon?: number): string | null {
   if (typeof lon !== 'number' || !Number.isFinite(lon)) return null
   return SUMMARY_ZODIAC_KEYS[Math.floor((((lon % 360) + 360) % 360) / 30)] ?? null
 }
-function summaryHasJong(s: string): boolean {
-  const ch = s.trim().slice(-1)
-  const code = ch.charCodeAt(0)
-  if (code < 0xac00 || code > 0xd7a3) return false
-  return (code - 0xac00) % 28 !== 0
-}
-const summaryIeyo = (s: string) => `${s}${summaryHasJong(s) ? '이에요' : '예요'}`
-
 export function generateChartSummary(saju: unknown, astro: unknown, lang: string = 'ko'): string {
   const isKo = lang === 'ko'
   const sj = extractSajuData(saju as CombinedResult['saju'])
+  // Self = day master (일간), not the most-counted element. For a 재다신약
+  // chart the dominant element is what surrounds you, not who you are — using
+  // it as "your type" contradicts the 일주. Persona/trait keys off 일간.
+  const selfKey = normalizeElementKey(sj.dayMasterElement)
   const domKey = normalizeElementKey(sj.dominantElement)
-  const arch = ARCHETYPES[domKey] || ARCHETYPES.wood
-  const trait = getElementTrait(domKey, isKo)
+  const trait = getElementTrait(selfKey, isKo)
+  const domName = getElementName(domKey, isKo)
 
   // 일주 archetype (day stem + branch)
   const s = saju as Record<string, unknown> | undefined
@@ -726,20 +722,27 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
   const sunName = (() => { const k = summarySignKey(lonOf('sun')); return k ? getSignName(k, isKo) : '' })()
   const moonName = (() => { const k = summarySignKey(lonOf('moon')); return k ? getSignName(k, isKo) : '' })()
 
+  const showDom = domKey !== selfKey // mention strong element only when it isn't the self
+
   if (isKo) {
-    const s1 = `당신은 '${arch.ko}' 유형이에요.${trait ? ` ${trait}.` : ''}`
-    const parts: string[] = []
-    if (iljuChar) parts.push(`사주는 ${iljuChar}`)
-    if (sunName && moonName) parts.push(`점성은 태양 ${sunName}·달 ${moonName}`)
-    else if (sunName) parts.push(`점성은 태양 ${sunName}`)
-    const s2 = parts.length ? `${summaryIeyo(parts.join(', '))}.` : ''
-    return [s1, s2].filter(Boolean).join(' ')
+    const lead = iljuChar
+      ? `당신은 ${iljuChar} 유형이에요.`
+      : `당신은 '${(ARCHETYPES[selfKey] || ARCHETYPES.wood).ko}' 유형이에요.`
+    const s2 = trait ? `${trait}.` : ''
+    const astroBit = sunName && moonName ? `태양은 ${sunName}·달은 ${moonName}에 있어요` : sunName ? `태양은 ${sunName}에 있어요` : ''
+    let s3 = ''
+    if (showDom && astroBit) s3 = `오행 중엔 ${domName} 기운이 강하고, ${astroBit}.`
+    else if (showDom) s3 = `오행 중엔 ${domName} 기운이 강해요.`
+    else if (astroBit) s3 = `${astroBit}.`
+    return [lead, s2, s3].filter(Boolean).join(' ')
   }
+
   const lower = (t: string) => (t ? t.charAt(0).toLowerCase() + t.slice(1) : t)
-  const s1 = `You're the '${arch.en}' type — ${arch.taglineEn}.${trait ? ` ${trait}.` : ''}`
-  const bits: string[] = []
-  if (iljuChar) bits.push(`At the core, ${lower(iljuChar)}`)
-  if (sunName && moonName) bits.push(`Sun in ${sunName}, Moon in ${moonName}.`)
-  else if (sunName) bits.push(`Sun in ${sunName}.`)
-  return [s1, ...bits].filter(Boolean).join(' ')
+  const lead = iljuChar
+    ? `At the core, ${lower(iljuChar)}`
+    : `You're the '${(ARCHETYPES[selfKey] || ARCHETYPES.wood).en}' type.`
+  const s2 = trait ? `${trait}.` : ''
+  const astroBit = sunName && moonName ? `Sun in ${sunName}, Moon in ${moonName}.` : sunName ? `Sun in ${sunName}.` : ''
+  const s3 = [showDom ? `${domName} energy is strongest.` : '', astroBit].filter(Boolean).join(' ')
+  return [lead, s2, s3].filter(Boolean).join(' ')
 }
