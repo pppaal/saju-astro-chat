@@ -77,6 +77,14 @@ const CTRL: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: 
 const BRANCH_MAINQI: Record<string, string> = { 子: '癸', 丑: '己', 寅: '甲', 卯: '乙', 辰: '戊', 巳: '丙', 午: '丁', 未: '己', 申: '庚', 酉: '辛', 戌: '戊', 亥: '壬' }
 const CHEONEUL: Record<string, string[]> = { 甲: ['丑', '未'], 戊: ['丑', '未'], 庚: ['丑', '未'], 乙: ['子', '申'], 己: ['子', '申'], 丙: ['亥', '酉'], 丁: ['亥', '酉'], 辛: ['寅', '午'], 壬: ['巳', '卯'], 癸: ['巳', '卯'] }
 const HWAGAE_OF: Record<string, string> = { 申: '辰', 子: '辰', 辰: '辰', 寅: '戌', 午: '戌', 戌: '戌', 巳: '丑', 酉: '丑', 丑: '丑', 亥: '未', 卯: '未', 未: '未' }
+// 형(刑): 丑戌未·寅巳申 삼형, 子卯 상형, 자형(辰午酉亥)
+const HYEONG_SETS = [['丑', '戌', '未'], ['寅', '巳', '申'], ['子', '卯']]
+const SELF_HYEONG = new Set(['辰', '午', '酉', '亥'])
+const hyeongPair = (a: string, b: string) => (a === b ? SELF_HYEONG.has(a) : HYEONG_SETS.some((s) => s.includes(a) && s.includes(b)))
+// 천간합 → 化 element (hangul) + fiveElements key
+const STEM_HAP_EL: Record<string, string> = {}
+for (const [a, b, el] of [['甲', '己', '토'], ['乙', '庚', '금'], ['丙', '辛', '수'], ['丁', '壬', '목'], ['戊', '癸', '화']]) STEM_HAP_EL[[a, b].sort().join('')] = el
+const EL2KEY: Record<string, string> = { 목: 'wood', 화: 'fire', 토: 'earth', 금: 'metal', 수: 'water' }
 function sibsinOf(day: string, other: string): string {
   const d = STEM_INFO[day], o = STEM_INFO[other]
   if (!d || !o) return ''
@@ -113,6 +121,7 @@ function buildInstructions(locale: Locale): string {
       '- tone: warm mentor + firm conclusions. Speak gently but never hedge ("maybe", "in some cases").',
       '- weigh good/bad by the chart, not by politeness.',
       '- for life/death, medical, legal, or major decisions: point to the chart signal but make clear the decision is theirs.',
+      '- greetings/small talk: reply briefly then ask what they want to know. Do not dump unsolicited analysis.',
     ].join('\n')
   }
   return [
@@ -124,6 +133,7 @@ function buildInstructions(locale: Locale): string {
     '- 톤: 따뜻한 멘토 어조 + 단정적 결론. 부드럽게 말해도 결론은 흐리지 않는다. "아마/경우에 따라" 회피 금지.',
     '- 좋고 나쁨은 예의가 아니라 차트 근거대로 균형 있게 짚는다.',
     '- 생사·의료·법률·중대 결정은 차트 신호만 짚고 "결정은 본인 몫"임을 분명히 한다.',
+    '- 인사·잡담은 짧게 응대 후 무엇이 궁금한지 묻는다. 묻지 않은 해석을 먼저 쏟지 않는다.',
   ].join('\n')
 }
 
@@ -180,9 +190,13 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
       const kAge = now.getFullYear() - Number(birth.birthDate.split('-')[0]) + 1
       const prof = calculateProfection(chart, kAge)
       const lordKo = PLANET_KO_A[prof.lordOfYear] ?? prof.lordOfYear
+      // where the year-lord lives natally (deepens the reading)
+      const lp = chart.planets.find((p) => p.name === prof.lordOfYear) as { sign?: string; house?: number } | undefined
+      const lordResKo = lp?.sign ? ` (${skA(lp.sign, 'ko')}${lp.house ? ` ${lp.house}하우스` : ''} 거주)` : ''
+      const lordResEn = lp?.sign ? ` (in ${lp.sign}${lp.house ? `, H${lp.house}` : ''})` : ''
       const profBlock = L(
-        `[프로펙션 ${kAge}세]\n활성 하우스: ${prof.activatedHouse}하우스 (${HOUSE_THEME_KO[prof.activatedHouse]})\n올해의 지배성(Lord of Year): ${lordKo}`,
-        `[Profection age ${kAge}]\nactivated house: ${prof.activatedHouse} (${HOUSE_THEME_KO[prof.activatedHouse]})\nLord of the Year: ${prof.lordOfYear}`,
+        `[프로펙션 ${kAge}세]\n활성 하우스: ${prof.activatedHouse}하우스 (${HOUSE_THEME_KO[prof.activatedHouse]})\n올해의 지배성(Lord of Year): ${lordKo}${lordResKo}`,
+        `[Profection age ${kAge}]\nactivated house: ${prof.activatedHouse} (${HOUSE_THEME_KO[prof.activatedHouse]})\nLord of the Year: ${prof.lordOfYear}${lordResEn}`,
       ) + '\n\n'
       astro = astro.replace(/\[(?:프로펙션|Profection)[\s\S]*?\n\n/, profBlock)
       if (!/프로펙션|Profection age/.test(astro)) astro = astro.trimEnd() + '\n\n' + profBlock
@@ -335,15 +349,33 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     const pline = periods.filter(([, v]) => v).map(([k, v]) => `${k}: ${sibPair(v!)}`).join(' / ')
     if (pline) out.push(pline)
     const relsBy = (src: string) => (current?.relations ?? []).filter((r) => r.source === src)
-    const crossLines: string[] = []
-    for (const [k, src] of [['세운', 'seun'], ['월운', 'wolun'], ['일진', 'iljin'], ['대운', 'daeun']] as const) {
-      const rs = relsBy(src)
-      if (rs.length) crossLines.push(`  ${k}: ${rs.map((r) => {
-        const d = (r.relation.detail || '').replace(/ - year/g, ' ↔ 년').replace(/ - month/g, ' ↔ 월').replace(/ - day/g, ' ↔ 일').replace(/ - time/g, ' ↔ 시')
-        return d ? `${r.relation.kind} ${d}` : r.relation.kind // always state 합/충 type, not just arrow
-      }).join(' / ')}`)
+    const fe = saju.fiveElements
+    const natalBr: Array<[string, string]> = [['년', P.year.earthlyBranch.name], ['월', P.month.earthlyBranch.name], ['일', P.day.earthlyBranch.name], ['시', P.time.earthlyBranch.name]]
+    // 化 미완 note: 천간합의 化 오행이 지지에서 약하면 (count ≤1) 化 미완 표시
+    const hwaNote = (detail: string): string => {
+      const stems = (detail.match(/[甲乙丙丁戊己庚辛壬癸]/g) ?? []).slice(0, 2)
+      if (stems.length < 2) return ''
+      const el = STEM_HAP_EL[stems.sort().join('')]
+      if (!el) return ''
+      const cnt = (fe as Record<string, number>)[EL2KEY[el]] ?? 0
+      return cnt <= 1 ? ` (合${el}, 단 지지${el} 약→化 미완 가능)` : ` (合化${el})`
     }
-    if (crossLines.length) { out.push(L('current_cross (운↔본명 합/충):', 'current_cross (luck↔natal):')); out.push(...crossLines) }
+    // 형(刑): engine이 운-본명 형을 안 잡으므로 직접 계산해 보강
+    const hyeongOf = (branch?: string): string[] =>
+      branch ? natalBr.filter(([, nb]) => hyeongPair(branch, nb)).map(([lab, nb]) => `지지형 운 ${branch} ↔ ${lab} ${nb} (${branch}${nb}刑)`) : []
+    const crossLines: string[] = []
+    const periodBranch: Record<string, string | undefined> = { 세운: current?.seun?.branch, 월운: current?.wolun?.branch, 일진: current?.iljin?.branch, 대운: cur?.earthlyBranch ?? undefined }
+    for (const [k, src] of [['세운', 'seun'], ['월운', 'wolun'], ['일진', 'iljin'], ['대운', 'daeun']] as const) {
+      const parts2: string[] = []
+      for (const r of relsBy(src)) {
+        const d = (r.relation.detail || '').replace(/ - year/g, ' ↔ 년').replace(/ - month/g, ' ↔ 월').replace(/ - day/g, ' ↔ 일').replace(/ - time/g, ' ↔ 시')
+        const note = r.relation.kind === '천간합' ? hwaNote(r.relation.detail || '') : ''
+        parts2.push((d ? `${r.relation.kind} ${d}` : r.relation.kind) + note)
+      }
+      parts2.push(...hyeongOf(periodBranch[k]))
+      if (parts2.length) crossLines.push(`  ${k}: ${parts2.join(' / ')}`)
+    }
+    if (crossLines.length) { out.push(L('current_cross (운↔본명 합/충/형):', 'current_cross (luck↔natal):')); out.push(...crossLines) }
   }
 
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n'
