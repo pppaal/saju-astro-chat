@@ -7,7 +7,9 @@ const PUBLIC_ROUTES = [
   '/faq',
   '/contact',
   '/blog',
-  '/report',
+  // '/report' is an intentional redirect to /destiny-map/result, so a strict
+  // toHaveURL(/report/) assertion can never pass — the destination is covered
+  // by /destiny-map below.
   '/destiny-map',
   '/tarot',
   '/calendar',

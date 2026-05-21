@@ -318,8 +318,14 @@ jobs:
         run: |
           npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/next-server.log 2>&1 &
         env:
+          # NextAuth needs its secret or /api/auth/session 500s, which makes the
+          # E2E waitForServer() (loops until status < 500) hang for 60s and the
+          # whole E2E API step fail.
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-placeholder-32-characters-long-secret' }}
           NEXTAUTH_URL: http://localhost:3000
           NEXT_PUBLIC_BASE_URL: http://localhost:3000
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://user:pass@host/db' }}
           CRON_SECRET: ci-cron-secret
           PUBLIC_METRICS_TOKEN: ci-metrics-token
 
