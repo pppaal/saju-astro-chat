@@ -36,8 +36,10 @@ export function buildInterpretation(args: {
   lang?: InterpretationLang
   /** 전월 셀 — 주어지면 "지난달 대비" 비교를 monthly scope 에서 계산 */
   prevCells?: CalendarCell[]
+  /** 디버그 — 캡 적용 전 매칭 룰 ID 도 반환 (룰 커버리지 감사용) */
+  debug?: boolean
 }): Interpretation {
-  const { natal, cells, scope = 'monthly', lang = 'ko', prevCells } = args
+  const { natal, cells, scope = 'monthly', lang = 'ko', prevCells, debug } = args
 
   // 모든 셀에서 신호 + 패턴 합치기
   const allSignals = cells.flatMap((c) => c.signals)
@@ -334,6 +336,7 @@ export function buildInterpretation(args: {
   return {
     narrative,
     matchedRuleIds: picked.map((m) => m.rule.id),
+    allMatchedRuleIds: debug ? matched.map((m) => m.rule.id) : undefined,
     sections,
     themeScores,
     themeBreakdown,
