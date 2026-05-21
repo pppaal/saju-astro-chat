@@ -404,6 +404,48 @@ describe('calendar-engine regression', () => {
       expect(themesPopulated.length).toBeGreaterThanOrEqual(3)
     })
 
+    it('theme score direction agrees with its Why-card (no score↔근거 contradiction)', async () => {
+      // opt1 회귀: 점수와 themeBreakdown 이 같은 신호 기반 모델을 써야 함.
+      // 예전엔 1987년생 건강이 점수 60인데 근거카드 −47 로 모순됐음.
+      const profiles = [SEOUL_MALE_1995, { ...SEOUL_MALE_1995, birthDate: '1987-05-10' }]
+      for (const p of profiles) {
+        const saju = calculateSajuData(p.birthDate, p.birthTime, p.gender, 'solar', p.timeZone)
+        const natal = await buildNatalContext(p, { saju })
+        for (const mo of [4, 8]) {
+          const cells = await buildCalendar(
+            natal,
+            {
+              start: new Date(Date.UTC(2026, mo - 1, 1)).toISOString(),
+              end: new Date(Date.UTC(2026, mo, 0, 23, 59, 59)).toISOString(),
+              granularity: 'day',
+            },
+            { includeEvidence: true }
+          )
+          const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+          const ts = interp.themeScores ?? {}
+          const tb = interp.themeBreakdown ?? {}
+          for (const k of Object.keys(tb) as Array<keyof typeof tb>) {
+            const score = ts[k]
+            const items = tb[k] ?? []
+            if (typeof score !== 'number' || items.length === 0) continue
+            const net = items.reduce(
+              (a, c) => a + (c.dir === 'up' ? c.delta : -Math.abs(c.delta)),
+              0
+            )
+            const scoreSign = score >= 55 ? 1 : score <= 45 ? -1 : 0
+            const netSign = net > 3 ? 1 : net < -3 ? -1 : 0
+            // 둘 다 뚜렷한 방향일 때 서로 반대면 안 됨.
+            if (scoreSign !== 0 && netSign !== 0) {
+              expect(
+                scoreSign,
+                `${p.birthDate} ${mo}월 ${k}: score ${score} vs Why-card net ${net} 모순`
+              ).toBe(netSign)
+            }
+          }
+        }
+      }
+    })
+
     it('themeBreakdown (Why-card) exposes contributors with sane magnitude + no raw hanja', async () => {
       const saju = calculateSajuData(
         SEOUL_MALE_1995.birthDate,

@@ -144,9 +144,6 @@ export function buildInterpretation(args: {
 
   // 도메인 묶음을 단일 가상 entry로 합쳐 picked에 추가
   // — 도메인별 cells에서 top/bottom dates 추출 → narrative 끝에 추가
-  // 표출된 룰(top-N) 만 따로 보관 — themeScores 가 narrative 와 같은 룰로
-  // 점수를 내야 점수↔해석 동기화가 깨지지 않음.
-  const domainShown = new Map<string, typeof matched>()
   for (const domain of DOMAIN_ORDER) {
     const allCandidates = domainPicks.get(domain)
     if (!allCandidates || allCandidates.length === 0) continue
@@ -174,7 +171,6 @@ export function buildInterpretation(args: {
       // narrative 순서 안정화 — 원래 ranked(priority/strength) 순서 유지
       return ranked.filter((m) => picks.includes(m))
     })()
-    domainShown.set(domain, list)
     const themes = DOMAIN_THEMES[domain] ?? []
     const topDates = pickDomainExtremeDates(cells, themes, 3, 'high')
     const lowDates = pickDomainExtremeDates(cells, themes, 2, 'low')
@@ -272,40 +268,28 @@ export function buildInterpretation(args: {
 
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
 
-  // 도메인별 themeScores — 신호 평균 base + 룰 의도 adjustment.
+  // 테마 점수 — 신호 기반(셀별 themeScores)의 월 평균.
   //
-  // 점수 모델: final = signalAvg + ruleIntentAvg × 30
+  // Why-card(themeBreakdown)와 *같은* polarity×weight×layerWeight 모델이라
+  // 숫자와 근거 카드의 방향이 항상 일치한다. 또 cell[0](1일) 한 칸이 아니라
+  // 그 달 전체를 평균해 day-1 편향도 없앤다.
   //
-  // - 신호 평균(cell.themeScores)이 base — 사용자 멘탈 모델(80=좋음,
-  //   50=보통, 20=주의)을 따라감.
-  // - 룰 의도 평균이 ±30 adjustment — narrative 톤이 양/음 쪽으로 끌어당김.
-  //   우호 룰 일관(+1) 시 +30, 주의 룰 일관(-1) 시 -30, 섞이면 0.
-  //
-  // 결과 분포 가능 범위: 20-90+ 자유롭게.
-  //  - 신호 우호(80) + 룰 우호(+1) → 110 → cap 100 (매우 좋은 날)
-  //  - 신호 평균(55) + 룰 주의(-1) → 25 (주의 날)
-  //  - 신호 평균(50) + 룰 중립(0) → 50 (보통)
-  const DOMAIN_TO_THEME: Record<string, keyof NonNullable<Interpretation['themeScores']>> = {
-    money: 'money',
-    work: 'career',
-    relations: 'love',
-    body: 'health',
-    growth: 'growth',
-  }
-  const cellThemeScores = cells[0]?.themeScores ?? {}
+  // (이전 모델 'cell[0] 신호평균 + 표출 룰 의도 ×30' 은, 표출된 룰이 신호
+  //  전체와 반대 방향일 때 점수(예: 건강 60)와 근거카드(예: −47)가 모순되는
+  //  문제가 있었음 → opt1: 신호 기반으로 통일.)
+  const THEME_SCORE_KEYS = ['love', 'money', 'career', 'health', 'growth'] as const
   const themeScores: NonNullable<Interpretation['themeScores']> = {}
-  // narrative 에 실제 표출된 룰(domainShown) 로 점수 산출 — 전체 후보
-  // (domainPicks) 가 아니라 사용자가 읽는 4개로 평균내야 점수↔해석 동기화.
-  for (const [domain, list] of domainShown) {
-    const themeKey = DOMAIN_TO_THEME[domain]
-    if (!themeKey) continue
-    const intents = list.map((m) => m.polarity)
-    const intentAvg = intents.length > 0 ? intents.reduce((s, p) => s + p, 0) / intents.length : 0
-    // base: 신호 평균
-    const signalScore = cellThemeScores[themeKey] ?? 50
-    // adjustment: ±30 swing
-    const final = signalScore + intentAvg * 30
-    themeScores[themeKey] = Math.max(0, Math.min(100, Math.round(final)))
+  for (const key of THEME_SCORE_KEYS) {
+    let sum = 0
+    let n = 0
+    for (const c of cells) {
+      const v = c.themeScores?.[key]
+      if (typeof v === 'number') {
+        sum += v
+        n += 1
+      }
+    }
+    if (n > 0) themeScores[key] = Math.round(sum / n)
   }
 
   // Why-card — 테마별 점수 인과 추적 (그 점수에 기여한 신호 top N).
