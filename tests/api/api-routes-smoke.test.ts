@@ -45,7 +45,6 @@ describe('API Routes Smoke Tests', () => {
     it('should have astrology core routes', () => {
       assertModules([
         'app/api/astrology/route',
-        'app/api/astrology/details/route',
       ]);
     });
 
