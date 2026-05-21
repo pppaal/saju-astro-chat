@@ -1,6 +1,7 @@
 'use client'
 
 import { Sparkles } from 'lucide-react'
+import { ganjiToKorean } from '@/lib/saju/ganjiKo'
 import type { ImportantDate } from './types'
 
 interface Props {
@@ -106,7 +107,9 @@ export default function DailyFlowCard({ importantDate }: Props) {
                 className="inline-flex items-center gap-1.5 bg-zinc-950/60 border border-white/5 rounded-full px-2.5 py-1"
               >
                 <span className="text-zinc-500">{c.label}</span>
-                <span className="text-zinc-100 font-bold tracking-wide">{c.ganji}</span>
+                <span className="text-zinc-100 font-bold tracking-wide">
+                  {ganjiToKorean(c.ganji)}
+                </span>
                 {c.sibsin && <span className="text-indigo-300">{c.sibsin}</span>}
               </span>
             ))}
@@ -131,7 +134,7 @@ export default function DailyFlowCard({ importantDate }: Props) {
                   title={it.blurb}
                   className={`text-[11px] font-medium border rounded-md px-2 py-0.5 ${tone}`}
                 >
-                  {it.pair} {it.kind}
+                  {ganjiToKorean(it.pair)} {it.kind}
                 </span>
               )
             })}
