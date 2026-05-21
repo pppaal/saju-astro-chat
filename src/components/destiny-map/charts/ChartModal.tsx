@@ -3,6 +3,7 @@
 import React from 'react'
 import { X } from 'lucide-react'
 import { SajuChart } from './SajuChart'
+import { ElementRadar } from './ElementRadar'
 import { NatalChart } from './NatalChart'
 
 interface ChartModalProps {
@@ -63,6 +64,10 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
               {isKo ? '동양 — 사주팔자' : 'Saju (4 Pillars)'}
             </h3>
             <SajuChart saju={saju as never} lang={lang} />
+            <h3 className="border-l-2 border-rose-500 px-2 pt-1 text-sm font-medium text-stone-300">
+              {isKo ? '동양 — 오행 균형' : 'Five-Element Balance'}
+            </h3>
+            <ElementRadar saju={saju} lang={lang} />
           </div>
           <div className="space-y-2">
             <h3 className="border-l-2 border-indigo-500 px-2 text-sm font-medium text-stone-300">
