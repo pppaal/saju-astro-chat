@@ -50,6 +50,12 @@ const SIGNS_KO = [
 const sign = (ko: string) => SIGN_KO_TO_EN[ko] ?? ko
 const label = (name: string) => PLANET_LABEL[name] ?? name
 
+// 개인 행성·앵글 — synastry에서 의미 있는 것. 나머지(목성~명왕성·노드·
+// 카이런 등)는 외행성으로, 동세대끼리 거의 동일해 generational 노이즈가 된다.
+const PERSONAL_POINTS = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Ascendant', 'MC'])
+// CRITICAL 승급 기준 점(루미너리·금성·화성·ASC).
+const CRITICAL_POINTS = new Set(['Sun', 'Moon', 'Venus', 'Mars', 'Ascendant'])
+
 function orbToDegMin(orb: number): string {
   const deg = Math.floor(orb)
   const min = Math.round((orb - deg) * 60)
@@ -124,6 +130,9 @@ export interface AstroSynastryInput {
   lonA: number
   latB: number
   lonB: number
+  /** A/B 실명. 있으면 행성 소유(누구의 달·화성인지)를 이름에 고정한다. */
+  nameA?: string | null
+  nameB?: string | null
 }
 
 /**
@@ -137,24 +146,88 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const chartB = expandChart(input.chartB, input.latB, input.lonB)
   const synastry = calculateSynastry({ chartA, chartB })
 
-  const out: string[] = ['== 시너스트리 (점성 cross) ==', '']
-  out.push('[Cross aspects — A의 행성 ↔ B의 행성·포인트]')
-  for (const asp of synastry.aspects) {
+  // 행성 소유를 이름에 고정한다. 예전 aspect 줄은 "Moon Square Mars"처럼
+  // 누구의 달·화성인지 라벨이 아예 없어서, 모델이 소유·방향을 멋대로
+  // 추측(상대방 것이라 단정)하는 사고가 났다. from=A, to=B로 명시한다.
+  const nmA = (input.nameA || '').trim()
+  const nmB = (input.nameB || '').trim()
+  const labelA = nmA ? `A(${nmA})` : 'A'
+  const labelB = nmB ? `B(${nmB})` : 'B'
+
+  const aspLine = (asp: (typeof synastry.aspects)[number]): string => {
     const fromSign = asp.from.sign ? sign(asp.from.sign) : '?'
     const toSign = asp.to.sign ? sign(asp.to.sign) : '?'
+    return `${labelA}'s ${label(asp.from.name)} in ${fromSign} ${ASPECT_TITLE[asp.type] ?? asp.type} ${labelB}'s ${label(asp.to.name)} in ${toSign} (Orb: ${orbToDegMin(asp.orb)})`
+  }
+
+  // aspect를 티어로 분류 + generational 컨정션 묶음 + orb>5° 노이즈 drop
+  const critical: { line: string; orb: number }[] = []
+  const important: { line: string; orb: number }[] = []
+  const generationalNames = new Set<string>()
+  let generationalCount = 0
+  for (const asp of synastry.aspects) {
+    const fromP = PERSONAL_POINTS.has(asp.from.name)
+    const toP = PERSONAL_POINTS.has(asp.to.name)
+    // 외행성↔외행성 컨정션 = 동세대 노이즈 → 묶어서 요약 1줄
+    if (asp.type === 'conjunction' && !fromP && !toP) {
+      generationalCount++
+      generationalNames.add(label(asp.from.name))
+      generationalNames.add(label(asp.to.name))
+      continue
+    }
+    // orb 5° 초과는 noise로 drop (단 해·달 관여는 살림)
+    const involvesLuminary =
+      asp.from.name === 'Sun' || asp.to.name === 'Sun' || asp.from.name === 'Moon' || asp.to.name === 'Moon'
+    if (asp.orb > 5 && !involvesLuminary) continue
+    const isCritical =
+      (CRITICAL_POINTS.has(asp.from.name) || CRITICAL_POINTS.has(asp.to.name)) && asp.orb <= 3
+    ;(isCritical ? critical : important).push({ line: aspLine(asp), orb: asp.orb })
+  }
+  critical.sort((a, b) => a.orb - b.orb)
+  important.sort((a, b) => a.orb - b.orb)
+
+  // House overlay — 양방향 동일분은 1줄 요약, 다른 하우스만 남긴다
+  const aMap = new Map<string, number>()
+  const bMap = new Map<string, number>()
+  for (const o of synastry.houseOverlaysAtoB) aMap.set(label(o.planet), o.inHouse)
+  for (const o of synastry.houseOverlaysBtoA) bMap.set(label(o.planet), o.inHouse)
+  let overlaySame = 0
+  const overlayDiffs: string[] = []
+  for (const [pl, h] of aMap) {
+    const bh = bMap.get(pl)
+    if (bh == null) continue
+    if (bh === h) overlaySame++
+    else overlayDiffs.push(`${pl}: ${labelA}→${labelB} ${ordinal(h)} / ${labelB}→${labelA} ${ordinal(bh)}`)
+  }
+  const ascA = chartA.ascendant?.sign ? sign(chartA.ascendant.sign) : null
+  const ascB = chartB.ascendant?.sign ? sign(chartB.ascendant.sign) : null
+
+  const out: string[] = ['== 시너스트리 (점성 cross) ==']
+  out.push(
+    `[고정 매핑 — 절대 바꾸지 말 것] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄의 앞쪽 행성 = ${labelA} 것, 뒤쪽 행성 = ${labelB} 것)`
+  )
+  out.push('')
+  out.push('[CRITICAL — 반드시 해석] 개인 행성(해·달·금성·화성·ASC) 타이트 cross (orb≤3°)')
+  out.push(critical.length ? critical.map((c) => c.line).join('\n') : '(해당 없음)')
+  out.push('')
+  out.push('[IMPORTANT — 맥락 보강] (orb≤5°)')
+  out.push(important.length ? important.map((c) => c.line).join('\n') : '(해당 없음)')
+  out.push('')
+  out.push('[참고 — 동세대/비중 낮음]')
+  if (generationalCount > 0) {
     out.push(
-      `${label(asp.from.name)} in ${fromSign} ${ASPECT_TITLE[asp.type] ?? asp.type} ${label(asp.to.name)} in ${toSign} (Orb: ${orbToDegMin(asp.orb)})`,
+      `외행성 동세대 컨정션 ${generationalCount}건 (${[...generationalNames].join('·')}) — 동세대 공통 신호, 해석 비중 낮음`
     )
   }
-  out.push('')
-  out.push("[House overlay — A의 행성이 B의 어느 house에]")
-  for (const o of synastry.houseOverlaysAtoB) {
-    out.push(`Partner A's ${label(o.planet)} in the ${ordinal(o.inHouse)} Partner B's house`)
-  }
-  out.push('')
-  out.push("[House overlay — B의 행성이 A의 어느 house에]")
-  for (const o of synastry.houseOverlaysBtoA) {
-    out.push(`Partner B's ${label(o.planet)} in the ${ordinal(o.inHouse)} Partner A's house`)
+  if (overlayDiffs.length === 0) {
+    out.push(
+      `House overlay: 양방향 ${overlaySame}개 전부 동일(동세대 공통) — 유효 차별점은 ASC뿐 (${labelA} ${ascA ?? '?'} / ${labelB} ${ascB ?? '?'})`
+    )
+  } else {
+    out.push(
+      `House overlay: ${overlaySame}개 동일, 아래 ${overlayDiffs.length}건만 유효 (ASC ${labelA} ${ascA ?? '?'} / ${labelB} ${ascB ?? '?'}):`
+    )
+    out.push(...overlayDiffs)
   }
 
   return out.join('\n')

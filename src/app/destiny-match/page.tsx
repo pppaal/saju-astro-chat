@@ -1,4 +1,4 @@
-﻿import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import AuthRequired from '@/components/AuthRequired'

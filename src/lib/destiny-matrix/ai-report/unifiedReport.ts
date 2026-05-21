@@ -1,4 +1,4 @@
-﻿import type { FusionReport } from '../interpreter/types'
+import type { FusionReport } from '../interpreter/types'
 import type { MatrixCalculationInput, MatrixSummary } from '../types'
 import type {
   ReportPeriod,

@@ -1,1 +1,1 @@
-﻿export { generateNarrativeSectionsFromSynthesis } from './narrativeGeneratorSupport'
+export { generateNarrativeSectionsFromSynthesis } from './narrativeGeneratorSupport'

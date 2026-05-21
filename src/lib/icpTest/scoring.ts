@@ -1,4 +1,4 @@
-﻿import { ICP_ARCHETYPE_PROFILES, getAxisInterpretation } from './results'
+import { ICP_ARCHETYPE_PROFILES, getAxisInterpretation } from './results'
 import { ICP_TEST_VERSION, ICP_V2_QUESTIONS } from './questions'
 import type {
   IcpAnswers,

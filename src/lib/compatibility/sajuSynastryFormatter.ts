@@ -159,6 +159,9 @@ export interface SajuSynastryInput {
   pillarsB: SajuPillarInput[]
   currentDaeunA?: { stem: string; branch: string; age?: number } | null
   currentDaeunB?: { stem: string; branch: string; age?: number } | null
+  /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
+  nameA?: string | null
+  nameB?: string | null
 }
 
 /**
@@ -173,159 +176,152 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const bDay = B[2]
   if (!aDay.stem || !bDay.stem) return ''
 
-  const out: string[] = ['== 시너스트리 (사주 cross) ==', '']
-
-  // ── 1. 일간 cross ────────────────────────────────────────
-  out.push('[일간 cross]')
+  // 라벨에 실명을 고정한다. "A", "B"만 주면 모델이 어느 쪽이 누구인지,
+  // 辛→금 같은 오행 매핑까지 머릿속으로 다시 풀다가 통째로 뒤집는 사고가
+  // 난다(辛(금) 일간을 "목"이라 부르는 등). 이름·오행을 데이터에 박아둔다.
+  const nmA = (input.nameA || '').trim()
+  const nmB = (input.nameB || '').trim()
+  const labelA = nmA ? `A(${nmA})` : 'A'
+  const labelB = nmB ? `B(${nmB})` : 'B'
   const elA = STEM_EL[aDay.stem]
   const elB = STEM_EL[bDay.stem]
+
+  // 우선순위 버킷 — LLM이 토큰 무게가 아니라 명시적 티어로 중요도를 읽게.
+  const critical: string[] = []
+  const important: string[] = []
+  const chamgo: string[] = []
+
+  // 1. 일간 cross — 항상 CRITICAL
   if (elA && elB) {
     if (elA === elB) {
-      out.push(`A 일간 ${aDay.stem}(${elA}) ↔ B 일간 ${bDay.stem}(${elB}) — 같은 오행 (비견)`)
+      critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — 같은 오행 (비견)`)
     } else if (EL_CONTROLS[elA] === elB) {
-      out.push(`A 일간 ${aDay.stem}(${elA}) ↔ B 일간 ${bDay.stem}(${elB}) — ${elA}극${elB} (A가 B를 통제)`)
+      const a = nmA || 'A', b = nmB || 'B'
+      critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
     } else if (EL_CONTROLS[elB] === elA) {
-      out.push(`A 일간 ${aDay.stem}(${elA}) ↔ B 일간 ${bDay.stem}(${elB}) — ${elB}극${elA} (B가 A를 통제)`)
+      const a = nmA || 'A', b = nmB || 'B'
+      critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
     } else {
-      out.push(`A 일간 ${aDay.stem}(${elA}) ↔ B 일간 ${bDay.stem}(${elB}) — 상생 (서로 보완)`)
+      important.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — 상생 (서로 보완)`)
     }
   }
-  out.push('')
 
-  // ── 2. 4기둥 × 4기둥 cross ────────────────────────────────
-  const crossLines: string[] = []
+  // 2. 천간합(끌림)=CRITICAL, 천간충=IMPORTANT
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
       const aS = A[i].stem, bS = B[j].stem
-      if (aS && bS) {
-        const hap = STEM_HAP[aS]
-        if (hap && hap.other === bS) {
-          crossLines.push(`A ${PILLAR_LABELS[i]}천간 ${aS} + B ${PILLAR_LABELS[j]}천간 ${bS} — ${aS}${bS}合化${hap.element} (천간합 — 화학적 끌림)`)
-        }
-        if (STEM_CHUNG[aS] === bS) {
-          crossLines.push(`A ${PILLAR_LABELS[i]}천간 ${aS} ↔ B ${PILLAR_LABELS[j]}천간 ${bS} — 천간충 (대립)`)
-        }
+      if (!aS || !bS) continue
+      const hap = STEM_HAP[aS]
+      if (hap && hap.other === bS) {
+        critical.push(`A ${PILLAR_LABELS[i]}천간 ${aS} + B ${PILLAR_LABELS[j]}천간 ${bS} — ${aS}${bS}合化${hap.element} (천간합 — 화학적 끌림)`)
       }
-      const aBr = A[i].branch, bBr = B[j].branch
-      if (!aBr || !bBr) continue
-      const key = `${i},${j}`
-      const hits = new Set<string>()
-      const hap = BRANCH_HAP[aBr]
-      if (hap && hap.other === bBr) {
-        crossLines.push(`A ${PILLAR_LABELS[i]}지 ${aBr} + B ${PILLAR_LABELS[j]}지 ${bBr} — ${aBr}${bBr}합화${hap.element} (지지합 — 결속)`)
-        hits.add(key)
-      }
-      if (BRANCH_CHUNG[aBr] === bBr) {
-        crossLines.push(`A ${PILLAR_LABELS[i]}지 ${aBr} ↔ B ${PILLAR_LABELS[j]}지 ${bBr} — ${aBr}${bBr}충 (충돌·이별 신호)`)
-        hits.add(key)
-      }
-      if (BRANCH_HAE[aBr] === bBr && !hits.has(key)) {
-        crossLines.push(`A ${PILLAR_LABELS[i]}지 ${aBr} ↔ B ${PILLAR_LABELS[j]}지 ${bBr} — ${aBr}${bBr}해/원진 (미묘한 거리감)`)
-      }
-      if (BRANCH_PA[aBr] === bBr && !hits.has(key)) {
-        crossLines.push(`A ${PILLAR_LABELS[i]}지 ${aBr} ↔ B ${PILLAR_LABELS[j]}지 ${bBr} — ${aBr}${bBr}파 (사소한 파열)`)
-      }
-      if (BRANCH_HYEONG_PAIR[aBr] === bBr) {
-        crossLines.push(`A ${PILLAR_LABELS[i]}지 ${aBr} ↔ B ${PILLAR_LABELS[j]}지 ${bBr} — ${aBr}${bBr}형 (무례지형 — 신경전)`)
-      }
-      for (const trio of BRANCH_HYEONG_3) {
-        if (trio.includes(aBr) && trio.includes(bBr) && aBr !== bBr) {
-          crossLines.push(`A ${PILLAR_LABELS[i]}지 ${aBr} ↔ B ${PILLAR_LABELS[j]}지 ${bBr} — ${trio.join('')} 3형 부분 (갈등·송사)`)
-        }
-      }
-      if (SELF_HYEONG.has(aBr) && aBr === bBr) {
-        crossLines.push(`A ${PILLAR_LABELS[i]}지 ${aBr} ↔ B ${PILLAR_LABELS[j]}지 ${bBr} — 자형 (자기 압박)`)
+      if (STEM_CHUNG[aS] === bS) {
+        important.push(`A ${PILLAR_LABELS[i]}천간 ${aS} ↔ B ${PILLAR_LABELS[j]}천간 ${bS} — 천간충 (대립)`)
       }
     }
   }
-  // 삼합·방합 — A 한 슬롯 + B 한 슬롯이 같은 trio에 속할 때
+
+  // 3. 지지 관계 — 같은 (i,j) 페어의 충·형·합·해·파를 한 줄로 병합 (중복 제거)
+  type PairRel = { i: number; j: number; aBr: string; bBr: string; tags: string[] }
+  const pairMap = new Map<string, PairRel>()
+  const addTag = (i: number, j: number, aBr: string, bBr: string, tag: string) => {
+    const key = `${i},${j}`
+    const cur = pairMap.get(key) ?? { i, j, aBr, bBr, tags: [] }
+    if (!cur.tags.includes(tag)) cur.tags.push(tag)
+    pairMap.set(key, cur)
+  }
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      const aBr = A[i].branch, bBr = B[j].branch
+      if (!aBr || !bBr) continue
+      if (BRANCH_HAP[aBr]?.other === bBr) addTag(i, j, aBr, bBr, '합')
+      if (BRANCH_CHUNG[aBr] === bBr) addTag(i, j, aBr, bBr, '충')
+      if (BRANCH_HYEONG_PAIR[aBr] === bBr) addTag(i, j, aBr, bBr, '형')
+      for (const trio of BRANCH_HYEONG_3) {
+        if (trio.includes(aBr) && trio.includes(bBr) && aBr !== bBr) addTag(i, j, aBr, bBr, '3형')
+      }
+      if (SELF_HYEONG.has(aBr) && aBr === bBr) addTag(i, j, aBr, bBr, '자형')
+      if (BRANCH_HAE[aBr] === bBr) addTag(i, j, aBr, bBr, '해')
+      if (BRANCH_PA[aBr] === bBr) addTag(i, j, aBr, bBr, '파')
+    }
+  }
+  for (const { i, j, aBr, bBr, tags } of pairMap.values()) {
+    const hasClash = tags.some((t) => t === '충' || t === '형' || t === '3형' || t === '자형')
+    const hasHap = tags.includes('합')
+    const note = hasClash
+      ? '이별·갈등 핵심 신호'
+      : hasHap
+        ? '결속'
+        : tags.includes('해')
+          ? '미묘한 거리감'
+          : '사소한 파열'
+    const combo = tags.length > 1 ? `${tags.join('+')} 복합` : tags[0]
+    const line = `A ${PILLAR_LABELS[i]}지 ${aBr} ↔ B ${PILLAR_LABELS[j]}지 ${bBr} — ${aBr}${bBr} ${combo} (${note})`
+    // 충/형이 일지(2)를 물면 가장 강한 신호 → CRITICAL, 그 외는 IMPORTANT
+    if (hasClash && (i === 2 || j === 2)) critical.push(line)
+    else important.push(line)
+  }
+
+  // 삼합·방합 부분(3지 중 2지) → 참고로 묶음. 잘게 쪼개 반복하던 "큰 결속" 제거.
+  const sbHap: string[] = []
   for (const trio of [...TRI_HAP, ...BANG_HAP]) {
     const aIdx = A.findIndex((p) => trio.branches.includes(p.branch))
     const bIdx = B.findIndex((p) => trio.branches.includes(p.branch))
     if (aIdx >= 0 && bIdx >= 0 && A[aIdx].branch !== B[bIdx].branch) {
       const tag = TRI_HAP.includes(trio) ? '삼합' : '방합'
-      crossLines.push(`A ${PILLAR_LABELS[aIdx]}지 ${A[aIdx].branch} + B ${PILLAR_LABELS[bIdx]}지 ${B[bIdx].branch} — ${trio.branches.join('')}${tag} 부분 (큰 결속 → ${trio.element})`)
+      sbHap.push(`${trio.branches.join('')}${tag}(→${trio.element})`)
     }
   }
-  if (crossLines.length > 0) {
-    out.push('[4기둥 × 4기둥 cross]')
-    out.push(...crossLines)
-    out.push('')
+  if (sbHap.length > 0) {
+    chamgo.push(`삼합/방합 부분 ${sbHap.length}건: ${sbHap.join(' · ')} — 3지 중 2지만 성립, 결속 잠재(비중 낮음)`)
   }
 
-  // ── 3. 신살 cross (천을귀인) ─────────────────────────────
-  const shinsalLines: string[] = []
+  // 4. 천을귀인 → IMPORTANT
   const aCheonul = CHEONULGWIIN[aDay.stem] ?? []
   const bCheonul = CHEONULGWIIN[bDay.stem] ?? []
   for (let j = 0; j < 4; j++) {
     if (aCheonul.includes(B[j].branch)) {
-      shinsalLines.push(`A's 천을귀인 (${aCheonul.join('·')}, 일간 ${aDay.stem} 기준) activates B's ${PILLAR_LABELS[j]}지 ${B[j].branch} → 길성 보호`)
+      important.push(`${labelA}'s 천을귀인(${aCheonul.join('·')}, 일간 ${aDay.stem}) → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch} 활성 → 길성 보호`)
     }
   }
   for (let i = 0; i < 4; i++) {
     if (bCheonul.includes(A[i].branch)) {
-      shinsalLines.push(`B's 천을귀인 (${bCheonul.join('·')}, 일간 ${bDay.stem} 기준) activates A's ${PILLAR_LABELS[i]}지 ${A[i].branch} → 길성 보호`)
+      important.push(`${labelB}'s 천을귀인(${bCheonul.join('·')}, 일간 ${bDay.stem}) → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch} 활성 → 길성 보호`)
     }
   }
-  if (shinsalLines.length > 0) {
-    out.push('[신살 cross — 천을귀인]')
-    out.push(...shinsalLines)
-    out.push('')
-  }
 
-  // ── 12신살 cross — A의 일지 기준 B의 4지지, B의 일지 기준 A의 4지지 ──
-  const twelveLines: string[] = []
+  // 5. 12신살 → IMPORTANT (방향별 1줄 압축)
   if (aDay.branch) {
+    const items: string[] = []
     for (let j = 0; j < 4; j++) {
       if (!B[j].branch) continue
       const lbl = twelveShinsalLabel(aDay.branch, B[j].branch)
-      if (lbl) {
-        twelveLines.push(`A's 일지 ${aDay.branch} 기준 → B ${PILLAR_LABELS[j]}지 ${B[j].branch} = ${lbl}`)
-      }
+      if (lbl) items.push(`${B[j].branch}${lbl}`)
     }
+    if (items.length) important.push(`12신살 ${labelA} 일지 ${aDay.branch} 기준 → ${labelB}: ${items.join('·')}`)
   }
   if (bDay.branch) {
+    const items: string[] = []
     for (let i = 0; i < 4; i++) {
       if (!A[i].branch) continue
       const lbl = twelveShinsalLabel(bDay.branch, A[i].branch)
-      if (lbl) {
-        twelveLines.push(`B's 일지 ${bDay.branch} 기준 → A ${PILLAR_LABELS[i]}지 ${A[i].branch} = ${lbl}`)
-      }
+      if (lbl) items.push(`${A[i].branch}${lbl}`)
     }
-  }
-  if (twelveLines.length > 0) {
-    out.push('[12신살 cross — 상대 지지가 내 일지 기준 어떤 신살로 잡히나]')
-    out.push(...twelveLines)
-    out.push('')
+    if (items.length) important.push(`12신살 ${labelB} 일지 ${bDay.branch} 기준 → ${labelA}: ${items.join('·')}`)
   }
 
-  // ── 4. 대운 cross ────────────────────────────────────────
+  // 6. 현재 대운 cross → IMPORTANT
   if (input.currentDaeunA && input.currentDaeunB) {
     const dA = input.currentDaeunA, dB = input.currentDaeunB
-    const daeLines: string[] = []
-    daeLines.push(`A 현재 대운: ${dA.age ?? '?'}세 ${dA.stem}${dA.branch}`)
-    daeLines.push(`B 현재 대운: ${dB.age ?? '?'}세 ${dB.stem}${dB.branch}`)
-    if (STEM_HAP[dA.stem]?.other === dB.stem) {
-      daeLines.push(`A 대운 ${dA.stem} + B 대운 ${dB.stem} — ${dA.stem}${dB.stem}合化${STEM_HAP[dA.stem]!.element} (대운 흐름 결속)`)
-    }
-    if (STEM_CHUNG[dA.stem] === dB.stem) {
-      daeLines.push(`A 대운 ${dA.stem} ↔ B 대운 ${dB.stem} — 대운 천간충 (시기 흐름 충돌)`)
-    }
-    if (BRANCH_HAP[dA.branch]?.other === dB.branch) {
-      daeLines.push(`A 대운 ${dA.branch} + B 대운 ${dB.branch} — ${dA.branch}${dB.branch}합 (대운 지지 결속)`)
-    }
-    if (BRANCH_CHUNG[dA.branch] === dB.branch) {
-      daeLines.push(`A 대운 ${dA.branch} ↔ B 대운 ${dB.branch} — 대운 지지충 (큰 흐름 충돌)`)
-    }
-    if (dA.branch === dB.branch) {
-      daeLines.push(`A 대운 ${dA.branch} = B 대운 ${dB.branch} — 대운 지지 일치 (강한 시기 공명)`)
-    }
-    out.push('[현재 대운 cross]')
-    out.push(...daeLines)
-    out.push('')
+    important.push(`현재 대운: ${labelA} ${dA.age ?? '?'}세 ${dA.stem}${dA.branch} · ${labelB} ${dB.age ?? '?'}세 ${dB.stem}${dB.branch}`)
+    if (STEM_HAP[dA.stem]?.other === dB.stem) important.push(`대운 천간 ${dA.stem}${dB.stem}合化${STEM_HAP[dA.stem]!.element} (흐름 결속)`)
+    if (STEM_CHUNG[dA.stem] === dB.stem) important.push(`대운 천간충 (시기 흐름 충돌)`)
+    if (BRANCH_HAP[dA.branch]?.other === dB.branch) important.push(`대운 지지 ${dA.branch}${dB.branch}합 (결속)`)
+    if (BRANCH_CHUNG[dA.branch] === dB.branch) important.push(`대운 지지충 (큰 흐름 충돌)`)
+    if (dA.branch === dB.branch) important.push(`대운 지지 ${dA.branch} 일치 (강한 시기 공명)`)
   }
 
-  // ── 5. 오행 균형 ────────────────────────────────────────
+  // 7. 오행 균형 → IMPORTANT (1줄)
   const els = ['목', '화', '토', '금', '수'] as const
   const countsA: Record<string, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
   const countsB: Record<string, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
@@ -337,18 +333,32 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     if (STEM_EL[p.stem]) countsB[STEM_EL[p.stem]]++
     if (BRANCH_EL[p.branch]) countsB[BRANCH_EL[p.branch]]++
   }
-  out.push('[오행 균형]')
-  out.push(`A: ${els.map((e) => `${e}${countsA[e]}`).join(' ')}`)
-  out.push(`B: ${els.map((e) => `${e}${countsB[e]}`).join(' ')}`)
   const merged: Record<string, number> = {}
   for (const e of els) merged[e] = countsA[e] + countsB[e]
-  out.push(`합산: ${els.map((e) => `${e}${merged[e]}`).join(' ')}`)
   const sorted = [...els].sort((a, b) => merged[b] - merged[a])
-  if (merged[sorted[0]] - merged[sorted[4]] >= 4) {
-    out.push(`→ ${sorted[0]} 강 / ${sorted[4]} 약 — 둘 합쳐도 편중 (보완 필요)`)
-  } else {
-    out.push(`→ ${sorted[0]}~${sorted[4]} 폭 좁음 — 합쳐서 비교적 균형`)
-  }
+  const balNote =
+    merged[sorted[0]] - merged[sorted[4]] >= 4
+      ? `${sorted[0]} 강 / ${sorted[4]} 약 (보완 필요)`
+      : `${sorted[0]}~${sorted[4]} 폭 좁음 (비교적 균형)`
+  important.push(
+    `오행 합산 ${els.map((e) => `${e}${merged[e]}`).join(' ')} (A ${els.map((e) => `${e}${countsA[e]}`).join('')} / B ${els.map((e) => `${e}${countsB[e]}`).join('')}) → ${balNote}`
+  )
 
+  // ── 조립: 우선순위 티어 ──────────────────────────────────
+  const out: string[] = ['== 시너스트리 (사주 cross) ==']
+  if (elA && elB) {
+    out.push(`[고정 매핑 — 절대 바꾸지 말 것] ${labelA} 일간 ${aDay.stem}(${elA}) · ${labelB} 일간 ${bDay.stem}(${elB})`)
+  }
+  out.push('')
+  out.push('[CRITICAL — 반드시 해석] 일간 극·천간합·일지 충형')
+  out.push(critical.length ? critical.join('\n') : '(해당 없음)')
+  out.push('')
+  out.push('[IMPORTANT — 맥락 보강]')
+  out.push(important.length ? important.join('\n') : '(해당 없음)')
+  if (chamgo.length) {
+    out.push('')
+    out.push('[참고 — 비중 낮음]')
+    out.push(...chamgo)
+  }
   return out.join('\n')
 }

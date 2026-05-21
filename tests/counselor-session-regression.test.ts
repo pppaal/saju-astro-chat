@@ -53,8 +53,11 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
     expect(route).toMatch(/timezone: \$\{body\.timezone/)
   })
 
-  it('birthCityUnknown 시 skipAngles 전달 — formatAstroSelf (#298)', () => {
-    expect(route).toMatch(/skipAngles:\s*birthCityUnknown/)
+  it('birthCityUnknown 시 위치 의존 결론 금지 — prompt rule (#298)', () => {
+    // formatAstroSelf/skipAngles 체인은 slim 리팩터(#426)로 제거됨. 이제
+    // birthCityUnknown 가드는 시스템 프롬프트 룰로 enforce.
+    expect(route).toMatch(/birthCityUnknown=true면 위치 의존 결론 금지/)
+    expect(route).toMatch(/birthCityUnknown=true: skip place-dependent claims/i)
   })
 
   it('priorTurns 가 frontend 메시지 그대로 (clamp 없음)', () => {
@@ -116,11 +119,11 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
     expect(route).toMatch(/cachedUserContext\s*=\s*\[[\s\S]*personsInfo[\s\S]*metaBlock/)
   })
 
-  it('self 블록 4개는 의도적으로 void 처리 (synastry-only 보장)', () => {
-    expect(route).toMatch(/void sajuSelfA/)
-    expect(route).toMatch(/void sajuSelfB/)
-    expect(route).toMatch(/void astroSelfA/)
-    expect(route).toMatch(/void astroSelfB/)
+  it('self(개인) 블록 없음 — synastry-only 보장 (#449)', () => {
+    // 이전엔 self 블록을 만들어 void 처리했지만, #449에서 self 차트 블록
+    // 자체를 제거 (synastry-only). self 포매터 호출이 없어야 한다.
+    expect(route).not.toMatch(/formatSajuSelf\s*\(/)
+    expect(route).not.toMatch(/formatAstroSelf\s*\(/)
   })
 })
 

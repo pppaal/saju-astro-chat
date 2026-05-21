@@ -1,4 +1,4 @@
-﻿import type { FusionReport, InsightDomain } from '../interpreter/types'
+import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixCalculationInput } from '../types'
 import type { ReportPeriod, ReportTheme } from './types'
 import { getThemedSectionKeys } from './themeSchema'

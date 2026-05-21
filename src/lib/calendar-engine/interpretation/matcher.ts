@@ -36,8 +36,10 @@ export function buildInterpretation(args: {
   lang?: InterpretationLang
   /** 전월 셀 — 주어지면 "지난달 대비" 비교를 monthly scope 에서 계산 */
   prevCells?: CalendarCell[]
+  /** 디버그 — 캡 적용 전 매칭 룰 ID 도 반환 (룰 커버리지 감사용) */
+  debug?: boolean
 }): Interpretation {
-  const { natal, cells, scope = 'monthly', lang = 'ko', prevCells } = args
+  const { natal, cells, scope = 'monthly', lang = 'ko', prevCells, debug } = args
 
   // 모든 셀에서 신호 + 패턴 합치기
   const allSignals = cells.flatMap((c) => c.signals)
@@ -118,8 +120,55 @@ export function buildInterpretation(args: {
 
   // 시간 cycle 섹션은 2줄까지 허용 (대운/세운/월운) — 룰은 이미 12/24/29개
   // 있는데 1줄만 표출돼 얇았음. 두 번째 룰(다른 조건 분기)까지 풀어 깊이 ↑.
-  // natal/transit/pattern/shinsal 은 1줄 유지 (헤드라인 성격).
-  const SECTION_CAP: Record<string, number> = { daeun: 2, seun: 2, wolun: 2, today: 4 }
+  // shinsal/transit/pattern 은 회전 섹션 — cap 2 로 올려 앵커 1 + 회전 1 확보.
+  const SECTION_CAP: Record<string, number> = {
+    daeun: 2,
+    seun: 2,
+    wolun: 2,
+    today: 4,
+    flow: 2,
+    shinsal: 2,
+    transit: 2,
+    pattern: 2,
+  }
+
+  // ── 룰 로테이션 ──
+  // 캡 걸린 비-도메인 섹션에서 매칭 후보가 cap 보다 많으면 매달 최고우선 룰만
+  // 노출되어, 작성된 룰의 70%(커버리지 감사)가 영영 안 보이던 문제 해소.
+  // slot 0 = 최고우선 앵커(항상 노출 → Saturn Return 등 헤드라인 정확성 보존),
+  // 나머지 슬롯은 month seed 로 비-앵커 후보를 회전. month seed 는 cells 에서
+  // 유도(현재 시각 아님) → 결정론적이라 cell-cache 안전.
+  // shinsal=동급 신살, transit=느린행성 aspect(여러 달 지속), pattern=조합 —
+  // 모두 같은 달 안에서 교체 가능한 후보들. natal(정체성)·daeun/seun/wolun(주기
+  // narrative)은 회전 제외(이미 chart/시기로 안정적).
+  const ROTATING_SECTIONS = new Set(['shinsal', 'transit', 'pattern'])
+  const monthSeed = (() => {
+    const iso = cells[0]?.datetime
+    const d = iso ? new Date(iso) : null
+    return d && !Number.isNaN(d.getTime()) ? d.getUTCFullYear() * 12 + d.getUTCMonth() : 0
+  })()
+  const rotatedAllow = new Map<string, Set<string>>()
+  {
+    const bySection = new Map<string, typeof matched>()
+    for (const m of matched) {
+      if (!ROTATING_SECTIONS.has(m.rule.section)) continue
+      const arr = bySection.get(m.rule.section) ?? []
+      arr.push(m) // matched 는 priority desc 정렬 상태 → arr 도 그 순서
+      bySection.set(m.rule.section, arr)
+    }
+    for (const [section, cands] of bySection) {
+      const cap = SECTION_CAP[section] ?? 1
+      const allow = new Set<string>()
+      if (cands[0]) allow.add(cands[0].rule.id) // 앵커
+      const rest = cands.slice(1)
+      const slots = Math.max(0, cap - 1)
+      if (rest.length > 0 && slots > 0) {
+        const start = ((monthSeed % rest.length) + rest.length) % rest.length
+        for (let i = 0; i < slots; i++) allow.add(rest[(start + i) % rest.length].rule.id)
+      }
+      rotatedAllow.set(section, allow)
+    }
+  }
 
   for (const m of matched) {
     if (usedRuleIds.has(m.rule.id)) continue
@@ -133,6 +182,9 @@ export function buildInterpretation(args: {
       domainPicks.set(domain, list)
       usedRuleIds.add(m.rule.id)
     } else {
+      // 회전 섹션이면 이번 달 회전 대상(앵커 + 회전 픽)만 통과.
+      const allow = rotatedAllow.get(m.rule.section)
+      if (allow && !allow.has(m.rule.id)) continue
       const cap = SECTION_CAP[m.rule.section] ?? 1
       const cur = sectionCount.get(m.rule.section) ?? 0
       if (cur >= cap) continue
@@ -221,6 +273,7 @@ export function buildInterpretation(args: {
     'wolun',
     'natal',
     'transit',
+    'flow',
     'pattern',
     'shinsal',
     'timing',
@@ -333,6 +386,7 @@ export function buildInterpretation(args: {
   return {
     narrative,
     matchedRuleIds: picked.map((m) => m.rule.id),
+    allMatchedRuleIds: debug ? matched.map((m) => m.rule.id) : undefined,
     sections,
     themeScores,
     themeBreakdown,
@@ -698,6 +752,15 @@ function extractSignalVars(s: ActiveSignal, allSignals: ActiveSignal[]): Templat
     }
   }
 
+  // 하우스 오버레이 / ASC·MC 컨택 — 추출기가 만든 완성 문장을 그대로 출력.
+  // KO/EN 둘 다 vars 에 박고 룰 template/templateEn 이 각각 사용.
+  if (s.kind === 'house-transit' || s.kind === 'angle-contact') {
+    const ko = (detail?.lineKo as string | undefined) ?? s.korean
+    const en = (detail?.lineEn as string | undefined) ?? s.korean
+    if (ko) vars.flowLine = ko
+    if (en) vars.flowLineEn = en
+  }
+
   return vars
 }
 
@@ -826,6 +889,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     pattern: '주요 패턴',
     shinsal: '행운 별',
     timing: '타이밍 팁',
+    flow: '하우스 흐름',
     // 5 도메인 통합 헤더 (5테마 1:1)
     'domain-money': '돈·자산',
     'domain-work': '일·커리어',
@@ -843,6 +907,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     pattern: 'Patterns',
     shinsal: 'Lucky Stars',
     timing: 'Timing Tips',
+    flow: 'House Transits',
     'domain-money': 'Money',
     'domain-work': 'Work & Career',
     'domain-relations': 'Relationships',

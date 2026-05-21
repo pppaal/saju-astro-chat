@@ -1,4 +1,4 @@
-﻿export {
+export {
   ICP_SAMPLE_STYLE_CODES,
   buildBCRenderSample,
   buildIcpNarrative,

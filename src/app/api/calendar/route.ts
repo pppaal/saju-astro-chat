@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Destiny Calendar API
  * Saju + Astrology fused yearly important dates
  * AI-assisted calculations (optional backend)

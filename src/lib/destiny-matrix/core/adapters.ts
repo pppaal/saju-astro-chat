@@ -1,4 +1,4 @@
-﻿export * from './adaptersTypes'
+export * from './adaptersTypes'
 export {
   adaptCoreToCalendar,
   adaptCoreToCounselor,

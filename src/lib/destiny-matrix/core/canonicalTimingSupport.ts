@@ -1,4 +1,4 @@
-﻿import type { MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
+import type { MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
 import { eunNeun } from '@/lib/i18n/koParticle'
 import type {

@@ -120,6 +120,39 @@ describe('calendar-engine regression', () => {
     })
   })
 
+  describe('하우스 오버레이 / ASC·MC 컨택 (#4)', () => {
+    it('house-transit signals emit + flow section renders a 하우스 line', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const houseSigs = cells.flatMap((c) => c.signals).filter((s) => s.kind === 'house-transit')
+      expect(houseSigs.length).toBeGreaterThan(0)
+      // 하우스 신호엔 evidence.houses + 완성 문장(detail.lineKo) 이 있어야
+      const sample = houseSigs[0]
+      expect(sample.evidence.houses?.[0]).toBeGreaterThanOrEqual(1)
+      expect(String((sample.evidence.detail as { lineKo?: string }).lineKo)).toContain('집')
+
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const flow = interp.sections.find((s) => s.section === 'flow')
+      expect(flow).toBeDefined()
+      expect(flow!.text).toContain('집') // "n번째 집" 한 줄
+    })
+  })
+
   describe('natal 용신 노출 (P0)', () => {
     it('natal section leads with 용신/희신/기신 line (KO)', async () => {
       const { interp } = await buildForDate(SEOUL_MALE_1995, '2026-05-15')
@@ -193,6 +226,53 @@ describe('calendar-engine regression', () => {
       }
       // 일진 십신은 매일 있으므로 모든 날 최소 1줄
       expect(daysWithActions).toBe(cells.length)
+    })
+
+    it('expanded daily grid rules actually fire across a month (no dead rules)', async () => {
+      // 그리드 보강(주의/전환/상승) 룰은 daily 레이어에 실재하는 신살/십신만
+      // 트리거로 씀. 작성만 하고 안 켜지는 죽은 룰이 없는지 가드.
+      // saju 기반이라 날짜 결정론적(swisseph 목킹과 무관).
+      const newRuleIds = [
+        'today-geopsal',
+        'today-mangsin',
+        'today-wonjin',
+        'today-yangin',
+        'today-gwimun',
+        'today-yukhae',
+        'today-gongmang',
+        'today-geumyeo',
+        'today-taegeuk',
+        'today-hakdang',
+        'today-cheonui',
+        'today-wangji',
+        'today-pyeongwan',
+      ]
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const fired = new Set<string>()
+      for (const mo of [5, 9]) {
+        const cells = await buildCalendar(
+          natal,
+          {
+            start: new Date(Date.UTC(2026, mo - 1, 1)).toISOString(),
+            end: new Date(Date.UTC(2026, mo, 0, 23, 59, 59)).toISOString(),
+            granularity: 'day',
+          },
+          { includeEvidence: true }
+        )
+        for (const c of cells) {
+          const di = buildInterpretation({ natal, cells: [c], scope: 'daily', debug: true })
+          for (const id of di.allMatchedRuleIds ?? []) if (newRuleIds.includes(id)) fired.add(id)
+        }
+      }
+      // 한 차트 × 두 달이면 그리드 대다수(≥9/13)가 발동해야 살아있는 룰셋
+      expect(fired.size).toBeGreaterThanOrEqual(9)
     })
   })
 

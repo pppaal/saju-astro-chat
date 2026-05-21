@@ -1,4 +1,4 @@
-﻿import { ICP_LIKERT_OPTIONS, ICP_V2_QUESTIONS } from '@/lib/icpTest/questions'
+import { ICP_LIKERT_OPTIONS, ICP_V2_QUESTIONS } from '@/lib/icpTest/questions'
 
 export type ICPOption = { id: string; text: string; textKo: string }
 export type ICPQuestion = {

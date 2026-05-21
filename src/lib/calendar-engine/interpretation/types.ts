@@ -92,8 +92,14 @@ export interface InterpretationRule {
 export interface Interpretation {
   /** 합성된 narrative 텍스트 (마크다운 가능) */
   narrative: string
-  /** 매칭된 룰의 ID 리스트 (디버그·추적용) */
+  /** 매칭된 룰의 ID 리스트 (캡·dedup 적용 후 실제 노출된 것) */
   matchedRuleIds: string[]
+  /**
+   * 캡(SECTION_CAP)·dedup 적용 *전*, 조건이 매칭된 전체 룰 ID. `debug:true` 일
+   * 때만 채움. 룰 커버리지 감사용 — matchedRuleIds(picked)는 섹션 캡에 가려진
+   * 룰을 죽은 룰로 오인하므로 "조건이 실제로 켜지나"는 이 필드로 측정.
+   */
+  allMatchedRuleIds?: string[]
   /** 섹션별 분해 (UI에서 카드별 표시할 때) */
   sections: Array<{
     section: string
