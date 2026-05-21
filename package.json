@@ -66,7 +66,7 @@
     "test:e2e:critical": "playwright test --config=playwright.ci.config.ts e2e/critical-flows e2e/myjourney-core-services-persistence.spec.ts",
     "test:ssr-placeholders": "node scripts/check-ssr-placeholders.mjs",
     "test:mojibake:smoke": "node scripts/smoke-mojibake-html.mjs",
-    "test:e2e:api": "vitest run tests/e2e",
+    "test:e2e:api": "cross-env VITEST_INCLUDE_E2E=1 vitest run tests/e2e",
     "test:e2e:auth": "playwright test e2e/critical-flows/01-registration-auth.spec.ts",
     "test:e2e:tarot": "playwright test e2e/critical-flows/02-tarot-reading.spec.ts",
     "test:e2e:saju": "playwright test e2e/critical-flows/03-saju-analysis.spec.ts",

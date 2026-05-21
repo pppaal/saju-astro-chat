@@ -28,7 +28,9 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'happy-dom',
+    // E2E suite hits a real running server over HTTP — needs Node's real fetch,
+    // not happy-dom + the global fetch mock from tests/setup.ts.
+    environment: isE2E ? 'node' : 'happy-dom',
     environmentOptions: {
       happyDOM: {
         settings: {
@@ -56,7 +58,11 @@ export default defineConfig({
       // Performance tests require a running server; opt in via `npm run test:performance`
       ...(isPerformance ? [] : ['tests/performance/**']),
     ],
-    setupFiles: isIntegration ? ['./tests/integration/setup.ts'] : ['./tests/setup.ts'],
+    setupFiles: isE2E
+      ? []
+      : isIntegration
+        ? ['./tests/integration/setup.ts']
+        : ['./tests/setup.ts'],
     // Coverage configuration
     coverage: {
       enabled: isCoverageRun,

@@ -173,7 +173,7 @@ const config = [
   },
   {
     // Scripts - utility scripts with more flexibility
-    files: ['scripts/**/*.{ts,tsx,js,mjs}'],
+    files: ['scripts/**/*.{ts,tsx,js,mjs,cjs,mts,cts}'],
     plugins: {
       '@typescript-eslint': tseslint,
     },
