@@ -20,6 +20,14 @@ const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
 const RATE_LIMIT_PREFIX = 'rl:'
 const UPSTASH_DISABLE_TTL_MS = 5 * 60 * 1000
 
+// When true, production requests are DENIED if Upstash is unavailable instead
+// of falling back to the per-instance in-memory store. The in-memory store is
+// bypassable across serverless instances (each instance counts separately), so
+// security-sensitive deployments should fail closed. Default false keeps the
+// availability-first in-memory fallback. Read at call time so tests/ops can
+// toggle without a cold start.
+const isFailClosed = () => process.env.RATE_LIMIT_FAIL_CLOSED === 'true'
+
 // Upstash Redis client singleton
 let redisClient: Redis | null = null
 let upstashDisabledUntil = 0
@@ -203,10 +211,12 @@ export type RateLimitResult = {
 }
 
 /**
- * Main rate limiting function with fallback
- * 1. Try Upstash Redis
- * 2. Fall back to in-memory
- * 3. In production without any backend: deny all
+ * Main rate limiting function with fallback:
+ *   1. Try Upstash Redis (shared, authoritative).
+ *   2. If Upstash is unavailable and RATE_LIMIT_FAIL_CLOSED=true (production),
+ *      deny the request.
+ *   3. Otherwise fall back to the per-instance in-memory store.
+ * Development without Upstash configured → allow all (disabled).
  */
 export async function rateLimit(
   key: string,
@@ -260,7 +270,30 @@ export async function rateLimit(
     return buildResult(upstashCount, 'upstash')
   }
 
-  // 2. Fall back to in-memory
+  // 2. Upstash unavailable. Optionally fail closed in production rather than
+  // using the per-instance in-memory store, which an attacker can bypass by
+  // spreading requests across serverless instances.
+  if (!isDev && isFailClosed()) {
+    recordCounter('api.rate_limit.fail_closed', 1, { key })
+    logger.error('[RateLimit] Upstash unavailable — failing closed (deny)', {
+      env: process.env.NODE_ENV || 'unknown',
+      key,
+    })
+    headers.set('X-RateLimit-Remaining', '0')
+    headers.set('X-RateLimit-Backend', 'disabled')
+    headers.set('Retry-After', String(windowSeconds))
+    return {
+      allowed: false,
+      limit,
+      remaining: 0,
+      reset,
+      retryAfter: windowSeconds,
+      headers,
+      backend: 'disabled',
+    }
+  }
+
+  // 3. Fall back to in-memory (per-instance; see RATE_LIMIT_FAIL_CLOSED).
   const memoryCount = inMemoryIncrement(fullKey, windowSeconds)
   recordCounter('api.rate_limit.check', 1, { backend: 'memory' })
   recordCounter('api.rate_limit.fallback', 1, { from: 'upstash', to: 'memory' })

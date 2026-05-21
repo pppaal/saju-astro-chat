@@ -134,6 +134,46 @@ describe('Redis Rate Limiting', () => {
     })
   })
 
+  describe('Fail-closed (RATE_LIMIT_FAIL_CLOSED)', () => {
+    it('denies in production when Upstash is unavailable and fail-closed is on', async () => {
+      process.env.NODE_ENV = 'production'
+      process.env.RATE_LIMIT_FAIL_CLOSED = 'true'
+      mockPipeline.exec.mockRejectedValue(new Error('Upstash down'))
+
+      const { rateLimit } = await import('@/lib/cache/redis-rate-limit')
+      const result = await rateLimit('fc-key', { limit: 5, windowSeconds: 60 })
+
+      expect(result.allowed).toBe(false)
+      expect(result.backend).toBe('disabled')
+      expect(result.remaining).toBe(0)
+      expect(result.headers.get('Retry-After')).toBe('60')
+    })
+
+    it('falls back to in-memory (default) when fail-closed is off', async () => {
+      process.env.NODE_ENV = 'production'
+      delete process.env.RATE_LIMIT_FAIL_CLOSED
+      mockPipeline.exec.mockRejectedValue(new Error('Upstash down'))
+
+      const { rateLimit } = await import('@/lib/cache/redis-rate-limit')
+      const result = await rateLimit('fc-default-key', { limit: 5, windowSeconds: 60 })
+
+      expect(result.allowed).toBe(true)
+      expect(result.backend).toBe('memory')
+    })
+
+    it('does not fail closed in development even when enabled', async () => {
+      process.env.NODE_ENV = 'development'
+      process.env.RATE_LIMIT_FAIL_CLOSED = 'true'
+      mockPipeline.exec.mockRejectedValue(new Error('Upstash down'))
+
+      const { rateLimit } = await import('@/lib/cache/redis-rate-limit')
+      const result = await rateLimit('fc-dev-key', { limit: 5, windowSeconds: 60 })
+
+      expect(result.allowed).toBe(true)
+      expect(result.backend).toBe('memory')
+    })
+  })
+
   describe('In-Memory Fallback', () => {
     it('should use disabled mode in development without Upstash', async () => {
       process.env.NODE_ENV = 'development'
