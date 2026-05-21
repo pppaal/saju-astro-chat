@@ -284,7 +284,10 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     const crossLines: string[] = []
     for (const [k, src] of [['세운', 'seun'], ['월운', 'wolun'], ['일진', 'iljin'], ['대운', 'daeun']] as const) {
       const rs = relsBy(src)
-      if (rs.length) crossLines.push(`  ${k}: ${rs.map((r) => (r.relation.detail || r.relation.kind).replace(/ - year/g, ' ↔ 년').replace(/ - month/g, ' ↔ 월').replace(/ - day/g, ' ↔ 일').replace(/ - time/g, ' ↔ 시')).join(' / ')}`)
+      if (rs.length) crossLines.push(`  ${k}: ${rs.map((r) => {
+        const d = (r.relation.detail || '').replace(/ - year/g, ' ↔ 년').replace(/ - month/g, ' ↔ 월').replace(/ - day/g, ' ↔ 일').replace(/ - time/g, ' ↔ 시')
+        return d ? `${r.relation.kind} ${d}` : r.relation.kind // always state 합/충 type, not just arrow
+      }).join(' / ')}`)
     }
     if (crossLines.length) { out.push(L('current_cross (운↔본명 합/충):', 'current_cross (luck↔natal):')); out.push(...crossLines) }
   }
