@@ -119,7 +119,7 @@ export function buildInterpretation(args: {
   // 시간 cycle 섹션은 2줄까지 허용 (대운/세운/월운) — 룰은 이미 12/24/29개
   // 있는데 1줄만 표출돼 얇았음. 두 번째 룰(다른 조건 분기)까지 풀어 깊이 ↑.
   // natal/transit/pattern/shinsal 은 1줄 유지 (헤드라인 성격).
-  const SECTION_CAP: Record<string, number> = { daeun: 2, seun: 2, wolun: 2 }
+  const SECTION_CAP: Record<string, number> = { daeun: 2, seun: 2, wolun: 2, today: 4 }
 
   for (const m of matched) {
     if (usedRuleIds.has(m.rule.id)) continue
@@ -215,6 +215,7 @@ export function buildInterpretation(args: {
 
   // section별 정렬 (UI 순서) — context → trigger → 5 domain
   const SECTION_ORDER = [
+    'today',
     'daeun',
     'seun',
     'wolun',
@@ -768,6 +769,7 @@ function fillTemplate(template: string, vars: TemplateVars): string {
 
 function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string {
   const ko: Record<string, string> = {
+    today: '오늘 한 줄',
     daeun: '10년 큰 흐름',
     seun: '올해의 운',
     wolun: '이번 달',
@@ -784,6 +786,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     'domain-growth': '자기·성장',
   }
   const en: Record<string, string> = {
+    today: 'Today',
     daeun: '10-year Arc',
     seun: 'This Year',
     wolun: 'This Month',

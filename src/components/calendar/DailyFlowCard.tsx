@@ -58,6 +58,9 @@ export default function DailyFlowCard({ importantDate }: Props) {
   // 0. 일진(60갑자) 한 줄 — 그 날 ganji archetype + 본명 일간 십신 개인화
   const dailyGanji = importantDate.dailyGanjiNarrative
 
+  // 0b. 일진 scope 룰 — "오늘 한 줄" 액션 (그 날 십신/신살/충)
+  const dailyActions = importantDate.dailyActions ?? []
+
   // 1. 핵심 헤드라인 (매칭 패턴 1번째)
   const lead = patterns[0]?.headline
 
@@ -93,6 +96,18 @@ export default function DailyFlowCard({ importantDate }: Props) {
           <p className="text-indigo-200/90 text-sm bg-zinc-950/40 border border-white/5 rounded-xl px-3 py-2">
             {dailyGanji}
           </p>
+        )}
+
+        {/* 오늘 한 줄 — 일진 룰 액션 (짧고 행동 중심) */}
+        {dailyActions.length > 0 && (
+          <ul className="space-y-1.5">
+            {dailyActions.map((line, i) => (
+              <li key={i} className="text-sm text-zinc-200 leading-snug flex gap-2">
+                <span className="text-indigo-400 shrink-0">·</span>
+                <span>{line.replace(/\*\*/g, '')}</span>
+              </li>
+            ))}
+          </ul>
         )}
 
         {/* 핵심 한 줄 */}

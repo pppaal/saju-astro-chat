@@ -149,6 +149,8 @@ export interface ImportantDate {
   }
   /** 그 날 60갑자(일진) + 본명 일간 십신 개인화 한 줄 (API 가 일별 부착) */
   dailyGanjiNarrative?: string
+  /** 일진 scope 룰 — "오늘 한 줄" 액션 (최대 4) */
+  dailyActions?: string[]
 }
 
 export interface CalendarData {

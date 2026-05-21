@@ -1179,6 +1179,8 @@ export const GET = withApiMiddleware(
           await import('@/lib/calendar-engine/extractors/saju-shinsal')
         const { getGanjiTransitNarrative, dailyIljinSibsinLine } =
           await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+        const { buildInterpretation: buildDailyInterp } =
+          await import('@/lib/calendar-engine/interpretation')
         const lang = locale === 'en' ? 'en' : 'ko'
         for (const d of formattedDates) {
           // d.date 는 ISO (YYYY-MM-DDTHH:mm:ss±) — UTC noon 으로 정규화해 ganji 안정.
@@ -1201,6 +1203,21 @@ export const GET = withApiMiddleware(
           )
           const combined = [ganjiText, sibsinLine].filter(Boolean).join(' ')
           if (combined) d.dailyGanjiNarrative = combined
+
+          // 일진 scope 룰 → "오늘 한 줄" 액션 (그 날 cell 신호로 daily 룰 매칭)
+          if (cell) {
+            try {
+              const di = buildDailyInterp({ natal: ceNatal, cells: [cell], scope: 'daily', lang })
+              const today = di.sections.find((s) => s.section === 'today')
+              const lines = today?.text
+                .split('\n')
+                .map((l) => l.trim())
+                .filter(Boolean)
+              if (lines && lines.length > 0) d.dailyActions = lines
+            } catch {
+              /* daily 해석 실패는 무시 — ganji 한 줄로 충분 */
+            }
+          }
         }
       } catch (err) {
         logger.warn?.(
