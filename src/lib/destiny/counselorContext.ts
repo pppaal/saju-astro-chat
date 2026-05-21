@@ -51,8 +51,8 @@ const SIBSIN_G: Record<string, string> = {
   편인: '직관·비주류 학습', 정인: '배움·보호·수용',
 }
 const UNSEONG_G: Record<string, string> = {
-  장생: '시작·성장', 목욕: '미숙·시행착오', 관대: '자리잡는 독립', 건록: '왕성·자립',
-  제왕: '기운 절정', 쇠: '절정 지나 안정', 병: '약해짐·예민', 사: '기운 다함',
+  장생: '시작·성장', 목욕: '미숙·시행착오', 관대: '자리잡는 독립', 건록: '왕성·자립', 임관: '왕성·자립',
+  제왕: '기운 절정', 왕지: '기운 절정', 쇠: '절정 지나 안정', 병: '약해짐·예민', 사: '기운 다함',
   묘: '갈무리·내향', 절: '바닥·전환점', 태: '새 기운 잉태', 양: '자라나는 준비',
 }
 const SINSAL12_G: Record<string, string> = {
@@ -68,17 +68,19 @@ const SIBSIN_EN: Record<string, string> = {
 }
 const ELEM_EN: Record<string, string> = { 목: 'Wood', 화: 'Fire', 토: 'Earth', 금: 'Metal', 수: 'Water' }
 const UNSEONG_EN: Record<string, string> = {
-  장생: 'Growth', 목욕: 'Bath', 관대: 'Maturity', 건록: 'Prime', 제왕: 'Peak', 쇠: 'Decline',
-  병: 'Weakening', 사: 'Dormant', 묘: 'Storage', 절: 'Void', 태: 'Conception', 양: 'Nurture',
+  장생: 'Growth', 목욕: 'Bath', 관대: 'Maturity', 건록: 'Prime', 임관: 'Prime', 제왕: 'Peak', 왕지: 'Peak',
+  쇠: 'Decline', 병: 'Weakening', 사: 'Dormant', 묘: 'Storage', 절: 'Severance', 태: 'Conception', 양: 'Nurture',
 }
 const SINSAL12_EN: Record<string, string> = {
-  지살: 'Travel', 망신: 'Disgrace', 장성: 'General', 반안: 'Advancement', 역마: 'Horse(move)', 화개: 'Canopy',
+  지살: 'Travel', 망신: 'Exposure', 장성: 'Commander', 반안: 'Advancement', 역마: 'Horse(move)', 화개: 'Flower Canopy',
   겁살: 'Robbery', 재살: 'Prison', 천살: 'Heaven', 월살: 'Moon', 연살: 'Peach', 육해: 'Harm', 도화: 'Peach',
 }
 const STRENGTH_EN: Record<string, string> = { 신강: 'strong', 신약: 'weak', 극강: 'very strong', 강: 'strong', 중강: 'mod. strong', 중약: 'mod. weak', 약: 'weak', 극약: 'very weak' }
 const YTYPE_EN: Record<string, string> = { 조후용신: 'Climatic', 병약용신: 'Remedial', 억부용신: 'Balancing', 통관용신: 'Mediating', 전왕용신: 'Dominant' }
 const PERIOD_EN: Record<string, string> = { 대운: 'Decade', 세운: 'Annual', 월운: 'Monthly', 일진: 'Daily' }
-const GILSIN_EN: Record<string, string> = { 천을귀인: 'Nobleman(helper)', 화개: 'Canopy(art/solitude)', 공망: 'Void' }
+const GILSIN_EN: Record<string, string> = { 천을귀인: 'Nobleman', 화개: 'Flower Canopy', 공망: 'Void' }
+// branch romanization (pinyin) for English 刑/punishment labels
+const BRANCH_PY: Record<string, string> = { 子: 'Zi', 丑: 'Chou', 寅: 'Yin', 卯: 'Mao', 辰: 'Chen', 巳: 'Si', 午: 'Wu', 未: 'Wei', 申: 'Shen', 酉: 'You', 戌: 'Xu', 亥: 'Hai' }
 const RELKIND_EN: Record<string, string> = {
   천간합: 'Stem combine', 천간충: 'Stem clash', 지지육합: 'Branch union', 지지삼합: 'Branch trine',
   지지방합: 'Branch dir.combine', 지지충: 'Branch clash', 지지형: 'Branch punishment', 지지파: 'Branch break', 지지해: 'Branch harm', 원진: 'Resentment', 공망: 'Void',
@@ -151,6 +153,30 @@ function compressReason(s: string): string {
     .replace(/\(식상\)|\(인성\)|\(약\)/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim()
+}
+
+// EN 용신 근거 — 엔진의 한국어 자유서술을 번역하는 대신 구조화 필드로 생성
+// (yongsinType + 오행 + 강약). KO는 compressReason로 원문 압축.
+function reasonEn(
+  y: { yongsinType?: string; primaryYongsin?: string; kibsin?: string; daymasterStrength?: string },
+  monthBranch: string,
+): string {
+  const el = (e?: string) => (e ? ELEM_EN[e] ?? e : '')
+  const p = el(y.primaryYongsin)
+  switch (y.yongsinType) {
+    case '조후용신': {
+      const warm = y.primaryYongsin === '화' || y.primaryYongsin === '목'
+      return `${monthBranch} month ${warm ? 'cold/damp' : 'hot/dry'} → ${p} needed`
+    }
+    case '병약용신':
+      return `${el(y.kibsin)} excess → balance with ${p}`
+    case '통관용신':
+      return `clashing elements → ${p} mediates`
+    case '억부용신':
+      return /약/.test(y.daymasterStrength ?? '') ? `self weak → reinforce with ${p}` : `self strong → drain with ${p}`
+    default:
+      return `${p} is the key element`
+  }
 }
 
 export interface DestinyBirth {
@@ -356,10 +382,10 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     const yt = y.yongsinType ? ` [${locale === 'en' ? (YTYPE_EN[y.yongsinType] ?? y.yongsinType) : y.yongsinType}]` : ''
     // 구신(仇)은 "기신을 돕는 오행"이라 기신이 표시될 때만 함께 보여준다
     // (조후/병약 등에서 기신이 용신과 같아 필터되면 仇만 외톨이로 남던 문제).
-    out.push(`${L('용신', 'yongsin')}: ${ge(y.primaryYongsin)}${yt}${y.secondaryYongsin ? ` | ${L('喜', 'fav')}:${ge(y.secondaryYongsin)}` : ''}${y.kibsin ? ` | ${L('忌', 'avoid')}:${ge(y.kibsin)}` : ''}${y.kibsin && y.gusin ? ` | ${L('仇', 'foe')}:${ge(y.gusin)}` : ''}`)
-    if (y.reasoning && locale === 'ko') out.push(`용신근거: ${compressReason(y.reasoning)}`)
+    out.push(`${L('용신', 'yongsin')}: ${ge(y.primaryYongsin)}${yt}${y.secondaryYongsin ? ` | ${L('喜', 'fav')}:${ge(y.secondaryYongsin)}` : ''}${y.kibsin ? ` | ${L('忌', 'foe')}:${ge(y.kibsin)}` : ''}${y.kibsin && y.gusin ? ` | ${L('仇', 'rival')}:${ge(y.gusin)}` : ''}`)
+    if (y.reasoning) out.push(locale === 'ko' ? `용신근거: ${compressReason(y.reasoning)}` : `yongsin_reason: ${reasonEn(y, P.month.earthlyBranch.name)}`)
   }
-  if (gwansalHonjap) out.push(L('참고: 官殺混雜 (정관+편관 동존)', 'note: mixed authority (Direct Officer + Seven Killings)'))
+  if (gwansalHonjap) out.push(L('참고: 官殺混雜 (정관+편관 동존)', 'note: Officer-Killings Mix (Direct Officer + Seven Killings)'))
   out.push('')
 
   // branches that join a 합/삼합/육합 → a 공망 there is partly released
@@ -388,7 +414,7 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
       let note = ''
       if (r.kind === '공망') {
         const b = r.detail?.match(/[子丑寅卯辰巳午未申酉戌亥]/)?.[0]
-        if (b && combinedBranches.has(b)) note = locale === 'ko' ? ' — 합/삼합 동시 참여로 작용 일부 회복' : ' — partly released (joins a combine/trine)'
+        if (b && combinedBranches.has(b)) note = locale === 'ko' ? ' — 합/삼합 동시 참여로 작용 일부 회복' : ' — partly restored (joins union/trine)'
       }
       const g = groups.get(base) ?? { base, tags: [], note, clash }
       if (tag) g.tags.push(tag)
@@ -441,7 +467,7 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     const sibPair = (v: { stem: string; branch: string }) => {
       const s = sibsinOf(day, v.stem), b = sibsinOf(day, BRANCH_MAINQI[v.branch] ?? '')
       const honjap = (s === '정관' || s === '편관') && (b === '정관' || b === '편관') && s !== b
-      const hj = honjap ? (locale === 'en' ? '=mixed authority' : '=관살혼잡') : ''
+      const hj = honjap ? (locale === 'en' ? '=Officer-Killings Mix' : '=관살혼잡') : ''
       return `${v.stem}${v.branch}${s || b ? ` (${sib1(s)}/${sib1(b)}${hj})` : ''}`
     }
     // 세운은 십성·관살혼잡 유지(가장 중요), 월운/일진은 간지만 (시벤 생략)
@@ -460,7 +486,7 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
       if (!el) return ''
       const cnt = (fe as Record<string, number>)[EL2KEY[el]] ?? 0
       const elT = locale === 'en' ? (ELEM_EN[el] ?? el) : el
-      if (cnt <= 1) return locale === 'en' ? ` (combine→${elT}, but weak ${elT} branch → may not complete)` : ` (합${el}, 단 지지${el}약→化미완 가능)`
+      if (cnt <= 1) return locale === 'en' ? ` (combine→${elT}, weak ${elT} branches → transformation may not complete)` : ` (합${el}, 단 지지${el}약→化미완 가능)`
       return locale === 'en' ? ` (combine→${elT})` : ` (합화${el})`
     }
     const sp = locale === 'en' ? ' ' : '' // KO attaches 세운丙/일未 without space
@@ -469,8 +495,9 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
       : s.replace(/ - year/g, ' ↔ 년').replace(/ - month/g, ' ↔ 월').replace(/ - day/g, ' ↔ 일').replace(/ - time/g, ' ↔ 시')
     const PMAP: Record<string, string> = locale === 'en' ? { 년: 'Y', 월: 'M', 일: 'D', 시: 'H' } : { 년: '년', 월: '월', 일: '일', 시: '시' }
     // 형(刑): engine이 운-본명 형을 안 잡으므로 직접 계산해 보강. pfx = 세운/월운/일진/대운
+    const hyeongTag = (a: string, b: string) => (locale === 'en' ? `(${a}${b}刑 / ${BRANCH_PY[a] ?? a}-${BRANCH_PY[b] ?? b} Punishment)` : `(${a}${b}刑)`)
     const hyeongOf = (branch: string | undefined, pfx: string): string[] =>
-      branch ? natalBr.filter(([, nb]) => hyeongPair(branch, nb)).map(([lab, nb]) => `${rk('지지형', locale)} ${pfx}${sp}${branch} ↔ ${(locale === 'en' ? (PMAP[lab] ?? lab) : lab)}${sp}${nb} (${branch}${nb}刑)`) : []
+      branch ? natalBr.filter(([, nb]) => hyeongPair(branch, nb)).map(([lab, nb]) => `${rk('지지형', locale)} ${pfx}${sp}${branch} ↔ ${(locale === 'en' ? (PMAP[lab] ?? lab) : lab)}${sp}${nb} ${hyeongTag(branch, nb)}`) : []
     const crossLines: string[] = []
     const periodBranch: Record<string, string | undefined> = { 세운: current?.seun?.branch, 월운: current?.wolun?.branch, 일진: current?.iljin?.branch, 대운: cur?.earthlyBranch ?? undefined }
     for (const [k, src] of [['세운', 'seun'], ['월운', 'wolun'], ['일진', 'iljin'], ['대운', 'daeun']] as const) {
