@@ -15,6 +15,7 @@ import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
 import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
 import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
+import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
@@ -72,6 +73,7 @@ const SYSTEM_PROMPT_KO = `<birth_data> 안의 사주·점성 데이터를 근거
 규칙:
 - 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.
 - 두 데이터가 같은 방향을 가리킬 때 (예: 사주의 목 기운 강함 + 점성의 목성 확장기) 하나의 비유/스토리로 엮는다. 양쪽 따로 나열 X.
+- 단, 사주의 합·충과 점성의 conjunction·opposition이 비슷해 보여도 같은 사건으로 이중 계산하지 말 것.
 - 마크다운 헤더(##) / 번호 리스트 / 글머리 기호(-, *) 사용 금지. 오직 줄글 단락으로.
 - [Meta] 의 birthTimeUnknown=true면 시주/일진/ASC/MC/하우스 인용 금지. birthCityUnknown=true면 위치 의존 결론 금지.
 - AI/모델/상담사 정체 노출 금지.
@@ -103,6 +105,7 @@ Tone: warm, empathetic mentor. Conversational, not analytical or clinical.
 Rules:
 - Fuse saju and astrology in one flow. No system-split.
 - When the two systems point the same way (e.g. saju wood-growth + Jupiter expansion), weave them into one metaphor/story, not two parallel listings.
+- But even if saju 합/충 and astro conjunction/opposition look alike, don't double-count them as one event.
 - No markdown headers (##), numbered lists, or bullet symbols (-, *). Plain prose paragraphs only.
 - If [Meta] has birthTimeUnknown=true: do not cite time pillar / iljin / ASC / MC / houses. If birthCityUnknown=true: skip place-dependent claims.
 - Never reveal you're an AI / model / counselor system.
@@ -370,8 +373,11 @@ export async function POST(req: NextRequest) {
           skipAngles: birthCityUnknown,
         })
         if (astroSelfBlock) {
+          // Slim + localize the astro block (destiny counselor only — compat
+          // keeps the raw formatAstroSelf output). Filters weak aspects, drops
+          // solo/esoteric blocks, this-year eclipses, decimal orbs, KO/EN terms.
           parts.push('')
-          parts.push(astroSelfBlock)
+          parts.push(slimAstroSelf(astroSelfBlock, { locale: lang, year: queryDate.getFullYear() }))
         }
       } catch (err) {
         logger.warn('[counselor/realtime] astroSelf format failed', { err: err instanceof Error ? err.message : String(err) })
