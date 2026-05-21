@@ -354,7 +354,9 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   if (y?.primaryYongsin) {
     const ge = (e?: string) => (e ? (locale === 'en' ? (ELEM_EN[e] ?? e) : e) : '')
     const yt = y.yongsinType ? ` [${locale === 'en' ? (YTYPE_EN[y.yongsinType] ?? y.yongsinType) : y.yongsinType}]` : ''
-    out.push(`${L('용신', 'yongsin')}: ${ge(y.primaryYongsin)}${yt}${y.secondaryYongsin ? ` | ${L('喜', 'fav')}:${ge(y.secondaryYongsin)}` : ''}${y.kibsin ? ` | ${L('忌', 'avoid')}:${ge(y.kibsin)}` : ''}${y.gusin ? ` | ${L('仇', 'foe')}:${ge(y.gusin)}` : ''}`)
+    // 구신(仇)은 "기신을 돕는 오행"이라 기신이 표시될 때만 함께 보여준다
+    // (조후/병약 등에서 기신이 용신과 같아 필터되면 仇만 외톨이로 남던 문제).
+    out.push(`${L('용신', 'yongsin')}: ${ge(y.primaryYongsin)}${yt}${y.secondaryYongsin ? ` | ${L('喜', 'fav')}:${ge(y.secondaryYongsin)}` : ''}${y.kibsin ? ` | ${L('忌', 'avoid')}:${ge(y.kibsin)}` : ''}${y.kibsin && y.gusin ? ` | ${L('仇', 'foe')}:${ge(y.gusin)}` : ''}`)
     if (y.reasoning && locale === 'ko') out.push(`용신근거: ${compressReason(y.reasoning)}`)
   }
   if (gwansalHonjap) out.push(L('참고: 官殺混雜 (정관+편관 동존)', 'note: mixed authority (Direct Officer + Seven Killings)'))
