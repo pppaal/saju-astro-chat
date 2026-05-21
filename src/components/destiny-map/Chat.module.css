@@ -775,7 +775,8 @@
   box-shadow: none;
 }
 
-.inputBox .textarea:focus {
+.inputBox .textarea:focus,
+.inputBox .textarea:focus-visible {
   outline: none;
   box-shadow: none;
   border: none;
