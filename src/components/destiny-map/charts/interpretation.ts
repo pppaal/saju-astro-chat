@@ -23,8 +23,10 @@ export function sajuInterpretation(saju: unknown, isKo: boolean): string {
   if (!stem || !branch) return ''
   const arch = getIljuArchetype(stem, branch)
   if (!arch) return ''
-  return isKo ? arch.character : arch.character_en
+  return isKo ? `당신은 ${arch.character}, 그런 사람이에요.` : `At the core, ${lower(arch.character_en)}`
 }
+
+const lower = (s: string) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s)
 
 const ZODIAC: ZodiacName[] = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
@@ -42,18 +44,18 @@ export function astroInterpretation(astro: unknown, isKo: boolean): string {
   const planets = Array.isArray(a.planets) ? (a.planets as Array<{ name?: string; longitude?: number }>) : []
   const lonOf = (name: string) => planets.find((p) => p.name === name)?.longitude
   const lang = isKo ? 'ko' : 'en'
-
-  const line = (planet: AstroPlanetName, lon?: number, koLabel?: string, enLabel?: string) => {
+  const signLine = (planet: AstroPlanetName, lon?: number) => {
     const sign = signFromLon(lon)
-    if (!sign) return ''
-    const body = getPlanetSignInterpretation(planet, sign, lang)
-    const label = isKo ? koLabel : enLabel
-    return label ? `${label} ${body}` : body
+    return sign ? getPlanetSignInterpretation(planet, sign, lang) : ''
   }
+  const sun = signLine('Sun', lonOf('Sun'))
+  const moon = signLine('Moon', lonOf('Moon'))
+  if (!sun && !moon) return ''
 
-  const parts = [
-    line('Sun', lonOf('Sun'), '태양:', 'Sun:'),
-    line('Moon', lonOf('Moon'), '달:', 'Moon:'),
-  ].filter(Boolean)
-  return parts.join(' · ')
+  if (isKo) {
+    if (sun && moon) return `겉으로는 ${sun}, 속으로는 ${moon}, 그런 결이에요.`
+    return `${sun || moon}, 그런 결이에요.`
+  }
+  if (sun && moon) return `Outwardly ${lower(sun)}; inwardly ${lower(moon)}.`
+  return `${sun || moon}.`
 }
