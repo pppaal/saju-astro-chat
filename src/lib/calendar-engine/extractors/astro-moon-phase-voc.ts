@@ -10,13 +10,15 @@ import { getCachedTransitChart } from '../ephe-cache'
 /**
  * 달 위상(Moon Phase) + 보이드 오브 코스(Void of Course) 추출기.
  *
- * 이름의 'planetary-hour' kind 는 역사적 잔재 — 실제로 행성시(planetary hour)는
- * 계산하지 않는다. 매일 정오(natal TZ) 트랜짓 차트 1개로:
- *  - 달 위상 분류 (삭/상현/보름/하현) — 위상 변경 시점에 monthly 신호
- *  - 그날 VoC 여부 — daily 신호 (timing-void-of-course-moon 룰이 사용)
+ * (구 astro-planetary-hour — 실제 행성시를 계산하지 않아 이름을 바로잡음.
+ *  진짜 행성시(Chaldean order)는 'planetary-hour' kind 로 추후 별도 구현.)
+ *
+ * 매일 정오(natal TZ) 트랜짓 차트 1개로:
+ *  - 달 위상 분류 (삭/상현/보름/하현) — 위상 변경 시점에 monthly 신호 (kind: moon-phase)
+ *  - 그날 VoC 여부 — daily 신호 (kind: void-of-course; timing-void-of-course-moon 룰이 사용)
  *
  * 주의(알려진 한계):
- *  - 노이즈/위상은 정오 1회 샘플 — 시간 단위 정밀도 아님. VoC 의
+ *  - 위상/VoC 는 정오 1회 샘플 — 시간 단위 정밀도 아님. VoC 의
  *    hoursRemaining 도 정오 스냅샷 기준 근사치.
  *  - PHASE_POLARITY 키가 snake_case getMoonPhase 결과(new_moon 등)와
  *    불일치(camelCase)라 달 위상 polarity 는 현재 항상 0(사실상 비활성).
@@ -38,9 +40,9 @@ const PHASE_POLARITY: Record<string, -1 | 0 | 1> = {
   waningCrescent: 0,
 }
 
-const astroPlanetaryHourExtractor: SignalExtractor = {
+const astroMoonPhaseVocExtractor: SignalExtractor = {
   source: 'astro',
-  kind: ['planetary-hour', 'void-of-course'],
+  kind: ['moon-phase', 'void-of-course'],
   async extract(ctx: ExtractorContext): Promise<ActiveSignal[]> {
     const { natal, range, cache } = ctx
     const signals: ActiveSignal[] = []
@@ -79,7 +81,7 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
           signals.push({
             id: `astro.moon-phase.${phaseStartIso.slice(0, 10)}.${lastPhase}`,
             source: 'astro',
-            kind: 'planetary-hour',
+            kind: 'moon-phase',
             name: `달 위상: ${getMoonPhaseName(lastPhase as never)}`,
             korean: `달 위상 ${getMoonPhaseName(lastPhase as never)}`,
             themes: [],
@@ -92,7 +94,7 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
             },
             weight: 0.4,
             evidence: {
-              module: 'astro-planetary-hour',
+              module: 'astro-moon-phase-voc',
               planets: ['Moon', 'Sun'],
               detail: { phase: lastPhase },
             },
@@ -124,7 +126,7 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
           },
           weight: 0.45,
           evidence: {
-            module: 'astro-planetary-hour',
+            module: 'astro-moon-phase-voc',
             planets: ['Moon'],
             detail: {
               moonSign: voc.moonSign,
@@ -140,4 +142,4 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
   },
 }
 
-export default astroPlanetaryHourExtractor
+export default astroMoonPhaseVocExtractor
