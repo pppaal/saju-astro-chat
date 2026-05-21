@@ -68,40 +68,6 @@ const ELEMENT_KEYWORDS: Record<string, { ko: string[]; en: string[] }> = {
   water: { ko: ['직관', '유연', '깊이'], en: ['intuition', 'adaptability', 'depth'] },
 }
 
-const ARCHETYPES: Record<string, { ko: string; en: string; taglineKo: string; taglineEn: string }> =
-  {
-    wood: {
-      ko: '새싹 개척자',
-      en: 'Verdant Pioneer',
-      taglineKo: '성장과 확장의 서사를 이끄는 인물',
-      taglineEn: 'A protagonist of growth and exploration',
-    },
-    fire: {
-      ko: '불꽃 선도자',
-      en: 'Flame Vanguard',
-      taglineKo: '열정과 표현으로 판을 여는 인물',
-      taglineEn: 'A catalyst who ignites bold expression',
-    },
-    earth: {
-      ko: '대지 설계자',
-      en: 'Earth Architect',
-      taglineKo: '안정과 조율로 기반을 만드는 인물',
-      taglineEn: 'A builder who stabilizes the world around them',
-    },
-    metal: {
-      ko: '칼날 전략가',
-      en: 'Steel Strategist',
-      taglineKo: '원칙과 결단으로 길을 여는 인물',
-      taglineEn: 'A strategist who cuts a clear path',
-    },
-    water: {
-      ko: '심해 현자',
-      en: 'Deepwater Sage',
-      taglineKo: '직관과 통찰로 흐름을 읽는 인물',
-      taglineEn: 'A sage who navigates with deep insight',
-    },
-  }
-
 // ============================================================
 // Data Extraction Helpers
 // ============================================================
@@ -378,7 +344,6 @@ function buildCharacterBuilder(
   const dayElement = normalizeElementKey(saju.dayMasterElement || saju.dominantElement)
   const weakest = normalizeElementKey(saju.weakestElement || dayElement)
   const support = ELEMENT_RELATIONS[dayElement]?.generatedBy || dayElement
-  const archetype = ARCHETYPES[dayElement] || ARCHETYPES.wood
 
   const sunElement = getZodiacElement(astro.sunSign)
   const moonElement = getZodiacElement(astro.moonSign)
@@ -423,8 +388,8 @@ function buildCharacterBuilder(
     : `Early on, you focus on ${getElementName(dayElement, false)}-driven ${dayKeywords[0]} to find direction.\nMidway, you consciously strengthen ${getElementName(weakest, false)} to regain balance.\nLater, you leverage ${getElementName(support, false)} energy to expand impact and complete your story.`
 
   return {
-    archetype: isKo ? archetype.ko : archetype.en,
-    tagline: isKo ? archetype.taglineKo : archetype.taglineEn,
+    archetype: isKo ? `${getElementName(dayElement, true)} 일간` : `${getElementName(dayElement, false)} Day Master`,
+    tagline: getElementTrait(dayElement, isKo),
     personality,
     conflict,
     growthArc,
@@ -686,20 +651,50 @@ Strengthening ${weakestName} brings more balance.`,
 // same engine content (archetype + element trait + 일주 + Sun/Moon), for
 // the "내 운명 차트" modal. Deterministic, client-safe.
 // ============================================================
-const SUMMARY_ZODIAC_KEYS = [
-  'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
-  'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces',
-]
+// sign(longitude) → element index helpers
+const SIGN_ELEMENTS = ['fire', 'earth', 'air', 'water', 'fire', 'earth', 'air', 'water', 'fire', 'earth', 'air', 'water']
 function summarySignKey(lon?: number): string | null {
+  const ZK = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces']
   if (typeof lon !== 'number' || !Number.isFinite(lon)) return null
-  return SUMMARY_ZODIAC_KEYS[Math.floor((((lon % 360) + 360) % 360) / 30)] ?? null
+  return ZK[Math.floor((((lon % 360) + 360) % 360) / 30)] ?? null
 }
+function summarySignElement(lon?: number): string | null {
+  if (typeof lon !== 'number' || !Number.isFinite(lon)) return null
+  return SIGN_ELEMENTS[Math.floor((((lon % 360) + 360) % 360) / 30)] ?? null
+}
+
+// 일간 대비 강한 오행의 역할 — 명리 용어 없이 일상어로 의미만
+function sibsinRole(dayKey: string, otherKey: string): 'self' | 'output' | 'wealth' | 'officer' | 'resource' | null {
+  if (dayKey === otherKey) return 'self'
+  const rel = ELEMENT_RELATIONS[dayKey]
+  if (!rel) return null
+  if (rel.generates === otherKey) return 'output'
+  if (rel.controls === otherKey) return 'wealth'
+  if (rel.generatedBy === otherKey) return 'resource'
+  if (rel.controlledBy === otherKey) return 'officer'
+  return null
+}
+const ROLE_MEANING: Record<string, { ko: string; en: string }> = {
+  self: { ko: '같은 기운이라 자립심과 경쟁심이 강해요', en: 'same energy as you — strong independence and drive' },
+  output: { ko: '재능을 표현하고 밖으로 풀어내는 힘이 돼요', en: 'fuels self-expression and creative output' },
+  wealth: { ko: '재물·일·욕망의 영역이 넓다는 뜻이에요 (다 쥐려 하면 지칠 수 있으니 선택과 집중이 중요해요)', en: 'a wide field of wealth, work and desire — focus beats grabbing it all' },
+  officer: { ko: '책임과 도전을 안기는 기운이에요 (잘 다스리면 명예가, 과하면 부담이 돼요)', en: 'brings responsibility and challenge — honor if mastered, pressure if not' },
+  resource: { ko: '배움과 도움이 받쳐주는 기운이에요 (과하면 생각만 많아지기 쉬워요)', en: 'supportive learning and care — but too much breeds overthinking' },
+}
+const ELEM_LABEL_KO: Record<string, string> = { fire: '불', earth: '흙', air: '공기', water: '물' }
+const ELEM_LABEL_EN: Record<string, string> = { fire: 'Fire', earth: 'Earth', air: 'Air', water: 'Water' }
+const ELEM_COMBO: Record<string, { ko: string; en: string }> = {
+  air: { ko: '사고와 소통이 중심이라 객관적이고 아이디어가 빨라요', en: 'mind- and communication-led; objective and quick with ideas' },
+  fire: { ko: '열정과 추진이 강해 직진형이에요', en: 'passionate and driving; a go-getter' },
+  earth: { ko: '현실 감각과 안정 지향이 뚜렷해요', en: 'grounded and stability-seeking' },
+  water: { ko: '감정과 직관이 깊고 공감력이 커요', en: 'deep feeling and intuition; highly empathic' },
+}
+
 export function generateChartSummary(saju: unknown, astro: unknown, lang: string = 'ko'): string {
   const isKo = lang === 'ko'
   const sj = extractSajuData(saju as CombinedResult['saju'])
-  // Self = day master (일간), not the most-counted element. For a 재다신약
-  // chart the dominant element is what surrounds you, not who you are — using
-  // it as "your type" contradicts the 일주. Persona/trait keys off 일간.
+  // Self = day master (일간), not the most-counted element. The dominant
+  // element is what surrounds you, not who you are.
   const selfKey = normalizeElementKey(sj.dayMasterElement)
   const domKey = normalizeElementKey(sj.dominantElement)
   const trait = getElementTrait(selfKey, isKo)
@@ -710,39 +705,49 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
   const dayPillar = (s?.dayPillar ?? (s?.pillars as Record<string, unknown> | undefined)?.day) as
     | { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
     | undefined
-  const dStem = dayPillar?.heavenlyStem?.name
-  const dBranch = dayPillar?.earthlyBranch?.name
-  const ilju = dStem && dBranch ? getIljuArchetype(dStem, dBranch) : null
+  const ilju = dayPillar?.heavenlyStem?.name && dayPillar?.earthlyBranch?.name
+    ? getIljuArchetype(dayPillar.heavenlyStem.name, dayPillar.earthlyBranch.name)
+    : null
   const iljuChar = ilju ? (isKo ? ilju.character : ilju.character_en) : ''
 
-  // Sun / Moon sign from longitude (planets may not carry .sign)
+  // Sun / Moon sign + element from longitude
   const a = astro as Record<string, unknown> | undefined
   const planets = Array.isArray(a?.planets) ? (a!.planets as Array<{ name?: string; longitude?: number }>) : []
   const lonOf = (n: string) => planets.find((p) => String(p?.name).toLowerCase() === n)?.longitude
-  const sunName = (() => { const k = summarySignKey(lonOf('sun')); return k ? getSignName(k, isKo) : '' })()
-  const moonName = (() => { const k = summarySignKey(lonOf('moon')); return k ? getSignName(k, isKo) : '' })()
+  const sunLon = lonOf('sun'), moonLon = lonOf('moon')
+  const sunKey = summarySignKey(sunLon), moonKey = summarySignKey(moonLon)
+  const sunName = sunKey ? getSignName(sunKey, isKo) : ''
+  const moonName = moonKey ? getSignName(moonKey, isKo) : ''
+  const sunEl = summarySignElement(sunLon), moonEl = summarySignElement(moonLon)
 
-  const showDom = domKey !== selfKey // mention strong element only when it isn't the self
+  const role = domKey !== selfKey ? sibsinRole(selfKey, domKey) : null
 
   if (isKo) {
-    const lead = iljuChar
-      ? `당신은 ${iljuChar} 유형이에요.`
-      : `당신은 '${(ARCHETYPES[selfKey] || ARCHETYPES.wood).ko}' 유형이에요.`
+    const lead = iljuChar ? `당신은 ${iljuChar} 유형이에요.` : `당신은 ${getElementName(selfKey, true)} 기운의 사람이에요.`
     const s2 = trait ? `${trait}.` : ''
-    const astroBit = sunName && moonName ? `태양은 ${sunName}·달은 ${moonName}에 있어요` : sunName ? `태양은 ${sunName}에 있어요` : ''
-    let s3 = ''
-    if (showDom && astroBit) s3 = `오행 중엔 ${domName} 기운이 강하고, ${astroBit}.`
-    else if (showDom) s3 = `오행 중엔 ${domName} 기운이 강해요.`
-    else if (astroBit) s3 = `${astroBit}.`
-    return [lead, s2, s3].filter(Boolean).join(' ')
+    const s3 = role ? `강한 ${domName} 기운은 ${ROLE_MEANING[role].ko}.` : ''
+    let s4 = ''
+    if (sunName && moonName) {
+      const meaning = sunEl && sunEl === moonEl ? `둘 다 ${ELEM_LABEL_KO[sunEl]} 기운이고, ${ELEM_COMBO[sunEl].ko}`
+        : (sunEl && moonEl ? `겉(태양 ${ELEM_LABEL_KO[sunEl]})과 속(달 ${ELEM_LABEL_KO[moonEl]})의 결이 달라 입체적이에요` : '')
+      s4 = `태양 ${sunName}·달 ${moonName}${meaning ? ` — ${meaning}` : '에 있어요'}.`
+    } else if (sunName) {
+      s4 = `태양은 ${sunName}에 있어요.`
+    }
+    return [lead, s2, s3, s4].filter(Boolean).join(' ')
   }
 
   const lower = (t: string) => (t ? t.charAt(0).toLowerCase() + t.slice(1) : t)
-  const lead = iljuChar
-    ? `At the core, ${lower(iljuChar)}`
-    : `You're the '${(ARCHETYPES[selfKey] || ARCHETYPES.wood).en}' type.`
+  const lead = iljuChar ? `At the core, ${lower(iljuChar)}` : `${getElementName(selfKey, false)}-natured at the core.`
   const s2 = trait ? `${trait}.` : ''
-  const astroBit = sunName && moonName ? `Sun in ${sunName}, Moon in ${moonName}.` : sunName ? `Sun in ${sunName}.` : ''
-  const s3 = [showDom ? `${domName} energy is strongest.` : '', astroBit].filter(Boolean).join(' ')
-  return [lead, s2, s3].filter(Boolean).join(' ')
+  const s3 = role ? `Strong ${domName} energy here is ${ROLE_MEANING[role].en}.` : ''
+  let s4 = ''
+  if (sunName && moonName) {
+    const meaning = sunEl && sunEl === moonEl ? `both ${ELEM_LABEL_EN[sunEl]} — ${ELEM_COMBO[sunEl].en}`
+      : (sunEl && moonEl ? `outer (Sun ${ELEM_LABEL_EN[sunEl]}) and inner (Moon ${ELEM_LABEL_EN[moonEl]}) differ, adding range` : '')
+    s4 = `Sun in ${sunName}, Moon in ${moonName}${meaning ? ` — ${meaning}.` : '.'}`
+  } else if (sunName) {
+    s4 = `Sun in ${sunName}.`
+  }
+  return [lead, s2, s3, s4].filter(Boolean).join(' ')
 }
