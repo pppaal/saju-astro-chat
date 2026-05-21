@@ -10,11 +10,32 @@ import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
 import { calculateStrengthScore } from '@/lib/saju/strengthScore'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { getTwelveStagesForPillars, getTwelveShinsalSingleByPillar } from '@/lib/saju/shinsal'
+import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
+import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 
 export type Locale = 'ko' | 'en'
+
+const PLANET_KO_A: Record<string, string> = {
+  Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성', Jupiter: '목성',
+  Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성', Node: '노드',
+  'True Node': '노드', 'North Node': '노드', Ascendant: '상승점', MC: '중천점',
+}
+const SIGN_KO_A: Record<string, string> = {
+  Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리', Leo: '사자자리', Virgo: '처녀자리',
+  Libra: '천칭자리', Scorpio: '전갈자리', Sagittarius: '궁수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
+}
+const skA = (s: string, l: Locale) => (l === 'ko' ? SIGN_KO_A[s] ?? s : s)
+const ASP_FULL: Record<string, { ko: string; en: string }> = {
+  conjunction: { ko: '컨정션(결합)', en: 'Conjunction' }, opposition: { ko: '어포지션(대립)', en: 'Opposition' },
+  trine: { ko: '트라인(조화)', en: 'Trine' }, square: { ko: '스퀘어(긴장)', en: 'Square' }, sextile: { ko: '섹스타일(협력)', en: 'Sextile' },
+}
+const MAJOR_TYPES = new Set(['conjunction', 'opposition', 'trine', 'square', 'sextile'])
+const pkA = (n: string, l: Locale) => (l === 'ko' ? PLANET_KO_A[n] ?? n : n)
+const aspG = (t: string, l: Locale) => (ASP_FULL[t] ? (l === 'ko' ? ASP_FULL[t].ko : ASP_FULL[t].en) : t)
 
 const ELEM: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
 const STEM_INFO: Record<string, { el: string; yang: boolean }> = {
@@ -48,18 +69,22 @@ function buildInstructions(locale: Locale): string {
       '## READING RULES',
       '- saju and astrology are separate systems: read each section on its own; integrate only as shared themes at the end.',
       "- never mix vocabulary across systems (e.g. \"yongsin activates Mars\" is wrong).",
-      '- orb weight: 0-2°=strong / 3-4°=mid / 5-6°=weak.',
-      '- dignity = how well the planet functions in that sign.',
+      '- orb weight: 0-2°=strong / 3-4°=mid / 5-6°=weak. On natal aspects ↗=applying (building), ↘=separating (fading).',
+      '- dignity = how well the planet functions in that sign. [Minor points] are supplementary only.',
       '- a value marked inferred may be overridden if other evidence conflicts.',
+      '- tone: direct. No hedging ("maybe", "in some cases"). State evidence, then conclusion.',
+      '- weigh good/bad by the chart, not by politeness.',
     ].join('\n')
   }
   return [
     '## 읽기 규칙',
     '- 사주와 점성은 별개 체계: 각 섹션을 따로 읽고, 공통 테마만 마지막에 통합한다.',
     '- 두 체계 용어를 섞지 말 것 (예: "용신이 화성을 활성화" ✗).',
-    '- orb 가중치: 0-2°=강 / 3-4°=중 / 5-6°=약.',
-    '- 디그니티 = 행성이 그 사인에서 얼마나 잘 작동하는지.',
+    '- orb 가중치: 0-2°=강 / 3-4°=중 / 5-6°=약. 본명 각의 ↗=강해지는 중(applying), ↘=약해지는 중(separating).',
+    '- 디그니티 = 행성이 그 사인에서 얼마나 잘 작동하는지. [보조점]은 보조 신호로만.',
     '- inferred로 표시된 값은 다른 근거와 충돌하면 재판단 가능.',
+    '- 톤: 단정적으로. "아마/경우에 따라" 같은 회피 표현 금지. 근거를 먼저 대고 결론을 말한다.',
+    '- 좋고 나쁨은 예의가 아니라 차트 근거대로 균형 있게 짚는다.',
   ].join('\n')
 }
 
@@ -80,6 +105,38 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
       skipAngles: birth.birthCityUnknown,
     })
     astro = slimAstroSelf(block, { locale, year: now.getFullYear() })
+    // enrich: A/S markers on natal aspects + minor points (from raw chart)
+    try {
+      const chart = toChart(natal)
+      const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
+      const asps = findNatalAspects(chart)
+        .filter((a) => MAJOR_TYPES.has(a.type) && a.orb <= 6)
+        .sort((a, b) => a.orb - b.orb).slice(0, 12)
+      if (asps.length) {
+        const head = L(`[본명 각 · 주요각 orb≤6° 상위${asps.length} · ↗적용/↘분리]`, `[Natal aspects · major orb<=6 top${asps.length} · ↗applying/↘separating]`)
+        const lines = asps.map((a) => `${pkA(a.from.name, locale)} ${aspG(a.type, locale)} ${pkA(a.to.name, locale)} (orb ${a.orb.toFixed(1)}°)${a.applying ? ' ↗' : ' ↘'}`)
+        astro = astro.replace(/\[(?:본명 각|Natal aspects)[\s\S]*?\n\n/, head + '\n' + lines.join('\n') + '\n\n')
+      }
+      const ut = (natal as unknown as { meta?: { jdUT?: number }; ut_jd?: number; jdUT?: number })
+      const jd = ut.meta?.jdUT ?? ut.ut_jd ?? ut.jdUT
+      if (jd != null) {
+        const ext = extendChartWithExtraPoints(chart, jd, lat, lon) as unknown as Record<string, { sign?: string; house?: number } | undefined>
+        const ml: string[] = []
+        const add = (label: string, key: string) => {
+          const pt = ext[key]
+          if (pt?.sign) ml.push(`${label} ${skA(pt.sign, locale)}${pt.house ? L(` ${pt.house}하우스`, ` H${pt.house}`) : ''}`)
+        }
+        add(L('키론(상처·치유)', 'Chiron'), 'chiron')
+        add(L('릴리스(억눌린 욕망)', 'Lilith'), 'lilith')
+        add(L('포춘(타고난 행운점)', 'Part of Fortune'), 'partOfFortune')
+        add(L('버텍스(운명적 만남)', 'Vertex'), 'vertex')
+        if (ml.length) {
+          const mb = L('[보조점 (minor)]', '[Minor points]') + '\n' + ml.join('\n') + '\n\n'
+          const idx = astro.search(/\[(?:현재 트랜짓|Current transits)/)
+          astro = idx >= 0 ? astro.slice(0, idx) + mb + astro.slice(idx) : astro.trimEnd() + '\n\n' + mb
+        }
+      }
+    } catch { /* enrichment optional */ }
   } catch { /* astro optional */ }
   return [saju, astro, buildInstructions(locale)].filter(Boolean).join('\n\n').trim() + '\n'
 }
@@ -175,6 +232,14 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko'): st
   }
 
   if (saju.shinsal?.length) out.push(`sinsal: ${saju.shinsal.join(' · ')}`)
+  try {
+    const st = getTwelveStagesForPillars(P as never)
+    out.push(`12운성: ${(['year', 'month', 'day', 'time'] as const).map((k) => `${P[k].earthlyBranch.name}${st[k]}`).join(' / ')}`)
+  } catch { /* */ }
+  try {
+    const ss = getTwelveShinsalSingleByPillar(P as never)
+    out.push(`12신살: ${(['year', 'month', 'day', 'time'] as const).map((k) => `${P[k].earthlyBranch.name}${(ss[k] || '-').replace(/살살$/, '살')}`).join(' / ')}`)
+  } catch { /* */ }
 
   // current
   const cur = saju.daeWoon?.current
