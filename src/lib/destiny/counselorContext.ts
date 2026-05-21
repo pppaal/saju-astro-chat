@@ -296,15 +296,25 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   if (shown.length) {
     out.push('internal_combos:')
     const PLAB: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
+    // group identical relations (same kind+detail) so a 충/합 hitting two pillar
+    // pairs becomes one line with merged tags, not a duplicate.
+    const groups = new Map<string, { base: string; tags: string[]; note: string }>()
     for (const r of shown) {
       const base = r.detail && r.detail.includes(r.kind) ? r.detail : `${r.kind}${r.detail ? ` ${r.detail}` : ''}`
-      const pos = Array.isArray(r.pillars) && r.pillars.length ? ` [${r.pillars.map((p) => PLAB[p] ?? p).join('·')}]` : ''
+      const tag = Array.isArray(r.pillars) && r.pillars.length ? r.pillars.map((p) => PLAB[p] ?? p).join('·') : ''
       let note = ''
       if (r.kind === '공망') {
         const b = r.detail?.match(/[子丑寅卯辰巳午未申酉戌亥]/)?.[0]
         if (b && combinedBranches.has(b)) note = locale === 'ko' ? ' — 합/삼합 동시 참여로 작용 일부 회복' : ' — partly released (joins a 합/삼합)'
       }
-      out.push(`  ${base}${pos}${note}`)
+      const g = groups.get(base) ?? { base, tags: [], note }
+      if (tag) g.tags.push(tag)
+      g.note ||= note
+      groups.set(base, g)
+    }
+    for (const g of groups.values()) {
+      const pos = g.tags.length ? ` [${g.tags.join(' / ')}]` : ''
+      out.push(`  ${g.base}${pos}${g.note}`)
     }
     out.push('')
   }
@@ -366,12 +376,21 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     const crossLines: string[] = []
     const periodBranch: Record<string, string | undefined> = { 세운: current?.seun?.branch, 월운: current?.wolun?.branch, 일진: current?.iljin?.branch, 대운: cur?.earthlyBranch ?? undefined }
     for (const [k, src] of [['세운', 'seun'], ['월운', 'wolun'], ['일진', 'iljin'], ['대운', 'daeun']] as const) {
-      const parts2: string[] = []
+      // group same relation hitting two natal pillars (운 丙↔일 辛 + 운 丙↔시 辛)
+      // into one (운 丙 ↔ 일·시 辛) — token save, no dup.
+      const grp = new Map<string, { line: string; pills: string[] }>()
+      const plain: string[] = []
       for (const r of relsBy(src)) {
         const d = (r.relation.detail || '').replace(/ - year/g, ' ↔ 년').replace(/ - month/g, ' ↔ 월').replace(/ - day/g, ' ↔ 일').replace(/ - time/g, ' ↔ 시')
         const note = r.relation.kind === '천간합' ? hwaNote(r.relation.detail || '') : ''
-        parts2.push((d ? `${r.relation.kind} ${d}` : r.relation.kind) + note)
+        const m = d.match(/^운 (\S+) ↔ (년|월|일|시) (\S+)$/)
+        if (m) {
+          const key = `${r.relation.kind}|${m[1]}|${m[3]}|${note}`
+          const g = grp.get(key) ?? { line: `${r.relation.kind} 운 ${m[1]} ↔ @ ${m[3]}${note}`, pills: [] }
+          g.pills.push(m[2]); grp.set(key, g)
+        } else plain.push((d ? `${r.relation.kind} ${d}` : r.relation.kind) + note)
       }
+      const parts2: string[] = [...plain, ...[...grp.values()].map((g) => g.line.replace('@', g.pills.join('·')))]
       parts2.push(...hyeongOf(periodBranch[k]))
       if (parts2.length) crossLines.push(`  ${k}: ${parts2.join(' / ')}`)
     }
