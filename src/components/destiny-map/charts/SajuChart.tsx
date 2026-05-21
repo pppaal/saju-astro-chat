@@ -57,9 +57,6 @@ const BRANCH_IMAGE: Record<string, string> = {
 }
 const imageOf = (name?: string) => (name ? (STEM_IMAGE[name] ?? BRANCH_IMAGE[name] ?? '') : '')
 
-const TRAIT_KO: Record<string, string> = { 목: '창의력', 화: '추진력', 토: '안정성', 금: '결단력', 수: '유연성' }
-const EL_FROM_KEY: Record<string, string> = { wood: '목', fire: '화', earth: '토', metal: '금', water: '수', 목: '목', 화: '화', 토: '토', 금: '금', 수: '수' }
-
 function pickPillars(saju: SajuChartProps['saju']) {
   if (!saju) return null
   const year = saju.yearPillar || saju.pillars?.year
@@ -68,18 +65,6 @@ function pickPillars(saju: SajuChartProps['saju']) {
   const time = saju.timePillar || saju.hourPillar || saju.pillars?.time
   if (!year || !month || !day || !time) return null
   return { year, month, day, time }
-}
-
-function dominantElement(saju: SajuChartProps['saju']): string | null {
-  const fe = saju?.fiveElements
-  if (!fe || typeof fe !== 'object') return null
-  let best: string | null = null
-  let bestV = -1
-  for (const [k, v] of Object.entries(fe)) {
-    const el = EL_FROM_KEY[k]
-    if (el && typeof v === 'number' && v > bestV) { bestV = v; best = el }
-  }
-  return best
 }
 
 export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
@@ -109,23 +94,8 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
     return cell.element ? `${r}${cell.element}` : r
   }
 
-  // persona one-liner (KO): day-master image + dominant element trait
-  const dayStem = pillars.day.heavenlyStem
-  const dom = dominantElement(saju)
-  const personaKo =
-    dayStem?.name
-      ? `본질은 ${imageOf(dayStem.name)}(${cellText(dayStem)}) 같은 사람이에요.${dom ? ` 타고난 기운은 ${TRAIT_KO[dom] ?? ''}(${dom})이 가장 강해요.` : ''}`
-      : ''
-
   return (
-    <div className="space-y-3">
-      {isKo && personaKo && (
-        <div className="rounded-2xl border border-stone-700 bg-stone-800/60 p-3">
-          <p className="text-sm leading-relaxed text-stone-300">{personaKo}</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-4 gap-2 rounded-xl border border-stone-800 bg-stone-950/80 p-3 shadow-inner">
+    <div className="grid grid-cols-4 gap-2 rounded-xl border border-stone-800 bg-stone-950/80 p-3 shadow-inner">
         {order.map(({ key, pillar, isMe, posKo, posEn }) => {
           const stem = pillar.heavenlyStem
           const branch = pillar.earthlyBranch
@@ -160,7 +130,6 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
             </div>
           )
         })}
-      </div>
     </div>
   )
 }
