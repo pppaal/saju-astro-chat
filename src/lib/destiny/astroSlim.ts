@@ -92,8 +92,8 @@ function isHeader(s: string): boolean {
 
 const ZODIAC = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
 const ANGLE_ASPECTS: Array<{ deg: number; name: string; orb: number }> = [
-  { deg: 0, name: 'Conjunction', orb: 8 }, { deg: 60, name: 'Sextile', orb: 5 },
-  { deg: 90, name: 'Square', orb: 6 }, { deg: 120, name: 'Trine', orb: 6 }, { deg: 180, name: 'Opposition', orb: 7 },
+  { deg: 0, name: 'Conjunction', orb: 6 }, { deg: 60, name: 'Sextile', orb: 4 },
+  { deg: 90, name: 'Square', orb: 5 }, { deg: 120, name: 'Trine', orb: 5 }, { deg: 180, name: 'Opposition', orb: 6 },
 ]
 /** aspects from each planet to ASC/MC, computed from longitudes (the engine's
  * natal-aspect list omits angles, but a 1st-house stellium conjunct ASC is core

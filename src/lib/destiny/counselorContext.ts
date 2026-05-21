@@ -14,8 +14,14 @@ import { getTwelveStagesForPillars, getTwelveShinsalSingleByPillar } from '@/lib
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
+import { calculateProfection } from '@/lib/astrology/foundation/profections'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
+
+const HOUSE_THEME_KO: Record<number, string> = {
+  1: '자아·몸', 2: '재물·소유', 3: '소통·이동', 4: '가정·뿌리', 5: '연애·창작', 6: '일·건강',
+  7: '관계·파트너', 8: '위기·변형', 9: '해외·학문·확장', 10: '직업·명예', 11: '인맥·소망', 12: '내면·고독',
+}
 
 export type Locale = 'ko' | 'en'
 
@@ -68,6 +74,9 @@ const STEM_INFO: Record<string, { el: string; yang: boolean }> = {
 }
 const GEN: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
 const CTRL: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' }
+const BRANCH_MAINQI: Record<string, string> = { 子: '癸', 丑: '己', 寅: '甲', 卯: '乙', 辰: '戊', 巳: '丙', 午: '丁', 未: '己', 申: '庚', 酉: '辛', 戌: '戊', 亥: '壬' }
+const CHEONEUL: Record<string, string[]> = { 甲: ['丑', '未'], 戊: ['丑', '未'], 庚: ['丑', '未'], 乙: ['子', '申'], 己: ['子', '申'], 丙: ['亥', '酉'], 丁: ['亥', '酉'], 辛: ['寅', '午'], 壬: ['巳', '卯'], 癸: ['巳', '卯'] }
+const HWAGAE_OF: Record<string, string> = { 申: '辰', 子: '辰', 辰: '辰', 寅: '戌', 午: '戌', 戌: '戌', 巳: '丑', 酉: '丑', 丑: '丑', 亥: '未', 卯: '未', 未: '未' }
 function sibsinOf(day: string, other: string): string {
   const d = STEM_INFO[day], o = STEM_INFO[other]
   if (!d || !o) return ''
@@ -97,22 +106,24 @@ function buildInstructions(locale: Locale): string {
   if (locale === 'en') {
     return [
       '## READING RULES',
-      '- saju and astrology are separate systems: read each section on its own; integrate only as shared themes at the end.',
-      "- never mix vocabulary across systems (e.g. \"yongsin activates Mars\" is wrong).",
+      '- weave saju and astrology into one flow, but never mix the two systems’ terms in a single sentence.',
+      '- do not output Hanja, technical terms, house numbers, or degree figures. Translate to plain language only.',
       '- orb weight: 0-2°=strong / 3-4°=mid / 5-6°=weak. On natal aspects ↗=applying (building), ↘=separating (fading).',
       '- dignity = how well the planet functions in that sign. [Minor points] are supplementary only.',
-      '- tone: direct. No hedging ("maybe", "in some cases"). State evidence, then conclusion.',
+      '- tone: warm mentor + firm conclusions. Speak gently but never hedge ("maybe", "in some cases").',
       '- weigh good/bad by the chart, not by politeness.',
+      '- for life/death, medical, legal, or major decisions: point to the chart signal but make clear the decision is theirs.',
     ].join('\n')
   }
   return [
     '## 읽기 규칙',
-    '- 사주와 점성은 별개 체계: 각 섹션을 따로 읽고, 공통 테마만 마지막에 통합한다.',
-    '- 두 체계 용어를 섞지 말 것 (예: "용신이 화성을 활성화" ✗).',
+    '- 사주·점성을 자연스럽게 엮어 한 흐름으로 답한다. 단, 두 체계의 용어를 한 문장 안에 직접 섞지 않는다.',
+    '- 한자·명리용어(정인/편재 등)·하우스 번호·각도 수치는 출력 금지. 의미만 일상어로 푼다.',
     '- orb 가중치: 0-2°=강 / 3-4°=중 / 5-6°=약. 본명 각의 ↗=강해지는 중(applying), ↘=약해지는 중(separating).',
     '- 디그니티 = 행성이 그 사인에서 얼마나 잘 작동하는지. [보조점]은 보조 신호로만.',
-    '- 톤: 단정적으로. "아마/경우에 따라" 같은 회피 표현 금지. 근거를 먼저 대고 결론을 말한다.',
+    '- 톤: 따뜻한 멘토 어조 + 단정적 결론. 부드럽게 말해도 결론은 흐리지 않는다. "아마/경우에 따라" 회피 금지.',
     '- 좋고 나쁨은 예의가 아니라 차트 근거대로 균형 있게 짚는다.',
+    '- 생사·의료·법률·중대 결정은 차트 신호만 짚고 "결정은 본인 몫"임을 분명히 한다.',
   ].join('\n')
 }
 
@@ -164,6 +175,17 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
           astro = idx >= 0 ? astro.slice(0, idx) + mb + astro.slice(idx) : astro.trimEnd() + '\n\n' + mb
         }
       }
+      // profection — activated house + Lord of the Year (replaces slim's bare one)
+      // codebase uses Korean age for profection (now.year - birthYear + 1)
+      const kAge = now.getFullYear() - Number(birth.birthDate.split('-')[0]) + 1
+      const prof = calculateProfection(chart, kAge)
+      const lordKo = PLANET_KO_A[prof.lordOfYear] ?? prof.lordOfYear
+      const profBlock = L(
+        `[프로펙션 ${kAge}세]\n활성 하우스: ${prof.activatedHouse}하우스 (${HOUSE_THEME_KO[prof.activatedHouse]})\n올해의 지배성(Lord of Year): ${lordKo}`,
+        `[Profection age ${kAge}]\nactivated house: ${prof.activatedHouse} (${HOUSE_THEME_KO[prof.activatedHouse]})\nLord of the Year: ${prof.lordOfYear}`,
+      ) + '\n\n'
+      astro = astro.replace(/\[(?:프로펙션|Profection)[\s\S]*?\n\n/, profBlock)
+      if (!/프로펙션|Profection age/.test(astro)) astro = astro.trimEnd() + '\n\n' + profBlock
     } catch { /* enrichment optional */ }
   } catch { /* astro optional */ }
   return [saju, astro, buildInstructions(locale)].filter(Boolean).join('\n\n').trim() + '\n'
@@ -251,13 +273,24 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   if (gwansalHonjap) out.push(L('note: 官殺混雜 (정관+편관 동존)', 'note: 官殺混雜 (both 정관+편관 present)'))
   out.push('')
 
-  if (rel.length) {
+  // branches that join a 합/삼합/육합 → a 공망 there is partly released
+  const combinedBranches = new Set<string>()
+  for (const r of rel) {
+    if (/삼합|육합|방합|합화/.test(r.kind) && r.detail) for (const ch of r.detail.match(/[子丑寅卯辰巳午未申酉戌亥]/g) ?? []) combinedBranches.add(ch)
+  }
+  const shown = rel.filter((r) => r.kind !== '지지파') // 파 = weakest/contested, drop
+  if (shown.length) {
     out.push('internal_combos:')
     const PLAB: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
-    for (const r of rel) {
+    for (const r of shown) {
       const base = r.detail && r.detail.includes(r.kind) ? r.detail : `${r.kind}${r.detail ? ` ${r.detail}` : ''}`
       const pos = Array.isArray(r.pillars) && r.pillars.length ? ` [${r.pillars.map((p) => PLAB[p] ?? p).join('·')}]` : ''
-      out.push(`  ${base}${pos}`)
+      let note = ''
+      if (r.kind === '공망') {
+        const b = r.detail?.match(/[子丑寅卯辰巳午未申酉戌亥]/)?.[0]
+        if (b && combinedBranches.has(b)) note = locale === 'ko' ? ' — 합/삼합 동시 참여로 작용 일부 회복' : ' — partly released (joins a 합/삼합)'
+      }
+      out.push(`  ${base}${pos}${note}`)
     }
     out.push('')
   }
@@ -271,6 +304,22 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     const ss = getTwelveShinsalSingleByPillar(P as never)
     out.push(`12신살: ${(['year', 'month', 'day', 'time'] as const).map((k) => `${P[k].earthlyBranch.name}${gl((ss[k] || '-').replace(/살살$/, '살'), SINSAL12_G, locale)}`).join(' / ')}`)
   } catch { /* */ }
+  // 길신/주요 신살 — 천을귀인(귀인복), 화개(예술·종교·고독)
+  try {
+    const PLAB2: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
+    const dayBranch = P.day.earthlyBranch.name
+    const cheon = CHEONEUL[day] ?? []
+    const hwagae = HWAGAE_OF[dayBranch]
+    const hits: string[] = []
+    for (const k of ['year', 'month', 'day', 'time'] as const) {
+      const b = P[k].earthlyBranch.name
+      if (cheon.includes(b)) hits.push(`천을귀인(${b})${locale === 'ko' ? '(귀인·도움복)' : ''} [${PLAB2[k]}]`)
+    }
+    for (const k of ['year', 'month', 'day', 'time'] as const) {
+      if (P[k].earthlyBranch.name === hwagae) hits.push(`화개(${hwagae})${locale === 'ko' ? '(예술·종교·고독)' : ''} [${PLAB2[k]}]`)
+    }
+    if (hits.length) out.push(`주요신살: ${hits.join(' / ')}`)
+  } catch { /* */ }
 
   // current
   const cur = saju.daeWoon?.current
@@ -278,7 +327,12 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     out.push('', L('## 사주_현재', '## SAJU_CURRENT'))
     if (cur) out.push(`대운 ${cur.age ?? '?'}: ${cur.heavenlyStem ?? ''}${cur.earthlyBranch ?? ''} | ${cur.sibsin?.cheon ?? ''}/${cur.sibsin?.ji ?? ''}`)
     const periods: Array<[string, { stem: string; branch: string } | null | undefined]> = [['세운', current?.seun], ['월운', current?.wolun], ['일진', current?.iljin]]
-    const pline = periods.filter(([, v]) => v).map(([k, v]) => `${k}: ${v!.stem}${v!.branch}`).join(' / ')
+    const sibPair = (v: { stem: string; branch: string }) => {
+      const s = sibsinOf(day, v.stem), b = sibsinOf(day, BRANCH_MAINQI[v.branch] ?? '')
+      const honjap = (s === '정관' || s === '편관') && (b === '정관' || b === '편관') && s !== b
+      return `${v.stem}${v.branch}${s || b ? ` (${s || '-'}/${b || '-'}${honjap ? ' = 관살혼잡' : ''})` : ''}`
+    }
+    const pline = periods.filter(([, v]) => v).map(([k, v]) => `${k}: ${sibPair(v!)}`).join(' / ')
     if (pline) out.push(pline)
     const relsBy = (src: string) => (current?.relations ?? []).filter((r) => r.source === src)
     const crossLines: string[] = []
