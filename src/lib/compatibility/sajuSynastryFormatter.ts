@@ -123,6 +123,19 @@ const CHEONULGWIIN: Record<string, string[]> = {
 }
 
 const BRANCH_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+const STEM_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+
+// 현재 연도의 세운 간지 (입춘 근사: 2/4 이전은 전년). 두 사람 공통 시기축.
+function currentSeun(now: Date): { stem: string; branch: string; year: number } {
+  let y = now.getFullYear()
+  const m = now.getMonth() + 1
+  if (m < 2 || (m === 2 && now.getDate() < 4)) y -= 1
+  return {
+    stem: STEM_ORDER[(((y - 4) % 10) + 10) % 10],
+    branch: BRANCH_ORDER[(((y - 4) % 12) + 12) % 12],
+    year: y,
+  }
+}
 
 // 12신살 — 일지 기준, 상대 지지에 라벨 부여 (synastry: A의 일지 → B 4지지)
 const TWELVE_SHINSAL_LABELS = [
@@ -169,6 +182,8 @@ export interface SajuSynastryInput {
   pillarsB: SajuPillarInput[]
   currentDaeunA?: { stem: string; branch: string; age?: number } | null
   currentDaeunB?: { stem: string; branch: string; age?: number } | null
+  /** 세운 계산 기준 시각 (기본 now). 올해 세운↔두 사람 본명·대운 cross에 씀. */
+  now?: Date
   /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
   nameA?: string | null
   nameB?: string | null
@@ -327,6 +342,35 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     if (BRANCH_HAP[dA.branch]?.other === dB.branch) important.push(`대운 지지 ${dA.branch}${dB.branch}합 (결속)`)
     if (BRANCH_CHUNG[dA.branch] === dB.branch) important.push(`대운 지지충 (큰 흐름 충돌)`)
     if (dA.branch === dB.branch) important.push(`대운 지지 ${dA.branch} 일치 (강한 시기 공명)`)
+  }
+
+  // 6-2. 세운(올해) cross — 올해 세운 간지가 두 사람 일주·대운을 합/충/형으로
+  // 건드리는지. "올해 우리 어때 / 언제" 질문의 시기 해상도. (월운·일진은 과잉)
+  {
+    const seun = currentSeun(input.now ?? new Date())
+    const ss = seun.stem, sb = seun.branch
+    const isHyeong = (a: string, b: string) =>
+      BRANCH_HYEONG_PAIR[a] === b || HYEONG_PAIR_TRIO.has(a + b) || (SELF_HYEONG.has(a) && a === b)
+    const seunLines: string[] = []
+    const crossNatal = (lbl: string, day: SajuPillarInput) => {
+      if (STEM_HAP[ss]?.other === day.stem) seunLines.push(`세운천간 ${ss} + ${lbl} 일간 ${day.stem} — ${ss}${day.stem}合化${STEM_HAP[ss]!.element} (올해 끌림·기회)`)
+      if (STEM_CHUNG[ss] === day.stem) seunLines.push(`세운천간 ${ss} ↔ ${lbl} 일간 ${day.stem} — 충 (올해 압박·결정)`)
+      if (BRANCH_HAP[sb]?.other === day.branch) seunLines.push(`세운지지 ${sb} + ${lbl} 일지 ${day.branch} — 합 (올해 결속·안정)`)
+      if (BRANCH_CHUNG[sb] === day.branch) seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 충 (올해 이동·변동)`)
+      else if (isHyeong(sb, day.branch)) seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 형 (올해 갈등·구설)`)
+    }
+    crossNatal(labelA, aDay)
+    crossNatal(labelB, bDay)
+    const crossDaeun = (lbl: string, dae?: { stem: string; branch: string } | null) => {
+      if (!dae) return
+      if (STEM_CHUNG[ss] === dae.stem) seunLines.push(`세운 ↔ ${lbl} 대운천간 ${dae.stem} — 충 (올해와 대운 흐름 충돌)`)
+      if (BRANCH_CHUNG[sb] === dae.branch) seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 충 (올해와 대운 흐름 충돌)`)
+      if (BRANCH_HAP[sb]?.other === dae.branch) seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 합 (올해 대운과 결속)`)
+    }
+    crossDaeun(labelA, input.currentDaeunA)
+    crossDaeun(labelB, input.currentDaeunB)
+    important.push(`올해 세운 ${seun.year}년 ${ss}${sb} cross${seunLines.length ? ':' : ' — 두 사람 본명·대운과 직접 합·충 없음 (올해 큰 변동 신호 약함)'}`)
+    for (const l of seunLines) important.push(`  ${l}`)
   }
 
   // 7. 오행 균형 → IMPORTANT (1줄)
