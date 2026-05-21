@@ -8,23 +8,12 @@ import {
 import {
   calculateNatalChart,
   toChart,
-  findNatalAspects,
   calculateTransitChart,
   findMajorTransits,
   findTransitAspects,
-  calculateSecondaryProgressions,
   calculateSolarReturn,
   calculateLunarReturn,
 } from '@/lib/astrology'
-import type { FiveElement } from '@/lib/saju/types'
-import {
-  interpretCompatibilityScore,
-  type FusionCompatibilityResult,
-} from '@/lib/compatibility/compatibilityFusion'
-import type { SajuProfile, AstrologyProfile } from '@/lib/compatibility/cosmicCompatibility'
-import type { ExtendedAstrologyProfile } from '@/lib/compatibility/astrology/comprehensive'
-import type { ExtendedSajuCompatibility } from '@/lib/compatibility/saju/types'
-import type { ExtendedAstrologyCompatibility } from '@/lib/compatibility/astrology/comprehensive'
 import type { ChatMessage } from '@/lib/api'
 function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max)
@@ -390,66 +379,20 @@ async function buildAutoSajuContext(
     const currentSaeun =
       annual.find((a) => Number(a.year) === now.getFullYear()) || asRecord(annual[0]) || null
 
-    // Pull extras + natalRelations so the compat counselor prompt
-    // matches what destiny already had: 신살 / 격국 / 용신 / 12운성
-    // and the pillar-to-pillar 합/충/형/파/해/공망/원진 list.
-    // Each helper is wrapped in its own try/catch — if any one
-    // throws we still ship the base saju instead of bailing the
-    // whole turn.
+    // 개별 신살(self)만 계산 — [개별 신살] 블록이 쓰는 유일한 enrichment.
+    // 예전엔 격국·용신·12운성·natalRelations도 계산했지만(운명 상담사 미러용)
+    // 지금 궁합 프롬프트엔 안 들어가므로 제거했다 (계산 비용만 들던 죽은 출력).
     let extras: Record<string, unknown> = {}
-    let natalRelations: unknown[] = []
     try {
-      const [
-        { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike },
-        { determineGeokguk },
-        { determineYongsin },
-        { analyzeRelations, toAnalyzeInputFromSaju },
-      ] = await Promise.all([
-        import('@/lib/saju/shinsal'),
-        import('@/lib/saju/geokguk'),
-        import('@/lib/saju/yongsin'),
-        import('@/lib/saju/relations'),
-      ])
+      const { getShinsalHits, toSajuPillarsLike } = await import('@/lib/saju/shinsal')
       const pillarsLike = toSajuPillarsLike(saju)
-      // simpleInput is the shape determineGeokguk / determineYongsin expect
-      // (stem/branch pairs). Mirrors buildSajuNormalizerInput.
-      const simpleInput = {
-        year: { stem: saju.pillars.year.heavenlyStem.name, branch: saju.pillars.year.earthlyBranch.name },
-        month: { stem: saju.pillars.month.heavenlyStem.name, branch: saju.pillars.month.earthlyBranch.name },
-        day: { stem: saju.pillars.day.heavenlyStem.name, branch: saju.pillars.day.earthlyBranch.name },
-        time: { stem: saju.pillars.time.heavenlyStem.name, branch: saju.pillars.time.earthlyBranch.name },
-        dayMaster: saju.dayMaster.name,
-      }
-      let shinsal: unknown[] = []
-      try {
-        shinsal = getShinsalHits(pillarsLike, {
-          includeGeneralShinsal: true,
-          includeLuckyDetails: true,
-        }) as unknown[]
-      } catch { /* advisory */ }
-      let twelveStages: unknown = null
-      try {
-        twelveStages = getTwelveStagesForPillars(pillarsLike, 'day')
-      } catch { /* advisory */ }
-      let geokguk: unknown = null
-      try {
-        geokguk = determineGeokguk(simpleInput as Parameters<typeof determineGeokguk>[0])
-      } catch { /* advisory */ }
-      let yongsin: unknown = null
-      try {
-        yongsin = determineYongsin(simpleInput as Parameters<typeof determineYongsin>[0])
-      } catch { /* advisory */ }
-      try {
-        natalRelations = analyzeRelations(
-          toAnalyzeInputFromSaju(saju.pillars, saju.dayMaster.name, {
-            includeGongmang: true,
-            gongmangPolicy: 'dayPillar-60jiazi',
-          })
-        ) as unknown[]
-      } catch { /* advisory */ }
-      extras = { shinsal, twelveStages, geokguk, yongsin }
+      const shinsal = getShinsalHits(pillarsLike, {
+        includeGeneralShinsal: true,
+        includeLuckyDetails: true,
+      }) as unknown[]
+      extras = { shinsal }
     } catch (err) {
-      logger.warn('[compatibility/counselor] extras compute failed (non-fatal)', { err })
+      logger.warn('[compatibility/counselor] shinsal compute failed (non-fatal)', { err })
     }
 
     return {
@@ -467,7 +410,6 @@ async function buildAutoSajuContext(
         iljin,
       },
       extras,
-      natalRelations,
       autoComputedMeta: {
         source: seed.source,
         computedAtIso: now.toISOString(),
@@ -500,7 +442,6 @@ async function buildAutoAstroContext(
       timeZone: seed.timeZone,
     })
     const natalChart = toChart(natal)
-    const natalAspects = findNatalAspects(natalChart, { includeMinor: true, maxResults: 80 })
     const nowIso = now.toISOString()
     const transitChart = await calculateTransitChart({
       iso: nowIso,
@@ -515,20 +456,6 @@ async function buildAutoAstroContext(
       ['conjunction', 'sextile', 'square', 'trine', 'opposition'],
       1.0
     ).slice(0, 80)
-
-    const progressed = await calculateSecondaryProgressions({
-      natal: {
-        year: y,
-        month: m,
-        date: d,
-        hour: hh,
-        minute: mm,
-        latitude: seed.latitude,
-        longitude: seed.longitude,
-        timeZone: seed.timeZone,
-      },
-      targetDate: nowIso.slice(0, 10),
-    })
 
     const solarReturn = await calculateSolarReturn({
       natal: {
@@ -603,14 +530,12 @@ async function buildAutoAstroContext(
         mc: natal.mc,
         houses: natal.houses,
         planets: natal.planets,
-        aspects: natalAspects,
       },
       currentTransits: {
         asOfIso: nowIso,
         majorTransits,
         aspects: transitAspects,
       },
-      progressions: progressed,
       returns: {
         solarReturn,
         lunarReturn,
@@ -681,10 +606,8 @@ function collectMissingAstroKeys(label: string, astro: Record<string, unknown> |
   if (!isNonEmptyObject(planets?.ascendant) && !isNonEmptyObject(astro.ascendant))
     missing.push(`${label}.astro.ascendant`)
   if (!hasArrayData(natalData?.planets)) missing.push(`${label}.astro.natal.planets`)
-  if (!hasArrayData(natalData?.aspects)) missing.push(`${label}.astro.natal.aspects`)
   if (!hasArrayData(currentTransits?.majorTransits)) missing.push(`${label}.astro.transits.major`)
   if (!hasArrayData(currentTransits?.aspects)) missing.push(`${label}.astro.transits.aspects`)
-  if (!isNonEmptyObject(astro.progressions)) missing.push(`${label}.astro.progressions`)
   if (!isNonEmptyObject(returns?.solarReturn)) missing.push(`${label}.astro.returns.solar`)
   if (!isNonEmptyObject(returns?.lunarReturn)) missing.push(`${label}.astro.returns.lunar`)
 
@@ -764,222 +687,6 @@ function mergeAstroContext(
   }
 }
 
-// Build SajuProfile from raw saju data
-function buildSajuProfile(saju: Record<string, unknown> | null | undefined): SajuProfile | null {
-  if (!saju) {
-    return null
-  }
-
-  const dayMasterName =
-    ((saju?.dayMaster as Record<string, unknown>)?.name as string) ||
-    ((saju?.dayMaster as Record<string, unknown>)?.heavenlyStem as string) ||
-    '갑'
-  const dayMasterElement = ((saju?.dayMaster as Record<string, unknown>)?.element as string) || '목'
-  const dayMasterYinYang =
-    ((saju?.dayMaster as Record<string, unknown>)?.yin_yang as string) || '양'
-
-  const pillars = (saju?.pillars as Record<string, Record<string, string>>) || {}
-
-  const elements = (saju?.fiveElements ||
-    saju?.elements || {
-      wood: 20,
-      fire: 20,
-      earth: 20,
-      metal: 20,
-      water: 20,
-    }) as SajuProfile['elements']
-
-  return {
-    dayMaster: {
-      name: dayMasterName,
-      element: dayMasterElement as FiveElement,
-      yin_yang: (dayMasterYinYang === 'yin' ? 'yin' : 'yang') as 'yin' | 'yang',
-    },
-    pillars: {
-      year: {
-        stem: pillars?.year?.heavenlyStem || '甲',
-        branch: pillars?.year?.earthlyBranch || '子',
-      },
-      month: {
-        stem: pillars?.month?.heavenlyStem || '甲',
-        branch: pillars?.month?.earthlyBranch || '子',
-      },
-      day: {
-        stem: pillars?.day?.heavenlyStem || '甲',
-        branch: pillars?.day?.earthlyBranch || '子',
-      },
-      time: {
-        stem: pillars?.time?.heavenlyStem || '甲',
-        branch: pillars?.time?.earthlyBranch || '子',
-      },
-    },
-    elements,
-  }
-}
-
-// Build AstrologyProfile from raw astro data
-function buildAstroProfile(
-  astro: Record<string, unknown> | null | undefined
-): AstrologyProfile | null {
-  if (!astro) {
-    return null
-  }
-
-  const getElementFromSign = (sign: string): string => {
-    const elementMap: Record<string, string> = {
-      aries: 'fire',
-      leo: 'fire',
-      sagittarius: 'fire',
-      taurus: 'earth',
-      virgo: 'earth',
-      capricorn: 'earth',
-      gemini: 'air',
-      libra: 'air',
-      aquarius: 'air',
-      cancer: 'water',
-      scorpio: 'water',
-      pisces: 'water',
-    }
-    return elementMap[sign.toLowerCase()] || 'fire'
-  }
-
-  const getSignData = (source: Record<string, unknown>, planetName: string) => {
-    const planets = source?.planets as Record<string, Record<string, string>> | undefined
-    if (planets?.[planetName]?.sign) {
-      const sign = planets[planetName].sign.toLowerCase()
-      return { sign, element: getElementFromSign(sign) }
-    }
-    const direct = source?.[planetName] as Record<string, string> | undefined
-    if (direct?.sign) {
-      const sign = direct.sign.toLowerCase()
-      return { sign, element: getElementFromSign(sign) }
-    }
-    return { sign: 'aries', element: 'fire' }
-  }
-
-  return {
-    sun: getSignData(astro, 'sun'),
-    moon: getSignData(astro, 'moon'),
-    venus: getSignData(astro, 'venus'),
-    mars: getSignData(astro, 'mars'),
-    ascendant: getSignData(astro, 'ascendant'),
-  }
-}
-
-function normalizePlanetSign(sign: unknown): string | undefined {
-  if (typeof sign !== 'string' || sign.trim().length === 0) return undefined
-  const s = sign.trim().toLowerCase()
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
-
-function elementFromSign(sign?: string): string {
-  if (!sign) return 'fire'
-  const map: Record<string, string> = {
-    Aries: 'fire',
-    Leo: 'fire',
-    Sagittarius: 'fire',
-    Taurus: 'earth',
-    Virgo: 'earth',
-    Capricorn: 'earth',
-    Gemini: 'air',
-    Libra: 'air',
-    Aquarius: 'air',
-    Cancer: 'water',
-    Scorpio: 'water',
-    Pisces: 'water',
-  }
-  return map[sign] || 'fire'
-}
-
-function readPlanetData(
-  astro: Record<string, unknown>,
-  key: string
-): { sign?: string; degree?: number } {
-  const lower = key.toLowerCase()
-  const direct = astro[lower] as Record<string, unknown> | undefined
-  if (direct && typeof direct === 'object') {
-    const sign = normalizePlanetSign(direct.sign)
-    const degree =
-      typeof direct.degree === 'number'
-        ? direct.degree
-        : typeof direct.longitude === 'number'
-          ? direct.longitude % 30
-          : undefined
-    if (sign) return { sign, degree }
-  }
-
-  const planetsObj = astro.planets as Record<string, Record<string, unknown>> | undefined
-  const fromObj = planetsObj?.[lower] || planetsObj?.[key]
-  if (fromObj && typeof fromObj === 'object') {
-    const sign = normalizePlanetSign(fromObj.sign)
-    const degree =
-      typeof fromObj.degree === 'number'
-        ? fromObj.degree
-        : typeof fromObj.longitude === 'number'
-          ? fromObj.longitude % 30
-          : undefined
-    if (sign) return { sign, degree }
-  }
-
-  const natalData = astro.natalData as Record<string, unknown> | undefined
-  const natalPlanets = natalData?.planets as Array<Record<string, unknown>> | undefined
-  const fromArray = Array.isArray(natalPlanets)
-    ? natalPlanets.find((p) => String(p.name || '').toLowerCase() === lower)
-    : undefined
-  if (fromArray) {
-    const sign = normalizePlanetSign(fromArray.sign)
-    const degree =
-      typeof fromArray.degree === 'number'
-        ? fromArray.degree
-        : typeof fromArray.longitude === 'number'
-          ? fromArray.longitude % 30
-          : undefined
-    if (sign) return { sign, degree }
-  }
-
-  return {}
-}
-
-function buildExtendedAstroProfile(
-  astro: Record<string, unknown> | null | undefined
-): ExtendedAstrologyProfile | null {
-  const base = buildAstroProfile(astro)
-  if (!base || !astro) return null
-
-  const mercury = readPlanetData(astro, 'mercury')
-  const jupiter = readPlanetData(astro, 'jupiter')
-  const saturn = readPlanetData(astro, 'saturn')
-  const uranus = readPlanetData(astro, 'uranus')
-  const neptune = readPlanetData(astro, 'neptune')
-  const pluto = readPlanetData(astro, 'pluto')
-  const northNode = readPlanetData(astro, 'northNode')
-  const southNode = readPlanetData(astro, 'southNode')
-  const lilith = readPlanetData(astro, 'lilith')
-
-  return {
-    ...base,
-    mercury: mercury.sign
-      ? { sign: mercury.sign, element: elementFromSign(mercury.sign) }
-      : undefined,
-    jupiter: jupiter.sign
-      ? { sign: jupiter.sign, element: elementFromSign(jupiter.sign) }
-      : undefined,
-    saturn: saturn.sign ? { sign: saturn.sign, element: elementFromSign(saturn.sign) } : undefined,
-    uranus: uranus.sign ? { sign: uranus.sign, element: elementFromSign(uranus.sign) } : undefined,
-    neptune: neptune.sign
-      ? { sign: neptune.sign, element: elementFromSign(neptune.sign) }
-      : undefined,
-    pluto: pluto.sign ? { sign: pluto.sign, element: elementFromSign(pluto.sign) } : undefined,
-    northNode: northNode.sign
-      ? { sign: northNode.sign, element: elementFromSign(northNode.sign) }
-      : undefined,
-    southNode: southNode.sign
-      ? { sign: southNode.sign, element: elementFromSign(southNode.sign) }
-      : undefined,
-    lilith: lilith.sign ? { sign: lilith.sign, element: elementFromSign(lilith.sign) } : undefined,
-  }
-}
-
 function getAgeFromBirthDate(date?: string): number {
   if (!date) return 30
   const d = new Date(date)
@@ -989,381 +696,6 @@ function getAgeFromBirthDate(date?: string): number {
   const m = today.getMonth() - d.getMonth()
   if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1
   return Math.max(0, age)
-}
-
-/**
- * Bucket a raw score into a qualitative label. The LLM is forbidden
- * from quoting raw numbers in the response (system rule), so we also
- * relabel them at source. Bare numerics in the prompt invite drift —
- * presenting "강세 (내부 78/100)" makes the bucket primary and the
- * raw value advisory.
- *
- * Scale assumes 0–100 unless `max` is provided (use 1 for 0–1 ratios).
- */
-function scoreLabel(value: number, lang: 'ko' | 'en', max = 100): string {
-  if (!Number.isFinite(value)) return ''
-  const pct = max === 1 ? value * 100 : (value / max) * 100
-  const ko = ['미약', '약함', '중', '중상', '강함', '매우 강함']
-  const en = ['minimal', 'soft', 'moderate', 'fairly steady', 'strong', 'very strong']
-  let idx = 0
-  if (pct >= 90) idx = 5
-  else if (pct >= 75) idx = 4
-  else if (pct >= 60) idx = 3
-  else if (pct >= 45) idx = 2
-  else if (pct >= 25) idx = 1
-  else idx = 0
-  return lang === 'ko' ? ko[idx] : en[idx]
-}
-
-/** Format a score as "label (raw)" — bucket primary, raw advisory. */
-function scoreWithLabel(
-  value: number,
-  lang: 'ko' | 'en',
-  max = 100
-): string {
-  if (!Number.isFinite(value)) return ''
-  const label = scoreLabel(value, lang, max)
-  const raw = max === 1 ? value.toFixed(2) : String(Math.round(value))
-  const tail = max === 1 ? '' : `/${max}`
-  return `${label} (${raw}${tail})`
-}
-
-/**
- * Convert ExtendedSajuCompatibility (11 categories) from a verbose JSON
- * dump into compact prose using the same `▷ 라벨` convention as the
- * matrix and Fusion blocks. Skips empty arrays and dropped fields to
- * cut noise. This is the largest JSON block in the prompt; converting
- * to prose removes ~40% of its bytes and eliminates the JSON-key echo
- * risk in responses.
- */
-function formatExtendedSajuForPrompt(
-  s: ExtendedSajuCompatibility,
-  lang: 'ko' | 'en'
-): string {
-  const isKo = lang === 'ko'
-  const header = isKo ? '== 사주 심화 분석 ==' : '== Extended Saju Analysis =='
-  const out: string[] = [header]
-
-  out.push(
-    `${isKo ? '종합' : 'Overall'}: ${s.grade} · ${scoreWithLabel(s.overallScore, lang)} — ${s.summary}`
-  )
-
-  // 1. Ten Gods
-  out.push('')
-  out.push(`▷ ${isKo ? '십성 관계' : 'Ten Gods'}`)
-  out.push(
-    `A: ${s.tenGods.person1Primary.join('·') || '-'} / B: ${s.tenGods.person2Primary.join('·') || '-'} (${isKo ? '균형' : 'balance'} ${scoreLabel(s.tenGods.interaction.balance, lang)})`
-  )
-  if (s.tenGods.interaction.supports.length > 0)
-    out.push(`${isKo ? '보완' : 'supports'}: ${s.tenGods.interaction.supports.join(' / ')}`)
-  if (s.tenGods.interaction.conflicts.length > 0)
-    out.push(`${isKo ? '갈등' : 'conflicts'}: ${s.tenGods.interaction.conflicts.join(' / ')}`)
-  out.push(`${isKo ? '역학' : 'dynamics'}: ${s.tenGods.relationshipDynamics}`)
-
-  // 2. Shinsals
-  if (s.shinsals.person1Shinsals.length + s.shinsals.person2Shinsals.length > 0) {
-    out.push('')
-    out.push(`▷ ${isKo ? '신살' : 'Shinsals'} (${s.shinsals.overallImpact})`)
-    out.push(
-      `A: ${s.shinsals.person1Shinsals.join('·') || '-'} / B: ${s.shinsals.person2Shinsals.join('·') || '-'}`
-    )
-    if (s.shinsals.luckyInteractions.length > 0)
-      out.push(`+ ${s.shinsals.luckyInteractions.join(' / ')}`)
-    if (s.shinsals.unluckyInteractions.length > 0)
-      out.push(`- ${s.shinsals.unluckyInteractions.join(' / ')}`)
-  }
-
-  // 3. Harmonies (합)
-  const h = s.harmonies
-  if (h.yukhap.length + h.samhap.length + h.banghap.length > 0) {
-    out.push('')
-    out.push(
-      `▷ ${isKo ? '합' : 'Harmonies'} (${scoreWithLabel(h.score, lang)}): ${h.description}`
-    )
-    if (h.yukhap.length > 0) out.push(`${isKo ? '육합' : 'yukhap'}: ${h.yukhap.join(' / ')}`)
-    if (h.samhap.length > 0) out.push(`${isKo ? '삼합' : 'samhap'}: ${h.samhap.join(' / ')}`)
-    if (h.banghap.length > 0) out.push(`${isKo ? '방합' : 'banghap'}: ${h.banghap.join(' / ')}`)
-  }
-
-  // 4. Conflicts (충형파해)
-  const c = s.conflicts
-  if (c.totalConflicts > 0) {
-    out.push('')
-    out.push(
-      `▷ ${isKo ? '충·형·파·해' : 'Conflicts'}: ${c.totalConflicts}건 (${c.severity})`
-    )
-    if (c.chung.length > 0) out.push(`충: ${c.chung.join(' / ')}`)
-    if (c.hyeong.length > 0) out.push(`형: ${c.hyeong.join(' / ')}`)
-    if (c.pa.length > 0) out.push(`파: ${c.pa.join(' / ')}`)
-    if (c.hae.length > 0) out.push(`해: ${c.hae.join(' / ')}`)
-    if (c.mitigationAdvice.length > 0)
-      out.push(`${isKo ? '완화' : 'mitigation'}: ${c.mitigationAdvice.join(' / ')}`)
-  }
-
-  // 5. Yongsin
-  const y = s.yongsin
-  out.push('')
-  out.push(`▷ ${isKo ? '용신' : 'Yongsin'} (${scoreWithLabel(y.compatibility, lang)})`)
-  out.push(
-    `A: ${y.person1Yongsin}/${y.person1Huisin} · B: ${y.person2Yongsin}/${y.person2Huisin}` +
-      ` · ${isKo ? '상호 지원' : 'mutual support'}: ${y.mutualSupport ? 'yes' : 'no'}`
-  )
-  if (y.interpretation.length > 0) out.push(y.interpretation.join(' · '))
-
-  // 6. Daeun
-  const d = s.daeun
-  out.push('')
-  out.push(`▷ ${isKo ? '대운 동조' : 'Daeun sync'} (${scoreWithLabel(d.currentSynergy, lang, 1)})`)
-  out.push(
-    `A: ${d.person1CurrentDaeun.stem}${d.person1CurrentDaeun.branch} ${d.person1CurrentDaeun.element} (${d.person1CurrentDaeun.startAge}-${d.person1CurrentDaeun.endAge}) — ${d.person1CurrentDaeun.theme}`
-  )
-  out.push(
-    `B: ${d.person2CurrentDaeun.stem}${d.person2CurrentDaeun.branch} ${d.person2CurrentDaeun.element} (${d.person2CurrentDaeun.startAge}-${d.person2CurrentDaeun.endAge}) — ${d.person2CurrentDaeun.theme}`
-  )
-  if (d.harmonicPeriods.length > 0) out.push(`+ ${d.harmonicPeriods.join(' / ')}`)
-  if (d.challengingPeriods.length > 0) out.push(`- ${d.challengingPeriods.join(' / ')}`)
-  if (d.futureOutlook) out.push(d.futureOutlook)
-
-  // 7. Seun
-  const se = s.seun
-  out.push('')
-  out.push(
-    `▷ ${isKo ? '세운' : 'Seun'} ${se.year} (${se.yearStem}${se.yearBranch} ${se.yearElement})`
-  )
-  out.push(`A: ${se.person1Impact} · B: ${se.person2Impact}`)
-  if (se.combinedOutlook) out.push(se.combinedOutlook)
-  if (se.advice.length > 0) out.push(`${isKo ? '조언' : 'advice'}: ${se.advice.join(' / ')}`)
-
-  // 8. Gongmang
-  const g = s.gongmang
-  if (g.person1InP2Gongmang || g.person2InP1Gongmang || g.interpretation.length > 0) {
-    out.push('')
-    out.push(`▷ ${isKo ? '공망' : 'Gongmang'} (${g.impact})`)
-    out.push(
-      `A 공망: ${g.person1Gongmang.join('·') || '-'} · B 공망: ${g.person2Gongmang.join('·') || '-'}`
-    )
-    out.push(
-      `A→B 공망 진입: ${g.person1InP2Gongmang ? 'yes' : 'no'} · B→A: ${g.person2InP1Gongmang ? 'yes' : 'no'}`
-    )
-    if (g.interpretation.length > 0) out.push(g.interpretation.join(' · '))
-  }
-
-  // 9. GanHap
-  const gh = s.ganHap
-  if (gh.combinations.length > 0) {
-    out.push('')
-    out.push(
-      `▷ ${isKo ? '천간합' : 'Stem combos'} (${scoreWithLabel(gh.totalHarmony, lang, 1)}): ${gh.significance}`
-    )
-    gh.combinations.forEach((c) => {
-      out.push(
-        `- ${c.stem1}${c.stem2}합 (${c.pillar1}-${c.pillar2}) → ${c.resultElement}: ${c.description}`
-      )
-    })
-  }
-
-  // 10. Gyeokguk
-  const gk = s.gyeokguk
-  out.push('')
-  out.push(`▷ ${isKo ? '격국' : 'Gyeokguk'} (${gk.compatibility})`)
-  out.push(`A: ${gk.person1Gyeokguk} · B: ${gk.person2Gyeokguk} — ${gk.dynamics}`)
-  if (gk.strengths.length > 0) out.push(`+ ${gk.strengths.join(' / ')}`)
-  if (gk.challenges.length > 0) out.push(`- ${gk.challenges.join(' / ')}`)
-
-  // 11. Twelve states
-  const ts = s.twelveStates
-  out.push('')
-  out.push(
-    `▷ ${isKo ? '12운성' : '12 states'} (${scoreWithLabel(ts.energyCompatibility, lang)})`
-  )
-  out.push(
-    'A: ' + ts.person1States.map((p) => `${p.pillar}=${p.state}`).join('·')
-  )
-  out.push(
-    'B: ' + ts.person2States.map((p) => `${p.pillar}=${p.state}`).join('·')
-  )
-  if (ts.interpretation.length > 0) out.push(ts.interpretation.join(' · '))
-
-  if (s.detailedInsights.length > 0) {
-    out.push('')
-    out.push(`▷ ${isKo ? '핵심 인사이트' : 'Key insights'}`)
-    s.detailedInsights.forEach((i) => out.push(`- ${i}`))
-  }
-
-  return out.join('\n')
-}
-
-/**
- * Convert ExtendedAstrologyCompatibility (up to 13 categories) into
- * compact prose. Same rationale as formatExtendedSajuForPrompt.
- * Optional `*Analysis` blocks are skipped when absent.
- */
-function formatExtendedAstroForPrompt(
-  a: ExtendedAstrologyCompatibility,
-  lang: 'ko' | 'en'
-): string {
-  const isKo = lang === 'ko'
-  const header = isKo ? '== 점성 심화 분석 ==' : '== Extended Astrology Analysis =='
-  const out: string[] = [header]
-
-  out.push(
-    `${isKo ? '종합' : 'Overall'}: ${a.extendedGrade} · ${scoreWithLabel(a.extendedScore, lang)} — ${a.extendedSummary}`
-  )
-
-  // Aspects
-  out.push('')
-  out.push(
-    `▷ ${isKo ? '어스펙트' : 'Aspects'} (${scoreWithLabel(a.aspects.overallHarmony, lang)})`
-  )
-  if (a.aspects.keyInsights.length > 0)
-    a.aspects.keyInsights.forEach((k) => out.push(`- ${k}`))
-
-  // Synastry
-  const sy = a.synastry
-  out.push('')
-  out.push(`▷ ${isKo ? '시너스트리' : 'Synastry'} (${scoreWithLabel(sy.compatibilityIndex, lang)})`)
-  if (sy.strengths.length > 0) out.push(`+ ${sy.strengths.join(' / ')}`)
-  if (sy.challenges.length > 0) out.push(`- ${sy.challenges.join(' / ')}`)
-
-  // Composite chart (from composite-house.CompositeChartAnalysis)
-  const cc = a.compositeChart
-  out.push('')
-  out.push(`▷ ${isKo ? '컴포지트' : 'Composite'}`)
-  out.push(
-    `${cc.coreTheme} — ${cc.relationshipPurpose} (${isKo ? '장기성' : 'longevity'} ${scoreWithLabel(cc.longevityPotential, lang)})`
-  )
-  if (cc.strengths.length > 0) out.push(`+ ${cc.strengths.join(' / ')}`)
-  if (cc.growthAreas.length > 0) out.push(`▸ ${cc.growthAreas.join(' / ')}`)
-
-  if (a.degreeBasedAspects) {
-    const dba = a.degreeBasedAspects
-    out.push('')
-    out.push(`▷ ${isKo ? '도수 기반 어스펙트' : 'Degree aspects'}`)
-    out.push(
-      `${isKo ? '긴장' : 'tension'} ${scoreLabel(dba.tensionScore, lang)} · ${isKo ? '조화' : 'harmony'} ${scoreLabel(dba.harmonyScore, lang)} · ${isKo ? '균형' : 'balance'} ${scoreLabel(dba.overallBalance, lang)}`
-    )
-    if (dba.tightestAspect) {
-      const t = dba.tightestAspect
-      out.push(
-        `tightest: ${t.planet1} ${t.aspectType || '-'} ${t.planet2} (orb ${t.orb.toFixed(1)}°)`
-      )
-    }
-    if (dba.majorAspects.length > 0) {
-      const top = dba.majorAspects
-        .slice(0, 3)
-        .map((d) => `${d.planet1} ${d.aspectType || '-'} ${d.planet2} (orb ${d.orb.toFixed(1)}°)`)
-        .join(' / ')
-      out.push(`major: ${top}`)
-    }
-  }
-
-  if (a.mercuryAnalysis) {
-    const m = a.mercuryAnalysis
-    out.push('')
-    out.push(`▷ Mercury (${scoreWithLabel(m.mercuryCompatibility, lang)}) — ${m.communicationStyle}`)
-    if (m.intellectualSynergy)
-      out.push(`${isKo ? '지적 시너지' : 'intellectual synergy'}: ${m.intellectualSynergy}`)
-    if (m.strengths.length > 0) out.push(`+ ${m.strengths.join(' / ')}`)
-    if (m.potentialMiscommunications.length > 0)
-      out.push(`- ${m.potentialMiscommunications.join(' / ')}`)
-  }
-
-  if (a.jupiterAnalysis) {
-    const j = a.jupiterAnalysis
-    out.push('')
-    out.push(`▷ Jupiter (${scoreWithLabel(j.expansionCompatibility, lang)}) — ${j.sharedBeliefs}`)
-    if (j.blessingAreas.length > 0)
-      out.push(`+ ${isKo ? '축복' : 'blessing'}: ${j.blessingAreas.join(' / ')}`)
-    if (j.growthAreas.length > 0)
-      out.push(`▸ ${isKo ? '성장' : 'growth'}: ${j.growthAreas.join(' / ')}`)
-    if (j.potentialConflicts.length > 0)
-      out.push(`- ${j.potentialConflicts.join(' / ')}`)
-  }
-
-  if (a.saturnAnalysis) {
-    const sa = a.saturnAnalysis
-    out.push('')
-    out.push(
-      `▷ Saturn — ${sa.structureInRelationship} (${isKo ? '안정' : 'stability'} ${scoreLabel(sa.stabilityCompatibility, lang)} · ${isKo ? '장기' : 'long-term'} ${scoreLabel(sa.longTermPotential, lang)})`
-    )
-    if (sa.karmicLesson) out.push(`${isKo ? '카르마 교훈' : 'karmic'}: ${sa.karmicLesson}`)
-    if (sa.maturityAreas.length > 0)
-      out.push(`▸ ${isKo ? '성숙' : 'maturity'}: ${sa.maturityAreas.join(' / ')}`)
-    if (sa.challenges.length > 0) out.push(`- ${sa.challenges.join(' / ')}`)
-  }
-
-  if (a.outerPlanetsAnalysis) {
-    const op = a.outerPlanetsAnalysis
-    out.push('')
-    out.push(`▷ Outer planets (${scoreWithLabel(op.overallTranscendentScore, lang)})`)
-    out.push(
-      `Uranus ${scoreLabel(op.uranusInfluence.changeCompatibility, lang)} (${op.uranusInfluence.revolutionaryEnergy})` +
-        ` · Neptune ${scoreLabel(op.neptuneInfluence.spiritualConnection, lang)} (${op.neptuneInfluence.dreamyQualities})` +
-        ` · Pluto ${scoreLabel(op.plutoInfluence.transformationPotential, lang)} (${op.plutoInfluence.powerDynamics})`
-    )
-    if (op.generationalThemes.length > 0)
-      out.push(`${isKo ? '세대 테마' : 'generation'}: ${op.generationalThemes.join(' / ')}`)
-  }
-
-  if (a.nodeAnalysis) {
-    const n = a.nodeAnalysis
-    out.push('')
-    out.push(`▷ Nodes (${n.karmicRelationshipType}) — ${n.evolutionaryPurpose}`)
-    out.push(
-      `${isKo ? '북교점' : 'north node'}: ${scoreLabel(n.northNodeConnection.compatibility, lang)} — ${n.northNodeConnection.growthDirection}`
-    )
-    if (n.lifeLessons.length > 0)
-      out.push(`${isKo ? '인생 교훈' : 'lessons'}: ${n.lifeLessons.join(' / ')}`)
-  }
-
-  if (a.lilithAnalysis) {
-    const li = a.lilithAnalysis
-    out.push('')
-    out.push(
-      `▷ Lilith (${scoreWithLabel(li.lilithCompatibility, lang)}) — ${li.shadowDynamics}`
-    )
-    out.push(
-      `${isKo ? '자성 매력' : 'magnetic attraction'}: ${scoreLabel(li.magneticAttraction, lang)}`
-    )
-    if (li.repressedDesires.length > 0)
-      out.push(`${isKo ? '억압된 욕망' : 'repressed'}: ${li.repressedDesires.join(' / ')}`)
-    if (li.potentialChallenges.length > 0)
-      out.push(`- ${li.potentialChallenges.join(' / ')}`)
-  }
-
-  if (a.davisonChart) {
-    const dv = a.davisonChart
-    out.push('')
-    out.push(`▷ Davison — ${dv.relationshipIdentity}`)
-    out.push(
-      `Sun ${dv.relationshipSun.sign} · Moon ${dv.relationshipMoon.sign} · Asc ${dv.relationshipAscendant.sign}`
-    )
-    if (dv.emotionalFoundation)
-      out.push(`${isKo ? '감정 기반' : 'emotional foundation'}: ${dv.emotionalFoundation}`)
-    if (dv.coreStrengths.length > 0) out.push(`+ ${dv.coreStrengths.join(' / ')}`)
-    if (dv.relationshipPurpose) out.push(`${isKo ? '목적' : 'purpose'}: ${dv.relationshipPurpose}`)
-  }
-
-  if (a.progressedChart) {
-    const pg = a.progressedChart
-    out.push('')
-    out.push(`▷ Progressed — ${pg.currentRelationshipTheme}`)
-    out.push(
-      `Sun phase: ${pg.progressedSunPhase} · Moon phase: ${pg.progressedMoonPhase}`
-    )
-    if (pg.upcomingTrends.length > 0)
-      out.push(`${isKo ? '예정 흐름' : 'upcoming'}: ${pg.upcomingTrends.join(' / ')}`)
-    if (pg.timedInfluences.length > 0)
-      out.push(`${isKo ? '시기 영향' : 'timed'}: ${pg.timedInfluences.join(' / ')}`)
-  }
-
-  if (a.extendedInsights.length > 0) {
-    out.push('')
-    out.push(`▷ ${isKo ? '핵심 인사이트' : 'Key insights'}`)
-    a.extendedInsights.forEach((i) => out.push(`- ${i}`))
-  }
-
-  return out.join('\n')
 }
 
 /**
@@ -1529,98 +861,10 @@ function formatTimingForPrompt(
   return out.join('\n')
 }
 
-// Format fusion result for AI prompt
-/**
- * Format Fusion compatibility data for the prompt.
- *
- * Output uses the same prose+`▷ 라벨` convention as the couple-matrix
- * block, instead of the previous markdown (`###` headers, `**bold**`,
- * `- ` bullets). The system prompt forbids the LLM from echoing
- * markdown back at the user, but mixing markdown into the source
- * made the LLM lean toward listy/headered output anyway. Stripping
- * markdown at the source aligns the input shape with the desired
- * output shape (prose).
- */
-function formatFusionForPrompt(fusion: FusionCompatibilityResult, lang: string): string {
-  const isKo = lang === 'ko'
-  const langKey: 'ko' | 'en' = isKo ? 'ko' : 'en'
-  const scoreInfo = interpretCompatibilityScore(fusion.overallScore)
-
-  const header = isKo ? '== 종합 궁합 분석 ==' : '== Comprehensive Compatibility =='
-  const lines: string[] = [
-    header,
-    `${isKo ? '등급' : 'Grade'}: ${scoreInfo.grade} ${scoreInfo.title} · ${scoreWithLabel(fusion.overallScore, langKey)}`,
-    '',
-    `▷ ${isKo ? 'AI 심층 분석' : 'AI Deep Analysis'}`,
-    fusion.aiInsights.deepAnalysis,
-  ]
-
-  const joinBullets = (label: string, items: string[]) => {
-    if (items.length === 0) return
-    lines.push('')
-    lines.push(`▷ ${label}`)
-    items.forEach((s) => lines.push(`- ${s}`))
-  }
-
-  joinBullets(
-    isKo ? '숨겨진 패턴' : 'Hidden Patterns',
-    fusion.aiInsights.hiddenPatterns
-  )
-  joinBullets(
-    isKo ? '시너지 요인' : 'Synergy Sources',
-    fusion.aiInsights.synergySources
-  )
-  joinBullets(
-    isKo ? '성장 기회' : 'Growth Opportunities',
-    fusion.aiInsights.growthOpportunities
-  )
-
-  const dyn = fusion.relationshipDynamics
-  lines.push('')
-  lines.push(`▷ ${isKo ? '관계 역학' : 'Relationship Dynamics'}`)
-  lines.push(
-    `- ${isKo ? '감정적 강도' : 'Emotional Intensity'}: ${scoreLabel(dyn.emotionalIntensity, langKey)}`
-  )
-  lines.push(
-    `- ${isKo ? '지적 조화' : 'Intellectual Alignment'}: ${scoreLabel(dyn.intellectualAlignment, langKey)}`
-  )
-  lines.push(
-    `- ${isKo ? '영적 연결' : 'Spiritual Connection'}: ${scoreLabel(dyn.spiritualConnection, langKey)}`
-  )
-  lines.push(
-    `- ${isKo ? '갈등 해결 스타일' : 'Conflict Resolution Style'}: ${dyn.conflictResolutionStyle}`
-  )
-
-  const fg = fusion.futureGuidance
-  lines.push('')
-  lines.push(`▷ ${isKo ? '미래 가이던스' : 'Future Guidance'}`)
-  lines.push(`- ${isKo ? '단기 (1-6개월)' : 'Short-term (1-6mo)'}: ${fg.shortTerm}`)
-  lines.push(`- ${isKo ? '중기 (6개월-2년)' : 'Medium-term (6mo-2yr)'}: ${fg.mediumTerm}`)
-  lines.push(`- ${isKo ? '장기 (2년+)' : 'Long-term (2yr+)'}: ${fg.longTerm}`)
-
-  if (fusion.recommendedActions.length > 0) {
-    lines.push('')
-    lines.push(`▷ ${isKo ? '추천 행동 (내부 참조 — 응답에선 prose 한 줄로)' : 'Recommended Actions (internal — fold into prose)'}`)
-    fusion.recommendedActions.forEach((action) => {
-      const priority =
-        action.priority === 'high' ? '↑' : action.priority === 'medium' ? '·' : '↓'
-      lines.push(
-        `${priority} [${action.category}] ${action.action} — ${isKo ? '이유' : 'why'}: ${action.reasoning}`
-      )
-    })
-  }
-
-  return lines.join('\n')
-}
-
 export {
   clampMessages,
   stringifyForPrompt,
   prunePromptContext,
-  scoreLabel,
-  scoreWithLabel,
-  formatExtendedSajuForPrompt,
-  formatExtendedAstroForPrompt,
   formatTimingForPrompt,
   countObjectKeys,
   extractTimingDetails,
@@ -1631,9 +875,5 @@ export {
   collectMissingAstroKeys,
   mergeSajuContext,
   mergeAstroContext,
-  buildSajuProfile,
-  buildAstroProfile,
-  buildExtendedAstroProfile,
   getAgeFromBirthDate,
-  formatFusionForPrompt,
 }

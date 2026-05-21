@@ -35,8 +35,6 @@ function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string):
 }
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
-import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
-import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 
 export const dynamic = 'force-dynamic'
@@ -84,6 +82,44 @@ import {
   getAgeFromBirthDate,
   formatTimingForPrompt,
 } from './routeSupport'
+
+// 개별(self) 신살 — 각자 타고난 신살은 extras.shinsal에 이미 계산돼 있으나
+// self 블록이 voided라 궁합 프롬프트엔 안 들어가던 신호. 단, 전부 쏟으면
+// 다시 노이즈가 되므로 *관계 해석에 유효한 특수 신살만* 화이트리스트로
+// 큐레이션 + 짧은 뜻을 붙인다. 12신살(자리)은 synastry [12신살] cross가
+// 다루고, 재능·재물·건강·삼재 신살은 궁합과 무관하므로 전부 제외.
+const PILLAR_KO: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
+const PERSONAL_SHINSAL_KEEP: Record<string, string> = {
+  도화: '매력·이성 끌림',
+  홍염살: '색기·끌림(외도 주의)',
+  백호: '강렬·격정',
+  괴강: '강한 카리스마·고집',
+  양인: '날카로움·과격',
+  귀문관: '집착·예민',
+  원진: '미묘한 반감',
+  고신: '고독 기질',
+  금여성: '배우자 복·기품',
+  천덕귀인: '보호·덕',
+  월덕귀인: '보호·덕',
+}
+
+function formatPersonalShinsal(label: string, shinsal: unknown): string | null {
+  if (!Array.isArray(shinsal) || shinsal.length === 0) return null
+  const byKind = new Map<string, Set<string>>()
+  for (const raw of shinsal) {
+    const h = raw as { kind?: string; pillars?: string[] }
+    if (!h?.kind || !(h.kind in PERSONAL_SHINSAL_KEEP)) continue
+    const set = byKind.get(h.kind) ?? new Set<string>()
+    for (const p of h.pillars ?? []) set.add(PILLAR_KO[p] ?? p)
+    byKind.set(h.kind, set)
+  }
+  if (byKind.size === 0) return null
+  const parts = [...byKind.entries()].map(([kind, ps]) => {
+    const loc = [...ps].join('·')
+    return `${kind}(${loc ? `${loc}, ` : ''}${PERSONAL_SHINSAL_KEEP[kind]})`
+  })
+  return `${label}: ${parts.join(' · ')}`
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -402,6 +438,8 @@ export async function POST(req: NextRequest) {
             '말투: 다정하고 공감 능력 있는 따뜻한 멘토. 자연스러운 경어체 (해요체 기본, 필요시 합쇼체 섞기). 분석가 톤·진단서 X.',
             '',
             '규칙:',
+            '- ★사실 고정: 각 사람의 일간 오행·극(통제) 방향, 그리고 점성 cross에서 각 행성이 누구(A/B) 것인지는 == 시너스트리 == 의 [고정 매핑]·[CRITICAL] 줄에 적힌 그대로 쓴다. 누가 어떤 오행인지, 누가 누구를 정리·통제하는지, 어느 달·화성이 누구 것인지 절대 반대로 바꾸지 말 것. (예: 데이터에 "통제 방향 A(금) → B(목)"이면 A가 금, B가 목, A가 B를 정리하는 방향 — 거꾸로 쓰면 오답. A/B는 항상 [고정 매핑] 줄에 적힌 실제 이름으로 부른다.)',
+            '- ★중요도 가중: == 시너스트리 ==는 [CRITICAL]/[IMPORTANT]/[참고] 3단계로 정렬돼 있다. 답의 중심은 CRITICAL(일간 극·천간합·일지 충형, 개인 행성 타이트 cross)에 둔다. [참고](외행성 동세대 컨정션·삼합/방합 부분·동일 하우스)는 "동세대 공통이라 둘만의 특별함은 아님" 정도로만 가볍게 다루거나 생략 — orb 큰/동세대 신호를 핵심과 동급으로 다루지 말 것.',
             '- 두 사람의 관계 역학에 답한다. 한 명만 분석하지 말 것.',
             '- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.',
             '- 두 데이터가 같은 방향을 가리킬 때 (예: A 사주 목 기운 강함 + A 점성 목성 확장기) 하나의 비유/스토리로 엮는다. 양쪽 따로 나열 X.',
@@ -435,6 +473,8 @@ export async function POST(req: NextRequest) {
             'Tone: warm, empathetic mentor. Conversational, not analytical or clinical.',
             '',
             'Rules:',
+            '- ★Fixed facts: each person\'s day-master element, the control (극) direction, and which planet belongs to whom in the astro cross must match exactly what the == 시너스트리 == [고정 매핑] / [CRITICAL] lines state. Never swap who has which element, who controls/refines whom, or whose Moon/Mars is whose. Reversing it is a factual error.',
+            '- ★Weighting: the == 시너스트리 == is sorted into [CRITICAL] / [IMPORTANT] / [참고] tiers. Center your answer on CRITICAL. Treat [참고] (generational outer-planet conjunctions, partial samhap/banghap, identical house overlays) as "common to their generation, not unique to them" — mention lightly or skip. Never weight wide-orb / generational signals equal to the core ones.',
             '- Answer about the relationship dynamic. Never analyze only one person.',
             '- Fuse saju and astrology in one flow. No system-split.',
             '- When the two systems point the same way for one side (e.g. A saju wood-growth + A Jupiter expansion), weave them into one metaphor/story, not parallel listings.',
@@ -485,6 +525,8 @@ export async function POST(req: NextRequest) {
           pillarsB: [toPair(bP.year), toPair(bP.month), toPair(bP.day), toPair(bP.time)],
           currentDaeunA: aDae ? { stem: aDae.heavenlyStem ?? '', branch: aDae.earthlyBranch ?? '', age: aDae.age } : null,
           currentDaeunB: bDae ? { stem: bDae.heavenlyStem ?? '', branch: bDae.earthlyBranch ?? '', age: bDae.age } : null,
+          nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
+          nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
         })
       }
     } catch (err) {
@@ -512,107 +554,14 @@ export async function POST(req: NextRequest) {
             chartB: toChart(natalB),
             latA: person1Seed.latitude, lonA: person1Seed.longitude,
             latB: person2Seed.latitude, lonB: person2Seed.longitude,
+            nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
+            nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
           })
         }
       } catch (err) {
         logger.warn('[compat counselor] astro synastry failed', { err: err instanceof Error ? err.message : String(err) })
       }
     }
-
-    // ── 각 사람 self 블록 (raw + cross 통합 — 운명 상담사와 동일 형식) ──
-    let sajuSelfA = ''
-    let sajuSelfB = ''
-    let astroSelfA = ''
-    let astroSelfB = ''
-    try {
-      const aP = (effectivePerson1Saju as { pillars?: Record<string, Record<string, unknown>> } | null)?.pillars
-      const bP = (effectivePerson2Saju as { pillars?: Record<string, Record<string, unknown>> } | null)?.pillars
-      const toSlot = (slot?: Record<string, unknown>) => {
-        const stem = slot?.heavenlyStem as { name?: string; sibsin?: string } | undefined
-        const branch = slot?.earthlyBranch as { name?: string; sibsin?: string } | undefined
-        const j = slot?.jijanggan as { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } } | undefined
-        return {
-          stem: stem?.name ?? '',
-          branch: branch?.name ?? '',
-          stemSibsin: stem?.sibsin,
-          branchSibsin: branch?.sibsin,
-          jijanggan: [j?.chogi?.name, j?.junggi?.name, j?.jeonggi?.name].filter((s): s is string => Boolean(s)),
-        }
-      }
-      const buildSajuSelf = (
-        sajuCtx: Record<string, unknown> | null | undefined,
-        pillarsRecord: Record<string, Record<string, unknown>> | undefined,
-        label: string,
-      ): string => {
-        if (!pillarsRecord) return ''
-        const dm = (sajuCtx?.dayMaster as { name?: string; element?: string; yin_yang?: string } | undefined)
-        const daeWoon = (sajuCtx?.daeWoon as { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null; list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }> } | undefined)
-        const extras = (sajuCtx?.extras as { geokguk?: { primary?: string } | null; yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null } | undefined)
-        const cur = daeWoon?.current
-        const daeunList = (daeWoon?.list ?? []).map((d) => ({
-          age: d.age ?? 0,
-          stem: d.heavenlyStem ?? '',
-          branch: d.earthlyBranch ?? '',
-          sibsinStem: d.sibsin?.cheon,
-          sibsinBranch: d.sibsin?.ji,
-        }))
-        return formatSajuSelf({
-          pillars: [toSlot(pillarsRecord.year), toSlot(pillarsRecord.month), toSlot(pillarsRecord.day), toSlot(pillarsRecord.time)],
-          dayMaster: dm?.name ? { name: dm.name, element: dm.element ?? '', yinYang: dm.yin_yang } : null,
-          geokguk: extras?.geokguk?.primary ?? null,
-          yongsin: extras?.yongsin ?? null,
-          daeunList,
-          currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
-          label,
-        })
-      }
-      sajuSelfA = buildSajuSelf(effectivePerson1Saju as Record<string, unknown> | null, aP, 'A 사주')
-      sajuSelfB = buildSajuSelf(effectivePerson2Saju as Record<string, unknown> | null, bP, 'B 사주')
-    } catch (err) {
-      logger.warn('[compat counselor] saju-self format failed', { err: err instanceof Error ? err.message : String(err) })
-    }
-
-    if (person1Seed && person2Seed && process.env.NODE_ENV !== 'test') {
-      try {
-        const [Y1, M1, D1] = person1Seed.date.split('-').map(Number)
-        const [h1, mi1] = person1Seed.time.split(':').map(Number)
-        const [Y2, M2, D2] = person2Seed.date.split('-').map(Number)
-        const [h2, mi2] = person2Seed.time.split(':').map(Number)
-        if ([Y1, M1, D1, h1, mi1, Y2, M2, D2, h2, mi2].every(Number.isFinite)) {
-          const [natalA, natalB] = await Promise.all([
-            calculateNatalChart({ year: Y1, month: M1, date: D1, hour: h1, minute: mi1, latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone }),
-            calculateNatalChart({ year: Y2, month: M2, date: D2, hour: h2, minute: mi2, latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone }),
-          ])
-          ;[astroSelfA, astroSelfB] = await Promise.all([
-            formatAstroSelf({
-              chart: toChart(natalA),
-              latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone,
-              koreanAge: p1Age,
-              natalInput: { year: Y1, month: M1, date: D1, hour: h1, minute: mi1, latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone },
-              label: 'A 점성',
-            }),
-            formatAstroSelf({
-              chart: toChart(natalB),
-              latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone,
-              koreanAge: p2Age,
-              natalInput: { year: Y2, month: M2, date: D2, hour: h2, minute: mi2, latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone },
-              label: 'B 점성',
-            }),
-          ])
-        }
-      } catch (err) {
-        logger.warn('[compat counselor] astro-self format failed', { err: err instanceof Error ? err.message : String(err) })
-      }
-    }
-
-    // 궁합 상담사는 *관계*만 답하므로 각 사람 self block은 빼고 synastry만
-    // 보낸다. synastry 라인이 각 사람 일간·대운 등 핵심 정보를 이미 포함.
-    // 개별 self는 운명 상담사 영역. self 변수는 build만 유지 (extraction
-    // 흐름은 다른 곳에서 참조 가능).
-    void sajuSelfA
-    void sajuSelfB
-    void astroSelfA
-    void astroSelfB
 
     // [Meta] 라인 — A/B 각자의 birthTimeUnknown / birthCityUnknown
     // 플래그 + location/timezone. system prompt 의 "[Meta] 의 ...=true
@@ -630,10 +579,30 @@ export async function POST(req: NextRequest) {
     })
     const metaBlock = metaLines.join('\n')
 
+    // 개별 신살 — 각자 타고난 self 신살(백호·괴강·양인·도화 등)을 1인 1줄로.
+    const personalShinsalLines = [
+      formatPersonalShinsal(
+        (persons?.[0] as { name?: string } | undefined)?.name
+          ? `A(${(persons[0] as { name?: string }).name})`
+          : 'A',
+        (effectivePerson1Saju as { extras?: { shinsal?: unknown } } | null)?.extras?.shinsal
+      ),
+      formatPersonalShinsal(
+        (persons?.[1] as { name?: string } | undefined)?.name
+          ? `B(${(persons[1] as { name?: string }).name})`
+          : 'B',
+        (effectivePerson2Saju as { extras?: { shinsal?: unknown } } | null)?.extras?.shinsal
+      ),
+    ].filter(Boolean)
+    const personalShinsalBlock = personalShinsalLines.length
+      ? `[개별 신살 — 각자 타고난 것 (self)]\n${personalShinsalLines.join('\n')}`
+      : ''
+
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
       metaBlock,
+      personalShinsalBlock ? `\n${personalShinsalBlock}` : '',
       sajuSynastryBlock ? `\n${sajuSynastryBlock}` : '',
       astroSynastryBlock ? `\n${astroSynastryBlock}` : '',
       // legacy fullContext 또는 시간 미상 안내

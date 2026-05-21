@@ -179,14 +179,15 @@ describe('상담사 차트 포맷 (formatAstroAsTable)', () => {
     expect(table).toContain('Asc:')
     expect(table).toContain('MC:')
     expect(table).toContain('[행성]')
-    expect(table).toContain('[Natal 어스펙트]')
+    // [Natal 어스펙트]는 더 이상 검증하지 않는다 — 궁합은 synastry cross만
+    // 쓰므로 buildAutoAstroContext가 natal 어스펙트를 계산하지 않게 정리됨.
     expect(table.length).toBeLessThan(3500)
-    expect(table.length).toBeGreaterThan(500)
+    expect(table.length).toBeGreaterThan(200)
   })
 })
 
 describe('counselor cached 토큰 budget', () => {
-  it('두 사람 사주 + 점성 합계 ≤ 6,000자 (refactor 후 측정 ~4,700)', async () => {
+  it('두 사람 사주 + 점성 합계 ≤ 6,000자 (natal 어스펙트 제거 후 ~1,900)', async () => {
     const seedA = buildPersonSeed(A_MALE_YIN_YEAR as unknown as Record<string, unknown>)
     const seedB = buildPersonSeed(B_FEMALE_YIN_YEAR as unknown as Record<string, unknown>)
     const [sa, sb, aa, ab] = await Promise.all([
@@ -212,6 +213,6 @@ describe('counselor cached 토큰 budget', () => {
 
     // 핵심 회귀 가드: 분석 텍스트가 다시 새어들어오면 폭증한다.
     expect(total).toBeLessThan(6000)
-    expect(total).toBeGreaterThan(2000)
+    expect(total).toBeGreaterThan(1200)
   })
 })
