@@ -22,7 +22,7 @@ export type SlimLocale = 'ko' | 'en'
 
 // essential dignity → how the planet "operates" in that sign (디그니티)
 const DIGNITY_KO: Record<string, string> = {
-  domicile: '제자리·강함', exaltation: '고양·매우 강함', detriment: '불리·약함', fall: '쇠약·매우 약함',
+  domicile: '강함', exaltation: '고양', detriment: '불리', fall: '쇠약',
 }
 const DIGNITY_EN: Record<string, string> = {
   domicile: 'domicile', exaltation: 'exalted', detriment: 'detriment', fall: 'fall',
@@ -57,26 +57,11 @@ const TRANSIT_LIMIT = 3.0
 const TRANSIT_TOP = 10
 const DROP = ['Fixed Stars', 'Lunar Return', '현재 시점 행성 신호']
 
-const ASP_GLOSS_KO: Record<string, string> = {
-  Conjunction: '결합', Opposition: '대립', Trine: '조화', Square: '긴장', Sextile: '협력',
-}
-// what each planet/point governs — glossed once in the positions block so
-// non-flow questions (연애/돈/직업…) have a handle. Keyed by English name.
-const PLANET_GLOSS_KO: Record<string, string> = {
-  Sun: '자아·생명력', Moon: '감정·내면', Mercury: '소통·사고', Venus: '연애·돈·매력',
-  Mars: '추진력·욕망', Jupiter: '확장·행운', Saturn: '책임·시련', Uranus: '변화·독창',
-  Neptune: '이상·환상', Pluto: '변형·집착', Node: '인생 방향·인연',
-  Ascendant: '첫인상·태도', MC: '사회적 위치·직업',
-}
-
 const pko = (p: string, l: SlimLocale) => (l === 'ko' ? PLANET_KO[p] ?? p : p)
 const sko = (s: string, l: SlimLocale) => (l === 'ko' ? SIGN_KO[s] ?? s : s)
-const ako = (a: string, l: SlimLocale) => {
-  if (l !== 'ko') return a // EN keeps the standard term (the LLM reads it)
-  const term = ASP_KO[a] ?? a
-  const gloss = ASP_GLOSS_KO[a]
-  return gloss ? `${term}(${gloss})` : term
-}
+// aspect name only — gloss dropped (the model knows aspects; the legend in
+// the reading rules carries any nuance). 16+ lines saved.
+const ako = (a: string, l: SlimLocale) => (l !== 'ko' ? a : ASP_KO[a] ?? a)
 
 function orbDeg(line: string): number | null {
   const m = ORB.exec(line)
@@ -92,8 +77,8 @@ function isHeader(s: string): boolean {
 
 const ZODIAC = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
 const ANGLE_ASPECTS: Array<{ deg: number; name: string; orb: number }> = [
-  { deg: 0, name: 'Conjunction', orb: 8 }, { deg: 60, name: 'Sextile', orb: 5 },
-  { deg: 90, name: 'Square', orb: 6 }, { deg: 120, name: 'Trine', orb: 6 }, { deg: 180, name: 'Opposition', orb: 7 },
+  { deg: 0, name: 'Conjunction', orb: 6 }, { deg: 60, name: 'Sextile', orb: 4 },
+  { deg: 90, name: 'Square', orb: 5 }, { deg: 120, name: 'Trine', orb: 5 }, { deg: 180, name: 'Opposition', orb: 6 },
 ]
 /** aspects from each planet to ASC/MC, computed from longitudes (the engine's
  * natal-aspect list omits angles, but a 1st-house stellium conjunct ASC is core
@@ -109,8 +94,7 @@ function angleAspects(bodies: Array<{ name: string; lon: number }>, l: SlimLocal
       for (const asp of ANGLE_ASPECTS) {
         const orb = Math.abs(d - asp.deg)
         if (orb <= asp.orb) {
-          const pg = l === 'ko' && PLANET_GLOSS_KO[p.name] ? `${pko(p.name, l)}(${PLANET_GLOSS_KO[p.name]})` : pko(p.name, l)
-          hits.push({ orb, line: `${pg} ${ako(asp.name, l)} ${pko(a.name, l)} (${orb.toFixed(1)}°)` })
+          hits.push({ orb, line: `${pko(p.name, l)} ${ako(asp.name, l)} ${pko(a.name, l)} (${orb.toFixed(1)}°)` })
           break
         }
       }
@@ -128,7 +112,7 @@ function kz(s: string, l: SlimLocale): string {
   for (const [k, v] of Object.entries(ASP_KO)) out = out.replace(new RegExp(`\\b${k}\\b`, 'g'), v)
   for (const [k, v] of Object.entries(ASP_LC_KO)) out = out.replace(new RegExp(`\\b${k}\\b`, 'g'), v)
   out = out.replace(/House (\d+)/g, '$1하우스').replace(/\b(\d+)H\b/g, '$1하우스').replace(/\bhouse\b/g, '하우스')
-  out = out.replace(/natal/g, '본명')
+  out = out.replace(/natal/g, '본명').replace(/\borb\b/gi, '오차')
   return out
 }
 
@@ -177,8 +161,8 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
         .slice(0, NATAL_TOP)
         .map(({ m, b }) => `${pko(m[1], l)} ${ako(m[2], l)} ${pko(m[3], l)} (${l === 'en' ? 'orb ' : ''}${orbStr(b)})`)
       const head = l === 'ko'
-        ? `[본명 각 · 주요각 orb≤${NATAL_LIMIT | 0}° 상위${kept.length}]`
-        : `[Natal aspects · major orb<=${NATAL_LIMIT | 0}° top${kept.length}]`
+        ? `[본명 각 · 오차≤${NATAL_LIMIT | 0}°]`
+        : `[Natal aspects · orb<=${NATAL_LIMIT | 0}°]`
       out.push(head, ...kept, '')
       i = j; continue
     }
@@ -191,29 +175,29 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
         .sort((a, b) => a.o - b.o)
         .slice(0, TRANSIT_TOP)
         .map(({ m, b }) => l === 'ko'
-          ? `${pko(m[1], l)}(트랜짓) ${ako(m[2], l)} 본명 ${pko(m[3], l)} (${orbStr(b)})`
-          : `${m[1]} (transit) ${m[2]} natal ${m[3]} (orb ${orbStr(b)})`)
+          ? `${pko(m[1], l)}(트) ${ako(m[2], l)} ${pko(m[3], l)} (${orbStr(b)})`
+          : `${m[1]} (tr) ${m[2]} ${m[3]} (orb ${orbStr(b)})`)
       const dm = /\d{4}-\d{2}-\d{2}/.exec(header)
       const date = dm ? dm[0] : ''
       const head = l === 'ko'
-        ? `[현재 트랜짓 → 본명, ${date} · 주요각 orb≤${TRANSIT_LIMIT | 0}° 상위${kept.length}]`
-        : `[Current transits → natal, ${date} · major orb<=${TRANSIT_LIMIT | 0}° top${kept.length}]`
+        ? `[현재 트랜짓 → 본명, ${date} · 오차≤${TRANSIT_LIMIT | 0}°]`
+        : `[Current transits → natal, ${date} · orb<=${TRANSIT_LIMIT | 0}°]`
       out.push(head, ...kept, '')
       i = j; continue
     }
 
     if (name.includes('Solar Return')) {
-      out.push(l === 'ko' ? '[올해 테마 (솔라리턴)]' : '[Solar Return — year theme]')
+      const sr: string[] = []
       // Asc (the year's persona)
       const asc = body.find((b) => b.startsWith('Asc:'))
       const am = asc?.match(/Asc:\s*([A-Za-z]+)\s*(\d+)/)
-      if (am) out.push(l === 'ko' ? `상승점 ${sko(am[1], l)} ${am[2]}°` : `Asc ${am[1]} ${am[2]}°`)
+      if (am) sr.push(l === 'ko' ? `상승점 ${sko(am[1], l)} ${am[2]}°` : `Asc ${am[1]} ${am[2]}°`)
       // Sun (the year's core)
       const sun = body.find((b) => b.startsWith('Sun '))
       const sm = sun && POS.exec(sun.replace(/(\d+)°\d+'/, '$1°'))
       if (sm) {
         const house = sm[4] ? (l === 'ko' ? ` ${sm[4]}하우스` : `, House ${sm[4]}`) : ''
-        out.push(l === 'ko' ? `태양 ${sko(sm[2], l)}${house}` : `Sun ${sm[2]}${house}`)
+        sr.push(l === 'ko' ? `태양 ${sko(sm[2], l)}${house}` : `Sun ${sm[2]}${house}`)
       }
       // stacked house (≥3 planets sharing a house = the year's emphasis)
       const byHouse: Record<string, string[]> = {}
@@ -225,54 +209,75 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       for (const [h, ps] of Object.entries(byHouse)) if (ps.length > topN) { topN = ps.length; topH = h }
       if (topN >= 3) {
         const ps = byHouse[topH].map((p) => pko(p, l)).join('·')
-        out.push(l === 'ko' ? `행성 몰림: ${topH}하우스 (${ps})` : `Stellium: House ${topH} (${ps})`)
+        sr.push(l === 'ko' ? `몰림: ${topH}하우스 (${ps})` : `Stellium: House ${topH} (${ps})`)
       }
-      // SR Saturn house — the year's responsibility/test area (관계·구조 등)
+      // SR Saturn house — the year's responsibility/test area
       const sat = body.find((b) => b.startsWith('Saturn '))
       const stm = sat && POS.exec(sat.replace(/(\d+)°\d+'/, '$1°'))
       if (stm && stm[4]) {
-        out.push(l === 'ko'
-          ? `토성(책임·시련) ${sko(stm[2], l)} ${stm[4]}하우스`
-          : `Saturn (responsibility/test) ${stm[2]}, House ${stm[4]}`)
+        sr.push(l === 'ko' ? `토성 ${sko(stm[2], l)} ${stm[4]}하우스` : `Saturn ${stm[2]}, House ${stm[4]}`)
       }
+      out.push(l === 'ko' ? '[솔라리턴]' : '[Solar Return]')
+      if (sr.length) out.push(sr.join(' / '))
       out.push('')
       i = j; continue
     }
 
     if (name.includes('Secondary Progression')) {
-      out.push(l === 'ko' ? '[2차 진행 — 인생 내면 흐름]' : '[Secondary Progression — inner timing]')
+      const sp: string[] = []
       for (const b of body) {
         const m = b.match(/^Progressed (Sun|Moon):\s*([A-Za-z]+)\s*(\d+)/)
         if (!m) continue
-        const ko = m[1] === 'Sun' ? '진행 태양(인생 계절·자아 성숙)' : '진행 달(요즘 감정 흐름)'
-        out.push(l === 'ko' ? `${ko}: ${sko(m[2], l)} ${m[3]}°` : `Progressed ${m[1]}: ${m[2]} ${m[3]}°`)
+        const ko = m[1] === 'Sun' ? '진행 태양' : '진행 달'
+        sp.push(l === 'ko' ? `${ko}: ${sko(m[2], l)} ${m[3]}°` : `Progressed ${m[1]}: ${m[2]} ${m[3]}°`)
       }
+      out.push(l === 'ko' ? '[2차 진행]' : '[Secondary Progression]')
+      if (sp.length) out.push(sp.join(' / '))
       out.push('')
       i = j; continue
     }
 
     if (name.includes('Upcoming Eclipses')) {
-      const picked = body.filter((b) => b.trim() && b.includes(`${year}-`))
-        .map((b) => l === 'ko' ? kz(b, l) : b.replace(/일식/g, 'SolarEcl').replace(/월식/g, 'LunarEcl'))
-      if (picked.length) {
-        out.push(l === 'ko' ? `[올해 일·월식 (${year})]` : `[Eclipses (${year})]`, ...picked, '')
+      // group every aspect of the SAME eclipse (date+sign+deg) onto one line:
+      // "일식 DATE Sign Deg° → TargetA aspectA (오차 x°, House) / TargetB aspectB (오차 y°)"
+      const ECL = /^(일식|월식)\s+(\d{4}-\d{2}-\d{2})\s+([A-Za-z]+)\s+(\d+)°\s+(\w+)\s+([A-Za-z]+)\s+\(House\s*(\d+),\s*orb\s*([\d.]+)/
+      const groups = new Map<string, { head: string; items: Array<{ n: number; orb: string; body: string; asp: string; house: string }> }>()
+      for (const b of body) {
+        if (!b.includes(`${year}-`)) continue
+        const m = ECL.exec(b)
+        if (!m) continue
+        const [, kind, date, sign, deg, asp, tgt, house, orb] = m
+        const kindL = l === 'ko' ? kind : kind === '일식' ? 'SolarEcl' : 'LunarEcl'
+        const aspL = l === 'ko' ? ASP_LC_KO[asp.toLowerCase()] ?? asp : asp
+        const key = `${kind}|${date}|${sign}|${deg}`
+        const head = `${kindL} ${date} ${sko(sign, l)} ${deg}°`
+        const g = groups.get(key) ?? { head, items: [] }
+        g.items.push({ n: parseFloat(orb), orb, body: pko(tgt, l), asp: aspL, house })
+        groups.set(key, g)
+      }
+      if (groups.size) {
+        const lines = [...groups.values()].map((g) => {
+          g.items.sort((a, b) => a.n - b.n)
+          const items = g.items.map((it, idx) => {
+            const ht = idx === 0 ? (l === 'ko' ? `, ${it.house}하우스` : `, House ${it.house}`) : ''
+            return l === 'ko' ? `${it.body} ${it.asp} (오차 ${it.orb}°${ht})` : `${it.body} ${it.asp} (orb ${it.orb}°${ht})`
+          })
+          return `${g.head} → ${items.join(' / ')}`
+        })
+        out.push(l === 'ko' ? `[올해 일·월식 (${year})]` : `[Eclipses (${year})]`, ...lines, '')
       }
       i = j; continue
     }
 
     if (name.includes('행성·angle in 사인') || name.includes('행성 in 사인')) {
-      const withAngle = name.includes('·angle') || name.includes('angle')
-      out.push(l === 'ko'
-        ? (withAngle ? '[행성 위치 (사인·하우스)]' : '[행성 위치 (사인)]')
-        : (withAngle ? '[Positions (sign · house)]' : '[Positions (sign)]'))
+      out.push(l === 'ko' ? '[행성 위치]' : '[Positions]')
       const bodies: Array<{ name: string; lon: number }> = []
       for (const b of body) {
         const m = POS.exec(b)
         if (m) {
           const house = m[4] ? (l === 'ko' ? `, ${m[4]}하우스` : `, House ${m[4]}`) : ''
           const retro = m[5] ? (l === 'ko' ? ' 역행' : ' R') : ''
-          const g = l === 'ko' ? PLANET_GLOSS_KO[m[1]] : undefined
-          const planet = g ? `${pko(m[1], l)}(${g})` : pko(m[1], l)
+          const planet = pko(m[1], l) // planet meaning label dropped (model knows planets) — token save
           // essential dignity — only show when notable (skip peregrine/angles)
           const digKo = (l === 'ko' ? DIGNITY_KO : DIGNITY_EN)[dignityOf(m[1], m[2])]
           const dig = digKo ? ` [${digKo}]` : ''
@@ -288,7 +293,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       // 1st-house stellium conjunct ASC is core to character. Compute here.
       const angleLines = angleAspects(bodies, l)
       if (angleLines.length) {
-        out.push(l === 'ko' ? '[ASC·MC 각 (성격·태도 핵심)]' : '[ASC/MC aspects]', ...angleLines, '')
+        out.push(l === 'ko' ? '[상승점·중천점 각]' : '[ASC/MC aspects]', ...angleLines, '')
       }
       i = j; continue
     }
