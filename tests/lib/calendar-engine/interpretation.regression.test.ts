@@ -5,6 +5,7 @@ import { buildCalendar } from '@/lib/calendar-engine'
 import { buildInterpretation } from '@/lib/calendar-engine/interpretation/matcher'
 import { deriveKeyEvents } from '@/lib/calendar-engine/derivers/keyEvents'
 import { deriveMonthComparison } from '@/lib/calendar-engine/derivers/monthComparison'
+import { RULES } from '@/lib/calendar-engine/interpretation/rules'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 
 /**
@@ -701,6 +702,235 @@ describe('calendar-engine regression', () => {
       }
       // 60 일 안에서 최소 50종 이상 서로 다른 텍스트 (60갑자 cycle 보장).
       expect(seen.size).toBeGreaterThanOrEqual(50)
+    })
+  })
+
+  describe('outer-planet & lifecycle rules (DB expansion)', () => {
+    const SEOUL = { latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }
+    const profile = (birthDate: string): Profile => ({
+      birthDate,
+      birthTime: '06:40',
+      gender: 'male',
+      ...SEOUL,
+    })
+
+    it('every lifecycle rule carries a planet condition (prevents cross-fire)', () => {
+      const lifecycleRules = RULES.filter((r) => r.conditions.signalKinds?.includes('lifecycle'))
+      expect(lifecycleRules.length).toBeGreaterThanOrEqual(2)
+      for (const r of lifecycleRules) {
+        expect(r.conditions.planet, `rule ${r.id} must scope by planet`).toBeDefined()
+        expect(r.conditions.planet!.length).toBeGreaterThan(0)
+      }
+    })
+
+    it('new Neptune/Pluto + midlife lifecycle rules exist with KO+EN templates', () => {
+      const ids = [
+        'transit-neptune-harmonious',
+        'transit-neptune-hard',
+        'transit-pluto-harmonious',
+        'transit-pluto-hard',
+        'astro-lifecycle-pluto-square',
+        'astro-lifecycle-uranus-opposition',
+        'astro-lifecycle-neptune-square',
+        'astro-lifecycle-chiron-return',
+      ]
+      for (const id of ids) {
+        const rule = RULES.find((r) => r.id === id)
+        expect(rule, `missing rule ${id}`).toBeDefined()
+        expect(rule!.template.length).toBeGreaterThan(10)
+        expect(rule!.templateEn && rule!.templateEn.length).toBeGreaterThan(10)
+      }
+    })
+
+    it('saturn-return rule is scoped to Saturn so it no longer fires for Pluto/Uranus/Neptune', () => {
+      const saturn = RULES.find((r) => r.id === 'astro-lifecycle-saturn-return')!
+      expect(saturn.conditions.planet).toEqual(['Saturn'])
+    })
+
+    it('age-29 chart renders Saturn Return (not a different planet)', async () => {
+      // 1996 birth → saturn_return_1 active in 2026
+      const { interp } = await buildForDate(profile('1996-05-10'), '2026-05-15')
+      expect(interp.narrative).toContain('Saturn Return')
+      expect(interp.narrative).not.toContain('Pluto Square')
+    })
+
+    it('age-39 chart renders Pluto Square — the old Saturn-Return mismatch is gone', async () => {
+      // 1987 birth → pluto_square_pluto active in 2026 (was wrongly showing Saturn Return)
+      const { interp } = await buildForDate(profile('1987-05-10'), '2026-05-15')
+      expect(interp.narrative).toContain('Pluto Square')
+      expect(interp.narrative).not.toContain('Saturn Return')
+    })
+  })
+
+  describe('multi-signal interaction patterns (십신 조합)', () => {
+    const COMBOS: Array<[ruleId: string, patternId: string]> = [
+      ['pattern-gwan-in-flow', 'gwan-in-flow'],
+      ['pattern-siksang-wealth', 'siksang-wealth'],
+      ['pattern-wealth-to-status', 'wealth-to-status'],
+      ['pattern-wealth-rivalry', 'wealth-rivalry'],
+      ['pattern-output-vs-authority', 'output-vs-authority'],
+      ['pattern-siksin-controls-pressure', 'siksin-controls-pressure'],
+      ['pattern-expression-with-restraint', 'expression-with-restraint'],
+      ['pattern-authority-mixed', 'authority-mixed'],
+      ['pattern-wealth-erodes-resource', 'wealth-erodes-resource'],
+      ['pattern-energy-into-output', 'energy-into-output'],
+      ['pattern-support-reinforcement', 'support-reinforcement'],
+    ]
+
+    const SEOUL = { latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }
+    async function monthPatternIds(
+      birthDate: string,
+      gender: 'male' | 'female',
+      year: number,
+      month: number
+    ): Promise<Set<string>> {
+      const saju = calculateSajuData(birthDate, '06:40', gender, 'solar', SEOUL.timeZone)
+      const natal = await buildNatalContext(
+        { birthDate, birthTime: '06:40', gender, ...SEOUL } as Profile,
+        { saju }
+      )
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: new Date(Date.UTC(year, month - 1, 1)).toISOString(),
+          end: new Date(Date.UTC(year, month, 0, 23, 59, 59)).toISOString(),
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const ids = new Set<string>()
+      for (const c of cells) for (const p of c.matchedPatterns) ids.add(p.id)
+      return ids
+    }
+
+    it('each combo rule exists with KO+EN templates + patternId condition', () => {
+      for (const [ruleId, patternId] of COMBOS) {
+        const rule = RULES.find((r) => r.id === ruleId)
+        expect(rule, `missing rule ${ruleId}`).toBeDefined()
+        expect(rule!.conditions.patternId).toEqual([patternId])
+        expect(rule!.template.length).toBeGreaterThan(10)
+        expect(rule!.templateEn && rule!.templateEn.length).toBeGreaterThan(10)
+      }
+    })
+
+    it('combos actually fire for real charts (not dead rules)', async () => {
+      const comboIds = new Set(COMBOS.map(([, p]) => p))
+      const seen = new Set<string>()
+      // 두 차트 × 일부 달 — 십신 조합은 흔하게 발동 (1년 스캔 불필요)
+      for (const m of [3, 7, 11]) {
+        for (const id of await monthPatternIds('1995-02-09', 'male', 2026, m)) {
+          if (comboIds.has(id)) seen.add(id)
+        }
+      }
+      for (const m of [5, 9]) {
+        for (const id of await monthPatternIds('1976-09-21', 'female', 2026, m)) {
+          if (comboIds.has(id)) seen.add(id)
+        }
+      }
+      // 최소 2종 이상 발동해야 "살아있는" 패턴군
+      expect(seen.size).toBeGreaterThanOrEqual(2)
+    })
+  })
+
+  describe('domain date-line coverage (growth key fix)', () => {
+    it('자기·성장(domain-growth) section emits 강한 날 date lines like other domains', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      let checked = 0
+      for (const mo of [3, 5, 7]) {
+        const cells = await buildCalendar(
+          natal,
+          {
+            start: new Date(Date.UTC(2026, mo - 1, 1)).toISOString(),
+            end: new Date(Date.UTC(2026, mo, 0, 23, 59, 59)).toISOString(),
+            granularity: 'day',
+          },
+          { includeEvidence: true }
+        )
+        const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+        const growth = interp.sections.find((s) => s.section === 'domain-growth')
+        if (!growth) continue
+        checked += 1
+        // 버그(키 'expression') 일 땐 themes=[] → 날짜 라인이 전혀 안 붙음.
+        expect(growth.text).toMatch(/특히 강한 날|주의 날/)
+      }
+      expect(checked).toBeGreaterThan(0)
+    })
+  })
+
+  describe('Void-of-Course Moon timing rule', () => {
+    // 주의: 테스트 환경은 swisseph 를 목킹(고정 위치)해 달이 안 움직임 → VoC 가
+    // 실제로 발생하지 않음. 그래서 ephemeris 경유 대신 합성 VoC 신호를 직접
+    // 넣어 룰→matcher 배선만 검증한다. 프로덕션(실 ephemeris)에선 신호가 발생.
+    function cellWithVoc(day: number): CalendarCell {
+      const dayIso = `2026-05-${String(day).padStart(2, '0')}`
+      return {
+        datetime: `${dayIso}T00:00:00.000Z`,
+        derivedScore: 50,
+        themeScores: {},
+        matchedPatterns: [],
+        topReasons: [],
+        cautions: [],
+        signals: [
+          {
+            id: `astro.voc.${dayIso}`,
+            source: 'astro',
+            kind: 'void-of-course',
+            name: `Moon VoC (Aries)`,
+            korean: `달 공전 — Aries`,
+            themes: [],
+            polarity: -1,
+            layer: 'daily',
+            active: {
+              start: `${dayIso}T00:00:00.000Z`,
+              peak: `${dayIso}T12:00:00.000Z`,
+              end: `${dayIso}T18:00:00.000Z`,
+            },
+            weight: 0.45,
+            evidence: { module: 'astro-planetary-hour', planets: ['Moon'], detail: {} },
+          },
+        ],
+      } as unknown as CalendarCell
+    }
+
+    it('rule exists with KO+EN templates + void-of-course condition', () => {
+      const rule = RULES.find((r) => r.id === 'timing-void-of-course-moon')
+      expect(rule).toBeDefined()
+      expect(rule!.conditions.signalKinds).toEqual(['void-of-course'])
+      expect(rule!.template.length).toBeGreaterThan(10)
+      expect(rule!.templateEn && rule!.templateEn.length).toBeGreaterThan(10)
+    })
+
+    it('renders a timing section naming the VoC dates when VoC signals exist', async () => {
+      const saju = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
+      const natal = await buildNatalContext(
+        {
+          birthDate: '1995-02-09',
+          birthTime: '06:40',
+          gender: 'male',
+          latitude: 37.5665,
+          longitude: 126.978,
+          timeZone: 'Asia/Seoul',
+        } as Profile,
+        { saju }
+      )
+      const cells = [cellWithVoc(4), cellWithVoc(17)]
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const timing = interp.sections.find((s) => s.section === 'timing')
+      expect(timing).toBeDefined()
+      expect(timing!.text).toContain('05-04')
+      expect(timing!.text).toContain('05-17')
+      expect(timing!.text).toContain('2') // vocDatesCount
+      // EN variant resolves too
+      const interpEn = buildInterpretation({ natal, cells, scope: 'monthly', lang: 'en' })
+      const timingEn = interpEn.sections.find((s) => s.section === 'timing')
+      expect(timingEn!.text.toLowerCase()).toContain('void of course')
     })
   })
 })
