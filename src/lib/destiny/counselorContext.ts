@@ -170,7 +170,7 @@ function buildInstructions(locale: Locale): string {
     '## 읽기 규칙',
     '- 사주·점성을 자연스럽게 엮어 한 흐름으로 답한다. 단, 두 체계의 용어를 한 문장 안에 직접 섞지 않는다.',
     '- 한자·명리용어(정인/편재 등)·하우스 번호·각도 수치는 출력 금지. 의미만 일상어로 푼다.',
-    '- orb 가중치: 0-2°=강 / 3-4°=중 / 5-6°=약. 본명 각의 ↗=강해지는 중(applying), ↘=약해지는 중(separating).',
+    '- 오차각 가중치: 0-2°=강 / 3-4°=중 / 5-6°=약. 본명 각의 ↗=강해지는 중, ↘=약해지는 중.',
     '- 디그니티 = 행성이 그 사인에서 얼마나 잘 작동하는지. [보조점]은 보조 신호로만.',
     '- 톤: 따뜻한 멘토 어조 + 단정적 결론. 부드럽게 말해도 결론은 흐리지 않는다. "아마/경우에 따라" 회피 금지.',
     '- 좋고 나쁨은 예의가 아니라 차트 근거대로 균형 있게 짚는다.',
@@ -205,8 +205,8 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
         .filter((a) => MAJOR_TYPES.has(a.type) && a.orb <= 6)
         .sort((a, b) => a.orb - b.orb).slice(0, 12)
       if (asps.length) {
-        const head = L(`[본명 각 · 주요각 orb≤6° 상위${asps.length} · ↗적용/↘분리]`, `[Natal aspects · major orb<=6 top${asps.length} · ↗applying/↘separating]`)
-        const lines = asps.map((a) => `${pkA(a.from.name, locale)} ${aspG(a.type, locale)} ${pkA(a.to.name, locale)} (orb ${a.orb.toFixed(1)}°)${a.applying ? ' ↗' : ' ↘'}`)
+        const head = L(`[본명 각 · 주요각 오차≤6° 상위${asps.length} · ↗적용/↘분리]`, `[Natal aspects · major orb<=6 top${asps.length} · ↗applying/↘separating]`)
+        const lines = asps.map((a) => `${pkA(a.from.name, locale)} ${aspG(a.type, locale)} ${pkA(a.to.name, locale)} (${locale === 'en' ? 'orb ' : ''}${a.orb.toFixed(1)}°)${a.applying ? ' ↗' : ' ↘'}`)
         astro = astro.replace(/\[(?:본명 각|Natal aspects)[\s\S]*?\n\n/, head + '\n' + lines.join('\n') + '\n\n')
       }
       const ut = (natal as unknown as { meta?: { jdUT?: number }; ut_jd?: number; jdUT?: number })
@@ -223,7 +223,7 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
         add(L('포춘(타고난 행운점)', 'Part of Fortune'), 'partOfFortune')
         add(L('버텍스(운명적 만남)', 'Vertex'), 'vertex')
         if (ml.length) {
-          const mb = L('[보조점 (minor)]', '[Minor points]') + '\n' + ml.join('\n') + '\n\n'
+          const mb = L('[보조점]', '[Minor points]') + '\n' + ml.join('\n') + '\n\n'
           const idx = astro.search(/\[(?:현재 트랜짓|Current transits)/)
           astro = idx >= 0 ? astro.slice(0, idx) + mb + astro.slice(idx) : astro.trimEnd() + '\n\n' + mb
         }
@@ -238,7 +238,7 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
       const lordResKo = lp?.sign ? ` (${skA(lp.sign, 'ko')}${lp.house ? ` ${lp.house}하우스` : ''} 거주)` : ''
       const lordResEn = lp?.sign ? ` (in ${lp.sign}${lp.house ? `, H${lp.house}` : ''})` : ''
       const profBlock = L(
-        `[프로펙션 ${kAge}세]\n활성 하우스: ${prof.activatedHouse}하우스 (${HOUSE_THEME_KO[prof.activatedHouse]})\n올해의 지배성(Lord of Year): ${lordKo}${lordResKo}`,
+        `[프로펙션 ${kAge}세]\n활성 하우스: ${prof.activatedHouse}하우스 (${HOUSE_THEME_KO[prof.activatedHouse]})\n올해의 지배성: ${lordKo}${lordResKo}`,
         `[Profection age ${kAge}]\nactivated house: ${prof.activatedHouse} (${HOUSE_THEME_EN[prof.activatedHouse]})\nLord of the Year: ${prof.lordOfYear}${lordResEn}`,
       ) + '\n\n'
       astro = astro.replace(/\[(?:프로펙션|Profection)[\s\S]*?\n\n/, profBlock)
@@ -301,13 +301,13 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   const yinyang = dm.yin_yang === '음' ? L('음', 'yin') : L('양', 'yang')
   const strLab = locale === 'en' ? (STRENGTH_EN[strengthLabel] ?? strengthLabel) : strengthLabel
   const strLv = strengthLevel ? `(${locale === 'en' ? (STRENGTH_EN[strengthLevel] ?? strengthLevel) : strengthLevel})` : ''
-  out.push(`day_master: ${dm.name}(${yinyang}${dmEl}) | strength: ${strLab}${strLv}`)
+  out.push(L(`일간: ${dm.name}(${yinyang}${dmEl}) | 강약: ${strLab}${strLv}`, `day_master: ${dm.name}(${yinyang}${dmEl}) | strength: ${strLab}${strLv}`))
   const fe = saju.fiveElements
-  out.push(`elements: 木${fe.wood} 火${fe.fire} 土${fe.earth} 金${fe.metal} 水${fe.water}`)
+  out.push(`${L('오행', 'elements')}: 木${fe.wood} 火${fe.fire} 土${fe.earth} 金${fe.metal} 水${fe.water}`)
   out.push('')
 
-  out.push('pillars:')
-  const lab: Record<string, string> = { year: 'Y', month: 'M', day: 'D', time: 'H' }
+  out.push(L('기둥:', 'pillars:'))
+  const lab: Record<string, string> = locale === 'en' ? { year: 'Y', month: 'M', day: 'D', time: 'H' } : { year: '년', month: '월', day: '일', time: '시' }
   for (const k of ['year', 'month', 'day', 'time'] as const) {
     const st = P[k].heavenlyStem, br = P[k].earthlyBranch
     const stemSib = k === 'day' ? (locale === 'en' ? 'Self' : '일간') : gl(st.sibsin, SIBSIN_G, SIBSIN_EN, locale)
@@ -315,7 +315,7 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   }
   out.push('')
 
-  out.push('hidden_stems:')
+  out.push(L('지장간:', 'hidden_stems:'))
   for (const k of ['year', 'month', 'day', 'time'] as const) {
     const jg = P[k].jijanggan
     const stems = [jg?.chogi?.name, jg?.junggi?.name, jg?.jeonggi?.name].filter(Boolean) as string[]
@@ -325,15 +325,15 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
 
   if (geok) {
     const geokEn = `${SIBSIN_EN[geok.replace(/격$/, '')] ?? geok.replace(/격$/, '')} structure`
-    out.push(`geokguk: ${locale === 'en' ? geokEn : geok}`)
+    out.push(`${L('격국', 'geokguk')}: ${locale === 'en' ? geokEn : geok}`)
   }
   if (y?.primaryYongsin) {
     const ge = (e?: string) => (e ? (locale === 'en' ? (ELEM_EN[e] ?? e) : (ELEMG[e] ? `${e}(${ELEMG[e]})` : (ELEM[e] ?? e))) : '')
     const yt = y.yongsinType ? ` [${locale === 'en' ? (YTYPE_EN[y.yongsinType] ?? y.yongsinType) : y.yongsinType}]` : ''
-    out.push(`yongsin: ${ge(y.primaryYongsin)}${yt}${y.secondaryYongsin ? ` | ${L('喜', 'fav')}:${ge(y.secondaryYongsin)}` : ''}${y.kibsin ? ` | ${L('忌', 'avoid')}:${ge(y.kibsin)}` : ''}${y.gusin ? ` | ${L('仇', 'foe')}:${ge(y.gusin)}` : ''}`)
-    if (y.reasoning && locale === 'ko') out.push(`yongsin_reason: ${y.reasoning}`)
+    out.push(`${L('용신', 'yongsin')}: ${ge(y.primaryYongsin)}${yt}${y.secondaryYongsin ? ` | ${L('喜', 'fav')}:${ge(y.secondaryYongsin)}` : ''}${y.kibsin ? ` | ${L('忌', 'avoid')}:${ge(y.kibsin)}` : ''}${y.gusin ? ` | ${L('仇', 'foe')}:${ge(y.gusin)}` : ''}`)
+    if (y.reasoning && locale === 'ko') out.push(`용신근거: ${y.reasoning}`)
   }
-  if (gwansalHonjap) out.push(L('note: 官殺混雜 (정관+편관 동존)', 'note: mixed authority (Direct Officer + Seven Killings)'))
+  if (gwansalHonjap) out.push(L('참고: 官殺混雜 (정관+편관 동존)', 'note: mixed authority (Direct Officer + Seven Killings)'))
   out.push('')
 
   // branches that join a 합/삼합/육합 → a 공망 there is partly released
@@ -343,7 +343,7 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
   }
   const shown = rel.filter((r) => r.kind !== '지지파') // 파 = weakest/contested, drop
   if (shown.length) {
-    out.push('internal_combos:')
+    out.push(L('합충형:', 'internal_combos:'))
     const PLAB: Record<string, string> = locale === 'en' ? { year: 'Y', month: 'M', day: 'D', time: 'H' } : { year: '년', month: '월', day: '일', time: '시' }
     // group identical relations (same kind+detail) so a 충/합 hitting two pillar
     // pairs becomes one line with merged tags, not a duplicate.
@@ -369,7 +369,7 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     out.push('')
   }
 
-  if (saju.shinsal?.length) out.push(`sinsal: ${saju.shinsal.join(' · ')}`)
+  if (saju.shinsal?.length) out.push(`${L('신살', 'sinsal')}: ${saju.shinsal.join(' · ')}`)
   try {
     const st = getTwelveStagesForPillars(P as never)
     out.push(`${locale === 'en' ? '12-stages' : '12운성'}: ${(['year', 'month', 'day', 'time'] as const).map((k) => `${P[k].earthlyBranch.name}${gl(st[k], UNSEONG_G, UNSEONG_EN, locale)}`).join(' / ')}`)
@@ -461,7 +461,7 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
       parts2.push(...hyeongOf(periodBranch[k]))
       if (parts2.length) crossLines.push(`  ${PLBL(k)}: ${parts2.join(' / ')}`)
     }
-    if (crossLines.length) { out.push(L('current_cross (운↔본명 합/충/형):', 'current_cross (luck↔natal):')); out.push(...crossLines) }
+    if (crossLines.length) { out.push(L('현재교차 (운↔본명 합/충/형):', 'current_cross (luck↔natal):')); out.push(...crossLines) }
   }
 
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n'

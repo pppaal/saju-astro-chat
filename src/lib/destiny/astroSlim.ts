@@ -119,7 +119,7 @@ function kz(s: string, l: SlimLocale): string {
   for (const [k, v] of Object.entries(ASP_KO)) out = out.replace(new RegExp(`\\b${k}\\b`, 'g'), v)
   for (const [k, v] of Object.entries(ASP_LC_KO)) out = out.replace(new RegExp(`\\b${k}\\b`, 'g'), v)
   out = out.replace(/House (\d+)/g, '$1하우스').replace(/\b(\d+)H\b/g, '$1하우스').replace(/\bhouse\b/g, '하우스')
-  out = out.replace(/natal/g, '본명')
+  out = out.replace(/natal/g, '본명').replace(/\borb\b/gi, '오차')
   return out
 }
 
@@ -168,7 +168,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
         .slice(0, NATAL_TOP)
         .map(({ m, b }) => `${pko(m[1], l)} ${ako(m[2], l)} ${pko(m[3], l)} (${l === 'en' ? 'orb ' : ''}${orbStr(b)})`)
       const head = l === 'ko'
-        ? `[본명 각 · 주요각 orb≤${NATAL_LIMIT | 0}° 상위${kept.length}]`
+        ? `[본명 각 · 주요각 오차≤${NATAL_LIMIT | 0}° 상위${kept.length}]`
         : `[Natal aspects · major orb<=${NATAL_LIMIT | 0}° top${kept.length}]`
       out.push(head, ...kept, '')
       i = j; continue
@@ -187,7 +187,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       const dm = /\d{4}-\d{2}-\d{2}/.exec(header)
       const date = dm ? dm[0] : ''
       const head = l === 'ko'
-        ? `[현재 트랜짓 → 본명, ${date} · 주요각 orb≤${TRANSIT_LIMIT | 0}° 상위${kept.length}]`
+        ? `[현재 트랜짓 → 본명, ${date} · 주요각 오차≤${TRANSIT_LIMIT | 0}° 상위${kept.length}]`
         : `[Current transits → natal, ${date} · major orb<=${TRANSIT_LIMIT | 0}° top${kept.length}]`
       out.push(head, ...kept, '')
       i = j; continue
@@ -278,7 +278,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       // 1st-house stellium conjunct ASC is core to character. Compute here.
       const angleLines = angleAspects(bodies, l)
       if (angleLines.length) {
-        out.push(l === 'ko' ? '[ASC·MC 각 (성격·태도 핵심)]' : '[ASC/MC aspects]', ...angleLines, '')
+        out.push(l === 'ko' ? '[상승점·중천점 각 (성격·태도 핵심)]' : '[ASC/MC aspects]', ...angleLines, '')
       }
       i = j; continue
     }
