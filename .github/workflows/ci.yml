@@ -262,23 +262,23 @@ jobs:
           if ! curl -fsS http://localhost:3000 >/dev/null; then
             echo "Server did not become ready in time"
             tail -n 200 .next-start.log || true
-            kill $SERVER_PID || true
+            pkill -f "next-server" 2>/dev/null || kill $SERVER_PID || true
             exit 1
           fi
 
           if ! npm run -s test:ssr-placeholders; then
             tail -n 200 .next-start.log || true
-            kill $SERVER_PID || true
+            pkill -f "next-server" 2>/dev/null || kill $SERVER_PID || true
             exit 1
           fi
 
           if ! npm run -s test:mojibake:smoke; then
             tail -n 200 .next-start.log || true
-            kill $SERVER_PID || true
+            pkill -f "next-server" 2>/dev/null || kill $SERVER_PID || true
             exit 1
           fi
 
-          kill $SERVER_PID || true
+          pkill -f "next-server" 2>/dev/null || kill $SERVER_PID || true
 
       - name: Bundle size check
         run: |
@@ -316,6 +316,15 @@ jobs:
 
       - name: Start API test server
         run: |
+          # The SSR gate step above starts a server on :3000 but its cleanup
+          # `kill $SERVER_PID` only kills the npm parent — the next-server child
+          # is orphaned and keeps holding :3000. If it survives, this server
+          # can't bind and E2E ends up hitting that leftover (secretless) server,
+          # whose /api/auth/session 500s, hanging waitForServer() for 60s.
+          # Free the port first so this properly-configured server owns it.
+          pkill -f "next-server" 2>/dev/null || true
+          fuser -k 3000/tcp 2>/dev/null || true
+          sleep 2
           npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/next-server.log 2>&1 &
         env:
           # NextAuth needs its secret or /api/auth/session 500s, which makes the
