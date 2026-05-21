@@ -47,9 +47,18 @@ const TRANSIT_LIMIT = 3.0
 const TRANSIT_TOP = 10
 const DROP = ['Fixed Stars', 'Lunar Return', 'Secondary Progression', '현재 시점 행성 신호']
 
+const ASP_GLOSS_KO: Record<string, string> = {
+  Conjunction: '결합', Opposition: '대립', Trine: '조화', Square: '긴장', Sextile: '협력',
+}
+
 const pko = (p: string, l: SlimLocale) => (l === 'ko' ? PLANET_KO[p] ?? p : p)
 const sko = (s: string, l: SlimLocale) => (l === 'ko' ? SIGN_KO[s] ?? s : s)
-const ako = (a: string, l: SlimLocale) => (l === 'ko' ? ASP_KO[a] ?? a : a)
+const ako = (a: string, l: SlimLocale) => {
+  if (l !== 'ko') return a // EN keeps the standard term (the LLM reads it)
+  const term = ASP_KO[a] ?? a
+  const gloss = ASP_GLOSS_KO[a]
+  return gloss ? `${term}(${gloss})` : term
+}
 
 function orbDeg(line: string): number | null {
   const m = ORB.exec(line)
@@ -147,16 +156,31 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
     }
 
     if (name.includes('Solar Return')) {
+      out.push(l === 'ko' ? '[올해 테마 (솔라리턴)]' : '[Solar Return — year theme]')
+      // Asc (the year's persona)
+      const asc = body.find((b) => b.startsWith('Asc:'))
+      const am = asc?.match(/Asc:\s*([A-Za-z]+)\s*(\d+)/)
+      if (am) out.push(l === 'ko' ? `상승점 ${sko(am[1], l)} ${am[2]}°` : `Asc ${am[1]} ${am[2]}°`)
+      // Sun (the year's core)
       const sun = body.find((b) => b.startsWith('Sun '))
-      if (sun) {
-        const m = POS.exec(sun.replace(/(\d+)°\d+'/, '$1°'))
-        if (m) {
-          const house = m[4] ? (l === 'ko' ? ` ${m[4]}하우스` : `, House ${m[4]}`) : ''
-          out.push(l === 'ko' ? '[올해 테마 (솔라리턴)]' : '[Solar Return — year theme]')
-          out.push(l === 'ko' ? `태양 ${sko(m[2], l)}${house}` : `Sun ${m[2]}${house}`)
-          out.push('')
-        }
+      const sm = sun && POS.exec(sun.replace(/(\d+)°\d+'/, '$1°'))
+      if (sm) {
+        const house = sm[4] ? (l === 'ko' ? ` ${sm[4]}하우스` : `, House ${sm[4]}`) : ''
+        out.push(l === 'ko' ? `태양 ${sko(sm[2], l)}${house}` : `Sun ${sm[2]}${house}`)
       }
+      // stacked house (≥3 planets sharing a house = the year's emphasis)
+      const byHouse: Record<string, string[]> = {}
+      for (const b of body) {
+        const pm = b.match(/^([A-Za-z]+) in [A-Za-z]+ \d+°(?:\d+')?, House (\d+)/)
+        if (pm) (byHouse[pm[2]] ||= []).push(pm[1])
+      }
+      let topH = '', topN = 0
+      for (const [h, ps] of Object.entries(byHouse)) if (ps.length > topN) { topN = ps.length; topH = h }
+      if (topN >= 3) {
+        const ps = byHouse[topH].map((p) => pko(p, l)).join('·')
+        out.push(l === 'ko' ? `행성 몰림: ${topH}하우스 (${ps})` : `Stellium: House ${topH} (${ps})`)
+      }
+      out.push('')
       i = j; continue
     }
 
