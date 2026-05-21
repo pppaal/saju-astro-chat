@@ -339,18 +339,27 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     else important.push(line)
   }
 
-  // 삼합·방합 부분(3지 중 2지) → 참고로 묶음. 잘게 쪼개 반복하던 "큰 결속" 제거.
-  const sbHap: string[] = []
+  // 삼합·방합 cross — 두 사람 지지를 합쳐 trio가 형성되는지. 양쪽이 서로
+  // 없는 글자를 보태야 진짜 cross(union이 각자보다 커야 함). 한 사람이 이미
+  // 다 갖고 있으면 본명 신호라 제외. 옛 코드는 각자 1지만 잡아 "2지" 라벨을
+  // 붙여, 한 쪽이 3지 다 가진 경우(본명)나 cross로 3지 완성된 경우를 오분류.
+  const sbComplete: string[] = [] // 3/3 교차 완성
+  const sbPartial: string[] = []  // 2/3 부분
   for (const trio of [...TRI_HAP, ...BANG_HAP]) {
-    const aIdx = A.findIndex((p) => trio.branches.includes(p.branch))
-    const bIdx = B.findIndex((p) => trio.branches.includes(p.branch))
-    if (aIdx >= 0 && bIdx >= 0 && A[aIdx].branch !== B[bIdx].branch) {
+    const setA = new Set(A.map((p) => p.branch).filter((b) => trio.branches.includes(b)))
+    const setB = new Set(B.map((p) => p.branch).filter((b) => trio.branches.includes(b)))
+    const union = new Set([...setA, ...setB])
+    if (union.size >= 2 && union.size > setA.size && union.size > setB.size) {
       const tag = TRI_HAP.includes(trio) ? '삼합' : '방합'
-      sbHap.push(`${trio.branches.join('')}${tag}(→${trio.element})`)
+      const label = `${trio.branches.join('')}${tag}(→${trio.element})`
+      ;(union.size === 3 ? sbComplete : sbPartial).push(label)
     }
   }
-  if (sbHap.length > 0) {
-    chamgo.push(`삼합/방합 부분 ${sbHap.length}건: ${sbHap.join(' · ')} — 3지 중 2지만 성립, 결속 잠재(비중 낮음)`)
+  if (sbComplete.length > 0) {
+    important.push(`삼합/방합 교차 완성 ${sbComplete.length}건: ${sbComplete.join(' · ')} — 두 사람 지지가 3지 모두 채워 국(局) 형성 (강한 결속 잠재)`)
+  }
+  if (sbPartial.length > 0) {
+    chamgo.push(`삼합/방합 부분 ${sbPartial.length}건: ${sbPartial.join(' · ')} — 3지 중 2지 교차 성립 (결속 잠재, 비중 낮음)`)
   }
 
   // 4. 천을귀인 → IMPORTANT
