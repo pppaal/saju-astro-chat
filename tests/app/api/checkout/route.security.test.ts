@@ -63,13 +63,7 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 vi.mock('@/lib/payments/prices', () => ({
-  getPriceId: vi.fn((plan: string, cycle: string) => `price_${plan}_${cycle}`),
   getCreditPackPriceId: vi.fn((pack: string) => `price_pack_${pack}`),
-  allowedPriceIds: vi.fn(() => [
-    'price_premium_monthly',
-    'price_premium_yearly',
-    'price_pro_yearly',
-  ]),
   allowedCreditPackIds: vi.fn(() => [
     'price_pack_mini',
     'price_pack_small',
@@ -95,9 +89,7 @@ import { POST } from '@/app/api/checkout/route'
 import { getServerSession } from 'next-auth'
 import { rateLimit } from '@/lib/rateLimit'
 import {
-  getPriceId,
   getCreditPackPriceId,
-  allowedPriceIds,
   allowedCreditPackIds,
 } from '@/lib/payments/prices'
 
@@ -120,15 +112,7 @@ describe('/api/checkout - Security Tests', () => {
     } as any)
 
     // Re-establish mock defaults after clearAllMocks (which clears implementations)
-    vi.mocked(getPriceId).mockImplementation(
-      (plan: string, cycle: string) => `price_${plan}_${cycle}`
-    )
     vi.mocked(getCreditPackPriceId).mockImplementation((pack: string) => `price_pack_${pack}`)
-    vi.mocked(allowedPriceIds).mockReturnValue([
-      'price_premium_monthly',
-      'price_premium_yearly',
-      'price_pro_yearly',
-    ])
     vi.mocked(allowedCreditPackIds).mockReturnValue([
       'price_pack_mini',
       'price_pack_small',

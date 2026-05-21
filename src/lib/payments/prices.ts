@@ -72,11 +72,6 @@ const creditPackEntries = ([
   },
 ].filter((p) => p.id)) as CreditPackEntry[]
 
-export function getPriceId(plan: PlanKey, billingCycle: BillingCycle): string | null {
-  const found = priceEntries.find((p) => p.plan === plan && p.billingCycle === billingCycle);
-  return found?.id ?? null
-}
-
 export function getCreditPackPriceId(pack: CreditPackKey): string | null {
   const found = creditPackEntries.find((p) => p.pack === pack);
   return found?.id ?? null
@@ -90,10 +85,6 @@ export function getPlanFromPriceId(priceId: string): { plan: PlanKey; billingCyc
 export function getCreditPackFromPriceId(priceId: string): { pack: CreditPackKey } | null {
   const found = creditPackEntries.find((p) => p.id === priceId);
   return found ? { pack: found.pack } : null
-}
-
-export function allowedPriceIds(): string[] {
-  return priceEntries.map((p) => p.id)
 }
 
 export function allowedCreditPackIds(): string[] {

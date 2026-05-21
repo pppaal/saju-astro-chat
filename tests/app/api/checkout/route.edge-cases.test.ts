@@ -40,9 +40,7 @@ vi.mock('@/lib/security/csrf', () => ({
 }))
 
 vi.mock('@/lib/payments/prices', () => ({
-  getPriceId: vi.fn(() => 'price_123'),
   getCreditPackPriceId: vi.fn(() => 'price_credit_456'),
-  allowedPriceIds: vi.fn(() => ['price_123']),
   allowedCreditPackIds: vi.fn(() => ['price_credit_456']),
 }))
 

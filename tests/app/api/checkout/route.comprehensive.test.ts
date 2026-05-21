@@ -30,9 +30,7 @@ vi.mock('@/lib/security/csrf', () => ({
 }))
 
 vi.mock('@/lib/payments/prices', () => ({
-  getPriceId: vi.fn(() => 'price_123'),
   getCreditPackPriceId: vi.fn(() => 'price_credit_456'),
-  allowedPriceIds: vi.fn(() => ['price_123']),
   allowedCreditPackIds: vi.fn(() => ['price_credit_456']),
 }))
 
@@ -82,9 +80,7 @@ import { POST } from '@/app/api/checkout/route'
 import { getServerSession } from 'next-auth'
 import { rateLimit } from '@/lib/rateLimit'
 import {
-  getPriceId,
   getCreditPackPriceId,
-  allowedPriceIds,
   allowedCreditPackIds,
 } from '@/lib/payments/prices'
 
@@ -118,9 +114,7 @@ describe('/api/checkout', () => {
     } as any)
 
     // Default: prices
-    vi.mocked(getPriceId).mockReturnValue('price_123')
     vi.mocked(getCreditPackPriceId).mockReturnValue('price_credit_456')
-    vi.mocked(allowedPriceIds).mockReturnValue(['price_123'])
     vi.mocked(allowedCreditPackIds).mockReturnValue(['price_credit_456'])
 
     // Default: Stripe success
