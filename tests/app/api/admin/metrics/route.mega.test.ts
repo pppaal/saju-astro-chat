@@ -131,8 +131,12 @@ describe('GET /api/admin/metrics', () => {
     // Default metrics snapshot
     vi.mocked(getMetricsSnapshot).mockReturnValue(mockMetricsSnapshot)
 
-    // Default prisma user (not admin by role, relies on env)
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null as any)
+    // Default prisma user = admin (isAdminUser reads role + email from DB).
+    // Most tests need an authorized admin; auth-specific tests override below.
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      role: 'admin',
+      email: 'admin@example.com',
+    } as any)
   })
 
   afterEach(() => {
@@ -171,6 +175,10 @@ describe('GET /api/admin/metrics', () => {
         user: { id: '123', email: 'user@example.com' },
         expires: '2024-12-31',
       })
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        role: 'user',
+        email: 'user@example.com',
+      } as any)
 
       const req = new NextRequest('http://localhost:3000/api/admin/metrics')
       const response = await GET(req)
@@ -201,6 +209,11 @@ describe('GET /api/admin/metrics', () => {
         user: { id: '123', email: 'ADMIN@EXAMPLE.COM' },
         expires: '2024-12-31',
       })
+      // role 폴백 없이 email 정규화 경로(isAdminEmail)를 실제로 태움
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        role: null,
+        email: 'ADMIN@EXAMPLE.COM',
+      } as any)
 
       const req = new NextRequest('http://localhost:3000/api/admin/metrics')
       const response = await GET(req)
@@ -475,6 +488,11 @@ describe('GET /api/admin/metrics', () => {
         user: { id: '123', email: 'admin@example.com' },
         expires: '2024-12-31',
       })
+      // role 폴백 없는 유저 → ADMIN_EMAILS 없으면 email 폴백도 실패 → 거부
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        role: null,
+        email: 'admin@example.com',
+      } as any)
 
       const req = new NextRequest('http://localhost:3000/api/admin/metrics')
       const response = await GET(req)

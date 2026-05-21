@@ -40,8 +40,10 @@ export const POST = withApiMiddleware(
       return res
     } catch (e: unknown) {
       captureServerError(e, { route: '/api/latlon-to-timezone' })
+      // 내부 에러 메시지를 클라이언트에 노출하지 않음(스택/내부 단서 누출 방지).
+      // 실제 원인은 captureServerError 로 서버에서만 기록.
       return NextResponse.json(
-        { error: e instanceof Error ? e.message : 'server error' },
+        { error: 'server error' },
         { status: HTTP_STATUS.SERVER_ERROR }
       )
     }
