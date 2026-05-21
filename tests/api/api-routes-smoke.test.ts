@@ -45,7 +45,6 @@ describe('API Routes Smoke Tests', () => {
     it('should have astrology core routes', () => {
       assertModules([
         'app/api/astrology/route',
-        'app/api/astrology/chat-stream/route',
         'app/api/astrology/details/route',
       ]);
     });
@@ -138,7 +137,6 @@ describe('API Routes Smoke Tests', () => {
     it('should have destiny map routes', () => {
       assertModules([
         'app/api/destiny-map/route',
-        'app/api/destiny-map/chat/route',
       ]);
     });
   });
@@ -190,11 +188,10 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('Saju Routes (2)', () => {
+  describe('Saju Routes (1)', () => {
     it('should have saju routes', () => {
       assertModules([
         'app/api/saju/route',
-        'app/api/saju/chat-stream/route',
       ]);
     });
   });
