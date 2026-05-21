@@ -13,14 +13,14 @@ type AnyObj = Record<string, unknown>
 
 const lower = (s: string) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s)
 
-// 받침 유무로 을/를 골라 자연스러운 조사를 붙인다
+// 받침 유무로 자연스러운 종결(이에요/예요)을 고른다
 function hasJong(s: string): boolean {
   const ch = s.trim().slice(-1)
   const code = ch.charCodeAt(0)
   if (code < 0xac00 || code > 0xd7a3) return false
   return (code - 0xac00) % 28 !== 0
 }
-const eulReul = (s: string) => `${s}${hasJong(s) ? '을' : '를'}`
+const ieyo = (s: string) => `${s}${hasJong(s) ? '이에요' : '예요'}`
 
 const ZODIAC: ZodiacName[] = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
@@ -43,7 +43,7 @@ export function chartInterpretation(saju: unknown, astro: unknown, isKo: boolean
     const stem = dp?.heavenlyStem?.name
     const branch = dp?.earthlyBranch?.name
     const arch = stem && branch ? getIljuArchetype(stem, branch) : null
-    if (arch) sajuPart = isKo ? `타고난 본질은 ${arch.character}.` : `At the core, ${lower(arch.character_en)}`
+    if (arch) sajuPart = isKo ? `본질은 ${ieyo(arch.character)}.` : `At the core, ${lower(arch.character_en)}`
   }
 
   // ── 서양: 태양·달 sign lines ──
@@ -60,9 +60,9 @@ export function chartInterpretation(saju: unknown, astro: unknown, isKo: boolean
     const sun = sigLine('Sun', lonOf('Sun'))
     const moon = sigLine('Moon', lonOf('Moon'))
     if (isKo) {
-      if (sun && moon) astroPart = `겉으로는 ${eulReul(sun)} 드러내고, 속으로는 ${eulReul(moon)} 품고 있어요.`
-      else if (sun) astroPart = `겉으로는 ${eulReul(sun)} 드러내요.`
-      else if (moon) astroPart = `속으로는 ${eulReul(moon)} 품고 있어요.`
+      if (sun && moon) astroPart = `태양은 ${sun}, 달은 ${ieyo(moon)}.`
+      else if (sun) astroPart = `태양은 ${ieyo(sun)}.`
+      else if (moon) astroPart = `달은 ${ieyo(moon)}.`
     } else {
       if (sun && moon) astroPart = `Outwardly ${lower(sun)}; inwardly ${lower(moon)}.`
       else if (sun || moon) astroPart = `${sun || moon}.`
