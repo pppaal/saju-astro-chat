@@ -148,7 +148,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
         new NextRequest('http://localhost:3000/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+          body: JSON.stringify({ creditPack: 'mini' }),
         })
       )
 
@@ -164,13 +164,13 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req1 = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const req2 = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req1)
@@ -193,7 +193,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
           'Content-Type': 'application/json',
           'x-idempotency-key': idempotencyKey,
         },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const req2 = new NextRequest('http://localhost:3000/api/checkout', {
@@ -202,7 +202,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
           'Content-Type': 'application/json',
           'x-idempotency-key': idempotencyKey,
         },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req1)
@@ -226,7 +226,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
           'Content-Type': 'application/json',
           'x-idempotency-key': specialKey,
         },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)
@@ -244,7 +244,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
           'Content-Type': 'application/json',
           'x-idempotency-key': '',
         },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)
@@ -263,7 +263,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
           'Content-Type': 'application/json',
           'x-idempotency-key': maxLengthKey,
         },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       await POST(req)
@@ -284,7 +284,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -305,7 +305,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -325,7 +325,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -342,7 +342,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -360,7 +360,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -379,7 +379,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -415,8 +415,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
 
     it('should handle deeply nested body', async () => {
       const nestedBody = {
-        plan: 'premium',
-        billingCycle: 'monthly',
+        creditPack: 'mini',
         extra: { nested: { deeply: { data: 'value' } } },
       }
 
@@ -447,8 +446,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
 
     it('should handle prototype pollution attempt', async () => {
       const maliciousBody = JSON.stringify({
-        plan: 'premium',
-        billingCycle: 'monthly',
+        creditPack: 'mini',
         __proto__: { admin: true },
         constructor: { prototype: { admin: true } },
       })
@@ -476,7 +474,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -494,7 +492,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -512,7 +510,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'mini' }),
       })
 
       const response = await POST(req)
@@ -524,33 +522,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
     })
   })
 
-  describe('Plan and Billing Cycle Combinations', () => {
-    it('should handle all valid plan combinations', async () => {
-      const combinations = [
-        { plan: 'premium', billingCycle: 'monthly' },
-        { plan: 'premium', billingCycle: 'yearly' },
-        { plan: 'pro', billingCycle: 'monthly' },
-        { plan: 'pro', billingCycle: 'yearly' },
-      ]
-
-      for (const combo of combinations) {
-        vi.clearAllMocks()
-        mockStripeCheckoutCreate.mockResolvedValue({
-          url: 'https://checkout.stripe.com/session-123',
-        })
-
-        const req = new NextRequest('http://localhost:3000/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(combo),
-        })
-
-        const response = await POST(req)
-
-        expect(response.status).toBe(200)
-      }
-    })
-
+  describe('Credit Pack Combinations', () => {
     it('should handle all valid credit pack types', async () => {
       const packs = ['mini', 'standard', 'plus', 'mega', 'ultimate']
 

@@ -286,24 +286,6 @@ describe('/api/checkout - Security Tests', () => {
       expect(response.status).toBe(422)
     })
 
-    it('should reject invalid price IDs', async () => {
-      vi.mocked(allowedPriceIds).mockReturnValue([])
-
-      const req = new NextRequest('http://localhost:3000/api/checkout', {
-        method: 'POST',
-        body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
-        }),
-      })
-
-      const response = await POST(req)
-      const data = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(extractErrorMessage(data)).toContain('invalid_price')
-    })
-
     it('should reject invalid credit pack IDs', async () => {
       vi.mocked(allowedCreditPackIds).mockReturnValue([])
 
@@ -355,74 +337,6 @@ describe('/api/checkout - Security Tests', () => {
 
       expect(response.status).toBe(500)
       expect(extractErrorMessage(data)).toContain('missing_base_url')
-    })
-  })
-
-  describe('Subscription Creation', () => {
-    beforeEach(() => {
-      vi.mocked(getServerSession).mockResolvedValue({
-        user: { id: 'user-123', email: 'test@example.com' },
-      } as any)
-    })
-
-    it('should create subscription checkout session', async () => {
-      const req = new NextRequest('http://localhost:3000/api/checkout', {
-        method: 'POST',
-        body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
-        }),
-      })
-
-      await POST(req)
-
-      expect(mockStripeCreate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          mode: 'subscription',
-          line_items: [{ price: 'price_premium_monthly', quantity: 1 }],
-          customer_email: 'test@example.com',
-          metadata: expect.objectContaining({
-            type: 'subscription',
-            userId: 'user-123',
-            plan: 'premium',
-            billingCycle: 'monthly',
-          }),
-        }),
-        expect.objectContaining({
-          idempotencyKey: expect.any(String),
-        })
-      )
-    })
-
-    it('should include promotion codes for subscriptions', async () => {
-      const req = new NextRequest('http://localhost:3000/api/checkout', {
-        method: 'POST',
-        body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'yearly',
-        }),
-      })
-
-      await POST(req)
-
-      const createCall = mockStripeCreate.mock.calls[0][0]
-      expect(createCall.allow_promotion_codes).toBe(true)
-    })
-
-    it('should use correct URLs for subscription', async () => {
-      const req = new NextRequest('http://localhost:3000/api/checkout', {
-        method: 'POST',
-        body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
-        }),
-      })
-
-      await POST(req)
-
-      const createCall = mockStripeCreate.mock.calls[0][0]
-      expect(createCall.success_url).toContain('https://example.com/success')
-      expect(createCall.cancel_url).toContain('https://example.com/pricing')
     })
   })
 
@@ -487,8 +401,7 @@ describe('/api/checkout - Security Tests', () => {
           'x-idempotency-key': idempotencyKey,
         },
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -506,8 +419,7 @@ describe('/api/checkout - Security Tests', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -526,8 +438,7 @@ describe('/api/checkout - Security Tests', () => {
           'x-idempotency-key': longKey,
         },
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -554,8 +465,7 @@ describe('/api/checkout - Security Tests', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -575,8 +485,7 @@ describe('/api/checkout - Security Tests', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -593,8 +502,7 @@ describe('/api/checkout - Security Tests', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -615,8 +523,7 @@ describe('/api/checkout - Security Tests', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -630,8 +537,7 @@ describe('/api/checkout - Security Tests', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -645,8 +551,7 @@ describe('/api/checkout - Security Tests', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -670,8 +575,7 @@ describe('/api/checkout - Security Tests', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
@@ -688,8 +592,7 @@ describe('/api/checkout - Security Tests', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         body: JSON.stringify({
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         }),
       })
 
