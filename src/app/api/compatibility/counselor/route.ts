@@ -35,8 +35,6 @@ function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string):
 }
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
-import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
-import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 
 export const dynamic = 'force-dynamic'
@@ -564,101 +562,6 @@ export async function POST(req: NextRequest) {
         logger.warn('[compat counselor] astro synastry failed', { err: err instanceof Error ? err.message : String(err) })
       }
     }
-
-    // ── 각 사람 self 블록 (raw + cross 통합 — 운명 상담사와 동일 형식) ──
-    let sajuSelfA = ''
-    let sajuSelfB = ''
-    let astroSelfA = ''
-    let astroSelfB = ''
-    try {
-      const aP = (effectivePerson1Saju as { pillars?: Record<string, Record<string, unknown>> } | null)?.pillars
-      const bP = (effectivePerson2Saju as { pillars?: Record<string, Record<string, unknown>> } | null)?.pillars
-      const toSlot = (slot?: Record<string, unknown>) => {
-        const stem = slot?.heavenlyStem as { name?: string; sibsin?: string } | undefined
-        const branch = slot?.earthlyBranch as { name?: string; sibsin?: string } | undefined
-        const j = slot?.jijanggan as { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } } | undefined
-        return {
-          stem: stem?.name ?? '',
-          branch: branch?.name ?? '',
-          stemSibsin: stem?.sibsin,
-          branchSibsin: branch?.sibsin,
-          jijanggan: [j?.chogi?.name, j?.junggi?.name, j?.jeonggi?.name].filter((s): s is string => Boolean(s)),
-        }
-      }
-      const buildSajuSelf = (
-        sajuCtx: Record<string, unknown> | null | undefined,
-        pillarsRecord: Record<string, Record<string, unknown>> | undefined,
-        label: string,
-      ): string => {
-        if (!pillarsRecord) return ''
-        const dm = (sajuCtx?.dayMaster as { name?: string; element?: string; yin_yang?: string } | undefined)
-        const daeWoon = (sajuCtx?.daeWoon as { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null; list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }> } | undefined)
-        const extras = (sajuCtx?.extras as { geokguk?: { primary?: string } | null; yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null } | undefined)
-        const cur = daeWoon?.current
-        const daeunList = (daeWoon?.list ?? []).map((d) => ({
-          age: d.age ?? 0,
-          stem: d.heavenlyStem ?? '',
-          branch: d.earthlyBranch ?? '',
-          sibsinStem: d.sibsin?.cheon,
-          sibsinBranch: d.sibsin?.ji,
-        }))
-        return formatSajuSelf({
-          pillars: [toSlot(pillarsRecord.year), toSlot(pillarsRecord.month), toSlot(pillarsRecord.day), toSlot(pillarsRecord.time)],
-          dayMaster: dm?.name ? { name: dm.name, element: dm.element ?? '', yinYang: dm.yin_yang } : null,
-          geokguk: extras?.geokguk?.primary ?? null,
-          yongsin: extras?.yongsin ?? null,
-          daeunList,
-          currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
-          label,
-        })
-      }
-      sajuSelfA = buildSajuSelf(effectivePerson1Saju as Record<string, unknown> | null, aP, 'A 사주')
-      sajuSelfB = buildSajuSelf(effectivePerson2Saju as Record<string, unknown> | null, bP, 'B 사주')
-    } catch (err) {
-      logger.warn('[compat counselor] saju-self format failed', { err: err instanceof Error ? err.message : String(err) })
-    }
-
-    if (person1Seed && person2Seed && process.env.NODE_ENV !== 'test') {
-      try {
-        const [Y1, M1, D1] = person1Seed.date.split('-').map(Number)
-        const [h1, mi1] = person1Seed.time.split(':').map(Number)
-        const [Y2, M2, D2] = person2Seed.date.split('-').map(Number)
-        const [h2, mi2] = person2Seed.time.split(':').map(Number)
-        if ([Y1, M1, D1, h1, mi1, Y2, M2, D2, h2, mi2].every(Number.isFinite)) {
-          const [natalA, natalB] = await Promise.all([
-            calculateNatalChart({ year: Y1, month: M1, date: D1, hour: h1, minute: mi1, latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone }),
-            calculateNatalChart({ year: Y2, month: M2, date: D2, hour: h2, minute: mi2, latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone }),
-          ])
-          ;[astroSelfA, astroSelfB] = await Promise.all([
-            formatAstroSelf({
-              chart: toChart(natalA),
-              latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone,
-              koreanAge: p1Age,
-              natalInput: { year: Y1, month: M1, date: D1, hour: h1, minute: mi1, latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone },
-              label: 'A 점성',
-            }),
-            formatAstroSelf({
-              chart: toChart(natalB),
-              latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone,
-              koreanAge: p2Age,
-              natalInput: { year: Y2, month: M2, date: D2, hour: h2, minute: mi2, latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone },
-              label: 'B 점성',
-            }),
-          ])
-        }
-      } catch (err) {
-        logger.warn('[compat counselor] astro-self format failed', { err: err instanceof Error ? err.message : String(err) })
-      }
-    }
-
-    // 궁합 상담사는 *관계*만 답하므로 각 사람 self block은 빼고 synastry만
-    // 보낸다. synastry 라인이 각 사람 일간·대운 등 핵심 정보를 이미 포함.
-    // 개별 self는 운명 상담사 영역. self 변수는 build만 유지 (extraction
-    // 흐름은 다른 곳에서 참조 가능).
-    void sajuSelfA
-    void sajuSelfB
-    void astroSelfA
-    void astroSelfB
 
     // [Meta] 라인 — A/B 각자의 birthTimeUnknown / birthCityUnknown
     // 플래그 + location/timezone. system prompt 의 "[Meta] 의 ...=true
