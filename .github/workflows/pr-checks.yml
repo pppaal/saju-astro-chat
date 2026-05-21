@@ -184,6 +184,12 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      # 실제 Swiss Ephemeris 골든 회귀 — vitest 는 ephemeris 를 목킹하므로
+      # 천체 계산 정확도는 여기서만 검증된다. ephemeris 라이브러리/데이터
+      # 교체 시 silent regression 차단. (build 깨짐과 무관하게 먼저 실행)
+      - name: Ephemeris golden
+        run: npm run test:ephemeris-golden
+
       - name: Typecheck regression gate
         run: npm run ops:typecheck:gate
 
