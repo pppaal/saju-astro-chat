@@ -63,7 +63,12 @@ if (!shouldUseRealFetch) {
   process.env.NEXT_PUBLIC_AI_BACKEND = 'http://localhost:5000'
 }
 
-// Mock SwissEph (server-only module) for browser-based tests
+// ⚠️ Mock SwissEph (server-only module) for browser-based tests.
+// 주의: 아래 swe_calc_ut / swe_houses 가 돌려주는 행성·하우스 값은 *가짜*다
+// (태양이 늘 ~쌍둥이 9°). 구조/배선/로더 테스트용일 뿐, 천문적으로 틀리다.
+// 절대 이 값을 실제 위치로 eyeball 하지 말 것. 실제 천체력 정확성은
+// tests/lib/astrology/real-ephemeris-correctness.test.ts 에서 mock 을 풀고
+// (vi.unmock + @vitest-environment node) 검증한다.
 vi.mock('swisseph', () => ({
   default: {
     swe_set_ephe_path: vi.fn(),
