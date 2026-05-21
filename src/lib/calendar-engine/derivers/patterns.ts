@@ -31,6 +31,48 @@ const isTrigger = (s: ActiveSignal) => TRIGGER_LAYERS.includes(s.layer)
 const isBackground = (s: ActiveSignal) =>
   s.layer === 'decadal' || s.layer === 'yearly' || s.layer === 'monthly'
 
+// ── 십신 조합 (古典 명리) 헬퍼 ──
+// 두 십신이 "활성 기간"(歲運·月運·日辰)에 동시 존재할 때 발동.
+// decadal(大運)은 10년 고정이라 제외 — 그래야 달·해마다 패턴이 바뀜.
+// 방향 게이트: 같은 조합도 用神 조화에 따라 길흉이 갈리므로(예: 신약의
+// 비겁은 오히려 도움) polarity 부호로 차트별 작동 여부를 가린다.
+const PERIOD_LAYERS: SignalLayer[] = ['yearly', 'monthly', 'daily']
+function sibsinSignals(signals: ActiveSignal[], names: string[]): ActiveSignal[] {
+  return signals.filter(
+    (s) =>
+      s.kind === 'pillar-sibsin' &&
+      PERIOD_LAYERS.includes(s.layer) &&
+      names.includes((s.evidence.sibsin as string | undefined) ?? '')
+  )
+}
+function netPolarity(sigs: ActiveSignal[]): number {
+  if (sigs.length === 0) return 0
+  return sigs.reduce((a, s) => a + s.polarity * (s.weight ?? 0.5), 0) / sigs.length
+}
+function comboMatch(
+  groupA: ActiveSignal[],
+  groupB: ActiveSignal[],
+  dir: 'favorable' | 'caution'
+): { matched: boolean; strength: number; matchedIds: string[] } {
+  if (groupA.length === 0 || groupB.length === 0) {
+    return { matched: false, strength: 0, matchedIds: [] }
+  }
+  const all = [...groupA, ...groupB]
+  const net = netPolarity(all)
+  // 차트별 작동 게이트 — 길조합은 비음(非陰), 흉조합은 비양(非陽)일 때만.
+  if (dir === 'favorable' && net < 0.1) return { matched: false, strength: 0, matchedIds: [] }
+  if (dir === 'caution' && net > -0.1) return { matched: false, strength: 0, matchedIds: [] }
+  const mag = Math.min(1, Math.abs(net))
+  const strength = Math.min(100, 55 + Math.round(mag * 30) + (groupA.length + groupB.length) * 3)
+  return { matched: true, strength, matchedIds: [...new Set(all.map((s) => s.id))] }
+}
+
+const GWAN = ['정관', '편관']
+const IN = ['정인', '편인']
+const JAE = ['정재', '편재']
+const SIKSANG = ['식신', '상관']
+const BIGYEOP = ['비견', '겁재']
+
 const RULES: PatternRule[] = [
   // ─── 1. 재물 황금주 ───
   // 트리거: 일진 또는 월운에서 재성 활성 + 그 날 길성 트랜짓 peak
@@ -43,38 +85,41 @@ const RULES: PatternRule[] = [
     action: '투자·계약·큰 결정·재정 정리에 우호적. 미뤘던 돈 관련 일을 처리하기 좋음.',
     match(signals) {
       // 트리거: transient 레이어 재성만 카운트
-      const wealthTransient = signals.filter((s) =>
-        isTrigger(s) &&
-        (s.evidence.sibsin === '정재' || s.evidence.sibsin === '편재'),
+      const wealthTransient = signals.filter(
+        (s) => isTrigger(s) && (s.evidence.sibsin === '정재' || s.evidence.sibsin === '편재')
       )
       // 길성 트랜짓 — daily 신호 (transit 추출기는 segment 단위로 daily/monthly 분류)
       // peak 근처만 = orb 작은 거 (≤ 2°)
-      const beneficTransitPeak = signals.filter((s) =>
-        s.kind === 'transit' &&
-        isTrigger(s) &&
-        (s.evidence.planets?.includes('Jupiter') || s.evidence.planets?.includes('Venus')) &&
-        s.polarity >= 2 &&
-        ((s.evidence.orbDegrees ?? 99) <= 2.5),
+      const beneficTransitPeak = signals.filter(
+        (s) =>
+          s.kind === 'transit' &&
+          isTrigger(s) &&
+          (s.evidence.planets?.includes('Jupiter') || s.evidence.planets?.includes('Venus')) &&
+          s.polarity >= 2 &&
+          (s.evidence.orbDegrees ?? 99) <= 2.5
       )
       if (wealthTransient.length === 0 || beneficTransitPeak.length === 0) {
         return { matched: false, strength: 0, matchedIds: [] }
       }
 
       // 배경 보너스 — 大運/歲運에 재성 있으면 strength 추가
-      const wealthBackground = signals.filter((s) =>
-        isBackground(s) &&
-        (s.evidence.sibsin === '정재' || s.evidence.sibsin === '편재'),
+      const wealthBackground = signals.filter(
+        (s) => isBackground(s) && (s.evidence.sibsin === '정재' || s.evidence.sibsin === '편재')
       )
-      const yongsinPrimary = signals.filter((s) =>
-        s.evidence.module === 'saju-yongsin' &&
-        (s.evidence.detail as { verdict?: string }).verdict === 'primary',
+      const yongsinPrimary = signals.filter(
+        (s) =>
+          s.evidence.module === 'saju-yongsin' &&
+          (s.evidence.detail as { verdict?: string }).verdict === 'primary'
       )
 
       const ids = [...wealthTransient, ...beneficTransitPeak].map((s) => s.id)
       const strength = Math.min(
         100,
-        50 + wealthTransient.length * 8 + beneficTransitPeak.length * 12 +
-        wealthBackground.length * 5 + yongsinPrimary.length * 10,
+        50 +
+          wealthTransient.length * 8 +
+          beneficTransitPeak.length * 12 +
+          wealthBackground.length * 5 +
+          yongsinPrimary.length * 10
       )
       return { matched: true, strength, matchedIds: ids }
     },
@@ -90,18 +135,22 @@ const RULES: PatternRule[] = [
     action: '소개 자리·모임·연락 시도가 우호적. 평소 어울리지 않는 곳에서 새 인연 가능.',
     match(signals) {
       // 도화·홍염은 일진 단위로만 (shinsal 추출기는 daily 레이어)
-      const dohwaTransient = signals.filter((s) =>
-        isTrigger(s) &&
-        (s.evidence.shinsalName === '도화' || s.evidence.shinsalName === '도화살' ||
-         s.evidence.shinsalName === '홍염' || s.evidence.shinsalName === '홍염살'),
+      const dohwaTransient = signals.filter(
+        (s) =>
+          isTrigger(s) &&
+          (s.evidence.shinsalName === '도화' ||
+            s.evidence.shinsalName === '도화살' ||
+            s.evidence.shinsalName === '홍염' ||
+            s.evidence.shinsalName === '홍염살')
       )
       // Venus 트랜짓 peak (orb 작은 거)
-      const venusPeak = signals.filter((s) =>
-        s.kind === 'transit' &&
-        isTrigger(s) &&
-        s.evidence.planets?.includes('Venus') &&
-        s.polarity >= 1 &&
-        ((s.evidence.orbDegrees ?? 99) <= 2.5),
+      const venusPeak = signals.filter(
+        (s) =>
+          s.kind === 'transit' &&
+          isTrigger(s) &&
+          s.evidence.planets?.includes('Venus') &&
+          s.polarity >= 1 &&
+          (s.evidence.orbDegrees ?? 99) <= 2.5
       )
       // 둘 다 있어야 트리거 (한쪽만으론 부족 — 신살 자주, 트랜짓 자주 → 둘 다 + peak)
       if (dohwaTransient.length === 0 || venusPeak.length === 0) {
@@ -123,9 +172,7 @@ const RULES: PatternRule[] = [
     action: '큰 결정·계약·이동·새 시작은 길일로 미루기. 일상 루틴 유지에 집중.',
     match(signals) {
       // transient 흉신호만 카운트 — decadal 흉 신호 매일 동일이라 제외
-      const bad = signals.filter((s) =>
-        isTrigger(s) && s.polarity <= -2 && s.weight >= 0.6,
-      )
+      const bad = signals.filter((s) => isTrigger(s) && s.polarity <= -2 && s.weight >= 0.6)
       if (bad.length < 5) return { matched: false, strength: 0, matchedIds: [] }
       const avgPol = bad.reduce((a, s) => a + s.polarity, 0) / bad.length
       if (avgPol > -1.5) return { matched: false, strength: 0, matchedIds: [] }
@@ -156,13 +203,16 @@ const RULES: PatternRule[] = [
         source: 'saju' | 'astro',
         layers: SignalLayer[],
         minLayers: number,
-        minMag: number,
+        minMag: number
       ): 'positive' | 'negative' | null {
         const layerAvgs: Record<string, number> = {}
         let valid = 0
         for (const l of layers) {
           const sigs = signals.filter((s) => s.layer === l && s.source === source)
-          if (sigs.length === 0) { layerAvgs[l] = 0; continue }
+          if (sigs.length === 0) {
+            layerAvgs[l] = 0
+            continue
+          }
           layerAvgs[l] = sigs.reduce((a, s) => a + s.polarity * s.weight, 0) / sigs.length
           valid++
         }
@@ -186,7 +236,7 @@ const RULES: PatternRule[] = [
 
       const dominant = sajuAlign
       const matched = signals.filter((s) =>
-        (dominant === 'positive' ? s.polarity >= 1 : s.polarity <= -1),
+        dominant === 'positive' ? s.polarity >= 1 : s.polarity <= -1
       )
       return { matched: true, strength: 99, matchedIds: matched.map((s) => s.id) }
     },
@@ -207,7 +257,10 @@ const RULES: PatternRule[] = [
       let validLayers = 0
       for (const l of layers) {
         const sigs = signals.filter((s) => s.layer === l && s.source === 'saju')
-        if (sigs.length === 0) { layerAvgs[l] = 0; continue }
+        if (sigs.length === 0) {
+          layerAvgs[l] = 0
+          continue
+        }
         layerAvgs[l] = sigs.reduce((a, s) => a + s.polarity * s.weight, 0) / sigs.length
         validLayers++
       }
@@ -223,8 +276,8 @@ const RULES: PatternRule[] = [
       const negative = allNeg && minMagnitude >= 0.2
       if (!positive && !negative) return { matched: false, strength: 0, matchedIds: [] }
       const dominant = positive ? 1 : -1
-      const matched = signals.filter((s) =>
-        s.source === 'saju' && layers.includes(s.layer) && s.polarity * dominant >= 1,
+      const matched = signals.filter(
+        (s) => s.source === 'saju' && layers.includes(s.layer) && s.polarity * dominant >= 1
       )
       return { matched: true, strength: 92, matchedIds: matched.map((s) => s.id) }
     },
@@ -245,7 +298,10 @@ const RULES: PatternRule[] = [
       let validLayers = 0
       for (const l of layers) {
         const sigs = signals.filter((s) => s.layer === l && s.source === 'astro')
-        if (sigs.length === 0) { layerAvgs[l] = 0; continue }
+        if (sigs.length === 0) {
+          layerAvgs[l] = 0
+          continue
+        }
         layerAvgs[l] = sigs.reduce((a, s) => a + s.polarity * s.weight, 0) / sigs.length
         validLayers++
       }
@@ -260,8 +316,8 @@ const RULES: PatternRule[] = [
       const negative = allNeg && minMagnitude >= 0.15
       if (!positive && !negative) return { matched: false, strength: 0, matchedIds: [] }
       const dominant = positive ? 1 : -1
-      const matched = signals.filter((s) =>
-        s.source === 'astro' && layers.includes(s.layer) && s.polarity * dominant >= 1,
+      const matched = signals.filter(
+        (s) => s.source === 'astro' && layers.includes(s.layer) && s.polarity * dominant >= 1
       )
       return { matched: true, strength: 90, matchedIds: matched.map((s) => s.id) }
     },
@@ -276,15 +332,14 @@ const RULES: PatternRule[] = [
     description: '천을귀인 일진 + 길성 트라인',
     action: '부탁·조언·중요한 만남 — 평소 멀어진 인맥에 먼저 연락하기 좋음.',
     match(signals) {
-      const noble = signals.find((s) =>
-        isTrigger(s) && s.evidence.shinsalName === '천을귀인',
-      )
-      const benefic = signals.find((s) =>
-        s.kind === 'transit' &&
-        isTrigger(s) &&
-        s.evidence.aspectType === 'trine' &&
-        (s.evidence.planets?.includes('Jupiter') || s.evidence.planets?.includes('Venus')) &&
-        ((s.evidence.orbDegrees ?? 99) <= 3),
+      const noble = signals.find((s) => isTrigger(s) && s.evidence.shinsalName === '천을귀인')
+      const benefic = signals.find(
+        (s) =>
+          s.kind === 'transit' &&
+          isTrigger(s) &&
+          s.evidence.aspectType === 'trine' &&
+          (s.evidence.planets?.includes('Jupiter') || s.evidence.planets?.includes('Venus')) &&
+          (s.evidence.orbDegrees ?? 99) <= 3
       )
       if (!noble || !benefic) return { matched: false, strength: 0, matchedIds: [] }
       return { matched: true, strength: 85, matchedIds: [noble.id, benefic.id] }
@@ -301,11 +356,12 @@ const RULES: PatternRule[] = [
     action: '큰 그림을 다시 그리기 좋음. 작은 일에 매이지 말고 방향성 점검.',
     match(signals) {
       // 트리거: 외행성 트랜짓 peak (orb ≤ 2°)만
-      const slowTransitPeak = signals.find((s) =>
-        s.kind === 'transit' &&
-        isTrigger(s) &&
-        s.evidence.planets?.some((p) => ['Saturn', 'Uranus', 'Neptune', 'Pluto'].includes(p)) &&
-        ((s.evidence.orbDegrees ?? 99) <= 2),
+      const slowTransitPeak = signals.find(
+        (s) =>
+          s.kind === 'transit' &&
+          isTrigger(s) &&
+          s.evidence.planets?.some((p) => ['Saturn', 'Uranus', 'Neptune', 'Pluto'].includes(p)) &&
+          (s.evidence.orbDegrees ?? 99) <= 2
       )
       if (!slowTransitPeak) return { matched: false, strength: 0, matchedIds: [] }
 
@@ -319,6 +375,75 @@ const RULES: PatternRule[] = [
         strength: 50 + hits.length * 15,
         matchedIds: hits.map((s) => s.id),
       }
+    },
+  },
+
+  // ─── 7. 관인상생 (官印相生) — 권위 + 후원이 함께 흐름 ───
+  {
+    id: 'gwan-in-flow',
+    name: '관인상생',
+    themes: ['career', 'growth'],
+    headline: '인정·승진의 결재선이 열리는 흐름',
+    description: '관성 + 인성이 같은 기간에 동시 작동 (윗선의 인정 + 받쳐주는 후원)',
+    action: '승진·자격·결재·공식 절차에 우호적. 윗사람·기관에 정식으로 제안하기 좋음.',
+    match(signals) {
+      return comboMatch(sibsinSignals(signals, GWAN), sibsinSignals(signals, IN), 'favorable')
+    },
+  },
+
+  // ─── 8. 식상생재 (食傷生財) — 재능·표현이 돈으로 ───
+  {
+    id: 'siksang-wealth',
+    name: '식상생재',
+    themes: ['money', 'career'],
+    headline: '재능이 수익으로 이어지는 흐름',
+    description: '식상(표현·생산) + 재성(수익)이 같은 기간에 동시 작동',
+    action: '콘텐츠·영업·사이드 프로젝트·창작의 수익화에 우호적. 만든 것을 파는 행동으로.',
+    match(signals) {
+      return comboMatch(sibsinSignals(signals, SIKSANG), sibsinSignals(signals, JAE), 'favorable')
+    },
+  },
+
+  // ─── 9. 재생관 (財生官) — 재물이 지위·신뢰로 ───
+  {
+    id: 'wealth-to-status',
+    name: '재생관',
+    themes: ['career', 'money'],
+    headline: '재물이 지위·신뢰로 환산되는 흐름',
+    description: '재성 + 관성이 같은 기간에 동시 작동 (성과가 직책·평판으로)',
+    action: '실적을 가시화해 직책·계약·평판으로 연결하기 좋음. 투자가 입지로 돌아오는 시기.',
+    match(signals) {
+      return comboMatch(sibsinSignals(signals, JAE), sibsinSignals(signals, GWAN), 'favorable')
+    },
+  },
+
+  // ─── 10. 군겁쟁재 (群劫爭財) — 경쟁이 재물을 분탈 ───
+  {
+    id: 'wealth-rivalry',
+    name: '군겁쟁재',
+    themes: ['money'],
+    headline: '경쟁·분탈로 돈이 새기 쉬운 흐름',
+    description: '비겁(경쟁) + 재성이 동시 작동하며 이 차트엔 불리하게 기움',
+    action: '동업·금전 대여·공동 지출은 신중히. 내 몫을 분명히 하고 큰 지출은 미루기.',
+    match(signals) {
+      return comboMatch(sibsinSignals(signals, BIGYEOP), sibsinSignals(signals, JAE), 'caution')
+    },
+  },
+
+  // ─── 11. 상관견관 (傷官見官) — 표현이 규칙·윗선과 충돌 ───
+  {
+    id: 'output-vs-authority',
+    name: '상관견관',
+    themes: ['career'],
+    headline: '윗선·규칙과 부딪히기 쉬운 흐름',
+    description: '상관(자유로운 표현) + 정관(규칙·권위)이 충돌 방향으로 작동',
+    action: '상사·계약·법·규정과의 마찰 주의. 감정적 직언·SNS 설화 조심, 공식 절차는 또렷이.',
+    match(signals) {
+      return comboMatch(
+        sibsinSignals(signals, ['상관']),
+        sibsinSignals(signals, ['정관']),
+        'caution'
+      )
     },
   },
 ]

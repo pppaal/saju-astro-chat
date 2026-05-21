@@ -444,6 +444,97 @@ export const RULES: InterpretationRule[] = [
     themes: ['money'],
   },
   {
+    id: 'pattern-gwan-in-flow',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 84,
+    conditions: {
+      patternId: ['gwan-in-flow'],
+    },
+    template:
+      `**관인상생(官印相生)** 흐름이 들어왔어요 — 윗선의 인정과 받쳐주는 ` +
+      `후원이 함께 움직여요. 승진·자격·결재·공식 절차에 우호적이라, ` +
+      `기관·윗사람에게 정식으로 제안하기 좋은 달이에요.`,
+    templateEn:
+      `An **"authority-meets-support" (官印相生)** current is in play — recognition from ` +
+      `above and backing that supports you move together. Favourable for promotion, ` +
+      `credentials, approvals, and official steps — a good month to make formal proposals.`,
+    themes: ['career', 'growth'],
+  },
+  {
+    id: 'pattern-siksang-wealth',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 83,
+    conditions: {
+      patternId: ['siksang-wealth'],
+    },
+    template:
+      `**식상생재(食傷生財)** 흐름 — 재능과 표현이 곧장 수익으로 ` +
+      `이어지는 달이에요. 콘텐츠·영업·창작·사이드 프로젝트를 ` +
+      `'만들고 파는' 행동까지 밀고 가면 결과가 따라와요.`,
+    templateEn:
+      `A **"talent-into-income" (食傷生財)** current — what you make and express turns ` +
+      `straight into earnings this month. Push content, sales, creative work, and side ` +
+      `projects all the way to "make it and sell it," and results follow.`,
+    themes: ['money', 'career'],
+  },
+  {
+    id: 'pattern-wealth-to-status',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 83,
+    conditions: {
+      patternId: ['wealth-to-status'],
+    },
+    template:
+      `**재생관(財生官)** 흐름 — 성과가 직책·신뢰·평판으로 환산되는 ` +
+      `달이에요. 실적을 또렷이 가시화해 계약·직책·공식 인정으로 ` +
+      `연결하면, 들인 것이 입지로 돌아와요.`,
+    templateEn:
+      `A **"results-into-standing" (財生官)** current — achievements convert into title, ` +
+      `trust, and reputation this month. Make your results visible and tie them to ` +
+      `contracts, roles, or formal recognition, and what you invested returns as standing.`,
+    themes: ['career', 'money'],
+  },
+  {
+    id: 'pattern-wealth-rivalry',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 86,
+    conditions: {
+      patternId: ['wealth-rivalry'],
+    },
+    template:
+      `**군겁쟁재(群劫爭財)** 주의 — 경쟁·분탈로 돈이 새기 쉬운 달이에요. ` +
+      `동업·금전 대여·공동 지출은 신중히, 내 몫을 분명히 하고 큰 ` +
+      `지출은 또렷한 날로 미루는 게 안전해요.`,
+    templateEn:
+      `Caution for **"rivalry over wealth" (群劫爭財)** — money leaks easily through ` +
+      `competition and splitting this month. Be careful with partnerships, lending, and ` +
+      `shared spending; make your share clear and push big outlays to a clearer day.`,
+    themes: ['money'],
+  },
+  {
+    id: 'pattern-output-vs-authority',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 85,
+    conditions: {
+      patternId: ['output-vs-authority'],
+    },
+    template:
+      `**상관견관(傷官見官)** 주의 — 자유로운 표현이 규칙·윗선과 ` +
+      `부딪히기 쉬운 달이에요. 상사·계약·법규와의 마찰, 감정적 ` +
+      `직언·SNS 설화를 조심하고 공식 절차는 또렷하게 처리하세요.`,
+    templateEn:
+      `Caution for **"expression clashes with authority" (傷官見官)** — free expression ` +
+      `bumps against rules and those above you this month. Watch for friction with bosses, ` +
+      `contracts, and regulations, mind blunt remarks and social-media slips, and handle ` +
+      `official steps carefully.`,
+    themes: ['career'],
+  },
+  {
     id: 'pattern-noble-fortune',
     scope: 'monthly',
     section: 'pattern',
