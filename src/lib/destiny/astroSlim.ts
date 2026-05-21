@@ -45,7 +45,7 @@ const NATAL_LIMIT = 6.0
 const NATAL_TOP = 10
 const TRANSIT_LIMIT = 3.0
 const TRANSIT_TOP = 10
-const DROP = ['Fixed Stars', 'Lunar Return', 'Secondary Progression', '현재 시점 행성 신호']
+const DROP = ['Fixed Stars', 'Lunar Return', '현재 시점 행성 신호']
 
 const ASP_GLOSS_KO: Record<string, string> = {
   Conjunction: '결합', Opposition: '대립', Trine: '조화', Square: '긴장', Sextile: '협력',
@@ -187,6 +187,26 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       if (topN >= 3) {
         const ps = byHouse[topH].map((p) => pko(p, l)).join('·')
         out.push(l === 'ko' ? `행성 몰림: ${topH}하우스 (${ps})` : `Stellium: House ${topH} (${ps})`)
+      }
+      // SR Saturn house — the year's responsibility/test area (관계·구조 등)
+      const sat = body.find((b) => b.startsWith('Saturn '))
+      const stm = sat && POS.exec(sat.replace(/(\d+)°\d+'/, '$1°'))
+      if (stm && stm[4]) {
+        out.push(l === 'ko'
+          ? `토성(책임·시련) ${sko(stm[2], l)} ${stm[4]}하우스`
+          : `Saturn (responsibility/test) ${stm[2]}, House ${stm[4]}`)
+      }
+      out.push('')
+      i = j; continue
+    }
+
+    if (name.includes('Secondary Progression')) {
+      out.push(l === 'ko' ? '[2차 진행 — 인생 내면 흐름]' : '[Secondary Progression — inner timing]')
+      for (const b of body) {
+        const m = b.match(/^Progressed (Sun|Moon):\s*([A-Za-z]+)\s*(\d+)/)
+        if (!m) continue
+        const ko = m[1] === 'Sun' ? '진행 태양(인생 계절·자아 성숙)' : '진행 달(요즘 감정 흐름)'
+        out.push(l === 'ko' ? `${ko}: ${sko(m[2], l)} ${m[3]}°` : `Progressed ${m[1]}: ${m[2]} ${m[3]}°`)
       }
       out.push('')
       i = j; continue
