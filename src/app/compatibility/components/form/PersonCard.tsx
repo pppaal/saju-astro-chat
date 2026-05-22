@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { User, Users, ChevronDown, Loader2 } from 'lucide-react'
+import { User, Users, ChevronDown, Loader2, UserPlus, Check } from 'lucide-react'
 import { type PersonForm, type Relation } from '../../lib/types'
 import { useCitySearch } from '@/hooks/calendar/useCitySearch'
 import { formatCityForDropdown } from '@/lib/cities/formatter'
@@ -21,6 +21,8 @@ interface PersonCardProps {
   onPickCity: (idx: number, city: CityResult) => void
   onToggleCircleDropdown: () => void
   onFillFromCircle: (idx: number, person: CirclePerson) => void
+  /** 입력한 사람을 지인으로 저장. 성공 시 true. */
+  onSaveToCircle?: (idx: number) => Promise<boolean>
 }
 
 /**
@@ -51,10 +53,24 @@ export const PersonCard = React.memo<PersonCardProps>(
     onPickCity,
     onToggleCircleDropdown,
     onFillFromCircle,
+    onSaveToCircle,
   }) => {
     const idx = index
     const isKo = locale === 'ko' || locale.startsWith('ko')
     const [profileLoading, setProfileLoading] = useState(false)
+    const [savingCircle, setSavingCircle] = useState(false)
+    const [savedCircle, setSavedCircle] = useState(false)
+    const canSaveCircle = !!person.name?.trim() && !!person.date
+    const handleSaveCircle = useCallback(async () => {
+      if (!onSaveToCircle || savingCircle || !canSaveCircle) return
+      setSavingCircle(true)
+      const ok = await onSaveToCircle(idx)
+      setSavingCircle(false)
+      if (ok) {
+        setSavedCircle(true)
+        setTimeout(() => setSavedCircle(false), 2000)
+      }
+    }, [onSaveToCircle, savingCircle, canSaveCircle, idx])
     const timeUnknown = person.timeUnknown ?? (!person.time || person.time === '00:00')
     const setTimeUnknown = useCallback(
       (value: boolean) => onUpdatePerson(idx, 'timeUnknown', value),
@@ -184,23 +200,55 @@ export const PersonCard = React.memo<PersonCardProps>(
                   {t('compatibilityPage.loadMyProfile', '내 프로필')}
                 </button>
               )}
+              {/* 지인으로 저장 — 입력한 사람을 My Circle에 추가해 다음에 불러옴. */}
+              {onSaveToCircle && (
+                <button
+                  type="button"
+                  onClick={handleSaveCircle}
+                  disabled={savingCircle || !canSaveCircle}
+                  title={isKo ? '이 사람을 지인으로 저장' : 'Save this person to My Circle'}
+                  className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[11.5px] font-medium text-violet-100 transition hover:border-violet-300/50 hover:bg-violet-400/15 disabled:opacity-50"
+                >
+                  {savingCircle ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : savedCircle ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <UserPlus className="h-3 w-3" />
+                  )}
+                  {savedCircle
+                    ? isKo
+                      ? '저장됨'
+                      : 'Saved'
+                    : isKo
+                      ? '지인 저장'
+                      : 'Save'}
+                </button>
+              )}
               {/* `data-circle-dropdown` 필수: useMyCircle 의 document
                   click listener 가 이 attr 의 ancestor 아니면 dropdown
-                  닫음. 빼면 첫 클릭에 닫혀서 selection 실패. */}
-              {circlePeople.length > 0 && (
-                <div className="relative" data-circle-dropdown>
-                  <button
-                    type="button"
-                    onClick={onToggleCircleDropdown}
-                    className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[11.5px] font-medium text-violet-100 transition hover:border-violet-300/50 hover:bg-violet-400/15"
-                  >
-                    <Users className="h-3 w-3" />
-                    {t('compatibilityPage.fromCircle', '지인에서')}
-                    <ChevronDown className="h-3 w-3" />
-                  </button>
-                  {showCircleDropdown && (
-                    <ul className="absolute right-0 z-20 mt-1 max-h-56 w-56 overflow-auto rounded-xl border border-violet-400/25 bg-[#0c1024] shadow-xl">
-                      {circlePeople.map((cp) => (
+                  닫음. 빼면 첫 클릭에 닫혀서 selection 실패. 비어 있어도
+                  진입점은 항상 노출(저장 안내). */}
+              <div className="relative" data-circle-dropdown>
+                <button
+                  type="button"
+                  onClick={onToggleCircleDropdown}
+                  className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[11.5px] font-medium text-violet-100 transition hover:border-violet-300/50 hover:bg-violet-400/15"
+                >
+                  <Users className="h-3 w-3" />
+                  {t('compatibilityPage.fromCircle', '지인에서')}
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+                {showCircleDropdown && (
+                  <ul className="absolute right-0 z-20 mt-1 max-h-56 w-56 overflow-auto rounded-xl border border-violet-400/25 bg-[#0c1024] shadow-xl">
+                    {circlePeople.length === 0 ? (
+                      <li className="px-3 py-2.5 text-[12px] leading-relaxed text-slate-400">
+                        {isKo
+                          ? '저장된 지인이 없어요. 정보 입력 후 "지인 저장"을 눌러보세요.'
+                          : 'No saved people yet. Fill in the info, then tap "Save".'}
+                      </li>
+                    ) : (
+                      circlePeople.map((cp) => (
                         <li key={cp.id}>
                           <button
                             type="button"
@@ -213,11 +261,11 @@ export const PersonCard = React.memo<PersonCardProps>(
                             )}
                           </button>
                         </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
+                      ))
+                    )}
+                  </ul>
+                )}
+              </div>
             </div>
           )}
         </div>

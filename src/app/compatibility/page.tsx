@@ -40,8 +40,43 @@ export default function CompatPage() {
 
   useCityAutocomplete(persons, setPersons)
 
-  const { circlePeople, showCircleDropdown, setShowCircleDropdown, circleError } =
+  const { circlePeople, showCircleDropdown, setShowCircleDropdown, circleError, refreshCircle } =
     useMyCircle(status)
+
+  // 폼에 입력한 사람을 내 지인(My Circle)으로 저장 → 다음에 드롭다운에서 불러옴.
+  const saveToCircle = useCallback(
+    async (idx: number): Promise<boolean> => {
+      const p = persons[idx]
+      if (!p?.name?.trim() || !p?.date) return false
+      try {
+        const res = await fetch('/api/me/circle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: p.name.trim(),
+            relation: idx === 0 ? 'self' : p.relation || 'friend',
+            birthDate: p.date,
+            birthTime: p.time || null,
+            gender: p.gender
+              ? String(p.gender).toLowerCase().startsWith('f')
+                ? 'female'
+                : 'male'
+              : null,
+            birthCity: p.cityQuery || null,
+            latitude: p.lat ?? null,
+            longitude: p.lon ?? null,
+            tzId: p.timeZone || null,
+          }),
+        })
+        if (!res.ok) return false
+        refreshCircle()
+        return true
+      } catch {
+        return false
+      }
+    },
+    [persons, refreshCircle]
+  )
 
   // Form-level validation only — submit routes straight to
   // /compatibility/counselor instead of running an inline analysis.
@@ -181,6 +216,7 @@ export default function CompatPage() {
                     setShowCircleDropdown(showCircleDropdown === idx ? null : idx)
                   }
                   onFillFromCircle={fillFromCircle}
+                  onSaveToCircle={saveToCircle}
                 />
               ))}
             </div>
