@@ -234,6 +234,42 @@ describe('buildInterpretStreamPrompts — English', () => {
   })
 })
 
+describe('buildInterpretStreamPrompts — blank question opening', () => {
+  it('KO: blank question opens with the general flow, not a forced question reference', () => {
+    const blank = buildInterpretStreamPrompts({
+      language: 'ko',
+      spreadTitle: SAMPLE_SPREAD,
+      cards: SAMPLE_CARDS,
+      userQuestion: '   ',
+    })
+    expect(blank.userPrompt).toContain('전반적인 운세 흐름으로 자연스럽게 시작')
+    expect(blank.userPrompt).not.toContain('사용자의 질문을 직접 언급하면서 시작')
+    expect(blank.systemPrompt).toContain('첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작')
+  })
+
+  it('KO: a real question keeps the question-reference opening', () => {
+    const withQ = buildInterpretStreamPrompts({
+      language: 'ko',
+      spreadTitle: SAMPLE_SPREAD,
+      cards: SAMPLE_CARDS,
+      userQuestion: SAMPLE_QUESTION_KO,
+    })
+    expect(withQ.userPrompt).toContain('사용자의 질문을 직접 언급하면서 시작')
+    expect(withQ.userPrompt).not.toContain('전반적인 운세 흐름으로 자연스럽게 시작')
+  })
+
+  it('EN: blank question opens with the general flow', () => {
+    const blank = buildInterpretStreamPrompts({
+      language: 'en',
+      spreadTitle: SAMPLE_SPREAD,
+      cards: SAMPLE_CARDS,
+      userQuestion: '',
+    })
+    expect(blank.userPrompt).toContain('open overall with the overall flow naturally')
+    expect(blank.userPrompt).not.toContain("must reference the user's question directly")
+  })
+})
+
 describe('buildChunkUserPrompt — large spread chunks', () => {
   const cards: PromptCardInput[] = Array.from({ length: 10 }, (_, i) => ({
     name: `Card ${i + 1}`,
