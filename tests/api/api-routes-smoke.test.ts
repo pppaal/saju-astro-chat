@@ -157,12 +157,6 @@ describe('API Routes Smoke Tests', () => {
     })
   })
 
-  describe('Stats Routes (1)', () => {
-    it('should have stats route', () => {
-      assertModules(['app/api/stats/route'])
-    })
-  })
-
   describe('Tarot Routes', () => {
     it('should have tarot core routes', () => {
       assertModules([
@@ -202,7 +196,6 @@ describe('API Routes Smoke Tests', () => {
         'push',
         'referral',
         'saju',
-        'stats',
         'tarot',
         'webhook',
       ]
