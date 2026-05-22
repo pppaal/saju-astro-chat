@@ -187,11 +187,14 @@ function CompatibilityCounselorContent() {
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
       })
+      // timeZone은 /api/astrology Zod 스키마에서 필수(min 1). 빠뜨리면
+      // 검증 400으로 떨어져 점성 데이터가 영영 안 들어온다.
       const astroPayload = (p: PersonData) => ({
         date: p.date,
         time: p.time,
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
+        timeZone: p.timeZone || 'Asia/Seoul',
       })
 
       // /api/saju·/api/astrology 는 createSajuGuard/createAstrologyGuard 로
