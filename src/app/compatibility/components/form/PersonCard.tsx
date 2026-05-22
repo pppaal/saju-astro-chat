@@ -106,25 +106,9 @@ export const PersonCard = React.memo<PersonCardProps>(
         const user = data.user
         if (!user) return
 
-        let lat: number | null = null
-        let lon: number | null = null
-        if (user.birthCity) {
-          try {
-            const cityRes = await fetch(
-              `/api/cities?q=${encodeURIComponent(user.birthCity)}&limit=1`,
-              { headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '' } },
-            )
-            if (cityRes.ok) {
-              const cityData = await cityRes.json()
-              const cities = cityData.results || cityData.cities || cityData.data || []
-              if (Array.isArray(cities) && cities.length > 0) {
-                lat = cities[0].lat ?? cities[0].latitude ?? null
-                lon = cities[0].lon ?? cities[0].longitude ?? null
-              }
-            }
-          } catch { /* ignore */ }
-        }
-
+        // 텍스트 필드는 즉시 채운다 — 도시 지오코딩(lat/lon)을 기다리지 않음.
+        // 프로필엔 좌표가 저장돼 있지 않아 매번 /api/cities 를 호출해야 하는데,
+        // 그걸 await 하면 폼이 그만큼 늦게 채워져 "느리게" 느껴짐.
         onSetPersons((prev) => {
           const next = [...prev]
           next[idx] = {
@@ -139,12 +123,37 @@ export const PersonCard = React.memo<PersonCardProps>(
                   ? 'M'
                   : next[idx].gender,
             cityQuery: user.birthCity || '',
-            lat,
-            lon,
+            lat: null,
+            lon: null,
             timeZone: user.tzId || next[idx].timeZone,
           }
           return next
         })
+
+        // 좌표는 백그라운드로 해석 후 패치 — 스피너/폼을 막지 않는다.
+        if (user.birthCity) {
+          void (async () => {
+            try {
+              const cityRes = await fetch(
+                `/api/cities?q=${encodeURIComponent(user.birthCity)}&limit=1`,
+                { headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '' } },
+              )
+              if (!cityRes.ok) return
+              const cityData = await cityRes.json()
+              const cities = cityData.results || cityData.cities || cityData.data || []
+              if (!Array.isArray(cities) || cities.length === 0) return
+              const lat = cities[0].lat ?? cities[0].latitude ?? null
+              const lon = cities[0].lon ?? cities[0].longitude ?? null
+              onSetPersons((prev) => {
+                const next = [...prev]
+                // 사용자가 그새 도시를 바꿨으면 덮어쓰지 않는다.
+                if (next[idx].cityQuery !== user.birthCity) return prev
+                next[idx] = { ...next[idx], lat, lon }
+                return next
+              })
+            } catch { /* ignore */ }
+          })()
+        }
       } catch { /* ignore */ } finally {
         setProfileLoading(false)
       }
