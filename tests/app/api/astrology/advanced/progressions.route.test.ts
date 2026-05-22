@@ -552,6 +552,10 @@ describe('Progressions API - POST /api/astrology/advanced/progressions', () => {
     it('should return 500 when getProgressionSummary throws', async () => {
       vi.mocked(calculateSecondaryProgressions).mockResolvedValue(mockSecondaryProgressionsChart)
       vi.mocked(calculateSolarArcDirections).mockResolvedValue(mockSolarArcChart)
+      // Clear any leftover queued (mockReturnValueOnce) values from other tests;
+      // clearAllMocks() does not drain the once-queue, so a stale value would be
+      // returned instead of throwing under non-source execution order.
+      vi.mocked(getProgressionSummary).mockReset()
       vi.mocked(getProgressionSummary).mockImplementation(() => {
         throw new Error('Summary calculation failed')
       })
@@ -564,6 +568,16 @@ describe('Progressions API - POST /api/astrology/advanced/progressions', () => {
     })
 
     it('should return 500 when request.json() throws (malformed body)', async () => {
+      // When JSON parsing fails the route falls back to an empty body, which the
+      // schema rejects. Drive that path explicitly so the test does not depend on
+      // mock state leaked from earlier tests.
+      mockSafeParse.mockReturnValue({
+        success: false,
+        error: {
+          issues: [{ path: ['date'], message: 'Required' }],
+        },
+      })
+
       const badRequest = new Request('http://localhost/api/astrology/advanced/progressions', {
         method: 'POST',
         body: 'not-json{{',
