@@ -7,7 +7,6 @@ const PUBLIC_ROUTES = [
   '/faq',
   '/contact',
   '/blog',
-  '/report',
   '/destiny-map',
   '/tarot',
   '/calendar',
