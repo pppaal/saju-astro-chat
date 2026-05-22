@@ -10,6 +10,8 @@ import {
   requestNotificationPermission,
   type Notification,
 } from '@/contexts/NotificationContext'
+import { useSession } from 'next-auth/react'
+import { useToast } from '@/components/ui/Toast'
 import React from 'react'
 
 // Mock next-auth/react
@@ -61,6 +63,18 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 describe('NotificationContext', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Re-establish factory mock implementations: afterEach's resetAllMocks()
+    // wipes them, so without this the suite breaks under non-source test order.
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'test@example.com' } },
+      status: 'authenticated',
+    } as ReturnType<typeof useSession>)
+    vi.mocked(useToast).mockReturnValue({
+      info: vi.fn(),
+      success: vi.fn(),
+      error: vi.fn(),
+      warning: vi.fn(),
+    } as unknown as ReturnType<typeof useToast>)
     localStorageMock.getItem.mockReturnValue(null)
   })
 
@@ -384,9 +398,14 @@ describe('requestNotificationPermission', () => {
   const originalNotification = global.Notification
 
   afterEach(() => {
-    // Restore original Notification
+    // Restore original Notification. When it was undefined (e.g. happy-dom),
+    // delete the granted stub so it does not leak to other tests (addNotification
+    // calls `new Notification()` when permission is 'granted').
     if (originalNotification) {
       global.Notification = originalNotification
+    } else {
+      // @ts-expect-error - clearing the test stub
+      delete global.Notification
     }
   })
 

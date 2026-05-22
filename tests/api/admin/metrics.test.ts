@@ -109,9 +109,17 @@ vi.mock('@/lib/db/prisma', () => ({
 describe('Admin Metrics API', () => {
   const originalEnv = process.env
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
     process.env = { ...originalEnv, ADMIN_EMAILS: 'admin@example.com,superadmin@example.com' }
+    // clearAllMocks() does not reset return values; some tests override
+    // safeParse to fail. Restore the success default so tests stay independent
+    // of execution order.
+    const { DashboardRequestSchema } = await import('@/lib/metrics/index')
+    ;(DashboardRequestSchema.safeParse as ReturnType<typeof vi.fn>).mockReturnValue({
+      success: true,
+      data: { timeRange: '24h', includeRaw: false },
+    })
   })
 
   afterEach(() => {

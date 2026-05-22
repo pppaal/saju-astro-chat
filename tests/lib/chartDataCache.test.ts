@@ -506,16 +506,21 @@ describe("chartDataCache", () => {
     });
 
     it("handles sessionStorage quota exceeded", () => {
+      const originalSetItem = sessionStorageMock.setItem;
       sessionStorageMock.setItem = vi.fn(() => {
         throw new Error("QuotaExceededError");
       });
 
-      // Should not throw
-      expect(() =>
-        saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
-          saju: { test: true },
-        })
-      ).not.toThrow();
+      try {
+        // Should not throw
+        expect(() =>
+          saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+            saju: { test: true },
+          })
+        ).not.toThrow();
+      } finally {
+        sessionStorageMock.setItem = originalSetItem;
+      }
     });
 
     it("handles multiple cached charts", () => {
