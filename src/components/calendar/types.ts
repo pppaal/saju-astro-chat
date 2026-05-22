@@ -147,6 +147,19 @@ export interface ImportantDate {
         bothSystems: boolean
       }>
     }
+    /** 인생 분기점 — 점성 라이프사이클 × 대운 전환 */
+    lifetimePivots?: {
+      pivots: Array<{
+        age: number
+        year: number
+        label: string
+        astro?: string
+        saju?: string
+        meaning?: string
+        bothSystems: boolean
+        phase: 'past' | 'current' | 'upcoming'
+      }>
+    }
     /** 지난달 대비 — 전체 흐름/테마별 점수 변화 */
     monthComparison?: {
       overallDelta: number

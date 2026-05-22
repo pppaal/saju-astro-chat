@@ -9,6 +9,7 @@
 import type { FiveElement, SibsinKind } from '@/lib/saju/types'
 import type { KeyEvents } from '../derivers/keyEvents'
 import type { Convergence } from '../derivers/convergence'
+import type { LifetimePivots } from '../derivers/lifetimePivots'
 import type { MonthComparison } from '../derivers/monthComparison'
 
 /** 룰이 매칭되는 시점 */
@@ -149,6 +150,11 @@ export interface Interpretation {
    * "왜 큰 날인지(어느 사건이 겹쳤는지)" 까지 담는다. monthly scope 에서만.
    */
   convergence?: Convergence
+  /**
+   * "인생 분기점" — 점성 라이프사이클(토성 리턴 등) × 대운 전환을 합친 인생
+   * 스케일 큰 시기. natal 에서만 결정되며 monthly scope 에서 함께 노출.
+   */
+  lifetimePivots?: LifetimePivots
   /**
    * "지난달 대비" — 전월 themeScore / 전체 흐름 점수와의 차이. prevCells 가
    * 주어진 monthly scope 에서만 채워짐 (retention hook).

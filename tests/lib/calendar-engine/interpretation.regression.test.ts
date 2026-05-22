@@ -1271,4 +1271,39 @@ describe('calendar-engine regression', () => {
       expect(interp.convergence).toBeDefined() // 새 거 추가됨
     })
   })
+
+  describe('lifetimePivots (인생 분기점)', () => {
+    it('점성 라이프사이클 × 대운 병합 — 나이순 정렬 + 토성 리턴 보존', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.000Z', granularity: 'day' },
+        { includeEvidence: true }
+      )
+      const lp = buildInterpretation({ natal, cells, scope: 'monthly' }).lifetimePivots
+      expect(lp).toBeDefined()
+      expect(lp!.pivots.length).toBeGreaterThan(0)
+      // 나이 오름차순
+      for (let i = 1; i < lp!.pivots.length; i++) {
+        expect(lp!.pivots[i].age).toBeGreaterThanOrEqual(lp!.pivots[i - 1].age)
+      }
+      // 토성 리턴(~29세) 같은 핵심 점성 마일스톤이 병합에 삼켜지지 않고 살아있다
+      const hasSaturnReturn = lp!.pivots.some((p) => (p.astro ?? '').includes('토성 회귀'))
+      expect(hasSaturnReturn).toBe(true)
+      // bothSystems 인 분기점은 점성·사주 둘 다 있다
+      for (const p of lp!.pivots) {
+        if (p.bothSystems) {
+          expect(p.astro).toBeTruthy()
+          expect(p.saju).toBeTruthy()
+        }
+      }
+    })
+  })
 })
