@@ -35,9 +35,16 @@ const localStorageMock = (() => {
 
 Object.defineProperty(global, "localStorage", { value: localStorageMock });
 
-// Some tests reassign localStorageMock.getItem; keep the store-backed original so
-// beforeEach can restore it and tests stay independent of execution order.
+// Several tests reassign localStorageMock.getItem / setItem (e.g. to throw or to
+// return fixed JSON) without restoring them. Keep the store-backed originals and
+// restore them before every test so the suite is independent of execution order.
 const originalGetItem = localStorageMock.getItem;
+const originalSetItem = localStorageMock.setItem;
+
+beforeEach(() => {
+  localStorageMock.getItem = originalGetItem;
+  localStorageMock.setItem = originalSetItem;
+});
 
 describe("getUserProfile", () => {
   beforeEach(() => {

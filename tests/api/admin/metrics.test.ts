@@ -113,12 +113,17 @@ describe('Admin Metrics API', () => {
     vi.clearAllMocks()
     process.env = { ...originalEnv, ADMIN_EMAILS: 'admin@example.com,superadmin@example.com' }
     // clearAllMocks() does not reset return values; some tests override
-    // safeParse to fail. Restore the success default so tests stay independent
-    // of execution order.
+    // safeParse (to fail) and rateLimit (to deny). Restore the success/allow
+    // defaults so tests stay independent of execution order.
     const { DashboardRequestSchema } = await import('@/lib/metrics/index')
     ;(DashboardRequestSchema.safeParse as ReturnType<typeof vi.fn>).mockReturnValue({
       success: true,
       data: { timeRange: '24h', includeRaw: false },
+    })
+    const { rateLimit } = await import('@/lib/rateLimit')
+    ;(rateLimit as ReturnType<typeof vi.fn>).mockResolvedValue({
+      allowed: true,
+      headers: new Map([['X-RateLimit-Remaining', '29']]),
     })
   })
 
