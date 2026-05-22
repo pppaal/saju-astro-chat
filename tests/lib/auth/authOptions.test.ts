@@ -3,6 +3,7 @@
  * src/lib/auth/authOptions.ts
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { hasTokenEncryptionKey } from '@/lib/security/tokenCrypto'
 
 // Mock dependencies before importing authOptions
 vi.mock('@/lib/db/prisma', () => ({
@@ -83,6 +84,10 @@ describe('authOptions', () => {
     vi.clearAllMocks()
     vi.resetModules()
     process.env = { ...originalEnv }
+    // Default: encryption key present. The ensureEncryptionKey tests override this
+    // to false; clearAllMocks() does not reset return values, so restore it here
+    // to keep the production-path tests independent of execution order.
+    vi.mocked(hasTokenEncryptionKey).mockReturnValue(true)
   })
 
   afterEach(() => {
@@ -145,9 +150,6 @@ describe('authOptions', () => {
     it('should use secure cookie in production', async () => {
       process.env.NODE_ENV = 'production'
       process.env.NEXTAUTH_SECRET = 'test-secret'
-      // Production code path requires the encryption key; set it here rather than
-      // relying on it leaking in from another test/file's environment.
-      process.env.TOKEN_ENCRYPTION_KEY = 'test-token-encryption-key-32chars-min'
 
       vi.resetModules()
       const { authOptions } = await import('@/lib/auth/authOptions')
@@ -330,7 +332,6 @@ describe('authOptions', () => {
     it('should capture Sentry event on sign in (production)', async () => {
       process.env.NEXTAUTH_SECRET = 'test-secret'
       process.env.NODE_ENV = 'production'
-      process.env.TOKEN_ENCRYPTION_KEY = 'test-token-encryption-key-32chars-min'
 
       const Sentry = await import('@sentry/nextjs')
 
@@ -404,7 +405,6 @@ describe('authOptions', () => {
     it('should capture Sentry exception on sign out error (production)', async () => {
       process.env.NEXTAUTH_SECRET = 'test-secret'
       process.env.NODE_ENV = 'production'
-      process.env.TOKEN_ENCRYPTION_KEY = 'test-token-encryption-key-32chars-min'
 
       const { revokeGoogleTokensForUser } = await import('@/lib/auth/tokenRevoke')
       const Sentry = await import('@sentry/nextjs')
