@@ -86,6 +86,7 @@ function CompatibilityCounselorContent() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const chartFetchRef = useRef(false)
   const isKo = locale === 'ko'
 
   useEffect(() => {
@@ -174,6 +175,7 @@ function CompatibilityCounselorContent() {
   }, [searchParams])
 
   const fetchPersonData = async (personList: PersonData[]) => {
+    chartFetchRef.current = true
     try {
       // gender는 대운 순/역행에 필수. /api/saju가 required로 받으니 빠뜨리면 fetch 실패.
       const sajuPayload = (p: PersonData) => ({
@@ -231,6 +233,17 @@ function CompatibilityCounselorContent() {
       logger.error('Failed to fetch person data:', { error: e })
     }
   }
+
+  // 차트 데이터 보강 — resume(?session=) 세션은 meta 스냅샷에만 의존한다.
+  // 차트 저장 이전에 만들어진 세션이면 person*Saju/Astro 가 비어 차트 버튼이
+  // 영구 비활성된다. persons 는 있는데 데이터가 없으면 여기서 지연 로드.
+  useEffect(() => {
+    if (isInitializing || redirecting) return
+    if (persons.length < 2) return
+    if (person1Saju || person2Saju || person1Astro || person2Astro) return
+    if (chartFetchRef.current) return
+    fetchPersonData(persons)
+  }, [isInitializing, redirecting, persons, person1Saju, person2Saju, person1Astro, person2Astro])
 
   useEffect(() => {
     // Streaming updates the *last* message's content in place — array
