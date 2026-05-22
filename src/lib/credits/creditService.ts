@@ -7,6 +7,12 @@ export { PLAN_CONFIG }
 export type { PlanType }
 export type FeatureType = keyof PlanFeatures
 
+// 테스트용 크레딧 우회 — 개발 환경에서 CREDITS_BYPASS=true 일 때만 동작한다.
+// 운영(NODE_ENV=production) 빌드에선 플래그를 켜도 무시되므로 안전하다.
+// 켜면 타로/궁합/운명 등 모든 크레딧 검사·차감이 통과된다. 테스트 후엔 끌 것.
+const CREDITS_BYPASS =
+  process.env.NODE_ENV !== 'production' && process.env.CREDITS_BYPASS === 'true'
+
 // 월간 기간 계산 (다음 달 1일)
 function getNextPeriodEnd(): Date {
   const now = new Date()
@@ -97,6 +103,9 @@ export async function canUseCredits(
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
   amount: number = 1
 ): Promise<{ allowed: boolean; reason?: string; remaining?: number }> {
+  if (CREDITS_BYPASS) {
+    return { allowed: true, remaining: 9999 }
+  }
   const balance = await getCreditBalance(userId)
 
   if (type === 'reading') {
@@ -215,6 +224,9 @@ export async function consumeCredits(
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
   amount: number = 1
 ): Promise<{ success: boolean; error?: string; chargedAs?: 'reading' | 'compatibility' | 'followUp' }> {
+  if (CREDITS_BYPASS) {
+    return { success: true }
+  }
   try {
     // 트랜잭션 내에서 원자적으로 체크 + 차감
     const result = await prisma.$transaction(async (tx) => {
