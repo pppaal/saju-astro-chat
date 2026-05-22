@@ -38,17 +38,14 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
       {/* 키 이벤트 3 — 베스트 날 / 강한 구간 / 피할 날 (한눈에 스캔) */}
       <KeyEventsBlock keyEvents={interp.keyEvents} />
 
-      {/* 큰 날 — 점성·사주가 같은 날 겹치는 시점 + 무슨 일이 겹치나 */}
-      <ConvergenceBlock convergence={interp.convergence} />
-
-      {/* 올해 큰 날 — 1년 전체에서 다가오는 큰 시점 (월 → 년 줌아웃) */}
+      {/* 큰 시점 — 이번 달 → 올해 → 인생 (가까운 데서 멀리로 줌아웃) */}
+      <ConvergenceBlock convergence={interp.convergence} icon="🔮" title="이번 달 큰 날" />
       <ConvergenceBlock
         convergence={interp.yearlyConvergence}
-        title="올해 큰 날 — 다가오는 큰 시점"
+        icon="🗓️"
+        title="올해 큰 날"
         upcomingOnly
       />
-
-      {/* 인생 분기점 — 점성 라이프사이클 × 대운 (지금 챕터 + 앞으로) */}
       <LifePivotsBlock lifetimePivots={interp.lifetimePivots} />
 
       {/* 지난달 대비 — 변화 체감 (retention hook) */}
@@ -183,11 +180,13 @@ function fmtFullDate(iso: string): string {
  */
 function ConvergenceBlock({
   convergence,
-  title = '큰 날 — 점성·사주가 겹치는 시점',
+  title = '이번 달 큰 날',
+  icon = '🔮',
   upcomingOnly = false,
 }: {
   convergence: Convergence | undefined
   title?: string
+  icon?: string
   upcomingOnly?: boolean
 }) {
   let days = convergence?.keyDays ?? []
@@ -200,7 +199,8 @@ function ConvergenceBlock({
   return (
     <div className="bg-zinc-950/40 border border-white/5 rounded-xl px-4 py-3">
       <div className="text-[11px] font-bold text-zinc-400 mb-2 tracking-wide flex items-center gap-1.5">
-        <span aria-hidden>🔮</span> {title}
+        <span aria-hidden>{icon}</span> {title}
+        <span className="text-zinc-600 font-normal">· 점성·사주 겹치는 날</span>
       </div>
       <ul className="space-y-2.5">
         {days.map((d) => (
