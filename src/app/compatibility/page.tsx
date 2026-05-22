@@ -29,7 +29,7 @@ export default function CompatPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
 
-  const { count, persons, setPersons, updatePerson, fillFromCircle, onPickCity } =
+  const { count, persons, setPersons, updatePerson, fillFromCircle } =
     useCompatibilityForm(2, normalizedLocale)
 
   useCityAutocomplete(persons, setPersons)
@@ -118,7 +118,6 @@ export default function CompatPage() {
                   t={compatT}
                   onUpdatePerson={updatePerson}
                   onSetPersons={setPersons}
-                  onPickCity={onPickCity}
                   onToggleCircleDropdown={() =>
                     setShowCircleDropdown(showCircleDropdown === idx ? null : idx)
                   }

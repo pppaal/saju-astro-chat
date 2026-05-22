@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { useCitySearch } from '@/hooks/calendar/useCitySearch'
-import { formatCityForDropdown, localizeStoredCity } from '@/lib/cities/formatter'
 import { logger } from '@/lib/logger'
+import { BirthInfoFields, birthFieldClasses, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
 
 interface CircleAddModalProps {
   open: boolean
@@ -66,14 +65,6 @@ export function CircleAddModal({
   const [error, setError] = useState<string | null>(null)
   const [justSaved, setJustSaved] = useState(false)
 
-  const {
-    suggestions,
-    openSug,
-    setOpenSug,
-    handleCityInputChange,
-    handleCitySelect: pickCity,
-  } = useCitySearch(locale)
-
   if (!open) return null
 
   const relations = locale === 'ko' ? RELATION_OPTIONS_KO : RELATION_OPTIONS_EN
@@ -81,15 +72,19 @@ export function CircleAddModal({
   // birth는 *옵션* — 이름 + 관계만 있어도 저장 가능 (사주/점성 분석 없이 카드만).
   const canSubmit = !!name.trim() && !saving
 
-  const onCityInput = (value: string) => {
-    setBirthCity(value)
-    handleCityInputChange(value)
-  }
-  const onCityPick = (city: Parameters<typeof pickCity>[0]) => {
-    const enriched = pickCity(city)
-    setBirthCity(localizeStoredCity(formatCityForDropdown(enriched.name, enriched.country, locale), locale) ?? formatCityForDropdown(enriched.name, enriched.country, locale))
-    setCityData({ latitude: enriched.lat, longitude: enriched.lon, timezone: enriched.timezone })
-    setOpenSug(false)
+  const onBirthChange = (patch: BirthFieldsPatch) => {
+    if (patch.birthDate !== undefined) setBirthDate(patch.birthDate)
+    if (patch.birthTime !== undefined) setBirthTime(patch.birthTime)
+    if (patch.timeUnknown !== undefined) setTimeUnknown(patch.timeUnknown)
+    if (patch.gender) setGender(patch.gender === 'female' ? 'F' : 'M')
+    if (patch.city !== undefined) setBirthCity(patch.city)
+    if (patch.latitude !== undefined || patch.longitude !== undefined || patch.timeZone !== undefined) {
+      setCityData((prev) => ({
+        latitude: patch.latitude !== undefined ? patch.latitude ?? undefined : prev.latitude,
+        longitude: patch.longitude !== undefined ? patch.longitude ?? undefined : prev.longitude,
+        timezone: patch.timeZone !== undefined ? patch.timeZone ?? undefined : prev.timezone,
+      }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -177,22 +172,27 @@ export function CircleAddModal({
           </button>
         </header>
 
-        <form onSubmit={handleSubmit} className="max-h-[80vh] overflow-y-auto px-5 py-5">
+        <form onSubmit={handleSubmit} className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto px-5 py-5">
           {/* 이름 */}
-          <Field label={t('이름', 'Name')} required>
+          <div className={birthFieldClasses.field}>
+            <label className={birthFieldClasses.label}>
+              {t('이름', 'Name')}
+              <span className="ml-1 text-rose-400">*</span>
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('이 사람의 이름', "Person's name")}
-              className={inputClass}
+              className={birthFieldClasses.input}
               maxLength={100}
               required
             />
-          </Field>
+          </div>
 
           {/* 관계 */}
-          <Field label={t('관계', 'Relation')}>
+          <div className={birthFieldClasses.field}>
+            <label className={birthFieldClasses.label}>{t('관계', 'Relation')}</label>
             <div className="flex flex-wrap gap-2">
               {relations.map((r) => (
                 <button
@@ -201,7 +201,7 @@ export function CircleAddModal({
                   onClick={() => setRelation(r.value)}
                   className={
                     relation === r.value
-                      ? 'rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3.5 py-1.5 text-[12.5px] text-white transition'
+                      ? 'rounded-full border border-violet-300/45 bg-violet-400/15 px-3.5 py-1.5 text-[12.5px] text-white transition'
                       : 'rounded-full border border-white/12 bg-white/[0.03] px-3.5 py-1.5 text-[12.5px] text-slate-300 transition hover:border-white/20'
                   }
                 >
@@ -209,90 +209,17 @@ export function CircleAddModal({
                 </button>
               ))}
             </div>
-          </Field>
+          </div>
 
-          {/* 생년월일 (옵션) */}
-          <Field label={t('생년월일 (선택)', 'Birth Date (optional)')}>
-            <input
-              type="date"
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              className={inputClass}
-            />
-          </Field>
-
-          {/* 성별 */}
-          <Field label={t('성별', 'Gender')}>
-            <div className="grid grid-cols-2 gap-2">
-              {(['M', 'F'] as const).map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => setGender(g)}
-                  className={
-                    gender === g
-                      ? 'rounded-xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2.5 text-[14px] font-medium text-cyan-200 transition'
-                      : 'rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-[14px] text-slate-300 transition hover:border-white/20 hover:text-white'
-                  }
-                >
-                  {g === 'M' ? t('남자', 'Male') : t('여자', 'Female')}
-                </button>
-              ))}
-            </div>
-          </Field>
-
-          {/* 시간 (옵션) */}
-          <Field label={t('태어난 시간 (선택)', 'Birth Time (optional)')}>
-            <input
-              type="time"
-              value={birthTime}
-              onChange={(e) => setBirthTime(e.target.value)}
-              disabled={timeUnknown}
-              className={inputClass + (timeUnknown ? ' opacity-50' : '')}
-            />
-            <label className="mt-2 flex cursor-pointer items-start gap-2 text-[12.5px] text-slate-400">
-              <input
-                type="checkbox"
-                checked={timeUnknown}
-                onChange={(e) => {
-                  setTimeUnknown(e.target.checked)
-                  if (e.target.checked) setBirthTime('')
-                }}
-                className="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-cyan-400"
-              />
-              <span>{t('출생 시간을 모름', 'Time unknown')}</span>
-            </label>
-          </Field>
-
-          {/* 도시 (옵션) */}
-          <Field label={t('태어난 도시 (선택)', 'Birth City (optional)')}>
-            <div className="relative">
-              <input
-                type="text"
-                value={birthCity}
-                onChange={(e) => onCityInput(e.target.value)}
-                onFocus={() => suggestions.length > 0 && setOpenSug(true)}
-                placeholder={t('도시명 (예: Seoul)', 'City name (e.g., Seoul)')}
-                className={inputClass}
-                autoComplete="off"
-              />
-              {openSug && suggestions.length > 0 && (
-                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-white/10 bg-[#0e1426] shadow-lg">
-                  {suggestions.slice(0, 8).map((city, idx) => (
-                    <li key={`${city.name}-${city.country}-${idx}`}>
-                      <button
-                        type="button"
-                        onClick={() => onCityPick(city)}
-                        className="block w-full px-3 py-2 text-left text-[13px] text-slate-200 transition hover:bg-white/[0.06]"
-                      >
-                        {formatCityForDropdown(city.name, city.country, locale)}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </Field>
+          <BirthInfoFields
+            locale={locale}
+            birthDate={birthDate}
+            birthTime={birthTime}
+            timeUnknown={timeUnknown}
+            gender={gender === 'F' ? 'female' : 'male'}
+            city={birthCity}
+            onChange={onBirthChange}
+          />
 
           {error && (
             <p className="mb-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[12.5px] text-rose-200">
@@ -314,29 +241,6 @@ export function CircleAddModal({
           </button>
         </form>
       </div>
-    </div>
-  )
-}
-
-const inputClass =
-  'w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[14px] text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none disabled:cursor-not-allowed'
-
-function Field({
-  label,
-  required,
-  children,
-}: {
-  label: string
-  required?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <div className="mb-5">
-      <label className="mb-2 block text-[11.5px] font-medium uppercase tracking-[0.18em] text-slate-400">
-        {label}
-        {required && <span className="ml-1 text-rose-400">*</span>}
-      </label>
-      {children}
     </div>
   )
 }

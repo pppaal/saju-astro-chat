@@ -1,12 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { User, Users, ChevronDown, Loader2 } from 'lucide-react'
 import { type PersonForm, type Relation } from '../../lib/types'
-import { useCitySearch } from '@/hooks/calendar/useCitySearch'
-import { formatCityForDropdown } from '@/lib/cities/formatter'
 import type { CirclePerson } from '@/hooks/useMyCircle'
-import type { CityResult } from '@/lib/cities/types'
-import DateTimePicker from '@/components/ui/DateTimePicker'
-import TimePicker from '@/components/ui/TimePicker'
+import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
 
 interface PersonCardProps {
   person: PersonForm
@@ -18,7 +14,6 @@ interface PersonCardProps {
   t: (key: string, fallback: string) => string
   onUpdatePerson: <K extends keyof PersonForm>(idx: number, field: K, value: PersonForm[K]) => void
   onSetPersons: React.Dispatch<React.SetStateAction<PersonForm[]>>
-  onPickCity: (idx: number, city: CityResult) => void
   onToggleCircleDropdown: () => void
   onFillFromCircle: (idx: number, person: CirclePerson) => void
 }
@@ -48,7 +43,6 @@ export const PersonCard = React.memo<PersonCardProps>(
     t,
     onUpdatePerson,
     onSetPersons,
-    onPickCity,
     onToggleCircleDropdown,
     onFillFromCircle,
   }) => {
@@ -56,45 +50,36 @@ export const PersonCard = React.memo<PersonCardProps>(
     const isKo = locale === 'ko' || locale.startsWith('ko')
     const [profileLoading, setProfileLoading] = useState(false)
     const timeUnknown = person.timeUnknown ?? (!person.time || person.time === '00:00')
-    const setTimeUnknown = useCallback(
-      (value: boolean) => onUpdatePerson(idx, 'timeUnknown', value),
-      [idx, onUpdatePerson],
-    )
     useEffect(() => {
       if (timeUnknown && person.time !== '00:00') {
         onUpdatePerson(idx, 'time', '00:00')
       }
     }, [timeUnknown, person.time, idx, onUpdatePerson])
 
-    // City autocomplete — 우리 hook 직접 사용. PersonForm.suggestions를 같이
-    // sync해서 onSetPersons 흐름과 충돌 X. blur 시 dropdown 닫힘.
-    const {
-      suggestions: hookSuggestions,
-      openSug,
-      setOpenSug,
-      handleCityInputChange,
-      handleCitySelect: pickCity,
-    } = useCitySearch(locale)
+    const genderForField =
+      person.gender === 'F' || person.gender === 'Female'
+        ? 'female'
+        : person.gender === 'M' || person.gender === 'Male'
+          ? 'male'
+          : ''
 
-    const onCityInput = (val: string) => {
+    // 공용 BirthInfoFields → PersonForm 매핑. 도시 좌표(lat/lon/timeZone)는
+    // 사용자가 자동완성에서 도시를 고르면 patch 로 함께 들어온다.
+    const onBirthChange = (patch: BirthFieldsPatch) => {
       onSetPersons((prev) => {
         const next = [...prev]
-        next[idx] = { ...next[idx], cityQuery: val, lat: null, lon: null }
+        const p = { ...next[idx] }
+        if (patch.birthDate !== undefined) p.date = patch.birthDate
+        if (patch.birthTime !== undefined) p.time = patch.birthTime
+        if (patch.timeUnknown !== undefined) p.timeUnknown = patch.timeUnknown
+        if (patch.gender) p.gender = patch.gender === 'female' ? 'F' : 'M'
+        if (patch.city !== undefined) p.cityQuery = patch.city
+        if (patch.latitude !== undefined) p.lat = patch.latitude
+        if (patch.longitude !== undefined) p.lon = patch.longitude
+        if (patch.timeZone !== undefined && patch.timeZone) p.timeZone = patch.timeZone
+        next[idx] = p
         return next
       })
-      handleCityInputChange(val)
-    }
-    const onCityPick = (city: Parameters<typeof pickCity>[0]) => {
-      const enriched = pickCity(city)
-      // 기존 onPickCity 흐름 유지 — useCompatibilityForm이 lat/lon/timeZone을 채움.
-      onPickCity(idx, {
-        name: enriched.name,
-        country: enriched.country,
-        lat: enriched.lat,
-        lon: enriched.lon,
-        timezone: enriched.timezone,
-      } as unknown as CityResult)
-      setOpenSug(false)
     }
 
     const loadMyProfile = useCallback(async () => {
@@ -250,85 +235,18 @@ export const PersonCard = React.memo<PersonCardProps>(
             />
           </Field>
 
-          {/* 생년월일 — 운명상담사 입장폼과 동일한 wheel picker로 통일.
-              type='date' native picker는 iOS Safari에서 회색 줄에 가까운
-              모양이라 "옛날 폼" 인상을 줬음. */}
-          <Field label={t('compatibilityPage.dateOfBirth', '생년월일')} required>
-            <DateTimePicker
-              value={person.date}
-              onChange={(date) => onUpdatePerson(idx, 'date', date)}
-              locale={isKo ? 'ko' : 'en'}
-            />
-          </Field>
-
-          {/* 성별 */}
-          <Field label={t('compatibilityPage.gender', '성별')} required>
-            <div className="grid grid-cols-2 gap-2">
-              {(['M', 'F'] as const).map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => onUpdatePerson(idx, 'gender', g as PersonForm['gender'])}
-                  className={
-                    person.gender === g
-                      ? 'rounded-xl border-none bg-gradient-to-br from-[#a78bfa] to-[#8b5cf6] px-4 py-2.5 text-[14px] font-semibold text-white shadow transition'
-                      : 'rounded-xl border border-violet-400/15 bg-white/[0.03] px-4 py-2.5 text-[14px] text-slate-300 transition hover:border-violet-400/35 hover:text-white'
-                  }
-                >
-                  {g === 'M' ? t('compatibilityPage.male', '남자') : t('compatibilityPage.female', '여자')}
-                </button>
-              ))}
-            </div>
-          </Field>
-
-          {/* 시간 — 운명상담사와 동일한 12시간 wheel picker */}
-          <Field label={t('compatibilityPage.timeOfBirth', '태어난 시간')}>
-            <TimePicker
-              value={timeUnknown ? '' : person.time}
-              onChange={(time) => onUpdatePerson(idx, 'time', time)}
-              disabled={timeUnknown}
-              locale={isKo ? 'ko' : 'en'}
-            />
-            <label className="mt-2 flex cursor-pointer items-start gap-2 text-[12.5px] text-slate-300">
-              <input
-                type="checkbox"
-                checked={timeUnknown}
-                onChange={(e) => setTimeUnknown(e.target.checked)}
-                className="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-violet-400"
-              />
-              <span>{t('compatibilityPage.timeUnknown', '시간 모름 (00:00 처리)')}</span>
-            </label>
-          </Field>
-
-          {/* 도시 */}
-          <Field label={t('compatibilityPage.birthCity', '태어난 도시')}>
-            <div className="relative">
-              <input
-                type="text"
-                value={person.cityQuery}
-                onChange={(e) => onCityInput(e.target.value)}
-                onFocus={() => hookSuggestions.length > 0 && setOpenSug(true)}
-                placeholder={t('compatibilityPage.cityPlaceholder', '도시명 (예: Seoul)')}
-                className={inputClass}
-                autoComplete="off"
-              />
-              {openSug && hookSuggestions.length > 0 && (
-                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-violet-400/25 bg-[#0c1024] shadow-lg">
-                  {hookSuggestions.slice(0, 8).map((city, i) => (
-                    <li key={`${city.name}-${city.country}-${i}`}>
-                      <button
-                        type="button"
-                        onClick={() => onCityPick(city)}
-                        className="block w-full px-3 py-2 text-left text-[13px] text-slate-200 transition hover:bg-violet-400/10"
-                      >
-                        {formatCityForDropdown(city.name, city.country, isKo ? 'ko' : 'en')}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </Field>
+          {/* 생년월일 / 시간+성별 / 도시 — 메인 홈 BirthInfoModal 과 동일한
+              공용 컴포넌트(네이티브 date/time + 성별 select). */}
+          <BirthInfoFields
+            locale={isKo ? 'ko' : 'en'}
+            idPrefix={`person-${idx}`}
+            birthDate={person.date}
+            birthTime={timeUnknown ? '' : person.time}
+            timeUnknown={timeUnknown}
+            gender={genderForField}
+            city={person.cityQuery}
+            onChange={onBirthChange}
+          />
 
           {/* 두 번째 사람 — 관계 + 메모 */}
           {idx > 0 && (
