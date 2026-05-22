@@ -61,7 +61,23 @@ export function buildInterpretStreamPrompts(
   const isKorean = language === 'ko'
   const trimmed = (userQuestion || '').trim()
   const q = trimmed || (isKorean ? '일반 운세' : 'general reading')
+  const hasQuestion = trimmed.length > 0
   const cardListText = renderCardList(cards, language)
+
+  // 질문이 없으면(일반 운세) "첫 문장에 질문 직접 언급" 지시가 어색해지므로
+  // 전반적 흐름으로 시작하도록 분기. 질문이 있을 때 문구는 기존과 동일.
+  const overallDirectiveKo = hasQuestion
+    ? '오프닝 + 시너지, 400-600자, 첫 문장에 사용자 질문 직접 언급'
+    : '오프닝 + 시너지, 400-600자, 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작'
+  const overallDirectiveEn = hasQuestion
+    ? 'Opening + synergy, 250-350 words, first sentence references the question'
+    : 'Opening + synergy, 250-350 words, open with the overall flow naturally'
+  const openingInstructionKo = hasQuestion
+    ? '- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.'
+    : '- 특정 질문이 없으니 overall 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작하세요 (억지로 질문을 언급하지 말 것).'
+  const openingInstructionEn = hasQuestion
+    ? "- The first sentence of overall must reference the user's question directly."
+    : '- No specific question was asked; open overall with the overall flow naturally (do not force a question reference).'
 
   const systemPrompt = isKorean
     ? `${TAROT_RULES_KO}
@@ -73,7 +89,7 @@ export function buildInterpretStreamPrompts(
 
 출력 — 정확히 이 JSON 스키마 (코드펜스/주석/머리말 X):
 {
-  "overall": "오프닝 + 시너지, 400-600자, 첫 문장에 사용자 질문 직접 언급",
+  "overall": "${overallDirectiveKo}",
   "cards": [
     { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함" }
   ],
@@ -88,7 +104,7 @@ Naming each position:
 
 Output — exactly this JSON schema (no code fences, no preamble, no comments):
 {
-  "overall": "Opening + synergy, 250-350 words, first sentence references the question",
+  "overall": "${overallDirectiveEn}",
   "cards": [
     { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, 180-280 words, with a time anchor" }
   ],
@@ -109,7 +125,7 @@ ${cardListText}
 - 모든 ${cards.length}장의 카드에 대해 cards[] 항목을 만드세요.
 - 각 카드의 position 은 사용자 질문 맥락에 맞춰 *네가 직접* 한국어 짧은 라벨로 명명 (2-6자, 중복 금지).
 - 각 카드는 위 질문 맥락 안에서 해석합니다. 카드를 보고 사전식 정의를 쓰지 마세요.
-- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.`
+${openingInstructionKo}`
     : `# User's Question
 "${q}"
 
@@ -123,7 +139,7 @@ ${cardListText}
 - Produce cards[] entries for all ${cards.length} cards.
 - Name each card's position yourself, in short English (2-4 words), grounded in the user's question. No duplicates.
 - Interpret each card *inside the user's question above*. No textbook definitions.
-- The first sentence of overall must reference the user's question directly.`
+${openingInstructionEn}`
 
   return { systemPrompt, userPrompt }
 }
