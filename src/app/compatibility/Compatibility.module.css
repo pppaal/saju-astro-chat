@@ -1972,3 +1972,21 @@
     font-size: 0.8rem;
   }
 }
+
+/* prefers-reduced-motion: reduce — the form container fades in
+   (.fadeIn: opacity 0 → 1) and decorative elements loop. With motion
+   suppressed, pin the animated-in form and person cards to their visible
+   end state so they never stay hidden, and stop the decorative loops. */
+@media (prefers-reduced-motion: reduce) {
+  .fadeIn,
+  .personCard {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .floatingHearts,
+  .formIcon {
+    animation: none !important;
+  }
+}
