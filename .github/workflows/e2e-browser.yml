@@ -126,8 +126,12 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
+      # mobile-visibility (iPhone SE) and reduced-motion (iPhone 13)
+      # projects default to webkit; narrow-viewport uses chromium. Install
+      # both so these projects actually launch instead of failing with
+      # "Executable doesn't exist".
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Setup environment
         run: |
