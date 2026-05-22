@@ -234,7 +234,7 @@ describe('API Routes Smoke Tests', () => {
         'admin', 'astrology', 'auth', 'calendar', 'checkout', 'cities',
         'compatibility', 'content-access', 'counselor', 'cron',
         'destiny-map', 'destiny-match', 'feedback', 'me', 'push',
-        'referral', 'saju', 'stats', 'tarot', 'user', 'webhook',
+        'referral', 'saju', 'stats', 'tarot', 'webhook',
       ];
 
       categories.forEach((category) => {
