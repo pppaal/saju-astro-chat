@@ -8,6 +8,7 @@
 
 import type { FiveElement, SibsinKind } from '@/lib/saju/types'
 import type { KeyEvents } from '../derivers/keyEvents'
+import type { Convergence } from '../derivers/convergence'
 import type { MonthComparison } from '../derivers/monthComparison'
 
 /** 룰이 매칭되는 시점 */
@@ -142,6 +143,12 @@ export interface Interpretation {
    * / 피할 날). cells.derivedScore 에서 결정적으로 뽑음. monthly scope 에서만.
    */
   keyEvents?: KeyEvents
+  /**
+   * "수렴 큰 날" — 무거운 이벤트(느린 행성 transit·lifecycle·일진 충/합)가
+   * 점성·사주 양쪽에서 같은 날 겹치는 시점. keyEvents(평균 최고일)와 별개로,
+   * "왜 큰 날인지(어느 사건이 겹쳤는지)" 까지 담는다. monthly scope 에서만.
+   */
+  convergence?: Convergence
   /**
    * "지난달 대비" — 전월 themeScore / 전체 흐름 점수와의 차이. prevCells 가
    * 주어진 monthly scope 에서만 채워짐 (retention hook).

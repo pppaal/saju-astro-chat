@@ -6,6 +6,7 @@ import { RULES } from './rules'
 import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
 import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
 import { deriveKeyEvents } from '../derivers/keyEvents'
+import { deriveConvergence } from '../derivers/convergence'
 import { deriveMonthComparison } from '../derivers/monthComparison'
 
 /**
@@ -376,6 +377,8 @@ export function buildInterpretation(args: {
 
   // 키 이벤트 3 — 월간일 때만 (일별 셀에서 베스트/강한구간/피할날 추출).
   const keyEvents = scope === 'monthly' ? deriveKeyEvents(cells) : undefined
+  // 수렴 큰 날 — 무거운 이벤트가 점성·사주 겹치는 날 (keyEvents 와 별개, additive).
+  const convergence = scope === 'monthly' ? deriveConvergence(cells) : undefined
 
   // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전월 themeScore 를 같은
   // 모델로 얻기 위해 재귀 호출(단, prevCells 미전달 → 무한재귀 없음).
@@ -399,6 +402,7 @@ export function buildInterpretation(args: {
     themeRanking,
     themeBreakdown,
     keyEvents,
+    convergence,
     monthComparison,
   }
 }

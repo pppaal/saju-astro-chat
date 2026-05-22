@@ -1223,4 +1223,52 @@ describe('calendar-engine regression', () => {
       for (const r of ranking) expect(interp.themeScores?.[r.theme]).toBe(r.score)
     })
   })
+
+  describe('convergence (수렴 큰 날)', () => {
+    it('monthly interp emits convergence.keyDays — 점수 내림차순 + 무거운 이벤트 동반', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.000Z', granularity: 'day' },
+        { includeEvidence: true }
+      )
+      const conv = buildInterpretation({ natal, cells, scope: 'monthly' }).convergence
+      expect(conv).toBeDefined()
+      expect(conv!.keyDays.length).toBeGreaterThan(0)
+      for (let i = 1; i < conv!.keyDays.length; i++) {
+        expect(conv!.keyDays[i - 1].score).toBeGreaterThanOrEqual(conv!.keyDays[i].score)
+      }
+      // 각 큰 날은 무거운 점성/사주 이벤트를 최소 하나 동반 + 날짜 형식
+      for (const d of conv!.keyDays) {
+        expect(d.astro.length + d.saju.length).toBeGreaterThan(0)
+        expect(d.date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      }
+    })
+
+    it('keyEvents 와 별개(additive) — keyEvents 는 그대로 존재', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.000Z', granularity: 'day' },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      expect(interp.keyEvents).toBeDefined() // 기존 거 안 부숨
+      expect(interp.convergence).toBeDefined() // 새 거 추가됨
+    })
+  })
 })
