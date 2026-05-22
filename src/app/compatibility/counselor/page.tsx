@@ -10,6 +10,7 @@ import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { runQuickCoupleTarot } from './runQuickCoupleTarot'
+import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 
@@ -79,6 +80,7 @@ function CompatibilityCounselorContent() {
   // after the first save). Subsequent saves attach to the same row.
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showChartModal, setShowChartModal] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -688,6 +690,16 @@ function CompatibilityCounselorContent() {
               <div className={styles.inputToolbarLeft}>
                 <button
                   type="button"
+                  onClick={() => setShowChartModal(true)}
+                  disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
+                  className={styles.toolButton}
+                  aria-label={isKo ? '궁합 차트' : 'Couple chart'}
+                  title={isKo ? '궁합 차트 보기' : 'View couple chart'}
+                >
+                  <span className={styles.toolButtonIcon}>✨</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     alert(isKo ? '파일 첨부는 곧 지원돼요.' : 'File attach coming soon.')
                   }}
@@ -717,6 +729,18 @@ function CompatibilityCounselorContent() {
           </div>
         </div>
       </div>
+
+      <CompatChartModal
+        open={showChartModal}
+        onClose={() => setShowChartModal(false)}
+        person1Saju={person1Saju}
+        person2Saju={person2Saju}
+        person1Astro={person1Astro}
+        person2Astro={person2Astro}
+        nameA={persons[0]?.name || ''}
+        nameB={persons[1]?.name || ''}
+        lang={isKo ? 'ko' : 'en'}
+      />
     </main>
   )
 }
