@@ -144,8 +144,11 @@ function classifyService(serviceId: string): {
     return { key: 'tarot', href: '/tarot', Icon: Wand2, accent: '#f472b6' }
   if (serviceId === 'compatibility' || serviceId === 'compat-counselor')
     return {
+      // Enter via the /compatibility form (carries 지인 불러오기 / 직접 입력)
+      // so two people are picked before the counselor, which has no
+      // person-picker of its own.
       key: 'compatibility',
-      href: '/compatibility/counselor',
+      href: '/compatibility',
       Icon: Heart,
       accent: '#fb7185',
     }

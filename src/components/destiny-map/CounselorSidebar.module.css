@@ -214,8 +214,11 @@
 
 /* Touch devices have no hover, so the rename/delete icons never appeared
    (and swipe-to-reveal isn't discoverable). Show them always on touch and
-   reserve room so the title doesn't run under the buttons. */
-@media (hover: none) {
+   reserve room so the title doesn't run under the buttons.
+   NOTE: `(pointer: coarse)` is OR'd in because stylus phones (e.g. Samsung
+   S-Pen) report `hover: hover` — so `(hover: none)` alone left the buttons
+   hidden on those devices. Primary pointer there is still touch = coarse. */
+@media (hover: none), (pointer: coarse) {
   .sessionActions {
     opacity: 1;
   }
@@ -490,14 +493,19 @@
 }
 
 .lightTheme .iconBtn {
-  color: #78716c;
-  background: transparent;
-  border: 0;
+  color: #57534e;
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
 }
 
 .lightTheme .iconBtn:hover {
   background: #f5f5f4;
   color: #1c1917;
+}
+
+.lightTheme .iconBtnDanger {
+  color: #dc2626;
+  border-color: #fecaca;
 }
 
 .lightTheme .iconBtnDanger:hover {

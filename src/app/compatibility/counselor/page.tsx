@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
 import BrandSplash from '@/components/branding/BrandSplash'
@@ -61,6 +61,7 @@ function CompatibilityCounselorContent() {
     locale === 'ko' ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
   )
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const [persons, setPersons] = useState<PersonData[]>([])
   const [person1Saju, setPerson1Saju] = useState<Record<string, unknown> | null>(null)
@@ -71,6 +72,7 @@ function CompatibilityCounselorContent() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
+  const [redirecting, setRedirecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [creditExhausted, setCreditExhausted] = useState(false)
   // LLM-generated follow-up chips. Filled from streamProcessor result.
@@ -149,6 +151,15 @@ function CompatibilityCounselorContent() {
           if (parsed.length >= 2) {
             await fetchPersonData(parsed)
           }
+        } else {
+          // 3) Direct entry with no couple (profile / header / sidebar link).
+          //    This screen has no person-picker, so send the user to the
+          //    /compatibility form which carries 지인 불러오기 / 직접 입력 /
+          //    내 프로필 불러오기. They return here with ?persons=. Keep the
+          //    loader up (redirecting) so the empty counselor never flashes.
+          setRedirecting(true)
+          router.replace('/compatibility')
+          return
         }
       } catch (e) {
         logger.error('Failed to parse URL params:', { error: e })
@@ -518,7 +529,7 @@ function CompatibilityCounselorContent() {
     }
   }, [isLoading, persons, isKo])
 
-  if (isInitializing) {
+  if (isInitializing || redirecting) {
     return <CounselorLoading />
   }
 
