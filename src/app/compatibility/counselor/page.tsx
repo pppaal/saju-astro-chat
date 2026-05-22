@@ -540,18 +540,32 @@ function CompatibilityCounselorContent() {
         enableGrouping
         lightTheme
         footerSlot={
-          <button
-            type="button"
-            className={styles.sidebarFooterBtn}
-            onClick={handleQuickCoupleTarot}
-            disabled={isLoading || persons.length < 2}
-            title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
-          >
-            <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-              {'🎴'}
-            </span>
-            {isKo ? '둘 궁합 타로 뽑기' : 'Draw couple tarot'}
-          </button>
+          <>
+            <button
+              type="button"
+              className={styles.sidebarFooterBtn}
+              onClick={handleQuickCoupleTarot}
+              disabled={isLoading || persons.length < 2}
+              title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
+            >
+              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+                {'🎴'}
+              </span>
+              {isKo ? '둘 궁합 타로 뽑기' : 'Draw couple tarot'}
+            </button>
+            <button
+              type="button"
+              className={styles.sidebarFooterBtn}
+              onClick={() => setShowChartModal(true)}
+              disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
+              title={isKo ? '궁합 차트 보기' : 'View couple chart'}
+            >
+              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+                {'✨'}
+              </span>
+              {isKo ? '궁합 차트' : 'Couple chart'}
+            </button>
+          </>
         }
       />
       <div className={styles.mainColumn}>
@@ -665,14 +679,9 @@ function CompatibilityCounselorContent() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* The standalone "둘 궁합 타로 즉시 보기" pill above the input
-            was merged into the input toolbar below (Claude-style) so
-            the textarea gets the full width and the three actions
-            (📎 / 🎴 / ▶) share one row underneath. */}
-          <div style={{ display: 'none' }}></div>
-
           {/* Input — Claude-style: textarea on top, action row below.
-            Three actions: 📎 attach (placeholder), 🎴 quick tarot, ▶ send. */}
+            Desktop: 📎 attach + ▶ send (타로·차트는 사이드바 푸터).
+            Mobile: 📎 attach + 🎴 couple tarot + ✨ couple chart + ▶ send. */}
           <div className={styles.inputContainer}>
             <textarea
               ref={inputRef}
@@ -690,16 +699,6 @@ function CompatibilityCounselorContent() {
               <div className={styles.inputToolbarLeft}>
                 <button
                   type="button"
-                  onClick={() => setShowChartModal(true)}
-                  disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
-                  className={styles.toolButton}
-                  aria-label={isKo ? '궁합 차트' : 'Couple chart'}
-                  title={isKo ? '궁합 차트 보기' : 'View couple chart'}
-                >
-                  <span className={styles.toolButtonIcon}>✨</span>
-                </button>
-                <button
-                  type="button"
                   onClick={() => {
                     alert(isKo ? '파일 첨부는 곧 지원돼요.' : 'File attach coming soon.')
                   }}
@@ -708,6 +707,28 @@ function CompatibilityCounselorContent() {
                   title={isKo ? '파일 첨부 (준비 중)' : 'Attach file (coming soon)'}
                 >
                   <span className={styles.toolButtonIcon}>📎</span>
+                </button>
+                {/* 🎴 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
+                    사이드바 푸터에 같은 둘이 있어 ≥1024px에선 중복을 피해 숨긴다. */}
+                <button
+                  type="button"
+                  onClick={handleQuickCoupleTarot}
+                  disabled={isLoading || persons.length < 2}
+                  className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
+                  aria-label={isKo ? '둘 궁합 타로' : 'Couple tarot'}
+                  title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
+                >
+                  <span className={styles.toolButtonIcon}>🎴</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowChartModal(true)}
+                  disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
+                  className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
+                  aria-label={isKo ? '궁합 차트' : 'Couple chart'}
+                  title={isKo ? '궁합 차트 보기' : 'View couple chart'}
+                >
+                  <span className={styles.toolButtonIcon}>✨</span>
                 </button>
               </div>
               <button

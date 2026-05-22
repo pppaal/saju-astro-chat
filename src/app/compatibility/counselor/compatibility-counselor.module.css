@@ -442,6 +442,18 @@
   line-height: 1;
 }
 
+/* 타로/차트 입력-툴바 버튼은 모바일에서만 — 데스크탑(≥1024px)은 사이드바
+ * 푸터가 같은 둘을 들고 있어 중복 진입점을 피하려 숨긴다. */
+.mobileOnlyTool {
+  display: inline-flex;
+}
+
+@media (min-width: 1024px) {
+  .mobileOnlyTool {
+    display: none;
+  }
+}
+
 /* =====================================================================
  * Main column layout — wraps <header> + chatWrapper so the desktop-
  * static sidebar can sit beside it on ≥1024px.
