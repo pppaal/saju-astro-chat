@@ -38,6 +38,9 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
       {/* 키 이벤트 3 — 베스트 날 / 강한 구간 / 피할 날 (한눈에 스캔) */}
       <KeyEventsBlock keyEvents={interp.keyEvents} />
 
+      {/* 큰 날 — 점성·사주가 같은 날 겹치는 시점 + 무슨 일이 겹치나 */}
+      <ConvergenceBlock convergence={interp.convergence} />
+
       {/* 지난달 대비 — 변화 체감 (retention hook) */}
       <MonthComparisonBlock comparison={interp.monthComparison} />
 
@@ -150,6 +153,53 @@ function KeyEventsBlock({ keyEvents }: { keyEvents: KeyEvents | undefined }) {
           <div className="text-[11px] text-rose-200/70 mt-0.5">무리한 결정은 미루기</div>
         </div>
       )}
+    </div>
+  )
+}
+
+type Convergence = NonNullable<Interpretation['convergence']>
+
+/** "YYYY-MM-DD" → "M월 D일" */
+function fmtFullDate(iso: string): string {
+  const [, m, d] = iso.split('-')
+  if (!m || !d) return iso
+  return `${Number(m)}월 ${Number(d)}일`
+}
+
+/**
+ * 큰 날(수렴) — 점성·사주의 무거운 이벤트가 같은 날 겹치는 시점.
+ * keyEvents(점수 베스트/피할 날)와 달리 "왜 큰 날인지(어느 사건이 겹쳤는지)"를
+ * 보여줘 신뢰도를 높인다. 상위 3일만 노출.
+ */
+function ConvergenceBlock({ convergence }: { convergence: Convergence | undefined }) {
+  const days = convergence?.keyDays?.slice(0, 3) ?? []
+  if (days.length === 0) return null
+
+  return (
+    <div className="bg-zinc-950/40 border border-white/5 rounded-xl px-4 py-3">
+      <div className="text-[11px] font-bold text-zinc-400 mb-2 tracking-wide flex items-center gap-1.5">
+        <span aria-hidden>🔮</span> 큰 날 — 점성·사주가 겹치는 시점
+      </div>
+      <ul className="space-y-2.5">
+        {days.map((d) => {
+          const events = [...d.astro, ...d.saju].slice(0, 3)
+          return (
+            <li key={d.date} className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-zinc-100">{fmtFullDate(d.date)}</span>
+                {d.bothSystems && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-bold">
+                    양쪽 수렴
+                  </span>
+                )}
+              </div>
+              {events.length > 0 && (
+                <div className="text-[11px] text-zinc-400 leading-snug">{events.join(' · ')}</div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }

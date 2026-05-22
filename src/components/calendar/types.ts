@@ -137,6 +137,16 @@ export interface ImportantDate {
       window?: { start: string; end: string; avg: number }
       avoid?: { dates: string[] }
     }
+    /** 큰 날(수렴) — 점성·사주 무거운 이벤트가 같은 날 겹치는 시점 */
+    convergence?: {
+      keyDays: Array<{
+        date: string
+        score: number
+        astro: string[]
+        saju: string[]
+        bothSystems: boolean
+      }>
+    }
     /** 지난달 대비 — 전체 흐름/테마별 점수 변화 */
     monthComparison?: {
       overallDelta: number
