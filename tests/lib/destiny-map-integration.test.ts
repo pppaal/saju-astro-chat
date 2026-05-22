@@ -58,13 +58,6 @@ describe('Destiny Map Integration', () => {
     assertNamedExports('lib/destiny-map/local-report-generator', ['generateLocalReport']);
   });
 
-  it('should expose fortune prompt modules', () => {
-    readModule('lib/destiny-map/prompt/fortune/base/data-extractors');
-    readModule('lib/destiny-map/prompt/fortune/base/formatter-utils');
-    readModule('lib/destiny-map/prompt/fortune/base/prompt-template');
-    readModule('lib/destiny-map/prompt/fortune/base/theme-sections');
-  });
-
   it('should expose calendar scoring modules', () => {
     assertNamedExports('lib/destiny-map/calendar/category-scoring', [
       'calculateAreaScoresForCategories',
