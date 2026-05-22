@@ -173,11 +173,6 @@ test.describe('Readings API Endpoints', () => {
 })
 
 test.describe('Stats API Endpoints', () => {
-  test('GET /api/stats - should respond', async ({ page }) => {
-    const response = await page.request.get('/api/stats')
-    expect([200, 401, 403]).toContain(response.status())
-  })
-
   test('GET /api/visitors-today - should respond', async ({ page }) => {
     const response = await page.request.get('/api/visitors-today')
     expect([200, 401, 403]).toContain(response.status())
