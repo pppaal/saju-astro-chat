@@ -298,7 +298,7 @@ export default function DestinyResultPage({
             style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
           >
             {lang === 'ko'
-              ? '본인 사주·점성으로 비춰본 결'
+              ? '본인 사주·점성으로 비춰본 지금의 결'
               : 'Your Saju × Astrology Reading'}
           </h2>
           <div className={styles.analysisDateWrapper}>{analysisDateDisplay}</div>
@@ -310,7 +310,9 @@ export default function DestinyResultPage({
           astro={mergedAstro}
           lang={lang}
           fusionFragments={
-            (result as { fusionFragments?: unknown } | null)?.fusionFragments as Parameters<typeof FreeReport>[0]['fusionFragments']
+            (result as { fusionFragments?: unknown } | null)?.fusionFragments as Parameters<
+              typeof FreeReport
+            >[0]['fusionFragments']
           }
           birthInfo={{
             birthDate: (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? '',
