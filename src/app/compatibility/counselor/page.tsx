@@ -194,25 +194,33 @@ function CompatibilityCounselorContent() {
         longitude: p.longitude || 126.978,
       })
 
+      // /api/saju·/api/astrology 는 createSajuGuard/createAstrologyGuard 로
+      // requireToken: true 라서 X-API-Token 이 없으면 거부된다. 토큰을 빼면
+      // 차트 데이터가 안 들어와 "궁합 차트" 버튼이 영영 비활성이 된다.
+      const apiHeaders = {
+        'Content-Type': 'application/json',
+        'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+      }
+
       const [saju1Res, saju2Res, astro1Res, astro2Res] = await Promise.all([
         fetch('/api/saju', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: apiHeaders,
           body: JSON.stringify(sajuPayload(personList[0])),
         }),
         fetch('/api/saju', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: apiHeaders,
           body: JSON.stringify(sajuPayload(personList[1])),
         }),
         fetch('/api/astrology', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: apiHeaders,
           body: JSON.stringify(astroPayload(personList[0])),
         }),
         fetch('/api/astrology', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: apiHeaders,
           body: JSON.stringify(astroPayload(personList[1])),
         }),
       ])
