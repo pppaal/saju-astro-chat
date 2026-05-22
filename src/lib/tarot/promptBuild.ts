@@ -91,9 +91,9 @@ export function buildInterpretStreamPrompts(
 {
   "overall": "${overallDirectiveKo}",
   "cards": [
-    { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 시간 앵커 포함" }
+    { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 300-500자, 상대 시점 앵커 포함(예: 2-3주 내·다음 달)" }
   ],
-  "advice": "구체 행동 1-3개, 150-200자"
+  "advice": "구체 행동 1-3개, 150-200자. 결정형 질문(예/아니오·선택)이면 첫 문장에 기울기를 분명히(예: 지금은 유보를 권해요)"
 }`
     : `${TAROT_RULES_EN}
 
@@ -106,9 +106,9 @@ Output — exactly this JSON schema (no code fences, no preamble, no comments):
 {
   "overall": "${overallDirectiveEn}",
   "cards": [
-    { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, 180-280 words, with a time anchor" }
+    { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, 180-280 words, with a relative time anchor (e.g. next 2-3 weeks)" }
   ],
-  "advice": "1-3 concrete actions, 90-130 words"
+  "advice": "1-3 concrete actions, 90-130 words. For a yes/no or choice question, state your lean in the first sentence (e.g. lean toward waiting for now)"
 }`
 
   const userPrompt = isKorean
