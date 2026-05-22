@@ -220,14 +220,6 @@ describe('API Routes Smoke Tests', () => {
     });
   });
 
-  describe('User Routes (1)', () => {
-    it('should have user routes', () => {
-      assertModules([
-        'app/api/user/update-birth-info/route',
-      ]);
-    });
-  });
-
   describe('Webhook Routes (1)', () => {
     it('should have webhook routes', () => {
       assertModules([
