@@ -74,6 +74,11 @@ describe('tarot prompt builders — rules constants', () => {
     expect(TAROT_RULES_EN).toMatch(/Never reveal you're an AI/i)
   })
 
+  it('both rule sets forbid deterministic fate claims', () => {
+    expect(TAROT_RULES_KO).toContain('단정하지')
+    expect(TAROT_RULES_EN).toMatch(/possibility \/ tendency|not prophecy/)
+  })
+
   it('rules constants do not bleed across languages', () => {
     // English rules must not embed Hangul; Korean rules must contain Hangul.
     expect(TAROT_RULES_EN).not.toMatch(/[가-힯]/)
@@ -231,6 +236,30 @@ describe('buildInterpretStreamPrompts — English', () => {
       userQuestion: '',
     })
     expect(blank.userPrompt).toContain('"general reading"')
+  })
+})
+
+describe('buildInterpretStreamPrompts — schema directives', () => {
+  it('KO schema asks for a relative time anchor and a decision lean', () => {
+    const built = buildInterpretStreamPrompts({
+      language: 'ko',
+      spreadTitle: SAMPLE_SPREAD,
+      cards: SAMPLE_CARDS,
+      userQuestion: SAMPLE_QUESTION_KO,
+    })
+    expect(built.systemPrompt).toContain('상대 시점 앵커')
+    expect(built.systemPrompt).toContain('기울기')
+  })
+
+  it('EN schema asks for a relative time anchor and a decision lean', () => {
+    const built = buildInterpretStreamPrompts({
+      language: 'en',
+      spreadTitle: SAMPLE_SPREAD,
+      cards: SAMPLE_CARDS,
+      userQuestion: SAMPLE_QUESTION_EN,
+    })
+    expect(built.systemPrompt).toContain('relative time anchor')
+    expect(built.systemPrompt).toMatch(/state your lean/)
   })
 })
 
