@@ -106,6 +106,18 @@ export interface FormattedDate {
         astro: string[]
         saju: string[]
         bothSystems: boolean
+        meaning?: string
+      }>
+    }
+    /** 올해 큰 날 — 그 해 1년 전체 수렴 큰 날 */
+    yearlyConvergence?: {
+      keyDays: Array<{
+        date: string
+        score: number
+        astro: string[]
+        saju: string[]
+        bothSystems: boolean
+        meaning?: string
       }>
     }
     /** 인생 분기점 — 점성 라이프사이클 × 대운 전환 */

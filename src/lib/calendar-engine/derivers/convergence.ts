@@ -1,3 +1,4 @@
+import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ActiveSignal, CalendarCell } from '../types'
 
 /**
@@ -57,12 +58,41 @@ function cleanName(s: ActiveSignal): string {
     .slice(0, 28)
 }
 
+const THEME_LABEL: Record<'ko' | 'en', Record<AstroThemeKey, string>> = {
+  ko: { love: '연애', money: '재물', career: '직업', health: '건강', growth: '성장' },
+  en: { love: 'love', money: 'money', career: 'career', health: 'health', growth: 'growth' },
+}
+
+// "2층 의미" 한 줄 — 그날 무거운 신호들의 theme(영역) + 순극성(톤)으로 구성.
+// 특정 점성 산문을 지어내지 않고 엔진이 이미 태깅한 값만 쓴다.
+function composeMeaning(
+  themeAcc: Partial<Record<AstroThemeKey, number>>,
+  netPol: number,
+  sumImp: number,
+  lang: 'ko' | 'en'
+): string | undefined {
+  const top = (Object.entries(themeAcc) as Array<[AstroThemeKey, number]>)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([k]) => THEME_LABEL[lang][k])
+  if (top.length === 0) return undefined
+  const ratio = sumImp > 0 ? netPol / sumImp : 0
+  if (lang === 'en') {
+    const tone = ratio > 0.15 ? 'opens up' : ratio < -0.15 ? 'is tested' : 'shifts'
+    return `${top.join(' · ')} ${tone}`
+  }
+  const areas = top.join('·')
+  const tone = ratio > 0.15 ? '기회가 열리는' : ratio < -0.15 ? '시험받는' : '크게 전환되는'
+  return `${areas} 영역이 ${tone} 날`
+}
+
 export interface ConvergenceDay {
   date: string // YYYY-MM-DD
   score: number
   astro: string[] // 그날 무거운 점성 이벤트
   saju: string[] // 그날 무거운 사주 이벤트
   bothSystems: boolean // 점성·사주 둘 다 무거운 게 있었나 (진짜 수렴)
+  meaning?: string // 영역(theme) + 톤(polarity) 한 줄 의미
 }
 
 export interface Convergence {
@@ -70,25 +100,39 @@ export interface Convergence {
   keyDays: ConvergenceDay[]
 }
 
-export function deriveConvergence(cells: CalendarCell[], topN = 5): Convergence {
+export function deriveConvergence(
+  cells: CalendarCell[],
+  topN = 5,
+  lang: 'ko' | 'en' = 'ko'
+): Convergence {
   const scored: ConvergenceDay[] = []
   for (const c of cells) {
     let astroHeavy = 0
     let sajuHeavy = 0
     const astro: string[] = []
     const saju: string[] = []
+    const themeAcc: Partial<Record<AstroThemeKey, number>> = {}
+    let netPol = 0
+    let sumImp = 0
     for (const s of c.signals) {
       const imp = Math.abs(s.polarity) * s.weight
       if (imp < MIN_IMPACT) continue
-      if (isHeavyAstro(s)) {
+      const heavyAstro = isHeavyAstro(s)
+      const heavySaju = !heavyAstro && isHeavySaju(s)
+      if (!heavyAstro && !heavySaju) continue
+      if (heavyAstro) {
         astroHeavy += imp * exactnessFactor(c.datetime, s)
         const n = cleanName(s)
         if (n && astro.length < 3 && !astro.includes(n)) astro.push(n)
-      } else if (isHeavySaju(s)) {
+      } else {
         sajuHeavy += imp
         const n = cleanName(s)
         if (n && saju.length < 3 && !saju.includes(n)) saju.push(n)
       }
+      // 의미 한 줄용 — 무거운 신호의 theme/polarity 누적
+      netPol += s.polarity * imp
+      sumImp += imp
+      for (const t of s.themes) themeAcc[t] = (themeAcc[t] ?? 0) + imp * (s.themeWeights?.[t] ?? 1)
     }
     if (astroHeavy === 0 && sajuHeavy === 0) continue
     const bothSystems = astroHeavy > 0 && sajuHeavy > 0
@@ -99,6 +143,7 @@ export function deriveConvergence(cells: CalendarCell[], topN = 5): Convergence 
       astro,
       saju,
       bothSystems,
+      meaning: composeMeaning(themeAcc, netPol, sumImp, lang),
     })
   }
   scored.sort((a, b) => b.score - a.score)

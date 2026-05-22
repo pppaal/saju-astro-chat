@@ -151,6 +151,12 @@ export interface Interpretation {
    */
   convergence?: Convergence
   /**
+   * "올해 큰 날" — 그 해 1년 전체에서 뽑은 수렴 큰 날. 365일 빌드가 비싸 매월
+   * 계산하지 않고 라우트가 연간 캐시로 채워 넣는다(엔진 buildInterpretation 은
+   * 건드리지 않음). 그래서 옵셔널.
+   */
+  yearlyConvergence?: Convergence
+  /**
    * "인생 분기점" — 점성 라이프사이클(토성 리턴 등) × 대운 전환을 합친 인생
    * 스케일 큰 시기. natal 에서만 결정되며 monthly scope 에서 함께 노출.
    */

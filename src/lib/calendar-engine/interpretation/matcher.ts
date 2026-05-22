@@ -379,7 +379,7 @@ export function buildInterpretation(args: {
   // 키 이벤트 3 — 월간일 때만 (일별 셀에서 베스트/강한구간/피할날 추출).
   const keyEvents = scope === 'monthly' ? deriveKeyEvents(cells) : undefined
   // 수렴 큰 날 — 무거운 이벤트가 점성·사주 겹치는 날 (keyEvents 와 별개, additive).
-  const convergence = scope === 'monthly' ? deriveConvergence(cells) : undefined
+  const convergence = scope === 'monthly' ? deriveConvergence(cells, 5, lang) : undefined
   // 인생 분기점 — 점성 라이프사이클 × 대운 전환 (natal 스케일, 월과 무관하나
   // monthly 카드에 함께 노출). 순수 산술이라 매월 재계산해도 저렴.
   const lifetimePivots = scope === 'monthly' ? deriveLifetimePivots(natal, lang) : undefined

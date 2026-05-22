@@ -1115,6 +1115,22 @@ export const GET = withApiMiddleware(
           prevCells: prevMonthCells,
         })
         ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
+        // 올해 큰 날(연간 수렴) — 1년 빌드라 비쌈. 본명·연도별 인메모리 캐시로 1회만.
+        // 실패해도 나머지 해석은 그대로 (큰 날만 비게 됨).
+        try {
+          const { getYearConvergence } = await import('@/lib/calendar-engine/year-convergence')
+          interp.yearlyConvergence = await getYearConvergence({
+            birthKey,
+            year: targetYear,
+            natal: ceNatal,
+            lang: interpLang,
+          })
+        } catch (err) {
+          logger.warn?.(
+            '[calendar-engine v2] yearly convergence skipped:',
+            err instanceof Error ? err.message : String(err)
+          )
+        }
         // interpretation은 그 달 전체 단위라 셀별 부착 X.
         // 모든 셀에 동일 narrative 부착 — 클라가 어느 날짜든 같은 텍스트 사용.
         for (const d of formattedDates) {

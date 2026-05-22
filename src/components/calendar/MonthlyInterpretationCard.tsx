@@ -41,6 +41,13 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
       {/* 큰 날 — 점성·사주가 같은 날 겹치는 시점 + 무슨 일이 겹치나 */}
       <ConvergenceBlock convergence={interp.convergence} />
 
+      {/* 올해 큰 날 — 1년 전체에서 다가오는 큰 시점 (월 → 년 줌아웃) */}
+      <ConvergenceBlock
+        convergence={interp.yearlyConvergence}
+        title="올해 큰 날 — 다가오는 큰 시점"
+        upcomingOnly
+      />
+
       {/* 인생 분기점 — 점성 라이프사이클 × 대운 (지금 챕터 + 앞으로) */}
       <LifePivotsBlock lifetimePivots={interp.lifetimePivots} />
 
@@ -172,16 +179,28 @@ function fmtFullDate(iso: string): string {
 /**
  * 큰 날(수렴) — 점성·사주의 무거운 이벤트가 같은 날 겹치는 시점.
  * keyEvents(점수 베스트/피할 날)와 달리 "왜 큰 날인지(어느 사건이 겹쳤는지)"를
- * 점성·사주로 나눠 보여줘 신뢰도를 높인다.
+ * 점성·사주로 나눠 보여줘 신뢰도를 높인다. 월간/연간 공용.
  */
-function ConvergenceBlock({ convergence }: { convergence: Convergence | undefined }) {
-  const days = convergence?.keyDays ?? []
+function ConvergenceBlock({
+  convergence,
+  title = '큰 날 — 점성·사주가 겹치는 시점',
+  upcomingOnly = false,
+}: {
+  convergence: Convergence | undefined
+  title?: string
+  upcomingOnly?: boolean
+}) {
+  let days = convergence?.keyDays ?? []
+  if (upcomingOnly) {
+    const today = new Date().toISOString().slice(0, 10)
+    days = days.filter((d) => d.date >= today)
+  }
   if (days.length === 0) return null
 
   return (
     <div className="bg-zinc-950/40 border border-white/5 rounded-xl px-4 py-3">
       <div className="text-[11px] font-bold text-zinc-400 mb-2 tracking-wide flex items-center gap-1.5">
-        <span aria-hidden>🔮</span> 큰 날 — 점성·사주가 겹치는 시점
+        <span aria-hidden>🔮</span> {title}
       </div>
       <ul className="space-y-2.5">
         {days.map((d) => (
@@ -205,6 +224,9 @@ function ConvergenceBlock({ convergence }: { convergence: Convergence | undefine
                 <span className="shrink-0 font-bold text-amber-300/90">사주</span>
                 <span className="text-zinc-400">{d.saju.join(' · ')}</span>
               </div>
+            )}
+            {d.meaning && (
+              <div className="text-[11px] leading-snug text-indigo-300/80 italic">{d.meaning}</div>
             )}
           </li>
         ))}
