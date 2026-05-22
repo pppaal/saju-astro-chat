@@ -69,7 +69,6 @@ const START_ROUTES = [
   '/destiny-map',
   '/tarot',
   '/compatibility',
-  '/report',
 ]
 
 const MAX_PAGES_TO_VISIT = 180

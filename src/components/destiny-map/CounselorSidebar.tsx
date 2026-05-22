@@ -369,7 +369,7 @@ export default function CounselorSidebar({
 
         <div className={styles.divider} />
 
-        <div className={styles.section}>
+        <div className={`${styles.section} ${styles.historySection}`}>
           <div className={styles.sectionLabel}>
             {t('destinyMap.counselor.pastChats', 'Past chats')}
           </div>
