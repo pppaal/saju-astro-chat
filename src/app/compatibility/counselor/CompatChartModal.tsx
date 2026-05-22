@@ -3,13 +3,15 @@
 import React from 'react'
 import { X } from 'lucide-react'
 import { SajuChart } from '@/components/destiny-map/charts/SajuChart'
-import { ElementRadar } from '@/components/destiny-map/charts/ElementRadar'
-import { NatalChart } from '@/components/destiny-map/charts/NatalChart'
 import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
+import { CompatNatalOverlay } from './CompatNatalOverlay'
+import { CompatRadarOverlay } from './CompatRadarOverlay'
 
 /**
- * 궁합 차트 모달 — 운명 상담사의 ChartModal과 똑같은 형태(사주팔자 +
- * 오행 radar + 네이탈 차트 + 한 줄 해석)를 두 사람분 쌓아 보여준다.
+ * 궁합 차트 모달 — 두 사람 차트를 따로 쌓지 않고 하나로 합쳐 보여준다.
+ *   1) 점성 시너스트리: 한 황도 위에 두 사람 행성을 색으로 겹쳐 그림
+ *   2) 오행 비교: 한 레이더에 두 사람 오행을 겹쳐 그림
+ *   3) 사주 좌우 비교: A·B 사주팔자를 두 칸으로 나란히
  *
  * 입력은 compat 페이지가 들고 있는 raw API 응답:
  *   personNSaju  = /api/saju 응답   { data: { yearPillar… fiveElements… } }
@@ -46,63 +48,36 @@ function unwrapAstro(raw: unknown): Record<string, unknown> | undefined {
   )
 }
 
-function PersonCharts({
-  label,
+function QuickRead({
   name,
   accent,
   saju,
   astro,
   lang,
 }: {
-  label: string
   name: string
   accent: 'rose' | 'sky'
   saju?: Record<string, unknown>
   astro?: Record<string, unknown>
   lang: 'ko' | 'en'
 }) {
-  const isKo = lang === 'ko'
-  const readLine = generateChartSummary(saju, astro, lang)
-  const chip =
-    accent === 'rose'
-      ? 'bg-rose-500/15 text-rose-300'
-      : 'bg-sky-500/15 text-sky-300'
-
+  const line = generateChartSummary(saju, astro, lang)
+  if (!line) return null
+  const chip = accent === 'rose' ? 'bg-rose-500/15 text-rose-300' : 'bg-sky-500/15 text-sky-300'
   return (
-    <section className="space-y-3">
-      <div className="flex items-center gap-2">
-        <span className={`rounded-full px-2.5 py-0.5 text-sm font-bold ${chip}`}>{label}</span>
-        {name && <span className="text-base font-semibold text-stone-200">{name}</span>}
-      </div>
+    <div className="rounded-2xl border border-stone-700 bg-stone-800/60 p-3">
+      <span className={`mb-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${chip}`}>
+        {name}
+      </span>
+      <p className="text-sm leading-relaxed text-stone-200">{line}</p>
+    </div>
+  )
+}
 
-      {readLine && (
-        <div className="rounded-2xl border border-stone-700 bg-stone-800/60 p-4">
-          <div className="mb-1.5 text-xs font-semibold tracking-wide text-stone-400">
-            {isKo ? '한 줄 해석' : 'Quick read'}
-          </div>
-          <p className="text-sm leading-relaxed text-stone-200">{readLine}</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <div className="space-y-2">
-          <h3 className="border-l-2 border-rose-500 px-2 text-sm font-medium text-stone-300">
-            {isKo ? '동양 — 사주팔자' : 'Saju (4 Pillars)'}
-          </h3>
-          <SajuChart saju={saju as never} lang={lang} />
-          <h3 className="border-l-2 border-rose-500 px-2 pt-1 text-sm font-medium text-stone-300">
-            {isKo ? '동양 — 오행 균형' : 'Five-Element Balance'}
-          </h3>
-          <ElementRadar saju={saju} lang={lang} />
-        </div>
-        <div className="space-y-2">
-          <h3 className="border-l-2 border-indigo-500 px-2 text-sm font-medium text-stone-300">
-            {isKo ? '서양 — 네이탈 차트' : 'Natal Chart'}
-          </h3>
-          <NatalChart astro={astro as never} lang={lang} />
-        </div>
-      </div>
-    </section>
+function SectionTitle({ children, accent }: { children: React.ReactNode; accent: 'indigo' | 'rose' }) {
+  const border = accent === 'indigo' ? 'border-indigo-500' : 'border-rose-500'
+  return (
+    <h3 className={`border-l-2 ${border} px-2 text-sm font-semibold text-stone-200`}>{children}</h3>
   )
 }
 
@@ -130,6 +105,13 @@ export function CompatChartModal({
 
   if (!open) return null
 
+  const sajuA = unwrapSaju(person1Saju)
+  const sajuB = unwrapSaju(person2Saju)
+  const astroA = unwrapAstro(person1Astro)
+  const astroB = unwrapAstro(person2Astro)
+  const labelA = nameA || 'A'
+  const labelB = nameB || 'B'
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
@@ -152,32 +134,69 @@ export function CompatChartModal({
         </button>
 
         <div className="mb-5 space-y-1 text-center">
-          <h2 className="text-lg font-bold text-stone-200">
-            {isKo ? '궁합 차트' : 'Couple Chart'}
-          </h2>
+          <h2 className="text-lg font-bold text-stone-200">{isKo ? '궁합 차트' : 'Couple Chart'}</h2>
           <p className="text-xs text-stone-400">
-            {isKo ? '두 사람의 사주팔자와 네이탈 차트' : 'Both saju pillars & natal charts'}
+            {isKo
+              ? '두 사람의 사주와 네이탈을 하나로 겹쳐 비교'
+              : 'Both charts overlaid for a side-by-side read'}
           </p>
         </div>
 
         <div className="space-y-6">
-          <PersonCharts
-            label="A"
-            name={nameA}
-            accent="rose"
-            saju={unwrapSaju(person1Saju)}
-            astro={unwrapAstro(person1Astro)}
-            lang={lang}
-          />
-          <div className="border-t border-stone-700/60" />
-          <PersonCharts
-            label="B"
-            name={nameB}
-            accent="sky"
-            saju={unwrapSaju(person2Saju)}
-            astro={unwrapAstro(person2Astro)}
-            lang={lang}
-          />
+          {/* 한 줄 해석 — 두 사람 나란히 */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <QuickRead name={labelA} accent="rose" saju={sajuA} astro={astroA} lang={lang} />
+            <QuickRead name={labelB} accent="sky" saju={sajuB} astro={astroB} lang={lang} />
+          </div>
+
+          {/* 점성 시너스트리 — 겹친 네이탈 */}
+          <section className="space-y-2">
+            <SectionTitle accent="indigo">
+              {isKo ? '서양 — 시너스트리 (네이탈 겹침)' : 'Synastry — Natal Overlay'}
+            </SectionTitle>
+            <CompatNatalOverlay
+              astroA={astroA as never}
+              astroB={astroB as never}
+              nameA={labelA}
+              nameB={labelB}
+              lang={lang}
+            />
+          </section>
+
+          {/* 오행 비교 — 겹친 레이더 */}
+          <section className="space-y-2">
+            <SectionTitle accent="rose">
+              {isKo ? '동양 — 오행 비교' : 'Five-Element Comparison'}
+            </SectionTitle>
+            <CompatRadarOverlay
+              sajuA={sajuA}
+              sajuB={sajuB}
+              nameA={labelA}
+              nameB={labelB}
+              lang={lang}
+            />
+          </section>
+
+          {/* 사주팔자 — 좌우 비교 */}
+          <section className="space-y-2">
+            <SectionTitle accent="rose">
+              {isKo ? '동양 — 사주팔자 비교' : 'Saju (4 Pillars) Comparison'}
+            </SectionTitle>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <span className="inline-block rounded-full bg-rose-500/15 px-2.5 py-0.5 text-xs font-bold text-rose-300">
+                  {labelA}
+                </span>
+                <SajuChart saju={sajuA as never} lang={lang} />
+              </div>
+              <div className="space-y-1.5">
+                <span className="inline-block rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-bold text-sky-300">
+                  {labelB}
+                </span>
+                <SajuChart saju={sajuB as never} lang={lang} />
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>

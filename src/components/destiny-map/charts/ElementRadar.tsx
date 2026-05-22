@@ -14,9 +14,9 @@ interface ElementRadarProps {
   lang?: 'ko' | 'en'
 }
 
-type Counts = { wood: number; fire: number; earth: number; metal: number; water: number }
+export type Counts = { wood: number; fire: number; earth: number; metal: number; water: number }
 
-const AXES: Array<{ key: keyof Counts; ko: string; en: string }> = [
+export const AXES: Array<{ key: keyof Counts; ko: string; en: string }> = [
   { key: 'wood', ko: '창의력 (목)', en: 'Creativity (Wood)' },
   { key: 'fire', ko: '추진력 (화)', en: 'Drive (Fire)' },
   { key: 'earth', ko: '안정성 (토)', en: 'Stability (Earth)' },
@@ -37,7 +37,7 @@ const EL_KEY: Record<string, keyof Counts> = {
   wood: 'wood', fire: 'fire', earth: 'earth', metal: 'metal', water: 'water',
 }
 
-function deriveCounts(saju: unknown): Counts {
+export function deriveCounts(saju: unknown): Counts {
   const zero: Counts = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
   if (!saju || typeof saju !== 'object') return zero
   const s = saju as Record<string, unknown>
