@@ -4,7 +4,24 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { localizeStoredCity } from '@/lib/cities/formatter'
 import { logger } from '@/lib/logger'
-import { BirthInfoFields, birthFieldClasses, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+import { BirthInfoFields, type BirthFieldsClasses, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+
+// Light field styling that matches the profile page's premium white
+// surface. Passed to BirthInfoFields so the shared (dark-default) form
+// reads correctly on white without touching its other usages.
+const lightFieldClasses: Required<BirthFieldsClasses> = {
+  field: 'flex flex-col gap-1.5',
+  label: 'text-[12.5px] font-semibold tracking-[0.02em] text-[#57534e]',
+  input:
+    'w-full rounded-xl border border-[#e0ddd7] bg-white px-3 py-2.5 text-[14px] text-[#1c1917] outline-none transition placeholder:text-[#a8a29e] focus:border-[#a07a3c] disabled:cursor-not-allowed disabled:opacity-50',
+  row: 'grid grid-cols-2 gap-2.5',
+  checkboxLabel:
+    'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[#57534e]',
+  suggestionList:
+    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e7e4df] bg-white p-1 shadow-[0_16px_40px_rgba(28,25,23,0.12)]',
+  suggestionItem:
+    'block w-full rounded-lg px-2.5 py-2 text-left text-[13px] text-[#44403c] transition hover:bg-[#f5f4f1]',
+}
 
 interface ProfileEditModalProps {
   open: boolean
@@ -109,21 +126,24 @@ export function ProfileEditModal({
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(28,25,23,0.45)] backdrop-blur-sm sm:items-center"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-white/10 bg-[#0a0f1e] shadow-[0_-12px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl"
+        className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-[#e7e4df] bg-white shadow-[0_24px_48px_rgba(28,25,23,0.18)] sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-          <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-white">
+        <header className="flex items-center justify-between border-b border-[#eee9e3] px-5 py-4">
+          <h2
+            className="text-[16px] font-semibold tracking-[-0.01em] text-[#1c1917]"
+            style={{ fontFamily: 'var(--font-cinzel), Georgia, serif' }}
+          >
             {t('내 정보 수정', 'Edit my info')}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1 text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+            className="rounded-full p-1 text-[#a8a29e] transition hover:bg-[#f5f4f1] hover:text-[#1c1917]"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -132,14 +152,14 @@ export function ProfileEditModal({
 
         <form onSubmit={handleSubmit} className="max-h-[80vh] overflow-y-auto px-5 py-5">
           {/* 이름 */}
-          <div className={birthFieldClasses.field + ' mb-4'}>
-            <label className={birthFieldClasses.label}>{t('이름', 'Name')}</label>
+          <div className={lightFieldClasses.field + ' mb-4'}>
+            <label className={lightFieldClasses.label}>{t('이름', 'Name')}</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('표시될 이름', 'Display name')}
-              className={birthFieldClasses.input}
+              className={lightFieldClasses.input}
               maxLength={64}
             />
           </div>
@@ -153,11 +173,12 @@ export function ProfileEditModal({
               gender={gender === 'F' ? 'female' : 'male'}
               city={birthCity}
               onChange={onBirthChange}
+              classes={lightFieldClasses}
             />
           </div>
 
           {error && (
-            <p className="mb-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[12.5px] text-rose-200">
+            <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12.5px] text-rose-600">
               {error}
             </p>
           )}
@@ -165,7 +186,7 @@ export function ProfileEditModal({
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-3 text-[14px] font-semibold text-white transition hover:from-cyan-400 hover:to-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-xl bg-[#1c1917] px-4 py-3 text-[14px] font-semibold text-white transition hover:bg-[#3a3530] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {saving ? t('저장 중…', 'Saving…') : t('저장', 'Save')}
           </button>
