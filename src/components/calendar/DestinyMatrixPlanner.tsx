@@ -478,7 +478,6 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                 allDates={data?.allDates ?? []}
                 year={viewYear}
                 onDateClick={handleDateClick}
-                gradeThresholds={gradeThresholds}
               />
             </motion.div>
           )}

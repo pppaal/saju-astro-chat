@@ -2,7 +2,12 @@
 
 import { CalendarRange, TrendingUp, TrendingDown } from 'lucide-react'
 import type { ImportantDate } from './types'
-import { getGrade, type GradeThresholds } from './scoreGrade'
+import { computeGradeThresholds, getGrade } from './scoreGrade'
+
+// "양쪽 수렴" = 사주축·점성축이 둘 다 중립(50)에서 이만큼 벗어난 날.
+// 점수 *수준 유사*(axisAgreement)가 아니라 양쪽 다 실제 신호가 있는 날 —
+// convergence 디라이버(월간/데일리)의 bothSystems와 같은 의미(방향 무관).
+const CONVERGENCE_AXIS_MIN = 15
 
 interface Props {
   /** 올해 전체 ImportantDate (calendar-engine 점수 포함) */
@@ -11,8 +16,6 @@ interface Props {
   year: number
   /** 날짜 클릭 — 'YYYY-MM-DD' 받아 daily 뷰로 점프 */
   onDateClick: (iso: string) => void
-  /** 사용자 1년 분포 기반 임계값 */
-  gradeThresholds?: GradeThresholds
   /** 각 방향 표시 개수 (기본 6) */
   topN?: number
   /** 한 달에서 최대 몇 개까지 (군집 방지, 기본 2) */
@@ -27,20 +30,23 @@ interface Props {
  *
  * 큰 날 = getGrade가 좋은 날/조심할 날로 판정한 날 (보통은 제외).
  * 같은 달 군집을 막으려고 한 달 최대 perMonthCap개까지만.
- * scoreBreakdown.axisAgreement === 'aligned' → "양쪽 수렴" 뱃지.
+ * "양쪽 수렴" 뱃지 = 두 축이 둘 다 중립에서 벗어난 날 (isConverged).
+ *
+ * 랭킹/임계값은 d.score(yearlyDates v3, 12달 일관)로만 — displayScore는
+ * 현재±3달만 새 엔진 점수로 덮여 있어 연 단위로 섞으면 그 달들이 편향됨.
  */
 export default function YearHighlightsCard({
   allDates,
   year,
   onDateClick,
-  gradeThresholds,
   topN = 6,
   perMonthCap = 2,
 }: Props) {
   if (allDates.length === 0) return null
 
+  const thresholds = computeGradeThresholds(allDates.map(pickScore))
   const ranked = allDates
-    .map((d) => ({ date: d, score: pickScore(d), grade: getGrade(pickScore(d), gradeThresholds) }))
+    .map((d) => ({ date: d, score: pickScore(d), grade: getGrade(pickScore(d), thresholds) }))
     .filter((x) => x.grade.key !== 'neutral')
 
   const lucky = capPerMonth(
@@ -136,7 +142,7 @@ function DateRow({
   const { date, grade } = row
   const { month, day, weekday } = parseParts(date.date)
   const reason = pickReason(date, tone)
-  const converged = date.scoreBreakdown?.axisAgreement === 'aligned'
+  const converged = isConverged(date)
   const dayClass = tone === 'positive' ? 'text-emerald-300' : 'text-rose-300'
 
   return (
@@ -166,8 +172,21 @@ function DateRow({
   )
 }
 
+// 연 단위 일관 점수 — d.score(yearlyDates)만. displayScore는 3달만 덮여
+// 있어 cross-year 랭킹에 쓰면 그 달들이 다른 스케일로 섞임.
 function pickScore(d: ImportantDate): number {
-  return Math.round(d.displayScore ?? d.score ?? 50)
+  return Math.round(d.score ?? 50)
+}
+
+// "양쪽 수렴" — 사주축·점성축이 둘 다 중립(50)에서 충분히 벗어남.
+// = 양쪽 시스템 모두 그날 실제 신호가 있음 (방향은 무관, convergence와 동일).
+function isConverged(d: ImportantDate): boolean {
+  const sb = d.scoreBreakdown
+  if (!sb) return false
+  return (
+    Math.abs(sb.sajuAxis - 50) >= CONVERGENCE_AXIS_MIN &&
+    Math.abs(sb.astroAxis - 50) >= CONVERGENCE_AXIS_MIN
+  )
 }
 
 function capPerMonth(rows: Row[], cap: number): Row[] {
