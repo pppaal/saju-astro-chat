@@ -27,6 +27,8 @@ const PLANET_ORDER = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Sat
 const SIZE = 240
 const CX = SIZE / 2
 const CY = SIZE / 2
+// horizontal padding so the left-side ASC label is never clipped
+const PAD = 22
 
 // ASC fixed at the left (9 o'clock); ecliptic longitude increases counter-clockwise.
 const screenDeg = (lon: number, asc: number) => 180 + (lon - asc)
@@ -56,8 +58,9 @@ export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
   const radiusOf = (name: string) => 50 + (sortedByLon.findIndex((p) => p.name === name) % 2) * 13
 
   return (
-    <div className="relative flex flex-col items-center overflow-hidden rounded-xl border border-indigo-500/30 bg-slate-950/80 p-3 shadow-inner">
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="h-auto w-full">
+    <div className="relative flex flex-col items-center rounded-xl border border-indigo-500/30 bg-gradient-to-b from-slate-900/80 to-slate-950/90 p-3 shadow-inner">
+      <svg viewBox={`${-PAD} 0 ${SIZE + PAD * 2} ${SIZE}`} className="h-auto w-full">
+        <g className="chart-spin-in">
         <circle cx={CX} cy={CY} r={ringOuter} fill="none" stroke="rgba(99,102,241,0.45)" strokeWidth="1.5" />
         <circle cx={CX} cy={CY} r={ringInner} fill="none" stroke="rgba(99,102,241,0.22)" strokeWidth="1" />
 
@@ -81,9 +84,11 @@ export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
 
         {/* ASC marker (left) */}
         <line x1={CX} y1={CY} x2={pt(ringOuter, 180).x} y2={pt(ringOuter, 180).y} stroke="rgba(251,191,36,0.7)" strokeWidth="1.5" />
-        <text x={pt(ringOuter + 10, 180).x} y={pt(ringOuter + 10, 180).y} fill="#fbbf24" fontSize="10" textAnchor="middle" dominantBaseline="middle">ASC</text>
+        <text x={pt(ringOuter + 12, 180).x} y={pt(ringOuter + 12, 180).y} fill="#fbbf24" fontSize="10" fontWeight="700" textAnchor="middle" dominantBaseline="middle">ASC</text>
+        </g>
 
         {/* planets at true longitude */}
+        <g className="chart-twinkle-in">
         {visible.length > 0 ? (
           visible.map((p) => {
             const deg = screenDeg(p.longitude, asc)
@@ -98,6 +103,7 @@ export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
           <text x={CX} y={CY} fill="#94a3b8" fontSize="11" textAnchor="middle">{isKo ? '점성 데이터 없음' : 'No astro data'}</text>
         )}
         <circle cx={CX} cy={CY} r="2.5" fill="#818cf8" />
+        </g>
       </svg>
 
       {/* legend: planet → sign degree */}

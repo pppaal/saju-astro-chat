@@ -79,8 +79,10 @@ export function CompatRadarOverlay({
         ))}
         {AXES.map((_, i) => { const p = pt(R, i); return <line key={i} x1={CX} y1={CY} x2={p.x} y2={p.y} stroke="rgba(28,25,23,0.10)" strokeWidth="1" /> })}
 
-        {sumA > 0 && <polygon points={poly(a)} fill="rgba(251,113,133,0.28)" stroke={rose} strokeWidth="2" />}
-        {sumB > 0 && <polygon points={poly(b)} fill="rgba(56,189,248,0.24)" stroke={sky} strokeWidth="2" />}
+        <g className="chart-grow-in">
+          {sumA > 0 && <polygon points={poly(a)} fill="rgba(251,113,133,0.28)" stroke={rose} strokeWidth="2" />}
+          {sumB > 0 && <polygon points={poly(b)} fill="rgba(56,189,248,0.24)" stroke={sky} strokeWidth="2" />}
+        </g>
 
         {AXES.map((x, i) => {
           const lp = pt(R + 18, i)

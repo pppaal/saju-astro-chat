@@ -755,6 +755,96 @@ body {
   }
 }
 
+/* ============ Destiny / Couple chart modal animations ============ */
+@keyframes chart-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.chart-backdrop-in {
+  animation: chart-backdrop-in 0.25s ease-out both;
+}
+
+@keyframes chart-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.chart-pop-in {
+  animation: chart-pop-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes chart-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* staggered children: set --i on each item */
+.chart-rise-in {
+  animation: chart-rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+/* SVG groups grow from their own center */
+@keyframes chart-grow-in {
+  from {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.chart-grow-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chart-grow-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes chart-spin-in {
+  from {
+    opacity: 0;
+    transform: rotate(-14deg) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+.chart-spin-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chart-spin-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* glyphs/points fade in slightly after the wheel */
+@keyframes chart-twinkle-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.chart-twinkle-in {
+  animation: chart-twinkle-in 0.5s ease-out both;
+  animation-delay: 0.35s;
+}
+
 /* ============ Mobile-Optimized Dropdown & Select Styling ============ */
 @media (max-width: 768px) {
   /* Ensure dropdowns are easy to tap */
