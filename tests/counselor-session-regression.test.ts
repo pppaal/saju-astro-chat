@@ -53,14 +53,33 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
     expect(route).toMatch(/timezone: \$\{body\.timezone/)
   })
 
-  it('birthCityUnknown 시 skipAngles 전달 — formatAstroSelf (#298)', () => {
-    expect(route).toMatch(/skipAngles:\s*birthCityUnknown/)
+  it('birthCityUnknown 시 위치 의존 결론 금지 — prompt rule (#298)', () => {
+    // formatAstroSelf/skipAngles 체인은 slim 리팩터(#426)로 제거됨. 이제
+    // birthCityUnknown 가드는 시스템 프롬프트 룰로 enforce.
+    expect(route).toMatch(/birthCityUnknown=true면 위치 의존 결론 금지/)
+    expect(route).toMatch(/birthCityUnknown=true: skip place-dependent claims/i)
   })
 
   it('priorTurns 가 frontend 메시지 그대로 (clamp 없음)', () => {
     // route.ts 내부에 clampMessages 호출이 없어야 (이번 세션 후로
     // 운명상담사는 client 가 alread cap). 운명만, 궁합과 구분.
     expect(route).not.toMatch(/clampMessages/)
+  })
+
+  it('세션당 과금 — 턴당 과금으로 되돌아가지 않게 (session billing)', () => {
+    // 1 크레딧 = 세션 1개 (window/turn cap 내 무료). Redis 로 서버측
+    // 추적해 client 가 history 잘라 보내 회피 못 함.
+    expect(route).toMatch(/CREDIT_PER_SESSION/)
+    expect(route).toMatch(/counselor:session:/)
+    expect(route).toMatch(/isNewSession/)
+    expect(route).not.toMatch(/CREDIT_PER_TURN/)
+  })
+
+  it('스트림 빈 응답 시 크레딧 환불 배선 (stream refund)', () => {
+    // 차감했는데 스트림이 빈 응답이면 refundCredits + 세션키 삭제로 원복.
+    expect(route).toMatch(/refundCredits/)
+    expect(route).toMatch(/onFailure/)
+    expect(route).toMatch(/cacheDel\(sessionKey\)/)
   })
 })
 
@@ -100,11 +119,11 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
     expect(route).toMatch(/cachedUserContext\s*=\s*\[[\s\S]*personsInfo[\s\S]*metaBlock/)
   })
 
-  it('self 블록 4개는 의도적으로 void 처리 (synastry-only 보장)', () => {
-    expect(route).toMatch(/void sajuSelfA/)
-    expect(route).toMatch(/void sajuSelfB/)
-    expect(route).toMatch(/void astroSelfA/)
-    expect(route).toMatch(/void astroSelfB/)
+  it('self(개인) 블록 없음 — synastry-only 보장 (#449)', () => {
+    // 이전엔 self 블록을 만들어 void 처리했지만, #449에서 self 차트 블록
+    // 자체를 제거 (synastry-only). self 포매터 호출이 없어야 한다.
+    expect(route).not.toMatch(/formatSajuSelf\s*\(/)
+    expect(route).not.toMatch(/formatAstroSelf\s*\(/)
   })
 })
 
@@ -218,7 +237,7 @@ describe('궁합 follow-up UI (page.tsx) — chip render + sendMessage refactor 
   })
 
   it('sendMessage 가 (textOverride?: string) signature', () => {
-    expect(page).toMatch(/sendMessage = useCallback\(async \(textOverride\?: string\)/)
+    expect(page).toMatch(/sendMessage = useCallback\(\s*async \(textOverride\?: string\)/)
   })
 
   it('streamProcessor result 에서 followUps 받음', () => {

@@ -45,6 +45,10 @@ describe('Redis Rate Limiting (Mocked)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // The module selects its backend from env at load time; reset the registry so
+    // each test's dynamic import re-evaluates env instead of reusing a backend
+    // cached by whichever test imported it first.
+    vi.resetModules()
     process.env = { ...originalEnv }
     mockRedisInstance.pipeline.mockReturnValue(mockPipeline)
     mockPipeline.exec.mockResolvedValue([1, 1])

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Format large numbers: 1000 -> 1K, 1500000 -> 1.5M
  */
 export function formatNumber(num: number | null): string {

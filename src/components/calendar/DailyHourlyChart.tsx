@@ -23,7 +23,7 @@ interface Props {
  * 24시간 시간대 교차 그래프 — 사주 시진 × 점성 행성시.
  *
  * 데이터 소스:
- *  - engineSignals 중 layer === 'hourly' 신호 (saju-hour + astro-planetary-hour)
+ *  - engineSignals 중 layer === 'hourly' 신호 (saju-hour + astro-moon-phase-voc)
  *  - 시간(0-23)별 polarity × weight 평균 → 0~100 점수
  *  - sajuLine: 사주 source 신호 / astroLine: 점성 source 신호
  *
@@ -36,10 +36,10 @@ export default function DailyHourlyChart({ importantDate }: Props) {
     if (hourlySignals.length === 0) return []
 
     // 시간(0-23)별 평균 polarity × weight
-    const buckets: Array<{ saju: number[]; astro: number[] }> = Array.from(
-      { length: 24 },
-      () => ({ saju: [], astro: [] }),
-    )
+    const buckets: Array<{ saju: number[]; astro: number[] }> = Array.from({ length: 24 }, () => ({
+      saju: [],
+      astro: [],
+    }))
 
     // 신호 active.start 시간 추출
     for (const s of importantDate.engineSignals) {
@@ -50,15 +50,13 @@ export default function DailyHourlyChart({ importantDate }: Props) {
       const hourFromId = inferHourFromSignalId(s.id)
       const score = s.polarity * s.weight
       if (hourFromId == null) continue
-      const target = (s.source === 'saju' ? buckets[hourFromId].saju : buckets[hourFromId].astro)
+      const target = s.source === 'saju' ? buckets[hourFromId].saju : buckets[hourFromId].astro
       target.push(score)
     }
 
     return buckets.map((b, hour) => {
-      const sajuAvg =
-        b.saju.length > 0 ? b.saju.reduce((a, v) => a + v, 0) / b.saju.length : 0
-      const astroAvg =
-        b.astro.length > 0 ? b.astro.reduce((a, v) => a + v, 0) / b.astro.length : 0
+      const sajuAvg = b.saju.length > 0 ? b.saju.reduce((a, v) => a + v, 0) / b.saju.length : 0
+      const astroAvg = b.astro.length > 0 ? b.astro.reduce((a, v) => a + v, 0) / b.astro.length : 0
       return {
         hour: `${String(hour).padStart(2, '0')}시`,
         hourNum: hour,
@@ -81,13 +79,7 @@ export default function DailyHourlyChart({ importantDate }: Props) {
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={hourly} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-          <XAxis
-            dataKey="hour"
-            stroke="#a1a1aa"
-            fontSize={12}
-            fontWeight={600}
-            interval={2}
-          />
+          <XAxis dataKey="hour" stroke="#a1a1aa" fontSize={12} fontWeight={600} interval={2} />
           <YAxis domain={[0, 100]} stroke="#a1a1aa" fontSize={12} />
           <Tooltip
             contentStyle={{
@@ -137,9 +129,18 @@ export default function DailyHourlyChart({ importantDate }: Props) {
  */
 function inferHourFromSignalId(id: string): number | null {
   const BRANCH_HOUR: Record<string, number> = {
-    '子': 0,  '丑': 2,  '寅': 4,  '卯': 6,  '辰': 8,
-    '巳': 10, '午': 12, '未': 14, '申': 16, '酉': 18,
-    '戌': 20, '亥': 22,
+    子: 0,
+    丑: 2,
+    寅: 4,
+    卯: 6,
+    辰: 8,
+    巳: 10,
+    午: 12,
+    未: 14,
+    申: 16,
+    酉: 18,
+    戌: 20,
+    亥: 22,
   }
   const sajuMatch = id.match(/^saju\.hour\..+\.([子丑寅卯辰巳午未申酉戌亥])\./)
   if (sajuMatch) {

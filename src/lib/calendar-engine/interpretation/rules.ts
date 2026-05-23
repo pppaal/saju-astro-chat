@@ -320,6 +320,7 @@ export const RULES: InterpretationRule[] = [
     priority: 75,
     conditions: {
       signalSource: 'astro',
+      signalKinds: ['transit'],
       planet: ['Uranus'],
       maxPolarity: -1,
     },
@@ -332,6 +333,95 @@ export const RULES: InterpretationRule[] = [
       `Rather than clinging to stability, honestly accepting change ` +
       `gets you through faster.`,
     themes: ['health', 'growth'],
+  },
+  {
+    id: 'transit-neptune-harmonious',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 73,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['transit'],
+      planet: ['Neptune'],
+      minPolarity: 2,
+    },
+    template:
+      `**영감·직관·감수성이 평소보다 깊게 열리는 시기**예요. ` +
+      `예술·치유·영적 작업, 누군가를 향한 연민이 자연스럽게 흘러요. ` +
+      `다만 경계가 흐려지기 쉬우니 큰 계약·돈 약속은 또렷할 때 ` +
+      `다시 확인하세요. 흐름은 {duration} 동안 이어져요.`,
+    templateEn:
+      `**Inspiration, intuition, and sensitivity open up more deeply than usual**. ` +
+      `Art, healing, spiritual work, and compassion for others flow naturally. ` +
+      `Just note that boundaries blur easily — re-check big contracts or money ` +
+      `promises when your head is clear. The current runs for {duration}.`,
+    themes: ['growth', 'love'],
+  },
+  {
+    id: 'transit-neptune-hard',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 74,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['transit'],
+      planet: ['Neptune'],
+      maxPolarity: -1,
+    },
+    template:
+      `**안개가 낀 듯 방향이 흐려지기 쉬운 시기**예요. ` +
+      `피로·혼란·이상화가 판단을 흔들 수 있어요. 과장된 약속이나 ` +
+      `'너무 좋은' 제안은 한 박자 늦춰 확인하고, 큰 결정은 또렷한 ` +
+      `날로 미루는 게 안전해요. 흐름은 {duration} 동안 이어져요.`,
+    templateEn:
+      `**Direction blurs as if fog has rolled in**. ` +
+      `Fatigue, confusion, and idealisation can sway judgement. Slow down before ` +
+      `trusting inflated promises or "too good to be true" offers, and push big ` +
+      `decisions to a clearer day. The current runs for {duration}.`,
+    themes: ['health', 'money'],
+  },
+  {
+    id: 'transit-pluto-harmonious',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 74,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['transit'],
+      planet: ['Pluto'],
+      minPolarity: 2,
+    },
+    template:
+      `**깊은 재구성과 진짜 영향력이 자라는 시기**예요. ` +
+      `표면을 정리하고 핵심을 다시 세우는 힘이 강해져요. 한 가지에 ` +
+      `집중하면 보통 때보다 훨씬 멀리 갈 수 있어요. 흐름은 {duration} 동안 이어져요.`,
+    templateEn:
+      `**Deep restructuring and real influence are growing**. ` +
+      `The power to clear the surface and rebuild from the core intensifies. ` +
+      `Focus on one thing and you can go much further than usual. ` +
+      `The current runs for {duration}.`,
+    themes: ['career', 'growth'],
+  },
+  {
+    id: 'transit-pluto-hard',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 75,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['transit'],
+      planet: ['Pluto'],
+      maxPolarity: -1,
+    },
+    template:
+      `**힘겨루기·통제·집착이 드러나기 쉬운 시기**예요. ` +
+      `붙잡으려 할수록 더 조여드는 흐름 — 끝낼 것을 끝내고 놓아줄 때 ` +
+      `오히려 더 큰 힘이 돌아와요. 흐름은 {duration} 동안 이어져요.`,
+    templateEn:
+      `**Power struggles, control, and obsession surface more easily**. ` +
+      `The harder you grip, the tighter it binds — ending what is over and ` +
+      `letting go is what brings real power back. The current runs for {duration}.`,
+    themes: ['love', 'health'],
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -352,6 +442,205 @@ export const RULES: InterpretationRule[] = [
       `This month there are **{count} days when wealth and resources flow runs thick**. ` +
       `Line up big decisions, contracts, and investments on those days for maximum effect.`,
     themes: ['money'],
+  },
+  {
+    id: 'pattern-gwan-in-flow',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 84,
+    conditions: {
+      patternId: ['gwan-in-flow'],
+    },
+    template:
+      `**관인상생(官印相生)** 흐름이 들어왔어요 — 윗선의 인정과 받쳐주는 ` +
+      `후원이 함께 움직여요. 승진·자격·결재·공식 절차에 우호적이라, ` +
+      `기관·윗사람에게 정식으로 제안하기 좋은 달이에요.`,
+    templateEn:
+      `An **"authority-meets-support" (官印相生)** current is in play — recognition from ` +
+      `above and backing that supports you move together. Favourable for promotion, ` +
+      `credentials, approvals, and official steps — a good month to make formal proposals.`,
+    themes: ['career', 'growth'],
+  },
+  {
+    id: 'pattern-siksang-wealth',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 83,
+    conditions: {
+      patternId: ['siksang-wealth'],
+    },
+    template:
+      `**식상생재(食傷生財)** 흐름 — 재능과 표현이 곧장 수익으로 ` +
+      `이어지는 달이에요. 콘텐츠·영업·창작·사이드 프로젝트를 ` +
+      `'만들고 파는' 행동까지 밀고 가면 결과가 따라와요.`,
+    templateEn:
+      `A **"talent-into-income" (食傷生財)** current — what you make and express turns ` +
+      `straight into earnings this month. Push content, sales, creative work, and side ` +
+      `projects all the way to "make it and sell it," and results follow.`,
+    themes: ['money', 'career'],
+  },
+  {
+    id: 'pattern-wealth-to-status',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 83,
+    conditions: {
+      patternId: ['wealth-to-status'],
+    },
+    template:
+      `**재생관(財生官)** 흐름 — 성과가 직책·신뢰·평판으로 환산되는 ` +
+      `달이에요. 실적을 또렷이 가시화해 계약·직책·공식 인정으로 ` +
+      `연결하면, 들인 것이 입지로 돌아와요.`,
+    templateEn:
+      `A **"results-into-standing" (財生官)** current — achievements convert into title, ` +
+      `trust, and reputation this month. Make your results visible and tie them to ` +
+      `contracts, roles, or formal recognition, and what you invested returns as standing.`,
+    themes: ['career', 'money'],
+  },
+  {
+    id: 'pattern-wealth-rivalry',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 86,
+    conditions: {
+      patternId: ['wealth-rivalry'],
+    },
+    template:
+      `**군겁쟁재(群劫爭財)** 주의 — 경쟁·분탈로 돈이 새기 쉬운 달이에요. ` +
+      `동업·금전 대여·공동 지출은 신중히, 내 몫을 분명히 하고 큰 ` +
+      `지출은 또렷한 날로 미루는 게 안전해요.`,
+    templateEn:
+      `Caution for **"rivalry over wealth" (群劫爭財)** — money leaks easily through ` +
+      `competition and splitting this month. Be careful with partnerships, lending, and ` +
+      `shared spending; make your share clear and push big outlays to a clearer day.`,
+    themes: ['money'],
+  },
+  {
+    id: 'pattern-output-vs-authority',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 85,
+    conditions: {
+      patternId: ['output-vs-authority'],
+    },
+    template:
+      `**상관견관(傷官見官)** 주의 — 자유로운 표현이 규칙·윗선과 ` +
+      `부딪히기 쉬운 달이에요. 상사·계약·법규와의 마찰, 감정적 ` +
+      `직언·SNS 설화를 조심하고 공식 절차는 또렷하게 처리하세요.`,
+    templateEn:
+      `Caution for **"expression clashes with authority" (傷官見官)** — free expression ` +
+      `bumps against rules and those above you this month. Watch for friction with bosses, ` +
+      `contracts, and regulations, mind blunt remarks and social-media slips, and handle ` +
+      `official steps carefully.`,
+    themes: ['career'],
+  },
+  {
+    id: 'pattern-siksin-controls-pressure',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 83,
+    conditions: {
+      patternId: ['siksin-controls-pressure'],
+    },
+    template:
+      `**식신제살(食神制殺)** 흐름 — 버겁던 압박·경쟁을 실력과 ` +
+      `꾸준함으로 눌러 돌파하는 달이에요. 잔재주보다 정공법, ` +
+      `매일의 루틴이 큰 부담을 이겨내요.`,
+    templateEn:
+      `A **"skill tames pressure" (食神制殺)** current — you push through daunting pressure ` +
+      `and competition with steady competence this month. Straight methods over shortcuts; ` +
+      `a daily routine is what beats the bigger load.`,
+    themes: ['career', 'growth'],
+  },
+  {
+    id: 'pattern-expression-with-restraint',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 82,
+    conditions: {
+      patternId: ['expression-with-restraint'],
+    },
+    template:
+      `**상관패인(傷官佩印)** 흐름 — 톡톡 튀는 재능에 절제와 깊이가 ` +
+      `더해지는 달이에요. 창작·기획·발표를 공부로 다듬으면 ` +
+      `완성도가 한 단계 올라가요.`,
+    templateEn:
+      `An **"talent tempered by depth" (傷官佩印)** current — sparkling ideas gain restraint ` +
+      `and depth this month. Refine creative work, planning, and presentations with study, ` +
+      `and the finish quality jumps a level.`,
+    themes: ['growth', 'career'],
+  },
+  {
+    id: 'pattern-authority-mixed',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 84,
+    conditions: {
+      patternId: ['authority-mixed'],
+    },
+    template:
+      `**관살혼잡(官殺混雜)** 주의 — 권위·기준 신호가 뒤섞여 결정이 ` +
+      `산만해지기 쉬운 달이에요. 여러 윗선·요청이 충돌하면, 라인을 ` +
+      `한 곳으로 정리하고 곁가지는 잠시 보류하세요.`,
+    templateEn:
+      `Caution for **"mixed authority" (官殺混雜)** — signals of authority and standards ` +
+      `get tangled, scattering decisions this month. When several superiors or requests ` +
+      `collide, consolidate to one line and shelve the side branches for now.`,
+    themes: ['career'],
+  },
+  {
+    id: 'pattern-wealth-erodes-resource',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 84,
+    conditions: {
+      patternId: ['wealth-erodes-resource'],
+    },
+    template:
+      `**탐재괴인(貪財壞印)** 주의 — 눈앞의 이익을 좇다 신뢰·명예·` +
+      `배움을 갉아먹기 쉬운 달이에요. 단기 이득을 위해 원칙·평판을 ` +
+      `내주는 선택은 길게 봐 손해. 신뢰를 택하세요.`,
+    templateEn:
+      `Caution for **"greed erodes integrity" (貪財壞印)** — chasing quick gains can eat ` +
+      `into trust, reputation, and learning this month. Trading principles or standing for ` +
+      `short-term profit costs more in the long run — choose trust.`,
+    themes: ['growth', 'money'],
+  },
+  {
+    id: 'pattern-energy-into-output',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 81,
+    conditions: {
+      patternId: ['energy-into-output'],
+    },
+    template:
+      `**토수(吐秀)** 흐름 — 넘치는 기운이 결과물로 시원하게 터져 ` +
+      `나오는 달이에요. 협업·발표·창작·운동처럼 에너지를 밖으로 ` +
+      `쏟는 활동에 우호적이에요.`,
+    templateEn:
+      `An **"energy bursts into output" (吐秀)** current — abundant drive pours out as ` +
+      `tangible results this month. Favourable for collaboration, presenting, creating, ` +
+      `and exercise — anything that channels energy outward.`,
+    themes: ['growth', 'career'],
+  },
+  {
+    id: 'pattern-support-reinforcement',
+    scope: 'monthly',
+    section: 'pattern',
+    priority: 80,
+    conditions: {
+      patternId: ['support-reinforcement'],
+    },
+    template:
+      `**인비방조(印比幇助)** 흐름 — 후원과 동료가 기운을 받쳐주는 ` +
+      `달이에요. 혼자 다 떠안기보다 도움·협력·휴식을 적극 쓰면 ` +
+      `좋아요. 재충전과 기초 다지기에 우호적.`,
+    templateEn:
+      `A **"support reinforces you" (印比幇助)** current — backing and allies prop up your ` +
+      `energy this month. Lean on help, cooperation, and rest rather than carrying it all ` +
+      `alone. Favourable for recharging and shoring up foundations.`,
+    themes: ['health', 'growth'],
   },
   {
     id: 'pattern-noble-fortune',
@@ -1403,6 +1692,7 @@ export const RULES: InterpretationRule[] = [
     conditions: {
       signalSource: 'astro',
       signalKinds: ['lifecycle'],
+      planet: ['Saturn'],
       maxPolarity: -1,
     },
     template:
@@ -1416,6 +1706,96 @@ export const RULES: InterpretationRule[] = [
     themes: ['career', 'health'],
   },
   {
+    id: 'astro-lifecycle-pluto-square',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 86,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      planet: ['Pluto'],
+      maxPolarity: -1,
+    },
+    template:
+      `**Pluto Square Pluto** 진행 — 중년의 깊은 변환기예요. ` +
+      `더 이상 맞지 않는 정체성·관계·일이 뿌리째 흔들려요. 억지로 ` +
+      `붙들기보다, 무엇이 진짜 내 것인지 가려내고 나머지를 놓아주는 ` +
+      `2~3년. 통과하면 훨씬 단단한 '나'로 다시 서요.`,
+    templateEn:
+      `**Pluto Square Pluto** is in progress — a deep midlife transformation. ` +
+      `Identities, relationships, and work that no longer fit get shaken to the root. ` +
+      `These 2-3 years are for sorting what is truly yours and releasing the rest, ` +
+      `rather than forcing things to stay. Come through it and you stand as a far solider self.`,
+    themes: ['growth', 'career', 'health'],
+  },
+  {
+    id: 'astro-lifecycle-uranus-opposition',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 84,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      planet: ['Uranus'],
+      maxPolarity: -1,
+    },
+    template:
+      `**Uranus Opposition** 진행 — 흔히 말하는 '중년의 각성' 시기예요. ` +
+      `눌러둔 자유·진짜 하고 싶던 것이 강하게 올라와요. 충동적으로 ` +
+      `다 엎기보다, 정말 답답했던 한 곳을 정직하게 바꾸면 이후가 ` +
+      `훨씬 가벼워져요.`,
+    templateEn:
+      `**Uranus Opposition** is in progress — the classic "midlife awakening." ` +
+      `Suppressed freedom and what you truly wanted rise up strongly. Rather than ` +
+      `impulsively overturning everything, honestly changing the one place that felt ` +
+      `most stifling makes the years ahead far lighter.`,
+    themes: ['growth', 'love'],
+  },
+  {
+    id: 'astro-lifecycle-neptune-square',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 83,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      planet: ['Neptune'],
+      maxPolarity: -1,
+    },
+    template:
+      `**Neptune Square Neptune** 진행 — 그동안 믿어온 것에 안개가 ` +
+      `끼는 시기예요. 의미·방향이 흐려지고 환멸이 올 수 있어요. ` +
+      `이건 길을 잃은 게 아니라 더 깊은 의미를 찾으라는 신호 — ` +
+      `조용히 내면을 돌보는 시간이 약이 돼요.`,
+    templateEn:
+      `**Neptune Square Neptune** is in progress — fog settles over what you ` +
+      `once believed. Meaning and direction blur, and disillusionment can come. ` +
+      `This is not losing your way but a call to find deeper meaning — quietly ` +
+      `tending your inner life is the medicine.`,
+    themes: ['growth', 'health'],
+  },
+  {
+    id: 'astro-lifecycle-chiron-return',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 80,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['lifecycle'],
+      planet: ['Chiron'],
+    },
+    template:
+      `**Chiron Return** 진행 — 오래된 상처를 다시 마주하고 ` +
+      `매듭짓는 시기예요(약 50세). 같은 자리에서 아팠던 일이 ` +
+      `한 번 더 떠오를 수 있지만, 이번엔 그걸 지혜로 바꿔 ` +
+      `누군가를 도울 힘으로 만들 수 있어요.`,
+    templateEn:
+      `**Chiron Return** is in progress — a time (around age 50) to face an old ` +
+      `wound once more and finally close it. The same sore spot may resurface, but ` +
+      `this time you can turn it into wisdom and the power to help someone else.`,
+    themes: ['health', 'growth'],
+  },
+  {
     id: 'astro-lifecycle-jupiter-return',
     scope: 'monthly',
     section: 'transit',
@@ -1423,6 +1803,7 @@ export const RULES: InterpretationRule[] = [
     conditions: {
       signalSource: 'astro',
       signalKinds: ['lifecycle'],
+      planet: ['Jupiter'],
       minPolarity: 1,
     },
     template:
@@ -1432,6 +1813,40 @@ export const RULES: InterpretationRule[] = [
       `**Jupiter Return** is in progress — the 12-year return where expansion, optimism, ` +
       `and opportunity come back around. Favourable for new beginnings and stepping outward.`,
     themes: ['money', 'growth'],
+  },
+  {
+    id: 'flow-angle-contact',
+    scope: 'monthly',
+    section: 'flow',
+    priority: 82,
+    conditions: { signalSource: 'astro', signalKinds: ['angle-contact'] },
+    template: `{flowLine}`,
+    templateEn: `{flowLineEn}`,
+    themes: ['growth'],
+  },
+  {
+    id: 'flow-house-slow',
+    scope: 'monthly',
+    section: 'flow',
+    priority: 74,
+    conditions: {
+      signalSource: 'astro',
+      signalKinds: ['house-transit'],
+      planet: ['Saturn', 'Uranus', 'Neptune', 'Pluto'],
+    },
+    template: `{flowLine}`,
+    templateEn: `{flowLineEn}`,
+    themes: ['growth'],
+  },
+  {
+    id: 'flow-house-jupiter',
+    scope: 'monthly',
+    section: 'flow',
+    priority: 68,
+    conditions: { signalSource: 'astro', signalKinds: ['house-transit'], planet: ['Jupiter'] },
+    template: `{flowLine}`,
+    templateEn: `{flowLineEn}`,
+    themes: ['growth'],
   },
   {
     id: 'astro-eclipse-solar',
@@ -1446,6 +1861,285 @@ export const RULES: InterpretationRule[] = [
       `**Eclipse window** — for ±2 weeks the energy is one of change, discovery, ` +
       `and rearrangement. What is usually hidden comes to light.`,
     themes: ['health', 'growth'],
+  },
+  {
+    id: 'timing-void-of-course-moon',
+    scope: 'monthly',
+    section: 'timing',
+    priority: 60,
+    conditions: { signalSource: 'astro', signalKinds: ['void-of-course'] },
+    template:
+      `이번 달엔 **달이 잠시 힘을 잃는 '공전(空轉)' 구간**이 {vocDatesCount}번 있어요 ` +
+      `({vocDates}). 그 시간대엔 새 시작·계약·중요한 연락·큰 구매 결정이 흐지부지되기 ` +
+      `쉬워요. 급하지 않다면 한 박자 미루고, 마무리·정리·휴식·연습처럼 ‘이미 하던 일’에 ` +
+      `쓰면 잘 맞아요.`,
+    templateEn:
+      `This month the **Moon goes "void of course"** {vocDatesCount} times ({vocDates}). ` +
+      `During those windows new starts, contracts, important messages, and big purchase ` +
+      `decisions tend to fizzle out. If it is not urgent, wait a beat — these hours suit ` +
+      `wrapping up, tidying, rest, and practising things you are already doing.`,
+    themes: [],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 일진(오늘) — scope:'daily'. 짧고 액션 중심 (모바일 "오늘 어때?").
+  // section 'today' (cap 4). 일진 십신은 매일 1개라 baseline, 그날 신살/충은
+  // 있을 때만 더 얹힘. signalLayer:['daily'] 로 그날 신호만 매칭.
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'today-siksang',
+    scope: 'daily',
+    section: 'today',
+    priority: 56,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], sibsin: ['식신', '상관'] },
+    template: `오늘은 **표현·실행**의 결 — 만든 걸 내보내고, 말·콘텐츠·영업이 잘 먹혀요.`,
+    templateEn: `Today leans toward **expression & doing** — ship what you made; talking, content, and sales land well.`,
+    themes: ['growth', 'career'],
+  },
+  {
+    id: 'today-jae',
+    scope: 'daily',
+    section: 'today',
+    priority: 57,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], sibsin: ['정재', '편재'] },
+    template: `오늘은 **돈·실리 감각**이 좋은 결 — 거래·정산·실속 챙기는 일에 ㄱ.`,
+    templateEn: `Today your **money & practicality sense** is sharp — good for deals, settling accounts, securing value.`,
+    themes: ['money'],
+  },
+  {
+    id: 'today-gwan',
+    scope: 'daily',
+    section: 'today',
+    priority: 56,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], sibsin: ['정관'] },
+    template: `오늘은 **책임·공식 일**에 집중 좋은 결 — 보고·결재·약속 처리에 ㄱ.`,
+    templateEn: `Today suits **responsibility & official matters** — reports, approvals, keeping commitments.`,
+    themes: ['career'],
+  },
+  {
+    // 편관(칠살)은 정관과 강도가 달라 분리 — 추진력 ↔ 압박·충돌의 양면.
+    id: 'today-pyeongwan',
+    scope: 'daily',
+    section: 'today',
+    priority: 58,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], sibsin: ['편관'] },
+    template: `오늘은 **압박·도전의 결** — 마감·강한 일엔 추진력이 붙지만, 충돌·과부하·욱하는 결정은 한 박자 점검.`,
+    templateEn: `Today brings **pressure & challenge** — drive for deadlines and hard tasks, but check clashes, overload, and snap decisions.`,
+    themes: ['career', 'health'],
+  },
+  {
+    id: 'today-in',
+    scope: 'daily',
+    section: 'today',
+    priority: 55,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], sibsin: ['정인', '편인'] },
+    template: `오늘은 **배우고 받아들이는** 결 — 무리한 추진보다 공부·정리·재충전이 맞아요.`,
+    templateEn: `Today is for **learning & taking in** — study, organising, and recharging fit better than pushing hard.`,
+    themes: ['growth', 'health'],
+  },
+  {
+    id: 'today-bigyeop',
+    scope: 'daily',
+    section: 'today',
+    priority: 55,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], sibsin: ['비견', '겁재'] },
+    template: `오늘은 **추진력·자기주장**이 올라오는 결 — 밀어붙이기 좋되 고집·지출은 한 박자 점검.`,
+    templateEn: `Today **drive & self-assertion** rise — good to push, but check stubbornness and spending a beat.`,
+    themes: ['growth'],
+  },
+  {
+    id: 'today-cheoneul',
+    scope: 'daily',
+    section: 'today',
+    priority: 68,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['천을귀인'] },
+    template: `오늘은 **귀인의 날** — 부탁·면담·중요한 연락에 우호적. 미뤘던 사람에게 먼저 ㄱ.`,
+    templateEn: `Today is a **"helper" day** — favourable for asking, meetings, key messages. Reach out first to someone you'd put off.`,
+    themes: ['career', 'health'],
+  },
+  {
+    id: 'today-dohwa',
+    scope: 'daily',
+    section: 'today',
+    priority: 66,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['도화', '홍염살'] },
+    template: `오늘은 **매력·인연의 날** — 만남·소개 자리·연락 시도에 좋은 결.`,
+    templateEn: `Today is a **charm & connection day** — good for meetups, introductions, reaching out.`,
+    themes: ['love'],
+  },
+  {
+    id: 'today-yeokma',
+    scope: 'daily',
+    section: 'today',
+    priority: 64,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['역마', '지살'] },
+    template: `오늘은 **이동·변화의 날** — 출장·여행·새 시도·자리 옮기기에 우호적.`,
+    templateEn: `Today is a **movement & change day** — good for travel, trips, new attempts, switching things up.`,
+    themes: ['growth', 'career'],
+  },
+  {
+    id: 'today-hwagae',
+    scope: 'daily',
+    section: 'today',
+    priority: 62,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['화개', '천문성'] },
+    template: `오늘은 **사색·창작·혼자 시간**에 좋은 결 — 깊이 파고드는 작업이 잘 돼요.`,
+    templateEn: `Today suits **reflection, creativity, and solo time** — deep, focused work flows.`,
+    themes: ['growth'],
+  },
+  {
+    id: 'today-chung',
+    scope: 'daily',
+    section: 'today',
+    priority: 67,
+    conditions: { signalSource: 'saju', signalKinds: ['hyeongchung'], maxPolarity: -1 },
+    template: `오늘은 **부딪힘 주의** — 큰 결정·충돌·무리한 강행은 피하고 한 박자 쉬어가기.`,
+    templateEn: `Today, **watch for friction** — avoid big decisions, clashes, and forcing things; take a beat.`,
+    themes: ['health'],
+  },
+  // ── 일진 그리드 보강: 도메인 × (주의/전환/상승) ──
+  // 트리거는 scripts/probe 로 daily 레이어에 실재함을 확인한 신살/충합만 사용
+  // (죽은 룰 방지). section 'today'(cap 4) — 그날 뜬 신호 중 우선순위 상위 4개
+  // 노출. 기존 sibsin(에너지)·길신(긍정)·충(주의)에 도메인별 주의/전환/상승을 채움.
+  {
+    id: 'today-geopsal',
+    scope: 'daily',
+    section: 'today',
+    priority: 63,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['겁살'] },
+    template: `오늘은 **재물·도난 주의** — 큰 지출·투자·보증·빌려주기는 한 박자 미루고 지갑·계정 단속.`,
+    templateEn: `Today, **guard money** — postpone big spending, investing, guarantees, and lending; mind wallet and accounts.`,
+    themes: ['money'],
+  },
+  {
+    id: 'today-mangsin',
+    scope: 'daily',
+    section: 'today',
+    priority: 62,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['daily'],
+      shinsalName: ['망신', '재살', '천살'],
+    },
+    template: `오늘은 **구설·관재 주의** — 말실수·서류·법적인 일은 두 번 확인하고, 무리한 노출은 자제.`,
+    templateEn: `Today, **watch for gossip & legal/admin snags** — double-check words, documents, contracts; avoid overexposure.`,
+    themes: ['career'],
+  },
+  {
+    id: 'today-wonjin',
+    scope: 'daily',
+    section: 'today',
+    priority: 62,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['원진'] },
+    template: `오늘은 **가까운 사이 신경전 주의** — 사소한 말이 오해로 번지기 쉬워요. 예민한 대화는 내일로.`,
+    templateEn: `Today, **friction with close ones** — small words spark misunderstanding; save touchy talks for tomorrow.`,
+    themes: ['love'],
+  },
+  {
+    id: 'today-yangin',
+    scope: 'daily',
+    section: 'today',
+    priority: 64,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['daily'],
+      shinsalName: ['양인', '현침', '괴강'],
+    },
+    template: `오늘은 **몸·안전 조심** — 날붙이·운전·과격한 운동·과로 주의. 속도 낮추고 무리 금물.`,
+    templateEn: `Today, **mind body & safety** — careful with blades, driving, intense exercise, overwork; slow down.`,
+    themes: ['health'],
+  },
+  {
+    id: 'today-gwimun',
+    scope: 'daily',
+    section: 'today',
+    priority: 60,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['귀문관'] },
+    template: `오늘은 **마음이 예민한 결** — 불안·잡생각·수면 흔들림. 자극 줄이고 가벼운 산책·정리로 가라앉히기.`,
+    templateEn: `Today feels **mentally sensitive** — anxiety, racing thoughts, restless sleep; cut stimulation, walk it off.`,
+    themes: ['health', 'growth'],
+  },
+  {
+    id: 'today-yukhae',
+    scope: 'daily',
+    section: 'today',
+    priority: 60,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['육해', '월살'] },
+    template: `오늘은 **막힘·지연이 끼는 결** — 한 번에 안 풀릴 수 있어요. 새로 벌이기보다 점검·마무리에 ㄱ.`,
+    templateEn: `Today, **friction & delays** — things may stall; favour checking and wrapping up over starting new.`,
+    themes: ['career', 'growth'],
+  },
+  {
+    id: 'today-gongmang',
+    scope: 'daily',
+    section: 'today',
+    priority: 61,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['공망'] },
+    template: `오늘은 **비움·정리의 결** — 새 계약·시작은 한 박자 미루고, 버리기·청소·리셋에 더 맞아요.`,
+    templateEn: `Today is for **emptying & resetting** — postpone new deals/launches; better for clearing, cleaning, a reset.`,
+    themes: ['growth'],
+  },
+  {
+    id: 'today-geumyeo',
+    scope: 'daily',
+    section: 'today',
+    priority: 62,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['금여성', '반안'] },
+    template: `오늘은 **안정·재물 운이 받쳐주는 결** — 자산 정리·큰 거래·자리 잡는 일에 우호적.`,
+    templateEn: `Today, **stability & wealth back you** — good for organising assets, big deals, settling into place.`,
+    themes: ['money'],
+  },
+  {
+    id: 'today-taegeuk',
+    scope: 'daily',
+    section: 'today',
+    priority: 65,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['daily'],
+      shinsalName: ['태극귀인', '천덕귀인', '월덕귀인', '천주귀인'],
+    },
+    template: `오늘은 **하늘이 돕는 결** — 공식 일·시험·평가·중요한 부탁에 보이지 않는 백업이 들어와요.`,
+    templateEn: `Today **fortune backs you** — official matters, exams, evaluations, and key requests get unseen support.`,
+    themes: ['career'],
+  },
+  {
+    id: 'today-hakdang',
+    scope: 'daily',
+    section: 'today',
+    priority: 63,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['daily'],
+      shinsalName: ['학당귀인', '문창', '문곡'],
+    },
+    template: `오늘은 **머리가 맑은 결** — 공부·시험·자격·집필·기획이 잘 풀려요. 인풋·아웃풋 둘 다 ㄱ.`,
+    templateEn: `Today your **mind is sharp** — study, exams, certifications, writing, planning flow; input and output both.`,
+    themes: ['growth'],
+  },
+  {
+    id: 'today-cheonui',
+    scope: 'daily',
+    section: 'today',
+    priority: 61,
+    conditions: { signalSource: 'saju', signalLayer: ['daily'], shinsalName: ['천의성'] },
+    template: `오늘은 **몸 돌보기 좋은 결** — 검진·치료·상담·약 챙기기·루틴 정비에 우호적.`,
+    templateEn: `Today suits **caring for your body** — checkups, treatment, counselling, meds, fixing routines.`,
+    themes: ['health'],
+  },
+  {
+    id: 'today-wangji',
+    scope: 'daily',
+    section: 'today',
+    priority: 60,
+    conditions: {
+      signalSource: 'saju',
+      signalLayer: ['daily'],
+      shinsalName: ['건록', '제왕', '장성'],
+    },
+    template: `오늘은 **기세가 오르는 결** — 주도권 잡고 밀어붙이기 좋아요. 발표·승부·자기 어필에 ㄱ.`,
+    templateEn: `Today your **momentum rises** — good to lead and push; presentations, contests, self-promotion.`,
+    themes: ['career', 'growth'],
   },
   {
     id: 'astro-solar-return',

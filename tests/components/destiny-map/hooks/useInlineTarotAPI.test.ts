@@ -40,6 +40,32 @@ vi.mock('@/lib/tarot/tarot-spreads-data', () => ({
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
+// Build a mock streaming Response for /api/tarot/interpret-stream. The hook
+// reads `res.body.getReader()` and accumulates SSE `data: { content }` events
+// into a single JSON blob shaped `{ overall, cards, advice }`.
+function createInterpretStreamResponse(payload: {
+  overall?: string
+  cards?: Array<{ position?: string; interpretation?: string }>
+  advice?: string
+}) {
+  const json = JSON.stringify(payload)
+  const sse = `data: ${JSON.stringify({ content: json })}\n\ndata: [DONE]\n\n`
+  const bytes = new TextEncoder().encode(sse)
+  let sent = false
+  return {
+    ok: true,
+    body: {
+      getReader: () => ({
+        read: async () => {
+          if (sent) return { done: true, value: undefined }
+          sent = true
+          return { done: false, value: bytes }
+        },
+      }),
+    },
+  }
+}
+
 describe('useInlineTarotAPI', () => {
   const mockSpread: Spread = {
     id: 'three-card',
@@ -785,7 +811,7 @@ describe('useInlineTarotAPI', () => {
   })
 
   describe('interpretation fetch', () => {
-    it('should request the main tarot interpret endpoint', async () => {
+    it('should request the streaming tarot interpret endpoint', async () => {
       const stateManager = createMockStateManager()
 
       mockFetch
@@ -793,15 +819,13 @@ describe('useInlineTarotAPI', () => {
           ok: true,
           json: async () => ({ drawnCards: [] }),
         })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            overall_message: 'Hello World',
-            card_insights: [],
-            guidance: 'Your guidance',
-            affirmation: 'Your affirmation',
-          }),
-        })
+        .mockResolvedValueOnce(
+          createInterpretStreamResponse({
+            overall: 'Hello World',
+            cards: [],
+            advice: 'Your guidance',
+          })
+        )
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -817,7 +841,7 @@ describe('useInlineTarotAPI', () => {
 
       expect(mockFetch).toHaveBeenNthCalledWith(
         2,
-        '/api/tarot/interpret',
+        '/api/tarot/interpret-stream',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
@@ -827,23 +851,21 @@ describe('useInlineTarotAPI', () => {
       )
     })
 
-    it('should apply interpretation payload fields from the main tarot response', async () => {
+    it('should apply interpretation payload fields from the streamed response', async () => {
       const stateManager = createMockStateManager()
 
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ drawnCards: [] }),
+          json: async () => ({ drawnCards: [mockDrawnCards[0]] }),
         })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            overall_message: 'Hello World',
-            card_insights: [{ position: 'Past', interpretation: 'First card insight' }],
-            guidance: 'Your guidance',
-            affirmation: 'Your affirmation',
-          }),
-        })
+        .mockResolvedValueOnce(
+          createInterpretStreamResponse({
+            overall: 'Hello World',
+            cards: [{ position: 'Past', interpretation: 'First card insight' }],
+            advice: 'Your guidance',
+          })
+        )
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -858,11 +880,19 @@ describe('useInlineTarotAPI', () => {
       })
 
       expect(stateManager.actions.setOverallMessage).toHaveBeenCalledWith('Hello World')
+      // interpret-stream pairs each streamed { position, interpretation } with
+      // the drawn card to fill card_name / is_reversed.
       expect(stateManager.actions.setCardInsights).toHaveBeenCalledWith([
-        { position: 'Past', interpretation: 'First card insight' },
+        {
+          position: 'Past',
+          card_name: 'The Fool',
+          is_reversed: false,
+          interpretation: 'First card insight',
+        },
       ])
       expect(stateManager.actions.setGuidance).toHaveBeenCalledWith('Your guidance')
-      expect(stateManager.actions.setAffirmation).toHaveBeenCalledWith('Your affirmation')
+      // interpret-stream does not emit a dedicated affirmation, so it is left untouched.
+      expect(stateManager.actions.setAffirmation).not.toHaveBeenCalled()
     })
 
     it('should use default copy when interpretation payload is sparse', async () => {

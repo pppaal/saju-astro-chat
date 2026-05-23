@@ -53,7 +53,7 @@ describe('POST /api/tarot', () => {
     expect(response.headers.get('set-cookie') || '').toContain('tarot_guest_interpret_pass=1')
   })
 
-  it('blocks anonymous draw after the guest reading cookie is already set', async () => {
+  it('blocks anonymous draw once the guest free-reading limit has been used up', async () => {
     const req = new NextRequest('http://localhost/api/tarot', {
       method: 'POST',
       body: JSON.stringify({
@@ -61,9 +61,10 @@ describe('POST /api/tarot', () => {
         spreadId: 'quick-reading',
       }),
     })
+    // Guest free limit is 2; a cookie count of 2 means all free draws are spent.
     Object.defineProperty(req, 'cookies', {
       value: {
-        get: (name: string) => (name === 'tarot_guest_reading_used' ? { value: '1' } : undefined),
+        get: (name: string) => (name === 'tarot_guest_reading_used' ? { value: '2' } : undefined),
       },
     })
 

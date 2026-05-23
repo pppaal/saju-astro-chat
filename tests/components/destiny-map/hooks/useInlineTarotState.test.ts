@@ -40,7 +40,6 @@ describe('useInlineTarotState', () => {
   const defaultOptions = {
     isOpen: true,
     initialConcern: 'What should I focus on?',
-    theme: 'life',
   }
 
   beforeEach(() => {
@@ -78,65 +77,16 @@ describe('useInlineTarotState', () => {
       expect(result.current.state.concern).toBe('My specific question')
     })
 
-    it('should return themeToCategory mapping', () => {
+    it('should initialize selectedCategory to the default general-insight category', () => {
       const { result } = renderHook(() => useInlineTarotState(defaultOptions))
-
-      expect(result.current.themeToCategory).toBeDefined()
-      expect(result.current.themeToCategory.focus_love).toBe('love-relationships')
-      expect(result.current.themeToCategory.career).toBe('career-work')
-      expect(result.current.themeToCategory.life).toBe('general-insight')
-    })
-  })
-
-  describe('theme to category mapping', () => {
-    it('should map focus_love to love-relationships', () => {
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'focus_love' })
-      )
-
-      expect(result.current.state.selectedCategory).toBe('love-relationships')
-    })
-
-    it('should map love to love-relationships', () => {
-      const { result } = renderHook(() => useInlineTarotState({ ...defaultOptions, theme: 'love' }))
-
-      expect(result.current.state.selectedCategory).toBe('love-relationships')
-    })
-
-    it('should map focus_career to career-work', () => {
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'focus_career' })
-      )
-
-      expect(result.current.state.selectedCategory).toBe('career-work')
-    })
-
-    it('should map career to career-work', () => {
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'career' })
-      )
-
-      expect(result.current.state.selectedCategory).toBe('career-work')
-    })
-
-    it('should map life to general-insight', () => {
-      const { result } = renderHook(() => useInlineTarotState({ ...defaultOptions, theme: 'life' }))
-
-      expect(result.current.state.selectedCategory).toBe('general-insight')
-    })
-
-    it('should default to general-insight for unknown theme', () => {
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'unknown_theme' })
-      )
 
       expect(result.current.state.selectedCategory).toBe('general-insight')
     })
   })
 
   describe('recommendedSpreads', () => {
-    it('should return spreads sorted by card count', () => {
-      const { result } = renderHook(() => useInlineTarotState({ ...defaultOptions, theme: 'life' }))
+    it('should return the default-category spreads sorted by card count', () => {
+      const { result } = renderHook(() => useInlineTarotState(defaultOptions))
 
       const spreads = result.current.recommendedSpreads
       expect(spreads.length).toBe(3)
@@ -145,22 +95,26 @@ describe('useInlineTarotState', () => {
       expect(spreads[2].cardCount).toBe(10)
     })
 
-    it('should return spreads for love theme', () => {
-      const { result } = renderHook(() => useInlineTarotState({ ...defaultOptions, theme: 'love' }))
+    it('should fall back to default-category spreads when no suggestions are set', () => {
+      const { result } = renderHook(() => useInlineTarotState(defaultOptions))
 
-      const spreads = result.current.recommendedSpreads
-      expect(spreads.length).toBe(2)
-      expect(spreads.some((s) => s.id === 'relationship-spread')).toBe(true)
+      // suggestedSpreads is empty by default, so recommendedSpreads comes
+      // from the general-insight category.
+      expect(result.current.recommendedSpreads.length).toBe(3)
     })
 
-    it('should return empty array for theme without category', () => {
-      // Mock tarotThemes to return empty
-      const { result } = renderHook(() =>
-        useInlineTarotState({ ...defaultOptions, theme: 'nonexistent' })
-      )
+    it('should prefer AI-suggested spreads when present', () => {
+      const { result } = renderHook(() => useInlineTarotState(defaultOptions))
 
-      // Should fall back to general-insight
-      expect(result.current.recommendedSpreads.length).toBe(3)
+      const suggested = [
+        { id: 'relationship-spread', title: 'Relationship', cardCount: 5 },
+      ] as Spread[]
+
+      act(() => {
+        result.current.actions.setSuggestedSpreads(suggested)
+      })
+
+      expect(result.current.recommendedSpreads).toEqual(suggested)
     })
   })
 
@@ -543,20 +497,6 @@ describe('useInlineTarotState', () => {
       })
 
       expect(result.current.state.concern).toBe('New question')
-    })
-  })
-
-  describe('theme change effect', () => {
-    it('should update category when theme changes', () => {
-      const { result, rerender } = renderHook((props) => useInlineTarotState(props), {
-        initialProps: defaultOptions,
-      })
-
-      expect(result.current.state.selectedCategory).toBe('general-insight')
-
-      rerender({ ...defaultOptions, theme: 'love' })
-
-      expect(result.current.state.selectedCategory).toBe('love-relationships')
     })
   })
 

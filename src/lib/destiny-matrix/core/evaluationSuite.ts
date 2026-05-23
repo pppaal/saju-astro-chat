@@ -1,4 +1,4 @@
-﻿import type { FeatureCompilationResult } from './tokenCompiler'
+import type { FeatureCompilationResult } from './tokenCompiler'
 import type { ActivationEngineResult } from './activationEngine'
 import type { RuleEngineResult } from './ruleEngine'
 import type { StateEngineResult } from './stateEngine'

@@ -13,15 +13,15 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
 import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
-import { formatSajuSelf } from '@/lib/destiny/sajuSelfFormatter'
-import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
-import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
+import { buildDestinyContext } from '@/lib/destiny/counselorContext'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
+import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
-import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { refundCredits } from '@/lib/credits/creditRefund'
+import { cacheGet, cacheSet, cacheDel, CACHE_TTL } from '@/lib/cache/redis-cache'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -48,7 +48,21 @@ interface RealtimeBody {
 }
 
 const RATE_LIMIT_PER_MIN = 12
-const CREDIT_PER_TURN = 1
+
+// Session-based billing: 1 credit opens a counselling *session*; every turn
+// within SESSION_WINDOW_SECONDS (and up to TURNS_PER_SESSION) is then free.
+// Replaces the old per-turn charge so a chatty sitting no longer drains
+// credits message-by-message. Session state lives in Redis keyed by user, so
+// a client can't replay a truncated history to dodge the charge.
+const CREDIT_PER_SESSION = 1
+const SESSION_WINDOW_SECONDS = 30 * 60
+const TURNS_PER_SESSION = 20
+const counselorSessionKey = (userId: string) => `counselor:session:${userId}`
+
+interface CounselorSession {
+  startedAt: number
+  turns: number
+}
 
 // DestinyPal warm-counselor system prompts.
 //
@@ -72,9 +86,11 @@ const SYSTEM_PROMPT_KO = `<birth_data> 안의 사주·점성 데이터를 근거
 규칙:
 - 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.
 - 두 데이터가 같은 방향을 가리킬 때 (예: 사주의 목 기운 강함 + 점성의 목성 확장기) 하나의 비유/스토리로 엮는다. 양쪽 따로 나열 X.
+- 단, 사주의 합·충과 점성의 conjunction·opposition이 비슷해 보여도 같은 사건으로 이중 계산하지 말 것.
 - 마크다운 헤더(##) / 번호 리스트 / 글머리 기호(-, *) 사용 금지. 오직 줄글 단락으로.
 - [Meta] 의 birthTimeUnknown=true면 시주/일진/ASC/MC/하우스 인용 금지. birthCityUnknown=true면 위치 의존 결론 금지.
 - AI/모델/상담사 정체 노출 금지.
+- 다른 생년월일·다른 사람 분석 요청은 정중히 거절: 이 채널은 본인 차트 전용임을 안내한다.
 
 ★ jargon 기본 금지 — 평소엔 raw 텍스트 그대로 인용 X:
   - 한자 (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 등) 출력 X
@@ -103,9 +119,11 @@ Tone: warm, empathetic mentor. Conversational, not analytical or clinical.
 Rules:
 - Fuse saju and astrology in one flow. No system-split.
 - When the two systems point the same way (e.g. saju wood-growth + Jupiter expansion), weave them into one metaphor/story, not two parallel listings.
+- But even if saju 합/충 and astro conjunction/opposition look alike, don't double-count them as one event.
 - No markdown headers (##), numbered lists, or bullet symbols (-, *). Plain prose paragraphs only.
 - If [Meta] has birthTimeUnknown=true: do not cite time pillar / iljin / ASC / MC / houses. If birthCityUnknown=true: skip place-dependent claims.
 - Never reveal you're an AI / model / counselor system.
+- Politely refuse analysis of another birth date / another person: this channel is for the user's own chart only.
 - Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.
 - Exception: if the user asks *directly using a term* ("what's my Sun sign?", "how about Moon square Saturn?"), use the term and answer briefly. Don't dodge.
 
@@ -134,6 +152,12 @@ function birthFingerprint(b: RealtimeBody): string {
 }
 
 export async function POST(req: NextRequest) {
+  // 0) CSRF — this route bypasses withApiMiddleware, so guard the origin
+  // explicitly. Without it, any third-party page could POST in a logged-in
+  // user's browser (cookie auth) and burn their session credits.
+  const csrfError = csrfGuard(req.headers)
+  if (csrfError) return csrfError
+
   // 1) Auth
   const session = await getServerSession(authOptions)
   const userId = session?.user?.id
@@ -176,13 +200,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: safetyMessage(lang) }, { status: 200 })
   }
 
-  // 4) Credit pre-check
-  const credit = await canUseCredits(userId, 'reading', CREDIT_PER_TURN)
-  if (!credit.allowed) {
-    return NextResponse.json(
-      { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
-      { status: 402 }
-    )
+  // 4) Resolve session + credit pre-check. A credit is only required to start
+  // a *new* session — no active session, the window elapsed, or the turn cap
+  // was reached. Continuing an active session costs nothing.
+  const sessionKey = counselorSessionKey(userId)
+  const nowMs = Date.now()
+  const existingSession = await cacheGet<CounselorSession>(sessionKey)
+  const sessionActive =
+    !!existingSession &&
+    nowMs - existingSession.startedAt < SESSION_WINDOW_SECONDS * 1000 &&
+    existingSession.turns < TURNS_PER_SESSION
+  const isNewSession = !sessionActive
+
+  if (isNewSession) {
+    const credit = await canUseCredits(userId, 'reading', CREDIT_PER_SESSION)
+    if (!credit.allowed) {
+      return NextResponse.json(
+        { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
+        { status: 402 }
+      )
+    }
   }
 
   // 5) Compute (or fetch cached) birth snapshot
@@ -266,115 +303,29 @@ export async function POST(req: NextRequest) {
       if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
         parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
       }
-      // ── 사주 (raw + cross 통합) ────────────────────────────
+      // ── Destiny counselor layer: SAJU (from raw) + ASTRO/CURRENT
+      //    (raw→refined) + reading rules. Replaces the old formatSajuSelf /
+      //    formatAstroSelf + slim chain here; compat counselor keeps those.
       try {
-        interface PillarSlot {
-          heavenlyStem?: { name?: string; sibsin?: string }
-          earthlyBranch?: { name?: string; sibsin?: string }
-          jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } }
-        }
-        const sajuLoose = saju as unknown as {
-          saju?: {
-            pillars?: { year?: PillarSlot; month?: PillarSlot; day?: PillarSlot; time?: PillarSlot }
-            dayMaster?: { name?: string; element?: string; yin_yang?: string }
-            daeWoon?: {
-              current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } | null
-              list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }>
-            } | null
-          }
-          // buildSajuNormalizerInput 가 반환하는 UnseData shape 그대로.
-          // 이전엔 잘못된 type 정의 (.stem/.branch + currentSaeun 오타) 로
-          // formatSajuSelf 에 빈 값이 들어가서 [현재 시기] 의 월운/일진/
-          // 세운이 항상 비어 있었음. 일일·월 운세 분석이 데이터 없이
-          // 돌고 있던 셈. adapter 가 currentSeun (Seun) 으로 주는 거랑
-          // field 이름까지 정확히 맞춤.
+        const sn = saju as unknown as {
           currentSeun?: { heavenlyStem?: string; earthlyBranch?: string } | null
           currentWolun?: { heavenlyStem?: string; earthlyBranch?: string } | null
           currentIljin?: { heavenlyStem?: string; earthlyBranch?: string } | null
-          extras?: {
-            geokguk?: { primary?: string } | null
-            yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null
-          } | null
+          unseRelations?: Array<{ source: string; relation: { kind: string; detail?: string; pillars?: string[] } }>
         }
-        const sajuP = sajuLoose.saju?.pillars
-        if (sajuP) {
-          const toP = (slot?: PillarSlot) => ({
-            stem: slot?.heavenlyStem?.name ?? '',
-            branch: slot?.earthlyBranch?.name ?? '',
-            stemSibsin: slot?.heavenlyStem?.sibsin,
-            branchSibsin: slot?.earthlyBranch?.sibsin,
-            jijanggan: [
-              slot?.jijanggan?.chogi?.name,
-              slot?.jijanggan?.junggi?.name,
-              slot?.jijanggan?.jeonggi?.name,
-            ].filter((s): s is string => Boolean(s)),
-          })
-          const cur = sajuLoose.saju?.daeWoon?.current
-          const extras = sajuLoose.extras
-          const daeunList = (sajuLoose.saju?.daeWoon?.list ?? []).map((d) => ({
-            age: d.age ?? 0,
-            stem: d.heavenlyStem ?? '',
-            branch: d.earthlyBranch ?? '',
-            sibsinStem: d.sibsin?.cheon,
-            sibsinBranch: d.sibsin?.ji,
-          }))
-          const dm = sajuLoose.saju?.dayMaster
-          const sajuBlock = formatSajuSelf({
-            pillars: [toP(sajuP.year), toP(sajuP.month), toP(sajuP.day), toP(sajuP.time)],
-            dayMaster: dm?.name ? { name: dm.name, element: dm.element ?? '', yinYang: dm.yin_yang } : null,
-            geokguk: extras?.geokguk?.primary ?? null,
-            yongsin: extras?.yongsin ?? null,
-            daeunList,
-            currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
-            // year / date 는 adapter UnseData 에 없음 → queryDate 로 채움.
-            // 이게 있어야 LLM 이 "이번 달 / 오늘" 같은 시점 reasoning 가능.
-            currentSewoon: sajuLoose.currentSeun ? {
-              stem: sajuLoose.currentSeun.heavenlyStem ?? '',
-              branch: sajuLoose.currentSeun.earthlyBranch ?? '',
-              year: queryDate.getFullYear(),
-            } : null,
-            currentWolwoon: sajuLoose.currentWolun ? {
-              stem: sajuLoose.currentWolun.heavenlyStem ?? '',
-              branch: sajuLoose.currentWolun.earthlyBranch ?? '',
-            } : null,
-            currentIljin: sajuLoose.currentIljin ? {
-              stem: sajuLoose.currentIljin.heavenlyStem ?? '',
-              branch: sajuLoose.currentIljin.earthlyBranch ?? '',
-              date: `${queryDate.getFullYear()}-${String(queryDate.getMonth() + 1).padStart(2, '0')}-${String(queryDate.getDate()).padStart(2, '0')}`,
-            } : null,
-          })
-          if (sajuBlock) {
-            parts.push('')
-            parts.push(sajuBlock)
-          }
-        }
-      } catch (err) {
-        logger.warn('[counselor/realtime] sajuSelf format failed', { err: err instanceof Error ? err.message : String(err) })
-      }
-
-      // ── 점성 (raw + cross 통합 — natal/aspects/transits/SR/LR/profection) ──
-      try {
-        const natal = await calculateNatalChart({
-          year: y, month: m, date: d, hour: hh, minute: mm,
-          latitude, longitude, timeZone: tz,
+        const un = (u?: { heavenlyStem?: string; earthlyBranch?: string } | null) =>
+          u ? { stem: u.heavenlyStem ?? '', branch: u.earthlyBranch ?? '' } : null
+        const ctx = await buildDestinyContext({
+          birthDate, birthTime, gender,
+          timezone: tz, latitude, longitude,
+          birthTimeUnknown: hourUnknown, birthCityUnknown: cityUnknown,
+        }, queryDate, lang, {
+          seun: un(sn.currentSeun), wolun: un(sn.currentWolun), iljin: un(sn.currentIljin),
+          relations: sn.unseRelations,
         })
-        const astroSelfBlock = await formatAstroSelf({
-          chart: toChart(natal),
-          latitude, longitude, timeZone: tz,
-          koreanAge: typeof ageYears === 'number' ? ageYears + 1 : undefined,
-          now: queryDate,
-          natalInput: { year: y, month: m, date: d, hour: hh, minute: mm, latitude, longitude, timeZone: tz },
-          // 출생지 미상이면 ASC/MC/houses 모두 default Seoul 좌표 기반 계산
-          // 이라 의미 없음. 출력 자체를 생략해서 "위치 의존 결론 금지" 룰과
-          // 데이터의 모순 제거.
-          skipAngles: birthCityUnknown,
-        })
-        if (astroSelfBlock) {
-          parts.push('')
-          parts.push(astroSelfBlock)
-        }
+        parts.push('', ctx)
       } catch (err) {
-        logger.warn('[counselor/realtime] astroSelf format failed', { err: err instanceof Error ? err.message : String(err) })
+        logger.warn('[counselor/realtime] destiny context build failed', { err: err instanceof Error ? err.message : String(err) })
       }
 
       // Wrap in <birth_data> tags so Claude treats this as injected
@@ -391,14 +342,28 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 6) Deduct credits AFTER all validation passed but BEFORE the stream starts.
-  // If the stream itself errors mid-way, we still consider the turn paid for —
-  // mirrors how every other LLM endpoint in the codebase bills.
-  try {
-    await consumeCredits(userId, 'reading', CREDIT_PER_TURN)
-  } catch (err) {
-    logger.warn('[counselor/realtime] credit deduction failed', { err })
-    // Don't block the user — observability over enforcement here.
+  // 6) Charge + advance the session marker AFTER validation but BEFORE the
+  // stream starts. New session → consume 1 credit and open the window.
+  // Continuing session → free; just bump the turn counter while keeping the
+  // original window (fixed, not sliding).
+  let chargedThisTurn = false
+  if (isNewSession) {
+    try {
+      const res = await consumeCredits(userId, 'reading', CREDIT_PER_SESSION)
+      chargedThisTurn = res.success
+    } catch (err) {
+      logger.warn('[counselor/realtime] credit deduction failed', { err })
+      // Don't block the user — observability over enforcement here.
+    }
+    await cacheSet(sessionKey, { startedAt: nowMs, turns: 1 }, SESSION_WINDOW_SECONDS)
+  } else {
+    const startedAt = existingSession?.startedAt ?? nowMs
+    const turns = (existingSession?.turns ?? 0) + 1
+    const remainingSec = Math.max(
+      1,
+      Math.ceil((SESSION_WINDOW_SECONDS * 1000 - (nowMs - startedAt)) / 1000)
+    )
+    await cacheSet(sessionKey, { startedAt, turns }, remainingSec)
   }
 
   // 7) Build prompt and stream — 진짜 multi-turn 구조.
@@ -420,6 +385,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
   }
 
+  // If we charged for a new session but the stream delivers nothing (backend
+  // error or empty completion), refund the credit and drop the session marker
+  // so the user isn't billed for an empty response or left inside a paid
+  // window they never got to use. Continuing turns weren't charged → no-op.
+  const onFailure = chargedThisTurn
+    ? async () => {
+        try {
+          await refundCredits({
+            userId,
+            creditType: 'reading',
+            amount: CREDIT_PER_SESSION,
+            reason: 'counselor_stream_empty',
+            apiRoute: '/api/counselor/realtime',
+          })
+          await cacheDel(sessionKey)
+        } catch (err) {
+          logger.warn('[counselor/realtime] stream-failure refund failed', { err })
+        }
+      }
+    : undefined
+
   return streamClaudeAsSSE({
     systemPrompt,
     userPrompt,
@@ -428,6 +414,7 @@ export async function POST(req: NextRequest) {
     maxTokens: 1500,
     temperature: 0.5,
     label: 'counselor.realtime',
+    onFailure,
     additionalHeaders: {
       'X-RateLimit-Limit': rl.headers.get('X-RateLimit-Limit') ?? '',
       'X-RateLimit-Remaining': rl.headers.get('X-RateLimit-Remaining') ?? '',

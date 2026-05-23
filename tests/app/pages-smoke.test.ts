@@ -28,13 +28,12 @@ const assertPages = (modulePaths: string[]) => {
 }
 
 describe('Pages Smoke Tests', () => {
-  describe('Main Pages (4)', () => {
+  describe('Main Pages (3)', () => {
     it('should have main pages', () => {
       assertPages([
         'app/(main)/page',
         'app/about/page',
         'app/about/features/page',
-        'app/about/matrix/page',
       ])
     })
   })
@@ -42,12 +41,6 @@ describe('Pages Smoke Tests', () => {
   describe('Admin Pages (2)', () => {
     it('should have admin pages', () => {
       assertPages(['app/admin/feedback/page', 'app/admin/refunds/page'])
-    })
-  })
-
-  describe('Astrology Pages (2)', () => {
-    it('should have astrology pages', () => {
-      assertPages(['app/astrology/page', 'app/astrology/counselor/page'])
     })
   })
 
@@ -69,19 +62,11 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Community Pages (2)', () => {
-    it('should have community pages', () => {
-      assertPages(['app/community/page', 'app/community/recommendations/page'])
-    })
-  })
-
-  describe('Compatibility Pages (4)', () => {
+  describe('Compatibility Pages (2)', () => {
     it('should have compatibility pages', () => {
       assertPages([
         'app/compatibility/page',
-        'app/compatibility/chat/page',
         'app/compatibility/counselor/page',
-        'app/compatibility/insights/page',
       ])
     })
   })
@@ -92,12 +77,11 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Destiny Map Pages (5)', () => {
+  describe('Destiny Map Pages (4)', () => {
     it('should have destiny map pages', () => {
       assertPages([
         'app/destiny-map/page',
         'app/destiny-map/counselor/page',
-        'app/destiny-map/matrix/page',
         'app/destiny-map/result/page',
         'app/destiny-map/theme/page',
       ])
@@ -115,33 +99,9 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Destiny Matrix Pages (2)', () => {
-    it('should have destiny matrix pages', () => {
-      assertPages(['app/destiny-matrix/themed-reports/page', 'app/destiny-matrix/viewer/page'])
-    })
-  })
-
-  describe('Destiny Pal Pages (1)', () => {
-    it('should have destiny pal page', () => {
-      assertPages(['app/destiny-pal/page'])
-    })
-  })
-
-  describe('Dream Pages (1)', () => {
-    it('should have dream page', () => {
-      assertPages(['app/dream/page'])
-    })
-  })
-
   describe('FAQ Pages (1)', () => {
     it('should have faq page', () => {
       assertPages(['app/faq/page'])
-    })
-  })
-
-  describe('iChing Pages (1)', () => {
-    it('should have iching page', () => {
-      assertPages(['app/iching/page'])
     })
   })
 
@@ -151,32 +111,9 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Life Prediction Pages (2)', () => {
-    it('should have life prediction pages', () => {
-      assertPages(['app/life-prediction/page', 'app/life-prediction/result/page'])
-    })
-  })
-
-  describe('My Journey Pages (3)', () => {
-    it('should have my journey pages', () => {
-      assertPages([
-        'app/myjourney/page',
-        'app/myjourney/circle/page',
-        'app/myjourney/history/page',
-        // 'app/myjourney/profile/page', // File doesn't exist yet
-      ])
-    })
-  })
-
   describe('Notifications Pages (1)', () => {
     it('should have notifications page', () => {
       assertPages(['app/notifications/page'])
-    })
-  })
-
-  describe('Numerology Pages (1)', () => {
-    it('should have numerology page', () => {
-      assertPages(['app/numerology/page'])
     })
   })
 
@@ -208,12 +145,6 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Saju Pages (2)', () => {
-    it('should have saju pages', () => {
-      assertPages(['app/saju/page', 'app/saju/counselor/page'])
-    })
-  })
-
   describe('Success Pages (1)', () => {
     it('should have success page', () => {
       assertPages(['app/success/page'])
@@ -232,47 +163,30 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Test Pages (1)', () => {
-    it('should have test pages', () => {
-      assertPages(['app/test-credit-modal/page'])
-    })
-  })
-
   describe('Pages Summary', () => {
     it('should have all page categories', () => {
       const categories = [
         'main',
         'admin',
-        'astrology',
         'auth',
         'blog',
         'calendar',
-        'community',
         'compatibility',
         'contact',
         'destiny-map',
         'destiny-match',
-        'destiny-matrix',
-        'destiny-pal',
-        'dream',
         'faq',
-        'iching',
         'icp',
-        'life-prediction',
-        'myjourney',
         'notifications',
-        'numerology',
         'personality',
         'policy',
         'pricing',
         'profile',
-        'saju',
         'success',
         'tarot',
-        'test',
       ]
 
-      expect(categories.length).toBe(29)
+      expect(categories.length).toBe(18)
     })
   })
 })

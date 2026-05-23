@@ -19,6 +19,16 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 vi.mock('@/lib/cities/formatter', () => ({
+  // The route reads COUNTRY_FULL_NAME[c.country] when building displayEn;
+  // it must be a real object or indexing throws. Falls back to the raw
+  // country value for unknown keys, which is fine for these fixtures.
+  COUNTRY_FULL_NAME: {
+    KR: 'South Korea',
+    JP: 'Japan',
+    GB: 'United Kingdom',
+    FR: 'France',
+    US: 'United States',
+  } as Record<string, string>,
   getCityNameInKorean: vi.fn((name: string) => {
     const map: Record<string, string> = {
       Seoul: '서울',

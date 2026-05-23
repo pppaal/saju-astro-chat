@@ -142,7 +142,6 @@ describe('POST /api/feedback', () => {
     expect(prisma.sectionFeedback.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         service: 'destiny-map',
-        theme: 'career',
         sectionId: 'overview-career',
         helpful: true,
         locale: 'ko',
@@ -158,7 +157,6 @@ describe('POST /api/feedback', () => {
         user_id: 'anonymous',
         consultation_data: expect.objectContaining({
           record_id: 'fb-001',
-          theme: 'career',
           locale: 'ko',
         }),
       }),
@@ -402,8 +400,8 @@ describe('GET /api/feedback', () => {
     )
   })
 
-  // ---- Test 11: Filters by both service and theme ----
-  it('should filter stats by both service and theme query parameters', async () => {
+  // ---- Test 11: Filters by service; unsupported theme param is ignored ----
+  it('should filter stats by service and ignore the unsupported theme query parameter', async () => {
     vi.mocked(prisma.sectionFeedback.count)
       .mockResolvedValueOnce(10 as any)
       .mockResolvedValueOnce(8 as any)
@@ -424,12 +422,16 @@ describe('GET /api/feedback', () => {
     expect(json.total).toBe(10)
     expect(json.satisfactionRate).toBe(80)
 
-    // Both groupBy calls should carry service + theme
+    // groupBy carries the service filter; theme filtering is no longer supported
     expect(prisma.sectionFeedback.groupBy).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ service: 'destiny-map', theme: 'career' }),
+        where: expect.objectContaining({ service: 'destiny-map' }),
       }),
     )
+    const groupByCalls = vi.mocked(prisma.sectionFeedback.groupBy).mock.calls
+    for (const [arg] of groupByCalls) {
+      expect((arg as any).where).not.toHaveProperty('theme')
+    }
   })
 
   // ---- Test 12: Empty results ----

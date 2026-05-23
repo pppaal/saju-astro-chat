@@ -208,7 +208,7 @@ export class StreamProcessor {
     return text
       .replace(/\|\|FOLLOWUP\|\|.*/s, '') // Full marker with content
       .replace(/\|\|F(?:O(?:L(?:L(?:O(?:W(?:U(?:P(?:\|(?:\|)?)?)?)?)?)?)?)?)?$/s, '') // Any partial state
-      .replace(/\|$/s, '') // Single pipe at end
+      .replace(/\s*\|{1,}\s*$/s, '') // Stray trailing pipe(s) — e.g. a false-start "||" the model emitted before the real marker
       .trim()
   }
 
@@ -256,7 +256,11 @@ export class StreamProcessor {
       jsonStr = this.normalizeJsonQuotes(jsonStr)
 
       const followUps = JSON.parse(jsonStr) as string[]
-      const cleanContent = text.replace(/\|\|FOLLOWUP\|\|\s*\[[^\]]+\]/s, '').trim()
+      // Strip the marker, then run the marker cleaner again so any stray
+      // pipes the model emitted around it (false-start "||") don't survive.
+      const cleanContent = this.cleanFollowupMarkers(
+        text.replace(/\|\|FOLLOWUP\|\|\s*\[[^\]]+\]/s, '')
+      )
 
       return { cleanContent, followUps }
     } catch {

@@ -13,6 +13,12 @@ export interface ClaudeSSEOptions extends CallClaudeOptions {
   transform?: (text: string) => string
   /** 전체 텍스트가 끝났을 때 finalize block */
   finalize?: (fullText: string) => string | null | Promise<string | null>
+  /**
+   * 스트림이 콘텐츠를 전혀 내보내지 못했을 때 (즉시 에러 또는 빈 완료)
+   * 정확히 한 번 호출. 스트림 시작 전 차감한 크레딧을 환불하는 데 사용.
+   * 여기서 던진 예외는 무시한다 (환불 실패가 스트림을 깨지 않도록).
+   */
+  onFailure?: () => void | Promise<void>
 }
 
 /**
@@ -21,13 +27,26 @@ export interface ClaudeSSEOptions extends CallClaudeOptions {
  * SSE format: `data: {"content":"...","done":false}\n\n`
  */
 export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Response> {
-  const { additionalHeaders = {}, transform, finalize, ...claudeOpts } = opts
+  const { additionalHeaders = {}, transform, finalize, onFailure, ...claudeOpts } = opts
 
   const tokenStream = await callClaudeStream(claudeOpts)
   const reader = tokenStream.getReader()
 
   const encoder = new TextEncoder()
   let fullText = ''
+
+  // Invoke the refund/cleanup hook at most once. A thrown hook must never
+  // break the stream, so swallow its errors here.
+  let failureHandled = false
+  const handleFailure = async () => {
+    if (failureHandled || !onFailure) return
+    failureHandled = true
+    try {
+      await onFailure()
+    } catch {
+      /* never break the stream on refund error */
+    }
+  }
 
   const sseStream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -39,6 +58,10 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
           fullText += chunk
           const sseLine = `data: ${JSON.stringify({ content: chunk, done: false })}\n\n`
           controller.enqueue(encoder.encode(sseLine))
+        }
+        // No content delivered at all → treat as a failed turn (refund).
+        if (fullText.trim() === '') {
+          await handleFailure()
         }
         // finalize
         let finalChunk: string | null = null
@@ -56,6 +79,10 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         controller.enqueue(encoder.encode(finalLine))
         controller.close()
       } catch (err) {
+        // Errored before delivering any content → refund the charged turn.
+        if (fullText.trim() === '') {
+          await handleFailure()
+        }
         const errLine = `data: ${JSON.stringify({
           content: '',
           done: true,

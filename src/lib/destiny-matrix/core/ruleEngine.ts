@@ -1,4 +1,4 @@
-﻿import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './signalSynthesizer'
 import type { ActivationEngineResult } from './activationEngine'
 import type { CompiledFeatureToken } from './tokenCompiler'
 import { repairMojibakeText } from '@/lib/text/mojibake'

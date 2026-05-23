@@ -89,11 +89,19 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-// Mock prisma for admin check inside the route
+// Mock prisma for admin check inside the route.
+// isAdminUser() (admin.ts) migrated to a DB role lookup: it calls
+// prisma.user.findUnique and grants access on role admin/superadmin (with an
+// email fallback). 'admin-1' resolves to an admin user; any other id resolves
+// to null → treated as non-admin.
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: {
-      findUnique: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn(({ where }: { where?: { id?: string } }) =>
+        Promise.resolve(
+          where?.id === 'admin-1' ? { role: 'admin', email: 'admin@example.com' } : null
+        )
+      ),
     },
   },
 }))
@@ -101,9 +109,22 @@ vi.mock('@/lib/db/prisma', () => ({
 describe('Admin Metrics API', () => {
   const originalEnv = process.env
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
     process.env = { ...originalEnv, ADMIN_EMAILS: 'admin@example.com,superadmin@example.com' }
+    // clearAllMocks() does not reset return values; some tests override
+    // safeParse (to fail) and rateLimit (to deny). Restore the success/allow
+    // defaults so tests stay independent of execution order.
+    const { DashboardRequestSchema } = await import('@/lib/metrics/index')
+    ;(DashboardRequestSchema.safeParse as ReturnType<typeof vi.fn>).mockReturnValue({
+      success: true,
+      data: { timeRange: '24h', includeRaw: false },
+    })
+    const { rateLimit } = await import('@/lib/rateLimit')
+    ;(rateLimit as ReturnType<typeof vi.fn>).mockResolvedValue({
+      allowed: true,
+      headers: new Map([['X-RateLimit-Remaining', '29']]),
+    })
   })
 
   afterEach(() => {
@@ -225,6 +246,14 @@ describe('Admin Metrics API', () => {
       const { getServerSession } = await import('next-auth')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'admin-1', email: 'ADMIN@EXAMPLE.COM' },
+      })
+
+      // No DB admin role here — force isAdminUser() down its email fallback so
+      // this case actually exercises case-insensitive ADMIN_EMAILS matching.
+      const { prisma } = await import('@/lib/db/prisma')
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        role: 'user',
+        email: 'ADMIN@EXAMPLE.COM',
       })
 
       const { rateLimit } = await import('@/lib/rateLimit')

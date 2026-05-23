@@ -113,20 +113,6 @@ test.describe('Profile Management Flow', () => {
     }
   })
 
-  test('should handle update birth info API endpoint', async ({ page }) => {
-    const response = await page.request.post('/api/user/update-birth-info', {
-      data: {
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        birthCity: 'Seoul',
-      },
-      timeout: 30000,
-    })
-
-    // Should return 200 for authenticated or 401 for unauthenticated
-    expect([200, 401, 403, 400]).toContain(response.status())
-  })
-
   test("should display user's reading history", async ({ page }) => {
     await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()

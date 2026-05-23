@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
 import BrandSplash from '@/components/branding/BrandSplash'
@@ -10,6 +10,7 @@ import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { runQuickCoupleTarot } from './runQuickCoupleTarot'
+import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 
@@ -60,6 +61,7 @@ function CompatibilityCounselorContent() {
     locale === 'ko' ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
   )
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const [persons, setPersons] = useState<PersonData[]>([])
   const [person1Saju, setPerson1Saju] = useState<Record<string, unknown> | null>(null)
@@ -70,6 +72,7 @@ function CompatibilityCounselorContent() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
+  const [redirecting, setRedirecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [creditExhausted, setCreditExhausted] = useState(false)
   // LLM-generated follow-up chips. Filled from streamProcessor result.
@@ -79,9 +82,11 @@ function CompatibilityCounselorContent() {
   // after the first save). Subsequent saves attach to the same row.
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showChartModal, setShowChartModal] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const chartFetchRef = useRef(false)
   const isKo = locale === 'ko'
 
   useEffect(() => {
@@ -147,6 +152,15 @@ function CompatibilityCounselorContent() {
           if (parsed.length >= 2) {
             await fetchPersonData(parsed)
           }
+        } else {
+          // 3) Direct entry with no couple (profile / header / sidebar link).
+          //    This screen has no person-picker, so send the user to the
+          //    /compatibility form which carries 지인 불러오기 / 직접 입력 /
+          //    내 프로필 불러오기. They return here with ?persons=. Keep the
+          //    loader up (redirecting) so the empty counselor never flashes.
+          setRedirecting(true)
+          router.replace('/compatibility')
+          return
         }
       } catch (e) {
         logger.error('Failed to parse URL params:', { error: e })
@@ -161,6 +175,7 @@ function CompatibilityCounselorContent() {
   }, [searchParams])
 
   const fetchPersonData = async (personList: PersonData[]) => {
+    chartFetchRef.current = true
     try {
       // gender는 대운 순/역행에 필수. /api/saju가 required로 받으니 빠뜨리면 fetch 실패.
       const sajuPayload = (p: PersonData) => ({
@@ -172,32 +187,43 @@ function CompatibilityCounselorContent() {
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
       })
+      // timeZone은 /api/astrology Zod 스키마에서 필수(min 1). 빠뜨리면
+      // 검증 400으로 떨어져 점성 데이터가 영영 안 들어온다.
       const astroPayload = (p: PersonData) => ({
         date: p.date,
         time: p.time,
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
+        timeZone: p.timeZone || 'Asia/Seoul',
       })
+
+      // /api/saju·/api/astrology 는 createSajuGuard/createAstrologyGuard 로
+      // requireToken: true 라서 X-API-Token 이 없으면 거부된다. 토큰을 빼면
+      // 차트 데이터가 안 들어와 "궁합 차트" 버튼이 영영 비활성이 된다.
+      const apiHeaders = {
+        'Content-Type': 'application/json',
+        'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+      }
 
       const [saju1Res, saju2Res, astro1Res, astro2Res] = await Promise.all([
         fetch('/api/saju', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: apiHeaders,
           body: JSON.stringify(sajuPayload(personList[0])),
         }),
         fetch('/api/saju', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: apiHeaders,
           body: JSON.stringify(sajuPayload(personList[1])),
         }),
         fetch('/api/astrology', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: apiHeaders,
           body: JSON.stringify(astroPayload(personList[0])),
         }),
         fetch('/api/astrology', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: apiHeaders,
           body: JSON.stringify(astroPayload(personList[1])),
         }),
       ])
@@ -218,6 +244,17 @@ function CompatibilityCounselorContent() {
       logger.error('Failed to fetch person data:', { error: e })
     }
   }
+
+  // 차트 데이터 보강 — resume(?session=) 세션은 meta 스냅샷에만 의존한다.
+  // 차트 저장 이전에 만들어진 세션이면 person*Saju/Astro 가 비어 차트 버튼이
+  // 영구 비활성된다. persons 는 있는데 데이터가 없으면 여기서 지연 로드.
+  useEffect(() => {
+    if (isInitializing || redirecting) return
+    if (persons.length < 2) return
+    if (person1Saju || person2Saju || person1Astro || person2Astro) return
+    if (chartFetchRef.current) return
+    fetchPersonData(persons)
+  }, [isInitializing, redirecting, persons, person1Saju, person2Saju, person1Astro, person2Astro])
 
   useEffect(() => {
     // Streaming updates the *last* message's content in place — array
@@ -516,12 +553,12 @@ function CompatibilityCounselorContent() {
     }
   }, [isLoading, persons, isKo])
 
-  if (isInitializing) {
+  if (isInitializing || redirecting) {
     return <CounselorLoading />
   }
 
   return (
-    <main className={`${styles.page} ${styles.fadeIn} ${styles.lightTheme}`}>
+    <main className={`${styles.page} ${styles.fadeIn}`}>
       <CounselorSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -538,18 +575,32 @@ function CompatibilityCounselorContent() {
         enableGrouping
         lightTheme
         footerSlot={
-          <button
-            type="button"
-            className={styles.sidebarFooterBtn}
-            onClick={handleQuickCoupleTarot}
-            disabled={isLoading || persons.length < 2}
-            title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
-          >
-            <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-              {'🎴'}
-            </span>
-            {isKo ? '둘 궁합 타로 뽑기' : 'Draw couple tarot'}
-          </button>
+          <>
+            <button
+              type="button"
+              className={styles.sidebarFooterBtn}
+              onClick={handleQuickCoupleTarot}
+              disabled={isLoading || persons.length < 2}
+              title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
+            >
+              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+                {'🎴'}
+              </span>
+              {isKo ? '둘 궁합 타로 뽑기' : 'Draw couple tarot'}
+            </button>
+            <button
+              type="button"
+              className={styles.sidebarFooterBtn}
+              onClick={() => setShowChartModal(true)}
+              disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
+              title={isKo ? '궁합 차트 보기' : 'View couple chart'}
+            >
+              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+                {'✨'}
+              </span>
+              {isKo ? '궁합 차트' : 'Couple chart'}
+            </button>
+          </>
         }
       />
       <div className={styles.mainColumn}>
@@ -663,14 +714,9 @@ function CompatibilityCounselorContent() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* The standalone "둘 궁합 타로 즉시 보기" pill above the input
-            was merged into the input toolbar below (Claude-style) so
-            the textarea gets the full width and the three actions
-            (📎 / 🎴 / ▶) share one row underneath. */}
-          <div style={{ display: 'none' }}></div>
-
           {/* Input — Claude-style: textarea on top, action row below.
-            Three actions: 📎 attach (placeholder), 🎴 quick tarot, ▶ send. */}
+            Desktop: 📎 attach + ▶ send (타로·차트는 사이드바 푸터).
+            Mobile: 📎 attach + 🎴 couple tarot + ✨ couple chart + ▶ send. */}
           <div className={styles.inputContainer}>
             <textarea
               ref={inputRef}
@@ -686,16 +732,27 @@ function CompatibilityCounselorContent() {
             />
             <div className={styles.inputToolbar}>
               <div className={styles.inputToolbarLeft}>
+                {/* 🎴 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
+                    사이드바 푸터에 같은 둘이 있어 ≥1024px에선 중복을 피해 숨긴다. */}
                 <button
                   type="button"
-                  onClick={() => {
-                    alert(isKo ? '파일 첨부는 곧 지원돼요.' : 'File attach coming soon.')
-                  }}
-                  className={styles.toolButton}
-                  aria-label={isKo ? '파일 첨부' : 'Attach file'}
-                  title={isKo ? '파일 첨부 (준비 중)' : 'Attach file (coming soon)'}
+                  onClick={handleQuickCoupleTarot}
+                  disabled={isLoading || persons.length < 2}
+                  className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
+                  aria-label={isKo ? '둘 궁합 타로' : 'Couple tarot'}
+                  title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
                 >
-                  <span className={styles.toolButtonIcon}>📎</span>
+                  <span className={styles.toolButtonIcon}>🎴</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowChartModal(true)}
+                  disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
+                  className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
+                  aria-label={isKo ? '궁합 차트' : 'Couple chart'}
+                  title={isKo ? '궁합 차트 보기' : 'View couple chart'}
+                >
+                  <span className={styles.toolButtonIcon}>✨</span>
                 </button>
               </div>
               <button
@@ -717,6 +774,18 @@ function CompatibilityCounselorContent() {
           </div>
         </div>
       </div>
+
+      <CompatChartModal
+        open={showChartModal}
+        onClose={() => setShowChartModal(false)}
+        person1Saju={person1Saju}
+        person2Saju={person2Saju}
+        person1Astro={person1Astro}
+        person2Astro={person2Astro}
+        nameA={persons[0]?.name || ''}
+        nameB={persons[1]?.name || ''}
+        lang={isKo ? 'ko' : 'en'}
+      />
     </main>
   )
 }

@@ -22,7 +22,12 @@ interface Props {
  * 점수는 cell.derivedScore 우선 (engine v2). 없으면 displayScore.
  * 핵심 사유는 matchedPatterns[0].name 우선, 없으면 topReasons / sajuFactors.
  */
-export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 3, gradeThresholds }: Props) {
+export default function MonthHighlightsCard({
+  monthDates,
+  onDayClick,
+  topN = 3,
+  gradeThresholds,
+}: Props) {
   if (monthDates.length === 0) return null
 
   const ranked = monthDates
@@ -43,7 +48,7 @@ export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 3, 
         <div className="bg-zinc-900/60 p-4">
           <h3 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
             <TrendingUp className="w-4 h-4" />
-            길일 TOP {topN}
+            좋은 날 TOP {topN}
           </h3>
           <div className="space-y-2">
             {lucky.length === 0 ? (
@@ -68,7 +73,7 @@ export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 3, 
         <div className="bg-zinc-900/60 p-4">
           <h3 className="text-sm font-bold text-rose-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
             <TrendingDown className="w-4 h-4" />
-            흉일 TOP {topN}
+            조심할 날 TOP {topN}
           </h3>
           <div className="space-y-2">
             {unlucky.length === 0 ? (
@@ -108,10 +113,7 @@ function DayRow({ rank, importantDate, score, thresholds, tone, onClick }: DayRo
   const reason = pickReason(importantDate, tone)
 
   // 날짜 강조 — 길일은 emerald, 흉일은 rose 톤
-  const dayClass =
-    tone === 'positive'
-      ? 'text-emerald-300'
-      : 'text-rose-300'
+  const dayClass = tone === 'positive' ? 'text-emerald-300' : 'text-rose-300'
 
   return (
     <button
@@ -122,15 +124,10 @@ function DayRow({ rank, importantDate, score, thresholds, tone, onClick }: DayRo
       {/* 날짜 — 큰 글자로 한눈에 보이게 */}
       <div className="flex flex-col items-center justify-center min-w-[2.5rem] shrink-0">
         <span className={`text-3xl font-black leading-none ${dayClass}`}>{day}</span>
-        <span className="text-[10px] text-zinc-500 font-mono mt-1">{score}점</span>
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-sm font-bold ${grade.colorClass} leading-tight`}>
-          {grade.label}
-        </div>
-        <div className="text-xs text-zinc-400 truncate leading-snug mt-1">
-          {reason}
-        </div>
+        <div className={`text-sm font-bold ${grade.colorClass} leading-tight`}>{grade.label}</div>
+        <div className="text-xs text-zinc-400 truncate leading-snug mt-1">{reason}</div>
       </div>
     </button>
   )
@@ -157,14 +154,12 @@ function pickReason(d: ImportantDate, direction: 'positive' | 'negative'): strin
       direction === 'positive' ? s.polarity > 0 : s.polarity < 0
     // transient 레이어 우선 (decadal/yearly는 매일 동일)
     const transient = d.engineSignals.filter(
-      (s) => (s.layer === 'daily' || s.layer === 'monthly' || s.layer === 'hourly') && matchSign(s),
+      (s) => (s.layer === 'daily' || s.layer === 'monthly' || s.layer === 'hourly') && matchSign(s)
     )
-    const pool = transient.length > 0
-      ? transient
-      : d.engineSignals.filter(matchSign)
+    const pool = transient.length > 0 ? transient : d.engineSignals.filter(matchSign)
     if (pool.length > 0) {
       const top = [...pool].sort(
-        (a, b) => Math.abs(b.polarity) * b.weight - Math.abs(a.polarity) * a.weight,
+        (a, b) => Math.abs(b.polarity) * b.weight - Math.abs(a.polarity) * a.weight
       )[0]
       const arrow = top.polarity > 0 ? '↑' : '↓'
       return `${arrow} ${top.korean ?? top.name}`

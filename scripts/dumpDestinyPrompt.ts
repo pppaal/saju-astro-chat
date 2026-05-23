@@ -69,9 +69,9 @@ async function main() {
           list?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }>
         } | null
       }
-      currentSaeun?: { stem?: string; branch?: string; year?: number } | null
-      currentWolun?: { stem?: string; branch?: string } | null
-      currentIljin?: { stem?: string; branch?: string; date?: string } | null
+      currentSeun?: { heavenlyStem?: string; earthlyBranch?: string } | null
+      currentWolun?: { heavenlyStem?: string; earthlyBranch?: string } | null
+      currentIljin?: { heavenlyStem?: string; earthlyBranch?: string } | null
       extras?: { geokguk?: { primary?: string } | null; yongsin?: { primary?: string; type?: string; dayMasterStrength?: string; kibsin?: string } | null } | null
     }
     const sajuP = sajuLoose.saju?.pillars
@@ -93,6 +93,8 @@ async function main() {
         sibsinBranch: d.sibsin?.ji,
       }))
       const dm = sajuLoose.saju?.dayMaster
+      const today = new Date()
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
       const sajuBlock = formatSajuSelf({
         pillars: [toP(sajuP.year), toP(sajuP.month), toP(sajuP.day), toP(sajuP.time)],
         dayMaster: dm?.name ? { name: dm.name, element: dm.element ?? '', yinYang: dm.yin_yang } : null,
@@ -100,9 +102,9 @@ async function main() {
         yongsin: extras?.yongsin ?? null,
         daeunList,
         currentDaeun: cur ? { stem: cur.heavenlyStem ?? '', branch: cur.earthlyBranch ?? '', age: cur.age } : null,
-        currentSewoon: sajuLoose.currentSaeun ? { stem: sajuLoose.currentSaeun.stem ?? '', branch: sajuLoose.currentSaeun.branch ?? '', year: sajuLoose.currentSaeun.year } : null,
-        currentWolwoon: sajuLoose.currentWolun ? { stem: sajuLoose.currentWolun.stem ?? '', branch: sajuLoose.currentWolun.branch ?? '' } : null,
-        currentIljin: sajuLoose.currentIljin ? { stem: sajuLoose.currentIljin.stem ?? '', branch: sajuLoose.currentIljin.branch ?? '', date: sajuLoose.currentIljin.date } : null,
+        currentSewoon: sajuLoose.currentSeun ? { stem: sajuLoose.currentSeun.heavenlyStem ?? '', branch: sajuLoose.currentSeun.earthlyBranch ?? '', year: today.getFullYear() } : null,
+        currentWolwoon: sajuLoose.currentWolun ? { stem: sajuLoose.currentWolun.heavenlyStem ?? '', branch: sajuLoose.currentWolun.earthlyBranch ?? '' } : null,
+        currentIljin: sajuLoose.currentIljin ? { stem: sajuLoose.currentIljin.heavenlyStem ?? '', branch: sajuLoose.currentIljin.earthlyBranch ?? '', date: todayStr } : null,
       })
       if (sajuBlock) { parts.push(''); parts.push(sajuBlock) }
     }

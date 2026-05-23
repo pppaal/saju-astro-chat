@@ -34,7 +34,9 @@ export function useMyCircle(status: 'authenticated' | 'loading' | 'unauthenticat
         })
         if (res.ok) {
           const data = await res.json()
-          setCirclePeople(data.people || [])
+          // API는 createSuccessResponse 로 { success, data: { people } } 형태로
+          // 감싸므로 data.data.people 이 실제 경로. (구형 unwrap 대비 fallback)
+          setCirclePeople(data?.data?.people ?? data?.people ?? [])
         } else {
           setCirclePeople([])
           // Circle is optional; avoid surfacing noisy errors in UI.

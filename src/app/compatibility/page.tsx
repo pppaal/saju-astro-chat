@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react'
 import ServicePageLayout from '@/components/ui/ServicePageLayout'
 import { useI18n } from '@/i18n/I18nProvider'
 import { useRouter } from 'next/navigation'
-import { useUserProfile } from '@/hooks/useUserProfile'
 import styles from './Compatibility.module.css'
 
 import { useCompatibilityForm } from '@/hooks/useCompatibilityForm'
@@ -21,9 +20,7 @@ const KO_COMPAT_FALLBACKS: Record<string, string> = {
   'compatibilityPage.backToForm': '뒤로',
   'compatibilityPage.title': '관계 궁합',
   'compatibilityPage.subtitle': '마음과 마음 사이의 우주적 연결을 탐험하세요',
-  'compatibilityPage.loadingProfile': '불러오는 중...',
   'compatibilityPage.loadMyProfile': '내 프로필',
-  'compatibilityPage.profileLoaded': '프로필을 불러왔습니다!',
 }
 
 export default function CompatPage() {
@@ -32,10 +29,7 @@ export default function CompatPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
 
-  const { profile, loadProfile, loadingProfileBtn, profileLoadedMsg, profileLoadError } =
-    useUserProfile({ skipAutoLoad: false })
-
-  const { count, persons, setPersons, updatePerson, fillFromCircle, onPickCity } =
+  const { count, persons, setPersons, updatePerson, fillFromCircle } =
     useCompatibilityForm(2, normalizedLocale)
 
   useCityAutocomplete(persons, setPersons)
@@ -80,30 +74,6 @@ export default function CompatPage() {
     router.push('/')
   }, [router])
 
-  const handleLoadProfile = useCallback(async () => {
-    const success = await loadProfile(locale)
-    if (success && profile.birthDate) {
-      setPersons((prev) => {
-        const next = [...prev]
-        next[0] = {
-          ...next[0],
-          name: profile.name || next[0].name,
-          date: profile.birthDate || next[0].date,
-          time: profile.birthTime || next[0].time,
-          gender:
-            profile.gender?.toLowerCase() === 'female' || profile.gender?.toLowerCase() === 'f'
-              ? 'F'
-              : profile.gender?.toLowerCase() === 'male' || profile.gender?.toLowerCase() === 'm'
-                ? 'M'
-                : next[0].gender,
-          cityQuery: profile.birthCity || next[0].cityQuery,
-          timeZone: profile.timezone || next[0].timeZone,
-        }
-        return next
-      })
-    }
-  }, [loadProfile, locale, profile, setPersons])
-
   const compatT = useCallback(
     (key: string, fallback: string) => {
       if (normalizedLocale !== 'ko') {
@@ -129,36 +99,8 @@ export default function CompatPage() {
               handleSubmit()
             }}
           >
-            {!profileLoadedMsg && (
-              <button
-                type="button"
-                onClick={handleLoadProfile}
-                disabled={loadingProfileBtn}
-                className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-indigo-400/40 bg-indigo-500/15 px-3 py-1 text-[12px] text-indigo-100 transition-colors hover:border-indigo-300/60 hover:bg-indigo-500/25 disabled:opacity-50"
-              >
-                <span>{loadingProfileBtn ? '⏳' : '\u{1F464}'}</span>
-                <span>
-                  {loadingProfileBtn
-                    ? compatT('compatibilityPage.loadingProfile', 'Loading...')
-                    : compatT('compatibilityPage.loadMyProfile', 'Load My Profile')}
-                </span>
-              </button>
-            )}
-
-            {profileLoadedMsg && (
-              <div className="mb-3 px-3 py-1.5 bg-green-600/20 border border-green-600/40 rounded-md text-green-400 text-[12px] text-center">
-                {'✓'} {compatT('compatibilityPage.profileLoaded', 'Profile loaded!')}
-              </div>
-            )}
-
-            {profileLoadError && (
-              <div className="mb-3 px-3 py-1.5 bg-red-600/20 border border-red-600/40 rounded-md text-red-400 text-[12px]">
-                {'⚠️'} {profileLoadError}
-              </div>
-            )}
-
             {circleError && (
-              <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
+              <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-600">
                 {'⚠️'} {circleError}
               </div>
             )}
@@ -176,7 +118,6 @@ export default function CompatPage() {
                   t={compatT}
                   onUpdatePerson={updatePerson}
                   onSetPersons={setPersons}
-                  onPickCity={onPickCity}
                   onToggleCircleDropdown={() =>
                     setShowCircleDropdown(showCircleDropdown === idx ? null : idx)
                   }

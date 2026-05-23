@@ -1,4 +1,4 @@
-﻿import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
+import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
 import type { FeatureCompilationResult } from './tokenCompiler'
 import type { ActivationEngineResult } from './activationEngine'

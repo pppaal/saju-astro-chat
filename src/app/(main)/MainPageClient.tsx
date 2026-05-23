@@ -18,6 +18,13 @@ import HexDPLogo from '@/components/branding/HexDPLogo'
 
 type Locale = 'en' | 'ko'
 
+// The premium-white surface trigger is scoped to the current tab session
+// (sessionStorage), NOT localStorage. Birth data still persists across
+// visits for the chat, but the surface decision must not: otherwise a
+// returning logged-out visitor stays stuck on white forever from a stale
+// birth-info cache instead of seeing the cosmic brand surface again.
+const HOME_WHITE_SESSION_KEY = 'dp:home-white'
+
 interface MainPageClientProps {
   initialLocale: Locale
   initialMessages: I18nMessages
@@ -38,6 +45,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [birthModalOpen, setBirthModalOpen] = useState(false)
   const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
+  // Whether birth info was entered during THIS tab session — drives the
+  // premium-white surface (see HOME_WHITE_SESSION_KEY).
+  const [birthEnteredThisSession, setBirthEnteredThisSession] = useState(false)
 
   // Hydrate birth info from localStorage after mount. Also auto-open
   // the modal when a service redirected here with `?openBirth=1` so the
@@ -45,6 +55,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   useEffect(() => {
     setBirthInfo(getStoredBirthInfo())
     if (typeof window === 'undefined') return
+    if (sessionStorage.getItem(HOME_WHITE_SESSION_KEY) === '1') {
+      setBirthEnteredThisSession(true)
+    }
     const sp = new URLSearchParams(window.location.search)
     if (sp.get('openBirth') === '1') setBirthModalOpen(true)
   }, [])
@@ -145,18 +158,27 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const handleSaved = (info: StoredBirthInfo) => {
     setBirthInfo(info)
     setBirthModalOpen(false)
+    // Entering birth info this session flips the home to the premium-white
+    // surface (and remembers it for the rest of the tab session).
+    setBirthEnteredThisSession(true)
     if (typeof window === 'undefined') return
+    try {
+      sessionStorage.setItem(HOME_WHITE_SESSION_KEY, '1')
+    } catch {
+      // sessionStorage can throw (private mode / blocked) — non-fatal.
+    }
     const sp = new URLSearchParams(window.location.search)
     const next = sp.get('next')
     if (next && next.startsWith('/')) window.location.assign(next)
   }
 
-  // Once the user has given the app a birth-date OR signed in, the home
-  // transitions from the cosmic dark hero ("brand" surface) to the
-  // premium white surface that mirrors the counselor pages — the user
-  // has crossed from prospect to tool-user. Trigger is sticky: birthInfo
-  // lives in localStorage, isAuthed in the session cookie.
-  const isPremiumWhite = isAuthed || !!birthInfo
+  // Flip from the cosmic dark hero ("brand" surface) to the premium-white
+  // "product" surface once the visitor is signed in OR has entered birth
+  // info during THIS tab session. Scoped to the session (not the
+  // persisted birthInfo) so a returning logged-out visitor with cached
+  // birth data still gets the brand surface instead of being stuck on
+  // white forever.
+  const isPremiumWhite = isAuthed || birthEnteredThisSession
 
   return (
     <motion.main

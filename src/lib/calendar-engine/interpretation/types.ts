@@ -7,6 +7,10 @@
  */
 
 import type { FiveElement, SibsinKind } from '@/lib/saju/types'
+import type { KeyEvents } from '../derivers/keyEvents'
+import type { Convergence } from '../derivers/convergence'
+import type { LifetimePivots } from '../derivers/lifetimePivots'
+import type { MonthComparison } from '../derivers/monthComparison'
 
 /** 룰이 매칭되는 시점 */
 export type RuleScope = 'monthly' | 'yearly' | 'daily' | 'lifetime'
@@ -90,8 +94,14 @@ export interface InterpretationRule {
 export interface Interpretation {
   /** 합성된 narrative 텍스트 (마크다운 가능) */
   narrative: string
-  /** 매칭된 룰의 ID 리스트 (디버그·추적용) */
+  /** 매칭된 룰의 ID 리스트 (캡·dedup 적용 후 실제 노출된 것) */
   matchedRuleIds: string[]
+  /**
+   * 캡(SECTION_CAP)·dedup 적용 *전*, 조건이 매칭된 전체 룰 ID. `debug:true` 일
+   * 때만 채움. 룰 커버리지 감사용 — matchedRuleIds(picked)는 섹션 캡에 가려진
+   * 룰을 죽은 룰로 오인하므로 "조건이 실제로 켜지나"는 이 필드로 측정.
+   */
+  allMatchedRuleIds?: string[]
   /** 섹션별 분해 (UI에서 카드별 표시할 때) */
   sections: Array<{
     section: string
@@ -109,6 +119,16 @@ export interface Interpretation {
    */
   themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
   /**
+   * 테마 순위 — themeScores 를 점수 내림차순 정렬. 5개 바가 비슷할 때
+   * (비-health 4테마 std ~5점) 절대값 대신 "이번 달 가장 활발: 성장 > 일,
+   * 약한 축: 건강" 식 상대 표시를 UI 가 안전하게 그릴 수 있게 함.
+   */
+  themeRanking?: Array<{
+    theme: 'love' | 'money' | 'career' | 'health' | 'growth'
+    score: number
+    rank: number
+  }>
+  /**
    * 테마별 점수 "인과 추적" (Why-card). 그 점수에 기여한 신호 top N 을
    * +/- 기여도와 함께 노출 — "재물 68 ← 정재 월지 +12 / 천을귀인 +8 /
    * 겁재 분탈 −7" 식. 점수만 던지지 않고 *근거* 를 보여줘 신뢰도 ↑.
@@ -119,6 +139,33 @@ export interface Interpretation {
       Array<{ label: string; delta: number; dir: 'up' | 'down' }>
     >
   >
+  /**
+   * "이번 달 키 이벤트" — 본문 날짜 정보를 카드로 추출 (베스트 날 / 강한 구간
+   * / 피할 날). cells.derivedScore 에서 결정적으로 뽑음. monthly scope 에서만.
+   */
+  keyEvents?: KeyEvents
+  /**
+   * "수렴 큰 날" — 무거운 이벤트(느린 행성 transit·lifecycle·일진 충/합)가
+   * 점성·사주 양쪽에서 같은 날 겹치는 시점. keyEvents(평균 최고일)와 별개로,
+   * "왜 큰 날인지(어느 사건이 겹쳤는지)" 까지 담는다. monthly scope 에서만.
+   */
+  convergence?: Convergence
+  /**
+   * "올해 큰 날" — 그 해 1년 전체에서 뽑은 수렴 큰 날. 365일 빌드가 비싸 매월
+   * 계산하지 않고 라우트가 연간 캐시로 채워 넣는다(엔진 buildInterpretation 은
+   * 건드리지 않음). 그래서 옵셔널.
+   */
+  yearlyConvergence?: Convergence
+  /**
+   * "인생 분기점" — 점성 라이프사이클(토성 리턴 등) × 대운 전환을 합친 인생
+   * 스케일 큰 시기. natal 에서만 결정되며 monthly scope 에서 함께 노출.
+   */
+  lifetimePivots?: LifetimePivots
+  /**
+   * "지난달 대비" — 전월 themeScore / 전체 흐름 점수와의 차이. prevCells 가
+   * 주어진 monthly scope 에서만 채워짐 (retention hook).
+   */
+  monthComparison?: MonthComparison
 }
 
 /**

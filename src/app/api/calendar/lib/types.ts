@@ -1,10 +1,12 @@
-﻿/**
+/**
  * @file Calendar API types
  * Extracted from route.ts for modularity
  */
 
 import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
+// monthlyInterpretation 모양의 단일 정의(SSOT) — 엔진이 정본, API/UI 가 재사용.
+import type { Interpretation as CalendarInterpretation } from '@/lib/calendar-engine/interpretation/types'
 
 // Helper type for accessing pillar data with various formats
 export interface SajuPillarAccessor {
@@ -79,26 +81,16 @@ export interface FormattedDate {
     weight: number
   }>
   themeScores?: Partial<Record<string, number>>
-  /** 그 달 narrative 해석 (룰 DB 기반, LLM 0번) */
-  monthlyInterpretation?: {
-    narrative: string
-    matchedRuleIds: string[]
-    sections: Array<{ section: string; title: string; text: string }>
-    themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
-    /** 테마별 점수 인과 추적 (Why-card) */
-    themeBreakdown?: Partial<
-      Record<
-        'love' | 'money' | 'career' | 'health' | 'growth',
-        Array<{ label: string; delta: number; dir: 'up' | 'down' }>
-      >
-    >
-  }
+  /** 그 달 narrative 해석 (룰 DB 기반, LLM 0번) — 엔진 Interpretation 단일 정의 재사용 */
+  monthlyInterpretation?: CalendarInterpretation
   /**
    * 해당 날의 60갑자(일진) 한 줄 narrative — `getGanjiTransitNarrative` 출처.
    * "오늘은 [archetype] 의 에너지가 흐르는 하루예요." 형식. 매일 다른 ganji 라
    * 5/6 월 동일 텍스트 같은 문제는 layer='daily' 에서도 자연스럽게 분기.
    */
   dailyGanjiNarrative?: string
+  /** 일진 scope 룰 결과 — "오늘 한 줄" 액션 (최대 4) */
+  dailyActions?: string[]
 }
 
 export interface CalendarDailyView {

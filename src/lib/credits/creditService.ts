@@ -1,11 +1,24 @@
 import { prisma } from '@/lib/db/prisma'
 import { PLAN_CONFIG, type PlanType, type PlanFeatures } from '@/lib/config/pricing'
+import { logger } from '@/lib/logger'
 import type { Prisma } from '@prisma/client'
 
 // Re-export for backward compatibility
 export { PLAN_CONFIG }
 export type { PlanType }
 export type FeatureType = keyof PlanFeatures
+
+// 테스트용 크레딧 우회 — CREDITS_BYPASS=true 일 때 동작한다. 운영 빌드에서도
+// 켜지므로(배포 환경 테스트용) 실제 과금에 직접 영향을 준다. 켜면 타로/궁합/
+// 운명 등 모든 크레딧 검사·차감이 통과된다. 테스트가 끝나면 반드시 끌 것.
+const CREDITS_BYPASS = process.env.CREDITS_BYPASS === 'true'
+
+// 켜져 있으면 프로세스 시작 시 한 번 경고 — 운영에 켜둔 채 방치하지 않도록.
+if (CREDITS_BYPASS) {
+  logger.warn(
+    '[creditService] CREDITS_BYPASS 활성화 — 모든 크레딧 검사·차감이 우회됩니다. 운영에 켜져 있지 않은지 확인하세요.'
+  )
+}
 
 // 월간 기간 계산 (다음 달 1일)
 function getNextPeriodEnd(): Date {
@@ -97,6 +110,9 @@ export async function canUseCredits(
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
   amount: number = 1
 ): Promise<{ allowed: boolean; reason?: string; remaining?: number }> {
+  if (CREDITS_BYPASS) {
+    return { allowed: true, remaining: 9999 }
+  }
   const balance = await getCreditBalance(userId)
 
   if (type === 'reading') {
@@ -215,6 +231,9 @@ export async function consumeCredits(
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
   amount: number = 1
 ): Promise<{ success: boolean; error?: string; chargedAs?: 'reading' | 'compatibility' | 'followUp' }> {
+  if (CREDITS_BYPASS) {
+    return { success: true }
+  }
   try {
     // 트랜잭션 내에서 원자적으로 체크 + 차감
     const result = await prisma.$transaction(async (tx) => {

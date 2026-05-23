@@ -1,4 +1,4 @@
-﻿import type { IcpArchetypeCode } from './types'
+import type { IcpArchetypeCode } from './types'
 
 export interface IcpArchetypeProfile {
   code: IcpArchetypeCode

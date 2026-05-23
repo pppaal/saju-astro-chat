@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Destiny Calendar API
  * Saju + Astrology fused yearly important dates
  * AI-assisted calculations (optional backend)
@@ -1075,6 +1075,10 @@ export const GET = withApiMiddleware(
 
       const allCells: typeof ceCells = []
       let ceCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
+      let prevMonthCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
+      const prevDate = new Date(targetYear, targetMonth - 1, 1)
+      const prevYear = prevDate.getFullYear()
+      const prevMonth = prevDate.getMonth()
       for (const m of monthsToBuild) {
         const { cells, cached } = await getOrBuildMonth({
           birthKey,
@@ -1094,6 +1098,9 @@ export const GET = withApiMiddleware(
         if (m.month === targetMonth && m.year === targetYear) {
           ceCells = cells // narrative는 current month 기준
         }
+        if (m.month === prevMonth && m.year === prevYear) {
+          prevMonthCells = cells // "지난달 대비" 비교 기준
+        }
       }
 
       // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
@@ -1105,8 +1112,25 @@ export const GET = withApiMiddleware(
           cells: ceCells,
           scope: 'monthly',
           lang: interpLang,
+          prevCells: prevMonthCells,
         })
         ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
+        // 올해 큰 날(연간 수렴) — 1년 빌드라 비쌈. 본명·연도별 인메모리 캐시로 1회만.
+        // 실패해도 나머지 해석은 그대로 (큰 날만 비게 됨).
+        try {
+          const { getYearConvergence } = await import('@/lib/calendar-engine/year-convergence')
+          interp.yearlyConvergence = await getYearConvergence({
+            birthKey,
+            year: targetYear,
+            natal: ceNatal,
+            lang: interpLang,
+          })
+        } catch (err) {
+          logger.warn?.(
+            '[calendar-engine v2] yearly convergence skipped:',
+            err instanceof Error ? err.message : String(err)
+          )
+        }
         // interpretation은 그 달 전체 단위라 셀별 부착 X.
         // 모든 셀에 동일 narrative 부착 — 클라가 어느 날짜든 같은 텍스트 사용.
         for (const d of formattedDates) {
@@ -1171,6 +1195,8 @@ export const GET = withApiMiddleware(
           await import('@/lib/calendar-engine/extractors/saju-shinsal')
         const { getGanjiTransitNarrative, dailyIljinSibsinLine } =
           await import('@/lib/calendar-engine/data/ganjiTransitNarrative')
+        const { buildInterpretation: buildDailyInterp } =
+          await import('@/lib/calendar-engine/interpretation')
         const lang = locale === 'en' ? 'en' : 'ko'
         for (const d of formattedDates) {
           // d.date 는 ISO (YYYY-MM-DDTHH:mm:ss±) — UTC noon 으로 정규화해 ganji 안정.
@@ -1193,6 +1219,21 @@ export const GET = withApiMiddleware(
           )
           const combined = [ganjiText, sibsinLine].filter(Boolean).join(' ')
           if (combined) d.dailyGanjiNarrative = combined
+
+          // 일진 scope 룰 → "오늘 한 줄" 액션 (그 날 cell 신호로 daily 룰 매칭)
+          if (cell) {
+            try {
+              const di = buildDailyInterp({ natal: ceNatal, cells: [cell], scope: 'daily', lang })
+              const today = di.sections.find((s) => s.section === 'today')
+              const lines = today?.text
+                .split('\n')
+                .map((l) => l.trim())
+                .filter(Boolean)
+              if (lines && lines.length > 0) d.dailyActions = lines
+            } catch {
+              /* daily 해석 실패는 무시 — ganji 한 줄로 충분 */
+            }
+          }
         }
       } catch (err) {
         logger.warn?.(

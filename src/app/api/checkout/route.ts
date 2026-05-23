@@ -13,12 +13,8 @@ import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { logger } from '@/lib/logger'
 import {
-  getPriceId,
   getCreditPackPriceId,
-  allowedPriceIds,
   allowedCreditPackIds,
-  type PlanKey,
-  type BillingCycle,
   type CreditPackKey,
 } from '@/lib/payments/prices'
 import { checkoutRequestSchema } from '@/lib/api/zodValidation'
@@ -72,8 +68,6 @@ export const POST = withApiMiddleware(
       }
 
       const body = validationResult.data
-      const plan = body.plan
-      const billingCycle = body.billingCycle
       const creditPack = body.creditPack
 
       const stripe = getStripe()
@@ -95,73 +89,32 @@ export const POST = withApiMiddleware(
       const idempotencyKey =
         clientIdemKey && clientIdemKey.length < 128 ? clientIdemKey : randomUUID()
 
-      // Handle credit pack purchase (one-time payment)
-      if (creditPack) {
-        const creditPrice = getCreditPackPriceId(creditPack as CreditPackKey)
-        if (!creditPrice || !allowedCreditPackIds().includes(creditPrice)) {
-          logger.error('[checkout] credit pack price not allowed', { creditPack })
-          recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' })
-          return apiError(ErrorCodes.BAD_REQUEST, 'invalid_credit_pack')
-        }
-
-        const checkout = await stripe.checkout.sessions.create(
-          {
-            mode: 'payment',
-            line_items: [{ price: creditPrice, quantity: 1 }],
-            success_url: `${base}/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${base}/pricing`,
-            customer_email: email,
-            metadata: {
-              type: 'credit_pack',
-              creditPack: creditPack,
-              userId: context.userId || '',
-              source: 'web',
-            },
-          },
-          { idempotencyKey }
-        )
-
-        if (!checkout.url) {
-          return apiError(ErrorCodes.INTERNAL_ERROR, 'no_checkout_url')
-        }
-
-        return apiSuccess({ url: checkout.url })
-      }
-
-      // Handle subscription purchase.
-      // The request schema guarantees that exactly one of `plan` / `creditPack`
-      // is present and that `billingCycle` is set whenever `plan` is — so by the
-      // time we get here both are defined (no default fallbacks needed).
-      if (!plan || !billingCycle) {
+      // Only one-time credit-pack purchases are offered. Subscriptions were
+      // retired, so a request without a creditPack (e.g. a stale client still
+      // posting `plan`) is rejected rather than silently opening a sub.
+      if (!creditPack) {
         return apiError(ErrorCodes.BAD_REQUEST, 'invalid_request')
       }
-      const selectedPlan = plan as PlanKey
-      const selectedBilling = billingCycle as BillingCycle
-      const price = getPriceId(selectedPlan, selectedBilling)
-      if (!price || !allowedPriceIds().includes(price)) {
-        logger.error('[checkout] price not allowed', {
-          plan: selectedPlan,
-          billingCycle: selectedBilling,
-        })
-        recordCounter('stripe_checkout_price_error', 1, { type: 'subscription' })
-        return apiError(ErrorCodes.BAD_REQUEST, 'invalid_price')
+
+      const creditPrice = getCreditPackPriceId(creditPack as CreditPackKey)
+      if (!creditPrice || !allowedCreditPackIds().includes(creditPrice)) {
+        logger.error('[checkout] credit pack price not allowed', { creditPack })
+        recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' })
+        return apiError(ErrorCodes.BAD_REQUEST, 'invalid_credit_pack')
       }
 
       const checkout = await stripe.checkout.sessions.create(
         {
-          mode: 'subscription',
-          line_items: [{ price, quantity: 1 }],
+          mode: 'payment',
+          line_items: [{ price: creditPrice, quantity: 1 }],
           success_url: `${base}/success?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${base}/pricing`,
-          allow_promotion_codes: true,
           customer_email: email,
           metadata: {
-            type: 'subscription',
-            productId: `${selectedPlan}-${selectedBilling}`,
+            type: 'credit_pack',
+            creditPack: creditPack,
             userId: context.userId || '',
             source: 'web',
-            plan: selectedPlan,
-            billingCycle: selectedBilling,
           },
         },
         { idempotencyKey }
