@@ -10,6 +10,10 @@ import styles from './MarkdownMessage.module.css'
 interface MarkdownMessageProps {
   content: string
   className?: string
+  // Default styling targets dark chat bubbles. Counselor pages render on a
+  // white surface where the default heading/quote colors are invisible —
+  // pass 'light' there.
+  theme?: 'light' | 'dark'
 }
 
 // ReactMarkdown components를 컴포넌트 외부로 이동 (재생성 방지)
@@ -37,9 +41,12 @@ const MARKDOWN_COMPONENTS: Components = {
 const MarkdownMessage = memo(function MarkdownMessage({
   content,
   className,
+  theme = 'dark',
 }: MarkdownMessageProps) {
   return (
-    <div className={`${styles.markdown} ${className || ''}`}>
+    <div
+      className={`${styles.markdown} ${theme === 'light' ? styles.light : ''} ${className || ''}`}
+    >
       <ReactMarkdown components={MARKDOWN_COMPONENTS}>{content}</ReactMarkdown>
     </div>
   )
