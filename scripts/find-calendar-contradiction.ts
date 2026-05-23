@@ -1,28 +1,24 @@
-import { calculateSajuData } from '../src/lib/Saju/saju'
-import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '../src/lib/Saju/constants'
+// Standalone valence-contradiction scanner for the yearly calendar.
+//
+// calculateYearlyImportantDates 의 ko 출력(titleKey/descKey/사주·점성 요소)을
+// 직접 훑어, 그날 등급(grade)과 어긋나는 길흉 문구가 한 날에 섞여 있는지 잡는다.
+// 서버/번역 불필요 — ko locale 키가 이미 완성 문장이라 텍스트 그대로 스캔.
+//
+// 좋은 날(grade<=1)에 강한 부정 verdict, 나쁜 날(grade>=3)에 강한 긍정 verdict가
+// 박히면 모순으로 신고하고 exit 1 — narrative valence 일관성 회귀 가드로 쓴다.
+import { calculateSajuData } from '../src/lib/saju/saju'
+import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '../src/lib/saju/constants'
 import { calculateNatalChart } from '../src/lib/astrology/foundation/astrologyService'
 import { calculateYearlyImportantDates } from '../src/lib/destiny-map/destinyCalendar'
 
-type CalendarDate = {
+type ScannedDate = {
   date: string
-  score: number
   grade: number
-  title?: string
-  summary?: string
-  warnings?: string[]
-  recommendations?: string[]
-  evidence?: {
-    confidence?: number
-    crossAgreementPercent?: number
-  }
-}
-
-type RawDate = {
-  date: string
   score: number
-  grade: number
-  recommendationKeys: string[]
-  warningKeys: string[]
+  titleKey: string
+  descKey: string
+  sajuFactorKeys: string[]
+  astroFactorKeys: string[]
 }
 
 const DEFAULT_QUERY = {
@@ -30,21 +26,30 @@ const DEFAULT_QUERY = {
   birthTime: '06:40',
   birthPlace: 'Seoul',
   year: 2026,
-  locale: 'ko',
 }
 
 const LOCATION_COORDS: Record<string, { lat: number; lng: number; tz: string }> = {
   Seoul: { lat: 37.5665, lng: 126.978, tz: 'Asia/Seoul' },
 }
 
-const IRREVERSIBLE_PATTERN =
-  /(\uACC4\uC57D|\uC11C\uBA85|\uD655\uC815|\uC608\uC57D|\uACB0\uD63C\uC2DD|\uCCAD\uCCA9\uC7A5|\uC774\uC9C1\s*\uD655\uC815|\uCC3D\uC5C5\s*\uD655\uC815|\uB7F0\uCE6D|\uD070\s*\uACB0\uC815|\uC989\uC2DC\s*\uACB0\uC815|sign(?: now)?|finalize|confirm|book|wedding|invitation|big decision|resign|launch|commit now)/i
-
-const COMMUNICATION_PATTERN =
-  /(\uC7AC\uD655\uC778|\uCEE4\uBBA4\uB2C8\uCF00\uC774\uC158|communication|recheck|\uC624\uB958|retrograde|void)/i
-
-const CONFLICT_PATTERN =
-  /(\uCDA9\uB3CC|\uD574\uC11D\s*\uAC08\uB9BC|\uAC08\uB9BC|conflict|mixed signals|\uAE34\uC7A5\+\uACBD\uACC4)/i
+// 그날 등급과 어긋나면 안 되는 verdict 문구.
+// 좋은 날(grade<=1)에 나오면 모순:
+const NEGATIVE_VERDICTS = [
+  '제동을 걸어요',
+  '한 박자 두세요',
+  '흩트리는 분위기',
+  '리스크부터 줄이',
+  '추진력이 약한',
+  '큰 결정은 다음',
+]
+// 나쁜 날(grade>=3)에 나오면 모순:
+const POSITIVE_VERDICTS = [
+  '힘을 실어줘요',
+  '가벼워지는 날',
+  '받쳐주는 분위기',
+  '진도 빼기 좋',
+  '또렷한 신호를 보태',
+]
 
 function deriveFallbackSunSign(birthDate: Date): string {
   const month = birthDate.getMonth()
@@ -95,21 +100,7 @@ function getBranchName(pillar: unknown): string {
   return ''
 }
 
-function isFailingDay(day: CalendarDate): boolean {
-  const confidence = day.evidence?.confidence ?? 100
-  const lowConfidence = confidence < 45
-  const labels = `${day.title || ''} ${day.summary || ''}`
-  const warningText = (day.warnings || []).join(' ')
-  const recommendationText = (day.recommendations || []).join(' ')
-  const hasConflictLabel = CONFLICT_PATTERN.test(labels)
-  const hasCommunicationWarning = COMMUNICATION_PATTERN.test(warningText)
-  const hasVerificationTone =
-    /(\uC7AC\uD655\uC778|24\uC2DC\uAC04|review|verify|recheck|draft)/i.test(recommendationText)
-  const hasIrreversible = IRREVERSIBLE_PATTERN.test(recommendationText) && !hasVerificationTone
-  return (lowConfidence || hasConflictLabel || hasCommunicationWarning) && hasIrreversible
-}
-
-async function buildRawDates() {
+async function buildDates(): Promise<ScannedDate[]> {
   const birthDate = new Date(`${DEFAULT_QUERY.birthDate}T00:00:00`)
   const coords = LOCATION_COORDS[DEFAULT_QUERY.birthPlace]
   const [birthHour, birthMinute] = DEFAULT_QUERY.birthTime.split(':').map(Number)
@@ -132,15 +123,6 @@ async function buildRawDates() {
     dayBranch: getBranchName(pillars.day),
     birthYear: birthDate.getFullYear(),
     yearBranch: getBranchName(pillars.year),
-    daeunCycles:
-      sajuResult.unse?.daeun
-        ?.map((d) => ({
-          age: d.age || 0,
-          heavenlyStem: d.heavenlyStem || '',
-          earthlyBranch: d.earthlyBranch || '',
-        }))
-        .filter((d) => d.heavenlyStem && d.earthlyBranch) || [],
-    daeunsu: sajuResult.daeWoon?.startAge ?? 0,
     pillars: {
       year: { stem: getStemName(pillars.year), branch: getBranchName(pillars.year) },
       month: { stem: getStemName(pillars.month), branch: getBranchName(pillars.month) },
@@ -150,8 +132,6 @@ async function buildRawDates() {
   }
 
   let sunSign = deriveFallbackSunSign(birthDate)
-  let sunElement = 'fire'
-  let sunLongitude = 0
   try {
     const natalChart = await calculateNatalChart({
       year: birthDate.getFullYear(),
@@ -165,101 +145,65 @@ async function buildRawDates() {
     })
     const sunPlanet = natalChart.planets.find((p) => p.name === 'Sun')
     if (sunPlanet?.sign) sunSign = sunPlanet.sign
-    sunLongitude = sunPlanet?.longitude || 0
-    const zodiacToElement: Record<string, string> = {
-      Aries: 'fire',
-      Leo: 'fire',
-      Sagittarius: 'fire',
-      Taurus: 'earth',
-      Virgo: 'earth',
-      Capricorn: 'earth',
-      Gemini: 'metal',
-      Libra: 'metal',
-      Aquarius: 'metal',
-      Cancer: 'water',
-      Scorpio: 'water',
-      Pisces: 'water',
-    }
-    sunElement = zodiacToElement[sunSign] || 'fire'
   } catch {
-    // fallback already set above
+    // fallback already set
   }
 
   const astroProfile = {
     sunSign,
-    sunElement,
-    sunLongitude,
     birthMonth: birthDate.getMonth() + 1,
     birthDay: birthDate.getDate(),
   }
 
-  return calculateYearlyImportantDates(DEFAULT_QUERY.year, sajuProfile, astroProfile, {
-    minGrade: 4,
-  }) as RawDate[]
+  return calculateYearlyImportantDates(
+    DEFAULT_QUERY.year,
+    sajuProfile as never,
+    astroProfile as never,
+    {
+      minGrade: 4,
+      locale: 'ko',
+    }
+  ) as unknown as ScannedDate[]
+}
+
+function scanDay(d: ScannedDate): string[] {
+  const text = [
+    d.titleKey,
+    d.descKey,
+    ...(d.sajuFactorKeys || []),
+    ...(d.astroFactorKeys || []),
+  ].join(' │ ')
+  const hits: string[] = []
+  if (d.grade <= 1) {
+    for (const p of NEGATIVE_VERDICTS)
+      if (text.includes(p)) hits.push(`길일(grade ${d.grade})에 부정 verdict "${p}"`)
+  }
+  if (d.grade >= 3) {
+    for (const p of POSITIVE_VERDICTS)
+      if (text.includes(p)) hits.push(`흉일(grade ${d.grade})에 긍정 verdict "${p}"`)
+  }
+  return hits
 }
 
 async function main() {
-  const baseUrl = process.env.CALENDAR_BASE_URL || 'http://localhost:3010'
-  const token = process.env.CALENDAR_API_TOKEN || process.env.PUBLIC_API_TOKEN || 'public-token'
-  const qs = new URLSearchParams({
-    birthDate: DEFAULT_QUERY.birthDate,
-    birthTime: DEFAULT_QUERY.birthTime,
-    birthPlace: DEFAULT_QUERY.birthPlace,
-    year: String(DEFAULT_QUERY.year),
-    locale: DEFAULT_QUERY.locale,
-  })
-
-  const response = await fetch(`${baseUrl}/api/calendar?${qs.toString()}`, {
-    headers: { 'x-api-token': token },
-  })
-
-  if (!response.ok) {
-    throw new Error(`/api/calendar failed with ${response.status}`)
+  const dates = await buildDates()
+  const contradictions: Array<{ date: string; grade: number; hits: string[] }> = []
+  for (const d of dates) {
+    const hits = scanDay(d)
+    if (hits.length) contradictions.push({ date: d.date, grade: d.grade, hits })
   }
 
-  const payload = (await response.json()) as { allDates?: CalendarDate[] }
-  const allDates = payload.allDates || []
-  const failingDay = allDates.find(isFailingDay)
-
-  if (!failingDay) {
-    console.log(
-      JSON.stringify(
-        {
-          status: 'NO_FAILING_DAY',
-          checkedCount: allDates.length,
-          query: DEFAULT_QUERY,
-        },
-        null,
-        2
-      )
-    )
+  console.log(`스캔: ${dates.length}일 (${DEFAULT_QUERY.year}, ${DEFAULT_QUERY.birthDate})`)
+  if (contradictions.length === 0) {
+    console.log('✅ valence 모순 없음 — narrative가 그날 등급과 일치.')
     return
   }
-
-  const rawDates = await buildRawDates()
-  const raw = rawDates.find((d) => d.date === failingDay.date)
-
-  console.log(
-    JSON.stringify(
-      {
-        status: 'FOUND_FAILING_DAY',
-        query: DEFAULT_QUERY,
-        date: failingDay.date,
-        score: failingDay.score,
-        grade: failingDay.grade,
-        confidence: failingDay.evidence?.confidence,
-        crossAgreementPercent: failingDay.evidence?.crossAgreementPercent,
-        title: failingDay.title,
-        summary: failingDay.summary,
-        warningKeys: raw?.warningKeys || [],
-        recommendationKeys: raw?.recommendationKeys || [],
-        warnings: failingDay.warnings || [],
-        recommendations: failingDay.recommendations || [],
-      },
-      null,
-      2
-    )
-  )
+  console.log(`❌ valence 모순 ${contradictions.length}건:\n`)
+  for (const c of contradictions) {
+    console.log(`📅 ${c.date} (grade ${c.grade})`)
+    for (const h of c.hits) console.log(`   - ${h}`)
+  }
+  process.exitCode = 1
 }
 
 main().catch((error) => {

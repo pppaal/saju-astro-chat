@@ -74,7 +74,9 @@ const samples = [grade0, grade1Career, grade1Love, grade2, grade3, grade4].filte
 
 console.log('=== 풀 파이프 응답 (engine → helpers → format) ===\n')
 for (const item of samples) {
-  console.log(`📅 ${item.date} | grade=${item.grade} | score=${item.score} | confidence=${item.evidence?.confidence}`)
+  console.log(
+    `📅 ${item.date} | grade=${item.grade} | score=${item.score} | confidence=${item.evidence?.confidence}`
+  )
   console.log(`  title:        ${item.title}`)
   console.log(`  summary:      ${item.summary}`)
   console.log(`  description:  ${item.description}`)
@@ -92,73 +94,4 @@ for (const item of samples) {
     for (const [k, v] of Object.entries(gl).slice(0, 6)) console.log(`    · ${k} = ${v}`)
   }
   console.log('')
-}
-
-// 행동플래너 슬롯 — 사주/점성 컨셉이 실제로 박혀나오는지 확인
-import { buildRuleBasedTimeline } from '@/app/api/calendar/action-plan/routeActionPlanSupport'
-
-// 행동플래너: 대길(grade 0) 전체 24시간
-for (const sample of [grade0].filter(Boolean)) {
-  const slots = buildRuleBasedTimeline({
-    date: sample.date,
-    locale: 'ko',
-    intervalMinutes: 60,
-    calendar: {
-      grade: sample.grade,
-      displayGrade: sample.displayGrade,
-      score: sample.score,
-      displayScore: sample.displayScore,
-      categories: sample.categories,
-      bestTimes: sample.bestTimes,
-      recommendations: sample.recommendations,
-      warnings: sample.warnings,
-      summary: sample.summary,
-      sajuFactors: sample.sajuFactors,
-      astroFactors: sample.astroFactors,
-      evidence: sample.evidence,
-      // 본명 사주 + 그날 공망 + 활동점수 — date-detail 합쳐 들어오는 시뮬레이션
-      natalSaju: { dayStem: '甲', dayBranch: '子', yearBranch: '午' },
-      gongmangBranches: ['戌', '亥'],
-      activityScores: { marriage: 84, career: 72, investment: 36, moving: 50, surgery: 28, study: 70 },
-    } as never,
-  })
-
-  console.log(`\n=== 행동플래너 24시 (${sample.date} · grade=${sample.grade}) ===\n`)
-  for (const slot of slots) {
-    const tone = slot.tone === 'best' ? '🟢' : slot.tone === 'caution' ? '🔴' : '⚪'
-    console.log(`${tone} ${slot.label}  ${slot.note}`)
-  }
-}
-
-// 행동플래너: 대흉(grade 4) 전체 24시간
-for (const sample of [grade4].filter(Boolean)) {
-  const slots = buildRuleBasedTimeline({
-    date: sample.date,
-    locale: 'ko',
-    intervalMinutes: 60,
-    calendar: {
-      grade: sample.grade,
-      displayGrade: sample.displayGrade,
-      score: sample.score,
-      displayScore: sample.displayScore,
-      categories: sample.categories,
-      bestTimes: sample.bestTimes,
-      recommendations: sample.recommendations,
-      warnings: sample.warnings,
-      summary: sample.summary,
-      sajuFactors: sample.sajuFactors,
-      astroFactors: sample.astroFactors,
-      evidence: sample.evidence,
-      // 본명 사주 + 그날 공망 + 활동점수 — date-detail 합쳐 들어오는 시뮬레이션
-      natalSaju: { dayStem: '甲', dayBranch: '子', yearBranch: '午' },
-      gongmangBranches: ['戌', '亥'],
-      activityScores: { marriage: 84, career: 72, investment: 36, moving: 50, surgery: 28, study: 70 },
-    } as never,
-  })
-
-  console.log(`\n=== 행동플래너 24시 (${sample.date} · grade=${sample.grade}) ===\n`)
-  for (const slot of slots) {
-    const tone = slot.tone === 'best' ? '🟢' : slot.tone === 'caution' ? '🔴' : '⚪'
-    console.log(`${tone} ${slot.label}  ${slot.note}`)
-  }
 }
