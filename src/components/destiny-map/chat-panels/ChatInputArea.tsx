@@ -11,6 +11,7 @@ import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 // under ~16 chars (KO) / ~28 chars (EN) so they don't wrap.
 const TYPEWRITER_PROMPTS: Record<LangKey, readonly string[]> = {
   ko: [
+    '오늘 내 운세 어때요?',
     '올해 흐름은 어때?',
     '지금 이 시기의 의미?',
     '관계의 방향은?',
@@ -18,6 +19,7 @@ const TYPEWRITER_PROMPTS: Record<LangKey, readonly string[]> = {
     '지금 가장 큰 과제는?',
   ],
   en: [
+    "How's my fortune today?",
     "What's this year's flow?",
     'What does this season mean?',
     'Where is the relationship heading?',
@@ -144,11 +146,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
         />
         <div className={styles.inputBoxActions}>
           <div className={styles.inputBoxActionsLeft}>
-            <label
-              className={styles.attachButton}
-              aria-label={tr.uploadCv}
-              title={tr.uploadCv}
-            >
+            <label className={styles.attachButton} aria-label={tr.uploadCv} title={tr.uploadCv}>
               <span aria-hidden="true">&#x1F4CE;</span>
               <input
                 type="file"
@@ -164,22 +162,26 @@ export const ChatInputArea = React.memo(function ChatInputArea({
               <button
                 type="button"
                 onClick={onOpenTarot}
-                className={`${styles.attachButton} ${styles.mobileOnlyTool}`}
-                aria-label={tr.tarotButton}
-                title={tr.tarotButton}
+                className={`${styles.attachButton} ${styles.toolWithLabel} ${styles.mobileOnlyTool}`}
+                aria-label={lang === 'ko' ? '다음 질문 타로로 보기' : 'See next question in tarot'}
+                title={
+                  lang === 'ko' ? '다음 질문을 타로로 보기' : 'See your next question in tarot'
+                }
               >
                 <span aria-hidden="true">&#x1F0CF;</span>
+                <span className={styles.toolLabel}>{lang === 'ko' ? '타로' : 'Tarot'}</span>
               </button>
             )}
             {onOpenChart && (
               <button
                 type="button"
                 onClick={onOpenChart}
-                className={`${styles.attachButton} ${styles.mobileOnlyTool}`}
-                aria-label={lang === 'ko' ? '내 차트' : 'My chart'}
-                title={lang === 'ko' ? '나의 운명 차트' : 'My destiny chart'}
+                className={`${styles.attachButton} ${styles.toolWithLabel} ${styles.mobileOnlyTool}`}
+                aria-label={lang === 'ko' ? '나의 운세 차트' : 'My destiny chart'}
+                title={lang === 'ko' ? '나의 운세 차트' : 'My destiny chart'}
               >
                 <span aria-hidden="true">&#x2728;</span>
+                <span className={styles.toolLabel}>{lang === 'ko' ? '운세차트' : 'Chart'}</span>
               </button>
             )}
             {parsingPdf && (
@@ -195,6 +197,17 @@ export const ChatInputArea = React.memo(function ChatInputArea({
               </span>
             )}
           </div>
+          {input.trim() && !loading && (
+            <button
+              type="button"
+              onClick={() => onInputChange('')}
+              className={styles.clearButton}
+              aria-label={lang === 'ko' ? '입력 지우기' : 'Clear input'}
+              title={lang === 'ko' ? '입력 지우기' : 'Clear input'}
+            >
+              <span aria-hidden="true">&#x2715;</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onSend}
