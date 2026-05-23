@@ -1,13 +1,9 @@
 'use client'
 
 import { CalendarRange, TrendingUp, TrendingDown } from 'lucide-react'
+import { isAxisConverged } from '@/lib/calendar-engine/derivers/convergence-heavy'
 import type { ImportantDate } from './types'
 import { computeGradeThresholds, getGrade } from './scoreGrade'
-
-// "양쪽 수렴" = 사주축·점성축이 둘 다 중립(50)에서 이만큼 벗어난 날.
-// 점수 *수준 유사*(axisAgreement)가 아니라 양쪽 다 실제 신호가 있는 날 —
-// convergence 디라이버(월간/데일리)의 bothSystems와 같은 의미(방향 무관).
-const CONVERGENCE_AXIS_MIN = 15
 
 interface Props {
   /** 올해 전체 ImportantDate (calendar-engine 점수 포함) */
@@ -30,10 +26,14 @@ interface Props {
  *
  * 큰 날 = getGrade가 좋은 날/조심할 날로 판정한 날 (보통은 제외).
  * 같은 달 군집을 막으려고 한 달 최대 perMonthCap개까지만.
- * "양쪽 수렴" 뱃지 = 두 축이 둘 다 중립에서 벗어난 날 (isConverged).
+ * "양쪽 수렴" 뱃지 = 두 축이 둘 다 중립에서 벗어난 날 (isAxisConverged).
  *
  * 랭킹/임계값은 d.score(yearlyDates v3, 12달 일관)로만 — displayScore는
  * 현재±3달만 새 엔진 점수로 덮여 있어 연 단위로 섞으면 그 달들이 편향됨.
+ *
+ * NOTE: 두 축이 *반대 방향*으로 수렴한 날(예 사주↑·점성↓)은 net이 중립대라
+ * 좋은/조심 어디에도 안 뜸 — 의도된 것. 그건 깔끔한 "큰 날"이 아니라 두
+ * 시스템이 엇갈리는 *충돌* 날이라 강조 대상에서 뺀다.
  */
 export default function YearHighlightsCard({
   allDates,
@@ -142,7 +142,7 @@ function DateRow({
   const { date, grade } = row
   const { month, day, weekday } = parseParts(date.date)
   const reason = pickReason(date, tone)
-  const converged = isConverged(date)
+  const converged = isAxisConverged(date.scoreBreakdown)
   const dayClass = tone === 'positive' ? 'text-emerald-300' : 'text-rose-300'
 
   return (
@@ -176,17 +176,6 @@ function DateRow({
 // 있어 cross-year 랭킹에 쓰면 그 달들이 다른 스케일로 섞임.
 function pickScore(d: ImportantDate): number {
   return Math.round(d.score ?? 50)
-}
-
-// "양쪽 수렴" — 사주축·점성축이 둘 다 중립(50)에서 충분히 벗어남.
-// = 양쪽 시스템 모두 그날 실제 신호가 있음 (방향은 무관, convergence와 동일).
-function isConverged(d: ImportantDate): boolean {
-  const sb = d.scoreBreakdown
-  if (!sb) return false
-  return (
-    Math.abs(sb.sajuAxis - 50) >= CONVERGENCE_AXIS_MIN &&
-    Math.abs(sb.astroAxis - 50) >= CONVERGENCE_AXIS_MIN
-  )
 }
 
 function capPerMonth(rows: Row[], cap: number): Row[] {

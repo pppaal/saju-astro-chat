@@ -1,5 +1,11 @@
 import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ActiveSignal, CalendarCell } from '../types'
+import {
+  cleanSignalName as cleanName,
+  isHeavyAstro,
+  isHeavySaju,
+  MIN_IMPACT,
+} from './convergence-heavy'
 
 /**
  * 수렴(convergence) 디라이버 — "큰 날" 탐지.
@@ -10,37 +16,10 @@ import type { ActiveSignal, CalendarCell } from '../types'
  * exactness 가중(transit 이 정확히 맞는 날↑)으로 그달 핵심일이 또렷해진다.
  *
  * keyEvents 를 대체하지 않고 별도 필드(Interpretation.convergence)로 얹는다.
+ * 무거움 분류(SLOW_PLANETS/HEAVY_*_KINDS/isHeavy*)는 convergence-heavy.ts 단일 정의.
  */
 
-// 무거운 점성 = 느린 행성 transit + lifecycle/eclipse/angle-contact.
-// 빠른 행성(달·수성·금성·화성·태양)은 큰날 판정에서 제외(시간 줌 전용 노이즈).
-const SLOW_PLANETS = new Set(['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Chiron'])
-const HEAVY_ASTRO_KINDS = new Set(['lifecycle', 'eclipse', 'angle-contact'])
-// 무거운 사주 = 일진 충/합/삼합 + 용신 활성 (대운/세운 상시 배경은 제외).
-const HEAVY_SAJU_KINDS = new Set(['hyeongchung'])
-
-const MIN_IMPACT = 0.4
 const PEAK_WINDOW_DAYS = 15
-
-function leadToken(name: string): string {
-  return (name || '').split(/[ ·]/)[0]
-}
-
-function isHeavyAstro(s: ActiveSignal): boolean {
-  if (s.source !== 'astro') return false
-  if (HEAVY_ASTRO_KINDS.has(s.kind)) return true
-  if (s.kind === 'transit') {
-    const p = leadToken(s.name)
-    return SLOW_PLANETS.has(p) || p === 'True' || p === 'North' // True/North Node
-  }
-  return false
-}
-
-function isHeavySaju(s: ActiveSignal): boolean {
-  if (s.source !== 'saju') return false
-  if (HEAVY_SAJU_KINDS.has(s.kind)) return true
-  return /용신 활성/.test(s.korean || s.name || '')
-}
 
 // transit 이 정확히 맞는 날(active.peak) 일수록 1.0, 윈도우 가장자리로 갈수록 감쇠.
 // → 느린 transit 이 한 달 내내 비슷하게 깔려 핵심일이 무뎌지던 문제 해소.
@@ -49,13 +28,6 @@ function exactnessFactor(cellDate: string, s: ActiveSignal): number {
   if (!peak) return 1
   const days = Math.abs(new Date(cellDate).getTime() - new Date(peak).getTime()) / 86_400_000
   return Math.max(0.3, 1 - days / PEAK_WINDOW_DAYS)
-}
-
-function cleanName(s: ActiveSignal): string {
-  return (s.korean || s.name || '')
-    .replace(/\s*\([^)]*\)/g, '')
-    .trim()
-    .slice(0, 28)
 }
 
 const THEME_LABEL: Record<'ko' | 'en', Record<AstroThemeKey, string>> = {

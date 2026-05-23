@@ -2,18 +2,22 @@
 
 import { Sparkles } from 'lucide-react'
 import { ganjiToKorean } from '@/lib/saju/ganjiKo'
+import {
+  cleanSignalName,
+  isAxisConverged,
+  isHeavyAstro,
+  isHeavySaju,
+  MIN_IMPACT,
+} from '@/lib/calendar-engine/derivers/convergence-heavy'
 import type { ImportantDate } from './types'
 
 interface Props {
   importantDate: ImportantDate | null
 }
 
-// ── 그날 "큰일" 수렴 — convergence 디라이버(월간)와 같은 기준을 하루에 적용.
-// 무거운 점성(느린 행성 transit·lifecycle·eclipse·angle) vs 무거운 사주(일진
-// 충/합·용신 활성)를 나눠 보여주고, 둘 다 있으면 "양쪽 수렴"으로 본다.
-const HEAVY_ASTRO_KINDS = new Set(['lifecycle', 'eclipse', 'angle-contact'])
-const SLOW_PLANETS = new Set(['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Chiron'])
-const HEAVY_SAJU_KINDS = new Set(['hyeongchung'])
+// ── 그날 "큰일" 수렴 — convergence 디라이버(월간)와 같은 무거움 기준을 하루에
+// 적용. 분류(SLOW_PLANETS/HEAVY_*_KINDS/isHeavy*)는 convergence-heavy.ts 단일
+// 정의를 공유. 무거운 점성 vs 무거운 사주를 나눠 보여주고, 둘 다면 "양쪽 수렴".
 const THEME_LABEL_KO: Record<string, string> = {
   love: '연애',
   money: '재물',
@@ -24,34 +28,13 @@ const THEME_LABEL_KO: Record<string, string> = {
 
 type EngineSignal = NonNullable<ImportantDate['engineSignals']>[number]
 
-function isHeavyAstro(s: EngineSignal): boolean {
-  if (s.source !== 'astro') return false
-  if (HEAVY_ASTRO_KINDS.has(s.kind)) return true
-  if (s.kind === 'transit') {
-    const p = (s.name || '').split(/[ ·]/)[0]
-    return SLOW_PLANETS.has(p) || p === 'True' || p === 'North'
-  }
-  return false
-}
-
-function isHeavySaju(s: EngineSignal): boolean {
-  if (s.source !== 'saju') return false
-  if (HEAVY_SAJU_KINDS.has(s.kind)) return true
-  return /용신 활성/.test(s.korean || s.name || '')
-}
-
-function cleanSignalName(s: EngineSignal): string {
-  return (s.korean || s.name || '')
-    .replace(/\s*\([^)]*\)/g, '')
-    .trim()
-    .slice(0, 28)
-}
-
 interface DailyConvergence {
   astro: string[]
   saju: string[]
   bothSystems: boolean
   meaning?: string
+  /** 전 신호(engineSignals)가 없어 축 점수로만 추정한 경우 (분기 밖) */
+  approximate?: boolean
 }
 
 function deriveDailyConvergence(signals: EngineSignal[]): DailyConvergence | null {
@@ -64,7 +47,7 @@ function deriveDailyConvergence(signals: EngineSignal[]): DailyConvergence | nul
   const themeAcc: Record<string, number> = {}
   for (const s of signals) {
     const imp = Math.abs(s.polarity) * s.weight
-    if (imp < 0.4) continue
+    if (imp < MIN_IMPACT) continue
     const heavyAstro = isHeavyAstro(s)
     const heavySaju = !heavyAstro && isHeavySaju(s)
     if (!heavyAstro && !heavySaju) continue
@@ -156,8 +139,14 @@ export default function DailyFlowCard({ importantDate }: Props) {
   // 0. 일진(60갑자) 한 줄 — 그 날 ganji archetype + 본명 일간 십신 개인화
   const dailyGanji = importantDate.dailyGanjiNarrative
 
-  // 0a. 그날 "큰일" — 점성×사주 무거운 이벤트 수렴 (월간 큰날 로직을 하루에)
-  const convergence = deriveDailyConvergence(signals)
+  // 0a. 그날 "큰일" — 점성×사주 무거운 이벤트 수렴 (월간 큰날 로직을 하루에).
+  //  전 신호(engineSignals)는 현재±3달만 부착됨 → 그 밖 날은 축 점수(연중
+  //  존재)로 추정해 최소 블록이라도 보여줌(올해뷰서 클릭한 큰날과 일관).
+  const convergence: DailyConvergence | null =
+    deriveDailyConvergence(signals) ??
+    (isAxisConverged(importantDate.scoreBreakdown)
+      ? { astro: [], saju: [], bothSystems: true, approximate: true }
+      : null)
 
   // 0b. 일진 scope 룰 — "오늘 한 줄" 액션 (그 날 십신/신살/충)
   const dailyActions = importantDate.dailyActions ?? []
@@ -224,6 +213,11 @@ export default function DailyFlowCard({ importantDate }: Props) {
             )}
             {convergence.meaning && (
               <div className="text-xs text-indigo-200/80 italic pt-0.5">{convergence.meaning}</div>
+            )}
+            {convergence.approximate && (
+              <div className="text-xs text-zinc-500">
+                점성·사주 양쪽이 강한 날 — 상세 내역은 이번 분기에서 확인할 수 있어요.
+              </div>
             )}
           </div>
         )}
