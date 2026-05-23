@@ -1,7 +1,7 @@
 import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import { deriveScore } from '@/lib/calendar-engine/derivers/score'
-import { deriveTopReasons, deriveCautions } from '@/lib/calendar-engine/derivers/summary'
+import type { SignalLayer } from '@/lib/calendar-engine/types'
 import type { DomainKey } from '@/lib/destiny-matrix/types'
 import type { ImportanceGrade } from '@/lib/destiny-map/calendar/types'
 import {
@@ -179,6 +179,85 @@ function crossLine(pct: number, lang: Lang): string {
   return '사주·점성이 엇갈려요 — 한 번 더 확인하세요.'
 }
 
+const LAYER_WEIGHT: Record<SignalLayer, number> = {
+  decadal: 1.0,
+  yearly: 0.85,
+  monthly: 0.7,
+  daily: 0.55,
+  hourly: 0.4,
+  instant: 0.5,
+}
+
+const LAYER_LABEL: Record<Lang, Record<SignalLayer, string>> = {
+  ko: {
+    decadal: '대운',
+    yearly: '세운',
+    monthly: '월운',
+    daily: '일진',
+    hourly: '시',
+    instant: '정점',
+  },
+  en: {
+    decadal: 'This decade',
+    yearly: 'This year',
+    monthly: 'This month',
+    daily: 'Today',
+    hourly: 'This hour',
+    instant: 'Right now',
+  },
+}
+
+// 신호 하나 → 자연문. ↑/↓·[layer] 디버그 prefix 대신 layer+polarity 로 감싼다.
+// 신호 라벨(삼합격·Saturn 폴 등 근거)은 유지 — 사주 유저가 기대하는 명리/점성 용어.
+function naturalizeFactor(s: ActiveSignal, lang: Lang): string {
+  const label = (s.korean ?? s.name).trim()
+  const layer = LAYER_LABEL[lang][s.layer]
+  const p = s.polarity
+  if (lang === 'en') {
+    const tone =
+      p >= 2
+        ? 'strongly in your favour'
+        : p === 1
+          ? 'lends support'
+          : p === -1
+            ? 'asks for care'
+            : p <= -2
+              ? 'presses hard'
+              : 'stays quiet'
+    return `${layer}: ${label} — ${tone}.`
+  }
+  const tone =
+    p >= 2
+      ? '크게 받쳐주는 흐름이에요'
+      : p === 1
+        ? '흐름을 보태요'
+        : p === -1
+          ? '주의가 필요해요'
+          : p <= -2
+            ? '강하게 누르는 신호예요'
+            : '잔잔해요'
+  return `${layer} ${label}, ${tone}.`
+}
+
+function impactOf(s: ActiveSignal): number {
+  return Math.abs(s.polarity) * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5)
+}
+
+// source 별 신호를 우호/주의로 갈라 영향 큰 순 정렬 → 자연문 최대 5줄.
+// 좋은 날(grade<=1)은 우호 먼저, 흉일(grade>=3)은 주의 먼저.
+function rankedFactors(signals: ActiveSignal[], grade: ImportanceGrade, lang: Lang): string[] {
+  const pos = signals.filter((s) => s.polarity > 0).sort((a, b) => impactOf(b) - impactOf(a))
+  const neg = signals.filter((s) => s.polarity < 0).sort((a, b) => impactOf(b) - impactOf(a))
+  // 강한 등급일수록 소수극성은 1줄만(정직한 단서는 남기되 노이즈는 줄임).
+  const posN = grade <= 1 ? 4 : grade === 2 ? 3 : 1
+  const negN = grade >= 3 ? 4 : grade === 2 ? 2 : 1
+  const ordered =
+    grade >= 3
+      ? [...neg.slice(0, negN), ...pos.slice(0, posN)]
+      : [...pos.slice(0, posN), ...neg.slice(0, negN)]
+  return ordered.slice(0, 5).map((s) => naturalizeFactor(s, lang))
+}
+
 export function deriveDayInterpretation(args: {
   cell: CalendarCell
   natal: NatalContext
@@ -205,20 +284,10 @@ export function deriveDayInterpretation(args: {
   const label = DOMAIN_LABEL[lang][primary]
   const seed = `${date}|${primary}|${grade}`
 
-  // 요소 — 신호 근거 그대로. 좋은 날은 우호 위주, 흉일은 주의 위주로 정렬.
-  const posCount = grade <= 1 ? 4 : 2
-  const negCount = grade >= 3 ? 4 : 2
-  const sajuPos = deriveTopReasons(saju, posCount)
-  const sajuNeg = deriveCautions(saju, negCount)
-  const astroPos = deriveTopReasons(astro, posCount)
-  const astroNeg = deriveCautions(astro, negCount)
-  const sajuFactorKeys = (grade >= 3 ? [...sajuNeg, ...sajuPos] : [...sajuPos, ...sajuNeg]).slice(
-    0,
-    5
-  )
-  const astroFactorKeys = (
-    grade >= 3 ? [...astroNeg, ...astroPos] : [...astroPos, ...astroNeg]
-  ).slice(0, 5)
+  // 요소 — 신호 근거를 자연문으로(디버그 ↑/↓·[layer] prefix 제거). 좋은 날은
+  // 우호 위주, 흉일은 주의 위주로 정렬.
+  const sajuFactorKeys = rankedFactors(saju, grade, lang)
+  const astroFactorKeys = rankedFactors(astro, grade, lang)
 
   const iljin = findPillar(saju, 'daily')
   const sewoon = findPillar(saju, 'yearly')

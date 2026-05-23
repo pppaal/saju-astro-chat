@@ -77,12 +77,14 @@ async function main() {
   const noIljin = interps.filter((d) => !d.longCycleContext?.iljin?.ganji).length
   const noGanzhi = interps.filter((d) => !d.ganzhi).length
 
-  // 2) valence 모순
+  // 2) valence 모순 — 그날 "verdict"(title/desc)만 검사. 요소(factors)는 신호별
+  //    단서라 강등급일에도 소수극성이 정직하게 섞일 수 있음(예: 흉일에 대운 삼합격
+  //    1줄) — 이는 모순이 아니라 nuance이므로 verdict 검사에서 제외.
   let contradictions = 0
   for (const d of interps) {
-    const text = [d.titleKey, d.descKey, ...d.sajuFactorKeys, ...d.astroFactorKeys].join(' │ ')
-    if (d.grade <= 1 && NEGATIVE.some((p) => text.includes(p))) contradictions++
-    if (d.grade >= 3 && POSITIVE.some((p) => text.includes(p))) contradictions++
+    const verdict = [d.titleKey, d.descKey].join(' │ ')
+    if (d.grade <= 1 && NEGATIVE.some((p) => verdict.includes(p))) contradictions++
+    if (d.grade >= 3 && POSITIVE.some((p) => verdict.includes(p))) contradictions++
   }
 
   const dist: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 }
