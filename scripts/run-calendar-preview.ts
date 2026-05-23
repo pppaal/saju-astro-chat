@@ -1,4 +1,3 @@
-/* eslint-disable */
 // Run calendar interpretation for a specific person on a specific day.
 // Quick standalone preview — not part of the build.
 import { calculateSajuData } from '../src/lib/saju/saju'

@@ -159,6 +159,7 @@ const config = [
       '@next/next/no-assign-module-variable': 'off',
       '@next/next/no-html-link-for-pages': 'off',
       '@next/next/no-img-element': 'off',
+      'import/no-anonymous-default-export': 'off', // k6 load scripts require `export default function`
       'prefer-const': 'off',
     },
   },
