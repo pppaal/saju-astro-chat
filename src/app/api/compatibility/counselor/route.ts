@@ -80,7 +80,6 @@ import {
   mergeSajuContext,
   mergeAstroContext,
   getAgeFromBirthDate,
-  formatTimingForPrompt,
 } from './routeSupport'
 
 // 개별(self) 신살 — 각자 타고난 신살은 extras.shinsal에 이미 계산돼 있으나
@@ -611,28 +610,12 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join('\n')
 
-    // formatTimingForPrompt now emits only astro transits/returns (saju
-    // is already in the cached table). Returns '' when no astro data —
-    // the .filter(Boolean) below drops it.
-    const timingBlock = formatTimingForPrompt(
-      timingDetails as { person1: Record<string, unknown>; person2: Record<string, unknown> },
-      {
-        person1: effectivePerson1Astro as Record<string, unknown> | null,
-        person2: effectivePerson2Astro as Record<string, unknown> | null,
-      },
-      normalizedLang,
-    )
-    // evidenceGuide used to live here as a 300-char block reminding the
-    // model to cite saju/astro and avoid pushing irreversible actions.
-    // After PR #195 the system prompt's three rules cover the same
-    // ground in 60 chars — kept the local variable for future opt-in
-    // toggles but dropped from the wire.
+    // 궁합은 오로지 교차(synastry + 세운 cross). 1인 개별 타이밍
+    // (formatTimingForPrompt 의 각자 세운/월운/일진·트랜짓·리턴)은 "두 사람이
+    // 어떻게 얽히나"가 아니라 개인 운세라 궁합 철학과 안 맞고 토큰만 먹어 제거.
+    // 관계 시기는 cached 의 사주 synastry 안 세운 cross 가 담당.
     void evidenceGuide
-    // timingBlock(테마/시기 흐름)은 매 턴 다를 수 있어 cached가 아닌
-    // dynamic 영역. userPrompt 앞에 붙여서 latest user 메시지의 context로.
-    const userPrompt = timingBlock
-      ? `${timingBlock}\n\n== 사용자 질문 ==\n${userQuestion}`
-      : userQuestion
+    const userPrompt = userQuestion
 
     try {
       return await streamClaudeAsSSE({

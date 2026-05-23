@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ChevronDown, Download } from 'lucide-react'
 import styles from '../main-page.module.css'
-import { saveBirthInfo, type StoredBirthInfo } from '../birthInfoStorage'
+import { saveBirthInfo, getStoredBirthInfo, type StoredBirthInfo } from '../birthInfoStorage'
+import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
 
 interface BirthInfoModalProps {
   open: boolean
@@ -12,17 +14,32 @@ interface BirthInfoModalProps {
   locale?: 'ko' | 'en'
 }
 
-interface CitySuggestion {
-  name: string
-  country: string
-  displayKr?: string
-  displayEn?: string
+interface LoadOption {
+  key: string
+  label: string
+  sub?: string
+  birthDate: string
+  birthTime: string
+  timeUnknown: boolean
+  gender: 'male' | 'female' | ''
+  city: string
+}
+
+function normGender(g: unknown): 'male' | 'female' | '' {
+  const v = String(g ?? '').toLowerCase()
+  if (v === 'female' || v === 'f') return 'female'
+  if (v === 'male' || v === 'm') return 'male'
+  return ''
+}
+
+function timeToState(raw: unknown): { birthTime: string; timeUnknown: boolean } {
+  const t = typeof raw === 'string' ? raw : ''
+  if (!t || t === '00:00') return { birthTime: '', timeUnknown: true }
+  return { birthTime: t, timeUnknown: false }
 }
 
 export default function BirthInfoModal({ open, initial, onClose, onSaved, locale = 'ko' }: BirthInfoModalProps) {
   const isKo = locale === 'ko'
-  const cityLabel = (s: CitySuggestion) =>
-    (isKo ? s.displayKr || s.displayEn : s.displayEn || s.displayKr) || `${s.name}, ${s.country}`
   const [birthDate, setBirthDate] = useState(initial?.birthDate || '')
   const [birthTime, setBirthTime] = useState(
     initial?.birthTime && initial.birthTime !== '00:00' ? initial.birthTime : ''
@@ -35,38 +52,106 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved, locale
   )
   const [gender, setGender] = useState<'male' | 'female' | ''>(initial?.gender || '')
   const [city, setCity] = useState(initial?.city || '')
-  const [cityFocused, setCityFocused] = useState(false)
-  const [suggestions, setSuggestions] = useState<CitySuggestion[]>([])
-  const [searching, setSearching] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // City autocomplete — debounce + searchCities
+  // 불러오기 — 내 정보 + 등록된 지인
+  const [loadOpen, setLoadOpen] = useState(false)
+  const [options, setOptions] = useState<LoadOption[]>([])
+
   useEffect(() => {
-    if (!cityFocused) return
-    const q = city.trim()
-    if (q.length < 1) {
-      setSuggestions([])
-      return
-    }
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(async () => {
-      setSearching(true)
+    if (!open) return
+    let cancelled = false
+
+    const collect = async () => {
+      const opts: LoadOption[] = []
+
+      // 내 정보 — DB 프로필 우선, 없으면 로컬 저장본
       try {
-        const { searchCities } = await import('@/lib/cities')
-        const hits = (await searchCities(q, { limit: 8 })) as CitySuggestion[]
-        setSuggestions(hits || [])
+        const res = await fetch('/api/me/profile')
+        if (res.ok) {
+          const data = await res.json()
+          const u = data?.user
+          if (u && (u.birthDate || u.birthTime)) {
+            opts.push({
+              key: 'me',
+              label: isKo ? '내 정보' : 'My info',
+              sub: u.name || undefined,
+              birthDate: u.birthDate || '',
+              ...timeToState(u.birthTime),
+              gender: normGender(u.gender),
+              city: u.birthCity || '',
+            })
+          }
+        }
       } catch {
-        setSuggestions([])
-      } finally {
-        setSearching(false)
+        /* guest or offline — fall back below */
       }
-    }, 150)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
+      if (!opts.some((o) => o.key === 'me')) {
+        const local = getStoredBirthInfo()
+        if (local?.birthDate) {
+          opts.push({
+            key: 'me',
+            label: isKo ? '내 정보' : 'My info',
+            birthDate: local.birthDate,
+            birthTime: local.birthTime && local.birthTime !== '00:00' ? local.birthTime : '',
+            timeUnknown: local.birthTimeUnknown === true || local.birthTime === '00:00',
+            gender: local.gender || '',
+            city: local.city || '',
+          })
+        }
+      }
+
+      // 등록된 지인
+      try {
+        const res = await fetch('/api/me/circle?limit=50')
+        if (res.ok) {
+          const data = await res.json()
+          const people = data?.data?.people
+          if (Array.isArray(people)) {
+            for (const p of people) {
+              if (!p?.name) continue
+              opts.push({
+                key: `circle-${p.id}`,
+                label: p.name,
+                sub: p.relation || undefined,
+                birthDate: p.birthDate || '',
+                ...timeToState(p.birthTime),
+                gender: normGender(p.gender),
+                city: p.birthCity || '',
+              })
+            }
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+
+      if (!cancelled) setOptions(opts)
     }
-  }, [city, cityFocused])
+
+    void collect()
+    return () => {
+      cancelled = true
+    }
+  }, [open, isKo])
 
   if (!open) return null
+
+  const applyPatch = (patch: BirthFieldsPatch) => {
+    if (patch.birthDate !== undefined) setBirthDate(patch.birthDate)
+    if (patch.birthTime !== undefined) setBirthTime(patch.birthTime)
+    if (patch.timeUnknown !== undefined) setTimeUnknown(patch.timeUnknown)
+    if (patch.gender !== undefined) setGender(patch.gender)
+    if (patch.city !== undefined) setCity(patch.city)
+  }
+
+  const applyOption = (o: LoadOption) => {
+    setBirthDate(o.birthDate)
+    setBirthTime(o.birthTime)
+    setTimeUnknown(o.timeUnknown)
+    setGender(o.gender)
+    setCity(o.city)
+    setLoadOpen(false)
+  }
 
   const effectiveTime = timeUnknown ? '00:00' : birthTime
   const isValid = Boolean(birthDate && (gender === 'male' || gender === 'female') && effectiveTime)
@@ -104,12 +189,6 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved, locale
     onSaved({ ...payload, savedAt: new Date().toISOString() })
   }
 
-  const pickCity = (s: CitySuggestion) => {
-    setCity(cityLabel(s))
-    setSuggestions([])
-    setCityFocused(false)
-  }
-
   return (
     <div
       className={styles.modalOverlay}
@@ -130,153 +209,55 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved, locale
             : 'Saved once, reused across every service. Unknown time defaults to 00:00.'}
         </p>
 
-        <div className={styles.modalField}>
-          <label htmlFor="birth-date" className={styles.modalLabel}>
-            {isKo ? '생년월일' : 'Birth date'}
-          </label>
-          <input
-            id="birth-date"
-            type="date"
-            className={styles.modalInput}
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-            min="1900-01-01"
-            max="2100-12-31"
-          />
-        </div>
-
-        <div className={styles.modalRow}>
-          <div className={styles.modalField}>
-            <label htmlFor="birth-time" className={styles.modalLabel}>
-              {isKo ? '출생 시간' : 'Birth time'}
-            </label>
-            <input
-              id="birth-time"
-              type="time"
-              className={styles.modalInput}
-              value={birthTime}
-              disabled={timeUnknown}
-              onChange={(e) => {
-                setBirthTime(e.target.value)
-                if (e.target.value) setTimeUnknown(false)
-              }}
-            />
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                marginTop: 6,
-                fontSize: '0.78rem',
-                color: 'rgba(220, 215, 255, 0.78)',
-                cursor: 'pointer',
-              }}
+        {options.length > 0 && (
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setLoadOpen((v) => !v)}
+              className={styles.modalLoadButton}
             >
-              <input
-                type="checkbox"
-                checked={timeUnknown}
-                onChange={(e) => {
-                  setTimeUnknown(e.target.checked)
-                  if (e.target.checked) setBirthTime('')
-                }}
-                style={{ accentColor: '#a78bfa' }}
-              />
-              {isKo ? '시간 모름 (00:00 처리)' : 'Unknown time (use 00:00)'}
-            </label>
+              <Download size={14} />
+              {isKo ? '저장된 정보 불러오기' : 'Load saved info'}
+              <ChevronDown size={14} style={{ marginLeft: 'auto' }} />
+            </button>
+            {loadOpen && (
+              <ul role="listbox" className={styles.modalLoadList}>
+                {options.map((o) => (
+                  <li key={o.key}>
+                    <button
+                      type="button"
+                      className={styles.modalLoadItem}
+                      onClick={() => applyOption(o)}
+                    >
+                      <span style={{ fontWeight: 600 }}>{o.label}</span>
+                      {o.sub && (
+                        <span style={{ marginLeft: 6, fontSize: '0.78rem', opacity: 0.6 }}>
+                          · {o.sub}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+        )}
 
-          <div className={styles.modalField}>
-            <label htmlFor="birth-gender" className={styles.modalLabel}>
-              {isKo ? '성별' : 'Gender'}
-            </label>
-            <select
-              id="birth-gender"
-              className={styles.modalInput}
-              value={gender}
-              onChange={(e) => setGender(e.target.value as 'male' | 'female' | '')}
-            >
-              <option value="">{isKo ? '선택' : 'Select'}</option>
-              <option value="male">{isKo ? '남성' : 'Male'}</option>
-              <option value="female">{isKo ? '여성' : 'Female'}</option>
-            </select>
-          </div>
-        </div>
-
-        <div className={styles.modalField} style={{ position: 'relative' }}>
-          <label htmlFor="birth-city" className={styles.modalLabel}>
-            {isKo ? '출생 도시 (선택)' : 'Birth city (optional)'}
-          </label>
-          <input
-            id="birth-city"
-            type="text"
-            className={styles.modalInput}
-            value={city}
-            onChange={(e) => {
-              setCity(e.target.value)
-              setCityFocused(true)
-            }}
-            onFocus={() => setCityFocused(true)}
-            onBlur={() => setTimeout(() => setCityFocused(false), 150)}
-            placeholder={isKo ? '예: 서울' : 'e.g. Seoul'}
-            autoComplete="off"
-          />
-          {cityFocused && suggestions.length > 0 && (
-            <ul
-              role="listbox"
-              style={{
-                position: 'absolute',
-                top: 'calc(100% + 4px)',
-                left: 0,
-                right: 0,
-                margin: 0,
-                padding: 4,
-                listStyle: 'none',
-                background: 'rgba(15, 12, 32, 0.98)',
-                border: '1px solid rgba(167, 139, 250, 0.35)',
-                borderRadius: 12,
-                boxShadow: '0 16px 40px rgba(0,0,0,0.5)',
-                maxHeight: 220,
-                overflowY: 'auto',
-                zIndex: 10,
-              }}
-            >
-              {suggestions.map((s, i) => (
-                <li key={`${s.name}-${s.country}-${i}`}>
-                  <button
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => pickCity(s)}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '8px 10px',
-                      borderRadius: 8,
-                      border: 'none',
-                      background: 'transparent',
-                      color: 'rgba(232, 222, 255, 0.95)',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.background = 'rgba(167, 139, 250, 0.18)'
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.background = 'transparent'
-                    }}
-                  >
-                    {cityLabel(s)}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {searching && cityFocused && suggestions.length === 0 && city.trim().length > 0 && (
-            <p style={{ fontSize: '0.72rem', color: 'rgba(196, 181, 253, 0.7)', marginTop: 4 }}>
-              {isKo ? '검색 중…' : 'Searching…'}
-            </p>
-          )}
-        </div>
+        <BirthInfoFields
+          locale={locale}
+          birthDate={birthDate}
+          birthTime={birthTime}
+          timeUnknown={timeUnknown}
+          gender={gender}
+          city={city}
+          onChange={applyPatch}
+          classes={{
+            field: styles.modalField,
+            label: styles.modalLabel,
+            input: styles.modalInput,
+            row: styles.modalRow,
+          }}
+        />
 
         <div className={styles.modalActions}>
           <button type="button" className={styles.modalCancel} onClick={onClose}>

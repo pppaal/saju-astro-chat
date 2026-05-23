@@ -58,6 +58,36 @@ interface Props {
   fusionFragments?: FusionFragments | null
 }
 
+// The /api/destiny-map response ships a *compact* fusion projection
+// ({ id, meaning, narrative, intensity }), but buildLifeReport's domain
+// builders read the rich cross-match shape (m.rule.id /
+// m.rule.narrative.confirm). Without this remap the builder throws on the
+// first fusion confirm and the whole report renders blank. Rehydrate the
+// nesting the builder expects.
+type BuilderFusion = NonNullable<Parameters<typeof buildLifeReport>[0]['fusion']>
+
+export function toBuilderFusion(f?: FusionFragments | null): BuilderFusion | undefined {
+  if (!f?.byDomain) return undefined
+  const toMatch = (m: FusionFragmentItem) => ({
+    intensity: m.intensity,
+    rule: { id: m.id, meaning: m.meaning, narrative: { confirm: m.narrative, conflict: m.narrative } },
+  })
+  const byDomain = Object.fromEntries(
+    Object.entries(f.byDomain).map(([domain, agg]) => [
+      domain,
+      {
+        tone: agg?.tone,
+        confirms: (agg?.confirms ?? []).map(toMatch),
+        conflicts: (agg?.conflicts ?? []).map(toMatch),
+      },
+    ])
+  )
+  const themes = (f.themes ?? []).map((t) => ({
+    rule: { id: t.id, meaning: t.meaning, narrative: t.narrative },
+  }))
+  return { generatedAt: f.generatedAt, byDomain, themes } as unknown as BuilderFusion
+}
+
 // ============================================================
 // FreeReport — thin wrapper around buildLifeReport + LifeReportView.
 // Logic and API calls live in page.tsx; this component just composes
@@ -98,7 +128,7 @@ const FreeReport = memo(function FreeReport({
       const built = buildLifeReport({
         saju: sajuForBuild as never,
         astro: astro as never,
-        fusion: (fusionFragments ?? undefined) as never,
+        fusion: toBuilderFusion(fusionFragments),
       })
       return repairMojibakeDeep(built) as LifeReport
     } catch {

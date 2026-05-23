@@ -24,6 +24,7 @@ import {
   findPlanet,
 } from '../signals/astroSynthesis'
 import { planetLabel, signLabel, varyRepeatedEndings } from '../templates/sentences'
+import { getIljuArchetype } from '../pools/iljuPool'
 import { findSignCombination } from '@/lib/astrology/signCombinations'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 
@@ -88,7 +89,15 @@ export function buildHeadline(input: BuilderInput): Headline {
   const astroUsed: string[] = []
 
   // ─ saju side
-  const dayStem = saju.pillars.day.stem
+  // API saju 직렬화가 pillars.day 를 {stem,branch} 대신
+  // {heavenlyStem:{name},earthlyBranch:{name}} 로 줄 때가 있어 두 형태 모두 대응.
+  const dayPillarRaw = saju.pillars.day as unknown as {
+    stem?: string
+    branch?: string
+    heavenlyStem?: { name?: string }
+    earthlyBranch?: { name?: string }
+  }
+  const dayStem = saju.pillars.day.stem || dayPillarRaw.heavenlyStem?.name || ''
   const dayEl = dayElement(saju)
   const dayBr = dayBranch(saju)
   if (dayBr) sajuUsed.push('pillars.day.branch')
@@ -97,6 +106,8 @@ export function buildHeadline(input: BuilderInput): Headline {
   const isJong = isJonggeok(saju)
   const jongType = isJong ? jonggeokType(saju) : ''
   const ilju = saju.ultraAdvanced?.iljuDeep?.ilju || ''
+  const dayBranchName = saju.pillars.day.branch || dayPillarRaw.earthlyBranch?.name || ''
+  const iljuKey = ilju || (dayStem && dayBranchName ? `${dayStem}${dayBranchName}` : '')
   const iljuChar = saju.ultraAdvanced?.iljuDeep?.iljuCharacter || ''
   if (dayStem) sajuUsed.push('pillars.day.stem')
   if (dayEl) sajuUsed.push('pillars.day.element')
@@ -148,10 +159,17 @@ export function buildHeadline(input: BuilderInput): Headline {
     const variants = ['일주로 태어났어요', '일주예요', '일주 사람이에요']
     return variants[code % variants.length]!
   })()
-  const s1ko =
-    `당신은 사주로는 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} ${s1Suffix}.` +
-    `${geokgukKo}${jongKo}${rootKoSlim}`
-  const s1en = `You were born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEnSlim}`
+  // 일주 사전(공용 ILJU_ARCHETYPES)의 character로 "한 줄 정의"를 따뜻하게.
+  // 예: 辛未 → "온화하면서도 단정한 보석 같은, 외유내강 유형이에요."
+  // 사전에 없는 일주는 기존 일간 라벨 문장으로 폴백.
+  const iljuArch = getIljuArchetype(iljuKey)
+  const s1ko = iljuArch
+    ? `당신은 ${iljuArch.character} 유형이에요.${geokgukKo}${jongKo}${rootKoSlim}`
+    : `당신은 사주로는 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} ${s1Suffix}.` +
+      `${geokgukKo}${jongKo}${rootKoSlim}`
+  const s1en = iljuArch
+    ? `${iljuArch.character_en}${geokgukEn}${jongEn}${rootEnSlim}`
+    : `You were born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEnSlim}`
   // mark rootSummary as used regardless (signal hook), keeps Korean rootKo
   // / rootEn variables alive for callers that want the full phrase.
   void rootKo

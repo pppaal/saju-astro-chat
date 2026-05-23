@@ -89,11 +89,19 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-// Mock prisma for admin check inside the route
+// Mock prisma for admin check inside the route.
+// isAdminUser() (admin.ts) migrated to a DB role lookup: it calls
+// prisma.user.findUnique and grants access on role admin/superadmin (with an
+// email fallback). 'admin-1' resolves to an admin user; any other id resolves
+// to null → treated as non-admin.
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: {
-      findUnique: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn(({ where }: { where?: { id?: string } }) =>
+        Promise.resolve(
+          where?.id === 'admin-1' ? { role: 'admin', email: 'admin@example.com' } : null
+        )
+      ),
     },
   },
 }))
@@ -225,6 +233,14 @@ describe('Admin Metrics API', () => {
       const { getServerSession } = await import('next-auth')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'admin-1', email: 'ADMIN@EXAMPLE.COM' },
+      })
+
+      // No DB admin role here — force isAdminUser() down its email fallback so
+      // this case actually exercises case-insensitive ADMIN_EMAILS matching.
+      const { prisma } = await import('@/lib/db/prisma')
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        role: 'user',
+        email: 'ADMIN@EXAMPLE.COM',
       })
 
       const { rateLimit } = await import('@/lib/rateLimit')

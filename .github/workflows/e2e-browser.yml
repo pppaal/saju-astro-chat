@@ -95,13 +95,12 @@ jobs:
   # "send button outside viewport", "no horizontal overflow" type bugs
   # that don't reproduce on a desktop run.
   #
-  # continue-on-error: true while main's prod build is broken — the dev
-  # server we fall back to (same one local Playwright uses) won't reach
-  # ready state in CI for reasons that need GitHub Actions log access to
-  # diagnose. Infrastructure (config + workflow + npm script) stays in
-  # place so this job goes green automatically once main's build is fixed.
-  # Tracked as follow-up; do NOT remove `continue-on-error` until
-  # the broader CI baseline is green.
+  # Now runs against the same build+start prod server as the `test` job
+  # (the previous dev:webpack fallback never reached ready state in CI).
+  # continue-on-error: true is kept as a safety net until these layout
+  # assertions are confirmed green in CI — they can't be verified locally
+  # without a browser. Once a run shows them passing, remove it so the job
+  # blocks on real layout regressions.
   mobile-layout:
     timeout-minutes: 30
     runs-on: ubuntu-latest
@@ -127,6 +126,9 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
+      # All mobile-layout projects (mobile-visibility, narrow-viewport,
+      # reduced-motion) now run on chromium emulation, so chromium is the
+      # only browser needed here.
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
@@ -135,14 +137,18 @@ jobs:
           cp .env.example .env.local || echo "No .env.example found"
         continue-on-error: true
 
-      # Skip `next build` entirely — main is currently broken at the build
-      # step (both turbopack and webpack). Local playwright.config.ts also
-      # uses dev:webpack for its webServer, so dev server is a known-good
-      # path for layout-level assertions like the ones in this matrix.
-      # If/when the production build is fixed, swap this back to build+start.
-      - name: Start dev server (webpack) in background
+      # The production build is fixed, so use the same build+start path as the
+      # main `test` job (a known-good prod server) instead of the dev:webpack
+      # fallback, which never reached ready state in CI.
+      - name: Build application (faster startup than dev)
+        run: npm run build
+        env:
+          NODE_ENV: production
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
+
+      - name: Start server in background
         run: |
-          cross-env DEMO_TOKEN=demo-test-token SUPPORT_EMAIL=support@destinypal.com npm run dev:webpack > /tmp/next-server.log 2>&1 &
+          npm run start > /tmp/next-server.log 2>&1 &
           echo $! > /tmp/next-server.pid
         env:
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-test-secret-32-characters-long-test-secret' }}
@@ -150,26 +156,14 @@ jobs:
           NEXT_PUBLIC_BASE_URL: http://localhost:3000
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
           TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
+          DEMO_TOKEN: ${{ secrets.DEMO_TOKEN || 'demo-test-token' }}
+          SUPPORT_EMAIL: ${{ secrets.SUPPORT_EMAIL || 'support@destinypal.com' }}
 
-      # dev:webpack compiles the root page on first request, which can
-      # take 60-120s in CI on cold cache. wait-for-server.mjs uses a 5s
-      # per-request timeout so it never sees the slow first compile
-      # finish. Use curl with a generous per-request timeout instead.
-      - name: Wait for dev server (long compile-aware)
-        run: |
-          for i in {1..20}; do
-            if curl -fsS --max-time 90 http://localhost:3000 >/dev/null 2>&1; then
-              echo "Server ready (attempt $i)"
-              exit 0
-            fi
-            echo "Attempt $i/20 — server not ready yet..."
-            sleep 5
-          done
-          echo "Server failed to become ready"
-          exit 1
-        timeout-minutes: 10
+      - name: Wait for server to be ready
+        run: npm run test:e2e:wait
+        timeout-minutes: 3
 
-      - name: Show dev server log on failure
+      - name: Show server log on failure
         if: failure()
         run: |
           echo "=== /tmp/next-server.log (last 200 lines) ==="

@@ -7,10 +7,14 @@ const PUBLIC_ROUTES = [
   '/faq',
   '/contact',
   '/blog',
-  '/report',
-  '/destiny-map',
+  // The routes below are intentional client-side redirect entry points, not
+  // standalone public pages, so a strict toHaveURL() can never pass:
+  //   - /report           → redirect('/destiny-map/result')
+  //   - /destiny-map       → router.replace('/?openBirth=1&next=…' | '/destiny-map/counselor?…')
+  //   - /calendar          → router.replace('/?openBirth=1&next=…') when no birth info
+  // They redirect on mount (collecting birth info from the home modal as the
+  // single source of truth), so they're excluded from this static smoke.
   '/tarot',
-  '/calendar',
   '/compatibility',
   '/policy/terms',
   '/policy/privacy',

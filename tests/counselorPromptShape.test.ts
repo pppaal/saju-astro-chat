@@ -147,10 +147,10 @@ describe('상담사 차트 포맷 (formatSajuAsTable)', () => {
     expect(table).toContain('[4기둥]')
     expect(table).toContain('[지장간]')
     expect(table).toContain('[대운]')
-    expect(table).toContain('[세운]')
-    expect(table).toContain('[월운]')
-    expect(table).toContain('[일운]')
-    // 현재 시기 마커가 적어도 하나
+    // [세운]/[월운]/[일운] 개인 운세 블록은 의도적으로 제거됨 — 궁합은 cross-only.
+    // relationship timing은 synastry 세운 cross가 담당하고, per-person timing은
+    // off-philosophy + 순수 토큰 비용이라 buildAutoSajuContext에서 안 계산한다.
+    // 현재 시기 마커는 [대운]의 "← 현재"로 적어도 하나 남는다.
     expect(table).toMatch(/← (현재|올해|이번달|오늘)/)
   })
 
@@ -159,8 +159,9 @@ describe('상담사 차트 포맷 (formatSajuAsTable)', () => {
     const ctx = await buildAutoSajuContext(seed, FIXED_NOW)
     const table = formatSajuAsTable(ctx as Parameters<typeof formatSajuAsTable>[0], 'A')
     expect(table.length).toBeLessThan(2000)
-    // 동시에 빈 출력이면 안 됨 (입력은 정상 사주)
-    expect(table.length).toBeGreaterThan(500)
+    // 동시에 빈 출력이면 안 됨 (입력은 정상 사주).
+    // per-person timing(세운/월운/일운) 제거 후 구조 데이터만 ~350자.
+    expect(table.length).toBeGreaterThan(250)
   })
 })
 

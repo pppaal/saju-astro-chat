@@ -71,8 +71,15 @@ test.describe('Main page — landscape short viewport', () => {
     await page.setViewportSize({ width: 667, height: 375 })
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
+    // Just after hydration the home subtree re-renders once (birth-info
+    // read from localStorage + the overflow-lock effect), which briefly
+    // detaches the textarea node. Retry the scroll+assert so that
+    // transient detach doesn't fail the test — a real user never scrolls
+    // within that sub-second window.
     const textarea = page.locator('textarea').first()
-    await textarea.scrollIntoViewIfNeeded()
-    await expect(textarea).toBeVisible()
+    await expect(async () => {
+      await textarea.scrollIntoViewIfNeeded()
+      await expect(textarea).toBeVisible()
+    }).toPass({ timeout: 10_000 })
   })
 })

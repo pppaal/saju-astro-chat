@@ -1,19 +1,6 @@
 import { logger } from '@/lib/logger'
-import {
-  calculateSajuData,
-  getAnnualCycles,
-  getMonthlyCycles,
-  getIljinCalendar,
-} from '@/lib/saju/saju'
-import {
-  calculateNatalChart,
-  toChart,
-  calculateTransitChart,
-  findMajorTransits,
-  findTransitAspects,
-  calculateSolarReturn,
-  calculateLunarReturn,
-} from '@/lib/astrology'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { calculateNatalChart } from '@/lib/astrology'
 import type { ChatMessage } from '@/lib/api'
 function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max)
@@ -367,17 +354,10 @@ async function buildAutoSajuContext(
 ): Promise<Record<string, unknown> | null> {
   if (!seed || process.env.NODE_ENV === 'test') return null
   try {
+    // 궁합은 오로지 교차 → 개인 타임라인(세운 10년/월운/일진)은 프롬프트에
+    // 안 들어가므로 계산도 안 한다. 관계 시기는 사주 synastry 안 세운/대운
+    // cross가 담당. 여기선 교차에 쓰는 pillars·대운·개별 신살만 산출.
     const saju = calculateSajuData(seed.date, seed.time, seed.gender, 'solar', seed.timeZone)
-    const annual = getAnnualCycles(now.getFullYear(), 10, saju.dayMaster)
-    const monthlyBase = getMonthlyCycles(now.getFullYear(), saju.dayMaster)
-    const monthly = monthlyBase.map((m) => ({
-      ...m,
-      year: now.getFullYear(),
-      ganji: `${String(m.heavenlyStem || '')}${String(m.earthlyBranch || '')}`,
-    }))
-    const iljin = getIljinCalendar(now.getFullYear(), now.getMonth() + 1, saju.dayMaster)
-    const currentSaeun =
-      annual.find((a) => Number(a.year) === now.getFullYear()) || asRecord(annual[0]) || null
 
     // 개별 신살(self)만 계산 — [개별 신살] 블록이 쓰는 유일한 enrichment.
     // 예전엔 격국·용신·12운성·natalRelations도 계산했지만(운명 상담사 미러용)
@@ -397,18 +377,8 @@ async function buildAutoSajuContext(
 
     return {
       ...saju,
-      yeonun: annual,
-      wolun: monthly,
-      iljin,
       daeun: saju.daeWoon,
       currentDaeun: saju.daeWoon?.current ?? null,
-      currentSaeun,
-      unse: {
-        ...(asRecord(saju.unse) || {}),
-        annual,
-        monthly,
-        iljin,
-      },
       extras,
       autoComputedMeta: {
         source: seed.source,
@@ -441,50 +411,10 @@ async function buildAutoAstroContext(
       longitude: seed.longitude,
       timeZone: seed.timeZone,
     })
-    const natalChart = toChart(natal)
+    // 궁합=교차 → 개인 트랜짓/솔라·루나 리턴은 프롬프트에 안 들어가므로
+    // 계산 안 함(가장 무거운 ephemeris 호출). 교차·완전성 체크에 쓰는
+    // natal 행성만 추출.
     const nowIso = now.toISOString()
-    const transitChart = await calculateTransitChart({
-      iso: nowIso,
-      latitude: seed.latitude,
-      longitude: seed.longitude,
-      timeZone: seed.timeZone,
-    })
-    const majorTransits = findMajorTransits(transitChart, natalChart, 1.0).slice(0, 40)
-    const transitAspects = findTransitAspects(
-      transitChart,
-      natalChart,
-      ['conjunction', 'sextile', 'square', 'trine', 'opposition'],
-      1.0
-    ).slice(0, 80)
-
-    const solarReturn = await calculateSolarReturn({
-      natal: {
-        year: y,
-        month: m,
-        date: d,
-        hour: hh,
-        minute: mm,
-        latitude: seed.latitude,
-        longitude: seed.longitude,
-        timeZone: seed.timeZone,
-      },
-      year: now.getFullYear(),
-    })
-
-    const lunarReturn = await calculateLunarReturn({
-      natal: {
-        year: y,
-        month: m,
-        date: d,
-        hour: hh,
-        minute: mm,
-        latitude: seed.latitude,
-        longitude: seed.longitude,
-        timeZone: seed.timeZone,
-      },
-      year: now.getFullYear(),
-      month: now.getMonth() + 1,
-    })
 
     const toSimplePlanet = (name: string): Record<string, unknown> | null => {
       const p = natal.planets.find((it) => String(it.name).toLowerCase() === name.toLowerCase())
@@ -531,15 +461,6 @@ async function buildAutoAstroContext(
         houses: natal.houses,
         planets: natal.planets,
       },
-      currentTransits: {
-        asOfIso: nowIso,
-        majorTransits,
-        aspects: transitAspects,
-      },
-      returns: {
-        solarReturn,
-        lunarReturn,
-      },
       autoComputedMeta: {
         source: seed.source,
         computedAtIso: nowIso,
@@ -567,17 +488,12 @@ function isNonEmptyObject(value: unknown): boolean {
 function collectMissingSajuKeys(label: string, saju: Record<string, unknown> | null): string[] {
   if (!saju) return [`${label}.saju`]
   const missing: string[] = []
-  const unse = asRecord(saju.unse)
   const daeWoon = asRecord(saju.daeWoon) || asRecord(saju.daeun)
 
+  // 궁합 교차에 실제 쓰는 것만 검증 — 개인 타임라인(세운/월운/일진)은
+  // 더 이상 산출·사용하지 않으므로 완전성 체크에서도 제외.
   if (!isNonEmptyObject(saju.dayMaster)) missing.push(`${label}.saju.dayMaster`)
   if (!isNonEmptyObject(saju.pillars)) missing.push(`${label}.saju.pillars`)
-  if (!hasArrayData(unse?.annual) && !hasArrayData(saju.yeonun))
-    missing.push(`${label}.saju.seun(annual)`)
-  if (!hasArrayData(unse?.monthly) && !hasArrayData(saju.wolun))
-    missing.push(`${label}.saju.wolun(monthly)`)
-  if (!hasArrayData(unse?.iljin) && !hasArrayData(saju.iljin))
-    missing.push(`${label}.saju.ilun(iljin)`)
   if (
     !isNonEmptyObject(daeWoon) ||
     (!hasArrayData(daeWoon?.list) && !hasArrayData(daeWoon?.cycles))
@@ -592,9 +508,8 @@ function collectMissingAstroKeys(label: string, astro: Record<string, unknown> |
   const missing: string[] = []
   const planets = asRecord(astro.planets)
   const natalData = asRecord(astro.natalData)
-  const currentTransits = asRecord(astro.currentTransits)
-  const returns = asRecord(astro.returns)
 
+  // 궁합 교차에 쓰는 natal 행성만 검증. 개인 트랜짓/리턴은 산출·사용 안 함.
   if (!isNonEmptyObject(planets?.sun) && !isNonEmptyObject(astro.sun))
     missing.push(`${label}.astro.sun`)
   if (!isNonEmptyObject(planets?.moon) && !isNonEmptyObject(astro.moon))
@@ -606,10 +521,6 @@ function collectMissingAstroKeys(label: string, astro: Record<string, unknown> |
   if (!isNonEmptyObject(planets?.ascendant) && !isNonEmptyObject(astro.ascendant))
     missing.push(`${label}.astro.ascendant`)
   if (!hasArrayData(natalData?.planets)) missing.push(`${label}.astro.natal.planets`)
-  if (!hasArrayData(currentTransits?.majorTransits)) missing.push(`${label}.astro.transits.major`)
-  if (!hasArrayData(currentTransits?.aspects)) missing.push(`${label}.astro.transits.aspects`)
-  if (!isNonEmptyObject(returns?.solarReturn)) missing.push(`${label}.astro.returns.solar`)
-  if (!isNonEmptyObject(returns?.lunarReturn)) missing.push(`${label}.astro.returns.lunar`)
 
   return missing
 }
