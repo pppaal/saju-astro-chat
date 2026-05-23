@@ -120,7 +120,10 @@ export type BirthInfoValidated = z.infer<typeof birthInfoSchema>
 export const chatMessageSchema = z.object({
   role: z.enum(['user', 'assistant', 'system']),
   content: z.string().min(1).max(10000),
-  timestamp: z.number().optional(),
+  // Stored messages persist timestamp as an ISO string (see counselor
+  // chat-history route), while live client messages omit it. Accept both
+  // so resuming a saved chat doesn't fail validation.
+  timestamp: z.union([z.number(), z.string()]).optional(),
 })
 
 export const chatMessageRequestSchema = z.object({
