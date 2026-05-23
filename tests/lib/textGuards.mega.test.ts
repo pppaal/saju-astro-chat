@@ -719,9 +719,15 @@ describe('textGuards MEGA - FORBIDDEN_PATTERNS structure tests', () => {
     });
   });
 
-  it('should all be global', () => {
+  it('should all be case-insensitive and non-global', () => {
+    // Patterns are intentionally NON-global: matchesForbidden() calls
+    // pattern.test(value), which is stateful on a global regex (lastIndex
+    // advances between calls and would skip matches). guardText() clones
+    // each to a global regex locally when replacing. So the shared
+    // patterns must be case-insensitive but not global.
     FORBIDDEN_PATTERNS.forEach(pattern => {
-      expect(pattern.flags).toContain('g');
+      expect(pattern.flags).toContain('i');
+      expect(pattern.flags).not.toContain('g');
     });
   });
 });

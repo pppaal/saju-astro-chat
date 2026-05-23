@@ -199,18 +199,21 @@ describe('PersonCard — BirthInfoModal 톤 + CircleAddModal 제거 (#317)', () 
     expect(card).not.toMatch(/showAddCircle/)
   })
 
-  it('카드 배경: BirthInfoModal modalCard 톤 (violet + navy gradient)', () => {
-    expect(card).toMatch(/border-violet-400\/25/)
-    expect(card).toMatch(/from-\[#0c1024\].*to-\[#07091a\]/)
+  // #475 화이트 디자인 이행: violet+navy → white/ink 톤. 카드/인풋/필드 위임을
+  // 현재 디자인 토큰으로 검증한다.
+  it('카드 배경: 화이트 톤 (white bg + hairline border)', () => {
+    expect(card).toMatch(/border-\[#e7e4df\]/)
+    expect(card).toMatch(/bg-white/)
   })
 
-  it('input 톤: violet border + navy bg (BirthInfoModal modalInput 매칭)', () => {
-    expect(card).toMatch(/border-violet-400\/22/)
-    expect(card).toMatch(/bg-\[rgba\(15,17,35,0\.7\)\]/)
+  it('input 톤: 화이트 배경 + hairline border', () => {
+    expect(card).toMatch(/border-\[#e0ddd7\]/)
+    expect(card).toMatch(/bg-white/)
   })
 
-  it('gender selected: violet gradient (modalSave 매칭)', () => {
-    expect(card).toMatch(/from-\[#a78bfa\].*to-\[#8b5cf6\]/)
+  it('생년월일/시간/성별 필드는 공용 BirthInfoFields(라이트 톤)로 위임', () => {
+    expect(card).toMatch(/BirthInfoFields/)
+    expect(card).toMatch(/lightFieldClasses/)
   })
 
   it('cyan/indigo 색상 톤 완전 제거 (잔재 catch)', () => {
