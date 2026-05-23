@@ -94,10 +94,11 @@ function DomainCard({
   const title = isKo ? domain.title.ko : domain.title.en
 
   // Children-only: render an estimated child-count chip in the header.
-  const childChip =
-    domain.id === 'children' && domain.estimatedChildCount
-      ? domain.estimatedChildCount
-      : null
+  // Suppressed on low-confidence / zero estimates — a definitive "0 children"
+  // badge is needlessly sensitive. The body paragraph still carries the
+  // estimate with its disclaimer, so no information is lost.
+  const est = domain.id === 'children' ? domain.estimatedChildCount : null
+  const childChip = est && est.confidence !== 'low' && est.max >= 1 ? est : null
 
   return (
     <article

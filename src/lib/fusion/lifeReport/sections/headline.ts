@@ -255,7 +255,19 @@ export function buildHeadline(input: BuilderInput): Headline {
   void balanceFlavorKo
 
   const s3ko = paragraphJoin([modPlanetKo, lackKo])
-  const s3en = paragraphJoin([balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.'])
+  // Assemble S3 (EN) defensively: when no dominant element exists, the
+  // continuation clauses (", with…", ", led by…") must not start the sentence
+  // with a stray comma, and an all-empty case must not leave a lone period.
+  const s3en = balanceFlavorEn
+    ? `${balanceFlavorEn}${modFlavorEn}${domPlanetEn}${lackEn}.`
+    : (() => {
+        const tail = [
+          domModality ? `Your chart carries ${modalityFlavorEn(domModality)}` : '',
+          dom ? `led by ${planetLabel(dom, 'en')}` : '',
+          lackEl ? `with little ${ELEMENT_FLAVOR_EN[lackEl]} energy` : '',
+        ].filter(Boolean)
+        return tail.length ? `${tail.join(', ')}.` : ''
+      })()
 
   return {
     ko: paragraphJoin([s1ko, s2ko, s3ko]),
@@ -268,12 +280,6 @@ function modalityFlavorEn(m: 'cardinal' | 'fixed' | 'mutable'): string {
   if (m === 'cardinal') return 'a rhythm of starting things'
   if (m === 'fixed') return 'a rhythm of holding steady'
   return 'a rhythm of flowing change'
-}
-
-function modalityKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
-  if (m === 'cardinal') return '새로운 일을 시작하는 편으로'
-  if (m === 'fixed') return '한 분야를 오래 파는 편으로'
-  return '상황에 따라 유연하게 바뀌는 편으로'
 }
 
 function modalityStandaloneKo(m: 'cardinal' | 'fixed' | 'mutable'): string {

@@ -8,8 +8,24 @@
 // adaptCalendarEngineSignals when the caller does not supply them,
 // so deep Hellenistic / harmonic / draconic / midpoint signals are
 // always available to downstream sections.
+//
+// Robustness: every section is wrapped in `safe()` so a throw inside one
+// section degrades to an empty (hidden) section instead of blanking the
+// entire report. The renderer hides sections with no paragraphs.
 
-import type { BuilderInput, LifeReport, LifeReportInput } from './types'
+import type {
+  BuilderInput,
+  DecisiveTiming,
+  DomainId,
+  DomainNarrative,
+  Headline,
+  KarmaSection,
+  LifeReport,
+  LifeReportInput,
+  LifeStage,
+  LifeStageId,
+  LifeStages,
+} from './types'
 import { buildHeadline } from './sections/headline'
 import { buildLifeStages } from './sections/lifeStages'
 import { buildDecisiveTiming } from './sections/decisiveTiming'
@@ -24,6 +40,51 @@ import { buildWisdom } from './sections/domains/wisdom'
 import { buildCreativity } from './sections/domains/creativity'
 import { buildSpirituality } from './sections/domains/spirituality'
 import { adaptCalendarEngineSignals } from './adapters/fromCalendarEngine'
+
+// Run a section builder; on throw, log (dev only) and return a safe,
+// empty fallback so the rest of the report still renders.
+function safe<T>(label: string, fn: () => T, fallback: T): T {
+  try {
+    return fn()
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(`[lifeReport] section "${label}" failed; rendering empty:`, err)
+    }
+    return fallback
+  }
+}
+
+const emptyHeadline: Headline = { ko: '', en: '', signals: { saju: [], astro: [] } }
+
+const emptyStage = (id: LifeStageId, years: string): LifeStage => ({
+  id,
+  years,
+  title: { ko: '', en: '' },
+  paragraphs: [],
+  signals: { saju: [], astro: [] },
+})
+
+const emptyLifeStages: LifeStages = {
+  early: emptyStage('early', '0-20'),
+  young: emptyStage('young', '20-40'),
+  middle: emptyStage('middle', '40-60'),
+  late: emptyStage('late', '60+'),
+}
+
+const emptyDecisiveTiming: DecisiveTiming = {
+  decisiveYears: [],
+  paragraphs: [],
+  signals: { saju: [], astro: [] },
+}
+
+const emptyKarma: KarmaSection = { paragraphs: [], signals: { saju: [], astro: [] } }
+
+const emptyDomain = (id: DomainId): DomainNarrative => ({
+  id,
+  title: { ko: '', en: '' },
+  paragraphs: [],
+  signals: { saju: [], astro: [], fusion: [] },
+})
 
 export function buildLifeReport(input: LifeReportInput): LifeReport {
   // Auto-populate calendar-engine signals when caller did not pass them.
@@ -48,20 +109,24 @@ export function buildLifeReport(input: LifeReportInput): LifeReport {
   return {
     generatedAt: new Date().toISOString(),
     generator: 'lifeReport-v3-deterministic',
-    headline: buildHeadline(builderInput),
-    lifeStages: buildLifeStages(builderInput),
-    decisiveTiming: buildDecisiveTiming(builderInput),
-    karma: buildKarma(builderInput),
+    headline: safe('headline', () => buildHeadline(builderInput), emptyHeadline),
+    lifeStages: safe('lifeStages', () => buildLifeStages(builderInput), emptyLifeStages),
+    decisiveTiming: safe(
+      'decisiveTiming',
+      () => buildDecisiveTiming(builderInput),
+      emptyDecisiveTiming
+    ),
+    karma: safe('karma', () => buildKarma(builderInput), emptyKarma),
     domains: [
-      buildCareer(builderInput),
-      buildLove(builderInput),
-      buildChildren(builderInput),
-      buildMoney(builderInput),
-      buildHealth(builderInput),
-      buildFamily(builderInput),
-      buildWisdom(builderInput),
-      buildCreativity(builderInput),
-      buildSpirituality(builderInput),
+      safe('career', () => buildCareer(builderInput), emptyDomain('career')),
+      safe('love', () => buildLove(builderInput), emptyDomain('love')),
+      safe('children', () => buildChildren(builderInput), emptyDomain('children')),
+      safe('money', () => buildMoney(builderInput), emptyDomain('money')),
+      safe('health', () => buildHealth(builderInput), emptyDomain('health')),
+      safe('family', () => buildFamily(builderInput), emptyDomain('family')),
+      safe('wisdom', () => buildWisdom(builderInput), emptyDomain('wisdom')),
+      safe('creativity', () => buildCreativity(builderInput), emptyDomain('creativity')),
+      safe('spirituality', () => buildSpirituality(builderInput), emptyDomain('spirituality')),
     ],
   }
 }

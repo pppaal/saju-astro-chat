@@ -402,13 +402,6 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       `Around age ${ing.ingressAge}, solar-arc directed ${ing.planet}${signEn ? ' enters ' + signEn : ' changes sign'}, marking a clear inflection of life-tone.`
     )
   }
-  const p5ko = p5pieces.length
-    ? paragraph(p5pieces)
-    : '다음 5~10년의 흐름은 잔잔히 정렬돼 있어, 큰 굴곡보다 매 시기마다 작은 변화가 이어지는 시기예요.'
-  const p5en = p5piecesEn.length
-    ? paragraph(p5piecesEn)
-    : 'The 5–10 year horizon sits calmly arranged — many small renewals rather than a single dramatic bend.'
-
   // P6 — 단기 안내 (올해 / 이번달 / 오늘 electional hint)
   const profCur = input.calendarSignals?.profectionCurrent
   const hc = input.calendarSignals?.sajuHyeongchung
@@ -434,13 +427,6 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
       `Your chart carries ${dominantEn} — this season ${hc.chungCount >= hc.hapCount ? 'decisions and clean breaks pull luck in' : 'partnerships pull luck in'}.`
     )
   }
-  const p6ko = p6pieces.length
-    ? paragraph(p6pieces)
-    : '오늘과 이번 달의 흐름은 평이해요. 큰 결정을 서두르기보단 일상을 다듬는 시기가 맞아요.'
-  const p6en = p6piecesEn.length
-    ? paragraph(p6piecesEn)
-    : 'Today and this month sit calmly — refine daily grain rather than rushing big decisions.'
-
   // P5 (5–10년 윈도우) 와 P6 (올해·이번 달) 는 모두 "근거리 타이밍" 결이라
   // 한 문단으로 합쳐 narrative 길이를 줄인다. 문단 안에서는 5–10년 라인이
   // 먼저, 올해/이번 달 라인이 뒤따라오도록 한국어 자연 순서를 유지.
@@ -452,12 +438,6 @@ export function buildDecisiveTiming(input: BuilderInput): DecisiveTiming {
     p5piecesEn.length > 0 || p6piecesEn.length > 0
       ? paragraph([...p5piecesEn, ...p6piecesEn])
       : 'The 5–10 year horizon sits calmly arranged — many small renewals rather than a single dramatic bend.'
-  // 위에서 만든 p5ko/p5en/p6ko/p6en 도 호환을 위해 유지하지만 paragraph 배열엔
-  // 합쳐진 p5p6 만 넣어 최종 paragraph 수가 5 개로 줄어든다.
-  void p5ko
-  void p5en
-  void p6ko
-  void p6en
 
   const paragraphs: Paragraph[] = [
     { ko: p1ko, en: p1en },
