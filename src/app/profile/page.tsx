@@ -21,7 +21,6 @@ import {
   ArrowRight,
   Users,
   Coins,
-  Crown,
   Receipt,
   Gift,
   Share2,
@@ -152,8 +151,7 @@ const inkBtnCls =
   'inline-flex items-center gap-1.5 rounded-full bg-[#1c1917] px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-[#3a3530]'
 const rowCls =
   'flex items-center gap-3 rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] px-3.5 py-3'
-const emptyCls =
-  'mt-4 rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-4 py-6 text-center'
+const emptyCls = 'mt-4 rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-4 py-6 text-center'
 const loadingCls =
   'mt-4 rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-4 py-5 text-center text-[13px] text-[#a8a29e]'
 const serifStyle = { fontFamily: 'var(--font-cinzel), Georgia, serif' } as const
@@ -173,11 +171,7 @@ function classifyService(serviceId: string): {
       href: '/compatibility',
       Icon: Heart,
     }
-  if (
-    serviceId === 'destiny-counselor' ||
-    serviceId === 'counselor' ||
-    serviceId === 'destiny-map'
-  )
+  if (serviceId === 'destiny-counselor' || serviceId === 'counselor' || serviceId === 'destiny-map')
     return { key: 'counselor', href: '/destiny-counselor', Icon: MessageCircle }
   return { key: 'other', href: '/profile', Icon: Calendar }
 }
@@ -213,18 +207,6 @@ function genderLabel(g: string | null | undefined, locale: Locale): string {
   if (norm === 'm' || norm === 'male') return locale === 'ko' ? '남성' : 'Male'
   if (norm === 'f' || norm === 'female') return locale === 'ko' ? '여성' : 'Female'
   return locale === 'ko' ? '미입력' : 'Not set'
-}
-
-const PLAN_LABEL: Record<PlanId, { ko: string; en: string }> = {
-  free: { ko: 'Free', en: 'Free' },
-  starter: { ko: 'Starter', en: 'Starter' },
-  pro: { ko: 'Pro', en: 'Pro' },
-  premium: { ko: 'Premium', en: 'Premium' },
-}
-
-function planLabel(plan: string, locale: Locale): string {
-  const key = (plan as PlanId) in PLAN_LABEL ? (plan as PlanId) : 'free'
-  return locale === 'ko' ? PLAN_LABEL[key].ko : PLAN_LABEL[key].en
 }
 
 function formatDateOnly(iso: string | null | undefined, locale: Locale): string {
@@ -365,7 +347,7 @@ export default function ProfilePage() {
     const ok = window.confirm(
       locale === 'ko'
         ? `'${name}' 을(를) 지인 목록에서 삭제할까요?`
-        : `Remove '${name}' from your circle?`,
+        : `Remove '${name}' from your circle?`
     )
     if (!ok) return
     try {
@@ -379,7 +361,7 @@ export default function ProfilePage() {
       window.alert(
         locale === 'ko'
           ? '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.'
-          : 'Failed to delete. Please try again in a moment.',
+          : 'Failed to delete. Please try again in a moment.'
       )
     }
   }
@@ -417,8 +399,6 @@ export default function ProfilePage() {
   }
 
   const flatRecords = history.flatMap((d) => d.records).slice(0, 8)
-  const plan = credits?.plan ?? 'free'
-  const isPaidPlan = plan !== 'free'
 
   return (
     <AuthGate
@@ -460,8 +440,7 @@ export default function ProfilePage() {
                   className="text-balance text-[1.9rem] font-semibold leading-[1.12] tracking-[-0.01em] text-[#1c1917]"
                   style={serifStyle}
                 >
-                  {profile?.name ||
-                    (locale === 'ko' ? '이름을 알려주세요' : 'Set your name')}
+                  {profile?.name || (locale === 'ko' ? '이름을 알려주세요' : 'Set your name')}
                 </h1>
                 {profile?.email && (
                   <p className="mt-1.5 text-[13px] text-[#8b857d]">{profile.email}</p>
@@ -592,7 +571,9 @@ export default function ProfilePage() {
                 <p className={loadingCls}>{locale === 'ko' ? '불러오는 중...' : 'Loading...'}</p>
               ) : !credits ? (
                 <p className={loadingCls}>
-                  {locale === 'ko' ? '크레딧 정보를 불러올 수 없어요' : 'Could not load credit info'}
+                  {locale === 'ko'
+                    ? '크레딧 정보를 불러올 수 없어요'
+                    : 'Could not load credit info'}
                 </p>
               ) : (
                 <>
@@ -634,92 +615,6 @@ export default function ProfilePage() {
                     />
                   </div>
                 </>
-              )}
-            </section>
-
-            {/* Membership */}
-            <section className={`mt-6 ${cardCls}`}>
-              <div className="flex items-center justify-between">
-                <h2 className={sectionLabelCls}>
-                  <Crown className="h-3.5 w-3.5 text-[#a07a3c]" />
-                  {locale === 'ko' ? '멤버십' : 'Membership'}
-                </h2>
-                <Link href="/pricing" className={linkCls}>
-                  {isPaidPlan
-                    ? locale === 'ko'
-                      ? '관리'
-                      : 'Manage'
-                    : locale === 'ko'
-                      ? '플랜 보기'
-                      : 'View plans'}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-
-              {loading ? (
-                <p className={loadingCls}>{locale === 'ko' ? '불러오는 중...' : 'Loading...'}</p>
-              ) : (
-                <div className="mt-4 rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] px-4 py-4">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="rounded-full border px-3 py-1 text-[12px] font-semibold tracking-wide"
-                      style={
-                        isPaidPlan
-                          ? {
-                              color: GOLD,
-                              borderColor: 'rgba(160,122,60,0.35)',
-                              background: 'rgba(160,122,60,0.08)',
-                            }
-                          : { color: '#78716c', borderColor: '#e7e4df', background: '#f5f4f1' }
-                      }
-                    >
-                      {planLabel(plan, locale)}
-                    </span>
-                    {purchases?.subscription?.billingCycle && (
-                      <span className="text-[12px] text-[#8b857d]">
-                        {purchases.subscription.billingCycle === 'annual'
-                          ? locale === 'ko'
-                            ? '연 결제'
-                            : 'Annual'
-                          : locale === 'ko'
-                            ? '월 결제'
-                            : 'Monthly'}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-2 gap-3 text-[12px]">
-                    <div>
-                      <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-[#a8a29e]">
-                        {locale === 'ko' ? '다음 갱신일' : 'Next renewal'}
-                      </p>
-                      <p className="mt-1 font-medium text-[#44403c]">
-                        {formatDateOnly(
-                          purchases?.subscription?.currentPeriodEnd ?? credits?.periodEnd,
-                          locale,
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-[#a8a29e]">
-                        {locale === 'ko' ? '히스토리 보관' : 'History retention'}
-                      </p>
-                      <p className="mt-1 font-medium text-[#44403c]">
-                        {credits?.historyRetention
-                          ? `${credits.historyRetention}${locale === 'ko' ? '일' : ' days'}`
-                          : '—'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {purchases?.subscription?.cancelAtPeriodEnd && (
-                    <p className="mt-3 rounded-lg border border-[#ecd9a8] bg-[#fbf4e1] px-3 py-2 text-[11.5px] text-[#8a6d1f]">
-                      {locale === 'ko'
-                        ? '다음 갱신일에 멤버십이 종료됩니다.'
-                        : 'Membership will end at the next renewal date.'}
-                    </p>
-                  )}
-                </div>
               )}
             </section>
 
@@ -798,7 +693,9 @@ export default function ProfilePage() {
                 <p className={loadingCls}>{locale === 'ko' ? '불러오는 중...' : 'Loading...'}</p>
               ) : !referral ? (
                 <p className={loadingCls}>
-                  {locale === 'ko' ? '추천 정보를 불러올 수 없어요' : 'Could not load referral info'}
+                  {locale === 'ko'
+                    ? '추천 정보를 불러올 수 없어요'
+                    : 'Could not load referral info'}
                 </p>
               ) : (
                 <>
@@ -860,7 +757,9 @@ export default function ProfilePage() {
             {/* Recent activity */}
             <section className={`mt-6 ${cardCls}`}>
               <div className="flex items-center justify-between">
-                <h2 className={sectionLabelCls}>{locale === 'ko' ? '최근 활동' : 'Recent activity'}</h2>
+                <h2 className={sectionLabelCls}>
+                  {locale === 'ko' ? '최근 활동' : 'Recent activity'}
+                </h2>
                 <Link href="/profile/decisions" className={linkCls}>
                   {locale === 'ko' ? '결정 기록' : 'Decision log'}
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -979,7 +878,9 @@ function UsageMini({ label, used, limit }: { label: string; used: number; limit:
   const pct = unlimited ? 0 : limit === 0 ? 0 : Math.min(100, Math.round((used / limit) * 100))
   return (
     <div className="rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] px-3.5 py-3">
-      <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-[#a8a29e]">{label}</p>
+      <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-[#a8a29e]">
+        {label}
+      </p>
       <p className="mt-1 text-[13px] font-medium text-[#292524]">
         {unlimited ? `${used} / ∞` : `${used} / ${limit}`}
       </p>
