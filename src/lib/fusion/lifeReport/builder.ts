@@ -105,6 +105,9 @@ export function buildLifeReport(input: LifeReportInput): LifeReport {
     ...input,
     calendarSignals,
     isKo: true,
+    // Shared across domain builders (run in fixed order) so each domain's
+    // relation sentence claims a distinct 합/충 axis instead of repeating.
+    relUsed: { ko: new Set<string>(), en: new Set<string>() },
   }
   return {
     generatedAt: new Date().toISOString(),

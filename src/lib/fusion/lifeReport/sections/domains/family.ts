@@ -230,9 +230,11 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   // Saju relations — year pillar (조상/뿌리) axis
   const relKoFamily = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferPillar: 'year',
+    usedKeys: input.relUsed?.ko,
   })
   const relEnFamily = relationPhraseEn(input.calendarSignals?.sajuRelations, {
     preferPillar: 'year',
+    usedKeys: input.relUsed?.en,
   })
   if (relKoFamily) {
     sajuUsed.push('calendarSignals.sajuRelations')

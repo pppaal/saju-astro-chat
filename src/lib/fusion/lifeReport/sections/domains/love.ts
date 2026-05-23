@@ -397,10 +397,12 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const relKoLove = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferKind: '합',
     preferPillar: 'day',
+    usedKeys: input.relUsed?.ko,
   })
   const relEnLove = relationPhraseEn(input.calendarSignals?.sajuRelations, {
     preferKind: '합',
     preferPillar: 'day',
+    usedKeys: input.relUsed?.en,
   })
   if (relKoLove) {
     sajuUsed.push('calendarSignals.sajuRelations')

@@ -227,11 +227,13 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const relKoSpirit =
     relationPhraseKo(calendarSignals?.sajuRelations, {
       preferKind: '해',
-    }) ?? relationPhraseKo(calendarSignals?.sajuRelations)
+      usedKeys: input.relUsed?.ko,
+    }) ?? relationPhraseKo(calendarSignals?.sajuRelations, { usedKeys: input.relUsed?.ko })
   const relEnSpirit =
     relationPhraseEn(calendarSignals?.sajuRelations, {
       preferKind: '해',
-    }) ?? relationPhraseEn(calendarSignals?.sajuRelations)
+      usedKeys: input.relUsed?.en,
+    }) ?? relationPhraseEn(calendarSignals?.sajuRelations, { usedKeys: input.relUsed?.en })
   if (relKoSpirit) {
     sajuUsed.push('calendarSignals.sajuRelations')
     p3pieces.push(`${relKoSpirit} 그 어긋남이 영적 사유의 출발점이 돼요.`)

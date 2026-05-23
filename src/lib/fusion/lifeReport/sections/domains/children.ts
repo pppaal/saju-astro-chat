@@ -257,9 +257,11 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   // Saju relations — time pillar weighted (자녀 자리 = 시주)
   const relKoChildren = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferPillar: 'time',
+    usedKeys: input.relUsed?.ko,
   })
   const relEnChildren = relationPhraseEn(input.calendarSignals?.sajuRelations, {
     preferPillar: 'time',
+    usedKeys: input.relUsed?.en,
   })
   if (relKoChildren) {
     sajuUsed.push('calendarSignals.sajuRelations')

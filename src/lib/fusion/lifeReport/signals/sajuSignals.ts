@@ -308,6 +308,27 @@ interface RelationPhraseOpts {
   preferKind?: SajuRelationEntry['kind']
   /** Bias toward involving a specific pillar (day/year/month/time). */
   preferPillar?: 'year' | 'month' | 'day' | 'time'
+  /**
+   * Cross-section dedup: entries whose key is already in this set are skipped,
+   * and the chosen entry's key is added on pick. Threading one set through all
+   * domain calls makes each domain surface a *distinct* 합/충 axis instead of
+   * repeating the same "사주의 합충 패턴…" sentence verbatim across sections.
+   */
+  usedKeys?: Set<string>
+}
+
+// Dedup identity keyed by what the *rendered sentence* shows: the verb-class
+// + pillar order (subject→object). kindVerbKo/En collapse every kind outside
+// 합/충/형/해 to one verb ("한자리에 모이는" / "gathers"), so entries that
+// differ only in raw kind but render the identical "년주가 일간과 …" line must
+// share a key — pushing a later domain to a visibly different relation.
+function relationEntryKey(e: SajuRelationEntry): string {
+  const k = e.kind
+  const verbClass = k === '합' || k === '충' || k === '형' || k === '해' ? k : '기타'
+  // Sentence only renders pillars[0] (subject) + pillars[1] (object); a 3rd
+  // pillar (e.g. 삼합) is invisible, so key on the first two only.
+  const p = e.pillars ?? []
+  return `${verbClass}|${p[0] ?? ''},${p[1] ?? ''}`
 }
 
 export function relationPhraseKo(
@@ -316,10 +337,16 @@ export function relationPhraseKo(
 ): string | undefined {
   if (!rel || rel.total === 0) return undefined
   const cand = pickRelationEntry(rel, opts)
-  if (!cand)
-    return rel.primaryAxisKo
-      ? `사주의 합충 패턴을 보면, ${rel.primaryAxisKo} 흐름이 인생에 한 번 굵게 작용해요.`
-      : undefined
+  if (!cand) {
+    if (!rel.primaryAxisKo) return undefined
+    // The generic axis fallback would also repeat across sections; let only
+    // the first caller emit it.
+    if (opts.usedKeys) {
+      if (opts.usedKeys.has('__primaryAxis')) return undefined
+      opts.usedKeys.add('__primaryAxis')
+    }
+    return `사주의 합충 패턴을 보면, ${rel.primaryAxisKo} 흐름이 인생에 한 번 굵게 작용해요.`
+  }
   const pillarsKo: Record<string, string> = {
     year: '년주',
     month: '월주',
@@ -350,10 +377,14 @@ export function relationPhraseEn(
 ): string | undefined {
   if (!rel || rel.total === 0) return undefined
   const cand = pickRelationEntry(rel, opts)
-  if (!cand)
-    return rel.primaryAxisEn
-      ? `Looking at the chart's inner relations, ${rel.primaryAxisEn} runs as a heavy single grain.`
-      : undefined
+  if (!cand) {
+    if (!rel.primaryAxisEn) return undefined
+    if (opts.usedKeys) {
+      if (opts.usedKeys.has('__primaryAxis')) return undefined
+      opts.usedKeys.add('__primaryAxis')
+    }
+    return `Looking at the chart's inner relations, ${rel.primaryAxisEn} runs as a heavy single grain.`
+  }
   const pillarsEn: Record<string, string> = {
     year: 'early-life seat',
     month: 'young-adulthood seat',
@@ -378,18 +409,25 @@ export function pickRelationEntry(
   if (opts.preferKind === '해') buckets.push(rel.hae)
   if (opts.preferKind === '회') buckets.push(rel.hoe)
   buckets.push(rel.chung, rel.hap, rel.hyung, rel.hoe, rel.hae)
-  // 1st pass: respect preferPillar.
+  const used = opts.usedKeys
+  const isUsed = (e: SajuRelationEntry) => (used ? used.has(relationEntryKey(e)) : false)
+  const claim = (e: SajuRelationEntry) => {
+    if (used) used.add(relationEntryKey(e))
+    return e
+  }
+  // 1st pass: respect preferPillar (skipping already-used entries).
   if (opts.preferPillar) {
     for (const bucket of buckets) {
       if (!bucket || bucket.length === 0) continue
-      const hit = bucket.find((e) => e.pillars.includes(opts.preferPillar!))
-      if (hit) return hit
+      const hit = bucket.find((e) => e.pillars.includes(opts.preferPillar!) && !isUsed(e))
+      if (hit) return claim(hit)
     }
   }
-  // 2nd pass: any entry in priority order.
+  // 2nd pass: first unused entry in priority order.
   for (const bucket of buckets) {
     if (!bucket || bucket.length === 0) continue
-    return bucket[0]
+    const hit = bucket.find((e) => !isUsed(e))
+    if (hit) return claim(hit)
   }
   return undefined
 }

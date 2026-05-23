@@ -203,16 +203,20 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const relKoHealth =
     relationPhraseKo(input.calendarSignals?.sajuRelations, {
       preferKind: '형',
+      usedKeys: input.relUsed?.ko,
     }) ??
     relationPhraseKo(input.calendarSignals?.sajuRelations, {
       preferKind: '충',
+      usedKeys: input.relUsed?.ko,
     })
   const relEnHealth =
     relationPhraseEn(input.calendarSignals?.sajuRelations, {
       preferKind: '형',
+      usedKeys: input.relUsed?.en,
     }) ??
     relationPhraseEn(input.calendarSignals?.sajuRelations, {
       preferKind: '충',
+      usedKeys: input.relUsed?.en,
     })
   if (relKoHealth) {
     sajuUsed.push('calendarSignals.sajuRelations')
