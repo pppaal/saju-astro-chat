@@ -312,6 +312,15 @@ function CompatibilityCounselorContent() {
     }
   }, [isInitializing])
 
+  // 운명 상담사와 동일한 UX — 답변 직후 첫 후속질문을 입력창에 미리 채운다.
+  // 사용자는 엔터로 바로 보내거나, 지우고 자기 질문을 새로 쓸 수 있다.
+  // 이미 입력 중이면 덮어쓰지 않는다.
+  useEffect(() => {
+    if (followUpQuestions.length > 0) {
+      setInput((prev) => (prev.trim() ? prev : followUpQuestions[0]))
+    }
+  }, [followUpQuestions])
+
   const sendMessage = useCallback(
     async (textOverride?: string) => {
       const text = (textOverride ?? input).trim()

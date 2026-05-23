@@ -43,9 +43,7 @@ function unwrapAstro(raw: unknown): Record<string, unknown> | undefined {
   const r = raw as Record<string, unknown>
   const data = (r.data as Record<string, unknown>) ?? r
   return (
-    (data.chartData as Record<string, unknown>) ??
-    (r.chartData as Record<string, unknown>) ??
-    data
+    (data.chartData as Record<string, unknown>) ?? (r.chartData as Record<string, unknown>) ?? data
   )
 }
 
@@ -75,7 +73,13 @@ function QuickRead({
   )
 }
 
-function SectionTitle({ children, accent }: { children: React.ReactNode; accent: 'indigo' | 'rose' }) {
+function SectionTitle({
+  children,
+  accent,
+}: {
+  children: React.ReactNode
+  accent: 'indigo' | 'rose'
+}) {
   const border = accent === 'indigo' ? 'border-sky-400' : 'border-rose-400'
   return (
     <h3 className={`border-l-2 ${border} px-2 text-sm font-semibold text-[#1c1917]`}>{children}</h3>
@@ -150,7 +154,10 @@ export function CompatChartModal({
 
         <div className="space-y-6">
           {/* 한 줄 해석 — 두 사람 나란히 */}
-          <div className="chart-rise-in grid grid-cols-1 gap-3 sm:grid-cols-2" style={{ '--i': 0 } as React.CSSProperties}>
+          <div
+            className="chart-rise-in grid grid-cols-1 gap-3 sm:grid-cols-2"
+            style={{ '--i': 0 } as React.CSSProperties}
+          >
             <QuickRead name={labelA} accent="rose" saju={sajuA} astro={astroA} lang={lang} />
             <QuickRead name={labelB} accent="sky" saju={sajuB} astro={astroB} lang={lang} />
           </div>
@@ -161,21 +168,8 @@ export function CompatChartModal({
             style={{ '--i': 1 } as React.CSSProperties}
           >
             <SectionTitle accent="rose">
-              {isKo ? '동양 — 오행 · 사주팔자 비교' : 'Eastern — Five Elements & Saju'}
+              {isKo ? '동양 — 사주팔자 · 오행 비교' : 'Eastern — Saju & Five Elements'}
             </SectionTitle>
-
-            <div className="space-y-1.5">
-              <div className="px-1 text-[11px] font-medium text-[#8b857d]">
-                {isKo ? '오행 비교' : 'Five-Element Comparison'}
-              </div>
-              <CompatRadarOverlay
-                sajuA={sajuA}
-                sajuB={sajuB}
-                nameA={labelA}
-                nameB={labelB}
-                lang={lang}
-              />
-            </div>
 
             <div className="space-y-1.5">
               <div className="px-1 text-[11px] font-medium text-[#8b857d]">
@@ -195,6 +189,19 @@ export function CompatChartModal({
                   <SajuChart saju={sajuB as never} lang={lang} />
                 </div>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="px-1 text-[11px] font-medium text-[#8b857d]">
+                {isKo ? '오행 비교' : 'Five-Element Comparison'}
+              </div>
+              <CompatRadarOverlay
+                sajuA={sajuA}
+                sajuB={sajuB}
+                nameA={labelA}
+                nameB={labelB}
+                lang={lang}
+              />
             </div>
           </section>
 

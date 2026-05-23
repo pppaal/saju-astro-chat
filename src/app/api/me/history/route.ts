@@ -71,6 +71,7 @@ export const GET = withApiMiddleware(
         readings,
         tarotReadings,
         consultations,
+        counselorSessions,
         interactions,
         dailyFortunes,
         calendarDates,
@@ -100,6 +101,24 @@ export const GET = withApiMiddleware(
           skip: offset > 0 ? Math.floor(offset / 9) : 0,
           select: { id: true, createdAt: true, summary: true },
         }),
+        // 운명/궁합 상담사 대화 기록 — 두 상담사 모두 CounselorChatSession 에
+        // 저장된다(type: destiny | compat). 최근 활동에 노출되도록 포함.
+        safeQuery(
+          prisma.counselorChatSession.findMany({
+            where: { userId, messageCount: { gt: 0 } },
+            orderBy: { updatedAt: 'desc' },
+            take: perTableLimit,
+            skip: offset > 0 ? Math.floor(offset / 9) : 0,
+            select: {
+              id: true,
+              createdAt: true,
+              lastMessageAt: true,
+              type: true,
+              title: true,
+              summary: true,
+            },
+          })
+        ),
         prisma.userInteraction.findMany({
           where: { userId, type: { in: ['complete', 'view'] } },
           orderBy: { createdAt: 'desc' },
@@ -192,6 +211,15 @@ export const GET = withApiMiddleware(
           theme: undefined as string | undefined,
           summary: c.summary || 'Destiny Map 분석을 이용했습니다',
           type: 'consultation',
+        })),
+        ...counselorSessions.map((s) => ({
+          id: s.id,
+          date: (s.lastMessageAt ?? s.createdAt).toISOString().split('T')[0],
+          service: s.type === 'compat' ? 'compat-counselor' : 'counselor',
+          theme: undefined as string | undefined,
+          summary:
+            s.summary || s.title || (s.type === 'compat' ? '궁합 상담사 대화' : '운명 상담사 대화'),
+          type: s.type === 'compat' ? 'compat-counselor' : 'destiny-counselor',
         })),
         ...interactions.map((i) => ({
           id: i.id,
