@@ -39,7 +39,7 @@ export default function ServicePageLayout({
   subtitle,
   icon,
   children,
-  particleColor = "#88b3f7",
+  particleColor = "#d8d4cc",
   onBack,
   backLabel,
   compact = false,
