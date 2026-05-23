@@ -34,19 +34,27 @@ export function ActionButtons({
 
   return (
     <div className="space-y-3">
-      <p className="text-center text-xs text-slate-500">
-        {isKo
-          ? '저장하면 나중에 리딩 변화 흐름을 비교할 수 있어요.'
-          : 'Save this reading to compare your pattern over time.'}
+      <p
+        className={`text-center text-xs ${
+          isSaved ? 'text-slate-500' : 'text-amber-200/80 font-medium'
+        }`}
+      >
+        {isSaved
+          ? isKo
+            ? '저장됨 · 내 리딩 보기에서 다시 볼 수 있어요.'
+            : 'Saved · find it anytime in your readings.'
+          : isKo
+            ? '저장해야 「내 리딩 보기」에 남아요. 저장하면 리딩 변화 흐름도 비교할 수 있어요.'
+            : 'Save it to keep it in your readings and compare your pattern over time.'}
       </p>
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
         <button
           onClick={onSave}
           disabled={isSaved || isSaving}
-          className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-colors ${
+          className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all ${
             isSaved
-              ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 cursor-default'
-              : 'bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-100 disabled:opacity-60'
+              ? 'px-6 py-3 text-sm bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 cursor-default'
+              : 'px-8 py-3.5 text-base bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 shadow-[0_0_28px_rgba(245,158,11,0.45)] hover:shadow-[0_0_40px_rgba(245,158,11,0.65)] hover:scale-[1.03] disabled:opacity-60'
           }`}
         >
           {isSaved ? (
@@ -54,13 +62,13 @@ export function ActionButtons({
           ) : isSaving ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <Bookmark className="w-4 h-4" />
+            <Bookmark className="w-5 h-5" />
           )}
           {saveLabel}
         </button>
         <button
           onClick={onReset}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium text-slate-200 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium text-slate-300 transition-colors"
         >
           <RefreshCw className="w-4 h-4" />
           {isKo ? '새로 읽기' : 'New Reading'}

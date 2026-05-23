@@ -51,17 +51,23 @@ export default function TarotChatScreen() {
     textareaRef.current?.focus()
   }, [])
 
-  // 페이지 로드 직후 prefetch:
-  //   1) 덱 뒷면 (모달 열릴 때 1초 lag 방지)
-  //   2) 78장 카드 앞면 (결과 화면 첫 진입 1-2초 lag 방지)
-  // requestIdleCallback 으로 메인 thread 안 막고 백그라운드에서 처리.
+  // 덱 뒷면 8장 — 마운트 즉시 프리로드. 작은 이미지(각 ~30KB)라
+  // 부담 없고, 모달을 빨리 열어도 천체의 빛(기본 덱) 등이 그제서
+  // 로드되며 ~1초 lag 가 생기던 문제를 없앤다. (idle 로 미루면 모달이
+  // 먼저 열려 캐시 미스 발생)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    DECK_STYLES.forEach((id) => {
+      const img = new window.Image()
+      img.src = DECK_STYLE_INFO[id].backImage
+    })
+  }, [])
+
+  // 78장 카드 앞면 (결과 화면 첫 진입 1-2초 lag 방지) — 무거우므로
+  // requestIdleCallback 으로 메인 thread 안 막고 백그라운드 처리.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const prefetch = () => {
-      DECK_STYLES.forEach((id) => {
-        const img = new window.Image()
-        img.src = DECK_STYLE_INFO[id].backImage
-      })
       // 0..77 카드 ID 전체. getCardImagePath 가 webp 경로 반환.
       for (let cardId = 0; cardId < 78; cardId++) {
         const img = new window.Image()
