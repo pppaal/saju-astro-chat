@@ -100,7 +100,7 @@ export default function CompatPage() {
             }}
           >
             {circleError && (
-              <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
+              <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-600">
                 {'⚠️'} {circleError}
               </div>
             )}

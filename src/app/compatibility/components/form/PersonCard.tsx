@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { User, Users, ChevronDown, Loader2 } from 'lucide-react'
 import { type PersonForm, type Relation } from '../../lib/types'
 import type { CirclePerson } from '@/hooks/useMyCircle'
-import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+import { BirthInfoFields, type BirthFieldsClasses, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
 
 interface PersonCardProps {
   person: PersonForm
@@ -146,17 +146,20 @@ export const PersonCard = React.memo<PersonCardProps>(
 
     const personLabel = idx === 0 ? t('compatibilityPage.person1', '나') : t('compatibilityPage.person2', '상대')
 
+    // Person 1 = rose, Person 2 = sky — the same A/B encoding used by the
+    // chart overlays, so the form and the chart read as the same two people.
+    const avatarTone = idx === 0 ? 'bg-rose-100 text-rose-600' : 'bg-sky-100 text-sky-600'
+
     return (
-      <div className="rounded-[22px] border border-violet-400/25 bg-gradient-to-b from-[#0c1024] to-[#07091a] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
-        {/* 헤더 — 라벨 + 불러오기 버튼들. 톤은 BirthInfoModal 매칭
-            (보라 그라데이션, 진한 navy 카드). 지인 추가 CTA 는 제거
-            (불러오기만 유지) — /profile 에서 추가하도록 분리. */}
+      <div className="rounded-[22px] border border-[#e7e4df] bg-white p-6 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_12px_32px_rgba(28,25,23,0.06)]">
+        {/* 헤더 — 라벨 + 불러오기 버튼. 라이트 프리미엄 톤(화이트 카드,
+            잉크 텍스트, 헤어라인 보더). 지인 추가 CTA 는 /profile 로 분리. */}
         <div className="mb-5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#a78bfa] to-[#8b5cf6] text-white">
+            <div className={`flex h-8 w-8 items-center justify-center rounded-full ${avatarTone}`}>
               {idx === 0 ? <User className="h-4 w-4" /> : <Users className="h-4 w-4" />}
             </div>
-            <h3 className="text-[15px] font-semibold text-white">
+            <h3 className="text-[15px] font-semibold text-[#1c1917]">
               {personLabel}
             </h3>
           </div>
@@ -168,7 +171,7 @@ export const PersonCard = React.memo<PersonCardProps>(
                   type="button"
                   onClick={loadMyProfile}
                   disabled={profileLoading}
-                  className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[11.5px] font-medium text-violet-100 transition hover:border-violet-300/50 hover:bg-violet-400/15 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 rounded-full border border-[#e0ddd7] bg-white px-3 py-1 text-[11.5px] font-medium text-[#44403c] transition hover:border-[#c9c4bc] hover:bg-[#faf9f7] disabled:opacity-50"
                 >
                   {profileLoading ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -185,16 +188,16 @@ export const PersonCard = React.memo<PersonCardProps>(
                 <button
                   type="button"
                   onClick={onToggleCircleDropdown}
-                  className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[11.5px] font-medium text-violet-100 transition hover:border-violet-300/50 hover:bg-violet-400/15"
+                  className="inline-flex items-center gap-1 rounded-full border border-[#e0ddd7] bg-white px-3 py-1 text-[11.5px] font-medium text-[#44403c] transition hover:border-[#c9c4bc] hover:bg-[#faf9f7]"
                 >
                   <Users className="h-3 w-3" />
                   {t('compatibilityPage.fromCircle', 'My people')}
                   <ChevronDown className="h-3 w-3" />
                 </button>
                 {showCircleDropdown && (
-                  <ul className="absolute right-0 z-20 mt-1 max-h-56 w-56 overflow-auto rounded-xl border border-violet-400/25 bg-[#0c1024] shadow-xl">
+                  <ul className="absolute right-0 z-20 mt-1 max-h-56 w-56 overflow-auto rounded-xl border border-[#e7e4df] bg-white shadow-[0_16px_40px_rgba(28,25,23,0.12)]">
                     {circlePeople.length === 0 ? (
-                      <li className="px-3 py-2.5 text-[12px] leading-relaxed text-slate-400">
+                      <li className="px-3 py-2.5 text-[12px] leading-relaxed text-[#a8a29e]">
                         {isKo
                           ? '저장된 지인이 없어요. 내 프로필에서 지인을 추가해 보세요.'
                           : 'No saved people yet. Add people from your profile.'}
@@ -205,11 +208,11 @@ export const PersonCard = React.memo<PersonCardProps>(
                           <button
                             type="button"
                             onClick={() => onFillFromCircle(idx, cp)}
-                            className="block w-full px-3 py-2 text-left text-[13px] text-slate-200 transition hover:bg-violet-400/10"
+                            className="block w-full px-3 py-2 text-left text-[13px] text-[#44403c] transition hover:bg-[#f5f4f1]"
                           >
                             <span className="font-medium">{cp.name}</span>
                             {cp.relation && (
-                              <span className="ml-1.5 text-[11px] text-slate-400">· {cp.relation}</span>
+                              <span className="ml-1.5 text-[11px] text-[#a8a29e]">· {cp.relation}</span>
                             )}
                           </button>
                         </li>
@@ -246,6 +249,7 @@ export const PersonCard = React.memo<PersonCardProps>(
             gender={genderForField}
             city={person.cityQuery}
             onChange={onBirthChange}
+            classes={lightFieldClasses}
           />
 
           {/* 두 번째 사람 — 관계 + 메모 */}
@@ -287,9 +291,23 @@ export const PersonCard = React.memo<PersonCardProps>(
 
 PersonCard.displayName = 'PersonCard'
 
-// BirthInfoModal 의 .modalInput 톤 매칭 — 보라 액센트, 진한 navy bg.
+// Premium light field styling — white inputs, hairline borders, ink text.
+// Matches the profile modals; passed to BirthInfoFields so the shared
+// (dark-default) form reads correctly on the white card.
 const inputClass =
-  'w-full rounded-xl border border-violet-400/22 bg-[rgba(15,17,35,0.7)] px-3 py-2.5 text-[14px] text-white placeholder:text-slate-400 focus:border-violet-300/60 focus:outline-none disabled:cursor-not-allowed transition'
+  'w-full rounded-xl border border-[#e0ddd7] bg-white px-3 py-2.5 text-[14px] text-[#1c1917] placeholder:text-[#a8a29e] focus:border-[#a07a3c] focus:outline-none disabled:cursor-not-allowed transition'
+
+const lightFieldClasses: Required<BirthFieldsClasses> = {
+  field: 'flex flex-col gap-1.5',
+  label: 'text-[12px] font-semibold tracking-[0.02em] text-[#57534e]',
+  input: inputClass,
+  row: 'grid grid-cols-2 gap-2.5',
+  checkboxLabel: 'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[#57534e]',
+  suggestionList:
+    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e7e4df] bg-white p-1 shadow-[0_16px_40px_rgba(28,25,23,0.12)]',
+  suggestionItem:
+    'block w-full rounded-lg px-2.5 py-2 text-left text-[13px] text-[#44403c] transition hover:bg-[#f5f4f1]',
+}
 
 function Field({
   label,
@@ -302,9 +320,9 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-[12px] font-semibold tracking-[0.02em] text-slate-200/85">
+      <label className="mb-1.5 block text-[12px] font-semibold tracking-[0.02em] text-[#57534e]">
         {label}
-        {required && <span className="ml-1 text-rose-400">*</span>}
+        {required && <span className="ml-1 text-rose-500">*</span>}
       </label>
       {children}
     </div>
