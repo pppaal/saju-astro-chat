@@ -147,10 +147,8 @@ export function buildHeadline(input: BuilderInput): Headline {
   // 부담되지 않아 그대로 노출.
   const rootKo = rootSummary ? ` ${rootSummary.phraseKo}` : ''
   const rootEn = rootSummary ? ` ${rootSummary.phraseEn}` : ''
-  // S1: 본명 핵심 — 일간 + 격국 + (선택적) 종격/통근. 길어지지 않도록 통근은
-  // 'none' 인 경우에만 헤드라인에 노출하고, 충분히 강한 통근은 본문에 맡긴다.
-  const rootKoSlim = rootSummary && rootSummary.level === 'none' ? ` ${rootSummary.phraseKo}` : ''
-  const rootEnSlim = rootSummary && rootSummary.level === 'none' ? ` ${rootSummary.phraseEn}` : ''
+  // S1: 본명 핵심 — 일간 + 격국 + (선택적) 종격. 통근(dayMasterRoot) 문장은
+  // 카르마 섹션이 전담하므로 헤드라인에서는 빼서 중복을 없앤다.
   // 어미 다양화 — "~ 사람이에요/스타일이에요/결을 타고났어요" 반복을 줄이기 위해
   // 일간 한자 코드포인트로 결정론적으로 세 어미 중 하나 선택. "결" 어휘는
   // 10차 자연화에서 제거하고 직접적인 한국어로 풀어냄.
@@ -164,12 +162,12 @@ export function buildHeadline(input: BuilderInput): Headline {
   // 사전에 없는 일주는 기존 일간 라벨 문장으로 폴백.
   const iljuArch = getIljuArchetype(iljuKey)
   const s1ko = iljuArch
-    ? `당신은 ${iljuArch.character} 유형이에요.${geokgukKo}${jongKo}${rootKoSlim}`
+    ? `당신은 ${iljuArch.character} 유형이에요.${geokgukKo}${jongKo}`
     : `당신은 사주로는 ${strengthKo ? strengthKo + ' ' : ''}${stemLabelKo} ${s1Suffix}.` +
-      `${geokgukKo}${jongKo}${rootKoSlim}`
+      `${geokgukKo}${jongKo}`
   const s1en = iljuArch
-    ? `${iljuArch.character_en}${geokgukEn}${jongEn}${rootEnSlim}`
-    : `You were born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}${rootEnSlim}`
+    ? `${iljuArch.character_en}${geokgukEn}${jongEn}`
+    : `You were born with a ${strengthEn ? strengthEn + ' ' : ''}${stemLabelEn} core.${geokgukEn}${jongEn}`
   // mark rootSummary as used regardless (signal hook), keeps Korean rootKo
   // / rootEn variables alive for callers that want the full phrase.
   void rootKo
@@ -273,7 +271,19 @@ export function buildHeadline(input: BuilderInput): Headline {
   void balanceFlavorKo
 
   const s3ko = paragraphJoin([modPlanetKo, lackKo])
-  const s3en = paragraphJoin([balanceFlavorEn + modFlavorEn + domPlanetEn + lackEn + '.'])
+  // Assemble S3 (EN) defensively: when no dominant element exists, the
+  // continuation clauses (", with…", ", led by…") must not start the sentence
+  // with a stray comma, and an all-empty case must not leave a lone period.
+  const s3en = balanceFlavorEn
+    ? `${balanceFlavorEn}${modFlavorEn}${domPlanetEn}${lackEn}.`
+    : (() => {
+        const tail = [
+          domModality ? `Your chart carries ${modalityFlavorEn(domModality)}` : '',
+          dom ? `led by ${planetLabel(dom, 'en')}` : '',
+          lackEl ? `with little ${ELEMENT_FLAVOR_EN[lackEl]} energy` : '',
+        ].filter(Boolean)
+        return tail.length ? `${tail.join(', ')}.` : ''
+      })()
 
   return {
     ko: paragraphJoin([s1ko, s2ko, s3ko]),
@@ -286,12 +296,6 @@ function modalityFlavorEn(m: 'cardinal' | 'fixed' | 'mutable'): string {
   if (m === 'cardinal') return 'a rhythm of starting things'
   if (m === 'fixed') return 'a rhythm of holding steady'
   return 'a rhythm of flowing change'
-}
-
-function modalityKo(m: 'cardinal' | 'fixed' | 'mutable'): string {
-  if (m === 'cardinal') return '새로운 일을 시작하는 편으로'
-  if (m === 'fixed') return '한 분야를 오래 파는 편으로'
-  return '상황에 따라 유연하게 바뀌는 편으로'
 }
 
 function modalityStandaloneKo(m: 'cardinal' | 'fixed' | 'mutable'): string {

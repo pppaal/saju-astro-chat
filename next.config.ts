@@ -116,10 +116,6 @@ const nextConfig = {
       './node_modules/swisseph/build/Release/**/*.node',
       './public/ephe/**/*',
     ],
-    '/app/api/life-prediction/**': [
-      './node_modules/swisseph/build/Release/**/*.node',
-      './public/ephe/**/*',
-    ],
     // Counselor routes pull astrology in too: compat through
     // buildAutoAstroContext, destiny realtime through runFortuneWithRaw,
     // tarot through cross-mode + couple-reading natal cross. These were

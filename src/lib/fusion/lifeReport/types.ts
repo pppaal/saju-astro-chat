@@ -218,6 +218,12 @@ export interface AstrologyLikeChart {
 // ─── Internal helper used by domain builders ─────────────────
 export interface BuilderInput extends LifeReportInput {
   isKo: true // kept for future expansion; builders always render both
+  /**
+   * Per-report dedup sets shared across domain builders so each domain's saju
+   * relation sentence picks a *distinct* 합/충 axis. ko/en are separate because
+   * only one language is rendered per user (so a ko/en pick mismatch is unseen).
+   */
+  relUsed?: { ko: Set<string>; en: Set<string> }
 }
 
 // Re-export the adapter shape so consumers can pre-build calendarSignals.

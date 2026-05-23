@@ -213,11 +213,21 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   const relKoCreate =
     relationPhraseKo(calendarSignals?.sajuRelations, {
       preferKind: '형',
-    }) ?? relationPhraseKo(calendarSignals?.sajuRelations, { preferKind: '충' })
+      usedKeys: input.relUsed?.ko,
+    }) ??
+    relationPhraseKo(calendarSignals?.sajuRelations, {
+      preferKind: '충',
+      usedKeys: input.relUsed?.ko,
+    })
   const relEnCreate =
     relationPhraseEn(calendarSignals?.sajuRelations, {
       preferKind: '형',
-    }) ?? relationPhraseEn(calendarSignals?.sajuRelations, { preferKind: '충' })
+      usedKeys: input.relUsed?.en,
+    }) ??
+    relationPhraseEn(calendarSignals?.sajuRelations, {
+      preferKind: '충',
+      usedKeys: input.relUsed?.en,
+    })
   if (relKoCreate) {
     sajuUsed.push('calendarSignals.sajuRelations')
     p3pieces.push(`${relKoCreate} 그 마찰이 작품으로 풀려나오는 통로가 돼요.`)

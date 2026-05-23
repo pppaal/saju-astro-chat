@@ -6147,9 +6147,14 @@
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
   gap: 0;
-  overflow: hidden;
-  overscroll-behavior: none;
-  touch-action: pan-x;
+  /* Safety valve: when the hero + chat bar are a little taller than the
+     phone's viewport (varies by device / browser chrome), scroll vertically
+     instead of clipping the bottom (밑 잘림 방지). On phones where it fits,
+     no scrollbar appears, so it still reads as a fixed one-screen layout. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .homeBody {

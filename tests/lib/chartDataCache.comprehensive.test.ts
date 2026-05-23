@@ -6,7 +6,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   saveChartData,
   loadChartData,
-  loadCurrentChartData,
   clearChartCache,
   hasCachedData,
   cleanupExpiredCache,
@@ -197,52 +196,6 @@ describe('chartDataCache', () => {
       const result = loadChartData('1990-01-15', '10:30', 37.5665, 126.978);
 
       expect(result?.saju).toEqual({ legacy: true });
-    });
-  });
-
-  describe('loadCurrentChartData', () => {
-    it('should return null when no cache exists', () => {
-      const result = loadCurrentChartData();
-
-      expect(result).toBeNull();
-    });
-
-    it('should load from current key index', () => {
-      mockSessionStorage['destinyChartDataKey'] = 'destinyChartData_1990-01-15_10:30';
-      mockSessionStorage['destinyChartData_1990-01-15_10:30'] = JSON.stringify({
-        saju: { indexed: true },
-        timestamp: Date.now(),
-        birthKey: 'test',
-      });
-
-      const result = loadCurrentChartData();
-
-      expect(result?.saju).toEqual({ indexed: true });
-    });
-
-    it('should return null for expired current cache', () => {
-      mockSessionStorage['destinyChartDataKey'] = 'destinyChartData_1990-01-15_10:30';
-      mockSessionStorage['destinyChartData_1990-01-15_10:30'] = JSON.stringify({
-        saju: { expired: true },
-        timestamp: Date.now() - 4000000,
-        birthKey: 'test',
-      });
-
-      const result = loadCurrentChartData();
-
-      expect(result).toBeNull();
-    });
-
-    it('should fallback to legacy key', () => {
-      mockSessionStorage['destinyChartData'] = JSON.stringify({
-        saju: { legacyCurrent: true },
-        timestamp: Date.now(),
-        birthKey: 'test',
-      });
-
-      const result = loadCurrentChartData();
-
-      expect(result?.saju).toEqual({ legacyCurrent: true });
     });
   });
 

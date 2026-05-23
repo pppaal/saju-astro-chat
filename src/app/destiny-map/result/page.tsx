@@ -27,9 +27,6 @@ type DestinyResult = {
   [key: string]: unknown
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  !!value && typeof value === 'object' && !Array.isArray(value)
-
 // ✅ searchParams 타입 정의
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -99,73 +96,6 @@ export default function DestinyResultPage({
         })
         setResult(res as DestinyResult)
         analytics.freeResultView('destiny-map')
-
-        // Store saju/astro for counselor chat (avoids re-computation)
-        // Note: API returns "astrology" but we store as "astro" for consistency
-        // Include advanced astrology features for deeper counseling
-        if (res?.saju || res?.astrology) {
-          try {
-            const advancedRes = res as Record<string, unknown>
-            const solarReturn = isRecord(advancedRes.solarReturn) ? advancedRes.solarReturn : null
-            const lunarReturn = isRecord(advancedRes.lunarReturn) ? advancedRes.lunarReturn : null
-            const progressions = isRecord(advancedRes.progressions)
-              ? advancedRes.progressions
-              : null
-            const progressionsSecondary =
-              progressions && isRecord(progressions.secondary) ? progressions.secondary : null
-            const progressionsSolarArc =
-              progressions && isRecord(progressions.solarArc) ? progressions.solarArc : null
-            const draconic = isRecord(advancedRes.draconic) ? advancedRes.draconic : null
-            const harmonics = isRecord(advancedRes.harmonics) ? advancedRes.harmonics : null
-            const midpoints = isRecord(advancedRes.midpoints) ? advancedRes.midpoints : null
-            const fixedStars = Array.isArray(advancedRes.fixedStars)
-              ? advancedRes.fixedStars.slice(0, 5)
-              : null
-            const transits = Array.isArray(advancedRes.transitAspects)
-              ? advancedRes.transitAspects.slice(0, 10)
-              : null
-
-            sessionStorage.setItem(
-              'destinyChartData',
-              JSON.stringify({
-                saju: res.saju || {},
-                astro: res.astrology || {}, // API returns "astrology", store as "astro"
-                // Advanced astrology features for counselor
-                advancedAstro: {
-                  extraPoints: advancedRes.extraPoints || null,
-                  solarReturn: solarReturn ? { summary: solarReturn.summary } : null,
-                  lunarReturn: lunarReturn ? { summary: lunarReturn.summary } : null,
-                  progressions: progressions
-                    ? {
-                        secondary: progressionsSecondary
-                          ? progressionsSecondary.summary
-                          : undefined,
-                        solarArc: progressionsSolarArc ? progressionsSolarArc.summary : undefined,
-                        moonPhase: progressionsSecondary
-                          ? progressionsSecondary.moonPhase
-                          : undefined,
-                      }
-                    : null,
-                  draconic: draconic ? draconic.comparison : null,
-                  harmonics: harmonics ? harmonics.profile : null,
-                  asteroids: advancedRes.asteroids || null,
-                  fixedStars, // Top 5 conjunctions
-                  eclipses: advancedRes.eclipses || null,
-                  midpoints: midpoints
-                    ? {
-                        sunMoon: midpoints.sunMoon,
-                        ascMc: midpoints.ascMc,
-                      }
-                    : null,
-                  transits, // Top 10 transits
-                },
-                timestamp: Date.now(),
-              })
-            )
-          } catch (e) {
-            logger.warn('[ResultPage] Failed to store chart data:', e)
-          }
-        }
 
         // Trigger referral reward claim (if user was referred)
         try {

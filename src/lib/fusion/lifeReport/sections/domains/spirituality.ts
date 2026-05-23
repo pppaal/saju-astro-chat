@@ -175,14 +175,9 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       p3piecesEn.push(firstSentenceSpirit(vesEntry.en))
     }
   }
-  if (dra?.sunSign) {
-    p3pieces.push(
-      `영혼이 가져온 정체성은 ${signLabel(dra.sunSign, 'ko')}, ${signSoulKo(dra.sunSign)}의 모습으로 왔어요.`
-    )
-    p3piecesEn.push(
-      `Your draconic Sun in ${signLabel(dra.sunSign, 'en')} suggests your soul arrived in this life already carrying ${signSoulEn(dra.sunSign)}.`
-    )
-  }
+  // (draconic Sun "영혼이 가져온 정체성" line lives in the karma section to
+  // avoid repeating the identical sentence here; this section keeps the
+  // archetype flavour below, which is distinct.)
   if (dra?.archetype) {
     p3pieces.push(`전생에서 들고 온 정체성은 '${dra.archetype}' 쪽 분위기예요.`)
     // dra.archetype은 한국어 텍스트 → 영어 narrative에는 노출하지 않음.
@@ -227,11 +222,13 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const relKoSpirit =
     relationPhraseKo(calendarSignals?.sajuRelations, {
       preferKind: '해',
-    }) ?? relationPhraseKo(calendarSignals?.sajuRelations)
+      usedKeys: input.relUsed?.ko,
+    }) ?? relationPhraseKo(calendarSignals?.sajuRelations, { usedKeys: input.relUsed?.ko })
   const relEnSpirit =
     relationPhraseEn(calendarSignals?.sajuRelations, {
       preferKind: '해',
-    }) ?? relationPhraseEn(calendarSignals?.sajuRelations)
+      usedKeys: input.relUsed?.en,
+    }) ?? relationPhraseEn(calendarSignals?.sajuRelations, { usedKeys: input.relUsed?.en })
   if (relKoSpirit) {
     sajuUsed.push('calendarSignals.sajuRelations')
     p3pieces.push(`${relKoSpirit} 그 어긋남이 영적 사유의 출발점이 돼요.`)
@@ -410,40 +407,6 @@ function twelfthSignFlavorEn(sign: string): string {
   return TWELFTH_SIGN_EN[sign] ?? 'a singular grain'
 }
 
-const SIGN_SOUL_KO: Record<string, string> = {
-  Aries: '개척자 영혼',
-  Taurus: '건설자 영혼',
-  Gemini: '메신저 영혼',
-  Cancer: '양육자 영혼',
-  Leo: '창조자 영혼',
-  Virgo: '치유자 영혼',
-  Libra: '조화자 영혼',
-  Scorpio: '변형자 영혼',
-  Sagittarius: '탐험가 영혼',
-  Capricorn: '성취자 영혼',
-  Aquarius: '혁신가 영혼',
-  Pisces: '신비주의자 영혼',
-}
-const SIGN_SOUL_EN: Record<string, string> = {
-  Aries: 'a pioneer soul',
-  Taurus: 'a builder soul',
-  Gemini: 'a messenger soul',
-  Cancer: 'a nurturer soul',
-  Leo: 'a creator soul',
-  Virgo: 'a healer soul',
-  Libra: 'a harmoniser soul',
-  Scorpio: 'a transformer soul',
-  Sagittarius: 'an explorer soul',
-  Capricorn: 'an achiever soul',
-  Aquarius: 'an innovator soul',
-  Pisces: 'a mystic soul',
-}
-function signSoulKo(sign: string): string {
-  return SIGN_SOUL_KO[sign] ?? '본연의 영혼'
-}
-function signSoulEn(sign: string): string {
-  return SIGN_SOUL_EN[sign] ?? 'a native soul-grain'
-}
 
 // 60갑자 일주 (hanja) → natural English label (spirituality 섹션 전용).
 const SPIRIT_STEM_EN: Record<string, string> = {

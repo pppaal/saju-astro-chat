@@ -159,7 +159,9 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       : sikSangTotal === 0
         ? 'Your bond with children grows through conscious choice.'
         : 'Your bond with children runs calm and stable.',
-    `Creative expression comes through as ${sikSangCountWordEn(sikSangTotal)} strong stream${sikSangTotal === 1 ? '' : 's'} — ${childFlavorEn(sikSangTotal)}.`,
+    sikSangTotal === 0
+      ? `Direct signals of creative expression stay quiet here — ${childFlavorEn(sikSangTotal)}.`
+      : `Creative expression comes through as ${sikSangCountWordEn(sikSangTotal)} strong stream${sikSangTotal === 1 ? '' : 's'} — ${childFlavorEn(sikSangTotal)}.`,
     fifth.length > 0
       ? `With ${fifth.map((p) => p.name).join(', ')} inside the 5th house, the seat of children, creation and play is fully active.`
       : 'With an empty 5th house, the signs of children come from other placements.',
@@ -255,9 +257,11 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
   // Saju relations — time pillar weighted (자녀 자리 = 시주)
   const relKoChildren = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferPillar: 'time',
+    usedKeys: input.relUsed?.ko,
   })
   const relEnChildren = relationPhraseEn(input.calendarSignals?.sajuRelations, {
     preferPillar: 'time',
+    usedKeys: input.relUsed?.en,
   })
   if (relKoChildren) {
     sajuUsed.push('calendarSignals.sajuRelations')

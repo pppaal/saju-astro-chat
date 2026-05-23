@@ -30,6 +30,7 @@ import {
   aspectQuality,
   eulReul,
   houseLabel,
+  iGa,
   paragraph,
   signLabel,
   varyRepeatedEndings,
@@ -396,10 +397,12 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const relKoLove = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferKind: '합',
     preferPillar: 'day',
+    usedKeys: input.relUsed?.ko,
   })
   const relEnLove = relationPhraseEn(input.calendarSignals?.sajuRelations, {
     preferKind: '합',
     preferPillar: 'day',
+    usedKeys: input.relUsed?.en,
   })
   if (relKoLove) {
     sajuUsed.push('calendarSignals.sajuRelations')
@@ -434,7 +437,8 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const fxOnVenus = venus ? fixedStarOn(astro, 'Venus') : []
   if (fxOnVenus.length > 0) {
     astroUsed.push('fixedStars(Venus)')
-    deepKo.push(`금성과 함께 자리한 별 ${fxOnVenus.join('·')}이(가) 사랑에 특별한 분위기를 더해요.`)
+    const fxV = fxOnVenus.join('·')
+    deepKo.push(`금성과 함께 자리한 별 ${fxV}${iGa(fxV)} 사랑에 특별한 분위기를 더해요.`)
     deepEn.push(
       `The fixed star${fxOnVenus.length > 1 ? 's' : ''} ${fxOnVenus.join(', ')} sit${fxOnVenus.length > 1 ? '' : 's'} alongside your Venus, etching a distinctive quality into how you love.`
     )
@@ -442,8 +446,9 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   const fxOnMars = mars ? fixedStarOn(astro, 'Mars') : []
   if (fxOnMars.length > 0) {
     astroUsed.push('fixedStars(Mars)')
+    const fxM = fxOnMars.join('·')
     deepKo.push(
-      `화성에 닿는 별빛 ${fxOnMars.join('·')}이(가) 끌림의 분위기를 한층 진하게 만들어요.`
+      `화성에 닿는 별빛 ${fxM}${iGa(fxM)} 끌림의 분위기를 한층 진하게 만들어요.`
     )
     deepEn.push(
       `The fixed star${fxOnMars.length > 1 ? 's' : ''} ${fxOnMars.join(', ')} touch${fxOnMars.length > 1 ? '' : 'es'} your Mars, making the pull of attraction richer and more intense.`

@@ -213,9 +213,11 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   // Saju relations — year/month axis often reflects family-resource flow.
   const relKoMoney = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferPillar: 'month',
+    usedKeys: input.relUsed?.ko,
   })
   const relEnMoney = relationPhraseEn(input.calendarSignals?.sajuRelations, {
     preferPillar: 'month',
+    usedKeys: input.relUsed?.en,
   })
   if (relKoMoney) {
     sajuUsed.push('calendarSignals.sajuRelations')

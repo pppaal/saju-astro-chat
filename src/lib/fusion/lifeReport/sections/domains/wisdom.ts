@@ -244,9 +244,11 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   // Saju relations — 합(joining) often supports learning lineage / mentor
   const relKoWisdom = relationPhraseKo(calendarSignals?.sajuRelations, {
     preferKind: '합',
+    usedKeys: input.relUsed?.ko,
   })
   const relEnWisdom = relationPhraseEn(calendarSignals?.sajuRelations, {
     preferKind: '합',
+    usedKeys: input.relUsed?.en,
   })
   if (relKoWisdom) {
     sajuUsed.push('calendarSignals.sajuRelations')

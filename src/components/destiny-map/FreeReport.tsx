@@ -140,7 +140,7 @@ const FreeReport = memo(function FreeReport({
 
   return (
     <div
-      className={`mt-8 [&_p]:text-[1.02rem] md:[&_p]:text-[1.06rem] [&_li]:text-[1.02rem] md:[&_li]:text-[1.06rem] ${className}`}
+      className={`mt-8 mx-auto max-w-3xl [&_p]:text-[1.02rem] md:[&_p]:text-[1.06rem] [&_li]:text-[1.02rem] md:[&_li]:text-[1.06rem] ${className}`}
     >
       <LifeReportView report={report} isKo={isKo} />
       <p className="text-center text-xs text-gray-500 mt-8">

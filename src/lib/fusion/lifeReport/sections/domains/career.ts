@@ -410,9 +410,11 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // shows the deepest professional pivot baked into the chart.
   const relKoCareer = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferPillar: 'day',
+    usedKeys: input.relUsed?.ko,
   })
   const relEnCareer = relationPhraseEn(input.calendarSignals?.sajuRelations, {
     preferPillar: 'day',
+    usedKeys: input.relUsed?.en,
   })
   if (relKoCareer) {
     sajuUsed.push('calendarSignals.sajuRelations')

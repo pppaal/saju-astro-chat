@@ -192,54 +192,6 @@ export function loadChartData(
 }
 
 /**
- * Load the most recent chart data (without birth data validation)
- * Useful for counselor page where we trust the cached data
- */
-export function loadCurrentChartData(): {
-  saju?: Record<string, unknown>;
-  astro?: Record<string, unknown>;
-  advancedAstro?: Record<string, unknown>;
-  birthDate?: string;
-  birthTime?: string;
-} | null {
-  try {
-    // 현재 활성 캐시 키 확인
-    const currentKey = sessionStorage.getItem(CACHE_KEY_INDEX);
-    let stored = currentKey ? sessionStorage.getItem(currentKey) : null;
-
-    // 레거시 키로 폴백
-    if (!stored) {
-      stored = sessionStorage.getItem(LEGACY_CACHE_KEY);
-    }
-
-    if (!stored) {return null;}
-
-    const cached = JSON.parse(stored);
-
-    // Check if cache is expired
-    if (Date.now() - cached.timestamp > CACHE_DURATION) {
-      return null;
-    }
-
-    // Validate data integrity
-    if (!cached.saju && !cached.astro) {
-      return null;
-    }
-
-    return {
-      saju: cached.saju,
-      astro: cached.astro,
-      advancedAstro: cached.advancedAstro,
-      birthDate: cached.birthDate,
-      birthTime: cached.birthTime,
-    };
-  } catch (error) {
-    logger.warn("[ChartCache] Failed to load current cache:", error);
-    return null;
-  }
-}
-
-/**
  * Clear chart data cache
  */
 export function clearChartCache(): void {
