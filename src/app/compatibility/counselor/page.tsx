@@ -558,7 +558,7 @@ function CompatibilityCounselorContent() {
   }
 
   return (
-    <main className={`${styles.page} ${styles.fadeIn} ${styles.lightTheme}`}>
+    <main className={`${styles.page} ${styles.fadeIn}`}>
       <CounselorSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
