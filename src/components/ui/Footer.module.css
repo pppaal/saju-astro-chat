@@ -18,7 +18,10 @@
 }
 @media (max-width: 768px) {
   .footer {
-    background: transparent;
+    /* 밝은 테마 페이지(프로필·상담사 등) 위에서도 흰 글자가 보이도록
+       모바일에서도 어두운 배경 유지 (이전 transparent 는 흰 글자가
+       흰 배경에 묻혀 이용약관 링크가 안 보였음). */
+    background: rgba(5, 7, 20, 0.95);
     border-top: none;
     backdrop-filter: none;
   }
@@ -35,12 +38,12 @@
     padding: 8px 12px 14px;
   }
   .mobileLegalOnly a {
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.55);
     font-size: 11px;
     text-decoration: none;
   }
   .mobileLegalOnly a:hover {
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.8);
   }
 }
 
