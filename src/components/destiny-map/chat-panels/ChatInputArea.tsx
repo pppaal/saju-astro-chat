@@ -137,6 +137,10 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={onKeyDown}
+          onFocus={(e) => {
+            // 미리 채워진 후속질문을 탭하면 전체 선택 — 바로 보내거나 타이핑으로 덮어쓰기 쉽게.
+            if (e.currentTarget.value.trim()) e.currentTarget.select()
+          }}
           placeholder={animatedPlaceholder || tr.placeholder}
           aria-label={tr.placeholder}
           rows={3}
