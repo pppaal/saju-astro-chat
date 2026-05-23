@@ -427,6 +427,16 @@ describe('Solar Return API - POST /api/astrology/advanced/solar-return', () => {
     })
 
     it('should return 500 when request.json() throws (malformed body)', async () => {
+      // When JSON parsing fails the route falls back to an empty body, which the
+      // schema rejects. Drive that path explicitly so the test does not depend on
+      // mock state leaked from earlier tests.
+      mockSafeParse.mockReturnValue({
+        success: false,
+        error: {
+          issues: [{ path: ['date'], message: 'Date must be in YYYY-MM-DD format' }],
+        },
+      })
+
       const badRequest = new Request('http://localhost/api/astrology/advanced/solar-return', {
         method: 'POST',
         body: 'not-json{{',

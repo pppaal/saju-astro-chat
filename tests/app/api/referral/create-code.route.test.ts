@@ -169,6 +169,12 @@ describe('/api/referral/create-code', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
+    // Restore the code-based default; one test overrides it with a fixed URL and
+    // clearAllMocks() does not reset implementations, so without this the override
+    // leaks to other tests under non-source execution order.
+    vi.mocked(getReferralUrl).mockImplementation(
+      (code: string) => `https://destinypal.me/?ref=${code}`
+    )
   })
 
   describe('Authentication', () => {

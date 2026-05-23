@@ -35,10 +35,22 @@ const localStorageMock = (() => {
 
 Object.defineProperty(global, "localStorage", { value: localStorageMock });
 
+// Several tests reassign localStorageMock.getItem / setItem (e.g. to throw or to
+// return fixed JSON) without restoring them. Keep the store-backed originals and
+// restore them before every test so the suite is independent of execution order.
+const originalGetItem = localStorageMock.getItem;
+const originalSetItem = localStorageMock.setItem;
+
+beforeEach(() => {
+  localStorageMock.getItem = originalGetItem;
+  localStorageMock.setItem = originalSetItem;
+});
+
 describe("getUserProfile", () => {
   beforeEach(() => {
     localStorageMock.clear();
     vi.clearAllMocks();
+    localStorageMock.getItem = originalGetItem;
   });
 
   it("returns empty object when no profile stored", () => {
