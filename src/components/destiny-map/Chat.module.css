@@ -825,6 +825,46 @@
   color: #fff;
 }
 
+/* 이모지 + 텍스트 레이블을 같이 보이는 툴 버튼 (타로 / 운세차트) */
+.toolWithLabel {
+  width: auto;
+  gap: 4px;
+  padding: 0 10px;
+}
+
+.toolLabel {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 입력 지우기(X) — 전송 버튼 왼쪽, 입력이 있을 때만 */
+.clearButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(220, 215, 255, 0.7);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.clearButton:hover {
+  background: rgba(255, 120, 120, 0.18);
+  color: #fff;
+}
+
 .inputBoxActions .sendButton {
   margin-left: auto;
   min-width: 38px;

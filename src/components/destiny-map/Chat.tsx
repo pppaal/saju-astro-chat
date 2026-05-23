@@ -143,6 +143,15 @@ const Chat = memo(function Chat({
     [setFollowUpQuestions]
   )
 
+  // #3 답변 직후 첫 후속질문을 입력창에 미리 채운다 — 사용자는 엔터로 바로 보내거나,
+  // 입력창의 X(지우기)로 싹 비우고 자기 질문을 새로 쓸 수 있다. 이미 뭔가 입력 중이면
+  // 덮어쓰지 않는다(직후엔 전송으로 비워져 있어 안전).
+  React.useEffect(() => {
+    if (followUpQuestions.length > 0) {
+      setInput((prev) => (prev.trim() ? prev : followUpQuestions[0]))
+    }
+  }, [followUpQuestions])
+
   const pendingSaveRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestSavePayloadRef = React.useRef<string | null>(null)
 
@@ -269,7 +278,6 @@ const Chat = memo(function Chat({
       return [{ role: 'system', content: `Returning context: ${returningSummary}` }, ...prev]
     })
   }, [returningSummary, setMessages])
-
 
   useSeedEvent({
     eventName: seedEvent,
@@ -431,7 +439,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
 
       {showWelcomeBack && (
         <div className={styles.welcomeBackBanner}>
-          <span className={styles.welcomeBackSpark} aria-hidden="true">{'\u2728'}</span>
+          <span className={styles.welcomeBackSpark} aria-hidden="true">
+            {'\u2728'}
+          </span>
           <span>{tr.welcomeBack}</span>
         </div>
       )}
@@ -473,10 +483,16 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                   if (items.length === 0) return null
                   const groupLabel =
                     bucket === 'today'
-                      ? (effectiveLang === 'ko' ? '\uC624\uB298' : 'Today')
+                      ? effectiveLang === 'ko'
+                        ? '\uC624\uB298'
+                        : 'Today'
                       : bucket === 'week'
-                      ? (effectiveLang === 'ko' ? '\uC9C0\uB09C 7\uC77C' : 'Previous 7 Days')
-                      : (effectiveLang === 'ko' ? '\uC774\uC804' : 'Older')
+                        ? effectiveLang === 'ko'
+                          ? '\uC9C0\uB09C 7\uC77C'
+                          : 'Previous 7 Days'
+                        : effectiveLang === 'ko'
+                          ? '\uC774\uC804'
+                          : 'Older'
                   return (
                     <div key={bucket} className={styles.historyRailGroup}>
                       <h3 className={styles.historyRailGroupLabel}>{groupLabel}</h3>
@@ -512,7 +528,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                             ) : isConfirming ? (
                               <div className={styles.historyRailConfirm}>
                                 <span className={styles.historyRailConfirmText}>
-                                  {effectiveLang === 'ko' ? '\uC0AD\uC81C\uD560\uAE4C\uC694?' : 'Delete?'}
+                                  {effectiveLang === 'ko'
+                                    ? '\uC0AD\uC81C\uD560\uAE4C\uC694?'
+                                    : 'Delete?'}
                                 </span>
                                 <button
                                   type="button"
@@ -548,8 +566,16 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                                     type="button"
                                     className={styles.historyRailItemAction}
                                     onClick={() => startRename(session)}
-                                    aria-label={effectiveLang === 'ko' ? '\uC774\uB984 \uBCC0\uACBD' : 'Rename'}
-                                    title={effectiveLang === 'ko' ? '\uC774\uB984 \uBCC0\uACBD' : 'Rename'}
+                                    aria-label={
+                                      effectiveLang === 'ko'
+                                        ? '\uC774\uB984 \uBCC0\uACBD'
+                                        : 'Rename'
+                                    }
+                                    title={
+                                      effectiveLang === 'ko'
+                                        ? '\uC774\uB984 \uBCC0\uACBD'
+                                        : 'Rename'
+                                    }
                                   >
                                     \u270E
                                   </button>
@@ -585,18 +611,26 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
                 {'\uD83C\uDCCF'}
               </span>
-              {effectiveLang === 'ko' ? '\uD0C0\uB85C \uCE74\uB4DC \uBF51\uAE30' : 'Draw tarot cards'}
+              {effectiveLang === 'ko'
+                ? '\uB2E4\uC74C \uC9C8\uBB38 \uD0C0\uB85C\uB85C \uBCF4\uAE30'
+                : 'See your next question in tarot'}
             </button>
             <button
               type="button"
               className={styles.historyRailFooterBtn}
               onClick={() => setShowChartModal(true)}
-              title={effectiveLang === 'ko' ? '\uB098\uC758 \uC6B4\uBA85 \uCC28\uD2B8' : 'My destiny chart'}
+              title={
+                effectiveLang === 'ko'
+                  ? '\uB098\uC758 \uC6B4\uBA85 \uCC28\uD2B8'
+                  : 'My destiny chart'
+              }
             >
               <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
                 {'\u2728'}
               </span>
-              {effectiveLang === 'ko' ? '\uB098\uC758 \uC6B4\uBA85 \uCC28\uD2B8' : 'My destiny chart'}
+              {effectiveLang === 'ko'
+                ? '\uB098\uC758 \uC6B4\uBA85 \uCC28\uD2B8'
+                : 'My destiny chart'}
             </button>
           </div>
         </aside>
@@ -653,7 +687,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         onComplete={handleTarotComplete}
         lang={lang}
         profile={profile}
-        initialConcern={extractConcernFromMessages()}
+        initialConcern={followUpQuestions[0] || extractConcernFromMessages()}
       />
 
       <ChartModal
