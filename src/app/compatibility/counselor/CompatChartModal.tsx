@@ -63,21 +63,21 @@ function QuickRead({
 }) {
   const line = generateChartSummary(saju, astro, lang)
   if (!line) return null
-  const chip = accent === 'rose' ? 'bg-rose-500/15 text-rose-300' : 'bg-sky-500/15 text-sky-300'
+  const chip = accent === 'rose' ? 'bg-rose-100 text-rose-600' : 'bg-sky-100 text-sky-600'
   return (
-    <div className="rounded-2xl border border-stone-700 bg-stone-800/60 p-3">
+    <div className="rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] p-3">
       <span className={`mb-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${chip}`}>
         {name}
       </span>
-      <p className="text-sm leading-relaxed text-stone-200">{line}</p>
+      <p className="text-sm leading-relaxed text-[#44403c]">{line}</p>
     </div>
   )
 }
 
 function SectionTitle({ children, accent }: { children: React.ReactNode; accent: 'indigo' | 'rose' }) {
-  const border = accent === 'indigo' ? 'border-indigo-500' : 'border-rose-500'
+  const border = accent === 'indigo' ? 'border-sky-400' : 'border-rose-400'
   return (
-    <h3 className={`border-l-2 ${border} px-2 text-sm font-semibold text-stone-200`}>{children}</h3>
+    <h3 className={`border-l-2 ${border} px-2 text-sm font-semibold text-[#1c1917]`}>{children}</h3>
   )
 }
 
@@ -114,28 +114,33 @@ export function CompatChartModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(28,25,23,0.45)] p-4 backdrop-blur-sm"
       onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={isKo ? '궁합 차트' : 'Couple chart'}
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-stone-700/50 bg-stone-900 p-6 shadow-2xl"
+        className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#e7e4df] bg-white p-6 shadow-[0_24px_48px_rgba(28,25,23,0.18)]"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={isKo ? '궁합 차트' : 'Couple chart'}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label={isKo ? '닫기' : 'Close'}
-          className="absolute right-4 top-4 rounded-full p-1.5 text-stone-400 transition-colors hover:bg-stone-800 hover:text-white"
+          className="absolute right-4 top-4 rounded-full p-1.5 text-[#a8a29e] transition-colors hover:bg-[#f5f4f1] hover:text-[#1c1917]"
         >
           <X size={18} />
         </button>
 
         <div className="mb-5 space-y-1 text-center">
-          <h2 className="text-lg font-bold text-stone-200">{isKo ? '궁합 차트' : 'Couple Chart'}</h2>
-          <p className="text-xs text-stone-400">
+          <h2
+            className="text-lg font-bold text-[#1c1917]"
+            style={{ fontFamily: 'var(--font-cinzel), Georgia, serif' }}
+          >
+            {isKo ? '궁합 차트' : 'Couple Chart'}
+          </h2>
+          <p className="text-xs text-[#8b857d]">
             {isKo
               ? '두 사람의 사주와 네이탈을 하나로 겹쳐 비교'
               : 'Both charts overlaid for a side-by-side read'}
@@ -184,13 +189,13 @@ export function CompatChartModal({
             </SectionTitle>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
-                <span className="inline-block rounded-full bg-rose-500/15 px-2.5 py-0.5 text-xs font-bold text-rose-300">
+                <span className="inline-block rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-bold text-rose-600">
                   {labelA}
                 </span>
                 <SajuChart saju={sajuA as never} lang={lang} />
               </div>
               <div className="space-y-1.5">
-                <span className="inline-block rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-bold text-sky-300">
+                <span className="inline-block rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-600">
                   {labelB}
                 </span>
                 <SajuChart saju={sajuB as never} lang={lang} />

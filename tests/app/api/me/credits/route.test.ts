@@ -588,6 +588,12 @@ describe('Credits API - POST', () => {
   describe('Body Size Limit', () => {
     beforeEach(() => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
+      // Provide a success default so a canUseCredits rejection leaked from another
+      // test does not turn this into a 500 under non-source execution order.
+      vi.mocked(canUseCredits).mockResolvedValue({
+        allowed: true,
+        remaining: 10,
+      } as any)
     })
 
     it('should handle oversized request body gracefully', async () => {

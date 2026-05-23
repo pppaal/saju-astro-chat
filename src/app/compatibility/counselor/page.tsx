@@ -558,7 +558,7 @@ function CompatibilityCounselorContent() {
   }
 
   return (
-    <main className={`${styles.page} ${styles.fadeIn} ${styles.lightTheme}`}>
+    <main className={`${styles.page} ${styles.fadeIn}`}>
       <CounselorSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -732,17 +732,6 @@ function CompatibilityCounselorContent() {
             />
             <div className={styles.inputToolbar}>
               <div className={styles.inputToolbarLeft}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    alert(isKo ? '파일 첨부는 곧 지원돼요.' : 'File attach coming soon.')
-                  }}
-                  className={styles.toolButton}
-                  aria-label={isKo ? '파일 첨부' : 'Attach file'}
-                  title={isKo ? '파일 첨부 (준비 중)' : 'Attach file (coming soon)'}
-                >
-                  <span className={styles.toolButtonIcon}>📎</span>
-                </button>
                 {/* 🎴 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
                     사이드바 푸터에 같은 둘이 있어 ≥1024px에선 중복을 피해 숨긴다. */}
                 <button

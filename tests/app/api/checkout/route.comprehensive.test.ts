@@ -196,13 +196,19 @@ describe('/api/checkout', () => {
     it('should return error when STRIPE_SECRET_KEY is missing', async () => {
       delete process.env.STRIPE_SECRET_KEY
 
+      // The route caches a module-level Stripe singleton; load a fresh module so a
+      // Stripe instance created by an earlier test does not bypass the secret check
+      // (which would otherwise make this test order-dependent).
+      vi.resetModules()
+      const { POST: FreshPOST } = await import('@/app/api/checkout/route')
+
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
       })
 
-      const response = await POST(req)
+      const response = await FreshPOST(req)
       const data = await response.json()
 
       expect(response.status).toBe(500)

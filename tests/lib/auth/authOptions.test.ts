@@ -3,6 +3,7 @@
  * src/lib/auth/authOptions.ts
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { hasTokenEncryptionKey } from '@/lib/security/tokenCrypto'
 
 // Mock dependencies before importing authOptions
 vi.mock('@/lib/db/prisma', () => ({
@@ -83,6 +84,10 @@ describe('authOptions', () => {
     vi.clearAllMocks()
     vi.resetModules()
     process.env = { ...originalEnv }
+    // Default: encryption key present. The ensureEncryptionKey tests override this
+    // to false; clearAllMocks() does not reset return values, so restore it here
+    // to keep the production-path tests independent of execution order.
+    vi.mocked(hasTokenEncryptionKey).mockReturnValue(true)
   })
 
   afterEach(() => {

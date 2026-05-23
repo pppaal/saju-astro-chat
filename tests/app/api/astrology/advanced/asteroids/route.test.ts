@@ -732,6 +732,16 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
     })
 
     it('should handle malformed JSON body gracefully', async () => {
+      // When JSON parsing fails the route falls back to an empty body, which the
+      // schema rejects. Drive that path explicitly so the test does not depend on
+      // mock state leaked from earlier tests.
+      mockSafeParse.mockReturnValue({
+        success: false,
+        error: {
+          issues: [{ path: ['date'], message: 'Required' }],
+        },
+      })
+
       const badRequest = new Request('http://localhost/api/astrology/advanced/asteroids', {
         method: 'POST',
         body: 'not-json{{',

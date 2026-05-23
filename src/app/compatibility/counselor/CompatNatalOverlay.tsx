@@ -73,7 +73,7 @@ export function CompatNatalOverlay({
 
   if (pA.length === 0 && pB.length === 0) {
     return (
-      <div className="rounded-xl border border-indigo-500/30 bg-slate-950/80 p-6 text-center text-sm text-slate-400">
+      <div className="rounded-xl border border-[#e7e4df] bg-[#fcfbfa] p-6 text-center text-sm text-[#a8a29e]">
         {isKo ? '점성 데이터 없음' : 'No astro data'}
       </div>
     )
@@ -114,7 +114,7 @@ export function CompatNatalOverlay({
         <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
         {name}
       </div>
-      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-slate-300/80">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-[#57534e]">
         {list.map((p) => {
           const lon = (((p.longitude % 360) + 360) % 360)
           const sign = Math.floor(lon / 30)
@@ -134,10 +134,10 @@ export function CompatNatalOverlay({
   const sky = '#38bdf8'
 
   return (
-    <div className="rounded-xl border border-indigo-500/30 bg-slate-950/80 p-3 shadow-inner">
+    <div className="rounded-xl border border-[#e7e4df] bg-[#fcfbfa] p-3">
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="mx-auto h-auto w-full max-w-[300px]">
-        <circle cx={CX} cy={CY} r={ringOuter} fill="none" stroke="rgba(99,102,241,0.45)" strokeWidth="1.5" />
-        <circle cx={CX} cy={CY} r={ringInner} fill="none" stroke="rgba(99,102,241,0.22)" strokeWidth="1" />
+        <circle cx={CX} cy={CY} r={ringOuter} fill="none" stroke="rgba(28,25,23,0.20)" strokeWidth="1.5" />
+        <circle cx={CX} cy={CY} r={ringInner} fill="none" stroke="rgba(28,25,23,0.10)" strokeWidth="1" />
 
         {ZODIAC_GLYPHS.map((glyph, s) => {
           const boundary = screenDeg(s * 30, asc)
@@ -149,16 +149,16 @@ export function CompatNatalOverlay({
           const hp = pt(ringInner - 9, mid)
           return (
             <g key={s}>
-              <line x1={bp1.x} y1={bp1.y} x2={bp2.x} y2={bp2.y} stroke="rgba(99,102,241,0.22)" strokeWidth="1" />
-              <text x={gp.x} y={gp.y} fill="#a5b4fc" fontSize="13" textAnchor="middle" dominantBaseline="middle">{glyph}</text>
-              <text x={hp.x} y={hp.y} fill="rgba(148,163,184,0.5)" fontSize="8" textAnchor="middle" dominantBaseline="middle">{houseNum}</text>
+              <line x1={bp1.x} y1={bp1.y} x2={bp2.x} y2={bp2.y} stroke="rgba(28,25,23,0.10)" strokeWidth="1" />
+              <text x={gp.x} y={gp.y} fill="#78716c" fontSize="13" textAnchor="middle" dominantBaseline="middle">{glyph}</text>
+              <text x={hp.x} y={hp.y} fill="rgba(120,113,108,0.6)" fontSize="8" textAnchor="middle" dominantBaseline="middle">{houseNum}</text>
             </g>
           )
         })}
 
         {/* A ASC (left, amber) */}
-        <line x1={CX} y1={CY} x2={pt(ringOuter, 180).x} y2={pt(ringOuter, 180).y} stroke="rgba(251,191,36,0.7)" strokeWidth="1.5" />
-        <text x={pt(ringOuter + 10, 180).x} y={pt(ringOuter + 10, 180).y} fill="#fbbf24" fontSize="9" textAnchor="middle" dominantBaseline="middle">ASC</text>
+        <line x1={CX} y1={CY} x2={pt(ringOuter, 180).x} y2={pt(ringOuter, 180).y} stroke="rgba(217,119,6,0.7)" strokeWidth="1.5" />
+        <text x={pt(ringOuter + 10, 180).x} y={pt(ringOuter + 10, 180).y} fill="#d97706" fontSize="9" textAnchor="middle" dominantBaseline="middle">ASC</text>
 
         {/* B ASC tick (sky) at its position relative to A's wheel */}
         {Number.isFinite(ascB) && (
@@ -175,7 +175,7 @@ export function CompatNatalOverlay({
 
         {renderSet(pA, radiusA, rose)}
         {renderSet(pB, radiusB, sky)}
-        <circle cx={CX} cy={CY} r="2.5" fill="#818cf8" />
+        <circle cx={CX} cy={CY} r="2.5" fill="#78716c" />
       </svg>
 
       <div className="mt-2 grid grid-cols-2 gap-3">
