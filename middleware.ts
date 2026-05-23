@@ -93,22 +93,6 @@ const _cspConnectSrc: string = (() => {
     'https://vitals.vercel-insights.com',
     'wss:',
   ]
-  const aiBackend = process.env.AI_BACKEND_URL
-  if (aiBackend) {
-    try {
-      const parsed = new URL(aiBackend)
-      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
-        src.push(aiBackend)
-      } else {
-        console.warn(`[Middleware] AI_BACKEND_URL has invalid protocol: ${parsed.protocol}`)
-      }
-    } catch {
-      console.warn(`[Middleware] AI_BACKEND_URL is malformed: ${aiBackend}`)
-    }
-  }
-  if (!_isProd) {
-    src.push('http://localhost:5000', 'http://127.0.0.1:5000')
-  }
   return src.join(' ')
 })()
 

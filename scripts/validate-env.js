@@ -55,8 +55,6 @@ const REQUIRED_AI = [
 // Recommended for production monitoring
 const RECOMMENDED_PRODUCTION = [
   "SENTRY_DSN",
-  "AI_BACKEND_URL", // server-only AI backend URL (prefer over NEXT_PUBLIC_AI_BACKEND)
-  "NEXT_PUBLIC_AI_BACKEND",
 ];
 
 const REQUIRED_PUSH = ["NEXT_PUBLIC_VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY"];
@@ -117,10 +115,6 @@ function main() {
   }
   if (metricsPrimaryMissing && !metricsLegacyMissing) {
     warnings.push("METRICS_TOKEN is deprecated; use PUBLIC_METRICS_TOKEN");
-  }
-
-  if (process.env.BACKEND_AI_URL && !process.env.AI_BACKEND_URL) {
-    warnings.push("BACKEND_AI_URL is deprecated; use AI_BACKEND_URL");
   }
 
   if (process.env.PUBLIC_API_TOKEN && isMissing("NEXT_PUBLIC_API_TOKEN")) {
