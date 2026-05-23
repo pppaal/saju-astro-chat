@@ -23,6 +23,15 @@ export const tarotThemes: TarotTheme[] = [
         positions: [],
       },
       {
+        id: 'two-card',
+        title: '2-Card Reading',
+        titleKo: '2장 리딩',
+        cardCount: 2,
+        description: 'Two cards — compare two options or two sides.',
+        descriptionKo: '두 갈래 비교 · A vs B · 나와 상대.',
+        positions: [],
+      },
+      {
         id: 'past-present-future',
         title: '3-Card Reading',
         titleKo: '3장 리딩',
