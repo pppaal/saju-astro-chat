@@ -110,7 +110,7 @@ type YearlyOptions = {
   dailyRetrograde?: Record<string, string[]>
 }
 
-const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
+export const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
   career: 'career',
   love: 'love',
   money: 'wealth',
@@ -155,7 +155,7 @@ function categoryMatchesFilter(categories: EventCategory[], filter?: EventCatego
   return !filter || categories.includes(filter)
 }
 
-function scoreToGrade(score: number): ImportanceGrade {
+export function scoreToGrade(score: number): ImportanceGrade {
   // Recalibrated for the full-engine 7-axis blend (post 365-day
   // transit integration). Empirical 1460-date sample across 4 birth
   // charts shows percentiles p5=34, p20=41, p50=49, p80=57, p95=63
@@ -1768,7 +1768,11 @@ function buildAstroFactors(
   return [pickBySeed(seed, closerPool), moonLine, sunLine]
 }
 
-function buildRecommendations(grade: ImportanceGrade, domain: DomainKey, seed: string): string[] {
+export function buildRecommendations(
+  grade: ImportanceGrade,
+  domain: DomainKey,
+  seed: string
+): string[] {
   // Pick 2 i18n recommendation keys per day from a domain-flavoured pool,
   // varied by seed so consecutive days don't surface the same canned line.
   // Keys must exist in src/i18n/locales/{ko,en}/calendar.json under
@@ -1806,7 +1810,7 @@ function buildRecommendations(grade: ImportanceGrade, domain: DomainKey, seed: s
   return [pickBySeed(`${seed}|rec0`, anchorPool), pickBySeed(`${seed}|rec1`, support)]
 }
 
-function buildWarnings(
+export function buildWarnings(
   grade: ImportanceGrade,
   crossAgreementPercent: number,
   domain: DomainKey,
