@@ -110,7 +110,7 @@ type YearlyOptions = {
   dailyRetrograde?: Record<string, string[]>
 }
 
-export const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
+const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
   career: 'career',
   love: 'love',
   money: 'wealth',
@@ -155,7 +155,7 @@ function categoryMatchesFilter(categories: EventCategory[], filter?: EventCatego
   return !filter || categories.includes(filter)
 }
 
-export function scoreToGrade(score: number): ImportanceGrade {
+function scoreToGrade(score: number): ImportanceGrade {
   // Recalibrated for the full-engine 7-axis blend (post 365-day
   // transit integration). Empirical 1460-date sample across 4 birth
   // charts shows percentiles p5=34, p20=41, p50=49, p80=57, p95=63
@@ -307,7 +307,7 @@ const BRANCHES_BY_INDEX = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未
 // callers go through getMonthPillarForDate(date).
 
 // 십신 (day-master vs target stem)
-export function getSibsinKo(dayStem: string, targetStem: string): string {
+function getSibsinKo(dayStem: string, targetStem: string): string {
   const dayEl = STEM_TO_KO_ELEMENT[dayStem]
   const tEl = STEM_TO_KO_ELEMENT[targetStem]
   if (!dayEl || !tEl) return ''
@@ -1768,11 +1768,7 @@ function buildAstroFactors(
   return [pickBySeed(seed, closerPool), moonLine, sunLine]
 }
 
-export function buildRecommendations(
-  grade: ImportanceGrade,
-  domain: DomainKey,
-  seed: string
-): string[] {
+function buildRecommendations(grade: ImportanceGrade, domain: DomainKey, seed: string): string[] {
   // Pick 2 i18n recommendation keys per day from a domain-flavoured pool,
   // varied by seed so consecutive days don't surface the same canned line.
   // Keys must exist in src/i18n/locales/{ko,en}/calendar.json under
@@ -1810,7 +1806,7 @@ export function buildRecommendations(
   return [pickBySeed(`${seed}|rec0`, anchorPool), pickBySeed(`${seed}|rec1`, support)]
 }
 
-export function buildWarnings(
+function buildWarnings(
   grade: ImportanceGrade,
   crossAgreementPercent: number,
   domain: DomainKey,
@@ -1832,132 +1828,6 @@ export function buildWarnings(
     ]
   }
   return [pickBySeed(`${seed}|warn0`, general)]
-}
-
-// ── Cycle ↔ cycle clash detector (모듈 레벨 — yearlyDates + dayInterpretation 공유) ──
-// Pairwise 충/합/형 between (natal-day, 대운, 세운, 월운, 일운). Saju calendar gold:
-// "대운 세운이 충하는 해" / "월운이 일운과 합하는 날" — practitioners flag these.
-type CycleSlot = { id: string; label: string; stem: string; branch: string }
-
-function interactionForCore(
-  a: CycleSlot,
-  b: CycleSlot
-): NonNullable<YearlyImportantDate['cycleInteractions']> {
-  const out: NonNullable<YearlyImportantDate['cycleInteractions']> = []
-  const pair = `${a.label}↔${b.label}`
-  if (a.stem && b.stem && STEM_HAP_PARTNER[a.stem]?.partner === b.stem) {
-    out.push({
-      pair,
-      kind: '천간합',
-      blurb: `${a.label}(${a.stem})과 ${b.label}(${b.stem})이 천간합 — 두 흐름이 부드럽게 묶입니다.`,
-    })
-  }
-  if (a.stem && b.stem && STEM_CHUNG_SET.has(`${a.stem}-${b.stem}`)) {
-    out.push({
-      pair,
-      kind: '천간충',
-      blurb: `${a.label}(${a.stem})과 ${b.label}(${b.stem})이 천간충 — 결정 압박이 크게 들어옵니다.`,
-    })
-  }
-  if (a.branch && b.branch && BRANCH_HAP_PARTNER[a.branch] === b.branch && a.branch !== b.branch) {
-    out.push({
-      pair,
-      kind: '지지합',
-      blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 지지합 — 환경이 손발 맞춰 돕습니다.`,
-    })
-  }
-  if (a.branch && b.branch && BRANCH_CHUNG_PARTNER[a.branch] === b.branch) {
-    out.push({
-      pair,
-      kind: '지지충',
-      blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 지지충 — 환경 변동·이동·교체 신호.`,
-    })
-  }
-  const inTrio = (set: string[]) =>
-    set.includes(a.branch) && set.includes(b.branch) && a.branch !== b.branch
-  if (
-    a.branch &&
-    b.branch &&
-    (inTrio(BRANCH_HYUNG_TRIO) ||
-      inTrio(BRANCH_HYUNG_TRIO2) ||
-      BRANCH_HYUNG_PAIR.has(`${a.branch}-${b.branch}`))
-  ) {
-    out.push({
-      pair,
-      kind: '지지형',
-      blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 형 — 마찰·구설·실수 노출 주의.`,
-    })
-  }
-  if (a.branch && b.branch && BRANCH_HAE_PAIRS.has(`${a.branch}-${b.branch}`)) {
-    out.push({
-      pair,
-      kind: '지지해',
-      blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 해 — 오해·관계 균열 주의.`,
-    })
-  }
-  if (a.branch && b.branch && BRANCH_PA_PAIRS.has(`${a.branch}-${b.branch}`)) {
-    out.push({
-      pair,
-      kind: '지지파',
-      blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 파 — 진행 중인 일이 살짝 어긋날 수 있어요.`,
-    })
-  }
-  return out
-}
-
-export function buildCycleInteractionsCore(
-  natalDayMaster: string,
-  natalDayBranch: string,
-  daeun: { ganji: string } | null,
-  sewoon: { ganji: string },
-  wolwoon: { ganji: string },
-  iljin: { ganji: string }
-): YearlyImportantDate['cycleInteractions'] {
-  const split = (g: string): { stem: string; branch: string } => ({
-    stem: g.charAt(0) || '',
-    branch: g.charAt(1) || '',
-  })
-  const slots: CycleSlot[] = [
-    { id: 'natal', label: '본명', stem: natalDayMaster, branch: natalDayBranch },
-    ...(daeun ? [{ id: 'daeun', label: '대운', ...split(daeun.ganji) }] : []),
-    { id: 'sewoon', label: '세운', ...split(sewoon.ganji) },
-    { id: 'wolwoon', label: '월운', ...split(wolwoon.ganji) },
-    { id: 'iljin', label: '일운', ...split(iljin.ganji) },
-  ]
-  const out: NonNullable<YearlyImportantDate['cycleInteractions']> = []
-  for (let i = 0; i < slots.length; i++) {
-    for (let j = i + 1; j < slots.length; j++) {
-      out.push(...interactionForCore(slots[i], slots[j]))
-    }
-    for (let j = i + 1; j < slots.length; j++) {
-      const a = slots[i],
-        b = slots[j]
-      if (a.branch && b.branch && BRANCH_WONJIN_PAIRS.has(`${a.branch}-${b.branch}`)) {
-        out.push({
-          pair: `${a.label}↔${b.label}`,
-          kind: '지지해',
-          blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 원진 — 감정적 거리·미묘한 신경전.`,
-        })
-      }
-    }
-  }
-  const allBranches = slots.map((s) => s.branch).filter(Boolean)
-  for (const trio of [...BRANCH_TRIPLES_SAMHAP, ...BRANCH_TRIPLES_BANGHAP]) {
-    const present = trio.members.filter((m) => allBranches.includes(m))
-    if (present.length === 3) {
-      const involved = slots
-        .filter((s) => trio.members.includes(s.branch))
-        .map((s) => s.label)
-        .join(', ')
-      const isSamhap = BRANCH_TRIPLES_SAMHAP.includes(trio)
-      out.push({
-        pair: involved,
-        kind: '지지합',
-        blurb: `${trio.label} 완성 (${involved}) — ${trio.result} 기운으로 강하게 묶이는 ${isSamhap ? '삼합' : '방합'} 흐름.`,
-      })
-    }
-  }
-  return out.length > 0 ? out : undefined
 }
 
 export function calculateYearlyImportantDates(
@@ -2047,16 +1917,135 @@ export function calculateYearlyImportantDates(
     return { ganji: `${stem}${pack.monthBranch}`, sibsinStem }
   }
 
-  // 운주기 교차 충/합/형 — 모듈 레벨 buildCycleInteractionsCore 재사용
-  // (dayInterpretation 단일 엔진 경로와 동일 로직 공유).
+  // ── Cycle ↔ cycle clash detector ──
+  // Pairwise 충/합/형 between (natal-day, 대운, 세운, 월운, 일운). Saju
+  // calendar gold: "대운 세운이 충하는 해" / "월운이 일운과 합하는 날" —
+  // these are the moments practitioners flag. We surface them so the user
+  // doesn't have to read the ganji and run the comparison themselves.
+  type CycleSlot = { id: string; label: string; stem: string; branch: string }
+  const interactionFor = (a: CycleSlot, b: CycleSlot): YearlyImportantDate['cycleInteractions'] => {
+    const out: NonNullable<YearlyImportantDate['cycleInteractions']> = []
+    const pair = `${a.label}↔${b.label}`
+    if (a.stem && b.stem && STEM_HAP_PARTNER[a.stem]?.partner === b.stem) {
+      out.push({
+        pair,
+        kind: '천간합',
+        blurb: `${a.label}(${a.stem})과 ${b.label}(${b.stem})이 천간합 — 두 흐름이 부드럽게 묶입니다.`,
+      })
+    }
+    if (a.stem && b.stem && STEM_CHUNG_SET.has(`${a.stem}-${b.stem}`)) {
+      out.push({
+        pair,
+        kind: '천간충',
+        blurb: `${a.label}(${a.stem})과 ${b.label}(${b.stem})이 천간충 — 결정 압박이 크게 들어옵니다.`,
+      })
+    }
+    if (
+      a.branch &&
+      b.branch &&
+      BRANCH_HAP_PARTNER[a.branch] === b.branch &&
+      a.branch !== b.branch
+    ) {
+      out.push({
+        pair,
+        kind: '지지합',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 지지합 — 환경이 손발 맞춰 돕습니다.`,
+      })
+    }
+    if (a.branch && b.branch && BRANCH_CHUNG_PARTNER[a.branch] === b.branch) {
+      out.push({
+        pair,
+        kind: '지지충',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 지지충 — 환경 변동·이동·교체 신호.`,
+      })
+    }
+    const inTrio = (set: string[]) =>
+      set.includes(a.branch) && set.includes(b.branch) && a.branch !== b.branch
+    if (
+      a.branch &&
+      b.branch &&
+      (inTrio(BRANCH_HYUNG_TRIO) ||
+        inTrio(BRANCH_HYUNG_TRIO2) ||
+        BRANCH_HYUNG_PAIR.has(`${a.branch}-${b.branch}`))
+    ) {
+      out.push({
+        pair,
+        kind: '지지형',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 형 — 마찰·구설·실수 노출 주의.`,
+      })
+    }
+    if (a.branch && b.branch && BRANCH_HAE_PAIRS.has(`${a.branch}-${b.branch}`)) {
+      out.push({
+        pair,
+        kind: '지지해',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 해 — 오해·관계 균열 주의.`,
+      })
+    }
+    if (a.branch && b.branch && BRANCH_PA_PAIRS.has(`${a.branch}-${b.branch}`)) {
+      out.push({
+        pair,
+        kind: '지지파',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 파 — 진행 중인 일이 살짝 어긋날 수 있어요.`,
+      })
+    }
+    return out
+  }
   const buildCycleInteractions = (
     natalDayBranch: string,
     daeun: { ganji: string } | null,
     sewoon: { ganji: string },
     wolwoon: { ganji: string },
     iljin: { ganji: string }
-  ): YearlyImportantDate['cycleInteractions'] =>
-    buildCycleInteractionsCore(natalDayMaster, natalDayBranch, daeun, sewoon, wolwoon, iljin)
+  ): YearlyImportantDate['cycleInteractions'] => {
+    const split = (g: string): { stem: string; branch: string } => ({
+      stem: g.charAt(0) || '',
+      branch: g.charAt(1) || '',
+    })
+    const slots: CycleSlot[] = [
+      { id: 'natal', label: '본명', stem: natalDayMaster, branch: natalDayBranch },
+      ...(daeun ? [{ id: 'daeun', label: '대운', ...split(daeun.ganji) }] : []),
+      { id: 'sewoon', label: '세운', ...split(sewoon.ganji) },
+      { id: 'wolwoon', label: '월운', ...split(wolwoon.ganji) },
+      { id: 'iljin', label: '일운', ...split(iljin.ganji) },
+    ]
+    const out: NonNullable<YearlyImportantDate['cycleInteractions']> = []
+    for (let i = 0; i < slots.length; i++) {
+      for (let j = i + 1; j < slots.length; j++) {
+        const hits = interactionFor(slots[i], slots[j]) || []
+        out.push(...hits)
+      }
+      // 원진 (6 pairs of 6년 차이 branches that grate). Same loop.
+      for (let j = i + 1; j < slots.length; j++) {
+        const a = slots[i],
+          b = slots[j]
+        if (a.branch && b.branch && BRANCH_WONJIN_PAIRS.has(`${a.branch}-${b.branch}`)) {
+          out.push({
+            pair: `${a.label}↔${b.label}`,
+            kind: '지지해', // 원진은 의미상 해와 비슷한 마찰 — UI는 같은 카드로
+            blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 원진 — 감정적 거리·미묘한 신경전.`,
+          })
+        }
+      }
+    }
+    // 三合 / 방합 — needs all three branches present across the slots.
+    const allBranches = slots.map((s) => s.branch).filter(Boolean)
+    for (const trio of [...BRANCH_TRIPLES_SAMHAP, ...BRANCH_TRIPLES_BANGHAP]) {
+      const present = trio.members.filter((m) => allBranches.includes(m))
+      if (present.length === 3) {
+        const involved = slots
+          .filter((s) => trio.members.includes(s.branch))
+          .map((s) => s.label)
+          .join(', ')
+        const isSamhap = BRANCH_TRIPLES_SAMHAP.includes(trio)
+        out.push({
+          pair: involved,
+          kind: '지지합',
+          blurb: `${trio.label} 완성 (${involved}) — ${trio.result} 기운으로 강하게 묶이는 ${isSamhap ? '삼합' : '방합'} 흐름.`,
+        })
+      }
+    }
+    return out.length > 0 ? out : undefined
+  }
 
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
     const month = date.getMonth() + 1
