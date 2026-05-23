@@ -29,6 +29,7 @@ import {
   UserPlus,
 } from 'lucide-react'
 import AuthGate from '@/components/auth/AuthGate'
+import BrandSplash from '@/components/branding/BrandSplash'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { logger } from '@/lib/logger'
@@ -294,6 +295,9 @@ export default function ProfilePage() {
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const [savingName, setSavingName] = useState(false)
   const [circleOpen, setCircleOpen] = useState(false)
 
   const loadAll = useCallback(async () => {
@@ -398,7 +402,15 @@ export default function ProfilePage() {
     void handleCopyReferral()
   }
 
-  const flatRecords = history.flatMap((d) => d.records).slice(0, 8)
+  // 유료 서비스(궁합·운명·타로 상담사)만 노출 — 무료 리포트/캘린더/일진 등
+  // 그 외 활동은 이 목록에서 제외한다.
+  const flatRecords = history
+    .flatMap((d) => d.records)
+    .filter((r) => {
+      const k = classifyService(r.service).key
+      return k === 'counselor' || k === 'compatibility' || k === 'tarot'
+    })
+    .slice(0, 8)
 
   return (
     <AuthGate
@@ -411,6 +423,13 @@ export default function ProfilePage() {
       }
     >
       <div className="relative min-h-[100svh] bg-[#f5f4f1] text-[#1c1917]">
+        {/* 초기 데이터 로딩 동안 기본 로딩 페이지로 덮어 섹션별 스피너가
+            우르르 보이는 느린 인상을 없앤다. (BrandSplash 는 fixed 전체화면) */}
+        {loading && (
+          <BrandSplash
+            message={locale === 'ko' ? '프로필 불러오는 중…' : 'Loading your profile…'}
+          />
+        )}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[340px] bg-[radial-gradient(120%_100%_at_50%_0%,rgba(160,122,60,0.07)_0%,rgba(245,244,241,0)_72%)]" />
 
         <div className="relative z-10">
@@ -436,12 +455,74 @@ export default function ProfilePage() {
                 )}
               </div>
               <div>
-                <h1
-                  className="text-balance text-[1.9rem] font-semibold leading-[1.12] tracking-[-0.01em] text-[#1c1917]"
-                  style={serifStyle}
-                >
-                  {profile?.name || (locale === 'ko' ? '이름을 알려주세요' : 'Set your name')}
-                </h1>
+                {editingName ? (
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault()
+                      const next = nameDraft.trim()
+                      setSavingName(true)
+                      try {
+                        const res = await fetch('/api/me/profile', {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ name: next }),
+                        })
+                        if (res.ok) {
+                          setProfile((prev) => (prev ? { ...prev, name: next } : prev))
+                          setEditingName(false)
+                        }
+                      } catch (err) {
+                        logger.warn('[profile] name save failed', err)
+                      } finally {
+                        setSavingName(false)
+                      }
+                    }}
+                    className="flex flex-wrap items-center justify-center gap-2"
+                  >
+                    <input
+                      autoFocus
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      maxLength={40}
+                      placeholder={locale === 'ko' ? '이름' : 'Name'}
+                      className="w-[12ch] rounded-lg border border-[#d8b878] bg-white px-2 py-1 text-center text-[1.4rem] font-semibold text-[#1c1917] outline-none"
+                    />
+                    <button type="submit" disabled={savingName} className={inkBtnCls}>
+                      {savingName
+                        ? locale === 'ko'
+                          ? '저장 중…'
+                          : 'Saving…'
+                        : locale === 'ko'
+                          ? '저장'
+                          : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingName(false)}
+                      className={ghostBtnCls}
+                    >
+                      {locale === 'ko' ? '취소' : 'Cancel'}
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNameDraft(profile?.name || '')
+                      setEditingName(true)
+                    }}
+                    className="group inline-flex items-center gap-1.5"
+                    title={locale === 'ko' ? '이름 수정' : 'Edit name'}
+                  >
+                    <h1
+                      className="text-balance text-[1.9rem] font-semibold leading-[1.12] tracking-[-0.01em] text-[#1c1917]"
+                      style={serifStyle}
+                    >
+                      {profile?.name || (locale === 'ko' ? '이름을 알려주세요' : 'Set your name')}
+                    </h1>
+                    <Pencil className="h-3.5 w-3.5 text-[#a8a29e] opacity-0 transition group-hover:opacity-100" />
+                  </button>
+                )}
                 {profile?.email && (
                   <p className="mt-1.5 text-[13px] text-[#8b857d]">{profile.email}</p>
                 )}
@@ -758,7 +839,7 @@ export default function ProfilePage() {
             <section className={`mt-6 ${cardCls}`}>
               <div className="flex items-center justify-between">
                 <h2 className={sectionLabelCls}>
-                  {locale === 'ko' ? '최근 활동' : 'Recent activity'}
+                  {locale === 'ko' ? '유료 서비스 최근 내역' : 'Paid service history'}
                 </h2>
                 <Link href="/profile/decisions" className={linkCls}>
                   {locale === 'ko' ? '결정 기록' : 'Decision log'}
