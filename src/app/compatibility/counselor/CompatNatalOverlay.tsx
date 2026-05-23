@@ -36,6 +36,8 @@ const PLANET_ORDER = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Sat
 const SIZE = 260
 const CX = SIZE / 2
 const CY = SIZE / 2
+// horizontal padding so the left-side ASC label is never clipped
+const PAD = 22
 
 // ASC fixed at the left (9 o'clock); ecliptic longitude increases counter-clockwise.
 const screenDeg = (lon: number, asc: number) => 180 + (lon - asc)
@@ -135,7 +137,8 @@ export function CompatNatalOverlay({
 
   return (
     <div className="rounded-xl border border-[#e7e4df] bg-[#fcfbfa] p-3">
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="mx-auto h-auto w-full max-w-[300px]">
+      <svg viewBox={`${-PAD} 0 ${SIZE + PAD * 2} ${SIZE}`} className="mx-auto h-auto w-full max-w-[320px]">
+        <g className="chart-spin-in">
         <circle cx={CX} cy={CY} r={ringOuter} fill="none" stroke="rgba(28,25,23,0.20)" strokeWidth="1.5" />
         <circle cx={CX} cy={CY} r={ringInner} fill="none" stroke="rgba(28,25,23,0.10)" strokeWidth="1" />
 
@@ -158,7 +161,7 @@ export function CompatNatalOverlay({
 
         {/* A ASC (left, amber) */}
         <line x1={CX} y1={CY} x2={pt(ringOuter, 180).x} y2={pt(ringOuter, 180).y} stroke="rgba(217,119,6,0.7)" strokeWidth="1.5" />
-        <text x={pt(ringOuter + 10, 180).x} y={pt(ringOuter + 10, 180).y} fill="#d97706" fontSize="9" textAnchor="middle" dominantBaseline="middle">ASC</text>
+        <text x={pt(ringOuter + 12, 180).x} y={pt(ringOuter + 12, 180).y} fill="#d97706" fontSize="9" fontWeight="700" textAnchor="middle" dominantBaseline="middle">ASC</text>
 
         {/* B ASC tick (sky) at its position relative to A's wheel */}
         {Number.isFinite(ascB) && (
@@ -172,10 +175,13 @@ export function CompatNatalOverlay({
             strokeDasharray="3 2"
           />
         )}
+        </g>
 
+        <g className="chart-twinkle-in">
         {renderSet(pA, radiusA, rose)}
         {renderSet(pB, radiusB, sky)}
         <circle cx={CX} cy={CY} r="2.5" fill="#78716c" />
+        </g>
       </svg>
 
       <div className="mt-2 grid grid-cols-2 gap-3">

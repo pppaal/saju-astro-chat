@@ -3,6 +3,7 @@
 import React from 'react'
 import { X } from 'lucide-react'
 import { SajuChart } from '@/components/destiny-map/charts/SajuChart'
+import { ChartReading } from '@/components/destiny-map/charts/ChartReading'
 import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
 import { CompatNatalOverlay } from './CompatNatalOverlay'
 import { CompatRadarOverlay } from './CompatRadarOverlay'
@@ -69,7 +70,7 @@ function QuickRead({
       <span className={`mb-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${chip}`}>
         {name}
       </span>
-      <p className="text-sm leading-relaxed text-[#44403c]">{line}</p>
+      <ChartReading text={line} theme="light" className="text-sm leading-relaxed text-[#44403c]" />
     </div>
   )
 }
@@ -114,11 +115,11 @@ export function CompatChartModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(28,25,23,0.45)] p-4 backdrop-blur-sm"
+      className="chart-backdrop-in fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(28,25,23,0.45)] p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#e7e4df] bg-white p-6 shadow-[0_24px_48px_rgba(28,25,23,0.18)]"
+        className="chart-pop-in relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#e7e4df] bg-white p-6 shadow-[0_24px_48px_rgba(28,25,23,0.18)]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -149,13 +150,59 @@ export function CompatChartModal({
 
         <div className="space-y-6">
           {/* 한 줄 해석 — 두 사람 나란히 */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="chart-rise-in grid grid-cols-1 gap-3 sm:grid-cols-2" style={{ '--i': 0 } as React.CSSProperties}>
             <QuickRead name={labelA} accent="rose" saju={sajuA} astro={astroA} lang={lang} />
             <QuickRead name={labelB} accent="sky" saju={sajuB} astro={astroB} lang={lang} />
           </div>
 
-          {/* 점성 시너스트리 — 겹친 네이탈 */}
-          <section className="space-y-2">
+          {/* 동양 — 오행 · 사주팔자 비교 (한 그룹으로 묶음) */}
+          <section
+            className="chart-rise-in space-y-4 rounded-2xl border border-[#ece9e4] bg-[#fcfbfa] p-4"
+            style={{ '--i': 1 } as React.CSSProperties}
+          >
+            <SectionTitle accent="rose">
+              {isKo ? '동양 — 오행 · 사주팔자 비교' : 'Eastern — Five Elements & Saju'}
+            </SectionTitle>
+
+            <div className="space-y-1.5">
+              <div className="px-1 text-[11px] font-medium text-[#8b857d]">
+                {isKo ? '오행 비교' : 'Five-Element Comparison'}
+              </div>
+              <CompatRadarOverlay
+                sajuA={sajuA}
+                sajuB={sajuB}
+                nameA={labelA}
+                nameB={labelB}
+                lang={lang}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="px-1 text-[11px] font-medium text-[#8b857d]">
+                {isKo ? '사주팔자 비교' : 'Saju (4 Pillars) Comparison'}
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <span className="inline-block rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-bold text-rose-600">
+                    {labelA}
+                  </span>
+                  <SajuChart saju={sajuA as never} lang={lang} />
+                </div>
+                <div className="space-y-1.5">
+                  <span className="inline-block rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-600">
+                    {labelB}
+                  </span>
+                  <SajuChart saju={sajuB as never} lang={lang} />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 서양 — 시너스트리 (네이탈 겹침) */}
+          <section
+            className="chart-rise-in space-y-2 rounded-2xl border border-[#ece9e4] bg-[#fcfbfa] p-4"
+            style={{ '--i': 2 } as React.CSSProperties}
+          >
             <SectionTitle accent="indigo">
               {isKo ? '서양 — 시너스트리 (네이탈 겹침)' : 'Synastry — Natal Overlay'}
             </SectionTitle>
@@ -166,41 +213,6 @@ export function CompatChartModal({
               nameB={labelB}
               lang={lang}
             />
-          </section>
-
-          {/* 오행 비교 — 겹친 레이더 */}
-          <section className="space-y-2">
-            <SectionTitle accent="rose">
-              {isKo ? '동양 — 오행 비교' : 'Five-Element Comparison'}
-            </SectionTitle>
-            <CompatRadarOverlay
-              sajuA={sajuA}
-              sajuB={sajuB}
-              nameA={labelA}
-              nameB={labelB}
-              lang={lang}
-            />
-          </section>
-
-          {/* 사주팔자 — 좌우 비교 */}
-          <section className="space-y-2">
-            <SectionTitle accent="rose">
-              {isKo ? '동양 — 사주팔자 비교' : 'Saju (4 Pillars) Comparison'}
-            </SectionTitle>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <span className="inline-block rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-bold text-rose-600">
-                  {labelA}
-                </span>
-                <SajuChart saju={sajuA as never} lang={lang} />
-              </div>
-              <div className="space-y-1.5">
-                <span className="inline-block rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-600">
-                  {labelB}
-                </span>
-                <SajuChart saju={sajuB as never} lang={lang} />
-              </div>
-            </div>
           </section>
         </div>
       </div>

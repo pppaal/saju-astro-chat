@@ -108,8 +108,10 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
           <polygon key={f} points={ringPoly(f)} fill="none" stroke="rgba(148,163,184,0.18)" strokeWidth="1" />
         ))}
         {AXES.map((_, i) => { const p = pt(R, i); return <line key={i} x1={CX} y1={CY} x2={p.x} y2={p.y} stroke="rgba(148,163,184,0.18)" strokeWidth="1" /> })}
-        <polygon points={dataPoly} fill="rgba(168,85,247,0.4)" stroke="#a855f7" strokeWidth="2" />
-        {AXES.map((a, i) => { const p = pt(R * counts[a.key] / max, i); return <circle key={a.key} cx={p.x} cy={p.y} r="2.5" fill="#c4b5fd" /> })}
+        <g className="chart-grow-in">
+          <polygon points={dataPoly} fill="rgba(168,85,247,0.4)" stroke="#a855f7" strokeWidth="2" />
+          {AXES.map((a, i) => { const p = pt(R * counts[a.key] / max, i); return <circle key={a.key} cx={p.x} cy={p.y} r="2.5" fill="#c4b5fd" /> })}
+        </g>
         {AXES.map((a, i) => {
           const lp = pt(R + 16, i)
           const c = Math.cos((-90 + i * 72) * Math.PI / 180)

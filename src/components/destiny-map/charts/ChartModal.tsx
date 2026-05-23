@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { SajuChart } from './SajuChart'
 import { ElementRadar } from './ElementRadar'
 import { NatalChart } from './NatalChart'
+import { ChartReading } from './ChartReading'
 import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
 
 interface ChartModalProps {
@@ -33,14 +34,14 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="chart-backdrop-in fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={isKo ? '내 차트' : 'My chart'}
     >
       <div
-        className="relative w-full max-w-2xl rounded-2xl border border-stone-700/50 bg-stone-900 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="chart-pop-in relative w-full max-w-2xl rounded-2xl border border-stone-700/50 bg-gradient-to-b from-stone-900 to-stone-950 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -62,31 +63,56 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
         </div>
 
         {readLine && (
-          <div className="mb-5 rounded-2xl border border-stone-700 bg-stone-800/60 p-4">
+          <div
+            className="chart-rise-in mb-5 rounded-2xl border border-stone-700/70 bg-stone-800/60 p-4 shadow-inner"
+            style={{ '--i': 0 } as React.CSSProperties}
+          >
             <div className="mb-1.5 text-xs font-semibold tracking-wide text-stone-400">
               {isKo ? '한 줄 해석' : 'Quick read'}
             </div>
-            <p className="text-sm leading-relaxed text-stone-200">{readLine}</p>
+            <ChartReading
+              text={readLine}
+              theme="dark"
+              className="text-sm leading-relaxed text-stone-200"
+            />
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div className="space-y-2">
-            <h3 className="border-l-2 border-rose-500 px-2 text-sm font-medium text-stone-300">
-              {isKo ? '동양 — 사주팔자' : 'Saju (4 Pillars)'}
+        <div className="space-y-6">
+          {/* 동양 — 사주팔자 · 오행 균형 (한 그룹으로 묶음) */}
+          <section
+            className="chart-rise-in space-y-3 rounded-2xl border border-stone-800/80 bg-stone-900/40 p-4"
+            style={{ '--i': 1 } as React.CSSProperties}
+          >
+            <h3 className="border-l-2 border-rose-500 px-2 text-sm font-semibold text-stone-200">
+              {isKo ? '동양 — 사주팔자 · 오행 균형' : 'Eastern — Saju & Five Elements'}
             </h3>
-            <SajuChart saju={saju as never} lang={lang} />
-            <h3 className="border-l-2 border-rose-500 px-2 pt-1 text-sm font-medium text-stone-300">
-              {isKo ? '동양 — 오행 균형' : 'Five-Element Balance'}
-            </h3>
-            <ElementRadar saju={saju} lang={lang} />
-          </div>
-          <div className="space-y-2">
-            <h3 className="border-l-2 border-indigo-500 px-2 text-sm font-medium text-stone-300">
-              {isKo ? '서양 — 네이탈 차트' : 'Natal Chart'}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <div className="px-1 text-[11px] font-medium text-stone-500">
+                  {isKo ? '사주팔자' : '4 Pillars'}
+                </div>
+                <SajuChart saju={saju as never} lang={lang} />
+              </div>
+              <div className="space-y-1.5">
+                <div className="px-1 text-[11px] font-medium text-stone-500">
+                  {isKo ? '오행 균형' : 'Five-Element Balance'}
+                </div>
+                <ElementRadar saju={saju} lang={lang} />
+              </div>
+            </div>
+          </section>
+
+          {/* 서양 — 네이탈 차트 */}
+          <section
+            className="chart-rise-in space-y-3 rounded-2xl border border-stone-800/80 bg-stone-900/40 p-4"
+            style={{ '--i': 2 } as React.CSSProperties}
+          >
+            <h3 className="border-l-2 border-indigo-500 px-2 text-sm font-semibold text-stone-200">
+              {isKo ? '서양 — 네이탈 차트' : 'Western — Natal Chart'}
             </h3>
             <NatalChart astro={astro as never} lang={lang} />
-          </div>
+          </section>
         </div>
       </div>
     </div>

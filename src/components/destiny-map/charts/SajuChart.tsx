@@ -115,8 +115,8 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
               {[{ cell: stem, style: stemStyle }, { cell: branch, style: branchStyle }].map((c, idx) => (
                 <div
                   key={idx}
-                  className={`flex h-16 w-full flex-col items-center justify-center rounded-xl border p-1 shadow-sm ${c.style.bg} ${
-                    isMe ? 'border-rose-500/40' : 'border-stone-700/50'
+                  className={`flex h-16 w-full flex-col items-center justify-center rounded-xl border p-1 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
+                    isMe ? 'border-rose-500/40 ring-1 ring-rose-500/20' : 'border-stone-700/50'
                   }`}
                 >
                   <span className={`${isKo ? 'text-base' : 'font-serif text-lg'} font-bold ${c.style.text}`}>
