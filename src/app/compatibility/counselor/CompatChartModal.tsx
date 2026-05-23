@@ -10,9 +10,9 @@ import { CompatRadarOverlay } from './CompatRadarOverlay'
 
 /**
  * 궁합 차트 모달 — 두 사람 차트를 따로 쌓지 않고 하나로 합쳐 보여준다.
- *   1) 점성 시너스트리: 한 황도 위에 두 사람 행성을 색으로 겹쳐 그림
+ *   1) 사주 좌우 비교: A·B 사주팔자를 두 칸으로 나란히 (동양은 사주가 먼저)
  *   2) 오행 비교: 한 레이더에 두 사람 오행을 겹쳐 그림
- *   3) 사주 좌우 비교: A·B 사주팔자를 두 칸으로 나란히
+ *   3) 점성 시너스트리: 한 황도 위에 두 사람 행성을 색으로 겹쳐 그림
  *
  * 입력은 compat 페이지가 들고 있는 raw API 응답:
  *   personNSaju  = /api/saju 응답   { data: { yearPillar… fiveElements… } }
@@ -43,9 +43,7 @@ function unwrapAstro(raw: unknown): Record<string, unknown> | undefined {
   const r = raw as Record<string, unknown>
   const data = (r.data as Record<string, unknown>) ?? r
   return (
-    (data.chartData as Record<string, unknown>) ??
-    (r.chartData as Record<string, unknown>) ??
-    data
+    (data.chartData as Record<string, unknown>) ?? (r.chartData as Record<string, unknown>) ?? data
   )
 }
 
@@ -75,7 +73,13 @@ function QuickRead({
   )
 }
 
-function SectionTitle({ children, accent }: { children: React.ReactNode; accent: 'indigo' | 'rose' }) {
+function SectionTitle({
+  children,
+  accent,
+}: {
+  children: React.ReactNode
+  accent: 'indigo' | 'rose'
+}) {
   const border = accent === 'indigo' ? 'border-sky-400' : 'border-rose-400'
   return (
     <h3 className={`border-l-2 ${border} px-2 text-sm font-semibold text-[#1c1917]`}>{children}</h3>
@@ -150,7 +154,10 @@ export function CompatChartModal({
 
         <div className="space-y-6">
           {/* 한 줄 해석 — 두 사람 나란히 */}
-          <div className="chart-rise-in grid grid-cols-1 gap-3 sm:grid-cols-2" style={{ '--i': 0 } as React.CSSProperties}>
+          <div
+            className="chart-rise-in grid grid-cols-1 gap-3 sm:grid-cols-2"
+            style={{ '--i': 0 } as React.CSSProperties}
+          >
             <QuickRead name={labelA} accent="rose" saju={sajuA} astro={astroA} lang={lang} />
             <QuickRead name={labelB} accent="sky" saju={sajuB} astro={astroB} lang={lang} />
           </div>
@@ -161,21 +168,8 @@ export function CompatChartModal({
             style={{ '--i': 1 } as React.CSSProperties}
           >
             <SectionTitle accent="rose">
-              {isKo ? '동양 — 오행 · 사주팔자 비교' : 'Eastern — Five Elements & Saju'}
+              {isKo ? '동양 — 사주팔자 · 오행 비교' : 'Eastern — Saju & Five Elements'}
             </SectionTitle>
-
-            <div className="space-y-1.5">
-              <div className="px-1 text-[11px] font-medium text-[#8b857d]">
-                {isKo ? '오행 비교' : 'Five-Element Comparison'}
-              </div>
-              <CompatRadarOverlay
-                sajuA={sajuA}
-                sajuB={sajuB}
-                nameA={labelA}
-                nameB={labelB}
-                lang={lang}
-              />
-            </div>
 
             <div className="space-y-1.5">
               <div className="px-1 text-[11px] font-medium text-[#8b857d]">
@@ -195,6 +189,19 @@ export function CompatChartModal({
                   <SajuChart saju={sajuB as never} lang={lang} />
                 </div>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="px-1 text-[11px] font-medium text-[#8b857d]">
+                {isKo ? '오행 비교' : 'Five-Element Comparison'}
+              </div>
+              <CompatRadarOverlay
+                sajuA={sajuA}
+                sajuB={sajuB}
+                nameA={labelA}
+                nameB={labelB}
+                lang={lang}
+              />
             </div>
           </section>
 
