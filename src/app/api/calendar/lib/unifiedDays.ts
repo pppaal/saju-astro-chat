@@ -45,12 +45,32 @@ export async function buildUnifiedYearDates<T extends YearlyImportantDate>(args:
     rebalanceCalendarDisplayGrades(scored).map((g) => [g.date, g.displayGrade])
   )
 
-  // 2) 셀이 있는 날은 통합 해석으로 교체, 없으면 원본 유지.
+  // 2) 셀이 있는 날은 **narrative만** 통합 해석으로 교체. grade/score/displayScore/
+  //    categories 는 원본(matrix regrade 결과) 유지 — 점수·등급 모델 이중화 방지.
+  //    narrative valence 는 최종 displayGrade(=displayScore 백분위) 예측치로 구동.
   return baseDates.map((d) => {
     const cell = cellByDate.get(d.date)
     if (!cell) return d
     const grade = gradeByDate.get(d.date) ?? d.grade
     const interp = deriveDayInterpretation({ cell, natal, lang, grade })
-    return { ...d, ...interp }
+    return {
+      ...d,
+      titleKey: interp.titleKey,
+      descKey: interp.descKey,
+      sajuFactorKeys: interp.sajuFactorKeys,
+      astroFactorKeys: interp.astroFactorKeys,
+      recommendationKeys: interp.recommendationKeys,
+      warningKeys: interp.warningKeys,
+      ganzhi: interp.ganzhi,
+      crossVerified: interp.crossVerified,
+      crossAgreementPercent: interp.crossAgreementPercent,
+      crossCheck: interp.crossCheck,
+      longCycleContext: interp.longCycleContext,
+      cycleInteractions: interp.cycleInteractions,
+      scoreBreakdown: interp.scoreBreakdown,
+      transitSunSign: interp.transitSunSign,
+      confidence: interp.confidence,
+      confidenceNote: interp.confidenceNote,
+    }
   })
 }

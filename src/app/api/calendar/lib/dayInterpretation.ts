@@ -7,10 +7,14 @@ import type { ImportanceGrade } from '@/lib/destiny-map/calendar/types'
 import {
   buildRecommendations,
   buildWarnings,
+  buildCycleInteractionsCore,
+  getSibsinKo,
   scoreToGrade,
   DOMAIN_TO_CATEGORY,
   type YearlyImportantDate,
 } from './yearlyDates'
+
+type Daeun = NonNullable<NonNullable<YearlyImportantDate['longCycleContext']>['daeun']>
 
 /**
  * 단일 엔진 per-day 해석기 (P0).
@@ -111,59 +115,36 @@ function findPillar(
   return { ganji, sibsinStem: s?.evidence?.sibsin as string | undefined }
 }
 
-function currentDaeun(
-  natal: NatalContext,
-  year: number
-): { ganji: string; ageStart: number; ageEnd: number; sibsinStem?: string } | undefined {
+// 대운 — natal.saju.daeun 에서 현재 10년 + 다음 대운 예고까지(yearlyDates findDaeunForDate 와 동형).
+function currentDaeun(natal: NatalContext, year: number): Daeun | undefined {
   const list = natal.saju?.daeun
   if (!list || list.length === 0) return undefined
+  const dayMaster = natal.saju.dayMaster?.name ?? ''
   const sorted = [...list].sort((a, b) => a.startYear - b.startYear)
-  let cur = sorted[0]
-  for (const d of sorted) {
-    if (d.startYear <= year) cur = d
+  let idx = 0
+  for (let i = 0; i < sorted.length; i++) {
+    if (sorted[i].startYear <= year) idx = i
     else break
   }
+  const cur = sorted[idx]
   if (!cur) return undefined
-  return { ganji: `${cur.stem}${cur.branch}`, ageStart: cur.startAge, ageEnd: cur.startAge + 9 }
+  const next = sorted[idx + 1]
+  const yearsToNext = next ? Math.max(0, next.startYear - year) : Infinity
+  return {
+    ganji: `${cur.stem}${cur.branch}`,
+    ageStart: cur.startAge,
+    ageEnd: cur.startAge + 10,
+    sibsinStem: dayMaster && cur.stem ? getSibsinKo(dayMaster, cur.stem) : undefined,
+    yearsToNext: next ? yearsToNext : undefined,
+    transitionImminent: next ? yearsToNext <= 1 : false,
+    nextGanji: next ? `${next.stem}${next.branch}` : undefined,
+    nextSibsinStem: next && dayMaster && next.stem ? getSibsinKo(dayMaster, next.stem) : undefined,
+  }
 }
 
 function sunSignOf(natal: NatalContext): string {
   const planets = (natal.astro?.chart?.planets ?? []) as Array<{ name?: string; sign?: string }>
   return planets.find((p) => p.name === 'Sun')?.sign ?? ''
-}
-
-type CycleKind = NonNullable<YearlyImportantDate['cycleInteractions']>[number]['kind']
-
-const HYEONGCHUNG_KIND: Array<{ token: string; kind: CycleKind }> = [
-  { token: '천간합', kind: '천간합' },
-  { token: '천간충', kind: '천간충' },
-  { token: '자형', kind: '자형' },
-  { token: '지지합', kind: '지지합' },
-  { token: '지지충', kind: '지지충' },
-  { token: '지지형', kind: '지지형' },
-  { token: '지지해', kind: '지지해' },
-  { token: '지지파', kind: '지지파' },
-  { token: '합', kind: '지지합' },
-  { token: '충', kind: '지지충' },
-  { token: '형', kind: '지지형' },
-  { token: '해', kind: '지지해' },
-  { token: '파', kind: '지지파' },
-]
-
-function cycleInteractionsOf(cell: CalendarCell): YearlyImportantDate['cycleInteractions'] {
-  const hc = cell.signals.filter((s) => s.kind === 'hyeongchung')
-  if (hc.length === 0) return undefined
-  const out: NonNullable<YearlyImportantDate['cycleInteractions']> = []
-  for (const s of hc.slice(0, 5)) {
-    const label = `${s.name} ${s.korean ?? ''}`
-    const matched = HYEONGCHUNG_KIND.find((h) => label.includes(h.token))
-    out.push({
-      pair: s.name,
-      kind: matched?.kind ?? '지지합',
-      blurb: s.korean ?? s.name,
-    })
-  }
-  return out
 }
 
 function crossLine(pct: number, lang: Lang): string {
@@ -294,6 +275,18 @@ export function deriveDayInterpretation(args: {
   const wolwoon = findPillar(saju, 'monthly')
   const daeun = currentDaeun(natal, year)
 
+  // 운주기 교차 충/합/형 — yearlyDates 와 동일 코어 재사용(본명·대운·세운·월운·일운 pairwise).
+  const natalDayMaster = natal.saju.dayMaster?.name ?? ''
+  const natalDayBranch = natal.saju.pillars?.day?.earthlyBranch?.name ?? ''
+  const cycleInteractions = buildCycleInteractionsCore(
+    natalDayMaster,
+    natalDayBranch,
+    daeun ? { ganji: daeun.ganji } : null,
+    { ganji: sewoon?.ganji ?? '' },
+    { ganji: wolwoon?.ganji ?? '' },
+    { ganji: iljin?.ganji ?? '' }
+  )
+
   const categories = [DOMAIN_TO_CATEGORY[primary], 'general' as const]
   if (secondary !== primary) {
     const secCat = DOMAIN_TO_CATEGORY[secondary]
@@ -325,14 +318,12 @@ export function deriveDayInterpretation(args: {
       agreementPercent: crossAgreementPercent,
     },
     longCycleContext: {
-      daeun: daeun
-        ? { ganji: daeun.ganji, ageStart: daeun.ageStart, ageEnd: daeun.ageEnd }
-        : undefined,
+      daeun,
       sewoon: sewoon ? { ganji: sewoon.ganji, year, sibsinStem: sewoon.sibsinStem } : undefined,
       wolwoon: wolwoon ? { ganji: wolwoon.ganji, sibsinStem: wolwoon.sibsinStem } : undefined,
       iljin: iljin ? { ganji: iljin.ganji, sibsinStem: iljin.sibsinStem } : undefined,
     },
-    cycleInteractions: cycleInteractionsOf(cell),
+    cycleInteractions,
     scoreBreakdown: { sajuAxis, astroAxis, axisAgreement, finalScore: score },
   }
 }
