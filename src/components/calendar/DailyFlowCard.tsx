@@ -8,6 +8,104 @@ interface Props {
   importantDate: ImportantDate | null
 }
 
+// ── 그날 "큰일" 수렴 — convergence 디라이버(월간)와 같은 기준을 하루에 적용.
+// 무거운 점성(느린 행성 transit·lifecycle·eclipse·angle) vs 무거운 사주(일진
+// 충/합·용신 활성)를 나눠 보여주고, 둘 다 있으면 "양쪽 수렴"으로 본다.
+const HEAVY_ASTRO_KINDS = new Set(['lifecycle', 'eclipse', 'angle-contact'])
+const SLOW_PLANETS = new Set(['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Chiron'])
+const HEAVY_SAJU_KINDS = new Set(['hyeongchung'])
+const THEME_LABEL_KO: Record<string, string> = {
+  love: '연애',
+  money: '재물',
+  career: '직업',
+  health: '건강',
+  growth: '성장',
+}
+
+type EngineSignal = NonNullable<ImportantDate['engineSignals']>[number]
+
+function isHeavyAstro(s: EngineSignal): boolean {
+  if (s.source !== 'astro') return false
+  if (HEAVY_ASTRO_KINDS.has(s.kind)) return true
+  if (s.kind === 'transit') {
+    const p = (s.name || '').split(/[ ·]/)[0]
+    return SLOW_PLANETS.has(p) || p === 'True' || p === 'North'
+  }
+  return false
+}
+
+function isHeavySaju(s: EngineSignal): boolean {
+  if (s.source !== 'saju') return false
+  if (HEAVY_SAJU_KINDS.has(s.kind)) return true
+  return /용신 활성/.test(s.korean || s.name || '')
+}
+
+function cleanSignalName(s: EngineSignal): string {
+  return (s.korean || s.name || '')
+    .replace(/\s*\([^)]*\)/g, '')
+    .trim()
+    .slice(0, 28)
+}
+
+interface DailyConvergence {
+  astro: string[]
+  saju: string[]
+  bothSystems: boolean
+  meaning?: string
+}
+
+function deriveDailyConvergence(signals: EngineSignal[]): DailyConvergence | null {
+  let astroHeavy = 0
+  let sajuHeavy = 0
+  let netPol = 0
+  let sumImp = 0
+  const astro: string[] = []
+  const saju: string[] = []
+  const themeAcc: Record<string, number> = {}
+  for (const s of signals) {
+    const imp = Math.abs(s.polarity) * s.weight
+    if (imp < 0.4) continue
+    const heavyAstro = isHeavyAstro(s)
+    const heavySaju = !heavyAstro && isHeavySaju(s)
+    if (!heavyAstro && !heavySaju) continue
+    if (heavyAstro) {
+      astroHeavy += imp
+      const n = cleanSignalName(s)
+      if (n && astro.length < 3 && !astro.includes(n)) astro.push(n)
+    } else {
+      sajuHeavy += imp
+      const n = cleanSignalName(s)
+      if (n && saju.length < 3 && !saju.includes(n)) saju.push(n)
+    }
+    netPol += s.polarity * imp
+    sumImp += imp
+    for (const t of s.themes) themeAcc[t] = (themeAcc[t] ?? 0) + imp
+  }
+  if (astroHeavy === 0 && sajuHeavy === 0) return null
+  return {
+    astro,
+    saju,
+    bothSystems: astroHeavy > 0 && sajuHeavy > 0,
+    meaning: composeDailyMeaning(themeAcc, netPol, sumImp),
+  }
+}
+
+function composeDailyMeaning(
+  themeAcc: Record<string, number>,
+  netPol: number,
+  sumImp: number
+): string | undefined {
+  const top = Object.entries(themeAcc)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([k]) => THEME_LABEL_KO[k])
+    .filter(Boolean)
+  if (top.length === 0) return undefined
+  const ratio = sumImp > 0 ? netPol / sumImp : 0
+  const tone = ratio > 0.15 ? '기회가 열리는' : ratio < -0.15 ? '시험받는' : '크게 전환되는'
+  return `${top.join('·')} 영역이 ${tone} 날`
+}
+
 /**
  * Daily 활성 흐름 카드 — 활성 신호와 신살을 글로 풀어씀.
  *
@@ -58,6 +156,9 @@ export default function DailyFlowCard({ importantDate }: Props) {
   // 0. 일진(60갑자) 한 줄 — 그 날 ganji archetype + 본명 일간 십신 개인화
   const dailyGanji = importantDate.dailyGanjiNarrative
 
+  // 0a. 그날 "큰일" — 점성×사주 무거운 이벤트 수렴 (월간 큰날 로직을 하루에)
+  const convergence = deriveDailyConvergence(signals)
+
   // 0b. 일진 scope 룰 — "오늘 한 줄" 액션 (그 날 십신/신살/충)
   const dailyActions = importantDate.dailyActions ?? []
 
@@ -96,6 +197,35 @@ export default function DailyFlowCard({ importantDate }: Props) {
           <p className="text-indigo-200/90 text-sm bg-zinc-950/40 border border-white/5 rounded-xl px-3 py-2">
             {dailyGanji}
           </p>
+        )}
+
+        {/* 그날 큰일 — 점성×사주 수렴 (월간 큰날 카드와 같은 기준, 하루 단위) */}
+        {convergence && (
+          <div className="bg-zinc-950/40 border border-white/5 rounded-xl px-3 py-2.5 space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-bold text-zinc-200">🔮 오늘 겹치는 일</span>
+              {convergence.bothSystems && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/20">
+                  양쪽 수렴
+                </span>
+              )}
+            </div>
+            {convergence.astro.length > 0 && (
+              <div className="text-xs flex gap-1.5">
+                <span className="text-sky-300 font-bold shrink-0">점성</span>
+                <span className="text-zinc-400">{convergence.astro.join(' · ')}</span>
+              </div>
+            )}
+            {convergence.saju.length > 0 && (
+              <div className="text-xs flex gap-1.5">
+                <span className="text-amber-300 font-bold shrink-0">사주</span>
+                <span className="text-zinc-400">{convergence.saju.join(' · ')}</span>
+              </div>
+            )}
+            {convergence.meaning && (
+              <div className="text-xs text-indigo-200/80 italic pt-0.5">{convergence.meaning}</div>
+            )}
+          </div>
         )}
 
         {/* 오늘 한 줄 — 일진 룰 액션 (짧고 행동 중심) */}
