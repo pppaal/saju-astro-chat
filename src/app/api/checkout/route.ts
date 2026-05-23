@@ -15,7 +15,6 @@ import { logger } from '@/lib/logger'
 import {
   getCreditPackPriceId,
   allowedCreditPackIds,
-  verifyCreditPackPrice,
   type CreditPackKey,
 } from '@/lib/payments/prices'
 import { checkoutRequestSchema } from '@/lib/api/zodValidation'
@@ -102,30 +101,6 @@ export const POST = withApiMiddleware(
         logger.error('[checkout] credit pack price not allowed', { creditPack })
         recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' })
         return apiError(ErrorCodes.BAD_REQUEST, 'invalid_credit_pack')
-      }
-
-      // 가격 정합성 — Stripe 청구가(price ID)가 CREDIT_PACKS 표시가와 어긋나면
-      // 잘못된 금액을 청구할 수 있으므로 확정 불일치는 차단. 조회 실패(unverified)는
-      // 일시적 문제일 수 있어 checkout 을 막지 않고 경고만(fail-open).
-      const priceCheck = await verifyCreditPackPrice(stripe, creditPack as CreditPackKey)
-      if (priceCheck.status === 'mismatch') {
-        logger.error('[checkout] credit pack price mismatch — Stripe vs CREDIT_PACKS', {
-          creditPack,
-          currency: priceCheck.currency,
-          expected: priceCheck.expected,
-          actual: priceCheck.actual,
-        })
-        recordCounter('stripe_checkout_price_mismatch', 1, { pack: String(creditPack) })
-        captureServerError(new Error(`credit pack price mismatch: ${creditPack}`), {
-          route: '/api/checkout',
-        })
-        return apiError(ErrorCodes.INTERNAL_ERROR, 'price_mismatch')
-      }
-      if (priceCheck.status === 'unverified') {
-        logger.warn('[checkout] credit pack price unverified — proceeding', {
-          creditPack,
-          reason: priceCheck.reason,
-        })
       }
 
       const checkout = await stripe.checkout.sessions.create(
