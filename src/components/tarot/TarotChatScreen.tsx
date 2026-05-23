@@ -6,18 +6,15 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import {
-  Sparkles,
-  Send,
-  Layers,
-  X,
-  MoonStar,
-  ChevronRight,
-  ChevronDown,
-} from 'lucide-react'
+import { Sparkles, Send, Layers, X, MoonStar, ChevronRight, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
-import { DECK_STYLES, DECK_STYLE_INFO, getCardImagePath, type DeckStyle } from '@/lib/tarot/tarot.types'
+import {
+  DECK_STYLES,
+  DECK_STYLE_INFO,
+  getCardImagePath,
+  type DeckStyle,
+} from '@/lib/tarot/tarot.types'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import type { Spread } from '@/lib/tarot/tarot.types'
 
@@ -25,12 +22,17 @@ import type { Spread } from '@/lib/tarot/tarot.types'
 const ALL_SPREADS: Array<{ spread: Spread; categoryKo: string; categoryId: string }> = []
 for (const theme of tarotThemes) {
   for (const s of theme.spreads) {
-    ALL_SPREADS.push({ spread: s, categoryKo: theme.categoryKo ?? theme.category, categoryId: theme.id })
+    ALL_SPREADS.push({
+      spread: s,
+      categoryKo: theme.categoryKo ?? theme.category,
+      categoryId: theme.id,
+    })
   }
 }
 
 const DEFAULT_DECK: DeckStyle = DECK_STYLES[0] // celestial
-const DEFAULT_SPREAD = ALL_SPREADS.find((s) => s.spread.id === 'past-present-future') ?? ALL_SPREADS[0]
+const DEFAULT_SPREAD =
+  ALL_SPREADS.find((s) => s.spread.id === 'past-present-future') ?? ALL_SPREADS[0]
 
 export default function TarotChatScreen() {
   const router = useRouter()
@@ -85,7 +87,7 @@ export default function TarotChatScreen() {
 
   const deckInfo = DECK_STYLE_INFO[selectedDeck]
   const spreadTitle = isKo
-    ? selectedSpread.spread.titleKo ?? selectedSpread.spread.title
+    ? (selectedSpread.spread.titleKo ?? selectedSpread.spread.title)
     : selectedSpread.spread.title
 
   return (
@@ -125,7 +127,12 @@ export default function TarotChatScreen() {
               </div>
               <div className="flex flex-wrap justify-center gap-2">
                 {(isKo
-                  ? ['오늘 컨디션 어때?', '그 사람 마음이 궁금해', '이직해도 될까?', '내일 어떻게 보낼까?']
+                  ? [
+                      '오늘 컨디션 어때?',
+                      '그 사람 마음이 궁금해',
+                      '이직해도 될까?',
+                      '내일 어떻게 보낼까?',
+                    ]
                   : [
                       'How is my day looking?',
                       "What's on their mind?",
@@ -151,6 +158,45 @@ export default function TarotChatScreen() {
               </div>
             </div>
           )}
+
+          {/* 선택한 덱·스프레드 카드백 부채꼴 미리보기 — 빈 공간을 채우고
+              현재 선택(덱/카드 수)을 시각화. 덱·스프레드 바꾸면 실시간 갱신. */}
+          <div className="pt-6 flex flex-col items-center gap-2.5">
+            <div className="relative h-36 w-full max-w-xs mx-auto" aria-hidden>
+              {Array.from({ length: Math.min(selectedSpread.spread.cardCount, 5) }).map(
+                (_, i, arr) => {
+                  const n = arr.length
+                  const mid = (n - 1) / 2
+                  const rot = (i - mid) * 7
+                  const tx = (i - mid) * 24
+                  const ty = Math.abs(i - mid) * 5
+                  return (
+                    <div
+                      key={i}
+                      className="absolute left-1/2 top-3 w-16 h-24 md:w-20 md:h-32 rounded-lg overflow-hidden ring-1 ring-white/15 shadow-xl shadow-black/40"
+                      style={{
+                        transform: `translateX(calc(-50% + ${tx}px)) translateY(${ty}px) rotate(${rot}deg)`,
+                        zIndex: 10 - Math.abs(i - mid),
+                      }}
+                    >
+                      <Image
+                        src={deckInfo.backImage}
+                        alt=""
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    </div>
+                  )
+                }
+              )}
+            </div>
+            <p className="text-[11px] text-slate-500">
+              {isKo
+                ? `${deckInfo.nameKo} · ${spreadTitle} ${selectedSpread.spread.cardCount}장 준비됨`
+                : `${deckInfo.name} · ${spreadTitle} (${selectedSpread.spread.cardCount})`}
+            </p>
+          </div>
         </motion.div>
       </div>
 
@@ -312,8 +358,8 @@ export default function TarotChatScreen() {
                       {theme.spreads.map((sp) => {
                         const selected = selectedSpread.spread.id === sp.id
                         const expanded = expandedSpreadId === sp.id
-                        const title = isKo ? sp.titleKo ?? sp.title : sp.title
-                        const desc = isKo ? sp.descriptionKo ?? sp.description : sp.description
+                        const title = isKo ? (sp.titleKo ?? sp.title) : sp.title
+                        const desc = isKo ? (sp.descriptionKo ?? sp.description) : sp.description
                         return (
                           <li key={sp.id} className={selected ? 'bg-amber-500/5' : ''}>
                             <div className="flex items-center gap-2 px-3 py-2.5">

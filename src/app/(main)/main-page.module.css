@@ -6303,9 +6303,14 @@
    wrap to four rows and push the chat bar off-screen. */
 @media (max-width: 360px) {
   .homeBody {
+    /* Narrow widths (~280px Galaxy Fold outer) wrap the chips to more
+       rows, adding height that pushes the chat bar's send button below
+       the height-locked viewport. Trim the top padding here to claw back
+       the extra rows' worth of vertical space. */
+    padding-top: 1.5rem;
     padding-left: 0.85rem;
     padding-right: 0.85rem;
-    gap: 0.8rem;
+    gap: 0.7rem;
   }
 
   .homeHeadline {

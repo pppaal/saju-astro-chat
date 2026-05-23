@@ -85,7 +85,11 @@ test.describe('Tarot — reduced-motion CSS contract', () => {
     // Sanity check — the reduced-motion branch must actually disable
     // animations (otherwise the keyframe still runs and the !important
     // pins above lose to specificity at certain points in time).
-    expect(reducedMotionCss).toMatch(/animation:\s*none/)
+    // CSSOM serializes `animation: none` into its longhand
+    // (`animation: auto ease 0s 1 normal none running none`), so match the
+    // animation-name `none` inside the shorthand rather than the literal
+    // source string.
+    expect(reducedMotionCss).toMatch(/animation:[^;]*\bnone\b/)
   })
 })
 
