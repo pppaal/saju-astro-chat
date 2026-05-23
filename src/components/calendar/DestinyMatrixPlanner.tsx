@@ -149,7 +149,10 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
   const monthEventSet = useMemo(() => {
     const out = new Set<number>()
     for (const d of monthDates) {
-      if (d.grade > 1) continue
+      // 사용자가 보는 배지/색은 displayGrade(displayScore 백분위)이므로
+      // 하이라이트 점도 같은 기준으로 — raw grade를 쓰면 배지와 어긋난다.
+      const g = d.displayGrade ?? d.grade
+      if (g > 1) continue
       out.add(parseInt(d.date.slice(8, 10), 10))
     }
     return out

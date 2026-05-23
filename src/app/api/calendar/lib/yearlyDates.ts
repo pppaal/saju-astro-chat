@@ -1138,7 +1138,8 @@ function buildTitle(
   tier: StrengthTier,
   sibsin: string,
   dailyEvents: DailyEvent[],
-  seed: string
+  seed: string,
+  grade: ImportanceGrade
 ): string {
   const pool = (locale === 'ko' ? TITLE_POOL_KO : TITLE_POOL_EN)[domain][tier]
   const base = pickBySeed(seed, pool)
@@ -1146,7 +1147,13 @@ function buildTitle(
   // 충/형/공망/천간합 같이 점수 변동이 큰 이벤트는 캘린더 한눈에 보이도록 배지로 prepend
   const top = pickTopDailyEvent(dailyEvents)
   const HEAVY: DailyEvent['kind'][] = ['천간충', '지지충', '지지형', '공망', '천간합', '지지합']
-  const showBadge = top && Math.abs(top.scoreShift) >= 2 && HEAVY.includes(top.kind)
+  // 긍정 배지(결속의 날·관계 결속)는 흉일에 붙으면 등급과 어긋나므로 grade<=2 에서만.
+  const positiveBadge = top ? top.kind === '천간합' || top.kind === '지지합' : false
+  const showBadge =
+    top &&
+    Math.abs(top.scoreShift) >= 2 &&
+    HEAVY.includes(top.kind) &&
+    !(positiveBadge && grade >= 3)
   const badge = showBadge
     ? locale === 'ko'
       ? DAILY_EVENT_BADGE_KO[top.kind]
@@ -1168,12 +1175,17 @@ function buildDayDescriptionSuffixKo(input: {
   dailyEvents?: DailyEvent[]
   score?: number
   label: string
+  grade: ImportanceGrade
 }): string {
-  const { dailyEvents, score, label } = input
+  const { dailyEvents, score, label, grade } = input
   const labelTopic = `${label}${topicMarkerKo(label)}`
   // 1) 일주 이벤트 우선 — 강도 큰 것부터 (이미 score 절댓값 기준 정렬돼서 들어옴)
   const top = dailyEvents && dailyEvents.length > 0 ? dailyEvents[0] : null
-  if (top) {
+  // 천간합·지지합의 긍정 멘트("결정이 가벼워지는 날" 등)는 흉일(grade>=3)엔 숨겨
+  // 그날 등급과 어긋나지 않게 하고, 점수밴드 카운슬링으로 폴백한다.
+  const positiveEvent = top ? top.kind === '천간합' || top.kind === '지지합' : false
+  const suppressTopEvent = positiveEvent && grade >= 3
+  if (top && !suppressTopEvent) {
     const eventLine: Partial<Record<DailyEvent['kind'], string>> = {
       천간합: `오늘은 본명과 부드럽게 맞물려 ${label} 결정이 가벼워지는 날이에요.`,
       천간충: `오늘은 본명을 누르는 압박이 들어오니 ${label} 큰 결정은 한 번 더 보고 정하세요.`,
@@ -1213,7 +1225,9 @@ function buildDescription(
   /** 그 날 일주 이벤트 (충/합/형/공망 등) — description에 day-specific 라인 합성 */
   dailyEvents?: DailyEvent[],
   /** 그 날 점수 (2-99) — 점수 밴드별로 서로 다른 카운슬링 한 줄 덧붙임 */
-  score?: number
+  score?: number,
+  /** 그 날 등급 — 긍정 이벤트 멘트가 흉일에 붙는 모순 방지용 */
+  grade: ImportanceGrade = 2
 ): string {
   const label = DOMAIN_LABELS[locale][domain]
   const om = locale === 'ko' ? objectMarkerKo(label) : ''
@@ -1320,7 +1334,7 @@ function buildDescription(
       )
     }
     // day-specific suffix: 그 날 일주 충/합/형 이벤트 + 점수 밴드별 카운슬링
-    const suffix = buildDayDescriptionSuffixKo({ dailyEvents, score, label })
+    const suffix = buildDayDescriptionSuffixKo({ dailyEvents, score, label, grade })
     const prefix = prefixCandidates.length ? pickBySeed(`${seed}|p`, prefixCandidates) : ''
     return [prefix, core, suffix].filter(Boolean).join(' ')
   }
@@ -1421,9 +1435,10 @@ function buildSajuFactorsWithDaily(
   dailySibsin: string,
   dailyEvents: DailyEvent[],
   seed: string,
-  engineScore: UltraPrecisionScore | null = null
+  engineScore: UltraPrecisionScore | null = null,
+  grade: ImportanceGrade = 2
 ): string[] {
-  const monthly = buildSajuFactors(locale, profile, domain, month, pack, seed)
+  const monthly = buildSajuFactors(locale, profile, domain, month, pack, seed, grade)
   // monthly returns [sibsinLine, secondPoolPick, branchLine]:
   //   - monthly[0] = "이번 달은 …" (월 십신 — same every day of month)
   //   - monthly[1] = seed-picked from 신살/용신/격국 pool (varies)
@@ -1512,7 +1527,8 @@ function buildSajuFactors(
   domain: DomainKey,
   month: number,
   pack: MonthlyCounselorPack,
-  seed: string
+  seed: string,
+  grade: ImportanceGrade
 ): string[] {
   const label = DOMAIN_LABELS[locale][domain]
   const dayMaster = profile.dayMaster || profile.pillars?.day?.stem || ''
@@ -1564,7 +1580,9 @@ function buildSajuFactors(
         `장기 운 흐름이 ${label}${objectMarkerKo(label)} 한 번에 넓히기보다 단계로 다루도록 지지하고 있어요.`
       )
     }
-    const branchLine = `오늘 하루 분위기는 ${label} 쪽 결정에 ${relationCycleSignalKo(relation)}.`
+    // 이 "오늘 하루" 라인은 그날 등급(valence)을 따라야 함. 과거엔 일간원소×계절
+    // 관계(월 단위 고정)로 뽑아 흉일에도 "힘을 실어줘요"가 붙는 모순이 있었음.
+    const branchLine = `오늘 하루 분위기는 ${label} 쪽 결정에 ${dayToneSignalKo(grade)}.`
     const second = pickBySeed(`${seed}|s2`, secondPool)
     return [sibsinLine, second, branchLine]
   }
@@ -1597,25 +1615,41 @@ function buildSajuFactors(
     )
   }
   const branchLine = profile.dayBranch
-    ? `Day-branch ${profile.dayBranch} against month-branch ${pack.monthBranch} produces a ${relation === 'support' ? 'push' : relation === 'control' ? 'brake' : 'check'} signal for ${label}.`
+    ? `Day-branch ${profile.dayBranch} against month-branch ${pack.monthBranch} produces a ${dayToneSignalEn(grade)} signal for ${label}.`
     : ''
   const second = pickBySeed(`${seed}|s2`, secondPool)
   return branchLine ? [sibsinLine, second, branchLine] : [sibsinLine, second]
 }
 
-function relationCycleSignalKo(
-  rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'
-): string {
-  switch (rel) {
-    case 'same':
-    case 'support':
+// 그날 "오늘 하루" 톤 — 등급(valence) 기준. 일진 이벤트/요소 멘트가 그날 등급과
+// 어긋나 한 화면에서 길흉이 모순되던 문제를 막기 위해 valence는 grade로 통일한다.
+function dayToneSignalKo(grade: ImportanceGrade): string {
+  switch (grade) {
+    case 0:
+      return '강하게 힘을 실어줘요'
+    case 1:
       return '힘을 실어줘요'
-    case 'drain':
-      return '범위를 넓혀줘요'
-    case 'control':
+    case 2:
+      return '차분히 가라고 해요'
+    case 3:
       return '제동을 걸어요'
-    case 'controlled':
-      return '한 번 점검하라고 해요'
+    default:
+      return '강하게 제동을 걸어요'
+  }
+}
+
+function dayToneSignalEn(grade: ImportanceGrade): string {
+  switch (grade) {
+    case 0:
+      return 'strong push'
+    case 1:
+      return 'push'
+    case 2:
+      return 'steady'
+    case 3:
+      return 'brake'
+    default:
+      return 'firm brake'
   }
 }
 
@@ -1640,7 +1674,7 @@ function buildAstroFactors(
   domain: DomainKey,
   month: number,
   crossAgreementPercent: number,
-  tier: StrengthTier,
+  grade: ImportanceGrade,
   seed: string
 ): string[] {
   const label = DOMAIN_LABELS[locale][domain]
@@ -1648,9 +1682,13 @@ function buildAstroFactors(
   const moonSign = astroProfile.moonSign
   const isWinter = month <= 2 || month === 12
   const isSummer = month >= 6 && month <= 8
-  const dayIsStrong = tier === 'rising' || tier === 'aligned'
-  const strongTrigger = crossAgreementPercent >= 70 && dayIsStrong
-  const weakTrigger = crossAgreementPercent < 50 || tier === 'guarded'
+  // valence는 그날 등급 기준 — 점성 sub-signal(달/closer)이 전체 등급과 어긋나
+  // "좋은 날인데 한 박자 두세요" 같은 모순을 내지 않게 한다. 교차합의가 낮은
+  // 좋은 날은 "점성은 조용하니 사주를 따르라"로 풀어 모순 없이 안내한다.
+  const gradeGood = grade <= 1
+  const gradeBad = grade >= 3
+  const astroQuiet = crossAgreementPercent < 50
+  const supportive = gradeGood ? true : gradeBad ? false : crossAgreementPercent >= 60
 
   if (locale === 'ko') {
     const grainKo = MOON_GRAIN_KO[domain]
@@ -1662,15 +1700,21 @@ function buildAstroFactors(
         : '환절기라 우선순위 재배치가 자연스러운 시기'
     const sunLine = `본인 별자리는 ${sunSignKoLabel(sunSign)}라서 ${sunHouseFlavor} 분위기예요. 지금은 ${seasonalKo}.`
     const moonLine = moonSign
-      ? `${sunSignKoLabel(moonSign)} 달 영향으로 ${label} 쪽 ${grainKo}${objectMarkerKo(grainKo)} ${crossAgreementPercent >= 60 ? '받쳐주는 분위기예요' : '흩트리는 분위기예요'}.`
-      : `달 흐름은 ${label} 결정의 ${crossAgreementPercent >= 60 ? '실행 신호' : '재확인 신호'}로 작용합니다.`
-    const closerPool = strongTrigger
-      ? [
-          `점성 흐름도 ${label} 쪽으로 또렷한 신호를 보태고 있어요.`,
-          `짧은 호흡으로 진도 빼기 좋은 흐름이에요.`,
-          `흐름 정렬이 좋으니 결정 후 실행까지 같은 날 묶어도 됩니다.`,
-        ]
-      : weakTrigger
+      ? `${sunSignKoLabel(moonSign)} 달 영향으로 ${label} 쪽 ${grainKo}${objectMarkerKo(grainKo)} ${supportive ? '받쳐주는 분위기예요' : '흩트리는 분위기예요'}.`
+      : `달 흐름은 ${label} 결정의 ${supportive ? '실행 신호' : '재확인 신호'}로 작용합니다.`
+    const closerPool = gradeGood
+      ? astroQuiet
+        ? [
+            `점성 흐름은 잔잔하니 사주 신호를 믿고 움직여도 좋은 날이에요.`,
+            `점성은 큰 변수 없이 사주 흐름을 따라가는 날이에요.`,
+            `짧은 호흡으로 진도 빼기 좋은 흐름이에요.`,
+          ]
+        : [
+            `점성 흐름도 ${label} 쪽으로 또렷한 신호를 보태고 있어요.`,
+            `짧은 호흡으로 진도 빼기 좋은 흐름이에요.`,
+            `흐름 정렬이 좋으니 결정 후 실행까지 같은 날 묶어도 됩니다.`,
+          ]
+      : gradeBad
         ? [
             `점성 흐름이 약하니 큰 결정 전에 한 박자 두세요.`,
             `신호가 흐릿해 즉답보다 자료를 한 번 더 보세요.`,
@@ -1696,15 +1740,21 @@ function buildAstroFactors(
       : 'shoulder-season transits drive a re-prioritization'
   const sunLine = `Around ${sunSign}, ${seasonalEn}.`
   const moonLine = moonSign
-    ? `The ${moonSign} Moon signal ${crossAgreementPercent >= 60 ? 'supports' : 'scatters'} ${grainEn} on ${label}.`
-    : `Lunar transit acts as ${crossAgreementPercent >= 60 ? 'an execution cue' : 'a re-check cue'} for ${label} decisions.`
-  const closerPool = strongTrigger
-    ? [
-        `Planetary aspects add a clear spark toward ${label}.`,
-        `Short-term triggers are alive; bundle decision and execution today.`,
-        `Transit alignment is strong; tighten the loop and ship.`,
-      ]
-    : weakTrigger
+    ? `The ${moonSign} Moon signal ${supportive ? 'supports' : 'scatters'} ${grainEn} on ${label}.`
+    : `Lunar transit acts as ${supportive ? 'an execution cue' : 'a re-check cue'} for ${label} decisions.`
+  const closerPool = gradeGood
+    ? astroQuiet
+      ? [
+          `Transits stay quiet; trust the saju signal and move.`,
+          `Astrology stays out of the way today — follow the saju flow.`,
+          `Short-term triggers are alive; bundle decision and execution today.`,
+        ]
+      : [
+          `Planetary aspects add a clear spark toward ${label}.`,
+          `Short-term triggers are alive; bundle decision and execution today.`,
+          `Transit alignment is strong; tighten the loop and ship.`,
+        ]
+    : gradeBad
       ? [
           `Transit alignment is thin; pause one beat before large decisions.`,
           `Short-term triggers are faint; review notes once more before answering.`,
@@ -2162,17 +2212,25 @@ export function calculateYearlyImportantDates(
     const blendedRaw = (sajuAxisScore + astroAxisScore) / 2
     const score = Math.round(clamp(blendedRaw, 2, 99))
     const grade = scoreToGrade(score)
+    // tier(설명 core 톤)는 그날 등급 band 안으로 강제한다. baseTier(도메인 강도)는
+    // band 안에서의 뉘앙스로만 쓰고, 등급과 반대 valence로 새지 않게 한다.
+    // 과거엔 grade=1(좋음)인데 baseTier='guarded'면 그대로 guarded core("제약이 커요")가
+    // 좋은 날에 붙어 등급과 모순됐다.
     const baseTier = tierFromStrength(primaryStrength)
-    const tier: StrengthTier =
-      grade === 0
-        ? 'rising'
-        : grade === 4
-          ? 'guarded'
-          : grade === 3 && baseTier !== 'guarded'
-            ? 'wavering'
-            : grade === 1 && baseTier === 'wavering'
-              ? 'aligned'
-              : baseTier
+    const tier: StrengthTier = (() => {
+      switch (grade) {
+        case 0:
+          return 'rising'
+        case 1:
+          return baseTier === 'rising' ? 'rising' : 'aligned'
+        case 2:
+          return baseTier === 'rising' || baseTier === 'aligned' ? 'aligned' : 'wavering'
+        case 3:
+          return baseTier === 'guarded' ? 'guarded' : 'wavering'
+        default:
+          return 'guarded'
+      }
+    })()
     const seed = `${year}-${pad2(month)}-${pad2(day)}|${primary.domain}|${grade}`
     if (typeof options?.minGrade === 'number' && grade > options.minGrade) {
       continue
@@ -2201,7 +2259,8 @@ export function calculateYearlyImportantDates(
         tier,
         dailyPack?.sibsin || '',
         dailyEvents,
-        `${seed}|t`
+        `${seed}|t`,
+        grade
       ),
       descKey: buildDescription(
         locale,
@@ -2212,7 +2271,8 @@ export function calculateYearlyImportantDates(
         dailyPack,
         `${seed}|d`,
         dailyEvents,
-        score
+        score,
+        grade
       ),
       ganzhi: `${dailyPillar.stem}${dailyPillar.branch}`,
       crossVerified: crossAgreementPercent >= 60,
@@ -2227,7 +2287,8 @@ export function calculateYearlyImportantDates(
         dailySibsin,
         dailyEvents,
         `${seed}|s`,
-        engineScore
+        engineScore,
+        grade
       ),
       astroFactorKeys: [
         // The cross-agreement % has its own dedicated section in
@@ -2242,7 +2303,7 @@ export function calculateYearlyImportantDates(
           primary.domain,
           month,
           crossAgreementPercent,
-          tier,
+          grade,
           `${seed}|a`
         ),
       ],
