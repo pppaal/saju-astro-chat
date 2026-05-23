@@ -8,10 +8,11 @@ export { PLAN_CONFIG }
 export type { PlanType }
 export type FeatureType = keyof PlanFeatures
 
-// 테스트용 크레딧 우회 — CREDITS_BYPASS=true 일 때 동작한다. 운영 빌드에서도
-// 켜지므로(배포 환경 테스트용) 실제 과금에 직접 영향을 준다. 켜면 타로/궁합/
-// 운명 등 모든 크레딧 검사·차감이 통과된다. 테스트가 끝나면 반드시 끌 것.
-const CREDITS_BYPASS = process.env.CREDITS_BYPASS === 'true'
+// 테스트용 크레딧 우회 — 개발 환경에서 CREDITS_BYPASS=true 일 때만 동작한다.
+// 운영(NODE_ENV=production) 빌드에선 플래그를 켜도 무시되므로 항상 과금된다.
+// 켜면 타로/궁합/상담사 등 모든 크레딧 검사·차감이 통과된다. 테스트 후엔 끌 것.
+const CREDITS_BYPASS =
+  process.env.NODE_ENV !== 'production' && process.env.CREDITS_BYPASS === 'true'
 
 // 켜져 있으면 프로세스 시작 시 한 번 경고 — 운영에 켜둔 채 방치하지 않도록.
 if (CREDITS_BYPASS) {
@@ -230,7 +231,11 @@ export async function consumeCredits(
   userId: string,
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
   amount: number = 1
-): Promise<{ success: boolean; error?: string; chargedAs?: 'reading' | 'compatibility' | 'followUp' }> {
+): Promise<{
+  success: boolean
+  error?: string
+  chargedAs?: 'reading' | 'compatibility' | 'followUp'
+}> {
   if (CREDITS_BYPASS) {
     return { success: true }
   }
