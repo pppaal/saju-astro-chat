@@ -3,6 +3,10 @@
  * Extracted from DestinyCalendar.tsx for modularity
  */
 
+// monthlyInterpretation 모양의 단일 정의(SSOT) — 엔진이 정본, API/UI 가 재사용.
+// import type 라 런타임/번들엔 영향 없음(타입은 빌드 시 소거).
+import type { Interpretation as CalendarInterpretation } from '@/lib/calendar-engine/interpretation/types'
+
 export type EventCategory = 'wealth' | 'career' | 'love' | 'health' | 'travel' | 'study' | 'general'
 export type ImportanceGrade = 0 | 1 | 2 | 3 | 4
 export type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string }
@@ -119,34 +123,8 @@ export interface ImportantDate {
   }>
   /** 테마별 점수 (0~100) */
   themeScores?: Partial<Record<string, number>>
-  /** 그 달 narrative 해석 (룰 DB 기반) */
-  monthlyInterpretation?: {
-    narrative: string
-    matchedRuleIds: string[]
-    sections: Array<{ section: string; title: string; text: string }>
-    themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
-    themeBreakdown?: Partial<
-      Record<
-        'love' | 'money' | 'career' | 'health' | 'growth',
-        Array<{ label: string; delta: number; dir: 'up' | 'down' }>
-      >
-    >
-    /** 이번 달 키 이벤트 — 베스트 날 / 강한 구간 / 피할 날 */
-    keyEvents?: {
-      best?: { date: string; score: number }
-      window?: { start: string; end: string; avg: number }
-      avoid?: { dates: string[] }
-    }
-    /** 지난달 대비 — 전체 흐름/테마별 점수 변화 */
-    monthComparison?: {
-      overallDelta: number
-      themes: Array<{
-        theme: 'love' | 'money' | 'career' | 'health' | 'growth'
-        delta: number
-        dir: 'up' | 'down'
-      }>
-    }
-  }
+  /** 그 달 narrative 해석 (룰 DB 기반) — 엔진 Interpretation 단일 정의 재사용 */
+  monthlyInterpretation?: CalendarInterpretation
   /** 그 날 60갑자(일진) + 본명 일간 십신 개인화 한 줄 (API 가 일별 부착) */
   dailyGanjiNarrative?: string
   /** 일진 scope 룰 — "오늘 한 줄" 액션 (최대 4) */

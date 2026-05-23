@@ -6,7 +6,8 @@ import { buildInterpretation } from '@/lib/calendar-engine/interpretation/matche
 import { deriveKeyEvents } from '@/lib/calendar-engine/derivers/keyEvents'
 import { deriveMonthComparison } from '@/lib/calendar-engine/derivers/monthComparison'
 import { RULES } from '@/lib/calendar-engine/interpretation/rules'
-import type { CalendarCell } from '@/lib/calendar-engine/types'
+import { tagSignalWithThemes } from '@/lib/calendar-engine/themes/tagger'
+import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 
 /**
  * Regression suite — guards the cross-dimensional invariants the
@@ -1152,6 +1153,157 @@ describe('calendar-engine regression', () => {
       const interpEn = buildInterpretation({ natal, cells, scope: 'monthly', lang: 'en' })
       const timingEn = interpEn.sections.find((s) => s.section === 'timing')
       expect(timingEn!.text.toLowerCase()).toContain('void of course')
+    })
+  })
+
+  describe('theme weighting + ranking (영역바 변별)', () => {
+    const mkSignal = (over: Partial<ActiveSignal>): ActiveSignal =>
+      ({
+        id: 't',
+        source: 'astro',
+        kind: 'transit',
+        name: 'test',
+        themes: [],
+        polarity: 2,
+        layer: 'yearly',
+        active: { start: '2026-01-01', end: '2026-12-31' },
+        weight: 1,
+        evidence: { module: 'test' },
+        ...over,
+      }) as ActiveSignal
+
+    it('tagger weights a signal by theme 본령 (목성=일 본령 > 재물/성장 보조)', () => {
+      const { themes, weights } = tagSignalWithThemes(
+        mkSignal({ evidence: { module: 'test', planets: ['Jupiter'] } })
+      )
+      // 멤버십은 보존 (일/재물/성장 모두 포함)
+      expect(themes).toEqual(expect.arrayContaining(['career', 'money', 'growth']))
+      // 본령(career)이 보조(money/growth)보다 큰 가중 — 한 신호가 모든 테마에
+      // 동일 기여하던 동률 수렴 방지.
+      expect(weights.career).toBe(1)
+      expect(weights.career!).toBeGreaterThan(weights.money!)
+      expect(weights.career!).toBeGreaterThan(weights.growth!)
+    })
+
+    it('순서 있는 사주 매핑은 첫 테마가 primary(1.0), 이후 보조(<1)', () => {
+      // 정재 → ['money','love'] : money primary
+      const { weights } = tagSignalWithThemes(
+        mkSignal({ source: 'saju', evidence: { module: 'test', sibsin: '정재' } })
+      )
+      expect(weights.money).toBe(1)
+      expect(weights.love!).toBeLessThan(weights.money!)
+    })
+
+    it('themeRanking 은 점수 내림차순 정렬로 노출 (UI 상대표시용)', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        {
+          start: '2026-05-01T00:00:00.000Z',
+          end: '2026-05-31T23:59:59.000Z',
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      const ranking = interp.themeRanking ?? []
+      expect(ranking.length).toBeGreaterThanOrEqual(5)
+      for (let i = 1; i < ranking.length; i++) {
+        expect(ranking[i - 1].score).toBeGreaterThanOrEqual(ranking[i].score)
+        expect(ranking[i].rank).toBe(i + 1)
+      }
+      // 점수와 정합
+      for (const r of ranking) expect(interp.themeScores?.[r.theme]).toBe(r.score)
+    })
+  })
+
+  describe('convergence (수렴 큰 날)', () => {
+    it('monthly interp emits convergence.keyDays — 점수 내림차순 + 무거운 이벤트 동반', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.000Z', granularity: 'day' },
+        { includeEvidence: true }
+      )
+      const conv = buildInterpretation({ natal, cells, scope: 'monthly' }).convergence
+      expect(conv).toBeDefined()
+      expect(conv!.keyDays.length).toBeGreaterThan(0)
+      for (let i = 1; i < conv!.keyDays.length; i++) {
+        expect(conv!.keyDays[i - 1].score).toBeGreaterThanOrEqual(conv!.keyDays[i].score)
+      }
+      // 각 큰 날은 무거운 점성/사주 이벤트를 최소 하나 동반 + 날짜 형식
+      for (const d of conv!.keyDays) {
+        expect(d.astro.length + d.saju.length).toBeGreaterThan(0)
+        expect(d.date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      }
+    })
+
+    it('keyEvents 와 별개(additive) — keyEvents 는 그대로 존재', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.000Z', granularity: 'day' },
+        { includeEvidence: true }
+      )
+      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
+      expect(interp.keyEvents).toBeDefined() // 기존 거 안 부숨
+      expect(interp.convergence).toBeDefined() // 새 거 추가됨
+    })
+  })
+
+  describe('lifetimePivots (인생 분기점)', () => {
+    it('점성 라이프사이클 × 대운 병합 — 나이순 정렬 + 토성 리턴 보존', async () => {
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const cells = await buildCalendar(
+        natal,
+        { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.000Z', granularity: 'day' },
+        { includeEvidence: true }
+      )
+      const lp = buildInterpretation({ natal, cells, scope: 'monthly' }).lifetimePivots
+      expect(lp).toBeDefined()
+      expect(lp!.pivots.length).toBeGreaterThan(0)
+      // 나이 오름차순
+      for (let i = 1; i < lp!.pivots.length; i++) {
+        expect(lp!.pivots[i].age).toBeGreaterThanOrEqual(lp!.pivots[i - 1].age)
+      }
+      // 토성 리턴(~29세) 같은 핵심 점성 마일스톤이 병합에 삼켜지지 않고 살아있다
+      const hasSaturnReturn = lp!.pivots.some((p) => (p.astro ?? '').includes('토성 회귀'))
+      expect(hasSaturnReturn).toBe(true)
+      // bothSystems 인 분기점은 점성·사주 둘 다 있다
+      for (const p of lp!.pivots) {
+        if (p.bothSystems) {
+          expect(p.astro).toBeTruthy()
+          expect(p.saju).toBeTruthy()
+        }
+      }
     })
   })
 })

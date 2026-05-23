@@ -58,7 +58,11 @@ export interface ActiveSignal {
   kind: SignalKind
   name: string // 표시명 — '도화살' / 'Saturn □ Sun'
   korean?: string // 점성 영문 신호의 한글 표시
-  themes: AstroThemeKey[] // 영향 테마 (tagger가 부여)
+  themes: AstroThemeKey[] // 영향 테마 (tagger가 부여) — 멤버십(룰/카드용)
+  // 테마별 기여 가중 (tagger가 부여). primary 1.0 / secondary 0.5 …
+  // themeScore·themeBreakdown 만 사용 — 한 신호가 모든 테마에 동일 기여하던
+  // 변별력 저하(목성 회귀가 일·재물·성장에 똑같이 박힘) 해소. 없으면 1.0.
+  themeWeights?: Partial<Record<AstroThemeKey, number>>
   polarity: Polarity // -3 ~ +3 길흉 강도
   layer: SignalLayer // 시간 스케일
   active: ActiveWindow

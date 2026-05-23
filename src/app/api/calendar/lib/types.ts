@@ -5,6 +5,8 @@
 
 import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
+// monthlyInterpretation 모양의 단일 정의(SSOT) — 엔진이 정본, API/UI 가 재사용.
+import type { Interpretation as CalendarInterpretation } from '@/lib/calendar-engine/interpretation/types'
 
 // Helper type for accessing pillar data with various formats
 export interface SajuPillarAccessor {
@@ -79,35 +81,8 @@ export interface FormattedDate {
     weight: number
   }>
   themeScores?: Partial<Record<string, number>>
-  /** 그 달 narrative 해석 (룰 DB 기반, LLM 0번) */
-  monthlyInterpretation?: {
-    narrative: string
-    matchedRuleIds: string[]
-    sections: Array<{ section: string; title: string; text: string }>
-    themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
-    /** 테마별 점수 인과 추적 (Why-card) */
-    themeBreakdown?: Partial<
-      Record<
-        'love' | 'money' | 'career' | 'health' | 'growth',
-        Array<{ label: string; delta: number; dir: 'up' | 'down' }>
-      >
-    >
-    /** 이번 달 키 이벤트 — 베스트 날 / 강한 구간 / 피할 날 */
-    keyEvents?: {
-      best?: { date: string; score: number }
-      window?: { start: string; end: string; avg: number }
-      avoid?: { dates: string[] }
-    }
-    /** 지난달 대비 — 전체 흐름/테마별 점수 변화 */
-    monthComparison?: {
-      overallDelta: number
-      themes: Array<{
-        theme: 'love' | 'money' | 'career' | 'health' | 'growth'
-        delta: number
-        dir: 'up' | 'down'
-      }>
-    }
-  }
+  /** 그 달 narrative 해석 (룰 DB 기반, LLM 0번) — 엔진 Interpretation 단일 정의 재사용 */
+  monthlyInterpretation?: CalendarInterpretation
   /**
    * 해당 날의 60갑자(일진) 한 줄 narrative — `getGanjiTransitNarrative` 출처.
    * "오늘은 [archetype] 의 에너지가 흐르는 하루예요." 형식. 매일 다른 ganji 라

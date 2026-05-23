@@ -52,18 +52,24 @@ export async function getOrBuildMonth(args: {
   // 2. 미스 — 빌드
   const cells = await buildCalendar(natal, range, options)
 
-  // 3. fire-and-forget 저장
-  prisma.calendarBuildCache
-    .create({
-      data: {
-        birthKey,
-        monthKey,
-        data: cells as unknown as object,
-      },
-    })
-    .catch((err) => {
-      logger.warn?.('[cell-cache] save failed:', err instanceof Error ? err.message : String(err))
-    })
+  // 3. fire-and-forget 저장.
+  // DATABASE_URL 미설정 시 prisma 게터가 동기 throw(Proxy) → .catch() 로는 못 잡으므로
+  // try 로 감싼다. 캐시는 옵셔널이라 저장 실패해도 빌드된 cells 는 그대로 반환.
+  try {
+    prisma.calendarBuildCache
+      .create({
+        data: {
+          birthKey,
+          monthKey,
+          data: cells as unknown as object,
+        },
+      })
+      .catch((err) => {
+        logger.warn?.('[cell-cache] save failed:', err instanceof Error ? err.message : String(err))
+      })
+  } catch (err) {
+    logger.warn?.('[cell-cache] save skipped:', err instanceof Error ? err.message : String(err))
+  }
 
   return { cells, cached: false }
 }

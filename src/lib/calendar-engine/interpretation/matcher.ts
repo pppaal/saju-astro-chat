@@ -6,6 +6,8 @@ import { RULES } from './rules'
 import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
 import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
 import { deriveKeyEvents } from '../derivers/keyEvents'
+import { deriveConvergence } from '../derivers/convergence'
+import { deriveLifetimePivots } from '../derivers/lifetimePivots'
 import { deriveMonthComparison } from '../derivers/monthComparison'
 
 /**
@@ -364,11 +366,23 @@ export function buildInterpretation(args: {
     if (n > 0) themeScores[key] = Math.round(sum / n)
   }
 
+  // 테마 순위 — 바 동률 시 UI 가 상대 표시("가장 활발 > … > 약한 축")에 쓰도록.
+  const themeRanking = (THEME_SCORE_KEYS as readonly (keyof typeof themeScores)[])
+    .filter((k) => typeof themeScores[k] === 'number')
+    .map((k) => ({ theme: k, score: themeScores[k] as number }))
+    .sort((a, b) => b.score - a.score)
+    .map((o, i) => ({ ...o, rank: i + 1 }))
+
   // Why-card — 테마별 점수 인과 추적 (그 점수에 기여한 신호 top N).
   const themeBreakdown = deriveThemeBreakdown(allSignals)
 
   // 키 이벤트 3 — 월간일 때만 (일별 셀에서 베스트/강한구간/피할날 추출).
   const keyEvents = scope === 'monthly' ? deriveKeyEvents(cells) : undefined
+  // 수렴 큰 날 — 무거운 이벤트가 점성·사주 겹치는 날 (keyEvents 와 별개, additive).
+  const convergence = scope === 'monthly' ? deriveConvergence(cells, 5, lang) : undefined
+  // 인생 분기점 — 점성 라이프사이클 × 대운 전환 (natal 스케일, 월과 무관하나
+  // monthly 카드에 함께 노출). 순수 산술이라 매월 재계산해도 저렴.
+  const lifetimePivots = scope === 'monthly' ? deriveLifetimePivots(natal, lang) : undefined
 
   // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전월 themeScore 를 같은
   // 모델로 얻기 위해 재귀 호출(단, prevCells 미전달 → 무한재귀 없음).
@@ -389,8 +403,11 @@ export function buildInterpretation(args: {
     allMatchedRuleIds: debug ? matched.map((m) => m.rule.id) : undefined,
     sections,
     themeScores,
+    themeRanking,
     themeBreakdown,
     keyEvents,
+    convergence,
+    lifetimePivots,
     monthComparison,
   }
 }

@@ -10,6 +10,7 @@ import {
   Heart,
   ScrollText,
   Activity,
+  CalendarRange,
   Moon,
   Sun,
   Coins,
@@ -25,6 +26,7 @@ import { ganjiToKorean } from '@/lib/saju/ganjiKo'
 import { useDateDetail } from './useDateDetail'
 import MatchedPatternsCard from './MatchedPatternsCard'
 import MonthHighlightsCard from './MonthHighlightsCard'
+import YearHighlightsCard from './YearHighlightsCard'
 import MonthlyInterpretationCard from './MonthlyInterpretationCard'
 import DailyFlowCard from './DailyFlowCard'
 import DailyHourlyChart from './DailyHourlyChart'
@@ -57,7 +59,7 @@ interface DestinyMatrixPlannerProps {
   birthInfo?: BirthInfo | null
 }
 
-type ViewMode = 'monthly' | 'daily'
+type ViewMode = 'yearly' | 'monthly' | 'daily'
 
 // --- Helpers ---
 function avg(xs: number[]): number {
@@ -391,6 +393,15 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
     setViewMode('daily')
   }
 
+  // 올해 큰 날에서 날짜 클릭 — 그 달로 이동 후 daily 뷰
+  const handleDateClick = (iso: string) => {
+    const [y, m, d] = iso.split('-').map((x) => parseInt(x, 10))
+    if (!y || !m || !d) return
+    setViewDate(new Date(y, m - 1, 1))
+    setCurrentDay(d)
+    setViewMode('daily')
+  }
+
   const getDayOfWeek = (day: number) => {
     const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
     return days[new Date(viewYear, viewMonth, day).getDay()]
@@ -431,7 +442,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
 
         {/* View Mode Toggle */}
         <div className="flex bg-zinc-900/50 rounded-xl p-1.5 border border-white/5 backdrop-blur-sm">
-          {(['monthly', 'daily'] as const).map((mode) => (
+          {(['yearly', 'monthly', 'daily'] as const).map((mode) => (
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
@@ -441,6 +452,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                   : 'text-zinc-500 hover:text-zinc-300'
               }`}
             >
+              {mode === 'yearly' && <CalendarRange className="w-4 h-4" />}
               {mode === 'monthly' && <ScrollText className="w-4 h-4" />}
               {mode === 'daily' && <Activity className="w-4 h-4" />}
               {mode}
@@ -452,6 +464,24 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
       {/* --- Main Content Area --- */}
       <div className="flex-1 overflow-y-auto relative z-10 pb-10">
         <AnimatePresence mode="wait">
+          {/* 0. YEARLY VIEW — 올해 큰 날 (오늘→이달→올해 줌의 가장 바깥) */}
+          {viewMode === 'yearly' && (
+            <motion.div
+              key="yearly"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+              className="p-6 space-y-6"
+            >
+              <YearHighlightsCard
+                allDates={data?.allDates ?? []}
+                year={viewYear}
+                onDateClick={handleDateClick}
+              />
+            </motion.div>
+          )}
+
           {/* 1. MONTHLY VIEW */}
           {viewMode === 'monthly' && (
             <motion.div
