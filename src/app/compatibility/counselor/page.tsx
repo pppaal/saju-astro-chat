@@ -668,7 +668,7 @@ function CompatibilityCounselorContent() {
                     ) : isUser ? (
                       msg.content
                     ) : (
-                      <MarkdownMessage content={msg.content} />
+                      <MarkdownMessage content={msg.content} theme="light" />
                     )}
                   </div>
                 </div>
