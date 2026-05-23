@@ -127,24 +127,114 @@ export default function AboutPage() {
       </div>
 
       <main className={styles.main}>
+        {/* Hero */}
         <section className={styles.hero}>
-          <p className={styles.eyebrow}>ABOUT</p>
-          <h1 className={styles.title}>{isKo ? 'DestinyPal 소개' : 'About DestinyPal'}</h1>
-          <p className={styles.subtitle}>
-            {isKo
-              ? 'DestinyPal은 사주·점성 계산 결과를 상담, 캘린더, 리포트로 전달하는 운명 서비스입니다. 과장된 문장보다 계산 근거와 일관성을 우선합니다.'
-              : 'DestinyPal delivers Saju/Astrology computation into counselor, calendar, and report products. We prioritize evidence and consistency over hype.'}
-          </p>
-          <div className={styles.heroActions}>
-            <Link href="/destiny-counselor" className={styles.primaryBtn}>
-              {isKo ? '상담 시작' : 'Start counselor'}
-            </Link>
-            <Link href="/destiny-map/result" className={styles.secondaryBtn}>
-              {isKo ? '리포트 보기' : 'View reports'}
-            </Link>
+          <span className={styles.heroRing} aria-hidden />
+          <div className={styles.heroInner}>
+            <p className={styles.eyebrow}>ABOUT · DESTINYPAL</p>
+            <h1 className={styles.title}>
+              {isKo ? (
+                <>
+                  고대의 우주 지혜를
+                  <br />
+                  현대의 삶으로.
+                </>
+              ) : (
+                <>
+                  Bridging ancient cosmic wisdom
+                  <br />
+                  with modern life.
+                </>
+              )}
+            </h1>
+            <p className={styles.subtitle}>
+              {isKo
+                ? '서양 점성술의 별과 동양 사주의 오행을 하나로 이어, 당신의 진짜 길을 해독합니다.'
+                : 'Guiding you through the stars of Western astrology and the elemental forces of Eastern Saju to decode your true path.'}
+            </p>
+            <div className={styles.heroActions}>
+              <Link href="/destiny-counselor" className={styles.primaryBtn}>
+                {isKo ? '무료로 내 차트 보기' : 'Get your free chart'}
+              </Link>
+              <Link href="/destiny-map/result" className={styles.secondaryBtn}>
+                {isKo ? '리포트 보기' : 'View reports'}
+              </Link>
+            </div>
           </div>
         </section>
 
+        {/* Mission */}
+        <section className={styles.mission}>
+          <div className={styles.missionVisual} aria-hidden>
+            <span className={styles.orbCore} />
+            <span className={styles.orbRing} />
+            <span className={styles.orbRingAlt} />
+          </div>
+          <div className={styles.missionText}>
+            <h2 className={`${styles.sectionTitle} ${styles.neonText}`}>
+              {isKo ? '우리의 사명' : 'Our Mission'}
+            </h2>
+            <p className={styles.missionBody}>
+              {isKo
+                ? 'DestinyPal은 동양의 사주와 서양의 점성술을 하나의 계산 엔진으로 통합해, 과장 없이 근거에 기반한 삶의 지도를 제시합니다. 우리는 화려한 단정 대신 일관성과 계산 근거를 우선하며, 상담·캘린더·리포트 어디서나 같은 결론을 유지합니다. 그렇게 당신이 자기 자신과 조화를 이루며 더 나은 선택을 하도록 돕는 것이 우리의 목표입니다.'
+                : 'DestinyPal unifies Eastern Saju and Western astrology into a single computation engine, offering an evidence-based map for your journey — without the hype. We prioritize consistency and calculation over flashy claims, keeping the same conclusions across counselor, calendar, and report, so you can make informed decisions and live in harmony with your cosmic self.'}
+            </p>
+          </div>
+        </section>
+
+        {/* Synergy of East & West */}
+        <section className={styles.section}>
+          <header className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>
+              {isKo ? (
+                <>
+                  <span className={styles.accentEast}>동양</span>과{' '}
+                  <span className={styles.accentWest}>서양</span>의 시너지
+                </>
+              ) : (
+                <>
+                  The synergy of <span className={styles.accentEast}>East</span> &amp;{' '}
+                  <span className={styles.accentWest}>West</span>
+                </>
+              )}
+            </h2>
+            <p className={styles.sectionDesc}>
+              {isKo
+                ? '두 전통을 함께 읽을 때, 내면의 심리와 인생의 시기가 입체적으로 드러납니다.'
+                : 'Read together, the two traditions reveal both your inner psyche and the timing of your life.'}
+            </p>
+          </header>
+          <div className={styles.synergyGrid}>
+            <article className={`${styles.synergyCard} ${styles.synergyWest}`}>
+              <div className={styles.synergyIcon} aria-hidden>
+                ✨
+              </div>
+              <h3 className={styles.synergyTitle}>
+                {isKo ? '서양 점성술' : 'Western Astrology'}
+              </h3>
+              <p className={styles.synergyDesc}>
+                {isKo
+                  ? '출생 시점 행성·하우스·각도의 배치로 심리 원형과 성향, 내면의 동기를 읽습니다. 자기 이해와 관계의 결을 깊게 합니다.'
+                  : 'From the placement of planets, houses, and aspects at birth, it reads your psychological archetypes, traits, and inner motivations — deepening self-understanding.'}
+              </p>
+            </article>
+            <article className={`${styles.synergyCard} ${styles.synergyEast}`}>
+              <div className={styles.synergyIcon} aria-hidden>
+                ☯
+              </div>
+              <h3 className={styles.synergyTitle}>
+                {isKo ? '동양 사주 (사주팔자)' : 'Eastern Saju (Four Pillars)'}
+              </h3>
+              <p className={styles.synergyDesc}>
+                {isKo
+                  ? '연·월·일·시 네 기둥과 오행(목·화·토·금·수)의 상호작용으로 인생 주기·운의 흐름·관계·일·건강의 결을 봅니다.'
+                  : 'Built on the Four Pillars (Year, Month, Day, Hour) and the interplay of the Five Elements (Wood, Fire, Earth, Metal, Water), it reveals life cycles, fortune flow, relationships, career, and health.'}
+              </p>
+            </article>
+          </div>
+        </section>
+
+        {/* Core services */}
         <section className={styles.section}>
           <header className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>{isKo ? '핵심 서비스' : 'Core services'}</h2>
@@ -165,13 +255,14 @@ export default function AboutPage() {
                   {isKo ? service.summaryKo : service.summaryEn}
                 </p>
                 <Link href={service.href} className={styles.serviceLink}>
-                  {isKo ? '열기' : 'Open'}
+                  {isKo ? '열기 →' : 'Open →'}
                 </Link>
               </article>
             ))}
           </div>
         </section>
 
+        {/* How it works */}
         <section className={styles.section}>
           <header className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>{isKo ? '작동 방식' : 'How it works'}</h2>
@@ -192,6 +283,7 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Quality standard */}
         <section className={styles.section}>
           <header className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>{isKo ? '품질 기준' : 'Quality standard'}</h2>
@@ -220,8 +312,12 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* CTA */}
         <section className={styles.cta}>
-          <h2 className={styles.ctaTitle}>{isKo ? '바로 사용해보세요' : 'Use it now'}</h2>
+          <span className={styles.ctaGlow} aria-hidden />
+          <h2 className={`${styles.ctaTitle} ${styles.neonText}`}>
+            {isKo ? '당신의 우주 설계도를 만나보세요' : 'Ready to discover your cosmic blueprint?'}
+          </h2>
           <p className={styles.ctaText}>
             {isKo
               ? '질문을 입력해 상담을 시작하고, 필요할 때 캘린더와 리포트로 확장하세요.'
