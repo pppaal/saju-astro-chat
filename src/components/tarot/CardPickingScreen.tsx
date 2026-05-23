@@ -141,6 +141,17 @@ export function CardPickingScreen({
             ? `${selectedIndices.length}/${MAX_SELECTED} · 마음이 이끄는 카드를 선택하세요`
             : `${selectedIndices.length}/${MAX_SELECTED} · Choose the cards your heart calls to`}
         </p>
+
+        {/* 드래그 안내 — 부채꼴을 좌우로 탐색할 수 있음을 알림 */}
+        <motion.p
+          className="mt-2 flex items-center gap-2 text-amber-200/45 text-[11px] md:text-xs tracking-wide font-light"
+          animate={{ opacity: [0.35, 0.85, 0.35] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <span aria-hidden>←</span>
+          {isKo ? '좌우로 드래그하세요' : 'Drag left or right'}
+          <span aria-hidden>→</span>
+        </motion.p>
       </div>
 
       {/* 카드 드래그 영역 — 부채꼴 펼침 */}
