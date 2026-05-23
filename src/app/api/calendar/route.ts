@@ -1000,6 +1000,46 @@ export const GET = withApiMiddleware(
         return (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
       })
 
+    // ── 단일 엔진 per-day 해석 (P1, 기본 OFF) ──
+    // CALENDAR_UNIFIED_DAY_INTERP=1 일 때만, narrative 를 v2 셀에서 직접 만든
+    // 통합 출력으로 교체(포맷 전 → 포맷터가 균일 렌더). 등급은 displayScore 백분위.
+    // 플래그 OFF 면 이 블록 전체 스킵 — 기존 동작 100% 동일.
+    let datesForFormat: typeof matrixRegradedDates = matrixRegradedDates
+    if (process.env.CALENDAR_UNIFIED_DAY_INTERP === '1') {
+      try {
+        const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
+        const { buildUnifiedYearDates } = await import('./lib/unifiedDays')
+        const uNatal = await buildNatalContext(
+          {
+            birthDate: birthDateParam,
+            birthTime: birthTimeParam || '12:00',
+            gender: gender.toLowerCase() === 'female' ? 'female' : 'male',
+            latitude: coords.lat,
+            longitude: coords.lng,
+            timeZone: timezone,
+          },
+          {
+            saju: sajuResult,
+            astroChart: isNatalChartData(astroProfile.natalChart)
+              ? astroProfile.natalChart
+              : undefined,
+          }
+        )
+        datesForFormat = await buildUnifiedYearDates({
+          natal: uNatal,
+          year,
+          baseDates: matrixRegradedDates,
+          lang: locale === 'en' ? 'en' : 'ko',
+        })
+        logger.info?.('[calendar] unified day-interpretation ON')
+      } catch (err) {
+        logger.warn?.(
+          '[calendar] unified day-interp skipped:',
+          err instanceof Error ? err.message : String(err)
+        )
+      }
+    }
+
     // AI date enrichment was wired up in v1 to call /api/theme/important-dates
     // and decorate dates with AI-flagged auspicious/caution markers; the
     // backing route never shipped (or was retired), so fetchAIDates has
@@ -1014,7 +1054,7 @@ export const GET = withApiMiddleware(
         matrixEvidencePackets || undefined
       )
 
-    const formattedDatesBase = matrixRegradedDates.map((d) => formatCalendarDate(d))
+    const formattedDatesBase = datesForFormat.map((d) => formatCalendarDate(d))
     const formattedDates = rebalanceCalendarDisplayGrades(formattedDatesBase)
 
     // ── calendar-engine v2 augmentation (non-blocking, opt-in via fields) ──
