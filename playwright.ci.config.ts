@@ -64,14 +64,20 @@ export default defineConfig({
         },
       },
     },
-    // iPhone SE (375×667) — smallest mainstream iOS still in heavy use.
-    // Catches "chat bar / send button clipped off-screen" regressions
-    // that don't show up at 390+ widths.
+    // iPhone SE viewport (375×667) — smallest mainstream phone still in
+    // heavy use. Catches "chat bar / send button clipped off-screen"
+    // regressions that don't show up at 390+ widths. Emulated on chromium
+    // (not webkit) so the project actually runs in CI, which only installs
+    // chromium; the assertions here are layout-fit checks, not engine-
+    // specific rendering, so chromium emulation is sufficient.
     {
       name: 'mobile-visibility',
       testMatch: /mobile-visibility\.spec\.ts/,
       use: {
-        ...devices['iPhone SE'],
+        ...devices['Desktop Chrome'],
+        viewport: { width: 375, height: 667 },
+        isMobile: true,
+        hasTouch: true,
         launchOptions: {
           args: ['--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox'],
         },
@@ -94,12 +100,18 @@ export default defineConfig({
     },
     // prefers-reduced-motion: reduce — iOS Accessibility setting + Low
     // Power Mode trigger this. Catches elements that start at opacity:0
-    // and rely on an animation to land visible.
+    // and rely on an animation to land visible. The assertions inspect the
+    // loaded reduced-motion CSS rules (engine-independent), so emulate on
+    // chromium (390×844, iPhone 13 viewport) instead of webkit so the
+    // project runs in CI, which only installs chromium.
     {
       name: 'reduced-motion',
       testMatch: /reduced-motion\.spec\.ts/,
       use: {
-        ...devices['iPhone 13'],
+        ...devices['Desktop Chrome'],
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
         reducedMotion: 'reduce',
         launchOptions: {
           args: ['--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox'],
