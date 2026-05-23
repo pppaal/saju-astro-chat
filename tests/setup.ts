@@ -60,7 +60,6 @@ if (!shouldUseRealFetch) {
   process.env.ADMIN_API_TOKEN = 'test-admin-token'
   process.env.CRON_SECRET = 'test-cron-secret'
   process.env.METRICS_TOKEN = 'test-metrics-token'
-  process.env.NEXT_PUBLIC_AI_BACKEND = 'http://localhost:5000'
 }
 
 // ⚠️ Mock SwissEph (server-only module) for browser-based tests.

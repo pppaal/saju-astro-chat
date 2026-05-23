@@ -20,7 +20,7 @@ const REQUIRED_PRODUCTION_ENV = [
   "UPSTASH_REDIS_REST_TOKEN",
 ] as const;
 
-const RECOMMENDED_ENV = ["OPENAI_API_KEY", "AI_BACKEND_URL"] as const;
+const RECOMMENDED_ENV = ["OPENAI_API_KEY"] as const;
 
 describe("Environment Validation: Required Variables", () => {
   interface EnvValidationResult {
@@ -73,7 +73,6 @@ describe("Environment Validation: Required Variables", () => {
       DATABASE_URL: "postgresql://localhost:5432/db",
       TOKEN_ENCRYPTION_KEY: "another-very-long-key-at-least-32-chars",
       OPENAI_API_KEY: "sk-xxxx",
-      AI_BACKEND_URL: "https://api.example.com",
     };
 
     const result = validateEnv(env, false);
@@ -122,7 +121,6 @@ describe("Environment Validation: Required Variables", () => {
     const result = validateEnv(env, false);
     expect(result.valid).toBe(true);
     expect(result.warnings).toContain("OPENAI_API_KEY");
-    expect(result.warnings).toContain("AI_BACKEND_URL");
   });
 });
 
