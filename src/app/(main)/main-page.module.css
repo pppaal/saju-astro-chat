@@ -16,7 +16,8 @@
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  width: 100vw;
+  min-height: 100dvh;
+  width: 100%;
   color: var(--text-color);
   font-family:
     var(--font-noto-kr), var(--font-montserrat), 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui,
@@ -61,11 +62,7 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(
-    circle at 50% 12%,
-    rgba(255, 255, 255, 0.06),
-    transparent 34%
-  );
+  background: radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.06), transparent 34%);
 }
 
 .container::after {
@@ -98,6 +95,7 @@
    ==================================== */
 .fullscreenHero {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -1054,7 +1052,7 @@
 .heroServiceCardPink {
   --card-accent: rgba(244, 114, 182, 0.38);
   --card-border: rgba(251, 113, 191, 0.36);
-  --card-glow: rgba(244, 114, 182, 0.20);
+  --card-glow: rgba(244, 114, 182, 0.2);
 }
 
 .heroServiceGlow {
@@ -6402,11 +6400,7 @@
   padding: 0.8rem 1rem;
   border-radius: 18px;
   border: 1px solid rgba(167, 139, 250, 0.45);
-  background: linear-gradient(
-    135deg,
-    rgba(139, 92, 246, 0.18),
-    rgba(99, 210, 255, 0.1)
-  );
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.18), rgba(99, 210, 255, 0.1));
   color: #ffffff;
   font: inherit;
   text-align: left;
@@ -6423,11 +6417,7 @@
 .homeBirthCta:hover {
   transform: translateY(-1px);
   border-color: rgba(196, 181, 253, 0.7);
-  background: linear-gradient(
-    135deg,
-    rgba(167, 139, 250, 0.28),
-    rgba(99, 210, 255, 0.16)
-  );
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.28), rgba(99, 210, 255, 0.16));
 }
 
 .homeBirthCtaIcon {
@@ -6872,7 +6862,9 @@
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
 
 .modalLoadButton:hover {

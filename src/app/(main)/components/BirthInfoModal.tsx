@@ -38,7 +38,13 @@ function timeToState(raw: unknown): { birthTime: string; timeUnknown: boolean } 
   return { birthTime: t, timeUnknown: false }
 }
 
-export default function BirthInfoModal({ open, initial, onClose, onSaved, locale = 'ko' }: BirthInfoModalProps) {
+export default function BirthInfoModal({
+  open,
+  initial,
+  onClose,
+  onSaved,
+  locale = 'ko',
+}: BirthInfoModalProps) {
   const isKo = locale === 'ko'
   const [birthDate, setBirthDate] = useState(initial?.birthDate || '')
   const [birthTime, setBirthTime] = useState(
@@ -60,6 +66,25 @@ export default function BirthInfoModal({ open, initial, onClose, onSaved, locale
   useEffect(() => {
     if (!open) return
     let cancelled = false
+
+    // 즉시: 로컬 저장본이 있으면 '내 정보'를 먼저 노출해 "불러오기" 버튼이
+    // 네트워크(프로필/지인)를 기다리지 않고 바로 뜨게 한다. 아래 collect 가
+    // DB 프로필·지인으로 enrich/replace.
+    const localSeed = getStoredBirthInfo()
+    if (localSeed?.birthDate) {
+      setOptions([
+        {
+          key: 'me',
+          label: isKo ? '내 정보' : 'My info',
+          birthDate: localSeed.birthDate,
+          birthTime:
+            localSeed.birthTime && localSeed.birthTime !== '00:00' ? localSeed.birthTime : '',
+          timeUnknown: localSeed.birthTimeUnknown === true || localSeed.birthTime === '00:00',
+          gender: localSeed.gender || '',
+          city: localSeed.city || '',
+        },
+      ])
+    }
 
     const collect = async () => {
       const opts: LoadOption[] = []
