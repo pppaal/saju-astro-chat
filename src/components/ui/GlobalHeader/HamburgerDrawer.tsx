@@ -45,15 +45,18 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={isKo ? '메뉴 열기' : 'Open menu'}
-        className="flex flex-col items-center justify-center gap-[5px] w-10 h-10 rounded-full
-          border border-white/20 bg-black/40 backdrop-blur-md cursor-pointer
-          hover:bg-white/10 hover:border-white/40 transition-colors
+        className={`flex flex-col items-center justify-center gap-[5px] w-10 h-10 rounded-full
+          backdrop-blur-md cursor-pointer transition-colors
           focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2
-          focus-visible:ring-offset-slate-900"
+          focus-visible:ring-offset-slate-900 ${
+            isAuthed
+              ? 'border border-violet-300/45 bg-violet-500/20 hover:bg-violet-500/30 hover:border-violet-300/70 shadow-[0_0_16px_rgba(139,92,246,0.4)]'
+              : 'border border-white/20 bg-black/40 hover:bg-white/10 hover:border-white/40'
+          }`}
       >
-        <span className="block w-4 h-[2px] bg-white rounded" />
-        <span className="block w-4 h-[2px] bg-white rounded" />
-        <span className="block w-4 h-[2px] bg-white rounded" />
+        <span className={`block w-4 h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`} />
+        <span className={`block w-4 h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`} />
+        <span className={`block w-4 h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`} />
       </button>
 
       {open && (

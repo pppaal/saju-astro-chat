@@ -351,7 +351,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           <h2 className={styles.ctaTitle}>{pt('ctaTitle')}</h2>
           <p className={styles.ctaSub}>{pt('ctaSub')}</p>
           <div className={styles.ctaButtons}>
-            <Link href="/destiny-map" className={styles.ctaPrimary}>
+            <Link href="/" className={styles.ctaPrimary}>
               {pt('startFree')}
             </Link>
             <Link href="/about" className={styles.ctaSecondary}>
