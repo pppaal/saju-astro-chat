@@ -398,6 +398,57 @@ describe('comprehensive', () => {
         influences: [],
         overallInfluence: 'Positive',
       });
+
+      // Extended-analysis defaults so each test is independent of execution order.
+      // (Individual tests override the values they specifically assert on.)
+      vi.mocked(analyzeDegreeBasedAspects).mockReturnValue({
+        overallBalance: 80,
+        tightestAspect: null,
+        aspectList: [],
+      });
+      vi.mocked(analyzeMercuryAspects).mockReturnValue({
+        mercuryCompatibility: 80,
+        communicationStyle: 'Harmonious',
+        intellectualSynergy: 75,
+      });
+      vi.mocked(analyzeJupiterAspects).mockReturnValue({
+        expansionCompatibility: 85,
+        sharedBeliefs: 'Philosophy',
+        growthPotential: 80,
+      });
+      vi.mocked(analyzeSaturnAspects).mockReturnValue({
+        longTermPotential: 90,
+        karmicLesson: 'Responsibility',
+        commitmentLevel: 85,
+      });
+      vi.mocked(analyzeOuterPlanets).mockReturnValue({
+        overallTranscendentScore: 75,
+        generationalThemes: ['Innovation'],
+        uranusScore: 70,
+        neptuneScore: 75,
+        plutoScore: 80,
+      });
+      vi.mocked(analyzeNodes).mockReturnValue({
+        karmicRelationshipType: 'growth',
+        evolutionaryPurpose: 'Spiritual growth',
+        northNodeConnection: { compatibility: 85 },
+        southNodeConnection: { compatibility: 70 },
+      });
+      vi.mocked(analyzeLilith).mockReturnValue({
+        magneticAttraction: 70,
+        shadowDynamics: 'Intense',
+        sexualChemistry: 85,
+      });
+      vi.mocked(analyzeDavisonChart).mockReturnValue({
+        relationshipIdentity: 'Creative partnership',
+        relationshipPurpose: 'Mutual growth',
+        compositeEnergy: 'Dynamic',
+      });
+      vi.mocked(analyzeProgressedChart).mockReturnValue({
+        currentRelationshipTheme: 'Deepening',
+        evolutionDirection: 'Positive',
+        upcomingChallenges: [],
+      });
     });
 
     it('should perform extended analyses when optional data available', () => {
