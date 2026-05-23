@@ -116,6 +116,7 @@ vi.mock('@/lib/db/prisma', () => ({
     reading: { findMany: vi.fn() },
     tarotReading: { findMany: vi.fn() },
     consultationHistory: { findMany: vi.fn() },
+    counselorChatSession: { findMany: vi.fn() },
     userInteraction: { findMany: vi.fn() },
     dailyFortune: { findMany: vi.fn() },
     savedCalendarDate: { findMany: vi.fn() },
@@ -216,6 +217,7 @@ function mockAllPrismaEmpty() {
   vi.mocked(prisma.reading.findMany).mockResolvedValue([])
   vi.mocked(prisma.tarotReading.findMany).mockResolvedValue([])
   vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([])
+  vi.mocked(prisma.counselorChatSession.findMany).mockResolvedValue([])
   vi.mocked(prisma.userInteraction.findMany).mockResolvedValue([])
   vi.mocked(prisma.dailyFortune.findMany).mockResolvedValue([])
   vi.mocked(prisma.savedCalendarDate.findMany).mockResolvedValue([])
