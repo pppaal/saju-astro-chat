@@ -2,7 +2,11 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { User, Users, ChevronDown, Loader2 } from 'lucide-react'
 import { type PersonForm, type Relation } from '../../lib/types'
 import type { CirclePerson } from '@/hooks/useMyCircle'
-import { BirthInfoFields, type BirthFieldsClasses, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+import {
+  BirthInfoFields,
+  type BirthFieldsClasses,
+  type BirthFieldsPatch,
+} from '@/components/birth/BirthInfoFields'
 
 interface PersonCardProps {
   person: PersonForm
@@ -121,7 +125,7 @@ export const PersonCard = React.memo<PersonCardProps>(
             try {
               const cityRes = await fetch(
                 `/api/cities?q=${encodeURIComponent(user.birthCity)}&limit=1`,
-                { headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '' } },
+                { headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '' } }
               )
               if (!cityRes.ok) return
               const cityData = await cityRes.json()
@@ -136,15 +140,20 @@ export const PersonCard = React.memo<PersonCardProps>(
                 next[idx] = { ...next[idx], lat, lon }
                 return next
               })
-            } catch { /* ignore */ }
+            } catch {
+              /* ignore */
+            }
           })()
         }
-      } catch { /* ignore */ } finally {
+      } catch {
+        /* ignore */
+      } finally {
         setProfileLoading(false)
       }
     }, [idx, onSetPersons])
 
-    const personLabel = idx === 0 ? t('compatibilityPage.person1', '나') : t('compatibilityPage.person2', '상대')
+    const personLabel =
+      idx === 0 ? t('compatibilityPage.person1', '나') : t('compatibilityPage.person2', '상대')
 
     // Person 1 = rose, Person 2 = sky — the same A/B encoding used by the
     // chart overlays, so the form and the chart read as the same two people.
@@ -159,9 +168,7 @@ export const PersonCard = React.memo<PersonCardProps>(
             <div className={`flex h-8 w-8 items-center justify-center rounded-full ${avatarTone}`}>
               {idx === 0 ? <User className="h-4 w-4" /> : <Users className="h-4 w-4" />}
             </div>
-            <h3 className="text-[15px] font-semibold text-[#1c1917]">
-              {personLabel}
-            </h3>
+            <h3 className="text-[15px] font-semibold text-[#1c1917]">{personLabel}</h3>
           </div>
 
           {isAuthenticated && (
@@ -212,7 +219,9 @@ export const PersonCard = React.memo<PersonCardProps>(
                           >
                             <span className="font-medium">{cp.name}</span>
                             {cp.relation && (
-                              <span className="ml-1.5 text-[11px] text-[#a8a29e]">· {cp.relation}</span>
+                              <span className="ml-1.5 text-[11px] text-[#a8a29e]">
+                                · {cp.relation}
+                              </span>
                             )}
                           </button>
                         </li>
@@ -252,7 +261,9 @@ export const PersonCard = React.memo<PersonCardProps>(
             classes={lightFieldClasses}
           />
 
-          {/* 두 번째 사람 — 관계 + 메모 */}
+          {/* 두 번째 사람 — 관계 선택. '기타'를 고를 때만 자유 서술 필드를
+              노출하고, 그 텍스트가 그대로 상담 프롬트에 들어간다
+              (route.ts relationLabel 가 other일 때 note 를 사용). */}
           {idx > 0 && (
             <>
               <Field label={t('compatibilityPage.relationToPerson1', '나와의 관계')}>
@@ -268,25 +279,32 @@ export const PersonCard = React.memo<PersonCardProps>(
                   <option value="sibling">{t('compatibilityPage.sibling', '형제자매 👯')}</option>
                   <option value="friend">{t('compatibilityPage.friend', '친구 🤝')}</option>
                   <option value="colleague">{t('compatibilityPage.colleague', '동료 💼')}</option>
-                  <option value="other">{t('compatibilityPage.other', '기타 ✨')}</option>
+                  <option value="other">
+                    {t('compatibilityPage.other', '기타 / 자유롭게 서술 ✨')}
+                  </option>
                 </select>
               </Field>
-              <Field label={t('compatibilityPage.relationNote', '메모 (선택)')}>
-                <input
-                  type="text"
-                  value={person.relationNote ?? ''}
-                  onChange={(e) => onUpdatePerson(idx, 'relationNote', e.target.value)}
-                  placeholder={t('compatibilityPage.shortNote', '짧은 메모')}
-                  className={inputClass}
-                  maxLength={60}
-                />
-              </Field>
+              {person.relation === 'other' && (
+                <Field label={t('compatibilityPage.relationNote', '관계 설명')}>
+                  <textarea
+                    value={person.relationNote ?? ''}
+                    onChange={(e) => onUpdatePerson(idx, 'relationNote', e.target.value)}
+                    placeholder={t(
+                      'compatibilityPage.shortNote',
+                      '두 사람의 관계를 자유롭게 적어주세요'
+                    )}
+                    className={inputClass + ' min-h-[84px] resize-none leading-relaxed'}
+                    rows={3}
+                    maxLength={300}
+                  />
+                </Field>
+              )}
             </>
           )}
         </div>
       </div>
     )
-  },
+  }
 )
 
 PersonCard.displayName = 'PersonCard'

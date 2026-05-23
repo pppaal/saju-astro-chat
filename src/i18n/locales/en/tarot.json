@@ -21,6 +21,8 @@
       "revealing": "Selection complete! Revealing your fate...",
       "interpreting": "Reading the cards...",
       "interpretingDesc": "Please wait a moment",
+      "drawing": "Spreading the cards...",
+      "drawingDesc": "Reading the cards you chose...",
       "pleaseWait": "This may take 20-30 seconds",
       "redirecting": "Redirecting to Tarot...",
       "redraw": "Redraw"

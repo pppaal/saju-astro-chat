@@ -263,6 +263,43 @@ describe('buildInterpretStreamPrompts — schema directives', () => {
   })
 })
 
+describe('buildInterpretStreamPrompts — position/order distinctness', () => {
+  it('KO system prompt enforces distinct per-card roles, no overlap, and a synthesized overall', () => {
+    const built = buildInterpretStreamPrompts({
+      language: 'ko',
+      spreadTitle: SAMPLE_SPREAD,
+      cards: SAMPLE_CARDS,
+      userQuestion: SAMPLE_QUESTION_KO,
+    })
+    expect(built.systemPrompt).toContain('서로 다른 역할')
+    expect(built.systemPrompt).toContain('겹치지')
+    expect(built.systemPrompt).toContain('종합')
+  })
+
+  it('KO user prompt tells the model to interpret cards in draw order with distinct seats', () => {
+    const built = buildInterpretStreamPrompts({
+      language: 'ko',
+      spreadTitle: SAMPLE_SPREAD,
+      cards: SAMPLE_CARDS,
+      userQuestion: SAMPLE_QUESTION_KO,
+    })
+    expect(built.userPrompt).toContain('순서대로')
+    expect(built.userPrompt).toMatch(/단계적 흐름/)
+  })
+
+  it('EN system prompt enforces distinct per-card roles and a synthesized overall', () => {
+    const built = buildInterpretStreamPrompts({
+      language: 'en',
+      spreadTitle: SAMPLE_SPREAD,
+      cards: SAMPLE_CARDS,
+      userQuestion: SAMPLE_QUESTION_EN,
+    })
+    expect(built.systemPrompt).toContain('distinct role')
+    expect(built.systemPrompt).toMatch(/re-answer/)
+    expect(built.systemPrompt).toContain('Synthesize ALL cards')
+  })
+})
+
 describe('buildInterpretStreamPrompts — blank question opening', () => {
   it('KO: blank question opens with the general flow, not a forced question reference', () => {
     const blank = buildInterpretStreamPrompts({

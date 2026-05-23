@@ -21,6 +21,8 @@
       "revealing": "선택 완료! 운명을 공개합니다...",
       "interpreting": "카드를 해석하고 있습니다...",
       "interpretingDesc": "잠시만 기다려주세요",
+      "drawing": "카드를 펼치는 중...",
+      "drawingDesc": "선택하신 카드를 읽고 있어요...",
       "pleaseWait": "20-30초 정도 소요됩니다",
       "redirecting": "타로로 이동 중...",
       "redraw": "다시 뽑기"

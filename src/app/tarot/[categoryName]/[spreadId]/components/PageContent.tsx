@@ -128,6 +128,15 @@ export function PageContent(props: PageContentProps) {
     )
   }
 
+  if (gameState === 'revealing') {
+    return (
+      <LoadingState
+        message={`🔮 ${translate('tarot.reading.drawing', '카드를 펼치는 중...')}`}
+        submessage={translate('tarot.reading.drawingDesc', '선택하신 카드를 읽고 있어요...')}
+      />
+    )
+  }
+
   if (gameState === 'interpreting') {
     return (
       <LoadingState
