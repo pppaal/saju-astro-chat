@@ -1,5 +1,5 @@
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
-import { buildCalendar } from '@/lib/calendar-engine'
+import { getOrBuildMonth } from '@/lib/calendar-engine/cell-cache'
 import { deriveDayInterpretation } from './dayInterpretation'
 import { rebalanceCalendarDisplayGrades } from './helpers'
 import type { YearlyImportantDate } from './yearlyDates'
@@ -7,35 +7,43 @@ import type { YearlyImportantDate } from './yearlyDates'
 /**
  * 단일 엔진 경로(P1, 플래그 뒤) — 연간 날짜의 narrative 를 v2 셀에서 직접 만든다.
  *
- * yearlyDates 가 계산한 raw 날짜(점수·grade·*Key)를, 같은 연도 v2 셀에서
- * deriveDayInterpretation 으로 통째로 갈아끼운다. 등급은 **displayScore(=cell
- * derivedScore) 백분위**(rebalanceCalendarDisplayGrades) 를 주입 — v2 점수는
- * 절대 임계로는 한쪽으로 쏠리므로 반드시 percentile 로 등급화해야 정상 분포가 된다.
+ * yearlyDates 가 계산한 raw 날짜에서, 같은 연도 v2 셀로 narrative(title/desc/요소/
+ * 추천/경고/운주기/교차충합형/scoreBreakdown)만 갈아끼운다. grade/score/displayScore/
+ * categories 는 원본(matrix regrade) 유지 — 점수·등급 모델 이중화 방지.
  *
- * 포맷(formatDateForResponse) 전에 호출 — 포맷터가 *Key 를 균일하게 렌더하고
- * matrix 오버레이/게이팅을 그대로 적용하게 한다. 기본 비활성(플래그 OFF 시 미호출).
+ * narrative valence 는 **displayScore(=cell derivedScore) 백분위**(최종 displayGrade
+ * 예측치)로 구동 — v2 점수는 절대 임계로는 쏠리므로 percentile 등급이 맞다.
+ *
+ * 셀은 route 와 동일한 cell-cache(getOrBuildMonth)로 월별 빌드 — ±3달은 route 와
+ * 캐시 공유, 나머지도 다음 요청부터 HIT. 포맷(formatDateForResponse) 전에 호출해
+ * 포맷터가 *Key 균일 렌더 + matrix 오버레이를 그대로 적용하게 한다. 기본 비활성.
  */
 export async function buildUnifiedYearDates<T extends YearlyImportantDate>(args: {
   natal: NatalContext
   year: number
   baseDates: T[]
   lang: 'ko' | 'en'
+  birthKey: string
 }): Promise<T[]> {
-  const { natal, year, baseDates, lang } = args
+  const { natal, year, baseDates, lang, birthKey } = args
   if (baseDates.length === 0) return baseDates
 
-  const cells = await buildCalendar(
-    natal,
-    {
-      start: `${year}-01-01T00:00:00.000Z`,
-      end: `${year}-12-31T23:59:59.999Z`,
-      granularity: 'day',
-    },
-    { includeEvidence: true }
-  )
-  const cellByDate = new Map(cells.map((c) => [c.datetime.slice(0, 10), c]))
+  // 월별 셀 빌드 (cell-cache 재사용) → 날짜별 맵.
+  const cellByDate = new Map<string, Awaited<ReturnType<typeof getOrBuildMonth>>['cells'][number]>()
+  for (let m = 0; m < 12; m++) {
+    const start = new Date(Date.UTC(year, m, 1))
+    const end = new Date(Date.UTC(year, m + 1, 0, 23, 59, 59))
+    const { cells } = await getOrBuildMonth({
+      birthKey,
+      monthKey: `${year}-${String(m + 1).padStart(2, '0')}`,
+      natal,
+      range: { start: start.toISOString(), end: end.toISOString(), granularity: 'day' },
+      options: { includeEvidence: true },
+    })
+    for (const c of cells) cellByDate.set(c.datetime.slice(0, 10), c)
+  }
 
-  // 1) displayScore(=derivedScore) 백분위로 등급 산출 (절대 임계 X).
+  // displayScore(=derivedScore) 백분위로 등급 산출 (절대 임계 X).
   const scored = baseDates.map((d) => ({
     date: d.date,
     score: d.score,
@@ -45,9 +53,10 @@ export async function buildUnifiedYearDates<T extends YearlyImportantDate>(args:
     rebalanceCalendarDisplayGrades(scored).map((g) => [g.date, g.displayGrade])
   )
 
-  // 2) 셀이 있는 날은 **narrative만** 통합 해석으로 교체. grade/score/displayScore/
-  //    categories 는 원본(matrix regrade 결과) 유지 — 점수·등급 모델 이중화 방지.
-  //    narrative valence 는 최종 displayGrade(=displayScore 백분위) 예측치로 구동.
+  // 셀이 있는 날만 narrative 교체. 포맷터가 소비/전달하는 필드만 머지
+  // (ganzhi/crossCheck/transitSunSign 등은 포맷터가 allDates 로 안 보내므로 — 옛
+  // 경로와 동일 — 생략). crossAgreementPercent·confidence 는 포맷터 coherence 로직
+  // 입력이라 유지.
   return baseDates.map((d) => {
     const cell = cellByDate.get(d.date)
     if (!cell) return d
@@ -61,16 +70,11 @@ export async function buildUnifiedYearDates<T extends YearlyImportantDate>(args:
       astroFactorKeys: interp.astroFactorKeys,
       recommendationKeys: interp.recommendationKeys,
       warningKeys: interp.warningKeys,
-      ganzhi: interp.ganzhi,
-      crossVerified: interp.crossVerified,
       crossAgreementPercent: interp.crossAgreementPercent,
-      crossCheck: interp.crossCheck,
+      confidence: interp.confidence,
       longCycleContext: interp.longCycleContext,
       cycleInteractions: interp.cycleInteractions,
       scoreBreakdown: interp.scoreBreakdown,
-      transitSunSign: interp.transitSunSign,
-      confidence: interp.confidence,
-      confidenceNote: interp.confidenceNote,
     }
   })
 }

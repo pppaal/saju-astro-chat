@@ -1009,6 +1009,7 @@ export const GET = withApiMiddleware(
       try {
         const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
         const { buildUnifiedYearDates } = await import('./lib/unifiedDays')
+        const { makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
         const uNatal = await buildNatalContext(
           {
             birthDate: birthDateParam,
@@ -1030,6 +1031,12 @@ export const GET = withApiMiddleware(
           year,
           baseDates: matrixRegradedDates,
           lang: locale === 'en' ? 'en' : 'ko',
+          birthKey: makeBirthKey({
+            birthDate: birthDateParam,
+            birthTime: birthTimeParam || '12:00',
+            birthPlace,
+            gender: gender || 'Male',
+          }),
         })
         logger.info?.('[calendar] unified day-interpretation ON')
       } catch (err) {
