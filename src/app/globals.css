@@ -680,7 +680,11 @@ body {
 body {
   display: flex;
   flex-direction: column;
+  /* dvh 로 동적 뷰포트(모바일 URL바 접힘)를 추적 — 100vh 면 URL바 표시 시
+     viewport(작음)보다 body(큼)가 길어져 풀스크린 페이지(.page=100dvh) 아래로
+     배경이 비치는 갭이 모든 모바일에서 생긴다. vh 는 구형 브라우저 폴백. */
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 #main-content {
