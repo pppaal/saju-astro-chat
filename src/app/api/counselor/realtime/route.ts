@@ -17,6 +17,7 @@ import { buildDestinyContext } from '@/lib/destiny/counselorContext'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
+import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { refundCredits } from '@/lib/credits/creditRefund'
@@ -151,6 +152,12 @@ function birthFingerprint(b: RealtimeBody): string {
 }
 
 export async function POST(req: NextRequest) {
+  // 0) CSRF — this route bypasses withApiMiddleware, so guard the origin
+  // explicitly. Without it, any third-party page could POST in a logged-in
+  // user's browser (cookie auth) and burn their session credits.
+  const csrfError = csrfGuard(req.headers)
+  if (csrfError) return csrfError
+
   // 1) Auth
   const session = await getServerSession(authOptions)
   const userId = session?.user?.id

@@ -627,6 +627,24 @@ export async function POST(req: NextRequest) {
         temperature: 0.7,
         timeoutMs: 80000,
         label: 'compatibility-counselor',
+        // Mid-stream failures (empty completion / backend error) surface
+        // inside the SSE body, not as a thrown error, so the catch below
+        // never sees them. Refund the consumed credit here too. Guests
+        // aren't credit-charged → refundCreditsOnError is absent → no-op.
+        onFailure: context?.refundCreditsOnError
+          ? async () => {
+              try {
+                await context?.refundCreditsOnError?.(
+                  'compatibility-counselor stream delivered no content',
+                  { route: 'compatibility-counselor' }
+                )
+              } catch (err) {
+                logger.warn('[Compatibility Counselor] stream-failure refund failed', {
+                  error: err instanceof Error ? err.message : String(err),
+                })
+              }
+            }
+          : undefined,
         additionalHeaders: {
           'X-Guest-Mode': isGuestMode ? '1' : '0',
           ...(isGuestMode

@@ -1,14 +1,19 @@
+// NOTE: patterns are case-insensitive but intentionally NOT global. A
+// global (/g) RegExp is stateful under `.test()` (it advances lastIndex),
+// so reusing these shared instances across requests made `containsForbidden`
+// miss matches intermittently. `guardText` adds the `g` flag locally where
+// replace-all is actually needed.
 export const FORBIDDEN_PATTERNS: RegExp[] = [
   // PII
-  /\b(ssn|social security|passport|driver.?s license|phone number|contact number|address|email)\b/gi,
+  /\b(ssn|social security|passport|driver.?s license|phone number|contact number|address|email)\b/i,
   // Finance / investment
-  /\b(loan|mortgage|stock|investment|bitcoin|crypto(?:currency)?|forex|options trading|brokerage)\b/gi,
+  /\b(loan|mortgage|stock|investment|bitcoin|crypto(?:currency)?|forex|options trading|brokerage)\b/i,
   // Medical
-  /\b(diagnosis|prescription|medical advice|treatment plan|therapy|doctor|clinic|hospital)\b/gi,
+  /\b(diagnosis|prescription|medical advice|treatment plan|therapy|doctor|clinic|hospital)\b/i,
   // Gambling
-  /\b(gambling|casino|betting|sportsbook|roulette|blackjack|poker)\b/gi,
+  /\b(gambling|casino|betting|sportsbook|roulette|blackjack|poker)\b/i,
   // Self-harm
-  /\b(self-harm|suicide|harm myself|kill myself|end my life)\b/gi,
+  /\b(self-harm|suicide|harm myself|kill myself|end my life)\b/i,
 ];
 
 // v3.1: Increased to support full comprehensive data snapshot (~8-10KB)
@@ -28,7 +33,9 @@ export function cleanText(value: string, max = 1800) {
 export function guardText(value: string, max = 1800) {
   let txt = cleanText(value, max);
   for (const pat of FORBIDDEN_PATTERNS) {
-    txt = txt.replace(pat, "[filtered]");
+    // Local global clone so every occurrence is filtered without mutating
+    // the shared (non-global) pattern.
+    txt = txt.replace(new RegExp(pat.source, "gi"), "[filtered]");
   }
   // Ensure result doesn't exceed max after replacements
   return txt.slice(0, max);
