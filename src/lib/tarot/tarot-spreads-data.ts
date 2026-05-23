@@ -1,10 +1,12 @@
 import { TarotTheme } from './tarot.types'
 
-// 4 동적 스프레드 — 1·3·5·7장. 자리(positions) 는 고정 라벨 대신
-// LLM 이 사용자 질문 맥락에 맞춰 응답 시 직접 명명한다.
-// 자리 의미가 비어 있어도 UI/API 가 동작하도록 positions 는 빈 배열로 둠.
-// 기존 스프레드 ID(`quick-reading` / `past-present-future` / `general-cross`
-// / `celtic-cross`) 는 깨지는 라우트·저장 데이터를 피하려 그대로 유지.
+// 스프레드 — 자리(positions)는 고정 라벨 대신 LLM 이 사용자 질문 맥락에
+// 맞춰 응답 시 직접 명명한다(positions 는 빈 배열). 다만 spreadTitle 은
+// 프롬프트에 그대로 들어가므로, 목적형 제목("관계 십자" 등)이 해석 방향을
+// 부드럽게 잡아준다.
+// general-insight 의 4개 스프레드 ID(`quick-reading` / `past-present-future`
+// / `general-cross` / `celtic-cross`)는 기존 라우트·저장 데이터 호환을 위해
+// 절대 바꾸지 않는다.
 export const tarotThemes: TarotTheme[] = [
   {
     id: 'general-insight',
@@ -47,6 +49,78 @@ export const tarotThemes: TarotTheme[] = [
         cardCount: 7,
         description: 'Seven cards — full reading around the question.',
         descriptionKo: '질문을 일곱 각도로 깊이 풀어요.',
+        positions: [],
+      },
+    ],
+  },
+  {
+    id: 'love',
+    category: 'Love & Relationship',
+    categoryKo: '연애·관계',
+    description: 'Spreads centered on feelings, connection, and where a bond is heading.',
+    descriptionKo: '마음·관계의 흐름과 방향에 집중한 스프레드.',
+    spreads: [
+      {
+        id: 'two-hearts',
+        title: 'Two Hearts',
+        titleKo: '두 마음',
+        cardCount: 3,
+        description: 'Your feelings, their feelings, and where it flows.',
+        descriptionKo: '내 마음 · 상대 마음 · 둘의 흐름.',
+        positions: [],
+      },
+      {
+        id: 'relationship-cross',
+        title: 'Relationship Cross',
+        titleKo: '관계 십자',
+        cardCount: 5,
+        description: 'A deeper look at the bond, the block, and the path forward.',
+        descriptionKo: '유대 · 걸림돌 · 나아갈 길까지 깊게.',
+        positions: [],
+      },
+    ],
+  },
+  {
+    id: 'decision',
+    category: 'Decision & Choice',
+    categoryKo: '결정·선택',
+    description: 'Weigh options and find a clear lean.',
+    descriptionKo: '선택지를 견주고 기울기를 찾는 스프레드.',
+    spreads: [
+      {
+        id: 'yes-no',
+        title: 'Yes or No',
+        titleKo: '예 / 아니오',
+        cardCount: 1,
+        description: 'One card for a clear lean on a yes/no question.',
+        descriptionKo: '예/아니오 질문에 한 장으로 기울기를 잡아요.',
+        positions: [],
+      },
+      {
+        id: 'crossroads',
+        title: 'Crossroads',
+        titleKo: '갈림길',
+        cardCount: 4,
+        description: 'Now, choice A, choice B, and guidance.',
+        descriptionKo: '현재 · 선택 A · 선택 B · 조언.',
+        positions: [],
+      },
+    ],
+  },
+  {
+    id: 'career',
+    category: 'Career & Money',
+    categoryKo: '커리어·재물',
+    description: 'Direction for work, money, and the next move.',
+    descriptionKo: '일·돈·다음 한 수의 방향.',
+    spreads: [
+      {
+        id: 'career-path',
+        title: 'Career Path',
+        titleKo: '커리어 경로',
+        cardCount: 5,
+        description: 'Where you are, what helps, what blocks, and the next step.',
+        descriptionKo: '현 위치 · 강점 · 걸림돌 · 다음 한 수.',
         positions: [],
       },
     ],
