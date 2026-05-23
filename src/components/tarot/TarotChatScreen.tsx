@@ -351,9 +351,6 @@ export default function TarotChatScreen() {
               <div className="max-w-3xl mx-auto space-y-6">
                 {tarotThemes.map((theme) => (
                   <div key={theme.id}>
-                    <h3 className="text-sm font-semibold text-amber-400/90 mb-2 px-1">
-                      {isKo ? theme.categoryKo : theme.category}
-                    </h3>
                     <ul className="rounded-2xl bg-slate-900 border border-slate-800 divide-y divide-slate-800 overflow-hidden">
                       {theme.spreads.map((sp) => {
                         const selected = selectedSpread.spread.id === sp.id
