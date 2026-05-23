@@ -122,7 +122,7 @@ export function ResultsStage(props: ResultsStageProps) {
             <div className="flex items-center gap-2 mb-3">
               <MessageCircle className="w-4 h-4 text-indigo-400" />
               <h2 className="text-sm font-medium text-indigo-300 tracking-wider uppercase">
-                {isKo ? '전체 해석 (AI)' : 'Overall Reading (AI)'}
+                {isKo ? '전체 해석' : 'Overall Reading'}
               </h2>
               {aiPending && insight?.overall_message && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-[10px] text-indigo-200">
@@ -171,9 +171,7 @@ export function ResultsStage(props: ResultsStageProps) {
               <AlertCircle className="w-5 h-5 text-rose-300 shrink-0 mt-0.5" />
               <div>
                 <div className="text-sm font-medium text-rose-100">
-                  {isKo
-                    ? 'AI 해석을 받지 못했어요'
-                    : 'AI reading could not be loaded'}
+                  {isKo ? 'AI 해석을 받지 못했어요' : 'AI reading could not be loaded'}
                 </div>
                 <div className="text-xs text-rose-200/70 mt-0.5 leading-snug">
                   {isKo
