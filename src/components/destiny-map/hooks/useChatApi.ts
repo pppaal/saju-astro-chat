@@ -300,7 +300,12 @@ export function useChatApi({
           setFollowUpQuestions(result.followUps.slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT))
         } else {
           setFollowUpQuestions(
-            generateFollowUpQuestions(userText, lang, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+            generateFollowUpQuestions(
+              userText,
+              lang,
+              CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT,
+              normalizedContent
+            )
           )
         }
 
