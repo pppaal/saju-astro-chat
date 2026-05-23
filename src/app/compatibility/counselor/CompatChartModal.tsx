@@ -10,9 +10,9 @@ import { CompatRadarOverlay } from './CompatRadarOverlay'
 
 /**
  * 궁합 차트 모달 — 두 사람 차트를 따로 쌓지 않고 하나로 합쳐 보여준다.
- *   1) 점성 시너스트리: 한 황도 위에 두 사람 행성을 색으로 겹쳐 그림
+ *   1) 사주 좌우 비교: A·B 사주팔자를 두 칸으로 나란히 (동양은 사주가 먼저)
  *   2) 오행 비교: 한 레이더에 두 사람 오행을 겹쳐 그림
- *   3) 사주 좌우 비교: A·B 사주팔자를 두 칸으로 나란히
+ *   3) 점성 시너스트리: 한 황도 위에 두 사람 행성을 색으로 겹쳐 그림
  *
  * 입력은 compat 페이지가 들고 있는 raw API 응답:
  *   personNSaju  = /api/saju 응답   { data: { yearPillar… fiveElements… } }
