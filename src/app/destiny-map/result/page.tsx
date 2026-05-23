@@ -123,7 +123,14 @@ export default function DestinyResultPage({
         // Include advanced astrology features for deeper counseling
         if (res?.saju || res?.astrology) {
           try {
-            const advancedRes = res as Record<string, unknown>
+            // The API nests advanced astrology under `advancedAstrology`
+            // (see /api/destiny-map route). Reading these off the top-level
+            // response left every field null, so the counselor lost all
+            // advanced context. Resolve the nested object first.
+            const resRecord = res as Record<string, unknown>
+            const advancedRes: Record<string, unknown> = isRecord(resRecord.advancedAstrology)
+              ? resRecord.advancedAstrology
+              : {}
             const solarReturn = isRecord(advancedRes.solarReturn) ? advancedRes.solarReturn : null
             const lunarReturn = isRecord(advancedRes.lunarReturn) ? advancedRes.lunarReturn : null
             const progressions = isRecord(advancedRes.progressions)
