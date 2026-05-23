@@ -3,7 +3,22 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { logger } from '@/lib/logger'
-import { BirthInfoFields, birthFieldClasses, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+import { BirthInfoFields, type BirthFieldsClasses, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+
+// Light field styling matching the profile page's premium white surface.
+const lightFieldClasses: Required<BirthFieldsClasses> = {
+  field: 'flex flex-col gap-1.5',
+  label: 'text-[12.5px] font-semibold tracking-[0.02em] text-[#57534e]',
+  input:
+    'w-full rounded-xl border border-[#e0ddd7] bg-white px-3 py-2.5 text-[14px] text-[#1c1917] outline-none transition placeholder:text-[#a8a29e] focus:border-[#a07a3c] disabled:cursor-not-allowed disabled:opacity-50',
+  row: 'grid grid-cols-2 gap-2.5',
+  checkboxLabel:
+    'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[#57534e]',
+  suggestionList:
+    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e7e4df] bg-white p-1 shadow-[0_16px_40px_rgba(28,25,23,0.12)]',
+  suggestionItem:
+    'block w-full rounded-lg px-2.5 py-2 text-left text-[13px] text-[#44403c] transition hover:bg-[#f5f4f1]',
+}
 
 interface CircleAddModalProps {
   open: boolean
@@ -151,21 +166,24 @@ export function CircleAddModal({
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(28,25,23,0.45)] backdrop-blur-sm sm:items-center"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-white/10 bg-[#0a0f1e] shadow-[0_-12px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl"
+        className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-[#e7e4df] bg-white shadow-[0_24px_48px_rgba(28,25,23,0.18)] sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-          <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-white">
+        <header className="flex items-center justify-between border-b border-[#eee9e3] px-5 py-4">
+          <h2
+            className="text-[16px] font-semibold tracking-[-0.01em] text-[#1c1917]"
+            style={{ fontFamily: 'var(--font-cinzel), Georgia, serif' }}
+          >
             {t('지인 추가', 'Add to circle')}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1 text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+            className="rounded-full p-1 text-[#a8a29e] transition hover:bg-[#f5f4f1] hover:text-[#1c1917]"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -174,25 +192,25 @@ export function CircleAddModal({
 
         <form onSubmit={handleSubmit} className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto px-5 py-5">
           {/* 이름 */}
-          <div className={birthFieldClasses.field}>
-            <label className={birthFieldClasses.label}>
+          <div className={lightFieldClasses.field}>
+            <label className={lightFieldClasses.label}>
               {t('이름', 'Name')}
-              <span className="ml-1 text-rose-400">*</span>
+              <span className="ml-1 text-rose-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('이 사람의 이름', "Person's name")}
-              className={birthFieldClasses.input}
+              className={lightFieldClasses.input}
               maxLength={100}
               required
             />
           </div>
 
           {/* 관계 */}
-          <div className={birthFieldClasses.field}>
-            <label className={birthFieldClasses.label}>{t('관계', 'Relation')}</label>
+          <div className={lightFieldClasses.field}>
+            <label className={lightFieldClasses.label}>{t('관계', 'Relation')}</label>
             <div className="flex flex-wrap gap-2">
               {relations.map((r) => (
                 <button
@@ -201,8 +219,8 @@ export function CircleAddModal({
                   onClick={() => setRelation(r.value)}
                   className={
                     relation === r.value
-                      ? 'rounded-full border border-violet-300/45 bg-violet-400/15 px-3.5 py-1.5 text-[12.5px] text-white transition'
-                      : 'rounded-full border border-white/12 bg-white/[0.03] px-3.5 py-1.5 text-[12.5px] text-slate-300 transition hover:border-white/20'
+                      ? 'rounded-full border border-[rgba(160,122,60,0.4)] bg-[rgba(160,122,60,0.10)] px-3.5 py-1.5 text-[12.5px] font-medium text-[#8a6722] transition'
+                      : 'rounded-full border border-[#e0ddd7] bg-white px-3.5 py-1.5 text-[12.5px] text-[#57534e] transition hover:border-[#c9c4bc]'
                   }
                 >
                   {r.label}
@@ -219,15 +237,16 @@ export function CircleAddModal({
             gender={gender === 'F' ? 'female' : 'male'}
             city={birthCity}
             onChange={onBirthChange}
+            classes={lightFieldClasses}
           />
 
           {error && (
-            <p className="mb-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[12.5px] text-rose-200">
+            <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12.5px] text-rose-600">
               {error}
             </p>
           )}
           {justSaved && (
-            <p className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[12.5px] text-emerald-200">
+            <p className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12.5px] text-emerald-700">
               {t('저장되었어요.', 'Saved.')}
             </p>
           )}
@@ -235,7 +254,7 @@ export function CircleAddModal({
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-3 text-[14px] font-semibold text-white transition hover:from-cyan-400 hover:to-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-xl bg-[#1c1917] px-4 py-3 text-[14px] font-semibold text-white transition hover:bg-[#3a3530] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {saving ? t('추가 중…', 'Adding…') : t('지인 추가', 'Add to circle')}
           </button>
