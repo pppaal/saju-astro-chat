@@ -47,7 +47,6 @@ vi.mock("@/lib/logger", () => ({
 import {
   saveChartData,
   loadChartData,
-  loadCurrentChartData,
   clearChartCache,
   hasCachedData,
 } from "@/lib/cache/chartDataCache";
@@ -244,39 +243,6 @@ describe("chartDataCache", () => {
       );
 
       const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("loadCurrentChartData", () => {
-    it("returns null when no cache exists", () => {
-      const result = loadCurrentChartData();
-      expect(result).toBeNull();
-    });
-
-    it("returns current cached data without birthKey validation", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
-        saju: { pillars: {} },
-      });
-
-      const result = loadCurrentChartData();
-
-      expect(result).not.toBeNull();
-      expect(result?.saju).toBeDefined();
-    });
-
-    it("returns null for expired cache", () => {
-      const now = new Date("2024-01-15T12:00:00Z").getTime();
-      vi.setSystemTime(now);
-
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
-        saju: { test: true },
-      });
-
-      vi.advanceTimersByTime(3600001);
-
-      const result = loadCurrentChartData();
 
       expect(result).toBeNull();
     });
