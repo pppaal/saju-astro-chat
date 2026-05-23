@@ -3,7 +3,7 @@
 ## Summary
 
 - Total Next.js API routes: 70
-- Uses middleware/guards: 67 (95.7%)
+- Uses middleware/guards: 68 (97.1%)
 - Has validation signals: 53 (75.7%)
 - Rate limited (guard or option): 62 (88.6%)
 - Credit consumption configured: 4 (5.7%)
@@ -19,10 +19,9 @@
 - PATCH: 4
 - DELETE: 10
 
-## Missing Middleware (3)
+## Missing Middleware (2)
 
 - src/app/api/auth/[...nextauth]/route.ts [GET,POST]
-- src/app/api/counselor/realtime/route.ts [POST]
 - src/app/api/review/assessment/route.ts [GET,POST]
 
 ## Missing Validation (3)
