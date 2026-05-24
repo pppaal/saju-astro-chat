@@ -188,6 +188,8 @@ function CompatibilityCounselorContent() {
     chartFetchRef.current = true
     try {
       // gender는 대운 순/역행에 필수. /api/saju가 required로 받으니 빠뜨리면 fetch 실패.
+      // skipInterpretation: 궁합 상담사는 차트 데이터(기둥·신살 등)만 쓰고 사람당
+      // AI 해석문은 안 쓴다. 그걸 끄면 로딩이 LLM 대기 없이 차트 계산만으로 끝난다.
       const sajuPayload = (p: PersonData) => ({
         birthDate: p.date,
         birthTime: p.time,
@@ -196,6 +198,7 @@ function CompatibilityCounselorContent() {
         timezone: p.timeZone || 'Asia/Seoul',
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
+        skipInterpretation: true,
       })
       // timeZone은 /api/astrology Zod 스키마에서 필수(min 1). 빠뜨리면
       // 검증 400으로 떨어져 점성 데이터가 영영 안 들어온다.
@@ -205,6 +208,7 @@ function CompatibilityCounselorContent() {
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
         timeZone: p.timeZone || 'Asia/Seoul',
+        skipInterpretation: true,
       })
 
       // /api/saju·/api/astrology 는 createSajuGuard/createAstrologyGuard 로
