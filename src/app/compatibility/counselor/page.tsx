@@ -14,6 +14,7 @@ import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
+import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
 
 // Short, one-line prompts that cycle through the textarea placeholder.
 // The original single-string placeholder ("두 사람에 대해 깊이 있는 질문을
@@ -410,11 +411,14 @@ function CompatibilityCounselorContent() {
             logger.warn('[CompatCounselor] stream error', { error: err })
           },
         })
-        // LLM-generated follow-up chips. Only set when we got the
-        // expected 2 — otherwise leave empty (no hardcoded fallback on
-        // compat side; destiny has one, compat keeps it clean).
+        // 운명 상담사와 동일하게 — LLM이 후속질문을 2개 미만으로 주면
+        // generateFollowUpQuestions 로 채워 "이어서 물어보기" 칩이 항상 뜨게 한다.
         if (result.followUps.length >= 2) {
           setFollowUpQuestions(result.followUps.slice(0, 2))
+        } else {
+          setFollowUpQuestions(
+            generateFollowUpQuestions(text, locale === 'ko' ? 'ko' : 'en', 2, finalAssistantContent)
+          )
         }
 
         // Persist the exchange so it shows up in the past-chats sidebar
