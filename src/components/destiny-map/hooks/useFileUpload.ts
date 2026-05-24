@@ -26,6 +26,18 @@ export function useFileUpload({ lang, setNotice }: UseFileUploadOptions): UseFil
     const file = e.target.files?.[0];
     if (!file) {return;}
 
+    // Reject oversized files before reading them into memory — large PDFs read
+    // fully into an ArrayBuffer + parsed in one pass caused "low memory" crashes
+    // on mobile. Text uploads only need the first few thousand chars anyway.
+    const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_FILE_BYTES) {
+      setNotice(lang === "ko"
+        ? "파일이 너무 커요 (최대 10MB). 더 작은 파일을 올려주세요."
+        : "File is too large (max 10MB). Please upload a smaller file.");
+      e.target.value = ""; // let the user pick another file immediately
+      return;
+    }
+
     logger.info("[CV Upload] File:", { name: file.name, type: file.type, size: file.size });
     setCvName(file.name);
 
