@@ -57,6 +57,8 @@ interface DestinyMatrixPlannerProps {
   data?: CalendarData | null
   /** Birth info used to fetch `data`. Reserved for future real wiring. */
   birthInfo?: BirthInfo | null
+  /** "올해 큰 날" — 메인 응답에서 분리해 지연 로드한 연간 수렴. */
+  yearlyConvergence?: NonNullable<ImportantDate['monthlyInterpretation']>['yearlyConvergence']
 }
 
 type ViewMode = 'yearly' | 'monthly' | 'daily'
@@ -71,7 +73,11 @@ function pickFinalScore(d: ImportantDate): number {
   return d.displayScore ?? d.score
 }
 
-export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixPlannerProps = {}) {
+export default function DestinyMatrixPlanner({
+  data,
+  birthInfo,
+  yearlyConvergence,
+}: DestinyMatrixPlannerProps = {}) {
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
@@ -640,6 +646,7 @@ export default function DestinyMatrixPlanner({ data, birthInfo }: DestinyMatrixP
                   monthDates[0]?.monthlyInterpretation ??
                   selectedImportantDate?.monthlyInterpretation
                 }
+                yearlyConvergence={yearlyConvergence}
               />
 
               {/* ── 주간 타이밍 그래프 (saju × astro) ── */}
