@@ -25,6 +25,8 @@ import { logger } from '@/lib/logger'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildDateDetailResponse } from '@/lib/calendar-engine/adapters/dateDetail'
+import { LOCATION_COORDS } from '../lib/helpers'
+import { LIMITS } from '@/lib/validation/patterns'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +37,7 @@ const querySchema = z.object({
     .regex(/^\d{2}:\d{2}$/)
     .optional(),
   gender: z.enum(['male', 'female']).optional(),
+  birthPlace: z.string().max(LIMITS.PLACE).optional(),
   date: dateSchema,
   timezone: z.string().max(64).optional(),
 })
@@ -46,6 +49,7 @@ export const GET = withApiMiddleware(
       birthDate: searchParams.get('birthDate'),
       birthTime: searchParams.get('birthTime') || undefined,
       gender: searchParams.get('gender') || undefined,
+      birthPlace: searchParams.get('birthPlace') || undefined,
       date: searchParams.get('date'),
       timezone: searchParams.get('timezone') || undefined,
     })
@@ -56,33 +60,45 @@ export const GET = withApiMiddleware(
       })
     }
 
-    const { birthDate, birthTime, gender, date, timezone } = validation.data
+    const { birthDate, birthTime, gender, birthPlace, date, timezone } = validation.data
+
+    // 메인 캘린더와 동일한 본명 좌표를 써야 클릭 상세(fusion) 점수가 grid·월 점수와
+    // 같은 v2 엔진 위에서 일치한다. 출생지 미전달/미상이면 서울 폴백.
+    const coords = (birthPlace && LOCATION_COORDS[birthPlace]) || LOCATION_COORDS['Seoul']
 
     try {
       const natal = await buildNatalContext({
         birthDate,
         birthTime: birthTime || '12:00',
         gender: gender || 'male',
-        latitude: 37.5665,
-        longitude: 126.978,
-        timeZone: timezone || 'Asia/Seoul',
+        latitude: coords.lat,
+        longitude: coords.lng,
+        timeZone: timezone || coords.tz,
       })
 
       // 하루치 24h cells — saju-hour 등이 시간대별 신호 생성
       const dayStart = `${date}T00:00:00.000Z`
       const dayEnd = `${date}T23:00:00.000Z`
-      const hourlyCells = await buildCalendar(natal, {
-        start: dayStart,
-        end: dayEnd,
-        granularity: 'hour',
-      }, { includeEvidence: true })
+      const hourlyCells = await buildCalendar(
+        natal,
+        {
+          start: dayStart,
+          end: dayEnd,
+          granularity: 'hour',
+        },
+        { includeEvidence: true }
+      )
 
       // day-level aggregate cell — 같은 신호로 day granularity 한 번 더
-      const [dayCell] = await buildCalendar(natal, {
-        start: dayStart,
-        end: dayStart,
-        granularity: 'day',
-      }, { includeEvidence: true })
+      const [dayCell] = await buildCalendar(
+        natal,
+        {
+          start: dayStart,
+          end: dayStart,
+          granularity: 'day',
+        },
+        { includeEvidence: true }
+      )
 
       const birthYear = parseInt(birthDate.slice(0, 4), 10)
       const response = buildDateDetailResponse({
@@ -105,5 +121,5 @@ export const GET = withApiMiddleware(
     route: 'calendar-date-detail',
     limit: 30,
     windowSeconds: 60,
-  }),
+  })
 )

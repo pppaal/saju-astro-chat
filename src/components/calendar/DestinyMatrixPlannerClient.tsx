@@ -109,9 +109,26 @@ export default function DestinyMatrixPlannerClient() {
           const cj = (await cr.json()) as {
             convergence?: YearlyConvergence
             monthly?: YearMonthly[]
+            daily?: Array<{ date: string; score: number }>
           }
           if (cj?.convergence) setYearlyConvergence(cj.convergence)
           if (cj?.monthly) setYearlyMonthly(cj.monthly)
+          // 일별 v2 점수를 모든 날짜 displayScore에 백필 → grid/월 점수/하이라이트가
+          // 1년 내내 같은 엔진(v2)을 쓰게 됨. 메인 응답이 현재 ±1달만 v2로 덮던
+          // 한계를 지연 로드로 전 달까지 확장. (캐시 적중 시 거의 즉시)
+          if (cj?.daily && cj.daily.length > 0) {
+            const scoreByDate = new Map(cj.daily.map((d) => [d.date, d.score]))
+            setData((prev) => {
+              if (!prev?.allDates) return prev
+              return {
+                ...prev,
+                allDates: prev.allDates.map((d) => {
+                  const s = scoreByDate.get(d.date.slice(0, 10))
+                  return typeof s === 'number' ? { ...d, displayScore: s } : d
+                }),
+              }
+            })
+          }
         } catch (e) {
           logger.debug('[CalendarPlanner] convergence lazy-load skipped', e)
         }

@@ -163,17 +163,25 @@ export default function DestinyMatrixPlanner({
     return data.allDates.filter((d) => d.date.startsWith(prefix))
   }, [data, viewYear, viewMonth])
 
+  // 사용자 분포 기반 등급 임계값 (1년치 → 상위/하위 20%).
+  // allDates 없으면 fallback 임계값으로 자동 폴백. 모든 등급 판정(grid 점·
+  // 하이라이트·일간 흐름)이 이 한 기준 = displayScore(v2) 백분위를 쓴다.
+  const gradeThresholds = useMemo(
+    () => computeGradeThresholds((data?.allDates ?? []).map(pickFinalScore)),
+    [data?.allDates]
+  )
+
   const monthEventSet = useMemo(() => {
     const out = new Set<number>()
     for (const d of monthDates) {
-      // 사용자가 보는 배지/색은 displayGrade(displayScore 백분위)이므로
-      // 하이라이트 점도 같은 기준으로 — raw grade를 쓰면 배지와 어긋난다.
-      const g = d.displayGrade ?? d.grade
-      if (g > 1) continue
+      // grid 강조 점은 다른 카드와 같은 기준 — displayScore 분포의 '좋은 날'.
+      // 이전엔 v2 덮기 전 v3 기준으로 매겨진 displayGrade를 써서 점수와
+      // 어긋났다. 이제 getGrade(displayScore)로 통일.
+      if (getGrade(pickFinalScore(d), gradeThresholds).key !== 'lucky') continue
       out.add(parseInt(d.date.slice(8, 10), 10))
     }
     return out
-  }, [monthDates])
+  }, [monthDates, gradeThresholds])
 
   const monthlySummaryText =
     data?.monthSummary?.summary ?? data?.calendarMonthView?.oneLineSummary ?? null
@@ -182,13 +190,6 @@ export default function DestinyMatrixPlanner({
     if (monthDates.length === 0) return 84 // mock fallback
     return Math.round(avg(monthDates.map(pickFinalScore)))
   }, [monthDates])
-
-  // 사용자 분포 기반 등급 임계값 (1년치 → 상위/하위 20%).
-  // allDates 없으면 fallback 임계값으로 자동 폴백.
-  const gradeThresholds = useMemo(
-    () => computeGradeThresholds((data?.allDates ?? []).map(pickFinalScore)),
-    [data?.allDates]
-  )
 
   const phaseLabel =
     data?.matrixContract?.overallPhaseLabel ?? data?.matrixContract?.overallPhase ?? null
@@ -224,22 +225,39 @@ export default function DestinyMatrixPlanner({
   //  3) 그 외엔 중립값 50 (없는 신호를 60%로 위장하지 않음)
   // 의 정직한 우선순위로 도출한다.
   const dailyIndices = useMemo(() => {
-    // calendar-engine v2 우선 — 신호 기반 점수 + themeScores
-    // ImportantDate.engineSignals가 있으면 새 엔진이 작동한 것.
-    if (selectedImportantDate?.engineSignals && selectedImportantDate.engineSignals.length > 0) {
-      const ts = selectedImportantDate.themeScores ?? {}
+    const d = selectedImportantDate
+    if (d) {
+      // 헤드라인 점수 = grid·월 점수와 동일한 v2 displayScore (백필 후 전월 일관).
+      // 도메인 바는 themeScores(v2) → fusion → matrix/카테고리 순으로 정밀도 우선.
+      const headline = Math.round(pickFinalScore(d))
+      const ts = d.themeScores ?? {}
+      const cats = new Set(d.categories)
+      const matrixDomain = d.evidence?.matrix?.domain
+      const matrixScore = d.evidence?.matrix?.finalScoreAdjusted
+      const domainScore = (
+        themeKey: 'love' | 'money' | 'health',
+        fusionKey: 'love' | 'money' | 'health',
+        categoryKey: EventCategory,
+        matrixKey: string
+      ): number => {
+        const tv = ts[themeKey]
+        if (typeof tv === 'number') return Math.round(tv)
+        const fv = fusion?.domainScores[fusionKey]
+        if (typeof fv === 'number') return Math.round(fv)
+        if (matrixDomain === matrixKey && typeof matrixScore === 'number') {
+          return Math.max(0, Math.min(100, Math.round(matrixScore)))
+        }
+        if (cats.has(categoryKey)) return headline
+        return 50
+      }
       return {
-        score: Math.round(selectedImportantDate.displayScore ?? selectedImportantDate.score),
-        love: typeof ts.love === 'number' ? Math.round(ts.love) : (fusion?.domainScores.love ?? 50),
-        wealth:
-          typeof ts.money === 'number' ? Math.round(ts.money) : (fusion?.domainScores.money ?? 50),
-        health:
-          typeof ts.health === 'number'
-            ? Math.round(ts.health)
-            : (fusion?.domainScores.health ?? 50),
+        score: headline,
+        love: domainScore('love', 'love', 'love', 'love'),
+        wealth: domainScore('money', 'money', 'wealth', 'money'),
+        health: domainScore('health', 'health', 'health', 'health'),
       }
     }
-    // fusion 우선 — 18테마 점수 정밀
+    // 선택 날짜 entry가 없을 때만 fusion 단독, 그것도 없으면 mock.
     if (fusion) {
       return {
         score: fusion.overallScore,
@@ -248,27 +266,7 @@ export default function DestinyMatrixPlanner({
         health: fusion.domainScores.health ?? 50,
       }
     }
-    if (!selectedImportantDate) {
-      return { score: 88, love: 65, wealth: 78, health: 60 }
-    }
-    const d = selectedImportantDate
-    const finalScore = Math.round(pickFinalScore(d))
-    const cats = new Set(d.categories)
-    const matrixDomain = d.evidence?.matrix?.domain
-    const matrixScore = d.evidence?.matrix?.finalScoreAdjusted
-    const domainScore = (categoryKey: EventCategory, matrixKey: string): number => {
-      if (matrixDomain === matrixKey && typeof matrixScore === 'number') {
-        return Math.max(0, Math.min(100, Math.round(matrixScore)))
-      }
-      if (cats.has(categoryKey)) return finalScore
-      return 50
-    }
-    return {
-      score: finalScore,
-      love: domainScore('love', 'love'),
-      wealth: domainScore('wealth', 'money'),
-      health: domainScore('health', 'health'),
-    }
+    return { score: 88, love: 65, wealth: 78, health: 60 }
   }, [fusion, selectedImportantDate])
 
   // --- Daily best/worst hours (engine-precise, 24-hour analysis) -------

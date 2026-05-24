@@ -61,16 +61,27 @@ export type DateDetailResponse = {
     topInsights: string[]
     hourly: {
       slots: Array<{
-        hour: number; score: number; tone: string; topDomain: string | null
-        hourPillar?: string; planetaryHour?: string; label: string
+        hour: number
+        score: number
+        tone: string
+        topDomain: string | null
+        hourPillar?: string
+        planetaryHour?: string
+        label: string
       }>
       bestHours: Array<{
-        hour: number; score: number; topDomain: string | null
-        hourPillar?: string; planetaryHour?: string
+        hour: number
+        score: number
+        topDomain: string | null
+        hourPillar?: string
+        planetaryHour?: string
       }>
       worstHours: Array<{
-        hour: number; score: number; topDomain: string | null
-        hourPillar?: string; planetaryHour?: string
+        hour: number
+        score: number
+        topDomain: string | null
+        hourPillar?: string
+        planetaryHour?: string
       }>
       bestByDomain: Record<string, { hour: number; score: number } | undefined>
     }
@@ -109,7 +120,7 @@ export function useDateDetail(input: {
     }
 
     const target = dateKey(selectedDay)
-    const cacheKey = `${birthInfo.birthDate}|${birthInfo.birthTime ?? ''}|${birthInfo.gender ?? ''}|${target}`
+    const cacheKey = `${birthInfo.birthDate}|${birthInfo.birthTime ?? ''}|${birthInfo.gender ?? ''}|${birthInfo.birthPlace ?? ''}|${target}`
     const cached = cacheRef.current[cacheKey]
     if (cached) {
       setDetail(cached)
@@ -129,6 +140,8 @@ export function useDateDetail(input: {
     if (lowerGender === 'male' || lowerGender === 'female') {
       params.set('gender', lowerGender)
     }
+    // 메인 캘린더와 같은 본명 좌표를 쓰도록 출생지 전달 — fusion 점수를 grid와 동기화.
+    if (birthInfo.birthPlace) params.set('birthPlace', birthInfo.birthPlace)
     params.set('date', target)
 
     void (async () => {
@@ -165,6 +178,7 @@ export function useDateDetail(input: {
     birthInfo?.birthDate,
     birthInfo?.birthTime,
     birthInfo?.gender,
+    birthInfo?.birthPlace,
   ])
 
   return { detail, status }

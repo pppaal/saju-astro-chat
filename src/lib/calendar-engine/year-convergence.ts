@@ -26,9 +26,19 @@ export interface YearMonthSummary {
   tone: 'up' | 'down' | 'flat'
 }
 
+/** 일별 v2 점수 — 달력 grid·월 점수가 yearly 흐름과 같은 엔진을 쓰도록 백필용. */
+export interface YearDailyScore {
+  /** YYYY-MM-DD */
+  date: string
+  /** 그 날 v2 derivedScore (월 뷰·grid와 동일 엔진) */
+  score: number
+}
+
 export interface YearInsights {
   convergence: Convergence
   monthly: YearMonthSummary[]
+  /** 365일 일별 v2 점수 — 클라가 모든 날짜 displayScore 백필에 사용. */
+  daily: YearDailyScore[]
 }
 
 const insightsCache = new Map<string, YearInsights>()
@@ -85,7 +95,11 @@ export async function getYearInsights(args: {
   )
   const convergence = deriveConvergence(cells, topN, lang)
   const monthly = aggregateMonthly(cells)
-  const insights: YearInsights = { convergence, monthly }
+  const daily: YearDailyScore[] = cells.map((c) => ({
+    date: c.datetime.slice(0, 10),
+    score: Math.round(c.derivedScore),
+  }))
+  const insights: YearInsights = { convergence, monthly, daily }
 
   if (insightsCache.size >= CACHE_CAP) {
     const oldest = insightsCache.keys().next().value
