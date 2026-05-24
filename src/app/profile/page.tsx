@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -27,6 +27,7 @@ import {
   Copy,
   Check,
   UserPlus,
+  LogOut,
 } from 'lucide-react'
 import AuthGate from '@/components/auth/AuthGate'
 import BrandSplash from '@/components/branding/BrandSplash'
@@ -298,10 +299,13 @@ export default function ProfilePage() {
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
   const [savingName, setSavingName] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState(false)
   const [circleOpen, setCircleOpen] = useState(false)
 
   const loadAll = useCallback(async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const [profileRes, circleRes, historyRes, creditsRes, purchasesRes, referralRes] =
         await Promise.all([
@@ -338,6 +342,7 @@ export default function ProfilePage() {
       }
     } catch (err) {
       logger.warn('[profile] load failed', err)
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -460,6 +465,13 @@ export default function ProfilePage() {
                     onSubmit={async (e) => {
                       e.preventDefault()
                       const next = nameDraft.trim()
+                      if (!next) {
+                        setNameError(
+                          locale === 'ko' ? '이름을 입력해 주세요.' : 'Please enter a name.'
+                        )
+                        return
+                      }
+                      setNameError(null)
                       setSavingName(true)
                       try {
                         const res = await fetch('/api/me/profile', {
@@ -470,9 +482,20 @@ export default function ProfilePage() {
                         if (res.ok) {
                           setProfile((prev) => (prev ? { ...prev, name: next } : prev))
                           setEditingName(false)
+                        } else {
+                          setNameError(
+                            locale === 'ko'
+                              ? '저장에 실패했어요. 잠시 후 다시 시도해 주세요.'
+                              : 'Save failed. Please try again in a moment.'
+                          )
                         }
                       } catch (err) {
                         logger.warn('[profile] name save failed', err)
+                        setNameError(
+                          locale === 'ko'
+                            ? '저장에 실패했어요. 잠시 후 다시 시도해 주세요.'
+                            : 'Save failed. Please try again in a moment.'
+                        )
                       } finally {
                         setSavingName(false)
                       }
@@ -482,8 +505,13 @@ export default function ProfilePage() {
                     <input
                       autoFocus
                       value={nameDraft}
-                      onChange={(e) => setNameDraft(e.target.value)}
+                      onChange={(e) => {
+                        setNameDraft(e.target.value)
+                        if (nameError) setNameError(null)
+                      }}
                       maxLength={40}
+                      aria-label={locale === 'ko' ? '이름' : 'Name'}
+                      aria-invalid={nameError ? true : undefined}
                       placeholder={locale === 'ko' ? '이름' : 'Name'}
                       className="w-[12ch] rounded-lg border border-[#d8b878] bg-white px-2 py-1 text-center text-[1.4rem] font-semibold text-[#1c1917] outline-none"
                     />
@@ -498,17 +526,26 @@ export default function ProfilePage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditingName(false)}
+                      onClick={() => {
+                        setEditingName(false)
+                        setNameError(null)
+                      }}
                       className={ghostBtnCls}
                     >
                       {locale === 'ko' ? '취소' : 'Cancel'}
                     </button>
+                    {nameError && (
+                      <p className="basis-full text-center text-[12px] text-red-600" role="alert">
+                        {nameError}
+                      </p>
+                    )}
                   </form>
                 ) : (
                   <button
                     type="button"
                     onClick={() => {
                       setNameDraft(profile?.name || '')
+                      setNameError(null)
                       setEditingName(true)
                     }}
                     className="group inline-flex items-center gap-1.5"
@@ -526,8 +563,32 @@ export default function ProfilePage() {
                 {profile?.email && (
                   <p className="mt-1.5 text-[13px] text-[#8b857d]">{profile.email}</p>
                 )}
+                <button
+                  type="button"
+                  onClick={() => void signOut({ callbackUrl: '/' })}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#e0ddd7] bg-white px-3.5 py-1.5 text-[12px] font-medium text-[#78716c] transition hover:border-[#c9c4bc] hover:text-[#1c1917]"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  {locale === 'ko' ? '로그아웃' : 'Log out'}
+                </button>
               </div>
             </header>
+
+            {loadError && !loading && (
+              <div
+                className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-[#e7c9c9] bg-[#fcf4f4] px-4 py-4 text-center"
+                role="alert"
+              >
+                <p className="text-[13px] text-[#9a4b4b]">
+                  {locale === 'ko'
+                    ? '정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'
+                    : 'Failed to load your info. Please try again in a moment.'}
+                </p>
+                <button type="button" onClick={() => void loadAll()} className={inkBtnCls}>
+                  {locale === 'ko' ? '다시 시도' : 'Retry'}
+                </button>
+              </div>
+            )}
 
             {/* My Info */}
             <section className={`mt-9 ${cardCls}`}>
