@@ -408,10 +408,16 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
             name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
             image: dc.card.image,
             isReversed: dc.isReversed,
+            // 저장 스키마는 position 을 필수(min 1)로 요구한다. 스프레드 데이터
+            // 개편 이후 selectedSpread.positions 는 비어 있어 undefined 가 되므로,
+            // 실제 화면에 쓰인 LLM 명명 position(cardInsights)을 우선 사용하고
+            // 마지막엔 순번으로 폴백해 검증 실패(=저장 안 됨)를 막는다.
             position:
-              lang === 'ko'
+              cardInsights[idx]?.position ||
+              (lang === 'ko'
                 ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
-                : selectedSpread.positions[idx]?.title,
+                : selectedSpread.positions[idx]?.title) ||
+              `${idx + 1}`,
           })),
           overallMessage,
           cardInsights,
