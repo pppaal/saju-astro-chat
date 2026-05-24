@@ -15,7 +15,6 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
-import { counselorVoiceBase, type CounselorLang } from '@/lib/ai/counselorVoiceBase'
 import type { Relation } from '../types'
 
 // Inlined from the now-deleted routeSupportCommon (which served the
@@ -433,8 +432,7 @@ export async function POST(req: NextRequest) {
     // User asked for raw-data-in, direct-answer-out. We keep only the
     // four hard safety/format guards. Tone is whatever the data
     // suggests; the model is no longer told *how* to sound.
-    const counselorLang: CounselorLang = lang === 'ko' ? 'ko' : 'en'
-    void counselorVoiceBase // intentionally unused — kept imported for other counselors
+    const counselorLang: 'ko' | 'en' = lang === 'ko' ? 'ko' : 'en'
     const systemPrompt =
       counselorLang === 'ko'
         ? [
