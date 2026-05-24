@@ -20,50 +20,6 @@
   z-index: -1;
 }
 
-.backButtonContainer {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 1000;
-}
-
-.backButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 0.6rem 1rem;
-  border-radius: 50px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.backButton:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
-  transform: translateX(-3px);
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.backArrow {
-  font-size: 1rem;
-  transition: transform 0.3s ease;
-}
-
-.backButton:hover .backArrow {
-  transform: translateX(-3px);
-}
-
 /* Hero Section */
 .hero {
   text-align: center;
@@ -527,12 +483,6 @@
     padding: 20px 14px 80px;
   }
 
-  .backButton {
-    padding: 0.5rem 0.875rem;
-    font-size: 13px;
-    gap: 6px;
-  }
-
   .hero {
     margin-bottom: 36px;
     padding: 70px 0 20px;
@@ -665,16 +615,6 @@
 @media (max-width: 360px) {
   .container {
     padding: 16px 12px 70px;
-  }
-
-  .backButtonContainer {
-    top: 0.75rem;
-    left: 0.75rem;
-  }
-
-  .backButton {
-    padding: 0.45rem 0.75rem;
-    font-size: 12px;
   }
 
   .hero {

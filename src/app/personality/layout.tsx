@@ -7,7 +7,7 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getServerLocale()
-  return generateLocalizedMetadata(
+  const meta = generateLocalizedMetadata(
     {
       en: {
         title: 'Personality Test — AI Self-Understanding Assessment',
@@ -39,8 +39,11 @@ export async function generateMetadata(): Promise<Metadata> {
       canonicalUrl: `${baseUrl}/personality`,
       ogImage: '/og-image.png',
     },
-    locale,
+    locale
   )
+  // Retired from public navigation — keep the page for direct/deep links but
+  // exclude it from search so the discontinued feature doesn't surface.
+  return { ...meta, robots: { index: false, follow: false } }
 }
 
 export default function PersonalityLayout({ children }: { children: ReactNode }) {

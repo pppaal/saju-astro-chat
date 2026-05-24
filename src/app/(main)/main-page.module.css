@@ -1249,6 +1249,15 @@
   margin-bottom: 0.35rem;
 }
 
+/* Premium-white surface: the light-green text above is invisible on white,
+   so use a dark, high-contrast green here. */
+.lightMode .homeBirthChip {
+  background: rgba(22, 163, 74, 0.1);
+  border-color: rgba(22, 163, 74, 0.4);
+  color: #15803d;
+  font-weight: 600;
+}
+
 /* =====================================================================
  * Premium White mode — kicks in when the user has either signed in or
  * entered birth info. Mirrors the counselor result pages (stone-50 +
