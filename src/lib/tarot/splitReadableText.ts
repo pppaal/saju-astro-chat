@@ -1,3 +1,14 @@
+/**
+ * Split a block of interpretation prose into readable paragraphs.
+ *
+ * Shared by the main tarot reading (OverallMessageChat) and the destiny
+ * counselor's inline tarot modal so both render the same paragraph format
+ * instead of one wall-of-text block. Pure: same input → same output.
+ *
+ * - Honors existing blank-line paragraph breaks when present.
+ * - Otherwise groups sentences in pairs (only when there are 4+ sentences),
+ *   so short answers stay as a single paragraph.
+ */
 export function splitReadableText(rawText: string): string[] {
   const text = rawText.replace(/\r\n/g, '\n').trim()
   if (!text) {
