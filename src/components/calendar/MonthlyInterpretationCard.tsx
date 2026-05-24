@@ -39,10 +39,17 @@ export default function MonthlyInterpretationCard({
   const grade = getGrade(monthScore, gradeThresholds)
   const verdict = VERDICT[grade.key]
   const top = topTheme(interp)
-  // "이번 달 조언"은 엔진의 실제 도메인 해석에서 뽑는다(정적 템플릿 대신).
-  // 없으면 테마별 기본 문구로 폴백.
-  const adviceText =
-    (top && deriveAdvice(interp, top.theme)) || (top ? THEME_ACTION[top.theme] : null)
+  // "이번 달 조언" — 강한 테마 여러 개(상위 3)를 각각 현실 조언 한 줄씩.
+  // 한 영역만 보여주지 않고 여러 생활 영역을 다양하게 노출.
+  const adviceThemes: Array<'love' | 'money' | 'career' | 'health' | 'growth'> =
+    interp?.themeRanking && interp.themeRanking.length > 0
+      ? interp.themeRanking.slice(0, 3).map((t) => t.theme)
+      : top
+        ? [top.theme]
+        : []
+  const adviceList = adviceThemes
+    .map((theme) => ({ theme, text: themeAdvice(interp, theme, 1) ?? THEME_ACTION[theme] }))
+    .filter((a): a is { theme: (typeof adviceThemes)[number]; text: string } => Boolean(a.text))
   const ke = interp?.keyEvents
   const hasTiming = !!(ke && (ke.best || ke.window || (ke.avoid && ke.avoid.dates.length > 0)))
   // "왜?"는 한 줄로 — 가장 강한 테마에서 깔끔하게 생성. 엔진 monthSummary는
@@ -79,22 +86,28 @@ export default function MonthlyInterpretationCard({
         </div>
       </div>
 
-      {/* ── 이번 달 조언 (엔진 실제 도메인 해석 + 구체 타이밍) ── */}
-      {(adviceText || hasTiming) && (
+      {/* ── 이번 달 조언 (강한 테마 여러 개 × 현실 조언 + 구체 타이밍) ── */}
+      {(adviceList.length > 0 || hasTiming) && (
         <div className="bg-black/20 rounded-xl px-4 py-3 space-y-2.5">
-          {adviceText && (
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[11px] font-bold text-indigo-300 tracking-wide">
-                  이번 달 조언
-                </span>
-                {top && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-200 font-bold">
-                    {THEME_LABEL[top.theme] ?? top.theme}
-                  </span>
-                )}
+          {adviceList.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-[11px] font-bold text-indigo-300 tracking-wide">
+                이번 달 조언
               </div>
-              <p className="text-sm text-zinc-100 leading-relaxed">{adviceText}</p>
+              <ul className="space-y-1.5">
+                {adviceList.map((a) => (
+                  <li key={a.theme} className="text-sm leading-relaxed">
+                    <span className="font-bold text-indigo-200 mr-1">
+                      <span aria-hidden className="mr-0.5">
+                        {THEME_ICON[a.theme]}
+                      </span>
+                      {THEME_LABEL[a.theme] ?? a.theme}
+                    </span>
+                    <span className="text-zinc-500 mr-1">·</span>
+                    <span className="text-zinc-100">{a.text}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
           {hasTiming && (
@@ -272,13 +285,14 @@ function practicalityScore(s: string): number {
 }
 
 /**
- * "이번 달 조언" — 가장 강한 테마의 엔진 도메인 해석에서 *현실적·행동형* 문장만 뽑는다.
+ * 한 테마의 엔진 도메인 해석에서 *현실적·행동형* 문장만 뽑는다.
  * 점성·명리 전문용어("별이 켜져…") 문장은 감점·제외하고, 바로 실천 가능한 문장을
- * 우선 노출 ("진짜 이해하기 쉽고 현실적이게" 피드백 반영).
+ * 우선 노출 ("진짜 이해하기 쉽고 현실적이게" 피드백 반영). max개까지.
  */
-function deriveAdvice(
+function themeAdvice(
   interp: Interpretation | undefined,
-  theme: 'love' | 'money' | 'career' | 'health' | 'growth'
+  theme: 'love' | 'money' | 'career' | 'health' | 'growth',
+  max = 1
 ): string | null {
   const sec = interp?.sections.find((s) => s.section === THEME_TO_SECTION[theme])
   if (!sec) return null
@@ -296,12 +310,12 @@ function deriveAdvice(
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 5)
-  // 현실적·행동형 문장 우선 — 점수>0만, 상위 2개, 읽는 순서 유지.
+  // 현실적·행동형 문장 우선 — 점수>0만, 상위 max개, 읽는 순서 유지.
   const picked = sents
     .map((s, i) => ({ s, i, v: practicalityScore(s) }))
     .filter((x) => x.v > 0)
     .sort((a, b) => b.v - a.v || a.i - b.i)
-    .slice(0, 2)
+    .slice(0, max)
     .sort((a, b) => a.i - b.i)
     .map((x) => x.s)
   const out = picked.join(' ')
@@ -332,7 +346,16 @@ const VERDICT: Record<GradeKey, string> = {
   unlucky: '무리하지 않는 게 좋은 달',
 }
 
-/** "지금 할 일" — 이번 달 가장 강한 테마별 한 줄 행동. */
+/** 테마별 아이콘 — 조언 목록 스캔용. */
+const THEME_ICON: Record<'love' | 'money' | 'career' | 'health' | 'growth', string> = {
+  money: '💰',
+  career: '💼',
+  love: '💗',
+  health: '🩺',
+  growth: '🌱',
+}
+
+/** 도메인 섹션이 없을 때 쓰는 테마별 기본 한 줄 행동(폴백). */
 const THEME_ACTION: Record<'love' | 'money' | 'career' | 'health' | 'growth', string> = {
   money: '돈·계약과 관련된 일을 먼저 챙겨보세요',
   career: '커리어에서 한 걸음 내디뎌 보세요',
