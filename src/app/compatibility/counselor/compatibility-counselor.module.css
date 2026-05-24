@@ -145,8 +145,15 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 1rem 1.5rem 0.75rem;
+  /* 운명 상담사와 동일 — 가로 패딩을 줄여 글자가 화면을 더 넓게 쓰게. */
+  padding: 1rem 0.75rem 0.75rem;
   min-height: 0;
+}
+
+@media (min-width: 1024px) {
+  .chatWrapper {
+    padding: 1rem 1.5rem 0.75rem;
+  }
 }
 
 .messagesContainer {
@@ -155,17 +162,16 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  padding-right: 0.25rem;
   scroll-behavior: smooth;
+  /* 오른쪽 스크롤바 숨김 — 운명 상담사와 동일. 스크롤 기능은 유지하되
+     바가 차지하던 폭을 글자에 돌려줘 가로로 더 넓게 읽히게. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .messagesContainer::-webkit-scrollbar {
-  width: 6px;
-}
-
-.messagesContainer::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
-  border-radius: 3px;
+  width: 0;
+  height: 0;
 }
 
 /* ============ Empty State ============ */
@@ -227,7 +233,7 @@
 }
 
 .messageBubble {
-  max-width: min(86%, 760px);
+  max-width: min(94%, 820px);
   padding: 0.8rem 1.05rem;
   border-radius: 16px;
   background: transparent;
