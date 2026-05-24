@@ -153,6 +153,8 @@ describe('useInlineTarotAPI', () => {
       setSelectedCategory: vi.fn(),
       setDrawnCards: vi.fn(),
       incrementRevealedCount: vi.fn(),
+      setRevealedCount: vi.fn(),
+      setInterpretFailed: vi.fn(),
       setIsDrawing: vi.fn(),
       setOverallMessage: vi.fn(),
       setCardInsights: vi.fn(),
