@@ -51,7 +51,7 @@ export default function MonthlyInterpretationCard({
         ? [top.theme]
         : []
   const adviceList = adviceThemes
-    .map((theme) => ({ theme, text: themeAdvice(interp, theme, seed) ?? THEME_ACTION[theme] }))
+    .map((theme) => ({ theme, text: themeAdvice(interp, theme, seed, 2) ?? THEME_ACTION[theme] }))
     .filter((a): a is { theme: (typeof adviceThemes)[number]; text: string } => Boolean(a.text))
   const ke = interp?.keyEvents
   const hasTiming = !!(ke && (ke.best || ke.window || (ke.avoid && ke.avoid.dates.length > 0)))
@@ -291,12 +291,14 @@ function practicalityScore(s: string): number {
  * 한 테마의 엔진 도메인 해석에서 *현실적·행동형* 문장만 뽑는다.
  * 점성·명리 전문용어("별이 켜져…") 문장은 감점·제외하고, 바로 실천 가능한 문장을
  * 우선 노출 ("진짜 이해하기 쉽고 현실적이게" 피드백 반영).
- * 상위 실천 문장 풀에서 seed(그 달)로 회전 선택 → 같은 테마라도 달마다 다른 문장.
+ * 상위 실천 문장 풀(4개)에서 seed(그 달)로 회전한 위치부터 count문장 선택 →
+ * 같은 테마라도 달마다 다른 조언, 더 길게.
  */
 function themeAdvice(
   interp: Interpretation | undefined,
   theme: 'love' | 'money' | 'career' | 'health' | 'growth',
-  seed = 0
+  seed = 0,
+  count = 2
 ): string | null {
   const sec = interp?.sections.find((s) => s.section === THEME_TO_SECTION[theme])
   if (!sec) return null
@@ -314,15 +316,21 @@ function themeAdvice(
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 5)
-  // 현실적·행동형 문장만(점수>0) 상위 3개를 풀로 → seed(그 달)로 회전 선택.
+  // 현실적·행동형 문장만(점수>0) 상위 4개를 풀로.
   const pool = sents
     .map((s, i) => ({ s, i, v: practicalityScore(s) }))
     .filter((x) => x.v > 0)
     .sort((a, b) => b.v - a.v || a.i - b.i)
-    .slice(0, 3)
+    .slice(0, 4)
   if (pool.length === 0) return null
-  const idx = ((seed % pool.length) + pool.length) % pool.length
-  return pool[idx].s
+  // seed(그 달)로 회전한 시작 위치부터 count문장 — 풀을 넘으면 wrap, 중복 제거 후
+  // 원문 순서로 정렬해 자연스럽게 읽히게.
+  const n = Math.min(count, pool.length)
+  const start = ((seed % pool.length) + pool.length) % pool.length
+  const chosen: typeof pool = []
+  for (let k = 0; k < n; k++) chosen.push(pool[(start + k) % pool.length])
+  const uniq = [...new Map(chosen.map((c) => [c.s, c])).values()].sort((a, b) => a.i - b.i)
+  return uniq.map((c) => c.s).join(' ')
 }
 
 /** "MM-DD" → "M/D" (타이밍 칩 — 짧게). */
