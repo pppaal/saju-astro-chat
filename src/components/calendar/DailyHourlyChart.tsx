@@ -67,20 +67,22 @@ export default function DailyHourlyChart({ importantDate }: Props) {
 
     const hasAstro = data.some((d) => d.astro !== 50)
 
-    // 두 라인이 위아래로 뒤바뀌는(교차) 시각 — 부호가 바뀌는 구간의 더 가까운 점에 마커.
+    // 두 라인이 위아래로 뒤바뀌는(교차) 시각 — 부호가 바뀌고 충분히 벌어진 구간만,
+    // 더 가까운 점에 마커. 너무 많아지지 않게 상한.
     const crossings: Crossing[] = []
     if (hasAstro) {
       for (let i = 0; i < data.length - 1; i++) {
         const a = data[i].saju - data[i].astro
         const b = data[i + 1].saju - data[i + 1].astro
-        if (a !== 0 && b !== 0 && a < 0 !== b < 0) {
+        if (a !== 0 && b !== 0 && a < 0 !== b < 0 && Math.abs(a) + Math.abs(b) >= 6) {
           const h = Math.abs(a) <= Math.abs(b) ? i : i + 1
           crossings.push({ x: data[h].hour, y: Math.round((data[h].saju + data[h].astro) / 2) })
         }
       }
     }
+    const cappedCrossings = crossings.slice(0, 8)
 
-    return { data, hasAstro, crossings }
+    return { data, hasAstro, crossings: cappedCrossings }
   }, [importantDate])
 
   if (data.length === 0) return null
@@ -209,7 +211,13 @@ function inferHourFromSignalId(id: string): number | null {
     const hour = BRANCH_HOUR[sajuMatch[1]]
     return typeof hour === 'number' ? hour : null
   }
-  // 점성 VoC / 행성시는 정오 근처로 매핑 (정확한 시간 정보 부재)
+  // 점성 행성시 — id에 시각이 박혀 있음: astro.planetary-hour.YYYY-MM-DD.H{hh}.{planet}
+  const astroHourMatch = id.match(/^astro\.planetary-hour\..+\.H(\d{1,2})\./)
+  if (astroHourMatch) {
+    const h = Number(astroHourMatch[1])
+    return h >= 0 && h < 24 ? h : null
+  }
+  // 점성 VoC / 달위상은 정오 근처로 매핑 (정확한 시간 정보 부재)
   if (id.startsWith('astro.voc') || id.startsWith('astro.moon-phase')) {
     return 12
   }
