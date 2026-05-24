@@ -72,7 +72,7 @@ const faqs: FaqItem[] = [
     q: 'What is a couple tarot reading?',
     qKo: '커플 타로 리딩이 무엇인가요?',
     a: "A couple reading interprets the cards through the lens of a specific relationship — drawing from both partners' charts and the dynamic between them. You and your matched partner each draw, and the AI integrates both perspectives into one shared interpretation. Both partners need an active connection on DestinyPal; if a partner has disconnected or blocked the connection, the couple reading is no longer available.",
-    aKo: "커플 리딩은 특정 관계의 관점에서 카드를 해석합니다. 두 사람의 차트와 관계 역학을 함께 반영하며, 매칭된 상대와 각자 카드를 뽑으면 AI 가 두 시점을 하나의 공유 해석으로 통합합니다. DestinyPal 내에서 연결된 상태여야 하며, 상대가 연결을 해제하거나 차단한 경우 커플 리딩은 더 이상 이용할 수 없습니다.",
+    aKo: '커플 리딩은 특정 관계의 관점에서 카드를 해석합니다. 두 사람의 차트와 관계 역학을 함께 반영하며, 매칭된 상대와 각자 카드를 뽑으면 AI 가 두 시점을 하나의 공유 해석으로 통합합니다. DestinyPal 내에서 연결된 상태여야 하며, 상대가 연결을 해제하거나 차단한 경우 커플 리딩은 더 이상 이용할 수 없습니다.',
   },
   {
     category: 'services',
@@ -177,7 +177,7 @@ const faqs: FaqItem[] = [
     icon: '🔁',
     q: 'Will I be charged automatically?',
     qKo: '자동으로 결제가 되나요?',
-    a: "No. DestinyPal does not offer recurring subscriptions. Every purchase is a one-time credit pack — your card is charged only when you actively buy more credits. There is no auto-renewal.",
+    a: 'No. DestinyPal does not offer recurring subscriptions. Every purchase is a one-time credit pack — your card is charged only when you actively buy more credits. There is no auto-renewal.',
     aKo: '아닙니다. DestinyPal은 정기 구독을 제공하지 않습니다. 모든 결제는 일회성 크레딧 팩 구매이며, 사용자가 직접 추가 구매할 때만 결제됩니다. 자동 갱신은 없습니다.',
   },
   // Technical
@@ -247,7 +247,7 @@ function FaqAccordion({
 export default function FaqPage() {
   const { locale } = useI18n()
   const isKo = locale === 'ko'
-  const [openIndex, setOpenIndex] = useState<number | null>(0)
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<Category>('all')
   const [expandAll, setExpandAll] = useState(false)
