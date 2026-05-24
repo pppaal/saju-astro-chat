@@ -729,19 +729,25 @@ function CompatibilityCounselorContent() {
           </div>
 
           {/* Input — Claude-style: textarea on top, action row below.
-            Desktop: 📎 attach + ▶ send (타로·차트는 사이드바 푸터).
-            Mobile: 📎 attach + 🎴 couple tarot + ✨ couple chart + ▶ send. */}
+            Desktop: 🎴 타로 + ✨ 차트는 사이드바 푸터, 입력엔 ✕ 지우기 + ▶ 전송.
+            Mobile: 🎴 couple tarot + ✨ couple chart + ✕ 지우기 + ▶ send. */}
           <div className={styles.inputContainer}>
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={(e) => {
+                // 운명 상담사와 동일 — 미리 채워진 후속질문을 탭하면 전체 선택해
+                // 바로 보내거나 타이핑으로 덮어쓰기 쉽게.
+                if (e.currentTarget.value.trim()) e.currentTarget.select()
+              }}
               placeholder={
                 animatedPlaceholder || (isKo ? '질문을 입력하세요…' : 'Type a question…')
               }
               className={styles.input}
               rows={3}
+              maxLength={2000}
               disabled={isLoading}
             />
             <div className={styles.inputToolbar}>
@@ -757,6 +763,7 @@ function CompatibilityCounselorContent() {
                   title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
                 >
                   <span className={styles.toolButtonIcon}>🎴</span>
+                  <span className={styles.toolButtonLabel}>{isKo ? '타로' : 'Tarot'}</span>
                 </button>
                 <button
                   type="button"
@@ -767,23 +774,37 @@ function CompatibilityCounselorContent() {
                   title={isKo ? '궁합 차트 보기' : 'View couple chart'}
                 >
                   <span className={styles.toolButtonIcon}>✨</span>
+                  <span className={styles.toolButtonLabel}>{isKo ? '궁합차트' : 'Chart'}</span>
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={() => sendMessage()}
-                disabled={!input.trim() || isLoading}
-                className={styles.sendButton}
-                aria-label={isKo ? '전송' : 'Send'}
-              >
-                {isLoading ? (
-                  <span className={styles.loadingSpinner} />
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                  </svg>
+              <div className={styles.inputToolbarRight}>
+                {input.trim() && !isLoading && (
+                  <button
+                    type="button"
+                    onClick={() => setInput('')}
+                    className={styles.clearButton}
+                    aria-label={isKo ? '입력 지우기' : 'Clear input'}
+                    title={isKo ? '입력 지우기' : 'Clear input'}
+                  >
+                    <span aria-hidden="true">✕</span>
+                  </button>
                 )}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => sendMessage()}
+                  disabled={!input.trim() || isLoading}
+                  className={styles.sendButton}
+                  aria-label={isKo ? '전송' : 'Send'}
+                >
+                  {isLoading ? (
+                    <span className={styles.loadingSpinner} />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
