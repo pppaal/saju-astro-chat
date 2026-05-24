@@ -45,7 +45,14 @@ interface RealtimeBody {
   timezone?: string
   /** Optional explicit flag from the form. Otherwise inferred from missing coords. */
   birthCityUnknown?: boolean
+  /** Parsed text of a user-attached file (CV/notes). Injected into the
+   *  current turn so the LLM can reference it. Not cached. */
+  cvText?: string
 }
+
+// Cap injected attachment text so a huge upload can't blow the context
+// window (the client already trims, this is defense-in-depth).
+const MAX_ATTACHMENT_CHARS = 12000
 
 const RATE_LIMIT_PER_MIN = 12
 
@@ -401,10 +408,18 @@ export async function POST(req: NextRequest) {
     (m): m is ChatMessage => m.role === 'user' || m.role === 'assistant'
   )
   const priorTurns = dialogTurns.slice(0, -1).map((m) => ({ role: m.role, content: m.content }))
-  const userPrompt = dialogTurns[dialogTurns.length - 1]?.content ?? ''
-  if (!userPrompt.trim()) {
+  const rawUserPrompt = dialogTurns[dialogTurns.length - 1]?.content ?? ''
+  if (!rawUserPrompt.trim()) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
   }
+  // Prepend the user's attached file (if any) as XML-tagged context on the
+  // current turn. Kept out of the cached birth context so a different file
+  // (or none) on the next turn doesn't get a stale cache hit.
+  const attachmentText =
+    typeof body.cvText === 'string' ? body.cvText.trim().slice(0, MAX_ATTACHMENT_CHARS) : ''
+  const userPrompt = attachmentText
+    ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserPrompt}`
+    : rawUserPrompt
 
   // If we charged for a new session but the stream delivers nothing (backend
   // error or empty completion), refund the credit and drop the session marker
