@@ -6,6 +6,7 @@ import { ToastProvider } from '@/components/ui/Toast'
 import { CreditModalProvider } from '@/contexts/CreditModalContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import ServiceWorkerStabilityGuard from '@/components/pwa/ServiceWorkerStabilityGuard'
+import ReferralLinker from '@/components/referral/ReferralLinker'
 
 export function ClientProviders({
   children,
@@ -17,6 +18,7 @@ export function ClientProviders({
   return (
     <I18nProvider initialLocale={initialLocale}>
       <ServiceWorkerStabilityGuard />
+      <ReferralLinker />
       <ToastProvider>
         <CreditModalProvider>
           <NotificationProvider>{children}</NotificationProvider>

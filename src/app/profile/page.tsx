@@ -888,8 +888,8 @@ export default function ProfilePage() {
                 <>
                   <p className="mt-3 text-[12.5px] leading-relaxed text-[#78716c]">
                     {locale === 'ko'
-                      ? '친구가 코드로 가입하고 첫 분석을 받으면, 둘 다 보너스 크레딧을 받아요.'
-                      : 'When a friend signs up with your code and finishes their first reading, you both get bonus credits.'}
+                      ? '친구가 내 추천 링크로 처음 로그인하면, 추천한 회원님이 보너스 크레딧을 받아요.'
+                      : 'When a friend logs in through your referral link for the first time, you get bonus credits.'}
                   </p>
 
                   <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#ece4d4] bg-gradient-to-br from-[#faf6ee] to-[#fcfbf9] p-3.5 sm:flex-row sm:items-center">

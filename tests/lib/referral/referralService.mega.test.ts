@@ -204,7 +204,7 @@ describe('Referral Service', () => {
     it('should award credits to referrer immediately', async () => {
       await linkReferrer('new_user_123', 'REF12345')
 
-      expect(addBonusCredits).toHaveBeenCalledWith('referrer_123', 3)
+      expect(addBonusCredits).toHaveBeenCalledWith('referrer_123', 3, 'referral')
     })
 
     it('should create completed reward record', async () => {
