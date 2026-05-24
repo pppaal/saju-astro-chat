@@ -17,6 +17,10 @@ import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
 type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
 
+// Mirror the main tarot reading's interpret timeout so a slow/stuck stream
+// doesn't leave the inline reading hanging forever with no interpretation.
+const INTERPRET_TIMEOUT_MS = 35000
+
 interface Profile {
   name?: string
   birthDate?: string
@@ -151,7 +155,21 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
       }
-      abortControllerRef.current = new AbortController()
+      const controller = new AbortController()
+      abortControllerRef.current = controller
+      let timedOut = false
+      const timeoutId = setTimeout(() => {
+        timedOut = true
+        controller.abort()
+      }, INTERPRET_TIMEOUT_MS)
+      actions.setInterpretFailed(false)
+
+      // Static per-card meaning — shown when the AI text is missing so cards are
+      // never blank (also the failure fallback below).
+      const staticCardMeaning = (dc: DrawnCard): string => {
+        const m = dc.isReversed ? dc.card.reversed : dc.card.upright
+        return (lang === 'ko' ? m.meaningKo || m.meaning : m.meaning) || ''
+      }
 
       const payload = {
         category: selectedCategory,
@@ -188,7 +206,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
             'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
           },
           body: JSON.stringify(payload),
-          signal: abortControllerRef.current.signal,
+          signal: controller.signal,
         })
 
         if (!res.ok) {
@@ -254,7 +272,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
               `${idx + 1}`,
             card_name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
             is_reversed: dc.isReversed,
-            interpretation: streamed.interpretation || '',
+            interpretation: streamed.interpretation || staticCardMeaning(dc),
           }
         })
 
@@ -266,16 +284,35 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
 
         actions.setStep('result')
       } catch (err) {
+        // A fresh fetchInterpretation aborted this one — let the newer call own
+        // the state instead of flashing a failure.
+        const isSupersede = err instanceof Error && err.name === 'AbortError' && !timedOut
+        if (isSupersede) {
+          return
+        }
         if (err instanceof Error && err.name !== 'AbortError') {
           logger.error('[InlineTarot] interpret error:', err)
         }
-        if (!overallMessage.trim()) {
-          actions.setOverallMessage(defaultOverallMessage)
-        }
-        if (!guidance.trim()) {
-          actions.setGuidance(defaultGuidance)
-        }
+        // Visible, recoverable failure: fill each card with its static meaning
+        // so nothing is blank, and flag interpretFailed so the result view shows
+        // a retry button (covers timeout / credit-exhaustion / network).
+        actions.setOverallMessage(overallMessage.trim() || defaultOverallMessage)
+        actions.setGuidance(guidance.trim() || defaultGuidance)
+        actions.setCardInsights(
+          cards.map((dc, idx) => ({
+            position:
+              (lang === 'ko'
+                ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
+                : selectedSpread.positions[idx]?.title) || `${idx + 1}`,
+            card_name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
+            is_reversed: dc.isReversed,
+            interpretation: staticCardMeaning(dc),
+          }))
+        )
+        actions.setInterpretFailed(true)
         actions.setStep('result')
+      } finally {
+        clearTimeout(timeoutId)
       }
     },
     [
@@ -323,11 +360,9 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       const data = await res.json()
       actions.setDrawnCards(data.drawnCards)
 
-      // Animate card reveals
-      for (let i = 0; i < data.drawnCards.length; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        actions.incrementRevealedCount()
-      }
+      // Reveal the whole spread at once. The old one-by-one flip (500ms each)
+      // made the screen "keep changing" before the result settled.
+      actions.setRevealedCount(data.drawnCards.length)
 
       // Start interpretation
       actions.setStep('interpreting')
@@ -405,6 +440,16 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
     questionAnalysis,
   ])
 
+  // Retry the AI interpretation for the cards already on screen (used by the
+  // result view's "다시 시도" button after a failed interpret).
+  const retryInterpretation = useCallback(() => {
+    if (drawnCards.length === 0) {
+      return
+    }
+    actions.setStep('interpreting')
+    void fetchInterpretation(drawnCards)
+  }, [drawnCards, actions, fetchInterpretation])
+
   // Cleanup on unmount
   const cleanup = useCallback(() => {
     if (abortControllerRef.current) {
@@ -416,6 +461,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
     analyzeQuestion,
     drawCards,
     saveReading,
+    retryInterpretation,
     cleanup,
   }
 }

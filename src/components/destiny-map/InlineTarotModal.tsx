@@ -244,6 +244,7 @@ const InlineTarotModal = memo(function InlineTarotModal({
               onSave={api.saveReading}
               onComplete={handleComplete}
               onDeeper={goToFullTarot}
+              onRetryInterpret={api.retryInterpretation}
             />
           )}
         </div>
@@ -504,6 +505,7 @@ interface ResultStepProps {
   onSave: () => void
   onComplete: () => void
   onDeeper: () => void
+  onRetryInterpret: () => void
 }
 
 function ResultStep({
@@ -516,6 +518,7 @@ function ResultStep({
   onSave,
   onComplete,
   onDeeper,
+  onRetryInterpret,
 }: ResultStepProps) {
   const {
     concern,
@@ -527,7 +530,9 @@ function ResultStep({
     affirmation,
     isSaving,
     isSaved,
+    interpretFailed,
   } = state
+  const isKo = lang === 'ko'
 
   return (
     <div className={styles.stepContent}>
@@ -547,6 +552,20 @@ function ResultStep({
             </p>
           )}
           {questionSummary && <p className={styles.resultText}>{questionSummary}</p>}
+        </div>
+      )}
+
+      {/* AI interpretation failed — cards show their static meaning, offer retry. */}
+      {interpretFailed && (
+        <div className={styles.interpretError} role="alert">
+          <span className={styles.interpretErrorText}>
+            {isKo
+              ? 'AI 해석을 불러오지 못했어요. (네트워크·크레딧·시간 초과) 카드 기본 의미를 표시 중이에요.'
+              : "Couldn't load the AI reading (network/credits/timeout). Showing each card's base meaning."}
+          </span>
+          <button type="button" className={styles.retryButton} onClick={onRetryInterpret}>
+            {isKo ? '다시 시도' : 'Retry'}
+          </button>
         </div>
       )}
 
@@ -580,6 +599,7 @@ function ResultStep({
               size="medium"
               expandable={true}
               interactive={true}
+              priority={idx < 3}
             />
           </div>
         ))}
