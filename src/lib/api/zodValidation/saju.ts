@@ -713,6 +713,9 @@ export const compatibilityCounselorRequestSchema = z.object({
   useRag: z.boolean().optional(),
   lang: z.enum(['ko', 'en']).optional(),
   messages: z.array(chatMessageSchema).max(50).optional(),
+  // Parsed text of a user-attached file (notes/chat log). Injected into the
+  // current turn so the LLM can reference it. Client trims to ~6000 chars.
+  cvText: z.string().max(8000).optional(),
 })
 
 export type CompatibilityCounselorRequestValidated = z.infer<
