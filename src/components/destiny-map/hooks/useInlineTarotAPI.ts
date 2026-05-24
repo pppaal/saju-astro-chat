@@ -338,6 +338,13 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
 
     actions.setIsDrawing(true)
     try {
+      // /api/tarot 는 categoryId 로 테마를 찾고(못 찾으면 에러) 그 안에서
+      // spreadId 를 찾는다. selectedCategory 가 스프레드의 실제 테마와
+      // 어긋나면 draw 가 실패하므로, 선택된 스프레드를 실제로 담고 있는
+      // 테마에서 categoryId 를 도출해 보낸다.
+      const owningTheme = tarotThemes.find((t) => t.spreads.some((s) => s.id === selectedSpread.id))
+      const categoryId = owningTheme?.id || selectedCategory
+
       const res = await fetch('/api/tarot', {
         method: 'POST',
         headers: {
@@ -345,7 +352,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
         },
         body: JSON.stringify({
-          categoryId: selectedCategory,
+          categoryId,
           spreadId: selectedSpread.id,
           questionContext: questionAnalysis || undefined,
         }),
@@ -369,6 +376,9 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       await fetchInterpretation(data.drawnCards)
     } catch (err) {
       logger.error('[InlineTarot] draw error:', err)
+      // 카드 뽑기 실패 시 화면이 '뽑는 중'에서 그대로 멈추지 않도록 스프레드
+      // 선택 단계로 되돌려 사용자가 다시 시도할 수 있게 한다.
+      actions.setStep('spread-select')
     } finally {
       actions.setIsDrawing(false)
     }
