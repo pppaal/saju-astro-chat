@@ -187,7 +187,7 @@ describe('Referral Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.referrerId).toBe('referrer-1')
-      expect(addBonusCredits).toHaveBeenCalledWith('referrer-1', 3)
+      expect(addBonusCredits).toHaveBeenCalledWith('referrer-1', 3, 'referral')
     })
 
     it('should reject invalid referral code', async () => {
