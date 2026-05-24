@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useMemo } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
-import BackButton from '@/components/ui/BackButton'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import { SERVICE_OPTIONS, type ServiceKey } from '@/app/(main)/serviceConfig'
 import styles from './about.module.css'
@@ -66,6 +65,13 @@ const SERVICE_DETAILS: Partial<
     summaryKo: '날짜별 기회/주의 구간과 행동 플랜을 확인할 수 있습니다.',
     summaryEn: 'Shows date-level windows and practical action plans.',
   },
+  compatibility: {
+    href: '/compatibility',
+    nameKo: '궁합 상담사',
+    nameEn: 'Compatibility Counselor',
+    summaryKo: '두 사람의 사주·점성을 교차해 관계의 결과 호흡을 분석합니다.',
+    summaryEn: 'Cross-reads two charts to analyze relationship dynamics and fit.',
+  },
 }
 
 const PROCESS_STEPS: readonly ProcessStep[] = [
@@ -122,10 +128,6 @@ export default function AboutPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.backButton}>
-        <BackButton />
-      </div>
-
       <main className={styles.main}>
         {/* Hero */}
         <section className={styles.hero}>
@@ -240,8 +242,8 @@ export default function AboutPage() {
             <h2 className={styles.sectionTitle}>{isKo ? '핵심 서비스' : 'Core services'}</h2>
             <p className={styles.sectionDesc}>
               {isKo
-                ? '현재 메인에서 바로 사용할 수 있는 4개 서비스입니다.'
-                : 'These are the four services available immediately from the main page.'}
+                ? '현재 메인에서 바로 사용할 수 있는 5개 서비스입니다.'
+                : 'These are the five services available immediately from the main page.'}
             </p>
           </header>
           <div className={styles.serviceGrid}>

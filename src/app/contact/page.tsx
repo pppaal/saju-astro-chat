@@ -1,7 +1,6 @@
 'use client'
 
 import { useI18n } from '@/i18n/I18nProvider'
-import BackButton from '@/components/ui/BackButton'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import { SUPPORT_EMAIL } from '@/lib/config/contact'
 import styles from './contact.module.css'
@@ -9,7 +8,7 @@ import styles from './contact.module.css'
 const INQUIRY_TYPES_KO = [
   { label: '일반 문의', description: '서비스 이용 관련 질문' },
   { label: '기술 지원', description: '오류나 버그 신고' },
-  { label: '결제 문의', description: '구독 및 환불 관련' },
+  { label: '결제 문의', description: '크레딧 결제 및 환불 관련' },
   { label: '피드백', description: '서비스 개선 제안' },
   { label: '제휴 문의', description: '비즈니스 협력 제안' },
 ]
@@ -17,7 +16,7 @@ const INQUIRY_TYPES_KO = [
 const INQUIRY_TYPES_EN = [
   { label: 'General', description: 'Questions about using the service' },
   { label: 'Technical Support', description: 'Bug reports and errors' },
-  { label: 'Billing', description: 'Subscription and refund inquiries' },
+  { label: 'Billing', description: 'Credit payments and refunds' },
   { label: 'Feedback', description: 'Service improvement suggestions' },
   { label: 'Partnership', description: 'Business collaboration proposals' },
 ]
@@ -30,9 +29,6 @@ export default function ContactPage() {
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
-        <div className={styles.backButtonContainer}>
-          <BackButton />
-        </div>
         <div className={styles.card}>
           <div className={styles.header}>
             <h1 className={styles.title}>{isKorean ? '문의하기' : 'Contact Us'}</h1>
