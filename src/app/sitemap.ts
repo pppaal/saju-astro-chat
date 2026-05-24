@@ -58,12 +58,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
-    {
-      url: `${BASE_URL}/about/features`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
   ]
 
   const servicePages: MetadataRoute.Sitemap = ENABLED_SERVICES.map((service) => ({

@@ -7,7 +7,7 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getServerLocale()
-  return generateLocalizedMetadata(
+  const meta = generateLocalizedMetadata(
     {
       en: {
         title: 'Interpersonal Style Assessment — AI ICP Test',
@@ -41,6 +41,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     locale,
   )
+  // Retired from public navigation — keep the page for direct/deep links but
+  // exclude it from search so the discontinued feature doesn't surface.
+  return { ...meta, robots: { index: false, follow: false } }
 }
 
 export default function ICPLayout({ children }: { children: ReactNode }) {
