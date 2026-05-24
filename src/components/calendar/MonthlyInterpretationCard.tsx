@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { BookOpen, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import type { ImportantDate } from './types'
+import { getGrade, type GradeThresholds, type GradeKey } from './scoreGrade'
 
 type Interpretation = NonNullable<ImportantDate['monthlyInterpretation']>
 
@@ -11,104 +12,233 @@ interface Props {
   /** "올해 큰 날" — 메인 응답이 아니라 별도 지연 로드(/api/calendar/convergence)로
    *  채워진다. 없으면 interp.yearlyConvergence(레거시)로 폴백. */
   yearlyConvergence?: Interpretation['yearlyConvergence']
+  /** 이번 달 종합 점수(부모가 monthDates 평균으로 계산) — 결론 밴드에 사용. */
+  monthScore: number
+  /** 사용자 분포 기반 등급 임계값 — 점수 → 밴드 매핑. */
+  gradeThresholds: GradeThresholds
+  /** 엔진 한 줄 요약 — "왜?" 줄에 사용. */
+  summaryText?: string | null
 }
 
 /**
- * 월간 narrative 해석 카드.
+ * 월간 해석 — "결론 우선" 카드.
  *
- * 사용자 피드백("해석이 너무 많아 잘 안 읽힘"):
- *  - 맨 위에 "핵심 포인트" 박스: 첫 2 sections의 첫 문장만 뽑아 강조
- *  - 본문 sections는 기본 접힘 (펼치기 버튼)
- *  - 글자 크기 키움 (text-xs → text-sm, leading-relaxed 유지)
+ * 사용자 피드백("내용은 좋은데 결론이 안 잡힘"): 맨 위에 한 줄 결론 + 점수 밴드 +
+ * 지금 할 일 + 왜(한 줄)만 보이고, 키이벤트·큰 날·근거 등 상세는 [자세히 보기]로
+ * 접는다. 결론 → 이유 → 상세 순으로 줌인.
  */
-export default function MonthlyInterpretationCard({ interp, yearlyConvergence }: Props) {
+export default function MonthlyInterpretationCard({
+  interp,
+  yearlyConvergence,
+  monthScore,
+  gradeThresholds,
+  summaryText,
+}: Props) {
   const [expanded, setExpanded] = useState(false)
-  if (!interp || interp.sections.length === 0) return null
 
-  const headlineSections = interp.sections.slice(0, 2)
-  const headlines = headlineSections
-    .map((s) => firstSentence(stripMarkdown(s.text)))
-    .filter((line): line is string => Boolean(line && line.length > 8))
-    .slice(0, 3)
+  const grade = getGrade(monthScore, gradeThresholds)
+  const verdict = VERDICT[grade.key]
+  const top = topTheme(interp)
+  const action = top ? THEME_ACTION[top.theme] : null
+  const bestDate = interp?.keyEvents?.best?.date
+  // "왜?"는 한 줄로 — 가장 강한 테마에서 깔끔하게 생성. 엔진 monthSummary는
+  // 길고 노이즈(영문 누수 등)가 섞여 hero엔 부적합 → firstSentence 폴백으로만.
+  const whyLine =
+    whyFromThemes(interp) ||
+    (summaryText && summaryText.trim() ? firstSentence(stripMarkdown(summaryText)) : null)
+
+  const hasDetail = !!interp && interp.sections.length > 0
+  const headlines = hasDetail
+    ? interp!.sections
+        .slice(0, 2)
+        .map((s) => firstSentence(stripMarkdown(s.text)))
+        .filter((line): line is string => Boolean(line && line.length > 8))
+        .slice(0, 3)
+    : []
 
   return (
-    <div className="bg-zinc-900/40 rounded-2xl border border-white/5 shadow-xl p-5 space-y-4">
-      <h3 className="text-base font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
-        <BookOpen className="w-5 h-5 text-indigo-400" />
-        이번 달 흐름
-      </h3>
-
-      {/* 키 이벤트 3 — 베스트 날 / 강한 구간 / 피할 날 (한눈에 스캔) */}
-      <KeyEventsBlock keyEvents={interp.keyEvents} />
-
-      {/* 큰 시점 — 이번 달 → 올해 → 인생 (가까운 데서 멀리로 줌아웃) */}
-      <ConvergenceBlock convergence={interp.convergence} icon="🔮" title="이번 달 큰 날" />
-      <ConvergenceBlock
-        convergence={yearlyConvergence ?? interp.yearlyConvergence}
-        icon="🗓️"
-        title="올해 큰 날"
-        upcomingOnly
-      />
-      <LifePivotsBlock lifetimePivots={interp.lifetimePivots} />
-
-      {/* 지난달 대비 — 변화 체감 (retention hook) */}
-      <MonthComparisonBlock comparison={interp.monthComparison} />
-
-      {/* 핵심 포인트 — bullet 형태로 한눈에 */}
-      {headlines.length > 0 && (
-        <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
-          <div className="text-xs font-bold text-indigo-300 mb-2 flex items-center gap-1.5 tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            핵심 포인트
+    <div
+      className={`rounded-2xl border shadow-xl p-5 space-y-4 ${grade.bgClass} ${grade.borderClass}`}
+    >
+      {/* ── 결론 (hero) ── */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-1">
+            이번 달 결론
           </div>
-          <ul className="space-y-1.5">
-            {headlines.map((line, i) => (
-              <li key={i} className="text-sm text-zinc-200 leading-relaxed flex gap-2">
-                <span className="text-indigo-400 shrink-0">·</span>
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
+          <h3 className="text-xl font-black text-zinc-50 leading-tight">{verdict}</h3>
+        </div>
+        <div className="shrink-0 text-right">
+          <div className={`text-sm font-bold ${grade.colorClass}`}>{grade.label}</div>
+          <div className="text-2xl font-black text-zinc-100 leading-none mt-0.5">{monthScore}</div>
+          <div className="text-[10px] text-zinc-500">100점 만점</div>
+        </div>
+      </div>
+
+      {/* ── 지금 할 일 ── */}
+      {action && (
+        <div className="flex items-start gap-2 bg-black/20 rounded-xl px-4 py-3">
+          <span className="text-indigo-300 font-bold shrink-0">▸</span>
+          <div className="min-w-0">
+            <div className="text-[11px] font-bold text-indigo-300 tracking-wide mb-0.5">
+              지금 할 일
+            </div>
+            <div className="text-sm text-zinc-100 leading-snug">
+              {action}
+              {bestDate && <span className="text-zinc-400"> · {fmtDate(bestDate)}쯤</span>}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* 자세히 보기 토글 */}
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-zinc-950/50 hover:bg-zinc-800/70 border border-white/5 text-zinc-300 text-sm font-semibold transition"
-      >
-        {expanded ? (
-          <>
-            <ChevronUp className="w-4 h-4" />
-            접기
-          </>
-        ) : (
-          <>
-            <ChevronDown className="w-4 h-4" />
-            자세히 보기
-          </>
-        )}
-      </button>
+      {/* ── 왜? (한 줄) ── */}
+      {whyLine && (
+        <p className="text-sm text-zinc-300 leading-relaxed flex gap-2">
+          <span className="text-zinc-500 font-bold shrink-0">왜?</span>
+          <span>{whyLine}</span>
+        </p>
+      )}
 
-      {expanded && (
-        <div className="space-y-3">
-          {interp.sections.map((s) => (
-            <div key={s.section} className="bg-zinc-950/40 rounded-xl p-4 border border-white/5">
-              <div className="text-xs font-bold text-indigo-300 mb-2 tracking-wider uppercase">
-                {s.title}
+      {/* ── 상세 (접힘) ── */}
+      {hasDetail && (
+        <>
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-black/20 hover:bg-black/30 border border-white/5 text-zinc-300 text-sm font-semibold transition"
+          >
+            {expanded ? (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                접기
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                자세히 보기
+              </>
+            )}
+          </button>
+
+          {expanded && (
+            <div className="space-y-4 pt-1">
+              {/* 이번 달 요약 — 엔진 monthSummary (길어서 상세에만) */}
+              {summaryText && summaryText.trim() && (
+                <div className="bg-black/20 rounded-xl p-4 border border-white/5">
+                  <div className="text-xs font-bold text-indigo-300 mb-2 tracking-wider uppercase">
+                    이번 달 요약
+                  </div>
+                  <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">
+                    {summaryText}
+                  </p>
+                </div>
+              )}
+
+              {/* 핵심 포인트 */}
+              {headlines.length > 0 && (
+                <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
+                  <div className="text-xs font-bold text-indigo-300 mb-2 flex items-center gap-1.5 tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    핵심 포인트
+                  </div>
+                  <ul className="space-y-1.5">
+                    {headlines.map((line, i) => (
+                      <li key={i} className="text-sm text-zinc-200 leading-relaxed flex gap-2">
+                        <span className="text-indigo-400 shrink-0">·</span>
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 키 이벤트 3 — 베스트 날 / 강한 구간 / 피할 날 */}
+              <KeyEventsBlock keyEvents={interp!.keyEvents} />
+
+              {/* 큰 시점 — 이번 달 → 올해 → 인생 */}
+              <ConvergenceBlock convergence={interp!.convergence} icon="🔮" title="이번 달 큰 날" />
+              <ConvergenceBlock
+                convergence={yearlyConvergence ?? interp!.yearlyConvergence}
+                icon="🗓️"
+                title="올해 큰 날"
+                upcomingOnly
+              />
+              <LifePivotsBlock lifetimePivots={interp!.lifetimePivots} />
+
+              {/* 지난달 대비 — 변화 체감 */}
+              <MonthComparisonBlock comparison={interp!.monthComparison} />
+
+              {/* 상세 해석 본문 */}
+              <div className="flex items-center gap-2 text-zinc-400 border-t border-white/5 pt-3">
+                <BookOpen className="w-4 h-4 text-indigo-400" />
+                <span className="text-xs font-bold tracking-wider uppercase">상세 해석</span>
               </div>
-              <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">
-                {renderMarkdownBold(s.text)}
-              </p>
-            </div>
-          ))}
+              {interp!.sections.map((s) => (
+                <div key={s.section} className="bg-black/20 rounded-xl p-4 border border-white/5">
+                  <div className="text-xs font-bold text-indigo-300 mb-2 tracking-wider uppercase">
+                    {s.title}
+                  </div>
+                  <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">
+                    {renderMarkdownBold(s.text)}
+                  </p>
+                </div>
+              ))}
 
-          {/* Why-card — 테마별 점수 인과 추적 ("왜 그 점수인지") */}
-          <WhyCard interp={interp} />
-        </div>
+              {/* Why-card — 테마별 점수 인과 추적 */}
+              <WhyCard interp={interp!} />
+            </div>
+          )}
+        </>
       )}
     </div>
   )
+}
+
+/** 이번 달 가장 강한 테마 — themeRanking 우선, 없으면 themeScores 최대값. */
+function topTheme(
+  interp: Interpretation | undefined
+): { theme: 'love' | 'money' | 'career' | 'health' | 'growth'; score: number } | null {
+  if (!interp) return null
+  if (interp.themeRanking && interp.themeRanking.length > 0) {
+    const t = interp.themeRanking[0]
+    return { theme: t.theme, score: t.score }
+  }
+  const ts = interp.themeScores
+  if (!ts) return null
+  let best: { theme: 'love' | 'money' | 'career' | 'health' | 'growth'; score: number } | null =
+    null
+  for (const [k, v] of Object.entries(ts)) {
+    if (typeof v === 'number' && (!best || v > best.score)) {
+      best = { theme: k as 'love' | 'money' | 'career' | 'health' | 'growth', score: v }
+    }
+  }
+  return best
+}
+
+/** "왜?" 한 줄 — 가장 강한 테마 1~2개로 깔끔하게. */
+function whyFromThemes(interp: Interpretation | undefined): string | null {
+  const r = interp?.themeRanking
+  if (r && r.length > 0) {
+    const labels = r.slice(0, 2).map((t) => THEME_LABEL[t.theme] ?? t.theme)
+    return `이번 달은 ${labels.join('·')} 흐름이 가장 강해요.`
+  }
+  const top = topTheme(interp)
+  return top ? `이번 달은 ${THEME_LABEL[top.theme] ?? top.theme} 흐름이 가장 강해요.` : null
+}
+
+/** 결론 한 줄 — 점수 밴드(grade)별. */
+const VERDICT: Record<GradeKey, string> = {
+  lucky: '흐름이 받쳐주는 달',
+  neutral: '잔잔하게 다지는 달',
+  unlucky: '조심히 가는 달',
+}
+
+/** "지금 할 일" — 이번 달 가장 강한 테마별 한 줄 행동. */
+const THEME_ACTION: Record<'love' | 'money' | 'career' | 'health' | 'growth', string> = {
+  money: '돈·계약과 관련된 일을 먼저 챙겨보세요',
+  career: '커리어에서 한 걸음 내디뎌 보세요',
+  love: '마음을 먼저 표현해 보세요',
+  health: '몸과 휴식을 우선해 보세요',
+  growth: '배움·정리에 시간을 써보세요',
 }
 
 type KeyEvents = NonNullable<Interpretation['keyEvents']>
