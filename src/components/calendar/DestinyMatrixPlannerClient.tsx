@@ -32,7 +32,14 @@ export default function DestinyMatrixPlannerClient() {
   type YearlyConvergence = NonNullable<
     NonNullable<CalendarData['allDates']>[number]['monthlyInterpretation']
   >['yearlyConvergence']
+  type YearMonthly = {
+    month: number
+    score: number
+    themes: Array<{ theme: 'love' | 'money' | 'career' | 'health' | 'growth'; score: number }>
+    tone: 'up' | 'down' | 'flat'
+  }
   const [yearlyConvergence, setYearlyConvergence] = useState<YearlyConvergence>(undefined)
+  const [yearlyMonthly, setYearlyMonthly] = useState<YearMonthly[] | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,6 +47,7 @@ export default function DestinyMatrixPlannerClient() {
     setLoading(true)
     setError(null)
     setYearlyConvergence(undefined)
+    setYearlyMonthly(undefined)
     try {
       const year = new Date().getFullYear()
       const params = new URLSearchParams({
@@ -98,8 +106,12 @@ export default function DestinyMatrixPlannerClient() {
             headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
           })
           if (!cr.ok) return
-          const cj = (await cr.json()) as { convergence?: YearlyConvergence }
+          const cj = (await cr.json()) as {
+            convergence?: YearlyConvergence
+            monthly?: YearMonthly[]
+          }
           if (cj?.convergence) setYearlyConvergence(cj.convergence)
+          if (cj?.monthly) setYearlyMonthly(cj.monthly)
         } catch (e) {
           logger.debug('[CalendarPlanner] convergence lazy-load skipped', e)
         }
@@ -233,6 +245,11 @@ export default function DestinyMatrixPlannerClient() {
   }
 
   return (
-    <DestinyMatrixPlanner data={data} birthInfo={birthInfo} yearlyConvergence={yearlyConvergence} />
+    <DestinyMatrixPlanner
+      data={data}
+      birthInfo={birthInfo}
+      yearlyConvergence={yearlyConvergence}
+      yearlyMonthly={yearlyMonthly}
+    />
   )
 }

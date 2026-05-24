@@ -60,6 +60,15 @@ interface DestinyMatrixPlannerProps {
   birthInfo?: BirthInfo | null
   /** "올해 큰 날" — 메인 응답에서 분리해 지연 로드한 연간 수렴. */
   yearlyConvergence?: NonNullable<ImportantDate['monthlyInterpretation']>['yearlyConvergence']
+  /** 월별 요약(v2) — 연간 수렴과 함께 지연 로드. yearly 뷰 흐름·이유에 사용. */
+  yearlyMonthly?: YearMonthly[]
+}
+
+export type YearMonthly = {
+  month: number
+  score: number
+  themes: Array<{ theme: 'love' | 'money' | 'career' | 'health' | 'growth'; score: number }>
+  tone: 'up' | 'down' | 'flat'
 }
 
 type ViewMode = 'yearly' | 'monthly' | 'daily'
@@ -78,6 +87,7 @@ export default function DestinyMatrixPlanner({
   data,
   birthInfo,
   yearlyConvergence,
+  yearlyMonthly,
 }: DestinyMatrixPlannerProps = {}) {
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
@@ -485,12 +495,15 @@ export default function DestinyMatrixPlanner({
               className="p-6 space-y-6"
             >
               <YearOverviewCard
-                allDates={data?.allDates ?? []}
                 year={viewYear}
-                yearlyConvergence={yearlyConvergence}
-                onDateClick={handleDateClick}
+                allDates={data?.allDates ?? []}
+                yearlyMonthly={yearlyMonthly}
+                onMonthClick={(monthIdx) => {
+                  setViewDate(new Date(viewYear, monthIdx, 1))
+                  setViewMode('monthly')
+                }}
               />
-              {!yearlyConvergence && (
+              {!yearlyMonthly && (
                 <YearHighlightsCard
                   allDates={data?.allDates ?? []}
                   year={viewYear}

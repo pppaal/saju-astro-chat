@@ -12,16 +12,25 @@ import {
   ReferenceLine,
   Label,
 } from 'recharts'
-import { CalendarRange, TrendingUp, ChevronDown, ChevronUp, Sparkles, Star } from 'lucide-react'
+import {
+  CalendarRange,
+  TrendingUp,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  Sparkles,
+} from 'lucide-react'
 import type { ImportantDate } from './types'
-
-type YearlyConvergence = NonNullable<ImportantDate['monthlyInterpretation']>['yearlyConvergence']
+import type { YearMonthly } from './DestinyMatrixPlanner'
+import { computeGradeThresholds, getGrade, type GradeThresholds } from './scoreGrade'
 
 interface Props {
-  allDates: ImportantDate[]
   year: number
-  yearlyConvergence?: YearlyConvergence
-  onDateClick: (iso: string) => void
+  allDates: ImportantDate[]
+  /** 월별 요약(v2) — 월 뷰와 동일 엔진. 없으면(로딩 전) 렌더 안 함(부모가 폴백). */
+  yearlyMonthly?: YearMonthly[]
+  /** 달 클릭 → 그 달 monthly 뷰로 (0-indexed month) */
+  onMonthClick: (monthIdx: number) => void
 }
 
 const THEME_META: Record<string, { label: string; icon: string }> = {
@@ -32,52 +41,28 @@ const THEME_META: Record<string, { label: string; icon: string }> = {
   growth: { label: '성장', icon: '🌱' },
 }
 
+// 절대 점수가 아니라 그 해 12달 분포 기준 상대 밴드 — v2 점수가 전반적으로
+// 높게 나와도 "그 사람 기준 어느 달이 좋은지"를 또렷이 구분.
+function band(score: number, th: GradeThresholds): { label: string; color: string } {
+  const g = getGrade(score, th)
+  if (g.key === 'lucky') return { label: '좋음', color: 'text-emerald-300' }
+  if (g.key === 'unlucky') return { label: '조심', color: 'text-rose-300' }
+  return { label: '보통', color: 'text-zinc-300' }
+}
+
+const BAND_DESC: Record<string, string> = {
+  좋음: '전반적으로 잘 풀리는 달',
+  보통: '무난하게 흐르는 달',
+  조심: '한 박자 쉬어가는 달',
+}
+
 /**
- * 연간 총평 — 한 해 전체를 한눈에.
- *
- * 데이터 기반(계산값) 우선: 12개월 흐름 그래프 + 강한 영역 + 좋은/조심 달 +
- * 한 줄 결론을 실제 점수에서 뽑는다. "올해 큰 날"은 v2 정밀 연간 수렴
- * (yearlyConvergence — 실제 점성·사주 근거)으로 보여줌. 전통 사주 한 해
- * 흐름(seun)은 계산 점수와 어긋날 수 있어 "전통 해석"으로 접어서 분리 표기.
+ * 연간 총평 — 한 해를 "달 단위 + 이유"로. 모든 점수는 월 뷰와 동일한 v2 엔진
+ * (yearlyMonthly)에서 와서 일관된다. 일(day) 단위로 쪼개지 않고 월까지만.
+ * 전통 사주 한 해 흐름(seun)은 계산 점수와 어긋날 수 있어 접어서 분리 표기.
  */
-export default function YearOverviewCard({
-  allDates,
-  year,
-  yearlyConvergence,
-  onDateClick,
-}: Props) {
+export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMonthClick }: Props) {
   const [showTrad, setShowTrad] = useState(false)
-
-  const monthly = useMemo(() => {
-    const buckets: number[][] = Array.from({ length: 12 }, () => [])
-    for (const d of allDates) {
-      const m = parseInt(d.date.slice(5, 7), 10) - 1
-      if (m >= 0 && m < 12) buckets[m].push(d.score ?? 50)
-    }
-    return buckets.map((arr, i) => ({
-      month: `${i + 1}월`,
-      monthIdx: i,
-      score: arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 50,
-      count: arr.length,
-    }))
-  }, [allDates])
-
-  const themes = useMemo(() => {
-    const sum: Record<string, number> = {}
-    const cnt: Record<string, number> = {}
-    for (const d of allDates) {
-      if (!d.themeScores) continue
-      for (const [k, v] of Object.entries(d.themeScores)) {
-        if (typeof v === 'number') {
-          sum[k] = (sum[k] ?? 0) + v
-          cnt[k] = (cnt[k] ?? 0) + 1
-        }
-      }
-    }
-    return (['money', 'career', 'love', 'health', 'growth'] as const)
-      .map((k) => ({ key: k, avg: cnt[k] ? Math.round(sum[k] / cnt[k]) : 50 }))
-      .sort((a, b) => b.avg - a.avg)
-  }, [allDates])
 
   const seunText = useMemo(() => {
     for (const d of allDates) {
@@ -87,24 +72,33 @@ export default function YearOverviewCard({
     return null
   }, [allDates])
 
-  const withData = monthly.filter((m) => m.count > 0)
-  if (withData.length === 0) return null
+  const yearThemes = useMemo(() => {
+    const sum: Record<string, number> = {}
+    const cnt: Record<string, number> = {}
+    for (const m of yearlyMonthly ?? []) {
+      for (const t of m.themes) {
+        sum[t.theme] = (sum[t.theme] ?? 0) + t.score
+        cnt[t.theme] = (cnt[t.theme] ?? 0) + 1
+      }
+    }
+    return (['money', 'career', 'love', 'health', 'growth'] as const)
+      .map((k) => ({ key: k, avg: cnt[k] ? Math.round(sum[k] / cnt[k]) : 50 }))
+      .sort((a, b) => b.avg - a.avg)
+  }, [yearlyMonthly])
 
-  const best = [...withData].sort((a, b) => b.score - a.score)
-  const worst = [...withData].sort((a, b) => a.score - b.score)
-  const bestMonth = best[0]
-  const worstMonth = worst[0]
+  if (!yearlyMonthly || yearlyMonthly.length === 0) return null
+
+  const chartData = yearlyMonthly.map((m) => ({ month: `${m.month}월`, score: m.score }))
+  const sortedByScore = [...yearlyMonthly].sort((a, b) => b.score - a.score)
+  const bestM = sortedByScore[0]
+  const worstM = sortedByScore[sortedByScore.length - 1]
   const verdict =
-    bestMonth && worstMonth && bestMonth.monthIdx !== worstMonth.monthIdx
-      ? `${bestMonth.monthIdx + 1}월 무렵 흐름이 가장 좋고, ${worstMonth.monthIdx + 1}월은 숨 고르기 좋은 시기예요.`
+    bestM && worstM && bestM.month !== worstM.month
+      ? `${bestM.month}월 무렵 흐름이 가장 좋고, ${worstM.month}월은 숨 고르기 좋은 시기예요.`
       : '한 해 흐름이 비교적 고른 편이에요.'
-
-  const goodMonths = best.slice(0, 2).map((m) => m.monthIdx + 1)
-  const cautionMonths = worst.slice(0, 2).map((m) => m.monthIdx + 1)
-
-  const keyDays = (yearlyConvergence?.keyDays ?? [])
-    .slice()
-    .sort((a, b) => a.date.localeCompare(b.date))
+  const goodMonths = sortedByScore.slice(0, 2).map((m) => m.month)
+  const cautionMonths = sortedByScore.slice(-2).map((m) => m.month)
+  const thresholds = computeGradeThresholds(yearlyMonthly.map((m) => m.score))
 
   return (
     <div className="space-y-6">
@@ -116,13 +110,12 @@ export default function YearOverviewCard({
         </div>
         <p className="text-sm text-zinc-200 leading-relaxed">{verdict}</p>
 
-        {/* 12개월 흐름 그래프 */}
         <div>
           <div className="text-[11px] font-bold text-indigo-300 tracking-wide mb-1 flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5" /> 월별 흐름
           </div>
           <ResponsiveContainer width="100%" height={170}>
-            <AreaChart data={monthly} margin={{ top: 8, right: 36, left: -14, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 8, right: 36, left: -14, bottom: 0 }}>
               <defs>
                 <linearGradient id="yearFlow" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#818cf8" stopOpacity={0.42} />
@@ -167,13 +160,12 @@ export default function YearOverviewCard({
           </div>
         </div>
 
-        {/* 올해 강한 영역 */}
         <div>
           <div className="text-[11px] font-bold text-indigo-300 tracking-wide mb-2">
             올해 강한 영역
           </div>
           <div className="space-y-1.5">
-            {themes.map((t) => (
+            {yearThemes.map((t) => (
               <div key={t.key} className="flex items-center gap-2">
                 <span className="w-16 shrink-0 text-sm text-zinc-200">
                   <span aria-hidden className="mr-1">
@@ -196,53 +188,53 @@ export default function YearOverviewCard({
         </div>
       </div>
 
-      {/* ── 올해 큰 날 (v2 정밀 — 실제 점성·사주 근거) ──
-          로딩 중/실패면 이 블록은 숨고 부모의 YearHighlightsCard 폴백이 대신 뜸. */}
-      {keyDays.length > 0 && (
-        <div className="bg-zinc-900/40 rounded-2xl border border-white/5 shadow-xl p-5">
-          <div className="flex items-center gap-2 mb-1">
-            <Star className="w-5 h-5 text-amber-300" />
-            <h3 className="text-base font-bold text-zinc-200 tracking-wider">올해 큰 날</h3>
-            <span className="text-[11px] text-zinc-500 ml-auto">점성·사주 겹친 날</span>
-          </div>
-          <ul className="space-y-2.5 mt-2">
-            {keyDays.map((d) => (
-              <li key={d.date}>
+      {/* ── 월별 핵심 (달 단위 + 이유) ── */}
+      <div className="bg-zinc-900/40 rounded-2xl border border-white/5 shadow-xl p-5">
+        <h3 className="text-base font-bold text-zinc-200 tracking-wider mb-1">월별 핵심</h3>
+        <p className="text-xs text-zinc-500 mb-3">달을 누르면 그 달 상세로 이동해요</p>
+        <ul className="space-y-2">
+          {yearlyMonthly.map((m) => {
+            const b = band(m.score, thresholds)
+            const strong = m.themes.slice(0, 2)
+            return (
+              <li key={m.month}>
                 <button
-                  onClick={() => onDateClick(d.date)}
-                  className="w-full text-left bg-zinc-950/60 hover:bg-zinc-900 rounded-xl p-3 border border-white/5 hover:border-white/10 transition flex flex-col gap-1"
+                  onClick={() => onMonthClick(m.month - 1)}
+                  className="w-full text-left bg-zinc-950/60 hover:bg-zinc-900 rounded-xl p-3 border border-white/5 hover:border-white/10 transition flex items-center gap-3"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-zinc-100">{fmtFull(d.date)}</span>
-                    {d.bothSystems && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-bold">
-                        양쪽 수렴
-                      </span>
-                    )}
+                  <div className="flex flex-col items-center justify-center w-11 shrink-0 leading-none">
+                    <span className="text-xl font-black text-zinc-100">{m.month}</span>
+                    <span className="text-[10px] text-zinc-500">월</span>
                   </div>
-                  {d.astro.length > 0 && (
-                    <div className="text-[11px] leading-snug flex gap-1.5">
-                      <span className="shrink-0 font-bold text-sky-300/90">점성</span>
-                      <span className="text-zinc-400">{d.astro.join(' · ')}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-sm font-bold ${b.color}`}>{b.label}</span>
+                      {strong.map((t) => (
+                        <span
+                          key={t.theme}
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-200 font-bold"
+                        >
+                          {THEME_META[t.theme]?.icon} {THEME_META[t.theme]?.label}
+                        </span>
+                      ))}
                     </div>
-                  )}
-                  {d.saju.length > 0 && (
-                    <div className="text-[11px] leading-snug flex gap-1.5">
-                      <span className="shrink-0 font-bold text-amber-300/90">사주</span>
-                      <span className="text-zinc-400">{d.saju.join(' · ')}</span>
+                    <div className="text-[11px] text-zinc-400 leading-snug mt-1">
+                      {BAND_DESC[b.label]}
+                      {strong.length > 0 && (
+                        <>
+                          {' · '}
+                          {strong.map((t) => THEME_META[t.theme]?.label).join('·')} 강세
+                        </>
+                      )}
                     </div>
-                  )}
-                  {d.meaning && (
-                    <div className="text-[11px] leading-snug text-indigo-300/80 italic">
-                      {d.meaning}
-                    </div>
-                  )}
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-zinc-600 shrink-0" />
                 </button>
               </li>
-            ))}
-          </ul>
-        </div>
-      )}
+            )
+          })}
+        </ul>
+      </div>
 
       {/* ── 전통 사주 한 해 흐름 (계산 점수와 다를 수 있어 분리) ── */}
       {seunText && (
@@ -271,11 +263,4 @@ export default function YearOverviewCard({
       )}
     </div>
   )
-}
-
-function fmtFull(iso: string): string {
-  const [, m, d] = iso.split('-')
-  if (!m || !d) return iso
-  const wd = ['일', '월', '화', '수', '목', '금', '토'][new Date(iso + 'T00:00:00').getDay()]
-  return `${Number(m)}월 ${Number(d)}일 (${wd})`
 }
