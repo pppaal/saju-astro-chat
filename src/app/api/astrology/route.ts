@@ -51,7 +51,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     return apiError(ErrorCodes.VALIDATION_ERROR, errorMessage, { errors: validation.errors })
   }
 
-  const { date, time, latitude, longitude, timeZone, locale, options } = validation.data
+  const { date, time, latitude, longitude, timeZone, locale, options, skipInterpretation } =
+    validation.data
   const L = pickLabels(locale)
   const locKey = normalizeLocale(locale)
 
@@ -163,9 +164,14 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // Cache key: birthDate + birthTime + lat + lon + timezone + locale
   const aiCacheKey = `astrology:ai:v1:${date}:${time}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}:${locKey}`
 
-  const cachedAI = await cacheGet<{ interpretation: string; model: string }>(aiCacheKey)
+  const cachedAI = skipInterpretation
+    ? null
+    : await cacheGet<{ interpretation: string; model: string }>(aiCacheKey)
 
-  if (cachedAI) {
+  if (skipInterpretation) {
+    // chartOnly fast path — caller needs only chart data; the response falls
+    // back to the locally-built `interpretation` summary below.
+  } else if (cachedAI) {
     aiInterpretation = cachedAI.interpretation
     aiModelUsed = cachedAI.model
   } else {
@@ -200,8 +206,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     }
   }
 
-  // 8. Save reading record (logged-in users only)
-  if (context.userId) {
+  // 8. Save reading record (logged-in users only). Skip on the chartOnly path.
+  if (context.userId && !skipInterpretation) {
     try {
       await prisma.reading.create({
         data: {

@@ -73,6 +73,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     calendarType,
     timezone,
     userTimezone,
+    skipInterpretation,
   } = validationResult.data
 
   // 2. Check premium status (credit-based)
@@ -270,9 +271,16 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // Cache key: birthDate + birthTime + gender + calendar + locale + premium status
   const aiCacheKey = `saju:ai:v1:${birthDateString}:${adjustedBirthTime}:${gender}:${calendarType}:${context.locale}:${isPremium ? 'premium' : 'free'}`
 
-  const cachedAI = await cacheGet<{ interpretation: string; model: string }>(aiCacheKey)
+  const cachedAI = skipInterpretation
+    ? null
+    : await cacheGet<{ interpretation: string; model: string }>(aiCacheKey)
 
-  if (cachedAI) {
+  if (skipInterpretation) {
+    // chartOnly fast path — caller (e.g. 궁합 상담사) needs only the structured
+    // chart data, so skip the multi-thousand-token LLM interpretation entirely.
+    // This is the dominant latency of this route; skipping it makes the call
+    // pure local computation (~hundreds of ms).
+  } else if (cachedAI) {
     aiInterpretation = cachedAI.interpretation
     aiModelUsed = cachedAI.model
   } else {
@@ -316,8 +324,9 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     }
   }
 
-  // 11. Save reading record (logged-in users only)
-  if (context.userId) {
+  // 11. Save reading record (logged-in users only). Skip on the chartOnly path
+  // — a 궁합 chart fetch shouldn't pollute the user's saju reading history.
+  if (context.userId && !skipInterpretation) {
     try {
       await prisma.reading.create({
         data: {

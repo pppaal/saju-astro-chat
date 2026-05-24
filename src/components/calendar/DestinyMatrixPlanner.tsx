@@ -613,40 +613,17 @@ export default function DestinyMatrixPlanner({
                 </div>
               )}
 
-              <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5 shadow-xl">
-                <h3 className="text-base font-bold text-zinc-200 flex items-center gap-2 mb-4">
-                  <Activity className="w-5 h-5 text-indigo-400" /> 월간 종합 분석 리포트
-                </h3>
-                {/* 종합은 절대 점수("79/100") 대신 상대 밴드로 — 하루를 한
-                    숫자로 단정하지 않고 "그 사람 기준 어느 정도인지"만 보여줌.
-                    구체 점수는 영역별 바·근거카드에서 드러남. */}
-                <div className="flex items-baseline gap-3 flex-wrap mb-3">
-                  <span className="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">
-                    이번 달 흐름
-                  </span>
-                  {(() => {
-                    const g = getGrade(monthScore, gradeThresholds)
-                    return (
-                      <span
-                        className={`text-sm font-bold px-2.5 py-1 rounded-full border ${g.colorClass} ${g.borderClass}`}
-                      >
-                        {g.label} · {g.sub}
-                      </span>
-                    )
-                  })()}
-                </div>
-                {monthlySummaryText && (
-                  <p className="text-sm text-zinc-300 leading-relaxed">{monthlySummaryText}</p>
-                )}
-              </div>
-
-              {/* ── calendar-engine v2: 월간 narrative 해석 ── */}
+              {/* ── 월간 해석 — 결론 우선 카드 (점수 밴드·결론·할 일·왜 + 상세 접기) ── */}
               <MonthlyInterpretationCard
                 interp={
                   monthDates[0]?.monthlyInterpretation ??
                   selectedImportantDate?.monthlyInterpretation
                 }
                 yearlyConvergence={yearlyConvergence}
+                monthScore={monthScore}
+                gradeThresholds={gradeThresholds}
+                summaryText={monthlySummaryText}
+                seed={viewYear * 12 + viewMonth}
               />
 
               {/* ── 주간 타이밍 그래프 (saju × astro) ── */}

@@ -63,18 +63,6 @@ vi.mock('@/app/api/calendar/lib/constants', () => ({
   },
 }))
 
-vi.mock('@/constants/scoring', () => ({
-  SCORE_THRESHOLDS: {
-    EXCELLENT: 80,
-    GOOD: 70,
-    AVERAGE: 60,
-    BELOW_AVERAGE: 40,
-    POOR: 30,
-    MIN: 0,
-    MAX: 100,
-  },
-}))
-
 describe('Calendar Helpers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -331,9 +319,9 @@ describe('Calendar Helpers', () => {
       expect(result).not.toContain('Review details with your team')
       // ...and replaced with conservative caution guidance from the safety pool.
       expect(result.length).toBeGreaterThan(0)
-      expect(result.some((line) => /don.t sign|push anything|reversing within 24 hours/i.test(line))).toBe(
-        true
-      )
+      expect(
+        result.some((line) => /don.t sign|push anything|reversing within 24 hours/i.test(line))
+      ).toBe(true)
     })
 
     it('removes irreversible recommendations when communication warning exists', () => {
@@ -716,7 +704,6 @@ describe('Calendar Helpers', () => {
 
       expect(result.evidence?.crossAgreementPercent).toBe(78)
     })
-
   })
 
   describe('applyMatrixPreformatRegrade', () => {

@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react'
 import {
-  LineChart,
-  Line,
+  ComposedChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -11,6 +11,8 @@ import {
   CartesianGrid,
   Legend,
   ReferenceLine,
+  ReferenceDot,
+  Label,
 } from 'recharts'
 import { Clock } from 'lucide-react'
 import type { ImportantDate } from './types'
@@ -27,13 +29,16 @@ interface Props {
  *  - 시간(0-23)별 polarity × weight 평균 → 0~100 점수
  *  - sajuLine: 사주 source 신호 / astroLine: 점성 source 신호
  *
- * 차트: 24 데이터 포인트 라인 차트. 0시 ~ 23시.
+ * 표시(주간 그래프와 톤 통일): 라인이 아니라 그라데이션 area 로 채워 흐름이
+ * 한눈에 보이게. 50 기준선 라벨 + 큰 점. 점성 신호가 실제로 있을 때만 점성
+ * area 를 그리고, 두 라인이 교차하는 시각엔 ◆ 마커를 찍어 "시간 교차"를 강조.
  */
 export default function DailyHourlyChart({ importantDate }: Props) {
-  const hourly = useMemo(() => {
-    if (!importantDate?.engineSignals) return []
+  const { data, hasAstro, crossings } = useMemo(() => {
+    const empty = { data: [] as HourPoint[], hasAstro: false, crossings: [] as Crossing[] }
+    if (!importantDate?.engineSignals) return empty
     const hourlySignals = importantDate.engineSignals.filter((s) => s.layer === 'hourly')
-    if (hourlySignals.length === 0) return []
+    if (hourlySignals.length === 0) return empty
 
     // 시간(0-23)별 평균 polarity × weight
     const buckets: Array<{ saju: number[]; astro: number[] }> = Array.from({ length: 24 }, () => ({
@@ -41,20 +46,15 @@ export default function DailyHourlyChart({ importantDate }: Props) {
       astro: [],
     }))
 
-    // 신호 active.start 시간 추출
-    for (const s of importantDate.engineSignals) {
-      if (s.layer !== 'hourly') continue
-      // engineSignals 타입에는 active 필드가 없음 — id에서 시간 정보 추출
-      // 또는 weight·polarity 자체로 시간 슬롯 추정
-      // 보조: id 형식 'saju.hour.YYYY-MM-DD.{branch}.{stem}' → branch idx로 시간 추정
+    for (const s of hourlySignals) {
       const hourFromId = inferHourFromSignalId(s.id)
-      const score = s.polarity * s.weight
       if (hourFromId == null) continue
+      const score = s.polarity * s.weight
       const target = s.source === 'saju' ? buckets[hourFromId].saju : buckets[hourFromId].astro
       target.push(score)
     }
 
-    return buckets.map((b, hour) => {
+    const data: HourPoint[] = buckets.map((b, hour) => {
       const sajuAvg = b.saju.length > 0 ? b.saju.reduce((a, v) => a + v, 0) / b.saju.length : 0
       const astroAvg = b.astro.length > 0 ? b.astro.reduce((a, v) => a + v, 0) / b.astro.length : 0
       return {
@@ -64,20 +64,52 @@ export default function DailyHourlyChart({ importantDate }: Props) {
         astro: Math.round(50 + astroAvg * 16),
       }
     })
+
+    const hasAstro = data.some((d) => d.astro !== 50)
+
+    // 두 라인이 위아래로 뒤바뀌는(교차) 시각 — 부호가 바뀌고 충분히 벌어진 구간만,
+    // 더 가까운 점에 마커. 너무 많아지지 않게 상한.
+    const crossings: Crossing[] = []
+    if (hasAstro) {
+      for (let i = 0; i < data.length - 1; i++) {
+        const a = data[i].saju - data[i].astro
+        const b = data[i + 1].saju - data[i + 1].astro
+        if (a !== 0 && b !== 0 && a < 0 !== b < 0 && Math.abs(a) + Math.abs(b) >= 6) {
+          const h = Math.abs(a) <= Math.abs(b) ? i : i + 1
+          crossings.push({ x: data[h].hour, y: Math.round((data[h].saju + data[h].astro) / 2) })
+        }
+      }
+    }
+    const cappedCrossings = crossings.slice(0, 8)
+
+    return { data, hasAstro, crossings: cappedCrossings }
   }, [importantDate])
 
-  if (hourly.length === 0) return null
+  if (data.length === 0) return null
 
-  // 빈 시간(둘 다 50 — 중립)이 많으면 차트 약함 — 일단 표시
   return (
     <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-      <h3 className="text-base font-bold text-zinc-200 mb-3 flex items-center gap-2 tracking-wider uppercase">
+      <h3 className="text-base font-bold text-zinc-200 mb-1 flex items-center gap-2 tracking-wider uppercase">
         <Clock className="w-5 h-5 text-cyan-400" />
         시간대 흐름 (24시간)
       </h3>
-      <p className="text-xs text-zinc-500 mb-3">하루 중 어느 시간에 운이 오는지 — 50점이 기준선</p>
+      <p className="text-xs text-zinc-500 mb-3">
+        {hasAstro
+          ? '하루 중 사주·점성 흐름 — 두 선이 만나는 점이 전환 시각, 50점이 기준선'
+          : '하루 중 어느 시간에 운이 오는지 — 50점이 기준선'}
+      </p>
       <ResponsiveContainer width="100%" height={240}>
-        <LineChart data={hourly} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
+        <ComposedChart data={data} margin={{ top: 10, right: 44, left: -10, bottom: 0 }}>
+          <defs>
+            <linearGradient id="hourSaju" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.04} />
+            </linearGradient>
+            <linearGradient id="hourAstro" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.32} />
+              <stop offset="100%" stopColor="#22d3ee" stopOpacity={0.03} />
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
           <XAxis dataKey="hour" stroke="#a1a1aa" fontSize={12} fontWeight={600} interval={2} />
           <YAxis domain={[0, 100]} stroke="#a1a1aa" fontSize={12} />
@@ -91,34 +123,66 @@ export default function DailyHourlyChart({ importantDate }: Props) {
             }}
             labelStyle={{ color: '#e4e4e7', fontWeight: 700 }}
             itemStyle={{ padding: '2px 0' }}
+            formatter={(value, name) => [`${value}점`, name]}
           />
-          <Legend
-            iconSize={12}
-            wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingTop: '12px' }}
-          />
-          <ReferenceLine y={50} stroke="#52525b" strokeDasharray="3 3" />
-          <Line
+          {hasAstro && (
+            <Legend
+              iconSize={12}
+              wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingTop: '12px' }}
+            />
+          )}
+          <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.5} strokeDasharray="4 4">
+            <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={11} />
+          </ReferenceLine>
+          <Area
             type="monotone"
             dataKey="saju"
             name="사주"
             stroke="#f59e0b"
             strokeWidth={3}
-            dot={{ r: 3.5, fill: '#f59e0b', strokeWidth: 0 }}
-            activeDot={{ r: 6 }}
+            fill="url(#hourSaju)"
+            dot={{ r: 4, fill: '#f59e0b', stroke: '#0a0f1e', strokeWidth: 1.5 }}
+            activeDot={{ r: 7 }}
           />
-          <Line
-            type="monotone"
-            dataKey="astro"
-            name="점성"
-            stroke="#22d3ee"
-            strokeWidth={3}
-            dot={{ r: 3.5, fill: '#22d3ee', strokeWidth: 0 }}
-            activeDot={{ r: 6 }}
-          />
-        </LineChart>
+          {hasAstro && (
+            <Area
+              type="monotone"
+              dataKey="astro"
+              name="점성"
+              stroke="#22d3ee"
+              strokeWidth={3}
+              fill="url(#hourAstro)"
+              dot={{ r: 4, fill: '#22d3ee', stroke: '#0a0f1e', strokeWidth: 1.5 }}
+              activeDot={{ r: 7 }}
+            />
+          )}
+          {crossings.map((c, i) => (
+            <ReferenceDot
+              key={`x-${i}`}
+              x={c.x}
+              y={c.y}
+              r={6}
+              fill="#fbbf24"
+              stroke="#0a0f1e"
+              strokeWidth={2}
+            />
+          ))}
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   )
+}
+
+interface HourPoint {
+  hour: string
+  hourNum: number
+  saju: number
+  astro: number
+}
+
+interface Crossing {
+  x: string
+  y: number
 }
 
 /**
@@ -147,7 +211,13 @@ function inferHourFromSignalId(id: string): number | null {
     const hour = BRANCH_HOUR[sajuMatch[1]]
     return typeof hour === 'number' ? hour : null
   }
-  // 점성 VoC / 행성시는 정오 근처로 매핑 (정확한 시간 정보 부재)
+  // 점성 행성시 — id에 시각이 박혀 있음: astro.planetary-hour.YYYY-MM-DD.H{hh}.{planet}
+  const astroHourMatch = id.match(/^astro\.planetary-hour\..+\.H(\d{1,2})\./)
+  if (astroHourMatch) {
+    const h = Number(astroHourMatch[1])
+    return h >= 0 && h < 24 ? h : null
+  }
+  // 점성 VoC / 달위상은 정오 근처로 매핑 (정확한 시간 정보 부재)
   if (id.startsWith('astro.voc') || id.startsWith('astro.moon-phase')) {
     return 12
   }

@@ -58,85 +58,12 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-.heroEyebrow {
-  margin: 0;
-  font-size: 0.84rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: rgba(188, 210, 255, 0.78);
-}
-
-.heroTitle {
-  margin: 0.45rem 0 0;
-  font-size: clamp(2rem, 3vw, 2.6rem);
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  color: #f4f7ff;
-}
-
-.heroSubtitle {
-  margin: 0.6rem 0 0;
-  font-size: 1rem;
-  color: rgba(191, 217, 255, 0.86);
-}
-
-.heroOneLiner {
-  margin: 0.95rem 0 0;
-  max-width: 44rem;
-  font-size: 1.04rem;
-  line-height: 1.72;
-  color: rgba(235, 243, 255, 0.9);
-}
-
-.heroBadges {
-  margin-top: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-}
-
-.heroBadge,
-.heroBadgeMuted {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 0.32rem 0.78rem;
-  font-size: 0.82rem;
-  letter-spacing: 0.02em;
-}
-
-.heroBadge {
-  border: 1px solid rgba(120, 220, 190, 0.48);
-  background: rgba(46, 122, 105, 0.35);
-  color: rgba(215, 255, 244, 0.98);
-}
-
-.heroBadgeMuted {
-  border: 1px solid rgba(167, 187, 232, 0.38);
-  background: rgba(53, 66, 95, 0.38);
-  color: rgba(215, 226, 255, 0.95);
-}
-
 .sectionTitlePremium {
   margin: 0;
   font-size: clamp(1.18rem, 2vw, 1.45rem);
   line-height: 1.26;
   letter-spacing: -0.01em;
   color: #f8fbff;
-}
-
-.snapshotGrid {
-  margin-top: 1rem;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
-}
-
-.snapshotCard {
-  border: 1px solid rgba(170, 188, 226, 0.19);
-  background: rgba(17, 24, 41, 0.58);
-  border-radius: 14px;
-  padding: 0.88rem;
 }
 
 .snapshotCard h3 {
@@ -167,29 +94,6 @@
   line-height: 1.64;
 }
 
-.axisCardGrid {
-  margin-top: 1rem;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.86rem;
-}
-
-.axisCardPremium {
-  border: 1px solid rgba(167, 188, 230, 0.2);
-  border-radius: 14px;
-  background: rgba(14, 21, 38, 0.62);
-  padding: 0.92rem;
-  display: grid;
-  gap: 0.52rem;
-}
-
-.axisCardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.7rem;
-}
-
 .axisCardHeader h3 {
   margin: 0;
   font-size: 1rem;
@@ -206,62 +110,6 @@
   opacity: 0.86;
 }
 
-.axisTrackPremium {
-  height: 0.44rem;
-  background: rgba(136, 157, 202, 0.22);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.axisFillPremium {
-  height: 100%;
-  background: linear-gradient(90deg, rgba(119, 187, 255, 0.95), rgba(102, 232, 198, 0.92));
-}
-
-.axisSummary {
-  margin: 0.14rem 0 0;
-  font-size: 0.9rem;
-  color: rgba(215, 230, 255, 0.95);
-}
-
-.axisBody,
-.axisMeta,
-.axisAction {
-  margin: 0;
-  max-width: 44rem;
-  line-height: 1.62;
-  font-size: 0.9rem;
-}
-
-.axisBody {
-  color: rgba(219, 231, 251, 0.87);
-}
-
-.axisMeta {
-  color: rgba(196, 213, 244, 0.84);
-}
-
-.axisAction {
-  color: rgba(142, 224, 204, 0.95);
-}
-
-.topArchetypeCards {
-  margin-top: 1rem;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.84rem;
-}
-
-.topArchetypeCard,
-.tipCard,
-.actionCard,
-.checklistCard {
-  border: 1px solid rgba(166, 186, 226, 0.2);
-  background: rgba(17, 23, 40, 0.64);
-  border-radius: 14px;
-  padding: 0.9rem;
-}
-
 .topArchetypeCard h3,
 .tipCard h3,
 .actionCard h3,
@@ -271,72 +119,10 @@
   color: rgba(195, 215, 255, 0.95);
 }
 
-.topArchetypeName {
-  margin: 0.55rem 0 0;
-  font-size: 1.02rem;
-  color: rgba(241, 246, 255, 0.97);
-}
-
-.topArchetypeScore {
-  margin: 0.25rem 0 0.38rem;
-  font-size: 0.88rem;
-  color: rgba(160, 223, 202, 0.95);
-}
-
 .topArchetypeCard p {
   margin-top: 0.42rem;
   line-height: 1.58;
   font-size: 0.9rem;
-}
-
-.archetypeBars {
-  margin-top: 0.9rem;
-  display: grid;
-  gap: 0.44rem;
-}
-
-.archetypeBarRow {
-  display: grid;
-  grid-template-columns: minmax(96px, 138px) 1fr 44px;
-  align-items: center;
-  gap: 0.56rem;
-  font-size: 0.82rem;
-}
-
-.archetypeLabel {
-  color: rgba(214, 227, 252, 0.9);
-}
-
-.archetypeTrack {
-  background: rgba(130, 149, 189, 0.24);
-  height: 0.38rem;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.archetypeFill {
-  height: 100%;
-  background: linear-gradient(90deg, rgba(124, 210, 255, 0.95), rgba(108, 238, 205, 0.85));
-}
-
-.archetypeScore {
-  text-align: right;
-  color: rgba(176, 208, 245, 0.9);
-}
-
-.lowestArchetype {
-  margin: 0.78rem 0 0;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: rgba(214, 226, 249, 0.86);
-}
-
-.archetypeTipsGrid,
-.actionColumns {
-  margin-top: 0.9rem;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
 }
 
 .tipCard ul,
@@ -350,22 +136,10 @@
   line-height: 1.57;
 }
 
-.checklist {
-  padding-left: 0;
-  list-style: none;
-}
-
 .checklist li {
   display: flex;
   gap: 0.46rem;
   align-items: flex-start;
-}
-
-.confidenceDisclosure {
-  margin-top: 0.82rem;
-  border: 1px solid rgba(168, 190, 232, 0.22);
-  border-radius: 14px;
-  background: rgba(14, 21, 35, 0.58);
 }
 
 .confidenceDisclosure summary {
@@ -373,15 +147,6 @@
   cursor: pointer;
   font-size: 0.92rem;
   color: rgba(227, 236, 255, 0.95);
-}
-
-.confidenceBody {
-  border-top: 1px solid rgba(168, 190, 232, 0.2);
-  padding: 0.85rem 0.95rem 0.95rem;
-  display: grid;
-  gap: 0.74rem;
-  font-size: 0.9rem;
-  line-height: 1.6;
 }
 
 .confidenceBody article h3 {
@@ -401,27 +166,9 @@
   gap: 0.3rem;
 }
 
-.confidenceMeaning {
-  color: rgba(209, 225, 251, 0.95);
-}
-
-@media (max-width: 1100px) {
-  .archetypeTipsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 900px) {
   .premiumContainer {
     margin-top: 5rem;
-  }
-
-  .snapshotGrid,
-  .axisCardGrid,
-  .topArchetypeCards,
-  .actionColumns,
-  .archetypeTipsGrid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -442,10 +189,6 @@
     padding: 0.9rem;
   }
 
-  .heroTitle {
-    font-size: 1.76rem;
-  }
-
   .heroOneLiner,
   .todayAction,
   .axisBody,
@@ -461,42 +204,8 @@
 }
 
 /* Animated Background Gradient */
-.bgGradient {
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 20% 20%, rgba(138, 43, 226, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(255, 209, 102, 0.08) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-}
 
 /* Stars Background */
-.stars {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.star {
-  position: absolute;
-  background: radial-gradient(circle, rgba(138, 43, 226, 1), rgba(138, 43, 226, 0));
-  border-radius: 50%;
-  animation: twinkle 3s ease-in-out infinite;
-}
-
-@keyframes twinkle {
-  0%,
-  100% {
-    opacity: 0.2;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-}
 
 /* Container */
 .container {
@@ -572,88 +281,6 @@
 }
 
 /* Hero Section */
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 3rem 0 2rem;
-  gap: 1rem;
-  animation: fadeInUp 0.8s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.preTitle {
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: #9d4edd;
-  margin: 0 0 0.5rem;
-}
-
-.styleName {
-  font-family: 'Cinzel', serif;
-  font-size: clamp(2rem, 6vw, 3rem);
-  font-weight: 800;
-  background: linear-gradient(135deg, #9d4edd 0%, #fff 50%, #ffd166 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 0.5rem;
-  line-height: 1.2;
-}
-
-.styleCode {
-  font-family: monospace;
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #9d4edd;
-  letter-spacing: 0.15em;
-  margin-bottom: 1rem;
-}
-
-.summary {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.6;
-  margin: 0 0 1.5rem;
-  max-width: 600px;
-}
-
-.badges {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.quickReadSection {
-  margin-top: 2.2rem;
-  animation: fadeInUp 0.8s ease-out 0.15s both;
-}
-
-.quickReadGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.85rem;
-}
-
-.quickReadCard {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 1rem 1.05rem;
-}
 
 .quickReadCard h3 {
   margin: 0 0 0.5rem;
@@ -666,31 +293,6 @@
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.88);
   font-size: 0.95rem;
-}
-
-.detailGuideSection {
-  margin-top: 2rem;
-  animation: fadeInUp 0.8s ease-out 0.2s both;
-}
-
-.detailGuideIntro {
-  margin: 0 0 0.85rem;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.93rem;
-  line-height: 1.65;
-}
-
-.detailGuideGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 0.85rem;
-}
-
-.detailGuideCard {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 1rem 1.05rem;
 }
 
 .detailGuideCard h3 {
@@ -710,47 +312,6 @@
   margin-bottom: 0;
 }
 
-.detailMeta {
-  color: rgba(255, 255, 255, 0.68) !important;
-  font-size: 0.84rem !important;
-}
-
-.detailActionLabel {
-  color: #ffd166 !important;
-  font-weight: 700;
-  margin-top: 0.25rem !important;
-}
-
-.consistencyBadge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 1.5rem;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  min-width: 100px;
-  min-height: 80px;
-  gap: 0.35rem;
-}
-
-.consistencyValue {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #ffd166;
-  line-height: 1.2;
-}
-
-.consistencyLabel {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  line-height: 1.3;
-}
-
 /* Section Title */
 .sectionTitle {
   display: flex;
@@ -762,224 +323,13 @@
   color: #fff;
 }
 
-.sectionIcon {
-  font-size: 1.5rem;
-}
-
 /* Axes Section */
-.axesSection {
-  margin-top: 3rem;
-  animation: fadeInUp 0.8s ease-out 0.2s both;
-}
-
-.axesCard {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 2rem;
-  backdrop-filter: blur(8px);
-}
-
-.axisBar {
-  margin-bottom: 1.5rem;
-  animation: fadeInUp 0.5s ease-out both;
-}
-
-.axisBar:last-child {
-  margin-bottom: 0;
-}
-
-.axisHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.axisLabel {
-  font-weight: 600;
-  color: #fff;
-  font-size: 0.95rem;
-}
-
-.axisPercent {
-  font-family: monospace;
-  font-size: 0.9rem;
-  color: #9d4edd;
-}
-
-.axisTrack {
-  position: relative;
-  height: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.axisFill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: linear-gradient(90deg, #9d4edd, #ffd166);
-  border-radius: 5px;
-  animation: fillBar 1s ease-out both;
-}
-
-@keyframes fillBar {
-  from {
-    width: 0 !important;
-  }
-}
-
-.axisMarker {
-  position: absolute;
-  top: -2px;
-  bottom: -2px;
-  width: 2px;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateX(-50%);
-}
-
-.axisPoles {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.5rem;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
-}
 
 /* Circumplex Section */
-.circumplexSection {
-  margin-top: 3rem;
-  animation: fadeInUp 0.8s ease-out 0.25s both;
-}
-
-.circumplexWrapper {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 2rem;
-  backdrop-filter: blur(8px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
 /* Octant Section */
-.octantSection {
-  margin-top: 3rem;
-  animation: fadeInUp 0.8s ease-out 0.3s both;
-}
-
-.octantRadar {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 1.5rem;
-  backdrop-filter: blur(8px);
-}
-
-.octantBar {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  animation: fadeInUp 0.5s ease-out both;
-}
-
-.octantBar:last-child {
-  border-bottom: none;
-}
-
-.octantBarPrimary {
-  background: rgba(138, 43, 226, 0.1);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  margin: 0 -1rem;
-  border-bottom: none;
-}
-
-.octantInfo {
-  min-width: 120px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.octantCode {
-  font-family: monospace;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #9d4edd;
-  min-width: 30px;
-}
-
-.octantName {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.octantTrack {
-  flex: 1;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.octantFill {
-  height: 100%;
-  background: linear-gradient(90deg, #9d4edd, #ffd166);
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
-
-.octantScore {
-  font-family: monospace;
-  font-size: 0.85rem;
-  color: #ffd166;
-  min-width: 45px;
-  text-align: right;
-}
 
 /* Details Section */
-.detailsSection {
-  margin-top: 3rem;
-  animation: fadeInUp 0.8s ease-out 0.4s both;
-}
-
-.traitsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.traitCard {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.traitCard:hover {
-  border-color: rgba(138, 43, 226, 0.3);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-}
-
-.traitHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.traitIcon {
-  font-size: 1.5rem;
-}
 
 .traitHeader h3 {
   font-size: 1rem;
@@ -988,89 +338,7 @@
   color: #fff;
 }
 
-.traitTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.tagTrait {
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  background: rgba(138, 43, 226, 0.15);
-  border: 1px solid rgba(138, 43, 226, 0.3);
-  color: #c99fff;
-}
-
-.traitText {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin: 0;
-}
-
 /* Growth Section */
-.growthSection {
-  margin-top: 3rem;
-  animation: fadeInUp 0.8s ease-out 0.5s both;
-}
-
-.explainSection {
-  margin-top: 3rem;
-  animation: fadeInUp 0.8s ease-out 0.55s both;
-}
-
-.explainCard {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 1.25rem;
-}
-
-.disclaimerText {
-  margin: 0 0 1rem;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-.growthCards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.growthCard {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-}
-
-.growthCard:hover {
-  background: rgba(138, 43, 226, 0.05);
-  border-color: rgba(138, 43, 226, 0.2);
-  transform: translateY(-4px);
-}
-
-.growthNumber {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #9d4edd, #ffd166);
-  color: #1a1a1a;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
 
 .growthCard p {
   margin: 0;
@@ -1080,38 +348,6 @@
 }
 
 /* Questions Section */
-.questionsSection {
-  margin-top: 3rem;
-  animation: fadeInUp 0.8s ease-out 0.6s both;
-}
-
-.questionsList {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 1.5rem;
-}
-
-.questionItem {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.questionItem:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.questionItem:first-child {
-  padding-top: 0;
-}
-
-.questionBullet {
-  color: #9d4edd;
-  font-size: 1.2rem;
-}
 
 .questionItem p {
   margin: 0;
@@ -1121,127 +357,8 @@
 }
 
 /* Secondary Section */
-.secondarySection {
-  margin-top: 3rem;
-  animation: fadeInUp 0.8s ease-out 0.7s both;
-}
-
-.secondaryCard {
-  background: linear-gradient(135deg, rgba(138, 43, 226, 0.08), rgba(255, 209, 102, 0.08));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 1.75rem;
-  text-align: center;
-}
-
-.secondaryHeader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.secondaryCode {
-  font-family: monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #9d4edd;
-}
-
-.secondaryName {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #ffd166;
-}
-
-.secondaryDesc {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin: 0;
-}
 
 /* Action Buttons */
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 3rem;
-  flex-wrap: wrap;
-  animation: fadeInUp 0.8s ease-out 0.8s both;
-}
-
-.saveButton,
-.shareButton,
-.downloadButton,
-.retakeButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
-  min-width: 140px;
-  border-radius: 999px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-}
-
-.saveButton {
-  background: linear-gradient(135deg, #9d4edd, #7b2cbf);
-  border: none;
-  color: #fff;
-}
-
-.saveButton:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(138, 43, 226, 0.4);
-}
-
-.saveButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.saveButton.saved {
-  background: linear-gradient(135deg, #11998e, #38ef7d);
-}
-
-.shareButton {
-  background: linear-gradient(135deg, #9d4edd, #ffd166);
-  border: none;
-  color: #1a1a1a;
-}
-
-.shareButton:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(138, 43, 226, 0.4);
-}
-
-.downloadButton {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-.downloadButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(138, 43, 226, 0.4);
-}
-
-.retakeButton {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.retakeButton:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-}
 
 /* Back Button */
 .backButton {
@@ -1252,52 +369,8 @@
 }
 
 /* Confetti */
-.confettiContainer {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1000;
-  overflow: hidden;
-}
-
-.confetti {
-  position: absolute;
-  top: -20px;
-  border-radius: 2px;
-  animation: confettiFall linear forwards;
-  transform-origin: center center;
-}
-
-@keyframes confettiFall {
-  0% {
-    transform: translateY(0) rotate(0deg) scale(1);
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100vh) rotate(720deg) scale(0.5);
-    opacity: 0;
-  }
-}
 
 /* Cosmic Loader */
-.cosmicLoader {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cosmicRing {
-  position: absolute;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  animation: cosmicSpin linear infinite;
-}
 
 .cosmicRing:nth-child(1) {
   width: 100%;
@@ -1324,29 +397,6 @@
   animation-duration: 1.5s;
 }
 
-@keyframes cosmicSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.cosmicCore {
-  font-size: 2rem;
-  animation: cosmicPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes cosmicPulse {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 10px rgba(138, 43, 226, 0.5));
-  }
-  50% {
-    transform: scale(1.2);
-    filter: drop-shadow(0 0 25px rgba(138, 43, 226, 0.8));
-  }
-}
-
 .loadingText {
   margin-top: 2rem;
   font-size: 1.2rem;
@@ -1365,43 +415,10 @@
 }
 
 /* Growth Intro Text */
-.growthIntro {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
-  margin-bottom: 1rem;
-  padding-left: 0.5rem;
-}
 
 /* ═══════════════════════════════════════════════════════════════
    DESTINY SECTION - 운명 기반 맞춤 조언
    ═══════════════════════════════════════════════════════════════ */
-.destinySection {
-  background: linear-gradient(135deg, rgba(138, 43, 226, 0.15), rgba(75, 0, 130, 0.2));
-  border-radius: 1rem;
-  padding: 2rem;
-  border: 1px solid rgba(138, 43, 226, 0.3);
-}
-
-.destinyIntro {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-}
-
-.destinyInputs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-end;
-  margin-bottom: 1.5rem;
-}
-
-.inputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
 
 .inputGroup label {
   font-size: 0.85rem;
@@ -1409,63 +426,9 @@
   font-weight: 500;
 }
 
-.dateInput,
-.timeInput {
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(138, 43, 226, 0.4);
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  font-size: 0.95rem;
-  min-width: 160px;
-  transition: all 0.2s ease;
-}
-
-.dateInput:focus,
-.timeInput:focus {
-  outline: none;
-  border-color: #9d4edd;
-  box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.3);
-}
-
-.destinyButton {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
-  border: none;
-  border-radius: 0.5rem;
-  color: white;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.destinyButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
-}
-
-.destinyButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* Destiny Results */
-.destinyResults {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  animation: fadeIn 0.5s ease;
-}
 
 /* Fortune Card */
-.fortuneCard {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  border: 1px solid rgba(138, 43, 226, 0.2);
-}
 
 .fortuneCard h3 {
   display: flex;
@@ -1476,37 +439,6 @@
   margin-bottom: 1rem;
 }
 
-.fortuneScores {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.fortuneScore {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.scoreLabel {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.scoreValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #c99fff;
-}
-
-.fortuneTips {
-  background: rgba(138, 43, 226, 0.1);
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  border-left: 3px solid #9d4edd;
-}
-
 .fortuneTips p {
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.9rem;
@@ -1515,12 +447,6 @@
 }
 
 /* Growth Dates Card */
-.growthDatesCard {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  border: 1px solid rgba(138, 43, 226, 0.2);
-}
 
 .growthDatesCard h3 {
   display: flex;
@@ -1531,137 +457,14 @@
   margin-bottom: 1rem;
 }
 
-.datesList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.dateItem {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(138, 43, 226, 0.1);
-  border-radius: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.dateGrade {
-  font-size: 1.2rem;
-}
-
-.dateValue {
-  font-weight: 600;
-  color: white;
-  min-width: 100px;
-}
-
-.dateCategory {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
-  flex: 1;
-}
-
-.dateScore {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #c99fff;
-  padding: 0.25rem 0.5rem;
-  background: rgba(138, 43, 226, 0.2);
-  border-radius: 0.25rem;
-}
-
-.datesNote {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 1rem;
-  font-style: italic;
-}
-
 /* Responsive */
 @media (max-width: 640px) {
   .container {
     padding: 1.5rem 1rem 3rem;
   }
 
-  .axesCard {
-    padding: 1.5rem;
-  }
-
-  .octantRadar {
-    padding: 1rem;
-  }
-
-  .octantBar {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .octantInfo {
-    min-width: 100px;
-  }
-
-  .octantTrack {
-    order: 3;
-    flex: 0 0 100%;
-    margin-top: 0.25rem;
-  }
-
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .saveButton,
-  .shareButton,
-  .downloadButton,
-  .retakeButton {
-    justify-content: center;
-  }
-
-  .cosmicLoader {
-    width: 100px;
-    height: 100px;
-  }
-
-  .cosmicCore {
-    font-size: 1.5rem;
-  }
-
   .loadingText {
     font-size: 1rem;
-  }
-
-  .destinySection {
-    padding: 1.5rem;
-  }
-
-  .destinyInputs {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .dateInput,
-  .timeInput {
-    width: 100%;
-    min-width: unset;
-  }
-
-  .destinyButton {
-    width: 100%;
-  }
-
-  .fortuneScores {
-    gap: 1rem;
-  }
-
-  .dateItem {
-    flex-wrap: wrap;
-  }
-
-  .dateValue {
-    min-width: 80px;
   }
 }
 
@@ -1671,175 +474,19 @@
     padding: 1.25rem 0.75rem 2.5rem;
   }
 
-  .hero {
-    padding: 2.5rem 0 1.5rem;
-    gap: 0.75rem;
-  }
-
-  .preTitle {
-    font-size: 0.8rem;
-    letter-spacing: 0.15em;
-  }
-
-  .styleName {
-    font-size: 1.75rem;
-  }
-
-  .styleCode {
-    font-size: 1.4rem;
-  }
-
-  .summary {
-    font-size: 1rem;
-  }
-
-  .badges {
-    gap: 0.75rem;
-  }
-
-  .consistencyBadge {
-    padding: 0.75rem 1rem;
-    min-width: 85px;
-    min-height: 70px;
-    border-radius: 12px;
-  }
-
-  .consistencyValue {
-    font-size: 1.2rem;
-  }
-
-  .consistencyLabel {
-    font-size: 0.7rem;
-  }
-
   .sectionTitle {
     font-size: 1.1rem;
-  }
-
-  .sectionIcon {
-    font-size: 1.25rem;
-  }
-
-  .axesCard,
-  .circumplexWrapper {
-    padding: 1.25rem;
-    border-radius: 16px;
-  }
-
-  .axisLabel {
-    font-size: 0.85rem;
-  }
-
-  .axisPercent {
-    font-size: 0.8rem;
-  }
-
-  .axisPoles {
-    font-size: 0.75rem;
-  }
-
-  .octantRadar {
-    padding: 1rem;
-    border-radius: 16px;
-  }
-
-  .octantInfo {
-    min-width: 100px;
-    gap: 0.4rem;
-  }
-
-  .octantCode {
-    font-size: 0.8rem;
-    min-width: 26px;
-  }
-
-  .octantName {
-    font-size: 0.8rem;
-  }
-
-  .octantScore {
-    font-size: 0.8rem;
-    min-width: 40px;
-  }
-
-  .traitsGrid,
-  .growthCards {
-    grid-template-columns: 1fr;
-  }
-
-  .traitCard {
-    padding: 1.25rem;
-    border-radius: 14px;
-  }
-
-  .traitIcon {
-    font-size: 1.25rem;
   }
 
   .traitHeader h3 {
     font-size: 0.95rem;
   }
 
-  .tagTrait {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
-  }
-
-  .traitText {
-    font-size: 0.9rem;
-  }
-
-  .growthCard {
-    padding: 1rem;
-    border-radius: 14px;
-  }
-
-  .growthNumber {
-    width: 28px;
-    height: 28px;
-    font-size: 0.85rem;
-  }
-
   .growthCard p {
     font-size: 0.9rem;
   }
 
-  .questionsList {
-    padding: 1.25rem;
-    border-radius: 14px;
-  }
-
-  .questionBullet {
-    font-size: 1rem;
-  }
-
   .questionItem p {
-    font-size: 0.9rem;
-  }
-
-  .secondaryCard {
-    padding: 1.5rem;
-    border-radius: 16px;
-  }
-
-  .secondaryCode {
-    font-size: 1.25rem;
-  }
-
-  .secondaryName {
-    font-size: 1.05rem;
-  }
-
-  .secondaryDesc {
-    font-size: 0.9rem;
-  }
-
-  .saveButton,
-  .shareButton,
-  .downloadButton,
-  .retakeButton {
-    padding: 0.75rem 1.25rem;
-    min-width: 120px;
     font-size: 0.9rem;
   }
 
@@ -1867,92 +514,12 @@
     padding: 1rem 0.5rem 2rem;
   }
 
-  .hero {
-    padding: 2rem 0 1rem;
-  }
-
-  .styleName {
-    font-size: 1.5rem;
-  }
-
-  .styleCode {
-    font-size: 1.2rem;
-  }
-
-  .summary {
-    font-size: 0.9rem;
-  }
-
-  .consistencyBadge {
-    padding: 0.6rem 0.875rem;
-    min-width: 75px;
-    min-height: 60px;
-  }
-
-  .consistencyValue {
-    font-size: 1rem;
-  }
-
   .sectionTitle {
     font-size: 1rem;
-  }
-
-  .axesCard,
-  .circumplexWrapper {
-    padding: 1rem;
-    border-radius: 14px;
-  }
-
-  .octantRadar {
-    padding: 0.875rem;
-  }
-
-  .traitCard,
-  .growthCard {
-    padding: 1rem;
-    border-radius: 12px;
-  }
-
-  .questionsList {
-    padding: 1rem;
-    border-radius: 12px;
-  }
-
-  .secondaryCard {
-    padding: 1.25rem;
-    border-radius: 14px;
-  }
-
-  .saveButton,
-  .shareButton,
-  .downloadButton,
-  .retakeButton {
-    padding: 0.7rem 1rem;
-    min-width: 100px;
-    font-size: 0.85rem;
-  }
-
-  .destinySection {
-    padding: 1.25rem;
-    border-radius: 0.875rem;
-  }
-
-  .destinyIntro {
-    font-size: 0.9rem;
-  }
-
-  .fortuneCard,
-  .growthDatesCard {
-    padding: 1rem;
-    border-radius: 0.625rem;
   }
 
   .fortuneCard h3,
   .growthDatesCard h3 {
     font-size: 1rem;
-  }
-
-  .scoreValue {
-    font-size: 1.25rem;
   }
 }
