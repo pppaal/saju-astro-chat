@@ -25,6 +25,15 @@
   gap: 10px;
 }
 
+/* Hamburger nav — GlobalHeader is hidden on this page, so the report
+   exposes the same top-left menu here for consistent navigation. */
+.navHamburger {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 16px);
+  left: 20px;
+  z-index: 900;
+}
+
 /* Card container with enhanced glassmorphism */
 .card {
   position: relative;
@@ -2290,6 +2299,11 @@
   .creditBadgeWrapper {
     top: calc(env(safe-area-inset-top, 0px) + 88px);
     right: 12px;
+  }
+
+  .navHamburger {
+    top: calc(env(safe-area-inset-top, 0px) + 88px);
+    left: 12px;
   }
 
   .card {
