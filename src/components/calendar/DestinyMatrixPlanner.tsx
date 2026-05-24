@@ -623,6 +623,7 @@ export default function DestinyMatrixPlanner({
                 monthScore={monthScore}
                 gradeThresholds={gradeThresholds}
                 summaryText={monthlySummaryText}
+                seed={viewYear * 12 + viewMonth}
               />
 
               {/* ── 주간 타이밍 그래프 (saju × astro) ── */}

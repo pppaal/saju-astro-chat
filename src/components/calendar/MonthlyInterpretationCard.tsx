@@ -18,6 +18,8 @@ interface Props {
   gradeThresholds: GradeThresholds
   /** 엔진 한 줄 요약 — "왜?" 줄에 사용. */
   summaryText?: string | null
+  /** 그 달 식별값(연*12+월) — 조언 문장을 달마다 다르게 회전시키는 seed. */
+  seed?: number
 }
 
 /**
@@ -33,22 +35,23 @@ export default function MonthlyInterpretationCard({
   monthScore,
   gradeThresholds,
   summaryText,
+  seed = 0,
 }: Props) {
   const [expanded, setExpanded] = useState(false)
 
   const grade = getGrade(monthScore, gradeThresholds)
   const verdict = VERDICT[grade.key]
   const top = topTheme(interp)
-  // "이번 달 조언" — 강한 테마 여러 개(상위 3)를 각각 현실 조언 한 줄씩.
-  // 한 영역만 보여주지 않고 여러 생활 영역을 다양하게 노출.
+  // "이번 달 조언" — 모든 생활 영역(테마 순위대로)을 각각 현실 조언 한 줄씩.
+  // 문장은 seed(그 달)로 회전 → 같은 테마라도 달마다 다른 조언.
   const adviceThemes: Array<'love' | 'money' | 'career' | 'health' | 'growth'> =
     interp?.themeRanking && interp.themeRanking.length > 0
-      ? interp.themeRanking.slice(0, 3).map((t) => t.theme)
+      ? interp.themeRanking.map((t) => t.theme)
       : top
         ? [top.theme]
         : []
   const adviceList = adviceThemes
-    .map((theme) => ({ theme, text: themeAdvice(interp, theme, 1) ?? THEME_ACTION[theme] }))
+    .map((theme) => ({ theme, text: themeAdvice(interp, theme, seed) ?? THEME_ACTION[theme] }))
     .filter((a): a is { theme: (typeof adviceThemes)[number]; text: string } => Boolean(a.text))
   const ke = interp?.keyEvents
   const hasTiming = !!(ke && (ke.best || ke.window || (ke.avoid && ke.avoid.dates.length > 0)))
@@ -287,12 +290,13 @@ function practicalityScore(s: string): number {
 /**
  * 한 테마의 엔진 도메인 해석에서 *현실적·행동형* 문장만 뽑는다.
  * 점성·명리 전문용어("별이 켜져…") 문장은 감점·제외하고, 바로 실천 가능한 문장을
- * 우선 노출 ("진짜 이해하기 쉽고 현실적이게" 피드백 반영). max개까지.
+ * 우선 노출 ("진짜 이해하기 쉽고 현실적이게" 피드백 반영).
+ * 상위 실천 문장 풀에서 seed(그 달)로 회전 선택 → 같은 테마라도 달마다 다른 문장.
  */
 function themeAdvice(
   interp: Interpretation | undefined,
   theme: 'love' | 'money' | 'career' | 'health' | 'growth',
-  max = 1
+  seed = 0
 ): string | null {
   const sec = interp?.sections.find((s) => s.section === THEME_TO_SECTION[theme])
   if (!sec) return null
@@ -310,16 +314,15 @@ function themeAdvice(
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 5)
-  // 현실적·행동형 문장 우선 — 점수>0만, 상위 max개, 읽는 순서 유지.
-  const picked = sents
+  // 현실적·행동형 문장만(점수>0) 상위 3개를 풀로 → seed(그 달)로 회전 선택.
+  const pool = sents
     .map((s, i) => ({ s, i, v: practicalityScore(s) }))
     .filter((x) => x.v > 0)
     .sort((a, b) => b.v - a.v || a.i - b.i)
-    .slice(0, max)
-    .sort((a, b) => a.i - b.i)
-    .map((x) => x.s)
-  const out = picked.join(' ')
-  return out.length > 0 ? out : null
+    .slice(0, 3)
+  if (pool.length === 0) return null
+  const idx = ((seed % pool.length) + pool.length) % pool.length
+  return pool[idx].s
 }
 
 /** "MM-DD" → "M/D" (타이밍 칩 — 짧게). */
