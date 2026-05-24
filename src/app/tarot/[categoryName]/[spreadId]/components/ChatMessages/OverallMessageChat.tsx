@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { ChatMessage } from './ChatMessage'
-import { splitReadableText } from './splitReadableText'
+import { splitReadableText } from '@/lib/tarot/splitReadableText'
 import styles from '../../tarot-reading.module.css'
 
 interface OverallMessageChatProps {

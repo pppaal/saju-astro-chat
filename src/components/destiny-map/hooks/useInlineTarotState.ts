@@ -28,6 +28,9 @@ export interface TarotState {
   cardInsights: CardInsight[]
   guidance: string
   affirmation: string
+  // True when the AI interpretation call failed (timeout/credits/network) so
+  // the result view can surface a retry instead of silently showing blanks.
+  interpretFailed: boolean
 
   // Save state
   isSaved: boolean
@@ -52,6 +55,7 @@ const initialState: TarotState = {
   cardInsights: [],
   guidance: '',
   affirmation: '',
+  interpretFailed: false,
   isSaved: false,
   isSaving: false,
   isAnalyzing: false,
@@ -113,6 +117,10 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
       setDrawnCards: (cards: DrawnCard[]) => setState((prev) => ({ ...prev, drawnCards: cards })),
       incrementRevealedCount: () =>
         setState((prev) => ({ ...prev, revealedCount: prev.revealedCount + 1 })),
+      setRevealedCount: (count: number) =>
+        setState((prev) => ({ ...prev, revealedCount: count })),
+      setInterpretFailed: (interpretFailed: boolean) =>
+        setState((prev) => ({ ...prev, interpretFailed })),
       setIsDrawing: (isDrawing: boolean) => setState((prev) => ({ ...prev, isDrawing })),
       setOverallMessage: (message: string | ((prev: string) => string)) =>
         setState((prev) => ({
@@ -151,6 +159,7 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
           cardInsights: [],
           guidance: '',
           affirmation: '',
+          interpretFailed: false,
           step: 'card-draw',
         })),
 

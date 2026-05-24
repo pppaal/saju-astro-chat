@@ -3,6 +3,7 @@
 import React, { memo, useEffect } from 'react'
 import TarotCard from '@/components/tarot/TarotCard'
 import type { Spread } from '@/lib/tarot/tarot.types'
+import { splitReadableText } from '@/lib/tarot/splitReadableText'
 import styles from './InlineTarotModal.module.css'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useInlineTarotState, useInlineTarotAPI, getTarotTranslations, type LangKey } from './hooks'
@@ -243,6 +244,7 @@ const InlineTarotModal = memo(function InlineTarotModal({
               onSave={api.saveReading}
               onComplete={handleComplete}
               onDeeper={goToFullTarot}
+              onRetryInterpret={api.retryInterpretation}
             />
           )}
         </div>
@@ -503,6 +505,7 @@ interface ResultStepProps {
   onSave: () => void
   onComplete: () => void
   onDeeper: () => void
+  onRetryInterpret: () => void
 }
 
 function ResultStep({
@@ -515,6 +518,7 @@ function ResultStep({
   onSave,
   onComplete,
   onDeeper,
+  onRetryInterpret,
 }: ResultStepProps) {
   const {
     concern,
@@ -526,7 +530,9 @@ function ResultStep({
     affirmation,
     isSaving,
     isSaved,
+    interpretFailed,
   } = state
+  const isKo = lang === 'ko'
 
   return (
     <div className={styles.stepContent}>
@@ -549,6 +555,20 @@ function ResultStep({
         </div>
       )}
 
+      {/* AI interpretation failed — cards show their static meaning, offer retry. */}
+      {interpretFailed && (
+        <div className={styles.interpretError} role="alert">
+          <span className={styles.interpretErrorText}>
+            {isKo
+              ? 'AI 해석을 불러오지 못했어요. (네트워크·크레딧·시간 초과) 카드 기본 의미를 표시 중이에요.'
+              : "Couldn't load the AI reading (network/credits/timeout). Showing each card's base meaning."}
+          </span>
+          <button type="button" className={styles.retryButton} onClick={onRetryInterpret}>
+            {isKo ? '다시 시도' : 'Retry'}
+          </button>
+        </div>
+      )}
+
       {/* Cards Display */}
       <div className={styles.resultCardsRow}>
         {drawnCards.map((dc, idx) => (
@@ -558,9 +578,13 @@ function ResultStep({
               image={dc.card.image}
               isReversed={dc.isReversed}
               position={
-                lang === 'ko'
+                // 자리명은 메인 타로와 동일하게 LLM 이 명명한 cardInsights[idx].position
+                // 을 우선 사용. 동적 스프레드는 selectedSpread.positions 가 비어 있어
+                // 폴백만으론 라벨이 빈다.
+                cardInsights[idx]?.position ||
+                (lang === 'ko'
                   ? selectedSpread?.positions[idx]?.titleKo || selectedSpread?.positions[idx]?.title
-                  : selectedSpread?.positions[idx]?.title
+                  : selectedSpread?.positions[idx]?.title)
               }
               keywords={
                 dc.isReversed
@@ -575,6 +599,7 @@ function ResultStep({
               size="medium"
               expandable={true}
               interactive={true}
+              priority={idx < 3}
             />
           </div>
         ))}
@@ -594,11 +619,18 @@ function ResultStep({
         </button>
       </div>
 
-      {/* Overall Message */}
+      {/* Overall Message — split into readable paragraphs to match the main
+          tarot counselor's format (was one plain wall-of-text block). */}
       {overallMessage && (
         <div className={styles.resultSection}>
           <h4 className={styles.resultSectionTitle}>✨ {tr.overallMessage}</h4>
-          <p className={styles.resultText}>{overallMessage}</p>
+          <div className={styles.resultTextGroup}>
+            {splitReadableText(overallMessage).map((para, i) => (
+              <p key={i} className={styles.resultText}>
+                {para}
+              </p>
+            ))}
+          </div>
         </div>
       )}
 
@@ -606,7 +638,13 @@ function ResultStep({
       {guidance && (
         <div className={styles.resultSection}>
           <h4 className={styles.resultSectionTitle}>💫 {tr.guidance}</h4>
-          <p className={styles.resultText}>{guidance}</p>
+          <div className={styles.resultTextGroup}>
+            {splitReadableText(guidance).map((para, i) => (
+              <p key={i} className={styles.resultText}>
+                {para}
+              </p>
+            ))}
+          </div>
         </div>
       )}
 

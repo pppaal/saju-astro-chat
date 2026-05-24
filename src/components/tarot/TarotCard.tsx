@@ -55,6 +55,9 @@ export interface TarotCardProps {
   showInsights?: boolean;
   expandable?: boolean;
   interactive?: boolean;
+  // Eager-load the image (skip next/image lazy loading) — use on result views
+  // where cards should appear immediately instead of popping in on scroll.
+  priority?: boolean;
 
   // Callbacks
   onClick?: () => void;
@@ -80,6 +83,7 @@ const TarotCard = memo(function TarotCard({
   showInsights = true,
   expandable = true,
   interactive = true,
+  priority = false,
   onClick,
   onExpand
 }: TarotCardProps) {
@@ -121,6 +125,7 @@ const TarotCard = memo(function TarotCard({
           width={size === "small" ? 120 : size === "medium" ? 180 : 220}
           height={size === "small" ? 210 : size === "medium" ? 315 : 385}
           className={styles.cardImage}
+          priority={priority}
         />
         {isReversed && (
           <div className={styles.reversedLabel}>Reversed</div>
