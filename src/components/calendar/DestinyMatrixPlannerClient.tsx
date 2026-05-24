@@ -28,12 +28,18 @@ export default function DestinyMatrixPlannerClient() {
   const [hasBirthInfo, setHasBirthInfo] = useState(false)
   const [hydrated, setHydrated] = useState(false)
   const [data, setData] = useState<CalendarData | null>(null)
+  // "올해 큰 날"은 메인 응답에서 분리해 지연 로드 — 달력은 즉시 뜨고 이 카드만 늦게 채워짐.
+  type YearlyConvergence = NonNullable<
+    NonNullable<CalendarData['allDates']>[number]['monthlyInterpretation']
+  >['yearlyConvergence']
+  const [yearlyConvergence, setYearlyConvergence] = useState<YearlyConvergence>(undefined)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchCalendar = useCallback(async (info: BirthInfo) => {
     setLoading(true)
     setError(null)
+    setYearlyConvergence(undefined)
     try {
       const year = new Date().getFullYear()
       const params = new URLSearchParams({
@@ -61,10 +67,7 @@ export default function DestinyMatrixPlannerClient() {
       }
 
       const looksUsable =
-        !!json &&
-        json.success !== false &&
-        Array.isArray(json.allDates) &&
-        json.allDates.length > 0
+        !!json && json.success !== false && Array.isArray(json.allDates) && json.allDates.length > 0
 
       if (!res.ok || !looksUsable) {
         let serverMessage: string | null = null
@@ -86,6 +89,21 @@ export default function DestinyMatrixPlannerClient() {
         total: payload.allDates?.length ?? 0,
         phase: payload.matrixContract?.overallPhaseLabel,
       })
+
+      // "올해 큰 날"은 1년 풀빌드라 비쌈 — 메인 응답을 막지 않게 지연 로드.
+      // 실패해도 무시(카드만 비게 됨). 캐시 적중 시 거의 즉시 채워짐.
+      void (async () => {
+        try {
+          const cr = await fetch(`/api/calendar/convergence?${params}`, {
+            headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
+          })
+          if (!cr.ok) return
+          const cj = (await cr.json()) as { convergence?: YearlyConvergence }
+          if (cj?.convergence) setYearlyConvergence(cj.convergence)
+        } catch (e) {
+          logger.debug('[CalendarPlanner] convergence lazy-load skipped', e)
+        }
+      })()
     } catch (err) {
       logger.error('[CalendarPreview] fetch failed', err)
       setError(err instanceof Error ? err.message : 'fetch failed')
@@ -161,8 +179,7 @@ export default function DestinyMatrixPlannerClient() {
 
     // Auto-submit when we already have a usable birth date — skip the form.
     if (next.birthDate) {
-      const hasCoords =
-        typeof next.latitude === 'number' && typeof next.longitude === 'number'
+      const hasCoords = typeof next.latitude === 'number' && typeof next.longitude === 'number'
       const normalized: BirthInfo = {
         ...next,
         birthTime: next.birthTime || '12:00',
@@ -215,5 +232,7 @@ export default function DestinyMatrixPlannerClient() {
     )
   }
 
-  return <DestinyMatrixPlanner data={data} birthInfo={birthInfo} />
+  return (
+    <DestinyMatrixPlanner data={data} birthInfo={birthInfo} yearlyConvergence={yearlyConvergence} />
+  )
 }

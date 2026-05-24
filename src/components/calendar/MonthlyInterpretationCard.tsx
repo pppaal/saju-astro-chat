@@ -8,6 +8,9 @@ type Interpretation = NonNullable<ImportantDate['monthlyInterpretation']>
 
 interface Props {
   interp: Interpretation | undefined
+  /** "올해 큰 날" — 메인 응답이 아니라 별도 지연 로드(/api/calendar/convergence)로
+   *  채워진다. 없으면 interp.yearlyConvergence(레거시)로 폴백. */
+  yearlyConvergence?: Interpretation['yearlyConvergence']
 }
 
 /**
@@ -18,7 +21,7 @@ interface Props {
  *  - 본문 sections는 기본 접힘 (펼치기 버튼)
  *  - 글자 크기 키움 (text-xs → text-sm, leading-relaxed 유지)
  */
-export default function MonthlyInterpretationCard({ interp }: Props) {
+export default function MonthlyInterpretationCard({ interp, yearlyConvergence }: Props) {
   const [expanded, setExpanded] = useState(false)
   if (!interp || interp.sections.length === 0) return null
 
@@ -41,7 +44,7 @@ export default function MonthlyInterpretationCard({ interp }: Props) {
       {/* 큰 시점 — 이번 달 → 올해 → 인생 (가까운 데서 멀리로 줌아웃) */}
       <ConvergenceBlock convergence={interp.convergence} icon="🔮" title="이번 달 큰 날" />
       <ConvergenceBlock
-        convergence={interp.yearlyConvergence}
+        convergence={yearlyConvergence ?? interp.yearlyConvergence}
         icon="🗓️"
         title="올해 큰 날"
         upcomingOnly
