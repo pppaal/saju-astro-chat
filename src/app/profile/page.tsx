@@ -28,7 +28,6 @@ import {
   Check,
   UserPlus,
   LogOut,
-  Download,
 } from 'lucide-react'
 import AuthGate from '@/components/auth/AuthGate'
 import BrandSplash from '@/components/branding/BrandSplash'
@@ -306,8 +305,6 @@ export default function ProfilePage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
-  const [exporting, setExporting] = useState(false)
-  const [exportError, setExportError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const loadAll = useCallback(async () => {
@@ -379,35 +376,6 @@ export default function ProfilePage() {
           ? '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.'
           : 'Failed to delete. Please try again in a moment.'
       )
-    }
-  }
-
-  const handleExport = async () => {
-    setExporting(true)
-    setExportError(null)
-    try {
-      const res = await fetch('/api/me/export')
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const json = await res.json()
-      const payload = json?.data ?? json
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `destinypal-data-${new Date().toISOString().slice(0, 10)}.json`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
-    } catch (err) {
-      logger.warn('[profile] export failed', err)
-      setExportError(
-        locale === 'ko'
-          ? '내보내기에 실패했어요. 잠시 후 다시 시도해 주세요.'
-          : 'Export failed. Please try again in a moment.'
-      )
-    } finally {
-      setExporting(false)
     }
   }
 
@@ -1036,39 +1004,6 @@ export default function ProfilePage() {
                     )
                   })}
                 </ul>
-              )}
-            </section>
-
-            {/* 데이터 내보내기 */}
-            <section className={`mt-9 ${cardCls}`}>
-              <div className={sectionLabelCls}>
-                <Download className="h-3.5 w-3.5" />
-                {locale === 'ko' ? '데이터' : 'Data'}
-              </div>
-              <p className="mt-3 text-[13px] leading-relaxed text-[#78716c]">
-                {locale === 'ko'
-                  ? '프로필·지인·기록·크레딧 등 내 데이터를 JSON 파일로 내려받습니다.'
-                  : 'Download your data (profile, circle, history, credits) as a JSON file.'}
-              </p>
-              <button
-                type="button"
-                onClick={() => void handleExport()}
-                disabled={exporting}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[#e0ddd7] bg-white px-3.5 py-1.5 text-[12px] font-medium text-[#44403c] transition hover:border-[#c9c4bc] hover:bg-[#faf9f7] disabled:opacity-50"
-              >
-                <Download className="h-3.5 w-3.5" />
-                {exporting
-                  ? locale === 'ko'
-                    ? '내보내는 중…'
-                    : 'Exporting…'
-                  : locale === 'ko'
-                    ? '내 데이터 내보내기'
-                    : 'Export my data'}
-              </button>
-              {exportError && (
-                <p className="mt-2 text-[12px] text-red-600" role="alert">
-                  {exportError}
-                </p>
               )}
             </section>
 
