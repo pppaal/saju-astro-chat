@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -27,6 +27,7 @@ import {
   Copy,
   Check,
   UserPlus,
+  LogOut,
 } from 'lucide-react'
 import AuthGate from '@/components/auth/AuthGate'
 import BrandSplash from '@/components/branding/BrandSplash'
@@ -298,10 +299,17 @@ export default function ProfilePage() {
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
   const [savingName, setSavingName] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState(false)
   const [circleOpen, setCircleOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const loadAll = useCallback(async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const [profileRes, circleRes, historyRes, creditsRes, purchasesRes, referralRes] =
         await Promise.all([
@@ -338,6 +346,7 @@ export default function ProfilePage() {
       }
     } catch (err) {
       logger.warn('[profile] load failed', err)
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -367,6 +376,43 @@ export default function ProfilePage() {
           ? '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.'
           : 'Failed to delete. Please try again in a moment.'
       )
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch('/api/me/account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: deleteConfirm.trim() }),
+      })
+      if (res.ok) {
+        await signOut({ callbackUrl: '/' })
+        return
+      }
+      const data = await res.json().catch(() => null)
+      if (data?.error?.code === 'VALIDATION_ERROR') {
+        setDeleteError(
+          locale === 'ko' ? '확인 문구가 일치하지 않아요.' : 'Confirmation does not match.'
+        )
+      } else {
+        setDeleteError(
+          locale === 'ko'
+            ? '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.'
+            : 'Failed to delete. Please try again in a moment.'
+        )
+      }
+    } catch (err) {
+      logger.warn('[profile] account delete failed', err)
+      setDeleteError(
+        locale === 'ko'
+          ? '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.'
+          : 'Failed to delete. Please try again in a moment.'
+      )
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -411,6 +457,10 @@ export default function ProfilePage() {
       return k === 'counselor' || k === 'compatibility' || k === 'tarot'
     })
     .slice(0, 8)
+
+  // 계정 삭제 확인 문구: 이메일이 있으면 이메일, 없으면 "DELETE".
+  const expectedConfirm = profile?.email || 'DELETE'
+  const confirmMatches = deleteConfirm.trim().toLowerCase() === expectedConfirm.toLowerCase()
 
   return (
     <AuthGate
@@ -460,6 +510,13 @@ export default function ProfilePage() {
                     onSubmit={async (e) => {
                       e.preventDefault()
                       const next = nameDraft.trim()
+                      if (!next) {
+                        setNameError(
+                          locale === 'ko' ? '이름을 입력해 주세요.' : 'Please enter a name.'
+                        )
+                        return
+                      }
+                      setNameError(null)
                       setSavingName(true)
                       try {
                         const res = await fetch('/api/me/profile', {
@@ -470,9 +527,20 @@ export default function ProfilePage() {
                         if (res.ok) {
                           setProfile((prev) => (prev ? { ...prev, name: next } : prev))
                           setEditingName(false)
+                        } else {
+                          setNameError(
+                            locale === 'ko'
+                              ? '저장에 실패했어요. 잠시 후 다시 시도해 주세요.'
+                              : 'Save failed. Please try again in a moment.'
+                          )
                         }
                       } catch (err) {
                         logger.warn('[profile] name save failed', err)
+                        setNameError(
+                          locale === 'ko'
+                            ? '저장에 실패했어요. 잠시 후 다시 시도해 주세요.'
+                            : 'Save failed. Please try again in a moment.'
+                        )
                       } finally {
                         setSavingName(false)
                       }
@@ -482,8 +550,13 @@ export default function ProfilePage() {
                     <input
                       autoFocus
                       value={nameDraft}
-                      onChange={(e) => setNameDraft(e.target.value)}
+                      onChange={(e) => {
+                        setNameDraft(e.target.value)
+                        if (nameError) setNameError(null)
+                      }}
                       maxLength={40}
+                      aria-label={locale === 'ko' ? '이름' : 'Name'}
+                      aria-invalid={nameError ? true : undefined}
                       placeholder={locale === 'ko' ? '이름' : 'Name'}
                       className="w-[12ch] rounded-lg border border-[#d8b878] bg-white px-2 py-1 text-center text-[1.4rem] font-semibold text-[#1c1917] outline-none"
                     />
@@ -498,17 +571,26 @@ export default function ProfilePage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditingName(false)}
+                      onClick={() => {
+                        setEditingName(false)
+                        setNameError(null)
+                      }}
                       className={ghostBtnCls}
                     >
                       {locale === 'ko' ? '취소' : 'Cancel'}
                     </button>
+                    {nameError && (
+                      <p className="basis-full text-center text-[12px] text-red-600" role="alert">
+                        {nameError}
+                      </p>
+                    )}
                   </form>
                 ) : (
                   <button
                     type="button"
                     onClick={() => {
                       setNameDraft(profile?.name || '')
+                      setNameError(null)
                       setEditingName(true)
                     }}
                     className="group inline-flex items-center gap-1.5"
@@ -526,8 +608,32 @@ export default function ProfilePage() {
                 {profile?.email && (
                   <p className="mt-1.5 text-[13px] text-[#8b857d]">{profile.email}</p>
                 )}
+                <button
+                  type="button"
+                  onClick={() => void signOut({ callbackUrl: '/' })}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#e0ddd7] bg-white px-3.5 py-1.5 text-[12px] font-medium text-[#78716c] transition hover:border-[#c9c4bc] hover:text-[#1c1917]"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  {locale === 'ko' ? '로그아웃' : 'Log out'}
+                </button>
               </div>
             </header>
+
+            {loadError && !loading && (
+              <div
+                className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-[#e7c9c9] bg-[#fcf4f4] px-4 py-4 text-center"
+                role="alert"
+              >
+                <p className="text-[13px] text-[#9a4b4b]">
+                  {locale === 'ko'
+                    ? '정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'
+                    : 'Failed to load your info. Please try again in a moment.'}
+                </p>
+                <button type="button" onClick={() => void loadAll()} className={inkBtnCls}>
+                  {locale === 'ko' ? '다시 시도' : 'Retry'}
+                </button>
+              </div>
+            )}
 
             {/* My Info */}
             <section className={`mt-9 ${cardCls}`}>
@@ -900,8 +1006,109 @@ export default function ProfilePage() {
                 </ul>
               )}
             </section>
+
+            {/* 계정 — 위험 구역 */}
+            <section className={`mt-9 rounded-3xl border border-[#e7c9c9] bg-white p-5 sm:p-6`}>
+              <div className={sectionLabelCls}>
+                <Trash2 className="h-3.5 w-3.5" />
+                {locale === 'ko' ? '계정' : 'Account'}
+              </div>
+              <p className="mt-3 text-[13px] leading-relaxed text-[#78716c]">
+                {locale === 'ko'
+                  ? '계정을 삭제하면 프로필·지인·기록·크레딧 등 모든 데이터가 영구 삭제되며 되돌릴 수 없습니다.'
+                  : 'Deleting your account permanently removes all your data (profile, circle, history, credits) and cannot be undone.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteConfirm('')
+                  setDeleteError(null)
+                  setDeleteOpen(true)
+                }}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[#e0a3a3] bg-white px-3.5 py-1.5 text-[12px] font-medium text-[#b04242] transition hover:bg-[#fcf4f4]"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {locale === 'ko' ? '계정 삭제' : 'Delete account'}
+              </button>
+            </section>
           </div>
         </div>
+
+        {deleteOpen && (
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-[rgba(28,25,23,0.45)] p-4"
+            onClick={() => {
+              if (!deleting) setDeleteOpen(false)
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={locale === 'ko' ? '계정 삭제 확인' : 'Confirm account deletion'}
+          >
+            <div
+              className="w-full max-w-sm rounded-2xl border border-[#e7e4df] bg-white p-5 shadow-[0_24px_48px_rgba(28,25,23,0.18)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-[16px] font-semibold text-[#1c1917]" style={serifStyle}>
+                {locale === 'ko' ? '정말 계정을 삭제할까요?' : 'Delete your account?'}
+              </h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-[#57534e]">
+                {locale === 'ko'
+                  ? '이 작업은 되돌릴 수 없어요. 모든 데이터가 영구적으로 삭제됩니다.'
+                  : 'This cannot be undone. All your data will be permanently deleted.'}
+              </p>
+              <p className="mt-3 text-[12px] text-[#78716c]">
+                {locale === 'ko' ? (
+                  <>
+                    확인을 위해 <b className="text-[#1c1917]">{expectedConfirm}</b> 를 입력하세요.
+                  </>
+                ) : (
+                  <>
+                    Type <b className="text-[#1c1917]">{expectedConfirm}</b> to confirm.
+                  </>
+                )}
+              </p>
+              <input
+                value={deleteConfirm}
+                onChange={(e) => {
+                  setDeleteConfirm(e.target.value)
+                  if (deleteError) setDeleteError(null)
+                }}
+                placeholder={expectedConfirm}
+                aria-label={locale === 'ko' ? '확인 문구' : 'Confirmation text'}
+                className="mt-2 w-full rounded-lg border border-[#d8d5cf] bg-white px-3 py-2 text-[14px] text-[#1c1917] outline-none focus:border-[#a07a3c]"
+              />
+              {deleteError && (
+                <p className="mt-2 text-[12px] text-red-600" role="alert">
+                  {deleteError}
+                </p>
+              )}
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteOpen(false)}
+                  disabled={deleting}
+                  className={ghostBtnCls}
+                >
+                  {locale === 'ko' ? '취소' : 'Cancel'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteAccount()}
+                  disabled={deleting || !confirmMatches}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#b04242] px-3.5 py-1.5 text-[12px] font-medium text-white transition hover:bg-[#963636] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {deleting
+                    ? locale === 'ko'
+                      ? '삭제 중…'
+                      : 'Deleting…'
+                    : locale === 'ko'
+                      ? '영구 삭제'
+                      : 'Delete forever'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <ProfileEditModal
           open={editOpen}
