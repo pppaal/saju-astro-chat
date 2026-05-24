@@ -13,6 +13,7 @@ import { runQuickCoupleTarot } from './runQuickCoupleTarot'
 import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
 
 // Short, one-line prompts that cycle through the textarea placeholder.
 // The original single-string placeholder ("두 사람에 대해 깊이 있는 질문을
@@ -668,7 +669,7 @@ function CompatibilityCounselorContent() {
                     ) : isUser ? (
                       msg.content
                     ) : (
-                      <MarkdownMessage content={msg.content} theme="light" />
+                      <MarkdownMessage content={stripReportMarkdown(msg.content)} theme="light" />
                     )}
                   </div>
                 </div>
