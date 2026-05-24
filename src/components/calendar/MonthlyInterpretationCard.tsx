@@ -252,10 +252,29 @@ const THEME_TO_SECTION: Record<'love' | 'money' | 'career' | 'health' | 'growth'
   growth: 'domain-growth',
 }
 
+// 점성·명리 전문용어 — 일반인이 못 알아듣는 표현(감점).
+const JARGON_RE =
+  /(별이|별과|별이 켜|발동|기운|흐름|운이|운의|정점|챕터|오행|용신|희신|신살|사주|점성|극양|태양형|도화|홍염|ZR|Zodiacal|Jupiter|Saturn|Mars|행성|영성|전생|공전|공망)/
+// 현실 행동·명사 — 바로 실천 가능한 표현(가점).
+const REAL_RE =
+  /(공부|자격증|학습|글쓰기|읽기|정리|계약|서류|약속|발표|회의|검진|운동|휴식|수면|저축|투자|자산|돈|지출|표현|대화|소통|연락|만남|모임|소개|결정|시작|미루|가족|관리|식습관|보온|물)/g
+// 명령·조언 어미(가점).
+const IMP_RE =
+  /(하세요|해주세요|마세요|권장|챙[기겨]|골라서|좋아요|돼요|줄어요|풀면|편이 좋|잡으세요|따라와요|손에 잡)/
+
+/** 한 문장의 "현실성" 점수 — 높을수록 쉽고 실천적. */
+function practicalityScore(s: string): number {
+  let v = 0
+  v += (s.match(REAL_RE)?.length ?? 0) * 2
+  if (IMP_RE.test(s)) v += 2
+  if (JARGON_RE.test(s)) v -= 3
+  return v
+}
+
 /**
- * "이번 달 조언" — 가장 강한 테마의 엔진 도메인 해석에서 실제 문장을 뽑는다.
- * 마크다운·이모지·"특히 강한 날/주의 날" 꼬리·선두 라벨(— )을 정리하고 앞 2문장만.
- * 정적 템플릿 대신 엔진의 구체 조언을 노출 ("조언이 부실하다" 피드백 반영).
+ * "이번 달 조언" — 가장 강한 테마의 엔진 도메인 해석에서 *현실적·행동형* 문장만 뽑는다.
+ * 점성·명리 전문용어("별이 켜져…") 문장은 감점·제외하고, 바로 실천 가능한 문장을
+ * 우선 노출 ("진짜 이해하기 쉽고 현실적이게" 피드백 반영).
  */
 function deriveAdvice(
   interp: Interpretation | undefined,
@@ -266,7 +285,7 @@ function deriveAdvice(
   let t = stripMarkdown(sec.text)
   // 이모지 제거
   t = t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}️‍]/gu, '')
-  // "특히 강한 날: ..." / "주의 날: ..." 꼬리 제거 (날짜는 타이밍 줄에서 따로 보여줌)
+  // "특히 강한 날: ..." / "주의 날: ..." 꼬리 제거 (날짜는 타이밍 줄에서 따로)
   t = t.replace(/(특히 강한 날|주의 날)\s*[:：][^.]*\.?/g, '')
   // 선두 라벨 "영성·내면 — " 제거
   t = t.replace(/^\s*[^—–:.]{0,16}[—–]\s*/, '')
@@ -277,7 +296,15 @@ function deriveAdvice(
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 5)
-  const out = sents.slice(0, 2).join(' ')
+  // 현실적·행동형 문장 우선 — 점수>0만, 상위 2개, 읽는 순서 유지.
+  const picked = sents
+    .map((s, i) => ({ s, i, v: practicalityScore(s) }))
+    .filter((x) => x.v > 0)
+    .sort((a, b) => b.v - a.v || a.i - b.i)
+    .slice(0, 2)
+    .sort((a, b) => a.i - b.i)
+    .map((x) => x.s)
+  const out = picked.join(' ')
   return out.length > 0 ? out : null
 }
 
@@ -292,17 +319,17 @@ function whyFromThemes(interp: Interpretation | undefined): string | null {
   const r = interp?.themeRanking
   if (r && r.length > 0) {
     const labels = r.slice(0, 2).map((t) => THEME_LABEL[t.theme] ?? t.theme)
-    return `이번 달은 ${labels.join('·')} 흐름이 가장 강해요.`
+    return `이번 달은 ${labels.join('·')} 쪽이 가장 잘 풀려요.`
   }
   const top = topTheme(interp)
-  return top ? `이번 달은 ${THEME_LABEL[top.theme] ?? top.theme} 흐름이 가장 강해요.` : null
+  return top ? `이번 달은 ${THEME_LABEL[top.theme] ?? top.theme} 쪽이 가장 잘 풀려요.` : null
 }
 
-/** 결론 한 줄 — 점수 밴드(grade)별. */
+/** 결론 한 줄 — 점수 밴드(grade)별. 누구나 바로 이해되는 쉬운 말로. */
 const VERDICT: Record<GradeKey, string> = {
-  lucky: '흐름이 받쳐주는 달',
-  neutral: '잔잔하게 다지는 달',
-  unlucky: '조심히 가는 달',
+  lucky: '대체로 잘 풀리는 달',
+  neutral: '무난하게 흘러가는 달',
+  unlucky: '무리하지 않는 게 좋은 달',
 }
 
 /** "지금 할 일" — 이번 달 가장 강한 테마별 한 줄 행동. */
