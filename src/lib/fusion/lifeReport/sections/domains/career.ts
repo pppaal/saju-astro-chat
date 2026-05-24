@@ -429,7 +429,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   if (courage) {
     fusionUsed.push('calendarSignals.arabicParts.Courage')
     deepPieces.push(
-      `용기의 행운점이 ${karmaSignKoCareer(courage.sign)}에 놓여, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`
+      `용기의 행운점이 ${signLabel(courage.sign, 'ko')}에 놓여, 도전을 받아들이는 자리에서 직업 운이 가장 크게 풀려요.`
     )
     deepPiecesEn.push(
       `Your Lot of Courage sits in ${signLabel(courage.sign, 'en')} — your strongest career luck opens at the point where you step into challenge.`
@@ -492,7 +492,7 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   const spirit = input.calendarSignals?.arabicParts?.Spirit
   if (spirit) {
     fusionUsed.push('calendarSignals.arabicParts.Spirit')
-    guideKo += ` 직업의 행운점이 ${spirit.sign === 'Aries' ? '양자리' : spirit.sign === 'Taurus' ? '황소자리' : spirit.sign === 'Gemini' ? '쌍둥이자리' : spirit.sign === 'Cancer' ? '게자리' : spirit.sign === 'Leo' ? '사자자리' : spirit.sign === 'Virgo' ? '처녀자리' : spirit.sign === 'Libra' ? '천칭자리' : spirit.sign === 'Scorpio' ? '전갈자리' : spirit.sign === 'Sagittarius' ? '사수자리' : spirit.sign === 'Capricorn' ? '염소자리' : spirit.sign === 'Aquarius' ? '물병자리' : '물고기자리'}에 놓여, 이 분위기를 일터에 가져갈수록 운이 자기 자리로 와요.`
+    guideKo += ` 직업의 행운점이 ${signLabel(spirit.sign, 'ko')}에 놓여, 이 분위기를 일터에 가져갈수록 운이 자기 자리로 와요.`
     guideEn += ` Your Lot of Spirit sits in ${signLabel(spirit.sign, 'en')} — luck arrives at work when you consciously carry this flavor with you.`
   }
   // Profection — current-year lord & house
@@ -812,24 +812,6 @@ function geokgukShortKoForCareer(g: string): string {
   if (g.includes('편인')) return '독특한 직관'
   if (g.includes('정인')) return '배움과 돌봄'
   return '본연의 색'
-}
-
-function karmaSignKoCareer(sign: string): string {
-  const map: Record<string, string> = {
-    Aries: '양자리',
-    Taurus: '황소자리',
-    Gemini: '쌍둥이자리',
-    Cancer: '게자리',
-    Leo: '사자자리',
-    Virgo: '처녀자리',
-    Libra: '천칭자리',
-    Scorpio: '전갈자리',
-    Sagittarius: '사수자리',
-    Capricorn: '염소자리',
-    Aquarius: '물병자리',
-    Pisces: '물고기자리',
-  }
-  return map[sign] ?? sign
 }
 
 // career 섹션용 하우스 의미 자연어

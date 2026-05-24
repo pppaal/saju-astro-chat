@@ -1,6 +1,8 @@
 // src/lib/fusion/lifeReport/templates/sentences.ts
 // Re-usable bilingual sentence fragments. Pure functions only.
 
+import { SIGN_KO } from '@/lib/astrology/signLabels'
+
 export type Lang = 'ko' | 'en'
 
 export function sajuStrength(count: number, lang: Lang): string {
@@ -59,21 +61,7 @@ function ordinal(n: number): string {
 
 export function signLabel(sign: string | undefined, lang: Lang): string {
   if (!sign) return lang === 'ko' ? '하늘' : 'the sky'
-  const KO: Record<string, string> = {
-    Aries: '양자리',
-    Taurus: '황소자리',
-    Gemini: '쌍둥이자리',
-    Cancer: '게자리',
-    Leo: '사자자리',
-    Virgo: '처녀자리',
-    Libra: '천칭자리',
-    Scorpio: '전갈자리',
-    Sagittarius: '사수자리',
-    Capricorn: '염소자리',
-    Aquarius: '물병자리',
-    Pisces: '물고기자리',
-  }
-  return lang === 'ko' ? (KO[sign] ?? sign) : sign
+  return lang === 'ko' ? (SIGN_KO[sign] ?? sign) : sign
 }
 
 export function planetLabel(planet: string, lang: Lang): string {

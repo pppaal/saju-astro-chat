@@ -16,55 +16,93 @@
 
 import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
-import type {
-  AspectType,
-  Chart,
-  ExtraPoint,
-  PlanetBase,
-} from '@/lib/astrology/foundation/types'
+import { SIGN_KO } from '@/lib/astrology/signLabels'
+import type { AspectType, Chart, ExtraPoint, PlanetBase } from '@/lib/astrology/foundation/types'
 
 const ASPECT_TITLE: Record<AspectType, string> = {
-  conjunction: 'Conjunction', opposition: 'Opposition', trine: 'Trine',
-  square: 'Square', sextile: 'Sextile', quincunx: 'Quincunx',
-  semisextile: 'Semisextile', quintile: 'Quintile', biquintile: 'Biquintile',
+  conjunction: 'Conjunction',
+  opposition: 'Opposition',
+  trine: 'Trine',
+  square: 'Square',
+  sextile: 'Sextile',
+  quincunx: 'Quincunx',
+  semisextile: 'Semisextile',
+  quintile: 'Quintile',
+  biquintile: 'Biquintile',
 }
 
 const PLANET_LABEL: Record<string, string> = {
-  Sun: 'Sun', Moon: 'Moon', Mercury: 'Mercury', Venus: 'Venus', Mars: 'Mars',
-  Jupiter: 'Jupiter', Saturn: 'Saturn', Uranus: 'Uranus', Neptune: 'Neptune',
-  Pluto: 'Pluto', 'True Node': 'Node', Ascendant: 'Ascendant', MC: 'MC',
-  Chiron: 'Chiron', Lilith: 'Lilith', PartOfFortune: 'Fortune', Vertex: 'Vertex',
+  Sun: 'Sun',
+  Moon: 'Moon',
+  Mercury: 'Mercury',
+  Venus: 'Venus',
+  Mars: 'Mars',
+  Jupiter: 'Jupiter',
+  Saturn: 'Saturn',
+  Uranus: 'Uranus',
+  Neptune: 'Neptune',
+  Pluto: 'Pluto',
+  'True Node': 'Node',
+  Ascendant: 'Ascendant',
+  MC: 'MC',
+  Chiron: 'Chiron',
+  Lilith: 'Lilith',
+  PartOfFortune: 'Fortune',
+  Vertex: 'Vertex',
 }
 
 // v2: KO planet names + aspect symbols (compat counselor is KO-facing, mirrors
 // the destiny layer's compact style). Drops the verbose "in Sign … (Orb: …)".
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
-  Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성',
-  Pluto: '명왕성', 'True Node': '노드', 'South Node': '남노드', Ascendant: '상승', MC: '중천',
-  Chiron: '키론', Lilith: '릴리스', PartOfFortune: '포춘', Vertex: '버텍스',
+  Sun: '태양',
+  Moon: '달',
+  Mercury: '수성',
+  Venus: '금성',
+  Mars: '화성',
+  Jupiter: '목성',
+  Saturn: '토성',
+  Uranus: '천왕성',
+  Neptune: '해왕성',
+  Pluto: '명왕성',
+  'True Node': '노드',
+  'South Node': '남노드',
+  Ascendant: '상승',
+  MC: '중천',
+  Chiron: '키론',
+  Lilith: '릴리스',
+  PartOfFortune: '포춘',
+  Vertex: '버텍스',
 }
 // 엔진(synastry.ts)은 5대 메이저 각만 계산 → 그 5개만 매핑. 마이너 각
 // (quincunx/semisextile/quintile)은 산출 안 돼 범례에 넣으면 거짓 신호.
 const ASP_SYM: Partial<Record<AspectType, string>> = {
-  conjunction: '☌', opposition: '☍', trine: '△', square: '□', sextile: '⚹',
+  conjunction: '☌',
+  opposition: '☍',
+  trine: '△',
+  square: '□',
+  sextile: '⚹',
 }
 const IMPORTANT_TOP = 12 // cap the orb≤5 tier so it doesn't sprawl to 30+ lines
 const CRITICAL_TOP = 10 // keep CRITICAL tight; overflow(여전히 orb≤3)은 IMPORTANT로 강등
 
 const SIGNS_KO = [
-  '양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리',
-  '천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리',
+  '양자리',
+  '황소자리',
+  '쌍둥이자리',
+  '게자리',
+  '사자자리',
+  '처녀자리',
+  '천칭자리',
+  '전갈자리',
+  '사수자리',
+  '염소자리',
+  '물병자리',
+  '물고기자리',
 ] as const
 
 // chart.ascendant.sign이 영어로 올 때 한글로. KO-facing 블록에 영어 별자리
 // 누출 방지(예: Aquarius → 물병자리). 이미 한글이면 그대로 통과.
-const SIGN_EN_KO: Record<string, string> = {
-  Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
-  Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
-  Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
-}
-const signKo = (s: string | null | undefined) => (s ? (SIGN_EN_KO[s] ?? s) : '?')
+const signKo = (s: string | null | undefined) => (s ? (SIGN_KO[s] ?? s) : '?')
 
 // 하우스 오버레이는 개인 행성만 의미 있음. 외행성은 동세대 공통이라 노이즈.
 const PERSONAL_OVERLAY_KO = new Set(['태양', '달', '수성', '금성', '화성'])
@@ -208,7 +246,8 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   for (const [pl, h] of aMap) {
     const bh = bMap.get(pl)
     if (bh == null || bh === h) continue
-    if (PERSONAL_OVERLAY_KO.has(pl)) overlayDiffs.push(`${pl} ${labelA}→${labelB} ${h}H · ${labelB}→${labelA} ${bh}H`)
+    if (PERSONAL_OVERLAY_KO.has(pl))
+      overlayDiffs.push(`${pl} ${labelA}→${labelB} ${h}H · ${labelB}→${labelA} ${bh}H`)
     else outerDiffCount++
   }
   const ascA = signKo(chartA.ascendant?.sign)
