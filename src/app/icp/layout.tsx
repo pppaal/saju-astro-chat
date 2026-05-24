@@ -39,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
       canonicalUrl: `${baseUrl}/icp`,
       ogImage: '/og-image.png',
     },
-    locale,
+    locale
   )
   // Retired from public navigation — keep the page for direct/deep links but
   // exclude it from search so the discontinued feature doesn't surface.

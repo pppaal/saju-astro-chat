@@ -117,8 +117,7 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
       setDrawnCards: (cards: DrawnCard[]) => setState((prev) => ({ ...prev, drawnCards: cards })),
       incrementRevealedCount: () =>
         setState((prev) => ({ ...prev, revealedCount: prev.revealedCount + 1 })),
-      setRevealedCount: (count: number) =>
-        setState((prev) => ({ ...prev, revealedCount: count })),
+      setRevealedCount: (count: number) => setState((prev) => ({ ...prev, revealedCount: count })),
       setInterpretFailed: (interpretFailed: boolean) =>
         setState((prev) => ({ ...prev, interpretFailed })),
       setIsDrawing: (isDrawing: boolean) => setState((prev) => ({ ...prev, isDrawing })),

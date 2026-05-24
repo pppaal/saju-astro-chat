@@ -57,7 +57,7 @@ export function generateLocalizedMetadata(
     publishedTime?: string
     modifiedTime?: string
   },
-  locale: 'ko' | 'en',
+  locale: 'ko' | 'en'
 ): Metadata {
   const pick = locale === 'ko' ? input.ko : input.en
   return generateMetadata({
@@ -413,9 +413,7 @@ export const SERVICE_FAQS = {
 }
 
 // Generate service schema for specific pages
-export function generateServiceSchema(
-  serviceType: 'destiny-map' | 'tarot' | 'saju' | 'astrology'
-) {
+export function generateServiceSchema(serviceType: 'destiny-map' | 'tarot' | 'saju' | 'astrology') {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
   const services = {
     'destiny-map': {

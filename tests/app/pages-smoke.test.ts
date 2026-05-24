@@ -30,10 +30,7 @@ const assertPages = (modulePaths: string[]) => {
 describe('Pages Smoke Tests', () => {
   describe('Main Pages (3)', () => {
     it('should have main pages', () => {
-      assertPages([
-        'app/(main)/page',
-        'app/about/page',
-      ])
+      assertPages(['app/(main)/page', 'app/about/page'])
     })
   })
 
@@ -63,10 +60,7 @@ describe('Pages Smoke Tests', () => {
 
   describe('Compatibility Pages (2)', () => {
     it('should have compatibility pages', () => {
-      assertPages([
-        'app/compatibility/page',
-        'app/compatibility/counselor/page',
-      ])
+      assertPages(['app/compatibility/page', 'app/compatibility/counselor/page'])
     })
   })
 

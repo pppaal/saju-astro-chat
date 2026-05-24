@@ -211,9 +211,7 @@ export default function AboutPage() {
               <div className={styles.synergyIcon} aria-hidden>
                 ✨
               </div>
-              <h3 className={styles.synergyTitle}>
-                {isKo ? '서양 점성술' : 'Western Astrology'}
-              </h3>
+              <h3 className={styles.synergyTitle}>{isKo ? '서양 점성술' : 'Western Astrology'}</h3>
               <p className={styles.synergyDesc}>
                 {isKo
                   ? '출생 시점 행성·하우스·각도의 배치로 심리 원형과 성향, 내면의 동기를 읽습니다. 자기 이해와 관계의 결을 깊게 합니다.'

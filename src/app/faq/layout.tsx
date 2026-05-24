@@ -62,7 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
       canonicalUrl: `${baseUrl}/faq`,
       ogImage: '/og-image.png',
     },
-    locale,
+    locale
   )
 }
 
