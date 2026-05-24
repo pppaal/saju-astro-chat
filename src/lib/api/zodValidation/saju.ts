@@ -54,6 +54,9 @@ export const sajuCalculationRequestSchema = z.object({
   userTimezone: timezoneSchema.optional(),
   latitude: latitudeSchema.optional(),
   longitude: longitudeSchema.optional(),
+  // chartOnly fast path: callers that only need structured chart data (e.g.
+  // 궁합 상담사) set this to skip the multi-thousand-token LLM interpretation.
+  skipInterpretation: z.boolean().optional(),
 })
 
 export type SajuCalculationRequestValidated = z.infer<typeof sajuCalculationRequestSchema>
@@ -86,6 +89,8 @@ export const astrologyRequestSchema = z.object({
   timeZone: timezoneSchema,
   locale: localeSchema.optional(),
   options: astrologyOptionsSchema.optional(),
+  // chartOnly fast path: skip the LLM interpretation when only chart data is needed.
+  skipInterpretation: z.boolean().optional(),
 })
 
 export type AstrologyRequest = z.infer<typeof astrologyRequestSchema>

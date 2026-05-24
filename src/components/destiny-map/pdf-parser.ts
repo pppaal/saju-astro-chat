@@ -11,8 +11,12 @@ import type { PDFTextItem } from "./chat-types";
  */
 export async function extractTextFromPDF(file: File): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
+  // Worker version MUST match the installed pdfjs-dist API version, otherwise
+  // pdf.js throws "API version X does not match Worker version Y" and every
+  // parse fails. Pin the URL to the runtime version (jsdelivr mirrors npm
+  // exactly, so the resolved version always exists) instead of a hardcoded one.
   pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;

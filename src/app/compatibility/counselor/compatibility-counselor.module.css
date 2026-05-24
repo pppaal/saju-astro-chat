@@ -253,6 +253,19 @@
   box-shadow: 0 4px 12px rgba(28, 25, 23, 0.1);
 }
 
+/* Assistant (상담사) messages: drop the 💕 avatar column + side padding so the
+   answer spans the full content width instead of being squeezed into a narrow
+   bubble beside the avatar. User messages keep their avatar + right alignment. */
+.message:not(.userMessage) .messageAvatar {
+  display: none;
+}
+
+.message:not(.userMessage) .messageBubble {
+  max-width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .typing {
   display: inline-flex;
   gap: 0.25rem;

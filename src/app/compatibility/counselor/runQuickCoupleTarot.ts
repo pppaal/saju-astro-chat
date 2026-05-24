@@ -183,13 +183,15 @@ export async function runQuickCoupleTarot(
 
   const perCardSection = drawn
     .map((dc, i) => {
-      const pos = spread.positions[i]
-      const posLabel = isKorean ? pos?.titleKo || pos?.title : pos?.title
+      // 자리명(position)은 LLM 이 관계 맥락에 맞춰 직접 명명해 응답에 담아 보낸다.
+      // 옛 코드는 spread.positions[i] 를 참조했는데 동적 스프레드의 positions 가
+      // 빈 배열이라 "undefined — 카드명" 으로 새던 버그를 LLM position 으로 대체.
+      const posLabel = (cardsParsed[i]?.position as string) || ''
       const cardName = isKorean ? dc.card.nameKo || dc.card.name : dc.card.name
       const tag = dc.isReversed ? (isKorean ? ' (역방향)' : ' (reversed)') : ''
       const interp = (cardsParsed[i]?.interpretation as string) || ''
-      const tip = (cardsParsed[i]?.actionTip as string) || ''
-      return `**${i + 1}. ${posLabel} — ${cardName}${tag}**\n${interp}${tip ? `\n💡 ${tip}` : ''}`
+      const heading = posLabel ? `${posLabel} — ${cardName}${tag}` : `${cardName}${tag}`
+      return `**${i + 1}. ${heading}**\n${interp}`
     })
     .join('\n\n')
 
