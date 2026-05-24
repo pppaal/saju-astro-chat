@@ -9,29 +9,29 @@ export async function generateMetadata(): Promise<Metadata> {
   return generateLocalizedMetadata(
     {
       en: {
-        title: 'DestinyPal Features — Destiny Map, Tarot, Calendar & Reports',
+        title: 'DestinyPal Features — Destiny Counselor, Tarot, Calendar & Compatibility',
         description:
-          'Explore the four core DestinyPal experiences and how Destiny Map, AI Tarot, Cosmic Calendar, and Premium Reports work together for AI Saju and astrology guidance.',
+          'Explore the core DestinyPal experiences and how the Destiny Counselor, AI Tarot, Calendar, and Compatibility Counselor work together for AI Saju and astrology guidance.',
         keywords: [
           'destinypal features',
-          'destiny map',
+          'destiny counselor',
           'ai tarot',
-          'cosmic calendar',
-          'premium reports',
+          'fortune calendar',
+          'compatibility counselor',
           'saju features',
           'astrology features',
         ],
       },
       ko: {
-        title: 'DestinyPal 기능 — 운명 지도, 타로, 캘린더, 리포트',
+        title: 'DestinyPal 기능 — 운명 상담사, 타로, 캘린더, 궁합',
         description:
-          'DestinyPal의 네 가지 핵심 경험을 소개합니다. 운명 지도, AI 타로, 코스믹 캘린더, 프리미엄 리포트가 어떻게 연결되는지 확인하세요.',
+          'DestinyPal의 핵심 경험을 소개합니다. 운명 상담사, AI 타로, 캘린더, 궁합 상담사가 어떻게 연결되는지 확인하세요.',
         keywords: [
           'DestinyPal 기능',
-          '운명 지도',
+          '운명 상담사',
           'AI 타로',
-          '코스믹 캘린더',
-          '프리미엄 리포트',
+          '캘린더',
+          '궁합 상담사',
           '사주 기능',
         ],
       },

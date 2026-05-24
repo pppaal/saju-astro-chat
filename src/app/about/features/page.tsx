@@ -3,7 +3,6 @@
 
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
-import BackButton from '@/components/ui/BackButton'
 import { useI18n } from '@/i18n/I18nProvider'
 
 /** 섹션 등장 애니메이션(페이드업) */
@@ -181,7 +180,8 @@ function useOvoidScene(canvasId: string) {
 }
 
 export default function AboutFeaturesPage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const isKo = locale === 'ko'
 
   // i18n 키가 없을 때 즉시 보이는 기본 설명 사용
   const tt = (key: string, fallback: string) => {
@@ -199,10 +199,6 @@ export default function AboutFeaturesPage() {
 
   return (
     <div className="pp-wrapper">
-      <div className="pp-back">
-        <BackButton />
-      </div>
-
       {/* 1) Hero */}
       <section ref={heroRef} className="pp-hero reveal">
         <h1 className="pp-title">{tt('about.features.title', '모멘트를 읽는 네 가지 방법')}</h1>
@@ -213,8 +209,8 @@ export default function AboutFeaturesPage() {
           )}
         </p>
         <div className="pp-ctaRow">
-          <Link href="/destiny-map" className="btn-primary">
-            {tt('about.tryDestinyMap', 'Destiny Map 체험')}
+          <Link href="/destiny-counselor" className="btn-primary">
+            {isKo ? '운명 상담사 체험' : 'Try Destiny Counselor'}
           </Link>
           <Link href="/about" className="btn-ghost">
             {tt('common.backToAbout', 'About으로 돌아가기')}
@@ -266,46 +262,44 @@ export default function AboutFeaturesPage() {
         </p>
 
         <div className="pp-grid">
-          {/* Numerology */}
+          {/* Destiny Counselor */}
           <article className="pp-card">
             <div className="pp-cardHead">
               <span className="pp-dot saju" aria-hidden="true" />
-              <h3>Numerology</h3>
+              <h3>{isKo ? '운명 상담사' : 'Destiny Counselor'}</h3>
             </div>
             <p>
-              {tt(
-                'about.features.numerology.desc',
-                '이름과 생일의 핵심 수로 기질·동기·표현 방식과 올해의 강조점을 요약합니다.'
-              )}
+              {isKo
+                ? '질문을 입력하면 사주·점성 계산 근거를 바탕으로 대화형 상담 답변을 제공합니다.'
+                : 'Ask a question and get conversational guidance grounded in your Saju and astrology calculations.'}
             </p>
             <ul className="pp-bullets">
               <li>
-                {tt('numerologyDetail.lifePath', 'Life Path')} /{' '}
-                {tt('numerologyDetail.expression', 'Expression')} /{' '}
-                {tt('numerologyDetail.soulUrge', 'Soul Urge')} /{' '}
-                {tt('numerologyDetail.personality', 'Personality')}
+                {isKo
+                  ? '사주(사주팔자)와 점성 출생 차트를 함께 읽어 근거 제시'
+                  : 'Reads your Saju (Four Pillars) together with your astrology birth chart'}
               </li>
               <li>
-                {tt(
-                  'about.features.numerology.cityTz',
-                  '기간 계산 시 도시·타임존 반영으로 날짜 경계 오차 최소화'
-                )}
+                {isKo
+                  ? '도시·타임존·절기 반영으로 시점 계산 오차 최소화'
+                  : 'Accounts for city, time zone, and solar terms to reduce timing error'}
               </li>
               <li>
-                {tt('about.features.numerology.copy', '전문 용어 대신 한 문단 요약과 행동 포인트')}
+                {isKo
+                  ? '단정적 예언 대신 선택을 돕는 맥락과 행동 포인트'
+                  : 'Context and action points to support choices — not absolute predictions'}
               </li>
             </ul>
             <div className="pp-actions">
-              <Link href="/numerology" className="btn-soft">
+              <Link href="/destiny-counselor" className="btn-soft">
                 {tt('common.go', '바로 가기')}
               </Link>
               <details className="pp-acc">
                 <summary>{tt('common.details', '자세히')}</summary>
                 <div>
-                  {tt(
-                    'about.features.numerology.note',
-                    '주제를 이름짓는 데 강합니다. 구체적 타이밍은 점성학/사주와 함께 보완하세요.'
-                  )}
+                  {isKo
+                    ? '주제와 방향을 잡는 데 강합니다. 구체적 일정은 캘린더로, 깊은 해석은 리포트로 이어 보세요.'
+                    : 'Great for direction. Pair it with the Calendar for timing and Reports for deeper interpretation.'}
                 </div>
               </details>
             </div>
@@ -347,35 +341,39 @@ export default function AboutFeaturesPage() {
             </div>
           </article>
 
-          {/* I Ching */}
+          {/* Calendar */}
           <article className="pp-card">
             <div className="pp-cardHead">
               <span className="pp-dot iching" aria-hidden="true" />
-              <h3>I Ching</h3>
+              <h3>{isKo ? '캘린더' : 'Calendar'}</h3>
             </div>
             <p>
-              {tt(
-                'about.features.iching.desc',
-                '64괘와 변효를 통해 흐름의 방향과 전환 지점을 읽습니다.'
-              )}
+              {isKo
+                ? '개인 사주와 행성 흐름을 날짜에 얹어 기회·주의 구간과 중요한 타이밍을 짚어줍니다.'
+                : 'Overlays your personal Saju and planetary flow onto dates to flag opportunity/caution windows and key timing.'}
             </p>
             <ul className="pp-bullets">
               <li>
-                {tt('about.features.iching.labels', '변효·지괘 표기를 명확히, 현재/전개 구분')}
+                {isKo
+                  ? '날짜별 강조점과 바로 쓰는 행동 플랜'
+                  : 'Per-date highlights with practical, ready-to-use action plans'}
               </li>
-              <li>{tt('about.features.iching.hints', '예/아니오보다 열린 질문이 더 좋은 조언')}</li>
+              <li>
+                {isKo
+                  ? '당월은 무료, 확장 기간은 크레딧으로 열람'
+                  : 'Current month is free; extended ranges unlock with credits'}
+              </li>
             </ul>
             <div className="pp-actions">
-              <Link href="/iching" className="btn-soft">
+              <Link href="/calendar" className="btn-soft">
                 {tt('common.go', '바로 가기')}
               </Link>
               <details className="pp-acc">
                 <summary>{tt('common.details', '자세히')}</summary>
                 <div>
-                  {tt(
-                    'about.features.iching.note',
-                    '갈림길에서 쓰기 좋습니다. 구체 시기는 점성학/사주로 확인하세요.'
-                  )}
+                  {isKo
+                    ? '중요한 일정을 잡을 때 좋습니다. 깊은 해석은 운명 상담사·리포트와 함께 보세요.'
+                    : 'Best for planning key events. Pair it with the Destiny Counselor and Reports for deeper reads.'}
                 </div>
               </details>
             </div>
