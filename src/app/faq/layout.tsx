@@ -9,12 +9,12 @@ const faqs = [
   {
     question: 'How accurate is DestinyPal?',
     answer:
-      'We combine Saju, Western Astrology, Tarot, and advanced AI to provide integrated readings. Our Destiny Fusion Matrix cross-references Eastern and Western systems for deeper insights.',
+      'We combine Saju, Western Astrology, Tarot, and advanced AI to provide integrated readings, cross-referencing Eastern and Western systems for deeper insights.',
   },
   {
-    question: 'What is the Destiny Map?',
+    question: 'What is the Destiny Counselor?',
     answer:
-      'The Destiny Map is our signature visualization and counseling feature that combines your Saju chart and astrological birth chart into one guided view.',
+      'The Destiny Counselor is our signature AI counseling feature that reads your Saju chart together with your astrological birth chart to give practical guidance.',
   },
   {
     question: 'Is my data secure?',
