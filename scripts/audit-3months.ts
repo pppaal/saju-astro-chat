@@ -1,4 +1,3 @@
-/* eslint-disable */
 // 3개월 audit — 4월/5월/6월 점수·해석 변화 패턴 + 문제점 찾기.
 import { calculateSajuData } from '../src/lib/saju/saju'
 import { buildNatalContext } from '../src/lib/calendar-engine/context/build'

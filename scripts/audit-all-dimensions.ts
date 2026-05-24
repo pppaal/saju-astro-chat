@@ -1,4 +1,3 @@
-/* eslint-disable */
 // 년·월·일·시 변화에 따라 점수·해석이 동적인지 audit.
 import { calculateSajuData } from '../src/lib/saju/saju'
 import { buildNatalContext } from '../src/lib/calendar-engine/context/build'

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { calculateSajuData } from '../src/lib/saju/saju'
 import { buildNatalContext } from '../src/lib/calendar-engine/context/build'
 import { buildCalendar } from '../src/lib/calendar-engine'

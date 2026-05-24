@@ -1,5 +1,4 @@
 import next from 'eslint-config-next'
-import tseslint from '@typescript-eslint/eslint-plugin'
 import prettier from 'eslint-config-prettier'
 
 const config = [
@@ -67,9 +66,7 @@ const config = [
     ],
   },
   {
-    plugins: {
-      '@typescript-eslint': tseslint,
-    },
+    files: ['**/*.{ts,tsx}'],
     rules: {
       // TypeScript strict rules
       '@typescript-eslint/no-explicit-any': 'error',
@@ -103,9 +100,6 @@ const config = [
   {
     // Slightly relaxed rules for lib files (complex internal logic)
     files: ['src/lib/**/*.{ts,tsx}'],
-    plugins: {
-      '@typescript-eslint': tseslint,
-    },
     rules: {
       '@typescript-eslint/no-unused-vars': 'off', // More lenient for lib files
       '@typescript-eslint/no-explicit-any': 'error',
@@ -158,9 +152,6 @@ const config = [
   {
     // Test files - relaxed rules for test utilities and mocking
     files: ['tests/**/*.{ts,tsx,js}'],
-    plugins: {
-      '@typescript-eslint': tseslint,
-    },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off', // Tests often need any for mocking
       '@typescript-eslint/no-unused-vars': 'off',
@@ -168,15 +159,13 @@ const config = [
       '@next/next/no-assign-module-variable': 'off',
       '@next/next/no-html-link-for-pages': 'off',
       '@next/next/no-img-element': 'off',
+      'import/no-anonymous-default-export': 'off', // k6 load scripts require `export default function`
       'prefer-const': 'off',
     },
   },
   {
     // Scripts - utility scripts with more flexibility
     files: ['scripts/**/*.{ts,tsx,js,mjs,cjs,mts,cts}'],
-    plugins: {
-      '@typescript-eslint': tseslint,
-    },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
