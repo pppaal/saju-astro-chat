@@ -7,11 +7,12 @@ import styles from './result.module.css'
 import { logger } from '@/lib/logger'
 import { analyzeDestiny } from '@/components/destiny-map/Analyzer'
 import FreeReport from '@/components/destiny-map/FreeReport'
-import AnalyzingLoader from './AnalyzingLoader'
+import BrandSplash from '@/components/branding/BrandSplash'
 import { useI18n } from '@/i18n/I18nProvider'
 import { normalizeGender } from '@/lib/utils/gender'
 import BackButton from '@/components/ui/BackButton'
 import ShareButton from '@/components/ui/ShareButton'
+import { HamburgerDrawer } from '@/components/ui/GlobalHeader/HamburgerDrawer'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 type Lang = 'ko' | 'en'
@@ -35,7 +36,7 @@ export default function DestinyResultPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   // ✅ Next.js 15 동적 API 규칙 — Promise 언래핑
   const sp = use(searchParams)
 
@@ -135,16 +136,25 @@ export default function DestinyResultPage({
     }
   }, [result])
 
+  // Top-left menu — GlobalHeader is hidden on this page, so the report
+  // exposes the same hamburger drawer for consistent navigation.
+  const navHamburger = (
+    <div className={styles.navHamburger}>
+      <HamburgerDrawer locale={locale === 'en' ? 'en' : 'ko'} />
+    </div>
+  )
+
   // ------------------------------------------------------------ //
   // ⏳ 상태별 렌더링
   // ------------------------------------------------------------ //
   if (loading) {
-    return <AnalyzingLoader />
+    return <BrandSplash />
   }
 
   if (error) {
     return (
       <section className={styles.page}>
+        {navHamburger}
         <BackButton />
         <section className={styles.card}>
           <div className={styles.errorBox}>⚠️ {error}</div>
@@ -163,6 +173,7 @@ export default function DestinyResultPage({
   if (!result) {
     return (
       <section className={styles.page}>
+        {navHamburger}
         <BackButton />
         <section className={styles.card}>
           <div className={styles.errorBox}>
@@ -204,6 +215,7 @@ export default function DestinyResultPage({
       <h1 className="sr-only">
         {lang === 'ko' ? '운명 지도 분석 결과' : 'Destiny Map Analysis Result'}
       </h1>
+      {navHamburger}
       <BackButton />
       <div className={styles.creditBadgeWrapper}>
         <ShareButton variant="compact" />

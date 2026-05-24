@@ -1,12 +1,10 @@
 import { Suspense } from 'react'
 import ThemeSelectClient from './ThemeSelectClient'
-import LoadingTimeout from '@/components/ui/LoadingTimeout'
+import BrandSplash from '@/components/branding/BrandSplash'
 
 export default function ThemePage() {
   return (
-    <Suspense
-      fallback={<LoadingTimeout timeoutMs={10000} loadingText="Loading theme selector..." />}
-    >
+    <Suspense fallback={<BrandSplash />}>
       <ThemeSelectClient />
     </Suspense>
   )

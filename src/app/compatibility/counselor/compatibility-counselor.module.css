@@ -129,7 +129,9 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .localeToggle:hover {
@@ -143,8 +145,15 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 1rem 1.5rem 0.75rem;
+  /* 운명 상담사와 동일 — 가로 패딩을 줄여 글자가 화면을 더 넓게 쓰게. */
+  padding: 1rem 0.75rem 0.75rem;
   min-height: 0;
+}
+
+@media (min-width: 1024px) {
+  .chatWrapper {
+    padding: 1rem 1.5rem 0.75rem;
+  }
 }
 
 .messagesContainer {
@@ -153,17 +162,16 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  padding-right: 0.25rem;
   scroll-behavior: smooth;
+  /* 오른쪽 스크롤바 숨김 — 운명 상담사와 동일. 스크롤 기능은 유지하되
+     바가 차지하던 폭을 글자에 돌려줘 가로로 더 넓게 읽히게. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .messagesContainer::-webkit-scrollbar {
-  width: 6px;
-}
-
-.messagesContainer::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
-  border-radius: 3px;
+  width: 0;
+  height: 0;
 }
 
 /* ============ Empty State ============ */
@@ -225,7 +233,7 @@
 }
 
 .messageBubble {
-  max-width: min(86%, 760px);
+  max-width: min(94%, 820px);
   padding: 0.8rem 1.05rem;
   border-radius: 16px;
   background: transparent;
@@ -269,7 +277,9 @@
 }
 
 @keyframes typingBounce {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
     opacity: 0.6;
   }
@@ -306,7 +316,9 @@
 
 .inputContainer:focus-within {
   border-color: #a8a29e;
-  box-shadow: 0 0 0 1px #a8a29e, 0 4px 12px rgba(28, 25, 23, 0.04);
+  box-shadow:
+    0 0 0 1px #a8a29e,
+    0 4px 12px rgba(28, 25, 23, 0.04);
 }
 
 .input {
@@ -345,7 +357,10 @@
   border: none;
   color: #fafaf9;
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
   flex-shrink: 0;
   box-shadow: 0 2px 6px rgba(28, 25, 23, 0.15);
 }
@@ -437,15 +452,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  gap: 0.3rem;
+  min-width: 32px;
   height: 32px;
-  padding: 0;
+  padding: 0 0.55rem;
   border-radius: 8px;
   border: none;
   background: transparent;
   color: #a8a29e;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .toolButton:hover:not(:disabled) {
@@ -461,6 +479,70 @@
 .toolButtonIcon {
   font-size: 18px;
   line-height: 1;
+}
+
+.toolButtonLabel {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.inputToolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* 파일 첨부 — 운명 상담사와 동일 패턴 */
+.fileInput {
+  display: none;
+}
+
+.fileName {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 160px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  color: #57534e;
+}
+
+.fileIcon {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.fileNotice {
+  font-size: 12px;
+  color: #57534e;
+  padding: 0.1rem 0.4rem;
+}
+
+/* 입력 지우기(X) — 운명 상담사와 동일. 미리 채워진 후속질문/입력을 한 번에
+   비워 새 질문을 쓰기 쉽게. */
+.clearButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #a8a29e;
+  cursor: pointer;
+  font-size: 14px;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.clearButton:hover {
+  background: #f5f5f4;
+  color: #57534e;
 }
 
 /* 타로/차트 입력-툴바 버튼은 모바일에서만 — 데스크탑(≥1024px)은 사이드바
@@ -508,7 +590,9 @@
   font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
   text-align: left;
   width: 100%;
 }
@@ -544,8 +628,14 @@
 }
 
 @keyframes followUpSlideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .followUpLabel {
@@ -584,12 +674,25 @@
   box-shadow: 0 4px 12px rgba(28, 25, 23, 0.08);
 }
 
-.followUpChip:active { transform: translateY(0); }
+.followUpChip:active {
+  transform: translateY(0);
+}
 
-.followUpIcon { font-size: 14px; }
+.followUpIcon {
+  font-size: 14px;
+}
 
 @media (max-width: 640px) {
-  .followUpContainer { padding: 12px 16px; }
-  .followUpButtons { flex-direction: column; gap: 8px; }
-  .followUpChip { width: 100%; justify-content: center; padding: 12px 16px; }
+  .followUpContainer {
+    padding: 12px 16px;
+  }
+  .followUpButtons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .followUpChip {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+  }
 }

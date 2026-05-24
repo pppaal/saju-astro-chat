@@ -2,11 +2,11 @@
 
 import dynamic from 'next/dynamic'
 
-import PageLoading from '@/components/ui/PageLoading'
+import BrandSplash from '@/components/branding/BrandSplash'
 
 const TarotHistoryClient = dynamic(() => import('./TarotHistoryClient'), {
   ssr: false,
-  loading: () => <PageLoading variant="card" />,
+  loading: () => <BrandSplash />,
 })
 
 export default function TarotHistoryPage() {

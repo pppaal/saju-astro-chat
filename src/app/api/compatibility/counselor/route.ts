@@ -208,6 +208,7 @@ export async function POST(req: NextRequest) {
       fullContext,
       lang = context.locale,
       messages = [],
+      cvText,
     } = validationResult.data
 
     const trimmedHistory = clampMessages(messages)
@@ -362,8 +363,13 @@ export async function POST(req: NextRequest) {
             .slice(0, lastUserIdxInDialog)
             .map((m) => ({ role: m.role, content: guardText(m.content, 400) }))
         : []
-    const userQuestion = lastUser ? guardText(lastUser.content, 600) : ''
-
+    const rawUserQuestion = lastUser ? guardText(lastUser.content, 600) : ''
+    // Prepend the user's attached file (if any) as XML-tagged context on the
+    // current turn — same approach as the destiny counselor (realtime route).
+    const attachmentText = typeof cvText === 'string' ? cvText.trim().slice(0, 8000) : ''
+    const userQuestion = attachmentText
+      ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserQuestion}`
+      : rawUserQuestion
 
     // Format persons info. 라벨을 A/B로 통일해 커플 매트릭스의 "A의 갑목 일간
     // ↔ B의 기토 일간" 같은 prose 셀과 매핑이 즉시 명확하다. 이름이 있으면
@@ -472,13 +478,13 @@ export async function POST(req: NextRequest) {
             'Tone: warm, empathetic mentor. Conversational, not analytical or clinical.',
             '',
             'Rules:',
-            '- ★Fixed facts: each person\'s day-master element, the control (극) direction, and which planet belongs to whom in the astro cross must match exactly what the == 시너스트리 == [고정 매핑] / [CRITICAL] lines state. Never swap who has which element, who controls/refines whom, or whose Moon/Mars is whose. Reversing it is a factual error.',
+            "- ★Fixed facts: each person's day-master element, the control (극) direction, and which planet belongs to whom in the astro cross must match exactly what the == 시너스트리 == [고정 매핑] / [CRITICAL] lines state. Never swap who has which element, who controls/refines whom, or whose Moon/Mars is whose. Reversing it is a factual error.",
             '- ★Weighting: the == 시너스트리 == is sorted into [CRITICAL] / [IMPORTANT] / [참고] tiers. Center your answer on CRITICAL. Treat [참고] (generational outer-planet conjunctions, partial samhap/banghap, identical house overlays) as "common to their generation, not unique to them" — mention lightly or skip. Never weight wide-orb / generational signals equal to the core ones.',
             '- Answer about the relationship dynamic. Never analyze only one person.',
             '- Fuse saju and astrology in one flow. No system-split.',
             '- When the two systems point the same way for one side (e.g. A saju wood-growth + A Jupiter expansion), weave them into one metaphor/story, not parallel listings.',
             '- No markdown headers (##) or numbered lists. Plain prose paragraphs.',
-            '- If [Meta] has birthTimeUnknown=true for a side: do not cite that side\'s hour pillar / 일진 / ASC / MC / houses. If birthCityUnknown=true: skip that side\'s place-dependent claims.',
+            "- If [Meta] has birthTimeUnknown=true for a side: do not cite that side's hour pillar / 일진 / ASC / MC / houses. If birthCityUnknown=true: skip that side's place-dependent claims.",
             "- Never reveal you're an AI / model / counselor system.",
             '- Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.',
             '- Exception: if the user asks *directly using a term* ("what\'s A\'s Sun sign?", "how about our Moon square?"), use the term and answer briefly. Don\'t dodge.',
@@ -510,26 +516,60 @@ export async function POST(req: NextRequest) {
     let sajuSynastryBlock = ''
     let astroSynastryBlock = ''
     try {
-      const aP = (effectivePerson1Saju as { pillars?: Record<string, { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }> } | null)?.pillars
-      const bP = (effectivePerson2Saju as { pillars?: Record<string, { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }> } | null)?.pillars
+      const aP = (
+        effectivePerson1Saju as {
+          pillars?: Record<
+            string,
+            { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
+          >
+        } | null
+      )?.pillars
+      const bP = (
+        effectivePerson2Saju as {
+          pillars?: Record<
+            string,
+            { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
+          >
+        } | null
+      )?.pillars
       if (aP && bP) {
-        const toPair = (p: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } } | undefined) => ({
+        const toPair = (
+          p: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } } | undefined
+        ) => ({
           stem: p?.heavenlyStem?.name ?? '',
           branch: p?.earthlyBranch?.name ?? '',
         })
-        const aDae = (effectivePerson1Saju as { daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } } | null } | null)?.daeWoon?.current
-        const bDae = (effectivePerson2Saju as { daeWoon?: { current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number } } | null } | null)?.daeWoon?.current
+        const aDae = (
+          effectivePerson1Saju as {
+            daeWoon?: {
+              current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number }
+            } | null
+          } | null
+        )?.daeWoon?.current
+        const bDae = (
+          effectivePerson2Saju as {
+            daeWoon?: {
+              current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number }
+            } | null
+          } | null
+        )?.daeWoon?.current
         sajuSynastryBlock = formatSajuSynastry({
           pillarsA: [toPair(aP.year), toPair(aP.month), toPair(aP.day), toPair(aP.time)],
           pillarsB: [toPair(bP.year), toPair(bP.month), toPair(bP.day), toPair(bP.time)],
-          currentDaeunA: aDae ? { stem: aDae.heavenlyStem ?? '', branch: aDae.earthlyBranch ?? '', age: aDae.age } : null,
-          currentDaeunB: bDae ? { stem: bDae.heavenlyStem ?? '', branch: bDae.earthlyBranch ?? '', age: bDae.age } : null,
+          currentDaeunA: aDae
+            ? { stem: aDae.heavenlyStem ?? '', branch: aDae.earthlyBranch ?? '', age: aDae.age }
+            : null,
+          currentDaeunB: bDae
+            ? { stem: bDae.heavenlyStem ?? '', branch: bDae.earthlyBranch ?? '', age: bDae.age }
+            : null,
           nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
           nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
         })
       }
     } catch (err) {
-      logger.warn('[compat counselor] saju synastry failed', { err: err instanceof Error ? err.message : String(err) })
+      logger.warn('[compat counselor] saju synastry failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
     }
     if (person1Seed && person2Seed && process.env.NODE_ENV !== 'test') {
       try {
@@ -540,25 +580,41 @@ export async function POST(req: NextRequest) {
         if ([Y1, M1, D1, h1, mi1, Y2, M2, D2, h2, mi2].every(Number.isFinite)) {
           const [natalA, natalB] = await Promise.all([
             calculateNatalChart({
-              year: Y1, month: M1, date: D1, hour: h1, minute: mi1,
-              latitude: person1Seed.latitude, longitude: person1Seed.longitude, timeZone: person1Seed.timeZone,
+              year: Y1,
+              month: M1,
+              date: D1,
+              hour: h1,
+              minute: mi1,
+              latitude: person1Seed.latitude,
+              longitude: person1Seed.longitude,
+              timeZone: person1Seed.timeZone,
             }),
             calculateNatalChart({
-              year: Y2, month: M2, date: D2, hour: h2, minute: mi2,
-              latitude: person2Seed.latitude, longitude: person2Seed.longitude, timeZone: person2Seed.timeZone,
+              year: Y2,
+              month: M2,
+              date: D2,
+              hour: h2,
+              minute: mi2,
+              latitude: person2Seed.latitude,
+              longitude: person2Seed.longitude,
+              timeZone: person2Seed.timeZone,
             }),
           ])
           astroSynastryBlock = formatAstroSynastry({
             chartA: toChart(natalA),
             chartB: toChart(natalB),
-            latA: person1Seed.latitude, lonA: person1Seed.longitude,
-            latB: person2Seed.latitude, lonB: person2Seed.longitude,
+            latA: person1Seed.latitude,
+            lonA: person1Seed.longitude,
+            latB: person2Seed.latitude,
+            lonB: person2Seed.longitude,
             nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
             nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
           })
         }
       } catch (err) {
-        logger.warn('[compat counselor] astro synastry failed', { err: err instanceof Error ? err.message : String(err) })
+        logger.warn('[compat counselor] astro synastry failed', {
+          err: err instanceof Error ? err.message : String(err),
+        })
       }
     }
 
@@ -688,7 +744,8 @@ export async function POST(req: NextRequest) {
     // message) so the next failure shows up directly in the chat
     // bubble — no stack trace, no internals. Remove once stable.
     const errName = error instanceof Error ? error.name : 'UnknownError'
-    const errMsg = error instanceof Error ? error.message.slice(0, 120) : String(error).slice(0, 120)
+    const errMsg =
+      error instanceof Error ? error.message.slice(0, 120) : String(error).slice(0, 120)
     return NextResponse.json(
       { error: 'Internal server error', errorTag: `${errName}: ${errMsg}` },
       { status: HTTP_STATUS.SERVER_ERROR }

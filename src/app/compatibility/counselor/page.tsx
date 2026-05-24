@@ -13,6 +13,9 @@ import { runQuickCoupleTarot } from './runQuickCoupleTarot'
 import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
+import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
+import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
 
 // Short, one-line prompts that cycle through the textarea placeholder.
 // The original single-string placeholder ("두 사람에 대해 깊이 있는 질문을
@@ -83,6 +86,13 @@ function CompatibilityCounselorContent() {
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showChartModal, setShowChartModal] = useState(false)
+  // 파일 첨부 — 운명 상담사와 동일한 훅. 업로드 텍스트(cvText)는 sendMessage
+  // payload 로 전달돼 라우트가 현재 턴 프롬트에 주입한다.
+  const [fileNotice, setFileNotice] = useState<string | null>(null)
+  const { cvText, cvName, parsingPdf, handleFileUpload } = useFileUpload({
+    lang: locale,
+    setNotice: setFileNotice,
+  })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -353,6 +363,7 @@ function CompatibilityCounselorContent() {
             lang: locale,
             messages: recentHistory,
             useRag: true,
+            ...(cvText ? { cvText } : {}),
           }),
         })
 
@@ -409,11 +420,14 @@ function CompatibilityCounselorContent() {
             logger.warn('[CompatCounselor] stream error', { error: err })
           },
         })
-        // LLM-generated follow-up chips. Only set when we got the
-        // expected 2 — otherwise leave empty (no hardcoded fallback on
-        // compat side; destiny has one, compat keeps it clean).
+        // 운명 상담사와 동일하게 — LLM이 후속질문을 2개 미만으로 주면
+        // generateFollowUpQuestions 로 채워 "이어서 물어보기" 칩이 항상 뜨게 한다.
         if (result.followUps.length >= 2) {
           setFollowUpQuestions(result.followUps.slice(0, 2))
+        } else {
+          setFollowUpQuestions(
+            generateFollowUpQuestions(text, locale === 'ko' ? 'ko' : 'en', 2, finalAssistantContent)
+          )
         }
 
         // Persist the exchange so it shows up in the past-chats sidebar
@@ -498,6 +512,7 @@ function CompatibilityCounselorContent() {
       locale,
       isKo,
       chatSessionId,
+      cvText,
     ]
   )
 
@@ -668,7 +683,7 @@ function CompatibilityCounselorContent() {
                     ) : isUser ? (
                       msg.content
                     ) : (
-                      <MarkdownMessage content={msg.content} />
+                      <MarkdownMessage content={stripReportMarkdown(msg.content)} theme="light" />
                     )}
                   </div>
                 </div>
@@ -724,23 +739,47 @@ function CompatibilityCounselorContent() {
           </div>
 
           {/* Input — Claude-style: textarea on top, action row below.
-            Desktop: 📎 attach + ▶ send (타로·차트는 사이드바 푸터).
-            Mobile: 📎 attach + 🎴 couple tarot + ✨ couple chart + ▶ send. */}
+            Desktop: 🎴 타로 + ✨ 차트는 사이드바 푸터, 입력엔 ✕ 지우기 + ▶ 전송.
+            Mobile: 🎴 couple tarot + ✨ couple chart + ✕ 지우기 + ▶ send. */}
           <div className={styles.inputContainer}>
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={(e) => {
+                // 운명 상담사와 동일 — 미리 채워진 후속질문을 탭하면 전체 선택해
+                // 바로 보내거나 타이핑으로 덮어쓰기 쉽게.
+                if (e.currentTarget.value.trim()) e.currentTarget.select()
+              }}
               placeholder={
                 animatedPlaceholder || (isKo ? '질문을 입력하세요…' : 'Type a question…')
               }
               className={styles.input}
               rows={3}
+              maxLength={2000}
               disabled={isLoading}
             />
             <div className={styles.inputToolbar}>
               <div className={styles.inputToolbarLeft}>
+                {/* 📎 파일 첨부 — 운명 상담사와 동일. 항상 노출. */}
+                <label
+                  className={styles.toolButton}
+                  aria-label={isKo ? '파일 첨부' : 'Attach file'}
+                  title={
+                    isKo
+                      ? '관계 메모·대화 등 파일 첨부 (txt/md/csv/pdf)'
+                      : 'Attach a file (txt/md/csv/pdf)'
+                  }
+                >
+                  <span className={styles.toolButtonIcon}>📎</span>
+                  <input
+                    type="file"
+                    accept=".txt,.md,.csv,.pdf"
+                    className={styles.fileInput}
+                    onChange={handleFileUpload}
+                  />
+                </label>
                 {/* 🎴 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
                     사이드바 푸터에 같은 둘이 있어 ≥1024px에선 중복을 피해 숨긴다. */}
                 <button
@@ -752,6 +791,7 @@ function CompatibilityCounselorContent() {
                   title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
                 >
                   <span className={styles.toolButtonIcon}>🎴</span>
+                  <span className={styles.toolButtonLabel}>{isKo ? '타로' : 'Tarot'}</span>
                 </button>
                 <button
                   type="button"
@@ -762,24 +802,51 @@ function CompatibilityCounselorContent() {
                   title={isKo ? '궁합 차트 보기' : 'View couple chart'}
                 >
                   <span className={styles.toolButtonIcon}>✨</span>
+                  <span className={styles.toolButtonLabel}>{isKo ? '궁합차트' : 'Chart'}</span>
+                </button>
+                {parsingPdf && (
+                  <span className={styles.fileName}>
+                    <span className={styles.loadingSpinner} />
+                    {isKo ? 'PDF 읽는 중…' : 'Parsing…'}
+                  </span>
+                )}
+                {cvName && !parsingPdf && (
+                  <span className={styles.fileName}>
+                    <span className={styles.fileIcon}>✓</span>
+                    {cvName}
+                  </span>
+                )}
+              </div>
+              <div className={styles.inputToolbarRight}>
+                {input.trim() && !isLoading && (
+                  <button
+                    type="button"
+                    onClick={() => setInput('')}
+                    className={styles.clearButton}
+                    aria-label={isKo ? '입력 지우기' : 'Clear input'}
+                    title={isKo ? '입력 지우기' : 'Clear input'}
+                  >
+                    <span aria-hidden="true">✕</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => sendMessage()}
+                  disabled={!input.trim() || isLoading}
+                  className={styles.sendButton}
+                  aria-label={isKo ? '전송' : 'Send'}
+                >
+                  {isLoading ? (
+                    <span className={styles.loadingSpinner} />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
+                  )}
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={() => sendMessage()}
-                disabled={!input.trim() || isLoading}
-                className={styles.sendButton}
-                aria-label={isKo ? '전송' : 'Send'}
-              >
-                {isLoading ? (
-                  <span className={styles.loadingSpinner} />
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                  </svg>
-                )}
-              </button>
             </div>
+            {fileNotice && <div className={styles.fileNotice}>{fileNotice}</div>}
           </div>
         </div>
       </div>
