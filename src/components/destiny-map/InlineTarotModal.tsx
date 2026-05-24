@@ -3,6 +3,7 @@
 import React, { memo, useEffect } from 'react'
 import TarotCard from '@/components/tarot/TarotCard'
 import type { Spread } from '@/lib/tarot/tarot.types'
+import { splitReadableText } from '@/lib/tarot/splitReadableText'
 import styles from './InlineTarotModal.module.css'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useInlineTarotState, useInlineTarotAPI, getTarotTranslations, type LangKey } from './hooks'
@@ -558,9 +559,13 @@ function ResultStep({
               image={dc.card.image}
               isReversed={dc.isReversed}
               position={
-                lang === 'ko'
+                // 자리명은 메인 타로와 동일하게 LLM 이 명명한 cardInsights[idx].position
+                // 을 우선 사용. 동적 스프레드는 selectedSpread.positions 가 비어 있어
+                // 폴백만으론 라벨이 빈다.
+                cardInsights[idx]?.position ||
+                (lang === 'ko'
                   ? selectedSpread?.positions[idx]?.titleKo || selectedSpread?.positions[idx]?.title
-                  : selectedSpread?.positions[idx]?.title
+                  : selectedSpread?.positions[idx]?.title)
               }
               keywords={
                 dc.isReversed
@@ -594,11 +599,18 @@ function ResultStep({
         </button>
       </div>
 
-      {/* Overall Message */}
+      {/* Overall Message — split into readable paragraphs to match the main
+          tarot counselor's format (was one plain wall-of-text block). */}
       {overallMessage && (
         <div className={styles.resultSection}>
           <h4 className={styles.resultSectionTitle}>✨ {tr.overallMessage}</h4>
-          <p className={styles.resultText}>{overallMessage}</p>
+          <div className={styles.resultTextGroup}>
+            {splitReadableText(overallMessage).map((para, i) => (
+              <p key={i} className={styles.resultText}>
+                {para}
+              </p>
+            ))}
+          </div>
         </div>
       )}
 
@@ -606,7 +618,13 @@ function ResultStep({
       {guidance && (
         <div className={styles.resultSection}>
           <h4 className={styles.resultSectionTitle}>💫 {tr.guidance}</h4>
-          <p className={styles.resultText}>{guidance}</p>
+          <div className={styles.resultTextGroup}>
+            {splitReadableText(guidance).map((para, i) => (
+              <p key={i} className={styles.resultText}>
+                {para}
+              </p>
+            ))}
+          </div>
         </div>
       )}
 

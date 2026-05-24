@@ -597,6 +597,14 @@
   margin: 0 0 14px;
 }
 
+/* Stacks split paragraphs with breathing room — matches the main tarot
+   counselor's readable multi-paragraph layout instead of one wall of text. */
+.resultTextGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+}
+
 .resultText {
   font-size: 1.2rem;
   color: #1c1917;
