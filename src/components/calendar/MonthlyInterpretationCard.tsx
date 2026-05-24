@@ -39,8 +39,12 @@ export default function MonthlyInterpretationCard({
   const grade = getGrade(monthScore, gradeThresholds)
   const verdict = VERDICT[grade.key]
   const top = topTheme(interp)
-  const action = top ? THEME_ACTION[top.theme] : null
-  const bestDate = interp?.keyEvents?.best?.date
+  // "이번 달 조언"은 엔진의 실제 도메인 해석에서 뽑는다(정적 템플릿 대신).
+  // 없으면 테마별 기본 문구로 폴백.
+  const adviceText =
+    (top && deriveAdvice(interp, top.theme)) || (top ? THEME_ACTION[top.theme] : null)
+  const ke = interp?.keyEvents
+  const hasTiming = !!(ke && (ke.best || ke.window || (ke.avoid && ke.avoid.dates.length > 0)))
   // "왜?"는 한 줄로 — 가장 강한 테마에서 깔끔하게 생성. 엔진 monthSummary는
   // 길고 노이즈(영문 누수 등)가 섞여 hero엔 부적합 → firstSentence 폴백으로만.
   const whyLine =
@@ -75,19 +79,44 @@ export default function MonthlyInterpretationCard({
         </div>
       </div>
 
-      {/* ── 지금 할 일 ── */}
-      {action && (
-        <div className="flex items-start gap-2 bg-black/20 rounded-xl px-4 py-3">
-          <span className="text-indigo-300 font-bold shrink-0">▸</span>
-          <div className="min-w-0">
-            <div className="text-[11px] font-bold text-indigo-300 tracking-wide mb-0.5">
-              지금 할 일
+      {/* ── 이번 달 조언 (엔진 실제 도메인 해석 + 구체 타이밍) ── */}
+      {(adviceText || hasTiming) && (
+        <div className="bg-black/20 rounded-xl px-4 py-3 space-y-2.5">
+          {adviceText && (
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[11px] font-bold text-indigo-300 tracking-wide">
+                  이번 달 조언
+                </span>
+                {top && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-200 font-bold">
+                    {THEME_LABEL[top.theme] ?? top.theme}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-zinc-100 leading-relaxed">{adviceText}</p>
             </div>
-            <div className="text-sm text-zinc-100 leading-snug">
-              {action}
-              {bestDate && <span className="text-zinc-400"> · {fmtDate(bestDate)}쯤</span>}
+          )}
+          {hasTiming && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] border-t border-white/5 pt-2">
+              {ke!.best && (
+                <span className="text-emerald-300 font-semibold">
+                  <span aria-hidden>🎯</span> 추진 {fmtMd(ke!.best.date)}
+                </span>
+              )}
+              {ke!.window && (
+                <span className="text-indigo-300 font-semibold">
+                  <span aria-hidden>💫</span> 강한 구간 {fmtMd(ke!.window.start)}~
+                  {fmtMd(ke!.window.end)}
+                </span>
+              )}
+              {ke!.avoid && ke!.avoid.dates.length > 0 && (
+                <span className="text-rose-300 font-semibold">
+                  <span aria-hidden>⚠️</span> 보류 {ke!.avoid.dates.map(fmtMd).join('·')}
+                </span>
+              )}
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -212,6 +241,50 @@ function topTheme(
     }
   }
   return best
+}
+
+/** 테마 → 엔진 도메인 섹션 id 매핑. */
+const THEME_TO_SECTION: Record<'love' | 'money' | 'career' | 'health' | 'growth', string> = {
+  money: 'domain-money',
+  career: 'domain-work',
+  love: 'domain-relations',
+  health: 'domain-body',
+  growth: 'domain-growth',
+}
+
+/**
+ * "이번 달 조언" — 가장 강한 테마의 엔진 도메인 해석에서 실제 문장을 뽑는다.
+ * 마크다운·이모지·"특히 강한 날/주의 날" 꼬리·선두 라벨(— )을 정리하고 앞 2문장만.
+ * 정적 템플릿 대신 엔진의 구체 조언을 노출 ("조언이 부실하다" 피드백 반영).
+ */
+function deriveAdvice(
+  interp: Interpretation | undefined,
+  theme: 'love' | 'money' | 'career' | 'health' | 'growth'
+): string | null {
+  const sec = interp?.sections.find((s) => s.section === THEME_TO_SECTION[theme])
+  if (!sec) return null
+  let t = stripMarkdown(sec.text)
+  // 이모지 제거
+  t = t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}️‍]/gu, '')
+  // "특히 강한 날: ..." / "주의 날: ..." 꼬리 제거 (날짜는 타이밍 줄에서 따로 보여줌)
+  t = t.replace(/(특히 강한 날|주의 날)\s*[:：][^.]*\.?/g, '')
+  // 선두 라벨 "영성·내면 — " 제거
+  t = t.replace(/^\s*[^—–:.]{0,16}[—–]\s*/, '')
+  // 콜론 뒤 라벨 "...: 일·커리어 — " 제거
+  t = t.replace(/([:：])\s*[^—–:.]{0,12}[—–]\s*/g, '$1 ')
+  t = t.replace(/\s+/g, ' ').trim()
+  const sents = t
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 5)
+  const out = sents.slice(0, 2).join(' ')
+  return out.length > 0 ? out : null
+}
+
+/** "MM-DD" → "M/D" (타이밍 칩 — 짧게). */
+function fmtMd(mmdd: string): string {
+  const [m, d] = mmdd.split('-')
+  return m && d ? `${Number(m)}/${Number(d)}` : mmdd
 }
 
 /** "왜?" 한 줄 — 가장 강한 테마 1~2개로 깔끔하게. */
