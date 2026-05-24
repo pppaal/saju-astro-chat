@@ -7,7 +7,7 @@ import styles from './result.module.css'
 import { logger } from '@/lib/logger'
 import { analyzeDestiny } from '@/components/destiny-map/Analyzer'
 import FreeReport from '@/components/destiny-map/FreeReport'
-import AnalyzingLoader from './AnalyzingLoader'
+import BrandSplash from '@/components/branding/BrandSplash'
 import { useI18n } from '@/i18n/I18nProvider'
 import { normalizeGender } from '@/lib/utils/gender'
 import BackButton from '@/components/ui/BackButton'
@@ -148,12 +148,7 @@ export default function DestinyResultPage({
   // ⏳ 상태별 렌더링
   // ------------------------------------------------------------ //
   if (loading) {
-    return (
-      <>
-        {navHamburger}
-        <AnalyzingLoader />
-      </>
-    )
+    return <BrandSplash />
   }
 
   if (error) {
