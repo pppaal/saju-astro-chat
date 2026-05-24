@@ -87,12 +87,6 @@
   }
 }
 
-.headerLeft {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 .title {
   font-family: 'Cinzel', serif;
   font-size: 2rem;
@@ -112,35 +106,6 @@
 }
 
 /* View Toggle */
-.viewToggle {
-  display: flex;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  border-radius: 12px;
-  padding: 4px;
-  gap: 4px;
-}
-
-.viewButton {
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.viewButton:hover {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.viewButtonActive {
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
-  color: #fff;
-}
 
 /* Likes Counter */
 .likesCounter {
@@ -178,212 +143,18 @@
 }
 
 /* Card Stack */
-.cardStack {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
 
 /* Profile Card */
-.profileCard {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px solid rgba(167, 139, 250, 0.3);
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
-  transition:
-    transform 0.3s ease,
-    opacity 0.3s ease;
-  user-select: none;
-  -webkit-user-select: none;
-}
 
 /* Next Card Preview */
-.nextCard {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(167, 139, 250, 0.2);
-  border-radius: 24px;
-  overflow: hidden;
-  transform: scale(0.95);
-  opacity: 0.6;
-  pointer-events: none;
-}
 
 /* Swipe Indicators */
-.swipeIndicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 6rem;
-  font-weight: 900;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-  z-index: 10;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-.likeIndicator {
-  color: #10b981;
-  text-shadow: 0 0 40px rgba(16, 185, 129, 0.8);
-}
-
-.nopeIndicator {
-  color: #ef4444;
-  text-shadow: 0 0 40px rgba(239, 68, 68, 0.8);
-}
 
 /* Card Photo */
-.cardPhoto {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.photoMain {
-  position: relative;
-  flex: 1;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 8rem;
-  filter: drop-shadow(0 8px 32px rgba(167, 139, 250, 0.6));
-}
-
-.photoGallery {
-  position: absolute;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
-  z-index: 5;
-}
-
-.photoIndicator {
-  width: 40px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  transition: background 0.3s ease;
-}
-
-.photoIndicatorActive {
-  background: rgba(255, 255, 255, 0.9);
-}
 
 /* Card Info */
-.cardInfo {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 2rem;
-  background: linear-gradient(to top, rgba(10, 5, 16, 0.98), transparent);
-}
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.cardName {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.verifiedBadge {
-  font-size: 1.2rem;
-  filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.6));
-}
-
-.cardDetails {
-  display: flex;
-  gap: 12px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
-  margin-bottom: 0.75rem;
-}
-
-.cardBio {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.cardTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 1rem;
-}
-
-.cardTag {
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  background: rgba(139, 92, 246, 0.25);
-  border: 1px solid rgba(167, 139, 250, 0.4);
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.cardInterests {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.cardInterestTag {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.75);
-}
 
 /* Compatibility Badge */
-.compatibilityBadge {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #10b981, #059669);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #fff;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
-  z-index: 5;
-  animation: pulse 2s ease-in-out infinite;
-}
 
 /* Action Buttons */
 .actionButtons {
@@ -484,81 +255,6 @@
 }
 
 /* Filters Panel */
-.filtersPanel {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(167, 139, 250, 0.2);
-  border-radius: 20px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  animation: fadeInUp 0.6s ease-out 0.8s both;
-}
-
-.filterHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.filterTitle {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
-  margin: 0;
-}
-
-.filterToggle {
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  border-radius: 8px;
-  padding: 6px 14px;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.filterToggle:hover {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(167, 139, 250, 0.5);
-}
-
-.filterGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.filterGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filterLabel {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.filterSelect {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(167, 139, 250, 0.2);
-  border-radius: 10px;
-  padding: 10px 14px;
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 14px;
-  outline: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.filterSelect:focus {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
-}
 
 .filterSelect option {
   background: #1a0f2e;
@@ -566,214 +262,10 @@
 }
 
 /* Grid View */
-.gridContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  animation: fadeInUp 0.6s ease-out 0.4s both;
-}
-
-.gridCard {
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(167, 139, 250, 0.2);
-  border-radius: 20px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: slideInCard 0.6s ease-out both;
-}
-
-@keyframes slideInCard {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.gridCard:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 48px rgba(139, 92, 246, 0.3);
-  border-color: rgba(167, 139, 250, 0.4);
-}
-
-.gridPhoto {
-  height: 200px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 4rem;
-  position: relative;
-  filter: drop-shadow(0 4px 20px rgba(167, 139, 250, 0.4));
-}
-
-.gridInfo {
-  padding: 1.25rem;
-}
-
-.gridName {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.gridDetails {
-  display: flex;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-  margin-bottom: 0.75rem;
-}
-
-.gridTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.gridTag {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  color: rgba(255, 255, 255, 0.9);
-}
 
 /* No More Cards */
-.noMoreCards {
-  text-align: center;
-  padding: 4rem 2rem;
-  animation: fadeInUp 0.6s ease-out both;
-}
 
 /* Status Screen (Login Required, Setup Needed, etc.) */
-.statusScreen {
-  text-align: center;
-  padding: 3rem 2rem;
-  max-width: 480px;
-  margin: 0 auto;
-  animation: fadeInUp 0.6s ease-out both;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-}
-
-.statusIconContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  position: relative;
-  height: 100px;
-}
-
-.statusIcon {
-  font-size: 4rem;
-  animation: floatStar 3s ease-in-out infinite;
-  filter: drop-shadow(0 4px 20px rgba(167, 139, 250, 0.6));
-}
-
-@keyframes floatStar {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  33% {
-    transform: translateY(-12px) rotate(5deg);
-  }
-  66% {
-    transform: translateY(8px) rotate(-5deg);
-  }
-}
-
-.statusTitle {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 1rem;
-  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #f59e0b 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.3;
-}
-
-.statusText {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 1.05rem;
-  line-height: 1.7;
-  margin: 0 0 2.5rem;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.statusButton {
-  background: linear-gradient(135deg, #8b5cf6, #ec4899);
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.1rem;
-  padding: 16px 40px;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 12px 40px rgba(167, 139, 250, 0.5);
-  min-width: 200px;
-}
-
-.statusButton:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 20px 60px rgba(167, 139, 250, 0.7);
-}
-
-.statusButton:active {
-  transform: translateY(-2px) scale(1.02);
-}
-
-.noMoreIcon {
-  font-size: 5rem;
-  margin-bottom: 1.5rem;
-  opacity: 0.6;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-15px);
-  }
-}
-
-.noMoreTitle {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0 0 1rem;
-}
-
-.noMoreText {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1.1rem;
-  line-height: 1.6;
-  max-width: 500px;
-  margin: 0 auto 2rem;
-}
 
 .resetButton {
   background: linear-gradient(135deg, #8b5cf6, #ec4899);
@@ -864,26 +356,6 @@
   transform: rotate(90deg);
 }
 
-.modalPhotoSection {
-  position: relative;
-  height: 350px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10rem;
-  border-radius: 24px 24px 0 0;
-  filter: drop-shadow(0 8px 32px rgba(167, 139, 250, 0.6));
-}
-
-.modalBody {
-  padding: 2rem;
-}
-
-.modalHeader {
-  margin-bottom: 2rem;
-}
-
 .modalName {
   font-size: 2rem;
   font-weight: 800;
@@ -894,59 +366,14 @@
   gap: 10px;
 }
 
-.modalDetails {
-  display: flex;
-  gap: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.modalCompatibility {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #10b981;
-  margin-bottom: 1.5rem;
-}
-
 .modalSection {
   margin-bottom: 2rem;
-}
-
-.modalSectionTitle {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
-  margin: 0 0 1rem;
 }
 
 .modalBio {
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.7;
   font-size: 0.95rem;
-}
-
-.modalTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.modalTag {
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  color: rgba(255, 255, 255, 0.95);
 }
 
 .modalInterests {
@@ -968,21 +395,6 @@
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
-}
-
-.modalActionButton {
-  flex: 1;
-  padding: 14px 28px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
 }
 
 .modalPassButton {
@@ -1052,18 +464,6 @@
     max-height: 500px;
   }
 
-  .photoMain {
-    font-size: 6rem;
-  }
-
-  .cardInfo {
-    padding: 1.5rem;
-  }
-
-  .cardName {
-    font-size: 1.5rem;
-  }
-
   .actionButtons {
     gap: 1rem;
   }
@@ -1080,57 +480,8 @@
     font-size: 1.25rem;
   }
 
-  .filtersPanel {
-    padding: 1.25rem;
-  }
-
-  .filterGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .gridContainer {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .statusScreen {
-    padding: 2rem 1rem;
-  }
-
-  .statusIconContainer {
-    gap: 1rem;
-    height: 80px;
-    margin-bottom: 1.5rem;
-  }
-
-  .statusIcon {
-    font-size: 3rem;
-  }
-
-  .statusTitle {
-    font-size: 1.5rem;
-  }
-
-  .statusText {
-    font-size: 0.95rem;
-  }
-
-  .statusButton {
-    font-size: 1rem;
-    padding: 14px 32px;
-  }
-
   .modal {
     padding: 1rem;
-  }
-
-  .modalPhotoSection {
-    height: 250px;
-    font-size: 7rem;
-  }
-
-  .modalBody {
-    padding: 1.5rem;
   }
 
   .modalName {
@@ -1167,16 +518,6 @@
     font-size: 0.8rem;
   }
 
-  .viewToggle {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .viewButton {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-
   .likesCounter {
     padding: 8px 14px;
     font-size: 0.9rem;
@@ -1188,54 +529,6 @@
     height: min(450px, calc(100vh - 160px));
     max-height: 450px;
     margin-bottom: 1.5rem;
-  }
-
-  .photoMain {
-    font-size: 5rem;
-  }
-
-  .cardInfo {
-    padding: 1.25rem;
-  }
-
-  .cardName {
-    font-size: 1.3rem;
-    gap: 6px;
-  }
-
-  .verifiedBadge {
-    font-size: 1rem;
-  }
-
-  .cardDetails {
-    gap: 8px;
-    font-size: 0.85rem;
-  }
-
-  .cardBio {
-    font-size: 0.85rem;
-  }
-
-  .cardTags {
-    gap: 6px;
-  }
-
-  .cardTag {
-    padding: 5px 10px;
-    font-size: 12px;
-  }
-
-  .cardInterestTag {
-    padding: 3px 8px;
-    font-size: 11px;
-  }
-
-  .compatibilityBadge {
-    width: 56px;
-    height: 56px;
-    font-size: 1rem;
-    top: 1rem;
-    right: 1rem;
   }
 
   .actionButtons {
@@ -1255,95 +548,6 @@
     font-size: 1.1rem;
   }
 
-  .filtersPanel {
-    padding: 1rem;
-    border-radius: 16px;
-    margin-bottom: 1.5rem;
-  }
-
-  .filterTitle {
-    font-size: 1.05rem;
-  }
-
-  .filterToggle {
-    padding: 5px 12px;
-    font-size: 12px;
-  }
-
-  .filterLabel {
-    font-size: 12px;
-  }
-
-  .filterSelect {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-
-  .gridPhoto {
-    height: 180px;
-    font-size: 3.5rem;
-  }
-
-  .gridInfo {
-    padding: 1rem;
-  }
-
-  .gridName {
-    font-size: 1.15rem;
-  }
-
-  .gridDetails {
-    font-size: 0.8rem;
-    gap: 8px;
-  }
-
-  .gridTag {
-    padding: 3px 8px;
-    font-size: 11px;
-  }
-
-  .statusScreen {
-    padding: 1.5rem 0.75rem;
-  }
-
-  .statusIconContainer {
-    gap: 0.75rem;
-    height: 70px;
-    margin-bottom: 1.25rem;
-  }
-
-  .statusIcon {
-    font-size: 2.5rem;
-  }
-
-  .statusTitle {
-    font-size: 1.3rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .statusText {
-    font-size: 0.9rem;
-    margin-bottom: 2rem;
-  }
-
-  .statusButton {
-    font-size: 0.95rem;
-    padding: 12px 28px;
-    min-width: 180px;
-  }
-
-  .noMoreIcon {
-    font-size: 4rem;
-  }
-
-  .noMoreTitle {
-    font-size: 1.4rem;
-  }
-
-  .noMoreText {
-    font-size: 0.95rem;
-  }
-
   .resetButton {
     padding: 12px 26px;
     font-size: 1rem;
@@ -1361,52 +565,18 @@
     right: 1rem;
   }
 
-  .modalPhotoSection {
-    height: 220px;
-    font-size: 6rem;
-  }
-
-  .modalBody {
-    padding: 1.25rem;
-  }
-
   .modalName {
     font-size: 1.35rem;
     gap: 8px;
-  }
-
-  .modalDetails {
-    gap: 10px;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-  }
-
-  .modalCompatibility {
-    padding: 8px 14px;
-    font-size: 1rem;
-  }
-
-  .modalSectionTitle {
-    font-size: 1rem;
   }
 
   .modalBio {
     font-size: 0.9rem;
   }
 
-  .modalTag {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-
   .modalInterestTag {
     padding: 5px 10px;
     font-size: 12px;
-  }
-
-  .modalActionButton {
-    padding: 12px 20px;
-    font-size: 14px;
   }
 }
 
@@ -1430,51 +600,9 @@
     font-size: 1.3rem;
   }
 
-  .statusScreen {
-    padding: 1.25rem 0.5rem;
-  }
-
-  .statusIconContainer {
-    gap: 0.5rem;
-    height: 60px;
-    margin-bottom: 1rem;
-  }
-
-  .statusIcon {
-    font-size: 2rem;
-  }
-
-  .statusTitle {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .statusText {
-    font-size: 0.85rem;
-    margin-bottom: 1.75rem;
-  }
-
-  .statusButton {
-    font-size: 0.9rem;
-    padding: 11px 24px;
-    min-width: 160px;
-  }
-
   .swipeContainer {
     height: min(400px, calc(100vh - 140px));
     max-height: 400px;
-  }
-
-  .photoMain {
-    font-size: 4rem;
-  }
-
-  .cardInfo {
-    padding: 1rem;
-  }
-
-  .cardName {
-    font-size: 1.15rem;
   }
 
   .actionButton {
@@ -1487,24 +615,6 @@
     width: 40px;
     height: 40px;
     font-size: 1rem;
-  }
-
-  .filtersPanel {
-    padding: 0.875rem;
-  }
-
-  .gridPhoto {
-    height: 160px;
-    font-size: 3rem;
-  }
-
-  .modalPhotoSection {
-    height: 180px;
-    font-size: 5rem;
-  }
-
-  .modalBody {
-    padding: 1rem;
   }
 
   .modalName {
@@ -1665,38 +775,6 @@
 /* ============================
    Block / Report UI
    ============================ */
-.moreMenu {
-  position: relative;
-}
-
-.moreMenuBtn {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
-  transition: background 0.2s;
-}
-
-.moreMenuBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-.moreMenuDropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: #1a0f2e;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 12px;
-  overflow: hidden;
-  min-width: 160px;
-  z-index: 100;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
 
 .moreMenuItem {
   display: block;
@@ -1715,143 +793,13 @@
   background: rgba(139, 92, 246, 0.15);
 }
 
-.moreMenuItemDanger {
-  composes: moreMenuItem;
-  color: #ef4444;
-}
-
-.moreMenuItemDanger:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
-
 /* ============================
    Report Modal
    ============================ */
-.reportModal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  padding: 20px;
-}
-
-.reportModalContent {
-  background: #1a0f2e;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 16px;
-  padding: 24px;
-  width: 100%;
-  max-width: 400px;
-}
-
-.reportModalTitle {
-  font-size: 18px;
-  font-weight: 600;
-  color: #e2d1f9;
-  margin: 0 0 16px 0;
-}
-
-.reportCategoryList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.reportCategoryBtn {
-  padding: 10px 14px;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 10px;
-  background: none;
-  color: #e2d1f9;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.reportCategoryBtn:hover,
-.reportCategoryBtnActive {
-  border-color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.15);
-}
-
-.reportTextarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 10px 12px;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  font-size: 14px;
-  resize: vertical;
-  margin-bottom: 16px;
-}
-
-.reportTextarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.reportActions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.reportCancelBtn {
-  padding: 8px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  background: none;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.reportSubmitBtn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.reportSubmitBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 /* ============================
    Message Delete
    ============================ */
-.deletedMessage {
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.messageDeleteBtn {
-  display: none;
-  position: absolute;
-  top: 2px;
-  right: -36px;
-  background: rgba(239, 68, 68, 0.8);
-  border: none;
-  color: #fff;
-  font-size: 14px;
-  width: 32px; /* Improved touch target (hover-only element) */
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-}
 
 .messageWrapper:hover .messageDeleteBtn {
   display: flex;
@@ -1970,29 +918,10 @@
 }
 
 /* Enhanced SwipeCard Dragging State */
-.profileCardDragging {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-  scale: 1.02;
-}
 
 /* Enhanced Swipe Indicators */
-.indicatorIcon {
-  font-size: 2.5rem;
-  display: block;
-  margin-bottom: 0.5rem;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
-}
-
-.indicatorText {
-  font-size: 2.5rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
 
 /* Enhanced Card Header */
-.cardHeaderLeft {
-  flex: 1;
-}
 
 .verified {
   display: inline-flex;
@@ -2008,249 +937,7 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
-.compatibilitySection {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 5;
-}
-
-.compatibilityBadge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 12px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
-  backdrop-filter: blur(10px);
-}
-
-.compatibilityIcon {
-  font-size: 1.5rem;
-}
-
-.compatibilityInfo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.compatibilityValue {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #fff;
-  line-height: 1;
-}
-
-.compatibilityLabel {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.cardLocation {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
-
-.astroTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  background: rgba(139, 92, 246, 0.25);
-  border: 1px solid rgba(167, 139, 250, 0.4);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.synergyBox {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 0.75rem;
-  padding: 10px 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(245, 158, 11, 0.12),
-    rgba(139, 92, 246, 0.12)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-}
-
-.synergyRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.synergyIcon,
-.synergyChars {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 6px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.synergyLabel {
-  font-weight: 700;
-  color: #fff;
-}
-
-.synergyDetail {
-  margin-left: auto;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.synergyAstro_harmonious {
-  color: #a7f3d0;
-}
-.synergyAstro_challenging {
-  color: #fda4af;
-}
-.synergyAstro_neutral {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.infoButton {
-  width: 100%;
-  padding: 12px;
-  margin-top: 1rem;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.4);
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.infoButton:hover {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(167, 139, 250, 0.6);
-  transform: translateY(-2px);
-}
-
-.interestTag {
-  padding: 5px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.interestTag:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
 /* Enhanced Filter Panel */
-.filterIcon {
-  margin-right: 8px;
-}
-
-.filterReset {
-  padding: 6px 14px;
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  border-radius: 8px;
-  color: #ef4444;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.filterReset:hover {
-  background: rgba(239, 68, 68, 0.3);
-  border-color: rgba(239, 68, 68, 0.6);
-}
-
-.filterGroup {
-  position: relative;
-}
-
-.filterLabelIcon {
-  margin-right: 6px;
-}
-
-.filterClear {
-  position: absolute;
-  right: 36px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 50%;
-  color: #ef4444;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
-}
-
-.filterClear:hover {
-  background: rgba(239, 68, 68, 0.3);
-  border-color: rgba(239, 68, 68, 0.5);
-  transform: translateY(-50%) scale(1.1);
-}
-
-.filterSummary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 1rem;
-  padding: 10px 14px;
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.filterSummaryIcon {
-  color: #10b981;
-  font-size: 16px;
-}
 
 /* Enhanced Mobile Responsiveness */
 @media (max-width: 640px) {
@@ -2270,22 +957,6 @@
   .iconButtonLabel {
     font-size: 10px;
   }
-
-  .compatibilityBadge {
-    padding: 8px;
-  }
-
-  .compatibilityIcon {
-    font-size: 1.25rem;
-  }
-
-  .compatibilityValue {
-    font-size: 1rem;
-  }
-
-  .compatibilityLabel {
-    font-size: 0.6rem;
-  }
 }
 
 /* Smooth Transitions */
@@ -2304,10 +975,6 @@
 }
 
 /* Accessibility Improvements */
-.profileCard:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.8);
-  outline-offset: 2px;
-}
 
 .iconButton:focus-visible,
 .filterSelect:focus-visible,
@@ -2319,369 +986,22 @@
 /* ============================
    Keyboard Shortcuts Panel
    ============================ */
-.keyboardShortcuts {
-  position: fixed;
-  bottom: 100px;
-  left: 2rem;
-  z-index: 100;
-}
-
-.shortcutsToggle {
-  width: 48px;
-  height: 48px;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.4);
-  border-radius: 50%;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-}
-
-.shortcutsToggle:hover {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(167, 139, 250, 0.6);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
-}
-
-.shortcutsPanel {
-  position: absolute;
-  bottom: 60px;
-  left: 0;
-  background: rgba(26, 15, 46, 0.98);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  border-radius: 16px;
-  padding: 16px;
-  min-width: 240px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  animation: slideUp 0.3s ease-out;
-}
-
-.shortcutsPanelHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.shortcutsPanelTitle {
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
-  margin: 0;
-}
-
-.shortcutsPanelClose {
-  width: 44px; /* Improved touch target */
-  height: 44px;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 50%;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.shortcutsPanelClose:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.shortcutsList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.shortcutsItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.shortcutsKey {
-  padding: 4px 8px;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  border-radius: 6px;
-  font-family: 'Monaco', 'Consolas', monospace;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
-  white-space: nowrap;
-  min-width: 60px;
-  text-align: center;
-}
-
-.shortcutsAction {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  flex: 1;
-}
 
 /* ============================
    Enhanced Modal Styles
    ============================ */
-.modalPhotoMain {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10rem;
-  filter: drop-shadow(0 8px 32px rgba(167, 139, 250, 0.6));
-}
-
-.modalPhotoNav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  color: #fff;
-  font-size: 32px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.modalPhotoNav:hover {
-  background: rgba(139, 92, 246, 0.8);
-  border-color: rgba(167, 139, 250, 0.5);
-  transform: translateY(-50%) scale(1.1);
-}
-
-.modalPhotoNavPrev {
-  left: 16px;
-}
-
-.modalPhotoNavNext {
-  right: 16px;
-}
-
-.modalPhotoIndicators {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 8px;
-  z-index: 10;
-}
-
-.modalPhotoIndicator {
-  width: 8px;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.4);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 0;
-}
-
-.modalPhotoIndicator:hover {
-  background: rgba(255, 255, 255, 0.7);
-  transform: scale(1.2);
-}
-
-.modalPhotoIndicatorActive {
-  background: rgba(255, 255, 255, 0.95);
-  width: 24px;
-  border-radius: 4px;
-}
-
-.modalCompatibilityBadge {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 12px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
-  backdrop-filter: blur(10px);
-  z-index: 10;
-}
-
-.modalLocation {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
-
-.modalBirthChart {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  margin-top: 0.75rem;
-}
-
-.spinner {
-  display: inline-block;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.modalActionButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-}
 
 /* ============================
    Grid View Improvements
    ============================ */
-.gridCard {
-  position: relative;
-  overflow: hidden;
-}
-
-.gridCard::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.gridCard:hover::before {
-  opacity: 1;
-}
-
-.gridCompatibility {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 10px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9));
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-  z-index: 5;
-}
-
-.gridVerified {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  border-radius: 50%;
-  font-size: 12px;
-  margin-left: 6px;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
-}
 
 /* Mobile Optimizations */
-@media (max-width: 640px) {
-  .keyboardShortcuts {
-    bottom: 80px;
-    left: 1rem;
-  }
-
-  .shortcutsToggle {
-    width: 44px;
-    height: 44px;
-    font-size: 18px;
-  }
-
-  .modalPhotoNav {
-    width: 36px;
-    height: 36px;
-    font-size: 24px;
-  }
-
-  .modalPhotoNavPrev {
-    left: 8px;
-  }
-
-  .modalPhotoNavNext {
-    right: 8px;
-  }
-}
 
 /* Grid View Bio */
-.gridBio {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  margin-top: 0.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
 
 /* Grid View Distance */
-.gridDistance {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-  margin: 0.5rem 0;
-}
 
 /* Animations Fine-tuning */
-@keyframes slideInCard {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.gridCard {
-  animation: slideInCard 0.5s ease-out both;
-  will-change: transform;
-}
 
 /* Smooth hover transitions */
 .gridCard,
@@ -2695,10 +1015,6 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .gridCard {
-    animation: none;
-  }
-
   .star {
     animation: none;
   }
@@ -2719,14 +1035,6 @@
 }
 
 /* Enhanced focus states for better accessibility */
-.gridCard:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.8);
-  outline-offset: 4px;
-}
-
-.gridCard:focus-visible::before {
-  opacity: 1;
-}
 
 /* Loading skeleton for grid cards */
 .gridCard[data-loading='true'] {
@@ -2771,18 +1079,8 @@
 }
 
 /* Improve card swipe feedback */
-.profileCard {
-  will-change: transform, opacity;
-}
-
-.profileCardDragging {
-  cursor: grabbing !important;
-}
 
 /* Enhance compatibility badge pulse */
-.compatibilityBadge {
-  animation: pulse 3s ease-in-out infinite;
-}
 
 @keyframes pulse {
   0%,
@@ -2797,369 +1095,11 @@
 }
 
 /* Add subtle gradient overlay on cards */
-.gridCard::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60%;
-  background: linear-gradient(to top, rgba(10, 5, 16, 0.9), transparent);
-  pointer-events: none;
-}
-
-.gridInfo {
-  position: relative;
-  z-index: 1;
-}
 
 /* ─────────────── Match Celebration + Oracle ─────────────── */
 
-.celebrationContent {
-  max-width: 720px;
-  width: 92vw;
-  max-height: 92vh;
-  overflow-y: auto;
-}
-
-.celebrationHeader {
-  text-align: center;
-  padding: 1.5rem 1rem 0.5rem;
-}
-
-.celebrationTitle {
-  margin: 0;
-  font-size: 1.6rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #ec4899, #8b5cf6, #f59e0b);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.celebrationSubtitle {
-  margin: 0.25rem 0 0;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
-}
-
-.celebrationActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 0.75rem 1rem 1.25rem;
-  justify-content: center;
-}
-
 /* Oracle view */
-
-.oracle {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.oracleActivities {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.oracleActivity {
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
-.oracleActivity:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.95);
-}
-.oracleActivityActive {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.6), rgba(139, 92, 246, 0.6));
-  border-color: rgba(255, 255, 255, 0.35);
-  color: #fff;
-}
-
-.oracleSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.oracleSectionTitle {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
-  display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
-}
-
-.oracleSectionSub {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.oracleSkeleton,
-.oracleEmpty,
-.oracleError {
-  padding: 1.25rem;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.65);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px dashed rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  font-size: 13px;
-}
-.oracleError {
-  color: #fda4af;
-  border-color: rgba(244, 114, 182, 0.4);
-  background: rgba(244, 114, 182, 0.08);
-}
 
 /* Tarot cards */
 
-.oracleCards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.oracleCardWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 8px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: inherit;
-}
-
-.oracleCardPosition {
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.oracleCard {
-  position: relative;
-  width: 120px;
-  height: 200px;
-  transform-style: preserve-3d;
-}
-
-.oracleCardFace {
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  overflow: hidden;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.oracleCardFaceBack {
-  transform: rotateY(180deg);
-}
-
-.oracleCardReversed {
-  transform: rotateY(180deg) rotate(180deg);
-}
-
-.oracleCardImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.oracleCardName {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  text-align: center;
-  min-height: 1.2em;
-}
-
-.oracleCardReversedTag {
-  font-size: 11px;
-  color: #fda4af;
-  font-weight: 600;
-}
-
-.oracleCardMeaning {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.oracleCardMeaningHeader {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.oracleCardMeaningText {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.oracleCardAdvice {
-  margin: 0;
-  font-size: 12px;
-  font-style: italic;
-  color: rgba(245, 158, 11, 0.92);
-}
-
 /* Auspicious dates */
-
-.oracleDates {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.oracleDate {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.oracleDateMain {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.oracleDateText {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  flex: 1;
-  color: #fff;
-  font-size: 14px;
-}
-
-.oracleDateDow {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
-}
-
-.oracleDateScore {
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.oracleGrade {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  font-weight: 800;
-  font-size: 13px;
-  color: #0f172a;
-  background: rgba(255, 255, 255, 0.7);
-}
-.oracleGrade_S {
-  background: linear-gradient(135deg, #fde68a, #f59e0b);
-  color: #4a2c00;
-}
-.oracleGrade_A {
-  background: linear-gradient(135deg, #6ee7b7, #10b981);
-  color: #053024;
-}
-.oracleGrade_B {
-  background: linear-gradient(135deg, #93c5fd, #3b82f6);
-  color: #082047;
-}
-.oracleGrade_C {
-  background: linear-gradient(135deg, #ddd6fe, #8b5cf6);
-  color: #2a1565;
-}
-.oracleGrade_D {
-  background: rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.oracleDateHour {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.oracleHourQuality {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-}
-.oracleHourQuality_excellent {
-  background: rgba(245, 158, 11, 0.25);
-  color: #fde68a;
-}
-.oracleHourQuality_good {
-  background: rgba(16, 185, 129, 0.25);
-  color: #6ee7b7;
-}
-.oracleHourQuality_neutral {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.oracleHourReason {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 11px;
-}
-
-.oracleReasons {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.65);
-}
-
-@media (max-width: 480px) {
-  .oracleCard {
-    width: 96px;
-    height: 160px;
-  }
-  .oracleCards {
-    gap: 6px;
-  }
-}
