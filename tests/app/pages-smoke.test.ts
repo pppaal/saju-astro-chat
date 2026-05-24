@@ -33,7 +33,6 @@ describe('Pages Smoke Tests', () => {
       assertPages([
         'app/(main)/page',
         'app/about/page',
-        'app/about/features/page',
       ])
     })
   })

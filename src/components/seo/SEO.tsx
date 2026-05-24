@@ -410,32 +410,11 @@ export const SERVICE_FAQS = {
       answer: 'Astrology is best used as a reflective tool for guidance and self-understanding.',
     },
   ],
-  numerology: [
-    {
-      question: 'What is numerology?',
-      answer:
-        'Numerology interprets numbers derived from your birth date and name to reveal patterns.',
-    },
-    {
-      question: 'Which numbers are calculated?',
-      answer: 'We calculate life path, expression, and soul urge numbers with detailed meanings.',
-    },
-  ],
-  iching: [
-    {
-      question: 'What is the I Ching?',
-      answer: 'The I Ching is a classic Chinese divination system based on 64 hexagrams.',
-    },
-    {
-      question: 'How is a reading generated?',
-      answer: 'You ask a question and the system generates and interprets a hexagram.',
-    },
-  ],
 }
 
 // Generate service schema for specific pages
 export function generateServiceSchema(
-  serviceType: 'destiny-map' | 'tarot' | 'saju' | 'astrology' | 'numerology' | 'iching'
+  serviceType: 'destiny-map' | 'tarot' | 'saju' | 'astrology'
 ) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
   const services = {
@@ -462,18 +441,6 @@ export function generateServiceSchema(
       description:
         'Detailed astrological charts and interpretations based on planetary positions at your birth.',
       category: 'Western Astrology',
-    },
-    numerology: {
-      name: 'Numerology Analysis',
-      description:
-        'Life path, expression, and soul urge number calculations with detailed interpretations.',
-      category: 'Numerology',
-    },
-    iching: {
-      name: 'I Ching Oracle',
-      description:
-        'Traditional Chinese divination using the 64 hexagrams of the I Ching (Book of Changes).',
-      category: 'Divination',
     },
   }
 
