@@ -92,9 +92,10 @@ export default function CounselorPage() {
 
   // Don't flash the gate while the profile fallback is loading — the
   // user may have valid birth info on their profile that we haven't
-  // fetched yet.
+  // fetched yet. Keep lightTheme here too so switching past chats doesn't
+  // flash the dark/purple base background for ~1s before the chat returns.
   if (profileLoading) {
-    return <main className={styles.page} />
+    return <main className={`${styles.page} ${styles.lightTheme}`} />
   }
 
   if (!birthDate || !birthTime) {
