@@ -27,6 +27,7 @@ import { useDateDetail } from './useDateDetail'
 import MatchedPatternsCard from './MatchedPatternsCard'
 import MonthHighlightsCard from './MonthHighlightsCard'
 import YearHighlightsCard from './YearHighlightsCard'
+import YearOverviewCard from './YearOverviewCard'
 import MonthlyInterpretationCard from './MonthlyInterpretationCard'
 import DailyFlowCard from './DailyFlowCard'
 import DailyHourlyChart from './DailyHourlyChart'
@@ -483,11 +484,19 @@ export default function DestinyMatrixPlanner({
               transition={{ duration: 0.2 }}
               className="p-6 space-y-6"
             >
-              <YearHighlightsCard
+              <YearOverviewCard
                 allDates={data?.allDates ?? []}
                 year={viewYear}
+                yearlyConvergence={yearlyConvergence}
                 onDateClick={handleDateClick}
               />
+              {!yearlyConvergence && (
+                <YearHighlightsCard
+                  allDates={data?.allDates ?? []}
+                  year={viewYear}
+                  onDateClick={handleDateClick}
+                />
+              )}
             </motion.div>
           )}
 
