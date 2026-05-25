@@ -328,4 +328,18 @@ export const RULE_NARRATIVE_EN: Record<string, RuleNarrativeEn> = {
       'emotion and the unconscious affect your body directly — caring for the mind is caring for the body.',
     conflict: 'stress goes to the body, or the body’s state sways the emotions.',
   },
+  'health.state.wood-metal-tension': {
+    confirm:
+      'muscles, nerves and the liver-gallbladder line tend to stiffen under pressure — stretching and unwinding routines are lifelong medicine.',
+  },
+  'health.state.earth-wood-stomach': {
+    confirm:
+      'stress tends to land in the stomach — eating slowly and keeping the mind light is the key.',
+  },
+  'health.state.excess-vitality': {
+    confirm:
+      'a high-energy constitution — used well it is vigorous, but overwork, inflammation and burnout are lifelong watch-points.',
+    conflict:
+      'balancing surplus drive with real rest is a lifelong task — learning to stop is what keeps the body going long.',
+  },
 }
