@@ -8,6 +8,7 @@
 
 import { runFortune, type FortuneReport } from '@/lib/fusion'
 import type { BirthProfile } from '@/lib/fusion'
+import type { Domain } from '@/lib/fusion/types'
 
 /** 캘린더 페이지 상단/사이드에 표시할 cross-rules 요약. */
 export interface CalendarCrossAugment {
@@ -15,7 +16,7 @@ export interface CalendarCrossAugment {
   themes: Array<{ id: string; meaning: string; narrative: string }>
   /** 도메인별 톤 + 강한 confirm + 양면 신호 (cross-rules의 핵심 가치). */
   domains: Array<{
-    domain: 'self' | 'love' | 'money' | 'career' | 'health' | 'family'
+    domain: Domain
     tone: 'positive' | 'negative' | 'mixed' | 'neutral'
     topConfirms: Array<{ meaning: string; intensity: 'strong' | 'moderate' | 'weak' }>
     /** 양면성(conflict) 신호 — 점수 시스템이 평탄화하는 정보를 보존. */
@@ -33,7 +34,7 @@ export interface CalendarCrossAugment {
 
 export async function buildCalendarCrossAugment(
   birth: BirthProfile,
-  queryDate: Date = new Date(),
+  queryDate: Date = new Date()
 ): Promise<CalendarCrossAugment> {
   return _buildAugmentForDate(birth, queryDate)
 }
@@ -44,7 +45,7 @@ export async function buildCalendarCrossAugment(
  */
 export async function buildWeeklyCrossAugment(
   birth: BirthProfile,
-  weekStart: Date,
+  weekStart: Date
 ): Promise<CalendarCrossAugment & { weekStart: string; weekEnd: string }> {
   const mid = new Date(weekStart)
   mid.setDate(mid.getDate() + 3)
@@ -64,7 +65,7 @@ export async function buildWeeklyCrossAugment(
 export async function buildMonthlyCrossAugment(
   birth: BirthProfile,
   year: number,
-  month: number, // 1-12
+  month: number // 1-12
 ): Promise<CalendarCrossAugment & { year: number; month: number }> {
   const mid = new Date(year, month - 1, 15, 12, 0, 0)
   const aug = await _buildAugmentForDate(birth, mid)
@@ -73,7 +74,7 @@ export async function buildMonthlyCrossAugment(
 
 async function _buildAugmentForDate(
   birth: BirthProfile,
-  queryDate: Date,
+  queryDate: Date
 ): Promise<CalendarCrossAugment> {
   const report = await runFortune({
     birth,

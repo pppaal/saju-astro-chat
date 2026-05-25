@@ -14,7 +14,17 @@ export type TimeScale =
   | 'day' // 일진, daily transit
   | 'event' // 합성: 잠복 신호의 활성화
 
-export type Domain = 'self' | 'love' | 'money' | 'career' | 'health' | 'family'
+export type Domain =
+  | 'self'
+  | 'love'
+  | 'money'
+  | 'career'
+  | 'health'
+  | 'family'
+  | 'children'
+  | 'wisdom'
+  | 'creativity'
+  | 'spirituality'
 
 export type System = 'saju' | 'astro'
 

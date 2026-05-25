@@ -12,7 +12,18 @@ import type {
   Tone,
 } from './types'
 
-const DOMAINS: Domain[] = ['self', 'love', 'money', 'career', 'health', 'family']
+const DOMAINS: Domain[] = [
+  'self',
+  'love',
+  'money',
+  'career',
+  'health',
+  'family',
+  'children',
+  'wisdom',
+  'creativity',
+  'spirituality',
+]
 
 // Tone calibration. The old count-based rule ("any conflict ⇒ mixed; positive
 // only when zero conflicts") made positive/negative effectively unreachable —

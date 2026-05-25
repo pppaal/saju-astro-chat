@@ -28,15 +28,17 @@ import {
   houseLabel,
   iGa,
   paragraph,
+  naturalizeFragment,
   weaveParagraph,
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 
 export function buildWisdom(input: BuilderInput): DomainNarrative {
-  const { saju, astro, calendarSignals } = input
+  const { saju, astro, calendarSignals, fusion } = input
   const sajuUsed: string[] = []
   const astroUsed: string[] = []
   const fusionUsed: string[] = []
@@ -270,6 +272,18 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
     p3piecesEn.push(
       `Your Lot of Daimon sits in ${signLabel(daimon.sign, 'en')} — the place where real wisdom grows in you shares that same flavor.`
     )
+  }
+  const wisdomConfirms = fusion?.byDomain?.wisdom?.confirms ?? []
+  if (wisdomConfirms.length > 0) {
+    p3pieces.push(`그리고 ${naturalizeFragment(wisdomConfirms[0].rule.narrative.confirm)}`)
+    const fusEn = RULE_NARRATIVE_EN[wisdomConfirms[0].rule.id]?.confirm
+    if (fusEn) p3piecesEn.push(`And ${fusEn}`)
+  }
+  const wisdomConflicts = fusion?.byDomain?.wisdom?.conflicts ?? []
+  if (wisdomConflicts[0]?.rule.narrative.conflict) {
+    p3pieces.push(`다만 ${naturalizeFragment(wisdomConflicts[0].rule.narrative.conflict)}`)
+    const fusEnX = RULE_NARRATIVE_EN[wisdomConflicts[0].rule.id]?.conflict
+    if (fusEnX) p3piecesEn.push(`That said, ${fusEnX}`)
   }
   const p3ko = p3pieces.length
     ? weaveParagraph(p3pieces, 'wisdom')

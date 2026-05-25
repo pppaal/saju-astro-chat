@@ -25,7 +25,17 @@ describe('plainifyKo — stylized 결 → 성향', () => {
   })
 })
 
-const SURFACED_DOMAINS = new Set(['money', 'career', 'love', 'family', 'health'])
+const SURFACED_DOMAINS = new Set([
+  'money',
+  'career',
+  'love',
+  'family',
+  'health',
+  'children',
+  'wisdom',
+  'creativity',
+  'spirituality',
+])
 
 describe('naturalizeFragment', () => {
   it('drops the technical evidence clause before the em-dash', () => {
@@ -57,7 +67,7 @@ describe('naturalizeFragment', () => {
   it('leaves no raw jargon in any surfaced (non-timing) confirm/conflict narrative', () => {
     // The free report surfaces confirm/conflict for these domains (self is
     // not surfaced, timing layer is filtered out at the route projection).
-    const surfaced = new Set(['money', 'career', 'love', 'family', 'health'])
+    const surfaced = SURFACED_DOMAINS
     // Korean prose has no latin lowercase, so any 3+ lowercase run is an
     // un-scrubbed English jargon token (planet names, stellium, dignity…).
     // Upper-case loanwords like "CEO" are acceptable and intentionally allowed.

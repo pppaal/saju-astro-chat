@@ -20,16 +20,18 @@ import {
   houseLabel,
   iGa,
   paragraph,
+  naturalizeFragment,
   planetLabel,
   signLabel,
   weaveParagraph,
 } from '../../templates/sentences'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 import { jijangganLine } from '../../pools'
 
 export function buildSpirituality(input: BuilderInput): DomainNarrative {
-  const { saju, astro, calendarSignals } = input
+  const { saju, astro, calendarSignals, fusion } = input
   const sajuUsed: string[] = []
   const astroUsed: string[] = []
   const fusionUsed: string[] = []
@@ -268,6 +270,18 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
     p3piecesEn.push(
       `Your Lot of Captivity sits in ${signLabel(captivity.sign, 'en')} — that is the place where the spiritual knot you came here to untie tends to gather.`
     )
+  }
+  const spiritConfirms = fusion?.byDomain?.spirituality?.confirms ?? []
+  if (spiritConfirms.length > 0) {
+    p3pieces.push(`그리고 ${naturalizeFragment(spiritConfirms[0].rule.narrative.confirm)}`)
+    const fusEn = RULE_NARRATIVE_EN[spiritConfirms[0].rule.id]?.confirm
+    if (fusEn) p3piecesEn.push(`And ${fusEn}`)
+  }
+  const spiritConflicts = fusion?.byDomain?.spirituality?.conflicts ?? []
+  if (spiritConflicts[0]?.rule.narrative.conflict) {
+    p3pieces.push(`다만 ${naturalizeFragment(spiritConflicts[0].rule.narrative.conflict)}`)
+    const fusEnX = RULE_NARRATIVE_EN[spiritConflicts[0].rule.id]?.conflict
+    if (fusEnX) p3piecesEn.push(`That said, ${fusEnX}`)
   }
   const p3ko = p3pieces.length
     ? weaveParagraph(p3pieces, 'spirituality')

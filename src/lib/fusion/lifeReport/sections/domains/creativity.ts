@@ -18,13 +18,15 @@ import {
   houseLabel,
   iGa,
   paragraph,
+  naturalizeFragment,
   weaveParagraph,
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 
 export function buildCreativity(input: BuilderInput): DomainNarrative {
-  const { saju, astro, calendarSignals } = input
+  const { saju, astro, calendarSignals, fusion } = input
   const sajuUsed: string[] = []
   const astroUsed: string[] = []
   const fusionUsed: string[] = []
@@ -239,6 +241,18 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     p3pieces.push(`${relKoCreate} 그 마찰이 작품으로 풀려나오는 통로가 돼요.`)
     if (relEnCreate)
       p3piecesEn.push(`${relEnCreate} That very friction is where the work breaks through.`)
+  }
+  const creativityConfirms = fusion?.byDomain?.creativity?.confirms ?? []
+  if (creativityConfirms.length > 0) {
+    p3pieces.push(`그리고 ${naturalizeFragment(creativityConfirms[0].rule.narrative.confirm)}`)
+    const fusEn = RULE_NARRATIVE_EN[creativityConfirms[0].rule.id]?.confirm
+    if (fusEn) p3piecesEn.push(`And ${fusEn}`)
+  }
+  const creativityConflicts = fusion?.byDomain?.creativity?.conflicts ?? []
+  if (creativityConflicts[0]?.rule.narrative.conflict) {
+    p3pieces.push(`다만 ${naturalizeFragment(creativityConflicts[0].rule.narrative.conflict)}`)
+    const fusEnX = RULE_NARRATIVE_EN[creativityConflicts[0].rule.id]?.conflict
+    if (fusEnX) p3piecesEn.push(`That said, ${fusEnX}`)
   }
   const p3ko = p3pieces.length
     ? weaveParagraph(p3pieces, 'creativity')
