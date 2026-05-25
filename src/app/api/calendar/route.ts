@@ -12,8 +12,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { BRANCH_TO_ELEMENT, STEM_TO_ELEMENT, STEM_TO_ELEMENT_EN } from '@/lib/saju/constants'
-import type { FiveElement } from '@/lib/saju/types'
+import { STEM_TO_ELEMENT_EN } from '@/lib/saju/constants'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
@@ -22,7 +21,6 @@ import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { calculateYearlyImportantDates } from './lib/yearlyDates'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
-import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 
 import {
   getPillarStemName,
@@ -35,17 +33,9 @@ import {
   type MatrixCalendarContext,
 } from './lib/helpers'
 import { buildCalendarPresentationView } from './lib/presentationAdapter'
-import type { DomainKey, MatrixCalculationInput } from '@/lib/destiny-matrix/types'
+import type { DomainKey } from '@/lib/destiny-matrix/types'
 import type { CalendarMatrixEvidencePacketMap } from './lib/matrixEvidencePacket'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
-import { calculateAllAsteroids } from '@/lib/astrology/foundation/asteroids'
-import { calculateExtraPoints } from '@/lib/astrology/foundation/extraPoints'
-import {
-  buildDerivedCrossSnapshot,
-  deriveAdvancedSajuMatrixFields,
-  deriveSibsinDistributionFromSaju,
-} from '@/lib/destiny-matrix/derived'
-import type { CalculateSajuDataResult } from '@/lib/saju/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -80,25 +70,6 @@ const ZODIAC_TO_ELEMENT: Record<string, string> = {
   Pisces: 'water',
 }
 
-// AI enrichment should be best-effort by default.
-const ZODIAC_TO_WESTERN_ELEMENT: Record<
-  string,
-  NonNullable<MatrixCalculationInput['dominantWesternElement']>
-> = {
-  Aries: 'fire',
-  Leo: 'fire',
-  Sagittarius: 'fire',
-  Taurus: 'earth',
-  Virgo: 'earth',
-  Capricorn: 'earth',
-  Gemini: 'air',
-  Libra: 'air',
-  Aquarius: 'air',
-  Cancer: 'water',
-  Scorpio: 'water',
-  Pisces: 'water',
-}
-
 const CORE_SIGNAL_DOMAIN_TO_CALENDAR_DOMAIN: Record<string, DomainKey | null> = {
   career: 'career',
   relationship: 'love',
@@ -110,50 +81,9 @@ const CORE_SIGNAL_DOMAIN_TO_CALENDAR_DOMAIN: Record<string, DomainKey | null> = 
   timing: null,
 }
 
-const CALENDAR_PACKET_THEME_MAP = {
-  career: { theme: 'career', focusDomainOverride: 'career' },
-  love: { theme: 'love', focusDomainOverride: 'relationship' },
-  wealth: { theme: 'wealth', focusDomainOverride: 'wealth' },
-  health: { theme: 'health', focusDomainOverride: 'health' },
-  today: { theme: 'today', focusDomainOverride: undefined },
-  general: { theme: 'today', focusDomainOverride: undefined },
-} as const
-
-function normalizeFiveElement(value: unknown): FiveElement | undefined {
-  if (typeof value !== 'string') return undefined
-  const trimmed = value.trim()
-  if (!trimmed) return undefined
-  if (
-    trimmed === '목' ||
-    trimmed === '화' ||
-    trimmed === '토' ||
-    trimmed === '금' ||
-    trimmed === '수'
-  ) {
-    return trimmed
-  }
-  if (trimmed === 'wood') return '목'
-  if (trimmed === 'fire') return '화'
-  if (trimmed === 'earth') return '토'
-  if (trimmed === 'metal') return '금'
-  if (trimmed === 'water') return '수'
-  return undefined
-}
-
 function mapCoreSignalDomainToCalendarDomain(domain: string | undefined): DomainKey | null {
   if (!domain) return null
   return CORE_SIGNAL_DOMAIN_TO_CALENDAR_DOMAIN[domain] ?? null
-}
-
-function pickCurrentDaeunStem(
-  daeunCycles: Array<{ age: number; heavenlyStem: string }>,
-  birthYear: number,
-  targetYear: number
-): string | undefined {
-  const currentAge = Math.max(1, targetYear - birthYear + 1)
-  return [...daeunCycles]
-    .filter((cycle) => Number.isFinite(cycle.age) && cycle.age <= currentAge && cycle.heavenlyStem)
-    .sort((a, b) => b.age - a.age)[0]?.heavenlyStem
 }
 
 type CalendarAstroProfile = {
@@ -201,360 +131,6 @@ type CalendarAstroProfile = {
     type?: string
     orb?: number
   }>
-}
-
-const MATRIX_PLANET_NAMES = new Set<keyof MatrixCalculationInput['planetSigns']>([
-  'Sun',
-  'Moon',
-  'Mercury',
-  'Venus',
-  'Mars',
-  'Jupiter',
-  'Saturn',
-  'Uranus',
-  'Neptune',
-  'Pluto',
-])
-
-const MATRIX_ASPECT_TYPES = new Set<NonNullable<MatrixCalculationInput['aspects']>[number]['type']>(
-  [
-    'conjunction',
-    'sextile',
-    'square',
-    'trine',
-    'opposition',
-    'semisextile',
-    'quincunx',
-    'quintile',
-    'biquintile',
-  ]
-)
-
-function isMatrixPlanetName(
-  value: string | undefined
-): value is NonNullable<MatrixCalculationInput['aspects']>[number]['planet1'] {
-  return Boolean(
-    value && MATRIX_PLANET_NAMES.has(value as keyof MatrixCalculationInput['planetSigns'])
-  )
-}
-
-function isMatrixAspectType(
-  value: string | undefined
-): value is NonNullable<MatrixCalculationInput['aspects']>[number]['type'] {
-  return Boolean(
-    value &&
-    MATRIX_ASPECT_TYPES.has(value as NonNullable<MatrixCalculationInput['aspects']>[number]['type'])
-  )
-}
-
-function clampHouseNumber(
-  value: number | undefined
-):
-  | MatrixCalculationInput['planetHouses'][keyof MatrixCalculationInput['planetHouses']]
-  | undefined {
-  if (typeof value !== 'number' || !Number.isInteger(value)) return undefined
-  if (value < 1 || value > 12) return undefined
-  return value as MatrixCalculationInput['planetHouses'][keyof MatrixCalculationInput['planetHouses']]
-}
-
-function isDefined<T>(value: T | null | undefined): value is T {
-  return value !== null && value !== undefined
-}
-
-function buildActiveTransitCycles(
-  astroProfile: CalendarAstroProfile
-): NonNullable<MatrixCalculationInput['activeTransits']> {
-  const cycles = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>()
-  for (const aspect of astroProfile.majorTransits || []) {
-    if (aspect.transitPlanet === 'Saturn' && aspect.natalPoint === 'Saturn')
-      cycles.add('saturnReturn')
-    if (aspect.transitPlanet === 'Jupiter' && aspect.natalPoint === 'Jupiter')
-      cycles.add('jupiterReturn')
-    if (aspect.transitPlanet === 'Uranus' && aspect.type === 'square') cycles.add('uranusSquare')
-    if (aspect.transitPlanet === 'Neptune' && aspect.type === 'square') cycles.add('neptuneSquare')
-    if (aspect.transitPlanet === 'Pluto') cycles.add('plutoTransit')
-  }
-
-  for (const planet of astroProfile.transitChart?.planets || []) {
-    if (!planet?.retrograde) continue
-    if (planet.name === 'Mercury') cycles.add('mercuryRetrograde')
-    if (planet.name === 'Venus') cycles.add('venusRetrograde')
-    if (planet.name === 'Mars') cycles.add('marsRetrograde')
-    if (planet.name === 'Jupiter') cycles.add('jupiterRetrograde')
-    if (planet.name === 'Saturn') cycles.add('saturnRetrograde')
-  }
-
-  return [...cycles]
-}
-
-async function buildCalendarMatrixInput(params: {
-  birthDate: string
-  birthTime?: string
-  birthPlace: string
-  year: number
-  timezone: string
-  latitude: number
-  longitude: number
-  locale: 'ko' | 'en'
-  category?: string
-  sajuResult: Record<string, unknown>
-  sajuProfile: {
-    dayMasterElement: string
-    birthYear: number
-    daeunCycles: Array<{ age: number; heavenlyStem: string; earthlyBranch: string }>
-    pillars: {
-      year: { stem: string; branch: string }
-      month: { stem: string; branch: string }
-      day: { stem: string; branch: string }
-      hour: { stem: string; branch: string }
-    }
-  }
-  astroProfile: CalendarAstroProfile
-}): Promise<MatrixCalculationInput> {
-  const { sajuProfile, astroProfile } = params
-  const pillarElements = [
-    STEM_TO_ELEMENT[sajuProfile.pillars.year.stem],
-    BRANCH_TO_ELEMENT[sajuProfile.pillars.year.branch],
-    STEM_TO_ELEMENT[sajuProfile.pillars.month.stem],
-    BRANCH_TO_ELEMENT[sajuProfile.pillars.month.branch],
-    STEM_TO_ELEMENT[sajuProfile.pillars.day.stem],
-    BRANCH_TO_ELEMENT[sajuProfile.pillars.day.branch],
-    STEM_TO_ELEMENT[sajuProfile.pillars.hour.stem],
-    BRANCH_TO_ELEMENT[sajuProfile.pillars.hour.branch],
-  ]
-    .map((value) => normalizeFiveElement(value))
-    .filter((value): value is FiveElement => Boolean(value))
-
-  const dayMasterElement =
-    normalizeFiveElement(STEM_TO_ELEMENT[sajuProfile.pillars.day.stem]) ||
-    normalizeFiveElement(sajuProfile.dayMasterElement) ||
-    '목'
-
-  const currentDaeunElement = normalizeFiveElement(
-    STEM_TO_ELEMENT[
-      pickCurrentDaeunStem(sajuProfile.daeunCycles, sajuProfile.birthYear, params.year) || ''
-    ]
-  )
-
-  const currentDateIso = `${params.year}-01-01T12:00:00`
-  const dominantWesternElement = ZODIAC_TO_WESTERN_ELEMENT[astroProfile.sunSign] || 'fire'
-
-  const planetHouses: MatrixCalculationInput['planetHouses'] = {}
-  const planetSigns: MatrixCalculationInput['planetSigns'] = {}
-  for (const planet of astroProfile.natalChart?.planets || []) {
-    if (!isMatrixPlanetName(planet?.name)) continue
-    const house = clampHouseNumber(planet.house)
-    if (house) planetHouses[planet.name] = house
-    if (planet.sign && MATRIX_PLANET_NAMES.has(planet.name)) {
-      planetSigns[planet.name] =
-        planet.sign as MatrixCalculationInput['planetSigns'][typeof planet.name]
-    }
-  }
-
-  if (!planetSigns.Sun) {
-    planetSigns.Sun = astroProfile.sunSign as MatrixCalculationInput['planetSigns']['Sun']
-  }
-  if (!planetSigns.Moon) {
-    planetSigns.Moon = astroProfile.sunSign as MatrixCalculationInput['planetSigns']['Moon']
-  }
-
-  const aspects: MatrixCalculationInput['aspects'] = (astroProfile.natalAspects || [])
-    .map((aspect) => {
-      const planet1 = aspect.from?.name
-      const planet2 = aspect.to?.name
-      const type = aspect.type
-      if (
-        !isMatrixPlanetName(planet1) ||
-        !isMatrixPlanetName(planet2) ||
-        !isMatrixAspectType(type)
-      ) {
-        return null
-      }
-      return {
-        planet1,
-        planet2,
-        type,
-        orb: typeof aspect.orb === 'number' ? aspect.orb : undefined,
-      }
-    })
-    .filter(isDefined)
-
-  const activeTransits = buildActiveTransitCycles(astroProfile)
-
-  const asteroidHouses: MatrixCalculationInput['asteroidHouses'] = {}
-  const extraPointSigns: MatrixCalculationInput['extraPointSigns'] = {}
-
-  // L9 / L10 inputs: when the full natal chart is available, compute the
-  // four major asteroids and the four extra points so layers 9 (asteroid
-  // × house) and 10 (extra-point × element) populate per-user.
-  const fullNatal = astroProfile.natalChart as NatalChartData | undefined
-  if (fullNatal && fullNatal.meta?.jdUT && Array.isArray(fullNatal.houses)) {
-    try {
-      const houseCusps = fullNatal.houses
-        .map((h) => h.cusp)
-        .filter((c): c is number => typeof c === 'number')
-      if (houseCusps.length === 12) {
-        const asteroids = calculateAllAsteroids(fullNatal.meta.jdUT, houseCusps)
-        const setH = (name: string, h: number | undefined) => {
-          if (typeof h === 'number' && h >= 1 && h <= 12) {
-            ;(asteroidHouses as Record<string, number>)[name] = h
-          }
-        }
-        setH('Ceres', asteroids.Ceres?.house)
-        setH('Pallas', asteroids.Pallas?.house)
-        setH('Juno', asteroids.Juno?.house)
-        setH('Vesta', asteroids.Vesta?.house)
-
-        const sunPlanet = fullNatal.planets.find((p) => p.name === 'Sun')
-        const moonPlanet = fullNatal.planets.find((p) => p.name === 'Moon')
-        const ascLon = fullNatal.ascendant?.longitude
-        if (
-          sunPlanet &&
-          moonPlanet &&
-          typeof ascLon === 'number' &&
-          typeof sunPlanet.longitude === 'number' &&
-          typeof moonPlanet.longitude === 'number' &&
-          typeof sunPlanet.house === 'number'
-        ) {
-          const ep = await calculateExtraPoints(
-            fullNatal.meta.jdUT,
-            params.latitude,
-            params.longitude,
-            ascLon,
-            sunPlanet.longitude,
-            moonPlanet.longitude,
-            sunPlanet.house,
-            houseCusps
-          )
-          const setSign = (
-            name: 'Vertex' | 'PartOfFortune' | 'Chiron' | 'Lilith',
-            sign: string | undefined
-          ) => {
-            if (sign) {
-              ;(extraPointSigns as Record<string, string>)[name] = sign
-            }
-          }
-          setSign('Vertex', ep.vertex?.sign)
-          setSign('PartOfFortune', ep.partOfFortune?.sign)
-          setSign('Chiron', ep.chiron?.sign)
-          setSign('Lilith', ep.lilith?.sign)
-        }
-      }
-    } catch {
-      // Asteroid / extra-point derivation is non-fatal.
-    }
-  }
-  const advancedAstroSignals: NonNullable<MatrixCalculationInput['advancedAstroSignals']> = {
-    progressions: false,
-    solarReturn: false,
-    lunarReturn: false,
-    draconic: false,
-    harmonics: false,
-    fixedStars: false,
-    eclipses: false,
-    midpoints: false,
-    asteroids: Boolean(Object.keys(asteroidHouses).length),
-    extraPoints: Boolean(Object.keys(extraPointSigns).length),
-  }
-
-  // Derive sibsin / 12-stages / relations / shinsal / saeun / wolun / iljin
-  // from the full saju calculation result so layers 2/3/4/5/6/8 fire for
-  // every user instead of being silently empty.
-  const sajuFull = params.sajuResult as unknown as CalculateSajuDataResult
-  let derivedSibsin: Record<string, number> = {}
-  let derivedTwelveStages: Record<string, number> = {}
-  let derivedRelations: MatrixCalculationInput['relations'] = []
-  let derivedShinsal: NonNullable<MatrixCalculationInput['shinsalList']> = []
-  let derivedSaeunElement: MatrixCalculationInput['currentSaeunElement']
-  let derivedWolunElement: MatrixCalculationInput['currentWolunElement']
-  let derivedIljinElement: MatrixCalculationInput['currentIljinElement']
-  try {
-    derivedSibsin = deriveSibsinDistributionFromSaju(sajuFull)
-    const adv = deriveAdvancedSajuMatrixFields(sajuFull)
-    derivedTwelveStages = (adv.twelveStages || {}) as Record<string, number>
-    derivedRelations = (adv.relations || []) as MatrixCalculationInput['relations']
-    derivedShinsal = (adv.shinsalList || []) as NonNullable<MatrixCalculationInput['shinsalList']>
-    const ELEMENT_MAP: Record<string, MatrixCalculationInput['dayMasterElement']> = {
-      목: '목',
-      화: '화',
-      토: '토',
-      금: '금',
-      수: '수',
-    }
-    const annualNow = (sajuFull.unse?.annual || []).find((row) => row.year === params.year)
-    const annualEl = (annualNow as { element?: string } | undefined)?.element
-    if (annualEl && ELEMENT_MAP[annualEl]) derivedSaeunElement = ELEMENT_MAP[annualEl]
-    const monthlyNow = (sajuFull.unse?.monthly || []).find(
-      (row) => row.year === params.year && row.month === new Date().getMonth() + 1
-    )
-    const monthlyEl = (monthlyNow as { element?: string } | undefined)?.element
-    if (monthlyEl && ELEMENT_MAP[monthlyEl]) derivedWolunElement = ELEMENT_MAP[monthlyEl]
-    derivedIljinElement = currentDaeunElement || dayMasterElement
-  } catch {
-    // Derivation failures are non-fatal; matrix runs with whatever we have.
-  }
-
-  const baseMatrixInput: MatrixCalculationInput = {
-    dayMasterElement,
-    pillarElements,
-    sibsinDistribution: derivedSibsin as MatrixCalculationInput['sibsinDistribution'],
-    twelveStages: derivedTwelveStages as MatrixCalculationInput['twelveStages'],
-    relations: derivedRelations,
-    currentDaeunElement,
-    currentSaeunElement: derivedSaeunElement,
-    currentWolunElement: derivedWolunElement,
-    currentIljinElement: derivedIljinElement || currentDaeunElement || dayMasterElement,
-    currentIljinDate: currentDateIso,
-    shinsalList: derivedShinsal,
-    dominantWesternElement,
-    planetHouses,
-    planetSigns,
-    aspects,
-    activeTransits,
-    asteroidHouses,
-    extraPointSigns,
-    advancedAstroSignals,
-    sajuSnapshot: params.sajuResult,
-    astrologySnapshot: {
-      natalChart: astroProfile.natalChart || undefined,
-      natalAspects: astroProfile.natalAspects || undefined,
-      currentTransits: {
-        asOfIso: currentDateIso,
-        majorTransits: astroProfile.majorTransits || undefined,
-      },
-      transits: astroProfile.transitAspects || undefined,
-      advancedCoverage: {
-        inputMode: 'full-chart',
-        hasNatalChart: Boolean(astroProfile.natalChart),
-        hasTransitChart: Boolean(astroProfile.transitChart),
-        natalAspectCount: astroProfile.natalAspects?.length || 0,
-        transitAspectCount: astroProfile.transitAspects?.length || 0,
-      },
-    },
-    currentDateIso,
-    lang: params.locale,
-    startYearMonth: `${params.year}-01`,
-    profileContext: {
-      birthDate: params.birthDate,
-      birthTime: params.birthTime,
-      birthCity: params.birthPlace,
-      timezone: params.timezone,
-      latitude: params.latitude,
-      longitude: params.longitude,
-      analysisAt: new Date().toISOString(),
-    },
-  }
-  return {
-    ...baseMatrixInput,
-    crossSnapshot: buildDerivedCrossSnapshot(
-      baseMatrixInput as unknown as Record<string, unknown>,
-      {
-        source: 'calendar-route',
-        theme: params.category || 'yearly',
-        category: params.category || 'yearly',
-      }
-    ),
-  }
 }
 
 function deriveFallbackSunSign(birthDate: Date): string {
@@ -729,9 +305,6 @@ export const GET = withApiMiddleware(
       birthMonth: birthDate.getMonth() + 1,
       birthDay: birthDate.getDate(),
     }
-    const degradationReasons: string[] = []
-    const matrixDegradationReasons: string[] = []
-
     try {
       const birthHour = Number.parseInt((birthTimeParam || '12:00').split(':')[0] || '12', 10)
       const birthMinute = Number.parseInt((birthTimeParam || '12:00').split(':')[1] || '0', 10)
@@ -834,18 +407,19 @@ export const GET = withApiMiddleware(
       throw astroError
     }
 
-    let matrixCalendarContext: MatrixCalendarContext = null
-    let matrixEvidencePackets: CalendarMatrixEvidencePacketMap | null = null
-    let responseMatrixEvidencePackets: Record<string, CounselorEvidencePacket> | null = null
-    let calendarCoreCanonical = null as CalendarCoreAdapterResult | null
-    let calendarCoreDataQuality = null as {
+    // destiny-matrix 코어 제거로 항상 비어 있음 — 다운스트림(presentation/응답)은
+    // 이 값들이 없으면 해당 섹션(국면·evidence 등)을 graceful하게 숨긴다.
+    const matrixCalendarContext: MatrixCalendarContext = null
+    const matrixEvidencePackets: CalendarMatrixEvidencePacketMap | null = null
+    const calendarCoreCanonical = null as CalendarCoreAdapterResult | null
+    const calendarCoreDataQuality = null as {
       missingFields: string[]
       derivedFields: string[]
       conflictingFields: string[]
       qualityPenalties: string[]
       confidenceReason: string
     } | null
-    let calendarMatrixContract:
+    const calendarMatrixContract:
       | {
           coreHash?: string
           overallPhase?: string
@@ -854,100 +428,11 @@ export const GET = withApiMiddleware(
           topClaim?: string
           focusDomain?: string
         }
-      | undefined
+      | undefined = undefined
 
-    try {
-      const [
-        { buildCalendarCoreEnvelope },
-        { adaptCoreToCalendar },
-        { ensureMatrixInputCrossCompleteness },
-        { deriveCalendarSignals },
-        { buildCounselorEvidencePacket },
-      ] = await Promise.all([
-        import('@/lib/destiny-matrix/core/buildCalendarCoreEnvelope'),
-        import('@/lib/destiny-matrix/core/adapters'),
-        import('@/lib/destiny-matrix/inputCross'),
-        import('@/lib/destiny-matrix/calendarSignals'),
-        import('@/lib/destiny-matrix/counselorEvidence'),
-      ])
-
-      const matrixInput = await buildCalendarMatrixInput({
-        birthDate: birthDateParam,
-        birthTime: birthTimeParam,
-        birthPlace,
-        year,
-        timezone,
-        latitude: coords.lat,
-        longitude: coords.lng,
-        locale: locale === 'en' ? 'en' : 'ko',
-        category: category || undefined,
-        sajuResult: sajuResult as unknown as Record<string, unknown>,
-        sajuProfile,
-        astroProfile,
-      })
-      const crossCompleteInput = ensureMatrixInputCrossCompleteness(matrixInput)
-      const engineEnvelope = buildCalendarCoreEnvelope({
-        lang: locale === 'en' ? 'en' : 'ko',
-        matrixInput: crossCompleteInput,
-      })
-      const coreSummary = engineEnvelope.matrix.summary
-      calendarCoreCanonical = adaptCoreToCalendar(
-        engineEnvelope.coreSeed,
-        locale === 'en' ? 'en' : 'ko'
-      )
-      calendarCoreDataQuality = engineEnvelope.coreSeed.quality.dataQuality
-      responseMatrixEvidencePackets = Object.fromEntries(
-        Object.entries(CALENDAR_PACKET_THEME_MAP).map(([key, config]) => [
-          key,
-          buildCounselorEvidencePacket({
-            theme: config.theme,
-            lang: locale === 'en' ? 'en' : 'ko',
-            focusDomainOverride: config.focusDomainOverride,
-            matrixInput: engineEnvelope.normalizedInput,
-            matrixReport: engineEnvelope.matrixReport,
-            matrixSummary: coreSummary,
-            signalSynthesis: engineEnvelope.coreSeed.signalSynthesis,
-            strategyEngine: engineEnvelope.coreSeed.strategyEngine,
-            core: engineEnvelope.coreSeed,
-            birthDate: birthDateParam,
-          }),
-        ])
-      )
-      matrixEvidencePackets =
-        responseMatrixEvidencePackets as unknown as CalendarMatrixEvidencePacketMap
-      matrixCalendarContext = {
-        calendarSignals:
-          coreSummary.calendarSignals && coreSummary.calendarSignals.length > 0
-            ? coreSummary.calendarSignals
-            : deriveCalendarSignals(coreSummary),
-        overlapTimeline: coreSummary.overlapTimeline,
-        overlapTimelineByDomain: coreSummary.overlapTimelineByDomain,
-        timingCalibration: coreSummary.timingCalibration,
-        domainScores: coreSummary.domainScores,
-      }
-      // matrixInputCoverage + topMatchedPatterns used to be computed here
-      // and returned in the response, but no UI consumer ever reads them.
-      // Dropped the compute + response surface; if a future client needs
-      // either, fish it back out of engineEnvelope.coreSeed.
-      calendarMatrixContract = {
-        coreHash: calendarCoreCanonical.coreHash,
-        overallPhase: calendarCoreCanonical.phase,
-        overallPhaseLabel: calendarCoreCanonical.phaseLabel,
-        topClaimId: calendarCoreCanonical.claimIds[0],
-        topClaim: calendarCoreCanonical.thesis,
-        focusDomain:
-          mapCoreSignalDomainToCalendarDomain(calendarCoreCanonical.focusDomain) || undefined,
-      }
-    } catch (matrixError) {
-      degradationReasons.push('matrix_core_unavailable')
-      matrixDegradationReasons.push('matrix_core_unavailable')
-      logger.warn(
-        '[Calendar] destiny-matrix core unavailable; continuing with lightweight calendar',
-        {
-          error: matrixError instanceof Error ? matrixError.message : String(matrixError),
-        }
-      )
-    }
+    // destiny-matrix 코어 제거됨 — 캘린더는 사주×점성 교차(v2 점수 + v3 narrative +
+    // cycleRelations)만으로 구성된다. matrix가 주던 국면/evidence 코어 요약은
+    // 더 이상 계산하지 않으며, 관련 변수는 null로 남아 다운스트림이 graceful degrade한다.
 
     // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
     // v3가 grade/tier/점수밴드 문구를 "화면 표시 점수(v2)" 기준으로 만들도록, 보는
@@ -1322,9 +807,9 @@ export const GET = withApiMiddleware(
         : undefined,
       matrixContract: calendarMatrixContract,
       dataQuality: calendarCoreDataQuality || undefined,
-      timingCalibration: matrixCalendarContext?.timingCalibration,
-      overlapTimelineByDomain: matrixCalendarContext?.overlapTimelineByDomain,
-      domainScores: matrixCalendarContext?.domainScores,
+      timingCalibration: undefined,
+      overlapTimelineByDomain: undefined,
+      domainScores: undefined,
     })
 
     const { persistDestinyPredictionSnapshot } =
