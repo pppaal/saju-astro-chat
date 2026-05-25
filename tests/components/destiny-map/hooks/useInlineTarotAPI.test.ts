@@ -19,6 +19,15 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
+// Mock credit modal context (hook renders outside the provider in tests)
+vi.mock('@/contexts/CreditModalContext', () => ({
+  useCreditModal: () => ({
+    showDepleted: vi.fn(),
+    showLowCredits: vi.fn(),
+    checkAndShowModal: vi.fn(),
+  }),
+}))
+
 // Mock tarotThemes
 vi.mock('@/lib/tarot/tarot-spreads-data', () => ({
   tarotThemes: [

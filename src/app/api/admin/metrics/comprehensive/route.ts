@@ -60,7 +60,7 @@ function getDateRange(timeRange: DashboardTimeRange): { start: Date; end: Date }
 }
 
 async function fetchUsersData(start: Date, end: Date) {
-  const [totalUsers, recentSignups, roleDistribution, planDistribution] = await Promise.all([
+  const [totalUsers, recentSignups, roleDistribution] = await Promise.all([
     prisma.user.count(),
     prisma.user.findMany({
       where: { createdAt: { gte: start, lte: end } },
@@ -70,10 +70,6 @@ async function fetchUsersData(start: Date, end: Date) {
     }),
     prisma.user.groupBy({
       by: ['role'],
-      _count: { id: true },
-    }),
-    prisma.userCredits.groupBy({
-      by: ['plan'],
       _count: { id: true },
     }),
   ])
@@ -91,29 +87,11 @@ async function fetchUsersData(start: Date, end: Date) {
       role: r.role,
       count: r._count.id,
     })),
-    planDistribution: planDistribution.map((p) => ({
-      plan: p.plan,
-      count: p._count.id,
-    })),
   }
 }
 
 async function fetchRevenueData(start: Date, end: Date) {
-  const [
-    activeSubscriptions,
-    subscriptionsByPlan,
-    creditUsageByService,
-    bonusCreditStats,
-    recentRefunds,
-  ] = await Promise.all([
-    prisma.subscription.count({
-      where: { status: { in: ['active', 'trialing'] } },
-    }),
-    prisma.subscription.groupBy({
-      by: ['plan'],
-      where: { status: { in: ['active', 'trialing'] } },
-      _count: { id: true },
-    }),
+  const [creditUsageByService, bonusCreditStats, recentRefunds] = await Promise.all([
     prisma.premiumContentAccess.groupBy({
       by: ['service'],
       where: { createdAt: { gte: start, lte: end } },
@@ -133,11 +111,6 @@ async function fetchRevenueData(start: Date, end: Date) {
   ])
 
   return {
-    activeSubscriptions,
-    subscriptionsByPlan: subscriptionsByPlan.map((s) => ({
-      plan: s.plan,
-      count: s._count.id,
-    })),
     creditUsageByService: creditUsageByService.map((c) => ({
       service: c.service,
       totalCredits: c._sum.creditUsed || 0,
@@ -560,13 +533,21 @@ async function fetchBehaviorData(start: Date, end: Date) {
   const churnData = { atRiskUsers: [], totalAtRisk: 0, predictedChurnNext30Days: 0 }
 
   return {
-    cohortAnalysis: cohortData.status === 'fulfilled' ? cohortData.value : { cohorts: [], avgRetentionRate: 0 },
-    retentionFunnel: funnelData.status === 'fulfilled' ? funnelData.value : { stages: [], overallConversion: 0 },
+    cohortAnalysis:
+      cohortData.status === 'fulfilled' ? cohortData.value : { cohorts: [], avgRetentionRate: 0 },
+    retentionFunnel:
+      funnelData.status === 'fulfilled' ? funnelData.value : { stages: [], overallConversion: 0 },
     churnPrediction: churnData,
     engagementByService: engagementData.status === 'fulfilled' ? engagementData.value : [],
-    userActivitySummary: activityData.status === 'fulfilled' ? activityData.value : {
-      totalActiveToday: 0, totalActiveThisWeek: 0, totalActiveThisMonth: 0, newUsersToday: 0,
-    },
+    userActivitySummary:
+      activityData.status === 'fulfilled'
+        ? activityData.value
+        : {
+            totalActiveToday: 0,
+            totalActiveThisWeek: 0,
+            totalActiveThisMonth: 0,
+            newUsersToday: 0,
+          },
   }
 }
 
@@ -606,7 +587,8 @@ async function fetchCohortAnalysis() {
   }
 
   const week4Rates = cohorts.map((c) => c.retentionByWeek[4] || 0).filter((r) => r > 0)
-  const avgRetentionRate = week4Rates.length > 0 ? week4Rates.reduce((a, b) => a + b, 0) / week4Rates.length : 0
+  const avgRetentionRate =
+    week4Rates.length > 0 ? week4Rates.reduce((a, b) => a + b, 0) / week4Rates.length : 0
 
   return { cohorts, avgRetentionRate: Math.round(avgRetentionRate * 10) / 10 }
 }
@@ -615,56 +597,81 @@ async function fetchRetentionFunnel(start: Date, end: Date) {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-  const [signups, firstReadingUsers, paidUsers, retained7dUsers, retained30dUsers] = await Promise.all([
-    prisma.user.count({ where: { createdAt: { gte: start, lte: end } } }),
-    prisma.reading.groupBy({ by: ['userId'], where: { createdAt: { gte: start, lte: end } } }),
-    prisma.subscription.count({ where: { createdAt: { gte: start, lte: end }, status: { in: ['active', 'trialing'] } } }),
-    // Users who signed up in range and had activity (reading) in last 7 days
-    prisma.reading.groupBy({
-      by: ['userId'],
-      where: {
-        createdAt: { gte: sevenDaysAgo },
-        user: { createdAt: { gte: start, lte: end } },
-      },
-    }),
-    // Users who signed up in range and had activity (reading) in last 30 days
-    prisma.reading.groupBy({
-      by: ['userId'],
-      where: {
-        createdAt: { gte: thirtyDaysAgo },
-        user: { createdAt: { gte: start, lte: end } },
-      },
-    }),
-  ])
+  const [signups, firstReadingUsers, paidUserGroups, retained7dUsers, retained30dUsers] =
+    await Promise.all([
+      prisma.user.count({ where: { createdAt: { gte: start, lte: end } } }),
+      prisma.reading.groupBy({ by: ['userId'], where: { createdAt: { gte: start, lte: end } } }),
+      // 크레딧 전용: '첫 결제'는 크레딧팩 구매 기준(구독 폐지).
+      prisma.bonusCreditPurchase.groupBy({
+        by: ['userId'],
+        where: { createdAt: { gte: start, lte: end }, source: 'purchase' },
+      }),
+      // Users who signed up in range and had activity (reading) in last 7 days
+      prisma.reading.groupBy({
+        by: ['userId'],
+        where: {
+          createdAt: { gte: sevenDaysAgo },
+          user: { createdAt: { gte: start, lte: end } },
+        },
+      }),
+      // Users who signed up in range and had activity (reading) in last 30 days
+      prisma.reading.groupBy({
+        by: ['userId'],
+        where: {
+          createdAt: { gte: thirtyDaysAgo },
+          user: { createdAt: { gte: start, lte: end } },
+        },
+      }),
+    ])
 
+  const paidUsers = paidUserGroups.length
   const retained7d = retained7dUsers.length
   const retained30d = retained30dUsers.length
 
   const stages = [
     { name: 'signup', label: '가입', count: signups, conversionRate: 100, dropoffRate: 0 },
     {
-      name: 'first_reading', label: '첫 리딩', count: firstReadingUsers.length,
-      conversionRate: signups > 0 ? Math.round((firstReadingUsers.length / signups) * 1000) / 10 : 0,
-      dropoffRate: signups > 0 ? Math.round(((signups - firstReadingUsers.length) / signups) * 1000) / 10 : 0,
+      name: 'first_reading',
+      label: '첫 리딩',
+      count: firstReadingUsers.length,
+      conversionRate:
+        signups > 0 ? Math.round((firstReadingUsers.length / signups) * 1000) / 10 : 0,
+      dropoffRate:
+        signups > 0 ? Math.round(((signups - firstReadingUsers.length) / signups) * 1000) / 10 : 0,
     },
     {
-      name: 'paid', label: '첫 결제', count: paidUsers,
+      name: 'paid',
+      label: '첫 결제',
+      count: paidUsers,
       conversionRate: signups > 0 ? Math.round((paidUsers / signups) * 1000) / 10 : 0,
-      dropoffRate: firstReadingUsers.length > 0 ? Math.round(((firstReadingUsers.length - paidUsers) / firstReadingUsers.length) * 1000) / 10 : 0,
+      dropoffRate:
+        firstReadingUsers.length > 0
+          ? Math.round(((firstReadingUsers.length - paidUsers) / firstReadingUsers.length) * 1000) /
+            10
+          : 0,
     },
     {
-      name: 'retained_7d', label: '7일 유지', count: retained7d,
+      name: 'retained_7d',
+      label: '7일 유지',
+      count: retained7d,
       conversionRate: signups > 0 ? Math.round((retained7d / signups) * 1000) / 10 : 0,
-      dropoffRate: paidUsers > 0 ? Math.round(((paidUsers - retained7d) / paidUsers) * 1000) / 10 : 0,
+      dropoffRate:
+        paidUsers > 0 ? Math.round(((paidUsers - retained7d) / paidUsers) * 1000) / 10 : 0,
     },
     {
-      name: 'retained_30d', label: '30일 유지', count: retained30d,
+      name: 'retained_30d',
+      label: '30일 유지',
+      count: retained30d,
       conversionRate: signups > 0 ? Math.round((retained30d / signups) * 1000) / 10 : 0,
-      dropoffRate: retained7d > 0 ? Math.round(((retained7d - retained30d) / retained7d) * 1000) / 10 : 0,
+      dropoffRate:
+        retained7d > 0 ? Math.round(((retained7d - retained30d) / retained7d) * 1000) / 10 : 0,
     },
   ]
 
-  return { stages, overallConversion: signups > 0 ? Math.round((retained30d / signups) * 1000) / 10 : 0 }
+  return {
+    stages,
+    overallConversion: signups > 0 ? Math.round((retained30d / signups) * 1000) / 10 : 0,
+  }
 }
 
 async function fetchEngagementByService(start: Date, end: Date) {
@@ -682,9 +689,18 @@ async function fetchEngagementByService(start: Date, end: Date) {
   const services = []
   for (const reading of readingsByType) {
     const [dau, wau, mau] = await Promise.all([
-      prisma.reading.groupBy({ by: ['userId'], where: { type: reading.type, createdAt: { gte: dayAgo } } }),
-      prisma.reading.groupBy({ by: ['userId'], where: { type: reading.type, createdAt: { gte: weekAgo } } }),
-      prisma.reading.groupBy({ by: ['userId'], where: { type: reading.type, createdAt: { gte: monthAgo } } }),
+      prisma.reading.groupBy({
+        by: ['userId'],
+        where: { type: reading.type, createdAt: { gte: dayAgo } },
+      }),
+      prisma.reading.groupBy({
+        by: ['userId'],
+        where: { type: reading.type, createdAt: { gte: weekAgo } },
+      }),
+      prisma.reading.groupBy({
+        by: ['userId'],
+        where: { type: reading.type, createdAt: { gte: monthAgo } },
+      }),
     ])
     services.push({
       service: reading.type,

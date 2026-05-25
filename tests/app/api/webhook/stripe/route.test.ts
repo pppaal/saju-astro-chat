@@ -97,23 +97,14 @@ vi.mock('stripe', () => {
   return { default: StripeMock }
 })
 
-// Mock prices helper
-vi.mock('@/lib/payments/prices', () => ({
-  getPlanFromPriceId: vi.fn(),
-}))
-
 // Mock credit service
 vi.mock('@/lib/credits/creditService', () => ({
-  upgradePlan: vi.fn(),
   addBonusCredits: vi.fn(),
 }))
 
 // Mock email service
 vi.mock('@/lib/email', () => ({
   sendPaymentReceiptEmail: vi.fn().mockResolvedValue(undefined),
-  sendSubscriptionConfirmEmail: vi.fn().mockResolvedValue(undefined),
-  sendSubscriptionCancelledEmail: vi.fn().mockResolvedValue(undefined),
-  sendPaymentFailedEmail: vi.fn().mockResolvedValue(undefined),
 }))
 
 // ---------------------------------------------------------------------------
@@ -121,14 +112,8 @@ vi.mock('@/lib/email', () => ({
 // ---------------------------------------------------------------------------
 import { POST } from '@/app/api/webhook/stripe/route'
 import { prisma } from '@/lib/db/prisma'
-import { getPlanFromPriceId } from '@/lib/payments/prices'
-import { upgradePlan, addBonusCredits } from '@/lib/credits/creditService'
-import {
-  sendPaymentReceiptEmail,
-  sendSubscriptionConfirmEmail,
-  sendSubscriptionCancelledEmail,
-  sendPaymentFailedEmail,
-} from '@/lib/email'
+import { addBonusCredits } from '@/lib/credits/creditService'
+import { sendPaymentReceiptEmail } from '@/lib/email'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { logger } from '@/lib/logger'
@@ -601,806 +586,6 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
   })
 
   // =========================================================================
-  // 7. customer.subscription.created
-  // =========================================================================
-  describe('customer.subscription.created', () => {
-    const subscriptionObj = {
-      id: 'sub_123',
-      customer: 'cus_abc',
-      status: 'active',
-      items: { data: [{ price: { id: 'price_pro_monthly' } }] },
-      current_period_start: nowEpoch(),
-      current_period_end: nowEpoch(30 * 86400),
-      cancel_at_period_end: false,
-    }
-
-    it('should upsert subscription and upgrade plan', async () => {
-      const event = makeEvent('customer.subscription.created', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      mockCustomerRetrieve.mockResolvedValue({
-        id: 'cus_abc',
-        deleted: false,
-        email: 'alice@example.com',
-      })
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        name: 'Alice',
-        email: 'alice@example.com',
-        role: 'user',
-        stripeCustomerId: 'cus_abc',
-        plan: 'free',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue({
-        plan: 'pro',
-        billingCycle: 'monthly',
-      })
-      vi.mocked(prisma.subscription.upsert).mockResolvedValue({} as any)
-      vi.mocked(upgradePlan).mockResolvedValue(undefined as any)
-
-      const response = await POST(makeWebhookRequest())
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.received).toBe(true)
-      expect(vi.mocked(prisma.subscription.upsert)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { stripeSubscriptionId: 'sub_123' },
-          create: expect.objectContaining({
-            userId: 'user-1',
-            plan: 'pro',
-            billingCycle: 'monthly',
-          }),
-        })
-      )
-      expect(vi.mocked(upgradePlan)).toHaveBeenCalledWith('user-1', 'pro')
-      expect(vi.mocked(sendSubscriptionConfirmEmail)).toHaveBeenCalledWith(
-        'user-1',
-        'alice@example.com',
-        expect.objectContaining({
-          userName: 'Alice',
-          planName: 'pro',
-          billingCycle: 'monthly',
-        })
-      )
-    })
-
-    it('should skip when customer is deleted', async () => {
-      const event = makeEvent('customer.subscription.created', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      mockCustomerRetrieve.mockResolvedValue({ id: 'cus_abc', deleted: true })
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.upsert)).not.toHaveBeenCalled()
-    })
-
-    it('should skip when customer has no email', async () => {
-      const event = makeEvent('customer.subscription.created', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      mockCustomerRetrieve.mockResolvedValue({
-        id: 'cus_abc',
-        deleted: false,
-        email: null,
-      })
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.upsert)).not.toHaveBeenCalled()
-    })
-
-    it('should skip when user is not found by email', async () => {
-      const event = makeEvent('customer.subscription.created', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      mockCustomerRetrieve.mockResolvedValue({
-        id: 'cus_abc',
-        deleted: false,
-        email: 'nobody@example.com',
-      })
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.upsert)).not.toHaveBeenCalled()
-    })
-
-    it('should skip when priceId is not whitelisted', async () => {
-      const event = makeEvent('customer.subscription.created', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      mockCustomerRetrieve.mockResolvedValue({
-        id: 'cus_abc',
-        deleted: false,
-        email: 'alice@example.com',
-      })
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        name: 'Alice',
-        email: 'alice@example.com',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue(null)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.upsert)).not.toHaveBeenCalled()
-      expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
-        expect.stringContaining('Price not whitelisted'),
-        expect.any(Object)
-      )
-    })
-
-    it('should handle upgradePlan failure gracefully (logs but does not crash)', async () => {
-      const event = makeEvent('customer.subscription.created', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      mockCustomerRetrieve.mockResolvedValue({
-        id: 'cus_abc',
-        deleted: false,
-        email: 'alice@example.com',
-      })
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        name: 'Alice',
-        email: 'alice@example.com',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue({ plan: 'pro', billingCycle: 'monthly' })
-      vi.mocked(prisma.subscription.upsert).mockResolvedValue({} as any)
-      vi.mocked(upgradePlan).mockRejectedValue(new Error('credit upgrade error'))
-
-      const response = await POST(makeWebhookRequest())
-      // Should still return 200 because the error is caught internally
-      expect(response.status).toBe(200)
-      expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to upgrade credits'),
-        expect.any(Error)
-      )
-    })
-
-    it('should handle subscription with no items gracefully', async () => {
-      const noItemsSub = {
-        ...subscriptionObj,
-        items: { data: [] },
-      }
-      const event = makeEvent('customer.subscription.created', noItemsSub)
-      mockConstructEvent.mockReturnValue(event)
-
-      mockCustomerRetrieve.mockResolvedValue({
-        id: 'cus_abc',
-        deleted: false,
-        email: 'alice@example.com',
-      })
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        name: 'Alice',
-        email: 'alice@example.com',
-      } as any)
-      // priceId will be '' and getPlanFromPriceId returns null
-      vi.mocked(getPlanFromPriceId).mockReturnValue(null)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.upsert)).not.toHaveBeenCalled()
-    })
-  })
-
-  // =========================================================================
-  // 8. customer.subscription.updated
-  // =========================================================================
-  describe('customer.subscription.updated', () => {
-    const subscriptionObj = {
-      id: 'sub_upd_1',
-      customer: 'cus_abc',
-      status: 'active',
-      items: { data: [{ price: { id: 'price_premium_monthly' } }] },
-      current_period_start: nowEpoch(),
-      current_period_end: nowEpoch(30 * 86400),
-      cancel_at_period_end: false,
-      canceled_at: null,
-    }
-
-    it('should update an existing subscription', async () => {
-      const event = makeEvent('customer.subscription.updated', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_upd_1',
-        userId: 'user-1',
-        plan: 'pro',
-        billingCycle: 'monthly',
-        stripePriceId: 'price_pro_monthly',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue({ plan: 'premium', billingCycle: 'monthly' })
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(upgradePlan).mockResolvedValue(undefined as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { stripeSubscriptionId: 'sub_upd_1' },
-          data: expect.objectContaining({
-            plan: 'premium',
-            status: 'active',
-          }),
-        })
-      )
-      // Plan changed from pro -> premium while status is active => upgrade
-      expect(vi.mocked(upgradePlan)).toHaveBeenCalledWith('user-1', 'premium')
-    })
-
-    it('should NOT call upgradePlan when plan has not changed', async () => {
-      const event = makeEvent('customer.subscription.updated', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_upd_1',
-        userId: 'user-1',
-        plan: 'premium',
-        billingCycle: 'monthly',
-        stripePriceId: 'price_premium_monthly',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue({ plan: 'premium', billingCycle: 'monthly' })
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(upgradePlan)).not.toHaveBeenCalled()
-    })
-
-    it('should NOT call upgradePlan when plan changed but status is not active', async () => {
-      const inactiveSub = { ...subscriptionObj, status: 'past_due' }
-      const event = makeEvent('customer.subscription.updated', inactiveSub)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_upd_1',
-        userId: 'user-1',
-        plan: 'pro',
-        billingCycle: 'monthly',
-        stripePriceId: 'price_pro_monthly',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue({ plan: 'premium', billingCycle: 'monthly' })
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(upgradePlan)).not.toHaveBeenCalled()
-    })
-
-    it('should fall back to handleSubscriptionCreated when subscription does not exist', async () => {
-      const event = makeEvent('customer.subscription.updated', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue(null) // not found
-
-      // Set up mocks for the handleSubscriptionCreated fallback path
-      mockCustomerRetrieve.mockResolvedValue({
-        id: 'cus_abc',
-        deleted: false,
-        email: 'alice@example.com',
-      })
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        name: 'Alice',
-        email: 'alice@example.com',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue({ plan: 'premium', billingCycle: 'monthly' })
-      vi.mocked(prisma.subscription.upsert).mockResolvedValue({} as any)
-      vi.mocked(upgradePlan).mockResolvedValue(undefined as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      // Falls through to handleSubscriptionCreated which calls upsert
-      expect(vi.mocked(prisma.subscription.upsert)).toHaveBeenCalled()
-    })
-
-    it('should use existing plan when getPlanFromPriceId returns null', async () => {
-      const event = makeEvent('customer.subscription.updated', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_upd_1',
-        userId: 'user-1',
-        plan: 'pro',
-        billingCycle: 'yearly',
-        stripePriceId: 'price_pro_yearly',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue(null) // unknown price
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            plan: 'pro', // falls back to existing
-            billingCycle: 'yearly',
-          }),
-        })
-      )
-    })
-
-    it('should set canceledAt when subscription has canceled_at timestamp', async () => {
-      const canceledTimestamp = nowEpoch(-60)
-      const canceledSub = { ...subscriptionObj, canceled_at: canceledTimestamp }
-      const event = makeEvent('customer.subscription.updated', canceledSub)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_upd_1',
-        userId: 'user-1',
-        plan: 'premium',
-        billingCycle: 'monthly',
-        stripePriceId: 'price_premium_monthly',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue({ plan: 'premium', billingCycle: 'monthly' })
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            canceledAt: new Date(canceledTimestamp * 1000),
-          }),
-        })
-      )
-    })
-
-    it('should handle upgradePlan failure gracefully on plan change', async () => {
-      const event = makeEvent('customer.subscription.updated', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_upd_1',
-        userId: 'user-1',
-        plan: 'starter',
-        billingCycle: 'monthly',
-        stripePriceId: 'price_starter_monthly',
-      } as any)
-      vi.mocked(getPlanFromPriceId).mockReturnValue({ plan: 'premium', billingCycle: 'monthly' })
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(upgradePlan).mockRejectedValue(new Error('credit system down'))
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200) // error is caught internally
-      expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to upgrade credits'),
-        expect.any(Error)
-      )
-    })
-  })
-
-  // =========================================================================
-  // 9. customer.subscription.deleted
-  // =========================================================================
-  describe('customer.subscription.deleted', () => {
-    const subscriptionObj = {
-      id: 'sub_del_1',
-      customer: 'cus_abc',
-      status: 'canceled',
-      items: { data: [{ price: { id: 'price_pro_monthly' } }] },
-      current_period_start: nowEpoch(-30 * 86400),
-      current_period_end: nowEpoch(),
-      cancel_at_period_end: true,
-    }
-
-    it('should cancel subscription and downgrade to free', async () => {
-      const event = makeEvent('customer.subscription.deleted', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_del_1',
-        userId: 'user-1',
-        plan: 'pro',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(upgradePlan).mockResolvedValue(undefined as any)
-      // findUnique for user (second call)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        email: 'alice@example.com',
-        name: 'Alice',
-      } as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { stripeSubscriptionId: 'sub_del_1' },
-          data: expect.objectContaining({ status: 'canceled' }),
-        })
-      )
-      expect(vi.mocked(upgradePlan)).toHaveBeenCalledWith('user-1', 'free')
-      expect(vi.mocked(sendSubscriptionCancelledEmail)).toHaveBeenCalledWith(
-        'user-1',
-        'alice@example.com',
-        expect.objectContaining({ userName: 'Alice', planName: 'pro' })
-      )
-    })
-
-    it('should skip when subscription not found in DB', async () => {
-      const event = makeEvent('customer.subscription.deleted', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue(null)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).not.toHaveBeenCalled()
-      expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-        expect.stringContaining('Subscription not found')
-      )
-    })
-
-    it('should handle upgradePlan failure gracefully on downgrade', async () => {
-      const event = makeEvent('customer.subscription.deleted', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_del_1',
-        userId: 'user-1',
-        plan: 'pro',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(upgradePlan).mockRejectedValue(new Error('downgrade failed'))
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        email: 'alice@example.com',
-        name: 'Alice',
-      } as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200) // error is caught internally
-      expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to downgrade credits'),
-        expect.any(Error)
-      )
-    })
-
-    it('should not send email when user has no email', async () => {
-      const event = makeEvent('customer.subscription.deleted', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_del_1',
-        userId: 'user-1',
-        plan: 'pro',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(upgradePlan).mockResolvedValue(undefined as any)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        email: null,
-        name: null,
-      } as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(sendSubscriptionCancelledEmail)).not.toHaveBeenCalled()
-    })
-
-    it('should not send email when user is not found', async () => {
-      const event = makeEvent('customer.subscription.deleted', subscriptionObj)
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_del_1',
-        userId: 'user-1',
-        plan: 'pro',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(upgradePlan).mockResolvedValue(undefined as any)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(sendSubscriptionCancelledEmail)).not.toHaveBeenCalled()
-    })
-  })
-
-  // =========================================================================
-  // 10. invoice.payment_succeeded
-  // =========================================================================
-  describe('invoice.payment_succeeded', () => {
-    it('should update subscription status to active with payment method', async () => {
-      const event = makeEvent('invoice.payment_succeeded', {
-        subscription: 'sub_inv_1',
-        payment_intent: 'pi_abc',
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_inv_1',
-        userId: 'user-1',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      mockPaymentIntentsRetrieve.mockResolvedValue({ payment_method: 'pm_xxx' })
-      mockPaymentMethodsRetrieve.mockResolvedValue({ type: 'card' })
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { stripeSubscriptionId: 'sub_inv_1' },
-          data: { status: 'active', paymentMethod: 'card' },
-        })
-      )
-    })
-
-    it('should handle subscription as object (not string)', async () => {
-      const event = makeEvent('invoice.payment_succeeded', {
-        subscription: { id: 'sub_obj_1' },
-        payment_intent: 'pi_abc',
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_obj_1',
-        userId: 'user-1',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      mockPaymentIntentsRetrieve.mockResolvedValue({ payment_method: 'pm_xxx' })
-      mockPaymentMethodsRetrieve.mockResolvedValue({ type: 'kakao_pay' })
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { status: 'active', paymentMethod: 'kakao_pay' },
-        })
-      )
-    })
-
-    it('should skip when invoice has no subscription', async () => {
-      const event = makeEvent('invoice.payment_succeeded', {
-        subscription: null,
-        payment_intent: 'pi_abc',
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.findUnique)).not.toHaveBeenCalled()
-    })
-
-    it('should skip update when subscription not found in DB', async () => {
-      const event = makeEvent('invoice.payment_succeeded', {
-        subscription: 'sub_ghost',
-        payment_intent: 'pi_abc',
-      })
-      mockConstructEvent.mockReturnValue(event)
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue(null)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).not.toHaveBeenCalled()
-    })
-
-    it('should handle payment_intent as object (not string)', async () => {
-      const event = makeEvent('invoice.payment_succeeded', {
-        subscription: 'sub_inv_2',
-        payment_intent: { id: 'pi_obj' },
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_inv_2',
-        userId: 'user-1',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      mockPaymentIntentsRetrieve.mockResolvedValue({ payment_method: 'pm_xxx' })
-      mockPaymentMethodsRetrieve.mockResolvedValue({ type: 'card' })
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(mockPaymentIntentsRetrieve).toHaveBeenCalledWith('pi_obj')
-    })
-
-    it('should set paymentMethod to null when payment_intent is missing', async () => {
-      const event = makeEvent('invoice.payment_succeeded', {
-        subscription: 'sub_inv_3',
-        payment_intent: null,
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_inv_3',
-        userId: 'user-1',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { status: 'active', paymentMethod: null },
-        })
-      )
-    })
-
-    it('should return null payment method when stripe api call fails', async () => {
-      const event = makeEvent('invoice.payment_succeeded', {
-        subscription: 'sub_inv_4',
-        payment_intent: 'pi_fail',
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_inv_4',
-        userId: 'user-1',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      mockPaymentIntentsRetrieve.mockRejectedValue(new Error('Stripe API error'))
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { status: 'active', paymentMethod: null },
-        })
-      )
-    })
-
-    it('should return null payment method when paymentIntent has no payment_method', async () => {
-      const event = makeEvent('invoice.payment_succeeded', {
-        subscription: 'sub_inv_5',
-        payment_intent: 'pi_no_pm',
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_inv_5',
-        userId: 'user-1',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      mockPaymentIntentsRetrieve.mockResolvedValue({ payment_method: null })
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { status: 'active', paymentMethod: null },
-        })
-      )
-    })
-  })
-
-  // =========================================================================
-  // 11. invoice.payment_failed
-  // =========================================================================
-  describe('invoice.payment_failed', () => {
-    it('should update subscription status to past_due and send failure email', async () => {
-      const event = makeEvent('invoice.payment_failed', {
-        subscription: 'sub_fail_1',
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_fail_1',
-        userId: 'user-1',
-        plan: 'premium',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        email: 'alice@example.com',
-        name: 'Alice',
-      } as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { stripeSubscriptionId: 'sub_fail_1' },
-          data: { status: 'past_due' },
-        })
-      )
-      expect(vi.mocked(sendPaymentFailedEmail)).toHaveBeenCalledWith(
-        'user-1',
-        'alice@example.com',
-        expect.objectContaining({
-          userName: 'Alice',
-          planName: 'premium',
-        })
-      )
-    })
-
-    it('should skip when invoice has no subscription', async () => {
-      const event = makeEvent('invoice.payment_failed', {
-        subscription: null,
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.findUnique)).not.toHaveBeenCalled()
-    })
-
-    it('should handle subscription as object', async () => {
-      const event = makeEvent('invoice.payment_failed', {
-        subscription: { id: 'sub_fail_obj' },
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_fail_obj',
-        userId: 'user-1',
-        plan: 'pro',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        email: 'bob@x.com',
-        name: 'Bob',
-      } as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).toHaveBeenCalled()
-    })
-
-    it('should skip update when subscription not found in DB', async () => {
-      const event = makeEvent('invoice.payment_failed', {
-        subscription: 'sub_ghost',
-      })
-      mockConstructEvent.mockReturnValue(event)
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue(null)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(prisma.subscription.update)).not.toHaveBeenCalled()
-    })
-
-    it('should not send email when user has no email', async () => {
-      const event = makeEvent('invoice.payment_failed', {
-        subscription: 'sub_fail_noemail',
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_fail_noemail',
-        userId: 'user-1',
-        plan: 'pro',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-1',
-        email: null,
-        name: null,
-      } as any)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(sendPaymentFailedEmail)).not.toHaveBeenCalled()
-    })
-
-    it('should not send email when user not found', async () => {
-      const event = makeEvent('invoice.payment_failed', {
-        subscription: 'sub_fail_nouser',
-      })
-      mockConstructEvent.mockReturnValue(event)
-
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        stripeSubscriptionId: 'sub_fail_nouser',
-        userId: 'user-1',
-        plan: 'pro',
-      } as any)
-      vi.mocked(prisma.subscription.update).mockResolvedValue({} as any)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(sendPaymentFailedEmail)).not.toHaveBeenCalled()
-    })
-  })
-
-  // =========================================================================
   // 12. Unhandled event types (default branch)
   // =========================================================================
   describe('Unhandled event types', () => {
@@ -1423,17 +608,25 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
   // 13. Error handling in event processing (catch block)
   // =========================================================================
   describe('Error handling during event processing', () => {
-    it('should return 500 and log error details when handler throws', async () => {
-      const event = makeEvent('customer.subscription.deleted', {
-        id: 'sub_throw',
-        customer: 'cus_abc',
-        status: 'canceled',
-        items: { data: [] },
+    const creditPackEvent = (id: string) =>
+      makeEvent('checkout.session.completed', {
+        id,
+        metadata: { type: 'credit_pack', creditPack: 'standard', userId: 'user-1' },
+        amount_total: 9900,
+        currency: 'krw',
       })
+
+    it('should return 500 and log error details when handler throws', async () => {
+      const event = creditPackEvent('cs_throw')
       mockConstructEvent.mockReturnValue(event)
 
-      // findUnique throws
-      vi.mocked(prisma.subscription.findUnique).mockRejectedValue(new Error('DB timeout'))
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-1',
+        name: 'A',
+        email: 'a@b.com',
+      } as any)
+      // addBonusCredits throws → handler rethrows
+      vi.mocked(addBonusCredits).mockRejectedValue(new Error('DB timeout'))
       vi.mocked(prisma.stripeEventLog.findUnique).mockResolvedValue(null)
       vi.mocked(prisma.stripeEventLog.upsert).mockResolvedValue({} as any)
 
@@ -1443,13 +636,12 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       expect(response.status).toBe(500)
       expect(data.error.message).toBe('Internal Server Error')
       expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
-        expect.stringContaining('Error handling customer.subscription.deleted'),
+        expect.stringContaining('Error handling checkout.session.completed'),
         expect.any(Error)
       )
       expect(vi.mocked(recordCounter)).toHaveBeenCalledWith('stripe_webhook_handler_error', 1, {
-        event: 'customer.subscription.deleted',
+        event: 'checkout.session.completed',
       })
-      // Should have attempted to upsert the error into the event log
       expect(vi.mocked(prisma.stripeEventLog.upsert)).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { eventId: event.id },
@@ -1459,21 +651,20 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
     })
 
     it('should handle non-Error throw in event handler', async () => {
-      const event = makeEvent('customer.subscription.deleted', {
-        id: 'sub_nonError',
-        customer: 'cus_abc',
-        status: 'canceled',
-        items: { data: [] },
-      })
+      const event = creditPackEvent('cs_nonError')
       mockConstructEvent.mockReturnValue(event)
 
-      vi.mocked(prisma.subscription.findUnique).mockRejectedValue('string_reject')
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-1',
+        name: 'A',
+        email: 'a@b.com',
+      } as any)
+      vi.mocked(addBonusCredits).mockRejectedValue('string_reject')
       vi.mocked(prisma.stripeEventLog.findUnique).mockResolvedValue(null)
       vi.mocked(prisma.stripeEventLog.upsert).mockResolvedValue({} as any)
 
       const response = await POST(makeWebhookRequest())
       expect(response.status).toBe(500)
-      // The error message should be 'Unknown error' for non-Error throws
       expect(vi.mocked(prisma.stripeEventLog.upsert)).toHaveBeenCalledWith(
         expect.objectContaining({
           update: expect.objectContaining({ errorMsg: 'Unknown error' }),
@@ -1482,16 +673,15 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
     })
 
     it('should return duplicate when event was processed by another worker during error handling', async () => {
-      const event = makeEvent('customer.subscription.deleted', {
-        id: 'sub_race',
-        customer: 'cus_abc',
-        status: 'canceled',
-        items: { data: [] },
-      })
+      const event = creditPackEvent('cs_race')
       mockConstructEvent.mockReturnValue(event)
 
-      // Handler throws
-      vi.mocked(prisma.subscription.findUnique).mockRejectedValue(new Error('fail'))
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-1',
+        name: 'A',
+        email: 'a@b.com',
+      } as any)
+      vi.mocked(addBonusCredits).mockRejectedValue(new Error('fail'))
       // But by the time we check, another worker succeeded
       vi.mocked(prisma.stripeEventLog.findUnique).mockResolvedValue({
         eventId: event.id,
@@ -1508,15 +698,15 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
     })
 
     it('should handle error when logging the error itself fails', async () => {
-      const event = makeEvent('customer.subscription.deleted', {
-        id: 'sub_logfail',
-        customer: 'cus_abc',
-        status: 'canceled',
-        items: { data: [] },
-      })
+      const event = creditPackEvent('cs_logfail')
       mockConstructEvent.mockReturnValue(event)
 
-      vi.mocked(prisma.subscription.findUnique).mockRejectedValue(new Error('handler fail'))
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-1',
+        name: 'A',
+        email: 'a@b.com',
+      } as any)
+      vi.mocked(addBonusCredits).mockRejectedValue(new Error('handler fail'))
       // Error logging also fails
       vi.mocked(prisma.stripeEventLog.findUnique).mockRejectedValue(new Error('log fail'))
 
@@ -1534,12 +724,9 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
   // =========================================================================
   describe('Event log success recording', () => {
     it('should update event log with success=true after successful processing', async () => {
-      const event = makeEvent('invoice.payment_succeeded', {
-        subscription: 'sub_log_ok',
-        payment_intent: null,
-      })
+      // An unhandled event still processes successfully (default branch).
+      const event = makeEvent('charge.refunded', { id: 'ch_log_ok' })
       mockConstructEvent.mockReturnValue(event)
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue(null) // no sub found
 
       const response = await POST(makeWebhookRequest())
       expect(response.status).toBe(200)

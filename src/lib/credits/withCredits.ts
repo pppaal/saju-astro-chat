@@ -143,36 +143,15 @@ export async function checkAndConsumeCredits(
     )
   }
 
-  // 크레딧 체크
+  // 크레딧 체크 (크레딧 전용 — 종류 구분 없이 일반 크레딧 소비)
   const canUse = await canUseCredits(userId, type, amount)
   if (!canUse.allowed) {
-    const errorMessages: Record<string, string> = {
-      no_credits: '이번 달 리딩 횟수를 모두 사용했습니다. 플랜을 업그레이드하세요.',
-      compatibility_limit: '이번 달 궁합 분석 횟수를 모두 사용했습니다.',
-      followup_limit: '이번 달 후속질문 횟수를 모두 사용했습니다.',
-    }
-
-    // Get detailed limit info for compatibility/followUp errors
-    let limitInfo
-    if (canUse.reason === 'compatibility_limit' || canUse.reason === 'followup_limit') {
-      const userCredits = await getUserCredits(userId)
-      if (userCredits) {
-        const isCompatibility = canUse.reason === 'compatibility_limit'
-        limitInfo = {
-          used: isCompatibility ? userCredits.compatibilityUsed : userCredits.followUpUsed,
-          limit: isCompatibility ? userCredits.compatibilityLimit : userCredits.followUpLimit,
-          planName: userCredits.plan || 'Free',
-        }
-      }
-    }
-
     return {
       allowed: false,
       userId,
-      error: errorMessages[canUse.reason || ''] || '크레딧이 부족합니다',
+      error: '크레딧이 부족합니다. 충전 후 다시 시도해 주세요.',
       errorCode: canUse.reason,
       remaining: canUse.remaining,
-      limitInfo,
     }
   }
 
@@ -324,7 +303,7 @@ export async function ensureUserCredits(userId: string): Promise<void> {
   try {
     const credits = await getUserCredits(userId)
     if (!credits) {
-      await initializeUserCredits(userId, 'free')
+      await initializeUserCredits(userId)
     }
   } catch (err) {
     logger.error('[ensureUserCredits] Failed:', err)

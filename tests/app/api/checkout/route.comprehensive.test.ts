@@ -79,10 +79,7 @@ vi.mock('stripe', () => {
 import { POST } from '@/app/api/checkout/route'
 import { getServerSession } from 'next-auth'
 import { rateLimit } from '@/lib/rateLimit'
-import {
-  getCreditPackPriceId,
-  allowedCreditPackIds,
-} from '@/lib/payments/prices'
+import { getCreditPackPriceId, allowedCreditPackIds } from '@/lib/payments/prices'
 
 describe('/api/checkout', () => {
   const originalEnv = process.env
@@ -205,7 +202,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'standard' }),
       })
 
       const response = await FreshPOST(req)
@@ -217,24 +214,6 @@ describe('/api/checkout', () => {
   })
 
   describe('Input Validation', () => {
-    it('should reject both plan and creditPack', async () => {
-      const req = new NextRequest('http://localhost:3000/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: 'premium',
-          creditPack: 'mini',
-          billingCycle: 'monthly',
-        }),
-      })
-
-      const response = await POST(req)
-      const data = await response.json()
-
-      // Zod validation fails for both plan+creditPack
-      expect(response.status).toBe(422)
-    })
-
     it('should reject missing product', async () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
@@ -258,7 +237,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'standard' }),
       })
 
       const response = await POST(req)
@@ -278,7 +257,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'standard' }),
       })
 
       const response = await POST(req)
@@ -297,7 +276,7 @@ describe('/api/checkout', () => {
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'standard' }),
       })
 
       const response = await POST(req)
@@ -330,10 +309,9 @@ describe('/api/checkout', () => {
       })
 
       const response = await POST(req)
-      const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(extractErrorMessage(data)).toContain('invalid_request')
+      // creditPack is now required; a plan-only request fails schema validation.
+      expect(response.status).toBe(422)
       expect(mockStripeCheckoutCreate).not.toHaveBeenCalled()
     })
 

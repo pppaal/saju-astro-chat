@@ -1,12 +1,13 @@
 import { prisma } from '@/lib/db/prisma'
-import { PLAN_CONFIG, type PlanType, type PlanFeatures } from '@/lib/config/pricing'
 import { logger } from '@/lib/logger'
 import type { Prisma } from '@prisma/client'
 
-// Re-export for backward compatibility
-export { PLAN_CONFIG }
-export type { PlanType }
-export type FeatureType = keyof PlanFeatures
+// 크레딧 전용 모델 — 구독 플랜은 폐지됨. 신규 유저는 월간 무료 0,
+// 한도 없음(궁합·후속질문도 일반 크레딧 1개씩 소비), 기록 보관 기본값만 둔다.
+const DEFAULT_HISTORY_RETENTION_DAYS = 365
+
+// 기능 게이트도 플랜과 함께 폐지 — 크레딧만 있으면 모든 기능 사용 가능.
+export type FeatureType = string
 
 // 테스트용 크레딧 우회 — CREDITS_BYPASS=true 일 때 동작한다. 운영 빌드에서도
 // 켜지므로(배포 환경 테스트용) 실제 과금에 직접 영향을 준다. 켜면 타로/궁합/
@@ -27,27 +28,23 @@ function getNextPeriodEnd(): Date {
   return new Date(now.getFullYear(), now.getMonth() + 1, 1)
 }
 
-// 유저 크레딧 초기화 (신규 가입 시)
-// 무료 플랜: 가입 시 2 크레딧 일회성 보너스 (월간 무료 0)
-const FREE_PLAN_SIGNUP_BONUS = 2
+// 유저 크레딧 초기화 (신규 가입 시) — 가입 시 2 크레딧 일회성 보너스
+const SIGNUP_BONUS = 2
 
-export async function initializeUserCredits(userId: string, plan: PlanType = 'free') {
-  const config = PLAN_CONFIG[plan]
+export async function initializeUserCredits(userId: string) {
   const now = new Date()
-  const signupBonus = plan === 'free' ? FREE_PLAN_SIGNUP_BONUS : 0
 
   return prisma.userCredits.create({
     data: {
       userId,
-      plan,
-      monthlyCredits: config.monthlyCredits,
+      monthlyCredits: 0,
       usedCredits: 0,
-      bonusCredits: signupBonus,
+      bonusCredits: SIGNUP_BONUS,
       compatibilityUsed: 0,
       followUpUsed: 0,
-      compatibilityLimit: config.compatibilityLimit,
-      followUpLimit: config.followUpLimit,
-      historyRetention: config.historyRetention,
+      compatibilityLimit: 0,
+      followUpLimit: 0,
+      historyRetention: DEFAULT_HISTORY_RETENTION_DAYS,
       periodStart: now,
       periodEnd: getNextPeriodEnd(),
     },
@@ -60,9 +57,9 @@ export async function getUserCredits(userId: string) {
     where: { userId },
   })
 
-  // 없으면 free 플랜으로 생성
+  // 없으면 생성
   if (!credits) {
-    credits = await initializeUserCredits(userId, 'free')
+    credits = await initializeUserCredits(userId)
   }
 
   // 기간 만료 시 리셋
@@ -83,7 +80,7 @@ export async function getCreditBalance(userId: string) {
   const totalCredits = credits.monthlyCredits + totalBonus
 
   return {
-    plan: credits.plan as PlanType,
+    plan: credits.plan,
     monthlyCredits: credits.monthlyCredits,
     usedCredits: credits.usedCredits,
     bonusCredits: credits.bonusCredits,
@@ -115,48 +112,16 @@ export async function canUseCredits(
   }
   const balance = await getCreditBalance(userId)
 
-  if (type === 'reading') {
-    if (balance.remainingCredits >= amount) {
-      return { allowed: true, remaining: balance.remainingCredits - amount }
-    }
-    return {
-      allowed: false,
-      reason: 'no_credits',
-      remaining: balance.remainingCredits,
-    }
+  // 크레딧 전용: reading·compatibility·followUp 모두 동일하게 일반 크레딧 소비.
+  void type
+  if (balance.remainingCredits >= amount) {
+    return { allowed: true, remaining: balance.remainingCredits - amount }
   }
-
-  if (type === 'compatibility') {
-    if (balance.compatibility.remaining >= amount) {
-      return { allowed: true, remaining: balance.compatibility.remaining - amount }
-    }
-    // Monthly compat cap exhausted — fall back to the user's general
-    // reading credit so paying users with unused balance can keep
-    // running analyses. Previously this surfaced as a hard 402 even
-    // when the user clearly had credit, which is what the chat-error
-    // bubble has been complaining about.
-    if (balance.remainingCredits >= amount) {
-      return { allowed: true, remaining: balance.remainingCredits - amount }
-    }
-    return {
-      allowed: false,
-      reason: 'compatibility_limit',
-      remaining: balance.compatibility.remaining,
-    }
+  return {
+    allowed: false,
+    reason: 'no_credits',
+    remaining: balance.remainingCredits,
   }
-
-  if (type === 'followUp') {
-    if (balance.followUp.remaining >= amount) {
-      return { allowed: true, remaining: balance.followUp.remaining - amount }
-    }
-    return {
-      allowed: false,
-      reason: 'followup_limit',
-      remaining: balance.followUp.remaining,
-    }
-  }
-
-  return { allowed: false, reason: 'invalid_type' }
 }
 
 // 보너스 크레딧 소비 (FIFO - 먼저 구매한 것부터 사용)
@@ -230,7 +195,11 @@ export async function consumeCredits(
   userId: string,
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
   amount: number = 1
-): Promise<{ success: boolean; error?: string; chargedAs?: 'reading' | 'compatibility' | 'followUp' }> {
+): Promise<{
+  success: boolean
+  error?: string
+  chargedAs?: 'reading' | 'compatibility' | 'followUp'
+}> {
   if (CREDITS_BYPASS) {
     return { success: true }
   }
@@ -247,41 +216,19 @@ export async function consumeCredits(
       }
 
       // 2. 사용 가능 여부 체크 (트랜잭션 내에서)
+      // 크레딧 전용: reading·compatibility·followUp 구분 없이 일반 크레딧 1개씩 소비.
+      void type
       const available = credits.monthlyCredits - credits.usedCredits + credits.bonusCredits
 
-      // effectiveType drives both the validation branch below *and* the
-      // deduction block further down. We start with the caller's request
-      // and downgrade to 'reading' for compatibility / followUp callers
-      // whose dedicated monthly cap has been used up but who still have
-      // unused general credit. Without this fallback, paying users with
-      // credit on file were getting hard 402s on the counselor route.
-      let effectiveType: 'reading' | 'compatibility' | 'followUp' = type
-
-      if (type === 'reading') {
-        if (available < amount) {
-          throw new CreditBusinessError('크레딧이 부족합니다')
-        }
-      } else if (type === 'compatibility') {
-        if (credits.compatibilityUsed >= credits.compatibilityLimit) {
-          if (available < amount) {
-            throw new CreditBusinessError('궁합 분석 한도를 초과했습니다')
-          }
-          effectiveType = 'reading'
-        }
-      } else if (type === 'followUp') {
-        if (credits.followUpUsed >= credits.followUpLimit) {
-          if (available < amount) {
-            throw new CreditBusinessError('후속질문 한도를 초과했습니다')
-          }
-          effectiveType = 'reading'
-        }
+      if (available < amount) {
+        throw new CreditBusinessError('크레딧이 부족합니다')
       }
 
       // 3. 보너스 크레딧 먼저 사용 (만료 임박한 것부터)
       let fromBonus = 0
       let fromMonthly = amount
 
-      if (effectiveType === 'reading' && credits.bonusCredits > 0) {
+      if (credits.bonusCredits > 0) {
         fromBonus = Math.min(credits.bonusCredits, amount)
         fromMonthly = amount - fromBonus
 
@@ -300,18 +247,11 @@ export async function consumeCredits(
 
       // 4. 크레딧 차감 (트랜잭션 내에서 원자적으로)
       const updateData: Record<string, { increment?: number; decrement?: number }> = {}
-
-      if (effectiveType === 'reading') {
-        if (fromBonus > 0) {
-          updateData.bonusCredits = { decrement: fromBonus }
-        }
-        if (fromMonthly > 0) {
-          updateData.usedCredits = { increment: fromMonthly }
-        }
-      } else if (effectiveType === 'compatibility') {
-        updateData.compatibilityUsed = { increment: amount }
-      } else if (effectiveType === 'followUp') {
-        updateData.followUpUsed = { increment: amount }
+      if (fromBonus > 0) {
+        updateData.bonusCredits = { decrement: fromBonus }
+      }
+      if (fromMonthly > 0) {
+        updateData.usedCredits = { increment: fromMonthly }
       }
 
       if (Object.keys(updateData).length > 0) {
@@ -321,9 +261,8 @@ export async function consumeCredits(
         })
       }
 
-      // Return chargedAs so the API middleware's refund path can put the
-      // credit back on the right counter when downstream LLM calls fail.
-      return { success: true, chargedAs: effectiveType }
+      // refund 경로 호환을 위해 chargedAs 유지 (이제 항상 'reading').
+      return { success: true, chargedAs: 'reading' as const }
     })
 
     return result
@@ -375,113 +314,26 @@ async function consumeBonusCreditsFromPurchasesInTx(
   return totalConsumed
 }
 
-// 구독 상태 확인 (active 또는 trialing인 경우만 유효)
-async function hasActiveSubscription(userId: string): Promise<boolean> {
-  const subscription = await prisma.subscription.findFirst({
-    where: {
-      userId,
-      status: { in: ['active', 'trialing'] },
-    },
-    orderBy: { updatedAt: 'desc' },
-  })
-
-  if (!subscription) {
-    return false
-  }
-
-  // currentPeriodEnd가 지났으면 만료된 것
-  if (subscription.currentPeriodEnd && new Date() > subscription.currentPeriodEnd) {
-    return false
-  }
-
-  return true
-}
-
-// 월간 크레딧 리셋 (구독이 유효한 경우에만)
+// 기간 갱신 (cron / 만료 진입 시) — 크레딧 전용이라 월간 충전은 없다.
+// 구매 크레딧(bonusCredits)은 자체 3개월 만료로 별도 관리되므로 여기서는
+// 기간만 다음 달로 넘겨 getUserCredits 의 리셋 루프만 방지한다(잔액 보존).
 export async function resetMonthlyCredits(userId: string) {
   const credits = await prisma.userCredits.findUnique({
     where: { userId },
   })
 
   if (!credits) {
-    return initializeUserCredits(userId, 'free')
+    return initializeUserCredits(userId)
   }
 
-  // 구독이 유효한지 확인
-  const isSubscribed = await hasActiveSubscription(userId)
-
-  if (!isSubscribed) {
-    // 구독 만료 → free 플랜으로 다운그레이드
-    const freeConfig = PLAN_CONFIG.free
-    const now = new Date()
-
-    return prisma.userCredits.update({
-      where: { userId },
-      data: {
-        plan: 'free',
-        usedCredits: 0,
-        compatibilityUsed: 0,
-        followUpUsed: 0,
-        periodStart: now,
-        periodEnd: getNextPeriodEnd(),
-        monthlyCredits: freeConfig.monthlyCredits,
-        compatibilityLimit: freeConfig.compatibilityLimit,
-        followUpLimit: freeConfig.followUpLimit,
-        historyRetention: freeConfig.historyRetention,
-      },
-    })
-  }
-
-  // 구독 유효 → 현재 플랜 기준으로 리셋
-  const config = PLAN_CONFIG[credits.plan as PlanType] || PLAN_CONFIG.free
   const now = new Date()
-
   return prisma.userCredits.update({
     where: { userId },
     data: {
-      usedCredits: 0,
-      compatibilityUsed: 0,
-      followUpUsed: 0,
       periodStart: now,
       periodEnd: getNextPeriodEnd(),
-      monthlyCredits: config.monthlyCredits,
-      compatibilityLimit: config.compatibilityLimit,
-      followUpLimit: config.followUpLimit,
-      historyRetention: config.historyRetention,
     },
   })
-}
-
-// 플랜 업그레이드
-export async function upgradePlan(userId: string, newPlan: PlanType) {
-  const config = PLAN_CONFIG[newPlan]
-  const now = new Date()
-
-  // 기존 크레딧이 있으면 업데이트, 없으면 생성
-  const existing = await prisma.userCredits.findUnique({
-    where: { userId },
-  })
-
-  if (existing) {
-    return prisma.userCredits.update({
-      where: { userId },
-      data: {
-        plan: newPlan,
-        monthlyCredits: config.monthlyCredits,
-        compatibilityLimit: config.compatibilityLimit,
-        followUpLimit: config.followUpLimit,
-        historyRetention: config.historyRetention,
-        // 업그레이드 시 즉시 크레딧 리셋
-        usedCredits: 0,
-        compatibilityUsed: 0,
-        followUpUsed: 0,
-        periodStart: now,
-        periodEnd: getNextPeriodEnd(),
-      },
-    })
-  }
-
-  return initializeUserCredits(userId, newPlan)
 }
 
 // 보너스 크레딧 추가 (크레딧팩 구매 등)
@@ -589,16 +441,12 @@ export async function expireBonusCredits() {
   }
 }
 
-// 기능 사용 가능 여부 확인
-export async function canUseFeature(userId: string, feature: FeatureType): Promise<boolean> {
-  const credits = await getUserCredits(userId)
-  const plan = credits.plan as PlanType
-  const config = PLAN_CONFIG[plan] || PLAN_CONFIG.free
-
-  return config.features[feature] ?? false
+// 기능 사용 가능 여부 — 플랜 게이트 폐지, 크레딧만 있으면 모두 사용 가능.
+export async function canUseFeature(_userId: string, _feature: FeatureType): Promise<boolean> {
+  return true
 }
 
-// 전체 유저 월간 리셋 (cron job용)
+// 전체 유저 기간 갱신 (cron job용)
 export async function resetAllExpiredCredits() {
   const now = new Date()
 
@@ -606,7 +454,7 @@ export async function resetAllExpiredCredits() {
     where: {
       periodEnd: { lte: now },
     },
-    select: { userId: true, plan: true },
+    select: { userId: true },
   })
 
   const results = await Promise.allSettled(

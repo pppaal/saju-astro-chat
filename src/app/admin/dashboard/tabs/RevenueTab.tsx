@@ -8,51 +8,14 @@ export function RevenueTab({
   formatDate,
   formatCurrency: _formatCurrency,
   pct,
-  getBadgeClass,
   renderDistribution: _renderDistribution,
   renderTableInfo,
   SectionSkeleton,
 }: { data: RevenueData | undefined } & TabRenderProps) {
   if (!data) return <SectionSkeleton />
 
-  const totalSubs = data.subscriptionsByStatus?.reduce((s, e) => s + e.count, 0) || 0
-
   return (
     <>
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>구독 현황</h2>
-        <div className={styles.metricsGrid}>
-          <div className={styles.metricCard}>
-            <div className={styles.metricLabel}>활성 구독</div>
-            <div className={styles.metricValue}>{formatNumber(data.activeSubscriptions)}</div>
-            <div className={styles.statRate}>
-              {pct(data.activeSubscriptions, totalSubs)} of total
-            </div>
-          </div>
-          {data.subscriptionsByPlan.map((s) => (
-            <div key={s.plan} className={styles.metricCard}>
-              <div className={styles.metricLabel}>{s.plan}</div>
-              <div className={styles.metricValue}>{formatNumber(s.count)}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {data.subscriptionsByStatus && data.subscriptionsByStatus.length > 0 && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>구독 상태별</h2>
-          <div className={styles.metricsGrid}>
-            {data.subscriptionsByStatus.map((s) => (
-              <div key={s.status} className={styles.metricCard}>
-                <div className={styles.metricLabel}>{s.status}</div>
-                <div className={styles.metricValue}>{formatNumber(s.count)}</div>
-                <span className={`${styles.badge} ${getBadgeClass(s.status)}`}>{s.status}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>서비스별 크레딧 사용</h2>
         {data.creditUsageByService.length > 0 ? (

@@ -222,8 +222,7 @@ describe('withCredits helpers', () => {
 
       const result = await checkCreditsOnly('reading', 1, {
         cookies: {
-          get: (name: string) =>
-            name === 'tarot_guest_reading_used' ? { value: '1' } : undefined,
+          get: (name: string) => (name === 'tarot_guest_reading_used' ? { value: '1' } : undefined),
         },
       })
 
@@ -361,7 +360,7 @@ describe('withCredits helpers', () => {
 
       await ensureUserCredits('user-123')
 
-      expect(initializeUserCredits).toHaveBeenCalledWith('user-123', 'free')
+      expect(initializeUserCredits).toHaveBeenCalledWith('user-123')
     })
 
     it('should handle errors gracefully', async () => {
