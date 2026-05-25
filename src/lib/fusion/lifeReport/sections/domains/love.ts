@@ -398,6 +398,17 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     deepKo.push(`다만 ${loveConflicts[0].rule.narrative.conflict}`)
     deepEn.push(`That said, ${loveConflicts[0].rule.meaning}.`)
   }
+  // Venus/Mars midpoint (열정의 점) — attraction & desire axis.
+  const passionMid = input.calendarSignals?.midpoints?.find((m) => m.id === 'Venus/Mars')
+  if (passionMid) {
+    astroUsed.push('midpoints.venusMars')
+    deepKo.push(
+      `열정의 점(금성·화성 미드포인트)은 ${signLabel(passionMid.sign, 'ko')}에 있어, 끌림과 열정이 그 색으로 피어나요.`
+    )
+    deepEn.push(
+      `Your Venus/Mars midpoint — the point of passion — sits in ${signLabel(passionMid.sign, 'en')}, coloring how attraction and desire ignite.`
+    )
+  }
   // Saju relations — 합 weighted (love is union-coloured)
   const relKoLove = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferKind: '합',
