@@ -159,10 +159,6 @@ function isoDate(year: number, month: number, day: number): string {
   return `${year}-${pad2(month)}-${pad2(day)}`
 }
 
-function monthKey(year: number, month: number): string {
-  return `${year}-${pad2(month)}`
-}
-
 function categoryMatchesFilter(categories: EventCategory[], filter?: EventCategory): boolean {
   return !filter || categories.includes(filter)
 }
@@ -955,35 +951,64 @@ const MOON_GRAIN_EN: Record<DomainKey, string> = {
   move: 'momentum',
 }
 
-function getMonthStrength(rows: MonthlyOverlapPoint[] | undefined, month: string): number {
-  if (!rows?.length) return 0
-  return rows
-    .filter((item) => item.month === month)
-    .reduce((max, item) => Math.max(max, item.overlapStrength || 0), 0)
+// ── 도메인(분야) = 사주 × 점성 교차에서 직접 산출 ──
+// 그날 일진 십신 + 신살(도화→연애·역마→이동) + 점성 트랜짓 행성(금성→연애·
+// 목성→돈…)을 합쳐 career/love/money/health/move 5분야 가중치를 매긴다.
+// (과거엔 destiny-matrix 월별 타임라인에 의존했으나, 캘린더는 사주×점성 교차
+//  자체이므로 그 교차에서 바로 분야를 뽑는다.)
+const SIBSIN_TO_DOMAIN: Record<string, DomainKey> = {
+  정재: 'money',
+  편재: 'money',
+  정관: 'career',
+  편관: 'career',
+  정인: 'health',
+  편인: 'health',
+  식신: 'love',
+  상관: 'love',
+  비견: 'career',
+  겁재: 'career',
+}
+const SHINSAL_TO_DOMAIN: Record<string, DomainKey> = {
+  도화: 'love',
+  홍염살: 'love',
+  역마: 'move',
+  지살: 'move',
+  화개: 'health',
+}
+const TRANSIT_PLANET_TO_DOMAIN: Record<string, DomainKey> = {
+  Venus: 'love',
+  Moon: 'health',
+  Jupiter: 'money',
+  Mercury: 'career',
+  Saturn: 'career',
+  Mars: 'career',
+  Sun: 'career',
 }
 
-function getDomainBase(
-  matrixContext: YearlyMatrixCalendarContext | null | undefined,
-  domain: DomainKey
-): number {
-  const raw = matrixContext?.domainScores?.[domain]?.finalScoreAdjusted
-  if (!Number.isFinite(raw)) return 0.52
-  return clamp(Number(raw) / 10, 0, 1)
-}
-
-function pickTopDomains(
-  matrixContext: YearlyMatrixCalendarContext | null | undefined,
-  currentMonthKey: string
-): Array<{ domain: DomainKey; score: number }> {
+function pickTopDomainsCross(input: {
+  daySibsin: string
+  shinsalKinds: string[]
+  transitPlanets: string[]
+  day: number
+}): Array<{ domain: DomainKey; score: number }> {
+  const w: Record<DomainKey, number> = { career: 0, love: 0, money: 0, health: 0, move: 0 }
+  const sd = SIBSIN_TO_DOMAIN[input.daySibsin]
+  if (sd) w[sd] += 1.0
+  for (const k of input.shinsalKinds) {
+    const d = SHINSAL_TO_DOMAIN[k]
+    if (d) w[d] += 1.2
+  }
+  for (const pl of input.transitPlanets) {
+    const d = TRANSIT_PLANET_TO_DOMAIN[pl]
+    if (d) w[d] += 0.6
+  }
   const domains: DomainKey[] = ['career', 'love', 'money', 'health', 'move']
   return domains
-    .map((domain) => {
-      const monthStrength = getMonthStrength(
-        matrixContext?.overlapTimelineByDomain?.[domain],
-        currentMonthKey
-      )
-      const score = getDomainBase(matrixContext, domain) * 0.55 + monthStrength * 0.45
-      return { domain, score: clamp(score, 0, 1) }
+    .map((domain, i) => {
+      // 0..1 정규화: 기여 없으면 ~0.42, 강하면 0.85+. 동률은 day 기반 미세 jitter로 흔든다.
+      const jitter = (((input.day * 7 + i * 13) % 11) / 11) * 0.03
+      const score = clamp(0.42 + 0.16 * w[domain] + jitter, 0, 1)
+      return { domain, score }
     })
     .sort((left, right) => right.score - left.score)
 }
@@ -1864,35 +1889,8 @@ export function calculateYearlyImportantDates(
     const month = date.getMonth() + 1
     const day = date.getDate()
     const dailyPack = getPackForDate(date, sajuProfile, dailyPackCache)
-    const currentMonthKey = monthKey(year, month)
-    const domainRanking = pickTopDomains(options?.matrixContext, currentMonthKey)
-    const primary = domainRanking[0] || { domain: 'career' as DomainKey, score: 0.52 }
-    const secondary = domainRanking[1] || { domain: 'love' as DomainKey, score: 0.48 }
-    const seasonalPulse = (Math.sin((day / 31) * Math.PI) + 1) / 2
-    const dailyWave = (Math.sin((day / 31) * Math.PI * 2 - Math.PI / 2) + 1) / 2
-    const weekday = date.getDay()
-    const weekdayBoost =
-      weekday === 1 || weekday === 4 ? 0.04 : weekday === 0 || weekday === 6 ? -0.03 : 0
-    const primaryMonthStrength = getMonthStrength(
-      options?.matrixContext?.overlapTimelineByDomain?.[primary.domain],
-      currentMonthKey
-    )
-    const dominanceGap = clamp(primary.score - secondary.score, 0, 1)
-    const primaryStrength = clamp(
-      primary.score * 0.52 +
-        primaryMonthStrength * 0.18 +
-        dailyWave * 0.12 +
-        seasonalPulse * 0.08 +
-        reliability * 0.08 +
-        dominanceGap * 0.08 +
-        weekdayBoost,
-      0,
-      1
-    )
-    // (Legacy weakPenalty / peakBoost computations removed — both were
-    // tied to primaryStrength scalar in the old matrix-heavy formula
-    // and are no longer used by the 5-axis blend.)
-    // 일진(오늘의 일주) × 본명 일주 이벤트
+
+    // 일진(오늘의 일주) × 본명 일주
     const natalDayStem = sajuProfile.dayMaster || sajuProfile.pillars?.day?.stem || ''
     const natalDayBranch = sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || ''
     const dailyPillar = calculateDailyPillar(date)
@@ -1904,6 +1902,46 @@ export function calculateYearlyImportantDates(
     )
     const dailyShift = dailyEvents.reduce((sum, e) => sum + e.scoreShift, 0)
     const dailySibsin = natalDayStem ? getSibsinDailyKo(natalDayStem, dailyPillar.stem) : ''
+
+    // 도메인(분야) — 사주×점성 교차에서 직접: 일진 십신 + 신살(도화/역마) + 트랜짓 행성
+    const shinsalKinds =
+      natalDayStem && natalDayBranch
+        ? getShinsalHitsForDailyTarget(
+            natalDayStem,
+            natalDayBranch,
+            dailyPillar.branch,
+            sajuProfile.pillars?.month?.branch,
+            dailyPillar.stem
+          ).map((h) => h.kind)
+        : []
+    const transitPlanets = (options?.dailyTransitTightest?.[isoDate(year, month, day)] || []).map(
+      (t) => t.transitPlanet
+    )
+    const domainRanking = pickTopDomainsCross({
+      daySibsin: dailySibsin,
+      shinsalKinds,
+      transitPlanets,
+      day,
+    })
+    const primary = domainRanking[0] || { domain: 'career' as DomainKey, score: 0.52 }
+    const secondary = domainRanking[1] || { domain: 'love' as DomainKey, score: 0.48 }
+
+    const seasonalPulse = (Math.sin((day / 31) * Math.PI) + 1) / 2
+    const dailyWave = (Math.sin((day / 31) * Math.PI * 2 - Math.PI / 2) + 1) / 2
+    const weekday = date.getDay()
+    const weekdayBoost =
+      weekday === 1 || weekday === 4 ? 0.04 : weekday === 0 || weekday === 6 ? -0.03 : 0
+    const dominanceGap = clamp(primary.score - secondary.score, 0, 1)
+    const primaryStrength = clamp(
+      primary.score * 0.62 +
+        dailyWave * 0.12 +
+        seasonalPulse * 0.08 +
+        reliability * 0.08 +
+        dominanceGap * 0.08 +
+        weekdayBoost,
+      0,
+      1
+    )
 
     // ── Engine-grade per-date analysis ──
     // Pull the full ultraPrecisionEngine output for this date so saju
@@ -1963,8 +2001,12 @@ export function calculateYearlyImportantDates(
       else if (monthPack?.yongsinAlign === 'conflict') signal -= 1
       return signal > 0 ? 1 : signal < 0 ? -1 : 0
     })()
-    const astroClaim: 1 | 0 | -1 =
-      primaryMonthStrength >= 0.6 ? 1 : primaryMonthStrength < 0.4 ? -1 : 0
+    // 점성 방향 — 그날 실제 트랜짓 점수(0-100)에서 직접 (matrix 의존 제거)
+    const astroClaim: 1 | 0 | -1 = (() => {
+      const t = options?.dailyTransitScores?.[isoDate(year, month, day)]
+      if (typeof t !== 'number') return 0
+      return t >= 60 ? 1 : t < 40 ? -1 : 0
+    })()
     const crossAgreementPercent = (() => {
       // 둘 다 같은 방향 (둘 다 긍정 or 둘 다 부정) → 80~92
       if (sajuClaim !== 0 && astroClaim !== 0 && sajuClaim === astroClaim) {
