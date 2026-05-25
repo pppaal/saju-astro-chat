@@ -281,7 +281,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const guidePiecesEn: string[] = ['Daily handle:']
   if (twelfth.length >= 2) {
     guidePiecesKo.push(
-      '하루에 한 번은 혼자 있는 시간을 일정에 박아두세요. 12집의 행성이 거기서 풀려요.'
+      '하루에 한 번은 혼자 있는 시간을 일정에 박아두세요. 내면 영역에 든 별들이 거기서 풀려요.'
     )
     guidePiecesEn.push(
       'Put one solitary block on your calendar each day and keep it — your 12th-house planets unwind in that quiet space.'

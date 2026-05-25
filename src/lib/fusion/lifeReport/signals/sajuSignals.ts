@@ -349,6 +349,21 @@ function relationEntryKey(e: SajuRelationEntry): string {
   return `${verbClass}|${p[0] ?? ''},${p[1] ?? ''}`
 }
 
+// The relation line surfaces in every domain section; a single fixed opener
+// ("사주의 합충 패턴을 보면,") repeated 9× reads robotic. Rotate a small pool
+// deterministically by the chosen entry so each section opens differently.
+const REL_OPENERS_KO = [
+  '사주 네 기둥의 어울림을 보면,',
+  '타고난 기둥들이 맞물리는 모양을 보면,',
+  '기둥들이 서로 주고받는 흐름을 보면,',
+  '사주 안에서 기둥들의 관계를 보면,',
+]
+function relOpenerKo(seed: string): string {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) % REL_OPENERS_KO.length
+  return REL_OPENERS_KO[h]
+}
+
 export function relationPhraseKo(
   rel: SajuRelationsSummary | undefined,
   opts: RelationPhraseOpts = {}
@@ -363,7 +378,7 @@ export function relationPhraseKo(
       if (opts.usedKeys.has('__primaryAxis')) return undefined
       opts.usedKeys.add('__primaryAxis')
     }
-    return `사주의 합충 패턴을 보면, ${rel.primaryAxisKo} 흐름이 인생에 한 번 굵게 작용해요.`
+    return `${relOpenerKo(rel.primaryAxisKo)} ${rel.primaryAxisKo} 흐름이 인생에 한 번 굵게 작용해요.`
   }
   const pillarsKo: Record<string, string> = {
     year: '년주',
@@ -376,7 +391,7 @@ export function relationPhraseKo(
   const subjectParticle = endsWithBatchim(a) ? '이' : '가'
   const objectParticle = endsWithBatchim(b) ? '과' : '와'
   const verb = kindVerbKo(cand.kind)
-  return `사주의 합충 패턴을 보면, ${a}${subjectParticle} ${b}${objectParticle} ${verb} 흐름이 있어요.`
+  return `${relOpenerKo(relationEntryKey(cand))} ${a}${subjectParticle} ${b}${objectParticle} ${verb} 흐름이 있어요.`
 }
 
 // True when the last char of `s` carries a final consonant (받침) — used to

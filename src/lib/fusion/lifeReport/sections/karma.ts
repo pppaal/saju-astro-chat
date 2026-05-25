@@ -341,7 +341,7 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       ? `삶의 ${gongmangAreasKo(gongmang)} 영역에 비어 있는 자리가 있어서 채워지지 않는 감각이 들 수 있어요. 이게 바로 영혼이 다음 단계로 넘어가도록 미는 부름이에요.`
       : '',
     twelfthPlanets.length > 0
-      ? `${twelfthPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 내면 영역(12집)에 있어서, 혼자 있는 시간이 풀어야 할 과제예요.`
+      ? `${twelfthPlanets.map((p) => planetLabelKo(p.name)).join(', ')}이 내면 영역에 있어서, 혼자 있는 시간이 풀어야 할 과제예요.`
       : '',
   ])
   const p2en = paragraph([
