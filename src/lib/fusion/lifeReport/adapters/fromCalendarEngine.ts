@@ -57,6 +57,7 @@ import {
   type DraconicSummary,
 } from '@/lib/astrology/foundation/draconic'
 import { isNightChart } from '@/lib/astrology/foundation/extraPoints'
+import { calculateMidpoints } from '@/lib/astrology/foundation/midpoints'
 
 // ─── Adapter result shape ────────────────────────────────────
 export interface ProfectionEntry {
@@ -178,6 +179,8 @@ export interface CalendarEngineSignals {
     day?: string
     time?: string
   }
+  /** Key composite midpoints — Sun/Moon (통합된 자아), Venus/Mars (열정의 점). */
+  midpoints?: Array<{ id: string; sign: string; name_ko: string; keywords: string[] }>
 }
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -307,6 +310,16 @@ export function adaptCalendarEngineSignals(input: AdaptInput): CalendarEngineSig
     // Extra Hellenistic Lots — Basis / Captivity / Daimon
     const extras = safe(() => computeExtraArabicParts(chart, !nightChart, lots))
     if (extras && Object.keys(extras).length > 0) out.arabicPartsExtra = extras
+
+    // Key composite midpoints — Sun/Moon (통합된 자아), Venus/Mars (열정의 점).
+    const mids = safe(() => calculateMidpoints(chart))
+    if (mids && mids.length > 0) {
+      const wanted = new Set(['Sun/Moon', 'Venus/Mars'])
+      const picked = mids
+        .filter((m) => wanted.has(m.id))
+        .map((m) => ({ id: m.id, sign: m.sign, name_ko: m.name_ko, keywords: m.keywords }))
+      if (picked.length > 0) out.midpoints = picked
+    }
   }
 
   // ── Zodiacal Releasing (needs Spirit Lot → its sign)

@@ -389,9 +389,24 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     deepKo.push(firstSentenceLove(loveAspect.ko))
     deepEn.push(firstSentenceLove(loveAspect.en))
   }
+  // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
   if (loveConfirms.length > 0) {
     deepKo.push(`그리고 ${loveConfirms[0].rule.narrative.confirm}`)
-    deepEn.push(`Additionally, ${loveConfirms[0].rule.meaning}.`)
+  }
+  const loveConflicts = fusion?.byDomain?.love?.conflicts ?? []
+  if (loveConflicts[0]?.rule.narrative.conflict) {
+    deepKo.push(`다만 ${loveConflicts[0].rule.narrative.conflict}`)
+  }
+  // Venus/Mars midpoint (열정의 점) — attraction & desire axis.
+  const passionMid = input.calendarSignals?.midpoints?.find((m) => m.id === 'Venus/Mars')
+  if (passionMid) {
+    astroUsed.push('midpoints.venusMars')
+    deepKo.push(
+      `열정의 점(금성·화성 미드포인트)은 ${signLabel(passionMid.sign, 'ko')}에 있어, 끌림과 열정이 그 색으로 피어나요.`
+    )
+    deepEn.push(
+      `Your Venus/Mars midpoint — the point of passion — sits in ${signLabel(passionMid.sign, 'en')}, coloring how attraction and desire ignite.`
+    )
   }
   // Saju relations — 합 weighted (love is union-coloured)
   const relKoLove = relationPhraseKo(input.calendarSignals?.sajuRelations, {
@@ -447,9 +462,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (fxOnMars.length > 0) {
     astroUsed.push('fixedStars(Mars)')
     const fxM = fxOnMars.join('·')
-    deepKo.push(
-      `화성에 닿는 별빛 ${fxM}${iGa(fxM)} 끌림의 분위기를 한층 진하게 만들어요.`
-    )
+    deepKo.push(`화성에 닿는 별빛 ${fxM}${iGa(fxM)} 끌림의 분위기를 한층 진하게 만들어요.`)
     deepEn.push(
       `The fixed star${fxOnMars.length > 1 ? 's' : ''} ${fxOnMars.join(', ')} touch${fxOnMars.length > 1 ? '' : 'es'} your Mars, making the pull of attraction richer and more intense.`
     )

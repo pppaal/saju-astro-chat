@@ -36,7 +36,7 @@ export interface FusionFragments {
       }
     >
   >
-  themes?: Array<{ id: string; meaning: string; narrative: string }>
+  themes?: Array<{ id: string; meaning: string; narrative: string; narrativeEn?: string }>
 }
 
 interface Props {
@@ -70,7 +70,11 @@ export function toBuilderFusion(f?: FusionFragments | null): BuilderFusion | und
   if (!f?.byDomain) return undefined
   const toMatch = (m: FusionFragmentItem) => ({
     intensity: m.intensity,
-    rule: { id: m.id, meaning: m.meaning, narrative: { confirm: m.narrative, conflict: m.narrative } },
+    rule: {
+      id: m.id,
+      meaning: m.meaning,
+      narrative: { confirm: m.narrative, conflict: m.narrative },
+    },
   })
   const byDomain = Object.fromEntries(
     Object.entries(f.byDomain).map(([domain, agg]) => [
@@ -83,7 +87,7 @@ export function toBuilderFusion(f?: FusionFragments | null): BuilderFusion | und
     ])
   )
   const themes = (f.themes ?? []).map((t) => ({
-    rule: { id: t.id, meaning: t.meaning, narrative: t.narrative },
+    rule: { id: t.id, meaning: t.meaning, narrative: t.narrative, narrativeEn: t.narrativeEn },
   }))
   return { generatedAt: f.generatedAt, byDomain, themes } as unknown as BuilderFusion
 }
@@ -144,9 +148,7 @@ const FreeReport = memo(function FreeReport({
     >
       <LifeReportView report={report} isKo={isKo} />
       <p className="text-center text-xs text-gray-500 mt-8">
-        {isKo
-          ? '동양 + 서양 운세 시스템 통합 분석'
-          : 'Eastern + Western fortune analysis combined'}
+        {isKo ? '동양 + 서양 운세 시스템 통합 분석' : 'Eastern + Western fortune analysis combined'}
       </p>
     </div>
   )

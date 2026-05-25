@@ -49,37 +49,6 @@ export function cleanseText(raw: string): string {
     .trim()
 }
 
-/**
- * Detect placeholder-heavy broken output (e.g. "???" artifacts) from template backends.
- * This is used to decide whether to regenerate a clean local structured report.
- */
-export function hasBrokenPlaceholderArtifacts(text: string): boolean {
-  if (!text) {
-    return false
-  }
-
-  const placeholderMatches = text.match(/\?{2,}/g) ?? []
-  if (placeholderMatches.length === 0) {
-    return false
-  }
-
-  // High confidence broken output: many placeholder groups.
-  if (placeholderMatches.length >= 6) {
-    return true
-  }
-
-  // Common broken fragments seen in production responses.
-  if (
-    text.includes('???') ||
-    text.includes('"??') ||
-    /(?:^|[\s\n])\?\?\s+[가-힣A-Za-z0-9]/.test(text)
-  ) {
-    return true
-  }
-
-  return false
-}
-
 // ============================================================
 // Date/Time Helpers
 // ============================================================

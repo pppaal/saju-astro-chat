@@ -186,9 +186,7 @@ export function buildHeadline(input: BuilderInput): Headline {
   const skyOrder = [sunPartRaw, moonPartRaw, ascPartRaw].filter(Boolean)
   const skyParts =
     skyOrder.length > 0
-      ? skyOrder
-          .map((p, i) => (i === skyOrder.length - 1 ? `${p}예요` : p))
-          .join(', ')
+      ? skyOrder.map((p, i) => (i === skyOrder.length - 1 ? `${p}예요` : p)).join(', ')
       : ''
 
   const sunPartEn = sun
@@ -285,9 +283,19 @@ export function buildHeadline(input: BuilderInput): Headline {
         return tail.length ? `${tail.join(', ')}.` : ''
       })()
 
+  // Sun/Moon midpoint (영혼의 점) — core identity-emotion integration axis.
+  const sunMoonMid = input.calendarSignals?.midpoints?.find((m) => m.id === 'Sun/Moon')
+  if (sunMoonMid) astroUsed.push('midpoints.sunMoon')
+  const s4ko = sunMoonMid
+    ? `자아와 감정의 통합점(영혼의 점)은 ${signLabel(sunMoonMid.sign, 'ko')}에 있어, 내면과 외면이 그 색으로 만나요.`
+    : ''
+  const s4en = sunMoonMid
+    ? `Your Sun/Moon midpoint — the point of the integrated self — sits in ${signLabel(sunMoonMid.sign, 'en')}, where inner and outer meet.`
+    : ''
+
   return {
-    ko: paragraphJoin([s1ko, s2ko, s3ko]),
-    en: paragraphJoin([s1en, s2en, s3en]),
+    ko: paragraphJoin([s1ko, s2ko, s3ko, s4ko]),
+    en: paragraphJoin([s1en, s2en, s3en, s4en]),
     signals: { saju: sajuUsed, astro: astroUsed },
   }
 }

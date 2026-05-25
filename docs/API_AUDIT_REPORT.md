@@ -2,19 +2,19 @@
 
 ## Summary
 
-- Total Next.js API routes: 74
-- Uses middleware/guards: 72 (97.3%)
-- Has validation signals: 55 (74.3%)
-- Rate limited (guard or option): 66 (89.2%)
-- Credit consumption configured: 4 (5.4%)
-- Requires auth: 39 (52.7%)
-- Requires token: 18 (24.3%)
+- Total Next.js API routes: 73
+- Uses middleware/guards: 71 (97.3%)
+- Has validation signals: 54 (74.0%)
+- Rate limited (guard or option): 65 (89.0%)
+- Credit consumption configured: 4 (5.5%)
+- Requires auth: 38 (52.1%)
+- Requires token: 18 (24.7%)
 - skipCsrf enabled: 2 (2.7%)
 
 ## Method Distribution
 
 - GET: 41
-- POST: 47
+- POST: 46
 - PUT: 0
 - PATCH: 4
 - DELETE: 11
