@@ -238,3 +238,24 @@ export function naturalizeFragment(text: string): string {
   for (const [re, rep] of FRAGMENT_JARGON) s = s.replace(re, rep)
   return s.trim()
 }
+
+// 단독 명사 "결"(타고난 기질·성향 뜻)은 문체가 예스러워 일상어 "성향"으로 바꾼다.
+// 합성어(결단·결합·결혼·결과·결산·해결·연결…)는 절대 건드리면 안 되므로
+// 부정 lookbehind (?<![가-힣]) 로 앞 글자가 한글이면(=합성어 꼬리) 제외하고,
+// 뒤에는 조사/문장부호만 오는 경우로 한정한다.
+export function plainifyKo(s: string): string {
+  if (typeof s !== 'string' || !s.includes('결')) return s
+  return s
+    .replace(/특수 결/g, '특별한 성향')
+    .replace(/(?<![가-힣])결이에요/g, '성향이에요')
+    .replace(/(?<![가-힣])결이라/g, '성향이라')
+    .replace(/(?<![가-힣])결입니다/g, '성향입니다')
+    .replace(/(?<![가-힣])결로(?=[\s.,)])/g, '성향으로')
+    .replace(/(?<![가-힣])결의(?=[\s.,)])/g, '성향의')
+    .replace(/(?<![가-힣])결이(?=[\s.,)])/g, '성향이')
+    .replace(/(?<![가-힣])결은(?=[\s.,)])/g, '성향은')
+    .replace(/(?<![가-힣])결을(?=[\s.,)])/g, '성향을')
+    .replace(/(?<![가-힣])결도(?=[\s.,)])/g, '성향도')
+    .replace(/(?<![가-힣])결(?=[.,)])/g, '성향')
+    .replace(/(?<![가-힣])결(?= )/g, '성향')
+}

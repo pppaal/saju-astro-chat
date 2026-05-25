@@ -40,6 +40,21 @@ import { buildWisdom } from './sections/domains/wisdom'
 import { buildCreativity } from './sections/domains/creativity'
 import { buildSpirituality } from './sections/domains/spirituality'
 import { adaptCalendarEngineSignals } from './adapters/fromCalendarEngine'
+import { plainifyKo } from './templates/sentences'
+
+// Walk the finished report and plain-language any leftover stylized "결"
+// noun across every string field. Korean-only regexes, so EN fields and
+// signal-id strings pass through untouched.
+function deepPlainify<T>(node: T): T {
+  if (typeof node === 'string') return plainifyKo(node) as unknown as T
+  if (Array.isArray(node)) return node.map((v) => deepPlainify(v)) as unknown as T
+  if (node && typeof node === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(node)) out[k] = deepPlainify(v)
+    return out as unknown as T
+  }
+  return node
+}
 
 // Run a section builder; on throw, log (dev only) and return a safe,
 // empty fallback so the rest of the report still renders.
@@ -109,7 +124,7 @@ export function buildLifeReport(input: LifeReportInput): LifeReport {
     // relation sentence claims a distinct 합/충 axis instead of repeating.
     relUsed: { ko: new Set<string>(), en: new Set<string>() },
   }
-  return {
+  const report: LifeReport = {
     generatedAt: new Date().toISOString(),
     generator: 'lifeReport-v3-deterministic',
     headline: safe('headline', () => buildHeadline(builderInput), emptyHeadline),
@@ -132,4 +147,5 @@ export function buildLifeReport(input: LifeReportInput): LifeReport {
       safe('spirituality', () => buildSpirituality(builderInput), emptyDomain('spirituality')),
     ],
   }
+  return deepPlainify(report)
 }

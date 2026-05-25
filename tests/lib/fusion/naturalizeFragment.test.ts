@@ -1,7 +1,29 @@
 import { describe, it, expect } from 'vitest'
-import { naturalizeFragment } from '@/lib/fusion/lifeReport/templates/sentences'
+import { naturalizeFragment, plainifyKo } from '@/lib/fusion/lifeReport/templates/sentences'
 import { allRules } from '@/lib/fusion/rules'
 import { RULE_NARRATIVE_EN } from '@/lib/fusion/rules/narrativeEn'
+
+describe('plainifyKo — stylized 결 → 성향', () => {
+  it('replaces the standalone noun 결 in its various forms', () => {
+    expect(plainifyKo('천천히 쌓는 형의 재물 결.')).toBe('천천히 쌓는 형의 재물 성향.')
+    expect(plainifyKo('관계가 핵심인 결이에요.')).toBe('관계가 핵심인 성향이에요.')
+    expect(plainifyKo('자기 결의 기반.')).toBe('자기 성향의 기반.')
+    expect(plainifyKo('그 결이 자아 영역에서 드러나요.')).toBe('그 성향이 자아 영역에서 드러나요.')
+    expect(plainifyKo('잡힌 결로, 회복력이 좋아요.')).toBe('잡힌 성향으로, 회복력이 좋아요.')
+    expect(plainifyKo('권력 영역의 특수 결.')).toBe('권력 영역의 특별한 성향.')
+  })
+
+  it('never touches compounds that merely contain 결', () => {
+    const compounds =
+      '결단과 정의, 관계 결합, 결산 습관, 결과로 끝맺기, 결혼 시기, 결정적 시기, 문제 해결, 연결고리'
+    expect(plainifyKo(compounds)).toBe(compounds)
+  })
+
+  it('leaves strings without 결 (incl. English) untouched', () => {
+    expect(plainifyKo('a steady wealth pattern.')).toBe('a steady wealth pattern.')
+    expect(plainifyKo('관계가 평생 핵심 테마.')).toBe('관계가 평생 핵심 테마.')
+  })
+})
 
 const SURFACED_DOMAINS = new Set(['money', 'career', 'love', 'family', 'health'])
 
