@@ -1,11 +1,10 @@
 /**
- * Comprehensive tests for Credit Service
- * Tests deduction, refund, balance checking, plan upgrades, and bonus credit expiration
+ * Comprehensive tests for Credit Service (credit-only model — plans retired)
+ * Tests deduction, balance checking, bonus credit add/expiration.
  */
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { prisma } from '@/lib/db/prisma'
-import { PLAN_CONFIG } from '@/lib/config/pricing'
 import {
   initializeUserCredits,
   getUserCredits,
@@ -13,11 +12,8 @@ import {
   canUseCredits,
   consumeCredits,
   resetMonthlyCredits,
-  upgradePlan,
   addBonusCredits,
-  getValidBonusCredits,
   expireBonusCredits,
-  resetAllExpiredCredits,
   canUseFeature,
 } from '@/lib/credits/creditService'
 
@@ -35,9 +31,6 @@ vi.mock('@/lib/db/prisma', () => ({
       findMany: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
-    },
-    subscription: {
-      findFirst: vi.fn(),
     },
     $transaction: vi.fn(),
   },
@@ -58,53 +51,28 @@ describe('Credit Service', () => {
   })
 
   describe('initializeUserCredits', () => {
-    it('should create free plan credits for new user', async () => {
-      const freeConfig = PLAN_CONFIG.free
+    it('should create credits for new user with signup bonus', async () => {
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        monthlyCredits: freeConfig.monthlyCredits,
+        monthlyCredits: 0,
         usedCredits: 0,
-        bonusCredits: 0,
+        bonusCredits: 2,
       }
 
       ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
-      const result = await initializeUserCredits(mockUserId, 'free')
+      const result = await initializeUserCredits(mockUserId)
 
       expect(result).toEqual(mockCredits)
       expect(prisma.userCredits.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             userId: mockUserId,
-            plan: 'free',
-            monthlyCredits: freeConfig.monthlyCredits,
+            monthlyCredits: 0,
             usedCredits: 0,
-            // bonusCredits default is 2 (was 0).
+            // signup bonus
             bonusCredits: 2,
-          }),
-        })
-      )
-    })
-
-    it('should create pro plan credits', async () => {
-      const proConfig = PLAN_CONFIG.pro
-      const mockCredits = {
-        userId: mockUserId,
-        plan: 'pro',
-        monthlyCredits: proConfig.monthlyCredits,
-        usedCredits: 0,
-      }
-
-      ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
-
-      await initializeUserCredits(mockUserId, 'pro')
-
-      expect(prisma.userCredits.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            plan: 'pro',
-            monthlyCredits: proConfig.monthlyCredits,
           }),
         })
       )
@@ -129,7 +97,7 @@ describe('Credit Service', () => {
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        monthlyCredits: PLAN_CONFIG.free.monthlyCredits,
+        monthlyCredits: 0,
         usedCredits: 1,
         periodEnd: new Date('2024-02-01'),
       }
@@ -150,7 +118,7 @@ describe('Credit Service', () => {
       expect(prisma.userCredits.create).toHaveBeenCalled()
     })
 
-    it('should reset credits if period expired', async () => {
+    it('should reset period if expired', async () => {
       const expiredCredits = {
         userId: mockUserId,
         plan: 'free',
@@ -158,7 +126,6 @@ describe('Credit Service', () => {
       }
 
       ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(expiredCredits)
-      ;(prisma.subscription.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
       ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({ plan: 'free' })
 
       await getUserCredits(mockUserId)
@@ -175,11 +142,11 @@ describe('Credit Service', () => {
         monthlyCredits: 10,
         usedCredits: 3,
         bonusCredits: 5,
-        compatibilityUsed: 1,
-        compatibilityLimit: 2,
+        compatibilityUsed: 0,
+        compatibilityLimit: 0,
         followUpUsed: 0,
-        followUpLimit: 3,
-        historyRetention: 30,
+        followUpLimit: 0,
+        historyRetention: 365,
         periodEnd: new Date('2024-02-01'),
       }
 
@@ -188,8 +155,6 @@ describe('Credit Service', () => {
       const balance = await getCreditBalance(mockUserId)
 
       expect(balance.remainingCredits).toBe(12) // 10 - 3 + 5
-      expect(balance.compatibility.remaining).toBe(1) // 2 - 1
-      expect(balance.followUp.remaining).toBe(3) // 3 - 0
     })
 
     it('should handle negative credits as zero', async () => {
@@ -199,11 +164,11 @@ describe('Credit Service', () => {
         monthlyCredits: 5,
         usedCredits: 10, // Over-used
         bonusCredits: 0,
-        compatibilityUsed: 5,
-        compatibilityLimit: 2, // Over limit
+        compatibilityUsed: 0,
+        compatibilityLimit: 0,
         followUpUsed: 0,
-        followUpLimit: 3,
-        historyRetention: 30,
+        followUpLimit: 0,
+        historyRetention: 365,
         periodEnd: new Date('2024-02-01'),
       }
 
@@ -212,22 +177,21 @@ describe('Credit Service', () => {
       const balance = await getCreditBalance(mockUserId)
 
       expect(balance.remainingCredits).toBe(0)
-      expect(balance.compatibility.remaining).toBe(0)
     })
 
     it('should use totalBonusReceived when available', async () => {
       const mockCredits = {
         userId: mockUserId,
-        plan: 'pro',
+        plan: 'free',
         monthlyCredits: 30,
         usedCredits: 10,
         bonusCredits: 5,
         totalBonusReceived: 20, // Total ever received
         compatibilityUsed: 0,
-        compatibilityLimit: 10,
+        compatibilityLimit: 0,
         followUpUsed: 0,
-        followUpLimit: 10,
-        historyRetention: 90,
+        followUpLimit: 0,
+        historyRetention: 365,
         periodEnd: new Date('2024-02-01'),
       }
 
@@ -248,10 +212,10 @@ describe('Credit Service', () => {
         usedCredits: 5,
         bonusCredits: 0,
         compatibilityUsed: 0,
-        compatibilityLimit: 2,
+        compatibilityLimit: 0,
         followUpUsed: 0,
-        followUpLimit: 3,
-        historyRetention: 30,
+        followUpLimit: 0,
+        historyRetention: 365,
         periodEnd: new Date('2024-02-01'),
       }
 
@@ -271,10 +235,10 @@ describe('Credit Service', () => {
         usedCredits: 9,
         bonusCredits: 0,
         compatibilityUsed: 0,
-        compatibilityLimit: 2,
+        compatibilityLimit: 0,
         followUpUsed: 0,
-        followUpLimit: 3,
-        historyRetention: 30,
+        followUpLimit: 0,
+        historyRetention: 365,
         periodEnd: new Date('2024-02-01'),
       }
 
@@ -286,18 +250,18 @@ describe('Credit Service', () => {
       expect(result.reason).toBe('no_credits')
     })
 
-    it('should check compatibility limit', async () => {
+    it('should treat compatibility as general credit', async () => {
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
         monthlyCredits: 10,
         usedCredits: 0,
         bonusCredits: 0,
-        compatibilityUsed: 1,
-        compatibilityLimit: 2,
+        compatibilityUsed: 99,
+        compatibilityLimit: 0,
         followUpUsed: 0,
-        followUpLimit: 3,
-        historyRetention: 30,
+        followUpLimit: 0,
+        historyRetention: 365,
         periodEnd: new Date('2024-02-01'),
       }
 
@@ -306,44 +270,21 @@ describe('Credit Service', () => {
       const result = await canUseCredits(mockUserId, 'compatibility', 1)
 
       expect(result.allowed).toBe(true)
-      expect(result.remaining).toBe(0)
+      expect(result.remaining).toBe(9) // 10 - 1, ignores compatibilityUsed
     })
 
-    it('should deny when compatibility limit exceeded', async () => {
+    it('should treat followUp as general credit', async () => {
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        monthlyCredits: 10,
-        usedCredits: 0,
-        bonusCredits: 0,
-        compatibilityUsed: 2,
-        compatibilityLimit: 2,
-        followUpUsed: 0,
-        followUpLimit: 3,
-        historyRetention: 30,
-        periodEnd: new Date('2024-02-01'),
-      }
-
-      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
-
-      const result = await canUseCredits(mockUserId, 'compatibility', 1)
-
-      // Policy: compatibility limit no longer enforced here.
-      expect(result.allowed).toBe(true)
-    })
-
-    it('should check followUp limit', async () => {
-      const mockCredits = {
-        userId: mockUserId,
-        plan: 'pro',
         monthlyCredits: 30,
         usedCredits: 0,
         bonusCredits: 0,
         compatibilityUsed: 0,
-        compatibilityLimit: 10,
-        followUpUsed: 8,
-        followUpLimit: 10,
-        historyRetention: 90,
+        compatibilityLimit: 0,
+        followUpUsed: 99,
+        followUpLimit: 0,
+        historyRetention: 365,
         periodEnd: new Date('2024-02-01'),
       }
 
@@ -352,7 +293,7 @@ describe('Credit Service', () => {
       const result = await canUseCredits(mockUserId, 'followUp', 2)
 
       expect(result.allowed).toBe(true)
-      expect(result.remaining).toBe(0)
+      expect(result.remaining).toBe(28) // 30 - 2, ignores followUpUsed
     })
   })
 
@@ -363,10 +304,6 @@ describe('Credit Service', () => {
         monthlyCredits: 10,
         usedCredits: 5,
         bonusCredits: 0,
-        compatibilityUsed: 0,
-        compatibilityLimit: 2,
-        followUpUsed: 0,
-        followUpLimit: 3,
       }
 
       ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
@@ -389,10 +326,6 @@ describe('Credit Service', () => {
         monthlyCredits: 10,
         usedCredits: 5,
         bonusCredits: 3,
-        compatibilityUsed: 0,
-        compatibilityLimit: 2,
-        followUpUsed: 0,
-        followUpLimit: 3,
       }
 
       const mockPurchases = [
@@ -424,10 +357,6 @@ describe('Credit Service', () => {
         monthlyCredits: 10,
         usedCredits: 10,
         bonusCredits: 0,
-        compatibilityUsed: 0,
-        compatibilityLimit: 2,
-        followUpUsed: 0,
-        followUpLimit: 3,
       }
 
       ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) => {
@@ -445,16 +374,12 @@ describe('Credit Service', () => {
       expect(result.error).toContain('부족')
     })
 
-    it('should increment compatibility usage', async () => {
+    it('should charge compatibility against general credit', async () => {
       const mockCredits = {
         userId: mockUserId,
         monthlyCredits: 10,
         usedCredits: 0,
         bonusCredits: 0,
-        compatibilityUsed: 0,
-        compatibilityLimit: 2,
-        followUpUsed: 0,
-        followUpLimit: 3,
       }
 
       ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
@@ -469,6 +394,7 @@ describe('Credit Service', () => {
       const result = await consumeCredits(mockUserId, 'compatibility', 1)
 
       expect(result.success).toBe(true)
+      expect(result.chargedAs).toBe('reading')
     })
 
     it('should handle race condition with transaction', async () => {
@@ -477,13 +403,8 @@ describe('Credit Service', () => {
         monthlyCredits: 10,
         usedCredits: 9,
         bonusCredits: 0,
-        compatibilityUsed: 0,
-        compatibilityLimit: 2,
-        followUpUsed: 0,
-        followUpLimit: 3,
       }
 
-      // Simulate concurrent requests
       ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) => {
         const tx = {
           userCredits: {
@@ -499,7 +420,6 @@ describe('Credit Service', () => {
         consumeCredits(mockUserId, 'reading', 1),
       ])
 
-      // At least one should succeed (transaction prevents double-spend)
       expect(result1.success || result2.success).toBe(true)
     })
   })
@@ -582,7 +502,6 @@ describe('Credit Service', () => {
         mockExpiredPurchases
       )
 
-      // Mock Promise.allSettled with one success, one failure
       vi.spyOn(Promise, 'allSettled').mockResolvedValue([
         { status: 'fulfilled', value: undefined },
         { status: 'rejected', reason: new Error('DB error') },
@@ -595,116 +514,41 @@ describe('Credit Service', () => {
     })
   })
 
-  describe('upgradePlan', () => {
-    it('should upgrade plan and reset credits', async () => {
-      const existingCredits = {
+  describe('resetMonthlyCredits', () => {
+    it('should advance the period without refilling credits', async () => {
+      const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        usedCredits: 3,
+        usedCredits: 20,
       }
 
-      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
-        existingCredits
-      )
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
       ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
-      await upgradePlan(mockUserId, 'pro')
+      await resetMonthlyCredits(mockUserId)
 
-      expect(prisma.userCredits.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            plan: 'pro',
-            monthlyCredits: PLAN_CONFIG.pro.monthlyCredits,
-            usedCredits: 0,
-            compatibilityUsed: 0,
-            followUpUsed: 0,
-          }),
-        })
-      )
+      const callArgs = (prisma.userCredits.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      // Only the period is advanced; credit counters are left untouched.
+      expect(callArgs.data).toHaveProperty('periodStart')
+      expect(callArgs.data).toHaveProperty('periodEnd')
+      expect(callArgs.data).not.toHaveProperty('monthlyCredits')
+      expect(callArgs.data).not.toHaveProperty('usedCredits')
     })
 
-    it('should create credits if none exist', async () => {
+    it('should initialize credits if none exist', async () => {
       ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
       ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
-      await upgradePlan(mockUserId, 'pro')
+      await resetMonthlyCredits(mockUserId)
 
       expect(prisma.userCredits.create).toHaveBeenCalled()
     })
   })
 
-  describe('resetMonthlyCredits', () => {
-    it('should reset to free plan when subscription expired', async () => {
-      const mockCredits = {
-        userId: mockUserId,
-        plan: 'pro',
-        usedCredits: 20,
-      }
-
-      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
-      ;(prisma.subscription.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
-      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
-
-      await resetMonthlyCredits(mockUserId)
-
-      expect(prisma.userCredits.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            plan: 'free',
-            monthlyCredits: PLAN_CONFIG.free.monthlyCredits,
-            usedCredits: 0,
-          }),
-        })
-      )
-    })
-
-    it('should maintain plan when subscription active', async () => {
-      const mockCredits = {
-        userId: mockUserId,
-        plan: 'pro',
-        usedCredits: 20,
-      }
-
-      const mockSubscription = {
-        userId: mockUserId,
-        status: 'active',
-        currentPeriodEnd: new Date('2024-02-01'),
-      }
-
-      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
-      ;(prisma.subscription.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
-        mockSubscription
-      )
-      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
-
-      await resetMonthlyCredits(mockUserId)
-
-      // When subscription is active, the plan is maintained (not changed)
-      // and credits are reset based on current plan config
-      const proConfig = PLAN_CONFIG.pro
-      expect(prisma.userCredits.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            usedCredits: 0,
-            monthlyCredits: proConfig.monthlyCredits,
-          }),
-        })
-      )
-    })
-  })
-
   describe('canUseFeature', () => {
-    it('should check feature access based on plan', async () => {
-      const mockCredits = {
-        userId: mockUserId,
-        plan: 'free',
-      }
-
-      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
-
+    it('should always allow features in the credit-only model', async () => {
       const result = await canUseFeature(mockUserId, 'priority')
-
-      expect(result).toBe(false)
+      expect(result).toBe(true)
     })
   })
 

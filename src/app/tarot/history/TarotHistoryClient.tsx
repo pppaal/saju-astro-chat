@@ -82,13 +82,18 @@ export default function TarotHistoryClient() {
         // 로그인 사용자임을 확인 — 게스트 시절 localStorage 에 쌓인 리딩이 있으면 서버로 1회 이전.
         // flag 로 한 번만 실행되고, 실패 시 다음 방문에 재시도하지 않으려고 flag 안 박음.
         const migration = await migrateLocalReadingsToServer()
-        const payload = (await (migration.migrated > 0
+        const raw = (await (migration.migrated > 0
           ? fetch('/api/tarot/save?limit=100', { credentials: 'same-origin' }).then((r) => r.json())
           : response.json())) as {
           readings?: Array<Parameters<typeof mapServerReadingToSavedReading>[0]>
+          data?: { readings?: Array<Parameters<typeof mapServerReadingToSavedReading>[0]> }
         }
-        const serverReadings = Array.isArray(payload.readings)
-          ? payload.readings.map((reading) => mapServerReadingToSavedReading(reading))
+        // The API wraps payloads as { success, data: { readings } }. Read the
+        // nested path (tolerate a flat shape too) — reading top-level `readings`
+        // returned undefined, so saved readings never showed for logged-in users.
+        const list = raw.data?.readings ?? raw.readings
+        const serverReadings = Array.isArray(list)
+          ? list.map((reading) => mapServerReadingToSavedReading(reading))
           : []
         setReadings(serverReadings)
         if (migration.migrated > 0) {

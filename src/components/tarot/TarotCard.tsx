@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { useState, memo } from "react";
-import Image from "next/image";
-import styles from "./TarotCard.module.css";
+import { useState, memo } from 'react'
+import Image from 'next/image'
+import styles from './TarotCard.module.css'
 
 // Reusable TarotCard component for use in:
 // - Tarot readings
@@ -10,66 +10,66 @@ import styles from "./TarotCard.module.css";
 // - Any other feature that needs tarot card display
 
 export interface CardInsight {
-  interpretation?: string;
+  interpretation?: string
   spiritAnimal?: {
-    name: string;
-    meaning: string;
-    message: string;
-  };
+    name: string
+    meaning: string
+    message: string
+  }
   chakra?: {
-    name: string;
-    color: string;
-    guidance: string;
-  };
-  element?: "Fire" | "Water" | "Air" | "Earth";
+    name: string
+    color: string
+    guidance: string
+  }
+  element?: 'Fire' | 'Water' | 'Air' | 'Earth'
   shadow?: {
-    prompt: string;
-    affirmation: string;
-  };
+    prompt: string
+    affirmation: string
+  }
   numerology?: {
-    number: number;
-    meaning: string;
-  };
+    number: number
+    meaning: string
+  }
   astrology?: {
-    sign: string;
-    planet?: string;
-  };
+    sign: string
+    planet?: string
+  }
 }
 
 export interface TarotCardProps {
   // Basic card info
-  name: string;
-  image: string;
-  isReversed?: boolean;
-  position?: string;
+  name: string
+  image: string
+  isReversed?: boolean
+  position?: string
 
   // Interpretation
-  keywords?: string[];
-  meaning?: string;
+  keywords?: string[]
+  meaning?: string
 
   // Premium insights
-  insights?: CardInsight;
+  insights?: CardInsight
 
   // Display options
-  size?: "small" | "medium" | "large";
-  showInsights?: boolean;
-  expandable?: boolean;
-  interactive?: boolean;
+  size?: 'small' | 'medium' | 'large'
+  showInsights?: boolean
+  expandable?: boolean
+  interactive?: boolean
   // Eager-load the image (skip next/image lazy loading) — use on result views
   // where cards should appear immediately instead of popping in on scroll.
-  priority?: boolean;
+  priority?: boolean
 
   // Callbacks
-  onClick?: () => void;
-  onExpand?: (expanded: boolean) => void;
+  onClick?: () => void
+  onExpand?: (expanded: boolean) => void
 }
 
 const elementIcons: Record<string, string> = {
-  Fire: "🔥",
-  Water: "💧",
-  Air: "🌬️",
-  Earth: "🌍"
-};
+  Fire: '🔥',
+  Water: '💧',
+  Air: '🌬️',
+  Earth: '🌍',
+}
 
 const TarotCard = memo(function TarotCard({
   name,
@@ -79,57 +79,53 @@ const TarotCard = memo(function TarotCard({
   keywords = [],
   meaning,
   insights,
-  size = "medium",
+  size = 'medium',
   showInsights = true,
   expandable = true,
   interactive = true,
   priority = false,
   onClick,
-  onExpand
+  onExpand,
 }: TarotCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const handleClick = () => {
     if (onClick) {
-      onClick();
+      onClick()
     }
 
     if (expandable && interactive) {
-      const newExpanded = !isExpanded;
-      setIsExpanded(newExpanded);
-      onExpand?.(newExpanded);
+      const newExpanded = !isExpanded
+      setIsExpanded(newExpanded)
+      onExpand?.(newExpanded)
     }
-  };
+  }
 
   const sizeClasses = {
     small: styles.sizeSmall,
     medium: styles.sizeMedium,
-    large: styles.sizeLarge
-  };
+    large: styles.sizeLarge,
+  }
 
   return (
     <div
-      className={`${styles.cardContainer} ${sizeClasses[size]} ${isExpanded ? styles.expanded : ""} ${interactive ? styles.interactive : ""}`}
+      className={`${styles.cardContainer} ${sizeClasses[size]} ${isExpanded ? styles.expanded : ''} ${interactive ? styles.interactive : ''}`}
       onClick={handleClick}
     >
       {/* Position Badge */}
-      {position && (
-        <div className={styles.positionBadge}>{position}</div>
-      )}
+      {position && <div className={styles.positionBadge}>{position}</div>}
 
       {/* Card Image */}
-      <div className={`${styles.imageWrapper} ${isReversed ? styles.reversed : ""}`}>
+      <div className={`${styles.imageWrapper} ${isReversed ? styles.reversed : ''}`}>
         <Image
           src={image}
           alt={name}
-          width={size === "small" ? 120 : size === "medium" ? 180 : 220}
-          height={size === "small" ? 210 : size === "medium" ? 315 : 385}
+          width={size === 'small' ? 120 : size === 'medium' ? 180 : 220}
+          height={size === 'small' ? 210 : size === 'medium' ? 315 : 385}
           className={styles.cardImage}
           priority={priority}
         />
-        {isReversed && (
-          <div className={styles.reversedLabel}>Reversed</div>
-        )}
+        {isReversed && <div className={styles.reversedLabel}>Reversed</div>}
       </div>
 
       {/* Card Info */}
@@ -140,7 +136,9 @@ const TarotCard = memo(function TarotCard({
         {keywords.length > 0 && (
           <div className={styles.keywords}>
             {keywords.slice(0, isExpanded ? keywords.length : 3).map((keyword, i) => (
-              <span key={i} className={styles.keywordTag}>{keyword}</span>
+              <span key={i} className={styles.keywordTag}>
+                {keyword}
+              </span>
             ))}
             {!isExpanded && keywords.length > 3 && (
               <span className={styles.keywordMore}>+{keywords.length - 3}</span>
@@ -149,9 +147,7 @@ const TarotCard = memo(function TarotCard({
         )}
 
         {/* Meaning */}
-        {meaning && (
-          <p className={styles.meaning}>{meaning}</p>
-        )}
+        {meaning && <p className={styles.meaning}>{meaning}</p>}
 
         {/* Premium Insights */}
         {showInsights && isExpanded && insights && (
@@ -171,7 +167,9 @@ const TarotCard = memo(function TarotCard({
                 <div className={styles.spiritAnimal}>
                   <span className={styles.animalName}>{insights.spiritAnimal.name}</span>
                   <p className={styles.animalMeaning}>{insights.spiritAnimal.meaning}</p>
-                  <p className={styles.animalMessage}>&quot;{insights.spiritAnimal.message}&quot;</p>
+                  <p className={styles.animalMessage}>
+                    &quot;{insights.spiritAnimal.message}&quot;
+                  </p>
                 </div>
               </div>
             )}
@@ -222,12 +220,12 @@ const TarotCard = memo(function TarotCard({
         {/* Expand Hint */}
         {expandable && interactive && (
           <div className={styles.expandHint}>
-            {isExpanded ? "▲ Click to collapse" : "▼ Click for more"}
+            {isExpanded ? '▲ Click to collapse' : '▼ Click for more'}
           </div>
         )}
       </div>
     </div>
-  );
-});
+  )
+})
 
-export default TarotCard;
+export default TarotCard

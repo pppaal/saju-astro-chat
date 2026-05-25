@@ -67,10 +67,10 @@ export function buildInterpretStreamPrompts(
   // 질문이 없으면(일반 운세) "첫 문장에 질문 직접 언급" 지시가 어색해지므로
   // 전반적 흐름으로 시작하도록 분기. 질문이 있을 때 문구는 기존과 동일.
   const overallDirectiveKo = hasQuestion
-    ? '오프닝 + 시너지, 400-600자, 첫 문장에 사용자 질문 직접 언급'
+    ? '오프닝 + 시너지. 가벼운 질문이면 2-4문장으로 짧고 자연스럽게, 진지한 질문이면 400-600자로 깊이. 첫 문장에 사용자 질문 직접 언급'
     : '오프닝 + 시너지, 400-600자, 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작'
   const overallDirectiveEn = hasQuestion
-    ? 'Opening + synergy, 250-350 words, first sentence references the question'
+    ? 'Opening + synergy. 2-4 sentences if the question is casual, 250-350 words if serious. First sentence references the question'
     : 'Opening + synergy, 250-350 words, open with the overall flow naturally'
   const openingInstructionKo = hasQuestion
     ? '- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.'
@@ -88,13 +88,18 @@ export function buildInterpretStreamPrompts(
 - 사전식 "과거·현재·미래" 같은 뻔한 라벨보다 질문에 밀착된 표현을 쓰되, 자리별 관점은 반드시 구분되게.
 - 각 카드 해석은 *그 자리에서만* 본 관점으로 쓰고, 앞 카드와 내용이 겹치지 않게 하세요.
 
+톤과 길이 — 질문에 맞춰 (가장 중요):
+- 답변 무게 = 질문 무게. 일상적·가벼운 질문(예: "오늘 뭐 먹지", "이거 살까")엔 무겁게 분석하지 말고 친구처럼 자연스럽고 재치 있게, 질문 맥락에 딱 맞춰 짧게 답하세요. 카드는 그 가벼운 답을 거드는 정도로(예: 뭐 먹지 → "오늘은 짜장면 같은 게 당기는 날!").
+- 진지한 질문(이직·연애·건강·중대한 결정 등)일수록 깊고 구체적으로.
+- 출력 순서: overall 을 먼저 완성한 뒤 cards[] 를 1번부터 순서대로 채우세요 (스트리밍 UI가 위에서부터 바로 보여줌).
+
 출력 — 정확히 이 JSON 스키마 (코드펜스/주석/머리말 X):
 {
   "overall": "${overallDirectiveKo}. 개별 카드 요약 나열이 아니라 모든 카드를 하나로 묶어 전체가 그리는 큰 흐름을 종합",
   "cards": [
-    { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 그 자리 고유 관점으로 300-500자, 상대 시점 앵커 포함(예: 2-3주 내·다음 달)" }
+    { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 그 자리 고유 관점으로. 가벼운 질문이면 1-2문장, 진지하면 300-500자. 상대 시점 앵커 포함(예: 2-3주 내·다음 달)" }
   ],
-  "advice": "위 카드 전체를 종합한 뒤 내리는 결론적 조언. 구체 행동 1-3개, 150-200자. 결정형 질문(예/아니오·선택)이면 첫 문장에 기울기를 분명히(예: 지금은 유보를 권해요)"
+  "advice": "위 카드 전체를 종합한 뒤 내리는 결론적 조언. 가벼운 질문이면 한 줄로 가볍고 자연스럽게, 진지하면 구체 행동 1-3개 150-200자. 결정형 질문(예/아니오·선택)이면 첫 문장에 기울기를 분명히(예: 지금은 유보를 권해요)"
 }`
     : `${TAROT_RULES_EN}
 
@@ -104,13 +109,18 @@ Positions and order — most important:
 - Prefer question-specific labels over generic "Past"/"Present"/"Future", but the seats must be clearly distinct.
 - Interpret each card *only from its own seat's vantage*, without overlapping the previous card.
 
+Tone and length — match the question (most important):
+- Answer weight matches question weight. For everyday / casual questions (e.g. "what should I eat today", "should I buy this"), don't over-analyze — answer naturally and playfully like a friend, tightly on-context and short. Let the cards just back up that light answer (e.g. what to eat → "feels like a jjajangmyeon kind of day!").
+- The more serious the question (career, love, health, major decisions), the deeper and more concrete.
+- Emission order: finish overall first, then fill cards[] in order from 1 (the streaming UI shows it top-down as it arrives).
+
 Output — exactly this JSON schema (no code fences, no preamble, no comments):
 {
   "overall": "${overallDirectiveEn}. Synthesize ALL cards into one big-picture flow, not a list of per-card summaries",
   "cards": [
-    { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, from that seat's own vantage, 180-280 words, with a relative time anchor (e.g. next 2-3 weeks)" }
+    { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, from that seat's own vantage. 1-2 sentences if the question is casual, 180-280 words if serious, with a relative time anchor (e.g. next 2-3 weeks)" }
   ],
-  "advice": "Conclusion drawn after weighing ALL cards together. 1-3 concrete actions, 90-130 words. For a yes/no or choice question, state your lean in the first sentence (e.g. lean toward waiting for now)"
+  "advice": "Conclusion drawn after weighing ALL cards together. One light natural line if the question is casual, otherwise 1-3 concrete actions (90-130 words). For a yes/no or choice question, state your lean in the first sentence (e.g. lean toward waiting for now)"
 }`
 
   const userPrompt = isKorean

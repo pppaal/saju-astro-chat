@@ -13,6 +13,7 @@ import {
   type TarotQuestionAnalysisResult,
 } from '@/lib/tarot/questionFlow'
 import { logger } from '@/lib/logger'
+import { useCreditModal } from '@/contexts/CreditModalContext'
 import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
 type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
@@ -37,6 +38,7 @@ interface UseInlineTarotAPIOptions {
 
 export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTarotAPIOptions) {
   const { state, actions, recommendedSpreads } = stateManager
+  const { showDepleted } = useCreditModal()
   const {
     selectedSpread,
     selectedCategory,
@@ -338,6 +340,13 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
 
     actions.setIsDrawing(true)
     try {
+      // /api/tarot 는 categoryId 로 테마를 찾고(못 찾으면 에러) 그 안에서
+      // spreadId 를 찾는다. selectedCategory 가 스프레드의 실제 테마와
+      // 어긋나면 draw 가 실패하므로, 선택된 스프레드를 실제로 담고 있는
+      // 테마에서 categoryId 를 도출해 보낸다.
+      const owningTheme = tarotThemes.find((t) => t.spreads.some((s) => s.id === selectedSpread.id))
+      const categoryId = owningTheme?.id || selectedCategory
+
       const res = await fetch('/api/tarot', {
         method: 'POST',
         headers: {
@@ -345,7 +354,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
         },
         body: JSON.stringify({
-          categoryId: selectedCategory,
+          categoryId,
           spreadId: selectedSpread.id,
           questionContext: questionAnalysis || undefined,
         }),
@@ -354,6 +363,10 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
         logger.error('[InlineTarot] API error:', { status: res.status, errorData })
+        // 크레딧 소진(402) → 조용한 실패 대신 전역 크레딧 안내 모달.
+        if (res.status === 402) {
+          showDepleted()
+        }
         throw new Error(`Failed to draw cards: ${res.status}`)
       }
 
@@ -369,10 +382,20 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       await fetchInterpretation(data.drawnCards)
     } catch (err) {
       logger.error('[InlineTarot] draw error:', err)
+      // 카드 뽑기 실패 시 화면이 '뽑는 중'에서 그대로 멈추지 않도록 스프레드
+      // 선택 단계로 되돌려 사용자가 다시 시도할 수 있게 한다.
+      actions.setStep('spread-select')
     } finally {
       actions.setIsDrawing(false)
     }
-  }, [selectedSpread, selectedCategory, actions, fetchInterpretation, questionAnalysis])
+  }, [
+    selectedSpread,
+    selectedCategory,
+    actions,
+    fetchInterpretation,
+    questionAnalysis,
+    showDepleted,
+  ])
 
   // Save tarot reading to database
   const saveReading = useCallback(async () => {
@@ -398,10 +421,16 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
             name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
             image: dc.card.image,
             isReversed: dc.isReversed,
+            // 저장 스키마는 position 을 필수(min 1)로 요구한다. 스프레드 데이터
+            // 개편 이후 selectedSpread.positions 는 비어 있어 undefined 가 되므로,
+            // 실제 화면에 쓰인 LLM 명명 position(cardInsights)을 우선 사용하고
+            // 마지막엔 순번으로 폴백해 검증 실패(=저장 안 됨)를 막는다.
             position:
-              lang === 'ko'
+              cardInsights[idx]?.position ||
+              (lang === 'ko'
                 ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
-                : selectedSpread.positions[idx]?.title,
+                : selectedSpread.positions[idx]?.title) ||
+              `${idx + 1}`,
           })),
           overallMessage,
           cardInsights,

@@ -7,13 +7,7 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
-import {
-  getCreditBalance,
-  canUseCredits,
-  canUseFeature,
-  PLAN_CONFIG,
-  type FeatureType,
-} from '@/lib/credits/creditService'
+import { getCreditBalance, canUseCredits } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { creditCheckRequestSchema } from '@/lib/api/zodValidation'
 
@@ -26,12 +20,10 @@ export const GET = withApiMiddleware(
   async (_req: NextRequest, context: ApiContext) => {
     try {
       const balance = await getCreditBalance(context.userId!)
-      const planConfig = PLAN_CONFIG[balance.plan]
 
       return apiSuccess({
         isLoggedIn: true,
         plan: balance.plan,
-        features: planConfig.features,
         credits: {
           monthly: balance.monthlyCredits,
           used: balance.usedCredits,
@@ -76,14 +68,9 @@ export const POST = withApiMiddleware(
     const { type = 'reading', amount = 1, feature } = validationResult.data
 
     try {
-      // 기능 체크
+      // 기능 게이트 폐지 — 크레딧만 있으면 모든 기능 사용 가능.
       if (feature) {
-        const canUse = await canUseFeature(context.userId!, feature as FeatureType)
-        return apiSuccess({
-          feature,
-          allowed: canUse,
-          reason: canUse ? undefined : 'feature_not_available',
-        } as Record<string, unknown>)
+        return apiSuccess({ feature, allowed: true } as Record<string, unknown>)
       }
 
       // 크레딧 체크

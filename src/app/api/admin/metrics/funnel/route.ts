@@ -83,22 +83,6 @@ export const GET = withApiMiddleware(
             createdAt: { gte: start, lte: end },
           },
         }),
-        prisma.subscription.count({
-          where: {
-            status: { in: ['active', 'trialing'] },
-          },
-        }),
-        prisma.subscription.count({
-          where: {
-            createdAt: { gte: start, lte: end },
-            status: { in: ['active', 'trialing'] },
-          },
-        }),
-        prisma.subscription.count({
-          where: {
-            canceledAt: { gte: start, lte: end },
-          },
-        }),
         prisma.reading.count({
           where: {
             createdAt: { gte: start, lte: end },
@@ -109,13 +93,10 @@ export const GET = withApiMiddleware(
       // Extract values with fallbacks for failed queries
       const totalUsers = results[0].status === 'fulfilled' ? results[0].value : 0
       const newUsers = results[1].status === 'fulfilled' ? results[1].value : 0
-      const activeSubscriptions = results[2].status === 'fulfilled' ? results[2].value : 0
-      const newSubscriptions = results[3].status === 'fulfilled' ? results[3].value : 0
-      const cancelledSubscriptions = results[4].status === 'fulfilled' ? results[4].value : 0
-      const recentReadings = results[5].status === 'fulfilled' ? results[5].value : 0
+      const recentReadings = results[2].status === 'fulfilled' ? results[2].value : 0
 
       // Log failures without exposing sensitive details
-      const failedCount = results.filter(r => r.status === 'rejected').length
+      const failedCount = results.filter((r) => r.status === 'rejected').length
       if (failedCount > 0) {
         logger.warn(`[Admin Funnel] ${failedCount} queries failed, using fallback values`)
       }
@@ -123,9 +104,6 @@ export const GET = withApiMiddleware(
       const dailyVisitors = Math.round(newUsers * 30)
       const weeklyVisitors = Math.round(dailyVisitors * 5)
       const monthlyVisitors = Math.round(dailyVisitors * 25)
-
-      const avgPlanPrice = 9900
-      const mrr = activeSubscriptions * avgPlanPrice
 
       const activatedUsers = Math.round(totalUsers * 0.75)
       const readingsPerUser = totalUsers > 0 ? recentReadings / Math.max(1, newUsers) : 0
@@ -145,12 +123,6 @@ export const GET = withApiMiddleware(
         activations: {
           total: activatedUsers,
           rate: totalUsers > 0 ? (activatedUsers / totalUsers) * 100 : 0,
-        },
-        subscriptions: {
-          active: activeSubscriptions,
-          new: newSubscriptions,
-          churned: cancelledSubscriptions,
-          mrr,
         },
         engagement: {
           dailyActiveUsers: Math.round(totalUsers * 0.15),

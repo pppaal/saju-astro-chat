@@ -6,7 +6,6 @@ export type FunnelMetrics = {
   visitors: { daily: number; weekly: number; monthly: number; trend: number }
   registrations: { total: number; daily: number; conversionRate: number }
   activations: { total: number; rate: number }
-  subscriptions: { active: number; new: number; churned: number; mrr: number }
   engagement: {
     dailyActiveUsers: number
     weeklyActiveUsers: number
@@ -45,15 +44,11 @@ export type UsersData = {
     createdAt: string
   }>
   roleDistribution: Array<{ role: string; count: number }>
-  planDistribution: Array<{ plan: string; count: number }>
   oauthProviders: Array<{ provider: string; count: number }>
   interactionsByService: Array<{ service: string; count: number }>
 }
 
 export type RevenueData = {
-  activeSubscriptions: number
-  subscriptionsByPlan: Array<{ plan: string; count: number }>
-  subscriptionsByStatus: Array<{ status: string; count: number }>
   creditUsageByService: Array<{ service: string; totalCredits: number; accessCount: number }>
   bonusCreditStats: { totalAmount: number; totalRemaining: number; purchaseCount: number }
   recentRefunds: Array<{

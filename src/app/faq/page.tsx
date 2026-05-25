@@ -22,8 +22,8 @@ const faqs: FaqItem[] = [
     icon: '🎯',
     q: 'How accurate is DestinyPal?',
     qKo: 'DestinyPal은 얼마나 정확한가요?',
-    a: 'We combine Saju (Four Pillars), Western Astrology, Tarot, and advanced AI to provide integrated readings. Our Destiny Fusion Matrix™ cross-references Eastern and Western systems for deeper insights. Remember, this is guidance for self-reflection—not a substitute for professional advice.',
-    aKo: '사주, 서양 점성술, 타로, 그리고 고급 AI를 결합하여 통합 리딩을 제공합니다. Destiny Fusion Matrix™가 동서양 체계를 교차 참조하여 더 깊은 통찰을 제공합니다. 이는 자기 성찰을 위한 가이드이며, 전문적인 조언을 대체하지 않습니다.',
+    a: 'We combine Saju (Four Pillars), Western Astrology, Tarot, and advanced AI to provide integrated readings, cross-referencing Eastern and Western systems for deeper insights. Remember, this is guidance for self-reflection—not a substitute for professional advice.',
+    aKo: '사주, 서양 점성술, 타로, 그리고 고급 AI를 결합하여 통합 리딩을 제공하며, 동서양 체계를 교차 참조하여 더 깊은 통찰을 드립니다. 이는 자기 성찰을 위한 가이드이며, 전문적인 조언을 대체하지 않습니다.',
   },
   {
     category: 'general',
@@ -53,18 +53,18 @@ const faqs: FaqItem[] = [
   {
     category: 'services',
     icon: '🗺️',
-    q: 'What is the Destiny Map?',
-    qKo: 'Destiny Map이 무엇인가요?',
-    a: 'The Destiny Map is our signature visualization and counseling feature. It combines your Saju chart and astrological birth chart into one guided view, then delivers practical AI guidance for timing, strengths, and key decisions.',
-    aKo: 'Destiny Map은 당사의 핵심 시각화/상담 기능입니다. 사주 차트와 점성술 출생 차트를 하나의 가이드 뷰로 통합하고, 타이밍·강점·중요한 결정에 대한 실용적 AI 가이던스를 제공합니다.',
+    q: 'What is the Destiny Counselor?',
+    qKo: '운명 상담사가 무엇인가요?',
+    a: 'The Destiny Counselor is our signature AI counseling feature. It reads your Saju (Four Pillars) chart together with your astrological birth chart, then chats with you to give practical guidance on timing, strengths, and key decisions.',
+    aKo: '운명 상담사는 당사의 핵심 AI 상담 기능입니다. 사주(사주팔자)와 점성술 출생 차트를 함께 읽고, 대화를 통해 타이밍·강점·중요한 결정에 대한 실용적인 가이드를 제공합니다.',
   },
   {
     category: 'services',
     icon: '🃏',
     q: 'How does tarot reading work in DestinyPal?',
     qKo: 'DestinyPal의 타로 리딩은 어떻게 작동하나요?',
-    a: 'Choose a spread (single card, three-card past/present/future, Celtic Cross, or our couple spread), set your intention, then draw. Our AI interprets each card in context — considering its position, neighboring cards, your Saju/astrology profile, and the question you asked. You can ask follow-up questions on the same reading to deepen the interpretation without redrawing.',
-    aKo: '스프레드를 선택하고(한 장, 과거/현재/미래 3장, 켈틱 크로스, 또는 커플 전용 스프레드) 의도를 설정한 뒤 카드를 뽑습니다. AI 가 각 카드를 위치·인접 카드·귀하의 사주/점성 프로필·질문 맥락에 따라 해석합니다. 같은 리딩에 대해 후속 질문을 이어가며 해석을 더 깊이 파고들 수 있고, 다시 뽑지 않아도 됩니다.',
+    a: 'Choose a spread (1, 3, 5, or 7 cards, or our couple spread), set your intention, then draw. Our AI interprets each card in context — considering its position, neighboring cards, your Saju/astrology profile, and the question you asked. You can ask follow-up questions on the same reading to deepen the interpretation without redrawing.',
+    aKo: '스프레드를 선택하고(1·3·5·7장, 또는 커플 전용 스프레드) 의도를 설정한 뒤 카드를 뽑습니다. AI 가 각 카드를 위치·인접 카드·귀하의 사주/점성 프로필·질문 맥락에 따라 해석합니다. 같은 리딩에 대해 후속 질문을 이어가며 해석을 더 깊이 파고들 수 있고, 다시 뽑지 않아도 됩니다.',
   },
   {
     category: 'services',
@@ -72,7 +72,7 @@ const faqs: FaqItem[] = [
     q: 'What is a couple tarot reading?',
     qKo: '커플 타로 리딩이 무엇인가요?',
     a: "A couple reading interprets the cards through the lens of a specific relationship — drawing from both partners' charts and the dynamic between them. You and your matched partner each draw, and the AI integrates both perspectives into one shared interpretation. Both partners need an active connection on DestinyPal; if a partner has disconnected or blocked the connection, the couple reading is no longer available.",
-    aKo: "커플 리딩은 특정 관계의 관점에서 카드를 해석합니다. 두 사람의 차트와 관계 역학을 함께 반영하며, 매칭된 상대와 각자 카드를 뽑으면 AI 가 두 시점을 하나의 공유 해석으로 통합합니다. DestinyPal 내에서 연결된 상태여야 하며, 상대가 연결을 해제하거나 차단한 경우 커플 리딩은 더 이상 이용할 수 없습니다.",
+    aKo: '커플 리딩은 특정 관계의 관점에서 카드를 해석합니다. 두 사람의 차트와 관계 역학을 함께 반영하며, 매칭된 상대와 각자 카드를 뽑으면 AI 가 두 시점을 하나의 공유 해석으로 통합합니다. DestinyPal 내에서 연결된 상태여야 하며, 상대가 연결을 해제하거나 차단한 경우 커플 리딩은 더 이상 이용할 수 없습니다.',
   },
   {
     category: 'services',
@@ -85,18 +85,10 @@ const faqs: FaqItem[] = [
   {
     category: 'services',
     icon: '📅',
-    q: 'What makes the Fortune Calendar special?',
-    qKo: '운세 달력의 특별한 점은 무엇인가요?',
-    a: 'Our Fortune Calendar combines daily energy forecasts based on your personal Saju, planetary transits, moon phases, and auspicious/inauspicious dates. It helps you plan important events, avoid challenging days, and maximize favorable cosmic timing.',
-    aKo: '운세 달력은 개인 사주, 행성 이동, 달의 위상, 길흉일을 기반으로 한 일일 에너지 예측을 결합합니다. 중요한 이벤트 계획, 어려운 날 회피, 유리한 우주적 타이밍 극대화를 도와줍니다.',
-  },
-  {
-    category: 'services',
-    icon: '🌙',
-    q: 'Can DestinyPal interpret my dreams?',
-    qKo: 'DestinyPal이 꿈 해몽을 해주나요?',
-    a: 'Yes! Our AI-powered dream interpreter analyzes symbols, emotions, and themes in your dreams, drawing from psychology, traditional dream dictionaries, and spiritual symbolism to provide personalized interpretations.',
-    aKo: '네! AI 기반 꿈 해몽기가 꿈 속 상징, 감정, 테마를 분석하여 심리학, 전통 꿈 사전, 영적 상징에서 가져온 개인화된 해석을 제공합니다.',
+    q: 'What makes the Calendar special?',
+    qKo: '캘린더의 특별한 점은 무엇인가요?',
+    a: 'Our Calendar combines daily energy forecasts based on your personal Saju, planetary transits, moon phases, and auspicious/inauspicious dates. It helps you plan important events, avoid challenging days, and maximize favorable cosmic timing.',
+    aKo: '캘린더는 개인 사주, 행성 이동, 달의 위상, 길흉일을 기반으로 한 일일 에너지 예측을 결합합니다. 중요한 이벤트 계획, 어려운 날 회피, 유리한 우주적 타이밍 극대화를 도와줍니다.',
   },
   // Account
   {
@@ -104,8 +96,8 @@ const faqs: FaqItem[] = [
     icon: '📚',
     q: 'Can I access my previous readings?',
     qKo: '이전 리딩을 다시 볼 수 있나요?',
-    a: "Yes! Log in to your account and visit 'My Journey' to see all your saved readings, insights, and personal growth history. Premium members enjoy unlimited storage.",
-    aKo: "네! 계정에 로그인한 후 'My Journey'에서 저장된 모든 리딩, 인사이트, 성장 기록을 확인할 수 있습니다. 프리미엄 회원은 무제한 저장이 가능합니다.",
+    a: 'Yes! Log in and open the history within each service — for example, your past tarot readings are saved under Tarot History. Saved readings stay tied to your account.',
+    aKo: '네! 로그인한 뒤 각 서비스의 기록에서 확인할 수 있어요. 예를 들어 지난 타로 리딩은 타로 기록(History)에 저장됩니다. 저장된 리딩은 계정에 계속 보관됩니다.',
   },
   {
     category: 'account',
@@ -128,8 +120,8 @@ const faqs: FaqItem[] = [
     icon: '🗑️',
     q: 'How do I delete my account?',
     qKo: '계정을 삭제하려면 어떻게 하나요?',
-    a: "Go to Settings > Account > Delete Account. You'll be asked to confirm. Note that this action is permanent and will erase all your data, readings, and history. Any remaining credits are forfeited and cannot be refunded.",
-    aKo: '설정 > 계정 > 계정 삭제로 이동하세요. 확인이 요청됩니다. 이 작업은 영구적이며 모든 데이터, 리딩, 기록이 삭제됩니다. 남은 크레딧은 소멸되며 환불되지 않습니다.',
+    a: "Open your Profile page and use Delete Account. You'll be asked to confirm. Note that this action is permanent and will erase all your data, readings, and history. Any remaining credits are forfeited and cannot be refunded.",
+    aKo: '프로필 페이지에서 계정 삭제를 진행하세요. 확인이 요청됩니다. 이 작업은 영구적이며 모든 데이터, 리딩, 기록이 삭제됩니다. 남은 크레딧은 소멸되며 환불되지 않습니다.',
   },
   // Payment
   {
@@ -161,8 +153,8 @@ const faqs: FaqItem[] = [
     icon: '🌟',
     q: 'What can I use without paying?',
     qKo: '무료로 사용할 수 있는 기능은 무엇인가요?',
-    a: 'Core onboarding tools and the current month of the Fortune Calendar are free. Paid AI features — chat, Tarot, Destiny Map readings, premium reports, compatibility analysis, extended calendar — each cost credits, which you buy as a one-time pack.',
-    aKo: '핵심 온보딩 도구와 운세 달력의 당월 일정은 무료입니다. 유료 AI 기능 — 상담, 타로, Destiny Map 리딩, 프리미엄 리포트, 궁합 분석, 확장 달력 — 은 각각 크레딧을 소모하며, 크레딧은 일회성 팩으로 구매합니다.',
+    a: 'Core onboarding tools and the current month of the Calendar are free. Paid AI features — chat, Tarot, Destiny Counselor, premium reports, compatibility analysis, extended calendar — each cost credits, which you buy as a one-time pack.',
+    aKo: '핵심 온보딩 도구와 캘린더의 당월 일정은 무료입니다. 유료 AI 기능 — 상담, 타로, 운명 상담사, 프리미엄 리포트, 궁합 분석, 확장 캘린더 — 은 각각 크레딧을 소모하며, 크레딧은 일회성 팩으로 구매합니다.',
   },
   {
     category: 'payment',
@@ -177,7 +169,7 @@ const faqs: FaqItem[] = [
     icon: '🔁',
     q: 'Will I be charged automatically?',
     qKo: '자동으로 결제가 되나요?',
-    a: "No. DestinyPal does not offer recurring subscriptions. Every purchase is a one-time credit pack — your card is charged only when you actively buy more credits. There is no auto-renewal.",
+    a: 'No. DestinyPal does not offer recurring subscriptions. Every purchase is a one-time credit pack — your card is charged only when you actively buy more credits. There is no auto-renewal.',
     aKo: '아닙니다. DestinyPal은 정기 구독을 제공하지 않습니다. 모든 결제는 일회성 크레딧 팩 구매이며, 사용자가 직접 추가 구매할 때만 결제됩니다. 자동 갱신은 없습니다.',
   },
   // Technical
@@ -202,8 +194,8 @@ const faqs: FaqItem[] = [
     icon: '⚡',
     q: 'Why is my reading taking long to generate?',
     qKo: '리딩 생성이 오래 걸리는 이유는 무엇인가요?',
-    a: 'AI readings typically take 10-30 seconds. During peak hours, it may take slightly longer. Complex reports like Destiny Maps or detailed compatibility analyses require more processing time. If it takes over 2 minutes, please refresh and try again.',
-    aKo: 'AI 리딩은 일반적으로 10-30초가 걸립니다. 피크 시간대에는 약간 더 걸릴 수 있습니다. Destiny Map이나 상세 궁합 분석 같은 복잡한 리포트는 더 많은 처리 시간이 필요합니다. 2분 이상 걸리면 새로고침 후 다시 시도하세요.',
+    a: 'AI readings typically take 10-30 seconds. During peak hours, it may take slightly longer. Complex outputs like premium reports or detailed compatibility analyses require more processing time. If it takes over 2 minutes, please refresh and try again.',
+    aKo: 'AI 리딩은 일반적으로 10-30초가 걸립니다. 피크 시간대에는 약간 더 걸릴 수 있습니다. 프리미엄 리포트나 상세 궁합 분석 같은 복잡한 결과물은 더 많은 처리 시간이 필요합니다. 2분 이상 걸리면 새로고침 후 다시 시도하세요.',
   },
   {
     category: 'technical',
@@ -247,7 +239,7 @@ function FaqAccordion({
 export default function FaqPage() {
   const { locale } = useI18n()
   const isKo = locale === 'ko'
-  const [openIndex, setOpenIndex] = useState<number | null>(0)
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<Category>('all')
   const [expandAll, setExpandAll] = useState(false)
@@ -298,13 +290,6 @@ export default function FaqPage() {
   return (
     <main className={styles.container}>
       <div className={styles.backgroundGlow} />
-
-      <div className={styles.backButtonContainer}>
-        <Link href="/" className={styles.backButton}>
-          <span className={styles.backArrow}>←</span>
-          <span>{isKo ? '홈으로' : 'Home'}</span>
-        </Link>
-      </div>
 
       <section className={styles.hero}>
         <div className={styles.heroIcon}>?</div>

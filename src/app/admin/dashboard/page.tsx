@@ -437,17 +437,6 @@ export default function MetricsDashboard() {
               </div>
               <div className={styles.funnelRate}>{funnel?.activations.rate?.toFixed(1)}%</div>
             </div>
-            <div className={styles.funnelArrow}>→</div>
-            <div className={styles.funnelStep}>
-              <div className={styles.funnelIcon}>💎</div>
-              <div className={styles.funnelLabel}>구독</div>
-              <div className={styles.funnelValue}>
-                {formatNumber(funnel?.subscriptions.active || 0)}
-              </div>
-              <div className={styles.funnelMrr}>
-                {formatCurrency(funnel?.subscriptions.mrr || 0)}/월
-              </div>
-            </div>
           </div>
         </section>
 
@@ -481,36 +470,6 @@ export default function MetricsDashboard() {
                 {funnel?.engagement.readingsPerUser?.toFixed(1) || 0}
               </div>
               <div className={styles.metricSubtext}>사용자당 리딩 수</div>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>구독 현황</h2>
-          <div className={styles.subscriptionGrid}>
-            <div className={styles.subscriptionCard}>
-              <div className={styles.subscriptionLabel}>활성 구독</div>
-              <div className={styles.subscriptionValue}>
-                {formatNumber(funnel?.subscriptions.active || 0)}
-              </div>
-            </div>
-            <div className={styles.subscriptionCard}>
-              <div className={styles.subscriptionLabel}>신규</div>
-              <div className={styles.subscriptionValue} style={{ color: '#22c55e' }}>
-                +{formatNumber(funnel?.subscriptions.new || 0)}
-              </div>
-            </div>
-            <div className={styles.subscriptionCard}>
-              <div className={styles.subscriptionLabel}>이탈</div>
-              <div className={styles.subscriptionValue} style={{ color: '#ef4444' }}>
-                -{formatNumber(funnel?.subscriptions.churned || 0)}
-              </div>
-            </div>
-            <div className={styles.subscriptionCard}>
-              <div className={styles.subscriptionLabel}>MRR</div>
-              <div className={styles.subscriptionValue}>
-                {formatCurrency(funnel?.subscriptions.mrr || 0)}
-              </div>
             </div>
           </div>
         </section>

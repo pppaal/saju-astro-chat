@@ -349,9 +349,7 @@ function setupDefaultMocks() {
     .mockResolvedValueOnce([
       { creditType: 'PREMIUM', _sum: { amount: 100 }, _count: { id: 10 } },
     ] as any)
-    .mockResolvedValueOnce([
-      { reason: 'error', _count: { id: 5 } },
-    ] as any)
+    .mockResolvedValueOnce([{ reason: 'error', _count: { id: 5 } }] as any)
     .mockResolvedValue([
       { creditType: 'PREMIUM', _sum: { amount: 100 }, _count: { id: 10 } },
     ] as any)
@@ -541,7 +539,6 @@ describe('GET /api/admin/metrics/comprehensive', () => {
       expect(data.data.data).toHaveProperty('totalUsers')
       expect(data.data.data).toHaveProperty('recentSignups')
       expect(data.data.data).toHaveProperty('roleDistribution')
-      expect(data.data.data).toHaveProperty('planDistribution')
       expect(data.data.data.totalUsers).toBe(100)
     })
 
@@ -568,8 +565,6 @@ describe('GET /api/admin/metrics/comprehensive', () => {
 
       expect(response.status).toBe(200)
       expect(data.data.section).toBe('revenue')
-      expect(data.data.data).toHaveProperty('activeSubscriptions')
-      expect(data.data.data).toHaveProperty('subscriptionsByPlan')
       expect(data.data.data).toHaveProperty('creditUsageByService')
       expect(data.data.data).toHaveProperty('bonusCreditStats')
       expect(data.data.data).toHaveProperty('recentRefunds')
@@ -785,10 +780,7 @@ describe('GET /api/admin/metrics/comprehensive', () => {
 
       expect(response.status).toBe(500)
       expect(data.error.code).toBe('INTERNAL_ERROR')
-      expect(logger.error).toHaveBeenCalledWith(
-        '[Comprehensive API Error]',
-        expect.any(Error)
-      )
+      expect(logger.error).toHaveBeenCalledWith('[Comprehensive API Error]', expect.any(Error))
     })
 
     it('should handle prisma.user.findMany errors gracefully', async () => {
@@ -803,8 +795,8 @@ describe('GET /api/admin/metrics/comprehensive', () => {
     })
 
     it('should handle revenue section database errors gracefully', async () => {
-      vi.mocked(prisma.subscription.count).mockRejectedValue(
-        new Error('Subscription query failed')
+      vi.mocked(prisma.bonusCreditPurchase.aggregate).mockRejectedValue(
+        new Error('Bonus credit query failed')
       )
 
       const req = makeRequest({ section: 'revenue', timeRange: '24h' })
@@ -940,9 +932,7 @@ describe('GET /api/admin/metrics/comprehensive', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.data.data.recentEmails[0].createdAt).toBe(
-        '2024-06-15T10:30:00.000Z'
-      )
+      expect(data.data.data.recentEmails[0].createdAt).toBe('2024-06-15T10:30:00.000Z')
     })
   })
 
@@ -952,9 +942,7 @@ describe('GET /api/admin/metrics/comprehensive', () => {
   describe('Concurrent Requests', () => {
     it('should handle multiple concurrent section requests', async () => {
       const sections = ['users', 'revenue', 'matching']
-      const requests = sections.map((section) =>
-        makeRequest({ section, timeRange: '24h' })
-      )
+      const requests = sections.map((section) => makeRequest({ section, timeRange: '24h' }))
 
       const responses = await Promise.all(requests.map((req) => GET(req)))
 

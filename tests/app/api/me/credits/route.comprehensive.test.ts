@@ -222,12 +222,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
 
 import { GET, POST } from '@/app/api/me/credits/route'
 import { getServerSession } from 'next-auth'
-import {
-  getCreditBalance,
-  canUseCredits,
-  canUseFeature,
-  PLAN_CONFIG,
-} from '@/lib/credits/creditService'
+import { getCreditBalance, canUseCredits } from '@/lib/credits/creditService'
 
 describe('/api/me/credits', () => {
   beforeEach(() => {
@@ -279,34 +274,6 @@ describe('/api/me/credits', () => {
       expect(data.data.compatibility).toEqual({ used: 2, limit: 10, remaining: 8 })
       expect(data.data.followUp).toEqual({ used: 1, limit: 5, remaining: 4 })
       expect(getCreditBalance).toHaveBeenCalledWith('user-123')
-    })
-
-    it('should return plan features', async () => {
-      const mockSession = {
-        user: { id: 'user-123' },
-      }
-
-      const mockBalance = {
-        plan: 'premium',
-        monthlyCredits: 100,
-        usedCredits: 0,
-        bonusCredits: 0,
-        remainingCredits: 100,
-        totalCredits: 100,
-        compatibility: { used: 0, limit: 10, remaining: 10 },
-        followUp: { used: 0, limit: 5, remaining: 5 },
-        historyRetention: 365,
-        periodEnd: new Date(),
-      }
-
-      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
-      vi.mocked(getCreditBalance).mockResolvedValue(mockBalance as any)
-
-      const response = await GET(new NextRequest('http://localhost:3000/api/me/credits'))
-      const data = await response.json()
-
-      expect(data.data.features).toBeDefined()
-      expect(data.data.features).toEqual(PLAN_CONFIG.premium.features)
     })
 
     it('should handle getCreditBalance errors', async () => {
@@ -543,9 +510,8 @@ describe('/api/me/credits', () => {
       user: { id: 'user-123' },
     }
 
-    it('should check feature availability', async () => {
+    it('should always allow features in the credit-only model', async () => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
-      vi.mocked(canUseFeature).mockResolvedValue(true)
 
       const req = new NextRequest('http://localhost:3000/api/me/credits', {
         method: 'POST',
@@ -558,23 +524,6 @@ describe('/api/me/credits', () => {
       expect(response.status).toBe(200)
       expect(data.data.feature).toBe('compatibility')
       expect(data.data.allowed).toBe(true)
-      expect(canUseFeature).toHaveBeenCalledWith('user-123', 'compatibility')
-    })
-
-    it('should return reason when feature not available', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
-      vi.mocked(canUseFeature).mockResolvedValue(false)
-
-      const req = new NextRequest('http://localhost:3000/api/me/credits', {
-        method: 'POST',
-        body: JSON.stringify({ feature: 'compatibility' }),
-      })
-
-      const response = await POST(req)
-      const data = await response.json()
-
-      expect(data.data.allowed).toBe(false)
-      expect(data.data.reason).toBe('feature_not_available')
     })
 
     it('should reject invalid feature via Zod validation', async () => {
@@ -591,9 +540,8 @@ describe('/api/me/credits', () => {
       expect(response.status).toBe(422)
     })
 
-    it('should prioritize feature check over credit check', async () => {
+    it('should not run a credit check when a feature is provided', async () => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
-      vi.mocked(canUseFeature).mockResolvedValue(true)
 
       const req = new NextRequest('http://localhost:3000/api/me/credits', {
         method: 'POST',
@@ -606,7 +554,6 @@ describe('/api/me/credits', () => {
 
       await POST(req)
 
-      expect(canUseFeature).toHaveBeenCalled()
       expect(canUseCredits).not.toHaveBeenCalled()
     })
   })
@@ -686,24 +633,6 @@ describe('/api/me/credits', () => {
       const req = new NextRequest('http://localhost:3000/api/me/credits', {
         method: 'POST',
         body: JSON.stringify({ type: 'reading', amount: 1 }),
-      })
-
-      const response = await POST(req)
-
-      expect(response.status).toBe(500)
-    })
-
-    it('should handle canUseFeature errors', async () => {
-      const mockSession = {
-        user: { id: 'user-123' },
-      }
-
-      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
-      vi.mocked(canUseFeature).mockRejectedValue(new Error('Database error'))
-
-      const req = new NextRequest('http://localhost:3000/api/me/credits', {
-        method: 'POST',
-        body: JSON.stringify({ feature: 'compatibility' }),
       })
 
       const response = await POST(req)

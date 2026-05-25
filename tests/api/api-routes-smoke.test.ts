@@ -30,7 +30,7 @@ const assertModules = (modulePaths: string[]) => {
 describe('API Routes Smoke Tests', () => {
   describe('Admin Routes (1)', () => {
     it('should have admin routes', () => {
-      assertModules(['app/api/admin/refund-subscription/route'])
+      assertModules(['app/api/admin/metrics/comprehensive/route'])
     })
   })
 

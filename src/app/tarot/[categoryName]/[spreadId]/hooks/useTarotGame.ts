@@ -20,6 +20,7 @@ import { tarotLogger } from '@/lib/logger'
 import type { GameState, ReadingResponse, InterpretationResult } from '../types'
 import { CARD_COLORS, CardColor } from '../constants'
 import { classifyTarotDrawError, type TarotDrawError } from '../../../utils/errorHandling'
+import { useCreditModal } from '@/contexts/CreditModalContext'
 
 const TAROT_PERSONALIZATION_KEY = 'tarot_personalization_options'
 const TAROT_DECK_PREF_KEY = 'tarot_preferred_deck'
@@ -131,6 +132,7 @@ function buildRestoredInterpretation(reading: SavedTarotReading): Interpretation
 export function useTarotGame(): UseTarotGameReturn {
   const params = useParams()
   const searchParams = useSearchParams()
+  const { showDepleted } = useCreditModal()
   const categoryName = params?.categoryName as string | undefined
   const spreadId = params?.spreadId as string | undefined
   const questionFromUrl = searchParams?.get('question') || ''
@@ -169,7 +171,7 @@ export function useTarotGame(): UseTarotGameReturn {
       return { includeSaju: false, includeAstrology: false }
       // Unused but kept compiling so the surrounding signature stays
       // identical for the storage-write effect a few lines down.
-       
+
       try {
         return { includeSaju: false, includeAstrology: false }
       } catch {
@@ -385,6 +387,7 @@ export function useTarotGame(): UseTarotGameReturn {
     const fetchReading = async () => {
       setGameState('revealing')
       let handledApiError = false
+      let creditExhausted = false
       try {
         const response = await apiFetch('/api/tarot', {
           method: 'POST',
@@ -404,9 +407,15 @@ export function useTarotGame(): UseTarotGameReturn {
             typeof document !== 'undefined'
               ? document.documentElement.lang.toLowerCase().startsWith('ko')
               : true
-          setDrawError(classifyTarotDrawError(response.status, errorData, isKoLocale))
           handledApiError = true
           tarotLogger.error('Tarot API error', { status: response.status, errorData })
+          // 크레딧 소진(402) → 인라인 에러 화면 대신 전역 크레딧 안내 모달.
+          if (response.status === 402) {
+            showDepleted()
+            creditExhausted = true
+          } else {
+            setDrawError(classifyTarotDrawError(response.status, errorData, isKoLocale))
+          }
           throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`)
         }
 
@@ -442,6 +451,13 @@ export function useTarotGame(): UseTarotGameReturn {
           setGameState('results')
         }, 1000)
       } catch (error) {
+        // 크레딧 소진은 모달로 안내했으므로 에러 화면으로 전환하지 않고
+        // 카드 선택 화면을 유지한다(재선택으로 재시도 가능, 재요청 루프 없음).
+        if (creditExhausted) {
+          tarotLogger.warn('Tarot reading blocked: insufficient credits')
+          setGameState('picking')
+          return
+        }
         if (!handledApiError) {
           const isKoLocale =
             typeof document !== 'undefined'
@@ -456,7 +472,16 @@ export function useTarotGame(): UseTarotGameReturn {
 
     const timeoutId = setTimeout(fetchReading, 500)
     return () => clearTimeout(timeoutId)
-  }, [selectedIndices, spreadInfo, categoryName, spreadId, gameState, userTopic, questionAnalysis])
+  }, [
+    selectedIndices,
+    spreadInfo,
+    categoryName,
+    spreadId,
+    gameState,
+    userTopic,
+    questionAnalysis,
+    showDepleted,
+  ])
 
   return {
     gameState,
