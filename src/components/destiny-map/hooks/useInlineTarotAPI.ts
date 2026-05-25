@@ -212,7 +212,13 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
         })
 
         if (!res.ok) {
-          throw new Error('Interpretation failed')
+          // Credit exhaustion → global modal (consistent with draw + main tarot)
+          // instead of a silent generic failure. Status is kept in the error so
+          // it shows up in logs for diagnosis.
+          if (res.status === 402) {
+            showDepleted()
+          }
+          throw new Error(`Interpretation failed (${res.status})`)
         }
 
         // SSE: accumulate `data: { content: "..." }` events into a single
@@ -329,6 +335,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       defaultOverallMessage,
       defaultGuidance,
       questionAnalysis,
+      showDepleted,
     ]
   )
 
