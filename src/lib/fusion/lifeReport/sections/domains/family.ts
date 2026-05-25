@@ -23,6 +23,7 @@ import {
 import {
   aspectQuality,
   houseLabel,
+  naturalizeFragment,
   paragraph,
   signLabel,
   varyRepeatedEndings,
@@ -30,6 +31,7 @@ import {
 import { pickVariation, twelveStagePool, sibsinCategoryPool, sibsinPool } from '../../pools'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 
 export function buildFamily(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -197,13 +199,28 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
       deepEn.push(firstSentenceFamily(ceEntry.en))
     }
   }
-  // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
+  // 융합 규칙: KO는 원시 용어를 자연어화, EN은 rule id로 영문 narrative 룩업.
   if (familyConfirms.length > 0) {
-    deepKo.push(`그리고 ${familyConfirms[0].rule.narrative.confirm}`)
+    deepKo.push(`그리고 ${naturalizeFragment(familyConfirms[0].rule.narrative.confirm)}`)
+    const en = RULE_NARRATIVE_EN[familyConfirms[0].rule.id]?.confirm
+    if (en) deepEn.push(`And ${en}`)
   }
   const familyConflicts = fusion?.byDomain?.family?.conflicts ?? []
   if (familyConflicts[0]?.rule.narrative.conflict) {
-    deepKo.push(`다만 ${familyConflicts[0].rule.narrative.conflict}`)
+    deepKo.push(`다만 ${naturalizeFragment(familyConflicts[0].rule.narrative.conflict)}`)
+    const enX = RULE_NARRATIVE_EN[familyConflicts[0].rule.id]?.conflict
+    if (enX) deepEn.push(`That said, ${enX}`)
+  }
+  // Moon/Saturn midpoint (감정적 성숙의 점) — emotional maturity & responsibility.
+  const maturityMid = input.calendarSignals?.midpoints?.find((m) => m.id === 'Moon/Saturn')
+  if (maturityMid) {
+    astroUsed.push('midpoints.moonSaturn')
+    deepKo.push(
+      `감정적 성숙의 점(달·토성 미드포인트)은 ${signLabel(maturityMid.sign, 'ko')}에 있어, 정서적 책임과 성숙이 그 색으로 자리잡아요.`
+    )
+    deepEn.push(
+      `Your Moon/Saturn midpoint — the point of emotional maturity — sits in ${signLabel(maturityMid.sign, 'en')}, where emotional responsibility and steadiness settle.`
+    )
   }
   // Calendar-engine: Lot of Victory (인연의 행운점) — 친구·후원의 결
   const victory = input.calendarSignals?.arabicParts?.Victory

@@ -31,6 +31,7 @@ import {
   eulReul,
   houseLabel,
   iGa,
+  naturalizeFragment,
   paragraph,
   signLabel,
   varyRepeatedEndings,
@@ -47,6 +48,7 @@ import {
   iljuPool,
   planetHouseLine,
 } from '../../pools'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 
 const BRANCH_FLAVOR_KO: Record<string, string> = {
   子: '예민하고 깊은',
@@ -389,13 +391,17 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     deepKo.push(firstSentenceLove(loveAspect.ko))
     deepEn.push(firstSentenceLove(loveAspect.en))
   }
-  // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
+  // 융합 규칙: KO는 원시 용어를 자연어화, EN은 rule id로 영문 narrative 룩업.
   if (loveConfirms.length > 0) {
-    deepKo.push(`그리고 ${loveConfirms[0].rule.narrative.confirm}`)
+    deepKo.push(`그리고 ${naturalizeFragment(loveConfirms[0].rule.narrative.confirm)}`)
+    const en = RULE_NARRATIVE_EN[loveConfirms[0].rule.id]?.confirm
+    if (en) deepEn.push(`And ${en}`)
   }
   const loveConflicts = fusion?.byDomain?.love?.conflicts ?? []
   if (loveConflicts[0]?.rule.narrative.conflict) {
-    deepKo.push(`다만 ${loveConflicts[0].rule.narrative.conflict}`)
+    deepKo.push(`다만 ${naturalizeFragment(loveConflicts[0].rule.narrative.conflict)}`)
+    const enX = RULE_NARRATIVE_EN[loveConflicts[0].rule.id]?.conflict
+    if (enX) deepEn.push(`That said, ${enX}`)
   }
   // Venus/Mars midpoint (열정의 점) — attraction & desire axis.
   const passionMid = input.calendarSignals?.midpoints?.find((m) => m.id === 'Venus/Mars')

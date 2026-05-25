@@ -24,6 +24,7 @@ import {
   elementLabel,
   houseLabel,
   iGa,
+  naturalizeFragment,
   paragraph,
   planetLabel,
   signLabel,
@@ -35,6 +36,7 @@ import {
   iljuPool,
   planetHouseLine,
 } from '../../pools'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 
 export function buildHealth(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -194,13 +196,28 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       'Strain-prone signals run through your chart — keep a steady recovery routine in place to prevent overload from building up.'
     )
   }
-  // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
+  // 융합 규칙: KO는 원시 용어를 자연어화, EN은 rule id로 영문 narrative 룩업.
   if (healthConfirms.length > 0) {
-    deepKo.push(`그리고 ${healthConfirms[0].rule.narrative.confirm}`)
+    deepKo.push(`그리고 ${naturalizeFragment(healthConfirms[0].rule.narrative.confirm)}`)
+    const en = RULE_NARRATIVE_EN[healthConfirms[0].rule.id]?.confirm
+    if (en) deepEn.push(`And ${en}`)
   }
   const healthConflicts = fusion?.byDomain?.health?.conflicts ?? []
   if (healthConflicts[0]?.rule.narrative.conflict) {
-    deepKo.push(`다만 ${healthConflicts[0].rule.narrative.conflict}`)
+    deepKo.push(`다만 ${naturalizeFragment(healthConflicts[0].rule.narrative.conflict)}`)
+    const enX = RULE_NARRATIVE_EN[healthConflicts[0].rule.id]?.conflict
+    if (enX) deepEn.push(`That said, ${enX}`)
+  }
+  // Mars/Saturn midpoint (절제된 행동의 점) — endurance & disciplined effort.
+  const enduranceMid = input.calendarSignals?.midpoints?.find((m) => m.id === 'Mars/Saturn')
+  if (enduranceMid) {
+    astroUsed.push('midpoints.marsSaturn')
+    deepKo.push(
+      `절제된 행동의 점(화성·토성 미드포인트)은 ${signLabel(enduranceMid.sign, 'ko')}에 있어, 꾸준함과 절제로 체력을 다루는 결이 그 색을 띠어요.`
+    )
+    deepEn.push(
+      `Your Mars/Saturn midpoint — the point of disciplined effort — sits in ${signLabel(enduranceMid.sign, 'en')}, coloring how steadiness and restraint shape the way you manage your body.`
+    )
   }
   // Saju relations — 형(reshape) / 충(clash) often surface as body-stress
   // patterns. Bias the pick toward those kinds.
