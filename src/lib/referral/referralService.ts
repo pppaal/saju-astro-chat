@@ -83,39 +83,73 @@ export async function linkReferrer(
       data: { referrerId: referrer.id },
     })
 
-    // 가입 즉시 추천인에게 크레딧 지급
-    await addBonusCredits(referrer.id, REFERRAL_CREDITS, 'referral')
-
-    // 보상 레코드 생성 (완료 상태로)
+    // 어뷰징(멀티 계정 파밍) 방지: 가입만으로는 지급하지 않고 보상을 pending
+    // 으로 예약한다. 피추천자가 첫 크레딧팩 결제를 완료하면(웹훅에서
+    // grantReferralRewardOnFirstPurchase 호출) 그때 추천인에게 지급한다.
     await prisma.referralReward.create({
       data: {
         userId: referrer.id,
         referredUserId: newUserId,
         creditsAwarded: REFERRAL_CREDITS,
-        rewardType: 'signup_complete',
-        status: 'completed',
-        completedAt: new Date(),
+        rewardType: 'first_purchase',
+        status: 'pending',
       },
     })
-
-    // 추천 보상 이메일 발송
-    const referrerUser = await prisma.user.findUnique({
-      where: { id: referrer.id },
-      select: { email: true, name: true },
-    })
-    if (referrerUser?.email) {
-      sendReferralRewardEmail(referrer.id, referrerUser.email, {
-        userName: referrerUser.name || undefined,
-        creditsAwarded: REFERRAL_CREDITS,
-      }).catch((err) => {
-        logger.error('[linkReferrer] Failed to send referral reward email:', err)
-      })
-    }
 
     return { success: true, referrerId: referrer.id }
   } catch (error: unknown) {
     logger.error('[linkReferrer] error:', error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
+// 피추천자가 첫 결제(크레딧팩 구매)를 완료하면 추천인에게 보상 지급.
+// Stripe 웹훅(handleCheckoutCompleted)에서 구매자 크레딧 적립 직후 호출한다.
+// pending 보상이 있을 때 한 번만 지급되며, 이후 결제에는 재지급되지 않는다.
+export async function grantReferralRewardOnFirstPurchase(
+  referredUserId: string
+): Promise<{ granted: boolean; referrerId?: string; creditsAwarded?: number }> {
+  try {
+    const pendingReward = await prisma.referralReward.findFirst({
+      where: {
+        referredUserId,
+        status: 'pending',
+        rewardType: 'first_purchase',
+      },
+    })
+
+    if (!pendingReward) {
+      return { granted: false }
+    }
+
+    await addBonusCredits(pendingReward.userId, pendingReward.creditsAwarded, 'referral')
+
+    await prisma.referralReward.update({
+      where: { id: pendingReward.id },
+      data: { status: 'completed', completedAt: new Date() },
+    })
+
+    const referrerUser = await prisma.user.findUnique({
+      where: { id: pendingReward.userId },
+      select: { email: true, name: true },
+    })
+    if (referrerUser?.email) {
+      sendReferralRewardEmail(pendingReward.userId, referrerUser.email, {
+        userName: referrerUser.name || undefined,
+        creditsAwarded: pendingReward.creditsAwarded,
+      }).catch((err) => {
+        logger.error('[grantReferralRewardOnFirstPurchase] Failed to send email:', err)
+      })
+    }
+
+    return {
+      granted: true,
+      referrerId: pendingReward.userId,
+      creditsAwarded: pendingReward.creditsAwarded,
+    }
+  } catch (error: unknown) {
+    logger.error('[grantReferralRewardOnFirstPurchase] error:', error)
+    return { granted: false }
   }
 }
 

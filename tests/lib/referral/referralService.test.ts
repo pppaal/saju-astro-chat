@@ -609,7 +609,18 @@ describe('Referral Service with mocked Prisma', () => {
 
       expect(result.success).toBe(true)
       expect(result.referrerId).toBe('referrer-1')
-      expect(addBonusCredits).toHaveBeenCalledWith('referrer-1', 3, 'referral')
+      // 가입만으로는 지급하지 않고 pending 보상만 예약(첫 결제 시 지급).
+      expect(addBonusCredits).not.toHaveBeenCalled()
+      expect(prisma.referralReward.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: 'referrer-1',
+            referredUserId: 'new-user',
+            rewardType: 'first_purchase',
+            status: 'pending',
+          }),
+        })
+      )
     })
 
     it('handles database errors', async () => {
