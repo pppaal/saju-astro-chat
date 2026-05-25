@@ -60,14 +60,6 @@ const ELEMENT_TRAITS: Record<string, { ko: string; en: string }> = {
   },
 }
 
-const ELEMENT_KEYWORDS: Record<string, { ko: string[]; en: string[] }> = {
-  wood: { ko: ['성장', '개척', '리더십'], en: ['growth', 'initiative', 'leadership'] },
-  fire: { ko: ['열정', '표현', '카리스마'], en: ['passion', 'expression', 'charisma'] },
-  earth: { ko: ['안정', '조율', '실용'], en: ['stability', 'balance', 'practicality'] },
-  metal: { ko: ['원칙', '분석', '결단'], en: ['principle', 'analysis', 'decisiveness'] },
-  water: { ko: ['직관', '유연', '깊이'], en: ['intuition', 'adaptability', 'depth'] },
-}
-
 // ============================================================
 // Data Extraction Helpers
 // ============================================================
@@ -249,154 +241,6 @@ function normalizeElementKey(element?: string): string {
   return normalizeElement(mapped)
 }
 
-function normalizeZodiacKey(sign?: string): string {
-  if (!sign) {
-    return ''
-  }
-  const trimmed = sign.trim()
-  if (!trimmed) {
-    return ''
-  }
-  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
-}
-
-function getZodiacElement(sign?: string): string {
-  const key = normalizeZodiacKey(sign)
-  return ZODIAC_TO_ELEMENT[key] || ''
-}
-
-function getElementKeywords(element: string, isKo: boolean): string[] {
-  const key = normalizeElementKey(element)
-  const fallback = isKo ? ['균형', '직관'] : ['balance', 'insight']
-  return ELEMENT_KEYWORDS[key]?.[isKo ? 'ko' : 'en'] || fallback
-}
-
-function buildImportantYears(
-  result: CombinedResult,
-  sunSignName: string,
-  isKo: boolean
-): ImportantYear[] {
-  const unse = result.saju?.unse
-  const annual = Array.isArray(unse?.annual)
-    ? (unse.annual as Array<{ year?: number; age?: number; ganji?: string }>)
-    : []
-  const daeun = Array.isArray(unse?.daeun)
-    ? (unse.daeun as Array<{ startYear?: number; age?: number; ganji?: string }>)
-    : []
-  const birthDate = (result.saju as { facts?: { birthDate?: string } })?.facts?.birthDate
-  const birthYear = birthDate ? Number(birthDate.slice(0, 4)) : undefined
-  const nowYear = new Date().getFullYear()
-
-  const items: ImportantYear[] = []
-
-  const pushItem = (
-    year: number,
-    age: number,
-    title: string,
-    sajuReason: string,
-    astroReason: string
-  ) => {
-    items.push({
-      year,
-      age,
-      rating: 3,
-      title,
-      sajuReason,
-      astroReason,
-    })
-  }
-
-  if (annual.length > 0) {
-    annual.slice(0, 4).forEach((a, idx) => {
-      const year = a?.year ?? nowYear + idx
-      const age = birthYear ? year - birthYear : (a?.age ?? 20 + idx * 3)
-      pushItem(
-        year,
-        age,
-        isKo ? `${year}년 운세` : `${year} Fortune`,
-        isKo ? `세운 ${a?.ganji || ''} 흐름` : `Annual cycle ${a?.ganji || ''}`.trim(),
-        isKo ? `태양 ${sunSignName} 기준 흐름` : `Sun in ${sunSignName} emphasis`
-      )
-    })
-  } else if (daeun.length > 0) {
-    daeun.slice(0, 3).forEach((d, idx) => {
-      const year = d?.startYear ?? nowYear + idx * 8
-      const age = d?.age ?? (birthYear ? year - birthYear : 25 + idx * 8)
-      pushItem(
-        year,
-        age,
-        isKo ? `${year}년 전환기` : `${year} Turning Point`,
-        isKo ? `대운 ${d?.ganji || ''} 흐름` : `Major cycle ${d?.ganji || ''}`.trim(),
-        isKo ? `태양 ${sunSignName} 에너지 전환` : `Sun in ${sunSignName} shift`
-      )
-    })
-  }
-
-  return items
-}
-
-function buildCharacterBuilder(
-  saju: ExtractedSajuData,
-  astro: ExtractedAstroData,
-  lang: string
-): StructuredFortune['characterBuilder'] {
-  const isKo = lang === 'ko'
-  const dayElement = normalizeElementKey(saju.dayMasterElement || saju.dominantElement)
-  const weakest = normalizeElementKey(saju.weakestElement || dayElement)
-  const support = ELEMENT_RELATIONS[dayElement]?.generatedBy || dayElement
-
-  const sunElement = getZodiacElement(astro.sunSign)
-  const moonElement = getZodiacElement(astro.moonSign)
-  const sunKey = normalizeElementKey(sunElement || dayElement)
-  const moonKey = normalizeElementKey(moonElement || dayElement)
-
-  const dayKeywords = getElementKeywords(dayElement, isKo)
-  const sunKeywords = getElementKeywords(sunKey, isKo)
-  const weakestKeywords = getElementKeywords(weakest, isKo)
-
-  const personality = isKo
-    ? `일간의 ${dayKeywords.join('·')} 기질이 기본 축이고, 태양 ${getSignName(astro.sunSign, true)}의 ${sunKeywords[0]} 에너지가 겉으로 드러납니다. 달 ${getSignName(astro.moonSign, true)}가 감정의 리듬을 보완해 더 입체적인 성격을 만듭니다.`
-    : `Your core is rooted in ${dayKeywords.join(', ')} energy, while Sun in ${getSignName(astro.sunSign, false)} amplifies ${sunKeywords[0]} on the surface. Moon in ${getSignName(astro.moonSign, false)} adds emotional nuance and depth.`
-
-  let conflict = ''
-  if (sunKey === dayElement) {
-    conflict = isKo
-      ? '내면과 외면이 같은 원소로 강하게 몰입하지만, 과열되면 균형을 잃기 쉽습니다.'
-      : 'Inner and outer energies align strongly, which can lead to overdrive if balance is lost.'
-  } else if (ELEMENT_RELATIONS[dayElement]?.controls === sunKey) {
-    conflict = isKo
-      ? `내면의 ${getElementName(dayElement, true)}이 외부의 ${getElementName(sunKey, true)} 흐름을 통제하려는 긴장이 생깁니다.`
-      : `Your inner ${getElementName(dayElement, false)} tries to control the outward ${getElementName(sunKey, false)} flow, creating tension.`
-  } else if (ELEMENT_RELATIONS[dayElement]?.controlledBy === sunKey) {
-    conflict = isKo
-      ? `외부 환경의 ${getElementName(sunKey, true)} 기운이 내면을 압박해 속도 조절이 필요합니다.`
-      : `External ${getElementName(sunKey, false)} energy can pressure your inner pace, calling for regulation.`
-  } else {
-    conflict = isKo
-      ? `서로 다른 원소가 섞여 겉과 속의 리듬이 달라질 수 있습니다. ${getElementName(weakest, true)} 기운을 보완하는 것이 핵심입니다.`
-      : `Mixed elements create different inner and outer rhythms. Strengthening ${getElementName(weakest, false)} energy becomes the key.`
-  }
-
-  if (sunKey !== moonKey) {
-    conflict += isKo
-      ? ` 태양 ${getSignName(astro.sunSign, true)}와 달 ${getSignName(astro.moonSign, true)}의 결이 달라 감정-행동 간 간극이 생길 수 있어요.`
-      : ` The Sun in ${getSignName(astro.sunSign, false)} and Moon in ${getSignName(astro.moonSign, false)} move differently, creating inner gaps.`
-  }
-
-  const growthArc = isKo
-    ? `초반에는 ${getElementName(dayElement, true)}의 ${dayKeywords[0]}에 집중해 방향을 잡습니다.\n중반에는 약한 ${getElementName(weakest, true)} 요소를 의식적으로 키우며 균형을 배웁니다.\n후반에는 ${getElementName(support, true)}의 힘을 빌려 영향력을 확장하고 스스로의 이야기를 완성합니다.`
-    : `Early on, you focus on ${getElementName(dayElement, false)}-driven ${dayKeywords[0]} to find direction.\nMidway, you consciously strengthen ${getElementName(weakest, false)} to regain balance.\nLater, you leverage ${getElementName(support, false)} energy to expand impact and complete your story.`
-
-  return {
-    archetype: isKo ? `${getElementName(dayElement, true)} 일간` : `${getElementName(dayElement, false)} Day Master`,
-    tagline: getElementTrait(dayElement, isKo),
-    personality,
-    conflict,
-    growthArc,
-    keywords: Array.from(new Set([...dayKeywords, ...sunKeywords].slice(0, 6))),
-  }
-}
-
 // ============================================================
 // Report Generation
 // ============================================================
@@ -485,176 +329,41 @@ Strengthening your ${weakestName} element can lead to more balanced development.
 *This is a fusion analysis of Saju and Astrology. For detailed consultation, please ask the counselor.*`
 }
 
-export function generateLocalStructuredReport(
-  result: CombinedResult,
-  theme: string,
-  lang: string,
-  name?: string
-): string {
-  const isKo = lang === 'ko'
-  const saju = extractSajuData(result.saju)
-  const astro = extractAstroData(result.astrology)
-
-  const dominantKey = normalizeElementKey(saju.dominantElement)
-  const weakestKey = normalizeElementKey(saju.weakestElement)
-  const dominantName = getElementName(dominantKey, isKo)
-  const weakestName = getElementName(weakestKey, isKo)
-  const sunSignName = getSignName(astro.sunSign, isKo)
-  const moonSignName = getSignName(astro.moonSign, isKo)
-  const ascName = getSignName(astro.ascendant, isKo)
-  const elementTrait = getElementTrait(dominantKey, isKo)
-  const dayKeywords = getElementKeywords(normalizeElementKey(saju.dayMasterElement), isKo)
-  const primaryKeyword = dayKeywords[0] || (isKo ? '핵심' : 'core')
-
-  const themeKey = (theme || '').toLowerCase()
-  const themeLabels: Record<string, { ko: string; en: string }> = {
-    focus_overall: { ko: '운명 지도', en: 'Destiny Map' },
-    focus_love: { ko: '연애운', en: 'Love & Romance' },
-    focus_career: { ko: '직업운', en: 'Career & Work' },
-    focus_family: { ko: '가정운', en: 'Family & Home' },
-    focus_health: { ko: '건강운', en: 'Health & Vitality' },
-    focus_energy: { ko: '기운/에너지', en: 'Energy & Vitality' },
-    fortune_today: { ko: '오늘의 운세', en: "Today's Fortune" },
-    fortune_monthly: { ko: '월간 운세', en: 'Monthly Fortune' },
-    fortune_new_year: { ko: '신년 운세', en: 'New Year Fortune' },
-    fortune_next_year: { ko: '내년 운세', en: 'Next Year Fortune' },
-    life: { ko: '인생 운세', en: 'Life Fortune' },
-    general: { ko: '종합 리포트', en: 'Destiny Report' },
-  }
-  const themeLabel =
-    themeLabels[themeKey]?.[isKo ? 'ko' : 'en'] || (isKo ? '종합 리포트' : 'Destiny Report')
-
-  const summaryLine = isKo
-    ? `${themeLabel} · ${name || '사용자'}`
-    : `${themeLabel} · ${name || 'User'}`
-
-  const sections = [
-    {
-      id: 'core',
-      icon: '🧭',
-      title: '핵심 정체성',
-      titleEn: 'Core Identity',
-      content: isKo
-        ? `일간 ${saju.dayMasterName}(${saju.dayMasterElement}), 태양 ${sunSignName}, 달 ${moonSignName} 조합입니다.
-${elementTrait}`
-        : `Day Master ${saju.dayMasterName} (${saju.dayMasterElement}), Sun ${sunSignName}, Moon ${moonSignName}.
-${elementTrait}`,
-    },
-    {
-      id: 'saju',
-      icon: '☯️',
-      title: '사주 포인트',
-      titleEn: 'Saju Focus',
-      content: isKo
-        ? `강한 오행: ${dominantName}
-보완 오행: ${weakestName}`
-        : `Dominant element: ${dominantName}
-Support element: ${weakestName}`,
-    },
-    {
-      id: 'astro',
-      icon: '🌌',
-      title: '점성 포인트',
-      titleEn: 'Astro Focus',
-      content: isKo
-        ? `태양 ${sunSignName} · 달 ${moonSignName} · 상승궁 ${ascName}`
-        : `Sun ${sunSignName} · Moon ${moonSignName} · Ascendant ${ascName}`,
-    },
-    {
-      id: 'fusion',
-      icon: '✨',
-      title: '통합 인사이트',
-      titleEn: 'Fusion Insight',
-      content: isKo
-        ? `${dominantName} 기운과 ${sunSignName} 성향이 결합되어 ${primaryKeyword} 역량이 강화됩니다.
-${weakestName} 기운을 의식적으로 보완하면 장기적으로 균형과 지속력이 높아집니다.`
-        : `The blend of ${dominantName} energy and ${sunSignName} amplifies ${primaryKeyword} tendencies.
-Strengthening ${weakestName} brings more balance.`,
-    },
-  ]
-
-  const importantYears = buildImportantYears(result, sunSignName, isKo)
-
-  const structured: StructuredFortune = {
-    themeSummary: summaryLine,
-    sections,
-    lifeTimeline: {
-      description: isKo
-        ? '사주 대운·세운과 점성 흐름을 함께 반영한 주요 시점입니다.'
-        : 'Key timing highlights derived from your Saju and astrology data.',
-      importantYears,
-    },
-    categoryAnalysis: {
-      personality: {
-        icon: '🧠',
-        title: isKo ? '성향' : 'Personality',
-        sajuAnalysis: isKo
-          ? `${saju.dayMasterName} 일간은 ${dayKeywords.join('·')} 성향을 기반으로 의사결정합니다.`
-          : `${dayKeywords.join(', ')} traits are strong in your Day Master.`,
-        astroAnalysis: isKo
-          ? `태양 ${sunSignName}은 외적 표현 방식을, 달 ${moonSignName}은 감정 반응 패턴을 강화합니다.`
-          : `Sun in ${sunSignName} shapes outward style, while Moon in ${moonSignName} colors inner emotions.`,
-        crossInsight: isKo
-          ? '사주 기질과 점성 리듬이 같은 방향으로 작동할 때 실행력과 회복력이 함께 올라갑니다.'
-          : 'When inner and outer energies align, your potential peaks.',
-        keywords: [...new Set([...dayKeywords, dominantName, sunSignName])],
-      },
-    },
-    keyInsights: [
-      {
-        type: 'strength',
-        icon: '💪',
-        text: isKo
-          ? `${dominantName} 기운이 강해 ${primaryKeyword} 관련 강점이 분명하게 드러납니다.`
-          : `${dominantName} energy highlights your ${primaryKeyword} strengths.`,
-      },
-      {
-        type: 'opportunity',
-        icon: '🚀',
-        text: isKo
-          ? `${sunSignName} 흐름이 새로운 시도와 전환 타이밍을 밀어주는 구간입니다.`
-          : `Sun in ${sunSignName} pushes new initiatives forward.`,
-      },
-      {
-        type: 'advice',
-        icon: '💡',
-        text: isKo
-          ? `${weakestName} 기운을 보완하는 생활 루틴을 넣으면 성과의 변동폭을 줄일 수 있습니다.`
-          : `Strengthening ${weakestName} brings balance and longevity.`,
-      },
-    ],
-    luckyElements: {
-      items: [dominantName, weakestName],
-    },
-    sajuHighlight: {
-      pillar: isKo ? `일간 ${saju.dayMasterName}` : `Day Master ${saju.dayMasterName}`,
-      element: dominantName,
-      meaning: isKo
-        ? `${dominantName} 기운이 현재 삶의 추진력을 강화합니다.`
-        : `${dominantName} energy is your core driver.`,
-    },
-    astroHighlight: {
-      planet: 'Sun',
-      sign: sunSignName,
-      meaning: isKo
-        ? `태양 ${sunSignName} 흐름이 현재 방향성과 표현 방식을 이끕니다.`
-        : `Sun in ${sunSignName} guides your direction.`,
-    },
-    characterBuilder: buildCharacterBuilder(saju, astro, lang),
-  }
-
-  return JSON.stringify(structured, null, 2)
-}
-
 // ============================================================
 // Chart header summary — a short, natural narrative read built from the
 // same engine content (archetype + element trait + 일주 + Sun/Moon), for
 // the "내 운명 차트" modal. Deterministic, client-safe.
 // ============================================================
 // sign(longitude) → element index helpers
-const SIGN_ELEMENTS = ['fire', 'earth', 'air', 'water', 'fire', 'earth', 'air', 'water', 'fire', 'earth', 'air', 'water']
+const SIGN_ELEMENTS = [
+  'fire',
+  'earth',
+  'air',
+  'water',
+  'fire',
+  'earth',
+  'air',
+  'water',
+  'fire',
+  'earth',
+  'air',
+  'water',
+]
 function summarySignKey(lon?: number): string | null {
-  const ZK = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces']
+  const ZK = [
+    'aries',
+    'taurus',
+    'gemini',
+    'cancer',
+    'leo',
+    'virgo',
+    'libra',
+    'scorpio',
+    'sagittarius',
+    'capricorn',
+    'aquarius',
+    'pisces',
+  ]
   if (typeof lon !== 'number' || !Number.isFinite(lon)) return null
   return ZK[Math.floor((((lon % 360) + 360) % 360) / 30)] ?? null
 }
@@ -664,7 +373,10 @@ function summarySignElement(lon?: number): string | null {
 }
 
 // 일간 대비 강한 오행의 역할 — 명리 용어 없이 일상어로 의미만
-function sibsinRole(dayKey: string, otherKey: string): 'self' | 'output' | 'wealth' | 'officer' | 'resource' | null {
+function sibsinRole(
+  dayKey: string,
+  otherKey: string
+): 'self' | 'output' | 'wealth' | 'officer' | 'resource' | null {
   if (dayKey === otherKey) return 'self'
   const rel = ELEMENT_RELATIONS[dayKey]
   if (!rel) return null
@@ -675,19 +387,45 @@ function sibsinRole(dayKey: string, otherKey: string): 'self' | 'output' | 'weal
   return null
 }
 const ROLE_MEANING: Record<string, { ko: string; en: string }> = {
-  self: { ko: '같은 기운이라 자립심과 경쟁심이 강해요', en: 'same energy as you — strong independence and drive' },
-  output: { ko: '재능을 표현하고 밖으로 풀어내는 힘이 돼요', en: 'fuels self-expression and creative output' },
-  wealth: { ko: '재물·일·욕망의 영역이 넓다는 뜻이에요 (다 쥐려 하면 지칠 수 있으니 선택과 집중이 중요해요)', en: 'a wide field of wealth, work and desire — focus beats grabbing it all' },
-  officer: { ko: '책임과 도전을 안기는 기운이에요 (잘 다스리면 명예가, 과하면 부담이 돼요)', en: 'brings responsibility and challenge — honor if mastered, pressure if not' },
-  resource: { ko: '배움과 도움이 받쳐주는 기운이에요 (과하면 생각만 많아지기 쉬워요)', en: 'supportive learning and care — but too much breeds overthinking' },
+  self: {
+    ko: '같은 기운이라 자립심과 경쟁심이 강해요',
+    en: 'same energy as you — strong independence and drive',
+  },
+  output: {
+    ko: '재능을 표현하고 밖으로 풀어내는 힘이 돼요',
+    en: 'fuels self-expression and creative output',
+  },
+  wealth: {
+    ko: '재물·일·욕망의 영역이 넓다는 뜻이에요 (다 쥐려 하면 지칠 수 있으니 선택과 집중이 중요해요)',
+    en: 'a wide field of wealth, work and desire — focus beats grabbing it all',
+  },
+  officer: {
+    ko: '책임과 도전을 안기는 기운이에요 (잘 다스리면 명예가, 과하면 부담이 돼요)',
+    en: 'brings responsibility and challenge — honor if mastered, pressure if not',
+  },
+  resource: {
+    ko: '배움과 도움이 받쳐주는 기운이에요 (과하면 생각만 많아지기 쉬워요)',
+    en: 'supportive learning and care — but too much breeds overthinking',
+  },
 }
 const ELEM_LABEL_KO: Record<string, string> = { fire: '불', earth: '흙', air: '공기', water: '물' }
-const ELEM_LABEL_EN: Record<string, string> = { fire: 'Fire', earth: 'Earth', air: 'Air', water: 'Water' }
+const ELEM_LABEL_EN: Record<string, string> = {
+  fire: 'Fire',
+  earth: 'Earth',
+  air: 'Air',
+  water: 'Water',
+}
 const ELEM_COMBO: Record<string, { ko: string; en: string }> = {
-  air: { ko: '사고와 소통이 중심이라 객관적이고 아이디어가 빨라요', en: 'mind- and communication-led; objective and quick with ideas' },
+  air: {
+    ko: '사고와 소통이 중심이라 객관적이고 아이디어가 빨라요',
+    en: 'mind- and communication-led; objective and quick with ideas',
+  },
   fire: { ko: '열정과 추진이 강해 직진형이에요', en: 'passionate and driving; a go-getter' },
   earth: { ko: '현실 감각과 안정 지향이 뚜렷해요', en: 'grounded and stability-seeking' },
-  water: { ko: '감정과 직관이 깊고 공감력이 커요', en: 'deep feeling and intuition; highly empathic' },
+  water: {
+    ko: '감정과 직관이 깊고 공감력이 커요',
+    en: 'deep feeling and intuition; highly empathic',
+  },
 }
 
 export function generateChartSummary(saju: unknown, astro: unknown, lang: string = 'ko'): string {
@@ -705,31 +443,43 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
   const dayPillar = (s?.dayPillar ?? (s?.pillars as Record<string, unknown> | undefined)?.day) as
     | { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
     | undefined
-  const ilju = dayPillar?.heavenlyStem?.name && dayPillar?.earthlyBranch?.name
-    ? getIljuArchetype(dayPillar.heavenlyStem.name, dayPillar.earthlyBranch.name)
-    : null
+  const ilju =
+    dayPillar?.heavenlyStem?.name && dayPillar?.earthlyBranch?.name
+      ? getIljuArchetype(dayPillar.heavenlyStem.name, dayPillar.earthlyBranch.name)
+      : null
   const iljuChar = ilju ? (isKo ? ilju.character : ilju.character_en) : ''
 
   // Sun / Moon sign + element from longitude
   const a = astro as Record<string, unknown> | undefined
-  const planets = Array.isArray(a?.planets) ? (a!.planets as Array<{ name?: string; longitude?: number }>) : []
+  const planets = Array.isArray(a?.planets)
+    ? (a!.planets as Array<{ name?: string; longitude?: number }>)
+    : []
   const lonOf = (n: string) => planets.find((p) => String(p?.name).toLowerCase() === n)?.longitude
-  const sunLon = lonOf('sun'), moonLon = lonOf('moon')
-  const sunKey = summarySignKey(sunLon), moonKey = summarySignKey(moonLon)
+  const sunLon = lonOf('sun'),
+    moonLon = lonOf('moon')
+  const sunKey = summarySignKey(sunLon),
+    moonKey = summarySignKey(moonLon)
   const sunName = sunKey ? getSignName(sunKey, isKo) : ''
   const moonName = moonKey ? getSignName(moonKey, isKo) : ''
-  const sunEl = summarySignElement(sunLon), moonEl = summarySignElement(moonLon)
+  const sunEl = summarySignElement(sunLon),
+    moonEl = summarySignElement(moonLon)
 
   const role = domKey !== selfKey ? sibsinRole(selfKey, domKey) : null
 
   if (isKo) {
-    const lead = iljuChar ? `당신은 ${iljuChar} 유형이에요.` : `당신은 ${getElementName(selfKey, true)} 기운의 사람이에요.`
+    const lead = iljuChar
+      ? `당신은 ${iljuChar} 유형이에요.`
+      : `당신은 ${getElementName(selfKey, true)} 기운의 사람이에요.`
     const s2 = trait ? `${trait}.` : ''
     const s3 = role ? `강한 ${domName} 기운은 ${ROLE_MEANING[role].ko}.` : ''
     let s4 = ''
     if (sunName && moonName) {
-      const meaning = sunEl && sunEl === moonEl ? `둘 다 ${ELEM_LABEL_KO[sunEl]} 기운이고, ${ELEM_COMBO[sunEl].ko}`
-        : (sunEl && moonEl ? `겉(태양 ${ELEM_LABEL_KO[sunEl]})과 속(달 ${ELEM_LABEL_KO[moonEl]})의 결이 달라 입체적이에요` : '')
+      const meaning =
+        sunEl && sunEl === moonEl
+          ? `둘 다 ${ELEM_LABEL_KO[sunEl]} 기운이고, ${ELEM_COMBO[sunEl].ko}`
+          : sunEl && moonEl
+            ? `겉(태양 ${ELEM_LABEL_KO[sunEl]})과 속(달 ${ELEM_LABEL_KO[moonEl]})의 결이 달라 입체적이에요`
+            : ''
       s4 = `태양 ${sunName}·달 ${moonName}${meaning ? ` — ${meaning}` : '에 있어요'}.`
     } else if (sunName) {
       s4 = `태양은 ${sunName}에 있어요.`
@@ -738,13 +488,19 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
   }
 
   const lower = (t: string) => (t ? t.charAt(0).toLowerCase() + t.slice(1) : t)
-  const lead = iljuChar ? `At the core, ${lower(iljuChar)}` : `${getElementName(selfKey, false)}-natured at the core.`
+  const lead = iljuChar
+    ? `At the core, ${lower(iljuChar)}`
+    : `${getElementName(selfKey, false)}-natured at the core.`
   const s2 = trait ? `${trait}.` : ''
   const s3 = role ? `Strong ${domName} energy here is ${ROLE_MEANING[role].en}.` : ''
   let s4 = ''
   if (sunName && moonName) {
-    const meaning = sunEl && sunEl === moonEl ? `both ${ELEM_LABEL_EN[sunEl]} — ${ELEM_COMBO[sunEl].en}`
-      : (sunEl && moonEl ? `outer (Sun ${ELEM_LABEL_EN[sunEl]}) and inner (Moon ${ELEM_LABEL_EN[moonEl]}) differ, adding range` : '')
+    const meaning =
+      sunEl && sunEl === moonEl
+        ? `both ${ELEM_LABEL_EN[sunEl]} — ${ELEM_COMBO[sunEl].en}`
+        : sunEl && moonEl
+          ? `outer (Sun ${ELEM_LABEL_EN[sunEl]}) and inner (Moon ${ELEM_LABEL_EN[moonEl]}) differ, adding range`
+          : ''
     s4 = `Sun in ${sunName}, Moon in ${moonName}${meaning ? ` — ${meaning}.` : '.'}`
   } else if (sunName) {
     s4 = `Sun in ${sunName}.`

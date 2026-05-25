@@ -11,12 +11,7 @@ import { logger } from '@/lib/logger'
 // Import from centralized modules
 import { hashName, maskDisplayName, maskTextWithName } from '@/lib/security'
 import { generateLocalReport } from './local-report-generator'
-import {
-  cleanseText,
-  getDateInTimezone,
-  extractDefaultElements,
-  validateSections,
-} from './report-helpers'
+import { cleanseText, getDateInTimezone, extractDefaultElements } from './report-helpers'
 
 /**
  * DestinyMap Report Service - Fusion backend version
@@ -140,14 +135,9 @@ export async function generateReport({
   const modelUsed: string = 'local-template'
   const backendAvailable = false
 
-  // 3.5) Validate required sections / cross evidence
-  // Skip validation for local-template and error-fallback responses to allow graceful degradation
-  const validationWarnings =
-    modelUsed === 'error-fallback' ||
-    modelUsed === 'local-template' ||
-    modelUsed === 'local-template-repair'
-      ? []
-      : validateSections(theme, aiText)
+  // 3.5) 무료 경로는 서버 템플릿 텍스트를 만들지 않으므로 섹션 검증이 불필요.
+  // 경고는 backend 가용성만 표기한다.
+  const validationWarnings: string[] = []
   if (!backendAvailable) {
     validationWarnings.push('backend_unavailable')
   }
