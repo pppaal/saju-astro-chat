@@ -10,12 +10,11 @@ import { logger } from '@/lib/logger'
 
 // Import from centralized modules
 import { hashName, maskDisplayName, maskTextWithName } from '@/lib/security'
-import { generateLocalReport, generateLocalStructuredReport } from './local-report-generator'
+import { generateLocalReport } from './local-report-generator'
 import {
   cleanseText,
   getDateInTimezone,
   extractDefaultElements,
-  hasBrokenPlaceholderArtifacts,
   validateSections,
 } from './report-helpers'
 
@@ -134,36 +133,12 @@ export async function generateReport({
   // extraPrompt가 있으면 상담사 모드로 AI 사용
   const useAI = Boolean(safeExtra)
 
-  // 3) Local fusion generation — Python AI backend was removed.
-  // Counselor / detailed AI flows now go through @anthropic-ai/sdk directly
-  // (see askClaude / callClaude / aiBackend.ts), not through this fallback.
-  let aiText = useAI
-    ? generateLocalReport(result, theme, lang, name)
-    : generateLocalStructuredReport(result, theme, lang, name)
-  let modelUsed = 'local-template'
+  // 3) 무료(비-AI) 리포트는 클라이언트의 fusion 엔진(buildLifeReport)이 렌더링한다.
+  // 서버측 템플릿 텍스트(engine C)는 화면에 쓰이지 않으므로 더 이상 생성하지 않는다.
+  // 상담사(AI/prompt) 경로만 텍스트(reply)를 생성한다.
+  const aiText = useAI ? generateLocalReport(result, theme, lang, name) : ''
+  const modelUsed: string = 'local-template'
   const backendAvailable = false
-
-  // Template mode must stay readable/structured. If backend output is broken, regenerate locally.
-  if (!useAI) {
-    const hasStructuredShape =
-      aiText.trim().startsWith('{') ||
-      aiText.includes('"lifeTimeline"') ||
-      aiText.includes('"categoryAnalysis"')
-    const hasBrokenPlaceholders = hasBrokenPlaceholderArtifacts(aiText)
-
-    if (!hasStructuredShape || hasBrokenPlaceholders) {
-      logger.warn(
-        '[DestinyMap] Broken/non-structured template response detected; falling back to local structured report',
-        {
-          modelUsed,
-          hasStructuredShape,
-          hasBrokenPlaceholders,
-        }
-      )
-      aiText = generateLocalStructuredReport(result, theme, lang, name)
-      modelUsed = 'local-template-repair'
-    }
-  }
 
   // 3.5) Validate required sections / cross evidence
   // Skip validation for local-template and error-fallback responses to allow graceful degradation

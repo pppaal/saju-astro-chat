@@ -376,9 +376,13 @@ export const POST = withApiMiddleware(
     }
 
     // 로그인 사용자의 경우 상담 기록 자동 저장 (이름 마스킹)
-    if (userId && report?.report) {
+    // 무료 리포트는 서버 템플릿 텍스트를 더 이상 만들지 않으므로(클라이언트
+    // fusion 엔진 렌더), 기록용 텍스트는 report.report(상담사 reply) → 없으면
+    // 계산 기반 summary 로 대체해 "리포트 이용" 활동 기록은 그대로 남긴다.
+    const consultationText = report?.report || report?.summary || ''
+    if (userId && consultationText) {
       try {
-        const fullReport = maskTextWithName(cleanseText(report.report), name)
+        const fullReport = maskTextWithName(cleanseText(consultationText), name)
         const summary = extractSummary(fullReport)
         await saveConsultation({
           userId,
@@ -599,34 +603,44 @@ export const POST = withApiMiddleware(
     const fusionFragments = fusionReport
       ? {
           generatedAt: fusionReport.generatedAt,
-          byDomain: (Object.fromEntries(
-            (Object.entries(fusionReport.byDomain) as Array<[Domain, (typeof fusionReport.byDomain)[Domain]]>).map(
-              ([domain, agg]) => [
-                domain,
-                {
-                  tone: agg.tone,
-                  confirms: agg.confirms.map((m) => ({
-                    id: m.rule.id,
-                    meaning: m.rule.meaning,
-                    narrative: m.rule.narrative.confirm,
-                    intensity: m.intensity,
-                  })),
-                  conflicts: agg.conflicts.map((m) => ({
-                    id: m.rule.id,
-                    meaning: m.rule.meaning,
-                    // conflict 룰은 narrative.conflict를 써야 함. confirm으로
-                    // 매핑하던 버그 때문에 갈등형 룰이 확인형 문구로 왜곡되었음.
-                    narrative: m.rule.narrative.conflict ?? m.rule.narrative.confirm,
-                    intensity: m.intensity,
-                  })),
-                },
-              ],
-            ),
-          ) as Record<Domain, {
-            tone: string
-            confirms: Array<{ id: string; meaning: string; narrative: string; intensity: string }>
-            conflicts: Array<{ id: string; meaning: string; narrative: string; intensity: string }>
-          }>),
+          byDomain: Object.fromEntries(
+            (
+              Object.entries(fusionReport.byDomain) as Array<
+                [Domain, (typeof fusionReport.byDomain)[Domain]]
+              >
+            ).map(([domain, agg]) => [
+              domain,
+              {
+                tone: agg.tone,
+                confirms: agg.confirms.map((m) => ({
+                  id: m.rule.id,
+                  meaning: m.rule.meaning,
+                  narrative: m.rule.narrative.confirm,
+                  intensity: m.intensity,
+                })),
+                conflicts: agg.conflicts.map((m) => ({
+                  id: m.rule.id,
+                  meaning: m.rule.meaning,
+                  // conflict 룰은 narrative.conflict를 써야 함. confirm으로
+                  // 매핑하던 버그 때문에 갈등형 룰이 확인형 문구로 왜곡되었음.
+                  narrative: m.rule.narrative.conflict ?? m.rule.narrative.confirm,
+                  intensity: m.intensity,
+                })),
+              },
+            ])
+          ) as Record<
+            Domain,
+            {
+              tone: string
+              confirms: Array<{ id: string; meaning: string; narrative: string; intensity: string }>
+              conflicts: Array<{
+                id: string
+                meaning: string
+                narrative: string
+                intensity: string
+              }>
+            }
+          >,
           themes: fusionReport.themes.map((t) => ({
             id: t.rule.id,
             meaning: t.rule.meaning,
