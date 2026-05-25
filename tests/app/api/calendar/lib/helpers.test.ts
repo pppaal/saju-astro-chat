@@ -656,7 +656,7 @@ describe('Calendar Helpers', () => {
       ).toBe(true)
     })
 
-    it('should switch to mixed-signals mode when cross agreement is very low on top grades', () => {
+    it('surfaces mixed-signal caution via description/warning (not title) when cross agreement is very low on top grades', () => {
       const result = formatDateForResponse(
         {
           ...baseDateData,
@@ -671,7 +671,10 @@ describe('Calendar Helpers', () => {
         enTranslations as any
       )
 
-      expect(result.title).toBe('Mixed signals')
+      // Title now follows the (high) score instead of being overridden to a
+      // caution label — the mixed-signal warning surfaces in description/warnings.
+      expect(result.title).not.toBe('Mixed signals')
+      expect(result.title.length).toBeGreaterThan(0)
       expect(result.description).toContain('Signals are mixed')
       // Original wedding/contract action recommendations are gated and replaced
       // with conservative caution guidance from the safety pool.

@@ -1,11 +1,13 @@
-import type {
-  DomainKey,
-  MonthlyOverlapPoint,
-  TimingCalibrationSummary,
-} from '@/lib/destiny-matrix/types'
+import type { DomainKey } from './types'
 import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/calendar/types'
 import type { UserAstroProfile, UserSajuProfile } from '@/lib/destiny-map/calendar/types'
 import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/saju/johuYongsin'
+import {
+  buildCycleInteractions,
+  pickDaeunForDate,
+  sewoonForYear as computeSewoonForYear,
+  wolwoonFromPillar,
+} from '@/lib/saju/cycleRelations'
 import { calculateDailyPillar } from '@/lib/calendar-engine/timing-helpers/ultra-precision-daily'
 import { elementOfBranch, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
@@ -13,20 +15,6 @@ import { calculateUltraPrecisionScore } from '@/lib/calendar-engine/timing-helpe
 import type { UltraPrecisionScore } from '@/lib/calendar-engine/timing-helpers/ultra-precision-types'
 
 type CalendarLocale = 'ko' | 'en'
-
-type YearlyMatrixCalendarContext = {
-  overlapTimeline?: MonthlyOverlapPoint[]
-  overlapTimelineByDomain?: Partial<Record<DomainKey, MonthlyOverlapPoint[]>>
-  timingCalibration?: TimingCalibrationSummary
-  domainScores?: Partial<
-    Record<
-      DomainKey,
-      {
-        finalScoreAdjusted?: number
-      }
-    >
-  >
-}
 
 export interface YearlyImportantDate {
   date: string
@@ -92,7 +80,6 @@ type YearlyOptions = {
   limit?: number
   minGrade?: ImportanceGrade
   locale?: CalendarLocale
-  matrixContext?: YearlyMatrixCalendarContext | null
   /** ISO date string ("1995-02-09") or birth year. Used to resolve which
    *  10-year 대운 cycle the user is currently in when sajuProfile lacks a
    *  birthYear field. */
@@ -108,6 +95,12 @@ type YearlyOptions = {
   >
   /** Per-date list of currently-retrograde planet names (Mercury, Venus, …). */
   dailyRetrograde?: Record<string, string[]>
+  /** Pre-computed calendar-engine(v2) display score per date (2-99), keyed by
+   *  YYYY-MM-DD. When present for a date, the engine uses it as THE score —
+   *  grade/tier/점수밴드 카운슬링/narrative 전부 이 점수 기준으로 만들어진다.
+   *  목적: 화면에 보이는 displayScore(v2)와 문구 톤을 한 점수로 일치시킴
+   *  (route가 v2 셀 점수를 미리 계산해 주입). 없는 날짜는 기존 사주·점성 blend. */
+  engineScores?: Record<string, number>
 }
 
 const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
@@ -145,10 +138,6 @@ function pad2(value: number): string {
 
 function isoDate(year: number, month: number, day: number): string {
   return `${year}-${pad2(month)}-${pad2(day)}`
-}
-
-function monthKey(year: number, month: number): string {
-  return `${year}-${pad2(month)}`
 }
 
 function categoryMatchesFilter(categories: EventCategory[], filter?: EventCategory): boolean {
@@ -492,38 +481,7 @@ const BRANCH_PA_PAIRS = new Set([
 const BRANCH_HYUNG_TRIO = ['寅', '巳', '申']
 const BRANCH_HYUNG_TRIO2 = ['丑', '戌', '未']
 const BRANCH_HYUNG_PAIR = new Set(['子-卯', '卯-子'])
-
-// 삼합 — 3-branch combination. When all three are present across the
-// natal+cycle slots, the saju framework treats it as a strong unified
-// flow producing the leader element.
-const BRANCH_TRIPLES_SAMHAP: Array<{ members: string[]; result: string; label: string }> = [
-  { members: ['亥', '卯', '未'], result: '목', label: '亥卯未 목 삼합' },
-  { members: ['寅', '午', '戌'], result: '화', label: '寅午戌 화 삼합' },
-  { members: ['巳', '酉', '丑'], result: '금', label: '巳酉丑 금 삼합' },
-  { members: ['申', '子', '辰'], result: '수', label: '申子辰 수 삼합' },
-]
-// 방합 — 3-branch seasonal alignment. Same idea as 삼합 but quarter-of-year.
-const BRANCH_TRIPLES_BANGHAP: Array<{ members: string[]; result: string; label: string }> = [
-  { members: ['寅', '卯', '辰'], result: '목', label: '寅卯辰 봄 방합' },
-  { members: ['巳', '午', '未'], result: '화', label: '巳午未 여름 방합' },
-  { members: ['申', '酉', '戌'], result: '금', label: '申酉戌 가을 방합' },
-  { members: ['亥', '子', '丑'], result: '수', label: '亥子丑 겨울 방합' },
-]
-// 원진 — 6 paired branches that don't get along (relational friction).
-const BRANCH_WONJIN_PAIRS = new Set([
-  '子-未',
-  '未-子',
-  '丑-午',
-  '午-丑',
-  '寅-酉',
-  '酉-寅',
-  '卯-申',
-  '申-卯',
-  '辰-亥',
-  '亥-辰',
-  '巳-戌',
-  '戌-巳',
-])
+// 삼합/방합/원진 상수는 운끼리 관계 계산과 함께 @/lib/saju/cycleRelations 로 이동.
 
 type DailyEvent = {
   kind:
@@ -974,35 +932,64 @@ const MOON_GRAIN_EN: Record<DomainKey, string> = {
   move: 'momentum',
 }
 
-function getMonthStrength(rows: MonthlyOverlapPoint[] | undefined, month: string): number {
-  if (!rows?.length) return 0
-  return rows
-    .filter((item) => item.month === month)
-    .reduce((max, item) => Math.max(max, item.overlapStrength || 0), 0)
+// ── 도메인(분야) = 사주 × 점성 교차에서 직접 산출 ──
+// 그날 일진 십신 + 신살(도화→연애·역마→이동) + 점성 트랜짓 행성(금성→연애·
+// 목성→돈…)을 합쳐 career/love/money/health/move 5분야 가중치를 매긴다.
+// (과거엔 destiny-matrix 월별 타임라인에 의존했으나, 캘린더는 사주×점성 교차
+//  자체이므로 그 교차에서 바로 분야를 뽑는다.)
+const SIBSIN_TO_DOMAIN: Record<string, DomainKey> = {
+  정재: 'money',
+  편재: 'money',
+  정관: 'career',
+  편관: 'career',
+  정인: 'health',
+  편인: 'health',
+  식신: 'love',
+  상관: 'love',
+  비견: 'career',
+  겁재: 'career',
+}
+const SHINSAL_TO_DOMAIN: Record<string, DomainKey> = {
+  도화: 'love',
+  홍염살: 'love',
+  역마: 'move',
+  지살: 'move',
+  화개: 'health',
+}
+const TRANSIT_PLANET_TO_DOMAIN: Record<string, DomainKey> = {
+  Venus: 'love',
+  Moon: 'health',
+  Jupiter: 'money',
+  Mercury: 'career',
+  Saturn: 'career',
+  Mars: 'career',
+  Sun: 'career',
 }
 
-function getDomainBase(
-  matrixContext: YearlyMatrixCalendarContext | null | undefined,
-  domain: DomainKey
-): number {
-  const raw = matrixContext?.domainScores?.[domain]?.finalScoreAdjusted
-  if (!Number.isFinite(raw)) return 0.52
-  return clamp(Number(raw) / 10, 0, 1)
-}
-
-function pickTopDomains(
-  matrixContext: YearlyMatrixCalendarContext | null | undefined,
-  currentMonthKey: string
-): Array<{ domain: DomainKey; score: number }> {
+function pickTopDomainsCross(input: {
+  daySibsin: string
+  shinsalKinds: string[]
+  transitPlanets: string[]
+  day: number
+}): Array<{ domain: DomainKey; score: number }> {
+  const w: Record<DomainKey, number> = { career: 0, love: 0, money: 0, health: 0, move: 0 }
+  const sd = SIBSIN_TO_DOMAIN[input.daySibsin]
+  if (sd) w[sd] += 1.0
+  for (const k of input.shinsalKinds) {
+    const d = SHINSAL_TO_DOMAIN[k]
+    if (d) w[d] += 1.2
+  }
+  for (const pl of input.transitPlanets) {
+    const d = TRANSIT_PLANET_TO_DOMAIN[pl]
+    if (d) w[d] += 0.6
+  }
   const domains: DomainKey[] = ['career', 'love', 'money', 'health', 'move']
   return domains
-    .map((domain) => {
-      const monthStrength = getMonthStrength(
-        matrixContext?.overlapTimelineByDomain?.[domain],
-        currentMonthKey
-      )
-      const score = getDomainBase(matrixContext, domain) * 0.55 + monthStrength * 0.45
-      return { domain, score: clamp(score, 0, 1) }
+    .map((domain, i) => {
+      // 0..1 정규화: 기여 없으면 ~0.42, 강하면 0.85+. 동률은 day 기반 미세 jitter로 흔든다.
+      const jitter = (((input.day * 7 + i * 13) % 11) / 11) * 0.03
+      const score = clamp(0.42 + 0.16 * w[domain] + jitter, 0, 1)
+      return { domain, score }
     })
     .sort((left, right) => right.score - left.score)
 }
@@ -1840,11 +1827,8 @@ export function calculateYearlyImportantDates(
   const results: YearlyImportantDate[] = []
   const start = new Date(year, 0, 1)
   const end = new Date(year, 11, 31)
-  const reliability = clamp(
-    options?.matrixContext?.timingCalibration?.reliabilityScore || 0.58,
-    0,
-    1
-  )
+  // matrix 타이밍 캘리브레이션 제거 — 교차검증 강도 기준선은 중립값으로 고정.
+  const reliability = 0.58
   // Solar-term-aware per-date pack: every factor builder pulls from
   // `getPackForDate(date, …)` so May 3 (still 辰月) doesn't get tagged
   // with 巳月 (초여름) data the way the old monthly index did.
@@ -1869,217 +1853,22 @@ export function calculateYearlyImportantDates(
     }
     return null
   })()
-  const findDaeunForDate = (d: Date) => {
-    const cycles = sajuProfile.daeunCycles
-    if (!cycles?.length || resolvedBirthYear == null) return null
-    // Approximate age at `d` using birth year. Daeun age ranges are
-    // [age, age+10) sorted ascending. We compute fractional age using
-    // the date's day-of-year so transition-imminent detection (within 1
-    // year of next boundary) is meaningful, not just a Jan-1 step.
-    const yearStart = new Date(d.getFullYear(), 0, 1).getTime()
-    const yearEnd = new Date(d.getFullYear() + 1, 0, 1).getTime()
-    const fractionalYear = d.getFullYear() + (d.getTime() - yearStart) / (yearEnd - yearStart)
-    const ageAtDate = fractionalYear - resolvedBirthYear
-    let activeIdx = 0
-    for (let i = 0; i < cycles.length; i++) {
-      if (cycles[i].age <= Math.floor(ageAtDate)) activeIdx = i
-      else break
-    }
-    const active = cycles[activeIdx]
-    if (!active) return null
-    const next = cycles[activeIdx + 1] || null
-    const daeunStem = active.heavenlyStem || ''
-    const sibsinStem = natalDayMaster && daeunStem ? getSibsinKo(natalDayMaster, daeunStem) : ''
-    const nextStem = next?.heavenlyStem || ''
-    const nextSibsinStem = natalDayMaster && nextStem ? getSibsinKo(natalDayMaster, nextStem) : ''
-    const yearsToNext = next ? Math.max(0, next.age - ageAtDate) : Infinity
-    return {
-      ganji: `${daeunStem}${active.earthlyBranch}`,
-      ageStart: active.age,
-      ageEnd: active.age + 10,
-      sibsinStem,
-      yearsToNext: next ? Number(yearsToNext.toFixed(2)) : undefined,
-      transitionImminent: next ? yearsToNext <= 1 : false,
-      nextGanji: next ? `${next.heavenlyStem}${next.earthlyBranch}` : undefined,
-      nextSibsinStem: next ? nextSibsinStem : undefined,
-    }
-  }
-  const sewoonForYear = (yr: number) => {
-    const idx60 = (yr - 4 + 6000) % 60
-    const stem = STEMS[idx60 % 10]
-    const branch = BRANCHES_BY_INDEX[idx60 % 12]
-    const sibsinStem = natalDayMaster && stem ? getSibsinKo(natalDayMaster, stem) : ''
-    return { ganji: `${stem}${branch}`, year: yr, sibsinStem }
-  }
-  const wolwoonForPack = (pack: MonthlyCounselorPack) => {
-    const stem = pack.monthStem
-    const sibsinStem = natalDayMaster && stem ? getSibsinKo(natalDayMaster, stem) : ''
-    return { ganji: `${stem}${pack.monthBranch}`, sibsinStem }
-  }
+  // 운별 갑자 조립은 @/lib/saju/cycleRelations 공용 모듈로 — v2 엔진도 같은 결과 재사용.
+  const findDaeunForDate = (d: Date) =>
+    pickDaeunForDate(sajuProfile.daeunCycles, resolvedBirthYear, natalDayMaster, d)
+  const sewoonForYear = (yr: number) => computeSewoonForYear(yr, natalDayMaster)
+  const wolwoonForPack = (pack: MonthlyCounselorPack) =>
+    wolwoonFromPillar(pack.monthStem, pack.monthBranch, natalDayMaster)
 
-  // ── Cycle ↔ cycle clash detector ──
-  // Pairwise 충/합/형 between (natal-day, 대운, 세운, 월운, 일운). Saju
-  // calendar gold: "대운 세운이 충하는 해" / "월운이 일운과 합하는 날" —
-  // these are the moments practitioners flag. We surface them so the user
-  // doesn't have to read the ganji and run the comparison themselves.
-  type CycleSlot = { id: string; label: string; stem: string; branch: string }
-  const interactionFor = (a: CycleSlot, b: CycleSlot): YearlyImportantDate['cycleInteractions'] => {
-    const out: NonNullable<YearlyImportantDate['cycleInteractions']> = []
-    const pair = `${a.label}↔${b.label}`
-    if (a.stem && b.stem && STEM_HAP_PARTNER[a.stem]?.partner === b.stem) {
-      out.push({
-        pair,
-        kind: '천간합',
-        blurb: `${a.label}(${a.stem})과 ${b.label}(${b.stem})이 천간합 — 두 흐름이 부드럽게 묶입니다.`,
-      })
-    }
-    if (a.stem && b.stem && STEM_CHUNG_SET.has(`${a.stem}-${b.stem}`)) {
-      out.push({
-        pair,
-        kind: '천간충',
-        blurb: `${a.label}(${a.stem})과 ${b.label}(${b.stem})이 천간충 — 결정 압박이 크게 들어옵니다.`,
-      })
-    }
-    if (
-      a.branch &&
-      b.branch &&
-      BRANCH_HAP_PARTNER[a.branch] === b.branch &&
-      a.branch !== b.branch
-    ) {
-      out.push({
-        pair,
-        kind: '지지합',
-        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 지지합 — 환경이 손발 맞춰 돕습니다.`,
-      })
-    }
-    if (a.branch && b.branch && BRANCH_CHUNG_PARTNER[a.branch] === b.branch) {
-      out.push({
-        pair,
-        kind: '지지충',
-        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 지지충 — 환경 변동·이동·교체 신호.`,
-      })
-    }
-    const inTrio = (set: string[]) =>
-      set.includes(a.branch) && set.includes(b.branch) && a.branch !== b.branch
-    if (
-      a.branch &&
-      b.branch &&
-      (inTrio(BRANCH_HYUNG_TRIO) ||
-        inTrio(BRANCH_HYUNG_TRIO2) ||
-        BRANCH_HYUNG_PAIR.has(`${a.branch}-${b.branch}`))
-    ) {
-      out.push({
-        pair,
-        kind: '지지형',
-        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 형 — 마찰·구설·실수 노출 주의.`,
-      })
-    }
-    if (a.branch && b.branch && BRANCH_HAE_PAIRS.has(`${a.branch}-${b.branch}`)) {
-      out.push({
-        pair,
-        kind: '지지해',
-        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 해 — 오해·관계 균열 주의.`,
-      })
-    }
-    if (a.branch && b.branch && BRANCH_PA_PAIRS.has(`${a.branch}-${b.branch}`)) {
-      out.push({
-        pair,
-        kind: '지지파',
-        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 파 — 진행 중인 일이 살짝 어긋날 수 있어요.`,
-      })
-    }
-    return out
-  }
-  const buildCycleInteractions = (
-    natalDayBranch: string,
-    daeun: { ganji: string } | null,
-    sewoon: { ganji: string },
-    wolwoon: { ganji: string },
-    iljin: { ganji: string }
-  ): YearlyImportantDate['cycleInteractions'] => {
-    const split = (g: string): { stem: string; branch: string } => ({
-      stem: g.charAt(0) || '',
-      branch: g.charAt(1) || '',
-    })
-    const slots: CycleSlot[] = [
-      { id: 'natal', label: '본명', stem: natalDayMaster, branch: natalDayBranch },
-      ...(daeun ? [{ id: 'daeun', label: '대운', ...split(daeun.ganji) }] : []),
-      { id: 'sewoon', label: '세운', ...split(sewoon.ganji) },
-      { id: 'wolwoon', label: '월운', ...split(wolwoon.ganji) },
-      { id: 'iljin', label: '일운', ...split(iljin.ganji) },
-    ]
-    const out: NonNullable<YearlyImportantDate['cycleInteractions']> = []
-    for (let i = 0; i < slots.length; i++) {
-      for (let j = i + 1; j < slots.length; j++) {
-        const hits = interactionFor(slots[i], slots[j]) || []
-        out.push(...hits)
-      }
-      // 원진 (6 pairs of 6년 차이 branches that grate). Same loop.
-      for (let j = i + 1; j < slots.length; j++) {
-        const a = slots[i],
-          b = slots[j]
-        if (a.branch && b.branch && BRANCH_WONJIN_PAIRS.has(`${a.branch}-${b.branch}`)) {
-          out.push({
-            pair: `${a.label}↔${b.label}`,
-            kind: '지지해', // 원진은 의미상 해와 비슷한 마찰 — UI는 같은 카드로
-            blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 원진 — 감정적 거리·미묘한 신경전.`,
-          })
-        }
-      }
-    }
-    // 三合 / 방합 — needs all three branches present across the slots.
-    const allBranches = slots.map((s) => s.branch).filter(Boolean)
-    for (const trio of [...BRANCH_TRIPLES_SAMHAP, ...BRANCH_TRIPLES_BANGHAP]) {
-      const present = trio.members.filter((m) => allBranches.includes(m))
-      if (present.length === 3) {
-        const involved = slots
-          .filter((s) => trio.members.includes(s.branch))
-          .map((s) => s.label)
-          .join(', ')
-        const isSamhap = BRANCH_TRIPLES_SAMHAP.includes(trio)
-        out.push({
-          pair: involved,
-          kind: '지지합',
-          blurb: `${trio.label} 완성 (${involved}) — ${trio.result} 기운으로 강하게 묶이는 ${isSamhap ? '삼합' : '방합'} 흐름.`,
-        })
-      }
-    }
-    return out.length > 0 ? out : undefined
-  }
+  // 운끼리 충/합/형 + 대운/세운/월운/일운 갑자 조립은 @/lib/saju/cycleRelations 공용
+  // 모듈로 추출됨 — v2 엔진과 같은 결과로 재사용. (아래 loop에서 buildCycleInteractions 호출)
 
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
     const month = date.getMonth() + 1
     const day = date.getDate()
     const dailyPack = getPackForDate(date, sajuProfile, dailyPackCache)
-    const currentMonthKey = monthKey(year, month)
-    const domainRanking = pickTopDomains(options?.matrixContext, currentMonthKey)
-    const primary = domainRanking[0] || { domain: 'career' as DomainKey, score: 0.52 }
-    const secondary = domainRanking[1] || { domain: 'love' as DomainKey, score: 0.48 }
-    const seasonalPulse = (Math.sin((day / 31) * Math.PI) + 1) / 2
-    const dailyWave = (Math.sin((day / 31) * Math.PI * 2 - Math.PI / 2) + 1) / 2
-    const weekday = date.getDay()
-    const weekdayBoost =
-      weekday === 1 || weekday === 4 ? 0.04 : weekday === 0 || weekday === 6 ? -0.03 : 0
-    const primaryMonthStrength = getMonthStrength(
-      options?.matrixContext?.overlapTimelineByDomain?.[primary.domain],
-      currentMonthKey
-    )
-    const dominanceGap = clamp(primary.score - secondary.score, 0, 1)
-    const primaryStrength = clamp(
-      primary.score * 0.52 +
-        primaryMonthStrength * 0.18 +
-        dailyWave * 0.12 +
-        seasonalPulse * 0.08 +
-        reliability * 0.08 +
-        dominanceGap * 0.08 +
-        weekdayBoost,
-      0,
-      1
-    )
-    // (Legacy weakPenalty / peakBoost computations removed — both were
-    // tied to primaryStrength scalar in the old matrix-heavy formula
-    // and are no longer used by the 5-axis blend.)
-    // 일진(오늘의 일주) × 본명 일주 이벤트
+
+    // 일진(오늘의 일주) × 본명 일주
     const natalDayStem = sajuProfile.dayMaster || sajuProfile.pillars?.day?.stem || ''
     const natalDayBranch = sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || ''
     const dailyPillar = calculateDailyPillar(date)
@@ -2091,6 +1880,46 @@ export function calculateYearlyImportantDates(
     )
     const dailyShift = dailyEvents.reduce((sum, e) => sum + e.scoreShift, 0)
     const dailySibsin = natalDayStem ? getSibsinDailyKo(natalDayStem, dailyPillar.stem) : ''
+
+    // 도메인(분야) — 사주×점성 교차에서 직접: 일진 십신 + 신살(도화/역마) + 트랜짓 행성
+    const shinsalKinds =
+      natalDayStem && natalDayBranch
+        ? getShinsalHitsForDailyTarget(
+            natalDayStem,
+            natalDayBranch,
+            dailyPillar.branch,
+            sajuProfile.pillars?.month?.branch,
+            dailyPillar.stem
+          ).map((h) => h.kind)
+        : []
+    const transitPlanets = (options?.dailyTransitTightest?.[isoDate(year, month, day)] || []).map(
+      (t) => t.transitPlanet
+    )
+    const domainRanking = pickTopDomainsCross({
+      daySibsin: dailySibsin,
+      shinsalKinds,
+      transitPlanets,
+      day,
+    })
+    const primary = domainRanking[0] || { domain: 'career' as DomainKey, score: 0.52 }
+    const secondary = domainRanking[1] || { domain: 'love' as DomainKey, score: 0.48 }
+
+    const seasonalPulse = (Math.sin((day / 31) * Math.PI) + 1) / 2
+    const dailyWave = (Math.sin((day / 31) * Math.PI * 2 - Math.PI / 2) + 1) / 2
+    const weekday = date.getDay()
+    const weekdayBoost =
+      weekday === 1 || weekday === 4 ? 0.04 : weekday === 0 || weekday === 6 ? -0.03 : 0
+    const dominanceGap = clamp(primary.score - secondary.score, 0, 1)
+    const primaryStrength = clamp(
+      primary.score * 0.62 +
+        dailyWave * 0.12 +
+        seasonalPulse * 0.08 +
+        reliability * 0.08 +
+        dominanceGap * 0.08 +
+        weekdayBoost,
+      0,
+      1
+    )
 
     // ── Engine-grade per-date analysis ──
     // Pull the full ultraPrecisionEngine output for this date so saju
@@ -2150,8 +1979,12 @@ export function calculateYearlyImportantDates(
       else if (monthPack?.yongsinAlign === 'conflict') signal -= 1
       return signal > 0 ? 1 : signal < 0 ? -1 : 0
     })()
-    const astroClaim: 1 | 0 | -1 =
-      primaryMonthStrength >= 0.6 ? 1 : primaryMonthStrength < 0.4 ? -1 : 0
+    // 점성 방향 — 그날 실제 트랜짓 점수(0-100)에서 직접 (matrix 의존 제거)
+    const astroClaim: 1 | 0 | -1 = (() => {
+      const t = options?.dailyTransitScores?.[isoDate(year, month, day)]
+      if (typeof t !== 'number') return 0
+      return t >= 60 ? 1 : t < 40 ? -1 : 0
+    })()
     const crossAgreementPercent = (() => {
       // 둘 다 같은 방향 (둘 다 긍정 or 둘 다 부정) → 80~92
       if (sajuClaim !== 0 && astroClaim !== 0 && sajuClaim === astroClaim) {
@@ -2210,7 +2043,13 @@ export function calculateYearlyImportantDates(
           : 'opposed'
 
     const blendedRaw = (sajuAxisScore + astroAxisScore) / 2
-    const score = Math.round(clamp(blendedRaw, 2, 99))
+    // 화면 표시 점수(v2 calendar-engine)가 주입돼 있으면 그걸 THE 점수로 사용 →
+    // grade/tier/점수밴드 문구 전부 표시 숫자와 한 점수로 정렬. 없으면 사주·점성 blend.
+    const engineOverride = options?.engineScores?.[dateKey]
+    const score =
+      typeof engineOverride === 'number' && Number.isFinite(engineOverride)
+        ? Math.round(clamp(engineOverride, 2, 99))
+        : Math.round(clamp(blendedRaw, 2, 99))
     const grade = scoreToGrade(score)
     // tier(설명 core 톤)는 그날 등급 band 안으로 강제한다. baseTier(도메인 강도)는
     // band 안에서의 뉘앙스로만 쓰고, 등급과 반대 valence로 새지 않게 한다.
@@ -2344,6 +2183,7 @@ export function calculateYearlyImportantDates(
         },
       },
       cycleInteractions: buildCycleInteractions(
+        natalDayMaster,
         sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || '',
         findDaeunForDate(date),
         sewoonForYear(date.getFullYear()),

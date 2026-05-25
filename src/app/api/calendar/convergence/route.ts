@@ -103,15 +103,15 @@ export const GET = withApiMiddleware(
         gender: gender || 'Male',
       })
 
-      const { getYearConvergence } = await import('@/lib/calendar-engine/year-convergence')
-      const convergence = await getYearConvergence({
+      const { getYearInsights } = await import('@/lib/calendar-engine/year-convergence')
+      const { convergence, monthly, daily } = await getYearInsights({
         birthKey,
         year: targetYear,
         natal,
         lang: interpLang,
       })
 
-      const res = NextResponse.json({ success: true, convergence })
+      const res = NextResponse.json({ success: true, convergence, monthly, daily })
       // 같은 본명·연도면 결정적 — 캐시 적극 활용.
       res.headers.set('Cache-Control', 'private, max-age=3600, stale-while-revalidate=1800')
       return res

@@ -169,7 +169,7 @@ describe('Referral Service', () => {
   })
 
   describe('linkReferrer', () => {
-    it('should successfully link referrer and award credits', async () => {
+    it('should link referrer and reserve a pending reward (no immediate credit)', async () => {
       const referrerSettings = {
         userId: 'referrer-1',
         referralCode: 'REF12345',
@@ -187,7 +187,16 @@ describe('Referral Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.referrerId).toBe('referrer-1')
-      expect(addBonusCredits).toHaveBeenCalledWith('referrer-1', 3, 'referral')
+      // 첫 결제 전까지는 지급하지 않는다 — pending 보상만 생성.
+      expect(addBonusCredits).not.toHaveBeenCalled()
+      expect(mockedPrisma.referralReward.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            rewardType: 'first_purchase',
+            status: 'pending',
+          }),
+        })
+      )
     })
 
     it('should reject invalid referral code', async () => {

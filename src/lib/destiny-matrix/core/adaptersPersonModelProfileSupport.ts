@@ -370,18 +370,18 @@ export function buildPersonLayers(
   return [
     {
       key: 'foundation',
-      label: repairLocaleText(locale === 'ko' ? 'íƒ€ê³ ë‚œ êµ¬ì¡°' : 'Foundation', locale),
+      label: repairLocaleText(locale === 'ko' ? '타고난 구조' : 'Foundation', locale),
       summary: structureFacet?.summary || core.canonical.thesis,
       bullets: (structureFacet?.details || []).slice(0, 4),
     },
     {
       key: 'formation',
-      label: repairLocaleText(locale === 'ko' ? 'í˜•ì„±ëœ íŒ¨í„´' : 'Formation', locale),
+      label: repairLocaleText(locale === 'ko' ? '형성된 패턴' : 'Formation', locale),
       summary: repairLocaleText(
         locale === 'ko'
           ? topPatternFamilies.length
-            ? `ë°˜ë³µì ìœ¼ë¡œ êµ³ì€ íŒ¨í„´ ì¶•ì€ ${topPatternFamilies.join(', ')}ìž…ë‹ˆë‹¤.`
-            : 'ë°˜ë³µ íŒ¨í„´ì€ êµ¬ì¡°ì¶•ê³¼ íƒ€ì´ë°ì¶•ì˜ ê²°í•©ìœ¼ë¡œ í˜•ì„±ë©ë‹ˆë‹¤.'
+            ? `반복적으로 굳은 패턴 축은 ${topPatternFamilies.join(', ')}입니다.`
+            : '반복 패턴은 구조축과 타이밍축의 결합으로 형성됩니다.'
           : topPatternFamilies.length
             ? `The repeated pattern families are ${topPatternFamilies.join(', ')}.`
             : 'Repeated patterns are formed by the structure and timing stack.',
@@ -394,7 +394,7 @@ export function buildPersonLayers(
     },
     {
       key: 'active',
-      label: repairLocaleText(locale === 'ko' ? 'í˜„ìž¬ í™œì„± ìƒíƒœ' : 'Active State', locale),
+      label: repairLocaleText(locale === 'ko' ? '현재 활성 상태' : 'Active State', locale),
       summary: triggerFacet?.summary || cycleFacet?.summary || core.canonical.primaryAction,
       bullets: [
         ...(triggerFacet?.details || []).slice(0, 2),
@@ -403,11 +403,11 @@ export function buildPersonLayers(
     },
     {
       key: 'future',
-      label: repairLocaleText(locale === 'ko' ? 'ë¯¸ëž˜ ë¶„ê¸°' : 'Future Branches', locale),
+      label: repairLocaleText(locale === 'ko' ? '미래 분기' : 'Future Branches', locale),
       summary: repairLocaleText(
         topBranch?.summary ||
           (locale === 'ko'
-            ? 'ì•žìœ¼ë¡œì˜ ë¶„ê¸°ëŠ” ìƒìœ„ ì‹œë‚˜ë¦¬ì˜¤ì™€ íƒ€ì´ë° ì°½ì—ì„œ ê°ˆë¦½ë‹ˆë‹¤.'
+            ? '앞으로의 분기는 상위 시나리오와 타이밍 창에서 갈립니다.'
             : 'The future branch is decided by the top scenario stack and timing window.'),
         locale
       ),
@@ -431,18 +431,18 @@ export function buildStateSummary(params: {
   if (params.locale === 'ko') {
     if (params.kind === 'baseline') {
       return repairLocaleText(
-        `${params.focusLabel}ì´ ê¸°ë³¸ ìžì•„ì˜ ë°°ê²½ì¶•ì´ê³  ${params.actionLabel}ì´ ì‹¤ì œ í–‰ë™ì¶•ìœ¼ë¡œ ì˜¬ë¼ì˜¤ëŠ” ì‚¬ëžŒìž…ë‹ˆë‹¤.`,
+        `${params.focusLabel}이 기본 자아의 배경축이고 ${params.actionLabel}이 실제 행동축으로 올라오는 사람입니다.`,
         params.locale
       )
     }
     if (params.kind === 'pressure') {
       return repairLocaleText(
-        `ì••ë°•ì´ ê±¸ë¦¬ë©´ ${params.riskLabel} ì¶•ì´ ë¨¼ì € ì˜ˆë¯¼í•´ì§€ê³  íŒë‹¨ì€ ë” ë³´ìˆ˜ì ìœ¼ë¡œ ìˆ˜ë ´í•©ë‹ˆë‹¤.`,
+        `압박이 걸리면 ${params.riskLabel} 축이 먼저 예민해지고 판단은 더 보수적으로 수렴합니다.`,
         params.locale
       )
     }
     return repairLocaleText(
-      `${params.topDecisionLabel} ìª½ì´ ê¸°íšŒ ìƒíƒœì—ì„œ ë¨¼ì € ì—´ë¦¬ë©°, ${params.branchSummary || `${params.actionLabel} ì¶•ì—ì„œ ìƒìœ„ ë¶„ê¸°ê°€ ì—´ë¦½ë‹ˆë‹¤.`}`,
+      `${params.topDecisionLabel} 쪽이 기회 상태에서 먼저 열리며, ${params.branchSummary || `${params.actionLabel} 축에서 상위 분기가 열립니다.`}`,
       params.locale
     )
   }
@@ -471,7 +471,7 @@ export function buildPersonStates(
   return [
     {
       key: 'baseline',
-      label: repairLocaleText(locale === 'ko' ? 'ê¸°ë³¸ ìƒíƒœ' : 'Baseline', locale),
+      label: repairLocaleText(locale === 'ko' ? '기본 상태' : 'Baseline', locale),
       summary: buildStateSummary({
         kind: 'baseline',
         focusLabel,
@@ -492,7 +492,7 @@ export function buildPersonStates(
     },
     {
       key: 'pressure',
-      label: repairLocaleText(locale === 'ko' ? 'ì••ë°• ìƒíƒœ' : 'Pressure', locale),
+      label: repairLocaleText(locale === 'ko' ? '압박 상태' : 'Pressure', locale),
       summary: buildStateSummary({
         kind: 'pressure',
         focusLabel,
@@ -513,7 +513,7 @@ export function buildPersonStates(
     },
     {
       key: 'opportunity',
-      label: repairLocaleText(locale === 'ko' ? 'ê¸°íšŒ ìƒíƒœ' : 'Opportunity', locale),
+      label: repairLocaleText(locale === 'ko' ? '기회 상태' : 'Opportunity', locale),
       summary: buildStateSummary({
         kind: 'opportunity',
         focusLabel,
@@ -794,11 +794,11 @@ export function getBirthBucketLabel(
 ): string {
   const labels = {
     ko: {
-      'early-morning': 'ì´ë¥¸ ì˜¤ì „ ê°€ì„¤',
-      morning: 'ì˜¤ì „ ê°€ì„¤',
-      afternoon: 'ì˜¤í›„ ê°€ì„¤',
-      evening: 'ì €ë… ê°€ì„¤',
-      night: 'ì•¼ê°„ ê°€ì„¤',
+      'early-morning': '이른 오전 가설',
+      morning: '오전 가설',
+      afternoon: '오후 가설',
+      evening: '저녁 가설',
+      night: '야간 가설',
     },
     en: {
       'early-morning': 'Early-morning hypothesis',
@@ -904,37 +904,37 @@ export function calculateProfileAge(
 export function formatAgeWindow(startAge: number, endAge: number, locale: 'ko' | 'en'): string {
   const safeStart = Math.max(0, startAge)
   const safeEnd = Math.max(safeStart, endAge)
-  return locale === 'ko' ? `${safeStart}-${safeEnd}ì„¸` : `ages ${safeStart}-${safeEnd}`
+  return locale === 'ko' ? `${safeStart}-${safeEnd}세` : `ages ${safeStart}-${safeEnd}`
 }
 
 export function buildPeakWindows(hour: number | null, locale: 'ko' | 'en'): string[] {
   if (hour === null) {
     return locale === 'ko'
-      ? ['ì˜¤ì „ ì§‘ì¤‘ ë¸”ë¡', 'ì˜¤í›„ ì ê²€ ë¸”ë¡']
+      ? ['오전 집중 블록', '오후 점검 블록']
       : ['Morning focus block', 'Afternoon review block']
   }
   if (hour < 8) {
     return locale === 'ko'
-      ? ['ì´ë¥¸ ì˜¤ì „ ê¹Šì€ ì§‘ì¤‘', 'ì ì‹¬ ì „ ê²°ì • ë¸”ë¡']
+      ? ['이른 오전 깊은 집중', '점심 전 결정 블록']
       : ['Early-morning deep focus', 'Pre-lunch decision block']
   }
   if (hour < 15) {
     return locale === 'ko'
-      ? ['ì˜¤ì „ ì¤‘ë°˜ ì‹¤í–‰ ë¸”ë¡', 'ëŠ¦ì€ ì˜¤í›„ ì •ë¦¬ ë¸”ë¡']
+      ? ['오전 중반 실행 블록', '늦은 오후 정리 블록']
       : ['Mid-morning execution block', 'Late-afternoon consolidation block']
   }
   return locale === 'ko'
-    ? ['ëŠ¦ì€ ì˜¤í›„ ì‹¤í–‰ ë¸”ë¡', 'ë°¤ ì „ ì¡°ìš©í•œ ì •ë¦¬ ë¸”ë¡']
+    ? ['늦은 오후 실행 블록', '밤 전 조용한 정리 블록']
     : ['Late-afternoon execution block', 'Pre-night quiet consolidation block']
 }
 
 export function buildRecoveryWindows(hour: number | null, locale: 'ko' | 'en'): string[] {
   if (hour !== null && hour < 8) {
     return locale === 'ko'
-      ? ['ì˜¤í›„ ì´ˆë°˜ ì§§ì€ íšŒë³µ', 'ë°¤ 11ì‹œ ì´ì „ ìˆ˜ë©´ ì§„ìž…']
+      ? ['오후 초반 짧은 회복', '밤 11시 이전 수면 진입']
       : ['Early-afternoon reset', 'Sleep entry before 11pm']
   }
   return locale === 'ko'
-    ? ['ì €ë… ìžê·¹ ì°¨ë‹¨ êµ¬ê°„', 'ë°¤ 12ì‹œ ì´ì „ ìˆ˜ë©´ ì§„ìž…']
+    ? ['저녁 자극 차단 구간', '밤 12시 이전 수면 진입']
     : ['Evening low-stimulus window', 'Sleep entry before midnight']
 }

@@ -1,4 +1,12 @@
-import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
+// 인사이트 도메인 — 상담 포커스 분류. (구 destiny-matrix/interpreter/types에서 이전)
+export type InsightDomain =
+  | 'personality'
+  | 'career'
+  | 'relationship'
+  | 'wealth'
+  | 'health'
+  | 'spirituality'
+  | 'timing'
 
 export type CounselorEmotionalTone =
   | 'steady'

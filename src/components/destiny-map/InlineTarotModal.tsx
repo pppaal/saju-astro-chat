@@ -229,7 +229,12 @@ const InlineTarotModal = memo(function InlineTarotModal({
 
           {/* Step 4: Interpreting */}
           {state.step === 'interpreting' && (
-            <InterpretingStep tr={tr} overallMessage={state.overallMessage} />
+            <InterpretingStep
+              tr={tr}
+              overallMessage={state.overallMessage}
+              lang={lang}
+              onRetry={api.retryInterpretation}
+            />
           )}
 
           {/* Step 5: Result */}
@@ -475,9 +480,21 @@ function CardDrawStep({
 interface InterpretingStepProps {
   tr: ReturnType<typeof getTarotTranslations>
   overallMessage: string
+  lang: LangKey
+  onRetry: () => void
 }
 
-function InterpretingStep({ tr, overallMessage }: InterpretingStepProps) {
+function InterpretingStep({ tr, overallMessage, lang, onRetry }: InterpretingStepProps) {
+  const isKo = lang === 'ko'
+  // If interpretation drags on, surface an escape so the user isn't stuck
+  // staring at the loader (the 35s timeout still auto-falls back to card
+  // meanings, but this lets impatient users retry/move on immediately).
+  const [slow, setSlow] = React.useState(false)
+  useEffect(() => {
+    const id = setTimeout(() => setSlow(true), 12000)
+    return () => clearTimeout(id)
+  }, [])
+
   return (
     <div className={styles.stepContent}>
       <div className={styles.interpretingLoader}>
@@ -488,6 +505,16 @@ function InterpretingStep({ tr, overallMessage }: InterpretingStepProps) {
         {overallMessage && (
           <div className={styles.streamingPreview}>
             <p>{overallMessage}</p>
+          </div>
+        )}
+        {slow && (
+          <div style={{ marginTop: 18, textAlign: 'center' }}>
+            <p style={{ fontSize: '0.95rem', color: '#78716c', margin: '0 0 10px' }}>
+              {isKo ? '예상보다 오래 걸리고 있어요.' : 'This is taking longer than expected.'}
+            </p>
+            <button type="button" onClick={onRetry} className={styles.drawAgainButton}>
+              {isKo ? '다시 시도' : 'Try again'}
+            </button>
           </div>
         )}
       </div>

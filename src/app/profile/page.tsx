@@ -352,6 +352,20 @@ export default function ProfilePage() {
     }
   }, [])
 
+  // 지인 추가/변경 후 전체 페이지를 다시 로드하면 전역 loading 이 켜져
+  // 모든 섹션이 '불러오는 중...'으로 깜빡인다. 지인 목록만 조용히 갱신한다.
+  const refreshCircle = useCallback(async () => {
+    try {
+      const res = await fetch('/api/me/circle')
+      if (!res.ok) return
+      const json = await res.json()
+      const people = json?.data?.people || json?.people || []
+      setCircle(Array.isArray(people) ? people : [])
+    } catch (err) {
+      logger.warn('[profile/circle] refresh failed', err)
+    }
+  }, [])
+
   useEffect(() => {
     if (status === 'authenticated') void loadAll()
   }, [status, loadAll])
@@ -875,8 +889,8 @@ export default function ProfilePage() {
                 <>
                   <p className="mt-3 text-[12.5px] leading-relaxed text-[#78716c]">
                     {locale === 'ko'
-                      ? '친구가 내 추천 링크로 처음 로그인하면, 추천한 회원님이 보너스 크레딧을 받아요.'
-                      : 'When a friend logs in through your referral link for the first time, you get bonus credits.'}
+                      ? '친구가 내 추천 링크로 가입한 뒤 첫 크레딧을 구매하면, 추천한 회원님이 보너스 크레딧을 받아요.'
+                      : 'When a friend signs up through your referral link and makes their first credit purchase, you get bonus credits.'}
                   </p>
 
                   <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#ece4d4] bg-gradient-to-br from-[#faf6ee] to-[#fcfbf9] p-3.5 sm:flex-row sm:items-center">
@@ -1112,7 +1126,7 @@ export default function ProfilePage() {
           open={circleOpen}
           onClose={() => setCircleOpen(false)}
           locale={locale}
-          onAdded={() => void loadAll()}
+          onAdded={() => void refreshCircle()}
         />
       </div>
     </AuthGate>
