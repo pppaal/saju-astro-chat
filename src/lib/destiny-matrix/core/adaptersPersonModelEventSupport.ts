@@ -102,7 +102,7 @@ export function buildDomainStateGraph(
         status,
         thesis: normalizePersonModelText(
           locale === 'ko'
-            ? `${portrait.label} ì¶•ì€ ${timescale} êµ¬ê°„ì—ì„œ ${status === 'open' ? 'ì—´ë¦¼' : status === 'blocked' ? 'ë°©ì–´' : 'í˜¼í•©'} ìƒíƒœë¡œ ì½íž™ë‹ˆë‹¤.`
+            ? `${portrait.label} 축은 ${timescale} 구간에서 ${status === 'open' ? '열림' : status === 'blocked' ? '방어' : '혼합'} 상태로 읽힙니다.`
             : `${portrait.label} reads as ${
                 status === 'open' ? 'open' : status === 'blocked' ? 'defensive' : 'mixed'
               } in the ${timescale} window.`,
@@ -170,37 +170,33 @@ export function buildAppliedProfile(
     foodProfile: {
       summary:
         locale === 'ko'
-          ? 'ì´ êµ¬ì¡°ëŠ” ê°•í•œ ìžê·¹ì‹ë³´ë‹¤ ì†Œí™” ë¶€ë‹´ì´ ë‚®ê³  ë¦¬ë“¬ì´ ì¼ì •í•œ ì‹ì‚¬ê°€ ë” ì•ˆì •ì ìœ¼ë¡œ ë§žìŠµë‹ˆë‹¤.'
+          ? '이 구조는 강한 자극식보다 소화 부담이 낮고 리듬이 일정한 식사가 더 안정적으로 맞습니다.'
           : 'This profile responds better to low-load, rhythm-consistent meals than to high-stimulus eating.',
       thermalBias:
         healthState?.currentState === 'defensive' || healthState?.currentState === 'blocked'
           ? locale === 'ko'
-            ? 'ë”°ëœ»í•˜ê³  ì•ˆì •ì ì¸ ì‹ì‚¬ ìª½'
+            ? '따뜻하고 안정적인 식사 쪽'
             : 'Toward warm and steady meals'
           : locale === 'ko'
-            ? 'ì¤‘ê°„ ì˜¨ë„ì˜ ê· í˜• ì‹ì‚¬ ìª½'
+            ? '중간 온도의 균형 식사 쪽'
             : 'Toward balanced-temperature meals',
       digestionStyle:
         locale === 'ko'
-          ? 'ê³µë³µ í›„ ê³¼ì‹ë³´ë‹¤ ìž‘ì€ ì‹ì‚¬ ê°„ê²© ìœ ì§€ê°€ ìœ ë¦¬í•©ë‹ˆë‹¤.'
+          ? '공복 후 과식보다 작은 식사 간격 유지가 유리합니다.'
           : 'Smaller meal spacing works better than fasting followed by heavy intake.',
       helpfulFoods:
         locale === 'ko'
-          ? [
-              'êµ­ë¬¼í˜• ì‹ì‚¬',
-              'ë‹¨ë°±ì§ˆê³¼ ê³¡ë¬¼ì„ ê°™ì´ ë‘” ê·œì¹™ì‹',
-              'ë‚® ì‹œê°„ëŒ€ ìˆ˜ë¶„ ë³´ì¶©',
-            ]
+          ? ['국물형 식사', '단백질과 곡물을 같이 둔 규칙식', '낮 시간대 수분 보충']
           : ['Broth-based meals', 'Protein-and-grain regular meals', 'Daytime hydration'],
       cautionFoods:
         locale === 'ko'
-          ? ['ì•¼ì‹ê³¼ ê³µë³µ í›„ í­ì‹', 'ì¹´íŽ˜ì¸ìœ¼ë¡œ ë²„í‹°ëŠ” ì‹ì‚¬', 'ë‹¹ë¶„ ê¸‰ìƒìŠ¹ ê°„ì‹']
+          ? ['야식과 공복 후 폭식', '카페인으로 버티는 식사', '당분 급상승 간식']
           : ['Late-night heavy meals', 'Caffeine-driven meal skipping', 'Sugar-spike snacking'],
       rhythmGuidance:
         locale === 'ko'
           ? [
-              'ì²« ì§‘ì¤‘ ë¸”ë¡ ì „ì— ê°€ë²¼ìš´ ì—°ë£Œë¥¼ ë¨¼ì € ë„£ìœ¼ì„¸ìš”.',
-              'ì €ë…ì—ëŠ” ìžê·¹ì‹ë³´ë‹¤ íšŒë³µì‹ìœ¼ë¡œ ë§ˆë¬´ë¦¬í•˜ì„¸ìš”.',
+              '첫 집중 블록 전에 가벼운 연료를 먼저 넣으세요.',
+              '저녁에는 자극식보다 회복식으로 마무리하세요.',
             ]
           : [
               'Fuel before the first focus block.',
@@ -210,7 +206,7 @@ export function buildAppliedProfile(
     lifeRhythmProfile: {
       summary:
         locale === 'ko'
-          ? 'ì´ ì‚¬ëžŒì€ ëª°ìž… ë¸”ë¡ê³¼ íšŒë³µ ë¸”ë¡ì„ ì˜ë„ì ìœ¼ë¡œ ë¶„ë¦¬í• ìˆ˜ë¡ ì„±ê³¼ê°€ ì„ ëª…í•´ì§‘ë‹ˆë‹¤.'
+          ? '이 사람은 몰입 블록과 회복 블록을 의도적으로 분리할수록 성과가 선명해집니다.'
           : 'This person performs better when deep-focus blocks and recovery blocks are separated on purpose.',
       peakWindows: buildPeakWindows(birthHour, locale),
       recoveryWindows: buildRecoveryWindows(birthHour, locale),
@@ -218,17 +214,11 @@ export function buildAppliedProfile(
         topPressure.length > 0
           ? topPressure
           : locale === 'ko'
-            ? [
-                'ê³¼í•œ ê²€í† ë¡œ ì‹¤í–‰ì´ ëŠ¦ì–´ì§',
-                'ìžê·¹ì´ ë§Žì•„ì§ˆìˆ˜ë¡ íšŒë³µì´ ë’¤ë¡œ ë°€ë¦¼',
-              ]
+            ? ['과한 검토로 실행이 늦어짐', '자극이 많아질수록 회복이 뒤로 밀림']
             : ['Over-review delays execution', 'Recovery gets pushed back as stimulation rises'],
       regulationMoves:
         locale === 'ko'
-          ? [
-              'í•˜ë£¨ì— ê²°ì • ë¸”ë¡ì„ ë‘ ë²ˆ ì´ìƒ ì—´ì§€ ë§ˆì„¸ìš”.',
-              'ì‹¤í–‰ ì „ 10ë¶„ ì •ë¦¬ ë£¨í‹´ì„ ê³ ì •í•˜ì„¸ìš”.',
-            ]
+          ? ['하루에 결정 블록을 두 번 이상 열지 마세요.', '실행 전 10분 정리 루틴을 고정하세요.']
           : [
               'Do not open more than two decision blocks a day.',
               'Lock a 10-minute reset routine before execution.',
@@ -238,22 +228,19 @@ export function buildAppliedProfile(
       summary:
         relationshipState?.thesis ||
         (locale === 'ko'
-          ? 'ê´€ê³„ëŠ” ê°ì •ë³´ë‹¤ ì¡°ê±´ê³¼ ë¦¬ë“¬ì´ ë§žì„ ë•Œ ë” ì•ˆì •ì ìœ¼ë¡œ ìœ ì§€ë©ë‹ˆë‹¤.'
+          ? '관계는 감정보다 조건과 리듬이 맞을 때 더 안정적으로 유지됩니다.'
           : 'Relationships stabilize when conditions and rhythm fit, not just emotion.'),
       attractionPatterns: relationshipState?.supportSignals.slice(0, 4) || [],
       stabilizers:
         locale === 'ko'
-          ? [
-              'ê´€ê³„ ê¸°ëŒ€ì¹˜ë¥¼ ë§ë¡œ ë¨¼ì € ë§žì¶”ê¸°',
-              'ì†ë„ë³´ë‹¤ ì±…ìž„ ë²”ìœ„ë¶€í„° í•©ì˜í•˜ê¸°',
-            ]
+          ? ['관계 기대치를 말로 먼저 맞추기', '속도보다 책임 범위부터 합의하기']
           : ['Align expectations in words first', 'Agree on responsibility before pace'],
       ruptureTriggers: relationshipState?.pressureSignals.slice(0, 4) || [],
       repairMoves:
         locale === 'ko'
           ? [
-              'ì¹¨ë¬µìœ¼ë¡œ ë²„í‹°ì§€ ë§ê³  ì²´í¬ì¸ ê°„ê²©ì„ ì •í•˜ì„¸ìš”.',
-              'ë¬¸ì œë³´ë‹¤ ì—­í• ê³¼ ê²½ê³„ë¥¼ ë¨¼ì € ë‹¤ì‹œ ì •ë¦¬í•˜ì„¸ìš”.',
+              '침묵으로 버티지 말고 체크인 간격을 정하세요.',
+              '문제보다 역할과 경계를 먼저 다시 정리하세요.',
             ]
           : [
               'Set a check-in interval instead of going silent.',
@@ -264,20 +251,17 @@ export function buildAppliedProfile(
       summary:
         careerState?.thesis ||
         (locale === 'ko'
-          ? 'ì„±ê³¼ëŠ” ê°ê°ë³´ë‹¤ êµ¬ì¡°ì™€ ê¸°ì¤€ì„ ë¨¼ì € ì„¸ìš¸ ë•Œ ë” ìž˜ ë‚©ë‹ˆë‹¤.'
+          ? '성과는 감각보다 구조와 기준을 먼저 세울 때 더 잘 납니다.'
           : 'Performance improves when structure and criteria are set before speed.'),
       bestRoles: careerState?.supportSignals.slice(0, 4) || [],
       bestConditions:
         locale === 'ko'
-          ? ['ì—­í•  ë²”ìœ„ê°€ ë¬¸ì„œí™”ëœ í™˜ê²½', 'ì¤‘ê°„ ì ê²€ì´ ê°€ëŠ¥í•œ ë‹¨ê³„í˜• ì—…ë¬´']
+          ? ['역할 범위가 문서화된 환경', '중간 점검이 가능한 단계형 업무']
           : ['Documented role scope', 'Step-based work with review checkpoints'],
       fatigueTriggers: careerState?.pressureSignals.slice(0, 4) || [],
       leverageMoves:
         locale === 'ko'
-          ? [
-              'ê²°ì • ì „ì— ê¸°ì¤€í‘œë¥¼ ë¨¼ì € ë§Œë“¤ê¸°',
-              'í•œ ë²ˆì— í° ì í”„ë³´ë‹¤ ë‹¨ê³„í˜• ìŠ¹ë¶€ë¡œ ê°€ê¸°',
-            ]
+          ? ['결정 전에 기준표를 먼저 만들기', '한 번에 큰 점프보다 단계형 승부로 가기']
           : [
               'Build the criteria sheet before deciding',
               'Choose staged leverage over one large jump',
@@ -287,43 +271,34 @@ export function buildAppliedProfile(
       summary:
         wealthState?.thesis ||
         (locale === 'ko'
-          ? 'ëˆì€ í•œ ë²ˆì˜ ìŠ¹ë¶€ë³´ë‹¤ ëˆ„ì  êµ¬ì¡°ì™€ ìƒˆëŠ” ì§€ì  ê´€ë¦¬ì—ì„œ ë” ìž˜ ë¶™ìŠµë‹ˆë‹¤.'
+          ? '돈은 한 번의 승부보다 누적 구조와 새는 지점 관리에서 더 잘 붙습니다.'
           : 'Money grows better through cumulative structure and leakage control than through one big swing.'),
       earningPattern: wealthState?.supportSignals.slice(0, 4) || topSupport.slice(0, 4),
       savingPattern:
         locale === 'ko'
-          ? [
-              'ìžë™ ì´ì²´ì²˜ëŸ¼ ë°˜ë³µ êµ¬ì¡° ë§Œë“¤ê¸°',
-              'ì„±ê³¼ê¸ˆë³´ë‹¤ ê³ ì • íë¦„ ë¨¼ì € ì•ˆì •í™”í•˜ê¸°',
-            ]
+          ? ['자동 이체처럼 반복 구조 만들기', '성과금보다 고정 흐름 먼저 안정화하기']
           : ['Create repeatable transfer structures', 'Stabilize fixed flow before bonus chasing'],
       leakageRisks: wealthState?.pressureSignals.slice(0, 4) || [],
       controlRules:
         locale === 'ko'
-          ? [
-              'í° ê²°ì œëŠ” í•˜ë£¨ ìž¬í™•ì¸ í›„ ì§„í–‰í•˜ê¸°',
-              'ê¸°ë¶„ ì†Œë¹„ì™€ ì—…ë¬´ ì†Œë¹„ë¥¼ ë¶„ë¦¬í•˜ê¸°',
-            ]
+          ? ['큰 결제는 하루 재확인 후 진행하기', '기분 소비와 업무 소비를 분리하기']
           : ['Recheck large spending after one day', 'Separate mood spending from work spending'],
     },
     environmentProfile: {
       summary:
         locale === 'ko'
-          ? 'í™˜ê²½ì€ í™”ë ¤í•¨ë³´ë‹¤ ì†ŒìŒê³¼ ìžê·¹ì„ ì¡°ì ˆí•  ìˆ˜ ìžˆì„ ë•Œ ë” ìž˜ ë§žìŠµë‹ˆë‹¤.'
+          ? '환경은 화려함보다 소음과 자극을 조절할 수 있을 때 더 잘 맞습니다.'
           : 'Environment fits better when noise and stimulation are controllable rather than flashy.',
       preferredSettings:
         locale === 'ko'
-          ? [
-              'í˜¼ìž ì •ë¦¬í•  ìˆ˜ ìžˆëŠ” ë‹«ížŒ ê³µê°„',
-              'ë¹›ê³¼ ì†ŒìŒì„ ì¡°ì ˆí•  ìˆ˜ ìžˆëŠ” ìž‘ì—… í™˜ê²½',
-            ]
+          ? ['혼자 정리할 수 있는 닫힌 공간', '빛과 소음을 조절할 수 있는 작업 환경']
           : ['Closed space for solo consolidation', 'Work setting with light/noise control'],
       drainSignals: topPressure.slice(0, 4),
       resetActions:
         locale === 'ko'
           ? [
-              'ì‹œì•¼ì— ë‚¨ëŠ” í•  ì¼ì„ ì„¸ ê°œ ì´í•˜ë¡œ ì¤„ì´ê¸°',
-              'ë°¤ì—ëŠ” í™”ë©´ ìžê·¹ì„ ì¤„ì´ê³  íšŒë³µ ë£¨í‹´ìœ¼ë¡œ ì „í™˜í•˜ê¸°',
+              '시야에 남는 할 일을 세 개 이하로 줄이기',
+              '밤에는 화면 자극을 줄이고 회복 루틴으로 전환하기',
             ]
           : [
               'Reduce visible open tasks to three or fewer',
@@ -349,27 +324,27 @@ export function buildEventOutlook(
   }> = [
     {
       key: 'careerEntry',
-      label: locale === 'ko' ? 'ì·¨ì—…/í¬ì§€ì…˜ ì§„ìž…' : 'Career Entry',
+      label: locale === 'ko' ? '취업/포지션 진입' : 'Career Entry',
       domain: 'career',
     },
     {
       key: 'partnerEntry',
-      label: locale === 'ko' ? 'ê´€ê³„ ìœ ìž…' : 'Partner Entry',
+      label: locale === 'ko' ? '관계 유입' : 'Partner Entry',
       domain: 'relationship',
     },
     {
       key: 'commitment',
-      label: locale === 'ko' ? 'ê´€ê³„ í™•ì •/ê²°í˜¼' : 'Commitment',
+      label: locale === 'ko' ? '관계 확정/결혼' : 'Commitment',
       domain: 'relationship',
     },
     {
       key: 'moneyBuild',
-      label: locale === 'ko' ? 'ëˆ íë¦„ êµ¬ì¶•' : 'Money Build',
+      label: locale === 'ko' ? '돈 흐름 구축' : 'Money Build',
       domain: 'wealth',
     },
     {
       key: 'healthReset',
-      label: locale === 'ko' ? 'íšŒë³µ/ê±´ê°• ë¦¬ì…‹' : 'Health Reset',
+      label: locale === 'ko' ? '회복/건강 리셋' : 'Health Reset',
       domain: 'health',
     },
   ]
@@ -413,7 +388,7 @@ export function buildEventOutlook(
           state?.thesis ||
           portrait?.summary ||
           (locale === 'ko'
-            ? `${eventDef.label} ì‚¬ê±´ì€ ${localizeDomain(eventDef.domain, locale)} ì¶• ì¡°ê±´ì´ ë§žì„ ë•Œ ì—´ë¦½ë‹ˆë‹¤.`
+            ? `${eventDef.label} 사건은 ${localizeDomain(eventDef.domain, locale)} 축 조건이 맞을 때 열립니다.`
             : `${eventDef.label} opens when the ${localizeDomain(eventDef.domain, locale)} axis conditions line up.`),
         locale
       ),
@@ -452,7 +427,7 @@ export function buildBirthTimeHypotheses(
           summary:
             item.summary ||
             (locale === 'ko'
-              ? `${item.birthTime} ìƒì‹œëŠ” ìž¬í‰ê°€ í›„ë³´ë¡œ ìœ ì§€ë©ë‹ˆë‹¤.`
+              ? `${item.birthTime} 생시는 재평가 후보로 유지됩니다.`
               : `${item.birthTime} remains a reevaluated birth-time candidate.`),
           supportSignals: uniq(
             (item.supportSignals || []).filter(
@@ -507,7 +482,7 @@ export function buildBirthTimeHypotheses(
       confidence,
       summary:
         locale === 'ko'
-          ? `${formatBirthTimeCandidate(hour)} ì „í›„ë¡œ ì½ìœ¼ë©´ ${actionState?.label || 'í•µì‹¬ ì¶•'} ì‹¤í–‰ ë¦¬ë“¬ê³¼ ${riskState?.label || 'ë¦¬ìŠ¤í¬ ì¶•'} íšŒë³µ ë¦¬ë“¬ì´ ${fitScore >= 0.72 ? 'ë¹„êµì  ìž˜ ë§žìŠµë‹ˆë‹¤' : fitScore >= 0.58 ? 'ë¶€ë¶„ì ìœ¼ë¡œ ë§žìŠµë‹ˆë‹¤' : 'ë¯¼ê°í•˜ê²Œ í”ë“¤ë¦½ë‹ˆë‹¤'}.`
+          ? `${formatBirthTimeCandidate(hour)} 전후로 읽으면 ${actionState?.label || '핵심 축'} 실행 리듬과 ${riskState?.label || '리스크 축'} 회복 리듬이 ${fitScore >= 0.72 ? '비교적 잘 맞습니다' : fitScore >= 0.58 ? '부분적으로 맞습니다' : '민감하게 흔들립니다'}.`
           : `Around ${formatBirthTimeCandidate(hour)}, the action rhythm on ${actionState?.label || 'the lead axis'} and the recovery rhythm on ${riskState?.label || 'the risk axis'} ${fitScore >= 0.72 ? 'fit reasonably well' : fitScore >= 0.58 ? 'fit partially' : 'remain sensitive'}.`,
       supportSignals: uniq([
         ...(buildPeakWindows(hour, locale).slice(0, 2) || []),
@@ -570,21 +545,21 @@ export function buildCrossConflictMap(
 
     const sajuView =
       locale === 'ko'
-        ? `${state.label} êµ¬ì¡°ëŠ” ${state.firstMove} ìª½ì´ ë¨¼ì € ë§žìŠµë‹ˆë‹¤.`
+        ? `${state.label} 구조는 ${state.firstMove} 쪽이 먼저 맞습니다.`
         : `The structural read on ${state.label} points first toward ${state.firstMove}.`
     const astroView =
       locale === 'ko'
-        ? `${state.label} ì´‰ë°œì€ ${state.nextShift || strongest?.timescale || 'í˜„ìž¬'} êµ¬ê°„ì—ì„œ ë” ì„ ëª…í•´ì§‘ë‹ˆë‹¤.`
+        ? `${state.label} 촉발은 ${state.nextShift || strongest?.timescale || '현재'} 구간에서 더 선명해집니다.`
         : `The timing trigger on ${state.label} becomes clearer in the ${state.nextShift || strongest?.timescale || 'current'} window.`
     const summary =
       locale === 'ko'
         ? status === 'aligned'
-          ? `${state.label} ì¶•ì€ ì‚¬ì£¼ êµ¬ì¡°ì™€ ì ì„± íƒ€ì´ë°ì´ ëŒ€ì²´ë¡œ ê°™ì€ ë°©í–¥ì„ ê°€ë¦¬í‚µë‹ˆë‹¤.`
+          ? `${state.label} 축은 사주 구조와 점성 타이밍이 대체로 같은 방향을 가리킵니다.`
           : status === 'saju-leading'
-            ? `${state.label} ì¶•ì€ êµ¬ì¡° ì§€ì§€ëŠ” ë¨¼ì € í˜•ì„±ëì§€ë§Œ ì ì„± íŠ¸ë¦¬ê±°ëŠ” ì•½ê°„ ëŠ¦ê²Œ ë¶™ìŠµë‹ˆë‹¤.`
+            ? `${state.label} 축은 구조 지지는 먼저 형성됐지만 점성 트리거는 약간 늦게 붙습니다.`
             : status === 'astro-leading'
-              ? `${state.label} ì¶•ì€ ì ì„± ì´‰ë°œì´ ë¨¼ì € ì•žì„œê³  êµ¬ì¡°ì  ìˆ˜ìš©ì€ ë’¤ë”°ë¦…ë‹ˆë‹¤.`
-              : `${state.label} ì¶•ì€ êµ¬ì¡°ì™€ íƒ€ì´ë°ì´ ê°™ì€ ì†ë„ë¡œ ì›€ì§ì´ì§€ ì•Šì•„ í•´ì„ ê¸´ìž¥ì´ í½ë‹ˆë‹¤.`
+              ? `${state.label} 축은 점성 촉발이 먼저 앞서고 구조적 수용은 뒤따릅니다.`
+              : `${state.label} 축은 구조와 타이밍이 같은 속도로 움직이지 않아 해석 긴장이 큽니다.`
         : status === 'aligned'
           ? `${state.label} shows broad alignment between structure and timing.`
           : status === 'saju-leading'
@@ -642,17 +617,17 @@ export function buildPastEventReconstruction(
   const markers: AdapterPastEventMarker[] = [
     {
       key: 'identity-reset',
-      label: locale === 'ko' ? 'ì •ì²´ì„± ìž¬ì •ë ¬ êµ¬ê°„' : 'Identity reset window',
+      label: locale === 'ko' ? '정체성 재정렬 구간' : 'Identity reset window',
       ageWindow:
         age === null
           ? locale === 'ko'
-            ? '18-22ì„¸'
+            ? '18-22세'
             : 'ages 18-22'
           : formatAgeWindow(Math.max(16, age - 12), Math.max(20, age - 8), locale),
       status: core.normalizedInput.profileContext?.birthDate ? 'anchored' : 'conditional',
       summary:
         locale === 'ko'
-          ? `${core.canonical.focusDomain === core.canonical.actionFocusDomain ? actionState?.label || 'í•µì‹¬ ì¶•' : localizeDomain(core.canonical.focusDomain, locale)} íŒ¨í„´ì´ ì´ ì‹œê¸°ë¶€í„° ìƒí™œ ìŠµê´€ìœ¼ë¡œ êµ³ì—ˆì„ ê°€ëŠ¥ì„±ì´ í½ë‹ˆë‹¤.`
+          ? `${core.canonical.focusDomain === core.canonical.actionFocusDomain ? actionState?.label || '핵심 축' : localizeDomain(core.canonical.focusDomain, locale)} 패턴이 이 시기부터 생활 습관으로 굳었을 가능성이 큽니다.`
           : `The ${actionState?.label || localizeDomain(core.canonical.focusDomain, locale)} pattern likely started consolidating into habit in this window.`,
       evidence: uniq([
         ...(core.canonical.topPatterns.slice(0, 2).map((item) => item.family) || []),
@@ -671,25 +646,25 @@ export function buildPastEventReconstruction(
       label:
         core.canonical.actionFocusDomain === 'relationship'
           ? locale === 'ko'
-            ? 'ê´€ê³„ í•™ìŠµ êµ¬ê°„'
+            ? '관계 학습 구간'
             : 'Relationship lesson window'
           : core.canonical.actionFocusDomain === 'wealth'
             ? locale === 'ko'
-              ? 'ìž¬ì • ìž¬ë°°ì—´ êµ¬ê°„'
+              ? '재정 재배열 구간'
               : 'Money reset window'
             : locale === 'ko'
-              ? 'ì»¤ë¦¬ì–´ ë°©í–¥ ì „í™˜ êµ¬ê°„'
+              ? '커리어 방향 전환 구간'
               : 'Career pivot window',
       ageWindow:
         age === null
           ? locale === 'ko'
-            ? '24-29ì„¸'
+            ? '24-29세'
             : 'ages 24-29'
           : formatAgeWindow(Math.max(22, age - 8), Math.max(25, age - 3), locale),
       status: 'conditional',
       summary:
         locale === 'ko'
-          ? `${actionState?.label || localizeDomain(core.canonical.actionFocusDomain, locale)} ì¶•ì—ì„œ ì—­í• , ê´€ê³„, ì±…ìž„ ë²”ìœ„ë¥¼ ë‹¤ì‹œ ê³ ë¥´ëŠ” ë¶„ê¸°ì˜€ì„ ê°€ëŠ¥ì„±ì´ í½ë‹ˆë‹¤.`
+          ? `${actionState?.label || localizeDomain(core.canonical.actionFocusDomain, locale)} 축에서 역할, 관계, 책임 범위를 다시 고르는 분기였을 가능성이 큽니다.`
           : `This was likely a branching period for role, relationship, or responsibility selection on the ${actionState?.label || localizeDomain(core.canonical.actionFocusDomain, locale)} axis.`,
       evidence: uniq([
         ...(actionState?.supportSignals || []).slice(0, 2),
@@ -710,25 +685,25 @@ export function buildPastEventReconstruction(
       label:
         rankRiskAxis(core) === 'health'
           ? locale === 'ko'
-            ? 'íšŒë³µ ë¦¬ì…‹ êµ¬ê°„'
+            ? '회복 리셋 구간'
             : 'Health reset window'
           : rankRiskAxis(core) === 'relationship'
             ? locale === 'ko'
-              ? 'ê´€ê³„ ê²½ê³„ ìž¬ì„¤ì • êµ¬ê°„'
+              ? '관계 경계 재설정 구간'
               : 'Relationship boundary reset window'
             : locale === 'ko'
-              ? 'ì†ì‹¤ ë°©ì§€ ìž¬ì •ë¹„ êµ¬ê°„'
+              ? '손실 방지 재정비 구간'
               : 'Loss-control reset window',
       ageWindow:
         age === null
           ? locale === 'ko'
-            ? 'ìµœê·¼ 1-3ë…„'
+            ? '최근 1-3년'
             : 'recent 1-3 years'
           : formatAgeWindow(Math.max(0, age - 3), age, locale),
       status: 'conditional',
       summary:
         locale === 'ko'
-          ? `${riskState?.label || localizeDomain(rankRiskAxis(core), locale)} ì¶•ì—ì„œ ê³¼ë¶€í•˜ë¥¼ ì¤„ì´ê±°ë‚˜ ê²½ê³„ë¥¼ ë‹¤ì‹œ ì„¸ìš°ëŠ” ì‚¬ê±´ì´ ìžˆì—ˆì„ ê°€ëŠ¥ì„±ì´ í½ë‹ˆë‹¤.`
+          ? `${riskState?.label || localizeDomain(rankRiskAxis(core), locale)} 축에서 과부하를 줄이거나 경계를 다시 세우는 사건이 있었을 가능성이 큽니다.`
           : `There was likely a recent reset event on the ${riskState?.label || localizeDomain(rankRiskAxis(core), locale)} axis to reduce overload or re-establish boundaries.`,
       evidence: uniq([
         ...(riskState?.pressureSignals || []).slice(0, 2),
@@ -743,7 +718,7 @@ export function buildPastEventReconstruction(
   return {
     summary:
       locale === 'ko'
-        ? 'ê³¼ê±° ë³µì›ì€ í™•ì • ì‚¬ê±´í‘œê°€ ì•„ë‹ˆë¼ í˜„ìž¬ êµ¬ì¡°ë¥¼ ê°€ìž¥ ìž˜ ì„¤ëª…í•˜ëŠ” ì „í™˜ êµ¬ê°„ í›„ë³´ë¥¼ ì œì‹œí•˜ëŠ” ì¸µìž…ë‹ˆë‹¤.'
+        ? '과거 복원은 확정 사건표가 아니라 현재 구조를 가장 잘 설명하는 전환 구간 후보를 제시하는 층입니다.'
         : 'Past reconstruction is not a fixed event log but a set of likely pivot windows that best explain the current structure.',
     markers,
   }
@@ -765,7 +740,7 @@ export function buildUncertaintyEnvelope(
   const unresolvedAreas = uniq(
     [
       ...core.quality.dataQuality.missingFields.map((item) =>
-        locale === 'ko' ? `${item} ìž…ë ¥ ëˆ„ë½` : `Missing ${item}`
+        locale === 'ko' ? `${item} 입력 누락` : `Missing ${item}`
       ),
       ...core.canonical.coherenceAudit.contradictionFlags,
     ].filter(Boolean)
@@ -774,7 +749,7 @@ export function buildUncertaintyEnvelope(
   return {
     summary:
       locale === 'ko'
-        ? 'ê°•í•˜ê²Œ ì½ížˆëŠ” ì˜ì—­ê³¼ ì¡°ê±´ë¶€ë¡œë§Œ ì½ì–´ì•¼ í•˜ëŠ” ì˜ì—­ì„ ë¶„ë¦¬í•´ í•´ì„í•´ì•¼ ì˜¤ì°¨ê°€ ì¤„ì–´ë“­ë‹ˆë‹¤.'
+        ? '강하게 읽히는 영역과 조건부로만 읽어야 하는 영역을 분리해 해석해야 오차가 줄어듭니다.'
         : 'Variance drops when clearly reliable areas are separated from conditional ones.',
     reliableAreas,
     conditionalAreas,

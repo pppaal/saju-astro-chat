@@ -1307,13 +1307,12 @@ describe('Calendar API Route - /api/calendar', () => {
       const response = await GET(request)
       const data = await response.json()
 
-      // Current calendar route returns 14 top-level fields. See route.ts
-      // around the `responsePayload` builder for the canonical surface.
+      // Canonical top-level response surface. See route.ts around the
+      // `responsePayload` builder. (matrixContract removed with destiny-matrix.)
       expect(data).toHaveProperty('success')
       expect(data).toHaveProperty('predictionId')
       expect(data).toHaveProperty('type')
       expect(data).toHaveProperty('year')
-      expect(data).toHaveProperty('matrixContract')
       expect(data).toHaveProperty('todayHourlyTimeSlots')
       expect(data).toHaveProperty('astroIdentity')
       expect(data).toHaveProperty('birthInfo')
@@ -1341,14 +1340,16 @@ describe('Calendar API Route - /api/calendar', () => {
       )
     })
 
-    it('should expose matrixContract for matrix UI binding', async () => {
+    it('omits matrixContract after destiny-matrix removal (calendar is saju×astrology only)', async () => {
       const request = createRequest({ birthDate: '1990-01-15' })
 
       const response = await GET(request)
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.matrixContract).toBeDefined()
+      // destiny-matrix core was removed; the matrix phase/contract is no longer
+      // computed and the matrix UI binding gracefully hides when absent.
+      expect(data.matrixContract).toBeUndefined()
     })
 
     it('should include birthInfo with date, time, and place', async () => {

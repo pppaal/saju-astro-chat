@@ -8,6 +8,9 @@ import type { CalendarEvidence } from '@/types/calendar-api'
 // monthlyInterpretation 모양의 단일 정의(SSOT) — 엔진이 정본, API/UI 가 재사용.
 import type { Interpretation as CalendarInterpretation } from '@/lib/calendar-engine/interpretation/types'
 
+/** 캘린더 분야(라이프 영역) 키 — 사주×점성 교차 도메인. (구 destiny-matrix/types에서 이전) */
+export type DomainKey = 'career' | 'love' | 'money' | 'health' | 'move'
+
 // Helper type for accessing pillar data with various formats
 export interface SajuPillarAccessor {
   heavenlyStem?: { name?: string } | string
