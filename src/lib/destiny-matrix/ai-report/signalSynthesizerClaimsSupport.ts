@@ -136,8 +136,7 @@ function riskControlByDomain(domain: SignalDomain, lang: 'ko' | 'en'): string {
       '\uD655\uC815 \uC804\uC5D0 \uAE08\uC561\u00B7\uAE30\uD55C\u00B7\uCDE8\uC18C \uC870\uAC74\uC744 \uCCB4\uD06C\uB9AC\uC2A4\uD2B8\uB85C \uC7AC\uD655\uC778\uD558\uC138\uC694.',
     health:
       '\uACFC\uC18D\uBCF4\uB2E4 \uC218\uBA74\u00B7\uC218\uBD84\u00B7\uD68C\uBCF5 \uC2DC\uAC04\uC744 \uBA3C\uC800 \uACE0\uC815\uD558\uC5EC \uC2E4\uC218 \uBE44\uC6A9\uC744 \uC904\uC774\uC138\uC694.',
-    move:
-      '\uC774\uB3D9\u00B7\uBCC0\uD654\uB294 \uD55C \uBC88\uC5D0 \uD655\uC815\uD558\uC9C0 \uB9D0\uACE0 \uB2E8\uACC4 \uBCC4\uB85C \uC791\uAC8C \uAC80\uC99D\uD558\uC138\uC694.',
+    move: '\uC774\uB3D9\u00B7\uBCC0\uD654\uB294 \uD55C \uBC88\uC5D0 \uD655\uC815\uD558\uC9C0 \uB9D0\uACE0 \uB2E8\uACC4 \uBCC4\uB85C \uC791\uAC8C \uAC80\uC99D\uD558\uC138\uC694.',
     personality:
       '\uD310\uB2E8 \uC2DC\uC810\uACFC \uC2E4\uD589 \uC2DC\uC810\uC744 \uBD84\uB9AC\uD558\uBA74 \uC624\uD310 \uBC0F \uB204\uB77D \uB9AC\uC2A4\uD06C\uAC00 \uC904\uC5B4\uB4ED\uB2C8\uB2E4.',
     spirituality:
@@ -162,21 +161,20 @@ function conflictThesisByDomain(domain: SignalDomain, lang: 'ko' | 'en'): string
   if (lang === 'ko') {
     const ko: Record<SignalDomain, string> = {
       career:
-        'ì»¤ë¦¬ì–´ëŠ” ê¸°íšŒê°€ ì™€ë„ ë§¡ì„ ì—­í• ê³¼ ì±…ìž„ ë²”ìœ„ë¥¼ ë¨¼ì € ë¶„ëª…ížˆ í•´ì•¼ ì†ì‹¤ ì—†ì´ ì»¤ì§‘ë‹ˆë‹¤. ì§€ê¸ˆì€ ë¬´í„±ëŒ€ê³  ë„“ížˆê¸°ë³´ë‹¤ ì–´ë–¤ ì¼ë¡œ í‰ê°€ë°›ì„ì§€ ë¨¼ì € ì •í•˜ëŠ” íŽ¸ì´ ë§žìŠµë‹ˆë‹¤.',
+        '커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다.',
       relationship:
-        'ê´€ê³„ëŠ” ê°€ê¹Œì›Œì§ˆ ì—¬ì§€ë„ ìžˆì§€ë§Œ ì†ë„ë¥¼ ìž˜ëª» ìž¡ìœ¼ë©´ ì˜¤í•´ë„ ê°™ì´ ì»¤ì§ˆ ìˆ˜ ìžˆìŠµë‹ˆë‹¤. ì§„ì „ê³¼ í™•ì¸ì„ ê°™ì€ ë‚ ì— ëë‚´ë ¤ í•˜ê¸°ë³´ë‹¤ ë‹¨ê³„ë¥¼ ë‚˜ëˆ  ê°€ëŠ” íŽ¸ì´ ë§žìŠµë‹ˆë‹¤.',
+        '관계는 가까워질 여지도 있지만 속도를 잘못 잡으면 오해도 같이 커질 수 있습니다. 진전과 확인을 같은 날에 끝내려 하기보다 단계를 나눠 가는 편이 맞습니다.',
       wealth:
-        'ìž¬ì •ì€ ëˆì´ ë“¤ì–´ì˜¬ ì—¬ì§€ë„ ìžˆì§€ë§Œ ì¡°ê±´ì„ ëŒ€ì¶© ë³´ë©´ ë‹¤ì‹œ ìƒˆì–´ ë‚˜ê°€ê¸° ì‰½ìŠµë‹ˆë‹¤. ì§€ê¸ˆì€ ìˆ˜ìµ ê¸°ëŒ€ë³´ë‹¤ ê¸ˆì•¡, ê¸°í•œ, ì†ì‹¤ ìƒí•œì„ ë¨¼ì € í™•ì¸í•˜ëŠ” íŽ¸ì´ ë§žìŠµë‹ˆë‹¤.',
+        '재정은 돈이 들어올 여지도 있지만 조건을 대충 보면 다시 새어 나가기 쉽습니다. 지금은 수익 기대보다 금액, 기한, 손실 상한을 먼저 확인하는 편이 맞습니다.',
       health:
-        'ì»¨ë””ì…˜ì€ ëŒì–´ì˜¬ë¦´ ìˆ˜ ìžˆì§€ë§Œ ë¬´ë¦¬í•˜ë©´ í”¼ë¡œê°€ í•œ ë²ˆì— ëª°ë¦´ ìˆ˜ ìžˆìŠµë‹ˆë‹¤. ì„±ê³¼ë¥¼ ë” ë‚´ê¸°ë³´ë‹¤ íšŒë³µ ì‹œê°„ì„ ë¨¼ì € í™•ë³´í•˜ëŠ” íŽ¸ì´ ì˜¤ëž˜ ê°‘ë‹ˆë‹¤.',
-      move:
-        'ì´ë™Â·ë³€í™”ëŠ” ê¸°íšŒì™€ ë¶ˆí™•ì‹¤ì„±ì´ ë™ì‹œì— í½ë‹ˆë‹¤. ë‘ ì‹ í˜¸ëŠ” ìƒì¶©ì´ ì•„ë‹ˆë¼ ë‹¨ê³„ë³„ ê²€ì¦ì„ ìš”êµ¬í•˜ëŠ” ë¶„ê¸° ì‹ í˜¸ìž…ë‹ˆë‹¤.',
+        '컨디션은 끌어올릴 수 있지만 무리하면 피로가 한 번에 몰릴 수 있습니다. 성과를 더 내기보다 회복 시간을 먼저 확보하는 편이 오래 갑니다.',
+      move: '이동·변화는 기회와 불확실성이 동시에 큽니다. 두 신호는 상충이 아니라 단계별 검증을 요구하는 분기 신호입니다.',
       personality:
-        'ì§€ê¸ˆì€ ì¶”ì§„ë ¥ë„ ìžˆì§€ë§Œ ê³¼ì†í•˜ë©´ ì‹¤ìˆ˜ë„ ê°™ì´ ì»¤ì§ˆ ìˆ˜ ìžˆìŠµë‹ˆë‹¤. íŒë‹¨ì€ ë¹ ë¥´ê²Œ í•˜ë˜ ì‹¤í–‰ì€ ë‹¨ê³„ë³„ë¡œ ëŠì–´ ê°€ëŠ” íŽ¸ì´ ì•ˆì „í•©ë‹ˆë‹¤.',
+        '지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다.',
       spirituality:
-        'ìž¥ê¸° ë°©í–¥ì€ ë„“í˜€ ë³´ê³  ì‹¶ì€ ë§ˆìŒê³¼ ë‹¤ì‹œ ì •ë¦¬í•´ì•¼ í•œë‹¤ëŠ” ìš”êµ¬ê°€ í•¨ê»˜ ìžˆìŠµë‹ˆë‹¤. ìš•ì‹¬ì„ ë”í•˜ê¸°ë³´ë‹¤ ì§€ê¸ˆ ë‚¨ê¸¸ ê¸°ì¤€ì„ ë¨¼ì € ì •í•˜ëŠ” íŽ¸ì´ ë§žìŠµë‹ˆë‹¤.',
+        '장기 방향은 넓혀 보고 싶은 마음과 다시 정리해야 한다는 요구가 함께 있습니다. 욕심을 더하기보다 지금 남길 기준을 먼저 정하는 편이 맞습니다.',
       timing:
-        'ì§€ê¸ˆì€ ê¸°íšŒë„ ë³´ì´ì§€ë§Œ ë°”ë¡œ í™•ì •í•˜ë©´ ë‹¤ì‹œ ì†ë³¼ ì¼ë„ ìƒê¸°ê¸° ì‰½ìŠµë‹ˆë‹¤. ê²°ì •ê³¼ í™•ì • ì‚¬ì´ì— í•œ ë²ˆ ë” í™•ì¸ ë‹¨ê³„ë¥¼ ë‘ëŠ” íŽ¸ì´ ë§žìŠµë‹ˆë‹¤.',
+        '지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 두는 편이 맞습니다.',
     }
     return ko[domain]
   }
@@ -190,8 +188,7 @@ function conflictThesisByDomain(domain: SignalDomain, lang: 'ko' | 'en'): string
       'Wealth shows upside and volatility together. These are conditional branch signals that require term-check before commitment.',
     health:
       'Health shows performance upside with fatigue pressure. These are conditional branch signals that require recovery-first execution.',
-    move:
-      'Move/change has opportunity and uncertainty together. These are branch signals that require staged validation.',
+    move: 'Move/change has opportunity and uncertainty together. These are branch signals that require staged validation.',
     personality:
       'Personality axis shows drive and overspeed risk together. These are branch signals that require separating decision and execution timing.',
     spirituality:
@@ -234,11 +231,17 @@ function buildClaim(domain: SignalDomain, signals: NormalizedSignal[], lang: 'ko
   const anchor = orderedSignals[0]
   const semanticAddon =
     lang === 'ko'
-      ? [anchor?.semantic?.layerMeaningKo, hasCaution ? anchor?.semantic?.riskKo : anchor?.semantic?.focusKo]
+      ? [
+          anchor?.semantic?.layerMeaningKo,
+          hasCaution ? anchor?.semantic?.riskKo : anchor?.semantic?.focusKo,
+        ]
           .filter(Boolean)
           .slice(0, 2)
           .join(' ')
-      : [anchor?.semantic?.layerMeaningEn, hasCaution ? anchor?.semantic?.riskEn : anchor?.semantic?.focusEn]
+      : [
+          anchor?.semantic?.layerMeaningEn,
+          hasCaution ? anchor?.semantic?.riskEn : anchor?.semantic?.focusEn,
+        ]
           .filter(Boolean)
           .slice(0, 2)
           .join(' ')
@@ -322,8 +325,7 @@ function ensureFamilyDiversity(
   while (familyCount() < minFamilies) {
     const candidate = bench.find(
       (item) =>
-        !result.some((s) => s.id === item.id) &&
-        !result.some((s) => s.family === item.family)
+        !result.some((s) => s.id === item.id) && !result.some((s) => s.family === item.family)
     )
     if (!candidate) break
 
@@ -419,7 +421,8 @@ export function applyResolvedContextBoosts(
       ruleHits.reduce((sum, domain) => sum + domain.contradictionPenalty * 0.18, 0) /
       Math.max(1, ruleHits.length)
     const gatingPenalty =
-      signal.polarity === 'strength' && ruleHits.some((domain) => domain.gate.includes('commit_now'))
+      signal.polarity === 'strength' &&
+      ruleHits.some((domain) => domain.gate.includes('commit_now'))
         ? 0.18
         : 0
     const recoveryPenalty =
@@ -427,14 +430,13 @@ export function applyResolvedContextBoosts(
       signal.polarity === 'strength'
         ? 0.12
         : 0
-    const stateBoost =
-      stateHits.some((domain) => domain.state === 'peak')
-        ? 0.16
-        : stateHits.some((domain) => domain.state === 'active')
-          ? 0.1
-          : stateHits.some((domain) => domain.state === 'opening')
-            ? 0.05
-            : 0
+    const stateBoost = stateHits.some((domain) => domain.state === 'peak')
+      ? 0.16
+      : stateHits.some((domain) => domain.state === 'active')
+        ? 0.1
+        : stateHits.some((domain) => domain.state === 'opening')
+          ? 0.05
+          : 0
 
     return {
       ...signal,
