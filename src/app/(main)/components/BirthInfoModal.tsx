@@ -18,6 +18,7 @@ interface LoadOption {
   key: string
   label: string
   sub?: string
+  name: string
   birthDate: string
   birthTime: string
   timeUnknown: boolean
@@ -46,6 +47,7 @@ export default function BirthInfoModal({
   locale = 'ko',
 }: BirthInfoModalProps) {
   const isKo = locale === 'ko'
+  const [name, setName] = useState(initial?.name || '')
   const [birthDate, setBirthDate] = useState(initial?.birthDate || '')
   const [birthTime, setBirthTime] = useState(
     initial?.birthTime && initial.birthTime !== '00:00' ? initial.birthTime : ''
@@ -76,6 +78,7 @@ export default function BirthInfoModal({
         {
           key: 'me',
           label: isKo ? '내 정보' : 'My info',
+          name: localSeed.name || '',
           birthDate: localSeed.birthDate,
           birthTime:
             localSeed.birthTime && localSeed.birthTime !== '00:00' ? localSeed.birthTime : '',
@@ -100,6 +103,7 @@ export default function BirthInfoModal({
               key: 'me',
               label: isKo ? '내 정보' : 'My info',
               sub: u.name || undefined,
+              name: u.name || '',
               birthDate: u.birthDate || '',
               ...timeToState(u.birthTime),
               gender: normGender(u.gender),
@@ -116,6 +120,7 @@ export default function BirthInfoModal({
           opts.push({
             key: 'me',
             label: isKo ? '내 정보' : 'My info',
+            name: local.name || '',
             birthDate: local.birthDate,
             birthTime: local.birthTime && local.birthTime !== '00:00' ? local.birthTime : '',
             timeUnknown: local.birthTimeUnknown === true || local.birthTime === '00:00',
@@ -138,6 +143,7 @@ export default function BirthInfoModal({
                 key: `circle-${p.id}`,
                 label: p.name,
                 sub: p.relation || undefined,
+                name: p.name || '',
                 birthDate: p.birthDate || '',
                 ...timeToState(p.birthTime),
                 gender: normGender(p.gender),
@@ -170,6 +176,7 @@ export default function BirthInfoModal({
   }
 
   const applyOption = (o: LoadOption) => {
+    if (o.name) setName(o.name)
     setBirthDate(o.birthDate)
     setBirthTime(o.birthTime)
     setTimeUnknown(o.timeUnknown)
@@ -183,7 +190,9 @@ export default function BirthInfoModal({
 
   const handleSave = async () => {
     if (!isValid) return
+    const trimmedName = name.trim()
     const payload = {
+      name: trimmedName || undefined,
       birthDate,
       birthTime: effectiveTime,
       birthTimeUnknown: timeUnknown,
@@ -202,6 +211,7 @@ export default function BirthInfoModal({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          ...(trimmedName ? { name: trimmedName } : {}),
           birthDate,
           birthTime: timeUnknown ? null : effectiveTime,
           gender: gender as 'male' | 'female',
@@ -267,6 +277,22 @@ export default function BirthInfoModal({
             )}
           </div>
         )}
+
+        <div className={styles.modalField}>
+          <label htmlFor="birth-info-name" className={styles.modalLabel}>
+            {isKo ? '이름' : 'Name'}
+          </label>
+          <input
+            id="birth-info-name"
+            type="text"
+            className={styles.modalInput}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={isKo ? '이름 (선택)' : 'Name (optional)'}
+            maxLength={64}
+            autoComplete="name"
+          />
+        </div>
 
         <BirthInfoFields
           locale={locale}
