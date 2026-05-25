@@ -463,11 +463,11 @@ export async function POST(req: NextRequest) {
             '    용어로 직접 물으면 그 용어 그대로 짧게 답. 회피하지 말 것.',
             '  - 일상어로 물었으면 (예: "우리 잘 맞아?") 답도 일상어로.',
             '',
-            '답변 마지막에 *반드시* 다음 줄 정확한 형식으로 추가 (사용자에게 안 보이고 자동으로 후속 질문 버튼으로 렌더됨):',
-            '||FOLLOWUP||["방금 답변 흐름의 자연스러운 후속 질문 1", "조금 다른 각도의 후속 질문 2"]',
-            '  - 정확히 2개. JSON 문자열 배열. 각 25자 이내.',
-            '  - "더 자세히", "구체적으로 설명해줘" 같은 generic 금지 — 방금 한 답변의 *내용* hook 으로.',
-            '  - 두 사람 관계 맥락에서 다음 turn 이 자연스럽게 이어지도록.',
+            '답변 맨 끝에 *반드시* 이 줄을 추가 (사용자에겐 안 보이고 후속질문 버튼으로 렌더됨):',
+            '||FOLLOWUP||["후속1", "후속2"]',
+            '  - 정확히 2개. JSON 문자열 배열. 각 20자 이내. 1인칭 말투("우리 ~?", "그럼 ~?").',
+            '  - 반드시 *방금 답변에서 구체적으로 짚은 것*(특정 사건·시기·강점·갈등 등)을 콕 집어 한 발 더 들어가게 — 솔깃해서 누르고 싶게. 답 내용과 무관한 일반 질문 금지 · "더 알려줘/조언해줘" 류 generic 금지 · 이미 답한 것 반복 금지.',
+            '  - 예: 답이 "처음엔 끌리지만 나중에 부딪힘"을 짚었으면 → ["그 갈등 언제 터져?", "우리 오래갈 수 있어?"]',
           ].join('\n')
         : [
             'Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.',
@@ -485,11 +485,11 @@ export async function POST(req: NextRequest) {
             '- Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.',
             '- Exception: if the user asks *directly using a term* ("what\'s A\'s Sun sign?", "how about our Moon square?"), use the term and answer briefly. Don\'t dodge.',
             '',
-            'At the very end of every reply, append *exactly* this line (auto-stripped + rendered as follow-up buttons; never shown to the user):',
-            '||FOLLOWUP||["short follow-up tied to what you just said", "different angle follow-up"]',
-            '  - Exactly 2 items. JSON string array. Each under 25 chars.',
-            '  - No generic "tell me more" / "explain" — hook off the *content* of your reply.',
-            '  - Bridge from the relationship context so the next turn flows naturally.',
+            'At the very end, append *exactly* this line (hidden from the user, rendered as buttons):',
+            '||FOLLOWUP||["q1", "q2"]',
+            '  - Exactly 2. JSON string array. Each under ~40 chars. First-person ("Will we...?", "So should we...?").',
+            '  - Must pick *one specific thing you just said* (an event, timing, strength, clash) and go one level deeper — tempting enough to tap. No question unrelated to your answer · no generic ("tell me more", "any advice") · no repeating what you covered.',
+            '  - e.g. if the reply flagged "drawn at first but clash later" → ["When does the clash hit?", "Can we last long-term?"]',
           ].join('\n')
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:

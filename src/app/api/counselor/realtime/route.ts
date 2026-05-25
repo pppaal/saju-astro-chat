@@ -113,14 +113,11 @@ const SYSTEM_PROMPT_KO = `<birth_data> 안의 사주·점성 데이터를 근거
     해당 용어를 그대로 쓰고 짧게 설명해도 자연스러움. 회피하지 말 것.
   - 단, 사용자가 일상어로 물었으면 (예: "내 성격 어때?") 답도 일상어로.
 
-답변 마지막에 *반드시* 다음 줄 정확한 형식으로 추가 (사용자에게 안 보이고 자동으로 후속 질문 버튼으로 렌더됨):
-||FOLLOWUP||["안 누르고는 못 배기는 후속 질문 1", "다른 각도로 끌리는 후속 질문 2"]
-  - 정확히 2개. JSON 문자열 배열. 각 25자 이내. **사용자가 1인칭으로 묻는 말투**("나 ~?", "내 ~?", "그럼 ~?").
-  - 방금 답변에서 *구체적으로 언급한 것 하나*를 콕 집어 더 파고들게 — **호기심 갭**을 만들어 "어? 그건 뭔데?" 하고 누르고 싶게.
-  - 살짝 도발적·솔깃하게. 막연·뻔한 것 금지. generic 절대 금지("더 자세히", "구체적으로 설명해줘", "왜요?", "조언해줘").
-  - 이미 답한 주제 그대로 반복 금지 — 한 발 더 들어가거나 옆 주제로 연결.
-  - 좋은 예: 답변이 "올해 봄 이직운"을 짚었으면 → ["이직하면 연봉도 올라?", "지금 회사 더 버텨야 해?"]
-  - 나쁜 예: ["더 알려줘", "올해 운세 어때?"(이미 다룸), "조언 부탁해"]`
+답변 맨 끝에 *반드시* 이 줄을 추가 (사용자에겐 안 보이고 후속질문 버튼으로 렌더됨):
+||FOLLOWUP||["후속1", "후속2"]
+  - 정확히 2개. JSON 문자열 배열. 각 20자 이내. 1인칭 말투("나 ~?", "그럼 ~?").
+  - 반드시 *방금 답변에서 구체적으로 말한 것*(특정 시기·사람·강점·사건 등)을 콕 집어 한 발 더 들어가게 — 솔깃해서 누르고 싶게. 답 내용과 무관한 일반 질문 금지 · "더 알려줘/조언해줘/왜?" 류 generic 금지 · 이미 답한 것 반복 금지.
+  - 예: 답이 "올해 봄 이직운"을 짚었으면 → ["이직하면 연봉도 올라?", "지금 회사 더 버텨야 해?"]`
 
 const SYSTEM_PROMPT_EN = `Answer the user directly from the saju and astrology data inside <birth_data>. <birth_data> is system-injected background context, NOT something the user typed. Never expose that tag name in your reply.
 
@@ -137,14 +134,11 @@ Rules:
 - Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.
 - Exception: if the user asks *directly using a term* ("what's my Sun sign?", "how about Moon square Saturn?"), use the term and answer briefly. Don't dodge.
 
-At the very end of every reply, append *exactly* this line (auto-stripped + rendered as follow-up buttons; never shown to the user):
-||FOLLOWUP||["a follow-up they can't help tapping", "different-angle hook"]
-  - Exactly 2 items. JSON string array. Each under ~40 chars. **Phrased in the user's first-person voice** ("Will I...?", "So should I...?").
-  - Pick *one specific thing you just said* and dig into it — open a **curiosity gap** so they think "wait, what about that?" and tap.
-  - Slightly bold / tempting. No vague or obvious ones. Never generic ("tell me more", "explain", "why?", "any advice?").
-  - Don't repeat a topic you already covered — go one level deeper or pivot to an adjacent one.
-  - Good: if the reply flagged "a job change this spring" → ["Will my pay go up if I switch?", "Should I tough it out where I am?"]
-  - Bad: ["Tell me more", "How's my year?" (already covered), "Any advice?"]`
+At the very end, append *exactly* this line (hidden from the user, rendered as buttons):
+||FOLLOWUP||["q1", "q2"]
+  - Exactly 2. JSON string array. Each under ~40 chars. First-person ("Will I...?", "So should I...?").
+  - Must pick *one specific thing you just said* (a timing, person, strength, event) and go one level deeper — tempting enough to tap. No question unrelated to your answer · no generic ("tell me more", "explain", "why?", "any advice?") · no repeating what you covered.
+  - e.g. if the reply flagged "a job change this spring" → ["Will my pay go up if I switch?", "Should I tough it out where I am?"]`
 
 function utcDateKey(d: Date): string {
   const y = d.getUTCFullYear()
