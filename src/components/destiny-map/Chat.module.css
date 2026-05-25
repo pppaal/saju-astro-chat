@@ -391,7 +391,9 @@
 .messagesPanel {
   min-height: 200px;
   overflow-y: auto;
-  padding: 22px 14px 14px;
+  /* 가로 패딩 최소화 — 바깥 chatWrapper 가 좌우 여백 담당. 궁합 상담사처럼
+     본문이 화면을 더 넓게 쓰게(이중 패딩 제거). */
+  padding: 22px 6px 14px;
   background: transparent;
   backdrop-filter: none;
   border: 0;
@@ -1293,11 +1295,11 @@
 @media (max-width: 768px) {
   .messagesPanel {
     min-height: 150px;
-    padding: 18px;
+    padding: 18px 6px;
   }
 
   .messageBubble {
-    max-width: 88%;
+    max-width: 94%;
   }
 
   .avatar {
@@ -1342,7 +1344,7 @@
 @media (max-width: 480px) {
   .messagesPanel {
     min-height: 120px;
-    padding: 14px;
+    padding: 14px 4px;
   }
 
   .messageRow {
