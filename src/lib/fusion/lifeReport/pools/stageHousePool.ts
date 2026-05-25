@@ -48,7 +48,7 @@ const STAGE_NATURAL: Record<TwelveStageStandard, { ko: string; en: string }> = {
   쇠: { ko: '기세가 한풀 누그러지는', en: 'a softening, easing' },
   병: { ko: '잠시 쉬어가며 돌아보는', en: 'a resting, reflective' },
   사: { ko: '마무리하고 정리하는', en: 'a winding-down, tidying' },
-  묘: { ko: '갈무리해 안으로 저장하는', en: 'a storing-inward' },
+  묘: { ko: '안으로 차분히 모아 두는', en: 'a storing-inward' },
   절: { ko: '비우고 끊어내 새로 준비하는', en: 'an emptying, resetting' },
   태: { ko: '새로 잉태되는', en: 'a newly-conceived' },
   양: { ko: '조용히 길러지는', en: 'a quietly-nurtured' },
@@ -101,15 +101,15 @@ export function stageHouseLine(
   if (!stageRow) return ''
   const entry = stageRow[houseN]
   if (!entry) return ''
-  const keyword = lang === 'ko' ? entry.keyword : entry.keywordEn
   const houseLabel = lang === 'ko' ? HOUSE_LABEL_KO[houseN] : HOUSE_LABEL_EN[houseN]
   const stageNatural = lang === 'ko' ? STAGE_NATURAL[normalised].ko : STAGE_NATURAL[normalised].en
-  // advice 필드는 destiny-matrix 원본이라 "왕지·10하우스" 같은 raw jargon 이
-  // 섞여 있어 lifeReport 자연어 톤과 안 맞음 → keyword 만 사용.
+  // keyword/advice 필드는 destiny-matrix 원본이라 "자아잠복" 같은 압축 전문어가
+  // 섞여 있어 lifeReport 자연어 톤과 안 맞음 → 노출하지 않고, 자연 descriptor
+  // (stageNatural)와 영역명만으로 평이하게 푼다.
   if (lang === 'ko') {
-    return `타고난 에너지는 ${stageNatural} 단계라, ${houseLabel} 영역에서 — ${keyword}.`
+    return `타고난 에너지는 ${stageNatural} 단계라, 그 모습이 ${houseLabel} 영역에서 가장 또렷하게 드러나요.`
   }
-  return `Your energy runs at ${stageNatural} stage, and in your ${houseLabel} it shows up as ${keyword}.`
+  return `Your energy runs at ${stageNatural} stage, showing up most clearly in your ${houseLabel}.`
 }
 
 /**

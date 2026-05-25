@@ -195,6 +195,33 @@ export function paragraph(parts: string[]): string {
   return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
 }
 
+// Deep paragraphs are assembled from many independent fragments, which reads
+// as a flat "A. B. C." list. weaveParagraph makes it flow: drops exact-dup
+// sentences, varies repeated endings, and threads in ONE light additive
+// connector ("또") on a plain parallel sentence — never on opener-style lines
+// ("…보면,"), lot/midpoint lines ("…점은"), so meaning is never distorted.
+export function weaveParagraph(parts: string[], seed = ''): string {
+  const xs = parts.map((p) => (p ?? '').trim()).filter(Boolean)
+  // 1) drop exact-duplicate sentences (e.g. two pools landing the same line).
+  const seen = new Set<string>()
+  const dedup = xs.filter((s) => (seen.has(s) ? false : (seen.add(s), true)))
+  // 2) vary repeated stock endings.
+  const varied = varyRepeatedEndings(dedup)
+  // 3) attach a single "또" to one interior, plain declarative sentence.
+  const eligible = (s: string) =>
+    s.length >= 16 &&
+    !/보면|점은|점이|점\(|미드포인트|행운점|이번 생|지금|당신|일상 가이드/.test(s) &&
+    !/^(그리고|다만|또|또한|한편|여기에|거기에|그래서|하지만|게다가|특히)/.test(s)
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) % 997
+  const interior = varied
+    .map((_, i) => i)
+    .filter((i) => i > 0 && i < varied.length - 1 && eligible(varied[i]))
+  const pick = interior.length ? interior[h % interior.length] : -1
+  const woven = varied.map((s, i) => (i === pick ? `또 ${s}` : s))
+  return woven.join(' ').replace(/\s+/g, ' ').trim()
+}
+
 // 교차규칙 narrative 는 "기술적 근거 — 실제 의미" 구조로 적혀 있다(예:
 // "사주 정재격 + 점성 Saturn 2궁 — 천천히 쌓는 재물 결"). 사용자 리포트엔
 // em-dash 뒤 '의미'만 노출하고, 혹시 남는 원시 용어(영문 행성명·점성 약어·
@@ -237,4 +264,25 @@ export function naturalizeFragment(text: string): string {
   }
   for (const [re, rep] of FRAGMENT_JARGON) s = s.replace(re, rep)
   return s.trim()
+}
+
+// 단독 명사 "결"(타고난 기질·성향 뜻)은 문체가 예스러워 일상어 "성향"으로 바꾼다.
+// 합성어(결단·결합·결혼·결과·결산·해결·연결…)는 절대 건드리면 안 되므로
+// 부정 lookbehind (?<![가-힣]) 로 앞 글자가 한글이면(=합성어 꼬리) 제외하고,
+// 뒤에는 조사/문장부호만 오는 경우로 한정한다.
+export function plainifyKo(s: string): string {
+  if (typeof s !== 'string' || !s.includes('결')) return s
+  return s
+    .replace(/특수 결/g, '특별한 성향')
+    .replace(/(?<![가-힣])결이에요/g, '성향이에요')
+    .replace(/(?<![가-힣])결이라/g, '성향이라')
+    .replace(/(?<![가-힣])결입니다/g, '성향입니다')
+    .replace(/(?<![가-힣])결로(?=[\s.,)])/g, '성향으로')
+    .replace(/(?<![가-힣])결의(?=[\s.,)])/g, '성향의')
+    .replace(/(?<![가-힣])결이(?=[\s.,)])/g, '성향이')
+    .replace(/(?<![가-힣])결은(?=[\s.,)])/g, '성향은')
+    .replace(/(?<![가-힣])결을(?=[\s.,)])/g, '성향을')
+    .replace(/(?<![가-힣])결도(?=[\s.,)])/g, '성향도')
+    .replace(/(?<![가-힣])결(?=[.,)])/g, '성향')
+    .replace(/(?<![가-힣])결(?= )/g, '성향')
 }

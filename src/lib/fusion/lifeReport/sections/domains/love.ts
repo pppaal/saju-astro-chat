@@ -33,8 +33,8 @@ import {
   iGa,
   naturalizeFragment,
   paragraph,
+  weaveParagraph,
   signLabel,
-  varyRepeatedEndings,
 } from '../../templates/sentences'
 import { findSignCombination } from '@/lib/astrology/signCombinations'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
@@ -525,11 +525,9 @@ export function buildLove(input: BuilderInput): DomainNarrative {
       `Your Lot of Eros sits in ${signLabel(erosLot.sign, 'en')} — the kind of person who catches your attention tends to carry that same flavor.`
     )
   }
-  const p3ko = paragraph(
-    deepKo.length
-      ? varyRepeatedEndings(deepKo)
-      : ['사랑의 분위기는 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 편이에요.']
-  )
+  const p3ko = deepKo.length
+    ? weaveParagraph(deepKo, 'love')
+    : paragraph(['사랑의 분위기는 큰 운명적 흔들림보다 일상 안에서 천천히 깊어지는 편이에요.'])
   const p3en = paragraph(
     deepEn.length
       ? deepEn

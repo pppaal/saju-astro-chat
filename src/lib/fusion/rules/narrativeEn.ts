@@ -159,6 +159,10 @@ export const RULE_NARRATIVE_EN: Record<string, RuleNarrativeEn> = {
     confirm:
       'a grain that handles pressure through active expression — content, media, sports coaching, teaching.',
   },
+  'career.state.benefactor-support': {
+    confirm:
+      'in decisive moments, help from mentors and benefactors tends to arrive — your path opens most when you accept support rather than carrying everything alone.',
+  },
 
   // ── love ───────────────────────────────────────────────
   'love.state.spouse-palace-emphasis': {
@@ -215,6 +219,10 @@ export const RULE_NARRATIVE_EN: Record<string, RuleNarrativeEn> = {
   },
   'love.state.communication-bond': {
     confirm: 'deep bonds built through conversation and understanding are your grain.',
+  },
+  'love.state.graced-affection': {
+    confirm:
+      'benefics support your Venus and lucky stars back you up — grace and help flow naturally into your relationships; being blessed with good people is one of your life assets.',
   },
 
   // ── family ─────────────────────────────────────────────
@@ -281,6 +289,10 @@ export const RULE_NARRATIVE_EN: Record<string, RuleNarrativeEn> = {
   'family.state.home-builder': {
     confirm: 'a grain for building home and foundation steadily — settling down is your way.',
   },
+  'family.state.ancestral-heritage': {
+    confirm:
+      'heritage, tradition and ancestry form a lasting foundation for who you are — the more you honor your roots, the steadier you stand.',
+  },
 
   // ── health ─────────────────────────────────────────────
   'health.state.balanced-elements': {
@@ -327,5 +339,19 @@ export const RULE_NARRATIVE_EN: Record<string, RuleNarrativeEn> = {
     confirm:
       'emotion and the unconscious affect your body directly — caring for the mind is caring for the body.',
     conflict: 'stress goes to the body, or the body’s state sways the emotions.',
+  },
+  'health.state.wood-metal-tension': {
+    confirm:
+      'muscles, nerves and the liver-gallbladder line tend to stiffen under pressure — stretching and unwinding routines are lifelong medicine.',
+  },
+  'health.state.earth-wood-stomach': {
+    confirm:
+      'stress tends to land in the stomach — eating slowly and keeping the mind light is the key.',
+  },
+  'health.state.excess-vitality': {
+    confirm:
+      'a high-energy constitution — used well it is vigorous, but overwork, inflammation and burnout are lifelong watch-points.',
+    conflict:
+      'balancing surplus drive with real rest is a lifelong task — learning to stop is what keeps the body going long.',
   },
 }

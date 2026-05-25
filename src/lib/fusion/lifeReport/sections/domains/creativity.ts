@@ -13,6 +13,7 @@ import {
   houseLabel,
   iGa,
   paragraph,
+  weaveParagraph,
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
@@ -234,13 +235,11 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     if (relEnCreate)
       p3piecesEn.push(`${relEnCreate} That very friction is where the work breaks through.`)
   }
-  const p3ko = paragraph(
-    p3pieces.length
-      ? p3pieces
-      : [
-          '지금 흐름은 창작 자체보다 정리·다듬기에 더 무게가 실려 있어요. 묵힌 작업을 끄집어내기 좋은 시기예요.',
-        ]
-  )
+  const p3ko = p3pieces.length
+    ? weaveParagraph(p3pieces, 'creativity')
+    : paragraph([
+        '지금 흐름은 창작 자체보다 정리·다듬기에 더 무게가 실려 있어요. 묵힌 작업을 끄집어내기 좋은 시기예요.',
+      ])
   const p3en = paragraph(
     p3piecesEn.length
       ? p3piecesEn

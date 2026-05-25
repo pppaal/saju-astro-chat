@@ -152,6 +152,24 @@ export function gongmangAffectedPillars(saju: MainSajuOutput): string[] {
   return (saju.ultraAdvanced?.gongmang?.affectedPillars ?? []) as string[]
 }
 
+// affectedPillars may arrive as English keys (year/month/day/time) or already
+// as Korean life-stage labels — map both to natural Korean so the keys never
+// leak into the rendered text (e.g. "삶의 day 영역에").
+export function gongmangAreasKo(areas: string[]): string {
+  const map: Record<string, string> = {
+    year: '초년',
+    month: '청년',
+    day: '중년',
+    time: '만년',
+    초년: '초년',
+    청년: '청년',
+    중년: '중년',
+    만년: '만년',
+  }
+  const mapped = areas.map((a) => map[a] ?? a).filter(Boolean)
+  return mapped.length ? mapped.join('·') : '한 시기'
+}
+
 export function samgiInfo(saju: MainSajuOutput): { hasSamgi: boolean; type?: string } {
   const s = saju.ultraAdvanced?.samgi
   if (!s) return { hasSamgi: false }
@@ -331,6 +349,21 @@ function relationEntryKey(e: SajuRelationEntry): string {
   return `${verbClass}|${p[0] ?? ''},${p[1] ?? ''}`
 }
 
+// The relation line surfaces in every domain section; a single fixed opener
+// ("사주의 합충 패턴을 보면,") repeated 9× reads robotic. Rotate a small pool
+// deterministically by the chosen entry so each section opens differently.
+const REL_OPENERS_KO = [
+  '사주 네 기둥의 어울림을 보면,',
+  '타고난 기둥들이 맞물리는 모양을 보면,',
+  '기둥들이 서로 주고받는 흐름을 보면,',
+  '사주 안에서 기둥들의 관계를 보면,',
+]
+function relOpenerKo(seed: string): string {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) % REL_OPENERS_KO.length
+  return REL_OPENERS_KO[h]
+}
+
 export function relationPhraseKo(
   rel: SajuRelationsSummary | undefined,
   opts: RelationPhraseOpts = {}
@@ -345,7 +378,7 @@ export function relationPhraseKo(
       if (opts.usedKeys.has('__primaryAxis')) return undefined
       opts.usedKeys.add('__primaryAxis')
     }
-    return `사주의 합충 패턴을 보면, ${rel.primaryAxisKo} 흐름이 인생에 한 번 굵게 작용해요.`
+    return `${relOpenerKo(rel.primaryAxisKo)} ${rel.primaryAxisKo} 흐름이 인생에 한 번 굵게 작용해요.`
   }
   const pillarsKo: Record<string, string> = {
     year: '년주',
@@ -358,7 +391,7 @@ export function relationPhraseKo(
   const subjectParticle = endsWithBatchim(a) ? '이' : '가'
   const objectParticle = endsWithBatchim(b) ? '과' : '와'
   const verb = kindVerbKo(cand.kind)
-  return `사주의 합충 패턴을 보면, ${a}${subjectParticle} ${b}${objectParticle} ${verb} 흐름이 있어요.`
+  return `${relOpenerKo(relationEntryKey(cand))} ${a}${subjectParticle} ${b}${objectParticle} ${verb} 흐름이 있어요.`
 }
 
 // True when the last char of `s` carries a final consonant (받침) — used to
@@ -391,10 +424,14 @@ export function relationPhraseEn(
     day: 'core day-pillar',
     time: 'late-life seat',
   }
-  const a = cand.pillars[0] ? (pillarsEn[cand.pillars[0]] ?? cand.pillars[0]) : 'one seat'
-  const b = cand.pillars[1] ? (pillarsEn[cand.pillars[1]] ?? cand.pillars[1]) : 'another seat'
+  // Bake the possessive into named seats only — the generic fallbacks read
+  // "another seat", never "your another seat" (broken grammar).
+  const phraseEn = (key: string | undefined, fallback: string) =>
+    key && pillarsEn[key] ? `your ${pillarsEn[key]}` : fallback
+  const a = phraseEn(cand.pillars[0], 'one seat')
+  const b = phraseEn(cand.pillars[1], 'another seat')
   const verb = kindVerbEn(cand.kind)
-  return `Inside your chart, your ${a} ${verb} your ${b}.`
+  return `Inside your chart, ${a} ${verb} ${b}.`
 }
 
 /** Return the underlying entry (so callers can read kind / pillars). */

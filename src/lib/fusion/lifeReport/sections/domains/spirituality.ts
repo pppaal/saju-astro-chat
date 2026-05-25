@@ -10,11 +10,19 @@ import {
   categoryCount,
   countSibsin,
   gongmangAffectedPillars,
+  gongmangAreasKo,
   relationPhraseEn,
   relationPhraseKo,
 } from '../../signals/sajuSignals'
 import { chiron, getPlanet, houseCusp, planetsInHouse, vesta } from '../../signals/astroSignals'
-import { houseLabel, iGa, paragraph, planetLabel, signLabel } from '../../templates/sentences'
+import {
+  houseLabel,
+  iGa,
+  paragraph,
+  planetLabel,
+  signLabel,
+  weaveParagraph,
+} from '../../templates/sentences'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 import { jijangganLine } from '../../pools'
@@ -103,7 +111,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const p2piecesEn: string[] = []
   if (gongmang.length > 0) {
     p2pieces.push(
-      `삶의 ${gongmang.join('·')} 영역에 '비어 있는 자리'(${gongmangBranches.join('·')})가 있어요. 이 빈 자리가 의외로 영적인 출구가 돼요 — 채울 수 없는 것이 가장 깊은 사유를 만들어요.`
+      `삶의 ${gongmangAreasKo(gongmang)} 영역에 '비어 있는 자리'(${gongmangBranches.join('·')})가 있어요. 이 빈 자리가 의외로 영적인 출구가 돼요 — 채울 수 없는 것이 가장 깊은 사유를 만들어요.`
     )
     p2piecesEn.push(
       'There is an empty space in your chart that no outer thing can quite fill — and that very gap turns out to be one of the deepest doorways into your spiritual life.'
@@ -260,13 +268,11 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `Your Lot of Captivity sits in ${signLabel(captivity.sign, 'en')} — that is the place where the spiritual knot you came here to untie tends to gather.`
     )
   }
-  const p3ko = paragraph(
-    p3pieces.length
-      ? p3pieces
-      : [
-          '지금 흐름이 평이하게 정렬돼 있어, 특정 종교나 수행보다는 일상에 영성을 천천히 녹이는 길이 잘 맞아요.',
-        ]
-  )
+  const p3ko = p3pieces.length
+    ? weaveParagraph(p3pieces, 'spirituality')
+    : paragraph([
+        '지금 흐름이 평이하게 정렬돼 있어, 특정 종교나 수행보다는 일상에 영성을 천천히 녹이는 길이 잘 맞아요.',
+      ])
   const p3en = paragraph(
     p3piecesEn.length
       ? p3piecesEn
@@ -280,7 +286,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const guidePiecesEn: string[] = ['Daily handle:']
   if (twelfth.length >= 2) {
     guidePiecesKo.push(
-      '하루에 한 번은 혼자 있는 시간을 일정에 박아두세요. 12집의 행성이 거기서 풀려요.'
+      '하루에 한 번은 혼자 있는 시간을 일정에 박아두세요. 내면 영역에 든 별들이 거기서 풀려요.'
     )
     guidePiecesEn.push(
       'Put one solitary block on your calendar each day and keep it — your 12th-house planets unwind in that quiet space.'
@@ -406,7 +412,6 @@ function twelfthSignFlavorKo(sign: string): string {
 function twelfthSignFlavorEn(sign: string): string {
   return TWELFTH_SIGN_EN[sign] ?? 'a singular grain'
 }
-
 
 // 60갑자 일주 (hanja) → natural English label (spirituality 섹션 전용).
 const SPIRIT_STEM_EN: Record<string, string> = {
