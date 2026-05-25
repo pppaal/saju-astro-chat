@@ -16,6 +16,7 @@ import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
 import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
+import { useCreditModal } from '@/contexts/CreditModalContext'
 
 // Short, one-line prompts that cycle through the textarea placeholder.
 // The original single-string placeholder ("두 사람에 대해 깊이 있는 질문을
@@ -65,6 +66,7 @@ function CompatibilityCounselorContent() {
   )
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { showDepleted } = useCreditModal()
 
   const [persons, setPersons] = useState<PersonData[]>([])
   const [person1Saju, setPerson1Saju] = useState<Record<string, unknown> | null>(null)
@@ -77,7 +79,6 @@ function CompatibilityCounselorContent() {
   const [isInitializing, setIsInitializing] = useState(true)
   const [redirecting, setRedirecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [creditExhausted, setCreditExhausted] = useState(false)
   // LLM-generated follow-up chips. Filled from streamProcessor result.
   // Cleared on every new send so stale suggestions never leak.
   const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([])
@@ -375,11 +376,8 @@ function CompatibilityCounselorContent() {
           if (response.status === 401) {
             throw new Error('login_required')
           }
-          // 402 Payment Required — credit exhausted. The middleware
-          // returns { error, code: 'INSUFFICIENT_CREDITS', upgradeUrl,
-          // remaining }. We want a user-friendly bubble + pricing link
-          // instead of a generic "오류 발생", which is what every user
-          // (and three rounds of debugging) had been seeing.
+          // 402 Payment Required — credit exhausted. 잡아서 전역 크레딧
+          // 안내 모달(showDepleted)로 처리한다(아래 catch 참고).
           if (response.status === 402) {
             throw new Error('payment_required')
           }
@@ -481,15 +479,9 @@ function CompatibilityCounselorContent() {
               : 'Login required for this premium feature.'
           )
         } else if (errMsg === 'payment_required') {
-          // Friendly credit-exhausted message + flip a flag so the error
-          // bubble renders a tappable "플랜 보기" button alongside the
-          // text. setError on its own can only emit plain text.
-          setError(
-            isKo
-              ? '이번 달 무료 궁합 분석 횟수를 모두 사용했어요.'
-              : "You've used all free compatibility readings this month."
-          )
-          setCreditExhausted(true)
+          // 크레딧 소진 → 인라인 에러 대신 전역 크레딧 안내 모달을 띄운다
+          // (운명 상담사·타로와 동일한 UX).
+          showDepleted()
         } else {
           // Append the route's errorTag (set above from response body) so
           // the user-visible bubble points at the actual failure mode
@@ -517,6 +509,7 @@ function CompatibilityCounselorContent() {
       isKo,
       chatSessionId,
       cvText,
+      showDepleted,
     ]
   )
 
@@ -562,11 +555,16 @@ function CompatibilityCounselorContent() {
       })
     } catch (e) {
       logger.error('Quick couple tarot failed:', { error: e })
-      setError(
-        isKo
-          ? '타로 카드를 펼치지 못했어요. 잠시 후 다시 시도해 주세요.'
-          : 'Could not draw the cards. Please try again in a moment.'
-      )
+      // 크레딧 소진(402) → 인라인 에러 대신 전역 크레딧 안내 모달.
+      if (e instanceof Error && e.message.includes('HTTP 402')) {
+        showDepleted()
+      } else {
+        setError(
+          isKo
+            ? '타로 카드를 펼치지 못했어요. 잠시 후 다시 시도해 주세요.'
+            : 'Could not draw the cards. Please try again in a moment.'
+        )
+      }
       setMessages((prev) => {
         const copy = [...prev]
         const lastIdx = copy.length - 1
@@ -579,7 +577,7 @@ function CompatibilityCounselorContent() {
     } finally {
       setIsLoading(false)
     }
-  }, [isLoading, persons, isKo])
+  }, [isLoading, persons, isKo, showDepleted])
 
   if (isInitializing || redirecting) {
     return <CounselorLoading />
@@ -694,29 +692,7 @@ function CompatibilityCounselorContent() {
               )
             })}
 
-            {error && (
-              <div className={styles.errorMessage}>
-                {error}
-                {creditExhausted && (
-                  <a
-                    href="/pricing"
-                    style={{
-                      display: 'inline-block',
-                      marginTop: 10,
-                      padding: '8px 14px',
-                      borderRadius: 999,
-                      background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%)',
-                      color: '#3a1f3a',
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    {isKo ? '플랜 보기' : 'View plans'}
-                  </a>
-                )}
-              </div>
-            )}
+            {error && <div className={styles.errorMessage}>{error}</div>}
 
             {!isLoading && followUpQuestions.length > 0 && messages.length > 0 && (
               <div className={styles.followUpContainer}>

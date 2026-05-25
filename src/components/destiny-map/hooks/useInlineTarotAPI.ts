@@ -13,6 +13,7 @@ import {
   type TarotQuestionAnalysisResult,
 } from '@/lib/tarot/questionFlow'
 import { logger } from '@/lib/logger'
+import { useCreditModal } from '@/contexts/CreditModalContext'
 import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
 type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
@@ -37,6 +38,7 @@ interface UseInlineTarotAPIOptions {
 
 export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTarotAPIOptions) {
   const { state, actions, recommendedSpreads } = stateManager
+  const { showDepleted } = useCreditModal()
   const {
     selectedSpread,
     selectedCategory,
@@ -361,6 +363,10 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
         logger.error('[InlineTarot] API error:', { status: res.status, errorData })
+        // 크레딧 소진(402) → 조용한 실패 대신 전역 크레딧 안내 모달.
+        if (res.status === 402) {
+          showDepleted()
+        }
         throw new Error(`Failed to draw cards: ${res.status}`)
       }
 
@@ -382,7 +388,14 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
     } finally {
       actions.setIsDrawing(false)
     }
-  }, [selectedSpread, selectedCategory, actions, fetchInterpretation, questionAnalysis])
+  }, [
+    selectedSpread,
+    selectedCategory,
+    actions,
+    fetchInterpretation,
+    questionAnalysis,
+    showDepleted,
+  ])
 
   // Save tarot reading to database
   const saveReading = useCallback(async () => {
