@@ -1,8 +1,4 @@
-import type {
-  DomainKey,
-  MonthlyOverlapPoint,
-  TimingCalibrationSummary,
-} from '@/lib/destiny-matrix/types'
+import type { DomainKey } from './types'
 import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/calendar/types'
 import type { UserAstroProfile, UserSajuProfile } from '@/lib/destiny-map/calendar/types'
 import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/saju/johuYongsin'
@@ -19,20 +15,6 @@ import { calculateUltraPrecisionScore } from '@/lib/calendar-engine/timing-helpe
 import type { UltraPrecisionScore } from '@/lib/calendar-engine/timing-helpers/ultra-precision-types'
 
 type CalendarLocale = 'ko' | 'en'
-
-type YearlyMatrixCalendarContext = {
-  overlapTimeline?: MonthlyOverlapPoint[]
-  overlapTimelineByDomain?: Partial<Record<DomainKey, MonthlyOverlapPoint[]>>
-  timingCalibration?: TimingCalibrationSummary
-  domainScores?: Partial<
-    Record<
-      DomainKey,
-      {
-        finalScoreAdjusted?: number
-      }
-    >
-  >
-}
 
 export interface YearlyImportantDate {
   date: string
@@ -98,7 +80,6 @@ type YearlyOptions = {
   limit?: number
   minGrade?: ImportanceGrade
   locale?: CalendarLocale
-  matrixContext?: YearlyMatrixCalendarContext | null
   /** ISO date string ("1995-02-09") or birth year. Used to resolve which
    *  10-year 대운 cycle the user is currently in when sajuProfile lacks a
    *  birthYear field. */
@@ -1846,11 +1827,8 @@ export function calculateYearlyImportantDates(
   const results: YearlyImportantDate[] = []
   const start = new Date(year, 0, 1)
   const end = new Date(year, 11, 31)
-  const reliability = clamp(
-    options?.matrixContext?.timingCalibration?.reliabilityScore || 0.58,
-    0,
-    1
-  )
+  // matrix 타이밍 캘리브레이션 제거 — 교차검증 강도 기준선은 중립값으로 고정.
+  const reliability = 0.58
   // Solar-term-aware per-date pack: every factor builder pulls from
   // `getPackForDate(date, …)` so May 3 (still 辰月) doesn't get tagged
   // with 巳月 (초여름) data the way the old monthly index did.

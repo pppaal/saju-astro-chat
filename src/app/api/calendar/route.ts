@@ -33,7 +33,7 @@ import {
   type MatrixCalendarContext,
 } from './lib/helpers'
 import { buildCalendarPresentationView } from './lib/presentationAdapter'
-import type { DomainKey } from '@/lib/destiny-matrix/types'
+import type { DomainKey } from './lib/types'
 import type { CalendarMatrixEvidencePacketMap } from './lib/matrixEvidencePacket'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 
@@ -513,7 +513,6 @@ export const GET = withApiMiddleware(
         calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
           minGrade: 4, // grade 4(최악의 날)까지 포함
           locale: locale === 'en' ? 'en' : 'ko',
-          matrixContext: matrixCalendarContext || undefined,
           birthDate: birthDateParam,
           dailyTransitScores: (astroProfile as { dailyTransitScores?: Record<string, number> })
             .dailyTransitScores,
