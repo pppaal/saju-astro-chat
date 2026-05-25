@@ -152,6 +152,24 @@ export function gongmangAffectedPillars(saju: MainSajuOutput): string[] {
   return (saju.ultraAdvanced?.gongmang?.affectedPillars ?? []) as string[]
 }
 
+// affectedPillars may arrive as English keys (year/month/day/time) or already
+// as Korean life-stage labels — map both to natural Korean so the keys never
+// leak into the rendered text (e.g. "삶의 day 영역에").
+export function gongmangAreasKo(areas: string[]): string {
+  const map: Record<string, string> = {
+    year: '초년',
+    month: '청년',
+    day: '중년',
+    time: '만년',
+    초년: '초년',
+    청년: '청년',
+    중년: '중년',
+    만년: '만년',
+  }
+  const mapped = areas.map((a) => map[a] ?? a).filter(Boolean)
+  return mapped.length ? mapped.join('·') : '한 시기'
+}
+
 export function samgiInfo(saju: MainSajuOutput): { hasSamgi: boolean; type?: string } {
   const s = saju.ultraAdvanced?.samgi
   if (!s) return { hasSamgi: false }
@@ -391,10 +409,14 @@ export function relationPhraseEn(
     day: 'core day-pillar',
     time: 'late-life seat',
   }
-  const a = cand.pillars[0] ? (pillarsEn[cand.pillars[0]] ?? cand.pillars[0]) : 'one seat'
-  const b = cand.pillars[1] ? (pillarsEn[cand.pillars[1]] ?? cand.pillars[1]) : 'another seat'
+  // Bake the possessive into named seats only — the generic fallbacks read
+  // "another seat", never "your another seat" (broken grammar).
+  const phraseEn = (key: string | undefined, fallback: string) =>
+    key && pillarsEn[key] ? `your ${pillarsEn[key]}` : fallback
+  const a = phraseEn(cand.pillars[0], 'one seat')
+  const b = phraseEn(cand.pillars[1], 'another seat')
   const verb = kindVerbEn(cand.kind)
-  return `Inside your chart, your ${a} ${verb} your ${b}.`
+  return `Inside your chart, ${a} ${verb} ${b}.`
 }
 
 /** Return the underlying entry (so callers can read kind / pillars). */

@@ -24,7 +24,7 @@ import {
   pallas,
   planetsInHouse,
 } from '../../signals/astroSignals'
-import { houseLabel, paragraph, signLabel } from '../../templates/sentences'
+import { houseLabel, paragraph, planetLabel, signLabel } from '../../templates/sentences'
 
 interface ChildEstimate {
   min: number
@@ -150,7 +150,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       ? `표현과 창조의 기운이 ${childCountFlavorKo(sikSangTotal)}, ${childFlavorKo(sikSangTotal)}.`
       : `표현과 창조의 기운이 ${childCountFlavorKo(sikSangTotal)} 흘러서, ${childFlavorKo(sikSangTotal)}.`,
     fifth.length > 0
-      ? `창조 영역에 ${fifth.map((p) => planetLabelChildrenKo(p.name)).join(', ')}이 머물러, 자녀·창작·놀이의 색이 또렷하게 활성화돼 있어요.`
+      ? `창조 영역에 ${fifth.map((p) => planetLabel(p.name, 'ko')).join(', ')}이 머물러, 자녀·창작·놀이의 색이 또렷하게 활성화돼 있어요.`
       : '별자리로 본 자녀 자리도 차분히 비어 있어, 자녀 인연은 서두르지 않고 천천히 그려가는 흐름이에요.',
   ])
   const p1en = paragraph([
@@ -163,7 +163,7 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
       ? `Direct signals of creative expression stay quiet here — ${childFlavorEn(sikSangTotal)}.`
       : `Creative expression comes through as ${sikSangCountWordEn(sikSangTotal)} strong stream${sikSangTotal === 1 ? '' : 's'} — ${childFlavorEn(sikSangTotal)}.`,
     fifth.length > 0
-      ? `With ${fifth.map((p) => p.name).join(', ')} inside the 5th house, the seat of children, creation and play is fully active.`
+      ? `With ${fifth.map((p) => planetLabel(p.name, 'en')).join(', ')} inside the 5th house, the seat of children, creation and play is fully active.`
       : 'With an empty 5th house, the signs of children come from other placements.',
   ])
 
@@ -398,23 +398,6 @@ function ceresFlavorKo(h: number): string {
 }
 function ceresFlavorEn(h: number): string {
   return CERES_HOUSE_FLAVOR_EN[h] ?? 'a singular style of'
-}
-
-// children 섹션에서 사용하는 행성명 자연어
-function planetLabelChildrenKo(name: string): string {
-  const map: Record<string, string> = {
-    Sun: '태양',
-    Moon: '달',
-    Mercury: '수성',
-    Venus: '금성',
-    Mars: '화성',
-    Jupiter: '목성',
-    Saturn: '토성',
-    Uranus: '천왕성',
-    Neptune: '해왕성',
-    Pluto: '명왕성',
-  }
-  return map[name] ?? name
 }
 
 // children 섹션 하우스 의미

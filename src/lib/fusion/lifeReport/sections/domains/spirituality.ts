@@ -10,6 +10,7 @@ import {
   categoryCount,
   countSibsin,
   gongmangAffectedPillars,
+  gongmangAreasKo,
   relationPhraseEn,
   relationPhraseKo,
 } from '../../signals/sajuSignals'
@@ -103,7 +104,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const p2piecesEn: string[] = []
   if (gongmang.length > 0) {
     p2pieces.push(
-      `삶의 ${gongmang.join('·')} 영역에 '비어 있는 자리'(${gongmangBranches.join('·')})가 있어요. 이 빈 자리가 의외로 영적인 출구가 돼요 — 채울 수 없는 것이 가장 깊은 사유를 만들어요.`
+      `삶의 ${gongmangAreasKo(gongmang)} 영역에 '비어 있는 자리'(${gongmangBranches.join('·')})가 있어요. 이 빈 자리가 의외로 영적인 출구가 돼요 — 채울 수 없는 것이 가장 깊은 사유를 만들어요.`
     )
     p2piecesEn.push(
       'There is an empty space in your chart that no outer thing can quite fill — and that very gap turns out to be one of the deepest doorways into your spiritual life.'
@@ -406,7 +407,6 @@ function twelfthSignFlavorKo(sign: string): string {
 function twelfthSignFlavorEn(sign: string): string {
   return TWELFTH_SIGN_EN[sign] ?? 'a singular grain'
 }
-
 
 // 60갑자 일주 (hanja) → natural English label (spirituality 섹션 전용).
 const SPIRIT_STEM_EN: Record<string, string> = {
