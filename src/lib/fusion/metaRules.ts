@@ -77,6 +77,11 @@ const strongMixed = (b: DomainAggregate) => {
 const anyStrongConfirm = (b: DomainAggregate) =>
   b.confirms.filter((m) => m.intensity === 'strong').length >= activeThresholds.anyStrongConfirmMin
 
+// Presence of any confirm — for the section domains (children/wisdom/creativity/
+// spirituality) whose signal volume is low (tone stays neutral), so strong/tone
+// predicates would never fire.
+const hasConfirm = (b: DomainAggregate) => b.confirms.length > 0
+
 // 순서 = 카르마에서 themes[0] 우선순위. 보편·정체성형 주제를 앞에 두어 가장
 // 부정적인 주제가 항상 먼저 노출되지 않게 한다. 내러티브는 "라이프 패턴"
 // 어투(특정 시기/조언 imperative 배제)로 카르마 맥락에 맞춘다.
@@ -173,5 +178,44 @@ export const metaRules: MetaRule[] = [
     narrativeEn:
       'Love and money tend to move together for you — handling relationship and finances as one is a lifelong lesson.',
     detect: (d) => has(d, 'love', strongNegative) && has(d, 'money', strongNegative),
+  },
+
+  // ── section-domain 교차 주제 (자녀·학업·창작·영성) ───────
+  {
+    id: 'theme.sage',
+    meaning: '배움이 곧 수행이 되는 결',
+    narrative:
+      '영성과 지혜가 함께 깊어, 배움이 단순한 지식을 넘어 자기 수행으로 이어지는 결이에요.',
+    narrativeEn:
+      'Spirituality and wisdom deepen together, so learning becomes more than knowledge — it turns into a practice of the self.',
+    detect: (d) => hasConfirm(d.spirituality) && hasConfirm(d.wisdom),
+  },
+  {
+    id: 'theme.artist',
+    meaning: '표현이 삶의 언어가 되는 결',
+    narrative:
+      '창작과 감성이 한 흐름으로 이어져, 만들고 표현하는 일이 곧 자기 삶의 언어가 되는 결이에요.',
+    narrativeEn:
+      'Creation and feeling flow as one, so making and expressing becomes the very language of your life.',
+    detect: (d) => hasConfirm(d.creativity) && d.love.tone !== 'negative',
+  },
+  {
+    id: 'theme.nurturer',
+    meaning: '돌봄이 중심이 되는 결',
+    narrative:
+      '자녀와 가정이 한 흐름으로 묶여, 돌보고 길러내는 일이 인생의 중심 주제가 되는 결이에요.',
+    narrativeEn:
+      'Children and home bind into one current, so nurturing and raising become a central theme of your life.',
+    detect: (d) => hasConfirm(d.children) && (anyStrongConfirm(d.family) || strongMixed(d.family)),
+  },
+  {
+    id: 'theme.mentor',
+    meaning: '이끌고 가르치는 결',
+    narrative:
+      '지혜와 일이 만나, 배운 것을 전하고 사람을 이끄는 자리가 자연스럽게 어울리는 결이에요.',
+    narrativeEn:
+      'Wisdom meets work, so passing on what you have learned and guiding others suits you naturally.',
+    detect: (d) =>
+      hasConfirm(d.wisdom) && (d.career.tone === 'positive' || d.career.tone === 'neutral'),
   },
 ]
