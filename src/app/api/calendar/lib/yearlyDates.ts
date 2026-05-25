@@ -114,6 +114,12 @@ type YearlyOptions = {
   >
   /** Per-date list of currently-retrograde planet names (Mercury, Venus, …). */
   dailyRetrograde?: Record<string, string[]>
+  /** Pre-computed calendar-engine(v2) display score per date (2-99), keyed by
+   *  YYYY-MM-DD. When present for a date, the engine uses it as THE score —
+   *  grade/tier/점수밴드 카운슬링/narrative 전부 이 점수 기준으로 만들어진다.
+   *  목적: 화면에 보이는 displayScore(v2)와 문구 톤을 한 점수로 일치시킴
+   *  (route가 v2 셀 점수를 미리 계산해 주입). 없는 날짜는 기존 사주·점성 blend. */
+  engineScores?: Record<string, number>
 }
 
 const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
@@ -2017,7 +2023,13 @@ export function calculateYearlyImportantDates(
           : 'opposed'
 
     const blendedRaw = (sajuAxisScore + astroAxisScore) / 2
-    const score = Math.round(clamp(blendedRaw, 2, 99))
+    // 화면 표시 점수(v2 calendar-engine)가 주입돼 있으면 그걸 THE 점수로 사용 →
+    // grade/tier/점수밴드 문구 전부 표시 숫자와 한 점수로 정렬. 없으면 사주·점성 blend.
+    const engineOverride = options?.engineScores?.[dateKey]
+    const score =
+      typeof engineOverride === 'number' && Number.isFinite(engineOverride)
+        ? Math.round(clamp(engineOverride, 2, 99))
+        : Math.round(clamp(blendedRaw, 2, 99))
     const grade = scoreToGrade(score)
     // tier(설명 core 톤)는 그날 등급 band 안으로 강제한다. baseTier(도메인 강도)는
     // band 안에서의 뉘앙스로만 쓰고, 등급과 반대 valence로 새지 않게 한다.
