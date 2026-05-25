@@ -436,16 +436,14 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     )
   }
   // Fusion career confirms (top 2)
+  // 융합 규칙 문구는 한국어만 존재(영문 원문 없음) → EN 리포트엔 넣지 않아
+  // 한글이 영문에 누출되지 않게 한다.
   if (careerConfirms.length > 0) {
-    const top = careerConfirms[0]
-    deepPieces.push(`그리고 ${top.rule.narrative.confirm}`)
-    deepPiecesEn.push(`Additionally, ${top.rule.meaning}.`)
+    deepPieces.push(`그리고 ${careerConfirms[0].rule.narrative.confirm}`)
   }
-  // Fusion career conflicts (동·서양이 어긋나는 긴장 — top 1)
   const careerConflicts = fusion?.byDomain?.career?.conflicts ?? []
   if (careerConflicts[0]?.rule.narrative.conflict) {
     deepPieces.push(`다만 ${careerConflicts[0].rule.narrative.conflict}`)
-    deepPiecesEn.push(`That said, ${careerConflicts[0].rule.meaning}.`)
   }
   const p3ko = paragraph(
     deepPieces.length

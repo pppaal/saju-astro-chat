@@ -194,14 +194,13 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       'Strain-prone signals run through your chart — keep a steady recovery routine in place to prevent overload from building up.'
     )
   }
+  // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
   if (healthConfirms.length > 0) {
     deepKo.push(`그리고 ${healthConfirms[0].rule.narrative.confirm}`)
-    deepEn.push(`Additionally, ${healthConfirms[0].rule.meaning}.`)
   }
   const healthConflicts = fusion?.byDomain?.health?.conflicts ?? []
   if (healthConflicts[0]?.rule.narrative.conflict) {
     deepKo.push(`다만 ${healthConflicts[0].rule.narrative.conflict}`)
-    deepEn.push(`That said, ${healthConflicts[0].rule.meaning}.`)
   }
   // Saju relations — 형(reshape) / 충(clash) often surface as body-stress
   // patterns. Bias the pick toward those kinds.

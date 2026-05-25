@@ -612,20 +612,27 @@ export const POST = withApiMiddleware(
               domain,
               {
                 tone: agg.tone,
-                confirms: agg.confirms.map((m) => ({
-                  id: m.rule.id,
-                  meaning: m.rule.meaning,
-                  narrative: m.rule.narrative.confirm,
-                  intensity: m.intensity,
-                })),
-                conflicts: agg.conflicts.map((m) => ({
-                  id: m.rule.id,
-                  meaning: m.rule.meaning,
-                  // conflict 룰은 narrative.conflict를 써야 함. confirm으로
-                  // 매핑하던 버그 때문에 갈등형 룰이 확인형 문구로 왜곡되었음.
-                  narrative: m.rule.narrative.conflict ?? m.rule.narrative.confirm,
-                  intensity: m.intensity,
-                })),
+                // 라이프 리포트는 평생 단락이므로 단기(timing) 룰은 제외하고
+                // state·relation 레이어만 노출한다(한 해짜리 신호가 평생 특성으로
+                // 둔갑하지 않도록).
+                confirms: agg.confirms
+                  .filter((m) => m.rule.layer !== 'timing')
+                  .map((m) => ({
+                    id: m.rule.id,
+                    meaning: m.rule.meaning,
+                    narrative: m.rule.narrative.confirm,
+                    intensity: m.intensity,
+                  })),
+                conflicts: agg.conflicts
+                  .filter((m) => m.rule.layer !== 'timing')
+                  .map((m) => ({
+                    id: m.rule.id,
+                    meaning: m.rule.meaning,
+                    // conflict 룰은 narrative.conflict를 써야 함. confirm으로
+                    // 매핑하던 버그 때문에 갈등형 룰이 확인형 문구로 왜곡되었음.
+                    narrative: m.rule.narrative.conflict ?? m.rule.narrative.confirm,
+                    intensity: m.intensity,
+                  })),
               },
             ])
           ) as Record<
@@ -645,6 +652,7 @@ export const POST = withApiMiddleware(
             id: t.rule.id,
             meaning: t.rule.meaning,
             narrative: t.rule.narrative,
+            narrativeEn: t.rule.narrativeEn,
           })),
         }
       : null
