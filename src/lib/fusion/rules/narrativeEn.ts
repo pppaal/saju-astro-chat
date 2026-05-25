@@ -159,6 +159,10 @@ export const RULE_NARRATIVE_EN: Record<string, RuleNarrativeEn> = {
     confirm:
       'a grain that handles pressure through active expression — content, media, sports coaching, teaching.',
   },
+  'career.state.benefactor-support': {
+    confirm:
+      'in decisive moments, help from mentors and benefactors tends to arrive — your path opens most when you accept support rather than carrying everything alone.',
+  },
 
   // ── love ───────────────────────────────────────────────
   'love.state.spouse-palace-emphasis': {
@@ -280,6 +284,10 @@ export const RULE_NARRATIVE_EN: Record<string, RuleNarrativeEn> = {
   },
   'family.state.home-builder': {
     confirm: 'a grain for building home and foundation steadily — settling down is your way.',
+  },
+  'family.state.ancestral-heritage': {
+    confirm:
+      'heritage, tradition and ancestry form a lasting foundation for who you are — the more you honor your roots, the steadier you stand.',
   },
 
   // ── health ─────────────────────────────────────────────
