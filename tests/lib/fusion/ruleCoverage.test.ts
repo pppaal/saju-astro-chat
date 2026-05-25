@@ -1,9 +1,30 @@
 import { describe, it, expect } from 'vitest'
 import { allRules, runFortuneWithRaw } from '@/lib/fusion'
 
-const DOMAINS = new Set(['self', 'love', 'money', 'career', 'health', 'family'])
+const DOMAINS = new Set([
+  'self',
+  'love',
+  'money',
+  'career',
+  'health',
+  'family',
+  'children',
+  'wisdom',
+  'creativity',
+  'spirituality',
+])
 const LAYERS = new Set(['state', 'relation', 'timing'])
-const SURFACED = ['money', 'career', 'love', 'family', 'health'] as const
+const SURFACED = [
+  'money',
+  'career',
+  'love',
+  'family',
+  'health',
+  'children',
+  'wisdom',
+  'creativity',
+  'spirituality',
+] as const
 // Floors sit just below current counts: the test fails only if a domain is
 // silently thinned, not on normal additions.
 const STATE_FLOOR: Record<(typeof SURFACED)[number], number> = {
@@ -12,6 +33,10 @@ const STATE_FLOOR: Record<(typeof SURFACED)[number], number> = {
   love: 12,
   family: 14,
   health: 12,
+  children: 2,
+  wisdom: 2,
+  creativity: 2,
+  spirituality: 2,
 }
 
 describe('rule set integrity', () => {

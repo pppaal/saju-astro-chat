@@ -4,8 +4,10 @@
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
 import {
   fiveElements,
+  johuYongsin,
   relationPhraseEn,
   relationPhraseKo,
+  unfavorableElements,
   unluckyShinsalNames,
   weakElements,
   yongsinPrimary,
@@ -52,6 +54,11 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   const yongsin = yongsinPrimary(saju)
   if (yongsin) sajuUsed.push('advanced.yongsin')
 
+  const johu = johuYongsin(saju)
+  if (johu) sajuUsed.push('advanced.johuYongsin')
+  const giSin = unfavorableElements(saju)
+  if (giSin.length > 0) sajuUsed.push('advanced.yongsin.unfavorable')
+
   const unlucky = unluckyShinsalNames(saju)
   if (unlucky.length > 0) sajuUsed.push('shinsal.unluckyList')
 
@@ -88,6 +95,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     yongsin
       ? `삶의 균형추가 되는 기운은 ${yongsinElementKo(yongsin)}이라, ${yongsinFlavorKo(yongsin)}이 일상의 보강 방향이에요.`
       : '',
+    johu
+      ? `계절로 보면 ${seasonKo(johu.season)}에 태어나, ${elementLabel(johu.primary, 'ko')} 기운을 곁들이면 몸의 균형이 한결 잘 잡혀요.`
+      : '',
   ])
   const p1en = paragraph([
     'The big picture of your health starts with the balance of the five elements.',
@@ -96,6 +106,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       : 'Your five elements sit relatively even, so no single weakness dominates.',
     yongsin
       ? `Your supportive element is ${yongsinElementEnHealth(yongsin)}, so leaning into ${yongsinFlavorEn(yongsin)} is your daily way to strengthen it.`
+      : '',
+    johu
+      ? `Seasonally you were born in ${seasonEn(johu.season)}, so bringing in ${elementLabel(johu.primary, 'en')} energy helps your body settle into balance.`
       : '',
   ])
 
@@ -386,6 +399,16 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       `Your Lot of Necessity is active — releasing pressure a little at a time, instead of postponing it, is the gentlest path for your body.`
     )
   }
+  if (giSin.length > 0) {
+    const giLabels = giSin.map((e) => elementLabel(e, 'ko'))
+    const giLabelsEn = giSin.map((e) => elementLabel(e, 'en'))
+    guideKo.push(
+      `반대로 ${giLabels.join('·')} 기운은 과해지면 몸에 부담이 되니, 그쪽으로 치우칠 땐 의식적으로 덜어내세요.`
+    )
+    guideEn.push(
+      `On the flip side, ${giLabelsEn.join(' and ')} energy can overload the body when it runs high — ease off it consciously when you feel the tilt.`
+    )
+  }
   const p4ko = paragraph(guideKo)
   const p4en = paragraph(guideEn)
 
@@ -436,6 +459,16 @@ function yongsinFlavorKo(y: string): string {
   if (y.includes('금')) return '폐 보호와 정돈 (호흡·정리)'
   if (y.includes('수')) return '신장 보호와 흐름 (수분·휴식)'
   return '평형의 회복'
+}
+
+// 조후 계절(춘·하·추·동) → 자연 한국어/영어
+function seasonKo(s: string): string {
+  const m: Record<string, string> = { 춘: '봄', 하: '여름', 추: '가을', 동: '겨울' }
+  return m[s] ?? '그 계절'
+}
+function seasonEn(s: string): string {
+  const m: Record<string, string> = { 춘: 'spring', 하: 'summer', 추: 'autumn', 동: 'winter' }
+  return m[s] ?? 'that season'
 }
 
 // 용신 (목/화/토/금/수) 한 글자를 따옴표 없이 자연 한국어로

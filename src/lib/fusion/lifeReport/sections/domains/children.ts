@@ -26,11 +26,13 @@ import {
 } from '../../signals/astroSignals'
 import {
   houseLabel,
+  naturalizeFragment,
   paragraph,
   planetLabel,
   signLabel,
   weaveParagraph,
 } from '../../templates/sentences'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 
 interface ChildEstimate {
   min: number
@@ -104,10 +106,10 @@ function estimateChildCount(input: BuilderInput): ChildEstimate {
 }
 
 export function buildChildren(input: BuilderInput): DomainNarrative {
-  const { saju, astro } = input
+  const { saju, astro, fusion } = input
   const sajuUsed: string[] = []
   const astroUsed: string[] = []
-  const fusionUsed: string[] = [] // children has no fusion domain
+  const fusionUsed: string[] = []
 
   const sib = countSibsin(saju)
   const cat = categoryCount(sib)
@@ -274,6 +276,19 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     deepKo.push(`${relKoChildren} 자녀와의 인연이 일찍부터 정해져 있는 흐름이에요.`)
     if (relEnChildren)
       deepEn.push(`${relEnChildren} The tone of the bond with your child is set early.`)
+  }
+  const childrenConfirms = fusion?.byDomain?.children?.confirms ?? []
+  if (childrenConfirms.length > 0) {
+    fusionUsed.push(childrenConfirms[0].rule.id)
+    deepKo.push(`그리고 ${naturalizeFragment(childrenConfirms[0].rule.narrative.confirm)}`)
+    const en = RULE_NARRATIVE_EN[childrenConfirms[0].rule.id]?.confirm
+    if (en) deepEn.push(`And ${en}`)
+  }
+  const childrenConflicts = fusion?.byDomain?.children?.conflicts ?? []
+  if (childrenConflicts[0]?.rule.narrative.conflict) {
+    deepKo.push(`다만 ${naturalizeFragment(childrenConflicts[0].rule.narrative.conflict)}`)
+    const enX = RULE_NARRATIVE_EN[childrenConflicts[0].rule.id]?.conflict
+    if (enX) deepEn.push(`That said, ${enX}`)
   }
   const p3ko = deepKo.length
     ? weaveParagraph(deepKo, 'children')

@@ -7,6 +7,7 @@
 
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
 import {
+  allShinsalNames,
   categoryCount,
   countSibsin,
   gongmangAffectedPillars,
@@ -19,16 +20,18 @@ import {
   houseLabel,
   iGa,
   paragraph,
+  naturalizeFragment,
   planetLabel,
   signLabel,
   weaveParagraph,
 } from '../../templates/sentences'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 import { jijangganLine } from '../../pools'
 
 export function buildSpirituality(input: BuilderInput): DomainNarrative {
-  const { saju, astro, calendarSignals } = input
+  const { saju, astro, calendarSignals, fusion } = input
   const sajuUsed: string[] = []
   const astroUsed: string[] = []
   const fusionUsed: string[] = []
@@ -43,7 +46,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const gongmangBranches = saju.ultraAdvanced?.gongmang?.gongmangBranches ?? []
   if (gongmang.length > 0) sajuUsed.push('ultraAdvanced.gongmang')
 
-  const shinsalNames = collectShinsal(saju)
+  const shinsalNames = allShinsalNames(saju)
   const hwagae = shinsalNames.find((n) => n.includes('화개'))
   if (hwagae) sajuUsed.push('shinsal.화개')
 
@@ -268,6 +271,18 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `Your Lot of Captivity sits in ${signLabel(captivity.sign, 'en')} — that is the place where the spiritual knot you came here to untie tends to gather.`
     )
   }
+  const spiritConfirms = fusion?.byDomain?.spirituality?.confirms ?? []
+  if (spiritConfirms.length > 0) {
+    p3pieces.push(`그리고 ${naturalizeFragment(spiritConfirms[0].rule.narrative.confirm)}`)
+    const fusEn = RULE_NARRATIVE_EN[spiritConfirms[0].rule.id]?.confirm
+    if (fusEn) p3piecesEn.push(`And ${fusEn}`)
+  }
+  const spiritConflicts = fusion?.byDomain?.spirituality?.conflicts ?? []
+  if (spiritConflicts[0]?.rule.narrative.conflict) {
+    p3pieces.push(`다만 ${naturalizeFragment(spiritConflicts[0].rule.narrative.conflict)}`)
+    const fusEnX = RULE_NARRATIVE_EN[spiritConflicts[0].rule.id]?.conflict
+    if (fusEnX) p3piecesEn.push(`That said, ${fusEnX}`)
+  }
   const p3ko = p3pieces.length
     ? weaveParagraph(p3pieces, 'spirituality')
     : paragraph([
@@ -335,18 +350,6 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
 }
 
 // ─── helpers ─────────────────────────────────────────────────
-function collectShinsal(saju: BuilderInput['saju']): string[] {
-  const u = saju.ultraAdvanced as unknown as {
-    shinsal?: {
-      luckyList?: Array<{ kind?: string }>
-      list?: Array<{ kind?: string }>
-    }
-  }
-  const luck = u?.shinsal?.luckyList ?? []
-  const all = u?.shinsal?.list ?? []
-  return [...luck, ...all].map((x) => x?.kind ?? '').filter(Boolean)
-}
-
 function openerKo(inseong: number, gongmangCount: number, hasHwagae: boolean): string {
   if (hasHwagae && gongmangCount > 0) {
     return '예술과 고독의 별, 그리고 비어 있는 자리가 함께 깔려 있어서, 영성은 우회로가 아니라 이번 생의 중심 주제 중 하나예요.'

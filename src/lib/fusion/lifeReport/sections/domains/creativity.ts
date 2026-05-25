@@ -5,7 +5,12 @@
 // • 점성: 5집(창조), 금성 + aspects, harmonics 5, 5집 ruler, Pisces/Leo emphasis
 
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
-import { countSibsin, relationPhraseEn, relationPhraseKo } from '../../signals/sajuSignals'
+import {
+  allShinsalNames,
+  countSibsin,
+  relationPhraseEn,
+  relationPhraseKo,
+} from '../../signals/sajuSignals'
 import { aspectsOf, getPlanet, houseCusp, planetsInHouse } from '../../signals/astroSignals'
 import {
   aspectQuality,
@@ -13,13 +18,15 @@ import {
   houseLabel,
   iGa,
   paragraph,
+  naturalizeFragment,
   weaveParagraph,
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 
 export function buildCreativity(input: BuilderInput): DomainNarrative {
-  const { saju, astro, calendarSignals } = input
+  const { saju, astro, calendarSignals, fusion } = input
   const sajuUsed: string[] = []
   const astroUsed: string[] = []
   const fusionUsed: string[] = []
@@ -31,7 +38,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   if (sangwan > 0) sajuUsed.push('sibsin.상관')
   if (sikshin > 0) sajuUsed.push('sibsin.식신')
 
-  const shinsalNames = collectShinsal(saju)
+  const shinsalNames = allShinsalNames(saju)
   const hwagae = shinsalNames.find((n) => n.includes('화개'))
   if (hwagae) sajuUsed.push('shinsal.화개')
 
@@ -235,6 +242,18 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
     if (relEnCreate)
       p3piecesEn.push(`${relEnCreate} That very friction is where the work breaks through.`)
   }
+  const creativityConfirms = fusion?.byDomain?.creativity?.confirms ?? []
+  if (creativityConfirms.length > 0) {
+    p3pieces.push(`그리고 ${naturalizeFragment(creativityConfirms[0].rule.narrative.confirm)}`)
+    const fusEn = RULE_NARRATIVE_EN[creativityConfirms[0].rule.id]?.confirm
+    if (fusEn) p3piecesEn.push(`And ${fusEn}`)
+  }
+  const creativityConflicts = fusion?.byDomain?.creativity?.conflicts ?? []
+  if (creativityConflicts[0]?.rule.narrative.conflict) {
+    p3pieces.push(`다만 ${naturalizeFragment(creativityConflicts[0].rule.narrative.conflict)}`)
+    const fusEnX = RULE_NARRATIVE_EN[creativityConflicts[0].rule.id]?.conflict
+    if (fusEnX) p3piecesEn.push(`That said, ${fusEnX}`)
+  }
   const p3ko = p3pieces.length
     ? weaveParagraph(p3pieces, 'creativity')
     : paragraph([
@@ -292,18 +311,6 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
 }
 
 // ─── helpers ─────────────────────────────────────────────────
-function collectShinsal(saju: BuilderInput['saju']): string[] {
-  const u = saju.ultraAdvanced as unknown as {
-    shinsal?: {
-      luckyList?: Array<{ kind?: string }>
-      list?: Array<{ kind?: string }>
-    }
-  }
-  const luck = u?.shinsal?.luckyList ?? []
-  const all = u?.shinsal?.list ?? []
-  return [...luck, ...all].map((x) => x?.kind ?? '').filter(Boolean)
-}
-
 function openerKo(sangwan: number, sikshin: number, hasHwagae: boolean): string {
   if (sangwan >= 3)
     return '재능의 자유로운 발산이 매우 강해서, 만들지 않으면 답답해지는 모습이에요.'

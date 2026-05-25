@@ -354,4 +354,45 @@ export const RULE_NARRATIVE_EN: Record<string, RuleNarrativeEn> = {
     conflict:
       'balancing surplus drive with real rest is a lifelong task — learning to stop is what keeps the body going long.',
   },
+
+  // ── children ───────────────────────────────────────────
+  'children.state.bright-creative-bond': {
+    confirm:
+      'children and the next generation connect through a bright, creative bond — time spent making and playing together deepens the tie.',
+  },
+  'children.state.devoted-careful': {
+    confirm: 'children may come later or fewer, but the bond runs deep with devotion.',
+    conflict: 'longing and caution sit together — balancing timing and readiness is the task.',
+  },
+
+  // ── wisdom ─────────────────────────────────────────────
+  'wisdom.state.scholar-path': {
+    confirm:
+      'learning, research and teaching become a lifelong asset — the deeper you dig, the more the path opens.',
+  },
+  'wisdom.state.intuitive-insight': {
+    confirm:
+      'beyond raw data you grasp things through intuition and insight — an unusual angle of understanding is your strength.',
+  },
+
+  // ── creativity ─────────────────────────────────────────
+  'creativity.state.expressive-gift': {
+    confirm:
+      'a clear gift for expression and creation — the more you put your work out, the more it shines.',
+  },
+  'creativity.state.solitary-art': {
+    confirm: 'solitary depth is what gives your work its distinctive color.',
+    conflict:
+      'between immersion and isolation — keeping one channel open to the world brings balance.',
+  },
+
+  // ── spirituality ───────────────────────────────────────
+  'spirituality.state.mystic-bent': {
+    confirm:
+      'a spiritual, mystical leaning is a lifelong theme — solitary reflection becomes your path.',
+  },
+  'spirituality.state.empty-gate': {
+    confirm: 'an unfillable emptiness becomes, unexpectedly, a doorway into the spiritual.',
+    conflict: 'peace and void sit together — filling that space with reflection is the task.',
+  },
 }

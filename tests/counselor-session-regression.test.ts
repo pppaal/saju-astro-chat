@@ -43,7 +43,7 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
   it('system prompt 에 ||FOLLOWUP|| 마커 룰 (#306)', () => {
     expect(route).toContain('||FOLLOWUP||')
     expect(route).toMatch(/정확히 2개/)
-    expect(route).toMatch(/Exactly 2 items/)
+    expect(route).toMatch(/Exactly 2\b/)
   })
 
   it('[Meta] 라인에 raw birthDate / birthTime / location / timezone (#306)', () => {
@@ -104,7 +104,7 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
   it('system prompt 에 ||FOLLOWUP|| 마커 룰 (#306)', () => {
     expect(route).toContain('||FOLLOWUP||')
     expect(route).toMatch(/정확히 2개/)
-    expect(route).toMatch(/Exactly 2 items/)
+    expect(route).toMatch(/Exactly 2\b/)
   })
 
   it('[Meta] cachedUserContext 안에 A/B 각자 emit (#306)', () => {
@@ -169,7 +169,9 @@ describe('BirthInfoModal handleSave — DB sync (#306)', () => {
   })
 
   it('payload 에 birthDate / birthTime / gender / birthCity', () => {
-    expect(modal).toMatch(/JSON\.stringify\(\{[\s\S]*birthDate[\s\S]*birthTime[\s\S]*gender[\s\S]*birthCity/)
+    expect(modal).toMatch(
+      /JSON\.stringify\(\{[\s\S]*birthDate[\s\S]*birthTime[\s\S]*gender[\s\S]*birthCity/
+    )
   })
 
   it('PATCH 실패 catch (게스트 401 swallow)', () => {
