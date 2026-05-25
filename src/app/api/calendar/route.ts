@@ -949,15 +949,79 @@ export const GET = withApiMiddleware(
       )
     }
 
+    // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
+    // v3가 grade/tier/점수밴드 문구를 "화면 표시 점수(v2)" 기준으로 만들도록, 보는
+    // 달 ±1의 v2 셀 점수를 미리 뽑아 engineScores로 넘긴다. 표시 숫자와 카드 문구
+    // 톤("흐름이 강한/약한")을 한 점수로 정렬하기 위함. 실패해도 비어 있으면 v3가
+    // 기존 사주·점성 blend로 폴백(현행 동작).
+    // NOTE: 아래 v2 augmentation 블록이 같은 셀을 다시 계산하지만 getOrBuildMonth는
+    //       캐시 HIT이라 점수맵 추출 비용만 추가된다 — 정합성 우선, 셀 재계산 없음.
+    const engineScoreByDate: Record<string, number> = {}
+    const ceMonthParam = searchParams.get('month')
+    const ceMonthMatch = ceMonthParam?.match(/^(\d{4})-(\d{1,2})$/)
+    const ceTargetYear = ceMonthMatch ? Number(ceMonthMatch[1]) : year
+    const ceTargetMonth = ceMonthMatch ? Number(ceMonthMatch[2]) - 1 : new Date().getMonth()
+    try {
+      const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
+      const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
+      const ceNatal = await buildNatalContext(
+        {
+          birthDate: birthDateParam,
+          birthTime: birthTimeParam || '12:00',
+          gender: gender.toLowerCase() === 'female' ? 'female' : 'male',
+          latitude: coords.lat,
+          longitude: coords.lng,
+          timeZone: timezone,
+        },
+        {
+          saju: sajuResult,
+          astroChart: isNatalChartData(astroProfile.natalChart)
+            ? astroProfile.natalChart
+            : undefined,
+        }
+      )
+      const birthKey = makeBirthKey({
+        birthDate: birthDateParam,
+        birthTime: birthTimeParam || '12:00',
+        birthPlace,
+        gender: gender || 'Male',
+      })
+      for (const offset of [-1, 0, 1]) {
+        const d = new Date(ceTargetYear, ceTargetMonth + offset, 1)
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        const rangeEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
+        const { cells } = await getOrBuildMonth({
+          birthKey,
+          monthKey,
+          natal: ceNatal,
+          range: { start: d.toISOString(), end: rangeEnd.toISOString(), granularity: 'day' },
+          options: { includeEvidence: true },
+        })
+        for (const c of cells) {
+          const k = c.datetime.slice(0, 10)
+          if (typeof c.derivedScore === 'number') engineScoreByDate[k] = c.derivedScore
+        }
+      }
+    } catch (err) {
+      logger.warn?.(
+        '[calendar-engine v2 prescore] skipped:',
+        err instanceof Error ? err.message : String(err)
+      )
+    }
+    const hasEngineScores = Object.keys(engineScoreByDate).length > 0
+
     // 로컬 계산으로 중요 날짜 가져오기 (Redis 캐싱 적용)
-    const cacheKey = CacheKeys.yearlyCalendar(
-      birthDateParam,
-      birthTimeParam,
-      gender,
-      year,
-      category || undefined,
-      birthPlace
-    )
+    // engineScores는 보는 달 ±1에 종속이라, 주입될 때만 cacheKey에 그 달을 포함시켜
+    // 다른 달 조회 시 stale narrative(이전 달 점수로 만든 문구)가 안 나오게 한다.
+    const cacheKey =
+      CacheKeys.yearlyCalendar(
+        birthDateParam,
+        birthTimeParam,
+        gender,
+        year,
+        category || undefined,
+        birthPlace
+      ) + (hasEngineScores ? `|m${ceTargetYear}-${String(ceTargetMonth + 1).padStart(2, '0')}` : '')
     const localDates = await cacheOrCalculate(
       cacheKey,
       async () =>
@@ -978,6 +1042,7 @@ export const GET = withApiMiddleware(
           ).dailyTransitTightest,
           dailyRetrograde: (astroProfile as { dailyRetrograde?: Record<string, string[]> })
             .dailyRetrograde,
+          engineScores: hasEngineScores ? engineScoreByDate : undefined,
         }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )
