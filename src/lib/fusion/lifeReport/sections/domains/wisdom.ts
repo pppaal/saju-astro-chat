@@ -27,6 +27,7 @@ import {
   houseLabel,
   iGa,
   paragraph,
+  weaveParagraph,
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
@@ -269,11 +270,9 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
       `Your Lot of Daimon sits in ${signLabel(daimon.sign, 'en')} — the place where real wisdom grows in you shares that same flavor.`
     )
   }
-  const p3ko = paragraph(
-    p3pieces.length
-      ? p3pieces
-      : ['지금 흐름에선 새로운 지식보다 이미 알고 있는 것을 깊이 다지는 시기가 잘 맞아요.']
-  )
+  const p3ko = p3pieces.length
+    ? weaveParagraph(p3pieces, 'wisdom')
+    : paragraph(['지금 흐름에선 새로운 지식보다 이미 알고 있는 것을 깊이 다지는 시기가 잘 맞아요.'])
   const p3en = paragraph(
     p3piecesEn.length
       ? p3piecesEn

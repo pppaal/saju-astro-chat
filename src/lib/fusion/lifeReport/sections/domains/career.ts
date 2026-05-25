@@ -35,6 +35,7 @@ import {
   houseLabel,
   naturalizeFragment,
   paragraph,
+  weaveParagraph,
   planetLabel,
   signLabel,
   varyRepeatedEndings,
@@ -460,13 +461,11 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `Your Jupiter/Saturn midpoint — the point of realized success — sits in ${signLabel(successMid.sign, 'en')}, where structured growth and grounded achievement gather.`
     )
   }
-  const p3ko = paragraph(
-    deepPieces.length
-      ? varyRepeatedEndings(deepPieces)
-      : [
-          '지금 흐름이 평탄하게 정렬돼 있어, 한쪽으로 치우치기보다 다양한 가능성이 함께 무르익는 시기예요.',
-        ]
-  )
+  const p3ko = deepPieces.length
+    ? weaveParagraph(deepPieces, 'career')
+    : paragraph([
+        '지금 흐름이 평탄하게 정렬돼 있어, 한쪽으로 치우치기보다 다양한 가능성이 함께 무르익는 시기예요.',
+      ])
   const p3en = paragraph(
     deepPiecesEn.length
       ? deepPiecesEn

@@ -26,6 +26,7 @@ import {
   iGa,
   naturalizeFragment,
   paragraph,
+  weaveParagraph,
   planetLabel,
   signLabel,
 } from '../../templates/sentences'
@@ -324,9 +325,9 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
       added++
     }
   }
-  const p3ko = paragraph(
-    deepKo.length ? deepKo : ['건강의 흐름은 극단보다는 일상의 작은 누적이 만들어요.']
-  )
+  const p3ko = deepKo.length
+    ? weaveParagraph(deepKo, 'health')
+    : paragraph(['건강의 흐름은 극단보다는 일상의 작은 누적이 만들어요.'])
   const p3en = paragraph(
     deepEn.length
       ? deepEn

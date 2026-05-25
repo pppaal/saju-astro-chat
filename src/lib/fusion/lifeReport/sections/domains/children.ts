@@ -24,7 +24,13 @@ import {
   pallas,
   planetsInHouse,
 } from '../../signals/astroSignals'
-import { houseLabel, paragraph, planetLabel, signLabel } from '../../templates/sentences'
+import {
+  houseLabel,
+  paragraph,
+  planetLabel,
+  signLabel,
+  weaveParagraph,
+} from '../../templates/sentences'
 
 interface ChildEstimate {
   min: number
@@ -269,13 +275,11 @@ export function buildChildren(input: BuilderInput): DomainNarrative {
     if (relEnChildren)
       deepEn.push(`${relEnChildren} The tone of the bond with your child is set early.`)
   }
-  const p3ko = paragraph(
-    deepKo.length
-      ? deepKo
-      : [
-          '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.',
-        ]
-  )
+  const p3ko = deepKo.length
+    ? weaveParagraph(deepKo, 'children')
+    : paragraph([
+        '자녀와의 인연은 일상의 흐름을 따라 자연스럽게 흘러요. 큰 드라마보다 잔잔한 연속이 특징이에요.',
+      ])
   const p3en = paragraph(
     deepEn.length
       ? deepEn

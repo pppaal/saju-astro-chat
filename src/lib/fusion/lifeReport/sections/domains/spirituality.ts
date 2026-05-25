@@ -15,7 +15,14 @@ import {
   relationPhraseKo,
 } from '../../signals/sajuSignals'
 import { chiron, getPlanet, houseCusp, planetsInHouse, vesta } from '../../signals/astroSignals'
-import { houseLabel, iGa, paragraph, planetLabel, signLabel } from '../../templates/sentences'
+import {
+  houseLabel,
+  iGa,
+  paragraph,
+  planetLabel,
+  signLabel,
+  weaveParagraph,
+} from '../../templates/sentences'
 import { findAsteroidEntry } from '@/lib/astrology/asteroidDictionary'
 import type { ZodiacName } from '@/lib/astrology/interpretations'
 import { jijangganLine } from '../../pools'
@@ -261,13 +268,11 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
       `Your Lot of Captivity sits in ${signLabel(captivity.sign, 'en')} — that is the place where the spiritual knot you came here to untie tends to gather.`
     )
   }
-  const p3ko = paragraph(
-    p3pieces.length
-      ? p3pieces
-      : [
-          '지금 흐름이 평이하게 정렬돼 있어, 특정 종교나 수행보다는 일상에 영성을 천천히 녹이는 길이 잘 맞아요.',
-        ]
-  )
+  const p3ko = p3pieces.length
+    ? weaveParagraph(p3pieces, 'spirituality')
+    : paragraph([
+        '지금 흐름이 평이하게 정렬돼 있어, 특정 종교나 수행보다는 일상에 영성을 천천히 녹이는 길이 잘 맞아요.',
+      ])
   const p3en = paragraph(
     p3piecesEn.length
       ? p3piecesEn

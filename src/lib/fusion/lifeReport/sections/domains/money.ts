@@ -30,6 +30,7 @@ import {
   naturalizeFragment,
   paragraph,
   signLabel,
+  weaveParagraph,
 } from '../../templates/sentences'
 import {
   pickVariation,
@@ -355,9 +356,9 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     deepKo.push(firstSentenceMoney(moneyAspect.ko))
     deepEn.push(firstSentenceMoney(moneyAspect.en))
   }
-  const p3ko = paragraph(
-    deepKo.length ? deepKo : ['재물의 흐름은 큰 폭의 변동보다 꾸준한 누적의 길이 더 잘 어울려요.']
-  )
+  const p3ko = deepKo.length
+    ? weaveParagraph(deepKo, 'money')
+    : paragraph(['재물의 흐름은 큰 폭의 변동보다 꾸준한 누적의 길이 더 잘 어울려요.'])
   const p3en = paragraph(
     deepEn.length
       ? deepEn

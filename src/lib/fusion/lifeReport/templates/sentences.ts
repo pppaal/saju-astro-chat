@@ -195,6 +195,33 @@ export function paragraph(parts: string[]): string {
   return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
 }
 
+// Deep paragraphs are assembled from many independent fragments, which reads
+// as a flat "A. B. C." list. weaveParagraph makes it flow: drops exact-dup
+// sentences, varies repeated endings, and threads in ONE light additive
+// connector ("또") on a plain parallel sentence — never on opener-style lines
+// ("…보면,"), lot/midpoint lines ("…점은"), so meaning is never distorted.
+export function weaveParagraph(parts: string[], seed = ''): string {
+  const xs = parts.map((p) => (p ?? '').trim()).filter(Boolean)
+  // 1) drop exact-duplicate sentences (e.g. two pools landing the same line).
+  const seen = new Set<string>()
+  const dedup = xs.filter((s) => (seen.has(s) ? false : (seen.add(s), true)))
+  // 2) vary repeated stock endings.
+  const varied = varyRepeatedEndings(dedup)
+  // 3) attach a single "또" to one interior, plain declarative sentence.
+  const eligible = (s: string) =>
+    s.length >= 16 &&
+    !/보면|점은|점이|점\(|미드포인트|행운점|이번 생|지금|당신|일상 가이드/.test(s) &&
+    !/^(그리고|다만|또|또한|한편|여기에|거기에|그래서|하지만|게다가|특히)/.test(s)
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) % 997
+  const interior = varied
+    .map((_, i) => i)
+    .filter((i) => i > 0 && i < varied.length - 1 && eligible(varied[i]))
+  const pick = interior.length ? interior[h % interior.length] : -1
+  const woven = varied.map((s, i) => (i === pick ? `또 ${s}` : s))
+  return woven.join(' ').replace(/\s+/g, ' ').trim()
+}
+
 // 교차규칙 narrative 는 "기술적 근거 — 실제 의미" 구조로 적혀 있다(예:
 // "사주 정재격 + 점성 Saturn 2궁 — 천천히 쌓는 재물 결"). 사용자 리포트엔
 // em-dash 뒤 '의미'만 노출하고, 혹시 남는 원시 용어(영문 행성명·점성 약어·
