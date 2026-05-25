@@ -788,19 +788,6 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   </div>
-
-                  <div className="mt-3 grid grid-cols-2 gap-2.5">
-                    <UsageMini
-                      label={locale === 'ko' ? '궁합 상담' : 'Compatibility'}
-                      used={credits.compatibility.used}
-                      limit={credits.compatibility.limit}
-                    />
-                    <UsageMini
-                      label={locale === 'ko' ? '추가 질문' : 'Follow-ups'}
-                      used={credits.followUp.used}
-                      limit={credits.followUp.limit}
-                    />
-                  </div>
                 </>
               )}
             </section>
@@ -922,14 +909,10 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 grid grid-cols-3 gap-2.5">
+                  <div className="mt-3 grid grid-cols-2 gap-2.5">
                     <ReferralStat
                       label={locale === 'ko' ? '가입' : 'Joined'}
                       value={referral.stats.total}
-                    />
-                    <ReferralStat
-                      label={locale === 'ko' ? '분석 완료' : 'Completed'}
-                      value={referral.stats.completed}
                     />
                     <ReferralStat
                       label={locale === 'ko' ? '받은 크레딧' : 'Credits earned'}
@@ -1156,30 +1139,6 @@ function ReferralStat({
       <p className="mt-1.5 text-[10.5px] font-medium uppercase tracking-[0.14em] text-[#a8a29e]">
         {label}
       </p>
-    </div>
-  )
-}
-
-function UsageMini({ label, used, limit }: { label: string; used: number; limit: number }) {
-  // limit === -1 is the "unlimited" sentinel in PLAN_CONFIG.
-  const unlimited = limit < 0
-  const pct = unlimited ? 0 : limit === 0 ? 0 : Math.min(100, Math.round((used / limit) * 100))
-  return (
-    <div className="rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] px-3.5 py-3">
-      <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-[#a8a29e]">
-        {label}
-      </p>
-      <p className="mt-1 text-[13px] font-medium text-[#292524]">
-        {unlimited ? `${used} / ∞` : `${used} / ${limit}`}
-      </p>
-      {!unlimited && limit > 0 && (
-        <div className="mt-2 h-1 overflow-hidden rounded-full bg-[#ece9e4]">
-          <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${pct}%`, background: GOLD }}
-          />
-        </div>
-      )}
     </div>
   )
 }
