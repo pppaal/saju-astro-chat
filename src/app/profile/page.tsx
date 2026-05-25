@@ -352,6 +352,20 @@ export default function ProfilePage() {
     }
   }, [])
 
+  // 지인 추가/변경 후 전체 페이지를 다시 로드하면 전역 loading 이 켜져
+  // 모든 섹션이 '불러오는 중...'으로 깜빡인다. 지인 목록만 조용히 갱신한다.
+  const refreshCircle = useCallback(async () => {
+    try {
+      const res = await fetch('/api/me/circle')
+      if (!res.ok) return
+      const json = await res.json()
+      const people = json?.data?.people || json?.people || []
+      setCircle(Array.isArray(people) ? people : [])
+    } catch (err) {
+      logger.warn('[profile/circle] refresh failed', err)
+    }
+  }, [])
+
   useEffect(() => {
     if (status === 'authenticated') void loadAll()
   }, [status, loadAll])
@@ -1112,7 +1126,7 @@ export default function ProfilePage() {
           open={circleOpen}
           onClose={() => setCircleOpen(false)}
           locale={locale}
-          onAdded={() => void loadAll()}
+          onAdded={() => void refreshCircle()}
         />
       </div>
     </AuthGate>
