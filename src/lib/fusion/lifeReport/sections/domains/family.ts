@@ -23,6 +23,7 @@ import {
 import {
   aspectQuality,
   houseLabel,
+  naturalizeFragment,
   paragraph,
   signLabel,
   varyRepeatedEndings,
@@ -199,11 +200,11 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
   }
   // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
   if (familyConfirms.length > 0) {
-    deepKo.push(`그리고 ${familyConfirms[0].rule.narrative.confirm}`)
+    deepKo.push(`그리고 ${naturalizeFragment(familyConfirms[0].rule.narrative.confirm)}`)
   }
   const familyConflicts = fusion?.byDomain?.family?.conflicts ?? []
   if (familyConflicts[0]?.rule.narrative.conflict) {
-    deepKo.push(`다만 ${familyConflicts[0].rule.narrative.conflict}`)
+    deepKo.push(`다만 ${naturalizeFragment(familyConflicts[0].rule.narrative.conflict)}`)
   }
   // Calendar-engine: Lot of Victory (인연의 행운점) — 친구·후원의 결
   const victory = input.calendarSignals?.arabicParts?.Victory

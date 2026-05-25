@@ -24,6 +24,7 @@ import {
   elementLabel,
   houseLabel,
   iGa,
+  naturalizeFragment,
   paragraph,
   planetLabel,
   signLabel,
@@ -196,11 +197,11 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
   }
   // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
   if (healthConfirms.length > 0) {
-    deepKo.push(`그리고 ${healthConfirms[0].rule.narrative.confirm}`)
+    deepKo.push(`그리고 ${naturalizeFragment(healthConfirms[0].rule.narrative.confirm)}`)
   }
   const healthConflicts = fusion?.byDomain?.health?.conflicts ?? []
   if (healthConflicts[0]?.rule.narrative.conflict) {
-    deepKo.push(`다만 ${healthConflicts[0].rule.narrative.conflict}`)
+    deepKo.push(`다만 ${naturalizeFragment(healthConflicts[0].rule.narrative.conflict)}`)
   }
   // Saju relations — 형(reshape) / 충(clash) often surface as body-stress
   // patterns. Bias the pick toward those kinds.

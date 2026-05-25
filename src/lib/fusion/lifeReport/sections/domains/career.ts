@@ -33,6 +33,7 @@ import {
 import {
   aspectQuality,
   houseLabel,
+  naturalizeFragment,
   paragraph,
   planetLabel,
   signLabel,
@@ -439,11 +440,11 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
   // 융합 규칙 문구는 한국어만 존재(영문 원문 없음) → EN 리포트엔 넣지 않아
   // 한글이 영문에 누출되지 않게 한다.
   if (careerConfirms.length > 0) {
-    deepPieces.push(`그리고 ${careerConfirms[0].rule.narrative.confirm}`)
+    deepPieces.push(`그리고 ${naturalizeFragment(careerConfirms[0].rule.narrative.confirm)}`)
   }
   const careerConflicts = fusion?.byDomain?.career?.conflicts ?? []
   if (careerConflicts[0]?.rule.narrative.conflict) {
-    deepPieces.push(`다만 ${careerConflicts[0].rule.narrative.conflict}`)
+    deepPieces.push(`다만 ${naturalizeFragment(careerConflicts[0].rule.narrative.conflict)}`)
   }
   const p3ko = paragraph(
     deepPieces.length

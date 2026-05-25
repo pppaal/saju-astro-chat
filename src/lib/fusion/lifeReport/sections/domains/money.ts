@@ -24,7 +24,13 @@ import {
   planetsInHouse,
   solarReturnPlanetsInHouse,
 } from '../../signals/astroSignals'
-import { aspectQuality, houseLabel, paragraph, signLabel } from '../../templates/sentences'
+import {
+  aspectQuality,
+  houseLabel,
+  naturalizeFragment,
+  paragraph,
+  signLabel,
+} from '../../templates/sentences'
 import {
   pickVariation,
   sibsinCategoryPool,
@@ -208,11 +214,11 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
   }
   // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
   if (moneyConfirms.length > 0) {
-    deepKo.push(`그리고 ${moneyConfirms[0].rule.narrative.confirm}`)
+    deepKo.push(`그리고 ${naturalizeFragment(moneyConfirms[0].rule.narrative.confirm)}`)
   }
   const moneyConflicts = fusion?.byDomain?.money?.conflicts ?? []
   if (moneyConflicts[0]?.rule.narrative.conflict) {
-    deepKo.push(`다만 ${moneyConflicts[0].rule.narrative.conflict}`)
+    deepKo.push(`다만 ${naturalizeFragment(moneyConflicts[0].rule.narrative.conflict)}`)
   }
   // Saju relations — year/month axis often reflects family-resource flow.
   const relKoMoney = relationPhraseKo(input.calendarSignals?.sajuRelations, {

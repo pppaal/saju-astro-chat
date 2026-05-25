@@ -194,3 +194,47 @@ export function varyRepeatedEndings(parts: string[]): string[] {
 export function paragraph(parts: string[]): string {
   return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
 }
+
+// 교차규칙 narrative 는 "기술적 근거 — 실제 의미" 구조로 적혀 있다(예:
+// "사주 정재격 + 점성 Saturn 2궁 — 천천히 쌓는 재물 결"). 사용자 리포트엔
+// em-dash 뒤 '의미'만 노출하고, 혹시 남는 원시 용어(영문 행성명·점성 약어·
+// 고전 한자어)는 자연스러운 한국어로 치환한다. 근거 절이 없으면 원문 유지.
+const FRAGMENT_JARGON: Array<[RegExp, string]> = [
+  [/\bSun\b/g, '태양'],
+  [/\bMoon\b/g, '달'],
+  [/\bMercury\b/g, '수성'],
+  [/\bVenus\b/g, '금성'],
+  [/\bMars\b/g, '화성'],
+  [/\bJupiter\b/g, '목성'],
+  [/\bSaturn\b/g, '토성'],
+  [/\bUranus\b/g, '천왕성'],
+  [/\bNeptune\b/g, '해왕성'],
+  [/\bPluto\b/g, '명왕성'],
+  [/\b(?:ASC|Ascendant)\b/g, '상승궁'],
+  [/\bstellium\b/gi, '밀집'],
+  [/\bdignit(?:y|ied)\b/gi, '제 자리'],
+  [/\bexaltation\b/gi, '고양'],
+  [/\bdomicile\b/gi, '본거지'],
+  [/\bangular\b/gi, '중심축'],
+  [/\bHellenistic\b/gi, '서양 고전'],
+  [/\bchapter\b/gi, '전환'],
+  [/\bfire\b/gi, '불'],
+  [/\bwater\b/gi, '물'],
+  [/\bair\b/gi, '공기'],
+  [/\bearth\b/gi, '흙'],
+  [/재성 운에 형통/g, '재물의 시기에 크게 풀림'],
+  [/관성 운에 형통/g, '직책·책임의 시기에 크게 풀림'],
+  [/형통하는/g, '크게 풀리는'],
+  [/형통/g, '크게 풀림'],
+]
+export function naturalizeFragment(text: string): string {
+  if (!text) return ''
+  let s = text.trim()
+  const dash = s.indexOf('—')
+  if (dash >= 0) {
+    const meaning = s.slice(dash + 1).trim()
+    if (meaning) s = meaning
+  }
+  for (const [re, rep] of FRAGMENT_JARGON) s = s.replace(re, rep)
+  return s.trim()
+}

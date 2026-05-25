@@ -31,6 +31,7 @@ import {
   eulReul,
   houseLabel,
   iGa,
+  naturalizeFragment,
   paragraph,
   signLabel,
   varyRepeatedEndings,
@@ -391,11 +392,11 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   }
   // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
   if (loveConfirms.length > 0) {
-    deepKo.push(`그리고 ${loveConfirms[0].rule.narrative.confirm}`)
+    deepKo.push(`그리고 ${naturalizeFragment(loveConfirms[0].rule.narrative.confirm)}`)
   }
   const loveConflicts = fusion?.byDomain?.love?.conflicts ?? []
   if (loveConflicts[0]?.rule.narrative.conflict) {
-    deepKo.push(`다만 ${loveConflicts[0].rule.narrative.conflict}`)
+    deepKo.push(`다만 ${naturalizeFragment(loveConflicts[0].rule.narrative.conflict)}`)
   }
   // Venus/Mars midpoint (열정의 점) — attraction & desire axis.
   const passionMid = input.calendarSignals?.midpoints?.find((m) => m.id === 'Venus/Mars')
