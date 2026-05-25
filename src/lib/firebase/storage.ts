@@ -30,7 +30,7 @@ function getFirebaseStorage(): FirebaseStorage | null {
   try {
     const config = JSON.parse(configString)
     app = getApps().length > 0 ? getApp() : initializeApp(config)
-    storage = getStorage(app);
+    storage = getStorage(app)
     return storage
   } catch {
     return null
@@ -48,10 +48,11 @@ export interface UploadResult {
 }
 
 /**
- * 매칭 프로필 사진 업로드
- * 브라우저에서 직접 Firebase Storage로 업로드
+ * Firebase Storage 로 이미지 업로드 (브라우저에서 직접).
+ * folder 로 용도를 구분: match-photos / profile-photos.
  */
-export async function uploadMatchPhoto(
+function uploadImageToFolder(
+  folder: string,
   file: File,
   userId: string,
   onProgress?: (progress: UploadProgress) => void
@@ -73,7 +74,7 @@ export async function uploadMatchPhoto(
   // 파일 경로 생성
   const ext = file.name.split('.').pop() || 'jpg'
   const timestamp = Date.now()
-  const path = `match-photos/${userId}/${timestamp}.${ext}`
+  const path = `${folder}/${userId}/${timestamp}.${ext}`
   const storageRef = ref(firebaseStorage, path)
 
   // 업로드
@@ -99,13 +100,35 @@ export async function uploadMatchPhoto(
         try {
           const url = await getDownloadURL(uploadTask.snapshot.ref)
           onProgress?.({ progress: 100, state: 'success' })
-          resolve({ url, path });
-        } catch (error) {
+          resolve({ url, path })
+        } catch {
           reject(new Error('다운로드 URL을 가져올 수 없습니다.'))
         }
       }
     )
   })
+}
+
+/**
+ * 매칭 프로필 사진 업로드
+ */
+export async function uploadMatchPhoto(
+  file: File,
+  userId: string,
+  onProgress?: (progress: UploadProgress) => void
+): Promise<UploadResult> {
+  return uploadImageToFolder('match-photos', file, userId, onProgress)
+}
+
+/**
+ * 내 프로필 사진 업로드 (프로필 페이지)
+ */
+export async function uploadProfilePhoto(
+  file: File,
+  userId: string,
+  onProgress?: (progress: UploadProgress) => void
+): Promise<UploadResult> {
+  return uploadImageToFolder('profile-photos', file, userId, onProgress)
 }
 
 /**
@@ -117,7 +140,7 @@ export async function deleteMatchPhoto(photoPath: string): Promise<void> {
 
   try {
     const storageRef = ref(firebaseStorage, photoPath)
-    await deleteObject(storageRef);
+    await deleteObject(storageRef)
   } catch {
     // 이미 삭제된 파일이면 무시
   }

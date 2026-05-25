@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useSession, signOut } from 'next-auth/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -28,6 +28,7 @@ import {
   Check,
   UserPlus,
   LogOut,
+  Camera,
 } from 'lucide-react'
 import AuthGate from '@/components/auth/AuthGate'
 import BrandSplash from '@/components/branding/BrandSplash'
@@ -36,6 +37,7 @@ import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { logger } from '@/lib/logger'
 import { ProfileEditModal } from './components/ProfileEditModal'
 import { CircleAddModal } from './components/CircleAddModal'
+import { uploadProfilePhoto } from '@/lib/firebase/storage'
 
 type Locale = 'ko' | 'en'
 
@@ -272,7 +274,7 @@ function relationLabel(r: string, locale: Locale): string {
 }
 
 export default function ProfilePage() {
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const { locale: rawLocale } = useI18n()
   const locale: Locale = rawLocale === 'en' ? 'en' : 'ko'
   const signInUrl = buildSignInUrl('/profile')
@@ -301,6 +303,9 @@ export default function ProfilePage() {
   const [savingName, setSavingName] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState(false)
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
   const [circleOpen, setCircleOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
@@ -369,6 +374,44 @@ export default function ProfilePage() {
   useEffect(() => {
     if (status === 'authenticated') void loadAll()
   }, [status, loadAll])
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (e.target) e.target.value = '' // 같은 파일 재선택 가능하게
+    if (!file) return
+
+    const userId = session?.user?.id
+    if (!userId) {
+      setPhotoError(locale === 'ko' ? '로그인이 필요합니다.' : 'Login required.')
+      return
+    }
+
+    setPhotoError(null)
+    setPhotoUploading(true)
+    try {
+      const { url } = await uploadProfilePhoto(file, userId)
+      const res = await fetch('/api/me/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: url }),
+      })
+      if (!res.ok) {
+        throw new Error('save_failed')
+      }
+      setProfile((prev) => (prev ? { ...prev, image: url } : prev))
+    } catch (err) {
+      logger.warn('[profile/photo] upload failed', err)
+      setPhotoError(
+        err instanceof Error && err.message !== 'save_failed'
+          ? err.message
+          : locale === 'ko'
+            ? '사진 업로드에 실패했어요. 다시 시도해 주세요.'
+            : 'Photo upload failed. Please try again.'
+      )
+    } finally {
+      setPhotoUploading(false)
+    }
+  }
 
   const handleDeletePerson = async (id: string, name: string) => {
     const ok = window.confirm(
@@ -500,7 +543,14 @@ export default function ProfilePage() {
           <div className="mx-auto max-w-2xl px-5 pb-24 pt-16 sm:px-6 sm:pt-20">
             {/* Hero */}
             <header className="flex flex-col items-center gap-4 text-center">
-              <div className="rounded-full bg-gradient-to-br from-[#d8b878] to-[#a07a3c] p-[2px] shadow-[0_10px_30px_rgba(160,122,60,0.22)]">
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={photoUploading}
+                className="relative rounded-full bg-gradient-to-br from-[#d8b878] to-[#a07a3c] p-[2px] shadow-[0_10px_30px_rgba(160,122,60,0.22)] disabled:cursor-default"
+                aria-label={locale === 'ko' ? '프로필 사진 변경' : 'Change profile photo'}
+                title={locale === 'ko' ? '프로필 사진 변경' : 'Change profile photo'}
+              >
                 {profile?.image ? (
                   <Image
                     src={profile.image}
@@ -517,7 +567,24 @@ export default function ProfilePage() {
                     {profile?.name?.[0]?.toUpperCase() || '·'}
                   </div>
                 )}
-              </div>
+                {photoUploading ? (
+                  <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-xs font-medium text-white">
+                    {locale === 'ko' ? '업로드 중…' : 'Uploading…'}
+                  </span>
+                ) : (
+                  <span className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1c1917] text-white shadow">
+                    <Camera className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </button>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handlePhotoSelect}
+                className="hidden"
+              />
+              {photoError && <p className="text-[12px] text-red-600">{photoError}</p>}
               <div>
                 {editingName ? (
                   <form
