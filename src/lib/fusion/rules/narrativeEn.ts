@@ -220,6 +220,10 @@ export const RULE_NARRATIVE_EN: Record<string, RuleNarrativeEn> = {
   'love.state.communication-bond': {
     confirm: 'deep bonds built through conversation and understanding are your grain.',
   },
+  'love.state.graced-affection': {
+    confirm:
+      'benefics support your Venus and lucky stars back you up — grace and help flow naturally into your relationships; being blessed with good people is one of your life assets.',
+  },
 
   // ── family ─────────────────────────────────────────────
   'family.state.parental-palace': {
