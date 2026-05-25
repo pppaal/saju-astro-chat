@@ -35,10 +35,7 @@ import {
 import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLanguage'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 export { generateBestTimes, generateSummary } from './calendarSummarySupport'
-import {
-  generateBestTimes,
-  generateSummary,
-} from './calendarSummarySupport'
+import { generateBestTimes, generateSummary } from './calendarSummarySupport'
 import {
   applyMatrixDisplayScoreBias,
   attachMatrixVerdict,
@@ -503,7 +500,7 @@ export function formatDateForResponse(
   koTranslations: TranslationData,
   enTranslations: TranslationData,
   matrixContext?: MatrixCalendarContext,
-  matrixEvidencePackets?: CalendarMatrixEvidencePacketMap,
+  matrixEvidencePackets?: CalendarMatrixEvidencePacketMap
 ): FormattedDate {
   const translations = locale === 'ko' ? koTranslations : enTranslations
   const lang = locale === 'ko' ? 'ko' : 'en'
@@ -652,27 +649,16 @@ export function formatDateForResponse(
   const coherenceConfidence = date.confidence ?? evidenceWithVerdict.confidence
   const coherenceAgreement = date.crossAgreementPercent ?? evidenceWithVerdict.crossAgreementPercent
   const lowCoherence = isLowCoherenceSignal(coherenceConfidence, coherenceAgreement)
+  // 제목·점수·등급은 v2 점수를 따르는 v3 풀(defaultTitle)로 단일화한다.
+  // 과거엔 교차일치 낮음(forceConservativeMode)·매트릭스 방어국면
+  // (highGradePhaseConflict)이 제목을 "해석 갈림/조심하는 날"로 덮고 점수까지
+  // 끌어내려, 80점인데 제목은 경고인 모순이 났다. 이제 그 신호는 제목을 바꾸지
+  // 않고 경고(warning)로만 surface한다 (forceConservativeMode는 아래 경고/추천 게이트에서 유지).
   const forceConservativeMode = effectiveGrade <= 1 && lowCoherence
-  const highGradePhaseConflict =
-    effectiveGrade <= 1 &&
-    isDefensivePhaseLabel(matrixVerdict?.phase) &&
-    (matrixVerdict?.attackPercent ?? 50) <= 58
-
   const defaultTitle = sanitizeCalendarCopy(getTranslation(date.titleKey, translations), lang)
-  const title = forceConservativeMode
-    ? lang === 'ko'
-      ? '해석 갈림'
-      : 'Mixed signals'
-    : highGradePhaseConflict
-      ? lang === 'ko'
-        ? '⚠ 조심하는 날'
-        : '⚠ Caution day'
-      : defaultTitle
-  const alignedDisplayScore = highGradePhaseConflict
-    ? Math.min(displayScore, GRADE_THRESHOLDS.grade0 - 1)
-    : displayScore
-  const alignedEffectiveGrade =
-    highGradePhaseConflict && effectiveGrade === 0 ? (1 as ImportanceGrade) : effectiveGrade
+  const title = defaultTitle
+  const alignedDisplayScore = displayScore
+  const alignedEffectiveGrade = effectiveGrade
   const strictWarnings = CALENDAR_MATRIX_STRICT_MODE
     ? buildMatrixStrictWarnings({
         lang,
