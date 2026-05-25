@@ -6,39 +6,12 @@ import { z } from 'zod'
 
 // ============ Payment & Checkout Schemas ============
 
-export const planKeySchema = z.enum(['starter', 'pro', 'premium'])
-
-export const billingCycleSchema = z.enum(['monthly', 'yearly'])
-
 export const creditPackKeySchema = z.enum(['mini', 'standard', 'plus', 'mega', 'ultimate'])
 
-export const checkoutRequestSchema = z
-  .object({
-    plan: planKeySchema.optional(),
-    billingCycle: billingCycleSchema.optional(),
-    creditPack: creditPackKeySchema.optional(),
-  })
-  .refine(
-    (data) => {
-      const hasPlan = !!data.plan
-      const hasCreditPack = !!data.creditPack
-      return (hasPlan && !hasCreditPack) || (!hasPlan && hasCreditPack)
-    },
-    {
-      message: 'Must specify either plan (with optional billingCycle) or creditPack, but not both',
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.plan && !data.billingCycle) {
-        return false
-      }
-      return true
-    },
-    {
-      message: 'billingCycle is required when plan is specified',
-    }
-  )
+// 크레딧 전용 — 구독 결제는 폐지됐고 일회성 크레딧팩만 결제한다.
+export const checkoutRequestSchema = z.object({
+  creditPack: creditPackKeySchema,
+})
 
 export type CheckoutRequestValidated = z.infer<typeof checkoutRequestSchema>
 
@@ -46,15 +19,17 @@ export type CheckoutRequestValidated = z.infer<typeof checkoutRequestSchema>
 
 // Stripe webhook data.object has varying structure based on event type
 // We define common fields and allow additional properties with passthrough()
-export const stripeWebhookObjectSchema = z.object({
-  id: z.string().optional(),
-  object: z.string().optional(),
-  customer: z.string().optional(),
-  status: z.string().optional(),
-  amount: z.number().optional(),
-  currency: z.string().max(3).optional(),
-  metadata: z.record(z.string(), z.string()).optional(),
-}).passthrough()
+export const stripeWebhookObjectSchema = z
+  .object({
+    id: z.string().optional(),
+    object: z.string().optional(),
+    customer: z.string().optional(),
+    status: z.string().optional(),
+    amount: z.number().optional(),
+    currency: z.string().max(3).optional(),
+    metadata: z.record(z.string(), z.string()).optional(),
+  })
+  .passthrough()
 
 export const stripeWebhookEventSchema = z.object({
   id: z.string().min(1),
@@ -106,18 +81,3 @@ export const creditCheckRequestSchema = z.object({
 })
 
 export type CreditCheckRequestValidated = z.infer<typeof creditCheckRequestSchema>
-
-// ============ Admin Schemas ============
-
-export const adminRefundSubscriptionRequestSchema = z
-  .object({
-    subscriptionId: z.string().min(1).max(200).trim().optional(),
-    email: z.string().email().max(200).trim().optional(),
-  })
-  .refine((data) => data.subscriptionId || data.email, {
-    message: 'Either subscriptionId or email must be provided',
-  })
-
-export type AdminRefundSubscriptionRequestValidated = z.infer<
-  typeof adminRefundSubscriptionRequestSchema
->

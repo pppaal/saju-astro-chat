@@ -473,18 +473,6 @@ describe('GET /api/admin/metrics/funnel', () => {
       expect(data.data.data.activations.rate).toBeLessThanOrEqual(100)
     })
 
-    it('should include subscriptions metrics', async () => {
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(data.data.data.subscriptions).toBeDefined()
-      expect(data.data.data.subscriptions.active).toBe(200)
-      expect(data.data.data.subscriptions.new).toBe(25)
-      expect(data.data.data.subscriptions.churned).toBe(5)
-      expect(data.data.data.subscriptions.mrr).toBeGreaterThanOrEqual(0)
-    })
-
     it('should include engagement metrics', async () => {
       const req = createRequest()
       const response = await GET(req)
@@ -495,16 +483,6 @@ describe('GET /api/admin/metrics/funnel', () => {
       expect(data.data.data.engagement.weeklyActiveUsers).toBeGreaterThanOrEqual(0)
       expect(data.data.data.engagement.avgSessionDuration).toBe(7.5)
       expect(data.data.data.engagement.readingsPerUser).toBeGreaterThanOrEqual(0)
-    })
-
-    it('should calculate MRR correctly', async () => {
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // MRR = activeSubscriptions * avgPlanPrice (9900)
-      // 200 * 9900 = 1,980,000
-      expect(data.data.data.subscriptions.mrr).toBe(200 * 9900)
     })
 
     it('should cap readingsPerUser at 10', async () => {
@@ -615,20 +593,6 @@ describe('GET /api/admin/metrics/funnel', () => {
       expect(data.data.data.registrations.total).toBe(0) // Fallback value
     })
 
-    it('should use fallback values when prisma.subscription.count throws', async () => {
-      vi.mocked(prisma.user.count).mockResolvedValue(100)
-      vi.mocked(prisma.subscription.count).mockRejectedValue(new Error('Subscription query failed'))
-      vi.mocked(prisma.reading.count).mockResolvedValue(5)
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // Route uses Promise.allSettled - returns 200 with fallback values
-      expect(response.status).toBe(200)
-      expect(data.data.data.subscriptions.active).toBe(0) // Fallback value
-    })
-
     it('should use fallback values when prisma.reading.count throws', async () => {
       vi.mocked(prisma.user.count).mockResolvedValue(100)
       vi.mocked(prisma.subscription.count).mockResolvedValue(50)
@@ -714,41 +678,6 @@ describe('GET /api/admin/metrics/funnel', () => {
   })
 
   // =========================================================================
-  // Subscription Status Filtering
-  // =========================================================================
-  describe('Subscription Status Filtering', () => {
-    beforeEach(() => {
-      setupHappyPath()
-    })
-
-    it('should query for active and trialing subscriptions', async () => {
-      const subscriptionCountMock = vi.mocked(prisma.subscription.count)
-
-      const req = createRequest()
-      await GET(req)
-
-      // Check that subscription.count was called with status filter
-      expect(subscriptionCountMock).toHaveBeenCalled()
-      const calls = subscriptionCountMock.mock.calls
-      const hasActiveStatusFilter = calls.some((call) =>
-        call[0]?.where?.status?.in?.includes('active')
-      )
-      expect(hasActiveStatusFilter).toBe(true)
-    })
-
-    it('should query for cancelled subscriptions by canceledAt', async () => {
-      const subscriptionCountMock = vi.mocked(prisma.subscription.count)
-
-      const req = createRequest()
-      await GET(req)
-
-      const calls = subscriptionCountMock.mock.calls
-      const hasCanceledAtFilter = calls.some((call) => call[0]?.where?.canceledAt)
-      expect(hasCanceledAtFilter).toBe(true)
-    })
-  })
-
-  // =========================================================================
   // Parallel Query Execution
   // =========================================================================
   describe('Parallel Query Execution', () => {
@@ -756,7 +685,6 @@ describe('GET /api/admin/metrics/funnel', () => {
       setupHappyPath()
 
       const userCountMock = vi.mocked(prisma.user.count)
-      const subscriptionCountMock = vi.mocked(prisma.subscription.count)
       const readingCountMock = vi.mocked(prisma.reading.count)
 
       const req = createRequest()
@@ -764,7 +692,6 @@ describe('GET /api/admin/metrics/funnel', () => {
 
       // All queries should be called
       expect(userCountMock).toHaveBeenCalled()
-      expect(subscriptionCountMock).toHaveBeenCalled()
       expect(readingCountMock).toHaveBeenCalled()
     })
   })

@@ -88,10 +88,7 @@ vi.mock('@/lib/auth/publicToken', () => ({
 import { POST } from '@/app/api/checkout/route'
 import { getServerSession } from 'next-auth'
 import { rateLimit } from '@/lib/rateLimit'
-import {
-  getCreditPackPriceId,
-  allowedCreditPackIds,
-} from '@/lib/payments/prices'
+import { getCreditPackPriceId, allowedCreditPackIds } from '@/lib/payments/prices'
 
 describe('/api/checkout - Security Tests', () => {
   const originalEnv = process.env
@@ -208,7 +205,7 @@ describe('/api/checkout - Security Tests', () => {
 
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'standard' }),
       })
 
       const response = await POST(req)
@@ -226,7 +223,7 @@ describe('/api/checkout - Security Tests', () => {
 
       const req = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
-        body: JSON.stringify({ plan: 'premium', billingCycle: 'monthly' }),
+        body: JSON.stringify({ creditPack: 'standard' }),
       })
 
       const response = await POST(req)
@@ -242,21 +239,6 @@ describe('/api/checkout - Security Tests', () => {
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
       } as any)
-    })
-
-    it('should reject request with both plan and creditPack', async () => {
-      const req = new NextRequest('http://localhost:3000/api/checkout', {
-        method: 'POST',
-        body: JSON.stringify({
-          plan: 'premium',
-          creditPack: 'mini',
-          billingCycle: 'monthly',
-        }),
-      })
-
-      const response = await POST(req)
-
-      expect(response.status).toBe(422)
     })
 
     it('should reject request with neither plan nor creditPack', async () => {

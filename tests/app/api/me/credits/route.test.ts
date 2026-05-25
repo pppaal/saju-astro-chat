@@ -196,7 +196,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
 
 import { GET, POST } from '@/app/api/me/credits/route'
 import { getServerSession } from 'next-auth'
-import { getCreditBalance, canUseCredits, canUseFeature } from '@/lib/credits/creditService'
+import { getCreditBalance, canUseCredits } from '@/lib/credits/creditService'
 
 describe('Credits API - GET', () => {
   beforeEach(() => {
@@ -472,9 +472,7 @@ describe('Credits API - POST', () => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
     })
 
-    it('should check feature availability', async () => {
-      vi.mocked(canUseFeature).mockResolvedValue(true)
-
+    it('should always allow features in the credit-only model', async () => {
       const request = new NextRequest('http://localhost/api/me/credits', {
         method: 'POST',
         body: JSON.stringify({ feature: 'compatibility' }),
@@ -486,23 +484,6 @@ describe('Credits API - POST', () => {
       expect(response.status).toBe(200)
       expect(data.data.feature).toBe('compatibility')
       expect(data.data.allowed).toBe(true)
-      expect(canUseFeature).toHaveBeenCalledWith('user-123', 'compatibility')
-    })
-
-    it('should return feature_not_available when feature not allowed', async () => {
-      vi.mocked(canUseFeature).mockResolvedValue(false)
-
-      const request = new NextRequest('http://localhost/api/me/credits', {
-        method: 'POST',
-        body: JSON.stringify({ feature: 'compatibility' }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.data.allowed).toBe(false)
-      expect(data.data.reason).toBe('feature_not_available')
     })
   })
 
@@ -647,21 +628,6 @@ describe('Credits API - POST', () => {
       const request = new NextRequest('http://localhost/api/me/credits', {
         method: 'POST',
         body: JSON.stringify({ type: 'reading', amount: 1 }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(500)
-      expect(data.error).toBeDefined()
-    })
-
-    it('should handle feature service errors', async () => {
-      vi.mocked(canUseFeature).mockRejectedValue(new Error('Service unavailable'))
-
-      const request = new NextRequest('http://localhost/api/me/credits', {
-        method: 'POST',
-        body: JSON.stringify({ feature: 'compatibility' }),
       })
 
       const response = await POST(request)

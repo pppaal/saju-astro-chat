@@ -33,11 +33,6 @@ export function UsersTab({
         </div>
       </section>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>플랜 분포</h2>
-        {renderDistribution(data.planDistribution.map((p) => ({ label: p.plan, count: p.count })))}
-      </section>
-
       {data.oauthProviders && data.oauthProviders.length > 0 && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>OAuth 가입 경로</h2>

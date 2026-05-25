@@ -7,7 +7,6 @@ import styles from './CreditBadge.module.css'
 
 interface CreditData {
   isLoggedIn: boolean
-  plan: string
   credits: {
     monthly: number
     used: number
@@ -19,15 +18,10 @@ interface CreditData {
 
 interface CreditBadgeProps {
   variant?: 'default' | 'compact' | 'minimal'
-  showPlan?: boolean
   className?: string
 }
 
-export default function CreditBadge({
-  variant = 'default',
-  showPlan = false,
-  className = '',
-}: CreditBadgeProps) {
+export default function CreditBadge({ variant = 'default', className = '' }: CreditBadgeProps) {
   const { data: session, status } = useSession()
   const [creditData, setCreditData] = useState<CreditData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -111,7 +105,7 @@ export default function CreditBadge({
     return null
   }
 
-  const { credits, plan } = creditData
+  const { credits } = creditData
   // API에서 total을 반환하면 사용, 아니면 fallback으로 monthly + bonus
   const totalCredits = credits.total ?? credits.monthly + credits.bonus
   const remaining = credits.remaining ?? 0
@@ -174,7 +168,6 @@ export default function CreditBadge({
       className={`${styles.badge} ${getColorClass()} ${className}`}
     >
       <div className={styles.content}>
-        {showPlan && <span className={styles.planBadge}>{plan.toUpperCase()}</span>}
         <div className={styles.creditInfo}>
           <span className={styles.creditIcon}>✦</span>
           <span className={styles.creditText}>
