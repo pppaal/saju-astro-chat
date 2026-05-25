@@ -393,6 +393,11 @@ export function buildLove(input: BuilderInput): DomainNarrative {
     deepKo.push(`그리고 ${loveConfirms[0].rule.narrative.confirm}`)
     deepEn.push(`Additionally, ${loveConfirms[0].rule.meaning}.`)
   }
+  const loveConflicts = fusion?.byDomain?.love?.conflicts ?? []
+  if (loveConflicts[0]?.rule.narrative.conflict) {
+    deepKo.push(`다만 ${loveConflicts[0].rule.narrative.conflict}`)
+    deepEn.push(`That said, ${loveConflicts[0].rule.meaning}.`)
+  }
   // Saju relations — 합 weighted (love is union-coloured)
   const relKoLove = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferKind: '합',
@@ -447,9 +452,7 @@ export function buildLove(input: BuilderInput): DomainNarrative {
   if (fxOnMars.length > 0) {
     astroUsed.push('fixedStars(Mars)')
     const fxM = fxOnMars.join('·')
-    deepKo.push(
-      `화성에 닿는 별빛 ${fxM}${iGa(fxM)} 끌림의 분위기를 한층 진하게 만들어요.`
-    )
+    deepKo.push(`화성에 닿는 별빛 ${fxM}${iGa(fxM)} 끌림의 분위기를 한층 진하게 만들어요.`)
     deepEn.push(
       `The fixed star${fxOnMars.length > 1 ? 's' : ''} ${fxOnMars.join(', ')} touch${fxOnMars.length > 1 ? '' : 'es'} your Mars, making the pull of attraction richer and more intense.`
     )

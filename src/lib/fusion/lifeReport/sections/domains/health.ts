@@ -198,6 +198,11 @@ export function buildHealth(input: BuilderInput): DomainNarrative {
     deepKo.push(`그리고 ${healthConfirms[0].rule.narrative.confirm}`)
     deepEn.push(`Additionally, ${healthConfirms[0].rule.meaning}.`)
   }
+  const healthConflicts = fusion?.byDomain?.health?.conflicts ?? []
+  if (healthConflicts[0]?.rule.narrative.conflict) {
+    deepKo.push(`다만 ${healthConflicts[0].rule.narrative.conflict}`)
+    deepEn.push(`That said, ${healthConflicts[0].rule.meaning}.`)
+  }
   // Saju relations — 형(reshape) / 충(clash) often surface as body-stress
   // patterns. Bias the pick toward those kinds.
   const relKoHealth =

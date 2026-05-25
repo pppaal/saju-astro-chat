@@ -210,6 +210,11 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
     deepKo.push(`그리고 ${moneyConfirms[0].rule.narrative.confirm}`)
     deepEn.push(`Additionally, ${moneyConfirms[0].rule.meaning}.`)
   }
+  const moneyConflicts = fusion?.byDomain?.money?.conflicts ?? []
+  if (moneyConflicts[0]?.rule.narrative.conflict) {
+    deepKo.push(`다만 ${moneyConflicts[0].rule.narrative.conflict}`)
+    deepEn.push(`That said, ${moneyConflicts[0].rule.meaning}.`)
+  }
   // Saju relations — year/month axis often reflects family-resource flow.
   const relKoMoney = relationPhraseKo(input.calendarSignals?.sajuRelations, {
     preferPillar: 'month',

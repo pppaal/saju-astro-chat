@@ -441,6 +441,12 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
     deepPieces.push(`그리고 ${top.rule.narrative.confirm}`)
     deepPiecesEn.push(`Additionally, ${top.rule.meaning}.`)
   }
+  // Fusion career conflicts (동·서양이 어긋나는 긴장 — top 1)
+  const careerConflicts = fusion?.byDomain?.career?.conflicts ?? []
+  if (careerConflicts[0]?.rule.narrative.conflict) {
+    deepPieces.push(`다만 ${careerConflicts[0].rule.narrative.conflict}`)
+    deepPiecesEn.push(`That said, ${careerConflicts[0].rule.meaning}.`)
+  }
   const p3ko = paragraph(
     deepPieces.length
       ? varyRepeatedEndings(deepPieces)

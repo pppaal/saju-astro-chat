@@ -201,6 +201,11 @@ export function buildFamily(input: BuilderInput): DomainNarrative {
     deepKo.push(`그리고 ${familyConfirms[0].rule.narrative.confirm}`)
     deepEn.push(`Additionally, ${familyConfirms[0].rule.meaning}.`)
   }
+  const familyConflicts = fusion?.byDomain?.family?.conflicts ?? []
+  if (familyConflicts[0]?.rule.narrative.conflict) {
+    deepKo.push(`다만 ${familyConflicts[0].rule.narrative.conflict}`)
+    deepEn.push(`That said, ${familyConflicts[0].rule.meaning}.`)
+  }
   // Calendar-engine: Lot of Victory (인연의 행운점) — 친구·후원의 결
   const victory = input.calendarSignals?.arabicParts?.Victory
   if (victory) {
