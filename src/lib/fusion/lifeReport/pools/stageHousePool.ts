@@ -10,7 +10,7 @@
 // LifeReport surface gains one extra cross line: "the user's natal
 // 12-stage signature anchored at the house their Sun (or Moon) sits in."
 
-import { TWELVE_STAGE_HOUSE_MATRIX } from '@/lib/destiny-matrix/data/layer6-stage-house'
+import { TWELVE_STAGE_HOUSE_MATRIX } from '@/lib/fusion/lifeReport/data/stageHouseMatrix'
 import type { TwelveStageStandard } from '@/lib/saju/types'
 
 type HouseNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12

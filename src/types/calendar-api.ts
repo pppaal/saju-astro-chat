@@ -8,7 +8,6 @@ import type {
   ImportanceGrade,
   ImportantDate,
 } from '@/lib/destiny-map/destinyCalendar'
-import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 
 // ============ Request Types ============
 
@@ -149,8 +148,6 @@ export interface CalendarEvidence {
     abortConditions?: string[]
   }
 }
-
-export type MatrixEvidencePacketMap = Record<string, CounselorEvidencePacket>
 
 // Cached calculation result
 export interface CachedCalendarResult {
