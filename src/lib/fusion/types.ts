@@ -8,19 +8,13 @@ export type Layer = 'state' | 'relation' | 'timing'
 // a 1-day signal. Non-timing layers ignore this field.
 export type TimeScale =
   | 'longterm' // 격국·평생 테마
-  | 'decade'   // 대운, Saturn cycle
-  | 'year'     // 세운, Solar Return
-  | 'month'    // 월운, Lunar Return
-  | 'day'      // 일진, daily transit
-  | 'event'    // 합성: 잠복 신호의 활성화
+  | 'decade' // 대운, Saturn cycle
+  | 'year' // 세운, Solar Return
+  | 'month' // 월운, Lunar Return
+  | 'day' // 일진, daily transit
+  | 'event' // 합성: 잠복 신호의 활성화
 
-export type Domain =
-  | 'self'
-  | 'love'
-  | 'money'
-  | 'career'
-  | 'health'
-  | 'family'
+export type Domain = 'self' | 'love' | 'money' | 'career' | 'health' | 'family'
 
 export type System = 'saju' | 'astro'
 
@@ -71,7 +65,7 @@ export interface RuleNarrative {
   // Kept short so domain text stays readable when many rules fire.
   confirm: string
   conflict?: string // for 'mixed' / 'context' polarity rules
-  silent?: string   // optional — usually omitted from output
+  silent?: string // optional — usually omitted from output
 }
 
 export interface Rule {
@@ -110,6 +104,8 @@ export interface MetaRule {
   id: string
   meaning: string
   narrative: string
+  /** English narrative (parallel to `narrative`). */
+  narrativeEn?: string
   // Returns whether the theme fires given the per-domain aggregates.
   detect: (byDomain: Record<Domain, DomainAggregate>) => boolean
 }

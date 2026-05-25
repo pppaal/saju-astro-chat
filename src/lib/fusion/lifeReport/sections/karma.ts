@@ -450,6 +450,17 @@ export function buildKarma(input: BuilderInput): KarmaSection {
       'The 7th harmonic runs quietly beneath the surface — silence and meditation are what awaken it.'
     )
   }
+  // Cross-domain themes (metaRules) — 여러 영역이 함께 움직이는 교차 주제를
+  // 카르마 흐름으로 통합. 강한 교차 패턴이 잡힐 때만 노출.
+  const crossThemes = input.fusion?.themes ?? []
+  if (crossThemes[0]) {
+    astroUsed.push('fusion.themes')
+    p5pieces.push(`이번 생에 반복되는 교차 주제 하나는, ${crossThemes[0].rule.narrative}`)
+    p5piecesEn.push(
+      `One recurring cross-domain theme of this life: ${crossThemes[0].rule.narrativeEn ?? crossThemes[0].rule.meaning}`
+    )
+  }
+
   // Nearest eclipses around birth (solar + lunar) — 카르마의 시작점에 새겨진
   // 일식/월식의 그늘 / 감정 변곡을 자연 한국어로 통합.
   const natalEclipses = nearestEclipses(astro)
