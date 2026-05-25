@@ -101,15 +101,15 @@ export function stageHouseLine(
   if (!stageRow) return ''
   const entry = stageRow[houseN]
   if (!entry) return ''
-  const keyword = lang === 'ko' ? entry.keyword : entry.keywordEn
   const houseLabel = lang === 'ko' ? HOUSE_LABEL_KO[houseN] : HOUSE_LABEL_EN[houseN]
   const stageNatural = lang === 'ko' ? STAGE_NATURAL[normalised].ko : STAGE_NATURAL[normalised].en
-  // advice 필드는 destiny-matrix 원본이라 "왕지·10하우스" 같은 raw jargon 이
-  // 섞여 있어 lifeReport 자연어 톤과 안 맞음 → keyword 만 사용.
+  // keyword/advice 필드는 destiny-matrix 원본이라 "자아잠복" 같은 압축 전문어가
+  // 섞여 있어 lifeReport 자연어 톤과 안 맞음 → 노출하지 않고, 자연 descriptor
+  // (stageNatural)와 영역명만으로 평이하게 푼다.
   if (lang === 'ko') {
-    return `타고난 에너지는 ${stageNatural} 단계라, ${houseLabel} 영역에서 '${keyword}'의 결로 드러나요.`
+    return `타고난 에너지는 ${stageNatural} 단계라, 그 결이 ${houseLabel} 영역에서 가장 또렷하게 드러나요.`
   }
-  return `Your energy runs at ${stageNatural} stage, and in your ${houseLabel} it shows up as ${keyword}.`
+  return `Your energy runs at ${stageNatural} stage, showing up most clearly in your ${houseLabel}.`
 }
 
 /**
