@@ -391,9 +391,9 @@
 .messagesPanel {
   min-height: 200px;
   overflow-y: auto;
-  /* 가로 패딩 최소화 — 바깥 chatWrapper 가 좌우 여백 담당. 궁합 상담사처럼
-     본문이 화면을 더 넓게 쓰게(이중 패딩 제거). */
-  padding: 22px 6px 14px;
+  /* 가로 패딩 0 — 바깥 chatWrapper(0.75rem) 가 좌우 여백을 담당해 궁합 상담사와
+     동일한 가로 폭(이중 패딩 제거). */
+  padding: 22px 0 14px;
   background: transparent;
   backdrop-filter: none;
   border: 0;
@@ -532,7 +532,7 @@
 }
 
 .userRow .messageBubble {
-  max-width: 80%;
+  max-width: 94%;
 }
 
 .assistantMessage,
@@ -1295,7 +1295,7 @@
 @media (max-width: 768px) {
   .messagesPanel {
     min-height: 150px;
-    padding: 18px 6px;
+    padding: 18px 0;
   }
 
   .messageBubble {
@@ -1344,7 +1344,7 @@
 @media (max-width: 480px) {
   .messagesPanel {
     min-height: 120px;
-    padding: 14px 4px;
+    padding: 14px 0;
   }
 
   .messageRow {
@@ -2108,7 +2108,7 @@
   }
 
   .messagesPanel {
-    padding: 18px 16px 10px;
+    padding: 18px 0 10px;
   }
 
   .inputArea {
@@ -2155,7 +2155,7 @@
   /* Messages Panel */
   .messagesPanel {
     min-height: 100px;
-    padding: 12px;
+    padding: 12px 0;
     border-radius: 16px;
   }
 
