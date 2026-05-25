@@ -889,8 +889,8 @@ export default function ProfilePage() {
                 <>
                   <p className="mt-3 text-[12.5px] leading-relaxed text-[#78716c]">
                     {locale === 'ko'
-                      ? '친구가 내 추천 링크로 처음 로그인하면, 추천한 회원님이 보너스 크레딧을 받아요.'
-                      : 'When a friend logs in through your referral link for the first time, you get bonus credits.'}
+                      ? '친구가 내 추천 링크로 가입한 뒤 첫 크레딧을 구매하면, 추천한 회원님이 보너스 크레딧을 받아요.'
+                      : 'When a friend signs up through your referral link and makes their first credit purchase, you get bonus credits.'}
                   </p>
 
                   <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#ece4d4] bg-gradient-to-br from-[#faf6ee] to-[#fcfbf9] p-3.5 sm:flex-row sm:items-center">

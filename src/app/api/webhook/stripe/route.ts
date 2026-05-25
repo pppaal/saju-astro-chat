@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db/prisma'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { addBonusCredits } from '@/lib/credits/creditService'
+import { grantReferralRewardOnFirstPurchase } from '@/lib/referral'
 import { CREDIT_PACKS } from '@/lib/config/pricing'
 import { sendPaymentReceiptEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
@@ -298,4 +299,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   logger.info(
     `[Stripe Webhook] Credit pack purchase completed: ${userId} bought ${creditPack} (${creditAmount} credits)`
   )
+
+  // 추천 보상은 피추천자의 '첫 결제' 시점에만 지급(멀티 계정 파밍 방지).
+  // pending 보상이 있으면 추천인에게 1회 지급된다.
+  try {
+    const reward = await grantReferralRewardOnFirstPurchase(userId)
+    if (reward.granted) {
+      logger.info(
+        `[Stripe Webhook] Referral reward granted to ${reward.referrerId} (+${reward.creditsAwarded}) for first purchase by ${userId}`
+      )
+    }
+  } catch (err) {
+    logger.error('[Stripe Webhook] Failed to grant referral reward:', err)
+  }
 }

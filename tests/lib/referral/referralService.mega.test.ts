@@ -13,6 +13,7 @@ import {
   getUserReferralCode,
   findUserByReferralCode,
   linkReferrer,
+  grantReferralRewardOnFirstPurchase,
   claimReferralReward,
   getReferralStats,
   getReferralUrl,
@@ -201,13 +202,13 @@ describe('Referral Service', () => {
       })
     })
 
-    it('should award credits to referrer immediately', async () => {
+    it('should NOT award credits immediately (deferred to first purchase)', async () => {
       await linkReferrer('new_user_123', 'REF12345')
 
-      expect(addBonusCredits).toHaveBeenCalledWith('referrer_123', 3, 'referral')
+      expect(addBonusCredits).not.toHaveBeenCalled()
     })
 
-    it('should create completed reward record', async () => {
+    it('should create a pending first_purchase reward record', async () => {
       await linkReferrer('new_user_123', 'REF12345')
 
       expect(prisma.referralReward.create).toHaveBeenCalledWith(
@@ -216,36 +217,17 @@ describe('Referral Service', () => {
             userId: 'referrer_123',
             referredUserId: 'new_user_123',
             creditsAwarded: 3,
-            rewardType: 'signup_complete',
-            status: 'completed',
-            completedAt: expect.any(Date),
+            rewardType: 'first_purchase',
+            status: 'pending',
           }),
         })
       )
     })
 
-    it('should send reward email to referrer', async () => {
+    it('should NOT send reward email at link time', async () => {
       await linkReferrer('new_user_123', 'REF12345')
 
-      expect(sendReferralRewardEmail).toHaveBeenCalledWith(
-        'referrer_123',
-        'referrer@test.com',
-        expect.objectContaining({
-          userName: 'Referrer User',
-          creditsAwarded: 3,
-        })
-      )
-    })
-
-    it('should handle email send failure gracefully', async () => {
-      ;(sendReferralRewardEmail as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error('SMTP error')
-      )
-
-      const result = await linkReferrer('new_user_123', 'REF12345')
-
-      expect(result.success).toBe(true)
-      expect(logger.error).toHaveBeenCalled()
+      expect(sendReferralRewardEmail).not.toHaveBeenCalled()
     })
 
     it('should reject invalid referral code', async () => {
@@ -289,6 +271,51 @@ describe('Referral Service', () => {
 
       expect(result.success).toBe(true)
       expect(sendReferralRewardEmail).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('grantReferralRewardOnFirstPurchase', () => {
+    const pendingReward = {
+      id: 'reward_fp',
+      userId: 'referrer_123',
+      referredUserId: 'buyer_1',
+      creditsAwarded: 3,
+      status: 'pending',
+      rewardType: 'first_purchase',
+    }
+
+    it('grants credit to the referrer and completes the reward on first purchase', async () => {
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+        pendingReward
+      )
+      ;(prisma.referralReward.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        email: 'referrer@test.com',
+        name: 'Referrer User',
+      })
+      ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
+
+      const result = await grantReferralRewardOnFirstPurchase('buyer_1')
+
+      expect(result.granted).toBe(true)
+      expect(result.referrerId).toBe('referrer_123')
+      expect(addBonusCredits).toHaveBeenCalledWith('referrer_123', 3, 'referral')
+      expect(prisma.referralReward.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'reward_fp' },
+          data: expect.objectContaining({ status: 'completed', completedAt: expect.any(Date) }),
+        })
+      )
+      expect(sendReferralRewardEmail).toHaveBeenCalled()
+    })
+
+    it('is a no-op when there is no pending reward (no double payout on later purchases)', async () => {
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+
+      const result = await grantReferralRewardOnFirstPurchase('buyer_1')
+
+      expect(result.granted).toBe(false)
+      expect(addBonusCredits).not.toHaveBeenCalled()
     })
   })
 
