@@ -5,7 +5,12 @@
 // • 점성: 5집(창조), 금성 + aspects, harmonics 5, 5집 ruler, Pisces/Leo emphasis
 
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
-import { countSibsin, relationPhraseEn, relationPhraseKo } from '../../signals/sajuSignals'
+import {
+  allShinsalNames,
+  countSibsin,
+  relationPhraseEn,
+  relationPhraseKo,
+} from '../../signals/sajuSignals'
 import { aspectsOf, getPlanet, houseCusp, planetsInHouse } from '../../signals/astroSignals'
 import {
   aspectQuality,
@@ -31,7 +36,7 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
   if (sangwan > 0) sajuUsed.push('sibsin.상관')
   if (sikshin > 0) sajuUsed.push('sibsin.식신')
 
-  const shinsalNames = collectShinsal(saju)
+  const shinsalNames = allShinsalNames(saju)
   const hwagae = shinsalNames.find((n) => n.includes('화개'))
   if (hwagae) sajuUsed.push('shinsal.화개')
 
@@ -292,18 +297,6 @@ export function buildCreativity(input: BuilderInput): DomainNarrative {
 }
 
 // ─── helpers ─────────────────────────────────────────────────
-function collectShinsal(saju: BuilderInput['saju']): string[] {
-  const u = saju.ultraAdvanced as unknown as {
-    shinsal?: {
-      luckyList?: Array<{ kind?: string }>
-      list?: Array<{ kind?: string }>
-    }
-  }
-  const luck = u?.shinsal?.luckyList ?? []
-  const all = u?.shinsal?.list ?? []
-  return [...luck, ...all].map((x) => x?.kind ?? '').filter(Boolean)
-}
-
 function openerKo(sangwan: number, sikshin: number, hasHwagae: boolean): string {
   if (sangwan >= 3)
     return '재능의 자유로운 발산이 매우 강해서, 만들지 않으면 답답해지는 모습이에요.'

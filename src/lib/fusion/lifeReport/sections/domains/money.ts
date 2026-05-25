@@ -458,10 +458,7 @@ function luckyShinsalReadableKo(items: string[]): string {
     화개: '예술과 고독의 별',
     천을귀인: '귀인의 보호',
   }
-  return items
-    .slice(0, 3)
-    .map((s) => map[s] ?? s)
-    .join(', ')
+  return [...new Set(items.map((s) => map[s] ?? s))].slice(0, 3).join(', ')
 }
 function wealthFlavorEn(total: number, jeong: number, pyen: number): string {
   if (total >= 3)
@@ -528,10 +525,7 @@ function luckyShinsalReadableEn(items: string[]): string {
     화개: 'art-and-solitude star',
     천을귀인: 'noble-protector star',
   }
-  return items
-    .slice(0, 3)
-    .map((s) => map[s] ?? 'a supporting star')
-    .join(', ')
+  return [...new Set(items.map((s) => map[s] ?? 'a supporting star'))].slice(0, 3).join(', ')
 }
 
 const SECOND_SIGN_FLAVOR_KO: Record<string, string> = {

@@ -14,6 +14,7 @@ import {
   type SibsinType,
 } from '@/lib/saju/sibsinAnalysis'
 import { calculateTonggeun, type TonggeunResult } from '@/lib/saju/tonggeun'
+import { getShinsalHits } from '@/lib/saju/shinsal'
 import {
   listRelationsByKind,
   type RelationEntry,
@@ -297,22 +298,66 @@ function stemSibsinAgainst(
   return SIBSIN_ORDER[idx]
 }
 
-/** Shinsal lucky list (천덕귀인/금여 등) — placeholders pulled defensively. */
-export function luckyShinsalNames(saju: MainSajuOutput): string[] {
-  // luckyList is not surfaced through MainSajuOutput; probe loosely.
-  const obj = saju as unknown as {
-    shinsal?: { luckyList?: Array<{ kind?: string }> }
+// MainSajuOutput does not surface shinsal (neither top-level nor under
+// ultraAdvanced), so we recompute it from the pillars the same way the fusion
+// adapter does. Previously these helpers probed non-existent fields and always
+// returned [] — a silent dead path that dropped every shinsal narrative.
+const LUCKY_SHINSAL = new Set([
+  '천을귀인',
+  '천덕귀인',
+  '월덕귀인',
+  '문창',
+  '학당',
+  '금여',
+  '암록',
+  '복성귀인',
+  '반안',
+  '장성',
+  '길성',
+])
+const UNLUCKY_SHINSAL = new Set([
+  '망신',
+  '겁살',
+  '재살',
+  '천살',
+  '월살',
+  '육해',
+  '괘살',
+  '흉성',
+  '자형',
+])
+
+/** All shinsal kinds present in the natal chart (recomputed from pillars).
+ *  MainSajuOutput uses flat Hanja pillars ({stem,branch}); getShinsalHits only
+ *  reads the (Hanja-passthrough) names, so we wrap them in its nested shape. */
+export function allShinsalNames(saju: MainSajuOutput): string[] {
+  try {
+    const p = saju.pillars as unknown as Record<
+      'year' | 'month' | 'day' | 'time',
+      { stem?: string; branch?: string }
+    >
+    const mk = (pl: { stem?: string; branch?: string }) => ({
+      heavenlyStem: { name: pl?.stem ?? '', element: '' },
+      earthlyBranch: { name: pl?.branch ?? '', element: '' },
+    })
+    const like = { year: mk(p.year), month: mk(p.month), day: mk(p.day), time: mk(p.time) }
+    const hits = getShinsalHits(like as Parameters<typeof getShinsalHits>[0], {
+      includeGeneralShinsal: true,
+      includeLuckyDetails: true,
+    })
+    return [...new Set(hits.map((h) => h.kind as string).filter(Boolean))]
+  } catch {
+    return []
   }
-  const items = obj.shinsal?.luckyList ?? []
-  return items.map((x) => x?.kind ?? '').filter(Boolean)
+}
+
+/** Shinsal lucky list (천을귀인/문창 등). */
+export function luckyShinsalNames(saju: MainSajuOutput): string[] {
+  return allShinsalNames(saju).filter((k) => LUCKY_SHINSAL.has(k))
 }
 
 export function unluckyShinsalNames(saju: MainSajuOutput): string[] {
-  const obj = saju as unknown as {
-    shinsal?: { unluckyList?: Array<{ kind?: string }> }
-  }
-  const items = obj.shinsal?.unluckyList ?? []
-  return items.map((x) => x?.kind ?? '').filter(Boolean)
+  return allShinsalNames(saju).filter((k) => UNLUCKY_SHINSAL.has(k))
 }
 
 // ─── Saju relation narrative helpers ─────────────────────────

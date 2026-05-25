@@ -6,6 +6,7 @@
 
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
 import {
+  allShinsalNames,
   categoryCount,
   countSibsin,
   geokgukType,
@@ -53,7 +54,7 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
   if (geokguk) sajuUsed.push('geokguk')
 
   // 문창귀인 등 럭키 신살 — defensively probe
-  const luckyShinsalNames = collectShinsal(saju)
+  const luckyShinsalNames = allShinsalNames(saju)
   const munchang = luckyShinsalNames.find((n) => n.includes('문창'))
   if (munchang) sajuUsed.push('shinsal.문창')
   const hakdang = luckyShinsalNames.find((n) => n.includes('학당'))
@@ -327,18 +328,6 @@ export function buildWisdom(input: BuilderInput): DomainNarrative {
 }
 
 // ─── helpers ─────────────────────────────────────────────────
-function collectShinsal(saju: BuilderInput['saju']): string[] {
-  const u = saju.ultraAdvanced as unknown as {
-    shinsal?: {
-      luckyList?: Array<{ kind?: string }>
-      list?: Array<{ kind?: string }>
-    }
-  }
-  const luck = u?.shinsal?.luckyList ?? []
-  const all = u?.shinsal?.list ?? []
-  return [...luck, ...all].map((x) => x?.kind ?? '').filter(Boolean)
-}
-
 const MERC_SIGN_KO: Record<string, string> = {
   Aries: '빠르고 직진하는 사고',
   Taurus: '느긋하지만 단단한 사고',

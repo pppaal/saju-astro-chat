@@ -7,6 +7,7 @@
 
 import type { BuilderInput, DomainNarrative, Paragraph } from '../../types'
 import {
+  allShinsalNames,
   categoryCount,
   countSibsin,
   gongmangAffectedPillars,
@@ -43,7 +44,7 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
   const gongmangBranches = saju.ultraAdvanced?.gongmang?.gongmangBranches ?? []
   if (gongmang.length > 0) sajuUsed.push('ultraAdvanced.gongmang')
 
-  const shinsalNames = collectShinsal(saju)
+  const shinsalNames = allShinsalNames(saju)
   const hwagae = shinsalNames.find((n) => n.includes('화개'))
   if (hwagae) sajuUsed.push('shinsal.화개')
 
@@ -335,18 +336,6 @@ export function buildSpirituality(input: BuilderInput): DomainNarrative {
 }
 
 // ─── helpers ─────────────────────────────────────────────────
-function collectShinsal(saju: BuilderInput['saju']): string[] {
-  const u = saju.ultraAdvanced as unknown as {
-    shinsal?: {
-      luckyList?: Array<{ kind?: string }>
-      list?: Array<{ kind?: string }>
-    }
-  }
-  const luck = u?.shinsal?.luckyList ?? []
-  const all = u?.shinsal?.list ?? []
-  return [...luck, ...all].map((x) => x?.kind ?? '').filter(Boolean)
-}
-
 function openerKo(inseong: number, gongmangCount: number, hasHwagae: boolean): string {
   if (hasHwagae && gongmangCount > 0) {
     return '예술과 고독의 별, 그리고 비어 있는 자리가 함께 깔려 있어서, 영성은 우회로가 아니라 이번 생의 중심 주제 중 하나예요.'
