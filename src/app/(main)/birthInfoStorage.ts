@@ -23,6 +23,7 @@ import {
 } from '@/lib/userProfile'
 
 export interface StoredBirthInfo {
+  name?: string // 표시 이름 — 운명상담사/타로/궁합에 매핑
   birthDate: string // YYYY-MM-DD
   birthTime: string // HH:MM (a real value — '00:00' means midnight, NOT unknown)
   birthTimeUnknown?: boolean // explicit flag; set only when the user checked "I don't know my time"
@@ -35,8 +36,7 @@ const KEY = 'destinypal:birthInfo:v1'
 
 function userProfileToBirthInfo(profile: UserProfile): StoredBirthInfo | null {
   if (!profile?.birthDate || !profile?.birthTime) return null
-  const gender =
-    profile.gender === 'Male' ? 'male' : profile.gender === 'Female' ? 'female' : null
+  const gender = profile.gender === 'Male' ? 'male' : profile.gender === 'Female' ? 'female' : null
   if (!gender) return null
   // birthTimeUnknown is intentionally not derived from `birthTime === '00:00'`
   // anymore: midnight is a real birth time, and people born at 자정 were
@@ -45,6 +45,7 @@ function userProfileToBirthInfo(profile: UserProfile): StoredBirthInfo | null {
   // the "I don't know my time" toggle (which travels via URL/profile as an
   // explicit boolean, not as a magic sentinel value).
   return {
+    name: profile.name || undefined,
     birthDate: profile.birthDate,
     birthTime: profile.birthTime,
     gender,
@@ -55,6 +56,7 @@ function userProfileToBirthInfo(profile: UserProfile): StoredBirthInfo | null {
 
 function birthInfoToUserProfile(info: StoredBirthInfo): Partial<UserProfile> {
   return {
+    name: info.name,
     birthDate: info.birthDate,
     birthTime: info.birthTime,
     gender: info.gender === 'male' ? 'Male' : 'Female',
@@ -118,6 +120,7 @@ export function clearBirthInfo(): void {
 export function buildBirthQuery(info: StoredBirthInfo | null): string {
   if (!info) return ''
   const params = new URLSearchParams()
+  if (info.name) params.set('name', info.name)
   params.set('birthDate', info.birthDate)
   params.set('birthTime', info.birthTime)
   params.set('gender', info.gender === 'male' ? 'M' : 'F')

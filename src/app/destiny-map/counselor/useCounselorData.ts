@@ -12,6 +12,7 @@ const DEFAULT_LATITUDE = 37.5665
 const DEFAULT_LONGITUDE = 126.978
 
 interface ProfileFallback {
+  name?: string
   birthDate?: string
   birthTime?: string
   gender?: string
@@ -29,7 +30,7 @@ export function useCounselorData(sp: SearchParams) {
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
 
   // Parse search params
-  const name = (Array.isArray(sp.name) ? sp.name[0] : sp.name) ?? ''
+  const urlName = (Array.isArray(sp.name) ? sp.name[0] : sp.name) ?? ''
   const urlBirthDate = (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? ''
   const urlBirthTime = (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? ''
   const rawBirthTimeUnknown = Array.isArray(sp.birthTimeUnknown)
@@ -60,6 +61,7 @@ export function useCounselorData(sp: SearchParams) {
         const u = data?.user
         if (u) {
           setProfileFallback({
+            name: u.name ?? undefined,
             birthDate: u.birthDate ?? undefined,
             birthTime: u.birthTime ?? undefined,
             gender: u.gender ?? undefined,
@@ -77,12 +79,12 @@ export function useCounselorData(sp: SearchParams) {
   }, [hasUrlBirthInfo])
 
   // Merged values — URL params win, profile fills in.
+  const name = urlName || profileFallback.name || ''
   const birthDate = urlBirthDate || profileFallback.birthDate || ''
   const birthTime = urlBirthTime || profileFallback.birthTime || ''
   const city = urlCity || profileFallback.birthCity || ''
   const effectiveGender = rawGender || profileFallback.gender || ''
-  const birthTimeUnknown =
-    rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true'
+  const birthTimeUnknown = rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true'
 
   const latStr =
     (Array.isArray(sp.lat) ? sp.lat[0] : sp.lat) ??
@@ -186,7 +188,9 @@ export function useCounselorData(sp: SearchParams) {
               astro: baseChart as Record<string, unknown>,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
             })
-          } catch { /* ignore cache write error */ }
+          } catch {
+            /* ignore cache write error */
+          }
         } catch (err) {
           logger.warn('[CounselorPage] base natal fetch failed:', err)
         }
