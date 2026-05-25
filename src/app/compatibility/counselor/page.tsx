@@ -89,7 +89,7 @@ function CompatibilityCounselorContent() {
   // 파일 첨부 — 운명 상담사와 동일한 훅. 업로드 텍스트(cvText)는 sendMessage
   // payload 로 전달돼 라우트가 현재 턴 프롬트에 주입한다.
   const [fileNotice, setFileNotice] = useState<string | null>(null)
-  const { cvText, cvName, parsingPdf, handleFileUpload } = useFileUpload({
+  const { cvText, cvName, parsingPdf, handleFileUpload, clearFile } = useFileUpload({
     lang: locale,
     setNotice: setFileNotice,
   })
@@ -818,6 +818,24 @@ function CompatibilityCounselorContent() {
                   <span className={styles.fileName}>
                     <span className={styles.fileIcon}>✓</span>
                     {cvName}
+                    <button
+                      type="button"
+                      onClick={clearFile}
+                      aria-label={isKo ? '첨부 제거' : 'Remove attachment'}
+                      title={isKo ? '첨부 제거' : 'Remove attachment'}
+                      style={{
+                        marginLeft: 6,
+                        border: 0,
+                        background: 'transparent',
+                        color: 'inherit',
+                        cursor: 'pointer',
+                        fontSize: '0.9em',
+                        lineHeight: 1,
+                        opacity: 0.7,
+                      }}
+                    >
+                      ✕
+                    </button>
                   </span>
                 )}
               </div>

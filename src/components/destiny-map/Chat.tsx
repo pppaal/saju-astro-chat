@@ -79,7 +79,7 @@ const Chat = memo(function Chat({
     )
   }, [])
 
-  const { cvText, cvName, parsingPdf, handleFileUpload } = useFileUpload({ lang, setNotice })
+  const { cvText, cvName, parsingPdf, handleFileUpload, clearFile } = useFileUpload({ lang, setNotice })
 
   const {
     loading,
@@ -672,6 +672,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onKeyDown={onKeyDown}
               onSend={() => void handleSend()}
               onFileUpload={handleFileUpload}
+              onClearFile={clearFile}
               onOpenTarot={goToTarot}
               onOpenChart={() => setShowChartModal(true)}
               styles={styles}

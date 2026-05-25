@@ -89,6 +89,7 @@ interface ChatInputAreaProps {
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
   onSend: () => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
+  onClearFile?: () => void
   /** Optional mobile-only chart/tarot triggers — the desktop sidebar
    *  carries these, but mobile users have no other entry point. */
   onOpenTarot?: () => void
@@ -109,6 +110,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onKeyDown,
   onSend,
   onFileUpload,
+  onClearFile,
   onOpenTarot,
   onOpenChart,
   styles,
@@ -198,6 +200,26 @@ export const ChatInputArea = React.memo(function ChatInputArea({
               <span className={styles.fileName}>
                 <span className={styles.fileIcon}>&#x2713;</span>
                 {cvName}
+                {onClearFile && (
+                  <button
+                    type="button"
+                    onClick={onClearFile}
+                    aria-label={lang === 'ko' ? '첨부 제거' : 'Remove attachment'}
+                    title={lang === 'ko' ? '첨부 제거' : 'Remove attachment'}
+                    style={{
+                      marginLeft: 6,
+                      border: 0,
+                      background: 'transparent',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      fontSize: '0.9em',
+                      lineHeight: 1,
+                      opacity: 0.7,
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
               </span>
             )}
           </div>
