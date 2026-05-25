@@ -13,6 +13,7 @@ import {
   type TarotQuestionAnalysisResult,
 } from '@/lib/tarot/questionFlow'
 import { logger } from '@/lib/logger'
+import { apiFetch } from '@/lib/api'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
@@ -36,7 +37,7 @@ interface UseInlineTarotAPIOptions {
   profile: Profile
 }
 
-export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTarotAPIOptions) {
+export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptions) {
   const { state, actions, recommendedSpreads } = stateManager
   const { showDepleted } = useCreditModal()
   const {
@@ -173,40 +174,32 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
         return (lang === 'ko' ? m.meaningKo || m.meaning : m.meaning) || ''
       }
 
+      // Mirror the *exact* request the main tarot reading makes (that one works;
+      // the inline one was hanging). Minimal payload + apiFetch (adds the public
+      // token conditionally + credentials:'include') — no extra fields the route
+      // ignores, no always-empty x-api-token header.
       const payload = {
-        category: selectedCategory,
         categoryId: selectedCategory,
         spreadId: selectedSpread.id,
-        spreadTitle:
-          lang === 'ko' ? selectedSpread.titleKo || selectedSpread.title : selectedSpread.title,
-        cards: cards.map((dc, idx) => ({
-          name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
-          isReversed: dc.isReversed,
-          position:
-            lang === 'ko'
-              ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
-              : selectedSpread.positions[idx]?.title,
-          keywords: dc.isReversed
-            ? lang === 'ko'
-              ? dc.card.reversed.keywordsKo || dc.card.reversed.keywords
-              : dc.card.reversed.keywords
-            : lang === 'ko'
-              ? dc.card.upright.keywordsKo || dc.card.upright.keywords
-              : dc.card.upright.keywords,
-        })),
-        language: lang,
+        spreadTitle: selectedSpread.title,
+        cards: cards.map((dc) => {
+          const meaning = dc.isReversed ? dc.card.reversed : dc.card.upright
+          return {
+            name: dc.card.name,
+            nameKo: dc.card.nameKo,
+            isReversed: dc.isReversed,
+            keywords: (meaning.keywords || []).slice(0, 8),
+            keywordsKo: (meaning.keywordsKo || []).slice(0, 8),
+          }
+        }),
         userQuestion: concern,
-        birthdate: profile.birthDate,
-        questionContext: questionAnalysis || undefined,
+        language: lang,
       }
 
       try {
-        const res = await fetch('/api/tarot/interpret-stream', {
+        const res = await apiFetch('/api/tarot/interpret-stream', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
           signal: controller.signal,
         })
@@ -328,13 +321,11 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       selectedCategory,
       concern,
       lang,
-      profile.birthDate,
       actions,
       overallMessage,
       guidance,
       defaultOverallMessage,
       defaultGuidance,
-      questionAnalysis,
       showDepleted,
     ]
   )
