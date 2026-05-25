@@ -107,7 +107,7 @@ export function stageHouseLine(
   // advice 필드는 destiny-matrix 원본이라 "왕지·10하우스" 같은 raw jargon 이
   // 섞여 있어 lifeReport 자연어 톤과 안 맞음 → keyword 만 사용.
   if (lang === 'ko') {
-    return `타고난 에너지는 ${stageNatural} 단계라, ${houseLabel} 영역에서 — ${keyword}.`
+    return `타고난 에너지는 ${stageNatural} 단계라, ${houseLabel} 영역에서 '${keyword}'의 결로 드러나요.`
   }
   return `Your energy runs at ${stageNatural} stage, and in your ${houseLabel} it shows up as ${keyword}.`
 }
