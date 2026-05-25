@@ -137,6 +137,21 @@ export function yongsinPrimary(saju: MainSajuOutput): string {
   return saju.advanced?.yongsin?.primary || ''
 }
 
+/** 조후용신 — seasonal climate-balancing element + birth season. */
+export function johuYongsin(saju: MainSajuOutput): { primary: string; season: string } | undefined {
+  const j = (saju.advanced as { johuYongsin?: { primary?: string; season?: string } } | undefined)
+    ?.johuYongsin
+  if (!j?.primary) return undefined
+  return { primary: j.primary, season: j.season ?? '' }
+}
+
+/** 기신 — elements to moderate (unfavorable). */
+export function unfavorableElements(saju: MainSajuOutput): string[] {
+  const u = (saju.advanced as { yongsin?: { unfavorable?: string[] } } | undefined)?.yongsin
+    ?.unfavorable
+  return Array.isArray(u) ? u.filter(Boolean) : []
+}
+
 export function jonggeokType(saju: MainSajuOutput): string {
   return saju.ultraAdvanced?.jonggeok?.type || ''
 }
