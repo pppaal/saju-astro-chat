@@ -50,6 +50,7 @@ import {
   stageHouseLine,
 } from '../../pools'
 import { matchTopCareers } from '@/lib/saju/careerDictionary'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 
 export function buildCareer(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -436,15 +437,28 @@ export function buildCareer(input: BuilderInput): DomainNarrative {
       `Your Lot of Courage sits in ${signLabel(courage.sign, 'en')} — your strongest career luck opens at the point where you step into challenge.`
     )
   }
-  // Fusion career confirms (top 2)
-  // 융합 규칙 문구는 한국어만 존재(영문 원문 없음) → EN 리포트엔 넣지 않아
-  // 한글이 영문에 누출되지 않게 한다.
+  // 융합 규칙: KO는 원시 용어를 자연어화, EN은 rule id로 영문 narrative 룩업.
   if (careerConfirms.length > 0) {
     deepPieces.push(`그리고 ${naturalizeFragment(careerConfirms[0].rule.narrative.confirm)}`)
+    const en = RULE_NARRATIVE_EN[careerConfirms[0].rule.id]?.confirm
+    if (en) deepPiecesEn.push(`And ${en}`)
   }
   const careerConflicts = fusion?.byDomain?.career?.conflicts ?? []
   if (careerConflicts[0]?.rule.narrative.conflict) {
     deepPieces.push(`다만 ${naturalizeFragment(careerConflicts[0].rule.narrative.conflict)}`)
+    const enX = RULE_NARRATIVE_EN[careerConflicts[0].rule.id]?.conflict
+    if (enX) deepPiecesEn.push(`That said, ${enX}`)
+  }
+  // Jupiter/Saturn midpoint (성공의 점) — structured success axis.
+  const successMid = input.calendarSignals?.midpoints?.find((m) => m.id === 'Jupiter/Saturn')
+  if (successMid) {
+    astroUsed.push('midpoints.jupiterSaturn')
+    deepPieces.push(
+      `성공의 점(목성·토성 미드포인트)은 ${signLabel(successMid.sign, 'ko')}에 있어, 구조화된 성장과 현실화된 성취가 그 색으로 모여요.`
+    )
+    deepPiecesEn.push(
+      `Your Jupiter/Saturn midpoint — the point of realized success — sits in ${signLabel(successMid.sign, 'en')}, where structured growth and grounded achievement gather.`
+    )
   }
   const p3ko = paragraph(
     deepPieces.length

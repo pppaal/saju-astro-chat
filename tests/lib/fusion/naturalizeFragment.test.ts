@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { naturalizeFragment } from '@/lib/fusion/lifeReport/templates/sentences'
 import { allRules } from '@/lib/fusion/rules'
+import { RULE_NARRATIVE_EN } from '@/lib/fusion/rules/narrativeEn'
+
+const SURFACED_DOMAINS = new Set(['money', 'career', 'love', 'family', 'health'])
 
 describe('naturalizeFragment', () => {
   it('drops the technical evidence clause before the em-dash', () => {
@@ -46,6 +49,40 @@ describe('naturalizeFragment', () => {
         const out = naturalizeFragment(raw)
         if (jargon.test(out)) offenders.push(`${r.id}/${key}: ${out}`)
       }
+    }
+    expect(offenders).toEqual([])
+  })
+})
+
+describe('RULE_NARRATIVE_EN — English parity for surfaced fragments', () => {
+  const surfacedRules = allRules.filter(
+    (r) => r.layer !== 'timing' && SURFACED_DOMAINS.has(r.domain)
+  )
+
+  it('provides an English confirm for every surfaced rule', () => {
+    const missing = surfacedRules.filter((r) => !RULE_NARRATIVE_EN[r.id]?.confirm).map((r) => r.id)
+    expect(missing).toEqual([])
+  })
+
+  it('provides an English conflict wherever the Korean rule defines one', () => {
+    const missing = surfacedRules
+      .filter((r) => r.narrative?.conflict && !RULE_NARRATIVE_EN[r.id]?.conflict)
+      .map((r) => r.id)
+    expect(missing).toEqual([])
+  })
+
+  it('has no orphan keys that do not map to a surfaced rule', () => {
+    const surfacedIds = new Set(surfacedRules.map((r) => r.id))
+    const orphans = Object.keys(RULE_NARRATIVE_EN).filter((id) => !surfacedIds.has(id))
+    expect(orphans).toEqual([])
+  })
+
+  it('keeps English fragments free of Korean characters', () => {
+    const hangul = /[가-힣]/
+    const offenders: string[] = []
+    for (const [id, en] of Object.entries(RULE_NARRATIVE_EN)) {
+      if (hangul.test(en.confirm)) offenders.push(`${id}/confirm`)
+      if (en.conflict && hangul.test(en.conflict)) offenders.push(`${id}/conflict`)
     }
     expect(offenders).toEqual([])
   })

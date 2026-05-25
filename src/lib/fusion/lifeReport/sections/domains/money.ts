@@ -38,6 +38,7 @@ import {
   iljuPool,
   planetHouseLine,
 } from '../../pools'
+import { RULE_NARRATIVE_EN } from '../../../rules/narrativeEn'
 
 export function buildMoney(input: BuilderInput): DomainNarrative {
   const { saju, astro, fusion } = input
@@ -212,13 +213,29 @@ export function buildMoney(input: BuilderInput): DomainNarrative {
       `Auspicious supporting stars (${luckyShinsalReadableEn(lucky)}) quietly back the money flow.`
     )
   }
-  // 융합 규칙 문구는 한국어만 존재 → EN 리포트엔 넣지 않음(한글 누출 방지).
+  // 융합 규칙: KO는 원시 용어를 자연어화(naturalizeFragment), EN은 rule id로
+  // 영문 narrative(RULE_NARRATIVE_EN)를 룩업 — 양 언어 모두 노출.
   if (moneyConfirms.length > 0) {
     deepKo.push(`그리고 ${naturalizeFragment(moneyConfirms[0].rule.narrative.confirm)}`)
+    const en = RULE_NARRATIVE_EN[moneyConfirms[0].rule.id]?.confirm
+    if (en) deepEn.push(`And ${en}`)
   }
   const moneyConflicts = fusion?.byDomain?.money?.conflicts ?? []
   if (moneyConflicts[0]?.rule.narrative.conflict) {
     deepKo.push(`다만 ${naturalizeFragment(moneyConflicts[0].rule.narrative.conflict)}`)
+    const enX = RULE_NARRATIVE_EN[moneyConflicts[0].rule.id]?.conflict
+    if (enX) deepEn.push(`That said, ${enX}`)
+  }
+  // Venus/Jupiter midpoint (풍요의 점) — financial luck & abundance axis.
+  const abundanceMid = input.calendarSignals?.midpoints?.find((m) => m.id === 'Venus/Jupiter')
+  if (abundanceMid) {
+    astroUsed.push('midpoints.venusJupiter')
+    deepKo.push(
+      `풍요의 점(금성·목성 미드포인트)은 ${signLabel(abundanceMid.sign, 'ko')}에 있어, 재정적 행운과 풍요가 그 색으로 들어와요.`
+    )
+    deepEn.push(
+      `Your Venus/Jupiter midpoint — the point of abundance — sits in ${signLabel(abundanceMid.sign, 'en')}, coloring how financial luck and plenty arrive.`
+    )
   }
   // Saju relations — year/month axis often reflects family-resource flow.
   const relKoMoney = relationPhraseKo(input.calendarSignals?.sajuRelations, {

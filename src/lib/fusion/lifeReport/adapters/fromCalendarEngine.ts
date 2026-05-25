@@ -179,7 +179,12 @@ export interface CalendarEngineSignals {
     day?: string
     time?: string
   }
-  /** Key composite midpoints — Sun/Moon (통합된 자아), Venus/Mars (열정의 점). */
+  /**
+   * Key composite midpoints surfaced across report sections:
+   * Sun/Moon (영혼의 점·headline), Venus/Mars (열정의 점·love),
+   * Venus/Jupiter (풍요의 점·money), Jupiter/Saturn (성공의 점·career),
+   * Moon/Saturn (감정적 성숙의 점·family), Mars/Saturn (절제된 행동의 점·health).
+   */
   midpoints?: Array<{ id: string; sign: string; name_ko: string; keywords: string[] }>
 }
 
@@ -311,10 +316,17 @@ export function adaptCalendarEngineSignals(input: AdaptInput): CalendarEngineSig
     const extras = safe(() => computeExtraArabicParts(chart, !nightChart, lots))
     if (extras && Object.keys(extras).length > 0) out.arabicPartsExtra = extras
 
-    // Key composite midpoints — Sun/Moon (통합된 자아), Venus/Mars (열정의 점).
+    // Key composite midpoints surfaced per report section (see type doc above).
     const mids = safe(() => calculateMidpoints(chart))
     if (mids && mids.length > 0) {
-      const wanted = new Set(['Sun/Moon', 'Venus/Mars'])
+      const wanted = new Set([
+        'Sun/Moon',
+        'Venus/Mars',
+        'Venus/Jupiter',
+        'Jupiter/Saturn',
+        'Moon/Saturn',
+        'Mars/Saturn',
+      ])
       const picked = mids
         .filter((m) => wanted.has(m.id))
         .map((m) => ({ id: m.id, sign: m.sign, name_ko: m.name_ko, keywords: m.keywords }))
