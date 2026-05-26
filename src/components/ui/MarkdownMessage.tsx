@@ -36,6 +36,18 @@ const MARKDOWN_COMPONENTS: Components = {
   h3: ({ children }) => <h3 className={styles.heading3}>{children}</h3>,
   blockquote: ({ children }) => <blockquote className={styles.blockquote}>{children}</blockquote>,
   hr: () => <hr className={styles.hr} />,
+  // 이미지 — 타로 카드 등 채팅 안에서 카드 그림 표시. max-width 로 폭 제한,
+  // rounded corner + subtle shadow 로 챗 버블 안에 자연스럽게 녹아들도록.
+  img: ({ src, alt }) =>
+    src ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={alt || ''}
+        loading="lazy"
+        className={styles.cardImage}
+      />
+    ) : null,
 }
 
 const MarkdownMessage = memo(function MarkdownMessage({

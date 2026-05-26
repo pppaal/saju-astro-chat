@@ -22,8 +22,15 @@ const MessageRow = React.memo(function MessageRow({
   const isAssistant = message.role === 'assistant'
   const repaired = repairMojibakeText(message.content || '')
   // Assistant messages: strip report-style markdown so the bubble reads
-  // like a chat reply. User messages are passed through unchanged.
+  // like a chat reply. User messages: pass through unchanged.
   const normalizedContent = isAssistant ? stripReportMarkdown(repaired) : repaired
+  // 사용자 메시지에 markdown 이 포함된 경우 (예: 🃏 클래리파이어 카드 — 이미지
+  // 마크다운 + 굵은 카드명) 도 렌더링되도록. 일반 평문 입력은 markdown 토큰이
+  // 거의 없어 시각 영향 없음. ReactMarkdown 은 HTML 을 통과시키지 않으므로
+  // XSS 위험은 없음.
+  const userLooksLikeMarkdown =
+    /!\[[^\]]*\]\([^)]+\)|\*\*[^*]+\*\*|^#{1,3}\s|\n[*-]\s/.test(normalizedContent)
+  const renderAsMarkdown = isAssistant || userLooksLikeMarkdown
   const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`
   const messageClass = isAssistant ? s.assistantMessage : s.userMessage
 
@@ -37,7 +44,7 @@ const MessageRow = React.memo(function MessageRow({
 
       <div className={s.messageBubble}>
         <div className={messageClass}>
-          {isAssistant ? <MarkdownMessage content={normalizedContent} /> : normalizedContent}
+          {renderAsMarkdown ? <MarkdownMessage content={normalizedContent} /> : normalizedContent}
         </div>
       </div>
 
