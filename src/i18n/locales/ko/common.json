@@ -1,7 +1,7 @@
 {
   "common": {
     "loading": "로딩 중...",
-    "loadMyProfile": "내 프로필 불러오기",
+    "loadMyProfile": "내 정보 불러오기",
     "profileLoaded": "프로필 불러오기 완료!",
     "change": "변경",
     "copy": "복사",
@@ -42,7 +42,7 @@
     "other": "기타",
     "preferNot": "밝히고 싶지 않음",
     "analyze": "분석",
-    "loadMyProfile": "내 프로필",
+    "loadMyProfile": "내 정보",
     "loadingProfile": "로드 중...",
     "profileLoaded": "프로필 로드 완료!",
     "profileLoadedSuccess": "프로필을 성공적으로 불러왔습니다."

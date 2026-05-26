@@ -40,7 +40,7 @@
       "secureNote": "Secure OAuth - No passwords"
     },
     "profile": {
-      "title": "My Profile",
+      "title": "My Info",
       "desc": "Birth info & settings"
     },
     "circle": {
@@ -193,7 +193,7 @@
     }
   },
   "profile": {
-    "title": "My Profile",
+    "title": "My Info",
     "subtitle": "Manage your personal information",
     "notEntered": "Not entered",
     "saveProfile": "Save Profile",

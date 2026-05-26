@@ -23,7 +23,7 @@ export default async function DestinyMatchPage() {
         secondaryLabel={getServerTranslation(
           messages,
           'authRequired.secondaryPricingCta',
-          'View Pricing'
+          'Recharge Credits'
         )}
         secondaryHref="/pricing"
       />

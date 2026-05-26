@@ -83,7 +83,7 @@
     "ourService": "Services",
     "start": "Start",
     "about": "About",
-    "pricing": "Pricing",
+    "pricing": "Recharge Credits",
     "blog": "Blog",
     "comingSoon": "Coming Soon",
     "loggedIn": "Logged in",
@@ -186,6 +186,6 @@
     "destinyMatchBody": "Sign in to discover compatibility matches and start conversations.",
     "primaryCta": "Sign in",
     "secondaryCta": "Explore Destiny Map",
-    "secondaryPricingCta": "View Pricing"
+    "secondaryPricingCta": "Recharge Credits"
   }
 }
