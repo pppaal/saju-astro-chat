@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import BrandSplash from '@/components/branding/BrandSplash'
 import DestinyMatrixPlanner from '@/components/calendar/DestinyMatrixPlanner'
 import { loadSharedBirthInfo } from '@/components/calendar/sharedBirthInfo'
+import { useI18n } from '@/i18n/I18nProvider'
 import type { BirthInfo, CalendarData } from '@/components/calendar/types'
 import { getUserProfile } from '@/lib/userProfile'
 import { localizeStoredCity } from '@/lib/cities/formatter'
@@ -19,6 +20,8 @@ import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
  */
 export default function DestinyMatrixPlannerClient() {
   const router = useRouter()
+  const { locale } = useI18n()
+  const lang = locale === 'en' ? 'en' : 'ko'
   const [birthInfo, setBirthInfo] = useState<BirthInfo>({
     birthDate: '',
     birthTime: '',
@@ -43,90 +46,96 @@ export default function DestinyMatrixPlannerClient() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchCalendar = useCallback(async (info: BirthInfo) => {
-    setLoading(true)
-    setError(null)
-    setYearlyConvergence(undefined)
-    setYearlyMonthly(undefined)
-    try {
-      const year = new Date().getFullYear()
-      const params = new URLSearchParams({
-        year: String(year),
-        locale: 'ko',
-        birthDate: info.birthDate,
-        birthTime: info.birthTime,
-        birthPlace: info.birthPlace,
-      })
-      const apiGender = normalizeGender(info.gender)
-      if (apiGender) params.set('gender', apiGender)
-
-      const res = await fetch(`/api/calendar?${params}`, {
-        headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
-      })
-
-      type ApiResponse = Partial<CalendarData> & {
-        error?: { message?: string } | string
-      }
-      let json: ApiResponse | null = null
+  const fetchCalendar = useCallback(
+    async (info: BirthInfo) => {
+      setLoading(true)
+      setError(null)
+      setYearlyConvergence(undefined)
+      setYearlyMonthly(undefined)
       try {
-        json = (await res.json()) as ApiResponse
-      } catch {
-        json = null
-      }
+        const year = new Date().getFullYear()
+        const params = new URLSearchParams({
+          year: String(year),
+          locale: lang,
+          birthDate: info.birthDate,
+          birthTime: info.birthTime,
+          birthPlace: info.birthPlace,
+        })
+        const apiGender = normalizeGender(info.gender)
+        if (apiGender) params.set('gender', apiGender)
 
-      const looksUsable =
-        !!json && json.success !== false && Array.isArray(json.allDates) && json.allDates.length > 0
+        const res = await fetch(`/api/calendar?${params}`, {
+          headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
+        })
 
-      if (!res.ok || !looksUsable) {
-        let serverMessage: string | null = null
-        const errField: unknown = json?.error
-        if (typeof errField === 'string') {
-          serverMessage = errField
-        } else if (errField && typeof errField === 'object' && 'message' in errField) {
-          const msg = (errField as { message?: unknown }).message
-          if (typeof msg === 'string') serverMessage = msg
+        type ApiResponse = Partial<CalendarData> & {
+          error?: { message?: string } | string
         }
-        setError(serverMessage || `엔진 응답 비어있음 (status ${res.status})`)
-        return
-      }
-
-      const payload = json as CalendarData
-      setData(payload)
-      logger.debug('[CalendarPlanner] payload received', {
-        year: payload.year,
-        total: payload.allDates?.length ?? 0,
-        phase: payload.matrixContract?.overallPhaseLabel,
-      })
-
-      // "올해 큰 날"은 1년 풀빌드라 비쌈 — 메인 응답을 막지 않게 지연 로드.
-      // 실패해도 무시(카드만 비게 됨). 캐시 적중 시 거의 즉시 채워짐.
-      void (async () => {
+        let json: ApiResponse | null = null
         try {
-          const cr = await fetch(`/api/calendar/convergence?${params}`, {
-            headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
-          })
-          if (!cr.ok) return
-          const cj = (await cr.json()) as {
-            convergence?: YearlyConvergence
-            monthly?: YearMonthly[]
-            daily?: Array<{ date: string; score: number }>
-          }
-          if (cj?.convergence) setYearlyConvergence(cj.convergence)
-          if (cj?.monthly) setYearlyMonthly(cj.monthly)
-          // daily 백필 폐기 — 메인 응답이 이미 365일 v2 점수로 채워져 있다(route.ts
-          // prescore가 윈도우를 1년 전체로 확장). 백필이 displayScore만 덮고 score는
-          // 안 덮어서 같은 날짜에 displayScore≠score 모순이 났던 lane도 함께 사라짐.
-        } catch (e) {
-          logger.debug('[CalendarPlanner] convergence lazy-load skipped', e)
+          json = (await res.json()) as ApiResponse
+        } catch {
+          json = null
         }
-      })()
-    } catch (err) {
-      logger.error('[CalendarPreview] fetch failed', err)
-      setError(err instanceof Error ? err.message : 'fetch failed')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+
+        const looksUsable =
+          !!json &&
+          json.success !== false &&
+          Array.isArray(json.allDates) &&
+          json.allDates.length > 0
+
+        if (!res.ok || !looksUsable) {
+          let serverMessage: string | null = null
+          const errField: unknown = json?.error
+          if (typeof errField === 'string') {
+            serverMessage = errField
+          } else if (errField && typeof errField === 'object' && 'message' in errField) {
+            const msg = (errField as { message?: unknown }).message
+            if (typeof msg === 'string') serverMessage = msg
+          }
+          setError(serverMessage || `엔진 응답 비어있음 (status ${res.status})`)
+          return
+        }
+
+        const payload = json as CalendarData
+        setData(payload)
+        logger.debug('[CalendarPlanner] payload received', {
+          year: payload.year,
+          total: payload.allDates?.length ?? 0,
+          phase: payload.matrixContract?.overallPhaseLabel,
+        })
+
+        // "올해 큰 날"은 1년 풀빌드라 비쌈 — 메인 응답을 막지 않게 지연 로드.
+        // 실패해도 무시(카드만 비게 됨). 캐시 적중 시 거의 즉시 채워짐.
+        void (async () => {
+          try {
+            const cr = await fetch(`/api/calendar/convergence?${params}`, {
+              headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
+            })
+            if (!cr.ok) return
+            const cj = (await cr.json()) as {
+              convergence?: YearlyConvergence
+              monthly?: YearMonthly[]
+              daily?: Array<{ date: string; score: number }>
+            }
+            if (cj?.convergence) setYearlyConvergence(cj.convergence)
+            if (cj?.monthly) setYearlyMonthly(cj.monthly)
+            // daily 백필 폐기 — 메인 응답이 이미 365일 v2 점수로 채워져 있다(route.ts
+            // prescore가 윈도우를 1년 전체로 확장). 백필이 displayScore만 덮고 score는
+            // 안 덮어서 같은 날짜에 displayScore≠score 모순이 났던 lane도 함께 사라짐.
+          } catch (e) {
+            logger.debug('[CalendarPlanner] convergence lazy-load skipped', e)
+          }
+        })()
+      } catch (err) {
+        logger.error('[CalendarPreview] fetch failed', err)
+        setError(err instanceof Error ? err.message : 'fetch failed')
+      } finally {
+        setLoading(false)
+      }
+    },
+    [lang]
+  )
 
   // Hydrate from shared storage / user profile / URL params
   const hydratedRef = useRef(false)
@@ -227,11 +236,16 @@ export default function DestinyMatrixPlannerClient() {
   }, [birthInfo, fetchCalendar])
 
   if (!hasBirthInfo) {
-    return <BrandSplash message="홈으로 이동 중…" />
+    return <BrandSplash message={lang === 'ko' ? '홈으로 이동 중…' : 'Redirecting to home…'} />
   }
 
   if (loading) {
-    return <BrandSplash message="운명 흐름을 계산 중이에요" submessage="잠시만요…" />
+    return (
+      <BrandSplash
+        message={lang === 'ko' ? '운명 흐름을 계산 중이에요' : 'Reading your destiny flow…'}
+        submessage={lang === 'ko' ? '잠시만요…' : 'Just a moment…'}
+      />
+    )
   }
 
   if (error) {
