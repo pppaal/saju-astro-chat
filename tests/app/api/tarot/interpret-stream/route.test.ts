@@ -95,6 +95,19 @@ vi.mock('@/lib/metrics/index', () => ({
   recordExternalCall: vi.fn(),
 }))
 
+// Mock Claude SDK — 실제 호출 대신 ReadableStream<string> 을 emit 하는 mock.
+// 각 테스트가 mockCallClaudeStream.mockResolvedValue(createMockClaudeStream([...]))
+// 으로 응답을 정의하거나, mockCallClaudeStream.mock.calls[0][0] 로 전달된
+// systemPrompt/userPrompt 를 assert 한다.
+const mockCallClaudeStream = vi.fn()
+const mockIsClaudeAvailable = vi.fn(() => true)
+
+vi.mock('@/lib/llm/claude', () => ({
+  callClaudeStream: (...args: unknown[]) => mockCallClaudeStream(...args),
+  isClaudeAvailable: () => mockIsClaudeAvailable(),
+  DEFAULT_CLAUDE_MODEL: 'claude-haiku-4-5-test',
+}))
+
 // Mock Zod validation schema
 const mockTarotInterpretStreamSafeParse = vi.fn()
 
@@ -201,24 +214,14 @@ function makePostRequest(body: unknown): NextRequest {
   })
 }
 
-// Helper to create a mock OpenAI streaming response
-function createMockOpenAIStreamResponse(chunks: string[]) {
-  const encoder = new TextEncoder()
-  const stream = new ReadableStream({
+// Helper to create a mock Claude streaming response (ReadableStream<string>).
+// 각 chunk 는 Claude SDK 가 callClaudeStream 으로부터 enqueue 하는 단위
+// (token-level text delta) 와 동일.
+function createMockClaudeStream(chunks: string[]) {
+  return new ReadableStream<string>({
     start(controller) {
-      for (const chunk of chunks) {
-        controller.enqueue(encoder.encode(chunk))
-      }
+      for (const c of chunks) controller.enqueue(c)
       controller.close()
-    },
-  })
-
-  return new Response(stream, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
     },
   })
 }
@@ -257,6 +260,14 @@ function setupDefaults() {
       guidance: [{ title: 'Advice', detail: 'Take action' }],
     },
   })
+
+  // Default: Claude available + returns single-chunk valid JSON stream.
+  mockIsClaudeAvailable.mockReturnValue(true)
+  mockCallClaudeStream.mockResolvedValue(
+    createMockClaudeStream([
+      '{"overall":"Test overall","cards":[{"position":"Past","interpretation":"Past interp"}],"advice":"Test advice"}',
+    ])
+  )
 }
 
 // ===================================================================
@@ -267,8 +278,6 @@ describe('POST /api/tarot/interpret-stream', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     setupDefaults()
-    // Clear any existing OPENAI_API_KEY for tests
-    delete process.env.OPENAI_API_KEY
   })
 
   // -----------------------------------------------------------------
@@ -545,18 +554,14 @@ describe('POST /api/tarot/interpret-stream', () => {
   })
 
   // -----------------------------------------------------------------
-  // Fallback Mode (No OPENAI_API_KEY)
+  // Fallback Mode (Claude unavailable — ANTHROPIC_API_KEY 미설정 또는 호출 실패)
   // -----------------------------------------------------------------
-  describe('Fallback Mode (No OPENAI_API_KEY)', () => {
+  describe('Fallback Mode (Claude unavailable)', () => {
     beforeEach(() => {
-      mockApiClientPost.mockResolvedValue({
-        ok: false,
-        status: 500,
-        error: 'Backend error',
-      })
+      mockIsClaudeAvailable.mockReturnValue(false)
     })
 
-    it('should use fallback payload when OPENAI_API_KEY is missing', async () => {
+    it('should use fallback payload when Claude is unavailable', async () => {
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
       // Should return SSE stream with fallback header
@@ -591,158 +596,26 @@ describe('POST /api/tarot/interpret-stream', () => {
       expect(text).toContain('upright')
     })
 
-    it('should log warning when OPENAI_API_KEY is missing', async () => {
+    it('should log warning when Claude is unavailable', async () => {
       await POST(makePostRequest(VALID_REQUEST_BODY))
 
       expect(logger.warn).toHaveBeenCalledWith(
-        'Tarot stream missing both ANTHROPIC_API_KEY and OPENAI_API_KEY, using fallback'
-      )
-    })
-  })
-
-  // -----------------------------------------------------------------
-  // OpenAI Streaming (With API Key)
-  // -----------------------------------------------------------------
-  describe('OpenAI Streaming', () => {
-    beforeEach(() => {
-      process.env.OPENAI_API_KEY = 'test-api-key'
-      mockApiClientPost.mockResolvedValue({
-        ok: false,
-        status: 500,
-        error: 'Backend error',
-      })
-    })
-
-    afterEach(() => {
-      delete process.env.OPENAI_API_KEY
-    })
-
-    it('should call OpenAI API with correct parameters', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(
-          createMockOpenAIStreamResponse([
-            'data: {"choices":[{"delta":{"content":"{\\"overall\\":"}}]}\n\n',
-            'data: {"choices":[{"delta":{"content":"\\"Test\\"}"}}]}\n\n',
-            'data: [DONE]\n\n',
-          ])
-        )
-      global.fetch = mockFetch
-
-      await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.openai.com/v1/chat/completions',
-        expect.objectContaining({
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer test-api-key',
-          },
-          body: expect.stringContaining('gpt-4o-mini'),
-        })
+        'Tarot stream missing ANTHROPIC_API_KEY, using fallback'
       )
     })
 
-    it('should use gpt-4o-mini model', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.model).toBe('gpt-4o-mini')
-    })
-
-    it('should request JSON response format', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.response_format).toEqual({ type: 'json_object' })
-    })
-
-    it('should enable streaming', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
-      await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.stream).toBe(true)
-    })
-
-    it('should return SSE stream response on success', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(
-          createMockOpenAIStreamResponse([
-            'data: {"choices":[{"delta":{"content":"test"}}]}\n\n',
-            'data: [DONE]\n\n',
-          ])
-        )
-      global.fetch = mockFetch
-
-      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
-      expect(response.headers.get('Cache-Control')).toBe('no-cache')
-    })
-
-    it('should fallback to backend when OpenAI fetch fails', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
-
-      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      // Should return fallback stream
-      expect(response.headers.get('X-Fallback')).toBe('1')
-      expect(logger.error).toHaveBeenCalledWith(
-        'OpenAI stream fetch error:',
-        expect.objectContaining({ error: expect.any(Error) })
-      )
-    })
-
-    it('should fallback to backend when OpenAI returns error status', async () => {
-      global.fetch = vi.fn().mockResolvedValue(new Response('Rate limit exceeded', { status: 429 }))
+    it('should use fallback when callClaudeStream throws', async () => {
+      // Claude 사용 가능하다고 보고되지만 실제 호출 시 던지는 케이스
+      mockIsClaudeAvailable.mockReturnValue(true)
+      mockCallClaudeStream.mockRejectedValueOnce(new Error('Claude API error'))
 
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
       expect(response.headers.get('X-Fallback')).toBe('1')
       expect(logger.error).toHaveBeenCalledWith(
-        'OpenAI stream error:',
-        expect.objectContaining({ status: 429 })
+        '[tarot-stream] Claude initial call failed',
+        expect.objectContaining({ error: expect.any(String) })
       )
-    })
-  })
-
-  // -----------------------------------------------------------------
-  // OpenAI static fallback (backend fallback removed)
-  // -----------------------------------------------------------------
-  describe('OpenAI Static Fallback', () => {
-    beforeEach(() => {
-      process.env.OPENAI_API_KEY = 'test-api-key'
-    })
-
-    afterEach(() => {
-      delete process.env.OPENAI_API_KEY
-    })
-
-    it('should use base fallback when OpenAI fails', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('OpenAI down'))
-
-      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      // Should still return a fallback stream
-      expect(response.headers.get('X-Fallback')).toBe('1')
-      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
     })
   })
 
@@ -750,25 +623,7 @@ describe('POST /api/tarot/interpret-stream', () => {
   // Personalization Features
   // -----------------------------------------------------------------
   describe('Personalization Features', () => {
-    beforeEach(() => {
-      process.env.OPENAI_API_KEY = 'test-api-key'
-      mockApiClientPost.mockResolvedValue({
-        ok: false,
-        status: 500,
-        error: 'Backend error',
-      })
-    })
-
-    afterEach(() => {
-      delete process.env.OPENAI_API_KEY
-    })
-
     it('should ignore impossible YYYY-MM-DD birthdate values', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
       mockTarotInterpretStreamSafeParse.mockReturnValue({
         success: true,
         data: {
@@ -786,16 +641,11 @@ describe('POST /api/tarot/interpret-stream', () => {
         })
       )
 
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).not.toContain('Zodiac:')
+      const callArgs = mockCallClaudeStream.mock.calls[0][0]
+      expect(callArgs.userPrompt).not.toContain('Zodiac:')
     })
-    it('should analyze question mood for worried patterns', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
 
+    it('should analyze question mood for worried patterns', async () => {
       mockTarotInterpretStreamSafeParse.mockReturnValue({
         success: true,
         data: { ...VALID_REQUEST_BODY, userQuestion: '너무 걱정되고 불안해요' },
@@ -803,9 +653,8 @@ describe('POST /api/tarot/interpret-stream', () => {
 
       await POST(makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '너무 걱정되고 불안해요' }))
 
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('걱정')
+      const callArgs = mockCallClaudeStream.mock.calls[0][0]
+      expect(callArgs.userPrompt).toContain('걱정')
     })
   })
 
@@ -858,14 +707,6 @@ describe('POST /api/tarot/interpret-stream', () => {
   // Locale Handling
   // -----------------------------------------------------------------
   describe('Locale Handling', () => {
-    beforeEach(() => {
-      mockApiClientPost.mockResolvedValue({
-        ok: false,
-        status: 500,
-        error: 'Backend error',
-      })
-    })
-
     it('should use body language over context locale when provided', async () => {
       mockInitializeApiContext.mockResolvedValue({
         context: { ...MOCK_CONTEXT, locale: 'ko' },
@@ -876,12 +717,11 @@ describe('POST /api/tarot/interpret-stream', () => {
         data: { ...VALID_REQUEST_BODY, language: 'en' },
       })
 
-      const response = await POST(makePostRequest({ ...VALID_REQUEST_BODY, language: 'en' }))
-      const text = await response.text()
+      await POST(makePostRequest({ ...VALID_REQUEST_BODY, language: 'en' }))
 
-      // Should use English (the fallback uses "cards" and "upright")
-      expect(text).toContain('cards')
-      expect(text).toContain('upright')
+      // English language flows into the prompt builder → English keywords
+      const callArgs = mockCallClaudeStream.mock.calls[0][0]
+      expect(callArgs.userPrompt).toContain('The Fool')
     })
 
     it('should fall back to context locale when body language is not provided', async () => {
@@ -894,11 +734,11 @@ describe('POST /api/tarot/interpret-stream', () => {
         data: { ...VALID_REQUEST_BODY, language: undefined },
       })
 
-      const response = await POST(makePostRequest({ ...VALID_REQUEST_BODY, language: undefined }))
-      const text = await response.text()
+      await POST(makePostRequest({ ...VALID_REQUEST_BODY, language: undefined }))
 
-      // Should use Korean (from context)
-      expect(text).toContain('카드')
+      // language 미지정 시 context.locale='ko' 로 fallback → Korean card name 등장
+      const callArgs = mockCallClaudeStream.mock.calls[0][0]
+      expect(callArgs.userPrompt).toContain('바보')
     })
   })
 
@@ -906,23 +746,19 @@ describe('POST /api/tarot/interpret-stream', () => {
   // SSE Stream Format
   // -----------------------------------------------------------------
   describe('SSE Stream Format', () => {
-    beforeEach(() => {
-      mockApiClientPost.mockResolvedValue({
-        ok: false,
-        status: 500,
-        error: 'Backend error',
-      })
-    })
-
-    it('should return proper SSE headers', async () => {
+    it('should return proper SSE headers on success', async () => {
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
       expect(response.headers.get('Content-Type')).toBe('text/event-stream')
-      expect(response.headers.get('Cache-Control')).toBe('no-cache')
+      // Claude streaming path 은 no-cache 와 함께 no-transform 도 명시
+      // (프록시에서 transform 되어 chunk 가 모이지 않도록).
+      expect(response.headers.get('Cache-Control')).toContain('no-cache')
       expect(response.headers.get('Connection')).toBe('keep-alive')
     })
 
-    it('should include X-Fallback header when using fallback', async () => {
+    it('should include X-Fallback header when Claude unavailable', async () => {
+      mockIsClaudeAvailable.mockReturnValue(false)
+
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
       expect(response.headers.get('X-Fallback')).toBe('1')
@@ -933,25 +769,7 @@ describe('POST /api/tarot/interpret-stream', () => {
   // Card Processing
   // -----------------------------------------------------------------
   describe('Card Processing', () => {
-    beforeEach(() => {
-      process.env.OPENAI_API_KEY = 'test-api-key'
-      mockApiClientPost.mockResolvedValue({
-        ok: false,
-        status: 500,
-        error: 'Backend error',
-      })
-    })
-
-    afterEach(() => {
-      delete process.env.OPENAI_API_KEY
-    })
-
     it('should handle reversed cards correctly', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
       const reversedCard = { ...VALID_CARD, isReversed: true }
       mockTarotInterpretStreamSafeParse.mockReturnValue({
         success: true,
@@ -960,17 +778,11 @@ describe('POST /api/tarot/interpret-stream', () => {
 
       await POST(makePostRequest({ ...VALID_REQUEST_BODY, cards: [reversedCard] }))
 
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('역방향')
+      const callArgs = mockCallClaudeStream.mock.calls[0][0]
+      expect(callArgs.userPrompt).toContain('역방향')
     })
 
     it('should use Korean card names when language is ko', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
       mockTarotInterpretStreamSafeParse.mockReturnValue({
         success: true,
         data: { ...VALID_REQUEST_BODY, language: 'ko' },
@@ -978,17 +790,11 @@ describe('POST /api/tarot/interpret-stream', () => {
 
       await POST(makePostRequest(VALID_REQUEST_BODY))
 
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('바보') // Korean name for The Fool
+      const callArgs = mockCallClaudeStream.mock.calls[0][0]
+      expect(callArgs.userPrompt).toContain('바보') // Korean name for The Fool
     })
 
     it('should use English card names when language is en', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
       mockTarotInterpretStreamSafeParse.mockReturnValue({
         success: true,
         data: { ...VALID_REQUEST_BODY, language: 'en' },
@@ -996,30 +802,18 @@ describe('POST /api/tarot/interpret-stream', () => {
 
       await POST(makePostRequest({ ...VALID_REQUEST_BODY, language: 'en' }))
 
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('The Fool') // English name
+      const callArgs = mockCallClaudeStream.mock.calls[0][0]
+      expect(callArgs.userPrompt).toContain('The Fool') // English name
     })
 
     it('should include card keywords in prompt', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
       await POST(makePostRequest(VALID_REQUEST_BODY))
 
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
-      expect(userMessage.content).toContain('새로운 시작')
+      const callArgs = mockCallClaudeStream.mock.calls[0][0]
+      expect(callArgs.userPrompt).toContain('새로운 시작')
     })
 
     it('should process multiple cards', async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
-      global.fetch = mockFetch
-
       const multipleCards = [
         { ...VALID_CARD, name: 'The Fool', position: 'Past' },
         { ...VALID_CARD, name: 'The Magician', position: 'Present' },
@@ -1033,10 +827,9 @@ describe('POST /api/tarot/interpret-stream', () => {
 
       await POST(makePostRequest({ ...VALID_REQUEST_BODY, cards: multipleCards }))
 
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      const systemMessage = callBody.messages.find((m: { role: string }) => m.role === 'system')
-      // Should mention all 3 cards
-      expect(systemMessage.content).toContain('3')
+      const callArgs = mockCallClaudeStream.mock.calls[0][0]
+      // 시스템 프롬프트는 카드 수를 명시
+      expect(callArgs.systemPrompt).toContain('3')
     })
   })
 
