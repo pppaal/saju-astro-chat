@@ -16,6 +16,7 @@ import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@prisma/client'
 import { sendPushNotification } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
+import { sanitizeHtml } from '@/lib/api/sanitizers'
 import {
   coupleTarotReadingPostSchema,
   coupleTarotReadingDeleteSchema,
@@ -141,6 +142,23 @@ export const POST = withApiMiddleware(
         affirmation,
       } = validationResult.data
 
+      // 클라이언트가 보낸 "AI 타로 해석" 텍스트는 서버에서 LLM을 다시 돌리지
+      // 않고 그대로 저장 → 파트너에게 노출된다. 누구든 임의 텍스트를 "타로
+      // 결과"로 위장해 매치 상대에게 보낼 수 있다는 뜻이라 *최소한* HTML/
+      // 스크립트 인젝션은 막아둔다. 텍스트 무결성(진짜 AI 출력인가) 검증은
+      // 별도 작업 — 서버사이드 재생성 또는 HMAC 서명이 답.
+      const safeOverallMessage = sanitizeHtml(overallMessage, 10000)
+      const safeGuidance = guidance ? sanitizeHtml(guidance, 5000) : guidance
+      const safeAffirmation = affirmation ? sanitizeHtml(affirmation, 500) : affirmation
+      const safeCardInsights = cardInsights
+        ? cardInsights.map((c) => ({
+            ...c,
+            position: sanitizeHtml(c.position, 100),
+            card_name: sanitizeHtml(c.card_name, 120),
+            interpretation: sanitizeHtml(c.interpretation, 5000),
+          }))
+        : cardInsights
+
       // 매치 연결 확인
       const connection = await prisma.matchConnection.findUnique({
         where: { id: connectionId },
@@ -228,12 +246,12 @@ export const POST = withApiMiddleware(
               spreadId,
               spreadTitle: (spreadTitle || '커플 스프레드') as string,
               cards: cards as Prisma.InputJsonValue,
-              overallMessage: overallMessage as string,
-              cardInsights: cardInsights
-                ? (cardInsights as Prisma.InputJsonValue)
+              overallMessage: safeOverallMessage as string,
+              cardInsights: safeCardInsights
+                ? (safeCardInsights as Prisma.InputJsonValue)
                 : Prisma.DbNull,
-              guidance,
-              affirmation,
+              guidance: safeGuidance,
+              affirmation: safeAffirmation,
               source: 'couple',
               isSharedReading: true,
               sharedWithUserId: partnerId,

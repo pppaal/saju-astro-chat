@@ -174,8 +174,10 @@ ${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
       }
       captureServerError(err as Error, { route: '/api/tarot/followup' })
       logger.error('Tarot followup error:', err)
+      // 클라이언트에는 일반화된 에러만 노출. 원본 err.message 는 위 로그/
+      // sentry 에서만 확인 (DB 에러·내부 경로·스택 힌트 누출 방지).
       return NextResponse.json(
-        { error: 'followup_failed', message: err instanceof Error ? err.message : 'Unknown error' },
+        { error: 'followup_failed' },
         { status: HTTP_STATUS.SERVER_ERROR }
       )
     }

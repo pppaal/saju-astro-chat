@@ -2,6 +2,7 @@
 // 깊이 기반 추천기에 위임 — 옛 헬퍼 (Heuristics/Helpers/Support) 의존 제거.
 
 import { recommendSpreads } from './tarot-recommend'
+import { isDangerousQuestion } from './safety'
 
 export type QuestionEngineV2FallbackReason =
   | 'auth_failed'
@@ -41,28 +42,6 @@ export interface QuestionEngineV2Result {
   path: string
   source: 'heuristic'
   fallback_reason: QuestionEngineV2FallbackReason | null
-}
-
-const DANGEROUS_KEYWORDS = [
-  '자살',
-  '죽고 싶',
-  '죽을래',
-  '살기 싫',
-  '끝내고 싶',
-  '죽어버릴',
-  '자해',
-  '목숨',
-  '생을 마감',
-  '세상 떠나',
-  'suicide',
-  'kill myself',
-  'end my life',
-  'want to die',
-]
-
-function isDangerousQuestion(q: string): boolean {
-  const n = q.toLowerCase()
-  return DANGEROUS_KEYWORDS.some((kw) => n.includes(kw.toLowerCase()))
 }
 
 function buildPath(themeId: string, spreadId: string, question: string) {
