@@ -549,7 +549,7 @@ function CompatibilityCounselorContent() {
     [isKo, sendMessage]
   )
 
-  // 🃏 맞춤 타로 — 운명상담사와 동일한 InlineTarotModal 흐름. 사용자가
+  // 🃏 다음 질문 타로로 보기 — 운명상담사와 동일한 InlineTarotModal 흐름. 사용자가
   // 질문 적고 스프레드 골라 카드 펼치면 결과를 채팅 메시지로 inject.
   // 본 채팅의 다음 follow-up 은 두 사람 컨텍스트를 가지고 커플 관점에서
   // 카드 결과를 깊게 읽어준다.
@@ -618,14 +618,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               disabled={isLoading || persons.length < 2}
               title={
                 isKo
-                  ? '맞춤 타로 — 질문 적고 스프레드 골라 카드 뽑기'
-                  : 'Custom tarot — pick a spread and draw cards on your own question'
+                  ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
+                  : 'See your next question in tarot — pick a spread and draw'
               }
             >
               <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
                 {'🃏'}
               </span>
-              {isKo ? '맞춤 타로 묻기' : 'Custom tarot'}
+              {isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot'}
             </button>
             <button
               type="button"
@@ -789,18 +789,18 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                     onChange={handleFileUpload}
                   />
                 </label>
-                {/* 🃏 맞춤 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
+                {/* 🃏 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
                     사이드바 푸터에 같은 둘이 있어 ≥1024px에선 중복을 피해 숨긴다. */}
                 <button
                   type="button"
                   onClick={() => setShowTarotModal(true)}
                   disabled={isLoading || persons.length < 2}
                   className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
-                  aria-label={isKo ? '맞춤 타로' : 'Custom tarot'}
+                  aria-label={isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot'}
                   title={
                     isKo
-                      ? '맞춤 타로 — 질문 적고 스프레드 골라 카드 뽑기'
-                      : 'Custom tarot — pick a spread and draw'
+                      ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
+                      : 'See your next question in tarot — pick a spread and draw'
                   }
                 >
                   <span className={styles.toolButtonIcon}>🃏</span>
