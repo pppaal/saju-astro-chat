@@ -1,14 +1,16 @@
 /**
  * 점수 → 3단계 등급 매핑.
  *
- * 절대 점수가 아니라 그 사용자 분포의 백분위 기반 임계값.
- *   상위 20% → 좋은 날
- *   중간 60% → 보통
- *   하위 20% → 조심할 날
+ * 절대 cutoff. yearlyDates의 scoreToGrade(63/57/44/34) 및 narrative grade와 정렬:
+ *   ≥57 → 좋은 날      (grade 0~1)
+ *   ≥44 → 보통          (grade 2)
+ *   <44 → 조심할 날     (grade 3~4)
  *
- * 매달 보장: 좋은 날 ~6일 + 보통 ~18일 + 조심할 날 ~6일.
- * 사용자마다 임계값 다름 (자기 분포에 맞춤) — "절대적으로 좋은 날"이 아니라
- * "그 사람 기준 상대적으로 강한/약한 날".
+ * 분포 percentile 기반(상위/하위 20%)으로 매기던 이전 방식은 narrative grade
+ * (절대 cutoff)와 같은 60점 날을 yearly에선 "좋음", daily에선 "보통"으로 분리해서
+ * 카드 안 라벨 모순을 만들었다. 한 cutoff로 통일.
+ *
+ * computeGradeThresholds는 하위호환을 위해 남기되 내부적으로 항상 ABSOLUTE를 반환.
  */
 
 export type GradeKey = 'lucky' | 'neutral' | 'unlucky'
@@ -23,29 +25,24 @@ export interface GradeInfo {
 }
 
 export interface GradeThresholds {
-  /** 길일 최소 점수 (상위 20% cutoff) */
+  /** 길일 최소 점수 (절대 cutoff) */
   luckyMin: number
-  /** 흉일 최대 점수 (하위 20% cutoff) */
+  /** 흉일 최대 점수 (절대 cutoff) */
   unluckyMax: number
 }
 
-/** 폴백 임계값 — 분포 데이터 없을 때 */
-const FALLBACK: GradeThresholds = { luckyMin: 55, unluckyMax: 45 }
+/**
+ * 절대 cutoff — yearlyDates.scoreToGrade의 grade≤1 / grade=2 / grade≥3 경계와 일치.
+ * 결과: 같은 점수 60이 yearly·daily 어디서나 "좋은 날(grade 1)"로 일관.
+ */
+const ABSOLUTE: GradeThresholds = { luckyMin: 57, unluckyMax: 43 }
 
 /**
- * 사용자의 점수 배열에서 임계값 계산.
- * 1년치 365일 셀을 받아서 percentile 도출.
+ * @deprecated 분포 기반 임계값은 narrative grade와 어긋나 모순을 만들었음.
+ *  항상 절대 cutoff(ABSOLUTE)를 반환. 호출부 제거 시 함께 제거.
  */
-export function computeGradeThresholds(scores: number[]): GradeThresholds {
-  const valid = scores.filter((s) => typeof s === 'number' && Number.isFinite(s))
-  if (valid.length < 5) return FALLBACK
-  const sorted = [...valid].sort((a, b) => a - b)
-  const lowIdx = Math.floor(sorted.length * 0.2)
-  const highIdx = Math.floor(sorted.length * 0.8)
-  return {
-    luckyMin: sorted[highIdx] ?? FALLBACK.luckyMin,
-    unluckyMax: sorted[lowIdx] ?? FALLBACK.unluckyMax,
-  }
+export function computeGradeThresholds(_scores: number[]): GradeThresholds {
+  return ABSOLUTE
 }
 
 const LUCKY: GradeInfo = {
@@ -74,11 +71,11 @@ const UNLUCKY: GradeInfo = {
 }
 
 /**
- * 점수 + 분포 임계값 → 등급.
- * thresholds 없으면 폴백 사용.
+ * 점수 → 등급. thresholds 인자는 하위호환 — 항상 ABSOLUTE 사용.
+ * narrative grade(yearlyDates.scoreToGrade)와 같은 cutoff라 카드 안 라벨 일관.
  */
-export function getGrade(score: number, thresholds: GradeThresholds = FALLBACK): GradeInfo {
-  if (score >= thresholds.luckyMin) return LUCKY
-  if (score <= thresholds.unluckyMax) return UNLUCKY
+export function getGrade(score: number, _thresholds: GradeThresholds = ABSOLUTE): GradeInfo {
+  if (score >= ABSOLUTE.luckyMin) return LUCKY
+  if (score <= ABSOLUTE.unluckyMax) return UNLUCKY
   return NEUTRAL
 }

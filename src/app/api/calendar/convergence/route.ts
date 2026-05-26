@@ -104,14 +104,17 @@ export const GET = withApiMiddleware(
       })
 
       const { getYearInsights } = await import('@/lib/calendar-engine/year-convergence')
-      const { convergence, monthly, daily } = await getYearInsights({
+      const { convergence, monthly } = await getYearInsights({
         birthKey,
         year: targetYear,
         natal,
         lang: interpLang,
       })
 
-      const res = NextResponse.json({ success: true, convergence, monthly, daily })
+      // daily 배열은 더 이상 응답에 포함하지 않는다 — 메인 /api/calendar 응답이 이미
+      // 365일 v2 점수를 score/displayScore에 담고 있어서 client 백필이 필요 없다.
+      // 페이로드 ~30KB 절약.
+      const res = NextResponse.json({ success: true, convergence, monthly })
       // 같은 본명·연도면 결정적 — 캐시 적극 활용.
       res.headers.set('Cache-Control', 'private, max-age=3600, stale-while-revalidate=1800')
       return res

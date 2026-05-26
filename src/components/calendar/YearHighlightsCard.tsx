@@ -3,7 +3,7 @@
 import { CalendarRange, TrendingUp, TrendingDown } from 'lucide-react'
 import { isAxisConverged } from '@/lib/calendar-engine/derivers/convergence-heavy'
 import type { ImportantDate } from './types'
-import { computeGradeThresholds, getGrade } from './scoreGrade'
+import { getGrade } from './scoreGrade'
 
 interface Props {
   /** 올해 전체 ImportantDate (calendar-engine 점수 포함) */
@@ -44,9 +44,10 @@ export default function YearHighlightsCard({
 }: Props) {
   if (allDates.length === 0) return null
 
-  const thresholds = computeGradeThresholds(allDates.map(pickScore))
+  // 등급은 절대 cutoff(57/43) — yearlyDates.scoreToGrade와 정렬. 분포 percentile
+  // 기반은 같은 점수에 다른 라벨이 나와 카드 안 모순을 만들었기에 폐기.
   const ranked = allDates
-    .map((d) => ({ date: d, score: pickScore(d), grade: getGrade(pickScore(d), thresholds) }))
+    .map((d) => ({ date: d, score: pickScore(d), grade: getGrade(pickScore(d)) }))
     .filter((x) => x.grade.key !== 'neutral')
 
   const lucky = capPerMonth(

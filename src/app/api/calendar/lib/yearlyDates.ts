@@ -1138,13 +1138,18 @@ function buildTitle(
   // 충/형/공망/천간합 같이 점수 변동이 큰 이벤트는 캘린더 한눈에 보이도록 배지로 prepend
   const top = pickTopDailyEvent(dailyEvents)
   const HEAVY: DailyEvent['kind'][] = ['천간충', '지지충', '지지형', '공망', '천간합', '지지합']
-  // 긍정 배지(결속의 날·관계 결속)는 흉일에 붙으면 등급과 어긋나므로 grade<=2 에서만.
+  // 등급 정합 게이트:
+  //   긍정 배지(천간합·지지합)는 흉일(grade≥3)에 붙으면 어긋나므로 grade<=2에서만.
+  //   부정 배지(천간충·지지충·지지형·공망)는 길일(grade≤1)에 붙으면 어긋나므로
+  //   grade>=2에서만. v2 cell.derivedScore가 saju-hyeongchung weight(0.7)로 이미
+  //   반영했으니 grade≤1로 살아남은 날은 다른 신호가 압도하는 거고 그 점수 톤이 옳음.
   const positiveBadge = top ? top.kind === '천간합' || top.kind === '지지합' : false
   const showBadge =
     top &&
     Math.abs(top.scoreShift) >= 2 &&
     HEAVY.includes(top.kind) &&
-    !(positiveBadge && grade >= 3)
+    !(positiveBadge && grade >= 3) &&
+    !(!positiveBadge && grade <= 1)
   const badge = showBadge
     ? locale === 'ko'
       ? DAILY_EVENT_BADGE_KO[top.kind]
@@ -1172,10 +1177,12 @@ function buildDayDescriptionSuffixKo(input: {
   const labelTopic = `${label}${topicMarkerKo(label)}`
   // 1) 일주 이벤트 우선 — 강도 큰 것부터 (이미 score 절댓값 기준 정렬돼서 들어옴)
   const top = dailyEvents && dailyEvents.length > 0 ? dailyEvents[0] : null
-  // 천간합·지지합의 긍정 멘트("결정이 가벼워지는 날" 등)는 흉일(grade>=3)엔 숨겨
-  // 그날 등급과 어긋나지 않게 하고, 점수밴드 카운슬링으로 폴백한다.
+  // 등급 정합 게이트(buildTitle 배지와 대칭):
+  //   긍정 멘트(천간합·지지합)는 흉일(grade>=3)엔 숨김 — 점수밴드 카운슬링으로 폴백.
+  //   부정 멘트(천간충 등)는 길일(grade<=1)엔 숨김 — v2 점수가 길일이라면 다른 신호가
+  //   압도하는 거라 "압박 들어옴…" 같은 강한 부정 톤이 점수와 어긋난다.
   const positiveEvent = top ? top.kind === '천간합' || top.kind === '지지합' : false
-  const suppressTopEvent = positiveEvent && grade >= 3
+  const suppressTopEvent = (positiveEvent && grade >= 3) || (!positiveEvent && grade <= 1)
   if (top && !suppressTopEvent) {
     const eventLine: Partial<Record<DailyEvent['kind'], string>> = {
       천간합: `오늘은 본명과 부드럽게 맞물려 ${label} 결정이 가벼워지는 날이에요.`,
@@ -2049,19 +2056,15 @@ export function calculateYearlyImportantDates(
           : 'opposed'
 
     const blendedRaw = (sajuAxisRaw + astroAxisRaw) / 2
-    // dailyShift(천간충·지지형·공망 등 본명-일진 의미적 충돌의 누계 점수 영향)는
-    // 타이틀/팩터 narrative에는 반영되는데 헤드라인 점수엔 안 들어가서 "압박 들어옴"
-    // 문구와 60+ 점수가 동시에 떴다. v2 엔진 신호도 natal-day-pillar vs daily-pillar
-    // 직접 충은 부분적으로만 잡으므로 약한 보정(×0.4, ±6 clamp)을 점수에 입혀
-    // 숫자와 narrative가 한 방향을 가리키게 한다.
-    const dailyShiftAdjustment = Math.round(clamp(dailyShift * 0.4, -6, 6))
-    // 화면 표시 점수(v2 calendar-engine)가 주입돼 있으면 그걸 THE 점수로 사용 →
-    // grade/tier/점수밴드 문구 전부 표시 숫자와 한 점수로 정렬. 없으면 사주·점성 blend.
+    // 점수는 v2 cell.derivedScore (engineOverride) 단일 모델. v2 신호 셋이
+    // 천간충/지지형/공망까지 saju-hyeongchung extractor로 이미 잡고 있으므로
+    // dailyShiftAdjustment(폐기)는 이중 계산이었다. 365일 전체에 prescore가 v2를
+    // 채우므로 fallback(blendedRaw)은 prescore 실패 시에만 활성.
     const engineOverride = options?.engineScores?.[dateKey]
     const score =
       typeof engineOverride === 'number' && Number.isFinite(engineOverride)
-        ? Math.round(clamp(engineOverride + dailyShiftAdjustment, 2, 99))
-        : Math.round(clamp(blendedRaw + dailyShiftAdjustment, 2, 99))
+        ? Math.round(clamp(engineOverride, 2, 99))
+        : Math.round(clamp(blendedRaw, 2, 99))
     // override 활성 시 두 축 표시값을 동일 delta로 시프트해 평균이 헤드라인 점수와
     // 맞도록 정렬(축간 차이는 보존 → axisAgreement 의미 유지). override 없으면 raw 그대로.
     const axisOffset =

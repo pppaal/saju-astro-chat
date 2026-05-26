@@ -2,7 +2,7 @@
 
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import type { ImportantDate } from './types'
-import { getGrade, type GradeThresholds } from './scoreGrade'
+import { getGrade } from './scoreGrade'
 
 interface Props {
   /** 그 달의 모든 ImportantDate (calendar-engine 점수 포함) */
@@ -11,23 +11,17 @@ interface Props {
   onDayClick: (day: number) => void
   /** 표시할 상위/하위 개수 (기본 5) */
   topN?: number
-  /** 사용자의 1년 분포 기반 임계값 (없으면 폴백) */
-  gradeThresholds?: GradeThresholds
 }
 
 /**
  * 그 달의 길일 TOP N + 흉일 TOP N.
  * "월간 종합 분석" 카드 다음에 위치.
  *
- * 점수는 cell.derivedScore 우선 (engine v2). 없으면 displayScore.
- * 핵심 사유는 matchedPatterns[0].name 우선, 없으면 topReasons / sajuFactors.
+ * 점수·등급은 v2 cell.derivedScore + 절대 cutoff(57/43, scoreToGrade 정렬)로
+ * 일관. 사용자 분포 percentile 기반은 narrative grade와 라벨이 어긋나 카드 안
+ * 모순을 만들었기에 폐기.
  */
-export default function MonthHighlightsCard({
-  monthDates,
-  onDayClick,
-  topN = 3,
-  gradeThresholds,
-}: Props) {
+export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 3 }: Props) {
   if (monthDates.length === 0) return null
 
   const ranked = monthDates
@@ -60,7 +54,6 @@ export default function MonthHighlightsCard({
                   rank={i + 1}
                   importantDate={item.date}
                   score={item.score}
-                  thresholds={gradeThresholds}
                   tone="positive"
                   onClick={() => onDayClick(parseDay(item.date.date))}
                 />
@@ -85,7 +78,6 @@ export default function MonthHighlightsCard({
                   rank={i + 1}
                   importantDate={item.date}
                   score={item.score}
-                  thresholds={gradeThresholds}
                   tone="negative"
                   onClick={() => onDayClick(parseDay(item.date.date))}
                 />
@@ -102,13 +94,12 @@ interface DayRowProps {
   rank: number
   importantDate: ImportantDate
   score: number
-  thresholds?: GradeThresholds
   tone: 'positive' | 'negative'
   onClick: () => void
 }
 
-function DayRow({ rank, importantDate, score, thresholds, tone, onClick }: DayRowProps) {
-  const grade = getGrade(score, thresholds)
+function DayRow({ rank, importantDate, score, tone, onClick }: DayRowProps) {
+  const grade = getGrade(score)
   const day = parseDay(importantDate.date)
   const reason = pickReason(importantDate, tone)
 
