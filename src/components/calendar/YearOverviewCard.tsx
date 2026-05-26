@@ -215,12 +215,12 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
         </div>
       </div>
 
-      {/* ── 월별 핵심 (달 단위 + 이유) ── */}
+      {/* ── 월별 핵심 — 좋은 달 TOP 3 + 조심할 달 TOP 3 (12개 풀 리스트 → 6개 요약) ── */}
       <div className="bg-zinc-900/40 rounded-2xl border border-white/5 shadow-xl p-5">
         <h3 className="text-base font-bold text-zinc-200 tracking-wider mb-1">월별 핵심</h3>
         <p className="text-xs text-zinc-500 mb-3">달을 누르면 그 달 상세로 이동해요</p>
         <ul className="space-y-2">
-          {yearlyMonthly.map((m) => {
+          {[...sortedByScore.slice(0, 3), ...sortedByScore.slice(-3).reverse()].map((m) => {
             const b = band(m.score)
             const strong = m.themes.slice(0, 2)
             return (
