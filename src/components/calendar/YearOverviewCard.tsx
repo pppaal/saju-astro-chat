@@ -90,6 +90,11 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
   if (!yearlyMonthly || yearlyMonthly.length === 0) return null
 
   const chartData = yearlyMonthly.map((m) => ({ month: `${m.month}월`, score: m.score }))
+  // Y축 사용자 범위에 맞춰 stretch — 모든 사용자 점수가 ~50 근처에 몰리는 분포
+  // 특성상 0~100 고정이면 굴곡이 거의 안 보인다. 실제 min/max ±5 padding으로 줌인.
+  const yMin = Math.max(0, Math.floor(Math.min(...chartData.map((d) => d.score)) / 5) * 5 - 5)
+  const yMax = Math.min(100, Math.ceil(Math.max(...chartData.map((d) => d.score)) / 5) * 5 + 5)
+  const showNeutral50 = yMin <= 50 && yMax >= 50
   // 현재 위치 세로 가이드 — viewYear가 올해와 같을 때만 표시. recharts ReferenceLine은
   // category XAxis에서 x dataKey 값과 정확히 일치해야 그려진다.
   const today = new Date()
@@ -119,7 +124,7 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
             <TrendingUp className="w-3.5 h-3.5" /> 월별 흐름
           </div>
           <ResponsiveContainer width="100%" height={170}>
-            <AreaChart data={chartData} margin={{ top: 8, right: 36, left: -14, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 26, right: 36, left: -14, bottom: 0 }}>
               <defs>
                 <linearGradient id="yearFlow" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#818cf8" stopOpacity={0.42} />
@@ -128,7 +133,7 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
               <XAxis dataKey="month" stroke="#a1a1aa" fontSize={11} interval={1} />
-              <YAxis domain={[0, 100]} stroke="#a1a1aa" fontSize={11} />
+              <YAxis domain={[yMin, yMax]} stroke="#a1a1aa" fontSize={11} />
               <Tooltip
                 contentStyle={{
                   background: '#09090b',
@@ -140,9 +145,11 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
                 labelStyle={{ color: '#e4e4e7', fontWeight: 700 }}
                 formatter={(v) => [`${v}점`, '월 평균']}
               />
-              <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.2} strokeDasharray="4 4">
-                <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={10} />
-              </ReferenceLine>
+              {showNeutral50 && (
+                <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.2} strokeDasharray="4 4">
+                  <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={10} />
+                </ReferenceLine>
+              )}
               {nowMonthLabel && (
                 <ReferenceLine
                   x={nowMonthLabel}

@@ -19,47 +19,59 @@ const sajuPatternExtractor: SignalExtractor = {
     const matches = matchAllPatterns(natal.saju.pillars)
     if (matches.length === 0) return []
 
-    const lifetimeStart = new Date(Date.UTC(natal.input.year, natal.input.month - 1, natal.input.date)).toISOString()
+    const lifetimeStart = new Date(
+      Date.UTC(natal.input.year, natal.input.month - 1, natal.input.date)
+    ).toISOString()
     const lifetimeEnd = new Date(Date.UTC(natal.input.year + 120, 0, 1)).toISOString()
     const rangeStart = new Date(range.start).toISOString()
     const rangeEnd = new Date(range.end).toISOString()
 
-    return matches
+    // 격국은 명리상 主格 1개가 원칙. matchAllPatterns는 matchScore >= 50인
+    // 모든 패턴을 emit해 한 사주에 4개(삼합격·재성격·중화격·인수격) 동시 발화 가능.
+    // 그 4개가 모두 lifetime decadal layer로 매일 +impact를 주면 사용자 점수
+    // baseline이 영구 inflate(사용자별 격차의 주 원인). 가장 점수 높은 1개만.
+    const top = matches
       .filter((m) => m.matchScore >= 50)
-      .map((m) => ({
-        id: `saju.pattern.${m.patternId}`,
-        source: 'saju' as const,
-        kind: 'saju-pattern' as const,
-        name: m.patternName,
-        korean: m.patternName,
-        themes: themesForPattern(m.category, m.keywords),
-        polarity: polarityForPattern(m.rarity, m.matchScore),
-        layer: 'decadal' as const,   // 평생 배경 → decadal에 매핑 (가장 긴 레이어)
-        active: {
-          start: rangeStart > lifetimeStart ? rangeStart : lifetimeStart,
-          peak: rangeStart,
-          end: rangeEnd < lifetimeEnd ? rangeEnd : lifetimeEnd,
+      .sort((a, b) => b.matchScore - a.matchScore)[0]
+    if (!top) return []
+
+    return [top].map((m) => ({
+      id: `saju.pattern.${m.patternId}`,
+      source: 'saju' as const,
+      kind: 'saju-pattern' as const,
+      name: m.patternName,
+      korean: m.patternName,
+      themes: themesForPattern(m.category, m.keywords),
+      polarity: polarityForPattern(m.rarity, m.matchScore),
+      layer: 'decadal' as const, // 평생 배경 → decadal에 매핑 (가장 긴 레이어)
+      active: {
+        start: rangeStart > lifetimeStart ? rangeStart : lifetimeStart,
+        peak: rangeStart,
+        end: rangeEnd < lifetimeEnd ? rangeEnd : lifetimeEnd,
+      },
+      weight: Math.min(1, 0.5 + m.matchScore / 200), // 50점=0.75, 100점=1.0
+      evidence: {
+        module: 'saju-pattern',
+        detail: {
+          patternId: m.patternId,
+          category: m.category,
+          rarity: m.rarity,
+          matchScore: m.matchScore,
+          keywords: m.keywords,
+          description: m.description,
+          interpretation: m.interpretation,
         },
-        weight: Math.min(1, 0.5 + m.matchScore / 200),   // 50점=0.75, 100점=1.0
-        evidence: {
-          module: 'saju-pattern',
-          detail: {
-            patternId: m.patternId,
-            category: m.category,
-            rarity: m.rarity,
-            matchScore: m.matchScore,
-            keywords: m.keywords,
-            description: m.description,
-            interpretation: m.interpretation,
-          },
-        },
-      }))
+      },
+    }))
   },
 }
 
 function polarityForPattern(rarity: string, score: number): Polarity {
   // 매우 희귀 + 고득점 = 강한 길/흉 (패턴은 본질이 길흉이 아닌 경우 많아 일단 +)
-  const intensity = Math.min(3, Math.floor(score / 30) + (rarity === 'legendary' ? 1 : 0)) as 1 | 2 | 3
+  const intensity = Math.min(3, Math.floor(score / 30) + (rarity === 'legendary' ? 1 : 0)) as
+    | 1
+    | 2
+    | 3
   return intensity
 }
 
