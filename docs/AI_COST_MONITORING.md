@@ -1,6 +1,6 @@
 # AI 비용 모니터링 & 최적화 가이드
 
-Last updated: 2026-05-06 (Asia/Hong_Kong)
+Last updated: 2026-05-26 (Asia/Hong_Kong)
 
 ## 1. 현재 스택
 
@@ -12,9 +12,8 @@ Last updated: 2026-05-06 (Asia/Hong_Kong)
 
 | 모델 ID | Input | Output | Cache Read | 용도 |
 | --- | ---: | ---: | ---: | --- |
-| `claude-haiku-4-5-20251001` | $1 | $5 | $0.10 | 기본 — 캘린더, 상담사, 사주, 점성, 타로, summarize |
-| `claude-sonnet-4-5-20250929` | $3 | $15 | $0.30 | 프리미엄 — 궁합 narrative, AI 리포트(품질 모드), cross-rules LLM |
-| `claude-opus-4-7` | $15 | $75 | $1.50 | 최상급 — 테마 angles AI (premium 리포트 8각도) |
+| `claude-haiku-4-5-20251001` | $1 | $5 | $0.10 | 기본 — 캘린더, 상담사, 사주, 점성, 타로 후속, summarize |
+| `claude-sonnet-4-5-20250929` | $3 | $15 | $0.30 | 프리미엄(최상급) — 타로 메인 해석, 궁합 narrative, AI 리포트(품질 모드), cross-rules LLM |
 
 단가 표는 `src/lib/llm/claude.ts` `CLAUDE_PRICING` 상수가 source of truth. 가격 변경 시 그곳도 갱신.
 
@@ -28,14 +27,13 @@ Last updated: 2026-05-06 (Asia/Hong_Kong)
 | `api/saju/route` | Haiku | 3500 | 사주 풀이 |
 | `api/astrology/route` | Haiku | 2500 | 점성 풀이 |
 | `api/tarot/interpret` | Haiku | 900~2400 | 5단계 호출 (개선 여지) |
-| `api/tarot/interpret-stream` | Haiku | — | 스트리밍 |
+| `api/tarot/interpret-stream` | **Sonnet** | 4000~6000 | 스트리밍 (메인 리딩) |
 | `lib/Tarot/questionEngineV2` | Haiku | 420 | 질문 분류 (작음) |
 | `lib/ai/summarize` | Haiku | 500 | 요약 |
 | `api/compatibility/chat` | Haiku | 2000 | |
 | `api/compatibility/counselor` | Haiku | 3500 | |
 | `api/compatibility/narrative-stream` | **Sonnet** | 16000 | 프리미엄 궁합 |
 | `lib/destiny-matrix/ai-report/aiBackend` | Sonnet (quality) / Haiku (fast) | 5k~32k | 플랜별 |
-| `lib/destiny-matrix/ai-report/themeAnglesAI` | **Opus 4.7** | 16000 | 8각도 × 6테마, paywall + rate limit 적용 |
 | `lib/fortune/cross-rules/llmRenderer`, `chat` | Sonnet | 1200~4000 | |
 
 ## 4. 비용 절감 메커니즘 (적용된 것)
@@ -60,7 +58,7 @@ await callClaude({
 ```
 
 적용처:
-- `themeAnglesAI` — 차트/signals/cross matrix를 cached block으로, 테마별 instruction만 dynamic block으로 분할 → 6개 테마 호출 중 5번이 cache_read 단가 (≈ 80% 입력 토큰 비용 절감, Opus 4.7에서 큰 절감액)
+- 궁합 상담사(`compatibility/counselor`)·상담사(`counselor/realtime`) — 차트/signals를 cached block으로 분리해 동일 유저의 반복·멀티턴 호출에서 cache_read 단가 적용 (≈ 80% 입력 토큰 비용 절감)
 
 미적용 (잠재 절감 후보):
 - 상담사 multi-turn (`destiny-map/chat-stream`) — 차트 facts + 대화 히스토리를 cached로 분리하면 여러 턴 호출 절감
@@ -68,14 +66,13 @@ await callClaude({
 
 ### 4-3. 모델 티어 분리
 - 기본 Haiku 4.5 ($1/$5) — 사용량 큰 일상 호출
-- 프리미엄 라우트만 Sonnet/Opus 격상 (paywall 가드 필수)
+- 프리미엄 라우트만 Sonnet 격상 (paywall 가드 필수)
 
 ### 4-4. maxTokens 작업별 튜닝
 `tarot/questionEngineV2` 420, `calendar/ai-monthly` 800 같이 짧은 출력은 짧게 잡음.
 
 ### 4-5. Paywall + Rate limit
-- `theme-angles` (Opus 4.7, $1.20+/회) → `withApiMiddleware + createAuthenticatedGuard` (분당 6회/유저)
-- `ai-report` (플랜별 토큰) → 크레딧 차감
+- `ai-report` (플랜별 토큰) → 크레딧 차감 + `withApiMiddleware + createAuthenticatedGuard`
 - 그 외 비용 큰 라우트는 인증 + rate limit 필수
 
 ## 5. 메트릭 + 알람
@@ -104,7 +101,7 @@ claude.cost.usd_micro    { model, label }   # USD * 1,000,000 (정수)
 
 - 일일 USD 합계 > $50 → Slack/이메일 경고
 - 시간당 cache_read 비율 < 30% → 시스템 프롬프트가 자주 바뀌고 있다는 신호 (캐싱 무효화)
-- Opus 4.7 호출 수 > 100/시간 → theme-angles 가드 우회 시도 가능성
+- Sonnet 호출 수 급증 → 프리미엄 라우트 가드 우회 시도 가능성
 
 (현재 알람 자동화는 미설정 — `src/lib/metrics/index.ts`의 카운터 polling 또는 외부 모니터링 도구 wiring 필요)
 
@@ -113,7 +110,7 @@ claude.cost.usd_micro    { model, label }   # USD * 1,000,000 (정수)
 - [ ] `claude.cost.usd_micro` 월 합계 vs Anthropic 콘솔 청구액 일치 확인
 - [ ] 라벨별 비용 분포 — 한 라벨이 70% 넘으면 그 경로 점검
 - [ ] cache_read 비율 — 50% 미만이면 시스템 프롬프트 재검토
-- [ ] Opus 4.7 호출 추이 — premium 사용자 증가 vs 우회 호출 구분
+- [ ] Sonnet 호출 추이 — premium 사용자 증가 vs 우회 호출 구분
 - [ ] 신규 라우트 추가 시 본 문서 표 갱신
 
 ## 7. 추가 개선 여지 (P1/P2)
@@ -128,5 +125,4 @@ claude.cost.usd_micro    { model, label }   # USD * 1,000,000 (정수)
 ## 8. 재발 방지 가드
 
 - 새 LLM 호출은 **반드시** `callClaude*` 공유 wrapper 통과 (raw fetch 금지) — 캐싱·메트릭이 자동 적용됨
-- 예외: `themeAnglesAI` (Opus thinking 옵션 때문에 raw fetch). 이 경우에도 `cache_control` 명시 + 수동으로 메트릭 기록 필요
 - 모델 ID는 하드코딩하지 말고 `CLAUDE_PRICING` 키 또는 `DEFAULT_CLAUDE_MODEL` / `PREMIUM_CLAUDE_MODEL` 상수 사용 — 오타 방지 (`claude-sonnet-4-6` 같은 존재 안 하는 ID 사고 재발 방지)
