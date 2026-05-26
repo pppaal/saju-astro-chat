@@ -19,6 +19,8 @@ import type { ImportantDate } from './types'
 
 interface Props {
   importantDate: ImportantDate | null
+  /** 표시 중인 날짜(YYYY-MM-DD). 오늘이면 현재 시각에 세로 가이드 표시. */
+  dateStr?: string
 }
 
 /**
@@ -33,7 +35,17 @@ interface Props {
  * 한눈에 보이게. 50 기준선 라벨 + 큰 점. 점성 신호가 실제로 있을 때만 점성
  * area 를 그리고, 두 라인이 교차하는 시각엔 ◆ 마커를 찍어 "시간 교차"를 강조.
  */
-export default function DailyHourlyChart({ importantDate }: Props) {
+export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
+  // 오늘이면 현재 시각에 노란 세로 가이드. XAxis dataKey="hour"가 "HH시" 포맷이므로
+  // ReferenceLine x도 같은 포맷으로.
+  const nowHourLabel = (() => {
+    if (!dateStr) return null
+    const today = new Date()
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    if (dateStr.slice(0, 10) !== todayStr) return null
+    return `${String(today.getHours()).padStart(2, '0')}시`
+  })()
+
   const { data, hasAstro, crossings } = useMemo(() => {
     const empty = { data: [] as HourPoint[], hasAstro: false, crossings: [] as Crossing[] }
     if (!importantDate?.engineSignals) return empty
@@ -134,6 +146,16 @@ export default function DailyHourlyChart({ importantDate }: Props) {
           <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.5} strokeDasharray="4 4">
             <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={11} />
           </ReferenceLine>
+          {nowHourLabel && (
+            <ReferenceLine
+              x={nowHourLabel}
+              stroke="#fbbf24"
+              strokeWidth={1.5}
+              strokeDasharray="3 3"
+            >
+              <Label value="지금" position="top" fill="#fbbf24" fontSize={10} fontWeight={700} />
+            </ReferenceLine>
+          )}
           <Area
             type="monotone"
             dataKey="saju"

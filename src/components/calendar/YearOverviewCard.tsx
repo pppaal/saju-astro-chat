@@ -89,6 +89,10 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
   if (!yearlyMonthly || yearlyMonthly.length === 0) return null
 
   const chartData = yearlyMonthly.map((m) => ({ month: `${m.month}월`, score: m.score }))
+  // 현재 위치 세로 가이드 — viewYear가 올해와 같을 때만 표시. recharts ReferenceLine은
+  // category XAxis에서 x dataKey 값과 정확히 일치해야 그려진다.
+  const today = new Date()
+  const nowMonthLabel = today.getFullYear() === year ? `${today.getMonth() + 1}월` : null
   const sortedByScore = [...yearlyMonthly].sort((a, b) => b.score - a.score)
   const bestM = sortedByScore[0]
   const worstM = sortedByScore[sortedByScore.length - 1]
@@ -139,6 +143,22 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
               <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.2} strokeDasharray="4 4">
                 <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={10} />
               </ReferenceLine>
+              {nowMonthLabel && (
+                <ReferenceLine
+                  x={nowMonthLabel}
+                  stroke="#fbbf24"
+                  strokeWidth={1.5}
+                  strokeDasharray="3 3"
+                >
+                  <Label
+                    value="지금"
+                    position="top"
+                    fill="#fbbf24"
+                    fontSize={10}
+                    fontWeight={700}
+                  />
+                </ReferenceLine>
+              )}
               <Area
                 type="monotone"
                 dataKey="score"

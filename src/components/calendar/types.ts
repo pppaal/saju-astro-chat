@@ -88,6 +88,10 @@ export interface ImportantDate {
   scoreBreakdown?: {
     sajuAxis: number
     astroAxis: number
+    /** v2 override 활성 시 sajuAxis/astroAxis는 score와 정렬 시프트된 표시값.
+     *  Raw는 isAxisConverged 같은 신호 강도 판정 전용. */
+    sajuAxisRaw?: number
+    astroAxisRaw?: number
     axisAgreement: 'aligned' | 'mixed' | 'opposed'
     finalScore: number
   }

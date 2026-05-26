@@ -59,6 +59,13 @@ export interface FormattedDate {
   scoreBreakdown?: {
     sajuAxis: number
     astroAxis: number
+    /**
+     * override가 활성되면 sajuAxis/astroAxis는 헤드라인 점수와 평균 정렬하기
+     * 위해 동일 delta로 시프트된 값(축간 차이는 보존). convergence·"양쪽 수렴"
+     * 같은 raw 신호 강도 판정은 시프트 안 된 raw 값을 써야 거짓 트리거 안 난다.
+     */
+    sajuAxisRaw: number
+    astroAxisRaw: number
     axisAgreement: 'aligned' | 'mixed' | 'opposed'
     finalScore: number
   }

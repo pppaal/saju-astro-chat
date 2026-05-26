@@ -28,7 +28,6 @@ import {
   parseBirthDate,
   applyMatrixPreformatRegrade,
   formatDateForResponse,
-  rebalanceCalendarDisplayGrades,
   LOCATION_COORDS,
   type MatrixCalendarContext,
 } from './lib/helpers'
@@ -471,15 +470,19 @@ export const GET = withApiMiddleware(
         birthPlace,
         gender: gender || 'Male',
       })
+      // 셀 datetime은 UTC 미드나잇 키(`isoForCell` in calendar-engine/index.ts).
+      // 서버 TZ가 UTC가 아니면 `new Date(y,m,1).toISOString()`이 전날 UTC가 돼서
+      // 셀의 slice(0,10)이 -1일 어긋남 → engineScoreByDate 키 미스로 v2 점수
+      // 주입이 통째로 비어 버린다. Date.UTC로 UTC 미드나잇을 명시해 TZ 독립으로.
       for (const offset of [-1, 0, 1]) {
-        const d = new Date(ceTargetYear, ceTargetMonth + offset, 1)
-        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-        const rangeEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
+        const start = new Date(Date.UTC(ceTargetYear, ceTargetMonth + offset, 1))
+        const end = new Date(Date.UTC(ceTargetYear, ceTargetMonth + offset + 1, 0, 23, 59, 59))
+        const monthKey = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}`
         const { cells } = await getOrBuildMonth({
           birthKey,
           monthKey,
           natal: ceNatal,
-          range: { start: d.toISOString(), end: rangeEnd.toISOString(), granularity: 'day' },
+          range: { start: start.toISOString(), end: end.toISOString(), granularity: 'day' },
           options: { includeEvidence: true },
         })
         for (const c of cells) {
@@ -563,8 +566,10 @@ export const GET = withApiMiddleware(
         matrixEvidencePackets || undefined
       )
 
-    const formattedDatesBase = matrixRegradedDates.map((d) => formatCalendarDate(d))
-    const formattedDates = rebalanceCalendarDisplayGrades(formattedDatesBase)
+    // rebalance는 augment 후로 미룬다 — augment가 displayScore를 v2 셀로 덮어쓰는데,
+    // 그 전에 rank를 매기면 옛 score 기준 displayGrade가 새 displayScore와 어긋나
+    // 같은 카드 안에서 배지(grade)와 숫자(score)가 불일치한다.
+    const formattedDates = matrixRegradedDates.map((d) => formatCalendarDate(d))
 
     // ── calendar-engine v2 augmentation (non-blocking, opt-in via fields) ──
     // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
@@ -611,23 +616,26 @@ export const GET = withApiMiddleware(
       })
 
       // 빌드 대상 3달: [prev, current, next]. 같은 본명·달이면 cell-cache에서 instant.
+      // ※ Date.UTC 사용 이유는 prescore 블록과 동일 — 셀 datetime이 UTC라 로컬
+      //   midnight으로 만들면 비-UTC 서버에서 키가 -1일 어긋난다.
       const monthsToBuild = [-1, 0, 1].map((offset) => {
-        const d = new Date(targetYear, targetMonth + offset, 1)
+        const start = new Date(Date.UTC(targetYear, targetMonth + offset, 1))
+        const end = new Date(Date.UTC(targetYear, targetMonth + offset + 1, 0, 23, 59, 59))
         return {
-          year: d.getFullYear(),
-          month: d.getMonth(),
-          monthKey: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-          rangeStart: d,
-          rangeEnd: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+          year: start.getUTCFullYear(),
+          month: start.getUTCMonth(),
+          monthKey: `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}`,
+          rangeStart: start,
+          rangeEnd: end,
         }
       })
 
-      const allCells: typeof ceCells = []
       let ceCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
       let prevMonthCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
-      const prevDate = new Date(targetYear, targetMonth - 1, 1)
-      const prevYear = prevDate.getFullYear()
-      const prevMonth = prevDate.getMonth()
+      const allCells: typeof ceCells = []
+      const prevDateUtc = new Date(Date.UTC(targetYear, targetMonth - 1, 1))
+      const prevYear = prevDateUtc.getUTCFullYear()
+      const prevMonth = prevDateUtc.getUTCMonth()
       for (const m of monthsToBuild) {
         const { cells, cached } = await getOrBuildMonth({
           birthKey,
@@ -686,15 +694,17 @@ export const GET = withApiMiddleware(
         logger.warn?.('[interpretation] skipped:', err instanceof Error ? err.message : String(err))
       }
 
-      // 3달 모든 cell을 date 키로 — prev/next month 이동해도 그 달 displayScore/
-      // engineSignals 부착됨 (현재 달만 부착하면 다른 달은 fallback yearlyDates.score).
+      // 3달 모든 cell을 date 키로 — prev/next month 이동해도 그 달 engineSignals/
+      // matchedPatterns/themeScores 부착됨 (현재 달만 부착하면 다른 달은 fallback).
+      // ※ displayScore는 더 이상 여기서 덮어쓰지 않는다. yearlyDates가 이미 engineScores
+      //    주입으로 cell.derivedScore + dailyShiftAdjustment(천간충·지지형·공망 보정)를
+      //    score = displayScore로 두기 때문에, 여기서 raw cell.derivedScore로 다시 덮으면
+      //    dailyShift 보정이 사라져 "narrative는 압박 들어옴 / 숫자는 60+" 모순이
+      //    augment HIT 경로에서 그대로 재발한다.
       const cellByDate = new Map(allCells.map((c) => [c.datetime.slice(0, 10), c]))
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
-        // ★ 점수 교체 — 새 엔진 점수를 displayScore로 우선 노출
-        //   기존 score는 그대로 유지 (rollback 가능).
-        d.displayScore = cell.derivedScore
         if (cell.matchedPatterns.length > 0) {
           d.matchedPatterns = cell.matchedPatterns.map((p) => ({
             id: p.id,
@@ -783,6 +793,13 @@ export const GET = withApiMiddleware(
         err instanceof Error ? err.message : String(err)
       )
     }
+
+    // rank 기반 displayGrade 재배치는 카드 안 모순의 뿌리였다. yearlyDates가 이미
+    // displayScore에서 scoreToGrade로 grade를 도출해 narrative(title/description/
+    // warnings/recommendations)를 그 grade로 만든다. 그 후 별도 분포로 displayGrade를
+    // 다시 매기면 같은 카드에서 "좋음 배지(=displayGrade) + 보통 톤 본문(=grade로 만든
+    // 문구)" 모순이 다시 난다. displayGrade는 formatDateForResponse가 이미
+    // date.grade로 부착하므로 추가 작업 불필요.
 
     const presentationDomainMap = {
       career: 'career',

@@ -52,12 +52,23 @@ export function cleanSignalName(s: HeavySignalInput): string {
 }
 
 // 두 축이 둘 다 중립서 충분히 벗어남 = 양쪽 다 실제 신호 (방향 무관).
+// ※ Raw 축을 우선 사용 — v2 override 활성 시 sajuAxis/astroAxis는 헤드라인
+//   점수와 평균 정렬을 위해 시프트된 표시값이라, 그걸 그대로 쓰면 두 축이
+//   동시에 시프트돼 거짓 "양쪽 수렴" 트리거가 난다. raw 필드(시프트 전)가
+//   없으면 호환을 위해 시프트값 사용.
 export function isAxisConverged(
-  sb: { sajuAxis: number; astroAxis: number } | null | undefined
+  sb:
+    | {
+        sajuAxis: number
+        astroAxis: number
+        sajuAxisRaw?: number
+        astroAxisRaw?: number
+      }
+    | null
+    | undefined
 ): boolean {
   if (!sb) return false
-  return (
-    Math.abs(sb.sajuAxis - 50) >= CONVERGENCE_AXIS_MIN &&
-    Math.abs(sb.astroAxis - 50) >= CONVERGENCE_AXIS_MIN
-  )
+  const saju = typeof sb.sajuAxisRaw === 'number' ? sb.sajuAxisRaw : sb.sajuAxis
+  const astro = typeof sb.astroAxisRaw === 'number' ? sb.astroAxisRaw : sb.astroAxis
+  return Math.abs(saju - 50) >= CONVERGENCE_AXIS_MIN && Math.abs(astro - 50) >= CONVERGENCE_AXIS_MIN
 }
