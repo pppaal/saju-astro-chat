@@ -62,8 +62,6 @@ describe('useInlineTarotState', () => {
       expect(result.current.state.affirmation).toBe('')
       expect(result.current.state.isSaved).toBe(false)
       expect(result.current.state.isSaving).toBe(false)
-      expect(result.current.state.isAnalyzing).toBe(false)
-      expect(result.current.state.aiReason).toBe('')
     })
 
     it('should set initial concern from options', () => {
@@ -103,25 +101,6 @@ describe('useInlineTarotState', () => {
       expect(result.current.recommendedSpreads.length).toBe(3)
     })
 
-    it('should prefer AI-suggested spreads first, then append remaining defaults', () => {
-      // PR #565 이후: AI 제안은 앞쪽에 정렬되고 카테고리 내 나머지 스프레드는
-      // 뒤에 붙어 항상 전체가 노출됨 (standalone 타로와 동일).
-      const { result } = renderHook(() => useInlineTarotState(defaultOptions))
-
-      const suggested = [
-        { id: 'relationship-spread', title: 'Relationship', cardCount: 5 },
-      ] as Spread[]
-
-      act(() => {
-        result.current.actions.setSuggestedSpreads(suggested)
-      })
-
-      expect(result.current.recommendedSpreads[0]).toEqual(suggested[0])
-      expect(result.current.recommendedSpreads.length).toBeGreaterThan(1)
-      expect(
-        result.current.recommendedSpreads.some((s) => s.id === 'relationship-spread')
-      ).toBe(true)
-    })
   })
 
   describe('actions', () => {
@@ -366,30 +345,6 @@ describe('useInlineTarotState', () => {
       })
     })
 
-    describe('setIsAnalyzing', () => {
-      it('should update isAnalyzing', () => {
-        const { result } = renderHook(() => useInlineTarotState(defaultOptions))
-
-        act(() => {
-          result.current.actions.setIsAnalyzing(true)
-        })
-
-        expect(result.current.state.isAnalyzing).toBe(true)
-      })
-    })
-
-    describe('setAiReason', () => {
-      it('should update aiReason', () => {
-        const { result } = renderHook(() => useInlineTarotState(defaultOptions))
-
-        act(() => {
-          result.current.actions.setAiReason('AI selected this spread because...')
-        })
-
-        expect(result.current.state.aiReason).toBe('AI selected this spread because...')
-      })
-    })
-
     describe('resetForDrawAgain', () => {
       it('should reset card-related state and go to card-draw step', () => {
         const { result } = renderHook(() => useInlineTarotState(defaultOptions))
@@ -438,33 +393,6 @@ describe('useInlineTarotState', () => {
       })
     })
 
-    describe('selectSpreadAndProceed', () => {
-      it('should set spread, reason, and go to card-draw', () => {
-        const { result } = renderHook(() => useInlineTarotState(defaultOptions))
-        const spread = { id: 'three-card', title: 'Three Card' } as Spread
-
-        act(() => {
-          result.current.actions.selectSpreadAndProceed(spread, 'This spread is perfect')
-        })
-
-        expect(result.current.state.selectedSpread).toEqual(spread)
-        expect(result.current.state.aiReason).toBe('This spread is perfect')
-        expect(result.current.state.step).toBe('card-draw')
-      })
-
-      it('should work without reason', () => {
-        const { result } = renderHook(() => useInlineTarotState(defaultOptions))
-        const spread = { id: 'single-card' } as Spread
-
-        act(() => {
-          result.current.actions.selectSpreadAndProceed(spread)
-        })
-
-        expect(result.current.state.selectedSpread).toEqual(spread)
-        expect(result.current.state.aiReason).toBe('')
-        expect(result.current.state.step).toBe('card-draw')
-      })
-    })
   })
 
   describe('reset on modal open', () => {

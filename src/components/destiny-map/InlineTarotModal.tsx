@@ -54,8 +54,10 @@ const InlineTarotModal = memo(function InlineTarotModal({
   })
 
   const { state, actions, recommendedSpreads } = stateManager
-  const questionSummary = state.questionAnalysis?.question_summary?.trim()
-  const directAnswer = state.questionAnalysis?.direct_answer?.trim()
+  // AI question analysis 흐름을 제거했으므로 summary/answer 는 항상 비어 있음.
+  // 하위 컴포넌트들은 빈 문자열일 때 렌더를 건너뛰므로 호환됨.
+  const questionSummary: string | undefined = undefined
+  const directAnswer: string | undefined = undefined
 
   // API hook
   const api = useInlineTarotAPI({
@@ -191,10 +193,8 @@ const InlineTarotModal = memo(function InlineTarotModal({
             <ConcernStep
               tr={tr}
               concern={state.concern}
-              isAnalyzing={state.isAnalyzing}
               onConcernChange={actions.setConcern}
               onNext={handleConcernNext}
-              onAutoSelect={api.analyzeQuestion}
             />
           )}
 
@@ -217,7 +217,6 @@ const InlineTarotModal = memo(function InlineTarotModal({
               tr={tr}
               lang={lang}
               selectedSpread={state.selectedSpread}
-              aiReason={state.aiReason}
               questionSummary={questionSummary}
               directAnswer={directAnswer}
               drawnCards={state.drawnCards}
@@ -267,20 +266,11 @@ export default InlineTarotModal
 interface ConcernStepProps {
   tr: ReturnType<typeof getTarotTranslations>
   concern: string
-  isAnalyzing: boolean
   onConcernChange: (value: string) => void
   onNext: () => void
-  onAutoSelect: () => void
 }
 
-function ConcernStep({
-  tr,
-  concern,
-  isAnalyzing,
-  onConcernChange,
-  onNext,
-  onAutoSelect,
-}: ConcernStepProps) {
+function ConcernStep({ tr, concern, onConcernChange, onNext }: ConcernStepProps) {
   return (
     <div className={styles.stepContent}>
       <h3 className={styles.stepTitle}>{tr.concernTitle}</h3>
@@ -295,18 +285,11 @@ function ConcernStep({
       <p className={styles.hint}>{tr.concernHint}</p>
       <div className={styles.concernButtons}>
         <button
-          className={styles.secondaryButton}
+          className={styles.primaryButton}
           onClick={onNext}
-          disabled={!concern.trim() || isAnalyzing}
+          disabled={!concern.trim()}
         >
           {tr.next}
-        </button>
-        <button
-          className={styles.primaryButton}
-          onClick={onAutoSelect}
-          disabled={!concern.trim() || isAnalyzing}
-        >
-          {isAnalyzing ? tr.analyzing : tr.autoSelect}
         </button>
       </div>
     </div>
@@ -377,7 +360,6 @@ interface CardDrawStepProps {
   tr: ReturnType<typeof getTarotTranslations>
   lang: LangKey
   selectedSpread: Spread | null
-  aiReason: string
   questionSummary?: string
   directAnswer?: string
   drawnCards: Array<{
@@ -399,7 +381,6 @@ function CardDrawStep({
   tr,
   lang,
   selectedSpread,
-  aiReason,
   questionSummary,
   directAnswer,
   drawnCards,
@@ -419,8 +400,6 @@ function CardDrawStep({
         </p>
       )}
       {questionSummary && <p className={styles.hint}>{questionSummary}</p>}
-
-      {aiReason && <p className={styles.aiReasonText}>✨ {aiReason}</p>}
 
       {drawnCards.length === 0 ? (
         <div className={styles.drawArea}>
