@@ -6,6 +6,7 @@ import type { Copy } from '../chat-i18n'
 import MessageRow from '../MessageRow'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 import { pickGreeting } from '@/lib/counselor/greetingTemplates'
+import HexDPLogo from '@/components/branding/HexDPLogo'
 
 interface MessagesPanelProps {
   visibleMessages: Message[]
@@ -57,12 +58,8 @@ export const MessagesPanel = React.memo(function MessagesPanel({
 
       {visibleMessages.length === 0 && !loading && (
         <div className={styles.emptyState}>
-          {/* Small spark glyph — Claude.ai uses an orange asterisk-burst.
-              We use ✦ in the same accent color for the same role: a
-              minimal hero ornament without the kitschy crystal-ball that
-              made the empty state read as a fortune-app placeholder. */}
           <div className={styles.emptyIcon} aria-hidden="true">
-            &#x2734;
+            <HexDPLogo size={64} />
           </div>
           <p className={styles.emptyText}>{heroGreeting}</p>
           {/* Suggestion chips removed per user request — "나는 어떤

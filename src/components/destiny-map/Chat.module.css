@@ -440,11 +440,10 @@
 }
 
 .emptyIcon {
-  font-size: 32px;
   margin-bottom: 24px;
-  opacity: 0.85;
-  color: #fb923c;
-  filter: drop-shadow(0 0 12px rgba(251, 146, 60, 0.35));
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .emptyText {
