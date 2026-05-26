@@ -829,6 +829,25 @@
   font-size: 0.75rem;
   font-weight: 600;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+/* 라벨이 붙은 필드 그룹 — '카드 위치' / '카드명' / '키워드' 의 작은 헤더 + 값 묶음 */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.fieldLabel {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: rgba(148, 163, 184, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
 /* Compact Card Info */

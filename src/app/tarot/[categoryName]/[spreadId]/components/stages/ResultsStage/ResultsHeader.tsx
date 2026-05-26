@@ -35,7 +35,7 @@ export function ResultsHeader({
             <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/25 border border-indigo-500/40 text-indigo-100 text-base font-semibold">
               Q
             </span>
-            <p className="text-lg md:text-xl text-slate-50 leading-snug font-medium">
+            <p className="text-2xl md:text-3xl text-slate-50 leading-snug font-semibold">
               {userTopic}
             </p>
           </div>
@@ -50,7 +50,7 @@ export function ResultsHeader({
           </div>
         </div>
         <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-100">
-          {directAnswer || (isKo ? '카드가 전하는 핵심 답변' : 'Direct Answer From the Cards')}
+          {directAnswer || (isKo ? '카드가 전하는 답변' : 'The Answer From the Cards')}
         </h1>
         {questionSummary && (
           <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
