@@ -1,8 +1,15 @@
 // src/app/api/tarot/interpret-stream/route.ts
-// Tarot streaming interpretation — Claude Haiku 4.5 (single-chunk emit) with OpenAI streaming fallback.
+// Tarot streaming interpretation — Claude Haiku 4.5 token-by-token forward.
+// 전체해석(overall) → 카드 1 → 카드 2 ... 순으로 클라이언트에서 점진적으로
+// 렌더된다. (서버는 Claude token delta 를 SSE 로 그대로 forward 만 하고,
+// 부분 JSON 안의 "overall" / cards[].interpretation 추출은 클라이언트
+// `consumeSSEStream` + `extractPartialOverall` / `extractPartialCardTexts`
+// 가 담당.)
+//
+// OpenAI fallback 은 제거됨 (Claude-only). Claude unavailable 또는 호출
+// 실패 시 정적 fallback payload 를 단일 청크로 emit + 크레딧 환불.
 
-import { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { initializeApiContext, createPublicStreamGuard, extractLocale } from '@/lib/api/middleware'
 import { createSSEEvent, createSSEDoneEvent } from '@/lib/streaming'
 import { enforceBodySize } from '@/lib/http'
@@ -10,16 +17,8 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import {
-  callClaude as callSharedClaude,
-  isClaudeAvailable,
-  DEFAULT_CLAUDE_MODEL,
-} from '@/lib/llm/claude'
-import {
-  buildFallbackPayload,
-  buildInterpretStreamPrompts,
-  buildChunkUserPrompt as buildChunkUserPromptShared,
-} from '@/lib/tarot/promptBuild'
+import { callClaudeStream, isClaudeAvailable, DEFAULT_CLAUDE_MODEL } from '@/lib/llm/claude'
+import { buildFallbackPayload, buildInterpretStreamPrompts } from '@/lib/tarot/promptBuild'
 import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
 import {
   applyCreditResultCookies,
@@ -28,25 +27,22 @@ import {
 } from '@/lib/credits/withCredits'
 import { refundCredits } from '@/lib/credits/creditRefund'
 
-// Bumped 30→60s after Haiku→Sonnet 4.5 (PR #559): Sonnet generating the full
-// tarot JSON for 3–5 cards regularly exceeded 30s under normal load, aborting
-// the stream and surfacing the "예상보다 오래 걸리고 있어요" loop on the client.
-const OPENAI_TIMEOUT_MS = 60000
+// 단일 Claude 호출의 최대 wall-clock — Haiku 4.5 + 7장 streaming 기준
+// 통상 8-20s, 여유 있게.
+const CLAUDE_TIMEOUT_MS = 60000
 
-// Spreads with >= this many cards fan out to two parallel Claude calls
-// (chunk A + chunk B), so they cost ~2x compute and are charged 2 credits.
+// 8장+ 스프레드는 토큰·연산 부담이 2배라 2 크레딧 (UI 표시와 일치).
+// 현재 데이터상 최대 7장이라 large 경로는 실효 dead path 이지만,
+// 추후 큰 스프레드 추가 시 가격 책정 일관성 유지 위해 남김.
 const LARGE_SPREAD_THRESHOLD = 8
 
-// Credit cost for a reading: large spreads cost 2, everything else 1.
-// Guests use a free cookie counter where this amount is ignored.
 function readingCreditCost(cardCount: number): number {
   return cardCount >= LARGE_SPREAD_THRESHOLD ? 2 : 1
 }
 
-// 두 LLM (Claude → OpenAI) 모두 실패해서 generic fallback 으로 떨어질 때 호출.
-// 로그인 사용자의 차감된 크레딧을 같은 counter (chargedAs) 로 복구한다.
-// guest (userId 없음) 는 cookie 카운터라 환불 대상에서 제외 — 별도 정책 필요 시 후속.
-async function refundOnAllLlmFailure(
+// 차감 후 Claude 호출이 실패해 사용자가 가치를 못 받은 경우 호출.
+// 로그인 사용자만 환불 (guest 는 cookie 카운터라 후속에서 별도 정책).
+async function refundOnFailure(
   creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null,
   reason: string,
   amount: number,
@@ -63,7 +59,6 @@ async function refundOnAllLlmFailure(
       errorMessage,
     })
   } catch (refundErr) {
-    // 환불 실패가 응답을 막아선 안 된다. 로그로만 남기고 사용자에게는 fallback 응답.
     logger.error('[interpret-stream] refund failed', {
       refundErr: refundErr instanceof Error ? refundErr.message : String(refundErr),
       reason,
@@ -76,16 +71,12 @@ function withCreditCookies(
   response: Response,
   creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null
 ): Response {
-  if (!creditResult?.guestReadingAccess) {
-    return response
-  }
-
+  if (!creditResult?.guestReadingAccess) return response
   const nextResponse = new NextResponse(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers: response.headers,
   })
-
   return applyCreditResultCookies(nextResponse, creditResult)
 }
 
@@ -106,7 +97,6 @@ function streamJsonPayload(
       controller.close()
     },
   })
-
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
@@ -117,15 +107,11 @@ function streamJsonPayload(
   })
 }
 
-// 옛 analyzeQuestionMood / previousReadings 는 system prompt 의 Step 0 가 이미
-// subject/object/timeframe/intent 를 추출하므로 중복 noise — 제거됨.
-
 export async function POST(req: NextRequest) {
   let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
   let creditCost = 1
 
   try {
-    // Apply middleware: rate limiting + public token auth
     const guardOptions = createPublicStreamGuard({
       route: 'tarot-interpret-stream',
       limit: 10,
@@ -133,23 +119,15 @@ export async function POST(req: NextRequest) {
     })
 
     const { context, error } = await initializeApiContext(req, guardOptions)
-    if (error) {
-      return error
-    }
+    if (error) return error
 
     logger.info('Tarot stream request', { ip: context.ip })
 
-    // Parse and validate the body BEFORE charging credits so the credit
-    // cost can reflect the spread size (and so invalid/oversized requests
-    // never consume credits).
     const oversized = enforceBodySize(req, 256 * 1024)
-    if (oversized) {
-      return oversized
-    }
+    if (oversized) return oversized
 
     const rawBody = await req.json()
 
-    // Validate with Zod
     const validationResult = tarotInterpretStreamSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Tarot interpret-stream] validation failed', {
@@ -166,7 +144,6 @@ export async function POST(req: NextRequest) {
     // 안전 가드 — 자살/자해 등 위험 질문이 들어오면 AI 호출 없이 위기 페이로드만
     // 즉시 응답하고 크레딧도 차감하지 않는다. questionEngineV2 추천 단계의
     // 가드와 동일 키워드 셋을 공유 (src/lib/tarot/safety.ts).
-    // 추천 흐름을 건너뛰고 바로 interpret-stream 으로 진입하는 케이스 보강.
     const safetyQuestion = (body.userQuestion || '').trim()
     const safetyLanguage: 'ko' | 'en' = body.language === 'en' ? 'en' : 'ko'
     if (safetyQuestion && isDangerousQuestion(safetyQuestion)) {
@@ -183,14 +160,11 @@ export async function POST(req: NextRequest) {
 
     creditCost = readingCreditCost(Array.isArray(body.cards) ? body.cards.length : 0)
     creditResult = await checkAndConsumeCredits('reading', creditCost, req)
-    if (!creditResult.allowed) {
-      return creditErrorResponse(creditResult)
-    }
+    if (!creditResult.allowed) return creditErrorResponse(creditResult)
 
     const categoryId = body.categoryId
     const spreadId = body.spreadId || ''
     const spreadTitle = body.spreadTitle || ''
-    // Prefer body.language, fallback to context.locale, default to 'ko'
     const language: 'ko' | 'en' =
       body.language === 'en'
         ? 'en'
@@ -201,388 +175,139 @@ export async function POST(req: NextRequest) {
             : 'ko'
     const rawCards = body.cards
     const userQuestion = (body.userQuestion || '').trim()
-    const effectiveUserQuestion = userQuestion
 
     logger.info('Tarot stream payload', {
       categoryId,
       spreadId,
       language,
       cards: rawCards.length,
-      hasQuestion: Boolean(effectiveUserQuestion),
+      hasQuestion: Boolean(userQuestion),
     })
 
-    // 프롬프트 — 시스템 (rules + position naming + JSON schema) + 유저 (질문 +
-    // 카드 리스트 + 지시) 모두 promptBuild 의 pure 빌더로 위임. 라우트 안에서는
-    // I/O 만 다루고, 프롬프트 shape 는 단위 테스트로 lock.
     const { systemPrompt, userPrompt } = buildInterpretStreamPrompts({
       language,
       spreadTitle,
       cards: rawCards,
-      userQuestion: effectiveUserQuestion,
+      userQuestion,
     })
 
-    // Claude 우선.
-    //  - <8장: 단일 호출, 응답 전체를 SSE 단일 청크로 emit (기존 흐름)
-    //  - >=8장: 카드를 둘로 나눠 병렬 2회 호출 후 JSON 머지 → 단일 청크 emit
-    //          token 한계로 후반 카드 잘리던 문제 해결 + 같은 system prompt 재사용해 cache hit
-    if (isClaudeAvailable()) {
-      const claudeStartTime = Date.now()
-      const isLargeSpread = rawCards.length >= LARGE_SPREAD_THRESHOLD
-      try {
-        if (!isLargeSpread) {
-          // 소형 스프레드 — 단일 호출
-          logger.info('Tarot stream Claude request (single)', {
-            cards: rawCards.length,
-            systemLen: systemPrompt.length,
-            userLen: userPrompt.length,
-          })
-          const claudeResult = await callSharedClaude({
-            systemPrompt,
-            userPrompt,
-            model: DEFAULT_CLAUDE_MODEL,
-            maxTokens: 6000,
-            temperature: 0.7,
-            timeoutMs: OPENAI_TIMEOUT_MS,
-            label: 'tarot-stream',
-          })
+    // Claude 없으면 정적 fallback 으로 즉시 응답 + 크레딧 환불.
+    if (!isClaudeAvailable()) {
+      logger.warn('Tarot stream missing ANTHROPIC_API_KEY, using fallback')
+      await refundOnFailure(
+        creditResult,
+        'tarot_llm_unavailable',
+        creditCost,
+        'ANTHROPIC_API_KEY missing'
+      )
+      const fallback = buildFallbackPayload(rawCards, language)
+      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
+    }
+
+    // 카드당 ~650 tokens + overall/advice 여유 1500. Haiku 4.5 default
+    // max output 8192 안에서 동작하도록 8000 cap.
+    // 현재 모든 스프레드 ≤7장이라 ~6050 tokens 로 여유 충분.
+    const maxTokens = Math.min(8000, 1500 + rawCards.length * 650)
+    const claudeStartTime = Date.now()
+
+    logger.info('Tarot stream Claude streaming request', {
+      cards: rawCards.length,
+      maxTokens,
+      systemLen: systemPrompt.length,
+      userLen: userPrompt.length,
+    })
+
+    let claudeStream: ReadableStream<string>
+    try {
+      claudeStream = await callClaudeStream({
+        systemPrompt,
+        userPrompt,
+        model: DEFAULT_CLAUDE_MODEL,
+        maxTokens,
+        temperature: 0.7,
+        timeoutMs: CLAUDE_TIMEOUT_MS,
+        label: 'tarot-stream',
+      })
+    } catch (claudeErr) {
+      recordExternalCall(
+        'anthropic',
+        DEFAULT_CLAUDE_MODEL,
+        'error',
+        Date.now() - claudeStartTime
+      )
+      logger.error('[tarot-stream] Claude initial call failed', {
+        error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
+      })
+      await refundOnFailure(
+        creditResult,
+        'tarot_claude_error',
+        creditCost,
+        claudeErr instanceof Error ? claudeErr.message : String(claudeErr)
+      )
+      const fallback = buildFallbackPayload(rawCards, language)
+      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
+    }
+
+    // Claude SDK stream → SSE 형식으로 forward. 각 token delta 가 도착하는
+    // 즉시 클라에 emit 되어 progressive 렌더링 가능.
+    // 클라이언트의 consumeSSEStream 이 각 청크마다 onChunk 호출 →
+    // extractPartialOverall / extractPartialCardTexts 가 부분 JSON 파싱.
+    const encoder = new TextEncoder()
+    const reader = claudeStream.getReader()
+    const sseStream = new ReadableStream({
+      async start(controller) {
+        let receivedAny = false
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            if (value) {
+              receivedAny = true
+              controller.enqueue(encoder.encode(createSSEEvent({ content: value })))
+            }
+          }
           recordExternalCall(
             'anthropic',
             DEFAULT_CLAUDE_MODEL,
             'success',
             Date.now() - claudeStartTime
           )
-          const encoder = new TextEncoder()
-          const stream = new ReadableStream({
-            start(controller) {
-              controller.enqueue(encoder.encode(createSSEEvent({ content: claudeResult.text })))
-              controller.enqueue(encoder.encode(createSSEDoneEvent()))
-              controller.close()
-            },
-          })
-          return withCreditCookies(
-            new NextResponse(stream, {
-              headers: {
-                'Content-Type': 'text/event-stream',
-                'Cache-Control': 'no-cache, no-transform',
-                Connection: 'keep-alive',
-                'X-Accel-Buffering': 'no',
-                'X-Provider': 'claude',
-              },
-            }),
-            creditResult
-          )
-        }
-
-        // 대형 스프레드 — chunk A (앞 절반 + overall + advice) || chunk B (뒤 절반 cards 만)
-        const mid = Math.ceil(rawCards.length / 2)
-        const buildChunkUserPrompt = (
-          startIdx: number,
-          endIdx: number,
-          includeMeta: boolean
-        ): string =>
-          buildChunkUserPromptShared({
-            language,
-            spreadTitle,
-            cards: rawCards,
-            userQuestion: effectiveUserQuestion,
-            startIdx,
-            endIdx,
-            includeMeta,
-          })
-
-        // Per-card token budget — 650 tokens / card + 500 base for chunks
-        // carrying overall/advice. Card length spec is 400-650자
-        // (≈ 500-800 tokens / card), so per-card budget tracks that.
-        // Haiku 4.5 supports plenty of headroom — cap at 7500 per chunk.
-        const chunkAcards = mid
-        const chunkBcards = rawCards.length - mid
-        const chunkAmaxTokens = Math.min(7500, 500 + chunkAcards * 650)
-        const chunkBmaxTokens = Math.min(7500, chunkBcards * 650 + 200)
-
-        const safeParse = (raw: string): Record<string, unknown> | null => {
-          const match = raw.match(/\{[\s\S]*\}/)
-          if (!match) return null
-          try {
-            return JSON.parse(match[0]) as Record<string, unknown>
-          } catch {
-            return null
-          }
-        }
-
-        // Run one chunk; if the JSON doesn't parse, retry once. Chunk B's
-        // failure used to silently drop half the cards into a static
-        // fallback. Single retry keeps the same LLM path symmetric with
-        // chunk A and avoids the "second half is canned text" surprise.
-        const runChunkWithRetry = async (
-          startIdx: number,
-          endIdx: number,
-          includeMeta: boolean,
-          maxTokens: number,
-          label: 'tarot-stream-chunkA' | 'tarot-stream-chunkB'
-        ): Promise<{ text: string; parsed: Record<string, unknown> | null; retried: boolean }> => {
-          const callOnce = () =>
-            callSharedClaude({
-              systemPrompt,
-              userPrompt: buildChunkUserPrompt(startIdx, endIdx, includeMeta),
-              model: DEFAULT_CLAUDE_MODEL,
-              maxTokens,
-              temperature: 0.7,
-              timeoutMs: OPENAI_TIMEOUT_MS,
-              label,
-            })
-          const first = await callOnce()
-          const parsedFirst = safeParse(first.text)
-          if (parsedFirst && (!includeMeta || Array.isArray(parsedFirst.cards))) {
-            return { text: first.text, parsed: parsedFirst, retried: false }
-          }
-          logger.warn('Tarot stream chunk parse failed, retrying once', { label })
-          const second = await callOnce()
-          return { text: second.text, parsed: safeParse(second.text), retried: true }
-        }
-
-        logger.info('Tarot stream Claude request (parallel chunks)', {
-          cards: rawCards.length,
-          chunkA: `0-${mid}`,
-          chunkB: `${mid}-${rawCards.length}`,
-          chunkAmaxTokens,
-          chunkBmaxTokens,
-        })
-        const [chunkA, chunkB] = await Promise.all([
-          runChunkWithRetry(0, mid, true, chunkAmaxTokens, 'tarot-stream-chunkA'),
-          runChunkWithRetry(mid, rawCards.length, false, chunkBmaxTokens, 'tarot-stream-chunkB'),
-        ])
-        recordExternalCall('anthropic', DEFAULT_CLAUDE_MODEL, 'success', Date.now() - claudeStartTime)
-
-        // JSON 머지 — chunk A 의 overall/advice + chunk A.cards + chunk B.cards 를 합쳐 단일 JSON.
-        const cardsA = Array.isArray(chunkA.parsed?.cards)
-          ? (chunkA.parsed!.cards as unknown[])
-          : []
-        const cardsB = Array.isArray(chunkB.parsed?.cards)
-          ? (chunkB.parsed!.cards as unknown[])
-          : []
-        const mergedCards = [...cardsA, ...cardsB]
-        // 카드 수 부족 (chunk retry 까지 실패) 시 서버 측에서 fallback 으로 채운다.
-        // 옛 흐름은 클라 parseStreamedInterpretation 이 부족분을 흡수했지만
-        // 카드 절반만 보여 주고 "성공" 으로 보이는 케이스가 생겼다.
-        let padded = false
-        if (mergedCards.length < rawCards.length) {
-          const fallback = buildFallbackPayload(rawCards, language)
-          while (mergedCards.length < rawCards.length) {
-            mergedCards.push(fallback.cards[mergedCards.length])
-          }
-          padded = true
-        }
-        const mergedJson = {
-          overall:
-            chunkA.parsed?.overall || buildFallbackPayload(rawCards, language).overall,
-          cards: mergedCards,
-          advice:
-            chunkA.parsed?.advice || buildFallbackPayload(rawCards, language).advice,
-        }
-        const mergedText = JSON.stringify(mergedJson)
-        logger.info('Tarot stream parallel chunks merged', {
-          cards: rawCards.length,
-          aCards: cardsA.length,
-          bCards: cardsB.length,
-          aParsed: chunkA.parsed !== null,
-          bParsed: chunkB.parsed !== null,
-          aRetried: chunkA.retried,
-          bRetried: chunkB.retried,
-          padded,
-        })
-
-        // padded === true 이면 한 청크가 retry 까지 실패해 절반 이상이
-        // 결정론적 fallback 텍스트로 채워졌다는 뜻 — 사용자가 받은 가치는
-        // 1 크레딧 미만이므로 charge 한 creditCost 를 전액 환불한다.
-        // (응답 자체는 그대로 내려 클라이언트 UI 가 끊기지 않게 함.)
-        if (padded) {
-          await refundOnAllLlmFailure(
-            creditResult,
-            'tarot_partial_chunk_fallback',
-            creditCost,
-            'Chunk retry failed; deterministic fallback padded ≥1 card'
-          )
-        }
-
-        const encoder = new TextEncoder()
-        const stream = new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(createSSEEvent({ content: mergedText })))
-            controller.enqueue(encoder.encode(createSSEDoneEvent()))
-            controller.close()
-          },
-        })
-        return withCreditCookies(
-          new NextResponse(stream, {
-            headers: {
-              'Content-Type': 'text/event-stream',
-              'Cache-Control': 'no-cache, no-transform',
-              Connection: 'keep-alive',
-              'X-Accel-Buffering': 'no',
-              'X-Provider': 'claude',
-              'X-Tarot-Strategy': 'parallel-chunks',
-            },
-          }),
-          creditResult
-        )
-      } catch (claudeErr) {
-        recordExternalCall('anthropic', 'claude-haiku-4-5', 'error', Date.now() - claudeStartTime)
-        logger.warn('Tarot stream Claude failed, falling back to OpenAI', {
-          error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
-          isLargeSpread,
-        })
-        // fall through to OpenAI streaming
-      }
-    }
-
-    // OpenAI Streaming (fallback when Claude unavailable or failed)
-    if (!process.env.OPENAI_API_KEY) {
-      logger.warn('Tarot stream missing both ANTHROPIC_API_KEY and OPENAI_API_KEY, using fallback')
-      await refundOnAllLlmFailure(
-        creditResult,
-        'tarot_llm_unavailable',
-        creditCost,
-        'Both Claude and OpenAI keys missing'
-      )
-      const fallback = buildFallbackPayload(rawCards, language)
-      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
-    }
-
-    const openaiController = new AbortController()
-    const openaiTimeoutId = setTimeout(() => openaiController.abort(), OPENAI_TIMEOUT_MS)
-    const openaiStartTime = Date.now()
-    let openaiResponse: Response
-    try {
-      logger.info('Tarot stream OpenAI request', {
-        model: 'gpt-4o-mini',
-        systemLen: systemPrompt.length,
-        userLen: userPrompt.length,
-      })
-      openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          max_tokens: 8000,
-          temperature: 0.75,
-          stream: true,
-          response_format: { type: 'json_object' },
-        }),
-        signal: openaiController.signal,
-      })
-    } catch (error) {
-      clearTimeout(openaiTimeoutId)
-      recordExternalCall('openai', 'gpt-4o-mini', 'error', Date.now() - openaiStartTime)
-      logger.error('OpenAI stream fetch error:', { error })
-      logger.warn('Tarot stream emergency fallback')
-      await refundOnAllLlmFailure(
-        creditResult,
-        'tarot_llm_unavailable',
-        creditCost,
-        `OpenAI fetch error: ${error instanceof Error ? error.message : String(error)}`
-      )
-      const fallback = buildFallbackPayload(rawCards, language)
-      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
-    }
-    clearTimeout(openaiTimeoutId)
-
-    if (!openaiResponse.ok) {
-      recordExternalCall('openai', 'gpt-4o-mini', 'error', Date.now() - openaiStartTime)
-      const errorText = await openaiResponse.text()
-      logger.error('OpenAI stream error:', { status: openaiResponse.status, error: errorText })
-      logger.warn('Tarot stream emergency fallback')
-      await refundOnAllLlmFailure(
-        creditResult,
-        'tarot_llm_unavailable',
-        creditCost,
-        `OpenAI ${openaiResponse.status}: ${errorText.substring(0, 200)}`
-      )
-      const fallback = buildFallbackPayload(rawCards, language)
-      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
-    }
-
-    // SSE - 성공 메트릭스 기록 (스트리밍 시작 시점)
-    recordExternalCall('openai', 'gpt-4o-mini', 'success', Date.now() - openaiStartTime)
-
-    const encoder = new TextEncoder()
-    const decoder = new TextDecoder()
-
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = openaiResponse.body?.getReader()
-        logger.info('Tarot stream SSE start', { hasReader: Boolean(reader) })
-        if (!reader) {
-          const fallback = buildFallbackPayload(rawCards, language)
-          controller.enqueue(encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) })))
           controller.enqueue(encoder.encode(createSSEDoneEvent()))
-          controller.close()
-          return
-        }
-
-        let buffer = ''
-
-        const handleLine = (line: string) => {
-          if (!line.startsWith('data: ')) {
-            return
-          }
-          const data = line.slice(6)
-          if (data === '[DONE]') {
-            controller.enqueue(encoder.encode(createSSEDoneEvent()))
-            return
-          }
-          try {
-            const parsed = JSON.parse(data)
-            const content = parsed.choices?.[0]?.delta?.content
-            if (content) {
-              controller.enqueue(encoder.encode(createSSEEvent({ content })))
-            }
-          } catch (_parseErr) {
-            logger.warn('[Tarot stream] Invalid JSON chunk skipped', {
-              data: data.substring(0, 100),
-            })
-          }
-        }
-
-        let sawContent = false
-        try {
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) {
-              break
-            }
-
-            buffer += decoder.decode(value, { stream: true })
-            const lines = buffer.split('\n')
-            buffer = lines.pop() || ''
-
-            for (const line of lines) {
-              if (!sawContent && line.startsWith('data: ')) {
-                sawContent = true
-                logger.info('Tarot stream first chunk')
-              }
-              handleLine(line)
+        } catch (streamErr) {
+          recordExternalCall(
+            'anthropic',
+            DEFAULT_CLAUDE_MODEL,
+            'error',
+            Date.now() - claudeStartTime
+          )
+          logger.error('[tarot-stream] Claude stream interrupted', {
+            error: streamErr instanceof Error ? streamErr.message : String(streamErr),
+            receivedAny,
+          })
+          // 토큰이 한 번도 안 도착했다면 사용자가 받은 가치 0 → 전액 환불 +
+          // 정적 fallback 을 단일 청크로 emit 해 클라가 깔끔히 렌더.
+          if (!receivedAny) {
+            await refundOnFailure(
+              creditResult,
+              'tarot_claude_stream_no_content',
+              creditCost,
+              streamErr instanceof Error ? streamErr.message : String(streamErr)
+            )
+            const fallback = buildFallbackPayload(rawCards, language)
+            controller.enqueue(
+              encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) }))
+            )
+          } else {
+            // 부분 텍스트가 이미 클라이언트에 전달됨 — error 이벤트로 끊김 알림.
+            // 클라이언트는 누적 텍스트로 partial JSON 복구 시도.
+            try {
+              controller.enqueue(encoder.encode(createSSEEvent({ error: 'Stream interrupted' })))
+            } catch {
+              /* may already be closed */
             }
           }
-
-          if (buffer.trim()) {
-            handleLine(buffer)
-          }
-        } catch (error) {
-          logger.error('Stream error:', { error: error })
-          try {
-            controller.enqueue(encoder.encode(createSSEEvent({ error: 'Stream interrupted' })))
-          } catch {
-            /* stream may already be closed */
-          }
+          controller.enqueue(encoder.encode(createSSEDoneEvent()))
         } finally {
-          logger.info('Tarot stream SSE finished', { sawContent })
           try {
             controller.close()
           } catch {
@@ -593,11 +318,14 @@ export async function POST(req: NextRequest) {
     })
 
     return withCreditCookies(
-      new Response(stream, {
+      new NextResponse(sseStream, {
         headers: {
           'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
+          'Cache-Control': 'no-cache, no-transform',
           Connection: 'keep-alive',
+          'X-Accel-Buffering': 'no',
+          'X-Provider': 'claude',
+          'X-Tarot-Strategy': 'streaming',
         },
       }),
       creditResult
