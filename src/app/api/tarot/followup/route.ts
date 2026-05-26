@@ -70,6 +70,13 @@ async function refundOnLlmFailure(
   }
 }
 
+// Vercel 런타임 설정 — interpret-stream 과 동일한 누락 버그(default 10s
+// function timeout 에 걸려 Claude 응답 전 죽음) 방지. clarifier card 한 장
+// 더 뽑기 + 후속 질문 모두 Claude 호출이 들어가므로 같은 처리.
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
 export const POST = withApiMiddleware(
   async (req: NextRequest) => {
     let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
