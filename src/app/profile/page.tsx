@@ -15,9 +15,6 @@ import {
   Pencil,
   Plus,
   Trash2,
-  Heart,
-  MessageCircle,
-  Wand2,
   ArrowRight,
   Users,
   Coins,
@@ -66,20 +63,6 @@ interface SavedPerson {
   latitude?: number | null
   longitude?: number | null
   tzId?: string | null
-}
-
-interface HistoryRecord {
-  id: string
-  date: string
-  service: string
-  theme?: string | null
-  summary?: string | null
-  type: string
-}
-
-interface DailyHistory {
-  date: string
-  records: HistoryRecord[]
 }
 
 type PlanId = 'free' | 'starter' | 'pro' | 'premium'
@@ -160,26 +143,6 @@ const loadingCls =
   'mt-4 rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-4 py-5 text-center text-[13px] text-[#a8a29e]'
 const serifStyle = { fontFamily: 'var(--font-cinzel), Georgia, serif' } as const
 
-function classifyService(serviceId: string): {
-  key: 'counselor' | 'compatibility' | 'tarot' | 'other'
-  href: string
-  Icon: typeof Calendar
-} {
-  if (serviceId === 'tarot') return { key: 'tarot', href: '/tarot', Icon: Wand2 }
-  if (serviceId === 'compatibility' || serviceId === 'compat-counselor')
-    return {
-      // Enter via the /compatibility form (carries 지인 불러오기 / 직접 입력)
-      // so two people are picked before the counselor, which has no
-      // person-picker of its own.
-      key: 'compatibility',
-      href: '/compatibility',
-      Icon: Heart,
-    }
-  if (serviceId === 'destiny-counselor' || serviceId === 'counselor' || serviceId === 'destiny-map')
-    return { key: 'counselor', href: '/destiny-counselor', Icon: MessageCircle }
-  return { key: 'other', href: '/profile', Icon: Calendar }
-}
-
 function formatBirthDate(iso: string | null | undefined, locale: Locale): string {
   if (!iso) return locale === 'ko' ? '미입력' : 'Not set'
   // birthDate is stored as 'YYYY-MM-DD' string. Display nicely without
@@ -188,21 +151,6 @@ function formatBirthDate(iso: string | null | undefined, locale: Locale): string
   if (!m) return iso
   const [, y, mo, d] = m
   return locale === 'ko' ? `${y}년 ${Number(mo)}월 ${Number(d)}일` : `${mo}/${d}/${y}`
-}
-
-function formatRelative(iso: string, locale: Locale): string {
-  const ms = Date.now() - new Date(iso).getTime()
-  const min = Math.floor(ms / 60000)
-  if (min < 1) return locale === 'ko' ? '방금 전' : 'just now'
-  if (min < 60) return locale === 'ko' ? `${min}분 전` : `${min}m ago`
-  const hr = Math.floor(min / 60)
-  if (hr < 24) return locale === 'ko' ? `${hr}시간 전` : `${hr}h ago`
-  const day = Math.floor(hr / 24)
-  if (day < 7) return locale === 'ko' ? `${day}일 전` : `${day}d ago`
-  return new Date(iso).toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'en-US', {
-    month: 'short',
-    day: 'numeric',
-  })
 }
 
 function genderLabel(g: string | null | undefined, locale: Locale): string {
@@ -291,7 +239,6 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<MeProfile | null>(null)
   const [circle, setCircle] = useState<SavedPerson[]>([])
-  const [history, setHistory] = useState<DailyHistory[]>([])
   const [credits, setCredits] = useState<CreditsResponse | null>(null)
   const [purchases, setPurchases] = useState<PurchasesResponse | null>(null)
   const [referral, setReferral] = useState<ReferralResponse | null>(null)
@@ -318,15 +265,13 @@ export default function ProfilePage() {
     setLoading(true)
     setLoadError(false)
     try {
-      const [profileRes, circleRes, historyRes, creditsRes, purchasesRes, referralRes] =
-        await Promise.all([
-          fetch('/api/me/profile').then((r) => (r.ok ? r.json() : null)),
-          fetch('/api/me/circle').then((r) => (r.ok ? r.json() : null)),
-          fetch('/api/me/history?limit=20').then((r) => (r.ok ? r.json() : null)),
-          fetch('/api/me/credits').then((r) => (r.ok ? r.json() : null)),
-          fetch('/api/me/purchases').then((r) => (r.ok ? r.json() : null)),
-          fetch('/api/referral/me').then((r) => (r.ok ? r.json() : null)),
-        ])
+      const [profileRes, circleRes, creditsRes, purchasesRes, referralRes] = await Promise.all([
+        fetch('/api/me/profile').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/me/circle').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/me/credits').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/me/purchases').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/referral/me').then((r) => (r.ok ? r.json() : null)),
+      ])
 
       // /api/me/profile returns { user: {...} } directly (no envelope).
       if (profileRes?.user) setProfile(profileRes.user)
@@ -335,9 +280,6 @@ export default function ProfilePage() {
       // envelope is { success: true, data: {...} }.
       const people = circleRes?.data?.people || circleRes?.people || []
       setCircle(Array.isArray(people) ? people : [])
-
-      const days = historyRes?.data?.history || historyRes?.history || []
-      setHistory(Array.isArray(days) ? days : [])
 
       const cr = creditsRes?.data || creditsRes
       if (cr && typeof cr === 'object' && 'plan' in cr) setCredits(cr as CreditsResponse)
@@ -455,6 +397,19 @@ export default function ProfilePage() {
     const userId = session?.user?.id
     if (!userId) {
       setPhotoError(locale === 'ko' ? '로그인이 필요합니다.' : 'Login required.')
+      return
+    }
+
+    // Firebase Storage 가 설정되지 않으면 업로드 함수가 'service unavailable' 을
+    // 던지는데, 사용자는 '왜 안 되지' 모름. 환경변수 누락이면 즉시 명확한
+    // 메시지 표시(관리자가 NEXT_PUBLIC_FIREBASE_CONFIG 만 설정하면 동작).
+    if (!process.env.NEXT_PUBLIC_FIREBASE_CONFIG) {
+      logger.warn('[profile/photo] NEXT_PUBLIC_FIREBASE_CONFIG missing — upload disabled')
+      setPhotoError(
+        locale === 'ko'
+          ? '사진 업로드 서비스가 설정되지 않았어요. (관리자: NEXT_PUBLIC_FIREBASE_CONFIG 환경변수 필요)'
+          : 'Photo upload is not configured. (Admin: set NEXT_PUBLIC_FIREBASE_CONFIG env var)'
+      )
       return
     }
 
@@ -576,16 +531,6 @@ export default function ProfilePage() {
     }
     void handleCopyReferral()
   }
-
-  // 유료 서비스(궁합·운명·타로 상담사)만 노출 — 무료 리포트/캘린더/일진 등
-  // 그 외 활동은 이 목록에서 제외한다.
-  const flatRecords = history
-    .flatMap((d) => d.records)
-    .filter((r) => {
-      const k = classifyService(r.service).key
-      return k === 'counselor' || k === 'compatibility' || k === 'tarot'
-    })
-    .slice(0, 8)
 
   // 계정 삭제 확인 문구: 이메일이 있으면 이메일, 없으면 "DELETE".
   const expectedConfirm = profile?.email || 'DELETE'
@@ -1102,78 +1047,6 @@ export default function ProfilePage() {
                     />
                   </div>
                 </>
-              )}
-            </section>
-
-            {/* Recent activity */}
-            <section className={`mt-6 ${cardCls}`}>
-              <div className="flex items-center justify-between gap-2">
-                <h2 className={sectionLabelCls}>
-                  {locale === 'ko' ? '유료 서비스 최근 내역' : 'Paid service history'}
-                </h2>
-                <div className="flex items-center gap-3">
-                  <Link href="/tarot/history" className={linkCls}>
-                    {locale === 'ko' ? '타로 기록' : 'Tarot log'}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                  <Link href="/profile/decisions" className={linkCls}>
-                    {locale === 'ko' ? '결정 기록' : 'Decision log'}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </div>
-
-              {loading ? (
-                <p className={loadingCls}>{locale === 'ko' ? '불러오는 중...' : 'Loading...'}</p>
-              ) : flatRecords.length === 0 ? (
-                <div className={emptyCls}>
-                  <p className="text-[14px] text-[#57534e]">
-                    {locale === 'ko' ? '아직 활동 기록이 없어요' : 'No activity yet'}
-                  </p>
-                  <div className="mt-3 flex flex-wrap justify-center gap-2">
-                    <Link href="/destiny-counselor" className={ghostBtnCls}>
-                      {locale === 'ko' ? '운명 상담사' : 'Destiny counselor'}
-                    </Link>
-                    <Link href="/compatibility" className={ghostBtnCls}>
-                      {locale === 'ko' ? '궁합' : 'Compatibility'}
-                    </Link>
-                    <Link href="/tarot" className={ghostBtnCls}>
-                      {locale === 'ko' ? '타로' : 'Tarot'}
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <ul className="mt-4 space-y-2">
-                  {flatRecords.map((rec) => {
-                    const meta = classifyService(rec.service)
-                    const ServiceIcon = meta.Icon
-                    return (
-                      <li key={rec.id}>
-                        <Link
-                          href={meta.href}
-                          className="flex items-center gap-3 rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] px-3.5 py-3 transition hover:border-[#d9d5cf] hover:bg-white"
-                        >
-                          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#f1efeb] text-[#57534e]">
-                            <ServiceIcon className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-[13.5px] font-medium text-[#1c1917]">
-                              {rec.theme || rec.service}
-                            </p>
-                            {rec.summary && (
-                              <p className="mt-0.5 truncate text-[12px] text-[#8b857d]">
-                                {rec.summary}
-                              </p>
-                            )}
-                          </div>
-                          <span className="flex-shrink-0 text-[11px] text-[#a8a29e]">
-                            {formatRelative(rec.date, locale)}
-                          </span>
-                        </Link>
-                      </li>
-                    )
-                  })}
-                </ul>
               )}
             </section>
 
