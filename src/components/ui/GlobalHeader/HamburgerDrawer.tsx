@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { ENABLED_SERVICES } from '@/config/enabledServices'
 
@@ -14,9 +15,13 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
   const [agreed, setAgreed] = useState(false)
   const [loginPanelOpen, setLoginPanelOpen] = useState(false)
   const { data: session, status } = useSession()
+  const pathname = usePathname()
   const isAuthed = status === 'authenticated'
   const userName = session?.user?.name || session?.user?.email || (isAuthed ? 'Account' : null)
   const isKo = locale === 'ko'
+  // 타로 컨텍스트 일 때만 '타로 리딩 기록' 노출 — 다른 페이지에서는 노이즈 X.
+  // 그 외 진입점은 프로필(/profile) 안에 있음.
+  const isInTarot = pathname?.startsWith('/tarot') ?? false
 
   // Reset the login panel collapsed state every time the drawer closes so
   // a returning user always sees the compact "로그인" row first.
@@ -253,7 +258,7 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                 <span aria-hidden="true">👤</span>
                 <span className="text-sm">{isKo ? '내 정보' : 'My Info'}</span>
               </Link>
-              {isAuthed && (
+              {isAuthed && isInTarot && (
                 <Link
                   href="/tarot/history"
                   onClick={close}
