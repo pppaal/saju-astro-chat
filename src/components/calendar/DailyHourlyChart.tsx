@@ -99,6 +99,13 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
 
   if (data.length === 0) return null
 
+  // Y축 사용자 시간대 범위에 맞춰 stretch — saju/astro 둘 다 보통 35~65 좁은 밴드라
+  // 0~100 고정이면 굴곡 안 보임. min/max ±5 padding으로 줌인.
+  const allHourlyScores = data.flatMap((d) => (hasAstro ? [d.saju, d.astro] : [d.saju]))
+  const yMin = Math.max(0, Math.floor(Math.min(...allHourlyScores) / 5) * 5 - 5)
+  const yMax = Math.min(100, Math.ceil(Math.max(...allHourlyScores) / 5) * 5 + 5)
+  const showNeutral50 = yMin <= 50 && yMax >= 50
+
   return (
     <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
       <h3 className="text-base font-bold text-zinc-200 mb-1 flex items-center gap-2 tracking-wider uppercase">
@@ -124,7 +131,7 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
           <XAxis dataKey="hour" stroke="#a1a1aa" fontSize={12} fontWeight={600} interval={2} />
-          <YAxis domain={[0, 100]} stroke="#a1a1aa" fontSize={12} />
+          <YAxis domain={[yMin, yMax]} stroke="#a1a1aa" fontSize={12} />
           <Tooltip
             contentStyle={{
               background: '#09090b',
@@ -143,9 +150,11 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
               wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingTop: '12px' }}
             />
           )}
-          <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.5} strokeDasharray="4 4">
-            <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={11} />
-          </ReferenceLine>
+          {showNeutral50 && (
+            <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.5} strokeDasharray="4 4">
+              <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={11} />
+            </ReferenceLine>
+          )}
           {nowHourLabel && (
             <ReferenceLine
               x={nowHourLabel}

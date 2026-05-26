@@ -57,6 +57,12 @@ export default function MonthlyDailyChart({ monthDates, viewYear, viewMonth, onD
   const hasAny = data.some((d) => typeof d.score === 'number')
   if (!hasAny) return null
 
+  // Y축 사용자 범위에 맞춰 stretch (그날들이 30~70 같은 좁은 밴드에 몰릴 때 굴곡 보이게)
+  const validScores = data.map((d) => d.score).filter((s): s is number => typeof s === 'number')
+  const yMin = Math.max(0, Math.floor(Math.min(...validScores) / 5) * 5 - 5)
+  const yMax = Math.min(100, Math.ceil(Math.max(...validScores) / 5) * 5 + 5)
+  const showNeutral50 = yMin <= 50 && yMax >= 50
+
   return (
     <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
       <h3 className="text-base font-bold text-zinc-200 mb-1 flex items-center gap-2 tracking-wider uppercase">
@@ -89,7 +95,7 @@ export default function MonthlyDailyChart({ monthDates, viewYear, viewMonth, onD
             interval={4}
             tickFormatter={(v: string) => v.replace('일', '')}
           />
-          <YAxis domain={[0, 100]} stroke="#a1a1aa" fontSize={11} />
+          <YAxis domain={[yMin, yMax]} stroke="#a1a1aa" fontSize={11} />
           <Tooltip
             contentStyle={{
               background: '#09090b',
@@ -103,9 +109,11 @@ export default function MonthlyDailyChart({ monthDates, viewYear, viewMonth, onD
               typeof v === 'number' ? [`${v}점`, '일 점수'] : ['(없음)', '일 점수']
             }
           />
-          <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.2} strokeDasharray="4 4">
-            <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={10} />
-          </ReferenceLine>
+          {showNeutral50 && (
+            <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.2} strokeDasharray="4 4">
+              <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={10} />
+            </ReferenceLine>
+          )}
           {nowDayLabel && (
             <ReferenceLine x={nowDayLabel} stroke="#fbbf24" strokeWidth={1.5} strokeDasharray="3 3">
               <Label value="지금" position="top" fill="#fbbf24" fontSize={10} fontWeight={700} />
