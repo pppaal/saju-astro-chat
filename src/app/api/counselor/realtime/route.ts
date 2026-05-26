@@ -446,7 +446,7 @@ export async function POST(req: NextRequest) {
     userPrompt,
     cachedUserContext,
     priorTurns,
-    maxTokens: 1500,
+    maxTokens: 2500,
     temperature: 0.5,
     label: 'counselor.realtime',
     onFailure,
