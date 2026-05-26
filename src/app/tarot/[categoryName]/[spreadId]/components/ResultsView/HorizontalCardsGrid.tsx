@@ -77,8 +77,12 @@ export function HorizontalCardsGrid({
               handleCardClick()
             }}
           >
-            <div className={styles.cardNumberBadge}>{index + 1}</div>
-            <div className={styles.positionBadgeHorizontal}>{positionTitle}</div>
+            <div className={styles.fieldGroup}>
+              <span className={styles.fieldLabel}>
+                {language === 'ko' ? '카드 위치' : 'Position'}
+              </span>
+              <div className={styles.positionBadgeHorizontal}>{positionTitle}</div>
+            </div>
 
             <div className={styles.cardContainerLarge}>
               {revealed ? (
@@ -123,19 +127,29 @@ export function HorizontalCardsGrid({
 
             {revealed && (
               <div className={styles.cardInfoCompact}>
-                <h3 className={styles.cardNameCompact}>
-                  {language === 'ko'
-                    ? drawnCard.card.nameKo || drawnCard.card.name
-                    : drawnCard.card.name}
-                </h3>
-                <div className={styles.keywordsCompact}>
-                  {(language === 'ko' ? meaning.keywordsKo || meaning.keywords : meaning.keywords)
-                    .slice(0, 2)
-                    .map((keyword: string, keywordIndex: number) => (
-                      <span key={keywordIndex} className={styles.keywordTagCompact}>
-                        {keyword}
-                      </span>
-                    ))}
+                <div className={styles.fieldGroup}>
+                  <span className={styles.fieldLabel}>
+                    {language === 'ko' ? '카드명' : 'Card'}
+                  </span>
+                  <h3 className={styles.cardNameCompact}>
+                    {language === 'ko'
+                      ? drawnCard.card.nameKo || drawnCard.card.name
+                      : drawnCard.card.name}
+                  </h3>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <span className={styles.fieldLabel}>
+                    {language === 'ko' ? '키워드' : 'Keywords'}
+                  </span>
+                  <div className={styles.keywordsCompact}>
+                    {(language === 'ko' ? meaning.keywordsKo || meaning.keywords : meaning.keywords)
+                      .slice(0, 2)
+                      .map((keyword: string, keywordIndex: number) => (
+                        <span key={keywordIndex} className={styles.keywordTagCompact}>
+                          {keyword}
+                        </span>
+                      ))}
+                  </div>
                 </div>
               </div>
             )}
