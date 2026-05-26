@@ -119,51 +119,6 @@ export default function TarotChatScreen() {
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-100">
             {isKo ? '타로 마스터가 기다리고 있습니다' : 'The Tarot Master Awaits'}
           </h1>
-          <p className="text-slate-400 text-sm md:text-base max-w-md mx-auto">
-            {isKo
-              ? '하단 입력창에 고민을 적어주세요.\n선택하신 덱과 스프레드에 맞춰 카드를 펼칩니다.'
-              : 'Type your question below.\nThe cards will be drawn from your selected deck and spread.'}
-          </p>
-
-          {/* 예시 질문 chip — 클릭하면 textarea 에 채워서 첫 사용자 ramp-up */}
-          {question.trim().length === 0 && (
-            <div className="pt-3">
-              <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">
-                {isKo ? '이런 걸 물어볼 수 있어요' : 'Try asking'}
-              </div>
-              <div className="flex flex-wrap justify-center gap-2">
-                {(isKo
-                  ? [
-                      '오늘 컨디션 어때?',
-                      '그 사람 마음이 궁금해',
-                      '이직해도 될까?',
-                      '내일 어떻게 보낼까?',
-                    ]
-                  : [
-                      'How is my day looking?',
-                      "What's on their mind?",
-                      'Should I switch jobs?',
-                      'How should I spend tomorrow?',
-                    ]
-                ).map((sample) => (
-                  <button
-                    key={sample}
-                    type="button"
-                    onClick={() => {
-                      setQuestion(sample)
-                      setTimeout(() => {
-                        textareaRef.current?.focus()
-                        textareaRef.current?.setSelectionRange(sample.length, sample.length)
-                      }, 50)
-                    }}
-                    className="px-3 py-1.5 rounded-full bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 hover:text-slate-100 transition-colors"
-                  >
-                    {sample}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* 선택한 덱·스프레드 카드백 부채꼴 미리보기 — 빈 공간을 채우고
               현재 선택(덱/카드 수)을 시각화. 덱·스프레드 바꾸면 실시간 갱신. */}
