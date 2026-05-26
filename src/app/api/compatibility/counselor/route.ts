@@ -35,6 +35,7 @@ function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string):
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
+import { getUserDisplayName } from '@/lib/user/displayName'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -142,11 +143,9 @@ export async function POST(req: NextRequest) {
     }
 
     let prefersAuthedGuard = false
-    let sessionUserName: string | null = null
     try {
       const session = await getServerSession(authOptions)
       prefersAuthedGuard = Boolean(session?.user)
-      sessionUserName = session?.user?.name?.trim() || null
     } catch {
       prefersAuthedGuard = false
     }
@@ -652,8 +651,10 @@ export async function POST(req: NextRequest) {
       : ''
 
     // 로그인 사용자 호칭(궁합은 두 사람 중 화자가 누군지 명시).
-    const callerLine = sessionUserName
-      ? `# 호출자(질문자): ${sessionUserName} — 한국어로 답할 때 '${sessionUserName}님'으로 호명하고, 영어면 'Hi ${sessionUserName},' 형식으로 자연스럽게 한 번씩.`
+    // DB 의 최신 User.name 을 사용 — 메인페이지에서 이름 바꿔도 즉시 반영.
+    const callerName = await getUserDisplayName(context.userId)
+    const callerLine = callerName
+      ? `# 호출자(질문자): ${callerName} — 한국어로 답할 때 '${callerName}님'으로 호명하고, 영어면 'Hi ${callerName},' 형식으로 자연스럽게 한 번씩.`
       : ''
 
     const cachedUserContext = [

@@ -23,6 +23,7 @@ import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { cacheGet, cacheSet, cacheDel, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { getUserDisplayName } from '@/lib/user/displayName'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -314,9 +315,10 @@ export async function POST(req: NextRequest) {
       if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
         parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
       }
-      // 로그인 사용자면 이름 호명을 위해 호출자 정보 주입.
-      // 응답 톤은 한국어 '{이름}님', 영어 'Hi {Name},' 형식으로 자연스럽게.
-      const userName = session?.user?.name?.trim()
+      // 로그인 사용자의 메인페이지 저장 이름을 DB 에서 직접 조회.
+      // session.user.name 은 JWT 캐시라 메인페이지에서 이름 바꿔도 갱신
+      // 안 됨 — DB 의 최신 User.name 을 써야 즉시 반영된다.
+      const userName = await getUserDisplayName(userId)
       if (userName) {
         parts.push(
           `# 호출자: ${userName} — 한국어로 답할 때 '${userName}님'으로 정중히 호명하고, 영어면 'Hi ${userName},' 식으로 한 번씩 자연스럽게 호명한다.`

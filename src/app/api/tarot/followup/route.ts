@@ -19,6 +19,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { callClaude, isClaudeAvailable } from '@/lib/llm/claude'
 import { pickTarotFollowupRules } from '@/lib/tarot/promptShared'
+import { getUserDisplayName } from '@/lib/user/displayName'
 
 const followupCardSchema = z.object({
   position: z.string().max(120),
@@ -121,20 +122,13 @@ export const POST = withApiMiddleware(
 
       const systemPrompt = pickTarotFollowupRules(isKo ? 'ko' : 'en')
 
-      // 로그인 사용자면 이름 호명을 위한 caller 표시 추가.
-      let sessionUserName: string | null = null
-      try {
-        const { getServerSession } = await import('next-auth')
-        const { authOptions } = await import('@/lib/auth/authOptions')
-        const session = await getServerSession(authOptions)
-        sessionUserName = session?.user?.name?.trim() || null
-      } catch {
-        // guest fallback.
-      }
-      const callerBlock = sessionUserName
+      // 메인페이지 저장 이름을 DB 에서 직접 조회. creditResult.userId 는
+      // checkAndConsumeCredits 에서 인증된 userId (게스트면 undefined).
+      const callerName = await getUserDisplayName(creditResult?.userId)
+      const callerBlock = callerName
         ? isKo
-          ? `# 호출자\n${sessionUserName} — 한국어로 답할 때 '${sessionUserName}님'으로 정중히 호명.\n\n`
-          : `# Caller\n${sessionUserName} — address as 'Hi ${sessionUserName},' naturally.\n\n`
+          ? `# 호출자\n${callerName} — 한국어로 답할 때 '${callerName}님'으로 정중히 호명.\n\n`
+          : `# Caller\n${callerName} — address as 'Hi ${callerName},' naturally.\n\n`
         : ''
 
       // 카드·원래 리딩 정보 = 세션 내 안정 컨텍스트 (cached). question_by_question
