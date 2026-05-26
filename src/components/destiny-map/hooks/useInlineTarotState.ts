@@ -88,8 +88,13 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
   }, [])
 
   const recommendedSpreads = useMemo(() => {
+    // Standalone 타로(TarotChatScreen)는 카테고리 내 모든 스프레드를 chip 으로
+    // 노출한다. 인라인도 항상 전체를 보여줘서 선택 옵션 수를 맞춤. AI 가 추천한
+    // 게 있으면 앞으로 끌어와 의도는 보존.
     if (state.suggestedSpreads.length > 0) {
-      return state.suggestedSpreads
+      const suggestedIds = new Set(state.suggestedSpreads.map((s) => s.id))
+      const rest = defaultRecommendedSpreads.filter((s) => !suggestedIds.has(s.id))
+      return [...state.suggestedSpreads, ...rest]
     }
     return defaultRecommendedSpreads
   }, [state.suggestedSpreads, defaultRecommendedSpreads])
