@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
 import BrandSplash from '@/components/branding/BrandSplash'
@@ -15,6 +16,14 @@ import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
 import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
+import { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
+
+// 운명상담사와 동일한 InlineTarotModal — 사용자가 질문 적고 스프레드
+// 골라 카드를 펼치는 인터랙티브 흐름. 결과는 채팅 메시지로 inject.
+// 기존 handleQuickCoupleTarot(자동 5장)은 유지, 모달은 "맞춤 타로" 옵션.
+const InlineTarotModal = dynamic(() => import('@/components/destiny-map/InlineTarotModal'), {
+  ssr: false,
+})
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 
@@ -87,6 +96,7 @@ function CompatibilityCounselorContent() {
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showChartModal, setShowChartModal] = useState(false)
+  const [showTarotModal, setShowTarotModal] = useState(false)
   // 파일 첨부 — 운명 상담사와 동일한 훅. 업로드 텍스트(cvText)는 sendMessage
   // payload 로 전달돼 라우트가 현재 턴 프롬트에 주입한다.
   const [fileNotice, setFileNotice] = useState<string | null>(null)
@@ -520,6 +530,45 @@ function CompatibilityCounselorContent() {
     }
   }
 
+  // 🃏 맞춤 타로 — 운명상담사와 동일한 InlineTarotModal 흐름. 사용자가
+  // 질문 적고 스프레드 골라 카드 펼치면 결과를 채팅 메시지로 inject.
+  // 본 채팅의 다음 follow-up 은 두 사람 컨텍스트를 가지고 커플 관점에서
+  // 카드 결과를 깊게 읽어준다.
+  const handleTarotComplete = useCallback(
+    (result: TarotResultSummary) => {
+      const cardsSummary = result.cards
+        .map(
+          (card) =>
+            `• ${card.position}: ${card.name}${card.isReversed ? (isKo ? ' (역방향)' : ' (reversed)') : ''}`
+        )
+        .join('\n')
+
+      const partnerNames =
+        persons
+          .slice(0, 2)
+          .map((p) => p.name)
+          .filter(Boolean)
+          .join(' & ') || (isKo ? '두 사람' : 'the couple')
+
+      const header = isKo
+        ? `🃏 **타로 리딩 결과 — ${partnerNames}** (${result.spreadTitle})`
+        : `🃏 **Tarot Reading — ${partnerNames}** (${result.spreadTitle})`
+
+      const tarotMessage = `${header}
+
+**${isKo ? '질문' : 'Question'}:** ${result.question}
+
+**${isKo ? '뽑은 카드' : 'Cards'}:**
+${cardsSummary}
+
+**${isKo ? '해석' : 'Reading'}:**
+${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance'}:** ${result.guidance}` : ''}${result.affirmation ? `\n\n**${isKo ? '확언' : 'Affirmation'}:** _${result.affirmation}_` : ''}`
+
+      setMessages((prev) => [...prev, { role: 'assistant', content: tarotMessage }])
+    },
+    [isKo, persons]
+  )
+
   // 🎴 둘 궁합 타로 — 한 번 클릭으로 5장 관계 크로스를 펼치고 chat 에 inline 으로 풀어준다.
   const handleQuickCoupleTarot = useCallback(async () => {
     if (isLoading || persons.length < 2) return
@@ -605,6 +654,22 @@ function CompatibilityCounselorContent() {
             <button
               type="button"
               className={styles.sidebarFooterBtn}
+              onClick={() => setShowTarotModal(true)}
+              disabled={isLoading || persons.length < 2}
+              title={
+                isKo
+                  ? '맞춤 타로 — 질문 적고 스프레드 골라 카드 뽑기'
+                  : 'Custom tarot — pick a spread and draw cards on your own question'
+              }
+            >
+              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+                {'🃏'}
+              </span>
+              {isKo ? '맞춤 타로 묻기' : 'Custom tarot'}
+            </button>
+            <button
+              type="button"
+              className={styles.sidebarFooterBtn}
               onClick={handleQuickCoupleTarot}
               disabled={isLoading || persons.length < 2}
               title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
@@ -612,7 +677,7 @@ function CompatibilityCounselorContent() {
               <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
                 {'🎴'}
               </span>
-              {isKo ? '둘 궁합 타로 뽑기' : 'Draw couple tarot'}
+              {isKo ? '빠른 5장 타로' : 'Quick 5-card tarot'}
             </button>
             <button
               type="button"
@@ -848,6 +913,27 @@ function CompatibilityCounselorContent() {
           </div>
         </div>
       </div>
+
+      <InlineTarotModal
+        isOpen={showTarotModal}
+        onClose={() => setShowTarotModal(false)}
+        onComplete={handleTarotComplete}
+        lang={isKo ? 'ko' : 'en'}
+        profile={{
+          name: persons[0]?.name,
+          birthDate: persons[0]?.date,
+          birthTime: persons[0]?.time,
+          city: persons[0]?.city,
+          // 궁합 모달이라 단일 profile 만 받는 InlineTarotModal 시그니처 한계
+          // — 두 번째 사람 컨텍스트는 결과 카드가 채팅으로 들어간 후
+          // 본 채팅의 LLM 호출이 자동으로 커플 컨텍스트로 follow-up.
+        }}
+        initialConcern={
+          isKo
+            ? `${persons[0]?.name || '나'}와 ${persons[1]?.name || '상대'}, 우리 관계는 어떻게 흘러갈까?`
+            : `${persons[0]?.name || 'Me'} and ${persons[1]?.name || 'partner'} — where is our relationship heading?`
+        }
+      />
 
       <CompatChartModal
         open={showChartModal}
