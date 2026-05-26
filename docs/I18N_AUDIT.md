@@ -1,7 +1,14 @@
 # 한국어/영어 i18n 일관성 감사
 
-> 작성일: 2026-05-26
+> 작성일: 2026-05-26 · 마지막 갱신: 2026-05-26
 > 범위: `src/app/` 아래 사용자 노출 페이지
+>
+> **상태 (2026-05-26 기준):** 🔴/🟡 항목 모두 정리 완료. UI·SEO 양쪽 한·영 일관성 확보.
+>
+> - error.tsx 3개 영문화 (PR #591)
+> - destiny-map / profile/decisions 영문화 (PR #593)
+> - (main) JSON-LD bilingual (이번 PR)
+> - compatibility/tarot/destiny-counselor 메타데이터는 원래 `generateLocalizedMetadata` 사용 — 별도 작업 불필요
 
 ## TL;DR
 
