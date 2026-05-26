@@ -914,9 +914,10 @@
 }
 
 .drawerCloseBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+  /* 사이즈 36 → 28 — 헤더의 작은 홈 아이콘과 시각적 무게 맞춤. */
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(229, 231, 240, 0.85);
@@ -924,7 +925,8 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .drawerSection {
@@ -1423,6 +1425,17 @@
 
 .lightMode .drawerLink:hover {
   background: #f5f5f4;
+  color: #1c1917;
+}
+
+/* 로그인 후 lightMode 에선 푸터 색이 흰색 그대로 남아 흰 배경에 안 보임 →
+   다크 그레이로 분리. 호버 색도 진한 잉크로. */
+.lightMode .drawerFooter {
+  color: rgba(28, 25, 23, 0.55);
+  border-top-color: #ebe8e3;
+}
+
+.lightMode .drawerFooterLink:hover {
   color: #1c1917;
 }
 
