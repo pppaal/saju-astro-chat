@@ -6,6 +6,7 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { logger } from '@/lib/logger'
 import styles from './CounselorSidebar.module.css'
+import HexDPLogo from '@/components/branding/HexDPLogo'
 
 type SessionItem = {
   id: string
@@ -346,7 +347,19 @@ export default function CounselorSidebar({
           <button type="button" onClick={onClose} className={styles.closeBtn} aria-label="Close">
             ×
           </button>
+          <span className={styles.brandMark} aria-hidden="true">
+            <HexDPLogo size={24} />
+          </span>
           <span className={styles.brand}>DestinyPal</span>
+          <Link
+            href="/"
+            className={styles.headerHome}
+            onClick={onClose}
+            aria-label={t('common.home', 'Home')}
+            title={t('common.home', 'Home')}
+          >
+            <span aria-hidden="true">🏠</span>
+          </Link>
         </div>
 
         <div className={styles.section}>
@@ -361,10 +374,6 @@ export default function CounselorSidebar({
             <span className={styles.actionIcon}>＋</span>
             <span>{t('destinyMap.counselor.newChat', 'New chat')}</span>
           </button>
-          <Link href="/" className={styles.actionBtn} onClick={onClose}>
-            <span className={styles.actionIcon}>🏠</span>
-            <span>{t('common.home', 'Home')}</span>
-          </Link>
         </div>
 
         <div className={styles.divider} />

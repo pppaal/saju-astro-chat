@@ -69,6 +69,34 @@
   letter-spacing: 0.02em;
 }
 
+/* DP hex 로고를 brand 텍스트 바로 왼쪽에 위치. 헤더 flex row 안에서
+   닫기버튼 → 로고 → 브랜드명 → (auto margin) → Home 순. */
+.brandMark {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+}
+
+/* 헤더 우측 끝의 Home 아이콘 링크. margin-left:auto 로 우측 정렬. */
+.headerHome {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  text-decoration: none;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  color: #a78bfa;
+  transition: background 0.15s ease;
+}
+
+.headerHome:hover {
+  background: rgba(167, 139, 250, 0.15);
+}
+
 .section {
   padding: 0.75rem 0.625rem;
   display: flex;
@@ -447,6 +475,17 @@
   background: #f5f5f4;
 }
 
+/* lightTheme 헤더의 Home 아이콘 버튼 — 회색 외곽선/회색 텍스트, hover 시 옅은 배경. */
+.lightTheme .headerHome {
+  border-color: #e7e5e4;
+  color: #57534e;
+}
+
+.lightTheme .headerHome:hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}
+
 .lightTheme .sectionLabel {
   color: #a8a29e;
 }
@@ -575,10 +614,8 @@
   border-color: #a8a29e;
 }
 
-/* New chat 만 강조 (다크 stroke), 홈은 보조 액션. nth-of-type 으로
-   구분하던 거 backgroundless 패턴에 의존했는데 fragile. Link 컴포넌트가
-   button 사이에 끼면서 nth-of-type 가 어긋남. 명시적인 first-of-type 으로
-   가고 나머지는 일반 hover. */
+/* New chat 만 강조. 검은 톤이었으나 브랜드 컬러(보라)로 교체 —
+   DP hex 로고와 톤 일치, 페이지 전체에서 시각적으로 부각. */
 .lightTheme .actionBtn {
   background: transparent;
   color: #44403c;
@@ -586,12 +623,12 @@
 }
 
 .lightTheme .actionBtn:first-of-type {
-  background: #1c1917;
+  background: #7c3aed;
   color: #fafaf9;
 }
 
 .lightTheme .actionBtn:first-of-type:hover {
-  background: #292524;
+  background: #6d28d9;
   color: #fafaf9;
 }
 
