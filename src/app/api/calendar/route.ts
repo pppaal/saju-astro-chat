@@ -40,6 +40,7 @@ export const dynamic = 'force-dynamic'
 
 import { LIMITS } from '@/lib/validation/patterns'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
+import { getUserDisplayName } from '@/lib/user/displayName'
 // HTTP_STATUS not used directly, status codes used via createErrorResponse
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
@@ -671,22 +672,15 @@ export const GET = withApiMiddleware(
           lang: interpLang,
           prevCells: prevMonthCells,
         })
-        // 로그인 사용자면 narrative 맨 앞에 호명 인사 추가.
-        // (template 변경 없이 최소 침범 — guest 면 인사 없이 기존 흐름 유지.)
-        try {
-          const { getServerSession } = await import('next-auth')
-          const { authOptions } = await import('@/lib/auth/authOptions')
-          const session = await getServerSession(authOptions)
-          const userName = session?.user?.name?.trim()
-          if (userName && interp.narrative) {
-            const greeting =
-              interpLang === 'ko'
-                ? `${userName}님의 이번 달 흐름을 살펴봤어요.\n\n`
-                : `Hi ${userName}, here's the flow I see for this month.\n\n`
-            interp.narrative = greeting + interp.narrative
-          }
-        } catch {
-          // 세션 조회 실패 시 인사 생략 — 본 narrative 는 그대로.
+        // 로그인 사용자면 narrative 맨 앞에 호명 인사 추가 — 메인페이지에서
+        // 저장된 이름(DB User.name)을 사용해 즉시 반영. 게스트는 인사 생략.
+        const calendarUserName = await getUserDisplayName(context.userId)
+        if (calendarUserName && interp.narrative) {
+          const greeting =
+            interpLang === 'ko'
+              ? `${calendarUserName}님의 이번 달 흐름을 살펴봤어요.\n\n`
+              : `Hi ${calendarUserName}, here's the flow I see for this month.\n\n`
+          interp.narrative = greeting + interp.narrative
         }
         ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
         // 올해 큰 날(연간 수렴)은 1년 풀빌드라 비싸서(~1.7s) 여기서 계산하지 않음.

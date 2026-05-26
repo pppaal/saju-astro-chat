@@ -26,6 +26,7 @@ import {
   creditErrorResponse,
 } from '@/lib/credits/withCredits'
 import { refundCredits } from '@/lib/credits/creditRefund'
+import { getUserDisplayName } from '@/lib/user/displayName'
 
 // 단일 Claude 호출의 최대 wall-clock — Haiku 4.5 + 7장 streaming 기준
 // 통상 8-20s, 여유 있게.
@@ -191,20 +192,13 @@ export async function POST(req: NextRequest) {
       userQuestion,
     })
 
-    // 로그인 사용자면 이름 호명. 게스트는 조용히 패스.
-    let sessionUserName: string | null = null
-    try {
-      const { getServerSession } = await import('next-auth')
-      const { authOptions } = await import('@/lib/auth/authOptions')
-      const session = await getServerSession(authOptions)
-      sessionUserName = session?.user?.name?.trim() || null
-    } catch {
-      // 게스트 처리.
-    }
-    const callerHeader = sessionUserName
+    // 로그인 사용자면 메인페이지 저장 이름으로 호명. context.userId 가
+    // 인증 세션을 통과한 유저 ID — 게스트는 null 이라 헬퍼가 자동 null 반환.
+    const callerName = await getUserDisplayName(context.userId)
+    const callerHeader = callerName
       ? language === 'ko'
-        ? `[호출자] ${sessionUserName} — '${sessionUserName}님'으로 정중히 호명하라.\n\n`
-        : `[Caller] ${sessionUserName} — address as 'Hi ${sessionUserName},' naturally.\n\n`
+        ? `[호출자] ${callerName} — '${callerName}님'으로 정중히 호명하라.\n\n`
+        : `[Caller] ${callerName} — address as 'Hi ${callerName},' naturally.\n\n`
       : ''
     const userPrompt = callerHeader + rawUserPrompt
 
@@ -246,12 +240,7 @@ export async function POST(req: NextRequest) {
         label: 'tarot-stream',
       })
     } catch (claudeErr) {
-      recordExternalCall(
-        'anthropic',
-        DEFAULT_CLAUDE_MODEL,
-        'error',
-        Date.now() - claudeStartTime
-      )
+      recordExternalCall('anthropic', DEFAULT_CLAUDE_MODEL, 'error', Date.now() - claudeStartTime)
       logger.error('[tarot-stream] Claude initial call failed', {
         error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
