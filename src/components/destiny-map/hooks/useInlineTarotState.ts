@@ -1,13 +1,14 @@
 /**
  * useInlineTarotState - State management for InlineTarotModal
  *
- * Consolidates 19 useState hooks into a single manageable state object
+ * Consolidates useState hooks into a single manageable state object.
+ * AI 자동 추천(question-engine-v2 기반) 흐름은 제거됨 — 사용자가 직접
+ * 스프레드 선택하는 단일 경로만 남김.
  */
 
 import { useState, useEffect, useMemo } from 'react'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import type { DrawnCard, Spread, CardInsight } from '@/lib/tarot/tarot.types'
-import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 
 export type Step = 'concern' | 'spread-select' | 'card-draw' | 'interpreting' | 'result'
 
@@ -35,12 +36,6 @@ export interface TarotState {
   // Save state
   isSaved: boolean
   isSaving: boolean
-
-  // AI state
-  isAnalyzing: boolean
-  aiReason: string
-  questionAnalysis: TarotQuestionAnalysisSnapshot | null
-  suggestedSpreads: Spread[]
 }
 
 const initialState: TarotState = {
@@ -58,10 +53,6 @@ const initialState: TarotState = {
   interpretFailed: false,
   isSaved: false,
   isSaving: false,
-  isAnalyzing: false,
-  aiReason: '',
-  questionAnalysis: null,
-  suggestedSpreads: [],
 }
 
 const DEFAULT_TAROT_CATEGORY = 'general-insight'
@@ -78,26 +69,15 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
     selectedCategory: DEFAULT_TAROT_CATEGORY,
   }))
 
-  // Get recommended spreads based on the default tarot category
-  const defaultRecommendedSpreads = useMemo(() => {
+  // 카테고리 내 모든 스프레드 (1·2·3·5·7장) — 카드 수 오름차순.
+  // 항상 전체 노출 (AI 추천으로 좁히지 않음).
+  const recommendedSpreads = useMemo(() => {
     const category = tarotThemes.find((t) => t.id === DEFAULT_TAROT_CATEGORY)
     if (!category) {
       return []
     }
     return [...category.spreads].sort((a, b) => a.cardCount - b.cardCount)
   }, [])
-
-  const recommendedSpreads = useMemo(() => {
-    // Standalone 타로(TarotChatScreen)는 카테고리 내 모든 스프레드를 chip 으로
-    // 노출한다. 인라인도 항상 전체를 보여줘서 선택 옵션 수를 맞춤. AI 가 추천한
-    // 게 있으면 앞으로 끌어와 의도는 보존.
-    if (state.suggestedSpreads.length > 0) {
-      const suggestedIds = new Set(state.suggestedSpreads.map((s) => s.id))
-      const rest = defaultRecommendedSpreads.filter((s) => !suggestedIds.has(s.id))
-      return [...state.suggestedSpreads, ...rest]
-    }
-    return defaultRecommendedSpreads
-  }, [state.suggestedSpreads, defaultRecommendedSpreads])
 
   // Reset state when modal opens
   useEffect(() => {
@@ -146,12 +126,6 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
         })),
       setIsSaved: (isSaved: boolean) => setState((prev) => ({ ...prev, isSaved })),
       setIsSaving: (isSaving: boolean) => setState((prev) => ({ ...prev, isSaving })),
-      setIsAnalyzing: (isAnalyzing: boolean) => setState((prev) => ({ ...prev, isAnalyzing })),
-      setAiReason: (reason: string) => setState((prev) => ({ ...prev, aiReason: reason })),
-      setQuestionAnalysis: (questionAnalysis: TarotQuestionAnalysisSnapshot | null) =>
-        setState((prev) => ({ ...prev, questionAnalysis })),
-      setSuggestedSpreads: (suggestedSpreads: Spread[]) =>
-        setState((prev) => ({ ...prev, suggestedSpreads })),
 
       // Composite actions
       resetForDrawAgain: () =>
@@ -164,14 +138,6 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
           guidance: '',
           affirmation: '',
           interpretFailed: false,
-          step: 'card-draw',
-        })),
-
-      selectSpreadAndProceed: (spread: Spread, reason?: string) =>
-        setState((prev) => ({
-          ...prev,
-          selectedSpread: spread,
-          aiReason: reason || '',
           step: 'card-draw',
         })),
     }),

@@ -1,17 +1,13 @@
 /**
  * useInlineTarotAPI - API calls for InlineTarotModal
  *
- * Handles all API interactions: analyze question, draw cards, interpret, save
+ * Handles all API interactions: draw cards, interpret, save.
+ * AI 자동 추천(question-engine-v2)은 제거 — 사용자가 직접 스프레드 선택.
  */
 
 import { useCallback, useRef } from 'react'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import type { DrawnCard, CardInsight } from '@/lib/tarot/tarot.types'
-import {
-  resolveStableTarotEntry,
-  toAnalysisSnapshot,
-  type TarotQuestionAnalysisResult,
-} from '@/lib/tarot/questionFlow'
 import { logger } from '@/lib/logger'
 import { apiFetch } from '@/lib/api'
 import { useCreditModal } from '@/contexts/CreditModalContext'
@@ -39,7 +35,7 @@ interface UseInlineTarotAPIOptions {
 }
 
 export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptions) {
-  const { state, actions, recommendedSpreads } = stateManager
+  const { state, actions } = stateManager
   const { showDepleted } = useCreditModal()
   const {
     selectedSpread,
@@ -52,7 +48,6 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     affirmation,
     isSaving,
     isSaved,
-    questionAnalysis,
   } = state
   const abortControllerRef = useRef<AbortController | null>(null)
   const defaultOverallMessage =
@@ -63,90 +58,6 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     lang === 'ko'
       ? '오늘은 큰 결론보다, 바로 실행 가능한 한 가지 행동부터 시작해 보세요.'
       : 'Today, start with one practical action rather than forcing a big conclusion.'
-
-  const findSpreadByIds = useCallback((themeId: string, spreadId: string) => {
-    const theme = tarotThemes.find((item) => item.id === themeId)
-    const spread = theme?.spreads.find((item) => item.id === spreadId)
-    return { theme, spread }
-  }, [])
-
-  // AI auto-select spread based on question
-  const analyzeQuestion = useCallback(async () => {
-    if (!concern.trim()) {
-      return
-    }
-
-    actions.setIsAnalyzing(true)
-    try {
-      const res = await fetch('/api/tarot/question-engine-v2', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
-        },
-        body: JSON.stringify({
-          question: concern,
-          language: lang,
-        }),
-      })
-
-      if (!res.ok) {
-        throw new Error('Failed to analyze question')
-      }
-
-      const data = (await res.json()) as TarotQuestionAnalysisResult
-
-      // Handle dangerous questions
-      if (data.isDangerous) {
-        alert(data.message)
-        actions.setIsAnalyzing(false)
-        return
-      }
-
-      const questionSnapshot = toAnalysisSnapshot(data)
-      actions.setQuestionAnalysis(questionSnapshot)
-
-      const stableEntry = resolveStableTarotEntry(concern.trim(), questionSnapshot)
-      const suggestedSpreads = (data.recommended_spreads || [])
-        .map((item) => findSpreadByIds(item.themeId, item.spreadId).spread)
-        .filter((item): item is NonNullable<typeof item> => Boolean(item))
-      actions.setSuggestedSpreads(suggestedSpreads)
-
-      const stableSpreadResult = findSpreadByIds(stableEntry.themeId, stableEntry.spreadId)
-      const engineSpreadResult = findSpreadByIds(data.themeId, data.spreadId)
-      const spread =
-        stableSpreadResult.spread ||
-        engineSpreadResult.spread ||
-        suggestedSpreads[0] ||
-        recommendedSpreads[0]
-
-      const nextCategory =
-        stableSpreadResult.theme?.id ||
-        engineSpreadResult.theme?.id ||
-        stableEntry.themeId ||
-        selectedCategory
-
-      const reason = [
-        (data as { reason?: string }).reason,
-        data.direct_answer,
-        data.userFriendlyExplanation,
-      ]
-        .filter((item) => typeof item === 'string' && item.trim().length > 0)
-        .join(' ')
-
-      if (spread) {
-        actions.setSelectedCategory(nextCategory)
-        actions.selectSpreadAndProceed(spread, reason)
-      } else {
-        actions.setStep('spread-select')
-      }
-    } catch (err) {
-      logger.error('[InlineTarot] auto-select error:', err)
-      actions.setStep('spread-select')
-    } finally {
-      actions.setIsAnalyzing(false)
-    }
-  }, [concern, selectedCategory, lang, recommendedSpreads, actions, findSpreadByIds])
 
   // Fetch streaming interpretation
   const fetchInterpretation = useCallback(
@@ -355,7 +266,6 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
         body: JSON.stringify({
           categoryId,
           spreadId: selectedSpread.id,
-          questionContext: questionAnalysis || undefined,
         }),
       })
 
@@ -392,7 +302,6 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     selectedCategory,
     actions,
     fetchInterpretation,
-    questionAnalysis,
     showDepleted,
   ])
 
@@ -437,7 +346,6 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
           affirmation,
           source: 'counselor',
           locale: lang,
-          questionContext: questionAnalysis || undefined,
         }),
       })
 
@@ -465,7 +373,6 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     selectedCategory,
     lang,
     actions,
-    questionAnalysis,
   ])
 
   // Retry the AI interpretation for the cards already on screen (used by the
@@ -486,7 +393,6 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
   }, [])
 
   return {
-    analyzeQuestion,
     drawCards,
     saveReading,
     retryInterpretation,
