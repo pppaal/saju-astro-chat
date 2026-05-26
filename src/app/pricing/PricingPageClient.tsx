@@ -6,11 +6,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
 import styles from './pricing.module.css'
-import {
-  CREDIT_PACKS,
-  BASE_CREDIT_PRICE_KRW,
-  type CreditPackType,
-} from '@/lib/config/pricing'
+import { CREDIT_PACKS, BASE_CREDIT_PRICE_KRW, type CreditPackType } from '@/lib/config/pricing'
 import { fetchWithRetry } from '@/lib/http'
 
 interface CreditPackDisplay {
@@ -173,20 +169,28 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           timeoutMs: 15000,
         }
       )
-      const data = await res.json()
-      if (data.url) {
+      const data = await res.json().catch(() => null as unknown)
+      if (data && typeof data === 'object' && 'url' in data && typeof data.url === 'string') {
         window.location.href = data.url
       } else {
         // /api/checkout 의 에러 응답은 { error: { code, message, details } } 객체.
         // 통째로 alert 하면 "[object Object]" 가 떠서 사용자에게 무의미 — code/
         // message 를 풀어서 보여주고, 풀 응답은 console 에도 남겨서 진단 용이.
-        console.error('[checkout] error response:', data)
-        const errObj = data?.error
+        // res.json() 이 실패하거나 응답이 비어 있으면 (HTML 5xx, 401 redirect,
+        // 인증 미동기화 등) HTTP status 만이라도 alert 에 노출해야 사용자가
+        // "결제 서비스 일시 불가" 같은 generic 메시지 보고 막막해하지 않음.
+        console.error('[checkout] error response:', { status: res.status, data })
+        const obj = (data ?? {}) as Record<string, unknown>
+        const errObj = (obj.error ?? obj) as Record<string, unknown> | string
         const errMsg =
           typeof errObj === 'string'
             ? errObj
-            : errObj?.message || errObj?.code || data?.message || pt('paymentError')
-        alert(`${errMsg}${errObj?.code ? ` (${errObj.code})` : ''}`)
+            : (errObj as { message?: string }).message ||
+              (errObj as { code?: string }).code ||
+              (obj as { message?: string }).message ||
+              pt('paymentError')
+        const code = typeof errObj === 'object' ? (errObj as { code?: string }).code : undefined
+        alert(`${errMsg} (HTTP ${res.status}${code ? ` · ${code}` : ''})`)
       }
     } catch (err) {
       console.error('[checkout] request failed:', err)
