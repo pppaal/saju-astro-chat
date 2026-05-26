@@ -109,6 +109,8 @@ export type RecommendationGateInput = {
   lang: 'ko' | 'en'
   forceGate?: boolean
   irreversibleKeyPresent?: boolean
+  /** Per-day seed (e.g. ISO date) — fallback pool 회전에 사용. 없으면 첫 3개. */
+  dateSeed?: string
 }
 
 function includesToken(value: string, tokens: string[]): boolean {
@@ -302,9 +304,18 @@ export function gateRecommendations(input: RecommendationGateInput): string[] {
   const fallback = input.lang === 'ko' ? koPool : enPool
 
   // If we kept filtered originals, they came from the user's own pool \u2014
-  // surface those. Otherwise dip into the new fallback pool. Cap at 3 so
-  // the panel doesn't dump an essay; the pool itself is varied so cards
-  // on different days won't repeat each other.
+  // surface those. Otherwise dip into the new fallback pool. Cap at 3.
+  // dateSeed\uac00 \uc788\uc73c\uba74 pool\uc744 \uadf8 hash\ub85c rotate\ud574\uc11c \ub9e4\uc77c \ub2e4\ub978 3\uac1c\uac00 picked.
+  // (\uc774\uc804\uc5d4 \ud56d\uc0c1 \uccab 3\uac1c\ub77c \ubaa8\ub4e0 caution day\uac00 \uac19\uc740 \uc548\ub0b4 \u2192 \uc0ac\uc6a9\uc790 \ud53c\ub4dc\ubc31 \ubc18\uc601.)
   const merged = conservativeFiltered.length > 0 ? conservativeFiltered : fallback
+  if (input.dateSeed && merged.length > 3) {
+    let hash = 0
+    for (let i = 0; i < input.dateSeed.length; i += 1) {
+      hash = (hash * 31 + input.dateSeed.charCodeAt(i)) >>> 0
+    }
+    const offset = hash % merged.length
+    const rotated = merged.slice(offset).concat(merged.slice(0, offset))
+    return dedupeTexts(rotated).slice(0, 3)
+  }
   return dedupeTexts(merged).slice(0, 3)
 }

@@ -352,6 +352,7 @@ function buildEnhancedRecommendations(
     irreversibleKeyPresent: date.recommendationKeys.some((key) =>
       IRREVERSIBLE_RECOMMENDATION_KEYS.has(key)
     ),
+    dateSeed: date.date,
   }).map((text) => normalizeUserFacingGuidance(text, lang))
 }
 
@@ -702,6 +703,7 @@ export function formatDateForResponse(
     irreversibleKeyPresent: date.recommendationKeys.some((key) =>
       IRREVERSIBLE_RECOMMENDATION_KEYS.has(key)
     ),
+    dateSeed: date.date,
   })
   // forceConservativeMode일 때 description/summary를 "신호가 엇갈립니다"로
   // 통째 교체하면 title은 defaultTitle("최고의 흐름")인데 본문은 정반대로 가서
