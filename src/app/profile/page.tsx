@@ -306,6 +306,8 @@ export default function ProfilePage() {
   const [photoUploading, setPhotoUploading] = useState(false)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
+  const [refundingId, setRefundingId] = useState<string | null>(null)
+  const [refundError, setRefundError] = useState<string | null>(null)
   const [circleOpen, setCircleOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
@@ -370,6 +372,76 @@ export default function ProfilePage() {
       logger.warn('[profile/circle] refresh failed', err)
     }
   }, [])
+
+  // 환불 후 조용한 갱신 — 전역 loading 안 건드림.
+  const refreshPurchases = useCallback(async () => {
+    try {
+      const res = await fetch('/api/me/purchases')
+      if (!res.ok) return
+      const json = await res.json()
+      const pr = json?.data || json
+      if (pr && typeof pr === 'object' && 'purchases' in pr) {
+        setPurchases(pr as PurchasesResponse)
+      }
+    } catch (err) {
+      logger.warn('[profile/purchases] refresh failed', err)
+    }
+  }, [])
+
+  const refreshCredits = useCallback(async () => {
+    try {
+      const res = await fetch('/api/me/credits')
+      if (!res.ok) return
+      const json = await res.json()
+      const cr = json?.data || json
+      if (cr && typeof cr === 'object' && 'plan' in cr) {
+        setCredits(cr as CreditsResponse)
+      }
+    } catch (err) {
+      logger.warn('[profile/credits] refresh failed', err)
+    }
+  }, [])
+
+  const handleRefundPurchase = async (purchaseId: string, packAmount: number) => {
+    const ok = window.confirm(
+      locale === 'ko'
+        ? `${packAmount} 크레딧 팩을 환불하시겠어요?\n• 결제수수료(약 3.5% + ₩300)는 차감 후 환불됩니다.\n• 남은 크레딧은 자동으로 회수됩니다.`
+        : `Refund ${packAmount}-credit pack?\n• Payment processing fee (~3.5% + ₩300) is withheld.\n• Remaining credits are automatically revoked.`
+    )
+    if (!ok) return
+
+    setRefundError(null)
+    setRefundingId(purchaseId)
+    try {
+      const res = await fetch('/api/me/refund-credit-pack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ purchaseId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const errMsg = data?.error?.message || data?.error?.code || `요청 실패 (${res.status})`
+        setRefundError(String(errMsg))
+        return
+      }
+      const result = (data?.data || data) as { refundedKrw: number; feeWithheld: number }
+      window.alert(
+        locale === 'ko'
+          ? `환불 완료\n실제 환불액: ₩${result.refundedKrw.toLocaleString()}\n차감 수수료: ₩${result.feeWithheld.toLocaleString()}`
+          : `Refunded\nAmount: ₩${result.refundedKrw.toLocaleString()}\nFee withheld: ₩${result.feeWithheld.toLocaleString()}`
+      )
+      await Promise.all([refreshPurchases(), refreshCredits()])
+    } catch (err) {
+      logger.warn('[profile/refund] failed', err)
+      setRefundError(
+        locale === 'ko'
+          ? '환불 처리에 실패했어요. 잠시 후 다시 시도해 주세요.'
+          : 'Refund failed. Please try again later.'
+      )
+    } finally {
+      setRefundingId(null)
+    }
+  }
 
   useEffect(() => {
     if (status === 'authenticated') void loadAll()
@@ -897,6 +969,10 @@ export default function ProfilePage() {
                 <ul className="mt-4 space-y-2">
                   {purchases.purchases.map((p) => {
                     const isPaid = p.source === 'purchase'
+                    const within7Days =
+                      Date.now() - new Date(p.createdAt).getTime() <= 7 * 24 * 60 * 60 * 1000
+                    const isUnused = p.remaining === p.amount
+                    const canRefund = isPaid && !p.expired && isUnused && within7Days
                     return (
                       <li key={p.id} className={rowCls}>
                         <div
@@ -930,11 +1006,28 @@ export default function ProfilePage() {
                             {locale === 'ko' ? '만료' : 'exp'} {formatDateOnly(p.expiresAt, locale)}
                           </span>
                         )}
+                        {canRefund && (
+                          <button
+                            type="button"
+                            onClick={() => void handleRefundPurchase(p.id, p.amount)}
+                            disabled={refundingId === p.id}
+                            className="ml-1 flex-shrink-0 rounded-full border border-[#e7e5e4] px-2.5 py-1 text-[11px] font-medium text-[#57534e] hover:border-[#a8a29e] hover:text-[#1c1917] disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {refundingId === p.id
+                              ? locale === 'ko'
+                                ? '처리 중…'
+                                : 'Refunding…'
+                              : locale === 'ko'
+                                ? '환불'
+                                : 'Refund'}
+                          </button>
+                        )}
                       </li>
                     )
                   })}
                 </ul>
               )}
+              {refundError && <p className="mt-3 text-[12px] text-red-600">{refundError}</p>}
             </section>
 
             {/* Referral */}
