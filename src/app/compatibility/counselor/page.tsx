@@ -712,7 +712,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                         <span />
                       </span>
                     ) : isUser ? (
-                      msg.content
+                      // 사용자 메시지에 markdown 토큰 (이미지/굵게/제목/리스트) 있으면
+                      // markdown 렌더 — 🃏 클래리파이어 카드의 이미지·카드명 표시용.
+                      // 평문 입력은 토큰 없으므로 영향 X.
+                      /!\[[^\]]*\]\([^)]+\)|\*\*[^*]+\*\*|^#{1,3}\s|\n[*-]\s/.test(msg.content) ? (
+                        <MarkdownMessage content={msg.content} theme="light" />
+                      ) : (
+                        msg.content
+                      )
                     ) : (
                       <MarkdownMessage content={stripReportMarkdown(msg.content)} theme="light" />
                     )}
