@@ -341,7 +341,9 @@ export default function TarotChatScreen() {
                                       : 'bg-slate-800 text-slate-300 border border-slate-700'
                                   }`}
                                 >
-                                  {sp.cardCount}장
+                                  {isKo
+                                    ? `${sp.cardCount}장`
+                                    : `${sp.cardCount} ${sp.cardCount === 1 ? 'Card' : 'Cards'}`}
                                 </span>
                                 <span
                                   className={`truncate text-[15px] font-medium ${

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Sparkles } from 'lucide-react'
 import type { AdviceItem } from '../../../types'
+import { renderHighlighted } from '../../ResultsView/highlight'
 
 interface GuidanceSectionProps {
   guidance: string | AdviceItem[]
@@ -32,7 +33,7 @@ export function GuidanceSection({ guidance, language }: GuidanceSectionProps) {
       <div className="flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-indigo-400" />
         <h2 className="text-sm font-medium text-indigo-300 tracking-wider uppercase">
-          {isKo ? '실천 조언과 예측' : 'Action Advice & Prediction'}
+          {isKo ? '카드의 조언' : "Card's Advice"}
         </h2>
       </div>
       <div className="space-y-3">
@@ -42,8 +43,8 @@ export function GuidanceSection({ guidance, language }: GuidanceSectionProps) {
               <div className="text-base font-medium text-slate-200 mb-1.5">{item.title}</div>
             )}
             {item.detail && (
-              <p className="text-base md:text-[17px] text-slate-300 leading-relaxed whitespace-pre-wrap">
-                {item.detail}
+              <p className="text-lg md:text-[19px] text-slate-100 leading-relaxed whitespace-pre-wrap">
+                {renderHighlighted(item.detail)}
               </p>
             )}
           </div>

@@ -230,7 +230,7 @@ export function ResultsStage(props: ResultsStageProps) {
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-sm text-slate-300 hover:text-slate-100 transition-colors"
             >
               <History className="w-4 h-4" />
-              {isKo ? '내 리딩 보기' : 'View my readings'}
+              {isKo ? '저장된 과거 리딩 보기' : 'View my saved readings'}
             </Link>
           </div>
         )}
