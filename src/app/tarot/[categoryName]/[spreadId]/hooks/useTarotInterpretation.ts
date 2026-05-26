@@ -14,6 +14,7 @@ import { buildTarotSaveRequest, flattenTarotGuidance } from '@/lib/tarot/tarot-s
 import { saveReading, formatReadingForSave } from '@/lib/tarot/tarot-storage'
 import { apiFetch, type ApiFetchOptions } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
+import { extractPartialOverall, extractPartialCardTexts } from '@/lib/tarot/partialJsonParse'
 import type { InterpretationResult, ReadingResponse } from '../types'
 import type { TarotPersonalizationOptions } from './useTarotGame'
 
@@ -168,106 +169,6 @@ async function consumeSSEStream(
   }
 
   return accumulated
-}
-
-/**
- * 부분 JSON 안의 "overall": "..." 값을 progressive 하게 뽑아낸다.
- * 종료 따옴표가 아직 안 왔어도 현재까지의 텍스트는 그대로 보여줄 수 있게.
- */
-function extractPartialOverall(buffer: string): string | null {
-  const idx = buffer.indexOf('"overall"')
-  if (idx < 0) return null
-  // "overall" 다음의 첫 따옴표 위치
-  const colonIdx = buffer.indexOf(':', idx)
-  if (colonIdx < 0) return null
-  const openQuote = buffer.indexOf('"', colonIdx + 1)
-  if (openQuote < 0) return null
-  // 닫힘 따옴표까지 — backslash escape 고려
-  let i = openQuote + 1
-  let out = ''
-  while (i < buffer.length) {
-    const ch = buffer[i]
-    if (ch === '\\') {
-      const next = buffer[i + 1]
-      if (next === 'n') out += '\n'
-      else if (next === 't') out += '\t'
-      else if (next === '"') out += '"'
-      else if (next === '\\') out += '\\'
-      else if (next === '/') out += '/'
-      else if (next === undefined)
-        break // 아직 도착 안 함
-      else out += next
-      i += 2
-      continue
-    }
-    if (ch === '"') return out // 완성됨
-    out += ch
-    i += 1
-  }
-  return out // 아직 닫힘 따옴표 안 왔지만 누적된 만큼은 반환
-}
-
-/**
- * 부분 JSON 안의 cards[].interpretation 값들을 progressive 하게 뽑아낸다.
- * 카드별 streaming UX 용 — 청크마다 호출되어, 지금까지 도착한 카드 해석들을 배열로 반환.
- * 예: cards 가 아직 첫 카드 일부만 왔으면 ["부분 텍스트"] 반환, 4번째 카드 시작했으면
- * [완성1, 완성2, 완성3, 부분4] 반환.
- */
-function extractPartialCardTexts(buffer: string): string[] {
-  // "cards" 배열의 시작 인덱스 찾기
-  const arrIdx = buffer.indexOf('"cards"')
-  if (arrIdx < 0) return []
-  const arrOpen = buffer.indexOf('[', arrIdx)
-  if (arrOpen < 0) return []
-
-  const results: string[] = []
-  // 배열 안에서 각 객체의 "interpretation": "..." 값을 순차적으로 찾는다.
-  // 객체 경계는 신경쓰지 않고, 단순히 interpretation 키들을 등장 순서대로 모은다 —
-  // cards[i] 순서대로 LLM 이 stream 하니까 안전하다.
-  let scanFrom = arrOpen
-  while (true) {
-    const keyIdx = buffer.indexOf('"interpretation"', scanFrom)
-    if (keyIdx < 0) break
-    const colonIdx = buffer.indexOf(':', keyIdx)
-    if (colonIdx < 0) break
-    const openQuote = buffer.indexOf('"', colonIdx + 1)
-    if (openQuote < 0) break
-
-    let i = openQuote + 1
-    let out = ''
-    let closed = false
-    while (i < buffer.length) {
-      const ch = buffer[i]
-      if (ch === '\\') {
-        const next = buffer[i + 1]
-        if (next === 'n') out += '\n'
-        else if (next === 't') out += '\t'
-        else if (next === '"') out += '"'
-        else if (next === '\\') out += '\\'
-        else if (next === '/') out += '/'
-        else if (next === undefined) {
-          // 아직 도착 안 함 — 이 카드는 부분 텍스트로 마무리
-          break
-        } else out += next
-        i += 2
-        continue
-      }
-      if (ch === '"') {
-        closed = true
-        i += 1
-        break
-      }
-      out += ch
-      i += 1
-    }
-    results.push(out)
-    if (!closed) {
-      // 마지막 카드가 아직 진행 중 — 더 찾을 게 없음
-      break
-    }
-    scanFrom = i
-  }
-  return results
 }
 
 /**
