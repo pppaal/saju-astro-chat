@@ -433,14 +433,9 @@ export function useChatApi({
         const errorMessage = getErrorMessage(err, lang, tr)
         setNotice(errorMessage)
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: errorMessage,
-            id: generateMessageId('error'),
-          },
-        ])
+        // 에러를 assistant 챗 버블로 추가하지 않음 — 위의 notice 배너가
+        // 에러 표시의 단일 출처. 챗 버블로 넣으면 일반 응답처럼 렌더되어
+        // 👍/👎 피드백 UI 까지 따라붙는데, 에러에 대해 피드백은 의미 없음.
         setLoading(false)
         setRetryCount(0)
       }
