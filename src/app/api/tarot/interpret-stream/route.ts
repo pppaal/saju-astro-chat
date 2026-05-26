@@ -10,7 +10,11 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
+import {
+  callClaude as callSharedClaude,
+  isClaudeAvailable,
+  PREMIUM_CLAUDE_MODEL,
+} from '@/lib/llm/claude'
 import {
   buildFallbackPayload,
   buildInterpretStreamPrompts,
@@ -215,6 +219,7 @@ export async function POST(req: NextRequest) {
           const claudeResult = await callSharedClaude({
             systemPrompt,
             userPrompt,
+            model: PREMIUM_CLAUDE_MODEL,
             maxTokens: 4000,
             temperature: 0.7,
             timeoutMs: OPENAI_TIMEOUT_MS,
@@ -222,7 +227,7 @@ export async function POST(req: NextRequest) {
           })
           recordExternalCall(
             'anthropic',
-            'claude-haiku-4-5',
+            PREMIUM_CLAUDE_MODEL,
             'success',
             Date.now() - claudeStartTime
           )
@@ -267,7 +272,7 @@ export async function POST(req: NextRequest) {
 
         // Per-card token budget — 500 tokens / card + 500 base for chunks
         // carrying overall/advice. Previous 2400-flat ceiling left 15-card
-        // spreads at ~244 tok/card on chunk A; Haiku 4.5 supports much
+        // spreads at ~244 tok/card on chunk A; Sonnet 4.5 supports much
         // more headroom so cap at 6000 per chunk.
         const chunkAcards = mid
         const chunkBcards = rawCards.length - mid
@@ -299,6 +304,7 @@ export async function POST(req: NextRequest) {
             callSharedClaude({
               systemPrompt,
               userPrompt: buildChunkUserPrompt(startIdx, endIdx, includeMeta),
+              model: PREMIUM_CLAUDE_MODEL,
               maxTokens,
               temperature: 0.7,
               timeoutMs: OPENAI_TIMEOUT_MS,
@@ -325,7 +331,7 @@ export async function POST(req: NextRequest) {
           runChunkWithRetry(0, mid, true, chunkAmaxTokens, 'tarot-stream-chunkA'),
           runChunkWithRetry(mid, rawCards.length, false, chunkBmaxTokens, 'tarot-stream-chunkB'),
         ])
-        recordExternalCall('anthropic', 'claude-haiku-4-5', 'success', Date.now() - claudeStartTime)
+        recordExternalCall('anthropic', PREMIUM_CLAUDE_MODEL, 'success', Date.now() - claudeStartTime)
 
         // JSON 머지 — chunk A 의 overall/advice + chunk A.cards + chunk B.cards 를 합쳐 단일 JSON.
         const cardsA = Array.isArray(chunkA.parsed?.cards)
