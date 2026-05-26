@@ -130,7 +130,13 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
         {birthInfo && (
           <span className={styles.homeBirthChip} aria-live="polite">
             ✓ {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
-            {birthInfo.gender === 'male' ? '남성' : '여성'}
+            {birthInfo.gender === 'male'
+              ? locale === 'ko'
+                ? '남성'
+                : 'Male'
+              : locale === 'ko'
+                ? '여성'
+                : 'Female'}
           </span>
         )}
         <textarea

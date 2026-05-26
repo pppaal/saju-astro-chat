@@ -81,7 +81,10 @@ export const POST = withApiMiddleware(
       try {
         raw = await req.json()
       } catch {
-        return NextResponse.json({ error: 'invalid_json_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+        return NextResponse.json(
+          { error: 'invalid_json_body' },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
       }
 
       const validated = followupRequestSchema.safeParse(raw)
@@ -118,9 +121,25 @@ export const POST = withApiMiddleware(
 
       const systemPrompt = pickTarotFollowupRules(isKo ? 'ko' : 'en')
 
+      // 로그인 사용자면 이름 호명을 위한 caller 표시 추가.
+      let sessionUserName: string | null = null
+      try {
+        const { getServerSession } = await import('next-auth')
+        const { authOptions } = await import('@/lib/auth/authOptions')
+        const session = await getServerSession(authOptions)
+        sessionUserName = session?.user?.name?.trim() || null
+      } catch {
+        // guest fallback.
+      }
+      const callerBlock = sessionUserName
+        ? isKo
+          ? `# 호출자\n${sessionUserName} — 한국어로 답할 때 '${sessionUserName}님'으로 정중히 호명.\n\n`
+          : `# Caller\n${sessionUserName} — address as 'Hi ${sessionUserName},' naturally.\n\n`
+        : ''
+
       // 카드·원래 리딩 정보 = 세션 내 안정 컨텍스트 (cached). question_by_question
       // 동작 위해 history는 진짜 multi-turn (priorTurns)으로 전송.
-      const readingContext = isKo
+      const baseReadingContext = isKo
         ? `# 원래 리딩
 스프레드: ${spreadTitle}
 원래 질문: ${originalQuestion || '-'}
@@ -135,6 +154,7 @@ Original Question: ${originalQuestion || '-'}
 ## Cards on the table
 ${cardList}
 ${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
+      const readingContext = callerBlock + baseReadingContext
 
       const priorTurns = (history || []).map((t) => ({ role: t.role, content: t.content }))
       const userPrompt = isKo
@@ -176,10 +196,7 @@ ${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
       logger.error('Tarot followup error:', err)
       // 클라이언트에는 일반화된 에러만 노출. 원본 err.message 는 위 로그/
       // sentry 에서만 확인 (DB 에러·내부 경로·스택 힌트 누출 방지).
-      return NextResponse.json(
-        { error: 'followup_failed' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
+      return NextResponse.json({ error: 'followup_failed' }, { status: HTTP_STATUS.SERVER_ERROR })
     }
   },
   createPublicStreamGuard({

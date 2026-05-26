@@ -142,9 +142,11 @@ export async function POST(req: NextRequest) {
     }
 
     let prefersAuthedGuard = false
+    let sessionUserName: string | null = null
     try {
       const session = await getServerSession(authOptions)
       prefersAuthedGuard = Boolean(session?.user)
+      sessionUserName = session?.user?.name?.trim() || null
     } catch {
       prefersAuthedGuard = false
     }
@@ -649,7 +651,13 @@ export async function POST(req: NextRequest) {
       ? `[개별 신살 — 각자 타고난 것 (self)]\n${personalShinsalLines.join('\n')}`
       : ''
 
+    // 로그인 사용자 호칭(궁합은 두 사람 중 화자가 누군지 명시).
+    const callerLine = sessionUserName
+      ? `# 호출자(질문자): ${sessionUserName} — 한국어로 답할 때 '${sessionUserName}님'으로 호명하고, 영어면 'Hi ${sessionUserName},' 형식으로 자연스럽게 한 번씩.`
+      : ''
+
     const cachedUserContext = [
+      callerLine,
       `== 참여자 정보 ==`,
       personsInfo,
       metaBlock,
