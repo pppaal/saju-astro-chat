@@ -59,8 +59,6 @@ export default function CounselorPage() {
     chartData,
     sessionId,
     userContext,
-    chatSessionId,
-    handleSaveMessage,
     parsedParams,
     profileLoading,
   } = useCounselorData(counselorSearchParams)
@@ -188,8 +186,6 @@ export default function CounselorPage() {
             astro={chartData?.astro}
             advancedAstro={chartData?.advancedAstro}
             userContext={userContext}
-            chatSessionId={chatSessionId}
-            onSaveMessage={handleSaveMessage}
             autoScroll={false}
             ragSessionId={sessionId || undefined}
             autoSendSeed

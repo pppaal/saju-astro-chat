@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
@@ -17,6 +17,9 @@ interface ProfileFallback {
   birthTime?: string
   gender?: string
   birthCity?: string
+  latitude?: number
+  longitude?: number
+  birthTimeUnknown?: boolean
 }
 
 export function useCounselorData(sp: SearchParams) {
@@ -25,9 +28,8 @@ export function useCounselorData(sp: SearchParams) {
   const [chartData, setChartData] = useState<ChartData | null>(null)
   const [sessionId] = useState<string | null>(null)
 
-  // Premium: User context and chat session for returning users
+  // Premium: User context for returning users
   const [userContext, setUserContext] = useState<UserContext | undefined>(undefined)
-  const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
 
   // Parse search params
   const urlName = (Array.isArray(sp.name) ? sp.name[0] : sp.name) ?? ''
@@ -41,6 +43,7 @@ export function useCounselorData(sp: SearchParams) {
   const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? 'ko'
   const lang: Lang = langParam === 'en' ? 'en' : 'ko'
   const initialQuestion = (Array.isArray(sp.q) ? sp.q[0] : sp.q) ?? ''
+  const urlSession = (Array.isArray(sp.session) ? sp.session[0] : sp.session) ?? ''
 
   // Returning users (e.g. opening a saved session from the sidebar)
   // arrive at /destiny-map/counselor without birth params on the URL.
@@ -54,29 +57,70 @@ export function useCounselorData(sp: SearchParams) {
   useEffect(() => {
     if (hasUrlBirthInfo) return
     let cancelled = false
-    fetch('/api/me/profile')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (cancelled) return
-        const u = data?.user
-        if (u) {
-          setProfileFallback({
-            name: u.name ?? undefined,
-            birthDate: u.birthDate ?? undefined,
-            birthTime: u.birthTime ?? undefined,
-            gender: u.gender ?? undefined,
-            birthCity: u.birthCity ?? undefined,
-          })
+
+    const run = async () => {
+      // Resuming a saved chat (?session=<id>) → restore the birth snapshot from
+      // that session's meta so the gate doesn't re-prompt for birth info, even
+      // when the user's global profile is empty.
+      if (urlSession) {
+        try {
+          const r = await fetch(
+            `/api/counselor/session/load?sessionId=${encodeURIComponent(urlSession)}`
+          )
+          if (r.ok) {
+            const d = await r.json()
+            const meta = d?.session?.meta as Record<string, unknown> | null | undefined
+            if (meta && typeof meta === 'object' && (meta.birthDate || meta.birthTime)) {
+              if (!cancelled) {
+                setProfileFallback({
+                  name: typeof meta.name === 'string' ? meta.name : undefined,
+                  birthDate: typeof meta.birthDate === 'string' ? meta.birthDate : undefined,
+                  birthTime: typeof meta.birthTime === 'string' ? meta.birthTime : undefined,
+                  gender: typeof meta.gender === 'string' ? meta.gender : undefined,
+                  birthCity: typeof meta.city === 'string' ? meta.city : undefined,
+                  latitude: typeof meta.latitude === 'number' ? meta.latitude : undefined,
+                  longitude: typeof meta.longitude === 'number' ? meta.longitude : undefined,
+                  birthTimeUnknown:
+                    typeof meta.birthTimeUnknown === 'boolean' ? meta.birthTimeUnknown : undefined,
+                })
+                setProfileLoading(false)
+              }
+              return
+            }
+          }
+        } catch (e) {
+          logger.warn('[useCounselorData] session meta restore failed', { e })
         }
-      })
-      .catch((e) => logger.warn('[useCounselorData] profile fallback failed', { e }))
-      .finally(() => {
+      }
+
+      // Otherwise fall back to the user's global profile.
+      try {
+        const res = await fetch('/api/me/profile')
+        const data = res.ok ? await res.json() : null
+        if (!cancelled) {
+          const u = data?.user
+          if (u) {
+            setProfileFallback({
+              name: u.name ?? undefined,
+              birthDate: u.birthDate ?? undefined,
+              birthTime: u.birthTime ?? undefined,
+              gender: u.gender ?? undefined,
+              birthCity: u.birthCity ?? undefined,
+            })
+          }
+        }
+      } catch (e) {
+        logger.warn('[useCounselorData] profile fallback failed', { e })
+      } finally {
         if (!cancelled) setProfileLoading(false)
-      })
+      }
+    }
+
+    void run()
     return () => {
       cancelled = true
     }
-  }, [hasUrlBirthInfo])
+  }, [hasUrlBirthInfo, urlSession])
 
   // Merged values — URL params win, profile fills in.
   const name = urlName || profileFallback.name || ''
@@ -84,7 +128,10 @@ export function useCounselorData(sp: SearchParams) {
   const birthTime = urlBirthTime || profileFallback.birthTime || ''
   const city = urlCity || profileFallback.birthCity || ''
   const effectiveGender = rawGender || profileFallback.gender || ''
-  const birthTimeUnknown = rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true'
+  const birthTimeUnknown =
+    rawBirthTimeUnknown === '1' ||
+    rawBirthTimeUnknown === 'true' ||
+    Boolean(profileFallback.birthTimeUnknown)
 
   const latStr =
     (Array.isArray(sp.lat) ? sp.lat[0] : sp.lat) ??
@@ -95,8 +142,12 @@ export function useCounselorData(sp: SearchParams) {
 
   const latitude = latStr ? Number(latStr) : NaN
   const longitude = lonStr ? Number(lonStr) : NaN
-  const resolvedLatitude = Number.isFinite(latitude) ? latitude : DEFAULT_LATITUDE
-  const resolvedLongitude = Number.isFinite(longitude) ? longitude : DEFAULT_LONGITUDE
+  const resolvedLatitude = Number.isFinite(latitude)
+    ? latitude
+    : (profileFallback.latitude ?? DEFAULT_LATITUDE)
+  const resolvedLongitude = Number.isFinite(longitude)
+    ? longitude
+    : (profileFallback.longitude ?? DEFAULT_LONGITUDE)
   const normalizedGender = String(effectiveGender).toLowerCase() === 'female' ? 'female' : 'male'
 
   // Set locale from URL parameter
@@ -419,12 +470,6 @@ export function useCounselorData(sp: SearchParams) {
                 keyTopics: s.keyTopics,
                 lastMessageAt: s.lastMessageAt,
               }))
-
-              // Resume the most recent session
-              const recentSession = sessions[0]
-              if (recentSession) {
-                setChatSessionId(recentSession.id)
-              }
             }
 
             setUserContext(context)
@@ -444,36 +489,6 @@ export function useCounselorData(sp: SearchParams) {
     loadUserContext()
   }, [])
 
-  // Premium: Save message callback
-  const handleSaveMessage = useCallback(
-    async (userMessage: string, assistantMessage: string) => {
-      try {
-        const res = await fetch('/api/counselor/chat-history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: chatSessionId, // Will create new if undefined
-            locale: lang,
-            userMessage,
-            assistantMessage,
-          }),
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          if (data.success && !chatSessionId) {
-            // Set session ID for subsequent messages
-            setChatSessionId(data.session.id)
-            logger.warn('[Counselor] New chat session created:', data.session.id)
-          }
-        }
-      } catch (e: unknown) {
-        logger.warn('[Counselor] Failed to save message:', e)
-      }
-    },
-    [chatSessionId, lang]
-  )
-
   const parsedParams = {
     name,
     birthDate,
@@ -491,8 +506,6 @@ export function useCounselorData(sp: SearchParams) {
     chartData,
     sessionId,
     userContext,
-    chatSessionId,
-    handleSaveMessage,
     parsedParams,
     profileLoading,
   }

@@ -519,6 +519,9 @@ export const counselorSessionSaveRequestSchema = z.object({
   sessionId: z.string().min(1).max(100).trim(),
   messages: z.array(chatMessageSchema).min(1).max(200),
   locale: localeSchema.optional(),
+  // Birth snapshot for this conversation so resuming a past chat can restore
+  // the chart without depending on the user's global profile.
+  meta: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type CounselorSessionSaveRequestValidated = z.infer<typeof counselorSessionSaveRequestSchema>

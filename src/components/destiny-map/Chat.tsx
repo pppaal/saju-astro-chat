@@ -155,6 +155,36 @@ const Chat = memo(function Chat({
   const pendingSaveRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestSavePayloadRef = React.useRef<string | null>(null)
 
+  // Birth snapshot persisted alongside the messages so resuming this chat later
+  // restores the chart even if the user's global profile is empty. Memoized on
+  // the primitive fields so its identity stays stable (won't churn the save
+  // effect's debounce on every profile object re-creation).
+  const birthMeta = React.useMemo<Record<string, unknown> | undefined>(
+    () =>
+      profile?.birthDate
+        ? {
+            name: profile.name,
+            birthDate: profile.birthDate,
+            birthTime: profile.birthTime,
+            birthTimeUnknown: profile.birthTimeUnknown,
+            gender: profile.gender,
+            city: profile.city,
+            latitude: profile.latitude,
+            longitude: profile.longitude,
+          }
+        : undefined,
+    [
+      profile?.name,
+      profile?.birthDate,
+      profile?.birthTime,
+      profile?.birthTimeUnknown,
+      profile?.gender,
+      profile?.city,
+      profile?.latitude,
+      profile?.longitude,
+    ]
+  )
+
   React.useEffect(() => {
     setActiveSessionId(sessionIdRef.current)
   }, [sessionIdRef])
@@ -168,6 +198,7 @@ const Chat = memo(function Chat({
       sessionId: sessionIdRef.current,
       locale: lang || 'ko',
       messages: messages.filter((m) => m.role !== 'system'),
+      ...(birthMeta ? { meta: birthMeta } : {}),
     })
     latestSavePayloadRef.current = payload
 
@@ -196,7 +227,7 @@ const Chat = memo(function Chat({
         clearTimeout(pendingSaveRef.current)
       }
     }
-  }, [messages, sessionLoaded, lang, sessionIdRef])
+  }, [messages, sessionLoaded, lang, sessionIdRef, birthMeta])
 
   React.useEffect(() => {
     const handleBeforeUnload = () => {

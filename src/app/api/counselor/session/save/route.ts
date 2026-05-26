@@ -14,6 +14,9 @@ import {
 } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { Prisma } from '@prisma/client'
+import { truncateChatTitle, syncPersonaMemoryTopics } from '@/lib/counselor/personaSync'
+import { deriveCounselorStorageSignals } from '@/lib/counselor/focusDomain'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,7 +72,16 @@ export const POST = withApiMiddleware(
       })
     }
 
-    const { sessionId, messages, locale = 'ko' } = validationResult.data
+    const { sessionId, messages, locale = 'ko', meta } = validationResult.data
+
+    // Title from the first user turn; memory topics from the latest one.
+    const firstUserContent = messages.find((m) => m.role === 'user')?.content?.trim() || ''
+    const lastUserContent =
+      [...messages].reverse().find((m) => m.role === 'user')?.content || null
+    const memoryTopics = deriveCounselorStorageSignals({
+      lastUserMessage: lastUserContent,
+    }).memoryTopics
+    const metaData = meta ? { meta: meta as Prisma.InputJsonValue } : {}
 
     if (!sessionId || !messages.length) {
       return createErrorResponse({
@@ -82,7 +94,7 @@ export const POST = withApiMiddleware(
 
     const existing = await prisma.counselorChatSession.findUnique({
       where: { id: sessionId },
-      select: { userId: true },
+      select: { userId: true, title: true },
     })
 
     if (existing && existing.userId !== userId) {
@@ -96,6 +108,9 @@ export const POST = withApiMiddleware(
     let chatSession
     let saveMode: 'create' | 'update' | 'create-race-recovery'
 
+    const backfillTitle =
+      !existing?.title && firstUserContent ? { title: truncateChatTitle(firstUserContent) } : {}
+
     if (existing) {
       chatSession = await prisma.counselorChatSession.update({
         where: { id: sessionId },
@@ -103,6 +118,8 @@ export const POST = withApiMiddleware(
           messages: messages as never,
           messageCount: messages.length,
           lastMessageAt: new Date(),
+          ...metaData,
+          ...backfillTitle,
         },
       })
       saveMode = 'update'
@@ -113,6 +130,9 @@ export const POST = withApiMiddleware(
             id: sessionId,
             userId,
             locale,
+            type: 'destiny',
+            ...backfillTitle,
+            ...metaData,
             messages,
             messageCount: messages.length,
             lastMessageAt: new Date(),
@@ -153,10 +173,24 @@ export const POST = withApiMiddleware(
             messages: messages as never,
             messageCount: messages.length,
             lastMessageAt: new Date(),
+            ...metaData,
+            ...backfillTitle,
           },
         })
         saveMode = 'create-race-recovery'
       }
+    }
+
+    // Roll topics into PersonaMemory (push-notification personalizer reads it).
+    // Only a brand-new session bumps the session counter.
+    try {
+      await syncPersonaMemoryTopics({
+        userId,
+        memoryTopics,
+        incrementSessionCount: saveMode === 'create',
+      })
+    } catch (err) {
+      logger.warn('[Counselor session save] persona memory sync failed', { err })
     }
 
     logger.info('[Counselor session save] session persisted', {
