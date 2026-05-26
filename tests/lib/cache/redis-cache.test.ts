@@ -97,12 +97,12 @@ describe('Redis Cache', () => {
 
     it('generates yearly calendar key with category', () => {
       const key = CacheKeys.yearlyCalendar('1990-01-01', '12:00', 'M', 2024, 'love', 'Seoul')
-      expect(key).toBe('yearly:v3:1990-01-01:12:00:M:2024:love:U2VvdWw=')
+      expect(key).toBe('yearly:v4:1990-01-01:12:00:M:2024:love:U2VvdWw=')
     })
 
     it('generates yearly calendar key without category', () => {
       const key = CacheKeys.yearlyCalendar('1990-01-01', '12:00', 'M', 2024)
-      expect(key).toBe('yearly:v3:1990-01-01:12:00:M:2024:all:U2VvdWw=')
+      expect(key).toBe('yearly:v4:1990-01-01:12:00:M:2024:all:U2VvdWw=')
     })
   })
 
