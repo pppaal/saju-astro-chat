@@ -98,7 +98,10 @@ export default function CounselorPage() {
     return <main className={`${styles.page} ${styles.lightTheme}`} />
   }
 
-  if (!birthDate || !birthTime) {
+  // session=<id> 가 URL 에 있으면 사이드바의 "과거 채팅" 링크로 들어온
+  // 케이스 — 저장된 세션이 birth 컨텍스트를 들고 있어서, 게이트가 막으면
+  // 안 됨. Chat 컴포넌트가 세션 로드하면서 birth 정보까지 복원함.
+  if ((!birthDate || !birthTime) && !initialSessionId) {
     return (
       <main className={styles.page}>
         <div className={styles.missingProfileCard}>
