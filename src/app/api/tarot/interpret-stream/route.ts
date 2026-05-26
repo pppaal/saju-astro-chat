@@ -27,7 +27,10 @@ import {
 } from '@/lib/credits/withCredits'
 import { refundCredits } from '@/lib/credits/creditRefund'
 
-const OPENAI_TIMEOUT_MS = 30000
+// Bumped 30→60s after Haiku→Sonnet 4.5 (PR #559): Sonnet generating the full
+// tarot JSON for 3–5 cards regularly exceeded 30s under normal load, aborting
+// the stream and surfacing the "예상보다 오래 걸리고 있어요" loop on the client.
+const OPENAI_TIMEOUT_MS = 60000
 
 // Spreads with >= this many cards fan out to two parallel Claude calls
 // (chunk A + chunk B), so they cost ~2x compute and are charged 2 credits.

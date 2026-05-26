@@ -46,7 +46,10 @@ interface UseTarotInterpretationReturn {
   ) => Promise<void>
 }
 
-const STREAM_INTERPRET_TIMEOUT_MS = 35000
+// Bumped 35→70s in lockstep with the server's 60s Claude timeout (after
+// Haiku→Sonnet 4.5 promotion). Sonnet generating the full tarot JSON for
+// 3–5 cards regularly exceeded 35s under normal load.
+const STREAM_INTERPRET_TIMEOUT_MS = 70000
 
 class RequestTimeoutError extends Error {
   constructor(timeoutMs: number) {

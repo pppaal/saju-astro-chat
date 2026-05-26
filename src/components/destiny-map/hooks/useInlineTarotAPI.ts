@@ -19,9 +19,10 @@ import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
 type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
 
-// Mirror the main tarot reading's interpret timeout so a slow/stuck stream
-// doesn't leave the inline reading hanging forever with no interpretation.
-const INTERPRET_TIMEOUT_MS = 35000
+// Bumped 35→70s in lockstep with the server's 60s Claude timeout (after
+// Haiku→Sonnet 4.5 promotion). 35s was firing before Sonnet could finish for
+// 3–5 card spreads, looping the user on "예상보다 오래 걸리고 있어요".
+const INTERPRET_TIMEOUT_MS = 70000
 
 interface Profile {
   name?: string
