@@ -82,10 +82,11 @@ const ALL_SERVICES: readonly EnabledService[] = [
 // destinyMatch is intentionally omitted — the page still exists at
 // /destiny-match for direct deep-links, but it's not surfaced on the
 // main page, services dropdown, or side drawer.
+// report is temporarily omitted too (품질 개선 전까지 숨김) — /report 라우트는
+// 직접 링크용으로 남겨두되 메인·햄버거·사이드드로어에는 노출하지 않는다.
 const ACTIVE_PUBLIC_SERVICE_IDS: readonly EnabledServiceId[] = [
   'destinyMap',
   'tarot',
-  'report',
   'calendar',
   'compatibility',
 ] as const
