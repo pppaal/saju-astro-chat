@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { BookOpen, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import type { ImportantDate } from './types'
-import { getGrade, type GradeThresholds, type GradeKey } from './scoreGrade'
+import { getGrade, type GradeKey } from './scoreGrade'
 
 type Interpretation = NonNullable<ImportantDate['monthlyInterpretation']>
 
@@ -14,8 +14,6 @@ interface Props {
   yearlyConvergence?: Interpretation['yearlyConvergence']
   /** 이번 달 종합 점수(부모가 monthDates 평균으로 계산) — 결론 밴드에 사용. */
   monthScore: number
-  /** 사용자 분포 기반 등급 임계값 — 점수 → 밴드 매핑. */
-  gradeThresholds: GradeThresholds
   /** 엔진 한 줄 요약 — "왜?" 줄에 사용. */
   summaryText?: string | null
   /** 그 달 식별값(연*12+월) — 조언 문장을 달마다 다르게 회전시키는 seed. */
@@ -33,13 +31,12 @@ export default function MonthlyInterpretationCard({
   interp,
   yearlyConvergence,
   monthScore,
-  gradeThresholds,
   summaryText,
   seed = 0,
 }: Props) {
   const [expanded, setExpanded] = useState(false)
 
-  const grade = getGrade(monthScore, gradeThresholds)
+  const grade = getGrade(monthScore)
   const verdict = VERDICT[grade.key]
   const top = topTheme(interp)
   // "이번 달 조언" — 모든 생활 영역(테마 순위대로)을 각각 현실 조언 한 줄씩.

@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import type { ImportantDate } from './types'
 import type { YearMonthly } from './DestinyMatrixPlanner'
-import { computeGradeThresholds, getGrade, type GradeThresholds } from './scoreGrade'
+import { getGrade } from './scoreGrade'
 
 interface Props {
   year: number
@@ -41,10 +41,11 @@ const THEME_META: Record<string, { label: string; icon: string }> = {
   growth: { label: '성장', icon: '🌱' },
 }
 
-// 절대 점수가 아니라 그 해 12달 분포 기준 상대 밴드 — v2 점수가 전반적으로
-// 높게 나와도 "그 사람 기준 어느 달이 좋은지"를 또렷이 구분.
-function band(score: number, th: GradeThresholds): { label: string; color: string } {
-  const g = getGrade(score, th)
+// 절대 cutoff(57/43) — yearlyDates.scoreToGrade와 같은 임계라 yearly band 라벨이
+// daily grade와 일관. 이전 분포 percentile 기반은 daily/yearly가 같은 점수에
+// 다른 라벨을 매겨 카드 안 모순을 만들었기에 폐기.
+function band(score: number): { label: string; color: string } {
+  const g = getGrade(score)
   if (g.key === 'lucky') return { label: '좋음', color: 'text-emerald-300' }
   if (g.key === 'unlucky') return { label: '조심', color: 'text-rose-300' }
   return { label: '보통', color: 'text-zinc-300' }
@@ -102,7 +103,6 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
       : '한 해 흐름이 비교적 고른 편이에요.'
   const goodMonths = sortedByScore.slice(0, 2).map((m) => m.month)
   const cautionMonths = sortedByScore.slice(-2).map((m) => m.month)
-  const thresholds = computeGradeThresholds(yearlyMonthly.map((m) => m.score))
 
   return (
     <div className="space-y-6">
@@ -214,7 +214,7 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
         <p className="text-xs text-zinc-500 mb-3">달을 누르면 그 달 상세로 이동해요</p>
         <ul className="space-y-2">
           {yearlyMonthly.map((m) => {
-            const b = band(m.score, thresholds)
+            const b = band(m.score)
             const strong = m.themes.slice(0, 2)
             return (
               <li key={m.month}>

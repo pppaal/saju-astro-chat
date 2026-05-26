@@ -465,20 +465,25 @@ export const GET = withApiMiddleware(
         birthPlace,
         gender: gender || 'Male',
       })
-      // 셀 datetime은 UTC 미드나잇 키(`isoForCell` in calendar-engine/index.ts).
-      // 서버 TZ가 UTC가 아니면 `new Date(y,m,1).toISOString()`이 전날 UTC가 돼서
-      // 셀의 slice(0,10)이 -1일 어긋남. Date.UTC로 UTC 미드나잇 명시.
-      for (let month = 0; month < 12; month++) {
-        const start = new Date(Date.UTC(year, month, 1))
-        const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
-        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
-        const { cells } = await getOrBuildMonth({
-          birthKey,
-          monthKey,
-          natal: ceNatal,
-          range: { start: start.toISOString(), end: end.toISOString(), granularity: 'day' },
-          options: { includeEvidence: true },
+      // 12달 병렬 빌드 — cell-cache의 in-memory Map은 single-thread JS라 race 없고,
+      // DB write는 fire-and-forget(중복은 UNIQUE 제약으로 자연 멱등). cold 시 12 month
+      // 직렬 ~150ms × 12 ≈ 1.8s가 ~200ms로 단축. 셀 datetime은 UTC 미드나잇 키이므로
+      // Date.UTC로 TZ 독립 보장.
+      const monthResults = await Promise.all(
+        Array.from({ length: 12 }, (_, month) => {
+          const start = new Date(Date.UTC(year, month, 1))
+          const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
+          const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
+          return getOrBuildMonth({
+            birthKey,
+            monthKey,
+            natal: ceNatal,
+            range: { start: start.toISOString(), end: end.toISOString(), granularity: 'day' },
+            options: { includeEvidence: true },
+          })
         })
+      )
+      for (const { cells } of monthResults) {
         for (const c of cells) {
           const k = c.datetime.slice(0, 10)
           if (typeof c.derivedScore === 'number') engineScoreByDate[k] = c.derivedScore
@@ -624,21 +629,28 @@ export const GET = withApiMiddleware(
       const prevDateUtc = new Date(Date.UTC(targetYear, targetMonth - 1, 1))
       const prevYear = prevDateUtc.getUTCFullYear()
       const prevMonth = prevDateUtc.getUTCMonth()
-      for (const m of monthsToBuild) {
-        const { cells, cached } = await getOrBuildMonth({
-          birthKey,
-          monthKey: m.monthKey,
-          natal: ceNatal,
-          range: {
-            start: m.rangeStart.toISOString(),
-            end: m.rangeEnd.toISOString(),
-            granularity: 'day',
-          },
-          options: { includeEvidence: true },
+      // 병렬 빌드 — prescore가 이미 같은 12달을 cell-cache에 적재했으므로 여기선
+      // 사실상 전부 in-memory HIT (~0ms). 직렬이어도 빠르나 일관성으로 Promise.all 사용.
+      const builtMonths = await Promise.all(
+        monthsToBuild.map(async (m) => {
+          const result = await getOrBuildMonth({
+            birthKey,
+            monthKey: m.monthKey,
+            natal: ceNatal,
+            range: {
+              start: m.rangeStart.toISOString(),
+              end: m.rangeEnd.toISOString(),
+              granularity: 'day',
+            },
+            options: { includeEvidence: true },
+          })
+          logger.info?.(
+            `[calendar-engine v2] ${result.cached ? 'cache HIT' : 'cache MISS'} for ${m.monthKey}, cells=${result.cells.length}`
+          )
+          return { m, ...result }
         })
-        logger.info?.(
-          `[calendar-engine v2] ${cached ? 'cache HIT' : 'cache MISS'} for ${m.monthKey}, cells=${cells.length}`
-        )
+      )
+      for (const { m, cells } of builtMonths) {
         allCells.push(...cells)
         if (m.month === targetMonth && m.year === targetYear) {
           ceCells = cells // narrative는 current month 기준
@@ -699,13 +711,12 @@ export const GET = withApiMiddleware(
         logger.warn?.('[interpretation] skipped:', err instanceof Error ? err.message : String(err))
       }
 
-      // 3달 모든 cell을 date 키로 — prev/next month 이동해도 그 달 engineSignals/
-      // matchedPatterns/themeScores 부착됨 (현재 달만 부착하면 다른 달은 fallback).
-      // ※ displayScore는 더 이상 여기서 덮어쓰지 않는다. yearlyDates가 이미 engineScores
-      //    주입으로 cell.derivedScore + dailyShiftAdjustment(천간충·지지형·공망 보정)를
-      //    score = displayScore로 두기 때문에, 여기서 raw cell.derivedScore로 다시 덮으면
-      //    dailyShift 보정이 사라져 "narrative는 압박 들어옴 / 숫자는 60+" 모순이
-      //    augment HIT 경로에서 그대로 재발한다.
+      // 12달 모든 cell을 date 키로 — 어느 달 카드를 봐도 engineSignals/matchedPatterns/
+      // themeScores 부착됨. ±1달만 augment하던 시절엔 다른 달 카드 narrative가 fallback
+      // 으로 빠져 점수↔서사 모순이 났다. score(=cell.derivedScore)와 narrative가 같은
+      // 12달 셀 데이터에서 나오니 어느 달에서도 정합.
+      // ※ displayScore는 여기서 덮어쓰지 않는다. yearlyDates가 engineScores 주입으로
+      //   cell.derivedScore를 score=displayScore 둘 다에 동일 할당했으므로 그대로 흐름.
       const cellByDate = new Map(allCells.map((c) => [c.datetime.slice(0, 10), c]))
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))

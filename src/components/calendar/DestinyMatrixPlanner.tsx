@@ -33,7 +33,7 @@ import DailyFlowCard from './DailyFlowCard'
 import DailyHourlyChart from './DailyHourlyChart'
 import MonthlyDailyChart from './MonthlyDailyChart'
 import WeeklyTimingChart from './WeeklyTimingChart'
-import { getGrade, computeGradeThresholds } from './scoreGrade'
+import { getGrade } from './scoreGrade'
 import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
 import { getHourThemeNarrative } from '@/lib/calendar-engine/data/hourThemeNarrative'
 
@@ -164,25 +164,17 @@ export default function DestinyMatrixPlanner({
     return data.allDates.filter((d) => d.date.startsWith(prefix))
   }, [data, viewYear, viewMonth])
 
-  // 사용자 분포 기반 등급 임계값 (1년치 → 상위/하위 20%).
-  // allDates 없으면 fallback 임계값으로 자동 폴백. 모든 등급 판정(grid 점·
-  // 하이라이트·일간 흐름)이 이 한 기준 = displayScore(v2) 백분위를 쓴다.
-  const gradeThresholds = useMemo(
-    () => computeGradeThresholds((data?.allDates ?? []).map(pickFinalScore)),
-    [data?.allDates]
-  )
-
+  // 등급은 절대 cutoff(57/43, scoreGrade.ts) — yearlyDates.scoreToGrade와 정렬.
+  // grid 강조·하이라이트·일간 흐름 모두 같은 한 cutoff. 사용자 분포 percentile
+  // 기반은 daily narrative grade와 어긋나 카드 안 모순을 만들었기에 폐기.
   const monthEventSet = useMemo(() => {
     const out = new Set<number>()
     for (const d of monthDates) {
-      // grid 강조 점은 다른 카드와 같은 기준 — displayScore 분포의 '좋은 날'.
-      // 이전엔 v2 덮기 전 v3 기준으로 매겨진 displayGrade를 써서 점수와
-      // 어긋났다. 이제 getGrade(displayScore)로 통일.
-      if (getGrade(pickFinalScore(d), gradeThresholds).key !== 'lucky') continue
+      if (getGrade(pickFinalScore(d)).key !== 'lucky') continue
       out.add(parseInt(d.date.slice(8, 10), 10))
     }
     return out
-  }, [monthDates, gradeThresholds])
+  }, [monthDates])
 
   const monthlySummaryText =
     data?.monthSummary?.summary ?? data?.calendarMonthView?.oneLineSummary ?? null
@@ -649,7 +641,6 @@ export default function DestinyMatrixPlanner({
                 }
                 yearlyConvergence={yearlyConvergence}
                 monthScore={monthScore}
-                gradeThresholds={gradeThresholds}
                 summaryText={monthlySummaryText}
                 seed={viewYear * 12 + viewMonth}
               />
@@ -658,11 +649,7 @@ export default function DestinyMatrixPlanner({
               <WeeklyTimingChart monthDates={monthDates} />
 
               {/* ── calendar-engine v2: 좋은 날/조심할 날 TOP 5 ── */}
-              <MonthHighlightsCard
-                monthDates={monthDates}
-                onDayClick={handleDayClick}
-                gradeThresholds={gradeThresholds}
-              />
+              <MonthHighlightsCard monthDates={monthDates} onDayClick={handleDayClick} />
             </motion.div>
           )}
 
@@ -716,7 +703,7 @@ export default function DestinyMatrixPlanner({
               <DailyHourlyChart importantDate={selectedImportantDate} dateStr={selectedDateStr} />
 
               {(() => {
-                const todayGrade = getGrade(dailyIndices.score, gradeThresholds)
+                const todayGrade = getGrade(dailyIndices.score)
                 return (
                   <div className="grid grid-cols-5 gap-4">
                     <div
