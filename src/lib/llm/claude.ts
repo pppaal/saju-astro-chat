@@ -16,7 +16,6 @@ import { recordCounter, recordExternalCall } from '@/lib/metrics/index'
 const CLAUDE_PRICING: Record<string, { input: number; output: number; cacheRead: number }> = {
   'claude-haiku-4-5-20251001': { input: 1, output: 5, cacheRead: 0.1 },
   'claude-sonnet-4-5-20250929': { input: 3, output: 15, cacheRead: 0.3 },
-  'claude-opus-4-7': { input: 15, output: 75, cacheRead: 1.5 },
 }
 
 function calculateUsdCost(
@@ -35,7 +34,6 @@ function calculateUsdCost(
 export type ClaudeModel =
   | 'claude-haiku-4-5-20251001'
   | 'claude-sonnet-4-5-20250929'
-  | 'claude-opus-4-7'
 
 export const DEFAULT_CLAUDE_MODEL: ClaudeModel = 'claude-haiku-4-5-20251001'
 export const PREMIUM_CLAUDE_MODEL: ClaudeModel = 'claude-sonnet-4-5-20250929'
