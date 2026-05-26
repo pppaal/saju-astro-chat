@@ -83,11 +83,18 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
   }
 
   // 시주 leftmost → time, day(나), month, year
-  const order: Array<{ key: 'time' | 'day' | 'month' | 'year'; pillar: PillarShape; isMe: boolean; posKo: string; posEn: string }> = [
-    { key: 'time', pillar: pillars.time, isMe: false, posKo: '미래·말년', posEn: 'Future' },
-    { key: 'day', pillar: pillars.day, isMe: true, posKo: '나', posEn: 'Me' },
-    { key: 'month', pillar: pillars.month, isMe: false, posKo: '직업·청년', posEn: 'Career' },
-    { key: 'year', pillar: pillars.year, isMe: false, posKo: '사회·초년', posEn: 'Early' },
+  const order: Array<{
+    key: 'time' | 'day' | 'month' | 'year'
+    pillar: PillarShape
+    isMe: boolean
+    pillarKo: string // 年/月/日/時 한자 라벨
+    posKo: string // 사회·초년 등 의미 라벨
+    posEn: string
+  }> = [
+    { key: 'time', pillar: pillars.time, isMe: false, pillarKo: '時', posKo: '말년·자녀', posEn: 'Future' },
+    { key: 'day', pillar: pillars.day, isMe: true, pillarKo: '日', posKo: '나', posEn: 'Me' },
+    { key: 'month', pillar: pillars.month, isMe: false, pillarKo: '月', posKo: '청년·직업', posEn: 'Career' },
+    { key: 'year', pillar: pillars.year, isMe: false, pillarKo: '年', posKo: '초년·조상', posEn: 'Early' },
   ]
 
   const cellText = (cell?: GanjiCell) => {
@@ -98,41 +105,73 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
   }
 
   return (
-    <div className="grid grid-cols-4 gap-2 rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
-        {order.map(({ key, pillar, isMe, posKo, posEn }) => {
+    <div className="rounded-2xl border border-stone-200 bg-gradient-to-br from-stone-50 to-white p-4 shadow-sm">
+      {/* 컬럼 헤더: 한자 기둥명(時/日/月/年) + 시기 라벨 */}
+      <div className="mb-3 grid grid-cols-4 gap-2">
+        {order.map(({ key, isMe, pillarKo, posKo, posEn }) => (
+          <div key={`hd-${key}`} className="flex flex-col items-center gap-0.5">
+            {isKo && (
+              <span className="font-serif text-sm font-semibold tracking-wide text-stone-400">
+                {pillarKo}
+              </span>
+            )}
+            {isMe ? (
+              <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700">
+                {isKo ? posKo : posEn}
+              </span>
+            ) : (
+              <span className="text-[11px] text-stone-500">{isKo ? posKo : posEn}</span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* 천간 / 지지 그리드 */}
+      <div className="grid grid-cols-4 gap-2">
+        {order.map(({ key, pillar, isMe }) => {
           const stem = pillar.heavenlyStem
           const branch = pillar.earthlyBranch
           const stemStyle = ELEMENT_STYLE[stem?.element || ''] || DEFAULT_STYLE
           const branchStyle = ELEMENT_STYLE[branch?.element || ''] || DEFAULT_STYLE
           return (
-            <div key={key} className="flex flex-col items-center gap-1.5">
-              <div className="flex h-5 items-center justify-center">
-                {isMe ? (
-                  <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700">
-                    {isKo ? posKo : posEn}
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-stone-600">{isKo ? posKo : posEn}</span>
-                )}
-              </div>
-              {[{ cell: stem, style: stemStyle }, { cell: branch, style: branchStyle }].map((c, idx) => (
+            <div key={key} className="flex flex-col gap-1.5">
+              {/* 천간 (윗 셀) — 색 톤 그대로, 약간 더 진한 글자 */}
+              {[
+                { cell: stem, style: stemStyle, isStem: true },
+                { cell: branch, style: branchStyle, isStem: false },
+              ].map((c, idx) => (
                 <div
                   key={idx}
-                  className={`flex h-16 w-full flex-col items-center justify-center rounded-xl border p-1 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
-                    isMe ? 'border-rose-300 ring-1 ring-rose-200' : 'border-stone-200'
-                  }`}
+                  className={`flex h-[68px] w-full flex-col items-center justify-center rounded-xl border p-1.5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
+                    isMe
+                      ? 'border-rose-300 ring-1 ring-rose-200'
+                      : 'border-stone-200'
+                  } ${c.isStem ? '' : 'opacity-95'}`}
                 >
-                  <span className={`${isKo ? 'text-base' : 'font-serif text-lg'} font-bold ${c.style.text}`}>
+                  <span
+                    className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
+                  >
                     {cellText(c.cell)}
                   </span>
                   {isKo && imageOf(c.cell?.name) && (
-                    <span className="mt-0.5 text-[10px] leading-none text-stone-500">{imageOf(c.cell?.name)}</span>
+                    <span className="mt-1 text-[10px] leading-none text-stone-500">
+                      {imageOf(c.cell?.name)}
+                    </span>
                   )}
                 </div>
               ))}
             </div>
           )
         })}
+      </div>
+
+      {/* 행 라벨 (왼쪽 가이드) — 모바일에선 생략, 데스크탑(sm+) 에서만 표시 */}
+      {isKo && (
+        <div className="mt-2 hidden sm:flex justify-center gap-6 text-[10px] text-stone-400">
+          <span>천간(天干) · 드러난 결</span>
+          <span>지지(地支) · 안에 품은 결</span>
+        </div>
+      )}
     </div>
   )
 }
