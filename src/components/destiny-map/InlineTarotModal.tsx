@@ -508,8 +508,16 @@ function InterpretingStep({ tr, overallMessage, lang, onRetry }: InterpretingSte
           </div>
         )}
         {slow && (
-          <div style={{ marginTop: 18, textAlign: 'center' }}>
-            <p style={{ fontSize: '0.95rem', color: '#78716c', margin: '0 0 10px' }}>
+          <div
+            style={{
+              marginTop: 18,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <p style={{ fontSize: '0.95rem', color: '#78716c', margin: 0 }}>
               {isKo ? '예상보다 오래 걸리고 있어요.' : 'This is taking longer than expected.'}
             </p>
             <button type="button" onClick={onRetry} className={styles.drawAgainButton}>
