@@ -1138,13 +1138,18 @@ function buildTitle(
   // 충/형/공망/천간합 같이 점수 변동이 큰 이벤트는 캘린더 한눈에 보이도록 배지로 prepend
   const top = pickTopDailyEvent(dailyEvents)
   const HEAVY: DailyEvent['kind'][] = ['천간충', '지지충', '지지형', '공망', '천간합', '지지합']
-  // 긍정 배지(결속의 날·관계 결속)는 흉일에 붙으면 등급과 어긋나므로 grade<=2 에서만.
+  // 등급 정합 게이트:
+  //   긍정 배지(천간합·지지합)는 흉일(grade≥3)에 붙으면 어긋나므로 grade<=2에서만.
+  //   부정 배지(천간충·지지충·지지형·공망)는 길일(grade≤1)에 붙으면 어긋나므로
+  //   grade>=2에서만. v2 cell.derivedScore가 saju-hyeongchung weight(0.7)로 이미
+  //   반영했으니 grade≤1로 살아남은 날은 다른 신호가 압도하는 거고 그 점수 톤이 옳음.
   const positiveBadge = top ? top.kind === '천간합' || top.kind === '지지합' : false
   const showBadge =
     top &&
     Math.abs(top.scoreShift) >= 2 &&
     HEAVY.includes(top.kind) &&
-    !(positiveBadge && grade >= 3)
+    !(positiveBadge && grade >= 3) &&
+    !(!positiveBadge && grade <= 1)
   const badge = showBadge
     ? locale === 'ko'
       ? DAILY_EVENT_BADGE_KO[top.kind]
@@ -1172,10 +1177,12 @@ function buildDayDescriptionSuffixKo(input: {
   const labelTopic = `${label}${topicMarkerKo(label)}`
   // 1) 일주 이벤트 우선 — 강도 큰 것부터 (이미 score 절댓값 기준 정렬돼서 들어옴)
   const top = dailyEvents && dailyEvents.length > 0 ? dailyEvents[0] : null
-  // 천간합·지지합의 긍정 멘트("결정이 가벼워지는 날" 등)는 흉일(grade>=3)엔 숨겨
-  // 그날 등급과 어긋나지 않게 하고, 점수밴드 카운슬링으로 폴백한다.
+  // 등급 정합 게이트(buildTitle 배지와 대칭):
+  //   긍정 멘트(천간합·지지합)는 흉일(grade>=3)엔 숨김 — 점수밴드 카운슬링으로 폴백.
+  //   부정 멘트(천간충 등)는 길일(grade<=1)엔 숨김 — v2 점수가 길일이라면 다른 신호가
+  //   압도하는 거라 "압박 들어옴…" 같은 강한 부정 톤이 점수와 어긋난다.
   const positiveEvent = top ? top.kind === '천간합' || top.kind === '지지합' : false
-  const suppressTopEvent = positiveEvent && grade >= 3
+  const suppressTopEvent = (positiveEvent && grade >= 3) || (!positiveEvent && grade <= 1)
   if (top && !suppressTopEvent) {
     const eventLine: Partial<Record<DailyEvent['kind'], string>> = {
       천간합: `오늘은 본명과 부드럽게 맞물려 ${label} 결정이 가벼워지는 날이에요.`,

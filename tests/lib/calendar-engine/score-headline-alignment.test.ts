@@ -50,6 +50,39 @@ describe('calendar headline alignment (R1/R2/R3 regression guards)', () => {
     for (const d of augmented) {
       expect(d.displayScore).toBe(d.score)
     }
+
+    // 점수 모델 통일 가드: 365일 전체 score === displayScore. 한 응답 안에서
+    // 두 모델이 섞이지 않는다는 강한 보증 (yearly·monthly·daily 어디서 봐도 같은 숫자).
+    const all = (payload.allDates || []).filter((d) => /^\d{4}-\d{2}-\d{2}/.test(String(d.date)))
+    expect(all.length).toBeGreaterThan(300)
+    for (const d of all) {
+      expect(d.displayScore).toBe(d.score)
+    }
+  })
+
+  it('augment fields (engineSignals/matchedPatterns/themeScores) reach all 12 months (not just ±1)', async () => {
+    const response = await calendarGet(
+      asNextRequest(
+        new Request(
+          'http://localhost:3000/api/calendar?birthDate=1995-02-09&birthTime=06:40&birthPlace=Seoul&year=2026&month=2026-05&locale=ko',
+          { headers: { 'x-api-token': 'public-token' } }
+        )
+      )
+    )
+    expect(response.status).toBe(200)
+    const payload = (await response.json()) as { allDates?: Array<Record<string, unknown>> }
+    const all = payload.allDates || []
+
+    // 5월 보는데 1월·12월처럼 ±1달 밖 카드도 engineSignals 부착돼야 한다. 빠지면
+    // 점수는 v2지만 narrative는 fallback이라 카드 안 모순(score-narrative drift) 재발.
+    const monthsWithSignals = new Set<string>()
+    for (const d of all) {
+      const signals = d.engineSignals as unknown[] | undefined
+      if (Array.isArray(signals) && signals.length > 0) {
+        monthsWithSignals.add(String(d.date).slice(0, 7))
+      }
+    }
+    expect(monthsWithSignals.size).toBeGreaterThanOrEqual(12)
   })
 
   it('override-active dates expose sajuAxisRaw/astroAxisRaw on scoreBreakdown (R3 guard)', async () => {

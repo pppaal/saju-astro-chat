@@ -588,12 +588,10 @@ export const GET = withApiMiddleware(
             : undefined,
         }
       )
-      // 사용자가 보고 있는 달만 빌드 — 1년 365일 다 돌리면 너무 비쌈.
-      // 엔진 자체는 1년 능력 유지 (range만 좁힘). 클라가 ?month=YYYY-MM 보내면 그 달,
-      // 안 보내면 오늘의 달.
-      // 3-month window: 사용자가 prev/next 한 번 누르면 그 달이 이미 계산돼 있음.
-      // 1년치 다 빌드하면 비싸고, 1달만 빌드하면 prev/next 갈 때 fallback score 봄.
-      // ±1달이 trade-off 가장 좋음.
+      // augment 윈도우는 12개월 전체 — prescore가 같은 12달을 이미 cell-cache에
+      // 워밍업했으므로 여기서 다시 호출해도 모두 in-memory HIT(추가 비용 ~0). 이전엔
+      // ±1달만 augment했어서 score는 365일 v2지만 narrative/engineSignals/matchedPatterns
+      // /themeScores 부착은 ±1달뿐 → 다른 달 카드에서 점수↔서사 모순(서사가 fallback).
       const monthParam = searchParams.get('month')
       const monthMatch = monthParam?.match(/^(\d{4})-(\d{1,2})$/)
       const targetYear = monthMatch ? Number(monthMatch[1]) : year
@@ -607,16 +605,14 @@ export const GET = withApiMiddleware(
         gender: gender || 'Male',
       })
 
-      // 빌드 대상 3달: [prev, current, next]. 같은 본명·달이면 cell-cache에서 instant.
-      // ※ Date.UTC 사용 이유는 prescore 블록과 동일 — 셀 datetime이 UTC라 로컬
-      //   midnight으로 만들면 비-UTC 서버에서 키가 -1일 어긋난다.
-      const monthsToBuild = [-1, 0, 1].map((offset) => {
-        const start = new Date(Date.UTC(targetYear, targetMonth + offset, 1))
-        const end = new Date(Date.UTC(targetYear, targetMonth + offset + 1, 0, 23, 59, 59))
+      // 빌드 대상 12달: year 전체. Date.UTC로 TZ 독립 보장 (prescore 블록과 동일).
+      const monthsToBuild = Array.from({ length: 12 }, (_, month) => {
+        const start = new Date(Date.UTC(year, month, 1))
+        const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
         return {
-          year: start.getUTCFullYear(),
-          month: start.getUTCMonth(),
-          monthKey: `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}`,
+          year,
+          month,
+          monthKey: `${year}-${String(month + 1).padStart(2, '0')}`,
           rangeStart: start,
           rangeEnd: end,
         }
