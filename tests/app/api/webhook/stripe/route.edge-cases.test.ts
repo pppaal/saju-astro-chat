@@ -351,7 +351,8 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
       const response = await POST(request)
 
       expect(response.status).toBe(200)
-      expect(addBonusCredits).toHaveBeenCalledWith('user-123', 15) // standard pack = 15 credits
+      // standard pack = 20 credits, paymentId undefined (test session has no payment_intent)
+      expect(addBonusCredits).toHaveBeenCalledWith('user-123', 20, 'purchase', undefined)
     })
 
     it('should handle unrecognized event types gracefully', async () => {

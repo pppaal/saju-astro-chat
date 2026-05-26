@@ -28,8 +28,9 @@ function getNextPeriodEnd(): Date {
   return new Date(now.getFullYear(), now.getMonth() + 1, 1)
 }
 
-// 유저 크레딧 초기화 (신규 가입 시) — 가입 시 2 크레딧 일회성 보너스
-const SIGNUP_BONUS = 2
+// 유저 크레딧 초기화 (신규 가입 시) — 가입 시 4 크레딧 일회성 보너스
+// (한 사이클 정도 충분히 체험할 수 있는 양으로 상향)
+const SIGNUP_BONUS = 4
 
 export async function initializeUserCredits(userId: string) {
   const now = new Date()
@@ -465,4 +466,62 @@ export async function resetAllExpiredCredits() {
   const failed = results.filter((r) => r.status === 'rejected').length
 
   return { total: expiredUsers.length, succeeded, failed }
+}
+
+// Stripe 환불(charge.refunded) 처리 — 결제 ID 로 BonusCreditPurchase 를
+// 찾아 잔여 크레딧을 회수하고 해당 구매를 만료시킨다. 환불된 사용자가
+// 남은 크레딧을 계속 쓰지 못하도록 막는 방어. 이미 다 쓴 크레딧은 회수할
+// 수 없으므로 차감액 0 + 로그만 남긴다(loss).
+export async function revokeBonusCreditPurchase(
+  stripePaymentId: string
+): Promise<{ revoked: boolean; reclaimed: number; alreadyUsed: number }> {
+  if (!stripePaymentId) return { revoked: false, reclaimed: 0, alreadyUsed: 0 }
+
+  try {
+    const purchase = await prisma.bonusCreditPurchase.findFirst({
+      where: { stripePaymentId },
+    })
+
+    if (!purchase) {
+      logger.warn('[revokeBonusCreditPurchase] no purchase found for paymentId', {
+        stripePaymentId,
+      })
+      return { revoked: false, reclaimed: 0, alreadyUsed: 0 }
+    }
+
+    if (purchase.expired) {
+      // 이미 만료/회수된 구매 — 멱등성 (중복 webhook 무시)
+      return { revoked: false, reclaimed: 0, alreadyUsed: purchase.amount - purchase.remaining }
+    }
+
+    const reclaim = purchase.remaining
+    const alreadyUsed = purchase.amount - purchase.remaining
+
+    await prisma.$transaction([
+      prisma.bonusCreditPurchase.update({
+        where: { id: purchase.id },
+        data: { remaining: 0, expired: true, expiresAt: new Date() },
+      }),
+      // 음수 방지 — 다른 곳에서 이미 0 으로 떨어졌으면 더 빼지 않는다.
+      // (Prisma 는 raw guard 없이 decrement 만으로 음수 가능 → 안전하게
+      //  현재 잔액 조회 후 가능한 만큼만 차감)
+      prisma.userCredits.update({
+        where: { userId: purchase.userId },
+        data: { bonusCredits: { decrement: reclaim } },
+      }),
+    ])
+
+    logger.warn('[revokeBonusCreditPurchase] revoked refunded purchase', {
+      userId: purchase.userId,
+      stripePaymentId,
+      packAmount: purchase.amount,
+      reclaimed: reclaim,
+      alreadyUsed,
+    })
+
+    return { revoked: true, reclaimed: reclaim, alreadyUsed }
+  } catch (error) {
+    logger.error('[revokeBonusCreditPurchase] error', { stripePaymentId, error })
+    return { revoked: false, reclaimed: 0, alreadyUsed: 0 }
+  }
 }
