@@ -49,8 +49,8 @@ const TYPEWRITER_PROMPTS_EN = [
   'Where do we differ?',
 ] as const
 
-function CounselorLoading() {
-  return <BrandSplash message="상담사 준비 중..." />
+function CounselorLoading({ lang = 'ko' }: { lang?: 'ko' | 'en' }) {
+  return <BrandSplash message={lang === 'ko' ? '상담사 준비 중…' : 'Preparing your counselor…'} />
 }
 
 type ChatMessage = {
@@ -589,7 +589,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
   )
 
   if (isInitializing || redirecting) {
-    return <CounselorLoading />
+    return <CounselorLoading lang={isKo ? 'ko' : 'en'} />
   }
 
   return (
