@@ -113,22 +113,9 @@ export default function DestinyMatrixPlannerClient() {
           }
           if (cj?.convergence) setYearlyConvergence(cj.convergence)
           if (cj?.monthly) setYearlyMonthly(cj.monthly)
-          // 일별 v2 점수를 모든 날짜 displayScore에 백필 → grid/월 점수/하이라이트가
-          // 1년 내내 같은 엔진(v2)을 쓰게 됨. 메인 응답이 현재 ±1달만 v2로 덮던
-          // 한계를 지연 로드로 전 달까지 확장. (캐시 적중 시 거의 즉시)
-          if (cj?.daily && cj.daily.length > 0) {
-            const scoreByDate = new Map(cj.daily.map((d) => [d.date, d.score]))
-            setData((prev) => {
-              if (!prev?.allDates) return prev
-              return {
-                ...prev,
-                allDates: prev.allDates.map((d) => {
-                  const s = scoreByDate.get(d.date.slice(0, 10))
-                  return typeof s === 'number' ? { ...d, displayScore: s } : d
-                }),
-              }
-            })
-          }
+          // daily 백필 폐기 — 메인 응답이 이미 365일 v2 점수로 채워져 있다(route.ts
+          // prescore가 윈도우를 1년 전체로 확장). 백필이 displayScore만 덮고 score는
+          // 안 덮어서 같은 날짜에 displayScore≠score 모순이 났던 lane도 함께 사라짐.
         } catch (e) {
           logger.debug('[CalendarPlanner] convergence lazy-load skipped', e)
         }

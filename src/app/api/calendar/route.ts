@@ -434,17 +434,12 @@ export const GET = withApiMiddleware(
     // 더 이상 계산하지 않으며, 관련 변수는 null로 남아 다운스트림이 graceful degrade한다.
 
     // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
-    // v3가 grade/tier/점수밴드 문구를 "화면 표시 점수(v2)" 기준으로 만들도록, 보는
-    // 달 ±1의 v2 셀 점수를 미리 뽑아 engineScores로 넘긴다. 표시 숫자와 카드 문구
-    // 톤("흐름이 강한/약한")을 한 점수로 정렬하기 위함. 실패해도 비어 있으면 v3가
-    // 기존 사주·점성 blend로 폴백(현행 동작).
-    // NOTE: 아래 v2 augmentation 블록이 같은 셀을 다시 계산하지만 getOrBuildMonth는
-    //       캐시 HIT이라 점수맵 추출 비용만 추가된다 — 정합성 우선, 셀 재계산 없음.
+    // 1년 전체 365일을 v2 셀 점수로 채워 yearlyDates의 narrative grade·title·
+    // description이 모두 같은 점수 모델(=v2 cell.derivedScore)로 만들어지게 한다.
+    // 이전엔 ±1달만 v2였고 나머지 10개월은 v3 blend((engineSub+transitSub)/2)라
+    // 같은 사용자가 1월 보다가 4월 가면 점수 모델이 바뀌어 들쭉날쭉했다.
+    // 비용: cold 시 12 build × ~150ms. 캐시(cell-cache in-memory + DB)로 warm은 즉시.
     const engineScoreByDate: Record<string, number> = {}
-    const ceMonthParam = searchParams.get('month')
-    const ceMonthMatch = ceMonthParam?.match(/^(\d{4})-(\d{1,2})$/)
-    const ceTargetYear = ceMonthMatch ? Number(ceMonthMatch[1]) : year
-    const ceTargetMonth = ceMonthMatch ? Number(ceMonthMatch[2]) - 1 : new Date().getMonth()
     try {
       const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
       const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
@@ -472,12 +467,11 @@ export const GET = withApiMiddleware(
       })
       // 셀 datetime은 UTC 미드나잇 키(`isoForCell` in calendar-engine/index.ts).
       // 서버 TZ가 UTC가 아니면 `new Date(y,m,1).toISOString()`이 전날 UTC가 돼서
-      // 셀의 slice(0,10)이 -1일 어긋남 → engineScoreByDate 키 미스로 v2 점수
-      // 주입이 통째로 비어 버린다. Date.UTC로 UTC 미드나잇을 명시해 TZ 독립으로.
-      for (const offset of [-1, 0, 1]) {
-        const start = new Date(Date.UTC(ceTargetYear, ceTargetMonth + offset, 1))
-        const end = new Date(Date.UTC(ceTargetYear, ceTargetMonth + offset + 1, 0, 23, 59, 59))
-        const monthKey = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}`
+      // 셀의 slice(0,10)이 -1일 어긋남. Date.UTC로 UTC 미드나잇 명시.
+      for (let month = 0; month < 12; month++) {
+        const start = new Date(Date.UTC(year, month, 1))
+        const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
+        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
         const { cells } = await getOrBuildMonth({
           birthKey,
           monthKey,
@@ -498,18 +492,16 @@ export const GET = withApiMiddleware(
     }
     const hasEngineScores = Object.keys(engineScoreByDate).length > 0
 
-    // 로컬 계산으로 중요 날짜 가져오기 (Redis 캐싱 적용)
-    // engineScores는 보는 달 ±1에 종속이라, 주입될 때만 cacheKey에 그 달을 포함시켜
-    // 다른 달 조회 시 stale narrative(이전 달 점수로 만든 문구)가 안 나오게 한다.
-    const cacheKey =
-      CacheKeys.yearlyCalendar(
-        birthDateParam,
-        birthTimeParam,
-        gender,
-        year,
-        category || undefined,
-        birthPlace
-      ) + (hasEngineScores ? `|m${ceTargetYear}-${String(ceTargetMonth + 1).padStart(2, '0')}` : '')
+    // 365일 전체에 v2 점수가 들어가니 cacheKey에 month 의존이 사라짐 — 보는 달
+    // 바꿔도 같은 응답. 이전엔 ±1달만 v2였어서 보는 달에 따라 다른 응답이 캐시됐다.
+    const cacheKey = CacheKeys.yearlyCalendar(
+      birthDateParam,
+      birthTimeParam,
+      gender,
+      year,
+      category || undefined,
+      birthPlace
+    )
     const localDates = await cacheOrCalculate(
       cacheKey,
       async () =>
