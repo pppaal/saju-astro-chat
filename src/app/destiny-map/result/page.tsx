@@ -16,6 +16,11 @@ import { HamburgerDrawer } from '@/components/ui/GlobalHeader/HamburgerDrawer'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 type Lang = 'ko' | 'en'
+
+// 무료 결정론 리포트 임시 비활성화 (품질 개선 전까지). 코드는 보존 — 다시
+// 켜려면 true 로 바꾸면 됨.
+const SHOW_FREE_REPORT: boolean = false
+
 type DestinyResult = {
   lang?: string
   themes?: Record<string, unknown>
@@ -246,23 +251,26 @@ export default function DestinyResultPage({
           <div className={styles.analysisDateWrapper}>{analysisDateDisplay}</div>
         </header>
 
-        {/* ✨ 무료 인사이트 — 사주·점성 룰 기반 (성격/연애/커리어/재물/건강/카르마 등) */}
-        <FreeReport
-          saju={result?.saju}
-          astro={mergedAstro}
-          lang={lang}
-          fusionFragments={
-            (result as { fusionFragments?: unknown } | null)?.fusionFragments as Parameters<
-              typeof FreeReport
-            >[0]['fusionFragments']
-          }
-          birthInfo={{
-            birthDate: (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? '',
-            birthTime: (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? '',
-            gender: (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? '',
-            timezone: (Array.isArray(sp.userTz) ? sp.userTz[0] : sp.userTz) ?? '',
-          }}
-        />
+        {/* ✨ 무료 인사이트 — 사주·점성 룰 기반. 품질 개선 전까지 임시 숨김.
+            다시 켜려면 SHOW_FREE_REPORT 를 true 로. */}
+        {SHOW_FREE_REPORT && (
+          <FreeReport
+            saju={result?.saju}
+            astro={mergedAstro}
+            lang={lang}
+            fusionFragments={
+              (result as { fusionFragments?: unknown } | null)?.fusionFragments as Parameters<
+                typeof FreeReport
+              >[0]['fusionFragments']
+            }
+            birthInfo={{
+              birthDate: (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? '',
+              birthTime: (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? '',
+              gender: (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? '',
+              timezone: (Array.isArray(sp.userTz) ? sp.userTz[0] : sp.userTz) ?? '',
+            }}
+          />
+        )}
       </section>
     </section>
   )
