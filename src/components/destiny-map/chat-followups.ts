@@ -202,3 +202,27 @@ export function getSuggestedQuestions(lang: LangKey): string[] {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   return SUGGESTED_QUESTIONS[effectiveLang].chat
 }
+
+/**
+ * 후속질문이 "generic 잡담"인지 휴리스틱 판별.
+ * realtime route 시스템 프롬프트가 "더 알려줘 / tell me more / why?" 류를
+ * 금지하지만, 모델이 가끔 무시하고 뱉음. 클라이언트에서 결정적으로 거르고
+ * 부족하면 generateFollowUpQuestions() 로 보충.
+ */
+export function isGenericFollowUp(q: string, lang: LangKey): boolean {
+  const trimmed = (q || '').trim()
+  if (trimmed.length < 6) return true
+  if (lang === 'ko') {
+    const koGeneric =
+      /^(더\s*알려줘|왜\??|조언|어떻게(\s*해야)?\??|그래서\??|그럼\??|어때\??|정말\??|진짜\??|뭐\??|좀\s*더|더\s*자세히)/
+    if (koGeneric.test(trimmed)) return true
+    // "더 알려줘" / "조언 해줘" 가 문장 끝에 와도 잡힘.
+    if (/더\s*알려줘|조언\s*해줘|더\s*자세히/.test(trimmed)) return true
+    return false
+  }
+  const enGeneric =
+    /^(tell me more|more about|explain|why\??|any advice|what (next|now|should i do)|how about|really\??|is it\??|can you (tell|explain))/i
+  if (enGeneric.test(trimmed)) return true
+  if (/\btell me more\b|\bmore about it\b|\bany advice\b/i.test(trimmed)) return true
+  return false
+}
