@@ -695,15 +695,17 @@ export const GET = withApiMiddleware(
         logger.warn?.('[interpretation] skipped:', err instanceof Error ? err.message : String(err))
       }
 
-      // 3달 모든 cell을 date 키로 — prev/next month 이동해도 그 달 displayScore/
-      // engineSignals 부착됨 (현재 달만 부착하면 다른 달은 fallback yearlyDates.score).
+      // 3달 모든 cell을 date 키로 — prev/next month 이동해도 그 달 engineSignals/
+      // matchedPatterns/themeScores 부착됨 (현재 달만 부착하면 다른 달은 fallback).
+      // ※ displayScore는 더 이상 여기서 덮어쓰지 않는다. yearlyDates가 이미 engineScores
+      //    주입으로 cell.derivedScore + dailyShiftAdjustment(천간충·지지형·공망 보정)를
+      //    score = displayScore로 두기 때문에, 여기서 raw cell.derivedScore로 다시 덮으면
+      //    dailyShift 보정이 사라져 "narrative는 압박 들어옴 / 숫자는 60+" 모순이
+      //    augment HIT 경로에서 그대로 재발한다.
       const cellByDate = new Map(allCells.map((c) => [c.datetime.slice(0, 10), c]))
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
-        // ★ 점수 교체 — 새 엔진 점수를 displayScore로 우선 노출
-        //   기존 score는 그대로 유지 (rollback 가능).
-        d.displayScore = cell.derivedScore
         if (cell.matchedPatterns.length > 0) {
           d.matchedPatterns = cell.matchedPatterns.map((p) => ({
             id: p.id,

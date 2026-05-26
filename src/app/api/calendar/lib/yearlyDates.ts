@@ -64,12 +64,16 @@ export interface YearlyImportantDate {
     blurb: string
   }>
   /**
-   * v3 점수 분해 — finalScore = (sajuAxis + astroAxis) / 2.
-   * WeeklyTimingChart의 두 라인이 그대로 점수를 만든다.
+   * v3 점수 분해 — finalScore = (sajuAxisRaw + astroAxisRaw) / 2를 베이스로,
+   * v2 override가 활성되면 sajuAxis/astroAxis는 헤드라인 점수와 평균 정렬되도록
+   * 시프트된 표시값(축간 차이는 보존). Raw는 isAxisConverged 같은 신호 강도
+   * 판정 전용.
    */
   scoreBreakdown?: {
     sajuAxis: number
     astroAxis: number
+    sajuAxisRaw: number
+    astroAxisRaw: number
     axisAgreement: 'aligned' | 'mixed' | 'opposed'
     finalScore: number
   }
@@ -2171,15 +2175,21 @@ export function calculateYearlyImportantDates(
       })(),
       // override 활성 시 confidence를 헤드라인 점수와 정렬. primaryStrength는 도메인
       // 강도라 점수와 무관할 수 있어 "최고점인데 신뢰도 56%" 모순이 생긴다.
+      // 슬로프 1.0 · cap 99로 두는 이유: applyEvidenceRegrade의 strongBestSignal path
+      // (confidence >= 85)와 isLowCoherenceSignal의 confidence < 45 path가 둘 다
+      // 자연 발화하는 폭이 필요하다. 그 폭이 좁으면 진짜 grade-0 날이 silent demote되거나
+      // forceConservativeMode 경고가 영구 봉인된다.
       confidence:
         typeof engineOverride === 'number' && Number.isFinite(engineOverride)
-          ? Math.round(clamp(50 + (score - 50) * 0.6, 30, 92))
+          ? Math.round(clamp(score, 20, 99))
           : Math.round(clamp(primaryStrength * 100, 0, 100)),
       confidenceNote: locale === 'ko' ? '캘린더 스코어링 기준' : 'Calendar scoring baseline',
       crossAgreementPercent,
       scoreBreakdown: {
         sajuAxis: sajuAxisScore,
         astroAxis: astroAxisScore,
+        sajuAxisRaw,
+        astroAxisRaw,
         axisAgreement,
         finalScore: score,
       },
