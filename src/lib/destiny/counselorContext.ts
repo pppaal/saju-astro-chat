@@ -16,6 +16,9 @@ import { calculateProfection } from '@/lib/astrology/foundation/profections'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
+import { getIljinCalendar } from '@/lib/saju/unse'
+import { getNowInTimezone } from '@/lib/datetime'
+import type { DayMaster } from '@/lib/saju/types'
 
 const HOUSE_THEME_KO: Record<number, string> = {
   1: '자아·몸', 2: '재물·소유', 3: '소통·이동', 4: '가정·뿌리', 5: '연애·창작', 6: '일·건강',
@@ -47,6 +50,43 @@ const ELEM_EN: Record<string, string> = { 목: 'Wood', 화: 'Fire', 토: 'Earth'
 const STRENGTH_EN: Record<string, string> = { 신강: 'strong', 신약: 'weak', 극강: 'very strong', 강: 'strong', 중강: 'mod. strong', 중약: 'mod. weak', 약: 'weak', 극약: 'very weak' }
 const YTYPE_EN: Record<string, string> = { 조후용신: 'Climatic', 병약용신: 'Remedial', 억부용신: 'Balancing', 통관용신: 'Mediating', 전왕용신: 'Dominant' }
 const PERIOD_EN: Record<string, string> = { 대운: 'Decade', 세운: 'Annual', 월운: 'Monthly', 일진: 'Daily' }
+const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+/**
+ * 오늘(로컬 날짜) 포함 N일치 일진 간지. queryDate 의 서버(UTC) 날짜가 아니라
+ * 호출자가 넘긴 로컬 today({year,month,day}) 기준이라 한국 새벽에도 안 어긋남.
+ * 일진은 KST 자정 경계로 계산(getIljinCalendar) — 전통 사주 일진 기준.
+ */
+function buildIljinWindowBlock(
+  dayMaster: DayMaster,
+  localToday: { year: number; month: number; day: number },
+  days: number,
+  locale: Locale
+): string {
+  const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
+  const sib = (s?: string) => (locale === 'en' ? sibEN(s) : s || '-')
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const wdNames = locale === 'en' ? WEEKDAY_EN : WEEKDAY_KO
+  const lines: string[] = []
+  const base = Date.UTC(localToday.year, localToday.month - 1, localToday.day)
+  for (let i = 0; i <= days; i++) {
+    const dt = new Date(base + i * 86400000)
+    const wy = dt.getUTCFullYear()
+    const wm = dt.getUTCMonth() + 1
+    const wd = dt.getUTCDate()
+    const cal = getIljinCalendar(wy, wm, dayMaster)
+    const found = cal.find((c) => c.day === wd)
+    if (!found) continue
+    const wday = wdNames[dt.getUTCDay()]
+    const tag = i === 0 ? L('·오늘', '·today') : i === 1 ? L('·내일', '·tomorrow') : ''
+    lines.push(
+      `${pad(wm)}-${pad(wd)}(${wday}${tag}) ${found.heavenlyStem}${found.earthlyBranch} (${sib(found.sibsin?.cheon)}/${sib(found.sibsin?.ji)})`
+    )
+  }
+  if (!lines.length) return ''
+  return `${L(`## 일진 ${days + 1}일`, `## DAILY (${days + 1} days)`)}\n${lines.join('\n')}`
+}
 const GILSIN_EN: Record<string, string> = { 천을귀인: 'Nobleman', 화개: 'Flower Canopy', 공망: 'Void' }
 // branch romanization (pinyin) for English 刑/punishment labels
 const BRANCH_PY: Record<string, string> = { 子: 'Zi', 丑: 'Chou', 寅: 'Yin', 卯: 'Mao', 辰: 'Chen', 巳: 'Si', 午: 'Wu', 未: 'Wei', 申: 'Shen', 酉: 'You', 戌: 'Xu', 亥: 'Hai' }
@@ -129,21 +169,24 @@ function buildInstructions(locale: Locale): string {
 }
 
 /** Full counselor context: header + SAJU + ASTRO (natal + now) + rules. */
-export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale: Locale = 'ko', current?: CurrentPeriod): Promise<string> {
+export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale: Locale = 'ko', current?: CurrentPeriod, displayTz?: string): Promise<string> {
   const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
-  const year = now.getFullYear()
-  const saju = buildSajuSection(birth, locale, current, year)
+  // "오늘"은 서버(UTC)가 아니라 사용자 기기 시간대 기준으로 잡아야 한국 새벽에
+  // 날짜가 하루 어긋나지 않는다. displayTz 가 없으면 출생 시간대로 폴백.
+  const localNow = getNowInTimezone(displayTz || birth.timezone || 'Asia/Seoul')
+  const year = localNow.year
+  const saju = buildSajuSection(birth, locale, current, year, localNow)
 
   // top header: # date time coords gender / age / today  (age = 만 나이)
   const [by, bm, bd] = birth.birthDate.split('-').map(Number)
   let age = year - by
-  if (now.getMonth() + 1 < bm || (now.getMonth() + 1 === bm && now.getDate() < bd)) age--
+  if (localNow.month < bm || (localNow.month === bm && localNow.day < bd)) age--
   const lat = birth.latitude ?? 37.5665
   const lon = birth.longitude ?? 126.978
   const tz = birth.timezone ?? 'Asia/Seoul'
   const gH = birth.gender === 'female' ? '女' : '男'
   const pad = (n: number) => String(n).padStart(2, '0')
-  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+  const today = `${localNow.year}-${pad(localNow.month)}-${pad(localNow.day)}`
   const locTag = birth.birthCityUnknown ? '?' : `${lat.toFixed(2)},${lon.toFixed(2)}`
   const timeTag = birth.birthTimeUnknown ? '??:??' : (birth.birthTime || '')
   const header = `# ${birth.birthDate} ${timeTag} ${locTag} ${gH} / ${age}${L('세', 'y')} / ${today}`
@@ -210,10 +253,10 @@ export async function buildDestinyContext(birth: DestinyBirth, now: Date, locale
   const timingBody = [saju.timing, astroTiming].filter(Boolean).join('\n')
   const timing = timingBody ? `${L(`## 타이밍 (${today})`, `## TIMING (${today})`)}\n\n${timingBody}` : ''
 
-  return [header, saju.natal, astroNatal, timing, buildInstructions(locale)].filter(Boolean).join('\n\n').trim() + '\n'
+  return [header, saju.natal, astroNatal, timing, saju.iljinWindow, buildInstructions(locale)].filter(Boolean).join('\n\n').trim() + '\n'
 }
 
-export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', current?: CurrentPeriod, year?: number): { natal: string; timing: string } {
+export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', current?: CurrentPeriod, year?: number, localNow?: { year: number; month: number; day: number }): { natal: string; timing: string; iljinWindow: string } {
   const tz = birth.timezone ?? 'Asia/Seoul'
   const saju = calculateSajuData(birth.birthDate, birth.birthTime, birth.gender, 'solar', tz) as unknown as {
     pillars: Record<'year' | 'month' | 'day' | 'time', {
@@ -455,8 +498,13 @@ export function buildSajuSection(birth: DestinyBirth, locale: Locale = 'ko', cur
     if (crossLines.length) { timing.push(L('교차:', 'cross:')); timing.push(...crossLines) }
   }
 
+  const iljinWindow = localNow
+    ? buildIljinWindowBlock(saju.dayMaster as unknown as DayMaster, localNow, 7, locale)
+    : ''
+
   return {
     natal: out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n',
     timing: timing.join('\n').replace(/\n{3,}/g, '\n\n').trim(),
+    iljinWindow,
   }
 }

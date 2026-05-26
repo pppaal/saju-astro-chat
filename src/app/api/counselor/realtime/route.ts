@@ -14,6 +14,7 @@ import { authOptions } from '@/lib/auth/authOptions'
 import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
 import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
 import { buildDestinyContext } from '@/lib/destiny/counselorContext'
+import { getNowInTimezone } from '@/lib/datetime'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -43,6 +44,9 @@ interface RealtimeBody {
   latitude?: number
   longitude?: number
   timezone?: string
+  /** 사용자 기기(브라우저)의 현재 시간대 — "오늘"/일진 계산 기준. 출생 시간대와
+   *  다를 수 있어 별도로 받는다. */
+  userTimezone?: string
   /** Optional explicit flag from the form. Otherwise inferred from missing coords. */
   birthCityUnknown?: boolean
   /** Parsed text of a user-attached file (CV/notes). Injected into the
@@ -97,6 +101,7 @@ const SYSTEM_PROMPT_KO = `<birth_data> 안의 사주·점성 데이터를 근거
 - 마크다운 헤더(##) / 번호 리스트 / 글머리 기호(-, *) 사용 금지. 오직 줄글 단락으로.
 - [Meta] 의 birthTimeUnknown=true면 시주/일진/ASC/MC/하우스 인용 금지. birthCityUnknown=true면 위치 의존 결론 금지.
 - AI/모델/상담사 정체 노출 금지.
+- 일진/날짜 질문(오늘·내일·이번 주 등)엔 ## 일진 7일 의 그 날 간지(예: 乙丑)를 근거로 내 일간과 비교해 일상어로 답한다. 비견·식신 같은 십성 용어를 그대로 말하지 말 것. 7일 목록 너머 먼 날짜는 "캘린더에서 더 정확히 볼 수 있어요"라고 안내.
 - 다른 생년월일·다른 사람 분석 요청은 정중히 거절: 이 채널은 본인 차트 전용임을 안내한다.
 
 ★ jargon 기본 금지 — 평소엔 raw 텍스트 그대로 인용 X:
@@ -130,6 +135,7 @@ Rules:
 - No markdown headers (##), numbered lists, or bullet symbols (-, *). Plain prose paragraphs only.
 - If [Meta] has birthTimeUnknown=true: do not cite time pillar / iljin / ASC / MC / houses. If birthCityUnknown=true: skip place-dependent claims.
 - Never reveal you're an AI / model / counselor system.
+- For day/date questions (today, tomorrow, this week), answer from that day's ganji in ## DAILY (7 days) (e.g. 乙丑), compared to the user's day-master, in plain language. Do not output ten-gods terms (비견/식신 etc.) verbatim. For dates beyond the 7-day list, say it can be checked more precisely in the Calendar.
 - Politely refuse analysis of another birth date / another person: this channel is for the user's own chart only.
 - Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.
 - Exception: if the user asks *directly using a term* ("what's my Sun sign?", "how about Moon square Saturn?"), use the term and answer briefly. Don't dodge.
@@ -139,13 +145,6 @@ At the very end, append *exactly* this line (hidden from the user, rendered as b
   - Exactly 2. JSON string array. Each under ~40 chars. First-person ("Will I...?", "So should I...?").
   - Must pick *one specific thing you just said* (a timing, person, strength, event) and go one level deeper — tempting enough to tap. No question unrelated to your answer · no generic ("tell me more", "explain", "why?", "any advice?") · no repeating what you covered.
   - e.g. if the reply flagged "a job change this spring" → ["Will my pay go up if I switch?", "Should I tough it out where I am?"]`
-
-function utcDateKey(d: Date): string {
-  const y = d.getUTCFullYear()
-  const m = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(d.getUTCDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
 
 function birthFingerprint(b: RealtimeBody): string {
   return [
@@ -238,7 +237,12 @@ export async function POST(req: NextRequest) {
   // v8: [Meta] 에 raw birthDate/birthTime/location/timezone 추가. v7
   // entry 는 그 정보 없이 저장돼서 LLM 이 한자→날짜 역산 → "내 생년
   // 월일?" 같은 직접 질문에 틀린 답.
-  const ctxKey = `counselor:ctx:v8:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${utcDateKey(new Date())}`
+  // "오늘"/일진은 기기 시간대 기준 → 캐시도 그 로컬 날짜로 회전해야 새벽에 안 어긋남.
+  // v9: 일진 7일 블록 추가로 컨텍스트 shape 변경(이전 캐시 무효화).
+  const userTz = body.userTimezone || body.timezone || 'Asia/Seoul'
+  const localNow = getNowInTimezone(userTz)
+  const localDateKey = `${localNow.year}-${localNow.month}-${localNow.day}`
+  const ctxKey = `counselor:ctx:v9:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
   let contextText: string | null = await cacheGet<string>(ctxKey)
   if (!contextText) {
     try {
@@ -343,7 +347,8 @@ export async function POST(req: NextRequest) {
             wolun: un(sn.currentWolun),
             iljin: un(sn.currentIljin),
             relations: sn.unseRelations,
-          }
+          },
+          userTz
         )
         parts.push('', ctx)
       } catch (err) {

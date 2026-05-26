@@ -377,6 +377,9 @@ export function useChatApi({
         longitude: normalizedLongitude,
         gender: normalizedGender,
         city: profile.city,
+        // 기기 현재 시간대 — "오늘"/일진을 사용자 로컬 날짜로 계산(새벽 어긋남 방지).
+        userTimezone:
+          typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined,
         lang,
         // 마지막 20턴만 (10쌍 user/assistant). 이전엔 50턴이었는데 그건
         // 매 message 마다 caching 안 되는 priorTurns 토큰만 ~5K 추가됐고
