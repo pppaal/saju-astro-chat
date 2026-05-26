@@ -20,6 +20,7 @@ import {
   buildInterpretStreamPrompts,
   buildChunkUserPrompt as buildChunkUserPromptShared,
 } from '@/lib/tarot/promptBuild'
+import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
@@ -87,8 +88,6 @@ function withCreditCookies(
 
   return applyCreditResultCookies(nextResponse, creditResult)
 }
-
-// Use centralized sanitizeString from @/lib/api/sanitizers
 
 function streamJsonPayload(
   payload: {
@@ -163,6 +162,24 @@ export async function POST(req: NextRequest) {
     }
 
     const body = validationResult.data
+
+    // 안전 가드 — 자살/자해 등 위험 질문이 들어오면 AI 호출 없이 위기 페이로드만
+    // 즉시 응답하고 크레딧도 차감하지 않는다. questionEngineV2 추천 단계의
+    // 가드와 동일 키워드 셋을 공유 (src/lib/tarot/safety.ts).
+    // 추천 흐름을 건너뛰고 바로 interpret-stream 으로 진입하는 케이스 보강.
+    const safetyQuestion = (body.userQuestion || '').trim()
+    const safetyLanguage: 'ko' | 'en' = body.language === 'en' ? 'en' : 'ko'
+    if (safetyQuestion && isDangerousQuestion(safetyQuestion)) {
+      logger.info('Tarot stream blocked by safety guard', {
+        route: 'interpret-stream',
+        cards: Array.isArray(body.cards) ? body.cards.length : 0,
+      })
+      const crisisPayload = buildCrisisPayload({
+        language: safetyLanguage,
+        cardCount: Array.isArray(body.cards) ? body.cards.length : 1,
+      })
+      return streamJsonPayload(crisisPayload, { 'X-Tarot-Safety': '1' })
+    }
 
     creditCost = readingCreditCost(Array.isArray(body.cards) ? body.cards.length : 0)
     creditResult = await checkAndConsumeCredits('reading', creditCost, req)
@@ -373,6 +390,19 @@ export async function POST(req: NextRequest) {
           bRetried: chunkB.retried,
           padded,
         })
+
+        // padded === true 이면 한 청크가 retry 까지 실패해 절반 이상이
+        // 결정론적 fallback 텍스트로 채워졌다는 뜻 — 사용자가 받은 가치는
+        // 1 크레딧 미만이므로 charge 한 creditCost 를 전액 환불한다.
+        // (응답 자체는 그대로 내려 클라이언트 UI 가 끊기지 않게 함.)
+        if (padded) {
+          await refundOnAllLlmFailure(
+            creditResult,
+            'tarot_partial_chunk_fallback',
+            creditCost,
+            'Chunk retry failed; deterministic fallback padded ≥1 card'
+          )
+        }
 
         const encoder = new TextEncoder()
         const stream = new ReadableStream({
