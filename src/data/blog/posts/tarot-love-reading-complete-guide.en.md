@@ -60,7 +60,7 @@ New emotional beginnings:
 4. **What brings you together**
 5. **What challenges you**
 
-### The Celtic Cross for Love (10 Cards)
+### The Ten-Card Deep Spread for Love
 
 1. Present situation
 2. Challenge/Crossing

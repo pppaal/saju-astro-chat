@@ -38,12 +38,12 @@ describe('recommendSpreads — depth-based routing', () => {
     expect(recommendSpreads('어떻게 풀어가면 좋을지 정말 모르겠어요', 1)[0].spreadId).toBe('general-cross')
   })
 
-  it('life-level question → 10장 (celtic-cross)', () => {
+  it('life-level question → 7장 심층 리딩 (id: celtic-cross)', () => {
     expect(recommendSpreads('인생의 방향을 모르겠다', 1)[0].spreadId).toBe('celtic-cross')
     expect(recommendSpreads('내 운명이 어떻게 풀릴까', 1)[0].spreadId).toBe('celtic-cross')
   })
 
-  it('very long question (>= 80 chars) → 10장 (celtic-cross)', () => {
+  it('very long question (>= 80 chars) → 7장 심층 리딩 (id: celtic-cross)', () => {
     const longQ =
       '회사 그만두고 새로운 분야로 가고 싶은데 이게 정말 맞는 결정인지 모르겠고 가족도 반대하고 돈도 부족하고 그래서 어떻게 해야 할지 정말 막막한데 한번 봐주세요'
     expect(longQ.length).toBeGreaterThanOrEqual(80)
