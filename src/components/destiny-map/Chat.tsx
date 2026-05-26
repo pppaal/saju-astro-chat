@@ -10,7 +10,7 @@ import { type TarotResultSummary } from './InlineTarotModal'
 import { logger } from '@/lib/logger'
 import { CHAT_I18N } from './chat-i18n'
 import { CHAT_TIMINGS } from './chat-constants'
-import { generateMessageId, buildReturningSummary } from './chat-utils'
+import { generateMessageId } from './chat-utils'
 import type { ChatProps } from './chat-types'
 import { useChatSession } from './hooks/useChatSession'
 import { useChatFeedback } from './hooks/useChatFeedback'
@@ -62,7 +62,7 @@ const Chat = memo(function Chat({
     deleteConfirmId,
     setDeleteConfirmId,
     startNewChat: hookStartNewChat,
-  } = useChatSession({ lang, initialContext, saju, astro })
+  } = useChatSession({ lang, initialContext })
 
   const [renamingId, setRenamingId] = React.useState<string | null>(null)
   const [renameValue, setRenameValue] = React.useState('')
@@ -216,71 +216,6 @@ const Chat = memo(function Chat({
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [])
-
-  const lastUpdateRef = React.useRef<number>(0)
-  React.useEffect(() => {
-    if (!sessionLoaded) {
-      return
-    }
-
-    const visibleMsgs = messages.filter((m) => m.role !== 'system')
-    if (visibleMsgs.length < 2) {
-      return
-    }
-
-    const now = Date.now()
-    if (now - lastUpdateRef.current < 30000) {
-      return
-    }
-
-    const lastMsg = visibleMsgs[visibleMsgs.length - 1]
-    if (lastMsg?.role !== 'assistant' || !lastMsg.content || lastMsg.content.length < 50) {
-      return
-    }
-
-    lastUpdateRef.current = now
-
-    fetch('/api/persona-memory/update-from-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: sessionIdRef.current,
-        locale: lang || 'ko',
-        messages: visibleMsgs,
-        saju: saju || undefined,
-        astro: astro || undefined,
-      }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          logger.debug('[Chat] PersonaMemory auto-updated')
-        }
-      })
-      .catch((error) => {
-        logger.warn('[Chat] Failed to update PersonaMemory:', error)
-      })
-  }, [messages, sessionLoaded, lang, saju, astro, sessionIdRef])
-
-  const returningSummary = React.useMemo(
-    () => buildReturningSummary(userContext?.persona, lang),
-    [userContext?.persona, lang]
-  )
-
-  React.useEffect(() => {
-    if (!returningSummary) {
-      return
-    }
-
-    setMessages((prev) => {
-      const alreadyHas = prev.some(
-        (message) => message.role === 'system' && message.content.includes('Returning context')
-      )
-      if (alreadyHas) {
-        return prev
-      }
-      return [{ role: 'system', content: `Returning context: ${returningSummary}` }, ...prev]
-    })
-  }, [returningSummary, setMessages])
 
   useSeedEvent({
     eventName: seedEvent,

@@ -18,27 +18,6 @@ import {
 } from './premiumNotifications'
 import { getUserCredits, getCreditBalance } from '@/lib/credits/creditService'
 
-// Types for persona memory JSON fields (matches SajuData/AstrologyData in dailyTransitNotifications)
-interface SajuProfileData {
-  dayMaster?: string
-  pillars?: {
-    year?: { heavenlyStem?: string; earthlyBranch?: string }
-    month?: { heavenlyStem?: string; earthlyBranch?: string }
-    day?: { heavenlyStem?: string; earthlyBranch?: string }
-    hour?: { heavenlyStem?: string; earthlyBranch?: string }
-  }
-  unse?: {
-    iljin?: unknown
-    monthly?: unknown
-    yearly?: unknown
-  }
-}
-
-interface BirthChartData {
-  transits?: unknown[]
-  planets?: unknown[]
-}
-
 // Type guard for web-push errors
 interface WebPushError extends Error {
   statusCode?: number
@@ -214,12 +193,6 @@ export async function sendScheduledNotifications(hour: number): Promise<{
           birthTime: true,
         },
       },
-      personaMemory: {
-        select: {
-          sajuProfile: true,
-          birthChart: true,
-        },
-      },
       credits: {
         select: {
           plan: true,
@@ -246,20 +219,11 @@ export async function sendScheduledNotifications(hour: number): Promise<{
 
   for (const user of users) {
     try {
-      const sajuProfile = (user.personaMemory?.sajuProfile as SajuProfileData) || {}
-      const birthChart = (user.personaMemory?.birthChart as BirthChartData) || {}
-
-      // 운세 알림 생성
+      // 운세 알림 생성 — PersonaMemory에 캐싱하던 사주/차트 값은 더 이상
+      // 저장하지 않는다. 알림은 birthDate 기반의 일반 운세만 발송.
       const fortuneNotifications = generateDailyNotifications(
-        {
-          dayMaster: sajuProfile.dayMaster,
-          pillars: sajuProfile.pillars,
-          unse: sajuProfile.unse,
-        },
-        {
-          transits: birthChart.transits,
-          planets: birthChart.planets,
-        },
+        {},
+        {},
         {
           birthDate: user.profile!.birthDate!,
           birthTime: user.profile?.birthTime || undefined,
@@ -421,23 +385,9 @@ export async function previewUserNotifications(userId: string): Promise<DailyNot
     return []
   }
 
-  const memory = await prisma.personaMemory.findUnique({
-    where: { userId },
-  })
-
-  const sajuProfile = (memory?.sajuProfile as SajuProfileData) || {}
-  const birthChart = (memory?.birthChart as BirthChartData) || {}
-
   return generateDailyNotifications(
-    {
-      dayMaster: sajuProfile.dayMaster,
-      pillars: sajuProfile.pillars,
-      unse: sajuProfile.unse,
-    },
-    {
-      transits: birthChart.transits,
-      planets: birthChart.planets,
-    },
+    {},
+    {},
     {
       birthDate: user.profile.birthDate,
       birthTime: user.profile.birthTime || undefined,

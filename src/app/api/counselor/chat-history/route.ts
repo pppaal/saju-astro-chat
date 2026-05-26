@@ -5,7 +5,6 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
-import { deriveCounselorStorageSignals } from '@/lib/counselor/focusDomain'
 import {
   GetChatHistorySchema,
   PostChatHistorySchema,
@@ -24,62 +23,6 @@ function truncateChatTitle(raw: string): string {
   const cleaned = raw.replace(/\s+/g, ' ').trim()
   if (cleaned.length <= CHAT_TITLE_MAX) return cleaned
   return `${cleaned.slice(0, CHAT_TITLE_MAX - 1).trim()}…`
-}
-
-function mergeAndLimit(items: string[], max: number): string[] {
-  return [...new Set(items.filter(Boolean))].slice(0, max)
-}
-
-function countOccurrences(items: string[]): Record<string, number> {
-  return items.reduce(
-    (acc, item) => {
-      acc[item] = (acc[item] || 0) + 1
-      return acc
-    },
-    {} as Record<string, number>
-  )
-}
-
-async function syncPersonaMemoryTopics(params: {
-  userId: string
-  memoryTopics: string[]
-  incrementSessionCount: boolean
-}) {
-  const existingMemory = await prisma.personaMemory.findUnique({
-    where: { userId: params.userId },
-    select: {
-      sessionCount: true,
-      dominantThemes: true,
-      lastTopics: true,
-    },
-  })
-
-  const existingThemes = (existingMemory?.dominantThemes as string[] | null) || []
-  const existingLastTopics = (existingMemory?.lastTopics as string[] | null) || []
-  const dominantThemes = Object.entries(
-    countOccurrences([...existingThemes, ...params.memoryTopics])
-  )
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([topic]) => topic)
-  const lastTopics = mergeAndLimit([...params.memoryTopics, ...existingLastTopics], 5)
-
-  await prisma.personaMemory.upsert({
-    where: { userId: params.userId },
-    create: {
-      userId: params.userId,
-      sessionCount: 1,
-      dominantThemes,
-      lastTopics,
-    },
-    update: {
-      dominantThemes,
-      lastTopics,
-      ...(params.incrementSessionCount
-        ? { sessionCount: { increment: 1 } }
-        : { sessionCount: existingMemory?.sessionCount || 1 }),
-    },
-  })
 }
 
 // GET: 채팅 세션 히스토리 조회
@@ -103,40 +46,26 @@ export const GET = withApiMiddleware(
 
     const { limit } = validation.data
 
-      // 병렬 쿼리: 채팅 세션 + 페르소나 메모리 동시 조회 (100-200ms 절약)
-      const [chatSessions, personaMemory] = await Promise.all([
-        prisma.counselorChatSession.findMany({
-          where: {
-            userId,
-          },
-          orderBy: { updatedAt: 'desc' },
-          take: limit,
-          select: {
-            id: true,
-            summary: true,
-            keyTopics: true,
-            messageCount: true,
-            lastMessageAt: true,
-            createdAt: true,
-            messages: true,
-          },
-        }),
-        prisma.personaMemory.findUnique({
-          where: { userId },
-          select: {
-            sessionCount: true,
-            lastTopics: true,
-            recurringIssues: true,
-            emotionalTone: true,
-          },
-        }),
-      ]);
+    const chatSessions = await prisma.counselorChatSession.findMany({
+      where: {
+        userId,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        summary: true,
+        keyTopics: true,
+        messageCount: true,
+        lastMessageAt: true,
+        createdAt: true,
+        messages: true,
+      },
+    })
 
     return NextResponse.json({
       success: true,
       sessions: chatSessions,
-      persona: personaMemory,
-      isReturningUser: (personaMemory?.sessionCount || 0) > 0,
     })
   },
   createAuthenticatedGuard({
@@ -173,10 +102,6 @@ export const POST = withApiMiddleware(
 
     const { sessionId, locale, userMessage, assistantMessage, type, meta } = validation.data
     const sessionType = type ?? 'destiny'
-    const initialSignals = deriveCounselorStorageSignals({
-      lastUserMessage: userMessage || null,
-    })
-    const initialMemoryTopics = initialSignals.memoryTopics
 
       const now = new Date()
       const newMessages: ChatMessage[] = []
@@ -213,14 +138,6 @@ export const POST = withApiMiddleware(
 
         const existingMessages = (existingSession.messages as ChatMessage[]) || []
         const updatedMessages = [...existingMessages, ...newMessages]
-        const lastUserContent =
-          [...updatedMessages].reverse().find((message) => message.role === 'user')?.content ||
-          userMessage ||
-          null
-        const storageSignals = deriveCounselorStorageSignals({
-          lastUserMessage: lastUserContent,
-        })
-        const memoryTopics = storageSignals.memoryTopics
 
         // Backfill title from the first user turn for rows that
         // predate the auto-titler. Sidebar otherwise shows "Untitled
@@ -241,16 +158,6 @@ export const POST = withApiMiddleware(
             ...(backfillTitle ? { title: backfillTitle } : {}),
           },
         });
-
-        // Persona memory is destiny-counselor specific (single-user
-        // recall). Compat sessions describe couple dynamics — skip.
-        if (sessionType === 'destiny') {
-          await syncPersonaMemoryTopics({
-            userId,
-            memoryTopics,
-            incrementSessionCount: false,
-          })
-        }
 
         return NextResponse.json({
           success: true,
@@ -277,15 +184,6 @@ export const POST = withApiMiddleware(
             lastMessageAt: now,
           },
         })
-
-        // Persona memory is destiny-only.
-        if (sessionType === 'destiny') {
-          await syncPersonaMemoryTopics({
-            userId,
-            memoryTopics: initialMemoryTopics,
-            incrementSessionCount: true,
-          })
-        }
 
         return NextResponse.json({
           success: true,
@@ -349,14 +247,6 @@ export const PATCH = withApiMiddleware(
           ...(keyTopics && { keyTopics }),
         },
       });
-
-      if (keyTopics?.length) {
-        await syncPersonaMemoryTopics({
-          userId,
-          memoryTopics: mergeAndLimit(keyTopics, 6),
-          incrementSessionCount: false,
-        })
-      }
 
     return NextResponse.json({
       success: true,

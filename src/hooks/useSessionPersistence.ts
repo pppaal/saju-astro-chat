@@ -12,11 +12,8 @@ interface UseSessionPersistenceOptions {
   sessionId: string
   storageKey?: string
   enableDbPersistence?: boolean
-  enablePersonaMemory?: boolean
   sessionLoaded: boolean
   lang?: string
-  saju?: unknown
-  astro?: unknown
 }
 
 export function useSessionPersistence(options: UseSessionPersistenceOptions): { saveError: string | null } {
@@ -25,15 +22,11 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
     sessionId,
     storageKey,
     enableDbPersistence = false,
-    enablePersonaMemory = false,
     sessionLoaded,
     lang = 'ko',
-    saju,
-    astro,
   } = options
 
   const [saveError, setSaveError] = useState<string | null>(null)
-  const lastPersonaUpdateRef = useRef<number>(0)
 
   // Persist messages to sessionStorage (debounced to avoid blocking main thread)
   const sessionSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -89,50 +82,6 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
 
     return () => clearTimeout(saveTimer)
   }, [messages, sessionLoaded, lang, enableDbPersistence, sessionId])
-
-  // Auto-update PersonaMemory
-  useEffect(() => {
-    if (!enablePersonaMemory || !sessionLoaded) {
-      return
-    }
-
-    const visibleMsgs = messages.filter((m) => m.role !== 'system')
-    if (visibleMsgs.length < 2) {
-      return
-    }
-
-    const now = Date.now()
-    if (now - lastPersonaUpdateRef.current < 30000) {
-      return // Throttle to max once per 30s
-    }
-
-    const lastMsg = visibleMsgs[visibleMsgs.length - 1]
-    if (lastMsg?.role !== 'assistant' || !lastMsg.content || lastMsg.content.length < 50) {
-      return
-    }
-
-    lastPersonaUpdateRef.current = now
-
-    fetch('/api/persona-memory/update-from-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: sessionId,
-        locale: lang,
-        messages: visibleMsgs.slice(-200),
-        saju: saju || undefined,
-        astro: astro || undefined,
-      }),
-    })
-      .then((res) => {
-        if (res.ok) {
-          logger.debug('[useChatSession] PersonaMemory updated')
-        }
-      })
-      .catch((e) => {
-        logger.warn('[useChatSession] Failed to update PersonaMemory:', e)
-      })
-  }, [messages, sessionLoaded, lang, saju, astro, enablePersonaMemory, sessionId])
 
   return { saveError }
 }
