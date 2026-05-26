@@ -108,6 +108,14 @@ function streamJsonPayload(
   })
 }
 
+// Vercel 런타임 설정 — 누락되면 default 10s 함수 timeout 에 걸려 Claude
+// 응답 받기 전에 함수가 죽는다 (운영에서 "카드를 해석하고 있어요..." 무한
+// 루프의 원인이었음). counselor/realtime 과 동일하게 nodejs runtime,
+// force-dynamic, 60s maxDuration 으로 통일.
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
   let creditCost = 1
