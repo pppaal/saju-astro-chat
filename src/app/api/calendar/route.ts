@@ -434,17 +434,14 @@ export const GET = withApiMiddleware(
     // cycleRelations)만으로 구성된다. matrix가 주던 국면/evidence 코어 요약은
     // 더 이상 계산하지 않으며, 관련 변수는 null로 남아 다운스트림이 graceful degrade한다.
 
-    // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
-    // 1년 전체 365일을 v2 셀 점수로 채워 yearlyDates의 narrative grade·title·
-    // description이 모두 같은 점수 모델(=v2 cell.derivedScore)로 만들어지게 한다.
-    // 이전엔 ±1달만 v2였고 나머지 10개월은 v3 blend((engineSub+transitSub)/2)라
-    // 같은 사용자가 1월 보다가 4월 가면 점수 모델이 바뀌어 들쭉날쭉했다.
-    // 비용: cold 시 12 build × ~150ms. 캐시(cell-cache in-memory + DB)로 warm은 즉시.
-    const engineScoreByDate: Record<string, number> = {}
+    // v2 엔진 본명 컨텍스트는 prescore + augment 두 블록이 같이 쓰니 한 번만 빌드.
+    // 이전엔 두 곳에서 각각 호출해 Swiss Ephemeris를 2번 돌려 cold ~300ms 손해.
+    let sharedCeNatal: Awaited<
+      ReturnType<typeof import('@/lib/calendar-engine/context/build').buildNatalContext>
+    > | null = null
     try {
       const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
-      const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
-      const ceNatal = await buildNatalContext(
+      sharedCeNatal = await buildNatalContext(
         {
           birthDate: birthDateParam,
           birthTime: birthTimeParam || '12:00',
@@ -460,6 +457,24 @@ export const GET = withApiMiddleware(
             : undefined,
         }
       )
+    } catch (err) {
+      logger.warn?.(
+        '[calendar-engine v2 natal-context] failed:',
+        err instanceof Error ? err.message : String(err)
+      )
+    }
+
+    // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
+    // 1년 전체 365일을 v2 셀 점수로 채워 yearlyDates의 narrative grade·title·
+    // description이 모두 같은 점수 모델(=v2 cell.derivedScore)로 만들어지게 한다.
+    // 이전엔 ±1달만 v2였고 나머지 10개월은 v3 blend((engineSub+transitSub)/2)라
+    // 같은 사용자가 1월 보다가 4월 가면 점수 모델이 바뀌어 들쭉날쭉했다.
+    // 비용: cold 시 12 build × ~150ms. 캐시(cell-cache in-memory + DB)로 warm은 즉시.
+    const engineScoreByDate: Record<string, number> = {}
+    try {
+      if (!sharedCeNatal) throw new Error('natal context unavailable')
+      const ceNatal = sharedCeNatal
+      const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
       const birthKey = makeBirthKey({
         birthDate: birthDateParam,
         birthTime: birthTimeParam || '12:00',
@@ -573,27 +588,8 @@ export const GET = withApiMiddleware(
     // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
     // 실패해도 기존 응답 그대로 반환. UI는 새 필드 없으면 기존 동작 유지.
     try {
-      const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
-      // 본명 차트 재사용 — 기존 엔진이 이미 계산했다면 Swiss Ephemeris 재호출 방지.
-      // astroProfile.natalChart가 있으면 그것 전달 (없으면 buildNatalContext가 직접 계산).
-      const ceNatal = await buildNatalContext(
-        {
-          birthDate: birthDateParam,
-          birthTime: birthTimeParam || '12:00',
-          gender: gender.toLowerCase() === 'female' ? 'female' : 'male',
-          latitude: coords.lat,
-          longitude: coords.lng,
-          timeZone: timezone,
-        },
-        {
-          saju: sajuResult,
-          // astroProfile.natalChart는 NatalChartData | null | 느슨한 shape의 union.
-          // NatalChartData만 buildNatalContext에 전달 (그 외엔 직접 계산하게 함).
-          astroChart: isNatalChartData(astroProfile.natalChart)
-            ? astroProfile.natalChart
-            : undefined,
-        }
-      )
+      if (!sharedCeNatal) throw new Error('natal context unavailable')
+      const ceNatal = sharedCeNatal
       // augment 윈도우는 12개월 전체 — prescore가 같은 12달을 이미 cell-cache에
       // 워밍업했으므로 여기서 다시 호출해도 모두 in-memory HIT(추가 비용 ~0). 이전엔
       // ±1달만 augment했어서 score는 365일 v2지만 narrative/engineSignals/matchedPatterns
