@@ -163,9 +163,16 @@ function groupIntoCells(
 
   // derivers — 점수·테마점수·패턴·요약 계산 (점수는 부산물)
   // 패턴을 먼저 검출하고, 점수 계산에 패턴 보너스 반영.
+  //
+  // score/pattern 입력에서 'saju-pattern'(본명 격국 — lifetime decadal layer로
+  // 평생 emit되는 배경 신호)을 제외한다. 그날 가변 신호가 아니라 본명 자체
+  // 표지라 score/pattern 매칭에 넣으면 모든 셀에 같은 +impact를 깔아 강한 사주
+  // 사용자만 매일 좋음으로 inflate된다 ("다 좋네 ㅋ" 분포 편향). narrative
+  // (cell.signals 그대로 노출)에는 유지 — 사용자가 본명 격국을 카드에서 확인.
   for (const cell of cells.values()) {
-    cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(cell.signals)
-    cell.derivedScore = deriveScore(cell.signals, cell.matchedPatterns)
+    const scoreSignals = cell.signals.filter((s) => s.kind !== 'saju-pattern')
+    cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(scoreSignals)
+    cell.derivedScore = deriveScore(scoreSignals, cell.matchedPatterns)
     cell.themeScores = deriveThemeScores(cell.signals)
     cell.topReasons = deriveTopReasons(cell.signals)
     cell.cautions = deriveCautions(cell.signals)
