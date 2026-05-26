@@ -20,7 +20,7 @@ const KO_COMPAT_FALLBACKS: Record<string, string> = {
   'compatibilityPage.backToForm': '뒤로',
   'compatibilityPage.title': '관계 궁합',
   'compatibilityPage.subtitle': '마음과 마음 사이의 우주적 연결을 탐험하세요',
-  'compatibilityPage.loadMyProfile': '내 프로필',
+  'compatibilityPage.loadMyProfile': '내 정보',
 }
 
 export default function CompatPage() {
@@ -29,8 +29,10 @@ export default function CompatPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
 
-  const { count, persons, setPersons, updatePerson, fillFromCircle } =
-    useCompatibilityForm(2, normalizedLocale)
+  const { count, persons, setPersons, updatePerson, fillFromCircle } = useCompatibilityForm(
+    2,
+    normalizedLocale
+  )
 
   useCityAutocomplete(persons, setPersons)
 

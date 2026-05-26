@@ -1,7 +1,7 @@
 {
   "common": {
     "loading": "Loading...",
-    "loadMyProfile": "Load My Profile",
+    "loadMyProfile": "Load My Info",
     "profileLoaded": "Profile loaded!",
     "change": "Change",
     "copy": "Copy",
@@ -42,7 +42,7 @@
     "other": "Other",
     "preferNot": "Prefer not to say",
     "analyze": "Analyze",
-    "loadMyProfile": "Load My Profile",
+    "loadMyProfile": "Load My Info",
     "loadingProfile": "Loading...",
     "profileLoaded": "Profile Loaded!",
     "profileLoadedSuccess": "Profile loaded successfully."

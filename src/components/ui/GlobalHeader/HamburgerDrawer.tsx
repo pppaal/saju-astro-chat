@@ -251,7 +251,7 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/[0.06]"
               >
                 <span aria-hidden="true">👤</span>
-                <span className="text-sm">{isKo ? '내 프로필' : 'My Profile'}</span>
+                <span className="text-sm">{isKo ? '내 정보' : 'My Info'}</span>
               </Link>
               <Link
                 href="/pricing"
@@ -259,7 +259,7 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/[0.06]"
               >
                 <span aria-hidden="true">💳</span>
-                <span className="text-sm">{isKo ? '요금제' : 'Pricing'}</span>
+                <span className="text-sm">{isKo ? '크레딧 충전' : 'Recharge Credits'}</span>
               </Link>
               {isAuthed && (
                 <button

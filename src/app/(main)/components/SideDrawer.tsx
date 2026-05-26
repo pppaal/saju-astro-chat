@@ -104,7 +104,9 @@ export default function SideDrawer({ open, onClose, locale }: SideDrawerProps) {
                 background: 'rgba(255,255,255,0.04)',
               }}
             >
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>
+              <p
+                style={{ margin: 0, fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}
+              >
                 {isKo ? '로그인하고 계속하기' : 'Sign in to continue'}
               </p>
               <button
@@ -197,9 +199,7 @@ export default function SideDrawer({ open, onClose, locale }: SideDrawerProps) {
 
         {/* Services */}
         <div className={styles.drawerSection}>
-          <p className={styles.drawerSectionTitle}>
-            {locale === 'ko' ? '서비스' : 'Services'}
-          </p>
+          <p className={styles.drawerSectionTitle}>{locale === 'ko' ? '서비스' : 'Services'}</p>
           {ENABLED_SERVICES.map((service) => (
             <Link
               key={service.id}
@@ -215,22 +215,26 @@ export default function SideDrawer({ open, onClose, locale }: SideDrawerProps) {
 
         {/* Account */}
         <div className={styles.drawerSection}>
-          <p className={styles.drawerSectionTitle}>
-            {locale === 'ko' ? '계정' : 'Account'}
-          </p>
+          <p className={styles.drawerSectionTitle}>{locale === 'ko' ? '계정' : 'Account'}</p>
           <Link href="/profile" className={styles.drawerLink} onClick={onClose}>
             <span className={styles.drawerLinkIcon}>👤</span>
-            <span>{locale === 'ko' ? '내 프로필' : 'My Profile'}</span>
+            <span>{locale === 'ko' ? '내 정보' : 'My Info'}</span>
           </Link>
           <Link href="/pricing" className={styles.drawerLink} onClick={onClose}>
             <span className={styles.drawerLinkIcon}>💳</span>
-            <span>{locale === 'ko' ? '요금제' : 'Pricing'}</span>
+            <span>{locale === 'ko' ? '크레딧 충전' : 'Recharge Credits'}</span>
           </Link>
           {isAuthed && (
             <button
               type="button"
               className={styles.drawerLink}
-              style={{ background: 'transparent', border: 'none', textAlign: 'left', width: '100%', cursor: 'pointer' }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                textAlign: 'left',
+                width: '100%',
+                cursor: 'pointer',
+              }}
               onClick={() => {
                 onClose()
                 void signOut({ callbackUrl: '/' })

@@ -40,7 +40,7 @@
       "secureNote": "안전한 OAuth - 비밀번호 불필요"
     },
     "profile": {
-      "title": "내 프로필",
+      "title": "내 정보",
       "desc": "생년월일 및 설정"
     },
     "circle": {
@@ -193,7 +193,7 @@
     }
   },
   "profile": {
-    "title": "내 프로필",
+    "title": "내 정보",
     "subtitle": "개인정보를 관리하세요",
     "notEntered": "미입력",
     "saveProfile": "프로필 저장",

@@ -185,7 +185,7 @@ export const PersonCard = React.memo<PersonCardProps>(
                   ) : (
                     <User className="h-3 w-3" />
                   )}
-                  {t('compatibilityPage.loadMyProfile', '내 프로필')}
+                  {t('compatibilityPage.loadMyProfile', '내 정보')}
                 </button>
               )}
               {/* `data-circle-dropdown` 필수: useMyCircle 의 document
@@ -206,8 +206,8 @@ export const PersonCard = React.memo<PersonCardProps>(
                     {circlePeople.length === 0 ? (
                       <li className="px-3 py-2.5 text-[12px] leading-relaxed text-[#a8a29e]">
                         {isKo
-                          ? '저장된 지인이 없어요. 내 프로필에서 지인을 추가해 보세요.'
-                          : 'No saved people yet. Add people from your profile.'}
+                          ? '저장된 지인이 없어요. 내 정보에서 지인을 추가해 보세요.'
+                          : 'No saved people yet. Add people from your info.'}
                       </li>
                     ) : (
                       circlePeople.map((cp) => (

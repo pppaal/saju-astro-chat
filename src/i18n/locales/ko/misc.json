@@ -83,7 +83,7 @@
     "ourService": "서비스",
     "start": "시작",
     "about": "소개",
-    "pricing": "요금",
+    "pricing": "크레딧 충전",
     "blog": "블로그",
     "comingSoon": "준비중",
     "loggedIn": "로그인됨",
@@ -186,6 +186,6 @@
     "destinyMatchBody": "궁합 매칭을 확인하고 대화를 시작하려면 로그인해 주세요.",
     "primaryCta": "로그인",
     "secondaryCta": "운명 지도 보기",
-    "secondaryPricingCta": "요금제 보기"
+    "secondaryPricingCta": "크레딧 충전"
   }
 }
