@@ -152,8 +152,13 @@ export const ChatInputArea = React.memo(function ChatInputArea({
         />
         <div className={styles.inputBoxActions}>
           <div className={styles.inputBoxActionsLeft}>
-            <label className={styles.attachButton} aria-label={tr.uploadCv} title={tr.uploadCv}>
+            <label
+              className={`${styles.attachButton} ${styles.toolWithLabel}`}
+              aria-label={tr.uploadCv}
+              title={tr.uploadCv}
+            >
               <span aria-hidden="true">&#x1F4CE;</span>
+              <span className={styles.toolLabel}>{lang === 'ko' ? '파일' : 'File'}</span>
               <input
                 type="file"
                 accept=".txt,.md,.csv,.pdf"
