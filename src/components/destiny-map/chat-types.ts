@@ -180,6 +180,8 @@ export interface ChatPayload {
   longitude?: number
   gender?: string
   city?: string
+  /** 기기(브라우저) 현재 시간대 — 서버가 "오늘"/일진을 사용자 로컬 날짜로 계산. */
+  userTimezone?: string
   lang: LangKey
   messages: Message[]
   cvText?: string
