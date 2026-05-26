@@ -15,6 +15,7 @@ import {
 import { logger } from '@/lib/logger'
 import { apiFetch } from '@/lib/api'
 import { useCreditModal } from '@/contexts/CreditModalContext'
+import { extractPartialOverall, extractPartialCardTexts } from '@/lib/tarot/partialJsonParse'
 import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
 type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
@@ -215,9 +216,11 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
           throw new Error(`Interpretation failed (${res.status})`)
         }
 
-        // SSE: accumulate `data: { content: "..." }` events into a single
-        // JSON blob, then parse once at the end. interpret-stream returns
-        // `{ overall, cards: [{ position, interpretation }], advice }`.
+        // SSE: 토큰 delta 가 도착할 때마다 progressive 로 부분 JSON 을
+        // 파싱해 overallMessage / cardInsights 를 갱신한다 (메인 타로 페이지의
+        // useTarotInterpretation 과 동일한 패턴). 이러면 사용자는 모달이
+        // 멈춘 게 아니라 텍스트가 흐르는 걸 본다 — '예상보다 오래 걸리고
+        // 있어요' 안 띄움.
         const reader = res.body?.getReader()
         if (!reader) {
           throw new Error('No response body')
@@ -225,21 +228,50 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
         const decoder = new TextDecoder()
         let accumulated = ''
         let buf = ''
+        let lastOverallEmit = ''
+        let lastCardCount = 0
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
           buf += decoder.decode(value, { stream: true })
           const lines = buf.split('\n')
           buf = lines.pop() || ''
+          let changed = false
           for (const line of lines) {
             if (!line.startsWith('data: ')) continue
             const data = line.slice(6)
             if (data === '[DONE]') continue
             try {
               const ev = JSON.parse(data) as { content?: string }
-              if (ev.content) accumulated += ev.content
+              if (ev.content) {
+                accumulated += ev.content
+                changed = true
+              }
             } catch {
               // ignore partial chunks
+            }
+          }
+          if (changed) {
+            // overall 부분 streaming → UI 즉시 갱신.
+            const partialOverall = extractPartialOverall(accumulated)
+            if (partialOverall && partialOverall !== lastOverallEmit) {
+              lastOverallEmit = partialOverall
+              actions.setOverallMessage(partialOverall)
+            }
+            // 카드별 해석도 progressive — 새 카드 도착마다 insights 갱신.
+            const partialCards = extractPartialCardTexts(accumulated)
+            if (partialCards.length !== lastCardCount) {
+              lastCardCount = partialCards.length
+              const progressiveInsights: CardInsight[] = cards.map((dc, idx) => ({
+                position:
+                  (lang === 'ko'
+                    ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
+                    : selectedSpread.positions[idx]?.title) || `${idx + 1}`,
+                card_name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
+                is_reversed: dc.isReversed,
+                interpretation: partialCards[idx] || staticCardMeaning(dc),
+              }))
+              actions.setCardInsights(progressiveInsights)
             }
           }
         }
