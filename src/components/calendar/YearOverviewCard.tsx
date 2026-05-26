@@ -124,7 +124,7 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
             <TrendingUp className="w-3.5 h-3.5" /> 월별 흐름
           </div>
           <ResponsiveContainer width="100%" height={170}>
-            <AreaChart data={chartData} margin={{ top: 8, right: 36, left: -14, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 26, right: 36, left: -14, bottom: 0 }}>
               <defs>
                 <linearGradient id="yearFlow" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#818cf8" stopOpacity={0.42} />

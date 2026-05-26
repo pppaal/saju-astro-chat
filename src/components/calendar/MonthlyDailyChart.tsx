@@ -73,7 +73,7 @@ export default function MonthlyDailyChart({ monthDates, viewYear, viewMonth, onD
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart
           data={data}
-          margin={{ top: 10, right: 24, left: -10, bottom: 0 }}
+          margin={{ top: 26, right: 24, left: -10, bottom: 0 }}
           onClick={(e) => {
             if (!onDayClick) return
             const p = (e as unknown as { activePayload?: Array<{ payload?: { day?: number } }> })
