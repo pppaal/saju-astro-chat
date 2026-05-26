@@ -12,16 +12,6 @@ import {
   chatMessageSchema,
   paginationQuerySchema,
 } from './common'
-import {
-  sajuChatContextSchema,
-  sajuPillarsSchema,
-  fiveElementsDistributionSchema,
-} from './domains/saju-domain'
-import {
-  astrologyChartFactsSchema,
-  planetHousesSchema,
-  planetSignsSchema,
-} from './domains/astro-domain'
 
 // ============ Auth Schemas ============
 
@@ -60,88 +50,6 @@ export const userBirthInfoUpdateSchema = z.object({
 })
 
 export type UserBirthInfoUpdateValidated = z.infer<typeof userBirthInfoUpdateSchema>
-
-// ============ Persona Memory Schemas ============
-
-export const birthChartMemorySchema = z.object({
-  sunSign: z.string().max(30).optional(),
-  moonSign: z.string().max(30).optional(),
-  ascendant: z.string().max(30).optional(),
-  dominantElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
-  dominantModality: z.enum(['cardinal', 'fixed', 'mutable']).optional(),
-  planetHouses: planetHousesSchema.optional(),
-})
-
-export const sajuProfileMemorySchema = z.object({
-  dayMaster: z.string().max(10).optional(),
-  dayMasterElement: z.enum(['목', '화', '토', '금', '수']).optional(),
-  dominantElement: z.enum(['목', '화', '토', '금', '수']).optional(),
-  yongsin: z.string().max(10).optional(),
-  geokguk: z.string().max(50).optional(),
-  pillars: z
-    .object({
-      year: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
-      month: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
-      day: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
-      time: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
-    })
-    .optional(),
-})
-
-export const personaMemoryPostSchema = z.object({
-  dominantThemes: z.array(z.string().max(200)).max(50).optional(),
-  keyInsights: z.array(z.string().max(1000)).max(50).optional(),
-  emotionalTone: z
-    .enum(['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful'])
-    .optional(),
-  growthAreas: z.array(z.string().max(200)).max(50).optional(),
-  lastTopics: z.array(z.string().max(200)).max(50).optional(),
-  recurringIssues: z.array(z.string().max(500)).max(50).optional(),
-  birthChart: birthChartMemorySchema.optional(),
-  sajuProfile: sajuProfileMemorySchema.optional(),
-})
-
-const personaMemoryPatchDataSchema = z.object({
-  insight: z.string().max(1000).optional(),
-  growthArea: z.string().max(200).optional(),
-  recurringIssue: z.string().max(500).optional(),
-  emotionalTone: z
-    .enum(['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful'])
-    .optional(),
-  birthChart: birthChartMemorySchema.optional(),
-  sajuProfile: sajuProfileMemorySchema.optional(),
-})
-
-export const personaMemoryPatchSchema = z.object({
-  action: z.enum([
-    'add_insight',
-    'add_growth_area',
-    'add_recurring_issue',
-    'update_emotional_tone',
-    'increment_session',
-    'update_birth_chart',
-    'update_saju_profile',
-  ]),
-  data: personaMemoryPatchDataSchema.optional(),
-})
-
-export const personaMemoryUpdateSchema = z.object({
-  sessionId: z.string().min(1).max(200).trim(),
-  theme: z.string().min(1).max(100).trim(),
-  locale: localeSchema,
-  messages: z.array(chatMessageSchema).min(1).max(200),
-  saju: sajuChatContextSchema.optional(),
-  astro: z
-    .object({
-      sunSign: z.string().max(30).optional(),
-      moonSign: z.string().max(30).optional(),
-      ascendant: z.string().max(30).optional(),
-      dominantElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
-    })
-    .optional(),
-})
-
-export type PersonaMemoryUpdateValidated = z.infer<typeof personaMemoryUpdateSchema>
 
 // ============ Notification Schemas ============
 

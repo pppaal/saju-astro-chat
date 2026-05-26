@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
 import { logger } from "@/lib/logger";
-import { deriveCounselorStorageSignals } from "@/lib/counselor/focusDomain";
 
 interface SaveConsultationParams {
   userId: string;
@@ -14,8 +13,7 @@ interface SaveConsultationParams {
 }
 
 /**
- * 상담 기록 저장 및 페르소나 기억 업데이트
- * 서버 사이드에서만 호출 가능
+ * 상담 기록 저장 (서버 사이드 전용)
  */
 export async function saveConsultation(params: SaveConsultationParams) {
   const {
@@ -29,12 +27,6 @@ export async function saveConsultation(params: SaveConsultationParams) {
   } = params;
 
   try {
-    const storageSignals = deriveCounselorStorageSignals({
-      lastUserMessage: userQuestion || null,
-    });
-    const primaryTopic = storageSignals.memoryTopics[0] || storageSignals.analysis.primaryDomain;
-
-    // 1. 상담 기록 저장
     const consultation = await prisma.consultationHistory.create({
       data: {
         userId,
@@ -47,76 +39,11 @@ export async function saveConsultation(params: SaveConsultationParams) {
       },
     });
 
-    // 2. 페르소나 기억 업데이트
-    await updatePersonaMemory(userId, primaryTopic);
-
     return { success: true, consultationId: consultation.id };
   } catch (err) {
     logger.error("[saveConsultation error]", err);
     // 저장 실패해도 에러를 throw하지 않음 (메인 기능에 영향 주지 않음)
     return { success: false, error: err };
-  }
-}
-
-/**
- * 페르소나 기억 업데이트 헬퍼
- * - 세션 카운트 증가
- * - 테마를 dominantThemes, lastTopics에 추가
- */
-async function updatePersonaMemory(userId: string, topic: string) {
-  try {
-    const existing = await prisma.personaMemory.findUnique({
-      where: { userId },
-    });
-
-    if (existing) {
-      const currentThemes = (existing.dominantThemes as string[]) || [];
-      const lastTopics = (existing.lastTopics as string[]) || [];
-
-      // 테마 빈도 업데이트
-      if (!currentThemes.includes(topic)) {
-        currentThemes.push(topic);
-      }
-
-      // 최근 토픽 업데이트 (최대 10개, 중복 제거)
-      const updatedLastTopics = [topic, ...lastTopics.filter((t) => t !== topic)].slice(0, 10);
-
-      await prisma.personaMemory.update({
-        where: { userId },
-        data: {
-          dominantThemes: currentThemes,
-          lastTopics: updatedLastTopics,
-          sessionCount: existing.sessionCount + 1,
-        },
-      });
-    } else {
-      // 새 기억 생성
-      await prisma.personaMemory.create({
-        data: {
-          userId,
-          dominantThemes: [topic],
-          lastTopics: [topic],
-          sessionCount: 1,
-        },
-      });
-    }
-  } catch (err) {
-    logger.error("[updatePersonaMemory error]", err);
-  }
-}
-
-/**
- * 사용자의 페르소나 기억 조회
- */
-export async function getPersonaMemory(userId: string) {
-  try {
-    const memory = await prisma.personaMemory.findUnique({
-      where: { userId },
-    });
-    return memory;
-  } catch (err) {
-    logger.error("[getPersonaMemory error]", err);
-    return null;
   }
 }
 

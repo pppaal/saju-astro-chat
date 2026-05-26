@@ -400,16 +400,6 @@ export function useCounselorData(sp: SearchParams) {
         if (res.ok) {
           const data = (await res.json()) as CounselorContextResponse
           if (data.success) {
-            // Add persona memory if available
-            if (data.persona) {
-              context.persona = {
-                sessionCount: data.persona.sessionCount,
-                lastTopics: data.persona.lastTopics,
-                emotionalTone: data.persona.emotionalTone,
-                recurringIssues: data.persona.recurringIssues,
-              }
-            }
-
             // Add recent session summaries
             const sessions = Array.isArray(data.sessions) ? data.sessions : []
             if (sessions.length > 0) {
@@ -429,8 +419,6 @@ export function useCounselorData(sp: SearchParams) {
 
             setUserContext(context)
             logger.warn('[Counselor] User context loaded:', {
-              isReturningUser: data.isReturningUser,
-              sessionCount: context.persona?.sessionCount,
               recentSessions: context.recentSessions?.length || 0,
             })
           }

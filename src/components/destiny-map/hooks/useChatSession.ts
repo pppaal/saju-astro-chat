@@ -12,8 +12,6 @@ import type { SessionItem } from '../modals/HistoryModal'
 interface UseChatSessionOptions {
   lang: string
   initialContext?: string
-  saju?: unknown
-  astro?: unknown
 }
 
 interface UseChatSessionReturn {
@@ -43,7 +41,7 @@ function generateSessionId(): string {
  * Hook for managing chat session state and persistence
  */
 export function useChatSession(options: UseChatSessionOptions): UseChatSessionReturn {
-  const { lang, initialContext, saju, astro } = options
+  const { lang, initialContext } = options
 
   const sessionIdRef = React.useRef<string>(generateSessionId())
   const [messages, setMessages] = React.useState<Message[]>(
@@ -88,50 +86,6 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
 
     return () => clearTimeout(saveTimer)
   }, [messages, sessionLoaded, lang])
-
-  // Auto-update PersonaMemory after conversation
-  const lastUpdateRef = React.useRef<number>(0)
-  React.useEffect(() => {
-    if (!sessionLoaded) {
-      return
-    }
-    const visibleMsgs = messages.filter((m) => m.role !== 'system')
-    if (visibleMsgs.length < 2) {
-      return
-    }
-
-    const now = Date.now()
-    if (now - lastUpdateRef.current < 30000) {
-      return
-    }
-
-    const lastMsg = visibleMsgs[visibleMsgs.length - 1]
-    if (lastMsg?.role !== 'assistant' || !lastMsg.content || lastMsg.content.length < 50) {
-      return
-    }
-
-    lastUpdateRef.current = now
-
-    fetch('/api/persona-memory/update-from-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: sessionIdRef.current,
-        locale: lang || 'ko',
-        messages: visibleMsgs,
-        saju: saju || undefined,
-        astro: astro || undefined,
-      }),
-    })
-      .then((res) => {
-        if (res.ok) {
-          logger.debug('[Chat] PersonaMemory auto-updated')
-        }
-      })
-      .catch((e) => {
-        logger.warn('[Chat] Failed to update PersonaMemory:', e)
-      })
-  }, [messages, sessionLoaded, lang, saju, astro])
 
   // Load session history
   const loadSessionHistory = React.useCallback(async () => {
