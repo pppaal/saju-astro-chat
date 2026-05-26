@@ -40,14 +40,8 @@ export interface UseChatSessionOptions {
   storageKey?: string
   /** Enable database persistence (auto-save) */
   enableDbPersistence?: boolean
-  /** Enable persona memory updates */
-  enablePersonaMemory?: boolean
   /** Language for DB persistence */
   lang?: string
-  /** Saju data for persona memory */
-  saju?: unknown
-  /** Astro data for persona memory */
-  astro?: unknown
 }
 
 /**
@@ -64,7 +58,6 @@ export function generateMessageId(): string {
  * - Message state management
  * - SessionStorage persistence (optional)
  * - Database persistence with auto-save (optional)
- * - PersonaMemory auto-update (optional)
  * - Session history loading
  * - Feedback management
  * - Follow-up questions
@@ -76,10 +69,7 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     initialFollowUps = [],
     storageKey,
     enableDbPersistence = false,
-    enablePersonaMemory = false,
     lang = 'ko',
-    saju,
-    astro,
   } = options
 
   // Session ID (stable across renders, but can be updated when loading a session)
@@ -131,21 +121,17 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     logger.debug('[useChatSession] Session ready', {
       sessionId,
       enableDbPersistence,
-      enablePersonaMemory,
     })
-  }, [sessionId, enableDbPersistence, enablePersonaMemory])
+  }, [sessionId, enableDbPersistence])
 
-  // Persistence effects (sessionStorage, DB auto-save, persona memory)
+  // Persistence effects (sessionStorage, DB auto-save)
   const { saveError } = useSessionPersistence({
     messages,
     sessionId,
     storageKey,
     enableDbPersistence,
-    enablePersonaMemory,
     sessionLoaded,
     lang,
-    saju,
-    astro,
   })
 
   // Session history CRUD operations

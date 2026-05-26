@@ -65,7 +65,6 @@ model User {
   interactions          UserInteraction[]
   preferences           UserPreferences?
   consultationHistory   ConsultationHistory[]
-  personaMemory         PersonaMemory?
   subscriptions         Subscription[]
   premiumContentAccess  PremiumContentAccess[]
   credits               UserCredits?
@@ -235,35 +234,6 @@ model SectionFeedback {
   @@index([sectionId, helpful])
   @@index([dayMaster])
   @@index([createdAt])
-}
-
-// 페르소나 기억 - 사용자별 맥락 정보 누적
-model PersonaMemory {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 핵심 맥락 정보
-  dominantThemes Json? // 자주 묻는 주제들 (예: ["love", "career"])
-  keyInsights    Json? // 중요한 통찰들 (예: ["그림자 작업 필요", "아니마 투사 경향"])
-  emotionalTone  String? // 전반적인 감정 톤 (예: "불안", "성장지향")
-  growthAreas    Json? // 성장 영역 (예: ["관계", "자기표현"])
-
-  // 상담 맥락
-  lastTopics      Json? // 최근 상담 주제들
-  recurringIssues Json? // 반복되는 이슈들
-  sessionCount    Int   @default(0) // 총 상담 횟수
-
-  // 회상 깊이 — 이전 질문·결정 verbatim 기록 (Tier 2A)
-  recentQuestions    Json? // 최근 사용자 질문 verbatim (최대 8개, 최신순)
-  decisionsMentioned Json? // 사용자가 언급한 결정·계획 (최대 8개, 최신순)
-
-  // 점성술/사주 핵심 정보 (캐싱)
-  birthChart  Json? // 핵심 차트 정보
-  sajuProfile Json? // 사주 프로필
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Decision Tracker (Tier 2B) — 사용자 결정 + 후속 검증

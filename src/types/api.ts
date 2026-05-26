@@ -47,13 +47,6 @@ export interface BirthInfo {
 // Counselor API Types
 // ============================================================
 
-export interface CounselorPersona {
-  sessionCount?: number
-  lastTopics?: string[]
-  emotionalTone?: string
-  recurringIssues?: string[]
-}
-
 export interface CounselorSession {
   id: string
   theme?: string
@@ -64,7 +57,6 @@ export interface CounselorSession {
 }
 
 export interface UserContext {
-  persona?: CounselorPersona
   recentSessions?: CounselorSession[]
   personalityType?: {
     typeCode: string
@@ -93,9 +85,7 @@ export interface CounselorInitResponse {
 
 export interface CounselorContextResponse {
   success: boolean
-  persona?: CounselorPersona
   sessions?: CounselorSession[]
-  isReturningUser?: boolean
   message?: string
 }
 
