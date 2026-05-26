@@ -467,43 +467,45 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
   const role = domKey !== selfKey ? sibsinRole(selfKey, domKey) : null
 
   if (isKo) {
+    // 호흡을 위해 lead 와 trait 를 한 문장으로(— 로 묶음), 주변 기운/별자리는
+    // 새 문장으로. 단순 마침표 나열보다 자연스러운 톤.
     const lead = iljuChar
-      ? `당신은 ${iljuChar} 유형이에요.`
-      : `당신은 ${getElementName(selfKey, true)} 기운의 사람이에요.`
-    const s2 = trait ? `${trait}.` : ''
-    const s3 = role ? `강한 ${domName} 기운은 ${ROLE_MEANING[role].ko}.` : ''
-    let s4 = ''
+      ? `당신은 ${iljuChar} 유형이에요`
+      : `당신은 ${getElementName(selfKey, true)} 기운의 사람이에요`
+    const s1 = trait ? `${lead} — ${trait}.` : `${lead}.`
+    const s2 = role ? `주변에는 ${domName} 기운이 강하게 흘러, ${ROLE_MEANING[role].ko}.` : ''
+    let s3 = ''
     if (sunName && moonName) {
       const meaning =
         sunEl && sunEl === moonEl
-          ? `둘 다 ${ELEM_LABEL_KO[sunEl]} 기운이고, ${ELEM_COMBO[sunEl].ko}`
+          ? `둘 다 ${ELEM_LABEL_KO[sunEl]} 기운이라 ${ELEM_COMBO[sunEl].ko}.`
           : sunEl && moonEl
-            ? `겉(태양 ${ELEM_LABEL_KO[sunEl]})과 속(달 ${ELEM_LABEL_KO[moonEl]})의 결이 달라 입체적이에요`
+            ? `겉(태양 ${ELEM_LABEL_KO[sunEl]})과 속(달 ${ELEM_LABEL_KO[moonEl]})의 결이 달라 입체적인 면이 있어요.`
             : ''
-      s4 = `태양 ${sunName}·달 ${moonName}${meaning ? ` — ${meaning}` : '에 있어요'}.`
+      s3 = `태양은 ${sunName}, 달은 ${moonName}에 있어요.${meaning ? ` ${meaning}` : ''}`
     } else if (sunName) {
-      s4 = `태양은 ${sunName}에 있어요.`
+      s3 = `태양은 ${sunName}에 있어요.`
     }
-    return [lead, s2, s3, s4].filter(Boolean).join(' ')
+    return [s1, s2, s3].filter(Boolean).join(' ')
   }
 
   const lower = (t: string) => (t ? t.charAt(0).toLowerCase() + t.slice(1) : t)
   const lead = iljuChar
     ? `At the core, ${lower(iljuChar)}`
-    : `${getElementName(selfKey, false)}-natured at the core.`
-  const s2 = trait ? `${trait}.` : ''
-  const s3 = role ? `Strong ${domName} energy here is ${ROLE_MEANING[role].en}.` : ''
-  let s4 = ''
+    : `${getElementName(selfKey, false)}-natured at the core`
+  const s1 = trait ? `${lead} — ${trait}.` : `${lead}.`
+  const s2 = role ? `Strong ${domName} energy runs around you — ${ROLE_MEANING[role].en}.` : ''
+  let s3 = ''
   if (sunName && moonName) {
     const meaning =
       sunEl && sunEl === moonEl
-        ? `both ${ELEM_LABEL_EN[sunEl]} — ${ELEM_COMBO[sunEl].en}`
+        ? `Both ${ELEM_LABEL_EN[sunEl]} — ${ELEM_COMBO[sunEl].en}.`
         : sunEl && moonEl
-          ? `outer (Sun ${ELEM_LABEL_EN[sunEl]}) and inner (Moon ${ELEM_LABEL_EN[moonEl]}) differ, adding range`
+          ? `Outer (Sun ${ELEM_LABEL_EN[sunEl]}) and inner (Moon ${ELEM_LABEL_EN[moonEl]}) differ, adding range.`
           : ''
-    s4 = `Sun in ${sunName}, Moon in ${moonName}${meaning ? ` — ${meaning}.` : '.'}`
+    s3 = `Sun in ${sunName}, Moon in ${moonName}.${meaning ? ` ${meaning}` : ''}`
   } else if (sunName) {
-    s4 = `Sun in ${sunName}.`
+    s3 = `Sun in ${sunName}.`
   }
-  return [lead, s2, s3, s4].filter(Boolean).join(' ')
+  return [s1, s2, s3].filter(Boolean).join(' ')
 }

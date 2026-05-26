@@ -28,14 +28,17 @@ interface SajuChartProps {
   lang?: 'ko' | 'en'
 }
 
+// 톤: 사용자 피드백 "어두워서 안 보임" → 진한 -950/50 톤을 옅은 pastel
+// (-50 ~ -100 bg) + 가독성 좋은 -700 글자로 교체. ChartModal 이 light 카드
+// 위에 얹는 구조라 light 톤이 자연스럽고, 오행 색 톤은 그대로 유지.
 const ELEMENT_STYLE: Record<string, { text: string; bg: string }> = {
-  목: { text: 'text-emerald-300', bg: 'bg-emerald-950/50' },
-  화: { text: 'text-rose-300', bg: 'bg-rose-950/50' },
-  토: { text: 'text-amber-300', bg: 'bg-amber-950/50' },
-  금: { text: 'text-slate-200', bg: 'bg-slate-800/60' },
-  수: { text: 'text-sky-300', bg: 'bg-sky-950/50' },
+  목: { text: 'text-emerald-700', bg: 'bg-emerald-50' },
+  화: { text: 'text-rose-700', bg: 'bg-rose-50' },
+  토: { text: 'text-amber-700', bg: 'bg-amber-50' },
+  금: { text: 'text-slate-700', bg: 'bg-slate-100' },
+  수: { text: 'text-sky-700', bg: 'bg-sky-50' },
 }
-const DEFAULT_STYLE = { text: 'text-slate-300', bg: 'bg-slate-800/50' }
+const DEFAULT_STYLE = { text: 'text-stone-700', bg: 'bg-stone-50' }
 
 // Hanja → Korean reading (신금 / 을목 / 해수)
 const STEM_READING: Record<string, string> = {
@@ -73,7 +76,7 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
 
   if (!pillars) {
     return (
-      <div className="rounded-xl border border-stone-700/50 bg-stone-900/40 p-4 text-center text-sm text-stone-400">
+      <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-center text-sm text-stone-500">
         {isKo ? '사주 정보가 아직 계산되지 않았습니다.' : 'Saju data is not ready yet.'}
       </div>
     )
@@ -95,7 +98,7 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
   }
 
   return (
-    <div className="grid grid-cols-4 gap-2 rounded-xl border border-stone-800 bg-stone-950/80 p-3 shadow-inner">
+    <div className="grid grid-cols-4 gap-2 rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
         {order.map(({ key, pillar, isMe, posKo, posEn }) => {
           const stem = pillar.heavenlyStem
           const branch = pillar.earthlyBranch
@@ -105,25 +108,25 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
             <div key={key} className="flex flex-col items-center gap-1.5">
               <div className="flex h-5 items-center justify-center">
                 {isMe ? (
-                  <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-bold text-rose-400">
+                  <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700">
                     {isKo ? posKo : posEn}
                   </span>
                 ) : (
-                  <span className="text-[11px] text-stone-500">{isKo ? posKo : posEn}</span>
+                  <span className="text-[11px] text-stone-600">{isKo ? posKo : posEn}</span>
                 )}
               </div>
               {[{ cell: stem, style: stemStyle }, { cell: branch, style: branchStyle }].map((c, idx) => (
                 <div
                   key={idx}
                   className={`flex h-16 w-full flex-col items-center justify-center rounded-xl border p-1 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
-                    isMe ? 'border-rose-500/40 ring-1 ring-rose-500/20' : 'border-stone-700/50'
+                    isMe ? 'border-rose-300 ring-1 ring-rose-200' : 'border-stone-200'
                   }`}
                 >
                   <span className={`${isKo ? 'text-base' : 'font-serif text-lg'} font-bold ${c.style.text}`}>
                     {cellText(c.cell)}
                   </span>
                   {isKo && imageOf(c.cell?.name) && (
-                    <span className="mt-0.5 text-[10px] leading-none text-stone-400">{imageOf(c.cell?.name)}</span>
+                    <span className="mt-0.5 text-[10px] leading-none text-stone-500">{imageOf(c.cell?.name)}</span>
                   )}
                 </div>
               ))}
