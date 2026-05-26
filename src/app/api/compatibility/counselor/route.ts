@@ -675,7 +675,7 @@ export async function POST(req: NextRequest) {
         cachedUserContext,
         userPrompt,
         priorTurns,
-        maxTokens: 3500,
+        maxTokens: 3000,
         temperature: 0.7,
         timeoutMs: 80000,
         label: 'compatibility-counselor',
