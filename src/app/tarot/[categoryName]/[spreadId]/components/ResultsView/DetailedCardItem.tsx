@@ -69,7 +69,13 @@ export function DetailedCardItem({
           {index + 1}
         </span>
         <div className="flex-1 min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
+            {isKo ? '카드 자리' : 'Position'}
+          </div>
           <div className="text-xs uppercase tracking-wider text-indigo-300/80">{positionTitle}</div>
+          <div className="mt-2 text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
+            {isKo ? '카드명' : 'Card'}
+          </div>
           <h3 className="text-xl md:text-2xl font-semibold text-slate-100 truncate">
             {cardName}
             <span className="ml-2 text-sm font-normal text-slate-400">({orientationLabel})</span>
@@ -104,15 +110,20 @@ export function DetailedCardItem({
 
         <div className="space-y-4">
           {keywords.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {keywords.map((keyword, i) => (
-                <span
-                  key={i}
-                  className="px-2.5 py-0.5 text-xs rounded-full bg-slate-800 border border-slate-700 text-slate-300"
-                >
-                  {keyword}
-                </span>
-              ))}
+            <div className="space-y-1.5">
+              <div className="text-[10px] uppercase tracking-wider text-slate-500">
+                {isKo ? '키워드' : 'Keywords'}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {keywords.map((keyword, i) => (
+                  <span
+                    key={i}
+                    className="px-2.5 py-0.5 text-xs rounded-full bg-slate-800 border border-slate-700 text-slate-300"
+                  >
+                    {keyword}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
@@ -133,7 +144,7 @@ export function DetailedCardItem({
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-4 h-4 text-indigo-300" />
               <div className="text-xs uppercase tracking-wider text-indigo-300 font-medium">
-                {isKo ? 'AI 해석 — 당신의 질문 기준' : 'AI Reading — For Your Question'}
+                {isKo ? '타로 마스터 리딩' : 'Tarot Master Reading'}
               </div>
             </div>
             {hasAiText ? (

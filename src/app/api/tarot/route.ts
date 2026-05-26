@@ -36,7 +36,9 @@ function drawCards(count: number): DrawnCard[] {
   }
   return deck.slice(0, n).map((card: Card) => ({
     card,
-    isReversed: Math.random() < 0.5,
+    // 역방향 30% — 50% 는 부정적 카드가 너무 자주 나와 부담된다는
+    // 피드백 반영. 정통 셔플도 물리 셔플 패턴상 ~25-30% 가 일반적.
+    isReversed: Math.random() < 0.3,
   }))
 }
 

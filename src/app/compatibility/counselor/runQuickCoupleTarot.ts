@@ -25,12 +25,13 @@ interface QuickCoupleTarotResult {
   markdown: string
 }
 
-// 카드 78장에서 N장 추출, 정/역 50% 결정.
+// 카드 78장에서 N장 추출. 역방향 30% (50% 는 부정적 카드 비중 과해
+// 부담된다는 피드백 반영 — /api/tarot/route.ts 와 동일).
 function drawRandomCards(count: number) {
   const shuffled = [...tarotDeck].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, count).map((card) => ({
     card,
-    isReversed: Math.random() < 0.5,
+    isReversed: Math.random() < 0.3,
   }))
 }
 
