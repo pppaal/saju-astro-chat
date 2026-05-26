@@ -5,7 +5,6 @@
 
 import React from 'react'
 import { logger } from '@/lib/logger'
-import { CHAT_TIMINGS } from '../chat-constants'
 import type { Message } from '../chat-constants'
 import type { SessionItem } from '../modals/HistoryModal'
 
@@ -60,34 +59,7 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
     logger.debug('[Chat] Session ready (fresh start - history available via button)')
   }, [])
 
-  // Auto-save messages to database
-  React.useEffect(() => {
-    if (!sessionLoaded) {
-      return
-    }
-    if (messages.length === 0) {
-      return
-    }
-
-    const saveTimer = setTimeout(async () => {
-      try {
-        await fetch('/api/counselor/session/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionIdRef.current,
-            locale: lang || 'ko',
-            messages: messages.filter((m) => m.role !== 'system'),
-          }),
-        })
-        logger.debug('[Chat] Session auto-saved:', { messageCount: messages.length })
-      } catch (e) {
-        logger.warn('[Chat] Failed to save session:', e)
-      }
-    }, CHAT_TIMINGS.DEBOUNCE_SAVE)
-
-    return () => clearTimeout(saveTimer)
-  }, [messages, sessionLoaded, lang])
+  // Auto-save lives on Chat.tsx (single writer, carries the birth meta).
 
   // Auto-update PersonaMemory after conversation
   const lastUpdateRef = React.useRef<number>(0)
