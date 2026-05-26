@@ -221,7 +221,7 @@ export const CacheKeys = {
     category?: string,
     birthPlace?: string
   ) =>
-    `yearly:v3:${birthDate}:${birthTime}:${gender}:${year}:${category || 'all'}:${safeBase64Encode(
+    `yearly:v4:${birthDate}:${birthTime}:${gender}:${year}:${category || 'all'}:${safeBase64Encode(
       birthPlace || 'Seoul'
     )}`,
 

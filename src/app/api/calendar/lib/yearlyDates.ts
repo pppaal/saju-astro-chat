@@ -2175,10 +2175,12 @@ export function calculateYearlyImportantDates(
       })(),
       // override 활성 시 confidence를 헤드라인 점수와 정렬. primaryStrength는 도메인
       // 강도라 점수와 무관할 수 있어 "최고점인데 신뢰도 56%" 모순이 생긴다.
-      // 슬로프 1.0 · cap 99로 두는 이유: applyEvidenceRegrade의 strongBestSignal path
-      // (confidence >= 85)와 isLowCoherenceSignal의 confidence < 45 path가 둘 다
-      // 자연 발화하는 폭이 필요하다. 그 폭이 좁으면 진짜 grade-0 날이 silent demote되거나
-      // forceConservativeMode 경고가 영구 봉인된다.
+      // 슬로프 1.0 · cap 99로 두는 이유: formatDateForResponse의 isLowCoherenceSignal
+      // (`conf < 45 || agreement < 60`)과 buildEnhancedRecommendations.lowConfidence
+      // (irreversible 추천 게이트)가 둘 다 자연 발화하는 폭이 필요하다. 좁으면
+      // 진짜 grade-0 날의 conservativeWarning 경로가 영구 봉인되거나 grade-≤1 날의
+      // demote가 안 일어난다. matrix evidence 측 strongBestSignal(>=85)은 별도 confidence
+      // (evidenceWithVerdict.confidence)를 보므로 이 값과 무관.
       confidence:
         typeof engineOverride === 'number' && Number.isFinite(engineOverride)
           ? Math.round(clamp(score, 20, 99))
