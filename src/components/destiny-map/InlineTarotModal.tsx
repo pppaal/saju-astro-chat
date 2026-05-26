@@ -486,14 +486,16 @@ interface InterpretingStepProps {
 
 function InterpretingStep({ tr, overallMessage, lang, onRetry }: InterpretingStepProps) {
   const isKo = lang === 'ko'
-  // If interpretation drags on, surface an escape so the user isn't stuck
-  // staring at the loader (the 35s timeout still auto-falls back to card
-  // meanings, but this lets impatient users retry/move on immediately).
+  // 진짜 hang(첫 토큰조차 안 오는 케이스)에만 slow UI 띄운다. progressive
+  // 스트리밍으로 텍스트가 흐르고 있으면 사용자는 진행 중인 걸 눈으로 보니까
+  // 'slow' 메시지가 오히려 혼란을 줌 → overallMessage 비어있을 때만 노출.
+  // 임계치도 12s → 20s 로 상향 (Claude 첫 토큰 latency 변동성 흡수).
   const [slow, setSlow] = React.useState(false)
   useEffect(() => {
-    const id = setTimeout(() => setSlow(true), 12000)
+    const id = setTimeout(() => setSlow(true), 20000)
     return () => clearTimeout(id)
   }, [])
+  const showSlow = slow && !overallMessage
 
   return (
     <div className={styles.stepContent}>
@@ -507,7 +509,7 @@ function InterpretingStep({ tr, overallMessage, lang, onRetry }: InterpretingSte
             <p>{overallMessage}</p>
           </div>
         )}
-        {slow && (
+        {showSlow && (
           <div
             style={{
               marginTop: 18,
