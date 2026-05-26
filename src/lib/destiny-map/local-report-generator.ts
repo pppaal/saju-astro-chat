@@ -37,26 +37,29 @@ const SIGN_NAMES: Record<string, { ko: string; en: string }> = {
 }
 
 /** Element personality traits */
+// 오행 성정(性情) — 명리 五常 (목=仁 / 화=禮 / 토=信 / 금=義 / 수=智) 기반.
+// 보고서 톤("…합니다") → 상담사 chat 톤("…에요/이에요")으로 통일.
+// "한 줄 해석" 의 두 번째 문장으로 합쳐지므로 마침표 없이 끝남(상위에서 붙임).
 const ELEMENT_TRAITS: Record<string, { ko: string; en: string }> = {
   wood: {
-    ko: '성장과 창의성을 추구하며, 새로운 시작에 강한 에너지를 보입니다',
-    en: 'Seeks growth and creativity, showing strong energy for new beginnings',
+    ko: '새로 시작하고 키워가는 결이 강해요. 자라는 방향을 본능적으로 잡고, 굳어버리기보다 뻗어나가는 쪽을 택해요',
+    en: 'You have a strong starting-and-growing edge. You instinctively find which way to extend, choosing to stretch rather than settle',
   },
   fire: {
-    ko: '열정과 리더십이 강하며, 주변을 밝히는 카리스마가 있습니다',
-    en: 'Strong passion and leadership, with charisma that lights up surroundings',
+    ko: '환하게 드러나고 사람을 끌어모으는 기운이에요. 표현이 솔직하고, 자리에 활기를 더해요',
+    en: 'A bright, drawing-people-in energy. Your expression is candid, and you bring spark to whatever room you enter',
   },
   earth: {
-    ko: '안정과 신뢰를 중시하며, 현실적이고 꾸준한 성향입니다',
-    en: 'Values stability and trust, with a realistic and steady disposition',
+    ko: '중심을 잡고 사이를 잇는 결이에요. 약속을 지키고, 주변이 흔들릴 때도 자기 자리를 지켜요',
+    en: 'A grounding, in-between-connecting edge. You keep promises and hold your ground when things around you waver',
   },
   metal: {
-    ko: '원칙과 정의를 중시하며, 결단력과 집중력이 뛰어납니다',
-    en: 'Values principles and justice, with excellent decisiveness and focus',
+    ko: '맺고 끊는 게 분명한 결이에요. 옳다고 본 건 밀고 가고, 흐트러진 걸 정리하는 감각이 좋아요',
+    en: 'A clear-cut, decision-making edge. You push through what feels right and have a sharp sense for organizing what got scattered',
   },
   water: {
-    ko: '지혜와 적응력이 뛰어나며, 깊은 통찰력을 지닙니다',
-    en: 'Excellent wisdom and adaptability, with deep insight',
+    ko: '흐름을 읽고 깊이 들여다보는 결이에요. 상황에 잘 녹아들면서도 자기 안의 결은 단단해요',
+    en: 'A read-the-flow, look-deeper edge. You blend with situations while your inner thread stays firm',
   },
 }
 
