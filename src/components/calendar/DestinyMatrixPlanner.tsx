@@ -31,6 +31,7 @@ import YearOverviewCard from './YearOverviewCard'
 import MonthlyInterpretationCard from './MonthlyInterpretationCard'
 import DailyFlowCard from './DailyFlowCard'
 import DailyHourlyChart from './DailyHourlyChart'
+import MonthlyDailyChart from './MonthlyDailyChart'
 import WeeklyTimingChart from './WeeklyTimingChart'
 import { getGrade, computeGradeThresholds } from './scoreGrade'
 import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
@@ -521,6 +522,13 @@ export default function DestinyMatrixPlanner({
               transition={{ duration: 0.2 }}
               className="p-6 space-y-6"
             >
+              {/* 매일 점수 area chart (yearly view와 시각 일관성) — 오늘 위치 노란 세로 가이드. */}
+              <MonthlyDailyChart
+                monthDates={monthDates}
+                viewYear={viewYear}
+                viewMonth={viewMonth}
+                onDayClick={handleDayClick}
+              />
               <div className="bg-zinc-900/60 p-6 rounded-3xl border border-white/5 shadow-2xl">
                 <div className="flex justify-between items-center mb-4 gap-2">
                   <button
@@ -704,6 +712,9 @@ export default function DestinyMatrixPlanner({
                 </div>
               )}
 
+              {/* ── 24h 시간대 교차 그래프 (saju 시진 × 점성 행성시) — 오늘 보면 현재 시각 노란 세로 가이드. */}
+              <DailyHourlyChart importantDate={selectedImportantDate} dateStr={selectedDateStr} />
+
               {(() => {
                 const todayGrade = getGrade(dailyIndices.score, gradeThresholds)
                 return (
@@ -816,9 +827,6 @@ export default function DestinyMatrixPlanner({
               {/* ── calendar-engine v2: 오늘의 활성 흐름 (글로 풀어씀) ── */}
               {/* 기존 ActiveSignalsList 리스트 + 신살 칩 → 단일 narrative 카드로 통합 */}
               <DailyFlowCard importantDate={selectedImportantDate} />
-
-              {/* ── 24h 시간대 교차 그래프 (saju 시진 × 점성 행성시) ── */}
-              <DailyHourlyChart importantDate={selectedImportantDate} />
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-base font-bold text-zinc-200 flex items-center gap-2 mb-4">
