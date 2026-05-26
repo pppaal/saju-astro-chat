@@ -419,9 +419,14 @@ export function useChatApi({
       } catch (e: unknown) {
         logger.error('[Chat] send error:', e)
         const err = e as Error
-        const isCreditError =
-          err.message.includes('INSUFFICIENT_CREDITS') || err.message.includes('API_ERROR:402')
-        if (!isCreditError) {
+        // 진짜 네트워크 끊김(응답 없음)일 때만 "Connection lost" 배너 표시.
+        // HTTP 응답을 받은 에러(401/402/403/4xx/5xx, 크레딧/게스트 한도 등)는
+        // 인터넷 문제 아님 — 별도 메시지로 노티만 띄움.
+        const hadHttpResponse =
+          err.message.startsWith('API_ERROR:') ||
+          err.message.includes('INSUFFICIENT_CREDITS') ||
+          err.message.includes('GUEST_LIMIT_REACHED')
+        if (!hadHttpResponse) {
           setConnectionStatus('offline')
         }
 

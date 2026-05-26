@@ -53,9 +53,11 @@ export function getErrorMessage(error: Error, lang: LangKey, tr: Copy): string {
     message.toLowerCase().includes('unauthorized') ||
     message.toLowerCase().includes('authentication required')
   ) {
+    // "만료" 라고 단정하면 한 번도 로그인 안 한 비회원에게 어색함. 회원가입
+    // 인센티브(무료 크레딧)도 같이 안내해서 비회원이 다음 행동을 알게 함.
     return lang === 'ko'
-      ? '로그인 상태가 만료되었거나 인증이 필요합니다. 다시 로그인 후 시도해 주세요.'
-      : 'Your session has expired or authentication is required. Please sign in again and try.'
+      ? '운명상담사 이용에는 로그인이 필요해요. 회원가입 시 무료 크레딧 2개로 시작할 수 있어요.'
+      : 'Sign-in required to use the counselor. New accounts get 2 free credits to start.'
   }
 
   if (message.includes('API_ERROR:403') || message.toLowerCase().includes('csrf')) {
